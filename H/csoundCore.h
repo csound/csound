@@ -558,7 +558,7 @@ extern "C" {
     int (*Compile)(void *csound, int argc, char **argv);
     int (*PerformKsmps)(void *csound);
     int (*PerformBuffer)(void *csound);
-    void (*Cleanup)(void *csound);
+    int (*Cleanup)(void *csound);
     void (*Reset)(void *csound);
     MYFLT (*GetSr)(void *csound);
     MYFLT (*GetKr)(void *csound);

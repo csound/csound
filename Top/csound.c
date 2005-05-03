@@ -437,7 +437,7 @@ extern "C" {
     csInstance_t  *p, *prv = NULL;
     csoundLock();
     p = instance_list;
-    while (p != NULL && p->csound != csound) {
+    while (p != NULL && p->csound != (ENVIRON*) csound) {
       prv = p; p = p->nxt;
     }
     if (p == NULL) {
@@ -480,7 +480,6 @@ extern "C" {
    */
 
   extern int sensevents(ENVIRON *);
-  extern int cleanup(void*);
 
   PUBLIC int csoundPerform(void *csound, int argc, char **argv)
   {
@@ -536,17 +535,6 @@ extern "C" {
   /* external host's outbuffer passed in csoundPerformBuffer()
    */
 
-  static long _rtCurOutBufCount = 0;
-
-#if 0
-  static char *_rtCurOutBuf = 0;
-  static long _rtCurOutBufSize = 0;
-  static char *_rtOutOverBuf = 0;
-  static long _rtOutOverBufSize = 0;
-  static long _rtOutOverBufCount = 0;
-  static char *_rtInputBuf = 0;
-#endif
-
   PUBLIC int csoundPerformBuffer(void *csound)
   {
     volatile int returnValue;
@@ -561,7 +549,6 @@ extern "C" {
       csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
       return returnValue;
     }
-    _rtCurOutBufCount = 0;
     sampsNeeded += ((ENVIRON*) csound)->oparms->outbufsamps;
     while (!done && sampsNeeded > 0) {
       done = sensevents(csound);
@@ -573,11 +560,6 @@ extern "C" {
       sampsNeeded -= sampsPerKperf;
     }
     return done;
-  }
-
-  PUBLIC void csoundCleanup(void *csound)
-  {
-    cleanup(csound);
   }
 
   /*

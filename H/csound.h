@@ -280,7 +280,7 @@ extern "C" {
    * Prints information about the end of a performance.
    * Must be called after the final call to csoundPerformKsmps.
    */
-  PUBLIC void csoundCleanup(void *csound);
+  PUBLIC int csoundCleanup(void *csound);
 
   /**
    * Resets all internal memory and state in preparation for a new performance.
