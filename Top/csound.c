@@ -184,7 +184,7 @@ extern "C" {
 #ifndef __MACH__
   void psignal(int sig, char *str)
   {
-    err_printf( "%s: %s\n", str, signal_to_string(sig));
+    fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
   }
 #endif
 #endif
@@ -192,7 +192,7 @@ extern "C" {
 #if defined(__BEOS__)
   void psignal(int sig, char *str)
   {
-    err_printf("%s: %s\n", str, strsignal(sig));
+    fprintf(stderr, "%s: %s\n", str, strsignal(sig));
   }
 #endif
 
@@ -421,11 +421,11 @@ extern "C" {
     return csoundLoadModules(csound);
   }
 
-  PUBLIC int csoundQueryInterface(const char *name, void **interface, int *version)
+  PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version)
   {
     if(strcmp(name, "CSOUND") == 0)
       {
-        *interface = csoundCreate(0);
+        *iface = csoundCreate(0);
         *version = csoundGetVersion();
         return 0;
       }
