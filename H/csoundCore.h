@@ -657,7 +657,7 @@ extern "C" {
     int (*LoadExternal)(void *csound, const char *libraryPath);
     int (*LoadExternals)(void *csound);
     void *(*OpenLibrary)(const char *libraryPath);
-    void *(*CloseLibrary)(void *library);
+    int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     void (*SetYieldCallback)(void *csound,
                              int (*yieldCallback)(void *hostData));
