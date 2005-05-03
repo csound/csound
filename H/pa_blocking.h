@@ -22,7 +22,7 @@ extern "C" {
   } PA_BLOCKING_STREAM;
 
 int paBlockingReadWriteOpen(ENVIRON *csound,
-    PA_BLOCKING_STREAM **pabs_in, PA_BLOCKING_STREAM **pabs_out, PaStreamParameters *paParameters,
+    PA_BLOCKING_STREAM *pabs, PaStreamParameters *paParameters,
     csRtAudioParams *parm);
     
   int paBlockingReadWriteStreamCallback(const void *input,
@@ -33,7 +33,7 @@ int paBlockingReadWriteOpen(ENVIRON *csound,
                                  void *userData);
 
   int paBlockingReadOpen(ENVIRON *csound,
-                         PA_BLOCKING_STREAM **pabs_,
+                         PA_BLOCKING_STREAM *pabs,
                          PaStreamParameters *paParameters,
                          csRtAudioParams *parm);
 
@@ -46,7 +46,7 @@ int paBlockingReadWriteOpen(ENVIRON *csound,
                                    void *userData);
 
   int paBlockingWriteOpen(ENVIRON *csound,
-                          PA_BLOCKING_STREAM **pabs_,
+                          PA_BLOCKING_STREAM *pabs,
                           PaStreamParameters *paParameters,
                           csRtAudioParams *parm);
 
