@@ -280,19 +280,19 @@ void makeWindow(char *name)
 
 extern "C"
 {
-  void DrawGraph_(WINDAT *);
+  void DrawGraph_(void *csound, WINDAT *);
   long MakeWindow(char *);
   int POLL_EVENTS(ENVIRON *csound);
   void kill_graph(int);
   int myFLwait(void);
-  void MakeXYin_(XYINDAT*, MYFLT, MYFLT);
-  void ReadXYin_(XYINDAT *wdptr);
-  void KillXYin_(XYINDAT *x);
+  void MakeXYin_(void *csound, XYINDAT*, MYFLT, MYFLT);
+  void ReadXYin_(void *csound, XYINDAT *wdptr);
+  void KillXYin_(void *csound, XYINDAT *x);
 
-  void DrawGraph_(WINDAT *wdptr)
+  void DrawGraph_(void *csound, WINDAT *wdptr)
   {
     add_graph(wdptr);
-    csoundYield(&cenviron);
+    csoundYield(csound);
   }
 
   long MakeWindow(char *name)
@@ -341,7 +341,7 @@ extern "C"
 #define GUTTERH 20           /* space for text at top & bottom */
 #define BORDERW 10           /* inset from L & R edge */
 
-  void MakeXYin_(XYINDAT *w, MYFLT x, MYFLT y)
+  void MakeXYin_(void *csound, XYINDAT *w, MYFLT x, MYFLT y)
   {
     if (w->windid==0) {
       Fl_Window *xyin = new Fl_Window(WIDTH,WIDTH, "XY input");
@@ -364,7 +364,7 @@ extern "C"
     }
   }
 
-  void ReadXYin_(XYINDAT *wdptr)
+  void ReadXYin_(void *csound, XYINDAT *wdptr)
   {
     short       win_x, win_y;
     short       gra_x, gra_y, gra_w, gra_h;
@@ -406,7 +406,7 @@ extern "C"
     }
   }
 
-  void KillXYin_(XYINDAT *wdptr)
+  void KillXYin_(void *csound, XYINDAT *wdptr)
   {
     Fl_Window *x = (Fl_Window*)wdptr->windid;
     x->~Fl_Window();

@@ -613,7 +613,7 @@ void VSTPlugin::Log(const char *format,...)
       va_list args;
       va_start(args, format);
       if(csound) {
-            csound->MessageV(csound, format, args);
+            csound->MessageV(csound, 0, format, args);
       }
       else {
             vfprintf(stdout, format, args);
@@ -628,7 +628,7 @@ void VSTPlugin::Debug(const char *format,...)
       if(csound) {
           if(csound->GetMessageLevel(csound) & WARNMSG ||
              csound->GetDebug(csound)) {
-              csound->MessageV(csound, format, args);
+              csound->MessageV(csound, 0, format, args);
           }
       }
       else {

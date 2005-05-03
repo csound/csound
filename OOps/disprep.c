@@ -41,11 +41,13 @@ int printv(ENVIRON *csound, PRINTV *p)
     char   **txtp = p->h.optext->t.inlist->arg;
     MYFLT  **valp = p->iargs;
 
-    csound->Message(csound, "instr %d:", (int) p->h.insdshead->p1);
+    csound->MessageS(csound, CSOUNDMSG_ORCH,
+                     "instr %d:", (int) p->h.insdshead->p1);
     while (nargs--) {
-      csound->Message(csound, "  %s = %5.3f", *txtp++, **valp++);
+      csound->MessageS(csound, CSOUNDMSG_ORCH,
+                       "  %s = %5.3f", *txtp++, **valp++);
     }
-    csound->Message(csound, "\n");
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
 }
 

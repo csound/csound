@@ -132,7 +132,7 @@ public:
   /**
    *	Sets a function for Csound to call to print informational messages through external software.
    */
-  virtual void setMessageCallback(void (*messageCallback)(void *hostData, const char *format, va_list args));
+  virtual void setMessageCallback(void (*messageCallback)(void *hostData, int attr, const char *format, va_list args));
   /**
    *	Print an informational message.
    */

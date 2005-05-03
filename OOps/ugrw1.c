@@ -3155,45 +3155,13 @@ int printks(ENVIRON *csound, PRINTKS *p)
     /* Now test if the cycle number we are in is higher than the one in which
      * we last printed.  If so, update cysofar and print.     */
     if (p->cysofar < cycles)  {
-        p->cysofar = cycles;
-        /* Do the print cycle. */
-        sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
-        csound->Message(csound, string);
-
-#ifdef REMOVE_WE_CAN_NOW_USE_PRINTF_CHAR_CODE_INSTEAD
-        char *txtptr = p->txtstring;
-        txtptr = p->txtstring;
-        /* Special code to allow us to print the direct byte value of the
-         * first parameter - only if the first character of the string is
-         * a #.  Then go on and do a printf() with the three other
-         * input variables as floats.
-         *
-         * This enables us to output any value to the output if we really
-         * want to.
-         */
-
-        if (*txtptr == '#') {
-          /* print the 0 to 255 value of the float - this gives wrap-around
-           * for out of range values.      */
-          csound->Message(csound, "%c", 255 & (int)FLOOR(*p->kval1));
-          /* printf the rest of the string, if any.   */
-          csound->Message(csound, ++txtptr, *p->kval2, *p->kval3, *p->kval4, 0, 0, 0);
-                                /* What on earth are these zeros for!!! */
-        }
-        else {
-          /* Otherwise do the normal print cycle of printf()ing the string
-           * with four float input variables.
-           *
-           * Put a few dummy variables on the end for Justin - just in case we
-           * put too many % format specifiers in the string.
-           */
-          csound->Message(csound, txtptr, *p->kval1, *p->kval2, *p->kval3, *p->kval4, 0, 0);
-        }
-#endif
-      }
+      p->cysofar = cycles;
+      /* Do the print cycle. */
+      sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+    }
     return OK;
 }
-
 
 /* matt ingalls --  i-rate prints */
 int printsset(ENVIRON *csound, PRINTS *p)
@@ -3206,7 +3174,7 @@ int printsset(ENVIRON *csound, PRINTS *p)
     pk.ptime = &ptime;
     printksset(csound,&pk);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
-    csound->Message(csound, string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
 }
 
@@ -3277,12 +3245,17 @@ int printk2(ENVIRON *csound, PRINTK2 *p)
     MYFLT   value = *p->val;
     int     spcount;
     if (p->oldvalue != value) {
-      csound->Message(csound, " i%d", p->h.insdshead->insno);
-      spcount = p->pspace + 1;
-      do {
-        csound->Message(csound, " ");
-      } while (--spcount);
-      csound->Message(csound, "%11.5f\n", *p->val);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ", p->h.insdshead->insno);
+      spcount = p->pspace;
+      while (spcount > 0) {
+        int   n = (spcount < 256 ? spcount : 255);
+        char  s[256];
+        memset(s, ' ', n);
+        s[n] = '\0';
+        csound->MessageS(csound, CSOUNDMSG_ORCH, s);
+        spcount -= n;
+      }
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->oldvalue = value;
     }
     return OK;

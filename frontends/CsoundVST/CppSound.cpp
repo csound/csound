@@ -178,7 +178,7 @@ MYFLT *CppSound::getSpout()
   return csoundGetSpout(csound);
 }
 
-void CppSound::setMessageCallback(void (*messageCallback)(void *hostData, const char *format, va_list args))
+void CppSound::setMessageCallback(void (*messageCallback)(void *hostData, int attr, const char *format, va_list args))
 {
   csoundSetMessageCallback(csound, messageCallback);
 }
@@ -282,13 +282,13 @@ void CppSound::message(const char *format,...)
 {
   va_list args;
   va_start(args, format);
-  csoundMessageV(csound, format, args);
+  csoundMessageV(csound, 0, format, args);
   va_end(args);
 }
 
 void CppSound::messageV(const char *format, va_list args)
 {
-  csoundMessageV(csound, format, args);
+  csoundMessageV(csound, 0, format, args);
 }
 
 int CppSound::loadExternals()
@@ -356,11 +356,11 @@ bool CppSound::getIsGo() const
 
 extern "C" 
 {
-  void csoundSetMessageCallback(void *csound, void (*csoundMessageCallback)(void *csound, const char *format, va_list valist));
+  void csoundSetMessageCallback(void *csound, void (*csoundMessageCallback)(void *csound, int attr, const char *format, va_list valist));
   int PyRun_SimpleString(const char *string);
 }
 
-static void pythonMessageCallback(void *csound, const char *format, va_list valist)
+static void pythonMessageCallback(void *csound, int attr, const char *format, va_list valist)
 {
   static char buffer[0x1000];
   static char buffer1[0x1000];

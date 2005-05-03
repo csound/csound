@@ -485,7 +485,6 @@ static int checkLicence(void *csound, FILE *unf)
     licence[0] = '\0';
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
-      while (*p == ' ' || *p == '\t') p++;
       if (strstr(p, "</CsLicence>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
         csoundDestroyGlobalVariable(csound, "::SF::csd_licence");
@@ -495,10 +494,10 @@ static int checkLicence(void *csound, FILE *unf)
         free(licence);
         return TRUE;
       }
-      csoundMessage(csound, "**** %s ****\n", p);
-      len += strlen(ST(buffer));
+      csoundMessage(csound, "%s", p);
+      len += strlen(p);
       licence = realloc(licence, len);
-      strcat(licence, ST(buffer));
+      strcat(licence, p);
     }
     free(licence);
     return FALSE;

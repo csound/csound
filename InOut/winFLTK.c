@@ -37,7 +37,7 @@ extern void kill_graph(int);
 extern   int myFLwait(void);
 extern void *XOpenDisplay(char *);
 
-int Graphable_(void)     /* called during program initialisation */
+int Graphable_(void *csound)    /* called during program initialisation */
 {               /* decides whether to use X or not; initializes X if so */
     int         rc = 0;         /* default : don't use X, use tty ascii */
 #if defined(USE_FLTK)
@@ -48,19 +48,21 @@ int Graphable_(void)     /* called during program initialisation */
     return(rc);
 }
 
-void MakeGraph_(WINDAT *wdptr, char *name)
+void MakeGraph_(void *csound, WINDAT *wdptr, char *name)
 {
     wdptr->windid = MakeWindow(name);
 }
 
-void KillGraph_(WINDAT *wdptr)
+void KillGraph_(void *csound, WINDAT *wdptr)
 {
     kill_graph(wdptr->windid);
 }
 
-int ExitGraph_(void) /* print click-Exit message in most recently active window */
+/* print click-Exit message in most recently active window */
+
+int ExitGraph_(void *csound)
 {
-    char *env = csoundGetEnv(&cenviron, "CSNOSTOP");
+    char *env = csoundGetEnv(csound, "CSNOSTOP");
     if (env==NULL || strcmp(env,"yes")==0)
       myFLwait();
     return 0;

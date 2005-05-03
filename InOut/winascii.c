@@ -31,21 +31,23 @@
 
 static  char    *points = NULL;
 
-void MakeAscii(WINDAT *wdptr, char *n)
+void MakeAscii(void *csound, WINDAT *wdptr, char *n)
 {
     wdptr->windid = -1;                         /* just so it's not null */
     if (points == NULL)
-      points = mmalloc(&cenviron,
+      points = mmalloc(csound,
                        (long)((VER+1) * HOR));  /* alloc the 2-Dim array */
 }
 
-void KillAscii(WINDAT *wdptr)
+void KillAscii(void *csound, WINDAT *wdptr)
 {
     wdptr->windid = 0;          /* just to make out that it's dead */
 }
 
-void DrawAscii(WINDAT *wdptr)   /* display an n-pnt float array using */
-{                               /* simple ascii chars */
+/* display an n-pnt float array using simple ascii chars */
+
+void DrawAscii(void *csound, WINDAT *wdptr)
+{
     long     npts    = wdptr->npts;
     MYFLT    absmax  = wdptr->absmax;
 
@@ -94,3 +96,4 @@ void DrawAscii(WINDAT *wdptr)   /* display an n-pnt float array using */
       }
     }
 }
+
