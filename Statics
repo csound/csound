@@ -1,15 +1,5 @@
 Engine/cfgvar.c:static  void    **global_cfg_db = NULL;
 
-Engine/extract.c:static char    inslst[INSMAX];         /*   values set by readxfil     */
-Engine/extract.c:static int     onsect, offsect;        /*      "       "       "       */
-Engine/extract.c:static MYFLT   onbeat, offbeat;        /*      "       "       "       */
-Engine/extract.c:static MYFLT   ontime, offtime;        /* set by readxfil, mod by w-stmnt */
-Engine/extract.c:static SRTBLK *frstout, *prvout;       /* links for building new outlist */
-Engine/extract.c:static SRTBLK a0 = { NULL,NULL,0,3,FL(0.0),FL(0.0),FL(0.0),FL(0.0),FL(0.0),
-Engine/extract.c:static SRTBLK f0 = { NULL,NULL,0,2,FL(0.0),FL(0.0),FL(0.0),FL(0.0),FL(0.0),
-Engine/extract.c:static SRTBLK e  = { NULL,NULL,0,0,FL(0.0),FL(0.0),FL(0.0),FL(0.0),FL(0.0),
-Engine/extract.c:    static  int   sectno, a0done;
-
 Engine/fgens.c:    static      WINDAT  dwindow; /* Why is this static? */
 
 InOut/winascii.c:static  char    *points = NULL;

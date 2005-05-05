@@ -23,7 +23,7 @@
 
 #include "cs.h"                                    /*  SCXTRACT.C  */
 
-extern void readxfil(FILE *), extract(ENVIRON*), swrite(ENVIRON*);
+extern void readxfil(ENVIRON *, FILE *), extract(ENVIRON *), swrite(ENVIRON *);
 extern void sfree(ENVIRON *csound);
 extern int  sread(ENVIRON *csound);
 extern void sread_init(ENVIRON *csound);
@@ -34,7 +34,7 @@ int scxtract(ENVIRON *csound, FILE *scin, FILE * scout, FILE *xfile)
 {                               /*   according to the controlling xfile   */
     int     n;
 
-    readxfil(xfile);
+    readxfil(csound, xfile);
     csound->scorein = scin;
     csound->scoreout = scout;
 
