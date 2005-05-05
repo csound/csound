@@ -310,8 +310,10 @@ int express(ENVIRON *csound, char *s)
             }
           }
         }
-        else if (strcmp(op,"a.k") == 0)
-          outype = 'a';                     /* a(karg) is irreg. */
+        else if (strcmp(op,"a.k") == 0)     /* a(karg) is irreg. */
+          outype = 'a';
+        else if (strcmp(op,"k.i") == 0)     /* k(iarg) is irreg. */
+          outype = 'K';         /* K-type is k-rate assigned at i-time only */
         else outype = c;                    /* else outype=intype */
       }
       else if (prec >= BITOPS && prec < AOPS && argcnt >= 2) {  /* bit op:  */
@@ -441,11 +443,14 @@ int express(ENVIRON *csound, char *s)
       s = &buffer[0] /* pp->arg[0] */;      /* now create outarg acc. to type */
       if (!csound->oparms->expr_opt) {
         /* IV - Jan 08 2003: old code: should work ... */
-        if      (outype == 'a') sprintf(s, "#a%d", csound->acount++);
-        else if (outype == 'k') sprintf(s, "#k%d", csound->kcount++);
-        else if (outype == 'B') sprintf(s, "#B%d", csound->Bcount++);
-        else if (outype == 'b') sprintf(s, "#b%d", csound->bcount++);
-        else                    sprintf(s, "#i%d", csound->icount++);
+        switch (outype) {
+          case 'a': sprintf(s, "#a%d", csound->acount++); break;
+          case 'K':
+          case 'k': sprintf(s, "#k%d", csound->kcount++); break;
+          case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
+          case 'b': sprintf(s, "#b%d", csound->bcount++); break;
+          default:  sprintf(s, "#i%d", csound->icount++); break;
+        }
       }
       else {
         int ndx = (int) (csound->argp - csound->tokenlist); /* argstack index */
@@ -471,11 +476,14 @@ int express(ENVIRON *csound, char *s)
           /* different indexes for the tmp variables of each expression. */
 /*        if (!cnt) */
             cnt += csound->argcnt_offs;     /* IV - Jan 15 2003 */
-          if (outype == 'a')        sprintf(s, "#a%d", cnt);
-          else if (outype == 'k')   sprintf(s, "#k%d", cnt);
-          else if (outype == 'B')   sprintf(s, "#B%d", csound->Bcount++);
-          else if (outype == 'b')   sprintf(s, "#b%d", csound->bcount++);
-          else                      sprintf(s, "#i%d", csound->icount++);
+          switch (outype) {
+            case 'a': sprintf(s, "#a%d", cnt); break;
+            case 'K': sprintf(s, "#k_%d", csound->kcount++); break;
+            case 'k': sprintf(s, "#k%d", cnt); break;
+            case 'B': sprintf(s, "#B%d", csound->Bcount++); break;
+            case 'b': sprintf(s, "#b%d", csound->bcount++); break;
+            default:  sprintf(s, "#i%d", csound->icount++); break;
+          }
           /* IV - Jan 08 2003: count max. stack depth in order to allow */
           /* generating different indexes for temporary variables of */
           /* separate expressions on the same line (see also below). */
