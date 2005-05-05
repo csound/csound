@@ -1,3 +1,8 @@
+2005-05-05	Istvan Varga	<istvan@csounds.com>
+	* Engine/entry1.c:
+	* Engine/express.c:
+	  added k() function for converting i-rate values to k-rate
+
 2005-05-01	Istvan Varga	<istvan@csounds.com>
 	* H/csound.h:
 	* Top/threads.c:
