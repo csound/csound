@@ -25,6 +25,14 @@
 #include "oscbnk.h"
 #include <math.h>
 
+typedef struct {
+    unsigned long     oscbnk_seed;
+    long              rnd31i_seed;
+    int               denorm_seed;
+    int               vco2_nr_table_arrays;
+    VCO2_TABLE_ARRAY  **vco2_tables;
+} OSCBNK_GLOBALS;
+
 /* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
 
 /* update random seed */
@@ -45,18 +53,17 @@ static void oscbnk_rand31(long *seed)
 
 static void oscbnk_seedrand(ENVIRON *csound, long *seed, MYFLT seedval)
 {
-    unsigned long *oscbnk_seed;
-
-    oscbnk_seed = (unsigned long*)
-                    csound->QueryGlobalVariable(csound, "_oscbnk_seed");
     *seed = (long) ((double) seedval + 0.5);
     if (*seed < 1L) {                   /* seed from current time */
-      if (*oscbnk_seed > 0UL)
-        *oscbnk_seed += 23UL;
+      OSCBNK_GLOBALS  *pp;
+      pp = (OSCBNK_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "_oscbnk_globals");
+      if (pp->oscbnk_seed > 0UL)
+        pp->oscbnk_seed += 23UL;
       else
-        *oscbnk_seed = (unsigned long) csound->timers_random_seed();
-      *oscbnk_seed = ((*oscbnk_seed - 1UL) % 0x7FFFFFFEUL) + 1UL;
-      *seed = (long) *oscbnk_seed;
+        pp->oscbnk_seed = (unsigned long) csound->timers_random_seed();
+      pp->oscbnk_seed = ((pp->oscbnk_seed - 1UL) % 0x7FFFFFFEUL) + 1UL;
+      *seed = (long) pp->oscbnk_seed;
     }
     else {
       *seed = ((*seed - 1L) % 0x7FFFFFFEL) + 1L;
@@ -1019,9 +1026,12 @@ static int rnd31i(ENVIRON *csound, RND31 *p)
     }
 
     /* initialise seed */
-    if (p->rnd31i_seed == NULL)
-      p->rnd31i_seed = (long*)
-                         csound->QueryGlobalVariable(csound, "_rnd31i_seed");
+    if (p->rnd31i_seed == NULL) {
+      OSCBNK_GLOBALS  *pp;
+      pp = (OSCBNK_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "_oscbnk_globals");
+      p->rnd31i_seed = &(pp->rnd31i_seed);
+    }
     if (*(p->iseed) < FL(0.5)) {    /* seed from current time       */
       if (*(p->rnd31i_seed) <= 0L)  /* check if already initialised */
         oscbnk_seedrand(csound, p->rnd31i_seed, FL(0.0));
@@ -1436,61 +1446,51 @@ typedef struct {
 
 static void vco2_delete_table_array(ENVIRON *csound, int w)
 {
-    int                 *vco2_nr_table_arrays;
-    VCO2_TABLE_ARRAY    ***vco2_tables;
-    int                 j;
+    OSCBNK_GLOBALS  *pp = (OSCBNK_GLOBALS*)
+                          csound->QueryGlobalVariableNoCheck(csound,
+                                                             "_oscbnk_globals");
+    int             j;
 
-    vco2_nr_table_arrays =
-        (int*) (csound->QueryGlobalVariable(csound, "_vco2_nr_table_arrays"));
-    vco2_tables = (VCO2_TABLE_ARRAY***)
-                      (csound->QueryGlobalVariable(csound, "_vco2_tables"));
     /* table array does not exist: nothing to do */
-    if (*vco2_tables == (VCO2_TABLE_ARRAY**) NULL ||
-        w >= *vco2_nr_table_arrays ||
-        (*vco2_tables)[w] == (VCO2_TABLE_ARRAY*) NULL)
+    if (pp->vco2_tables == (VCO2_TABLE_ARRAY**) NULL ||
+        w >= pp->vco2_nr_table_arrays ||
+        pp->vco2_tables[w] == (VCO2_TABLE_ARRAY*) NULL)
       return;
 #ifdef VCO2FT_USE_TABLE
     /* free number of partials -> table list, */
-    csound->Free(csound, (*vco2_tables)[w]->nparts_tabl);
+    csound->Free(csound, pp->vco2_tables[w]->nparts_tabl);
 #else
     /* free number of partials list, */
-    csound->Free(csound, (*vco2_tables)[w]->nparts);
+    csound->Free(csound, pp->vco2_tables[w]->nparts);
 #endif
     /* table data (only if not shared as standard Csound ftables), */
-    for (j = 0; j < (*vco2_tables)[w]->ntabl; j++) {
-      if ((*vco2_tables)[w]->base_ftnum < 1)
-        csound->Free(csound, (*vco2_tables)[w]->tables[j].ftable);
+    for (j = 0; j < pp->vco2_tables[w]->ntabl; j++) {
+      if (pp->vco2_tables[w]->base_ftnum < 1)
+        csound->Free(csound, pp->vco2_tables[w]->tables[j].ftable);
     }
     /* table list, */
-    csound->Free(csound, (*vco2_tables)[w]->tables);
+    csound->Free(csound, pp->vco2_tables[w]->tables);
     /* and table array structure */
-    csound->Free(csound, (*vco2_tables)[w]);
-    (*vco2_tables)[w] = NULL;
+    csound->Free(csound, pp->vco2_tables[w]);
+    pp->vco2_tables[w] = NULL;
 }
 
 /* free memory used by all vco2 table arrays */
 
 static void vco2_tables_destroy(ENVIRON *csound)
 {
-    int                 *vco2_nr_table_arrays;
-    VCO2_TABLE_ARRAY    ***vco2_tables;
-    int                 i;
+    OSCBNK_GLOBALS  *pp = (OSCBNK_GLOBALS*)
+                          csound->QueryGlobalVariableNoCheck(csound,
+                                                             "_oscbnk_globals");
+    int             i;
 
-    vco2_nr_table_arrays =
-        (int*) (csound->QueryGlobalVariable(csound, "_vco2_nr_table_arrays"));
-    vco2_tables = (VCO2_TABLE_ARRAY***)
-                      (csound->QueryGlobalVariable(csound, "_vco2_tables"));
-    if (vco2_tables == (VCO2_TABLE_ARRAY***) NULL)
-      return;           /* already freed */
-    if (*vco2_tables != (VCO2_TABLE_ARRAY**) NULL) {    /* if there are any */
-      for (i = 0; i < (*vco2_nr_table_arrays); i++)     /* tables: */
+    if (pp->vco2_tables != (VCO2_TABLE_ARRAY**) NULL) { /* if there are any */
+      for (i = 0; i < pp->vco2_nr_table_arrays; i++)    /* tables: */
         vco2_delete_table_array(csound, i);
-      csound->Free(csound, *vco2_tables);
-      (*vco2_tables) = (VCO2_TABLE_ARRAY**) NULL;
-      (*vco2_nr_table_arrays) = 0;
+      csound->Free(csound, pp->vco2_tables);
+      pp->vco2_tables = (VCO2_TABLE_ARRAY**) NULL;
+      pp->vco2_nr_table_arrays = 0;
     }
-    csound->DestroyGlobalVariable(csound, "_vco2_nr_table_arrays");
-    csound->DestroyGlobalVariable(csound, "_vco2_tables");
 }
 
 /* generate a table using the waveform specified in tp */
@@ -1620,15 +1620,14 @@ static int vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
                               VCO2_TABLE_PARAMS *tp)
 {
-    int                 i, npart, ntables, *vco2_nr_table_arrays;
-    double              npart_f;
-    VCO2_TABLE_ARRAY    ***vco2_tables, *tables;
+    OSCBNK_GLOBALS  *pp = (OSCBNK_GLOBALS*)
+                          csound->QueryGlobalVariableNoCheck(csound,
+                                                             "_oscbnk_globals");
+    int             i, npart, ntables;
+    double          npart_f;
+    VCO2_TABLE_ARRAY    *tables;
     VCO2_TABLE_PARAMS   tp2;
 
-    vco2_nr_table_arrays =
-        (int*) (csound->QueryGlobalVariable(csound, "_vco2_nr_table_arrays"));
-    vco2_tables = (VCO2_TABLE_ARRAY***)
-                      (csound->QueryGlobalVariable(csound, "_vco2_tables"));
     /* set default table parameters if not specified in tp */
     if (tp == NULL) {
       if (waveform < 0) return -1;
@@ -1636,18 +1635,18 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
       tp = &tp2;
     }
     waveform = (waveform < 0 ? 4 - waveform : waveform);
-    if (waveform >= (*vco2_nr_table_arrays)) {
+    if (waveform >= pp->vco2_nr_table_arrays) {
       /* extend space for table arrays */
       ntables = ((waveform >> 4) + 1) << 4;
-      (*vco2_tables) = (VCO2_TABLE_ARRAY**)
-        csound->ReAlloc(csound, (*vco2_tables), sizeof(VCO2_TABLE_ARRAY*)
-                                                * ntables);
-      for (i = (*vco2_nr_table_arrays); i < ntables; i++)
-        (*vco2_tables)[i] = NULL;
-      (*vco2_nr_table_arrays) = ntables;
+      pp->vco2_tables = (VCO2_TABLE_ARRAY**)
+        csound->ReAlloc(csound, pp->vco2_tables, sizeof(VCO2_TABLE_ARRAY*)
+                                                 * ntables);
+      for (i = pp->vco2_nr_table_arrays; i < ntables; i++)
+        pp->vco2_tables[i] = NULL;
+      pp->vco2_nr_table_arrays = ntables;
     }
     /* clear table array if already initialised */
-    if ((*vco2_tables)[waveform] != NULL) {
+    if (pp->vco2_tables[waveform] != NULL) {
       vco2_delete_table_array(csound, waveform);
    /* if (csound->oparms->msglevel & WARNMSG) */
       csound->Message(csound,
@@ -1663,7 +1662,7 @@ static int vco2_tables_create(ENVIRON *csound, int waveform, int base_ftable,
       vco2_next_npart(&npart_f, tp);
     } while (npart_f <= (double) i);
     /* allocate memory for the table array ... */
-    tables = (*vco2_tables)[waveform] =
+    tables = pp->vco2_tables[waveform] =
       (VCO2_TABLE_ARRAY*) csound->Calloc(csound, sizeof(VCO2_TABLE_ARRAY));
     /* ... and all tables */
 #ifdef VCO2FT_USE_TABLE
@@ -1833,18 +1832,19 @@ static int vco2init(ENVIRON *csound, VCO2INIT *p)
 
 /* ---- vco2ft / vco2ift opcode (initialisation) ---- */
 
-static int vco2ftp(ENVIRON *csound,VCO2FT*);
+static int vco2ftp(ENVIRON *, VCO2FT *);
 
 static int vco2ftset(ENVIRON *csound, VCO2FT *p)
 {
-    int     w;
+    OSCBNK_GLOBALS  *pp;
+    int             w;
 
-    if (p->vco2_nr_table_arrays == NULL)
-      p->vco2_nr_table_arrays =
-        (int*) (csound->QueryGlobalVariable(csound, "_vco2_nr_table_arrays"));
-    if (p->vco2_tables == NULL)
-      p->vco2_tables = (VCO2_TABLE_ARRAY***)
-                         (csound->QueryGlobalVariable(csound, "_vco2_tables"));
+    if (p->vco2_nr_table_arrays == NULL || p->vco2_tables == NULL) {
+      pp = (OSCBNK_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "_oscbnk_globals");
+      p->vco2_nr_table_arrays = &(pp->vco2_nr_table_arrays);
+      p->vco2_tables = &(pp->vco2_tables);
+    }
     w = (int) (*(p->iwave) + (*(p->iwave) < FL(0.0) ? FL(-0.5) : FL(0.5)));
     if (w > 4) w = 0x7FFFFFFF;
     if (w < 0) w = 4 - w;
@@ -1928,17 +1928,18 @@ static int vco2ft(ENVIRON *csound, VCO2FT *p)
 
 static int vco2set(ENVIRON *csound, VCO2 *p)
 {
+    OSCBNK_GLOBALS  *pp;
     int     mode, min_args, tnum;
     int     tnums[8] = { 0, 0, 1, 2, 1, 3, 4, 5 };
     int     modes[8] = { 0, 1, 2, 0, 0, 0, 0, 0 };
     MYFLT   x;
 
-    if (p->vco2_nr_table_arrays == NULL)
-      p->vco2_nr_table_arrays =
-        (int*) (csound->QueryGlobalVariable(csound, "_vco2_nr_table_arrays"));
-    if (p->vco2_tables == NULL)
-      p->vco2_tables = (VCO2_TABLE_ARRAY***)
-                         (csound->QueryGlobalVariable(csound, "_vco2_tables"));
+    if (p->vco2_nr_table_arrays == NULL || p->vco2_tables == NULL) {
+      pp = (OSCBNK_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "_oscbnk_globals");
+      p->vco2_nr_table_arrays = &(pp->vco2_nr_table_arrays);
+      p->vco2_tables = &(pp->vco2_tables);
+    }
     /* check number of args */
     if (p->INOCOUNT > 6) {
       return csound->InitError(csound, Str("vco2: too many input arguments"));
@@ -2142,8 +2143,10 @@ static int denorms(ENVIRON *csound, DENORMS *p)
 
     seed = p->seedptr;
     if (seed == NULL) {
-      p->seedptr = (int*) (csound->QueryGlobalVariable(csound, "_denorm_seed"));
-      seed = p->seedptr;
+      OSCBNK_GLOBALS  *pp;
+      pp = (OSCBNK_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "_oscbnk_globals");
+      seed = p->seedptr = &(pp->denorm_seed);
     }
     do {
       r = DENORM_RND;
@@ -2576,18 +2579,14 @@ int csoundModuleInit(void *csound)
       }
       ep++;
     }
-    p->CreateGlobalVariable(csound, "_oscbnk_seed", sizeof(unsigned long));
-    p->CreateGlobalVariable(csound, "_rnd31i_seed", sizeof(long));
-    p->CreateGlobalVariable(csound, "_vco2_nr_table_arrays", sizeof(int));
-    p->CreateGlobalVariable(csound, "_vco2_tables", sizeof(VCO2_TABLE_ARRAY**));
-    p->CreateGlobalVariable(csound, "_denorm_seed", sizeof(int));
-
-    return 0;
+    return (p->CreateGlobalVariable(csound, "_oscbnk_globals",
+                                            sizeof(OSCBNK_GLOBALS)));
 }
 
 int csoundModuleDestroy(void *csound)
 {
     vco2_tables_destroy((ENVIRON*) csound);
+    ((ENVIRON*) csound)->DestroyGlobalVariable(csound, "_oscbnk_globals");
     return 0;
 }
 
