@@ -1836,10 +1836,10 @@ static int vco2ftp(ENVIRON *, VCO2FT *);
 
 static int vco2ftset(ENVIRON *csound, VCO2FT *p)
 {
-    OSCBNK_GLOBALS  *pp;
-    int             w;
+    int     w;
 
     if (p->vco2_nr_table_arrays == NULL || p->vco2_tables == NULL) {
+      OSCBNK_GLOBALS  *pp;
       pp = (OSCBNK_GLOBALS*)
              csound->QueryGlobalVariableNoCheck(csound, "_oscbnk_globals");
       p->vco2_nr_table_arrays = &(pp->vco2_nr_table_arrays);
@@ -1928,13 +1928,13 @@ static int vco2ft(ENVIRON *csound, VCO2FT *p)
 
 static int vco2set(ENVIRON *csound, VCO2 *p)
 {
-    OSCBNK_GLOBALS  *pp;
     int     mode, min_args, tnum;
     int     tnums[8] = { 0, 0, 1, 2, 1, 3, 4, 5 };
     int     modes[8] = { 0, 1, 2, 0, 0, 0, 0, 0 };
     MYFLT   x;
 
     if (p->vco2_nr_table_arrays == NULL || p->vco2_tables == NULL) {
+      OSCBNK_GLOBALS  *pp;
       pp = (OSCBNK_GLOBALS*)
              csound->QueryGlobalVariableNoCheck(csound, "_oscbnk_globals");
       p->vco2_nr_table_arrays = &(pp->vco2_nr_table_arrays);
@@ -2585,8 +2585,12 @@ int csoundModuleInit(void *csound)
 
 int csoundModuleDestroy(void *csound)
 {
-    vco2_tables_destroy((ENVIRON*) csound);
-    ((ENVIRON*) csound)->DestroyGlobalVariable(csound, "_oscbnk_globals");
+    ENVIRON *p = (ENVIRON*) csound;
+
+    if (p->QueryGlobalVariable(csound, "_oscbnk_globals") != NULL) {
+      vco2_tables_destroy(p);
+      p->DestroyGlobalVariable(csound, "_oscbnk_globals");
+    }
     return 0;
 }
 
