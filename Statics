@@ -12,19 +12,6 @@ Engine/extract.c:    static  int   sectno, a0done;
 
 Engine/fgens.c:    static      WINDAT  dwindow; /* Why is this static? */
 
-Engine/linevent.c:static char *Linebuf = NULL, *Linep = NULL, *Linebufend = NULL;
-Engine/linevent.c:static FILE *Linecons;
-Engine/linevent.c:static LEVTBLK  *Firstblk = NULL;
-Engine/linevent.c:static LEVTBLK  *Firstact = NULL;
-Engine/linevent.c:static int stdmode;
-Engine/linevent.c:    static EVTBLK *prve = NULL;
-Engine/linevent.c:    static char prvop = ' ';
-Engine/linevent.c:    static int prvpcnt = 0;
-
-InOut/rtpa.c:static PA_BLOCKING_STREAM *pabsRead = 0;
-InOut/rtpa.c:static PA_BLOCKING_STREAM *pabsWrite = 0;
-InOut/rtpa.c:static  int oMaxLag;
-
 InOut/winascii.c:static  char    *points = NULL;
 
 InOut/window.c:static void (*makeFn)(WINDAT*, char*);  /* pointer to window make fn - */
@@ -167,21 +154,8 @@ Top/cscorfns.c:static MYFLT curuntil;           /* initialised to zero by filope
 Top/cscorfns.c:static int   wasend;             /* ditto */
 Top/cscorfns.c:static void
 
-Top/csound.c:  static jmp_buf csoundJump_;
-Top/csound.c:  static void* csoundExitFuncs_[csoundMaxExits];
-Top/csound.c:  static long csoundNumExits_ = -1;
-Top/csound.c:  static long _rtCurOutBufCount = 0;
-Top/csound.c:  static char *_rtCurOutBuf = 0;
-Top/csound.c:  static long _rtCurOutBufSize = 0;
-Top/csound.c:  static char *_rtOutOverBuf = 0;
-Top/csound.c:  static long _rtOutOverBufSize = 0;
-Top/csound.c:  static long _rtOutOverBufCount = 0;
-Top/csound.c:  static char *_rtInputBuf = 0;
-Top/csound.c:    static int sampsNeeded = 0;
-Top/csound.c:  static int csoundIsScorePending_ = 0;
-Top/csound.c:  static MYFLT csoundScoreOffsetSeconds_ = (MYFLT) 0.0;
-Top/csound.c:  static char inChar_ = 0;
-Top/csound.c:  static int isGraphable_ = 1;
+Top/csound.c:static  volatile  int init_done = 0;
+Top/csound.c:static  csInstance_t  *instance_list = NULL;
 Top/csound.c:static double timeResolutionSeconds = -1.0;
 
 Top/dl_opcodes.c:    static char errstr[ERR_STR_LEN];
@@ -196,27 +170,6 @@ Top/dnoise_int.c:    static int  prevFormat =    POPUP_16;        /*set to defau
 
 Top/getstring.c:static  l10ndb_t    getstr_db = { CSLANGUAGE_DEFAULT, { NULL } };
 Top/getstring.c:static LanguageSpec_t lang_list[] = {
-
-Top/hetro.c:static MYFLT    x1,x2,yA,y2,y3,         /* lpf coefficients*/
-Top/hetro.c:static double *cos_mul, *sin_mul,       /* quad. term buffers*/
-Top/hetro.c:static long    windsiz;                 /* # of pts. in one per. of sample*/
-Top/hetro.c:static short    hmax = 10;              /* max harmonics requested */
-Top/hetro.c:static int      num_pts = 256,          /* breakpoints per harmonic */
-Top/hetro.c:static int     skip,                    /* flag to stop analysis if zeros*/
-Top/hetro.c:static long     smpsin;                 /* num sampsin */
-Top/hetro.c:static long    midbuf,                  /* set to bufsiz / 2   */
-Top/hetro.c:static char    *infilnam,               /* input file name */
-Top/hetro.c:static MYFLT    *auxp;                  /* pointer to input file */
-Top/hetro.c:static MYFLT    *adp;           /*pointer to front of sample file*/
-Top/hetro.c:static double   *c_p,*s_p;      /* pointers to space for sine and cos terms */
-Top/hetro.c:static double
-Top/hetro.c:static void
-
-Top/lpanal.c:static  int     poleCount, WINDIN, debug=0, verbose=0, doPitch = 1;
-Top/lpanal.c:static  double  *x;
-Top/lpanal.c:static  double  (*a)[MAXPOLES];
-Top/lpanal.c:static  WINDAT   pwindow;
-Top/lpanal.c:static void alpol(MYFLT *sig, double *errn,
 
 Top/scot.c:static char curline[MAXLINE+1]; /* current line of infile */
 Top/scot.c:static int inx,                 /* column # */
