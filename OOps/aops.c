@@ -26,8 +26,24 @@
 #include <math.h>
 #include <time.h>
 
-#define EIPT3 (25.0/3.0)
-#define LOGTWO  (0.69314718056)
+#define EIPT3       (25.0/3.0)
+#define LOGTWO      (0.69314718056)
+#define STEPS       (32768)
+#define INTERVAL    (4.0)
+#define ONEdLOG2    (1.4426950408889634074)
+
+/* static lookup tables, initialised once at start-up */
+        MYFLT   cpsocfrc[OCTRES];
+
+/* initialise the tables, called by csoundInitialize() */
+
+void aops_init_tables(void)
+{
+    int   i;
+
+    for (i = 0; i < OCTRES; i++)
+      cpsocfrc[i] = (MYFLT) (pow(2.0, (double) i / (double) OCTRES) * ONEPT);
+}
 
 int rassign(ENVIRON *csound, ASSIGN *p)
 {
@@ -387,22 +403,21 @@ int int1a_ceil(ENVIRON *csound, EVAL *p)        /* round up */
     return OK;
 }
 
-static double rndfrac = 0.5;
 #define rndmlt (105.947)
 
 int rnd1(ENVIRON *csound, EVAL *p)              /* returns unipolar rand(x) */
 {
     double intpart;
-    rndfrac = modf(rndfrac * rndmlt, &intpart);
-    *p->r = *p->a * (MYFLT)rndfrac;
+    csound->rndfrac = modf(csound->rndfrac * rndmlt, &intpart);
+    *p->r = *p->a * (MYFLT) csound->rndfrac;
     return OK;
 }
 
 int birnd1(ENVIRON *csound, EVAL *p)            /* returns bipolar rand(x) */
 {
     double intpart;
-    rndfrac = modf(rndfrac * rndmlt, &intpart);
-    *p->r = *p->a * (FL(2.0) * (MYFLT)rndfrac - FL(1.0));
+    csound->rndfrac = modf(csound->rndfrac * rndmlt, &intpart);
+    *p->r = *p->a * (FL(2.0) * (MYFLT) csound->rndfrac - FL(1.0));
     return OK;
 }
 
@@ -576,16 +591,6 @@ int rtclock(ENVIRON *csound, EVAL *p)
             timers_get_real_time(csoundQueryGlobalVariableNoCheck(csound,
                                                                   "csRtClock"));
     return OK;
-}
-
-void cpsoctinit(ENVIRON *csound)        /* init the arrays, called by oload */
-{
-    MYFLT *fp;
-    int  count;
-
-    csound->cpsocfrc = (MYFLT*) csound->Malloc(csound, OCTRES * sizeof(MYFLT));
-    for (fp = csound->cpsocfrc, count = 0; count < OCTRES; count++)
-      *fp++ = (MYFLT) (pow(2.0, (double) count / (double) OCTRES) * ONEPT);
 }
 
 int octpch(ENVIRON *csound, EVAL *p)
@@ -775,92 +780,54 @@ int cpstun(ENVIRON *csound, CPSTUN *p)
     return OK;
 }
 
-#define STEPS 32768
-#define OCTAVES 5.0
-MYFLT *powerof2 = NULL; /* gab-A1 for fast power of two table  */
-MYFLT *logbase2 = NULL; /* gab-A1 for fast log base 2 table */
-static void init_powers(ENVIRON *csound)
-{
-    double incr, exp;
-    int count;
-    MYFLT *fp;
-
-    if (powerof2!=NULL) return;
-    incr = (OCTAVES +OCTAVES) / (double)STEPS;
-    exp = -OCTAVES;
-
-    powerof2 = (MYFLT *) csound->Malloc(csound, (STEPS+1) * sizeof(MYFLT));
-    fp =  powerof2;
-    for ( count = 0; count <= STEPS; count++, exp += incr)
-      *fp++ = (MYFLT) pow(2.0, exp);
-    powerof2 += STEPS/2;
-}
-
-
-#define INTERVAL 4.0
-static void init_logs(ENVIRON *csound)
-{                               /* gab for fast log base two table */
-    double incr, first;
-    double conv;
-    MYFLT *fp;
-    int count;
-
-    if (logbase2!=NULL) return;
-    incr = (INTERVAL - 1/INTERVAL) / (double)STEPS;
-    first = 1.0/INTERVAL;
-    conv = 1.44269504089 /* 1.0/log(2.0) */;
-    logbase2  = (MYFLT *) csound->Malloc(csound, (STEPS+1) * sizeof(MYFLT));
-    fp = logbase2;
-    for (count = 0; count <= STEPS; count++, first +=incr)
-      *fp++ = (MYFLT) (conv * log(first));
-}
-
 int powoftwo_set(ENVIRON *csound, EVAL *p)
 {
-    if (powerof2==NULL) init_powers(csound);
+    if (csound->powerof2 == NULL) {
+      double  x = -14.0;
+      int     i;
+      csound->powerof2 = (MYFLT*) csound->Malloc(csound, STEPS * sizeof(MYFLT));
+      for (i = 0; i < STEPS; i++) {
+        csound->powerof2[i] = (MYFLT) pow(2.0, x);
+        x += (1.0 / (double) STEPS);
+      }
+    }
     return OK;
 }
 
 int logbasetwo_set(ENVIRON *csound, EVAL *p)
 {
-    if (logbase2==NULL) init_logs(csound);
-    return OK;
-}
-
-int powoftwo(ENVIRON *csound, EVAL *p)
-{
-    int n = (int) (*p->a * (STEPS/(OCTAVES + OCTAVES)) + FL(0.5));
-    if (n<-STEPS/2 || n>STEPS/2)
-      *p->r = (MYFLT)pow(2.0, (double)*p->a);
-    else
-      *p->r = powerof2[n];
-    return OK;
-}
-
-int powoftwoa(ENVIRON *csound, EVAL *p) /* by G.Maldonado, liberalised by JPff */
-{
-    MYFLT *r, *a;
-    int nsmps=csound->ksmps, n;
-    a = p->a;
-    r = p->r;
-    for (n=0; n<nsmps; n++) {
-      MYFLT aa = a[n];
-      int m = (int) (aa * (STEPS/(OCTAVES + OCTAVES)) + FL(0.5));
-      if (m<-STEPS/2 || m>STEPS/2)
-        r[n] = (MYFLT)pow(2.0, (double)aa);
-      else
-        r[n] = powerof2[m] ;
+    if (csound->logbase2 == NULL) {
+      double  x = (1.0 / INTERVAL);
+      int     i;
+      csound->logbase2 = (MYFLT*) csound->Malloc(csound, (STEPS + 1)
+                                                         * sizeof(MYFLT));
+      for (i = 0; i <= STEPS; i++) {
+        csound->logbase2[i] = (MYFLT) (ONEdLOG2 * log(x));
+        x += ((INTERVAL - 1.0 / INTERVAL) / (double) STEPS);
+      }
     }
     return OK;
 }
 
-MYFLT pow2(MYFLT a)
+static inline MYFLT pow2(ENVIRON *csound, MYFLT a)
 {
-    int n = (int) (a * (STEPS/(OCTAVES + OCTAVES)) + FL(0.5));
-    if (n<-STEPS/2 || n>STEPS/2)
-      return (MYFLT)pow(2.0, (double)a);
-    else
-      return(powerof2[n]);
+    int n = (int) ((a + FL(14.0)) * (MYFLT) STEPS + FL(0.5));
+    /* assumes STEPS=32768 */
+    return ((MYFLT) (1 << (n >> 15)) * csound->powerof2[n & (STEPS - 1)]);
+}
+
+int powoftwo(ENVIRON *csound, EVAL *p)
+{
+    *p->r = pow2(csound, *p->a);
+    return OK;
+}
+
+int powoftwoa(ENVIRON *csound, EVAL *p)
+{                                   /* by G.Maldonado, liberalised by JPff */
+    int n;
+    for (n = 0; n < csound->ksmps; n++)
+      p->r[n] = pow2(csound, p->a[n]);
+    return OK;
 }
 
 #define ONEd12          (FL(0.08333333333333333333333))
@@ -868,7 +835,7 @@ MYFLT pow2(MYFLT a)
 int semitone(ENVIRON *csound, EVAL *p)
 {
     MYFLT a = *p->a*ONEd12;
-    *p->r = pow2(a);
+    *p->r = pow2(csound, a);
     return OK;
 }
 
@@ -881,7 +848,7 @@ int asemitone(ENVIRON *csound, EVAL *p)           /* JPff */
     r = p->r;
     for (n=0; n<nsmps; n++) {
       MYFLT aa = (a[n])*ONEd12;
-      r[n] = pow2(aa);
+      r[n] = pow2(csound, aa);
     }
     return OK;
 }
@@ -889,7 +856,7 @@ int asemitone(ENVIRON *csound, EVAL *p)           /* JPff */
 int cent(ENVIRON *csound, EVAL *p)
 {
     MYFLT a = *p->a*ONEd1200;
-    *p->r = pow2(a);
+    *p->r = pow2(csound, a);
     return OK;
 }
 
@@ -902,7 +869,7 @@ int acent(ENVIRON *csound, EVAL *p)       /* JPff */
     r = p->r;
     for (n=0; n<nsmps; n++) {
       MYFLT aa = (a[n])*ONEd1200;
-      r[n] = pow2(aa);
+      r[n] = pow2(csound, aa);
     }
     return OK;
 }
@@ -924,14 +891,14 @@ int icent(ENVIRON *csound, EVAL *p)
 #define LOG2_10D20      (FL(0.166096404744368117393515971474))
 int db(ENVIRON *csound, EVAL *p)
 {
-    *p->r = pow2(*p->a*LOG2_10D20);
+    *p->r = pow2(csound, *p->a*LOG2_10D20);
     return OK;
 }
 
 int dbi(ENVIRON *csound, EVAL *p)
 {
     powoftwo_set(csound,p);
-    *p->r = pow2(*p->a*LOG2_10D20);
+    *p->r = pow2(csound, *p->a*LOG2_10D20);
     return OK;
 }
 
@@ -944,12 +911,11 @@ int dba(ENVIRON *csound, EVAL *p)         /* JPff */
     r = p->r;
     for (n=0; n<nsmps; n++) {
       MYFLT aa = a[n];
-      r[n] = pow2(aa*LOG2_10D20);
+      r[n] = pow2(csound, aa*LOG2_10D20);
     }
     return OK;
 }
 
-#define ONEdLOG2        FL(1.4426950408889634074)
 int logbasetwo(ENVIRON *csound, EVAL *p)
 {
     int n = (int) ((*p->a -  (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
@@ -957,12 +923,12 @@ int logbasetwo(ENVIRON *csound, EVAL *p)
     if (n<0 || n>STEPS)
       *p->r = (MYFLT)(log((double)*p->a)*ONEdLOG2);
     else
-      *p->r = logbase2[n] ;
+      *p->r = csound->logbase2[n];
     return OK;
 }
 
-int logbasetwoa(ENVIRON *csound, EVAL *p) /* by G.Maldonado liberalised by JPff */
-{
+int logbasetwoa(ENVIRON *csound, EVAL *p)
+{                                   /* by G.Maldonado liberalised by JPff */
     MYFLT *r, *a;
     int n;
     int nsmps = csound->ksmps;
@@ -973,7 +939,7 @@ int logbasetwoa(ENVIRON *csound, EVAL *p) /* by G.Maldonado liberalised by JPff 
       int n = (int) ((aa - (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
                      *  STEPS + FL(0.5));
       if (n<0 || n>STEPS) r[n] = (MYFLT)(log((double)aa)*ONEdLOG2);
-      else                r[n] = logbase2[n] ;
+      else                r[n] = csound->logbase2[n];
     }
     return OK;
 }

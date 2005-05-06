@@ -65,7 +65,7 @@ TEXT    *getoptxt(ENVIRON *, int *);
 int     express(ENVIRON *, char *);
 int     getopnum(ENVIRON *, char *), lgexist(ENVIRON *, char *);
 void    oload(ENVIRON*);
-void    cpsoctinit(ENVIRON*), reverbinit(ENVIRON*);
+void    reverbinit(ENVIRON*);
 void    dispinit(void);
 int     init0(ENVIRON*);
 int     openin(ENVIRON *, char *), openout(ENVIRON *, char *, int);
