@@ -970,7 +970,6 @@ extern "C" {
     long          revlpsiz[6];
     long          revlpsum;
     double        rndfrac;              /* aops.c */
-    MYFLT         *powerof2;
     MYFLT         *logbase2;
   } ENVIRON;
 
