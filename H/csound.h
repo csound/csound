@@ -430,6 +430,11 @@ extern "C" {
 #endif
       void csoundMessage(void *csound, const char *format, ...);
 
+  /**
+   * Print message with special attributes (see msg_attr.h for the list of
+   * available attributes). With attr=0, csoundMessageS() is identical to
+   * csoundMessage().
+   */
   PUBLIC
 #ifdef HAVE_GCC3
     __attribute__ ((__format__(__printf__, 3, 4)))
@@ -978,9 +983,13 @@ typedef struct RTCLOCK_S {
    */
   PUBLIC void **csoundGetRtPlayUserData(void *csound);
 
+/* type/macro definitions and interface functions for configuration variables */
 #include "cfgvar.h"
+/* interface functions for environment variables, and finding files */
 #include "envvar.h"
+/* interface functions for complex and real FFT */
 #include "fftlib.h"
+/* message attribute definitions (for csoundMessageS() and csoundMessageV()) */
 #include "msg_attr.h"
 
 #ifdef __cplusplus

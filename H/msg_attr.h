@@ -34,6 +34,8 @@
 #define CSOUNDMSG_ORCH          (0x2000)
 /* for progress display and heartbeat characters */
 #define CSOUNDMSG_REALTIME      (0x3000)
+/* warning messages */
+#define CSOUNDMSG_WARNING       (0x4000)
 
 /* format attributes (colors etc.), use the bitwise OR of any of these: */
 
@@ -47,6 +49,7 @@
 #define CSOUNDMSG_FG_WHITE      (0x0107)
 
 #define CSOUNDMSG_FG_BOLD       (0x0008)
+#define CSOUNDMSG_FG_UNDERLINE  (0x0080)
 
 #define CSOUNDMSG_BG_BLACK      (0x0200)
 #define CSOUNDMSG_BG_RED        (0x0210)
@@ -60,8 +63,9 @@
  /* ------------------------------------------------------------------------ */
 
 #define CSOUNDMSG_TYPE_MASK     (0x7000)
-#define CSOUNDMSG_FG_MASK       (0x0107)
-#define CSOUNDMSG_BG_MASK       (0x0270)
+#define CSOUNDMSG_FG_COLOR_MASK (0x0107)
+#define CSOUNDMSG_FG_ATTR_MASK  (0x0088)
+#define CSOUNDMSG_BG_COLOR_MASK (0x0270)
 
 #endif      /* CSOUND_MSG_ATTR_H */
 

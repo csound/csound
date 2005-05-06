@@ -1,3 +1,8 @@
+2005-05-06	Istvan Varga	<istvan@csounds.com>
+	* H/msg_attr.h:
+	* Top/csound.c:
+	  new message attributes: CSOUNDMSG_WARNING, CSOUNDMSG_FG_UNDERLINE
+
 2005-05-05	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry1.c:
 	* Engine/express.c:
