@@ -109,10 +109,10 @@ int    ikRangeRand(void*,void*), aRangeRand(void*,void*);
 int    randomi_set(void*,void*), krandomi(void*,void*), randomi(void*,void*);
 int    randomh_set(void*,void*), krandomh(void*,void*), randomh(void*,void*);
 int    random3_set(void*,void*), random3(void*,void*),random3a(void*,void*);
-int    ipowoftwo(void*,void*), ilogbasetwo(void*,void*), db(void*,void*);
-int    powoftwo_set(void*,void*), powoftwoa(void*,void*), dbi(void*,void*), dba(void*,void*);
-int    powoftwo(void*,void*), powoftwoa(void*,void*), semitone(void*,void*), isemitone(void*,void*);
-int    asemitone(void*,void*), cent(void*,void*), icent(void*,void*), acent(void*,void*);
+int    ilogbasetwo(void*,void*), db(void*,void*);
+int    powoftwoa(void*,void*), dba(void*,void*);
+int    powoftwo(void*,void*), semitone(void*,void*);
+int    asemitone(void*,void*), cent(void*,void*), acent(void*,void*);
 int    and_kk(void*,void*), and_ka(void*,void*), and_ak(void*,void*), and_aa(void*,void*);
 int    or_kk(void*,void*), or_ka(void*,void*), or_ak(void*,void*), or_aa(void*,void*);
 int    xor_kk(void*,void*), xor_ka(void*,void*), xor_ak(void*,void*), xor_aa(void*,void*);
@@ -316,32 +316,32 @@ OENTRY opcodlst_2[] = {
 { "FLprintk",S(FLPRINTK), 3,    "",     "iki",  FLprintkset, FLprintk, NULL },
 { "FLprintk2",S(FLPRINTK2), 3,  "",     "ki",   FLprintk2set, FLprintk2, NULL },
 #endif
-{ "=.f",      S(FASSIGN), 2,    "f",   "f",      NULL, fassign, NULL            },
-{ "pvsanal",  S(PVSANAL), 5,    "f",   "aiiiioo",  pvsanalset, NULL, pvsanal    },
-{ "pvsynth",  S(PVSYNTH), 5,    "a",   "fo",     pvsynthset, NULL, pvsynth      },
-{ "pvsadsyn", S(PVADS),   7,    "a",   "fikopo", pvadsynset, pvadsyn, pvadsyn   },
-{ "pvscross", S(PVSCROSS),3,    "f",   "ffkk",   pvscrosset, pvscross, NULL     },
-{ "pvsfread", S(PVSFREAD),3,    "f",   "kTo",    pvsfreadset, pvsfread, NULL    },
-{ "pvsmaska", S(PVSMASKA),3,    "f",   "fik",    pvsmaskaset, pvsmaska, NULL    },
-{ "pvsftw",   S(PVSFTW),  3,    "k",   "fio",    pvsftwset, pvsftw, NULL        },
-{ "pvsftr",   S(PVSFTR),  3,    "",    "fio",    pvsftrset, pvsftr, NULL        },
-{ "pvsinfo",  S(PVSINFO), 1,    "iiii","f",      pvsinfo, NULL, NULL            },
-{ "octave",   0xffff                                                            },
-{ "semitone", 0xffff                                                            },
-{ "cent",     0xffff                                                            },
-{ "octave.i", S(EVAL),    1,    "i",    "i",     ipowoftwo                      },
-{ "octave.k", S(EVAL),    3,    "k",    "k",     powoftwo_set,   powoftwo       },
-{ "octave.a", S(EVAL),    5,    "a",    "a",     powoftwo_set, NULL, powoftwoa  },
-{ "semitone.i",S(EVAL),   1,    "i",    "i",     isemitone                      },
-{ "semitone.k",S(EVAL),   3,    "k",    "k",     powoftwo_set,   semitone       },
-{ "semitone.a",S(EVAL),   5,    "a",    "a",     powoftwo_set, NULL, asemitone  },
-{ "cent.i",   S(EVAL),    1,    "i",    "i",     icent                          },
-{ "cent.k",   S(EVAL),    3,    "k",    "k",     powoftwo_set,   cent           },
-{ "cent.a",   S(EVAL),    5,    "a",    "a",     powoftwo_set, NULL, acent      },
+{ "=.f",      S(FASSIGN), 2,    "f",   "f",      NULL, fassign, NULL    },
+{ "pvsanal",  S(PVSANAL), 5,    "f",   "aiiiioo",  pvsanalset, NULL, pvsanal  },
+{ "pvsynth",  S(PVSYNTH), 5,    "a",   "fo",     pvsynthset, NULL, pvsynth  },
+{ "pvsadsyn", S(PVADS),   7,    "a",   "fikopo", pvadsynset, pvadsyn, pvadsyn },
+{ "pvscross", S(PVSCROSS),3,    "f",   "ffkk",   pvscrosset, pvscross, NULL },
+{ "pvsfread", S(PVSFREAD),3,    "f",   "kTo",    pvsfreadset, pvsfread, NULL  },
+{ "pvsmaska", S(PVSMASKA),3,    "f",   "fik",    pvsmaskaset, pvsmaska, NULL  },
+{ "pvsftw",   S(PVSFTW),  3,    "k",   "fio",    pvsftwset, pvsftw, NULL  },
+{ "pvsftr",   S(PVSFTR),  3,    "",    "fio",    pvsftrset, pvsftr, NULL  },
+{ "pvsinfo",  S(PVSINFO), 1,    "iiii","f",      pvsinfo, NULL, NULL    },
+{ "octave",   0xffff                                                    },
+{ "semitone", 0xffff                                                    },
+{ "cent",     0xffff                                                    },
+{ "octave.i", S(EVAL),    1,    "i",    "i",     powoftwo               },
+{ "octave.k", S(EVAL),    2,    "k",    "k",     NULL,  powoftwo        },
+{ "octave.a", S(EVAL),    4,    "a",    "a",     NULL, NULL, powoftwoa  },
+{ "semitone.i",S(EVAL),   1,    "i",    "i",     semitone               },
+{ "semitone.k",S(EVAL),   2,    "k",    "k",     NULL,  semitone        },
+{ "semitone.a",S(EVAL),   4,    "a",    "a",     NULL, NULL, asemitone  },
+{ "cent.i",   S(EVAL),    1,    "i",    "i",     cent                   },
+{ "cent.k",   S(EVAL),    2,    "k",    "k",     NULL,  cent            },
+{ "cent.a",   S(EVAL),    4,    "a",    "a",     NULL, NULL, acent      },
 { "db",       0xffff                                                    },
-{ "db.i",     S(EVAL),    1,    "i",    "i",     dbi                    },
-{ "db.k",     S(EVAL),    3,    "k",    "k",     powoftwo_set, db       },
-{ "db.a",     S(EVAL),    5,    "a",    "a",     powoftwo_set, NULL, dba},
+{ "db.i",     S(EVAL),    1,    "i",    "i",     db                     },
+{ "db.k",     S(EVAL),    2,    "k",    "k",     NULL, db               },
+{ "db.a",     S(EVAL),    4,    "a",    "a",     NULL, NULL, dba        },
 { "midichn",  S(MIDICHN), 1,    "i",    "",     midichn, NULL, NULL     },
 { "pgmassign",S(PGMASSIGN), 1,   "",    "iTo",  pgmassign, NULL, NULL   },
 { "miditempo", S(MIDITEMPO), 3, "k",    "",

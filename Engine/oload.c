@@ -411,7 +411,6 @@ const ENVIRON cenviron_ = {
         { 0L, 0L, 0L, 0L, 0L, 0L },     /*  revlpsiz    */
         0L,             /*  revlpsum            */
         0.5,            /*  rndfrac             */
-        NULL,           /*  powerof2            */
         NULL            /*  logbase2            */
 };
 
