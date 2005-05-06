@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-/*                                                                      UGENS6.H        */
+/*                                                      UGENS6.H        */
 
 typedef struct {
         OPDS    h;
@@ -65,7 +65,7 @@ typedef struct {
 
 typedef struct DELAYR {
         OPDS    h;
-        MYFLT   *ar, *idlt, *istor;
+        MYFLT   *ar, *indx, *idlt, *istor;
         MYFLT   *curp;
         long    npts;
         AUXCH   auxch;
@@ -74,13 +74,13 @@ typedef struct DELAYR {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *xdlt;
+        MYFLT   *ar, *xdlt, *indx;
         DELAYR  *delayr;
 } DELTAP;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *adlt, *iwsize;
+        MYFLT   *ar, *adlt, *iwsize, *indx;
         int     wsize;
         DELAYR  *delayr;
 } DELTAPX;

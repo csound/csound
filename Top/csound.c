@@ -51,6 +51,8 @@ extern "C" {
   /* from threads.c */
   void csoundLock(void);
   void csoundUnLock(void);
+  /* aops.c */
+  void aops_init_tables(void);
 
   typedef struct csInstance_s {
     ENVIRON             *csound;
@@ -262,6 +264,7 @@ extern "C" {
     }
     install_signal_handler();
     atexit(destroy_all_instances);
+    aops_init_tables();
     csoundLock(); init_done = 1; csoundUnLock();
     return 0;
   }

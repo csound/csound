@@ -15,8 +15,6 @@ InOut/winEPS.c:static FILE *psFile;
 InOut/winEPS.c:static char  ps_date[40];                /* Print time & date on every plot  */
 InOut/winEPS.c:static int   currentPage = 0;            /* Current page number              */
 
-OOps/aops.c:static double rndfrac = 0.5;
-
 OOps/control.c:static char cmd[100];
 OOps/control.c:static int wish_pid = 0;
 OOps/control.c:static int *values = NULL;
@@ -72,12 +70,6 @@ OOps/ugens5.c:static  int     currentLPCSlot=0 ;
 OOps/ugens5.c:static int max_lpc_slot=0;
 OOps/ugens5.c:static  LPREAD  **lprdadr=NULL;
 OOps/ugens5.c:static  char    lpfilname[MAXNAME];
-
-OOps/ugens6.c:static   DELAYR   *first_delayr = NULL;   /* fifo anchor */
-OOps/ugens6.c:static   DELAYR   *last_delayr = NULL;   /* fifo anchor */
-OOps/ugens6.c:static  MYFLT   revlptimes[6] ={FL(0.0297), FL(0.0371), FL(0.0411),
-OOps/ugens6.c:static  long    revlpsiz[6];
-OOps/ugens6.c:static  long    revlpsum;
 
 OOps/ugens8.c:static int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp);
 OOps/ugens8.c:static int byterev_pvoc(MEMFIL *mfil);

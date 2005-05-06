@@ -2,6 +2,12 @@
 	* H/msg_attr.h:
 	* Top/csound.c:
 	  new message attributes: CSOUNDMSG_WARNING, CSOUNDMSG_FG_UNDERLINE
+	* Engine/entry2.c:
+	* H/ugens6.h:
+	* OOps/ugens6.c:
+	  added new optional argument to delayr and all deltap opcodes,
+	  to allow delay taps to read from any of the nested delayr/delayw
+	  pairs, not just the last (from Csound 4.23.4.1)
 
 2005-05-05	Istvan Varga	<istvan@csounds.com>
 	* Engine/entry1.c:
