@@ -670,19 +670,31 @@ extern "C" {
                                     const char *format, va_list args)
   {
 #if defined(WIN32) || defined(mills_macintosh)
-    vfprintf(stdout, format, args);
+    switch (attr & CSOUNDMSG_TYPE_MASK) {
+      case CSOUNDMSG_ERROR:
+      case CSOUNDMSG_WARNING:
+      case CSOUNDMSG_REALTIME:
+        vfprintf(stderr, format, args);
+        break;
+      default:
+        vfprintf(stdout, format, args);
+    }
 #else
-    if (!attr) {
+    if (!attr || !((ENVIRON*) csound)->enableMsgAttr) {
       vfprintf(stderr, format, args);
       return;
     }
     if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
       attr |= CSOUNDMSG_FG_BOLD;
-    if (attr & CSOUNDMSG_BG_MASK)
+    if (attr & CSOUNDMSG_BG_COLOR_MASK)
       fprintf(stderr, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
-    if (attr & CSOUNDMSG_FG_BOLD)
-      fprintf(stderr, "\033[1m");
-    if (attr & CSOUNDMSG_FG_MASK)
+    if (attr & CSOUNDMSG_FG_ATTR_MASK) {
+      if (attr & CSOUNDMSG_FG_BOLD)
+        fprintf(stderr, "\033[1m");
+      if (attr & CSOUNDMSG_FG_UNDERLINE)
+        fprintf(stderr, "\033[4m");
+    }
+    if (attr & CSOUNDMSG_FG_COLOR_MASK)
       fprintf(stderr, "\033[3%cm", (attr & 7) + '0');
     vfprintf(stderr, format, args);
     fprintf(stderr, "\033[m");
@@ -707,8 +719,6 @@ extern "C" {
   PUBLIC void csoundMessageV(void *csound, int attr,
                              const char *format, va_list args)
   {
-    if (((ENVIRON*) csound)->enableMsgAttr == 0)
-      attr = 0;
     ((ENVIRON*) csound)->csoundMessageCallback_(csound, attr, format, args);
   }
 
@@ -723,8 +733,6 @@ extern "C" {
   PUBLIC void csoundMessageS(void *csound, int attr, const char *format, ...)
   {
     va_list args;
-    if (((ENVIRON*) csound)->enableMsgAttr == 0)
-      attr = 0;
     va_start(args, format);
     ((ENVIRON*) csound)->csoundMessageCallback_(csound, attr, format, args);
     va_end(args);
@@ -738,25 +746,26 @@ extern "C" {
 
   void csoundDie(void *csound, const char *msg, ...)
   {
+    ENVIRON *p = (ENVIRON*) csound;
     va_list args;
     va_start(args, msg);
-    ((ENVIRON*) csound)->csoundMessageCallback_(csound,
-                                                CSOUNDMSG_ERROR, msg, args);
+    p->csoundMessageCallback_(p, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
-    csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
-    longjmp(((ENVIRON*) csound)->exitjmp, 1);
+    csoundMessageS(p, CSOUNDMSG_ERROR, "\n");
+    longjmp(p->exitjmp, 1);
   }
 
   void csoundWarning(void *csound, const char *msg, ...)
   {
+    ENVIRON *p = (ENVIRON*) csound;
     va_list args;
-    if (!(((ENVIRON*) csound)->oparms->msglevel & WARNMSG))
+    if (!(p->oparms->msglevel & WARNMSG))
       return;
-    csoundMessage(csound, Str("WARNING: "));
+    csoundMessageS(p, CSOUNDMSG_WARNING, Str("WARNING: "));
     va_start(args, msg);
-    ((ENVIRON*) csound)->csoundMessageCallback_(csound, 0, msg, args);
+    p->csoundMessageCallback_(p, CSOUNDMSG_WARNING, msg, args);
     va_end(args);
-    csoundMessage(csound, "\n");
+    csoundMessageS(p, CSOUNDMSG_WARNING, "\n");
   }
 
   void csoundDebugMsg(void *csound, const char *msg, ...)
