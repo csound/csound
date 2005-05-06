@@ -207,8 +207,7 @@ int    sum(void*,void*), product(void*,void*), macset(void*,void*), mac(void*,vo
 int    nestedapset(void*,void*), nestedap(void*,void*);
 int    lorenzset(void*,void*), lorenz(void*,void*);
 int    filelen(void*,void*), filenchnls(void*,void*), filesr(void*,void*), filepeak(void*,void*);
-int    ipowoftwo(void*,void*), ilogbasetwo(void*,void*);
-int    powoftwo_set(void*,void*), logbasetwo_set(void*,void*);
+int    ilogbasetwo(void*,void*), logbasetwo_set(void*,void*);
 int    powoftwo(void*,void*), powoftwoa(void*,void*);
 int    logbasetwo(void*,void*), logbasetwoa(void*,void*);
 /* int    nlalp_set(void*,void*), nlalp(void*,void*); */
@@ -663,12 +662,12 @@ OENTRY opcodlst_1[] = {
 { "nrpn",   S(NRPN),     2,     "",     "kkk",  NULL,  nrpn ,NULL          },
 { "mdelay", S(MDELAY),   3,     "",     "kkkkk",mdelay_set, mdelay,   NULL },
 { "nsamp.i", S(EVAL),    1,     "i",    "i",    numsamp                    },
-{ "powoftwo.i",S(EVAL),  1,     "i",    "i",    ipowoftwo                  },
-{ "powoftwo.k",S(EVAL),  2,     "k",    "k",    powoftwo_set, powoftwo     },
-{ "powoftwo.a",S(EVAL),  4,     "a",    "a",  powoftwo_set, NULL, powoftwoa },
+{ "powoftwo.i",S(EVAL),  1,     "i",    "i",    powoftwo                   },
+{ "powoftwo.k",S(EVAL),  2,     "k",    "k",    NULL, powoftwo             },
+{ "powoftwo.a",S(EVAL),  4,     "a",    "a",    NULL, NULL, powoftwoa      },
 { "logbtwo.i",S(EVAL),   1,     "i",    "i",    ilogbasetwo                },
-{ "logbtwo.k",S(EVAL),   2,     "k",    "k",    logbasetwo_set, logbasetwo },
-{ "logbtwo.a",S(EVAL),   4,     "a",    "a", logbasetwo_set, NULL, logbasetwoa },
+{ "logbtwo.k",S(EVAL),   3,     "k",    "k",    logbasetwo_set, logbasetwo },
+{ "logbtwo.a",S(EVAL),   5,     "a",    "a", logbasetwo_set, NULL, logbasetwoa },
 { "filelen", S(SNDINFO), 1,     "i",    "T",    filelen, NULL, NULL        },
 { "filenchnls", S(SNDINFO), 1,  "i",    "T",    filenchnls, NULL, NULL     },
 { "filesr", S(SNDINFO),  1,     "i",    "T",    filesr, NULL, NULL         },
