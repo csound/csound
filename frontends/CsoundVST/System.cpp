@@ -185,6 +185,18 @@ namespace csound
       }
   }
 
+  void System::message(void *userdata, int attribute, const char *format, va_list valist)
+  {
+    if(messageCallback)
+      {
+	messageCallback(format, valist);
+      }
+    else
+      {
+	vfprintf(stderr, format, valist);
+      }
+  }
+
   int System::setMessageLevel(int messageLevel_)
   {
     int returnValue = messageLevel;
