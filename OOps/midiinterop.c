@@ -27,6 +27,9 @@
 
 #define dv127   (FL(1.0)/FL(127.0))
 
+/* aops.c, table for CPSOCTL */
+extern  MYFLT   cpsocfrc[];
+
 int midinoteoff(ENVIRON *csound, MIDINOTEON *p)
 {
     if (!p->h.insdshead->m_chnbp) {
@@ -165,3 +168,4 @@ int mididefault(ENVIRON *csound, MIDIDEFAULT *p)
     *p->xvalue = *p->xdefault;
     return OK;
 }
+

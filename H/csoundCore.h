@@ -96,7 +96,7 @@ extern "C" {
                     (n<<8 & 0xFF0000L) | (n<<24 & 0xFF000000L))
 
 #define OCTRES     8192
-#define CPSOCTL(n) ((MYFLT)(1<<((int)(n)>>13))*csound->cpsocfrc[(int)(n)&8191])
+#define CPSOCTL(n) ((MYFLT)(1 << ((int)(n) >> 13)) * cpsocfrc[(int)(n) & 8191])
 
 #define LOBITS     10
 #define LOFACT     1024
@@ -582,7 +582,7 @@ extern "C" {
     void (*SetScoreOffsetSeconds)(void *csound, MYFLT offset);
     void (*RewindScore)(void *csound);
 #ifdef HAVE_GCC3
-    __attribute__ ((__format__ (__printf__, 2, 3))) 
+    __attribute__ ((__format__ (__printf__, 2, 3)))
       void (*Message)(void *csound, const char *format, ...);
     __attribute__ ((__format__ (__printf__, 3, 4)))
       void (*MessageS)(void *csound, int attr, const char *format, ...);
@@ -861,7 +861,6 @@ extern "C" {
     SRTBLK        *frstbp;
     int           sectcnt;
     MCHNBLK       *m_chnbp[MAXCHAN];
-    MYFLT         *cpsocfrc;
     int           inerrcnt, synterrcnt, perferrcnt;
     char          strmsg[192];
     INSTRTXT      instxtanchor;
@@ -956,15 +955,23 @@ extern "C" {
     void          (*spoutran)(void*);
     int           (*audrecv)(void*, MYFLT*, int);
     void          (*audtran)(void*, MYFLT*, int);
-    int           warped;           /* rdscor.c */
+    int           warped;               /* rdscor.c */
     int           sstrlen;
     char          *sstrbuf;
-    int           enableMsgAttr;    /* csound.c */
+    int           enableMsgAttr;        /* csound.c */
     int           sampsNeeded;
     MYFLT         csoundScoreOffsetSeconds_;
     int           csoundIsScorePending_;
     int           inChar_;
     int           isGraphable_;
+    int           delayr_stack_depth;   /* ugens6.c */
+    void          *first_delayr;
+    void          *last_delayr;
+    long          revlpsiz[6];
+    long          revlpsum;
+    double        rndfrac;              /* aops.c */
+    MYFLT         *powerof2;
+    MYFLT         *logbase2;
   } ENVIRON;
 
 #include "text.h"

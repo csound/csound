@@ -29,6 +29,9 @@
 
 #define dv127   (FL(1.0)/FL(127.0))
 
+/* aops.c, table for CPSOCTL */
+extern  MYFLT   cpsocfrc[];
+
 extern int m_chinsno(ENVIRON *csound, short chan, short insno);
 
 #define MIDI_VALUE(m,field) ((m != (MCHNBLK *) NULL) ? m->field : FL(0.0))

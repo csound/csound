@@ -231,38 +231,40 @@ int delset(ENVIRON *csound, DELAY *p)
     return OK;
 }
 
-/* fifo for delayr pointers by Jens Groh: */
-static   DELAYR   *first_delayr = NULL;   /* fifo anchor */
-static   DELAYR   *last_delayr = NULL;   /* fifo anchor */
-
 int delrset(ENVIRON *csound, DELAYR *p)
 {
     long        npts;
     MYFLT       *auxp;
 
+    if (p->XOUTCODE != 1)
+      return csound->InitError(csound, Str("delayr: invalid outarg type"));
     /* fifo for delayr pointers by Jens Groh: */
     /* append structadr for delayw to fifo: */
-    if (first_delayr != NULL)    /* fifo not empty */
-      last_delayr->next_delayr = p;
-    else    /* fifo empty */
-      first_delayr = p;
-    last_delayr = p;
+    if (csound->first_delayr != NULL)       /* fifo not empty */
+      ((DELAYR*) csound->last_delayr)->next_delayr = p;
+    else                                    /* fifo empty */
+      csound->first_delayr = (void*) p;
+    csound->last_delayr = (void*) p;
+    csound->delayr_stack_depth++;
     p->next_delayr = NULL;
+    if (p->OUTOCOUNT > 1) {
+      /* set optional output arg if specified */
+      *(p->indx) = (MYFLT) -(csound->delayr_stack_depth);
+    }
 
-    if (*p->istor && p->auxch.auxp != NULL)
+    if (*p->istor != FL(0.0) && p->auxch.auxp != NULL)
       return OK;
     /* ksmps is min dely */
     if ((npts = (long) (FL(0.5) + *p->idlt * csound->esr)) < csound->ksmps) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
-/*     printf("delay %f sr=%f npts = %d\n", *p->idlt, csound->esr, npts); */
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
       csound->AuxAlloc(csound, (long)npts*sizeof(MYFLT), &p->auxch);
       auxp = (MYFLT*)p->auxch.auxp;
       p->npts = npts;
     }
-    else if (!(*p->istor)) {                    /* else if requested */
+    else if (*p->istor == FL(0.0)) {            /* else if requested */
       MYFLT *lp = auxp;
       do {
         *lp++ = FL(0.0);                        /*   clr old to zero */
@@ -275,29 +277,52 @@ int delrset(ENVIRON *csound, DELAYR *p)
 int delwset(ENVIRON *csound, DELAYW *p)
 {
    /* fifo for delayr pointers by Jens Groh: */
-    if (first_delayr == NULL) {
+    if (csound->first_delayr == NULL) {
       return csound->InitError(csound,
                                Str("delayw: associated delayr not found"));
-   }
-    p->delayr = first_delayr;     /* adr delayr struct */
+    }
+    p->delayr = (DELAYR*) csound->first_delayr;         /* adr delayr struct */
     /* remove structadr from fifo */
-    if (last_delayr == first_delayr) {   /* fifo will be empty */
-      first_delayr = NULL;
+    if (csound->last_delayr == csound->first_delayr) {  /* fifo will be empty */
+      csound->first_delayr = NULL;
     }
     else    /* fifo will not be empty */
-      first_delayr = first_delayr->next_delayr;
+      csound->first_delayr = ((DELAYR*) csound->first_delayr)->next_delayr;
+    csound->delayr_stack_depth--;
     return OK;
+}
+
+static DELAYR *delayr_find(ENVIRON *csound, MYFLT *ndx)
+{
+    DELAYR  *d = (DELAYR*) csound->first_delayr;
+    int     n = (int) (*ndx + (*ndx < FL(0.0) ? FL(-0.5) : FL(0.5)));
+
+    if (d == NULL) {
+      csound->InitError(csound, Str("deltap: associated delayr not found"));
+      return NULL;
+    }
+    if (!n)
+      return (DELAYR*) csound->last_delayr;     /* default: use last delayr */
+    else if (n > 0)
+      n = csound->delayr_stack_depth - n;       /* ndx > 0: LIFO index mode */
+    else
+      n = -n;                                   /* ndx < 0: FIFO index mode */
+    if (n < 1 || n > csound->delayr_stack_depth) {
+      csound->InitError(csound,
+                        Str("deltap: delayr index %.0f is out of range"),
+                        (double) *ndx);
+      return NULL;
+    }
+    /* find delay line */
+    while (--n)
+      d = d->next_delayr;
+    return d;
 }
 
 int tapset(ENVIRON *csound, DELTAP *p)
 {
-    /* fifo for delayr pointers by Jens Groh: */
-    if (last_delayr == NULL) {
-      return csound->InitError(csound,
-                               Str("deltap: associated delayr not found"));
-    }
-    p->delayr = last_delayr;      /* adr delayr struct */
-    return OK;
+    p->delayr = delayr_find(csound, p->indx);
+    return (p->delayr != NULL ? OK : NOTOK);
 }
 
 int delay(ENVIRON *csound, DELAY *p)
@@ -553,16 +578,13 @@ int deltap3(ENVIRON *csound, DELTAP *p)
 
 int tapxset(ENVIRON *csound, DELTAPX *p)
 {
-    /* fifo for delayr pointers by Jens Groh: */
-    if (last_delayr == NULL) {
-      return csound->InitError(csound,
-                               Str("deltap: associated delayr not found"));
-    }
+    p->delayr = delayr_find(csound, p->indx);
+    if (p->delayr == NULL)
+      return NOTOK;
     p->wsize = (int) (*(p->iwsize) + FL(0.5));          /* window size */
     p->wsize = ((p->wsize + 2) >> 2) << 2;
     if (p->wsize < 4) p->wsize = 4;
     if (p->wsize > 1024) p->wsize = 1024;
-    p->delayr = last_delayr;      /* adr delayr struct */
     return OK;
 }
 
@@ -843,31 +865,27 @@ int alpass(ENVIRON *csound, COMB *p)
     return OK;
 }
 
-/* FIXME: statics: should be moved to ENVIRON */
-
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
                                     FL(0.0437), FL(0.005), FL(0.0017)};
-static  long    revlpsiz[6];
-static  long    revlpsum;
 
 void reverbinit(ENVIRON *csound)        /* called once by oload */
 {                                       /*  to init reverb data */
     MYFLT       *lptimp = (MYFLT*) revlptimes;
-    long        *lpsizp = revlpsiz;
+    long        *lpsizp = csound->revlpsiz;
     int n = 6;
 
-    revlpsum = 0;
+    csound->revlpsum = 0;
     do {
       *lpsizp = (long) ((double) *lptimp++ * (double) csound->esr + 0.5);
-      revlpsum += *lpsizp++;
+      csound->revlpsum += *lpsizp++;
     } while (--n);
 }
 
 int rvbset(ENVIRON *csound, REVERB *p)
 {
     if (p->auxch.auxp == NULL) {                        /* if no space yet, */
-      long      *sizp = revlpsiz;
-      csound->AuxAlloc(csound, revlpsum*sizeof(MYFLT),&p->auxch); /* allocate it */
+      long      *sizp = csound->revlpsiz;               /*    allocate it   */
+      csound->AuxAlloc(csound, csound->revlpsum * sizeof(MYFLT), &p->auxch);
       p->adr1 = p->p1 = (MYFLT *) p->auxch.auxp;
       p->adr2 = p->p2 = p->adr1 + *sizp++;
       p->adr3 = p->p3 = p->adr2 + *sizp++;              /*    & init ptrs   */
@@ -881,7 +899,7 @@ int rvbset(ENVIRON *csound, REVERB *p)
     }
     else if (!(*p->istor)) {                    /* else if istor = 0 */
       MYFLT     *fp = p->adr1;
-      long      nn = revlpsum;
+      long      nn = csound->revlpsum;
       do {
         *fp++ = FL(0.0);                        /*  clr existing spc */
       } while (--nn);

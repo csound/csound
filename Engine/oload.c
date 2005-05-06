@@ -31,8 +31,6 @@
 #include "csound.h"
 #include "namedins.h"
 
-#define DKEY_DFLT  60
-
 int     csoundGetAPIVersion(void);
 void    dispset(WINDAT *, MYFLT *, long, char *, int, char *);
 void    display(WINDAT *);
@@ -307,7 +305,6 @@ const ENVIRON cenviron_ = {
         NULL,           /*  frstbp              */
         0,              /*  sectcnt             */
         {0},            /*  m_chnbp             */
-        NULL,           /*  cpsocfrc            */
         0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
         "",             /*  strmsg              */
         {NULL},         /*  instxtanchor        */
@@ -407,7 +404,15 @@ const ENVIRON cenviron_ = {
         FL(0.0),        /*  csoundScoreOffsetSeconds_   */
         0,              /*  csoundIsScorePending_       */
         0,              /*  inChar_             */
-        1               /*  isGraphable_        */
+        1,              /*  isGraphable_        */
+        0,              /*  delayr_stack_depth  */
+        NULL,           /*  first_delayr        */
+        NULL,           /*  last_delayr         */
+        { 0L, 0L, 0L, 0L, 0L, 0L },     /*  revlpsiz    */
+        0L,             /*  revlpsum            */
+        0.5,            /*  rndfrac             */
+        NULL,           /*  powerof2            */
+        NULL            /*  logbase2            */
 };
 
 /* otran.c */
@@ -745,7 +750,6 @@ void oload(ENVIRON *p)
     p->global_hfkprd    = p->hfkprd;
     p->global_kicvt     = p->kicvt;
     p->global_kcounter  = p->kcounter;
-    cpsoctinit(p);
     reverbinit(p);
     dbfs_init(p, p->e0dbfs);
     p->nspout = p->ksmps * p->nchnls;  /* alloc spin & spout */
