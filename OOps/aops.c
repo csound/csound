@@ -50,7 +50,7 @@ void aops_init_tables(void)
 
 static inline MYFLT pow2(MYFLT a)
 {
-    int n = (int) (a * 4096.0 + FL(61440.5));   /* 4096 * 15 + 0.5 */
+    int n = (int) (a * FL(4096.0) + FL(61440.5));   /* 4096 * 15 + 0.5 */
     return ((MYFLT) (1 << (n >> 12)) * powerof2[n & 4095]);
 }
 
