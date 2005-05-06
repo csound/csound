@@ -159,6 +159,10 @@ namespace csound
      */
     static void message(void *userdata, const char *format, va_list valist);
     /**
+     *	Prints a message.
+     */
+    static void message(void *userdata, int attribute, const char *format, va_list valist);
+    /**
      *	Sets message callback.
      */
     static void setMessageCallback(void (*messageCallback_)(const char *format, va_list marker));
