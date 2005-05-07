@@ -1212,9 +1212,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       }
     }
     if (!strcmp(ST(linopcod), "=")) {       /* IV - Jan 08 2003: '=' opcode */
-      if ((csound->oparms->expr_opt && csound->opcode_is_assign < 0) ||
-          ((ST(nxtest) <= ST(opgrpno) - 1) &&
-           strcmp(ST(group)[ST(nxtest)], ST(group)[ST(opgrpno)]) == 0)) {
+      if (csound->oparms->expr_opt && csound->opcode_is_assign < 0) {
         /* if optimised away, skip line */
         ST(nxtest) = ST(grpcnt); goto tstnxt;
       }
