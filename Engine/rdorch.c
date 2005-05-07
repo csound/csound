@@ -1124,13 +1124,13 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
 
  tstnxt:
     tp = &ST(optext);
-    if (ST(nxtest) >= ST(grpcnt)) {                 /* if done with prevline, */
+    if (ST(nxtest) >= ST(grpcnt)) {             /* if done with prevline, */
       csound->argcnt_offs = 0;          /* reset temporary variable index */
       if (!(ST(grpcnt) = splitline(csound)))    /*    attack next line    */
-        return((TEXT *)0);                  /*    (else we're done)   */
+        return((TEXT *)0);                      /*    (else we're done)   */
       for (nn=0; nn<ST(grpcnt); nn++)           /*    save the group pntrs */
         ST(grpsav)[nn] = ST(group)[nn];
-      ST(xprtstno) = ST(grpcnt) - 1;                /*    and reinit indices  */
+      ST(xprtstno) = ST(grpcnt) - 1;            /*    and reinit indices  */
       ST(nxtest) = 0;
       tp->linenum = ST(curline);
       /* IV - Jan 27 2005 */
@@ -1211,18 +1211,38 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         goto spctst;
       }
     }
-    if (!strcmp(ST(linopcod),"=")) {    /* IV - Jan 08 2003: '=' opcode */
-      if (csound->oparms->expr_opt && csound->opcode_is_assign < 0) {
+    if (!strcmp(ST(linopcod), "=")) {       /* IV - Jan 08 2003: '=' opcode */
+      if ((csound->oparms->expr_opt && csound->opcode_is_assign < 0) ||
+          ((ST(nxtest) <= ST(opgrpno) - 1) &&
+           strcmp(ST(group)[ST(nxtest)], ST(group)[ST(opgrpno)]) == 0)) {
         /* if optimised away, skip line */
         ST(nxtest) = ST(grpcnt); goto tstnxt;
       }
+      if (ST(nxtest) <= ST(opgrpno) - 1) {
+        c = argtyp(csound, ST(group)[ST(nxtest)]);
+        switch (c) {
+          case 'S': strcpy(str, "strcpy"); break;
+          case 'a': c = argtyp(csound, ST(group)[ST(opgrpno)]);
+                    strcpy(str, (c == 'a' ? "=.a" : "upsamp")); break;
+          case 'p': c = 'i';
+          default:  sprintf(str, "=.%c", c);
+        }
+        if (!(isopcod(csound, str)))
+          goto outarg_err;
+        if (strcmp(ST(group)[ST(nxtest)], ST(group)[ST(opgrpno)]) == 0) {
+          /* outarg same as inarg, skip line */
+          ST(nxtest) = ST(grpcnt); goto tstnxt;
+        }
+        ST(linopnum) = ST(opnum);
+        ST(linopcod) = ST(opcod);
+        csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
+      }
     }
-    if (ST(nxtest) <= ST(opgrpno) - 1) {
+    else if (ST(nxtest) <= ST(opgrpno) - 1) {
       /* Some aopcodes do not have ans!    */
       /* use outype to modify some opcodes */
-      c = argtyp(csound, ST(group)[ST(nxtest)]);
-      if (strcmp(ST(linopcod),"=") == 0 ||          /* Flagged as translating */
-          csound->opcodlst[ST(linopnum)].dsblksiz == 0xffff ||
+      c = argtyp(csound, ST(group)[ST(nxtest)]);    /* Flagged as translating */
+      if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xffff ||
           (( strcmp(ST(linopcod), "table") == 0 ||  /*    with prefix   */
              strcmp(ST(linopcod), "tablei") == 0 ||
              strcmp(ST(linopcod), "table3") == 0 ||
@@ -1231,14 +1251,8 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         if (c == 'p')   c = 'i';
         if (c == '?')   c = 'a';                /* tmp */
         sprintf(str, "%s.%c", ST(linopcod), c);
-        if (!(isopcod(csound, str))) {
-          csound->Message(csound, Str("Failed to find %s\n"), str);
-          sprintf(csound->errmsg, Str("output arg '%s' illegal type"),
-                                  ST(group)[ST(nxtest)]);
-          synterr(csound, csound->errmsg);      /* report syntax error     */
-          ST(nxtest) = 100;                     /* step way over this line */
-          goto tstnxt;                          /* & go to next            */
-        }
+        if (!(isopcod(csound, str)))
+          goto outarg_err;
         ST(linopnum) = ST(opnum);
         ST(linopcod) = ST(opcod);
         csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
@@ -1246,22 +1260,14 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffd) {
         if ((c = argtyp(csound, ST(group)[ST(opgrpno) ] )) != 'a') c = 'k';
         sprintf(str, "%s.%c", ST(linopcod), c);
-        if (!(isopcod(csound, str))) {
-          csound->Message(csound, Str("Failed to find %s\n"), str);
-          sprintf(csound->errmsg, Str("output arg '%s' illegal type"),
-                                  ST(group)[ST(nxtest)]);
-          synterr(csound, csound->errmsg);      /* report syntax error     */
-          ST(nxtest) = 100;                     /* step way over this line */
-          goto tstnxt;                          /* & go to next            */
-        }
+        if (!(isopcod(csound, str)))
+          goto outarg_err;
         ST(linopnum) = ST(opnum);
         ST(linopcod) = ST(opcod);
         csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
       }
       else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffe) {
                                                 /* Two tags for OSCIL's    */
-  /*    if (strcmp(ST(linopcod),"oscil") == 0  */
-  /*        || strcmp(ST(linopcod),"oscili") == 0) { */
         if ((c = argtyp(csound, ST(group)[ST(opgrpno) ] )) != 'a') c = 'k';
         if ((d = argtyp(csound, ST(group)[ST(opgrpno)+1])) != 'a') d = 'k';
         sprintf(str, "%s.%c%c", ST(linopcod), c, d);
@@ -1303,8 +1309,6 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
           (csound->tran_nchnls == 8  && strncmp(ST(linopcod),"outo",4) != 0) ||
           (csound->tran_nchnls == 16 && strncmp(ST(linopcod),"outx",4) != 0) ||
           (csound->tran_nchnls == 32 && strncmp(ST(linopcod),"out32",5) != 0)) {
-/*      csound->Message(csound, "nchnls = %d; opcode = %s\n",
-                                tran_nchnls, ST(linopcod));         */
         if      (csound->tran_nchnls == 1)  isopcod(csound, "out");
         else if (csound->tran_nchnls == 2)  isopcod(csound, "outs");
         else if (csound->tran_nchnls == 4)  isopcod(csound, "outq");
@@ -1458,18 +1462,14 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         int i;
         size_t m = sizeof(ARGLST) + (n - 1) * sizeof(char*);
         tp->inlist = (ARGLST*) mrealloc(csound, tp->inlist, m);
-/*      csound->Message(csound, "extend_arglist by %d args\n",
-                                n-tp->inlist->count);           */
         for (i=tp->inlist->count; i<n; i++) {
           tp->inlist->arg[i] = ST(nxtarglist)->arg[i];
-/*        csound->Message(csound, "%d = %s:\n", i, tp->inlist->arg[i]); */
         }
         tp->inlist->count = n;
       }
       while (n--) {                     /* inargs:   */
         long    tfound_m, treqd_m = 0L;         /* IV - Oct 31 2002 */
         s = tp->inlist->arg[n];
-/*      csound->Message(csound, "Looking at %s: n=%d nreqd=%d\n",s, n,nreqd); */
         if (n >= nreqd) {               /* det type required */
           switch (types[nreqd-1]) {
             case 'M':
@@ -1585,9 +1585,9 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
           }
         /* IV - Oct 31 2002: simplified code */
         if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
-        sprintf(csound->errmsg, Str("output arg '%s' illegal type"),s);
-        synterr(csound, csound->errmsg);
-      }
+          sprintf(csound->errmsg, Str("output arg '%s' illegal type"), s);
+          synterr(csound, csound->errmsg);
+        }
       }
       if (incnt) {
         if (ep->intypes[0] != 'l')      /* intype defined by 1st inarg */
@@ -1599,6 +1599,14 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       else tp->pftype = tp->intype;     /*    else by 1st inarg     */
     }
     return(tp);                         /* return the text blk */
+
+ outarg_err:
+    csound->Message(csound, Str("Failed to find %s\n"), str);
+    sprintf(csound->errmsg, Str("output arg '%s' illegal type"),
+                            ST(group)[ST(nxtest)]);
+    synterr(csound, csound->errmsg);    /* report syntax error     */
+    ST(nxtest) = 100;                   /* step way over this line */
+    goto tstnxt;                        /* & go to next            */
 }
 
 static void intyperr(ENVIRON *csound, int n, char tfound, char expect)
