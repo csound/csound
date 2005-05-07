@@ -44,8 +44,8 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
        4) int float
        5) int string
        6) float int
-       7) float string
-       8) float float
+       7) float float
+       8) float string
        9) string int
        10) string float
        11) string string
@@ -67,10 +67,10 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
         lo_send(p->addr, (char*) p->dest, "ii", (int) *p->d1, (int) *p->d2);
         return OK;
       case 4:
-        lo_send(p->addr, (char*) p->dest, "is", (int) *p->d1, (char*) p->d2);
+        lo_send(p->addr, (char*) p->dest, "if", (int) *p->d1, (float) *p->d2);
         return OK;
       case 5:
-        lo_send(p->addr, (char*) p->dest, "if", (int) *p->d1, (float) *p->d2);
+        lo_send(p->addr, (char*) p->dest, "is", (int) *p->d1, (char*) p->d2);
         return OK;
       case 6:
         lo_send(p->addr, (char*) p->dest, "fi", (float) *p->d1, (int) *p->d2);
