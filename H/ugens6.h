@@ -82,6 +82,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *adlt, *iwsize, *indx;
         int     wsize;
+        double  d2x;
         DELAYR  *delayr;
 } DELTAPX;
 

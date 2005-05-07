@@ -56,14 +56,11 @@ int downsamp(ENVIRON *csound, DOWNSAMP *p)
 
 int upsamp(ENVIRON *csound, UPSAMP *p)
 {
-    MYFLT       *ar, kval;
-    int n, nsmps=csound->ksmps;
+    MYFLT kval = *p->ksig;
+    int   n;
 
-    ar = p->ar;
-    kval = *p->ksig;
-    for (n=0; n<nsmps; n++) {
-      ar[n] = kval;
-    }
+    for (n = 0; n < csound->ksmps; n++)
+      p->ar[n] = kval;
     return OK;
 }
 
@@ -94,7 +91,7 @@ int interp(ENVIRON *csound, INTERP *p)
       p->prev = *p->xsig;
     }
     val = p->prev;
-    incr = (*p->xsig - val) / csound->ensmps;
+    incr = (*p->xsig - val) * csound->onedkr;
     for (n=0; n<nsmps; n++) {
       ar[n] = val += incr;
     }
@@ -585,30 +582,34 @@ int tapxset(ENVIRON *csound, DELTAPX *p)
     p->wsize = ((p->wsize + 2) >> 2) << 2;
     if (p->wsize < 4) p->wsize = 4;
     if (p->wsize > 1024) p->wsize = 1024;
+    /* wsize = 4: d2x = 1 - 1/3, wsize = 64: d2x = 1 - 1/36 */
+    p->d2x = 1.0 - pow((double) p->wsize * 0.85172, -0.89624);
+    p->d2x /= (double) ((p->wsize * p->wsize) >> 2);
     return OK;
 }
 
 int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
 {
-    DELAYR      *q = p->delayr;
-    MYFLT       *out1, *del, *buf1;
-    int         nn = csound->ksmps, i2, i;
-    double      x1, x2, w, d, d2x, n1;
-    long        indx, maxd, xpos;
+    DELAYR  *q = p->delayr;
+    MYFLT   *out1, *del, *buf1, *bufp, *bufend;
+    int     nn = csound->ksmps;
+    long    indx, maxd, xpos;
 
-    if (q->auxch.auxp==NULL) { /* RWD fix */
+    if (q->auxch.auxp == NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("deltap: not initialised"));
     }
     out1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
-    indx = (long) (q->curp - buf1); maxd = q->npts;
+    indx = (long) (q->curp - buf1);
+    maxd = q->npts; bufend = buf1 + maxd;
 
     if (p->wsize != 4) {                /* window size >= 8 */
+      double  d, x1, n1, w, d2x;
+      int     i2, i;
       i2 = (p->wsize >> 1);
       /* wsize = 4: d2x = 1 - 1/3, wsize = 64: d2x = 1 - 1/36 */
-      d2x = 1.0 - pow ((double) p->wsize * 0.85172, -0.89624);
-      d2x /= (double) (i2*i2);
-      while (nn--) {
+      d2x = p->d2x;
+      do {
         /* x1: fractional part of delay time */
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
@@ -616,74 +617,80 @@ int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
         x1 = (double) indx - (double) *(del++) * (double) csound->esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
-        x2 = sin (PI * x1) / PI;
         while (xpos >= maxd) xpos -= maxd;
 
-        if (x1 * (1.0 - x1) > 0.00000001) {
-          n1 = 0.0;
-          xpos += (1 - i2);
+        if (x1 > 0.00000001 && x1 < 0.99999999) {
+          xpos -= i2;
           while (xpos < 0) xpos += maxd;
           d = (double) (1 - i2) - x1;
-          for (i = i2; i--;) {
-            w = 1.0 - d*d*d2x; w *= (w / d++);
-            n1 += (double) buf1[xpos] * w;
-            if (++xpos >= maxd) xpos -= maxd;
-            w = 1.0 - d*d*d2x; w *= (w / d++);
-            n1 -= (double) buf1[xpos] * w;
-            if (++xpos >= maxd) xpos -= maxd;
-          }
-          *out1 = (MYFLT) (n1 * x2);
-        } else {                                        /* integer sample */
+          bufp = buf1 + xpos;
+          i = i2;
+          n1 = 0.0;
+          do {
+            w = 1.0 - d * d * d2x;
+            if (++bufp >= bufend) bufp = buf1;
+            n1 += w * w * (double) *bufp / d; d++;
+            w = 1.0 - d * d * d2x;
+            if (++bufp >= bufend) bufp = buf1;
+            n1 -= w * w * (double) *bufp / d; d++;
+          } while (--i);
+          *out1 = (MYFLT) (n1 * sin(PI * x1) / PI);
+        }
+        else {                                          /* integer sample */
           xpos = (long) ((double) xpos + x1 + 0.5);     /* position */
           if (xpos >= maxd) xpos -= maxd;
           *out1 = buf1[xpos];
         }
         out1++; indx++;
-      }
-    } else {                    /* window size = 4, cubic interpolation */
-      while (nn--) {
-        x1 = (double) indx - (double) *(del++) * (double) csound->esr;
-        while (x1 < 0.0) x1 += (double) maxd;
-        xpos = (long) x1; x1 -= (double) xpos;
-        w = x1 * x1; d2x = FL(0.16666667) * (x1 * w - x1);      /* sample +2 */
-        d = FL(0.5) * (w + x1) - FL(3.0) * d2x;                 /* sample +1 */
-        x1 = FL(0.5) * (w - x1) - d2x;                          /* sample -1 */
-        w = FL(3.0) * d2x - w; w++;                             /* sample 0  */
+      } while (--nn);
+    }
+    else {                          /* window size = 4, cubic interpolation */
+      double  x, am1, a0, a1, a2;
+      do {
+        am1 = (double) indx - (double) *(del++) * (double) csound->esr;
+        while (am1 < 0.0) am1 += (double) maxd;
+        xpos = (long) am1; am1 -= (double) xpos;
 
-        if (--xpos < 0) xpos += maxd;
-        while (xpos >= maxd) xpos -= maxd;
-        n1 = x1 * (double) buf1[xpos]; if (++xpos >= maxd) xpos = 0;
-        n1 += w * (double) buf1[xpos]; if (++xpos >= maxd) xpos = 0;
-        n1 += d * (double) buf1[xpos]; if (++xpos >= maxd) xpos = 0;
-        n1 += d2x * (double) buf1[xpos];
+        a0  = am1 * am1; a2 = 0.16666667 * (am1 * a0 - am1);    /* sample +2 */
+        a1  = 0.5 * (a0 + am1) - 3.0 * a2;                      /* sample +1 */
+        am1 = 0.5 * (a0 - am1) - a2;                            /* sample -1 */
+        a0  = 3.0 * a2 - a0; a0++;                              /* sample 0  */
 
-        *(out1++) = (MYFLT) n1; indx++;
-      }
+        bufp = (xpos ? (buf1 + (xpos - 1L)) : (bufend - 1));
+        while (bufp >= bufend) bufp -= maxd;
+        x = am1 * (double) *bufp;   if (++bufp >= bufend) bufp = buf1;
+        x += a0 * (double) *bufp;   if (++bufp >= bufend) bufp = buf1;
+        x += a1 * (double) *bufp;   if (++bufp >= bufend) bufp = buf1;
+        x += a2 * (double) *bufp;
+
+        indx++; *out1++ = (MYFLT) x;
+      } while (--nn);
     }
     return OK;
 }
 
 int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
 {
-    DELAYR      *q = p->delayr;
-    MYFLT       *in1, *del, *buf1;
-    int         nn = csound->ksmps, i2, i;
-    double      x1, x2, w, d, d2x, n1;
-    long        indx, maxd, xpos;
+    DELAYR  *q = p->delayr;
+    MYFLT   *in1, *del, *buf1, *bufp, *bufend;
+    int     nn = csound->ksmps;
+    long    indx, maxd, xpos;
 
-    if (q->auxch.auxp==NULL) { /* RWD fix */
+    if (q->auxch.auxp == NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("deltap: not initialised"));
     }
     in1 = p->ar; del = p->adlt;
     buf1 = (MYFLT *) q->auxch.auxp;
-    indx = (long) (q->curp - buf1); maxd = q->npts;
+    indx = (long) (q->curp - buf1);
+    maxd = q->npts; bufend = buf1 + maxd;
 
     if (p->wsize != 4) {                /* window size >= 8 */
+      double  d, x1, n1, w, d2x;
+      int     i2, i;
       i2 = (p->wsize >> 1);
       /* wsize = 4: d2x = 1 - 1/3, wsize = 64: d2x = 1 - 1/36 */
-      d2x = 1.0 - pow ((double) p->wsize * 0.85172, -0.89624);
-      d2x /= (double) (i2*i2);
-      while (nn--) {
+      d2x = p->d2x;
+      do {
         /* x1: fractional part of delay time */
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
@@ -691,50 +698,54 @@ int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
         x1 = (double) indx - (double) *(del++) * (double) csound->esr;
         while (x1 < 0.0) x1 += (double) maxd;
         xpos = (long) x1; x1 -= (double) xpos;
-        x2 = sin (PI * x1) / PI;
         while (xpos >= maxd) xpos -= maxd;
 
-        if (x1 * (1.0 - x1) > 0.00000001) {
-          n1 = (double) *in1 * x2;
-          xpos += (1 - i2);
+        if (x1 > 0.00000001 && x1 < 0.99999999) {
+          n1 = (double) *in1 * (sin(PI * x1) / PI);
+          xpos -= i2;
           while (xpos < 0) xpos += maxd;
           d = (double) (1 - i2) - x1;
-          for (i = i2; i--;) {
-            w = 1.0 - d*d*d2x; w *= (w / d++);
-            buf1[xpos] += (MYFLT) (n1 * w);
-            if (++xpos >= maxd) xpos -= maxd;
-            w = 1.0 - d*d*d2x; w *= (w / d++);
-            buf1[xpos] -= (MYFLT) (n1 * w);
-            if (++xpos >= maxd) xpos -= maxd;
-          }
-        } else {                                        /* integer sample */
+          bufp = buf1 + xpos;
+          i = i2;
+          do {
+            w = 1.0 - d * d * d2x;
+            if (++bufp >= bufend) bufp = buf1;
+            *bufp = (MYFLT) ((double) *bufp + w * w * n1 / d); d++;
+            w = 1.0 - d * d * d2x;
+            if (++bufp >= bufend) bufp = buf1;
+            *bufp = (MYFLT) ((double) *bufp - w * w * n1 / d); d++;
+          } while (--i);
+        }
+        else {                                          /* integer sample */
           xpos = (long) ((double) xpos + x1 + 0.5);     /* position */
           if (xpos >= maxd) xpos -= maxd;
           buf1[xpos] += *in1;
         }
         in1++; indx++;
-      }
+      } while (--nn);
     }
-    else {                    /* window size = 4, cubic interpolation */
-      while (nn--) {
-        x1 = (double) indx - (double) *(del++) * (double) csound->esr;
-        while (x1 < 0.0) x1 += (double) maxd;
-        xpos = (long) x1; x1 -= (double) xpos;
-        w = x1 * x1; d2x = FL(0.16666667) * (x1 * w - x1);      /* sample +2 */
-        d = FL(0.5) * (w + x1) - FL(3.0) * d2x;                 /* sample +1 */
-        x1 = FL(0.5) * (w - x1) - d2x;                          /* sample -1 */
-        w = FL(3.0) * d2x - w; w++;                             /* sample 0  */
+    else {                          /* window size = 4, cubic interpolation */
+      double  x, am1, a0, a1, a2;
+      do {
+        am1 = (double) indx - (double) *(del++) * (double) csound->esr;
+        while (am1 < 0.0) am1 += (double) maxd;
+        xpos = (long) am1; am1 -= (double) xpos;
 
-        n1 = (double) *(in1++);
-        if (--xpos < 0) xpos += maxd;
-        while (xpos >= maxd) xpos -= maxd;
-        buf1[xpos] += (MYFLT) (x1 * n1); if (++xpos >= maxd) xpos = 0;
-        buf1[xpos] += (MYFLT) (w * n1); if (++xpos >= maxd) xpos = 0;
-        buf1[xpos] += (MYFLT) (d * n1); if (++xpos >= maxd) xpos = 0;
-        buf1[xpos] += (MYFLT) (d2x * n1);
+        a0  = am1 * am1; a2 = 0.16666667 * (am1 * a0 - am1);    /* sample +2 */
+        a1  = 0.5 * (a0 + am1) - 3.0 * a2;                      /* sample +1 */
+        am1 = 0.5 * (a0 - am1) - a2;                            /* sample -1 */
+        a0  = 3.0 * a2 - a0; a0++;                              /* sample 0  */
+
+        x = (double) *(in1++);
+        bufp = (xpos ? (buf1 + (xpos - 1L)) : (bufend - 1));
+        while (bufp >= bufend) bufp -= maxd;
+        *bufp += (MYFLT) (am1 * x); if (++bufp >= bufend) bufp = buf1;
+        *bufp += (MYFLT) (a0 * x);  if (++bufp >= bufend) bufp = buf1;
+        *bufp += (MYFLT) (a1 * x);  if (++bufp >= bufend) bufp = buf1;
+        *bufp += (MYFLT) (a2 * x);
 
         indx++;
-      }
+      } while (--nn);
     }
     return OK;
 }
