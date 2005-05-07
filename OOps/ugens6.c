@@ -91,7 +91,7 @@ int interp(ENVIRON *csound, INTERP *p)
       p->prev = *p->xsig;
     }
     val = p->prev;
-    incr = (*p->xsig - val) * csound->onedkr;
+    incr = (*p->xsig - val) / csound->ensmps;
     for (n=0; n<nsmps; n++) {
       ar[n] = val += incr;
     }
