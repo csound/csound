@@ -67,6 +67,13 @@ extern "C" {
 
   static void destroy_all_instances(void)
   {
+#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
+    usleep(250000);
+#elif defined(WIN32)
+    Sleep(1000);
+#else
+    sleep(1);
+#endif
     csInstance_t  *p;
     csoundLock(); p = instance_list; csoundUnLock();
     if (p == NULL)
@@ -78,13 +85,6 @@ extern "C" {
         break;
       csoundDestroy(p->csound);
     }
-#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
-    usleep(250000);
-#elif defined(WIN32)
-    Sleep(1000);
-#else
-    sleep(1);
-#endif
   }
 
 #if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
