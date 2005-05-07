@@ -51,7 +51,7 @@ typedef struct {
                                 /* Structure for distortion */
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *in, *pregain, *postgain, *shape1, *shape2;
+    MYFLT   *out, *in, *pregain, *postgain, *shape1, *shape2, *imode;
 } DISTORT;
 
                                 /* Structure for vco, analog modeling opcode */
@@ -79,9 +79,11 @@ typedef struct {
 } PLANET;
 
 typedef struct {
-    OPDS h;
+    OPDS  h;
     MYFLT *out, *in, *fc, *v, *q, *mode, *iskip;
-    MYFLT xnm1, xnm2, ynm1, ynm2, imode;
+    MYFLT xnm1, xnm2, ynm1, ynm2;
+    MYFLT prv_fc, prv_v, prv_q, b0, b1, b2, a1, a2;
+    int   imode;
 } PAREQ;
 
 typedef struct {

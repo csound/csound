@@ -1,3 +1,21 @@
+2005-05-07	Istvan Varga	<istvan@csounds.com>
+	* Opcodes/biquad.c:
+	* Opcodes/biquad.h:
+	  added new optional argument to distort1 opcode (defaults to zero),
+	  to select amplitude scaling mode (0: default, compatible with
+	  original version; 1: relative to 0dBFS, same as mode 0 if 0dbfs is
+	  32768; 2: unscaled)
+	  code changes to improve performance of some opcodes: biquad, vco,
+	  pareq, and distort1
+	  improved vco opcode for more accurate output
+	* Engine/rdorch.c:
+	* OOps/aops.c:
+	  '=.a' opcode is automatically replaced with 'upsamp' if input is
+	  not a-rate, the actual a-rate version has been simplified, and '=' is
+	  removed by the parser if the output argument is the same as the input
+	* OOps/ugens6.c:
+	  deltapx/deltapxw revised for speed
+
 2005-05-06	Istvan Varga	<istvan@csounds.com>
 	* H/msg_attr.h:
 	* Top/csound.c:

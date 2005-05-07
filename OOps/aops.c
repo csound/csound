@@ -68,21 +68,9 @@ int assign(ENVIRON *csound, ASSIGN *p)
 
 int aassign(ENVIRON *csound, ASSIGN *p)
 {
-    MYFLT       *r, *a;
-    int n;
-    int nsmps = csound->ksmps;
-
-    r = p->r;
-    a = p->a;
-    if (p->XINCODE) {
-      if (r!=a) memcpy(r, a, nsmps * sizeof(MYFLT)); /* Can we use memcpy?? */
-/*       for (n=0; n<csound->ksmps; n++) */
-/*         r[n] = a[n]; */
-    }
-    else {
-      MYFLT aa = *a;
-      for (n=0; n<nsmps; n++) r[n] = aa;
-    }
+    /* the orchestra parser converts '=' to 'upsamp' if input arg is k-rate, */
+    /* and skips the opcode if outarg == inarg */
+    memcpy(p->r, p->a, csound->ksmps * sizeof(MYFLT));
     return OK;
 }
 
@@ -94,15 +82,11 @@ int init(ENVIRON *csound, ASSIGN *p)
 
 int ainit(ENVIRON *csound, ASSIGN *p)
 {
-    MYFLT       *r, *a;
-    int n;
-    MYFLT aa;
-    int nsmps = csound->ksmps;
+    MYFLT aa = *p->a;
+    int   n;
 
-    r = p->r;
-    a = p->a;
-    aa = *a;
-    for (n=0; n<nsmps; n++) r[n] = aa;
+    for (n = 0; n < csound->ksmps; n++)
+      p->r[n] = aa;
     return OK;
 }
 
@@ -138,11 +122,9 @@ MYFLT MOD(MYFLT a, MYFLT bb)
     else {
       MYFLT b = (bb<0 ? -bb : bb);
       int d = (int)(a / b);
-/*        printf("MOD(%f,%f)=[d=%d]", a, b, d); fflush(stdout); */
       a -= d * b;
       while (a>b) a -= b;
       while (-a>b) a += b;
-/*        printf("%f\n", a); */
       return a;
     }
 }
@@ -673,10 +655,9 @@ int cpsxpch(ENVIRON *csound, XENH *p)
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTFind(csound, &t);
       long len;
-      if (ftp == NULL) {
-        sprintf(csound->errmsg, Str("No tuning table %d\n"), (int)(- *p->et));
-        return csound->PerfError(csound, csound->errmsg);
-      }
+      if (ftp == NULL)
+        return csound->PerfError(csound, Str("No tuning table %d"),
+                                         -((int) *p->et));
       len = ftp->flen;
       while (fract>len) {
         fract -= len; loct++;
@@ -702,10 +683,9 @@ int cps2pch(ENVIRON *csound, XENH *p)
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTFind(csound, &t);
       long len;
-      if (ftp == NULL) {
-        sprintf(csound->errmsg, Str("No tuning table %d\n"), (int)(- *p->et));
-        return csound->PerfError(csound, csound->errmsg);
-      }
+      if (ftp == NULL)
+        return csound->PerfError(csound, Str("No tuning table %d"),
+                                         -((int) *p->et));
       len = ftp->flen;
       while (fract>len) {
         fract -= len; loct++;
@@ -922,14 +902,7 @@ int ilogbasetwo(ENVIRON *csound, EVAL *p)
 
 int in(ENVIRON *csound, INM *p)
 {
-    MYFLT       *sp, *ar;
-
-    sp = csound->spin;
-    ar = p->ar;
-    memcpy(ar, sp, csound->ksmps*sizeof(MYFLT));
-/*     do { */
-/*       *ar++ = *sp++; */
-/*     } while (--nsmps); */
+    memcpy(p->ar, csound->spin, csound->ksmps * sizeof(MYFLT));
     return OK;
 }
 
@@ -1068,19 +1041,15 @@ int inall(ENVIRON *csound, INCH *p)
 
 int out(ENVIRON *csound, OUTM *p)
 {
-    MYFLT       *sp, *ap;
     int n;
-    int nsmps = csound->ksmps;
 
-    ap = p->asig;
-    sp = csound->spout;
     if (!csound->spoutactive) {
-      memcpy(sp, ap, nsmps*sizeof(MYFLT));
+      memcpy(csound->spout, p->asig, csound->ksmps * sizeof(MYFLT));
       csound->spoutactive = 1;
     }
     else {
-      for (n=0; n<nsmps; n++)
-        sp[n] += ap[n];
+      for (n = 0; n < csound->ksmps; n++)
+        csound->spout[n] += p->asig[n];
     }
     return OK;
 }
