@@ -67,6 +67,16 @@ extern "C" {
 
   static void destroy_all_instances(void)
   {
+    csInstance_t  *p;
+
+    csoundLock();
+    init_done = -1;     /* prevent the creation of any new instances */
+    fltk_abort = 1;
+    if (instance_list == NULL) {
+      csoundUnLock();
+      return;
+    }
+    csoundUnLock();
 #if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
     usleep(250000);
 #elif defined(WIN32)
@@ -74,11 +84,6 @@ extern "C" {
 #else
     sleep(1);
 #endif
-    csInstance_t  *p;
-    csoundLock(); p = instance_list; csoundUnLock();
-    if (p == NULL)
-      return;
-    fltk_abort = 1;
     while (1) {
       csoundLock(); p = instance_list; csoundUnLock();
       if (p == NULL)
