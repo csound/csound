@@ -502,9 +502,9 @@ void CsoundVST::synchronizeScore()
     {
       if(getCppSound()->getIsGo())
 	{
-	  getCppSound()->setScorePending(1);
-	  getCppSound()->rewindScore();
-	  getCppSound()->setScoreOffsetSeconds(vstCurrentSampleBlockStart);
+	  //getCppSound()->setScorePending(1);
+	  //getCppSound()->rewindScore();
+	  //getCppSound()->setScoreOffsetSeconds(vstCurrentSampleBlockStart);
 	  csound::System::inform("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
 	}
     }
