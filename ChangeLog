@@ -1,3 +1,11 @@
+2005-05-08  Michael Gogins <gogins@pipeline.com>
+	* Added examples/Orbifold.py, an interactive display of the
+	3-dimensional orbifold of all close voice-leadings between
+	3-tone chords (based on the work of Professor Dmitri Tymoczko
+	of Princeton). Also demonstrates controlling Csound from Python
+	for real-time performance, and the use of 3-dimensional graphics
+	for constructing graphical user interfaces.
+
 2005-05-07	Istvan Varga	<istvan@csounds.com>
 	* Opcodes/biquad.c:
 	* Opcodes/biquad.h:
