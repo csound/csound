@@ -45,7 +45,7 @@ typedef struct midiEvent_s {
     unsigned long   kcnt;               /* time (in ticks while reading     */
                                         /*   MIDI file, will be converted   */
                                         /*   to kperiods once file is read) */
-#ifdef never
+#if 0
     unsigned char   *data;              /* pointer to sysex or meta event   */
                                         /*   data (currently not used)      */
 #endif
@@ -746,13 +746,16 @@ extern  void    midi_ctl_reset(ENVIRON *csound, short chan);
 void midifile_rewind_score(ENVIRON *csound)
 {
     int i;
-    /* reset event index and tempo */
-    MF(currentTempo) = default_tempo;
-    MF(eventListIndex) = 0;
-    MF(tempoListIndex) = 0;
-    /* reset controllers on all channels */
-    for (i = 0; i < MAXCHAN; i++)
-      midi_ctl_reset(csound, (short) i);
+
+    if (MIDIFILE != NULL) {
+      /* reset event index and tempo */
+      MF(currentTempo) = default_tempo;
+      MF(eventListIndex) = 0;
+      MF(tempoListIndex) = 0;
+      /* reset controllers on all channels */
+      for (i = 0; i < MAXCHAN; i++)
+        midi_ctl_reset(csound, (short) i);
+    }
 }
 
  /* ------------------------------------------------------------------------ */
