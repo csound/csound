@@ -275,7 +275,6 @@ const ENVIRON cenviron_ = {
         MAXINSNO,       /*  maxinsno            */
         -1,             /*  maxopcno            */
         NULL,           /*  curip               */
-        NULL,           /*  Livevtblk           */
         0,              /*  nrecs               */
         NULL,           /*  Linepipe            */
         0,              /*  Linefd              */

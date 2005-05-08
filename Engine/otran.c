@@ -130,13 +130,12 @@ static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
         i_incnt++; *otypes++ = *types;
         break;
       default:
-        sprintf(csound->errmsg, "invalid input type for opcode %s", inm->name);
-        synterr(csound, csound->errmsg); err++;
+        synterr(csound, "invalid input type for opcode %s", inm->name); err++;
       }
       i++; types++;
       if (i > OPCODENUMOUTS) {
-        sprintf(csound->errmsg, "too many input args for opcode %s", inm->name);
-        synterr(csound, csound->errmsg); err++; break;
+        synterr(csound, "too many input args for opcode %s", inm->name);
+        err++; break;
       }
     }
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
@@ -160,14 +159,12 @@ static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
         i_outcnt++; *otypes++ = *types;
         break;
       default:
-        sprintf(csound->errmsg, "invalid output type for opcode %s", inm->name);
-        synterr(csound, csound->errmsg); err++;
+        synterr(csound, "invalid output type for opcode %s", inm->name); err++;
       }
       i++; types++;
       if (i >= OPCODENUMOUTS) {
-        sprintf(csound->errmsg, "too many output args for opcode %s",
-                                inm->name);
-        synterr(csound, csound->errmsg); err++; break;
+        synterr(csound, "too many output args for opcode %s", inm->name);
+        err++; break;
       }
     }
     *otypes = '\0';
@@ -319,8 +316,7 @@ void otran(ENVIRON *csound)
 /*                  continue; */
 /*                } */
                   if (csound->instrtxtp[n] != NULL) {
-                    sprintf(csound->errmsg,Str("instr %ld redefined"),(long)n);
-                    synterr(csound, csound->errmsg);
+                    synterr(csound, Str("instr %ld redefined"), (long) n);
                     err++; continue;
                   }
                   csound->instrtxtp[n] = ip;
@@ -337,8 +333,7 @@ void otran(ENVIRON *csound)
                   }
                   /* IV - Oct 31 2002: store the name */
                   if (!named_instr_alloc(csound, c, ip, insno_priority)) {
-                    sprintf(csound->errmsg, "instr %s redefined", c);
-                    synterr(csound, csound->errmsg);
+                    synterr(csound, "instr %s redefined", c);
                     err++; continue;
                   }
                   ip->insname = c;  /* IV - Nov 10 2002: also in INSTRTXT */
@@ -366,10 +361,9 @@ void otran(ENVIRON *csound)
                 continue;
               }
               if (ip->t.inlist->count != 3) {
-                sprintf(csound->errmsg, Str("opcode declaration error (usage: "
-                                            "opcode name, outtypes, intypes) "
-                                            "-- opcode %s"), name);
-                synterr(csound, csound->errmsg);
+                synterr(csound, Str("opcode declaration error "
+                                    "(usage: opcode name, outtypes, intypes) "
+                                    "-- opcode %s"), name);
                 continue;
               }
 
@@ -378,8 +372,8 @@ void otran(ENVIRON *csound)
               if (newopnum) {
                 /* IV - Oct 31 2002: redefine old opcode if possible */
                 if (newopnum < SETEND || !strcmp(name, "subinstr")) {
-                  sprintf(csound->errmsg, Str("cannot redefine %s"), name);
-                  synterr(csound, csound->errmsg); continue;
+                  synterr(csound, Str("cannot redefine %s"), name);
+                  continue;
                 }
                 csound->Message(csound,
                                 Str("WARNING: redefined opcode: %s\n"), name);
@@ -871,8 +865,7 @@ static int strconstndx(ENVIRON *csound, const char *s)
     /* check syntax */
     cnt = (int) strlen(s);
     if (cnt < 2 || *s != '"' || s[cnt - 1] != '"') {
-      sprintf(csound->errmsg, Str("string syntax '%s'"), s);
-      synterr(csound, csound->errmsg);
+      synterr(csound, Str("string syntax '%s'"), s);
       return 0;
     }
     /* check if a copy of the string is already stored */
@@ -932,8 +925,7 @@ static int constndx(ENVIRON *csound, char *s)
     return (fp - csound->pool);                     /*   and return new ndx */
 
  flerror:
-    sprintf(csound->errmsg, Str("numeric syntax '%s'"),str);
-    synterr(csound, csound->errmsg);
+    synterr(csound, Str("numeric syntax '%s'"), str);
     return(0);
 }
 

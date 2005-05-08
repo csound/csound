@@ -217,10 +217,9 @@ int imidic21(ENVIRON *csound, MIDICTL4 *p)
         FUNC *ftp = csound->FTFind(csound, p->ifn); /* gab-A1 */
         MYFLT phase;
         MYFLT *base;
-        if (ftp == NULL) {
-          sprintf(csound->errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return csound->InitError(csound, csound->errmsg);
-        }
+        if (ftp == NULL)
+          return csound->InitError(csound, Str("Invalid ftable no. %f"),
+                                           *p->ifn);
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
         value = *base + (*(base+1) - *base) * (phase - (long)phase);
@@ -373,10 +372,9 @@ int ictrl14(ENVIRON *csound, CTRL14 *p)
         FUNC *ftp = csound->FTFind(csound, p->ifn);
         MYFLT phase;
         MYFLT *base;
-        if (ftp == NULL) {
-          sprintf(csound->errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return csound->InitError(csound, csound->errmsg);
-        }
+        if (ftp == NULL)
+          return csound->InitError(csound, Str("Invalid ftable no. %f"),
+                                           *p->ifn);
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
         value = *base + (*(base+1) - *base) * (phase - (long)phase);
@@ -457,14 +455,13 @@ int ictrl21(ENVIRON *csound, CTRL21 *p)
         FUNC *ftp = csound->FTFind(csound, p->ifn);
         MYFLT phase;
         MYFLT *base;
-        if (ftp == NULL) {
-          sprintf(csound->errmsg, Str("Invalid ftable no. %f"), p->ifn);
-          return csound->InitError(csound, csound->errmsg);
-        }
+        if (ftp == NULL)
+          return csound->InitError(csound, Str("Invalid ftable no. %f"),
+                                           *p->ifn);
         phase = value * ftp->flen;
         base = ftp->ftable + (long)(phase);
         value = *base + (*(base+1) - *base) * (phase - (long)phase);
-        }
+      }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
     return OK;

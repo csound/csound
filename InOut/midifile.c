@@ -738,6 +738,23 @@ int csoundMIDIFileClose(void *csound)
     return 0;
 }
 
+/* midirecv.c, resets MIDI controllers on a channel */
+extern  void    midi_ctl_reset(ENVIRON *csound, short chan);
+
+/* called by csoundRewindScore() to reset performance to time zero */
+
+void midifile_rewind_score(ENVIRON *csound)
+{
+    int i;
+    /* reset event index and tempo */
+    MF(currentTempo) = default_tempo;
+    MF(eventListIndex) = 0;
+    MF(tempoListIndex) = 0;
+    /* reset controllers on all channels */
+    for (i = 0; i < MAXCHAN; i++)
+      midi_ctl_reset(csound, (short) i);
+}
+
  /* ------------------------------------------------------------------------ */
 
 /* miditempo opcode: returns the current tempo of MIDI file or score */

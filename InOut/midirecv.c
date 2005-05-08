@@ -173,13 +173,13 @@ static void sustsoff(ENVIRON *csound, MCHNBLK *chn)
 
 /* reset all controllers for this channel */
 
-static void ctlreset(ENVIRON *csound, short chan)
+void midi_ctl_reset(ENVIRON *csound, short chan)
 {
     MCHNBLK *chn;
     int     i;
 
     chn = csound->m_chnbp[chan];
-    for (i = 1; i <= 109; i++)                  /* from ctlr 1 to ctlr 109 */
+    for (i = 1; i <= 135; i++)                  /* from ctlr 1 to ctlr 109 */
       chn->ctl_val[i] = FL(0.0);                /*   reset all ctlrs to 0  */
     /* exceptions:  */
     chn->ctl_val[7]  = FL(127.0);               /*   volume           */
@@ -202,7 +202,7 @@ static void ctlreset(ENVIRON *csound, short chan)
 
 /* execute non-note channel voice and channel mode commands */
 
-void m_chanmsg(ENVIRON *csound, MEVENT *mep)
+static void m_chanmsg(ENVIRON *csound, MEVENT *mep)
 {
     MCHNBLK *chn = csound->m_chnbp[mep->chan];
     short n;
@@ -211,7 +211,7 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
     switch (mep->type) {
     case PROGRAM_TYPE:                    /* PROGRAM CHANGE */
       chn->pgmno = mep->dat1;
-      if (chn->insno <= 0)          /* ignore if channel is muted */
+      if (chn->insno <= 0)                /* ignore if channel is muted */
         break;
       n = (short) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
       if (n > 0 && n <= csound->maxinsno &&     /* if corresp instr exists  */
@@ -312,7 +312,7 @@ void m_chanmsg(ENVIRON *csound, MEVENT *mep)
       }
       /* 121 == RESET ALL CONTROLLERS */
       if (n == 121) {                           /* CHANNEL MODE MESSAGES:  */
-        ctlreset(csound, mep->chan);
+        midi_ctl_reset(csound, mep->chan);
       }
       else if (n == 122) {                      /* absorb lcl ctrl data */
 /*      int lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
@@ -387,7 +387,7 @@ void m_chn_init_all(ENVIRON *csound)
         chn->insno = (short) -1;        /* else mute channel */
       /* reset all controllers */
       chn->pgmno = -1;
-      ctlreset(csound, chan);
+      midi_ctl_reset(csound, chan);
       for (n = 0; n < 128; n++)
         chn->pgm2ins[n] = (short) (n + 1);
       if (csound->oparms->Midiin || csound->oparms->FMidiin) {
@@ -429,7 +429,7 @@ int m_chinsno(ENVIRON *csound, short chan, short insno)
         m_chanmsg(csound, &mev);
       }
     }
-    ctlreset(csound, chan);
+    midi_ctl_reset(csound, chan);
     return OK;
 }
 

@@ -690,7 +690,7 @@ int partial_maximum(ENVIRON *csound,P_MAXIMUM *p)
     case 0: /* absolute maximum */
       do {
         MYFLT temp;
-        if ((temp= (MYFLT) fabs(*a++)) > max) max = temp;
+        if ((temp = (MYFLT) fabs(*a++)) > max) max = temp;
       } while (--n);
       if (max > p->max) p->max = max;
       break;
@@ -709,24 +709,24 @@ int partial_maximum(ENVIRON *csound,P_MAXIMUM *p)
       if (max < p->max) p->max = max;
       break;
     case 3: { /* average */
-      MYFLT temp=0;
-      do {
-        temp += *a++;
-      } while (--n);
-      ++(p->counter);
-      p->max += temp;
-    }
+        MYFLT temp = FL(0.0);
+        p->counter += n;
+        do {
+          temp += *a++;
+        } while (--n);
+        p->max += temp;
+      }
       break;
     default:
       return csound->PerfError(csound, "max_k: invalid imaxflag value");
     }
     if (*p->ktrig) {
       if (flag == 3) {
-        *p->kout = p->max / p->counter;
+        *p->kout = p->max / (MYFLT) p->counter;
         p->counter = 0;
       }
       else *p->kout = p->max;
-      p->max = 0;
+      p->max = FL(0.0);
     }
     return OK;
 }
