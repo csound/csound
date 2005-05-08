@@ -834,7 +834,6 @@ extern "C" {
     int           maxinsno;
     int           maxopcno;         /* IV - Oct 24 2002 */
     INSDS         *curip;
-    EVTBLK        *Linevtblk;
     long          nrecs;
     FILE*         Linepipe;
     int           Linefd;
