@@ -308,6 +308,9 @@ int musmon(ENVIRON *csound)
       O->usingcscore = 0;
     }
     csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
+    /* apply score offset if non-zero */
+    if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
+      csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
                                      /* since we are running in components */
     return 0;                        /* we exit here to playevents later   */
 }
@@ -643,12 +646,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
       p->curp2 = p->curTime;
       print_amp_values(csound, 0);
     }
-    if (sensType == 1) {                  /*    for Linein,       */
-      evt = csound->Linevtblk;            /*      get its evtblk  */
-      evt->p[2] = p->curp2 - p->timeOffs; /*      & insert curp2  */
-      retval = process_score_event(csound, evt, 1);
-    }
-    else if (sensType == 4) {             /* Realtime orc event   */
+    if (sensType == 4) {                  /* Realtime orc event   */
       EVTNODE *e = csound->OrcTrigEvts;
       /* Events are sorted on insertion, so just check the first */
       evt = &(e->evt);
@@ -825,6 +823,8 @@ int sensevents(ENVIRON *csound)
     /*   events is not sorted by instrument number */
     /*   (although it never was sorted anyway...)  */
     if (O->RTevents) {
+      if (O->Linein)                        /* Linein events      */
+        sensLine(csound);
       if (O->OrcEvts) {                     /* orchestra rtevents */
         while ((sensType = SENSEORCEVT(csound)) != 0) {
           if ((retval = process_rt_event(csound, sensType)) != 0)
@@ -833,12 +833,6 @@ int sensevents(ENVIRON *csound)
       }
       if (O->Midiin || O->FMidiin) {        /* MIDI note messages */
         while ((sensType = sensMidi(csound)) != 0) {
-          if ((retval = process_rt_event(csound, sensType)) != 0)
-            goto scode;
-        }
-      }
-      if (O->Linein) {                      /* Linein events      */
-        while ((sensType = sensLine(csound)) != 0) {
           if ((retval = process_rt_event(csound, sensType)) != 0)
             goto scode;
         }
@@ -1046,5 +1040,61 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
     e->nxt = csound->freeEvtNodes;
     csound->freeEvtNodes = e;
     return retval;
+}
+
+/* called by csoundRewindScore() to reset performance to time zero */
+
+void musmon_rewind_score(ENVIRON *csound)
+{
+    sensEvents_t  *st = &(csound->sensEvents_state);
+    INSDS         *ip = csound->actanchor.nxtact;
+    EVTNODE       *ep = csound->OrcTrigEvts;
+    /* return if already at time zero */
+    if (csound->global_kcounter == 0L)
+      return;
+    /* deactivate all currently playing notes */
+    while (ip != NULL) {
+      INSDS *nxt = ip->nxtact;
+      xturnoff_now(csound, ip);
+      ip = nxt;
+    }
+    /* reset score time */
+    csound->global_kcounter = csound->kcounter = 0L;
+    st->nxtim = st->curp2 = st->nxtbt = st->curbt = st->prvbt = 0.0;
+    st->beatOffs = st->timeOffs = 0.0;
+    st->curBeat = st->curTime = 0.0;
+    st->cyclesRemaining = 0;
+    st->evt.strarg = NULL;
+    st->evt.opcod = '\0';
+    /* reset tempo */
+    if (csound->oparms->Beatmode)
+      settempo(csound, (MYFLT) csound->oparms->cmdTempo);
+    else
+      settempo(csound, FL(60.0));
+    /* flush any pending real time events */
+    while (ep != NULL) {
+      EVTNODE *nxt = ep->nxt;
+      ep->start_kcnt = 0UL;
+      if (ep->evt.strarg != NULL) {
+        csound->Free(csound, ep->evt.strarg);
+        ep->evt.strarg = NULL;
+      }
+      ep->evt.opcod = '\0';
+      /* push to stack of free event nodes */
+      ep->nxt = csound->freeEvtNodes;
+      csound->freeEvtNodes = ep;
+      ep = nxt;
+    }
+    csound->OrcTrigEvts = NULL;
+    /* rewind score file */
+    if (csound->scfp != NULL)
+      fseek(csound->scfp, 0L, SEEK_SET);
+    /* update section/overall amplitudes, reset to section 1 */
+    section_amps(csound, 1);
+    ST(sectno) = 1;
+    csound->Message(csound, Str("SECTION %d:\n"), ST(sectno));
+    /* apply score offset if non-zero (FIXME: needed ?) */
+    if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
+      csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 }
 

@@ -116,6 +116,7 @@ static  int     isopcod(ENVIRON *, char *);
 static  void    lblrequest(ENVIRON *, char *), lblfound(ENVIRON *, char *);
 static  void    lblclear(ENVIRON *), lblchk(ENVIRON *);
 static  void    lexerr(ENVIRON *, char *);
+static  void    synterrp(ENVIRON *, const char *, char *);
 
 #include "typetabl.h"                   /* IV - Oct 31 2002 */
 
@@ -336,7 +337,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         ST(typemask_tabl_out)[pos] = *ptr++;
       }
     }
-    csound->Message(csound,Str("orch compiler:\n"));
+    csound->Message(csound, Str("orch compiler:\n"));
     if ((ST(fp) = fopen(csound->orchname, "r")) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
     if (fseek(ST(fp), 0L, SEEK_END) != 0)
@@ -496,7 +497,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               }
               while (isspace(c)) c = getorchar(csound);
             } while (c=='\'' || c=='#');
-            if (c!=')') csound->Message(csound,Str("macro error\n"));
+            if (c!=')') csound->Message(csound, Str("macro error\n"));
           }
           mm->acnt = arg;
           i = 0;
@@ -867,7 +868,7 @@ static int splitline(ENVIRON *csound)
           else if (strcmp(grpp,"elseif") == 0) { /* of elseif opcod */
             if (!ST(iflabels)) { /* check to see we had an 'if' before  */
               synterr(csound, Str("invalid 'elseif' statement.  "
-                                  "must have a corresponding 'if'\n"));
+                                  "must have a corresponding 'if'"));
               goto nxtlin;
             }
             /* check to see we did not have an 'else' before */
@@ -1027,8 +1028,8 @@ static int splitline(ENVIRON *csound)
          goto <endiflabel>
          <elselabel>
          to do this, we parse the current twice */
-      if (strncmp(grpp,"else", 4) == 0) { /* 'else' */
-        if (!ST(iflabels)) { /* check to see we had an 'if' before  */
+      if ((int) ((char*) cp - (char*) grpp) == 4 && !strncmp(grpp, "else", 4)) {
+        if (!ST(iflabels)) {    /* 'else': check to see we had an 'if' before */
           synterr(csound, Str("invalid 'else' statement.  "
                               "must have a corresponding 'if'"));
           goto nxtlin;
@@ -1057,7 +1058,8 @@ static int splitline(ENVIRON *csound)
           ST(repeatingElseLine) = 1;
         }
       }
-      else if (strncmp(grpp,"endif", 5) == 0) {
+      else if ((int) ((char*) cp - (char*) grpp) == 5 &&
+               strncmp(grpp, "endif", 5) == 0) {
         /* replace 'endif' with the synthesized label */
         struct iflabel *prv;
         if (!ST(iflabels)) { /* check to see we had an 'if' before  */
@@ -1225,8 +1227,13 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
           case 'p': c = 'i';
           default:  sprintf(str, "=.%c", c);
         }
-        if (!(isopcod(csound, str)))
-          goto outarg_err;
+        if (!(isopcod(csound, str))) {
+          synterr(csound,
+                  Str("failed to find %s, output arg '%s' illegal type"),
+                  str, ST(group)[ST(nxtest)]);  /* report syntax error     */
+          ST(nxtest) = 100;                     /* step way over this line */
+          goto tstnxt;                          /* & go to next            */
+        }
         if (strcmp(ST(group)[ST(nxtest)], ST(group)[ST(opgrpno)]) == 0) {
           /* outarg same as inarg, skip line */
           ST(nxtest) = ST(grpcnt); goto tstnxt;
@@ -1249,8 +1256,13 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         if (c == 'p')   c = 'i';
         if (c == '?')   c = 'a';                /* tmp */
         sprintf(str, "%s.%c", ST(linopcod), c);
-        if (!(isopcod(csound, str)))
-          goto outarg_err;
+        if (!(isopcod(csound, str))) {
+          synterr(csound,
+                  Str("failed to find %s, output arg '%s' illegal type"),
+                  str, ST(group)[ST(nxtest)]);  /* report syntax error     */
+          ST(nxtest) = 100;                     /* step way over this line */
+          goto tstnxt;                          /* & go to next            */
+        }
         ST(linopnum) = ST(opnum);
         ST(linopcod) = ST(opcod);
         csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
@@ -1258,8 +1270,13 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffd) {
         if ((c = argtyp(csound, ST(group)[ST(opgrpno) ] )) != 'a') c = 'k';
         sprintf(str, "%s.%c", ST(linopcod), c);
-        if (!(isopcod(csound, str)))
-          goto outarg_err;
+        if (!(isopcod(csound, str))) {
+          synterr(csound,
+                  Str("failed to find %s, input arg '%s' illegal type"),
+                  str, ST(group)[ST(opgrpno)]); /* report syntax error     */
+          ST(nxtest) = 100;                     /* step way over this line */
+          goto tstnxt;                          /* & go to next            */
+        }
         ST(linopnum) = ST(opnum);
         ST(linopcod) = ST(opcod);
         csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
@@ -1488,8 +1505,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         /* IV - Oct 31 2002 */
         tfound_m = ST(typemask_tabl)[(unsigned char) tfound];
         if (!(tfound_m & (ARGTYP_c|ARGTYP_p)) && !ST(lgprevdef) && *s != '"') {
-          sprintf(csound->errmsg, Str("input arg '%s' used before defined"), s);
-          synterr(csound, csound->errmsg);
+          synterr(csound, Str("input arg '%s' used before defined"), s);
         }
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound == 'a' && n < 31)    /* JMC added for FOG */
@@ -1577,14 +1593,12 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
         if (tfound_m & (ARGTYP_d | ARGTYP_w))
           if (ST(lgprevdef)) {
-            sprintf(csound->errmsg, Str("output name previously used, type '%c'"
-                                        " must be uniquely defined"), tfound);
-            synterr(csound, csound->errmsg);
+            synterr(csound, Str("output name previously used, "
+                                "type '%c' must be uniquely defined"), tfound);
           }
         /* IV - Oct 31 2002: simplified code */
         if (!(tfound_m & ST(typemask_tabl_out)[(unsigned char) treqd])) {
-          sprintf(csound->errmsg, Str("output arg '%s' illegal type"), s);
-          synterr(csound, csound->errmsg);
+          synterr(csound, Str("output arg '%s' illegal type"), s);
         }
       }
       if (incnt) {
@@ -1597,14 +1611,6 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       else tp->pftype = tp->intype;     /*    else by 1st inarg     */
     }
     return(tp);                         /* return the text blk */
-
- outarg_err:
-    csound->Message(csound, Str("Failed to find %s\n"), str);
-    sprintf(csound->errmsg, Str("output arg '%s' illegal type"),
-                            ST(group)[ST(nxtest)]);
-    synterr(csound, csound->errmsg);    /* report syntax error     */
-    ST(nxtest) = 100;                   /* step way over this line */
-    goto tstnxt;                        /* & go to next            */
 }
 
 static void intyperr(ENVIRON *csound, int n, char tfound, char expect)
@@ -1633,10 +1639,8 @@ static void intyperr(ENVIRON *csound, int n, char tfound, char expect)
     case '?': strcpy(t,"?");
               break;
     }
-    sprintf(csound->errmsg,
-            Str("input arg '%s' of type %s not allowed when expecting %c"),
-            s, t, expect);
-    synterr(csound, csound->errmsg);
+    synterr(csound, Str("input arg '%s' of type %s "
+                        "not allowed when expecting %c"), s, t, expect);
 }
 
 static int isopcod(ENVIRON *csound, char *s)
@@ -1766,25 +1770,30 @@ static void lblchk(ENVIRON *csound)
       }
 }
 
-void synterr(ENVIRON *csound, char *s)
+void synterr(ENVIRON *csound, const char *s, ...)
 {
+    va_list args;
     char    *cp;
     int     c;
 
-    csound->Message(csound, Str("error:  %s"), s);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  "));
+    va_start(args, s);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
+    va_end(args);
     if ((cp = ST(linadr)[ST(curline)]) != NULL) {
-      csound->Message(csound, Str(", line %d:\n"), ST(curline));
+      csound->MessageS(csound, CSOUNDMSG_ERROR,
+                               Str(", line %d:\n"), ST(curline));
       do {
-        csound->Message(csound, "%c", (c = *cp++));
+        csound->MessageS(csound, CSOUNDMSG_ERROR, "%c", (c = *cp++));
       } while (c != '\n');
     }
     else {
-      csound->Message(csound, "\n");
+      csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
     }
     csound->synterrcnt++;
 }
 
-void synterrp(ENVIRON *csound, char *errp, char *s)
+static void synterrp(ENVIRON *csound, const char *errp, char *s)
 {
     char    *cp;
 
@@ -1793,26 +1802,28 @@ void synterrp(ENVIRON *csound, char *errp, char *s)
     while (cp < errp) {
       int ch = *cp++;
       if (ch != '\t') ch = ' ';
-      csound->Message(csound, "%c", ch);
+      csound->MessageS(csound, CSOUNDMSG_ERROR, "%c", ch);
     }
-    csound->Message(csound, "^\n");
+    csound->MessageS(csound, CSOUNDMSG_ERROR, "^\n");
 }
 
 static void lexerr(ENVIRON *csound, char *s)
 {
     IN_STACK  *curr = ST(str);
 
-    csound->Message(csound, Str("error:  %s"), s);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  %s\n"), s);
     while (curr != ST(inputs)) {
       if (curr->string) {
         MACRO *mm = ST(macros);
         while (mm != curr->mac) mm = mm->next;
-        csound->Message(csound, Str("called from line %d of macro %s\n"),
-                                curr->line, mm->name);
+        csound->MessageS(csound, CSOUNDMSG_ERROR,
+                                 Str("called from line %d of macro %s\n"),
+                                 curr->line, mm->name);
       }
       else {
-        csound->Message(csound, Str("in line %f of file input %s\n"),
-                                curr->line, curr->body);
+        csound->MessageS(csound, CSOUNDMSG_ERROR,
+                                 Str("in line %f of file input %s\n"),
+                                 curr->line, curr->body);
       }
       curr--;
     }

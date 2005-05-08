@@ -39,8 +39,9 @@ void    *mrealloc(void*, void*, size_t), mfree(void*, void*);
 void    csoundAuxAlloc(void*, long, AUXCH *), auxchfree(void*, INSDS *);
 void    fdrecord(ENVIRON *, FDCH *), fdclose(ENVIRON *, FDCH *);
 void    fdchclose(ENVIRON *, INSDS *);
-void    synterr(ENVIRON *, char *), synterrp(ENVIRON *, char *, char *);
 #ifdef HAVE_GCC3
+__attribute__ ((__format__(__printf__, 2, 3)))
+  void    synterr(ENVIRON *, const char *, ...);
 __attribute__ ((__noreturn__, __format__(__printf__, 2, 3)))
   void    csoundDie(void *, const char *, ...);
 __attribute__ ((__format__(__printf__, 2, 3)))
@@ -52,6 +53,7 @@ __attribute__ ((__format__(__printf__, 2, 3)))
 __attribute__ ((__format__(__printf__, 2, 3)))
   void    csoundDebugMsg(void *, const char *, ...);
 #else
+void    synterr(ENVIRON *, const char *, ...);
 void    csoundDie(void *, const char *, ...);
 int     csoundInitError(void *, const char *, ...);
 int     csoundPerfError(void *, const char *, ...);
@@ -74,7 +76,7 @@ int     scxtract(ENVIRON *, FILE *, FILE *, FILE *);
 int     rdscor(ENVIRON *, EVTBLK *);
 int     musmon(ENVIRON *);
 void    RTLineset(ENVIRON *);
-int     sensLine(ENVIRON *);
+void    sensLine(ENVIRON *);
 void    fgens(ENVIRON *, EVTBLK *);
 FUNC    *csoundFTFind(void*, MYFLT*);
 FUNC    *csoundFTFindP(void*, MYFLT*);

@@ -656,9 +656,25 @@ extern "C" {
     ((ENVIRON*) csound)->csoundIsScorePending_ = pending;
   }
 
-  PUBLIC void csoundSetScoreOffsetSeconds(void *csound, MYFLT offset)
+  PUBLIC void csoundSetScoreOffsetSeconds(void *csound_, MYFLT offset)
   {
-    ((ENVIRON*) csound)->csoundScoreOffsetSeconds_ = offset;
+    double  aTime;
+    ENVIRON *csound = (ENVIRON*) csound_;
+
+    csound->csoundScoreOffsetSeconds_ = offset;
+    if (csound->QueryGlobalVariable(csound, "csRtClock") == NULL)
+      return;
+    /* if csoundCompile() was already called, create 'a' event now */
+    aTime = (double) offset - csound->sensEvents_state.curTime;
+    if (aTime > 0.0) {
+      EVTBLK  evt;
+      evt.strarg = NULL;
+      evt.opcod = 'a';
+      evt.pcnt = 3;
+      evt.p[2] = evt.p[1] = FL(0.0);
+      evt.p[3] = (MYFLT) aTime;
+      insert_score_event(csound, &evt, csound->sensEvents_state.curTime, 0);
+    }
   }
 
   PUBLIC MYFLT csoundGetScoreOffsetSeconds(void *csound)
@@ -666,12 +682,13 @@ extern "C" {
     return ((ENVIRON*) csound)->csoundScoreOffsetSeconds_;
   }
 
+  extern void musmon_rewind_score(ENVIRON *csound);     /* musmon.c */
+  extern void midifile_rewind_score(ENVIRON *csound);   /* midifile.c */
+
   PUBLIC void csoundRewindScore(void *csound)
   {
-    if(((ENVIRON *)csound)->scfp)
-      {
-        fseek(((ENVIRON *)csound)->scfp, 0, SEEK_SET);
-      }
+    musmon_rewind_score((ENVIRON*) csound);
+    midifile_rewind_score((ENVIRON*) csound);
   }
 
   void csoundDefaultMessageCallback(void *csound, int attr,
