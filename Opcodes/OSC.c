@@ -58,10 +58,10 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
         lo_send(p->addr, (char*) p->dest, "i", (int)(FL(0.5)+*p->d1));
         return OK;
       case 1:
-        lo_send(p->addr, (char*) p->dest, "s", (char*) p->d1);
+        lo_send(p->addr, (char*) p->dest, "s", (float*) p->d1);
         return OK;
       case 2:
-        lo_send(p->addr, (char*) p->dest, "f", (float) *p->d1);
+        lo_send(p->addr, (char*) p->dest, "f", (char) *p->d1);
         return OK;
       case 3:
         lo_send(p->addr, (char*) p->dest, "ii", (int) *p->d1, (int) *p->d2);
