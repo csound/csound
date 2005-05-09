@@ -89,8 +89,8 @@ int rdscor(ENVIRON *csound, EVTBLK *e) /* read next score-line from scorefile */
     int     c;
     FILE    *xx = csound->scfp;
 
-    if (csound->scfp == NULL) { /* if no concurrent scorefile  */
-        e->opcod = 'f';         /*     return an 'f 0 3600'    */
+    if (xx == NULL || feof(xx)) {   /* if no concurrent scorefile  */
+        e->opcod = 'f';             /*     return an 'f 0 3600'    */
         e->p[1] = FL(0.0);
         e->p[2] = FL(3600.0);
         e->p2orig = FL(3600.0);
@@ -159,7 +159,6 @@ setp:       e->pcnt = pp - &e->p[0];                   /* count the pfields */
             }
             return(1);
         }
-    fclose(csound->scfp); csound->scfp = NULL;
     return(0);
 }
 

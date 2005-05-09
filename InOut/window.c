@@ -101,13 +101,10 @@ static void RdXYDummy(void *csound, XYINDAT *wdptr)
         */
 }
 
-void dispinit(void)     /* called once on initialisation of program to  */
-{                       /*   choose between teletype or bitmap graphics */
-    if (!O.displays) {
-/*
-      csoundMessage(&cenviron, Str("displays suppressed\n"));
-*/
-      fprintf(stderr, Str("displays suppressed\n"));
+void dispinit(ENVIRON *csound) /* called once on initialisation of program to */
+{                              /*  choose between teletype or bitmap graphics */
+    if (!csound->oparms->displays) {
+      csound->Message(csound, Str("displays suppressed\n"));
       makeFn = DummyFn2;
       drawFn = DummyFn1;
       killFn = DummyFn1;
@@ -116,7 +113,7 @@ void dispinit(void)     /* called once on initialisation of program to  */
       exitFn = DummyRFn;
     }
 #ifdef WINDOWS
-    else if (!O.graphsoff && Graphable(&cenviron)) {
+    else if (!csound->oparms->graphsoff && Graphable(csound)) {
                        /* provided by window driver: is this session able? */
       makeFn = MakeGraph;
       drawFn = DrawGraph;
@@ -127,9 +124,10 @@ void dispinit(void)     /* called once on initialisation of program to  */
     }
 #endif
     else {
-      printf(Str("graphics %s, ascii substituted\n"),
-             (O.graphsoff)? Str("suppressed") :
-             Str("not supported on this terminal"));
+      csound->Message(csound, Str("graphics %s, ascii substituted\n"),
+                              (csound->oparms->graphsoff ?
+                               Str("suppressed")
+                               : Str("not supported on this terminal")));
       makeFn = MakeAscii;
       drawFn = DrawAscii;
       killFn = KillAscii;

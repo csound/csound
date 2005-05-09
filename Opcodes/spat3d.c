@@ -79,7 +79,7 @@ int spat3d_init_eq (ENVIRON *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
     /* EQ code taken from biquad.c */
 
     eqmode = (int) ((double) ftable[3] + 0.5);                  /* mode      */
-    omega = (double) ftable[0] * TWOPI / (double) csound->esr;  /* frequency */
+    omega = (double) ftable[0] * (double) csound->tpidsr;       /* frequency */
     sq = sqrt (2.0 * (double) ftable[1]);                       /* level     */
 
     k = tan ((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;

@@ -51,7 +51,7 @@ int     defaultCsoundExitGraph(void *csound);
 int     defaultCsoundYield(void *csound);
 
 static const OPARMS O_ = {
-              0,0,          /* odebug, initonly */
+              0,            /* odebug */
               0,1,1,0,      /* sfread, sfwrite, sfheader, filetyp */
               0,0,          /* inbufsamps, outbufsamps */
               0,0,          /* informat, outformat */
@@ -379,7 +379,9 @@ const ENVIRON cenviron_ = {
         NULL, NULL,     /*  argp, endlist       */
         (char*) NULL,   /*  assign_outarg       */
         0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
+        1,              /*  csoundIsScorePending_ */
         0,              /*  advanceCnt          */
+        0,              /*  initonly            */
         (MYFLT*) NULL,  /*  gbloffbas           */
         NULL,           /*  otranGlobals        */
         NULL,           /*  rdorchGlobals       */
@@ -401,7 +403,6 @@ const ENVIRON cenviron_ = {
         1,              /*  enableMsgAttr       */
         0,              /*  sampsNeeded         */
         FL(0.0),        /*  csoundScoreOffsetSeconds_   */
-        0,              /*  csoundIsScorePending_       */
         0,              /*  inChar_             */
         1,              /*  isGraphable_        */
         0,              /*  delayr_stack_depth  */
@@ -627,8 +628,6 @@ void oload(ENVIRON *p)
         aoffp = ttp->outoffs;           /* ------- OUTARGS -------- */
         n = aoffp->count;
         for (ndxp = aoffp->indx; n--; ndxp++) {
-/*        p->Message(p, "**** indx = %d (%x); gblabeg=%d lclabeg=%d\n",
-                        *ndxp, *ndxp, gblabeg, lclabeg); */
           indx = *ndxp;
           if (indx > 0) {               /* positive index: global   */
             if (indx >= STR_OFS)        /* string constant          */
@@ -675,8 +674,6 @@ void oload(ENVIRON *p)
       realops:
         n = aoffp->count;               /* -------- INARGS -------- */
         for (ndxp = aoffp->indx; n--; ndxp++) {
-/*        p->Message(p, "**** indx = %d (%x); gblabeg=%d lclabeg=%d\n",
-                        *ndxp, *ndxp, gblabeg, lclabeg); */
           indx = *ndxp;
           if (indx > 0) {               /* positive index: global   */
             if (indx >= STR_OFS)        /* string constant          */
@@ -701,36 +698,7 @@ void oload(ENVIRON *p)
     }
     p->Free(p, strConstIndexList);
 
-/*  pctlist = (MYFLT **) mcalloc(p, 256 * sizeof(MYFLT *)); */
-/*  insbusy = (int *) mcalloc(p, (p->maxinsno+1) * sizeof(int)); */
-
-    csoundInitEnv(p);      /* must be called before instr 0 initiates */
-
-    if ((nn = init0(p)) > 0)                       /* run instr 0 inits */
-      csoundDie(p, Str("header init errors"));
-    /* IV - Feb 18 2003 */
-    {
-      char  s[256];
-      sprintf(s, "sr = %.7g, kr = %.7g, ksmps = %.7g\n", /* & chk consistency */
-              gblspace[0], gblspace[1], gblspace[2]);    /*   one more time   */
-      if (p->ksmps < 1 || FLOAT_COMPARE(gblspace[2], p->ksmps)) {
-        strcat(s, Str("error: invalid ksmps value"));
-        csoundDie(p, s);
-      }
-      gblspace[2] = p->ensmps = (MYFLT) p->ksmps;
-      if (gblspace[0] <= FL(0.0)) {
-        strcat(s, Str("error: invalid sample rate"));
-        csoundDie(p, s);
-      }
-      if (gblspace[1] <= FL(0.0)) {
-        strcat(s, Str("error: invalid control rate"));
-        csoundDie(p, s);
-      }
-      if (FLOAT_COMPARE(gblspace[0], (double) gblspace[1] * gblspace[2])) {
-        strcat(s, Str("error: inconsistent sr, kr, ksmps"));
-        csoundDie(p, s);
-      }
-    }
+    csoundInitEnv(p);     /* must be called before instr 0 initiates */
     p->tpidsr = TWOPI_F / p->esr;               /* now set internal  */
     p->mtpdsr = -(p->tpidsr);                   /*    consts         */
     p->pidsr = PI_F / p->esr;
@@ -754,6 +722,23 @@ void oload(ENVIRON *p)
     p->nspin = p->nspout;
     p->spin  = (MYFLT *) mcalloc(p, p->nspin * sizeof(MYFLT));
     p->spout = (MYFLT *) mcalloc(p, p->nspout * sizeof(MYFLT));
+    /* chk consistency one more time (FIXME: needed ?) */
+    {
+      char  s[256];
+      sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
+                 p->esr, p->ekr, p->ensmps);
+      if (p->ksmps < 1 || FLOAT_COMPARE(p->ensmps, p->ksmps))
+        csoundDie(p, Str("%s invalid ksmps value"), s);
+      if (p->esr <= FL(0.0))
+        csoundDie(p, Str("%s invalid sample rate"), s);
+      if (p->ekr <= FL(0.0))
+        csoundDie(p, Str("%s invalid control rate"), s);
+      if (FLOAT_COMPARE(p->esr, (double) p->ekr * p->ensmps))
+        csoundDie(p, Str("%s inconsistent sr, kr, ksmps"), s);
+    }
+
+    if ((nn = init0(p)) != 0)                      /* run instr 0 inits */
+      csoundDie(p, Str("header init errors"));
 }
 
 /* get size of string in MYFLT units */
