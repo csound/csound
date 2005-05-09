@@ -102,13 +102,15 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
                                   "cannot run from score\n"), insno);
       return(1);
     }
-    csound->cpu_power_busy += tp->cpuload;
-    /* if there is no more cpu processing time*/
-    if (csound->cpu_power_busy > FL(100.0)) {
-      csound->cpu_power_busy -= tp->cpuload;
-      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
-                                "100%% of cpu time"));
-      return(0);
+    if (tp->cpuload > FL(0.0)) {
+      csound->cpu_power_busy += tp->cpuload;
+      /* if there is no more cpu processing time*/
+      if (csound->cpu_power_busy > FL(100.0)) {
+        csound->cpu_power_busy -= tp->cpuload;
+        csoundWarning(csound, Str("cannot allocate last note because "
+                                  "it exceeds 100%% of cpu time"));
+        return(0);
+      }
     }
     if (tp->maxalloc > 0 && tp->active >= tp->maxalloc) {
       csoundWarning(csound, Str("cannot allocate last note because it exceeds "
@@ -117,7 +119,6 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
     }
     /* if find this insno, active, with indef (tie) & matching p1 */
     for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
-      /* if find this insno, active, with indef (tie) & matching p1 */
       if (ip->actflg && ip->offtim < 0.0 && ip->p1 == newevtp->p[1]) {
         csound->tieflag++;
         goto init;                      /*     continue that event */
@@ -161,7 +162,7 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
         long nn = tp->pmax - 2;             /*   put cur vals in pflds */
         do {
           *pfld++ = *pdat++;
-        } while (nn--);
+        } while (--nn);
       }
       if ((n = tp->pmax) != newevtp->pcnt && !tp->psetdata) {
         csoundWarning(csound, Str("instr %d uses %d p-fields but is given %d"),
@@ -202,14 +203,13 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       /* $$$$ CHECK RETURN CODE $$$$ */
       err |= (*csound->ids->iopadr)(csound, csound->ids);
     }
-    csound->tieflag = 0;
+    csound->tieflag = csound->reinitflag = 0;
     if (err || ip->p3 == FL(0.0)) {
       xturnoff_now(csound, ip);
       return(csound->inerrcnt);
     }
-    if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
-      double p2;
-      p2 = (double) ip->p2 + csound->sensEvents_state.timeOffs;
+    if (ip->p3 > FL(0.0)) {                     /* if still finite time, */
+      double p2 = (double) ip->p2 + csound->sensEvents_state.timeOffs;
       ip->offtim = p2 + (double) ip->p3;
       if (O->Beatmode) {
         p2 -= csound->sensEvents_state.curTime;
@@ -245,20 +245,22 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       return 0;     /* muted */
 
     tp = csound->instrtxtp[insno];
-    csound->cpu_power_busy += tp->cpuload;
-    if (csound->cpu_power_busy > FL(100.0)) { /* if there is no more cpu time */
-      csound->cpu_power_busy -= tp->cpuload;
-      csoundWarning(csound, Str("cannot allocate last note because it exceeds "
-                                "100%% of cpu time"));
-      return(0);
+    if (tp->cpuload > FL(0.0)) {
+      csound->cpu_power_busy += tp->cpuload;
+      if (csound->cpu_power_busy > FL(100.0)) {
+        /* if there is no more cpu time */
+        csound->cpu_power_busy -= tp->cpuload;
+        csoundWarning(csound, Str("cannot allocate last note because "
+                                  "it exceeds 100%% of cpu time"));
+        return(0);
+      }
     }
-    tp->active++;
-    if (tp->maxalloc > 0 && tp->active > tp->maxalloc) {
-      tp->active--;
+    if (tp->maxalloc > 0 && tp->active >= tp->maxalloc) {
       csoundWarning(csound, Str("cannot allocate last note because it exceeds "
                                 "instr maxalloc"));
       return(0);
     }
+    tp->active++;
     if (O->odebug)
       csound->Message(csound, "activating instr %d\n", insno);
     csound->inerrcnt = 0;
@@ -323,7 +325,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       long nn = tp->pmax - 2;             /*   put cur vals in pflds */
       do {
         *pfld++ = *pdat++;
-      } while (nn--);
+      } while (--nn);
     }
     csound->curip = ip;
     csound->ids = (OPDS *)ip;
@@ -335,7 +337,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       /* $$$ CHECK RETURN CODE $$$ */
       err |= (*csound->ids->iopadr)(csound, csound->ids);
     }
-    csound->tieflag = 0;
+    csound->tieflag = csound->reinitflag = 0;
     if (err) {
       xturnoff_now(csound, ip);
       return csound->inerrcnt;
@@ -420,15 +422,6 @@ static void deact(ENVIRON *csound, INSDS *ip)
     csound->instrtxtp[ip->insno]->act_instance = ip;
     if (ip->fdch.nxtchp != NULL)
       fdchclose(csound, ip);
-}
-
-int ihold(ENVIRON *csound, LINK *p)     /* make this note indefinit duration */
-{                                       /* called by ihold statmnt at Itime  */
-    if (!csound->reinitflag) {          /* no-op at reinit                   */
-      csound->curip->offbet = -1.0;
-      csound->curip->offtim = -1.0;
-    }
-    return OK;
 }
 
 /* Turn off a particular insalloc, also remove from list of active */
@@ -598,9 +591,6 @@ void kperf(ENVIRON *csound)
     INSDS   *ip;
     int     i;
 
-/*  if (csound->oparms->odebug)
-      csound->Message(csound, "perfing one kprd\n"); */
-
     /* update orchestra time */
     csound->kcounter++;
     csound->global_kcounter = csound->kcounter;
@@ -611,6 +601,9 @@ void kperf(ENVIRON *csound)
       csound->advanceCnt--;
       return;
     }
+    /* if i-time only, return now */
+    if (csound->initonly)
+      return;
     /* PC GUI needs attention, but avoid excessively frequent */
     /* calls of csoundYield() */
     if (--(csound->evt_poll_cnt) < 0) {
@@ -724,104 +717,6 @@ int csoundPerfError(void *csound_, const char *s, ...)
       csound->pds = csound->pds->nxtp;        /* loop to last opds */
 
     return csound->perferrcnt;                /* contin from there */
-}
-
-int igoto(ENVIRON *csound, GOTO *p)
-{
-    csound->ids = p->lblblk->prvi;
-    return OK;
-}
-
-int kgoto(ENVIRON *csound, GOTO *p)
-{
-    csound->pds = p->lblblk->prvp;
-    return OK;
-}
-
-int icgoto(ENVIRON *csound, CGOTO *p)
-{
-    if (*p->cond)
-      csound->ids = p->lblblk->prvi;
-    return OK;
-}
-
-int kcgoto(ENVIRON *csound, CGOTO *p)
-{
-    if (*p->cond)
-      csound->pds = p->lblblk->prvp;
-    return OK;
-}
-
-/* an 'if-then' variant of 'if-goto' */
-int ingoto(ENVIRON *csound, CGOTO *p)
-{
-    /* Make sure we have an i-time conditional */
-    if (p->h.optext->t.intype == 'b' && !*p->cond)
-      csound->pds = p->lblblk->prvp;
-    return OK;
-}
-
-int kngoto(ENVIRON *csound, CGOTO *p)
-{
-    if (!*p->cond)
-      csound->pds = p->lblblk->prvp;
-    return OK;
-}
-
-int timset(ENVIRON *csound, TIMOUT *p)
-{
-    if ((p->cnt1 = (long)(*p->idel * csound->ekr + FL(0.5))) < 0L
-        || (p->cnt2 = (long)(*p->idur * csound->ekr + FL(0.5))) < 0L)
-      return csoundInitError(csound, Str("negative time period"));
-    return OK;
-}
-
-int timout(ENVIRON *csound, TIMOUT *p)
-{
-    if (p->cnt1)                            /* once delay has expired, */
-      p->cnt1--;
-    else if (--p->cnt2 >= 0L)               /*  br during idur countdown */
-      csound->pds = p->lblblk->prvp;
-    return OK;
-}
-
-int rireturn(ENVIRON *csound, LINK *p)
-{
-    IGN(p);
-    return OK;
-}
-
-int reinit(ENVIRON *csound, GOTO *p)
-{
-    csound->reinitflag = 1;
-    csound->curip = p->h.insdshead;
-    csound->ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
-    while ((csound->ids = csound->ids->nxti) != NULL &&
-           csound->ids->iopadr != (SUBR) rireturn)
-      (*csound->ids->iopadr)(csound, csound->ids);
-    csound->reinitflag = 0;
-    return OK;
-}
-
-int rigoto(ENVIRON *csound, GOTO *p)
-{
-    if (csound->reinitflag)
-      csound->ids = p->lblblk->prvi;
-    return OK;
-}
-
-int tigoto(ENVIRON *csound, GOTO *p)    /* I-time only, NOP at reinit */
-{
-    if (csound->tieflag && !csound->reinitflag)
-      csound->ids = p->lblblk->prvi;
-    return OK;
-}
-
-int tival(ENVIRON *csound, EVAL *p)     /* I-time only, NOP at reinit */
-{
-    if (!csound->reinitflag)
-      *p->r = (csound->tieflag ? FL(1.0) : FL(0.0));
-    return OK;
 }
 
 /* IV - Oct 12 2002: new simplified subinstr functions */

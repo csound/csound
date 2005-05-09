@@ -434,7 +434,7 @@ static int pvanal(void *csound_, int argc, char **argv)
         return quit(csound, Str("cannot write header"));
       }
 #if 0
-      dispinit();
+      dispinit(csound);
       if (verbose) {
         fprintf(trfil, "Size=%ld Format=%ld Rate=%g Channels=%ld\n",
                 pvh->dataBsize/pvh->frameBsize, pvh->dataFormat,

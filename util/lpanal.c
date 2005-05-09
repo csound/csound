@@ -526,7 +526,7 @@ int lpanal(int argc, char **argv)
         analframes = (p->getframes - 1) / slice;
 
    /* Some display stuff */
-        dispinit();
+        dispinit(csound);
         dispset(&pwindow,coef+4,poleCount,"pitch: 0000.00   ",0,"LPC/POLES");
         a = (double (*)[MAXPOLES]) malloc(MAXPOLES * MAXPOLES * sizeof(double));  /* Space for a array */
         x = (double *) malloc(WINDIN * sizeof(double));  /* alloc a double array */

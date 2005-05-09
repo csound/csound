@@ -90,11 +90,9 @@ int tempset(ENVIRON *csound, TEMPO *p)
     if ((tempo = *p->istartempo) <= FL(0.0)) {
       return csound->InitError(csound, Str("illegal istartempo value"));
     }
-    else {
-      settempo(csound, tempo);
-      p->prvtempo = tempo;
-      return OK;
-    }
+    settempo(csound, tempo);
+    p->prvtempo = tempo;
+    return OK;
 }
 
 int tempo(ENVIRON *csound, TEMPO *p)
@@ -192,12 +190,12 @@ int musmon(ENVIRON *csound)
     if (csound->musmonGlobals == NULL)
       csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
     m_chn_init_all(csound);     /* allocate MIDI channels */
-    dispinit();                 /* initialise graphics or character display */
+    dispinit(csound);           /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
 
-    /* kperf() will not call csoundYield() more than 1000 times per second */
+    /* kperf() will not call csoundYield() more than 500 times per second */
     csound->evt_poll_cnt = 0;
-    csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 1000.0);
+    csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 500.0);
     /* initialise sensevents state */
     {
       sensEvents_t  *p;
@@ -852,7 +850,9 @@ int sensevents(ENVIRON *csound)
     }
     /* for s, or e after s */
     if (retval == 1 || (retval == 2 && ST(sectno) > 1)) {
-      p->nxtim = p->timeOffs = p->curp2;
+      if (O->Beatmode)
+        p->curbt = p->curBeat;
+      p->curp2 = p->nxtim = p->timeOffs = p->curTime;
       p->prvbt = p->nxtbt = p->beatOffs = p->curbt;
       section_amps(csound, 1);
     }
@@ -874,10 +874,8 @@ static int playevents(ENVIRON *csound)
 {
     int retval;
 
-    while ((retval = sensevents(csound)) == 0) {
-      if (!csound->oparms->initonly)
-        kperf(csound);
-    }
+    while ((retval = sensevents(csound)) == 0)
+      kperf(csound);
     return (retval - 1);
 }
 
@@ -1086,6 +1084,7 @@ void musmon_rewind_score(ENVIRON *csound)
       ep = nxt;
     }
     csound->OrcTrigEvts = NULL;
+    csound->oparms->OrcEvts = 0;
     /* rewind score file */
     if (csound->scfp != NULL)
       fseek(csound->scfp, 0L, SEEK_SET);
