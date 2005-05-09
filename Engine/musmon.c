@@ -536,8 +536,9 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
     case 'l':
     case 's':
       while (csound->frstoff != NULL) {
+        INSDS *nxt = csound->frstoff->nxtoff;
         xturnoff_now(csound, csound->frstoff);
-        csound->frstoff = csound->frstoff->nxtoff;
+        csound->frstoff = nxt;
       }
       csound->currevent = saved_currevent;
       return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
@@ -721,9 +722,11 @@ int sensevents(ENVIRON *csound)
 
     p = &(csound->sensEvents_state);
     if (csound->MTrkend && O->termifend) {      /* end of MIDI file:  */
-      while (csound->frstoff != NULL) {
-        xturnoff_now(csound, csound->frstoff);
-        csound->frstoff = csound->frstoff->nxtoff;
+      INSDS *ip = csound->actanchor.nxtact;
+      while (ip != NULL) {
+        INSDS *nxt = ip->nxtact;
+        xturnoff_now(csound, ip);
+        ip = nxt;
       }
       csound->Message(csound, Str("terminating.\n"));
       return 1;                         /* abort with perf incomplete */
