@@ -68,7 +68,7 @@ int     express(ENVIRON *, char *);
 int     getopnum(ENVIRON *, char *), lgexist(ENVIRON *, char *);
 void    oload(ENVIRON*);
 void    reverbinit(ENVIRON*);
-void    dispinit(void);
+void    dispinit(ENVIRON*);
 int     init0(ENVIRON*);
 int     openin(ENVIRON *, char *), openout(ENVIRON *, char *, int);
 void    scsort(ENVIRON *, FILE *, FILE *);

@@ -428,6 +428,14 @@ extern "C" {
                                       CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                       "Enable message attributes (colors etc.)",
                                       NULL);
+    {
+      MYFLT minVal = FL(0.0);
+      csoundCreateConfigurationVariable(csound, "skip_seconds",
+                                        &(p->csoundScoreOffsetSeconds_),
+                                        CSOUNDCFG_MYFLT, 0, &minVal, NULL,
+                                        "Start score playback at the specified "
+                                        "time, skipping earlier events", NULL);
+    }
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     return csoundLoadModules(csound);
@@ -467,7 +475,7 @@ extern "C" {
     free(csound);
   }
 
-  PUBLIC int csoundGetVersion()
+  PUBLIC int csoundGetVersion(void)
   {
     return (int) (atof(PACKAGE_VERSION) * 100);
   }
@@ -506,7 +514,7 @@ extern "C" {
 
   PUBLIC int csoundPerformKsmps(void *csound)
   {
-    int done = 0;
+    int done;
     volatile int returnValue;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
@@ -514,32 +522,24 @@ extern "C" {
       return returnValue;
     }
     done = sensevents(csound);
-    if (!done) {
-      /* IV - Feb 05 2005 */
-      if (!((ENVIRON*) csound)->oparms->initonly)
-        kperf(csound);
-    }
-    else {
+    if (!done)
+      kperf(csound);
+    else
       csoundMessage(csound, "Score finished in csoundPerformKsmps()\n");
-    }
     return done;
   }
 
   PUBLIC int csoundPerformKsmpsAbsolute(void *csound)
   {
-    int done = 0;
+    int done;
     volatile int returnValue;
-    /* setup jmp for return after an exit()
-     */
+    /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
       return returnValue;
     }
     done = sensevents(csound);
-
-    /* IV - Feb 05 2005 */
-    if (!((ENVIRON*) csound)->oparms->initonly)
-      kperf(csound);
+    kperf(csound);
     return done;
   }
 
@@ -559,8 +559,7 @@ extern "C" {
     while (csound->sampsNeeded > 0) {
       if ((done = sensevents(csound)))
         return done;
-      if (!csound->oparms->initonly)
-        kperf(csound);
+      kperf(csound);
       csound->sampsNeeded -= csound->nspout;
     }
     return 0;
@@ -1367,7 +1366,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
    * OPCODES
    */
 
-  PUBLIC opcodelist *csoundNewOpcodeList()
+  PUBLIC opcodelist *csoundNewOpcodeList(void)
   {
     /* create_opcodlst();
        return new_opcode_list(); */

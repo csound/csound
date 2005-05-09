@@ -56,7 +56,7 @@ static inline MYFLT pow2(MYFLT a)
 
 int rassign(ENVIRON *csound, ASSIGN *p)
 {
-    *p->r = *p->a;  /* still not quite right */
+    /* already assigned by otran */
     return OK;
 }
 

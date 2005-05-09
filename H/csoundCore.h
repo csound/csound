@@ -127,7 +127,7 @@ extern "C" {
   void dbfs_init(struct ENVIRON_ *csound, MYFLT dbfs);
 
   typedef struct {
-    int     odebug, initonly;
+    int     odebug;
     int     sfread, sfwrite, sfheader, filetyp;
     int     inbufsamps, outbufsamps;
     int     informat, outformat;
@@ -938,7 +938,9 @@ extern "C" {
     TOKEN         **revp, **pushp, **argp, **endlist;
     char          *assign_outarg;
     int           argcnt_offs, opcode_is_assign, assign_type;
+    int           csoundIsScorePending_;
     int           advanceCnt;
+    int           initonly;
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *otranGlobals;
     void          *rdorchGlobals;
@@ -960,7 +962,6 @@ extern "C" {
     int           enableMsgAttr;        /* csound.c */
     int           sampsNeeded;
     MYFLT         csoundScoreOffsetSeconds_;
-    int           csoundIsScorePending_;
     int           inChar_;
     int           isGraphable_;
     int           delayr_stack_depth;   /* ugens6.c */

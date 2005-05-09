@@ -29,17 +29,6 @@
 #include "csmodule.h"
 #include <ctype.h>
 
-#ifdef mills_macintosh
-#include <SIOUX.h>
-#include "perf.h"
-#include"MacTransport.h"
-
-extern unsigned short pollEventRate;
-static int vbuf;
-static int csNGraphs;
-static int rescale24 = 0;
-#endif
-
 extern void strset_option(ENVIRON *csound, char *s);    /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
@@ -143,20 +132,6 @@ static const char *shortUsageList[] = {
   "--sched=N   set specified scheduling priority, and lock memory",
   "            (requires -d and real time audio (-iadc/-odac))",
 #endif
-#ifdef mills_macintosh
-  "_____________Macintosh Command Line Flags_________________",
-  "-V N\t Number of chars in screen buffer for output window",
-  "-E N\t Number of tables in graphics window",
-  "-p\t\t Play after rendering",
-  "-e\t\t Rescaled floats as shorts to max amplitude",
-  "-w\t\t Record and Save MIDI input to a file",
-  "-y N\t Enables Progress Display at rate N seconds,",
-  "\t\t\tor for negative N, at -N kperiods",
-  "-Y N\t Enables Profile Display at rate N in seconds,",
-  "\t\t\tor for negative N, at -N kperiods",
-  "-P N\t Poll Events Every N Buffer Writes",
-  "__________________________________________________________",
-#endif
   NULL
 };
 
@@ -256,14 +231,6 @@ static void longusage(void *csound)
              "--opcode-lib=NAMES\tDynamic libraries to load\n"
              "\n"
              "--help\t\t\tLong help\n"
-#ifdef mills_macintosh
-             "\n--graphs=N\tNumber of tables in graphics window\n"
-             "--pollrate=N\n"
-             "--play-on-end\t Play after rendering\n"
-             "--screen-buffer=N\tNumber of chars in screen buffer for "
-             "output window\n"
-             "--save-midi\tRecord and Save MIDI input to a file\n"
-#endif
              );
   /* IV - Feb 19 2005 */
   dump_cfg_variables(csound);
@@ -339,426 +306,381 @@ SAMPLE_FORMAT_ENTRY sample_format_map[] = {
 
 static int decode_long(void *csound_, char *s, int argc, char **argv)
 {
-  ENVIRON *csound = (ENVIRON*) csound_;
-  OPARMS  *O = csound->oparms;
-  /* Add other long options here */
-  if (!(strncmp(s, "format=", 7)))
-    {
+    ENVIRON *csound = (ENVIRON*) csound_;
+    OPARMS  *O = csound->oparms;
+    /* Add other long options here */
+    if (!(strncmp(s, "format=", 7))) {
       SAMPLE_FORMAT_ENTRY *sfe = sample_format_map;
       char c = '\0';
-
       s += 7;
-      while (sfe->longformat != 0)
-        {
-          if (strcmp(s, sfe->longformat) == 0)
-            {
-              c = sfe->shortformat;
-              break;
-            }
-          ++sfe;
+      while (sfe->longformat != 0) {
+        if (strcmp(s, sfe->longformat) == 0) {
+          c = sfe->shortformat;
+          break;
         }
-
-      if (c != '\0')
-        {
-          set_output_format(O, c);
-          return 1;
-        }
-#ifdef mills_macintosh
-      else if (!(strncmp (s, "rescale", 7))) {
-        s += 7;
-        set_output_format(O, 'e');
-        rescale24 = atoi(s);
-        if (rescale24)
-          SetRescaleFloatFileTo24(TRUE);
-        SetRescaleFloatFile(TRUE);
+        ++sfe;
+      }
+      if (c != '\0') {
+        set_output_format(O, c);
         return 1;
       }
-#endif
     }
-  /* -A */
-  else if (!(strcmp (s, "aiff"))) {
-    O->sfheader = 1;
-    O->filetyp = TYP_AIFF;     /* AIFF output request*/
-    return 1;
-  }
-  else if (!(strcmp (s, "au"))) {
-    O->sfheader = 1;
-    O->filetyp = TYP_AU;       /* AU output request*/
-    return 1;
-  }
-  else if (!(strncmp (s, "iobufsamps=", 11))) {
-    s += 11;
-    if (*s=='\0') dieu(csound, Str("no iobufsamps"));
-    /* defaults in musmon.c */
-    O->inbufsamps = O->outbufsamps = atoi(s);
-    return 1;
-  }
-  else if (!(strncmp (s, "hardwarebufsamps=", 17))) {
-    s += 17;
-    if (*s=='\0') dieu(csound, Str("no hardware bufsamps"));
-    O->inbufsamps = O->outbufsamps = atoi(s);
-    return 1;
-  }
-  else if (!(strcmp (s, "cscore"))) {
-    O->usingcscore = 1;     /* use cscore processing  */
-    return 1;
-  }
-  else if (!(strcmp (s, "nodisplays"))) {
-    O->displays = 0;           /* no func displays */
-    return 1;
-  }
-  else if (!(strcmp (s, "defer-gen1"))) {
-    O->gen01defer = 1;  /* defer GEN01 sample loads
-                          until performance time */
-    return 1;
-  }
-#ifdef mills_macintosh
-  /* -E N */
-  else if (!(strncmp (s, "graphs=", 7))) {
-    s += 7;
-    if (*s=='\0') dieu(csound, Str("no number of graphs"));
-    csNGraphs = atoi(s);
-    SetCsNGraphs(csNGraphs);
-    return 1;
-  }
-  else if (!(strncmp (s, "pollrate=", 9))) {
-    s += 9;
-    if (*s == '\0') dieu(csound, Str("no poll event rate"));
-    pollEventRate = atoi(s);
-    return 1;
-  }
-  else if (!(strcmp(s, "play-on-end"))) {
-    SetPlayOnFinish(TRUE);
-    return 1;
-  }
-#endif
-  else if (!(strncmp (s, "midifile=", 9))) {
-    s += 9;
-    if (*s == '\0') dieu(csound, Str("no midifile name"));
-    O->FMidiname = s;            /* Midifile name */
-    if (!strcmp(O->FMidiname,"stdin")) {
-      set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
-#if defined(WIN32) || defined(mills_macintosh)
-      csoundDie(csound, Str("-F: stdin not supported on this platform"));
-#endif
-    }
-    else
-      set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
-    O->FMidiin = 1;              /***************/
-    return 1;
-  }
-  /* -g */
-  else if (!(strcmp (s, "asciidisplay"))) {
-    O->graphsoff = 1;          /* don't use graphics but ASCII */
-    return 1;
-  }
-  /* -G */
-  else if (!(strcmp (s, "postscriptdisplay"))) {
-    O->postscript = 1;        /* don't use graphics but PostScript */
-    return 1;
-  }
-  /* -h */
-  else if (!(strcmp (s, "noheader"))) {
-    O->sfheader = 0;          /* skip sfheader  */
-    O->filetyp = TYP_RAW;
-    return 1;
-  }
-  else if (!(strncmp (s, "heartbeat=", 10))) {
-    s += 10;
-    if (*s == '\0') O->heartbeat = 1;
-    else O->heartbeat = atoi(s);
-    return 1;
-  }
-#ifdef EMBEDDED_PYTHON
-  else if (strncmp(s, "pyvar=", 6) == 0) {
-    s += 6;
-    if (python_add_cmdline_definition(s))
-      dieu(csound, Str("invalid python variable definition syntax"));
-    return 1;
-  }
-#endif
-  else if (!(strncmp (s, "input=", 6))) {
-    s += 6;
-    if (*s == '\0') dieu(csound, Str("no infilename"));
-    O->infilename = s;   /* soundin name */
-    if (strcmp(O->infilename,"stdout") == 0)
-      csoundDie(csound, Str("input cannot be stdout"));
-    if (strcmp(O->infilename,"stdin") == 0) {
-      set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mills_macintosh)
-      csoundDie(csound, Str("stdin audio not supported"));
-#endif
-    }
-    else
-      set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
-    O->sfread = 1;
-    return 1;
-  }
-  /*
-    -I I-time only orch run
-  */
-  else if (!(strcmp (s, "i-only"))) {
-    O->initonly = 1;
-    return 1;
-  }
-  /*
-    -j Used in localisation
-    -J create an IRCAM format output soundfile
-  */
-  else if (!(strcmp (s, "ircam"))) {
-    O->sfheader = 1;
-    O->filetyp = TYP_IRCAM;      /* IRCAM output request */
-    return 1;
-  }
-  /*
-    -k N orchestra krate override
-  */
-  else if (!(strncmp(s, "control-rate=", 13))) {
-    s += 13;
-    if (*s=='\0') dieu(csound, Str("no control rate"));
-    O->kr_override = atoi(s);
-    return 1;
-  }
-  /* -K */
-  else if (!(strcmp (s, "nopeaks"))) {
-    csound->peakchunks = 0;     /* Do not write peak information */
-    return 1;
-  }
-  /*
-    -L dnam read Line-oriented realtime score events from device 'dnam'
-  */
-  else if (!(strncmp (s, "score-in=", 9))) {
-    s += 9;
-    if (*s=='\0') dieu(csound, Str("no Linein score device_name"));
-    O->Linename = s;
-    if (!strcmp(O->Linename,"stdin")) {
-      set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
-#if defined(mills_macintosh)
-      csoundDie(csound, Str("-L: stdin not supported on this platform"));
-#endif
-    }
-    else
-      set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
-    O->Linein = 1;
-    return 1;
-  }
-  /*
-    -m N tty message level. Sum of: 1=note amps, 2=out-of-range msg, 4=warnings
-  */
-  else if (!(strncmp (s, "messagelevel=", 13))) {
-    s += 13;
-    if (*s=='\0') dieu(csound, Str("no message level"));
-    O->msglevel = atoi(s);
-    return 1;
-  }
-  /*
-    -M dnam read MIDI realtime events from device 'dnam'
-  */
-  else if (!(strncmp (s, "midi-device=", 12))) {
-    s += 12;
-    if (*s=='\0') dieu(csound, Str("no midi device_name"));
-    O->Midiname = s;
-    if (!strcmp(O->Midiname,"stdin")) {
-      set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
-#if defined(WIN32) || defined(mills_macintosh)
-      csoundDie(csound, Str("-M: stdin not supported on this platform"));
-#endif
-    }
-    else
-      set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
-    O->Midiin = 1;
-    return 1;
-  }
-  /* -n no sound */
-  else if (!(strcmp (s, "nosound"))) {
-    O->sfwrite = 0;            /* nosound        */
-    return 1;
-  }
-  /* -N */
-  else if (!(strcmp (s, "notify"))) {
-    O->ringbell = 1;        /* notify on completion */
-    return 1;
-  }
-  else if (!(strncmp (s, "output=", 7))) {
-    s += 7;
-    if (*s == '\0') dieu(csound, Str("no outfilename"));
-    O->outfilename = s;          /* soundout name */
-    if (strcmp(O->outfilename,"stdin") == 0)
-      dieu(csound, Str("-o cannot be stdin"));
-    if (strcmp(O->outfilename,"stdout") == 0) {
-      set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
-#if defined(WIN32) || defined(mills_macintosh)
-      csoundDie(csound, Str("stdout audio not supported"));
-#endif
-    }
-    else
-      set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
-    O->sfwrite = 1;
-    return 1;
-  }
-  else if (!(strncmp (s, "logfile=", 8))) {
-    s += 8;
-    if (*s=='\0') dieu(csound, Str("no log file"));
-    return 1;
-  }
-  /* -r N */
-  else if (!(strncmp (s, "sample-rate=", 12))) {
-    s += 12;
-    O->sr_override = atol(s);
-    return 1;
-  }
-  /* R */
-  else if (!(strcmp (s, "rewrite"))) {
-    O->rewrt_hdr = 1;
-    return 1;
-  }
-  /* -S  */
-  /* tempo=N use uninterpreted beats of the score, initially at tempo N
-   */
-  else if (!(strncmp (s, "tempo=", 6))) {
-    s += 6;
-    O->cmdTempo = atoi(s);
-    O->Beatmode = 1;       /* on uninterpreted Beats */
-    return 1;
-  }
-  /* -t0 */
-  else if (!(strcmp (s, "keep-sorted-score"))) {
-    csound->keep_tmp = 1;
-    return 1;
-  }
-  /* IV - Jan 27 2005: --expression-opt */
-  else if (!(strcmp (s, "expression-opt"))) {
-    O->expr_opt = 1;
-    return 1;
-  }
-  else if (!(strncmp (s, "env:", 4))) {
-    if (csoundParseEnv(csound, s + 4) == CSOUND_SUCCESS)
+    /* -A */
+    else if (!(strcmp (s, "aiff"))) {
+      O->sfheader = 1;
+      O->filetyp = TYP_AIFF;            /* AIFF output request*/
       return 1;
-    else
-      return 0;
-  }
-  else if (!(strncmp (s, "strset", 6))) {
-    strset_option(csound, s + 6);
-    return 1;
-  }
-  /* -T terminate the performance when miditrack is done */
-  else if (!(strcmp (s, "terminate-on-midi"))) {
-    O->termifend = 1;          /* terminate on midifile end */
-    return 1;
-  }
-  else if (!(strncmp (s, "utility=", 8))) {
-    int retval;
-    s += 8;
-    if (*s=='\0') dieu(csound, Str("no utility name"));
-    retval = csound->Utility(csound, s, argc, argv);
-    if (!retval)
-      longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
-    else
-      longjmp(csound->exitjmp, abs(retval));
-  }
-  /* -v */
-  else if (!(strcmp (s, "verbose"))) {
-    O->odebug = 1;    /* verbose otran  */
-    return 1;
-  }
-#ifdef mills_macintosh
-  /* -V N  Number of chars in screen buffer for output window */
-  else if (!(strncmp(s, "screen-buffer=", 14))) {
-    s += 14;
-    if (*s=='\0') dieu(csound, Str("no screen buffer size"));
-    vbuf = atoi(s);
-    fflush(stdout);
-    setvbuf(stdout, NULL, _IOFBF, vbuf);
-    return 1;
-  }
-  /* -w   Record and Save MIDI input to a file */
-  else if ((!strcmp(s, "save-midi")) || (!strcmp(s, "record-midi"))) {
-    SetRecordMIDIData(TRUE);
-    return 1;
-  }
-#endif
-  /* -x fnam extract from score.srt using extract file 'fnam' */
-  else if (!(strncmp(s, "extract-score=", 14))) {
-    s += 14;
-    if (*s=='\0') dieu(csound, Str("no xfilename"));
-    csound->xfilename = s;
-    return 1;
-  }
-  else if (!(strcmp(s, "wave"))) {
-    O->sfheader = 1;
-    O->filetyp = TYP_WAV;      /* WAV output request */
-    return 1;
-  }
-  else if (!(strcmp(s, "wave64"))) {
-    O->sfheader = 1;
-    O->filetyp = TYP_W64;      /* WAVE 64 output request */
-    return 1;
-  }
-  else if (!(strcmp(s, "voc"))) {
-    O->sfheader = 1;
-    O->filetyp = TYP_VOC;      /* VOC output request */
-    return 1;
-  }
-  else if (!(strncmp (s, "list-opcodes", 12))) {
-    int full = 0;
-    s += 12;
-
-    if (*s != '\0') {
-      if (isdigit(*s)) full = *s++ - '0';
     }
-    create_opcodlst(csound);
-    if (csoundInitModules(csound) != 0)
-      longjmp(csound->exitjmp, 1);
-    list_opcodes(csound, full);
-    longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
-  }
-  /* -Z */
-  else if (!(strcmp (s, "dither"))) {
-    csound->dither_output = 1;
-    return 1;
-  }
-  else if (!(strncmp(s, "opcode-lib=", 11))) {
-    s += 11;
-    {
-      char  *oplibs;
-      int   nbytes;
-      nbytes = (int) strlen(s);
-      oplibs =
-        (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
-      if (oplibs == NULL) {
-        csoundCreateGlobalVariable(csound, "::dl_opcodes::oplibs", 4096);
+    else if (!(strcmp (s, "au"))) {
+      O->sfheader = 1;
+      O->filetyp = TYP_AU;              /* AU output request*/
+      return 1;
+    }
+    else if (!(strncmp (s, "iobufsamps=", 11))) {
+      s += 11;
+      if (*s=='\0') dieu(csound, Str("no iobufsamps"));
+      /* defaults in musmon.c */
+      O->inbufsamps = O->outbufsamps = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp (s, "hardwarebufsamps=", 17))) {
+      s += 17;
+      if (*s=='\0') dieu(csound, Str("no hardware bufsamps"));
+      O->inbufsamps = O->outbufsamps = atoi(s);
+      return 1;
+    }
+    else if (!(strcmp (s, "cscore"))) {
+      O->usingcscore = 1;               /* use cscore processing  */
+      return 1;
+    }
+    else if (!(strcmp (s, "nodisplays"))) {
+      O->displays = 0;                  /* no func displays */
+      return 1;
+    }
+    else if (!(strcmp (s, "displays"))) {
+      O->displays = 1;                  /* func displays */
+      return 1;
+    }
+    else if (!(strcmp (s, "defer-gen1"))) {
+      O->gen01defer = 1;                /* defer GEN01 sample loads */
+      return 1;                         /*   until performance time */
+    }
+    else if (!(strncmp (s, "midifile=", 9))) {
+      s += 9;
+      if (*s == '\0') dieu(csound, Str("no midifile name"));
+      O->FMidiname = s;                 /* Midifile name */
+      if (!strcmp(O->FMidiname,"stdin")) {
+        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+        csoundDie(csound, Str("-F: stdin not supported on this platform"));
+#endif
+      }
+      else
+        set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
+      O->FMidiin = 1;                   /***************/
+      return 1;
+    }
+    /* -g */
+    else if (!(strcmp (s, "asciidisplay"))) {
+      O->graphsoff = 1;                 /* don't use graphics but ASCII */
+      return 1;
+    }
+    /* -G */
+    else if (!(strcmp (s, "postscriptdisplay"))) {
+      O->postscript = 1;                /* don't use graphics but PostScript */
+      return 1;
+    }
+    /* -h */
+    else if (!(strcmp (s, "noheader"))) {
+      O->sfheader = 0;                  /* skip sfheader  */
+      O->filetyp = TYP_RAW;
+      return 1;
+    }
+    else if (!(strncmp (s, "heartbeat=", 10))) {
+      s += 10;
+      if (*s == '\0') O->heartbeat = 1;
+      else O->heartbeat = atoi(s);
+      return 1;
+    }
+#ifdef EMBEDDED_PYTHON
+    else if (strncmp(s, "pyvar=", 6) == 0) {
+      s += 6;
+      if (python_add_cmdline_definition(s))
+        dieu(csound, Str("invalid python variable definition syntax"));
+      return 1;
+    }
+#endif
+    else if (!(strncmp (s, "input=", 6))) {
+      s += 6;
+      if (*s == '\0') dieu(csound, Str("no infilename"));
+      O->infilename = s;                /* soundin name */
+      if (strcmp(O->infilename,"stdout") == 0)
+        csoundDie(csound, Str("input cannot be stdout"));
+      if (strcmp(O->infilename,"stdin") == 0) {
+        set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+        csoundDie(csound, Str("stdin audio not supported"));
+#endif
+      }
+      else
+        set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
+      O->sfread = 1;
+      return 1;
+    }
+    /*
+      -I I-time only orch run
+     */
+    else if (!(strcmp (s, "i-only"))) {
+      csound->initonly = 1;
+      return 1;
+    }
+    /*
+      -j Used in localisation
+      -J create an IRCAM format output soundfile
+     */
+    else if (!(strcmp (s, "ircam"))) {
+      O->sfheader = 1;
+      O->filetyp = TYP_IRCAM;           /* IRCAM output request */
+      return 1;
+    }
+    /*
+      -k N orchestra krate override
+     */
+    else if (!(strncmp(s, "control-rate=", 13))) {
+      s += 13;
+      if (*s=='\0') dieu(csound, Str("no control rate"));
+      O->kr_override = atoi(s);
+      return 1;
+    }
+    /* -K */
+    else if (!(strcmp (s, "nopeaks"))) {
+      csound->peakchunks = 0;           /* Do not write peak information */
+      return 1;
+    }
+    /*
+      -L dnam read Line-oriented realtime score events from device 'dnam'
+     */
+    else if (!(strncmp (s, "score-in=", 9))) {
+      s += 9;
+      if (*s=='\0') dieu(csound, Str("no Linein score device_name"));
+      O->Linename = s;
+      if (!strcmp(O->Linename,"stdin")) {
+        set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
+#if defined(mills_macintosh)
+        csoundDie(csound, Str("-L: stdin not supported on this platform"));
+#endif
+      }
+      else
+        set_stdin_assign(csound, STDINASSIGN_LINEIN, 0);
+      O->Linein = 1;
+      return 1;
+    }
+    /*
+      -m N tty message level.
+      Sum of: 1=note amps, 2=out-of-range msg, 4=warnings
+     */
+    else if (!(strncmp (s, "messagelevel=", 13))) {
+      s += 13;
+      if (*s=='\0') dieu(csound, Str("no message level"));
+      O->msglevel = atoi(s);
+      return 1;
+    }
+    /*
+      -M dnam read MIDI realtime events from device 'dnam'
+     */
+    else if (!(strncmp (s, "midi-device=", 12))) {
+      s += 12;
+      if (*s=='\0') dieu(csound, Str("no midi device_name"));
+      O->Midiname = s;
+      if (!strcmp(O->Midiname,"stdin")) {
+        set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+        csoundDie(csound, Str("-M: stdin not supported on this platform"));
+#endif
+      }
+      else
+        set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
+      O->Midiin = 1;
+      return 1;
+    }
+    /* -n no sound */
+    else if (!(strcmp (s, "nosound"))) {
+      O->sfwrite = 0;                   /* nosound        */
+      return 1;
+    }
+    /* -N */
+    else if (!(strcmp (s, "notify"))) {
+      O->ringbell = 1;                  /* notify on completion */
+      return 1;
+    }
+    else if (!(strncmp (s, "output=", 7))) {
+      s += 7;
+      if (*s == '\0') dieu(csound, Str("no outfilename"));
+      O->outfilename = s;               /* soundout name */
+      if (strcmp(O->outfilename,"stdin") == 0)
+        dieu(csound, Str("-o cannot be stdin"));
+      if (strcmp(O->outfilename,"stdout") == 0) {
+        set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
+#if defined(WIN32) || defined(mills_macintosh)
+        csoundDie(csound, Str("stdout audio not supported"));
+#endif
+      }
+      else
+        set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
+      O->sfwrite = 1;
+      return 1;
+    }
+    else if (!(strncmp (s, "logfile=", 8))) {
+      s += 8;
+      if (*s=='\0') dieu(csound, Str("no log file"));
+      return 1;
+    }
+    /* -r N */
+    else if (!(strncmp (s, "sample-rate=", 12))) {
+      s += 12;
+      O->sr_override = atol(s);
+      return 1;
+    }
+    /* R */
+    else if (!(strcmp (s, "rewrite"))) {
+      O->rewrt_hdr = 1;
+      return 1;
+    }
+    /* -S  */
+    /* tempo=N use uninterpreted beats of the score, initially at tempo N
+     */
+    else if (!(strncmp (s, "tempo=", 6))) {
+      s += 6;
+      O->cmdTempo = atoi(s);
+      O->Beatmode = 1;                  /* on uninterpreted Beats */
+      return 1;
+    }
+    /* -t0 */
+    else if (!(strcmp (s, "keep-sorted-score"))) {
+      csound->keep_tmp = 1;
+      return 1;
+    }
+    /* IV - Jan 27 2005: --expression-opt */
+    else if (!(strcmp (s, "expression-opt"))) {
+      O->expr_opt = 1;
+      return 1;
+    }
+    else if (!(strcmp (s, "no-expression-opt"))) {
+      O->expr_opt = 0;
+      return 1;
+    }
+    else if (!(strncmp (s, "env:", 4))) {
+      if (csoundParseEnv(csound, s + 4) == CSOUND_SUCCESS)
+        return 1;
+      else
+        return 0;
+    }
+    else if (!(strncmp (s, "strset", 6))) {
+      strset_option(csound, s + 6);
+      return 1;
+    }
+    /* -T terminate the performance when miditrack is done */
+    else if (!(strcmp (s, "terminate-on-midi"))) {
+      O->termifend = 1;                 /* terminate on midifile end */
+      return 1;
+    }
+    else if (!(strncmp (s, "utility=", 8))) {
+      int retval;
+      s += 8;
+      if (*s=='\0') dieu(csound, Str("no utility name"));
+      retval = csound->Utility(csound, s, argc, argv);
+      if (!retval)
+        longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+      else
+        longjmp(csound->exitjmp, abs(retval));
+    }
+    /* -v */
+    else if (!(strcmp (s, "verbose"))) {
+      O->odebug = 1;                    /* verbose otran  */
+      return 1;
+    }
+    /* -x fnam extract from score.srt using extract file 'fnam' */
+    else if (!(strncmp(s, "extract-score=", 14))) {
+      s += 14;
+      if (*s=='\0') dieu(csound, Str("no xfilename"));
+      csound->xfilename = s;
+      return 1;
+    }
+    else if (!(strcmp(s, "wave"))) {
+      O->sfheader = 1;
+      O->filetyp = TYP_WAV;             /* WAV output request */
+      return 1;
+    }
+    else if (!(strcmp(s, "wave64"))) {
+      O->sfheader = 1;
+      O->filetyp = TYP_W64;             /* WAVE 64 output request */
+      return 1;
+    }
+    else if (!(strcmp(s, "voc"))) {
+      O->sfheader = 1;
+      O->filetyp = TYP_VOC;             /* VOC output request */
+      return 1;
+    }
+    else if (!(strncmp (s, "list-opcodes", 12))) {
+      int full = 0;
+      s += 12;
+
+      if (*s != '\0') {
+        if (isdigit(*s)) full = *s++ - '0';
+      }
+      create_opcodlst(csound);
+      if (csoundInitModules(csound) != 0)
+        longjmp(csound->exitjmp, 1);
+      list_opcodes(csound, full);
+      longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+    }
+    /* -Z */
+    else if (!(strcmp (s, "dither"))) {
+      csound->dither_output = 1;
+      return 1;
+    }
+    else if (!(strncmp(s, "opcode-lib=", 11))) {
+      s += 11;
+      {
+        char  *oplibs;
+        int   nbytes;
+        nbytes = (int) strlen(s);
         oplibs =
           (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
         if (oplibs == NULL) {
-          csoundMessage(csound, "argdecode(): memory allocation failure\n");
+          csoundCreateGlobalVariable(csound, "::dl_opcodes::oplibs", 4096);
+          oplibs =
+            (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
+          if (oplibs == NULL) {
+            csoundMessage(csound, "argdecode(): memory allocation failure\n");
+            return 0;
+          }
+        }
+        else
+          nbytes += ((int) strlen(oplibs) + 1);
+        if (nbytes >= 4096) {
+          csoundMessage(csound, "argdecode(): opcode library list too long\n");
           return 0;
         }
+        if (oplibs[0] == '\0') {
+          /* start new library list */
+          strcpy(oplibs, s);
+        }
+        else {
+          /* append to existing list */
+          strcat(oplibs, ",");
+          strcat(oplibs, s);
+        }
       }
-      else
-        nbytes += ((int) strlen(oplibs) + 1);
-      if (nbytes >= 4096) {
-        csoundMessage(csound, "argdecode(): opcode library list too long\n");
-        return 0;
-      }
-      if (oplibs[0] == '\0') {
-        /* start new library list */
-        strcpy(oplibs, s);
-      }
-      else {
-        /* append to existing list */
-        strcat(oplibs, ",");
-        strcat(oplibs, s);
-      }
+      return 1;
     }
-    return 1;
-  }
-  else if (!(strcmp(s ,"help"))) {
-    longusage(csound);
-    longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
-  }
+    else if (!(strcmp(s, "help"))) {
+      longusage(csound);
+      longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+    }
 
-  csoundMessage(csound, Str("unknown long option: '--%s'\n"), s);
-  return (0);
+    csoundMessage(csound, Str("unknown long option: '--%s'\n"), s);
+    return (0);
 }
 
 int argdecode(void *csound_, int argc, char **argv_)
@@ -805,55 +727,17 @@ int argdecode(void *csound_, int argc, char **argv_)
               longjmp(csound->exitjmp, abs(retval));
           }
           break;
-          /********** commandline flags only for mac version***************/
-          /*********************  matt 5/26/96 ****************************/
-#ifdef mills_macintosh
-        case 'V':
-          FIND(Str("no screen buffer size"));
-          sscanf(s,"%d",&vbuf);
-          fflush(stdout);
-          setvbuf(stdout, NULL, _IOFBF, vbuf);
-          while (*++s);
-          break;
-        case 'P':
-          FIND(Str("no poll event rate"));
-          sscanf(s,"%d",&n);
-          while (*++s);
-          pollEventRate = n;
-          break;
-        case 'E':
-          FIND(Str("no number of graphs"));
-          sscanf(s,"%d",&csNGraphs);
-          SetCsNGraphs(csNGraphs);
-          while (*++s);
-          break;
-        case 'p':
-          SetPlayOnFinish(TRUE);
-          break;
-        case 'e':
-          set_output_format(O, 'e');
-          sscanf(s,"%d",&rescale24);
-          if (rescale24)
-            SetRescaleFloatFileTo24(TRUE);
-          SetRescaleFloatFile(TRUE);
-          while (*++s);
-          break;
-        case 'w':
-          SetRecordMIDIData(TRUE);
-          break;
-#endif
-          /*******************************************************************/
         case 'C':
-          O->usingcscore = 1;     /* use cscore processing  */
+          O->usingcscore = 1;           /* use cscore processing  */
           break;
         case 'I':
-          O->initonly = 1;           /* I-only implies */
+          csound->initonly = 1;         /* I-only implies */
         case 'n':
-          O->sfwrite = 0;            /* nosound        */
+          O->sfwrite = 0;               /* nosound        */
           break;
         case 'i':
           FIND(Str("no infilename"));
-          O->infilename = s;         /* soundin name */
+          O->infilename = s;            /* soundin name */
           s += (int) strlen(s);
           if (strcmp(O->infilename,"stdout") == 0)
             csoundDie(csound, Str("input cannot be stdout"));
