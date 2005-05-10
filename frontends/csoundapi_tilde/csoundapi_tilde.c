@@ -410,8 +410,8 @@ void in_channel_value_callback(void *csound, char *name, MYFLT *val){
 void out_channel_value_callback(void *csound, char *name, MYFLT val){
   t_atom at[2];
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
-  SETFLOAT(&at[0], (t_float) val);
-  SETSYMBOL(&at[1], gensym(name));
+  SETFLOAT(&at[1], (t_float) val);
+  SETSYMBOL(&at[0], gensym(name));
   outlet_list(x->ctlout,gensym("list"), 2, at); 
 }
 
