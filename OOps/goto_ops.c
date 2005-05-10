@@ -59,7 +59,7 @@ int ingoto(ENVIRON *csound, CGOTO *p)
 {
     /* Make sure we have an i-time conditional */
     if (p->h.optext->t.intype == 'b' && !*p->cond)
-      csound->pds = p->lblblk->prvp;
+      csound->ids = p->lblblk->prvi;
     return OK;
 }
 
