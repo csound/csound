@@ -31,9 +31,38 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_STRING_H
+/* find out operating system if not specified on the command line */
+
+#if defined(_WIN32) || defined(__WIN32__)
+#ifndef WIN32
+#define WIN32 1
+#endif
+#elif defined(linux) || defined(__linux)
+#ifndef LINUX
+#define LINUX 1
+#endif
+#endif
+
+/* check for the presence of a modern compiler (for use of certain features) */
+
+#ifdef HAVE_GCC3
+#undef HAVE_GCC3
+#endif
+#if (defined(__GNUC__) && (__GNUC__ >= 3))
+#define HAVE_GCC3 1
+#endif
+#ifdef HAVE_C99
+#undef HAVE_C99
+#endif
+#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
+#define HAVE_C99 1
+#endif
+
+/* some older systems may have strings.h instead of string.h */
+
+#if defined(HAVE_STRING_H) || !defined(HAVE_STRINGS_H)
 #include <string.h>
-#elif HAVE_STRINGS_H
+#else
 #include <strings.h>
 #endif
 
@@ -50,28 +79,16 @@
 #define __FL_DEF
 #endif
 
-#ifdef HAVE_FCNTL_H
+#if defined(HAVE_FCNTL_H) || defined(__unix) || defined(__unix__)
 #include <fcntl.h>
 #endif
 
-#ifdef HAVE_UNISTD_H
+#if defined(HAVE_UNISTD_H) || defined(__unix) || defined(__unix__)
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_GCC3
-#undef HAVE_GCC3
-#endif
-#if (defined(__GNUC__) && (__GNUC__ >= 3))
-#define HAVE_GCC3 1
-#endif
-#ifdef HAVE_C99
-#undef HAVE_C99
-#endif
-#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
-#define HAVE_C99 1
-#endif
-
 /* inline keyword: always available in C++, C99, and GCC 3.x and above */
+/* add any other compiler that supports 'inline' */
 
 #if !(defined(HAVE_C99) || defined(HAVE_GCC3) || defined(__cplusplus))
 #ifndef inline
@@ -130,7 +147,9 @@
 #  include <sys/stat.h>
 #endif
 
-#ifdef HAVE_STDINT_H
+/* standard integer types */
+
+#if defined(HAVE_STDINT_H) || defined(HAVE_C99) || defined(HAVE_GCC3)
 #include <stdint.h>
 #else
 typedef signed char         int8_t;
