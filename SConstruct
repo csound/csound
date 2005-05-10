@@ -158,6 +158,7 @@ opts.Add('install',
 opts.Add('useDirentFix',
 "On OSX use the fixes for dirent.h (needed with earlier OS versions and development tools)",
     '0')
+opts.Add('buildPDClass', "build csoundapi~ PD class (needs m_pd.h in the standard places)", '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -394,6 +395,8 @@ if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ld
     print "Parsed fltk-config."
 
 guiProgramEnvironment = commonEnvironment.Copy()
+
+pdClassEnvironment = commonEnvironment.Copy()
 
 if commonEnvironment['useALSA']=='1' and alsaFound:
     guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
@@ -1110,6 +1113,15 @@ Opcodes/stk/src/Thread.cpp
     Depends(py, csoundvst)
     pluginLibraries.append(py)
 
+if (commonEnvironment['buildPDClass']=='1'):
+    print "CONFIGURATION DECISION: buiding PD csoundapi~ class"
+    if(getPlatform() == 'darwin'):
+        pdClassEnvironment.Append(LINKFLAGS = ['-bundle',  '-flat_namespace',  '-undefined',  'suppress'])
+        pdClassEnvironment.Program('csoundapi_tilde.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c',LIBS=['csound', 'fltk', 'stdc++', 'sndfile'], LIBPATH='.')
+    if(getPlatform() == 'linux'):
+        pdClassEnvironment.Append(LINKFLAGS = ['-shared'])
+        pdClassEnvironment.Program('csoundapi_tilde.pd_linux', 'frontends/csoundapi_tilde/csoundapi_tilde.c',LIBS=['csound', 'fltk', 'stdc++', 'sndfile', 'X11'], LIBPATH=['.', '/usr/X11R6/lib'])
+        
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux' and getPlatform() != 'cygwin'):
     print "CONFIGURATION DECISION: Not calling TAGS"
 else:
