@@ -110,7 +110,7 @@ void csoundapi_tilde_setup(void) {
   CLASS_MAINSIGNALIN(csoundapi_class,t_csoundapi,f);
     
   post("\ncsoundapi~ 1.0\n A PD csound class using the Csound %2.2f API"
-       "(c) V Lazzarini, 2005\n", CS_VERSION_);
+       "\n(c) V Lazzarini, 2005\n", CS_VERSION_);
   lockcs = 0;
 }
 
