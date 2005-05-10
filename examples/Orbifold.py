@@ -29,7 +29,7 @@ import sys
 import time
 # Change enableCsound to True if you have installed CsoundVST.
 # Importing CsoundVST automatically creates a csound object.
-enableCsound = True
+enableCsound = False
 if enableCsound:
     import CsoundVST
 from visual import *
@@ -44,13 +44,13 @@ def unorder(orderedTrichord):
     list = [orderedTrichord[0], orderedTrichord[1], orderedTrichord[2]]
     list.sort()
     return (list[0], list[1], list[2])
-def modulus(trichord):
+def modulusOf(trichord):
     newTrichord = ((trichord[0] - trichord[0] + 144) % 12,
                (trichord[1] - trichord[0] + 144) % 12,
                (trichord[2] - trichord[0] + 144) % 12)
     return newTrichord    
 def unorderedType(trichord):
-    trichord = modulus(trichord)
+    trichord = modulusOf(trichord)
     trichord = unorder(trichord)
     return trichord
         
@@ -61,9 +61,9 @@ def setColor(ball):
     inversion1 = unorderedType(ball.trichord)
     inversion2 = (inversion1[2] - 8, inversion1[0] + 4, inversion1[1] + 4)
     inversion3 = (inversion2[2] - 8, inversion2[0] + 4, inversion2[1] + 4)
-    inversion1 = unorder(modulus(inversion1))
-    inversion2 = unorder(modulus(inversion2))
-    inversion3 = unorder(modulus(inversion3))
+    inversion1 = unorder(modulusOf(inversion1))
+    inversion2 = unorder(modulusOf(inversion2))
+    inversion3 = unorder(modulusOf(inversion3))
     inversion1Key = str(inversion1)
     inversion2Key = str(inversion2)
     inversion3Key = str(inversion3)
@@ -90,22 +90,23 @@ def setColor(ball):
             ball.color = color.hsv_to_rgb((hue, saturation, value))
         
 # Generate sufficient layers to display one complete octave of trichords for each inversion.
-tones = 12
-layers = (tones - 1) * 3
+modulus = 12
+layers = (modulus - 1) * 3
 trichordCount = 0
+voices = 3
 for layer in xrange(0, layers + 1):
-    for x in xrange(layer / 3 - 8, layer / 3 + 5):
-        for y in xrange(x, layer / 3 + 9):
-            for z in xrange(y, layer / 3 + 9):
+    for x in xrange(layer / voices - (2 * modulus / voices), layer / voices + (modulus / voices )+ 1):
+        for y in xrange(x, layer / voices + (2 * modulus / voices) + 1):
+            for z in xrange(y, layer / voices + (2 * modulus / voices) + 1):
                 sum = x + y + z
-                if sum == layer and z <= (x + tones):
+                if sum == layer and z <= (x + modulus):
                     trichord = unorder((x, y, z))
                     if trichord not in trichords:
                         trichordCount = trichordCount + 1
                         trichords[trichord] = trichord
                         ball = sphere(pos = trichord, radius = 0.125)
                          # Make a label for each ball, and hide it till it's needed.
-                        ball.trichord = unorder(((x + 144) % tones, (y + 144) % tones, (z + 144) % tones))
+                        ball.trichord = unorder(((x + 144) % modulus, (y + 144) % modulus, (z + 144) % modulus))
                         print ball.trichord
                         balls[str(ball.trichord)] = ball;
                         if ball.trichord == (1,5,10):
