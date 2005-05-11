@@ -983,6 +983,18 @@ typedef struct RTCLOCK_S {
    */
   PUBLIC void **csoundGetRtPlayUserData(void *csound);
 
+  /**
+   * Register a function to be called once in every control period
+   * by sensevents(). Any number of functions may be registered.
+   * The callback function takes two arguments of type void*, the first
+   * is the Csound instance pointer, and the second is the userData pointer
+   * as passed to this function.
+   * Returns zero on success.
+   */
+  PUBLIC int csoundRegisterSenseEventCallback(void *csound_,
+                                              void (*func)(void *, void *),
+                                              void *userData);
+
 /* type/macro definitions and interface functions for configuration variables */
 #include "cfgvar.h"
 /* interface functions for environment variables, and finding files */

@@ -582,11 +582,11 @@ void infoff(ENVIRON *csound, MYFLT p1)  /* turn off an indef copy of instr p1 */
                     insno);
 }
 
-/* IV - Feb 05 2005: removed kcnt arg, as it is now always 1 */
-/* also no return value, kperf always performs exactly one k-period */
-void kperf(ENVIRON *csound)
-         /* perform currently active instrs for one kperiod */
-         /*      & send audio result to output buffer    */
+/* perform currently active instrs for one kperiod */
+/*      & send audio result to output buffer       */
+/* returns non-zero if this kperiod was skipped    */
+
+int kperf(ENVIRON *csound)
 {
     INSDS   *ip;
     int     i;
@@ -599,11 +599,11 @@ void kperf(ENVIRON *csound)
     /* if skipping time on request by 'a' score statement: */
     if (csound->advanceCnt) {
       csound->advanceCnt--;
-      return;
+      return 1;
     }
     /* if i-time only, return now */
     if (csound->initonly)
-      return;
+      return 1;
     /* PC GUI needs attention, but avoid excessively frequent */
     /* calls of csoundYield() */
     if (--(csound->evt_poll_cnt) < 0) {
@@ -626,6 +626,7 @@ void kperf(ENVIRON *csound)
       for (i = 0; i < (int) csound->nspout; i++)
         csound->spout[i] = FL(0.0);
     csound->spoutran(csound);           /*      send to audio_out  */
+    return 0;
 }
 
 int csoundInitError(void *csound_, const char *s, ...)

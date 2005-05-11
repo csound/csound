@@ -456,9 +456,11 @@ void midNotesOff(ENVIRON *csound) /* turn off ALL curr midi notes, ALL chnls */
     } while (++chan < MAXCHAN);
 }
 
+/* sense a MIDI event, collect the data & dispatch */
+/* called from sensevents(), returns 2 if MIDI on/off */
+
 int sensMidi(ENVIRON *csound)
-{                       /* sense a MIDI event, collect the data & dispatch */
-                        /*  called from kperf(), return(2) if MIDI on/off  */
+{
     MEVENT  *mep = MGLOB(Midevtblk);
     OPARMS  *O = csound->oparms;
     int     n;
@@ -468,7 +470,7 @@ int sensMidi(ENVIRON *csound)
     if (MGLOB(bufp) >= MGLOB(endatp)) {
       MGLOB(bufp) = &(MGLOB(mbuf)[0]);
       MGLOB(endatp) = MGLOB(bufp);
-      if (O->Midiin) {                  /* read MIDI device */
+      if (O->Midiin && !csound->advanceCnt) {   /* read MIDI device */
         n = csoundExternalMidiRead(csound, MGLOB(midiInUserData),
                                    MGLOB(bufp), MBUFSIZ);
         if (n < 0)
@@ -478,7 +480,7 @@ int sensMidi(ENVIRON *csound)
         else
           MGLOB(endatp) += (int) n;
       }
-      if (O->FMidiin) {                 /* read MIDI file */
+      if (O->FMidiin) {                         /* read MIDI file */
         n = csoundMIDIFileRead(csound, MGLOB(endatp),
                                MBUFSIZ - (int) (MGLOB(endatp) - MGLOB(bufp)));
         if (n > 0)

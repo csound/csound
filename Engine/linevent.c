@@ -52,6 +52,8 @@ typedef struct {
     EVTBLK  prve;
 } LINEVENT_GLOBALS;
 
+static void sensLine(void *csound_, void *userData);
+
 #define ST(x)   (((LINEVENT_GLOBALS*) ((ENVIRON*) csound)->lineventGlobals)->x)
 
 void RTLineset(ENVIRON *csound)     /* set up Linebuf & ready the input files */
@@ -106,6 +108,7 @@ void RTLineset(ENVIRON *csound)     /* set up Linebuf & ready the input files */
       csoundDie(csound, Str("Cannot open %s"), O->Linename);
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                             ST(stdmode), csound->Linefd);
+    csound->RegisterSenseEventCallback(csound, sensLine, NULL);
 }
 
 #ifdef PIPES
@@ -174,9 +177,10 @@ void writeLine(ENVIRON *csound, const char *text, long size)
     }
 }
 
-void sensLine(ENVIRON *csound)
+static void sensLine(void *csound_, void *userData)
     /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 {   /* does more syntax checking than rdscor, since not preprocessed  */
+    ENVIRON *csound = (ENVIRON*) csound_;
     int     c;
     char    *cp;
     int     n, pcnt;
@@ -308,17 +312,23 @@ void sensLine(ENVIRON *csound)
 /* send a lineevent from the orchestra */
 /* code derived from sensLine() -matt 2001/12/07 */
 
+static const char *errmsg_1 =
+    "event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\"";
+static const char *errmsg_2 =
+    "event: string name is allowed only for \"i\" and \"q\" events";
+
 int eventOpcode(ENVIRON *csound, LINEVENT *p)
 {
     EVTBLK  evt;
     int     i;
     char    opcod;
 
-    if (!(p->XSTRCODE & 1) ||
-        ((opcod = ((char*) p->args[0])[0]) != 'i' && opcod != 'q' &&
-         opcod != 'f' && opcod != 'e'))
-      return csound->PerfError(csound, Str("event param 1 must be "
-                                           "\"i\", \"q\", \"f\", or \"e\""));
+    if (!(p->XSTRCODE & 1))
+      return csound->PerfError(csound, Str(errmsg_1));
+    opcod = ((char*) p->args[0])[0];
+    if (opcod == '\0' || ((char*) p->args[0])[1] != '\0' ||
+        strchr("aiqfe", (int) opcod) == NULL)
+      return csound->PerfError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
     evt.pcnt = p->INOCOUNT - 1;
@@ -326,9 +336,7 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
     if (evt.pcnt > 0) {
       if (p->XSTRCODE & 2) {
         if (evt.opcod != 'i' && evt.opcod != 'q')
-          return
-            csound->PerfError(csound, Str("event: string name is allowed "
-                                          "only for \"i\" and \"q\" events"));
+          return csound->PerfError(csound, Str(errmsg_2));
         evt.p[1] = SSTRCOD;
         evt.strarg = (char*) p->args[1];
       }
@@ -352,11 +360,12 @@ int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
     int     i;
     char    opcod;
 
-    if (!(p->XSTRCODE & 1) ||
-        ((opcod = ((char*) p->args[0])[0]) != 'i' && opcod != 'q' &&
-         opcod != 'f' && opcod != 'e'))
-      return csound->InitError(csound, Str("event param 1 must be "
-                                           "\"i\", \"q\", \"f\", or \"e\""));
+    if (!(p->XSTRCODE & 1))
+      return csound->InitError(csound, Str(errmsg_1));
+    opcod = ((char*) p->args[0])[0];
+    if (opcod == '\0' || ((char*) p->args[0])[1] != '\0' ||
+        strchr("aiqfe", (int) opcod) == NULL)
+      return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
     evt.pcnt = p->INOCOUNT - 1;
@@ -364,9 +373,7 @@ int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
     if (evt.pcnt > 0) {
       if (p->XSTRCODE & 2) {
         if (evt.opcod != 'i' && evt.opcod != 'q')
-          return
-            csound->InitError(csound, Str("event: string name is allowed "
-                                          "only for \"i\" and \"q\" events"));
+          return csound->InitError(csound, Str(errmsg_2));
         evt.p[1] = SSTRCOD;
         evt.strarg = (char*) p->args[1];
       }

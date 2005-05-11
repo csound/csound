@@ -296,8 +296,6 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     }
     if (O->Linein || O->Midiin || O->FMidiin)
       O->RTevents = 1;
-    if (O->RTevents || O->sfread)
-      O->ksensing = 1;
     if (!O->sfheader)
       O->rewrt_hdr = 0;         /* cannot rewrite header of headerless file */
     if (O->sr_override || O->kr_override) {
