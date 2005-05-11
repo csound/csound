@@ -381,9 +381,10 @@ channelname
 
 void destroy_channels(channelname *ch){
   channelname *tmp  = ch;
-  while(tmp != NULL){
+  while(ch != NULL){
     tmp = ch->next;
     free(ch);
+    ch = tmp;
   }
 }
 
