@@ -560,7 +560,7 @@ extern "C" {
     csound->sampsNeeded += csound->oparms->outbufsamps;
     while (csound->sampsNeeded > 0) {
       do {
-        if ((done = sensevents(csound)));
+        if ((done = sensevents(csound)))
           return done;
       } while (kperf(csound));
       csound->sampsNeeded -= csound->nspout;
