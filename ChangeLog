@@ -1,3 +1,8 @@
+2005-05-11  John ffitch  <jpff@codemist.co.uk>
+
+	* Opcodes/ugmoss.c (valpass): Added cache of p->maxlpt to avoid
+	overwriting arguments
+
 2005-05-08  Michael Gogins <gogins@pipeline.com>
 	* Added examples/Orbifold.py, an interactive display of the
 	3-dimensional orbifold of all close voice-leadings between

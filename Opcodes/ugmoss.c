@@ -391,14 +391,14 @@ int vcombset(ENVIRON *csound, VCOMB *p)
     p->lpt = FL(0.0);
     p->g   = FL(0.0);
     p->lpta = (XINARG3) ? 1 : 0;
-    if (*p->insmps == 0) *p->imaxlpt *= csound->esr;
+    if (*p->insmps == 0) p->maxlpt = *p->imaxlpt * csound->esr;
     return OK;
 }
 
 int vcomb(ENVIRON *csound, VCOMB *p)
 {
     int n, nsmps = csound->ksmps;
-    unsigned long xlpt, maxlpt = (unsigned long)*p->imaxlpt;
+    unsigned long xlpt, maxlpt = (unsigned long)p->maxlpt;
     MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
     MYFLT       g = p->g;
 
@@ -450,7 +450,7 @@ int vcomb(ENVIRON *csound, VCOMB *p)
 int valpass(ENVIRON *csound, VCOMB *p)
 {
     int nsmps = csound->ksmps;
-    unsigned long xlpt, maxlpt = (unsigned long)*p->imaxlpt;
+    unsigned long xlpt, maxlpt = (unsigned long)p->maxlpt;
     MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
     MYFLT       y, z, g = p->g;
 
