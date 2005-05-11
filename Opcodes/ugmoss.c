@@ -392,6 +392,7 @@ int vcombset(ENVIRON *csound, VCOMB *p)
     p->g   = FL(0.0);
     p->lpta = (XINARG3) ? 1 : 0;
     if (*p->insmps == 0) p->maxlpt = *p->imaxlpt * csound->esr;
+    else p->maxlpt = *p->imaxlpt;
     return OK;
 }
 
