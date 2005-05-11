@@ -53,6 +53,12 @@ extern  void    RTclose(void*);
 
 static  int     playevents(ENVIRON *);
 
+typedef struct evt_cb_func {
+    void    (*func)(void *, void *);
+    void    *userData;
+    struct evt_cb_func  *nxt;
+} EVT_CB_FUNC;
+
 typedef struct {
     long    srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
     short   srngflg;
@@ -214,7 +220,6 @@ int musmon(ENVIRON *csound)
     /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O->Midiin || O->FMidiin) {
       O->RTevents = 1;
-      O->ksensing = 1;
       MidiOpen(csound);         /*   alloc bufs & open files    */
     }
     csound->Message(csound, Str("orch now loaded\n"));
@@ -306,6 +311,9 @@ int musmon(ENVIRON *csound)
       O->usingcscore = 0;
     }
     csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
+    /* apply score offset if non-zero */
+    if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
+      csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
                                      /* since we are running in components */
     return 0;                        /* we exit here to playevents later   */
 }
@@ -568,49 +576,47 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'i':
-      if (csound->csoundIsScorePending_) {
-	if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
-	  if ((insno = (int) named_instr_find(csound, evt->strarg)) < 1) {
-	    print_score_time(csound, rtEvt);
-	    csound->Message(csound, Str(" - note deleted. instr %s undefined\n"),
-			    evt->strarg);
-	    csound->perferrcnt++;
-	    break;
-	  }
-	  evt->p[1] = (MYFLT) insno;
-	  if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
-	    evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
-	  if ((n = insert(csound, insno, evt))) { /* else alloc, init, activate */
-	    print_score_time(csound, rtEvt);
-	    csound->Message(csound, Str(" - note deleted.  "
-					"i%d (%s) had %d init errors\n"),
-			    insno, evt->strarg, n);
-	    csound->perferrcnt++;
-	  }
-	}
-	else {                                        /* IV - Oct 31 2002 */
-	  insno = abs((int) evt->p[1]);
-	  if (insno > csound->maxinsno || csound->instrtxtp[insno] == NULL) {
-	    print_score_time(csound, rtEvt);
-	    csound->Message(csound,
-			    Str(" - note deleted. instr %d(%d) undefined\n"),
-			    insno, csound->maxinsno);
-	    csound->perferrcnt++;
-	  }
-	  else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
-	    infoff(csound, -evt->p[1]);           /*  turnoff any infin cpy */
-	  else {
-	    if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
-	      evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
-	    if ((n = insert(csound, insno, evt))) { /* else alloc,init,activat */
-	      print_score_time(csound, rtEvt);
-	      csound->Message(csound,
-			      Str(" - note deleted.  i%d had %d init errors\n"),
-			      insno, n);
-	      csound->perferrcnt++;
-	    }
-	  }
-	}
+      if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
+        if ((insno = (int) named_instr_find(csound, evt->strarg)) < 1) {
+          print_score_time(csound, rtEvt);
+          csound->Message(csound, Str(" - note deleted. instr %s undefined\n"),
+                                  evt->strarg);
+          csound->perferrcnt++;
+          break;
+        }
+        evt->p[1] = (MYFLT) insno;
+        if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
+          evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
+        if ((n = insert(csound, insno, evt))) { /* else alloc, init, activate */
+          print_score_time(csound, rtEvt);
+          csound->Message(csound, Str(" - note deleted.  "
+                                      "i%d (%s) had %d init errors\n"),
+                                  insno, evt->strarg, n);
+          csound->perferrcnt++;
+        }
+      }
+      else {                                        /* IV - Oct 31 2002 */
+        insno = abs((int) evt->p[1]);
+        if (insno > csound->maxinsno || csound->instrtxtp[insno] == NULL) {
+          print_score_time(csound, rtEvt);
+          csound->Message(csound,
+                          Str(" - note deleted. instr %d(%d) undefined\n"),
+                          insno, csound->maxinsno);
+          csound->perferrcnt++;
+        }
+        else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
+          infoff(csound, -evt->p[1]);           /*  turnoff any infin cpy */
+        else {
+          if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
+            evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
+          if ((n = insert(csound, insno, evt))) { /* else alloc,init,activat */
+            print_score_time(csound, rtEvt);
+            csound->Message(csound,
+                            Str(" - note deleted.  i%d had %d init errors\n"),
+                            insno, n);
+            csound->perferrcnt++;
+          }
+        }
       }
       break;
     case 'f':
@@ -650,8 +656,6 @@ static int process_rt_event(ENVIRON *csound, int sensType)
       evt = &(e->evt);
       /* pop from the list */
       csound->OrcTrigEvts = e->nxt;
-      if (e->nxt == NULL)
-        csound->oparms->OrcEvts = 0;
       retval = process_score_event(csound, evt, 1);
       if (evt->strarg != NULL)
         mfree(csound, evt->strarg);
@@ -697,10 +701,6 @@ static int process_rt_event(ENVIRON *csound, int sensType)
     }
     return retval;
 }
-
-#define SENSEORCEVT(x) ((x)->OrcTrigEvts != NULL &&                     \
-                        (x)->OrcTrigEvts->start_kcnt                    \
-                          <= (unsigned long) (x)->global_kcounter ? 4 : 0)
 
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
@@ -796,8 +796,8 @@ int sensevents(ENVIRON *csound)
         case 'i':
         case 'f':
         case 'a':
-          p->nxtim = (double) e->p[2] + p->timeOffs - csound->csoundScoreOffsetSeconds_;
-          p->nxtbt = (double) e->p2orig + p->beatOffs - csound->csoundScoreOffsetSeconds_ / p->beatTime;
+          p->nxtim = (double) e->p[2] + p->timeOffs;
+          p->nxtbt = (double) e->p2orig + p->beatOffs;
           break;
         case 'e':
         case 'l':
@@ -823,15 +823,23 @@ int sensevents(ENVIRON *csound)
     /*   events is not sorted by instrument number */
     /*   (although it never was sorted anyway...)  */
     if (O->RTevents) {
-      if (O->Linein)                        /* Linein events      */
-        sensLine(csound);
-      if (O->OrcEvts) {                     /* orchestra rtevents */
-        while ((sensType = SENSEORCEVT(csound)) != 0) {
-          if ((retval = process_rt_event(csound, sensType)) != 0)
-            goto scode;
-        }
+      /* run all registered callback functions */
+      if (csound->evtFuncChain != NULL && !csound->advanceCnt) {
+        EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
+        do {
+          fp->func(csound, fp->userData);
+          fp = fp->nxt;
+        } while (fp != NULL);
       }
-      if (O->Midiin || O->FMidiin) {        /* MIDI note messages */
+      /* check for pending real time events */
+      while (csound->OrcTrigEvts != NULL &&
+             csound->OrcTrigEvts->start_kcnt
+               <= (unsigned long) csound->global_kcounter) {
+        if ((retval = process_rt_event(csound, 4)) != 0)
+          goto scode;
+      }
+      /* MIDI note messages */
+      if (O->Midiin || O->FMidiin) {
         while ((sensType = sensMidi(csound)) != 0) {
           if ((retval = process_rt_event(csound, sensType)) != 0)
             goto scode;
@@ -1026,8 +1034,6 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
     }
     /* Make sure sensevents() looks for RT events */
     csound->oparms->RTevents = 1;
-    csound->oparms->ksensing = 1;
-    csound->oparms->OrcEvts  = 1;       /* - of the appropriate type */
     return 0;
 
  pfld_err:
@@ -1074,19 +1080,14 @@ void musmon_rewind_score(ENVIRON *csound)
     /* flush any pending real time events */
     while (ep != NULL) {
       EVTNODE *nxt = ep->nxt;
-      ep->start_kcnt = 0UL;
-      if (ep->evt.strarg != NULL) {
+      if (ep->evt.strarg != NULL)
         csound->Free(csound, ep->evt.strarg);
-        ep->evt.strarg = NULL;
-      }
-      ep->evt.opcod = '\0';
       /* push to stack of free event nodes */
       ep->nxt = csound->freeEvtNodes;
       csound->freeEvtNodes = ep;
       ep = nxt;
     }
     csound->OrcTrigEvts = NULL;
-    csound->oparms->OrcEvts = 0;
     /* rewind score file */
     if (csound->scfp != NULL)
       fseek(csound->scfp, 0L, SEEK_SET);
@@ -1094,8 +1095,40 @@ void musmon_rewind_score(ENVIRON *csound)
     section_amps(csound, 1);
     ST(sectno) = 1;
     csound->Message(csound, Str("SECTION %d:\n"), ST(sectno));
-    /* apply score offset if non-zero (FIXME: needed ?) */
+    /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
+}
+
+/**
+ * Register a function to be called once in every control period
+ * by sensevents(). Any number of functions may be registered.
+ * The callback function takes two arguments of type void*, the first
+ * is the Csound instance pointer, and the second is the userData pointer
+ * as passed to this function.
+ * Returns zero on success.
+ */
+PUBLIC int csoundRegisterSenseEventCallback(void *csound_,
+                                            void (*func)(void *, void *),
+                                            void *userData)
+{
+    ENVIRON     *csound = (ENVIRON*) csound_;
+    EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
+
+    if (fp == NULL) {
+      fp = (EVT_CB_FUNC*) csound->Malloc(csound, sizeof(EVT_CB_FUNC));
+      csound->evtFuncChain = (void*) fp;
+    }
+    else {
+      while (fp->nxt != NULL)
+        fp = fp->nxt;
+      fp->nxt = (EVT_CB_FUNC*) csound->Malloc(csound, sizeof(EVT_CB_FUNC));
+      fp = fp->nxt;
+    }
+    fp->func = func;
+    fp->userData = userData;
+    fp->nxt = NULL;
+
+    return 0;
 }
 

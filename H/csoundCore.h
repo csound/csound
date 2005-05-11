@@ -134,9 +134,8 @@ extern "C" {
     int     insampsiz, sfsampsize;
     int     displays, graphsoff, postscript, msglevel;
     int     Beatmode, cmdTempo, oMaxLag;
-    int     usingcscore, Linein, Midiin, FMidiin;
-    int     OrcEvts;        /* - for triginstr (re Aug 1999) */
-    int     RTevents, ksensing;
+    int     usingcscore, Linein;
+    int     RTevents, Midiin, FMidiin;
     int     ringbell, termifend, stdoutfd;
     int     rewrt_hdr, heartbeat, gen01defer;
     long    sr_override, kr_override;
@@ -775,6 +774,8 @@ extern "C" {
     int (*AddUtility)(void *csound_, const char *name,
                       int (*UtilFunc)(void*, int, char**));
     int (*Utility)(void *csound_, const char *name, int argc, char **argv);
+    int (*RegisterSenseEventCallback)(void *csound_, void (*func)(void*, void*),
+                                      void *userData);
     /* callback function pointers - not part of the API */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
     void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
@@ -866,8 +867,14 @@ extern "C" {
     INSDS         actanchor;
     long          rngcnt[MAXCHNLS];
     short         rngflg, multichan;
+    void          *evtFuncChain;
     EVTNODE       *OrcTrigEvts;             /* List of events to be started */
     EVTNODE       *freeEvtNodes;
+    int           csoundIsScorePending_;
+    int           advanceCnt;
+    int           initonly;
+    int           evt_poll_cnt;
+    int           evt_poll_maxcnt;
     char          name_full[256];           /* Remember name used */
     int           Mforcdecs, Mxtroffs, MTrkend;
     MYFLT         tran_sr, tran_kr, tran_ksmps;
@@ -913,8 +920,6 @@ extern "C" {
     void          *memalloc_db;
     MGLOBAL       *midiGlobals;
     void          *envVarDB;
-    int           evt_poll_cnt;
-    int           evt_poll_maxcnt;
     MEMFIL        *memfiles;
     MEMFIL        *rwd_memfiles;
     int           FFT_max_size;
@@ -938,9 +943,6 @@ extern "C" {
     TOKEN         **revp, **pushp, **argp, **endlist;
     char          *assign_outarg;
     int           argcnt_offs, opcode_is_assign, assign_type;
-    int           csoundIsScorePending_;
-    int           advanceCnt;
-    int           initonly;
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *otranGlobals;
     void          *rdorchGlobals;

@@ -521,25 +521,27 @@ extern "C" {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
       return returnValue;
     }
-    done = sensevents(csound);
-    if (!done)
-      kperf(csound);
-    else
-      csoundMessage(csound, "Score finished in csoundPerformKsmps()\n");
-    return done;
+    do {
+      if ((done = sensevents(csound))) {
+        csoundMessage(csound, "Score finished in csoundPerformKsmps()\n");
+        return done;
+      }
+    } while (kperf(csound));
+    return 0;
   }
 
   PUBLIC int csoundPerformKsmpsAbsolute(void *csound)
   {
-    int done;
+    int done = 0;
     volatile int returnValue;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
       return returnValue;
     }
-    done = sensevents(csound);
-    kperf(csound);
+    do {
+      done |= sensevents(csound);
+    } while (kperf(csound));
     return done;
   }
 
@@ -557,9 +559,10 @@ extern "C" {
     }
     csound->sampsNeeded += csound->oparms->outbufsamps;
     while (csound->sampsNeeded > 0) {
-      if ((done = sensevents(csound)))
-        return done;
-      kperf(csound);
+      do {
+        if ((done = sensevents(csound)));
+          return done;
+      } while (kperf(csound));
       csound->sampsNeeded -= csound->nspout;
     }
     return 0;
@@ -659,7 +662,21 @@ extern "C" {
   {
     double  aTime;
     ENVIRON *csound = (ENVIRON*) csound_;
+
     csound->csoundScoreOffsetSeconds_ = offset;
+    if (csound->QueryGlobalVariable(csound, "csRtClock") == NULL)
+      return;
+    /* if csoundCompile() was already called, create 'a' event now */
+    aTime = (double) offset - csound->sensEvents_state.curTime;
+    if (aTime > 0.0) {
+      EVTBLK  evt;
+      evt.strarg = NULL;
+      evt.opcod = 'a';
+      evt.pcnt = 3;
+      evt.p[2] = evt.p[1] = FL(0.0);
+      evt.p[3] = (MYFLT) aTime;
+      insert_score_event(csound, &evt, csound->sensEvents_state.curTime, 0);
+    }
   }
 
   PUBLIC MYFLT csoundGetScoreOffsetSeconds(void *csound)

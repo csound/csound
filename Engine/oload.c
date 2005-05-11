@@ -58,9 +58,8 @@ static const OPARMS O_ = {
               0,0,          /* insampsiz, sfsampsize */
               1,0,0,7,      /* displays, graphsoff, postscript, msglevel */
               0,0,0,        /* Beatmode, cmdTempo, oMaxLag */
-              0,0,0,0,      /* usingcscore, Linein, Midiin, FMidiin */
-              0,            /* OrcEvts */
-              0,0           /* RTevents, ksensing */
+              0,0,          /* usingcscore, Linein */
+              0,0,0         /* RTevents, Midiin, FMidiin */
 };
 
 const ENVIRON cenviron_ = {
@@ -212,6 +211,7 @@ const ENVIRON cenviron_ = {
         csoundRealFFTMult,
         csoundAddUtility,
         csoundRunUtility,
+        csoundRegisterSenseEventCallback,
         playopen_dummy,
         rtplay_dummy,
         recopen_dummy,
@@ -310,8 +310,14 @@ const ENVIRON cenviron_ = {
         {NULL},         /*  actanchor           */
         {0L },          /*  rngcnt              */
         0, 0,           /*  rngflg, multichan   */
+        NULL,           /*  evtFuncChain        */
         NULL,           /*  OrcTrigEvts         */
         NULL,           /*  freeEvtNodes        */
+        1,              /*  csoundIsScorePending_ */
+        0,              /*  advanceCnt          */
+        0,              /*  initonly            */
+        0,              /*  evt_poll_cnt        */
+        0,              /*  evt_poll_maxcnt     */
         "",             /*  name_full           */
         0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
         FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
@@ -354,8 +360,6 @@ const ENVIRON cenviron_ = {
         NULL,           /*  memalloc_db         */
         (MGLOBAL*) NULL, /* midiGlobals         */
         NULL,           /*  envVarDB            */
-        0,              /*  evt_poll_cnt        */
-        0,              /*  evt_poll_maxcnt     */
         (MEMFIL*) NULL, /*  memfiles            */
         (MEMFIL*) NULL, /*  rwd_memfiles        */
         0,              /*  FFT_max_size        */
@@ -379,9 +383,6 @@ const ENVIRON cenviron_ = {
         NULL, NULL,     /*  argp, endlist       */
         (char*) NULL,   /*  assign_outarg       */
         0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
-        1,              /*  csoundIsScorePending_ */
-        0,              /*  advanceCnt          */
-        0,              /*  initonly            */
         (MYFLT*) NULL,  /*  gbloffbas           */
         NULL,           /*  otranGlobals        */
         NULL,           /*  rdorchGlobals       */
