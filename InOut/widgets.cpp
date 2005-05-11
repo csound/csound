@@ -3248,8 +3248,6 @@ extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
   AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
   csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
-  csound->oparms->ksensing = 1;
-  csound->oparms->OrcEvts  = 1;     /* - of the appropriate type */
   return OK;
 }
 
@@ -3297,8 +3295,6 @@ extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
   //AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
   csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
-  csound->oparms->ksensing = 1;
-  csound->oparms->OrcEvts  = 1;     /* - of the appropriate type */
   return OK;
 }
 
@@ -3335,8 +3331,6 @@ extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
   AddrSetValue.push_back(ADDR_SET_VALUE(1, 0, 100000, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
   csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
-  csound->oparms->ksensing = 1;
-  csound->oparms->OrcEvts  = 1;     /* - of the appropriate type */
   return OK;
 }
 
