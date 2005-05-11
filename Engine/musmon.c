@@ -306,9 +306,6 @@ int musmon(ENVIRON *csound)
       O->usingcscore = 0;
     }
     csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
-    /* apply score offset if non-zero */
-    if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
-      csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
                                      /* since we are running in components */
     return 0;                        /* we exit here to playevents later   */
 }
@@ -571,47 +568,49 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'i':
-      if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
-        if ((insno = (int) named_instr_find(csound, evt->strarg)) < 1) {
-          print_score_time(csound, rtEvt);
-          csound->Message(csound, Str(" - note deleted. instr %s undefined\n"),
-                                  evt->strarg);
-          csound->perferrcnt++;
-          break;
-        }
-        evt->p[1] = (MYFLT) insno;
-        if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
-          evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
-        if ((n = insert(csound, insno, evt))) { /* else alloc, init, activate */
-          print_score_time(csound, rtEvt);
-          csound->Message(csound, Str(" - note deleted.  "
-                                      "i%d (%s) had %d init errors\n"),
-                                  insno, evt->strarg, n);
-          csound->perferrcnt++;
-        }
-      }
-      else {                                        /* IV - Oct 31 2002 */
-        insno = abs((int) evt->p[1]);
-        if (insno > csound->maxinsno || csound->instrtxtp[insno] == NULL) {
-          print_score_time(csound, rtEvt);
-          csound->Message(csound,
-                          Str(" - note deleted. instr %d(%d) undefined\n"),
-                          insno, csound->maxinsno);
-          csound->perferrcnt++;
-        }
-        else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
-          infoff(csound, -evt->p[1]);           /*  turnoff any infin cpy */
-        else {
-          if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
-            evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
-          if ((n = insert(csound, insno, evt))) { /* else alloc,init,activat */
-            print_score_time(csound, rtEvt);
-            csound->Message(csound,
-                            Str(" - note deleted.  i%d had %d init errors\n"),
-                            insno, n);
-            csound->perferrcnt++;
-          }
-        }
+      if (csound->csoundIsScorePending_) {
+	if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
+	  if ((insno = (int) named_instr_find(csound, evt->strarg)) < 1) {
+	    print_score_time(csound, rtEvt);
+	    csound->Message(csound, Str(" - note deleted. instr %s undefined\n"),
+			    evt->strarg);
+	    csound->perferrcnt++;
+	    break;
+	  }
+	  evt->p[1] = (MYFLT) insno;
+	  if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
+	    evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
+	  if ((n = insert(csound, insno, evt))) { /* else alloc, init, activate */
+	    print_score_time(csound, rtEvt);
+	    csound->Message(csound, Str(" - note deleted.  "
+					"i%d (%s) had %d init errors\n"),
+			    insno, evt->strarg, n);
+	    csound->perferrcnt++;
+	  }
+	}
+	else {                                        /* IV - Oct 31 2002 */
+	  insno = abs((int) evt->p[1]);
+	  if (insno > csound->maxinsno || csound->instrtxtp[insno] == NULL) {
+	    print_score_time(csound, rtEvt);
+	    csound->Message(csound,
+			    Str(" - note deleted. instr %d(%d) undefined\n"),
+			    insno, csound->maxinsno);
+	    csound->perferrcnt++;
+	  }
+	  else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
+	    infoff(csound, -evt->p[1]);           /*  turnoff any infin cpy */
+	  else {
+	    if (csound->oparms->Beatmode && evt->p3orig > FL(0.0))
+	      evt->p[3] = evt->p3orig * (MYFLT) csound->sensEvents_state.beatTime;
+	    if ((n = insert(csound, insno, evt))) { /* else alloc,init,activat */
+	      print_score_time(csound, rtEvt);
+	      csound->Message(csound,
+			      Str(" - note deleted.  i%d had %d init errors\n"),
+			      insno, n);
+	      csound->perferrcnt++;
+	    }
+	  }
+	}
       }
       break;
     case 'f':
@@ -797,8 +796,8 @@ int sensevents(ENVIRON *csound)
         case 'i':
         case 'f':
         case 'a':
-          p->nxtim = (double) e->p[2] + p->timeOffs;
-          p->nxtbt = (double) e->p2orig + p->beatOffs;
+          p->nxtim = (double) e->p[2] + p->timeOffs - csound->csoundScoreOffsetSeconds_;
+          p->nxtbt = (double) e->p2orig + p->beatOffs - csound->csoundScoreOffsetSeconds_ / p->beatTime;
           break;
         case 'e':
         case 'l':
