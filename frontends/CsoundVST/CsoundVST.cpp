@@ -368,13 +368,13 @@ void CsoundVST::setProgram(long program)
 
 void CsoundVST::suspend()
 {
-  csound::System::inform("RECEIVED CsoundVST::suspend()...\n");
+  csound::System::message("RECEIVED CsoundVST::suspend()...\n");
   stop();
 }		
 
 void CsoundVST::resume()
 {
-  csound::System::inform("RECEIVED CsoundVST::resume()...\n");
+  csound::System::message("RECEIVED CsoundVST::resume()...\n");
   perform();
   wantEvents(true);
 }		
@@ -493,19 +493,29 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, long hos
 void CsoundVST::synchronizeScore()
 {
   vstPriorSamplePosition = vstCurrentSamplePosition;
-  VstTimeInfo *vstTimeInfo = getTimeInfo(0);
-  vstSr = double(vstTimeInfo->sampleRate);
-  vstCurrentSamplePosition = (int) vstTimeInfo->samplePos;
-  vstCurrentSampleBlockStart = vstTimeInfo->samplePos / vstSr;
-  if((vstCurrentSamplePosition && !vstPriorSamplePosition) || 
-     (vstCurrentSamplePosition < vstPriorSamplePosition))
+  VstTimeInfo *vstTimeInfo = getTimeInfo(kVstTransportPlaying);
+  if ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying) 
     {
-      if(getCppSound()->getIsGo())
+      vstSr = double(vstTimeInfo->sampleRate);
+      vstCurrentSamplePosition = (int) vstTimeInfo->samplePos;
+      vstCurrentSampleBlockStart = vstTimeInfo->samplePos / vstSr;
+      if((vstCurrentSamplePosition && !vstPriorSamplePosition) || 
+	 (vstCurrentSamplePosition < vstPriorSamplePosition))
 	{
-	  //getCppSound()->setScorePending(1);
-	  //getCppSound()->rewindScore();
-	  //getCppSound()->setScoreOffsetSeconds(vstCurrentSampleBlockStart);
-	  csound::System::inform("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
+	  if(getCppSound()->getIsGo())
+	    {
+	      getCppSound()->setScorePending(1);
+	      getCppSound()->rewindScore();
+	      getCppSound()->setScoreOffsetSeconds(vstCurrentSampleBlockStart);
+	      csound::System::inform("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
+	    }
+	}
+    }
+  else
+    {
+      if(getCppSound()->getIsGo()) 
+	{
+	  getCppSound()->setScorePending(0);
 	}
     }
 }
