@@ -29,7 +29,7 @@ import sys
 import time
 # Change enableCsound to True if you have installed CsoundVST.
 # Importing CsoundVST automatically creates a csound object.
-enableCsound = False
+enableCsound = True
 if enableCsound:
     import CsoundVST
 from visual import *
@@ -134,35 +134,38 @@ for trichord in trichords.values():
 if enableCsound:
     def csoundThreadRoutine():
         csound.load('c:/utah/home/mkg/projects/csound5/examples/CsoundVST.csd')
-        csound.setCommand('csound -d -m0 -b400 -B400 -odac2 temp.orc temp.sco')
+        csound.setCommand('csound -d -m0 -b600 -B600 -odac2 temp.orc temp.sco')
         csound.exportForPerformance()
         csound.compile()
+        gc.disable()
         while True:
             csound.performKsmps()
-    gc.disable()
     csoundThread = threading.Thread(None, csoundThreadRoutine)
     csoundThread.start()
 pickedBall = None
 oldBall = None
 while scene.visible:
     if scene.mouse.clicked:
-        m = scene.mouse.getclick()
-        if oldBall:
-            oldBall.label.visible = 0
-        if pickedBall:
-            pickedBall.label.visible = 0
-        if str(m.pick.trichord) in balls:
-            oldBall = pickedBall
-            pickedBall = m.pick
+        try:
+            m = scene.mouse.getclick()
+            if oldBall:
+                oldBall.label.visible = 0
             if pickedBall:
-                pickedBall.label.visible = 1
-                note1 = "i  8 0 4 %d 70 0 -.75" % (60 + pickedBall.pos[0])
-                note2 = "i  8 0 4 %d 70 0  .0"  % (60 + pickedBall.pos[1])
-                note3 = "i  8 0 4 %d 70 0  .75" % (60 + pickedBall.pos[2])
-                if enableCsound:
-                    csound.inputMessage(note1)
-                    csound.inputMessage(note2)
-                    csound.inputMessage(note3)
+                pickedBall.label.visible = 0
+            if str(m.pick.trichord) in balls:
+                oldBall = pickedBall
+                pickedBall = m.pick
+                if pickedBall:
+                    pickedBall.label.visible = 1
+                    note1 = "i  8 0 4 %d 70 0 -.75" % (60 + pickedBall.pos[0])
+                    note2 = "i  8 0 4 %d 70 0  .0"  % (60 + pickedBall.pos[1])
+                    note3 = "i  8 0 4 %d 70 0  .75" % (60 + pickedBall.pos[2])
+                    if enableCsound:
+                        csound.inputMessage(note1)
+                        csound.inputMessage(note2)
+                        csound.inputMessage(note3)
+        except:
+            pass
         scene.mouse.events = 0
 if enableCsound:
     csound.cleanup()
