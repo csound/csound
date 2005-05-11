@@ -35,7 +35,7 @@ typedef struct {
 typedef struct {
   OPDS                  h;
   MYFLT                 *ar, *asig, *krvt, *xlpt, *imaxlpt, *istor, *insmps;
-  MYFLT                 g, rvt, lpt, *pntr;
+  MYFLT                 g, rvt, lpt, *pntr, maxlpt;
   AUXCH                 auxch;
   short                 lpta;
 } VCOMB;
