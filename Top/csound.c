@@ -659,21 +659,7 @@ extern "C" {
   {
     double  aTime;
     ENVIRON *csound = (ENVIRON*) csound_;
-
     csound->csoundScoreOffsetSeconds_ = offset;
-    if (csound->QueryGlobalVariable(csound, "csRtClock") == NULL)
-      return;
-    /* if csoundCompile() was already called, create 'a' event now */
-    aTime = (double) offset - csound->sensEvents_state.curTime;
-    if (aTime > 0.0) {
-      EVTBLK  evt;
-      evt.strarg = NULL;
-      evt.opcod = 'a';
-      evt.pcnt = 3;
-      evt.p[2] = evt.p[1] = FL(0.0);
-      evt.p[3] = (MYFLT) aTime;
-      insert_score_event(csound, &evt, csound->sensEvents_state.curTime, 0);
-    }
   }
 
   PUBLIC MYFLT csoundGetScoreOffsetSeconds(void *csound)
