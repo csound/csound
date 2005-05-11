@@ -30,45 +30,67 @@ my $ftl = $bft->Frame->pack(qw/-side left -fill y/);
 my $ftr = $bft->Frame->pack(qw/-side right/);
 
 # X-axis max entry.  There is no x-min (see help file).
-$bfb->Entry(-relief => 'sunken', -textvariable => \$max_x, -width => 4)->pack(qw/-side right/);
+$bfb->Entry(-relief => 'sunken', -textvariable => \$max_x,
+            -width => 4)->pack(qw/-side right/);
 
 # Y-axis entries
-$ftl->Entry(-relief => 'sunken', -textvariable => \$min_y, -width => 4)->pack(qw/-side bottom/);
-$ftl->Entry(-relief => 'sunken', -textvariable => \$max_y, -width => 4)->pack(qw/-side top/);
+$ftl->Entry(-relief => 'sunken', -textvariable => \$min_y,
+            -width => 4)->pack(qw/-side bottom/);
+$ftl->Entry(-relief => 'sunken', -textvariable => \$max_y,
+            -width => 4)->pack(qw/-side top/);
 
 #Drawing canvs (the graph area)
-my $c = $ftr->Canvas(relief => 'raised', width => 308, height => 311, cursor => 'top_left_arrow');
+my $c = $ftr->Canvas(relief => 'raised', width => 308, height => 311,
+                     cursor => 'top_left_arrow');
 $c->pack(qw/-side right/);
 
 # Background square (new dot if right-clicked)
 my $rect = $c->createRectangle(4,4,304,304, -fill => 'white');
 $c->addtag("background", 'withtag', $rect);
-$c->bind("background", '<3>' => [sub{new_dot(shift, $Tk::event->x, $Tk::event->y)}]);
+$c->bind("background", '<3>' => [sub{new_dot(shift, $Tk::event->x,
+                                             $Tk::event->y)}]);
 
 # Start point of graph
-my $leftpoint = $c->createOval(1,307,7,301,-width => 1, -outline => 'black', -fill => 'darkred');
+my $leftpoint = $c->createOval(1,307,7,301,-width => 1,
+                               -outline => 'black', -fill => 'darkred');
 $c->addtag("left_point", 'withtag', $leftpoint);
-$c->bind("left_point", '<Enter>' => [sub{shift->itemconfigure(@_)}, 'current', -fill => 'Skyblue2']);
-$c->bind("left_point", '<Leave>' => [sub{shift->itemconfigure(@_)}, 'current', -fill => 'darkred']);
-$c->bind("left_point", '<B1-Motion>' => [sub{drag_edge(shift, $Tk::event->x, $Tk::event->y, \%iinfo)}]);
-$c->bind("left_point", '<1>' => [sub{start_drag_point(shift, $Tk::event->x, $Tk::event->y, \%iinfo)}]);
+$c->bind("left_point", '<Enter>' => [sub{shift->itemconfigure(@_)},
+                                     'current', -fill => 'Skyblue2']);
+$c->bind("left_point", '<Leave>' => [sub{shift->itemconfigure(@_)},
+                                     'current', -fill => 'darkred']);
+$c->bind("left_point", '<B1-Motion>' => [sub{drag_edge(shift,
+                                                       $Tk::event->x,
+                                                       $Tk::event->y, \%iinfo)}]);
+$c->bind("left_point", '<1>' => [sub{start_drag_point(shift,
+                                                      $Tk::event->x,
+                                                      $Tk::event->y, \%iinfo)}]);
 
 # End point of graph
-my $rightpoint = $c->createOval(301,1,307,7,-width => 1, -outline => 'black', -fill => 'darkred');
+my $rightpoint = $c->createOval(301,1,307,7,-width => 1,
+                                -outline => 'black', -fill => 'darkred');
 $c->addtag("right_point", 'withtag', $rightpoint);
-$c->bind("right_point", '<Enter>' => [sub{shift->itemconfigure(@_)}, 'current', -fill => 'Skyblue2']);
-$c->bind("right_point", '<Leave>' => [sub{shift->itemconfigure(@_)}, 'current', -fill => 'darkred']);
-$c->bind("right_point", '<B1-Motion>' => [sub{drag_edge(shift, $Tk::event->x, $Tk::event->y, \%iinfo)}]);
-$c->bind("right_point", '<1>' => [sub{start_drag_point(shift, $Tk::event->x, $Tk::event->y, \%iinfo)}]);
+$c->bind("right_point", '<Enter>' => [sub{shift->itemconfigure(@_)},
+                                      'current', -fill => 'Skyblue2']);
+$c->bind("right_point", '<Leave>' => [sub{shift->itemconfigure(@_)},
+                                      'current', -fill => 'darkred']);
+$c->bind("right_point", '<B1-Motion>' => [sub{drag_edge(shift,
+                                                        $Tk::event->x,
+                                                        $Tk::event->y, \%iinfo)}]);
+$c->bind("right_point", '<1>' => [sub{start_drag_point(shift,
+                                                       $Tk::event->x,
+                                                       $Tk::event->y, \%iinfo)}]);
 
 # output line ("linseg ...)
 my $outline = $main->Entry(-textvariable => \$olt)->pack(qw/-fill x/);
 
 # Row of buttons (Print, Refresh, Exit)
 my $f = $main->Frame->pack;
-$f->Button(-relief => 'raised', -text => 'Exit', -command => sub{exit;})->pack(qw/-side right/);
-$f->Button(-relief => 'raised', -text => 'Print', -command => sub{print "$olt\n";})->pack(qw/-side left/);
-$f->Button(-relief => 'raised', -text => 'Refresh', -command => sub{draw_lines($c)} )->pack(qw/-side left/);
+$f->Button(-relief => 'raised', -text => 'Exit',
+           -command => sub{exit;})->pack(qw/-side right/);
+$f->Button(-relief => 'raised', -text => 'Print',
+           -command => sub{print "$olt\n";})->pack(qw/-side left/);
+$f->Button(-relief => 'raised', -text => 'Refresh',
+           -command => sub{draw_lines($c)} )->pack(qw/-side left/);
 
 # Initialise screen
 draw_lines($c);
@@ -97,12 +119,19 @@ sub draw_dot(){
 # It draws the new dot in the right place and sets its behaviour
 
     my ($xpos, $ypos) = @_;
-    $point[$pc] = $c->createOval($xpos-3,$ypos-3,$xpos+3,$ypos+3,-width => 1, -outline => 'black', -fill => 'red');
+    $point[$pc] = $c->createOval($xpos-3,$ypos-3,$xpos+3,$ypos+3,
+                                 -width => 1, -outline => 'black', -fill => 'red');
     $c->addtag("p$pc", 'withtag', $point[$pc]);
-    $c->bind("p$pc", '<Enter>' => [sub{shift->itemconfigure(@_)}, 'current', -fill => 'Skyblue2']);
-    $c->bind("p$pc", '<Leave>' => [sub{shift->itemconfigure(@_)}, 'current', -fill => 'Red']);
-    $c->bind("p$pc", '<B1-Motion>' => [sub{drag_point(shift, $Tk::event->x, $Tk::event->y, \%iinfo)}]);
-    $c->bind("p$pc", '<1>' => [sub{start_drag_point(shift, $Tk::event->x, $Tk::event->y, \%iinfo)}]);
+    $c->bind("p$pc", '<Enter>' => [sub{shift->itemconfigure(@_)},
+                                   'current', -fill => 'Skyblue2']);
+    $c->bind("p$pc", '<Leave>' => [sub{shift->itemconfigure(@_)},
+                                   'current', -fill => 'Red']);
+    $c->bind("p$pc", '<B1-Motion>' => [sub{drag_point(shift,
+                                                      $Tk::event->x,
+                                                      $Tk::event->y, \%iinfo)}]);
+    $c->bind("p$pc", '<1>' => [sub{start_drag_point(shift,
+                                                    $Tk::event->x,
+                                                    $Tk::event->y, \%iinfo)}]);
     $c->bind("p$pc", '<3>' => [sub{remove_dot(shift)}]);
 }
 
@@ -245,7 +274,8 @@ sub draw_lines(){
 
 # Middle sections
 	for ($i=1; $i<$pc; $i++){
-	    my $line = $c->createLine($xlist[$i]+4, $ylist[$i]+4, $xlist[$i+1]+4, $ylist[$i+1]+4);
+	    my $line = $c->createLine($xlist[$i]+4, $ylist[$i]+4,
+                                      $xlist[$i+1]+4, $ylist[$i+1]+4);
 	$c->addtag("line$i", 'withtag', $line);
 	$c->lower("line$i", 'left_point');
 	}
