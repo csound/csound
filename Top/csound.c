@@ -660,14 +660,22 @@ extern "C" {
 
   PUBLIC void csoundSetScoreOffsetSeconds(void *csound_, MYFLT offset)
   {
-    double  aTime;
     ENVIRON *csound = (ENVIRON*) csound_;
+    double  aTime;
+    MYFLT   prv = (MYFLT) csound->csoundScoreOffsetSeconds_;
 
     csound->csoundScoreOffsetSeconds_ = offset;
+    if (offset < FL(0.0))
+      return;
+    /* if csoundCompile() was not called yet, just store the offset */
     if (csound->QueryGlobalVariable(csound, "csRtClock") == NULL)
       return;
-    /* if csoundCompile() was already called, create 'a' event now */
+    /* otherwise seek to the requested time now */
     aTime = (double) offset - csound->sensEvents_state.curTime;
+    if (aTime < 0.0 || offset < prv) {
+      csoundRewindScore(csound);    /* will call csoundSetScoreOffsetSeconds */
+      return;
+    }
     if (aTime > 0.0) {
       EVTBLK  evt;
       evt.strarg = NULL;
