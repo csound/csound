@@ -422,6 +422,33 @@ int turnon(ENVIRON *csound, TURNON *p)
             OK : NOTOK);
 }
 
+static void deactivate_all_notes(ENVIRON *csound)
+{
+    INSDS *ip = csound->actanchor.nxtact;
+
+    while (ip != NULL) {
+      INSDS *nxt = ip->nxtact;
+      xturnoff_now(csound, ip);
+      ip = nxt;
+    }
+}
+
+static void delete_pending_rt_events(ENVIRON *csound)
+{
+    EVTNODE *ep = csound->OrcTrigEvts;
+
+    while (ep != NULL) {
+      EVTNODE *nxt = ep->nxt;
+      if (ep->evt.strarg != NULL)
+        csound->Free(csound, ep->evt.strarg);
+      /* push to stack of free event nodes */
+      ep->nxt = csound->freeEvtNodes;
+      csound->freeEvtNodes = ep;
+      ep = nxt;
+    }
+    csound->OrcTrigEvts = NULL;
+}
+
 /* Print current amplitude values, and update section amps. */
 
 static void print_amp_values(ENVIRON *csound, int score_evt)
@@ -721,12 +748,7 @@ int sensevents(ENVIRON *csound)
 
     p = &(csound->sensEvents_state);
     if (csound->MTrkend && O->termifend) {      /* end of MIDI file:  */
-      INSDS *ip = csound->actanchor.nxtact;
-      while (ip != NULL) {
-        INSDS *nxt = ip->nxtact;
-        xturnoff_now(csound, ip);
-        ip = nxt;
-      }
+      deactivate_all_notes(csound);
       csound->Message(csound, Str("terminating.\n"));
       return 1;                         /* abort with perf incomplete */
     }
@@ -860,6 +882,7 @@ int sensevents(ENVIRON *csound)
     }
     /* for s, or e after s */
     if (retval == 1 || (retval == 2 && ST(sectno) > 1)) {
+      delete_pending_rt_events(csound);
       if (O->Beatmode)
         p->curbt = p->curBeat;
       p->curp2 = p->nxtim = p->timeOffs = p->curTime;
@@ -1053,49 +1076,37 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
 void musmon_rewind_score(ENVIRON *csound)
 {
     sensEvents_t  *st = &(csound->sensEvents_state);
-    INSDS         *ip = csound->actanchor.nxtact;
-    EVTNODE       *ep = csound->OrcTrigEvts;
-    /* return if already at time zero */
-    if (csound->global_kcounter == 0L)
-      return;
+
     /* deactivate all currently playing notes */
-    while (ip != NULL) {
-      INSDS *nxt = ip->nxtact;
-      xturnoff_now(csound, ip);
-      ip = nxt;
-    }
-    /* reset score time */
-    csound->global_kcounter = csound->kcounter = 0L;
-    st->nxtim = st->curp2 = st->nxtbt = st->curbt = st->prvbt = 0.0;
-    st->beatOffs = st->timeOffs = 0.0;
-    st->curBeat = st->curTime = 0.0;
-    st->cyclesRemaining = 0;
-    st->evt.strarg = NULL;
-    st->evt.opcod = '\0';
-    /* reset tempo */
-    if (csound->oparms->Beatmode)
-      settempo(csound, (MYFLT) csound->oparms->cmdTempo);
-    else
-      settempo(csound, FL(60.0));
+    deactivate_all_notes(csound);
     /* flush any pending real time events */
-    while (ep != NULL) {
-      EVTNODE *nxt = ep->nxt;
-      if (ep->evt.strarg != NULL)
-        csound->Free(csound, ep->evt.strarg);
-      /* push to stack of free event nodes */
-      ep->nxt = csound->freeEvtNodes;
-      csound->freeEvtNodes = ep;
-      ep = nxt;
+    delete_pending_rt_events(csound);
+
+    if (csound->global_kcounter != 0L) {
+      /* reset score time */
+      csound->global_kcounter = csound->kcounter = 0L;
+      st->nxtim = st->curp2 = st->nxtbt = st->curbt = st->prvbt = 0.0;
+      st->beatOffs = st->timeOffs = 0.0;
+      st->curBeat = st->curTime = 0.0;
+      st->cyclesRemaining = 0;
+      st->evt.strarg = NULL;
+      st->evt.opcod = '\0';
+      /* reset tempo */
+      if (csound->oparms->Beatmode)
+        settempo(csound, (MYFLT) csound->oparms->cmdTempo);
+      else
+        settempo(csound, FL(60.0));
+      /* rewind score file */
+      if (csound->scfp != NULL)
+        fseek(csound->scfp, 0L, SEEK_SET);
+      /* update section/overall amplitudes, reset to section 1 */
+      section_amps(csound, 1);
+      ST(sectno) = 1;
+      csound->Message(csound, Str("SECTION %d:\n"), ST(sectno));
     }
-    csound->OrcTrigEvts = NULL;
-    /* rewind score file */
-    if (csound->scfp != NULL)
-      fseek(csound->scfp, 0L, SEEK_SET);
-    /* update section/overall amplitudes, reset to section 1 */
-    section_amps(csound, 1);
-    ST(sectno) = 1;
-    csound->Message(csound, Str("SECTION %d:\n"), ST(sectno));
+
     /* apply score offset if non-zero */
+    csound->advanceCnt = 0;
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 }
