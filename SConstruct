@@ -1207,3 +1207,8 @@ if commonEnvironment['install']=='1':
 
     Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders])
 
+if(getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1'):
+    print "CONFIGURATION DECISION: Adding resource fork for csound"
+    commonEnvironment.Command('resources','csound', "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
+
+  
