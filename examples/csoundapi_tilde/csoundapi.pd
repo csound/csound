@@ -1,4 +1,4 @@
-#N canvas 0 29 925 512 10;
+#N canvas 0 29 933 520 10;
 #X obj 343 416 dac~;
 #X msg 357 145 event e;
 #X obj 297 23 vsl 15 128 0.1 4 0 0 empty empty empty 0 -8 0 8 -257472
@@ -49,10 +49,19 @@ run 1 re-starts it;
 #X msg 462 343 open csapi_demo.csd;
 #X obj 327 367 csoundapi~ csapi_demo.csd;
 #X text 513 67 csoundapi~ 1 (c) V Lazzarini \, 2005;
+#X msg 30 439 rewind;
+#X text 92 439 rewinds the score without recompilation;
+#X msg 30 464 offset 20;
+#X text 109 464 offsets the score playback by 20 secs;
+#X text 73 416 other score playback messages;
+#X text 437 461 csoundapi~ is built with the number of channels taken
+from the orchestra \, or it can be built with a set number of out/inlets
+(when its argument is numeric);
 #X connect 1 0 39 0;
 #X connect 2 0 23 1;
 #X connect 3 0 39 0;
 #X connect 4 0 39 0;
+#X connect 4 1 39 1;
 #X connect 5 0 39 0;
 #X connect 6 0 7 0;
 #X connect 7 0 39 0;
@@ -77,3 +86,4 @@ run 1 re-starts it;
 #X connect 39 0 0 0;
 #X connect 39 1 0 1;
 #X connect 39 2 24 0;
+#X connect 39 3 25 0;
