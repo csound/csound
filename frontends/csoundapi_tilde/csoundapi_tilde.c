@@ -238,11 +238,7 @@ t_int  *csoundapi_perform(int *w){
       }
     } else for(n=0; n < numlets; n++) out[n][i] = 0.f;				
   }
-  if(end && x->cleanup) {
-    csoundCleanup(x->csound);
-    x->pos=samps;
-    x->cleanup = 0;
-  }
+  
   x->end = end;
   x->pos = pos;
   return (t_int *)(w+2);	
@@ -265,6 +261,12 @@ void csoundapi_event(t_csoundapi *x, t_symbol *s,
 void csoundapi_reset(t_csoundapi *x){
   if(CS_VERSION_ >= 5){	
     if(x->cmdl!=NULL){
+      
+	if(x->end && x->cleanup) {
+            csoundCleanup(x->csound);
+            x->cleanup = 0;
+	}
+        
       csoundReset(x->csound);
       x->result = csoundCompile(x->csound, x->argnum, x->cmdl);
 		
@@ -293,7 +295,12 @@ void csoundapi_open(t_csoundapi *x, t_symbol *s,
   char  **cmdl; 
   int i; 
   if(CS_VERSION_ >= 5 || x->cmdl==NULL) {
-
+     
+	if(x->end && x->cleanup) {
+            csoundCleanup(x->csound);
+            x->cleanup = 0;
+	}
+        
     if(x->cmdl!=NULL) free(x->cmdl);
     csoundReset(x->csound);
     x->result = 1;
