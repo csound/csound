@@ -151,10 +151,14 @@ unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
                           ++pp;
                           break;
                         }
-setp:       e->pcnt = pp - &e->p[0];                   /* count the pfields */
+ setp:      if (!csound->csoundIsScorePending_ && e->opcod == 'i') { /* FIXME */
+              csound->sstrlen = 0;
+              continue;
+            }
+            e->pcnt = pp - &e->p[0];                   /* count the pfields */
             if (csound->sstrlen) {        /* if string arg present, save it */
-                e->strarg = mmalloc(csound, csound->sstrlen);
-                strcpy(e->strarg, csound->sstrbuf);
+                e->strarg = mmalloc(csound, csound->sstrlen); /* FIXME:       */
+                strcpy(e->strarg, csound->sstrbuf);           /* leaks memory */
                 csound->sstrlen = 0;
             }
             return(1);
