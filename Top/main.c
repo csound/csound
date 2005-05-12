@@ -105,7 +105,6 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     char    *filnamp, *envoutyp = NULL;
     char    *sortedscore = NULL;
     char    *xtractedscore = "score.xtr";
-    char    *sconame = get_sconame(csound);
     char    *playscore = NULL;      /* unless we extract */
     FILE    *scorin = NULL, *scorout = NULL, *xfile = NULL;
     int     n;
@@ -283,13 +282,14 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
 
     if (csound->scorename == NULL || strlen(csound->scorename) == 0) {
       /* No scorename yet */
+      char *sconame = get_sconame(csound);
       char *p;
       FILE *scof;
       tmpnam(sconame);              /* Generate score name */
       if ((p=strchr(sconame, '.')) != NULL) *p='\0'; /* with extention */
       strcat(sconame, ".sco");
       scof = fopen(sconame, "w");
-      fprintf(scof, "f0 86400\n");
+      fprintf(scof, "f0 42000\n");
       fclose(scof);
       csound->scorename = sconame;
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
