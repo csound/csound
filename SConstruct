@@ -730,7 +730,9 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_vectorial',
     ['Opcodes/gab/vectorial.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
     ['Opcodes/mixer.cpp']))
-
+pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
+    ['Opcodes/sndloop.c']))
+    
 # Plugins with External Dependencies
 
 # REAL TIME AUDIO
@@ -1118,7 +1120,7 @@ if (commonEnvironment['buildPDClass']=='1' and pdhfound):
     print "CONFIGURATION DECISION: Buiding PD csoundapi~ class"
     if(getPlatform() == 'darwin'):
         pdClassEnvironment.Append(LINKFLAGS = ['-bundle',  '-flat_namespace',  '-undefined',  'suppress'])
-        pdClassEnvironment.Program('csoundapi_tilde.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
+        pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
 	pdClassEnvironment.Append(LIBPATH=['.'])      
 	if(commonEnvironment['useFLTK'] == '1'):
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile'])
@@ -1126,7 +1128,7 @@ if (commonEnvironment['buildPDClass']=='1' and pdhfound):
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
     if(getPlatform() == 'linux'):
         pdClassEnvironment.Append(LINKFLAGS = ['-shared'])
-        pdClassEnvironment.Program('csoundapi_tilde.pd_linux', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
+        pdClassEnvironment.Program('csoundapi~.pd_linux', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
 	if(commonEnvironment['useFLTK'] == '1'):
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile', 'X11'])
 	   pdClassEnvironment.Append(LIBPATH=['.', '/usr/X11R6/lib'])
