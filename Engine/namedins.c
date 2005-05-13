@@ -137,7 +137,7 @@ int named_instr_alloc (ENVIRON *csound, char *s, INSTRTXT *ip, long insno)
     if (csound->oparms->odebug)
       csound->Message(csound,
                       "named instr name = \"%s\", hash = %d, txtp = %p\n",
-                      s, (int) h, ip);
+                      s, (int) h, (void*) ip);
     return 1;
 }
 
@@ -841,14 +841,13 @@ typedef struct GlobalVariableEntry_s {
     void *dummy;
 } GlobalVariableEntry_t;
 
-#define sCmp(x,y) ( {                                                       \
-    register int tmp = 0;                                                   \
-    while ((((unsigned char*) (x))[tmp] == ((unsigned char*) (y))[tmp]) &&  \
-           (((unsigned char*) (x))[tmp] != (unsigned char) 0) &&            \
-           (((unsigned char*) (y))[tmp] != (unsigned char) 0))              \
-      tmp++;                                                                \
-    (((unsigned char*) (x))[tmp] == ((unsigned char*) (y))[tmp] ? 0 : 1);   \
-} )
+static inline int sCmp(const char *x, const char *y)
+{
+    int tmp = 0;
+    while (x[tmp] == y[tmp] && x[tmp] != (char) 0 && y[tmp] != (char) 0)
+      tmp++;
+    return (x[tmp] != y[tmp]);
+}
 
 /**
  * Allocate nbytes bytes of memory that can be accessed later by calling
