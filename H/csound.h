@@ -162,7 +162,7 @@ extern "C" {
       /*/ Failed during performance. */
       CSOUND_PERFORMANCE = -3,
       /*/ Failed to allocate requested memory. */
-      CSOUND_MEMORY = -4,
+      CSOUND_MEMORY = -4
     }
   CSOUND_STATUS;
 
