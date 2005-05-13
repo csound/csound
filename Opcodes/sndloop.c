@@ -1,3 +1,94 @@
+/*  sndloop.c sndloop flooper pvsarp pvsvoc
+
+(c) Victor Lazzarini, 2004
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
+/*
+SNDLOOP
+
+asig, krec  sndloop  ain, kpitch, ktrig, idur, ifad
+
+A sound looper with pitch control.
+
+INIT
+
+idur - loop duration in seconds
+ifad - crossfade duration in seconds
+
+PERFORMANCE
+
+asig - output signal
+krec - 'rec on' signal, 1 when recording, 0 otherwise
+kpitch - pitch control (transposition ratio)
+kon - on signal: when 0, processing is bypassed. When switched on (kon >= 1),
+the opcode starts recording until the loop memory is full. It then plays
+the looped sound until it is switched off again (kon = 0). Another recording
+can start again with kon >= 1.
+
+FLOOPER
+
+asig flooper kamp, kpitch, istart, idur, ifad, ifn
+
+Function-table crossfading looper.
+
+INIT
+
+istart - starting point of loop (in secs)
+idur - loop duration (secs)
+ifad - crossfade duration (secs)
+
+PERFORMANCE
+
+asig - output signal
+kamp - amplitude scaling
+kpitch - pitch control (transposition ratio) 
+
+PVSARP
+
+fsig pvsarp fin, kcf, kdepth, kgain
+
+Spectral arpeggiator
+
+PERFORMANCE
+
+fin - input pv streaming signal
+kcf - centre freq of arpeggiation (normalised 0 - 1.0, corresponding to 0 - Nyquist)
+kdepth - depth of attenuation of surrounding frequency bins
+kgain - gain applied to the bin at the centre frequency
+
+PVSVOC
+
+fsig pvsvoc fenv,fexc,kdepth, kgain
+
+Applies the spectral envelope of one sound to the frequencies (excitation) of
+another.
+
+PERFORMANCE
+
+fenv - spectral envelope signal
+fexc - excitation signal
+kdepth - depth of effect (0-1)
+kgain - signal gain 
+ 
+*/
+
 #include "csdl.h"
 #include "pstream.h"
 
@@ -18,10 +109,10 @@ typedef struct _sndloop {
 
 typedef struct _flooper {
 	OPDS h;
-	MYFLT *out;  /* output, record on */
+	MYFLT *out;  /* output */
 	MYFLT *amp, *pitch, *start, *dur, *cfd, *ifn; 
 	AUXCH buffer; /* loop memory */
-	FUNC  *sfunc;  /* function tabble */
+	FUNC  *sfunc;  /* function table */
 	long strts;   /* start in samples */
 	long  durs;    /* duration in samples */
 	MYFLT  ndx;    /* table lookup ndx */
