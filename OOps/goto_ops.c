@@ -135,3 +135,75 @@ int ihold(ENVIRON *csound, LINK *p)     /* make this note indefinit duration */
     return OK;
 }
 
+int turnoff(ENVIRON *csound, LINK *p)   /* terminate the current instrument  */
+{                                       /* called by turnoff statmt at Ptime */
+    INSDS  *lcurip = csound->pds->insdshead;
+    /* IV - Oct 16 2002: check for subinstr and user opcode */
+    /* find top level instrument instance */
+    while (lcurip->opcod_iobufs)
+      lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
+    xturnoff(csound, lcurip);
+    if (lcurip->xtratim <= 0)
+      while (csound->pds->nxtp != NULL)
+        csound->pds = csound->pds->nxtp;                /* loop to last opds */
+    return OK;
+}
+
+/* turnoff2 opcode */
+
+int turnoff2(ENVIRON *csound, TURNOFF2 *p)
+{
+    MYFLT p1;
+    INSDS *ip, *ip2;
+    int   mode, insno, allow_release;
+
+    if (*(p->kInsNo) <= FL(0.0))
+      return OK;    /* not triggered */
+    p1 = *(p->kInsNo);
+    insno = (int) p1;
+    if (insno < 1 || insno > (int) csound->maxinsno ||
+        csound->instrtxtp[insno] == NULL) {
+      csoundPerfError(csound, Str("turnoff2: invalid instrument number"));
+      return NOTOK;
+    }
+    mode = (int) (*(p->kFlags) + FL(0.5));
+    allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
+    if (mode < 0 || mode > 15 || (mode & 3) == 3) {
+      csoundPerfError(csound, Str("turnoff2: invalid mode parameter"));
+      return NOTOK;
+    }
+    ip = &(csound->actanchor);
+    ip2 = NULL;
+    while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
+    if (ip == NULL)
+      return OK;
+    do {
+      if (((mode & 8) && ip->offtim >= 0.0) ||
+          ((mode & 4) && ip->p1 != p1) ||
+          (allow_release && ip->relesing))
+        continue;
+      if (!(mode & 3)) {
+        if (allow_release)
+          xturnoff(csound, ip);
+        else
+          xturnoff_now(csound, ip);
+      }
+      else {
+        ip2 = ip;
+        if ((mode & 3) == 1)
+          break;
+      }
+    } while ((ip = ip->nxtact) != NULL && (int) ip->insno == insno);
+    if (ip2 != NULL) {
+      if (allow_release)
+        xturnoff(csound, ip2);
+      else
+        xturnoff_now(csound, ip2);
+    }
+    if (!p->h.insdshead->actflg) {  /* if current note was deactivated: */
+      while (csound->pds->nxtp != NULL)
+        csound->pds = csound->pds->nxtp;            /* loop to last opds */
+    }
+    return OK;
+}
+
