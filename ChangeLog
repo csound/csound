@@ -1,3 +1,10 @@
+2005-05-14  John ffitch  <jpff@codemist.co.uk>
+
+	* Top/argdecode.c (decode_long): Allow definition of macros
+
+	* Engine/sread.c (init_smacros): 
+	* Engine/rdorch.c (init_omacros): New functions to define macros
+	
 2005-05-11  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/ugmoss.c (valpass): Added cache of p->maxlpt to avoid

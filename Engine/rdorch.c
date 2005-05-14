@@ -298,6 +298,29 @@ FILE *fopen_path(ENVIRON *csound, char *name, char *basename, char *env)
     return ff;
 }
 
+static void init_omacros(ENVIRON *csound, NAMES *nn)
+{
+    while (nn) {
+      char *s = nn->mac;
+      char *p = strchr(s,'=');
+      MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
+      mm->margs = MARGS;  /* Initial size */
+      if (p==NULL) p = s+strlen(s);
+      if (csound->oparms->msglevel)
+        csound->Message(csound,Str("Macro definition for %*s\n"), p-s, s);
+      s = strchr(s,':')+1;                     /* skip arg bit */
+      mm->name = mmalloc(csound, p-s+1);
+      mm->name[p-s] = '\0';
+      strncpy(mm->name, s, p-s);
+      mm->acnt = 0;
+      mm->body = (char*)mmalloc(csound, strlen(p+1)+1);
+      strcpy(mm->body, p+1);
+      mm->next = ST(macros);
+      ST(macros) = mm;
+      nn = nn->next;
+    }
+}
+
 void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
 {
     int     c, lincnt;
@@ -315,6 +338,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       ST(tempNum)   = 300L;
       ST(nxtest)    = 1;
     }
+    init_omacros(csound, csound->omacros);
     /* IV - Oct 31 2002: create tables for easier checking for common types */
     if (!ST(typemask_tabl)) {
       long *ptr = (long*) typetabl1;
