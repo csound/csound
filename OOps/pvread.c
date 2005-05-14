@@ -35,7 +35,7 @@
 
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
-static int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp);
+static int pvocex_loadfile(ENVIRON *, const char *fname,PVREAD *p,MEMFIL **mfp);
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
@@ -83,7 +83,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
     if ((mfp = p->mfp) == NULL ||
         strcmp(mfp->filename, pvfilnam) != 0) { /* if file not already readin */
       /* RWD: try for pvocex first */
-      if (pvocex_loadfile(pvfilnam,p,&mfp))     {    /* got it */
+      if (pvocex_loadfile(csound, pvfilnam,p,&mfp))     {    /* got it */
         p->mfp = mfp;
         return OK;
       }
@@ -94,7 +94,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
     }
     else
       /* need to check format again here */
-      if (pvocex_loadfile(pvfilnam,p,&mfp)) {
+      if (pvocex_loadfile(csound, pvfilnam,p,&mfp)) {
         /* handles all config settings */
         p->mfp = mfp;
         return OK;
@@ -188,9 +188,9 @@ int pvread(ENVIRON *csound, PVREAD *p)
 /* generic read error messages in pvfileio.c */
 /* NB no death here on read failure, only on memory failure */
 
-int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
+static int pvocex_loadfile(ENVIRON *csound,
+                           const char *fname,PVREAD *p,MEMFIL **mfp)
 {
-    ENVIRON *csound = &cenviron;
     PVOCDATA pvdata;
     WAVEFORMATEX fmt;
     MEMFIL *mfil = NULL;
