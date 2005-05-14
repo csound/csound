@@ -43,21 +43,6 @@
 #endif
 #endif
 
-/* check for the presence of a modern compiler (for use of certain features) */
-
-#ifdef HAVE_GCC3
-#undef HAVE_GCC3
-#endif
-#if (defined(__GNUC__) && (__GNUC__ >= 3))
-#define HAVE_GCC3 1
-#endif
-#ifdef HAVE_C99
-#undef HAVE_C99
-#endif
-#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
-#define HAVE_C99 1
-#endif
-
 /* some older systems may have strings.h instead of string.h */
 
 #if defined(HAVE_STRING_H) || !defined(HAVE_STRINGS_H)
@@ -85,6 +70,21 @@
 
 #if defined(HAVE_UNISTD_H) || defined(__unix) || defined(__unix__)
 #include <unistd.h>
+#endif
+
+/* check for the presence of a modern compiler (for use of certain features) */
+
+#ifdef HAVE_GCC3
+#undef HAVE_GCC3
+#endif
+#if (defined(__GNUC__) && (__GNUC__ >= 3)) && !defined(DIRENT_FIX)
+#define HAVE_GCC3 1
+#endif
+#ifdef HAVE_C99
+#undef HAVE_C99
+#endif
+#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
+#define HAVE_C99 1
 #endif
 
 /* inline keyword: always available in C++, C99, and GCC 3.x and above */
