@@ -108,12 +108,12 @@ int schedule(ENVIRON *csound, SCHED *p)
       RSCHED *rr;
       /* if duration is zero assume MIDI schedule */
       MYFLT dur = *p->dur;
-      printf("SCH: when = %f dur = %f\n", *p->when, dur);
+      csound->Message(csound,"SCH: when = %f dur = %f\n", *p->when, dur);
       p->midi = (dur <= FL(0.0));
       if (p->midi) {
         int *xtra;
-        printf("SCH: MIDI case\n");
-        printf(Str(" *** WARNING: schedule in MIDI mode is not correctly "
+        csound->Message(csound,"SCH: MIDI case\n");
+        csound->Message(csound,Str(" *** WARNING: schedule in MIDI mode is not correctly "
                    "implemented, do not use it\n"));
         /* set 1 k-cycle of extratime in ordeto allow mtrnoff to
            recognize whether the note is turned off */
@@ -192,8 +192,9 @@ int kschedule(ENVIRON *csound, WSCHED *p)
       }
       p->midi = (dur <= FL(0.0));
       if (p->midi)
-        printf(Str(" *** WARNING: schedule in MIDI mode is not correctly "
-                   "implemented, do not use it\n"));
+        csound->Message(csound,
+                        Str(" *** WARNING: schedule in MIDI mode is not correctly "
+                            "implemented, do not use it\n"));
       p->todo = 0;
                                 /* Insert event */
       starttime = (double) p->abs_when + (double) *(p->when)
@@ -260,7 +261,7 @@ int lfoset(ENVIRON *csound, LFO *p)
       }
       for (i=0; i<4096; i++)
         p->sine[i] = (MYFLT)sin(TWOPI*(double)i/4096.0);
-/*        printf("Table set up (max is %d)\n", MAXPHASE>>10); */
+/*        csound->Message(csound,"Table set up (max is %d)\n", MAXPHASE>>10); */
     }
     else if (type>5 || type<0) {
       return csound->InitError(csound, Str("LFO: unknown oscilator type %d"),
