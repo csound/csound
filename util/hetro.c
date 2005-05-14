@@ -117,208 +117,208 @@ static  void    output_ph(long), filedump(void), quit(char *);
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
                             quit(MSG);
 
-int hetro(int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
+int hetro(ENVIRON  *csound,
+          int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
 {
-        ENVIRON  *csound = &cenviron;
-	SNDFILE  *infd;
-        int      i, hno, channel = 1;
-        long     nsamps, smpspc, bufspc, mgfrspc;
-        char     *dsp, *dspace, *mspace;
-        double   *begbufs, *endbufs;
+    SNDFILE  *infd;
+    int      i, hno, channel = 1;
+    long     nsamps, smpspc, bufspc, mgfrspc;
+    char     *dsp, *dspace, *mspace;
+    double   *begbufs, *endbufs;
 
-        SOUNDIN  *p;      /* space allocated by SAsndgetset() */
-        /* must set this for 'standard' behaviour when analysing
-           (assume re-entrant Csound) */
-        dbfs_init(csound, DFLT_DBFS);
-
-        if (!(--argc)) {
-          quit(Str("no arguments"));
-        }
-        do {
-          char *s = *++argv;
-          if (*s++ == '-')
-            switch (*s++) {
-            case 's':   FIND(Str("no sampling rate"))
+    SOUNDIN  *p;      /* space allocated by SAsndgetset() */
+    /* must set this for 'standard' behaviour when analysing
+       (assume re-entrant Csound) */
+    dbfs_init(csound, DFLT_DBFS);
+    
+    if (!(--argc)) {
+      quit(Str("no arguments"));
+    }
+    do {
+      char *s = *++argv;
+      if (*s++ == '-')
+        switch (*s++) {
+        case 's':   FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-                          sscanf(s,"%lf",&sr);
+                      sscanf(s,"%lf",&sr);
 #else
-                          sscanf(s,"%f",&sr);
+          sscanf(s,"%f",&sr);
 #endif
-              break;
-            case 'c':   FIND(Str("no channel"))
-                          sscanf(s,"%d",&channel);
-              break;
-            case 'b':   FIND(Str("no begin time"))
+          break;
+        case 'c':   FIND(Str("no channel"))
+                      sscanf(s,"%d",&channel);
+          break;
+        case 'b':   FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-                          sscanf(s,"%lf",&beg_time);
+                      sscanf(s,"%lf",&beg_time);
 #else
-                          sscanf(s,"%f",&beg_time);
+          sscanf(s,"%f",&beg_time);
 #endif
-              break;
-            case 'd':   FIND(Str("no duration time"))
+          break;
+        case 'd':   FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-                          sscanf(s,"%lf",&input_dur);
+                      sscanf(s,"%lf",&input_dur);
 #else
-                          sscanf(s,"%f",&input_dur);
+          sscanf(s,"%f",&input_dur);
 #endif
-              break;
-            case 'f':   FIND(Str("no fundamental estimate"))
+          break;
+        case 'f':   FIND(Str("no fundamental estimate"))
 #if defined(USE_DOUBLE)
-                          sscanf(s,"%lf",&fund_est);
+                      sscanf(s,"%lf",&fund_est);
 #else
-                          sscanf(s,"%f",&fund_est);
+          sscanf(s,"%f",&fund_est);
 #endif
-              break;
-            case 'h':   FIND(Str("no harmonic count"))
-                          sscanf(s,"%hd",&hmax);
-              if (hmax > HMAX)
-                csound->Message(csound,Str("over %d harmonics but continuing"),
-                           HMAX);
-              if (hmax < 1) {
-                csound->Message(csound,Str("h of %d too low, reset to 1\n"),
-                           hmax);
+          break;
+        case 'h':   FIND(Str("no harmonic count"))
+                      sscanf(s,"%hd",&hmax);
+          if (hmax > HMAX)
+            csound->Message(csound,Str("over %d harmonics but continuing"),
+                            HMAX);
+          if (hmax < 1) {
+            csound->Message(csound,Str("h of %d too low, reset to 1\n"),
+                            hmax);
                 hmax = 1;
-              }
-              break;
-            case 'M':   FIND(Str("no amplitude maximum"))
-                          sscanf(s,"%lf",&m_ampsum);
-              break;
-            case 'm':   FIND(Str("no amplitude minimum"))
-                          sscanf(s,"%d",&amp_min);
-              break;
-            case 'n':   FIND(Str("no number of output points"))
-                          sscanf(s,"%d",&num_pts);
-              break;
+          }
+          break;
+        case 'M':   FIND(Str("no amplitude maximum"))
+                      sscanf(s,"%lf",&m_ampsum);
+          break;
+        case 'm':   FIND(Str("no amplitude minimum"))
+                      sscanf(s,"%d",&amp_min);
+          break;
+        case 'n':   FIND(Str("no number of output points"))
+                      sscanf(s,"%d",&num_pts);
+          break;
             case 'l':   FIND(Str("no filter cutoff"))
 #if defined(USE_DOUBLE)
                           sscanf(s,"%lf",&freq_c);
 #else
-                          sscanf(s,"%f",&freq_c);
+              sscanf(s,"%f",&freq_c);
 #endif
               break;
-            case '-':   FIND(Str("no log file"));
-              while (*s++); s--;
-              break;
-            default:   quit(Str("Invalid switch option"));
-            }
-          else break;
-        } while (--argc);
-
-        if (argc != 2)  quit(Str("incorrect number of filenames"));
-        infilnam = *argv++;
-        outfilnam = *argv;
-
-        if (freq_c > 1)
-            fprintf (stderr,Str("Filter cutoff freq. = %f\n"),freq_c);
-
-        if ((input_dur < 0) || (beg_time < 0))
-            quit(Str("input and begin times cannot be less than zero"));
-                                           /* open sndfil, do skiptime */
-        if (
-         (infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
-                                     &input_dur, &sr, channel)) < 0) {
-            sprintf(errmsg,Str("Cannot open %s"), csound->retfilnam);
-            quit (errmsg);
+        case '-':   FIND(Str("no log file"));
+          while (*s++); s--;
+          break;
+        default:   quit(Str("Invalid switch option"));
         }
-        nsamps = p->getframes;
-        /* alloc for MYFLTs */
-        auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
-        /* & read them in */
-        if ((smpsin = csound->getsndin(csound, infd, auxp, nsamps, p)) <= 0) {
-          printf("smpsin = %d\n", smpsin);
-            sprintf(errmsg,Str("Read error on %s\n"), csound->retfilnam);
-            quit(errmsg);
-        }
-        sf_close(infd);
+      else break;
+    } while (--argc);
+    
+    if (argc != 2)  quit(Str("incorrect number of filenames"));
+    infilnam = *argv++;
+    outfilnam = *argv;
+    
+    if (freq_c > 1)
+      fprintf (stderr,Str("Filter cutoff freq. = %f\n"),freq_c);
+    
+    if ((input_dur < 0) || (beg_time < 0))
+      quit(Str("input and begin times cannot be less than zero"));
+    /* open sndfil, do skiptime */
+    if (
+        (infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+                                    &input_dur, &sr, channel)) < 0) {
+      sprintf(errmsg,Str("Cannot open %s"), csound->retfilnam);
+      quit (errmsg);
+    }
+    nsamps = p->getframes;
+    /* alloc for MYFLTs */
+    auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
+    /* & read them in */
+    if ((smpsin = csound->getsndin(csound, infd, auxp, nsamps, p)) <= 0) {
+      printf("smpsin = %d\n", smpsin);
+      sprintf(errmsg,Str("Read error on %s\n"), csound->retfilnam);
+      quit(errmsg);
+    }
+    sf_close(infd);
+    
+    sr = (MYFLT)p->sr;                              /* sr now from open  */
+    windsiz = (long)(sr / fund_est + FL(0.5));      /* samps in fund prd */
+    /*RWD no limit for SDIF files! */
+    if (is_sdiffile(outfilnam)) {
+      if (num_pts >= nsamps - windsiz)
+        quit(Str("number of output points is too great"));
+    }
+    else if (num_pts > 32767 || num_pts >= nsamps - windsiz)
+      quit(Str("number of output points is too great"));
+    delta_t = FL(1.0)/sr;
+    t = FL(1.0)/fund_est;
+    outdelta_t = (MYFLT)num_pts / (smpsin - windsiz);
 
-        sr = (MYFLT)p->sr;                              /* sr now from open  */
-        windsiz = (long)(sr / fund_est + FL(0.5));      /* samps in fund prd */
-        /*RWD no limit for SDIF files! */
-        if (is_sdiffile(outfilnam)) {
-          if (num_pts >= nsamps - windsiz)
-            quit(Str("number of output points is too great"));
-        }
-        else if (num_pts > 32767 || num_pts >= nsamps - windsiz)
-          quit(Str("number of output points is too great"));
-        delta_t = FL(1.0)/sr;
-        t = FL(1.0)/fund_est;
-        outdelta_t = (MYFLT)num_pts / (smpsin - windsiz);
-
-        while (bufsiz < (sr/fund_est + FL(0.5)))
-            bufsiz *= 2;
-        midbuf = bufsiz/2;
-        bufmask = bufsiz - 1;
-
-        smpspc = smpsin * sizeof(double);
-        bufspc = bufsiz * sizeof(double);
-
-        dsp = dspace = mmalloc(&cenviron, smpspc * 2 + bufspc * 13);
-        c_p = (double *) dsp;           dsp += smpspc;  /* space for the    */
-        s_p = (double *) dsp;           dsp += smpspc;  /* quadrature terms */
-        begbufs = (double *) dsp;
-        cos_mul = (double *) dsp;       dsp += bufspc;  /* bufs that will be */
-        sin_mul = (double *) dsp;       dsp += bufspc;  /* refilled each hno */
-        a_term = (double *) dsp;        dsp += bufspc;
-        b_term = (double *) dsp;        dsp += bufspc;
-        r_ampl = (double *) dsp;        dsp += bufspc;
-        ph_av1 = (double *) dsp;        dsp += bufspc;
-        ph_av2 = (double *) dsp;        dsp += bufspc;
-        ph_av3 = (double *) dsp;        dsp += bufspc;
-        r_phase = (double *) dsp;       dsp += bufspc;
-        amp_av1 = (double *) dsp;       dsp += bufspc;
-        amp_av2 = (double *) dsp;       dsp += bufspc;
-        amp_av3 = (double *) dsp;       dsp += bufspc;
-        a_avg = (double *) dsp;         dsp += bufspc;
-        endbufs = (double *) dsp;
-
-        mgfrspc = num_pts * sizeof(MYFLT);
-        dsp = mspace = mmalloc(&cenviron, mgfrspc * hmax * 2);
-        MAGS = (MYFLT **) mmalloc(&cenviron, hmax * sizeof(MYFLT*));
-        FREQS = (MYFLT **) mmalloc(&cenviron, hmax * sizeof(MYFLT*));
-        for (i = 0; i < hmax; i++) {
-            MAGS[i] = (MYFLT *) dsp;    dsp += mgfrspc;
-            FREQS[i] = (MYFLT *) dsp;   dsp += mgfrspc;
-        }
-        lpinit();                               /* calculate LPF coeffs.  */
-        adp = auxp;                     /* point to beg sample data block */
-        for (hno = 0; hno < hmax; hno++) {      /* for requested harmonics*/
-            double *dblp;
-            freq_est += fund_est;               /*   do analysis */
-            cur_est = freq_est;
-            dblp = begbufs;
-            do {
-              *dblp++ = FL(0.0);              /* clear all refilling buffers*/
-            } while (dblp < endbufs);
-            max_frq = FL(0.0);
-            max_amp = FL(0.0);
-
-            csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
-            csound->Message(csound,Str("freq est %6.1f,"), cur_est);
-            hetdyn(hno);                /* perform actual computation */
-            if (!csoundYield(&cenviron)) exit(1);
-            csound->Message(csound,Str(" max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
-        }
-        mfree(&cenviron, dspace);
+    while (bufsiz < (sr/fund_est + FL(0.5)))
+      bufsiz *= 2;
+    midbuf = bufsiz/2;
+    bufmask = bufsiz - 1;
+    
+    smpspc = smpsin * sizeof(double);
+    bufspc = bufsiz * sizeof(double);
+    
+    dsp = dspace = mmalloc(csound, smpspc * 2 + bufspc * 13);
+    c_p = (double *) dsp;           dsp += smpspc;  /* space for the    */
+    s_p = (double *) dsp;           dsp += smpspc;  /* quadrature terms */
+    begbufs = (double *) dsp;
+    cos_mul = (double *) dsp;       dsp += bufspc;  /* bufs that will be */
+    sin_mul = (double *) dsp;       dsp += bufspc;  /* refilled each hno */
+    a_term = (double *) dsp;        dsp += bufspc;
+    b_term = (double *) dsp;        dsp += bufspc;
+    r_ampl = (double *) dsp;        dsp += bufspc;
+    ph_av1 = (double *) dsp;        dsp += bufspc;
+    ph_av2 = (double *) dsp;        dsp += bufspc;
+    ph_av3 = (double *) dsp;        dsp += bufspc;
+    r_phase = (double *) dsp;       dsp += bufspc;
+    amp_av1 = (double *) dsp;       dsp += bufspc;
+    amp_av2 = (double *) dsp;       dsp += bufspc;
+    amp_av3 = (double *) dsp;       dsp += bufspc;
+    a_avg = (double *) dsp;         dsp += bufspc;
+    endbufs = (double *) dsp;
+    
+    mgfrspc = num_pts * sizeof(MYFLT);
+    dsp = mspace = mmalloc(csound, mgfrspc * hmax * 2);
+    MAGS = (MYFLT **) mmalloc(csound, hmax * sizeof(MYFLT*));
+    FREQS = (MYFLT **) mmalloc(csound, hmax * sizeof(MYFLT*));
+    for (i = 0; i < hmax; i++) {
+      MAGS[i] = (MYFLT *) dsp;    dsp += mgfrspc;
+      FREQS[i] = (MYFLT *) dsp;   dsp += mgfrspc;
+    }
+    lpinit();                               /* calculate LPF coeffs.  */
+    adp = auxp;                     /* point to beg sample data block */
+    for (hno = 0; hno < hmax; hno++) {      /* for requested harmonics*/
+      double *dblp;
+      freq_est += fund_est;               /*   do analysis */
+      cur_est = freq_est;
+      dblp = begbufs;
+      do {
+        *dblp++ = FL(0.0);              /* clear all refilling buffers*/
+      } while (dblp < endbufs);
+      max_frq = FL(0.0);
+      max_amp = FL(0.0);
+      
+      csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
+      csound->Message(csound,Str("freq est %6.1f,"), cur_est);
+      hetdyn(hno);                /* perform actual computation */
+      if (!csoundYield(csound)) exit(1);
+      csound->Message(csound,Str(" max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
+    }
+    mfree(csound, dspace);
 #ifdef mills_macintosh
-        if (!(transport.state & kGenKilled))
+    if (!(transport.state & kGenKilled))
 #endif
-          {                     /* Note section bracket neded from if above */
-            /*RWD if extension is .sdif, write as 1TRC frames */
-            if (is_sdiffile(outfilnam)) {
-              if (!writesdif()) {
-                csound->Message(csound,Str("Unable to write to SDIF file\n"));
-                mfree(&cenviron, mspace);
-                exit(1);
-              }
-            }
-            else
-              filedump();                       /* write output to adsyn file */
+      {                     /* Note section bracket neded from if above */
+        /*RWD if extension is .sdif, write as 1TRC frames */
+        if (is_sdiffile(outfilnam)) {
+          if (!writesdif()) {
+            csound->Message(csound,Str("Unable to write to SDIF file\n"));
+            mfree(csound, mspace);
+            exit(1);
           }
-        mfree(&cenviron, mspace);
+        }
+        else
+          filedump();                       /* write output to adsyn file */
+      }
+    mfree(csound, mspace);
 #if !defined(mills_macintosh)
-        exit(0);
+    exit(0);
 #endif
-        return (-1);            /* To keep compiler quiet */
+    return (-1);            /* To keep compiler quiet */
 }
 
 static double
@@ -507,16 +507,17 @@ static void quit (char *msg)
 #ifdef mills_macintosh
     char temp[256];
     sprintf(temp,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
-    csoundDie(&cenviron, temp);
+    csoundDie(csound, temp);
 #else
-    cenviron.Message(&cenviron,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
+    csound->Message(csound,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
 #endif
     exit(1);
 }
 
 #define END  32767
 
-static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
+static void filedump(ENVIRON *csound)
+  /* WRITE OUTPUT FILE in DATA-REDUCED format */
 {
     int     h, pnt, ofd, nbytes;
     double  scale,x,y;
@@ -526,14 +527,14 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
     short   *TIME;
     MYFLT   timesiz;
 
-    mags = (short **) mmalloc(&cenviron, hmax * sizeof(short*));
-    freqs = (short **) mmalloc(&cenviron, hmax * sizeof(short*));
+    mags = (short **) mmalloc(csound, hmax * sizeof(short*));
+    freqs = (short **) mmalloc(csound, hmax * sizeof(short*));
     for (h = 0; h < hmax; h++) {
-      mags[h] = (short *)mmalloc(&cenviron, (long)num_pts * sizeof(short));
-      freqs[h] = (short *)mmalloc(&cenviron, (long)num_pts * sizeof(short));
+      mags[h] = (short *)mmalloc(csound, (long)num_pts * sizeof(short));
+      freqs[h] = (short *)mmalloc(csound, (long)num_pts * sizeof(short));
     }
  
-    TIME = (short *)mmalloc(&cenviron, (long)num_pts * sizeof(short));
+    TIME = (short *)mmalloc(csound, (long)num_pts * sizeof(short));
     timesiz = FL(1000.0) * input_dur / num_pts;
     for (pnt = 0; pnt < num_pts; pnt++)
       TIME[pnt] = (short)(pnt * timesiz);
@@ -551,7 +552,7 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
         maxampsum = ampsum;
     }
     scale = m_ampsum / maxampsum;
-    cenviron.Message(&cenviron,Str("scale = %f\n"), scale);
+    csound->Message(csound,Str("scale = %f\n"), scale);
 
     for (h = 0; h < hmax; h++) {
       for (pnt = 0; pnt < num_pts; pnt++) {
@@ -562,8 +563,8 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
       }
     }
 
-    magout = (short *)mmalloc(&cenviron, (long)(num_pts + 1) * 2 * sizeof(short));
-    frqout = (short *)mmalloc(&cenviron, (long)(num_pts + 1) * 2 * sizeof(short));
+    magout = (short *)mmalloc(csound, (long)(num_pts + 1) * 2 * sizeof(short));
+    frqout = (short *)mmalloc(csound, (long)(num_pts + 1) * 2 * sizeof(short));
     for (h = 0; h < hmax; h++) {
       short *mp = magout, *fp = frqout;
       short *lastmag, *lastfrq, pkamp = 0;
@@ -646,17 +647,17 @@ static void filedump(void)     /* WRITE OUTPUT FILE in DATA-REDUCED format */
       printf(Str("harmonic #%d:\tamp points %d, \tfrq points %d,\tpeakamp %d\n"),
              h,mpoints,fpoints,pkamp);
     }
-    cenviron.Message(&cenviron,Str("wrote %ld bytes to %s\n"), lenfil, outfilnam);
+    csound->Message(csound,Str("wrote %ld bytes to %s\n"), lenfil, outfilnam);
     close(ofd);
-    mfree(&cenviron, magout);
-    mfree(&cenviron, frqout);
-    mfree(&cenviron, TIME);
+    mfree(csound, magout);
+    mfree(csound, frqout);
+    mfree(csound, TIME);
     for (h = 0; h < hmax; h++) {
-      mfree(&cenviron, mags[h]);
-      mfree(&cenviron, freqs[h]);
+      mfree(csound, mags[h]);
+      mfree(csound, freqs[h]);
     }
-    mfree(&cenviron, mags);
-    mfree(&cenviron, freqs);
+    mfree(csound, mags);
+    mfree(csound, freqs);
 }
 
 /* simply writes the number of frames generated - no data reduction, no interpolation */
@@ -674,7 +675,7 @@ static int writesdif(void)
     FILE        *sdiffile = NULL;
 
     if (SDIF_Init() != ESDIF_SUCCESS) {
-      cenviron.Message(&cenviron,Str("OOPS: SDIF does not work on this machine!\n"));
+      csound->Message(csound,Str("OOPS: SDIF does not work on this machine!\n"));
       return 0;
     }
 
@@ -689,7 +690,7 @@ static int writesdif(void)
     scale = m_ampsum / maxampsum;
     /* SDIF does not specify a range, 'cos it's too clever for that sort
      * of thing, but this seems consistent with existing examples! */
-    scale *= (double) cenviron.dbfs_to_float;
+    scale *= (double) csound->dbfs_to_float;
 /*     scale /= 32768.0; */
 
     for (h = 0; h < hmax; h++) {
@@ -701,7 +702,7 @@ static int writesdif(void)
 
     if ((r = SDIF_OpenWrite(outfilnam, &sdiffile))!=ESDIF_SUCCESS) {
       /* can get SDIF error messages, but trickly for CSTRINGS */
-      cenviron.Message(&cenviron,Str("Error creating %s\n"),outfilnam);
+      csound->Message(csound,Str("Error creating %s\n"),outfilnam);
       fclose(sdiffile);
       return 0;
     }
@@ -727,7 +728,7 @@ static int writesdif(void)
       sdif_float32 amp,freq,phase = 0.0f; /* cannot offer anything interesting with phase! */
       head.time = (sdif_float32) ((MYFLT)i * timesiz);
       if ((r = SDIF_WriteFrameHeader(&head,sdiffile))!=ESDIF_SUCCESS) {
-        cenviron.Message(&cenviron,Str("Error writing SDIF frame header.\n"));
+        csound->Message(csound,Str("Error writing SDIF frame header.\n"));
         return 0;
       }
       /*setup data matrix */
@@ -736,7 +737,7 @@ static int writesdif(void)
       SDIF_Copy4Bytes(mh.matrixType,"1TRC");
       mh.matrixDataType = SDIF_FLOAT32;
       if ((r = SDIF_WriteMatrixHeader(&mh,sdiffile))!=ESDIF_SUCCESS) {
-        cenviron.Message(&cenviron,Str("Error writing SDIF matrix header.\n"));
+        csound->Message(csound,Str("Error writing SDIF matrix header.\n"));
         return 0;
       }
       for (j=0;j < hmax;j++) {
@@ -749,13 +750,13 @@ static int writesdif(void)
             ((r = SDIF_Write4(&freq,1,sdiffile))!= ESDIF_SUCCESS)  ||
             ((r = SDIF_Write4(&amp,1,sdiffile))!= ESDIF_SUCCESS)   ||
             ((r = SDIF_Write4(&phase,1,sdiffile))!= ESDIF_SUCCESS)) {
-          cenviron.Message(&cenviron,Str("Error writing SDIF data.\n"));
+          csound->Message(csound,Str("Error writing SDIF data.\n"));
           return 0;
         }
       }
       /* 64-bit alignment can be relied upon here, so no need to calc padding */
     }
-    cenviron.Message(&cenviron,Str("wrote %ld 1TRC frames to %s\n"), num_pts, outfilnam);
+    csound->Message(csound,Str("wrote %ld 1TRC frames to %s\n"), num_pts, outfilnam);
     SDIF_CloseWrite(sdiffile);
     return 1;
 }
