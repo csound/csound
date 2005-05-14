@@ -154,7 +154,7 @@ void dispset(                            /* setup a new window */
     if (!wdptr->windid) {               /* if no window defined for this str  */
       (*makeFn)(csound, wdptr, label);  /*    create one  */
       if (O.postscript)
-        PS_MakeGraph(wdptr,label);      /* open PS file + write header        */
+        PS_MakeGraph(csound, wdptr,label); /* open PS file + write header     */
     }
     wdptr->fdata    = fdata;            /* init remainder of data structure   */
     wdptr->npts     = npts;
@@ -190,9 +190,10 @@ int dispexit(void)
       return 0;
 }
 
-void display(WINDAT *wdptr)     /* prepare a MYFLT array, then call the */
-                                /* graphing fn */
+void display(void *c, WINDAT *wdptr)  /* prepare a MYFLT array, then */
+                                              /* call the graphing fn */
 {
+    ENVIRON *csound = c;
     MYFLT *fp, *fplim;
     MYFLT       max, min, absmax, fval;
     int         pol;
@@ -222,6 +223,6 @@ void display(WINDAT *wdptr)     /* prepare a MYFLT array, then call the */
     wdptr->polarity = pol;
 
     (*drawFn)((ENVIRON*) NULL, wdptr);    /* now graph the function */
-    if (O.postscript) PS_DrawGraph(wdptr);/* Write postscript code  */
+    if (O.postscript) PS_DrawGraph(csound, wdptr);/* Write postscript code  */
 }
 

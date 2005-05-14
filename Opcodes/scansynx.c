@@ -494,7 +494,7 @@ int scsnux(ENVIRON *csound, PSCSNUX *p)
         /* Reset index and display the state */
         idx = 0;
         if (*p->i_disp)
-          csound->display(p->win);
+          csound->display(csound, p->win);
       }
       if (p->id<0) { /* Write to ftable */
         int i;

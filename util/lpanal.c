@@ -560,7 +560,7 @@ int lpanal(int argc, char **argv)
 /*            for (fp1=coef+NDATA, dfp=cc+poleCount, n=poleCount; n--; ) */
 /*                *fp1++ = - (MYFLT) *--dfp; */              /* rev coefs & chng sgn */
             sprintf(pwindow.caption, "pitch: %8.2f", coef[3]);
-            display(&pwindow);
+            display(csound, &pwindow);
 
                 /* Prepare buffer for output */
 
