@@ -33,7 +33,7 @@
 
 int     csoundGetAPIVersion(void);
 void    dispset(WINDAT *, MYFLT *, long, char *, int, char *);
-void    display(WINDAT *);
+void    display(void *csound, WINDAT *);
 void    writeheader(ENVIRON *csound, int ofd, char *ofname);
 int     playopen_dummy(void *csound, csRtAudioParams *parm);
 void    rtplay_dummy(void *csound, void *outBuf, int nbytes);
