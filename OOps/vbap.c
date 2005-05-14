@@ -229,7 +229,7 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[CHANNELS] )
 }
 
 
-void choose_ls_triplets(ls lss[CHANNELS],
+void choose_ls_triplets(ENVIRON *csound, ls lss[CHANNELS],
                         struct ls_triplet_chain **ls_triplets, int ls_amount)
      /* Selects the loudspeaker triplets, and
       calculates the inversion matrices for each selected triplet.
@@ -249,7 +249,7 @@ void choose_ls_triplets(ls lss[CHANNELS],
     struct ls_triplet_chain *trip_ptr, *prev, *tmp_ptr;
 
     if (ls_amount == 0) {
-      csoundDie(&cenviron, Str("Number of loudspeakers is zero\nExiting"));
+      csoundDie(csound, Str("Number of loudspeakers is zero\nExiting"));
     }
 
 /*      i_ptr = (int *) connections; */
@@ -483,9 +483,9 @@ void cross_prod(CART_VEC v1,CART_VEC v2,
     res->z /= length;
 }
 
-void vec_print(CART_VEC v)
+void vec_print(ENVIRON *csound, CART_VEC v)
 {
-    printf("vec_print %f %f %f\n", v.x, v.y,v.z);
+    csound->Message(csound, "vec_print %f %f %f\n", v.x, v.y,v.z);
 
 }
 
@@ -559,7 +559,7 @@ void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
     int ls_amount;
 
     dim = (int) *p->dim;
-    printf("dim : %d\n",dim);
+    csound->Message(csound, "dim : %d\n",dim);
     if (!((dim==2) || (dim == 3))) {
       csound->Message(csound,Str("Error in loudspeaker dimension.\n"));
       exit (-1);
@@ -590,15 +590,16 @@ void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
     }
 
     if (dim == 3) {
-      choose_ls_triplets(lss, &ls_triplets,ls_amount);
-      calculate_3x3_matrixes(ls_triplets,lss,ls_amount);
+      choose_ls_triplets(csound, lss, &ls_triplets,ls_amount);
+      calculate_3x3_matrixes(csound, ls_triplets,lss,ls_amount);
     }
     else if (dim ==2) {
-      choose_ls_tuplets(lss, &ls_triplets,ls_amount);
+      choose_ls_tuplets(csound, lss, &ls_triplets,ls_amount);
     }
 }
 
-void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
+void  calculate_3x3_matrixes(ENVIRON *csound,
+                             struct ls_triplet_chain *ls_triplets,
                          ls lss[CHANNELS], int ls_amount)
      /* Calculates the inverse matrices for 3D */
 {
@@ -610,7 +611,7 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
     int triplet_amount = 0, i,j,k;
 
     if (tr_ptr == NULL) {
-      csoundDie(&cenviron, Str("Not valid 3-D configuration"));
+      csoundDie(csound, Str("Not valid 3-D configuration"));
     }
 
     /* counting triplet amount */
@@ -620,12 +621,12 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
     }
 
     /* calculations and data storage to a global array */
-    cenviron.ls_table = (MYFLT *) malloc( (triplet_amount*12 + 3) * sizeof (MYFLT));
-    cenviron.ls_table[0] = FL(3.0); /*dimension*/
-    cenviron.ls_table[1] = (MYFLT) ls_amount;
-    cenviron.ls_table[2] = (MYFLT) triplet_amount;
+    csound->ls_table = (MYFLT *) malloc( (triplet_amount*12 + 3) * sizeof (MYFLT));
+    csound->ls_table[0] = FL(3.0); /*dimension*/
+    csound->ls_table[1] = (MYFLT) ls_amount;
+    csound->ls_table[2] = (MYFLT) triplet_amount;
     tr_ptr = ls_triplets;
-    ptr = (MYFLT *) &(cenviron.ls_table[3]);
+    ptr = (MYFLT *) &(csound->ls_table[3]);
     while(tr_ptr != NULL) {
       lp1 =  &(lss[tr_ptr->ls_nos[0]].coords);
       lp2 =  &(lss[tr_ptr->ls_nos[1]].coords);
@@ -656,17 +657,17 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
     }
 
     k=3;
-    printf(Str("\nConfigured loudspeakers\n"));
+    csound->Message(csound, Str("\nConfigured loudspeakers\n"));
     for (i=0; i < triplet_amount; i++) {
-      printf(Str("Triplet %d Loudspeakers: "), i);
+      csound->Message(csound, Str("Triplet %d Loudspeakers: "), i);
       for (j=0; j < 3; j++) {
-        printf("%d ", (int) cenviron.ls_table[k++]);
+        csound->Message(csound, "%d ", (int) csound->ls_table[k++]);
       }
-      printf("\n");
+      csound->Message(csound, "\n");
 
       /*    printf("\nMatrix ");*/
       for (j=0; j < 9; j++) {
-        /*printf("%f ", cenviron.ls_table[k]);*/
+        /*printf("%f ", csound->ls_table[k]);*/
         k++;
       }
       /*    printf("\n\n");*/
@@ -675,7 +676,8 @@ void  calculate_3x3_matrixes(struct ls_triplet_chain *ls_triplets,
 
 
 
-void choose_ls_tuplets( ls lss[CHANNELS],
+void choose_ls_tuplets( ENVIRON *csound,
+                        ls lss[CHANNELS],
                         ls_triplet_chain **ls_triplets,
                         int ls_amount)
      /* selects the loudspeaker pairs, calculates the inversion
@@ -697,7 +699,7 @@ void choose_ls_tuplets( ls lss[CHANNELS],
 
     /* adjacent loudspeakers are the loudspeaker pairs to be used.*/
     for (i=0;i<(ls_amount-1);i++) {
-      /*printf("%d %d %f %f\n",sorted_lss[i],sorted_lss[i+1],
+      /*csound->Message(csound, "%d %d %f %f\n",sorted_lss[i],sorted_lss[i+1],
         lss[sorted_lss[i]].angles.azi,
         lss[sorted_lss[i+1]].angles.azi);*/
       if ((lss[sorted_lss[i+1]].angles.azi -
@@ -728,16 +730,17 @@ void choose_ls_tuplets( ls lss[CHANNELS],
     else if ( amount*6 + 6 <= 256) ftable_size = 256;
     else if ( amount*6 + 6 <= 1024) ftable_size = 1024;
 #if 0
-    printf("Loudspeaker matrices calculated with configuration : ");
+    csound->Message(csound,
+                    "Loudspeaker matrices calculated with configuration : ");
     for (i=0; i< ls_amount; i++)
-      printf("%.1f ", lss[i].angles.azi / atorad);
-    printf("\n");
+      csound->Message(csound, "%.1f ", lss[i].angles.azi / atorad);
+    csound->Message(csound, "\n");
 #endif
-    cenviron.ls_table = (MYFLT*) malloc ((amount * 6 + 3 + 100 ) * sizeof (MYFLT));
-    cenviron.ls_table[0] = FL(2.0); /*dimension*/
-    cenviron.ls_table[1] = (MYFLT) ls_amount;
-    cenviron.ls_table[2] = (MYFLT) amount;
-    ptr = &(cenviron.ls_table[3]);
+    csound->ls_table = (MYFLT*) malloc ((amount * 6 + 3 + 100 ) * sizeof (MYFLT));
+    csound->ls_table[0] = FL(2.0); /*dimension*/
+    csound->ls_table[1] = (MYFLT) ls_amount;
+    csound->ls_table[2] = (MYFLT) amount;
+    ptr = &(csound->ls_table[3]);
     for (i=0;i<ls_amount - 1;i++) {
       if (exist[i] == 1) {
         *(ptr++) = (MYFLT)sorted_lss[i]+1;
@@ -755,20 +758,20 @@ void choose_ls_tuplets( ls lss[CHANNELS],
       }
     }
     k=3;
-    printf(Str("\nConfigured loudspeakers\n"));
+    csound->Message(csound, Str("\nConfigured loudspeakers\n"));
     for (i=0; i < amount; i++) {
-      printf(Str("Pair %d Loudspeakers: "), i);
+      csound->Message(csound, Str("Pair %d Loudspeakers: "), i);
       for (j=0; j < 2; j++) {
-        printf("%d ", (int) cenviron.ls_table[k++]);
+        csound->Message(csound, "%d ", (int) csound->ls_table[k++]);
       }
-      printf("\n");
+      csound->Message(csound, "\n");
 
-      /*    printf("\nMatrix ");*/
+      /*    csound->Message(csound, "\nMatrix ");*/
       for (j=0; j < 4; j++) {
-        /*printf("%f ", cenviron.ls_table[k]);*/
+        /*csound->Message(csound, "%f ", csound->ls_table[k]);*/
         k++;
       }
-      /*    printf("\n\n");*/
+      /*    csound->Message(csound, "\n\n");*/
     }
 }
 

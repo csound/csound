@@ -193,10 +193,10 @@ int vbap_EIGHT_init(ENVIRON *csound, VBAP_EIGHT  *p)
     int i,j;
     MYFLT *ptr;
     LS_SET *ls_set_ptr;
-    p->dim       = (int) cenviron.ls_table[0];   /*reading in loudspeaker info */
-    p->ls_am     = (int) cenviron.ls_table[1];
-    p->ls_set_am = (int) cenviron.ls_table[2];
-    ptr = &(cenviron.ls_table[3]);
+    p->dim       = (int) csound->ls_table[0];   /*reading in loudspeaker info */
+    p->ls_am     = (int) csound->ls_table[1];
+    p->ls_set_am = (int) csound->ls_table[2];
+    ptr = &(csound->ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp==NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));
@@ -469,10 +469,10 @@ int vbap_EIGHT_moving_init(ENVIRON *csound, VBAP_EIGHT_MOVING  *p)
     MYFLT *ptr;
     LS_SET *ls_set_ptr;
     /*reading in loudspeaker info */
-    p->dim = (int) cenviron.ls_table[0];
-    p->ls_am = (int) cenviron.ls_table[1];
-    p->ls_set_am = (int) cenviron.ls_table[2];
-    ptr = &(cenviron.ls_table[3]);
+    p->dim = (int) csound->ls_table[0];
+    p->ls_am = (int) csound->ls_table[1];
+    p->ls_set_am = (int) csound->ls_table[2];
+    ptr = &(csound->ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp == NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));
@@ -494,7 +494,7 @@ int vbap_EIGHT_moving_init(ENVIRON *csound, VBAP_EIGHT_MOVING  *p)
     /* other initialization */
     p->ele_vel = FL(1.0);    /* functions specific to movement */
     if (fabs(*p->field_am) < (2+ (p->dim - 2)*2)) {
-      csoundDie(&cenviron,
+      csoundDie(csound,
                 Str("Have to have at least %d directions in vbap8move"),
                 2 + (p->dim - 2) * 2);
     }
