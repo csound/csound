@@ -426,9 +426,6 @@ static  void    unquote_string(char *dst, const char *src);
 static  int     create_strconst_ndx_list(ENVIRON *csound, int **lst, int offs);
 static  void    convert_strconst_pool(ENVIRON *csound, MYFLT *dst);
 
-/* stub to be removed soon... */
-ENVIRON cenviron = { NULL };
-
 /* RWD for reentry */
 void oloadRESET(ENVIRON *csound)
 {
