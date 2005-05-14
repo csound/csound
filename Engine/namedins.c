@@ -844,7 +844,7 @@ typedef struct GlobalVariableEntry_s {
 static inline int sCmp(const char *x, const char *y)
 {
     int tmp = 0;
-    while (x[tmp] == y[tmp] && x[tmp] != (char) 0 && y[tmp] != (char) 0)
+    while (x[tmp] == y[tmp] && x[tmp] != (char) 0)
       tmp++;
     return (x[tmp] != y[tmp]);
 }

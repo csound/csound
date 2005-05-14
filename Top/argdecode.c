@@ -311,7 +311,8 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
     ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     /* Add other long options here */
-    fprintf(stderr,"decode_long %s\n", s);
+    if (O->odebug)
+      csound->Message(csound, "decode_long %s\n", s);
     if (!(strncmp(s, "omacro:", 7))) {
       NAMES *nn = (NAMES*)mmalloc(csound, sizeof(NAMES));
       nn->mac = s;
