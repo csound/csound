@@ -1168,14 +1168,14 @@ int outs12(ENVIRON *csound, OUTM *p)
     ap = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m] = sp[m+1] = ap[n];
       }
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m]   += ap[n];
         sp[m+1] += ap[n];
@@ -1192,7 +1192,7 @@ int outq1(ENVIRON *csound, OUTM *p)
     ap1 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = ap1[n];
         sp[m+1] = FL(0.0);
@@ -1202,7 +1202,7 @@ int outq1(ENVIRON *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   += ap1[n];
       }
@@ -1218,7 +1218,7 @@ int outq2(ENVIRON *csound, OUTM *p)
     ap2 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = ap2[n];
@@ -1228,7 +1228,7 @@ int outq2(ENVIRON *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=1; n<nsmps; n++, m+=4) {
         sp[m]   += ap2[n];
       }
@@ -1243,8 +1243,8 @@ int outq3(ENVIRON *csound, OUTM *p)
 
     ap3 = p->asig;
     sp = csound->spout;
-   if (!csound->spoutactive) {
-       int n,m;                    /* Amazingly this compiles better!!! */
+    if (!csound->spoutactive) {
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = FL(0.0);
@@ -1254,7 +1254,7 @@ int outq3(ENVIRON *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=2; n<nsmps; n++, m+=4) {
         sp[m]   += ap3[n];
       }
@@ -1270,7 +1270,7 @@ int outq4(ENVIRON *csound, OUTM *p)
     ap4 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-       int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = FL(0.0);
@@ -1280,7 +1280,7 @@ int outq4(ENVIRON *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=3; n<nsmps; n++, m+=4) {
         sp[m]   += ap4[n];
       }
@@ -1301,7 +1301,7 @@ int outh(ENVIRON *csound, OUTH *p)
     ap6 = p->asig6;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=6) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
@@ -1313,7 +1313,7 @@ int outh(ENVIRON *csound, OUTH *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=6) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
@@ -1341,7 +1341,7 @@ int outo(ENVIRON *csound, OUTO *p)
     ap8 = p->asig8;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=8) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
@@ -1355,7 +1355,7 @@ int outo(ENVIRON *csound, OUTO *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n,m;
       for (n=0, m=0; n<nsmps; n++, m+=8) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
@@ -1475,7 +1475,6 @@ int kinval(ENVIRON *csound, INVAL *p)
     InputValue(csound, p->channelName, p->value);  /* in csound.c */
     return OK;
 }
-
 
 int outvalset(ENVIRON *csound, OUTVAL *p)
 {
