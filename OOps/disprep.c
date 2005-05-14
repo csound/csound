@@ -103,7 +103,7 @@ int kdsplay(ENVIRON *csound, DSPLAY *p)
       *fp++ = *p->signal;
       if (fp >= p->endp) {
         fp = p->begp;
-        display(&p->dwindow);
+        display(csound, &p->dwindow);
       }
     }
     else {
@@ -117,7 +117,7 @@ int kdsplay(ENVIRON *csound, DSPLAY *p)
           fp2 = fp + p->bufpts;
         }
         p->dwindow.fdata = fp;  /* display from fp */
-        display(&p->dwindow);
+        display(csound, &p->dwindow);
       }
     }
     p->nxtp = fp;
@@ -134,7 +134,7 @@ int dsplay(ENVIRON *csound, DSPLAY *p)
         *fp++ = *sp++;
         if (fp >= endp) {
           fp = p->begp;
-          display(&p->dwindow);
+          display(csound, &p->dwindow);
         }
       } while (--nsmps);
     }
@@ -150,7 +150,7 @@ int dsplay(ENVIRON *csound, DSPLAY *p)
             fp2 = fp + p->bufpts;
           }
           p->dwindow.fdata = fp;  /* display from fp */
-          display(&p->dwindow);
+          display(csound, &p->dwindow);
         }
       } while (--nsmps);
     }
@@ -250,7 +250,7 @@ int kdspfft(ENVIRON *csound, DSPFFT *p)
         do {
           *tp *= p->overN;          /* scale 1/N */
         } while (++tp < tplim);
-        display(&p->dwindow);           /* & display */
+        display(csound, &p->dwindow);           /* & display */
         if (p->overlap > 0) {
           bufp = p->sampbuf;
           tp   = endp - p->overlap;
@@ -289,7 +289,7 @@ int dspfft(ENVIRON *csound, DSPFFT *p)
           do {
             *tp *= p->overN;                /* scale 1/N */
           } while (++tp < tplim);
-          display(&p->dwindow);               /* & display */
+          display(csound, &p->dwindow);               /* & display */
           if (p->overlap > 0) {
             bufp = p->sampbuf;
             tp   = endp - p->overlap;
@@ -553,7 +553,7 @@ int tempest(ENVIRON *csound, TEMPEST *p)
         *linp++ = *xcur++;                  /*  into linexp buf       */
       for (xcur=p->xbeg; wrap--; )
         *linp++ = *xcur++;
-      display(&p->dwindow);                 /* display double window  */
+      display(csound, &p->dwindow);         /* display double window  */
       p->dcntdown = p->dtimcnt;             /*   & reset the counter  */
     }
     *p->kout = p->tempo;                    /* put current tempo */

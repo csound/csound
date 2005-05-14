@@ -1878,7 +1878,7 @@ static void ftresdisp(ENVIRON *csound, FGDATA *ff, FUNC *ftp)
     sprintf(csound->strmsg, Str("ftable %d:"), ff->fno);
     dispset(&dwindow, ftp->ftable, (long) (ff->flen + ff->guardreq),
             csound->strmsg, 0, "ftable");
-    display(&dwindow);
+    display(csound,&dwindow);
 }
 
 static FUNC *ftalloc(ENVIRON *csound)

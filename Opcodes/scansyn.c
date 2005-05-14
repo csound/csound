@@ -394,7 +394,7 @@ int scsnu_play(ENVIRON *csound, PSCSNU *p)
         /* Reset index and display the state */
         p->idx = 0;
         if (*p->i_disp)
-          csound->display(p->win);
+          csound->display(csound, p->win);
       }
       if (p->id<0) { /* Write to ftable */
         int i;

@@ -90,7 +90,7 @@ static FILE *psFile;
 static char  ps_date[40];                /* Print time & date on every plot  */
 static int   currentPage = 0;            /* Current page number              */
 
-void PS_MakeGraph(WINDAT *wdptr, char *name)
+void PS_MakeGraph(ENVIRON *csound, WINDAT *wdptr, char *name)
 {
     char      *filenam;
     char      *pathnam_;
@@ -101,7 +101,7 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
 
     if (!winPSinitialized) {
       winPSinitialized++;
-      filenam = cenviron.oparms->outfilename;
+      filenam = csound->oparms->outfilename;
       if (filenam == NULL)
         filenam = "test"; /* O.outfilename not set yet */
 
@@ -122,14 +122,15 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
       t = strrchr(pathnam, '.');
       if (t != NULL) *t = '\0';
       strcat(pathnam, ".eps");
-      pathnam_ = csoundFindOutputFile(&cenviron, pathnam, "SFDIR");
+      pathnam_ = csoundFindOutputFile(csound, pathnam, "SFDIR");
       psFile = NULL;
       if (pathnam_ != NULL) {
         psFile = fopen(pathnam_, "w");
-        mfree(&cenviron, pathnam_);
+        mfree(csound, pathnam_);
       }
       if (psFile == NULL)
-        printf(Str("** Warning **  PostScript file %s cannot be opened \n"),
+        csound->Message(csound,
+               Str("** Warning **  PostScript file %s cannot be opened \n"),
                pathnam);
       else {
 #ifdef __MACH__
@@ -137,7 +138,9 @@ void PS_MakeGraph(WINDAT *wdptr, char *name)
         extern struct tm* localtime(const time_t*);
         extern char* asctime(const struct tm*);
 #endif
-        printf(Str("\n PostScript graphs written to file %s \n \n"), pathnam);
+        csound->Message(csound,
+                        Str("\n PostScript graphs written to file %s \n \n"),
+                        pathnam);
         psFileOk = 1;
         /*
          *  Get the current time and date
@@ -313,9 +316,8 @@ PS_drawAxes(char *cxmin, char *cxmax, char *cymin, char *cymax)
 }
 
 
-void PS_DrawGraph(WINDAT *wdptr)
+void PS_DrawGraph(ENVIRON *csound, WINDAT *wdptr)
 {
-    ENVIRON *csound = &cenviron;
     int   iskip = (wdptr->npts < MyPS_WIDTH) ? 1 :
                   (int)(wdptr->npts / MyPS_WIDTH);
     MYFLT xmin, xmax, ymin, ymax, xx, yy, dx, dy, fnts;

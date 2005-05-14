@@ -165,7 +165,7 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
       if (*p->idsines != FZERO) {      /* if reqd, dsply windowed sines now! */
         csound->dispset(&p->sinwindow, p->sinp, (long) sumk,
                         Str("spectrum windowed sines:"), 0, "spectrum");
-        csound->display(&p->sinwindow);
+        csound->display(csound, &p->sinwindow);
       }
 
       dwnp->hifrq = (MYFLT)hicps;
@@ -278,7 +278,7 @@ int spectrum(ENVIRON *csound, SPECTRUM *p)
     if (p->disprd)                         /* if displays requested,   */
       if (!(--p->dcountdown)) {            /*   on countdown           */
         linocts(downp, (MYFLT *)p->auxch2.auxp); /*   linearize the oct bufs */
-        csound->display(&p->octwindow);    /*      & display           */
+        csound->display(csound, &p->octwindow);    /*      & display           */
         p->dcountdown = p->disprd;
       }
 
@@ -430,7 +430,7 @@ int nocdfset(ENVIRON *csound, NOCTDFT *p)
         /* if reqd, display windowed sines immediately */
         csound->dispset(&p->dwindow, p->sinp, (long) sumk,
                         Str("octdft windowed sines:"), 0, "octdft");
-        csound->display(&p->dwindow);
+        csound->display(csound, &p->dwindow);
       }
       SPECset(csound,
               specp, (long)ncoefs);                /* prep the spec dspace */
@@ -546,7 +546,7 @@ int specdisp(ENVIRON *csound, SPECDISP *p)
       return csound->PerfError(csound, Str("specdisp: not initialised"));
     }
     if (!(--p->countdown)) {            /* on countdown     */
-      csound->display(&p->dwindow);     /*    display spect */
+      csound->display(csound, &p->dwindow);     /*    display spect */
       p->countdown = p->timcount;       /*    & reset count */
     }
     return OK;
