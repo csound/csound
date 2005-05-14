@@ -58,7 +58,7 @@ char *PVDataLoc(PVSTRUCT *phdr)
     return( ((char *)phdr)+phdr->headBsize );
 }
 
-int PVReadHdr(FILE *fil, PVSTRUCT *phdr)
+int PVReadHdr(ENVIRON *csound, FILE *fil, PVSTRUCT *phdr)
     /* read just the header from a candidate pvoc file */
     /* returns PVE_RDERR if read fails (or file too small)
             or PVE_NPV   if magic number doesn't fit
@@ -71,8 +71,8 @@ int PVReadHdr(FILE *fil, PVSTRUCT *phdr)
         return(PVE_RDERR);
     if ((num = fread((void *)phdr, (size_t)1, (size_t)sizeof(PVSTRUCT), fil))
                     < (size_t)sizeof(PVSTRUCT)) {
-      cenviron.Message(&cenviron, Str("PVRdH: wanted %d got %d\n"),
-                       (size_t)sizeof(PVSTRUCT), num);
+      csound->Message(csound, Str("PVRdH: wanted %d got %d\n"),
+                      (size_t)sizeof(PVSTRUCT), num);
       return(PVE_RDERR);
     }
     if (phdr->magic != PVMAGIC)
@@ -96,7 +96,7 @@ int PVWriteHdr(FILE *fil, PVSTRUCT *phdr)
 
 
 
-FILE *PVOpenAllocRdHdr(char *path, PVSTRUCT **phdr)
+FILE *PVOpenAllocRdHdr(ENVIRON *csound, char *path, PVSTRUCT **phdr)
     /* read all of candidate header - variable length header */
 {
     FILE        *pvf;
@@ -104,7 +104,7 @@ FILE *PVOpenAllocRdHdr(char *path, PVSTRUCT **phdr)
     int         err = 0;
 
     if ((pvf = fopen(path,"r"))!= NULL) {
-      if (PVReadHdr(pvf, &tmphdr) == PVE_OK ) {
+      if (PVReadHdr(csound, pvf, &tmphdr) == PVE_OK ) {
         hSize = tmphdr.headBsize;
         *phdr = (PVSTRUCT *)malloc((size_t)hSize);
         if ((*phdr)!=NULL) {
@@ -167,12 +167,13 @@ int PVWriteFile(char *filename, PVSTRUCT *phdr)
     return(err);
 }
 
-void PVCloseWrHdr(FILE *file, PVSTRUCT *phdr)
+void PVCloseWrHdr(ENVIRON *csound, FILE *file, PVSTRUCT *phdr)
 {
     long len;
 
     len = ftell(file);
-    if (PVReadHdr(file, &tmphdr) == PVE_OK ) {  /* only if we can seek back */
+    if (PVReadHdr(csound, file, &tmphdr) == PVE_OK ) {
+      /* only if we can seek back */
       len -= tmphdr.headBsize;
       if (phdr == NULL) {
         tmphdr.dataBsize = len;

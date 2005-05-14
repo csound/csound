@@ -216,7 +216,7 @@ static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
     fp = fopen(sfname,"rb");
     if (fp) {
       PVSTRUCT hdr;
-      int ok = PVReadHdr(fp, &hdr);
+      int ok = PVReadHdr(csound, fp, &hdr);
       if (ok== PVE_OK) {
         MYFLT frsiz;
         srate   = (MYFLT) hdr.samplingRate;
