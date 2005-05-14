@@ -229,6 +229,8 @@ static void longusage(void *csound)
              "--sched\t\t\tset real-time scheduling priority and lock memory\n"
              "--sched=N\t\tset priority to N and lock memory\n"
              "--opcode-lib=NAMES\tDynamic libraries to load\n"
+             "--omacro:XXX=YYY\tSet orchestra macro XXX to value YYY\n"
+             "--smacro:XXX=YYY\tSet score macro XXX to value YYY\n"
              "\n"
              "--help\t\t\tLong help\n"
              );
@@ -309,7 +311,22 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
     ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     /* Add other long options here */
-    if (!(strncmp(s, "format=", 7))) {
+    fprintf(stderr,"decode_long %s\n", s);
+    if (!(strncmp(s, "omacro:", 7))) {
+      NAMES *nn = (NAMES*)mmalloc(csound, sizeof(NAMES));
+      nn->mac = s;
+      nn->next = csound->omacros;
+      csound->omacros = nn;
+      return 1;
+    }
+    else if (!(strncmp(s, "smacro:", 7))) {
+      NAMES *nn = (NAMES*)mmalloc(csound, sizeof(NAMES));
+      nn->mac = s;
+      nn->next = csound->smacros;
+      csound->smacros = nn;
+      return 1;
+    }
+    else if (!(strncmp(s, "format=", 7))) {
       SAMPLE_FORMAT_ENTRY *sfe = sample_format_map;
       char c = '\0';
       s += 7;
