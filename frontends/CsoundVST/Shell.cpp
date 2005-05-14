@@ -75,7 +75,7 @@ namespace csound
 		time(&time_);
 		struct tm* tm_ = gmtime(&time_);
 		char buffer[0x100];
-		strftime(buffer, 0x100, "csound[%Y-%m-%d][%H.%M.%S].py", tm_);
+		strftime(buffer, 0x100, "csound.%Y-%m-%d.%H-%M-%S.py", tm_);
 		return buffer;
 	}
 
