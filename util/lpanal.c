@@ -47,8 +47,8 @@ static  double  (*a)[MAXPOLES];
 static  void    alpol(MYFLT *, double *, double *, double *, double *);
 static  void    gauss(double (*)[MAXPOLES], double*, double*);
 static  void    quit(char *), lpdieu(ENVIRON*,char *), usage(ENVIRON*);
-extern  void    ptable(MYFLT, MYFLT, MYFLT, int);
-extern  MYFLT   getpch(MYFLT*);
+extern  void    ptable(ENVIRON*, MYFLT, MYFLT, MYFLT, int);
+extern  MYFLT   getpch(ENVIRON *, MYFLT*);
 
 #ifdef mills_macintosh
 #include "MacTransport.h"
@@ -519,7 +519,7 @@ int lpanal(int argc, char **argv)
 
    /* initialize frame pitch table ? */
         if (doPitch)
-            ptable(pchlow, pchhigh, (MYFLT) p->sr, WINDIN);
+            ptable(csound, pchlow, pchhigh, (MYFLT) p->sr, WINDIN);
 
    /* Initialise for analysis */
         counter = 0;
@@ -549,7 +549,7 @@ int lpanal(int argc, char **argv)
             coef[1] = (MYFLT)rms1;
             coef[2] = (MYFLT)errn;
             if (doPitch)
-                coef[3] = getpch(sigbuf);
+                coef[3] = getpch(csound, sigbuf);
             else coef[3] = FL(0.0);
             if (debug) csound->Message(csound,"%d\t%9.4f\t%9.4f\t%9.4f\t%9.4f\n",
                                counter, coef[0], coef[1], coef[2], coef[3]);
