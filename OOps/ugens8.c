@@ -297,7 +297,7 @@ static int pvx_loadfile(ENVIRON *csound,
     float cs_ampfac;               /* needs to be overlapsamps */
     float *pFrame;
 
-    pvx_id = pvoc_openfile(fname,&pvdata,&fmt);
+    pvx_id = pvoc_openfile(csound,fname,&pvdata,&fmt);
     if (pvx_id < 0)
       return NOTOK;
 
@@ -377,7 +377,7 @@ static int pvx_loadfile(ENVIRON *csound,
     }
     else
       memblock = (float *) mfil->beginp;
-    pvoc_closefile(pvx_id);
+    pvoc_closefile(csound,pvx_id);
     if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&
         (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
       csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),

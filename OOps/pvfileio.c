@@ -128,7 +128,7 @@ typedef struct pvoc_file {
 static PVOCFILE *files[MAXFILES];
 
 static int pvoc_writeheader(int ofd);
-static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx);
+static int pvoc_readheader(ENVIRON *csound, int ifd,WAVEFORMATPVOCEX *pWfpx);
 
 
 static int write_guid(int fd,int byterev,const GUID *pGuid)
@@ -390,7 +390,7 @@ static void prepare_pvfmt(WAVEFORMATEX *pfmt,unsigned long chans,
 /* fWindow points to userdef window, or is NULL */
 /* NB currently this does not enforce a soundfile extension; */
 /* probably it should... */
-int  pvoc_createfile(const char *filename,
+int  pvoc_createfile(ENVIRON *csound, const char *filename,
                      DWORD fftlen,DWORD overlap,DWORD chans,
                      DWORD format,long srate,
                      pv_stype stype,pv_wtype wtype,
@@ -440,8 +440,8 @@ int  pvoc_createfile(const char *filename,
       pv_errstr = Str("\npvsys: too many files open");
       return -1;
     }
-    pfile = (PVOCFILE *) mmalloc(&cenviron, sizeof(PVOCFILE));
-    pname = (char *) mmalloc(&cenviron, strlen(filename)+1);
+    pfile = (PVOCFILE *) mmalloc(csound, sizeof(PVOCFILE));
+    pname = (char *) mmalloc(csound, strlen(filename)+1);
     pfile->customWindow = NULL;
     /* setup rendering inforamtion */
     prepare_pvfmt(&pfile->fmtdata,chans,srate,stype);
@@ -468,17 +468,17 @@ int  pvoc_createfile(const char *filename,
     pfile->to_delete = 0;
     pfile->readonly = 0;
     if (fWindow!= NULL) {
-      pfile->customWindow = mmalloc(&cenviron, dwWinlen * sizeof(float));
+      pfile->customWindow = mmalloc(csound, dwWinlen * sizeof(float));
       memcpy((void *)(pfile->customWindow),
              (void *)fWindow, dwWinlen * sizeof(float));
     }
 
     pfile->fd = open(filename,WR_OPTS);
     if (pfile->fd < 0) {
-      mfree(&cenviron, pname);
+      mfree(csound, pname);
       if (pfile->customWindow)
-        mfree(&cenviron, pfile->customWindow);
-      mfree(&cenviron, pfile);
+        mfree(csound, pfile->customWindow);
+      mfree(csound, pfile);
 
       pv_errstr = Str("\npvsys: unable to create file");
       return -1;
@@ -495,10 +495,10 @@ int  pvoc_createfile(const char *filename,
     if (!pvoc_writeheader(i)) {
       close(pfile->fd);
       remove(pfile->name);
-      mfree(&cenviron, pfile->name);
+      mfree(csound, pfile->name);
       if (pfile->customWindow)
-        mfree(&cenviron, pfile->customWindow);
-      mfree(&cenviron, pfile);
+        mfree(csound, pfile->customWindow);
+      mfree(csound, pfile);
       files[i] = NULL;
       return -1;
     }
@@ -506,7 +506,8 @@ int  pvoc_createfile(const char *filename,
     return i;
 }
 
-int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
+int pvoc_openfile(ENVIRON *csound,
+                  const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
 {
     int i;
     WAVEFORMATPVOCEX wfpx;
@@ -526,17 +527,17 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
       return -1;
     }
 
-    pfile = (PVOCFILE *) mcalloc(&cenviron, sizeof(PVOCFILE));
+    pfile = (PVOCFILE *) mcalloc(csound, sizeof(PVOCFILE));
     pfile->customWindow = NULL;
-    pname = csoundFindInputFile(&cenviron, filename, "SADIR");
+    pname = csoundFindInputFile(csound, filename, "SADIR");
     pfile->fd = -1;
     if (pname != NULL)
       pfile->fd = open(pname, RD_OPTS);
     if (pfile->fd < 0) {
       pv_errstr = Str("\npvsys: unable to open file");
-      mfree(&cenviron, pfile);
+      mfree(csound, pfile);
       if (pname != NULL)
-        mfree(&cenviron, pname);
+        mfree(csound, pname);
       return -1;
     }
     pfile->datachunkoffset = 0;
@@ -548,12 +549,12 @@ int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt)
     pfile->readonly = 1;
     files[i] = pfile;
 
-    if (!pvoc_readheader(i,&wfpx)) {
+    if (!pvoc_readheader(csound, i,&wfpx)) {
       close(pfile->fd);
-      mfree(&cenviron, pfile->name);
+      mfree(csound, pfile->name);
       if (pfile->customWindow)
-        mfree(&cenviron, pfile->customWindow);
-      mfree(&cenviron, pfile);
+        mfree(csound, pfile->customWindow);
+      mfree(csound, pfile);
       files[i] = NULL;
       return -1;
     }
@@ -714,7 +715,7 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
 }
 
 
-static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
+static int pvoc_readheader(ENVIRON *csound, int ifd,WAVEFORMATPVOCEX *pWfpx)
 {
     DWORD tag, size,riffsize;
     int fmtseen = 0, windowseen = 0;
@@ -802,7 +803,7 @@ static int pvoc_readheader(int ifd,WAVEFORMATPVOCEX *pWfpx)
           return 0;
         }
         files[ifd]->customWindow =
-          mmalloc(&cenviron, files[ifd]->pvdata.dwWinlen*sizeof(float));
+          mmalloc(csound, files[ifd]->pvdata.dwWinlen*sizeof(float));
         if (pvoc_readWindow(files[ifd]->fd,files[ifd]->do_byte_reverse,
                             files[ifd]->customWindow,files[ifd]->pvdata.dwWinlen)
             != (int)(files[ifd]->pvdata.dwWinlen * sizeof(float))) {
@@ -1046,7 +1047,7 @@ static int pvoc_updateheader(int ofd)
     return 1;
 }
 
-int pvoc_closefile(int ofd)
+int pvoc_closefile(ENVIRON *csound, int ofd)
 {
     if (files[ofd]==NULL) {
       pv_errstr = Str("\npvsys: file does not exist");
@@ -1065,8 +1066,8 @@ int pvoc_closefile(int ofd)
     if (files[ofd]->to_delete && !(files[ofd]->readonly))
       remove(files[ofd]->name);
 
-    mfree(&cenviron, files[ofd]->name);
-    mfree(&cenviron, files[ofd]);
+    mfree(csound, files[ofd]->name);
+    mfree(csound, files[ofd]);
     files[ofd] = NULL;
 
     return 1;
@@ -1232,7 +1233,7 @@ int pvoc_rewind(int ifd,int skip_first_frame)
 }
 
 /* may be more to do in here later on */
-int pvsys_release(void)
+int pvsys_release(ENVIRON *csound)
 {
     int i;
 
@@ -1241,7 +1242,7 @@ int pvsys_release(void)
 #ifdef _DEBUG
         fprintf(stderr,"\nDEBUG WARNING: files still open!\n");
 #endif
-        if (!pvoc_closefile(i)) {
+        if (!pvoc_closefile(csound, i)) {
           pv_errstr = Str("\npvsys: unable to close file on termination");
           return 0;
         }

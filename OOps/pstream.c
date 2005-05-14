@@ -771,7 +771,7 @@ static int pvx_loadfile(ENVIRON *csound,
     float *memblock = NULL;
     pv_wtype wtype;
 
-    pvx_id = pvoc_openfile(fname,&pvdata,&fmt);
+    pvx_id = pvoc_openfile(csound,fname,&pvdata,&fmt);
     if (pvx_id < 0) {
       sprintf(csound->errmsg, Str("unable to open pvocex file %s.\n"), fname);
       return 0;
@@ -848,7 +848,7 @@ static int pvx_loadfile(ENVIRON *csound,
     else
       memblock = (float *) mfil->beginp;
 
-    pvoc_closefile(pvx_id);
+    pvoc_closefile(csound, pvx_id);
 
 
     if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&

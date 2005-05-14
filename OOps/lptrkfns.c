@@ -44,27 +44,27 @@ static  void   trigpo(MYFLT, phi_typ, psi_typ, MYFLT *, MYFLT *, int);
 static  MYFLT  lowpass(MYFLT);
 static  MYFLT  search(MYFLT *fm, MYFLT qsum, MYFLT g[], MYFLT h[]);
 
-void ptable(MYFLT fmin, MYFLT fmax, MYFLT sr, int windsiz)
+void ptable(ENVIRON *csound, MYFLT fmin, MYFLT fmax, MYFLT sr, int windsiz)
 {
     int   i, n;
     MYFLT omega, fstep, tpidsrd10;
 
     if ((n = HWIN * 20) != MAXWINDIN)
-      csoundDie(&cenviron, Str("LPTRKFNS: inconsistent MAXWindow defines"));
+      csoundDie(csound, Str("LPTRKFNS: inconsistent MAXWindow defines"));
     NYQ10   = sr/FL(20.0);
     Windsiz = windsiz;              /* current windin size */
     Windsiz2 = windsiz/2;           /* half of that        */
     Dwind   = windsiz/10;           /* downsampled windsiz */
     Hwind   = (Dwind+1)/2;          /* half of that        */
     if (Hwind > HWIN)
-      csoundDie(&cenviron, Str("LPTRKFNS: called with excessive Windsiz"));
+      csoundDie(csound, Str("LPTRKFNS: called with excessive Windsiz"));
     tpidsrd10 = TWOPI_F / (sr/FL(10.0));
     fstep = (fmax - fmin) / FREQS;    /* alloc & init each MYFLT array  */
     for (i=0;  i<FREQS; ++i) {        /*   as if MAX dimension of Hwind */
-      tphi[i] = (MYFLT *) mcalloc(&cenviron, (long)NN * HWIN * sizeof(MYFLT));
-      tpsi[i] = (MYFLT *) mcalloc(&cenviron, (long)NP * HWIN * sizeof(MYFLT));
-      tgamph[i] = (MYFLT *) mcalloc(&cenviron, (long)NN * sizeof(MYFLT));
-      tgamps[i] = (MYFLT *) mcalloc(&cenviron, (long)NP * sizeof(MYFLT));
+      tphi[i] = (MYFLT *) mcalloc(csound, (long)NN * HWIN * sizeof(MYFLT));
+      tpsi[i] = (MYFLT *) mcalloc(csound, (long)NP * HWIN * sizeof(MYFLT));
+      tgamph[i] = (MYFLT *) mcalloc(csound, (long)NN * sizeof(MYFLT));
+      tgamps[i] = (MYFLT *) mcalloc(csound, (long)NP * sizeof(MYFLT));
       freq[i] = fmin + (MYFLT)i * fstep;
       n = (int)(NYQ10 / freq[i]);
       if (n > NN)  n = NN;
@@ -155,7 +155,7 @@ static void trigpo(MYFLT omega,
     }
 }
 
-MYFLT getpch(MYFLT *sigbuf)
+MYFLT getpch(ENVIRON *csound, MYFLT *sigbuf)
 {
 static  int   firstcall = 1, tencount = 0;
 static  MYFLT *Dwind_dbuf, *Dwind_end1;    /* double buffer for downsamps   */
@@ -164,7 +164,7 @@ static  MYFLT *dbp1, *dbp2;
         int   n;
 
         if (firstcall) {                   /* on first call, alloc dbl dbuf  */
-          Dwind_dbuf = (MYFLT *) mcalloc(&cenviron, (long)Dwind * 2 * sizeof(MYFLT));
+          Dwind_dbuf = (MYFLT *) mcalloc(csound, (long)Dwind * 2 * sizeof(MYFLT));
           Dwind_end1 = Dwind_dbuf + Dwind;
           dbp1 = Dwind_dbuf;             /*   init the local Dsamp pntrs */
           dbp2 = Dwind_end1;             /*   & process the whole inbuf  */

@@ -148,17 +148,18 @@ extern  const GUID KSDATAFORMAT_SUBTYPE_PVOC;
 
 const char *pvoc_errorstr(void);
 int init_pvsys(void);
-int pvoc_createfile(const char *,
+int pvoc_createfile(ENVIRON *, const char *,
                     unsigned long,unsigned long, unsigned long,
                     unsigned long,long, pv_stype, pv_wtype,
                     float,float *, DWORD);
-int pvoc_openfile(const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt);
-int pvoc_closefile(int ofd);
+int pvoc_openfile(ENVIRON *,
+                  const char *filename,PVOCDATA *data,WAVEFORMATEX *fmt);
+int pvoc_closefile(ENVIRON *, int);
 int pvoc_putframes(int ofd,const float *frame,long numframes);
 int pvoc_getframes(int ifd,float *frames,unsigned long nframes);
 int pvoc_framecount(int ifd);
 int pvoc_rewind(int ifd,int skip_first_frame);          /* RWD 14:4:2001 */
-int pvsys_release(void);
+int pvsys_release(ENVIRON *);
 
 
 #endif
