@@ -53,14 +53,20 @@ typedef struct {
         EVENT *e[1];
 } EVLIST;
 
-EVENT  *createv(int), *defev(char*), *getev(void), *copyev(EVENT*);
-EVLIST *lcreat(int), *lappev(EVLIST*,EVENT*), *lappstrev(EVLIST*,char*);
-EVLIST *lget(void), *lgetnext(MYFLT), *lgetuntil(MYFLT), *lcopy(EVLIST*);
-EVLIST *lcopyev(EVLIST*), *lxins(EVLIST*,char*), *lxtimev(EVLIST*,MYFLT,MYFLT);
-EVLIST *lsepf(EVLIST*), *lseptwf(EVLIST*), *lcat(EVLIST*,EVLIST*);
-void putstr(char*), putev(EVENT*), relev(EVENT*), lput(EVLIST*);
+EVENT  *createv(ENVIRON *, int), *defev(ENVIRON *, char*), *getev(ENVIRON *);
+EVENT  *copyev(ENVIRON *, EVENT*);
+EVLIST *lcreat(ENVIRON *, int), *lappev(ENVIRON *, EVLIST*,EVENT*);
+EVLIST *lappstrev(ENVIRON *,EVLIST*,char*);
+EVLIST *lget(ENVIRON *), *lgetnext(ENVIRON *,MYFLT), *lgetuntil(ENVIRON*,MYFLT),
+       *lcopy(ENVIRON *, EVLIST*);
+EVLIST *lcopyev(ENVIRON *, EVLIST*), *lxins(ENVIRON *,EVLIST*,char*), 
+       *lxtimev(ENVIRON *,EVLIST*,MYFLT,MYFLT);
+EVLIST *lsepf(ENVIRON *, EVLIST*), *lseptwf(ENVIRON *, EVLIST*),
+       *lcat(ENVIRON *,EVLIST*,EVLIST*);
+void    putstr(ENVIRON *, char*), putev(ENVIRON *, EVENT*), relev(EVENT*),
+        lput(ENVIRON *, EVLIST*);
 void lsort(EVLIST*), lrel(EVLIST*), lrelev(EVLIST*);
 int lplay(ENVIRON *,EVLIST*);
 int lcount(EVLIST *);
-FILE *filopen(char*), *getcurfp(void);
-void filclose(FILE*), setcurfp(FILE*);
+FILE *filopen(ENVIRON *, char*), *getcurfp(ENVIRON *);
+void filclose(ENVIRON *, FILE*), setcurfp(ENVIRON *, FILE*);

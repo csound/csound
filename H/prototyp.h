@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-void    cscorinit(void), cscore(ENVIRON*);
+void    cscorinit(ENVIRON*), cscore(ENVIRON*);
 void    *mmalloc(void*, size_t), *mcalloc(void*, size_t);
 void    *mrealloc(void*, void*, size_t), mfree(void*, void*);
 void    csoundAuxAlloc(void*, long, AUXCH *), auxchfree(void*, INSDS *);
