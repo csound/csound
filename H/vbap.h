@@ -280,10 +280,10 @@ typedef struct ls_triplet_chain {
 
 void initialize( ls lss[CHANNELS]);
 void angle_to_cart_II( ANG_VEC *from,  CART_VEC *to);
-extern void choose_ls_triplets( ls lss[CHANNELS],
+extern void choose_ls_triplets( ENVIRON *csound, ls lss[CHANNELS],
                                 ls_triplet_chain **ls_triplets,
                                 int ls_amount);
-extern void choose_ls_tuplets( ls lss[CHANNELS],
+extern void choose_ls_tuplets( ENVIRON *csound, ls lss[CHANNELS],
                                 ls_triplet_chain **ls_triplets,
                                int ls_amount);
 int lines_intersect(int i,int j,int k,int l, ls lss[CHANNELS]);
@@ -303,7 +303,7 @@ extern void add_ldsp_triplet(int i, int j, int k,
 void remove_connections_in_plane(int i,int j,int k,int l,
                                    ls  lss[CHANNELS],
                                     int connections[CHANNELS][CHANNELS]);
-extern void  calculate_3x3_matrixes(ls_triplet_chain *ls_triplets,
+extern void  calculate_3x3_matrixes(ENVIRON *csound, ls_triplet_chain *ls_triplets,
                                  ls lss[CHANNELS], int ls_amount);
 int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4]);
 extern void sort_2D_lss(ls lss[CHANNELS], int sorted_lss[CHANNELS],
