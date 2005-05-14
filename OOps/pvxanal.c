@@ -46,7 +46,8 @@ void reals_(ENVIRON*,MYFLT *,MYFLT *,int,int);
 void pvx_release(PVX **ppvx,long chans);
 static long generate_frame(ENVIRON*,PVX *pvx,MYFLT *fbuf,float *outanal,
                            long samps,int frametype);
-static void chan_split(const MYFLT *inbuf,MYFLT **chbuf,long insize,long chans);
+static void chan_split(ENVIRON*,
+                       const MYFLT *inbuf,MYFLT **chbuf,long insize,long chans);
 static int init(PVX **pvx,long srate,long fftsize,long winsize,
                 long overlap,pv_wtype wintype);
 /* from elsewhere in Csound! But special form for CARL code*/
@@ -146,7 +147,7 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       goto error;
     }
 
-    while ((sampsread = getsndin(&cenviron, fd, inbuf, buflen_samps, p)) > 0) {
+    while ((sampsread = getsndin(csound, fd, inbuf, buflen_samps, p)) > 0) {
       total_sampsread += sampsread;
       /* zeropad to full buflen */
       if (sampsread < buflen_samps) {
@@ -154,7 +155,7 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
           inbuf[i] = FL(0.0);
         sampsread = buflen_samps;
       }
-      chan_split(inbuf,inbuf_c,sampsread,chans);
+      chan_split(csound,inbuf,inbuf_c,sampsread,chans);
 
       for (i=0;i < sampsread/chans; i+= overlap) {
         for (k=0;k < chans;k++) {
@@ -182,7 +183,7 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
     sampsread = fftsize * chans;
     for (i = 0;i< sampsread;i++)
       inbuf[i] = FL(0.0);
-    chan_split(inbuf,inbuf_c,sampsread,chans);
+    chan_split(csound,inbuf,inbuf_c,sampsread,chans);
     for (i=0;i < sampsread/chans; i+= overlap) {
       for (k=0;k < chans;k++) {
         frame = frame_c[k];
@@ -587,7 +588,8 @@ long generate_frame(ENVIRON *csound,
     return pvx->D;
 }
 
-void chan_split(const MYFLT *inbuf,MYFLT **chbuf,long insize,long chans)
+void chan_split(ENVIRON *csound,
+                const MYFLT *inbuf,MYFLT **chbuf,long insize,long chans)
 {
     long i,j,len;
     MYFLT ampfac;
@@ -597,7 +599,7 @@ void chan_split(const MYFLT *inbuf,MYFLT **chbuf,long insize,long chans)
 
     len = insize/chans;
 
-    ampfac = FL(1.0) / cenviron.e0dbfs;
+    ampfac = FL(1.0) / csound->e0dbfs;
 
     for (i=0;i < chans;i++)
       buf_c[i] = chbuf[i];

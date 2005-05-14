@@ -57,10 +57,10 @@ typedef struct {
 #define ST(x)   (((ONE_FILE_GLOBALS*) ((ENVIRON*) csound)->oneFileGlobals)->x)
 
 #ifdef WIN32
-char *mytmpnam(char *a)
+char *mytmpnam(ENVIRON *csound, char *a)
 {
-    char *dir = csoundGetEnv(&cenviron, "SFDIR");
-    if (dir==NULL) dir = csoundGetEnv(&cenviron, "HOME");
+    char *dir = csoundGetEnv(csound, "SFDIR");
+    if (dir==NULL) dir = csoundGetEnv(csound, "HOME");
     dir = _tempnam(dir, "cs");
     strcpy(a, dir);
     free(dir);
