@@ -636,6 +636,28 @@ static int do_repeat(ENVIRON *csound)
     return 0;
 }
 
+static void init_smacros(ENVIRON *csound, NAMES *nn)
+{
+    while (nn) {
+      char *s = nn->mac;
+      char *p = strchr(s,'=');
+      MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
+      mm->margs = MARGS;  /* Initial size */
+      if (p==NULL) p = s+strlen(s);
+      if (csound->oparms->msglevel)
+        csound->Message(csound,Str("Macro definition for %s\n"), s);
+      s = strchr(s,':')+1;                     /* skip arg bit */
+      mm->name = mmalloc(csound, p-s+1);
+      strncpy(mm->name, s, p-s); mm->name[p-s] = '\0';
+      mm->acnt = 0;
+      mm->body = (char*)mmalloc(csound, strlen(p+1)+1);
+      strcpy(mm->body, p+1);
+      mm->next = ST(macros);
+      ST(macros) = mm;
+      nn = nn->next;
+    }
+}
+
 void sread_init(ENVIRON *csound)
 {
     sread_alloc_globals(csound);
@@ -646,6 +668,7 @@ void sread_init(ENVIRON *csound)
     ST(str)->file = csound->scorein;
     ST(str)->string = 0; ST(str)->body = csound->scorename;
     ST(str)->line = 1; ST(str)->mac = NULL;
+    init_smacros(csound, csound->smacros);
 }
 
 int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */

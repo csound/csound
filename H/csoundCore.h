@@ -546,6 +546,10 @@ extern "C" {
         short   prec;
   } TOKEN;
 
+  typedef struct names {
+        char *mac;
+        struct names *next;
+  } NAMES;
 
   typedef struct ENVIRON_
   {
@@ -973,6 +977,7 @@ extern "C" {
     long          revlpsum;
     double        rndfrac;              /* aops.c */
     MYFLT         *logbase2;
+    NAMES         *omacros, *smacros;
   } ENVIRON;
 
 #include "text.h"
