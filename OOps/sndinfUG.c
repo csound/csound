@@ -200,7 +200,7 @@ static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
                                 p->XSTRCODE);
     sfname = soundiname;
     /* my prerogative: try pvocex file first! */
-    fd = pvoc_openfile(sfname,&pvdata,&fmt);
+    fd = pvoc_openfile(csound,sfname,&pvdata,&fmt);
     if (fd >= 0) {
       nframes   = (MYFLT) pvoc_framecount(fd);
       nchans    = (MYFLT) fmt.nChannels;
@@ -209,7 +209,7 @@ static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
       arate     = srate /  overlap;
       dur       = (nframes / nchans) / arate;
       *p_dur    = dur;
-      pvoc_closefile(fd);
+      pvoc_closefile(csound, fd);
       return 1;
     }
     /* then try old soon-to-die pvoc format */

@@ -202,7 +202,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
     float cs_ampfac;               /* needs to be overlapsamps */
     float *pFrame;
 
-    pvx_id = pvoc_openfile(fname,&pvdata,&fmt);
+    pvx_id = pvoc_openfile(csound,fname,&pvdata,&fmt);
     if (pvx_id < 0)
       return 0;
 
@@ -264,7 +264,7 @@ int pvocex_loadfile(const char *fname,PVREAD *p,MEMFIL **mfp)
           pFrame[j] *= cs_ampfac;
         pFrame += framelen;
       }
-      pvoc_closefile(pvx_id);
+      pvoc_closefile(csound,pvx_id);
       if (rc <0) {
         sprintf(csound->errmsg, "error reading pvoc-ex file %s\n", fname);
         mfree(csound, memblock);

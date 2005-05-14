@@ -135,7 +135,7 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       }
     }
 
-    pvfile  = pvoc_createfile(fname,fftsize,overlap,chans,
+    pvfile  = pvoc_createfile(csound, fname,fftsize,overlap,chans,
                               PVOC_AMP_FREQ,srate,stype,
                               wintype,0.0f,NULL,winsize);
     if (pvfile < 0) {
@@ -215,7 +215,7 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
     }
 
     if (pvfile >=0)
-      pvoc_closefile(pvfile);
+      pvoc_closefile(csound,pvfile);
     return rc;
 }
 

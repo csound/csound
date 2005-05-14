@@ -213,6 +213,7 @@ int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
 }
 
 static void d_fft(      /* perform an FFT as reqd below */
+  ENVIRON *csound,
   MYFLT *sce,   /* input array - pure packed real */
   MYFLT *dst,   /* output array - packed magnitude, only half-length */
   long  size,   /* number of points in input */
@@ -221,7 +222,7 @@ static void d_fft(      /* perform an FFT as reqd below */
 {
     CopySamps(sce,dst,size);                    /* copy into scratch buffer */
     ApplyHalfWin(dst,hWin,size);
-    csoundRealFFT(&cenviron, dst, (int) size);  /* perform the FFT */
+    csoundRealFFT(csound, dst, (int) size);  /* perform the FFT */
     dst[size] = dst[1];
     dst[1] = dst[size + 1L] = FL(0.0);
     Rect2Polar(dst, (size >> 1) + 1);
@@ -244,7 +245,7 @@ int kdspfft(ENVIRON *csound, DSPFFT *p)
       if (bufp >= endp) {           /* when full, do fft:     */
         MYFLT *tp, *tplim;
         MYFLT *hWin = (MYFLT *) p->auxch.auxp;
-        d_fft(p->sampbuf,fftcoefs,p->windsize,hWin,p->dbout);
+        d_fft(csound, p->sampbuf,fftcoefs,p->windsize,hWin,p->dbout);
         tp = fftcoefs;
         tplim = tp + p->ncoefs;
         do {
@@ -283,7 +284,7 @@ int dspfft(ENVIRON *csound, DSPFFT *p)
         if (bufp >= endp) {               /* when full, do fft:     */
           MYFLT *tp, *tplim;
           MYFLT *hWin = (MYFLT *) p->auxch.auxp;
-          d_fft(p->sampbuf,fftcoefs,p->windsize,hWin,p->dbout);
+          d_fft(csound, p->sampbuf,fftcoefs,p->windsize,hWin,p->dbout);
           tp = fftcoefs;
           tplim = tp + p->ncoefs;
           do {

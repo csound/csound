@@ -196,6 +196,6 @@ void memRESET(ENVIRON *csound)
 {
     all_free(csound);
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
-    pvsys_release();
+    pvsys_release(csound);
 }
 
