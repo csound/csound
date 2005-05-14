@@ -290,7 +290,7 @@ int musmon(ENVIRON *csound)
       if (!(csound->oscfp = fopen("cscore.out", "w")))
         csoundDie(csound, Str("cannot create cscore.out"));
       /* rdscor for cscorefns */
-      cscorinit();
+      cscorinit(csound);
       cscore(csound);      /* call cscore, optionally re-enter via lplay() */
       fclose(csound->oscfp); csound->oscfp = NULL;
       fclose(csound->scfp); csound->scfp = NULL;

@@ -28,14 +28,14 @@ void cscore(ENVIRON *cs) /* callable from Csound or standalone cscore  */
 {
     EVLIST *a;
 
-    while ((a = lget()) != NULL
+    while ((a = lget(cs)) != NULL
            && a->nevents > 0) { /* read each sect from score */
-      lappstrev(a,"s");         /* re-append the s statement */
+      lappstrev(cs, a,"s");     /* re-append the s statement */
       lplay(cs,a);              /* play this section         */
       lrelev(a);                /* reclaim the space         */
     }
-    a = lcreat(0);
-    lappstrev(a,"e");
+    a = lcreat(cs, 0);
+    lappstrev(cs, a,"e");
     lplay(cs, a);               /* end-of-score for summaries */
     lrelev(a);
 }
