@@ -313,9 +313,8 @@ void DumpPoles(int poleCount, double *part1, double *part2, int isMagn, char *wh
  *
  */
 
-int lpanal(int argc, char **argv)
+int lpanal(ENVIRON *csound, int argc, char **argv)
 {
-        ENVIRON *csound = &cenviron;
         SNDFILE *infd;
         int     slice, analframes, counter, channel;
         MYFLT   *coef, beg_time, input_dur, sr = FL(0.0);
@@ -442,7 +441,7 @@ int lpanal(int argc, char **argv)
         if (poleCount > MAXPOLES)
             quit(Str("poles exceeds maximum allowed"));
                                 /* Allocate space now */
-        coef = (MYFLT*) mmalloc(&cenviron, (NDATA+poleCount*2)*sizeof(MYFLT));
+        coef = (MYFLT*) mmalloc(csound, (NDATA+poleCount*2)*sizeof(MYFLT));
                                 /* Space allocated */
         if (slice < poleCount * 5)
           if (O.msglevel & WARNMSG)
@@ -510,7 +509,7 @@ int lpanal(int argc, char **argv)
         osiz = (poleCount*(storePoles?2:1) + NDATA) * sizeof(MYFLT);
 
    /* Allocate signal buffer for sound frame */
-        sigbuf = (MYFLT *) mmalloc(&cenviron, (long)WINDIN * sizeof(MYFLT));
+        sigbuf = (MYFLT *) mmalloc(csound, (long)WINDIN * sizeof(MYFLT));
         sigbuf2 = sigbuf + slice;
 
    /* Try to read first frame in buffer */
@@ -657,7 +656,7 @@ int lpanal(int argc, char **argv)
         /* Get next sound frame */
             if ((n = csound->getsndin(csound, infd, sigbuf2, slice, p)) == 0)
                 break;          /* refill til EOF */
-            if (!csoundYield(&cenviron)) break;
+            if (!csoundYield(csound)) break;
         } while (counter < analframes); /* or nsmps done */
 
    /* clean up stuff */
@@ -666,7 +665,7 @@ int lpanal(int argc, char **argv)
         sf_close(infd);
         close(ofd);
         free(a); free(x);
-        mfree(&cenviron, coef);
+        mfree(csound, coef);
 #if !defined(mills_macintosh)
         exit(0);
 #endif
@@ -676,7 +675,7 @@ int lpanal(int argc, char **argv)
 static void quit(char *msg)
 {
         printf("lpanal: %s\n", msg);
-        csoundDie(&cenviron, Str("analysis aborted"));
+        csoundDie(csound, Str("analysis aborted"));
 }
 
 static void lpdieu(ENVIRON* csound,char *msg)
@@ -780,7 +779,7 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
       }
       if (amax < 1e-20) {
         printf("Row %d or %d have maximum of %g\n", i, poleCount, amax);
-        csoundDie(&cenviron, Str("gauss: ill-conditioned"));
+        csoundDie(csound, Str("gauss: ill-conditioned"));
       }
       if (i != istar) {
         for (j=0; j < poleCount;++j)  {    /* switch rows */
@@ -812,7 +811,7 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
     if (fabs(a[poleCount-1][poleCount-1]) < 1e-20) {
       printf("Row %d or %d have maximum of %g\n",
              poleCount-1, poleCount, fabs(a[poleCount-1][poleCount-1]));
-      csoundDie(&cenviron, Str("gauss: ill-conditioned"));
+      csoundDie(csound, Str("gauss: ill-conditioned"));
     }
 
     b[poleCount-1] = c[poleCount-1] / a[poleCount-1][poleCount-1];
