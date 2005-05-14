@@ -101,12 +101,12 @@ typedef struct {
 /********************************/
 
 char *PVDataLoc(PVSTRUCT *phdr);        /* return ptr to data block */
-int   PVReadHdr(FILE *fil, PVSTRUCT *phdr);       /* pass in PVH */
-FILE *PVOpenAllocRdHdr(char *path, PVSTRUCT **phdr); /* allocs PVH */
+int   PVReadHdr(ENVIRON *csound, FILE *fil, PVSTRUCT *phdr);  /* pass in PVH */
+FILE *PVOpenAllocRdHdr(ENVIRON *csound, char *path, PVSTRUCT **phdr); /* allocs PVH */
 int   PVWriteHdr(FILE *fil, PVSTRUCT *phdr);
 FILE *PVOpenWrHdr(char *filename, PVSTRUCT *phdr);
 int   PVWriteFile(char *filename, PVSTRUCT *phdr);   /* write out PVH+  */
-void  PVCloseWrHdr(FILE *file, PVSTRUCT *phdr);
+void  PVCloseWrHdr(ENVIRON *csound, FILE *file, PVSTRUCT *phdr);
 
 #endif /* !_PVOC_H_ */
 
