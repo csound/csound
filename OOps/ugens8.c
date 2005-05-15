@@ -442,7 +442,7 @@ static int byterev_pvoc(MEMFIL *mfil)
     extra = sizeof(PVSTRUCT) - pvh->headBsize;
     if (extra > 0) {
       if (extra%sizeof(long) != 0) {
-        printf(Str("pvoc file has bad data alignment\n"));
+/*      printf(Str("pvoc file has bad data alignment\n"));  */
         return NOTOK;
       }
       lptr += (extra / sizeof(long));
