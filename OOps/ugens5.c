@@ -544,7 +544,7 @@ static int DoPoleInterpolation(int poleCount,
     int i;
 
     if (poleCount%2!=0) {
-      printf (Str("Cannot handle uneven pole count yet \n"));
+/*    printf (Str("Cannot handle uneven pole count yet \n")); */
       return (0);
     }
 
@@ -794,7 +794,7 @@ int lpreson(ENVIRON *csound, LPRESON *p)
       /* Compute Xn = Yn + CkXn-k */
 
 #ifdef TRACE_FILTER
-      printf ("Asig=%f\n",*asig);
+      csound->Message(csound, "Asig=%f\n", *asig);
 #endif
       x = *asig++;
       coefp = q->kcoefs;              /* using lpread interp coefs */
@@ -802,12 +802,12 @@ int lpreson(ENVIRON *csound, LPRESON *p)
       nn = q->npoles;
       do {
 #ifdef TRACE_FILTER
-        printf ("\t%f,%f\n",*coefp,*pastp);
+        csound->Message(csound, "\t%f,%f\n", *coefp, *pastp);
 #endif
         x += *coefp++ * *pastp++;
       } while (--nn);
 #ifdef TRACE_FILTER
-      printf ("result=%f\n",x);
+      csound->Message(csound, "result=%f\n", x);
 #endif
       /* Store result signal in circular and output buffers */
 
