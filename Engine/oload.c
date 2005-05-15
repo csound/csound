@@ -32,8 +32,6 @@
 #include "namedins.h"
 
 int     csoundGetAPIVersion(void);
-void    dispset(WINDAT *, MYFLT *, long, char *, int, char *);
-void    display(void *csound, WINDAT *);
 void    writeheader(ENVIRON *csound, int ofd, char *ofname);
 int     playopen_dummy(void *csound, csRtAudioParams *parm);
 void    rtplay_dummy(void *csound, void *outBuf, int nbytes);
@@ -156,6 +154,7 @@ const ENVIRON cenviron_ = {
         csoundDebugMsg,
         dispset,
         display,
+        dispexit,
         intpow,
         ldmemfile,
         hfgens,
@@ -163,6 +162,7 @@ const ENVIRON cenviron_ = {
         strarg2insno,
         strarg2opcno,
         strarg2name,
+        insert_score_event,
         rewriteheader,
         writeheader,
         SAsndgetset,

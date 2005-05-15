@@ -87,8 +87,8 @@ int dspset(ENVIRON *csound, DSPLAY *p)
     sprintf(csound->strmsg, Str("instr %d, signal %s:"),
                             p->h.insdshead->insno,
                             p->h.optext->t.inlist->arg[0]);
-    dispset(&p->dwindow, (MYFLT *)auxp, bufpts, csound->strmsg,
-            (int)*p->iwtflg,Str("display"));
+    dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, csound->strmsg,
+                    (int) *p->iwtflg, Str("display"));
     return OK;
 }
 
@@ -206,8 +206,8 @@ int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
       sprintf(csound->strmsg, Str("instr %d, signal %s, fft (%s):"),
               p->h.insdshead->insno, p->h.optext->t.inlist->arg[0],
               p->dbout ? Str("db") : Str("mag"));
-      dispset(&p->dwindow, fftcoefs, p->ncoefs, csound->strmsg,
-              (int)*p->iwtflg,Str("fft"));
+      dispset(csound, &p->dwindow, fftcoefs, p->ncoefs, csound->strmsg,
+                      (int) *p->iwtflg, Str("fft"));
     }
     return OK;
 }
@@ -361,8 +361,8 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
     }
     if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to display stmem & exp */
       sprintf(csound->strmsg, "instr %d tempest:", p->h.insdshead->insno);
-      dispset(&p->dwindow, p->stmemp, (long) npts * 2, csound->strmsg, 0,
-              Str("tempest"));
+      dispset(csound, &p->dwindow, p->stmemp, (long)npts * 2, csound->strmsg, 0,
+                      Str("tempest"));
       p->dwindow.danflag = 1;                    /* for mid-scale axis */
     }
     {

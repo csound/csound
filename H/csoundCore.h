@@ -710,8 +710,9 @@ extern "C" {
     void (*DebugMsg)(void *csound, const char *msg, ...);
 #endif
     /* Internal functions that are needed */
-    void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
+    void (*dispset)(void *, WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(void *, WINDAT *);
+    int (*dispexit)(void *);
     MYFLT (*intpow)(MYFLT, long);
     MEMFIL *(*ldmemfile)(void*, const char*);
     FUNC *(*hfgens)(struct ENVIRON_*, EVTBLK *);
@@ -720,6 +721,7 @@ extern "C" {
     long (*strarg2opcno)(struct ENVIRON_ *csound, void *p, int is_string,
                                                   int force_opcode);
     char *(*strarg2name)(struct ENVIRON_*, char*, void*, const char*, int);
+    int (*insert_score_event)(struct ENVIRON_*, EVTBLK*, double, int);
     void (*rewriteheader)(SNDFILE *ofd, int verbose);
     void (*writeheader)(struct ENVIRON_ *csound, int ofd, char *ofname);
     void *(*SAsndgetset)(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);

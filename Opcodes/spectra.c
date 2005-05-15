@@ -163,8 +163,8 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
         curfrq *= frqmlt;                        /*   step by log freq  */
       }
       if (*p->idsines != FZERO) {      /* if reqd, dsply windowed sines now! */
-        csound->dispset(&p->sinwindow, p->sinp, (long) sumk,
-                        Str("spectrum windowed sines:"), 0, "spectrum");
+        csound->dispset(csound, &p->sinwindow, p->sinp, (long) sumk,
+                                Str("spectrum windowed sines:"), 0, "spectrum");
         csound->display(csound, &p->sinwindow);
       }
 
@@ -189,8 +189,8 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
       if (p->disprd) {                      /* if display requested, */
         totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
         csound->AuxAlloc(csound, (long)totsize, &p->auxch2);/*  linear output window */
-        csound->dispset(&p->octwindow, (MYFLT *)p->auxch2.auxp, (long) totsamps,
-                        Str("octdown buffers:"), 0, "spectrum");
+        csound->dispset(csound, &p->octwindow, (MYFLT *)p->auxch2.auxp,
+                        (long)totsamps, Str("octdown buffers:"), 0, "spectrum");
       }
       SPECset(csound,
               specp, (long)ncoefs);          /* prep the spec dspace */
@@ -428,8 +428,8 @@ int nocdfset(ENVIRON *csound, NOCTDFT *p)
       }
       if (*p->idsines != FL(0.0)) {
         /* if reqd, display windowed sines immediately */
-        csound->dispset(&p->dwindow, p->sinp, (long) sumk,
-                        Str("octdft windowed sines:"), 0, "octdft");
+        csound->dispset(csound, &p->dwindow, p->sinp, (long) sumk,
+                                Str("octdft windowed sines:"), 0, "octdft");
         csound->display(csound, &p->dwindow);
       }
       SPECset(csound,
@@ -531,7 +531,7 @@ int spdspset(ENVIRON *csound, SPECDISP *p)
                 outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
       }
-      csound->dispset(&p->dwindow, (MYFLT*) specp->auxch.auxp,
+      csound->dispset(csound, &p->dwindow, (MYFLT*) specp->auxch.auxp,
                       (long)specp->npts, csound->strmsg, (int)*p->iwtflg,
                       "specdisp");
     }
