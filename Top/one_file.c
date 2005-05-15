@@ -69,9 +69,7 @@ char *mytmpnam(ENVIRON *csound, char *a)
 #else
 char *mytmpnam(ENVIRON *csound, char *a)
 {
-  char *tmpfilename = tmpnam(0);
-  strcpy(a, tmpfilename);
-  return a;
+    return tmpnam(a);
 }
 #endif
 
