@@ -146,6 +146,34 @@ PUBLIC int csoundJoinThread(void *csound, void *thread)
     return 0;
 }
 
+PUBLIC void *csoundCreateThreadLock(void *csound)
+{
+    csoundMessage(csound,
+                  "csoundCreateThreadLock is not implemented on this platform.\n");
+    return NULL;
+}
+
+PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
+{
+    csoundMessage(csound,
+                  "csoundWaitThreadLock is not implemented on this platform.\n");
+    return;
+}
+
+PUBLIC void csoundNotifyThreadLock(void *csound, void *lock)
+{
+    csoundMessage(csound,
+                  "csoundNotifyThreadLock is not implemented on this platform.\n");
+    return;
+}
+
+PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
+{
+    csoundMessage(csound,
+                  "csoundDestroyThreadLock is not implemented on this platform.\n");
+    return;
+}
+
 /* internal functions for csound.c */
 
 void csoundLock(void)
