@@ -2,6 +2,7 @@
 
 	* Top/getstring.c: #include "cs.h", not <cs.h>
 	* Top/threads.c: Added stubs for csound*ThreadLock functions.
+	* Engine/envvar.c: Fixes for MacOS pathnames (more may be needed).
 
 2005-05-15  John ffitch  <jpff@codemist.co.uk>
 
