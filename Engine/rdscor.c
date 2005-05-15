@@ -151,9 +151,11 @@ unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
                           ++pp;
                           break;
                         }
- setp:      if (!csound->csoundIsScorePending_ && e->opcod == 'i') { /* FIXME */
+ setp:      if (!csound->csoundIsScorePending_ && e->opcod == 'i') {
+              /* FIXME: should pause and not mute */
               csound->sstrlen = 0;
-              continue;
+              e->opcod = 'f'; e->p[1] = FL(0.0); e->pcnt = 2;
+              return 1;
             }
             e->pcnt = pp - &e->p[0];                   /* count the pfields */
             if (csound->sstrlen) {        /* if string arg present, save it */
@@ -161,8 +163,8 @@ unwarped:   e->opcod = c;                   /*  UNWARPED scorefile:         */
                 strcpy(e->strarg, csound->sstrbuf);           /* leaks memory */
                 csound->sstrlen = 0;
             }
-            return(1);
+            return 1;
         }
-    return(0);
+    return 0;
 }
 
