@@ -29,7 +29,7 @@
 #include "CppSound.hpp"
 #include "Shell.hpp"
 #include <list>
-%}
+  %}
 
 #else
 // Hack to compile all this GNU stuff on Windows.
@@ -92,7 +92,7 @@ protected:
   float vstCurrentSamplePosition;
   float vstPriorSamplePosition;
   CsoundVstFltk *csoundVstFltk;
-  static std::list<VstMidiEvent> midiEventQueue;
+  std::list<VstMidiEvent> midiEventQueue;
 public:
   std::vector<Preset> bank;
   // AudioEffectX overrides.
@@ -146,10 +146,10 @@ public:
   virtual bool getIsAutoPlayback() const;
   virtual void setIsAutoPlayback(bool autoPlay);
   static int midiDeviceOpen(void *csound, void **userData,
-                               const char *devName);
+			    const char *devName);
 
   static int midiRead(void *csound, void *userData,
-                             unsigned char *buf, int nbytes);
+		      unsigned char *buf, int nbytes);
 };
 
 #if !defined(SWIGJAVA)

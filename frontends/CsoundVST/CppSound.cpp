@@ -89,7 +89,7 @@ int CppSound::perform(int argc, char **argv)
     {
       result = performKsmps();
     }
-  csoundCleanup(csound);
+  cleanup();
   double endedAt = double(clock()) / double(CLOCKS_PER_SEC);
   double elapsed = endedAt - beganAt;
   message("Elapsed time = %f seconds.\n", elapsed);
