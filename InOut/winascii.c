@@ -51,8 +51,8 @@ void DrawAscii(void *csound, WINDAT *wdptr)
     long     npts    = wdptr->npts;
     MYFLT    absmax  = wdptr->absmax;
 
-    printf(Str("%s\t%ld points, scalemax %5.3f\n"),
-           wdptr->caption, npts, absmax);
+    csoundMessage(csound, Str("%s\t%ld points, scalemax %5.3f\n"),
+                          wdptr->caption, npts, absmax);
     if (absmax) {                                     /* for non-triv fn: */
       char    *s, *t;
       MYFLT   *fp=wdptr->fdata, *fplim=fp + npts;
