@@ -285,7 +285,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
       char *sconame = get_sconame(csound);
       char *p;
       FILE *scof;
-      tmpnam(sconame);              /* Generate score name */
+      mytmpnam(csound, sconame);              /* Generate score name */
       if ((p=strchr(sconame, '.')) != NULL) *p='\0'; /* with extention */
       strcat(sconame, ".sco");
       scof = fopen(sconame, "w");
@@ -335,7 +335,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         }
         else {
           char *scnm = csound->Calloc(csound, (size_t) 256);
-          csound->scorename = tmpnam(scnm);
+          csound->scorename = mytmpnam(csound, scnm);
           add_tmpfile(csound, csound->scorename);       /* IV - Feb 03 2005 */
         }
       }
@@ -365,7 +365,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
       }
       else {
         char *nme = csound->Calloc(csound, (size_t) 256);
-        playscore = sortedscore = tmpnam(nme);
+        playscore = sortedscore = mytmpnam(csound, nme);
         add_tmpfile(csound, playscore);         /* IV - Feb 03 2005 */
       }
       if (!(scorin = fopen(csound->scorename, "r")))    /* else sort it   */

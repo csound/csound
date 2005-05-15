@@ -603,6 +603,9 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'i':
+      if (!csound->csoundIsScorePending_ && !rtEvt) {
+	break;
+      }
       if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
         if ((insno = (int) named_instr_find(csound, evt->strarg)) < 1) {
           print_score_time(csound, rtEvt);
