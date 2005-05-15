@@ -118,10 +118,8 @@ int     sreadin(void*, void*, MYFLT*, int, void*);
 #ifdef HAVE_GCC3
 __attribute__ ((__deprecated__, __format__(__printf__, 1, 2)))
   void csoundPrintf(const char *format, ...);
-extern  __attribute__ ((__deprecated__)) ENVIRON cenviron;
 #else
 void    csoundPrintf(const char *format, ...);
-extern  ENVIRON cenviron;
 #endif
 #define printf  csoundPrintf
 
