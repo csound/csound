@@ -68,7 +68,7 @@ typedef struct {        /* for 'joystick' input window */
 } XYINDAT;
 
 /* WINDAT *SetDisp(); */
-void dispset(WINDAT *, MYFLT *, long, char *, int, char *);
+void dispset(void *, WINDAT *, MYFLT *, long, char *, int, char *);
 int dispexit(void *);
 void display(void *, WINDAT*);
 WINDAT *NewWin(char *, int);
