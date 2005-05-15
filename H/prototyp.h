@@ -104,10 +104,7 @@ int     delete_memfile(void*, const char*);
 int     find_memfile(void*, const char*, MEMFIL**);
 void    add_memfil(void*, MEMFIL*);
 
-#ifdef WIN32
-#define tmpnam mytmpnam
-char    *mytmpnam(char *);
-#endif
+char    *mytmpnam(ENVIRON *, char *);
 
 void    *SAsndgetset(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
 int     getsndin(void*, void*, MYFLT*, int, void*);
@@ -115,13 +112,7 @@ void    *sndgetset(void*, void*);
 int     sreadin(void*, void*, MYFLT*, int, void*);
 
 /* to be removed... */
-#ifdef HAVE_GCC3
-__attribute__ ((__deprecated__, __format__(__printf__, 1, 2)))
-  void csoundPrintf(const char *format, ...);
-#else
-void    csoundPrintf(const char *format, ...);
-#endif
-#define printf  csoundPrintf
+#define printf  use_csoundMessage_instead_of_printf
 
 extern  int     fltk_abort;
 
