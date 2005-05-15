@@ -26,7 +26,6 @@
 
 double CsoundVST::inputScale = 32767.0;
 double CsoundVST::outputScale = (1.0 / 32767.0);
-std::list<VstMidiEvent> CsoundVST::midiEventQueue;
 
 CsoundVST::CsoundVST(audioMasterCallback audioMaster) : 
   AudioEffectX(audioMaster, kNumPrograms, 0),
@@ -184,6 +183,7 @@ void CsoundVST::closeView()
 int CsoundVST::midiDeviceOpen(void *csound, void **userData,
                                const char *devName)
 {
+  *userData = csoundGetHostData(csound);
   return 0;
 }
 
@@ -192,6 +192,7 @@ void CsoundVST::performanceThreadRoutine()
   getCppSound()->stop();
   getCppSound()->reset();
   getCppSound()->setFLTKThreadLocking(true);
+  csoundSetHostData(getCppSound()->getCsound(), this);
   csoundSetMessageCallback(getCppSound()->getCsound(), &csound::System::message);
   if(getIsPython())
     {
@@ -402,14 +403,15 @@ long CsoundVST::processEvents(VstEvents *vstEvents)
 int CsoundVST::midiRead(void *csound, void *userData,
                              unsigned char *midiData, int nbytes)
 {
-  if(CsoundVST::midiEventQueue.empty())
+  CsoundVST *csoundVST = (CsoundVST *)userData;
+  if(csoundVST->midiEventQueue.empty())
     {
       return 0;
     }
   else
     {
       MIDIMESSAGE *midiMessage = (MIDIMESSAGE *)midiData;
-      const VstMidiEvent &event = CsoundVST::midiEventQueue.front();
+      const VstMidiEvent &event = csoundVST->midiEventQueue.front();
       midiMessage->bData[0] = event.midiData[0];
       midiMessage->bData[1] = event.midiData[1];
       midiMessage->bData[2] = event.midiData[2];
@@ -417,7 +419,7 @@ int CsoundVST::midiRead(void *csound, void *userData,
 			      (int) midiMessage->bData[0],
 			      (int) midiMessage->bData[1],
 			      (int) midiMessage->bData[2]);
-      CsoundVST::midiEventQueue.pop_front();
+      csoundVST->midiEventQueue.pop_front();
       return 3;
     }
 }
