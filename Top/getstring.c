@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include <cs.h>
+#include "cs.h"
 #ifdef HAVE_DIRENT_H
 #include <sys/types.h>
 #include <dirent.h>
