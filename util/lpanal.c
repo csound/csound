@@ -660,7 +660,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
         } while (counter < analframes); /* or nsmps done */
 
    /* clean up stuff */
-        dispexit();
+        dispexit(csound);
         printf(Str("%d lpc frames written to %s\n"), counter, outfilnam);
         sf_close(infd);
         close(ofd);

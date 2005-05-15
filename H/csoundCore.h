@@ -711,7 +711,7 @@ extern "C" {
 #endif
     /* Internal functions that are needed */
     void (*dispset)(WINDAT *, MYFLT *, long, char *, int, char *);
-    void (*display)(struct ENVIRON_*, WINDAT *);
+    void (*display)(void *, WINDAT *);
     MYFLT (*intpow)(MYFLT, long);
     MEMFIL *(*ldmemfile)(void*, const char*);
     FUNC *(*hfgens)(struct ENVIRON_*, EVTBLK *);
