@@ -507,7 +507,7 @@ static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
     oldInPh = MakeBuf(csound, frameSize);
     winBuf  = MakeHalfWin(csound, frameSize, FL(1.0), WindowType);
 #if 0
-    dispset(&dwindow, v, frameSize/2, "pvanalwin", 0, "PVANAL");
+    csound->dispset(csound, &dwindow, v, frameSize/2, "pvanalwin", 0, "PVANAL");
 #endif
                              /* initially, clear first half of buffer .. */
     for (fp1 = inBuf, nn = frameSize/2; nn--; )

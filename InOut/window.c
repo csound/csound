@@ -25,9 +25,6 @@
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
                                                 /*  dpwe 16may90        */
-
-static OPARMS O;    /* FIXME: stub */
-
 /* pointer to window make fn - */
 /*     either teletype         */
 /*     or some graphics system */
@@ -137,23 +134,23 @@ void dispinit(ENVIRON *csound) /* called once on initialisation of program to */
     }
 }
 
-void dispset(                            /* setup a new window */
-     WINDAT *wdptr,                      /*   & init the data struct */
-     MYFLT  *fdata,
-     long   npts,
-     char   *caption,
-     int    waitflg,
-     char   *label)
+void dispset(void *csound_,             /* setup a new window       */
+             WINDAT *wdptr,             /*   & init the data struct */
+             MYFLT  *fdata,
+             long   npts,
+             char   *caption,
+             int    waitflg,
+             char   *label)
 {
-    ENVIRON *csound = (ENVIRON*) NULL;
+    ENVIRON *csound = (ENVIRON*) csound_;
     char *s = caption;
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
 
-    if (!O.displays) return;            /* return if displays disabled */
+    if (!csound->oparms->displays) return;  /* return if displays disabled */
     if (!wdptr->windid) {               /* if no window defined for this str  */
       (*makeFn)(csound, wdptr, label);  /*    create one  */
-      if (O.postscript)
+      if (csound->oparms->postscript)
         PS_MakeGraph(csound, wdptr,label); /* open PS file + write header     */
     }
     wdptr->fdata    = fdata;            /* init remainder of data structure   */
@@ -168,16 +165,6 @@ void dispset(                            /* setup a new window */
     wdptr->absmax   = FL(0.0);
     wdptr->oabsmax  = FL(0.0);
     wdptr->danflag  = 0;
-}
-
-void dispkill(WINDAT *wdptr)
-{
-    /**
-     * Fixed bug - used to throw an exception if killFn was null.
-     */
-    if (killFn) {
-      (*killFn)((ENVIRON*) NULL, wdptr);
-    }
 }
 
 int dispexit(void *csound_)

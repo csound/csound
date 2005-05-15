@@ -306,7 +306,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
     /* Setup display window */
     if (*p->i_disp) {
       p->win = calloc(1, sizeof(WINDAT));
-      csound->dispset((WINDAT*)p->win, p->x1, len,
+      csound->dispset(csound, (WINDAT*)p->win, p->x1, len,
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 

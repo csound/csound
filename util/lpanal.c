@@ -526,7 +526,8 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
 
    /* Some display stuff */
         dispinit(csound);
-        dispset(&pwindow,coef+4,poleCount,"pitch: 0000.00   ",0,"LPC/POLES");
+        csound->dispset(csound, &pwindow, coef + 4, poleCount,
+                                "pitch: 0000.00   ", 0, "LPC/POLES");
         a = (double (*)[MAXPOLES]) malloc(MAXPOLES * MAXPOLES * sizeof(double));  /* Space for a array */
         x = (double *) malloc(WINDIN * sizeof(double));  /* alloc a double array */
 #ifdef TRACE
@@ -867,3 +868,4 @@ static void usage(ENVIRON *csound)
     csound->Message(csound,Str("-- fname\tLog output to file\n"));
     csound->Message(csound,Str("see also:  Csound Manual Appendix\n"));
 }
+
