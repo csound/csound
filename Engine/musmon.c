@@ -377,7 +377,7 @@ PUBLIC int csoundCleanup(void *csound_)
       csound->Message(csound, Str("no sound written to disk\n"));
     if (csound->oparms->ringbell)
       cs_beep(csound);
-    return dispexit();      /* hold or terminate the display output     */
+    return dispexit(csound);    /* hold or terminate the display output     */
     /* for Mac, dispexit returns 0 to exit immediately */
 }
 

@@ -180,25 +180,27 @@ void dispkill(WINDAT *wdptr)
     }
 }
 
-int dispexit(void)
+int dispexit(void *csound_)
 {
-    if (O.postscript) PS_ExitGraph(); /* Write trailer to PostScript file  */
+    ENVIRON *csound = (ENVIRON*) csound_;
+    if (csound->oparms->postscript)
+      PS_ExitGraph();   /* Write trailer to PostScript file  */
     if (exitFn != NULL)
       /* prompt for exit from last active window */
-      return (*exitFn)((ENVIRON*) NULL);
+      return (*exitFn)(csound);
     else
       return 0;
 }
 
-void display(void *c, WINDAT *wdptr)  /* prepare a MYFLT array, then */
-                                              /* call the graphing fn */
+void display(void *c, WINDAT *wdptr)    /* prepare a MYFLT array, then  */
+                                        /*   call the graphing fn       */
 {
     ENVIRON *csound = c;
     MYFLT *fp, *fplim;
     MYFLT       max, min, absmax, fval;
     int         pol;
 
-    if (!O.displays)  return;              /* displays disabled? return */
+    if (!csound->oparms->displays)  return;     /* displays disabled? return */
     fp = wdptr->fdata;
     fplim = fp + wdptr->npts;
     for (max = *fp++, min = max; fp < fplim; ) { /* find max & min values */
@@ -222,7 +224,8 @@ void display(void *c, WINDAT *wdptr)  /* prepare a MYFLT array, then */
     else if (pol == (short)NEGPOL && max > FL(0.0)) pol = (short)BIPOL;
     wdptr->polarity = pol;
 
-    (*drawFn)((ENVIRON*) NULL, wdptr);    /* now graph the function */
-    if (O.postscript) PS_DrawGraph(csound, wdptr);/* Write postscript code  */
+    (*drawFn)(csound, wdptr);           /* now graph the function */
+    if (csound->oparms->postscript)
+      PS_DrawGraph(csound, wdptr);      /* Write postscript code  */
 }
 
