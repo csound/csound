@@ -66,6 +66,13 @@ char *mytmpnam(ENVIRON *csound, char *a)
     free(dir);
     return a;
 }
+#else
+char *mytmpnam(ENVIRON *csound, char *a)
+{
+  char *tmpfilename = tmpnam(0);
+  strcpy(a, tmpfilename);
+  return a;
+}
 #endif
 
 static void alloc_globals(void *csound)
@@ -216,7 +223,7 @@ static int createOrchestra(void *csound, FILE *unf)
     char *p;
     FILE *orcf;
 
-    tmpnam(ST(orcname));            /* Generate orchestra name */
+    mytmpnam(csound, ST(orcname));            /* Generate orchestra name */
     if ((p=strchr(ST(orcname), '.')) != NULL) *p='\0'; /* with extention */
     strcat(ST(orcname), ".orc");
     orcf = fopen(ST(orcname), "w");
@@ -243,7 +250,7 @@ static int createScore(void *csound, FILE *unf)
     char *p;
     FILE *scof;
 
-    tmpnam(ST(sconame));            /* Generate score name */
+    mytmpnam(csound, ST(sconame));            /* Generate score name */
     if ((p=strchr(ST(sconame), '.')) != NULL) *p='\0'; /* with extention */
     strcat(ST(sconame), ".sco");
     scof = fopen(ST(sconame), "w");
@@ -271,7 +278,7 @@ static int createMIDI(void *csound, FILE *unf)
     FILE *midf;
     int c;
 
-    if (tmpnam(ST(midname))==NULL) { /* Generate MIDI file name */
+    if (mytmpnam(csound, ST(midname))==NULL) { /* Generate MIDI file name */
       csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
     }
     if ((p=strchr(ST(midname), '.')) != NULL) *p='\0'; /* with extention */
@@ -356,7 +363,7 @@ static int createMIDI2(void *csound, FILE *unf)
     char *p;
     FILE *midf;
 
-    if (tmpnam(ST(midname))==NULL) { /* Generate MIDI file name */
+    if (mytmpnam(csound, ST(midname))==NULL) { /* Generate MIDI file name */
       csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
     }
     if ((p=strchr(ST(midname), '.')) != NULL) *p='\0'; /* with extention */
