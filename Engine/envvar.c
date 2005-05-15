@@ -444,6 +444,11 @@ static int is_name_full_path(const char *filename)
           ((int) strlen(filename) >= 2 && isalpha(filename[0]) &&
            filename[1] == ':')))
       return 0;
+#elif defined(mac_classic)
+    /* MacOS relative paths begin with DIRSEP */
+    /* Full paths contain DIRSEP but do not start with it */
+    if (filename[0] == DIRSEP)  return 0;
+    if (! strchr(filename, DIRSEP))  return 0;
 #else
     if (!(filename[0] == '.' || filename[0] == DIRSEP))
       return 0;
@@ -477,10 +482,14 @@ static char *csoundFindInputFile_(void *csound,
       return name;              /* full path, found file */
     /* not full path, need to search; try current directory first */
     s = (char*) mmalloc(csound, (size_t) strlen(name) + (size_t) 3);
+#ifdef mac_classic
+    strcpy(s, name);
+#else
     s[0] = '.';
     s[1] = DIRSEP;
     s[2] = '\0';
     strcat(s, name);
+#endif
     if (try_file_open(name)) {
       mfree(csound, name);
       return s;                 /* found file in current directory */
@@ -671,6 +680,11 @@ static int is_outname_full_path(const char *filename)
           ((int) strlen(filename) >= 2 && isalpha(filename[0]) &&
            filename[1] == ':')))
       return 0;
+#elif defined(mac_classic)
+    /* MacOS relative paths begin with DIRSEP */
+    /* Full paths contain DIRSEP but do not start with it */
+    if (filename[0] == DIRSEP)  return 0;
+    if (! strchr(filename, DIRSEP))  return 0;
 #else
     if (!(filename[0] == '.' || filename[0] == DIRSEP))
       return 0;
@@ -794,10 +808,14 @@ static char *csoundFindOutputFile_(void *csound,
  try_current_dir:
     /* try current directory if cannot write anywhere else */
     s = (char*) mmalloc(csound, (size_t) strlen(name) + (size_t) 3);
+#ifdef mac_classic
+    strcpy(s, name);
+#else
     s[0] = '.';
     s[1] = DIRSEP;
     s[2] = '\0';
     strcat(s, name);
+#endif
     mfree(csound, name);
     if (try_outfile_open(s))
       return s;                 /* can write to current directory */
