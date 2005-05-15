@@ -45,7 +45,6 @@ extern  void    dieu(void *, char *);
 extern  int     argdecode(void*, int, char**);
 extern  void    init_pvsys(void);
 extern  char    *get_sconame(void *csound);     /* one_file.c */
-extern  char    *mytmpnam(ENVIRON *csound, char *a);
 
 #ifdef MSVC
 #include <windows.h>

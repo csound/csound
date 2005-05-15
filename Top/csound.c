@@ -773,12 +773,6 @@ extern "C" {
     va_end(args);
   }
 
-  void csoundPrintf(const char *format, ...)
-  {
-    fprintf(stderr, " *** error: use csound->Message() instead of printf()\n");
-    exit(-1);
-  }
-
   void csoundDie(void *csound, const char *msg, ...)
   {
     ENVIRON *p = (ENVIRON*) csound;
