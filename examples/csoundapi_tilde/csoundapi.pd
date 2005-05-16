@@ -2,32 +2,32 @@
 #X obj 343 416 dac~;
 #X msg 357 145 event e;
 #X obj 297 23 vsl 15 128 0.1 4 0 0 empty empty empty 0 -8 0 8 -257472
--1 -1 0 1;
+-1 -1 5200 1;
 #X msg 247 181 control freq \$1;
 #X obj 399 329 adc~;
 #X msg 432 286 set freq amp rev del modf;
-#X obj 209 23 vsl 15 128 0 1 0 0 empty empty empty 0 -8 0 8 -257472
--1 -1 0 1;
+#X obj 209 34 vsl 15 128 0 1 0 0 empty empty empty 0 -8 0 8 -257472
+-1 -1 2100 1;
 #X msg 209 204 control amp \$1;
 #X obj 141 116 vsl 15 128 0 0.99 0 0 empty empty empty 0 -8 0 8 -261681
--1 -1 0 1;
+-1 -1 6200 1;
 #X msg 141 252 control rev \$1;
 #X obj 104 148 vsl 15 128 0.1 0.5 0 0 empty empty empty 0 -8 0 8 -261681
--1 -1 0 1;
+-1 -1 3300 1;
 #X msg 104 287 control del \$1;
 #X msg 463 322 reset;
-#X msg 363 170 event i 1 0 10 16000 200;
+#X msg 364 170 event i 1 0 10 16000 200;
 #X obj 432 247 loadbang;
 #X obj 361 270 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 1
 1;
 #X msg 361 288 run \$1;
 #X msg 370 196 event f 1 0 4096 10 1 0.5 0.25 0.2 0.166;
 #X obj 67 181 vsl 15 128 0.1 2 0 0 empty empty empty 0 -8 0 8 -261681
--1 -1 0 1;
+-1 -1 3300 1;
 #X msg 67 317 control modf \$1;
 #X obj 239 9 r mod;
 #X obj 249 37 *;
-#X obj 282 5 tgl 15 0 empty empty empty 0 -6 0 8 -257472 -1 -1 0 1
+#X obj 282 5 tgl 15 0 empty empty empty 0 -6 0 8 -257472 -1 -1 1 1
 ;
 #X obj 247 155 +;
 #X msg 440 427 \; \$1 \$2;
@@ -47,7 +47,7 @@ run 1 re-starts it;
 #X text 460 411 outvalues: [channel] [value];
 #X text 29 354 instr 2 controls use invalue opcode;
 #X msg 462 343 open csapi_demo.csd;
-#X obj 327 367 csoundapi~ csapi_demo.csd;
+#X obj 312 365 csoundapi~ csapi_demo.csd;
 #X text 513 67 csoundapi~ 1 (c) V Lazzarini \, 2005;
 #X msg 30 439 rewind;
 #X text 92 439 rewinds the score without recompilation;
@@ -60,8 +60,8 @@ from the orchestra \, or it can be built with a set number of out/inlets
 #X connect 1 0 39 0;
 #X connect 2 0 23 1;
 #X connect 3 0 39 0;
-#X connect 4 0 39 0;
-#X connect 4 1 39 1;
+#X connect 4 0 39 3;
+#X connect 4 1 39 3;
 #X connect 5 0 39 0;
 #X connect 6 0 7 0;
 #X connect 7 0 39 0;
@@ -85,5 +85,6 @@ from the orchestra \, or it can be built with a set number of out/inlets
 #X connect 38 0 39 0;
 #X connect 39 0 0 0;
 #X connect 39 1 0 1;
-#X connect 39 2 24 0;
-#X connect 39 3 25 0;
+#X connect 39 2 0 0;
+#X connect 39 3 0 1;
+#X connect 39 4 24 0;
