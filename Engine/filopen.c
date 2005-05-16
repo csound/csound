@@ -24,7 +24,7 @@
 #include "cs.h"                                        /*  FILOPEN.C    */
 #include <ctype.h>
 
-#ifdef mills_macintosh
+#if defined(mac_classic) && defined(__MWERKS__)
 #include <unix.h>
 #endif
 

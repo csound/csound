@@ -23,7 +23,7 @@
 
 #include "cs.h"             /*                              LINEVENT.C      */
 #include <ctype.h>
-#if defined(mills_macintosh) || defined(SYMANTEC)
+#if (defined(mac_classic) && defined(__MWERKS__)) || defined(SYMANTEC)
 #include <console.h>
 #endif
 

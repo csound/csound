@@ -1,3 +1,14 @@
+2005-05-16  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Top/argdecode.c:
+	* Top/csound.c:
+	* Top/main.c:
+	* Engine/filopen.c:
+	* Engine/insert.c:
+	* Engine/linevent.c:
+	* Engine/musmon.c:  Converted mills_macintosh to mac_classic or MAC as
+	  appropriate or removed code if dependent on Mills globals.
+	
 2005-05-15  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/getstring.c: #include "cs.h", not <cs.h>

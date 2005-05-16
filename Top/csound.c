@@ -704,7 +704,7 @@ extern "C" {
   void csoundDefaultMessageCallback(void *csound, int attr,
                                     const char *format, va_list args)
   {
-#if defined(WIN32) || defined(mills_macintosh)
+#if defined(WIN32) || defined(MAC)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
       case CSOUNDMSG_ERROR:
       case CSOUNDMSG_WARNING:
