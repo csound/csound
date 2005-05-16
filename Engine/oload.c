@@ -413,7 +413,8 @@ const ENVIRON cenviron_ = {
         0L,             /*  revlpsum            */
         0.5,            /*  rndfrac             */
         NULL,           /*  logbase2            */
-        NULL, NULL      /*  omacros, smacros    */
+        NULL, NULL,     /*  omacros, smacros    */
+        NULL            /*  namedgen            */
 };
 
 /* otran.c */
