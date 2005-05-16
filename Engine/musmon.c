@@ -646,8 +646,6 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
         }
       }
       break;
-    case 'N':                   /* Null event */
-      break;
     case 'f':
       fgens(csound, evt);
       break;
@@ -818,7 +816,6 @@ int sensevents(ENVIRON *csound)
           continue;                           /*   for this section     */
         case 'q':
         case 'i':
-        case 'N':
         case 'f':
         case 'a':
           p->nxtim = (double) e->p[2] + p->timeOffs;
