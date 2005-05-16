@@ -61,7 +61,6 @@ void swrite(ENVIRON *csound)
     switch (c) {
     case 'f':
       isntAfunc = 0;
-    case 'N':
     case 'q':
     case 'i':
     case 'a':
@@ -136,10 +135,6 @@ static char *pfout(ENVIRON *csound, SRTBLK *bp, char *p,int lincnt, int pcnt)
     case '>':
       p = ramp(csound, bp,p, lincnt, pcnt);
       break;
-/*     case '{': */
-/*     case '}': */
-/*       csound->Message(csound, Str("Deprecated " */
-/*                                   "-- use round brackets instead of curly\n")); */
     case '(':
     case ')':
       p = expramp(csound, bp, p, lincnt, pcnt);

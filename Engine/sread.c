@@ -691,7 +691,6 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
     again:
       switch (ST(op)) {         /*  and dispatch on opcodes             */
       case 'i':
-      case 'N':
       case 'f':
       case 'a':
       case 'q':
@@ -1548,7 +1547,6 @@ static int getop(ENVIRON *csound)       /* get next legal opcode */
     case 'b':           /* Reset base clock */
     case 'e':           /* End of all */
     case 'f':
-    case 'N':
     case 'i':
     case 'm':           /* Mark this point */
     case 'n':           /* Duplicate from named position */
