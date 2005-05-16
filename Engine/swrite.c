@@ -104,9 +104,14 @@ void swrite(ENVIRON *csound)
       }
       putc('\n', csound->scoreout);
       break;
+    case 's':
+/*       { */
+/*         double tt; */
+/*         if (sscanf(p, "%lf", &tt)==1) */
+/*           fprintf(csound->scoreout, "f0 %f\n", tt); */
+/*       } */
     case 'w':
     case 't':
-    case 's':
     case 'e':
       while ((c = *p++) != LF)        /* put entire line      */
         putc(c, csound->scoreout);
