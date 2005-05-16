@@ -980,6 +980,7 @@ extern "C" {
     double        rndfrac;              /* aops.c */
     MYFLT         *logbase2;
     NAMES         *omacros, *smacros;
+    void          *namedgen;            /* fgens.c */
   } ENVIRON;
 
 #include "text.h"
