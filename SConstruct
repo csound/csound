@@ -154,7 +154,7 @@ opts.Add('buildStkOpcodes',
     '0')
 opts.Add('install',
     'Enables the Install targets',
-    '1')    
+    '1')
 opts.Add('useDirentFix',
 "On OSX use the fixes for dirent.h (needed with earlier OS versions and development tools)",
     '0')
@@ -732,7 +732,7 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
     ['Opcodes/mixer.cpp']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
     ['Opcodes/sndloop.c']))
-    
+
 # Plugins with External Dependencies
 
 # REAL TIME AUDIO
@@ -850,6 +850,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('pvlook',
     ['util/pvlook.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndinfo',
     ['util/sndinfo.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('srconv',
+    ['util/srconv.c']))
 
 #executables.append(csoundProgramEnvironment.Program('cscore',
 #    ['util1/cscore/cscore_main.c']))
@@ -897,8 +899,8 @@ executables.append(csoundProgramEnvironment.Program('scsort',
 #    SDIF/sdif-mem.c''')))
 executables.append(csoundProgramEnvironment.Program('sndinfo',
     ['util/sndinfo_main.c']))
-#executables.append(csoundProgramEnvironment.Program('srconv',
-#    ['util2/dnoise.dir/srconv.c']))
+executables.append(csoundProgramEnvironment.Program('srconv',
+    ['util/srconv_main.c']))
 executables.append(commonEnvironment.Program('cs', ['util1/csd_util/cs.c']))
 executables.append(commonEnvironment.Program('csb64enc',
                                              Split('''util1/csd_util/base64.c
@@ -1121,7 +1123,7 @@ if (commonEnvironment['buildPDClass']=='1' and pdhfound):
     if(getPlatform() == 'darwin'):
         pdClassEnvironment.Append(LINKFLAGS = ['-bundle',  '-flat_namespace',  '-undefined',  'suppress'])
         pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
-	pdClassEnvironment.Append(LIBPATH=['.'])      
+	pdClassEnvironment.Append(LIBPATH=['.'])
 	if(commonEnvironment['useFLTK'] == '1'):
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile'])
 	else:
@@ -1135,7 +1137,7 @@ if (commonEnvironment['buildPDClass']=='1' and pdhfound):
 	else:
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
 	   pdClassEnvironment.Append(LIBPATH=['.'])
-        
+
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux' and getPlatform() != 'cygwin'):
     print "CONFIGURATION DECISION: Not calling TAGS"
 else:
@@ -1209,8 +1211,7 @@ if commonEnvironment['install']=='1':
 
     Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders])
 
-if(getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1'):
+if (getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1'):
     print "CONFIGURATION DECISION: Adding resource fork for csound"
     commonEnvironment.Command('resources','csound', "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
 
-  
