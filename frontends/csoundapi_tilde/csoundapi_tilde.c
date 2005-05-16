@@ -169,11 +169,12 @@ void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
 	x->pos = 0;
       }
       else post("csoundapi~ warning: could not compile");
+      }   
       x->ctlout = outlet_new(&x->x_obj, gensym("list"));
       x->bangout = outlet_new(&x->x_obj, gensym("bang"));
       csoundSetHostData(x->csound, x);
       return (void *) x;
-    }
+
        }  
     post("csoundapi~ warning: using API v.%1.2f multiple instances only with v.5.00",
          CS_VERSION_);
