@@ -383,8 +383,8 @@ PUBLIC int csoundCleanup(void *csound_)
 
 void cs_beep(ENVIRON *csound)
 {
-#ifdef mills_macintosh
-    SysBeep(10000);
+#ifdef mac_classic
+    SysBeep(30L);
 #else
     csound->Message(csound, Str("%c\tbeep!\n"), '\007');
 #endif

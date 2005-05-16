@@ -30,10 +30,6 @@
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
 
-#ifdef mills_macintosh
-#include "MacTransport.h"
-#endif
-
 static  void    showallocs(ENVIRON *);
 static  void    deact(ENVIRON *, INSDS *);
 static  void    schedofftim(ENVIRON *, INSDS *);

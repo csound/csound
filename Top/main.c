@@ -32,15 +32,6 @@
 #include <ctype.h>              /* For isdigit */
 #include <sndfile.h>
 
-#ifdef mills_macintosh
-#include <SIOUX.h>
-#include "perf.h"
-#include"MacTransport.h"
-#define PATH_LEN        128
-extern char saved_scorename[];
-extern unsigned char mytitle[];
-#endif
-
 extern  void    dieu(void *, char *);
 extern  int     argdecode(void*, int, char**);
 extern  void    init_pvsys(void);
@@ -340,19 +331,6 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         }
       }
     }
-#ifdef mills_macintosh
-    {
-      char *c;
-      strcpy(saved_scorename,csound->scorename);
-      strcpy((char *)mytitle,csound->scorename);
-      c = (char *)&mytitle[0] + strlen((char *)mytitle);
-      while (*c != DIRSEP && c != (char *)mytitle) c -= 1;
-      if (c != (char *) mytitle) c += 1;
-      strcpy((char *)mytitle,c);
-      strcat((char *)mytitle," listing");
-      SIOUXSetTitle((unsigned char *)CtoPstr((char *)mytitle));
-    }
-#endif
     if ((n = strlen(csound->scorename)) > 4     /* if score ?.srt or ?.xtr */
         && (!strcmp(csound->scorename+n-4,".srt") ||
             !strcmp(csound->scorename+n-4,".xtr"))) {
