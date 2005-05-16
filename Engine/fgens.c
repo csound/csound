@@ -71,8 +71,6 @@ typedef struct namedgen {
         struct namedgen *next;
 } NAMEDGEN;
 
-static  NAMEDGEN *namedgen = NULL;
-
 #define tpd360  (0.017453293)
 
 static  void    fterror(ENVIRON *, FGDATA *, char *, ...);
@@ -97,10 +95,10 @@ void ftRESET(ENVIRON *csound)
     mfree(csound, csound->gensub);
     csound->gensub = NULL;
   }
-  while (namedgen) {
-    NAMEDGEN *next = namedgen->next;
-    mfree(csound, namedgen);
-    namedgen = next;
+  while (csound->namedgen) {
+    NAMEDGEN *next = ((NAMEDGEN*) csound->namedgen)->next;
+    mfree(csound, csound->namedgen);
+    csound->namedgen = next;
   }
 }
 
@@ -158,8 +156,8 @@ void fgens(ENVIRON *csound, EVTBLK *evtblkp)
     }
     if ((genum = (long)ff->e.p[4])==SSTRCOD) {
       /* A named gen given so search the list of extra gens */
-      NAMEDGEN *n = namedgen;
-/*       csound->DebugMsg(csound, "*** Named fgen %s", ff->e.strarg); */
+      NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
+/*    csound->DebugMsg(csound, "*** Named fgen %s", ff->e.strarg); */
       while (n) {
         if (strcmp(n->name, ff->e.strarg)==0) {    /* Look up by name */
           genum = n->genum;
@@ -1858,9 +1856,9 @@ static void fterror(ENVIRON *csound, FGDATA *ff, char *s, ...)
 
 static void ftresdisp(ENVIRON *csound, FGDATA *ff, FUNC *ftp)
 {                       /* set guardpt, rescale the function, and display it */
-    MYFLT       *fp, *finp = &ftp->ftable[ff->flen];
-    MYFLT       abs, maxval;
-    static      WINDAT  dwindow;        /* Why is this static? */
+    MYFLT   *fp, *finp = &ftp->ftable[ff->flen];
+    MYFLT   abs, maxval;
+    WINDAT  dwindow;
 
     if (!ff->guardreq)                      /* if no guardpt yet, do it */
       ftp->ftable[ff->flen] = ftp->ftable[0];
@@ -1875,7 +1873,10 @@ static void ftresdisp(ENVIRON *csound, FGDATA *ff, FUNC *ftp)
         for (fp=ftp->ftable; fp<=finp; fp++)
           *fp /= maxval;
     }
-    sprintf(csound->strmsg, Str("ftable %d:"), ff->fno);
+    if (!csound->oparms->displays)
+      return;
+    memset(&dwindow, 0, sizeof(WINDAT));
+    sprintf(csound->strmsg, Str("ftable %d:"), (int) ff->fno);
     dispset(csound, &dwindow, ftp->ftable, (long) (ff->flen + ff->guardreq),
                     csound->strmsg, 0, "ftable");
     display(csound, &dwindow);
@@ -2884,7 +2885,7 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
 
 int allocgen(ENVIRON *csound, char *s, GEN fn)
 {
-    NAMEDGEN *n = namedgen;
+    NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
 /*  csound->DebugMsg(csound, Str("**** allocgen %s to %p"), s, fn); */
     while (n!=NULL) {
       if (strcmp(s, n->name)==0) return n->genum;
@@ -2893,10 +2894,10 @@ int allocgen(ENVIRON *csound, char *s, GEN fn)
     /* Need to allocate */
     n = (NAMEDGEN*) mmalloc(csound, sizeof(NAMEDGEN));
     n->genum = csound->genmax++;
-    n->next = namedgen;
+    n->next = (NAMEDGEN*) csound->namedgen;
     n->name = mmalloc(csound, strlen(s)+1);
     strcpy(n->name, s);
-    namedgen = n;
+    csound->namedgen = (void*) n;
     if (csound->gensub==NULL) {
       csound->gensub = (GEN*)mmalloc(csound, csound->genmax*sizeof(GEN));
       memcpy(csound->gensub, or_sub, sizeof(or_sub));

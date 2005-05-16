@@ -1,7 +1,5 @@
 Engine/cfgvar.c:static  void    **global_cfg_db = NULL;
 
-Engine/fgens.c:    static      WINDAT  dwindow; /* Why is this static? */
-
 InOut/winascii.c:static  char    *points = NULL;
 
 InOut/window.c:static void (*makeFn)(WINDAT*, char*);  /* pointer to window make fn - */
@@ -117,12 +115,6 @@ SDIF/sdif.c:static  char    p[BUFSIZE];
 SDIF/sdif.c:    static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
 SDIF/sdif-mem.c:static void *(*my_malloc)(int numBytes);
 SDIF/sdif-mem.c:static void (*my_free)(void *memory, int numBytes);
-
-Top/argdecode.c:static char listing_file[PATH_LEN];
-Top/argdecode.c:static int  vbuf;
-Top/argdecode.c:static int csNGraphs;
-Top/argdecode.c:static int rescale24 = 0;
-Top/argdecode.c:static
 
 Top/cscorfns.c:static INFILE *infiles = NULL;    /* array of infile status blks */
 Top/cscorfns.c:static  EVENT  *evtmp = NULL;
