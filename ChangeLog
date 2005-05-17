@@ -1,3 +1,8 @@
+2005-05-17  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/swrite.c (swrite): Charge to expand "s #" and "e #" to
+	"f0 #\ns"
+
 2005-05-16  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/argdecode.c:
