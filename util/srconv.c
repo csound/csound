@@ -37,7 +37,7 @@
  *                    r = output sample rate (must be specified)
  *                    R = input sample rate (must be specified)
  *                    P = input sample rate / output sample rate
- *                    Q = quality factor (1, 2, 3, or 4: default = 2)
+ *                    Q = quality factor (1 to 8: default = 2)
  *                    if a time-varying control file is given, it must be last
  *
  *    MODIFIED:  John ffitch December 2000; changes to Csound context
@@ -60,7 +60,7 @@
       }                                                             \
 }
 
-static  void    kaiser(int, MYFLT *, int, int, MYFLT);
+static  void    kaiser(int, float *, int, int, double);
 static  void    usage(ENVIRON *);
 static  char    *type2string(int);
 static  short   sfsampsize(int);
@@ -148,13 +148,15 @@ static int srconv(void *csound_, int argc, char **argv)
       *output,    /* pointer to start of output buffer */
       *nextIn,    /* pointer to next empty word in input */
       *nextOut,   /* pointer to next empty word in output */
-      *window,    /* pointer to center of analysis window */
-      *wj,        /* pointer to window */
-      *wj1,       /* pointer to window */
       *fxval = 0, /* pointer to start of time-array for time-vary function */
       *fyval = 0, /* pointer to start of P-scale-array for time-vary func */
       *i0,        /* pointer */
       *i1;        /* pointer */
+
+    float
+      *window,    /* pointer to center of analysis window */
+      *wj,        /* pointer to window */
+      *wj1;       /* pointer to window */
 
     int
       M = 2401,   /* length of window impulse response */
@@ -169,8 +171,8 @@ static int srconv(void *csound_, int argc, char **argv)
       mMax;       /* maximum valid m */
 
     long
-      n,          /* current input sample */
-      nMax = 100000000;    /* last input sample (unless EOF) */
+      n,                        /* current input sample */
+      nMax = 2000000000;        /* last input sample (unless EOF) */
 
     MYFLT
       beta = FL(6.8),           /* parameter for Kaiser window */
@@ -179,7 +181,7 @@ static int srconv(void *csound_, int argc, char **argv)
       idel,                     /* float del */
       fo,                       /* float o */
       of,                       /* fractional o */
-      fL = FL(120.0),           /* float L */
+      fL = (MYFLT) L,           /* float L */
       iw,                       /* interpolated window */
       tvx0 = 0,                 /* current x value of time-var function */
       tvx1 = 0,                 /* next x value of time-var function */
@@ -202,7 +204,7 @@ static int srconv(void *csound_, int argc, char **argv)
       tvlen,                    /* length of time-varying function */
       Chans = 0,                /* number of channels */
       chan,                     /* current channel */
-      Q = 0;                    /* quality factor */
+      Q = 2;                    /* quality factor */
 
     FILE        *tvfp = NULL;   /* time-vary function file */
     SOUNDIN     *p;
@@ -254,13 +256,13 @@ static int srconv(void *csound_, int argc, char **argv)
             while ((*outfile++ = *s++)); s--;
             if (strcmp(O->outfilename, "stdin") == 0) {
               csound->MessageS(csound, CSOUNDMSG_ERROR,
-                                       Str("-o cannot be stdin"));
+                                       Str("-o cannot be stdin\n"));
               goto err_return;
             }
 #if defined mac_classic || defined WIN32
             if (strcmp(O->outfilename, "stdout") == 0) {
               csound->MessageS(csound, CSOUNDMSG_ERROR,
-                                       Str("stdout audio not supported"));
+                                       Str("stdout audio not supported\n"));
               goto err_return;
             }
 #endif
@@ -354,7 +356,7 @@ static int srconv(void *csound_, int argc, char **argv)
     }
     if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) < 0) {
-      csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error while opening %s"),
+      csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error while opening %s\n"),
                                                 infile);
       goto err_return;
     }
@@ -371,6 +373,8 @@ static int srconv(void *csound_, int argc, char **argv)
     }
     if (P != FL(0.0))
       Rout = Rin / P;
+    else if (Rout == FL(0.0))
+      Rout = Rin;
 
     if (tvflg) {
       P = FL(0.0);        /* will be reset to max in time-vary function */
@@ -489,7 +493,7 @@ static int srconv(void *csound_, int argc, char **argv)
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                             outbufsiz, getstrformat(csound, O->outformat),
                             O->outfilename);
-    csound->Message(csound, " %s\n", type2string(O->filetyp));
+    csound->Message(csound, " (%s)\n", type2string(O->filetyp));
 
  /* this program performs arbitrary sample-rate conversion
     with high fidelity.  the method is to step through the
@@ -507,11 +511,11 @@ static int srconv(void *csound_, int argc, char **argv)
     at half of Rin. */
 
     fdel = ((MYFLT) (L * Rin) / Rout);
-    del = (int)fdel;
-    idel = (MYFLT)del;
+    del = (int) ((double) fdel + 0.5);
+    idel = (MYFLT) del;
     if (del > L)
       N = del;
-    if ((Q >= 1) && (Q <=4))
+    if ((Q >= 1) && (Q <= 8))
       M = Q * N * 10 + 1;
     if (tvflg)
       fdel = tvy0 * L;
@@ -519,38 +523,35 @@ static int srconv(void *csound_, int argc, char **argv)
     invRin  =  FL(1.0) / Rin;
 
     /* make window: the window is the product of a kaiser and a sin(x)/x */
-    window = (MYFLT*) csound->Calloc(csound, (size_t) (M + 1) * sizeof(MYFLT));
+    window = (float*) csound->Calloc(csound, (size_t) (M + 2) * sizeof(float));
     WinLen = (M-1)/2;
     window += WinLen;
     wLen = (M/2 - L) / L;
 
-    kaiser(M, window, WinLen, 1, beta);
-    for (i = 1; i <= WinLen; i++)
-      *(window - i) = *(window + i);
+    kaiser(M, window, WinLen, 1, (double) beta);
 
-    for (i = 1; i <= WinLen; i++){
-      *(window - i) *= (MYFLT) N * (MYFLT) (sin((double) (PI * i) / (double) N)
-                                            / (double) (PI * i));
-      *(window + i) = *(window - i);
+    for (i = 1; i <= WinLen; i++) {
+      double  tmp = (double) N;
+      tmp = tmp * sin(PI * (double) i / tmp) / (PI * (double) i);
+      window[i] = (float) ((double) window[i] * tmp);
     }
 
-    if (Rout < Rin){
-      sum = *window;
+    if (Rout < Rin) {
+      sum = (MYFLT) window[0];
       for (i = L-1; i <= WinLen; i += L)
-        sum += *(window - i) + *(window + i);
-
-      sum = FL(1.0) / sum;
+        sum += (MYFLT) window[i];
+      sum = FL(2.0) / sum;
     }
     else
-      sum = FL(1.0) / *window;
+      sum = FL(1.0) / (MYFLT) window[0];
 
-    *window *= sum;
-    for (i = 1; i <= WinLen; i++){
-      *(window - i) *= sum;
-      *(window + i) = *(window - i);
+    window[0] = (float) ((double) window[0] * (double) sum);
+    for (i = 1; i <= WinLen; i++) {
+      window[i] = (float) ((double) window[i] * (double) sum);
+      *(window - i) = window[i];
     }
 
-    *(window + WinLen + 1) = FL(0.0);
+    window[WinLen + 1] = 0.0f;
 
  /* set up input buffer:  nextIn always points to the next empty
     word in the input buffer.  If the buffer is full, then
@@ -566,7 +567,7 @@ static int srconv(void *csound_, int argc, char **argv)
     output = (MYFLT*) csound->Calloc(csound, (size_t) OBUF * sizeof(MYFLT));
     nextOut = output;
 
-/* initialization: */
+ /* initialization: */
 
     nread = csound->getsndin(csound, inf, input, IBUF2, p);
     nMax = (long)(input_dur * p->sr);
@@ -578,16 +579,16 @@ static int srconv(void *csound_, int argc, char **argv)
     o = n = m = 0;
     fo = FL(0.0);
 
-/* main loop:   If nMax is not specified it is assumed to be very large
-        and then readjusted when read detects the end of input. */
+ /* main loop:   If nMax is not specified it is assumed to be very large
+    and then readjusted when read detects the end of input. */
 
     while (n < nMax) {
       time = n * invRin;
 
-    /* case 1:  (Rin / Rout) * 120 = integer  */
+      /* case 1:  (Rin / Rout) * 120 = integer  */
 
       if ((tvflg == 0) && (idel == fdel)) {
-    /* apply window (window is sampled at L * Rin) */
+        /* apply window (window is sampled at L * Rin) */
 
         for (chan = 0; chan < Chans; chan++) {
           *nextOut = FL(0.0);
@@ -600,7 +601,7 @@ static int srconv(void *csound_, int argc, char **argv)
             k += Chans;
             if (k >= IBUF)
               k -= IBUF;
-            *nextOut += *wj * *(input + k);
+            *nextOut += (MYFLT) *wj * *(input + k);
           }
           nextOut++;
           if (nextOut >= (output + OBUF)) {
@@ -634,11 +635,11 @@ static int srconv(void *csound_, int argc, char **argv)
         }
       }
 
-    /* case 2: (Rin / Rout) * 120 = non-integer constant */
+      /* case 2: (Rin / Rout) * 120 = non-integer constant */
 
       else {
 
-    /* apply window (window values are linearly interpolated) */
+        /* apply window (window values are linearly interpolated) */
 
         for (chan = 0; chan < Chans; chan++) {
           *nextOut = FL(0.0);
@@ -655,7 +656,7 @@ static int srconv(void *csound_, int argc, char **argv)
             k += Chans;
             if (k >= IBUF)
               k -= IBUF;
-            iw = *wj + of * (*wj1 - *wj);
+            iw = (MYFLT) *wj + of * ((MYFLT) *wj1 - (MYFLT) *wj);
             *nextOut += iw * *(input + k);
           }
           nextOut++;
@@ -740,7 +741,7 @@ static int srconv(void *csound_, int argc, char **argv)
 static const char *usage_txt[] = {
     "usage: srconv [flags] infile\n\nflags:",
     "-P num\tpitch transposition ratio (srate/r) [don't specify both P and r]",
-    "-Q num\tquality factor (1, 2, 3, or 4: default = 2)",
+    "-Q num\tquality factor (1 to 8: default = 2)",
     "-i filnam\tbreak file",
     "-r num\toutput sample rate (must be specified)",
     "-o fnam\tsound output filename\n",
@@ -794,7 +795,7 @@ static char *type2string(int x)
     case TYP_SDS: return "SDS";
 #endif
     default:
-      return "(unknown)";
+      return "unknown";
     }
 }
 
@@ -838,27 +839,27 @@ static char *getstrformat(ENVIRON *csound, int format)
     return Str("unknown");
 }
 
-static MYFLT ino(MYFLT x)
+static double ino(double x)
 {
-    MYFLT   y, t, e, de, sde, xi;
+    double  y, t, e, de, sde, xi;
     int     i;
 
-    y = x * FL(0.5);
-    t = FL(1.0e-08);
-    e = FL(1.0);
-    de = FL(1.0);
+    y = x * 0.5;
+    t = 1.0e-08;
+    e = 1.0;
+    de = 1.0;
     for (i = 1; i <= 25; i++) {
-      xi = (MYFLT)i;
+      xi = (double) i;
       de = de * y / xi;
       sde = de * de;
       e += sde;
       if (e * t > sde)
         break;
     }
-    return(e);
+    return e;
 }
 
-static void kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
+static void kaiser(int nf, float *w, int n, int ieo, double beta)
 {
 
 /*
@@ -869,20 +870,19 @@ static void kaiser(int nf, MYFLT *w, int n, int ieo, MYFLT beta)
  beta = parameter of kaiser window
 */
 
-    MYFLT   bes, xind, xi;
+    double  bes, xind, xi;
     int     i;
 
     bes = ino(beta);
-    xind = (MYFLT)(nf-1)*(nf-1);
+    xind = (double) ((nf - 1) * (nf - 1));
 
     for (i = 0; i < n; i++) {
-      xi = (MYFLT)i;
+      xi = (double) i;
       if (ieo == 0)
         xi += 0.5;
-      xi = FL(4.0) * xi * xi;
-      xi = (MYFLT)sqrt(1.0 - (double)(xi / xind));
-      w[i] = ino(beta * xi);
-      w[i] /= bes;
+      xi = 4.0 * xi * xi;
+      xi = sqrt(1.0 - (double) (xi / xind));
+      w[i] = (float) (ino(beta * xi) / bes);
     }
     return;
 }
