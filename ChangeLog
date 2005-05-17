@@ -13,7 +13,7 @@
 	* Engine/linevent.c:
 	* Engine/musmon.c:  Converted mills_macintosh to mac_classic or MAC as
 	  appropriate or removed code if dependent on Mills globals.
-	
+
 2005-05-15  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/getstring.c: #include "cs.h", not <cs.h>
@@ -30,7 +30,7 @@
 
 	* Engine/sread.c (init_smacros): 
 	* Engine/rdorch.c (init_omacros): New functions to define macros
-	
+
 2005-05-11  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/ugmoss.c (valpass): Added cache of p->maxlpt to avoid
