@@ -56,7 +56,6 @@ void swrite(ENVIRON *csound)
     lincnt++;                           /* now for each line:           */
     p = bp->text;
     c = *p++;
-    putc(c, csound->scoreout);
     isntAfunc = 1;
     switch (c) {
     case 'f':
@@ -64,6 +63,7 @@ void swrite(ENVIRON *csound)
     case 'q':
     case 'i':
     case 'a':
+      putc(c, csound->scoreout);
       putc(*p++, csound->scoreout);
       while ((c = *p++) != SP && c != LF)
         putc(c, csound->scoreout);              /* put p1       */
@@ -105,14 +105,18 @@ void swrite(ENVIRON *csound)
       putc('\n', csound->scoreout);
       break;
     case 's':
-/*       { */
-/*         double tt; */
-/*         if (sscanf(p, "%lf", &tt)==1) */
-/*           fprintf(csound->scoreout, "f0 %f\n", tt); */
-/*       } */
+    case 'e':
+      {
+        double tt;
+        if (sscanf(p, "%lf", &tt)==1)
+          fprintf(csound->scoreout, "f 0 %f\n", tt);
+         putc(c, csound->scoreout);
+         putc(LF, csound->scoreout);
+      }
+      break;
     case 'w':
     case 't':
-    case 'e':
+      putc(c, csound->scoreout);
       while ((c = *p++) != LF)        /* put entire line      */
         putc(c, csound->scoreout);
       putc(LF, csound->scoreout);
