@@ -537,8 +537,10 @@ int read_unified_file(void *csound_, char **pname, char **score)
     int   started = FALSE;
     int   r;
     /* RWD 3:2000 fopen can fail... */
-    if (unf == NULL)
+    if (unf == NULL) {
+      perror("Failed to open csd file");
       return 0;
+    }
     alloc_globals(csound);
     ST(orcname)[0] = ST(sconame)[0] = ST(midname)[0] = '\0';
     ST(midiSet) = FALSE;
