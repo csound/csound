@@ -90,9 +90,9 @@ void DrawAscii(void *csound, WINDAT *wdptr)
           t--;
         while (s <= t) {
           int ch = *s++;
-          putchar(ch);                                /*  putline to there */
+          csoundMessage(csound, "%c", ch);            /*  putline to there */
         }
-        putchar('\n');
+        csoundMessage(csound, "\n");
       }
     }
 }

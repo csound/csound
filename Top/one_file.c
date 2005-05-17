@@ -27,6 +27,7 @@
 #include "cs.h"
 #include "csound.h"
 #include <ctype.h>
+#include <errno.h>
 
 #define CSD_MAX_LINE_LEN    4096
 
@@ -538,7 +539,9 @@ int read_unified_file(void *csound_, char **pname, char **score)
     int   r;
     /* RWD 3:2000 fopen can fail... */
     if (unf == NULL) {
-      perror("Failed to open csd file");
+      csound->MessageS(csound, CSOUNDMSG_ERROR,
+                               Str("Failed to open csd file: %s\n"),
+                               strerror(errno));
       return 0;
     }
     alloc_globals(csound);
