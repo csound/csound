@@ -39,15 +39,8 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
        0) int
        1) float
        2) string
-       3) int int
-       4) int float
-       5) int string
-       6) float int
-       7) float float
-       8) float string
-       9) string int
-       10) string float
-       11) string string
+       3) double
+       4) char
     */
     if (p->cnt++ && *p->kwhen!=p->last) {
       lo_message msg = lo_message_new();
@@ -57,11 +50,11 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
       while (*type) {
         switch (*type) {
         case 'i':
-          lo_message_add_int32(msg, (int)(**arg+FL(0.5)));
-          break;                  
+          lo_message_add_int32(msg, (int32_t)(**arg+FL(0.5)));
+          break;
         case 'c':
-          lo_message_add_char(msg, (int)(**arg+FL(0.5)));
-          break;                  
+          lo_message_add_char(msg, (char)(**arg+FL(0.5)));
+          break;
         case 'f':
           lo_message_add_float(msg, (float)**arg);
           break;
