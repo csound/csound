@@ -29,7 +29,7 @@
 #include "csound.h"
 
 #define CS_MAX_CHANS 32
-#define CS_VERSION_  csoundGetVersion()/100.f
+#define CS_VERSION_  csoundGetVersion()
 static t_class *csoundapi_class;
 static t_int lockcs;
 
@@ -121,7 +121,7 @@ void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
   if(!lockcs) {
     t_csoundapi *x = (t_csoundapi *) pd_new(csoundapi_class);
     x->csound = csoundCreate(NULL);
-    if(CS_VERSION_ < 5) lockcs = 1;
+    if(CS_VERSION_ < 500) lockcs = 1;
     else lockcs = 0;
     outlet_new(&x->x_obj, gensym("signal"));
     x->numlets = 1;
@@ -177,7 +177,7 @@ void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
 
        }  
     post("csoundapi~ warning: using API v.%1.2f multiple instances only with v.5.00",
-         CS_VERSION_);
+         CS_VERSION_/100.f);
     return 0;
 
   }
@@ -260,6 +260,7 @@ void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
     char type[10];
     MYFLT pFields[64];
     int num = argc-1, i;
+    if(!x->result){    
     atom_string(&argv[0],type,10);
     if(type[0] == 'i' || type[0] == 'f' || type[0] == 'e'){
       for(i=1; i <argc; i++) pFields[i-1] = atom_getfloat(&argv[i]);
@@ -267,10 +268,11 @@ void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
       x->cleanup = 1;
       x->end=0;
     }else post("csoundapi~ warning: invalid realtime score event");
+    }else post("csoundapi~ warning: not compiled");
   }
 
   void csoundapi_reset(t_csoundapi *x){
-    if(CS_VERSION_ >= 5){
+    if(CS_VERSION_ >= 500){
       if(x->cmdl!=NULL){
 
 	if(x->end && x->cleanup) {
@@ -288,24 +290,25 @@ void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
         }
       }
     }
-    else post("not implemented in v.%1.2f\n", CS_VERSION_);
+    else post("not implemented in v.%1.2f\n", CS_VERSION_/100.f);
   }
 
   void csoundapi_rewind(t_csoundapi *x){
-
+    if(!x->result){  
     csoundSetScoreOffsetSeconds(x->csound, (MYFLT) 0);
     csoundRewindScore(x->csound);
     csoundSetScorePending(x->csound, 1);
     x->end=0;
     x->pos=0;
     x->cleanup=1;
+    }else post("csoundapi~ warning: not compiled");
   }
 
   void csoundapi_open(t_csoundapi *x, t_symbol *s,
                       int argc, t_atom *argv){
     char  **cmdl;
     int i;
-    if(CS_VERSION_ >= 5 || x->cmdl==NULL) {
+    if(CS_VERSION_ >= 500 || x->cmdl==NULL) {
 
       if(x->end && x->cleanup) {
 	csoundCleanup(x->csound);
@@ -342,7 +345,7 @@ void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
                x->chans,x->numlets);
       }
       else post("csoundapi~ warning: could not compile");
-    } else post("score re-opening not implemented in v.%1.2f", CS_VERSION_);
+    } else post("score re-opening not implemented in v.%1.2f", CS_VERSION_/100.f);
 
   }
 
