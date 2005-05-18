@@ -110,7 +110,7 @@ void csoundapi_tilde_setup(void) {
   CLASS_MAINSIGNALIN(csoundapi_class,t_csoundapi,f);
 
   post("\ncsoundapi~ 1.0\n A PD csound class using the Csound %2.2f API"
-       "\n(c) V Lazzarini, 2005\n", CS_VERSION_);
+       "\n(c) V Lazzarini, 2005\n", CS_VERSION_/100.f);
   lockcs = 0;
 }
 
@@ -345,7 +345,7 @@ void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
                x->chans,x->numlets);
       }
       else post("csoundapi~ warning: could not compile");
-    } else post("score re-opening not implemented in v.%1.2f", CS_VERSION_/100.f);
+    } else post("score re-opening not implemented in v.%1.2f", (float)CS_VERSION_/100.f);
 
   }
 
