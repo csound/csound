@@ -77,7 +77,7 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
       char *type = (char*)p->type;
       MYFLT **arg = p->arg;
       p->last = *p->kwhen;
-      for (i=0; type[i]!='\0'; i++) {
+      for (i=0; type[i]!='\0'; i++, msk <<=1) {
         /* Need to add type checks */
         switch (type[i]) {
         case 'i':
