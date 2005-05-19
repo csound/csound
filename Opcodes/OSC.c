@@ -29,11 +29,10 @@ typedef struct
     OPDS h;             /* default header */
     MYFLT *kwhen;
     MYFLT *host;
-    MYFLT *port;       /* UDP port */
+    MYFLT *port;        /* UDP port */
     MYFLT *dest;
     MYFLT *type;
-    MYFLT *d1;
-    MYFLT *d2;
+    MYFLT *arg[25];
     lo_address addr;
     MYFLT last;
     int   cnt;
@@ -45,6 +44,12 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     char *pp= port;
     char *hh;
     lo_address t;
+    /* with too many args, XINCODE/XSTRCODE may not work correctly */
+    if (p->INOCOUNT > 30)
+      csound->InitError(csound, Str("Too many arguments to OSCsend"));
+    /* a-rate arguments are not allowed */
+    if (p->XINCODE) csound->InitError(csound, Str("No a-rate arguments allowed"));
+
     if (*p->port<0)
       pp = NULL;
     else
@@ -54,6 +59,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     t = lo_address_new(hh, pp);
     p->addr = t;
     p->cnt = 0;
+    p->last = 0;
     return OK;
 }
 
@@ -63,57 +69,93 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
        0) int
        1) float
        2) string
-       3) int int
-       4) int float
-       5) int string
-       6) float int
-       7) float float
-       8) float string
-       9) string int
-       10) string float
-       11) string string
+       3) double
+       4) char
     */
-    if (p->cnt++ && *p->kwhen!=p->last) {
+    if (p->cnt++ ==0 || *p->kwhen!=p->last) {
+      int i=0;
+      int msk = 0x20;           /* First argument */
+      lo_message msg = lo_message_new();
+      char *type = (char*)p->type;
+      MYFLT **arg = p->arg;
       p->last = *p->kwhen;
-      switch ((int)(*p->type+FL(0.5))) {
-      default:
-      case 0:
-        lo_send(p->addr, (char*) p->dest, "i", (int)(FL(0.5)+*p->d1));
-        return OK;
-      case 1:
-        lo_send(p->addr, (char*) p->dest, "f", (float) *p->d1);
-        return OK;
-      case 2:
-        lo_send(p->addr, (char*) p->dest, "s", (char*) p->d1);
-        return OK;
-      case 3:
-        lo_send(p->addr, (char*) p->dest, "ii", (int) *p->d1, (int) *p->d2);
-        return OK;
-      case 4:
-        lo_send(p->addr, (char*) p->dest, "if", (int) *p->d1, (float) *p->d2);
-        return OK;
-      case 5:
-        lo_send(p->addr, (char*) p->dest, "is", (int) *p->d1, (char*) p->d2);
-        return OK;
-      case 6:
-        lo_send(p->addr, (char*) p->dest, "fi", (float) *p->d1, (int) *p->d2);
-        return OK;
-      case 7:
-        lo_send(p->addr, (char*) p->dest, "ff", (float) *p->d1, (float) *p->d2);
-        return OK;
-      case 8:
-        lo_send(p->addr, (char*) p->dest, "fs", (float) *p->d1, (char*) p->d2);
-        return OK;
-      case 9:
-        lo_send(p->addr, (char*) p->dest, "si", (char*) p->d1, (int) *p->d2);
-        return OK;
-      case 10:
-        lo_send(p->addr, (char*) p->dest, "sf", (char*) p->d1, (float) *p->d2);
-        return OK;
-      case 11:
-        lo_send(p->addr, (char*) p->dest, "ss", (char*) p->d1, (char*) p->d2);
-        return OK;
+      for (i=0; type[i]!='\0'; i++, msk <<=1) {
+        /* Need to add type checks */
+        switch (type[i]) {
+        case 'i':
+          if (p->XSTRCODE&msk)
+            return csound->PerfError(csound, Str("String not expected"));
+          lo_message_add_int32(msg, (int32_t)(*arg[i]+FL(0.5)));
+          break;
+        case 'l':
+          if (p->XSTRCODE&msk)
+            return csound->PerfError(csound, Str("String not expected"));
+          lo_message_add_int64(msg, (int64_t)(*arg[i]+FL(0.5)));
+          break;
+        case 'c':
+          if (p->XSTRCODE&msk)
+            return csound->PerfError(csound, Str("String not expected"));
+          lo_message_add_char(msg, (char)(*arg[i]+FL(0.5)));
+          break;
+        case 'm':
+          {
+            union a {
+              int32_t  x;
+              uint8_t  m[4];
+            } mm;
+            if (p->XSTRCODE&msk)
+              return csound->PerfError(csound, Str("String not expected"));
+            mm.x = *arg[i]+FL(0.5);
+            lo_message_add_midi(msg, mm.m);
+            break;
+          }
+        case 'f':
+          if (p->XSTRCODE&msk)
+            return csound->PerfError(csound, Str("String not expected"));
+          lo_message_add_float(msg, (float)(*arg[i]));
+          break;
+        case 'd':
+          if (p->XSTRCODE&msk)
+            return csound->PerfError(csound, Str("String not expected"));
+          lo_message_add_double(msg, (double)(*arg[i]));
+          break;
+        case 's':
+          if (p->XSTRCODE&msk)
+            lo_message_add_string(msg, (char*)arg[i]);
+          else
+            return csound->PerfError(csound, Str("Not a string when needed"));
+          break;
+/*         case 'y':               /\* Symbol *\/ */
+/*           if (p->XSTRCODE&msk) */
+/*             lo_message_add_symbol(msg, (char*)arg[i]); */
+/*           else */
+/*             return csound->PerfError(csound, Str("Not a string when needed")); */
+/*           break; */
+        case 'b':               /* Boolean */
+          if (p->XSTRCODE&msk)
+            return csound->PerfError(csound, Str("String not expected"));
+          if (*arg[i]==FL(0.0)) lo_message_add_true(msg);
+          else lo_message_add_false(msg);
+          break;
+        case 't':               /* timestamp */
+          {
+            lo_timetag tt;
+            if (p->XSTRCODE&msk)
+              return csound->PerfError(csound, Str("String not expected"));
+            tt.sec = (uint32_t)(*arg[i]+FL(0.5));
+            msk <<= 1; i++;
+            if (type[i]!='t')
+              return csound->PerfError(csound, Str("Time stanmp is two values"));
+            tt.frac = (uint32_t)(*arg[i]+FL(0.5));
+            lo_message_add_timetag(msg, tt);
+            break;
+          }
+        default:
+          csound->Message(csound, "Unknown OSC type %c\n", type[1]);
+        }
       }
+      lo_send_message(p->addr, (char*)p->dest, msg);
+      lo_message_free(msg);
     }
     return OK;
 }
@@ -121,7 +163,7 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
 #define S(x) sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND),  3, "",  "kSiSiUU", (SUBR)osc_send_set, (SUBR)osc_send }
+{ "OSCsend", S(OSCSEND),  3, "",  "kSiSSN", (SUBR)osc_send_set, (SUBR)osc_send }
 };
 
 LINKAGE
