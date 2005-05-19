@@ -2,7 +2,8 @@
 
 <CsInstruments>
 instr 1
-    OSCsend     1, "",7770, "/foo/bar", 4, 42, "FOO"
+;;;    OSCsend     1, "",7770, "/foo/bar", 4, 42, "FOO"
+    OSCsendl     1, "xenakis.cs.bath.ac.uk",7770, "/foo/bar", "sis", "FOO", 42, "bar"
 endin
 
 </CsInstruments>

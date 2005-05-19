@@ -37,7 +37,7 @@ typedef struct
     int   cnt;
 } OSCSEND;
 
-int osc_send_set(ENVIRON *csound, OSCSEND *p)
+int osc_sendl_set(ENVIRON *csound, OSCSEND *p)
 {
     char port[8];
     char *pp= port;
@@ -58,10 +58,11 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     t = lo_address_new(hh, pp);
     p->addr = t;
     p->cnt = 0;
+    p->last = 0;
     return OK;
 }
 
-int osc_send(ENVIRON *csound, OSCSEND *p)
+int osc_sendl(ENVIRON *csound, OSCSEND *p)
 {
     /* Types I allow at present:
        0) int
@@ -70,17 +71,19 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
        3) double
        4) char
     */
-    if (p->cnt++ && *p->kwhen!=p->last) {
+    if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int i=0;
-      int msk = 1;
+      int msk = 0x20;           /* First argument */
       lo_message msg = lo_message_new();
       char *type = (char*)p->type;
       MYFLT **arg = p->arg;
       p->last = *p->kwhen;
       for (i=0; type[i]!='\0'; i++, msk <<=1) {
         /* Need to add type checks */
+        csound->Message(csound, "Adding type %c %x\n", type[i], msk);
         switch (type[i]) {
         case 'i':
+          csound->Message(csound, "Integer %d %x\n", (int32_t)(*arg[i]+FL(0.5)), p->XSTRCODE&msk);
           if (p->XSTRCODE&msk)
             return csound->PerfError(csound, Str("String not expected"));
           lo_message_add_int32(msg, (int32_t)(*arg[i]+FL(0.5)));
@@ -91,16 +94,19 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
           lo_message_add_char(msg, (char)(*arg[i]+FL(0.5)));
           break;
         case 'f':
+          csound->Message(csound, "Float %f\n", (float)(*arg[i]));
           if (p->XSTRCODE&msk)
             return csound->PerfError(csound, Str("String not expected"));
           lo_message_add_float(msg, (float)(*arg[i]));
           break;
         case 'd':
+          csound->Message(csound, "double %f\n", (double)(*arg[i]));
           if (p->XSTRCODE&msk)
             return csound->PerfError(csound, Str("String not expected"));
           lo_message_add_double(msg, (double)(*arg[i]));
           break;
         case 's':
+          csound->Message(csound, "String %s\n", (char*)arg[i]);
           if (p->XSTRCODE&msk)
             lo_message_add_string(msg, (char*)arg[i]);
           else
@@ -119,7 +125,7 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
 #define S(x) sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsendl", S(OSCSEND),  3, "",  "kSiSSN", (SUBR)osc_send_set, (SUBR)osc_send }
+{ "OSCsendl", S(OSCSEND),  3, "",  "kSiSSN", (SUBR)osc_sendl_set, (SUBR)osc_sendl }
 };
 
 LINKAGE
