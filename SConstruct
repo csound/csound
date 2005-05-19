@@ -159,6 +159,7 @@ opts.Add('useDirentFix',
 "On OSX use the fixes for dirent.h (needed with earlier OS versions and development tools)",
     '0')
 opts.Add('buildPDClass', "build csoundapi~ PD class (needs m_pd.h in the standard places)", '0')
+opts.Add('useCoreAudio', "Set to 1 to use CoreAudio for real-time audio input and output.", '1')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -737,6 +738,15 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
 
 # REAL TIME AUDIO
 
+if(commonEnvironment['useCoreAudio']=='1' and getPlatform() == 'darwin'):
+    print "CONFIGURATION DECISION: Building CoreAudio plugin."
+    coreaudioEnvironment = pluginEnvironment.Copy()
+    coreaudioEnvironment.Append(CCFLAGS = ['-I/system/library/Frameworks/CoreAudio.framework/Headers'])   
+    pluginLibraries.append(coreaudioEnvironment.SharedLibrary('rtcoreaudio',
+                                                        ['InOut/rtcoreaudio.c']))
+else:
+    print "CONFIGURATION DECISION: Not building CoreAudio plugin."
+    
 if (not(commonEnvironment['useALSA']=='1' and alsaFound)):
     print "CONFIGURATION DECISION: Not building ALSA plugin."
 else:
