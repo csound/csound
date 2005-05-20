@@ -85,7 +85,7 @@ opts.Add('usePortAudio',
     '1')
 opts.Add('useOldPortAudioPlugin',
     'Set to 1 to use old PortAudio plugin (rtpa.c and pa_blocking.c).',
-    '0')
+    '1')
 opts.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio input and output.',
     '1')
@@ -132,14 +132,11 @@ opts.Add('noDebug',
     'Build without debugging information.',
     '0')
 opts.Add('gcc3opt',
-    'Enable gcc 3.3.x or later optimizations for i686.',
+    'Enable gcc 3.3.x or later optimizations for the specified CPU architecture (e.g. pentium3); implies noDebug.',
     '0')
-opts.Add('arch',
-    'Architecture type to use with gcc optimzation flag (-march=arch). Requires gcc3opt to be enabled',
-    'i686')
-opts.Add('cpu',
-    'CPU type to use with gcc optimization flag (-mcpu=cpu). Requires gcc3opt to be enabled',
-    'pentium3')
+opts.Add('gcc4opt',
+    'Enable gcc 4.0 or later optimizations for the specified CPU architecture (e.g. pentium3); implies noDebug.',
+    '0')
 opts.Add('useGprof',
     'Build with profiling information (-pg).',
     '0')
@@ -190,15 +187,26 @@ print "Build platform is '" + getPlatform() + "'."
 print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 print
 
-commonEnvironment.Prepend(CPPPATH  = ['.', './H'])
-if (commonEnvironment['gcc3opt']=='1'):
-  flags = '-DCSOUND_WITH_API -O3 -march=%s -mcpu=%s -fomit-frame-pointer -ffast-math -falign-functions=16'
-  flags = flags%(commonEnvironment['arch'], commonEnvironment['cpu'])
-  commonEnvironment.Prepend(CCFLAGS = Split(flags))
+commonEnvironment.Prepend(CPPPATH = ['.', './H'])
+commonEnvironment.Prepend(CCFLAGS = ['-DCSOUND_WITH_API'])
+if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
+  if (commonEnvironment['gcc4opt'] != '0'):
+    commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
+  commonEnvironment.Prepend(CCFLAGS = Split('-fomit-frame-pointer -ffast-math'))
+  if (commonEnvironment['gcc4opt'] != '0'):
+    flags = '-march=%s'%(commonEnvironment['gcc4opt'])
+    commonEnvironment.Prepend(CCFLAGS = Split(flags))
+  else:
+    flags = '-march=%s'%(commonEnvironment['gcc3opt'])
+    commonEnvironment.Prepend(CCFLAGS = Split(flags))
+  commonEnvironment.Prepend(CCFLAGS = ['-O3'])
 elif (commonEnvironment['noDebug']=='0'):
-  commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -g -gstabs -O2'))
+  if (getPlatform() == 'darwin'):
+    commonEnvironment.Prepend(CCFLAGS = Split('-g -O2'))
+  else:
+    commonEnvironment.Prepend(CCFLAGS = Split('-g -gstabs -O2'))
 else:
-  commonEnvironment.Prepend(CCFLAGS = Split('-DCSOUND_WITH_API -O2'))
+  commonEnvironment.Prepend(CCFLAGS = ['-O2'])
 if (commonEnvironment['useGprof']=='1'):
   commonEnvironment.Append(CCFLAGS = ['-pg'])
   commonEnvironment.Append(LINKFLAGS = ['-pg'])
@@ -741,12 +749,12 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
 if(commonEnvironment['useCoreAudio']=='1' and getPlatform() == 'darwin'):
     print "CONFIGURATION DECISION: Building CoreAudio plugin."
     coreaudioEnvironment = pluginEnvironment.Copy()
-    coreaudioEnvironment.Append(CCFLAGS = ['-I/system/library/Frameworks/CoreAudio.framework/Headers'])   
+    coreaudioEnvironment.Append(CCFLAGS = ['-I/system/library/Frameworks/CoreAudio.framework/Headers'])
     pluginLibraries.append(coreaudioEnvironment.SharedLibrary('rtcoreaudio',
                                                         ['InOut/rtcoreaudio.c']))
 else:
     print "CONFIGURATION DECISION: Not building CoreAudio plugin."
-    
+
 if (not(commonEnvironment['useALSA']=='1' and alsaFound)):
     print "CONFIGURATION DECISION: Not building ALSA plugin."
 else:
@@ -1019,9 +1027,9 @@ else:
         csoundVstSources.append(csoundVstJavaWrapper)
         jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.', JAVACFLAGS = Split('''-source 1.4 -target 1.4'''))
         zipDependencies.append(jcsound)
-    	jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', ['manifest.mf', 'frontends/CsoundVST/classes'], JARCHDIR = 'frontends/CsoundVST/classes')
+        jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', ['manifest.mf', 'frontends/CsoundVST/classes'], JARCHDIR = 'frontends/CsoundVST/classes')
     else:
-	print 'CONFIGURATION DECISION: Not building Java wrappers for CsoundVST.'
+        print 'CONFIGURATION DECISION: Not building Java wrappers for CsoundVST.'
     csoundvst = vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
@@ -1047,33 +1055,33 @@ else:
         # the Csound opcodes (modified for Csound 5).
         # It is assumed that you have copied all contents of the Loris distribution
         # into the csound5/Opcodes/Loris directory, e.g.
-    	# csound5/Opcodes/Loris/src/*, etc.
+        # csound5/Opcodes/Loris/src/*, etc.
         lorisEnvironment = vstEnvironment.Copy();
         lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H -DDEBUG_LORISGENS -D_MSC_VER')
         lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.C')
         lorisSources.append('Opcodes/Loris/scripting/loris.i')
-    	# The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
+        # The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
         lorisSources.append('Opcodes/Loris/lorisgens5.C')
         lorisEnvironment.Append(SWIGPATH = ['./'])
         lorisEnvironment.Prepend(SWIGFLAGS = Split('-module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.'))
         loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
-    	libs.append(loris)
-    	libs.append('loris.py')
+        libs.append(loris)
+        libs.append('loris.py')
 
     if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
-	print 'CONFIGURATION DECISION: Not building STK opcodes.'
+        print 'CONFIGURATION DECISION: Not building STK opcodes.'
     else:
-	print 'CONFIGURATION DECISION: Building STK opcodes.'
-	# For the STK opcodes, the STK distribution include, src, and rawwaves directories should be copied thusly:
-	# csound5/Opcodes/stk/include
-	# csound5/Opcodes/stk/src
-	# csound5/Opcodes/stk/rawwaves
-	# Then, the following sources (and any other future I/O or OS dependent sources) should be ignored:
-	removeSources = Split('''
+        print 'CONFIGURATION DECISION: Building STK opcodes.'
+        # For the STK opcodes, the STK distribution include, src, and rawwaves directories should be copied thusly:
+        # csound5/Opcodes/stk/include
+        # csound5/Opcodes/stk/src
+        # csound5/Opcodes/stk/rawwaves
+        # Then, the following sources (and any other future I/O or OS dependent sources) should be ignored:
+        removeSources = Split('''
 Opcodes/stk/src/Mutex.cpp
 Opcodes/stk/src/RtAudio.cpp
 Opcodes/stk/src/RtMidi.cpp
@@ -1085,26 +1093,26 @@ Opcodes/stk/src/TcpWvIn.cpp
 Opcodes/stk/src/TcpWvOut.cpp
 Opcodes/stk/src/Thread.cpp
 ''')
-	stkEnvironment = vstEnvironment.Copy()
-	if getPlatform() == 'mingw':
-		stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__ -D__LITTLE_ENDIAN__')
-	elif getPlatform() == 'linux':
-		stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__ -D__LITTLE_ENDIAN__')
-	elif getPlatform() == 'darwin':
-		stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
-	stkEnvironment.Prepend(CPPPATH = Split('Opcodes/stk/include Opcodes/stk/src ./ ./../include'))
-	stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
-	# This is the one that actually defines the opcodes. They are straight wrappers, as simple as possible.
-	stkSources_.append('Opcodes/stk/stkOpcodes.cpp')
-	stkSources = []
-	for source in stkSources_:
-		stkSources.append(source.replace('\\', '/'))
-	for removeMe in removeSources:
-	    stkSources.remove(removeMe)
-	stk = stkEnvironment.SharedLibrary('stk', stkSources)
+        stkEnvironment = vstEnvironment.Copy()
+        if getPlatform() == 'mingw':
+                stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__ -D__LITTLE_ENDIAN__')
+        elif getPlatform() == 'linux':
+                stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__ -D__LITTLE_ENDIAN__')
+        elif getPlatform() == 'darwin':
+                stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
+        stkEnvironment.Prepend(CPPPATH = Split('Opcodes/stk/include Opcodes/stk/src ./ ./../include'))
+        stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
+        # This is the one that actually defines the opcodes. They are straight wrappers, as simple as possible.
+        stkSources_.append('Opcodes/stk/stkOpcodes.cpp')
+        stkSources = []
+        for source in stkSources_:
+                stkSources.append(source.replace('\\', '/'))
+        for removeMe in removeSources:
+            stkSources.remove(removeMe)
+        stk = stkEnvironment.SharedLibrary('stk', stkSources)
         Depends(stk, csoundLibrary)
-	pluginLibraries.append(stk)
-	libs.append(stk)
+        pluginLibraries.append(stk)
+        libs.append(stk)
 
     pyEnvironment = pluginEnvironment.Copy();
     if getPlatform() == 'linux':
@@ -1133,20 +1141,20 @@ if (commonEnvironment['buildPDClass']=='1' and pdhfound):
     if(getPlatform() == 'darwin'):
         pdClassEnvironment.Append(LINKFLAGS = ['-bundle',  '-flat_namespace',  '-undefined',  'suppress'])
         pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
-	pdClassEnvironment.Append(LIBPATH=['.'])
-	if(commonEnvironment['useFLTK'] == '1'):
+        pdClassEnvironment.Append(LIBPATH=['.'])
+        if(commonEnvironment['useFLTK'] == '1'):
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile'])
-	else:
+        else:
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
     if(getPlatform() == 'linux'):
         pdClassEnvironment.Append(LINKFLAGS = ['-shared'])
         pdClassEnvironment.Program('csoundapi~.pd_linux', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
-	if(commonEnvironment['useFLTK'] == '1'):
+        if(commonEnvironment['useFLTK'] == '1'):
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile', 'X11'])
-	   pdClassEnvironment.Append(LIBPATH=['.', '/usr/X11R6/lib'])
-	else:
+           pdClassEnvironment.Append(LIBPATH=['.', '/usr/X11R6/lib'])
+        else:
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
-	   pdClassEnvironment.Append(LIBPATH=['.'])
+           pdClassEnvironment.Append(LIBPATH=['.'])
 
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux' and getPlatform() != 'cygwin'):
     print "CONFIGURATION DECISION: Not calling TAGS"
