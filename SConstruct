@@ -193,12 +193,15 @@ if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
   if (commonEnvironment['gcc4opt'] != '0'):
     commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
   commonEnvironment.Prepend(CCFLAGS = Split('-fomit-frame-pointer -ffast-math'))
-  if (commonEnvironment['gcc4opt'] != '0'):
-    flags = '-march=%s'%(commonEnvironment['gcc4opt'])
-    commonEnvironment.Prepend(CCFLAGS = Split(flags))
+  if (getPlatform() == 'darwin'):
+    flags = '-mcpu=%s'
   else:
-    flags = '-march=%s'%(commonEnvironment['gcc3opt'])
-    commonEnvironment.Prepend(CCFLAGS = Split(flags))
+    flags = '-march=%s'
+  if (commonEnvironment['gcc4opt'] != '0'):
+    flags = flags%(commonEnvironment['gcc4opt'])
+  else:
+    flags = flags%(commonEnvironment['gcc3opt'])
+  commonEnvironment.Prepend(CCFLAGS = Split(flags))
   commonEnvironment.Prepend(CCFLAGS = ['-O3'])
 elif (commonEnvironment['noDebug']=='0'):
   if (getPlatform() == 'darwin'):
