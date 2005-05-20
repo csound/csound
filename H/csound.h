@@ -1003,6 +1003,60 @@ extern "C" {
                                               void (*func)(void *, void *),
                                               void *userData);
 
+#define CSFILE_FD_R     1
+#define CSFILE_FD_W     2
+#define CSFILE_STD      3
+#define CSFILE_SND_R    4
+#define CSFILE_SND_W    5
+
+  /**
+   * Open a file and return handle.
+   *
+   * void *csound:
+   *   Csound instance pointer
+   * void *fd:
+   *   pointer a variable of type int, FILE*, or SNDFILE*, depending on 'type',
+   *   for storing handle to be passed to file read/write functions
+   * int type:
+   *   file type, one of the following:
+   *     CSFILE_FD_R:     read file using low level interface (open())
+   *     CSFILE_FD_W:     write file using low level interface (open())
+   *     CSFILE_STD:      use ANSI C interface (fopen())
+   *     CSFILE_SND_R:    read sound file
+   *     CSFILE_SND_W:    write sound file
+   * const char *name:
+   *   file name
+   * void *param:
+   *   parameters, depending on type:
+   *     CSFILE_FD_R:     unused (should be NULL)
+   *     CSFILE_FD_W:     unused (should be NULL)
+   *     CSFILE_STD:      mode parameter (of type char*) to be passed to fopen()
+   *     CSFILE_SND_R:    SF_INFO* parameter for sf_open(), with defaults for
+   *                      raw file; the actual format paramaters of the opened
+   *                      file will be stored in this structure
+   *     CSFILE_SND_W:    SF_INFO* parameter for sf_open(), output file format
+   * const char *env:
+   *   list of environment variables for search path (see csoundFindInputFile()
+   *   for details); if NULL, the specified name is used as it is, without any
+   *   conversion or search.
+   * return value:
+   *   opaque handle to the opened file, for use with csoundGetFileName() or
+   *   csoundFileClose(), or storing in FDCH.fp.
+   *   On failure, NULL is returned.
+   */
+  PUBLIC void *csoundFileOpen(void *csound, void *fd, int type,
+                              const char *name, void *param, const char *env);
+
+  /**
+   * Get the full name of a file previously opened with csoundFileOpen().
+   */
+  PUBLIC char *csoundGetFileName(void *csound, void *fd);
+
+  /**
+   * Close a file previously opened with csoundFileOpen().
+   */
+  PUBLIC int csoundFileClose(void *csound, void *fd);
+
   /* type/macro definitions and interface functions
      for configuration variables */
 #include "cfgvar.h"

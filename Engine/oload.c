@@ -47,6 +47,7 @@ void    defaultCsoundDrawGraph(void *csound, WINDAT *windat);
 void    defaultCsoundKillGraph(void *csound, WINDAT *windat);
 int     defaultCsoundExitGraph(void *csound);
 int     defaultCsoundYield(void *csound);
+void    close_all_files(void *csound);
 
 static const OPARMS O_ = {
               0,            /* odebug */
@@ -212,6 +213,9 @@ const ENVIRON cenviron_ = {
         csoundAddUtility,
         csoundRunUtility,
         csoundRegisterSenseEventCallback,
+        csoundFileOpen,
+        csoundGetFileName,
+        csoundFileClose,
         playopen_dummy,
         rtplay_dummy,
         recopen_dummy,
@@ -414,7 +418,8 @@ const ENVIRON cenviron_ = {
         0.5,            /*  rndfrac             */
         NULL,           /*  logbase2            */
         NULL, NULL,     /*  omacros, smacros    */
-        NULL            /*  namedgen            */
+        NULL,           /*  namedgen            */
+        NULL            /*  open_files          */
 };
 
 /* otran.c */
@@ -463,6 +468,7 @@ void oloadRESET(ENVIRON *csound)
       tp = nxttp;
     }
     mfree(csound, csound->instrtxtp);           /* Start again */
+    close_all_files(csound);
     /* delete temporary files created by this Csound instance */
     remove_tmpfiles(csound);
     /**
