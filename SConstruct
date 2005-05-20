@@ -157,6 +157,9 @@ opts.Add('useDirentFix',
     '0')
 opts.Add('buildPDClass', "build csoundapi~ PD class (needs m_pd.h in the standard places)", '0')
 opts.Add('useCoreAudio', "Set to 1 to use CoreAudio for real-time audio input and output.", '1')
+opts.Add('useAltivec', 
+"On OSX use the gcc AltiVec optmisation flags",
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -240,6 +243,10 @@ elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
     commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
+    if (commonEnvironment['useAltivec'] == '1'):
+        print 'CONFIGURATION DECISION using Altivec optmisation'
+    	commonEnvironment.Append(CCFLAGS = "-maltivec")
+    	commonEnvironment.Append(CCFLAGS = "-mabi=altivec")
     if (commonEnvironment['useDirentFix'] == '1'):
         print 'Using OSX dirent fix'
         commonEnvironment.Append(CCFLAGS = "-DDIRENT_FIX")
