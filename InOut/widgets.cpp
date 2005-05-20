@@ -76,10 +76,7 @@
 
 using namespace std ;
 
-extern "C" {
-#include "cs.h"
-#include "oload.h"
-}
+#include "csdl.h"
 
 #define CSOUND_WIDGETS_CPP 1
 #include "widgets.h"
@@ -177,7 +174,9 @@ extern "C" {
       evt.p[i] = *args[i];
     if (evt.p[2] < FL(0.0))
       evt.p[2] = FL(0.0);
-    insert_score_event(csound, &evt, csound->sensEvents_state.curTime, 0);
+    /* FIXME: not thread safe */
+    csound->insert_score_event(csound,
+                               &evt, csound->sensEvents_state.curTime, 0);
   }
 
 #if defined(__cplusplus)
@@ -1214,7 +1213,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
 {
   if (is_empty) {
 /*  FIXME: should have ENVIRON* pointer here */
-/*  return csoundInitError(csound, "empty snapshot"); */
+/*  return csound->InitError(csound, "empty snapshot"); */
     return -1;
   }
   for (int j =0; j< (int) valuators.size(); j++) {
@@ -3469,4 +3468,123 @@ extern "C" int FLprintk2(ENVIRON *csound, FLPRINTK2 *p)
   }
   return OK;
 }
+
+extern "C" {
+
+#define S(x)    sizeof(x)
+
+static OENTRY localops[] = {
+    { "FLslider",       S(FLSLIDER),            1,  "ki",   "Tiijjjjjjj",
+        (SUBR) fl_slider,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLslidBnk",      S(FLSLIDERBANK),        1,  "",     "Tiooooooooo",
+        (SUBR) fl_slider_bank,          (SUBR) NULL,              (SUBR) NULL },
+    { "FLknob",         S(FLKNOB),              1,  "ki",   "Tiijjjjjj",
+        (SUBR) fl_knob,                 (SUBR) NULL,              (SUBR) NULL },
+    { "FLroller",       S(FLROLLER),            1,  "ki",   "Tiijjjjjjjj",
+        (SUBR) fl_roller,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLtext",         S(FLTEXT),              1,  "ki",   "Tiijjjjjj",
+        (SUBR) fl_text,                 (SUBR) NULL,              (SUBR) NULL },
+    { "FLjoy",          S(FLJOYSTICK),          1,  "kkii", "Tiiiijjjjjjjj",
+        (SUBR) fl_joystick,             (SUBR) NULL,              (SUBR) NULL },
+    { "FLcount",        S(FLCOUNTER),           1,  "ki",   "Tiiiiiiiiiz",
+        (SUBR) fl_counter,              (SUBR) NULL,              (SUBR) NULL },
+    { "FLbutton",       S(FLBUTTON),            1,  "ki",   "Tiiiiiiiz",
+        (SUBR) fl_button,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLbutBank",      S(FLBUTTONBANK),        1,  "ki",   "iiiiiiiiz",
+        (SUBR) fl_button_bank,          (SUBR) NULL,              (SUBR) NULL },
+    { "FLkeyb",         S(FLKEYB),              1,  "k",    "z",
+        (SUBR) FLkeyb,                  (SUBR) NULL,              (SUBR) NULL },
+    { "FLcolor",        S(FLWIDGCOL),           1,  "",     "jjjjjj",
+        (SUBR) fl_widget_color,         (SUBR) NULL,              (SUBR) NULL },
+    { "FLcolor2",       S(FLWIDGCOL2),          1,  "",     "jjj",
+        (SUBR) fl_widget_color2,        (SUBR) NULL,              (SUBR) NULL },
+    { "FLlabel",        S(FLWIDGLABEL),         1,  "",     "ojojjj",
+        (SUBR) fl_widget_label,         (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetVal_i", S(FL_SET_WIDGET_VALUE_I),   1,  "",     "ii",
+        (SUBR) fl_setWidgetValuei,      (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetVali",  S(FL_SET_WIDGET_VALUE_I),   1,  "",     "ii",
+        (SUBR) fl_setWidgetValuei,      (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetVal",       S(FL_SET_WIDGET_VALUE), 3,  "",     "kki",
+        (SUBR) fl_setWidgetValue_set,   (SUBR) fl_setWidgetValue, (SUBR) NULL },
+    { "FLsetColor",     S(FL_SET_COLOR),        1,  "",     "iiii",
+        (SUBR) fl_setColor1,            (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetColor2",    S(FL_SET_COLOR),        1,  "",     "iiii",
+        (SUBR) fl_setColor2,            (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetTextSize",  S(FL_SET_TEXTSIZE),     1,  "",     "ii",
+        (SUBR) fl_setTextSize,          (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetTextColor", S(FL_SET_COLOR),        1,  "",     "iiii",
+        (SUBR) fl_setTextColor,         (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetFont",      S(FL_SET_FONT),         1,  "",     "ii",
+        (SUBR) fl_setFont,              (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetTextType",  S(FL_SET_FONT),         1,  "",     "ii",
+        (SUBR) fl_setTextType,          (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetText",      S(FL_SET_TEXT),         1,  "",     "Ti",
+        (SUBR) fl_setText,              (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetSize",      S(FL_SET_SIZE),         1,  "",     "iii",
+        (SUBR) fl_setSize,              (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetPosition",  S(FL_SET_POSITION),     1,  "",     "iii",
+        (SUBR) fl_setPosition,          (SUBR) NULL,              (SUBR) NULL },
+    { "FLhide",         S(FL_WIDHIDE),          1,  "",     "i",
+        (SUBR) fl_hide,                 (SUBR) NULL,              (SUBR) NULL },
+    { "FLshow",         S(FL_WIDSHOW),          1,  "",     "i",
+        (SUBR) fl_show,                 (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetBox",       S(FL_SETBOX),           1,  "",     "ii",
+        (SUBR) fl_setBox,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetAlign",     S(FL_TALIGN),           1,  "",     "ii",
+        (SUBR) fl_align,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLbox",          S(FL_BOX),              1,  "i",    "Tiiiiiii",
+        (SUBR) fl_box,                  (SUBR) NULL,              (SUBR) NULL },
+    { "FLvalue",        S(FLVALUE),             1,  "i",    "Tjjjj",
+        (SUBR) fl_value,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLpanel",        S(FLPANEL),             1,  "",     "Tjjooo",
+        (SUBR) StartPanel,              (SUBR) NULL,              (SUBR) NULL },
+    { "FLpanelEnd",     S(FLPANELEND),          1,  "",     "",
+        (SUBR) EndPanel,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLpanel_end",    S(FLPANELEND),          1,  "",     "",
+        (SUBR) EndPanel,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLscroll",       S(FLSCROLL),            1,  "",     "iiii",
+        (SUBR) StartScroll,             (SUBR) NULL,              (SUBR) NULL },
+    { "FLscrollEnd",    S(FLSCROLLEND),         1,  "",     "",
+        (SUBR) EndScroll,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLscroll_end",   S(FLSCROLLEND),         1,  "",     "",
+        (SUBR) EndScroll,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLpack",         S(FLPACK),              1,  "",     "iiii",
+        (SUBR) StartPack,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLpackEnd",      S(FLPACKEND),           1,  "",     "",
+        (SUBR) EndPack,                 (SUBR) NULL,              (SUBR) NULL },
+    { "FLpack_end",     S(FLPACKEND),           1,  "",     "",
+        (SUBR) EndPack,                 (SUBR) NULL,              (SUBR) NULL },
+    { "FLtabs",         S(FLTABS),              1,  "",     "iiii",
+        (SUBR) StartTabs,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLtabsEnd",      S(FLTABSEND),           1,  "",     "",
+        (SUBR) EndTabs,                 (SUBR) NULL,              (SUBR) NULL },
+    { "FLtabs_end",     S(FLTABSEND),           1,  "",     "",
+        (SUBR) EndTabs,                 (SUBR) NULL,              (SUBR) NULL },
+    { "FLgroup",        S(FLGROUP),             1,  "",     "Tiiiij",
+        (SUBR) StartGroup,              (SUBR) NULL,              (SUBR) NULL },
+    { "FLgroupEnd",     S(FLGROUPEND),          1,  "",     "",
+        (SUBR) EndGroup,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLgroup_end",    S(FLGROUPEND),          1,  "",     "",
+        (SUBR) EndGroup,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLsetsnap",      S(FLSETSNAP),           1,  "ii",   "io",
+        (SUBR) set_snap,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLgetsnap",      S(FLGETSNAP),           1,  "i",    "i",
+        (SUBR) get_snap,                (SUBR) NULL,              (SUBR) NULL },
+    { "FLsavesnap",     S(FLSAVESNAPS),         1,  "",     "T",
+        (SUBR) save_snap,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLloadsnap",     S(FLLOADSNAPS),         1,  "",     "T",
+        (SUBR) load_snap,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLrun",          S(FLRUN),               1,  "",     "",
+        (SUBR) FL_run,                  (SUBR) NULL,              (SUBR) NULL },
+    { "FLupdate",       S(FLRUN),               1,  "",     "",
+        (SUBR) fl_update,               (SUBR) NULL,              (SUBR) NULL },
+    { "FLprintk",       S(FLPRINTK),            3,  "",     "iki",
+        (SUBR) FLprintkset,             (SUBR) FLprintk,          (SUBR) NULL },
+    { "FLprintk2",      S(FLPRINTK2),           3,  "",     "ki",
+        (SUBR) FLprintk2set,            (SUBR) FLprintk2,         (SUBR) NULL }
+};
+
+LINKAGE
+
+};      // extern "C"
 

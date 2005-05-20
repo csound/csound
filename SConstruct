@@ -603,7 +603,6 @@ else:
     print 'CONFIGURATION DECISION: Building with FLTK for graphs and widgets.'
     libCsoundSources.append('InOut/FL_graph.cpp')
     libCsoundSources.append('InOut/winFLTK.c')
-    libCsoundSources.append('InOut/widgets.cpp')
 
 if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
   print 'CONFIGURATION DECISION: Building dynamic Csound library'
@@ -753,6 +752,21 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
     ['Opcodes/sndloop.c']))
 
 # Plugins with External Dependencies
+
+# FLTK widgets
+
+if (commonEnvironment['useFLTK'] == '1' and fltkFound):
+  widgetsEnvironment = pluginEnvironment.Copy()
+  widgetsEnvironment.Append(LIBS = ['fltk'])
+  if getPlatform() == 'linux' or getPlatform() == 'cygwin':
+    widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+  elif getPlatform() == 'mingw':
+    widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+  elif getPlatform() == 'darwin':
+    widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    widgetsEnvironment.Append(LINKFLAGS = Split('-framework Carbon -framework CoreAudio -framework CoreMidi'))
+  pluginLibraries.append(widgetsEnvironment.SharedLibrary('widgets',
+                                                        ['InOut/widgets.cpp']))
 
 # REAL TIME AUDIO
 
