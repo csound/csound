@@ -70,7 +70,14 @@ void    oload(ENVIRON*);
 void    reverbinit(ENVIRON*);
 void    dispinit(ENVIRON*);
 int     init0(ENVIRON*);
+#ifdef HAVE_GCC3
+__attribute__ ((__deprecated__))
+  int   openin(ENVIRON *, char *);
+__attribute__ ((__deprecated__))
+  int   openout(ENVIRON *, char *, int);
+#else
 int     openin(ENVIRON *, char *), openout(ENVIRON *, char *, int);
+#endif
 void    scsort(ENVIRON *, FILE *, FILE *);
 int     scxtract(ENVIRON *, FILE *, FILE *, FILE *);
 int     rdscor(ENVIRON *, EVTBLK *);

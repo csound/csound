@@ -226,8 +226,14 @@ extern "C" {
 
   typedef struct fdch {
     struct fdch * nxtchp;
-    void   *fd;             /* Should be SNDFILE * */
-    int    fdc;
+    void    *fp;
+#ifdef HAVE_GCC3
+    __attribute__ ((__deprecated__))    void    *fd;  /* Should be SNDFILE * */
+    __attribute__ ((__deprecated__))    int     fdc;
+#else
+    void    *fd;            /* Should be SNDFILE * */
+    int     fdc;
+#endif
   } FDCH;
 
   typedef struct auxch {
@@ -782,6 +788,9 @@ extern "C" {
     int (*Utility)(void *csound_, const char *name, int argc, char **argv);
     int (*RegisterSenseEventCallback)(void *csound_, void (*func)(void*, void*),
                                       void *userData);
+    void *(*FileOpen)(void *, void *, int, const char *, void *, const char *);
+    char *(*GetFileName)(void *, void *);
+    int (*FileClose)(void *, void *);
     /* callback function pointers - not part of the API */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
     void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
@@ -846,6 +855,9 @@ extern "C" {
     int           Linefd;
     MYFLT         *ls_table;
     MYFLT         curr_func_sr;
+#ifdef HAVE_GCC3
+  __attribute__ ((__deprecated__))
+#endif
     char          *retfilnam;
     INSTRTXT      **instrtxtp;
     char          errmsg[ERRSIZ];   /* sprintf space for compiling msgs */
@@ -981,6 +993,7 @@ extern "C" {
     MYFLT         *logbase2;
     NAMES         *omacros, *smacros;
     void          *namedgen;            /* fgens.c */
+    void          *open_files;          /* fileopen.c */
   } ENVIRON;
 
 #include "text.h"
