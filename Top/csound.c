@@ -1539,13 +1539,15 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 
 /* -------- IV - Jan 27 2005: timer functions -------- */
 
-#if defined(WIN32)
-/* do not use UNIX code under Win32 */
-#ifdef __unix
-#undef __unix
+#ifdef HAVE_GETTIMEOFDAY
+#undef HAVE_GETTIMEOFDAY
 #endif
-#elif defined(__unix) || defined(SGI) || defined(LINUX)
+#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
+#ifndef WIN32
+/* do not use UNIX code under Win32 */
+#define HAVE_GETTIMEOFDAY 1
 #include <sys/time.h>
+#endif
 #endif
 
 /* enable use of high resolution timer (Linux/i586/GCC only) */
@@ -1612,7 +1614,7 @@ static int getTimeResolution(void)
     }
     /* MHz -> seconds */
     timeResolutionSeconds = 0.000001 / timeResolutionSeconds;
-#elif defined(__unix) || defined(SGI) || defined(LINUX)
+#elif defined(HAVE_GETTIMEOFDAY)
     timeResolutionSeconds = 0.000001;
 #elif defined(WIN32)
     {
@@ -1639,7 +1641,7 @@ static int getTimeResolution(void)
 {                                                                       \
     asm volatile ("rdtsc" : "=a" (l), "=d" (h));                        \
 }
-#elif defined(__unix) || defined(SGI) || defined(LINUX)
+#elif defined(HAVE_GETTIMEOFDAY)
 /* UNIX: use gettimeofday() - allows 1 us resolution */
 #define get_real_time(h,l)                                              \
 {                                                                       \
@@ -1699,7 +1701,7 @@ double timers_get_real_time(RTCLOCK *p)
     l -= p->starttime_real_low;
     return (((double) ((long) h) * 4294967296.0 + (double) l)
             * p->real_time_to_seconds_scale);
-#elif defined(__unix) || defined(SGI) || defined(LINUX)
+#elif defined(HAVE_GETTIMEOFDAY)
     return ((double) ((long) h - (long) p->starttime_real_high)
             + ((double) ((long) l - (long) p->starttime_real_low) * 0.000001));
 #else
@@ -1724,7 +1726,7 @@ unsigned long timers_random_seed(void)
 {
     unsigned long h, l;
     get_real_time(h, l)
-#if !defined(HAVE_RDTSC) && (defined(__unix) || defined(SGI) || defined(LINUX))
+#if !defined(HAVE_RDTSC) && defined(HAVE_GETTIMEOFDAY)
     /* make use of all bits */
     l += (h & 0x00000FFFUL) * 1000000UL;
 #endif
