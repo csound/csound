@@ -29,7 +29,7 @@ import sys
 import time
 # Change enableCsound to True if you have installed CsoundVST.
 # Importing CsoundVST automatically creates a csound object.
-enableCsound = True
+enableCsound = False
 if enableCsound:
     import CsoundVST
 from visual import *
@@ -88,16 +88,15 @@ def setColor(ball):
             saturation = 1.0
             value = 1.0
             ball.color = color.hsv_to_rgb((hue, saturation, value))
-        
-# Generate sufficient layers to display one complete octave of trichords for each inversion.
-modulus = 12
-layers = (modulus - 1) * 3
-trichordCount = 0
 voices = 3
+modulus = 12
+octaves = 2
+layers = (modulus - 1) * voices * octaves
+trichordCount = 0
 for layer in xrange(0, layers + 1):
-    for x in xrange(layer / voices - (2 * modulus / voices), layer / voices + (modulus / voices )+ 1):
-        for y in xrange(x, layer / voices + (2 * modulus / voices) + 1):
-            for z in xrange(y, layer / voices + (2 * modulus / voices) + 1):
+    for x in xrange(layer / voices - (2 * modulus / voices), (layer / voices + (modulus  / voices) + 1) * octaves):
+        for y in xrange(x, (layer / voices + (2 * modulus  / voices) + 1) * octaves):
+            for z in xrange(y, (layer / voices + (2 * modulus / voices) + 1) * octaves):
                 sum = x + y + z
                 if sum == layer and z <= (x + modulus):
                     trichord = unorder((x, y, z))
@@ -105,32 +104,32 @@ for layer in xrange(0, layers + 1):
                         trichordCount = trichordCount + 1
                         trichords[trichord] = trichord
                         ball = sphere(pos = trichord, radius = 0.125)
-                         # Make a label for each ball, and hide it till it's needed.
+                        # Make a label for each ball, and hide it till it's needed.
                         ball.trichord = unorder(((x + 144) % modulus, (y + 144) % modulus, (z + 144) % modulus))
-                        print ball.trichord
+                        # print ball.trichord
                         balls[str(ball.trichord)] = ball;
                         if ball.trichord == (1,5,10):
                             scene.center = ball.pos
                         ball.layer = layer
                         ball.sum = ball.trichord[0] + ball.trichord[1] + ball.trichord[2]
                         setColor(ball)
-                        ball.name = "%2d (%2d,%2d,%2d)" % (layer, ball.trichord[0], ball.trichord[1], ball.trichord[2])
+                        ball.name = "%2d (%2d,%2d,%2d)\n  (%2d,%2d,%2d)" % (layer, ball.trichord[0], ball.trichord[1], ball.trichord[2], ball.pos[0],ball.pos[1],ball.pos[2])
                         ball.label = label(pos = trichord, text = ball.name, height = 11, box = 1, opacity = 0.3, visible = 0, line = 1, xoffset=40,yoffset=40 )
     print
 # Enlarge C, its closest F, and its closest G.
-balls['(0, 4, 7)'].radius = .25
-balls['(0, 5, 9)'].radius = .25
-balls['(2, 7, 11)'].radius = .25
+#balls['(0, 4, 7)'].radius = .25
+#balls['(0, 5, 9)'].radius = .25
+#balls['(2, 7, 11)'].radius = .25
 def connect(origin, neighbor):
     if neighbor in trichords:
         curve(pos = [origin, neighbor], color = (0.67, 0.67, 0.67))
-for trichord in trichords.values():
-    connect(trichord, unorder((trichord[0] + 1.0, trichord[1], trichord[2])))
-    connect(trichord, unorder((trichord[0], trichord[1] + 1.0, trichord[2])))
-    connect(trichord, unorder((trichord[0], trichord[1], trichord[2] + 1.0)))
-    connect(trichord, unorder((trichord[0] - 1.0, trichord[1], trichord[2])))
-    connect(trichord, unorder((trichord[0], trichord[1] - 1.0, trichord[2])))
-    connect(trichord, unorder((trichord[0], trichord[1], trichord[2] - 1.0)))
+##for trichord in trichords.values():
+##    connect(trichord, unorder((trichord[0] + 1.0, trichord[1], trichord[2])))
+##    connect(trichord, unorder((trichord[0], trichord[1] + 1.0, trichord[2])))
+##    connect(trichord, unorder((trichord[0], trichord[1], trichord[2] + 1.0)))
+##    connect(trichord, unorder((trichord[0] - 1.0, trichord[1], trichord[2])))
+##    connect(trichord, unorder((trichord[0], trichord[1] - 1.0, trichord[2])))
+##    connect(trichord, unorder((trichord[0], trichord[1], trichord[2] - 1.0)))
 if enableCsound:
     def csoundThreadRoutine():
         csound.load('c:/utah/home/mkg/projects/csound5/examples/CsoundVST.csd')
