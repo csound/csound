@@ -42,9 +42,6 @@
 #include "midifile.h"
 #include "midiinterop.h"
 #include "ftgen.h"
-#if defined(USE_FLTK)
-#include "widgets.h"                    /* IV - Aug 23 2002 */
-#endif
 #include "linevent.h"
 #include "str_ops.h"
 
@@ -122,29 +119,6 @@ int    midinoteoff(void*,void*), midinoteonkey(void*,void*), midinoteoncps(void*
 int    midinoteonoct(void*,void*), midinoteonpch(void*,void*), midipolyaftertouch(void*,void*);
 int    midicontrolchange(void*,void*), midiprogramchange(void*,void*);
 int    midichannelaftertouch(void*,void*), midipitchbend(void*,void*), mididefault(void*,void*);
-#if defined(USE_FLTK)                  /* IV - Aug 23 2002 */
-int    fl_slider(void*,void*), fl_slider_bank(void*,void*);
-int    StartPanel(void*,void*), EndPanel(void*,void*), FL_run(void*,void*);
-int    fl_widget_color(void*,void*), fl_widget_color2(void*,void*);
-int    fl_knob(void*,void*), fl_roller(void*,void*), fl_text(void*,void*);
-int    fl_value(void*,void*), StartScroll(void*,void*), EndScroll(void*,void*);
-int    StartPack(void*,void*), EndPack(void*,void*), fl_widget_label(void*,void*);
-int    fl_setWidgetValuei(void*,void*), fl_setWidgetValue(void*,void*);
-int    fl_setWidgetValue_set(void*,void*);
-int    fl_update(void*,void*), StartGroup(void*,void*), EndGroup(void*,void*);
-int    StartTabs(void*,void*), EndTabs(void*,void*);
-int    fl_joystick(void*,void*), fl_button(void*,void*), FLkeyb(void*,void*), fl_counter(void*,void*);
-int    set_snap(void*,void*), get_snap(void*,void*);
-int    fl_setColor1(void*,void*), fl_setColor2(void*,void*);
-int    fl_setTextSize(void*,void*), fl_setTextColor(void*,void*);
-int    fl_setFont(void*,void*), fl_setText(void*,void*), fl_setSize(void*,void*);
-int    fl_setTextType(void*,void*), fl_setBox(void*,void*);
-int    fl_setPosition(void*,void*), fl_hide(void*,void*), fl_show(void*,void*), fl_box(void*,void*);
-int    fl_align(void*,void*);
-int    save_snap(void*,void*), load_snap(void*,void*), fl_button_bank(void*,void*);
-int    FLprintkset(void*,void*), FLprintk(void*,void*);
-int    FLprintk2set(void*,void*), FLprintk2(void*,void*);
-#endif
 int    invalset(void*,void*), kinval(void*,void*), outvalset(void*,void*), koutval(void*,void*);
 int    subinstrset(void*,void*), subinstr(void*,void*);    /* IV - Sep 1 2002 */
 int    useropcdset(void*,void*), useropcd(void*,void*), setksmpsset(void*,void*); /* IV - Sep 8 2002 */
@@ -259,63 +233,6 @@ OENTRY opcodlst_2[] = {
 { "tablexkt", S(TABLEXKT),5,    "a", "xkkiooo",  (SUBR)tablexkt_set, NULL, (SUBR)tablexkt   },
 { "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR)reverbx    },
 { "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR) reverbx    },
-/* IV - Aug 23 2002 */
-#if defined(USE_FLTK)
-{ "FLslider",S(FLSLIDER), 1,    "ki",   "Tiijjjjjjj",   fl_slider, NULL, NULL   },
-{ "FLslidBnk",S(FLSLIDERBANK), 1, "", "Tiooooooooo", fl_slider_bank, NULL, NULL },
-{ "FLknob",S(FLKNOB),     1,    "ki",   "Tiijjjjjj",    fl_knob, NULL, NULL     },
-{ "FLroller",S(FLROLLER), 1,    "ki",   "Tiijjjjjjjj",  fl_roller, NULL, NULL   },
-{ "FLtext",S(FLTEXT),     1,    "ki",   "Tiijjjjjj",    fl_text, NULL, NULL     },
-{ "FLjoy",S(FLJOYSTICK),  1,    "kkii", "Tiiiijjjjjjjj", fl_joystick, NULL, NULL},
-{ "FLcount",S(FLCOUNTER), 1,    "ki",   "Tiiiiiiiiiz", fl_counter, NULL, NULL  },
-{ "FLbutton",S(FLBUTTON), 1,    "ki",   "Tiiiiiiiz",    fl_button, NULL, NULL   },
-{ "FLbutBank",S(FLBUTTONBANK), 1, "ki", "iiiiiiiiz", fl_button_bank, NULL, NULL },
-{ "FLkeyb",S(FLKEYB),     1,    "k",    "z",            FLkeyb, NULL, NULL      },
-{ "FLcolor",S(FLWIDGCOL), 1,    "",     "jjjjjj",   fl_widget_color, NULL, NULL },
-{ "FLcolor2",S(FLWIDGCOL2), 1,  "",     "jjj",     fl_widget_color2, NULL, NULL },
-{ "FLlabel",S(FLWIDGLABEL), 1,  "",     "ojojjj",   fl_widget_label, NULL, NULL },
-{ "FLsetVal_i",S(FL_SET_WIDGET_VALUE_I), 1, "", "ii", fl_setWidgetValuei, NULL, NULL },
-{ "FLsetVali",S(FL_SET_WIDGET_VALUE_I), 1, "", "ii", fl_setWidgetValuei, NULL, NULL },
-{ "FLsetVal",S(FL_SET_WIDGET_VALUE), 3, "", "kki", fl_setWidgetValue_set, fl_setWidgetValue },
-{ "FLsetColor",S(FL_SET_COLOR), 1, "",  "iiii",     fl_setColor1, NULL, NULL},
-{ "FLsetColor2",S(FL_SET_COLOR), 1, "", "iiii",     fl_setColor2, NULL, NULL},
-{ "FLsetTextSize",S(FL_SET_TEXTSIZE), 1, "", "ii",  fl_setTextSize, NULL, NULL },
-{ "FLsetTextColor",S(FL_SET_COLOR), 1, "", "iiii",  fl_setTextColor, NULL, NULL },
-{ "FLsetFont",S(FL_SET_FONT), 1, "",    "ii",   fl_setFont, NULL, NULL      },
-{ "FLsetTextType",S(FL_SET_FONT), 1, "", "ii",  fl_setTextType, NULL, NULL  },
-{ "FLsetText",S(FL_SET_TEXT), 1, "",    "Ti",       fl_setText, NULL, NULL  },
-{ "FLsetSize",S(FL_SET_SIZE), 1, "",    "iii",      fl_setSize, NULL, NULL  },
-{ "FLsetPosition",S(FL_SET_POSITION), 1, "", "iii", fl_setPosition, NULL, NULL },
-{ "FLhide",S(FL_WIDHIDE), 1,    "",     "i",        fl_hide, NULL, NULL     },
-{ "FLshow",S(FL_WIDSHOW), 1,    "",     "i",        fl_show, NULL, NULL     },
-{ "FLsetBox",S(FL_SETBOX), 1,   "",     "ii",       fl_setBox, NULL, NULL   },
-{ "FLsetAlign",S(FL_TALIGN), 1, "",     "ii",       fl_align, NULL, NULL    },
-{ "FLbox",S(FL_BOX),      1,    "i",    "Tiiiiiii", fl_box, NULL, NULL      },
-{ "FLvalue",S(FLVALUE),   1,    "i",    "Tjjjj",    fl_value, NULL, NULL    },
-{ "FLpanel",S(FLPANEL),   1,    "",     "Tjjooo",   StartPanel, NULL, NULL  },
-{ "FLpanelEnd",S(FLPANELEND), 1, "",    "",         EndPanel, NULL, NULL    },
-{ "FLpanel_end",S(FLPANELEND), 1, "",    "",        EndPanel, NULL, NULL    },
-{ "FLscroll",S(FLSCROLL), 1,    "",     "iiii",     StartScroll, NULL, NULL },
-{ "FLscrollEnd",S(FLSCROLLEND), 1, "",  "",         EndScroll, NULL, NULL   },
-{ "FLscroll_end",S(FLSCROLLEND), 1, "",  "",        EndScroll, NULL, NULL   },
-{ "FLpack",S(FLPACK),     1,    "",     "iiii",     StartPack, NULL, NULL   },
-{ "FLpackEnd",S(FLPACKEND), 1, "",      "",         EndPack, NULL, NULL     },
-{ "FLpack_end",S(FLPACKEND), 1, "",      "",        EndPack, NULL, NULL     },
-{ "FLtabs",S(FLTABS),     1,    "",     "iiii",     StartTabs, NULL, NULL   },
-{ "FLtabsEnd",S(FLTABSEND), 1, "",      "",         EndTabs, NULL, NULL     },
-{ "FLtabs_end",S(FLTABSEND), 1, "",      "",        EndTabs, NULL, NULL     },
-{ "FLgroup",S(FLGROUP),   1,    "",     "Tiiiij",   StartGroup, NULL, NULL  },
-{ "FLgroupEnd",S(FLGROUPEND), 1, "",    "",         EndGroup, NULL, NULL    },
-{ "FLgroup_end",S(FLGROUPEND), 1, "",    "",        EndGroup, NULL, NULL    },
-{ "FLsetsnap",S(FLSETSNAP), 1,  "ii",   "io",       set_snap, NULL, NULL    },
-{ "FLgetsnap",S(FLGETSNAP), 1,  "i",    "i",        get_snap, NULL, NULL    },
-{ "FLsavesnap",S(FLSAVESNAPS), 1, "",   "T",        save_snap, NULL, NULL   },
-{ "FLloadsnap",S(FLLOADSNAPS), 1, "",   "T",        load_snap, NULL, NULL   },
-{ "FLrun",S(FLRUN),       1,    "",     "",         FL_run, NULL, NULL      },
-{ "FLupdate",S(FLRUN),    1,    "",     "",         fl_update, NULL, NULL   },
-{ "FLprintk",S(FLPRINTK), 3,    "",     "iki",  FLprintkset, FLprintk, NULL },
-{ "FLprintk2",S(FLPRINTK2), 3,  "",     "ki",   FLprintk2set, FLprintk2, NULL },
-#endif
 { "=.f",      S(FASSIGN), 2,    "f",   "f",      NULL, fassign, NULL    },
 { "pvsanal",  S(PVSANAL), 5,    "f",   "aiiiioo",  pvsanalset, NULL, pvsanal  },
 { "pvsynth",  S(PVSYNTH), 5,    "a",   "fo",     pvsynthset, NULL, pvsynth  },
