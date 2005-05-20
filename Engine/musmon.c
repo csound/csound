@@ -1139,6 +1139,7 @@ PUBLIC int csoundRegisterSenseEventCallback(void *csound_,
     fp->func = func;
     fp->userData = userData;
     fp->nxt = NULL;
+    csound->oparms->RTevents = 1;
 
     return 0;
 }
