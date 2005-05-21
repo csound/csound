@@ -32,8 +32,6 @@
 #include "cmath.h"
 #include "ftgen.h"
 
-/* New function in FILOPEN.C to look around for (text) files */
-extern FILE *fopenin(ENVIRON *csound, char *filnam);
 extern double besseli(double);
 
 /* Start of moving static data into a single structure */
@@ -1028,12 +1026,15 @@ static void gen23(FUNC *ftp, ENVIRON *csound)
                                 /* Modified after Paris Smaragdis by JPff */
 {
     FGDATA  *ff = &(csound->ff);
-    int         c = 0, j = 0;
-    char        buf[512], *p;
-    MYFLT       *fp;
-    FILE        *infile;
+    int     c = 0, j = 0;
+    char    buf[512], *p;
+    MYFLT   *fp;
+    FILE    *infile;
+    void    *fd;
 
-    if (!(infile = fopenin(csound, ff->e.strarg))) {
+    fd = csound->FileOpen(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
+                                  "SFDIR;SSDIR;INCDIR");
+    if (fd == NULL) {
       fterror(csound, ff, Str("error opening ASCII file")); return;
     }
     p = buf;
@@ -1097,9 +1098,8 @@ static void gen23(FUNC *ftp, ENVIRON *csound)
         p = buf;
       }
     }
-    fclose(infile);
+    csound->FileClose(csound, fd);
 }
-
 
 static void gen24(FUNC *ftp, ENVIRON *csound)
 {
@@ -1241,18 +1241,20 @@ static void gen27(FUNC *ftp, ENVIRON *csound)
 static void gen28(FUNC *ftp, ENVIRON *csound)
 {                       /* read X Y values directly from ascii file */
     FGDATA  *ff = &(csound->ff);
-    MYFLT       *fp = ftp->ftable, *finp;
-    int         seglen, resolution = 100;
-    FILE        *filp;
-    char        filename[256];
-    int         i=0, j=0;
-    MYFLT       *x, *y, *z;
-    int         arraysize = 1000;
-    MYFLT       x1, y1, z1, x2, y2, z2, incrx, incry;
+    MYFLT   *fp = ftp->ftable, *finp;
+    int     seglen, resolution = 100;
+    FILE    *filp;
+    void    *fd;
+    int     i=0, j=0;
+    MYFLT   *x, *y, *z;
+    int     arraysize = 1000;
+    MYFLT   x1, y1, z1, x2, y2, z2, incrx, incry;
 
     finp = fp + ff->flen;
-    strcpy(filename,ff->e.strarg);
-    if ((filp = fopenin(csound, filename)) == NULL) goto gen28err1;
+    fd = csound->FileOpen(csound, &filp, CSFILE_STD, ff->e.strarg, "r",
+                                  "SFDIR;SSDIR;INCDIR");
+    if (fd == NULL)
+      goto gen28err1;
 
     x = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
     y = (MYFLT*)mmalloc(csound, arraysize*sizeof(MYFLT));
@@ -1312,7 +1314,7 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
     } while (fp < finp);
 
     mfree(csound, x); mfree(csound, y); mfree(csound, z);
-    fclose(filp);
+    csound->FileClose(csound, fd);
 
     return;
 

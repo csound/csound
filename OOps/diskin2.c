@@ -184,7 +184,8 @@ static int diskin2_calc_buffer_size(DISKIN2 *p, int n_monoSamps)
 int diskin2_init(ENVIRON *csound, DISKIN2 *p)
 {
     double  pos;
-    char    *s, name[1024];
+    char    name[1024];
+    void    *fd;
     SF_INFO sfinfo;
     int     i, n;
 
@@ -195,34 +196,22 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
       return NOTOK;
     }
     /* if already open, close old file first */
-    if (p->fdch.fd != NULL) {
+    if (p->fdch.fp != NULL) {
       /* skip initialisation if requested */
       if (*(p->iSkipInit) != FL(0.0))
         return OK;
       fdclose(csound, &(p->fdch));
     }
-    /* open file */
-    /* FIXME: name can overflow with very long string */
-    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
-    s = csound->FindInputFile(csound, name, "SFDIR;SSDIR");
-    if (s == NULL) {
-      csound->Message(csound, Str("diskin2: opening '%s':\n"), name);
-      csound->InitError(csound,
-                        Str("cannot find file in any of the search paths"));
-      return NOTOK;
-    }
+    /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    p->sf = sf_open(s, SFM_READ, &sfinfo);
-    if (p->sf == NULL) {
-      /* file may be raw, set default format parameters */
-      memset(&sfinfo, 0, sizeof(SF_INFO));
-      sfinfo.samplerate = (int) (csound->esr + FL(0.5));
-      sfinfo.channels = p->nChannels;
-      sfinfo.format = SF_FORMAT_RAW;
-      /* check for user specified sample format */
-      n = (int) (*(p->iSampleFormat) + FL(0.5));
-      if (n <= 0)
-        n = 4;      /* <= 0 ? default to 16 bit signed integer */
+    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+    sfinfo.channels = p->nChannels;
+    sfinfo.format = SF_FORMAT_RAW;
+    /* check for user specified sample format */
+    n = (int) (*(p->iSampleFormat) + FL(0.5));
+    if (n <= 0)                 /* <= 0 ? default to 16 bit signed integer */
+      sfinfo.format |= SF_FORMAT_PCM_16;
+    else {
       switch (n) {
         case 1: sfinfo.format |= SF_FORMAT_PCM_S8;  break;
         case 2: sfinfo.format |= SF_FORMAT_ALAW;    break;
@@ -235,30 +224,31 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
         case 9: sfinfo.format |= SF_FORMAT_DOUBLE;  break;
         default:
           csound->InitError(csound, Str("diskin2: unknown sample format"));
-          mfree(csound, s);
           return NOTOK;
       }
-      /* re-open as raw file */
-      p->sf = sf_open(s, SFM_READ, &sfinfo);
     }
-    if (p->sf == NULL) {
-      csound->Message(csound, Str("diskin2: opening '%s':\n"), s);
-      csound->InitError(csound, Str("sf_open() failed"));
-      mfree(csound, s);
+    /* open file */
+    /* FIXME: name can overflow with very long string */
+    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
+    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+                                  "SFDIR;SSDIR");
+    if (fd == NULL) {
+      csound->InitError(csound, Str("diskin2: %s: failed to open file"), name);
       return NOTOK;
     }
-    /* print file information */
-    if (csound->GetMessageLevel(csound) != 0) {
-      csound->Message(csound, Str("diskin2: opened '%s':\n"), s);
-      csound->Message(csound, Str("         %d Hz, %d channel(s), "
-                                  "%ld sample frames\n"), sfinfo.samplerate,
-                                  sfinfo.channels, (long) sfinfo.frames);
-    }
-    mfree(csound, s);
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
-    p->fdch.fd = (void*) p->sf;
+    p->fdch.fp = fd;
     fdrecord(csound, &(p->fdch));
+    /* print file information */
+    if (csound->GetMessageLevel(csound) != 0) {
+      csound->Message(csound, Str("diskin2: opened '%s':\n"),
+                              csound->GetFileName(csound, fd));
+      csound->Message(csound, Str("         %d Hz, %d channel(s), "
+                                  "%ld sample frames\n"),
+                              (int) sfinfo.samplerate, (int) sfinfo.channels,
+                              (long) sfinfo.frames);
+    }
     /* check number of channels in file (must equal the number of outargs) */
     if (sfinfo.channels != p->nChannels) {
       csound->InitError(csound,
