@@ -506,3 +506,186 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
     return OK;
 }
 
+/* -------- soundin opcode: simplified version of diskin2 -------- */
+
+static void soundin_read_buffer(SOUNDIN_ *p, int bufReadPos)
+{
+    int i = 0;
+    /* calculate new buffer frame start position */
+    p->bufStartPos = p->bufStartPos + (int_least64_t) bufReadPos;
+    p->bufStartPos &= (~((int_least64_t) (p->bufSize - 1)));
+    if (p->bufStartPos >= (int_least64_t) 0) {
+      int_least64_t lsmps;
+      int           nsmps;
+      /* number of sample frames to read */
+      lsmps = p->fileLength - p->bufStartPos;
+      if (lsmps > (int_least64_t) 0) {  /* if there is anything to read: */
+        nsmps = (lsmps < (int_least64_t) p->bufSize ? (int) lsmps : p->bufSize);
+        sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+        /* convert sample count to mono samples and read file */
+        nsmps *= (int) p->nChannels;
+        i = (int) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
+        if (i < 0)  /* error ? */
+          i = 0;    /* clear entire buffer to zero */
+      }
+    }
+    /* fill rest of buffer with zero samples */
+    for ( ; i < (p->bufSize * p->nChannels); i++)
+      p->buf[i] = FL(0.0);
+}
+
+/* calculate buffer size in sample frames */
+
+static int soundin_calc_buffer_size(SOUNDIN_ *p, int n_monoSamps)
+{
+    int i, nFrames;
+    /* default to 2048 mono samples if zero or negative */
+    if (n_monoSamps <= 0)
+      n_monoSamps = 2048;
+    /* convert mono samples -> sample frames */
+    i = n_monoSamps / p->nChannels;
+    /* buffer size must be an integer power of two, so round up */
+    for (nFrames = 1; nFrames < i; nFrames <<= 1);
+    /* limit to sane range */
+    if (nFrames < 64)           nFrames = 64;
+    else if (nFrames > 1048576) nFrames = 1048576;
+    return nFrames;
+}
+
+static const int soundin_format_list[10] = {
+    SF_FORMAT_PCM_16,
+    SF_FORMAT_PCM_S8,   SF_FORMAT_ALAW,     SF_FORMAT_ULAW,
+    SF_FORMAT_PCM_16,   SF_FORMAT_PCM_32,   SF_FORMAT_FLOAT,
+    SF_FORMAT_PCM_U8,   SF_FORMAT_PCM_24,   SF_FORMAT_DOUBLE
+};
+
+int sndinset(ENVIRON *csound, SOUNDIN_ *p)
+{
+    double  pos;
+    char    name[1024];
+    void    *fd;
+    SF_INFO sfinfo;
+    int     i, n, fmt, typ;
+
+    /* check number of channels */
+    p->nChannels = (int) (p->OUTOCOUNT);
+    if (p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN) {
+      csound->InitError(csound, Str("soundin: invalid number of channels"));
+      return NOTOK;
+    }
+    /* if already open, close old file first */
+    if (p->fdch.fp != NULL) {
+      /* skip initialisation if requested */
+      if (*(p->iSkipInit) != FL(0.0))
+        return OK;
+      fdclose(csound, &(p->fdch));
+    }
+    /* set default format parameters */
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+    sfinfo.channels = p->nChannels;
+    /* check for user specified sample format */
+    n = (int) (*(p->iSampleFormat) + FL(0.5));
+    if (n < 0 || n > 9)
+      return csound->InitError(csound, Str("soundin: unknown sample format"));
+    sfinfo.format = SF_FORMAT_RAW | soundin_format_list[n];
+    /* open file */
+    /* FIXME: name can overflow with very long string */
+    csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
+    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+                                  "SFDIR;SSDIR");
+    if (fd == NULL) {
+      csound->InitError(csound, Str("soundin: %s: failed to open file"), name);
+      return NOTOK;
+    }
+    /* record file handle so that it will be closed at note-off */
+    memset(&(p->fdch), 0, sizeof(FDCH));
+    p->fdch.fp = fd;
+    fdrecord(csound, &(p->fdch));
+    /* print file information */
+    if (csound->GetMessageLevel(csound) != 0) {
+      csound->Message(csound, Str("soundin: opened '%s':\n"),
+                              csound->GetFileName(csound, fd));
+      csound->Message(csound, Str("         %d Hz, %d channel(s), "
+                                  "%ld sample frames\n"),
+                              (int) sfinfo.samplerate, (int) sfinfo.channels,
+                              (long) sfinfo.frames);
+    }
+    /* check number of channels in file (must equal the number of outargs) */
+    if (sfinfo.channels != p->nChannels) {
+      csound->InitError(csound,
+                        Str("soundin: number of output args "
+                            "inconsistent with number of file channels"));
+      return NOTOK;
+    }
+    /* skip initialisation if requested */
+    if (p->auxData.auxp != NULL && *(p->iSkipInit) != FL(0.0))
+      return OK;
+    /* set file parameters from header info */
+    p->fileLength = (int_least64_t) sfinfo.frames;
+    if ((int) (csound->esr + FL(0.5)) != sfinfo.samplerate)
+      csound->Message(csound, Str("soundin: warning: file sample rate (%d) "
+                                  "!= orchestra sr (%d)\n"),
+                              sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
+    fmt = sfinfo.format & SF_FORMAT_SUBMASK;
+    typ = sfinfo.format & SF_FORMAT_TYPEMASK;
+    if ((fmt != SF_FORMAT_FLOAT && fmt != SF_FORMAT_DOUBLE) ||
+        (typ == SF_FORMAT_WAV || typ == SF_FORMAT_W64 || typ == SF_FORMAT_AIFF))
+      p->scaleFac = csound->e0dbfs;
+    else
+      p->scaleFac = FL(1.0);    /* do not scale "raw" float files */
+    /* initialise read position */
+    pos = (double) *(p->iSkipTime) * (double) sfinfo.samplerate;
+    p->read_pos = (int_least64_t) (pos + (pos >= 0.0 ? 0.5 : -0.5));
+    /* allocate and initialise buffer */
+    p->bufSize = soundin_calc_buffer_size(p, (int) (*(p->iBufSize) + FL(0.5)));
+    n = p->bufSize * p->nChannels;
+    if (n != (int) p->auxData.size)
+      csound->AuxAlloc(csound, (long) (n * (int) sizeof(MYFLT)), &(p->auxData));
+    p->bufStartPos = -((int_least64_t) p->bufSize);
+    p->buf = (MYFLT*) (p->auxData.auxp);
+    for (i = 0; i < n; i++)
+      p->buf[i] = FL(0.0);
+    /* done initialisation */
+    return OK;
+}
+
+int soundin(ENVIRON *csound, SOUNDIN_ *p)
+{
+    int nn, bufPos, i;
+
+    if (p->fdch.fp == NULL) {
+      csound->PerfError(csound, Str("soundin: not initialised"));
+      return NOTOK;
+    }
+    for (nn = 0; nn < csound->ksmps; nn++) {
+      bufPos = (int) (p->read_pos - p->bufStartPos);
+      if (bufPos < 0 || bufPos >= p->bufSize) {
+        /* not in current buffer frame, need to read file */
+        soundin_read_buffer(p, bufPos);
+        /* recalculate buffer position */
+        bufPos = (int) (p->read_pos - p->bufStartPos);
+      }
+      /* copy all channels from buffer */
+      if (p->nChannels == 1) {
+        p->aOut[0][nn] = p->scaleFac * p->buf[bufPos];
+      }
+      else if (p->nChannels == 2) {
+        bufPos += bufPos;
+        p->aOut[0][nn] = p->scaleFac * p->buf[bufPos];
+        p->aOut[1][nn] = p->scaleFac * p->buf[bufPos + 1];
+      }
+      else {
+        bufPos *= p->nChannels;
+        i = 0;
+        p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
+        p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
+        do {
+          p->aOut[i++][nn] = p->scaleFac * p->buf[bufPos++];
+        } while (i < p->nChannels);
+      }
+      p->read_pos++;
+    }
+    return OK;
+}
+
