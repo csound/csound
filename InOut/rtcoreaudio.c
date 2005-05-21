@@ -171,7 +171,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
     AudioHardwareGetProperty(kAudioHardwarePropertyDevices,
 			     &psize, sysdevs);
     devnum = atoi(parm->devName);
-    if(devnum < 0 || devnum >= devnos) dev->dev = sysdevs[devnum];
+    if(devnum >= 0 && devnum < devnos) dev->dev = sysdevs[devnum];
     free(sysdevs);
   }
     
