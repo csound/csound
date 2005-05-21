@@ -29,12 +29,13 @@ int kdmpset(ENVIRON *csound, KDUMP *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
-                                p->XSTRCODE);
-    if ((p->fdch.fdc = openout(csound, soundoname,1)) < 0) {
+    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
+    if (p->fdch.fp != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
+                                          "");
+    if (p->fdch.fp == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
-    }
-    p->fdch.fd = NULL;        /* Character file not audio */
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
       return csound->InitError(csound, Str("unknown format request"));
@@ -53,12 +54,13 @@ int kdmp2set(ENVIRON *csound, KDUMP2 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
-                                p->XSTRCODE);
-    if ((p->fdch.fdc = openout(csound, soundoname,1)) < 0) {
+    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
+    if (p->fdch.fp != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
+                                          "");
+    if (p->fdch.fp == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
-    }
-    p->fdch.fd = NULL;        /* Character file not audio */
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
       return csound->InitError(csound, Str("unknown format request"));
@@ -77,12 +79,13 @@ int kdmp3set(ENVIRON *csound, KDUMP3 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
-                                p->XSTRCODE);
-    if ((p->fdch.fdc = openout(csound, soundoname,1)) < 0) {
+    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
+    if (p->fdch.fp != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
+                                          "");
+    if (p->fdch.fp == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
-    }
-    p->fdch.fd = NULL;        /* Character file not audio */
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
       return csound->InitError(csound, Str("unknown format request"));
@@ -101,12 +104,13 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.",
-                                p->XSTRCODE);
-    if ((p->fdch.fdc = openout(csound, soundoname,1)) < 0) {
+    csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
+    if (p->fdch.fp != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
+                                          "");
+    if (p->fdch.fp == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
-    }
-    p->fdch.fd = NULL;        /* Character file not audio */
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
       return csound->InitError(csound, Str("unknown format request"));
@@ -121,7 +125,7 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
     return OK;
 }
 
-static void nkdump(ENVIRON *csound, MYFLT *kp, int ofd, int format, int nk)
+static void nkdump(ENVIRON *csound, MYFLT *kp, FILE *ofd, int format, int nk)
 {
     char  buf1[128], outbuf[256];
     int   len = 0;
@@ -176,9 +180,8 @@ static void nkdump(ENVIRON *csound, MYFLT *kp, int ofd, int format, int nk)
       break;
     default: csound->Die(csound, Str("unknown kdump format"));
     }
-    write(ofd, outbuf, len);            /* now write the buffer */
+    fwrite(outbuf, 1, len, ofd);                /* now write the buffer */
 }
-
 
 int kdump(ENVIRON *csound, KDUMP *p)
 {
@@ -187,7 +190,7 @@ int kdump(ENVIRON *csound, KDUMP *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       kval[0] = *p->ksig;
-      nkdump(csound, &(kval[0]), p->fdch.fdc, p->format, 1);
+      nkdump(csound, &(kval[0]), p->f, p->format, 1);
     }
     return OK;
 }
@@ -200,7 +203,7 @@ int kdump2(ENVIRON *csound, KDUMP2 *p)
       p->countdown = p->timcount;
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
-      nkdump(csound, &(kval[0]), p->fdch.fdc, p->format, 2);
+      nkdump(csound, &(kval[0]), p->f, p->format, 2);
     }
     return OK;
 }
@@ -214,7 +217,7 @@ int kdump3(ENVIRON *csound, KDUMP3 *p)
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
-      nkdump(csound, &(kval[0]), p->fdch.fdc, p->format, 3);
+      nkdump(csound, &(kval[0]), p->f, p->format, 3);
     }
     return OK;
 }
@@ -229,7 +232,7 @@ int kdump4(ENVIRON *csound, KDUMP4 *p)
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
       kval[3] = *p->ksig4;
-      nkdump(csound, &(kval[0]), p->fdch.fdc, p->format, 4);
+      nkdump(csound, &(kval[0]), p->f, p->format, 4);
     }
     return OK;
 }
@@ -243,12 +246,13 @@ int krdset(ENVIRON *csound, KREAD *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
-                                p->XSTRCODE);
-    if ((p->fdch.fdc = openin(csound, soundiname)) < 0) {
+    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
+    if (p->fdch.fp != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+                                          "SFDIR;SSDIR");
+    if (p->fdch.fp == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
-    }
-    p->fdch.fd = NULL;        /* Character file not audio */
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
       return csound->InitError(csound, Str("unknown format request"));
@@ -268,12 +272,13 @@ int krd2set(ENVIRON *csound, KREAD2 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
-                                p->XSTRCODE);
-    if ((p->fdch.fdc = openin(csound, soundiname)) < 0) {
+    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
+    if (p->fdch.fp != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+                                          "SFDIR;SSDIR");
+    if (p->fdch.fp == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
-    }
-    p->fdch.fd = NULL;        /* Character file not audio */
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
       return csound->InitError(csound, Str("unknown format request"));
@@ -293,12 +298,13 @@ int krd3set(ENVIRON *csound, KREAD3 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
-                                p->XSTRCODE);
-    if ((p->fdch.fdc = openin(csound, soundiname)) < 0) {
+    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
+    if (p->fdch.fp != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+                                          "SFDIR;SSDIR");
+    if (p->fdch.fp == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
-    }
-    p->fdch.fd = NULL;        /* Character file not audio */
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
       return csound->InitError(csound, Str("unknown format request"));
@@ -318,12 +324,13 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.",
-                                p->XSTRCODE);
-    if ((p->fdch.fdc = openin(csound, soundiname)) < 0) {
+    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
+    if (p->fdch.fp != NULL)
+      fdclose(csound, &(p->fdch));
+    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+                                          "SFDIR;SSDIR");
+    if (p->fdch.fp == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
-    }
-    p->fdch.fd = NULL;        /* Character file not audio */
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
       return csound->InitError(csound, Str("unknown format request"));
@@ -339,7 +346,7 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
     return OK;
 }
 
-static void nkread(ENVIRON *csound, MYFLT *kp, int ifd, int format, int nk)
+static void nkread(ENVIRON *csound, MYFLT *kp, FILE *ifd, int format, int nk)
 {
     int   len;
     char  inbuf[256];
@@ -348,7 +355,7 @@ static void nkread(ENVIRON *csound, MYFLT *kp, int ifd, int format, int nk)
     case 1: {
       int8_t *bp = (int8_t*) inbuf;
       len = nk;
-      read(ifd, inbuf, len);            /* now read the buffer */
+      fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--) {
         *kp++ = (MYFLT) *bp++;
         break;
@@ -357,7 +364,7 @@ static void nkread(ENVIRON *csound, MYFLT *kp, int ifd, int format, int nk)
     case 4: {
       int16_t *bp = (int16_t*) inbuf;
       len = nk * 2;
-      read(ifd, inbuf, len);            /* now read the buffer */
+      fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT) *bp++;
       break;
@@ -365,7 +372,7 @@ static void nkread(ENVIRON *csound, MYFLT *kp, int ifd, int format, int nk)
     case 5: {
       int32_t *bp = (int32_t*) inbuf;
       len = nk * 4;
-      read(ifd, inbuf, len);            /* now read the buffer */
+      fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT) *bp++;
       break;
@@ -373,7 +380,7 @@ static void nkread(ENVIRON *csound, MYFLT *kp, int ifd, int format, int nk)
     case 6: {
       float *bp = (float*) inbuf;
       len = nk * sizeof(float);
-      read(ifd, inbuf, len);            /* now read the buffer */
+      fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT) *bp++;
       break;
@@ -381,13 +388,13 @@ static void nkread(ENVIRON *csound, MYFLT *kp, int ifd, int format, int nk)
     case 7:
       while (nk--) {
         char *bp = inbuf;
-        do {                  /* Skip whitespace */
-          read(ifd, bp, 1);
+        do {                    /* Skip whitespace */
+          *bp = (char) getc(ifd);
         } while (isspace(*bp));
-        do {                  /* Absorb digits */
-          read(ifd, ++bp, 1);
+        do {                    /* Absorb digits */
+          *(++bp) = (char) getc(ifd);
         } while (isdigit(*bp));
-        lseek(ifd, (off_t)(-1), SEEK_CUR);
+        fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE
         sscanf(inbuf,"%f", kp);
@@ -399,14 +406,14 @@ static void nkread(ENVIRON *csound, MYFLT *kp, int ifd, int format, int nk)
       break;
     case 8:
       while (nk--) {
-        char * bp = inbuf;
-        do {                  /* Skip whitespace */
-          read(ifd, bp, 1);
+        char *bp = inbuf;
+        do {                    /* Skip whitespace */
+          *bp = (char) getc(ifd);
         } while (isspace(*bp));
-        do {                  /* Absorb digits and such*/
-          read(ifd, ++bp, 1);
+        do {                    /* Absorb digits and such*/
+          *(++bp) = (char) getc(ifd);
         } while (!isspace(*bp));
-        lseek(ifd, (off_t)(-1), SEEK_CUR);
+        fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
 #ifndef USE_DOUBLE
         sscanf(inbuf,"%f", kp);
@@ -426,7 +433,7 @@ int kread(ENVIRON *csound, KREAD *p)
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, &(kval[0]), p->fdch.fdc, p->format, 1);
+      nkread(csound, &(kval[0]), p->f, p->format, 1);
       *p->k1 = p->k[0] = kval[0];
     }
     else *p->k1 = p->k[0];
@@ -439,7 +446,7 @@ int kread2(ENVIRON *csound, KREAD2 *p)
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, &(kval[0]), p->fdch.fdc, p->format, 2);
+      nkread(csound, &(kval[0]), p->f, p->format, 2);
       *p->k1 = p->k[0] = kval[0];
       *p->k2 = p->k[1] = kval[1];
     }
@@ -456,7 +463,7 @@ int kread3(ENVIRON *csound, KREAD3 *p)
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, &(kval[0]), p->fdch.fdc, p->format, 3);
+      nkread(csound, &(kval[0]), p->f, p->format, 3);
       *p->k1 = p->k[0] = kval[0];
       *p->k2 = p->k[1] = kval[1];
       *p->k3 = p->k[2] = kval[2];
@@ -475,7 +482,7 @@ int kread4(ENVIRON *csound, KREAD4 *p)
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, &(kval[0]), p->fdch.fdc, p->format, 4);
+      nkread(csound, &(kval[0]), p->f, p->format, 4);
       *p->k1 = p->k[0] = kval[0];
       *p->k2 = p->k[1] = kval[1];
       *p->k3 = p->k[2] = kval[2];

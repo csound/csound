@@ -27,6 +27,7 @@ typedef struct {
         MYFLT  *ksig, *ifilcod, *iformat, *iprd;
         int    format;
         long   countdown, timcount;
+        FILE   *f;
         FDCH   fdch;
 } KDUMP;
 
@@ -35,6 +36,7 @@ typedef struct {
         MYFLT  *ksig1, *ksig2, *ifilcod, *iformat, *iprd;
         int    format;
         long   countdown, timcount;
+        FILE   *f;
         FDCH   fdch;
 } KDUMP2;
 
@@ -43,6 +45,7 @@ typedef struct {
         MYFLT  *ksig1, *ksig2, *ksig3, *ifilcod, *iformat, *iprd;
         int    format;
         long   countdown, timcount;
+        FILE   *f;
         FDCH   fdch;
 } KDUMP3;
 
@@ -51,6 +54,7 @@ typedef struct {
         MYFLT  *ksig1, *ksig2, *ksig3, *ksig4, *ifilcod, *iformat, *iprd;
         int    format;
         long   countdown, timcount;
+        FILE   *f;
         FDCH   fdch;
 } KDUMP4;
 
@@ -60,6 +64,7 @@ typedef struct {
         int    format;
         long   countdown, timcount;
         MYFLT  k[4];
+        FILE   *f;
         FDCH   fdch;
 } KREAD;
 
@@ -69,6 +74,7 @@ typedef struct {
         int    format;
         long   countdown, timcount;
         MYFLT  k[4];
+        FILE   *f;
         FDCH   fdch;
 } KREAD2;
 
@@ -78,6 +84,7 @@ typedef struct {
         int    format;
         long   countdown, timcount;
         MYFLT  k[4];
+        FILE   *f;
         FDCH   fdch;
 } KREAD3;
 
@@ -87,6 +94,7 @@ typedef struct {
         int    format;
         long   countdown, timcount;
         MYFLT  k[4];
+        FILE   *f;
         FDCH   fdch;
 } KREAD4;
 
