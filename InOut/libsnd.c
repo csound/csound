@@ -39,16 +39,12 @@ typedef struct {
     unsigned int  outbufrem;            /* in monosamps                 */
                                         /* (see openin,iotranset)       */
     unsigned int  inbufsiz,  outbufsiz; /* alloc in sfopenin/out        */
-    int           isfd;
     int           isfopen;              /* (real set in sfopenin)       */
-    int           osfd;
     int           osfopen;              /* (real set in sfopenout)      */
-    int           pipdevin, pipdevout;  /* mod by sfopenin,sfopenout    */
+    int           pipdevin, pipdevout;  /* 0: file, 1: pipe, 2: rtaudio */
     unsigned long nframes /* = 1UL */;
     FILE          *pin, *pout;
 } LIBSND_GLOBALS;
-
-#define DEVAUDIO 0x7fff         /* unique fd for rtaudio  */
 
 #ifdef PIPES
 /*sbrandon: added NeXT to line below*/
@@ -149,28 +145,34 @@ static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
     ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     int     n;
-    if (ST(osfd)<0) return;
-    n = sf_write_MYFLT(ST(outfile), outbuf, nbytes/sizeof(MYFLT));
-    if (n < nbytes/sizeof(MYFLT))
+
+    if (ST(outfile) == NULL)
+      return;
+    n = sf_write_MYFLT(ST(outfile), outbuf, nbytes / sizeof(MYFLT));
+    if (n < nbytes / sizeof(MYFLT))
       sndwrterr(csound, n, nbytes);
     if (O->rewrt_hdr)
-      rewriteheader(ST(outfile),0);
-    if (O->heartbeat) {
-      if (O->heartbeat==1) {
-#ifdef SYMANTEC
-        nextcurs();
-#else
-        putc("|/-\\"[csound->nrecs & 3], stderr); putc(8,stderr);
-#endif
-      }
-      else if (O->heartbeat==2) putc('.', stderr);
-      else if (O->heartbeat==3) {
-        int n;
-        csound->Message(csound,"%ld(%.3f)%n",
-                        (long) csound->nrecs, csound->nrecs/csound->ekr, &n);
-        while (n--) csound->Message(csound,"\b");
-      }
-      else csound->Message(csound,"\a");
+      rewriteheader(ST(outfile), 0);
+    switch (O->heartbeat) {
+      case 1:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+                                 "%c\010", "|/-\\"[csound->nrecs & 3]);
+        break;
+      case 2:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        break;
+      case 3:
+        {
+          double  curTime = csound->sensEvents_state.curTime;
+          int     n;
+          csound->MessageS(csound, CSOUNDMSG_REALTIME, "%ld(%.3f)%n",
+                                   (long) csound->nrecs, curTime, &n);
+          while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\b");
+        }
+        break;
+      case 4:
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        break;
     }
 }
 
@@ -193,221 +195,112 @@ void writeheader(ENVIRON *csound, int ofd, char *ofname)
     sf_command(ST(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
-int sndinset(ENVIRON *csound, SOUNDIN_ *p) /* init routine for instr soundin */
-                            /* shares above sndgetset with SAsndgetset, gen01*/
-{
-    SNDFILE *sinfd;
-
-    if (p->fdch.fd != NULL) {           /* if file already open, close it */
-      if (*p->skipinit != FL(0.0))
-        return OK;
-      /* reload the file */
-      fdclose(csound, &(p->fdch));
-    }
-    csound->strarg2name(csound, p->sndin_.sfname, p->ifilno, "soundin.",
-                                p->XSTRCODE);
-    switch ((int) (*p->iformat + FL(0.5))) {
-      case 0: p->sndin_.format = AE_SHORT; break;
-      case 1: p->sndin_.format = AE_CHAR;  break;
-      case 2: p->sndin_.format = AE_ALAW;  break;
-      case 3: p->sndin_.format = AE_ULAW;  break;
-      case 4: p->sndin_.format = AE_SHORT; break;
-      case 5: p->sndin_.format = AE_LONG;  break;
-      case 6: p->sndin_.format = AE_FLOAT; break;
-      default:
-        csound->InitError(csound, Str("soundin: invalid sample format: %d"),
-                                  (int) (*p->iformat + FL(0.5)));
-        return NOTOK;
-    }
-    p->sndin_.outocount = (int) p->OUTOCOUNT;
-    p->sndin_.channel = ALLCHNLS;           /* reading all channels      */
-    p->sndin_.analonly = p->sndin_.endfile = p->sndin_.do_floatscaling = 0;
-    p->sndin_.skiptime = *(p->iskptim);
-    if ((sinfd = sndgetset(csound, &(p->sndin_))) != NULL) {
-      /* if soundinset successful: */
-      p->fdch.fd = sinfd;                   /*    store & log the fd     */
-      fdrecord(csound, &p->fdch);           /*    instr will close later */
-    }
-    else {
-      csound->inerrcnt++;
-      return NOTOK;
-    }
-    return OK;
-}
-
-int soundin(ENVIRON *csound, SOUNDIN_ *p)
-{
-    MYFLT       *r[24], scalefac;
-    int         nsmps, ntogo, blksiz, chnsout, i = 0, n;
-
-    if (p->sndin_.format == AE_FLOAT) {
-      if (p->sndin_.filetyp == TYP_WAV || p->sndin_.filetyp == TYP_AIFF) {
-        scalefac = csound->e0dbfs;
-        if (p->sndin_.do_floatscaling)
-          scalefac *= p->sndin_.fscalefac;
-      }
-      else
-        scalefac = FL(1.0);
-    }
-    else
-      scalefac = csound->e0dbfs;
-    if (!p->sndin_.inbufp) {
-      return csound->PerfError(csound, Str("soundin: not initialised"));
-    }
-    chnsout = p->sndin_.outocount;
-    blksiz = chnsout * csound->ksmps;
-    memcpy(r, p->r, chnsout * sizeof(MYFLT*));
-    ntogo = blksiz;
-    if (p->sndin_.endfile)
-      goto filend;
-    nsmps = (p->sndin_.bufend - p->sndin_.inbufp);
-    if (nsmps > blksiz)
-      nsmps = blksiz;
-    ntogo -= nsmps;
- sndin:
-    {
-      MYFLT *inbufp = p->sndin_.inbufp;
-      do {
-        *(r[i]++) = *inbufp++ * scalefac;
-        if (++i >= chnsout) i = 0;
-      } while (--nsmps);
-      p->sndin_.inbufp = inbufp;
-    }
-    if (p->sndin_.inbufp >= p->sndin_.bufend) {
-      if ((n = sreadin(csound, p->fdch.fd, p->sndin_.inbuf, SNDINBUFSIZ,
-                       &(p->sndin_))) == 0) {
-        p->sndin_.endfile = 1;
-        if (ntogo) goto filend;
-        else return OK;
-      }
-      p->sndin_.inbufp = p->sndin_.inbuf;
-      p->sndin_.bufend = p->sndin_.inbuf + n;
-      if (ntogo > 0) {
-        if ((nsmps = n)  > ntogo)
-          nsmps = ntogo;
-        ntogo -= nsmps;
-        goto sndin;
-      }
-    }
-    return OK;
-
- filend:
-    if ((nsmps = ntogo) > 0) {            /* At RWD's suggestion  */
-      do {                                /* if past end of file, */
-        *(r[i]++) = FL(0.0);              /*    move in zeros     */
-        if (++i >= chnsout) i = 0;
-      } while (--nsmps);
-    }
-    return OK;
-}
-
 void sfopenin(void *csound_)        /* init for continuous soundin */
 {
     ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
-    char    *sfname = NULL;
+    char    *sfname, *fullName;
+    SF_INFO sfinfo;
     int     fileType = (int) TYP_RAW;
+    int     isfd = 0;   /* stdin */
 
     alloc_globals(csound);
     ST(inbufrem) = (unsigned int) 0;    /* start with empty buffer */
+    sfname = O->infilename;
+    if (sfname == NULL || sfname[0] == '\0')
+      csound->Die(csound, Str("error: no input file name"));
+    csound->rtin_dev = 1024;
+    csound->rtin_devs = NULL;
 
-    if (O->infilename != NULL && strcmp(O->infilename,"stdin") == 0) {
-      sfname = O->infilename;
-      ST(isfd) = 0;         /* get sound from stdin if requested */
+    if (strcmp(sfname, "stdin") == 0) {
       ST(pipdevin) = 1;
     }
 #ifdef PIPES
-    else if (O->infilename != NULL && O->infilename[0]=='|') {
+    else if (sfname[0] == '|') {
       FILE *_popen(const char *, const char *);
-      ST(pin) = _popen(O->infilename+1, "r");
-      ST(isfd) = fileno(ST(pin));
+      ST(pin) = _popen(sfname + 1, "r");
+      isfd = fileno(ST(pin));
       ST(pipdevin) = 1;
     }
 #endif
-    else if (O->infilename != NULL &&
-             (strncmp(O->infilename, "devaudio", 8) == 0 ||
-              strncmp(O->infilename, "adc", 3) == 0)) {
-      if (strcmp(O->infilename, "devaudio") == 0 ||
-          strcmp(O->infilename, "adc") == 0) {
-        csound->rtin_dev = 1024;
-        csound->rtin_devs = NULL;
+    else if (!strncmp(sfname, "devaudio", 8) || !strncmp(sfname, "adc", 3)) {
+      csRtAudioParams   parm;
+      /* get device name/number */
+      if (!strncmp(sfname, "devaudio", 8) && sfname[8] != '\0') {
+        if (sfname[8] == ':')   csound->rtin_devs = &(sfname[9]);
+        else                    sscanf(sfname + 8, "%d", &(csound->rtin_dev));
       }
-      else if (strncmp(O->infilename, "devaudio", 8) == 0) {
-        if (O->infilename[8]==':') {
-          csound->rtin_dev = 1024;
-          csound->rtin_devs = &(O->infilename[9]);
-        }
-        else {
-          sscanf(O->infilename+8, "%d", &(csound->rtin_dev));
-          csound->rtin_devs = NULL;
-        }
+      else if (!strncmp(sfname, "adc", 3) && sfname[3] != '\0') {
+        if (sfname[3] == ':')   csound->rtin_devs = &(sfname[4]);
+        else                    sscanf(sfname + 3, "%d", &(csound->rtin_dev));
       }
-      else if (strncmp(O->infilename,"adc", 3) == 0) {
-        if (O->infilename[3]==':') {
-          csound->rtin_dev = 1024;
-          csound->rtin_devs = &(O->infilename[4]);
-        }
-        else {
-          sscanf(O->infilename+3, "%d", &(csound->rtin_dev));
-          csound->rtin_devs = NULL;
-        }
-      }
-      sfname = O->infilename;
-      {
-        csRtAudioParams parm;
-        /* set device parameters (should get these from ENVIRON...) */
-        parm.devName = csound->rtin_devs;
-        parm.devNum = csound->rtin_dev;
-        parm.bufSamp_SW = (int) O->inbufsamps / (int) csound->nchnls;
-        parm.bufSamp_HW = O->oMaxLag;
-        parm.nChannels = csound->nchnls;
-        parm.sampleFormat = O->informat;
-        parm.sampleRate = (float) csound->esr;
-        /* open devaudio for input */
-        if (csound->recopen_callback(csound, &parm) != 0)
-          csoundDie(csound, Str("Failed to initialise real time audio input"));
-        /*  & redirect audio gets  */
-        csound->audrecv = (int (*)(void*, MYFLT*, int))
-                            csound->rtrecord_callback;
-      }
-      ST(isfd) = DEVAUDIO;      /* dummy file descriptor   */
-      ST(pipdevin)   = 1;       /* no backward seeks !     */
+      /* set device parameters (should get these from ENVIRON...) */
+      parm.devName = csound->rtin_devs;
+      parm.devNum = csound->rtin_dev;
+      parm.bufSamp_SW = (int) O->inbufsamps / (int) csound->nchnls;
+      parm.bufSamp_HW = O->oMaxLag;
+      parm.nChannels = csound->nchnls;
+      parm.sampleFormat = O->informat;
+      parm.sampleRate = (float) csound->esr;
+      /* open devaudio for input */
+      if (csound->recopen_callback(csound, &parm) != 0)
+        csoundDie(csound, Str("Failed to initialise real time audio input"));
+      /*  & redirect audio gets  */
+      csound->audrecv = (int (*)(void*, MYFLT*, int)) csound->rtrecord_callback;
+      ST(pipdevin) = 2;         /* no backward seeks !     */
       goto inset;               /* no header processing    */
     }
-    else {                      /* else build filename and open that */
-      SF_INFO sfinfo;
-      if ((ST(isfd) = openin(csound, O->infilename)) < 0)
-        csoundDie(csound, Str("isfinit: cannot open %s"), csound->retfilnam);
-      sfname = csound->retfilnam;
-      memset(&sfinfo, 0, sizeof(SF_INFO));
-      ST(infile) = sf_open_fd(ST(isfd), SFM_READ, &sfinfo, SF_TRUE);
-      if (ST(infile) == NULL)
-        csoundDie(csound, Str("isfinit: cannot open %s"), csound->retfilnam);
-      if (sfinfo.samplerate != (int) (csound->esr + FL(0.5))) {
-        /*    chk the hdr codes  */
-        csound->Warning(csound, Str("audio_in %s has sr = %ld, orch sr = %ld"),
-                                sfname, (long) sfinfo.samplerate,
-                                (long) (csound->esr + FL(0.5)));
+    /* open file */
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    if (ST(pipdevin)) {
+      ST(infile) = sf_open_fd(isfd, SFM_READ, &sfinfo, 0);
+      if (ST(infile) == NULL) {
+        /* open failed: possibly raw file, but cannot seek back to try again */
+        csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
       }
-      if (sfinfo.channels != csound->nchnls) {
-        csound->Warning(csound, Str("audio_in %s has %ld chnls, orch %d chnls"),
-                                sfname, (long) sfinfo.channels, csound->nchnls);
-      }
-      /* Do we care about the format?  Can assume float?? */
-      O->insampsiz = sizeof(MYFLT);     /*    & cpy header vals  */
-      O->informat = SF2FORMAT(sfinfo.format);
-      fileType = (int) SF2TYPE(sfinfo.format);
-      csound->audrecv = readsf;  /* will use standard audio gets  */
     }
+    else {
+      fullName = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
+      if (fullName == NULL)                     /* if not found */
+        csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
+      ST(infile) = sf_open(fullName, SFM_READ, &sfinfo);
+      if (ST(infile) == NULL) {
+        /* open failed: maybe raw file ? */
+        memset(&sfinfo, 0, sizeof(SF_INFO));
+        sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+        sfinfo.channels = csound->nchnls;
+        /* FIXME: assumes input sample format is same as output */
+        sfinfo.format = TYPE2SF(TYP_RAW) | FORMAT2SF(O->outformat);
+        ST(infile) = sf_open(fullName, SFM_READ, &sfinfo);  /* try again */
+      }
+      if (ST(infile) == NULL)
+        csoundDie(csound, Str("isfinit: cannot open %s"), fullName);
+      sfname = fullName;
+    }
+    /* chk the hdr codes  */
+    if (sfinfo.samplerate != (int) (csound->esr + FL(0.5))) {
+      csound->Warning(csound, Str("audio_in %s has sr = %d, orch sr = %d"),
+                              sfname, (int) sfinfo.samplerate,
+                              (int) (csound->esr + FL(0.5)));
+    }
+    if (sfinfo.channels != csound->nchnls) {
+      csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls"),
+                              sfname, (int) sfinfo.channels, csound->nchnls);
+    }
+    /* Do we care about the format?  Can assume float?? */
+    O->informat = SF2FORMAT(sfinfo.format);
+    O->insampsiz = format_nbytes(O->informat);  /* & cpy header vals */
+    fileType = (int) SF2TYPE(sfinfo.format);
+    csound->audrecv = readsf;       /* will use standard audio gets  */
 
  inset:
     /* calc inbufsize reqd */
     ST(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
     ST(inbuf) = (MYFLT*) mcalloc(csound, ST(inbufsiz)); /* alloc inbuf space */
-    csound->Message(csound,Str("reading %d-byte blks of %s from %s (%s)\n"),
-                    O->inbufsamps * format_nbytes(O->informat),
-                    getstrformat(O->informat), sfname,
-                    type2string(fileType));
+    csound->Message(csound, Str("reading %d-byte blks of %s from %s (%s)\n"),
+                            O->inbufsamps * O->insampsiz,
+                            getstrformat(O->informat), sfname,
+                            type2string(fileType));
     ST(isfopen) = 1;
 }
 
@@ -415,6 +308,9 @@ void sfopenout(void *csound_)                   /* init for sound out       */
 {                                               /* (not called if nosound)  */
     ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
+    char    *s, *fName, *fullName;
+    SF_INFO sfinfo;
+    int     osfd = 1;   /* stdout */
 
     alloc_globals(csound);
     if (O->outfilename == NULL) {
@@ -423,16 +319,17 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       else if (O->filetyp == TYP_AU) O->outfilename = "test.au";
       else O->outfilename = "test";
     }
-    if (strcmp(O->outfilename,"stdout") == 0) {
-      ST(sfoutname) = O->outfilename;
-      ST(osfd) = O->stdoutfd;   /* send sound to stdout if requested */
+    ST(sfoutname) = fName = O->outfilename;
+    csound->rtout_dev = 1024;
+    csound->rtout_devs = NULL;
+    if (strcmp(fName, "stdout") == 0) {
       ST(pipdevout) = 1;
     }
 #ifdef PIPES
-    else if (O->outfilename != NULL && O->outfilename[0]=='|') {
+    else if (fName[0] == '|') {
       FILE *_popen(const char *, const char *);
-      ST(pout) = _popen(O->outfilename+1, "w");
-      ST(osfd) = fileno(ST(pout));
+      ST(pout) = _popen(fName+1, "w");
+      osfd = fileno(ST(pout));
       ST(pipdevout) = 1;
       if (O->filetyp == TYP_AIFF || O->filetyp == TYP_WAV) {
         csound->Message(csound,
@@ -442,122 +339,86 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       }
     }
 #endif
-    else if (O->outfilename != NULL &&
-             (strncmp(O->outfilename, "devaudio", 8) == 0 ||
-              strncmp(O->outfilename, "dac", 3) == 0)) {
-      if (strcmp(O->outfilename, "devaudio") == 0 ||
-          strcmp(O->outfilename, "dac") == 0) {
-        csound->rtout_dev = 1024;
-        csound->rtout_devs = NULL;
+    else if (!strncmp(fName, "devaudio", 8) || !strncmp(fName, "dac", 3)) {
+      csRtAudioParams   parm;
+      /* get device number/name */
+      if (!strncmp(fName, "devaudio", 8) && fName[8] != '\0') {
+        if (fName[8] == ':')    csound->rtout_devs = &(fName[9]);
+        else                    sscanf(fName + 8, "%d", &(csound->rtout_dev));
       }
-      else if (strncmp(O->outfilename,"devaudio", 8) ==0) {
-        if (O->outfilename[8]==':') {
-          csound->rtout_dev = 1024;
-          csound->rtout_devs = &(O->outfilename[9]);
-        }
-        else {
-          sscanf(O->outfilename+8, "%d", &(csound->rtout_dev));
-          csound->rtout_devs = NULL;
-        }
+      else if (!strncmp(fName, "dac", 3) && fName[3] != '\0') {
+        if (fName[3] == ':')    csound->rtout_devs = &(fName[4]);
+        else                    sscanf(fName + 3, "%d", &(csound->rtout_dev));
       }
-      else if (strncmp(O->outfilename,"dac", 3) == 0) {
-        if (O->outfilename[3]==':') {
-          csound->rtout_dev = 1024;
-          csound->rtout_devs = &(O->outfilename[4]);
-        }
-        else {
-          sscanf(O->outfilename+3, "%d", &(csound->rtout_dev));
-          csound->rtout_devs = NULL;
-        }
-      }
-      ST(sfoutname) = O->outfilename;
-      {
-        csRtAudioParams parm;
-        /* set device parameters (should get these from ENVIRON...) */
-        parm.devName = csound->rtout_devs;
-        parm.devNum = csound->rtout_dev;
-        parm.bufSamp_SW = (int) O->outbufsamps / (int) csound->nchnls;
-        parm.bufSamp_HW = O->oMaxLag;
-        parm.nChannels = csound->nchnls;
-        parm.sampleFormat = O->outformat;
-        parm.sampleRate = (float) csound->esr;
-        csound->spoutran = spoutsf;
-        /* open devaudio for output */
-        if (csound->playopen_callback(csound, &parm) != 0)
-          csoundDie(csound, Str("Failed to initialise real time audio output"));
-        /*  & redirect audio puts  */
-        csound->audtran = (void (*)(void*, MYFLT*, int))
-                            csound->rtplay_callback;
-        ST(outbufrem) = parm.bufSamp_SW * parm.nChannels;
-      }
-      ST(osfd) = DEVAUDIO;                      /* dummy file descriptor */
-      ST(pipdevout) = 1;                        /* no backward seeks !   */
+      /* set device parameters (should get these from ENVIRON...) */
+      parm.devName = csound->rtout_devs;
+      parm.devNum = csound->rtout_dev;
+      parm.bufSamp_SW = (int) O->outbufsamps / (int) csound->nchnls;
+      parm.bufSamp_HW = O->oMaxLag;
+      parm.nChannels = csound->nchnls;
+      parm.sampleFormat = O->outformat;
+      parm.sampleRate = (float) csound->esr;
+      csound->spoutran = spoutsf;
+      /* open devaudio for output */
+      if (csound->playopen_callback(csound, &parm) != 0)
+        csoundDie(csound, Str("Failed to initialise real time audio output"));
+      /*  & redirect audio puts  */
+      csound->audtran = (void (*)(void*, MYFLT*, int)) csound->rtplay_callback;
+      ST(outbufrem) = parm.bufSamp_SW * parm.nChannels;
+      ST(pipdevout) = 2;                        /* no backward seeks !   */
       goto outset;                              /* no header needed      */
     }
-    else if (strcmp(O->outfilename,"null") == 0) {
-      ST(osfd) = -1;
-      ST(sfoutname) = mmalloc(csound, strlen(csound->retfilnam) + 1);
-      strcpy(ST(sfoutname), csound->retfilnam); /*   & preserve the name */
+    else if (strcmp(fName, "null") == 0) {
+      ST(outfile) = NULL;
+      goto outset;
     }
-    else {  /* else open sfdir or cwd */
-      SF_INFO sfinfo;
-      sfinfo.frames = -1;
-      sfinfo.samplerate = (int) (csound->esr + FL(0.5));
-      sfinfo.channels = csound->nchnls;
-      sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
-      sfinfo.sections = 0;
-      sfinfo.seekable = 0;
-      if ((ST(osfd) = openout(csound, O->outfilename, 3)) < 0)
-        csoundDie(csound, Str("sfinit: cannot open %s"), csound->retfilnam);
-      ST(sfoutname) = mmalloc(csound, strlen(csound->retfilnam) + 1);
-      strcpy(ST(sfoutname), csound->retfilnam); /*   & preserve the name */
-      ST(outfile) = sf_open_fd(ST(osfd), SFM_WRITE, &sfinfo, 1);
+    /* set format parameters */
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    sfinfo.frames = -1;
+    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+    sfinfo.channels = csound->nchnls;
+    sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
+    /* open file */
+    if (ST(pipdevout)) {
+      ST(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+    }
+    else {
+      fullName = csoundFindOutputFile(csound, fName, "SFDIR");
+      if (fullName == NULL)
+        csoundDie(csound, Str("sfinit: cannot open %s"), fName);
+      ST(sfoutname) = fullName;
+      ST(outfile) = sf_open(fullName, SFM_WRITE, &sfinfo);
       if (ST(outfile) == NULL)
-        csoundDie(csound, Str("sfinit: cannot open %s"), ST(sfoutname));
-      /* IV - Feb 22 2005: clip integer formats */
-      if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
-        sf_command(ST(outfile), SFC_SET_CLIPPING, NULL, SF_TRUE);
-      if (csound->peakchunks)
-        sf_command(ST(outfile), SFC_SET_ADD_PEAK_CHUNK, NULL, SF_TRUE);
-      if (strcmp(ST(sfoutname), "/dev/audio") == 0) {
-        /*      ioctl(   );   */
-        ST(pipdevout) = 1;
-      }
-      if (csound->dither_output)    /* This may not be written yet!! */
-        sf_command(ST(outfile), SFC_SET_DITHER_ON_WRITE, NULL, SF_TRUE);
-      csound->spoutran = spoutsf;   /* accumulate output */
-      csound->audtran = writesf;    /* flush buffer */
-      /* Write any tags. */
-      {
-        ENVIRON *p;
-        char    *s;
-        p = (ENVIRON*) csound;
-        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_title"));
-        if (s != NULL && s[0] != '\0')
-          sf_set_string(ST(outfile), SF_STR_TITLE, s);
-        s = (char*) (p->QueryGlobalVariable(p, "::SF::csd_licence"));
-        if (s != NULL && s[0] != '\0')
-          sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
-        else {
-          s = (char*) (p->QueryGlobalVariable(p, "::SF::id_copyright"));
-          if (s != NULL && s[0] != '\0')
-            sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
-        }
-        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_software"));
-        if (s != NULL && s[0] != '\0')
-          sf_set_string(ST(outfile), SF_STR_SOFTWARE, s);
-        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_artist"));
-        if (s != NULL && s[0] != '\0')
-          sf_set_string(ST(outfile), SF_STR_ARTIST, s);
-        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_comment"));
-        if (s != NULL && s[0] != '\0')
-          sf_set_string(ST(outfile), SF_STR_COMMENT, s);
-        s = (char*) (p->QueryGlobalVariable(p, "::SF::id_date"));
-        if (s != NULL && s[0] != '\0')
-          sf_set_string(ST(outfile), SF_STR_DATE, s);
-      }
-      ST(osfopen) = 1;
+        csoundDie(csound, Str("sfinit: cannot open %s"), fullName);
     }
+    /* IV - Feb 22 2005: clip integer formats */
+    if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
+      sf_command(ST(outfile), SFC_SET_CLIPPING, NULL, SF_TRUE);
+    if (csound->peakchunks)
+      sf_command(ST(outfile), SFC_SET_ADD_PEAK_CHUNK, NULL, SF_TRUE);
+    if (csound->dither_output)          /* This may not be written yet!! */
+      sf_command(ST(outfile), SFC_SET_DITHER_ON_WRITE, NULL, SF_TRUE);
+    csound->spoutran = spoutsf;         /* accumulate output */
+    csound->audtran = writesf;          /* flush buffer */
+    /* Write any tags. */
+    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_title");
+    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_TITLE, s);
+    s = (char*) csound->QueryGlobalVariable(csound, "::SF::csd_licence");
+    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
+    else {
+      s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_copyright");
+      if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
+    }
+    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_software");
+    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_SOFTWARE, s);
+    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_artist");
+    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_ARTIST, s);
+    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_comment");
+    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_COMMENT, s);
+    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_date");
+    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_DATE, s);
+    /* file is now open */
+    ST(osfopen) = 1;
 
 outset:
     /* calc outbuf size & alloc bufspace */
@@ -566,8 +427,7 @@ outset:
     csound->Message(csound,Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * format_nbytes(O->outformat),
                     getstrformat(O->outformat), ST(sfoutname));
-    if (strncmp(O->outfilename, "devaudio", 8) == 0 ||
-        strncmp(O->outfilename, "dac", 3) == 0)
+    if (ST(pipdevout) == 2)
       /* realtime output has no header */
       csound->Message(csound, "\n");
     else if (O->sfheader == 0)
@@ -583,27 +443,28 @@ void sfclosein(void *csound_)
     ENVIRON *csound = (ENVIRON*) csound_;
 
     alloc_globals(csound);
-    if (!ST(isfopen)) return;
-    if (ST(isfd) == DEVAUDIO) {
+    if (!ST(isfopen))
+      return;
+    if (ST(pipdevin) == 2 && (!ST(osfopen) || ST(pipdevout) != 2)) {
       /* close only if not open for output too */
-      if (!ST(osfopen) || ST(osfd) != DEVAUDIO) {
-        extern int rtrecord_dummy(void *csound, void *inBuf, int nBytes);
-        /* make sure that rtrecord does not get called after */
-        /* closing the device, by replacing it with the dummy function */
-        csound->audrecv = (int (*)(void*, MYFLT*, int)) rtrecord_dummy;
-        ((ENVIRON*) csound)->rtclose_callback(csound);
-      }
+      extern int rtrecord_dummy(void *csound, void *inBuf, int nBytes);
+      /* make sure that rtrecord does not get called after */
+      /* closing the device, by replacing it with the dummy function */
+      csound->audrecv = (int (*)(void*, MYFLT*, int)) rtrecord_dummy;
+      ((ENVIRON*) csound)->rtclose_callback(csound);
     }
-    else
+    else if (ST(pipdevin) != 2) {
+      if (ST(infile) != NULL)
+        sf_close(ST(infile));
 #ifdef PIPES
       if (ST(pin) != NULL) {
         int _pclose(FILE*);
         _pclose(ST(pin));
         ST(pin) = NULL;
       }
-      else
 #endif
-        sf_close(ST(infile));
+      ST(infile) = NULL;
+    }
     ST(isfopen) = 0;
 }
 
@@ -614,27 +475,31 @@ void sfcloseout(void *csound_)
     int     nb;
 
     alloc_globals(csound);
-    if (!ST(osfopen)) return;
+    if (!ST(osfopen))
+      return;
     if ((nb = (O->outbufsamps - ST(outbufrem)) * sizeof(MYFLT)) > 0) {
       /* flush outbuffer */
       csound->nrecs++;
       csound->audtran(csound, ST(outbuf), nb);
     }
-    if (ST(osfd) == DEVAUDIO) {
+    if (ST(pipdevout) == 2 && (!ST(isfopen) || ST(pipdevin) != 2)) {
       /* close only if not open for input too */
-      if (!ST(isfopen) || ST(isfd) != DEVAUDIO) {
-        extern void rtplay_dummy(void *csound, void *outBuf, int nBytes);
-        /* make sure that rtplay does not get called after */
-        /* closing the device, by replacing it with the dummy function */
-        csound->audtran = (void (*)(void*, MYFLT*, int)) rtplay_dummy;
-        csound->rtclose_callback(csound);
-      }
-      goto report;
+      extern void rtplay_dummy(void *csound, void *outBuf, int nBytes);
+      /* make sure that rtplay does not get called after */
+      /* closing the device, by replacing it with the dummy function */
+      csound->audtran = (void (*)(void*, MYFLT*, int)) rtplay_dummy;
+      csound->rtclose_callback(csound);
     }
-    sf_command(ST(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
-    nb = sf_close(ST(outfile));
+    if (ST(pipdevout) == 2)
+      goto report;
+    if (ST(outfile) != NULL) {
+      if (!ST(pipdevout))
+        sf_command(ST(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
+      sf_close(ST(outfile));
+      ST(outfile) = NULL;
+    }
 #ifdef PIPES
-    if (ST(pout)!=NULL) {
+    if (ST(pout) != NULL) {
       int _pclose(FILE*);
       _pclose(ST(pout));
       ST(pout) = NULL;
@@ -642,11 +507,10 @@ void sfcloseout(void *csound_)
 #endif
 
  report:
-    csound->Message(csound,Str("%ld %d-byte soundblks of %s written to %s"),
+    csound->Message(csound, Str("%ld %d-byte soundblks of %s written to %s"),
                     csound->nrecs, O->outbufsamps * format_nbytes(O->outformat),
                     getstrformat(O->outformat), ST(sfoutname));
-    if (strncmp(O->outfilename, "devaudio", 8) == 0 ||
-        strncmp(O->outfilename, "dac", 3) == 0)
+    if (ST(pipdevout) == 2)
       /* realtime output has no header */
       csound->Message(csound, "\n");
     else if (O->sfheader == 0)
@@ -664,10 +528,8 @@ void soundinRESET(ENVIRON *csound)
 }
 
 static void sndwrterr(void *csound, unsigned nret, unsigned nput)
-  /* report soundfile write(osfd) error   */
-  /* called after chk of write() bytecnt  */
-{
-    ENVIRON *p = (ENVIRON*) csound;
+{                                   /* report soundfile write(osfd) error   */
+    ENVIRON *p = (ENVIRON*) csound; /* called after chk of write() bytecnt  */
     void sfcloseout(void*);
     p->Message(csound,
                Str("soundfile write returned bytecount of %d, not %d\n"),

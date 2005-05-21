@@ -126,16 +126,6 @@ typedef struct {
         char    sfname[256];
 } SOUNDIN;
 
-/* for soundin opcode only */
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *r[24];
-        MYFLT   *ifilno, *iskptim, *iformat, *skipinit;
-        SOUNDIN sndin_;
-        FDCH    fdch;
-} SOUNDIN_;
-
 #ifdef __cplusplus
 };
 #endif
