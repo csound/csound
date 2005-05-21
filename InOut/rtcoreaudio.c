@@ -166,9 +166,9 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
   dev->srate = (float) (parm->sampleRate);
   dev->nchns = parm->nChannels;
   dev->bufframes = parm->bufSamp_HW;
-  if(dev->bufframes < parm->bufSamp_SW) dev->bufframes = parm->bufSamp_SW;
-  bfns = parm->bufSamp_HW/parm->bufSamp_SW;
-  dev->buffnos = bfns < 4 ? 4 : bfns;
+  if(parm->bufSamp_SW > parm->bufSamp_HW) bfns = parm->bufSamp_SW/parm->bufSamp_HW;
+  else bfns = parm->bufSamp_HW/parm->bufSamp_SW;
+  dev->buffnos = bfns < 2 ? 2 : bfns;
     
   psize = 4;
   /* set the buffer size
