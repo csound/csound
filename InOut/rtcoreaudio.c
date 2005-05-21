@@ -66,8 +66,8 @@ int csoundModuleCreate(void *csound)
                                    CSOUNDCFG_INTEGER, 0, &min, &max,
                                    "coreaudio IO buffer numbers", NULL);
 
-    p->Message(csound, "CoreAudio real-time audio module "
-			       "for Csound by Victor Lazzarini\n");
+    p->Message(csound, "CoreAudio real-time audio module for Csound\n"
+                        "by Victor Lazzarini\n");
   return 0;
 }
 
@@ -162,14 +162,25 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
   psize = sizeof(AudioDeviceID);
   AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice,
 			   &psize, &dev->dev);
-    
-  if(parm->devName!=NULL){                  
+               
     AudioHardwareGetPropertyInfo(kAudioHardwarePropertyDevices,
 				 &psize, NULL);
     devnos = psize/sizeof(AudioDeviceID);
     sysdevs = (AudioDeviceID *) malloc(psize);
     AudioHardwareGetProperty(kAudioHardwarePropertyDevices,
 			     &psize, sysdevs);
+     p->Message(csound, "==========================================================\n"
+                        "CoreAudio Module: found %d device(s):\n", (int)devnos);
+     for(i=0; i < devnos; i++){
+       AudioDeviceGetPropertyInfo(sysdevs[i],1,false, kAudioDevicePropertyDeviceName,
+			     &psize, NULL);
+       name = (char *) malloc(psize);
+       AudioDeviceGetProperty(sysdevs[i],1,false, kAudioDevicePropertyDeviceName,
+			 &psize, name);
+       p->Message(csound, "=> CoreAudio device %d: %s \n", i, name);
+       free(name);                                                                                                                           
+      }
+if(parm->devName!=NULL){         
     devnum = atoi(parm->devName);
     if(devnum >= 0 && devnum < devnos) dev->dev = sysdevs[devnum];
     free(sysdevs);
@@ -180,7 +191,8 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
   name = (char *) malloc(psize);
   AudioDeviceGetProperty(dev->dev,1,false, kAudioDevicePropertyDeviceName,
 			 &psize, name);
-  p->Message(csound, "Opening CoreAudio device: %s \n", name);
+  p->Message(csound, "CoreAudio module: opening %s \n", 
+                     name);
   free(name);              
                   
   dev->srate = (float) (parm->sampleRate);
@@ -295,7 +307,9 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
   if(isInput) *(p->GetRtPlayUserData(csound)) = (void*) dev;
   else  *(p->GetRtRecordUserData(csound)) = (void*) dev;
 
-  p->Message(csound, " CoreAudio device open with %d buffers of %d frames\n", dev->buffnos,dev->bufframes);
+  p->Message(csound, "CoreAudio module: device open with %d buffers of %d frames\n"
+                     "==========================================================\n", 
+                    dev->buffnos,dev->bufframes);
   return 0;
 }
 /* open for audio input */
