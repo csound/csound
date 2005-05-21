@@ -53,8 +53,20 @@ typedef struct devparams_ {
 
 int csoundModuleCreate(void *csound)
 {
-  /* nothing to do, report success */
-  ((ENVIRON*) csound)->Message(csound, "CoreAudio real-time audio module "
+    int min, max, *def;
+    ENVIRON *p = csound;
+    min = 2;
+    max = 32;
+    
+    p->CreateGlobalVariable(csound, "::cabuffnos", sizeof(int));
+    def =(int*) (p->QueryGlobalVariable(csound, "::cabuffnos"));
+   if(def==NULL) p->Message(csound, "warning... could not create global var\n");
+   else *def = 4;
+    p->CreateConfigurationVariable(csound, "buffnos", def,
+                                   CSOUNDCFG_INTEGER, 0, &min, &max,
+                                   "coreaudio IO buffer numbers", NULL);
+
+    p->Message(csound, "CoreAudio real-time audio module "
 			       "for Csound by Victor Lazzarini\n");
   return 0;
 }
@@ -132,7 +144,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
   UInt32 psize, devnum, devnos;
   AudioDeviceID *sysdevs;
   AudioStreamBasicDescription format;
-  int i, bfns;
+  int i, bfns, *vpt;
   char* name;
   UInt32 obufframes, ibufframes, buffbytes;
     
@@ -140,6 +152,13 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
   p = (ENVIRON*) csound; 
   dev->mono = 0;  
   /* set up parameters */
+ vpt= (int*) (p->QueryGlobalVariable(csound, "::cabuffnos"));
+ if(vpt != NULL) bfns = *vpt;
+ else bfns = 4;
+ 
+ p->DeleteConfigurationVariable(csound, "buffnos");
+ p->DestroyGlobalVariable(csound, "::cabuffnos");
+  
   psize = sizeof(AudioDeviceID);
   AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice,
 			   &psize, &dev->dev);
@@ -171,9 +190,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
   }
   else dev->nchns = parm->nChannels;
   dev->bufframes = parm->bufSamp_HW;
-  if(parm->bufSamp_SW > parm->bufSamp_HW) bfns = parm->bufSamp_SW/parm->bufSamp_HW;
-  else bfns = parm->bufSamp_HW/parm->bufSamp_SW;
-  dev->buffnos = bfns < 2 ? 2 : bfns;
+  dev->buffnos = bfns;
     
   psize = 4;
   /* set the buffer size
@@ -408,8 +425,11 @@ static void rtclose_(void *csound)
 {
   DEVPARAMS *dev;
   ENVIRON   *p;
-
   p = (ENVIRON*) csound;
+
+
+   
+   
   dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
   if (dev != NULL) {
     *(p->GetRtRecordUserData(csound)) = NULL;
