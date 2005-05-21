@@ -66,5 +66,21 @@ typedef struct {
 int diskin2_init(ENVIRON *csound, DISKIN2 *p);
 int diskin2_perf(ENVIRON *csound, DISKIN2 *p);
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *aOut[DISKIN2_MAXCHN];
+    MYFLT   *iFileCode, *iSkipTime, *iSampleFormat, *iSkipInit, *iBufSize;
+    int     nChannels;
+    int     bufSize;            /* in sample frames (power of two) */
+    int_least64_t   fileLength; /* in sample frames */
+    int_least64_t   bufStartPos;
+    int_least64_t   read_pos;   /* current sample frame being read */
+    MYFLT   *buf;
+    SNDFILE *sf;
+    MYFLT   scaleFac;
+    FDCH    fdch;
+    AUXCH   auxData;            /* for dynamically allocated buffers */
+} SOUNDIN_;
+
 #endif      /* CSOUND_DISKIN2_H */
 

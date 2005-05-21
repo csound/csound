@@ -539,7 +539,7 @@ OENTRY opcodlst_1[] = {
 { "pan",    S(PAN),   5, "aaaa", "akkioo",(SUBR)panset,NULL,   (SUBR)pan     },
 { "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
 { "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
-{ "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmm","Tooo",sndinset,NULL,soundin },
+{ "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmm","Toooo",sndinset,NULL,soundin },
 { "soundout",S(SNDOUT), 5,      "",     "aTo",  sndo1set,NULL,  soundout},
 /* { "soundouts",S(SNDOUTS),5,     "",     "aaTo", sndo2set,NULL,  soundouts}, */
 { "in",     S(INM),     4,      "a",    "",     NULL,   NULL,   in      },
