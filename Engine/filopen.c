@@ -96,27 +96,6 @@ int openout(ENVIRON *csound, char *filnam, int  dirtyp)
     return outfd;
 }
 
-/* fopenin() - patches fopen calls, searching file in current dir, INCDIR,
-   SSDIR or SFDIR, in that order. Modelled on openin() above. (re May 2000) */
-
-FILE *fopenin(ENVIRON *csound, char *filnam)
-{
-    char    *pathnam;
-    FILE    *infil;
-
-    pathnam = csoundFindInputFile(csound, filnam, "SFDIR;SSDIR;INCDIR");
-    infil = NULL;
-    if (csound->retfilnam != NULL)
-      mfree(csound, csound->retfilnam);
-    csound->retfilnam = pathnam;
-    if (pathnam != NULL)
-      infil = fopen(pathnam, "r");
-    if (infil == NULL)
-      csoundDie(csound, Str("cannot open %s.  Not in cur dir, "
-                            "INCDIR SSDIR or SFDIR as defined"), filnam);
-    return infil;
-}
-
 typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
