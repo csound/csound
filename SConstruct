@@ -759,7 +759,7 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
   if getPlatform() == 'linux' or getPlatform() == 'cygwin':
     widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
   elif getPlatform() == 'mingw':
-    widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+    widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++', 'kernel32', 'gdi32', 'wsock32', 'ole32', 'uuid', 'winmm'])
   elif getPlatform() == 'darwin':
     widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     widgetsEnvironment.Append(LINKFLAGS = Split('-framework Carbon -framework CoreAudio -framework CoreMidi'))
