@@ -44,7 +44,8 @@ typedef struct devparams_ {
   int*     inused;
   int*     outused;
   float    srate;        
-  int      nchns;          
+  int      nchns;
+  int     mono;          
 } DEVPARAMS;
 
 
@@ -137,7 +138,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
     
   memset(dev, 0, sizeof(DEVPARAMS));
   p = (ENVIRON*) csound; 
-    
+  dev->mono = 0;  
   /* set up parameters */
   psize = sizeof(AudioDeviceID);
   AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice,
@@ -164,7 +165,11 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
   free(name);              
                   
   dev->srate = (float) (parm->sampleRate);
-  dev->nchns = parm->nChannels;
+  if(parm->nChannels < 2) {
+  dev->nchns=2; 
+  dev->mono = 1;
+  }
+  else dev->nchns = parm->nChannels;
   dev->bufframes = parm->bufSamp_HW;
   if(parm->bufSamp_SW > parm->bufSamp_HW) bfns = parm->bufSamp_SW/parm->bufSamp_HW;
   else bfns = parm->bufSamp_HW/parm->bufSamp_SW;
@@ -318,7 +323,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 {
   DEVPARAMS *dev;
   ENVIRON   *p;
-  int       n, i, chans, cur, icount, buffitems, buffnos, *inused;
+  int       n, i, mono, chans, cur, icount, buffitems, buffnos, *inused;
   float **ibuffs;
   /* MYFLT norm; */
   p = (ENVIRON*) csound;
@@ -331,12 +336,14 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
   icount = dev->incount;
   buffnos = dev->buffnos;
   buffitems = dev->bufframes*chans;
+  mono = dev->mono;
   /* norm = p->e0dbfs;  */
 
   while(!inused[cur]) usleep(100);
  
   for(i = 0; i < n; i++){
     ((MYFLT *)inbuf_)[i] = ibuffs[cur][icount];
+    if(mono) icount++;
     icount++;
     if(icount == buffitems){           
       inused[cur] = 0;  
@@ -360,7 +367,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
 {
   DEVPARAMS *dev;
   ENVIRON   *p;
-  int       n, i, chans, cur, ocount, buffitems, buffnos, *outused;
+  int       n, i, chans, mono, cur, ocount, buffitems, buffnos, *outused;
   float **obuffs;
   /* MYFLT norm; */
   p = (ENVIRON*) csound;
@@ -374,10 +381,12 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
   ocount = dev->outcount;
   buffnos = dev->buffnos;
   buffitems = dev->bufframes*chans;
+  mono = dev->mono;
   /* norm = p->e0dbfs; */
     
   for(i = 0; i < n; i++){ 
     obuffs[cur][ocount] = (float)((MYFLT *)outbuf_)[i];
+    if(mono) ocount++;
     ocount++;
     if(ocount == buffitems){           
       outused[cur] = 0;  
