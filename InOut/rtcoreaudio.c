@@ -116,7 +116,7 @@ ADIOProc(const AudioBufferList *input,
 
   for(i = 0; i < items; i++){
     outp[i]  = obufp[i];
-    ibufp[i] = inp[i];
+    if(inp!=NULL) ibufp[i] = inp[i];
   }
       
   cdata->outused[buff] = cdata->inused[buff] = 1;      
