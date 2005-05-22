@@ -1846,7 +1846,7 @@ static void lexerr(ENVIRON *csound, char *s)
       }
       else {
         csound->MessageS(csound, CSOUNDMSG_ERROR,
-                                 Str("in line %f of file input %s\n"),
+                                 Str("in line %d of file input %s\n"),
                                  curr->line, curr->body);
       }
       curr--;

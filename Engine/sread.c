@@ -175,12 +175,12 @@ static void scorerr(ENVIRON *csound, char *s)
       if (curr->string) {
         MACRO *mm = NULL;
         while (mm != curr->mac) mm = mm->next;
-        csound->Message(csound,Str("called from line %d of macro %s\n"),
-               curr->line, mm->name);
+        csound->Message(csound, Str("called from line %d of macro %s\n"),
+                                curr->line, mm->name);
       }
       else {
-        csound->Message(csound,Str("in line %f of file input %s\n"),
-               curr->line, curr->body);
+        csound->Message(csound, Str("in line %d of file input %s\n"),
+                                curr->line, curr->body);
       }
       curr--;
     }
@@ -963,7 +963,7 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
           for (i = 0; i<=ST(next_name); i++)
             if (strcmp(buff, ST(names)[i].name)==0) break;
           if (i > ST(next_name))
-            csound->Message(csound, Str("Name not found"), buff);
+            csound->Message(csound, Str("Name %s not found"), buff);
           else {
             csound->Message(csound, Str("Duplicate %d: %s (%s,%ld)\n"),
                             i, buff, ST(names)[i].file, ST(names)[i].posit);

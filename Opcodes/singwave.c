@@ -364,9 +364,9 @@ int voicform(ENVIRON *csound, VOICF *p)
     if (p->oldform != *p->formant || p->ph != (int)(0.5+*p->phoneme)) {
       p->oldform = *p->formant;
       p->ph = (int)(0.5 + *p->phoneme);
-      csound->Message(csound, Str("Setting Phoneme: %f %d\n"),
+      csound->Message(csound, Str("Setting Phoneme: %d %f\n"),
                               p->ph, p->oldform);
-      VoicForm_setPhoneme(csound, p,(int)*p->phoneme, p->oldform);
+      VoicForm_setPhoneme(csound, p, (int) *p->phoneme, p->oldform);
     }
 /*     voicprint(csound, p); */
 

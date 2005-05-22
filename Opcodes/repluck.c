@@ -174,7 +174,7 @@ int wgpluck(ENVIRON *csound, WGPLUCK2 *p)
     pickfrac = pickup & OVERMSK;
     pickup = pickup>>OVERSHT;
     if (pickup<0 || pickup > p->rail_len) {
-      csound->Message(csound, Str("Pickup out of range (%f)\n"), p->pickup);
+      csound->Message(csound, Str("Pickup out of range (%f)\n"), *p->pickup);
       pickup =  p->rail_len * (OVERCNT/2);
       pickfrac = pickup & OVERMSK;
       pickup = pickup>>OVERSHT;
