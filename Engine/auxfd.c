@@ -80,15 +80,10 @@ void fdclose(ENVIRON *csound, FDCH *fdchp)
     prvchp = &(csound->curip->fdch);            /* from current insds,  */
     while ((nxtchp = prvchp->nxtchp) != NULL) { /* chain through fdlocs */
       if (nxtchp == fdchp) {                    /*   till find this one */
-        if (fdchp->fp)
-          csoundFileClose(csound, fdchp->fp);
-        else if (fdchp->fd)
-          sf_close(fdchp->fd);                  /* then close the file  */
-        else
-          close(fdchp->fdc);                    /* then close the file  */
-        fdchp->fp = NULL;
-        fdchp->fd = NULL;                       /*   delete the fd &    */
-        fdchp->fdc = -1;
+        if (fdchp->fd) {
+          csoundFileClose(csound, fdchp->fd);   /* then close the file  */
+          fdchp->fd = NULL;                     /*   delete the fd &    */
+        }
         prvchp->nxtchp = fdchp->nxtchp;         /* unlnk from fdchain   */
         if (csound->oparms->odebug)
           fdchprint(csound, csound->curip);
@@ -113,10 +108,10 @@ void auxchfree(void *csound, INSDS *ip) /* release all xds in instr auxp chain*/
         auxchprint(p, ip);
         csoundDie(csound, Str("auxchfree: illegal auxp %p in chain"), auxp);
       }
-      mfree(csound, auxp);                      /*      free the space  */
-      curchp->auxp = NULL;              /*      & delete the pntr */
+      mfree(csound, auxp);                      /*      free the space    */
+      curchp->auxp = NULL;                      /*      & delete the pntr */
     }
-    ip->auxch.nxtchp = NULL;            /* finally, delete the chain */
+    ip->auxch.nxtchp = NULL;                    /* finally, delete the chain */
     if (p->oparms->odebug)
       auxchprint(p, ip);
 }
@@ -128,17 +123,12 @@ void fdchclose(ENVIRON *csound, INSDS *ip)
     if (csound->oparms->odebug)
       fdchprint(csound, ip);
     while ((curchp = curchp->nxtchp) != NULL) { /* for all fd's in chain: */
-      if (curchp->fp)
-        csoundFileClose(csound, curchp->fp);
-      else if (curchp->fd)
-        sf_close(curchp->fd);
-      else
-        close(curchp->fdc);             /*      close the file  */
-      curchp->fp = NULL;
-      curchp->fd = NULL;
-      curchp->fdc = -1;                 /*      & delete the fd */
+      if (curchp->fd) {
+        csoundFileClose(csound, curchp->fd);    /*      close the file  */
+        curchp->fd = NULL;                      /*      & delete the fd */
+      }
     }
-    ip->fdch.nxtchp = NULL;             /* finally, delete the chain */
+    ip->fdch.nxtchp = NULL;                     /* finally, delete the chain */
     if (csound->oparms->odebug)
       fdchprint(csound, ip);
 }
@@ -160,8 +150,7 @@ static void fdchprint(ENVIRON *csound, INSDS *ip)
 
     csound->Message(csound, Str("fdlist for instr %d (%p):"), ip->insno, ip);
     while ((curchp = curchp->nxtchp) != NULL)    /* chain through fdlocs */
-      csound->Message(csound, Str("  fd %p/%p/%d in %p"),
-                              curchp->fp, curchp->fd, curchp->fdc, curchp);
+      csound->Message(csound, Str("  fd %p in %p"), curchp->fd, curchp);
     csound->Message(csound, "\n");
 }
 

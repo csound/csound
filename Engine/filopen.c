@@ -46,56 +46,6 @@
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
 #endif
 
-int openin(ENVIRON *csound, char *filnam)
-                    /* open a file for reading. If not fullpath, will search: */
-                    /* current directory, then SSDIR (if defined), then SFDIR */
-{                   /* returns normal fd, also sets a global return filename  */
-                    /* called by sndgetset (for soundin, gen01), and sfopenin */
-    char    *pathnam;
-    int     infd;
-
-    pathnam = csoundFindInputFile(csound, filnam, "SFDIR;SSDIR");
-    infd = -1;
-    if (csound->retfilnam != NULL)
-      mfree(csound, csound->retfilnam);
-    csound->retfilnam = pathnam;
-    if (pathnam != NULL)
-      infd = open(pathnam, RD_OPTS);
-    if (infd < 0)
-      csoundDie(csound, Str("cannot open %s.  "
-                            "Not in cur dir, SSDIR or SFDIR as defined"),
-                        filnam);
-    return infd;
-}
-
-int openout(ENVIRON *csound, char *filnam, int  dirtyp)
-{                         /* open a file for writing.  If not fullpath, then  */
-    char *pathnam = NULL; /*   dirtyp 1 will put it in the current directory  */
-    int  outfd = -1;      /*   dirtyp 2 will put it in SFDIR                  */
-                          /*   dirtyp 3 will put it in SFDIR else in cur dir  */
-                          /* returns normal fd, & sets global return filename */
-                          /* called by anals,dumpf (typ 1), sfopenout (typ 3) */
-    if (dirtyp == 2) {
-      pathnam = csoundGetEnv(csound, "SFDIR");
-      if (pathnam == NULL || pathnam[0] == '\0')
-        csoundDie(csound, Str("cannot open %s, SFDIR undefined"), filnam);
-    }
-    else if (dirtyp < 1 || dirtyp > 3)
-      csoundDie(csound, Str("openout: illegal dirtyp"));
-    if (dirtyp == 2 || dirtyp == 3)
-      pathnam = csoundFindOutputFile(csound, filnam, "SFDIR");
-    else
-      pathnam = csoundFindOutputFile(csound, filnam, NULL);
-    if (csound->retfilnam != NULL)
-      mfree(csound, csound->retfilnam);
-    csound->retfilnam = pathnam;
-    if (pathnam != NULL)
-      outfd = open(pathnam, WR_OPTS);
-    if (outfd < 0)
-      csoundDie(csound, Str("cannot open %s."), filnam);
-    return outfd;
-}
-
 typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
