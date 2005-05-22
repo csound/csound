@@ -33,21 +33,22 @@
 #endif
 
 typedef struct {
-  OPDS          h;
-  MYFLT         *r1, *r2, *r3, *r4;
-  MYFLT         *ifilno, *ktransp, *iskptim, *ilooping, *iformat, *skipinit;
-  short         format, channel, nchanls, sampframsiz, filetyp;
-  short         analonly, endfile, begfile;
-  long          sr, audrem, audsize;
-  AIFFDAT       *aiffdata;
-  FDCH          fdch;
-  MYFLT         *inbufp, *bufend, *guardpt;
-  MYFLT         inbuf[SNDINEWBUFSIZ];
-  double        phs;
-  long          filepos, firstsampinfile;
-  /*RWD 3:2000*/
-  float         fscalefac;
-  long          do_floatscaling;
+    OPDS        h;
+    MYFLT       *r1, *r2, *r3, *r4;
+    MYFLT       *ifilno, *ktransp, *iskptim, *ilooping, *iformat, *skipinit;
+    short       format, channel, nchanls, sampframsiz, filetyp;
+    short       analonly, endfile, begfile;
+    long        sr, audrem, audsize;
+    SNDFILE     *sf;
+    AIFFDAT     *aiffdata;
+    FDCH        fdch;
+    MYFLT       *inbufp, *bufend, *guardpt;
+    MYFLT       inbuf[SNDINEWBUFSIZ];
+    double      phs;
+    long        filepos, firstsampinfile;
+    /*RWD 3:2000*/
+    float       fscalefac;
+    long        do_floatscaling;
 } SOUNDINEW;
 
 #define SNDOUTSMPS   (1024)
@@ -57,6 +58,7 @@ typedef struct {
         short   format, filetyp;
         AIFFDAT *aiffdata;
         void    (*swrtmethod)(int, MYFLT *, int);
+        SNDFILE *sf;
         FDCH    fdch;
         MYFLT   *outbufp, *bufend;
         MYFLT   outbuf[SNDOUTSMPS];

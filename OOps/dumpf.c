@@ -30,11 +30,11 @@ int kdmpset(ENVIRON *csound, KDUMP *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
-    if (p->fdch.fp != NULL)
+    if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
                                           "");
-    if (p->fdch.fp == NULL)
+    if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
@@ -55,11 +55,11 @@ int kdmp2set(ENVIRON *csound, KDUMP2 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
-    if (p->fdch.fp != NULL)
+    if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
                                           "");
-    if (p->fdch.fp == NULL)
+    if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
@@ -80,11 +80,11 @@ int kdmp3set(ENVIRON *csound, KDUMP3 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
-    if (p->fdch.fp != NULL)
+    if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
                                           "");
-    if (p->fdch.fp == NULL)
+    if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
@@ -105,11 +105,11 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
-    if (p->fdch.fp != NULL)
+    if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
                                           "");
-    if (p->fdch.fp == NULL)
+    if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
@@ -247,11 +247,11 @@ int krdset(ENVIRON *csound, KREAD *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
-    if (p->fdch.fp != NULL)
+    if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                           "SFDIR;SSDIR");
-    if (p->fdch.fp == NULL)
+    if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
@@ -273,11 +273,11 @@ int krd2set(ENVIRON *csound, KREAD2 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
-    if (p->fdch.fp != NULL)
+    if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                           "SFDIR;SSDIR");
-    if (p->fdch.fp == NULL)
+    if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
@@ -299,11 +299,11 @@ int krd3set(ENVIRON *csound, KREAD3 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
-    if (p->fdch.fp != NULL)
+    if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                           "SFDIR;SSDIR");
-    if (p->fdch.fp == NULL)
+    if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
@@ -325,11 +325,11 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
-    if (p->fdch.fp != NULL)
+    if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fp = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                           "SFDIR;SSDIR");
-    if (p->fdch.fp == NULL)
+    if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->format = (int)*p->iformat) < 1 || p->format > 8) {
