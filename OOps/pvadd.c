@@ -136,8 +136,8 @@ int pvaddset(ENVIRON *csound, PVADD *p)
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(csound->errmsg, Str("PV frame %d bigger than %ld in %s"),
-                              p->frSiz, PVFRAMSIZE, pvfilnam);
+      sprintf(csound->errmsg, Str("PV frame %ld bigger than %ld in %s"),
+                              p->frSiz, (long) PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < 128) {

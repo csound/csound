@@ -133,7 +133,7 @@ static int sngetset(ENVIRON *csound, SOUNDINEW *p, char *sfname)
     if (sfinfo.samplerate != (int) csound->esr) {  /* non-anal:  cmp w. esr */
       if (csound->oparms->msglevel & WARNMSG)
         csound->Message(csound, Str("WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-                                sfname, sfinfo.samplerate, csound->esr);
+                                sfname, (long) sfinfo.samplerate, csound->esr);
     }
     if (sfinfo.channels != p->OUTOCOUNT) {         /*        chk nchanls */
       sprintf(csound->errmsg, Str("diskin: error: %s nchnls = %d "

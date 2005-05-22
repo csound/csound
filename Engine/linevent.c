@@ -222,7 +222,7 @@ static void sensLine(void *csound_, void *userData)
           e.opcod = c;
           break;
         default:
-          csound->Message(csound, Str("unknown opcode %c\n"));
+          csound->Message(csound, Str("unknown opcode %c\n"), c);
           goto Lerr;
         }                                       /* for params that follow:  */
         for (fp = &(e.p[1]), pcnt = 1; c != LF && pcnt <= PMAX; pcnt++) {

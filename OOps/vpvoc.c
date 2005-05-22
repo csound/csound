@@ -263,8 +263,8 @@ int vpvset(ENVIRON *csound, VPVOC *p)
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(csound->errmsg,Str("PVOC frame %d bigger than %ld in %s"),
-              p->frSiz, PVFRAMSIZE, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %ld bigger than %ld in %s"),
+                              p->frSiz, (long) PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < PVFRAMSIZE/8) {

@@ -199,8 +199,8 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
         blocks_written++;
       }
     }
-    csound->Message(csound,Str("\n%ld %d-chan blocks written to %s\n"),
-                    blocks_written/chans,chans,fname);
+    csound->Message(csound, Str("\n%ld %d-chan blocks written to %s\n"),
+                    (long) blocks_written / (long) chans, (int) chans, fname);
 
  error:
     if (inbuf)
