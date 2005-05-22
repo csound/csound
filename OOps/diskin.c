@@ -90,62 +90,63 @@ static int sreadinew(
 
 static int sngetset(ENVIRON *csound, SOUNDINEW *p, char *sfname)
 {
-    int     sinfd;
-    SNDFILE *infile;
+    void    *fd;
     SF_INFO sfinfo;
-    SOUNDIN forReadHeader;
 
-    memset(&forReadHeader, 0, sizeof(SOUNDIN));
-    if ((sinfd = openin(csound, sfname)) < 0) { /* open with full dir paths */
+    memset(&sfinfo, 0, sizeof(SF_INFO));
+    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+    sfinfo.channels = p->OUTOCOUNT;
+    sfinfo.format = TYPE2SF(TYP_RAW);
+    switch ((int) (*(p->iformat) + FL(0.5))) {
+      case 0: sfinfo.format |= FORMAT2SF(AE_SHORT);   break;
+      case 1: sfinfo.format |= FORMAT2SF(AE_CHAR);    break;
+      case 2: sfinfo.format |= FORMAT2SF(AE_ALAW);    break;
+      case 3: sfinfo.format |= FORMAT2SF(AE_ULAW);    break;
+      case 4: sfinfo.format |= FORMAT2SF(AE_SHORT);   break;
+      case 5: sfinfo.format |= FORMAT2SF(AE_LONG);    break;
+      case 6: sfinfo.format |= FORMAT2SF(AE_FLOAT);   break;
+      case 7: sfinfo.format |= FORMAT2SF(AE_UNCH);    break;
+      case 8: sfinfo.format |= FORMAT2SF(AE_24INT);   break;
+      case 9: sfinfo.format |= FORMAT2SF(AE_DOUBLE);  break;
+      default:  sprintf(csound->errmsg, Str("diskin: invalid sample format"));
+                goto errtn;
+    }
+    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, sfname, &sfinfo,
+                                  "SFDIR;SSDIR");
+    if (fd == NULL) {                           /* open with full dir paths */
       sprintf(csound->errmsg, Str("diskin cannot open %s"), sfname);
       goto errtn;
     }
-    infile = sf_open_fd(sinfd, SFM_READ, &sfinfo, SF_TRUE);
-    p->fdch.fd = infile;
+    p->fdch.fd = fd;
     p->format = SF2FORMAT(sfinfo.format);
-    sfname = csound->retfilnam; /* & record fullpath filnam */
-    if (*p->iformat > 0)        /* convert spec'd format code */
-       p->format = ((short)*p->iformat) | 0x100;
+    sfname = csound->GetFileName(csound, fd);   /* & record fullpath filnam */
     p->endfile = 0;
     p->begfile = 0;
-    p->filetyp = 0;             /* initially non-typed for readheader */
-
-    /******* construct the SOUNDIN struct to use old readheader ***********/
-    forReadHeader.filetyp = p->filetyp;
-    forReadHeader.audrem = p->audrem;
+    p->filetyp = SF2TYPE(sfinfo.format);
+    p->do_floatscaling = 0;
+    p->fscalefac = FL(1.0);
+    p->sampframsiz = (short) sfsampsize(sfinfo.format) * sfinfo.channels;
+    p->sr = sfinfo.samplerate;
+    p->nchanls = (short) sfinfo.channels;
+    p->audrem = p->audsize = sfinfo.frames;
 
     if (sfinfo.samplerate != (int) csound->esr) {  /* non-anal:  cmp w. esr */
       if (csound->oparms->msglevel & WARNMSG)
         csound->Message(csound, Str("WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-               sfname, sfinfo.samplerate, csound->esr);
+                                sfname, sfinfo.samplerate, csound->esr);
     }
-
     if (sfinfo.channels != p->OUTOCOUNT) {         /*        chk nchanls */
-      if (csound->oparms->msglevel & WARNMSG) {
-        csound->Message(csound, Str("WARNING: %s nchnls = %d, soundin reading as if nchnls = %d\n"),
-               sfname, (int) sfinfo.channels, (int) p->OUTOCOUNT);
-      }
-      sfinfo.channels = p->OUTOCOUNT;
+      sprintf(csound->errmsg, Str("diskin: error: %s nchnls = %d "
+                                  "inconsistent with outarg cnt = %d"),
+                              sfname, (int)sfinfo.channels, (int)p->OUTOCOUNT);
+      goto errtn;
     }
 
-    /***********  copy header data  *************/
-    /*RWD 3:2000 copy scalefac stuff */
-    p->do_floatscaling = forReadHeader.do_floatscaling;
-    p->fscalefac = forReadHeader.fscalefac;
-
-    p->format = (short) SF2FORMAT(sfinfo.format);
-    p->sampframsiz = (short)sfsampsize(sfinfo.format) * sfinfo.channels;
-    p->filetyp     = SF2TYPE(sfinfo.format);
-    p->sr          = sfinfo.samplerate;
-    p->nchanls     = (short)sfinfo.channels;
-    p->audrem = p->audsize = sfinfo.frames;
-    p->fdch.fd = infile;                  /*     store & log the fd     */
     return (TRUE);
 
  errtn:
     return (FALSE);                      /*              return empty handed */
 }
-
 
 int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
 {
@@ -181,7 +182,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
       skiptime = FL(0.0);
     }
 
-    if (p->fdch.fd != 0) {  /* if file already open, rtn */
+    if (p->fdch.fd != NULL) {   /* if file already open, rtn */
       /*********** for reinits, we gotta do some stuff here ************/
       /* we get a crash if backwards and 0 skiptime, so lets set it to file
          end instead..*/
@@ -223,12 +224,12 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
 
       /* set file pointer */
       if ((p->filepos =         /* seek to bndry */
-           (long)sf_seek(p->fdch.fd,
+           (long)sf_seek(p->sf,
                          (off_t)(nbytes+p->firstsampinfile)/sizeof(MYFLT),
                          SEEK_SET)) < 0)
         csound->Die(csound, Str("diskin seek error during reinit"));
       /* now rd fulbuf */
-      if ((n = sreadinew(csound, p->fdch.fd, p->inbuf, snewbufsize,p)) == 0)
+      if ((n = sreadinew(csound, p->sf, p->inbuf, snewbufsize,p)) == 0)
         p->endfile = 1;
       p->inbufp = p->inbuf;
       p->bufend = p->inbuf + n;
@@ -253,7 +254,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
     sfname = soundiname;
     if (!sngetset(csound, p, sfname))
       return FALSE;
-    sinfd  = p->fdch.fd;
+    sinfd  = p->sf;
 
     /*******  display messages in verbose mode only */
     if (csound->oparms->odebug) {
@@ -426,10 +427,10 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
         if (samplesLeft <= csound->nchnls) {      /* first set file position
                                              to where inbuf p "thinks"
                                              its pointing to */
-          p->filepos = (long)sf_seek(p->fdch.fd,
+          p->filepos = (long)sf_seek(p->sf,
                                      (off_t)(-samplesLeft / chnsout),
                                      SEEK_CUR);
-          if ((n = sreadinew(csound, p->fdch.fd,
+          if ((n = sreadinew(csound, p->sf,
                              p->inbuf, snewbufsize, p)) == 0) {  /*RWD 5:2001 */
             if (looping) {
               /* go to beginning of file.
@@ -439,10 +440,10 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
                  few end samples are critical for looping, use oscil or
                  table!!!!  */
               p->audrem = p->audsize;
-              p->filepos = (long)sf_seek(p->fdch.fd,
+              p->filepos = (long)sf_seek(p->sf,
                                          (off_t)p->firstsampinfile/sizeof(MYFLT),
                                          SEEK_SET);
-              if ((n = sreadinew(csound, p->fdch.fd,
+              if ((n = sreadinew(csound, p->sf,
                                  p->inbuf, snewbufsize, p)) == 0)
                 csound->Die(csound, Str("error trying to loop back to the beginning "
                         "of the sound file!?!??"));
@@ -491,10 +492,10 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
           goto filend; /* make sure we are at beginning, not end */
         else {         /* RWD 5:2001: read in the first block (= last block of infile) */
           samplesLeft = (int)(inbufp - p->inbuf);
-          if ((p->filepos = (long)sf_seek(p->fdch.fd,
+          if ((p->filepos = (long)sf_seek(p->sf,
                                           (off_t)(samplesLeft-snewbufsize),
                                           SEEK_CUR)) <= p->firstsampinfile) {
-            p->filepos = (long)sf_seek(p->fdch.fd,
+            p->filepos = (long)sf_seek(p->sf,
                                        (off_t)p->firstsampinfile,SEEK_SET);
             p->begfile = 1;
           }
@@ -502,7 +503,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
           /* RWD 5:2001 but don't know if this is required here... */
           p->audrem = p->audsize; /* a hack to prevent errors (returning
                                      'ntot')in the sread for AIFF */
-          if ((n = sreadinew(csound, p->fdch.fd, p->inbuf, snewbufsize, p)) !=
+          if ((n = sreadinew(csound, p->sf, p->inbuf, snewbufsize, p)) !=
               snewbufsize) {
             /* we should never get here. if we do,
                we're f****d because didn't get a full buffer and our
@@ -570,7 +571,7 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
             if (looping) {      /* hopes this works -- set 1 buffer length
                                    at end of sound file */
               p->filepos =
-                (long)sf_seek(p->fdch.fd,
+                (long)sf_seek(p->sf,
                               (off_t)(p->firstsampinfile+p->audsize-snewbufsize),
                               SEEK_SET);   /*RWD 5:2001*/
               phs = -0.0;
@@ -594,18 +595,18 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
             oldfilepos = p->filepos;
 
             if ((p->filepos =
-                 (long)sf_seek(p->fdch.fd,
+                 (long)sf_seek(p->sf,
                                (off_t)(samplesLeft-snewbufsize - snewbufsize),
                                /*RWD 5:2001 was SNDINEWBUFSIZ*/
                                SEEK_CUR)) <= p->firstsampinfile) {
-              p->filepos = (long)sf_seek(p->fdch.fd,
+              p->filepos = (long)sf_seek(p->sf,
                                          (off_t)p->firstsampinfile,SEEK_SET);
               p->begfile = 1;
             }
           }
           p->audrem = p->audsize; /* a hack to prevent errors (returning
                                      'ntot') in the sread for AIFF */
-          if ((n = sreadinew(csound, p->fdch.fd, p->inbuf, snewbufsize, p)) !=
+          if ((n = sreadinew(csound, p->sf, p->inbuf, snewbufsize, p)) !=
               snewbufsize) {       /* RWD 4:2001 was SNDINEWBUFSIZ*/
             /* we should never get here. if we do,
                we're fucked because didn't get a full buffer and our
@@ -667,19 +668,16 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
 
 int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
 {
-    int    soutfd;
     char   *sfname, sndoutname[128];
     SF_INFO sfinfo;
     SNDFILE *outfile;
+    void    *fd;
 
     if (p->c.fdch.fd != NULL)   return OK;  /* if file already open, rtn  */
     csound->strarg2name(csound, sndoutname, p->c.ifilcod, "soundout.",
                                 p->XSTRCODE);
     sfname = sndoutname;
-    if ((soutfd = openout(csound, sfname, 1)) < 0) { /* if openout successful */
-      sprintf(csound->errmsg, Str("soundout cannot open %s"), sfname);
-      goto errtn;
-    }
+    memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.frames = -1;
     sfinfo.samplerate = (int) (csound->esr + FL(0.5));
     sfinfo.channels = 1;
@@ -696,21 +694,28 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
         goto errtn;
     }
     sfinfo.format = TYPE2SF(p->c.filetyp) | FORMAT2SF(p->c.format);
-    sfinfo.sections = 0;
-    sfinfo.seekable = 0;
-    outfile = sf_open_fd(soutfd, SFM_WRITE, &sfinfo, SF_TRUE);
+    fd = csound->FileOpen(csound, &outfile, CSFILE_SND_W, sfname, &sfinfo,
+                                  "SFDIR");
+    if (fd == NULL) {
+      sprintf(csound->errmsg, Str("soundout cannot open %s"), sfname);
+      goto errtn;
+    }
+    sfname = csound->GetFileName(csound, fd);
     if (p->c.format != AE_FLOAT)
       sf_command(outfile, SFC_SET_CLIPPING, NULL, SF_TRUE);
+    else
+      sf_command(outfile, SFC_SET_CLIPPING, NULL, SF_FALSE);
 #ifdef USE_DOUBLE
     sf_command(outfile, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
 #else
     sf_command(outfile, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
-    sfname = csound->retfilnam;
-    csound->Message(csound, Str("opening %s outfile %s\n"), type2string(p->c.filetyp), sfname);
+    csound->Message(csound, Str("opening %s outfile %s\n"),
+                            type2string(p->c.filetyp), sfname);
     p->c.outbufp = p->c.outbuf;             /* fix - isro 20-11-96 */
     p->c.bufend = p->c.outbuf + SNDOUTSMPS; /* fix - isro 20-11-96 */
-    p->c.fdch.fd = outfile; /* WRONG */     /*     store & log the fd     */
+    p->c.sf = outfile;
+    p->c.fdch.fd = fd;                      /*     store & log the fd     */
     fdrecord(csound, &p->c.fdch);           /*     instr will close later */
     return OK;
  errtn:
@@ -732,13 +737,10 @@ int soundout(ENVIRON *csound, SNDOUT *p)
       nn = ospace;
     nsamps -= nn;
     ospace -= nn;
-    memmove(outbufp, asig, nn*sizeof(MYFLT));
+    memcpy(outbufp, asig, nn*sizeof(MYFLT));
     outbufp += nn; asig += nn;
-/*  do { */
-/*    *outbufp++ = *asig++; */
-/*  } while (--nn); */
     if (!ospace) {              /* when buf is full  */
-      sf_write_MYFLT(p->c.fdch.fd, p->c.outbuf, p->c.bufend - p->c.outbuf);
+      sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
       outbufp = p->c.outbuf;
       ospace = SNDOUTSMPS;
       if (nsamps) goto nchk;    /*   chk rem samples */

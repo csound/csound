@@ -196,7 +196,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
       return NOTOK;
     }
     /* if already open, close old file first */
-    if (p->fdch.fp != NULL) {
+    if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
       if (*(p->iSkipInit) != FL(0.0))
         return OK;
@@ -238,7 +238,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
-    p->fdch.fp = fd;
+    p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
     if (csound->GetMessageLevel(csound) != 0) {
@@ -574,7 +574,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p)
       return NOTOK;
     }
     /* if already open, close old file first */
-    if (p->fdch.fp != NULL) {
+    if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
       if (*(p->iSkipInit) != FL(0.0))
         return OK;
@@ -600,7 +600,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p)
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
-    p->fdch.fp = fd;
+    p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
     if (csound->GetMessageLevel(csound) != 0) {
@@ -654,7 +654,7 @@ int soundin(ENVIRON *csound, SOUNDIN_ *p)
 {
     int nn, bufPos, i;
 
-    if (p->fdch.fp == NULL) {
+    if (p->fdch.fd == NULL) {
       csound->PerfError(csound, Str("soundin: not initialised"));
       return NOTOK;
     }

@@ -226,14 +226,7 @@ extern "C" {
 
   typedef struct fdch {
     struct fdch * nxtchp;
-    void    *fp;
-#ifdef HAVE_GCC3
-    __attribute__ ((__deprecated__))    void    *fd;  /* Should be SNDFILE * */
-    __attribute__ ((__deprecated__))    int     fdc;
-#else
-    void    *fd;            /* Should be SNDFILE * */
-    int     fdc;
-#endif
+    void   *fd;             /* handle returned by csound->FileOpen() */
   } FDCH;
 
   typedef struct auxch {
@@ -855,10 +848,6 @@ extern "C" {
     int           Linefd;
     MYFLT         *ls_table;
     MYFLT         curr_func_sr;
-#ifdef HAVE_GCC3
-  __attribute__ ((__deprecated__))
-#endif
-    char          *retfilnam;
     INSTRTXT      **instrtxtp;
     char          errmsg[ERRSIZ];   /* sprintf space for compiling msgs */
     FILE*         scfp;
