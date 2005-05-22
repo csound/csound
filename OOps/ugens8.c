@@ -131,8 +131,8 @@ int pvset(ENVIRON *csound, PVOC *p)
         goto pverr;
       }
       if (p->frSiz > PVFRAMSIZE) {
-        sprintf(csound->errmsg,Str("PVOC frame %d bigger than %ld in %s"),
-                p->frSiz, PVFRAMSIZE, pvfilnam);
+        sprintf(csound->errmsg, Str("PVOC frame %ld bigger than %ld in %s"),
+                                p->frSiz, (long) PVFRAMSIZE, pvfilnam);
         goto pverr;
       }
       if (p->frSiz < 128) {
@@ -307,7 +307,7 @@ static int pvx_loadfile(ENVIRON *csound,
     if (pvx_fftsize > PVFRAMSIZE) {
       sprintf(csound->errmsg,
               Str("pvoc-ex file %s: FFT size %d too large for Csound\n"),
-              fname,pvx_fftsize);
+              fname, (int) pvx_fftsize);
       return NOTOK;
     }
 

@@ -514,13 +514,13 @@ int csoundLoadExternal(void *csound_, const char* libraryPath)
     if (length > 0L) {
       olength = csound->oplstend - csound->opcodlst;
       if (csound->oparms->odebug) {
-        csound->Message(csound, Str("Got opcodlst 0x%x\noplstend=0x%x, "
-                                    "opcodlst=0x%x, length=%d.\n"),
+        csound->Message(csound, Str("Got opcodlst %p\noplstend=%p, "
+                                    "opcodlst=%p, length=%ld.\n"),
                                 opcodlst_n, csound->oplstend,
-                                csound->opcodlst, olength);
-        csound->Message(csound, Str("Adding %d bytes (%d opcodes) "
+                                csound->opcodlst, (long) olength);
+        csound->Message(csound, Str("Adding %ld bytes (%ld opcodes) "
                                     "-- first opcode is '%s'.\n"),
-                                length, length / sizeof(OENTRY),
+                                (long) length, length / (long) sizeof(OENTRY),
                                 opcodlst_n[0].opname);
       }
       csound->opcodlst = (OENTRY*) mrealloc(csound, csound->opcodlst,

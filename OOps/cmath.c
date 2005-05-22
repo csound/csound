@@ -75,7 +75,7 @@ int seedrand(ENVIRON *csound, PRAND *p)
     if ((unsigned int)*p->out == 0) {
       csound->holdrand = time(NULL);
       csound->Message(csound,
-                      Str("Seeding from current time %d\n"), csound->holdrand);
+                      Str("Seeding from current time %ld\n"), csound->holdrand);
       srand((unsigned int) csound->holdrand);
     }
     else {

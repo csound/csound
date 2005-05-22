@@ -91,8 +91,8 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(csound->errmsg, Str("PVOC frame %d bigger than %ld in %s"),
-                              p->frSiz, PVFRAMSIZE, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %ld bigger than %ld in %s"),
+                              p->frSiz, (long) PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < 128) {
@@ -206,8 +206,8 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
       goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-      sprintf(csound->errmsg, Str("PVOC frame %d bigger than %ld in %s"),
-                              p->frSiz, PVFRAMSIZE, pvfilnam);
+      sprintf(csound->errmsg, Str("PVOC frame %ld bigger than %ld in %s"),
+                              p->frSiz, (long) PVFRAMSIZE, pvfilnam);
       goto pverr;
     }
     if (p->frSiz < PVFRAMSIZE/8) {
@@ -394,8 +394,8 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
         goto pverr;
     }
     if (p->frSiz > PVFRAMSIZE) {
-        sprintf(csound->errmsg, Str("PVOC frame %d bigger than %ld in %s"),
-                                p->frSiz, PVFRAMSIZE, pvfilnam);
+        sprintf(csound->errmsg, Str("PVOC frame %ld bigger than %ld in %s"),
+                                p->frSiz, (long) PVFRAMSIZE, pvfilnam);
         goto pverr;
     }
     if (p->frSiz < PVFRAMSIZE/8) {
