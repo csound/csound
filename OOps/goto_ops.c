@@ -70,6 +70,21 @@ int kngoto(ENVIRON *csound, CGOTO *p)
     return OK;
 }
 
+/* an i-rate version that ALWAYS jumps at p-time */
+
+int iingoto(ENVIRON *csound, CGOTO *p)
+{
+    if (!*p->cond)
+      csound->ids = p->lblblk->prvi;
+    return OK;
+}
+
+int kingoto(ENVIRON *csound, CGOTO *p)
+{
+    csound->pds = p->lblblk->prvp;
+    return OK;
+}
+
 int timset(ENVIRON *csound, TIMOUT *p)
 {
     if ((p->cnt1 = (long)(*p->idel * csound->ekr + FL(0.5))) < 0L
