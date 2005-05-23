@@ -663,7 +663,6 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
    /* clean up stuff */
         dispexit(csound);
         printf(Str("%d lpc frames written to %s\n"), counter, outfilnam);
-        sf_close(infd);
         close(ofd);
         free(a); free(x);
         mfree(csound, coef);

@@ -58,6 +58,7 @@ static int cvanal(void *csound_, int argc, char **argv)
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
     FILE    *ofd;
+    void    *ofd_handle;
     int     err, channel = ALLCHNLS;
     SOUNDIN *p;  /* space allocated by SAsndgetset() */
     MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
@@ -130,34 +131,19 @@ static int cvanal(void *csound_, int argc, char **argv)
     if ((err = CVAlloc(csound, &cvh, Estdatasiz, CVMYFLT, sr,
                        p->nchanls, channel, Hlen, CVRECT, 4))) {
       csound->Message(csound, Str("cvanal: Error allocating header\n"));
-      sf_close(infd);
       return -1;
     }
-    {
-      char  *outName;
-      ofd = NULL;
-      outName = csound->FindOutputFile(csound, outfilnam, "SFDIR");
-      if (outName != NULL) {
-        ofd = fopen(outName, "wb");
-        csound->Free(csound, outName);
-      }
-    }
-    if (ofd == NULL) {                          /* open the output CV file */
-      sf_close(infd);
+    ofd_handle = csound->FileOpen(csound, &ofd, CSFILE_STD, outfilnam, "wb",
+                                          "SFDIR");
+    if (ofd_handle == NULL) {                   /* open the output CV file */
       return quit(csound, Str("cannot create output file"));
     }                                           /* & wrt hdr into the file */
     if ((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize) {
-      sf_close(infd);
-      fclose(ofd);
       return quit(csound, Str("cannot write header"));
     }
     if (takeFFT(csound, p, cvh, Hlenpadded, infd, ofd) != 0) {
-      sf_close(infd);
-      fclose(ofd);
       return -1;
     }
-    sf_close(infd);
-    fclose(ofd);
     return 0;
 }
 

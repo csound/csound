@@ -108,8 +108,8 @@ extern "C" {
 typedef struct {
         SNDFILE *sinfd;             /* sound file handle                    */
         MYFLT   *inbufp, *bufend;   /* current buffer position, end of buf  */
-        AIFFDAT *aiffdata;          /* ???                                  */
-        int     outocount;          /* outarg cnt for soundin, 0 otherwise  */
+        void    *fd;                /* handle returned by csoundFileOpen()  */
+        int     bufsmps;            /* number of mono samples in buffer     */
         int     format;             /* sample format (AE_SHORT, etc.)       */
         int     channel;            /* requested channel (ALLCHNLS: all)    */
         int     nchanls;            /* number of channels in file           */
@@ -123,7 +123,7 @@ typedef struct {
         MYFLT   inbuf[SNDINBUFSIZ];
         MYFLT   fscalefac;
         MYFLT   skiptime;
-        char    sfname[256];
+        char    sfname[512];
 } SOUNDIN;
 
 #ifdef __cplusplus
