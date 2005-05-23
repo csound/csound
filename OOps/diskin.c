@@ -119,7 +119,7 @@ static int sngetset(ENVIRON *csound, SOUNDINEW *p, char *sfname)
     }
     p->fdch.fd = fd;
     p->format = SF2FORMAT(sfinfo.format);
-    sfname = csound->GetFileName(csound, fd);   /* & record fullpath filnam */
+    sfname = csound->GetFileName(fd);           /* & record fullpath filnam */
     p->endfile = 0;
     p->begfile = 0;
     p->filetyp = SF2TYPE(sfinfo.format);
@@ -700,7 +700,7 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
       sprintf(csound->errmsg, Str("soundout cannot open %s"), sfname);
       goto errtn;
     }
-    sfname = csound->GetFileName(csound, fd);
+    sfname = csound->GetFileName(fd);
     if (p->c.format != AE_FLOAT)
       sf_command(outfile, SFC_SET_CLIPPING, NULL, SF_TRUE);
     else

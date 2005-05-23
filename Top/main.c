@@ -104,7 +104,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     if ((n = setjmp(csound->exitjmp))) {
       csound->Message(csound, " *** WARNING: longjmp() called during "
                               "csoundPreCompile() ***\n");
-      return (-(abs(n)));
+      return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
     }
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
@@ -116,10 +116,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         return CSOUND_ERROR;
 
     if ((n = setjmp(csound->exitjmp))) {
-      /*
-       * Changed from exit(-1) for re-entrancy.
-       */
-      return (-(abs(n)));
+      return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
     }
 
     /* IV - Jan 28 2005 */
@@ -131,24 +128,23 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     timers_struct_init((RTCLOCK*)
                        csoundQueryGlobalVariable(csound, "csRtClock"));
     csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
-    if (sizeof(MYFLT)==sizeof(float)) {
+#ifndef USE_DOUBLE
 #ifdef BETA
-      csound->Message(csound,"Csound version %s beta (float samples) %s\n",
-                 PACKAGE_VERSION, __DATE__);
+    csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
+                            PACKAGE_VERSION, __DATE__);
 #else
-      csound->Message(csound,"Csound version %s (float samples) %s\n",
-                 PACKAGE_VERSION, __DATE__);
+    csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
+                            PACKAGE_VERSION, __DATE__);
 #endif
-    }
-    else {
+#else
 #ifdef BETA
-      csound->Message(csound,"Csound version %s beta (double samples) %s\n",
-                 PACKAGE_VERSION, __DATE__);
+    csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
+                            PACKAGE_VERSION, __DATE__);
 #else
-      csound->Message(csound,"Csound version %s (double samples) %s\n",
-                 PACKAGE_VERSION, __DATE__);
+    csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
+                            PACKAGE_VERSION, __DATE__);
 #endif
-    }
+#endif
     {
       char buffer[128];
       sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
@@ -392,22 +388,23 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
 int csoundMain(void *csound_, int argc, char **argv)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
-    int     returnvalue;
+    int     n;
 
-    if ((returnvalue = setjmp(csound->exitjmp))) {
+    if ((n = setjmp(csound->exitjmp))) {
       csound->Message(csound, "Error return.\n");
-      return returnvalue;
+      return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
     }
-    returnvalue = csoundCompile(csound, argc, argv);
-    csound->Message(csound, "Compile returns %d\n", returnvalue);
-    if (returnvalue) return returnvalue;
-    if ((returnvalue = setjmp(csound->exitjmp))) {
+    n = csoundCompile(csound, argc, argv);
+    csound->Message(csound, "Compile returns %d\n", n);
+    if (n)
+      return n;
+    if ((n = setjmp(csound->exitjmp))) {
       csound->Message(csound, "Error return.\n");
-      return returnvalue;
+      return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
     }
-    returnvalue = musmon2(csound);
-    csound->Message(csound, "musmon returns %d\n", returnvalue);
-    return returnvalue;
+    n = musmon2(csound);
+    csound->Message(csound, "musmon returns %d\n", n);
+    return n;
 }
 
 void mainRESET(ENVIRON *p)
@@ -426,11 +423,6 @@ void mainRESET(ENVIRON *p)
     void soundinRESET(ENVIRON *);
     void tranRESET(ENVIRON *);
 
-#if defined(USE_FLTK) && defined(never)        /* IV - Nov 30 2002 */
-    void widgetRESET(ENVIRON*); /* N.B. this is not used yet, */
-                                /* because it was not fully tested, */
-    widgetRESET(p);             /* and may crash on some systems */
-#endif
     cscoreRESET(p);
     expRESET(p);
     ftRESET(p);
