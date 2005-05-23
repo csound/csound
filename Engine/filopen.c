@@ -88,7 +88,7 @@ typedef struct CSFILE_ {
  *   conversion or search.
  * return value:
  *   opaque handle to the opened file, for use with csoundGetFileName() or
- *   csoundFileClose(), or storing in FDCH.fp.
+ *   csoundFileClose(), or storing in FDCH.fd.
  *   On failure, NULL is returned.
  */
 
@@ -110,8 +110,6 @@ PUBLIC void *csoundFileOpen(void *csound, void *fd, int type,
         *((FILE**) fd) = (FILE*) NULL;
         break;
       case CSFILE_SND_R:
-        memcpy(&sfinfo, (SF_INFO*) param, sizeof(SF_INFO));
-        memset((SF_INFO*) param, 0, sizeof(SF_INFO));
       case CSFILE_SND_W:
         *((SNDFILE**) fd) = (SNDFILE*) NULL;
         break;
@@ -146,8 +144,10 @@ PUBLIC void *csoundFileOpen(void *csound, void *fd, int type,
     p->f = (FILE*) NULL;
     p->sf = (SNDFILE*) NULL;
     strcpy(&(p->fullName[0]), fullName);
-    if (env != NULL)
+    if (env != NULL) {
       mfree(csound, fullName);
+      env = NULL;
+    }
     fullName = &(p->fullName[0]);
     /* open file */
     switch (type) {
@@ -167,14 +167,16 @@ PUBLIC void *csoundFileOpen(void *csound, void *fd, int type,
           goto err_return;
         break;
       case CSFILE_SND_R:                        /* sound file read */
-        *((SNDFILE**) fd) = sf_open(fullName, SFM_READ, (SF_INFO*) param);
+        memset(&sfinfo, 0, sizeof(SF_INFO));
+        *((SNDFILE**) fd) = sf_open(fullName, SFM_READ, &sfinfo);
         if (*((SNDFILE**) fd) == (SNDFILE*) NULL) {
           /* open failed: maybe raw file ? */
-          memcpy((SF_INFO*) param, &sfinfo, sizeof(SF_INFO));
           *((SNDFILE**) fd) = sf_open(fullName, SFM_READ, (SF_INFO*) param);
+          if (*((SNDFILE**) fd) == (SNDFILE*) NULL)
+            goto err_return;
         }
-        if (*((SNDFILE**) fd) == (SNDFILE*) NULL)
-          goto err_return;
+        else
+          memcpy((SF_INFO*) param, &sfinfo, sizeof(SF_INFO));
         p->sf = *((SNDFILE**) fd);
         break;
       case CSFILE_SND_W:                        /* sound file write */
@@ -201,12 +203,71 @@ PUBLIC void *csoundFileOpen(void *csound, void *fd, int type,
 }
 
 /**
+ * Allocate a file handle for an existing file already opened with open(),
+ * fopen(), or sf_open(), for later use with csoundFileClose() or
+ * csoundGetFileName(), or storing in an FDCH structure.
+ * Files registered this way (or opened with csoundFileOpen()) are also
+ * automatically closed by csoundReset().
+ * Parameters and return value are similar to csoundFileOpen(), except
+ * fullName is the name that will be returned by a later call to
+ * csoundGetFileName().
+ */
+
+PUBLIC void *csoundCreateFileHandle(void *csound, void *fd, int type,
+                                                  const char *fullName)
+{
+    CSFILE  *p = NULL;
+    int     nbytes = (int) sizeof(CSFILE);
+
+    /* name should not be empty */
+    if (fullName == NULL || fullName[0] == '\0')
+      return NULL;
+    nbytes += (int) strlen(fullName);
+    /* allocate file structure */
+    p = (CSFILE*) malloc((size_t) nbytes);
+    if (p == NULL)
+      return NULL;
+    p->nxt = (CSFILE*) ((ENVIRON*) csound)->open_files;
+    p->prv = (CSFILE*) NULL;
+    p->type = type;
+    p->fd = -1;
+    p->f = (FILE*) NULL;
+    p->sf = (SNDFILE*) NULL;
+    strcpy(&(p->fullName[0]), fullName);
+    /* open file */
+    switch (type) {
+      case CSFILE_FD_R:
+      case CSFILE_FD_W:
+        p->fd = *((int*) fd);
+        break;
+      case CSFILE_STD:
+        p->f = *((FILE**) fd);
+        break;
+      case CSFILE_SND_R:
+      case CSFILE_SND_W:
+        p->sf = *((SNDFILE**) fd);
+        break;
+      default:
+        csoundMessageS(csound, CSOUNDMSG_ERROR,
+                               Str("internal error: csoundCreateFileHandle(): "
+                                   "invalid type: %d\n"), type);
+        free(p);
+        return NULL;
+    }
+    /* link into chain of open files */
+    if (((ENVIRON*) csound)->open_files != NULL)
+      ((CSFILE*) ((ENVIRON*) csound)->open_files)->prv = p;
+    ((ENVIRON*) csound)->open_files = (void*) p;
+    /* return with opaque file handle */
+    return (void*) p;
+}
+
+/**
  * Get the full name of a file previously opened with csoundFileOpen().
  */
 
-PUBLIC char *csoundGetFileName(void *csound, void *fd)
+PUBLIC char *csoundGetFileName(void *fd)
 {
-    csound = csound;
     return &(((CSFILE*) fd)->fullName[0]);
 }
 

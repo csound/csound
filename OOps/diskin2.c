@@ -243,7 +243,7 @@ int diskin2_init(ENVIRON *csound, DISKIN2 *p)
     /* print file information */
     if (csound->GetMessageLevel(csound) != 0) {
       csound->Message(csound, Str("diskin2: opened '%s':\n"),
-                              csound->GetFileName(csound, fd));
+                              csound->GetFileName(fd));
       csound->Message(csound, Str("         %d Hz, %d channel(s), "
                                   "%ld sample frames\n"),
                               (int) sfinfo.samplerate, (int) sfinfo.channels,
@@ -605,7 +605,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p)
     /* print file information */
     if (csound->GetMessageLevel(csound) != 0) {
       csound->Message(csound, Str("soundin: opened '%s':\n"),
-                              csound->GetFileName(csound, fd));
+                              csound->GetFileName(fd));
       csound->Message(csound, Str("         %d Hz, %d channel(s), "
                                   "%ld sample frames\n"),
                               (int) sfinfo.samplerate, (int) sfinfo.channels,

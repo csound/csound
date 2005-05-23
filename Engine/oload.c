@@ -213,6 +213,7 @@ const ENVIRON cenviron_ = {
         csoundAddUtility,
         csoundRunUtility,
         csoundRegisterSenseEventCallback,
+        csoundCreateFileHandle,
         csoundFileOpen,
         csoundGetFileName,
         csoundFileClose,
@@ -418,7 +419,8 @@ const ENVIRON cenviron_ = {
         NULL,           /*  logbase2            */
         NULL, NULL,     /*  omacros, smacros    */
         NULL,           /*  namedgen            */
-        NULL            /*  open_files          */
+        NULL,           /*  open_files          */
+        NULL            /*  searchPathCache     */
 };
 
 /* otran.c */

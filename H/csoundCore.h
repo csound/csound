@@ -781,8 +781,9 @@ extern "C" {
     int (*Utility)(void *csound_, const char *name, int argc, char **argv);
     int (*RegisterSenseEventCallback)(void *csound_, void (*func)(void*, void*),
                                       void *userData);
+    void *(*CreateFileHandle)(void *, void *, int, const char *);
     void *(*FileOpen)(void *, void *, int, const char *, void *, const char *);
-    char *(*GetFileName)(void *, void *);
+    char *(*GetFileName)(void *);
     int (*FileClose)(void *, void *);
     /* callback function pointers - not part of the API */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
@@ -983,6 +984,7 @@ extern "C" {
     NAMES         *omacros, *smacros;
     void          *namedgen;            /* fgens.c */
     void          *open_files;          /* fileopen.c */
+    void          *searchPathCache;
   } ENVIRON;
 
 #include "text.h"
