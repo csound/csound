@@ -142,6 +142,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
 
   ENVIRON   *p;
   UInt32 psize, devnum, devnos;
+  double sr;
   AudioDeviceID *sysdevs;
   AudioStreamBasicDescription format;
   int i, bfns, *vpt;
@@ -234,7 +235,11 @@ if(parm->devName!=NULL){
       return -1;
     }
   }
-    
+  psize = sizeof(double);
+  sr = dev->srate; 
+  AudioDeviceSetProperty(dev->dev, NULL, 0, true, kAudioDevicePropertyNominalSampleRate, psize, &sr); 
+  AudioDeviceSetProperty(dev->dev, NULL, 0, false, kAudioDevicePropertyNominalSampleRate, psize, &sr); 
+     
   dev->format.mSampleRate = dev->srate;
   dev->format.mFormatID = kAudioFormatLinearPCM;
   dev->format.mFormatFlags = kAudioFormatFlagIsFloat;
@@ -255,15 +260,20 @@ if(parm->devName!=NULL){
   AudioDeviceGetProperty(dev->dev,0,false,      
 			 kAudioDevicePropertyStreamFormat,
 			 &psize, &format);
-   
+                            
   if(format.mSampleRate != dev->srate || 
      format.mChannelsPerFrame != dev->nchns){
-    free(dev);
     *(p->GetRtRecordUserData(csound)) = NULL;
-    p->Message(csound, " *** CoreAudio: open: could not set device parameters %d %d\n",
+    p->Message(csound, " *** CoreAudio: open: could not set device parameters sr:%d channels:%d\n",
 	       (int)dev->srate, (int) dev->nchns);
+    p->Message(csound, " *** CoreAudio: current device parameters are sr:%d channels:%d\n"
+                       "     try setting the above values in your csound orchestra \n" ,
+	       (int)format.mSampleRate, (int)format.mChannelsPerFrame);
+       free(dev);
     return -1;        
-  }
+  } else p->Message(csound, "CoreAudio module: sr set to %d with %d audio channels\n",
+	       (int)dev->srate, (int) dev->nchns);
+  
 
   dev->outbuffs = (float **) malloc(sizeof(float*)*dev->buffnos);
   dev->inbuffs =  (float **) malloc(sizeof(float*)*dev->buffnos);
@@ -440,18 +450,18 @@ static void rtclose_(void *csound)
   DEVPARAMS *dev;
   ENVIRON   *p;
   p = (ENVIRON*) csound;
-
-
-   
-   
   dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
   if (dev != NULL) {
+    p->Message(csound, "coreaudio module: closing device...\n");
+    AudioDeviceStop(dev->dev, Csound_IOProcEntry);
+    AudioDeviceRemoveIOProc(dev->dev, Csound_IOProcEntry);
     *(p->GetRtRecordUserData(csound)) = NULL;
     free(dev->outbuffs);
     free(dev->inbuffs);
     free(dev->inused);
     free(dev->outused);
     free(dev);
+      p->Message(csound, "coreaudio module: device closed\n");
   }
 
 }
