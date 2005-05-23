@@ -2875,20 +2875,27 @@ int printk(ENVIRON *csound, PRINTK *p)
     /* Now test if the cycle number we arein is higher than the one in which
      * we last printed. If so, update cysofar and print.     */
     if (p->cysofar < cycles) {
-        p->cysofar = cycles;
-        /* Do the print cycle.
-         * Print instrument number and time. Instrument number stuff from
-         * printv() in disprep.c.
-         */
-        csound->Message(csound, " i%4d ", p->h.insdshead->insno);
-        csound->Message(csound, Str("time %11.5f:"), (MYFLT) csound->kcounter * csound->onedkr);
-        /* Print spaces and then the value we want to read.      */
-        spcount = p->pspace + 1;
-        do {
-          csound->Message(csound, " ");
-        } while (--spcount);
-        csound->Message(csound, "%11.5f\n", *p->val);
+      p->cysofar = cycles;
+      /* Do the print cycle.
+       * Print instrument number and time. Instrument number stuff from
+       * printv() in disprep.c.
+       */
+      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
+                               (int) p->h.insdshead->p1);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
+                               csound->sensEvents_state.curTime);
+      /* Print spaces and then the value we want to read.      */
+      spcount = p->pspace;
+      while (spcount > 0) {
+        int   n = (spcount < 256 ? spcount : 255);
+        char  s[256];
+        memset(s, ' ', n);
+        s[n] = '\0';
+        csound->MessageS(csound, CSOUNDMSG_ORCH, s);
+        spcount -= n;
       }
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
+    }
     return OK;
 }
 
@@ -3245,7 +3252,8 @@ int printk2(ENVIRON *csound, PRINTK2 *p)
     MYFLT   value = *p->val;
     int     spcount;
     if (p->oldvalue != value) {
-      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ", p->h.insdshead->insno);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
+                                               (int) p->h.insdshead->p1);
       spcount = p->pspace;
       while (spcount > 0) {
         int   n = (spcount < 256 ? spcount : 255);
