@@ -64,6 +64,7 @@ typedef struct in_stack {
 typedef struct iflabel {            /* for if/else/endif */
     char    els[256];
     char    end[256];
+    int ithen;	/* "is an i-rate only" boolean */
     struct  iflabel *prv;
 } IFLABEL;
 
@@ -1003,6 +1004,39 @@ static int splitline(ENVIRON *csound)
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, ST(iflabels)->els);
+
+		  /* set ithen flag */
+          ST(iflabels)->ithen = 0;
+
+          continue;
+        }
+        else if (strncmp(lp-1,"ithen",5) == 0) {
+          struct iflabel *prv = ST(iflabels);
+
+          /* modify cggoto */
+          *(ST(group)[ST(opgrpno)-1]+1) = 'o';
+          isopcod(csound, ST(group)[ST(opgrpno)-1]);
+          *cp++ = '\0';
+          lp += 4;
+          prvif = collecting = 0;
+          grpp = ST(group)[grpcnt++] = cp;
+          /* synthesize labels to represent an else and endif */
+          if (prvelsif) { /* elseif, so we just need a new elselabel */
+            sprintf(ST(iflabels)->els, "__else%ld",ST(tempNum)++);
+            prvelsif = 0;
+          }
+          else {        /* this is a new if, so put a whole new label struct on the stack */
+            ST(iflabels) = (struct iflabel *)mmalloc(csound,
+            										 sizeof(struct iflabel));
+            ST(iflabels)->prv = prv;
+            sprintf(ST(iflabels)->end, "__endif%ld",ST(tempNum)++);
+            sprintf(ST(iflabels)->els, "__else%ld", ST(tempNum)++);
+          }
+          /* we set the 'goto' label to the 'else' label */
+          strcpy(grpp, ST(iflabels)->els);
+
+          /* set ithen flag */
+          ST(iflabels)->ithen = 1;
           continue;
         }
       }
@@ -1071,7 +1105,13 @@ static int splitline(ENVIRON *csound)
           ST(repeatingElseLine) = 0;
         }
         else {                          /* add the goto statement */
-          strcpy(grpp, "goto");
+          /* strcpy(grpp, "goto"); */
+
+          if (ST(iflabels)->ithen)
+            strcpy(grpp, "goto");
+          else
+          	strcpy(grpp, "kgoto");
+
           if (isopcod(csound, grpp))
             ST(opgrpno) = grpcnt;
           cp = grpp + 5;
