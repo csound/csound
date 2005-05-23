@@ -2073,7 +2073,6 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
 {                               /* stops reading when table is full     */
     FGDATA  *ff = &(csound->ff);
     SOUNDIN *p;                     /*   for sndgetset      */
-    AIFFDAT *adp;
     SOUNDIN tmpspace;               /* create temporary opds */
     SNDFILE *fd;
     int     truncmsg = 0;
@@ -2147,43 +2146,11 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
     }
     ftp->gen01args.sample_rate = csound->curr_func_sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
-    if ((adp = p->aiffdata) != NULL) {       /* if file was aiff,    */
-      csound->Message(csound, Str("AIFF case\n"));
-      /* set up some necessary header stuff if not in aiff file */
-      if (adp->natcps == 0)                  /* from Jeff Fried      */
-        adp->natcps = ftp->cvtbas;
-      if (adp->gainfac == 0)
-        adp->gainfac = FL(1.0);
-      ftp->cpscvt = ftp->cvtbas / adp->natcps;  /*    copy data to FUNC */
-      ftp->loopmode1 = adp->loopmode1;          /* (getsndin does gain) */
-      ftp->loopmode2 = adp->loopmode2;
-      ftp->begin1 = adp->begin1;
-      ftp->begin2 = adp->begin2;
-      if (ftp->loopmode1)                    /* Greg Sullivan */
-        ftp->end1 = adp->end1;
-      else
-        ftp->end1 = ftp->flenfrms;
-      ftp->end1 = adp->end1;
-      ftp->end2 = adp->end2;
-      if (ftp->end1 > ff->flen || ftp->end2 > ff->flen) {
-        long maxend;
-        csound->Warning(csound,
-                        Str("GEN1: input file truncated by ftable size"));
-        if ((maxend = ftp->end1) < ftp->end2)
-          maxend = ftp->end2;
-        csound->Message(csound,
-                        Str("\tlooping endpoint %ld exceeds ftsize %ld\n"),
-                        (long) maxend, (long) ff->flen);
-        needsiz(csound, ff, maxend);
-        truncmsg = 1;
-      }
-    }
-    else {
-      ftp->cpscvt = FL(0.0);      /* else no looping possible   */
-      ftp->loopmode1 = 0;
-      ftp->loopmode2 = 0;
-      ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
-    }
+    /* FIXME: no looping possible yet */
+    ftp->cpscvt = FL(0.0);
+    ftp->loopmode1 = 0;
+    ftp->loopmode2 = 0;
+    ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
     /* read sound with opt gain */
     if ((inlocs = getsndin(csound, fd, ftp->ftable, ff->flenp1, p)) < 0) {
       fterror(csound, ff, Str("GEN1 read error"));
@@ -2197,7 +2164,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       needsiz(csound, ff, p->framesrem);     /* ????????????  */
     }
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
-    sf_close(fd);
+    csound->FileClose(csound, p->fd);
     if (def)
       ftresdisp(csound, ff, ftp); /* VL: 11.01.05  for deferred alloc tables */
 }

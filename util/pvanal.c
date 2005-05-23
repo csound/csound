@@ -239,6 +239,7 @@ static int pvanal(void *csound_, int argc, char **argv)
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
     FILE    *ofd;
+    void    *ofd_handle;
     int     err, channel = ALLCHNLS;
     int     ovlp = 0;           /* number of overlapping windows to have */
     SOUNDIN *p;                 /* space allocated by SAsndgetset() */
@@ -325,10 +326,13 @@ static int pvanal(void *csound_, int argc, char **argv)
             csound->oparms->displays = 1;
             break;
           case 'V':  FIND(Str("no output file for trace"));
-            trfil = fopen(s, "w");
-            if (trfil == NULL)
-              return quit(csound, Str("Failed to open text file"));
-            csound->Message(csound, Str("Writing text form to file %s\n"), s);
+            {
+              void  *dummy = csound->FileOpen(csound, &trfil, CSFILE_STD, s,
+                                                      "w", NULL);
+              if (dummy == NULL)
+                return quit(csound, Str("Failed to open text file"));
+              csound->Message(csound, Str("Writing text form to file %s\n"), s);
+            }
 #if 0
           case 'v':
             verbose = 1;
@@ -374,7 +378,6 @@ static int pvanal(void *csound_, int argc, char **argv)
     if (ovlp < 2 || ovlp > 16) {
       csound->Message(csound, Str("pvanal: %d is a bad window overlap index\n"),
                               (int) ovlp);
-      sf_close(infd);
       return -1;
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
@@ -412,25 +415,15 @@ static int pvanal(void *csound_, int argc, char **argv)
                          frameIncr, fftfrmBsiz, PVPVOC, FL(0.0), sr/FL(2.0),
                          PVLIN, 4))) {
         csound->Message(csound, "pvanal: %s\n", PVErrMsg(csound, err));
-        sf_close(infd);
         return -1;
       }
-      ofd = NULL;
-      {
-        char *fname = csound->FindOutputFile(csound, outfilnam, "SADIR");
-        if (fname != NULL) {
-          ofd = fopen(fname, "wb");
-          csound->Free(csound, fname);
-        }
-      }
-      if (ofd == NULL) {        /* open the output PV file */
-        sf_close(infd);
+      ofd_handle = csound->FileOpen(csound, &ofd, CSFILE_STD, outfilnam, "wb",
+                                            "SADIR");
+      if (ofd_handle == NULL) {         /* open the output PV file */
         return quit(csound, Str("cannot create output file"));
       }
       /* & wrt hdr into the file */
       if ((long) fwrite(pvh, 1, pvh->headBsize, ofd) < pvh->headBsize) {
-        sf_close(infd);
-        fclose(ofd);
         return quit(csound, Str("cannot write header"));
       }
 #if 0
@@ -446,8 +439,6 @@ static int pvanal(void *csound_, int argc, char **argv)
 #endif
       oframeAct = takeFFTs(csound, p, pvh, infd, ofd, oframeEst,
                            frameSize, WindowType, frameIncr, fftfrmBsiz);
-      sf_close(infd);
-      fclose(ofd);
       if (oframeAct < 0L)
         return -1;
   /*  dispexit();   */

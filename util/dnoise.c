@@ -81,7 +81,7 @@
 #define ERR(x)                          \
 {                                       \
     csound->Message(csound, Str(x));    \
-    goto err_return;                    \
+    return -1;                          \
 }
 
 #define FIND(x)                                                     \
@@ -247,6 +247,7 @@ static int dnoise(void *csound_, int argc, char **argv)
         first = 0;  /* first-time-thru flag */
 
     SOUNDIN     *p, *pn;
+    void        *dummy;
     char        *infile = NULL, *outfile = NULL, *nfile = NULL;
     SNDFILE     *inf = NULL, *outfd = NULL;
     char        c, *s;
@@ -489,7 +490,7 @@ static int dnoise(void *csound_, int argc, char **argv)
         name = csound->FindOutputFile(csound, O->outfilename, "SFDIR");
         if (name == NULL) {
           csound->Message(csound, Str("cannot open %s.\n"), O->outfilename);
-          goto err_return;
+          return -1;
         }
         outfd = sf_open(name, SFM_WRITE, &sfinfo);
         csound->Free(csound, name);
@@ -498,8 +499,11 @@ static int dnoise(void *csound_, int argc, char **argv)
         outfd = sf_open_fd(O->stdoutfd, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
         csound->Message(csound, Str("cannot open %s."), O->outfilename);
-        goto err_return;
+        return -1;
       }
+      /* register file to be closed by csoundReset() */
+      dummy = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
+                                               O->outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
     csound->esr = (MYFLT) p->sr;
@@ -514,7 +518,7 @@ static int dnoise(void *csound_, int argc, char **argv)
 
     if (Chans > 2) {
       csound->Message(csound, "dnoise: input MUST be mono or stereo\n");
-      goto err_return;
+      return -1;
     }
 
     /* read noise reference file */
@@ -522,12 +526,12 @@ static int dnoise(void *csound_, int argc, char **argv)
     if ((fp = csound->SAsndgetset(csound, nfile, &pn, &beg_ntime,
                                   &input_ndur, &srn, channel)) < 0) {
       csound->Message(csound, "dnoise: cannot open noise reference file\n");
-      goto err_return;
+      return -1;
     }
 
     if (sr != srn) {
       csound->Message(csound, "Incompatible sample rates\n");
-      goto err_return;
+      return -1;
     }
     /* calculate begin and end times in NOISE file */
     if (beg >= FL(0.0)) Beg = (long) (beg * R);
@@ -590,13 +594,13 @@ static int dnoise(void *csound_, int argc, char **argv)
     lj *= (long) Chans;
     if (lj > 32767) {
       csound->Message(csound, "dnoise: M too large\n");
-      goto err_return;
+      return -1;
     }
     lj = (long) L + 3 * (long) I;
     lj *= (long) Chans;
     if (lj > 32767) {
       csound->Message(csound, "dnoise: L too large\n");
-      goto err_return;
+      return -1;
     }
 
     ibuflen = Chans * (M + 3 * D);
@@ -1134,9 +1138,6 @@ static int dnoise(void *csound_, int argc, char **argv)
 
 /*  rewriteheader(outfd, 0); */
     csound->Message(csound, "\n\n");
-    sf_close(outfd);
-    sf_close(inf);
-    sf_close(fp);
     if (Verbose) {
       csound->Message(csound, "processing complete\n");
       csound->Message(csound, "N = %d\n", N);
@@ -1144,14 +1145,7 @@ static int dnoise(void *csound_, int argc, char **argv)
       csound->Message(csound, "L = %d\n", L);
       csound->Message(csound, "D = %d\n", D);
     }
-
     return 0;
-
- err_return:
-    if (outfd != NULL)  sf_close(outfd);
-    if (inf != NULL)    sf_close(inf);
-    if (fp != NULL)     sf_close(fp);
-    return -1;
 }
 
 static int dnoise_usage(ENVIRON *csound, int exitcode)
@@ -1191,7 +1185,6 @@ static void sndwrterr(ENVIRON *csound, SNDFILE *outfd,
                                 "not %d\n"), nret, nput);
     csound->Message(csound, Str("(disk may be full...\n"
                                 " closing the file ...)\n"));
-    sf_close(outfd);            /* & try to close the file */
     /* FIXME: should clean up */
     csound->Die(csound, Str("\t... closed\n"));
 }

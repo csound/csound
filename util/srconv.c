@@ -56,7 +56,7 @@
 {                                                                   \
     if (*s == '\0')                                                 \
       if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) {    \
-        dieu(csound, MSG); goto err_return;                         \
+        dieu(csound, MSG); return -1;                               \
       }                                                             \
 }
 
@@ -208,6 +208,7 @@ static int srconv(void *csound_, int argc, char **argv)
 
     FILE        *tvfp = NULL;   /* time-vary function file */
     SOUNDIN     *p;
+    void        *dummy;
     int         channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     char        *infile = NULL, *outfile = NULL, *bfile = NULL;
@@ -234,7 +235,7 @@ static int srconv(void *csound_, int argc, char **argv)
         sprintf(csound->errmsg, Str("%s not a recognized SFOUTYP env setting"),
                                 envoutyp);
         dieu(csound, csound->errmsg);
-        goto err_return;
+        return -1;
       }
     }
 
@@ -257,13 +258,13 @@ static int srconv(void *csound_, int argc, char **argv)
             if (strcmp(O->outfilename, "stdin") == 0) {
               csound->MessageS(csound, CSOUNDMSG_ERROR,
                                        Str("-o cannot be stdin\n"));
-              goto err_return;
+              return -1;
             }
 #if defined mac_classic || defined WIN32
             if (strcmp(O->outfilename, "stdout") == 0) {
               csound->MessageS(csound, CSOUNDMSG_ERROR,
                                        Str("stdout audio not supported\n"));
-              goto err_return;
+              return -1;
             }
 #endif
             break;
@@ -335,7 +336,7 @@ static int srconv(void *csound_, int argc, char **argv)
           default:
             csound->Message(csound, "Looking at %c\n", c);
             usage(csound);    /* this exits with error */
-            goto err_return;
+            return -1;
           }
         }
       }
@@ -346,19 +347,19 @@ static int srconv(void *csound_, int argc, char **argv)
       else {
         csound->Message(csound, "End with %s\n", s);
         usage(csound);
-        goto err_return;
+        return -1;
       }
     }
     if (infile == NULL) {
       csound->Message(csound, "No input given\n");
       usage(csound);
-      goto err_return;
+      return -1;
     }
     if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) < 0) {
       csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error while opening %s\n"),
                                                 infile);
-      goto err_return;
+      return -1;
     }
     if (Rin == FL(0.0))
       Rin = (MYFLT)p->sr;
@@ -383,6 +384,8 @@ static int srconv(void *csound_, int argc, char **argv)
                 Str("srconv: can't open time-vary function file"));
         goto err_rtn_msg;
       }
+      /* register file to be closed by csoundReset() */
+      dummy = csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
       fscanf(tvfp, "%d", &tvlen);
       fxval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
       fyval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
@@ -484,6 +487,9 @@ static int srconv(void *csound_, int argc, char **argv)
         sprintf(csound->errmsg, Str("cannot open %s."), O->outfilename);
         goto err_rtn_msg;
       }
+      /* register file to be closed by csoundReset() */
+      dummy = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
+                                               O->outfilename);
       sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
     }
     csound->esr = (MYFLT) p->sr;
@@ -718,23 +724,12 @@ static int srconv(void *csound_, int argc, char **argv)
     nread = nextOut - output;
     writebuffer(csound, output, &block, outfd, nread);
     csound->Message(csound, "\n\n");
-    if (tvfp != (FILE*) NULL)
-      fclose(tvfp);
-    sf_close(inf);
-    sf_close(outfd);
     if (O->ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
     return 0;
 
  err_rtn_msg:
     csound->MessageS(csound, CSOUNDMSG_ERROR, "%s\n", csound->errmsg);
- err_return:
-    if (tvfp != (FILE*) NULL)
-      fclose(tvfp);
-    if (inf != (SNDFILE*) NULL)
-      sf_close(inf);
-    if (outfd != (SNDFILE*) NULL)
-      sf_close(outfd);
     return -1;
 }
 

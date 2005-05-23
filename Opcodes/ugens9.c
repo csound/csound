@@ -447,7 +447,7 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
     }
 
     csound->Free(csound, inbuf);
-    sf_close(infd);
+    csound->FileClose(csound, IRfile.fd);
 
     /* allocate the buffer saving recent input samples */
     csound->AuxAlloc(csound, p->Hlen * sizeof(MYFLT), &p->savedInput);
