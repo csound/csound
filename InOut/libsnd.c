@@ -163,11 +163,15 @@ static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
         break;
       case 3:
         {
+          char    s[512];
           double  curTime = csound->sensEvents_state.curTime;
           int     n;
-          csound->MessageS(csound, CSOUNDMSG_REALTIME, "%ld(%.3f)%n",
-                                   (long) csound->nrecs, curTime, &n);
-          while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\b");
+          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs, curTime, &n);
+          if (n > 0) {
+            memset(&(s[n]), '\b', n);
+            s[n + n] = '\0';
+            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+          }
         }
         break;
       case 4:
