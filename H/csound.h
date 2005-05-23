@@ -1041,16 +1041,29 @@ extern "C" {
    *   conversion or search.
    * return value:
    *   opaque handle to the opened file, for use with csoundGetFileName() or
-   *   csoundFileClose(), or storing in FDCH.fp.
+   *   csoundFileClose(), or storing in FDCH.fd.
    *   On failure, NULL is returned.
    */
   PUBLIC void *csoundFileOpen(void *csound, void *fd, int type,
                               const char *name, void *param, const char *env);
 
   /**
+   * Allocate a file handle for an existing file already opened with open(),
+   * fopen(), or sf_open(), for later use with csoundFileClose() or
+   * csoundGetFileName(), or storing in an FDCH structure.
+   * Files registered this way (or opened with csoundFileOpen()) are also
+   * automatically closed by csoundReset().
+   * Parameters and return value are similar to csoundFileOpen(), except
+   * fullName is the name that will be returned by a later call to
+   * csoundGetFileName().
+   */
+  PUBLIC void *csoundCreateFileHandle(void *csound, void *fd, int type,
+                                                    const char *fullName);
+
+  /**
    * Get the full name of a file previously opened with csoundFileOpen().
    */
-  PUBLIC char *csoundGetFileName(void *csound, void *fd);
+  PUBLIC char *csoundGetFileName(void *fd);
 
   /**
    * Close a file previously opened with csoundFileOpen().
