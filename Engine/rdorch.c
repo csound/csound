@@ -64,7 +64,7 @@ typedef struct in_stack {
 typedef struct iflabel {            /* for if/else/endif */
     char    els[256];
     char    end[256];
-    int ithen;	/* "is an i-rate only" boolean */
+    int     ithen;        /* "is an i-rate only" boolean */
     struct  iflabel *prv;
 } IFLABEL;
 
@@ -910,7 +910,7 @@ static int splitline(ENVIRON *csound)
               cp = grpp + strlen(ST(iflabels)->els) + 1;
               /* finally replace the 'elseif' with a 'goto' */
               grpp = ST(group)[grpcnt++] = cp;
-              strcpy(grpp,"cggoto");
+              strcpy(grpp, "cggoto");
               cp = grpp + 7;
               prvif++;
               prvelsif++;
@@ -918,11 +918,10 @@ static int splitline(ENVIRON *csound)
             }
             else {
               /* first add a 'goto endif' for the previous if */
-			  if (ST(iflabels)->ithen)
+              if (ST(iflabels)->ithen)
                 strcpy(grpp, "goto");
               else
-              	strcpy(grpp, "kgoto");
-
+                strcpy(grpp, "kgoto");
               if (isopcod(csound, grpp))
                 ST(opgrpno) = grpcnt;
               cp = grpp + 5;
@@ -931,8 +930,7 @@ static int splitline(ENVIRON *csound)
               cp += strlen(ST(iflabels)->end);
               ST(curline)--; /* roll back one and parse this line again */
               ST(repeatingElseifLine)++;
-
-              ST(linopnum) = ST(opnum);                   /* else save full line ops */
+              ST(linopnum) = ST(opnum);     /* else save full line ops */
               ST(linopcod) = ST(opcod);
               return(grpcnt);
             }
@@ -986,10 +984,10 @@ static int splitline(ENVIRON *csound)
           prvif = collecting = 0;
           continue;
         }
-        else if (strncmp(lp-1,"then",4) == 0) {
+        else if (strncmp(lp - 1, "then", 4) == 0) {
           struct iflabel *prv = ST(iflabels);
           /* modify cggoto */
-          *(ST(group)[ST(opgrpno)-1]+1) = 'n';
+          *(ST(group)[ST(opgrpno) - 1] + 1) = 'n';
           isopcod(csound, ST(group)[ST(opgrpno) - 1]);
           *cp++ = '\0';
           lp += 3;
@@ -997,7 +995,7 @@ static int splitline(ENVIRON *csound)
           grpp = ST(group)[grpcnt++] = cp;
           /* synthesize labels to represent an else and endif */
           if (prvelsif) { /* elseif, so we just need a new elselabel */
-            sprintf(ST(iflabels)->els, "__else_%ld",ST(tempNum)++);
+            sprintf(ST(iflabels)->els, "__else_%ld", ST(tempNum)++);
             prvelsif = 0;
           }
           else {
@@ -1010,18 +1008,15 @@ static int splitline(ENVIRON *csound)
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, ST(iflabels)->els);
-
-		  /* set ithen flag */
+          /* set ithen flag */
           ST(iflabels)->ithen = 0;
-
           continue;
         }
-        else if (strncmp(lp-1,"ithen",5) == 0) {
+        else if (strncmp(lp - 1, "ithen", 5) == 0) {
           struct iflabel *prv = ST(iflabels);
-
           /* modify cggoto */
-          *(ST(group)[ST(opgrpno)-1]+1) = 'o';
-          isopcod(csound, ST(group)[ST(opgrpno)-1]);
+          *(ST(group)[ST(opgrpno) - 1] + 1) = 'o';
+          isopcod(csound, ST(group)[ST(opgrpno) - 1]);
           *cp++ = '\0';
           lp += 4;
           prvif = collecting = 0;
@@ -1031,16 +1026,16 @@ static int splitline(ENVIRON *csound)
             sprintf(ST(iflabels)->els, "__else_%ld",ST(tempNum)++);
             prvelsif = 0;
           }
-          else {        /* this is a new if, so put a whole new label struct on the stack */
+          else {
+            /* this is a new if, so put a whole new label struct on the stack */
             ST(iflabels) = (struct iflabel *)mmalloc(csound,
-            										 sizeof(struct iflabel));
+                                                     sizeof(struct iflabel));
             ST(iflabels)->prv = prv;
             sprintf(ST(iflabels)->end, "__endif_%ld",ST(tempNum)++);
             sprintf(ST(iflabels)->els, "__else_%ld", ST(tempNum)++);
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, ST(iflabels)->els);
-
           /* set ithen flag */
           ST(iflabels)->ithen = 1;
           continue;
@@ -1074,7 +1069,7 @@ static int splitline(ENVIRON *csound)
               )         /* allow uppercases and underscore in variables */
         ;
       else if (c == '(')
-        parens++;                   /* and monitor function */
+        parens++;                       /* and monitor function */
       else if (c == ')')
         --parens;
       else if (c == '?' && logical)
@@ -1110,14 +1105,11 @@ static int splitline(ENVIRON *csound)
           ST(iflabels)->els[0] = '\0';
           ST(repeatingElseLine) = 0;
         }
-        else {                          /* add the goto statement */
-          /* strcpy(grpp, "goto"); */
-
+        else {                              /* add the goto statement */
           if (ST(iflabels)->ithen)
             strcpy(grpp, "goto");
           else
-          	strcpy(grpp, "kgoto");
-
+            strcpy(grpp, "kgoto");
           if (isopcod(csound, grpp))
             ST(opgrpno) = grpcnt;
           cp = grpp + 5;
