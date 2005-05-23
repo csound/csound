@@ -229,8 +229,6 @@ int hetro(ENVIRON  *csound,
       sprintf(errmsg,Str("Read error on %s\n"), csound->retfilnam);
       quit(errmsg);
     }
-    sf_close(infd);
-    
     sr = (MYFLT)p->sr;                              /* sr now from open  */
     windsiz = (long)(sr / fund_est + FL(0.5));      /* samps in fund prd */
     /*RWD no limit for SDIF files! */
