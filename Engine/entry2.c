@@ -120,10 +120,11 @@ int    midinoteonoct(void*,void*), midinoteonpch(void*,void*), midipolyaftertouc
 int    midicontrolchange(void*,void*), midiprogramchange(void*,void*);
 int    midichannelaftertouch(void*,void*), midipitchbend(void*,void*), mididefault(void*,void*);
 int    invalset(void*,void*), kinval(void*,void*), outvalset(void*,void*), koutval(void*,void*);
-int    subinstrset(void*,void*), subinstr(void*,void*);    /* IV - Sep 1 2002 */
+int    subinstrset(void*,void*), subinstr(void*,void*); /* IV - Sep 1 2002 */
 int    useropcdset(void*,void*), useropcd(void*,void*), setksmpsset(void*,void*); /* IV - Sep 8 2002 */
-int    xinset(void*,void*), xoutset(void*,void*);          /* IV - Sep 10 2002 */
+int    xinset(void*,void*), xoutset(void*,void*);       /* IV - Sep 10 2002 */
 int    ingoto(void*,void*), kngoto(void*,void*);
+int    iingoto(void*,void*), kingoto(void*,void*);
 int    nstrnumset(void*,void*), turnoff2(void*,void*);
 int    ftsave(void*,void*), ftload(void*,void*), ftsave_k_set(void*,void*), ftsave_k(void*,void*);
 int    ftsave_k_set(void*,void*), ftload_k(void*,void*);
@@ -286,6 +287,7 @@ OENTRY opcodlst_2[] = {
 { "nstrnum", S(NSTRNUM), 1,     "i",    "T",    nstrnumset, NULL, NULL   },
 { "turnoff2",S(TURNOFF2),2,     "",     "kkk",  NULL, turnoff2, NULL     },
 { "cngoto", S(CGOTO),   3,      "",     "Bl",   ingoto, kngoto, NULL     },
+{ "cogoto", S(CGOTO),   3,      "",     "Bl",   iingoto, kingoto, NULL   },
 /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
 /* and setksmps */
 { ".userOpcode", S(UOPCODE), 7, "", "", useropcdset, useropcd, useropcd },
