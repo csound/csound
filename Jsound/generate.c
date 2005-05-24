@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include "jsnd.h"
-#include "jsnd.yacc.tab.h"
+#include "jsnd5.h"
+#include "jsnd5.tab.h"
 
 extern int debug;
 extern FILE* csfile;
-extern TOKEN *lookup_token(char *, int);
+extern TOKEN *lookup_token(char *);
 
 char* type2string(int);
 void generate_list(TREE*);
@@ -38,7 +38,7 @@ TREE *simplify(TREE* l)         /* Walk tree, compiling complex bits to temps */
         char buf[100];
         l->right = simplify_list(l->right); /* waste space?? */
         sprintf(buf, "t%d", tmpbase++);
-        na = make_leaf(T_IDENT, lookup_token(buf, 12)); /* Should be typed */
+        na = make_leaf(T_IDENT, lookup_token(buf)); /* Should be typed */
         fprintf(csfile, "\t%s\t%s\t",
                 na->value->lexeme,
                 type2string(l->left->type));
@@ -50,7 +50,7 @@ TREE *simplify(TREE* l)         /* Walk tree, compiling complex bits to temps */
     case S_MINUS:
     case S_TIMES:
     case S_DIV:
-      { 
+      {
         TREE *la, *ra, *na;
         TREE *ans;
         int type = l->type;
@@ -59,7 +59,7 @@ TREE *simplify(TREE* l)         /* Walk tree, compiling complex bits to temps */
         ra = simplify(l->right);
         free(l);
         sprintf(buf, "t%d", tmpbase++);
-        na = make_leaf(T_IDENT, lookup_token(buf, 12)); /* Should be typed */
+        na = make_leaf(T_IDENT, lookup_token(buf)); /* Should be typed */
         fprintf(csfile, "\t%s\t%s\t", na->value->lexeme, type2string(type));
         ans = make_node(S_COM, la, ra);
         generate_list(ans);
@@ -74,7 +74,7 @@ TREE *simplify(TREE* l)         /* Walk tree, compiling complex bits to temps */
         la = simplify(l->left);
         lose(l);
         sprintf(buf, "t%d", tmpbase++);
-        na = make_leaf(T_IDENT, lookup_token(buf,12));
+        na = make_leaf(T_IDENT, lookup_token(buf));
         fprintf(csfile, "\t%s\t=\t", na->value->lexeme);
         generate_expression(make_node(type, la, NULL));
         fprintf(csfile, "\n");
@@ -105,7 +105,7 @@ int complex_expression(TREE* l)
         l->type==T_IDENT_K  || l->type== T_IDENT_GK || l->type==T_IDENT_A  ||
         l->type==T_IDENT_GA || l->type==T_IDENT_W   || l->type==T_IDENT_GW ||
         l->type==T_IDENT_F  || l->type==T_IDENT_GF  || l->type==T_IDENT_P  ||
-        l->type==T_IDENT_S   || l->type==T_IDENT_GS ||
+        l->type==T_IDENT_S  || l->type==T_IDENT_GS  || 
         l->type==T_NUMBER   || l->type==T_INTGR     || l->type==T_STRCONST )
       return 0;
     return 1;
@@ -353,14 +353,14 @@ void generate_code(TREE *l)
       mod = simplify_list(l->right);
       fprintf(csfile, "\t");
       if (l->left) generate_list(l->left);
-      fprintf(csfile, "\t%s\t", type2string(l->type));
+      fprintf(csfile, "\t%s\t", l->value->lexeme);
       generate_list(mod);
       fprintf(csfile, "\n");
     }
     else {
       fprintf(csfile, "\t");
       if (l->left) generate_list(l->left);
-      fprintf(csfile, "\t%s\t", type2string(l->type));
+      fprintf(csfile, "\t%s\t", l->value->lexeme);
       generate_list(l->right);
       fprintf(csfile, "\n");
     }
