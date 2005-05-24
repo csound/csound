@@ -1,3 +1,6 @@
+2005-05-24 Victor Lazzarini <victor.lazzarini@nuim.ie>
+         *changes to rtcoreaudio.c to enable channel independence
+
 2005-05-23 Victor Lazzarini <victor.lazzarini@nuim.ie>
         * late entry to the log: added InOut/rtcoreaudio.c
         * late entry to the log: added Opcodes/sndloop.c (sndloop, flooper, pvsarp, pvsvoc)
