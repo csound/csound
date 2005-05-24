@@ -44,8 +44,7 @@ typedef struct devparams_ {
   int*     inused;
   int*     outused;
   float    srate;        
-  int      nchns;
-  int     mono;          
+  int      nchns;        
 } DEVPARAMS;
 
 
@@ -102,21 +101,27 @@ OSStatus
 ADIOProc(const AudioBufferList *input,
 	 AudioBufferList *output,
 	 DEVPARAMS* cdata){
-  int i;
+  int i,j,cnt;
   int chans = cdata->nchns;
-  int items = cdata->bufframes*chans;
+  int cachans = input->mBuffers[0].mNumberChannels;
+  int items = cdata->bufframes*cachans;
   int buff = cdata->iocurbuff;
   output->mNumberBuffers = 1;
   output->mBuffers[0].mDataByteSize = items*sizeof(float);
-  output->mBuffers[0].mNumberChannels = chans;
+  output->mBuffers[0].mNumberChannels = cachans;
   float *outp = (float *) output->mBuffers[0].mData;
   float *inp = (float *) input->mBuffers[0].mData;
   float *ibufp = cdata->inbuffs[buff];
   float *obufp = cdata->outbuffs[buff];
 
-  for(i = 0; i < items; i++){
-    outp[i]  = obufp[i];
-    if(inp!=NULL) ibufp[i] = inp[i];
+  for(i = 0, cnt = 0; i < items; i+=cachans){
+     for(j=0; j < cachans; j++)
+     if(j < chans){
+     outp[i+j]  = obufp[cnt];
+     if(inp!=NULL) ibufp[cnt] = inp[i+j];
+     cnt++;
+     }
+    
   }
       
   cdata->outused[buff] = cdata->inused[buff] = 1;      
@@ -151,7 +156,6 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
     
   memset(dev, 0, sizeof(DEVPARAMS));
   p = (ENVIRON*) csound; 
-  dev->mono = 0;  
   /* set up parameters */
  vpt= (int*) (p->QueryGlobalVariable(csound, "::cabuffnos"));
  if(vpt != NULL) bfns = *vpt;
@@ -197,11 +201,7 @@ if(parm->devName!=NULL){
   free(name);              
                   
   dev->srate = (float) (parm->sampleRate);
-  if(parm->nChannels < 2) {
-  dev->nchns=2; 
-  dev->mono = 1;
-  }
-  else dev->nchns = parm->nChannels;
+  dev->nchns = parm->nChannels;
   dev->bufframes = parm->bufSamp_HW;
   dev->buffnos = bfns;
     
@@ -260,19 +260,25 @@ if(parm->devName!=NULL){
   AudioDeviceGetProperty(dev->dev,0,false,      
 			 kAudioDevicePropertyStreamFormat,
 			 &psize, &format);
-                            
-  if(format.mSampleRate != dev->srate || 
-     format.mChannelsPerFrame != dev->nchns){
+   
+  if(format.mChannelsPerFrame != dev->nchns) {
+  dev->format.mChannelsPerFrame = format.mChannelsPerFrame;
+   p->Message(csound, "CoreAudio module warning: using %d channels; requested %d channels\n",
+	       (int)dev->format.mChannelsPerFrame, (int)dev->nchns);
+  
+  }
+                                                                              
+  if(format.mSampleRate != dev->srate){
     *(p->GetRtRecordUserData(csound)) = NULL;
-    p->Message(csound, " *** CoreAudio: open: could not set device parameters sr:%d channels:%d\n",
-	       (int)dev->srate, (int) dev->nchns);
-    p->Message(csound, " *** CoreAudio: current device parameters are sr:%d channels:%d\n"
-                       "     try setting the above values in your csound orchestra \n" ,
-	       (int)format.mSampleRate, (int)format.mChannelsPerFrame);
+    p->Message(csound, " *** CoreAudio: open: could not set device parameter sr: %d \n",
+	       (int)dev->srate);
+    p->Message(csound, " *** CoreAudio: current device sampling rate is:%d \n"
+                       "     try setting the above value in your csound orchestra \n" ,
+	       (int)format.mSampleRate);
        free(dev);
     return -1;        
   } else p->Message(csound, "CoreAudio module: sr set to %d with %d audio channels\n",
-	       (int)dev->srate, (int) dev->nchns);
+	       (int)dev->srate, (int) dev->format.mChannelsPerFrame);
   
 
   dev->outbuffs = (float **) malloc(sizeof(float*)*dev->buffnos);
@@ -364,7 +370,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 {
   DEVPARAMS *dev;
   ENVIRON   *p;
-  int       n, i, mono, chans, cur, icount, buffitems, buffnos, *inused;
+  int       n, i, chans, cur, icount, buffitems, buffnos, *inused;
   float **ibuffs;
   /* MYFLT norm; */
   p = (ENVIRON*) csound;
@@ -377,14 +383,12 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
   icount = dev->incount;
   buffnos = dev->buffnos;
   buffitems = dev->bufframes*chans;
-  mono = dev->mono;
   /* norm = p->e0dbfs;  */
 
   while(!inused[cur]) usleep(100);
  
   for(i = 0; i < n; i++){
     ((MYFLT *)inbuf_)[i] = ibuffs[cur][icount];
-    if(mono) icount++;
     icount++;
     if(icount == buffitems){           
       inused[cur] = 0;  
@@ -408,7 +412,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
 {
   DEVPARAMS *dev;
   ENVIRON   *p;
-  int       n, i, chans, mono, cur, ocount, buffitems, buffnos, *outused;
+  int       n, i, chans, cur, ocount, buffitems, buffnos, *outused;
   float **obuffs;
   /* MYFLT norm; */
   p = (ENVIRON*) csound;
@@ -422,13 +426,11 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
   ocount = dev->outcount;
   buffnos = dev->buffnos;
   buffitems = dev->bufframes*chans;
-  mono = dev->mono;
   /* norm = p->e0dbfs; */
     
-  for(i = 0; i < n; i++){ 
-    obuffs[cur][ocount] = (float)((MYFLT *)outbuf_)[i];
-    if(mono) ocount++;
-    ocount++;
+  for(i = 0; i < n; i++){
+       obuffs[cur][ocount] = (float)((MYFLT *)outbuf_)[i];
+       ocount++;
     if(ocount == buffitems){           
       outused[cur] = 0;  
       cur++;
