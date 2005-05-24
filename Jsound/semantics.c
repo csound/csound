@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "jsnd.yacc.tab.h"
-#include "jsnd.h"
+#include "jsnd5.h"
 
 typedef struct {
   char *opcode;
@@ -782,7 +781,7 @@ TREE* check_opcode(TREE *op, TREE* ans, TREE* args)
 
 TREE *check_opcode0(TREE *op, TREE* args)
 {
-    /* Note that there is no multiple case here except the odd case of out */
+    /* Note that there is no multiple cases here except the odd case of out */
     CHECKS0 *th = check0;
     TOKEN *xx = op->value;
     char *name;
@@ -790,8 +789,9 @@ TREE *check_opcode0(TREE *op, TREE* args)
     int i, n;
     int len = length_list(args);
     char *atype;
-    printf("check_opcode0\n");
-    if (op->type == T_OPCODE0) {
+    printf("check_opcode0 %s\n", xx);
+    printf("...%d %p\n", xx->type, xx->lexeme);
+    if (xx->type == T_OPCODE0) {
       name = xx->lexeme;
     }
     else {
@@ -816,7 +816,7 @@ TREE *check_opcode0(TREE *op, TREE* args)
     }
     printf("name=%s type=%d\n", name, op->type);
     for (i=0; strlen(check0[i].opcode) != 0; i++) {
-      printf("...looking at %s\n",check0[i].opcode);
+/*       printf("...looking at %s\n",check0[i].opcode); */
       if (strcmp(check0[i].opcode,name)==0) goto found;
     }
     printf("Opcode not found -- collapse\n"); exit(1);
@@ -888,7 +888,7 @@ TREE *check_opcode0(TREE *op, TREE* args)
         break;
       case 'v':       /*   "            "       .5 */
         if (n>len) {
-          av[n] = make_leaf(T_INTGR, make_int("0.5"));
+          av[n] = make_leaf(T_INTGR, make_num("0.5"));
         }
         else {
           av[n] = force_rate(av[n], 'i');

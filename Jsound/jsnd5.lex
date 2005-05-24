@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #define YYSTYPE TOKEN*
 #include "tok.h"
-#include "jsnd.yacc.tab.h"
+#include "jsnd5.tab.h"
 TOKEN *make_string(char *);
-extern TOKEN *lookup_token(char *, int);
+extern TOKEN *lookup_token(char *);
 TOKEN *make_int(char *);
 TOKEN *make_num(char *);
 void comment(void);
@@ -20,6 +20,7 @@ INTGR		[0-9]+
 NUMBER	[0-9]*(\.[0-9]*)?(e[-+]?[0-9]+)?|-?\.[0-9]*(e[-+]?[0-9]+)?
 COMMENT		/\*.*\*/
 WHITE		[ \t]
+
 %%
 
 "\n"		{ yyline++; return S_NL; }
@@ -47,21 +48,27 @@ COMMENT         { }
 ">="		{ return S_GE; }
 
 "if"		{ return T_IF; }
+"then"		{ return T_THEN; }
 
 "sr"		{ return T_SRATE; }
 "kr"		{ return T_KRATE; }
 "ksmps"		{ return T_KSMPS; }
 "nchnls"	{ return T_NCHNLS; }
+"instr"		{ return T_INSTR; }
+"endin"		{ return T_ENDIN; }
 
-{IDENT} 	{ yylval = lookup_token(yytext, 0); return(yylval->type) ; }
+{STRCONST}	{ yylval = make_string(yytext); return (T_STRCONST); }
 
-{INTGR}		{ yylval = make_int(yytext); return(T_INTGR) ; }
-{NUMBER}	{ yylval = make_num(yytext); return(T_NUMBER) ; }
+{IDENT} 	{ yylval = lookup_token(yytext); printf("%d\n", yylval->type);
+                  return (yylval->type); }
+
+{INTGR}		{ yylval = make_int(yytext); return (T_INTGR); }
+{NUMBER}	{ yylval = make_num(yytext); return (T_NUMBER); }
 {WHITE}		{ }
 .		{ printf("Line %d: Unknown character: '%s'\n",yyline,yytext); }
 
 %%
-void comment(void)
+void comment(void)              /* Skip until nextline */
 {
     char c;
 

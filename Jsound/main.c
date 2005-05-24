@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include "jsnd.h"
-#include "jsnd.yacc.tab.h"
+#include <stdlib.h>
+#include "jsnd5.h"
+#include "jsnd5.tab.h"
 
 void yyparse(void);
 extern int yydebug;
@@ -23,6 +24,8 @@ int main(int argc, char **argv)
     char *name = "out.orc";
     noheader = 1;
     init_symbtab();
+    add_token("in", T_OPCODE);
+    add_token("out", T_OPCODE0);
     if (argc>1) {
       for (n=1; n<argc; n++) {
         if (argv[n][0]=='-') {
@@ -57,6 +60,10 @@ TREE* make_node(int type, TREE* left, TREE* right)
 {
   TREE *ans;
   ans = (TREE*)malloc(sizeof(TREE));
+  if (ans==NULL) {
+    fprintf(stderr, "Out of memory\n");
+    exit(1);
+  }
   ans->type = type;
   ans->left = left;
   ans->right = right;
@@ -69,6 +76,10 @@ TREE* make_leaf(int type, TOKEN *v)
 {
   TREE *ans;
   ans = (TREE*)malloc(sizeof(TREE));
+  if (ans==NULL) {
+    fprintf(stderr, "Out of memory\n");
+    exit(1);
+  }
   ans->type = type;
   ans->left = NULL;
   ans->right = NULL;
@@ -84,7 +95,7 @@ void instr0(TOKEN *type, TREE* ans, TREE* args)
     printf("Instr 0 opcode: %s\n", type2string(type->type));
     print_tree_i(ans, 3);
     print_tree_i(args, 3);
-    init_list = make_node(S_ANDTHEN, init_list, make_node(type, ans, args));
+    init_list = make_node(S_ANDTHEN, init_list, make_node(type->type, ans, args));
     printf("\n");
 }
 
@@ -233,6 +244,10 @@ static void print_tree_i(TREE* l, int n)
       printf("IDENT_A: %s\n", l->value->lexeme); return;
     case T_IDENT_GA:
       printf("IDENT_GA: %s\n", l->value->lexeme); return;
+    case T_IDENT_S:
+      printf("IDENT_D: %s\n", l->value->lexeme); return;
+    case T_IDENT_GS:
+      printf("IDENT_GS: %s\n", l->value->lexeme); return;
     case T_IDENT_W:
       printf("IDENT_W: %s\n", l->value->lexeme); return;
     case T_IDENT_GW:
@@ -243,10 +258,6 @@ static void print_tree_i(TREE* l, int n)
       printf("IDENT_GF: %s\n", l->value->lexeme); return;
     case T_IDENT_P:
       printf("IDENT_P: %s\n", l->value->lexeme); return;
-    case T_IDENT_S:
-      printf("IDENT_S: %s\n", l->value->lexeme); return;
-    case T_IDENT_GS:
-      printf("IDENT_GS: %s\n", l->value->lexeme); return;
     case T_INTGR:
       printf("T_INTGR: %d\n", l->value->value); return;
     case T_NUMBER:
@@ -254,11 +265,11 @@ static void print_tree_i(TREE* l, int n)
     case S_ANDTHEN:
       printf("S_ANDTHEN:\n"); break;
     case S_APPLY:
-      printf("S_APPLY:\n"); break; 
+      printf("S_APPLY:\n"); break;
     case T_OPCODE0:
-      printf("T_OPCODE0:%s\n", l->value->lexeme); return;
+      printf("T_OPCODE0:\n", l->value->lexeme); return;
     case T_OPCODE:
-      printf("T_OPCODE:%s\n", l->value->lexeme); return;
+      printf("T_OPCODE:\n", l->value->lexeme); return;
     default:
       printf("t:%d\n", l->type);
     }
