@@ -1038,7 +1038,7 @@ int osckk(ENVIRON *csound, OSC *p)
     }
     ftbl = ftp->ftable;
     phs = p->lphs;
-    inc = (long) (*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     lobits = ftp->lobits;
     amp = *p->xamp;
     ar = p->sr;
@@ -1069,7 +1069,7 @@ int oscka(ENVIRON *csound, OSC *p)
     phs = p->lphs;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
-      long inc = (long)(cpsp[n] * csound->sicvt);
+      long inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       ar[n] = ftbl[phs >> lobits] * amp;
       phs += inc;
       phs &= PHMASK;
@@ -1092,7 +1092,7 @@ int oscak(ENVIRON *csound, OSC *p)
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = (long)(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     ampp = p->xamp;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
@@ -1122,7 +1122,7 @@ int oscaa(ENVIRON *csound, OSC *p)
     cpsp = p->xcps;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
-      long inc = (long)(cpsp[n] * csound->sicvt);
+      long inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       ar[n] = ftbl[phs >> lobits] * ampp[n];
       phs += inc;
       phs &= PHMASK;
@@ -1166,7 +1166,7 @@ int osckki(ENVIRON *csound, OSC  *p)
     }
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = (long)(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     amp = *p->xamp;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
@@ -1199,7 +1199,7 @@ int osckai(ENVIRON *csound, OSC  *p)
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
       long inc;
-      inc = (long)(cpsp[n] * csound->sicvt);
+      inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = PFRAC(phs);
       ftab = ftp->ftable + (phs >> lobits);
       v1 = ftab[0];
@@ -1225,7 +1225,7 @@ int oscaki(ENVIRON *csound, OSC  *p)
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = (long) (*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     ampp = p->xamp;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
@@ -1259,7 +1259,7 @@ int oscaai(ENVIRON *csound, OSC  *p)
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
       long inc;
-      inc = (long)(cpsp[n] * csound->sicvt);
+      inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = (MYFLT) PFRAC(phs);
       ftab = ftp->ftable + (phs >> lobits);
       v1 = *ftab++;
@@ -1326,7 +1326,7 @@ int osckk3(ENVIRON *csound, OSC  *p)
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = (long)(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     amp = *p->xamp;
     ar = p->sr;
     for(n=0;n<nsmps;n++) {
@@ -1382,7 +1382,7 @@ int oscka3(ENVIRON *csound, OSC  *p)
     ar = p->sr;
     for(n=0;n<nsmps;n++) {
       long inc;
-      inc = (long)(cpsp[n] * csound->sicvt);
+      inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = PFRAC(phs);
       x0 = (phs >> lobits);
       x0--;
@@ -1425,7 +1425,7 @@ int oscak3(ENVIRON *csound, OSC  *p)
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = (long) (*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
     ampp = p->xamp;
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
@@ -1476,7 +1476,7 @@ int oscaa3(ENVIRON *csound, OSC  *p)
     ar = p->sr;
     for (n=0;n<nsmps;n++) {
       long inc;
-      inc = (long)(cpsp[n] * csound->sicvt);
+      inc = MYFLT2LONG(cpsp[n] * csound->sicvt);
       fract = (MYFLT) PFRAC(phs);
       x0 = (phs >> lobits);
       x0--;

@@ -30,9 +30,11 @@
 extern "C" {
 #endif
 
+#if defined(HAVE_UNISTD_H) || defined (__unix) || defined(__unix__)
+#include <unistd.h>
+#endif
 #include "csoundCore.h"
 #include "csmodule.h"
-
 #include <stdarg.h>
 #include <signal.h>
 #include <time.h>

@@ -20,12 +20,36 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
+                                                                /* SYSDEP.H */
 #ifndef CSOUND_SYSDEP_H
 #define CSOUND_SYSDEP_H
 
-#include <stdlib.h>                                     /* SYSDEP.H */
+/* check for the presence of a modern compiler (for use of certain features) */
+
+#ifdef HAVE_GCC3
+#undef HAVE_GCC3
+#endif
+#ifdef HAVE_C99
+#undef HAVE_C99
+#endif
+#if (defined(__GNUC__) && (__GNUC__ >= 3))
+#define HAVE_C99 1
+#ifndef _ISOC99_SOURCE
+#define _ISOC99_SOURCE  1
+#endif
+#ifndef _ISOC9X_SOURCE
+#define _ISOC9X_SOURCE  1
+#endif
+#ifndef DIRENT_FIX
+#define HAVE_GCC3 1
+#endif
+#elif (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
+#define HAVE_C99 1
+#endif
+
+#include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
@@ -70,21 +94,6 @@
 
 #if defined(HAVE_UNISTD_H) || defined(__unix) || defined(__unix__)
 #include <unistd.h>
-#endif
-
-/* check for the presence of a modern compiler (for use of certain features) */
-
-#ifdef HAVE_GCC3
-#undef HAVE_GCC3
-#endif
-#if (defined(__GNUC__) && (__GNUC__ >= 3)) && !defined(DIRENT_FIX)
-#define HAVE_GCC3 1
-#endif
-#ifdef HAVE_C99
-#undef HAVE_C99
-#endif
-#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
-#define HAVE_C99 1
 #endif
 
 /* inline keyword: always available in C++, C99, and GCC 3.x and above */
@@ -149,7 +158,7 @@
 
 /* standard integer types */
 
-#if defined(HAVE_STDINT_H) || defined(HAVE_C99) || defined(HAVE_GCC3)
+#if defined(HAVE_STDINT_H) || defined(HAVE_C99)
 #include <stdint.h>
 #else
 typedef signed char         int8_t;
@@ -164,6 +173,28 @@ typedef long long           int_least64_t;
 typedef unsigned long long  uint_least64_t;
 typedef long                intptr_t;
 typedef unsigned long       uintptr_t;
+#endif
+
+/* macros for converting floats to integers */
+/* MYFLT2LONG: converts with unspecified rounding */
+/* MYFLT2LRND: rounds to nearest integer */
+
+#ifdef USE_LRINT
+#ifndef USE_DOUBLE
+#define MYFLT2LONG(x) ((long) lrintf((float) (x)))
+#define MYFLT2LRND(x) ((long) lrintf((float) (x)))
+#else
+#define MYFLT2LONG(x) ((long) lrint((double) (x)))
+#define MYFLT2LRND(x) ((long) lrint((double) (x)))
+#endif
+#else
+#ifndef USE_DOUBLE
+#define MYFLT2LONG(x) ((long) (x))
+#define MYFLT2LRND(x) ((long) ((float)(x) + ((float)(x) < 0.0f ? -0.5f : 0.5f)))
+#else
+#define MYFLT2LONG(x) ((long) (x))
+#define MYFLT2LRND(x) ((long) ((double)(x) + ((double)(x) < 0.0 ? -0.5 : 0.5)))
+#endif
 #endif
 
 #endif  /* CSOUND_SYSDEP_H */

@@ -27,8 +27,6 @@
 #include "aops.h"
 #include <math.h>
 
-#define RNDINT(x) ((long) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
-
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>
   no copyright, since it seems silly to copyright algorithms.
@@ -90,8 +88,8 @@ int dconv(ENVIRON *csound, DCONV *p)
 
 int and_kk(ENVIRON *csound, AOP *p)
 {
-    long input1 = RNDINT(*p->a);
-    long input2 = RNDINT(*p->b);
+    long input1 = MYFLT2LRND(*p->a);
+    long input2 = MYFLT2LRND(*p->b);
     *p->r = (MYFLT)(input1 & input2);
     return OK;
 }
@@ -105,8 +103,8 @@ int and_aa(ENVIRON *csound, AOP *p)
     long  input1, input2;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(in1[n]);
-      input2 = RNDINT(in2[n]);
+      input1 = MYFLT2LRND(in1[n]);
+      input2 = MYFLT2LRND(in2[n]);
       r[n] = (MYFLT) (input1 & input2);
     }
     return OK;
@@ -117,10 +115,10 @@ int and_ak(ENVIRON *csound, AOP *p)
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     int   n, nsmps = csound->ksmps;
-    long  input2 = RNDINT(*p->b), input1;
+    long  input2 = MYFLT2LRND(*p->b), input1;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(in1[n]);
+      input1 = MYFLT2LRND(in1[n]);
       r[n] = (MYFLT)(input1 & input2);
     }
     return OK;
@@ -131,10 +129,10 @@ int and_ka(ENVIRON *csound, AOP *p)
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
     int   n, nsmps = csound->ksmps;
-    long  input2, input1 = RNDINT(*p->a);
+    long  input2, input1 = MYFLT2LRND(*p->a);
 
     for (n = 0; n < nsmps; n++) {
-      input2 = RNDINT(in2[n]);
+      input2 = MYFLT2LRND(in2[n]);
       r[n] = (MYFLT)(input1 & input2);
     }
     return OK;
@@ -142,8 +140,8 @@ int and_ka(ENVIRON *csound, AOP *p)
 
 int or_kk(ENVIRON *csound, AOP *p)
 {
-    long input1 = RNDINT(*p->a);
-    long input2 = RNDINT(*p->b);
+    long input1 = MYFLT2LRND(*p->a);
+    long input2 = MYFLT2LRND(*p->b);
     *p->r = (MYFLT)(input1 | input2);
     return OK;
 }
@@ -157,8 +155,8 @@ int or_aa(ENVIRON *csound, AOP *p)
     long  input2, input1;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(in1[n]);
-      input2 = RNDINT(in2[n]);
+      input1 = MYFLT2LRND(in1[n]);
+      input2 = MYFLT2LRND(in2[n]);
       r[n] = (MYFLT)(input1 | input2);
     }
     return OK;
@@ -169,10 +167,10 @@ int or_ak(ENVIRON *csound, AOP *p)
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     int   n, nsmps = csound->ksmps;
-    long  input2 = RNDINT(*p->b), input1;
+    long  input2 = MYFLT2LRND(*p->b), input1;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(in1[n]);
+      input1 = MYFLT2LRND(in1[n]);
       r[n] = (MYFLT)(input1 | input2);
     }
     return OK;
@@ -183,10 +181,10 @@ int or_ka(ENVIRON *csound, AOP *p)
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
     int   n, nsmps = csound->ksmps;
-    long  input2, input1 = RNDINT(*p->a);
+    long  input2, input1 = MYFLT2LRND(*p->a);
 
     for (n = 0; n < nsmps; n++) {
-      input2 = RNDINT(in2[n]);
+      input2 = MYFLT2LRND(in2[n]);
       r[n] = (MYFLT)(input1 | input2);
     }
     return OK;
@@ -194,8 +192,8 @@ int or_ka(ENVIRON *csound, AOP *p)
 
 int xor_kk(ENVIRON *csound, AOP *p)
 {
-    long input1 = RNDINT(*p->a);
-    long input2 = RNDINT(*p->b);
+    long input1 = MYFLT2LRND(*p->a);
+    long input2 = MYFLT2LRND(*p->b);
     *p->r = (MYFLT)(input1 ^ input2);
     return OK;
 }
@@ -209,8 +207,8 @@ int xor_aa(ENVIRON *csound, AOP *p)
     long  input2, input1;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(in1[n]);
-      input2 = RNDINT(in2[n]);
+      input1 = MYFLT2LRND(in1[n]);
+      input2 = MYFLT2LRND(in2[n]);
       r[n] = (MYFLT)(input1 ^ input2);
     }
     return OK;
@@ -221,10 +219,10 @@ int xor_ak(ENVIRON *csound, AOP *p)
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     int   n, nsmps = csound->ksmps;
-    long  input2 = RNDINT(*p->b), input1;
+    long  input2 = MYFLT2LRND(*p->b), input1;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(in1[n]);
+      input1 = MYFLT2LRND(in1[n]);
       r[n] = (MYFLT)(input1 ^ input2);
     }
     return OK;
@@ -235,10 +233,10 @@ int xor_ka(ENVIRON *csound, AOP *p)
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
     int   n, nsmps = csound->ksmps;
-    long  input2, input1 = RNDINT(*p->a);
+    long  input2, input1 = MYFLT2LRND(*p->a);
 
     for (n = 0; n < nsmps; n++) {
-      input2 = RNDINT(in2[n]);
+      input2 = MYFLT2LRND(in2[n]);
       r[n] = (MYFLT)(input1 ^ input2);
     }
     return OK;
@@ -246,8 +244,8 @@ int xor_ka(ENVIRON *csound, AOP *p)
 
 static int shift_left_kk(ENVIRON *csound, AOP *p)
 {
-    long input1 = RNDINT(*p->a);
-    int  input2 = (int) RNDINT(*p->b);
+    long input1 = MYFLT2LRND(*p->a);
+    int  input2 = (int) MYFLT2LRND(*p->b);
     *p->r = (MYFLT) (input1 << input2);
     return OK;
 }
@@ -258,8 +256,8 @@ static int shift_left_aa(ENVIRON *csound, AOP *p)
     int   input2, n, nsmps = csound->ksmps;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(p->a[n]);
-      input2 = (int) RNDINT(p->b[n]);
+      input1 = MYFLT2LRND(p->a[n]);
+      input2 = (int) MYFLT2LRND(p->b[n]);
       p->r[n] = (MYFLT) (input1 << input2);
     }
     return OK;
@@ -268,11 +266,11 @@ static int shift_left_aa(ENVIRON *csound, AOP *p)
 static int shift_left_ak(ENVIRON *csound, AOP *p)
 {
     long  input1;
-    int   input2 = RNDINT(*p->b);
+    int   input2 = MYFLT2LRND(*p->b);
     int   n, nsmps = csound->ksmps;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(p->a[n]);
+      input1 = MYFLT2LRND(p->a[n]);
       p->r[n] = (MYFLT) (input1 << input2);
     }
     return OK;
@@ -280,11 +278,11 @@ static int shift_left_ak(ENVIRON *csound, AOP *p)
 
 static int shift_left_ka(ENVIRON *csound, AOP *p)
 {
-    long  input1 = RNDINT(*p->a);
+    long  input1 = MYFLT2LRND(*p->a);
     int   input2, n, nsmps = csound->ksmps;
 
     for (n = 0; n < nsmps; n++) {
-      input2 = RNDINT(p->b[n]);
+      input2 = MYFLT2LRND(p->b[n]);
       p->r[n] = (MYFLT) (input1 << input2);
     }
     return OK;
@@ -292,8 +290,8 @@ static int shift_left_ka(ENVIRON *csound, AOP *p)
 
 static int shift_right_kk(ENVIRON *csound, AOP *p)
 {
-    long input1 = RNDINT(*p->a);
-    int  input2 = (int) RNDINT(*p->b);
+    long input1 = MYFLT2LRND(*p->a);
+    int  input2 = (int) MYFLT2LRND(*p->b);
     *p->r = (MYFLT) (input1 >> input2);
     return OK;
 }
@@ -304,8 +302,8 @@ static int shift_right_aa(ENVIRON *csound, AOP *p)
     int   input2, n, nsmps = csound->ksmps;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(p->a[n]);
-      input2 = (int) RNDINT(p->b[n]);
+      input1 = MYFLT2LRND(p->a[n]);
+      input2 = (int) MYFLT2LRND(p->b[n]);
       p->r[n] = (MYFLT) (input1 >> input2);
     }
     return OK;
@@ -314,11 +312,11 @@ static int shift_right_aa(ENVIRON *csound, AOP *p)
 static int shift_right_ak(ENVIRON *csound, AOP *p)
 {
     long  input1;
-    int   input2 = RNDINT(*p->b);
+    int   input2 = MYFLT2LRND(*p->b);
     int   n, nsmps = csound->ksmps;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(p->a[n]);
+      input1 = MYFLT2LRND(p->a[n]);
       p->r[n] = (MYFLT) (input1 >> input2);
     }
     return OK;
@@ -326,11 +324,11 @@ static int shift_right_ak(ENVIRON *csound, AOP *p)
 
 static int shift_right_ka(ENVIRON *csound, AOP *p)
 {
-    long  input1 = RNDINT(*p->a);
+    long  input1 = MYFLT2LRND(*p->a);
     int   input2, n, nsmps = csound->ksmps;
 
     for (n = 0; n < nsmps; n++) {
-      input2 = RNDINT(p->b[n]);
+      input2 = MYFLT2LRND(p->b[n]);
       p->r[n] = (MYFLT) (input1 >> input2);
     }
     return OK;
@@ -338,7 +336,7 @@ static int shift_right_ka(ENVIRON *csound, AOP *p)
 
 int not_k(ENVIRON *csound, AOP *p)      /* Added for completeness by JPff */
 {
-    long input1 = RNDINT(*p->a);
+    long input1 = MYFLT2LRND(*p->a);
     *p->r = (MYFLT)(~input1);
     return OK;
 }
@@ -351,7 +349,7 @@ int not_a(ENVIRON *csound, AOP *p)
     long  input1;
 
     for (n = 0; n < nsmps; n++) {
-      input1 = RNDINT(in1[n]);
+      input1 = MYFLT2LRND(in1[n]);
       r[n] = (MYFLT)(~input1);
     }
     return OK;
