@@ -50,7 +50,7 @@ void aops_init_tables(void)
 
 static inline MYFLT pow2(MYFLT a)
 {
-    int n = (int) (a * FL(4096.0) + FL(61440.5));   /* 4096 * 15 + 0.5 */
+    int n = (int) MYFLT2LRND(a * FL(4096.0)) + 61440;   /* 4096 * 15 */
     return ((MYFLT) (1 << (n >> 12)) * powerof2[n & 4095]);
 }
 
@@ -337,11 +337,6 @@ int frac1a(ENVIRON *csound, EVAL *p)            /* returns positive frac part */
     return OK;
 }
 
-#ifdef RNDINT
-#undef RNDINT
-#endif
-#define RNDINT(x) ((long) ((double) (x) + ((double) (x) >= 0.0 ? 0.5 : -0.5)))
-
 #ifdef FLOOR
 #undef FLOOR
 #endif
@@ -354,7 +349,7 @@ int frac1a(ENVIRON *csound, EVAL *p)            /* returns positive frac part */
 
 int int1_round(ENVIRON *csound, EVAL *p)        /* round to nearest integer */
 {
-    *p->r = (MYFLT) (RNDINT(*p->a));
+    *p->r = (MYFLT) MYFLT2LRND(*p->a);
     return OK;
 }
 
@@ -362,7 +357,7 @@ int int1a_round(ENVIRON *csound, EVAL *p)       /* round to nearest integer */
 {
     int n;
     for (n = 0; n < csound->ksmps; n++)
-      p->r[n] = (MYFLT) (RNDINT(p->a[n]));
+      p->r[n] = (MYFLT) MYFLT2LRND(p->a[n]);
     return OK;
 }
 

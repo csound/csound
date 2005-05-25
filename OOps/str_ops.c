@@ -28,8 +28,6 @@
 
 #define STRSMAX 8
 
-#define RNDINT(x)   ((long) ((double) (x) + ((double) (x) >= 0.0 ? 0.5 : -0.5)))
-
 #ifndef HAVE_SNPRINTF
 /* add any system that has snprintf() */
 #if defined(HAVE_C99) || defined(HAVE_GCC3)
@@ -77,7 +75,7 @@ static void str_set(ENVIRON *csound, int ndx, const char *s)
 
 int strset_init(ENVIRON *csound, STRSET_OP *p)
 {
-    str_set(csound, (int) RNDINT(*p->indx), (char*) p->str);
+    str_set(csound, (int) MYFLT2LRND(*p->indx), (char*) p->str);
     return OK;
 }
 
@@ -268,9 +266,9 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
         case 'u':
         case 'c':
 #ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, (int) RNDINT(*pp));
+          n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*pp));
 #else
-          n = sprintf(outstring, strseg, (int) RNDINT(*pp));
+          n = sprintf(outstring, strseg, (int) MYFLT2LRND(*pp));
 #endif
           break;
         case 'e':
@@ -386,7 +384,7 @@ static int strtod_opcode(ENVIRON *csound, STRSET_OP *p,
       if (*p->str == SSTRCOD)
         s = csound->currevent->strarg;
       else {
-        int ndx = (int) RNDINT(*p->str);
+        int ndx = (int) MYFLT2LRND(*p->str);
         if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
           s = csound->strsets[ndx];
       }
@@ -428,7 +426,7 @@ static int strtol_opcode(ENVIRON *csound, STRSET_OP *p,
       if (*p->str == SSTRCOD)
         s = csound->currevent->strarg;
       else {
-        int ndx = (int) RNDINT(*p->str);
+        int ndx = (int) MYFLT2LRND(*p->str);
         if (ndx >= 0 && ndx <= (int) csound->strsmax && csound->strsets != NULL)
           s = csound->strsets[ndx];
       }

@@ -137,6 +137,9 @@ opts.Add('gcc3opt',
 opts.Add('gcc4opt',
     'Enable gcc 4.0 or later optimizations for the specified CPU architecture (e.g. pentium3); implies noDebug.',
     '0')
+opts.Add('useLrint',
+    'Use lrint() and lrintf() for converting floating point values to integers.',
+    '0')
 opts.Add('useGprof',
     'Build with profiling information (-pg).',
     '0')
@@ -157,7 +160,7 @@ opts.Add('useDirentFix',
     '0')
 opts.Add('buildPDClass', "build csoundapi~ PD class (needs m_pd.h in the standard places)", '0')
 opts.Add('useCoreAudio', "Set to 1 to use CoreAudio for real-time audio input and output.", '1')
-opts.Add('useAltivec', "On OSX use the gcc AltiVec optmisation flags",'0')
+opts.Add('useAltivec', "On OSX use the gcc AltiVec optmisation flags", '0')
 
 
 # Define the common part of the build environment.
@@ -191,6 +194,8 @@ print
 
 commonEnvironment.Prepend(CPPPATH = ['.', './H'])
 commonEnvironment.Prepend(CCFLAGS = ['-DCSOUND_WITH_API'])
+if (commonEnvironment['useLrint'] != '0'):
+  commonEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
 if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
   if (commonEnvironment['gcc4opt'] != '0'):
     commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
@@ -244,7 +249,7 @@ elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     if (commonEnvironment['useAltivec'] == '1'):
         print 'CONFIGURATION DECISION using Altivec optmisation'
-    	commonEnvironment.Append(CCFLAGS = "-faltivec")
+        commonEnvironment.Append(CCFLAGS = "-faltivec")
     if (commonEnvironment['useDirentFix'] == '1'):
         print 'Using OSX dirent fix'
         commonEnvironment.Append(CCFLAGS = "-DDIRENT_FIX")

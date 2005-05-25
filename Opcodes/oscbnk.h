@@ -32,11 +32,8 @@
 
 /* convert floating point phase value to integer */
 
-#define OSCBNK_PHS2INT(x)                                                   \
-        (((x) < FL(0.0) ?                                                   \
-          (unsigned long) ((long) ((x) * (MYFLT) OSCBNK_PHSMAX - FL(0.5)))  \
-          : (unsigned long) ((x) * (MYFLT) OSCBNK_PHSMAX + FL(0.5)))        \
-         & OSCBNK_PHSMSK)
+#define OSCBNK_PHS2INT(x)                                                     \
+    ((unsigned long) MYFLT2LRND((x) * (MYFLT) OSCBNK_PHSMAX) & OSCBNK_PHSMSK)
 
 /* oscbnk types */
 
