@@ -81,7 +81,6 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
     INSTRTXT  *tp;
     INSDS     *ip, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
-    int       err = 0;
 
     if (csound->advanceCnt)
       return 0;
@@ -196,15 +195,14 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       if (O->odebug)
         csound->Message(csound, "init %s:\n",
                         csound->opcodlst[csound->ids->optext->t.opnum].opname);
-      /* $$$$ CHECK RETURN CODE $$$$ */
-      err |= (*csound->ids->iopadr)(csound, csound->ids);
+      (*csound->ids->iopadr)(csound, csound->ids);
     }
     csound->tieflag = csound->reinitflag = 0;
-    if (err || ip->p3 == FL(0.0)) {
+    if (csound->inerrcnt || ip->p3 == FL(0.0)) {
       xturnoff_now(csound, ip);
-      return(csound->inerrcnt);
+      return csound->inerrcnt;
     }
-    if (ip->p3 > FL(0.0)) {                     /* if still finite time, */
+    if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
       double p2 = (double) ip->p2 + csound->sensEvents_state.timeOffs;
       ip->offtim = p2 + (double) ip->p3;
       if (O->Beatmode) {
@@ -233,7 +231,6 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     INSTRTXT  *tp;
     INSDS     *ip, **ipp, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
-    int       err = 0;
 
     if (csound->advanceCnt)
       return 0;
@@ -330,11 +327,10 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       if (O->odebug)
         csound->Message(csound, "init %s:\n",
                         csound->opcodlst[csound->ids->optext->t.opnum].opname);
-      /* $$$ CHECK RETURN CODE $$$ */
-      err |= (*csound->ids->iopadr)(csound, csound->ids);
+      (*csound->ids->iopadr)(csound, csound->ids);
     }
     csound->tieflag = csound->reinitflag = 0;
-    if (err) {
+    if (csound->inerrcnt) {
       xturnoff_now(csound, ip);
       return csound->inerrcnt;
     }
@@ -1206,8 +1202,8 @@ INSDS *insert_event(ENVIRON *csound,
       xturnoff_now(csound, ip);
       ip = NULL; goto endsched;
     }
-    if (!midi &&                /* if not MIDI activated, */
-        ip->p3 > FL(0.0)) {     /* and still finite time, */
+    if (!midi &&                                /* if not MIDI activated, */
+        ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* and still finite time, */
       double p2;
       p2 = (double) ip->p2 + csound->sensEvents_state.timeOffs;
       ip->offtim = p2 + (double) ip->p3;
