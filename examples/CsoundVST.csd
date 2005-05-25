@@ -90,11 +90,11 @@ agright     pluck       2000, cpsoct(ioct-ishift), 1000, 1, 1
 kf1         expon       .1, p3, 1.0             ;exponential from 0.1 to 1.0
 kf2         expon       1.0, p3, .1             ;exponential from 1.0 to 0.1
 adump       delayr      2.0                     ;set delay line of 2.0 sec
-            delayw      ag                      ;put ag signal into delay line.
 atap1       deltapi     kf1                     ;tap delay line with kf1 func.
 atap2       deltapi     kf2                     ;tap delay line with kf2 func.
 ad1         deltap      2.0                     ;delay 2 sec.
 ad2         deltap      1.1                     ;delay 1.1 sec.
+            delayw      ag                      ;put ag signal into delay line.
             outs        agleft+atap1+ad1, agright+atap2+ad2
 			endin       
 
@@ -153,9 +153,9 @@ ag          pluck       1000, cpsoct(ioct + kvib), 1000,gisine, 1
 agleft      pluck       1000, cpsoct(ioct+ishift), 1000,gisine, 1
 agright     pluck       1000, cpsoct(ioct-ishift), 1000,gisine, 1
 adump       delayr      0.4                     ;set delay line of 0.3 sec
-            delayw      ag * kdamping                      ;put ag sign into del line.
 ad1         deltap      0.1                     ;delay 100 msec.
 ad2         deltap      0.2                     ;delay 200 msec.
+            delayw      ag * kdamping                      ;put ag sign into del line.
             outs        kdamping *(agleft+ad1), kdamping*(agright+ad2)
 endin       
 
@@ -1431,7 +1431,6 @@ aclip 			tablei 			asig, gitonewheel5, 1, .5
 aclip 			= 			aclip * 16000
 ; Delay buffer for rotating speaker
 aleslie 		delayr 			.02, 1
-			delayw 			aclip
 ; Acceleration
 kenv    		linseg 			.8, 1, 8, 2, 8, 1, .8, 2, .8, 1, 8, 1, 8
 kenvlow 		linseg 			.7, 2, 7, 1, 7, 2, .7, 1, .7, 2, 7, 1, 7
@@ -1449,6 +1448,7 @@ kdopllow 		= 			.01  - koscllow * .0003
 kdoprlow 		= 			.012 - koscrlow * .0003
 aleftlow  		deltapi 		kdopllow
 arightlow 		deltapi 		kdoprlow
+				delayw 			aclip
 ; Filter Effect
 ; Divide into three frequency ranges for directional sound.
 ;  High Pass

@@ -29,7 +29,7 @@ import sys
 import time
 # Change enableCsound to True if you have installed CsoundVST.
 # Importing CsoundVST automatically creates a csound object.
-enableCsound = False
+enableCsound = True
 if enableCsound:
     import CsoundVST
 from visual import *
@@ -123,20 +123,20 @@ for layer in xrange(0, layers + 1):
 def connect(origin, neighbor):
     if neighbor in trichords:
         curve(pos = [origin, neighbor], color = (0.67, 0.67, 0.67))
-##for trichord in trichords.values():
-##    connect(trichord, unorder((trichord[0] + 1.0, trichord[1], trichord[2])))
-##    connect(trichord, unorder((trichord[0], trichord[1] + 1.0, trichord[2])))
-##    connect(trichord, unorder((trichord[0], trichord[1], trichord[2] + 1.0)))
-##    connect(trichord, unorder((trichord[0] - 1.0, trichord[1], trichord[2])))
-##    connect(trichord, unorder((trichord[0], trichord[1] - 1.0, trichord[2])))
-##    connect(trichord, unorder((trichord[0], trichord[1], trichord[2] - 1.0)))
+for trichord in trichords.values():
+    connect(trichord, unorder((trichord[0] + 1.0, trichord[1], trichord[2])))
+    connect(trichord, unorder((trichord[0], trichord[1] + 1.0, trichord[2])))
+    connect(trichord, unorder((trichord[0], trichord[1], trichord[2] + 1.0)))
+    connect(trichord, unorder((trichord[0] - 1.0, trichord[1], trichord[2])))
+    connect(trichord, unorder((trichord[0], trichord[1] - 1.0, trichord[2])))
+    connect(trichord, unorder((trichord[0], trichord[1], trichord[2] - 1.0)))
 if enableCsound:
     def csoundThreadRoutine():
         csound.load('c:/utah/home/mkg/projects/csound5/examples/CsoundVST.csd')
-        csound.setCommand('csound -d -m0 -b600 -B600 -odac2 temp.orc temp.sco')
+        csound.setCommand('csound -d -m0 -b400 -B1200 -odac3 temp.orc temp.sco')
         csound.exportForPerformance()
-        csound.compile()
         gc.disable()
+        csound.compile()
         while True:
             csound.performKsmps()
     csoundThread = threading.Thread(None, csoundThreadRoutine)
