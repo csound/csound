@@ -77,8 +77,6 @@ static  FUNC    *ftalloc(ENVIRON *);
 
 #define FTPMAX  (150)
 
-#define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
-
 void ftRESET(ENVIRON *csound)
 {
   int i;
@@ -2082,8 +2080,8 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
     p = &tmpspace;
     memset(p, 0, sizeof(SOUNDIN));
     {
-      long  filno = (long) RNDINT(ff->e.p[5]);
-      int   fmt = (int) RNDINT(ff->e.p[7]);
+      long  filno = (long) MYFLT2LRND(ff->e.p[5]);
+      int   fmt = (int) MYFLT2LRND(ff->e.p[7]);
       if (filno == (long) SSTRCOD) {
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
@@ -2113,7 +2111,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       }
     }
     p->skiptime = ff->e.p[6];
-    p->channel  = (int) RNDINT(ff->e.p[8]);
+    p->channel  = (int) MYFLT2LRND(ff->e.p[8]);
     p->do_floatscaling = 0;
     if (p->channel < 0 /* || p->channel > ALLCHNLS-1 */) {
       fterror(csound, ff, Str("channel %d illegal"), (int) p->channel);
@@ -2822,7 +2820,7 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
       fterror(csound, ff, Str("insufficient gen arguments"));
       return;
     }
-    nchn = RNDINT(ff->e.p[5]);
+    nchn = MYFLT2LRND(ff->e.p[5]);
     if (((nchn * 3) + 1) != nargs) {
       fterror(csound, ff,
               Str("number of channels inconsistent with number of args"));
@@ -2839,8 +2837,8 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
       len2 = (int) f->flen;
       src = &(f->ftable[0]);
       i = n;
-      j = RNDINT(ff->e.p[(n * 3) + 7]);
-      k = RNDINT(ff->e.p[(n * 3) + 8]);
+      j = MYFLT2LRND(ff->e.p[(n * 3) + 7]);
+      k = MYFLT2LRND(ff->e.p[(n * 3) + 8]);
       while (i < len) {
         if (j >= 0 && j < len2)
           dst[i] = src[j];

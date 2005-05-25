@@ -32,7 +32,7 @@ typedef struct
     MYFLT *port;        /* UDP port */
     MYFLT *dest;
     MYFLT *type;
-    MYFLT *arg[25];
+    MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
     lo_address addr;
     MYFLT last;
     int   cnt;
@@ -45,15 +45,16 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     char *hh;
     lo_address t;
     /* with too many args, XINCODE/XSTRCODE may not work correctly */
-    if (p->INOCOUNT > 30)
-      csound->InitError(csound, Str("Too many arguments to OSCsend"));
+    if (p->INOCOUNT > 31)
+      return csound->InitError(csound, Str("Too many arguments to OSCsend"));
     /* a-rate arguments are not allowed */
-    if (p->XINCODE) csound->InitError(csound, Str("No a-rate arguments allowed"));
+    if (p->XINCODE)
+      return csound->InitError(csound, Str("No a-rate arguments allowed"));
 
     if (*p->port<0)
       pp = NULL;
     else
-      sprintf(port, "%d", (int)(*p->port+FL(0.5)));
+      sprintf(port, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host;
     if (*hh=='\0') hh = NULL;
     t = lo_address_new(hh, pp);
@@ -85,17 +86,17 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
         case 'i':
           if (p->XSTRCODE&msk)
             return csound->PerfError(csound, Str("String not expected"));
-          lo_message_add_int32(msg, (int32_t)(*arg[i]+FL(0.5)));
+          lo_message_add_int32(msg, (int32_t) MYFLT2LRND(*arg[i]));
           break;
         case 'l':
           if (p->XSTRCODE&msk)
             return csound->PerfError(csound, Str("String not expected"));
-          lo_message_add_int64(msg, (int64_t)(*arg[i]+FL(0.5)));
+          lo_message_add_int64(msg, (int64_t) MYFLT2LRND(*arg[i]));
           break;
         case 'c':
           if (p->XSTRCODE&msk)
             return csound->PerfError(csound, Str("String not expected"));
-          lo_message_add_char(msg, (char)(*arg[i]+FL(0.5)));
+          lo_message_add_char(msg, (char) (*arg[i] + FL(0.5)));
           break;
         case 'm':
           {

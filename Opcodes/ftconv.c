@@ -143,8 +143,6 @@ static void set_buf_pointers(FTCONV *p,
     }
 }
 
-#define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
-
 static int ftconv_init(ENVIRON *csound, FTCONV *p)
 {
     FUNC    *ftp;
@@ -158,7 +156,7 @@ static int ftconv_init(ENVIRON *csound, FTCONV *p)
       return NOTOK;
     }
     /* partition length */
-    p->partSize = RNDINT(*(p->iPartLen));
+    p->partSize = MYFLT2LRND(*(p->iPartLen));
     if (p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0) {
       csound->InitError(csound, Str("ftconv: invalid impulse response "
                                     "partition length"));
@@ -169,10 +167,10 @@ static int ftconv_init(ENVIRON *csound, FTCONV *p)
       return NOTOK; /* ftfind should already have printed the error message */
     /* calculate total length / number of partitions */
     n = (int) ftp->flen / p->nChannels;
-    skipSamples = RNDINT(*(p->iSkipSamples));
+    skipSamples = MYFLT2LRND(*(p->iSkipSamples));
     n -= skipSamples;
-    if (RNDINT(*(p->iTotLen)) > 0 && n > RNDINT(*(p->iTotLen)))
-      n = RNDINT(*(p->iTotLen));
+    if (MYFLT2LRND(*(p->iTotLen)) > 0 && n > MYFLT2LRND(*(p->iTotLen)))
+      n = MYFLT2LRND(*(p->iTotLen));
     if (n <= 0) {
       csound->InitError(csound, Str("ftconv: invalid length, "
                                     "or insufficient IR data for convolution"));

@@ -1,9 +1,11 @@
 2005-05-25	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c: fixed bug in ihold opcode
 	* Engine/rdorch.c: attempts at fixing else and endif bugs
+	* Added new macros (MYFLT2LONG and MYFLT2LRND) for converting
+	  floating point values to integers.
 
 2005-05-24 Victor Lazzarini <victor.lazzarini@nuim.ie>
-         *changes to rtcoreaudio.c to enable channel independence
+	* changes to rtcoreaudio.c to enable channel independence
 
 2005-05-23 Victor Lazzarini <victor.lazzarini@nuim.ie>
         * late entry to the log: added InOut/rtcoreaudio.c
