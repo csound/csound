@@ -881,17 +881,17 @@ static int splitline(ENVIRON *csound)
         lp = ll+2;
         continue;
       }
-      if (c == ' ' || c == '\t') {      /* spaces, tabs:     */
+      if (c == ' ' || c == '\t') {          /* spaces, tabs:      */
         if (!ST(opgrpno) && collecting) {   /*  those before args */
-          *cp++ = '\0';                 /*  can be delimitrs  */
+          *cp++ = '\0';                     /*  can be delimitrs  */
           collecting = 0;
-          if (strcmp(grpp,"if") == 0) { /* of if opcod */
-            strcpy(grpp,"cggoto");      /* (replace) */
+          if (strcmp(grpp, "if") == 0) {    /* of if opcod */
+            strcpy(grpp, "cggoto");         /* (replace) */
             cp = grpp + 7;
             prvif++;
           }
-          else if (strcmp(grpp,"elseif") == 0) { /* of elseif opcod */
-            if (!ST(iflabels)) { /* check to see we had an 'if' before  */
+          else if (strcmp(grpp, "elseif") == 0) {       /* of elseif opcod */
+            if (!ST(iflabels)) {    /* check to see we had an 'if' before  */
               synterr(csound, Str("invalid 'elseif' statement.  "
                                   "must have a corresponding 'if'"));
               goto nxtlin;
@@ -1087,7 +1087,9 @@ static int splitline(ENVIRON *csound)
          goto <endiflabel>
          <elselabel>
          to do this, we parse the current twice */
-      if ((int) ((char*) cp - (char*) grpp) == 4 && !strncmp(grpp, "else", 4)) {
+      if (strncmp(grpp, "else", 4) == 0 &&
+          ((int) ((char*) cp - (char*) grpp) == 4 ||
+           strchr(" \t\r\n", grpp[4]) != NULL)) {
         if (!ST(iflabels)) {    /* 'else': check to see we had an 'if' before */
           synterr(csound, Str("invalid 'else' statement.  "
                               "must have a corresponding 'if'"));
@@ -1120,8 +1122,9 @@ static int splitline(ENVIRON *csound)
           ST(repeatingElseLine) = 1;
         }
       }
-      else if ((int) ((char*) cp - (char*) grpp) == 5 &&
-               strncmp(grpp, "endif", 5) == 0) {
+      else if (strncmp(grpp, "endif", 5) == 0 &&
+               ((int) ((char*) cp - (char*) grpp) == 5 ||
+                strchr(" \t\r\n", grpp[5]) != NULL)) {
         /* replace 'endif' with the synthesized label */
         struct iflabel *prv;
         if (!ST(iflabels)) { /* check to see we had an 'if' before  */
