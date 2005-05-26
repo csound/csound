@@ -57,21 +57,25 @@ static void unquote(char *dst, char *src)
       strcpy(dst, src);
 }
 
-static void close_files(void)
+void foutRESET(ENVIRON *csound)
 {
-#ifdef ACCESS_TO_ENVIRON
-    while (csound->file_num>=0) {
-      printf("%d (%s):", csound->file_num,
-             ((struct fileinTag*) csound->file_opened)[csound->file_num].name);
-      if (((struct fileinTag*) csound->file_opened)[csound->file_num].raw
-          != NULL)
-        fclose(((struct fileinTag*) csound->file_opened)[csound->file_num].raw);
+    struct fileinTag *file_opened = (struct fileinTag*) csound->file_opened;
+
+    while (csound->file_num >= 0) {
+      if (csound->oparms->msglevel & 3)
+        csound->Message(csound, "%d (%s):", csound->file_num,
+                                            file_opened[csound->file_num].name);
+      if (file_opened[csound->file_num].raw != NULL)
+        fclose(file_opened[csound->file_num].raw);
       else
-        sf_close(((struct fileinTag*) csound->file_opened)[csound->file_num].file);
+        sf_close(file_opened[csound->file_num].file);
       csound->file_num--;
-      printf(Str("\t... closed\n"));
+      if (csound->oparms->msglevel & 3)
+        csound->Message(csound, Str("\t... closed\n"));
     }
-#endif
+    mfree(csound, csound->file_opened);
+    csound->file_opened = NULL;
+    csound->file_max = 0;
 }
 
 int outfile(ENVIRON *csound, OUTFILE *p)
@@ -140,7 +144,6 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       else { /* put the file in the opened stack */
         csound->file_num++;
         if (csound->file_num>=csound->file_max) {
-          if (csound->file_max==0) atexit(close_files);
           csound->file_max += 4;        /* Expand by 4 each time */
           csound->file_opened = (void*)
             mrealloc(csound, csound->file_opened,
@@ -219,7 +222,6 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
       else { /* put the file in the opened stack */
         csound->file_num++;
         if (csound->file_num>=csound->file_max) {
-          if (csound->file_max==0) atexit(close_files);
           csound->file_max += 4;
           csound->file_opened = (void*)
             mrealloc(csound, csound->file_opened,
@@ -264,7 +266,6 @@ int fiopen(ENVIRON *csound, FIOPEN *p)  /* open a file and return its handle  */
     if (idx>1) setbuf(rfp, NULL);
     csound->file_num++;
     if (csound->file_num>=csound->file_max) {
-      if (csound->file_max==0) atexit(close_files);
       csound->file_max += 4;
       csound->file_opened = (void*)
         mrealloc(csound, csound->file_opened,
@@ -425,7 +426,6 @@ int infile_set(ENVIRON *csound, INFILE *p)
       else { /* put the file in the opened stack */
         csound->file_num++;
         if (csound->file_num>=csound->file_max) {
-          if (csound->file_max==0) atexit(close_files);
           csound->file_max += 4;
           csound->file_opened = (void*)
             mrealloc(csound, csound->file_opened,
@@ -507,7 +507,6 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
       else { /* put the file in the opened stack */
         csound->file_num++;
         if (csound->file_num>=csound->file_max) {
-          if (csound->file_max==0) atexit(close_files);
           csound->file_max += 4;
           csound->file_opened = (void*)
             mrealloc(csound, csound->file_opened,
@@ -586,7 +585,6 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
       else { /* put the file in the opened stack */
         csound->file_num++;
         if (csound->file_num>=csound->file_max) {
-          if (csound->file_max==0) atexit(close_files);
           csound->file_max += 4;
           csound->file_opened = (void*)
             mrealloc(csound, csound->file_opened,
@@ -732,7 +730,6 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
       else { /* put the file in the opened stack */
         csound->file_num++;
         if (csound->file_num>=csound->file_max) {
-          if (csound->file_max==0) atexit(close_files);
           csound->file_max += 4;
           csound->file_opened = (void*)
             mrealloc(csound, csound->file_opened,
