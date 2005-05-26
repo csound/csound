@@ -284,7 +284,6 @@ const ENVIRON cenviron_ = {
         NULL,           /*  Linepipe            */
         0,              /*  Linefd              */
         NULL,           /*  ls_table            */
-        FL(0.0),        /*  curr_func_sr        */
         NULL,           /*  instrtxtp           */
         "",             /*  errmsg              */
         NULL,           /*  scfp                */
