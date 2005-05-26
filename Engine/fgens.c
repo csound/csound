@@ -2142,7 +2142,7 @@ static void gen01raw(FUNC *ftp, ENVIRON *csound)
       ftp->flenfrms = ff->flen / p->nchanls; /* ?????????? */
       def           = 1;
     }
-    ftp->gen01args.sample_rate = csound->curr_func_sr;
+    ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     /* FIXME: no looping possible yet */
     ftp->cpscvt = FL(0.0);

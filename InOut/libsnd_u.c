@@ -129,7 +129,6 @@ void *sndgetset(void *csound_, void *p_)
     p->bufsmps = framesinbuf * p->nchanls;
     p->endfile = 0;
     p->filetyp = SF2TYPE(sfinfo.format);
-    csound->curr_func_sr = (MYFLT) sfinfo.samplerate;
     if (p->analonly) {                              /* anal: if sr param val */
       if (p->sr != 0 && p->sr != sfinfo.samplerate) {   /*   use it          */
         csound->Warning(csound, Str("-s %d overriding soundfile sr %d"),
