@@ -199,9 +199,9 @@ extern "C"
 	{
 		VSTMIDIOUT *p = (VSTMIDIOUT *)data;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-		if(round(p->oldkstatus) == round(*p->kstatus) &&
-		   round(p->oldkchan) == round(*p->kchan) &&
-		   round(p->oldkvalue) == round(*p->kdata1))
+		if((int)(p->oldkstatus) == (int)(*p->kstatus) &&
+		   (int)(p->oldkchan) == (int)(*p->kchan) &&
+		   (int)(p->oldkvalue) == (int)(*p->kdata1))
 		   return OK;
   		plugin->Debug("vstmidiout.\n");
     	p->oldkstatus = *p->kstatus;
