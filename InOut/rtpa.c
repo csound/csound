@@ -222,7 +222,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 {
     PA_BLOCKING_STREAM *pabs;
     int samples = bytes_ / sizeof(MYFLT);
-    pabs = (PA_BLOCKING_STREAM *)((ENVIRON*) csound)->QueryGlobalVariable(csound,"pabsReadWritep");
+    pabs = (PA_BLOCKING_STREAM *)((ENVIRON*) csound)->QueryGlobalVariableNoCheck(csound,"pabsReadWritep");
     paBlockingRead(&pabs[INS], samples,(MYFLT *)inbuf_);
     return bytes_;
 }
@@ -230,11 +230,10 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 /* put samples to DAC  */
 static void rtplay_(void *csound, void *outbuf_, int bytes_)
 {
-     PA_BLOCKING_STREAM *pabs;
-     int samples = bytes_ / sizeof(MYFLT);
-     pabs = (PA_BLOCKING_STREAM *)((ENVIRON*) csound)->QueryGlobalVariable(csound,"pabsReadWritep");
-     paBlockingWrite(&pabs[OUTS], samples, (MYFLT *)outbuf_);
-
+    PA_BLOCKING_STREAM *pabs;
+    int samples = bytes_ / sizeof(MYFLT);
+    pabs = (PA_BLOCKING_STREAM *)((ENVIRON*) csound)->QueryGlobalVariableNoCheck(csound,"pabsReadWritep");
+    paBlockingWrite(&pabs[OUTS], samples, (MYFLT *)outbuf_);
 }
 
 static void rtclose_(void *csound)      /* close the I/O device entirely  */
@@ -249,7 +248,7 @@ static void rtclose_(void *csound)      /* close the I/O device entirely  */
 
 /* IV - Feb 02 2005: module interface functions */
 
-int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(void *csound)
 {
     /* nothing to do, report success */
     ((ENVIRON*) csound)->Message(csound, "PortAudio real-time audio module "
@@ -257,11 +256,11 @@ int csoundModuleCreate(void *csound)
     return 0;
 }
 
-int csoundModuleInit(void *csound)
+PUBLIC int csoundModuleInit(void *csound)
 {
     ENVIRON *p;
     char    *drv;
-    int  *ptr;
+    int     *ptr;
 
     p = (ENVIRON*) csound;
     drv = (char*) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
