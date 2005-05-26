@@ -100,7 +100,9 @@
 /* add any other compiler that supports 'inline' */
 
 #if !(defined(HAVE_C99) || defined(HAVE_GCC3) || defined(__cplusplus))
-#ifndef inline
+#if defined(WIN32) && defined(_MSC_VER)
+#define inline  __inline
+#elif !defined(inline)
 #define inline
 #endif
 #endif
@@ -187,6 +189,31 @@ typedef unsigned long       uintptr_t;
 #define MYFLT2LONG(x) ((long) lrint((double) (x)))
 #define MYFLT2LRND(x) ((long) lrint((double) (x)))
 #endif
+#elif defined(_WIN32) && defined(_MSC_VER)
+#ifndef USE_DOUBLE
+static inline long MYFLT2LONG(float fval)
+{
+    int result;
+    _asm {
+      fld   fval
+      fistp result
+      mov   eax, result
+    }
+    return result;
+}
+#else
+static inline long MYFLT2LONG(double fval)
+{
+    int result;
+    _asm {
+      fld   fval
+      fistp result
+      mov   eax, result
+    }
+    return result;
+}
+#endif
+#define MYFLT2LRND  MYFLT2LONG
 #else
 #ifndef USE_DOUBLE
 #define MYFLT2LONG(x) ((long) (x))
