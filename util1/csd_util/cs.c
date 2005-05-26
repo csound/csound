@@ -8,7 +8,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <ctype.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #if defined(WIN32) && defined(__GNUC__)
 #include <process.h>
 #endif
