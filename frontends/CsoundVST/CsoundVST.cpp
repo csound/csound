@@ -340,6 +340,9 @@ void CsoundVST::open()
       cppSound->setFilename(filename_);
     }
   cppSound->setFLTKThreadLocking(false);
+  csound::System::setUserdata(cppSound->getCsound());
+  csoundSetHostData(cppSound->getCsound(), this);
+
 }
 
 void CsoundVST::reset()
