@@ -360,7 +360,7 @@ void CsoundVstFltk::postUpdate()
 //	For non-VST uses, we just go ahead as before.
 //	It's also unfortunate that there is a global message callback,
 //	rather than one per instance; this may be fixed in future.
-void CsoundVstFltk::messageCallback(const char *format, va_list valist)
+void CsoundVstFltk::messageCallback(void *userdata, int attribute, const char *format, va_list valist)
 {
   static char buffer[0x1000];
   vsprintf(buffer, format, valist);
