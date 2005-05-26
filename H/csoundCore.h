@@ -848,7 +848,6 @@ extern "C" {
     FILE*         Linepipe;
     int           Linefd;
     MYFLT         *ls_table;
-    MYFLT         curr_func_sr;
     INSTRTXT      **instrtxtp;
     char          errmsg[ERRSIZ];   /* sprintf space for compiling msgs */
     FILE*         scfp;
