@@ -39,7 +39,7 @@
 
 namespace csound
 {
-  typedef void (*MessageCallbackType)(const char *format, va_list valist);
+  typedef void (*MessageCallbackType)(void *userdata, int attribute, const char *format, va_list valist);
 
   class Logger
   {
@@ -54,8 +54,9 @@ namespace csound
    */
   class System
   {
+    static void *userdata_;
     static int messageLevel;
-    static void (*messageCallback)(const char *format, va_list valist);
+    static void (*messageCallback)(void *userdata, int attribute, const char *format, va_list valist);
   public:
     enum Level
       {
@@ -125,11 +126,19 @@ namespace csound
      *	Returns current system message level.
      */
     static int getMessageLevel();
+    /**
+     *  Sets userdata for message printing.
+     */
+    static void setUserdata(void *userdata);
+    /**
+     * Returns userdata for message printing.
+     */
+    static void *getUserdata();
 #ifndef SWIG
     /**
-     *	Prints a message.
+     *	Prints a message if the ERROR_LEVEL flag is set.
      */
-    static void message(int level, const char *format,...);
+    static void error(void *userdata, const char *format,...);
     /**
      *	Prints a message if the ERROR_LEVEL flag is set.
      */
@@ -137,7 +146,15 @@ namespace csound
     /**
      *	Prints a message if the WARNNING_LEVEL flag is set.
      */
+    static void warn(void *userdata, const char *format,...);
+    /**
+     *	Prints a message if the WARNNING_LEVEL flag is set.
+     */
     static void warn(const char *format,...);
+    /**
+     *	Prints a message if the INFORMATION_LEVEL flag is set.
+     */
+    static void inform(void *userdata, const char *format,...);
     /**
      *	Prints a message if the INFORMATION_LEVEL flag is set.
      */
@@ -145,7 +162,15 @@ namespace csound
     /**
      *	Prints a message if the DEBUGGING_LEVEL flag is set.
      */
+    static void debug(void *userdata, const char *format,...);
+    /**
+     *	Prints a message if the DEBUGGING_LEVEL flag is set.
+     */
     static void debug(const char *format,...);
+    /**
+     *	Prints a message.
+     */
+    static void message(void *userdata, const char *format,...);
     /**
      *	Prints a message.
      */
@@ -153,11 +178,15 @@ namespace csound
     /**
      *	Prints a message.
      */
+    static void message(void *userdata, const char *format, va_list valist);
+    /**
+     *	Prints a message.
+     */
     static void message(const char *format, va_list valist);
     /**
      *	Prints a message.
      */
-    static void message(void *userdata, const char *format, va_list valist);
+    static void message(void *userdata, int level, const char *format,...);
     /**
      *	Prints a message.
      */
@@ -165,7 +194,7 @@ namespace csound
     /**
      *	Sets message callback.
      */
-    static void setMessageCallback(void (*messageCallback_)(const char *format, va_list marker));
+    static void setMessageCallback(void (*messageCallback_)(void *userdata, int attribute, const char *format, va_list marker));
     /**
      *  Return the message callback, or null if none.
      */
