@@ -422,6 +422,7 @@ void mainRESET(ENVIRON *p)
     void orchRESET(ENVIRON *);
     void soundinRESET(ENVIRON *);
     void tranRESET(ENVIRON *);
+    void foutRESET(ENVIRON *);
 
     cscoreRESET(p);
     expRESET(p);
@@ -440,8 +441,9 @@ void mainRESET(ENVIRON *p)
       mfree(p, p->reset_list);
       p->reset_list = x;
     }
+    foutRESET(p);
     scoreRESET(p);
-    oloadRESET(p);              /* should be called last but changed!! */
-    memRESET(p);
+    oloadRESET(p);      /* should be called last but one */
+    memRESET(p);        /* and this one should be the last */
 }
 
