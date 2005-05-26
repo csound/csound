@@ -916,11 +916,11 @@ int vecdly_set(ENVIRON *csound,VECDEL *p)
                  &p->aux);
         p->buf= (MYFLT **) p->aux.auxp;
         for (j = 0; j < elements; j++) {
-          p->buf[j] = (MYFLT *) (p->aux.auxp + sizeof(MYFLT *)* elements
-                                 +sizeof(MYFLT ) * n * j);
+          p->buf[j] = (MYFLT*) ((char*) p->aux.auxp + sizeof(MYFLT*) * elements
+                                                    + sizeof(MYFLT) * n * j);
         }
-        p->left= (long *)  (p->aux.auxp +sizeof(MYFLT *)* elements
-                            +sizeof(MYFLT ) * n * elements);
+        p->left = (long*) ((char*) p->aux.auxp + sizeof(MYFLT*) * elements
+                                               + sizeof(MYFLT) * n * elements);
       }
       else {
         MYFLT **buf= p->buf;
