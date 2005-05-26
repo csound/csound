@@ -290,12 +290,12 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
 
 /* module interface functions */
 
-int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(void *csound)
 {
     return 0;
 }
 
-int csoundModuleInit(void *csound_)
+PUBLIC int csoundModuleInit(void *csound_)
 {
     ENVIRON *csound;
     csound = (ENVIRON*) csound_;

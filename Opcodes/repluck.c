@@ -295,12 +295,12 @@ static OENTRY localops[] = {
 { "streson", S(STRES),    5, "a",  "aki",  (SUBR)stresonset, NULL, (SUBR)streson}
 };
 
-long opcode_size(void)
+PUBLIC long opcode_size(void)
 {
     return sizeof(localops);
 }
 
-OENTRY *opcode_init(ENVIRON *xx)
+PUBLIC OENTRY *opcode_init(ENVIRON *xx)
 {
     return localops;
 }

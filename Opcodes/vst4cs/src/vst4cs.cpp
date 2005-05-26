@@ -32,14 +32,6 @@
 #include <vector>
 #include <string>
 
-#ifdef MAKEDLL
-#define PUBLIC __declspec(dllexport)
-#define DIR_SEP '\\'
-#else
-#define PUBLIC
-#define DIR_SEP '/'
-#endif
-
 const static MYFLT SCALING_FACTOR = FL(32767.0);
 
 extern "C"
