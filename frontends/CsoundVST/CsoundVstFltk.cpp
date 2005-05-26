@@ -353,59 +353,58 @@ void CsoundVstFltk::postUpdate()
   updateFlag = 1;
 }
 
-//	This is unfortunately elaborate.
-//	Cubase won't tolerate FL event handling in the process call.
-//	Therefore, for Cubase, we push messages onto a queue for Silence messages,
-//	and we pull them off the queue in AeffEditor::onIdle.
-//	For non-VST uses, we just go ahead as before.
-//	It's also unfortunate that there is a global message callback,
-//	rather than one per instance; this may be fixed in future.
 void CsoundVstFltk::messageCallback(void *userdata, int attribute, const char *format, va_list valist)
 {
-  static char buffer[0x1000];
-  vsprintf(buffer, format, valist);
-  static std::string actualBuffer;
-  static std::string lineBuffer;
-  actualBuffer.append(buffer);
-  size_t position = 0;
-  while((position = actualBuffer.find("\n")) != std::string::npos)
+  ENVIRON *csound = (ENVIRON *)userdata;
+  if(!csound)
     {
-      lineBuffer = actualBuffer.substr(0, position);
-      actualBuffer.erase(0, position + 1); 
-      for(std::vector<CsoundVstFltk *>::iterator it = CsoundVstFltk::instances.begin();
-	  it != CsoundVstFltk::instances.end(); 
-	  ++it)
-        {
-	  CsoundVstFltk *csoundVstFltk = *it;
-	  if(!csoundVstFltk)
-            {
+      return;
+    }
+  CsoundVST *csoundVST = (CsoundVST *)csoundGetHostData(csound);
+  if(!csoundVST)
+    {
+      return;
+    }
+  CsoundVstFltk *csoundVstFltk = (CsoundVstFltk *)csoundVST->getEditor();
+  if(!csoundVstFltk)
+    {
+      return;
+    }
+  char buffer[0x1000];
+  vsprintf(buffer, format, valist);
+  csoundVstFltk->messagebuffer.append(buffer);
+  size_t position = 0;
+  while((position = csoundVstFltk->messagebuffer.find("\n")) != std::string::npos)
+    {
+      if(!csoundVstFltk)
+	{
+	  return;
+	}
+      if(csoundVstFltk->csoundVST->getIsVst())
+	{
+	  csoundVstFltk->messages.push_back(csoundVstFltk->messagebuffer.substr(0, position));
+	}
+      else
+	{
+	  if(!csoundVstFltk->csoundVstUi)
+	    {
 	      return;
 	    }
-	  if(csoundVstFltk->csoundVST->getIsVst())
+	  if(!csoundVstFltk->runtimeMessagesBrowser)
 	    {
-	      csoundVstFltk->messages.push_back(lineBuffer);
-            }
+	      return;
+	    }
 	  else
 	    {
-	      if(!csoundVstFltk->csoundVstUi)
-		{
-		  return;
-                }
-	      if(!csoundVstFltk->runtimeMessagesBrowser)
-		{
-		  return;
-		}
-	      else
-		{
-		  Fl::lock();
-		  csoundVstFltk->runtimeMessagesBrowser->add(lineBuffer.c_str());
-		  csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
-		  Fl::flush();
-		  Fl::unlock();
-		}
+	      Fl::lock();
+	      csoundVstFltk->runtimeMessagesBrowser->add(csoundVstFltk->messagebuffer.substr(0, position).c_str());
+	      csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
+	      Fl::flush();
+	      Fl::unlock();
 	    }
+	  csoundVstFltk->messagebuffer.erase(0, position + 1); 
 	}
-      actualBuffer.clear();
+      csoundVstFltk->messagebuffer.clear();
     }
 }
 
