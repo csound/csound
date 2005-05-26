@@ -78,7 +78,7 @@ class Counterpoint
 {
 public:
   boost::variate_generator<boost::mt19937, boost::uniform_real<> > *uniform_real_generator;  
-  void (*messageCallback)(const char *format, va_list valist);
+  void (*messageCallback)(void *userdata, int attribute, const char *format, va_list valist);
   void message(const char *format,...)
   {
     va_list marker;
@@ -90,7 +90,7 @@ public:
   {
     if(messageCallback)
       {
-	messageCallback(format, valist);
+	messageCallback(0, -1, format, valist);
       }
     else
       {

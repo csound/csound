@@ -99,7 +99,7 @@ public:
 	std::string helpFilename;
 	CsoundVstFltk(AudioEffect *audioEffect);
 	virtual ~CsoundVstFltk(void);
-	static void messageCallback(const char *format, va_list valist);
+	static void messageCallback(void *userdata, int attribute, const char *format, va_list valist);
 	virtual void updateCaption();
 	virtual void updateModel();
 	//	AEffEditor overrides.
