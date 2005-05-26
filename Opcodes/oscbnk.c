@@ -2555,17 +2555,16 @@ static const OENTRY localops[] = {
             (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                       }
 };
 
-int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(void *csound)
 {
     return 0;
 }
 
-int csoundModuleInit(void *csound)
+PUBLIC int csoundModuleInit(void *csound)
 {
-    ENVIRON *p;
+    ENVIRON *p = (ENVIRON*) csound;
     OENTRY  *ep;
 
-    p = (ENVIRON*) csound;
     ep = (OENTRY*) &(localops[0]);
     while (ep->opname != NULL) {
       if (p->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->thread,
@@ -2583,7 +2582,7 @@ int csoundModuleInit(void *csound)
                                             sizeof(OSCBNK_GLOBALS)));
 }
 
-int csoundModuleDestroy(void *csound)
+PUBLIC int csoundModuleDestroy(void *csound)
 {
     ENVIRON *p = (ENVIRON*) csound;
 

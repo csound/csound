@@ -258,12 +258,12 @@ static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
 
 /* module interface functions */
 
-int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(void *csound)
 {
     return 0;
 }
 
-int csoundModuleInit(void *csound_)
+PUBLIC int csoundModuleInit(void *csound_)
 {
     ENVIRON *csound;
     csound = (ENVIRON*) csound_;

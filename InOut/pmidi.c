@@ -409,7 +409,7 @@ static int CloseMidiOutDevice_(void *csound_, void *userData)
 
 /* module interface functions */
 
-int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(void *csound)
 {
     /* nothing to do, report success */
     ((ENVIRON*) csound)->Message(csound, "PortMIDI real time MIDI plugin "
@@ -417,7 +417,7 @@ int csoundModuleCreate(void *csound)
     return 0;
 }
 
-int csoundModuleInit(void *csound)
+PUBLIC int csoundModuleInit(void *csound)
 {
     ENVIRON *p;
     char    *drv;
@@ -439,7 +439,7 @@ int csoundModuleInit(void *csound)
     return 0;
 }
 
-int csoundModuleDestroy(void *csound)
+PUBLIC int csoundModuleDestroy(void *csound)
 {
     Pm_Terminate();
     return 0;
