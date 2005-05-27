@@ -566,6 +566,11 @@ static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
 
 PUBLIC int csoundModuleCreate(void *csound)
 {
-    return (((ENVIRON*) csound)->AddUtility(csound, "pvanal", pvanal));
+    int retval = ((ENVIRON*) csound)->AddUtility(csound, "pvanal", pvanal);
+    if (!retval) {
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "pvanal",
+                    "Soundfile analysis for pvoc");
+    }
+    return retval;
 }
 

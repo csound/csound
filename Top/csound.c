@@ -1394,8 +1394,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
                                 char *intypes,
                                 int (*iopadr)(void *, void *),
                                 int (*kopadr)(void *, void *),
-                                int (*aopadr)(void *, void *),
-                                int (*dopadr)(void *, void *))
+                                int (*aopadr)(void *, void *))
   {
     ENVIRON *csound = (ENVIRON*) csound_;
     int oldSize = (int) ((char*) csound->oplstend - (char*) csound->opcodlst);
@@ -1411,6 +1410,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     }
     else {
       OENTRY *oentry = csound->opcodlst + oldCount;
+      memset(oentry, 0, sizeof(OENTRY));
       csound->oplstend = csound->opcodlst + newCount;
       oentry->opname = opname;
       oentry->dsblksiz = dsblksiz;
@@ -1420,7 +1420,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
       oentry->iopadr = (SUBR) iopadr;
       oentry->kopadr = (SUBR) kopadr;
       oentry->aopadr = (SUBR) aopadr;
-      oentry->dopadr = (SUBR) dopadr;
       return 0;
     }
   }
@@ -1428,35 +1427,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
   int csoundOpcodeCompare(const void *v1, const void *v2)
   {
     return strcmp(((OENTRY*)v1)->opname, ((OENTRY*)v2)->opname);
-  }
-
-  void csoundOpcodeDeinitialize(void *csound, INSDS *ip_)
-  {
-    INSDS *ip = ip_;
-    OPDS *pds;
-    while((ip = (INSDS *)ip->nxti))
-      {
-        pds = (OPDS *)ip;
-        while((pds = pds->nxti))
-          {
-            if(pds->dopadr)
-              {
-                (*pds->dopadr)(csound,pds);
-              }
-          }
-      }
-    ip = ip_;
-    while((ip = (INSDS *)ip->nxtp))
-      {
-        pds = (OPDS *)ip;
-        while((pds = pds->nxtp))
-          {
-            if(pds->dopadr)
-              {
-                (*pds->dopadr)(csound,pds);
-              }
-          }
-      }
   }
 
   /*
@@ -1757,6 +1727,54 @@ PUBLIC void **csoundGetRtRecordUserData(void *csound)
 PUBLIC void **csoundGetRtPlayUserData(void *csound)
 {
     return &(((ENVIRON*) csound)->rtPlay_userdata);
+}
+
+typedef struct opcodeDeinit_s {
+    void    *p;
+    int     (*func)(void *, void *);
+    void    *nxt;
+} opcodeDeinit_t;
+
+/**
+ * Register a function to be called at note deactivation.
+ * Should be called from the initialisation routine of an opcode.
+ * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
+ * is the function to be called, with the same arguments and return
+ * value as in the case of opcode init/perf functions.
+ * The functions are called in reverse order of registration.
+ * Returns zero on success.
+ */
+
+PUBLIC int csoundRegisterDeinitCallback(void *csound, void *p,
+                                        int (*func)(void *, void *))
+{
+    INSDS           *ip = ((OPDS*) p)->insdshead;
+    opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
+
+    if (dp == NULL)
+      return CSOUND_MEMORY;
+    dp->p = p;
+    dp->func = func;
+    dp->nxt = ip->nxtd;
+    ip->nxtd = dp;
+    return CSOUND_SUCCESS;
+}
+
+/* call the opcode deinitialisation routines of an instrument instance */
+/* called from deact() in insert.c */
+
+int csoundDeinitialiseOpcodes(ENVIRON *csound, INSDS *ip)
+{
+    int err = 0;
+
+    while (ip->nxtd != NULL) {
+      opcodeDeinit_t  *dp = (opcodeDeinit_t*) ip->nxtd;
+      opcodeDeinit_t  *nxt = dp->nxt;
+      err |= dp->func(csound, dp->p);
+      free(ip->nxtd);
+      ip->nxtd = (void*) nxt;
+    }
+    return err;
 }
 
 #ifdef __cplusplus

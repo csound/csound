@@ -297,13 +297,12 @@ PUBLIC int csoundModuleCreate(void *csound)
 
 PUBLIC int csoundModuleInit(void *csound_)
 {
-    ENVIRON *csound;
-    csound = (ENVIRON*) csound_;
-    return (csound->AppendOpcode(csound, "reverbsc",
-                                 (int) sizeof(SC_REVERB), 5, "aa", "aakkjpo",
-                                 (int (*)(void*, void*)) sc_reverb_init,
-                                 (int (*)(void*, void*)) NULL,
-                                 (int (*)(void*, void*)) sc_reverb_perf,
-                                 (int (*)(void*, void*)) NULL));
+    ENVIRON *csound = (ENVIRON*) csound_;
+
+    return csound->AppendOpcode(csound, "reverbsc",
+                                (int) sizeof(SC_REVERB), 5, "aa", "aakkjpo",
+                                (int (*)(void*, void*)) sc_reverb_init,
+                                (int (*)(void*, void*)) NULL,
+                                (int (*)(void*, void*)) sc_reverb_perf);
 }
 

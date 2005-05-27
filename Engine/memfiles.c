@@ -23,7 +23,10 @@
 */
 
 #include "csoundCore.h"     /*                              MEMFILES.C      */
-#include "csound.h"
+#include "soundio.h"
+
+extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
+#define name_hash(x,y) (strhash_tabl_8[(unsigned char) x ^ (unsigned char) y])
 
 static int Load_File_(void *csound,
                       const char *filnam, char **allocp, long *len)
@@ -166,5 +169,123 @@ void add_memfil(void *csound, MEMFIL *mfp)
       mfp->next = ((ENVIRON*) csound)->rwd_memfiles;
       ((ENVIRON*) csound)->rwd_memfiles = mfp;
     }
+}
+
+ /* ------------------------------------------------------------------------ */
+
+/**
+ * Load an entire sound file into memory.
+ * 'fileName' is the file name (searched in the current directory first,
+ * then search path defined by SSDIR, then SFDIR), and sfinfo (optional,
+ * may be NULL) stores the default parameters for opening a raw file.
+ * On success, a pointer to an SNDMEMFILE structure (see csoundCore.h) is
+ * returned, and sound file parameters are stored in sfinfo (assuming that
+ * it is not NULL).
+ * Multiple calls of csoundLoadSoundFile() with the same file name will
+ * share the same SNDMEMFILE structure, and the file is loaded only once
+ * from disk.
+ * The return value is NULL if an error occurs (the contents of sfinfo may
+ * be undefined in this case).
+ */
+
+PUBLIC SNDMEMFILE *csoundLoadSoundFile(void *csound_, const char *fileName,
+                                                      SF_INFO *sfinfo)
+{
+    ENVIRON       *csound = (ENVIRON*) csound_;
+    SNDFILE       *sf;
+    void          *fd;
+    SNDMEMFILE    *p = NULL;
+    SF_INFO       tmp;
+    unsigned char *c, h;
+
+    if (fileName == NULL || fileName[0] == '\0')
+      return NULL;
+    /* check if file is already loaded */
+    c = (unsigned char*) fileName - 1;
+    h = (unsigned char) 0;
+    while (*++c) h = name_hash(h, *c);
+    if (csound->sndmemfiles != NULL) {
+      p = ((SNDMEMFILE**) csound->sndmemfiles)[(int) h];
+      while (p != NULL && strcmp(p->name, fileName) != 0)
+        p = p->nxt;
+    }
+    else {
+      int i;
+      /* if no files loaded yet, allocate table */
+      csound->sndmemfiles = csound->Malloc(csound, sizeof(SNDMEMFILE*) * 256);
+      for (i = 0; i < 256; i++)
+        ((SNDMEMFILE**) csound->sndmemfiles)[i] = NULL;
+    }
+    if (p != NULL) {
+      /* if file was loaded earlier: */
+      if (sfinfo != NULL) {
+        memset(sfinfo, 0, sizeof(SF_INFO));
+        sfinfo->frames = (sf_count_t) p->nFrames;
+        sfinfo->samplerate = ((int) p->sampleRate + 0.5);
+        sfinfo->channels = p->nChannels;
+        sfinfo->format = FORMAT2SF(p->sampleFormat) | TYPE2SF(p->fileType);
+      }
+      return p;
+    }
+    /* open file */
+    if (sfinfo == NULL) {
+      memset(&tmp, 0, sizeof(SF_INFO));
+      sfinfo = &tmp;
+    }
+    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, fileName, sfinfo,
+                                  "SFDIR;SSDIR");
+    if (fd == NULL) {
+      csound->MessageS(csound, CSOUNDMSG_ERROR, Str("csoundLoadSoundFile(): "
+                                                    "failed to open '%s'\n"),
+                                                fileName);
+      return NULL;
+    }
+    p = (SNDMEMFILE*)
+            csound->Malloc(csound, sizeof(SNDMEMFILE)
+                                   + (size_t) sfinfo->frames * sizeof(float));
+    if (p == NULL) {
+      csound->FileClose(csound, fd);
+      return NULL;
+    }
+    /* set parameters */
+    p->name = (char*) csound->Malloc(csound, strlen(fileName) + 1);
+    strcpy(p->name, fileName);
+    p->fullName = (char*) csound->Malloc(csound,
+                                         strlen(csound->GetFileName(fd)) + 1);
+    strcpy(p->fullName, csound->GetFileName(fd));
+    p->sampleRate = (double) sfinfo->samplerate;
+    p->nFrames = (size_t) sfinfo->frames;
+    p->nChannels = sfinfo->channels;
+    p->sampleFormat = SF2FORMAT(sfinfo->format);
+    p->fileType = SF2TYPE(sfinfo->format);
+    p->loopMode = 0;    /* FIXME: not implemented yet */
+    p->startOffs = 0.0;
+    p->loopStart = 0.0;
+    p->loopEnd = 0.0;
+    p->baseFreq = 1.0;
+    p->scaleFac = 1.0;
+    p->nxt = ((SNDMEMFILE**) csound->sndmemfiles)[(int) h];
+    if ((size_t) sf_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
+        != p->nFrames) {
+      csound->FileClose(csound, fd);
+      csound->Free(csound, p->name);
+      csound->Free(csound, p->fullName);
+      csound->Free(csound, p);
+      csound->MessageS(csound, CSOUNDMSG_ERROR, Str("csoundLoadSoundFile(): "
+                                                    "error reading '%s'\n"),
+                                                fileName);
+      return NULL;
+    }
+    p->data[p->nFrames] = 0.0f;
+    csound->FileClose(csound, fd);
+    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %lu "
+                                "sample frames) loaded into memory\n"),
+                            p->fullName, (int) sfinfo->samplerate,
+                            (int) sfinfo->channels,
+                            (unsigned long) sfinfo->frames);
+    /* link into database */
+    ((SNDMEMFILE**) csound->sndmemfiles)[(int) h] = p;
+    /* return with pointer to file structure */
+    return p;
 }
 

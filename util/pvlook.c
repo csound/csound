@@ -215,6 +215,11 @@ static int pvlook(void *csound_, int argc, char *argv[])
 
 PUBLIC int csoundModuleCreate(void *csound)
 {
-    return (((ENVIRON*) csound)->AddUtility(csound, "pvlook", pvlook));
+    int retval = ((ENVIRON*) csound)->AddUtility(csound, "pvlook", pvlook);
+    if (!retval) {
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "pvlook",
+                    "Prints information about PVOC analysis files");
+    }
+    return retval;
 }
 

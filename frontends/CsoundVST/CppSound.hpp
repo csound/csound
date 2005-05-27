@@ -187,7 +187,7 @@ public:
   /**
    *	Appends an opcode to the opcode list.
    */
-  int appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, SUBR iopadr, SUBR kopadr, SUBR aopadr, SUBR dopadr);
+  int appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, SUBR iopadr, SUBR kopadr, SUBR aopadr);
   /**
    *	Returns whether Csound's score is synchronized with external software.
    */

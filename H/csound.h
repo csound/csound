@@ -689,8 +689,7 @@ extern "C" {
                                 int thread, char *outypes, char *intypes,
                                 int (*iopadr)(void *, void *),
                                 int (*kopadr)(void *, void *),
-                                int (*aopadr)(void *, void *),
-                                int (*dopadr)(void *, void *));
+                                int (*aopadr)(void *, void *));
 
 #ifndef SWIG
   /*
@@ -1069,6 +1068,18 @@ extern "C" {
    * Close a file previously opened with csoundFileOpen().
    */
   PUBLIC int csoundFileClose(void *csound, void *fd);
+
+  /**
+   * Register a function to be called at note deactivation.
+   * Should be called from the initialisation routine of an opcode.
+   * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
+   * is the function to be called, with the same arguments and return
+   * value as in the case of opcode init/perf functions.
+   * The functions are called in reverse order of registration.
+   * Returns zero on success.
+   */
+  PUBLIC int csoundRegisterDeinitCallback(void *csound_, void *p,
+                                          int (*func)(void *, void *));
 
   /* type/macro definitions and interface functions
      for configuration variables */

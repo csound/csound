@@ -28,6 +28,7 @@ typedef struct csUtility_s {
     char                *name;
     struct csUtility_s  *nxt;
     int                 (*UtilFunc)(void*, int, char**);
+    char                *desc;
 } csUtility_t;
 
 static const char list_var[] = "utilities::list";
@@ -62,6 +63,7 @@ PUBLIC int csoundAddUtility(void *csound_, const char *name,
     strcpy(p->name, name);
     p->nxt = NULL;
     p->UtilFunc = UtilFunc;
+    p->desc = NULL;
     return 0;
 }
 
@@ -70,6 +72,7 @@ PUBLIC int csoundRunUtility(void *csound_, const char *name,
 {
     ENVIRON     *csound = (ENVIRON*) csound_;
     csUtility_t *p;
+    char        **lst;
 
     if (csound == NULL)
       return -1;
@@ -87,10 +90,120 @@ PUBLIC int csoundRunUtility(void *csound_, const char *name,
     return (p->UtilFunc(csound, argc, argv));
 
  notFound:
-    csound->Message(csound, Str("Error: utility "));
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("Error: utility "));
     if (name != NULL && name[0] != '\0')
-      csound->Message(csound, "'%s' ", name);
-    csound->Message(csound, Str("not found\n"));
+      csound->MessageS(csound, CSOUNDMSG_ERROR, "'%s' ", name);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("not found\n"));
+    lst = csound->ListUtilities(csound);
+    if (lst != NULL && lst[0] != NULL) {
+      int i;
+      csound->Message(csound, Str("The available utilities are:\n"));
+      for (i = 0; lst[i] != NULL; i++) {
+        char  *desc = csound->GetUtilityDescription(csound, lst[i]);
+        if (desc != NULL)
+          csound->Message(csound, "    %s\t%s\n", lst[i], Str(desc));
+        else
+          csound->Message(csound, "    %s\n", lst[i]);
+      }
+    }
+    if (lst != NULL)
+      csound->Free(csound, lst);
     return -1;
+}
+
+static int cmp_func(const void *a, const void *b)
+{
+    return strcmp(*((char**) a), *((char**) b));
+}
+
+/**
+ * Returns a NULL terminated list of registered utility names.
+ * The caller is responsible for freeing the returned array (with mfree(),
+ * or csound->Free()), however, the names should not be freed.
+ * The return value may be NULL in case of an error.
+ */
+
+PUBLIC char **csoundListUtilities(void *csound_)
+{
+    ENVIRON     *csound = (ENVIRON*) csound_;
+    csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
+    char        **lst;
+    int         utilCnt = 0;
+
+    /* find out the number of utilities */
+    while (p != NULL)
+      p = p->nxt, utilCnt++;
+    /* allocate list */
+    lst = (char**) csound->Malloc(csound, sizeof(char*) * (utilCnt + 1));
+    if (lst == NULL)
+      return NULL;
+    /* store pointers to utility names */
+    utilCnt = 0;
+    p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
+    while (p != NULL) {
+      lst[utilCnt++] = (char*) p->name;
+      p = p->nxt;
+    }
+    lst[utilCnt] = NULL;
+    qsort(lst, utilCnt, sizeof(char*), cmp_func);
+    /* return with pointer to list */
+    return lst;
+}
+
+/**
+ * Set description text for the specified utility.
+ * Returns zero on success.
+ */
+
+PUBLIC int csoundSetUtilityDescription(void *csound_, const char *utilName,
+                                                      const char *utilDesc)
+{
+    ENVIRON     *csound = (ENVIRON*) csound_;
+    csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
+    char        *desc = NULL;
+
+    /* check for valid parameters */
+    if (utilName == NULL)
+      return CSOUND_ERROR;
+    /* find utility in database */
+    while (p != NULL && strcmp(p->name, utilName) != 0)
+      p = p->nxt;
+    if (p == NULL)
+      return CSOUND_ERROR;      /* not found */
+    /* copy description text */
+    if (utilDesc != NULL && utilDesc[0] != '\0') {
+      desc = (char*) csound->Malloc(csound, strlen(utilDesc) + 1);
+      if (desc == NULL)
+        return CSOUND_MEMORY;
+      strcpy(desc, utilDesc);
+    }
+    if (p->desc != NULL)
+      csound->Free(csound, p->desc);
+    p->desc = desc;
+    /* report success */
+    return CSOUND_SUCCESS;
+}
+
+/**
+ * Get utility description.
+ * Returns NULL if the utility was not found, or it has no description,
+ * or an error occured.
+ */
+
+PUBLIC char *csoundGetUtilityDescription(void *csound_, const char *utilName)
+{
+    ENVIRON     *csound = (ENVIRON*) csound_;
+    csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
+
+    /* check for valid parameters */
+    if (utilName == NULL)
+      return NULL;
+    /* find utility in database */
+    while (p != NULL && strcmp(p->name, utilName) != 0)
+      p = p->nxt;
+    if (p == NULL)
+      return NULL;      /* not found */
+    /* return with utility description (if any) */
+    return p->desc;
 }
 
