@@ -134,6 +134,11 @@ static int sndinfo(void *csound_, int argc, char **argv)
 
 PUBLIC int csoundModuleCreate(void *csound)
 {
-    return (((ENVIRON*) csound)->AddUtility(csound, "sndinfo", sndinfo));
+    int retval = ((ENVIRON*) csound)->AddUtility(csound, "sndinfo", sndinfo);
+    if (!retval) {
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "sndinfo",
+                    "Prints information about sound files");
+    }
+    return retval;
 }
 

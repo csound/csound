@@ -644,9 +644,10 @@ int lorisread_setup( ENVIRON *csound, LORISREAD * params )
 	
   //	construct the implementation object:
   params->imp = new LorisReader( sdiffilname, *params->fadetime, params->h.insdshead, int(*params->readerIdx) );
-	
+
   // set lorisplay_cleanup as cleanup routine:
-  params->h.dopadr = (SUBR) lorisread_cleanup;  
+  csound->RegisterDeinitCallback(csound, params,
+                                 (int (*)(void*, void*)) lorisread_cleanup);
   return OK;
 }
 
@@ -732,7 +733,8 @@ int lorisplay_setup( ENVIRON *csound, LORISPLAY * p )
   std::cerr << "** Setting up lorisplay (owner " << p->h.insdshead << ")" << std::endl;
 #endif
   p->imp = new LorisPlayer( csound, p );
-  p->h.dopadr = (SUBR) lorisplay_cleanup;  // set lorisplay_cleanup as cleanup routine
+  csound->RegisterDeinitCallback(csound, p,
+                                 (int (*)(void*, void*)) lorisplay_cleanup);
   return OK;
 }
 
@@ -1099,7 +1101,8 @@ int lorismorph_setup( ENVIRON *csound, LORISMORPH * p )
   std::cerr << "** Setting up lorismorph (owner " << p->h.insdshead << ")" << std::endl;
 #endif
   p->imp = new LorisMorpher( p );
-  p->h.dopadr = (SUBR) lorismorph_cleanup;  // set lorismorph_cleanup as cleanup routine
+  csound->RegisterDeinitCallback(csound, p,
+                                 (int (*)(void*, void*)) lorismorph_cleanup);
   return OK;
 }
 

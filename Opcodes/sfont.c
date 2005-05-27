@@ -66,7 +66,7 @@ static SHORT *sampleBase[MAX_SFPRESET];
 static MYFLT pitches[128];
 
 
-int SfReset(ENVIRON *csound, void *p)
+PUBLIC int csoundModuleDestroy(void *csound)
 {
     int j,k,l;
     for (j=0; j<currSFndx; j++) {
@@ -1985,8 +1985,7 @@ void fill_SfPointers(ENVIRON *csound)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "sfload",S(SFLOAD),     1,    "i",    "S",      (SUBR)SfLoad,
-                                                  NULL, NULL, (SUBR)SfReset    },
+{ "sfload",S(SFLOAD),     1,    "i",    "S",      (SUBR)SfLoad, NULL, NULL },
 { "sfpreset",S(SFPRESET), 1,    "i",    "iiii",   (SUBR)SfPreset         },
 { "sfplay", S(SFPLAY), 5, "aa", "iixxioo",        (SUBR)SfPlay_set,
                                                   NULL, (SUBR)SfPlay     },
@@ -2007,7 +2006,28 @@ static OENTRY localops[] = {
                                                   NULL, (SUBR)SfInstrPlay3 },
 { "sfinstr3m", S(SFIPLAYMONO), 5, "a", "iixxiioo",(SUBR)SfInstrPlayMono_set,
                                                   NULL, (SUBR)SfInstrPlayMono3 },
+{ NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
-LINKAGE
+PUBLIC int csoundModuleCreate(void *csound)
+{
+    return 0;
+}
+
+PUBLIC int csoundModuleInit(void *csound_)
+{
+    ENVIRON *csound = (ENVIRON*) csound_;
+    OENTRY  *ep = (OENTRY*) &(localops[0]);
+    int     err = 0;
+
+    while (ep->opname != NULL) {
+      err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->thread,
+                                          ep->outypes, ep->intypes,
+                                          (int (*)(void*, void*)) ep->iopadr,
+                                          (int (*)(void*, void*)) ep->kopadr,
+                                          (int (*)(void*, void*)) ep->aopadr);
+      ep++;
+    }
+    return err;
+}
 

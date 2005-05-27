@@ -26,11 +26,8 @@
 
 #include "cs.h"                 /*                               MAIN.C */
 #include "soundio.h"
-#include "prototyp.h"
-#include "csound.h"
 #include "csmodule.h"
 #include <ctype.h>              /* For isdigit */
-#include <sndfile.h>
 
 extern  void    dieu(void *, char *);
 extern  int     argdecode(void*, int, char**);
@@ -435,12 +432,6 @@ void mainRESET(ENVIRON *p)
     soundinRESET(p);
     adsynRESET(p);
     lpcRESET(p);
-    while (p->reset_list) {
-      RESETTER *x = p->reset_list->next;
-      p->reset_list->fn(p);
-      mfree(p, p->reset_list);
-      p->reset_list = x;
-    }
     foutRESET(p);
     scoreRESET(p);
     oloadRESET(p);      /* should be called last but one */

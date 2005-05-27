@@ -158,6 +158,7 @@ const ENVIRON cenviron_ = {
         dispexit,
         intpow,
         ldmemfile,
+        csoundLoadSoundFile,
         hfgens,
         getopnum,
         strarg2insno,
@@ -212,7 +213,11 @@ const ENVIRON cenviron_ = {
         csoundRealFFTMult,
         csoundAddUtility,
         csoundRunUtility,
+        csoundListUtilities,
+        csoundSetUtilityDescription,
+        csoundGetUtilityDescription,
         csoundRegisterSenseEventCallback,
+        csoundRegisterDeinitCallback,
         csoundCreateFileHandle,
         csoundFileOpen,
         csoundGetFileName,
@@ -250,7 +255,6 @@ const ENVIRON cenviron_ = {
         0L,             /*  global_kcounter     */
         NULL, NULL, NULL,     /* orchname, scorename, xfilename */
         DFLT_DBFS,      /*  e0dbfs              */
-        NULL,           /*  reset_list          */
         NLABELS,        /*  nlabels             */
         NGOTOS,         /*  ngotos              */
         0,              /*  strsmax             */
@@ -419,7 +423,8 @@ const ENVIRON cenviron_ = {
         NULL, NULL,     /*  omacros, smacros    */
         NULL,           /*  namedgen            */
         NULL,           /*  open_files          */
-        NULL            /*  searchPathCache     */
+        NULL,           /*  searchPathCache     */
+        NULL            /*  sndmemfiles         */
 };
 
 /* otran.c */

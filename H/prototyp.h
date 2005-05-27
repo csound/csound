@@ -110,6 +110,9 @@ int     getsndin(void*, void*, MYFLT*, int, void*);
 void    *sndgetset(void*, void*);
 int     sreadin(void*, void*, MYFLT*, int, void*);
 
+PUBLIC  SNDMEMFILE  *csoundLoadSoundFile(void *csound_,
+                                         const char *name, SF_INFO *sfinfo);
+
 /* to be removed... */
 #define printf  use_csoundMessage_instead_of_printf
 

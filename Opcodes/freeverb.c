@@ -265,13 +265,12 @@ PUBLIC int csoundModuleCreate(void *csound)
 
 PUBLIC int csoundModuleInit(void *csound_)
 {
-    ENVIRON *csound;
-    csound = (ENVIRON*) csound_;
-    return (csound->AppendOpcode(csound, "freeverb",
-                                 (int) sizeof(FREEVERB), 5, "aa", "aakkjo",
-                                 (int (*)(void*, void*)) freeverb_init,
-                                 (int (*)(void*, void*)) NULL,
-                                 (int (*)(void*, void*)) freeverb_perf,
-                                 (int (*)(void*, void*)) NULL));
+    ENVIRON *csound = (ENVIRON*) csound_;
+
+    return csound->AppendOpcode(csound, "freeverb",
+                                (int) sizeof(FREEVERB), 5, "aa", "aakkjo",
+                                (int (*)(void*, void*)) freeverb_init,
+                                (int (*)(void*, void*)) NULL,
+                                (int (*)(void*, void*)) freeverb_perf);
 }
 

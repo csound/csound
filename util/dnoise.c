@@ -1296,6 +1296,11 @@ static void hamming(MYFLT *win, int winLen, int even)
 
 PUBLIC int csoundModuleCreate(void *csound)
 {
-    return (((ENVIRON*) csound)->AddUtility(csound, "dnoise", dnoise));
+    int retval = ((ENVIRON*) csound)->AddUtility(csound, "dnoise", dnoise);
+    if (!retval) {
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "dnoise",
+                    "Removes noise from a sound file");
+    }
+    return retval;
 }
 

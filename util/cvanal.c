@@ -240,6 +240,11 @@ static int CVAlloc(
 
 PUBLIC int csoundModuleCreate(void *csound)
 {
-    return (((ENVIRON*) csound)->AddUtility(csound, "cvanal", cvanal));
+    int retval = ((ENVIRON*) csound)->AddUtility(csound, "cvanal", cvanal);
+    if (!retval) {
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "cvanal",
+                    "Soundfile analysis for convolve");
+    }
+    return retval;
 }
 

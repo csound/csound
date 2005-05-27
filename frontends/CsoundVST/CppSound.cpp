@@ -273,9 +273,9 @@ MYFLT CppSound::getKr()
   return csoundGetKr(csound);
 }
 
-int CppSound::appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, SUBR iopadr, SUBR kopadr, SUBR aopadr, SUBR dopadr)       
+int CppSound::appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, SUBR iopadr, SUBR kopadr, SUBR aopadr)       
 {
-  return csoundAppendOpcode(csound, opname, dsblksiz, thread, outypes, intypes, iopadr, kopadr, aopadr, dopadr);
+  return csoundAppendOpcode(csound, opname, dsblksiz, thread, outypes, intypes, iopadr, kopadr, aopadr);
 }
 
 void CppSound::message(const char *format,...)

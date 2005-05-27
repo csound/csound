@@ -297,13 +297,12 @@ PUBLIC int csoundModuleCreate(void *csound)
 
 PUBLIC int csoundModuleInit(void *csound_)
 {
-    ENVIRON *csound;
-    csound = (ENVIRON*) csound_;
-    return (csound->AppendOpcode(csound, "ftconv",
-                                 (int) sizeof(FTCONV), 5, "mmmmmmmm", "aiiooo",
-                                 (int (*)(void*, void*)) ftconv_init,
-                                 (int (*)(void*, void*)) NULL,
-                                 (int (*)(void*, void*)) ftconv_perf,
-                                 (int (*)(void*, void*)) NULL));
+    ENVIRON *csound = (ENVIRON*) csound_;
+
+    return csound->AppendOpcode(csound, "ftconv",
+                                (int) sizeof(FTCONV), 5, "mmmmmmmm", "aiiooo",
+                                (int (*)(void*, void*)) ftconv_init,
+                                (int (*)(void*, void*)) NULL,
+                                (int (*)(void*, void*)) ftconv_perf);
 }
 

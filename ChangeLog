@@ -1,3 +1,19 @@
+2005-05-27	Istvan Varga	<istvan@csounds.com>
+	* Added new API functions:
+	    csoundListUtilities():
+	      returns alphabetically sorted list of registered utilities
+	    csoundSetUtilitiyDescription():
+	      sets description text for an utility
+	    csoundGetUtilitiyDescription():
+	      returns description text of an utility
+	    csoundRegisterDeinitCallback():
+	      registers a function to be called at note deactivation
+	    csoundLoadSoundFIle():
+	      loads an entire sound file into memory (similar to ldmemfile())
+	* Removed OENTRY.dopadr, and all related code, as it is not really
+	  needed now (can use csoundModuleDestroy and RegisterDeinitCallback
+	  instead).
+
 2005-05-25	Istvan Varga	<istvan@csounds.com>
 	* Engine/insert.c: fixed bug in ihold opcode
 	* Engine/rdorch.c: attempts at fixing else and endif bugs

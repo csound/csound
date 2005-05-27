@@ -879,13 +879,17 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
       xi = sqrt(1.0 - (double) (xi / xind));
       w[i] = (float) (ino(beta * xi) / bes);
     }
-    return;
 }
 
 /* module interface */
 
 PUBLIC int csoundModuleCreate(void *csound)
 {
-    return (((ENVIRON*) csound)->AddUtility(csound, "srconv", srconv));
+    int retval = ((ENVIRON*) csound)->AddUtility(csound, "srconv", srconv);
+    if (!retval) {
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "srconv",
+                    "Sample rate conversion");
+    }
+    return retval;
 }
 

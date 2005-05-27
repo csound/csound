@@ -142,8 +142,9 @@ extern "C"
    * Called by Csound to de-initialize the opcode
    * just before destroying it.
    */
-  int fluidEngineDopadr(ENVIRON *csound, void *)
+  PUBLIC int csoundModuleDestroy(void *csound_)
   {
+    ENVIRON *csound = (ENVIRON*) csound_;
     if(!fluid_engines.empty()) {
       csound->Message(csound,
                       "Cleaning up Fluid Engines - Found: %d\n",
@@ -154,7 +155,7 @@ extern "C"
       }
       fluid_engines.clear();
     }
-    return OK;
+    return 0;
   }
 
   /* FLUID_LOAD */
@@ -539,10 +540,9 @@ extern "C"
     }
   };
 
-
   /* OPCODE LIBRARY STUFF */
 
-  OENTRY fluidOentry[] = {
+  static OENTRY localops[] = {
     {
       "fluidEngine",
       sizeof(FLUIDENGINE),
@@ -551,8 +551,7 @@ extern "C"
       "",
       (SUBR)&fluidEngineIopadr,
       0,
-      0,
-      (SUBR)&fluidEngineDopadr
+      0
     },
     {
       "fluidLoad",
@@ -561,7 +560,6 @@ extern "C"
       "i",
       "Sio",
       (SUBR)&fluidLoadIopadr,
-      0,
       0,
       0
     },
@@ -573,7 +571,6 @@ extern "C"
       "iiiii",
       (SUBR)&fluidProgramSelectIopadr,
       0,
-      0,
       0
     },
     {
@@ -583,7 +580,6 @@ extern "C"
       "",
       "iiii",
       (SUBR)&fluidCC_I_Iopadr,
-      0,
       0,
       0
     },
@@ -595,7 +591,6 @@ extern "C"
       "iiik",
       (SUBR)&fluidCC_K_Iopadr,
       (SUBR)&fluidCC_K_Kopadr,
-      0,
       0
     },
     {
@@ -606,7 +601,6 @@ extern "C"
       "iiii",
       (SUBR)&fluidNoteIopadr,
       (SUBR)&fluidNoteKopadr,
-      0,
       0
     },
     {
@@ -617,8 +611,7 @@ extern "C"
       "i",
       (SUBR)&fluidOutIopadr,
       0,
-      (SUBR)&fluidOutAopadr,
-      0
+      (SUBR)&fluidOutAopadr
     },
     {
       "fluidAllOut",
@@ -628,8 +621,7 @@ extern "C"
       "i",
       (SUBR)&fluidAllOutIopadr,
       0,
-      (SUBR)&fluidAllOutAopadr,
-      0
+      (SUBR)&fluidAllOutAopadr
     },
     {
       "fluidControl",
@@ -639,27 +631,31 @@ extern "C"
       "ikkkk",
       &FLUIDCONTROL::init_,
       &FLUIDCONTROL::kontrol_,
-      0,
       0
-    }
+    },
+    { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
   };
 
-  /**
-   * Called by Csound to obtain the size of
-   * the table of OENTRY structures defined in this shared library.
-   */
-  PUBLIC long opcode_size(void)
+  PUBLIC int csoundModuleCreate(void *csound)
   {
-    return sizeof(OENTRY) * 9;
+    return 0;
   }
 
-  /**
-   * Called by Csound to obtain a pointer to
-   * the table of OENTRY structures defined in this shared library.
-   */
-  PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+  PUBLIC int csoundModuleInit(void *csound_)
   {
-    return fluidOentry;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    OENTRY  *ep = (OENTRY*) &(localops[0]);
+    int     err = 0;
+
+    while (ep->opname != NULL) {
+      err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->thread,
+                                          ep->outypes, ep->intypes,
+                                          (int (*)(void*, void*)) ep->iopadr,
+                                          (int (*)(void*, void*)) ep->kopadr,
+                                          (int (*)(void*, void*)) ep->aopadr);
+      ep++;
+    }
+    return err;
   }
 
 }; // END EXTERN C
