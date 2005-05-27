@@ -292,10 +292,11 @@ extern "C" {
     struct insds * nxtoff;  /* Next instrument to terminate */
     FDCH    fdch;           /* Chain of files used by opcodes in this instr */
     AUXCH   auxch;          /* Extra memory used by opcodes in this instr */
-    MCHNBLK *m_chnbp;       /* MIDI note info block if event started
-                               from MIDI */
     int     xtratim;        /* Extra release time requested with
                                xtratim opcode */
+    MCHNBLK *m_chnbp;       /* MIDI note info block if event started
+                               from MIDI */
+    struct insds * nxtolap; /* ptr to next overlapping MIDI voice */
     short   insno;          /* Instrument number */
     short   m_sust;         /* non-zero for sustaining MIDI note */
     unsigned char m_pitch;  /* MIDI pitch, for simple access */
@@ -306,11 +307,11 @@ extern "C" {
     double  offbet;         /* Time to turn off event, in score beats */
     double  offtim;         /* Time to turn off event, in seconds (negative on
                                indef/tie) */
-    struct insds * nxtolap; /* ptr to next overlapping MIDI voice */
     void   *pylocal;        /* Python namespace for just this instance. */
     struct ENVIRON_ *csound;/* ptr to Csound engine and API for externals */
-    void    *opcod_iobufs;  /* IV - Sep 8 2002: user opcode I/O buffers */
-    void    *opcod_deact, *subins_deact;    /* IV - Oct 24 2002 */
+    void    *opcod_iobufs;  /* user defined opcode I/O buffers */
+    void    *opcod_deact, *subins_deact;
+    void    *nxtd;          /* opcodes to be run at note deactivation */
     MYFLT   p0;             /* Copy of required p-field values for
                                quick access */
     MYFLT   p1;
@@ -327,12 +328,6 @@ extern "C" {
     struct opds * nxtp;     /* Next opcode in perf-time chain */
     SUBR    iopadr;         /* Initialization (i-time) function pointer */
     SUBR    opadr;          /* Perf-time (k- or a-rate) function pointer */
-    /**
-     * Deinitialization function pointer;
-     * if not null, called during cleanup on each opcode instance;
-     * useful for deallocating memory or other resources managed by the opcode.
-     */
-    SUBR    dopadr;         /* Deinitialization function pointer */
     OPTXT   *optext;        /* Orch file template part for this opcode */
     INSDS   *insdshead;     /* Owner instrument instance data structure */
   } OPDS;
@@ -352,12 +347,6 @@ extern "C" {
     SUBR    iopadr;
     SUBR    kopadr;
     SUBR    aopadr;
-    /**
-     * Deinitialization function pointer;
-     * if not null, called during cleanup on each opcode instance;
-     * useful for deallocating memory or other resources managed by the opcode.
-     */
-    SUBR    dopadr;
     void    *useropinfo;    /* IV - Oct 12 2002: user opcode parameters */
     int     prvnum;         /* IV - Oct 31 2002 */
   } OENTRY;
@@ -473,12 +462,6 @@ extern "C" {
     struct  opcodinfo *prv;
   } OPCODINFO;
 
-  typedef void (*RSET)(struct ENVIRON_*);
-  typedef struct resetter {
-    RSET            fn;
-    struct resetter *next;
-  } RESETTER;
-
 #define MAXCHAN 16      /* 16 MIDI channels; only one port for now */
 
 #include "sort.h"
@@ -549,6 +532,29 @@ extern "C" {
         char *mac;
         struct names *next;
   } NAMES;
+
+  typedef struct SNDMEMFILE_ {
+    char            *name;          /* file ID (short name)         */
+    struct SNDMEMFILE_ *nxt;
+    char            *fullName;      /* full path filename           */
+    size_t          nFrames;        /* file length in sample frames */
+    double          sampleRate;     /* sample rate in Hz            */
+    int             nChannels;      /* number of channels           */
+    int             sampleFormat;   /* AE_SHORT, AE_FLOAT, etc.     */
+    int             fileType;       /* TYP_WAV, TYP_AIFF, etc.      */
+    int             loopMode;       /* loop mode:                   */
+                                    /*   0: no loop information     */
+                                    /*   1: off                     */
+                                    /*   2: forward                 */
+                                    /*   3: backward                */
+                                    /*   4: bidirectional           */
+    double          startOffs;      /* playback start offset frames */
+    double          loopStart;      /* loop start (sample frames)   */
+    double          loopEnd;        /* loop end (sample frames)     */
+    double          baseFreq;       /* base frequency (in Hz)       */
+    double          scaleFac;       /* amplitude scale factor       */
+    float           data[1];        /* interleaved sample data      */
+  } SNDMEMFILE;
 
   typedef struct ENVIRON_
   {
@@ -654,8 +660,7 @@ extern "C" {
                         int thread, char *outypes, char *intypes,
                         int (*iopadr)(void*, void*),
                         int (*kopadr)(void*, void*),
-                        int (*aopadr)(void*, void*),
-                        int (*dopadr)(void*, void*));
+                        int (*aopadr)(void*, void*));
     int (*LoadExternal)(void *csound, const char *libraryPath);
     int (*LoadExternals)(void *csound);
     void *(*OpenLibrary)(const char *libraryPath);
@@ -714,6 +719,7 @@ extern "C" {
     int (*dispexit)(void *);
     MYFLT (*intpow)(MYFLT, long);
     MEMFIL *(*ldmemfile)(void*, const char*);
+    SNDMEMFILE *(*LoadSoundFile)(void *, const char *, SF_INFO *);
     FUNC *(*hfgens)(struct ENVIRON_*, EVTBLK *);
     int (*getopnum)(struct ENVIRON_*, char *s);
     long (*strarg2insno)(struct ENVIRON_ *csound, void *p, int is_string);
@@ -779,8 +785,14 @@ extern "C" {
     int (*AddUtility)(void *csound_, const char *name,
                       int (*UtilFunc)(void*, int, char**));
     int (*Utility)(void *csound_, const char *name, int argc, char **argv);
+    char **(*ListUtilities)(void *csound_);
+    int (*SetUtilityDescription)(void *csound_, const char *utilName,
+                                                const char *utilDesc);
+    char *(*GetUtilityDescription)(void *csound_, const char *utilName);
     int (*RegisterSenseEventCallback)(void *csound_, void (*func)(void*, void*),
                                       void *userData);
+    int (*RegisterDeinitCallback)(void *csound_, void *p,
+                                                 int (*func)(void *, void *));
     void *(*CreateFileHandle)(void *, void *, int, const char *);
     void *(*FileOpen)(void *, void *, int, const char *, void *, const char *);
     char *(*GetFileName)(void *);
@@ -814,7 +826,6 @@ extern "C" {
     char          *orchname, *scorename, *xfilename;
     MYFLT         e0dbfs;
     /* oload.h */
-    RESETTER      *reset_list;
     short         nlabels;
     short         ngotos;
     int           strsmax;
@@ -984,6 +995,7 @@ extern "C" {
     void          *namedgen;            /* fgens.c */
     void          *open_files;          /* fileopen.c */
     void          *searchPathCache;
+    void          *sndmemfiles;
   } ENVIRON;
 
 #include "text.h"

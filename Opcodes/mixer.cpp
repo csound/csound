@@ -57,18 +57,19 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
     //warn(csound, "MixerSetLevel::kontrol: send %d buss %d gain %f\n", send, buss, gain);
     return OK;
   }
-  int deinit(void *csound)
-  {
-    if(busses.begin() != busses.end())
-      {
-	busses.clear();
-      }
-    if(matrix.begin() != matrix.end())
-      {
-	matrix.clear();
-      }
-    return OK;
-  }
+};
+
+extern "C" {
+PUBLIC int csoundModuleDestroy(void *csound)
+{
+    if (busses.begin() != busses.end()) {
+      busses.clear();
+    }
+    if (matrix.begin() != matrix.end()) {
+      matrix.clear();
+    }
+    return 0;
+}
 };
 
 /**
@@ -216,7 +217,7 @@ struct MixerClear : public OpcodeBase<MixerClear>
 extern "C" 
 {
   
-  OENTRY  mixerOentries[] = { 
+  static OENTRY localops[] = { 
     {   
       "MixerSetLevel",         
       sizeof(MixerSetLevel),           
@@ -225,8 +226,7 @@ extern "C"
       "iik",      
       (SUBR)&MixerSetLevel::init_,        
       (SUBR)&MixerSetLevel::kontrol_,        
-      0,                
-      (SUBR)&MixerSetLevel::deinit_, 
+      0
     },
     {   
       "MixerGetLevel",         
@@ -236,8 +236,7 @@ extern "C"
       "ii",      
       (SUBR)&MixerGetLevel::init_,        
       (SUBR)&MixerGetLevel::kontrol_,        
-      0,                
-      (SUBR)&MixerGetLevel::deinit_, 
+      0
     },
     {   
       "MixerSend",         
@@ -247,8 +246,7 @@ extern "C"
       "aiii",      
       (SUBR)&MixerSend::init_,        
       0,                
-      (SUBR)&MixerSend::audio_,        
-      0, 
+      (SUBR)&MixerSend::audio_
     },
     {   
       "MixerReceive",         
@@ -258,8 +256,7 @@ extern "C"
       "ii",      
       (SUBR)&MixerReceive::init_,        
       0,                
-      (SUBR)&MixerReceive::audio_,        
-      0,
+      (SUBR)&MixerReceive::audio_
     },
     {   
       "MixerClear",         
@@ -269,27 +266,32 @@ extern "C"
       "",      
       0,        
       0,        
-      (SUBR)&MixerClear::audio_,        
-      0, 
+      (SUBR)&MixerClear::audio_
     },
+    { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
   };
-    
-  /**
-   * Called by Csound to obtain the size of
-   * the table of OENTRY structures defined in this shared library.
-   */
-  PUBLIC long opcode_size(void)
+
+  PUBLIC int csoundModuleCreate(void *csound)
   {
-    return sizeof(mixerOentries);
+    return 0;
   }
 
-  /**
-   * Called by Csound to obtain a pointer to
-   * the table of OENTRY structures defined in this shared library.
-   */
-  PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+  PUBLIC int csoundModuleInit(void *csound_)
   {
-    return mixerOentries;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    OENTRY  *ep = (OENTRY*) &(localops[0]);
+    int     err = 0;
+
+    while (ep->opname != NULL) {
+      err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->thread,
+                                          ep->outypes, ep->intypes,
+                                          (int (*)(void*, void*)) ep->iopadr,
+                                          (int (*)(void*, void*)) ep->kopadr,
+                                          (int (*)(void*, void*)) ep->aopadr);
+      ep++;
+    }
+    return err;
   }
-    
+
 }; // END EXTERN C
+

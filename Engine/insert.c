@@ -379,13 +379,17 @@ static void schedofftim(ENVIRON *csound, INSDS *ip)
     ip->nxtoff = nxtp;
 }
 
-int useropcd(ENVIRON *, UOPCODE*);        /* IV - Oct 26 2002 */
+/* csound.c */
+extern  int     csoundDeinitialiseOpcodes(ENVIRON *csound, INSDS *ip);
+        int     useropcd(ENVIRON *, UOPCODE*);
 
 static void deact(ENVIRON *csound, INSDS *ip)
 {                               /* unlink single instr from activ chain */
     INSDS  *nxtp;               /*      and mark it inactive            */
                                 /*   close any files in fd chain        */
 
+    if (ip->nxtd != NULL)
+      csoundDeinitialiseOpcodes(csound, ip);
     csound->instrtxtp[ip->insno]->active--; /* remove an active instrument */
     csound->cpu_power_busy -= csound->instrtxtp[ip->insno]->cpuload;
     /* IV - Sep 8 2002: free subinstr instances */
@@ -490,21 +494,6 @@ void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
         prvnxtloc = &txtp->instance;
         do {
           if (ip->actflg == 0) {
-            OPDS* off = ip->nxtp;
-            while (off!=NULL) {
-              if (off->dopadr) (*off->dopadr)(csound, off);
-              off = off->nxtp;
-            }
-
-            /* SYY - 2003.11.30
-             * call deinitialization on i-time opcodes
-             */
-            off = ip->nxti;
-            while (off != NULL) {
-              if(off->dopadr) (*off->dopadr)(csound, off);
-              off = off->nxti;
-            }
-
             if (ip->opcod_iobufs && ip->insno > csound->maxinsno)
               mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
             if (ip->fdch.nxtchp != NULL)
@@ -1632,7 +1621,6 @@ static void instance(ENVIRON *csound, int insno)
         if (opds->opadr == NULL)
           csoundDie(csound, Str("null opadr"));
       }
-      opds->dopadr = ep->dopadr;
     args:
       argpp = (MYFLT **)((char *)opds + sizeof(OPDS));
       if (O->odebug)

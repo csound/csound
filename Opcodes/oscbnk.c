@@ -2571,8 +2571,7 @@ PUBLIC int csoundModuleInit(void *csound)
                           ep->outypes, ep->intypes,
                           (int (*)(void*, void*)) ep->iopadr,
                           (int (*)(void*, void*)) ep->kopadr,
-                          (int (*)(void*, void*)) ep->aopadr,
-                          (int (*)(void*, void*)) NULL) != 0) {
+                          (int (*)(void*, void*)) ep->aopadr) != 0) {
         p->Message(csound, Str("Error registering opcode '%s'\n"), ep->opname);
         return -1;
       }

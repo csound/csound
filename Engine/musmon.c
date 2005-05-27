@@ -38,9 +38,7 @@
 
 extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
 extern  int     insert(ENVIRON *, int, EVTBLK*);
-
 extern  void    print_benchmark_info(void*, const char*);     /* main.c */
-
 extern  void    MidiOpen(void *);
 extern  void    m_chn_init_all(ENVIRON *);
 extern  void    scsort(ENVIRON *, FILE *, FILE *);
@@ -326,6 +324,33 @@ int musmon2(ENVIRON *csound)
     return csoundCleanup(csound);
 }
 
+static void deactivate_all_notes(ENVIRON *csound)
+{
+    INSDS *ip = csound->actanchor.nxtact;
+
+    while (ip != NULL) {
+      INSDS *nxt = ip->nxtact;
+      xturnoff_now(csound, ip);
+      ip = nxt;
+    }
+}
+
+static void delete_pending_rt_events(ENVIRON *csound)
+{
+    EVTNODE *ep = csound->OrcTrigEvts;
+
+    while (ep != NULL) {
+      EVTNODE *nxt = ep->nxt;
+      if (ep->evt.strarg != NULL)
+        csound->Free(csound, ep->evt.strarg);
+      /* push to stack of free event nodes */
+      ep->nxt = csound->freeEvtNodes;
+      csound->freeEvtNodes = ep;
+      ep = nxt;
+    }
+    csound->OrcTrigEvts = NULL;
+}
+
 PUBLIC int csoundCleanup(void *csound_)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
@@ -339,6 +364,8 @@ PUBLIC int csoundCleanup(void *csound_)
     /* will not clean up more than once */
     csoundDestroyGlobalVariable(csound, "#CLEANUP");
 
+    deactivate_all_notes(csound);
+    delete_pending_rt_events(csound);
     orcompact(csound);
     if (csound->scfp) {
       fclose(csound->scfp); csound->scfp = NULL;
@@ -420,33 +447,6 @@ int turnon(ENVIRON *csound, TURNON *p)
     return (insert_score_event(csound, &evt,
                                csound->sensEvents_state.curTime, 0) == 0 ?
             OK : NOTOK);
-}
-
-static void deactivate_all_notes(ENVIRON *csound)
-{
-    INSDS *ip = csound->actanchor.nxtact;
-
-    while (ip != NULL) {
-      INSDS *nxt = ip->nxtact;
-      xturnoff_now(csound, ip);
-      ip = nxt;
-    }
-}
-
-static void delete_pending_rt_events(ENVIRON *csound)
-{
-    EVTNODE *ep = csound->OrcTrigEvts;
-
-    while (ep != NULL) {
-      EVTNODE *nxt = ep->nxt;
-      if (ep->evt.strarg != NULL)
-        csound->Free(csound, ep->evt.strarg);
-      /* push to stack of free event nodes */
-      ep->nxt = csound->freeEvtNodes;
-      csound->freeEvtNodes = ep;
-      ep = nxt;
-    }
-    csound->OrcTrigEvts = NULL;
 }
 
 /* Print current amplitude values, and update section amps. */
