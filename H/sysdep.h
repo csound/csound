@@ -189,7 +189,7 @@ typedef unsigned long       uintptr_t;
 #define MYFLT2LONG(x) ((long) lrint((double) (x)))
 #define MYFLT2LRND(x) ((long) lrint((double) (x)))
 #endif
-#elif defined(_WIN32) && defined(_MSC_VER)
+#elif defined(_WIN32) && defined(_MSC_VER) && !defined(__GNUC__)
 #ifndef USE_DOUBLE
 static inline long MYFLT2LONG(float fval)
 {
