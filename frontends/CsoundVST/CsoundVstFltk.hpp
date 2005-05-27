@@ -94,7 +94,6 @@ public:
   Fl_Group *orchestraGroup;
   Fl_Group *scoreGroup;
   Fl_Group *scriptGroup;
-  static std::vector<CsoundVstFltk *> instances;
   std::list<std::string> messages;
   std::string helpFilename;
   std::string messagebuffer;
