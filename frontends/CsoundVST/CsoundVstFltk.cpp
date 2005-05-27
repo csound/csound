@@ -141,8 +141,6 @@ WaitCursor::~WaitCursor()
 
 #endif
 
-std::vector<CsoundVstFltk *> CsoundVstFltk::instances;
-
 Fl_Preferences CsoundVstFltk::preferences(Fl_Preferences::USER, "gogins@pipeline.com", "CsoundVST");
 
 CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
@@ -150,14 +148,12 @@ CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
   csoundVST((CsoundVST *)audioEffect),
   useCount(0)
 {
-  instances.push_back(this);
   csound::System::setMessageCallback(&CsoundVstFltk::messageCallback);
   csoundVST->setEditor(this);
 }
 
 CsoundVstFltk::~CsoundVstFltk(void)
 {
-  instances.erase(std::find(instances.begin(), instances.end(), this));
 }
 
 void CsoundVstFltk::updateCaption()
@@ -202,84 +198,69 @@ long CsoundVstFltk::getRect(ERect **erect)
 long CsoundVstFltk::open(void *parentWindow)
 {
   systemWindow = parentWindow; 
-  useCount++;
-  if(useCount == 1)
+  Fl::lock();
+  this->csoundVstUi = make_window(this);
+  this->mainTabs = ::mainTabs;
+  this->commandInput = ::commandInput;
+  this->runtimeMessagesGroup = ::runtimeMessagesGroup;
+  this->runtimeMessagesBrowser = ::runtimeMessagesBrowser;
+  this->orchestraTextBuffer = new Fl_Text_Buffer();
+  this->scoreTextBuffer = new Fl_Text_Buffer();
+  this->scriptTextBuffer = new Fl_Text_Buffer();
+  this->aboutTextBuffer = new Fl_Text_Buffer();
+  this->settingsEditSoundfileInput = ::settingsEditSoundfileInput;
+  this->settingsVstPluginModeEffect = ::settingsVstPluginModeEffect;
+  this->settingsVstPluginModeInstrument = ::settingsVstPluginModeInstrument;
+  this->settingsCsoundPerformanceModeClassic = ::settingsCsoundPerformanceModeClassic;
+  this->settingsCsoundPerformanceModePython = ::settingsCsoundPerformanceModePython;
+  this->orchestraTextEdit = ::orchestraTextEdit;
+  this->orchestraTextEdit->buffer(this->orchestraTextBuffer);
+  this->scoreTextEdit = ::scoreTextEdit;
+  this->scoreTextEdit->buffer(this->scoreTextBuffer);
+  this->scriptTextEdit = ::scriptTextEdit;
+  this->scriptTextEdit->buffer(this->scriptTextBuffer);
+  this->aboutTextDisplay = ::aboutTextDisplay;
+  this->aboutTextDisplay->buffer(this->aboutTextBuffer);
+  this->orchestraGroup = ::orchestraGroup;
+  this->scoreGroup = ::scoreGroup;
+  this->scriptGroup = ::scriptGroup;
+  this->autoPlayCheckButton = ::autoPlayCheckButton;
+  //	Read user preferences.
+  char buffer[0x500];
+  int number = 0;
+  preferences.get("SoundfileOpen", (char *)buffer, "mplayer.exe", 0x500);
+  this->settingsEditSoundfileInput->value(buffer);
+  preferences.get("IsSynth", number, 0);
+  csoundVST->setIsSynth(number);
+  this->mainTabs->value(settingsGroup);
+  this->csoundVstUi->show();
+  if(csoundVST->getIsVst())
     {
-      Fl::lock();
-      this->csoundVstUi = make_window(this);
-      this->mainTabs = ::mainTabs;
-      this->commandInput = ::commandInput;
-      this->runtimeMessagesGroup = ::runtimeMessagesGroup;
-      this->runtimeMessagesBrowser = ::runtimeMessagesBrowser;
-      this->orchestraTextBuffer = new Fl_Text_Buffer();
-      this->scoreTextBuffer = new Fl_Text_Buffer();
-      this->scriptTextBuffer = new Fl_Text_Buffer();
-      this->aboutTextBuffer = new Fl_Text_Buffer();
-      this->settingsEditSoundfileInput = ::settingsEditSoundfileInput;
-      this->settingsVstPluginModeEffect = ::settingsVstPluginModeEffect;
-      this->settingsVstPluginModeInstrument = ::settingsVstPluginModeInstrument;
-      this->settingsCsoundPerformanceModeClassic = ::settingsCsoundPerformanceModeClassic;
-      this->settingsCsoundPerformanceModePython = ::settingsCsoundPerformanceModePython;
-      this->orchestraTextEdit = ::orchestraTextEdit;
-      this->orchestraTextEdit->buffer(this->orchestraTextBuffer);
-      this->scoreTextEdit = ::scoreTextEdit;
-      this->scoreTextEdit->buffer(this->scoreTextBuffer);
-      this->scriptTextEdit = ::scriptTextEdit;
-      this->scriptTextEdit->buffer(this->scriptTextBuffer);
-      this->aboutTextDisplay = ::aboutTextDisplay;
-      this->aboutTextDisplay->buffer(this->aboutTextBuffer);
-      this->orchestraGroup = ::orchestraGroup;
-      this->scoreGroup = ::scoreGroup;
-      this->scriptGroup = ::scriptGroup;
-      this->autoPlayCheckButton = ::autoPlayCheckButton;
-      //	Read user preferences.
-      char buffer[0x500];
-      int number = 0;
-      preferences.get("SoundfileOpen", (char *)buffer, "mplayer.exe", 0x500);
-      this->settingsEditSoundfileInput->value(buffer);
-      preferences.get("IsSynth", number, 0);
-      csoundVST->setIsSynth(number);
-      this->mainTabs->value(settingsGroup);
-      this->csoundVstUi->show();
-      if(csoundVST->getIsVst())
-	{
 #if defined(WIN32)
-	  SetParent((HWND) fl_xid(this->csoundVstUi), (HWND) parentWindow);
+      SetParent((HWND) fl_xid(this->csoundVstUi), (HWND) parentWindow);
 #endif
-	  this->csoundVstUi->position(0, 0);
-	  csoundVST->setIsPython(false);
-	  this->settingsCsoundPerformanceModeClassic->deactivate();
-	  this->settingsCsoundPerformanceModePython->deactivate();
-	  csoundVST->setIsAutoPlayback(false);
-	  this->autoPlayCheckButton->deactivate();
-	} 
-      else 
-	{
-	  preferences.get("IsPython", number, 0);
-	  csoundVST->setIsPython(number);
-	  preferences.get("IsAutoPlayback", number, 1);
-	  csoundVST->setIsAutoPlayback(number);
-	}
-      this->aboutTextBuffer->text(removeCarriageReturns(about));
-      update();
-    }
-  else
+      this->csoundVstUi->position(0, 0);
+      csoundVST->setIsPython(false);
+      this->settingsCsoundPerformanceModeClassic->deactivate();
+      this->settingsCsoundPerformanceModePython->deactivate();
+      csoundVST->setIsAutoPlayback(false);
+      this->autoPlayCheckButton->deactivate();
+    } 
+  else 
     {
-      this->csoundVstUi->show();
-      update();
+      preferences.get("IsPython", number, 0);
+      csoundVST->setIsPython(number);
+      preferences.get("IsAutoPlayback", number, 1);
+      csoundVST->setIsAutoPlayback(number);
     }
+  this->aboutTextBuffer->text(removeCarriageReturns(about));
+  update();
   return true;
 }
 
 void CsoundVstFltk::close()
 {
-  useCount--;
   this->csoundVstUi->hide();
-  if(useCount == 0)
-    {
-      delete this->csoundVstUi;
-      this->csoundVstUi = 0;
-    }
 }
 
 void CsoundVstFltk::idle() 
