@@ -1,3 +1,7 @@
+2005-05-27  Steven Yi  <stevenyi@gmail.com>
+	* Opcodes/fluidOpcodes/fluidOpcodes.cpp: modified fluidNote to use
+	RegisterDeinitCallback, removed krate function call
+
 2005-05-27	Istvan Varga	<istvan@csounds.com>
 	* Added new API functions:
 	    csoundListUtilities():
@@ -27,8 +31,8 @@
         * late entry to the log: added InOut/rtcoreaudio.c
         * late entry to the log: added Opcodes/sndloop.c (sndloop, flooper, pvsarp, pvsvoc)
         * late entry to the log: fixed globals in rtpa.c
-        * late entry to the log: added full-duplex support to the portaudio module 
-	 (rtpa.c pa_blocking.c), aimed primarily at coreaudio        
+        * late entry to the log: added full-duplex support to the portaudio module
+	 (rtpa.c pa_blocking.c), aimed primarily at coreaudio
 
 2005-05-23  Steven Yi  <stevenyi@gmail.com>
 
