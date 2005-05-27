@@ -200,7 +200,7 @@ extern "C"
       *fluid->iInstrumentNumber = (MYFLT)(sfontId);
     } else {
       csound->Message(csound,
-                      "[ERROR] - Unable to load soundfont");
+                      "[ERROR] - Unable to load soundfont\n");
       return OK;
     }
     if(*fluid->iListPresets) {
@@ -281,6 +281,25 @@ extern "C"
 
   /* FLUID_NOTE */
 
+  	int fluidNoteTurnoff(void *csound_, void *data) {
+
+  		ENVIRON *csound = (ENVIRON *)csound_;
+
+	  	FLUID_NOTE *fluid = (FLUID_NOTE *)data;
+
+		int engineNum   = (int)(*fluid->iEngineNumber);
+	  	int channelNum  = (int)(*fluid->iChannelNumber);
+      	int key         = (int)(*fluid->iMidiKeyNumber);
+
+		//csound->Message(csound, "Fluid Note Off: key %i\n", key);
+
+	  	fluid_synth_noteoff(fluid_engines[engineNum],
+                          channelNum,
+                          key);
+
+		return OK;
+  	}
+
   int fluidNoteIopadr(ENVIRON *csound, void *data)
   {
     FLUID_NOTE *fluid = (FLUID_NOTE *)data;
@@ -295,30 +314,35 @@ extern "C"
     //unsigned int dur = (int)(offTime *
     //fluid->evt                = new_fluid_event();
     //fluid_event_note(fluid->evt, channelNum, key, vel,
+
+	csound->RegisterDeinitCallback((void *)&csound, (void *)&fluid->h,
+                                          &fluidNoteTurnoff);
+
     return OK;
   }
 
-  int fluidNoteKopadr(ENVIRON *csound, void *data)
-  {
-    FLUID_NOTE *fluid = (FLUID_NOTE *)data;
-    int engineNum   = (int)(*fluid->iEngineNumber);
-    int channelNum  = (int)(*fluid->iChannelNumber);
-    int key         = (int)(*fluid->iMidiKeyNumber);
-    MYFLT scoreTime = csound->GetScoreTime(csound);
-    MYFLT offTime = fluid->h.insdshead->offtim;
-    //int kSmps = csound->GetKsmps(csound);
-    //int sRate = (int)csound->GetSr(csound);
-    //csound->Message(csound, "Times score:%f off:%f\n", scoreTime, offTime);
-    if(!fluid->released &&
-       ( offTime <= scoreTime + .025 || fluid->h.insdshead->relesing)) {
-      fluid->released = true;
-      fluid_synth_noteoff(fluid_engines[engineNum],
-                          channelNum,
-                          key);
-      //csound->Message(csound, "Release c:%i k:%i\n", channelNum, key);
-    }
-    return OK;
-  }
+
+//  int fluidNoteKopadr(ENVIRON *csound, void *data)
+//  {
+//    FLUID_NOTE *fluid = (FLUID_NOTE *)data;
+//    int engineNum   = (int)(*fluid->iEngineNumber);
+//    int channelNum  = (int)(*fluid->iChannelNumber);
+//    int key         = (int)(*fluid->iMidiKeyNumber);
+//    MYFLT scoreTime = csound->GetScoreTime(csound);
+//    MYFLT offTime = fluid->h.insdshead->offtim;
+//    //int kSmps = csound->GetKsmps(csound);
+//    //int sRate = (int)csound->GetSr(csound);
+//    //csound->Message(csound, "Times score:%f off:%f\n", scoreTime, offTime);
+//    if(!fluid->released &&
+//       ( offTime <= scoreTime + .025 || fluid->h.insdshead->relesing)) {
+//      fluid->released = true;
+//      fluid_synth_noteoff(fluid_engines[engineNum],
+//                          channelNum,
+//                          key);
+//      //csound->Message(csound, "Release c:%i k:%i\n", channelNum, key);
+//    }
+//    return OK;
+//  }
 
   /* FLUID_OUT */
 
@@ -596,11 +620,12 @@ extern "C"
     {
       "fluidNote",
       sizeof(FLUID_NOTE),
-      3,
+      1,
       "",
       "iiii",
       (SUBR)&fluidNoteIopadr,
-      (SUBR)&fluidNoteKopadr,
+      //(SUBR)&fluidNoteKopadr,
+      0,
       0
     },
     {
