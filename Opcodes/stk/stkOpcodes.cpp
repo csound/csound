@@ -30,6 +30,8 @@
  * used by each instrument.
  */
 #include <string>
+#include <map>
+#include <vector>
 #include <cstdlib>
 
 #include <BandedWG.h>
@@ -62,6 +64,8 @@
 #include <Wurley.h>
 
 #include <OpcodeBase.hpp>
+
+std::map<ENVIRON *, std::vector<Instrmnt *> > stkInstances;
 
 template<typename T>
 class STKInstrumentAdapter : public OpcodeBase< STKInstrumentAdapter<T> >
@@ -99,6 +103,7 @@ public:
       {
         Stk::setSampleRate(csound->GetSr(csound));
         instrument = new T();
+	stkInstances[csound].push_back(instrument);
       }
     ksmps = csound->GetKsmps(csound);
     instrument->noteOn(*ifrequency, *igain);
@@ -113,16 +118,14 @@ public:
     oldkvalue3 = -1.0;
     return OK;
   }
+  int noteoff(ENVIRON *csound)
+  {
+    released = true;
+    instrument->noteoff(0.5);
+    return OK;
+  }
   int kontrol(ENVIRON *csound)
   {
-    MYFLT scoreTime = csound->GetScoreTime(csound);
-    MYFLT offTime = OpcodeBase< STKInstrumentAdapter<T> >::h.insdshead->offtim;
-    if(!released &&
-       ( offTime <= scoreTime + .025 || OpcodeBase< STKInstrumentAdapter<T> >::h.insdshead->relesing))
-      {
-        instrument->noteOff(64.0);
-        released = true;
-      }
     if(!released)
       {
         if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
@@ -160,15 +163,6 @@ public:
           {
             aoutput[i] = 0;
           }
-      }
-    return OK;
-  }
-  int deinit(ENVIRON *csound)
-  {
-    if(instrument)
-      {
-        delete instrument;
-        instrument = 0;
       }
     return OK;
   }
@@ -210,6 +204,7 @@ public:
       {
         Stk::setSampleRate(csound->GetSr(csound));
         instrument = new T((StkFloat) 10.0);
+	stkInstances[csound].push_back(instrument);
       }
     ksmps = csound->GetKsmps(csound);
     instrument->noteOn(*ifrequency, *igain);
@@ -224,16 +219,14 @@ public:
     oldkvalue3 = -1.0;
     return OK;
   }
+  int noteoff(ENVIRON *csound)
+  {
+    released = true;
+    instrument->noteoff(0.5);
+    return OK;
+  }
   int kontrol(ENVIRON *csound)
   {
-    MYFLT scoreTime = csound->GetScoreTime(csound);
-    MYFLT offTime = OpcodeBase< STKInstrumentAdapter1<T> >::h.insdshead->offtim;
-    if(!released &&
-       ( offTime <= scoreTime + .025 || OpcodeBase< STKInstrumentAdapter1<T> >::h.insdshead->relesing))
-      {
-        instrument->noteOff(0.5);
-        released = true;
-      }
     if(!released)
       {
         if(*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0)
@@ -274,15 +267,6 @@ public:
       }
     return OK;
   }
-  int deinit(ENVIRON *csound)
-  {
-    if(instrument)
-      {
-        delete instrument;
-        instrument = 0;
-      }
-    return OK;
-  }
 };
 
 extern "C"
@@ -298,7 +282,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<BandedWG>::init_,
         0,
         (SUBR) STKInstrumentAdapter<BandedWG>::kontrol_,
-        (SUBR) STKInstrumentAdapter<BandedWG>::deinit_
       },
       {
         "STKBeeThree",
@@ -309,7 +292,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<BeeThree>::init_,
         0,
         (SUBR) STKInstrumentAdapter<BeeThree>::kontrol_,
-        (SUBR) STKInstrumentAdapter<BeeThree>::deinit_
       },
       {
         "STKBlowBotl",
@@ -320,7 +302,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<BlowBotl>::init_,
         0,
         (SUBR) STKInstrumentAdapter<BlowBotl>::kontrol_,
-        (SUBR) STKInstrumentAdapter<BlowBotl>::deinit_
       },
       {
         "STKBlowHole",
@@ -331,7 +312,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter1<BlowHole>::init_,
         0,
         (SUBR) STKInstrumentAdapter1<BlowHole>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<BlowHole>::deinit_
       },
       {
         "STKBowed",
@@ -340,9 +320,8 @@ extern "C"
         "a",
         "iijjjjjjjj",
         (SUBR) STKInstrumentAdapter1<Bowed>::init_,
-        0,
+	0,
         (SUBR) STKInstrumentAdapter1<Bowed>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<Bowed>::deinit_
       },
       {
         "STKBrass",
@@ -353,7 +332,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter1<Brass>::init_,
         0,
         (SUBR) STKInstrumentAdapter1<Brass>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<Brass>::deinit_
       },
       {
         "STKClarinet",
@@ -364,7 +342,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter1<Clarinet>::init_,
         0,
         (SUBR) STKInstrumentAdapter1<Clarinet>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<Clarinet>::deinit_
       },
       {
         "STKDrummer",
@@ -375,7 +352,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Drummer>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Drummer>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Drummer>::deinit_
       },
       {
         "STKFlute",
@@ -386,7 +362,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter1<Flute>::init_,
         0,
         (SUBR) STKInstrumentAdapter1<Flute>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<Flute>::deinit_
       },
       {
         "STKFMVoices",
@@ -397,7 +372,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<FMVoices>::init_,
         0,
         (SUBR) STKInstrumentAdapter<FMVoices>::kontrol_,
-        (SUBR) STKInstrumentAdapter<FMVoices>::deinit_
       },
       {
         "STKHevyMetl",
@@ -408,7 +382,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<HevyMetl>::init_,
         0,
         (SUBR) STKInstrumentAdapter<HevyMetl>::kontrol_,
-        (SUBR) STKInstrumentAdapter<HevyMetl>::deinit_
       },
       {
         "STKMandolin",
@@ -419,7 +392,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter1<Mandolin>::init_,
         0,
         (SUBR) STKInstrumentAdapter1<Mandolin>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<Mandolin>::deinit_
       },
       {
         "STKModalBar",
@@ -430,7 +402,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<ModalBar>::init_,
         0,
         (SUBR) STKInstrumentAdapter<ModalBar>::kontrol_,
-        (SUBR) STKInstrumentAdapter<ModalBar>::deinit_
       },
       {
         "STKMoog",
@@ -441,7 +412,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Moog>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Moog>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Moog>::deinit_
       },
       {
         "STKPercFlut",
@@ -452,7 +422,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<PercFlut>::init_,
         0,
         (SUBR) STKInstrumentAdapter<PercFlut>::kontrol_,
-        (SUBR) STKInstrumentAdapter<PercFlut>::deinit_
       },
       {
         "STKPlucked",
@@ -463,7 +432,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter1<Plucked>::init_,
         0,
         (SUBR) STKInstrumentAdapter1<Plucked>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<Plucked>::deinit_
       },
       {
         "STKResonate",
@@ -474,7 +442,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Resonate>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Resonate>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Resonate>::deinit_
       },
       {
         "STKRhodey",
@@ -485,7 +452,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Rhodey>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Rhodey>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Rhodey>::deinit_
       },
       {
         "STKSaxofony",
@@ -496,7 +462,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter1<Saxofony>::init_,
         0,
         (SUBR) STKInstrumentAdapter1<Saxofony>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<Saxofony>::deinit_
       },
       {
         "STKShakers",
@@ -507,7 +472,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Shakers>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Shakers>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Shakers>::deinit_
       },
       {
         "STKSimple",
@@ -518,7 +482,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Simple>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Simple>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Simple>::deinit_
       },
       {
         "STKSitar",
@@ -529,7 +492,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Sitar>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Sitar>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Sitar>::deinit_
       },
       {
         "STKStifKarp",
@@ -540,7 +502,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter1<StifKarp>::init_,
         0,
         (SUBR) STKInstrumentAdapter1<StifKarp>::kontrol_,
-        (SUBR) STKInstrumentAdapter1<StifKarp>::deinit_
       },
       {
         "STKTubeBell",
@@ -551,7 +512,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<TubeBell>::init_,
         0,
         (SUBR) STKInstrumentAdapter<TubeBell>::kontrol_,
-        (SUBR) STKInstrumentAdapter<TubeBell>::deinit_
       },
       {
         "STKVoicForm",
@@ -562,7 +522,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<VoicForm>::init_,
         0,
         (SUBR) STKInstrumentAdapter<VoicForm>::kontrol_,
-        (SUBR) STKInstrumentAdapter<VoicForm>::deinit_
       },
       {
         "STKWhistle",
@@ -573,7 +532,6 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Whistle>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Whistle>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Whistle>::deinit_
       },
       {
         "STKWurley",
@@ -584,27 +542,27 @@ extern "C"
         (SUBR) STKInstrumentAdapter<Wurley>::init_,
         0,
         (SUBR) STKInstrumentAdapter<Wurley>::kontrol_,
-        (SUBR) STKInstrumentAdapter<Wurley>::deinit_
       },
+      {
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+      }
     };
 
-  /**
-   * Called by Csound to obtain the size of
-   * the table of OENTRY structures defined in this shared library.
-   */
-
-  PUBLIC long opcode_size(void)
+  PUBLIC int csoundModuleCreate(void *csound)
   {
-    return sizeof(oentries);
+    return 0;
   }
 
-  /**
-   * Called by Csound to obtain a pointer to
-   * the table of OENTRY structures defined in this shared library.
-   */
-
-  PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+  PUBLIC int csoundModuleInit(void *csound_)
   {
+    ENVIRON *csound = (ENVIRON*) csound_;
     const char *path = std::getenv("RAWWAVE_PATH");
     if(!path)
       {
@@ -614,6 +572,26 @@ extern "C"
       {
         Stk::setRawwavePath(path);
       }
-    return oentries;
+    int status = 0;
+    for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) 
+      {
+	status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz, oentry->thread,
+				       oentry->outypes, oentry->intypes,
+				       (int (*)(void*, void*)) oentry->iopadr,
+				       (int (*)(void*, void*)) oentry->kopadr,
+				       (int (*)(void*, void*)) oentry->aopadr);
+      }   
+    return status;
+  }
+
+  PUBLIC int csoundModuleDestroy(void *csound_)
+  {
+    ENVIRON *csound = (ENVIRON*) csound_;
+    for(size_t i = 0, n = stkInstances[csound].size(); i < n; ++i) 
+      {
+	delete stkInstances[csound][i];
+      }
+    stkInstances[csound].clear();
+    return 0;
   }
 };
