@@ -42,7 +42,7 @@ def generate_x_method(f, action, context, rate0, triggered):
     RATE = rate.upper()
 
     name = 'py%(prefix)s%(action)s%(rate)s%(t)s_%(rate0)srate' % locals()
-    
+
     print >> f, 'int'
     print >> f, '%(name)s(void *csound_, PY%(ACTION)s%(T)s *p)' % locals()
     print >> f, '{'
@@ -77,7 +77,7 @@ def generate_x_method(f, action, context, rate0, triggered):
     else:
         print >> f, '  strcpy(source, (char *)p->string);'
     print >> f
-    
+
     print >> f, '  result = %(helper)s_in_given_context(source, %(ns)s);' % locals()
     print >> f, '  if (result == NULL)'
     print >> f, '    {'
@@ -109,7 +109,7 @@ def generate_init_method(f, action, triggered):
         t, T = 't', 'T'
     else:
         t, T = '', ''
-    
+
     print >> f, 'int'
     print >> f, 'pyl%(action)s%(t)s_irate(void *csound_, PY%(ACTION)s%(T)s *p)' % locals()
     print >> f, '{'

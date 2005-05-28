@@ -25,7 +25,7 @@ int hash(char *s)
 
 TOKEN *add_token(char *s, int type)
 {
-    int	h = hash(s);
+    int h = hash(s);
     TOKEN *a = symbtab[h];
     TOKEN *ans;
     while (a!=NULL) {
@@ -47,7 +47,7 @@ TOKEN *add_token(char *s, int type)
 
 TOKEN *lookup_token(char *s)
 {
-    int	h = hash(s);
+    int h = hash(s);
     int type = -1;
     TOKEN *a = symbtab[h];
     TOKEN *ans;

@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -28,7 +28,7 @@
 * There must be one header file and one source file for each framework class.
 * <p>
 * SWIG is run on this file to generate wrappers for all Silence framework classes
-* in other languages, especially scripting languages such as Python, 
+* in other languages, especially scripting languages such as Python,
 * Therefore, all framework headers must be included in this header,
 * and all framework headers must use #ifdef SWIG to declare
 * the module and make other SWIG declarations (see Node.h for an extensive example).

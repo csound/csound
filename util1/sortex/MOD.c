@@ -1,5 +1,5 @@
-/*  
-    MOD.c for sortex 
+/*
+    MOD.c for sortex
 
     Copyright (C) 1991 Barry Vercoe
 
