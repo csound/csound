@@ -31,7 +31,7 @@ static int copy_line(int *pos, int len)
       empty_line_cnt = 0;
     memcpy(&(file_buf[*pos]), &(line_buf[0]), len);
     *pos += len;
-    return 0;
+    return retval;
 }
 
 int main(int argc, char **argv)
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
     }
     if (linepos) {
       if ((int) line_buf[linepos - 1] != '\n')
-        line_buf[linepos++] = '\n';
+        changed = 1, line_buf[linepos++] = '\n';
       changed |= copy_line(&pos, linepos);
     }
     if (changed) {
