@@ -33,8 +33,6 @@
 /* #define DWORD unsigned long */
 /* #endif */
 
-
-
 #ifdef _WINDOWS
 #include <windows.h>
 #endif
@@ -55,7 +53,6 @@ typedef struct _GUID
     unsigned char       Data4[8];
 } GUID;
 
-
 typedef struct /*waveformatex */{
     WORD  wFormatTag;
     WORD  nChannels;
@@ -66,7 +63,6 @@ typedef struct /*waveformatex */{
     WORD  cbSize;
 } WAVEFORMATEX;
 #endif
-
 
 /* NB no support provided for double format (yet) */
 typedef enum pvoc_wordformat { PVOC_IEEE_FLOAT, PVOC_IEEE_DOUBLE}pvoc_wordformat;
@@ -83,7 +79,6 @@ typedef enum pvoc_windowtype {PVOC_DEFAULT=0,
                               PVOC_CUSTOM
 } pv_wtype;
 
-
 /* Renderer information: source is presumed to be of this type */
 typedef enum pvoc_sampletype {
                               STYPE_16,
@@ -91,8 +86,6 @@ typedef enum pvoc_sampletype {
                               STYPE_32,
                               STYPE_IEEE_FLOAT
 } pv_stype;
-
-
 
 typedef struct pvoc_data {      /* 32 bytes*/
         WORD    wWordFormat;    /* pvoc_wordformat */
@@ -107,7 +100,6 @@ typedef struct pvoc_data {      /* 32 bytes*/
         float   fWindowParam;   /* default 0.0f unless needed */
 } PVOCDATA;
 
-
 typedef struct {
     WAVEFORMATEX    Format;      /* 18 bytes:  info for renderer as well as for pvoc*/
     union {                      /* 2 bytes*/
@@ -121,14 +113,12 @@ typedef struct {
     GUID            SubFormat;                  /* 16 bytes*/
 } WAVEFORMATEXTENSIBLE, *PWAVEFORMATEXTENSIBLE;
 
-
 typedef struct {
         WAVEFORMATEXTENSIBLE wxFormat;   /* 40 bytes*/
         DWORD dwVersion;                 /* 4 bytes*/
         DWORD dwDataSize;                /* 4 bytes: sizeof PVOCDATA data block */
         PVOCDATA data;                   /* 32 bytes*/
 } WAVEFORMATPVOCEX;                      /* total 80 bytes*/
-
 
 /* at least VC++ will give 84 for sizeof(WAVEFORMATPVOCEX), so we need our own version*/
 #define SIZEOF_FMTPVOCEX (80)
@@ -142,7 +132,6 @@ typedef struct {
 **************/
 
 extern  const GUID KSDATAFORMAT_SUBTYPE_PVOC;
-
 
 /* pvoc file handling functions */
 
@@ -160,6 +149,5 @@ int pvoc_getframes(int ifd,float *frames,unsigned long nframes);
 int pvoc_framecount(int ifd);
 int pvoc_rewind(int ifd,int skip_first_frame);          /* RWD 14:4:2001 */
 int pvsys_release(ENVIRON *);
-
 
 #endif

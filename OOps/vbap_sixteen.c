@@ -28,7 +28,6 @@ functions specific to sixteen loudspeaker VBAP
 Ville Pulkki
 */
 
-
 #include "cs.h"
 #include "vbap.h"
 #include <math.h>
@@ -80,7 +79,6 @@ int vbap_SIXTEEN(ENVIRON *csound, VBAP_SIXTEEN  *p) /* during note performance: 
     }
     return OK;
 }
-
 
 int vbap_SIXTEEN_control(ENVIRON *csound, VBAP_SIXTEEN  *p)
 {
@@ -235,7 +233,6 @@ int vbap_SIXTEEN_init(ENVIRON *csound, VBAP_SIXTEEN  *p)
     }
     return OK;
 }
-
 
 int vbap_SIXTEEN_moving(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p) /* during note performance: */
 {
@@ -462,7 +459,6 @@ int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     }
     return OK;
 }
-
 
 int vbap_SIXTEEN_moving_init(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
 {

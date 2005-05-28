@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /* ------ oscils, lphasor, and tablexkt by Istvan Varga (Jan 5 2002) ------ */
 
 #ifndef CSOUND_OSCILS_H

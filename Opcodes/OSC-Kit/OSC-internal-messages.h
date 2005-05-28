@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -46,11 +46,9 @@ The OpenSound Control WWW page is
    if there's a problem; TRUE otherwise. */
 OSCBoolean OSCSendInternalMessage(char *address, int arglen, void *args);
 
-
 /* Same thing, but with a return address supplied. */
-OSCBoolean OSCSendInternalMessageWithRSVP(char *address, int arglen,  void *args, 
-				       NetworkReturnAddressPtr returnAddr);
-
+OSCBoolean OSCSendInternalMessageWithRSVP(char *address, int arglen,  void *args,
+                                       NetworkReturnAddressPtr returnAddr);
 
 /* Schedule some messages to occur at a given time.  This allocates one of the
    OSCPacketBuffer structures (see OSC-receive.h) to hold the addresses and argument
@@ -59,7 +57,7 @@ OSCBoolean OSCSendInternalMessageWithRSVP(char *address, int arglen,  void *args
    numReceiveBuffers argument to OSCInitReceive().
 
    This provides an less general interface than OSC's bundle mechanism, because
-   the bundle of messages you provide cannot include subbundles. 
+   the bundle of messages you provide cannot include subbundles.
 
    The addresses, arglens, and args arguments are arrays of size numMessages.
 
@@ -67,6 +65,6 @@ OSCBoolean OSCSendInternalMessageWithRSVP(char *address, int arglen,  void *args
    return address for later use.
 */
 
-OSCBoolean OSCScheduleInternalMessages(OSCTimeTag when, int numMessages, 
-				    char **addresses, int *arglens,
-				    void **args);
+OSCBoolean OSCScheduleInternalMessages(OSCTimeTag when, int numMessages,
+                                    char **addresses, int *arglens,
+                                    void **args);

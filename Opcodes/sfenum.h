@@ -138,8 +138,6 @@ typedef enum
     endMod
 } SFModulator;
 
-
-
 #ifdef never
 #define monoSample      0x0001
 #define rightSample     0x0002

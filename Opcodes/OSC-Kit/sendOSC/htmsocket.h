@@ -28,8 +28,8 @@ University of California, Berkeley.
 
  /* htmparam.h
 
-	Adrian Freed
- 	send parameters to htm servers by udp or UNIX protocol
+        Adrian Freed
+        send parameters to htm servers by udp or UNIX protocol
  */
 #ifndef TRUE
 #define TRUE 1

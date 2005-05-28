@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -39,7 +39,6 @@ The OpenSound Control WWW page is
 */
 
 #include "OSC-timetag.h"
-
 
 #ifdef HAS8BYTEINT
 #define TWO_TO_THE_32_FLOAT 4294967296.0f
@@ -56,7 +55,7 @@ OSCTimeTag OSCTT_PlusSeconds(OSCTimeTag original, float secondsOffset) {
     int8 offset = (int8) (secondsOffset * TWO_TO_THE_32_FLOAT);
 
   /*    printf("* OSCTT_PlusSeconds %llx plus %f seconds (i.e., %lld offset) is %llx\n", original,
-	      secondsOffset, offset, original + offset);  */
+              secondsOffset, offset, original + offset);  */
 
     return original + offset;
 }
@@ -64,7 +63,7 @@ OSCTimeTag OSCTT_PlusSeconds(OSCTimeTag original, float secondsOffset) {
 int OSCTT_Compare(OSCTimeTag left, OSCTimeTag right) {
 #if 0
     printf("***** OSCTT_Compare(%llx, %llx): %d\n", left, right,
-	   (left<right) ? -1 : ((left == right) ? 0 : 1));
+           (left<right) ? -1 : ((left == right) ? 0 : 1));
 #endif
     if (left < right) {
         return -1;
@@ -86,7 +85,6 @@ void OSCTT_SetFromInt(OSCTimeTag *self, unsigned int value) {
 #define SECONDS_FROM_1900_to_1970 2208988800UL /* 17 leap years */
 #define TWO_TO_THE_32_OVER_ONE_MILLION 4295
 
-
 OSCTimeTag OSCTT_CurrentTime(void) {
     uint8 result;
     uint4 usecOffset;
@@ -96,21 +94,20 @@ OSCTimeTag OSCTT_CurrentTime(void) {
     BSDgettimeofday(&tv, &tz);
 
     /* First get the seconds right */
-    result = (unsigned) SECONDS_FROM_1900_to_1970 + 
-	     (unsigned) tv.tv_sec - 
-	     (unsigned) 60 * tz.tz_minuteswest +
+    result = (unsigned) SECONDS_FROM_1900_to_1970 +
+             (unsigned) tv.tv_sec -
+             (unsigned) 60 * tz.tz_minuteswest +
              (unsigned) (tz.tz_dsttime ? 3600 : 0);
 
 #if 0
     /* No timezone, no DST version ... */
-    result = (unsigned) SECONDS_FROM_1900_to_1970 + 
-	     (unsigned) tv.tv_sec;
+    result = (unsigned) SECONDS_FROM_1900_to_1970 +
+             (unsigned) tv.tv_sec;
 #endif
-
 
     /* make seconds the high-order 32 bits */
     result = result << 32;
-	
+
     /* Now get the fractional part. */
     usecOffset = (unsigned) tv.tv_usec * (unsigned) TWO_TO_THE_32_OVER_ONE_MILLION;
     /* printf("** %ld microsec is offset %x\n", tv.tv_usec, usecOffset); */
@@ -124,7 +121,7 @@ OSCTimeTag OSCTT_CurrentTime(void) {
 #else /* __sgi */
 
 /* Instead of asking your operating system what time it is, it might be
-   clever to find out the current time at the instant your application 
+   clever to find out the current time at the instant your application
    starts audio processing, and then keep track of the number of samples
    output to know how much time has passed. */
 
@@ -134,7 +131,6 @@ OSCTimeTag OSCTT_CurrentTime(void) {
 }
 
 #endif /* __sgi */
-
 
 #else /* Not HAS8BYTEINT */
 
@@ -154,9 +150,9 @@ OSCTimeTag OSCTT_CurrentTime(void) {
   struct timeval tv;
   struct timezone tz;
     OSCTimeTag result;
-  
+
   gettimeofday(&tv, &tz);
- 
+
   /* tz.dsttime deprecated on Linux */
   result.seconds = tv.tv_sec - 60 * tz.tz_minuteswest + (uint4) SECONDS_FROM_1900_to_1970;
   result.fraction = (unsigned) tv.tv_usec * (unsigned) 1e3;
@@ -209,7 +205,7 @@ OSCTimeTag OSCTT_Immediately(void) {
 
 int OSCTT_Compare(OSCTimeTag left, OSCTimeTag right) {
 
-  /*  
+  /*
       This puts the result of uint arithmetics
       into an int var.
 
@@ -222,7 +218,7 @@ int OSCTT_Compare(OSCTimeTag left, OSCTimeTag right) {
 
   if (left.seconds != right.seconds)
     return (left.seconds > right.seconds ? 1 : -1);
-  else 
+  else
     if (left.fraction != right.fraction)
       return (left.fraction > right.fraction ? 1 : -1);
     else
@@ -237,5 +233,4 @@ void OSCTT_SetFromInt(OSCTimeTag *self, unsigned int value) {
 }
 
 #endif /* HAS8BYTEINT */
-
 

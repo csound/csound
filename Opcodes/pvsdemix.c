@@ -22,7 +22,6 @@
 
 */
 
-
 #include "csdl.h"
 #include "pvsdemix.h"
 
@@ -89,7 +88,6 @@ int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p)
 
     return OK;
 }
-
 
 int pvsdemix_process(ENVIRON *csound, PVSDEMIX *p)
 {

@@ -48,7 +48,6 @@
  *      values must be normalised to peak of 1.0
  */
 
-
 /* CSOUND NB: floats must be kept as 'float', not MYFLT,
    as only 32bit floats supported at present.
 */
@@ -77,7 +76,6 @@
 #define WAVE_FORMAT_EXTENSIBLE (0xFFFE)
 #define WAVE_FORMAT_PCM (0x0001)
 #define WAVE_FORMAT_IEEE_FLOAT (0x0003)
-
 
 const GUID KSDATAFORMAT_SUBTYPE_PVOC = {
                                         0x8312b9c2,
@@ -109,7 +107,6 @@ static  char *pv_errstr = "";
 #define MAXFILES (16)
 /* or any desired larger number: will be dynamically allocated one day */
 
-
 typedef struct pvoc_file {
         WAVEFORMATEX fmtdata;
         PVOCDATA pvdata;
@@ -129,7 +126,6 @@ static PVOCFILE *files[MAXFILES];
 
 static int pvoc_writeheader(int ofd);
 static int pvoc_readheader(ENVIRON *csound, int ifd,WAVEFORMATPVOCEX *pWfpx);
-
 
 static int write_guid(int fd,int byterev,const GUID *pGuid)
 {
@@ -160,7 +156,6 @@ static int compare_guids(const GUID *gleft, const GUID *gright)
     return !memcmp(left,right,sizeof(GUID));
 }
 
-
 static int write_pvocdata(int fd,int byterev,const PVOCDATA *pData)
 {
     long written;
@@ -173,7 +168,6 @@ static int write_pvocdata(int fd,int byterev,const PVOCDATA *pData)
     assert(fd >= 0);
     assert(pData);
 #endif
-
 
     if (byterev) {
       PVOCDATA data;
@@ -276,7 +270,6 @@ static int pvoc_writeWindow(int fd,int byterev,float *window,DWORD length)
         return 0;
     }
 
-
     return length * sizeof(float);
 }
 
@@ -378,7 +371,6 @@ static void prepare_pvfmt(WAVEFORMATEX *pfmt,unsigned long chans,
     pfmt->cbSize                = 62;
 
 }
-
 
 /* lots of different ways of doing this! */
 /* we will need  one in the form:
@@ -714,7 +706,6 @@ static int pvoc_readfmt(int fd,int byterev,WAVEFORMATPVOCEX *pWfpx)
     return 1;
 }
 
-
 static int pvoc_readheader(ENVIRON *csound, int ifd,WAVEFORMATPVOCEX *pWfpx)
 {
     DWORD tag, size,riffsize;
@@ -943,7 +934,6 @@ static int pvoc_writeheader(int ofd)
       return 0;
     }
 
-
     if (write_pvocdata(files[ofd]->fd,
                        files[ofd]->do_byte_reverse,
                        &(files[ofd]->pvdata)) != sizeof(PVOCDATA)) {
@@ -997,7 +987,6 @@ static int pvoc_writeheader(int ofd)
     files[ofd]->curpos = files[ofd]->datachunkoffset;
     return 1;
 }
-
 
 static int pvoc_updateheader(int ofd)
 {
@@ -1089,14 +1078,12 @@ int pvoc_closefile(ENVIRON *csound, int ofd)
  *
  * return 0 for error, 1 for success. This could change....
 
-
 */
 int pvoc_putframes(int ofd,const float *frame,long numframes)
 {
     DWORD i;
     DWORD towrite;  /* count in 'words' */
     long temp,*lfp;
-
 
     if (files[ofd]==NULL) {
       pv_errstr = Str("\npvsys: bad file descriptor");

@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -41,7 +41,7 @@ The OpenSound Control WWW page is
   packets needs to know about network return addresses so it can fill in the
   correct return address when it receives a packet.
 
-  Matt Wright, 
+  Matt Wright,
   6/3/98
 */
 
@@ -50,5 +50,5 @@ int SizeOfNetworkReturnAddress(void);
 
 /* Send a packet back to the client, or do nothing if addr==0 */
 OSCBoolean NetworkSendReturnMessage(NetworkReturnAddressPtr addr,
-				 int n,
-				 void *buf);
+                                 int n,
+                                 void *buf);

@@ -146,7 +146,6 @@ typedef struct Guiro {
     int         kloop;
 } GUIRO;
 
-
 typedef struct Tambour {
     OPDS        h;
     MYFLT       *ar;            /* Output */

@@ -36,14 +36,12 @@
 static  int     pdebug = 0;
 static  PVBUFREAD       *pvbufreadaddr;
 
-
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
 
 /************************************************************/
 /*************PVBUFREAD**************************************/
 /************************************************************/
-
 
 int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
 {
@@ -125,7 +123,6 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
     return csound->InitError(csound, csound->errmsg);
 }
 
-
 int pvbufread(ENVIRON *csound, PVBUFREAD *p)
 {
     MYFLT  frIndx;
@@ -152,7 +149,6 @@ int pvbufread(ENVIRON *csound, PVBUFREAD *p)
     p->buf=buf;
     return OK;
 }
-
 
 /************************************************************/
 /*************PVINTERP**************************************/
@@ -261,7 +257,6 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     return csound->InitError(csound, csound->errmsg);
 }
 
-
 int pvinterp(ENVIRON *csound, PVINTERP *p)
 {
     MYFLT  *ar = p->rslt;
@@ -339,8 +334,6 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
     return OK;
 }
-
-
 
 /************************************************************/
 /*************PVCROSS**************************************/
@@ -445,7 +438,6 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
 pverr:
     return csound->InitError(csound, csound->errmsg);
 }
-
 
 int pvcross(ENVIRON *csound, PVCROSS *p)
 {

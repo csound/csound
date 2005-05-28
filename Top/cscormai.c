@@ -79,7 +79,6 @@ int lplay(EVLIST *a)           /* for standalone cscore: no full Csound, so */
 /* The resulting executable can be run with:                               */
 /*       cscore scorin > scoreout                                          */
 
-
 #include <stdarg.h>
 
 void err_printf(char *fmt, ...)

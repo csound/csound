@@ -25,13 +25,13 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
 /* OSC-dispatch.h
 
-   Given an OSC message pattern from an incoming message, match the 
+   Given an OSC message pattern from an incoming message, match the
    pattern against the OSC address space and produce a list of the
    callbacks corresponding to all the addresses that were matched.
 
@@ -46,8 +46,7 @@ typedef struct callbackListNode {
     struct callbackListNode *next;
 } *callbackList;
 
-
-/* Given an OSC message pattern from an incoming message, match the 
+/* Given an OSC message pattern from an incoming message, match the
    pattern against the OSC address space and produce a list of the
    callbacks corresponding to all the addresses that were matched. */
 callbackList OSCDispatchMessage(char *pattern);

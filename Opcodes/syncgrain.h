@@ -1,5 +1,5 @@
 /* syncgrain.h:
-   Synchronous granular synthesis 
+   Synchronous granular synthesis
 
    (c) Victor Lazzarini, 2004
 
@@ -22,7 +22,7 @@
 
 */
 
-/* 
+/*
 
 SYNCGRAIN:
 
@@ -69,23 +69,22 @@ asig  syncgrain  kamp, kfreq, kpitch, kgrsize, kprate, ifun1, ifun2, iolaps
 
 kamp: amplitude scaling
 kfreq: frequency of grain generation, or density, in grains/sec.
-kpitch: grain pitch scaling (1=normal pitch, < 1 lower, > 1 higher; 
+kpitch: grain pitch scaling (1=normal pitch, < 1 lower, > 1 higher;
         negative, backwards)
 kgrsize: grain size in secs.
-kprate: grain pointer rate, in relation to grainsize. 
-The value of 1 will advance the reading pointer 1 grain ahead in the source table. 
+kprate: grain pointer rate, in relation to grainsize.
+The value of 1 will advance the reading pointer 1 grain ahead in the source table.
 Larger values will time-compress and smaller values will time-expand the source
-signal. Negative values will cause the pointer to run backwards and zero will 
+signal. Negative values will cause the pointer to run backwards and zero will
         freeze it.
 ifun1: source signal function table. Deferred-allocation tables are accepted.
 ifun2: grain envelope function table.
 iolaps: maximum number of overlaps, max(kfreq)*max(kgrsize).
 
-The syncgrain opcode is based on an improved version of the 
+The syncgrain opcode is based on an improved version of the
 SndObj library SyncGrain class.
 
 */
-
 
 #ifndef _SYNCGRAIN_H
 #define _SYNCGRAIN_H
@@ -113,6 +112,5 @@ typedef struct _syncgrain {
 
 int syncgrain_process(ENVIRON *csound, syncgrain *p);
 int syncgrain_init(ENVIRON *csound, syncgrain *p);
-
 
 #endif

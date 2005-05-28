@@ -34,7 +34,6 @@ typedef struct overlap {
   MYFLT          curamp, expamp;
 } OVERLAP;
 
-
 typedef struct {
   OPDS  h;
   MYFLT *ar, *xamp, *xdens, *xtrans, *xspd, *koct, *kband, *kris, *kdur, *kdec;
@@ -47,7 +46,6 @@ typedef struct {
   AUXCH auxch;
   FUNC  *ftp1, *ftp2;
 } FOGS;
-
 
 /*typedef struct {
         OPDS    h;

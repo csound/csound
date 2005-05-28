@@ -22,7 +22,6 @@
     02111-1307 USA
 */
 
-
 typedef struct {
         OPDS   h;
         MYFLT  *which, *when, *dur;
@@ -30,7 +29,6 @@ typedef struct {
         int    midi;
         INSDS  *kicked;
 } SCHED;
-
 
 typedef struct {
         OPDS   h;

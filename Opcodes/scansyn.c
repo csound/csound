@@ -25,7 +25,6 @@
 #include <math.h>
 #include "cwindow.h"
 
-
 /* Order of interpolation of scanning */
 /* Either 1, 2 (linear), 3 (cubic) or 4 (quadratic) */
 /* #define OSCIL_INTERP 4 */
@@ -37,7 +36,6 @@
 
 /* Window to be applied at external force */
 static MYFLT *ewin = NULL;
-
 
 /****************************************************************************
  *      Helper functions and macros for updater
@@ -106,8 +104,6 @@ static int scsnu_hammer(ENVIRON *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
     return OK;
 }
 
-
-
 /******************************
  *      Linked list stuff
  ******************************/
@@ -172,8 +168,6 @@ PSCSNU *listget(ENVIRON *csound, int id)
     }
     return i->p;
 }
-
-
 
 /****************************************************************************
  *      Functions for scsnu
@@ -339,8 +333,6 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
     return OK;
 }
 
-
-
 /*
  *      Performance function for updater
  */
@@ -415,12 +407,9 @@ int scsnu_play(ENVIRON *csound, PSCSNU *p)
     return OK;
 }
 
-
-
 /****************************************************************************
  *      Functions for scsns
  ***************************************************************************/
-
 
 /*
  *      Succesive phase interpolator
@@ -432,8 +421,6 @@ int scsnu_play(ENVIRON *csound, PSCSNU *p)
 #define pinterp(ii, x) \
         (pp->x2[p->t[(int)ii]] + (pp->x1[p->t[(int)ii]] - pp->x2[p->t[(int)ii]]) * x)
 #endif
-
-
 
 /*
  *      Init scaner
@@ -479,8 +466,6 @@ int scsns_init(ENVIRON *csound, PSCSNS *p)
     p->fix = (MYFLT)p->tlen*csound->onedsr;
     return OK;
 }
-
-
 
 /*
  *      Performance function for scanner

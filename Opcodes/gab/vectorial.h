@@ -93,7 +93,6 @@ typedef struct {
         MYFLT *vector1, *vector2;
 } VECTORSOP;
 
-
 typedef struct {
         OPDS   h;
         MYFLT *ifn, *kmin, *kmax, *ielements;
@@ -154,8 +153,6 @@ typedef struct {
         long    *left, maxd;
         int             elements;
 } VECDEL;
-
-
 
 typedef struct {
         FUNC *function, *nxtfunction;

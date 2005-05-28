@@ -51,7 +51,6 @@ typedef struct {
         SPECDAT wfund;
 } PITCH;
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *cnt;
@@ -156,7 +155,6 @@ typedef struct {
     int         grd_IndexMask;  /* Index wrapped by ANDing with this mask. */
     MYFLT       grd_Scalar;     /* Used to scale to normalize generated noise. */
 } PINKISH;
-
 
 typedef struct {
         OPDS    h;

@@ -281,24 +281,24 @@ extern "C"
 
   /* FLUID_NOTE */
 
-  	int fluidNoteTurnoff(void *csound_, void *data) {
+        int fluidNoteTurnoff(void *csound_, void *data) {
 
-  		ENVIRON *csound = (ENVIRON *)csound_;
+                ENVIRON *csound = (ENVIRON *)csound_;
 
-	  	FLUID_NOTE *fluid = (FLUID_NOTE *)data;
+                FLUID_NOTE *fluid = (FLUID_NOTE *)data;
 
-		int engineNum   = (int)(*fluid->iEngineNumber);
-	  	int channelNum  = (int)(*fluid->iChannelNumber);
-      	int key         = (int)(*fluid->iMidiKeyNumber);
+                int engineNum   = (int)(*fluid->iEngineNumber);
+                int channelNum  = (int)(*fluid->iChannelNumber);
+        int key         = (int)(*fluid->iMidiKeyNumber);
 
-		//csound->Message(csound, "Fluid Note Off: key %i\n", key);
+                //csound->Message(csound, "Fluid Note Off: key %i\n", key);
 
-	  	fluid_synth_noteoff(fluid_engines[engineNum],
+                fluid_synth_noteoff(fluid_engines[engineNum],
                           channelNum,
                           key);
 
-		return OK;
-  	}
+                return OK;
+        }
 
   int fluidNoteIopadr(ENVIRON *csound, void *data)
   {
@@ -315,12 +315,11 @@ extern "C"
     //fluid->evt                = new_fluid_event();
     //fluid_event_note(fluid->evt, channelNum, key, vel,
 
-	csound->RegisterDeinitCallback((void *)&csound, (void *)&fluid->h,
+        csound->RegisterDeinitCallback((void *)&csound, (void *)&fluid->h,
                                           &fluidNoteTurnoff);
 
     return OK;
   }
-
 
 //  int fluidNoteKopadr(ENVIRON *csound, void *data)
 //  {

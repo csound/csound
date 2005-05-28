@@ -1,5 +1,5 @@
 /**
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -32,24 +32,23 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound 
+namespace csound
 {
-	/**
-	* Score node that simplifies building up repetitive
-	* and overlapping motivic cells, such as used in Minimalism.
-	*/
-	class Cell : 
-		public ScoreNode
-	{
-	public:
-		int repeatCount;
-		bool relativeDuration;
-		double durationSeconds;
-		Cell();
-		virtual ~Cell();
-		virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
-	};
+        /**
+        * Score node that simplifies building up repetitive
+        * and overlapping motivic cells, such as used in Minimalism.
+        */
+        class Cell :
+                public ScoreNode
+        {
+        public:
+                int repeatCount;
+                bool relativeDuration;
+                double durationSeconds;
+                Cell();
+                virtual ~Cell();
+                virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+        };
 }
 #endif
-
 

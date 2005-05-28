@@ -320,7 +320,6 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     return csound->InitError(csound, csound->errmsg);
 }
 
-
 int vpvoc(ENVIRON *csound, VPVOC *p)
 {
     int    n;

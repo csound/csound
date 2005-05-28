@@ -31,7 +31,6 @@
  *          en6mjg@bath.ac.uk
  */
 
-
 int wtinit(ENVIRON *csound, WAVETER *p)
 {
     /* DECLARE */
@@ -116,7 +115,6 @@ int wtPerf(ENVIRON *csound, WAVETER *p)
  *          en6mjg@bath.ac.uk
  */
 
-
 int scanhinit(ENVIRON *csound, SCANHAMMER *p)
 {
   int srcpos = 0;
@@ -150,7 +148,6 @@ int scanhinit(ENVIRON *csound, SCANHAMMER *p)
  *  author: m gilliard
  *          en6mjg@bath.ac.uk
  */
-
 
 int scantinit(ENVIRON *csound, SCANTABLE *p)
 {

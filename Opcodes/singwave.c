@@ -152,7 +152,6 @@ void SingWave_setFreq(ENVIRON *csound, SingWave *p, MYFLT aFreq)
 
 /* #define SingWave_setGainRate(p, gainRate)    Envelope_setRate(&(p.envelope), gainRate) */
 
-
 MYFLT SingWave_tick(SingWave *p)
 {
     MYFLT lastOutput;

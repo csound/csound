@@ -1,6 +1,6 @@
 '''
-Modify this file, by platform, to handle nonstandard options for third-party 
-dependencies. If you do modify this file, you should make it read-only 
+Modify this file, by platform, to handle nonstandard options for third-party
+dependencies. If you do modify this file, you should make it read-only
 (or otherwise protect it) so that CVS will not overwrite it.
 
 Order is important: place local paths ahead of system paths.
@@ -48,7 +48,7 @@ elif sys.platform[:3] == 'win':
     # a MinGW import library for Python. Add them here:
     customCPPPATH.append('c:/utah/opt/Python23/include')
     customCPPPATH.append('c:/utah/usr/mingw/include')
-    customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')    
+    customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')
     customSWIGFLAGS.append('-Derrmsg=err_msg')
     ################################################################
     # If you want to build CsoundVST you need boost.
@@ -56,19 +56,18 @@ elif sys.platform[:3] == 'win':
     # (you do NOT need to build it first):
     customCPPPATH.append('c:/utah/opt/boost')
     ################################################################
-    # If you want to build the FluidSynth opcodes 
+    # If you want to build the FluidSynth opcodes
     # you need FluidSynth. If it is not a standard location,
     # add it here (you do NOT need to build it first):
     #customLIBPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32')
     #customCPPPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32/include')
     ################################################################
     # If you want to build the Java wrapper for CsoundVST
-    # you need Java. If it is not in a standard location, 
+    # you need Java. If it is not in a standard location,
     # add it here (you do NOT need to build it first):
     customCPPPATH.append('c:/utah/opt/jdk1.5.0/include')
     customCPPPATH.append('c:/utah/opt/jdk1.5.0/include/win32')
     platform = 'mingw'
 else:
     platform = 'unsupported platform'
-
 

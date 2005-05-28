@@ -5,7 +5,6 @@
 #include <math.h>
 #include <string.h>
 
-
 #include "sdif.h"
 #include "sdif-mem.h"
 
@@ -19,8 +18,6 @@
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;
-
-
 
 int
 SDIF_Read1TRCVals(FILE *f,
@@ -55,14 +52,12 @@ void usage(void){
                "      of 1024 partials may not be realized in all cases.\n");
 }
 
-
 typedef struct partial_point{
         float amp;
         float freq;
         float pos;
         struct partial_point *next;
 } P_POINT;
-
 
 typedef struct partial_props {
         long numpoints;
@@ -89,7 +84,6 @@ P_POINT *new_ppoint(float amp,float freq,float pos)
     return point;
 }
 
-
 /* if anyone wants it, there is enough information to select a
    frequency range to output.*/
 
@@ -106,8 +100,6 @@ PPROPS *new_pprops(void)
     }
     return prop;
 }
-
-
 
 int main(int argc, char **argv)
 {

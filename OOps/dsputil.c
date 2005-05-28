@@ -148,7 +148,6 @@ void Rect2Polar(MYFLT *buffer, long size)
     }
 }
 
-
 void Polar2Rect(MYFLT *buffer, long size) /* reverse above */
 {
     long    i;
@@ -201,7 +200,6 @@ MYFLT maskPhs(MYFLT phs)        /* do it inline instead! */
 #define MMmaskPhs(p,q,s) /* p is pha, q is as int, s is 1/PI */ \
     q = (int)(s*p);     \
     p -= PI_F*(MYFLT)((int)((q+((q>=0)?(q&1):-(q&1) )))); \
-
 
 void UnwrapPhase(MYFLT *buf, long size, MYFLT *oldPh)
 {
@@ -597,7 +595,6 @@ void MakeSinc(void)             /* initialise our static sinc table */
     MYFLT   dtheta  = (MYFLT)(SBW*PI)/(MYFLT)SPTS;/* SBW lowers cutoff to redcali */
     MYFLT   phi     = FL(0.0);     /* phi (hamm arg) reaches pi at max ext */
     MYFLT   dphi    = PI_F/(MYFLT)(SPDS*SPTS);
-
 
     if (sncTab == NULL)
         sncTab = (MYFLT *)malloc((long)(stLen+1) * sizeof(MYFLT));

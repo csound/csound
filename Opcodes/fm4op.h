@@ -122,5 +122,4 @@ typedef struct FM4OPV {
     MYFLT       last_control;
 } FM4OPV;
 
-
 #endif

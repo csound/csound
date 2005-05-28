@@ -41,12 +41,11 @@ udp-simplesynth.c
 #include "OSC-address-space.h"
 #include "OSC-receive.h"
 
-
 /* for select(2) */
 #include <unistd.h>
 #include <sys/types.h>
 #if !defined(HAS_NO_BSTRING_H)
-#	include <bstring.h>
+#       include <bstring.h>
 #endif /* defined(HAS_NO_BSTRING_H) */
 #include <sys/time.h>
 
@@ -81,7 +80,6 @@ udp-simplesynth.c
 #include <sys/file.h>
 #include <sys/prctl.h>
 
-
 #define SRATE 44100.0 /* Hz */
 #define OUTPUTQUEUESIZE 1024 /* Samples */
 
@@ -90,31 +88,29 @@ udp-simplesynth.c
 typedef int FileDescriptor;
 
 static FileDescriptor initudp(int port) {
-	struct sockaddr_in serv_addr;
-	int n, sockfd;
-	
-	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-			return sockfd;
-	bzero((char *)&serv_addr, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serv_addr.sin_port = htons(port);
-	
-	if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-	{
-		perror("unable to  bind\n");
-		return -1;
-	}
+        struct sockaddr_in serv_addr;
+        int n, sockfd;
 
-	fcntl(sockfd, F_SETFL, FNDELAY); 
-	return sockfd;
+        if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+                        return sockfd;
+        bzero((char *)&serv_addr, sizeof(serv_addr));
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        serv_addr.sin_port = htons(port);
+
+        if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+        {
+                perror("unable to  bind\n");
+                return -1;
+        }
+
+        fcntl(sockfd, F_SETFL, FNDELAY);
+        return sockfd;
 }
-
 
 static void closeudp(int sockfd) {
     close(sockfd);
 }
-
 
 static int time_to_quit;
 
@@ -133,38 +129,37 @@ void ReceivePacket(int sockfd) {
     int morePackets = 1;
     char *buf;
 
-
     while(morePackets) {
-	pb = OSCAllocPacketBuffer();
-	if (!pb) {
-	    OSCWarning("Out of memory for packet buffers---had to drop a packet!");
-	    /* How do I actually gobble down the packet? */
-	    return;
-	}
-	buf = OSCPacketBufferGetBuffer(pb);
+        pb = OSCAllocPacketBuffer();
+        if (!pb) {
+            OSCWarning("Out of memory for packet buffers---had to drop a packet!");
+            /* How do I actually gobble down the packet? */
+            return;
+        }
+        buf = OSCPacketBufferGetBuffer(pb);
 
-	/* The type NetworkReturnAddressPtr is const in two ways, so that
-	   callback procedures that are passed the pointer can neither change
-	   the pointer itself or the data the pointer points to.  But here's
-	   where we fill in the return address, so we do a cast to a non-const
-	   type. */
+        /* The type NetworkReturnAddressPtr is const in two ways, so that
+           callback procedures that are passed the pointer can neither change
+           the pointer itself or the data the pointer points to.  But here's
+           where we fill in the return address, so we do a cast to a non-const
+           type. */
 
-	ra = (struct NetworkReturnAddressStruct *) OSCPacketBufferGetClientAddr(pb);
-	ra->clilen = maxclilen;
-	ra->sockfd = sockfd;
+        ra = (struct NetworkReturnAddressStruct *) OSCPacketBufferGetClientAddr(pb);
+        ra->clilen = maxclilen;
+        ra->sockfd = sockfd;
 
-/*	printf("* recvfrom(sockfd %d, buf %p, capacity %d)\n", sockfd, buf, capacity); */
-	n = recvfrom(sockfd, buf, capacity, 0, &(ra->cl_addr), &(ra->clilen));
+/*      printf("* recvfrom(sockfd %d, buf %p, capacity %d)\n", sockfd, buf, capacity); */
+        n = recvfrom(sockfd, buf, capacity, 0, &(ra->cl_addr), &(ra->clilen));
 
-	if (n > 0) {
-	    int *sizep = OSCPacketBufferGetSize(pb);
-	    *sizep = n;
-	    OSCAcceptPacket(pb);
-	    if (time_to_quit) return;
-	} else {
-	    OSCFreePacket(pb);
-	    morePackets = 0;
-	}
+        if (n > 0) {
+            int *sizep = OSCPacketBufferGetSize(pb);
+            *sizep = n;
+            OSCAcceptPacket(pb);
+            if (time_to_quit) return;
+        } else {
+            OSCFreePacket(pb);
+            morePackets = 0;
+        }
     }
 }
 
@@ -175,7 +170,7 @@ void ReceivePacket(int sockfd) {
 void InitPriority(void) {
     /* set process priority high */
     if (schedctl (NDPRI,getpid(), NDPHIMIN) < 0)
-	    perror ("schedctl NDPNORMMIN");
+            perror ("schedctl NDPNORMMIN");
 
     /* lock memory to avoid paging */
     plock(PROCLOCK);
@@ -193,31 +188,31 @@ void InitPriority(void) {
 float the_sample_rate;
 
 FileDescriptor InitAudio(ALport *alpp) {
-	/* initialize audio driver 
- 	   for 16-bit 44100kHz monophonic sample source to DACs */
-	ALconfig alc; 
- 	alc = ALnewconfig();
-	ALsetwidth (alc, AL_SAMPLE_16);
-	ALsetqueuesize (alc, OUTPUTQUEUESIZE);
-	ALsetchannels(alc, (long)1);
-	*alpp = ALopenport("obuf", "w", alc);
-	{
-         	long pvbuf[2];
-		long pvlen=2;
-  	 	 
-		pvbuf[0] = AL_OUTPUT_RATE;
-		pvbuf[1] = AL_RATE_44100; 
-		ALsetparams(AL_DEFAULT_DEVICE, pvbuf, pvlen);
-		the_sample_rate = 44100.0f;
-	}
+        /* initialize audio driver
+           for 16-bit 44100kHz monophonic sample source to DACs */
+        ALconfig alc;
+        alc = ALnewconfig();
+        ALsetwidth (alc, AL_SAMPLE_16);
+        ALsetqueuesize (alc, OUTPUTQUEUESIZE);
+        ALsetchannels(alc, (long)1);
+        *alpp = ALopenport("obuf", "w", alc);
+        {
+                long pvbuf[2];
+                long pvlen=2;
 
-	/* obtain a file descriptor associated with sound output port */
-	return ALgetfd(*alpp);
+                pvbuf[0] = AL_OUTPUT_RATE;
+                pvbuf[1] = AL_RATE_44100;
+                ALsetparams(AL_DEFAULT_DEVICE, pvbuf, pvlen);
+                the_sample_rate = 44100.0f;
+        }
+
+        /* obtain a file descriptor associated with sound output port */
+        return ALgetfd(*alpp);
 }
 
 typedef struct {
     double f;   /* sine wave frequency */
-    float g;	/* gain */
+    float g;    /* gain */
     double t;   /* time */
 } SynthState;
 
@@ -227,24 +222,22 @@ void InitVoice(SynthState *s, float freq) {
     s->t = 0.0;
 }
 
-
 #define VSIZE 32 /* vector size */
 
 void Synthesize(ALport alp, SynthState *v1, SynthState *v2) {
    short samplebuffer[VSIZE];
-    int	i;
+    int i;
     for (i = 0; i < VSIZE; ++i) {
-	/* appropriately scaled sine wave */
-	samplebuffer[i] = 32767.0f * GAIN * 
-	    (v1->g * sin(2.0 * PI * v1->f * v1->t) + 
-	     v2->g * sin(2.0 * PI * v2->f * v2->t));
-	v1->t += 1.0 / SRATE; /* the march of time */
-	v2->t += 1.0 / SRATE; /* the march of time */
+        /* appropriately scaled sine wave */
+        samplebuffer[i] = 32767.0f * GAIN *
+            (v1->g * sin(2.0 * PI * v1->f * v1->t) +
+             v2->g * sin(2.0 * PI * v2->f * v2->t));
+        v1->t += 1.0 / SRATE; /* the march of time */
+        v2->t += 1.0 / SRATE; /* the march of time */
     }
     /* send samples out the door */
     ALwritesamps(alp, samplebuffer, VSIZE);
 }
-
 
 #define BIGGER_OF(a,b) ((a)>(b)?(a):(b))
 
@@ -253,8 +246,8 @@ void MainLoop(ALport alp, FileDescriptor dacfd, FileDescriptor sockfd, SynthStat
     int hwm = 1000, lwm = 800;
     fd_set read_fds, write_fds;
 
-    /* largest file descriptor to search for */    
-    int	nfds = BIGGER_OF(dacfd, sockfd) + 1;
+    /* largest file descriptor to search for */
+    int nfds = BIGGER_OF(dacfd, sockfd) + 1;
 
     printf("MainLoop: dacfd %d, sockfd %d, nfds %d\n", dacfd, sockfd, nfds);
 
@@ -263,57 +256,57 @@ void MainLoop(ALport alp, FileDescriptor dacfd, FileDescriptor sockfd, SynthStat
 
     while(!time_to_quit) {
 
-	/* compute sine wave samples while the sound output buffer is below
-	   the high water mark */
+        /* compute sine wave samples while the sound output buffer is below
+           the high water mark */
 
-	while (ALgetfilled(alp) < hwm) {
-	    Synthesize(alp, v1, v2);
-	}
+        while (ALgetfilled(alp) < hwm) {
+            Synthesize(alp, v1, v2);
+        }
 
-	/* Figure out the time tag corresponding to the time in the future that we haven't
-	   computed any samples for yet. */
-	OSCInvokeAllMessagesThatAreReady(OSCTT_PlusSeconds(OSCTT_CurrentTime(), 
-							   ALgetfilled(alp) / the_sample_rate));
+        /* Figure out the time tag corresponding to the time in the future that we haven't
+           computed any samples for yet. */
+        OSCInvokeAllMessagesThatAreReady(OSCTT_PlusSeconds(OSCTT_CurrentTime(),
+                                                           ALgetfilled(alp) / the_sample_rate));
 
 #if !defined(LINUX)/* ALsetfillpoint is not defined in the libaudio I have */
-	/* set the low water mark, i.e. when we want control from select(2) */
-	ALsetfillpoint(alp, OUTPUTQUEUESIZE - lwm);
+        /* set the low water mark, i.e. when we want control from select(2) */
+        ALsetfillpoint(alp, OUTPUTQUEUESIZE - lwm);
 #endif /* !defined(LINUX) */
 
-	/* set up select */
-	FD_ZERO(&read_fds);	/* clear read_fds */
-	FD_ZERO(&write_fds);	/* clear write_fds */
-	FD_SET(dacfd, &write_fds);
-	FD_SET(sockfd, &read_fds); 
+        /* set up select */
+        FD_ZERO(&read_fds);     /* clear read_fds */
+        FD_ZERO(&write_fds);    /* clear write_fds */
+        FD_SET(dacfd, &write_fds);
+        FD_SET(sockfd, &read_fds);
 
-	FD_SET(0, &read_fds);	/* stdin */
+        FD_SET(0, &read_fds);   /* stdin */
 
-	/* give control back to OS scheduler to put us to sleep until the DAC
-	   queue drains and/or a character is available from standard input */
+        /* give control back to OS scheduler to put us to sleep until the DAC
+           queue drains and/or a character is available from standard input */
 
-	if (select(nfds, &read_fds, &write_fds, (fd_set * )0, (struct timeval *)0) < 0) {
-	    /* select reported an error */
-	    perror("bad select"); 
-	    goto quit;
-	}
+        if (select(nfds, &read_fds, &write_fds, (fd_set * )0, (struct timeval *)0) < 0) {
+            /* select reported an error */
+            perror("bad select");
+            goto quit;
+        }
 
-	if(FD_ISSET(sockfd, &read_fds)) {
-	    ReceivePacket(sockfd);
-	}
+        if(FD_ISSET(sockfd, &read_fds)) {
+            ReceivePacket(sockfd);
+        }
 
-	/* is there a character in the queue? */
-	if (FD_ISSET(0, &read_fds)) {
-	    /* this will never block */
-	    char c = getchar();
+        /* is there a character in the queue? */
+        if (FD_ISSET(0, &read_fds)) {
+            /* this will never block */
+            char c = getchar();
 
-	    if (c == 'q') {
-		/* quit */
-		break;
-	    } else if ((c <= '9') && (c >= '0')) {
-		/* tweak frequency */
-		v1->f = 440.0 + 100.0 * (c - '0');
-	    }
-	}
+            if (c == 'q') {
+                /* quit */
+                break;
+            } else if ((c <= '9') && (c >= '0')) {
+                /* tweak frequency */
+                v1->f = 440.0 + 100.0 * (c - '0');
+            }
+        }
     }
 quit:
     ALcloseport(alp);
@@ -337,13 +330,12 @@ void FreqMethod(void *vs, int arglen, const void *vargs, OSCTimeTag when, Networ
     const float *args = vargs;
 
     if (arglen == 4) {
-/*	printf("*** FreqMethod arg %f, when %llx\n", args[0], when); */
-	s->f = args[0];
+/*      printf("*** FreqMethod arg %f, when %llx\n", args[0], when); */
+        s->f = args[0];
     } else {
-	OSCWarning("Wrong arglen to FreqMethod: %d", arglen);
+        OSCWarning("Wrong arglen to FreqMethod: %d", arglen);
     }
 }
-
 
 void ScaleMethod(void *vs, int arglen, const void *vargs, OSCTimeTag when, NetworkReturnAddressPtr ra) {
     int i;
@@ -356,17 +348,17 @@ void ScaleMethod(void *vs, int arglen, const void *vargs, OSCTimeTag when, Netwo
     int newarglen = 4;
 
 /*    printf("*ScaleMethod (context %p, arglen %d, args %p, when %llx, ra %p)\n",
-	   vs, arglen, vargs, when, ra); */
+           vs, arglen, vargs, when, ra); */
 
     ptrToArgs[0] = newarg;
     for (i = 0; i < 9; ++i) {
-	newarg[0] = 100.f + i * 50.f;
+        newarg[0] = 100.f + i * 50.f;
 
-	r = OSCScheduleInternalMessages(OSCTT_PlusSeconds(now, (float) i), 1, &address, &newarglen, ptrToArgs);
+        r = OSCScheduleInternalMessages(OSCTT_PlusSeconds(now, (float) i), 1, &address, &newarglen, ptrToArgs);
 
-	if (r == FALSE) {
-	    OSCWarning("ScaleMethod: OSCScheduleInternalMessages returned FALSE");
-	}
+        if (r == FALSE) {
+            OSCWarning("ScaleMethod: OSCScheduleInternalMessages returned FALSE");
+        }
     }
 
 }
@@ -376,9 +368,9 @@ void GainMethod(void *vs, int arglen, const void *vargs, OSCTimeTag when, Networ
     const float *args = vargs;
 
     if (arglen == 4) {
-	s->g = args[0];
+        s->g = args[0];
     } else {
-	OSCWarning("Wrong arglen to GainMethod: %d", arglen);
+        OSCWarning("Wrong arglen to GainMethod: %d", arglen);
     }
 }
 
@@ -400,13 +392,13 @@ void AllMyStringsMethod(void *dummy, int arglen, const void *args, OSCTimeTag wh
     r = OSCParseStringList(strings, &numFound, MAX_NUM_STRINGS, args, arglen);
 
     if (!r) {
-	OSCWarning("AllMyStringsMethod: OSCParseStringList() returned FALSE");
-	return;
+        OSCWarning("AllMyStringsMethod: OSCParseStringList() returned FALSE");
+        return;
     }
 
     printf("\nAll My Strings:\n");
     for (i = 0; i < numFound; ++i) {
-	printf(" strings[%d] is %p: \"%s\"\n", i, strings[i], strings[i]);
+        printf(" strings[%d] is %p: \"%s\"\n", i, strings[i], strings[i]);
     }
 }
 
@@ -457,9 +449,8 @@ void InitOSCReceive() {
     result = OSCInitReceive(&rt);
 
     if (result == FALSE) {
-	fatal_error("OSCInitReceive returned FALSE!\n");
+        fatal_error("OSCInitReceive returned FALSE!\n");
     }
-
 
 }
 
@@ -468,13 +459,11 @@ void InitOSC(SynthState *v1, SynthState *v2) {
     InitOSCReceive();
 }
 
-
 int main() {
     ALport alp;
-    FileDescriptor dacfd, sockfd;	
+    FileDescriptor dacfd, sockfd;
     int udp_port = 7000;
     SynthState voices[2];
-
 
     InitVoice(voices, 440);
     InitVoice(voices+1, 220);
@@ -482,8 +471,8 @@ int main() {
     dacfd = InitAudio(&alp);
     sockfd = initudp(udp_port);
     if(sockfd<0) {
-	perror("initudp");
-	return;
+        perror("initudp");
+        return;
     }
 
     InitPriority();

@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -35,30 +35,30 @@
 
 namespace csound
 {
-	class MCRM : 
-		public ScoreNode
-	{
-		// Hutchinson operator.
-		std::vector< ublas::matrix<double> > transformations;
-		// Pseudo-Markov operator.
-		ublas::matrix<double> weights;
-		// Depth of recursion.
-		int depth;
-		// Recursive iteration.
-		void iterate(int depth, size_t p, const Event &event, double weight);
-	public:
-		MCRM();
-		virtual ~MCRM();
-		void setDepth(int depth);
-		void resize(size_t transformations);
-		void setTransformationElement(size_t index, size_t row, size_t column, double value);
-		void setWeight(size_t precursor, size_t successor, double weight);
-		void generate();
-		// Node overrides.
-		virtual void produceOrTransform(Score &score, 
-			size_t beginAt, 
-			size_t endAt, 
-			const ublas::matrix<double> &coordinates);
-	};
+        class MCRM :
+                public ScoreNode
+        {
+                // Hutchinson operator.
+                std::vector< ublas::matrix<double> > transformations;
+                // Pseudo-Markov operator.
+                ublas::matrix<double> weights;
+                // Depth of recursion.
+                int depth;
+                // Recursive iteration.
+                void iterate(int depth, size_t p, const Event &event, double weight);
+        public:
+                MCRM();
+                virtual ~MCRM();
+                void setDepth(int depth);
+                void resize(size_t transformations);
+                void setTransformationElement(size_t index, size_t row, size_t column, double value);
+                void setWeight(size_t precursor, size_t successor, double weight);
+                void generate();
+                // Node overrides.
+                virtual void produceOrTransform(Score &score,
+                        size_t beginAt,
+                        size_t endAt,
+                        const ublas::matrix<double> &coordinates);
+        };
 }
 #endif

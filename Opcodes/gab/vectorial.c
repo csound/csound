@@ -22,7 +22,6 @@
 #include "vectorial.h"
 #include <math.h>
 
-
 #ifdef MAKEDLL
 /* #define PUBLIC __declspec(dllexport) */
 #define DIR_SEP '\\'
@@ -30,7 +29,6 @@
 /* #define PUBLIC */
 #define DIR_SEP '/'
 #endif
-
 
 int mtable_i(ENVIRON *csound,MTABLEI *p)
 {
@@ -185,7 +183,6 @@ int mtable_a(ENVIRON *csound,MTABLE *p)
     }
     return OK;
 }
-
 
 int mtab_i(ENVIRON *csound,MTABI *p)
 {
@@ -434,7 +431,6 @@ int mtabw_a(ENVIRON *csound,MTABW *p)
     return OK;
 }
 
-
 /* The following opcodes come from CsoundAV/vectorial.c */
 
 int vectorOp_set(ENVIRON *csound,VECTOROP *p)
@@ -517,7 +513,6 @@ int vectorsOp_set(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-
 int vcopy(ENVIRON *csound,VECTORSOP *p)
 {
     int elements = p->elements;
@@ -550,8 +545,6 @@ int vcopy_i(ENVIRON *csound,VECTORSOP *p)
     } while (--elements);
     return OK;
 }
-
-
 
 int vaddv(ENVIRON *csound,VECTORSOP *p)
 {
@@ -632,7 +625,6 @@ int vmap(ENVIRON *csound,VECTORSOP *p)
     } while (--elements);
     return OK;
 }
-
 
 int vlimit_set(ENVIRON *csound,VLIMIT *p)
 {
@@ -846,7 +838,6 @@ int vrandi_set(ENVIRON *csound,VRANDI *p)
     return OK;
 }
 
-
 int vrandi(ENVIRON *csound,VRANDI *p)
 {
     MYFLT *vector = p->vector, *num1 = p->num1, *num2, *dfdmax = p->dfdmax;
@@ -937,7 +928,6 @@ int vecdly_set(ENVIRON *csound,VECDEL *p)
     return OK;
 }
 
-
 int vecdly(ENVIRON *csound,VECDEL *p)
 {
     long maxd = p->maxd, *indx=p->left, v1, v2;
@@ -963,7 +953,6 @@ int vecdly(ENVIRON *csound,VECDEL *p)
     } while (--elements);
     return OK;
 }
-
 
 int vseg_set(ENVIRON *csound,VSEG *p)
 {
@@ -1269,7 +1258,6 @@ int ca_set(ENVIRON *csound,CELLA *p)
     return OK;
 }
 
-
 int ca(ENVIRON *csound,CELLA *p)
 {
     if (*p->kreinit) {
@@ -1316,7 +1304,6 @@ int ca(ENVIRON *csound,CELLA *p)
     }
     return OK;
 }
-
 
 #define S sizeof
 

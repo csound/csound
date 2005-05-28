@@ -31,20 +31,16 @@
 #include "pstream.h"
 #include "oload.h"
 
-
-
 /* CARL/CDP fft routines  */
 extern void fft_(ENVIRON*, MYFLT *, MYFLT *,int,int,int,int);
 extern void fftmx(MYFLT *,MYFLT *,int,int,int,int,int,int *,
                   MYFLT *,MYFLT *,MYFLT *,MYFLT *,int *,int[]);
 extern void reals_(ENVIRON*,MYFLT *,MYFLT *,int,int);
 
-
 static void generate_frame(ENVIRON*,PVSANAL *p);
 static void process_frame(ENVIRON*,PVSYNTH *p);
 void    hamming(MYFLT *win,int winLen,int even);
 void    vonhann(MYFLT *win,int winLen,int even);
-
 
 int pvsanalset(ENVIRON *csound, PVSANAL *p)
 {
@@ -140,7 +136,6 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
     for (i = -halfwinsize; i <= halfwinsize; i++)
       *(analwinhalf + i) *= sum;
 
-
   /*    p->invR = (float)(FL(1.0) / csound->esr); */
     p->RoverTwoPi = (float)(p->arate / TWOPI_F);
     p->TwoPioverR = (float)(TWOPI_F / p->arate);
@@ -207,7 +202,6 @@ static void generate_frame(ENVIRON *csound, PVSANAL *p)
        pairs of real and imaginary values for the lowest (N/2 + 1)
        channels.   The subroutines fft and reals together implement
        one efficient FFT call for a real input sequence.  */
-
 
     for (i = 0; i < N+2; i++)
       *(anal + i) = FL(0.0);       /*initialize*/
@@ -314,7 +308,6 @@ static void generate_frame(ENVIRON *csound, PVSANAL *p)
     p->IOi = p->Ii;
 }
 
-
 static void anal_tick(ENVIRON *csound, PVSANAL *p,MYFLT samp)
 {
     MYFLT *inbuf = (MYFLT *) (p->overlapbuf.auxp);
@@ -328,7 +321,6 @@ static void anal_tick(ENVIRON *csound, PVSANAL *p,MYFLT samp)
     inbuf[p->inptr++] = samp;
 
 }
-
 
 int pvsanal(ENVIRON *csound, PVSANAL *p)
 {
@@ -345,7 +337,6 @@ int pvsanal(ENVIRON *csound, PVSANAL *p)
       anal_tick(csound,p,ain[i]);
     return OK;
 }
-
 
 int pvsynthset(ENVIRON *csound, PVSYNTH *p)
 {
@@ -371,7 +362,6 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
     halfwinsize = M/2;
     buflen = M*4;
     IO = (double) overlap;         /* always, no time-scaling possible */
-
 
     p->arate = csound->esr / (MYFLT) overlap;
     p->fund = csound->esr / (MYFLT) N;

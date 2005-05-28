@@ -42,7 +42,6 @@ extern void bytrev4(char *buf, int nbytes);
 /* of Washington, Seattle 1998              */
 /********************************************/
 
-
 #define WLN   1                 /* time window is WLN*2*ksmps long  */
 
 #define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
@@ -276,7 +275,6 @@ int pvoc(ENVIRON *csound, PVOC *p)
     }
     return OK;
 }
-
 
 /* RWD 8:2001: custom version of ldmemfile();
    enables pvfileio funcs to apply byte-reversal if needed.

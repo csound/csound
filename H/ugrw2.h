@@ -70,7 +70,6 @@ typedef struct {
         MYFLT   prvhtim;        /* Previous khtim. */
 } KPORT;
 
-
 /*************************************/
 
 /* KTONE data structure.
@@ -96,7 +95,6 @@ typedef struct {
         MYFLT   yt1;            /* Previous state */
         MYFLT   prvhp;          /* Previous half power frequency */
 } KTONE;
-
 
 /*************************************/
 
@@ -127,7 +125,6 @@ typedef struct {
         MYFLT   cosf;           /* Intermediate variable to help calculations */
         MYFLT   prvcf, prvbw;   /* Previous centre freq and bandwidth  */
 } KRESON;
-
 
 /*************************************/
 

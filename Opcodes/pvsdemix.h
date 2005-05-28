@@ -1,6 +1,5 @@
 /* pvsdemix.h:
 
-
   (c) Victor Lazzarini, 2005
 
     This file is part of Csound.
@@ -25,7 +24,6 @@ De-mixing of stereo sources.
 
 fsig   pvsdemix fleft,fright,kpos,kwidth,ipoints
 
-
 INITIALIZATION:
 
 ipoints - total number of discrete points, which will divide
@@ -42,15 +40,12 @@ kwidth - the azimuth subspace width, which will determine the number
 of points around kpos which will be used in the de-mixing process.
 (1 <= kwidth <= ipoints).
 
-
 */
-
 
 #ifndef _PVSDEMIX_H
 #define _PVSDEMIX_H
 
 #include "pstream.h"
-
 
 typedef struct _pvsdemix {
         OPDS h;

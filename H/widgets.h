@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 #ifndef CSOUND_WIDGETS_H
 #define CSOUND_WIDGETS_H
 
@@ -46,7 +45,6 @@ typedef struct {
     int exp;
 } SLDBK_ELEMENT;
 
-
   /*----------- */
 typedef struct  {
     OPDS        h;
@@ -54,8 +52,6 @@ typedef struct  {
     MYFLT  *ix, *iy, *itypetable, *iexptable, *ioutablestart_ndx, *iminmaxtable;
     SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
 } FLSLIDERBANK;
-
-
 
 typedef struct  {
     OPDS    h;
@@ -66,7 +62,6 @@ typedef struct  {
     OPDS    h;
     MYFLT *kvalue, *ihandle;
 } FLBUTTONCALL;
-
 
 typedef struct  {
     OPDS    h;
@@ -85,7 +80,6 @@ typedef struct  {
     long tablen;
 
 } FLROLLER;
-
 
 typedef struct  {
     OPDS    h;
@@ -184,7 +178,6 @@ typedef struct  {
     MYFLT *ihandle, *itext, *itype, *ifont, *isize;
     MYFLT *iwidth, *iheight, *ix, *iy;
 } FL_BOX;
-
 
 /*---------------*/
 typedef struct  {

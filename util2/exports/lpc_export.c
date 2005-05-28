@@ -1,4 +1,4 @@
-/*  
+/*
     lpc_export.c
 
     Copyright (C) 1995 John ffitch
@@ -87,5 +87,4 @@ int main(int argc, char **argv)
     fclose(inf);
     return 0;
 }
-
 

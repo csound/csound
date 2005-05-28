@@ -66,7 +66,6 @@
    the original spec envelope (defaults to 0)
    igain: amplitude scaling (defaults to 1)
 
-
    PVBLUR:
    fsig pvsblur  fsigin, kblurtime, imaxdel
 
@@ -91,7 +90,6 @@
    klevel: mask function level (ftable is scaled by this value prior to 'stenciling')
    iftable: masking function table
 
-
    opcode table entries:
    {"pvscale", S(PVSSCALE), 3,"f", "fkop", pvsscaleset, pvsscale, NULL },
    {"pvshift", S(PVSSHIFT), 3,"f", "fkopo", pvsshiftset, pvsshift, NULL },
@@ -100,14 +98,12 @@
    {"pvsblur", S(PVSBLUR), 3, "f", "fki", pvsblurset, pvsblur, NULL},
    {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", pvstencilset, pvstencil, NULL}
 
-
 */
 
 #ifndef _PVSBASIC_H
 #define _PVSBASIC_H
 
 #include "pstream.h"
-
 
 typedef struct _pvsmix {
         OPDS    h;
@@ -188,6 +184,5 @@ typedef struct _pvstencil {
 
 int pvstencilset(ENVIRON *,PVSTENCIL *p);
 int pvstencil(ENVIRON *,PVSTENCIL *p);
-
 
 #endif

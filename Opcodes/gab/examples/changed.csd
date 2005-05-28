@@ -20,12 +20,12 @@ printk 0,kvar
 kvar = kvar+5
 noevent:
 
-	endin
+        endin
 
-	instr	2
+        instr   2
 gkvar = gkvar +1
 turnoff
-	endin
+        endin
 
 </CsInstruments>
 <CsScore>

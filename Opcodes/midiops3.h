@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 typedef struct {
     MYFLT *ictlno, *imin, *imax, *initvalue, *ifn;
 } SLD;
@@ -68,11 +67,9 @@ typedef struct {
 
 /*=============================*/
 
-
 typedef struct {
     MYFLT *ictlno, *imin, *imax, *initvalue, *ifn, *ihp;
 } SLDf;
-
 
 typedef struct {
     OPDS   h;

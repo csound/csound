@@ -78,7 +78,6 @@ typedef struct {
         MYFLT   attenuation[MAXSPLT] ;
 } SFIPLAYMONO;
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *out1, *out2, *ivel, *inotnum, *xamp, *xfreq;

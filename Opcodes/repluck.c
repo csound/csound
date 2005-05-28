@@ -120,8 +120,6 @@ int wgpsetin(ENVIRON *csound, WGPLUCK2 *p)
     return OK;
 } /* end wgpset(p) */
 
-
-
                                 /* Access a delay line with wrapping */
 static MYFLT* locate(DelayLine *dl, int position)
 {

@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -32,12 +32,12 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound 
+namespace csound
 {
   /**
    * Node that creates a temporal sequence of child nodes.
    */
-  class Sequence : 
+  class Sequence :
     public Node
   {
   public:
@@ -52,5 +52,4 @@ namespace csound
   };
 }
 #endif
-
 

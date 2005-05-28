@@ -10,7 +10,6 @@ typedef struct {
     MYFLT *table, curr_unit_time;
 } SEQTIM;
 
-
 typedef struct {
     OPDS  h;
     MYFLT *ktrig, *ktrigin, *unit_time, *kstart, *kloop, *kinitndx, *kfn;
@@ -123,10 +122,7 @@ int seqtim(ENVIRON *csound, SEQTIM *p)
     return OK;
 }
 
-
-
 /**---------------------------------------**/
-
 
 int seqtim2_set(ENVIRON *csound, SEQTIM2 *p)
 {

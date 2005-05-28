@@ -53,18 +53,18 @@ void Counterpoint::counterpoint(int OurMode, int *StartPitches, int CurV, int ca
   initialize(cantuslen * 8, CurV);
   if(StartPitches)
     {
-      for (int i = 0; i < CurV; i++) 
-	{
-	  vbs[i] = StartPitches[i];
-	}
+      for (int i = 0; i < CurV; i++)
+        {
+          vbs[i] = StartPitches[i];
+        }
     }
   int i;
-  for (i=1;i<=cantuslen;i++) 
+  for (i=1;i<=cantuslen;i++)
     {
       Ctrpt[i][0] = cantus[i-1];
     }
   for (i=0;i<3;i++)
-    { 
+    {
       Fits[i]=0;
     }
   AnySpecies(OurMode,&vbs[0],CurV,cantuslen,Species);
@@ -88,15 +88,15 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
     {
       double time = 0;
       for(size_t note = 1; note <= size_t(TotalNotes[voice]); note++)
-	{
-	  time = Onset[note][voice] * secondsPerPulse;
-	  duration = Dur[note][voice] * secondsPerPulse;
-	  key = double(Ctrpt[note][voice]);
-	  sprintf(buffer, "i %d %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n", voice + 1, time, duration, key, velocity, phase, x, y, z, pcs);
-	  fprintf(stderr, buffer);
-	  stream << buffer;
-	  totalnotes++;
-	}
+        {
+          time = Onset[note][voice] * secondsPerPulse;
+          duration = Dur[note][voice] * secondsPerPulse;
+          key = double(Ctrpt[note][voice]);
+          sprintf(buffer, "i %d %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n", voice + 1, time, duration, key, velocity, phase, x, y, z, pcs);
+          fprintf(stderr, buffer);
+          stream << buffer;
+          totalnotes++;
+        }
     }
   sprintf(buffer, "; Total notes = %d\n", totalnotes);
   fprintf(stderr, buffer);
@@ -107,10 +107,10 @@ int main(int argc, char **argv)
 {
   Counterpoint counterpoint;
   counterpoint.FillRhyPat();
-  
+
   int trial = 1;
   counterpoint.fillCantus(50,53,52,50,55,53,57,55,53,52,50,0,0,0,0);
-  counterpoint.vbs[0]=57; 
+  counterpoint.vbs[0]=57;
   counterpoint.vbs[1]=62;
   fprintf(stderr,"\n\nTrial %d\n", trial++);
   counterpoint.AnySpecies(Counterpoint::Dorian,&counterpoint.vbs[0],1,11,1);            /* 57 62 -- 38,45,57,62,69,53,50 */
@@ -150,14 +150,14 @@ int main(int argc, char **argv)
   counterpoint.AnySpecies(Counterpoint::Aeolian,&counterpoint.vbs[0],1,12,1);           /* 45 64 */
 
   counterpoint.fillCantus(50,53,52,50,55,53,57,55,53,52,50,0,0,0,0);
-  counterpoint.vbs[0]=57; 
+  counterpoint.vbs[0]=57;
   counterpoint.vbs[1]=62;
   fprintf(stderr,"\n\nTrial %d\n", trial++);
   counterpoint.AnySpecies(Counterpoint::Dorian,&counterpoint.vbs[0],2,11,1);            /* 57 62 -- 38,45,57,62,69,53,50 */
-   
+
   counterpoint.fillCantus(50,53,52,50,55,53,57,55,53,52,50,0,0,0,0);
-  counterpoint.vbs[0]=38; 
-  counterpoint.vbs[1]=57; 
+  counterpoint.vbs[0]=38;
+  counterpoint.vbs[1]=57;
   counterpoint.vbs[2]=62;
   fprintf(stderr,"\n\nTrial %d\n", trial++);
   counterpoint.AnySpecies(Counterpoint::Dorian,&counterpoint.vbs[0],1,11,1);            /* 57 62 -- 38,45,57,62,69,53,50 */

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Copyright (C) 2002 Maurizio Umberto Puxeddu
-  
+
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either
@@ -49,7 +49,6 @@ def generate_pycall_common_init_code(f, n, pre, post, rate, triggered=0):
         print >> f, '       return OK;'
         print >> f, '    }'
         print >> f
-        
 
 def generate_pycall_common_call_code(f, context, withinit, triggered):
     if triggered:
@@ -86,7 +85,7 @@ def generate_pycall_result_conversion_code(f, n, pre, post, rate, triggered=0):
         t, T = 't', 'T'
     else:
         t, T = '', ''
-    if n == 0:     
+    if n == 0:
         print >> f, '  if (result != Py_None) {'
         print >> f, '      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "py%scall0%s%s_%srate: callable must return None\\n");' % (pre, post, t, rate)
         print >> f, '      return NOTOK; }'
@@ -136,7 +135,7 @@ def generate_pylcall_irate_method(f, n, triggered=0):
         t, T = 't', 'T'
     else:
         t, T = '', ''
-        
+
     name = 'pylcall%d%s_irate' % (n, t)
     print >> f, 'int'
     print >> f, '%s(void *csound_, PYCALL%d%s *p)' % (name, n, T)
@@ -206,7 +205,7 @@ def generate_triggered_pycall_method_declaration(f, n):
 
 # --------
 
-f = open('pycall.c.auto', 'w') 
+f = open('pycall.c.auto', 'w')
 for n in range(9):
     generate_pycall_krate_method(f, n)
     generate_pylcall_irate_method(f, n)
@@ -217,7 +216,7 @@ for n in range(9):
     generate_pylcall_irate_method(f, n, 1)
     generate_pylcall_krate_method(f, n, 1)
 f.close()
-    
+
 f = open('pycall.h.auto', 'w')
 for n in range(9):
     generate_pycall_opcode_struct(f, n)

@@ -94,8 +94,6 @@ int PVWriteHdr(FILE *fil, PVSTRUCT *phdr)
     return PVE_OK;
 }
 
-
-
 FILE *PVOpenAllocRdHdr(ENVIRON *csound, char *path, PVSTRUCT **phdr)
     /* read all of candidate header - variable length header */
 {

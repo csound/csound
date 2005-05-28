@@ -30,7 +30,7 @@ atap2       deltapi     kf2                     ;tap delay line with kf2 func.
 ad1         deltap      2.0                     ;delay 2 sec.
 ad2         deltap      1.1                     ;delay 1.1 sec.
             outs        agleft+atap1+ad1, agright+atap2+ad2
-            endin       
+            endin
 ;-------------------------------------------------------------
 ;Instrument 2 : plucked strings chorused left/right and
 ;       pitch-shifted with fixed delayed taps.
@@ -49,16 +49,16 @@ adump       delayr      0.3                     ;set delay line of 0.3 sec
 ad1         deltap      0.1                     ;delay 100 msec.
 ad2         deltap      0.2                     ;delay 200 msec.
             outs        agleft+ad1, agright+ad2
-            endin       
+            endin
 ;-----------------------------------------------------------
 ;Instrument 3 : New FM algorithm, modified to produce large timbre
-;               shifts using modulation of I and r. Detuned chorusing employed. 
+;               shifts using modulation of I and r. Detuned chorusing employed.
 ;-----------------------------------------------------------
             instr       3
 ishift      =           .00666667               ;shift it 8/1200.
 ipch        =           cpspch(p5)              ;convert parameter 5 to cps.
 ioct        =           octpch(p5)              ;convert parameter 5 to oct.
-kadsr       linseg      0, p3/3, 1.0, p3/3, 1.0, p3/3, 0 ;ADSR envelope 
+kadsr       linseg      0, p3/3, 1.0, p3/3, 1.0, p3/3, 0 ;ADSR envelope
 kmodi       linseg      0, p3/3, 5, p3/3, 3, p3/3, 0 ;ADSR envelope for I
 kmodr       linseg      p6, p3, p7              ;r moves from p6->p7 in p3 sec.
 a1          =           kmodi*(kmodr-1/kmodr)/2
@@ -71,8 +71,7 @@ ao2         oscil       a2*ipch, ipch, 2        ;cosine
 aoutl       oscil       1000*kadsr*a4, ao2+cpsoct(ioct+ishift), 1 ;fnl outleft
 aoutr       oscil       1000*kadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
             outs        aoutl, aoutr
-            endin       
-
+            endin
 
 </CsInstruments>
 <CsScore>
@@ -85,13 +84,13 @@ aoutr       oscil       1000*kadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
 ;           The first part of the score will specify all function
 ;       tables used in the piece. The second part specifies
 ;       the instruments and notes. The latter is divided into
-;       7 sections, each playing a chord on a different 
+;       7 sections, each playing a chord on a different
 ;                 instrument.
 ;       The chords are uncommon guitar chords that use the open
 ;       B and E strings often. These will be transposed by
 ;       octaves on some chords.
 
-;       Each instrument will play a chord for 15 seconds. The 
+;       Each instrument will play a chord for 15 seconds. The
 ;                 timbre
 ;       of the instrument will change in that interval and join
 ;       with the next instrument/chord sequence. Instrument 3
@@ -101,7 +100,7 @@ aoutr       oscil       1000*kadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
 
 ;   The Function Tables
 ;   -------------------
-;All functions are post-normalized (max value is 1) if p4 is 
+;All functions are post-normalized (max value is 1) if p4 is
 ;POSITIVE.
 
 f1 0 8192 10 1      ;sine wave
@@ -168,7 +167,7 @@ i3 . . . 8.10 . .   ;Bb next one up
 i3 . . . 8.11 . .   ;B
 i3 . . . 9.04 . .   ;E
 
-; This section adds the plucked chords to the beginning of each 
+; This section adds the plucked chords to the beginning of each
 ; section.
 
 ;F#7addB chord on a guitar
@@ -227,14 +226,6 @@ i1 45.3 . . 10.10   ;Bb next one up
 i1 45.4 . . 10.11   ;B
 i1 45.5 . . 11.04   ;E
 e
-
-
-
-
-
-
-
-
 
 </CsScore>
 </CsoundSynthesizer>

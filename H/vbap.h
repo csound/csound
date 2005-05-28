@@ -35,13 +35,11 @@ typedef struct {
   MYFLT z;
 } CART_VEC;
 
-
 typedef struct {
   MYFLT azi;
   MYFLT ele;
   MYFLT length;
 } ANG_VEC;
-
 
 /* A struct for gain factors */
 typedef struct {
@@ -57,7 +55,6 @@ typedef struct {
   MYFLT smallest_wt;
   int neg_g_am;
 } LS_SET;
-
 
 /* VBAP structure for FOUR loudspeaker panning*/
 typedef struct {
@@ -78,8 +75,6 @@ typedef struct {
   CART_VEC spread_base;
   ANG_VEC ang_dir;
 }  VBAP_FOUR;
-
-
 
 /* VBAP structure of FOUR loudspeaker moving panning*/
 typedef struct {
@@ -104,8 +99,6 @@ typedef struct {
   MYFLT ele_vel;
 }  VBAP_FOUR_MOVING;
 
-
-
 /* VBAP structure of eight loudspeaker panning*/
 typedef struct {
   OPDS      h;                  /* required header */
@@ -125,8 +118,6 @@ typedef struct {
   CART_VEC spread_base;
   ANG_VEC ang_dir;
 }  VBAP_EIGHT;
-
-
 
 /* VBAP structure of EIGHT loudspeaker moving panning*/
 typedef struct {
@@ -153,8 +144,6 @@ typedef struct {
   MYFLT ele_vel;
 }  VBAP_EIGHT_MOVING;
 
-
-
 /* VBAP structure of SIXTEEN loudspeaker panning*/
 typedef struct {
   OPDS      h;                  /* required header */
@@ -176,8 +165,6 @@ typedef struct {
   CART_VEC spread_base;
   ANG_VEC ang_dir;
 }  VBAP_SIXTEEN;
-
-
 
 /* VBAP structure of SIXTEEN loudspeaker moving panning*/
 typedef struct {
@@ -226,8 +213,6 @@ typedef struct {
   ANG_VEC ang_dir;
 }  VBAP_THIRTYTWO;
 
-
-
 /* VBAP structure of THIRTYTWO loudspeaker moving panning*/
 typedef struct {
   OPDS      h;                  /* required header */
@@ -253,13 +238,11 @@ typedef struct {
   MYFLT ele_vel;
 }  VBAP_THIRTYTWO_MOVING;
 
-
 typedef struct {
   OPDS      h;                  /* required header */
   MYFLT     *dim, *ls_amount;
   MYFLT     *f[64];
 }  VBAP_LS_INIT;
-
 
 /* A struct for a loudspeaker instance */
 typedef struct {
@@ -274,7 +257,6 @@ typedef struct ls_triplet_chain {
   MYFLT inv_mx[9];
   struct ls_triplet_chain *next;
 } ls_triplet_chain;
-
 
 /* functions */
 
@@ -313,7 +295,6 @@ extern void cart_to_angle(CART_VEC cvec, ANG_VEC *avec);
 extern void angle_to_cart(ANG_VEC avec, CART_VEC *cvec);
 extern void normalize_wts(OUT_WTS *wts);
 
-
 extern int vbap_FOUR_control(ENVIRON*, VBAP_FOUR *p);
 extern int vbap_EIGHT_control(ENVIRON*, VBAP_EIGHT *p);
 extern int vbap_SIXTEEN_control(ENVIRON*, VBAP_SIXTEEN *p);
@@ -329,7 +310,6 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[CHANNELS] );
 
 void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir, CART_VEC spread_base, MYFLT azi, MYFLT spread);
 void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir, MYFLT spread, CART_VEC *spread_base);
-
 
 /* VBAP structure for ZAK loudspeaker panning*/
 typedef struct {
@@ -351,8 +331,6 @@ typedef struct {
   CART_VEC  spread_base;
   ANG_VEC   ang_dir;
 }  VBAP_ZAK;
-
-
 
 /* VBAP structure of ZAK loudspeaker moving panning*/
 typedef struct {
@@ -378,7 +356,4 @@ typedef struct {
   int       point_change_interval, point_change_counter, curr_fld, next_fld;
   MYFLT     ele_vel;
 }  VBAP_ZAK_MOVING;
-
-
-
 

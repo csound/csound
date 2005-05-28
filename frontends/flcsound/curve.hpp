@@ -32,20 +32,20 @@ class Curve
 {
 public:
   Curve(float *, size_t, const std::string&, Polarity,
-	float, float, float, float, bool);
+        float, float, float, float, bool);
   Curve(double *, size_t, const std::string&, Polarity,
-	double, double, double, double, bool);
+        double, double, double, double, bool);
   Curve(const Curve&);
   Curve &operator=(const Curve&);
   ~Curve();
   float *get_data() const;
-  size_t get_size() const;	// number of points
+  size_t get_size() const;      // number of points
   std::string get_caption() const; // title of curve
   Polarity get_polarity() const; // polarity
-  float get_max() const;	// curve max
-  float get_min() const;	// curve min
-  float get_absmax() const;	// abs max of above
-  float get_y_scale() const;	// Y axis scaling factor
+  float get_max() const;        // curve max
+  float get_min() const;        // curve min
+  float get_absmax() const;     // abs max of above
+  float get_y_scale() const;    // Y axis scaling factor
   bool is_divider_dotted() const; // Add dotted divider when true
   bool has_same_caption(Curve *) const;
 private:

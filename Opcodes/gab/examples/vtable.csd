@@ -19,9 +19,9 @@ event "i", 2, 0, 0.5, kindex
 kindex = kindex + 1
 noevent:
 
-	endin
+        endin
 
-	instr	2
+        instr   2
 iout1 init 0
 iout2 init 0
 iout3 init 0
@@ -30,7 +30,7 @@ indx = p4
 vtablei  indx, 1, 1, 0, iout1,iout2, iout3, iout4
 print iout1, iout2, iout3, iout4
 turnoff
-	endin
+        endin
 
 </CsInstruments>
 <CsScore>

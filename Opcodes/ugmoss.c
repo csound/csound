@@ -560,8 +560,6 @@ int ftmorf(ENVIRON *csound, FTMORF *p)
     return OK;
 }
 
-
-
 /* end of ugmoss.c */
 #define S       sizeof
 

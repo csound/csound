@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -33,7 +33,7 @@
 
 #else
 // Hack to compile all this GNU stuff on Windows.
-#ifdef _MSC_VER                    
+#ifdef _MSC_VER
 #include <windows.h>
 #include <mmsystem.h>
 #endif
@@ -45,7 +45,6 @@
 
 #endif
 
-
 class CsoundVstFltk;
 
 class Preset
@@ -55,7 +54,7 @@ public:
   std::string text;
 };
 
-class CsoundVST : 
+class CsoundVST :
   public AudioEffectX,
   public csound::Shell
 {
@@ -146,10 +145,10 @@ public:
   virtual bool getIsAutoPlayback() const;
   virtual void setIsAutoPlayback(bool autoPlay);
   static int midiDeviceOpen(void *csound, void **userData,
-			    const char *devName);
+                            const char *devName);
 
   static int midiRead(void *csound, void *userData,
-		      unsigned char *buf, int nbytes);
+                      unsigned char *buf, int nbytes);
 };
 
 #if !defined(SWIGJAVA)

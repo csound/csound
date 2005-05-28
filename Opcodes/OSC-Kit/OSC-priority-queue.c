@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -56,13 +56,11 @@ void OSCQueuePrint(OSCQueue q);
 
 #define CAPACITY 1000
 
-
 struct OSCQueueStruct {
     OSCSchedulableObject list[CAPACITY];
     int n;
     int scanIndex;
 };
-
 
 OSCQueue OSCNewQueue(int maxItems, void *(*InitTimeMalloc)(int numBytes)) {
     OSCQueue result;
@@ -92,15 +90,14 @@ OSCBoolean OSCQueueInsert(OSCQueue q, OSCSchedulableObject new) {
     return TRUE;
 }
 
-
 OSCTimeTag OSCQueueEarliestTimeTag(OSCQueue q) {
     int i;
     OSCTimeTag smallest = OSCTT_BiggestPossibleTimeTag();
 
     for (i = 0; i < q->n; ++i) {
-	if (OSCTT_Compare(smallest, q->list[i]->timetag) > 0) {
-	    smallest = q->list[i]->timetag;
-	}
+        if (OSCTT_Compare(smallest, q->list[i]->timetag) > 0) {
+            smallest = q->list[i]->timetag;
+        }
     }
 
 #ifdef DEBUG_OSC_PRIORITY_QUEUE
@@ -110,13 +107,12 @@ OSCTimeTag OSCQueueEarliestTimeTag(OSCQueue q) {
     return smallest;
 }
 
-
 static void RemoveElement(int goner, OSCQueue q) {
     int i;
     --(q->n);
 
     for (i = goner; i < q->n; ++i) {
-	q->list[i] = q->list[i+1];
+        q->list[i] = q->list[i+1];
     }
 }
 
@@ -134,8 +130,8 @@ OSCSchedulableObject OSCQueueRemoveEarliest(OSCQueue q) {
     smallestIndex = 0;
     for (i = 1; i < q->n; ++i) {
         if (OSCTT_Compare(q->list[smallestIndex]->timetag, q->list[i]->timetag) > 0) {
-	    smallestIndex = i;
-	}
+            smallestIndex = i;
+        }
     }
 
     result = q->list[smallestIndex];
@@ -157,11 +153,11 @@ void OSCQueuePrint(OSCQueue q) {
 
     for (i = 0; i < q->n; ++i) {
 #ifdef HAS8BYTEINT
-	printf("   list[%2d] is %p, timetag = %llu\n",
+        printf("   list[%2d] is %p, timetag = %llu\n",
                i, (void*) q->list[i],
                (unsigned long long) q->list[i]->timetag);
 #else
-	printf("   list[%2d] is %p, timetag = %f\n",
+        printf("   list[%2d] is %p, timetag = %f\n",
                i, (void*) q->list[i],
                (double) q->list[i]->timetag.seconds
                + ((double) q->list[i]->timetag.fraction * 1.0e-9));
@@ -171,7 +167,6 @@ void OSCQueuePrint(OSCQueue q) {
 }
 
 #endif
-
 
 void OSCQueueScanStart(OSCQueue q) {
     q->scanIndex = 0;
@@ -188,7 +183,7 @@ void OSCQueueRemoveCurrentScanItem(OSCQueue q) {
        item that will be returned, so the "current" item, i.e.,
        the one most recently returned by OSCQueueScanNext(),
        is q->scanIndex-1. */
-   
+
     RemoveElement(q->scanIndex-1, q);
     --(q->scanIndex);
 }

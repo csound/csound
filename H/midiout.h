@@ -68,7 +68,6 @@ typedef struct {
     BOOL   fl_expired, fl_extra_dur;
 } OUT_ON_DUR;
 
-
 typedef struct {
     OPDS   h;
     MYFLT  *kchn,*knum,*kvel,*kdur,*kpause;
@@ -138,7 +137,6 @@ typedef struct {
     MYFLT  *chan, *parm_num, *parm_value;
     int old_chan, old_parm, old_value;
 } NRPN;
-
 
 typedef struct {
     unsigned char status;

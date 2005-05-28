@@ -45,8 +45,8 @@ void Curve::destroy()
 }
 
 Curve::Curve(float *data, size_t size, const std::string& caption,
-	     Polarity polarity, float max, float min, float absmax,
-	     float y_scale, bool dotted_divider)
+             Polarity polarity, float max, float min, float absmax,
+             float y_scale, bool dotted_divider)
   : m_caption(caption)
 {
   m_data = copy(size, data);
@@ -60,8 +60,8 @@ Curve::Curve(float *data, size_t size, const std::string& caption,
 }
 
 Curve::Curve(double *data, size_t size, const std::string& caption,
-	     Polarity polarity, double max, double min, double absmax,
-	     double y_scale, bool dotted_divider)
+             Polarity polarity, double max, double min, double absmax,
+             double y_scale, bool dotted_divider)
   : m_caption(caption)
 {
   m_data = copy(size, data);

@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /* ------ oscils, lphasor, and tablexkt by Istvan Varga (Jan 5 2002) ------ */
 
 #include "cs.h"
@@ -62,7 +61,6 @@ static void init_sine_gen(double a, double f, double p,
     /* amp. scale */
     *x *= a; *v *= a;
 }
-
 
 /* -------- oscils set-up -------- */
 

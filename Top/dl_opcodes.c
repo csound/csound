@@ -303,7 +303,6 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return value;
 }
 
-
 void *dlopen(const char *path, int mode)
 {
     void *module = 0;

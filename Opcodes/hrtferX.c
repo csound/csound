@@ -39,7 +39,6 @@
  *                                                         *
  ***********************************************************/
 
-
 /***************************************************************
  * This version of hrtfer loads the file HRTFcompact into memory.
  * Offsets into the file are calculated in the a-rate code to
@@ -50,7 +49,6 @@
  * A better solution would be to implement interpolation between
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
-
 
 #include "csdl.h"
 #include <stdio.h>
@@ -180,7 +178,6 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
                         /* float versions of above to be sent to FFT routines */
     MYFLT      xl[BUF_LEN], xr[BUF_LEN];
 
-
     if (p->mfp==NULL) {         /* RWD fix */
       csound->PerfError(csound, Str("hrtfer: not initialised"));
       return NOTOK;
@@ -197,7 +194,6 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
 #ifdef CLICKS
     crossfadeflag = 0;
 #endif
-
 
         /* Convert elevation in degrees to elevation array index. */
     el_index = ROUND((elev - MIN_ELEV) / ELEV_INC);
@@ -474,7 +470,6 @@ int hrtferxk(ENVIRON *csound, HRTFER *p)
         }
       } /* end of audio processing loop - "if" */
     } /* end of control period loop - "while" */
-
 
         /* update state in p */
     p->outcount = outcount;

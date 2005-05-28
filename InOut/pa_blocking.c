@@ -3,21 +3,21 @@
 #define INS 1
 #define OUTS 0
 
-/* VL: portaudio full-duplex implementation */ 
+/* VL: portaudio full-duplex implementation */
 int paBlockingReadWriteOpen(ENVIRON *csound,
     PA_BLOCKING_STREAM *pabs, PaStreamParameters *paParameters,
     csRtAudioParams *parm)
 {
     PaError paError = -1;
     unsigned long maxLag_ = 0;
-    maxLag_ = (parm->bufSamp_HW <= 0 ? IODACSAMPS : parm->bufSamp_HW); 
+    maxLag_ = (parm->bufSamp_HW <= 0 ? IODACSAMPS : parm->bufSamp_HW);
     /* input & output streams */
     pabs[OUTS].csound = pabs[INS].csound = csound;
     pabs[INS].currentIndex = pabs[OUTS].currentIndex   = 0;
     pabs[OUTS].actualBufferSampleCount = pabs[INS].actualBufferSampleCount = maxLag_
       * csound->GetNchnls(csound);
-    
-    /* allocate input */  
+
+    /* allocate input */
     pabs[INS].actualBuffer = (MYFLT *)
      ((ENVIRON*) csound)->Calloc(csound, pabs[INS].actualBufferSampleCount
                                           * sizeof(MYFLT));
@@ -25,37 +25,36 @@ int paBlockingReadWriteOpen(ENVIRON *csound,
     pabs[OUTS].actualBuffer = (MYFLT *)
      ((ENVIRON*) csound)->Calloc(csound, pabs[OUTS].actualBufferSampleCount
                                           * sizeof(MYFLT));
-    /* locks */  
+    /* locks */
     pabs[INS].paLock = csound->CreateThreadLock(csound);
     pabs[OUTS].paLock = csound->CreateThreadLock(csound);
     pabs[INS].clientLock = csound->CreateThreadLock(csound);
-    pabs[OUTS].clientLock = csound->CreateThreadLock(csound);    
-    
+    pabs[OUTS].clientLock = csound->CreateThreadLock(csound);
+
     memcpy(&pabs[INS].paParameters, paParameters, sizeof(PaStreamParameters));
-    memcpy(&pabs[OUTS].paParameters, paParameters, sizeof(PaStreamParameters)); 
-    
+    memcpy(&pabs[OUTS].paParameters, paParameters, sizeof(PaStreamParameters));
+
     csound->Message(csound, "paBlockingReadWriteOpen: nchnls %d sr %f maxLag %lu\n",
                     paParameters->channelCount,
                     csound->GetSr(csound),
                     maxLag_);
-                 
+
     paError = Pa_OpenStream(&pabs->paStream,
                             &pabs[INS].paParameters,
                             &pabs[OUTS].paParameters,
                             (double) csound->GetSr(csound),
                             maxLag_,
                             paNoFlag,
-                            paBlockingReadWriteStreamCallback,  
+                            paBlockingReadWriteStreamCallback,
                             pabs);
     if(paError == paNoError) paError = Pa_StartStream(pabs->paStream);
-    
+
     if(paError != paNoError) {
           ((ENVIRON*) csound)->Free(csound, pabs[INS].actualBuffer);
           ((ENVIRON*) csound)->Free(csound, pabs[OUTS].actualBuffer);
     }
     return paError;
 }
-
 
 int paBlockingWriteOpen(ENVIRON *csound,
                         PA_BLOCKING_STREAM *pabs,
@@ -120,28 +119,25 @@ int paBlockingReadWriteStreamCallback(const void *input,
     }
 /* ((ENVIRON*) pabs[INS].csound)->NotifyThreadLock(pabs[INS].csound, pabs[INS].clientLock); */
 
-                                                
-
     for (i = 0, n = pabs[OUTS].actualBufferSampleCount; i < n; i++) {
       paOutput[i] = (float) pabs[OUTS].actualBuffer[i];
     }
-((ENVIRON*) pabs[OUTS].csound)->NotifyThreadLock(pabs[OUTS].csound, pabs[OUTS].clientLock);  
+((ENVIRON*) pabs[OUTS].csound)->NotifyThreadLock(pabs[OUTS].csound, pabs[OUTS].clientLock);
     return paContinue;
 }
 
 void paBlockingRead(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer)
 {
- size_t i; 
+ size_t i;
  for(i = 0; i < samples; i++, pabs->currentIndex++) {
       if (pabs->currentIndex >= pabs->actualBufferSampleCount) {
       /*  ((ENVIRON*) pabs->csound)->NotifyThreadLock(pabs->csound, pabs->paLock);
-        ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound,pabs->clientLock, 100); */       
+        ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound,pabs->clientLock, 100); */
         pabs->currentIndex = 0;
       }
       buffer[i] = pabs->actualBuffer[pabs->currentIndex];
     }
-    
-    
+
 }
 
 int paBlockingWriteStreamCallback(const void *input,
@@ -166,7 +162,7 @@ int paBlockingWriteStreamCallback(const void *input,
 
 void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer)
 {
-    size_t i; 
+    size_t i;
     if (!pabs) return;
     if (!pabs->actualBuffer) return;
      for (i = 0; i < samples; i++, pabs->currentIndex++) {
@@ -194,7 +190,7 @@ int paBlockingReadOpen(ENVIRON *csound,
     pabs->paLock = csound->CreateThreadLock(csound);
     pabs->clientLock = csound->CreateThreadLock(csound);
     maxLag = (parm->bufSamp_HW <= 0 ? IODACSAMPS : parm->bufSamp_HW);
-    pabs->actualBufferSampleCount = maxLag*csound->GetNchnls(csound); 
+    pabs->actualBufferSampleCount = maxLag*csound->GetNchnls(csound);
     memcpy(&pabs->paParameters, paParameters, sizeof(PaStreamParameters));
     csound->Message(csound, "paBlockingReadOpen: nchnls %d sr %f maxLag %lu\n",
                     pabs->paParameters.channelCount,
@@ -206,7 +202,7 @@ int paBlockingReadOpen(ENVIRON *csound,
                             (double) csound->GetSr(csound),
                             maxLag,
                             paNoFlag,
-                            paBlockingReadStreamCallback,  
+                            paBlockingReadStreamCallback,
                             pabs);
     if (paError == paNoError) {
       paError = Pa_StartStream(pabs->paStream);
@@ -214,7 +210,7 @@ int paBlockingReadOpen(ENVIRON *csound,
     if (paError != paNoError) {
       ((ENVIRON*) csound)->Free(csound, pabs->actualBuffer);
       ((ENVIRON*) csound)->Free(csound, pabs);
-    } 
+    }
     return paError;
 }
 
@@ -226,7 +222,7 @@ int paBlockingReadStreamCallback(const void *input,
                                  PaStreamCallbackFlags statusFlags,
                                  void *userData)
 {
-    size_t i, n; 
+    size_t i, n;
     float *paInput = (float *)input;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
     ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound, pabs->paLock, 100);

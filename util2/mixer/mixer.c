@@ -32,7 +32,6 @@
  *     Needs to take much more care
  */
 
-
 #include "cs.h"
 #include "soundio.h"
 #include <ctype.h>

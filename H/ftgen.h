@@ -39,7 +39,6 @@ typedef struct {
         MYFLT   *ifilno, *iflag, *argums[VARGMAX];
 } FTLOAD;  /* gab 30 jul 2002 */
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *ifilno, *ktrig, *iflag, *argums[VARGMAX];

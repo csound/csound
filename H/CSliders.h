@@ -64,7 +64,6 @@ public:
                 // NOTE: the ClassWizard will add data members here
         //}}AFX_DATA
 
-
 // Overrides
         // ClassWizard generated virtual function overrides
         //{{AFX_VIRTUAL(CSlider)
@@ -150,7 +149,6 @@ public:
   // NOTE: the ClassWizard will add data members here
   //}}AFX_DATA
 
-
   // Overrides
   // ClassWizard generated virtual function overrides
   //{{AFX_VIRTUAL(CButtons)
@@ -183,7 +181,6 @@ protected:
   DECLARE_MESSAGE_MAP()
 };
 
-
 class CChecks : public CDialog
 {
 // Construction
@@ -198,7 +195,6 @@ public:
       enum { IDD = IDD_CHECKS };
                 // NOTE: the ClassWizard will add data members here
         //}}AFX_DATA
-
 
 // Overrides
         // ClassWizard generated virtual function overrides
@@ -231,5 +227,4 @@ protected:
         //}}AFX_MSG
       DECLARE_MESSAGE_MAP()
 };
-
 

@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 typedef struct {
         FUNC *function, *nxtfunction;
         MYFLT d;

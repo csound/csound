@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -39,14 +39,14 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound 
+namespace csound
 {
   /**
    * Base class for all music graph nodes in the Silence system.
    * Nodes can transform silence::Events produced by child nodes.
    * Nodes can produce silence::Events.
    */
-  class Node 
+  class Node
   {
   protected:
     ublas::matrix<double> localCoordinates;
@@ -67,14 +67,14 @@ namespace csound
      * to each child, thus performing a depth-first traversal of the music graph.
      */
     virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates,
-					   Score &score);
+                                           Score &score);
     /**
      * The default implementation does nothing.
      */
-    virtual void produceOrTransform(Score &score, 
-				    size_t beginAt, 
-				    size_t endAt, 
-				    const ublas::matrix<double> &coordinates);
+    virtual void produceOrTransform(Score &score,
+                                    size_t beginAt,
+                                    size_t endAt,
+                                    const ublas::matrix<double> &coordinates);
     virtual ublas::matrix<double> Node::createTransform();
     virtual void clear();
     virtual double &element(size_t row, size_t column);
@@ -84,5 +84,4 @@ namespace csound
   typedef Node* NodePtr;
 }
 #endif
-
 

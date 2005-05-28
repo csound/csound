@@ -21,13 +21,10 @@
     02111-1307 USA
 */
 
-
-
 typedef struct {
         int    cnt, wsize, flag, section;
         MYFLT  ampincr, ampphs, offset;
 } WARPSECTION;
-
 
 typedef struct {
     OPDS    h;

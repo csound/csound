@@ -5,10 +5,10 @@
 
 /**
 * Template base class, or pseudo-virtual base class,
-* for writing Csound opcodes in C++. 
-* Derive opcode implementation classes like this: 
-* 
-* DerivedClass : public OpcodeBase<DerivedClass> 
+* for writing Csound opcodes in C++.
+* Derive opcode implementation classes like this:
+*
+* DerivedClass : public OpcodeBase<DerivedClass>
 * {
 * public:
 *     // All output fields must be declared first as MYFLT *:
@@ -28,7 +28,7 @@
 *     void deinitialize();
 * };
 */
-template<typename T> 
+template<typename T>
 class OpcodeBase
 {
 public:

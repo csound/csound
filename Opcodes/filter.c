@@ -260,7 +260,6 @@ int izfilter(ENVIRON *csound, ZFILTER *p)
     return OK;
 }
 
-
 /* a-rate filter routine
  *
  * Implements the following difference equation
@@ -445,7 +444,6 @@ static double readFilter(FILTER* p, int i)
     return *readPoint; /* Dereference read address for delayed value */
 }
 
-
 /* insertFilter -- delay-line update routine
  *
  * Inserts the passed value into the currPos and increments the
@@ -499,7 +497,6 @@ void complex2polar(fcomplex a[], fpolar b[], int N)
     }
 }
 
-
 void polar2complex(fpolar a[], fcomplex b[],int N)
 {
     int i;
@@ -509,7 +506,6 @@ void polar2complex(fpolar a[], fcomplex b[],int N)
       b[i].i = a[i].mag*sin(a[i].ph);
     }
 }
-
 
 /* Sort poles in decreasing order of magnitudes */
 void sortRoots(fcomplex roots[], int dim)
@@ -537,7 +533,6 @@ int sortfun(fpolar *a, fpolar *b)
     else
       return -1;
 }
-
 
 /* nudgeMags - Pole magnitude nudging routine
  *
@@ -583,7 +578,6 @@ void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
     else
       /* Factor is out of range, do nothing */;
 }
-
 
 /* nudgePhases - Pole phase nudging routine
  *
@@ -750,7 +744,6 @@ fcomplex Csub(fcomplex a, fcomplex b)
     return c;
 }
 
-
 fcomplex Cmul(fcomplex a, fcomplex b)
 {
     fcomplex c;
@@ -854,7 +847,6 @@ fcomplex RCmul(double x, fcomplex a)
     c.i = x*a.i;
     return c;
 }
-
 
 #define S       sizeof
 

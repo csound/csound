@@ -21,14 +21,12 @@
     02111-1307 USA
 */
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kfco, *kres, *istor;
         MYFLT   ynm1, ynm2;
         MYFLT   coef1, coef2, okf, okr, k;
 } LOWPR;
-
 
 typedef struct {
         OPDS    h;

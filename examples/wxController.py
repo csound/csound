@@ -1,5 +1,5 @@
 # Importing CsoundVST automatically creates a global 'csound' object.
-import CsoundVST 
+import CsoundVST
 from wxPython.wx import *
 # Csound MUST run in its own thread.
 import threading
@@ -7,22 +7,22 @@ import threading
 # Create a panel to hold widgets that will control a Csound performance.
 class ControlPanel(wxPanel):
         # Override the base class constructor.
-	def __init__(self, parent):
-		wxPanel.__init__(self, parent, -1)	
+        def __init__(self, parent):
+                wxPanel.__init__(self, parent, -1)
                 # Create a button to send a note to Csound.
                 self.ID_BUTTON1 = 10
- 		self.button1 = wxButton(self, self.ID_BUTTON1, "Send Note", (20, 20))
+                self.button1 = wxButton(self, self.ID_BUTTON1, "Send Note", (20, 20))
                 # Bind the button to its event handler.
-		EVT_BUTTON(self, self.ID_BUTTON1, self.OnClickButton1)
-		# Create a slider to change the pitch of the note.
-		self.ID_SLIDER1 = 20
-		self.slider1 = wxSlider(self, self.ID_SLIDER1, 63, 0, 127, (20, 50), (200,50),
-				   wxSL_HORIZONTAL | wxSL_LABELS)
-        	self.slider1.SetTickFreq(5, 1)
-        	# Bind the slider to its event handler.
-		EVT_SLIDER(self, self.ID_SLIDER1, self.OnSlider1Move)
-		# Default pitch.
-		self.pitch = 60
+                EVT_BUTTON(self, self.ID_BUTTON1, self.OnClickButton1)
+                # Create a slider to change the pitch of the note.
+                self.ID_SLIDER1 = 20
+                self.slider1 = wxSlider(self, self.ID_SLIDER1, 63, 0, 127, (20, 50), (200,50),
+                                   wxSL_HORIZONTAL | wxSL_LABELS)
+                self.slider1.SetTickFreq(5, 1)
+                # Bind the slider to its event handler.
+                EVT_SLIDER(self, self.ID_SLIDER1, self.OnSlider1Move)
+                # Default pitch.
+                self.pitch = 60
                 # Create the Csound thread and start it.
                 self.csoundThread = threading.Thread(None, self.csoundThreadRoutine)
                 self.csoundThread.start()
@@ -35,7 +35,7 @@ class ControlPanel(wxPanel):
             sr=44100
             ksmps=400
             nchnls=2
-                instr	1
+                instr   1
                 ; print p1, p2, p3, p4, p5
                 ; Slider sends note with MIDI key number.
                 ; Convert it to octaves.
@@ -43,10 +43,10 @@ class ControlPanel(wxPanel):
                 print ioctave
                 ; Convert octave to frequency.
                 ihertz = cpsoct(ioctave)
-            a1	oscili	ampdb(p5), ihertz, 1
+            a1  oscili  ampdb(p5), ihertz, 1
                 kenv linseg 0, p3/2, 1, p3/2, 0
                 a1 = kenv * a1
-                outs	a1,a1
+                outs    a1,a1
                 endin
             ''')
             # And a score.
@@ -69,13 +69,13 @@ class ControlPanel(wxPanel):
 
         # Handle the button click -- send a note to Csound
         # with the pitch set by the slider.
-	def OnClickButton1(self, event):
+        def OnClickButton1(self, event):
             print "You pressed button 1"
             # Send a line event.
             csound.inputMessage("i 1 0 8 %i 70" % self.pitch)
 
         # Handle the slider movement -- change the pitch.
-	def OnSlider1Move(self, event):
+        def OnSlider1Move(self, event):
             print "You moved the slider to %d" % event.GetInt()
             self.pitch = event.GetInt()
 
@@ -89,9 +89,4 @@ controlPanel = ControlPanel(frame)
 frame.Show(True)
 # Run the application.
 application.MainLoop()
-
-
-
-
-
 

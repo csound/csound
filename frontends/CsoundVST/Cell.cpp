@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -20,12 +20,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #ifdef _MSC_VER
-#pragma warning (disable:4786) 
+#pragma warning (disable:4786)
 #endif
 #include "Cell.hpp"
 #include "System.hpp"
 
-namespace csound 
+namespace csound
 {
   Cell::Cell()
   {
@@ -40,7 +40,7 @@ namespace csound
     //  Find the total duration of notes produced by the child nodes of this.
     if(score.empty())
       {
-	return;
+        return;
       }
     const Event &event = score[beginAt];
     double beginSeconds = event.getTime();
@@ -48,23 +48,23 @@ namespace csound
     double totalDurationSeconds = 0;
     for(size_t i = beginAt; i < endAt; i++)
       {
-	const Event &event = score[i];
-	if (beginSeconds > event.getTime())
-	  {
-	    beginSeconds = event.getTime();
-	  }
-	if (endSeconds < (event.getTime() + event.getDuration()))
-	  {
-	    endSeconds = (event.getTime() + event.getDuration());
-	  }
+        const Event &event = score[i];
+        if (beginSeconds > event.getTime())
+          {
+            beginSeconds = event.getTime();
+          }
+        if (endSeconds < (event.getTime() + event.getDuration()))
+          {
+            endSeconds = (event.getTime() + event.getDuration());
+          }
       }
     if (relativeDuration)
       {
-	totalDurationSeconds = durationSeconds + (endSeconds - beginSeconds);
+        totalDurationSeconds = durationSeconds + (endSeconds - beginSeconds);
       }
     else
       {
-	totalDurationSeconds = durationSeconds;
+        totalDurationSeconds = durationSeconds;
       }
     System::message("Repeat section.\n");
     System::message(" Began %f\n", beginSeconds);
@@ -76,14 +76,14 @@ namespace csound
     //  First "repeat" is already there!
     for(size_t i = size_t(1); i < (size_t) repeatCount; i++)
       {
-	currentTime += totalDurationSeconds;
-	System::message("  Repetition %d time %f\n", i, currentTime);
-	for(size_t j = beginAt; j < endAt; j++)
-	  {
-	    Event *clonedEvent = new Event(score[j]);
-	    clonedEvent->setTime(clonedEvent->getTime() + currentTime);
-	    score.push_back(*clonedEvent);
-	  }
+        currentTime += totalDurationSeconds;
+        System::message("  Repetition %d time %f\n", i, currentTime);
+        for(size_t j = beginAt; j < endAt; j++)
+          {
+            Event *clonedEvent = new Event(score[j]);
+            clonedEvent->setTime(clonedEvent->getTime() + currentTime);
+            score.push_back(*clonedEvent);
+          }
       }
   }
 }

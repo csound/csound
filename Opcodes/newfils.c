@@ -93,7 +93,6 @@ int statevar_init(ENVIRON *csound,statevar *p)
     return OK;
 }
 
-
 int statevar_process(ENVIRON *csound,statevar *p)
 {
     MYFLT  *outhp = p->outhp;
@@ -138,7 +137,6 @@ int statevar_process(ENVIRON *csound,statevar *p)
 
     return OK;
 }
-
 
 int fofilter_init(ENVIRON *csound,fofilter *p)
 {

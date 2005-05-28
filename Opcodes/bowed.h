@@ -80,5 +80,4 @@ typedef struct BOWED {
     int         kloop;
 } BOWED;
 
-
 #endif
