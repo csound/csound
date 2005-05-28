@@ -97,7 +97,6 @@ TREE* simplify_list(TREE* l)
     return simplify(l);
 }
 
-
 int complex_expression(TREE* l)
 {
     if (l==NULL) return 0;
@@ -105,7 +104,7 @@ int complex_expression(TREE* l)
         l->type==T_IDENT_K  || l->type== T_IDENT_GK || l->type==T_IDENT_A  ||
         l->type==T_IDENT_GA || l->type==T_IDENT_W   || l->type==T_IDENT_GW ||
         l->type==T_IDENT_F  || l->type==T_IDENT_GF  || l->type==T_IDENT_P  ||
-        l->type==T_IDENT_S  || l->type==T_IDENT_GS  || 
+        l->type==T_IDENT_S  || l->type==T_IDENT_GS  ||
         l->type==T_NUMBER   || l->type==T_INTGR     || l->type==T_STRCONST )
       return 0;
     return 1;

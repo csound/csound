@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -40,7 +40,7 @@ namespace csound
   }
 
   void MusicModel::generate()
-  {                         
+  {
     Composition::clear();
     traverse(getLocalCoordinates(), score);
     System::message("Generated %d events.\n", score.size());
@@ -90,7 +90,7 @@ namespace csound
   {
     return (long) this;
   }
-    
+
   Node *MusicModel::getThisNode()
   {
     return (Node *)this;

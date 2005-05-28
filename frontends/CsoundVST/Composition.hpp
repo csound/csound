@@ -1,5 +1,5 @@
 /*
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -33,14 +33,14 @@
 #include "Score.hpp"
 #endif
 
-namespace csound 
+namespace csound
 {
   /**
    * Base class for user-derived musical compositions.
    * Contains a Score object for collecting generated Events such as notes and control messages,
    * and an Orchestra object for rendering the generated scores.
    */
-  class Composition 
+  class Composition
   {
   protected:
     Score score;
@@ -52,7 +52,7 @@ namespace csound
     Composition();
     virtual ~Composition();
     /**
-     * Generate performance events and store them in the score. 
+     * Generate performance events and store them in the score.
      * Must be overidden in derived classes.
      */
     virtual void generate();
@@ -61,7 +61,7 @@ namespace csound
      */
     virtual void createCsoundScore(std::string addToScore = "");
     /**
-     * Convenience function that erases the existing score, 
+     * Convenience function that erases the existing score,
      * appends optional text to it,
      * invokes generate(), invokes createCsoundScore(), and invokes perform().
      */

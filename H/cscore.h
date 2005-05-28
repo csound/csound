@@ -59,7 +59,7 @@ EVLIST *lcreat(ENVIRON *, int), *lappev(ENVIRON *, EVLIST*,EVENT*);
 EVLIST *lappstrev(ENVIRON *,EVLIST*,char*);
 EVLIST *lget(ENVIRON *), *lgetnext(ENVIRON *,MYFLT), *lgetuntil(ENVIRON*,MYFLT),
        *lcopy(ENVIRON *, EVLIST*);
-EVLIST *lcopyev(ENVIRON *, EVLIST*), *lxins(ENVIRON *,EVLIST*,char*), 
+EVLIST *lcopyev(ENVIRON *, EVLIST*), *lxins(ENVIRON *,EVLIST*,char*),
        *lxtimev(ENVIRON *,EVLIST*,MYFLT,MYFLT);
 EVLIST *lsepf(ENVIRON *, EVLIST*), *lseptwf(ENVIRON *, EVLIST*),
        *lcat(ENVIRON *,EVLIST*,EVLIST*);
