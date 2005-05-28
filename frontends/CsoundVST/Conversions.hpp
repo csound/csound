@@ -1,5 +1,5 @@
 /*
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -38,7 +38,7 @@
 #include <map>
 #endif
 
-namespace csound 
+namespace csound
 {
   /**
    * Conversions to and from various music and signal processing units.
@@ -49,7 +49,7 @@ namespace csound
    * Loudness can also be represented in positive decibels (0 to 84 for short samples, 0 to whatever for float samples).
    * For float samples, decibels are assumed to be equivalent to MIDI velocity;
    * otherwise, MIDI velocity is rescaled according to the maximum dynamic range supported by the sample size.
-   * All loudness conversions are driven by sample word size, which must be set before use; 
+   * All loudness conversions are driven by sample word size, which must be set before use;
    * the default is 4 (float samples).
    */
   class Conversions
@@ -130,7 +130,7 @@ namespace csound
      */
     static double modulus(double a, double b);
     /**
-     * Return the pitch-class set number (sum of powers of 2 by pitch-class) for 
+     * Return the pitch-class set number (sum of powers of 2 by pitch-class) for
      * the jazz-style scale or chord name.
      */
     static double nameToPitchClassSet(std::string name);
