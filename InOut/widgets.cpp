@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 #ifdef _WIN32
 #       pragma warning(disable: 4117 4804)
 #endif
@@ -680,7 +679,6 @@ void Fl_Value_Input_Spin::draw(void)
   clear_damage();
 }
 
-
 void Fl_Value_Input_Spin::resize(int X, int Y, int W, int H)
 {
   input.resize(X,Y,W,H);
@@ -1063,7 +1061,6 @@ struct SNAPSHOT {
   int get(vector<ADDR_SET_VALUE>& valuators);
 };
 
-
 static void set_butbank_value (Fl_Group *o, MYFLT value)
 {
   int childr = o->children();
@@ -1081,7 +1078,6 @@ static void set_butbank_value (Fl_Group *o, MYFLT value)
       b->value(1);
   }
 }
-
 
 SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
 { // the constructor captures current values of all widgets by copying all current
@@ -1336,7 +1332,6 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
   return OK;
 }
 
-
 //---------------
 
 static int stack_count       = 0;
@@ -1396,7 +1391,6 @@ extern "C" int set_snap(ENVIRON *csound, FLSETSNAP *p)
   }
   return OK;
 }
-
 
 extern "C" int get_snap(ENVIRON *csound, FLGETSNAP *p)
 {
@@ -1553,7 +1547,6 @@ extern "C" int load_snap(ENVIRON *csound, FLLOADSNAPS* p)
   return OK;
 }
 
-
 //-----------
 
 static char *GetString(ENVIRON *csound, MYFLT *pname, int is_string)
@@ -1562,7 +1555,6 @@ static char *GetString(ENVIRON *csound, MYFLT *pname, int is_string)
   allocatedStrings.push_back(Name);
   return csound->strarg2name(csound, Name, pname, "", is_string);
 }
-
 
 extern "C" void widgetRESET(ENVIRON *csound)
 {
@@ -1593,7 +1585,6 @@ extern "C" void widgetRESET(ENVIRON *csound)
 
   AddrSetValue.erase(AddrSetValue.begin(), AddrSetValue.end());
 
-
   //    curr_x = 0 , curr_y = 0;
   stack_count       = 0;
 
@@ -1615,7 +1606,6 @@ extern "C" void widgetRESET(ENVIRON *csound)
 }
 
 //-----------
-
 
 static void __cdecl fltkRun(void *userdata)
 {
@@ -1712,7 +1702,6 @@ inline void displ(MYFLT val, MYFLT index)
   }
 }
 
-
 static void fl_callbackButton(Fl_Button* w, void *a)
 {
   FLBUTTON *p = (FLBUTTON *) a;
@@ -1749,8 +1738,6 @@ static void fl_callbackExponentialSlider(Fl_Valuator* w, void *a)
   displ(*p->kout = p->min * ::pow (p->base, w->value()), *p->idisp);
 }
 
-
-
 static void fl_callbackInterpTableSlider(Fl_Valuator* w, void *a)
 {
   FLSLIDER *p = ((FLSLIDER*) a);
@@ -1762,7 +1749,6 @@ static void fl_callbackInterpTableSlider(Fl_Valuator* w, void *a)
         *p->idisp);
 }
 
-
 static void fl_callbackTableSlider(Fl_Valuator* w, void *a)
 {
   FLSLIDER *p = ((FLSLIDER*) a);
@@ -1770,7 +1756,6 @@ static void fl_callbackTableSlider(Fl_Valuator* w, void *a)
         (*p->imax - p->min),
         *p->idisp);
 }
-
 
 static void fl_callbackLinearSliderBank(Fl_Valuator* w, void *a)
 {
@@ -1783,7 +1768,6 @@ static void fl_callbackExponentialSliderBank(Fl_Valuator* w, void *a)
   SLDBK_ELEMENT* p = (SLDBK_ELEMENT*) a;
   *p->out = p->min * ::pow (p->base, w->value());
 }
-
 
 static void fl_callbackInterpTableSliderBank(Fl_Valuator* w, void *a)
 {
@@ -1802,7 +1786,6 @@ static void fl_callbackTableSliderBank(Fl_Valuator* w, void *a)
   *p->out = p->min + p->table[(long)(w->value() * p->tablen)] *
     (p->max - p->min);
 }
-
 
 static void fl_callbackJoystick(Fl_Widget* w, void *a)
 {
@@ -1860,14 +1843,12 @@ static void fl_callbackLinearRoller(Fl_Valuator* w, void *a)
   displ(*p->kout =  w->value(),*p->idisp);
 }
 
-
 static void fl_callbackExponentialRoller(Fl_Valuator* w, void *a)
 {
   FLROLLER *p = ((FLROLLER*) a);
   displ(*p->kout = ((FLROLLER*) a)->min * ::pow (p->base, w->value()),
         *p->idisp);
 }
-
 
 static void fl_callbackInterpTableRoller(Fl_Valuator* w, void *a)
 {
@@ -1879,7 +1860,6 @@ static void fl_callbackInterpTableRoller(Fl_Valuator* w, void *a)
         (*p->imax - p->min), *p->idisp);
 }
 
-
 static void fl_callbackTableRoller(Fl_Valuator* w, void *a)
 {
   FLROLLER *p = ((FLROLLER*) a);
@@ -1887,20 +1867,17 @@ static void fl_callbackTableRoller(Fl_Valuator* w, void *a)
         (*p->imax - p->min), *p->idisp);
 }
 
-
 static void fl_callbackLinearKnob(Fl_Valuator* w, void *a)
 {
   FLKNOB *p = ((FLKNOB*) a);
   displ( *p->kout = w->value(), *p->idisp);
 }
 
-
 static void fl_callbackExponentialKnob(Fl_Valuator* w, void *a)
 {
   FLKNOB *p = ((FLKNOB*) a);
   displ( *p->kout = ((FLKNOB*) a)->min * ::pow (p->base, w->value()), *p->idisp);
 }
-
 
 static void fl_callbackInterpTableKnob(Fl_Valuator* w, void *a)
 {
@@ -1912,14 +1889,12 @@ static void fl_callbackInterpTableKnob(Fl_Valuator* w, void *a)
         (*p->imax - p->min), *p->idisp);
 }
 
-
 static void fl_callbackTableKnob(Fl_Valuator* w, void *a)
 {
   FLKNOB *p = ((FLKNOB*) a);
   displ(*p->kout = p->min+ p->table[(long) (w->value() * p->tablen)] *
         (*p->imax - p->min), *p->idisp);
 }
-
 
 static void fl_callbackLinearValueInput(Fl_Valuator* w, void *a)
 {
@@ -2016,9 +1991,7 @@ void widget_attributes(Fl_Widget *o)
   }
 }
 
-
 //-----------
-
 
 extern "C" void FLkeyb(ENVIRON *csound, FLKEYB *p)
 {
@@ -2027,9 +2000,7 @@ extern "C" void FLkeyb(ENVIRON *csound, FLKEYB *p)
   keybp = p; //output of the keyboard is stored into a global variable pointer
 }
 
-
 //-----------
-
 
 extern "C" void StartPanel(ENVIRON *csound, FLPANEL *p)
 {
@@ -2355,7 +2326,6 @@ extern "C" int fl_setWidgetValue_set(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
   return OK;
 }
 
-
 extern "C" int fl_setWidgetValue(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
 {
   if(*p->ktrig) {
@@ -2385,7 +2355,6 @@ extern "C" int fl_setWidgetValue(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
   }
   return OK;
 }
-
 
 //-----------
 //-----------
@@ -2541,7 +2510,6 @@ extern "C" int fl_box(ENVIRON *csound, FL_BOX *p)
   return OK;
 }
 
-
 extern "C" int fl_setText(ENVIRON *csound, FL_SET_TEXT *p)
 {
   char *text = GetString(csound, p->itext, p->XSTRCODE);
@@ -2642,9 +2610,6 @@ extern "C" int fl_align(ENVIRON *csound, FL_TALIGN *p)
 //-----------
 //-----------
 
-
-
-
 extern "C" int fl_value(ENVIRON *csound, FLVALUE *p)
 {
   char *controlName = GetString(csound, p->name, p->XSTRCODE);
@@ -2669,7 +2634,6 @@ extern "C" int fl_value(ENVIRON *csound, FLVALUE *p)
   *p->ihandle = AddrSetValue.size()-1;
   return OK;
 }
-
 
 //-----------
 
@@ -2765,7 +2729,6 @@ extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
   *p->ihandle = AddrSetValue.size()-1;
   return OK;
 }
-
 
 extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
 {
@@ -2956,7 +2919,6 @@ extern "C" int fl_slider_bank(ENVIRON *csound, FLSLIDERBANK *p)
   return OK;
 }
 
-
 extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
 {
   char *Name = GetString(csound, p->name, p->XSTRCODE);
@@ -2970,7 +2932,6 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
   else iwidth = (int) *p->iwidth;
   if (*p->iheight < 0) iheight = 130;
   else iheight = (int) *p->iheight;
-
 
   switch((int) *p->iexpx) {
   case -1: iexpx = EXP_; break;
@@ -3058,7 +3019,6 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
   *p->ihandle2 = AddrSetValue.size()-1;
   return OK;
 }
-
 
 extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
 {
@@ -3149,9 +3109,6 @@ extern "C" int fl_knob(ENVIRON *csound, FLKNOB *p)
   *p->ihandle = AddrSetValue.size()-1;
   return OK;
 }
-
-
-
 
 extern "C" int fl_text(ENVIRON *csound, FLTEXT *p)
 {
@@ -3333,8 +3290,6 @@ extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
   return OK;
 }
 
-
-
 extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
 {
   char *controlName = GetString(csound, p->name, p->XSTRCODE);
@@ -3420,7 +3375,6 @@ extern "C" int fl_roller(ENVIRON *csound, FLROLLER *p)
   *p->ihandle = AddrSetValue.size()-1;
   return OK;
 }
-
 
 extern "C" int FLprintkset(ENVIRON *csound, FLPRINTK *p)
 {

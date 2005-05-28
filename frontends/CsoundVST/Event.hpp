@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -47,13 +47,13 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound 
+namespace csound
 {
   /**
    * Represents an event in music space, such as a note of definite duration,
    * a MIDI-like "note on" or "note off" event, or a MIDI-like control event.
    * Fields have the same semantics as MIDI with some differences.
-   * All fields are floats; status is stored separately from channel; 
+   * All fields are floats; status is stored separately from channel;
    * channel can have any positive value; spatial location in X, Y, and Z are stored;
    * phase in radians is stored; and pitch-class set is stored.
    * <p>
@@ -67,29 +67,29 @@ namespace csound
    * but they are always real-time score statements at time 0, suitable
    * for use with Csound's -L or line event option.
    */
-  class Event : 
-    public ublas::vector<double> 
+  class Event :
+    public ublas::vector<double>
   {
   public:
-    typedef enum 
+    typedef enum
       {
-	TIME = 0,
-	DURATION,
-	STATUS,
-	INSTRUMENT,
-	KEY,
-	VELOCITY,
-	PHASE,
-	PAN,
-	DEPTH,
-	HEIGHT,
-	PITCHES,
-	HOMOGENEITY,
-	ELEMENT_COUNT,
+        TIME = 0,
+        DURATION,
+        STATUS,
+        INSTRUMENT,
+        KEY,
+        VELOCITY,
+        PHASE,
+        PAN,
+        DEPTH,
+        HEIGHT,
+        PITCHES,
+        HOMOGENEITY,
+        ELEMENT_COUNT,
       } Dimensions;
     enum
       {
-	INDEFINITE = 16384,
+        INDEFINITE = 16384,
       };
     static int SORT_ORDER[];
     static const char *labels[];

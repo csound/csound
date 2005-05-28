@@ -151,7 +151,6 @@ static MYFLT Samp_tick(Wave *p)
     return lastOutput;
 }
 
-
 int Moog1set(ENVIRON *csound, MOOG1 *p)
 {
     FUNC        *ftp;

@@ -443,7 +443,6 @@ int stixset(ENVIRON *csound, SEKERE *p)
     return OK;
 }
 
-
 int crunchset(ENVIRON *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
@@ -468,7 +467,6 @@ int crunchset(ENVIRON *csound, CABASA *p)
     p->last_num = FL(0.0);
     return OK;
 }
-
 
 int guiroset(ENVIRON *csound, GUIRO *p)
 {

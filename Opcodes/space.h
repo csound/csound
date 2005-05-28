@@ -21,13 +21,11 @@
     02111-1307 USA
 */
 
-
 /******************************************/
 /* The applications in this file were     */
 /* designed and coded by Richard Karpen   */
 /* University of Washington, Seattle 1998 */
 /******************************************/
-
 
 typedef struct {
   OPDS  h;

@@ -22,7 +22,6 @@
 
 */
 
-
 #include "csdl.h"
 #include "syncgrain.h"
 

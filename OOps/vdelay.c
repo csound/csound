@@ -864,7 +864,6 @@ static int prime(int val)
     return 1;
 }
 
-
 #ifdef OLD_CODE
 MYFLT ngc_time[Combs] = {FL(1433.0), FL(1601.0), FL(1867.0),
                          FL(2053.0), FL(2251.0), FL(2399.0)};

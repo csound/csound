@@ -86,23 +86,17 @@ typedef enum
         RomLinkedSample = 0x8008   /*32776 */
 } SFSampleLink;
 
-
  /* The INFO-list chunk in a SoundFont 2 compatible file contains
   three mandatory and a variety of optional subchunks as defined below.
   The INFO-list chunk gives basic information about the SoundFont
   compatible bank contained in the file.
  */
 
-
-
-
 /* The ifil subchunk is a mandatory subchunk identifying the SoundFont
   specification version level to which the file complies.
   It is always four bytes in length, and contains data
   according to the structure:
   */
-
-
 
 /* <iver-rec>   ->       */
 typedef struct

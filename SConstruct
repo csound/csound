@@ -162,7 +162,6 @@ opts.Add('buildPDClass', "build csoundapi~ PD class (needs m_pd.h in the standar
 opts.Add('useCoreAudio', "Set to 1 to use CoreAudio for real-time audio input and output.", '1')
 opts.Add('useAltivec', "On OSX use the gcc AltiVec optmisation flags", '0')
 
-
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
@@ -395,7 +394,6 @@ def buildzip(env, target, source):
     os.chdir('csound5')
     print
     print "Finished packaging '" + zipfilename + "'."
-
 
 csoundLibraryEnvironment = commonEnvironment.Copy()
 
@@ -1214,7 +1212,6 @@ if commonEnvironment['generateXmg']=='1':
     zipDependencies.append(xmgs2)
 else:
     print "CONFIGURATION DECISION: Not calling makedb"
-
 
 zipDependencies += executables
 zipDependencies += pluginLibraries

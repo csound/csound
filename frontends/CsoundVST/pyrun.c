@@ -60,7 +60,7 @@ inline void _SWIG_exception(int code, const char *msg) {
  * Author : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (c) 1999-2000, The University of Chicago
- * 
+ *
  * This file may be freely redistributed without license or fee provided
  * this copyright message remains intact.
  ************************************************************************/
@@ -81,13 +81,13 @@ inline void _SWIG_exception(int code, const char *msg) {
 #                       define SWIGEXPORT(a) a _export
 #                       define SWIGIMPORT(a) a _export
 #               else
-#						if defined(__GNUC__)
-#                       	define SWIGEXPORT(a) __declspec(dllexport) a
-#                       	define SWIGIMPORT(a) extern a
-#						else
-#                       	define SWIGEXPORT(a) a
-#                       	define SWIGIMPORT(a) a
-#						endif
+#                                               if defined(__GNUC__)
+#                               define SWIGEXPORT(a) __declspec(dllexport) a
+#                               define SWIGIMPORT(a) extern a
+#                                               else
+#                               define SWIGEXPORT(a) a
+#                               define SWIGIMPORT(a) a
+#                                               endif
 #               endif
 #       endif
 #else
@@ -109,10 +109,10 @@ typedef void *(*swig_converter_func)(void *);
 typedef struct swig_type_info *(*swig_dycast_func)(void **);
 
 typedef struct swig_type_info {
-  const char             *name;                 
+  const char             *name;
   swig_converter_func     converter;
   const char             *str;
-  void                   *clientdata;	
+  void                   *clientdata;
   swig_dycast_func        dcast;
   struct swig_type_info  *next;
   struct swig_type_info  *prev;
@@ -141,7 +141,7 @@ SWIG_TypeRegister(swig_type_info *ti)
   while (tc) {
     if (strcmp(tc->name, ti->name) == 0) {
       /* Already exists in the table.  Just add additional types to the list */
-      if (tc->clientdata) ti->clientdata = tc->clientdata;	
+      if (tc->clientdata) ti->clientdata = tc->clientdata;
       head = tc;
       next = tc->next;
       goto l1;
@@ -171,7 +171,7 @@ SWIG_TypeRegister(swig_type_info *ti)
 }
 
 /* Check the typename */
-SWIGRUNTIME(swig_type_info *) 
+SWIGRUNTIME(swig_type_info *)
 SWIG_TypeCheck(char *c, swig_type_info *ty)
 {
   swig_type_info *s;
@@ -183,7 +183,7 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
       /* Move s to the top of the linked list */
       s->prev->next = s->next;
       if (s->next) {
-	s->next->prev = s->prev;
+        s->next->prev = s->prev;
       }
       /* Insert s as second element in the list */
       s->next = ty->next;
@@ -197,16 +197,16 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
 }
 
 /* Cast a pointer up an inheritance hierarchy */
-SWIGRUNTIME(void *) 
-SWIG_TypeCast(swig_type_info *ty, void *ptr) 
+SWIGRUNTIME(void *)
+SWIG_TypeCast(swig_type_info *ty, void *ptr)
 {
   if ((!ty) || (!ty->converter)) return ptr;
   return (*ty->converter)(ptr);
 }
 
 /* Dynamic pointer casting. Down an inheritance hierarchy */
-SWIGRUNTIME(swig_type_info *) 
-SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) 
+SWIGRUNTIME(swig_type_info *)
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr)
 {
   swig_type_info *lastty = ty;
   if (!ty || !ty->dcast) return ty;
@@ -240,9 +240,9 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
     if (!equiv->converter) {
       tc = swig_type_list;
       while (tc) {
-	if ((strcmp(tc->name, equiv->name) == 0))
-	  SWIG_TypeClientData(tc,clientdata);
-	tc = tc->prev;
+        if ((strcmp(tc->name, equiv->name) == 0))
+          SWIG_TypeClientData(tc,clientdata);
+        tc = tc->prev;
       }
     }
     equiv = equiv->next;
@@ -311,7 +311,7 @@ SWIGEXPORT(void)              SWIG_InstallConstants(PyObject *d, swig_const_info
  * global variable support code.
  * ----------------------------------------------------------------------------- */
 
-typedef struct swig_globalvar {   
+typedef struct swig_globalvar {
   char       *name;                  /* Name of global variable */
   PyObject *(*get_attr)(void);       /* Return the current value */
   int       (*set_attr)(PyObject *); /* Set the value */
@@ -373,17 +373,17 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
 }
 
 statichere PyTypeObject varlinktype = {
-  PyObject_HEAD_INIT(0)              
+  PyObject_HEAD_INIT(0)
   0,
   (char *)"swigvarlink",                      /* Type name    */
   sizeof(swig_varlinkobject),         /* Basic size   */
   0,                                  /* Itemsize     */
-  0,                                  /* Deallocator  */ 
+  0,                                  /* Deallocator  */
   (printfunc) swig_varlink_print,     /* Print        */
   (getattrfunc) swig_varlink_getattr, /* get attr     */
   (setattrfunc) swig_varlink_setattr, /* Set attr     */
   0,                                  /* tp_compare   */
-  (reprfunc) swig_varlink_repr,       /* tp_repr      */    
+  (reprfunc) swig_varlink_repr,       /* tp_repr      */
   0,                                  /* tp_as_number */
   0,                                  /* tp_as_mapping*/
   0,                                  /* tp_hash      */
@@ -404,7 +404,7 @@ SWIG_newvarlink(void) {
 
 SWIGRUNTIME(void)
 SWIG_addvarlink(PyObject *p, char *name,
-	   PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
+           PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v;
   swig_globalvar *gv;
   v= (swig_varlinkobject *) p;
@@ -481,7 +481,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
       Py_DECREF(obj);
       goto type_error;
     }
-  }  
+  }
   *ptr = PyCObject_AsVoidPtr(obj);
   c = (char *) PyCObject_GetDesc(obj);
   if (newref) Py_DECREF(obj);
@@ -498,7 +498,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
       Py_DECREF(obj);
       goto type_error;
     }
-  } 
+  }
   c = PyString_AsString(obj);
   /* Pointer values must start with leading underscore */
   if (*c != '_') {
@@ -609,9 +609,9 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own) {
     Py_DECREF(args);
     if (inst) {
       if (own) {
-	PyObject *n = PyInt_FromLong(1);
-	PyObject_SetAttrString(inst,(char*)"thisown",n);
-	Py_DECREF(n);
+        PyObject *n = PyInt_FromLong(1);
+        PyObject_SetAttrString(inst,(char*)"thisown",n);
+        Py_DECREF(n);
       }
       robj = inst;
     }
@@ -668,9 +668,4 @@ SWIG_InstallConstants(PyObject *d, swig_const_info constants[]) {
 #ifdef __cplusplus
 }
 #endif
-
-
-
-
-
 

@@ -53,7 +53,6 @@
 #include <math.h>
 #include "cwindow.h"
 
-
 /* Order of interpolation of scanning */
 /* Either 1, 2 (linear), 3 (cubic) or 4 (quadratic) */
 
@@ -145,8 +144,6 @@ static int scsnux_hammer(ENVIRON *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
     }
     return OK;
 }
-
-
 
 /******************************
  *      Linked list stuff
@@ -429,8 +426,6 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
     return OK;
 }
 
-
-
 /*
  *      Performance function for updater
  */
@@ -518,12 +513,9 @@ int scsnux(ENVIRON *csound, PSCSNUX *p)
     return OK;
 }
 
-
-
 /****************************************************************************
  *      Functions for scsnsx
  ***************************************************************************/
-
 
 /*
  *      Succesive phase interpolator
@@ -581,8 +573,6 @@ int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
     p->fix = (MYFLT)p->tlen*csound->onedsr;
     return OK;
 }
-
-
 
 /*
  *      Performance function for scanner

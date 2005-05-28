@@ -1,5 +1,5 @@
 /**
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -42,32 +42,31 @@ AEffect *main_plugin (audioMasterCallback audioMaster)
 AEffect *main(audioMasterCallback audioMaster)
 #endif
 {
-	// get vst version
-	if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0))
-	 return 0;  // old version
+        // get vst version
+        if (!audioMaster (0, audioMasterVersion, 0, 0, 0, 0))
+         return 0;  // old version
 
-	effect = new CsoundVST (audioMaster);
-	if (!effect)
-		return 0;
-	if (oome)
-	{
-		delete effect;
-		return 0;
-	}
-	return effect->getAeffect ();
+        effect = new CsoundVST (audioMaster);
+        if (!effect)
+                return 0;
+        if (oome)
+        {
+                delete effect;
+                return 0;
+        }
+        return effect->getAeffect ();
 }
 
 #if MAC
 #pragma export off
 #endif
 
-
 #if WIN32
 #include <windows.h>
 void* hInstance;
 BOOL WINAPI DllMain (HINSTANCE hInst, DWORD dwReason, LPVOID lpvReserved)
 {
-	hInstance = hInst;
-	return 1;
+        hInstance = hInst;
+        return 1;
 }
 #endif

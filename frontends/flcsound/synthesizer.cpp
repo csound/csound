@@ -70,14 +70,14 @@ namespace {
     }
     Curve *curve
       = new Curve(windat->fdata,
-		  windat->npts,
-		  windat->caption,
-		  polarity,
-		  windat->max,
-		  windat->min,
-		  windat->absmax,
-		  windat->oabsmax,
-		  windat->danflag);
+                  windat->npts,
+                  windat->caption,
+                  polarity,
+                  windat->max,
+                  windat->min,
+                  windat->absmax,
+                  windat->oabsmax,
+                  windat->danflag);
     Synthesizer::s_draw_graph(csound, curve);
   }
 
@@ -132,7 +132,7 @@ int Synthesizer::yield()
 }
 
 void Synthesizer::set_message_callback(void * data,
-				       message_callback_t callback)
+                                       message_callback_t callback)
 {
   m_message_data = data;
   m_message_callback = callback;
@@ -153,7 +153,7 @@ void Synthesizer::message(const char *format, va_list args)
 }
 
 void Synthesizer::set_throw_message_callback(void *data,
-					     message_callback_t callback)
+                                             message_callback_t callback)
 {
   m_throw_message_data = data;
   m_throw_message_callback = callback;
@@ -161,7 +161,7 @@ void Synthesizer::set_throw_message_callback(void *data,
 }
 
 void Synthesizer::s_throw_message(void *csound, const char *format,
-				  va_list args)
+                                  va_list args)
 {
   Synthesizer *synth = get_synth_instance(csound);
   if (synth)
@@ -175,7 +175,7 @@ void Synthesizer::throw_message(const char *format, va_list args)
 }
 
 void Synthesizer::set_draw_graph_callback(void *data,
-					  draw_graph_callback_t callback)
+                                          draw_graph_callback_t callback)
 {
   m_draw_graph_data = data;
   m_draw_graph_callback = callback;

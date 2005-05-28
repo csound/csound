@@ -100,7 +100,6 @@ int svf(ENVIRON *csound, SVF *p)
  * Allpass coefficients are calculated at i-time.
  */
 
-
 int hilbertset(ENVIRON *csound, HILBERT *p)
 {
     int j;  /* used to increment for loop */
@@ -167,7 +166,6 @@ int hilbert(ENVIRON *csound, HILBERT *p)
     } while (--nsmps);
     return OK;
 }
-
 
 /* resonrz.c
  *
@@ -381,7 +379,6 @@ int phaser1(ENVIRON *csound, PHASER1 *p)
     p->feedback = feedback;
     return OK;
 }
-
 
 int phaser2set(ENVIRON *csound, PHASER2 *p)
 {

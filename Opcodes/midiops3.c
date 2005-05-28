@@ -95,14 +95,12 @@
     return OK;                                                    \
 }
 
-
 /*--------------------------------------------------------*/
 
 int slider_i8(ENVIRON *csound, SLIDER8 *p)
 {
     SLIDERI_INIT(p, 8);
 }
-
 
 int slider8(ENVIRON *csound, SLIDER8 *p)
 {
@@ -114,7 +112,6 @@ int slider_i16(ENVIRON *csound, SLIDER16 *p)
     SLIDERI_INIT(p, 16);
 }
 
-
 int slider16(ENVIRON *csound, SLIDER16 *p)
 {
     SLIDER_INIT(p, 16);
@@ -124,7 +121,6 @@ int slider_i32(ENVIRON *csound, SLIDER32 *p)
 {
     SLIDERI_INIT(p, 32);
 }
-
 
 int slider32(ENVIRON *csound, SLIDER32 *p)
 {
@@ -140,7 +136,6 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
 {
     SLIDER_INIT(p, 64);
 }
-
 
 /*==============================*/
 #define SLIDERIF(p, n)                                            \
@@ -244,7 +239,6 @@ int slider32f(ENVIRON *csound, SLIDER32f *p)
     SLIDERF(p, 32);
 }
 
-
 int slider_i64f(ENVIRON *csound, SLIDER64f *p)
 {
     SLIDERIF(p, 64);
@@ -292,7 +286,6 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
     return OK;                                                    \
 }
 
-
 int islider8(ENVIRON *csound, ISLIDER8 *p)
 {
     ISLIDER(p, 8);
@@ -312,8 +305,6 @@ int islider64(ENVIRON *csound, ISLIDER64 *p)
 {
     ISLIDER(p, 64);
 }
-
-
 
 /*-------------------------------*/
 
@@ -406,7 +397,6 @@ int slider_i32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
 {
     SLIDERI14(p, 32);
 }
-
 
 int slider32bit14(ENVIRON *csound, SLIDER32BIT14 *p)
 {

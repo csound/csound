@@ -3,13 +3,13 @@
 #include <vector>
 
 /**
- * The busses are laid out: 
+ * The busses are laid out:
  * busses[bus][channel][frame].
  */
 static std::map<size_t, std::vector< std::vector<MYFLT> > > busses;
 
 /**
- * The mixer matrix is laid out: 
+ * The mixer matrix is laid out:
  * matrix[send][bus].
  */
 static std::map<size_t, std::map<size_t, MYFLT> > matrix;
@@ -37,14 +37,14 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
     buss = static_cast<size_t>(*ibuss);
     if(busses.find(buss) == busses.end())
       {
-	size_t channels = csound->GetNchnls(csound);
-	size_t frames = csound->GetKsmps(csound);
-	busses[buss].resize(channels);
-	for(size_t channel = 0; channel < channels; channel++)
-	  {
-	    busses[buss][channel].resize(frames);
-	  }
-	//warn(csound, "MixerSetLevel::init: initialized buss %d channels %d frames %d\n", buss, channels, frames);
+        size_t channels = csound->GetNchnls(csound);
+        size_t frames = csound->GetKsmps(csound);
+        busses[buss].resize(channels);
+        for(size_t channel = 0; channel < channels; channel++)
+          {
+            busses[buss][channel].resize(frames);
+          }
+        //warn(csound, "MixerSetLevel::init: initialized buss %d channels %d frames %d\n", buss, channels, frames);
       }
     matrix[send][buss] = *kgain;
     //warn(csound, "MixerSetLevel::kontrol: send %d buss %d gain %f\n", send, buss, gain);
@@ -136,7 +136,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
     MYFLT gain = matrix[send][buss];
     for(size_t i = 0; i < frames; i++)
       {
-	busspointer[i] += (ainput[i] * gain);
+        busspointer[i] += (ainput[i] * gain);
       }
     //warn(csound, "MixerSend::audio: send %d buss %d gain %f busspointer 0x%x\n", send, buss, gain, busspointer);
     return OK;
@@ -147,7 +147,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
  * asignal MixerReceive ibuss, ichannel
  *
  * Receives a signal from a channel of a bus.
- * Obviously, instruments receiving signals must be numbered higher 
+ * Obviously, instruments receiving signals must be numbered higher
  * than instruments sending those signals.
  */
 struct MixerReceive : public OpcodeBase<MixerReceive>
@@ -177,7 +177,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     //warn(csound, "MixerReceive::audio...\n");
     for(size_t i = 0; i < frames; i++)
       {
-	aoutput[i] = busspointer[i];
+        aoutput[i] = busspointer[i];
       }
     //warn(csound, "MixerReceive::audio aoutput 0x%x busspointer 0x%x\n", aoutput, busspointer);
     return OK;
@@ -188,7 +188,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
  * MixerClear
  *
  * Clears all busses. Must be invoked after last MixerReceive.
- * You should probably use a highest-numbered instrument 
+ * You should probably use a highest-numbered instrument
  * with an indefinite duration that invokes only this opcode.
  */
 struct MixerClear : public OpcodeBase<MixerClear>
@@ -201,71 +201,71 @@ struct MixerClear : public OpcodeBase<MixerClear>
     //warn(csound, "MixerClear::audio...\n")
     for(std::map<size_t, std::vector< std::vector<MYFLT> > >::iterator busi = busses.begin(); busi != busses.end(); ++busi)
       {
-	for(std::vector< std::vector<MYFLT> >::iterator channeli = busi->second.begin(); channeli != busi->second.end(); ++channeli)
-	  {
-	    for(std::vector<MYFLT>::iterator framei = (*channeli).begin(); framei != (*channeli).end(); ++framei)
-	      {
-		*framei = 0;
-	      }
-	  }
+        for(std::vector< std::vector<MYFLT> >::iterator channeli = busi->second.begin(); channeli != busi->second.end(); ++channeli)
+          {
+            for(std::vector<MYFLT>::iterator framei = (*channeli).begin(); framei != (*channeli).end(); ++framei)
+              {
+                *framei = 0;
+              }
+          }
       }
     //warn(csound, "MixerClear::audio\n")
     return OK;
   }
 };
 
-extern "C" 
+extern "C"
 {
-  
-  static OENTRY localops[] = { 
-    {   
-      "MixerSetLevel",         
-      sizeof(MixerSetLevel),           
-      3,  
-      "",   
-      "iik",      
-      (SUBR)&MixerSetLevel::init_,        
-      (SUBR)&MixerSetLevel::kontrol_,        
+
+  static OENTRY localops[] = {
+    {
+      "MixerSetLevel",
+      sizeof(MixerSetLevel),
+      3,
+      "",
+      "iik",
+      (SUBR)&MixerSetLevel::init_,
+      (SUBR)&MixerSetLevel::kontrol_,
       0
     },
-    {   
-      "MixerGetLevel",         
-      sizeof(MixerGetLevel),           
-      3,  
-      "k",   
-      "ii",      
-      (SUBR)&MixerGetLevel::init_,        
-      (SUBR)&MixerGetLevel::kontrol_,        
+    {
+      "MixerGetLevel",
+      sizeof(MixerGetLevel),
+      3,
+      "k",
+      "ii",
+      (SUBR)&MixerGetLevel::init_,
+      (SUBR)&MixerGetLevel::kontrol_,
       0
     },
-    {   
-      "MixerSend",         
-      sizeof(MixerSend),           
-      5,  
-      "",   
-      "aiii",      
-      (SUBR)&MixerSend::init_,        
-      0,                
+    {
+      "MixerSend",
+      sizeof(MixerSend),
+      5,
+      "",
+      "aiii",
+      (SUBR)&MixerSend::init_,
+      0,
       (SUBR)&MixerSend::audio_
     },
-    {   
-      "MixerReceive",         
-      sizeof(MixerReceive),           
-      5,  
-      "a",   
-      "ii",      
-      (SUBR)&MixerReceive::init_,        
-      0,                
+    {
+      "MixerReceive",
+      sizeof(MixerReceive),
+      5,
+      "a",
+      "ii",
+      (SUBR)&MixerReceive::init_,
+      0,
       (SUBR)&MixerReceive::audio_
     },
-    {   
-      "MixerClear",         
-      sizeof(MixerClear),           
-      4,  
-      "",   
-      "",      
-      0,        
-      0,        
+    {
+      "MixerClear",
+      sizeof(MixerClear),
+      4,
+      "",
+      "",
+      0,
+      0,
       (SUBR)&MixerClear::audio_
     },
     { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }

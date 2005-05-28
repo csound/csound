@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -53,7 +53,6 @@ void *Allocator(int numbytes) {
     return malloc(numbytes);
 }
 
-
 void ScanTest(OSCQueue q) {
     myObj *item;
 
@@ -61,13 +60,13 @@ void ScanTest(OSCQueue q) {
     OSCQueueScanStart(q);
 
     while(1) {
-	item = (myObj *) OSCQueueScanNext(q);
-	if (item == 0) {
-	    printf("End of scan.\n");
-	    break;
-	}
-	printf("  Next scan object:  time tag %llu, data %s\n",
-	       item->timetag, item->data);
+        item = (myObj *) OSCQueueScanNext(q);
+        if (item == 0) {
+            printf("End of scan.\n");
+            break;
+        }
+        printf("  Next scan object:  time tag %llu, data %s\n",
+               item->timetag, item->data);
     }
 
     printf("Queue should be unchanged after scan:   ");
@@ -81,19 +80,18 @@ void ScanTest(OSCQueue q) {
         if (item == 0) {
             printf("End of scan.\n");
             break;
-	}
-	if (item->data[0] == 's') {
-	    printf("  Scan object data begins with 's':  time tag %llu, data %s\n",
+        }
+        if (item->data[0] == 's') {
+            printf("  Scan object data begins with 's':  time tag %llu, data %s\n",
                item->timetag, item->data);
-	    printf("How the queue looks before removal:   ");
-	    OSCQueuePrint(q);
-	    OSCQueueRemoveCurrentScanItem(q);
-	    printf("How the queue looks after removal:   ");
-	    OSCQueuePrint(q);
-	}
+            printf("How the queue looks before removal:   ");
+            OSCQueuePrint(q);
+            OSCQueueRemoveCurrentScanItem(q);
+            printf("How the queue looks after removal:   ");
+            OSCQueuePrint(q);
+        }
     }
 }
-
 
 void StressTest(OSCQueue q) {
     int i,j;
@@ -102,30 +100,29 @@ void StressTest(OSCQueue q) {
     printf("\n\nStress Test...\n\n");
 
     for (i = 1; i < NUM_OBJS; ++i) {
-	OSCTT_SetFromInt(&objects[i].timetag, rand());
-	objects[i].data = "stress test";
+        OSCTT_SetFromInt(&objects[i].timetag, rand());
+        objects[i].data = "stress test";
 
-	if (OSCQueueInsert(q, (OSCSchedulableObject) &(objects[i])) == FALSE) {
-	    printf("OSCQueueInsert() returned FALSE!\n");
-	    return;
-	}
+        if (OSCQueueInsert(q, (OSCSchedulableObject) &(objects[i])) == FALSE) {
+            printf("OSCQueueInsert() returned FALSE!\n");
+            return;
+        }
 
-	if (i % 13 == 0) {
-	    item = (myObj *) OSCQueueRemoveEarliest(q);
-	    printf("First earliest: %llu\n", item->timetag);
-	    item = (myObj *) OSCQueueRemoveEarliest(q);
-	    printf("Second earliest: %llu\n", item->timetag);
-	    item = (myObj *) OSCQueueRemoveEarliest(q);
-	    printf("Third earliest: %llu\n\n", item->timetag);
-	}
+        if (i % 13 == 0) {
+            item = (myObj *) OSCQueueRemoveEarliest(q);
+            printf("First earliest: %llu\n", item->timetag);
+            item = (myObj *) OSCQueueRemoveEarliest(q);
+            printf("Second earliest: %llu\n", item->timetag);
+            item = (myObj *) OSCQueueRemoveEarliest(q);
+            printf("Third earliest: %llu\n\n", item->timetag);
+        }
     }
 
     while (OSCTT_Compare(OSCQueueEarliestTimeTag(q), OSCTT_BiggestPossibleTimeTag())) {
-	item = (myObj *) OSCQueueRemoveEarliest(q);
-	printf("next from queue: %llu\n", item->timetag);
+        item = (myObj *) OSCQueueRemoveEarliest(q);
+        printf("next from queue: %llu\n", item->timetag);
     }
 }
-	
 
 int main (void) {
     OSCQueue q;
@@ -133,8 +130,8 @@ int main (void) {
 
     q = OSCNewQueue(100, Allocator);
     if (q == 0) {
-	printf("OSCNewQueue() returned 0!\n");
-	return;
+        printf("OSCNewQueue() returned 0!\n");
+        return;
     }
 
     printf("Made an empty queue:  ");
@@ -149,17 +146,17 @@ int main (void) {
     objects[2].data = "seven";
 
     if (OSCQueueInsert(q, (OSCSchedulableObject) &(objects[0])) == FALSE) {
-	printf("OSCQueueInsert() returned FALSE!\n");
+        printf("OSCQueueInsert() returned FALSE!\n");
         return;
     }
 
     if (OSCQueueInsert(q, (OSCSchedulableObject) &(objects[1])) == FALSE) {
-	printf("OSCQueueInsert() returned FALSE!\n");
+        printf("OSCQueueInsert() returned FALSE!\n");
         return;
     }
 
     if (OSCQueueInsert(q, (OSCSchedulableObject) &(objects[2])) == FALSE) {
-	printf("OSCQueueInsert() returned FALSE!\n");
+        printf("OSCQueueInsert() returned FALSE!\n");
         return;
     }
 
@@ -169,7 +166,7 @@ int main (void) {
     printf("Earliest time tag is %llu.\n", OSCQueueEarliestTimeTag(q));
 
     printf("Remove front item:\n");
-    
+
     item = (myObj *) OSCQueueRemoveEarliest(q);
     printf("Time tag %llu, data %s\n", item->timetag, item->data);
 
@@ -183,7 +180,7 @@ int main (void) {
     objects[4].data = "six";
     OSCTT_SetFromInt(&objects[5].timetag, 3);
     objects[5].data = "three";
-    
+
     if (OSCQueueInsert(q, (OSCSchedulableObject) &(objects[3])) == FALSE) {
         printf("OSCQueueInsert() returned FALSE!\n");
         return;
@@ -199,10 +196,8 @@ int main (void) {
         return;
     }
 
-
     printf("Queue with five objects:   ");
     OSCQueuePrint(q);
-
 
     ScanTest(q);
     StressTest(q);

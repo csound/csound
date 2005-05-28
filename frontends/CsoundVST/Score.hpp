@@ -1,5 +1,5 @@
 /*
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -38,7 +38,7 @@
 #include <vector>
 #endif
 
-namespace csound 
+namespace csound
 {
   /**
    * Base class for collections of events in music space.
@@ -47,7 +47,7 @@ namespace csound
    * The implementation is a std::vector of Events.
    * The elements of the vector are value objects, not references.
    */
-  class Score : 
+  class Score :
     public std::vector<csound::Event>
   {
   protected:
@@ -77,7 +77,7 @@ namespace csound
     virtual void rescale();
     virtual void rescale(Event &event);
     /**
-     * Sort all events in the score by time, instrument number, pitch, duration, loudness, 
+     * Sort all events in the score by time, instrument number, pitch, duration, loudness,
      * and other dimensions as given by Event::SORT_ORDER.
      */
     virtual void sort();
@@ -87,7 +87,7 @@ namespace csound
     virtual void rescale(int dimension, bool rescaleMinimum, double minimum, bool rescaleRange = false, double range = 0.0);
     /**
      * Translate the Silence events in this to a Csound score, that is, to a list of i statements.
-     * The Silence events are rounded off to the nearest equally tempered pitch by the 
+     * The Silence events are rounded off to the nearest equally tempered pitch by the
      * specified number of tones per octave; if this argument is zero, the pitch is not tempered.
      * The Silence events are conformed to the nearest pitch-class set in the pitch-class set
      * dimension of the event, if the conform pitches argument is true; otherwise, the pitches
@@ -95,5 +95,5 @@ namespace csound
      */
     virtual std::string getCsoundScore(double tonesPerOctave = 12.0, bool conformPitches = false);
   };
-}	
+}
 #endif

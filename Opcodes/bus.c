@@ -123,7 +123,6 @@ int chaniado(ENVIRON *csound, CHANI *p)
     return OK;
 } /* end chanias(p) */
 
-
 #define S       sizeof
 
 static OENTRY localops[] = {

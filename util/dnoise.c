@@ -665,7 +665,6 @@ static int dnoise(void *csound_, int argc, char **argv)
     for (i = -aLen; i <= aLen; i++)
       aWin[i] *= sum;
 
-
     /* set up synthesis window:  For the minimal mean-square-error
         formulation (valid for N >= M), the synthesis window
         is identical to the analysis window (except for a
@@ -716,7 +715,6 @@ static int dnoise(void *csound_, int argc, char **argv)
       for (i = -sLen; i <= sLen; i++)
         sWin[i] *= sum;
     }
-
 
     /* set up input buffer:  nextIn always points to the next empty
         word in the input buffer (i.e., the sample following
@@ -830,7 +828,6 @@ static int dnoise(void *csound_, int argc, char **argv)
     for (i = 0; i <= N2; i++, f++)
       *f *= fac;                   /* nref[i] *= fac; */
 
-
     /* initialization: input time starts negative so that the rightmost
         edge of the analysis filter just catches the first non-zero
         input samples; output time equals input time. */
@@ -928,7 +925,6 @@ static int dnoise(void *csound_, int argc, char **argv)
         obc = obs + chan;
         obp = ob1 + obs + chan;
 
-
     /* analysis: The analysis subroutine computes the complex output at
         time n of (N/2 + 1) of the phase vocoder channels.  It operates
         on input samples (n - aLen) thru (n + aLen).
@@ -939,7 +935,6 @@ static int dnoise(void *csound_, int argc, char **argv)
         pairs of real and imaginary values for the lowest (N/2 + 1)
         channels.   The subroutine fast implements an
         efficient FFT call for a real input sequence.  */
-
 
         f = fbuf;
         for (i = 0; i < N+2; i++, f++)

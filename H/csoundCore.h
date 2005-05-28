@@ -216,7 +216,6 @@ extern "C" {
     char    *insname;               /* instrument name */
   } INSTRTXT;
 
-
 /* A chain of TEXT structs. Note that this is identical with the first two
    members of struct INSTRTEXT, and is so typecast at various points in code. */
   typedef struct op {

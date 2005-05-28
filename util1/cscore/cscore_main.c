@@ -43,7 +43,6 @@ int main(int argc, const char **argv)
     return 0;
 }
 
-
 /*      This program named cscore_main.c can be compiled with:  */
 /*        $ cc -Ixxxx main.c -o cscore -lcscore                 */
 /*       where -Ixxxx is -I/usr/local/include or equivalent,    */
@@ -52,5 +51,4 @@ int main(int argc, const char **argv)
 
 /*      The resulting executable can be run with:               */
 /*        $ cscore <scorin                                      */
-
 

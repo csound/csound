@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /* pluck.c -- plucked string class definitions */
 
 /*
@@ -137,7 +136,6 @@ int pluckPluck(ENVIRON *csound, WGPLUCK* p)
     return OK;
 }
 
-
 /* pluck::setFilters -- frequency dependent filter calculations */
 static void pluckSetFilters(ENVIRON *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
 {
@@ -235,7 +233,6 @@ int pluckGetSamps(ENVIRON *csound, WGPLUCK* p)
 #define EPSILON (FL(0.25))      /* threshold for small tuning values */
 /* prototypes */
 
-
 /***** circularBuffer class member function definitions *****/
 
 /* ::circularBuffer -- constructor for circular buffer class
@@ -258,8 +255,6 @@ void circularBufferCircularBuffer(ENVIRON *csound, circularBuffer* cb, len_t N)
     cb->extractionPoint = data;
 }
 
-
-
 /* ::write -- insert new value in the buffer, update insertion pointer */
 void circularBufferWrite(circularBuffer* cb, MYFLT val)
 {
@@ -273,8 +268,6 @@ void circularBufferWrite(circularBuffer* cb, MYFLT val)
     if (cb->insertionPoint<cb->data)
       cb->insertionPoint = cb->endPoint;
 }
-
-
 
 /* ::read -- extract the value at the extraction point */
 MYFLT circularBufferRead(circularBuffer* cb)
@@ -290,11 +283,9 @@ MYFLT circularBufferRead(circularBuffer* cb)
     return val;
 }
 
-
 /* ***** class guideRail -- waveguide rail derived class ***** */
 /* Guide rail is a circular buffer */
 #define guideRailGuideRail(csound,gr,d) circularBufferCircularBuffer(csound, gr,d)
-
 
 /* ::access -- waveguide rail access routine */
 MYFLT guideRailAccess(guideRail* gr, len_t pos)
@@ -335,7 +326,6 @@ void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
                             (-a1+sqrt(a1*a1-4.0*a0*a0))/(2.0*a0));
 #endif
 }
-
 
 /* ::FIR -- direct convolution filter routine */
  MYFLT filter3FIR(filter3* filt, MYFLT s)

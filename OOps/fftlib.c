@@ -451,7 +451,6 @@ static void fft8pt(MYFLT *ioptr)
     f1r = f1r + t1i;
     f1i = f1i - t1r;
 
-
     t0r = f4r + f5r;
     t0i = f4i + f5i;
     f5r = f4r - f5r;
@@ -471,7 +470,6 @@ static void fft8pt(MYFLT *ioptr)
     f7i = f5i + t1r;
     f5r = f5r + t1i;
     f5i = f5i - t1r;
-
 
     t0r = f0r - f4r;
     t0i = f0i - f4i;
@@ -939,7 +937,6 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
           f3i = f1i + t1r * w1r + t1i * w1i;
           f1r = f1r * Two - f3r;
           f1i = f1i * Two - f3i;
-
 
           t0r = f4r + f5r * w0r + f5i * w0i;
           t0i = f4i - f5r * w0i + f5i * w0r;
@@ -1494,7 +1491,6 @@ static void ifft8pt(MYFLT *ioptr, MYFLT scale)
     f1r = f1r - t1i;
     f1i = f1i + t1r;
 
-
     t0r = f4r + f5r;
     t0i = f4i + f5i;
     f5r = f4r - f5r;
@@ -1514,7 +1510,6 @@ static void ifft8pt(MYFLT *ioptr, MYFLT scale)
     f7i = f5i - t1r;
     f5r = f5r - t1i;
     f5i = f5i + t1r;
-
 
     t0r = f0r - f4r;
     t0i = f0i - f4i;
@@ -1983,7 +1978,6 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
           f1r = f1r * Two - f3r;
           f1i = f1i * Two - f3i;
 
-
           t0r = f4r + f5r * w0r - f5i * w0i;
           t0i = f4i + f5r * w0i + f5i * w0r;
           f5r = f4r * Two - t0r;
@@ -2447,7 +2441,6 @@ static void rfft8pt(MYFLT *ioptr)
     f1r = f1r + t1i;
     f1i = f1i - t1r;
 
-
     t0r = f4r + f5r;
     t0i = f4i + f5i;
     f5r = f4r - f5r;
@@ -2467,7 +2460,6 @@ static void rfft8pt(MYFLT *ioptr)
     f7i = f5i + t1r;
     f5r = f5r + t1i;
     f5i = f5i - t1r;
-
 
     t0r = f0r - f4r;
     t0i = f4i - f0i;              /* neg for rfft */
@@ -2502,7 +2494,6 @@ static void rfft8pt(MYFLT *ioptr)
     f2i = f0i - w0r * f7r + w0r * f7i;
     t1r = Two * f0r - f2r;
     t1i = f2i - Two * f0i;
-
 
     f0r = f1r + f6r;
     f0i = f1i - f6i;
@@ -2883,7 +2874,6 @@ static void rifft8pt(MYFLT *ioptr, MYFLT scale)
     f7r = ioptr[14];
     f7i = ioptr[15];
 
-
     /* start rfft */
     f0r = t0r + t0i;              /* compute Re(x[0]) */
     f0i = t0r - t0i;              /* compute Re(x[N/2]) */
@@ -2950,7 +2940,6 @@ static void rifft8pt(MYFLT *ioptr, MYFLT scale)
     f1r = f1r - t1i;
     f1i = f1i + t1r;
 
-
     t0r = f4r + f5r;
     t0i = f4i + f5i;
     f5r = f4r - f5r;
@@ -2970,7 +2959,6 @@ static void rifft8pt(MYFLT *ioptr, MYFLT scale)
     f7i = f5i - t1r;
     f5r = f5r - t1i;
     f5i = f5i + t1r;
-
 
     t0r = f0r - f4r;
     t0i = f0i - f4i;

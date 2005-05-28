@@ -64,18 +64,18 @@ void Plots::append(Curve *curve)
   for (i = 0; m_menu_items[i].text; i++) {
     if (!strcmp(caption, m_menu_items[i].text)) {
       if (m_selection == i)
-	m_canvas->set_curve(curve);
+        m_canvas->set_curve(curve);
       delete m_curves[i];
-      m_curves[i] = curve;	// Replace it.
+      m_curves[i] = curve;      // Replace it.
       return;
     }
   }
 
-  if (i >= menu_size) {		// Just drop it.
+  if (i >= menu_size) {         // Just drop it.
     delete curve;
     return;
   }
-  m_curves[i] = curve;		// Add it.
+  m_curves[i] = curve;          // Add it.
   size_t n = strlen(caption);
   char *p = (char *)malloc(n + 1); // Ensure char pointer is aligned
   m_menu_items[i].text = strcpy(p, caption); // for Windows XP

@@ -178,25 +178,25 @@ void graph_box::draw()
       int c,i = 0, j = lsegs;
 
       if (pol == (short)BIPOL)
-	y_scale /= 2.0;             /* max data scales to h/2 */
+        y_scale /= 2.0;             /* max data scales to h/2 */
       /* put x-y pairs into a point list for XDraw */
       while (j--) {
-	int x = gra_x + (short)((MYFLT)i++ * x_scale);
-	int y;
-	if (pts_pls == 1)
-	  f = *fdptr++;
-	else {
-	  ma = mi = *fdptr++;
-	  for (c = 1; c < pts_pls; ++c)
-	    if ((f = *fdptr++) > ma)    ma = f;
-	    else if ( f<mi )            mi = f;
-	  if (ma < 0)             f = mi;
-	  else if (mi > 0)        f = ma;
-	  else if (ma > -mi)      f = ma;
-	  else f = mi;
-	}
-	y = y_axis - (short)(f * y_scale);
-	fl_vertex(x,y);
+        int x = gra_x + (short)((MYFLT)i++ * x_scale);
+        int y;
+        if (pts_pls == 1)
+          f = *fdptr++;
+        else {
+          ma = mi = *fdptr++;
+          for (c = 1; c < pts_pls; ++c)
+            if ((f = *fdptr++) > ma)    ma = f;
+            else if ( f<mi )            mi = f;
+          if (ma < 0)             f = mi;
+          else if (mi > 0)        f = ma;
+          else if (ma > -mi)      f = ma;
+          else f = mi;
+        }
+        y = y_axis - (short)(f * y_scale);
+        fl_vertex(x,y);
       }
     }
     fl_end_line();
@@ -251,7 +251,6 @@ void add_graph(WINDAT *wdptr)
   choice->value(m);
   graph->redraw();
 }
-
 
 void do_redraw(Fl_Widget*,void*)
 {

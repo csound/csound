@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
    /*                             */
    /* Functions to write PS code  */
    /*                             */

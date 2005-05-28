@@ -45,7 +45,6 @@ MYFLT myfltrandom(MYFLT a, MYFLT b)
     return (a+((MYFLT)rand()/RAND_MAX)*(b-a));
 }
 
-
 int BBCutMonoInit(ENVIRON *csound, BBCUTMONO *p)
 {
     /* call seed random at time now? */
@@ -240,7 +239,6 @@ int BBCutMono(ENVIRON *csound, BBCUTMONO *p)
         p->aout[i] = ((MYFLT*)(p->repeatbuffer.auxp))[p->repeatsampdone];
       }
 
-
       /* per sample accounting */
       ++(p->repeatsampdone);
 
@@ -289,7 +287,6 @@ int BBCutStereoInit(ENVIRON *csound, BBCUTSTEREO * p)
 /*       } */
 /*                 } */
 
-
     /* have no knowledge of source length */
 
     p->numbarsnow = 0;
@@ -328,7 +325,6 @@ int BBCutStereoInit(ENVIRON *csound, BBCUTSTEREO * p)
 
     return OK;
 }
-
 
 /* rounding errors will accumulate slowly with respect to bps,  */
 /* true tempo is determined by samplesperunit (which has been rounded off) */

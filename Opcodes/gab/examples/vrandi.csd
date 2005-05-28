@@ -11,8 +11,7 @@ nchnls =        2
 
 gindx init 0
 
-
-	instr	2
+        instr   2
 kout1 init 0
 kout2 init 0
 kout3 init 0
@@ -25,7 +24,7 @@ printk 0.5, kout1
 printk 0.5, kout2
 printk 0.5, kout3
 printk 0.5, kout4
-	endin
+        endin
 
 </CsInstruments>
 <CsScore>

@@ -25,7 +25,6 @@
 /*      Berklee College of Music Csound development team        */
 /*      Copyright (c) December 1994.  All rights reserved       */
 
-
 MYFLT gc_time[Combs] = {
         FL(1237.0),
         FL(1381.0),

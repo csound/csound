@@ -1,5 +1,5 @@
 /**
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -29,377 +29,377 @@
 
 namespace csound
 {
-	Lindenmayer::Lindenmayer() : angle(1)
-	{
-	}
+        Lindenmayer::Lindenmayer() : angle(1)
+        {
+        }
 
-	Lindenmayer::~Lindenmayer()
-	{
-	}
+        Lindenmayer::~Lindenmayer()
+        {
+        }
 
-	std::string Lindenmayer::getReplacement(std::string word)
-	{
-		if(rules.find(word) == rules.end())
-		{
-			return word;
-		}
-		else
-		{
-			return rules[word];
-		}
-	}
+        std::string Lindenmayer::getReplacement(std::string word)
+        {
+                if(rules.find(word) == rules.end())
+                {
+                        return word;
+                }
+                else
+                {
+                        return rules[word];
+                }
+        }
 
-	void Lindenmayer::generate()
-	{
-		std::string word;
-		std::string replacement;
-		std::ifstream inputStream;
-		std::ofstream outputStream;
-		std::string inputFilename = "a.lindenmayer";
-		std::string outputFilename = "b.lindenmayer";
-		std::string tempFilename;
-		outputStream.open(outputFilename.c_str());
-		outputStream << axiom.c_str() << std::endl;
-		outputStream.close();
-		for(int i = 0; i < iterationCount; i++)
-		{
-			std::ifstream inputStream;
-			std::ofstream outputStream;
-			tempFilename = inputFilename;
-			inputFilename = outputFilename;
-			outputFilename = tempFilename;
-			unlink(outputFilename.c_str());
-			inputStream.open(inputFilename.c_str());
-			inputStream.seekg(0, std::ios_base::beg);
-			outputStream.open(outputFilename.c_str());
-			while(!inputStream.eof())
-			{
-				inputStream >> word;
-				inputStream >> std::ws;
-				replacement = getReplacement(word);
-				outputStream << replacement << std::endl;
-			}
-			inputStream.close();
-			outputStream.close();
-		}
-		score.scaleActualMinima = turtle;
-		score.scaleActualRanges = turtle;
-		initialize();
-		inputStream.open(inputFilename.c_str());
-		while(!inputStream.eof())
-		{
-			inputStream >> word;
-			interpret(word, false);
-		}
-		initialize();
-		inputStream.close();
-		std::ifstream finalInputStream(inputFilename.c_str());
-		while(!finalInputStream.eof())
-		{
-			finalInputStream >> word;
-			//std::cerr << word << std::endl;
-			interpret(word, true);
-		}
-		finalInputStream.close();
-		for(std::vector<Event>::iterator i = score.begin(); i != score.end(); ++i)
-		{
-			Event &event = *i;
-			event.setStatus(MidiFile::CHANNEL_NOTE_ON);
-		}
-	}
+        void Lindenmayer::generate()
+        {
+                std::string word;
+                std::string replacement;
+                std::ifstream inputStream;
+                std::ofstream outputStream;
+                std::string inputFilename = "a.lindenmayer";
+                std::string outputFilename = "b.lindenmayer";
+                std::string tempFilename;
+                outputStream.open(outputFilename.c_str());
+                outputStream << axiom.c_str() << std::endl;
+                outputStream.close();
+                for(int i = 0; i < iterationCount; i++)
+                {
+                        std::ifstream inputStream;
+                        std::ofstream outputStream;
+                        tempFilename = inputFilename;
+                        inputFilename = outputFilename;
+                        outputFilename = tempFilename;
+                        unlink(outputFilename.c_str());
+                        inputStream.open(inputFilename.c_str());
+                        inputStream.seekg(0, std::ios_base::beg);
+                        outputStream.open(outputFilename.c_str());
+                        while(!inputStream.eof())
+                        {
+                                inputStream >> word;
+                                inputStream >> std::ws;
+                                replacement = getReplacement(word);
+                                outputStream << replacement << std::endl;
+                        }
+                        inputStream.close();
+                        outputStream.close();
+                }
+                score.scaleActualMinima = turtle;
+                score.scaleActualRanges = turtle;
+                initialize();
+                inputStream.open(inputFilename.c_str());
+                while(!inputStream.eof())
+                {
+                        inputStream >> word;
+                        interpret(word, false);
+                }
+                initialize();
+                inputStream.close();
+                std::ifstream finalInputStream(inputFilename.c_str());
+                while(!finalInputStream.eof())
+                {
+                        finalInputStream >> word;
+                        //std::cerr << word << std::endl;
+                        interpret(word, true);
+                }
+                finalInputStream.close();
+                for(std::vector<Event>::iterator i = score.begin(); i != score.end(); ++i)
+                {
+                        Event &event = *i;
+                        event.setStatus(MidiFile::CHANNEL_NOTE_ON);
+                }
+        }
 
-	void Lindenmayer::initialize()
-	{
-		turtle = csound::Event();
-		turtleStep = csound::Event();
-		for(int i = 0; i < Event::HOMOGENEITY; i++)
-		{
-			turtleStep[i] = 1.0;
-		}
-		turtleOrientation = csound::Event();
-		turtleOrientation[Event::TIME] = 1.0;
-	}
+        void Lindenmayer::initialize()
+        {
+                turtle = csound::Event();
+                turtleStep = csound::Event();
+                for(int i = 0; i < Event::HOMOGENEITY; i++)
+                {
+                        turtleStep[i] = 1.0;
+                }
+                turtleOrientation = csound::Event();
+                turtleOrientation[Event::TIME] = 1.0;
+        }
 
-	void Lindenmayer::interpret(std::string action, bool render)
-	{
-		try
-		{
-			action = Conversions::trim(action);
-			char command = action[0];
-			switch(command)
-			{
-			case 'N':
-				{
-					if(render)
-					{
-						Event event = turtle;
-						//score.rescale(event);
-						score.push_back(event);
-					}
-					else
-					{
-						updateActual(turtle);
-					}
-				}
-				break;
-			case 'M':
-				{
-					double a = 1.0;
-					if(action.length () > 1)
-					{
-						a = Conversions::stringToDouble(action.substr(1));
-					}
-					double step;
-					for (int i = 1; i < Event::HOMOGENEITY; i++)
-					{
-						step = turtle[i] + (turtleStep[i] * a * turtleOrientation[i]);
-						turtle[i] = step;
-					}
-				}
-				break;
-			case 'R':
-				{
-					size_t d1 = getDimension(action[1]);
-					size_t d2 = getDimension(action[2]);
-					double n = 1.0;
-					if(action.length() > 3)
-					{
-						n = Conversions::stringToDouble(action.substr(3));
-					}
-					double a = angle * n;
-					ublas::matrix<double> rotation = createRotation (d1, d2, a);
-					turtleOrientation = ublas::prod(rotation, turtleOrientation);
-				}
-				break;
-			case 'T':
-				{
-					size_t dimension = getDimension(action[1]);
-					char operation = action[2];
-					double n = 1.0;
-					if(action.length() > 3)
-					{
-						n = Conversions::stringToDouble(action.substr(3));
-					}
-					switch(operation)
-					{
-					case '=':
-						turtle[dimension] =  (turtleStep[dimension] * n);
-						break;
-					case '*':
-						turtle[dimension] = (turtle[dimension] * (turtleStep[dimension] * n));
-						break;
-					case '/':
-						turtle[dimension] = (turtle[dimension] / (turtleStep[dimension] * n));
-						break;
-					case '+':
-						turtle[dimension] = (turtle[dimension] + (turtleStep[dimension] * n));
-						break;
-					case '-':
-						turtle[dimension] = (turtle[dimension] - (turtleStep[dimension] * n));
-						break;
-					}
-					if(dimension == Event::PITCHES)
-					{
-						while(turtle[dimension] > 4095.0)
-						{
-							turtle[dimension] = turtle[dimension] - 4095.0;
-						}
-						while(turtle[dimension] < 0)
-						{
-							turtle[dimension] = turtle[dimension] + 4095.0;
-						}
-					}
-				}
-				break;
-			case 'S':
-				{
-					size_t dimension = getDimension(action[1]);
-					char operation = action[2];
-					double n = 1.0;
-					if(action.length() > 3)
-					{
-						n = Conversions::stringToDouble(action.substr(3));
-					}
-					switch(operation)
-					{
-					case '=':
-						turtleStep[dimension] = n;
-						break;
-					case '*':
-						turtleStep[dimension] = (turtleStep[dimension] * n);
-						break;
-					case '/':
-						turtleStep[dimension] = (turtleStep[dimension] / n);
-						break;
-					case '+':
-						turtleStep[dimension] = (turtleStep[dimension] + n);
-						break;
-					case '-':
-						turtleStep[dimension] = (turtleStep[dimension] - n);
-						break;
-					}
-					//std::cerr << "step for " << dimension << " = " << turtleStep[dimension] << std::endl;
-					if(dimension == Event::PITCHES)
-					{
-						turtle[dimension] = Conversions::modulus(turtle[dimension], 4096.0);
-					}
-				}
-				break;
-			case '[':
-				{
-					Event a = turtle;
-					turtleStack.push(a);
-					Event b = turtleStep;
-					turtleStepStack.push(b);
-					Event c = turtleOrientation;
-					turtleOrientationStack.push(c);
-				}
-				break;
-			case ']':
-				{
-					turtle = turtleStack.top();
-					turtleStack.pop();
-					turtleStep = turtleStepStack.top();
-					turtleStepStack.pop();
-					turtleOrientation = turtleOrientationStack.top();
-					turtleOrientationStack.pop();
-				}
-				break;
-			}
-		}
-		catch(void *x)
-		{
-			std::cout << x << std::endl;
-		}
-	}
+        void Lindenmayer::interpret(std::string action, bool render)
+        {
+                try
+                {
+                        action = Conversions::trim(action);
+                        char command = action[0];
+                        switch(command)
+                        {
+                        case 'N':
+                                {
+                                        if(render)
+                                        {
+                                                Event event = turtle;
+                                                //score.rescale(event);
+                                                score.push_back(event);
+                                        }
+                                        else
+                                        {
+                                                updateActual(turtle);
+                                        }
+                                }
+                                break;
+                        case 'M':
+                                {
+                                        double a = 1.0;
+                                        if(action.length () > 1)
+                                        {
+                                                a = Conversions::stringToDouble(action.substr(1));
+                                        }
+                                        double step;
+                                        for (int i = 1; i < Event::HOMOGENEITY; i++)
+                                        {
+                                                step = turtle[i] + (turtleStep[i] * a * turtleOrientation[i]);
+                                                turtle[i] = step;
+                                        }
+                                }
+                                break;
+                        case 'R':
+                                {
+                                        size_t d1 = getDimension(action[1]);
+                                        size_t d2 = getDimension(action[2]);
+                                        double n = 1.0;
+                                        if(action.length() > 3)
+                                        {
+                                                n = Conversions::stringToDouble(action.substr(3));
+                                        }
+                                        double a = angle * n;
+                                        ublas::matrix<double> rotation = createRotation (d1, d2, a);
+                                        turtleOrientation = ublas::prod(rotation, turtleOrientation);
+                                }
+                                break;
+                        case 'T':
+                                {
+                                        size_t dimension = getDimension(action[1]);
+                                        char operation = action[2];
+                                        double n = 1.0;
+                                        if(action.length() > 3)
+                                        {
+                                                n = Conversions::stringToDouble(action.substr(3));
+                                        }
+                                        switch(operation)
+                                        {
+                                        case '=':
+                                                turtle[dimension] =  (turtleStep[dimension] * n);
+                                                break;
+                                        case '*':
+                                                turtle[dimension] = (turtle[dimension] * (turtleStep[dimension] * n));
+                                                break;
+                                        case '/':
+                                                turtle[dimension] = (turtle[dimension] / (turtleStep[dimension] * n));
+                                                break;
+                                        case '+':
+                                                turtle[dimension] = (turtle[dimension] + (turtleStep[dimension] * n));
+                                                break;
+                                        case '-':
+                                                turtle[dimension] = (turtle[dimension] - (turtleStep[dimension] * n));
+                                                break;
+                                        }
+                                        if(dimension == Event::PITCHES)
+                                        {
+                                                while(turtle[dimension] > 4095.0)
+                                                {
+                                                        turtle[dimension] = turtle[dimension] - 4095.0;
+                                                }
+                                                while(turtle[dimension] < 0)
+                                                {
+                                                        turtle[dimension] = turtle[dimension] + 4095.0;
+                                                }
+                                        }
+                                }
+                                break;
+                        case 'S':
+                                {
+                                        size_t dimension = getDimension(action[1]);
+                                        char operation = action[2];
+                                        double n = 1.0;
+                                        if(action.length() > 3)
+                                        {
+                                                n = Conversions::stringToDouble(action.substr(3));
+                                        }
+                                        switch(operation)
+                                        {
+                                        case '=':
+                                                turtleStep[dimension] = n;
+                                                break;
+                                        case '*':
+                                                turtleStep[dimension] = (turtleStep[dimension] * n);
+                                                break;
+                                        case '/':
+                                                turtleStep[dimension] = (turtleStep[dimension] / n);
+                                                break;
+                                        case '+':
+                                                turtleStep[dimension] = (turtleStep[dimension] + n);
+                                                break;
+                                        case '-':
+                                                turtleStep[dimension] = (turtleStep[dimension] - n);
+                                                break;
+                                        }
+                                        //std::cerr << "step for " << dimension << " = " << turtleStep[dimension] << std::endl;
+                                        if(dimension == Event::PITCHES)
+                                        {
+                                                turtle[dimension] = Conversions::modulus(turtle[dimension], 4096.0);
+                                        }
+                                }
+                                break;
+                        case '[':
+                                {
+                                        Event a = turtle;
+                                        turtleStack.push(a);
+                                        Event b = turtleStep;
+                                        turtleStepStack.push(b);
+                                        Event c = turtleOrientation;
+                                        turtleOrientationStack.push(c);
+                                }
+                                break;
+                        case ']':
+                                {
+                                        turtle = turtleStack.top();
+                                        turtleStack.pop();
+                                        turtleStep = turtleStepStack.top();
+                                        turtleStepStack.pop();
+                                        turtleOrientation = turtleOrientationStack.top();
+                                        turtleOrientationStack.pop();
+                                }
+                                break;
+                        }
+                }
+                catch(void *x)
+                {
+                        std::cout << x << std::endl;
+                }
+        }
 
-	int Lindenmayer::getDimension (char dimension) const
-	{
-		switch(dimension)
-		{
-		case 't': return Event::TIME;
-		case 'd': return Event::DURATION;
-		case 'i': return Event::INSTRUMENT;
-		case 'k': return Event::KEY;
-		case 'v': return Event::VELOCITY;
-		case 'p': return Event::PHASE;
-		case 'x': return Event::PAN;
-		case 'y': return Event::HEIGHT;
-		case 'z': return Event::DEPTH;
-		case 's': return Event::PITCHES;
-		}
-		return -1;
-	}
+        int Lindenmayer::getDimension (char dimension) const
+        {
+                switch(dimension)
+                {
+                case 't': return Event::TIME;
+                case 'd': return Event::DURATION;
+                case 'i': return Event::INSTRUMENT;
+                case 'k': return Event::KEY;
+                case 'v': return Event::VELOCITY;
+                case 'p': return Event::PHASE;
+                case 'x': return Event::PAN;
+                case 'y': return Event::HEIGHT;
+                case 'z': return Event::DEPTH;
+                case 's': return Event::PITCHES;
+                }
+                return -1;
+        }
 
-	ublas::matrix<double> Lindenmayer::createRotation (int dimension1, int dimension2, double angle) const
-	{
-		ublas::matrix<double> rotation = ublas::matrix<double>(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
-		for(int i = 0; i < Event::ELEMENT_COUNT; i++)
-		{
-			rotation[i][i] = 1.0;
-		}
-		rotation[dimension1][dimension1] =  cos(angle);
-		rotation[dimension1][dimension2] = -sin(angle);
-		rotation[dimension2][dimension1] =  sin(angle);
-		rotation[dimension2][dimension2] =  cos(angle);
-		return rotation;
-	}
+        ublas::matrix<double> Lindenmayer::createRotation (int dimension1, int dimension2, double angle) const
+        {
+                ublas::matrix<double> rotation = ublas::matrix<double>(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
+                for(int i = 0; i < Event::ELEMENT_COUNT; i++)
+                {
+                        rotation[i][i] = 1.0;
+                }
+                rotation[dimension1][dimension1] =  cos(angle);
+                rotation[dimension1][dimension2] = -sin(angle);
+                rotation[dimension2][dimension1] =  sin(angle);
+                rotation[dimension2][dimension2] =  cos(angle);
+                return rotation;
+        }
 
-	void Lindenmayer::updateActual(Event &event)
-	{
-		for(int i = 0, n = event.size(); i < n; i++)
-		{
-			if(score.scaleActualMinima[i] < event[i])
-			{
-				score.scaleActualMinima[i] = event[i];
-			}
-			if(score.scaleActualRanges[i] >= (score.scaleActualMinima[i] + event[i]))
-			{
-				score.scaleActualRanges[i] = (score.scaleActualMinima[i] + event[i]);
-			}
-		}
-	}
+        void Lindenmayer::updateActual(Event &event)
+        {
+                for(int i = 0, n = event.size(); i < n; i++)
+                {
+                        if(score.scaleActualMinima[i] < event[i])
+                        {
+                                score.scaleActualMinima[i] = event[i];
+                        }
+                        if(score.scaleActualRanges[i] >= (score.scaleActualMinima[i] + event[i]))
+                        {
+                                score.scaleActualRanges[i] = (score.scaleActualMinima[i] + event[i]);
+                        }
+                }
+        }
 
-	void Lindenmayer::rewrite()
-	{
-		System::inform("BEGAN Lindenmayer::rewrite()...");
-		std::stringstream production(axiom);
-		std::stringstream priorProduction;
-		std::string symbol;
-		std::string replacement;
-		for (int i = 0; i < iterationCount; i++)
-		{
-			priorProduction.clear();
-			priorProduction << production.str();
-			production.clear();
-			while (!priorProduction.eof())
-			{
-				priorProduction >> symbol;
-				if(rules.find(symbol) == rules.end())
-				{
-					replacement = symbol;
-				}
-				else
-				{
-					replacement = rules[symbol];
-				}
-				production << replacement;
-			}
-		}
-		System::inform("ENDED Lindenmayer::rewrite().");
-	}
+        void Lindenmayer::rewrite()
+        {
+                System::inform("BEGAN Lindenmayer::rewrite()...");
+                std::stringstream production(axiom);
+                std::stringstream priorProduction;
+                std::string symbol;
+                std::string replacement;
+                for (int i = 0; i < iterationCount; i++)
+                {
+                        priorProduction.clear();
+                        priorProduction << production.str();
+                        production.clear();
+                        while (!priorProduction.eof())
+                        {
+                                priorProduction >> symbol;
+                                if(rules.find(symbol) == rules.end())
+                                {
+                                        replacement = symbol;
+                                }
+                                else
+                                {
+                                        replacement = rules[symbol];
+                                }
+                                production << replacement;
+                        }
+                }
+                System::inform("ENDED Lindenmayer::rewrite().");
+        }
 
-	double Lindenmayer::getAngle() const
-	{
-		return angle;
-	}
+        double Lindenmayer::getAngle() const
+        {
+                return angle;
+        }
 
-	void Lindenmayer::setAngle(double angle)
-	{
-		this->angle = angle;
-	}
+        void Lindenmayer::setAngle(double angle)
+        {
+                this->angle = angle;
+        }
 
-	std::string Lindenmayer::getAxiom() const
-	{
-		return axiom;
-	}
+        std::string Lindenmayer::getAxiom() const
+        {
+                return axiom;
+        }
 
-	void Lindenmayer::setAxiom(std::string axiom)
-	{
-		this->axiom = axiom;
-	}
+        void Lindenmayer::setAxiom(std::string axiom)
+        {
+                this->axiom = axiom;
+        }
 
-	void Lindenmayer::addRule(std::string command, std::string replacement)
-	{
-		rules[command] = replacement;
-	}
+        void Lindenmayer::addRule(std::string command, std::string replacement)
+        {
+                rules[command] = replacement;
+        }
 
-	int Lindenmayer::getIterationCount() const
-	{
-		return iterationCount;
-	}
+        int Lindenmayer::getIterationCount() const
+        {
+                return iterationCount;
+        }
 
-	void Lindenmayer::setIterationCount(int count)
-	{
-		iterationCount = count;
-	}
+        void Lindenmayer::setIterationCount(int count)
+        {
+                iterationCount = count;
+        }
 
-	void Lindenmayer::clear()
-	{
-		initialize();
-		rules.clear();
-		while(!turtleStack.empty())
-		{
-			turtleStack.pop();
-		}
-		while(!turtleStepStack.empty())
-		{
-			turtleStepStack.pop();
-		}
-		while(!turtleOrientationStack.empty())
-		{
-			turtleOrientationStack.pop();
-		}
-	}
+        void Lindenmayer::clear()
+        {
+                initialize();
+                rules.clear();
+                while(!turtleStack.empty())
+                {
+                        turtleStack.pop();
+                }
+                while(!turtleStepStack.empty())
+                {
+                        turtleStepStack.pop();
+                }
+                while(!turtleOrientationStack.empty())
+                {
+                        turtleOrientationStack.pop();
+                }
+        }
 }
 

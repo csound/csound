@@ -32,7 +32,6 @@
 #endif
 #include <ctype.h>
 
-
 #ifndef TRUE
 #define TRUE 1
 #define FALSE 0
@@ -97,7 +96,6 @@ typedef struct tempo
   Rat time;
   int val;
 } Tempo;
-
 
 #include <stdlib.h>
 

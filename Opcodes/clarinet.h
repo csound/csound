@@ -102,7 +102,6 @@ typedef struct CLARIN {
     int         kloop;
 } CLARIN;
 
-
 /* int clarinetset(CLARINET *p); */
 /* int clarinet(CLARINET *p) */
 

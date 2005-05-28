@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -49,7 +49,6 @@ The OpenSound Control WWW page is
 
 char *OSCDataAfterAlignedString(const char *string, const char *boundary, char **errorMsg);
 
-
 /* Given a normal C-style string with a single padding byte, return the
    length of the string including the necessary 1-4 padding bytes.
    (Basically strlen()+1 rounded up to the next multiple of 4.) */
@@ -61,7 +60,6 @@ int OSCPaddedStrlen(const char *s);
    what OSCDataAfterAlignedString() returns. */
 char *OSCPaddedStrcpy(char *target, const char *source);
 
-
 /* Given an args pointer that should be nothing but a list of strings, fill
    result[] with pointers to the beginnings of each string, and set
    *numStrings to be the number of strings found.  maxStrings gives the size
@@ -69,4 +67,4 @@ char *OSCPaddedStrcpy(char *target, const char *source);
    there are more than maxStrings many strings. */
 
 OSCBoolean OSCParseStringList(const char *result[], int *numStrings, int maxStrings,
-			   const char *args, int numBytes);
+                           const char *args, int numBytes);

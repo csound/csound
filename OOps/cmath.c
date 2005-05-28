@@ -275,9 +275,7 @@ int ikpoiss(ENVIRON *csound, PRAND *p)
     return OK;
 }
 
-
 /* * * * * * RANDOM NUMBER GENERATORS * * * * * */
-
 
 #define unirand()       (MYFLT)((double)rand()/(double)RAND_MAX)
 

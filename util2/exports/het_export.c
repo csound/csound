@@ -1,4 +1,4 @@
-/*  
+/*
 het_export.c
 
 Copyright (C) 1995 John ffitch
@@ -35,39 +35,39 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 void het_export_usage(void)
 {
-	exit(1);
+        exit(1);
 }
 
 int main(int argc, char **argv)
 {
-	MEMFIL *inf;
-	FILE *outf;
-	short *adp;
-	short *endata;
-	int cc = 0;
+        MEMFIL *inf;
+        FILE *outf;
+        short *adp;
+        short *endata;
+        int cc = 0;
 
-	init_getstring(argc, argv);
-	csoundPreCompile(csoundCreate(NULL));
-	if (argc!= 3)
-		het_export_usage();
-	inf = ldmemfile(&cenviron, argv[1]);
-	if (inf == NULL) {
-		fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
-		exit(1);
-	}
-	outf = fopen(argv[2], "w");
-	if (outf == NULL) {
-		fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
-		exit(1);
-	}
-	adp = (short *) inf->beginp;
-	endata = (short *) inf->endp;
-	cc = 0;
-	for (; adp<endata; adp++) {
-		if (*adp == END) fputc('\n',outf), cc = 0;
-		else fprintf(outf, "%s%hd", (cc ? ",":""), *adp), cc = 1;
-	}
-	fclose(outf);
-	return 0;
+        init_getstring(argc, argv);
+        csoundPreCompile(csoundCreate(NULL));
+        if (argc!= 3)
+                het_export_usage();
+        inf = ldmemfile(&cenviron, argv[1]);
+        if (inf == NULL) {
+                fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
+                exit(1);
+        }
+        outf = fopen(argv[2], "w");
+        if (outf == NULL) {
+                fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
+                exit(1);
+        }
+        adp = (short *) inf->beginp;
+        endata = (short *) inf->endp;
+        cc = 0;
+        for (; adp<endata; adp++) {
+                if (*adp == END) fputc('\n',outf), cc = 0;
+                else fprintf(outf, "%s%hd", (cc ? ",":""), *adp), cc = 1;
+        }
+        fclose(outf);
+        return 0;
 }
 

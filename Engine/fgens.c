@@ -1141,7 +1141,6 @@ static void gen24(FUNC *ftp, ENVIRON *csound)
     fp[j] = fp[j-1];
 }
 
-
 static void gen25(FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
@@ -1756,8 +1755,6 @@ static void gen34 (FUNC *ftp, ENVIRON *csound)
     mfree(csound, tmp); mfree(csound, xn); mfree(csound, cn); mfree(csound, vn);
 }
 
-
-
 static void gen40(FUNC *ftp, ENVIRON *csound)              /*gab d5*/
 {
     FGDATA  *ff = &(csound->ff);
@@ -1809,7 +1806,6 @@ static void gen41(FUNC *ftp, ENVIRON *csound)  /*gab d5*/
     }
     *fp = pp[j-1];
 }
-
 
 static void gen42(FUNC *ftp, ENVIRON *csound) /*gab d5*/
 {
@@ -2448,7 +2444,6 @@ int ftload_k(ENVIRON *csound, FTLOAD_K *p)
       ftload(csound, pp);
     return OK;
 }
-
 
 int ftsave(ENVIRON *csound, FTLOAD *p)
 {

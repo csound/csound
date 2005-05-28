@@ -32,7 +32,6 @@
 #include "csdl.h"
 #include "sndwarp.h"
 
-
 int sndwarpgetset(ENVIRON *csound, SNDWARP *p)
 {
     int         i;

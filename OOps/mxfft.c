@@ -30,7 +30,10 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.7  2005-04-17 17:56:25  jpff
+ *      Revision 1.8  2005-05-28 13:00:02  istvanv
+ *      Minor code changes (tabs etc.)
+ *
+ *      Revision 1.7  2005/04/17 17:56:25  jpff
  *      Warnings
  *
  *      Revision 1.6  2005/02/18 16:21:14  istvanv
@@ -103,7 +106,6 @@ fft_(ENVIRON *csound, MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
 /* work space pointers */
     MYFLT       *at, *ck, *bt, *sk;
     int *np;
-
 
 /* reduce the pointers to input arrays - by doing this, FFT uses FORTRAN
    indexing but retains compatibility with C arrays */
@@ -336,7 +338,6 @@ lbl80:
 /*
  * transform for factor of 3 (optional code)
  */
-
 
  lbl100:
     k1 = kk + kspan;
@@ -810,7 +811,6 @@ lbl570:
     return;
 }
 
-
 /*
  *-----------------------------------------------------------------------
  * subroutine:
@@ -912,5 +912,4 @@ reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
     }
     return;
 }
-
 

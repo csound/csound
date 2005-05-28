@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -68,8 +68,8 @@ namespace csound
   {
     if(lock)
       {
-	System::destroyThreadLock(lock);
-	lock = 0;
+        System::destroyThreadLock(lock);
+        lock = 0;
       }
   }
 
@@ -82,7 +82,7 @@ namespace csound
   {
     if(lock)
       {
-	System::waitThreadLock(lock, milliseconds);
+        System::waitThreadLock(lock, milliseconds);
       }
   }
 
@@ -90,7 +90,7 @@ namespace csound
   {
     if(lock)
       {
-	System::notifyThreadLock(lock);
+        System::notifyThreadLock(lock);
       }
   }
 
@@ -105,7 +105,7 @@ namespace csound
     userdata_ = userdata;
   }
 
-  void *System::getUserdata() 
+  void *System::getUserdata()
   {
     return userdata_;
   }
@@ -114,10 +114,10 @@ namespace csound
   {
     if((level & messageLevel) == level)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata, level, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata, level, format, marker);
+        va_end(marker);
       }
   }
 
@@ -125,10 +125,10 @@ namespace csound
   {
     if((ERROR_LEVEL & messageLevel) == ERROR_LEVEL)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata, ERROR_LEVEL, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata, ERROR_LEVEL, format, marker);
+        va_end(marker);
       }
   }
 
@@ -136,10 +136,10 @@ namespace csound
   {
     if((ERROR_LEVEL & messageLevel) == ERROR_LEVEL)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata_, ERROR_LEVEL, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata_, ERROR_LEVEL, format, marker);
+        va_end(marker);
       }
   }
 
@@ -147,10 +147,10 @@ namespace csound
   {
     if((WARNING_LEVEL & messageLevel) == WARNING_LEVEL)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata, WARNING_LEVEL, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata, WARNING_LEVEL, format, marker);
+        va_end(marker);
       }
   }
 
@@ -158,10 +158,10 @@ namespace csound
   {
     if((WARNING_LEVEL & messageLevel) == WARNING_LEVEL)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata_, WARNING_LEVEL, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata_, WARNING_LEVEL, format, marker);
+        va_end(marker);
       }
   }
 
@@ -169,10 +169,10 @@ namespace csound
   {
     if((INFORMATION_LEVEL & messageLevel) == INFORMATION_LEVEL)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata, INFORMATION_LEVEL, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata, INFORMATION_LEVEL, format, marker);
+        va_end(marker);
       }
   }
 
@@ -180,10 +180,10 @@ namespace csound
   {
     if((INFORMATION_LEVEL & messageLevel) == INFORMATION_LEVEL)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata_, INFORMATION_LEVEL, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata_, INFORMATION_LEVEL, format, marker);
+        va_end(marker);
       }
   }
 
@@ -191,10 +191,10 @@ namespace csound
   {
     if((DEBUGGING_LEVEL & messageLevel) == DEBUGGING_LEVEL)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata, DEBUGGING_LEVEL, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata, DEBUGGING_LEVEL, format, marker);
+        va_end(marker);
       }
   }
 
@@ -202,10 +202,10 @@ namespace csound
   {
     if((DEBUGGING_LEVEL & messageLevel) == DEBUGGING_LEVEL)
       {
-	va_list marker;
-	va_start(marker, format);
-	message(userdata_, DEBUGGING_LEVEL, format, marker);
-	va_end(marker);
+        va_list marker;
+        va_start(marker, format);
+        message(userdata_, DEBUGGING_LEVEL, format, marker);
+        va_end(marker);
       }
   }
 
@@ -234,11 +234,11 @@ namespace csound
   {
     if(messageCallback)
       {
-	messageCallback(userdata, messageLevel, format, valist);
+        messageCallback(userdata, messageLevel, format, valist);
       }
     else
       {
-	vfprintf(stderr, format, valist);
+        vfprintf(stderr, format, valist);
       }
   }
 
@@ -246,11 +246,11 @@ namespace csound
   {
     if(messageCallback)
       {
-	messageCallback(userdata, attribute, format, valist);
+        messageCallback(userdata, attribute, format, valist);
       }
     else
       {
-	vfprintf(stderr, format, valist);
+        vfprintf(stderr, format, valist);
       }
   }
 
@@ -258,7 +258,7 @@ namespace csound
   {
     int returnValue = messageLevel;
     messageLevel = messageLevel_;
-    return returnValue;		
+    return returnValue;
   }
 
   int System::getMessageLevel()
@@ -292,7 +292,6 @@ namespace csound
   {
   }
 
-
 #if defined(WIN32) && !defined(__CYGWIN__)
 
 #include <process.h>
@@ -307,36 +306,36 @@ namespace csound
     startupInfo.cb = sizeof(startupInfo);
     PROCESS_INFORMATION processInformation;
     memset(&processInformation, 0, sizeof(processInformation));
-    return CreateProcess(0, 
-			 const_cast<char *>(command), 
-			 0, 
-			 0, 
-			 0, 
-			 DETACHED_PROCESS, 
-			 0, 
-			 0, 
-			 &startupInfo, 
-			 &processInformation);
+    return CreateProcess(0,
+                         const_cast<char *>(command),
+                         0,
+                         0,
+                         0,
+                         DETACHED_PROCESS,
+                         0,
+                         0,
+                         &startupInfo,
+                         &processInformation);
   }
 
   int System::shellOpen(const char *filename, const char *command)
   {
     int returnValue = 0;
     int hInstance = (int) ShellExecute(0,
-				       command,
-				       filename,
-				       0,
-				       0,
-				       SW_SHOWNORMAL);
+                                       command,
+                                       filename,
+                                       0,
+                                       0,
+                                       SW_SHOWNORMAL);
     returnValue = !(hInstance > 32);
     return returnValue;
   }
 
-  void System::parsePathname(const std::string pathname, 
-			     std::string &drive, 
-			     std::string &base, 
-			     std::string &file, 
-			     std::string &extension)
+  void System::parsePathname(const std::string pathname,
+                             std::string &drive,
+                             std::string &base,
+                             std::string &file,
+                             std::string &extension)
   {
     char drive_[_MAX_DRIVE];
     char base_[_MAX_DIR];
@@ -371,18 +370,18 @@ namespace csound
     int intptr = _findfirst(path.c_str(), &finddata);
     if(intptr != -1)
       {
-	if((finddata.attrib & _A_SUBDIR) != _A_SUBDIR)
-	  {
-	    names.push_back(finddata.name);
-	  }
-	while(_findnext(intptr, &finddata) != -1)
-	  {
-	    if((finddata.attrib & _A_SUBDIR) != _A_SUBDIR)
-	      {
-		names.push_back(finddata.name);
-	      }
-	  }
-	_findclose(intptr);
+        if((finddata.attrib & _A_SUBDIR) != _A_SUBDIR)
+          {
+            names.push_back(finddata.name);
+          }
+        while(_findnext(intptr, &finddata) != -1)
+          {
+            if((finddata.attrib & _A_SUBDIR) != _A_SUBDIR)
+              {
+                names.push_back(finddata.name);
+              }
+          }
+        _findclose(intptr);
       }
     return names;
   }
@@ -394,36 +393,36 @@ namespace csound
     int intptr = _findfirst(path.c_str(), &finddata);
     if(intptr != -1)
       {
-	if((finddata.attrib & _A_SUBDIR) == _A_SUBDIR)
-	  {
-	    if(strcmp(finddata.name, ".") == 0)
-	      {
-	      }
-	    else if(strcmp(finddata.name, "..") == 0)
-	      {
-	      }
-	    else
-	      {
-		names.push_back(finddata.name);
-	      }
-	  }
-	while(_findnext(intptr, &finddata) != -1)
-	  {
-	    if((finddata.attrib & _A_SUBDIR) == _A_SUBDIR)
-	      {
-		if(strcmp(finddata.name, ".") == 0)
-		  {
-		  }
-		else if(strcmp(finddata.name, "..") == 0)
-		  {
-		  }
-		else
-		  {
-		    names.push_back(finddata.name);
-		  }
-	      }
-	  }
-	_findclose(intptr);
+        if((finddata.attrib & _A_SUBDIR) == _A_SUBDIR)
+          {
+            if(strcmp(finddata.name, ".") == 0)
+              {
+              }
+            else if(strcmp(finddata.name, "..") == 0)
+              {
+              }
+            else
+              {
+                names.push_back(finddata.name);
+              }
+          }
+        while(_findnext(intptr, &finddata) != -1)
+          {
+            if((finddata.attrib & _A_SUBDIR) == _A_SUBDIR)
+              {
+                if(strcmp(finddata.name, ".") == 0)
+                  {
+                  }
+                else if(strcmp(finddata.name, "..") == 0)
+                  {
+                  }
+                else
+                  {
+                    names.push_back(finddata.name);
+                  }
+              }
+          }
+        _findclose(intptr);
       }
     return names;
   }
@@ -482,27 +481,27 @@ namespace csound
     startupInfo.cb = sizeof(startupInfo);
     PROCESS_INFORMATION processInformation;
     memset(&processInformation, 0, sizeof(processInformation));
-    return CreateProcess(0, 
-			 const_cast<char *>(command), 
-			 0, 
-			 0, 
-			 0, 
-			 DETACHED_PROCESS, 
-			 0, 
-			 0, 
-			 &startupInfo, 
-			 &processInformation);
+    return CreateProcess(0,
+                         const_cast<char *>(command),
+                         0,
+                         0,
+                         0,
+                         DETACHED_PROCESS,
+                         0,
+                         0,
+                         &startupInfo,
+                         &processInformation);
   }
 
   int System::shellOpen(const char *filename, const char *command)
   {
     int returnValue = 0;
     int hInstance = (int) ShellExecute(0,
-				       command,
-				       filename,
-				       0,
-				       0,
-				       SW_SHOWNORMAL);
+                                       command,
+                                       filename,
+                                       0,
+                                       0,
+                                       SW_SHOWNORMAL);
     returnValue = !(hInstance > 32);
     return returnValue;
   }
@@ -582,7 +581,7 @@ namespace csound
       return(bname);
     } else {
       do {
-	endp--;
+        endp--;
       } while (endp > path && *endp == '/');
     }
 
@@ -594,11 +593,11 @@ namespace csound
     return(bname);
   }
 
-  void System::parsePathname(const std::string pathname, 
-			     std::string &drive, 
-			     std::string &directory, 
-			     std::string &file, 
-			     std::string &extension)
+  void System::parsePathname(const std::string pathname,
+                             std::string &drive,
+                             std::string &directory,
+                             std::string &file,
+                             std::string &extension)
   {
     drive.erase();
     directory.erase();
@@ -608,10 +607,10 @@ namespace csound
     directory = dirname(dirTemp);
     char *fileTemp = strdup(pathname.c_str());
     file = basename(fileTemp);
-    int periodPosition = pathname.find_last_of(".");   
+    int periodPosition = pathname.find_last_of(".");
     if(periodPosition != -1)
       {
-	extension = pathname.substr(periodPosition + 1);
+        extension = pathname.substr(periodPosition + 1);
       }
     free(dirTemp);
     free(fileTemp);
@@ -623,7 +622,7 @@ namespace csound
     library = dlopen(filename.c_str(), RTLD_NOW | RTLD_GLOBAL);
     if(!library)
       {
-	System::error("Error in dlopen(): '%s'\n", dlerror());
+        System::error("Error in dlopen(): '%s'\n", dlerror());
       }
     return library;
   }
@@ -656,16 +655,16 @@ namespace csound
   void *System::createThread(void (*threadRoutine)(void *threadData), void *data, int priority)
   {
     pthread_t *pthread = new pthread_t;
-    if(pthread_create(pthread, 
-		      0, 
-		      (void *(*) (void*)) threadRoutine, 
-		      data) == 0)
+    if(pthread_create(pthread,
+                      0,
+                      (void *(*) (void*)) threadRoutine,
+                      data) == 0)
       {
-	return pthread;
+        return pthread;
       }
     else
       {
-	return 0;
+        return 0;
       }
   }
 
@@ -674,11 +673,11 @@ namespace csound
     pthread_mutex_t *pthread_mutex = new pthread_mutex_t;
     if(pthread_mutex_init(pthread_mutex, 0) == 0)
       {
-	return pthread_mutex;
+        return pthread_mutex;
       }
     else
       {
-	return 0;
+        return 0;
       }
   }
 
@@ -800,7 +799,7 @@ namespace csound
       return(bname);
     } else {
       do {
-	endp--;
+        endp--;
       } while (endp > path && *endp == '/');
     }
 
@@ -817,12 +816,12 @@ namespace csound
     int returnValue = fork();
     if(!returnValue)
       {
-	int argc;
-	char **argv;
-	std::string buffer = command;
-	scatterArgs(buffer, &argc, &argv);
-	execv(argv[0], argv);
-	deleteArgs(argc, argv);
+        int argc;
+        char **argv;
+        std::string buffer = command;
+        scatterArgs(buffer, &argc, &argv);
+        execv(argv[0], argv);
+        deleteArgs(argc, argv);
       }
     return returnValue;
   }
@@ -835,11 +834,11 @@ namespace csound
     return System::execute(buffer.c_str());
   }
 
-  void System::parsePathname(const std::string pathname, 
-			     std::string &drive, 
-			     std::string &directory, 
-			     std::string &file, 
-			     std::string &extension)
+  void System::parsePathname(const std::string pathname,
+                             std::string &drive,
+                             std::string &directory,
+                             std::string &file,
+                             std::string &extension)
   {
     drive.erase();
     directory.erase();
@@ -849,10 +848,10 @@ namespace csound
     directory = dirname(dirTemp);
     char *fileTemp = strdup(pathname.c_str());
     file = basename(fileTemp);
-    int periodPosition = pathname.find_last_of(".");   
+    int periodPosition = pathname.find_last_of(".");
     if(periodPosition != -1)
       {
-	extension = pathname.substr(periodPosition + 1);
+        extension = pathname.substr(periodPosition + 1);
       }
     free(dirTemp);
     free(fileTemp);
@@ -864,7 +863,7 @@ namespace csound
     library = dlopen(filename.c_str(), RTLD_NOW | RTLD_GLOBAL);
     if(!library)
       {
-	System::error("Error in dlopen(): '%s'\n", dlerror());
+        System::error("Error in dlopen(): '%s'\n", dlerror());
       }
     return library;
   }
@@ -897,16 +896,16 @@ namespace csound
   void *System::createThread(void (*threadRoutine)(void *threadData), void *data, int priority)
   {
     pthread_t *pthread = new pthread_t;
-    if(pthread_create(pthread, 
-		      0, 
-		      (void *(*) (void*)) threadRoutine, 
-		      data) == 0)
+    if(pthread_create(pthread,
+                      0,
+                      (void *(*) (void*)) threadRoutine,
+                      data) == 0)
       {
-	return pthread;
+        return pthread;
       }
     else
       {
-	return 0;
+        return 0;
       }
   }
 
@@ -915,11 +914,11 @@ namespace csound
     pthread_mutex_t *pthread_mutex = new pthread_mutex_t;
     if(pthread_mutex_init(pthread_mutex, 0) == 0)
       {
-	return pthread_mutex;
+        return pthread_mutex;
       }
     else
       {
-	return 0;
+        return 0;
       }
   }
 
@@ -955,5 +954,4 @@ namespace csound
 
 #endif
 }
-
 

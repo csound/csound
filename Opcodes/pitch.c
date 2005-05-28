@@ -444,7 +444,6 @@ output:
     return OK;
 }
 
-
 /* Multiply and accumulate opcodes */
 
 int macset(ENVIRON *csound, SUM *p)
@@ -917,7 +916,6 @@ MYFLT medianvalue(unsigned long n, MYFLT *vals)
 }
 #undef SWAP
 
-
 int pitchamdf(ENVIRON *csound, PITCHAMDF *p)
 {
     MYFLT *buffer = (MYFLT*)p->buffer.auxp;
@@ -1211,7 +1209,6 @@ int phsorbnk(ENVIRON *csound, PHSORBNK *p)
 int GardnerPink_init(ENVIRON *csound, PINKISH *p);
 int GardnerPink_perf(ENVIRON *csound, PINKISH *p);
 
-
 int pinkset(ENVIRON *csound, PINKISH *p)
 {
         /* Check valid method */
@@ -1241,7 +1238,6 @@ int pinkset(ENVIRON *csound, PINKISH *p)
     }
     return OK;
 }
-
 
 int pinkish(ENVIRON *csound, PINKISH *p)
 {
@@ -1294,7 +1290,6 @@ int pinkish(ENVIRON *csound, PINKISH *p)
     return OK;
 }
 
-
 /************************************************************/
 /*
         GardnerPink_init() and GardnerPink_perf()
@@ -1338,7 +1333,6 @@ static long GenerateRandomNumber(unsigned long randSeed)
 }
 
 /************************************************************/
-
 
 /* Set up for user-selected number of bands of noise generators. */
 int GardnerPink_init(ENVIRON *csound, PINKISH *p)
@@ -1393,7 +1387,6 @@ int GardnerPink_init(ENVIRON *csound, PINKISH *p)
     }
     return OK;
 }
-
 
 /* Generate numRows octave-spaced white bands and sum to pink noise. */
 int GardnerPink_perf(ENVIRON *csound, PINKISH *p)
@@ -1454,7 +1447,6 @@ int GardnerPink_perf(ENVIRON *csound, PINKISH *p)
     p->randSeed = randSeed;
     return OK;
 }
-
 
 /* ************************************************************ */
 /* A collection of clipping techniques    -- JPff               */
@@ -2043,7 +2035,6 @@ int lpf18db(ENVIRON *csound, LPF18 *p)
     p->lastin = lastin;
     return OK;
 }
-
 
 /* ************************************************** */
 /* **** Wishart wavesets     ************************ */

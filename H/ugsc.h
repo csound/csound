@@ -39,7 +39,6 @@ typedef struct {
         MYFLT ynm1, ynm2;
 } SVF;
 
-
 /* hilbert.h
  *
  * Copyright 1999, by Sean M. Costello
@@ -56,7 +55,6 @@ typedef struct {
         MYFLT *out1, *out2, *in;
         MYFLT xnm1[12], ynm1[12], coef[12];
 } HILBERT;
-
 
 /* resonrz.h
  *

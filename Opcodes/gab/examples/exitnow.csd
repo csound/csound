@@ -11,11 +11,11 @@ nchnls =        2
 
        instr    1
 print 55665
-	endin
+        endin
 
-	instr	2
+        instr   2
 exitnow
-	endin
+        endin
 
 </CsInstruments>
 <CsScore>

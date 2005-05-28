@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 #if !defined(_SF_H)
 #include "sftype.h"
 #ifdef          __GNUC__
@@ -58,8 +57,6 @@ typedef struct {
         SHORT initialAttenuation        PACKED;
         SHORT pan               PACKED;
 } splitType;
-
-
 
 typedef struct {
         int num                 PACKED;

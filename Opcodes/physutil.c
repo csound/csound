@@ -25,7 +25,6 @@
    opcodes, in no particular order
 */
 
-
 #include "csdl.h"
 #include <stdlib.h>
 #include "physutil.h"
@@ -44,7 +43,6 @@ MYFLT Noise_tick(Noise *n)
     *n *= ONE_OVER_RANDLIMIT;
     return *n;
 }
-
 
 /*******************************************/
 /*  Linearly Interpolating Delay Line      */
@@ -184,7 +182,6 @@ void Envelope_print(ENVIRON *csound, Envelope *p)
                     p->value, p->target, p->rate, p->state);
 }
 
-
 /*******************************************/
 /*  One Pole Filter Class,                 */
 /*  by Perry R. Cook, 1995-96              */
@@ -245,7 +242,6 @@ void OnePole_print(ENVIRON *csound, OnePole *p)
                     p->gain, p->outputs, p->poleCoeff, p->sgain);
 }
 
-
 /*******************************************/
 /*  DC Blocking Filter                     */
 /*  by Perry R. Cook, 1995-96              */
@@ -268,7 +264,6 @@ MYFLT DCBlock_tick(DCBlock* p, MYFLT sample)
     p->inputs = sample;
     return p->outputs;
 }
-
 
 /*******************************************/
 /*  ADSR Subclass of the Envelope Class,   */

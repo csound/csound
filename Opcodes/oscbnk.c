@@ -118,7 +118,6 @@ static MYFLT oscbnk_rnd_bipolar(long *seed, MYFLT rpow, int rmode)
 static void oscbnk_flen_setup(long flen, unsigned long *mask,
                               unsigned long *lobits, MYFLT *pfrac);
 
-
 /* Update random seed, and return next value from parameter table (if   */
 /* enabled) or random value between 0 and 1. If output table is present */
 /* store value in table.                                                */

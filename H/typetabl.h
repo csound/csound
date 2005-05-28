@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 #ifndef CSOUND_TYPETABL_H
 #define CSOUND_TYPETABL_H
 

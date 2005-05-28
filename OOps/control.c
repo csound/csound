@@ -211,8 +211,6 @@ int button_set(ENVIRON *csound, CNTRL *p)
     return OK;
 }
 
-
-
 int button(ENVIRON *csound, CNTRL *p)
 {
     readvalues();
@@ -231,7 +229,6 @@ int check_set(ENVIRON *csound, CNTRL *p)
     fprintf(wish_cmd, "displaycheck %d\n", n);
     return OK;
 }
-
 
 int check(ENVIRON *csound, CNTRL *p)
 {

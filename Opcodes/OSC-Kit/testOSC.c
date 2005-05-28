@@ -25,10 +25,9 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
-
 
 /* testOSC.c
 
@@ -62,7 +61,6 @@ void *MyRealTimeMalloc(int numBytes) {
     return 0;
 }
 
-
 int main() {
     OSCBoolean result;
     struct OSCAddressSpaceMemoryTuner t;
@@ -75,7 +73,6 @@ int main() {
 
     OSCTopLevelContainer = OSCInitAddressSpace(&t);
 
-
     rt.InitTimeMemoryAllocator = MyInitTimeMalloc;
     rt.RealTimeMemoryAllocator = MyRealTimeMalloc;
     rt.receiveBufferSize = 1000;
@@ -86,8 +83,8 @@ int main() {
     result = OSCInitReceive(&rt);
 
     if (result == FALSE) {
-	printf("OSCInitReceive returned FALSE!\n");
-	return;
+        printf("OSCInitReceive returned FALSE!\n");
+        return;
     }
 
     SetUpAddrSpace();
@@ -99,39 +96,36 @@ int main() {
     printf("Test completed successfully!\n");
 }
 
-
-void BarCallback(void *context, int arglen, const void *args, OSCTimeTag when, 
-		 NetworkReturnAddressPtr returnAddr) {
+void BarCallback(void *context, int arglen, const void *args, OSCTimeTag when,
+                 NetworkReturnAddressPtr returnAddr) {
     const int *intArgs = args;
 
     printf("Bar callback called!\n");
     printf("  Context %p, arglen %d, args %p, TT %llx, returnAddr %p\n",
-	   context, arglen, args, when, returnAddr);
+           context, arglen, args, when, returnAddr);
     printf("  Args as ints: %d, %d\n", intArgs[0], intArgs[1]);
     printf("  Return address as string: \"%s\"\n", (char *) returnAddr);
     printf("\n");
 }
 
 void FarCallback(void *context, int arglen, const void *args, OSCTimeTag when,
-		 NetworkReturnAddressPtr returnAddr) {
+                 NetworkReturnAddressPtr returnAddr) {
     const char *charArgs = args;
     char *error, *secondArg;
 
     printf("Far callback called!\n");
     printf("  Context %p, arglen %d, args %p, TT %llx, returnAddr %p\n",
-	   context, arglen, args, when, returnAddr);
+           context, arglen, args, when, returnAddr);
 
     secondArg = OSCDataAfterAlignedString(charArgs, charArgs+arglen, &error);
     if (secondArg == 0) {
-	printf("OSCDataAfterAlignedString error! %s\n", error);
+        printf("OSCDataAfterAlignedString error! %s\n", error);
     }
 
     printf("  Args as strings: %s, %s\n", charArgs, secondArg);
     printf("  Return address as string: \"%s\"\n", (char *) returnAddr);
     printf("\n");
 }
-
-
 
 void SetUpAddrSpace(void) {
     OSCcontainer foo, goo, hunkydory;
@@ -141,7 +135,7 @@ void SetUpAddrSpace(void) {
 
     printf("Getting address of top-level container\n");
     if (OSCGetAddressString(addr, 100, OSCTopLevelContainer) == FALSE) {
-	printf("OSCGetAddressString returned FALSE!\n");
+        printf("OSCGetAddressString returned FALSE!\n");
     }
     printf("It's \"%s\"\n", addr);
 
@@ -152,8 +146,8 @@ void SetUpAddrSpace(void) {
     cqinfo.comment = "Foo!";
 
     if ((foo = OSCNewContainer("foo", OSCTopLevelContainer, &cqinfo)) == 0) {
-	printf("OSCNewContainer returned FALSE!\n");
-	return;
+        printf("OSCNewContainer returned FALSE!\n");
+        return;
     }
 
     printf("Printing whole address space after we register /foo/\n");
@@ -161,27 +155,27 @@ void SetUpAddrSpace(void) {
 
     printf("Trying to get address of /foo/ in a 4 char array\n");
     if (OSCGetAddressString(addr, 4, foo) == FALSE) {
-	printf("Good---OSCGetAddressString returned FALSE\n");
+        printf("Good---OSCGetAddressString returned FALSE\n");
     } else {
-	printf("OSCGetAddressString returned TRUE!!!\n");
+        printf("OSCGetAddressString returned TRUE!!!\n");
     }
 
     printf("Trying to get address of /foo/ in a 5 char array\n");
     if (OSCGetAddressString(addr, 5, foo) == FALSE) {
-	printf("Good---OSCGetAddressString returned FALSE\n");
+        printf("Good---OSCGetAddressString returned FALSE\n");
     } else {
-	printf("OSCGetAddressString returned TRUE!!!\n");
+        printf("OSCGetAddressString returned TRUE!!!\n");
     }
 
     printf("Trying to get address of /foo/ in a 6 char array\n");
     if (OSCGetAddressString(addr, 6, foo) == FALSE) {
-	printf("OSCGetAddressString returned FALSE!!!\n");
+        printf("OSCGetAddressString returned FALSE!!!\n");
     } else {
-	printf("Good---OSCGetAddressString returned TRUE.  Addr is %s\n", addr);
+        printf("Good---OSCGetAddressString returned TRUE.  Addr is %s\n", addr);
     }
 
     printf("Trying to get address of /foo/ in a 100 char array\n");
-    if (OSCGetAddressString(addr, 100, foo) == FALSE) {    
+    if (OSCGetAddressString(addr, 100, foo) == FALSE) {
         printf("OSCGetAddressString returned FALSE!\n");
     }
     printf("It's \"%s\"\n", addr);
@@ -204,23 +198,22 @@ void SetUpAddrSpace(void) {
     cqinfo.comment = "Goo is goopy.";
 
     if ((goo = OSCNewContainer("goo", OSCTopLevelContainer, &cqinfo)) == 0) {
-	printf("OSCNewContainer returned 0!\n");
-	return;
+        printf("OSCNewContainer returned 0!\n");
+        return;
     }
-
 
     OSCInitMethodQueryResponseInfo(&QueryResponseInfo);
     QueryResponseInfo.description = "Get drunk in a bar";
 
     if (OSCNewMethod("bar", foo, BarCallback, (void *) 100, &QueryResponseInfo) == 0) {
-	printf("OSCNewMethod returned 0!\n");
+        printf("OSCNewMethod returned 0!\n");
         return;
     }
 
     QueryResponseInfo.description = "Latvia is very far";
 
     if (OSCNewMethod("far", goo, FarCallback, (void *) 7, &QueryResponseInfo) == 0) {
-	printf("OSCAddMethod returned 0!\n");
+        printf("OSCAddMethod returned 0!\n");
         return;
     }
 
@@ -230,19 +223,19 @@ void SetUpAddrSpace(void) {
     printf("Now register some aliases\n");
 
     if (OSCAddContainerAlias(goo, "slime") == FALSE) {
-	printf("OSCAddContainerAlias returned FALSE!\n");
+        printf("OSCAddContainerAlias returned FALSE!\n");
     }
 
     if (OSCAddContainerAlias(goo, "schmutz") == FALSE) {
-	printf("OSCAddContainerAlias returned FALSE!\n");
+        printf("OSCAddContainerAlias returned FALSE!\n");
     }
 
     if (OSCAddContainerAlias(goo, "spooge") == FALSE) {
-	printf("OSCAddContainerAlias returned FALSE!\n");
+        printf("OSCAddContainerAlias returned FALSE!\n");
     }
 
     if (OSCAddContainerAlias(goo, "glurpies") == FALSE) {
-	printf("OSCAddContainerAlias returned FALSE!\n");
+        printf("OSCAddContainerAlias returned FALSE!\n");
     }
 
     printf("Printing whole address space after registering aliases\n");
@@ -250,7 +243,6 @@ void SetUpAddrSpace(void) {
 
     printf("Finished registering the address space!\n\n\n");
 }
-
 
 void TestEmptyCase() {
     printf("Calling OSCInvokeMessagesThatAreReady, even though nothing's ready.\n");
@@ -260,8 +252,7 @@ void TestEmptyCase() {
     OSCInvokeMessagesThatAreReady(OSCTT_PlusSeconds(OSCTT_CurrentTime(), 2));
 }
 
-
-static char ThePacket[] = 
+static char ThePacket[] =
     "#bundle\0"
     "\0\0\0\0\3\0\0\0"
     "\0\0\0\x14"
@@ -271,7 +262,6 @@ static char ThePacket[] =
     "/goo/far\0\0\0\0"
     "a\0\0\0"
     "b\0\0\0";
-
 
 int PretendToGetPacket() {
     OSCPacketBuffer p;
@@ -285,8 +275,8 @@ int PretendToGetPacket() {
     clientAddr = (char *)OSCPacketBufferGetClientAddr(p);
 
     printf("Allocated a packet and got pointers to parts of it.\n"
-	   "Packet is %p, buffer is %p, size is %p, addr is %p\n",
-	   p, buf, size, clientAddr);
+           "Packet is %p, buffer is %p, size is %p, addr is %p\n",
+           p, buf, size, clientAddr);
 
     memcpy(buf, ThePacket, sizeof(ThePacket)-1);
     (*size) = sizeof(ThePacket)-1;

@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /* pvsmix */
 
 #include "csdl.h"
@@ -90,7 +89,6 @@ int pvsmix(ENVIRON *csound, PVSMIX *p)
 int pvsfilterset(ENVIRON *csound, PVSFILTER *p)
 {
     long N = p->fin->N;
-
 
     if (p->fout->frame.auxp==NULL)
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
@@ -368,7 +366,6 @@ int pvsblur(ENVIRON *csound, PVSBLUR *p)
     }
     return OK;
 }
-
 
 /* pvstencil  */
 int pvstencilset(ENVIRON *csound, PVSTENCIL *p)

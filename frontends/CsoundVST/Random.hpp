@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -22,7 +22,7 @@
 #ifndef RANDOM_H
 #define RANDOM_H
 #if defined(_MSC_VER) && !defined(__GNUC__)
-#pragma warning (disable:4786) 
+#pragma warning (disable:4786)
 #endif
 
 #ifdef SWIG
@@ -50,11 +50,11 @@ namespace csound
    * and set in the specified row and column of the local coordinates.
    * The resulting matrix will be used in place of the local coordinates
    * when traversing the music graph.
-   * If eventCount is greater than zero, a new event will be created 
+   * If eventCount is greater than zero, a new event will be created
    * for each of eventCount samples,
    * which will be transformed by the newly sampled local coordinates.
    */
-  class Random : 
+  class Random :
     public Node
   {
   protected:
@@ -83,7 +83,7 @@ namespace csound
     double c;
     double Lambda;
     double mean;
-    double sigma;	
+    double sigma;
     Random();
     virtual ~Random();
     virtual double sample() const;

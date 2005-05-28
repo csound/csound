@@ -41,14 +41,12 @@
 #define SQUELCH 0.5     /* % of max ampl below which delta_f is frozen */
 #define HMAX    50
 
-
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;
 
 static int is_sdiffile(char *name);
 static int writesdif(void);
-
 
 /* Authors:   Tom Sullivan, Nov'86, Mar'87;  bv revised Jun'92, Aug'92  */
 /* Function:  Fixed frequency heterodyne filter analysis.                    */
@@ -130,7 +128,7 @@ int hetro(ENVIRON  *csound,
     /* must set this for 'standard' behaviour when analysing
        (assume re-entrant Csound) */
     dbfs_init(csound, DFLT_DBFS);
-    
+
     if (!(--argc)) {
       quit(Str("no arguments"));
     }
@@ -203,14 +201,14 @@ int hetro(ENVIRON  *csound,
         }
       else break;
     } while (--argc);
-    
+
     if (argc != 2)  quit(Str("incorrect number of filenames"));
     infilnam = *argv++;
     outfilnam = *argv;
-    
+
     if (freq_c > 1)
       fprintf (stderr,Str("Filter cutoff freq. = %f\n"),freq_c);
-    
+
     if ((input_dur < 0) || (beg_time < 0))
       quit(Str("input and begin times cannot be less than zero"));
     /* open sndfil, do skiptime */
@@ -246,10 +244,10 @@ int hetro(ENVIRON  *csound,
       bufsiz *= 2;
     midbuf = bufsiz/2;
     bufmask = bufsiz - 1;
-    
+
     smpspc = smpsin * sizeof(double);
     bufspc = bufsiz * sizeof(double);
-    
+
     dsp = dspace = mmalloc(csound, smpspc * 2 + bufspc * 13);
     c_p = (double *) dsp;           dsp += smpspc;  /* space for the    */
     s_p = (double *) dsp;           dsp += smpspc;  /* quadrature terms */
@@ -268,7 +266,7 @@ int hetro(ENVIRON  *csound,
     amp_av3 = (double *) dsp;       dsp += bufspc;
     a_avg = (double *) dsp;         dsp += bufspc;
     endbufs = (double *) dsp;
-    
+
     mgfrspc = num_pts * sizeof(MYFLT);
     dsp = mspace = mmalloc(csound, mgfrspc * hmax * 2);
     MAGS = (MYFLT **) mmalloc(csound, hmax * sizeof(MYFLT*));
@@ -289,7 +287,7 @@ int hetro(ENVIRON  *csound,
       } while (dblp < endbufs);
       max_frq = FL(0.0);
       max_amp = FL(0.0);
-      
+
       csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
       csound->Message(csound,Str("freq est %6.1f,"), cur_est);
       hetdyn(hno);                /* perform actual computation */
@@ -531,7 +529,7 @@ static void filedump(ENVIRON *csound)
       mags[h] = (short *)mmalloc(csound, (long)num_pts * sizeof(short));
       freqs[h] = (short *)mmalloc(csound, (long)num_pts * sizeof(short));
     }
- 
+
     TIME = (short *)mmalloc(csound, (long)num_pts * sizeof(short));
     timesiz = FL(1000.0) * input_dur / num_pts;
     for (pnt = 0; pnt < num_pts; pnt++)

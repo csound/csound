@@ -101,7 +101,6 @@ int outfile(ENVIRON *csound, OUTFILE *p)
     return OK;
 }
 
-
 int outfile_set(ENVIRON *csound, OUTFILE *p)
 {
     int n=0;
@@ -249,7 +248,6 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
 
 /*--------------*/
 
-
 /* syntax:
         ihandle fiopen "filename" [, iascii]
 */
@@ -337,7 +335,6 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
     return OK;
 }
 
-
 int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
 {
     int *xtra;
@@ -350,7 +347,6 @@ int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
         csound->fout_kreset = csound->kcounter;
     return OK;
 }
-
 
 int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
 {
@@ -480,9 +476,7 @@ int infile_act(ENVIRON *csound, INFILE *p)
     return OK;
 }
 
-
 /*----------------------------*/
-
 
 int kinfile_set(ENVIRON *csound, KINFILE *p)
 {
@@ -533,7 +527,6 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
     return OK;
 }
 
-
 int kinfile(ENVIRON *csound, KINFILE *p)
 {
     int j, nargs = p->nargs;
@@ -555,7 +548,6 @@ int kinfile(ENVIRON *csound, KINFILE *p)
     }
     return OK;
 }
-
 
 int i_infile(ENVIRON *csound, I_INFILE *p)
 {
@@ -683,7 +675,6 @@ int incr(ENVIRON *csound, INCR *p)
     return OK;
 }
 
-
 int clear(ENVIRON *csound, CLEARS *p)
 {
     int n, j;
@@ -695,8 +686,6 @@ int clear(ENVIRON *csound, CLEARS *p)
     }
     return OK;
 }
-
-
 
 /*---------------------------*/
 /* formatted output to a text file */

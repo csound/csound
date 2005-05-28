@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -38,8 +38,6 @@ The OpenSound Control WWW page is
   Allocator is a simple linked list of free nodes.
 
 */
-
-
 
 #include "OSC-common.h"
 #include "OSC-timetag.h"
@@ -60,18 +58,18 @@ OSCBoolean InitCallbackListNodes(int numNodes, void *(*InitTimeMalloc)(int numBy
     /* Initialize list of freeNodes */
     freeNodes = &(allNodes[0]);
     for (i = 0; i < numNodes-1; ++i) {
-	allNodes[i].next = &(allNodes[i+1]);
+        allNodes[i].next = &(allNodes[i+1]);
     }
     allNodes[numNodes-1].next = 0;
     return TRUE;
 }
 
 callbackList AllocCallbackListNode(methodCallback callback, void *context,
-				   struct callbackListNode *next) {
+                                   struct callbackListNode *next) {
     callbackList result;
     if (freeNodes == 0) {
-	/* OSCProblem("Out of memory for callback lists!"); */
-	return 0;
+        /* OSCProblem("Out of memory for callback lists!"); */
+        return 0;
     }
 
     result = freeNodes;
@@ -82,11 +80,10 @@ callbackList AllocCallbackListNode(methodCallback callback, void *context,
     result->next = next;
 #ifdef DEBUG_CBL
     printf("AllocCallbackListNode: returning %p (cb %p, context %p, next %p)\n",
-	   result, result->callback, result->context, result->next);
+           result, result->callback, result->context, result->next);
 #endif
     return result;
 }
-    
 
 void FreeCallbackListNode(callbackList cb) {
 #ifdef DEBUG_CBL

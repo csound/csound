@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -32,17 +32,17 @@
 
 namespace csound
 {
-	/**
-	* Base class for C++ exceptions in the Silence system.
-	*/
-	class Exception
-	{
-		std::string message;
-	public:
-		Exception(std::string message);
-		virtual ~Exception();
-		std::string getMessage() const;
-	};
+        /**
+        * Base class for C++ exceptions in the Silence system.
+        */
+        class Exception
+        {
+                std::string message;
+        public:
+                Exception(std::string message);
+                virtual ~Exception();
+                std::string getMessage() const;
+        };
 }
 
 #endif

@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -45,28 +45,28 @@ char *OSCDataAfterAlignedString(const char *string, const char *boundary, char *
     int i;
 
     if ((boundary - string) %4 != 0) {
-	fatal_error("DataAfterAlignedString: bad boundary\n");
+        fatal_error("DataAfterAlignedString: bad boundary\n");
     }
 
     for (i = 0; string[i] != '\0'; i++) {
-	if (string + i >= boundary) {
-	    (*errorMsg) = "DataAfterAlignedString: Unreasonably long string";
-	    return 0;
-	}
+        if (string + i >= boundary) {
+            (*errorMsg) = "DataAfterAlignedString: Unreasonably long string";
+            return 0;
+        }
     }
 
     /* Now string[i] is the first null character */
     i++;
 
     for (; (i % STRING_ALIGN_PAD) != 0; i++) {
-	if (string + i >= boundary) {
-	    (*errorMsg) = "Unreasonably long string";
-	    return 0;
-	}
-	if (string[i] != '\0') {
-	    (*errorMsg) = "Incorrectly padded string.";
-	    return 0;
-	}
+        if (string + i >= boundary) {
+            (*errorMsg) = "Unreasonably long string";
+            return 0;
+        }
+        if (string[i] != '\0') {
+            (*errorMsg) = "Incorrectly padded string.";
+            return 0;
+        }
     }
 
     return (char *) (string+i);
@@ -76,12 +76,12 @@ int OSCPaddedStrlen(const char *s) {
     int i;
 
     for (i = 0; *s != '\0'; s++, i++) {
-	/* do nothing */
+        /* do nothing */
     }
 
     /* Now i is the length with no null bytes.  We need 1-4 null bytes,
        to make the total length a multiple of 4.   So we add 4, as if
-       we need 4 null bytes, then & 0xfffffffc to round down to the nearest 
+       we need 4 null bytes, then & 0xfffffffc to round down to the nearest
        multiple of 4. */
 
     return (i + 4) & 0xfffffffc;
@@ -90,19 +90,19 @@ int OSCPaddedStrlen(const char *s) {
 char *OSCPaddedStrcpy(char *target, const char *source)
  {
     while ((*target++ = *source++)) {
-	/* do nothing */
+        /* do nothing */
     }
 
     /* That copied one null byte */
     while (((int) target) % 4 != 0) {
-	*target = '\0';
-	target++;
+        *target = '\0';
+        target++;
     }
     return target;
 }
 
 OSCBoolean OSCParseStringList(const char *result[], int *numStrings, int maxStrings,
-			   const char *args, int numBytes) {
+                           const char *args, int numBytes) {
     int numFound;
     const char *p;
     const char *boundary = args + numBytes;
@@ -111,14 +111,14 @@ OSCBoolean OSCParseStringList(const char *result[], int *numStrings, int maxStri
     p = args;
 
     for (numFound = 0; numFound < maxStrings; ++numFound) {
-	if (p == boundary) {
-	    *numStrings = numFound;
-	    return TRUE;
-	}
+        if (p == boundary) {
+            *numStrings = numFound;
+            return TRUE;
+        }
 
-	result[numFound] = p;
-	p = OSCDataAfterAlignedString(p, boundary, &errorMessage);
-	if (p == 0) return FALSE;
+        result[numFound] = p;
+        p = OSCDataAfterAlignedString(p, boundary, &errorMessage);
+        if (p == 0) return FALSE;
     }
     return FALSE;
 }

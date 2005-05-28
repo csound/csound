@@ -72,10 +72,7 @@ int fassign(ENVIRON *csound, FASSIGN *p)
     return OK;
 }
 
-
-
 /************* OSCBANK SYNTH ***********/
-
 
 int pvadsynset(ENVIRON *csound, PVADS *p)
 {
@@ -157,7 +154,6 @@ static inline MYFLT fastoscil(MYFLT *a, MYFLT *x, MYFLT *y)
     return *y;
 }
 
-
 static void adsyn_frame(ENVIRON *csound, PVADS *p)
 {
     int i,j;
@@ -212,8 +208,6 @@ static void adsyn_frame(ENVIRON *csound, PVADS *p)
     }
 }
 
-
-
 static MYFLT adsyn_tick(ENVIRON *csound, PVADS *p)
 {
     MYFLT *outbuf = (MYFLT *) (p->outbuf.auxp);
@@ -225,7 +219,6 @@ static MYFLT adsyn_tick(ENVIRON *csound, PVADS *p)
     }
     return  outbuf[p->outptr++];
 }
-
 
 int pvadsyn(ENVIRON *csound, PVADS *p)
 {
@@ -242,7 +235,6 @@ int pvadsyn(ENVIRON *csound, PVADS *p)
 }
 
 /******* PVSCROSS ***********/
-
 
 int pvscrosset(ENVIRON *csound, PVSCROSS *p)
 {
@@ -271,8 +263,6 @@ int pvscrosset(ENVIRON *csound, PVSCROSS *p)
     p->lastframe = 0;
     return OK;
 }
-
-
 
 int pvscross(ENVIRON *csound, PVSCROSS *p)
 {
@@ -366,7 +356,6 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     return OK;
 }
 
-
 int pvsfread(ENVIRON *csound, PVSFREAD *p)
 {
     int i,j;
@@ -419,7 +408,6 @@ int pvsfread(ENVIRON *csound, PVSFREAD *p)
     }
     p->ptr += csound->ksmps;
 
-
     return OK;
 }
 
@@ -467,8 +455,6 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
     return OK;
 }
 
-
-
 int pvsmaska(ENVIRON *csound, PVSMASKA *p)
 {
     int i;
@@ -476,7 +462,6 @@ int pvsmaska(ENVIRON *csound, PVSMASKA *p)
     MYFLT *ftable;
     float *fout,*fsrc;                      /* RWD MUST be 32bit */
     float margin,depth = (float)*p->kdepth;
-
 
     flen = p->maskfunc->flen + 1;
     ftable = p->maskfunc->ftable;
@@ -597,7 +582,6 @@ int pvsftw(ENVIRON *csound, PVSFTW *p)
     MYFLT *ftablea, *ftablef = NULL;
     float *fsrc;                /* RWD MUST be 32bit */
 
-
     ftablea = p->outfna->ftable;
     fsrc = (float *) p->fsrc->frame.auxp;
 
@@ -611,7 +595,6 @@ int pvsftw(ENVIRON *csound, PVSFTW *p)
         csound->Die(csound, Str("pvsftw: no freqs ftable!\n"));
     }
     nbins = p->fftsize/2 + 1;
-
 
     /* only write when a new frame is ready */
     if (p->lastframe < p->fsrc->framecount) {
@@ -631,7 +614,6 @@ int pvsftw(ENVIRON *csound, PVSFTW *p)
       *p->kflag = FL(0.0);
     return OK;
 }
-
 
 /************ PVSFTR ****************/
 
@@ -722,10 +704,6 @@ int pvsftr(ENVIRON *csound, PVSFTR *p)
     return OK;
 }
 
-
-
-
-
 /************** PVSINFO ***********/
 
 int pvsinfo(ENVIRON *csound, PVSINFO *p)
@@ -740,9 +718,6 @@ int pvsinfo(ENVIRON *csound, PVSINFO *p)
     *p->iformat  = (MYFLT) p->fsrc->format;
     return OK;
 }
-
-
-
 
 /*  despite basic parity in analysis and synthesis,
     we still have to rescale the amplitudes
@@ -781,7 +756,6 @@ static int pvx_loadfile(ENVIRON *csound,
     framelen = 2 * pvdata.nAnalysisBins;
     /* no need to impose Csound limit on fftsize here */
     pvx_winsize = pvdata.dwWinlen;
-
 
     /* also, accept only 32bit floats for now */
     if (pvdata.wWordFormat != PVOC_IEEE_FLOAT) {
@@ -850,7 +824,6 @@ static int pvx_loadfile(ENVIRON *csound,
 
     pvoc_closefile(csound, pvx_id);
 
-
     if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&
         (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
       csound->Message(csound,
@@ -878,7 +851,6 @@ static int pvx_loadfile(ENVIRON *csound,
       p->wintype = PVS_WIN_HAMMING;
       break;
     }
-
 
     /* Need to assign an MEMFIL to p->mfp */
     if (mfil==NULL) {

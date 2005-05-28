@@ -26,29 +26,26 @@ University of California, Berkeley.
      ENHANCEMENTS, OR MODIFICATIONS.
 */
 
-
-/* 
+/*
   Author: Matt Wright
   Version 2.1
  */
 
-
 /* Here are the possible values of the state field: */
 
-#define EMPTY 0	       /* Nothing written to packet yet */
+#define EMPTY 0        /* Nothing written to packet yet */
 #define ONE_MSG_ARGS 1 /* Packet has a single message; gathering arguments */
 #define NEED_COUNT 2   /* Just opened a bundle; must write message name or
-			  open another bundle */
+                          open another bundle */
 #define GET_ARGS 3     /* Getting arguments to a message.  If we see a message
-			  name or a bundle open/close then the current message
-			  will end. */
-#define DONE 4         /* All open bundles have been closed, so can't write 
-		          anything else */
+                          name or a bundle open/close then the current message
+                          will end. */
+#define DONE 4         /* All open bundles have been closed, so can't write
+                          anything else */
 
 #include "OSC-client.h"
 
 char *OSC_errorMessage;
-
 
 static int strlen(char *s);
 static int OSC_padString(char *dest, char *str);
@@ -59,7 +56,7 @@ void OSC_initBuffer(OSCbuf *buf, int size, char *byteArray) {
     OSC_resetBuffer(buf);
 }
 
-void OSC_resetBuffer(OSCbuf *buf) {	
+void OSC_resetBuffer(OSCbuf *buf) {
     buf->bufptr = buf->buffer;
     buf->state = EMPTY;
     buf->bundleDepth = 0;
@@ -81,10 +78,10 @@ int OSC_isBufferDone(OSCbuf *buf) {
 char *OSC_getPacket(OSCbuf *buf) {
 #ifdef ERROR_CHECK_GETPACKET
     if (buf->state == DONE || buf->state == ONE_MSG_ARGS) {
-	return buf->buffer;
+        return buf->buffer;
     } else {
-	OSC_errorMessage = "Packet has unterminated bundles";
-	return 0;
+        OSC_errorMessage = "Packet has unterminated bundles";
+        return 0;
     }
 #else
     return buf->buffer;
@@ -94,7 +91,7 @@ char *OSC_getPacket(OSCbuf *buf) {
 int OSC_packetSize(OSCbuf *buf) {
 #ifdef ERROR_CHECK_PACKETSIZE
     if (buf->state == DONE || buf->state == ONE_MSG_ARGS) {
-	return (buf->bufptr - buf->buffer);
+        return (buf->bufptr - buf->buffer);
     } else {
         OSC_errorMessage = "Packet has unterminated bundles";
         return 0;
@@ -106,8 +103,8 @@ int OSC_packetSize(OSCbuf *buf) {
 
 #define CheckOverflow(buf, bytesNeeded) { \
     if ((bytesNeeded) > OSC_freeSpaceInBuffer(buf)) { \
-	OSC_errorMessage = "buffer overflow"; \
-	return 1; \
+        OSC_errorMessage = "buffer overflow"; \
+        return 1; \
     } \
 }
 
@@ -119,35 +116,35 @@ static void PatchMessageSize(OSCbuf *buf) {
 
 int OSC_openBundle(OSCbuf *buf, OSCTimeTag tt) {
     if (buf->state == ONE_MSG_ARGS) {
-	OSC_errorMessage = "Can't open a bundle in a one-message packet";
-	return 3;
+        OSC_errorMessage = "Can't open a bundle in a one-message packet";
+        return 3;
     }
 
     if (buf->state == DONE) {
-	OSC_errorMessage = "This packet is finished; can't open a new bundle";
-	return 4;
+        OSC_errorMessage = "This packet is finished; can't open a new bundle";
+        return 4;
     }
 
     if (++(buf->bundleDepth) >= MAX_BUNDLE_NESTING) {
-	OSC_errorMessage = "Bundles nested too deeply; change MAX_BUNDLE_NESTING in OpenSoundControl.h";
-	return 2;
+        OSC_errorMessage = "Bundles nested too deeply; change MAX_BUNDLE_NESTING in OpenSoundControl.h";
+        return 2;
     }
 
     if (buf->state == GET_ARGS) {
-	PatchMessageSize(buf);
+        PatchMessageSize(buf);
     }
 
     if (buf->state == EMPTY) {
-	/* Need 16 bytes for "#bundle" and time tag */
-	CheckOverflow(buf, 16);
+        /* Need 16 bytes for "#bundle" and time tag */
+        CheckOverflow(buf, 16);
     } else {
-	/* This bundle is inside another bundle, so we need to leave
-	   a blank size count for the size of this current bundle. */
-	CheckOverflow(buf, 20);
-	*((int4byte *)buf->bufptr) = 0xaaaaaaaa;
+        /* This bundle is inside another bundle, so we need to leave
+           a blank size count for the size of this current bundle. */
+        CheckOverflow(buf, 20);
+        *((int4byte *)buf->bufptr) = 0xaaaaaaaa;
         buf->prevCounts[buf->bundleDepth] = (int4byte *)buf->bufptr;
 
-	buf->bufptr += 4;
+        buf->bufptr += 4;
     }
 
     buf->bufptr += OSC_padString(buf->bufptr, "#bundle");
@@ -158,12 +155,11 @@ int OSC_openBundle(OSCbuf *buf, OSCTimeTag tt) {
     return 0;
 }
 
-
 int OSC_closeBundle(OSCbuf *buf) {
     if (buf->bundleDepth == 0) {
-	/* This handles EMPTY, ONE_MSG, ARGS, and DONE */
-	OSC_errorMessage = "Can't close bundle; no bundle is open!";
-	return 5;
+        /* This handles EMPTY, ONE_MSG, ARGS, and DONE */
+        OSC_errorMessage = "Can't close bundle; no bundle is open!";
+        return 5;
     }
 
     if (buf->state == GET_ARGS) {
@@ -171,19 +167,18 @@ int OSC_closeBundle(OSCbuf *buf) {
     }
 
     if (buf->bundleDepth == 1) {
-	/* Closing the last bundle: No bundle size to patch */
-	buf->state = DONE;
+        /* Closing the last bundle: No bundle size to patch */
+        buf->state = DONE;
     } else {
-	/* Closing a sub-bundle: patch bundle size */
-	int size = buf->bufptr - ((char *) buf->prevCounts[buf->bundleDepth]) - 4;
-	*(buf->prevCounts[buf->bundleDepth]) = size;
-	buf->state = NEED_COUNT;
+        /* Closing a sub-bundle: patch bundle size */
+        int size = buf->bufptr - ((char *) buf->prevCounts[buf->bundleDepth]) - 4;
+        *(buf->prevCounts[buf->bundleDepth]) = size;
+        buf->state = NEED_COUNT;
     }
 
     --buf->bundleDepth;
     return 0;
 }
-	
 
 int OSC_closeAllBundles(OSCbuf *buf) {
     if (buf->bundleDepth == 0) {
@@ -193,7 +188,7 @@ int OSC_closeAllBundles(OSCbuf *buf) {
     }
 
     while (buf->bundleDepth > 0) {
-	OSC_closeBundle(buf);
+        OSC_closeBundle(buf);
     }
     return 0;
 }
@@ -202,8 +197,8 @@ int OSC_writeAddress(OSCbuf *buf, char *name) {
     int4byte paddedLength;
 
     if (buf->state == ONE_MSG_ARGS) {
-	OSC_errorMessage = "This packet is not a bundle, so you can't write another address";
-	return 7;
+        OSC_errorMessage = "This packet is not a bundle, so you can't write another address";
+        return 7;
     }
 
     if (buf->state == DONE) {
@@ -214,20 +209,20 @@ int OSC_writeAddress(OSCbuf *buf, char *name) {
     paddedLength = OSC_effectiveStringLength(name);
 
     if (buf->state == EMPTY) {
-	/* This will be a one-message packet, so no sizes to worry about */
-	CheckOverflow(buf, paddedLength);
-	buf->state = ONE_MSG_ARGS;
+        /* This will be a one-message packet, so no sizes to worry about */
+        CheckOverflow(buf, paddedLength);
+        buf->state = ONE_MSG_ARGS;
     } else {
-	/* GET_ARGS or NEED_COUNT */
-	CheckOverflow(buf, 4+paddedLength);
-	if (buf->state == GET_ARGS) {
-	    /* Close the old message */
-	    PatchMessageSize(buf);
-	}
-	buf->thisMsgSize = (int4byte *)buf->bufptr;
-	*(buf->thisMsgSize) = 0xbbbbbbbb;
-	buf->bufptr += 4;
-	buf->state = GET_ARGS;
+        /* GET_ARGS or NEED_COUNT */
+        CheckOverflow(buf, 4+paddedLength);
+        if (buf->state == GET_ARGS) {
+            /* Close the old message */
+            PatchMessageSize(buf);
+        }
+        buf->thisMsgSize = (int4byte *)buf->bufptr;
+        *(buf->thisMsgSize) = 0xbbbbbbbb;
+        buf->bufptr += 4;
+        buf->state = GET_ARGS;
     }
 
     /* Now write the name */
@@ -246,8 +241,8 @@ int OSC_writeFloatArgs(OSCbuf *buf, int numFloats, float *args) {
     int i;
     CheckOverflow(buf, 4 * numFloats);
     for (i = 0; i < numFloats; i++) {
-	*((float *) buf->bufptr) = args[i];
-	buf->bufptr += 4;
+        *((float *) buf->bufptr) = args[i];
+        buf->bufptr += 4;
     }
     return 0;
 }
@@ -276,7 +271,7 @@ static int strlen(char *s) {
 #define STRING_ALIGN_PAD 4
 int OSC_effectiveStringLength(char *string) {
     int len = strlen(string) + 1;  /* We need space for the null char. */
-    
+
     /* Round up len to next multiple of STRING_ALIGN_PAD to account for alignment padding */
     if ((len % STRING_ALIGN_PAD) != 0) {
         len += STRING_ALIGN_PAD - (len % STRING_ALIGN_PAD);
@@ -286,18 +281,18 @@ int OSC_effectiveStringLength(char *string) {
 
 static int OSC_padString(char *dest, char *str) {
     int i;
-    
+
     for (i = 0; str[i] != '\0'; i++) {
         dest[i] = str[i];
     }
-    
+
     dest[i] = '\0';
     i++;
-    
+
     for (; (i % STRING_ALIGN_PAD) != 0; i++) {
         dest[i] = '\0';
     }
-    
+
     return i;
 }
- 
+

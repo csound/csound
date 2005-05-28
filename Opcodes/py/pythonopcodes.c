@@ -52,9 +52,9 @@ format_call_statement(char *statement, char *callable, int argc, MYFLT *argv[], 
     {
       sprintf(statement, "%s(%0.6f", callable, *(argv[0]));
       for (i = 1; i < argc - skip; ++i)
-	{
-	  sprintf(statement + strlen(statement), ", %f", *(argv[i]));
-	}
+        {
+          sprintf(statement + strlen(statement), ", %f", *(argv[i]));
+        }
       strcat(statement, ")");
     }
   else
@@ -145,7 +145,7 @@ int pycalln_krate(void *csound_, PYCALLN *p)
   if (result != NULL && PyTuple_Check(result) && PyTuple_Size(result) == (int)*p->nresult)
     {
       for (i = 0; i < *p->nresult; ++i)
-	*p->args[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(result, i));
+        *p->args[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(result, i));
       Py_DECREF(result);
     }
   else
@@ -181,7 +181,7 @@ int pylcalln_krate(void *csound_, PYCALLN *p)
   if (result != NULL && PyTuple_Check(result) && PyTuple_Size(result) == (int)*p->nresult)
     {
       for (i = 0; i < *p->nresult; ++i)
-	*p->args[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(result, i));
+        *p->args[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(result, i));
       Py_DECREF(result);
     }
   else
@@ -210,7 +210,7 @@ int pylcallni_irate(void *csound_, PYCALLN *p)
   if (result != NULL && PyTuple_Check(result) && PyTuple_Size(result) == (int)*p->nresult)
     {
       for (i = 0; i < *p->nresult; ++i)
-	*p->args[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(result, i));
+        *p->args[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(result, i));
       Py_DECREF(result);
     }
   else
@@ -226,7 +226,7 @@ int pylcallni_irate(void *csound_, PYCALLN *p)
 
 OENTRY oentries[] = {
   /* INITIALIZATION */
-  
+
 { "pyinit",    sizeof(PYINIT),    1,  "",            "",     (SUBR)pyinit,         NULL   },
 
   /* RUN GROUP */
@@ -247,7 +247,7 @@ OENTRY oentries[] = {
 { "pylexeci",  sizeof(PYEXEC),    1,  "",            "S",     (SUBR)pylexeci_irate                       },
 
 { "pyexect",    sizeof(PYEXECT),    2,  "",            "kS",     NULL,                (SUBR)pyexect_krate },
-{ "pylexect",    sizeof(PYEXECT),   2,  "",            "kS",     (SUBR)pylexec_irate,  (SUBR)pylexect_krate },  
+{ "pylexect",    sizeof(PYEXECT),   2,  "",            "kS",     (SUBR)pylexec_irate,  (SUBR)pylexect_krate },
   /* CALL GROUP */
 
 { "pycall",    sizeof(PYCALL0),   2,  "" ,           "Sz",    NULL,                (SUBR)pycall0_krate },

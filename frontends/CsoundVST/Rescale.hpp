@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -32,27 +32,26 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound 
+namespace csound
 {
-	/**
-	* Rescales all child events to fit a bounding hypercube in music space.
-	* No, some, or all dimensions may be rescaled to fit the minimum alone,
-	* the range alone, or both the minimum and the range.
-	*/
-	class Rescale : 
-		public ScoreNode
-	{
-		static bool initialized;
-		static std::map<std::string, size_t> dimensions;
-	public:
-		Rescale();
-		virtual ~Rescale();
-		virtual void initialize();
-		virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
-		virtual void setRescale(int dimension, bool rescaleMinimum, bool rescaleRange, double targetMinimum, double targetRange);
-		virtual void getRescale(int dimension, bool &rescaleMinimum, bool &rescaleRange, double &targetMinimum, double &targetRange);
-	};
+        /**
+        * Rescales all child events to fit a bounding hypercube in music space.
+        * No, some, or all dimensions may be rescaled to fit the minimum alone,
+        * the range alone, or both the minimum and the range.
+        */
+        class Rescale :
+                public ScoreNode
+        {
+                static bool initialized;
+                static std::map<std::string, size_t> dimensions;
+        public:
+                Rescale();
+                virtual ~Rescale();
+                virtual void initialize();
+                virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+                virtual void setRescale(int dimension, bool rescaleMinimum, bool rescaleRange, double targetMinimum, double targetRange);
+                virtual void getRescale(int dimension, bool &rescaleMinimum, bool &rescaleRange, double &targetMinimum, double &targetRange);
+        };
 }
 #endif
-
 

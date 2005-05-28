@@ -39,7 +39,6 @@ analogue synths generally allow resonances to be above 1.
 istor: defaults to 1, initialise the internal delay buffers
 on startup. 0 means no initialisation.
 
-
 STATEVAR:
 ahp,alp,abp,abr  statevar  ain, kcf, kq [, iosamps, istor]
 
@@ -65,7 +64,6 @@ times (iosamps=0).
 istor: defaults to 1, initialise the internal delay buffers
 on startup. 0 means no initialisation.
 
-
 FOFILTER:
 ar fofilter asig, kcf, kris, kdec[,istor]
 
@@ -86,7 +84,6 @@ kdec: impulse response decay time (to -60dB, in secs)
 istor: defaults to 1, initialise the internal delay buffers
 on startup. 0 means no initialisation.
 
-
 */
 
 #ifndef _NEWFILS_H
@@ -105,7 +102,6 @@ typedef struct _moogladder {
 
 int moogladder_init(ENVIRON *csound,moogladder *p);
 int moogladder_process(ENVIRON *csound,moogladder *p);
-
 
 typedef struct _statevar {
   OPDS    h;
@@ -128,7 +124,6 @@ typedef struct _statevar {
 int statevar_init(ENVIRON *csound,statevar *p);
 int statevar_process(ENVIRON *csound,statevar *p);
 
-
 typedef struct _fofilter {
   OPDS    h;
   MYFLT   *out;
@@ -146,9 +141,4 @@ int fofilter_init(ENVIRON *csound,fofilter *p);
 int fofilter_process(ENVIRON *csound,fofilter *p);
 
 #endif
-
-
-
-
-
 

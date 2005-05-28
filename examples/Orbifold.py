@@ -1,6 +1,6 @@
 '''
 V O I C E - L E A D I N G   O R B I F O L D
-F O R   T R I C H O R D S   I N   1 2 T E T 
+F O R   T R I C H O R D S   I N   1 2 T E T
 Copyright 2005 by Michael Gogins.
 This software is licensed under the GNU Lesser General Public License,
 in other words, it is open source software.
@@ -48,12 +48,12 @@ def modulusOf(trichord):
     newTrichord = ((trichord[0] - trichord[0] + 144) % 12,
                (trichord[1] - trichord[0] + 144) % 12,
                (trichord[2] - trichord[0] + 144) % 12)
-    return newTrichord    
+    return newTrichord
 def unorderedType(trichord):
     trichord = modulusOf(trichord)
     trichord = unorder(trichord)
     return trichord
-        
+
 trichords = {}
 balls = {}
 ballsForChordTypes = {}

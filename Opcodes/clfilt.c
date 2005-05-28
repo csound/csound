@@ -36,7 +36,6 @@
 #include <math.h>
 #include "clfilt.h"
 
-
 int clfiltset(ENVIRON *csound, CLFILT *p)
 {
     MYFLT tanfpi, tanfpi2, cotfpi, cotfpi2;
@@ -286,7 +285,6 @@ int clfiltset(ENVIRON *csound, CLFILT *p)
     }
     return OK;
 } /* end clfiltset(p) */
-
 
 int clfilt(ENVIRON *csound, CLFILT *p)
 {

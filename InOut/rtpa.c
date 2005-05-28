@@ -34,7 +34,6 @@ typedef struct PaAlsaStreamInfo
 }
 PaAlsaStreamInfo;
 
-
 void listPortAudioDevices(void *csound)
 {
     PaDeviceIndex deviceIndex = 0;

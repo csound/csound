@@ -8,17 +8,17 @@
  * OSC header files
  */
 #if !defined(_OSC_OSC_h_)
-#	define _OSC_OSC_h_
+#       define _OSC_OSC_h_
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
 #if defined(TRUE)
-#	undef TRUE		/* otherwise we will lose some typedefing */
+#       undef TRUE              /* otherwise we will lose some typedefing */
 #endif  /* defined(TRUE) */
 #if defined(FALSE)
-#	undef FALSE		/* same as above */
+#       undef FALSE             /* same as above */
 #endif /* defined(FALSE) */
 
 #include "OSC-Kit/OSC-common.h"

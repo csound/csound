@@ -50,7 +50,7 @@ csound_new_ftable(PyObject *self, PyObject *args)
 {
   int ftnum;
 
-  if (!PyArg_ParseTuple(args, "i:new_ftable", &ftnum)) 
+  if (!PyArg_ParseTuple(args, "i:new_ftable", &ftnum))
     return NULL;
 
   return (PyObject*)_csound_ftable_create(ftnum);
@@ -87,19 +87,19 @@ csound_ftable_getattr(csound_FTableObject *self, char *name)
 
 static PyNumberMethods csound_FTableType_as_number = {
   0,
-  0, 
-  0,
-  0,
-  0,
-
-  0,
   0,
   0,
   0,
   0,
 
   0,
-  0, 
+  0,
+  0,
+  0,
+  0,
+
+  0,
+  0,
   0,
   0,
   0,
@@ -137,7 +137,7 @@ static PyObject *
 csound_ftable_item(csound_FTableObject *self, int index)
 {
   FUNC *ftp = flist[self->ftnum];
-  
+
   if (ftp == NULL)
     return NULL;
 
@@ -153,7 +153,7 @@ csound_ftable_slice(csound_FTableObject *self, int begin, int end)
   PyObject *l;
   int i, n;
   FUNC *ftp = flist[self->ftnum];
-  
+
   if (ftp == NULL)
     {
       printf("ftable slice: INVALID TABLE NO\n");
@@ -190,7 +190,7 @@ static int
 csound_ftable_item_assign(csound_FTableObject *self, int index, PyObject *value)
 {
   FUNC *ftp = flist[self->ftnum];
-  
+
   if (ftp == NULL)
     return 1;
 
@@ -295,7 +295,6 @@ extern char    *orchname;
 extern char        *scorename;
 extern long    kcounter;
 
-
 static PyObject *
 csound_orchestra(PyObject *self, PyObject *args)
 {
@@ -335,7 +334,7 @@ csound_ievent(PyObject *self, PyObject *args)
 {
   int i, narg = PyTuple_Size(args);
   EVTBLK newevt;
-  
+
   if (narg < 3)
     return NULL;
 
@@ -388,7 +387,7 @@ csound_ftable(PyObject *self, PyObject *args)
   MYFLT starttime;
   EVTBLK newevt;
   FUNC *ftp;
-  
+
   if (narg < 3)
     {
       PyErr_SetString(PyExc_ValueError, "too few arguments");
@@ -417,7 +416,7 @@ csound_ftable(PyObject *self, PyObject *args)
   newevt.p[1] = what;
 
   ftp = hfgens(&newevt);
-  
+
   return (PyObject*)_csound_ftable_create(ftp->fno);
 }
 

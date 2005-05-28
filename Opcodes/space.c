@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /******************************************/
 /* The applications in this file were     */
 /* designed and coded by Richard Karpen   */
@@ -164,7 +163,6 @@ int space(ENVIRON *csound, SPACE *p)
     return OK;
 }
 
-
 int spsendset(ENVIRON *csound, SPSEND *p)
 {
     p->space=spaceaddr;
@@ -197,7 +195,6 @@ int spsend(ENVIRON *csound, SPSEND *p)
     memmove(r4, rrev4, csound->ksmps*sizeof(MYFLT));
     return OK;
 }
-
 
 int spdistset(ENVIRON *csound, SPDIST *p)
 {

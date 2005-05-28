@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -26,11 +26,11 @@ namespace csound
 {
   boost::mt19937 Random::mersenneTwister;
 
-  Random::Random() : 
+  Random::Random() :
     generator_(0),
-    row(0), 
-    column(Event::HOMOGENEITY), 
-    eventCount(0), 
+    row(0),
+    column(Event::HOMOGENEITY),
+    eventCount(0),
     incrementTime(true),
     minimum(0.0),
     maximum(1.0),
@@ -40,7 +40,7 @@ namespace csound
     c(0.0),
     Lambda(1.0),
     mean(0.0),
-    sigma(1.0)	
+    sigma(1.0)
   {
     distribution = "uniform_real";
   }
@@ -53,57 +53,57 @@ namespace csound
   {
     if(distribution == "uniform_smallint")
       {
-	uniform_smallint_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::uniform_smallint<> >(mersenneTwister, boost::uniform_smallint<>(int(minimum), int(maximum)));
-	generator_ = &uniform_smallint_generator;
+        uniform_smallint_generator =
+          new boost::variate_generator<boost::mt19937, boost::uniform_smallint<> >(mersenneTwister, boost::uniform_smallint<>(int(minimum), int(maximum)));
+        generator_ = &uniform_smallint_generator;
       }
     else if(distribution == "uniform_int")
       {
-	uniform_int_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::uniform_int<> >(mersenneTwister, boost::uniform_int<>(int(minimum), int(maximum)));
-	generator_ = &uniform_int_generator;
+        uniform_int_generator =
+          new boost::variate_generator<boost::mt19937, boost::uniform_int<> >(mersenneTwister, boost::uniform_int<>(int(minimum), int(maximum)));
+        generator_ = &uniform_int_generator;
       }
     else if(distribution == "uniform_real")
       {
-	uniform_real_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::uniform_real<> >(mersenneTwister, boost::uniform_real<>(int(minimum), int(maximum)));
-	generator_ = &uniform_real_generator;
+        uniform_real_generator =
+          new boost::variate_generator<boost::mt19937, boost::uniform_real<> >(mersenneTwister, boost::uniform_real<>(int(minimum), int(maximum)));
+        generator_ = &uniform_real_generator;
       }
     else if(distribution == "bernoulli")
       {
-	bernoulli_distribution_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::bernoulli_distribution<> >(mersenneTwister, boost::bernoulli_distribution<>(q));
-	generator_ = &bernoulli_distribution_generator;
+        bernoulli_distribution_generator =
+          new boost::variate_generator<boost::mt19937, boost::bernoulli_distribution<> >(mersenneTwister, boost::bernoulli_distribution<>(q));
+        generator_ = &bernoulli_distribution_generator;
       }
     else if(distribution == "geometric")
       {
-	geometric_distribution_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::geometric_distribution<> >(mersenneTwister, boost::geometric_distribution<>(q));
-	generator_ = &geometric_distribution_generator;
+        geometric_distribution_generator =
+          new boost::variate_generator<boost::mt19937, boost::geometric_distribution<> >(mersenneTwister, boost::geometric_distribution<>(q));
+        generator_ = &geometric_distribution_generator;
       }
     else if(distribution == "triangle")
       {
-	triangle_distribution_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::triangle_distribution<> >(mersenneTwister, boost::triangle_distribution<>(a, b, c));
-	generator_ = &triangle_distribution_generator;
+        triangle_distribution_generator =
+          new boost::variate_generator<boost::mt19937, boost::triangle_distribution<> >(mersenneTwister, boost::triangle_distribution<>(a, b, c));
+        generator_ = &triangle_distribution_generator;
       }
     else if(distribution == "exponential")
       {
-	exponential_distribution_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::exponential_distribution<> >(mersenneTwister, boost::exponential_distribution<>(Lambda));
-	generator_ = &exponential_distribution_generator;
+        exponential_distribution_generator =
+          new boost::variate_generator<boost::mt19937, boost::exponential_distribution<> >(mersenneTwister, boost::exponential_distribution<>(Lambda));
+        generator_ = &exponential_distribution_generator;
       }
     else if(distribution == "normal")
       {
-	normal_distribution_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::normal_distribution<> >(mersenneTwister, boost::normal_distribution<>(mean, sigma));
-	generator_ = &normal_distribution_generator;
+        normal_distribution_generator =
+          new boost::variate_generator<boost::mt19937, boost::normal_distribution<> >(mersenneTwister, boost::normal_distribution<>(mean, sigma));
+        generator_ = &normal_distribution_generator;
       }
     else if(distribution == "lognormal")
       {
-	lognormal_distribution_generator = 
-	  new boost::variate_generator<boost::mt19937, boost::lognormal_distribution<> >(mersenneTwister, boost::lognormal_distribution<>(mean, sigma));
-	generator_ = &lognormal_distribution_generator;
+        lognormal_distribution_generator =
+          new boost::variate_generator<boost::mt19937, boost::lognormal_distribution<> >(mersenneTwister, boost::lognormal_distribution<>(mean, sigma));
+        generator_ = &lognormal_distribution_generator;
       }
   }
   double Random::sample() const
@@ -124,41 +124,41 @@ namespace csound
     ublas::matrix<double> transformation = localCoordinates;
     for(int i = 0; i < Event::HOMOGENEITY; i++)
       {
-	transformation[i][Event::HOMOGENEITY] *= sample();
+        transformation[i][Event::HOMOGENEITY] *= sample();
       }
-    return transformation;		
+    return transformation;
   }
   void Random::produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &globalCoordinates)
   {
     createDistribution(distribution);
     if(eventCount > 0)
       {
-	double currentTime = 0;
-	for (int i = 0; i < eventCount; i++)
-	  {
-	    //  Resample for every generated note.
-	    ublas::matrix<double> localCoordinates = getLocalCoordinates();
-	    ublas::matrix<double> compositeCoordinates = ublas::prod(localCoordinates, globalCoordinates);
-	    Event event(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-	    Event transformedEvent;
-	    ublas::axpy_prod(compositeCoordinates, event, transformedEvent);
-	    if (incrementTime)
-	      {
-		double buffer = fabs(transformedEvent.getTime());
-		transformedEvent.setTime(buffer + currentTime);
-		currentTime += buffer;
-	      }
-	    score.push_back(transformedEvent);
-	  }
+        double currentTime = 0;
+        for (int i = 0; i < eventCount; i++)
+          {
+            //  Resample for every generated note.
+            ublas::matrix<double> localCoordinates = getLocalCoordinates();
+            ublas::matrix<double> compositeCoordinates = ublas::prod(localCoordinates, globalCoordinates);
+            Event event(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+            Event transformedEvent;
+            ublas::axpy_prod(compositeCoordinates, event, transformedEvent);
+            if (incrementTime)
+              {
+                double buffer = fabs(transformedEvent.getTime());
+                transformedEvent.setTime(buffer + currentTime);
+                currentTime += buffer;
+              }
+            score.push_back(transformedEvent);
+          }
       }
     else
       {
-	for (size_t i = beginAt; i < endAt; i++)
-	  {
-	    ublas::matrix<double> local = getLocalCoordinates();
-	    ublas::matrix<double> compositeCoordinates = ublas::prod(local, globalCoordinates);
-	    score[i] = ublas::prod(compositeCoordinates, score[i]);
-	  }
+        for (size_t i = beginAt; i < endAt; i++)
+          {
+            ublas::matrix<double> local = getLocalCoordinates();
+            ublas::matrix<double> compositeCoordinates = ublas::prod(local, globalCoordinates);
+            score[i] = ublas::prod(compositeCoordinates, score[i]);
+          }
       }
   }
 

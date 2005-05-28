@@ -63,7 +63,6 @@ static MYFLT ReedTabl_LookUp(ReedTabl *r, MYFLT deltaP)
     return lastOutput;
 }
 
-
 /*******************************************/
 /*  One Zero Filter Class,                 */
 /*  by Perry R. Cook, 1995-96              */
@@ -250,7 +249,6 @@ int clarin(ENVIRON *csound, CLARIN *p)
 /*  and possibly Yamaha and other patents.*/
 /*                                        */
 /******************************************/
-
 
 /**********************************************/
 /* Jet Table Object by Perry R. Cook, 1995-96 */
@@ -442,7 +440,6 @@ int flute(ENVIRON *csound, FLUTE *p)
 /*                                        */
 /******************************************/
 
-
 /******************************************/
 /*  Simple Bow Table Object, after Smith  */
 /*    by Perry R. Cook, 1995-96           */
@@ -521,7 +518,6 @@ int bowedset(ENVIRON *csound, BOWED *p)
     }
     return OK;
 }
-
 
 int bowed(ENVIRON *csound, BOWED *p)
 {
@@ -636,7 +632,6 @@ int bowed(ENVIRON *csound, BOWED *p)
 /*  and possibly Yamaha and other patents.*/
 /*                                        */
 /******************************************/
-
 
 /****************************************************************************/
 /*                                                                          */

@@ -99,7 +99,6 @@ void tranRESET(ENVIRON *csound)
     opcode_list_free(csound);
 }
 
-
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
 
 static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)

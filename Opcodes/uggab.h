@@ -32,20 +32,17 @@ typedef struct {
     MYFLT *xdest, *xsig, *xlow, *xhigh;
 } WRAP;
 
-
 typedef struct {
     OPDS  h;
     MYFLT *kout, *ksig, *kthreshold, *kmode;
     MYFLT old_sig;
 } TRIG;
 
-
 typedef struct {
     OPDS  h;
     MYFLT *r, *val1, *val2, *point, *imin, *imax;
     MYFLT point_factor;
 } INTERPOL;
-
 
 typedef struct  {
     OPDS        h;
@@ -127,7 +124,6 @@ typedef struct {
         FUNC    *ftp;
 } VIBRATO;
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *out, *AverageAmp,*AverageFreq,*ifn;
@@ -146,7 +142,6 @@ typedef struct {
         MYFLT   num1a,num2a, dfdmax1,num1b,num2b, dfdmax2,num1c,num2c, dfdmax3;
 } JITTER2;
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *amp, *cpsMin, *cpsMax;
@@ -164,7 +159,6 @@ typedef struct {
         int     initflag, cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } JITTERS;
-
 
 #define oneUp31Bit      (4.656612875245796924105750827168e-10)
 #define randGab   (MYFLT) ((double)     \
@@ -208,7 +202,6 @@ typedef struct {
         long    phs;
         MYFLT   num1;
 } RANDOMH;
-
 
 typedef struct {
         OPDS    h;

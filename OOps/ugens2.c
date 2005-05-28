@@ -100,12 +100,10 @@ int phsor(ENVIRON *csound, PHSOR *p)
     return OK;
 }
 
-
 /*****************************************************************************/
 /*****************************************************************************/
 
 /* Table read code - see TABLE data structure in ugens2.h.  */
-
 
 /*************************************/
 
@@ -195,7 +193,6 @@ int ptblchk(ENVIRON *csound, TABLE *p)
     return OK;
 }
 
-
 /*---------------------------------------------------------------------------*/
 
 /* tblset() */
@@ -204,7 +201,6 @@ int tblset(ENVIRON *csound, TABLE *p)
 {
     return itblchk(csound,p);
 }
-
 
 /* tblsetkt() */
 
@@ -377,7 +373,6 @@ int ktable(ENVIRON *csound, TABLE  *p)
     return OK;
 }
 
-
 /* tablefn()  */
 
 /* table() is similar to ktable() above, except that it processes an
@@ -428,7 +423,6 @@ int tablefn(ENVIRON *csound, TABLE  *p)
     }
     return OK;
 }
-
 
 /* ktabli() */
 
@@ -611,7 +605,6 @@ int ktabl3(ENVIRON *csound, TABLE  *p)
     }
     return OK;
 }
-
 
 /* tabli() */
 

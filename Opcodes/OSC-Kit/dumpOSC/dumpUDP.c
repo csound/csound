@@ -30,7 +30,6 @@ by Matt Wright, 9/9/98
 
 */
 
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -58,7 +57,6 @@ by Matt Wright, 9/9/98
 #include <sys/schedctl.h>
 #include <sys/lock.h>
 
-
 typedef struct ClientAddressStruct {
         struct sockaddr_in  cl_addr;
         int clilen;
@@ -70,49 +68,46 @@ void PrintClientAddr(ClientAddr CA) {
     printf("Client address %p:\n", CA);
     printf("  clilen %d, sockfd %d\n", CA->clilen, CA->sockfd);
     printf("  sin_family %d, sin_port %d\n", CA->cl_addr.sin_family,
-	   CA->cl_addr.sin_port);
+           CA->cl_addr.sin_port);
     printf("  address: (%x) %s\n", addr,  inet_ntoa(CA->cl_addr.sin_addr));
 
-    printf("  sin_zero = \"%c%c%c%c%c%c%c%c\"\n", 
-	   CA->cl_addr.sin_zero[0],
-	   CA->cl_addr.sin_zero[1],
-	   CA->cl_addr.sin_zero[2],
-	   CA->cl_addr.sin_zero[3],
-	   CA->cl_addr.sin_zero[4],
-	   CA->cl_addr.sin_zero[5],
-	   CA->cl_addr.sin_zero[6],
-	   CA->cl_addr.sin_zero[7]);
+    printf("  sin_zero = \"%c%c%c%c%c%c%c%c\"\n",
+           CA->cl_addr.sin_zero[0],
+           CA->cl_addr.sin_zero[1],
+           CA->cl_addr.sin_zero[2],
+           CA->cl_addr.sin_zero[3],
+           CA->cl_addr.sin_zero[4],
+           CA->cl_addr.sin_zero[5],
+           CA->cl_addr.sin_zero[6],
+           CA->cl_addr.sin_zero[7]);
 
     printf("\n");
 }
 
-
 static int initudp(int port) {
-	struct sockaddr_in serv_addr;
-	int n, sockfd;
-	
-	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-			return sockfd;
-	bzero((char *)&serv_addr, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serv_addr.sin_port = htons(port);
-	
-	if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-	{
-		perror("unable to  bind\n");
-		return -1;
-	}
+        struct sockaddr_in serv_addr;
+        int n, sockfd;
 
-	fcntl(sockfd, F_SETFL, FNDELAY); 
-	return sockfd;
+        if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+                        return sockfd;
+        bzero((char *)&serv_addr, sizeof(serv_addr));
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        serv_addr.sin_port = htons(port);
+
+        if(bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+        {
+                perror("unable to  bind\n");
+                return -1;
+        }
+
+        fcntl(sockfd, F_SETFL, FNDELAY);
+        return sockfd;
 }
-
 
 static void closeudp(int sockfd) {
     close(sockfd);
 }
-
 
 static int time_to_quit;
 
@@ -129,63 +124,62 @@ void GotAPacket(char *buf, int n, ClientAddr returnAddr) {
 static char mbuf[MAXMESG];
 
 void ReceivePacket(int sockfd) {
-	struct ClientAddressStruct returnAddress;
-	int maxclilen=sizeof(returnAddress.cl_addr);
-	int n;
+        struct ClientAddressStruct returnAddress;
+        int maxclilen=sizeof(returnAddress.cl_addr);
+        int n;
 
-	returnAddress.clilen = maxclilen;
-	while( (n = recvfrom(sockfd, mbuf, MAXMESG, 0, &(returnAddress.cl_addr),
-			     &(returnAddress.clilen))) >0)  {
-	    GotAPacket(mbuf, n, &returnAddress);
+        returnAddress.clilen = maxclilen;
+        while( (n = recvfrom(sockfd, mbuf, MAXMESG, 0, &(returnAddress.cl_addr),
+                             &(returnAddress.clilen))) >0)  {
+            GotAPacket(mbuf, n, &returnAddress);
 
-	    if (time_to_quit) return;
-	    returnAddress.clilen = maxclilen;
-	}
+            if (time_to_quit) return;
+            returnAddress.clilen = maxclilen;
+        }
 }
 
 void main(int argc,  char **argv) {
-	int udp_port;  /* port to receive parameter updates from */
-	int sockfd;
-	int i;
+        int udp_port;  /* port to receive parameter updates from */
+        int sockfd;
+        int i;
 
-	fd_set read_fds, write_fds;
-	int nfds;
-		
-	udp_port = 7000;
+        fd_set read_fds, write_fds;
+        int nfds;
 
-	sockfd=initudp(udp_port);
+        udp_port = 7000;
 
-	if(sockfd<0) {
-	    perror("initudp");
-	    return;
-	}
+        sockfd=initudp(udp_port);
 
-	nfds = sockfd + 1;
+        if(sockfd<0) {
+            perror("initudp");
+            return;
+        }
 
-	time_to_quit = 0;
-	sigset(SIGINT, catch_sigint);       /* set sig handler       */
+        nfds = sockfd + 1;
 
-	while(!time_to_quit)
-	{
-		
-		int c,r;
+        time_to_quit = 0;
+        sigset(SIGINT, catch_sigint);       /* set sig handler       */
 
-	back:	
+        while(!time_to_quit)
+        {
 
-		FD_ZERO(&read_fds);                /* clear read_fds        */
-		FD_ZERO(&write_fds);               /* clear write_fds        */
-		FD_SET(sockfd, &read_fds); 
+                int c,r;
 
-      
-		r = select(nfds, &read_fds, &write_fds, (fd_set *)0, 
-				(struct timeval *)0);
-		if (r < 0)  /* select reported an error */
-		    goto out;
+        back:
 
-		if(FD_ISSET(sockfd, &read_fds)) {
-		    ReceivePacket(sockfd);
-		}
+                FD_ZERO(&read_fds);                /* clear read_fds        */
+                FD_ZERO(&write_fds);               /* clear write_fds        */
+                FD_SET(sockfd, &read_fds);
 
-	} /* End of while(!time_to_quit) */
+                r = select(nfds, &read_fds, &write_fds, (fd_set *)0,
+                                (struct timeval *)0);
+                if (r < 0)  /* select reported an error */
+                    goto out;
+
+                if(FD_ISSET(sockfd, &read_fds)) {
+                    ReceivePacket(sockfd);
+                }
+
+        } /* End of while(!time_to_quit) */
 out: ;
 }

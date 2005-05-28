@@ -25,10 +25,9 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
-
 
 /*
   OSC-receive.h
@@ -36,7 +35,6 @@ The OpenSound Control WWW page is
 
   include OSC-timetag.h and NetworkReturnAddress.h before this file.
 */
-
 
 /**************************************************
    Initialization and memory pre-allocation
@@ -73,11 +71,11 @@ The OpenSound Control WWW page is
   The remaining fields say how much memory to allocate at initialization time:
 
 - receiveBufferSize is the maximum packet size that can be received.  Is the
-  maximum UDP packet size 4096?  OSC clients can send a query to this system 
+  maximum UDP packet size 4096?  OSC clients can send a query to this system
   asking for this maximum packet size.
 
 - numReceiveBuffers determines how many packets at a time can be sitting
-  on the scheduler with messages waiting to take effect.  If all the 
+  on the scheduler with messages waiting to take effect.  If all the
   receive buffers are tied up like this, you won't be able to receive
   new packets.
 
@@ -93,7 +91,6 @@ The OpenSound Control WWW page is
   all the messages waiting in the scheduler.
 
 */
-
 
 struct OSCReceiveMemoryTuner {
     void *(*InitTimeMemoryAllocator)(int numBytes);
@@ -115,7 +112,6 @@ OSCBoolean OSCInitReceive(struct OSCReceiveMemoryTuner *t);
 /**************************************************
    Managing packet data structures
  **************************************************/
-
 
 /* You don't get to know what's in an OSCPacketBuffer. */
 typedef struct OSCPacketBuffer_struct *OSCPacketBuffer;
@@ -147,7 +143,7 @@ char *OSCPacketBufferGetBuffer(OSCPacketBuffer p);
 int *OSCPacketBufferGetSize(OSCPacketBuffer);
 
 /* Selector to get the client's network address from a packet.  This buffer's
-   size will be equal to the clientAddrSize you passed to OSCInitReceive(). 
+   size will be equal to the clientAddrSize you passed to OSCInitReceive().
    Note that the NetworkReturnAddressPtr type is full of "const"s, so your
    code that fills in the return address will probably have to cast the return
    value of this procedure to some non-const type to be able to write into it. */
@@ -157,7 +153,6 @@ NetworkReturnAddressPtr OSCPacketBufferGetClientAddr(OSCPacketBuffer p);
    to OSCInitReceive()). */
 int OSCGetReceiveBufferSize(void);
 
-
 /**************************************************
    Dealing with OpenSoundControl packets and
    making the messages take effect.
@@ -166,7 +161,7 @@ int OSCGetReceiveBufferSize(void);
 /* Call this as soon as a packet comes in from the network.
    It will take care of anything that has to happen immediately,
    but put off as much as possible of the work of parsing the
-   packet.  (This tries to be as fast as possible in case a 
+   packet.  (This tries to be as fast as possible in case a
    lot of packets come in.) */
 void OSCAcceptPacket(OSCPacketBuffer packet);
 
@@ -201,8 +196,6 @@ OSCBoolean OSCInvokeMessagesThatAreReady(OSCTimeTag now);
 /* Same thing, but invokes all of the messages whose time has come. */
 void OSCInvokeAllMessagesThatAreReady(OSCTimeTag now);
 
-
-
 /**************************************************
    How to use this stuff
  **************************************************/
@@ -213,21 +206,21 @@ void OSCInvokeAllMessagesThatAreReady(OSCTimeTag now);
 while (1) {
     OSCTimeTag now = CurrentTime();
     do {
-	if (WeAreSoLateThatWeNeedToDelayOSCMessagesToAvoidACrisis()) break;
+        if (WeAreSoLateThatWeNeedToDelayOSCMessagesToAvoidACrisis()) break;
     } while (OSCInvokeMessagesThatAreReady(now) == TRUE);
 
     SynthesizeSomeSound();
     if (NetworkPacketWaiting()) {
-	OSCPacketBuffer p = OSCAllocPacketBuffer();
-	if (!p) {
-	    Bummer();
-	} else {
-	    NetworkReceivePacket(p);
-	    OSCAcceptPacket(p);
-	}
+        OSCPacketBuffer p = OSCAllocPacketBuffer();
+        if (!p) {
+            Bummer();
+        } else {
+            NetworkReceivePacket(p);
+            OSCAcceptPacket(p);
+        }
     }
     while (TimeLeftBeforeWeHaveDoSomething()) {
-	if (!OSCBeProductiveWhileWaiting()) break;
+        if (!OSCBeProductiveWhileWaiting()) break;
     }
 }
 

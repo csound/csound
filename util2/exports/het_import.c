@@ -1,4 +1,4 @@
-/*  
+/*
     het_import.c
 
     Copyright (C) 1995 John ffitch
@@ -94,5 +94,4 @@ int main(int argc, char **argv)
     fclose(infd);
     return 0;
 }
-
 

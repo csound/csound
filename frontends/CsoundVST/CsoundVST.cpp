@@ -1,5 +1,5 @@
 /*
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -27,7 +27,7 @@
 double CsoundVST::inputScale = 32767.0;
 double CsoundVST::outputScale = (1.0 / 32767.0);
 
-CsoundVST::CsoundVST(audioMasterCallback audioMaster) : 
+CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   AudioEffectX(audioMaster, kNumPrograms, 0),
   cppSound(&cppSound_),
   isSynth(true),
@@ -47,11 +47,11 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   csoundVstFltk(0),
   isAutoPlayback(false)
 {
-  setNumInputs(kNumInputs);		// stereo in
-  setNumOutputs(kNumOutputs);		// stereo out
-  setUniqueID('cVsT');	// identify
-  canMono();				// makes sense to feed both inputs with the same signal
-  canProcessReplacing();	// supports both accumulating and replacing output
+  setNumInputs(kNumInputs);             // stereo in
+  setNumOutputs(kNumOutputs);           // stereo out
+  setUniqueID('cVsT');  // identify
+  canMono();                            // makes sense to feed both inputs with the same signal
+  canProcessReplacing();        // supports both accumulating and replacing output
   open();
   csoundVstFltk = new CsoundVstFltk(this);
   setEditor(csoundVstFltk);
@@ -61,11 +61,11 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   {
     if(number)
       {
-	AudioEffectX::isSynth(true);
+        AudioEffectX::isSynth(true);
       }
     else
       {
-	AudioEffectX::isSynth(false);
+        AudioEffectX::isSynth(false);
       }
   }
   wantEvents(true);
@@ -80,7 +80,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
     }
 }
 
-CsoundVST::CsoundVST() : 
+CsoundVST::CsoundVST() :
   AudioEffectX(0, kNumPrograms, 0),
   cppSound(&cppSound_),
   isSynth(true),
@@ -99,11 +99,11 @@ CsoundVST::CsoundVST() :
   csoundVstFltk(0),
   isAutoPlayback(true)
 {
-  setNumInputs(2);		// stereo in
-  setNumOutputs(2);		// stereo out
-  setUniqueID('cVsT');	// identify
-  canMono();				// makes sense to feed both inputs with the same signal
-  canProcessReplacing();	// supports both accumulating and replacing output
+  setNumInputs(2);              // stereo in
+  setNumOutputs(2);             // stereo out
+  setUniqueID('cVsT');  // identify
+  canMono();                            // makes sense to feed both inputs with the same signal
+  canProcessReplacing();        // supports both accumulating and replacing output
   open();
   csoundVstFltk = new CsoundVstFltk(this);
   setEditor(csoundVstFltk);
@@ -200,11 +200,11 @@ void CsoundVST::performanceThreadRoutine()
       csound::System::inform("Saved as: '%s'.\n", Shell::getFilename().c_str());
       reset();
       if(getIsVst())
-	{
-	  csound::System::inform("Python VST performance.\n");
-	  getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
-	  getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
-	}
+        {
+          csound::System::inform("Python VST performance.\n");
+          getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
+          getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
+        }
       runScript();
     }
   else
@@ -213,29 +213,29 @@ void CsoundVST::performanceThreadRoutine()
       csound::System::inform("Saved as: '%s' and '%s'.\n", cppSound->getOrcFilename().c_str(), cppSound->getScoFilename().c_str());
       reset();
       if(getIsVst())
-	{
-	  csound::System::inform("Classic VST performance.\n");
-	  getCppSound()->preCompile();
-	  getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
-	  getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
-	  if(getCppSound()->compile())
-	    {
-	      csound::System::inform("Csound compilation failed.\n");
-	      reset();
-	    }
-	}
+        {
+          csound::System::inform("Classic VST performance.\n");
+          getCppSound()->preCompile();
+          getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
+          getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
+          if(getCppSound()->compile())
+            {
+              csound::System::inform("Csound compilation failed.\n");
+              reset();
+            }
+        }
       else
-	{
-	  csound::System::inform("Classic performance.\n");
-	  cppSound->perform();
-	}     
+        {
+          csound::System::inform("Classic performance.\n");
+          cppSound->perform();
+        }
     }
-  if(isAutoPlayback && !isVst) 
+  if(isAutoPlayback && !isVst)
     {
       if(csoundVstFltk)
-	{
-	  csoundVstFltk->onEdit(0, 0);
-	}
+        {
+          csoundVstFltk->onEdit(0, 0);
+        }
     }
 }
 
@@ -243,7 +243,7 @@ bool CsoundVST::getIsMultiThreaded() const
 {
   return isMultiThreaded;
 }
- 
+
 void CsoundVST::setIsMultiThreaded(bool isMultiThreaded)
 {
   this->isMultiThreaded = isMultiThreaded;
@@ -276,24 +276,24 @@ int CsoundVST::perform()
   if(getCppSound())
     {
       if(getIsVst())
-    	{
-	  csound::System::inform("VST performance.\n");
-	  csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
-	  performanceThreadRoutine();
-    	}
+        {
+          csound::System::inform("VST performance.\n");
+          csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback);
+          performanceThreadRoutine();
+        }
       else if(getIsMultiThreaded())
-    	{
-	  csound::System::inform("Multi-threaded performance.\n");
-	  csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
-	  csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback); 
-	  result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
-    	}
+        {
+          csound::System::inform("Multi-threaded performance.\n");
+          csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback);
+          csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback);
+          result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
+        }
       else
-	{
-	  csound::System::inform("Single-threaded performance.\n");
-	  csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback); 
-	  performanceThreadRoutine();
-	}
+        {
+          csound::System::inform("Single-threaded performance.\n");
+          csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback);
+          performanceThreadRoutine();
+        }
     }
   return result;
 }
@@ -374,27 +374,27 @@ void CsoundVST::suspend()
 {
   csound::System::message("RECEIVED CsoundVST::suspend()...\n");
   stop();
-}		
+}
 
 void CsoundVST::resume()
 {
   csound::System::message("RECEIVED CsoundVST::resume()...\n");
   perform();
   wantEvents(true);
-}		
+}
 
 long CsoundVST::processEvents(VstEvents *vstEvents)
 {
   if(getCppSound()->getIsGo())
     {
       for(int i = 0; i < vstEvents->numEvents; i++)
-	{
-	  if(vstEvents->events[i]->type == kVstMidiType)
-	    {
-	      VstMidiEvent *vstMidiEvent = (VstMidiEvent *)vstEvents->events[i];
-	      midiEventQueue.push_back(*vstMidiEvent);
-	    }
-	}
+        {
+          if(vstEvents->events[i]->type == kVstMidiType)
+            {
+              VstMidiEvent *vstMidiEvent = (VstMidiEvent *)vstEvents->events[i];
+              midiEventQueue.push_back(*vstMidiEvent);
+            }
+        }
       return 1;
     }
   else
@@ -418,10 +418,10 @@ int CsoundVST::midiRead(void *csound, void *userData,
       midiMessage->bData[0] = event.midiData[0];
       midiMessage->bData[1] = event.midiData[1];
       midiMessage->bData[2] = event.midiData[2];
-      csound::System::message("CsoundVST::midiRead(%x, %x, %x)\n", 
-			      (int) midiMessage->bData[0],
-			      (int) midiMessage->bData[1],
-			      (int) midiMessage->bData[2]);
+      csound::System::message("CsoundVST::midiRead(%x, %x, %x)\n",
+                              (int) midiMessage->bData[0],
+                              (int) midiMessage->bData[1],
+                              (int) midiMessage->bData[2]);
       csoundVST->midiEventQueue.pop_front();
       return 3;
     }
@@ -438,26 +438,26 @@ void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
       size_t channelN = cppSound->getNchnls();
       size_t channelI;
       for(long hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
-	{
-	  for(channelI = 0; channelI < channelN; channelI++)
-	    {
-	      csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
-	    }
-	  if(csoundFrameI == 0)
-	    {
-	      cppSound->performKsmps(true);
-	    }
-	  for(channelI = 0; channelI < channelN; channelI++)
-	    {
-	      hostOutput[channelI][hostFrameI] += csoundOutput[(csoundFrameI * channelN) + channelI] * outputScale;
-	      csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
-	    }
-	  csoundFrameI++;
-	  if(csoundFrameI > csoundLastFrame)
-	    {
-	      csoundFrameI = 0;
-	    }		  
-	}
+        {
+          for(channelI = 0; channelI < channelN; channelI++)
+            {
+              csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
+            }
+          if(csoundFrameI == 0)
+            {
+              cppSound->performKsmps(true);
+            }
+          for(channelI = 0; channelI < channelN; channelI++)
+            {
+              hostOutput[channelI][hostFrameI] += csoundOutput[(csoundFrameI * channelN) + channelI] * outputScale;
+              csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
+            }
+          csoundFrameI++;
+          if(csoundFrameI > csoundLastFrame)
+            {
+              csoundFrameI = 0;
+            }
+        }
     }
 }
 
@@ -472,26 +472,26 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, long hos
       size_t channelN = cppSound->getNchnls();
       size_t channelI;
       for(long hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
-	{
-	  for(channelI = 0; channelI < channelN; channelI++)
-	    {
-	      csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
-	    }
-	  if(csoundFrameI == 0)
-	    {
-	      cppSound->performKsmps(true);
-	    }
-	  for(channelI = 0; channelI < channelN; channelI++)
-	    {
-	      hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] * outputScale;
-	      csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
-	    }
-	  csoundFrameI++;
-	  if(csoundFrameI > csoundLastFrame)
-	    {
-	      csoundFrameI = 0;
-	    }		  
-	}
+        {
+          for(channelI = 0; channelI < channelN; channelI++)
+            {
+              csoundInput[(csoundFrameI * channelN) + channelI] = hostInput[channelI][hostFrameI];
+            }
+          if(csoundFrameI == 0)
+            {
+              cppSound->performKsmps(true);
+            }
+          for(channelI = 0; channelI < channelN; channelI++)
+            {
+              hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] * outputScale;
+              csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
+            }
+          csoundFrameI++;
+          if(csoundFrameI > csoundLastFrame)
+            {
+              csoundFrameI = 0;
+            }
+        }
     }
 }
 
@@ -499,29 +499,29 @@ void CsoundVST::synchronizeScore()
 {
   vstPriorSamplePosition = vstCurrentSamplePosition;
   VstTimeInfo *vstTimeInfo = getTimeInfo(kVstTransportPlaying);
-  if ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying) 
+  if ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying)
     {
       vstSr = double(vstTimeInfo->sampleRate);
       vstCurrentSamplePosition = (int) vstTimeInfo->samplePos;
       vstCurrentSampleBlockStart = vstTimeInfo->samplePos / vstSr;
-      if((vstCurrentSamplePosition && !vstPriorSamplePosition) || 
-	 (vstCurrentSamplePosition < vstPriorSamplePosition))
-	{
-	  if(getCppSound()->getIsGo())
-	    {
-	      getCppSound()->setScorePending(1);
-	      getCppSound()->rewindScore();
-	      getCppSound()->setScoreOffsetSeconds(vstCurrentSampleBlockStart);
-	      csound::System::inform("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
-	    }
-	}
+      if((vstCurrentSamplePosition && !vstPriorSamplePosition) ||
+         (vstCurrentSamplePosition < vstPriorSamplePosition))
+        {
+          if(getCppSound()->getIsGo())
+            {
+              getCppSound()->setScorePending(1);
+              getCppSound()->rewindScore();
+              getCppSound()->setScoreOffsetSeconds(vstCurrentSampleBlockStart);
+              csound::System::inform("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
+            }
+        }
     }
   else
     {
-      if(getCppSound()->getIsGo()) 
-	{
-	  getCppSound()->setScorePending(0);
-	}
+      if(getCppSound()->getIsGo())
+        {
+          getCppSound()->setScorePending(0);
+        }
     }
 }
 
@@ -621,9 +621,9 @@ bool CsoundVST::keysRequired()
 {
   csound::System::message("RECEIVED CsoundVST::keysRequired...\n");
   return 1;
-}		
+}
 
-long CsoundVST::getProgram() 
+long CsoundVST::getProgram()
 {
   //csound::System::message("RECEIVED CsoundVST::getProgram...\n");
   //bank[curProgram].text = getText();
@@ -659,16 +659,16 @@ long CsoundVST::getChunk(void** data, bool isPreset)
       int n = bank.size();
       stream << n << "\n";
       for(std::vector<Preset>::iterator it = bank.begin(); it != bank.end(); ++it)
-	{
-	  Preset &preset = (*it);
-	  stream << preset.name.c_str() << "\n";
-	  stream << preset.text.size() << "\n";
-	  for(std::string::iterator jt = preset.text.begin(); jt != preset.text.end(); ++jt)
-	    {
-	      stream.put(*jt);	
-	    }
-	  stream << "\n";
-	}
+        {
+          Preset &preset = (*it);
+          stream << preset.name.c_str() << "\n";
+          stream << preset.text.size() << "\n";
+          for(std::string::iterator jt = preset.text.begin(); jt != preset.text.end(); ++jt)
+            {
+              stream.put(*jt);
+            }
+          stream << "\n";
+        }
       bankBuffer = stream.str();
       *data = (void *)bankBuffer.c_str();
       returnValue = bankBuffer.size();
@@ -701,22 +701,22 @@ long CsoundVST::setChunk(void* data, long byteSize, bool isPreset)
       int n = atoi(buffer.c_str());
       bank.resize(n);
       for(int i = 0; i < n; i++)
-	{
-	  Preset preset;
-	  stream >> preset.name;
-	  stream >> std::ws;
-	  stream >> buffer;
-	  stream >> std::ws;
-	  int length = atoi(buffer.c_str());
-	  preset.text.resize(length);
-	  char c;
-	  for(int j = 0; j < length; j++)
-	    {
-	      stream.get(c);
-	      preset.text[j] = c;
-	    }
-	  bank[i] = preset;
-	}
+        {
+          Preset preset;
+          stream >> preset.name;
+          stream >> std::ws;
+          stream >> buffer;
+          stream >> std::ws;
+          int length = atoi(buffer.c_str());
+          preset.text.resize(length);
+          char c;
+          for(int j = 0; j < length; j++)
+            {
+              stream.get(c);
+              preset.text[j] = c;
+            }
+          bank[i] = preset;
+        }
       returnValue = byteSize;
     }
   setProgram(curProgram);
@@ -774,14 +774,14 @@ void CsoundVST::openFile(std::string filename_)
     }
       bank[getProgram()].text = getText();
       editor->update();
-      getCppSound()->setFilename(filename_);        
-      csound::System::message("Opened file: '%s' in %s mode.\n", 
-			      getCppSound()->getFilename().c_str(),
-			      getIsPython() ? "Python" : "classic");
-	std::string drive, base, file, extension;
-	  csound::System::parsePathname(filename_, drive, base, file, extension);
-	    chdir(base.c_str());
-	      }
+      getCppSound()->setFilename(filename_);
+      csound::System::message("Opened file: '%s' in %s mode.\n",
+                              getCppSound()->getFilename().c_str(),
+                              getIsPython() ? "Python" : "classic");
+        std::string drive, base, file, extension;
+          csound::System::parsePathname(filename_, drive, base, file, extension);
+            chdir(base.c_str());
+              }
 
 int CsoundVST::run()
 {
@@ -790,14 +790,13 @@ int CsoundVST::run()
 
 bool CsoundVST::getIsAutoPlayback() const
 {
-	return isAutoPlayback;
+        return isAutoPlayback;
 }
 
 void CsoundVST::setIsAutoPlayback(bool isAutoPlayback)
 {
-	this->isAutoPlayback = isAutoPlayback;
+        this->isAutoPlayback = isAutoPlayback;
 }
-
 
 extern "C"
 {
@@ -811,5 +810,4 @@ extern "C"
     return new CsoundVST;
   }
 };
-
 

@@ -60,7 +60,6 @@
 /*                                         */
 /*******************************************/
 
-
 typedef struct DLineA {
     AUXCH       inputs;
     MYFLT       lastOutput;
@@ -95,7 +94,6 @@ void LipFilt_clear(LipFilt*);
 void LipFilt_setFreq(ENVIRON*,LipFilt*, MYFLT frequency);
 MYFLT LipFilt_tick(LipFilt*, MYFLT mouthSample,MYFLT boreSample);
 MYFLT LipFilt_lastOut(LipFilt*);
-
 
 /* ---------------------------------------------------------------------- */
 typedef struct BRASS {

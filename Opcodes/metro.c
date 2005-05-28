@@ -8,7 +8,6 @@ typedef struct {
         int flag;
 } METRO;
 
-
 typedef struct  {
         OPDS    h;
         MYFLT   *trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
@@ -39,7 +38,6 @@ int metro_set(ENVIRON *csound, METRO *p)
     p->flag=1;
     return OK;
 }
-
 
 int metro(ENVIRON *csound, METRO *p)
 {
@@ -88,7 +86,6 @@ int split_trig_set(ENVIRON *csound,  SPLIT_TRIG *p)
     p->currtic = 0;
     return OK;
 }
-
 
 int split_trig(ENVIRON *csound, SPLIT_TRIG *p)
 {
@@ -141,7 +138,6 @@ int timeseq_set(ENVIRON *csound, TIMEDSEQ *p)
     p->initFlag = 1;
     return OK;
 }
-
 
 int timeseq(ENVIRON *csound, TIMEDSEQ *p)
 {

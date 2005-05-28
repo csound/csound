@@ -443,8 +443,6 @@ gain(int i)
     return end_table->y0 + end_table->yr * (double)(i - end_table->x0);
 }
 
-
-
 static SNDFILE *
 SCsndgetset(char *inputfile)
 {

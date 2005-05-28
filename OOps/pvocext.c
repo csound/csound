@@ -120,7 +120,6 @@ MYFLT PvocMaxAmp(
     return(MaxAmpInData);
 }
 
-
 /*********************************************************************/
 /* Different from Tom Erbe's Amplitude Gating. This one maps         */
 /* the normalised amplitude values from the analysis bins onto       */

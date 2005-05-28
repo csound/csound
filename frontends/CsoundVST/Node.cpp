@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -20,13 +20,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #ifdef _MSC_VER
-#pragma warning (disable:4786) 
+#pragma warning (disable:4786)
 #endif
 #include "Node.hpp"
 
-namespace csound 
+namespace csound
 {
-  Node::Node() 
+  Node::Node()
   {
     localCoordinates.resize(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
     localCoordinates = createTransform();
@@ -58,9 +58,9 @@ namespace csound
     // Descend into each of the child nodes.
     for(std::vector<Node*>::iterator i = children.begin(); i != children.end(); ++i)
       {
-	(*i)->traverse(compositeCoordinates, score);
+        (*i)->traverse(compositeCoordinates, score);
       }
-    // Make a bookmark for the new end of the score, 
+    // Make a bookmark for the new end of the score,
     // thus enclosing all Events that may have been produced or transformed
     // by all the child nodes.
     size_t endAt = score.size();
@@ -76,8 +76,8 @@ namespace csound
     Node *node = 0;
     for(std::vector<Node*>::iterator i = children.begin(); i != children.end(); ++i)
       {
-	node = *i;
-	node->clear();
+        node = *i;
+        node->clear();
       }
     children.clear();
   }

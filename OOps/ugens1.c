@@ -108,7 +108,6 @@ int expon(ENVIRON *csound, EXPON *p)
     return OK;
 }
 
-
 /* static int counter; */
 int lsgset(ENVIRON *csound, LINSEG *p)
 {
@@ -329,9 +328,7 @@ int madsrset(ENVIRON *csound, LINSEG *p)
     return OK;
 }
 
-
 /* End of ADSR */
-
 
 int lsgrset(ENVIRON *csound, LINSEG *p)
 {
@@ -511,7 +508,6 @@ int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
     else sprintf(csound->errmsg, Str("ival%d sign conflict"), n+1);
     return NOTOK;
 }
-
 
 /***************************************/
 int expseg2(ENVIRON *csound, EXPSEG2 *p)            /* gab-A1 (G.Maldonado) */

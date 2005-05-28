@@ -107,7 +107,6 @@ typedef struct _sndloop {
     MYFLT  a;       /* fade amp */
 } sndloop;
 
-
 typedef struct _flooper {
     OPDS h;
     MYFLT *out;  /* output */
@@ -119,7 +118,6 @@ typedef struct _flooper {
     MYFLT  ndx;    /* table lookup ndx */
     int   loop_off;
 } flooper;
-
 
 typedef struct _pvsarp {
     OPDS h;
@@ -142,7 +140,6 @@ typedef struct _pvsvoc {
     unsigned long   lastframe;
 }
 pvsvoc;
-
 
 int sndloop_init(ENVIRON *csound, sndloop *p){
 
@@ -212,7 +209,6 @@ int sndloop_process(ENVIRON *csound, sndloop *p){
 
     return OK;
 }
-
 
 int flooper_init(ENVIRON *csound, flooper *p){
 
@@ -377,7 +373,6 @@ int pvsvoc_init(ENVIRON *csound, pvsvoc *p){
     return OK;
 }
 
-
 int pvsvoc_process(ENVIRON *csound, pvsvoc *p)
 {
     long i,N = p->fout->N;
@@ -417,5 +412,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
-
 

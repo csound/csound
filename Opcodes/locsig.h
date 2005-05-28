@@ -29,7 +29,6 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
-
 typedef struct {
   OPDS  h;
   MYFLT *r1, *r2, *r3, *r4, *asig, *degree, *distance, *reverbamount;

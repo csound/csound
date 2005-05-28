@@ -46,7 +46,6 @@ compiling:
         cc -o sendOSC sendOSC.c htmsocket.c OpenSoundControl.c OSC_timeTag.c
 */
 
-
 #include "OSC-client.h"
 #include "htmsocket.h"
 
@@ -54,7 +53,6 @@ compiling:
 #include <stdlib.h>
 /* #include <bstring.h> */
 #include <string.h>
-
 
 typedef struct {
     enum {INT, FLOAT, STRING} type;
@@ -83,8 +81,7 @@ void complain(char *s, ...);
     4: Usage error
     5: Internal error
 */
-static int exitStatus = 0;  
-
+static int exitStatus = 0;
 
 static int useTypeTags = 1;
 
@@ -97,23 +94,23 @@ main(int argc, char *argv[]) {
     argv++;
 
     if (argc == 0) {
-	goto usageerror;
+        goto usageerror;
     }
 
     if (argc >= 1 && (strncmp(*argv, "-notypetags", 2) == 0)) {
-	useTypeTags = 0;
+        useTypeTags = 0;
         argv++;
-	argc--;
+        argc--;
     }
 
     if (argc >= 2 && (strncmp(*argv, "-r", 2) == 0)) {
-	hostname = getenv("REMOTE_ADDR");
-	if (hostname == NULL) {
-	    complain("sendSC -r: REMOTE_ADDR not in environment\n");
-	    exit(4);
-	}
-	argv++;
-	argc--;
+        hostname = getenv("REMOTE_ADDR");
+        if (hostname == NULL) {
+            complain("sendSC -r: REMOTE_ADDR not in environment\n");
+            exit(4);
+        }
+        argv++;
+        argc--;
     }
 
     if (argc >= 3 && (strncmp(*argv, "-h", 2) == 0)) {
@@ -132,27 +129,25 @@ main(int argc, char *argv[]) {
     }
 
     if (argc > 0) {
-	printf("host %s, port %d, %s\n", hostname, portnumber,
-	       useTypeTags ? "use type tags" : "don't use type tags");
+        printf("host %s, port %d, %s\n", hostname, portnumber,
+               useTypeTags ? "use type tags" : "don't use type tags");
         CommandLineMode(argc, argv, htmsocket);
     } else {
-	printf("sendOSC version " VERSION "\n");
-	printf("by Matt Wright. Copyright (c) 1996, 1997 Regents of the University of California.\n");
-	printf("host %s, port %d, %s\n", hostname, portnumber,
-	       useTypeTags ? "use type tags" : "don't use type tags");
+        printf("sendOSC version " VERSION "\n");
+        printf("by Matt Wright. Copyright (c) 1996, 1997 Regents of the University of California.\n");
+        printf("host %s, port %d, %s\n", hostname, portnumber,
+               useTypeTags ? "use type tags" : "don't use type tags");
         InteractiveMode(htmsocket);
     }
     CloseHTMSocket(htmsocket);
     exit(exitStatus);
 
-
     usageerror:
-	complain("usage: %s [-notypetags] [-r] [-h target_host_name] port_number [message...]\n",
-		 argv[-1]);
-	exit(4);
+        complain("usage: %s [-notypetags] [-r] [-h target_host_name] port_number [message...]\n",
+                 argv[-1]);
+        exit(4);
 
 }
-
 
 #define MAX_ARGS 2000
 #define SC_BUFFER_SIZE 32000
@@ -168,10 +163,10 @@ void CommandLineMode(int argc, char *argv[], void *htmsocket) {
     OSC_initBuffer(buf, SC_BUFFER_SIZE, bufferForOSCbuf);
 
     if (argc > 1) {
-	if (OSC_openBundle(buf, OSCTT_Immediately())) {
-	    complain("Problem opening bundle: %s\n", OSC_errorMessage);
-	    return;
-	}
+        if (OSC_openBundle(buf, OSCTT_Immediately())) {
+            complain("Problem opening bundle: %s\n", OSC_errorMessage);
+            return;
+        }
     }
 
     for (i = 0; i < argc; i++) {
@@ -184,11 +179,11 @@ void CommandLineMode(int argc, char *argv[], void *htmsocket) {
         while ((token = strtok(NULL, ",")) != NULL) {
             args[j] = ParseToken(token);
             j++;
-	    if (j >= MAX_ARGS) {
-		complain("Sorry; your message has more than MAX_ARGS (%d) arguments; ignoring the rest.\n",
-			 MAX_ARGS);
-		break;
-	    }
+            if (j >= MAX_ARGS) {
+                complain("Sorry; your message has more than MAX_ARGS (%d) arguments; ignoring the rest.\n",
+                         MAX_ARGS);
+                break;
+            }
         }
         numArgs = j;
 
@@ -196,10 +191,10 @@ void CommandLineMode(int argc, char *argv[], void *htmsocket) {
     }
 
     if (argc > 1) {
-	if (OSC_closeBundle(buf)) {
-	    complain("Problem closing bundle: %s\n", OSC_errorMessage);
-	    return;
-	}
+        if (OSC_closeBundle(buf)) {
+            complain("Problem closing bundle: %s\n", OSC_errorMessage);
+            return;
+        }
     }
 
     SendBuffer(htmsocket, buf);
@@ -216,43 +211,43 @@ void InteractiveMode(void *htmsocket) {
 
     while (fgets(mesg, MAXMESG, stdin) != NULL) {
         if (mesg[0] == '\n') {
-	  if (bundleDepth > 0) {
-	    /* Ignore blank lines inside a group. */
-	  } else {
+          if (bundleDepth > 0) {
+            /* Ignore blank lines inside a group. */
+          } else {
             /* blank line => repeat previous send */
             SendBuffer(htmsocket, buf);
-	  }
-	  continue;
+          }
+          continue;
         }
 
-	if (bundleDepth == 0) {
-	    OSC_resetBuffer(buf);
-	}
+        if (bundleDepth == 0) {
+            OSC_resetBuffer(buf);
+        }
 
-	if (mesg[0] == '[') {
-	    OSCTimeTag tt = ParseTimeTag(mesg+1);
-	    if (OSC_openBundle(buf, tt)) {
-		complain("Problem opening bundle: %s\n", OSC_errorMessage);
-		OSC_resetBuffer(buf);
-		bundleDepth = 0;
-		continue;
-	    }
-	    bundleDepth++;
+        if (mesg[0] == '[') {
+            OSCTimeTag tt = ParseTimeTag(mesg+1);
+            if (OSC_openBundle(buf, tt)) {
+                complain("Problem opening bundle: %s\n", OSC_errorMessage);
+                OSC_resetBuffer(buf);
+                bundleDepth = 0;
+                continue;
+            }
+            bundleDepth++;
         } else if (mesg[0] == ']' && mesg[1] == '\n' && mesg[2] == '\0') {
             if (bundleDepth == 0) {
                 complain("Unexpected ']': not currently in a bundle.\n");
             } else {
-		if (OSC_closeBundle(buf)) {
-		    complain("Problem closing bundle: %s\n", OSC_errorMessage);
-		    OSC_resetBuffer(buf);
-		    bundleDepth = 0;
-		    continue;
-		}
+                if (OSC_closeBundle(buf)) {
+                    complain("Problem closing bundle: %s\n", OSC_errorMessage);
+                    OSC_resetBuffer(buf);
+                    bundleDepth = 0;
+                    continue;
+                }
 
-		bundleDepth--;
-		if (bundleDepth == 0) {
-		    SendBuffer(htmsocket, buf);
-		}
+                bundleDepth--;
+                if (bundleDepth == 0) {
+                    SendBuffer(htmsocket, buf);
+                }
             }
         } else {
             ParseInteractiveLine(buf, mesg);
@@ -274,55 +269,54 @@ OSCTimeTag ParseTimeTag(char *s) {
     if (*p == '\0') return OSCTT_Immediately();
 
     if (*p == '+') {
-	/* Time tag is for some time in the future.  It should be a
+        /* Time tag is for some time in the future.  It should be a
            number of seconds as an int or float */
 
-	newline = strchr(s, '\n');
-	if (newline != NULL) *newline = '\0';
+        newline = strchr(s, '\n');
+        if (newline != NULL) *newline = '\0';
 
-	p++; /* Skip '+' */
-	while (isspace(*p)) p++;
+        p++; /* Skip '+' */
+        while (isspace(*p)) p++;
 
-	arg = ParseToken(p);
-	if (arg.type == STRING) {
-	    complain("warning: inscrutable time tag request: %s\n", s);
-	    return OSCTT_Immediately();
-	} else if (arg.type == INT) {
-	    return OSCTT_PlusSeconds(OSCTT_CurrentTime(),
-				     (float) arg.datum.i);
-	} else if (arg.type == FLOAT) {
-	    return OSCTT_PlusSeconds(OSCTT_CurrentTime(), arg.datum.f);
-	} else {
-	    fatal_error("This can't happen!");
-	}
+        arg = ParseToken(p);
+        if (arg.type == STRING) {
+            complain("warning: inscrutable time tag request: %s\n", s);
+            return OSCTT_Immediately();
+        } else if (arg.type == INT) {
+            return OSCTT_PlusSeconds(OSCTT_CurrentTime(),
+                                     (float) arg.datum.i);
+        } else if (arg.type == FLOAT) {
+            return OSCTT_PlusSeconds(OSCTT_CurrentTime(), arg.datum.f);
+        } else {
+            fatal_error("This can't happen!");
+        }
     }
 
     if (isdigit(*p) || (*p >= 'a' && *p <='f') || (*p >= 'A' && *p <='F')) {
-	/* They specified the 8-byte tag in hex */
-	OSCTimeTag tt;
-	if (sscanf(p, "%llx", &tt) != 1) {
-	    complain("warning: couldn't parse time tag %s\n", s);
-	    return OSCTT_Immediately();
-	}
-#ifndef	HAS8BYTEINT
-	if (ntohl(1) != 1) {
-	    /* tt is a struct of seconds and fractional part,
-	       and this machine is little-endian, so sscanf
-	       wrote each half of the time tag in the wrong half
-	       of the struct. */
-	    unsigned long temp; /* used to be undefined uint32 -- JPff */
-	    temp = tt.seconds;
-	    tt.seconds = tt.fraction ;
-	    tt.fraction = temp;
-	}
+        /* They specified the 8-byte tag in hex */
+        OSCTimeTag tt;
+        if (sscanf(p, "%llx", &tt) != 1) {
+            complain("warning: couldn't parse time tag %s\n", s);
+            return OSCTT_Immediately();
+        }
+#ifndef HAS8BYTEINT
+        if (ntohl(1) != 1) {
+            /* tt is a struct of seconds and fractional part,
+               and this machine is little-endian, so sscanf
+               wrote each half of the time tag in the wrong half
+               of the struct. */
+            unsigned long temp; /* used to be undefined uint32 -- JPff */
+            temp = tt.seconds;
+            tt.seconds = tt.fraction ;
+            tt.fraction = temp;
+        }
 #endif
-	return tt;
+        return tt;
     }
 
     complain("warning: invalid time tag: %s\n", s);
     return OSCTT_Immediately();
 }
-	    
 
 void ParseInteractiveLine(OSCbuf *buf, char *mesg) {
     char *messageName, *token, *p;
@@ -336,27 +330,27 @@ void ParseInteractiveLine(OSCbuf *buf, char *mesg) {
     messageName = p;
 
     if (strcmp(messageName, "play\n") == 0) {
-	/* Special kludge feature to save typing */
-	typedArg arg;
+        /* Special kludge feature to save typing */
+        typedArg arg;
 
-	if (OSC_openBundle(buf, OSCTT_Immediately())) {
-	    complain("Problem opening bundle: %s\n", OSC_errorMessage);
-	    return;
-	}
+        if (OSC_openBundle(buf, OSCTT_Immediately())) {
+            complain("Problem opening bundle: %s\n", OSC_errorMessage);
+            return;
+        }
 
-	arg.type = INT;
-	arg.datum.i = 0;
-	WriteMessage(buf, "/voices/0/tp/timbre_index", 1, &arg);
+        arg.type = INT;
+        arg.datum.i = 0;
+        WriteMessage(buf, "/voices/0/tp/timbre_index", 1, &arg);
 
-	arg.type = FLOAT;
-	arg.datum.i = 0.0f;
-	WriteMessage(buf, "/voices/0/tm/goto", 1, &arg);
+        arg.type = FLOAT;
+        arg.datum.i = 0.0f;
+        WriteMessage(buf, "/voices/0/tm/goto", 1, &arg);
 
-	if (OSC_closeBundle(buf)) {
-	    complain("Problem closing bundle: %s\n", OSC_errorMessage);
-	}
+        if (OSC_closeBundle(buf)) {
+            complain("Problem closing bundle: %s\n", OSC_errorMessage);
+        }
 
-	return;
+        return;
     }
 
     while (!isspace(*p) && *p != '\0') p++;
@@ -396,15 +390,15 @@ void ParseInteractiveLine(OSCbuf *buf, char *mesg) {
             args[thisArg] = ParseToken(token);
         }
         thisArg++;
-	if (thisArg >= MAX_ARGS) {
-	  complain("Sorry, your message has more than MAX_ARGS (%d) arguments; ignoring the rest.\n",
-		   MAX_ARGS);
-	  break;
-	}
+        if (thisArg >= MAX_ARGS) {
+          complain("Sorry, your message has more than MAX_ARGS (%d) arguments; ignoring the rest.\n",
+                   MAX_ARGS);
+          break;
+        }
     }
 
     if (WriteMessage(buf, messageName, thisArg, args) != 0)  {
-	complain("Problem sending message: %s\n", OSC_errorMessage);
+        complain("Problem sending message: %s\n", OSC_errorMessage);
     }
 }
 
@@ -450,15 +444,15 @@ int WriteMessage(OSCbuf *buf, char *messageName, int numArgs, typedArg *args) {
      for (j = 0; j < numArgs; j++) {
         switch (args[j].type) {
             case INT:
-	    printf("%d ", args[j].datum.i);
+            printf("%d ", args[j].datum.i);
             break;
 
             case FLOAT:
-	    printf("%f ", args[j].datum.f);
+            printf("%f ", args[j].datum.f);
             break;
 
             case STRING:
-	    printf("%s ", args[j].datum.s);
+            printf("%s ", args[j].datum.s);
             break;
 
             default:
@@ -470,62 +464,62 @@ int WriteMessage(OSCbuf *buf, char *messageName, int numArgs, typedArg *args) {
 #endif
 
     if (!useTypeTags) {
-	returnVal = OSC_writeAddress(buf, messageName);
-	if (returnVal) {
-	    complain("Problem writing address: %s\n", OSC_errorMessage);
-	}
+        returnVal = OSC_writeAddress(buf, messageName);
+        if (returnVal) {
+            complain("Problem writing address: %s\n", OSC_errorMessage);
+        }
     } else {
-	/* First figure out the type tags */
-	char typeTags[MAX_ARGS+2];
-	int i;
+        /* First figure out the type tags */
+        char typeTags[MAX_ARGS+2];
+        int i;
 
-	typeTags[0] = ',';
+        typeTags[0] = ',';
 
-	for (i = 0; i < numArgs; ++i) {
-	    switch (args[i].type) {
-		case INT:
-		typeTags[i+1] = 'i';
-		break;
+        for (i = 0; i < numArgs; ++i) {
+            switch (args[i].type) {
+                case INT:
+                typeTags[i+1] = 'i';
+                break;
 
-		case FLOAT:
-		typeTags[i+1] = 'f';
-		break;
+                case FLOAT:
+                typeTags[i+1] = 'f';
+                break;
 
-		case STRING:
-		typeTags[i+1] = 's';
-		break;
+                case STRING:
+                typeTags[i+1] = 's';
+                break;
 
-		default:
-		fatal_error("Unrecognized arg type");
-		exit(5);
-	    }
-	}
-	typeTags[i+1] = '\0';
-	    
-	returnVal = OSC_writeAddressAndTypes(buf, messageName, typeTags);
-	if (returnVal) {
-	    complain("Problem writing address: %s\n", OSC_errorMessage);
-	}
+                default:
+                fatal_error("Unrecognized arg type");
+                exit(5);
+            }
+        }
+        typeTags[i+1] = '\0';
+
+        returnVal = OSC_writeAddressAndTypes(buf, messageName, typeTags);
+        if (returnVal) {
+            complain("Problem writing address: %s\n", OSC_errorMessage);
+        }
     }
 
      for (j = 0; j < numArgs; j++) {
         switch (args[j].type) {
             case INT:
             if ((returnVal = OSC_writeIntArg(buf, args[j].datum.i)) != 0) {
-		return returnVal;
-	    }
+                return returnVal;
+            }
             break;
 
             case FLOAT:
             if ((returnVal = OSC_writeFloatArg(buf, args[j].datum.f)) != 0) {
-		return returnVal;
-	    }
+                return returnVal;
+            }
             break;
 
             case STRING:
             if ((returnVal = OSC_writeStringArg(buf, args[j].datum.s)) != 0) {
-		return returnVal;
-	    }
+                return returnVal;
+            }
             break;
 
             default:
@@ -543,8 +537,8 @@ void SendBuffer(void *htmsocket, OSCbuf *buf) {
 #endif
     if (OSC_isBufferEmpty(buf)) return;
     if (!OSC_isBufferDone(buf)) {
-	fatal_error("SendBuffer() called but buffer not ready!");
-	exit(5);
+        fatal_error("SendBuffer() called but buffer not ready!");
+        exit(5);
     }
     SendData(htmsocket, OSC_packetSize(buf), OSC_getPacket(buf));
 }
@@ -569,7 +563,6 @@ void complain(char *s, ...) {
     vfprintf(stderr, s, ap);
     va_end(ap);
 }
-
 
 #ifdef COMPUTE_MESSAGE_SIZE
     /* Unused code to find the size of a message */
