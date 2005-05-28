@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #if defined(_MSC_VER) && !defined(__GNUC__)
-#pragma warning (disable:4786) 
+#pragma warning (disable:4786)
 #endif
 #include "Midifile.hpp"
 #include "Score.hpp"
@@ -33,8 +33,8 @@
 
 namespace csound
 {
-  Score::Score(void) : 
-    rescaleMinima(Event::ELEMENT_COUNT), 
+  Score::Score(void) :
+    rescaleMinima(Event::ELEMENT_COUNT),
     rescaleRanges(Event::ELEMENT_COUNT)
   {
     initialize();
@@ -83,7 +83,7 @@ namespace csound
   {
     if(a > b)
       {
-	return a;
+        return a;
       }
     return b;
   }
@@ -92,7 +92,7 @@ namespace csound
   {
     if(a < b)
       {
-	return a;
+        return a;
       }
     return b;
   }
@@ -101,7 +101,7 @@ namespace csound
   {
     if(beginAt == endAt)
       {
-	return;
+        return;
       }
     const Event &beginEvent = score[beginAt];
     double maximum = beginEvent[dimension];
@@ -109,40 +109,40 @@ namespace csound
     minimum = endEvent[dimension];
     if(dimension == Event::TIME)
       {
-	const Event &e = score[beginAt];
-	maximum = max(e.getTime(), e.getTime() + e.getDuration());
-	minimum = min(e.getTime(), e.getTime() + e.getDuration());
-	double beginning;
-	double ending;
-	for( ; beginAt != endAt; ++beginAt)
-	  {
-	    const Event &event = score[beginAt];
-	    beginning = min(event.getTime(), event.getTime() + event.getDuration());
-	    ending = max(event.getTime(), event.getTime() + event.getDuration());
-	    if(ending > maximum)
-	      {
-		maximum = ending;
-	      }
-	    else if(beginning < minimum)
-	      {
-		minimum = beginning;
-	      }
-	  }
+        const Event &e = score[beginAt];
+        maximum = max(e.getTime(), e.getTime() + e.getDuration());
+        minimum = min(e.getTime(), e.getTime() + e.getDuration());
+        double beginning;
+        double ending;
+        for( ; beginAt != endAt; ++beginAt)
+          {
+            const Event &event = score[beginAt];
+            beginning = min(event.getTime(), event.getTime() + event.getDuration());
+            ending = max(event.getTime(), event.getTime() + event.getDuration());
+            if(ending > maximum)
+              {
+                maximum = ending;
+              }
+            else if(beginning < minimum)
+              {
+                minimum = beginning;
+              }
+          }
       }
     else
       {
-	for( ; beginAt != endAt; ++beginAt)
-	  {
-	    const Event &event = score[beginAt];
-	    if(event[dimension] > maximum)
-	      {
-		maximum = event[dimension];
-	      }
-	    if(event[dimension] < minimum)
-	      {
-		minimum = event[dimension];
-	      }
-	  }
+        for( ; beginAt != endAt; ++beginAt)
+          {
+            const Event &event = score[beginAt];
+            if(event[dimension] > maximum)
+              {
+                maximum = event[dimension];
+              }
+            if(event[dimension] < minimum)
+              {
+                minimum = event[dimension];
+              }
+          }
       }
     range = maximum - minimum;
   }
@@ -151,11 +151,11 @@ namespace csound
   {
     if(!(rescaleMinimum || rescaleRange))
       {
-	return;
+        return;
       }
     if(beginAt == endAt)
       {
-	return;
+        return;
       }
     double actualMinimum;
     double actualRange;
@@ -163,28 +163,28 @@ namespace csound
     double scale;
     if(actualRange == 0.0)
       {
-	scale = 1.0;
+        scale = 1.0;
       }
     else
       {
-	scale = targetRange / actualRange;
+        scale = targetRange / actualRange;
       }
     for( ; beginAt != endAt; ++beginAt)
       {
-	Event &event = score[beginAt];
-	event[dimension] = event[dimension] - actualMinimum;
-	if(rescaleRange)
-	  {
-	    event[dimension] = event[dimension] * scale;
-	  }
-	if(rescaleMinimum)
-	  {
-	    event[dimension] = event[dimension] + targetMinimum;
-	  }
-	else
-	  {
-	    event[dimension] = event[dimension] + actualMinimum;
-	  }
+        Event &event = score[beginAt];
+        event[dimension] = event[dimension] - actualMinimum;
+        if(rescaleRange)
+          {
+            event[dimension] = event[dimension] * scale;
+          }
+        if(rescaleMinimum)
+          {
+            event[dimension] = event[dimension] + targetMinimum;
+          }
+        else
+          {
+            event[dimension] = event[dimension] + actualMinimum;
+          }
       }
   }
 
@@ -192,7 +192,7 @@ namespace csound
   {
     for(int dimension = 0; dimension < Event::ELEMENT_COUNT; ++dimension)
       {
-	getScale(*this, dimension, 0, size(), scaleActualMinima[dimension], scaleActualRanges[dimension]);
+        getScale(*this, dimension, 0, size(), scaleActualMinima[dimension], scaleActualRanges[dimension]);
       }
   }
 
@@ -200,14 +200,14 @@ namespace csound
   {
     for(int dimension = 0; dimension < Event::ELEMENT_COUNT; ++dimension)
       {
-	setScale(*this,
-		 dimension, 
-		 rescaleMinima[dimension], 
-		 rescaleRanges[dimension], 
-		 0, 
-		 size(), 
-		 scaleTargetMinima[dimension], 
-		 scaleTargetRanges[dimension]);
+        setScale(*this,
+                 dimension,
+                 rescaleMinima[dimension],
+                 rescaleRanges[dimension],
+                 0,
+                 size(),
+                 scaleTargetMinima[dimension],
+                 scaleTargetRanges[dimension]);
       }
   }
 
@@ -215,28 +215,28 @@ namespace csound
   {
     for(int dimension = 0; dimension < Event::HOMOGENEITY; dimension++)
       {
-	event[dimension] = event[dimension] - scaleActualMinima[dimension];
-	double scale;
-	if(scaleActualRanges[dimension] == 0.0)
-	  {
-	    scale = 1.0;
-	  }
-	else
-	  {
-	    scale = scaleTargetRanges[dimension] / scaleActualRanges[dimension];
-	  }
-	if(rescaleRanges[dimension])
-	  {
-	    event[dimension] = event[dimension] * scale;
-	  }
-	if(rescaleMinima[dimension])
-	  {
-	    event[dimension] = event[dimension] + scaleTargetMinima[dimension];
-	  }
-	else
-	  {
-	    event[dimension] = event[dimension] + scaleActualMinima[dimension];
-	  }
+        event[dimension] = event[dimension] - scaleActualMinima[dimension];
+        double scale;
+        if(scaleActualRanges[dimension] == 0.0)
+          {
+            scale = 1.0;
+          }
+        else
+          {
+            scale = scaleTargetRanges[dimension] / scaleActualRanges[dimension];
+          }
+        if(rescaleRanges[dimension])
+          {
+            event[dimension] = event[dimension] * scale;
+          }
+        if(rescaleMinima[dimension])
+          {
+            event[dimension] = event[dimension] + scaleTargetMinima[dimension];
+          }
+        else
+          {
+            event[dimension] = event[dimension] + scaleActualMinima[dimension];
+          }
       }
   }
 
@@ -245,33 +245,33 @@ namespace csound
     std::vector<Event>::clear();
     for(std::vector<MidiTrack>::iterator trackI = midiFile.midiTracks.begin(); trackI != midiFile.midiTracks.end(); ++trackI)
       {
-	std::set<MidiEvent*> offEvents;
-	for(std::vector<MidiEvent>::iterator onEventI = (*trackI).begin(); onEventI != (*trackI).end(); ++onEventI)
-	  {
-	    MidiEvent &noteOnEvent = *onEventI;
-	    if(noteOnEvent.isNoteOn())
-	      {
-		for(std::vector<MidiEvent>::iterator offEventI = onEventI; offEventI != (*trackI).end(); ++offEventI)
-		  {
-		    MidiEvent &noteOffEvent = *offEventI;
-		    if(noteOnEvent.isMatchingNoteOff(noteOffEvent))
-		      {
-			if(offEvents.find(&noteOffEvent) == offEvents.end())
-			  {
-			    double status = noteOnEvent.getStatusNybble();
-			    double instrument = noteOnEvent.getChannelNybble();
-			    double time = noteOnEvent.time;
-			    double duration = noteOffEvent.time - noteOnEvent.time;
-			    double key = noteOnEvent.getKey();
-			    double velocity = noteOnEvent.getVelocity();
-			    append(time, duration, status, instrument, key, velocity);
-			    offEvents.insert(&noteOffEvent);
-			    break;
-			  }
-		      }
-		  }						
-	      }
-	  }
+        std::set<MidiEvent*> offEvents;
+        for(std::vector<MidiEvent>::iterator onEventI = (*trackI).begin(); onEventI != (*trackI).end(); ++onEventI)
+          {
+            MidiEvent &noteOnEvent = *onEventI;
+            if(noteOnEvent.isNoteOn())
+              {
+                for(std::vector<MidiEvent>::iterator offEventI = onEventI; offEventI != (*trackI).end(); ++offEventI)
+                  {
+                    MidiEvent &noteOffEvent = *offEventI;
+                    if(noteOnEvent.isMatchingNoteOff(noteOffEvent))
+                      {
+                        if(offEvents.find(&noteOffEvent) == offEvents.end())
+                          {
+                            double status = noteOnEvent.getStatusNybble();
+                            double instrument = noteOnEvent.getChannelNybble();
+                            double time = noteOnEvent.time;
+                            double duration = noteOffEvent.time - noteOnEvent.time;
+                            double key = noteOnEvent.getKey();
+                            double velocity = noteOnEvent.getVelocity();
+                            append(time, duration, status, instrument, key, velocity);
+                            offEvents.insert(&noteOffEvent);
+                            break;
+                          }
+                      }
+                  }
+              }
+          }
       }
     findScale();
     sort();
@@ -287,34 +287,34 @@ namespace csound
     midiFile.midiTracks.push_back(midiTrack);
     for(Score::iterator it = begin(); it != end(); ++it)
       {
-	Event &event = (*it);
-	// event.dump(std::cout);
-	if(event.isNoteOn())
-	  {
-	    MidiEvent onEvent;
-	    onEvent.time = event.getTime();
-	    onEvent.ticks = int(Conversions::round(onEvent.time / midiFile.currentSecondsPerTick));
-	    onEvent.push_back(event.getMidiStatus());
-	    onEvent.push_back(event.getKeyNumber());
-	    onEvent.push_back(event.getVelocityNumber());
-	    midiFile.midiTracks[0].push_back(onEvent);
-	    MidiEvent offEvent;
-	    offEvent.time = event.getTime() + event.getDuration();
-	    offEvent.ticks = int(Conversions::round(offEvent.time / midiFile.currentSecondsPerTick));
-	    offEvent.push_back(event.getMidiStatus());
-	    offEvent.push_back(event.getKeyNumber());
-	    offEvent.push_back(0);
-	    midiFile.midiTracks[0].push_back(offEvent);
-	  }
+        Event &event = (*it);
+        // event.dump(std::cout);
+        if(event.isNoteOn())
+          {
+            MidiEvent onEvent;
+            onEvent.time = event.getTime();
+            onEvent.ticks = int(Conversions::round(onEvent.time / midiFile.currentSecondsPerTick));
+            onEvent.push_back(event.getMidiStatus());
+            onEvent.push_back(event.getKeyNumber());
+            onEvent.push_back(event.getVelocityNumber());
+            midiFile.midiTracks[0].push_back(onEvent);
+            MidiEvent offEvent;
+            offEvent.time = event.getTime() + event.getDuration();
+            offEvent.ticks = int(Conversions::round(offEvent.time / midiFile.currentSecondsPerTick));
+            offEvent.push_back(event.getMidiStatus());
+            offEvent.push_back(event.getKeyNumber());
+            offEvent.push_back(0);
+            midiFile.midiTracks[0].push_back(offEvent);
+          }
       }
     midiFile.midiTracks[0].sort();
     MidiEvent trackEnd;
     if(midiFile.midiTracks.size() > 0)
       {
-	if(midiFile.midiTracks[0].size() > 0)
-	  {
-	    trackEnd.ticks = midiFile.midiTracks[0][midiFile.midiTracks[0].size() - 1].ticks;
-	  }
+        if(midiFile.midiTracks[0].size() > 0)
+          {
+            trackEnd.ticks = midiFile.midiTracks[0][midiFile.midiTracks[0].size() - 1].ticks;
+          }
       }
     trackEnd.push_back(MidiFile::META_EVENT);
     trackEnd.push_back(MidiFile::META_END_OF_TRACK);
@@ -322,12 +322,12 @@ namespace csound
     midiFile.midiTracks[0].push_back(trackEnd);
   }
 
-  void Score::dump(std::ostream &stream) 
+  void Score::dump(std::ostream &stream)
   {
     stream << "silence::Score = " << int(size()) << " events:" << std::endl;
     for(Score::iterator i = begin(); i != end(); ++i)
       {
-	(*i).dump(stream);
+        (*i).dump(stream);
       }
   }
 
@@ -398,18 +398,18 @@ namespace csound
     std::sort(begin(), end(), std::less<Event>());
   }
 
-  double Score::getDuration() 
+  double Score::getDuration()
   {
     findScale();
     double duration = 0.0;
     double duration_ = 0.0;
     for(Score::iterator it = begin(); it != end(); ++it)
       {
-	duration_ = it->getTime() + it->getDuration();
-	if(duration_ > duration)
-	  {
-	    duration = duration_;
-	  }
+        duration_ = it->getTime() + it->getDuration();
+        if(duration_ > duration)
+          {
+            duration = duration_;
+          }
       }
     return (duration - scaleActualMinima.getTime());
   }
@@ -418,7 +418,7 @@ namespace csound
   {
     setScale(*this, dimension, rescaleMinimum, rescaleRange, 0, size(), minimum, range);
   }
-  
+
   std::string Score::getCsoundScore(double tonesPerOctave, bool conformPitches)
   {
  std::string csoundScore;
@@ -428,7 +428,7 @@ namespace csound
        if(conformPitches) {
  e.conformToPitchClassSet();
    }
-			    csoundScore.append(e.toCsoundIStatement(tonesPerOctave));
+                            csoundScore.append(e.toCsoundIStatement(tonesPerOctave));
    }
    return csoundScore;
      }

@@ -210,7 +210,6 @@
  *
  */
 
-
 /*****************************************************************************
  *
  * Table write syntax
@@ -279,8 +278,6 @@
  *      orchestra, or by making different named ugens for different types of
  *      variables.
  */
-
-
 
 /*****************************************************************************
  *
@@ -564,8 +561,6 @@
  *
  */
 
-
-
 /*****************************************************************************
  *
  * The "zak" system
@@ -727,7 +722,6 @@
  *
  */
 
-
 /**************************************************************************
  *
  * Simple time reading ugens
@@ -757,7 +751,6 @@
  *      time since the start of this instance of the instrument.
  *
  */
-
 
 /**************************************************************************
  *
@@ -835,8 +828,6 @@
  *
  *
  */
-
-
 
 /**************************************************************************
  *
@@ -1277,7 +1268,6 @@ int    tablewkt(ENVIRON *csound, TABLEW *p)
     return NOTOK;
 }
 
-
 /*****************************************************************************/
 
 /* Reading the table length                      */
@@ -1420,7 +1410,6 @@ int itablegpw(ENVIRON *csound, TABLEGPW *p)
     return OK;
 }
 
-
 /*---------------------------------------------------------------------------*/
 
         /* tablemix functions */
@@ -1443,7 +1432,6 @@ int tablemixset(ENVIRON *csound, TABLEMIX *p)
     p->ps2ft = 0;
     return OK;
 }
-
 
 /* tablemix()
  *
@@ -2140,8 +2128,6 @@ int tablewa(ENVIRON *csound, TABLEWA *p)
     return OK;
 }
 
-
-
 /*****************************************************************************/
 /*****************************************************************************/
 
@@ -2330,7 +2316,6 @@ int ziw(ENVIRON *csound, ZKW *p)
 /*-----------------------------------*/
 
 /* i and k rate zk WRITE code, with a mix option. */
-
 
 /* zkwm writes to zk space at k rate. */
 int zkwm(ENVIRON *csound, ZKWM *p)
@@ -2572,7 +2557,6 @@ int zarg(ENVIRON *csound, ZARG *p)
     return OK;
 }
 
-
 /*-----------------------------------*/
 
 /* a rate WRITE code. */
@@ -2604,8 +2588,6 @@ int zaw(ENVIRON *csound, ZAW *p)
     }
     return OK;
 }
-
-
 
 /*-----------------------------------*/
 
@@ -2739,7 +2721,6 @@ int zacl(ENVIRON *csound, ZACL *p)
     return OK;
 }
 
-
 /*****************************************************************************/
 /*****************************************************************************/
 
@@ -2774,7 +2755,6 @@ int timesr(ENVIRON *csound, RDTIME *p)
 /*-----------------------------------*/
 
 /* Subroutines to read time for this instance of the instrument. */
-
 
 /* instimset() runs at init time and keeps a record of the time then
  * in the RDTIME data structure.
@@ -3052,7 +3032,6 @@ int printksset(ENVIRON *csound, PRINTKS *p)
     return OK;
 }
 
-
 /* perform a sprintf-style format  -- matt ingalls */
 void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
 {
@@ -3186,7 +3165,6 @@ int printsset(ENVIRON *csound, PRINTS *p)
 }
 
 /*****************************************************************************/
-
 
 /* peakk and peak ugens */
 

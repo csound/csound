@@ -96,7 +96,6 @@ int mclock(ENVIRON *csound, MCLOCK *p)
     return OK;
 }
 
-
 int mrtmsg(ENVIRON *csound, MRT *p)
 {
     if (!MGLOB(MIDIoutDONE)) openMIDIout(csound);
@@ -122,7 +121,6 @@ int mrtmsg(ENVIRON *csound, MRT *p)
     }
     return OK;
 }
-
 
 int iout_on(ENVIRON *csound, OUT_ON *p)
 {
@@ -156,7 +154,6 @@ int iout_on_dur_set(ENVIRON *csound, OUT_ON_DUR *p)
     p->fl_extra_dur = FALSE;
     return OK;
 }
-
 
 int iout_on_dur(ENVIRON *csound, OUT_ON_DUR *p)
 {
@@ -201,7 +198,6 @@ int iout_on_dur2(ENVIRON *csound, OUT_ON_DUR *p)
     }
     return OK;
 }
-
 
 int moscil_set(ENVIRON *csound, MOSCIL *p)
 {
@@ -311,7 +307,6 @@ int kvar_out_on(ENVIRON *csound, KOUT_ON *p)
     return OK;
 }
 
-
 int out_controller (ENVIRON *csound, OUT_CONTR *p)
 {
     if (!MGLOB(MIDIoutDONE)) openMIDIout(csound);
@@ -383,8 +378,6 @@ int out_progchange (ENVIRON *csound, OUT_PCHG *p)
     return OK;
 }
 
-
-
 int out_controller14 (ENVIRON *csound, OUT_CONTR14 *p)
 {
     if (!MGLOB(MIDIoutDONE)) openMIDIout(csound);
@@ -431,7 +424,6 @@ int out_pitch_bend(ENVIRON *csound, OUT_PB *p)
     return OK;
 }
 
-
 int kon2_set(ENVIRON *csound, KON2 *p)
 {
     if (!MGLOB(MIDIoutDONE)) openMIDIout(csound);
@@ -442,7 +434,6 @@ int kon2_set(ENVIRON *csound, KON2 *p)
 
     return OK;
 }
-
 
 int kon2(ENVIRON *csound, KON2 *p)
 {
@@ -531,7 +522,6 @@ int nrpn(ENVIRON *csound, NRPN *p)
     return OK;
 }
 
-
 int mdelay_set(ENVIRON *csound, MDELAY *p)
 {
     if (!MGLOB(MIDIoutDONE)) openMIDIout(csound);
@@ -540,7 +530,6 @@ int mdelay_set(ENVIRON *csound, MDELAY *p)
     memset(p->status, 0, DELTAB_LENGTH);
     return OK;
 }
-
 
 int mdelay(ENVIRON *csound, MDELAY *p)                  /*gab-A6 fixed*/
 {

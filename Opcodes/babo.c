@@ -525,7 +525,6 @@ BaboMatrix_create_FDN(BaboMatrix *this, MYFLT diffusion)
             real_x[j] += (real_X[j] * (MYFLT)cos(_2PI_NODES*i*j)-
                 imaginary_X[j] * (MYFLT)sin(_2PI_NODES*i*j))/BABO_NODES;
 
-
     for (i = 0; i < BABO_NODES; ++i)
         for (j = 0; j < BABO_NODES; ++j)
             this->fdn[i][j] = real_x[(j-i+15) % BABO_NODES];

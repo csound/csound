@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /* waveguide.h -- primitive data types and declarations for waveguides */
 
 /*
@@ -46,7 +45,6 @@
 /* TYPEDEFS */
 typedef long    len_t;    /* length type */
 
-
 /* CLASS DEFINITIONS */
 
 /* circularBuffer -- circular buffer class */
@@ -61,12 +59,10 @@ typedef struct {
   MYFLT* pointer;          /* pointer to current position in data */
 } circularBuffer;
 
-
 /* circular buffer member functions */
 void circularBufferCircularBuffer(ENVIRON *,circularBuffer*,len_t);/* constructor */
 void circularBufferWrite(circularBuffer*, MYFLT);  /* write a sample */
 MYFLT circularBufferRead(circularBuffer*);         /* read next sample */
-
 
 /* class filter -- recursive filter implementation class */
 typedef struct {
@@ -98,7 +94,6 @@ typedef circularBuffer guideRail; /* It's just a circular buffer really */
 void guideRailGuideRail(ENVIRON *,guideRail*,len_t);/* constructor */
 MYFLT guideRailAccess(guideRail*,len_t);  /* delay line access routine */
 void guideRailUpdate(guideRail*,MYFLT);   /* delay line update routine */
-
 
 /* waveguide -- abstract base class definition for waveguide classes */
 typedef struct{

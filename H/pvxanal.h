@@ -100,5 +100,3 @@ typedef struct pvocex_ch {
 
 #define MAXPVXCHANS (8)
 
-
-

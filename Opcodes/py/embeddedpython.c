@@ -28,7 +28,7 @@ python_startup(int argc, char *argv[])
 {
   Py_SetProgramName(argv[0]);
   Py_Initialize();
-  
+
   PySys_SetArgv(argc, argv);
 
   csound_module_init();
@@ -42,7 +42,7 @@ python_print_version(void)
 {
   // This first one should fail. Don't know why yet.
   PyRun_SimpleString("\n");
-  
+
   PyRun_SimpleString("import sys");
   PyRun_SimpleString("version = sys.version.split(' ')[0]");
   PyRun_SimpleString("print 'Embedded Python interpreter version %s' % version");
@@ -54,21 +54,21 @@ python_print_version(void)
 void
 python_enable_alternate_streams(void)
 {
-  static char *script = 
-	"import csound, sys\n"
-	"\n"
-	"class AlternateStdout:\n"
-	"  def write(self, data):\n"
-	"    csound.stdout_write(data)\n"
-	"\n"
-	"class AlternateStderr:\n"
-	"  def write(self, data):\n"
-	"    csound.stderr_write(data)\n"
-	"\n"
-	"sys.stdout = AlternateStdout()\n"
-	"sys.stderr = AlternateStderr()\n"
-	"print 'Alternate streams enabled'\n";
-  
+  static char *script =
+        "import csound, sys\n"
+        "\n"
+        "class AlternateStdout:\n"
+        "  def write(self, data):\n"
+        "    csound.stdout_write(data)\n"
+        "\n"
+        "class AlternateStderr:\n"
+        "  def write(self, data):\n"
+        "    csound.stderr_write(data)\n"
+        "\n"
+        "sys.stdout = AlternateStdout()\n"
+        "sys.stderr = AlternateStderr()\n"
+        "print 'Alternate streams enabled'\n";
+
   PyRun_SimpleString(script);
 }
 

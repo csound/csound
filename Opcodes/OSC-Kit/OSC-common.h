@@ -25,10 +25,9 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
-
 
 /* OSC-common.h
    Simple stuff to #include everywhere in the OSC package
@@ -64,5 +63,4 @@ void OSCProblem(char *s, ...);
 
 /* Warning for user */
 void OSCWarning(char *s, ...);
-
 

@@ -195,7 +195,6 @@ int modak(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-
 #define AA(OPNAME,OP) int OPNAME(ENVIRON *csound, AOP *p) {      \
         int     n;                              \
         MYFLT   *r, *a, *b;                     \

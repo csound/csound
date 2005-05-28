@@ -55,7 +55,6 @@ int wrap(ENVIRON *csound, WRAP *p)
     return OK;
 }
 
-
 int kwrap(ENVIRON *csound, WRAP *p)
 {
     MYFLT xsig, xlow, xhigh;
@@ -71,9 +70,7 @@ int kwrap(ENVIRON *csound, WRAP *p)
     return OK;
 }
 
-
 /*---------------------------------------------------------------------*/
-
 
 int kmirror(ENVIRON *csound, WRAP *p)
 {
@@ -94,7 +91,6 @@ int kmirror(ENVIRON *csound, WRAP *p)
     }
     return OK;
 }
-
 
 int mirror(ENVIRON *csound, WRAP *p)
 {
@@ -127,7 +123,6 @@ int mirror(ENVIRON *csound, WRAP *p)
     } while (--loopcount);
     return OK;
 }
-
 
 int trig_set(ENVIRON *csound, TRIG *p)
 {
@@ -165,7 +160,6 @@ int trig(ENVIRON *csound, TRIG *p)
 }
 
 /*-------------------------------*/
-
 
 int interpol(ENVIRON *csound, INTERPOL *p)
 {
@@ -238,7 +232,6 @@ int posckk(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-
 int poscaa(ENVIRON *csound, POSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
@@ -265,7 +258,6 @@ int poscaa(ENVIRON *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
-
 
 int poscka(ENVIRON *csound, POSC *p)
 {
@@ -314,7 +306,6 @@ int poscak(ENVIRON *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
-
 
 int kposc(ENVIRON *csound, POSC *p)
 {
@@ -437,7 +428,6 @@ int lposc_set(ENVIRON *csound, LPOSC *p)
      return OK;
 }
 
-
 int lposc(ENVIRON *csound, LPOSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
@@ -504,7 +494,6 @@ int lposc3(ENVIRON *csound, LPOSC *p)
     p->phs = phs;
     return OK;
 }
-
 
 int sum(ENVIRON *csound, SUM *p)
 {
@@ -734,7 +723,6 @@ int lpshold(ENVIRON *csound, LOOPSEG *p)
     return OK;
 }
 
-
 int loopsegp_set(ENVIRON *csound, LOOPSEGP *p)
 {
     p->nsegs = p->INOCOUNT-1;
@@ -849,7 +837,6 @@ int lineto(ENVIRON *csound, LINETO *p)
     return OK;
 }
 
-
 int tlineto_set(ENVIRON *csound, LINETO2 *p)
 {
     p->current_time = FL(0.0);
@@ -858,7 +845,6 @@ int tlineto_set(ENVIRON *csound, LINETO2 *p)
     p->flag = 1;
     return OK;
 }
-
 
 int tlineto(ENVIRON *csound, LINETO2 *p)
 {
@@ -901,7 +887,6 @@ int vibrato_set(ENVIRON *csound, VIBRATO *p)
     p->tablenUPkr = p->tablen /csound->ekr;
     return OK;
 }
-
 
 int vibrato(ENVIRON *csound, VIBRATO *p)
 {
@@ -952,7 +937,6 @@ int vibrato(ENVIRON *csound, VIBRATO *p)
     }
     return OK;
 }
-
 
 int vibr_set(ENVIRON *csound, VIBR *p)
   /* faster and easier to use than vibrato, but less flexible */
@@ -1046,7 +1030,6 @@ int jitter2_set(ENVIRON *csound, JITTER2 *p)
     return OK;
 }
 
-
 int jitter2(ENVIRON *csound, JITTER2 *p)
 {
     MYFLT out1,out2,out3;
@@ -1095,7 +1078,6 @@ int jitter_set(ENVIRON *csound, JITTER *p)
     return OK;
 }
 
-
 int jitter(ENVIRON *csound, JITTER *p)
 {
     if (p->initflag) {
@@ -1127,7 +1109,6 @@ int jitters_set(ENVIRON *csound, JITTERS *p)
     p->phs      = 0;
     return OK;
 }
-
 
 int jitters(ENVIRON *csound, JITTERS *p)
 {
@@ -1242,7 +1223,6 @@ int aDiscreteUserRand(ENVIRON *csound, DURAND *p)
     return OK;
 }
 
-
 int kContinuousUserRand(ENVIRON *csound, CURAND *p)
 { /* gab d5*/
     long indx;
@@ -1323,7 +1303,6 @@ int aRangeRand(ENVIRON *csound, RANGERAND *p)
     } while (--n);
     return OK;
 }
-
 
 int randomi_set(ENVIRON *csound, RANDOMI *p)
 {
@@ -1416,8 +1395,6 @@ int randomh(ENVIRON *csound, RANDOMH *p)
     return OK;
 }
 
-
-
 int random3_set(ENVIRON *csound, RANDOM3 *p)
 {
     p->num1     = randGab;
@@ -1427,7 +1404,6 @@ int random3_set(ENVIRON *csound, RANDOM3 *p)
     p->cod      = (XINARG1) ? 1 : 0;
     return OK;
 }
-
 
 int random3(ENVIRON *csound, RANDOM3 *p)
 {

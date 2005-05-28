@@ -53,18 +53,18 @@ void Counterpoint::counterpoint(int OurMode, int *StartPitches, int CurV, int ca
   initialize((cantuslen * 8) + 1, CurV + 1);
   if(StartPitches)
     {
-      for (int i = 0; i < CurV; i++) 
-	{
-	  vbs[i] = StartPitches[i];
-	}
+      for (int i = 0; i < CurV; i++)
+        {
+          vbs[i] = StartPitches[i];
+        }
     }
   int i;
-  for (i=1;i<=cantuslen;i++) 
+  for (i=1;i<=cantuslen;i++)
     {
       Ctrpt[i][0] = cantus[i-1];
     }
   for (i=0;i<3;i++)
-    { 
+    {
       Fits[i]=0;
     }
   AnySpecies(OurMode,&vbs[0],CurV,cantuslen,Species);
@@ -90,15 +90,15 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
     {
       time = 0;
       for(size_t note = 1; note <= size_t(TotalNotes[voice]); note++)
-	{
-	  time = Onset[note][voice] * secondsPerPulse;
-	  duration = Dur[note][voice] * secondsPerPulse;
-	  key = double(Ctrpt[note][voice]);
-	  sprintf(buffer, "i %d %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n", voice + 1, time, duration, key, velocity, phase, x, y, z, pcs);
-	  fprintf(stderr, buffer);
-	  stream << buffer;
-	  totalnotes++;
-	}
+        {
+          time = Onset[note][voice] * secondsPerPulse;
+          duration = Dur[note][voice] * secondsPerPulse;
+          key = double(Ctrpt[note][voice]);
+          sprintf(buffer, "i %d %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g %-1.7g\n", voice + 1, time, duration, key, velocity, phase, x, y, z, pcs);
+          fprintf(stderr, buffer);
+          stream << buffer;
+          totalnotes++;
+        }
     }
   sprintf(buffer, "; Total notes = %d\n", totalnotes);
   fprintf(stderr, buffer);

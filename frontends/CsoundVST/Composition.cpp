@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -20,14 +20,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #if defined(_MSC_VER) && !defined(__GNUC__)
-#pragma warning (disable:4786) 
+#pragma warning (disable:4786)
 #endif
 #include "Composition.hpp"
 #include "System.hpp"
 
-namespace csound 
+namespace csound
 {
-  Composition::Composition() : 
+  Composition::Composition() :
     tonesPerOctave(12.0),
     conformPitches(false),
     cppSound(&cppSound_)
@@ -50,21 +50,21 @@ namespace csound
     cppSound->removeScore();
     if(addToScore.length())
       {
-	cppSound->setScore(addToScore);
+        cppSound->setScore(addToScore);
       }
     score.sort();
     for(Score::iterator it = score.begin(); it != score.end(); ++it)
       {
-	if(getConformPitches())
-	  {
-	    csound::Event e = *it;
-	    e.conformToPitchClassSet();
-	    cppSound->addScoreLine(e.toCsoundIStatement(tonesPerOctave));
-	  }
-	else
-	  {
-	    cppSound->addScoreLine(it->toCsoundIStatement(tonesPerOctave));
-	  }
+        if(getConformPitches())
+          {
+            csound::Event e = *it;
+            e.conformToPitchClassSet();
+            cppSound->addScoreLine(e.toCsoundIStatement(tonesPerOctave));
+          }
+        else
+          {
+            cppSound->addScoreLine(it->toCsoundIStatement(tonesPerOctave));
+          }
       }
     cppSound->exportForPerformance();
   }
@@ -93,11 +93,11 @@ namespace csound
   {
     if(!cppSound)
       {
-	this->cppSound = &cppSound_;
+        this->cppSound = &cppSound_;
       }
     else
       {
-	this->cppSound = cppSound;
+        this->cppSound = cppSound;
       }
   }
 
@@ -125,9 +125,9 @@ namespace csound
   {
     this->conformPitches = conformPitches;
   }
-	
+
   bool Composition::getConformPitches() const
   {
     return conformPitches;
   }
-}	
+}

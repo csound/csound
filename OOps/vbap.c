@@ -26,7 +26,6 @@
 assisting functions for VBAP
 functions for loudspeaker table initialization */
 
-
 #include "cs.h"
 #include "vbap.h"
 #include <math.h>
@@ -129,7 +128,6 @@ void scale_angles(ANG_VEC *avec)
       avec->ele = -FL(90.0);
 }
 
-
 void normalize_wts(OUT_WTS *wts)
      /* performs equal-power normalization to gain factors*/
 {
@@ -149,8 +147,6 @@ void normalize_wts(OUT_WTS *wts)
     wts->wt2 *= (MYFLT)tmp;
     wts->wt3 *= (MYFLT)tmp;
 }
-
-
 
 void angle_to_cart(ANG_VEC avec, CART_VEC *cvec)
      /* conversion */
@@ -195,8 +191,6 @@ void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
     avec->ele /= atorad;
 }
 
-
-
 void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
      /* conversion, double*/
 {
@@ -207,7 +201,6 @@ void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
                     cos((double) (from->ele * ang2rad)));
     to->z= (MYFLT) (sin((double) (from->ele * ang2rad)));
 }
-
 
 MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[CHANNELS] )
 {
@@ -227,7 +220,6 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[CHANNELS] )
     else
       return FL(0.0);
 }
-
 
 void choose_ls_triplets(ENVIRON *csound, ls lss[CHANNELS],
                         struct ls_triplet_chain **ls_triplets, int ls_amount)
@@ -269,7 +261,6 @@ void choose_ls_triplets(ENVIRON *csound, ls lss[CHANNELS],
           add_ldsp_triplet(i,j,k,ls_triplets, lss);
         }
       }
-
 
   /*calculate distancies between all lss and sorting them*/
     table_size =(((ls_amount - 1) * (ls_amount)) / 2);
@@ -398,7 +389,6 @@ int any_ls_inside_triplet(int a, int b, int c,ls lss[CHANNELS],int ls_amount)
     return any_ls_inside;
 }
 
-
 void add_ldsp_triplet(int i, int j, int k,
                       struct ls_triplet_chain **ls_triplets,
                       ls lss[CHANNELS])
@@ -426,7 +416,6 @@ void add_ldsp_triplet(int i, int j, int k,
     /*printf("added.\n");*/
 }
 
-
 MYFLT angle_in_base(CART_VEC vb1,CART_VEC vb2,CART_VEC vec)
 {
     MYFLT tmp1,tmp2;
@@ -437,7 +426,6 @@ MYFLT angle_in_base(CART_VEC vb1,CART_VEC vb2,CART_VEC vec)
       tmp2 = tmp1 / (MYFLT)fabs((double)tmp1);
     return (vec_angle(vb1,vec) * tmp2);
 }
-
 
 MYFLT vec_angle(CART_VEC v1, CART_VEC v2)
 {
@@ -457,7 +445,6 @@ void vec_mean(CART_VEC v1, CART_VEC v2, CART_VEC *v3)
     v3->z=(v1.z+v2.z)*FL(0.5);
 }
 
-
 MYFLT vec_length(CART_VEC v1)
 {
     return ((MYFLT)sqrt((double)(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z)));
@@ -467,7 +454,6 @@ MYFLT vec_prod(CART_VEC v1, CART_VEC v2)
 {
     return (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
 }
-
 
 void cross_prod(CART_VEC v1,CART_VEC v2,
                 CART_VEC *res)
@@ -488,7 +474,6 @@ void vec_print(ENVIRON *csound, CART_VEC v)
     csound->Message(csound, "vec_print %f %f %f\n", v.x, v.y,v.z);
 
 }
-
 
 int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
   /* checks if two lines intersect on 3D sphere
@@ -530,8 +515,6 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
         fabs(dist_knv3) <= 0.01 || fabs(dist_lnv3) <= 0.01 )
       return(0);
 
-
-
     if (((fabs(dist_ij - (dist_iv3 + dist_jv3)) <= 0.01 ) &&
          (fabs(dist_kl - (dist_kv3 + dist_lv3))  <= 0.01)) ||
         ((fabs(dist_ij - (dist_inv3 + dist_jnv3)) <= 0.01)  &&
@@ -542,7 +525,6 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
       return (0);
     }
 }
-
 
 void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
      /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
@@ -673,8 +655,6 @@ void  calculate_3x3_matrixes(ENVIRON *csound,
       /*    printf("\n\n");*/
     }
 }
-
-
 
 void choose_ls_tuplets( ENVIRON *csound,
                         ls lss[CHANNELS],
@@ -810,7 +790,6 @@ void sort_2D_lss(ls lss[CHANNELS], int sorted_lss[CHANNELS],
     }
 }
 
-
 int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
 {
     MYFLT x1,x2,x3,x4; /* x1 x3 */
@@ -836,7 +815,6 @@ int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
       return 1;
     }
 }
-
 
 void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir,
                     CART_VEC spread_base, MYFLT azi, MYFLT spread)

@@ -75,18 +75,15 @@ typedef struct {
         int     flag;
 } I_INFILE;
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *avar,*aincr;
 } INCR;
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *argums[VARGMAX];
 } CLEARS;
-
 
 typedef struct {
         OPDS    h;
@@ -94,13 +91,11 @@ typedef struct {
         MYFLT   *iascii; /* iascii=0 open ascii (default), iflag=1 open binary */
 } FIOPEN;
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
         /*void (*ioutfilep) (void *); */
 } IOUTFILE;
-
 
 typedef struct {
         OPDS    h;
@@ -109,7 +104,6 @@ typedef struct {
         int done;
         /*  void (*ioutfilep) (void *); */
 } IOUTFILE_R;
-
 
 typedef struct {
         OPDS    h;

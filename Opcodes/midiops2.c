@@ -65,7 +65,6 @@ int imidic7(ENVIRON *csound, MIDICTL2 *p)
     return OK;
 }
 
-
 int midic7set(ENVIRON *csound, MIDICTL2 *p)
 {
     long  ctlno;
@@ -136,7 +135,6 @@ int imidic14(ENVIRON *csound, MIDICTL3 *p)
     return OK;
 }
 
-
 int midic14set(ENVIRON *csound, MIDICTL3 *p)
 {
     long   ctlno1;
@@ -194,8 +192,6 @@ int midic14(ENVIRON *csound, MIDICTL3 *p)
 /*-----------------------------------------------------------------------------*/
 /* 21 bit midi control UGs */
 
-
-
 int imidic21(ENVIRON *csound, MIDICTL4 *p)
 {
     MYFLT value;
@@ -228,7 +224,6 @@ int imidic21(ENVIRON *csound, MIDICTL4 *p)
     }
     return OK;
 }
-
 
 int midic21set(ENVIRON *csound, MIDICTL4 *p)
 {
@@ -288,7 +283,6 @@ int midic21(ENVIRON *csound, MIDICTL4 *p)
     return OK;
 }
 
-
 /*-----------------------------------------------------------------*/
 /* GLOBAL MIDI IN CONTROLS activable by score-oriented instruments*/
 /*-----------------------------------------------------------------*/
@@ -313,7 +307,6 @@ int ictrl7(ENVIRON *csound, CTRL7 *p)
     }
     return OK;
 }
-
 
 int ctrl7set(ENVIRON *csound, CTRL7 *p)
 {
@@ -347,7 +340,6 @@ int ctrl7(ENVIRON *csound, CTRL7 *p)
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
 }
-
 
 /* 14 bit midi control UGs */
 
@@ -383,7 +375,6 @@ int ictrl14(ENVIRON *csound, CTRL14 *p)
     }
     return OK;
 }
-
 
 int ctrl14set(ENVIRON *csound, CTRL14 *p)
 {
@@ -467,7 +458,6 @@ int ictrl21(ENVIRON *csound, CTRL21 *p)
     return OK;
 }
 
-
 int ctrl21set(ENVIRON *csound, CTRL21 *p)
 {
     long   ctlno1;
@@ -512,7 +502,6 @@ int ctrl21(ENVIRON *csound, CTRL21 *p)
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
 }
-
 
 int initc7(ENVIRON *csound, INITC7 *p) /* for setting a precise value use the following formula:*/
 {                      /* (value - min) / (max - min) */

@@ -35,7 +35,6 @@ typedef struct {
     long   ctlno;
 } MIDICTL2;
 
-
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ictlno1, *ictlno2, *imin, *imax, *ifn;
@@ -78,7 +77,6 @@ typedef struct {
     FUNC *ftp;
     long   ctlno1, ctlno2, ctlno3;
 } CTRL21;
-
 
 typedef struct {
     OPDS   h;

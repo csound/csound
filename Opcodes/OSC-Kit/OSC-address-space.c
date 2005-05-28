@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -47,7 +47,6 @@ The OpenSound Control WWW page is
 #define MAX_CHILDREN_PER_CONTAINER 20
 #define MAX_METHODS_PER_CONTAINER 30
 #define BASE_NUM_TO_REALLOCATE 10
-
 
 struct OSCContainerStruct {
     struct OSCContainerStruct *parent;
@@ -76,18 +75,16 @@ static OSCMethod freeMethods;         /* Linked list via next field. */
 static void *(*RealTimeMemoryAllocator)(int numBytes);
 static int gasHelp(char *, int, OSCcontainer);
 
-/* Note:  The free list of containers should actually be a "free forest", so 
-   that all the subcontainers recursively under a freed container are 
+/* Note:  The free list of containers should actually be a "free forest", so
+   that all the subcontainers recursively under a freed container are
    automatically freed.
 
-	FREE: just stick the freed subtree on the front of the list.
+        FREE: just stick the freed subtree on the front of the list.
 
-	ALLOC: Take all the children of the first container on the list and
+        ALLOC: Take all the children of the first container on the list and
              insert them in the free list, then return that first container.
 
 */
-
-
 
 /************************ Initialization and Memory  ************************/
 
@@ -146,7 +143,6 @@ OSCcontainer OSCInitAddressSpace(struct OSCAddressSpaceMemoryTuner *t) {
     return OSCTopLevelContainer;
 }
 
-
 /* Container and method memory management: linked lists of free objects */
 
 static OSCcontainer AllocContainer(void) {
@@ -154,21 +150,21 @@ static OSCcontainer AllocContainer(void) {
 
     OSCcontainer result;
     if (freeContainers != 0) {
-	result = freeContainers;
-	freeContainers = freeContainers->next;
-	return result;
+        result = freeContainers;
+        freeContainers = freeContainers->next;
+        return result;
     }
 
     OSCWarning("Out of memory for containers; trying to allocate more in real time");
     {
-	int num = BASE_NUM_TO_REALLOCATE * ++numExtraAllocs;
-	freeContainers = (*RealTimeMemoryAllocator)(num * sizeof(*freeContainers));
-	if (freeContainers == 0) {
-	    OSCWarning("Real-time allocation failed");
-	    return 0;
-	}
-	MakeFreeContainersList(num);
-	return AllocContainer();
+        int num = BASE_NUM_TO_REALLOCATE * ++numExtraAllocs;
+        freeContainers = (*RealTimeMemoryAllocator)(num * sizeof(*freeContainers));
+        if (freeContainers == 0) {
+            OSCWarning("Real-time allocation failed");
+            return 0;
+        }
+        MakeFreeContainersList(num);
+        return AllocContainer();
     }
 }
 
@@ -183,8 +179,8 @@ static OSCMethod AllocMethod(void) {
 
     if (freeMethods != 0) {
         result = freeMethods;
-	freeMethods = freeMethods->next;
-	return result;
+        freeMethods = freeMethods->next;
+        return result;
     }
 
     OSCWarning("Out of memory for methods; trying to allocate more in real time");
@@ -194,7 +190,7 @@ static OSCMethod AllocMethod(void) {
         if (freeMethods == 0) {
             OSCWarning("Real-time allocation failed");
             return 0;
-	}
+        }
         MakeFreeMethodsList(num);
         return AllocMethod();
     }
@@ -205,16 +201,15 @@ static OSCMethod AllocMethod(void) {
 /*     freeMethods = c; */
 /* } */
 
-
-/**************************** Containers  ****************************/    
+/**************************** Containers  ****************************/
 
 /* Managing the tree of containers and subcontainers, with aliases */
 
 void AddSubContainer(OSCcontainer parent, OSCcontainer child, Name name) {
     if (parent->numChildren >= MAX_CHILDREN_PER_CONTAINER) {
-	fatal_error("AddSubContainer: exceeded MAX_CHILDREN_PER_CONTAINER (%d)\n"
-		    "Increase the value in OSC-address-space.c and recompile.",
-		    MAX_CHILDREN_PER_CONTAINER);
+        fatal_error("AddSubContainer: exceeded MAX_CHILDREN_PER_CONTAINER (%d)\n"
+                    "Increase the value in OSC-address-space.c and recompile.",
+                    MAX_CHILDREN_PER_CONTAINER);
     }
 
     parent->childrenNames[parent->numChildren] = name;
@@ -222,10 +217,9 @@ void AddSubContainer(OSCcontainer parent, OSCcontainer child, Name name) {
     ++(parent->numChildren);
 }
 
-
 OSCBoolean OSCAddContainerAlias(OSCcontainer container, Name otherName) {
     if (container->parent->numChildren >= MAX_CHILDREN_PER_CONTAINER) {
-	return FALSE;
+        return FALSE;
     }
     AddSubContainer(container->parent, container, otherName);
     return TRUE;
@@ -238,24 +232,20 @@ void RemoveSubContainer(OSCcontainer parent, OSCcontainer child) {
 
     numRemoved = 0;
     for (i = 0; i < parent->numChildren; ++i) {
-	if (parent->children[i] != child) {
-	    parent->children[i-numRemoved] = parent->children[i];
-	    parent->childrenNames[i-numRemoved] = parent->childrenNames[i];
-	} else {
-	    ++numRemoved;
-	}
+        if (parent->children[i] != child) {
+            parent->children[i-numRemoved] = parent->children[i];
+            parent->childrenNames[i-numRemoved] = parent->childrenNames[i];
+        } else {
+            ++numRemoved;
+        }
     }
 
     parent->numChildren -= numRemoved;
 
     if (numRemoved ==  0) {
-	fatal_error("RemoveSubContainer: subcontainer not found!\n");
+        fatal_error("RemoveSubContainer: subcontainer not found!\n");
     }
 }
-
-
-
-   
 
 OSCBoolean OSCRemoveContainerAlias(OSCcontainer container, Name otherName) {
     int i, j;
@@ -264,25 +254,25 @@ OSCBoolean OSCRemoveContainerAlias(OSCcontainer container, Name otherName) {
 
     for (i = 0; i < parent->numChildren; ++i) {
         if (parent->childrenNames[i] == otherName) {
-	    if (parent->children[i] != container) {
-		fatal_error("OSCRemoveContainerAlias: %s is actually a sibling's name!",
-			    otherName);
-	    }
-	    found = TRUE;
-	    for (j = i+1; j < parent->numChildren; ++j) {
-		parent->children[j-1] = parent->children[j];
-		parent->childrenNames[j-1] = parent->childrenNames[j];
-		--(parent->numChildren);
-	    }
-	}
+            if (parent->children[i] != container) {
+                fatal_error("OSCRemoveContainerAlias: %s is actually a sibling's name!",
+                            otherName);
+            }
+            found = TRUE;
+            for (j = i+1; j < parent->numChildren; ++j) {
+                parent->children[j-1] = parent->children[j];
+                parent->childrenNames[j-1] = parent->childrenNames[j];
+                --(parent->numChildren);
+            }
+        }
     }
     if (!found) {
-	fatal_error("OSCRemoveContainerAlias: %s not found!", otherName);
+        fatal_error("OSCRemoveContainerAlias: %s not found!", otherName);
     }
 
     /* Now make sure the child still exists under another name */
     for (i = 0; i < parent->numChildren; ++i) {
-	if (parent->children[i] == container) return TRUE;
+        if (parent->children[i] == container) return TRUE;
     }
 
     OSCWarning("OSCRemoveContainerAlias: %s was the last name for that subcontainer");
@@ -290,7 +280,6 @@ OSCBoolean OSCRemoveContainerAlias(OSCcontainer container, Name otherName) {
     /* xxx should recursively free the container and its children... */
     return TRUE;
 }
-	    
 
 OSCcontainer OSCNewContainer(Name name, OSCcontainer parent,
                              struct OSCContainerQueryResponseInfoStruct *QueryResponseInfo) {
@@ -300,11 +289,11 @@ OSCcontainer OSCNewContainer(Name name, OSCcontainer parent,
     if (me == 0) return 0;
 
     if (strchr(name, '/') != NULL) {
-	OSCProblem("Container name \"%s\" contains a slash --- not good.",
-		   name);
-	return 0;
+        OSCProblem("Container name \"%s\" contains a slash --- not good.",
+                   name);
+        return 0;
     }
-	
+
     me->parent = parent;
     AddSubContainer(me->parent, me, name);
     me->numChildren = 0;
@@ -313,21 +302,19 @@ OSCcontainer OSCNewContainer(Name name, OSCcontainer parent,
     return me;
 }
 
-
 static const char *ContainerName(OSCcontainer c) {
     /* Return the first name associated with me in my parent's child list.
        (Assume all later ones are aliases.) */
     int i;
 
     for (i = 0; i < c->parent->numChildren; ++i) {
-	if (c->parent->children[i] == c) {
-	    return c->parent->childrenNames[i];
-	}
+        if (c->parent->children[i] == c) {
+            return c->parent->childrenNames[i];
+        }
     }
     fatal_error("ContainerName: Container %p isn't in its parent's child list.", c);
     return 0;
 }
-
 
 OSCBoolean OSCGetAddressString(char *target, int maxLength, OSCcontainer c) {
     int lenNeeded;
@@ -336,10 +323,10 @@ OSCBoolean OSCGetAddressString(char *target, int maxLength, OSCcontainer c) {
 
     lenNeeded = gasHelp(target, maxLength-1, c) + 1; /* -1, +1 are for null char. */
     if (lenNeeded > maxLength) {
-	OSCProblem("Address string too long (room for %d chars; need %d)",
-		   maxLength, lenNeeded);
-	target[0] = '\0';
-	return FALSE;
+        OSCProblem("Address string too long (room for %d chars; need %d)",
+                   maxLength, lenNeeded);
+        target[0] = '\0';
+        return FALSE;
     }
     return TRUE;
 }
@@ -351,18 +338,18 @@ static int gasHelp(char *target, int maxLength, OSCcontainer c) {
 /*     printf("*** gasHelp %s %d %p %s\n", target, maxLength, c, c->name); */
 
     if (c == OSCTopLevelContainer) {
-	target[0] = '/';
-	target[1] = '\0';
-	return 1;
+        target[0] = '/';
+        target[1] = '\0';
+        return 1;
     }
 
     myName = ContainerName(c);
     sublength = gasHelp(target, maxLength, c->parent);
     length = sublength + strlen(myName) + 1;  /* +1 is for trailing slash */
     if (length > maxLength) {
-	return length;
+        return length;
     }
-    
+
     strcpy(target+sublength, myName);
     target[length-1] = '/';
     target[length] = '\0';
@@ -370,36 +357,34 @@ static int gasHelp(char *target, int maxLength, OSCcontainer c) {
     return length;
 }
 
-
 /**************************** Methods  ****************************/
 
 #define LONG_ADDR_SIZE 1000 /* Just for error messages */
 
-OSCMethod OSCNewMethod(Name name, OSCcontainer me, methodCallback callback, 
-		       void *context, struct OSCMethodQueryResponseInfoStruct *QueryResponseInfo) {
+OSCMethod OSCNewMethod(Name name, OSCcontainer me, methodCallback callback,
+                       void *context, struct OSCMethodQueryResponseInfoStruct *QueryResponseInfo) {
 
     char addr[LONG_ADDR_SIZE];
     OSCMethod m;
 
 #ifdef DEBUG
     printf("OSCNewMethod(name %s, container %p, callback %p, context %p)\n",
-	   name, me, callback, context);
+           name, me, callback, context);
 #endif
 
     if (strchr(name, '/') != NULL) {
-	OSCProblem("Method name \"%s\" contains a slash --- not good.",
-		   name);
-	return 0;
+        OSCProblem("Method name \"%s\" contains a slash --- not good.",
+                   name);
+        return 0;
     }
 
-
     if (me->numMethods >= MAX_METHODS_PER_CONTAINER) {
-	addr[0] = '\0';
-	OSCGetAddressString(addr, LONG_ADDR_SIZE, me);
-	OSCProblem("OSCNewMethod: container %s already has %d methods; can't add another\n"
-		   "Change MAX_METHODS_PER_CONTAINER in OSC-address-space.c and recompile.",
-		   addr, me->numMethods);
-	return 0;
+        addr[0] = '\0';
+        OSCGetAddressString(addr, LONG_ADDR_SIZE, me);
+        OSCProblem("OSCNewMethod: container %s already has %d methods; can't add another\n"
+                   "Change MAX_METHODS_PER_CONTAINER in OSC-address-space.c and recompile.",
+                   addr, me->numMethods);
+        return 0;
     }
 
     m = AllocMethod();
@@ -424,7 +409,7 @@ void OSCInitContainerQueryResponseInfo(struct OSCContainerQueryResponseInfoStruc
 void OSCInitMethodQueryResponseInfo(struct OSCMethodQueryResponseInfoStruct *i) {
     i->description = 0;
     i->pvq = 0;
-} 
+}
 
 /******************************* Debug  ********************************/
 
@@ -440,16 +425,16 @@ static int ContainerAliases(OSCcontainer c, char *target) {
     n = 0;
 
     for (i = 0; i < c->parent->numChildren; ++i) {
-	if (c->parent->children[i] == c) {
-	    if (n > 0) {
-		strcat(target, " ");
-		strcat(target, c->parent->childrenNames[i]);
-	    }
-	    ++n;
-	}
+        if (c->parent->children[i] == c) {
+            if (n > 0) {
+                strcat(target, " ");
+                strcat(target, c->parent->childrenNames[i]);
+            }
+            ++n;
+        }
     }
     if (n == 0) fatal_error("ContainerAliases: internal inconsistency");
-    
+
     return n-1;
 }
 
@@ -462,33 +447,33 @@ static void PrintHelp(OSCcontainer c) {
     int i, j, numAliases;
 
     if (OSCGetAddressString(addr, BIG_ADDRESS, c) == FALSE) {
-	printf("  /.../%s", ContainerName(c));
+        printf("  /.../%s", ContainerName(c));
     } else {
-	printf("  %s", addr);
+        printf("  %s", addr);
     }
 
     numAliases = ContainerAliases(c, aliasNames);
     if (numAliases > 0) {
-	printf(" (%d aliases:%s)", numAliases, aliasNames);
+        printf(" (%d aliases:%s)", numAliases, aliasNames);
     }
     printf("\n");
 
     for (i = 0; i < c->numMethods; ++i) {
-	printf("    %s%s: %s\n", addr, c->methodNames[i], 
-	       c->methods[i]->QueryResponseInfo.description);
+        printf("    %s%s: %s\n", addr, c->methodNames[i],
+               c->methods[i]->QueryResponseInfo.description);
     }
 
     /* Forgive this quadratic kludge: */
     for (i = 0; i < c->numChildren; ++i) {
-	for (j = 0; j < i; ++j) {
-	    if (c->children[j] == c->children[i]) {
-		/* c->children[i] is just an alias to c->children[j], 
-		   which we already printed, so ignore it. */
-		goto SkipAlias;
-	    }
-	}
-	PrintHelp(c->children[i]);
-	SkipAlias:
+        for (j = 0; j < i; ++j) {
+            if (c->children[j] == c->children[i]) {
+                /* c->children[i] is just an alias to c->children[j],
+                   which we already printed, so ignore it. */
+                goto SkipAlias;
+            }
+        }
+        PrintHelp(c->children[i]);
+        SkipAlias:
     }
 }
 
@@ -498,9 +483,7 @@ void OSCPrintWholeAddressSpace(void) {
     printf("...end of OSC address space.\n\n\n");
 }
 
-
 #endif /* DEBUG */
-
 
 /***************************** Dispatching  *****************************/
 
@@ -508,7 +491,7 @@ void OSCPrintWholeAddressSpace(void) {
 #include "OSC-callbacklist.h"
 #include "OSC-pattern-match.h"
 
-/* To do quick concatenation of singly-linked lists, we pass around 
+/* To do quick concatenation of singly-linked lists, we pass around
    this data structure that points to the first and last elements: */
 
 typedef struct callbackListEnds_struct {
@@ -519,7 +502,6 @@ typedef struct callbackListEnds_struct {
 /* Helper proc. declarations */
 static callbackListEnds DispatchSubMessage(char *pattern, OSCcontainer c);
 static char *NextSlashOrNull(char *p);
-
 
 callbackList OSCDispatchMessage(char *pattern) {
     callbackListEnds result;
@@ -535,7 +517,6 @@ callbackList OSCDispatchMessage(char *pattern) {
 }
 
 #define LONG_ADDR_LEN 100
-
 
 static callbackListEnds DispatchSubMessage(char *pattern, OSCcontainer c) {
     callbackListEnds result;
@@ -555,14 +536,14 @@ static callbackListEnds DispatchSubMessage(char *pattern, OSCcontainer c) {
                                                     result.begin);
           if (node == 0) {
             /* Excuse the hairyness of the code to generate the error message. */
-            if (OSCGetAddressString(offendingAddr, 
+            if (OSCGetAddressString(offendingAddr,
                                     LONG_ADDR_LEN-strlen(c->methodNames[i]),
                                     c)) {
               strcat(offendingAddr, c->methodNames[i]);
             } else {
               strcpy(offendingAddr, c->methodNames[i]);
             }
-            
+
             OSCWarning("No memory for callback node; not invoking %s",
                        offendingAddr);
           } else {
@@ -574,16 +555,16 @@ static callbackListEnds DispatchSubMessage(char *pattern, OSCcontainer c) {
         }
       }
     } else {
-      /* Recursive case: in the middle of an address, so the job at this 
+      /* Recursive case: in the middle of an address, so the job at this
          step is to look for containers that match.  We temporarily turn
          the next slash into a null so pattern will be a null-terminated
          string of the stuff between the slashes. */
       *nextSlash = '\0';
       restOfPattern = nextSlash + 1;
-      
+
       for (i = 0; i < c->numChildren; ++i) {
         if (PatternMatch(pattern, c->childrenNames[i])) {
-          callbackListEnds subResult =	
+          callbackListEnds subResult =
             DispatchSubMessage(restOfPattern, c->children[i]);
           if (result.end == 0) {
             result = subResult;
@@ -598,10 +579,9 @@ static callbackListEnds DispatchSubMessage(char *pattern, OSCcontainer c) {
     return result;
 }
 
-
 static char *NextSlashOrNull(char *p) {
     while (*p != '/' && *p != '\0') {
-	p++;
+        p++;
     }
     return p;
 }

@@ -37,7 +37,6 @@ typedef struct {
         MYFLT   *buf;
 } PVBUFREAD;
 
-
 typedef struct {
     OPDS    h;
     MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno,
@@ -60,7 +59,6 @@ typedef struct {
     PVBUFREAD *pvbufread;
 
 } PVINTERP;
-
 
 typedef struct {
     OPDS    h;

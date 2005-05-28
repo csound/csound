@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -102,7 +102,7 @@ public:
   static void messageCallback(void *userdata, int attribute, const char *format, va_list valist);
   virtual void updateCaption();
   virtual void updateModel();
-  //	AEffEditor overrides.
+  //    AEffEditor overrides.
   virtual long getRect(ERect **rect);
   virtual long open(void *windowHandle);
   virtual void close();

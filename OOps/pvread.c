@@ -71,7 +71,6 @@ void FetchInOne(
     }
 }
 
-
 int pvreadset(ENVIRON *csound, PVREAD *p)
 {
     char     pvfilnam[64];
@@ -177,7 +176,6 @@ int pvread(ENVIRON *csound, PVREAD *p)
     *p->kamp = buf[0];
     return OK;
  }
-
 
 /* PVOCEX read into memory */
 /* NB!!!! there are two separate structures to read into:
@@ -300,7 +298,6 @@ static int pvocex_loadfile(ENVIRON *csound,
     /*size = pvfrsiz(p);*/              /* size used in def of OPWLEN ? */
     p->prFlg = 1;    /* true */
     p->mybin = (long)(*p->ibin-1.0f);
-
 
     /* Need to assign the MEMFIL to p->mfp in calling func */
     if (mfil==NULL) {

@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /*******************************************************\
 *  dpwelib.h                                            *
 *  little header to try and setup STDC for my lib       *

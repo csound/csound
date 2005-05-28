@@ -42,7 +42,6 @@ Version 1.0, 9/21/99
    for the constructor procedures, which return a pointer to the new object
    or zero if out of memory. */
 
-
 /* Structs defining our data structures.  Note that they contain the
    frame and matrix header structs from sdif.h */
 /*RWD TODO: declare objects, no pounters */
@@ -63,13 +62,11 @@ typedef struct SDIFmemFrameStruct {
     struct SDIFmemFrameStruct *next;
 } *SDIFmem_Frame;
 
-
 /* SDIFmem_Init --
    You must call this before any of the other procedures in this library.  You
    pass in the procedures that will be used for malloc() and free(). */
 SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int numBytes),
               void (*MemoryFreer)(void *memory, int numBytes));
-
 
 /* Constructors */
 
@@ -92,12 +89,10 @@ void SDIFmem_FreeFrame(SDIFmem_Frame f);
    to this matrix.  If (m->data != 0) it calls MemoryFreer on m->data too. */
 void SDIFmem_FreeMatrix(SDIFmem_Matrix m);
 
-
 /* SDIFmem_RepairFrameHeader ---
    If you've been playing with the matrices in an SDIFmem_Frame, call this
    to recompute the size of the frame and the number of matrices. */
 void SDIFmem_RepairFrameHeader(SDIFmem_Frame f);
-
 
 /* SDIFmem_ReadFrameContents --
    Assuming that you just read an SDIF_FrameHeader and decided that you want
@@ -109,14 +104,12 @@ void SDIFmem_RepairFrameHeader(SDIFmem_Frame f);
 SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
                                      SDIFmem_Frame *putithere);
 
-
 /* SDIFmem_ReadFrame --
    Just like SDIFmem_ReadFrameContents, but it also reads the frame header
    for you.  (For use when you know you want to read the next frame into memory
    even without peeking at the header.)
 */
 SDIFresult SDIFmem_ReadFrame(FILE *f, SDIFmem_Frame *putithere);
-
 
 /* SDIFmem_AddMatrix --
    Add a new matrix to an existing frame.  Checks to make sure this matrix

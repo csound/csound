@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -20,11 +20,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #if defined(_MSC_VER) && !defined(__GNUC__)
-#pragma warning (disable:4786) 
+#pragma warning (disable:4786)
 #endif
 #include "ScoreNode.hpp"
 
-namespace csound 
+namespace csound
 {
   ScoreNode::ScoreNode()
   {
@@ -38,13 +38,13 @@ namespace csound
   {
     if(importFilename.length() > 0)
       {
-	score.std::vector<Event>::clear();
-	score.load(importFilename);
+        score.std::vector<Event>::clear();
+        score.load(importFilename);
       }
     for(Score::iterator it = score.begin(); it != score.end(); ++it)
       {
-	const Event &event = *it;
-	score_.push_back(event);
+        const Event &event = *it;
+        score_.push_back(event);
       }
   }
 

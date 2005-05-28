@@ -81,7 +81,6 @@ static void dumpline(ENVIRON *csound)   /* print the line while flushing it */
     csound->Message(csound, Str("\n\tremainder of line flushed\n"));
 }
 
-
 int rdscor(ENVIRON *csound, EVTBLK *e) /* read next score-line from scorefile */
                                        /*  & maintain section warped status   */
 {                                      /*      presumes good format if warped */

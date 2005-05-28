@@ -773,7 +773,6 @@ int delay1(ENVIRON *csound, DELAY1 *p)
     return OK;
 }
 
-
 int cmbset(ENVIRON *csound, COMB *p)
 {
     long        lpsiz, nbytes;

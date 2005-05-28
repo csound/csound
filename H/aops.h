@@ -143,12 +143,10 @@ typedef struct {
         MYFLT old_r;
 } CPSTUN;
 
-
 typedef struct {
         OPDS   h;
         MYFLT *r, *input, *tablenum;
 } CPSTUNI;
-
 
 typedef struct {
   OPDS  h;

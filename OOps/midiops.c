@@ -95,7 +95,6 @@ int notnum(ENVIRON *csound, MIDIKMB *p)      /* valid only at I-time */
     return OK;
 }
 
-
 /* cpstmid by G.Maldonado */
 int cpstmid(ENVIRON *csound, CPSTABLE *p)
 {
@@ -319,7 +318,6 @@ int midictl(ENVIRON *csound, MIDICTL *p)
     return OK;
 }
 
-
 int imidiaft(ENVIRON *csound, MIDICTL *p)
 {
     long  ctlno;
@@ -349,7 +347,6 @@ int midiaft(ENVIRON *csound, MIDICTL *p)
     *p->r = MIDI_VALUE(lcurip->m_chnbp,polyaft[p->ctlno]) * p->scale + p->lo;
     return OK;
 }
-
 
 /* midichn opcode - get MIDI channel number or 0 for score notes */
 /* written by Istvan Varga, May 2002 */

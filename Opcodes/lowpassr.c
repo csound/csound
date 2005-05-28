@@ -115,7 +115,6 @@ int lowprx(ENVIRON *csound, LOWPRX *p)
     return OK;
 }
 
-
 int lowpr_w_sep_set(ENVIRON *csound, LOWPR_SEP *p)
 {
     int j;

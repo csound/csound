@@ -25,10 +25,9 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
-
 
 /*
     OSC-pattern-match.c
@@ -39,18 +38,18 @@ The OpenSound Control WWW page is
 #include "OSC-common.h"
 #include "OSC-pattern-match.h"
 
-static const char *theWholePattern;	/* Just for warning messages */
+static const char *theWholePattern;     /* Just for warning messages */
 
 static OSCBoolean MatchBrackets (const char *pattern, const char *test);
 static OSCBoolean MatchList (const char *pattern, const char *test);
 
 OSCBoolean PatternMatch (const char *  pattern, const char * test) {
   theWholePattern = pattern;
-  
+
   if (pattern == 0 || pattern[0] == 0) {
     return test[0] == 0;
-  } 
-  
+  }
+
   if (test[0] == 0) {
     if (pattern[0] == '*')
       return PatternMatch (pattern+1,test);
@@ -61,11 +60,11 @@ OSCBoolean PatternMatch (const char *  pattern, const char * test) {
   switch (pattern[0]) {
     case 0      : return test[0] == 0;
     case '?'    : return PatternMatch (pattern + 1, test + 1);
-    case '*'    : 
+    case '*'    :
       if (PatternMatch (pattern+1, test)) {
         return TRUE;
       } else {
-	return PatternMatch (pattern, test+1);
+        return PatternMatch (pattern, test+1);
       }
     case ']'    :
     case '}'    :
@@ -75,23 +74,22 @@ OSCBoolean PatternMatch (const char *  pattern, const char * test) {
       return MatchBrackets (pattern,test);
     case '{'    :
       return MatchList (pattern,test);
-    case '\\'   :  
+    case '\\'   :
       if (pattern[1] == 0) {
-	return test[0] == 0;
+        return test[0] == 0;
       } else if (pattern[1] == test[0]) {
-	return PatternMatch (pattern+2,test+1);
+        return PatternMatch (pattern+2,test+1);
       } else {
-	return FALSE;
+        return FALSE;
       }
     default     :
       if (pattern[0] == test[0]) {
-	return PatternMatch (pattern+1,test+1);
+        return PatternMatch (pattern+1,test+1);
       } else {
-	return FALSE;
+        return FALSE;
       }
   }
 }
-
 
 /* we know that pattern[0] == '[' and test[0] != 0 */
 
@@ -117,8 +115,8 @@ static OSCBoolean MatchBrackets (const char *pattern, const char *test) {
     }
     if (p[1] == '-' && p[2] != 0) {
       if (test[0] >= p[0] && test[0] <= p[2]) {
-	result = !negated;
-	goto advance;
+        result = !negated;
+        goto advance;
       }
     }
     if (p[0] == test[0]) {
@@ -150,7 +148,6 @@ static OSCBoolean MatchList (const char *pattern, const char *test) {
 
  const char *restOfPattern, *tp = test;
 
-
  for(restOfPattern = pattern; *restOfPattern != '}'; restOfPattern++) {
    if (*restOfPattern == 0) {
      OSCWarning("Unterminated { in pattern \".../%s/...\"", theWholePattern);
@@ -160,11 +157,10 @@ static OSCBoolean MatchList (const char *pattern, const char *test) {
 
  restOfPattern++; /* skip close curly brace */
 
-
  pattern++; /* skip open curly brace */
 
  while (1) {
-   
+
    if (*pattern == ',') {
      if (PatternMatch (restOfPattern, tp)) {
        return TRUE;
@@ -189,6 +185,4 @@ static OSCBoolean MatchList (const char *pattern, const char *test) {
  }
 
 }
-
-
 

@@ -28,7 +28,6 @@
    Ville Pulkki & John ffitch
 */
 
-
 #include "cs.h"
 #include "vbap.h"
 #include <math.h>
@@ -79,7 +78,6 @@ int vbap_zak(ENVIRON *csound, VBAP_ZAK *p) /* during note performance:   */
     }
     return OK;
 }
-
 
 int vbap_zak_control(ENVIRON *csound, VBAP_ZAK *p)
 {
@@ -250,7 +248,6 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
     }
     return OK;
 }
-
 
 int vbap_zak_moving(ENVIRON *csound, VBAP_ZAK_MOVING *p) /* during note performance:   */
 {
@@ -479,7 +476,6 @@ int vbap_zak_moving_control(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
   }
   return OK;
 }
-
 
 int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
 {

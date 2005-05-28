@@ -35,8 +35,6 @@
 /* (optionals) p stutterspeed (defaulting to 1), o stutterchance
    (defaulting to 0=off), enveloping choice (defaulting to 1=on) */
 
-
-
 #if !defined(__bbcut_h__)
 #   define  __bbcut_h__
 
@@ -85,7 +83,6 @@ typedef struct {
       AUXCH repeatbuffer;
 
 } BBCUTMONO;
-
 
 /*  STEREO VERSION */
 
@@ -136,7 +133,6 @@ typedef struct {
       AUXCH repeatbuffer;
 
 } BBCUTSTEREO;
-
 
 #endif /* !defined(__bbcut_h__) */
 

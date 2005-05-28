@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -40,7 +40,6 @@ The OpenSound Control WWW page is
   include OSC-timetag.h before this file
 
 ****************************** Introduction ******************************
-
 
   The model is based on our original C++ design and consists of two kinds of
   objects:
@@ -67,7 +66,7 @@ The OpenSound Control WWW page is
   allocator.  When the preallocated memory runs out, this module calls an
   optional realtime memory allocator that you provide.  If your memory allocator
   gives this module more memory, it will add it to the pool of objects and
-  never free the memory.  If your system does not have a realtime memory 
+  never free the memory.  If your system does not have a realtime memory
   allocator, provide a procedure that always returns 0.
 */
 
@@ -79,7 +78,6 @@ typedef struct OSCMethodStruct *OSCMethod;
 
 /* This makes it easy to change the way we represent symbolic names: */
 typedef const char *Name;
-
 
 /************************ Initialization and Memory  ************************/
 
@@ -125,12 +123,10 @@ struct OSCAddressSpaceMemoryTuner {
    on it. */
 int OSCAddressSpaceMemoryThatWouldBeAllocated(struct OSCAddressSpaceMemoryTuner *t);
 
-
 /* Call this before you call anything else.  It returns the container that
-   corresponds to the address "/" and is the root of the address space tree. 
+   corresponds to the address "/" and is the root of the address space tree.
 */
 OSCcontainer OSCInitAddressSpace(struct OSCAddressSpaceMemoryTuner *t);
-
 
 /**************************** Containers  ****************************/
 
@@ -158,7 +154,6 @@ struct OSCContainerQueryResponseInfoStruct {
 
 void OSCInitContainerQueryResponseInfo(struct OSCContainerQueryResponseInfoStruct *i);
 
-
 /* Allocate a new container and initialize it.  Returns 0 if it cannot
    allocate a new container, e.g., if you've exceeded the initNumContainers
    limit of the OSCAddressSpaceMemoryTuner() and the RealTimeMemoryAllocator()
@@ -169,31 +164,26 @@ void OSCInitContainerQueryResponseInfo(struct OSCContainerQueryResponseInfoStruc
    of the OSCContainerQueryResponseInfoStruct.
 */
 OSCcontainer OSCNewContainer(Name name, OSCcontainer parent,
-			     struct OSCContainerQueryResponseInfoStruct *queryInfo);
-
+                             struct OSCContainerQueryResponseInfoStruct *queryInfo);
 
 /* Remove a container from the address space.  This also removes all the
    container's methods and recursively removes all sub-containers.  Memory
-   freed by removing a container is kept in this module's internal pool. 
+   freed by removing a container is kept in this module's internal pool.
 */
 void OSCRemoveContainer(OSCcontainer container);
-
 
 /* Given a pointer to a container, and another name for that container, add or
    remove that name as an alias for the container.  Return FALSE for failure. */
 OSCBoolean OSCAddContainerAlias(OSCcontainer container, Name otherName);
 OSCBoolean OSCRemoveContainerAlias(OSCcontainer container, Name otherName);
 
-
 /* Write the OSC address of the given container into the given string.
    Return FALSE if the address won't fit in the string. */
 OSCBoolean OSCGetAddressString(char *target, int maxLength, OSCcontainer c);
 
-
 /* Given an address (not a pattern!), return the single OSCcontainer it names,
    or 0 if there is no container at that address */
 OSCcontainer OSCLookUpContainer(Name address);
-
 
 /**************************** Methods  ****************************/
 
@@ -212,9 +202,8 @@ OSCcontainer OSCLookUpContainer(Name address);
        for later use.
 */
 typedef const struct NetworkReturnAddressStruct *const NetworkReturnAddressPtr;
-typedef void (*methodCallback)(void *context, int arglen, const void *args, 
-			       OSCTimeTag when, NetworkReturnAddressPtr returnAddr);
-
+typedef void (*methodCallback)(void *context, int arglen, const void *args,
+                               OSCTimeTag when, NetworkReturnAddressPtr returnAddr);
 
 /* A ParamValQuerier is a procedure that the OSC system will call when the
    user wants to know the current value of a parameter.  It will be passed the
@@ -224,9 +213,8 @@ typedef void (*methodCallback)(void *context, int arglen, const void *args,
    length of data just like the method would expect in its "arglen" argument.
    It doesn't have to worry about the address portion of the OSC message.
 */
-typedef char OSCData;	/* For pointers to OSC-formatted data */
+typedef char OSCData;   /* For pointers to OSC-formatted data */
 typedef int (*ParamValQuerier)(OSCData *result, void *context);
-
 
 /* This system deals with other standard per-method queries, such as
    documentation, valid parameter types and ranges, units, default values,
@@ -237,11 +225,10 @@ struct OSCMethodQueryResponseInfoStruct {
     char *description;
     ParamValQuerier pvq;
     /* For each argument of the method:
-	min, max, default, units */
+        min, max, default, units */
 };
 
 void OSCInitMethodQueryResponseInfo(struct OSCMethodQueryResponseInfoStruct *i);
-
 
 /* Allocate a new method, initialize it, and add it to a container. Returns 0
    for failure, e.g., if you've exceeded the initNumMethods limit of the
@@ -252,18 +239,14 @@ void OSCInitMethodQueryResponseInfo(struct OSCMethodQueryResponseInfoStruct *i);
    contents of the OSCMethodQueryResponseInfoStruct.
 */
 
-OSCMethod OSCNewMethod(Name name, OSCcontainer container, methodCallback meth, 
-		       void *context, struct OSCMethodQueryResponseInfoStruct *queryInfo);
-
-
+OSCMethod OSCNewMethod(Name name, OSCcontainer container, methodCallback meth,
+                       void *context, struct OSCMethodQueryResponseInfoStruct *queryInfo);
 
 /******************************* Debug  ********************************/
-
 
 #ifdef DEBUG
 void OSCPrintWholeAddressSpace(void);
 #endif
-
 
 /**************************** Sample Code  *****************************/
 
@@ -272,11 +255,9 @@ void OSCPrintWholeAddressSpace(void);
    containers with addresses "/foo", "/foo/foochild", and "/bar",
    and gives each of them "play" and "shuddup" messages.
 
-
 #include "OSC-common.h"
 #include "OSC-timetag.h"
 #include "OSC-address-space.h"
-
 
 typedef struct {
     int playing;
@@ -284,27 +265,25 @@ typedef struct {
     float otherParam;
 } Player;
 
-void PlayCallback(void *context, int arglen, const void *vargs, 
-		  OSCTimeTag when, NetworkReturnAddressPtr ra) {
+void PlayCallback(void *context, int arglen, const void *vargs,
+                  OSCTimeTag when, NetworkReturnAddressPtr ra) {
     Player *p = context;
     const int *args = vargs;
-    
 
     p->playing = 1;
     if (arglen >= 4) {
-	p->param = args[0];
+        p->param = args[0];
     }
 }
 
 void ShuddupCallback(void *context, int arglen, const void *vargs,
-		     OSCTimeTag when, NetworkReturnAddressPtr ra) {
+                     OSCTimeTag when, NetworkReturnAddressPtr ra) {
     Player *p = context;
     const float *args = vargs;
-    
 
     p->playing = 0;
     if (arglen >= 4) {
-	p->otherParam = args[0];
+        p->otherParam = args[0];
     }
 }
 
@@ -347,8 +326,8 @@ main() {
     bar = OSCNewContainer("bar", topLevelContainer, &ocqris);
 
     if (foo == 0 || foochild == 0 || bar == 0) {
-	fprintf(stderr, "Problem!\n");
-	exit(1);
+        fprintf(stderr, "Problem!\n");
+        exit(1);
     }
 
     OSCInitMethodQueryResponseInfo(&omqris);
@@ -363,4 +342,4 @@ main() {
 }
 
 */
-		 
+

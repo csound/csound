@@ -141,7 +141,6 @@ static void Modal4_strike(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
     }
 }
 
-
 static void Modal4_damp(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
 {
     int i;
@@ -315,7 +314,6 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
     return OK;
 }
 
-
 int marimba(ENVIRON *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
@@ -427,7 +425,6 @@ int vibraphn(ENVIRON *csound, VIBRAPHN *p)
     return OK;
 }
 
-
 /*******************************************/
 /*  AgogoBell SubClass of Modal4 Instrument*/
 /*  by Perry R. Cook, 1995-96              */
@@ -438,10 +435,8 @@ int vibraphn(ENVIRON *csound, VIBRAPHN *p)
 /*                MOD_WHEEL= vibAmt        */
 /*******************************************/
 
-
 /*   Modes measured from my Agogo Bell by FFT:  */
 /*   360, 1470, 2401, 4600                      */
-
 
 int agogobelset(ENVIRON *csound, VIBRAPHN *p)
 {

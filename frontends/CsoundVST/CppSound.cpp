@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -31,11 +31,11 @@
 #include <time.h>
 #include <boost/tokenizer.hpp>
 
-CppSound::CppSound() : 	csound(0),
-			isCompiled(false),
-			isPerforming(false),
-			go(false),
-			spoutSize(0)
+CppSound::CppSound() :  csound(0),
+                        isCompiled(false),
+                        isPerforming(false),
+                        go(false),
+                        spoutSize(0)
 {
   csound = (ENVIRON *)csoundCreate(this);
 }
@@ -222,13 +222,13 @@ void CppSound::setThrowMessageCallback(void (*throwCallback)(void *csound_, cons
 }
 
 void CppSound::setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(void *csound, void **userData,
-								       const char *devName))
+                                                                       const char *devName))
 {
   csoundSetExternalMidiInOpenCallback(this->csound, ExternalMidiInOpen);
 }
 
 void CppSound::setExternalMidiReadCallback(int (*ExternalMidiRead)(void *csound, void *userData,
-								   unsigned char *buf, int nbytes))
+                                                                   unsigned char *buf, int nbytes))
 {
   csoundSetExternalMidiReadCallback(this->csound, ExternalMidiRead);
 }
@@ -273,7 +273,7 @@ MYFLT CppSound::getKr()
   return csoundGetKr(csound);
 }
 
-int CppSound::appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, SUBR iopadr, SUBR kopadr, SUBR aopadr)       
+int CppSound::appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, SUBR iopadr, SUBR kopadr, SUBR aopadr)
 {
   return csoundAppendOpcode(csound, opname, dsblksiz, thread, outypes, intypes, iopadr, kopadr, aopadr);
 }
@@ -327,7 +327,7 @@ void CppSound::write(const char *text)
 long CppSound::getThis()
 {
   return (long) this;
-}	
+}
 
 bool CppSound::getIsCompiled() const
 {
@@ -354,7 +354,7 @@ bool CppSound::getIsGo() const
   return false;
 }
 
-extern "C" 
+extern "C"
 {
   void csoundSetMessageCallback(void *csound, void (*csoundMessageCallback)(void *csound, int attr, const char *format, va_list valist));
   int PyRun_SimpleString(const char *string);
@@ -372,7 +372,7 @@ static void pythonMessageCallback(void *csound, int attr, const char *format, va
   while((position = actualBuffer.find("\n")) != std::string::npos)
     {
       lineBuffer = actualBuffer.substr(0, position);
-      actualBuffer.erase(0, position + 1); 
+      actualBuffer.erase(0, position + 1);
       actualBuffer.clear();
       sprintf(buffer1, "print '''%s'''", lineBuffer.c_str());
       PyRun_SimpleString(buffer1);

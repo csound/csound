@@ -12,12 +12,11 @@ nchnls =        2
        instr    1
 ktrig metro 0.2
 printk2 ktrig
-	endin
+        endin
 
 </CsInstruments>
 <CsScore>
 i 1 0 20
-
 
 </CsScore>
 </CsoundSynthesizer>

@@ -5,10 +5,10 @@
 #include "csoundCore.h"
 
 typedef struct {
-  OPDS    h;    
+  OPDS    h;
   // OUTPUTS
   MYFLT   *iEngineNum;
-    
+
 } FLUIDENGINE;
 
 typedef struct {
@@ -20,17 +20,17 @@ typedef struct {
 } FLUIDLOAD;
 
 typedef struct {
-  OPDS	h;
+  OPDS  h;
   // INPUTS
-  MYFLT 	*iEngineNumber, *iChannelNumber, *iInstrumentNumber, *iBankNumber;
-  MYFLT	*iPresetNumber;
+  MYFLT         *iEngineNumber, *iChannelNumber, *iInstrumentNumber, *iBankNumber;
+  MYFLT *iPresetNumber;
 } FLUID_PROGRAM_SELECT;
 
 typedef struct {
-  OPDS 	h;
+  OPDS  h;
   // INPUTS
-  MYFLT	*iEngineNumber, *iChannelNumber, *iControllerNumber, *kVal;
-  int 	priorMidiValue;
+  MYFLT *iEngineNumber, *iChannelNumber, *iControllerNumber, *kVal;
+  int   priorMidiValue;
 } FLUID_CC;
 
 typedef struct {

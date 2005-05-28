@@ -61,7 +61,6 @@ SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int numBytes),
     return ESDIF_SUCCESS;
 }
 
-
 SDIFmem_Frame SDIFmem_CreateEmptyFrame(void)
 {
     SDIFmem_Frame f;
@@ -103,7 +102,6 @@ void SDIFmem_FreeFrame(SDIFmem_Frame f)
     (*my_free)(f, sizeof(*f));
 }
 
-
 SDIFmem_Matrix SDIFmem_CreateEmptyMatrix(void) {
 
     SDIFmem_Matrix result;
@@ -122,14 +120,12 @@ SDIFmem_Matrix SDIFmem_CreateEmptyMatrix(void) {
     return result;
 }
 
-
 void SDIFmem_FreeMatrix(SDIFmem_Matrix m) {
         if (m->data != 0) {
                 (*my_free)(m->data, SDIF_GetMatrixDataSize(&(m->header)));
         }
         (*my_free)(m, sizeof(*m));
 }
-
 
 void SDIFmem_RepairFrameHeader(SDIFmem_Frame f) {
     sdif_int32 numBytes;
@@ -150,7 +146,6 @@ void SDIFmem_RepairFrameHeader(SDIFmem_Frame f) {
     f->header.size = numBytes;
     f->header.matrixCount = numMatrices;
 }
-
 
 SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
                      SDIFmem_Frame *putithere) {
@@ -217,7 +212,6 @@ SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
     return ESDIF_SUCCESS;
 }
 
-
 SDIFresult SDIFmem_ReadFrame(FILE *f, SDIFmem_Frame *putithere) {
     SDIFresult r;
     SDIF_FrameHeader fh;
@@ -228,7 +222,6 @@ SDIFresult SDIFmem_ReadFrame(FILE *f, SDIFmem_Frame *putithere) {
 
     return SDIFmem_ReadFrameContents(&fh, f, putithere);
 }
-
 
 SDIFresult SDIFmem_AddMatrix(SDIFmem_Frame f, SDIFmem_Matrix m) {
     int sz;
@@ -259,7 +252,6 @@ SDIFresult SDIFmem_AddMatrix(SDIFmem_Frame f, SDIFmem_Matrix m) {
     f->header.matrixCount++;
     return ESDIF_SUCCESS;
 }
-
 
 SDIFresult SDIFmem_WriteMatrix(FILE *sdif_handle, SDIFmem_Matrix m) {
     SDIFresult r;

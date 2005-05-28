@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -32,23 +32,22 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound 
+namespace csound
 {
-	/**
-	* Simplifies constructing complex hocketted scores.
-	*/
-	class Hocket : 
-		public ScoreNode
-	{
-	public:
-		int modulus;
-		int startingIndex;
-		Hocket();
-		virtual ~Hocket();
-		virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates, Score &score);
-		virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
-	};
+        /**
+        * Simplifies constructing complex hocketted scores.
+        */
+        class Hocket :
+                public ScoreNode
+        {
+        public:
+                int modulus;
+                int startingIndex;
+                Hocket();
+                virtual ~Hocket();
+                virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates, Score &score);
+                virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+        };
 }
 #endif
-
 

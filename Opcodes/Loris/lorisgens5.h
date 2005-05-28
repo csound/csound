@@ -1,8 +1,8 @@
 #ifndef INCLUDE_LORISGENS5_H
 #define INCLUDE_LORISGENS5_H
 /*
- * This is the Loris C++ Class Library, implementing analysis, 
- * manipulation, and synthesis of digitized sounds using the Reassigned 
+ * This is the Loris C++ Class Library, implementing analysis,
+ * manipulation, and synthesis of digitized sounds using the Reassigned
  * Bandwidth-Enhanced Additive Sound Model.
  *
  * Loris is Copyright (c) 1999-2004 by Kelly Fitz and Lippold Haken
@@ -22,13 +22,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
- *	lorisgens.h
+ *      lorisgens.h
  *
- *	Header file containing structure definitions for Csound unit generators
- *	supporting bandwidth-enhanced synthesis and sound morphing using the 
- *	Loris library.
+ *      Header file containing structure definitions for Csound unit generators
+ *      supporting bandwidth-enhanced synthesis and sound morphing using the
+ *      Loris library.
  *
- *	The lorisplay module was originally written by Corbin Champion, 2002.
+ *      The lorisplay module was originally written by Corbin Champion, 2002.
  *
  * Kelly Fitz, 9 May 2002
  * loris@cerlsoundgroup.org
@@ -44,55 +44,53 @@ typedef struct LorisReader LorisReader;
 typedef struct LorisPlayer LorisPlayer;
 typedef struct LorisMorpher LorisMorpher;
 
-/*	Define a structure to hold parameters for the lorisread module. */
-typedef struct 
+/*      Define a structure to hold parameters for the lorisread module. */
+typedef struct
 {
-	/*	standard structure holding csound global data (esr, ksmps, etc.) */
-	OPDS h;  	
-	
-	/* no output 
-	MYFLT *result; */
-	
-	/* unit generator parameters/arguments */
-	MYFLT *time, *ifilnam, *readerIdx, *freqenv, *ampenv, *bwenv, *fadetime;    
+        /*      standard structure holding csound global data (esr, ksmps, etc.) */
+        OPDS h;
 
-	/* private internal data, used by generator */
-	LorisReader *imp;
+        /* no output
+        MYFLT *result; */
+
+        /* unit generator parameters/arguments */
+        MYFLT *time, *ifilnam, *readerIdx, *freqenv, *ampenv, *bwenv, *fadetime;
+
+        /* private internal data, used by generator */
+        LorisReader *imp;
 } LORISREAD;
 
-/*	Define a structure to hold parameters for the lorisplay module. */
-typedef struct 
+/*      Define a structure to hold parameters for the lorisplay module. */
+typedef struct
 {
-	/*	standard structure holding csound global data (esr, ksmps, etc.) */
-	OPDS h;  	
-	
-	/* output */
-	MYFLT *result;
-	
-	/* unit generator parameters/arguments */
-	MYFLT *readerIdx, *freqenv, *ampenv, *bwenv;    
+        /*      standard structure holding csound global data (esr, ksmps, etc.) */
+        OPDS h;
 
-	/* private internal data, used by generator */
-	LorisPlayer *imp;
+        /* output */
+        MYFLT *result;
+
+        /* unit generator parameters/arguments */
+        MYFLT *readerIdx, *freqenv, *ampenv, *bwenv;
+
+        /* private internal data, used by generator */
+        LorisPlayer *imp;
 } LORISPLAY;
 
-/*	Define a structure to hold parameters for the lorismorph module. */
-typedef struct 
+/*      Define a structure to hold parameters for the lorismorph module. */
+typedef struct
 {
-	/*	standard structure holding csound global data (esr, ksmps, etc.) */
-	OPDS h;  	
-	
-	/* no output 
-	MYFLT *result; */
+        /*      standard structure holding csound global data (esr, ksmps, etc.) */
+        OPDS h;
 
-	
-	/* unit generator parameters/arguments */
-	MYFLT *srcidx, *tgtidx, *morphedidx, *freqenv, *ampenv, *bwenv;    
+        /* no output
+        MYFLT *result; */
 
-	/* private internal data, used by generator */
-	LorisMorpher *imp;
+        /* unit generator parameters/arguments */
+        MYFLT *srcidx, *tgtidx, *morphedidx, *freqenv, *ampenv, *bwenv;
+
+        /* private internal data, used by generator */
+        LorisMorpher *imp;
 } LORISMORPH;
 
-
-#endif	/* nef INCLUDE_LORISGENS_H */
+#endif  /* nef INCLUDE_LORISGENS_H */
 

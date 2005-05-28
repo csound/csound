@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /* namedins.h -- written by Istvan Varga, Oct 2002 */
 
 #ifndef CSOUND_NAMEDINS_H

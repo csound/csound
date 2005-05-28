@@ -10,7 +10,6 @@ distributions.  Contact The Office of Technology Licensing, UC Berkeley, 2150
 Shattuck Avenue, Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, for
 commercial licensing opportunities.
 
-
 Written by Matt Wright, Amar Chaudhary, and Sami Khoury, The Center for New
 Music and Audio Technologies, University of California, Berkeley.
 
@@ -32,8 +31,6 @@ Music and Audio Technologies, University of California, Berkeley.
   Utilities for formatting data into SDIF
 
   SDIF spec: http://www.cnmat.berkeley.edu/SDIF/
-
-
 
  Matt Wright, 12/4/96
 
@@ -71,7 +68,6 @@ Music and Audio Technologies, University of California, Berkeley.
  4:8:2000 RWD: made all func calls test explicitly against ESDIF_SUCCESS
 */
 
-
 #define REALASSERT
 #ifdef REALASSERT
 #include <assert.h>
@@ -90,12 +86,9 @@ Music and Audio Technologies, University of California, Berkeley.
 
 #include "H/sdif.h"
 
-
-
 /* prototypes for functions used only in this file. */
 static int SizeofSanityCheck(void);
 static SDIFresult SkipBytes(FILE *f, int numBytes);
-
 
 /* error handling stuff. */
 static const char *error_string_array[] = {
@@ -120,16 +113,12 @@ char *SDIF_GetErrorString(SDIFresult error_code) {
     return (char*) (error_string_array[error_code]);
 }
 
-
-
 SDIFresult SDIF_Init(void) {
     if (!SizeofSanityCheck()) {
       return ESDIF_BAD_SIZEOF;
     }
     return ESDIF_SUCCESS;
 }
-
-
 
 SDIFresult SDIF_OpenWrite(const char *filename, FILE **resultp) {
     FILE *result;
@@ -179,7 +168,6 @@ SDIFresult SDIF_OpenRead(const char *filename, FILE **resultp) {
     *resultp = result;
     return ESDIF_SUCCESS;
 }
-
 
 SDIFresult SDIF_BeginRead(FILE *input) {
     SDIF_GlobalHeader sgh;
@@ -240,7 +228,6 @@ void SDIF_FillGlobalHeader(SDIF_GlobalHeader *h) {
     h->SDIFStandardTypesVersion = SDIF_LIBRARY_VERSION;
 }
 
-
 SDIFresult SDIF_WriteGlobalHeader(const SDIF_GlobalHeader *h, FILE *f) {
     SDIFresult r;
 
@@ -260,7 +247,6 @@ SDIFresult SDIF_WriteGlobalHeader(const SDIF_GlobalHeader *h, FILE *f) {
     return (fwrite(h, sizeof(*h), 1, f) == 1) ?ESDIF_SUCCESS:ESDIF_WRITE_FAILED;
 #endif
 }
-
 
 SDIFresult SDIF_ReadFrameHeader(SDIF_FrameHeader *fh, FILE *f) {
 #ifdef LITTLE_ENDIAN
@@ -297,7 +283,6 @@ SDIFresult SDIF_ReadFrameHeader(SDIF_FrameHeader *fh, FILE *f) {
     return ESDIF_READ_FAILED;
 #endif /* LITTLE_ENDIAN */
 }
-
 
 SDIFresult SDIF_WriteFrameHeader(const SDIF_FrameHeader *fh, FILE *f) {
 
@@ -377,7 +362,6 @@ SDIFresult SDIF_WriteMatrixHeader(const SDIF_MatrixHeader *m, FILE *f) {
 #endif
 }
 
-
 int SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m) {
     int size;
     size = SDIF_GetMatrixDataTypeSize(m->matrixDataType) *
@@ -403,7 +387,6 @@ int SDIF_PaddingRequired(const SDIF_MatrixHeader *m) {
     }
 }
 
-
 SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f) {
     int size = SDIF_GetMatrixDataSize(head);
 
@@ -413,7 +396,6 @@ SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f) {
 
     return SkipBytes(f, size);
 }
-
 
 SDIFresult
 SDIF_ReadMatrixData(void *putItHere, FILE *f, const SDIF_MatrixHeader *head) {
@@ -445,19 +427,15 @@ SDIF_ReadMatrixData(void *putItHere, FILE *f, const SDIF_MatrixHeader *head) {
 #endif
 }
 
-
 sdif_int32 SDIF_UniqueStreamID(void) {
     static int id=0;
     return ++id;
 }
 
-
-
 int SDIF_Char4Eq(const char *ths, const char *that) {
     return ths[0] == that[0] && ths[1] == that[1] &&
            ths[2] == that[2] && ths[3] == that[3];
 }
-
 
 void SDIF_Copy4Bytes(char *target, const char *string) {
     target[0] = string[0];
@@ -466,17 +444,14 @@ void SDIF_Copy4Bytes(char *target, const char *string) {
     target[3] = string[3];
 }
 
-
 #ifdef LITTLE_ENDIAN
 #define BUFSIZE 4096
 static  char    p[BUFSIZE];
 #endif
 
-
 SDIFresult SDIF_Write1(const void *block, size_t n, FILE *f) {
     return (fwrite (block,1,n,f) == n) ? ESDIF_SUCCESS : ESDIF_WRITE_FAILED;
 }
-
 
 SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f) {
 #ifdef LITTLE_ENDIAN
@@ -504,8 +479,6 @@ SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f) {
 #endif
 }
 
-
-
 SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f) {
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
@@ -531,8 +504,6 @@ SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f) {
     return (fwrite(block,4,n,f) == n) ? ESDIF_SUCCESS : ESDIF_WRITE_FAILED;
 #endif
 }
-
-
 
 SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f) {
 #ifdef LITTLE_ENDIAN
@@ -564,11 +535,9 @@ SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f) {
 #endif
 }
 
-
 SDIFresult SDIF_Read1(void *block, size_t n, FILE *f) {
     return (fread (block,1,n,f) == n) ? ESDIF_SUCCESS : ESDIF_READ_FAILED;
 }
-
 
 SDIFresult SDIF_Read2(void *block, size_t n, FILE *f) {
 
@@ -599,7 +568,6 @@ SDIFresult SDIF_Read2(void *block, size_t n, FILE *f) {
 
 }
 
-
 SDIFresult SDIF_Read4(void *block, size_t n, FILE *f) {
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
@@ -629,7 +597,6 @@ SDIFresult SDIF_Read4(void *block, size_t n, FILE *f) {
 #endif
 
 }
-
 
 SDIFresult SDIF_Read8(void *block, size_t n, FILE *f) {
 #ifdef LITTLE_ENDIAN
@@ -665,7 +632,6 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f) {
 #endif
 }
 
-
 /* static function definitions follow. */
 
 static int SizeofSanityCheck(void) {
@@ -695,7 +661,6 @@ static int SizeofSanityCheck(void) {
     }
     return OK;
 }
-
 
 static SDIFresult SkipBytes(FILE *f, int bytesToSkip) {
 #ifdef STREAMING

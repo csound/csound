@@ -36,7 +36,6 @@
 #include "pvadd.h"
 #include "oload.h"
 
-
 /* This is used in pvadd instead of the Fetch() from dsputil.c */
 void FetchInForAdd(MYFLT *inp, MYFLT *buf, long fsize,
                 MYFLT  pos, int binoffset, int maxbin, int binincr)
@@ -158,7 +157,6 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     size = pvfrsiz(p);
     p->prFlg = 1;    /* true */
 
-
    if (*p->igatefun > 0)
      p->PvMaxAmp = PvocMaxAmp(p->frPtr,size, p->maxFr);
 
@@ -194,7 +192,6 @@ int pvadd(ENVIRON *csound, PVADD *p)
     FUNC *ftp;
     long lobits;
 /*     int mode = (int)*p->imode; */
-
 
     if (p->auxch.auxp==NULL) {
       return csound->PerfError(csound, Str("pvadd: not initialised"));

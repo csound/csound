@@ -72,7 +72,6 @@ int scot(FILE *inf,FILE *outf, char *fil) /* main externally-visible procedure *
     return errcount;
 }
 
-
 static                 /* reads from one $instrument to the next */
 void readinstsec(
     Inst *inst,
@@ -633,7 +632,6 @@ void readinstsec(
     scotungetc();
 }
 
-
 static                          /* puts parameter in plist */
 void addparam(
     int n,                      /* number of param to change */
@@ -645,7 +643,6 @@ void addparam(
     ps = findparam(n,ptop);
     if (strcmp(s,".")) strcpy(ps,s);
 }
-
 
 static                                      /* returns pointer to */
 char *findparam(int n,                      /* nth parameter */
@@ -672,7 +669,6 @@ char *findparam(int n,                      /* nth parameter */
     return p->str;
 }
 
-
 static                          /* reads parameter list and */
 char *readparams(Inst *n)       /* substitutes macros for local macro list */
 {
@@ -689,7 +685,6 @@ char *readparams(Inst *n)       /* substitutes macros for local macro list */
     while (applymacs(&s,n));
     return s;
 }
-
 
 static                          /* substitutes 1 or 0 macros in s */
 int applymacs(char **s, Inst *n) /* returns TRUE if substituted */
@@ -729,7 +724,6 @@ int applymacs(char **s, Inst *n) /* returns TRUE if substituted */
     return FALSE;
 }
 
-
 static                          /* returns value of macro */
 char *macval(char *s, Inst *n)
 {
@@ -739,7 +733,6 @@ char *macval(char *s, Inst *n)
     for (p=gmac;p;p=p->next) if (!strcmp(s,p->name)) return p->text;
     return NULL;
 }
-
 
 static
 void initnote(Note *pn)
@@ -755,7 +748,6 @@ void initnote(Note *pn)
     pn->tie=FALSE;
     pn->written=TRUE;
 }
-
 
 static                          /* reads score{} section */
 void readscore(Inst *insttop)
@@ -857,7 +849,6 @@ void readscore(Inst *insttop)
     fprintf(outfile,"\nf0 %g\ns\n",maxtime);
 }
 
-
 static                          /* functions{} section */
 void readfunctions(void)
 {
@@ -877,7 +868,6 @@ void readfunctions(void)
       putc(c,outfile);
     }
 }
-
 
 static                          /* orchestra{} section */
 void readorch(Inst **insttopp)
@@ -926,7 +916,6 @@ void readorch(Inst **insttopp)
     q->next=NULL;
 }
 
-
 static                          /* reads macro list from score section */
 void readmacros(Macro **mtop)
 {
@@ -955,7 +944,6 @@ void readmacros(Macro **mtop)
     free((char *)p);
 }
 
-
 static                          /* returns TRUE if ch is NOT */
 int expectchar(int ch)          /* the next non-whitespace char */
 {
@@ -967,11 +955,9 @@ int expectchar(int ch)          /* the next non-whitespace char */
     return !(c==ch);
 }
 
-
 /* all these find* functions return their found values in
    their passed-by-pointer operands. They only return TRUE
    upon failure. */
-
 
 static
 int findchar(int *ip)
@@ -984,7 +970,6 @@ int findchar(int *ip)
     *ip=c;
     return FALSE;
 }
-
 
 static
 int findint(int *ip)
@@ -1006,7 +991,6 @@ int findint(int *ip)
     return t;
 }
 
-
 static
 int findonoff(int *ip)
 {
@@ -1024,13 +1008,11 @@ int findonoff(int *ip)
     return TRUE;
 }
 
-
 static
 void efindword(char *s)
 {
     if (findword(s)) scotferror(Str("Unexpected end of file"));
 }
-
 
 static
 int findword(char *s)
@@ -1063,7 +1045,6 @@ int findword(char *s)
     return FALSE;
 }
 
-
 static                          /* gets a char from file, but */
 int getccom(void)                       /* ignores comments. */
 {
@@ -1074,7 +1055,6 @@ int getccom(void)                       /* ignores comments. */
     while (scotgetc()!='\n');
     return '\n';
 }
-
 
 static
 int letterval(int c)
@@ -1099,7 +1079,6 @@ int letterval(int c)
       return 0;
     }
 }
-
 
 static                          /* returns octave.pitchclass */
 double pitchval(int oct, int pit, int acc, int transpose)
@@ -1139,7 +1118,6 @@ double pitchval(int oct, int pit, int acc, int transpose)
 
     return (double) oct+(double) pit*0.01;
 }
-
 
 static                          /* just writes pfields from n->p, */
 void writenote(Note *n)         /* or n->carryp if others are blank "." */
@@ -1192,7 +1170,6 @@ void writenote(Note *n)         /* or n->carryp if others are blank "." */
 
 }
 
-
 static                          /* deallocates a note and */
 void freenote(Note *n)          /* its pfield lists */
 {
@@ -1200,7 +1177,6 @@ void freenote(Note *n)          /* its pfield lists */
     freeps(n->carryp);
     free((char *)n);
 }
-
 
 static                          /* deallocates a pfield list */
 void freeps(Strlist *pp)
@@ -1213,7 +1189,6 @@ void freeps(Strlist *pp)
       free((char *)pq);
     }
 }
-
 
 static                          /* copies a pfield list */
 void strlistcopy(Strlist **dest,Strlist **source)
@@ -1235,7 +1210,6 @@ void strlistcopy(Strlist **dest,Strlist **source)
     dp->next=NULL;
 }
 
-
 /* rational number functions */
 
 static
@@ -1247,7 +1221,6 @@ double ratval(Rat *r)           /* evaluate r */
     }
     return (double) r->num/(double) r->denom;
 }
-
 
 static
 void ratreduce(Rat *r)          /* reduce r */
@@ -1278,7 +1251,6 @@ void ratreduce(Rat *r)          /* reduce r */
     r->denom  /= b;
 }
 
-
 static
 void ratadd(Rat *d,Rat *a1,Rat *a2)             /* d=a1+a2; OK if d=a1=a2 */
 {
@@ -1304,7 +1276,6 @@ void ratadd(Rat *d,Rat *a1,Rat *a2)             /* d=a1+a2; OK if d=a1=a2 */
 
 }
 
-
 static
 void ratmul(Rat *d,Rat *a1,Rat *a2)             /* d=a1*a2; OK if d=a1=a2 */
 {
@@ -1312,7 +1283,6 @@ void ratmul(Rat *d,Rat *a1,Rat *a2)             /* d=a1*a2; OK if d=a1=a2 */
     d->denom=a1->denom*a2->denom;
     ratreduce(d);
 }
-
 
 static
 void ratdiv(Rat *d,Rat *a1,Rat *a2)             /* d=a1/a2; OK if d=a1=a2 */
@@ -1327,7 +1297,6 @@ void ratdiv(Rat *d,Rat *a1,Rat *a2)             /* d=a1/a2; OK if d=a1=a2 */
     ratreduce(d);
 }
 
-
 static
 int ratcmp(Rat *a,Rat *b)
 {
@@ -1340,7 +1309,6 @@ int ratcmp(Rat *a,Rat *b)
     return 1;
 }
 
-
 static
 void ratass(Rat *a,Rat *b)              /* sorry about the name... a=b; */
 {
@@ -1348,10 +1316,7 @@ void ratass(Rat *a,Rat *b)              /* sorry about the name... a=b; */
     a->denom=b->denom;
 }
 
-
-
 /* i/o and error routines */
-
 
 static                          /* call once to start reading infile */
 void initf(FILE *inf,FILE *outf,char *fil)
@@ -1368,7 +1333,6 @@ void initf(FILE *inf,FILE *outf,char *fil)
     inx=0; iny=1;
     errcount=0;
 }
-
 
 static                          /* use like getc(infile) */
 int scotgetc(void)
@@ -1391,13 +1355,11 @@ int scotgetc(void)
     return (int) curline[inx-1];
 }
 
-
 static
 void scotungetc(void)
 {
     inx--;
 }
-
 
 static
 void scoterror(char *s)
@@ -1411,7 +1373,6 @@ void scoterror(char *s)
     errcount++;
 }
 
-
 static                          /* fatal error */
 void scotferror(char *s)
 {
@@ -1420,7 +1381,6 @@ void scotferror(char *s)
     reporterrcount();
     exit(1);
 }
-
 
 static
 void reporterrcount(void)

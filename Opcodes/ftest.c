@@ -12,7 +12,6 @@ void tanhtable(FUNC *ftp, FGDATA *ff)
       *fp++ = (MYFLT)tanh(x);
 }
 
-
 static NGFENS localfgens[] = {
    { "tanh", (void(*)(void))tanhtable},
    { NULL, NULL}

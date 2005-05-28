@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -52,8 +52,8 @@ static std::string about = "CSOUND AND CSOUND VST\n"
 "GNU Lesser General Public License for more details. \n"
 "\n"
 "You should have received a copy of the GNU Lesser General Public \n"
-"License along with this software; if not, write to the Free Software\n" 
-"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA\n" 
+"License along with this software; if not, write to the Free Software\n"
+"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA\n"
 "02111-1307 USA\n"
 "\n"
 "INSTALLATION\n"
@@ -61,14 +61,14 @@ static std::string about = "CSOUND AND CSOUND VST\n"
 "See the Csound documentation for more information, \n"
 "or go to http://sourceforge.net/projects/csound.\n"
 "\n"
-"HELP\n" 
+"HELP\n"
 "\n"
 "This version of Csound is programmable in Python, and scores can be \n"
 "generated in Python. See the Csound documentation for more information. \n"
 "\n"
-"CONTRIBUTORS\n" 
+"CONTRIBUTORS\n"
 "\n"
-"Csound contains contributions from musicians, scientists, and programmers \n" 
+"Csound contains contributions from musicians, scientists, and programmers \n"
 "from around the world. They include (but are not limited to): \n"
 "\n"
 "Allan Lee  \n"
@@ -197,7 +197,7 @@ long CsoundVstFltk::getRect(ERect **erect)
 
 long CsoundVstFltk::open(void *parentWindow)
 {
-  systemWindow = parentWindow; 
+  systemWindow = parentWindow;
   Fl::lock();
   this->csoundVstUi = make_window(this);
   this->mainTabs = ::mainTabs;
@@ -225,7 +225,7 @@ long CsoundVstFltk::open(void *parentWindow)
   this->scoreGroup = ::scoreGroup;
   this->scriptGroup = ::scriptGroup;
   this->autoPlayCheckButton = ::autoPlayCheckButton;
-  //	Read user preferences.
+  //    Read user preferences.
   char buffer[0x500];
   int number = 0;
   preferences.get("SoundfileOpen", (char *)buffer, "mplayer.exe", 0x500);
@@ -245,8 +245,8 @@ long CsoundVstFltk::open(void *parentWindow)
       this->settingsCsoundPerformanceModePython->deactivate();
       csoundVST->setIsAutoPlayback(false);
       this->autoPlayCheckButton->deactivate();
-    } 
-  else 
+    }
+  else
     {
       preferences.get("IsPython", number, 0);
       csoundVST->setIsPython(number);
@@ -263,33 +263,33 @@ void CsoundVstFltk::close()
   this->csoundVstUi->hide();
 }
 
-void CsoundVstFltk::idle() 
-{ 
+void CsoundVstFltk::idle()
+{
   // Process events for the FLTK GUI.
   Fl::lock();
   Fl::wait(0);
   Fl::unlock();
   // If the VST host has indicated
   // it needs the GUI updated, do it.
-  if(updateFlag) 
+  if(updateFlag)
     {
-      updateFlag = 0; 
+      updateFlag = 0;
       update();
     }
   if(csoundVstUi)
     {
       if(this->runtimeMessagesBrowser)
-	{
-	  while(!messages.empty())
-	    {
-	      Fl::lock();
-	      this->runtimeMessagesBrowser->add(messages.front().c_str());
-	      messages.pop_front();
-	      this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
-	      Fl::flush();
-	      Fl::unlock();
-	    }
-	}
+        {
+          while(!messages.empty())
+            {
+              Fl::lock();
+              this->runtimeMessagesBrowser->add(messages.front().c_str());
+              messages.pop_front();
+              this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
+              Fl::flush();
+              Fl::unlock();
+            }
+        }
     }
 }
 
@@ -309,13 +309,13 @@ void CsoundVstFltk::update()
       this->settingsCsoundPerformanceModePython->value(csoundVST->getIsPython());
       this->autoPlayCheckButton->value(csoundVST->getIsAutoPlayback());
       if(csoundVST->getIsPython())
-	{
-	  onSettingsCsoundPerformanceModePython(settingsCsoundPerformanceModePython, this);	
-	}
+        {
+          onSettingsCsoundPerformanceModePython(settingsCsoundPerformanceModePython, this);
+        }
       else
-	{
-	  onSettingsCsoundPerformanceModeClassic(settingsCsoundPerformanceModeClassic, this);	
-	}
+        {
+          onSettingsCsoundPerformanceModeClassic(settingsCsoundPerformanceModeClassic, this);
+        }
       buffer = csoundVST->getCppSound()->getCommand();
       this->commandInput->value(removeCarriageReturns(buffer));
       buffer = csoundVST->getCppSound()->getOrchestra();
@@ -329,7 +329,7 @@ void CsoundVstFltk::update()
   csound::System::message("ENDED CsoundVstFltk::update.\n");
 }
 
-void CsoundVstFltk::postUpdate() 
+void CsoundVstFltk::postUpdate()
 {
   updateFlag = 1;
 }
@@ -358,33 +358,33 @@ void CsoundVstFltk::messageCallback(void *userdata, int attribute, const char *f
   while((position = csoundVstFltk->messagebuffer.find("\n")) != std::string::npos)
     {
       if(!csoundVstFltk)
-	{
-	  return;
-	}
+        {
+          return;
+        }
       if(csoundVstFltk->csoundVST->getIsVst())
-	{
-	  csoundVstFltk->messages.push_back(csoundVstFltk->messagebuffer.substr(0, position));
-	}
+        {
+          csoundVstFltk->messages.push_back(csoundVstFltk->messagebuffer.substr(0, position));
+        }
       else
-	{
-	  if(!csoundVstFltk->csoundVstUi)
-	    {
-	      return;
-	    }
-	  if(!csoundVstFltk->runtimeMessagesBrowser)
-	    {
-	      return;
-	    }
-	  else
-	    {
-	      Fl::lock();
-	      csoundVstFltk->runtimeMessagesBrowser->add(csoundVstFltk->messagebuffer.substr(0, position).c_str());
-	      csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
-	      Fl::flush();
-	      Fl::unlock();
-	    }
-	  csoundVstFltk->messagebuffer.erase(0, position + 1); 
-	}
+        {
+          if(!csoundVstFltk->csoundVstUi)
+            {
+              return;
+            }
+          if(!csoundVstFltk->runtimeMessagesBrowser)
+            {
+              return;
+            }
+          else
+            {
+              Fl::lock();
+              csoundVstFltk->runtimeMessagesBrowser->add(csoundVstFltk->messagebuffer.substr(0, position).c_str());
+              csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
+              Fl::flush();
+              Fl::unlock();
+            }
+          csoundVstFltk->messagebuffer.erase(0, position + 1);
+        }
       csoundVstFltk->messagebuffer.clear();
     }
 }
@@ -412,10 +412,10 @@ void CsoundVstFltk::onNewVersion(Fl_Button*, CsoundVstFltk* csoundVstFltk)
     {
       csoundVST->save(csoundVST->getFilename());
       csound::System::message("Saved old version: '%s'\n", csoundVST->getFilename().c_str());
-      filename_ = csoundVST->generateFilename(); 
-      csoundVST->save(filename_);        
-      csoundVST->setFilename(filename_);        
-      csoundVST->getCppSound()->setFilename(filename_);        
+      filename_ = csoundVST->generateFilename();
+      csoundVST->save(filename_);
+      csoundVST->setFilename(filename_);
+      csoundVST->getCppSound()->setFilename(filename_);
       csound::System::message("Saved new version: '%s'\n", csoundVST->getFilename().c_str());
     }
   else
@@ -423,8 +423,8 @@ void CsoundVstFltk::onNewVersion(Fl_Button*, CsoundVstFltk* csoundVstFltk)
       csoundVST->getCppSound()->save(csoundVST->getCppSound()->getFilename());
       csound::System::message("Saved old version: '%s'\n", csoundVST->getCppSound()->getFilename().c_str());
       filename_ = csoundVST->getCppSound()->generateFilename();
-      csoundVST->getCppSound()->save(filename_);        
-      csoundVST->getCppSound()->setFilename(filename_);        
+      csoundVST->getCppSound()->save(filename_);
+      csoundVST->getCppSound()->setFilename(filename_);
       csound::System::message("Saved new version: '%s'\n", csoundVST->getCppSound()->getFilename().c_str());
     }
   updateCaption();
@@ -440,35 +440,35 @@ void CsoundVstFltk::onImport(Fl_Button*, CsoundVstFltk* csoundVstFltk)
     {
       std::string oldFilename = csoundVST->getFilename();
       if(oldFilename.length() <= 0)
-	{
-	  oldFilename = "Default.py";
-	}
+        {
+          oldFilename = "Default.py";
+        }
       filename_ = fl_file_chooser("Open a file...", "*.py|*.csd|*.orc|*.sco|*.mid", oldFilename.c_str(), false);
     }
   else
     {
       std::string oldFilename = csoundVST->getFilename();
       if(oldFilename.length() <= 0)
-	{
-	  oldFilename = "Default.csd";
-	}
+        {
+          oldFilename = "Default.csd";
+        }
       filename_ = fl_file_chooser("Import a file...", "*.csd|*.orc|*.sco|*.mid", oldFilename.c_str(), false);
     }
   if(filename_)
     {
       WaitCursor wait;
       if(csoundVST->getIsPython())
-	{
-	  csoundVST->load(filename_);
-	  csoundVST->setFilename(filename_);
-	  csound::System::message("Opened file: '%s'.\n", csoundVST->getFilename().c_str());
-	}
+        {
+          csoundVST->load(filename_);
+          csoundVST->setFilename(filename_);
+          csound::System::message("Opened file: '%s'.\n", csoundVST->getFilename().c_str());
+        }
       else
-	{
-	  csoundVST->getCppSound()->importFile(filename_);
-	  csoundVST->getCppSound()->setFilename(filename_);
-	  csound::System::message("Imported file: '%s'.\n", csoundVST->getCppSound()->getFilename().c_str());
-	}
+        {
+          csoundVST->getCppSound()->importFile(filename_);
+          csoundVST->getCppSound()->setFilename(filename_);
+          csound::System::message("Imported file: '%s'.\n", csoundVST->getCppSound()->getFilename().c_str());
+        }
       csoundVST->bank[csoundVST->getProgram()].text = csoundVST->getText();
       update();
     }
@@ -484,18 +484,18 @@ void CsoundVstFltk::onOpen(Fl_Button*, CsoundVstFltk* csoundVstFltk)
     {
       std::string oldFilename = csoundVST->getFilename();
       if(oldFilename.length() <= 0)
-	{
-	  oldFilename = "Default.py";
-	}
+        {
+          oldFilename = "Default.py";
+        }
       filename_ = fl_file_chooser("Open a file...", "*.py|*.csd|*.orc|*.sco|*.mid", oldFilename.c_str(), false);
     }
   else
     {
       std::string oldFilename = csoundVST->getCppSound()->getFilename();
       if(oldFilename.length() <= 0)
-	{
-	  oldFilename = "Default.csd";
-	}
+        {
+          oldFilename = "Default.csd";
+        }
       filename_ = fl_file_chooser("Open a file...", "*.csd|*.orc|*.sco|*.mid|*.py", oldFilename.c_str(), false);
     }
   if(filename_)
@@ -531,18 +531,18 @@ void CsoundVstFltk::onSaveAs(Fl_Button*, CsoundVstFltk* csoundVstFltk)
     {
       std::string oldFilename = csoundVST->getFilename();
       if(oldFilename.length() <= 0)
-	{
-	  oldFilename = "Default.py";
-	}
+        {
+          oldFilename = "Default.py";
+        }
       filename_ = fl_file_chooser("Save as...", "*.py", oldFilename.c_str(), false);
     }
   else
     {
       std::string oldFilename = csoundVST->getCppSound()->getFilename();
       if(oldFilename.length() <= 0)
-	{
-	  oldFilename = "Default.csd";
-	}
+        {
+          oldFilename = "Default.csd";
+        }
       filename_ = fl_file_chooser("Save as...", "*.csd|*.orc|*.sco|*.mid", oldFilename.c_str(), false);
     }
   if(filename_)
@@ -551,18 +551,18 @@ void CsoundVstFltk::onSaveAs(Fl_Button*, CsoundVstFltk* csoundVstFltk)
       runtimeMessagesBrowser->clear();
       csound::System::message("BEGAN CsoundVstFltk::onSaveAs...\n");
       if(csoundVST->getIsPython())
-	{
-	  csoundVST->save(filename_);
-	  csoundVST->setFilename(filename_);
-	  csoundVST->getCppSound()->setFilename(filename_);        
-	  csound::System::message("Saved file as: '%s'.\n", csoundVST->getFilename().c_str());
-	}
+        {
+          csoundVST->save(filename_);
+          csoundVST->setFilename(filename_);
+          csoundVST->getCppSound()->setFilename(filename_);
+          csound::System::message("Saved file as: '%s'.\n", csoundVST->getFilename().c_str());
+        }
       else
-	{
-	  csoundVST->getCppSound()->save(filename_);
-	  csoundVST->getCppSound()->setFilename(filename_);
-	  csound::System::message("Saved file as: '%s'.\n", csoundVST->getCppSound()->getFilename().c_str());
-	}
+        {
+          csoundVST->getCppSound()->save(filename_);
+          csoundVST->getCppSound()->setFilename(filename_);
+          csound::System::message("Saved file as: '%s'.\n", csoundVST->getCppSound()->getFilename().c_str());
+        }
       update();
     }
   csound::System::message("ENDED CsoundVstFltk::onSaveAs.\n");

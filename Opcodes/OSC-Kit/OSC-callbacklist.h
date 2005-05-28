@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -39,13 +39,11 @@ The OpenSound Control WWW page is
 
 */
 
-
 /* Call this before you call anything else. */
 OSCBoolean InitCallbackListNodes(int numNodes, void *(*InitTimeMalloc)(int numBytes));
 
-callbackList AllocCallbackListNode(methodCallback callback, void *context, 
-				   struct callbackListNode *next);
+callbackList AllocCallbackListNode(methodCallback callback, void *context,
+                                   struct callbackListNode *next);
 
 void FreeCallbackListNode(callbackList);
-
 

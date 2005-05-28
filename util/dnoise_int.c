@@ -47,7 +47,6 @@ char sfdir_path[PATH_LEN];
 char sadir_path[PATH_LEN];
 char incdir_path[PATH_LEN];
 
-
 /*
  * Current command line.
  */
@@ -126,7 +125,6 @@ void doAboutBox(void)
     DisposeDialog(dp);
 }
 
-
 /*============================================================================
  * Set the contents of a dialog text item via sprintf.
  ============================================================================*/
@@ -171,7 +169,6 @@ void GetDlgString(DialogPtr dp, short itemHit, char *p)
     PtoCstr((StringPtr)p);
 }
 
-
 /*============================================================================
  * Event filter for dlgFileOpen() modal dialog.
  ============================================================================*/
@@ -191,7 +188,6 @@ pascal Boolean myFilter(DialogPtr dp, EventRecord *ev, short *itemHit)
       }
     else return FALSE;
 }
-
 
 /* Redraw the file open dialog box */
 
@@ -265,7 +261,6 @@ void concatPath(char *path, char *name)
     strcpy(path,buf);
 }
 
-
 /*============================================================================
  * Replaces ".suffix" with x.
  ============================================================================*/
@@ -302,7 +297,6 @@ void formOutputFile(DialogPtr dp, SO_FILE *p)
       break;
     }
 }
-
 
 /*#pragma mark - */
 
@@ -473,7 +467,6 @@ void do_mac_dialogs(void)
     gFileDlg = 0;
 }
 
-
 /*
  * Append the (fmt, args) to the current command line using sprintf.
  */
@@ -508,7 +501,6 @@ void appendCmdf(char *fmt, MYFLT a)
     gargv[gargc++] = b;
     endp += strlen(b)+1;
 }
-
 
 /*
  * getHFSPath() function builds full pathname from fname and vrefnum.

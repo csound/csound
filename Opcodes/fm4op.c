@@ -72,8 +72,6 @@ MYFLT TwoZero_tick(TwoZero *p, MYFLT sample)
     return p->lastOutput;
 }
 
-
-
 MYFLT Wave_tick(MYFLT *vTime, int len, MYFLT *data, MYFLT rate, MYFLT phase)
 {                                /* Tick on vibrato table */
     long    temp;
@@ -224,7 +222,6 @@ void FM4Op_keyOff(FM4OP *p)
 /*            control2 = crossfade of two outputs        */
 /*                                                       */
 /*********************************************************/
-
 
 MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 {
@@ -380,7 +377,6 @@ int rhodeset(ENVIRON *csound, FM4OP *p)
 /*  Subclass of 4 Operator FM Synth by Perry R. Cook, 1995-96  */
 /*  Recoded in C by John ffitch 1997-98                        */
 /***************************************************************/
-
 
 int wurleyset(ENVIRON *csound, FM4OP *p)
 {
@@ -590,13 +586,11 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
     return lastOutput;
 }
 
-
 /**************************************************************/
 /*  Hammond(OID) Organ Subclass of Algorithm 8 (TX81Z)        */
 /*  Subclass of 4 Operator FM Synth by Perry R. Cook, 1995-96 */
 /*  Recoded in C by John ffitch 1997-98                       */
 /**************************************************************/
-
 
 int b3set(ENVIRON *csound, FM4OP *p)
 {
@@ -1055,7 +1049,6 @@ MYFLT FM4Alg4_tick(ENVIRON *csound, FM4OP *p, MYFLT c1, MYFLT c2)
     lastOutput = temp * FL(0.5);
     return lastOutput;
 }
-
 
 int percfluteset(ENVIRON *csound, FM4OP *p)
 {

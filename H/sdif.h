@@ -10,7 +10,6 @@ distributions.  Contact The Office of Technology Licensing, UC Berkeley, 2150
 Shattuck Avenue, Suite 510, Berkeley, CA 94720-1620, (510) 643-7201, for
 commercial licensing opportunities.
 
-
 Written by Matt Wright, Amar Chaudhary, and Sami Khoury, The Center for New
 Music and Audio Technologies, University of California, Berkeley.
 
@@ -104,8 +103,6 @@ typedef enum {
     ESDIF_DUPLICATE_MATRIX_TYPE_IN_FRAME=14
 } SDIFresult;
 
-
-
 /****************************************************/
 /***** These data structures match the SDIF spec ****/
 /****************************************************/
@@ -128,7 +125,6 @@ typedef struct {
     sdif_int32   matrixCount;         /* number of matrices in frame */
 } SDIF_FrameHeader;
 
-
 /* the header for each matrix of SDIF data. */
 typedef struct {
     char matrixType[4];
@@ -136,7 +132,6 @@ typedef struct {
     sdif_int32 rowCount;
     sdif_int32 columnCount;
 } SDIF_MatrixHeader;
-
 
 /* Version numbers for SDIF_GlobalHeader associated with this library */
 #define SDIF_SPEC_VERSION 3
@@ -162,11 +157,9 @@ typedef enum {
     SDIF_ARBITRARY = 4
 } SDIF_MatrixDataTypeHighOrder;
 
-
 /****************************************************/
 /*****     Procedures in the library             ****/
 /****************************************************/
-
 
 /* SDIF_Init --
    You must call this before any of the other SDIF procedures. */
@@ -175,7 +168,6 @@ SDIFresult SDIF_Init(void);
 /* SDIF_GetErrorString --
    Returns the string representation of the given error code. */
 char *SDIF_GetErrorString(SDIFresult errorcode);
-
 
 /************* Opening and closing files *************/
 
@@ -206,7 +198,6 @@ SDIFresult SDIF_BeginRead(FILE *input);
 /* SDIF_CloseRead -- */
 SDIFresult SDIF_CloseRead(FILE *f);
 
-
 /************* Global Header *************/
 
 /* SDIF_FillGlobalHeader --
@@ -216,8 +207,6 @@ void SDIF_FillGlobalHeader(SDIF_GlobalHeader *h);
 /* SDIF_WriteGlobalHeader --
    Writes "h" to "f". */
 SDIFresult SDIF_WriteGlobalHeader(const SDIF_GlobalHeader *h, FILE *f);
-
-
 
 /************* Frames *************/
 
@@ -242,7 +231,6 @@ SDIFresult SDIF_WriteFrameHeader(const SDIF_FrameHeader *fh, FILE *f);
    The arguments are a pointer to the SDIF_FrameHeader you just read
    (which includes the size count) and the open FILE *.  */
 SDIFresult SDIF_SkipFrame(const SDIF_FrameHeader *fh, FILE *f);
-
 
 /************* Matrices *************/
 
@@ -284,14 +272,12 @@ SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f);
 SDIFresult SDIF_ReadMatrixData(void *putItHere, FILE *f,
                                const SDIF_MatrixHeader *head);
 
-
 /************* Stream IDs *************/
 
 /* SDIF_UniqueStreamID --
    Each call to this procedure returns a locally unique stream ID: 1, 2, 3...
    This procedure is not thread-safe. */
 sdif_int32 SDIF_UniqueStreamID(void);
-
 
 /************* 4-byte character arrays *************/
 
@@ -304,7 +290,6 @@ int SDIF_Char4Eq(const char *thisone, const char *thatone);
    Copies 4 bytes (e.g., "SDIF") into a 4-byte char array. */
 void SDIF_Copy4Bytes(char *target, const char *string);
 
-
 /* SDIF_Read and SDIF_Write --
 
    Abstract away big endian/little endian in reading/writing 1, 2, 4, and 8
@@ -314,7 +299,6 @@ void SDIF_Copy4Bytes(char *target, const char *string);
    that the size of the objects you're writing is determined by which function
    you call instead of an explicit argument.  Also, they do little-endian
    conversion when necessary. */
-
 
 #if defined(_WIN32) || defined(_WINDOWS)
 #define LITTLE_ENDIAN  1
@@ -331,9 +315,6 @@ SDIFresult SDIF_Read1(void *block, size_t n, FILE *f);
 SDIFresult SDIF_Read2(void *block, size_t n, FILE *f);
 SDIFresult SDIF_Read4(void *block, size_t n, FILE *f);
 SDIFresult SDIF_Read8(void *block, size_t n, FILE *f);
-
-
-
 
 #ifdef __cplusplus
 }

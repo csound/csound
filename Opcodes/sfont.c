@@ -46,7 +46,6 @@ void fill_SfStruct(ENVIRON *);
 void layerDefaults(layerType *layer);
 void splitDefaults(splitType *split);
 
-
 #define MAX_SFONT               (10)
 #define MAX_SFPRESET            (512)
 #define MAX_SFINSTR             (512)
@@ -64,7 +63,6 @@ static SHORT *sampleBase[MAX_SFPRESET];
 /* static instrType *instrp[MAX_SFINSTR]; */
 /* static SHORT *isampleBase[MAX_SFINSTR]; */
 static MYFLT pitches[128];
-
 
 PUBLIC int csoundModuleDestroy(void *csound)
 {
@@ -156,7 +154,6 @@ int SfLoad(ENVIRON *csound, SFLOAD *p)  /* open a file and return its handle */
     return OK;
 }
 
-
 static char *filter_string(char *s, char temp_string[24])
 {
     int i=0, j=0;
@@ -191,7 +188,6 @@ int Sfplist(ENVIRON *csound, SFPLIST *p)
     return OK;
 }
 
-
 int SfAssignAllPresets(ENVIRON *csound, SFPASSIGN *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
@@ -214,8 +210,6 @@ int SfAssignAllPresets(ENVIRON *csound, SFPASSIGN *p)
     return OK;
 }
 
-
-
 int Sfilist(ENVIRON *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
@@ -228,7 +222,6 @@ int Sfilist(ENVIRON *csound, SFPLIST *p)
     csound->Message(csound, "\n");
     return OK;
 }
-
 
 int SfPreset(ENVIRON *csound, SFPRESET *p)
 {
@@ -259,7 +252,6 @@ int SfPreset(ENVIRON *csound, SFPRESET *p)
     }
     return OK;
 }
-
 
 int SfPlay_set(ENVIRON *csound, SFPLAY *p)
 {
@@ -332,7 +324,6 @@ int SfPlay_set(ENVIRON *csound, SFPLAY *p)
     return OK;
 }
 
-
 #define Linear_interpolation \
         SHORT *curr_samp = *base + (long) *phs;\
         MYFLT fract = (MYFLT) *phs - (MYFLT)((long)*phs);\
@@ -365,18 +356,14 @@ int SfPlay_set(ENVIRON *csound, SFPLAY *p)
         if (*phs > *end) break;           \
         if (*phs < FL(0.0)) *phs = FL(0.0);       \
 
-
 #define Mono_out \
         *outemp1++ +=  *attenuation * out; \
         *phs += si;
-
 
 #define Stereo_out \
         *outemp1++ += *left * out;\
         *outemp2++ += *right * out;\
         *phs += si;
-
-
 
 int SfPlay(ENVIRON *csound, SFPLAY *p)
 {
@@ -460,7 +447,6 @@ int SfPlay(ENVIRON *csound, SFPLAY *p)
     }
     return OK;
 }
-
 
 int SfPlay3(ENVIRON *csound, SFPLAY *p)
 {
@@ -607,7 +593,6 @@ int SfPlayMono_set(ENVIRON *csound, SFPLAYMONO *p)
     p->spltNum = spltNum;
     return OK;
 }
-
 
 int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
 {
@@ -1003,8 +988,6 @@ int SfInstrPlay3(ENVIRON *csound, SFIPLAY *p)
     return OK;
 }
 
-
-
 int SfInstrPlayMono_set(ENVIRON *csound, SFIPLAYMONO *p)
 {
     int index = (int) *p->sfBank;
@@ -1138,7 +1121,6 @@ int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
     }
     return OK;
 }
-
 
 int SfInstrPlayMono3(ENVIRON *csound, SFIPLAYMONO *p)
 {

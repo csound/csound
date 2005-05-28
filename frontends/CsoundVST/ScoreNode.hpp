@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -34,25 +34,24 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound 
+namespace csound
 {
-	/**
-	* Node class that produces events from the contained score,
-	* which can be built up programmatically or imported from a standard MIDI file.
-	*/
-	class ScoreNode : 
-		public Node
-	{
-	protected:
-		Score score;
-	public:
-		std::string importFilename;
-		ScoreNode();
-		virtual ~ScoreNode();
-		virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
-		virtual Score &getScore();
-	};
+        /**
+        * Node class that produces events from the contained score,
+        * which can be built up programmatically or imported from a standard MIDI file.
+        */
+        class ScoreNode :
+                public Node
+        {
+        protected:
+                Score score;
+        public:
+                std::string importFilename;
+                ScoreNode();
+                virtual ~ScoreNode();
+                virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt, const ublas::matrix<double> &coordinates);
+                virtual Score &getScore();
+        };
 }
 #endif
-
 

@@ -847,7 +847,6 @@ int loscil3(ENVIRON *csound, LOSC *p)
     return OK;
 }
 
-
 #define ISINSIZ 32768L
 #define ADMASK  32767L
 

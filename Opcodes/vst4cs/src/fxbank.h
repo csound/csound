@@ -1,7 +1,7 @@
 //  vst4cs: VST HOST OPCODES FOR CSOUND
 //
 //  Uses code by Hermann Seib from his Vst Host program
-//  and from the vst~ object by Thomas Grill, 
+//  and from the vst~ object by Thomas Grill,
 //  which in turn borrows from the Psycle tracker.
 //  VST is a trademark of Steinberg Media Technologies GmbH.
 //  VST Plug-In Technology by Steinberg.
@@ -26,7 +26,7 @@
 #ifndef FXBANK_H
 #define FXBANK_H
 
-//#include "vstfxstore.h" 
+//#include "vstfxstore.h"
 #include "audioeffectx.h"               /* VST header files                  */
 
 #if !defined(VST_2_1_EXTENSIONS)
@@ -34,9 +34,9 @@ struct VstFileSelect;
 ////---Structure and enum used for keyUp/keyDown-----
 //struct VstKeyCode
 //{
-//	long character;
-//	unsigned char virt;     // see enum VstVirtualKey
-//	unsigned char modifier; // see enum VstModifierKey
+//      long character;
+//      unsigned char virt;     // see enum VstVirtualKey
+//      unsigned char modifier; // see enum VstModifierKey
 //};
 struct MidiProgramName;
 struct MidiProgramCategory;
@@ -48,62 +48,62 @@ struct MidiKeyName;
 /* this is a copy of vstfxstore.h!                                           */
 /*****************************************************************************/
 
-#define cMagic 		'CcnK'
-#define fMagic		'FxCk'
-#define bankMagic	'FxBk'
-#define chunkGlobalMagic	'FxCh'
-#define chunkPresetMagic	'FPCh'
-#define chunkBankMagic		'FBCh'
+#define cMagic          'CcnK'
+#define fMagic          'FxCk'
+#define bankMagic       'FxBk'
+#define chunkGlobalMagic        'FxCh'
+#define chunkPresetMagic        'FPCh'
+#define chunkBankMagic          'FBCh'
 
 //--------------------------------------------------------------------
 struct fxProgram
 {
-	long chunkMagic;		// 'CcnK'
-	long byteSize;			// of this chunk, excl. magic + byteSize
+        long chunkMagic;                // 'CcnK'
+        long byteSize;                  // of this chunk, excl. magic + byteSize
 
-	long fxMagic;			// 'FxCk'
-	long version;
-	long fxID;				// fx unique id
-	long fxVersion;
+        long fxMagic;                   // 'FxCk'
+        long version;
+        long fxID;                              // fx unique id
+        long fxVersion;
 
-	long numParams;
-	char prgName[28];
-	float params[1];		// variable no. of parameters	
+        long numParams;
+        char prgName[28];
+        float params[1];                // variable no. of parameters
 };
 
 //--------------------------------------------------------------------
 struct fxSet
 {
-	long chunkMagic;		// 'CcnK'
-	long byteSize;			// of this chunk, excl. magic + byteSize
+        long chunkMagic;                // 'CcnK'
+        long byteSize;                  // of this chunk, excl. magic + byteSize
 
-	long fxMagic;			// 'FxBk'
-	long version;
-	long fxID;				// fx unique id
-	long fxVersion;
+        long fxMagic;                   // 'FxBk'
+        long version;
+        long fxID;                              // fx unique id
+        long fxVersion;
 
-	long numPrograms;
-	char future[128];
+        long numPrograms;
+        char future[128];
 
-	fxProgram programs[1];	// variable no. of programs
+        fxProgram programs[1];  // variable no. of programs
 };
 
 //--------------------------------------------------------------------
 struct fxChunkSet
 {
-	long chunkMagic;		// 'CcnK'
-	long byteSize;			// of this chunk, excl. magic + byteSize
+        long chunkMagic;                // 'CcnK'
+        long byteSize;                  // of this chunk, excl. magic + byteSize
 
-	long fxMagic;			// 'FxCh', 'FPCh', or 'FBCh'
-	long version;
-	long fxID;				// fx unique id
-	long fxVersion;
+        long fxMagic;                   // 'FxCh', 'FPCh', or 'FBCh'
+        long version;
+        long fxID;                              // fx unique id
+        long fxVersion;
 
-	long numPrograms;
-	char future[128];
+        long numPrograms;
+        char future[128];
 
-	long chunkSize;
-	char chunk[8];			// variable
+        long chunkSize;
+        char chunk[8];                  // variable
 };
 //#endif
 #if !defined(VST_2_3_EXTENSIONS)
@@ -128,14 +128,14 @@ public:
     CFxBank(int nPrograms, int nParams);
     CFxBank(int nChunkSize);
     CFxBank(CFxBank const &org) { DoCopy(org); }
-	virtual ~CFxBank();
+        virtual ~CFxBank();
     CFxBank & operator=(CFxBank const &org) { return DoCopy(org); }
 public:
     bool SetSize(int nPrograms, int nParams);
     bool SetSize(int nChunkSize);
-	bool LoadBank(char *pszFile);
-	bool SaveBank(char *pszFile);
-	void Unload();
+        bool LoadBank(char *pszFile);
+        bool SaveBank(char *pszFile);
+        void Unload();
     bool IsLoaded() { return !!bBank; }
     bool IsChunk() { return bChunk; }
 
@@ -152,7 +152,7 @@ public:
     void *GetChunk() { if (!bChunk) return 0; return ((fxChunkSet *)bBank)->chunk; }
     bool SetChunk(void *chunk) { if (!bChunk) return false; memcpy(((fxChunkSet *)bBank)->chunk, chunk, ((fxChunkSet *)bBank)->chunkSize); return true; }
 
-	fxProgram * GetProgram(int nProgNum);
+        fxProgram * GetProgram(int nProgNum);
 
     char * GetProgramName(int nProgram)
       {
@@ -190,17 +190,17 @@ public:
       }
 
 protected:
-	char szFileName[256];
-	unsigned char * bBank;
-	int nBankLen;
-	bool bChunk;
-	bool NeedsBSwap;
+        char szFileName[256];
+        unsigned char * bBank;
+        int nBankLen;
+        bool bChunk;
+        bool NeedsBSwap;
 
 protected:
     void Init();
-	CFxBank & DoCopy(CFxBank const &org);
-	static void SwapBytes(float &f);
-	static void SwapBytes(long &l);
+        CFxBank & DoCopy(CFxBank const &org);
+        static void SwapBytes(float &f);
+        static void SwapBytes(long &l);
 };
 
 /*****************************************************************************/
@@ -219,7 +219,7 @@ public:
     AEffect *pEffect;
     char *sName;
     bool bEditOpen;
-	bool bNeedIdle;
+        bool bNeedIdle;
     bool bWantMidi;
 
 #ifdef WIN32
@@ -241,10 +241,10 @@ public:
     virtual bool SaveBank(char *name);
 
     virtual long EffDispatch(long opCode, long index=0, long value=0, void *ptr=0, float opt=0.);
-	virtual void EffProcess(float **inputs, float **outputs, long sampleframes);
-	virtual void EffProcessReplacing(float **inputs, float **outputs, long sampleframes);
-	virtual void EffSetParameter(long index, float parameter);
-	virtual float EffGetParameter(long index);
+        virtual void EffProcess(float **inputs, float **outputs, long sampleframes);
+        virtual void EffProcessReplacing(float **inputs, float **outputs, long sampleframes);
+        virtual void EffSetParameter(long index, float parameter);
+        virtual float EffGetParameter(long index);
 
     void EffOpen() { EffDispatch(effOpen); }
     void EffClose() { EffDispatch(effClose); }
@@ -273,7 +273,7 @@ public:
     long EffIdentify() { return EffDispatch(effIdentify); }
     long EffGetChunk(void **ptr, bool isPreset = false) { return EffDispatch(effGetChunk, isPreset, 0, ptr); }
     long EffSetChunk(void *data, long byteSize, bool isPreset = false) { return EffDispatch(effSetChunk, isPreset, byteSize, data); }
-                                        //VST 2.0                           
+                                        //VST 2.0
     long EffProcessEvents(VstEvents* ptr) { return EffDispatch(effProcessEvents, 0, 0, ptr); }
     long EffCanBeAutomated(long index) { return EffDispatch(effCanBeAutomated, index); }
     long EffString2Parameter(long index, char *ptr) { return EffDispatch(effString2Parameter, index, 0, ptr); }
@@ -308,7 +308,7 @@ public:
     long EffGetParameterProperties(long index, VstParameterProperties* ptr) { return EffDispatch(effGetParameterProperties, index, 0, ptr); }
     long EffKeysRequired() { return EffDispatch(effKeysRequired); }
     long EffGetVstVersion() { return EffDispatch(effGetVstVersion); }
-                                        //VST 2.1 extensions                
+                                        //VST 2.1 extensions
     long EffKeyDown(VstKeyCode &keyCode) { return EffDispatch(effEditKeyDown, keyCode.character, keyCode.virt, 0, keyCode.modifier); }
     long EffKeyUp(VstKeyCode &keyCode) { return EffDispatch(effEditKeyUp, keyCode.character, keyCode.virt, 0, keyCode.modifier); }
     void EffSetKnobMode(long value) { EffDispatch(effSetEditKnobMode, 0, value); }
@@ -319,7 +319,7 @@ public:
     long EffGetMidiKeyName(long channel, MidiKeyName* keyName) { return EffDispatch(effGetMidiKeyName, channel, 0, keyName); }
     long EffBeginSetProgram() { return EffDispatch(effBeginSetProgram); }
     long EffEndSetProgram() { return EffDispatch(effEndSetProgram); }
-                                        // VST 2.3 Extensions                
+                                        // VST 2.3 Extensions
     long EffGetSpeakerArrangement(VstSpeakerArrangement** pluginInput, VstSpeakerArrangement** pluginOutput) {EffDispatch(effGetSpeakerArrangement, 0, (long)pluginInput, pluginOutput); }
     long EffSetTotalSampleToProcess (long value) { return EffDispatch(effSetTotalSampleToProcess, 0, value); }
     long EffGetNextShellPlugin(char *name) { return EffDispatch(effShellGetNextPlugin, 0, 0, name); }
@@ -331,7 +331,7 @@ public:
 
 // overridables
 public:
-	virtual void * OnGetDirectory();
+        virtual void * OnGetDirectory();
     virtual void OnSizeEditorWindow(long width, long height) { }
     virtual bool OnUpdateDisplay() { return false; }
 
@@ -345,36 +345,36 @@ class CVSTHost
 {
 friend class CEffect;
 public:
-	CVSTHost();
-	virtual ~CVSTHost();
+        CVSTHost();
+        virtual ~CVSTHost();
 
 protected:
-	VstTimeInfo vstTimeInfo;
-	float fSampleRate;
+        VstTimeInfo vstTimeInfo;
+        float fSampleRate;
     long lBlockSize;
 
     int naEffects;
     int nmaEffects;
-	void **aEffects;
-	static CVSTHost * pHost;
+        void **aEffects;
+        static CVSTHost * pHost;
 
-	static long VSTCALLBACK AudioMasterCallback(AEffect *effect, long opcode, long index, long value, void *ptr, float opt);
-	int Search(AEffect *pEffect);
-	int GetPreviousPlugIn(int nEffect);
-	int GetNextPlugIn(int nEffect);
+        static long VSTCALLBACK AudioMasterCallback(AEffect *effect, long opcode, long index, long value, void *ptr, float opt);
+        int Search(AEffect *pEffect);
+        int GetPreviousPlugIn(int nEffect);
+        int GetNextPlugIn(int nEffect);
     long EffDispatch(int nEffect, long opCode, long index=0, long value=0, void *ptr=0, float opt=0.);
 
 public:
-	int LoadPlugin(const char * lpszName);
+        int LoadPlugin(const char * lpszName);
     int GetSize() { return naEffects; }
     CEffect *GetAt(int nIndex) { if ((nIndex >= 0) && (nIndex < naEffects)) return (CEffect *)aEffects[nIndex]; else return 0; }
-	void RemoveAt(int nIndex);
-	void RemoveAll();
+        void RemoveAt(int nIndex);
+        void RemoveAll();
 
-	void EffProcess(int nEffect, float **inputs, float **outputs, long sampleframes);
-	void EffProcessReplacing(int nEffect, float **inputs, float **outputs, long sampleframes);
-	void EffSetParameter(int nEffect, long index, float parameter);
-	float EffGetParameter(int nEffect, long index);
+        void EffProcess(int nEffect, float **inputs, float **outputs, long sampleframes);
+        void EffProcessReplacing(int nEffect, float **inputs, float **outputs, long sampleframes);
+        void EffSetParameter(int nEffect, long index, float parameter);
+        float EffGetParameter(int nEffect, long index);
 
     void EffOpen(int nEffect)
       { if (GetAt(nEffect)) GetAt(nEffect)->EffOpen(); }
@@ -428,7 +428,7 @@ public:
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetChunk(ptr, isPreset); else return 0; }
     long EffSetChunk(int nEffect, void *data, long byteSize, bool isPreset = false)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffSetChunk(data, byteSize, isPreset); else return 0; }
-                                        // VST 2.0                           
+                                        // VST 2.0
     long EffProcessEvents(int nEffect, VstEvents* ptr)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffProcessEvents(ptr); else return 0; }
     long EffCanBeAutomated(int nEffect, long index)
@@ -497,7 +497,7 @@ public:
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffKeysRequired(); else return 0; }
     long EffGetVstVersion(int nEffect)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetVstVersion(); else return 0; }
-                                        // VST 2.1 extensions                
+                                        // VST 2.1 extensions
     long EffKeyDown(int nEffect, VstKeyCode &keyCode)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffKeyDown(keyCode); else return 0; }
     long EffKeyUp(int nEffect, VstKeyCode &keyCode)
@@ -518,7 +518,7 @@ public:
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginSetProgram(); else return 0; }
     long EffEndSetProgram(int nEffect)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffBeginSetProgram(); else return 0; }
-                                        // VST 2.3 Extensions                
+                                        // VST 2.3 Extensions
     long EffGetSpeakerArrangement(int nEffect, VstSpeakerArrangement** pluginInput, VstSpeakerArrangement** pluginOutput)
       { if (GetAt(nEffect)) return GetAt(nEffect)->EffGetSpeakerArrangement(pluginInput, pluginOutput); else return 0; }
     long EffSetTotalSampleToProcess(int nEffect, long value)
@@ -539,10 +539,10 @@ public:
 // overridable functions
 public:
     virtual CEffect * CreateEffect() { return new CEffect(this); }
-	virtual void SetSampleRate(float fSampleRate=44100.);
-	virtual void SetBlockSize(long lSize=1024);
-	virtual void Process(float **inputs, float **outputs, long sampleframes);
-	virtual void ProcessReplacing(float **inputs, float **outputs, long sampleframes);
+        virtual void SetSampleRate(float fSampleRate=44100.);
+        virtual void SetBlockSize(long lSize=1024);
+        virtual void Process(float **inputs, float **outputs, long sampleframes);
+        virtual void ProcessReplacing(float **inputs, float **outputs, long sampleframes);
 
     virtual bool OnGetVendorString(char *text) { strcpy(text, "Seib"); return true; } // forgive this little vanity :-)
     virtual long OnGetHostVendorVersion() { return 1; }
@@ -559,16 +559,16 @@ public:
     virtual bool OnWillProcessReplacing(int nEffect) { return false; }
     virtual long OnGetOutputLatency(int nEffect) { return 0; }
     virtual long OnGetInputLatency(int nEffect) { return 0; }
-	virtual void OnUpdateBlockSize(int nEffect);
+        virtual void OnUpdateBlockSize(int nEffect);
     virtual long OnTempoAt(int nEffect, long pos) { return 0; }
-	virtual void OnUpdateSampleRate(int nEffect);
-	virtual bool OnSizeWindow(int nEffect, long width, long height);
-	virtual bool OnNeedIdle(int nEffect);
-	virtual long OnAudioMasterCallback(int nEffect, long opcode, long index, long value, void *ptr, float opt);
+        virtual void OnUpdateSampleRate(int nEffect);
+        virtual bool OnSizeWindow(int nEffect, long width, long height);
+        virtual bool OnNeedIdle(int nEffect);
+        virtual long OnAudioMasterCallback(int nEffect, long opcode, long index, long value, void *ptr, float opt);
     virtual long OnGetVersion(int nEffect);
-	virtual bool OnCanDo(const char *ptr);
-	virtual bool OnWantEvents(int nEffect, long filter);
-	virtual long OnIdle(int nEffect=-1);
+        virtual bool OnCanDo(const char *ptr);
+        virtual bool OnWantEvents(int nEffect, long filter);
+        virtual long OnIdle(int nEffect=-1);
     virtual bool OnInputConnected(int nEffect, long input) { return true; }
     virtual bool OnOutputConnected(int nEffect, long output) { return true; }
     virtual bool OnSetParameterAutomated(int nEffect, long index, float value) { return false; }

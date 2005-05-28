@@ -92,7 +92,6 @@ typedef struct {
         MYFLT   *xfn;           /* Points to the number of the table. */
 } TABLENG;
 
-
 /* TABLEGPW data structure used by function tablegpw to write the
  * guard point of a specified table. (No output arguments) */
 
@@ -238,7 +237,6 @@ typedef struct {
         MYFLT   *sig, *ndx;
 } ZAW;
 
-
 /* ZAWM data structure for zawm(). */
 typedef struct {
         OPDS    h;
@@ -259,7 +257,6 @@ typedef struct {
         MYFLT   *first, *last;
 } ZACL;
 
-
 /*****************************************************************************/
 
 /* RDTIME data structure for timek(), times(), instimset(), instimek()
@@ -270,7 +267,6 @@ typedef struct {
         MYFLT   *rslt;
         long    instartk;
 } RDTIME;
-
 
 /*****************************************************************************/
 
@@ -304,7 +300,6 @@ typedef struct {
 } PRINTS;
 /*****************************************************************************/
 
-
 /* PEAK data structure for peakk() and peaka(). */
 typedef struct {
         OPDS    h;
@@ -326,7 +321,6 @@ typedef struct {
         OPDS    h;
         MYFLT   *ndx;
 } IOZ;
-
 
 int ftkrchkw(ENVIRON*,TABLEW *p);
 int instimek(ENVIRON*,RDTIME *p);
@@ -386,6 +380,4 @@ int zkset(ENVIRON*,ZKR *p);
 int zkw(ENVIRON*,ZKW *p);
 int zkwm(ENVIRON*,ZKWM *p);
 void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals);
-
-
 

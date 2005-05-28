@@ -340,7 +340,6 @@ static int convolve(ENVIRON *csound, CONVOLVE *p)
     return OK;
 }
 
-
 /* partitioned (low latency) overlap-save convolution.
    we break up the IR into separate blocks, then perform
    an FFT on each partition.  For this reason we ONLY accept
@@ -562,7 +561,6 @@ static int pconvolve(ENVIRON *csound, PCONVOLVE *p)
         workWrite = (MYFLT *)p->workBuf.auxp + p->Hlen;
       }
     } /* end while */
-
 
     /* copy to output if we have enough samples [we always should
        except the first Hlen samples] */

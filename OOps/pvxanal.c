@@ -34,7 +34,6 @@
 #include "pvxanal.h"
 #include "pvfileio.h"
 
-
 #define DEFAULT_BUFLEN (8192)   /* per channel */
 
 /* Only supports PVOC_AMP_FREQ format for now */
@@ -309,7 +308,6 @@ int init(PVX **pvx,long srate,long fftsize,long winsize,
        estimates are properly scaled.  The maximum allowable
        window duration is ibuflen/2. */
 
-
     thispvx->analWindow_base = (MYFLT *) malloc((M+Mf) * sizeof(MYFLT));
     if (thispvx->analWindow_base==NULL)
       return 1;
@@ -336,7 +334,6 @@ int init(PVX **pvx,long srate,long fftsize,long winsize,
 
     else
       hamming(thispvx->analWindow,thispvx->analWinLen,Mf);
-
 
     for (i = 1; i <= thispvx->analWinLen; i++)
       *(thispvx->analWindow - i) = *(thispvx->analWindow + i - Mf);
@@ -371,7 +368,6 @@ int init(PVX **pvx,long srate,long fftsize,long winsize,
     if (thispvx->input==NULL)
       goto err;
     thispvx->nextIn = thispvx->input;
-
 
     /* set up analysis buffer for (N/2 + 1) channels: The input is real,
        so the other channels are redundant. oldInPhase is used
@@ -418,7 +414,6 @@ int init(PVX **pvx,long srate,long fftsize,long winsize,
       thispvx->input = NULL;
     }
 
-
     if (thispvx->anal) {
       free(thispvx->anal);
       thispvx->anal = NULL;
@@ -430,7 +425,6 @@ int init(PVX **pvx,long srate,long fftsize,long winsize,
 
     return 1;
 }
-
 
 void pvx_release(PVX **ppvx,long chans)
 {
@@ -451,7 +445,6 @@ void pvx_release(PVX **ppvx,long chans)
         free(pvx->input);
         pvx->input = NULL;
       }
-
 
       if (pvx->anal) {
         free(pvx->anal);
@@ -486,7 +479,6 @@ long generate_frame(ENVIRON *csound,
 
     fp = fbuf;
 
-
     tocp = MIN(got, pvx->input+pvx->ibuflen-pvx->nextIn);
     got -= tocp;
     while (tocp-- > 0)
@@ -518,7 +510,6 @@ long generate_frame(ENVIRON *csound,
        pairs of real and imaginary values for the lowest (N/2 + 1)
        channels.   The subroutines fft and reals together implement
        one efficient FFT call for a real input sequence.  */
-
 
     for (i = 0; i < N+2; i++)
       *(anal + i) = FL(0.0);        /*initialize*/
@@ -609,7 +600,6 @@ void chan_split(ENVIRON *csound,
         *(buf_c[j]++) = ampfac * *p_inbuf++;
 
 }
-
 
 void hamming(MYFLT *win,int winLen,int even)
 {

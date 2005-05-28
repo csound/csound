@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *xdel, *kfeedback, *maxd;

@@ -28,7 +28,6 @@
 #include "csound.h"
 #include "soundio.h"
 
-
 typedef struct devparams_ {
   AudioDeviceID dev;
   float** inbuffs;
@@ -46,7 +45,6 @@ typedef struct devparams_ {
   float    srate;
   int      nchns;
 } DEVPARAMS;
-
 
 /* module interface functions */
 
@@ -131,7 +129,6 @@ ADIOProc(const AudioBufferList *input,
 
   return 0;
 }
-
 
 OSStatus Csound_IOProcEntry(AudioDeviceID indev,
                             const AudioTimeStamp *inN,
@@ -416,7 +413,6 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 
 }
 
-
 /* put samples to DAC */
 
 static void rtplay_(void *csound, void *outbuf_, int bytes_)
@@ -478,5 +474,4 @@ static void rtclose_(void *csound)
     }
 
 }
-
 

@@ -21,7 +21,6 @@
     02111-1307 USA
 */
 
-
 /* ----- spat3d, spat3di, and spat3dt -- written by Istvan Varga, 2001 ----- */
 
 #include <stdlib.h>

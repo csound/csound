@@ -28,7 +28,6 @@ functions specific to four loudspeaker VBAP
 Ville Pulkki
 */
 
-
 #include "cs.h"
 #include "vbap.h"
 #include <math.h>
@@ -80,7 +79,6 @@ int vbap_FOUR(ENVIRON *csound, VBAP_FOUR  *p)   /* during note performance:   */
     }
     return OK;
 }
-
 
 int vbap_FOUR_control(ENVIRON *csound, VBAP_FOUR  *p)
 {
@@ -234,7 +232,6 @@ int vbap_FOUR_init(ENVIRON *csound, VBAP_FOUR  *p)
     }
     return OK;
 }
-
 
 int vbap_FOUR_moving(ENVIRON *csound, VBAP_FOUR_MOVING  *p) /* during note performance:   */
 {
@@ -461,7 +458,6 @@ int vbap_FOUR_moving_control(ENVIRON *csound, VBAP_FOUR_MOVING *p)
     }
     return OK;
 }
-
 
 int vbap_FOUR_moving_init(ENVIRON *csound, VBAP_FOUR_MOVING  *p)
 {

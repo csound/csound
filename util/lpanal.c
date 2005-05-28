@@ -231,7 +231,6 @@ void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
       a[i] = work[i+1];
 }
 
-
 /*
  *
  * Resynthetize filter coefficients from poles values

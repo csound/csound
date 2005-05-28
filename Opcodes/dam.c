@@ -36,7 +36,6 @@
  *   For bugs, question, please write to Marc.Resibois@ping.be
  */
 
-
 /*
  *      Initialisation code
  */
@@ -139,7 +138,6 @@ int dam(ENVIRON *csound, DAM *p)
 
     return OK;
 }
-
 
 #define S       sizeof
 

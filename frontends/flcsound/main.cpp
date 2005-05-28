@@ -212,10 +212,10 @@ namespace {
 #if defined HAVE_XCREATEBITMAPFROMDATA
     fl_open_display();
     Pixmap p = XCreateBitmapFromData(fl_display,
-				     DefaultRootWindow(fl_display),
-				     flcsound_bits,
-				     flcsound_width,
-				     flcsound_height);
+                                     DefaultRootWindow(fl_display),
+                                     flcsound_bits,
+                                     flcsound_width,
+                                     flcsound_height);
     window->icon((char *)p);
 #elif defined WIN32 && defined IDI_ICON
     window->icon((char *)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_ICON)));
@@ -271,8 +271,8 @@ Main::Main(char *file)
   m_root->user_data(this);
   set_icon(m_root);
   m_file_chooser = new Fl_File_Chooser(file, "CSD Files (*.csd)",
-				       Fl_File_Chooser::SINGLE,
-				       "flCsound Choose File");
+                                       Fl_File_Chooser::SINGLE,
+                                       "flCsound Choose File");
   m_file_chooser->preview(0);
   m_synth.set_draw_graph_callback(this, draw_graph);
   m_synth.set_yield_callback(this, yield);
@@ -311,8 +311,8 @@ void Main::draw_graph(Curve *curve)
   unlock();
 }
 
-bool Main::s_stop = false;	// Should Csound stop?
-bool Main::s_exit = false;	// Should main window be deleted after stop?
+bool Main::s_stop = false;      // Should Csound stop?
+bool Main::s_exit = false;      // Should main window be deleted after stop?
 
 int Main::yield(void *data)
 {
@@ -459,13 +459,13 @@ void Main::about_callback(Fl_Widget *w, void *data)
 void Main::about(Fl_Widget *w)
 {
   fl_message("This is flCsound built by %s.\n"
-	     "The Csound API version used is %s.\n"
+             "The Csound API version used is %s.\n"
 #if !defined USE_THREADS
-	     "It was built without multithreading support.\n"
+             "It was built without multithreading support.\n"
 #endif
-	     "Select a CSD file and run with it.",
-	     PACKAGE_STRING,
-	     Synthesizer::get_version().c_str());
+             "Select a CSD file and run with it.",
+             PACKAGE_STRING,
+             Synthesizer::get_version().c_str());
 }
 
 void Main::message_callback(void *data, const char *format, va_list args)
@@ -495,15 +495,15 @@ void Main::message(const char *format, va_list args)
     msg = "Internal error: Csound print failed\n";
   else if (n >= s_buf_size - m_last)
     msg = "Internal error: Csound output too big\n";
-  if (msg) {			// On internal error, print message.
+  if (msg) {                    // On internal error, print message.
     m_last = 0;
     message(msg);
   }
   else if (m_last + n > (s_buf_size >> 1) || is_terminated(m_buf + m_last)) {
-    m_last = 0;			// When newline or buf too full
+    m_last = 0;                 // When newline or buf too full
     message(m_buf);
   }
-  else			// Save text until next time
+  else                  // Save text until next time
     m_last += n;
 }
 

@@ -182,7 +182,6 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
                            "granule_set: Illegal value of iatt and/or idec"));
     } /* end if */
 
-
     /* Initialize random number generator */
     if (*p->iseed >=0) {
       p->grnd = (short)(*p->iseed * FL(32768.0));       /* IV - Jul 11 2002 */
@@ -308,7 +307,6 @@ int grainsetv4(ENVIRON *csound, GRAINV4 *p)
     return OK;
 } /* end grainsetv4(p) */
 
-
 int graingenv4(ENVIRON *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
@@ -325,7 +323,6 @@ int graingenv4(ENVIRON *csound, GRAINV4 *p)
     long        gend    = p->gend;
     long        glength = p->glength;
     MYFLT       iratio  = *p->iratio;
-
 
  /* Recover parameters from previous call.... */
    ftp = p->ftp;
@@ -473,7 +470,6 @@ int graingenv4(ENVIRON *csound, GRAINV4 *p)
    return OK;
 } /* end graingenv4(p) */
 
-
 /* Function takes in fpnt pointing to a relative
     position of gsize,
     returns a float between 0.0 to 1.0
@@ -499,7 +495,6 @@ MYFLT envv4(int *nvoice, GRAINV4 *p)
     return (result);
 }
 #endif
-
 
 /* Function return a float random number between -1 to +1 */
 static MYFLT grand( GRAINV4 *p)

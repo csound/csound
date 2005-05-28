@@ -76,7 +76,6 @@ static void usage(char *mesg)
     err_printf("-Z integer\tsample number at which to end file\n");
     err_printf("-Q integer\tnumber of samples to read\n");
 
-
     err_printf("-T fpnum\ttime in secs at which to start file\n");
     err_printf("-E fpnum\ttime in secs at which to end file\n");
     err_printf("-D fpnum\tduration in secs of extract\n");
@@ -325,7 +324,6 @@ ExtractSound(SNDFILE* infd, SNDFILE* outfd)
     long  read_in;
     long  bytes = 0;
     int   block = 0;
-
 
     sf_seek(infd, outputs*sample*O.sfsampsize, SEEK_CUR);
     while (numsamps>0) {

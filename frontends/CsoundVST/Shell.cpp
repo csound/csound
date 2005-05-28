@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -36,7 +36,7 @@ namespace csound
   Shell::~Shell()
   {
   }
-	
+
   static bool initialized = false;
 
   void Shell::open()
@@ -126,8 +126,8 @@ namespace csound
     char c;
     while(!stream.eof())
       {
-	stream.get(c);
-	script.push_back(c);
+        stream.get(c);
+        script.push_back(c);
       }
   }
 
@@ -136,11 +136,11 @@ namespace csound
     std::ofstream stream;
     if(filename.length() > 0)
       {
-	stream.open(filename.c_str(), std::ios_base::binary);
-	for(std::string::const_iterator it = script.begin(); it != script.end(); ++it)
-	  {
-	    stream.put(*it);
-	  }
+        stream.open(filename.c_str(), std::ios_base::binary);
+        for(std::string::const_iterator it = script.begin(); it != script.end(); ++it)
+          {
+            stream.put(*it);
+          }
       }
   }
 
@@ -160,17 +160,17 @@ namespace csound
     int result = 0;
     try
       {
-	char *script__ = const_cast<char *>(script_.c_str());
-	csound::System::message("==============================================================================================================\n");
-	result = PyRun_SimpleString(script__);
-	if(result)
-	  {
-	    PyErr_Print();
-	  }
+        char *script__ = const_cast<char *>(script_.c_str());
+        csound::System::message("==============================================================================================================\n");
+        result = PyRun_SimpleString(script__);
+        if(result)
+          {
+            PyErr_Print();
+          }
       }
     catch(...)
       {
-	csound::System::error("Unidentified exception in silence::Shell::run().\n");
+        csound::System::error("Unidentified exception in silence::Shell::run().\n");
       }
     csound::System::message("==============================================================================================================\n");
     csound::System::message("PyRun_SimpleString returned %d.\n", result);

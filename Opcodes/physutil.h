@@ -23,7 +23,6 @@
 #if !defined(__PhysUtil_h)
 #define __PhysUtil_h
 
-
 /* Various filters etc for Physical models */
 
 #include <math.h>
@@ -39,7 +38,6 @@
 /*  White noise as often as you like.      */
 /*  Recoded by John ffitch 1997            */
 /*******************************************/
-
 
 typedef MYFLT Noise;
 
@@ -166,8 +164,6 @@ MYFLT DCBlock_tick(DCBlock*, MYFLT);
 /*  2 = S, 3 = R)                          */
 /*******************************************/
 
-
-
 #define ATTACK  (0)
 #define DECAY   (1)
 #define SUSTAIN (2)
@@ -208,7 +204,6 @@ MYFLT ADSR_lastOut(ADSR*);
 /*  more about how this works.  Nothing    */
 /*  out of the ordinary in this version.   */
 /*******************************************/
-
 
 typedef struct BiQuad {
     MYFLT       gain;                 /* Start if filter subclass */

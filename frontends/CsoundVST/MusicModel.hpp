@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -36,7 +36,7 @@
 using namespace boost::numeric;
 #endif
 
-namespace csound 
+namespace csound
 {
   /**
    * Base class for compositions
@@ -51,8 +51,8 @@ namespace csound
    * with the coordinate system of its parent to derive a new local coordinate system,
    * which is applied to all child events.
    */
-  class MusicModel : 
-    public Composition, 
+  class MusicModel :
+    public Composition,
     public Node
   {
     std::string filename;
@@ -71,4 +71,4 @@ namespace csound
     virtual Node *getThisNode();
   };
 }
-#endif	
+#endif

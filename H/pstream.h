@@ -60,11 +60,8 @@
 enum PVS_WINTYPE {PVS_WIN_HAMMING = 0,PVS_WIN_HANN,PVS_WIN_KAISER,PVS_WIN_CUSTOM};
 enum PVS_ANALFORMAT {PVS_AMP_FREQ = 0,PVS_AMP_PHASE,PVS_COMPLEX};
 
-
-
 /* description of an fsig analysis frame*/
 /* should go in cs,h eventually ?*/
-
 
 typedef struct pvsdat {
         long            N;
@@ -75,7 +72,6 @@ typedef struct pvsdat {
         unsigned long   framecount;
         AUXCH           frame;              /* RWD MUST always be 32bit floats */
 } PVSDAT;
-
 
 typedef struct {
         OPDS    h;
@@ -101,10 +97,6 @@ typedef struct {
         AUXCH   analwinbuf;
         AUXCH   oldInPhase;
 } PVSANAL;
-
-
-
-
 
 typedef struct {
         OPDS    h;
@@ -174,7 +166,6 @@ typedef struct {
 }
 PVSCROSS;
 
-
 /* for pvsmaska */
 typedef struct {
         OPDS    h;
@@ -191,7 +182,6 @@ typedef struct {
 PVSMASKA;
 
 /* for pvsftw, pvsftr */
-
 
 typedef struct {
         OPDS    h;
@@ -238,7 +228,6 @@ typedef struct {
 }
 PVSFREAD;
 
-
 /* for pvsinfo */
 
 typedef struct {
@@ -256,6 +245,5 @@ typedef struct {
         PVSDAT  *fout;
         PVSDAT  *fsrc;
 } FASSIGN;
-
 
 #endif

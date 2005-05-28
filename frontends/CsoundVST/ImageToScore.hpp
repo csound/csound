@@ -1,5 +1,5 @@
 /**
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -36,31 +36,31 @@ class Fl_Image;
 
 namespace csound
 {
-	/**
-	* Translates images in various RGB formats to scores.
-	* Hue is mapped to instrument, value is mapped to loudness.
-	*/
-	class ImageToScore : public ScoreNode
-	{
-	protected:
-		std::string imageFilename;
-		Fl_Image *image;
-		size_t maximumVoiceCount;
-		double minimumValue;
-		static void rgbToHsv(double r, double g, double b, double &h, double &s, double &v);
-		virtual void getPixel(size_t x, size_t y, double &hue, double &saturation, double &value) const;
-		virtual void translate(double x, double y, double hue, double value, Event &event) const;
-	public:
-		ImageToScore(void);
-		virtual ~ImageToScore(void);
-		virtual void setImageFilename(std::string imageFilename);
-		virtual std::string getImageFilename() const;
-		virtual void setMaximumVoiceCount(size_t maximumVoiceCount);
-		virtual size_t getMaximumVoiceCount() const;
-		virtual void setMinimumValue(double minimumValue);
-		virtual double getMinimumValue() const;
-		virtual void generate();
-	};
+        /**
+        * Translates images in various RGB formats to scores.
+        * Hue is mapped to instrument, value is mapped to loudness.
+        */
+        class ImageToScore : public ScoreNode
+        {
+        protected:
+                std::string imageFilename;
+                Fl_Image *image;
+                size_t maximumVoiceCount;
+                double minimumValue;
+                static void rgbToHsv(double r, double g, double b, double &h, double &s, double &v);
+                virtual void getPixel(size_t x, size_t y, double &hue, double &saturation, double &value) const;
+                virtual void translate(double x, double y, double hue, double value, Event &event) const;
+        public:
+                ImageToScore(void);
+                virtual ~ImageToScore(void);
+                virtual void setImageFilename(std::string imageFilename);
+                virtual std::string getImageFilename() const;
+                virtual void setMaximumVoiceCount(size_t maximumVoiceCount);
+                virtual size_t getMaximumVoiceCount() const;
+                virtual void setMinimumValue(double minimumValue);
+                virtual double getMinimumValue() const;
+                virtual void generate();
+        };
 };
 
 #endif

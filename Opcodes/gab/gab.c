@@ -15,7 +15,6 @@
 /*  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA */
 /*  02111-1307 USA */
 
-
 /* Ported to csound5 by: Andres Cabrera */
 /* This file includes the opcodes from newopcodes.c */
 /* TODO: Check if the authors (Peter Neubaeker and Jens Groh) are correct */
@@ -151,7 +150,6 @@ int fastabkw(ENVIRON *csound, FASTAB *p)
     return OK;
 }
 
-
 int fastabi(ENVIRON *csound, FASTAB *p)
 {
     FUNC *ftp;
@@ -180,7 +178,6 @@ int fastabiw(ENVIRON *csound, FASTAB *p)
       *(ftp->ftable + (long) *p->xndx) = *p->rslt;
     return OK;
 }
-
 
 int fastab(ENVIRON *csound,FASTAB *p)
 {
@@ -239,7 +236,6 @@ int tab14_init(ENVIRON *csound,TB_INIT *p)
 int tab15_init(ENVIRON *csound,TB_INIT *p)
 { tabMacro      tb15 = ftp->ftable; return OK;}
 
-
 int tab0(ENVIRON *csound,FASTB *p) { *p->r = tb0[(long) *p->ndx]; return OK;}
 int tab1(ENVIRON *csound,FASTB *p) { *p->r = tb1[(long) *p->ndx]; return OK;}
 int tab2(ENVIRON *csound,FASTB *p) { *p->r = tb2[(long) *p->ndx]; return OK;}
@@ -261,7 +257,6 @@ int tab15(ENVIRON *csound,FASTB *p) { *p->r = tb15[(long) *p->ndx]; return OK;}
 /* Opcodes from Peter Neubaeker                                */
 /* *********************************************************** */
 
-
 /* void printi(ENVIRON *csound,PRINTI *p) */
 /* { */
 /*     char    *sarg; */
@@ -282,7 +277,6 @@ int tab15(ENVIRON *csound,FASTB *p) { *p->r = tb15[(long) *p->ndx]; return OK;}
 /*     return OK; */
 /* } */
 
-
 /* ====================== */
 /* opcodes from Jens Groh */
 /* ====================== */
@@ -295,7 +289,6 @@ int nlalp_set(ENVIRON *csound,NLALP *p)
    }
    return OK;
 }
-
 
 int nlalp(ENVIRON *csound,NLALP *p)
 {
@@ -512,7 +505,6 @@ int exitnow(ENVIRON *csound, EXITNOW *p)
 {
         p->prev = FL(0.0);
 }*/
-
 
 int tabrec_set(ENVIRON *csound,TABREC *p)
 {
@@ -766,7 +758,6 @@ int mandel(ENVIRON *csound,MANDEL *p)
     }
     return OK;
 }
-
 
 #define S sizeof
 

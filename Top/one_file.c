@@ -243,7 +243,6 @@ static int createOrchestra(void *csound, FILE *unf)
     return FALSE;
 }
 
-
 static int createScore(void *csound, FILE *unf)
 {
     char *p;

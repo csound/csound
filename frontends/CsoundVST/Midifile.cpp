@@ -1,5 +1,5 @@
 /**
- * C S O U N D   V S T 
+ * C S O U N D   V S T
  *
  * A VST plugin version of Csound, with Python scripting.
  *
@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #ifdef _MSC_VER
-#pragma warning (disable:4786) 
+#pragma warning (disable:4786)
 #endif
 #include "Midifile.hpp"
 #include <algorithm>
@@ -29,47 +29,47 @@
 #include <map>
 #include <vector>
 
-namespace csound 
+namespace csound
 {
   int MidiFile::readVariableLength(std::istream &stream)
   {
     char c = 0;
     stream.get(c);
     int value = c;
-    if ( c & 0x80 ) 
+    if ( c & 0x80 )
       {
-	value &= 0x7f;
-	do {
-	  stream.get(c);
-	  value = (value << 7) + (c & 0x7f);
-	} while (c & 0x80);
+        value &= 0x7f;
+        do {
+          stream.get(c);
+          value = (value << 7) + (c & 0x7f);
+        } while (c & 0x80);
       }
     return value;
-  } 
+  }
 
   void MidiFile::writeVariableLength(std::ostream &stream, int value)
   {
     unsigned long buffer = value & 0x7f;
     while((value >>= 7) > 0)
       {
-	buffer <<= 8;
-	buffer |= 0x80;
-	buffer += (value & 0x7f);
+        buffer <<= 8;
+        buffer |= 0x80;
+        buffer += (value & 0x7f);
       }
     for(;;)
       {
-	unsigned char c = (unsigned char) (buffer & 0xff);
-	stream.put(c); 
-	if(buffer & 0x80)
-	  {
-	    buffer >>= 8;
-	  }
-	else
-	  {
-	    return;
-	  }
+        unsigned char c = (unsigned char) (buffer & 0xff);
+        stream.put(c);
+        if(buffer & 0x80)
+          {
+            buffer >>= 8;
+          }
+        else
+          {
+            return;
+          }
       }
-  } 
+  }
 
   int MidiFile::toInt(int c1, int c2, int c3, int c4)
   {
@@ -97,7 +97,7 @@ namespace csound
   }
 
   void MidiFile::writeInt(std::ostream &stream, int value)
-  {		
+  {
     stream.put((char)((0xff000000 & value) >> 24));
     stream.put((char)((0x00ff0000 & value) >> 16));
     stream.put((char)((0x0000ff00 & value) >>  8));
@@ -143,11 +143,11 @@ namespace csound
     _idString[4] = 0;
     if(id != _id)
       {
-	std::cout << "Unexpected chunk id: " << _idString << " (should be " << idString << ")." << std::endl;
+        std::cout << "Unexpected chunk id: " << _idString << " (should be " << idString << ")." << std::endl;
       }
     else
       {
-	std::cout << "Read chunk: " << _idString << "." << std::endl;
+        std::cout << "Read chunk: " << _idString << "." << std::endl;
       }
     chunkSize = MidiFile::readInt(stream);
   }
@@ -225,26 +225,26 @@ namespace csound
   {
     int deltaTicks = ticks - lastTick;
     MidiFile::writeVariableLength(stream, deltaTicks);
-    //	Channel event.
+    //  Channel event.
     if(getMetaType() < 0)
       {
-	for(size_t i = 0, n = size(); i < n; i++)
-	  {
-	    stream.put((*this)[i]);
-	  }
+        for(size_t i = 0, n = size(); i < n; i++)
+          {
+            stream.put((*this)[i]);
+          }
       }
-    //	Meta event.
+    //  Meta event.
     else
       {
-	stream.put((*this)[0]);
-	stream.put((*this)[1]);
-	size_t n = getMetaSize();
-	MidiFile::writeVariableLength(stream, (int) n);
-	size_t i;
-	for(i = 3, n = size(); i < n; i++)
-	  {
-	    stream.put((*this)[i]);
-	  }
+        stream.put((*this)[0]);
+        stream.put((*this)[1]);
+        size_t n = getMetaSize();
+        MidiFile::writeVariableLength(stream, (int) n);
+        size_t i;
+        for(i = 3, n = size(); i < n; i++)
+          {
+            stream.put((*this)[i]);
+          }
       }
   }
 
@@ -277,7 +277,7 @@ namespace csound
   {
     if(getStatus() == MidiFile::META_EVENT)
       {
-	return (*this)[1];
+        return (*this)[1];
       }
     return -1;
   }
@@ -298,7 +298,7 @@ namespace csound
     stream.get(c);
     push_back((unsigned char) c);
 #ifdef _DEBUG
-    //		fprintf(stderr, " pos %x val %x\n", (int) stream.tellg(), (unsigned char) c);
+    //          fprintf(stderr, " pos %x val %x\n", (int) stream.tellg(), (unsigned char) c);
 #endif
     return (unsigned char) c;
   }
@@ -307,11 +307,11 @@ namespace csound
   {
     if(getStatusNybble() < MidiFile::CHANNEL_NOTE_OFF)
       {
-	return false;
+        return false;
       }
     if(getStatusNybble() > MidiFile::CHANNEL_PITCH_BEND)
       {
-	return false;
+        return false;
       }
     return true;
   }
@@ -320,7 +320,7 @@ namespace csound
   {
     if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON && (*this)[2] > 0)
       {
-	return true;
+        return true;
       }
     return false;
   }
@@ -329,11 +329,11 @@ namespace csound
   {
     if(getStatusNybble() == MidiFile::CHANNEL_NOTE_OFF)
       {
-	return true;
+        return true;
       }
     if(getStatusNybble() == MidiFile::CHANNEL_NOTE_ON && (*this)[2] == 0)
       {
-	return true;
+        return true;
       }
     return false;
   }
@@ -342,23 +342,23 @@ namespace csound
   {
     if(getChannelNybble() != offEvent.getChannelNybble())
       {
-	return false;
+        return false;
       }
     if(!isNoteOn())
       {
-	return false;
+        return false;
       }
     if(!offEvent.isNoteOff())
       {
-	return false;
+        return false;
       }
     if(!(offEvent.time > time))
       {
-	return false;
+        return false;
       }
     if(getKey() != offEvent.getKey())
       {
-	return false;
+        return false;
       }
     return true;
   }
@@ -376,17 +376,17 @@ namespace csound
     Chunk::read(stream);
     for(int eventCount = 0; ; eventCount++)
       {
-	MidiEvent midiEvent;
-	midiEvent.read(stream, midiFile);
-	push_back(midiEvent);
-	if(stream.eof())
-	  {
-	    break;
-	  }
-	if(midiEvent.getMetaType() == MidiFile::META_END_OF_TRACK)
-	  {
-	    break;
-	  }
+        MidiEvent midiEvent;
+        midiEvent.read(stream, midiFile);
+        push_back(midiEvent);
+        if(stream.eof())
+          {
+            break;
+          }
+        if(midiEvent.getMetaType() == MidiFile::META_END_OF_TRACK)
+          {
+            break;
+          }
       }
   }
 
@@ -397,28 +397,28 @@ namespace csound
     double secondsPerTick = midiFile.tempoMap.getCurrentSecondsPerTick(midiFile.currentTick);
     if(secondsPerTick == -1)
       {
-	secondsPerTick = midiFile.currentSecondsPerTick;
+        secondsPerTick = midiFile.currentSecondsPerTick;
       }
     time = midiFile.currentTime = (midiFile.currentTime + (secondsPerTick * ticks));
     int peeked = stream.peek();
     if(stream.eof())
       {
-	std::cout << "MIDI file incorrectly read EOF." << std::endl;
-	return;
+        std::cout << "MIDI file incorrectly read EOF." << std::endl;
+        return;
       }
     if(peeked < 0x80)
       {
 #ifdef _DEBUG
-	//			fprintf(stderr, "Running status: %x\n", midiFile.lastStatus);
+        //                      fprintf(stderr, "Running status: %x\n", midiFile.lastStatus);
 #endif
-	push_back(midiFile.lastStatus);
+        push_back(midiFile.lastStatus);
       }
     else
       {
-	read(stream);
-	midiFile.lastStatus = getStatus();
+        read(stream);
+        midiFile.lastStatus = getStatus();
 #ifdef _DEBUG
-	//			fprintf(stderr, "Status:         %x\n", getStatus());
+        //                      fprintf(stderr, "Status:         %x\n", getStatus());
 #endif
       }
     switch(getStatusNybble())
@@ -428,81 +428,81 @@ namespace csound
       case MidiFile::CHANNEL_KEY_PRESSURE:
       case MidiFile::CHANNEL_CONTROL_CHANGE:
       case MidiFile::CHANNEL_PITCH_BEND:
-	{
-	  read(stream);
-	  read(stream);
-	}
-	break;
+        {
+          read(stream);
+          read(stream);
+        }
+        break;
       case MidiFile::CHANNEL_PROGRAM_CHANGE:
       case MidiFile::CHANNEL_AFTER_TOUCH:
-	{
-	  read(stream);
-	}
-	break;
+        {
+          read(stream);
+        }
+        break;
       case MidiFile::SYSTEM_EXCLUSIVE:
-	{
-	  switch(getStatus())
-	    {
-	    case MidiFile::SYSTEM_EXCLUSIVE:
-	      while(read(stream) != 0xf7);
-	      break;
-	    case MidiFile::META_EVENT:
-	      {
-		//	Type.
-		read(stream);
-		//	Size.
-		int n = MidiFile::readVariableLength(stream);
-		//	Data.
-		for(int i = 0; i < n; i++)
-		  {
-		    read(stream);
-		  }
-		std::cout << "Meta event " << getMetaType() << " (" << n << " bytes): ";
-		switch(getMetaType())
-		  {
-		  case MidiFile::META_SET_TEMPO:
-		    {
-		      std::cout << "set tempo";
-		      midiFile.microsecondsPerQuarterNote = (getMetaData(0) << 16) + (getMetaData(1) << 8) + getMetaData(2);
-		      midiFile.computeTimes();
-		    }
-		    break;
-		  case MidiFile::META_TIME_SIGNATURE:
-		    {
-		      std::cout << "time signature" << std::endl;
-		      double numerator = getMetaData(0);
-		      double denominator = getMetaData(1);
-		      double clocksPerBeat = getMetaData(2);
-		      double thirtySecondNotesPerMidiQuarterNote = getMetaData(3);
-		      std::cout << "numerator:" << numerator << std::endl;
-		      std::cout << "denominator:" << denominator << std::endl;
-		      std::cout << "clocksPerBeat:" << clocksPerBeat << std::endl;
-		      std::cout << "thirtySecondNotesPerMidiQuarterNote:" << thirtySecondNotesPerMidiQuarterNote << std::endl;
-								
-		    }
-		    break;
-		  case MidiFile::META_SEQUENCER_SPECIFIC:
-		    std::cout << "sequencer specific" << std::endl;
-		    break;
-		  case MidiFile::META_END_OF_TRACK:
-		    std::cout << "end of track" << std::endl;
-		    break;
-		  default:
-		    std::cout << "not handled" << std::endl;
-		    break;
-		  }
-		std::cout << std::endl;
-	      }
-	      break;
-	    }
-	}
-	break;
+        {
+          switch(getStatus())
+            {
+            case MidiFile::SYSTEM_EXCLUSIVE:
+              while(read(stream) != 0xf7);
+              break;
+            case MidiFile::META_EVENT:
+              {
+                //      Type.
+                read(stream);
+                //      Size.
+                int n = MidiFile::readVariableLength(stream);
+                //      Data.
+                for(int i = 0; i < n; i++)
+                  {
+                    read(stream);
+                  }
+                std::cout << "Meta event " << getMetaType() << " (" << n << " bytes): ";
+                switch(getMetaType())
+                  {
+                  case MidiFile::META_SET_TEMPO:
+                    {
+                      std::cout << "set tempo";
+                      midiFile.microsecondsPerQuarterNote = (getMetaData(0) << 16) + (getMetaData(1) << 8) + getMetaData(2);
+                      midiFile.computeTimes();
+                    }
+                    break;
+                  case MidiFile::META_TIME_SIGNATURE:
+                    {
+                      std::cout << "time signature" << std::endl;
+                      double numerator = getMetaData(0);
+                      double denominator = getMetaData(1);
+                      double clocksPerBeat = getMetaData(2);
+                      double thirtySecondNotesPerMidiQuarterNote = getMetaData(3);
+                      std::cout << "numerator:" << numerator << std::endl;
+                      std::cout << "denominator:" << denominator << std::endl;
+                      std::cout << "clocksPerBeat:" << clocksPerBeat << std::endl;
+                      std::cout << "thirtySecondNotesPerMidiQuarterNote:" << thirtySecondNotesPerMidiQuarterNote << std::endl;
+
+                    }
+                    break;
+                  case MidiFile::META_SEQUENCER_SPECIFIC:
+                    std::cout << "sequencer specific" << std::endl;
+                    break;
+                  case MidiFile::META_END_OF_TRACK:
+                    std::cout << "end of track" << std::endl;
+                    break;
+                  default:
+                    std::cout << "not handled" << std::endl;
+                    break;
+                  }
+                std::cout << std::endl;
+              }
+              break;
+            }
+        }
+        break;
       default:
-	{
-	  int badStatus = getStatus();
-	  std::cout << "Error reading midi event: status == " << badStatus << std::endl;
-	}
-	break;
+        {
+          int badStatus = getStatus();
+          std::cout << "Error reading midi event: status == " << badStatus << std::endl;
+        }
+        break;
       }
   }
 
@@ -512,9 +512,9 @@ namespace csound
     int lastTick = 0;
     for(std::vector<MidiEvent>::iterator it = begin(); it != end(); ++it)
       {
-	MidiEvent &event = (*it);
-	event.write(stream, midiFile, lastTick);
-	lastTick = event.ticks;
+        MidiEvent &event = (*it);
+        event.write(stream, midiFile, lastTick);
+        lastTick = event.ticks;
       }
     Chunk::markChunkEnd(stream);
   }
@@ -524,7 +524,7 @@ namespace csound
     std::map<int,double>::iterator it = lower_bound(tick);
     if(it == end())
       {
-	return -1;
+        return -1;
       }
     return (*it).second;
   }
@@ -558,11 +558,11 @@ namespace csound
     computeTimes();
     for(int i = 0; i < midiHeader.trackCount; i++)
       {
-	currentTick = 0;
-	currentTime = 0;
-	MidiTrack midiTrack;
-	midiTrack.read(stream, *this);
-	midiTracks.push_back(midiTrack);
+        currentTick = 0;
+        currentTime = 0;
+        MidiTrack midiTrack;
+        midiTrack.read(stream, *this);
+        midiTracks.push_back(midiTrack);
       }
   }
 
@@ -571,7 +571,7 @@ namespace csound
     midiHeader.write(stream);
     for(int i = 0; i < midiHeader.trackCount; i++)
       {
-	midiTracks[i].write(stream, *this);
+        midiTracks[i].write(stream, *this);
       }
   }
 
@@ -591,33 +591,33 @@ namespace csound
   {
     if(midiHeader.timeFormat < 0)
       {
-	int frameCode = (-midiHeader.timeFormat) >> 8;
-	double framesPerSecond;
-	switch(frameCode)
-	  {
-	  case 24: 
-	    framesPerSecond = 24.0;
-	    break;
-	  case 25:
-	    framesPerSecond = 25.0;
-	    break;
-	  case 29:
-	    framesPerSecond = 29.97;
-	    break;
-	  case 30:
-	    framesPerSecond = 30.0;
-	    break;
-	  default:
-	    framesPerSecond = 30.0;
-	  }
-	int ticksPerFrame = midiHeader.timeFormat & 0xff;
-	currentSecondsPerTick = (1.0 / framesPerSecond) / ticksPerFrame;
+        int frameCode = (-midiHeader.timeFormat) >> 8;
+        double framesPerSecond;
+        switch(frameCode)
+          {
+          case 24:
+            framesPerSecond = 24.0;
+            break;
+          case 25:
+            framesPerSecond = 25.0;
+            break;
+          case 29:
+            framesPerSecond = 29.97;
+            break;
+          case 30:
+            framesPerSecond = 30.0;
+            break;
+          default:
+            framesPerSecond = 30.0;
+          }
+        int ticksPerFrame = midiHeader.timeFormat & 0xff;
+        currentSecondsPerTick = (1.0 / framesPerSecond) / ticksPerFrame;
       }
     else
       {
-	double ticksPerQuarterNote = double(midiHeader.timeFormat);
-	double secondsPerQuarterNote = microsecondsPerQuarterNote / 1000000.0;
-	currentSecondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
+        double ticksPerQuarterNote = double(midiHeader.timeFormat);
+        double secondsPerQuarterNote = microsecondsPerQuarterNote / 1000000.0;
+        currentSecondsPerTick = secondsPerQuarterNote / ticksPerQuarterNote;
       }
     tempoMap[currentTick] = currentSecondsPerTick;
   }
@@ -630,18 +630,18 @@ namespace csound
     stream << "Time format: " << midiHeader.timeFormat << std::endl;
     for(size_t i = 0; i < midiTracks.size(); i++)
       {
-	stream << "TRACK: " << (unsigned int) i << std::endl;
-	MidiTrack &midiTrack = midiTracks[i];
-	for(size_t j = 0; j < midiTrack.size(); j++)
-	  {
-	    MidiEvent &midiEvent = midiTrack[j];
-	    stream << (unsigned int) j << " (" << midiEvent.ticks << ":" << midiEvent.time << ") ";
-	    for(size_t k = 0; k < midiEvent.size(); k++)
-	      {
-		stream << (int) midiEvent[k] << " ";
-	      }
-	    stream << std::endl;
-	  }
+        stream << "TRACK: " << (unsigned int) i << std::endl;
+        MidiTrack &midiTrack = midiTracks[i];
+        for(size_t j = 0; j < midiTrack.size(); j++)
+          {
+            MidiEvent &midiEvent = midiTrack[j];
+            stream << (unsigned int) j << " (" << midiEvent.ticks << ":" << midiEvent.time << ") ";
+            for(size_t k = 0; k < midiEvent.size(); k++)
+              {
+                stream << (int) midiEvent[k] << " ";
+              }
+            stream << std::endl;
+          }
       }
   }
 
@@ -649,7 +649,7 @@ namespace csound
   {
     for(std::vector<MidiTrack>::iterator it = midiTracks.begin(); it != midiTracks.end(); ++it)
       {
-	(*it).sort();
+        (*it).sort();
       }
   }
 

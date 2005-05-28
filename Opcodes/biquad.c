@@ -49,7 +49,6 @@ int biquadset(ENVIRON *csound, BIQUAD *p)
     return OK;
 } /* end biquadset(p) */
 
-
 int biquad(ENVIRON *csound, BIQUAD *p)
 {
     int   n = 0;
@@ -684,7 +683,6 @@ int pareqset(ENVIRON *csound, PAREQ *p)
     return OK;
 } /* end pareqset(p) */
 
-
 int pareq(ENVIRON *csound, PAREQ *p)
 {
     MYFLT xn, yn;
@@ -1007,7 +1005,6 @@ int lorenz(ENVIRON *csound, LORENZ *p)
     p->valz = z;
     return OK;
 }
-
 
 /**************************************************************************/
 /* TBVCF by Hans Mikelson December 2000-January 2001                      */

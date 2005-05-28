@@ -7,11 +7,11 @@ static void
 usage(const char *prog)
 {
   fprintf(stderr,
-	  "Usage: %s [options] [input]\n"
-	  "Options:\n"
-	  "  -o file -- output to file (default is standard output)\n"
-	  "  -h      -- print this message\n",
-	  prog);
+          "Usage: %s [options] [input]\n"
+          "Options:\n"
+          "  -o file -- output to file (default is standard output)\n"
+          "  -h      -- print this message\n",
+          prog);
 }
 
 int
@@ -40,7 +40,7 @@ main(int argc, char **argv)
   }
 
   switch (argc - optind) {
-  case 0:			/* Use stdin */
+  case 0:                       /* Use stdin */
     break;
   case 1:
     if (!freopen(argv[optind], "r", stdin)) {
@@ -64,8 +64,8 @@ main(int argc, char **argv)
     switch (c) {
     case EOF:
       return 0;
-    case '\r':			/* Ignore carriage returns */
-      continue;			/* so u2d is idempotent. */
+    case '\r':                  /* Ignore carriage returns */
+      continue;                 /* so u2d is idempotent. */
     case '\n':
       putc('\r', stdout);
       /* fall thru okay*/

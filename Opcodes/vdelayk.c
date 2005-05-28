@@ -38,7 +38,6 @@ typedef struct  {
         int             counter;
 } P_MAXIMUM;
 
-
 int kdel_set(ENVIRON *csound, KDEL *p)
 {
     unsigned long n;

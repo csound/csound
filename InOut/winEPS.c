@@ -315,7 +315,6 @@ PS_drawAxes(char *cxmin, char *cxmax, char *cymin, char *cymax)
     fprintf(psFile,"(%s) show \n", cymax);
 }
 
-
 void PS_DrawGraph(ENVIRON *csound, WINDAT *wdptr)
 {
     int   iskip = (wdptr->npts < MyPS_WIDTH) ? 1 :
@@ -419,7 +418,6 @@ void PS_DrawGraph(ENVIRON *csound, WINDAT *wdptr)
       fprintf(psFile,"stroke \n");
     }
 }
-
 
 int PS_ExitGraph(void)
 {

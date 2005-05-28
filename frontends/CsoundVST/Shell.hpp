@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * A VST plugin version of Csound, with Python scripting.
 *
@@ -34,37 +34,37 @@
 
 namespace csound
 {
-	/**
-	* Provide a shell in which Python scripts 
-	* can be loaded, saved, and executed.
-	*/
-	class Shell
-	{
-	protected:
-		std::string filename;
-		std::string script;
-	public:
-		Shell();
-		virtual ~Shell();
-		virtual void open();
-		virtual void close();
-		virtual void main(int argc, char **argv);
-		virtual void initialize();
-		virtual void clear();
-		static std::string generateFilename();
-		virtual void setFilename(std::string filename);
-		virtual std::string getFilename() const;
-		virtual std::string getOutputSoundfileName() const;
-		virtual std::string getMidiFilename() const;
-		virtual std::string getScript() const;
-		virtual void setScript(std::string text);
-		virtual void load(std::string filename);
-		virtual void loadAppend(std::string filename);
-		virtual void save(std::string filename) const;
-		virtual void save() const;
-		virtual int runScript();
-		virtual int runScript(std::string script);
-		virtual void stop();
-	};
+        /**
+        * Provide a shell in which Python scripts
+        * can be loaded, saved, and executed.
+        */
+        class Shell
+        {
+        protected:
+                std::string filename;
+                std::string script;
+        public:
+                Shell();
+                virtual ~Shell();
+                virtual void open();
+                virtual void close();
+                virtual void main(int argc, char **argv);
+                virtual void initialize();
+                virtual void clear();
+                static std::string generateFilename();
+                virtual void setFilename(std::string filename);
+                virtual std::string getFilename() const;
+                virtual std::string getOutputSoundfileName() const;
+                virtual std::string getMidiFilename() const;
+                virtual std::string getScript() const;
+                virtual void setScript(std::string text);
+                virtual void load(std::string filename);
+                virtual void loadAppend(std::string filename);
+                virtual void save(std::string filename) const;
+                virtual void save() const;
+                virtual int runScript();
+                virtual int runScript(std::string script);
+                virtual void stop();
+        };
 }
 #endif

@@ -23,6 +23,5 @@ a1      oscili  3000, gk1, 1
 f1 0 1024 10 1
 i1 0 3600
 
-
 </CsScore>
 </CsoundSynthesizer>

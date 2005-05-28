@@ -87,7 +87,6 @@ static int sreadinew(
     return ntot;
 }
 
-
 static int sngetset(ENVIRON *csound, SOUNDINEW *p, char *sfname)
 {
     void    *fd;
@@ -337,7 +336,6 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
  errtn:
     return NOTOK;                       /*              return empty handed */
 }
-
 
 /*  NB: floats not converted here, but in sreadinew():
     handles autorescale from PEAK, etc) */

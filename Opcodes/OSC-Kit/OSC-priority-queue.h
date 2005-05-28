@@ -25,7 +25,7 @@ University of California, Berkeley.
      REGENTS HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
      ENHANCEMENTS, OR MODIFICATIONS.
 
-The OpenSound Control WWW page is 
+The OpenSound Control WWW page is
     http://www.cnmat.berkeley.edu/OpenSoundControl
 */
 
@@ -41,7 +41,7 @@ The OpenSound Control WWW page is
 /* This queue manages pointers to data objects.  It doesn't care what's in the
    objects except that the first element has to be an OSCTimeTag.  So whatever
    data you want to store, cast your pointer to it to a pointer to this type. */
- 
+
 typedef struct {
     OSCTimeTag timetag;
     /* There will be other stuff... */
@@ -55,7 +55,7 @@ OSCQueue OSCNewQueue(int maxItems, void *(*InitTimeMalloc)(int numBytes));
 /* Put something into the queue.  Return FALSE if quque is full. */
 OSCBoolean OSCQueueInsert(OSCQueue q, OSCSchedulableObject o);
 
-/* What's the time tag of the earliest item in the queue? 
+/* What's the time tag of the earliest item in the queue?
    Return OSCTT_BiggestPossibleTimeTag() if queue is empty. */
 OSCTimeTag OSCQueueEarliestTimeTag(OSCQueue q);
 
@@ -63,8 +63,7 @@ OSCTimeTag OSCQueueEarliestTimeTag(OSCQueue q);
    if the queue is empty.  */
 OSCSchedulableObject OSCQueueRemoveEarliest(OSCQueue q);
 
-
-/* Interface for examining items currently stored on the queue:  
+/* Interface for examining items currently stored on the queue:
 
    - To start, call OSCQueueScanStart().
 
@@ -85,7 +84,6 @@ OSCSchedulableObject OSCQueueRemoveEarliest(OSCQueue q);
    cause a particular object to be returned more than once by
    OSCQueueScanNext().
 */
-   
 
 void OSCQueueScanStart(OSCQueue q);
 OSCSchedulableObject OSCQueueScanNext(OSCQueue q);

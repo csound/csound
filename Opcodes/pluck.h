@@ -31,7 +31,6 @@
  * Soem modifications my John ffitch, 2000, simplifying code
  */
 
-
 #ifndef _pluck_h
 #define _pluck_h
 
@@ -55,5 +54,4 @@ typedef struct {
 } WGPLUCK;
 
 #endif
-
 

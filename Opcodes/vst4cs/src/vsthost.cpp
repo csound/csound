@@ -1,7 +1,7 @@
 //  vst4cs: VST HOST OPCODES FOR CSOUND
 //
 //  Uses code by Hermann Seib from his Vst Host program
-//  and from the vst~ object by Thomas Grill, 
+//  and from the vst~ object by Thomas Grill,
 //  which in turn borrows from the Psycle tracker.
 //  VST is a trademark of Steinberg Media Technologies GmbH.
 //  VST Plug-In Technology by Steinberg.
@@ -40,7 +40,7 @@ void VSTPlugin::initializeOpcodes()
     if(initialized) {
         return;
     }
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOpen, "effOpen"));	
+    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOpen, "effOpen"));
     dispatchOpcodes.insert(std::pair<long,std::string>((long) effClose, "effClose"));
     dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetProgram, "effSetProgram"));
     dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProgram, "effGetProgram"));
@@ -117,7 +117,7 @@ void VSTPlugin::initializeOpcodes()
     dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetPanLaw, "effSetPanLaw"));
     dispatchOpcodes.insert(std::pair<long,std::string>((long) effBeginLoadBank, "effBeginLoadBank"));
     dispatchOpcodes.insert(std::pair<long,std::string>((long) effBeginLoadProgram, "effBeginLoadProgram"));
-    
+
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterAutomate, "audioMasterAutomate"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterVersion, "audioMasterVersion"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterCurrentId, "audioMasterCurrentId"));
@@ -125,7 +125,7 @@ void VSTPlugin::initializeOpcodes()
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterPinConnected, "audioMasterPinConnected"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterWantMidi, "audioMasterWantMidi"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetTime, "audioMasterGetTime"));
-    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterProcessEvents, "audioMasterProcessEvents"));    
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterProcessEvents, "audioMasterProcessEvents"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterSetTime, "audioMasterSetTime"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterTempoAt, "audioMasterTempoAt"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetNumAutomatableParameters, "audioMasterGetNumAutomatableParameters"));
@@ -167,25 +167,25 @@ void VSTPlugin::initializeOpcodes()
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterCloseFileSelector, "audioMasterCloseFileSelector"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterEditFile, "audioMasterEditFile"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetChunkFile, "audioMasterGetChunkFile"));
-    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetInputSpeakerArrangement, "audioMasterGetInputSpeakerArrangement"));   
+    masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterGetInputSpeakerArrangement, "audioMasterGetInputSpeakerArrangement"));
     initialized = true;
 }
 
-VSTPlugin::VSTPlugin(ENVIRON *csound_) : 
-    csound(csound_), 
-    libraryHandle(0), 
-    aeffect(0), 
+VSTPlugin::VSTPlugin(ENVIRON *csound_) :
+    csound(csound_),
+    libraryHandle(0),
+    aeffect(0),
     hasEditor(false),
     editor(0),
     window(0),
-    windowHandle(0), 
-	pluginIsSynth(true),
+    windowHandle(0),
+        pluginIsSynth(true),
     overwrite(false),
     edited(false),
     showParameters(false),
     framesPerSecond(0),
     framesPerBlock(0),
-	channels(2),
+        channels(2),
     midiChannel(0)
 {
     memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
@@ -194,103 +194,103 @@ VSTPlugin::VSTPlugin(ENVIRON *csound_) :
 
 VSTPlugin::~VSTPlugin()
 {
-	Free();			
+        Free();
 }
 
 bool VSTPlugin::AddMIDI(int data0, int data1, int data2)
 {
-	if(aeffect) {
-	    vstMidiEvents.resize(vstMidiEvents.size() + 1);
-		VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
-		vstMidiEvent.type = kVstMidiType;
-		vstMidiEvent.byteSize = 24;
-		vstMidiEvent.deltaFrames = 0;
-		vstMidiEvent.flags = 0;
-		vstMidiEvent.detune = 0;
-		vstMidiEvent.noteLength = 0;
-		vstMidiEvent.noteOffset = 0;
-		vstMidiEvent.reserved1 = 0;
-		vstMidiEvent.reserved2 = 0;
-		vstMidiEvent.noteOffVelocity = 0;
-		vstMidiEvent.midiData[0] = data0;
-		vstMidiEvent.midiData[1] = data1;
-		vstMidiEvent.midiData[2] = data2;
-		vstMidiEvent.midiData[3] = 0;
-		return true;
-	}
-	else 
+        if(aeffect) {
+            vstMidiEvents.resize(vstMidiEvents.size() + 1);
+                VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
+                vstMidiEvent.type = kVstMidiType;
+                vstMidiEvent.byteSize = 24;
+                vstMidiEvent.deltaFrames = 0;
+                vstMidiEvent.flags = 0;
+                vstMidiEvent.detune = 0;
+                vstMidiEvent.noteLength = 0;
+                vstMidiEvent.noteOffset = 0;
+                vstMidiEvent.reserved1 = 0;
+                vstMidiEvent.reserved2 = 0;
+                vstMidiEvent.noteOffVelocity = 0;
+                vstMidiEvent.midiData[0] = data0;
+                vstMidiEvent.midiData[1] = data1;
+                vstMidiEvent.midiData[2] = data2;
+                vstMidiEvent.midiData[3] = 0;
+                return true;
+        }
+        else
         return false;
 }
 
 bool VSTPlugin::AddNoteOn(MYFLT time, int midichannel, MYFLT note, MYFLT speed)
 {
-	if(aeffect) {
-	    MYFLT rounded = round(note);
-	    MYFLT cents = (note - rounded) * FL(100.0);
-	    vstMidiEvents.resize(vstMidiEvents.size() + 1);
-		VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
-		vstMidiEvent.type = kVstMidiType;
-		vstMidiEvent.byteSize = 24;
-		size_t currentFrame = size_t(time * framesPerSecond);
-		size_t currentBlockStart = size_t(floor(currentFrame / framesPerBlock) * framesPerBlock);
-		vstMidiEvent.deltaFrames = long(floor(currentFrame - currentBlockStart));
+        if(aeffect) {
+            MYFLT rounded = round(note);
+            MYFLT cents = (note - rounded) * FL(100.0);
+            vstMidiEvents.resize(vstMidiEvents.size() + 1);
+                VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
+                vstMidiEvent.type = kVstMidiType;
+                vstMidiEvent.byteSize = 24;
+                size_t currentFrame = size_t(time * framesPerSecond);
+                size_t currentBlockStart = size_t(floor(currentFrame / framesPerBlock) * framesPerBlock);
+                vstMidiEvent.deltaFrames = long(floor(currentFrame - currentBlockStart));
             Debug("VSTPlugin::AddNoteOn(time %f currentFrame %d "
             "currentBlockStart %d deltaFrames %d.\n",
-            time, currentFrame, currentBlockStart, vstMidiEvent.deltaFrames);            
-		vstMidiEvent.flags = 0;
-		vstMidiEvent.detune = cents;
-		vstMidiEvent.noteLength = 0;
-		vstMidiEvent.noteOffset = 0;
-		vstMidiEvent.reserved1 = 0;
-		vstMidiEvent.reserved2 = 0;
-		vstMidiEvent.noteOffVelocity = 0;
-		vstMidiEvent.midiData[0] = 144 | midichannel;
-		vstMidiEvent.midiData[1] = rounded;
-		vstMidiEvent.midiData[2] = speed;
-		vstMidiEvent.midiData[3] = 0;
-		return true;
-	}
-	else 
+            time, currentFrame, currentBlockStart, vstMidiEvent.deltaFrames);
+                vstMidiEvent.flags = 0;
+                vstMidiEvent.detune = cents;
+                vstMidiEvent.noteLength = 0;
+                vstMidiEvent.noteOffset = 0;
+                vstMidiEvent.reserved1 = 0;
+                vstMidiEvent.reserved2 = 0;
+                vstMidiEvent.noteOffVelocity = 0;
+                vstMidiEvent.midiData[0] = 144 | midichannel;
+                vstMidiEvent.midiData[1] = rounded;
+                vstMidiEvent.midiData[2] = speed;
+                vstMidiEvent.midiData[3] = 0;
+                return true;
+        }
+        else
         return false;
 }
 
 bool VSTPlugin::AddNoteOff(MYFLT time, int midichannel, MYFLT note)
 {
-	if(aeffect) {
-	    MYFLT rounded = round(note);
-	    vstMidiEvents.resize(vstMidiEvents.size() + 1);
-		VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
-		vstMidiEvent.type = kVstMidiType;
-		vstMidiEvent.byteSize = 24;
-		MYFLT currentFrame = (MYFLT) time * framesPerSecond;
-		MYFLT currentBlockStart = (MYFLT) floor(currentFrame / framesPerBlock) * framesPerBlock;
-		vstMidiEvent.deltaFrames = long(floor(currentFrame - currentBlockStart));
-		vstMidiEvent.flags = 0;
-		vstMidiEvent.detune = 0;
-		vstMidiEvent.noteLength = 0;
-		vstMidiEvent.noteOffset = 0;
-		vstMidiEvent.reserved1 = 0;
-		vstMidiEvent.reserved2 = 0;
-		vstMidiEvent.noteOffVelocity = 0;
-		vstMidiEvent.midiData[0] = 128 | midichannel;
-		vstMidiEvent.midiData[1] = rounded;
-		vstMidiEvent.midiData[2] = 0;
-		vstMidiEvent.midiData[3] = 0;
-		return true;
-	}
-	else 
+        if(aeffect) {
+            MYFLT rounded = round(note);
+            vstMidiEvents.resize(vstMidiEvents.size() + 1);
+                VstMidiEvent &vstMidiEvent = vstMidiEvents.back();
+                vstMidiEvent.type = kVstMidiType;
+                vstMidiEvent.byteSize = 24;
+                MYFLT currentFrame = (MYFLT) time * framesPerSecond;
+                MYFLT currentBlockStart = (MYFLT) floor(currentFrame / framesPerBlock) * framesPerBlock;
+                vstMidiEvent.deltaFrames = long(floor(currentFrame - currentBlockStart));
+                vstMidiEvent.flags = 0;
+                vstMidiEvent.detune = 0;
+                vstMidiEvent.noteLength = 0;
+                vstMidiEvent.noteOffset = 0;
+                vstMidiEvent.reserved1 = 0;
+                vstMidiEvent.reserved2 = 0;
+                vstMidiEvent.noteOffVelocity = 0;
+                vstMidiEvent.midiData[0] = 128 | midichannel;
+                vstMidiEvent.midiData[1] = rounded;
+                vstMidiEvent.midiData[2] = 0;
+                vstMidiEvent.midiData[3] = 0;
+                return true;
+        }
+        else
         return false;
 }
 
 void VSTPlugin::SendMidi()
 {
-	if(aeffect && vstMidiEvents.size() > 0) {
-	    vstEventsBuffer.resize(sizeof(VstEvents) + (sizeof(VstEvent *) * vstMidiEvents.size()));
-	    VstEvents *vstEvents = (VstEvents *)&vstEventsBuffer.front();
-	    vstEvents->numEvents = vstMidiEvents.size();
-	    vstEvents->reserved = 0;
-		for(size_t i = 0, n = vstEvents->numEvents; i < n; i++) {
-            vstEvents->events[i] = (VstEvent *)&vstMidiEvents[i];	
+        if(aeffect && vstMidiEvents.size() > 0) {
+            vstEventsBuffer.resize(sizeof(VstEvents) + (sizeof(VstEvent *) * vstMidiEvents.size()));
+            VstEvents *vstEvents = (VstEvents *)&vstEventsBuffer.front();
+            vstEvents->numEvents = vstMidiEvents.size();
+            vstEvents->reserved = 0;
+                for(size_t i = 0, n = vstEvents->numEvents; i < n; i++) {
+            vstEvents->events[i] = (VstEvent *)&vstMidiEvents[i];
             Debug("VSTPlugin::SendMidi(queue size %d status %d data1 %d "
                 "data2 %d detune %d delta %d\n",
                 vstEvents->numEvents,
@@ -298,230 +298,229 @@ void VSTPlugin::SendMidi()
                 ((VstMidiEvent *)vstEvents->events[i])->midiData[1],
                 ((VstMidiEvent *)vstEvents->events[i])->midiData[2],
                 ((VstMidiEvent *)vstEvents->events[i])->detune,
-                ((VstMidiEvent *)vstEvents->events[i])->deltaFrames);                 
-        }           
-		Dispatch(effProcessEvents, 0, 0, vstEvents, 0.0f);
-		vstMidiEvents.resize(0);
-	}
+                ((VstMidiEvent *)vstEvents->events[i])->deltaFrames);
+        }
+                Dispatch(effProcessEvents, 0, 0, vstEvents, 0.0f);
+                vstMidiEvents.resize(0);
+        }
 }
 
 bool VSTPlugin::DescribeValue(int parameter,char* value)
 {
     Debug("VSTPlugin::DescribeValue.\n");
-	if(aeffect)
-	{
-		if(parameter < aeffect->numParams)
-		{
-			char par_display[0x100];
-			char par_label[0x100];
-			Dispatch(effGetParamDisplay,parameter,0,par_display,0.0f);
-			Dispatch(effGetParamLabel,parameter,0,par_label,0.0f);
-			strcpy(value, par_display);
-			return true;
-		}
-	}
-	return false;
+        if(aeffect)
+        {
+                if(parameter < aeffect->numParams)
+                {
+                        char par_display[0x100];
+                        char par_label[0x100];
+                        Dispatch(effGetParamDisplay,parameter,0,par_display,0.0f);
+                        Dispatch(effGetParamLabel,parameter,0,par_label,0.0f);
+                        strcpy(value, par_display);
+                        return true;
+                }
+        }
+        return false;
 }
 
 int VSTPlugin::Instantiate(const char *libraryName_)
 {
     Debug("VSTPlugin::Instance.\n");
- 	libraryHandle = csound->OpenLibrary(libraryName_);
-	if(!libraryHandle)	
-	{
-		Log("WARNING! '%s' was not found or is invalid.\n", libraryName_);
-		return VSTINSTANCE_ERR_NO_VALID_FILE;
-	}
-	Debug("Loaded plugin library '%s'.\n" , libraryName_);
-	PVSTMAIN main = (PVSTMAIN)csound->GetLibrarySymbol(libraryHandle,"main");
-	if(!main)
-	{	
-	    Log("Failed to find 'main' function.\n");
-     	csound->CloseLibrary(libraryHandle);
-		aeffect=NULL;
-		return VSTINSTANCE_ERR_NO_VST_PLUGIN;
-	}
-	Debug("Found 'main' function at 0x%x.\n" , main);
-	aeffect = main((audioMasterCallback) VSTPlugin::Master);
-	aeffect->user = this;
-	if(!aeffect)
-	{
-		Log("VST plugin: unable to create effect.\n");
-		csound->CloseLibrary(libraryHandle);
-		return VSTINSTANCE_ERR_REJECTED;
-	}
-	Debug("Created effect '%x'.\n" , aeffect);	
-	if(  aeffect->magic!=kEffectMagic)
-	{
-		Log("VST plugin: Instance query rejected by 0x%x\n", aeffect);
-		csound->CloseLibrary(libraryHandle);
-		aeffect=NULL;
-		return VSTINSTANCE_ERR_REJECTED;
-	}
-	if(!Dispatch( effGetProductString, 0, 0, &productName, 0.0f))
-	{
-		strcpy(productName, libraryName);
-	}
-	return VSTINSTANCE_NO_ERROR;
+        libraryHandle = csound->OpenLibrary(libraryName_);
+        if(!libraryHandle)
+        {
+                Log("WARNING! '%s' was not found or is invalid.\n", libraryName_);
+                return VSTINSTANCE_ERR_NO_VALID_FILE;
+        }
+        Debug("Loaded plugin library '%s'.\n" , libraryName_);
+        PVSTMAIN main = (PVSTMAIN)csound->GetLibrarySymbol(libraryHandle,"main");
+        if(!main)
+        {
+            Log("Failed to find 'main' function.\n");
+        csound->CloseLibrary(libraryHandle);
+                aeffect=NULL;
+                return VSTINSTANCE_ERR_NO_VST_PLUGIN;
+        }
+        Debug("Found 'main' function at 0x%x.\n" , main);
+        aeffect = main((audioMasterCallback) VSTPlugin::Master);
+        aeffect->user = this;
+        if(!aeffect)
+        {
+                Log("VST plugin: unable to create effect.\n");
+                csound->CloseLibrary(libraryHandle);
+                return VSTINSTANCE_ERR_REJECTED;
+        }
+        Debug("Created effect '%x'.\n" , aeffect);
+        if(  aeffect->magic!=kEffectMagic)
+        {
+                Log("VST plugin: Instance query rejected by 0x%x\n", aeffect);
+                csound->CloseLibrary(libraryHandle);
+                aeffect=NULL;
+                return VSTINSTANCE_ERR_REJECTED;
+        }
+        if(!Dispatch( effGetProductString, 0, 0, &productName, 0.0f))
+        {
+                strcpy(productName, libraryName);
+        }
+        return VSTINSTANCE_NO_ERROR;
 }
 
 void VSTPlugin::Info()
 {
-	int i =0;
-	Log("====================================================\n");
-	Log("Loaded plugin: %s\n", productName);
-	if(!aeffect->dispatcher(aeffect, 
+        int i =0;
+        Log("====================================================\n");
+        Log("Loaded plugin: %s\n", productName);
+        if(!aeffect->dispatcher(aeffect,
         effGetVendorString, 0, 0, &vendorName, 0.0f)) {
-		strcpy(vendorName, "Unknown vendor");
-	}
-	Log("Vendor name: %s \n", vendorName);
-	pluginVersion = aeffect->version;
-	Log("Version: %d \n", pluginVersion);
-	pluginIsSynth = (aeffect->flags & effFlagsIsSynth)?true:false;
-	Log("Is synthesizer? %s\n",(pluginIsSynth==true?"Yes":"No"));
-	overwrite = (aeffect->flags & effFlagsCanReplacing)?true:false;
-	hasEditor = (aeffect->flags & effFlagsHasEditor)?true:false;
-	Log("Number of inputs: %i\n", getNumInputs());
-	Log("Number of outputs: %i\n", getNumOutputs());
-	long nparams=NumParameters();
-	Log("Number of parameters: %d\n",nparams);
+                strcpy(vendorName, "Unknown vendor");
+        }
+        Log("Vendor name: %s \n", vendorName);
+        pluginVersion = aeffect->version;
+        Log("Version: %d \n", pluginVersion);
+        pluginIsSynth = (aeffect->flags & effFlagsIsSynth)?true:false;
+        Log("Is synthesizer? %s\n",(pluginIsSynth==true?"Yes":"No"));
+        overwrite = (aeffect->flags & effFlagsCanReplacing)?true:false;
+        hasEditor = (aeffect->flags & effFlagsHasEditor)?true:false;
+        Log("Number of inputs: %i\n", getNumInputs());
+        Log("Number of outputs: %i\n", getNumOutputs());
+        long nparams=NumParameters();
+        Log("Number of parameters: %d\n",nparams);
     char buffer[256];
-	for(i=0; i<nparams;i++) {
-	    strcpy(buffer, "No parameter");
-		GetParamName(i, buffer);
-		if (strcmp("unused",buffer)==1)
-			Log("  Parameter%5i: %s\n",i, buffer);		
-	}
-	csound->Message(csound,"Number of programs: %d\n",aeffect->numPrograms);
-	for(i = 0; i < aeffect->numPrograms; i++) {
+        for(i=0; i<nparams;i++) {
+            strcpy(buffer, "No parameter");
+                GetParamName(i, buffer);
+                if (strcmp("unused",buffer)==1)
+                        Log("  Parameter%5i: %s\n",i, buffer);
+        }
+        csound->Message(csound,"Number of programs: %d\n",aeffect->numPrograms);
+        for(i = 0; i < aeffect->numPrograms; i++) {
         strcpy(buffer, "No program");
-	    GetProgramName(0, i, buffer);
-	    if (strcmp("default",buffer)==1)
-	    	Log("  Program%7i: %s\n", i, buffer);
-    }	
-	csound->Message(csound,"----------------------------------------------------\n");
+            GetProgramName(0, i, buffer);
+            if (strcmp("default",buffer)==1)
+                Log("  Program%7i: %s\n", i, buffer);
+    }
+        csound->Message(csound,"----------------------------------------------------\n");
 }
 
 int VSTPlugin::getNumInputs( void )
 {
     Debug("VSTPlugin::getNumInputs.\n");
-	return aeffect->numInputs;
+        return aeffect->numInputs;
 }
 
 int VSTPlugin::getNumOutputs( void )
 {
     Debug("VSTPlugin::getNumOutputs.\n");
-	return aeffect->numOutputs;
+        return aeffect->numOutputs;
 }
 
 void VSTPlugin::Free() // Called also in destruction
 {
     Debug("VSTPlugin::Free.\n");
-	if(aeffect) {
-		Dispatch(effMainsChanged, 0, 0, NULL, 0.0f);
-		Dispatch(effClose,        0, 0, NULL, 0.0f);
-		aeffect = 0;
-		aeffect->user = 0;
-		csound->CloseLibrary(libraryHandle);
-		libraryHandle = 0;
-	}
+        if(aeffect) {
+                Dispatch(effMainsChanged, 0, 0, NULL, 0.0f);
+                Dispatch(effClose,        0, 0, NULL, 0.0f);
+                aeffect = 0;
+                aeffect->user = 0;
+                csound->CloseLibrary(libraryHandle);
+                libraryHandle = 0;
+        }
 }
 
 void VSTPlugin::Init()
 {
     Debug("VSTPlugin::Init.\n");
-	framesPerSecond = size_t(csound->GetSr(csound));
-	framesPerBlock = csound->GetKsmps(csound);
-	channels = csound->GetNchnls(csound);
-	Log("VSTPlugin::Init framesPerSecond %d framesPerBlock %d channels %d.\n",
-	   framesPerSecond, framesPerBlock, channels);
-	inputs_.resize(channels);
-	outputs_.resize(channels);
-	for(size_t i = 0; i < channels; i++) {
+        framesPerSecond = size_t(csound->GetSr(csound));
+        framesPerBlock = csound->GetKsmps(csound);
+        channels = csound->GetNchnls(csound);
+        Log("VSTPlugin::Init framesPerSecond %d framesPerBlock %d channels %d.\n",
+           framesPerSecond, framesPerBlock, channels);
+        inputs_.resize(channels);
+        outputs_.resize(channels);
+        for(size_t i = 0; i < channels; i++) {
         inputs_[i].resize(framesPerBlock);
         inputs.push_back(&inputs_[i].front());
         outputs_[i].resize(framesPerBlock);
         outputs.push_back(&outputs_[i].front());
-    }      
-	Dispatch(effOpen        ,  0, 0, NULL, 0.f);
-	Dispatch(effSetProgram  ,  0, 0, NULL, 0.0f);
-	Dispatch(effMainsChanged,  0, 1, NULL, 0.f);
-	Dispatch(effSetSampleRate, 0, 0, 0, (float) framesPerSecond );
-	Dispatch(effSetBlockSize,  0, framesPerBlock, NULL, 0.f );
+    }
+        Dispatch(effOpen        ,  0, 0, NULL, 0.f);
+        Dispatch(effSetProgram  ,  0, 0, NULL, 0.0f);
+        Dispatch(effMainsChanged,  0, 1, NULL, 0.f);
+        Dispatch(effSetSampleRate, 0, 0, 0, (float) framesPerSecond );
+        Dispatch(effSetBlockSize,  0, framesPerBlock, NULL, 0.f );
 }
 
 bool VSTPlugin::SetParameter(int parameter, float value)
 {
     Debug("VSTPlugin::SetParameter(%d, %f).\n", parameter, value);
-	if(aeffect) {
-		if(( parameter >= 0 ) && (parameter<=aeffect->numParams)) {
-			aeffect->setParameter(aeffect,parameter,value);
-			return true;
-		}
-		else return false;
-	}
-	return false;
+        if(aeffect) {
+                if(( parameter >= 0 ) && (parameter<=aeffect->numParams)) {
+                        aeffect->setParameter(aeffect,parameter,value);
+                        return true;
+                }
+                else return false;
+        }
+        return false;
 }
 
 bool VSTPlugin::SetParameter(int parameter, int value)
 {
     Debug("VSTPlugin::SetParameter(%d, %d).\n", parameter, value);
-	return SetParameter(parameter,value/65535.0f);
+        return SetParameter(parameter,value/65535.0f);
 }
 
 int VSTPlugin::GetCurrentProgram()
 {
     Debug("VSTPlugin::GetCurrentProgram.\n");
-	if(aeffect)
-		return Dispatch(effGetProgram,0,0,NULL,0.0f);
-	else
-		return 0;
+        if(aeffect)
+                return Dispatch(effGetProgram,0,0,NULL,0.0f);
+        else
+                return 0;
 }
 
 void VSTPlugin::SetCurrentProgram(int prg)
 {
     Debug("VSTPlugin::SetCurrentProgram((%d).\n", prg);
-	if(aeffect)
-		Dispatch(effSetProgram,0,prg,NULL,0.0f);
+        if(aeffect)
+                Dispatch(effSetProgram,0,prg,NULL,0.0f);
 }
 
 bool VSTPlugin::replace()
 {
-	return overwrite;
+        return overwrite;
 }
 
 void VSTPlugin::EditorIdle()
 {
-	Dispatch(effEditIdle,0,0, windowHandle,0.0f);			
+        Dispatch(effEditIdle,0,0, windowHandle,0.0f);
 }
-
 
 ERect VSTPlugin::GetEditorRect()
 {
     ERect *rect_ = 0;
-	Dispatch(effEditGetRect,0,0, &rect_,0.0f);	
-	rect = *rect_;
-	return rect;
+        Dispatch(effEditGetRect,0,0, &rect_,0.0f);
+        rect = *rect_;
+        return rect;
 }
 
 void VSTPlugin::OpenEditor()
 {
     if(windowHandle)
         return;
-    if (aeffect->flags & effFlagsHasEditor== 1)	
+    if (aeffect->flags & effFlagsHasEditor== 1)
     {
     GetEditorRect();
-    Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left, 
+    Debug("ERect top %d left %d right %d bottom %d.\n", rect.top, rect.left,
         rect.right, rect.bottom);
     window = new Fl_Window(rect.right, rect.bottom, GetName());
     Debug("Window 0x%x.\n", window);
-    window->show();						
-	windowHandle = fl_xid(window);
-	Debug("windowHandle 0x%x.\n", windowHandle);
-	SetEditWindow(windowHandle);
+    window->show();
+        windowHandle = fl_xid(window);
+        Debug("windowHandle 0x%x.\n", windowHandle);
+        SetEditWindow(windowHandle);
     }
     else
-	   Log("Plugin:%s has no GUI.\n",productName); 
+           Log("Plugin:%s has no GUI.\n",productName);
 }
 
 void VSTPlugin::CloseEditor()
@@ -531,39 +530,39 @@ void VSTPlugin::CloseEditor()
     OnEditorClose();
     if (aeffect->flags & effFlagsHasEditor== 1)
     {
-	OnEditorClose();
-	window->hide();
-	delete window;
-	window = 0;
-	windowHandle = 0;
+        OnEditorClose();
+        window->hide();
+        delete window;
+        window = 0;
+        windowHandle = 0;
     }
 }
 
 void VSTPlugin::SetEditWindow(void *h)
 {
-	windowHandle = h;	
-	Dispatch(effEditOpen,0,0, windowHandle,0.0f);							
+        windowHandle = h;
+        Dispatch(effEditOpen,0,0, windowHandle,0.0f);
 }
 
 void VSTPlugin::OnEditorClose()
 {
-	Dispatch(effEditClose,0,0, windowHandle,0.0f);					
+        Dispatch(effEditClose,0,0, windowHandle,0.0f);
 }
 
 void VSTPlugin::SetShowParameters(bool s)
 {
-	showParameters = s;
+        showParameters = s;
 }
 
 bool VSTPlugin::ShowParams()
 {
-	return showParameters;
+        return showParameters;
 }
 
 void VSTPlugin::AddAftertouch(int value)
 {
-	if(value < 0) value = 0; else if(value > 127) value = 127;
- 	AddMIDI((char)MIDI_NOTEOFF | midiChannel , value );
+        if(value < 0) value = 0; else if(value > 127) value = 127;
+        AddMIDI((char)MIDI_NOTEOFF | midiChannel , value );
 }
 
 void VSTPlugin::AddPitchBend(int value)
@@ -586,26 +585,26 @@ void VSTPlugin::AddControlChange(int control, int value)
 
 bool VSTPlugin::GetProgramName( int cat , int parameter, char *buf)
 {
-	if(aeffect) {
-		if(parameter<NumPrograms()) {
-			Dispatch(effGetProgramNameIndexed,parameter,cat,buf,0.0f);
-			return true;
-		}
-	}
-	return false;
+        if(aeffect) {
+                if(parameter<NumPrograms()) {
+                        Dispatch(effGetProgramNameIndexed,parameter,cat,buf,0.0f);
+                        return true;
+                }
+        }
+        return false;
 }
 
 int VSTPlugin::GetNumCategories()
 {
-	if(aeffect)
-		return Dispatch(effGetNumProgramCategories,0,0,NULL,0.0f);
-	else
-		return 0;
+        if(aeffect)
+                return Dispatch(effGetNumProgramCategories,0,0,NULL,0.0f);
+        else
+                return 0;
 }
 
 void VSTPlugin::StopEditing()
 {
-	edited = false;
+        edited = false;
 }
 
 void VSTPlugin::Log(const char *format,...)
@@ -645,65 +644,65 @@ return 2300L;
 return 2200L;
 #elif defined(VST_2_1_EXTENSIONS)
 return 2100L;
-#else 
+#else
 return 2L;
 #endif
 }
 
-int VSTPlugin::GetNumParams(void) 
-{ 
-    return aeffect->numParams; 
-}
-	
-void VSTPlugin::GetParamName(int numparam,char* name) 
+int VSTPlugin::GetNumParams(void)
 {
-    if(numparam < aeffect->numParams) 
+    return aeffect->numParams;
+}
+
+void VSTPlugin::GetParamName(int numparam,char* name)
+{
+    if(numparam < aeffect->numParams)
         Dispatch(effGetParamName,numparam,0,name,0.0f);
-    else 
+    else
         strcpy(name,"Parameter out of range.");
 }
 
-float VSTPlugin::GetParamValue(int numparam) 
+float VSTPlugin::GetParamValue(int numparam)
 {
-    if(numparam < aeffect->numParams) 
+    if(numparam < aeffect->numParams)
         return(aeffect->getParameter(aeffect, numparam));
-    else 
+    else
         return -1.0;
 }
 
-char* VSTPlugin::GetName(void) 
-{ 
-    return productName; 
+char* VSTPlugin::GetName(void)
+{
+    return productName;
 }
 
-unsigned long VSTPlugin::GetVersion() 
-{ 
-    return pluginVersion; 
-}
-    
-char* VSTPlugin::GetVendorName(void) 
-{ 
-    return vendorName; 
+unsigned long VSTPlugin::GetVersion()
+{
+    return pluginVersion;
 }
 
-char* VSTPlugin::GetDllName(void) 
-{ 
-    return libraryName; 
+char* VSTPlugin::GetVendorName(void)
+{
+    return vendorName;
 }
 
-long VSTPlugin::NumParameters(void) 
-{ 
-    return aeffect->numParams; 
+char* VSTPlugin::GetDllName(void)
+{
+    return libraryName;
 }
 
-float VSTPlugin::GetParameter(long parameter) 
-{ 
-    return aeffect->getParameter(aeffect, parameter); 
+long VSTPlugin::NumParameters(void)
+{
+    return aeffect->numParams;
 }
 
-int VSTPlugin::NumPrograms() 
-{ 
-    return aeffect->numPrograms; 
+float VSTPlugin::GetParameter(long parameter)
+{
+    return aeffect->getParameter(aeffect, parameter);
+}
+
+int VSTPlugin::NumPrograms()
+{
+    return aeffect->numPrograms;
 }
 
 VstTimeInfo *VSTPlugin::GetTime()
@@ -714,40 +713,40 @@ VstTimeInfo *VSTPlugin::GetTime()
     else
         vstTimeInfo.samplePos = 0;
     vstTimeInfo.sampleRate = framesPerSecond;
-    Debug("&vstTimeInfo 0x%x sampleRate %f samplePos %f.\n", 
+    Debug("&vstTimeInfo 0x%x sampleRate %f samplePos %f.\n",
         &vstTimeInfo, vstTimeInfo.sampleRate, vstTimeInfo.samplePos);
     return &vstTimeInfo;
 }
 
-bool VSTPlugin::IsSynth() 
-{ 
-    return pluginIsSynth; 
+bool VSTPlugin::IsSynth()
+{
+    return pluginIsSynth;
 }
 
-bool VSTPlugin::OnCanDo(const char *ptr) 
+bool VSTPlugin::OnCanDo(const char *ptr)
 {
     printf("Can do call: %s.\n", ptr);
     if((!strcmp(ptr, "sendVstMidiEvent")) ||
        (!strcmp(ptr, "receiveVstMidiEvent")) ||
-	(!strcmp(ptr, "sendVstEvents")) ||
-	(!strcmp(ptr, "receiveVstEvents")) || 
-	(!strcmp(ptr, "sendVstTimeInfo")) /*||
+        (!strcmp(ptr, "sendVstEvents")) ||
+        (!strcmp(ptr, "receiveVstEvents")) ||
+        (!strcmp(ptr, "sendVstTimeInfo")) /*||
        (!strcmp(ptr, "sizeWindow"))*/)
        return true;
-    return false; 
+    return false;
 }
 
-bool VSTPlugin::OnInputConnected(AEffect *effect, long input) 
-{ 
-    return true; 
+bool VSTPlugin::OnInputConnected(AEffect *effect, long input)
+{
+    return true;
 }
 
-bool VSTPlugin::OnOutputConnected(AEffect *effect, long output) 
-{ 
-    return true; 
+bool VSTPlugin::OnOutputConnected(AEffect *effect, long output)
+{
+    return true;
 }
 
-long VSTPlugin::Master(AEffect *effect, long opcode, long index, 
+long VSTPlugin::Master(AEffect *effect, long opcode, long index,
     long value, void *ptr, float opt)
 {
     VSTPlugin *plugin = 0;
@@ -772,73 +771,72 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
         "value %d, ptr 0x%x, opt %f)\n",
         effect, opcode, opcodeName.c_str(), index, value, ptr, opt);
     }
-	switch(opcode)
-	{
-	case audioMasterAutomate:			
-		return true;		
-	case audioMasterVersion:			
-		return OnGetVersion(effect);		
-	case audioMasterCurrentId:			
-		if(effect)
-		    return effect->uniqueID; else return -1;	
-	case audioMasterIdle:
-		return plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
-		//return 0;		
-	case audioMasterPinConnected:	
+        switch(opcode)
+        {
+        case audioMasterAutomate:
+                return true;
+        case audioMasterVersion:
+                return OnGetVersion(effect);
+        case audioMasterCurrentId:
+                if(effect)
+                    return effect->uniqueID; else return -1;
+        case audioMasterIdle:
+                return plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+                //return 0;
+        case audioMasterPinConnected:
         return !((value) ?  OnOutputConnected(effect, index) :
-                            OnInputConnected(effect, index));	
-	case audioMasterWantMidi:			
-		return false;
-	case audioMasterProcessEvents:		
-		return false; 	
-	case audioMasterGetTime:
-	    if(plugin)
-	        return (long) plugin->GetTime();
+                            OnInputConnected(effect, index));
+        case audioMasterWantMidi:
+                return false;
+        case audioMasterProcessEvents:
+                return false;
+        case audioMasterGetTime:
+            if(plugin)
+                return (long) plugin->GetTime();
         else {
             //static VstTimeInfo vstTimeInfo;
             //memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
             //return (long) &vstTimeInfo;
         }
         return 0;
-	case audioMasterTempoAt:			
-		return 0;
-	case audioMasterNeedIdle:
-		if (plugin)	
-			return plugin->Dispatch(effIdle, 0, 0, NULL, 0.0f);  
-		return false;
-	case audioMasterGetSampleRate:
-        if(plugin)		
-            return plugin->framesPerSecond;	
-        else 
+        case audioMasterTempoAt:
+                return 0;
+        case audioMasterNeedIdle:
+                if (plugin)
+                        return plugin->Dispatch(effIdle, 0, 0, NULL, 0.0f);
+                return false;
+        case audioMasterGetSampleRate:
+        if(plugin)
+            return plugin->framesPerSecond;
+        else
             return 44100;
-	case audioMasterGetVendorString:
-		strcpy((char *)ptr, "vst4cs");
-		return 0;
-	case audioMasterGetVendorVersion:	
-		return 5000;	
-	case audioMasterGetProductString:
-		strcpy((char*)ptr,"vst4cs");
-		return 0;
-	case audioMasterGetLanguage:		
-		return kVstLangEnglish;
-	case audioMasterUpdateDisplay:
-		if (plugin)
-			plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
-		else
-			return 1;
-	case audioMasterGetNextPlug: 
+        case audioMasterGetVendorString:
+                strcpy((char *)ptr, "vst4cs");
+                return 0;
+        case audioMasterGetVendorVersion:
+                return 5000;
+        case audioMasterGetProductString:
+                strcpy((char*)ptr,"vst4cs");
+                return 0;
+        case audioMasterGetLanguage:
+                return kVstLangEnglish;
+        case audioMasterUpdateDisplay:
+                if (plugin)
+                        plugin->Dispatch(effEditIdle, 0, 0, NULL, 0.0f);
+                else
+                        return 1;
+        case audioMasterGetNextPlug:
         return 1;
-	case audioMasterWillReplaceOrAccumulate:		
+        case audioMasterWillReplaceOrAccumulate:
         return 1;
-	case audioMasterGetCurrentProcessLevel:		
-        return 0; 
-	case audioMasterCanDo:
-        //if(plugin) 
+        case audioMasterGetCurrentProcessLevel:
+        return 0;
+        case audioMasterCanDo:
+        //if(plugin)
             return OnCanDo((char *)ptr);
-	//else printf("No instance");
+        //else printf("No instance");
         break;
-	}	
-	return 0;
+        }
+        return 0;
 }
-
 
