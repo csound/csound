@@ -274,8 +274,8 @@ extern "C"
     //csound->Message(csound, "Fluid Note Off: key %i\n", key);
 
     fluid_synth_noteoff(fluid_engines[engineNum],
-			channelNum,
-			key);
+                        channelNum,
+                        key);
 
     return OK;
   }
@@ -296,7 +296,7 @@ extern "C"
     //fluid_event_note(fluid->evt, channelNum, key, vel,
 
     csound->RegisterDeinitCallback((void *)&csound, (void *)&fluid->h,
-				   &fluidNoteTurnoff);
+                                   &fluidNoteTurnoff);
 
     return OK;
   }
@@ -653,10 +653,10 @@ extern "C"
 
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->thread,
-				  ep->outypes, ep->intypes,
-				  (int (*)(void*, void*)) ep->iopadr,
-				  (int (*)(void*, void*)) ep->kopadr,
-				  (int (*)(void*, void*)) ep->aopadr);
+                                  ep->outypes, ep->intypes,
+                                  (int (*)(void*, void*)) ep->iopadr,
+                                  (int (*)(void*, void*)) ep->kopadr,
+                                  (int (*)(void*, void*)) ep->aopadr);
       ep++;
     }
     return err;
