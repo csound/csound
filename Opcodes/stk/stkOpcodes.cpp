@@ -103,7 +103,7 @@ public:
       {
         Stk::setSampleRate(csound->GetSr(csound));
         instrument = new T();
-	stkInstances[csound].push_back(instrument);
+        stkInstances[csound].push_back(instrument);
       }
     ksmps = csound->GetKsmps(csound);
     instrument->noteOn(*ifrequency, *igain);
@@ -204,7 +204,7 @@ public:
       {
         Stk::setSampleRate(csound->GetSr(csound));
         instrument = new T((StkFloat) 10.0);
-	stkInstances[csound].push_back(instrument);
+        stkInstances[csound].push_back(instrument);
       }
     ksmps = csound->GetKsmps(csound);
     instrument->noteOn(*ifrequency, *igain);
@@ -320,7 +320,7 @@ extern "C"
         "a",
         "iijjjjjjjj",
         (SUBR) STKInstrumentAdapter1<Bowed>::init_,
-	0,
+        0,
         (SUBR) STKInstrumentAdapter1<Bowed>::kontrol_,
       },
       {
@@ -573,23 +573,23 @@ extern "C"
         Stk::setRawwavePath(path);
       }
     int status = 0;
-    for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) 
+    for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
       {
-	status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz, oentry->thread,
-				       oentry->outypes, oentry->intypes,
-				       (int (*)(void*, void*)) oentry->iopadr,
-				       (int (*)(void*, void*)) oentry->kopadr,
-				       (int (*)(void*, void*)) oentry->aopadr);
-      }   
+        status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz, oentry->thread,
+                                       oentry->outypes, oentry->intypes,
+                                       (int (*)(void*, void*)) oentry->iopadr,
+                                       (int (*)(void*, void*)) oentry->kopadr,
+                                       (int (*)(void*, void*)) oentry->aopadr);
+      }
     return status;
   }
 
   PUBLIC int csoundModuleDestroy(void *csound_)
   {
     ENVIRON *csound = (ENVIRON*) csound_;
-    for(size_t i = 0, n = stkInstances[csound].size(); i < n; ++i) 
+    for(size_t i = 0, n = stkInstances[csound].size(); i < n; ++i)
       {
-	delete stkInstances[csound][i];
+        delete stkInstances[csound][i];
       }
     stkInstances[csound].clear();
     return 0;

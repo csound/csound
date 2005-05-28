@@ -86,8 +86,8 @@ public:
     va_start(args, format);
     if(csound) {
       if(csound->GetMessageLevel(csound) & WARNMSG ||
-	 csound->GetDebug(csound)) {
-	csound->MessageV(csound, 0, format, args);
+         csound->GetDebug(csound)) {
+        csound->MessageV(csound, 0, format, args);
       }
     }
     else {
