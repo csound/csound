@@ -283,7 +283,7 @@ extern "C"
 
         int fluidNoteTurnoff(void *csound_, void *data) {
 
-                ENVIRON *csound = (ENVIRON *)csound_;
+//              ENVIRON *csound = (ENVIRON *)csound_;
 
                 FLUID_NOTE *fluid = (FLUID_NOTE *)data;
 
