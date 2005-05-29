@@ -4,15 +4,15 @@
 
 /**
  * The busses are laid out:
- * busses[bus][channel][frame].
+ * busses[csound][bus][channel][frame].
  */
-static std::map<size_t, std::vector< std::vector<MYFLT> > > busses;
+static std::map<ENVIRON *, std::map<size_t, std::vector< std::vector<MYFLT> > > > busses;
 
 /**
  * The mixer matrix is laid out:
- * matrix[send][bus].
+ * matrix[csound][send][bus].
  */
-static std::map<size_t, std::map<size_t, MYFLT> > matrix;
+static std::map<ENVIRON *, std::map<size_t, std::map<size_t, MYFLT> > > matrix;
 
 /**
  * MixerSetLevel isend, ibuss, kgain
@@ -35,26 +35,26 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
     //warn(csound, "MixerSetLevel::init...\n");
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
-    if(busses.find(buss) == busses.end())
+    if(busses[csound].find(buss) == busses[csound].end())
       {
         size_t channels = csound->GetNchnls(csound);
         size_t frames = csound->GetKsmps(csound);
-        busses[buss].resize(channels);
+        busses[csound][buss].resize(channels);
         for(size_t channel = 0; channel < channels; channel++)
           {
-            busses[buss][channel].resize(frames);
+            busses[csound][buss][channel].resize(frames);
           }
-        //warn(csound, "MixerSetLevel::init: initialized buss %d channels %d frames %d\n", buss, channels, frames);
+        //warn(csound, "MixerSetLevel::init: initialized instance %d buss %d channels %d frames %d\n", csound, buss, channels, frames);
       }
-    matrix[send][buss] = *kgain;
-    //warn(csound, "MixerSetLevel::kontrol: send %d buss %d gain %f\n", send, buss, gain);
+    matrix[csound][send][buss] = *kgain;
+    //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss %d gain %f\n", csound, send, buss, gain);
     return OK;
   }
   int kontrol(ENVIRON *csound)
   {
     //warn(csound, "MixerSetLevel::kontrol...\n");
-    matrix[send][buss] = *kgain;
-    //warn(csound, "MixerSetLevel::kontrol: send %d buss %d gain %f\n", send, buss, gain);
+    matrix[csound][send][buss] = *kgain;
+    //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss %d gain %f\n", csound, send, buss, gain);
     return OK;
   }
 };
@@ -95,7 +95,7 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel>
   }
   int kontrol(ENVIRON *csound)
   {
-    *kgain = matrix[send][buss];
+    *kgain = matrix[csound][send][buss];
     return OK;
   }
 };
@@ -126,19 +126,19 @@ struct MixerSend : public OpcodeBase<MixerSend>
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
     frames = csound->GetKsmps(csound);
-    busspointer = &busses[buss][channel].front();
-    //warn(csound, "MixerSend::init: send %d buss %d channel %d frames %d busspointer 0x%x\n", send, buss, channel, frames, busspointer);
+    busspointer = &busses[csound][buss][channel].front();
+    //warn(csound, "MixerSend::init: instance %d send %d buss %d channel %d frames %d busspointer 0x%x\n", csound, send, buss, channel, frames, busspointer);
     return OK;
   }
   int audio(ENVIRON *csound)
   {
     //warn(csound, "MixerSend::audio...\n");
-    MYFLT gain = matrix[send][buss];
+    MYFLT gain = matrix[csound][send][buss];
     for(size_t i = 0; i < frames; i++)
       {
         busspointer[i] += (ainput[i] * gain);
       }
-    //warn(csound, "MixerSend::audio: send %d buss %d gain %f busspointer 0x%x\n", send, buss, gain, busspointer);
+    //warn(csound, "MixerSend::audio: instance %d send %d buss %d gain %f busspointer 0x%x\n", csound, send, buss, gain, busspointer);
     return OK;
   }
 };
@@ -168,8 +168,8 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
     frames = csound->GetKsmps(csound);
-    busspointer = &busses[buss][channel].front();
-    //warn(csound, "MixerReceive::init buss %d channel %d frames %d busspointer 0x%x\n", buss, channel, frames, busspointer);
+    busspointer = &busses[csound][buss][channel].front();
+    //warn(csound, "MixerReceive::init instance %d buss %d channel %d frames %d busspointer 0x%x\n", instance, buss, channel, frames, busspointer);
     return OK;
   }
   int audio(ENVIRON *csound)
@@ -199,7 +199,7 @@ struct MixerClear : public OpcodeBase<MixerClear>
   int audio(ENVIRON *csound)
   {
     //warn(csound, "MixerClear::audio...\n")
-    for(std::map<size_t, std::vector< std::vector<MYFLT> > >::iterator busi = busses.begin(); busi != busses.end(); ++busi)
+    for(std::map<size_t, std::vector< std::vector<MYFLT> > >::iterator busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
       {
         for(std::vector< std::vector<MYFLT> >::iterator channeli = busi->second.begin(); channeli != busi->second.end(); ++channeli)
           {
