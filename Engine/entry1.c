@@ -319,7 +319,6 @@ OENTRY opcodlst_1[] = {
 { "init.i",  S(ASSIGN), 1,      "i",    "i",    init                    },
 { "init.k",  S(ASSIGN), 1,      "k",    "i",    init                    },
 { "init.a",  S(ASSIGN), 1,      "a",    "i",    ainit                   },
-{ "init.f",  S(ASSIGN), 1,      "i",    "i",    init                    },
 { ">",      S(RELAT),   0,      "B",    "kk",   gt,     gt              },
 { ">=",     S(RELAT),   0,      "B",    "kk",   ge,     ge              },
 { "<",      S(RELAT),   0,      "B",    "kk",   lt,     lt              },
