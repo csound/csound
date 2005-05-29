@@ -1142,6 +1142,7 @@ Opcodes/stk/src/Thread.cpp
     pyEnvironment = pluginEnvironment.Copy();
     if getPlatform() == 'linux':
         pyEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
+        pyEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
         pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
         if commonEnvironment['Word64']=='1':
             pyEnvironment.Append(LIBPATH = ['/usr/local/lib64/python2.3/config'])
