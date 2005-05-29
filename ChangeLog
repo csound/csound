@@ -1,3 +1,7 @@
+2005-05-29  John ff  <jpff@codemist.co.uk>
+
+	* Engine/entry1.c: Added init for f type
+
 2005-05-27  Steven Yi  <stevenyi@gmail.com>
 	* Opcodes/fluidOpcodes/fluidOpcodes.cpp: modified fluidNote to use
 	RegisterDeinitCallback, removed krate function call
