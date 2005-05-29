@@ -30,6 +30,7 @@ import time
 # Change enableCsound to True if you have installed CsoundVST.
 # Importing CsoundVST automatically creates a csound object.
 enableCsound = True
+keepPlaying = True
 if enableCsound:
     import CsoundVST
 from visual import *
@@ -133,11 +134,11 @@ for trichord in trichords.values():
 if enableCsound:
     def csoundThreadRoutine():
         csound.load('c:/utah/home/mkg/projects/csound5/examples/CsoundVST.csd')
-        csound.setCommand('csound -d -m0 -b400 -B1200 -odac3 temp.orc temp.sco')
+        csound.setCommand('csound -d -m0 -b400 -B1200 -odac2 temp.orc temp.sco')
         csound.exportForPerformance()
         gc.disable()
         csound.compile()
-        while True:
+        while keepPlaying:
             csound.performKsmps()
     csoundThread = threading.Thread(None, csoundThreadRoutine)
     csoundThread.start()
@@ -167,4 +168,7 @@ while scene.visible:
             pass
         scene.mouse.events = 0
 if enableCsound:
+    keepPlaying = False
+    csoundThread.join()
     csound.cleanup()
+print "Finished."
