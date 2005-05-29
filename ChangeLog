@@ -1,3 +1,13 @@
+2005-05-30  Michael Gogins <gogins@pipeline.com>
+	* CsoundVST now supports multiple instantiation of VST plugins;
+	it is not completely stable yet.
+	* The Mixer opcodes now support multiple instantiation of Csound.
+	* OpcodeBase.hpp now works with the new OENTRY structure.
+	The OpcodeBase class now automatically registers a deinit callback,
+	which by default does nothing.
+	* The C++ STK opcodes now use RegisterDeinitCallback
+	and the csoundModule* initialization and deinitialization routines.
+	
 2005-05-27  Steven Yi  <stevenyi@gmail.com>
 	* Opcodes/fluidOpcodes/fluidOpcodes.cpp: modified fluidNote to use
 	RegisterDeinitCallback, removed krate function call
