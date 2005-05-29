@@ -235,6 +235,7 @@ OENTRY opcodlst_2[] = {
 { "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR)reverbx    },
 { "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR) reverbx    },
 { "=.f",      S(FASSIGN), 2,    "f",   "f",      NULL, fassign, NULL    },
+{ "init.f",   S(FASSIGN), 2,    "f",   "f",      fassign, NULL, NULL    },
 { "pvsanal",  S(PVSANAL), 5,    "f",   "aiiiioo",  pvsanalset, NULL, pvsanal  },
 { "pvsynth",  S(PVSYNTH), 5,    "a",   "fo",     pvsynthset, NULL, pvsynth  },
 { "pvsadsyn", S(PVADS),   7,    "a",   "fikopo", pvadsynset, pvadsyn, pvadsyn },
