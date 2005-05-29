@@ -30,6 +30,7 @@
 #include "CsoundVstFltk.hpp"
 #include "CsoundVST.hpp"
 #include "System.hpp"
+#include <boost/tokenizer.hpp>
 
 static std::string about = "CSOUND AND CSOUND VST\n"
 "Version 5.0beta\n"
@@ -148,7 +149,6 @@ CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
   csoundVST((CsoundVST *)audioEffect),
   useCount(0)
 {
-  csound::System::setMessageCallback(&CsoundVstFltk::messageCallback);
   csoundVST->setEditor(this);
 }
 
@@ -175,17 +175,17 @@ void CsoundVstFltk::updateCaption()
 
 void CsoundVstFltk::updateModel()
 {
-  csound::System::message("BEGAN CsoundVstFltk::updateModel...\n");
-  Fl::lock();
   if(csoundVstUi)
     {
+      Fl::lock();
+      csound::System::message("BEGAN CsoundVstFltk::updateModel...\n");
       csoundVST->getCppSound()->setCommand(commandInput->value());
       csoundVST->getCppSound()->setOrchestra(orchestraTextBuffer->text());
       csoundVST->getCppSound()->setScore(scoreTextBuffer->text());
       csoundVST->setScript(scriptTextBuffer->text());
+      csound::System::message("ENDED CsoundVstFltk::updateModel.\n");
+      Fl::unlock();
     }
-  Fl::unlock();
-  csound::System::message("ENDED CsoundVstFltk::updateModel.\n");
 }
 
 long CsoundVstFltk::getRect(ERect **erect)
@@ -197,8 +197,8 @@ long CsoundVstFltk::getRect(ERect **erect)
 
 long CsoundVstFltk::open(void *parentWindow)
 {
-  systemWindow = parentWindow;
   Fl::lock();
+  systemWindow = parentWindow;
   this->csoundVstUi = make_window(this);
   this->mainTabs = ::mainTabs;
   this->commandInput = ::commandInput;
@@ -254,6 +254,7 @@ long CsoundVstFltk::open(void *parentWindow)
       csoundVST->setIsAutoPlayback(number);
     }
   this->aboutTextBuffer->text(removeCarriageReturns(about));
+  csound::System::setMessageCallback(&CsoundVstFltk::messageCallback);
   update();
   return true;
 }
@@ -282,12 +283,12 @@ void CsoundVstFltk::idle()
         {
           while(!messages.empty())
             {
-              Fl::lock();
+	      Fl::lock();
               this->runtimeMessagesBrowser->add(messages.front().c_str());
               messages.pop_front();
               this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
-              Fl::flush();
-              Fl::unlock();
+	      Fl::flush();
+	      Fl::unlock();
             }
         }
     }
@@ -297,11 +298,11 @@ void CsoundVstFltk::idle()
 
 void CsoundVstFltk::update()
 {
-  csound::System::message("BEGAN CsoundVstFltk::update...\n");
   if(csoundVstUi)
     {
-      updateCaption();
       Fl::lock();
+      csound::System::message("BEGAN CsoundVstFltk::update...\n");
+      updateCaption();
       static std::string buffer;
       this->settingsVstPluginModeEffect->value(!csoundVST->getIsSynth());
       this->settingsVstPluginModeInstrument->value(csoundVST->getIsSynth());
@@ -324,9 +325,9 @@ void CsoundVstFltk::update()
       this->scoreTextBuffer->text(removeCarriageReturns(buffer));
       buffer = csoundVST->getScript();
       this->scriptTextBuffer->text(removeCarriageReturns(buffer));
+      csound::System::message("ENDED CsoundVstFltk::update.\n");
       Fl::unlock();
     }
-  csound::System::message("ENDED CsoundVstFltk::update.\n");
 }
 
 void CsoundVstFltk::postUpdate()
@@ -351,40 +352,36 @@ void CsoundVstFltk::messageCallback(void *userdata, int attribute, const char *f
     {
       return;
     }
+  if(!csoundVstFltk->csoundVstUi)
+    {
+      return;
+    }
+  if(!csoundVstFltk->runtimeMessagesBrowser)
+    {
+      return;
+    }
   char buffer[0x1000];
   vsprintf(buffer, format, valist);
   csoundVstFltk->messagebuffer.append(buffer);
-  size_t position = 0;
-  while((position = csoundVstFltk->messagebuffer.find("\n")) != std::string::npos)
+  if (csoundVstFltk->messagebuffer.find("\n") != std::string::npos)
     {
-      if(!csoundVstFltk)
-        {
-          return;
-        }
-      if(csoundVstFltk->csoundVST->getIsVst())
-        {
-          csoundVstFltk->messages.push_back(csoundVstFltk->messagebuffer.substr(0, position));
-        }
-      else
-        {
-          if(!csoundVstFltk->csoundVstUi)
-            {
-              return;
-            }
-          if(!csoundVstFltk->runtimeMessagesBrowser)
-            {
-              return;
-            }
-          else
-            {
-              Fl::lock();
-              csoundVstFltk->runtimeMessagesBrowser->add(csoundVstFltk->messagebuffer.substr(0, position).c_str());
-              csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
-              Fl::flush();
-              Fl::unlock();
-            }
-          csoundVstFltk->messagebuffer.erase(0, position + 1);
-        }
+      typedef boost::char_separator<char> charsep;
+      boost::tokenizer<charsep> tokens(csoundVstFltk->messagebuffer, charsep("\n"));
+      for(boost::tokenizer<charsep>::iterator it = tokens.begin(); it != tokens.end(); ++it)
+	{
+	  if(csoundVstFltk->csoundVST->getIsVst())
+	    {
+	      csoundVstFltk->messages.push_back(*it);
+	    }
+	  else
+	    {
+	      Fl::lock();
+	      csoundVstFltk->runtimeMessagesBrowser->add(it->c_str());
+	      csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
+	      Fl::flush();
+	      Fl::unlock();
+	    }
+	}
       csoundVstFltk->messagebuffer.clear();
     }
 }

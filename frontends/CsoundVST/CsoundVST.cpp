@@ -195,15 +195,14 @@ void CsoundVST::performanceThreadRoutine()
   getCppSound()->stop();
   getCppSound()->reset();
   getCppSound()->setFLTKThreadLocking(true);
-  csoundSetHostData(getCppSound()->getCsound(), this);
-  csoundSetMessageCallback(getCppSound()->getCsound(), &csound::System::message);
   if(getIsPython())
     {
       Shell::save(Shell::getFilename());
       csound::System::inform("Saved as: '%s'.\n", Shell::getFilename().c_str());
       reset();
       if(getIsVst())
-        {
+        {  csoundSetHostData(cppSound->getCsound(), this);
+
           csound::System::inform("Python VST performance.\n");
           getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
           getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
@@ -340,14 +339,15 @@ void CsoundVST::open()
     {
       throw "No cppSound in CsoundVST::open()... check your Python environment.";
     }
+  csoundSetHostData(cppSound->getCsound(), this);
+  csoundSetMessageCallback(getCppSound()->getCsound(), &csound::System::message);
+  csound::System::setUserdata(cppSound->getCsound());
   std::string filename_ = getFilename();
   if(filename_.length() > 0)
     {
       cppSound->setFilename(filename_);
     }
   cppSound->setFLTKThreadLocking(false);
-  csound::System::setUserdata(cppSound->getCsound());
-  csoundSetHostData(cppSound->getCsound(), this);
 }
 
 void CsoundVST::reset()
