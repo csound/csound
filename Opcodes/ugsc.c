@@ -345,7 +345,7 @@ int phaser1(ENVIRON *csound, PHASER1 *p)
     MYFLT coef = *p->kcoef, fbgain = *p->fbgain;
     MYFLT beta, wp;
     int nsmps = csound->ksmps;
-    int j;
+    int i, j;
 
     xnm1 = p->xnm1;
     ynm1 = p->ynm1;
@@ -362,8 +362,8 @@ int phaser1(ENVIRON *csound, PHASER1 *p)
     wp = csound->pidsr * coef;
     beta = (FL(1.0) - wp)/(FL(1.0) + wp);
 
-    do {
-      xn = *in++ + feedback * fbgain;
+    for (i=0; i<nsmps; i++) {
+      xn = in[i] + feedback * fbgain;
       for (j=0; j < p->loop; j++) {
         /* Difference equation for 1st order
          * allpass filter */
@@ -373,9 +373,9 @@ int phaser1(ENVIRON *csound, PHASER1 *p)
         p->ynm1[j] = yn;
         xn = yn;
       }
-      *out++ = yn;
+      out[i] = yn;
       feedback = yn;
-    } while (--nsmps);
+    }
     p->feedback = feedback;
     return OK;
 }
@@ -486,6 +486,7 @@ int lp2(ENVIRON *csound, LP2 *p)
     MYFLT *out, *in, yn, ynm1, ynm2;
     MYFLT kfco = *p->kfco, kres = *p->kres;
     int nsmps = csound->ksmps;
+    int n;
 
     temp = csound->mpidsr * kfco / kres;
       /* (-PI_F * kfco / (kres * csound->esr)); */
@@ -499,11 +500,11 @@ int lp2(ENVIRON *csound, LP2 *p)
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
 
-    do {
-      *out++ = yn = a * ynm1 - b * ynm2 + c * *in++;
+    for (n=0; n<nsmps; n++) {
+      out[n] = yn = a * ynm1 - b * ynm2 + c * in[n];
       ynm2 = ynm1;
       ynm1 = yn;
-    } while (--nsmps);
+    }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;
     return OK;

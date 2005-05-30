@@ -40,16 +40,17 @@ SDIF_Read1TRCVals(FILE *f,
 
 }
 
-void usage(void){
-        printf("SDIF2ADS v1.0: convert sdif 1TRC data to Csound hetro data file.\n"
-               "usage: [-sN][-pN] sdif2adsyn infile.sdif outfile.ads\n"
-               "        -s   : apply amplitude scale factor N\n"
-               "        -p   : keep only the first N partials.\n"
-               "               (limit: 1024 partials)\n"
-               "  NB: the source partial track indices are used directly\n"
-               "      to select internal storage.\n"
-               "      As these can be arbitrary values, the maximum\n"
-               "      of 1024 partials may not be realized in all cases.\n");
+void usage(void)
+{
+    printf("SDIF2ADS v1.0: convert sdif 1TRC data to Csound hetro data file.\n"
+           "usage: [-sN][-pN] sdif2adsyn infile.sdif outfile.ads\n"
+           "        -s   : apply amplitude scale factor N\n"
+           "        -p   : keep only the first N partials.\n"
+           "               (limit: 1024 partials)\n"
+           "  NB: the source partial track indices are used directly\n"
+           "      to select internal storage.\n"
+           "      As these can be arbitrary values, the maximum\n"
+           "      of 1024 partials may not be realized in all cases.\n");
 }
 
 typedef struct partial_point{
@@ -73,7 +74,7 @@ int write_partial(FILE *fp,const P_POINT *partial,float sfac,int do_scale)
 P_POINT *new_ppoint(float amp,float freq,float pos)
 {
     P_POINT *point;
-
+    
     point = (P_POINT *) malloc(sizeof(P_POINT));
     if (point) {
       point->amp = amp;

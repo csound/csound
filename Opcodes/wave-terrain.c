@@ -170,10 +170,12 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
                                Str("Scantable: stiffness table not found"));
     }
     if (fdamp == NULL) {
-      return csound->InitError(csound, Str("Scantable: damping table not found"));
+      return csound->InitError(csound,
+                               Str("Scantable: damping table not found"));
     }
     if (fvel == NULL) {
-      return csound->InitError(csound, Str("Scantable: velocity table not found"));
+      return csound->InitError(csound,
+                               Str("Scantable: velocity table not found"));
     }
 
     /* CHECK ALL TABLES SAME LENGTH */
