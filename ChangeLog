@@ -1,3 +1,15 @@
+2005-05-30	Istvan Varga	<istvan@csounds.com>
+	* New API functions:
+	    csoundAppendOpcodes():
+	      appends a list of opcodes (OENTRY*)
+	    csoundRegisterResetCallback():
+	      adds a function to be called by csoundReset()
+	* Top/dl_opcodes.c:
+	  unload plugin opcodes (called from csoundReset())
+	* Top/dl_opcodes.c, Top/main.c:
+	  use API functions for adding opcodes, rather than changing
+	  opcodlst directly
+
 2005-05-30  Michael Gogins <gogins@pipeline.com>
 	* CsoundVST now supports multiple instantiation of VST plugins;
 	it is not completely stable yet.
@@ -7,7 +19,7 @@
 	which by default does nothing.
 	* The C++ STK opcodes now use RegisterDeinitCallback
 	and the csoundModule* initialization and deinitialization routines.
-	
+
 2005-05-27  Steven Yi  <stevenyi@gmail.com>
 	* Opcodes/fluidOpcodes/fluidOpcodes.cpp: modified fluidNote to use
 	RegisterDeinitCallback, removed krate function call

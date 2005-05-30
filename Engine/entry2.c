@@ -360,8 +360,8 @@ OENTRY opcodlst_2[] = {
  {  "strtol",   S(STRSET_OP),   1,  "i",    "T",
     (SUBR) strtol_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
  {  "strtolk",  S(STRSET_OP),   3,  "k",    "U",
-    (SUBR) strtol_opcode_init, (SUBR) strtol_opcode_perf, (SUBR) NULL   }
+    (SUBR) strtol_opcode_init, (SUBR) strtol_opcode_perf, (SUBR) NULL   },
+ /* terminate list */
+ {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
-
-long oplength_2 = sizeof(opcodlst_2);
 

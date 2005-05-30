@@ -668,6 +668,19 @@ extern "C" {
    */
   PUBLIC void csoundDisposeOpcodeList(opcodelist *opcodelist_);
 
+  typedef struct oentry {
+    char    *opname;
+    unsigned short  dsblksiz;
+    unsigned short  thread;
+    char    *outypes;
+    char    *intypes;
+    int     (*iopadr)(void *csound, void *p);
+    int     (*kopadr)(void *csound, void *p);
+    int     (*aopadr)(void *csound, void *p);
+    void    *useropinfo;    /* IV - Oct 12 2002: user opcode parameters */
+    int     prvnum;         /* IV - Oct 31 2002 */
+  } OENTRY;
+
   /**
    * Appends an opcode implemented by external software
    * to Csound's internal opcode list.
@@ -680,6 +693,15 @@ extern "C" {
                                 int (*iopadr)(void *, void *),
                                 int (*kopadr)(void *, void *),
                                 int (*aopadr)(void *, void *));
+
+  /**
+   * Appends a list of opcodes implemented by external software to Csound's
+   * internal opcode list. The list should either be terminated with an entry
+   * that has a NULL opname, or the number of entries (> 0) should be specified
+   * in 'n'.
+   * Returns zero on success.
+   */
+  PUBLIC int csoundAppendOpcodes(void *csound, const OENTRY *opcodeList, int n);
 
 #ifndef SWIG
   /**
@@ -1068,6 +1090,17 @@ extern "C" {
    */
   PUBLIC int csoundRegisterDeinitCallback(void *csound, void *p,
                                           int (*func)(void *, void *));
+
+  /**
+   * Register a function to be called by csoundReset(), in reverse order
+   * of registration, before unloading external modules. The function takes
+   * the Csound instance pointer as the first argument, and the pointer
+   * passed here as 'userData' as the second, and is expected to return zero
+   * on success.
+   * The return value of csoundRegisterResetCallback() is zero on success.
+   */
+  PUBLIC int csoundRegisterResetCallback(void *csound, void *userData,
+                                         int (*func)(void *, void *));
 
   /* type/macro definitions and interface functions
      for configuration variables */
