@@ -74,7 +74,7 @@ int write_partial(FILE *fp,const P_POINT *partial,float sfac,int do_scale)
 P_POINT *new_ppoint(float amp,float freq,float pos)
 {
     P_POINT *point;
-    
+
     point = (P_POINT *) malloc(sizeof(P_POINT));
     if (point) {
       point->amp = amp;

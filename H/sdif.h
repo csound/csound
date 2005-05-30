@@ -64,9 +64,9 @@ typedef float       sdif_float32;
 typedef double      sdif_float64;
 
 #if defined(_WIN32) || defined(_WINDOWS)
-#ifndef _WINDOWS_
-#include <windows.h>
-#endif
+  #ifndef _WINDOWS_
+    #include <windows.h>
+  #endif
 #endif
 
 #ifdef __cplusplus
@@ -300,8 +300,10 @@ void SDIF_Copy4Bytes(char *target, const char *string);
    you call instead of an explicit argument.  Also, they do little-endian
    conversion when necessary. */
 
-#if defined(_WIN32) || defined(_WINDOWS)
+#if defined(_WIN32) || defined(_WINDOWS) || defined(__i386__)
+#ifndef LITTLE_ENDIAN
 #define LITTLE_ENDIAN  1
+#endif
 #else
     /* Insert other checks for your architecture here if it's little endian. */
 #endif
@@ -321,3 +323,4 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f);
 #endif
 
 #endif /* __SDIF_H */
+
