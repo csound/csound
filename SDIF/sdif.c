@@ -75,16 +75,9 @@ Music and Audio Technologies, University of California, Berkeley.
 #define assert(x) /* Do nothing */
 #endif
 
+#include "sysdep.h"
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
-
-#include "H/sdif.h"
+#include "sdif.h"
 
 /* prototypes for functions used only in this file. */
 static int SizeofSanityCheck(void);
