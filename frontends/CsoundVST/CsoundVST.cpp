@@ -60,13 +60,13 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   if(audioMaster)
     {
       if(number)
-	{
-	  AudioEffectX::isSynth(true);
-	}
+        {
+          AudioEffectX::isSynth(true);
+        }
       else
-	{
-	  AudioEffectX::isSynth(false);
-	}
+        {
+          AudioEffectX::isSynth(false);
+        }
     }
   wantEvents(true);
   programsAreChunks(true);
@@ -184,7 +184,7 @@ void CsoundVST::closeView()
 }
 
 int CsoundVST::midiDeviceOpen(void *csound, void **userData,
-			      const char *devName)
+                              const char *devName)
 {
   *userData = csoundGetHostData(csound);
   return 0;
@@ -316,22 +316,22 @@ void CsoundVST::open()
       PyObject *mainModule = PyImport_ImportModule("__main__");
       result = runScript("import sys\n");
       if(result)
-	{
-	  PyErr_Print();
-	}
+        {
+          PyErr_Print();
+        }
       result = runScript("import CsoundVST\n");
       if(result)
-	{
-	  PyErr_Print();
-	}
+        {
+          PyErr_Print();
+        }
       PyObject *pyCsound = PyObject_GetAttrString(mainModule, "csound");
       // No doubt SWIG or the Python API could do this directly,
       // but damned if I could figure out how, and this works.
       result = runScript("sys.stdout = sys.stderr = csound\n");
       if(result)
-	{
-	  PyErr_Print();
-	}
+        {
+          PyErr_Print();
+        }
       PyObject* pyCppSound = PyObject_CallMethod(pyCsound, "getThis", "");
       cppSound = (CppSound *) PyLong_AsLong(pyCppSound);
     }
@@ -409,7 +409,7 @@ long CsoundVST::processEvents(VstEvents *vstEvents)
 }
 
 int CsoundVST::midiRead(void *csound, void *userData,
-			unsigned char *midiData, int nbytes)
+                        unsigned char *midiData, int nbytes)
 {
   CsoundVST *csoundVST = (CsoundVST *)userData;
   if(csoundVST->midiEventQueue.empty())
@@ -781,8 +781,8 @@ void CsoundVST::openFile(std::string filename_)
   editor->update();
   getCppSound()->setFilename(filename_);
   csound::System::message("Opened file: '%s' in %s mode.\n",
-			  getCppSound()->getFilename().c_str(),
-			  getIsPython() ? "Python" : "classic");
+                          getCppSound()->getFilename().c_str(),
+                          getIsPython() ? "Python" : "classic");
   std::string drive, base, file, extension;
   csound::System::parsePathname(filename_, drive, base, file, extension);
   chdir(base.c_str());

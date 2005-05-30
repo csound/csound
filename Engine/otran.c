@@ -342,12 +342,11 @@ void otran(ENVIRON *csound)
               if (err) continue;
               if (n) putop(csound, &ip->t);     /* print, except i0 */
             }
-            else {      /* opcode definition with string name */
-              OENTRY *opc, *newopc = NULL;              /* IV - Oct 31 2002 */
-              long  opcListNumItems = csound->oplstend - csound->opcodlst;
-              long  newopnum;
+            else {                  /* opcode definition with string name */
+              OENTRY    tmpEntry, *opc, *newopc;
+              long      newopnum;
               OPCODINFO *inm;
-              char  *name = alp->arg[0];
+              char      *name = alp->arg[0];
 
               /* some error checking */
               if (!alp->count || (strlen(name) <= 0)) {
@@ -377,14 +376,6 @@ void otran(ENVIRON *csound)
                 csound->Message(csound,
                                 Str("WARNING: redefined opcode: %s\n"), name);
               }
-              newopnum = opcListNumItems;
-              /* IV - Oct 31 2002: reduced number of calls to mrealloc() */
-              if (!(newopnum & 0xFFL) || !csound->opcodeInfo)
-                csound->opcodlst = (OENTRY *)
-                  mrealloc(csound, csound->opcodlst,
-                           sizeof(OENTRY) * ((newopnum | 0xFFL) + 1L));
-              csound->oplstend = newopc = csound->opcodlst + newopnum;
-              csound->oplstend++;
               /* IV - Oct 31 2002 */
               /* store the name in a linked list (note: must use mcalloc) */
               inm = (OPCODINFO *) mcalloc(csound, sizeof(OPCODINFO));
@@ -397,7 +388,10 @@ void otran(ENVIRON *csound)
               /* IV - Oct 31 2002: */
               /* create a fake opcode so we can call it as such */
               opc = csound->opcodlst + find_opcode(csound, ".userOpcode");
-              memcpy(newopc, opc, sizeof(OENTRY));
+              memcpy(&tmpEntry, opc, sizeof(OENTRY));
+              csound->AppendOpcodes(csound, &tmpEntry, 1);
+              newopc = (OENTRY*) csound->oplstend - 1;
+              newopnum = (long) ((OENTRY*) newopc - (OENTRY*) csound->opcodlst);
               newopc->opname = name;
               newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
               opcode_list_add_entry(csound, newopnum, 1);

@@ -741,8 +741,8 @@ OENTRY opcodlst_1[] = {
 { "limit.i", S(LIMIT),  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL       },
 { "limit.k",  S(LIMIT), 3, "k",     "xkk",  (SUBR)limitset, (SUBR)klimit, NULL },
 { "limit.a",  S(LIMIT), 5, "a",     "xkk",  (SUBR)limitset, NULL,  (SUBR)limit },
-{ "prealloc", S(AOP),   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  }
+{ "prealloc", S(AOP),   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  },
+/* terminate list */
+{ NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
-
-long oplength_1 = sizeof(opcodlst_1);
 

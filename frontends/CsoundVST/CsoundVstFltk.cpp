@@ -283,12 +283,12 @@ void CsoundVstFltk::idle()
         {
           while(!messages.empty())
             {
-	      Fl::lock();
+              Fl::lock();
               this->runtimeMessagesBrowser->add(messages.front().c_str());
               messages.pop_front();
               this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
-	      Fl::flush();
-	      Fl::unlock();
+              Fl::flush();
+              Fl::unlock();
             }
         }
     }
@@ -368,20 +368,20 @@ void CsoundVstFltk::messageCallback(void *userdata, int attribute, const char *f
       typedef boost::char_separator<char> charsep;
       boost::tokenizer<charsep> tokens(csoundVstFltk->messagebuffer, charsep("\n"));
       for(boost::tokenizer<charsep>::iterator it = tokens.begin(); it != tokens.end(); ++it)
-	{
-	  if(csoundVstFltk->csoundVST->getIsVst())
-	    {
-	      csoundVstFltk->messages.push_back(*it);
-	    }
-	  else
-	    {
-	      Fl::lock();
-	      csoundVstFltk->runtimeMessagesBrowser->add(it->c_str());
-	      csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
-	      Fl::flush();
-	      Fl::unlock();
-	    }
-	}
+        {
+          if(csoundVstFltk->csoundVST->getIsVst())
+            {
+              csoundVstFltk->messages.push_back(*it);
+            }
+          else
+            {
+              Fl::lock();
+              csoundVstFltk->runtimeMessagesBrowser->add(it->c_str());
+              csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
+              Fl::flush();
+              Fl::unlock();
+            }
+        }
       csoundVstFltk->messagebuffer.clear();
     }
 }
