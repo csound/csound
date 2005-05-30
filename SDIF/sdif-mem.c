@@ -38,15 +38,10 @@ Technologies, University of California, Berkeley.
 
 */
 
-#include <stdio.h>
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
+#include "sysdep.h"
 #include <assert.h>
 #include <errno.h>
-#include "H/sdif-mem.h"
+#include "sdif-mem.h"
 
 /* Global variables local to this file */
 static void *(*my_malloc)(int numBytes);
@@ -106,9 +101,9 @@ SDIFmem_Matrix SDIFmem_CreateEmptyMatrix(void)
 {
 
     SDIFmem_Matrix result;
-    
+
     result = (*my_malloc)(sizeof(*result));
-        
+
     if (result == NULL) {
       return NULL;
     }
@@ -181,21 +176,21 @@ SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
         SDIFmem_FreeFrame(result);
         return ESDIF_OUT_OF_MEMORY;
       }
-      
+
       /* Get the linked list pointers right.  Now if we bomb out
          and call SDIFmem_FreeFrame(result) it will free the matrix
          we just allocated */
       *(prevNextPtr) = matrix;
       prevNextPtr = &(matrix->next);
       matrix->next = 0;
-      
+
       if ((r = SDIF_ReadMatrixHeader(&(matrix->header), f))!=ESDIF_SUCCESS) {
         SDIFmem_FreeFrame(result);
         return r;
       }
 
       sz = SDIF_GetMatrixDataSize(&(matrix->header));
-      
+
       if (sz == 0) {
         matrix->data = 0;
       }
@@ -221,7 +216,7 @@ SDIFresult SDIFmem_ReadFrame(FILE *f, SDIFmem_Frame *putithere)
 {
     SDIFresult r;
     SDIF_FrameHeader fh;
-    
+
     if ((r = SDIF_ReadFrameHeader(&fh, f))!=ESDIF_SUCCESS) {
       return r;
     }
@@ -287,11 +282,11 @@ SDIFresult SDIFmem_WriteMatrix(FILE *sdif_handle, SDIFmem_Matrix m)
     case 8:
       r = SDIF_Write8(m->data, numElements, sdif_handle);
       break;
-      
+
     default:
       return ESDIF_BAD_MATRIX_DATA_TYPE;
     }
-    
+
     if (r !=ESDIF_SUCCESS) return r;
     paddingNeeded = SDIF_PaddingRequired(&(m->header));
     if (paddingNeeded) {

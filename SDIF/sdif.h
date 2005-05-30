@@ -51,44 +51,22 @@ Music and Audio Technologies, University of California, Berkeley.
 #ifndef CSOUND_SDIF_H
 #define CSOUND_SDIF_H
 
+#include "sysdep.h"
+
 /****************************************************/
 /* Create 32-bit and 64-bit int and float typedefs. */
 /****************************************************/
 
-#ifdef __sgi
-    typedef unsigned short sdif_unicode;
-    typedef int                   sdif_int32;
-    typedef unsigned int   sdif_uint32;
-    typedef float           sdif_float32;
-    typedef double           sdif_float64;
-#elif defined(_WIN32) || defined(_WINDOWS)
-    #ifndef _WINDOWS_
-        #include <windows.h>
-    #endif
-    typedef unsigned short sdif_unicode;
-    typedef int                   sdif_int32;
-    typedef unsigned int   sdif_uint32;
-    typedef float           sdif_float32;
-    typedef double           sdif_float64;
-#elif defined(__LINUX__)
-    typedef unsigned short sdif_unicode;
-    typedef int                   sdif_int32;
-    typedef unsigned int   sdif_uint32;
-    typedef float           sdif_float32;
-    typedef double           sdif_float64;
-#else
+typedef uint16_t  sdif_unicode;
+typedef int32_t   sdif_int32;
+typedef uint32_t  sdif_uint32;
+typedef float     sdif_float32;
+typedef double    sdif_float64;
 
-    /* These won't necessarily be the right size on any conceivable
-       platform, so you may need to change them by hand.  The call to
-       SDIF_Init() performs a sanity check of the sizes of these types,
-       so if they're wrong you'll find out about it. */
-
-    typedef unsigned short sdif_unicode;
-    typedef long           sdif_int32;
-    typedef unsigned long  sdif_uint32;
-    typedef float           sdif_float32;
-    typedef double           sdif_float64;
-
+#if defined(_WIN32) || defined(_WINDOWS)
+  #ifndef _WINDOWS_
+    #include <windows.h>
+  #endif
 #endif
 
 #ifdef __cplusplus
@@ -185,7 +163,7 @@ typedef enum {
 
 /* SDIF_Init --
    You must call this before any of the other SDIF procedures. */
-SDIFresult SDIF_Init();
+SDIFresult SDIF_Init(void);
 
 /* SDIF_GetErrorString --
    Returns the string representation of the given error code. */
@@ -322,8 +300,10 @@ void SDIF_Copy4Bytes(char *target, const char *string);
    you call instead of an explicit argument.  Also, they do little-endian
    conversion when necessary. */
 
-#if defined(_WIN32) || defined(_WINDOWS)
+#if defined(_WIN32) || defined(_WINDOWS) || defined(__i386__)
+#ifndef LITTLE_ENDIAN
 #define LITTLE_ENDIAN  1
+#endif
 #else
     /* Insert other checks for your architecture here if it's little endian. */
 #endif
@@ -343,3 +323,4 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f);
 #endif
 
 #endif /* __SDIF_H */
+

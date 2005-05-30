@@ -25,7 +25,7 @@ extern "C" {
 int paBlockingReadWriteOpen(ENVIRON *csound,
     PA_BLOCKING_STREAM *pabs, PaStreamParameters *paParameters,
     csRtAudioParams *parm);
-    
+
   int paBlockingReadWriteStreamCallback(const void *input,
                                  void *output,
                                  unsigned long frameCount,
