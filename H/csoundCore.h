@@ -337,19 +337,6 @@ extern "C" {
     OPDS    *prvp;
   } LBLBLK;
 
-  typedef struct oentry {
-    char    *opname;
-    unsigned short  dsblksiz;
-    unsigned short  thread;
-    char    *outypes;
-    char    *intypes;
-    SUBR    iopadr;
-    SUBR    kopadr;
-    SUBR    aopadr;
-    void    *useropinfo;    /* IV - Oct 12 2002: user opcode parameters */
-    int     prvnum;         /* IV - Oct 31 2002 */
-  } OENTRY;
-
   typedef struct {
     char *word;
     void (*fn)(void);
@@ -660,6 +647,7 @@ extern "C" {
                         int (*iopadr)(void*, void*),
                         int (*kopadr)(void*, void*),
                         int (*aopadr)(void*, void*));
+    int (*AppendOpcodes)(void *csound, const OENTRY *opcodeList, int n);
     int (*LoadExternal)(void *csound, const char *libraryPath);
     int (*LoadExternals)(void *csound);
     void *(*OpenLibrary)(const char *libraryPath);
@@ -784,14 +772,16 @@ extern "C" {
     int (*AddUtility)(void *csound_, const char *name,
                       int (*UtilFunc)(void*, int, char**));
     int (*Utility)(void *csound_, const char *name, int argc, char **argv);
-    char **(*ListUtilities)(void *csound_);
-    int (*SetUtilityDescription)(void *csound_, const char *utilName,
-                                                const char *utilDesc);
-    char *(*GetUtilityDescription)(void *csound_, const char *utilName);
-    int (*RegisterSenseEventCallback)(void *csound_, void (*func)(void*, void*),
-                                      void *userData);
-    int (*RegisterDeinitCallback)(void *csound_, void *p,
-                                                 int (*func)(void *, void *));
+    char **(*ListUtilities)(void *csound);
+    int (*SetUtilityDescription)(void *csound, const char *utilName,
+                                               const char *utilDesc);
+    char *(*GetUtilityDescription)(void *csound, const char *utilName);
+    int (*RegisterSenseEventCallback)(void *csound, void (*func)(void*, void*),
+                                                    void *userData);
+    int (*RegisterDeinitCallback)(void *csound, void *p,
+                                                int (*func)(void *, void *));
+    int (*RegisterResetCallback)(void *csound, void *userData,
+                                               int (*func)(void *, void *));
     void *(*CreateFileHandle)(void *, void *, int, const char *);
     void *(*FileOpen)(void *, void *, int, const char *, void *, const char *);
     char *(*GetFileName)(void *);
@@ -995,6 +985,7 @@ extern "C" {
     void          *open_files;          /* fileopen.c */
     void          *searchPathCache;
     void          *sndmemfiles;
+    void          *reset_list;
   } ENVIRON;
 
 #include "text.h"

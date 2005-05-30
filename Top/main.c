@@ -42,24 +42,17 @@ extern  char    *get_sconame(void *csound);     /* one_file.c */
 # include <sys/types.h>
 #endif
 
-void create_opcodlst(void *csound_)
+void create_opcodlst(void *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
-    extern OENTRY opcodlst_1[], opcodlst_2[];
-    extern long oplength_1, oplength_2;
-    long length = 0;
-
+    extern  OENTRY  opcodlst_1[];
+    extern  OENTRY  opcodlst_2[];
+    if (((ENVIRON*) csound)->opcodlst != NULL)
+      return;
     /* Basic Entry1 stuff */
-    if (csound->opcodlst != NULL) return;
-    csound->opcodlst = (OENTRY*) mmalloc(csound, (length = oplength_1));
-    memcpy(csound->opcodlst, opcodlst_1, oplength_1);
-    csound->oplstend = csound->opcodlst + length / sizeof(OENTRY);
+    csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
     /* Add entry2 */
-    csound->opcodlst = (OENTRY*) mrealloc(csound, csound->opcodlst,
-                                                  length + oplength_2);
-    memcpy(csound->opcodlst + length / sizeof(OENTRY), opcodlst_2, oplength_2);
-    length += oplength_2;
-    csound->oplstend = csound->opcodlst + length / sizeof(OENTRY);
+    csoundAppendOpcodes(csound, &(opcodlst_2[0]), -1);
+    /* plugin opcodes */
     csoundLoadExternals(csound);
 }
 

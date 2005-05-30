@@ -125,6 +125,7 @@ const ENVIRON cenviron_ = {
         csoundNewOpcodeList,
         csoundDisposeOpcodeList,
         csoundAppendOpcode,
+        csoundAppendOpcodes,
         csoundLoadExternal,
         csoundLoadExternals,
         csoundOpenLibrary,
@@ -218,6 +219,7 @@ const ENVIRON cenviron_ = {
         csoundGetUtilityDescription,
         csoundRegisterSenseEventCallback,
         csoundRegisterDeinitCallback,
+        csoundRegisterResetCallback,
         csoundCreateFileHandle,
         csoundFileOpen,
         csoundGetFileName,
@@ -424,7 +426,8 @@ const ENVIRON cenviron_ = {
         NULL,           /*  namedgen            */
         NULL,           /*  open_files          */
         NULL,           /*  searchPathCache     */
-        NULL            /*  sndmemfiles         */
+        NULL,           /*  sndmemfiles         */
+        NULL            /*  reset_list          */
 };
 
 /* otran.c */

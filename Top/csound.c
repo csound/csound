@@ -1386,7 +1386,31 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     /* dispose_opcode_list(list); */
   }
 
-  PUBLIC int csoundAppendOpcode(void *csound_,
+  static inline int opcode_list_new_oentry(ENVIRON *csound, OENTRY *ep)
+  {
+    int     oldCnt = 0;
+
+    if (csound->opcodlst != NULL)
+      oldCnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) csound->opcodlst);
+    if (!(oldCnt & 0x7F)) {
+      OENTRY  *newList;
+      size_t  nBytes = (size_t) (oldCnt + 0x80) * sizeof(OENTRY);
+      if (!oldCnt)
+        newList = (OENTRY*) csound->Malloc(csound, nBytes);
+      else
+        newList = (OENTRY*) csound->ReAlloc(csound, csound->opcodlst, nBytes);
+      if (newList == NULL)
+        return -1;
+      csound->opcodlst = newList;
+      csound->oplstend = ((OENTRY*) newList + (int) oldCnt);
+      memset(&(((OENTRY*) csound->opcodlst)[oldCnt]), 0, sizeof(OENTRY) * 0x80);
+    }
+    memcpy(&(((OENTRY*) csound->opcodlst)[oldCnt]), ep, sizeof(OENTRY));
+    ((OENTRY*) csound->oplstend)++;
+    return 0;
+  }
+
+  PUBLIC int csoundAppendOpcode(void *csound,
                                 char *opname,
                                 int dsblksiz,
                                 int thread,
@@ -1396,32 +1420,55 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
                                 int (*kopadr)(void *, void *),
                                 int (*aopadr)(void *, void *))
   {
-    ENVIRON *csound = (ENVIRON*) csound_;
-    int oldSize = (int) ((char*) csound->oplstend - (char*) csound->opcodlst);
-    int newSize = oldSize + sizeof(OENTRY);
-    int oldCount = oldSize / sizeof(OENTRY);
-    int newCount = oldCount + 1;
-    OENTRY *oldOpcodlst = csound->opcodlst;
-    csound->opcodlst = (OENTRY*) mrealloc(csound, csound->opcodlst, newSize);
-    if (!csound->opcodlst) {
-      csound->opcodlst = oldOpcodlst;
-      csoundMessage(csound, "Failed to allocate new opcode entry.\n");
+    OENTRY  tmpEntry;
+
+    tmpEntry.opname     = opname;
+    tmpEntry.dsblksiz   = (unsigned short) dsblksiz;
+    tmpEntry.thread     = (unsigned short) thread;
+    tmpEntry.outypes    = outypes;
+    tmpEntry.intypes    = intypes;
+    tmpEntry.iopadr     = (SUBR) iopadr;
+    tmpEntry.kopadr     = (SUBR) kopadr;
+    tmpEntry.aopadr     = (SUBR) aopadr;
+    tmpEntry.useropinfo = NULL;
+    tmpEntry.prvnum     = 0;
+    if (opcode_list_new_oentry((ENVIRON*) csound, &tmpEntry) != 0) {
+      csoundMessageS(csound, CSOUNDMSG_ERROR,
+                             Str("Failed to allocate new opcode entry.\n"));
       return -1;
     }
-    else {
-      OENTRY *oentry = csound->opcodlst + oldCount;
-      memset(oentry, 0, sizeof(OENTRY));
-      csound->oplstend = csound->opcodlst + newCount;
-      oentry->opname = opname;
-      oentry->dsblksiz = dsblksiz;
-      oentry->thread = thread;
-      oentry->outypes = outypes;
-      oentry->intypes = intypes;
-      oentry->iopadr = (SUBR) iopadr;
-      oentry->kopadr = (SUBR) kopadr;
-      oentry->aopadr = (SUBR) aopadr;
-      return 0;
+    return 0;
+  }
+
+  /**
+   * Appends a list of opcodes implemented by external software to Csound's
+   * internal opcode list. The list should either be terminated with an entry
+   * that has a NULL opname, or the number of entries (> 0) should be specified
+   * in 'n'. Returns zero on success.
+   */
+
+  PUBLIC int csoundAppendOpcodes(void *csound, const OENTRY *opcodeList, int n)
+  {
+    OENTRY  *ep = (OENTRY*) opcodeList;
+    int     retval = 0;
+    if (opcodeList == NULL)
+      return -1;
+    if (n <= 0)
+      n = 0x7FFFFFFF;
+    while (n && ep->opname != NULL) {
+      if (opcode_list_new_oentry((ENVIRON*) csound, ep) != 0) {
+        csoundMessageS(csound, CSOUNDMSG_ERROR,
+                               Str("Failed to allocate opcode entry for %s.\n"),
+                               ep->opname);
+        retval = -1;
+      }
+      else {
+        ((OENTRY*) ((ENVIRON*) csound)->oplstend - 1)->useropinfo = NULL;
+        ((OENTRY*) ((ENVIRON*) csound)->oplstend - 1)->prvnum = 0;
+      }
+      n--, ep++;
     }
+    return retval;
   }
 
   int csoundOpcodeCompare(const void *v1, const void *v2)
@@ -1458,10 +1505,27 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
   }
 
   extern void csoundDeleteAllGlobalVariables(void *csound);
+  extern int  csoundUnloadExternals(ENVIRON *csound);
+
+  typedef struct resetCallback_s {
+    void    *userData;
+    int     (*func)(void *, void *);
+    struct resetCallback_s  *nxt;
+  } resetCallback_t;
 
   PUBLIC void csoundReset(void *csound)
   {
     csoundCleanup(csound);
+    /* call registered reset callbacks */
+    while (((ENVIRON*) csound)->reset_list != NULL) {
+      resetCallback_t *p = (resetCallback_t*) ((ENVIRON*) csound)->reset_list;
+      resetCallback_t *nxt = (resetCallback_t*) p->nxt;
+      p->func(csound, p->userData);
+      free(p);
+      ((ENVIRON*) csound)->reset_list = (void*) nxt;
+    }
+    /* unload plugin opcodes */
+    csoundUnloadExternals((ENVIRON*) csound);
     /* call local destructor routines of external modules */
     /* should check return value... */
     csoundDestroyModules(csound);
@@ -1758,6 +1822,30 @@ PUBLIC int csoundRegisterDeinitCallback(void *csound, void *p,
     dp->nxt = ip->nxtd;
     ip->nxtd = dp;
     return CSOUND_SUCCESS;
+}
+
+/**
+ * Register a function to be called by csoundReset(), in reverse order
+ * of registration, before unloading external modules. The function takes
+ * the Csound instance pointer as the first argument, and the pointer
+ * passed here as 'userData' as the second, and is expected to return zero
+ * on success.
+ * The return value of csoundRegisterResetCallback() is zero on success.
+ */
+
+PUBLIC int csoundRegisterResetCallback(void *csound, void *userData,
+                                       int (*func)(void *, void *))
+{
+    resetCallback_t *dp = (resetCallback_t*) malloc(sizeof(resetCallback_t));
+
+    if (dp == NULL)
+      return CSOUND_MEMORY;
+    dp->userData = userData;
+    dp->func = func;
+    dp->nxt = ((ENVIRON*) csound)->reset_list;
+    ((ENVIRON*) csound)->reset_list = (void*) dp;
+    return CSOUND_SUCCESS;
+
 }
 
 /* call the opcode deinitialisation routines of an instrument instance */
