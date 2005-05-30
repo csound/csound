@@ -109,18 +109,21 @@ static char *error_string_array[] = {
     "Frame has two matrices with the same MatrixType"
 };
 
-char *SDIF_GetErrorString(SDIFresult error_code) {
+char *SDIF_GetErrorString(SDIFresult error_code)
+{
     return error_string_array[error_code];
 }
 
-SDIFresult SDIF_Init(void) {
+SDIFresult SDIF_Init(void)
+{
     if (!SizeofSanityCheck()) {
       return ESDIF_BAD_SIZEOF;
     }
     return ESDIF_SUCCESS;
 }
 
-SDIFresult SDIF_OpenWrite(const char *filename, FILE **resultp) {
+SDIFresult SDIF_OpenWrite(const char *filename, FILE **resultp)
+{
     FILE *result;
     SDIFresult r;
 
@@ -135,14 +138,16 @@ SDIFresult SDIF_OpenWrite(const char *filename, FILE **resultp) {
     return ESDIF_SUCCESS;
 }
 
-SDIFresult SDIF_BeginWrite(FILE *output) {
+SDIFresult SDIF_BeginWrite(FILE *output)
+{
     SDIF_GlobalHeader h;
 
     SDIF_FillGlobalHeader(&h);
     return SDIF_WriteGlobalHeader(&h, output);
 }
 
-SDIFresult SDIF_CloseWrite(FILE *f) {
+SDIFresult SDIF_CloseWrite(FILE *f)
+{
     fflush(f);
     if (fclose(f) == 0) {
       return ESDIF_SUCCESS;
@@ -152,7 +157,8 @@ SDIFresult SDIF_CloseWrite(FILE *f) {
     }
 }
 
-SDIFresult SDIF_OpenRead(const char *filename, FILE **resultp) {
+SDIFresult SDIF_OpenRead(const char *filename, FILE **resultp)
+{
     FILE *result = NULL;
     SDIFresult r;
 
@@ -169,7 +175,8 @@ SDIFresult SDIF_OpenRead(const char *filename, FILE **resultp) {
     return ESDIF_SUCCESS;
 }
 
-SDIFresult SDIF_BeginRead(FILE *input) {
+SDIFresult SDIF_BeginRead(FILE *input)
+{
     SDIF_GlobalHeader sgh;
     SDIFresult r;
 
@@ -211,7 +218,8 @@ SDIFresult SDIF_BeginRead(FILE *input) {
     return ESDIF_SUCCESS;
 }
 
-SDIFresult SDIF_CloseRead(FILE *f) {
+SDIFresult SDIF_CloseRead(FILE *f)
+{
     if (fclose(f) == 0) {
       return ESDIF_SUCCESS;
     }
@@ -220,7 +228,8 @@ SDIFresult SDIF_CloseRead(FILE *f) {
     }
 }
 
-void SDIF_FillGlobalHeader(SDIF_GlobalHeader *h) {
+void SDIF_FillGlobalHeader(SDIF_GlobalHeader *h)
+{
     assert(h != NULL);
     SDIF_Copy4Bytes(h->SDIF, "SDIF");
     h->size = 8;
@@ -228,7 +237,8 @@ void SDIF_FillGlobalHeader(SDIF_GlobalHeader *h) {
     h->SDIFStandardTypesVersion = SDIF_LIBRARY_VERSION;
 }
 
-SDIFresult SDIF_WriteGlobalHeader(const SDIF_GlobalHeader *h, FILE *f) {
+SDIFresult SDIF_WriteGlobalHeader(const SDIF_GlobalHeader *h, FILE *f)
+{
     SDIFresult r;
 
     assert(h != NULL);
@@ -248,7 +258,8 @@ SDIFresult SDIF_WriteGlobalHeader(const SDIF_GlobalHeader *h, FILE *f) {
 #endif
 }
 
-SDIFresult SDIF_ReadFrameHeader(SDIF_FrameHeader *fh, FILE *f) {
+SDIFresult SDIF_ReadFrameHeader(SDIF_FrameHeader *fh, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
 
@@ -284,7 +295,8 @@ SDIFresult SDIF_ReadFrameHeader(SDIF_FrameHeader *fh, FILE *f) {
 #endif /* LITTLE_ENDIAN */
 }
 
-SDIFresult SDIF_WriteFrameHeader(const SDIF_FrameHeader *fh, FILE *f) {
+SDIFresult SDIF_WriteFrameHeader(const SDIF_FrameHeader *fh, FILE *f)
+{
 
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
@@ -310,7 +322,8 @@ SDIFresult SDIF_WriteFrameHeader(const SDIF_FrameHeader *fh, FILE *f) {
 #endif
 }
 
-SDIFresult SDIF_SkipFrame(const SDIF_FrameHeader *head, FILE *f) {
+SDIFresult SDIF_SkipFrame(const SDIF_FrameHeader *head, FILE *f)
+{
     /* The header's size count includes the 8-byte time tag, 4-byte
        stream ID and 4-byte matrix count that we already read. */
     int bytesToSkip = head->size - 16;
@@ -322,7 +335,8 @@ SDIFresult SDIF_SkipFrame(const SDIF_FrameHeader *head, FILE *f) {
     return SkipBytes(f, bytesToSkip);
 }
 
-SDIFresult SDIF_ReadMatrixHeader(SDIF_MatrixHeader *m, FILE *f) {
+SDIFresult SDIF_ReadMatrixHeader(SDIF_MatrixHeader *m, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     if ((r = SDIF_Read1(&(m->matrixType),4,f))!=ESDIF_SUCCESS)
@@ -345,7 +359,8 @@ SDIFresult SDIF_ReadMatrixHeader(SDIF_MatrixHeader *m, FILE *f) {
 
 }
 
-SDIFresult SDIF_WriteMatrixHeader(const SDIF_MatrixHeader *m, FILE *f) {
+SDIFresult SDIF_WriteMatrixHeader(const SDIF_MatrixHeader *m, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     if ((r = SDIF_Write1(&(m->matrixType),4,f))!=ESDIF_SUCCESS)
@@ -362,7 +377,8 @@ SDIFresult SDIF_WriteMatrixHeader(const SDIF_MatrixHeader *m, FILE *f) {
 #endif
 }
 
-int SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m) {
+int SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m)
+{
     int size;
     size = SDIF_GetMatrixDataTypeSize(m->matrixDataType) *
            m->rowCount * m->columnCount;
@@ -374,10 +390,11 @@ int SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m) {
     return size;
 }
 
-int SDIF_PaddingRequired(const SDIF_MatrixHeader *m) {
+int SDIF_PaddingRequired(const SDIF_MatrixHeader *m)
+{
     int size;
     size = SDIF_GetMatrixDataTypeSize(m->matrixDataType) *
-            m->rowCount * m->columnCount;
+           m->rowCount * m->columnCount;
 
     if ((size % 8) != 0) {
       return (8 - (size % 8));
@@ -387,7 +404,8 @@ int SDIF_PaddingRequired(const SDIF_MatrixHeader *m) {
     }
 }
 
-SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f) {
+SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f)
+{
     int size = SDIF_GetMatrixDataSize(head);
 
     if (size < 0) {
@@ -398,7 +416,8 @@ SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f) {
 }
 
 SDIFresult
-SDIF_ReadMatrixData(void *putItHere, FILE *f, const SDIF_MatrixHeader *head) {
+SDIF_ReadMatrixData(void *putItHere, FILE *f, const SDIF_MatrixHeader *head)
+{
     size_t datumSize = (size_t) SDIF_GetMatrixDataTypeSize(head->matrixDataType);
     size_t numItems = (size_t) (head->rowCount * head->columnCount);
 
@@ -427,17 +446,20 @@ SDIF_ReadMatrixData(void *putItHere, FILE *f, const SDIF_MatrixHeader *head) {
 #endif
 }
 
-sdif_int32 SDIF_UniqueStreamID(void) {
+sdif_int32 SDIF_UniqueStreamID(void)
+{
     static int id;
     return ++id;
 }
 
-int SDIF_Char4Eq(const char *ths, const char *that) {
+int SDIF_Char4Eq(const char *ths, const char *that)
+{
     return ths[0] == that[0] && ths[1] == that[1] &&
            ths[2] == that[2] && ths[3] == that[3];
 }
 
-void SDIF_Copy4Bytes(char *target, const char *string) {
+void SDIF_Copy4Bytes(char *target, const char *string)
+{
     target[0] = string[0];
     target[1] = string[1];
     target[2] = string[2];
@@ -449,11 +471,13 @@ void SDIF_Copy4Bytes(char *target, const char *string) {
 static  char    p[BUFSIZE];
 #endif
 
-SDIFresult SDIF_Write1(const void *block, size_t n, FILE *f) {
+SDIFresult SDIF_Write1(const void *block, size_t n, FILE *f)
+{
     return (fwrite (block,1,n,f) == n) ? ESDIF_SUCCESS : ESDIF_WRITE_FAILED;
 }
 
-SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f) {
+SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
@@ -479,7 +503,8 @@ SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f) {
 #endif
 }
 
-SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f) {
+SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
@@ -505,7 +530,8 @@ SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f) {
 #endif
 }
 
-SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f) {
+SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
@@ -535,12 +561,13 @@ SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f) {
 #endif
 }
 
-SDIFresult SDIF_Read1(void *block, size_t n, FILE *f) {
+SDIFresult SDIF_Read1(void *block, size_t n, FILE *f)
+{
     return (fread (block,1,n,f) == n) ? ESDIF_SUCCESS : ESDIF_READ_FAILED;
 }
 
-SDIFresult SDIF_Read2(void *block, size_t n, FILE *f) {
-
+SDIFresult SDIF_Read2(void *block, size_t n, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
@@ -568,7 +595,8 @@ SDIFresult SDIF_Read2(void *block, size_t n, FILE *f) {
 
 }
 
-SDIFresult SDIF_Read4(void *block, size_t n, FILE *f) {
+SDIFresult SDIF_Read4(void *block, size_t n, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
@@ -598,7 +626,8 @@ SDIFresult SDIF_Read4(void *block, size_t n, FILE *f) {
 
 }
 
-SDIFresult SDIF_Read8(void *block, size_t n, FILE *f) {
+SDIFresult SDIF_Read8(void *block, size_t n, FILE *f)
+{
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
@@ -634,7 +663,8 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f) {
 
 /* static function definitions follow. */
 
-static int SizeofSanityCheck(void) {
+static int SizeofSanityCheck(void)
+{
     int OK = 1;
     static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
 
@@ -644,12 +674,14 @@ static int SizeofSanityCheck(void) {
     }
 
     if (sizeof(sdif_float32) != 4) {
-      sprintf(errorMessage, "sizeof(sdif_float32) is %d!", (int)sizeof(sdif_float32));
+      sprintf(errorMessage, "sizeof(sdif_float32) is %d!",
+              (int)sizeof(sdif_float32));
       OK = 0;
     }
 
     if (sizeof(sdif_float64) != 8) {
-      sprintf(errorMessage, "sizeof(sdif_float64) is %d!", (int)sizeof(sdif_float64));
+      sprintf(errorMessage, "sizeof(sdif_float64) is %d!",
+              (int)sizeof(sdif_float64));
       OK = 0;
     }
 
@@ -659,7 +691,8 @@ static int SizeofSanityCheck(void) {
     return OK;
 }
 
-static SDIFresult SkipBytes(FILE *f, int bytesToSkip) {
+static SDIFresult SkipBytes(FILE *f, int bytesToSkip)
+{
 #ifdef STREAMING
     /* Can't fseek in a stream, so waste some time needlessly copying
        some bytes in memory */

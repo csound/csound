@@ -139,12 +139,12 @@ typedef struct {
 
 /* the header for each frame of SDIF data. */
 typedef struct {
-    char         frameType[4];        /* should be a registered frame type */
-    sdif_int32   size;                /* # bytes in this frame, not including
-                                         frameType or size */
-    sdif_float64 time;                /* time corresponding to frame */
-    sdif_int32   streamID;            /* frames that go together have the same ID */
-    sdif_int32   matrixCount;         /* number of matrices in frame */
+    char         frameType[4];    /* should be a registered frame type */
+    sdif_int32   size;            /* # bytes in this frame, not including
+                                     frameType or size */
+    sdif_float64 time;            /* time corresponding to frame */
+    sdif_int32   streamID;        /* frames that go together have the same ID */
+    sdif_int32   matrixCount;     /* number of matrices in frame */
 } SDIF_FrameHeader;
 
 /* the header for each matrix of SDIF data. */

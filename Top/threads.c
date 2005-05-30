@@ -170,7 +170,8 @@ PUBLIC void csoundNotifyThreadLock(void *csound, void *lock)
 PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
 {
     csoundMessage(csound,
-                  "csoundDestroyThreadLock is not implemented on this platform.\n");
+                  "csoundDestroyThreadLock is not implemented "
+                  "on this platform.\n");
     return;
 }
 
