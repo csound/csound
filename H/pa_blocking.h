@@ -1,3 +1,4 @@
+
 #ifndef PA_BLOCKING_H
 #define PA_BLOCKING_H
 
@@ -18,13 +19,13 @@ extern "C" {
     void *clientLock;
     size_t actualBufferSampleCount;
     size_t currentIndex;
-    float *actualBuffer;
+    MYFLT *actualBuffer;
   } PA_BLOCKING_STREAM;
 
 int paBlockingReadWriteOpen(ENVIRON *csound,
     PA_BLOCKING_STREAM *pabs, PaStreamParameters *paParameters,
     csRtAudioParams *parm);
-
+    
   int paBlockingReadWriteStreamCallback(const void *input,
                                  void *output,
                                  unsigned long frameCount,
@@ -65,4 +66,3 @@ int paBlockingReadWriteOpen(ENVIRON *csound,
 #endif
 
 #endif
-
