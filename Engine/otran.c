@@ -288,7 +288,7 @@ void otran(ENVIRON *csound)
                   err++; continue;
                 }
                 if (isdigit(*c)) {      /* numbered instrument */
-                  if (!sscanf(c, "%ld", &n) || n <= 0) {
+                  if (!sscanf(c, "%ld", &n) || n < 0) {
                     synterr(csound, Str("illegal instr number"));
                     err++; continue;
                   }
@@ -876,7 +876,6 @@ static int constndx(ENVIRON *csound, char *s)
         return (fp - csound->pool);                 /*    return w. index   */
     }
     if (++ST(poolcount) > ST(nconsts)) {
-      /* csoundDie(csound, "flconst pool is full"); */
       int indx = fp - csound->pool;
       ST(nconsts) += NCONSTS;
       if(csound->oparms->msglevel)
@@ -970,6 +969,7 @@ static void gblnamset(ENVIRON *csound, char *s)
       csound->Die(csound, Str("gblnamset(): memory allocation failure"));
     p->namep = s;                               /* else record newname  */
     p->nxt = ST(gblNames)[h];
+    ST(gblNames)[h] = p;
     if (*s == '#')  s++;
     if (*s == 'g')  s++;
     switch ((int) *s) {                         /*   and its type-count */
@@ -997,6 +997,7 @@ static NAME *lclnamset(ENVIRON *csound, char *s)
       csound->Die(csound, Str("lclnamset(): memory allocation failure"));
     p->namep = s;                               /* else record newname  */
     p->nxt = ST(lclNames)[h];
+    ST(lclNames)[h] = p;
     if (*s == '#')  s++;
     switch (*s) {                               /*   and its type-count */
       case 'd': p->type = DTYPE; p->count = ST(lclnxtdcnt)++; break;
