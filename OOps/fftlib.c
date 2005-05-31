@@ -136,10 +136,10 @@ static void fftCosInit(int M, MYFLT *Utbl)
     unsigned int fftN = POW2(M);
     unsigned int i1;
 
-    Utbl[0] = 1.0;
+    Utbl[0] = FL(1.0);
     for (i1 = 1; i1 < fftN / 4; i1++)
-      Utbl[i1] = cos((2.0 * MYPI * i1) / fftN);
-    Utbl[fftN / 4] = 0.0;
+      Utbl[i1] = (MYFLT)cos((2.0 * MYPI * i1) / fftN);
+    Utbl[fftN / 4] = FL(0.0);
 }
 
 static void fftBRInit(int M, short *BRLow)
@@ -848,7 +848,7 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t0r, t0i, t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     pinc = NDiffU * 2;            /* 2 floats per complex */
     pnext = pinc * 8;
@@ -2745,7 +2745,7 @@ static void rifft2pt(MYFLT *ioptr, MYFLT scale)
     /***   RADIX 4 rifft    ***/
     MYFLT f0r, f0i, f1r, f1i;
     MYFLT t0r, t0i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     /* bit reversed load */
     t0r = ioptr[0];
@@ -2780,7 +2780,7 @@ static void rifft4pt(MYFLT *ioptr, MYFLT scale)
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT t0r, t0i, t1r, t1i;
     MYFLT w0r = 1.0 / MYROOT2;    /* cos(pi/4)   */
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     /* bit reversed load */
     t0r = ioptr[0];
@@ -2848,13 +2848,13 @@ static void rifft4pt(MYFLT *ioptr, MYFLT scale)
 static void rifft8pt(MYFLT *ioptr, MYFLT scale)
 {
     /***   RADIX 16 rifft   ***/
-    MYFLT w0r = 1.0 / MYROOT2;    /* cos(pi/4)   */
+    MYFLT w0r = FL(1.0) / MYROOT2;    /* cos(pi/4)   */
     MYFLT w1r = MYCOSPID8;        /* cos(pi/8)     */
     MYFLT w1i = MYSINPID8;        /* sin(pi/8)     */
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t0r, t0i, t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     /* bit reversed load */
     t0r = ioptr[0];
@@ -3013,7 +3013,7 @@ static void ifrstage(MYFLT *ioptr, int M, MYFLT *Utbl)
     MYFLT w0r, w0i;
     MYFLT f0r, f0i, f1r, f1i, f4r, f4i, f5r, f5i;
     MYFLT t0r, t0i, t1r, t1i;
-    const MYFLT Two = 2.0;
+    const MYFLT Two = FL(2.0);
 
     pos = POW2(M - 1);
     posi = pos + 1;
@@ -3140,7 +3140,7 @@ static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
     int StageCnt;
     int NDiffU;
 
-    scale = 1.0 / POW2(M);
+    scale = FL(1.0) / POW2(M);
     M = M - 1;
     switch (M) {
     case -1:
