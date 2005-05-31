@@ -39,79 +39,6 @@
 #define LOG2(a) (MYRECIPLN2*log(a))       /* floating point logarithm base 2 */
 #define POW2(m) ((unsigned int) 1 << (m)) /* integer power of 2 for m<32 */
 
-/*******************************************************************
-* lower level fft stuff called by routines in fftext.c and fft2d.c *
-*******************************************************************/
-
-static void fftCosInit(int M, MYFLT *Utbl);
-
-/* Compute Utbl, the cosine table for ffts      */
-/* of size (pow(2,M)/4 +1)      */
-/* INPUTS */
-/* M = log2 of fft size */
-/* OUTPUTS */
-/* *Utbl = cosine table */
-
-static void fftBRInit(int M, short *BRLow);
-
-/* Compute BRLow, the bit reversed table for ffts of size pow(2,M/2 -1) */
-/* INPUTS                                 */
-/*   M = log2 of fft size                 */
-/* OUTPUTS                                */
-/*   *BRLow = bit reversed counter table  */
-
-static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow);
-
-/* Compute in-place complex fft on the rows of the input array  */
-/* INPUTS                                                       */
-/*   *ioptr = input data array                                  */
-/*   M = log2 of fft size (ex M=10 for 1024 point fft)          */
-/*   *Utbl = cosine table                                       */
-/*   *BRLow = bit reversed counter table                        */
-/* OUTPUTS                                                      */
-/*   *ioptr = output data array                                 */
-
-static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow);
-
-/* Compute in-place inverse complex fft on the rows of the input array  */
-/* INPUTS                                                               */
-/*   *ioptr = input data array                                          */
-/*   M = log2 of fft size                                               */
-/*   *Utbl = cosine table                                               */
-/*   *BRLow = bit reversed counter table                                */
-/* OUTPUTS                                                              */
-/*   *ioptr = output data array                                         */
-
-static void rffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow);
-
-/* Compute in-place real fft on the rows of the input array             */
-/* The result is the complex spectra of the positive frequencies        */
-/* except the location for the first complex number contains the real   */
-/* values for DC and Nyquest                                            */
-/* INPUTS                                                               */
-/*   *ioptr = real input data array                                     */
-/*   M = log2 of fft size                                               */
-/*   *Utbl = cosine table                                               */
-/*   *BRLow = bit reversed counter table                                */
-/* OUTPUTS                                                              */
-/*   *ioptr = output data array   in the following order                */
-/*     Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]), Re(x[2]), Im(x[2]),    */
-/*     ... Re(x[N/2-1]), Im(x[N/2-1]).                                  */
-
-static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow);
-
-/* Compute in-place real ifft on the rows of the input array    */
-/* data order as from rffts1                                    */
-/* INPUTS                                                       */
-/*   *ioptr = input data array in the following order           */
-/*   M = log2 of fft size                                       */
-/*   Re(x[0]), Re(x[N/2]), Re(x[1]), Im(x[1]),                  */
-/*   Re(x[2]), Im(x[2]), ... Re(x[N/2-1]), Im(x[N/2-1]).        */
-/*   *Utbl = cosine table                                       */
-/*   *BRLow = bit reversed counter table                        */
-/* OUTPUTS                                                      */
-/*   *ioptr = real output data array                            */
-
 /* fft's with M bigger than this bust primary cache */
 #define MCACHE  (11 - (sizeof(MYFLT) / 8))
 
@@ -138,7 +65,7 @@ static void fftCosInit(int M, MYFLT *Utbl)
 
     Utbl[0] = FL(1.0);
     for (i1 = 1; i1 < fftN / 4; i1++)
-      Utbl[i1] = (MYFLT)cos((2.0 * MYPI * i1) / fftN);
+      Utbl[i1] = (MYFLT) cos((2.0 * MYPI * (double) i1) / (double) fftN);
     Utbl[fftN / 4] = FL(0.0);
 }
 
@@ -2848,9 +2775,9 @@ static void rifft4pt(MYFLT *ioptr, MYFLT scale)
 static void rifft8pt(MYFLT *ioptr, MYFLT scale)
 {
     /***   RADIX 16 rifft   ***/
-    MYFLT w0r = FL(1.0) / MYROOT2;    /* cos(pi/4)   */
-    MYFLT w1r = MYCOSPID8;        /* cos(pi/8)     */
-    MYFLT w1i = MYSINPID8;        /* sin(pi/8)     */
+    MYFLT w0r = (MYFLT) (1.0 / MYROOT2);    /* cos(pi/4)    */
+    MYFLT w1r = MYCOSPID8;                  /* cos(pi/8)    */
+    MYFLT w1i = MYSINPID8;                  /* sin(pi/8)    */
     MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
     MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
     MYFLT t0r, t0i, t1r, t1i;
@@ -3140,7 +3067,7 @@ static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
     int StageCnt;
     int NDiffU;
 
-    scale = FL(1.0) / POW2(M);
+    scale = (MYFLT) (1.0 / (double) ((int) POW2(M)));
     M = M - 1;
     switch (M) {
     case -1:
@@ -3230,56 +3157,53 @@ static void fftInit(ENVIRON *csound, int M)
     csound->FFT_max_size |= (1 << M);
 }
 
-#define ConvertFFTSize(x,y)                                         \
-{                                                                   \
-    if ((int) (y) < 1)                                              \
-      (x) = -((int) (y));                                           \
-    else {                                                          \
-      switch ((int) (y)) {                                          \
-        case 0x00000001:  (x) = 0;  break;                          \
-        case 0x00000002:  (x) = 1;  break;                          \
-        case 0x00000004:  (x) = 2;  break;                          \
-        case 0x00000008:  (x) = 3;  break;                          \
-        case 0x00000010:  (x) = 4;  break;                          \
-        case 0x00000020:  (x) = 5;  break;                          \
-        case 0x00000040:  (x) = 6;  break;                          \
-        case 0x00000080:  (x) = 7;  break;                          \
-        case 0x00000100:  (x) = 8;  break;                          \
-        case 0x00000200:  (x) = 9;  break;                          \
-        case 0x00000400:  (x) = 10; break;                          \
-        case 0x00000800:  (x) = 11; break;                          \
-        case 0x00001000:  (x) = 12; break;                          \
-        case 0x00002000:  (x) = 13; break;                          \
-        case 0x00004000:  (x) = 14; break;                          \
-        case 0x00008000:  (x) = 15; break;                          \
-        case 0x00010000:  (x) = 16; break;                          \
-        case 0x00020000:  (x) = 17; break;                          \
-        case 0x00040000:  (x) = 18; break;                          \
-        case 0x00080000:  (x) = 19; break;                          \
-        case 0x00100000:  (x) = 20; break;                          \
-        case 0x00200000:  (x) = 21; break;                          \
-        case 0x00400000:  (x) = 22; break;                          \
-        case 0x00800000:  (x) = 23; break;                          \
-        case 0x01000000:  (x) = 24; break;                          \
-        case 0x02000000:  (x) = 25; break;                          \
-        case 0x04000000:  (x) = 26; break;                          \
-        case 0x08000000:  (x) = 27; break;                          \
-        case 0x10000000:  (x) = 28; break;                          \
-        default:                                                    \
-          csoundMessage(csound,                                     \
-                        Str(" *** fftlib.c: internal error: "       \
-                            "invalid FFT size: %d\n"), (int) (y));  \
-          return;                                                   \
-      }                                                             \
-    }                                                               \
+static inline int ConvertFFTSize(void *csound, int N)
+{
+    if (N <= 0)
+      return (-N);
+    switch (N) {
+      case 0x00000001:  return 0;
+      case 0x00000002:  return 1;
+      case 0x00000004:  return 2;
+      case 0x00000008:  return 3;
+      case 0x00000010:  return 4;
+      case 0x00000020:  return 5;
+      case 0x00000040:  return 6;
+      case 0x00000080:  return 7;
+      case 0x00000100:  return 8;
+      case 0x00000200:  return 9;
+      case 0x00000400:  return 10;
+      case 0x00000800:  return 11;
+      case 0x00001000:  return 12;
+      case 0x00002000:  return 13;
+      case 0x00004000:  return 14;
+      case 0x00008000:  return 15;
+      case 0x00010000:  return 16;
+      case 0x00020000:  return 17;
+      case 0x00040000:  return 18;
+      case 0x00080000:  return 19;
+      case 0x00100000:  return 20;
+      case 0x00200000:  return 21;
+      case 0x00400000:  return 22;
+      case 0x00800000:  return 23;
+      case 0x01000000:  return 24;
+      case 0x02000000:  return 25;
+      case 0x04000000:  return 26;
+      case 0x08000000:  return 27;
+      case 0x10000000:  return 28;
+    }
+    csoundDie(csound, Str(" *** fftlib.c: internal error: "
+                          "invalid FFT size: %d"), N);
+    return 0;
 }
 
-#define GET_TABLE_POINTERS(p,ct,bt,cn,bn)       \
-{                                               \
-    if (!((p)->FFT_max_size & (1 << (cn))))     \
-      fftInit(p, cn);                           \
-    (ct) = ((MYFLT**) (p)->FFT_table_1)[cn];    \
-    (bt) = ((short**) (p)->FFT_table_2)[bn];    \
+static inline void getTablePointers(void *p, MYFLT **ct, short **bt,
+                                             int cn, int bn)
+{
+    if (!(((ENVIRON*) p)->FFT_max_size & (1 << cn)))
+      fftInit((ENVIRON*) p, cn);
+    *ct = ((MYFLT**) ((ENVIRON*) p)->FFT_table_1)[cn];
+    *bt = ((short**) ((ENVIRON*) p)->FFT_table_2)[bn];
 }
 
 /**
@@ -3289,7 +3213,6 @@ static void fftInit(ENVIRON *csound, int M)
 
 PUBLIC MYFLT csoundGetInverseComplexFFTScale(void *csound, int FFTsize)
 {
-    FFTsize = FFTsize;
     return FL(1.0);
 }
 
@@ -3300,7 +3223,6 @@ PUBLIC MYFLT csoundGetInverseComplexFFTScale(void *csound, int FFTsize)
 
 PUBLIC MYFLT csoundGetInverseRealFFTScale(void *csound, int FFTsize)
 {
-    FFTsize = FFTsize;
     return FL(1.0);
 }
 
@@ -3317,8 +3239,8 @@ PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize)
     short *BRLow;
     int   M;
 
-    ConvertFFTSize(M, FFTsize);
-    GET_TABLE_POINTERS((ENVIRON*) csound, Utbl, BRLow, M, M / 2);
+    M = ConvertFFTSize(csound, FFTsize);
+    getTablePointers(csound, &Utbl, &BRLow, M, M / 2);
     ffts1(buf, M, Utbl, BRLow);
 }
 
@@ -3337,8 +3259,8 @@ PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf, int FFTsize)
     short *BRLow;
     int   M;
 
-    ConvertFFTSize(M, FFTsize);
-    GET_TABLE_POINTERS((ENVIRON*) csound, Utbl, BRLow, M, M / 2);
+    M = ConvertFFTSize(csound, FFTsize);
+    getTablePointers(csound, &Utbl, &BRLow, M, M / 2);
     iffts1(buf, M, Utbl, BRLow);
 }
 
@@ -3356,8 +3278,8 @@ PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize)
     short *BRLow;
     int   M;
 
-    ConvertFFTSize(M, FFTsize);
-    GET_TABLE_POINTERS((ENVIRON*) csound, Utbl, BRLow, M, (M - 1) / 2);
+    M = ConvertFFTSize(csound, FFTsize);
+    getTablePointers(csound, &Utbl, &BRLow, M, (M - 1) / 2);
     rffts1(buf, M, Utbl, BRLow);
 }
 
@@ -3377,8 +3299,8 @@ PUBLIC void csoundInverseRealFFT(void *csound, MYFLT *buf, int FFTsize)
     short *BRLow;
     int   M;
 
-    ConvertFFTSize(M, FFTsize);
-    GET_TABLE_POINTERS((ENVIRON*) csound, Utbl, BRLow, M, (M - 1) / 2);
+    M = ConvertFFTSize(csound, FFTsize);
+    getTablePointers(csound, &Utbl, &BRLow, M, (M - 1) / 2);
     riffts1(buf, M, Utbl, BRLow);
 }
 
