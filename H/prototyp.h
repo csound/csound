@@ -65,7 +65,7 @@ void    rdorchfile(ENVIRON*), otran(ENVIRON*), resetouts(ENVIRON*);
 char    argtyp(ENVIRON *, char *);
 TEXT    *getoptxt(ENVIRON *, int *);
 int     express(ENVIRON *, char *);
-int     getopnum(ENVIRON *, char *), lgexist(ENVIRON *, char *);
+int     getopnum(ENVIRON *, char *), lgexist(ENVIRON *, const char *);
 void    oload(ENVIRON*);
 void    reverbinit(ENVIRON*);
 void    dispinit(ENVIRON*);
