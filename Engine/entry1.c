@@ -60,49 +60,65 @@
 int    ihold(void*,void*), turnoff(void*,void*);
 int    assign(void*,void*), rassign(void*,void*), aassign(void*,void*);
 int    init(void*,void*), ainit(void*,void*);
-int    gt(void*,void*), ge(void*,void*), lt(void*,void*), le(void*,void*), eq(void*,void*), ne(void*,void*);
-int    and(void*,void*), or(void*,void*), conval(void*,void*), aconval(void*,void*);
-int    addkk(void*,void*), subkk(void*,void*), mulkk(void*,void*), divkk(void*,void*), modkk(void*,void*);
-int    addka(void*,void*), subka(void*,void*), mulka(void*,void*), divka(void*,void*), modka(void*,void*);
-int    addak(void*,void*), subak(void*,void*), mulak(void*,void*), divak(void*,void*), modak(void*,void*);
-int    addaa(void*,void*), subaa(void*,void*), mulaa(void*,void*), divaa(void*,void*), modaa(void*,void*);
-int    divzkk(void*,void*), divzka(void*,void*), divzak(void*,void*), divzaa(void*,void*);
+int    gt(void*,void*), ge(void*,void*), lt(void*,void*), le(void*,void*);
+int    eq(void*,void*), ne(void*,void*), and(void*,void*), or(void*,void*);
+int    conval(void*,void*), aconval(void*,void*), addkk(void*,void*);
+int    subkk(void*,void*), mulkk(void*,void*), divkk(void*,void*);
+int    modkk(void*,void*), addka(void*,void*), subka(void*,void*);
+int    mulka(void*,void*), divka(void*,void*), modka(void*,void*);
+int    addak(void*,void*), subak(void*,void*), mulak(void*,void*);
+int    divak(void*,void*), modak(void*,void*), addaa(void*,void*);
+int    subaa(void*,void*), mulaa(void*,void*), divaa(void*,void*);
+int    modaa(void*,void*), divzkk(void*,void*), divzka(void*,void*);
+int    divzak(void*,void*), divzaa(void*,void*);
 int    int1(void*,void*), int1a(void*,void*);
 int    frac1(void*,void*), frac1a(void*,void*);
 int    int1_round(void*,void*), int1a_round(void*,void*);
 int    int1_floor(void*,void*), int1a_floor(void*,void*);
 int    int1_ceil(void*,void*), int1a_ceil(void*,void*);
 int    rnd1(void*,void*), birnd1(void*,void*);
-int    abs1(void*,void*), exp01(void*,void*), log01(void*,void*), sqrt1(void*,void*);
-int    sin1(void*,void*), cos1(void*,void*), tan1(void*,void*), asin1(void*,void*), acos1(void*,void*);
-int    atan1(void*,void*), sinh1(void*,void*), cosh1(void*,void*), tanh1(void*,void*), log101(void*,void*);
-int    atan21(void*,void*), atan2aa(void*,void*);
-int    absa(void*,void*), expa(void*,void*), loga(void*,void*), sqrta(void*,void*);
-int    sina(void*,void*), cosa(void*,void*), tana(void*,void*), asina(void*,void*), acosa(void*,void*);
-int    atana(void*,void*), sinha(void*,void*), cosha(void*,void*), tanha(void*,void*), log10a(void*,void*);
+int    abs1(void*,void*), exp01(void*,void*), log01(void*,void*);
+int    sqrt1(void*,void*), sin1(void*,void*), cos1(void*,void*);
+int    tan1(void*,void*), asin1(void*,void*), acos1(void*,void*);
+int    atan1(void*,void*), sinh1(void*,void*), cosh1(void*,void*);
+int    tanh1(void*,void*), log101(void*,void*), atan21(void*,void*);
+int    atan2aa(void*,void*), absa(void*,void*), expa(void*,void*);
+int    loga(void*,void*), sqrta(void*,void*), sina(void*,void*);
+int    cosa(void*,void*), tana(void*,void*), asina(void*,void*);
+int    acosa(void*,void*), atana(void*,void*), sinha(void*,void*);
+int    cosha(void*,void*), tanha(void*,void*), log10a(void*,void*);
 int    dbamp(void*,void*), ampdb(void*,void*), aampdb(void*,void*);
 int    dbfsamp(void*,void*), ampdbfs(void*,void*), aampdbfs(void*,void*);
-int    ftlen(void*,void*), ftlptim(void*,void*), ftchnls(void*,void*), rtclock(void*,void*);
+int    ftlen(void*,void*), ftlptim(void*,void*), ftchnls(void*,void*);
+int    rtclock(void*,void*);
 int    cpsoct(void*,void*), octpch(void*,void*), cpspch(void*,void*);
 int    pchoct(void*,void*), octcps(void*,void*), acpsoct(void*,void*);
-int    massign(void*,void*), ctrlinit(void*,void*), notnum(void*,void*), veloc(void*,void*);
-int    pchmidi(void*,void*), pchmidib(void*,void*), octmidi(void*,void*), octmidib(void*,void*);
-int    pchmidib_i(void*,void*), octmidib_i(void*,void*), icpsmidib_i(void*,void*);
-int    cpsmidi(void*,void*), icpsmidib(void*,void*), kcpsmidib(void*,void*), kmbset(void*,void*);
+int    massign(void*,void*), ctrlinit(void*,void*), notnum(void*,void*);
+int    veloc(void*,void*), pchmidi(void*,void*), pchmidib(void*,void*);
+int    octmidi(void*,void*), octmidib(void*,void*), pchmidib_i(void*,void*);
+int    octmidib_i(void*,void*), icpsmidib_i(void*,void*);
+int    cpsmidi(void*,void*), icpsmidib(void*,void*), kcpsmidib(void*,void*);
+int    kmbset(void*,void*);
 int    midibset(void*,void*), ipchmidib(void*,void*), ioctmidib(void*,void*);
 int    kpchmidib(void*,void*), koctmidib(void*,void*), msclset(void*,void*);
-int    ampmidi(void*,void*), aftset(void*,void*), aftouch(void*,void*), chpress(void*,void*);
+int    ampmidi(void*,void*), aftset(void*,void*), aftouch(void*,void*);
+int    chpress(void*,void*);
 int    ipchbend(void*,void*), kbndset(void*,void*), kpchbend(void*,void*);
 int    imidictl(void*,void*), mctlset(void*,void*), midictl(void*,void*);
 int    imidiaft(void*,void*), maftset(void*,void*), midiaft(void*,void*);
 int    midiout(void*,void*);
 int    turnon(void*,void*);
-int    kmapset(void*,void*), polyaft(void*,void*), ichanctl(void*,void*), chctlset(void*,void*);
-int    chanctl(void*,void*), ftgen(void*,void*), linset(void*,void*), kline(void*,void*), aline(void*,void*);
+int    kmapset(void*,void*), polyaft(void*,void*), ichanctl(void*,void*);
+int    chctlset(void*,void*);
+int    chanctl(void*,void*), ftgen(void*,void*), linset(void*,void*);
+int    kline(void*,void*), aline(void*,void*);
 int    expset(void*,void*), kexpon(void*,void*), expon(void*,void*);
-int    lsgset(void*,void*), klnseg(void*,void*), linseg(void*,void*), madsrset(void*,void*);
-int    adsrset(void*,void*), xdsrset(void*,void*), mxdsrset(void*,void*), expseg2(void*,void*);
-int    xsgset(void*,void*), kxpseg(void*,void*), expseg(void*,void*), xsgset2(void*,void*);
+int    lsgset(void*,void*), klnseg(void*,void*), linseg(void*,void*);
+int    madsrset(void*,void*);
+int    adsrset(void*,void*), xdsrset(void*,void*), mxdsrset(void*,void*);
+int    expseg2(void*,void*);
+int    xsgset(void*,void*), kxpseg(void*,void*), expseg(void*,void*);
+int    xsgset2(void*,void*);
 int    lsgrset(void*,void*), klnsegr(void*,void*), linsegr(void*,void*);
 int    xsgrset(void*,void*), kxpsegr(void*,void*), expsegr(void*,void*);
 int    lnnset(void*,void*), klinen(void*,void*), linen(void*,void*);
@@ -110,18 +126,22 @@ int    lnrset(void*,void*), klinenr(void*,void*), linenr(void*,void*);
 int    evxset(void*,void*), knvlpx(void*,void*), envlpx(void*,void*);
 int    evrset(void*,void*), knvlpxr(void*,void*), envlpxr(void*,void*);
 int    phsset(void*,void*), kphsor(void*,void*), phsor(void*,void*);
-int    itablew1(void*,void*),itablegpw1(void*,void*),itablemix1(void*,void*),itablecopy1(void*,void*);
-int    itable(void*,void*), itabli(void*,void*), itabl3(void*,void*), tabl3(void*,void*), ktabl3(void*,void*);
-int    tblset(void*,void*), ktable(void*,void*), ktabli(void*,void*), tabli(void*,void*);
-int    tablefn(void*,void*);
-int    tblsetkt(void*,void*), ktablekt(void*,void*), tablekt(void*,void*), ktablikt(void*,void*);
-int    tablikt(void*,void*), ko1set(void*,void*), kosc1(void*,void*),  kosc1i(void*,void*);
-int    oscnset(void*,void*), osciln(void*,void*);
-int    oscset(void*,void*), koscil(void*,void*), osckk(void*,void*), oscka(void*,void*), oscak(void*,void*);
-int    oscaa(void*,void*), koscli(void*,void*), osckki(void*,void*), osckai(void*,void*);
-int    oscaki(void*,void*), oscaai(void*,void*), foscset(void*,void*), foscil(void*,void*);
-int    foscili(void*,void*), losset(void*,void*), loscil(void*,void*), loscil3(void*,void*);
-int    koscl3(void*,void*), osckk3(void*,void*), oscka3(void*,void*), oscak3(void*,void*);
+int    itablew1(void*,void*),itablegpw1(void*,void*),itablemix1(void*,void*);
+int    itablecopy1(void*,void*);
+int    itable(void*,void*), itabli(void*,void*), itabl3(void*,void*);
+int    tabl3(void*,void*), ktabl3(void*,void*);
+int    tblset(void*,void*), ktable(void*,void*), ktabli(void*,void*);
+int    tabli(void*,void*), tablefn(void*,void*), tblsetkt(void*,void*);
+int    ktablekt(void*,void*), tablekt(void*,void*), ktablikt(void*,void*);
+int    tablikt(void*,void*), ko1set(void*,void*), kosc1(void*,void*);
+int    kosc1i(void*,void*), oscnset(void*,void*), osciln(void*,void*);
+int    oscset(void*,void*), koscil(void*,void*), osckk(void*,void*);
+int    oscka(void*,void*), oscak(void*,void*), oscaa(void*,void*);
+int    koscli(void*,void*), osckki(void*,void*), osckai(void*,void*);
+int    oscaki(void*,void*), oscaai(void*,void*), foscset(void*,void*);
+int    foscil(void*,void*), foscili(void*,void*), losset(void*,void*);
+int    loscil(void*,void*), loscil3(void*,void*), koscl3(void*,void*);
+int    osckk3(void*,void*), oscka3(void*,void*), oscak3(void*,void*);
 int    oscaa3(void*,void*);
 int    adset(void*,void*), adsyn(void*,void*);
 int    pvset(void*,void*), pvoc(void*,void*);
@@ -140,73 +160,88 @@ int    tonset(void*,void*), tone(void*,void*), atone(void*,void*);
 int    rsnset(void*,void*), reson(void*,void*), areson(void*,void*);
 int    resonx(void*,void*), aresonx(void*,void*), rsnsetx(void*,void*);
 int    tonex(void*,void*),  atonex(void*,void*), tonsetx(void*,void*);
-int    lprdset(void*,void*), lpread(void*,void*), lprsnset(void*,void*), lpreson(void*,void*);
-int    lpfrsnset(void*,void*), lpfreson(void*,void*);
-int    lpslotset(void*,void*) ;
-int    lpitpset(void*,void*),lpinterpol(void*,void*) ;
-int    rmsset(void*,void*), rms(void*,void*), gainset(void*,void*), gain(void*,void*);
-int    sndinset(void*,void*), soundin(void*,void*);
-int    sndo1set(void*,void*), soundout(void*,void*), sndo2set(void*,void*), soundouts(void*,void*);
-int    in(void*,void*),  ins(void*,void*), inq(void*,void*), inh(void*,void*),  ino(void*,void*), in16(void*,void*);
+int    lprdset(void*,void*), lpread(void*,void*), lprsnset(void*,void*);
+int    lpreson(void*,void*), lpfrsnset(void*,void*), lpfreson(void*,void*);
+int    lpslotset(void*,void*), lpitpset(void*,void*),lpinterpol(void*,void*) ;
+int    rmsset(void*,void*), rms(void*,void*), gainset(void*,void*);
+int    gain(void*,void*), sndinset(void*,void*), soundin(void*,void*);
+int    sndo1set(void*,void*), soundout(void*,void*), sndo2set(void*,void*);
+int    soundouts(void*,void*), in(void*,void*),  ins(void*,void*);
+int    inq(void*,void*), inh(void*,void*),  ino(void*,void*), in16(void*,void*);
 int    in32(void*,void*), inall(void*,void*);
-int    out(void*,void*),  outs(void*,void*), outs1(void*,void*), outs2(void*,void*), outall(void*,void*);
-int    outq(void*,void*), outq1(void*,void*), outq2(void*,void*), outq3(void*,void*), outq4(void*,void*);
-int    igoto(void*,void*), kgoto(void*,void*), icgoto(void*,void*), kcgoto(void*,void*);
+int    out(void*,void*),  outs(void*,void*), outs1(void*,void*);
+int    outs2(void*,void*), outall(void*,void*), outq(void*,void*);
+int    outq1(void*,void*), outq2(void*,void*), outq3(void*,void*);
+int    outq4(void*,void*), igoto(void*,void*), kgoto(void*,void*);
+int    icgoto(void*,void*), kcgoto(void*,void*);
 int    timset(void*,void*), timout(void*,void*);
 int    reinit(void*,void*), rigoto(void*,void*), rireturn(void*,void*);
 int    tigoto(void*,void*), tival(void*,void*);
-int    printv(void*,void*), dspset(void*,void*), kdsplay(void*,void*), dsplay(void*,void*);
+int    printv(void*,void*), dspset(void*,void*), kdsplay(void*,void*);
+int    dsplay(void*,void*);
 int    fftset(void*,void*), kdspfft(void*,void*), dspfft(void*,void*);
 int    infile_act(INFILE *p);
 
-int    xyinset(void*,void*), xyin(void*,void*), tempeset(void*,void*), tempest(void*,void*);
-int    tempset(void*,void*), tempo(void*,void*);
-int    old_kdmpset(void*,void*), old_kdmp2set(void*,void*),
-        old_kdmp3set(void*,void*), old_kdmp4set(void*,void*);
-int    kdmpset(void*,void*), kdmp2set(void*,void*), kdmp3set(void*,void*), kdmp4set(void*,void*);
-int    kdump(void*,void*), kdump2(void*,void*), kdump3(void*,void*), kdump4(void*,void*);
-int    krdset(void*,void*), krd2set(void*,void*), krd3set(void*,void*), krd4set(void*,void*);
-int    kread(void*,void*), kread2(void*,void*), kread3(void*,void*), kread4(void*,void*);
-int    ipow(void*,void*), apow(void*,void*), alinear(void*,void*), iklinear(void*,void*);
+int    xyinset(void*,void*), xyin(void*,void*), tempeset(void*,void*);
+int    tempest(void*,void*), tempset(void*,void*), tempo(void*,void*);
+int    old_kdmpset(void*,void*), old_kdmp2set(void*,void*);
+int    old_kdmp3set(void*,void*), old_kdmp4set(void*,void*);
+int    kdmpset(void*,void*), kdmp2set(void*,void*), kdmp3set(void*,void*);
+int    kdmp4set(void*,void*), kdump(void*,void*), kdump2(void*,void*);
+int    kdump3(void*,void*), kdump4(void*,void*), krdset(void*,void*);
+int    krd2set(void*,void*), krd3set(void*,void*), krd4set(void*,void*);
+int    kread(void*,void*), kread2(void*,void*), kread3(void*,void*);
+int    kread4(void*,void*);
+int    ipow(void*,void*), apow(void*,void*), alinear(void*,void*);
+int    iklinear(void*,void*);
 int    atrian(void*,void*), iktrian(void*,void*), aexp(void*,void*);
-int    ikexp(void*,void*), abiexp(void*,void*), ikbiexp(void*,void*), agaus(void*,void*), ikgaus(void*,void*);
-int    acauchy(void*,void*), ikcauchy(void*,void*), apcauchy(void*,void*), ikpcauchy(void*,void*);
-int    abeta(void*,void*), ikbeta(void*,void*), aweib(void*,void*), ikweib(void*,void*), apoiss(void*,void*);
-int    ikpoiss(void*,void*), seedrand(void*,void*);
+int    ikexp(void*,void*), abiexp(void*,void*), ikbiexp(void*,void*);
+int    agaus(void*,void*), ikgaus(void*,void*), acauchy(void*,void*);
+int    ikcauchy(void*,void*), apcauchy(void*,void*), ikpcauchy(void*,void*);
+int    abeta(void*,void*), ikbeta(void*,void*), aweib(void*,void*);
+int    ikweib(void*,void*), apoiss(void*,void*), ikpoiss(void*,void*);
+int    seedrand(void*,void*);
 
 int    tblesegset(void*,void*), ktableseg(void*,void*), ktablexseg(void*,void*);
 int    vpvset(void*,void*), vpvoc(void*,void*);
-int    pvreadset(void*,void*), pvread(void*,void*), pvcrossset(void*,void*), pvcross(void*,void*);
-int    pvbufreadset(void*,void*), pvbufread(void*,void*);
+int    pvreadset(void*,void*), pvread(void*,void*), pvcrossset(void*,void*);
+int    pvcross(void*,void*), pvbufreadset(void*,void*), pvbufread(void*,void*);
 int    pvinterpset(void*,void*), pvinterp(void*,void*);
 int    auniform(void*,void*), ikuniform(void*,void*);
 int    newsndinset(void*,void*), soundinew(void*,void*);
 int    iout_on(void*,void*), iout_off(void*,void*), out_controller(void*,void*);
-int    iout_on_dur_set(void*,void*), iout_on_dur(void*,void*),iout_on_dur2(void*,void*);
-int    moscil_set(void*,void*), moscil(void*,void*);
-int    kvar_out_on_set(void*,void*), kvar_out_on_set1(void*,void*), kvar_out_on(void*,void*);
+int    iout_on_dur_set(void*,void*), iout_on_dur(void*,void*);
+int    iout_on_dur2(void*,void*), moscil_set(void*,void*), moscil(void*,void*);
+int    kvar_out_on_set(void*,void*), kvar_out_on_set1(void*,void*);
+int    kvar_out_on(void*,void*);
 int    out_controller14(void*,void*), out_pitch_bend(void*,void*);
 int    out_aftertouch(void*,void*), out_poly_aftertouch(void*,void*);
 int    out_progchange(void*,void*);
 int    release_set(void*,void*), release(void*,void*), xtratim(void*,void*);
 int    mclock_set(void*,void*), mclock(void*,void*), mrtmsg(void*,void*);
-int    cabasaset(void*,void*), cabasa(void*,void*), sekereset(void*,void*), sandset(void*,void*);
-int    stixset(void*,void*), crunchset(void*,void*), guiroset(void*,void*), guiro(void*,void*);
-int    sekere(void*,void*), tambourset(void*,void*), tambourine(void*,void*), bambooset(void*,void*);
-int    bamboo(void*,void*), wuterset(void*,void*), wuter(void*,void*), sleighset(void*,void*), sleighbells(void*,void*);
+int    cabasaset(void*,void*), cabasa(void*,void*), sekereset(void*,void*);
+int    sandset(void*,void*), stixset(void*,void*), crunchset(void*,void*);
+int    guiroset(void*,void*), guiro(void*,void*), sekere(void*,void*);
+int    tambourset(void*,void*), tambourine(void*,void*), bambooset(void*,void*);
+int    bamboo(void*,void*), wuterset(void*,void*), wuter(void*,void*);
+int    sleighset(void*,void*), sleighbells(void*,void*);
 
-int    trig_set(void*,void*), trig(void*,void*), numsamp(void*,void*), ftsr(void*,void*);
+int    trig_set(void*,void*), trig(void*,void*), numsamp(void*,void*);
+int    ftsr(void*,void*);
 int    kon2_set(void*,void*), kon2(void*,void*);
 int    nrpn(void*,void*), mdelay(void*,void*), mdelay_set(void*,void*);
 #if defined(TCLTK)
 int    cntrl_set(void*,void*), control(void*,void*), ocontrol(void*,void*);
-int    button_set(void*,void*), button(void*,void*), check_set(void*,void*), check(void*,void*);
+int    button_set(void*,void*), button(void*,void*), check_set(void*,void*);
+int    check(void*,void*);
 #endif
 
-int    sum(void*,void*), product(void*,void*), macset(void*,void*), mac(void*,void*), maca(void*,void*);
+int    sum(void*,void*), product(void*,void*), macset(void*,void*);
+int    mac(void*,void*), maca(void*,void*);
 int    nestedapset(void*,void*), nestedap(void*,void*);
 int    lorenzset(void*,void*), lorenz(void*,void*);
-int    filelen(void*,void*), filenchnls(void*,void*), filesr(void*,void*), filepeak(void*,void*);
+int    filelen(void*,void*), filenchnls(void*,void*), filesr(void*,void*);
+int    filepeak(void*,void*);
 int    ilogbasetwo(void*,void*), logbasetwo_set(void*,void*);
 int    powoftwo(void*,void*), powoftwoa(void*,void*);
 int    logbasetwo(void*,void*), logbasetwoa(void*,void*);
@@ -539,7 +574,8 @@ OENTRY opcodlst_1[] = {
 { "pan",    S(PAN),   5, "aaaa", "akkioo",(SUBR)panset,NULL,   (SUBR)pan     },
 { "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
 { "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
-{ "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmm","Toooo",sndinset,NULL,soundin },
+{ "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmm","Toooo",
+                                                sndinset,NULL,soundin },
 { "soundout",S(SNDOUT), 5,      "",     "aTo",  sndo1set,NULL,  soundout},
 /* { "soundouts",S(SNDOUTS),5,     "",     "aaTo", sndo2set,NULL,  soundouts}, */
 { "in",     S(INM),     4,      "a",    "",     NULL,   NULL,   in      },
@@ -672,21 +708,23 @@ OENTRY opcodlst_1[] = {
 { "filenchnls", S(SNDINFO), 1,  "i",    "T",    filenchnls, NULL, NULL     },
 { "filesr", S(SNDINFO),  1,     "i",    "T",    filesr, NULL, NULL         },
 { "filepeak", S(SNDINFOPEAK), 1, "i",   "To",   filepeak, NULL, NULL       },
-/*  { "nlalp", S(NLALP),     5,     "a",    "akkoo", nlalp_set, NULL, nlalp     }, */
+/*  { "nlalp", S(NLALP),     5,     "a",    "akkoo", nlalp_set, NULL, nlalp }, */
 /* Robin Whittle */
 { "tableiw",  S(TABLEW),1,     "",      "iiiooo", (SUBR)itablew, NULL, NULL},
-{ "tablew.kk", S(TABLEW),3,    "",      "kkiooo",(SUBR)tblsetw,(SUBR)ktablew, NULL},
-{ "tablew.aa", S(TABLEW),5,    "",      "aaiooo",(SUBR)tblsetw, NULL, (SUBR)tablew},
-{ "tablewkt.kk", S(TABLEW),3, "",     "kkkooo",(SUBR)tblsetwkt,(SUBR)ktablewkt,NULL},
-{ "tablewkt.aa", S(TABLEW),5, "",     "aakooo",(SUBR)tblsetwkt,NULL,(SUBR)tablewkt},
+{ "tablew.kk", S(TABLEW),3,    "", "kkiooo",(SUBR)tblsetw,(SUBR)ktablew, NULL},
+{ "tablew.aa", S(TABLEW),5,    "", "aaiooo",(SUBR)tblsetw, NULL, (SUBR)tablew},
+{ "tablewkt.kk", S(TABLEW),3, "",  "kkkooo",(SUBR)tblsetwkt,(SUBR)ktablewkt,NULL},
+{ "tablewkt.aa", S(TABLEW),5, "",  "aakooo",(SUBR)tblsetwkt,NULL,(SUBR)tablewkt},
 { "tableng.i", S(TABLENG),1,  "i",     "i",    (SUBR)itableng, NULL,  NULL},
 { "tableng.k",  S(TABLENG),2, "k",     "k",    NULL,   (SUBR)tableng, NULL},
 { "tableigpw",S(TABLENG),1,   "",  "i",    (SUBR)itablegpw, NULL,  NULL},
 { "tablegpw", S(TABLENG),2,   "",  "k",    NULL,   (SUBR)tablegpw, NULL},
 { "tableimix",S(TABLEMIX),1,  "",  "iiiiiiiii", (SUBR)itablemix, NULL, NULL},
-{ "tablemix", S(TABLEMIX),2,  "",  "kkkkkkkkk",(SUBR)tablemixset, (SUBR)tablemix, NULL},
+{ "tablemix", S(TABLEMIX),2,  "",  "kkkkkkkkk",
+                                   (SUBR)tablemixset, (SUBR)tablemix, NULL},
 { "tableicopy",S(TABLECOPY),1, "", "ii",   (SUBR)itablecopy, NULL, NULL},
-{ "tablecopy", S(TABLECOPY),2, "", "kk",   (SUBR)tablecopyset, (SUBR)tablecopy, NULL},
+{ "tablecopy", S(TABLECOPY),2, "", "kk",
+                                      (SUBR)tablecopyset, (SUBR)tablecopy, NULL},
 { "tablera", S(TABLERA),5,   "a",  "kkk",  (SUBR)tableraset, NULL, (SUBR)tablera},
 { "tablewa", S(TABLEWA),5,   "k",  "kak",  (SUBR)tablewaset, NULL, (SUBR)tablewa},
 { "tablekt",  S(TABLE), 7,     "s",  "xkooo",tblsetkt,  ktablekt, tablekt },
@@ -721,15 +759,17 @@ OENTRY opcodlst_1[] = {
 { "prints",S(PRINTS),   1,   "",   "TM",   (SUBR)printsset, NULL, NULL },
 { "printk2", S(PRINTK2),3,   "",   "ko",   (SUBR)printk2set, (SUBR)printk2, NULL },
 { "fprints", S(FPRINTF),1,   "",   "TSM",  (SUBR)fprintf_i, NULL, NULL },
-{ "fprintks", S(FPRINTF), 3, "",   "TSM",  (SUBR)fprintf_set, (SUBR)fprintf_k, NULL },
+{ "fprintks", S(FPRINTF), 3, "",   "TSM",
+                                      (SUBR)fprintf_set, (SUBR)fprintf_k, NULL },
 { "vincr", S(INCR),     4, "",     "aa",   NULL, NULL, (SUBR)incr              },
 { "clear", S(CLEARS),   4, "",     "y",    NULL, NULL, (SUBR)clear             },
-{ "fout", S(OUTFILE),   5, "",     "Tiy",  (SUBR)outfile_set, NULL, (SUBR)outfile },
+{ "fout", S(OUTFILE),   5, "",     "Tiy",  (SUBR)outfile_set,NULL,(SUBR)outfile },
 { "foutk", S(KOUTFILE), 3, "",     "Tiz",  (SUBR)koutfile_set, (SUBR)koutfile  },
 { "fouti", S(IOUTFILE), 1, "",     "iiim", (SUBR)ioutfile_set                  },
-{ "foutir", S(IOUTFILE_R), 3, "",  "iiim", (SUBR)ioutfile_set_r, (SUBR)ioutfile_r },
+{ "foutir", S(IOUTFILE_R), 3, "",  "iiim", (SUBR)ioutfile_set_r,(SUBR)ioutfile_r },
 { "fiopen", S(FIOPEN),  1, "i",    "Si",   (SUBR)fiopen                        },
-{ "fin", S(INFILE),     5, "",     "Tiiy", (SUBR)infile_set,  NULL, (SUBR)infile_act },
+{ "fin", S(INFILE),     5, "",     "Tiiy", 
+                                        (SUBR)infile_set,NULL,(SUBR)infile_act },
 { "fink", S(KINFILE),   3, "",     "Tiiz", (SUBR)kinfile_set, (SUBR)kinfile    },
 { "fini", S(I_INFILE),  1,  "",     "Tiim", (SUBR)i_infile                     },
 { "portk",  S(KPORT),   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL   },

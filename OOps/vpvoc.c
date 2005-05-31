@@ -57,7 +57,8 @@ int tblesegset(ENVIRON *csound, TABLESEG *p)
     if ((nxtfunc = csound->FTFind(csound, *argp++)) == NULL)
         return NOTOK;
     flength = nxtfunc->flen;
-    p->outfunc = (FUNC *) mcalloc(csound, (long)sizeof(FUNC) + flength*sizeof(MYFLT));
+    p->outfunc = (FUNC *) mcalloc(csound,
+                                  (long)sizeof(FUNC) + flength*sizeof(MYFLT));
     p->outfunc->flen = nxtfunc->flen;
     p->outfunc->lenmask = nxtfunc->lenmask;
     p->outfunc->lobits = nxtfunc->lobits;
@@ -227,7 +228,9 @@ int vpvset(ENVIRON *csound, VPVOC *p)
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
         MYFLT *fltp;
-        csound->AuxAlloc(csound, (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) * sizeof(MYFLT),
+        csound->AuxAlloc(csound,
+                         (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN) *
+                         sizeof(MYFLT),
                  &p->auxch);
         fltp = (MYFLT *) p->auxch.auxp;
         p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
@@ -254,7 +257,8 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     chans    = pvh->channels;
     if ((p->asr = pvh->samplingRate) != csound->esr &&
         (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
-      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+      csound->Message(csound,
+                      Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
              pvfilnam, p->asr, csound->esr);
     }
     if (pvh->dataFormat != PVMYFLT) {
@@ -308,7 +312,8 @@ int vpvset(ENVIRON *csound, VPVOC *p)
         goto pverr;
     }
     for (i=0; i < OPWLEN/2+1; ++i)    /* time window is OPWLEN long */
-        p->window[i] = (FL(0.54)-FL(0.46)*(MYFLT)cos(TWOPI*(MYFLT)i/(MYFLT)OPWLEN));
+        p->window[i] = (FL(0.54)-FL(0.46)*
+                        (MYFLT)cos(TWOPI*(MYFLT)i/(MYFLT)OPWLEN));
     /* NB : HAMMING */
     for (i=0; i< pvfrsiz(p); ++i)
         p->outBuf[i] = FL(0.0);
@@ -362,7 +367,8 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
         if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
+          csound->Message(csound,
+                          Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
       }
     }
     FetchIn(p->frPtr,buf,size,frIndx);
@@ -380,9 +386,11 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
     /* Offset the phase to align centres of stretched windows, not starts */
     RewrapPhase(buf,asize,p->lastPhase);
     /**/
-    if ( specwp == 0 || (p->prFlg)++ == -(int)specwp) { /* ?screws up when prFlg used */
+    if ( specwp == 0 ||
+         (p->prFlg)++ == -(int)specwp) { /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
-      if (specwp<0) csound->Message(csound, Str("PVOC debug : one frame gets through \n"));
+      if (specwp<0) csound->Message(csound,
+                                    Str("PVOC debug : one frame gets through \n"));
       if (specwp>0)
         PreWarpSpec(buf, asize, pex);
       Polar2Rect(buf,size);
@@ -410,7 +418,8 @@ int vpvoc(ENVIRON *csound, VPVOC *p)
     writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
     p->opBpos += csound->ksmps;
     if (p->opBpos > circBufSize)     p->opBpos -= circBufSize;
-    addToCircBuf(buf2+csound->ksmps,p->outBuf,p->opBpos,buf2Size-csound->ksmps,circBufSize);
+    addToCircBuf(buf2+csound->ksmps,p->outBuf,p->opBpos,
+                 buf2Size-csound->ksmps,circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
     return OK;
 }

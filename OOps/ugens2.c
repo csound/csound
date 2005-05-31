@@ -1343,7 +1343,8 @@ int osckk3(ENVIRON *csound, OSC  *p)
 /*      MYFLT tr = amp*sin(x); */
         ar[n] = amp * (y0 + FL(0.5)*frcu +
                        fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                       frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) + frsq*(FL(0.5)* y1 - y0));
+                       frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
+                       frsq*(FL(0.5)* y1 - y0));
 /*      printf("oscilkk3: old=%.4f new=%.4f true=%.4f (%f; %f)\n", */
 /*                       old, *(ar-1), tr, fabs(*(ar-1)-tr), fabs(old-tr)); */
       }

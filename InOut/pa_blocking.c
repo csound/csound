@@ -14,7 +14,8 @@ int paBlockingReadWriteOpen(ENVIRON *csound,
     /* input & output streams */
     pabs[OUTS].csound = pabs[INS].csound = csound;
     pabs[INS].currentIndex = pabs[OUTS].currentIndex   = 0;
-    pabs[OUTS].actualBufferSampleCount = pabs[INS].actualBufferSampleCount = maxLag_
+    pabs[OUTS].actualBufferSampleCount =
+      pabs[INS].actualBufferSampleCount = maxLag_
       * csound->GetNchnls(csound);
 
     /* allocate input */
@@ -34,7 +35,8 @@ int paBlockingReadWriteOpen(ENVIRON *csound,
     memcpy(&pabs[INS].paParameters, paParameters, sizeof(PaStreamParameters));
     memcpy(&pabs[OUTS].paParameters, paParameters, sizeof(PaStreamParameters));
 
-    csound->Message(csound, "paBlockingReadWriteOpen: nchnls %d sr %f maxLag %lu\n",
+    csound->Message(csound,
+                    "paBlockingReadWriteOpen: nchnls %d sr %f maxLag %lu\n",
                     paParameters->channelCount,
                     csound->GetSr(csound),
                     maxLag_);
@@ -111,18 +113,22 @@ int paBlockingReadWriteStreamCallback(const void *input,
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *)userData;
     float *paInput = (float *)input;
     float *paOutput = (float *) output;
-    ((ENVIRON*) pabs[OUTS].csound)->WaitThreadLock(pabs[OUTS].csound, pabs[OUTS].paLock, 100);
+    ((ENVIRON*) pabs[OUTS].csound)->WaitThreadLock(pabs[OUTS].csound,
+                                                   pabs[OUTS].paLock, 100);
 /* VL: I am using only the output lock */
-/* ((ENVIRON*) pabs[INS].csound)->WaitThreadLock(pabs[INS].csound, pabs[INS].paLock, 100); */
+/* ((ENVIRON*) pabs[INS].csound)->WaitThreadLock(pabs[INS].csound,
+                                                 pabs[INS].paLock, 100); */
     for (i = 0, n = pabs[INS].actualBufferSampleCount; i < n; i++) {
       pabs[INS].actualBuffer[i] = (MYFLT) paInput[i];
     }
-/* ((ENVIRON*) pabs[INS].csound)->NotifyThreadLock(pabs[INS].csound, pabs[INS].clientLock); */
+/* ((ENVIRON*) pabs[INS].csound)->NotifyThreadLock(pabs[INS].csound,
+                                                   pabs[INS].clientLock); */
 
     for (i = 0, n = pabs[OUTS].actualBufferSampleCount; i < n; i++) {
       paOutput[i] = (float) pabs[OUTS].actualBuffer[i];
     }
-((ENVIRON*) pabs[OUTS].csound)->NotifyThreadLock(pabs[OUTS].csound, pabs[OUTS].clientLock);
+((ENVIRON*) pabs[OUTS].csound)->NotifyThreadLock(pabs[OUTS].csound,
+                                                 pabs[OUTS].clientLock);
     return paContinue;
 }
 
@@ -131,8 +137,10 @@ void paBlockingRead(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer)
  size_t i;
  for(i = 0; i < samples; i++, pabs->currentIndex++) {
       if (pabs->currentIndex >= pabs->actualBufferSampleCount) {
-      /*  ((ENVIRON*) pabs->csound)->NotifyThreadLock(pabs->csound, pabs->paLock);
-        ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound,pabs->clientLock, 100); */
+      /*  ((ENVIRON*) pabs->csound)->NotifyThreadLock(pabs->csound,
+                                                      pabs->paLock);
+        ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound,
+                                                  pabs->clientLock, 100); */
         pabs->currentIndex = 0;
       }
       buffer[i] = pabs->actualBuffer[pabs->currentIndex];
@@ -168,7 +176,8 @@ void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer)
      for (i = 0; i < samples; i++, pabs->currentIndex++) {
       if (pabs->currentIndex >= pabs->actualBufferSampleCount) {
        ((ENVIRON*) pabs->csound)->NotifyThreadLock(pabs->csound, pabs->paLock);
-       ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound,pabs->clientLock, 100);
+       ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound,
+                                                 pabs->clientLock, 100);
         pabs->currentIndex = 0;
       }
       pabs->actualBuffer[pabs->currentIndex] = buffer[i];
@@ -235,18 +244,19 @@ int paBlockingReadStreamCallback(const void *input,
 
 void paBlockingClose(void *csound, PA_BLOCKING_STREAM *pabs)
 {
-   int* openOnce;
+    int* openOnce;
     if (pabs) {
       if (pabs->paStream) {
 #ifndef __MACH__
-/* OSX seems to get stuck here sometimes */
-         Pa_CloseStream(pabs->paStream);
-         Pa_Sleep(500);
+        /* OSX seems to get stuck here sometimes */
+        Pa_CloseStream(pabs->paStream);
+        Pa_Sleep(500);
 #endif
-        }
-       ((ENVIRON*) csound)->Free(csound, pabs[OUTS].actualBuffer);
-        openOnce = (int *)((ENVIRON*) csound)->QueryGlobalVariable(csound,"openOnce");
-        if(!*openOnce)
+      }
+      ((ENVIRON*) csound)->Free(csound, pabs[OUTS].actualBuffer);
+      openOnce = (int *)((ENVIRON*)csound)->QueryGlobalVariable(csound,
+                                                                  "openOnce");
+      if (!*openOnce)
         ((ENVIRON*) csound)->Free(csound, pabs[INS].actualBuffer);
     }
 }
