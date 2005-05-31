@@ -97,13 +97,20 @@
    {"pvsfilter", S(PVSFILTER), 3, "f", "ffkp", pvsfilterset, pvsfilter, NULL},
    {"pvsblur", S(PVSBLUR), 3, "f", "fki", pvsblurset, pvsblur, NULL},
    {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", pvstencilset, pvstencil, NULL}
-
+   {"pvsinit", S(PVSINI), 3, "f", "", pvsinit, NULL, NULL}
 */
 
 #ifndef _PVSBASIC_H
 #define _PVSBASIC_H
 
 #include "pstream.h"
+
+typedef struct _pvsini {
+        OPDS    h;
+        PVSDAT  *fout;
+        MYFLT   *framesize;
+} PVSINI;
+
 
 typedef struct _pvsmix {
         OPDS    h;
