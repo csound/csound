@@ -579,7 +579,7 @@ void otran(ENVIRON *csound)
         csound->Message(csound, "\t%s", ST(strpool)[n]);
       csound->Message(csound, "\n");
     }
-    ST(gblfixed) = ST(gblnxtkcnt) + ST(gblnxtpcnt);
+    ST(gblfixed) = ST(gblnxtkcnt) + ST(gblnxtpcnt) * (int) Pfloats;
     ST(gblkcount) = ST(gblnxtkcnt);
     ST(gblacount) = ST(gblnxtacnt);
     ST(gblscount) = ST(gblnxtscnt);
@@ -630,7 +630,7 @@ void otran(ENVIRON *csound)
     O->instxtcount = instxtcount;
     O->optxtsize = instxtcount * sizeof(INSTRTXT) + optxtcount * sizeof(OPTXT);
     O->poolcount = ST(poolcount);
-    O->gblfixed = ST(gblnxtkcnt) + ST(gblnxtpcnt);
+    O->gblfixed = ST(gblnxtkcnt) + ST(gblnxtpcnt) * (int) Pfloats;
     O->gblacount = ST(gblnxtacnt);
     O->gblscount = ST(gblnxtscnt);
     O->argoffsize = ST(argoffsize);
