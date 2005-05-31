@@ -1,3 +1,19 @@
+2005-05-31	Istvan Varga	<istvan@csounds.com>
+	* Engine/otran.c:
+	  allow global f-signals
+	  code changes for faster name lookup in global/local pools
+	* Engine/rdorch.c:
+	  store line numbers in variables of type 'int' rather than 'short'
+	  TODO: clean up file reading (correct handling of EOL characters,
+	        use csoundFileOpen(), do not depend on being able to call
+		ungetc() multiple times)
+		probaly the same needs to be done in sread.c as well
+	* H/oload.h:
+	  removed many unused typedefs and macros
+	* OOps/fftlib.c:
+	  fixed crash on 64 bit platforms
+	  minor code changes
+
 2005-05-30	Istvan Varga	<istvan@csounds.com>
 	* New API functions:
 	    csoundAppendOpcodes():
