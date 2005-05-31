@@ -48,7 +48,8 @@ typedef struct {
 
 #ifdef PIPES
 /*sbrandon: added NeXT to line below*/
-# if defined(SGI) || defined(LINUX) || defined(__BEOS__) || defined(NeXT) || defined(__MACH__)
+# if defined(SGI) || defined(LINUX) || defined(__BEOS__) || \\
+     defined(NeXT) || defined(__MACH__)
 #  define _popen popen
 #  define _pclose pclose
 # endif
