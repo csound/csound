@@ -234,9 +234,12 @@ void choose_ls_triplets(ENVIRON *csound, ls lss[CHANNELS],
     int i,j,k,l, table_size;
     int *connections = calloc(CHANNELS*CHANNELS, sizeof(int));
 /*      int *i_ptr; */
-    MYFLT *distance_table = calloc(((CHANNELS * (CHANNELS - 1)) / 2), sizeof(MYFLT));
-    int *distance_table_i = calloc(((CHANNELS * (CHANNELS - 1)) / 2), sizeof(int));
-    int *distance_table_j = calloc(((CHANNELS * (CHANNELS - 1)) / 2), sizeof(int));
+    MYFLT *distance_table = calloc(((CHANNELS * (CHANNELS - 1)) / 2),
+                                   sizeof(MYFLT));
+    int *distance_table_i = calloc(((CHANNELS * (CHANNELS - 1)) / 2),
+                                   sizeof(int));
+    int *distance_table_j = calloc(((CHANNELS * (CHANNELS - 1)) / 2),
+                                   sizeof(int));
     MYFLT distance;
     struct ls_triplet_chain *trip_ptr, *prev, *tmp_ptr;
 
@@ -404,7 +407,7 @@ void add_ldsp_triplet(int i, int j, int k,
       ls_ptr = ls_ptr->next;
     }
     ls_ptr = (struct ls_triplet_chain*)
-      malloc (sizeof (struct ls_triplet_chain));
+      malloc (sizeof(struct ls_triplet_chain));
     if (prev == NULL)
       *ls_triplets = ls_ptr;
     else
@@ -603,7 +606,7 @@ void  calculate_3x3_matrixes(ENVIRON *csound,
     }
 
     /* calculations and data storage to a global array */
-    csound->ls_table = (MYFLT *) malloc( (triplet_amount*12 + 3) * sizeof (MYFLT));
+    csound->ls_table = (MYFLT *) malloc((triplet_amount*12 + 3)*sizeof(MYFLT));
     csound->ls_table[0] = FL(3.0); /*dimension*/
     csound->ls_table[1] = (MYFLT) ls_amount;
     csound->ls_table[2] = (MYFLT) triplet_amount;
@@ -716,7 +719,7 @@ void choose_ls_tuplets( ENVIRON *csound,
       csound->Message(csound, "%.1f ", lss[i].angles.azi / atorad);
     csound->Message(csound, "\n");
 #endif
-    csound->ls_table = (MYFLT*) malloc ((amount * 6 + 3 + 100 ) * sizeof (MYFLT));
+    csound->ls_table = (MYFLT*) malloc ((amount * 6 + 3 + 100 ) * sizeof(MYFLT));
     csound->ls_table[0] = FL(2.0); /*dimension*/
     csound->ls_table[1] = (MYFLT) ls_amount;
     csound->ls_table[2] = (MYFLT) amount;

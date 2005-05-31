@@ -121,8 +121,10 @@ int pvset(ENVIRON *csound, PVOC *p)
     if (old_format) {
       if ((p->asr = pvh->samplingRate) != csound->esr &&
           (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
-        csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-                pvfilnam, p->asr, csound->esr);
+        csound->Message(csound,
+                        Str("WARNING: %s''s srate = %8.0f, "
+                            "orch's srate = %8.0f\n"),
+                        pvfilnam, p->asr, csound->esr);
       }
       if (pvh->dataFormat != PVMYFLT) {
         sprintf(csound->errmsg,Str("unsupported PVOC data format %ld in %s"),
@@ -233,7 +235,8 @@ int pvoc(ENVIRON *csound, PVOC *p)
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
         if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
+          csound->Message(csound,
+                          Str("WARNING: PVOC ktimpnt truncated to last frame\n"));
       }
     }
     FetchIn(p->frPtr,buf,size,frIndx);
@@ -378,8 +381,9 @@ static int pvx_loadfile(ENVIRON *csound,
     pvoc_closefile(csound,pvx_id);
     if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&
         (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
-      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              fname, p->asr, csound->esr);
+      csound->Message(csound,
+                      Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
+                      fname, p->asr, csound->esr);
     }
     p->frSiz    = pvx_fftsize;
     p->frPtr    = (MYFLT *) memblock;

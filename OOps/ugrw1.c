@@ -2212,7 +2212,8 @@ int zkr(ENVIRON *csound, ZKR *p)
     if (indx > csound->zklast) {
       *p->rslt = FL(0.0);
       if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound, Str("WARNING: zkr index > isizek. Returning 0.\n"));
+        csound->Message(csound,
+                        Str("WARNING: zkr index > isizek. Returning 0.\n"));
     }
     else if (indx < 0) {
       *p->rslt = FL(0.0);
@@ -2246,7 +2247,8 @@ int zir(ENVIRON *csound, ZKR *p)
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
       if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound, Str("WARNING: zir index > isizek. Returning 0.\n"));
+        csound->Message(csound,
+                        Str("WARNING: zir index > isizek. Returning 0.\n"));
       *p->rslt = FL(0.0);
     }
     else if (indx < 0) {

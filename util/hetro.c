@@ -49,7 +49,7 @@ static int is_sdiffile(char *name);
 static int writesdif(void);
 
 /* Authors:   Tom Sullivan, Nov'86, Mar'87;  bv revised Jun'92, Aug'92  */
-/* Function:  Fixed frequency heterodyne filter analysis.                    */
+/* Function:  Fixed frequency heterodyne filter analysis.               */
 /* Simplifications and partial recoding by John Fitch Dec 1994 */
 /* SDIF extensions by Richard Dobson, Aug 2000 */
 
@@ -63,7 +63,8 @@ static MYFLT    x1,x2,yA,y2,y3,         /* lpf coefficients*/
         delta_t, outdelta_t,            /* sampling period, outpnt period */
         sr = FL(0.0),                   /* sampling rate */
         freq_c = FL(0.0),               /* filter cutoff freq.*/
-        beg_time = FL(0.0), input_dur = FL(0.0),/* begin time & sample input duration*/
+        beg_time = FL(0.0), input_dur = FL(0.0),
+                                        /* begin time & sample input duration*/
         **MAGS, **FREQS;                /* magnitude and freq. output buffers*/
 
 static double *cos_mul, *sin_mul,       /* quad. term buffers*/
@@ -292,7 +293,8 @@ int hetro(ENVIRON  *csound,
       csound->Message(csound,Str("freq est %6.1f,"), cur_est);
       hetdyn(hno);                /* perform actual computation */
       if (!csoundYield(csound)) exit(1);
-      csound->Message(csound,Str(" max found %6.1f, rel amp %6.1f\n"), max_frq, max_amp);
+      csound->Message(csound,Str(" max found %6.1f, rel amp %6.1f\n"),
+                      max_frq, max_amp);
     }
     mfree(csound, dspace);
 #ifdef mills_macintosh
@@ -324,7 +326,8 @@ GETVAL(double *inb, long smpl)    /* get value at position smpl in array inb */
 }
 
 static void
-PUTVAL(double *outb, long smpl, double value)  /* put value in array outb at postn smpl */
+PUTVAL(double *outb, long smpl, double value) 
+  /* put value in array outb at postn smpl */
 {
     *(outb + ((smpl + midbuf) & bufmask)) = value;
 }
@@ -416,8 +419,9 @@ static void lpinit(void) /* lowpass coefficient ititializer */
     y3 = (-(MYFLT)exp(-2.0*omega_c*delta_t));
 }
 
-static void lowpass(double *out, double *in, long smpl)    /* call with x1,x2,yA,y2,y3 initialised  */
-                /* calls LPF function */
+static void lowpass(double *out, double *in, long smpl)
+  /* call with x1,x2,yA,y2,y3 initialised  */
+  /* calls LPF function */
 {
     PUTVAL(out, smpl, (x1 *
                        GETVAL(in,smpl-1) + x2 * GETVAL(in,smpl-2) -
@@ -425,7 +429,8 @@ static void lowpass(double *out, double *in, long smpl)    /* call with x1,x2,yA
                        GETVAL(out,smpl-2) - y3 * GETVAL(out,smpl-3)));
 }
 
-static void average(long window,double *in,double *out, long smpl)  /* AVERAGES OVER 'WINDOW' SAMPLES */
+static void average(long window,double *in,double *out, long smpl)
+  /* AVERAGES OVER 'WINDOW' SAMPLES */
   /* this is actually a comb filter with 'Z' */
   /* transform of (1/w *[1 - Z**-w]/[1 - Z**-1]) */
   /* ie. zeros at all harmonic frequencies except*/
@@ -433,7 +438,8 @@ static void average(long window,double *in,double *out, long smpl)  /* AVERAGES 
 {
     PUTVAL(out, smpl,
            (double)(GETVAL(out,smpl-1) +
-                    (1/(double)window) * (GETVAL(in,smpl) - GETVAL(in,smpl-window))));
+                    (1/(double)window) *
+                    (GETVAL(in,smpl) - GETVAL(in,smpl-window))));
 }
 
                                  /* update phase counter */
@@ -656,7 +662,8 @@ static void filedump(ENVIRON *csound)
     mfree(csound, freqs);
 }
 
-/* simply writes the number of frames generated - no data reduction, no interpolation */
+/* simply writes the number of frames generated - no data reduction,
+   no interpolation */
 static int writesdif(void)
 {
     int         i,j,h, pnt;
@@ -721,7 +728,8 @@ static int writesdif(void)
 
     /* main loop to write 1TRC frames */
     for (i=0;i < num_pts;i++) {
-      sdif_float32 amp,freq,phase = 0.0f; /* cannot offer anything interesting with phase! */
+      sdif_float32 amp,freq,phase = 0.0f;
+      /* cannot offer anything interesting with phase! */
       head.time = (sdif_float32) ((MYFLT)i * timesiz);
       if ((r = SDIF_WriteFrameHeader(&head,sdiffile))!=ESDIF_SUCCESS) {
         csound->Message(csound,Str("Error writing SDIF frame header.\n"));
@@ -752,7 +760,8 @@ static int writesdif(void)
       }
       /* 64-bit alignment can be relied upon here, so no need to calc padding */
     }
-    csound->Message(csound,Str("wrote %ld 1TRC frames to %s\n"), num_pts, outfilnam);
+    csound->Message(csound,
+                    Str("wrote %ld 1TRC frames to %s\n"), num_pts, outfilnam);
     SDIF_CloseWrite(sdiffile);
     return 1;
 }
