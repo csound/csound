@@ -1024,7 +1024,7 @@ static int gbloffndx(ENVIRON *csound, char *s)
     switch (p->type) {
       case ATYPE: return (ST(gblfixed) + p->count);
       case STYPE: return (ST(gblfixed) + ST(gblacount) + p->count);
-      case PTYPE: return (ST(gblkcount) + p->count);
+      case PTYPE: return (ST(gblkcount) + p->count * (int) Pfloats);
     }
     return p->count;
 }
