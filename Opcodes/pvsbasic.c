@@ -29,6 +29,23 @@
 
 int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
+int pvsinit(ENVIRON *csound, PVSINI *p)
+{
+    long N = (long) *p->framesize;
+
+    if (p->fout->frame.auxp==NULL)
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+    p->fout->N =  N;
+    p->fout->overlap = N;
+    p->fout->winsize = N;
+    p->fout->wintype = 0;
+    p->fout->format = PVS_AMP_FREQ;
+    p->fout->framecount = 1;
+    return OK;
+}
+
+
+
 int pvsmixset(ENVIRON *csound, PVSMIX *p)
 {
     long N = p->fa->N;
@@ -459,7 +476,8 @@ static OENTRY localops[] = {
    {"pvsmix", S(PVSMIX),    3,"f", "ff",    (SUBR)pvsmixset, (SUBR)pvsmix, NULL},
    {"pvsfilter", S(PVSFILTER), 3, "f", "ffkp", (SUBR)pvsfilterset,(SUBR)pvsfilter},
    {"pvsblur", S(PVSBLUR), 3, "f", "fki", (SUBR)pvsblurset, (SUBR)pvsblur, NULL},
-   {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR)pvstencilset, (SUBR)pvstencil}
+   {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR)pvstencilset, (SUBR)pvstencil},
+   {"pvsinit", S(PVSINI), 1, "f", "i", (SUBR) pvsinit, NULL, NULL}
 };
 
 LINKAGE
