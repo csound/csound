@@ -58,7 +58,7 @@ typedef struct in_stack {
     char    *body;
     FILE    *file;
     MACRO   *mac;
-    short   line;
+    int     line;
 } IN_STACK;
 
 typedef struct iflabel {            /* for if/else/endif */
@@ -72,7 +72,7 @@ typedef struct {
     MACRO   *macros;
     long    lenmax /* = LENMAX */;  /* Length of input line buffer  */
     char    **linadr;               /* adr of each line in text     */
-    short   *srclin;                /* text no. of expanded lines   */
+    int     *srclin;                /* text no. of expanded lines   */
     int     curline;                /* current line being examined  */
     char    *collectbuf;            /* splitline collect buffer     */
     char    **group;                /* splitline local storage      */
@@ -378,8 +378,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
     ST(str)->file = ST(fp);
     ST(str)->body = csound->orchname;
     ortext = mmalloc(csound, ST(orchsiz) + 1);          /* alloc mem spaces */
-    ST(linadr) = (char **) mmalloc(csound, (long)(LINMAX+1)*sizeof(char **));
-    ST(srclin) = (short *) mmalloc(csound, (long)(LINMAX+1)*sizeof(short));
+    ST(linadr) = (char **) mmalloc(csound, (LINMAX + 1) * sizeof(char *));
+    ST(srclin) = (int *) mmalloc(csound, (LINMAX + 1) * sizeof(int));
     strsav_create(csound);
     ST(srclin)[1] = 1;
     lincnt = srccnt = 1;
@@ -465,8 +465,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           linmax += 100;
           ST(linadr) = (char**) mrealloc(csound, ST(linadr), (linmax + 1)
                                                              * sizeof(char*));
-          ST(srclin) = (short*) mrealloc(csound, ST(srclin), (linmax + 1)
-                                                             * sizeof(short));
+          ST(srclin) = (int*) mrealloc(csound, ST(srclin), (linmax + 1)
+                                                           * sizeof(int));
         }
         ST(srclin)[lincnt] = srccnt;
         ST(linadr)[lincnt] = cp;            /* record the adrs */
