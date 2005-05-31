@@ -322,7 +322,8 @@ void do_mac_dialogs(void)
     static int  prevFormat =    POPUP_16;        /*set to default*/
     ModalFilterUPP filterupp = NewModalFilterProc(myFilter);
 
-    typeList[0] = 'TEXT';/* -for some reason causing crash...'TEXT'; -sdb changed nil to 'TEXT' */
+    typeList[0] = 'TEXT';/* -for some reason causing crash...'TEXT'; 
+                            -sdb changed nil to 'TEXT' */
 
     gFileDlg = GetNewDialog(OPEN_DLG_ID, NULL, (WindowPtr)-1);
 /*     SetWTitle(gFileDlg,(const unsigned char *)so_file.in); */
@@ -431,7 +432,8 @@ void do_mac_dialogs(void)
         break;
       case OPEN_KILL:
         exit(1);
-      case OPEN_MORE:  /* little button to toggle display (should really be a disclosure arrow) */
+      case OPEN_MORE:  /* little button to toggle display
+                          (should really be a disclosure arrow) */
         GetDialogItem(gFileDlg,42,&itemType,&item,&itemBox);
         if (shortDisplay) {
           SizeWindow(gFileDlg, 477, 400, true);
@@ -641,7 +643,8 @@ void formCmdLine(void)
 
 /******** put in listfile name *******  -matt */
     if (so_file.flags & LST_VALID)  {
-      /*getHFSPath(path,NULL,so_file.lst_vrn,so_file.lst_pid); //form directory path */
+      /*getHFSPath(path,NULL,so_file.lst_vrn,so_file.lst_pid);*/
+      /*form directory path */ *
       getDirPath(path,so_file.lst_vrn,so_file.lst_pid); /*form directory path */
       strcat(path,":"); /* now append listingfile name */
       strcat(path,so_file.lst);
