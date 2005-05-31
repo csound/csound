@@ -760,9 +760,9 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
     unsigned int pinc;
     unsigned int pnext;
     unsigned int NSameU;
-    unsigned int Uinc;
-    unsigned int Uinc2;
-    unsigned int Uinc4;
+    int          Uinc;
+    int          Uinc2;
+    int          Uinc4;
     unsigned int DiffUCnt;
     unsigned int SameUCnt;
     unsigned int U2toU3;
@@ -782,7 +782,7 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
     pos = pinc * 4;
     posi = pos + 1;
     NSameU = POW2(M) / 8 / NDiffU;        /* 8 pts per butterfly */
-    Uinc = NSameU * Ustride;
+    Uinc = (int) NSameU * Ustride;
     Uinc2 = Uinc * 2;
     Uinc4 = Uinc * 4;
     U2toU3 = (POW2(M) / 8) * Ustride;
@@ -1800,9 +1800,9 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
     unsigned int pinc;
     unsigned int pnext;
     unsigned int NSameU;
-    unsigned int Uinc;
-    unsigned int Uinc2;
-    unsigned int Uinc4;
+    int          Uinc;
+    int          Uinc2;
+    int          Uinc4;
     unsigned int DiffUCnt;
     unsigned int SameUCnt;
     unsigned int U2toU3;
@@ -1822,7 +1822,7 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
     pos = pinc * 4;
     posi = pos + 1;
     NSameU = POW2(M) / 8 / NDiffU;        /* 8 pts per butterfly */
-    Uinc = NSameU * Ustride;
+    Uinc = (int) NSameU * Ustride;
     Uinc2 = Uinc * 2;
     Uinc4 = Uinc * 4;
     U2toU3 = (POW2(M) / 8) * Ustride;

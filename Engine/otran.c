@@ -28,23 +28,21 @@
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include <ctype.h>
 
-typedef struct namepool {
-    NAME                *names;
-    NAME                *nxtslot;
-    NAME                *namlim;
-    struct namepool     *next;
-} NAMEPOOL;
+typedef struct NAME_ {
+    char          *namep;
+    struct NAME_  *nxt;
+    int           type, count;
+} NAME;
 
 typedef struct {
-    NAMEPOOL  gbl, lcl;
-    int       gblsize /* = GNAMES */, lclsize /* = LNAMES */;
+    NAME      *gblNames[256], *lclNames[256];   /* for 8 bit hash */
     ARGLST    *nullist;
     ARGOFFS   *nulloffs;
     int       lclkcnt, lcldcnt, lclwcnt, lclfixed;
     int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt;
     int       lclnxtkcnt, lclnxtdcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt;
-    int       gblnxtkcnt, gblnxtacnt, gblnxtscnt;
-    int       gblfixed, gblacount, gblscount;
+    int       gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt;
+    int       gblfixed, gblkcount, gblacount, gblscount;
     int       *nxtargoffp, *argofflim, lclpmax;
     char      **strpool;
     long      poolcount, strpool_cnt, argoffsize;
@@ -60,6 +58,11 @@ static  void    lgbuild(ENVIRON *, char *);
 static  void    gblnamset(ENVIRON *, char *);
 static  int     plgndx(ENVIRON *, char *);
 static  NAME    *lclnamset(ENVIRON *, char *);
+        int     lgexist(ENVIRON *, const char *);
+static  void    delete_global_namepool(ENVIRON *);
+static  void    delete_local_namepool(ENVIRON *);
+
+extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 
 #define txtcpy(a,b) memcpy(a,b,sizeof(TEXT));
 #define ST(x)   (((OTRAN_GLOBALS*) ((ENVIRON*) csound)->otranGlobals)->x)
@@ -76,6 +79,8 @@ static  NAME    *lclnamset(ENVIRON *, char *);
 
 void tranRESET(ENVIRON *csound)
 {
+    delete_local_namepool(csound);
+    delete_global_namepool(csound);
     if (csound->otranGlobals != NULL) {
       csound->Free(csound, csound->otranGlobals);
       csound->otranGlobals = NULL;
@@ -232,16 +237,7 @@ void otran(ENVIRON *csound)
 
     if (csound->otranGlobals == NULL) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
-      ST(gblsize) = GNAMES;
-      ST(lclsize) = LNAMES;
     }
-    ST(gbl).names  = (NAME *)mmalloc(csound, (long)(GNAMES*sizeof(NAME)));
-    ST(gbl).namlim = ST(gbl).names + GNAMES;
-    ST(gbl).nxtslot = ST(gbl).names;
-    ST(gbl).next = NULL;
-    ST(lcl).names = (NAME *)mmalloc(csound, (long)(LNAMES*sizeof(NAME)));
-    ST(lcl).namlim = ST(lcl).names + LNAMES;
-    ST(lcl).next = NULL;
     csound->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + csound->maxinsno)
                                                       * sizeof(INSTRTXT*));
     csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
@@ -292,7 +288,7 @@ void otran(ENVIRON *csound)
                   err++; continue;
                 }
                 if (isdigit(*c)) {      /* numbered instrument */
-                  if (!sscanf(c, "%ld", &n) || n < 0) {
+                  if (!sscanf(c, "%ld", &n) || n <= 0) {
                     synterr(csound, Str("illegal instr number"));
                     err++; continue;
                   }
@@ -300,9 +296,6 @@ void otran(ENVIRON *csound)
                     int old_maxinsno = csound->maxinsno;
                     /* expand */
                     while (n>csound->maxinsno) csound->maxinsno += MAXINSNO;
-/*                  csound->Message(csound, Str("Extending instr number "
-                                                "from %d to %d\n"),
-                                            old_maxinsno, csound->maxinsno); */
                     csound->instrtxtp = (INSTRTXT**)
                       mrealloc(csound, csound->instrtxtp, (1 + csound->maxinsno)
                                                           * sizeof(INSTRTXT*));
@@ -310,10 +303,6 @@ void otran(ENVIRON *csound)
                     for (i = old_maxinsno + 1; i <= csound->maxinsno; i++)
                       csound->instrtxtp[i] = NULL;
                   }
-/*                else if (n<0) { */
-/*                  synterr(csound, Str("illegal instr number")); */
-/*                  continue; */
-/*                } */
                   if (csound->instrtxtp[n] != NULL) {
                     synterr(csound, Str("instr %ld redefined"), (long) n);
                     err++; continue;
@@ -405,23 +394,13 @@ void otran(ENVIRON *csound)
 /* ---- IV - Oct 16 2002: end of new code ----> */
               putop(csound, &ip->t);
             }
-            ST(lcl).nxtslot = ST(lcl).names;    /* clear lcl namlist */
-            if (ST(lcl).next) {
-                NAMEPOOL *lll = ST(lcl).next;
-                ST(lcl).next = NULL;
-                while (lll) {
-                    NAMEPOOL *n = lll->next;
-                    mfree(csound, lll->names);
-                    mfree(csound, lll);
-                    lll = n;
-                }
-            }
-            ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;        /*   for rebuilding  */
+            delete_local_namepool(csound);          /* clear lcl namlist */
+            ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;    /*   for rebuilding  */
             ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
             ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
             opdstot = 0;
             threads = 0;
-            pmax = 3L;                  /* set minimum pflds */
+            pmax = 3L;                              /* set minimum pflds */
             break;
         case ENDIN:
         case ENDOP:             /* IV - Sep 8 2002 */
@@ -600,7 +579,8 @@ void otran(ENVIRON *csound)
         csound->Message(csound, "\t%s", ST(strpool)[n]);
       csound->Message(csound, "\n");
     }
-    ST(gblfixed) = ST(gblnxtkcnt);
+    ST(gblfixed) = ST(gblnxtkcnt) + ST(gblnxtpcnt);
+    ST(gblkcount) = ST(gblnxtkcnt);
     ST(gblacount) = ST(gblnxtacnt);
     ST(gblscount) = ST(gblnxtscnt);
 
@@ -650,11 +630,14 @@ void otran(ENVIRON *csound)
     O->instxtcount = instxtcount;
     O->optxtsize = instxtcount * sizeof(INSTRTXT) + optxtcount * sizeof(OPTXT);
     O->poolcount = ST(poolcount);
-    O->gblfixed = ST(gblnxtkcnt);
+    O->gblfixed = ST(gblnxtkcnt) + ST(gblnxtpcnt);
     O->gblacount = ST(gblnxtacnt);
     O->gblscount = ST(gblnxtscnt);
     O->argoffsize = ST(argoffsize);
     O->argoffspace = (char *) csound->argoffspace;
+    /* clean up */
+    delete_local_namepool(csound);
+    delete_global_namepool(csound);
 }
 
 /* prep an instr template for efficient allocs  */
@@ -684,17 +667,7 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
     ST(lclpcnt) = tp->lclpcnt;
     ST(lclscnt) = tp->lclscnt;
     ST(lclacnt) = tp->lclacnt;
-    ST(lcl).nxtslot = ST(lcl).names;                    /* clear lcl namlist */
-    if (ST(lcl).next) {
-      NAMEPOOL *lll = ST(lcl).next;
-      ST(lcl).next = NULL;
-      while (lll) {
-        NAMEPOOL *n = lll->next;
-        mfree(csound, lll->names);
-        mfree(csound, lll);
-        lll = n;
-      }
-    }
+    delete_local_namepool(csound);              /* clear lcl namlist */
     ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;        /*   for rebuilding  */
     ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
     ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
@@ -730,7 +703,7 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
       else {
         ttp->outoffs = outoffs = (ARGOFFS *) ndxp;
         outoffs->count = n = outlist->count;
-        argp = outlist->arg;            /* get outarg indices */
+        argp = outlist->arg;                    /* get outarg indices */
         ndxp = outoffs->indx;
         while (n--) {
           *ndxp++ = indx = plgndx(csound, *argp++);
@@ -922,174 +895,6 @@ static int constndx(ENVIRON *csound, char *s)
     return(0);
 }
 
-static void gblnamset(ENVIRON *csound, char *s)
-{                           /* builds namelist & type counts for gbl names */
-    NAME      *np = NULL;
-    NAMEPOOL  *ggg;
-
-    for (ggg=&ST(gbl); ggg!=NULL; ggg=ggg->next) {
-      for (np=ggg->names; np<ggg->nxtslot; np++)/* search gbl namelist: */
-        if (strcmp(s,np->namep) == 0)           /* if name is there     */
-          return;                               /*    return            */
-
-      if (ggg->nxtslot+1 >= ggg->namlim) {      /* chk for full table   */
-/*      csoundDie(csound, "gbl namelist is full"); */
-        if (ggg->next == NULL) {
-          if(csound->oparms->msglevel)
-            csound->Message(csound, Str("Extending Global pool to %d\n"),
-                                    ST(gblsize) += GNAMES);
-          ggg->next = (NAMEPOOL*) mmalloc(csound, sizeof(NAMEPOOL));
-          ggg = ggg->next;
-          ggg->names = (NAME *)mmalloc(csound, (long)(GNAMES*sizeof(NAME)));
-          ggg->namlim = ggg->names + GNAMES;
-          ggg->nxtslot = ggg->names;
-          ggg->next = NULL;
-          np = ggg->names;
-          break;
-        }
-        else continue;
-      }
-      else break;
-    }
-    ++(ggg->nxtslot);
-    np->namep = s;                              /* else record newname  */
-    if (*s == '#')      s++;
-    if (*s == 'g')      s++;
-    if (*s == 'a') {                            /*   and its type-count */
-      np->type = ATYPE;
-      np->count = ST(gblnxtacnt)++;
-    }
-    else if (*s == 'S') {
-      np->type = STYPE;
-      np->count = ST(gblnxtscnt)++;
-    }
-    else {
-      np->type = KTYPE;
-      np->count = ST(gblnxtkcnt)++;
-    }
-}
-
-static NAME *lclnamset(ENVIRON *csound, char *s)
-{                       /* builds namelist & type counts for lcl names  */
-    NAME    *np = NULL; /*   called by otran for each instr for lcl cnts */
-    NAMEPOOL  *lll;     /*   lists then redone by insprep via lcloffndx  */
-
-    for (lll=&ST(lcl); lll!=NULL; lll=lll->next) {
-      for (np=lll->names; np<lll->nxtslot; np++)/* search lcl namelist: */
-        if (strcmp(s,np->namep) == 0)   /* if name is there     */
-          return(np);                   /*    return ptr        */
-      if (lll->nxtslot+1 >= lll->namlim) {      /* chk for full table   */
-        /*          csoundDie(csound, "lcl namelist is full"); */
-        if (lll->next == NULL) {
-          if(csound->oparms->msglevel)
-            csound->Message(csound, Str("Extending Local pool to %d\n"),
-                                    ST(lclsize) += LNAMES);
-          lll->next = (NAMEPOOL*) mmalloc(csound, sizeof(NAMEPOOL));
-          lll = lll->next;
-          lll->names = (NAME *)mmalloc(csound, (long)(LNAMES*sizeof(NAME)));
-          lll->namlim = lll->names + LNAMES;
-          lll->nxtslot = lll->names;
-          lll->next = NULL;
-          np = lll->names;
-          break;
-        }
-        else continue;
-      }
-      else break;
-    }
-    ++(lll->nxtslot);
-    np->namep = s;                              /* else record newname  */
-    if (*s == '#')      s++;
-    switch (*s) {                               /*   and its type-count */
-      case 'd': np->type = DTYPE; np->count = ST(lclnxtdcnt)++; break;
-      case 'w': np->type = WTYPE; np->count = ST(lclnxtwcnt)++; break;
-      case 'a': np->type = ATYPE; np->count = ST(lclnxtacnt)++; break;
-      case 'f': np->type = PTYPE; np->count = ST(lclnxtpcnt)++; break;
-      case 'S': np->type = STYPE; np->count = ST(lclnxtscnt)++; break;
-      default:  np->type = KTYPE; np->count = ST(lclnxtkcnt)++; break;
-    }
-    return(np);
-}
-
-static int gbloffndx(ENVIRON *csound, char *s)
-{                               /* get named offset index into gbl dspace */
-    NAME        *np;            /* called only after otran and gblfixed valid */
-    int         indx;
-    NAMEPOOL    *ggg = &ST(gbl);
-
-    while (1) {
-      for (np=ggg->names; np<ggg->nxtslot; np++)  /* search gbl namelist: */
-        if (strcmp(s, np->namep) == 0) {          /* if name is there     */
-          indx = np->count;
-          switch (np->type) {
-            case STYPE: indx += ST(gblacount);
-            case ATYPE: indx += ST(gblfixed);
-          }
-          /* return w. index */
-          return(indx);
-        }
-      if (ggg->nxtslot+1 < ggg->namlim)
-        csoundDie(csound, Str("unexpected global name")); /* else complain */
-      ggg = ggg->next;
-      if (ggg == NULL)
-        csoundDie(csound, Str("no pool for unexpected global name"));
-    }
-}
-
-static int lcloffndx(ENVIRON *csound, char *s)
-{                               /* get named offset index into instr lcl */
-                                /* dspace called by insprep aftr lclcnts,*/
-                                /* lclfixed valid */
-    NAME    *np = lclnamset(csound, s);         /* rebuild the table    */
-    int     indx = 0;
-    int     Pfloatsize = Pfloats;
-    switch (np->type) {                         /* use cnts to calc ndx */
-      case KTYPE: indx = np->count;  break;
-      case DTYPE: indx = ST(lclkcnt) + np->count * Dfloats;  break;
-      case WTYPE: indx = ST(lclkcnt) + ST(lcldcnt) * Dfloats
-                                     + np->count * Wfloats;  break;
-      case ATYPE: indx = ST(lclfixed) + np->count;           break;
-                  /* RWD ???? */
-      case PTYPE: indx = ST(lclkcnt) + np->count * Pfloatsize;    break;
-      case STYPE: indx = ST(lclfixed) + ST(lclacnt) + np->count;  break;
-      default:    csoundDie(csound, Str("unknown nametype"));     break;
-    }
-    return(indx);                       /*   and rtn this offset */
-}
-
-static int gexist(ENVIRON *csound, char *s)
-                                /* tests whether variable name exists   */
-{                               /*      in gbl namelist                 */
-    NAME        *np;
-    NAMEPOOL    *ggg = &ST(gbl);
-
-    while (ggg) {               /* search gbl namelist:                 */
-      for (np = ggg->names; np < ggg->nxtslot; np++)
-        if (strcmp(s,np->namep) == 0)   /* if name is there     */
-          return(1);                    /*      return 1        */
-      ggg = ggg->next;
-    }
-    return(0);                  /* else return 0                        */
-}
-
-int lgexist(ENVIRON *csound, char *s)
-{                               /* tests whether variable name exists   */
-    NAME        *np;            /*      in gbl or lcl namelist          */
-    NAMEPOOL    *gl;
-
-    for (gl = &ST(gbl); gl!=NULL; gl=gl->next) {
-      for (np = gl->names; np < gl->nxtslot; np++) /* search gbl namelist: */
-        if (strcmp(s,np->namep) == 0)   /* if name is there     */
-          return(1);                    /*      return 1        */
-    }
-    for (gl = &ST(lcl); gl!=NULL; gl=gl->next) {
-      for (np = gl->names; np < gl->nxtslot; np++) /* search lcl namelist: */
-        if (strcmp(s,np->namep) == 0)   /* if name is there     */
-          return(1);                    /*      return 1        */
-    }
-    return(0);                          /* cannot find, return 0 */
-}
-
 void putop(ENVIRON *csound, TEXT *tp)
 {
     int n, nn;
@@ -1105,5 +910,172 @@ void putop(ENVIRON *csound, TEXT *tp)
       while (n--) csound->Message(csound,"%s\t",tp->inlist->arg[nn++]);
     }
     csound->Message(csound,"\n");
+}
+
+static inline unsigned char name_hash(const char *s)
+{
+    unsigned char *c = (unsigned char*) &(s[0]);
+    unsigned char h = (unsigned char) 0;
+    for ( ; *c != (unsigned char) 0; c++)
+      h = strhash_tabl_8[*c ^ h];
+    return h;
+}
+
+static inline int sCmp(const char *x, const char *y)
+{
+    int tmp = 0;
+    while (x[tmp] == y[tmp] && x[tmp] != (char) 0)
+      tmp++;
+    return (x[tmp] != y[tmp]);
+}
+
+/* tests whether variable name exists   */
+/*      in gbl namelist                 */
+
+static int gexist(ENVIRON *csound, char *s)
+{
+    unsigned char h = name_hash(s);
+    NAME          *p;
+
+    for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    return (p == NULL ? 0 : 1);
+}
+
+/* returns non-zero if 's' is defined in the global or local pool of names */
+
+int lgexist(ENVIRON *csound, const char *s)
+{
+    unsigned char h = name_hash(s);
+    NAME          *p;
+
+    for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    if (p != NULL)
+      return 1;
+    for (p = ST(lclNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    return (p == NULL ? 0 : 1);
+}
+
+/* builds namelist & type counts for gbl names */
+
+static void gblnamset(ENVIRON *csound, char *s)
+{
+    unsigned char h = name_hash(s);
+    NAME          *p = ST(gblNames)[h];
+                                                /* search gbl namelist: */
+    for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    if (p != NULL)                              /* if name is there     */
+      return;                                   /*    return            */
+    p = (NAME*) malloc(sizeof(NAME));
+    if (p == NULL)
+      csound->Die(csound, Str("gblnamset(): memory allocation failure"));
+    p->namep = s;                               /* else record newname  */
+    p->nxt = ST(gblNames)[h];
+    if (*s == '#')  s++;
+    if (*s == 'g')  s++;
+    switch ((int) *s) {                         /*   and its type-count */
+      case 'a': p->type = ATYPE; p->count = ST(gblnxtacnt)++; break;
+      case 'S': p->type = STYPE; p->count = ST(gblnxtscnt)++; break;
+      case 'f': p->type = PTYPE; p->count = ST(gblnxtpcnt)++; break;
+      default:  p->type = KTYPE; p->count = ST(gblnxtkcnt)++;
+    }
+}
+
+/* builds namelist & type counts for lcl names  */
+/*  called by otran for each instr for lcl cnts */
+/*  lists then redone by insprep via lcloffndx  */
+
+static NAME *lclnamset(ENVIRON *csound, char *s)
+{
+    unsigned char h = name_hash(s);
+    NAME          *p = ST(lclNames)[h];
+                                                /* search lcl namelist: */
+    for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    if (p != NULL)                              /* if name is there     */
+      return p;                                 /*    return ptr        */
+    p = (NAME*) malloc(sizeof(NAME));
+    if (p == NULL)
+      csound->Die(csound, Str("lclnamset(): memory allocation failure"));
+    p->namep = s;                               /* else record newname  */
+    p->nxt = ST(lclNames)[h];
+    if (*s == '#')  s++;
+    switch (*s) {                               /*   and its type-count */
+      case 'd': p->type = DTYPE; p->count = ST(lclnxtdcnt)++; break;
+      case 'w': p->type = WTYPE; p->count = ST(lclnxtwcnt)++; break;
+      case 'a': p->type = ATYPE; p->count = ST(lclnxtacnt)++; break;
+      case 'f': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
+      case 'S': p->type = STYPE; p->count = ST(lclnxtscnt)++; break;
+      default:  p->type = KTYPE; p->count = ST(lclnxtkcnt)++; break;
+    }
+    return p;
+}
+
+/* get named offset index into gbl dspace     */
+/* called only after otran and gblfixed valid */
+
+static int gbloffndx(ENVIRON *csound, char *s)
+{
+    unsigned char h = name_hash(s);
+    NAME          *p = ST(gblNames)[h];
+
+    for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
+    if (p == NULL)
+      csoundDie(csound, Str("unexpected global name"));
+    switch (p->type) {
+      case ATYPE: return (ST(gblfixed) + p->count);
+      case STYPE: return (ST(gblfixed) + ST(gblacount) + p->count);
+      case PTYPE: return (ST(gblkcount) + p->count);
+    }
+    return p->count;
+}
+
+/* get named offset index into instr lcl dspace   */
+/* called by insprep aftr lclcnts, lclfixed valid */
+
+static int lcloffndx(ENVIRON *csound, char *s)
+{
+    NAME    *np = lclnamset(csound, s);         /* rebuild the table    */
+    switch (np->type) {                         /* use cnts to calc ndx */
+      case KTYPE: return np->count;
+      case DTYPE: return (ST(lclkcnt) + np->count * Dfloats);
+      case WTYPE: return (ST(lclkcnt) + ST(lcldcnt) * Dfloats
+                                      + np->count * Wfloats);
+      case ATYPE: return (ST(lclfixed) + np->count);
+      case PTYPE: return (ST(lclkcnt) + ST(lcldcnt) * Dfloats
+                                      + ST(lclwcnt) * Wfloats
+                                      + np->count * (int) Pfloats);
+      case STYPE: return (ST(lclfixed) + ST(lclacnt) + np->count);
+      default:    csoundDie(csound, Str("unknown nametype"));
+    }
+    return 0;
+}
+
+static void delete_global_namepool(ENVIRON *csound)
+{
+    int i;
+
+    if (csound->otranGlobals == NULL)
+      return;
+    for (i = 0; i < 256; i++) {
+      while (ST(gblNames)[i] != NULL) {
+        NAME  *nxt = ST(gblNames)[i]->nxt;
+        free(ST(gblNames)[i]);
+        ST(gblNames)[i] = nxt;
+      }
+    }
+}
+
+static void delete_local_namepool(ENVIRON *csound)
+{
+    int i;
+
+    if (csound->otranGlobals == NULL)
+      return;
+    for (i = 0; i < 256; i++) {
+      while (ST(lclNames)[i] != NULL) {
+        NAME  *nxt = ST(lclNames)[i]->nxt;
+        free(ST(lclNames)[i]);
+        ST(lclNames)[i] = nxt;
+      }
+    }
 }
 
