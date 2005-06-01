@@ -212,7 +212,7 @@ static MYFLT Modal4_tick(Modal4 *m)
         temp_time += m->v_phaseOffset;     /*  Add phase offset       */
         while (temp_time >= m->vibr->flen) /*  Check for end of sound */
           temp_time -= m->vibr->flen;      /*  loop back to beginning */
-        while (temp_time < FL(0.0))            /*  Check for end of sound */
+        while (temp_time < FL(0.0))        /*  Check for end of sound */
           temp_time += m->vibr->flen;      /*  loop back to beginning */
       }
 #endif
@@ -260,10 +260,10 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
                     m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK) return NOTOK;
     p->m4.w_phaseOffset = FL(0.0);
 /*     p->m4.w_rate = 0.5; */
-    Modal4_setRatioAndReson(csound,m, 0, FL(1.00), FL(0.9996)); /* Set all 132.0 */
-    Modal4_setRatioAndReson(csound,m, 1, FL(3.99), FL(0.9994)); /* of our  523.0 */
-    Modal4_setRatioAndReson(csound,m, 2,FL(10.65), FL(0.9994)); /* default 1405.0 */
-    Modal4_setRatioAndReson(csound,m, 3,-FL(18.50), FL(0.999)); /* resonances 2443.0 */
+    Modal4_setRatioAndReson(csound,m,0, FL(1.00), FL(0.9996)); /* Set all 132.0 */
+    Modal4_setRatioAndReson(csound,m,1, FL(3.99), FL(0.9994)); /* of our  523.0 */
+    Modal4_setRatioAndReson(csound,m,2,FL(10.65), FL(0.9994)); /* default 1405.0 */
+    Modal4_setRatioAndReson(csound,m,3,-FL(18.50),FL(0.999)); /* resonances 2443 */
     Modal4_setFiltGain(m, 0, FL(0.04));               /*  and        */
     Modal4_setFiltGain(m, 1, FL(0.01));               /*  gains      */
     Modal4_setFiltGain(m, 2, FL(0.01));               /*  for each   */
@@ -280,7 +280,8 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
     temp = (MYFLT)sin((double)temp2);
     BiQuad_setGain(p->m4.filters[0], FL(0.12)*temp); /* 1st mode function of pos.*/
     temp = (MYFLT)sin(0.05 + (3.9 * (double)temp2));
-    BiQuad_setGain(p->m4.filters[1], -FL(0.03)*temp); /* 2nd mode function of pos.*/
+    BiQuad_setGain(p->m4.filters[1],
+                   -FL(0.03)*temp); /* 2nd mode function of pos.*/
     temp = (MYFLT)sin(-0.05 + (11.0 * (double)temp2));
     BiQuad_setGain(p->m4.filters[2], FL(0.11)*temp); /* 3rd mode function of pos.*/
                                 /* Strike */
@@ -502,9 +503,12 @@ int agogobel(ENVIRON *csound, VIBRAPHN *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "marimba", S(MARIMBA), 5, "a", "kkiiikkiijj", (SUBR)marimbaset, NULL, (SUBR)marimba},
-{ "vibes", S(VIBRAPHN),  5, "a", "kkiiikkii", (SUBR)vibraphnset,NULL,(SUBR)vibraphn},
-{ "gogobel",S(VIBRAPHN), 5, "a", "kkiiikki", (SUBR)agogobelset,NULL, (SUBR)agogobel},
+{ "marimba", S(MARIMBA), 5, "a", "kkiiikkiijj", 
+                                 (SUBR)marimbaset, NULL, (SUBR)marimba},
+{ "vibes", S(VIBRAPHN),  5, "a", "kkiiikkii", 
+                                 (SUBR)vibraphnset,NULL,(SUBR)vibraphn},
+{ "gogobel",S(VIBRAPHN), 5, "a", "kkiiikki",
+                                 (SUBR)agogobelset,NULL, (SUBR)agogobel},
 };
 
 LINKAGE

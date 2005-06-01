@@ -316,7 +316,8 @@ int ctrl7set(ENVIRON *csound, CTRL7 *p)
       return csound->InitError(csound, Str("illegal controller number"));
     }
     else if ((chan=(int) *p->ichan-1) < 0 || chan > 15) {
-      return csound->InitError(csound, Str("illegal midi channel")); /* gab-A2 (chan number fix)*/
+      return csound->InitError(csound,
+                     Str("illegal midi channel")); /* gab-A2 (chan number fix)*/
     }
     /*else if (midi_in_p_num < 0) midi_in_error("ctrl7");*/
     else p->ctlno = ctlno;
@@ -503,8 +504,9 @@ int ctrl21(ENVIRON *csound, CTRL21 *p)
     return OK;
 }
 
-int initc7(ENVIRON *csound, INITC7 *p) /* for setting a precise value use the following formula:*/
-{                      /* (value - min) / (max - min) */
+int initc7(ENVIRON *csound, INITC7 *p)
+                   /* for setting a precise value use the following formula:*/
+{                  /* (value - min) / (max - min) */
     MYFLT fvalue;
     int chan;
     if ((fvalue = *p->ivalue) < 0. || fvalue > 1. )

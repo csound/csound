@@ -51,7 +51,8 @@ void SPECset(ENVIRON *p, SPECDAT *specdp, long npts)
 
 static const char *outstring[] = {"mag", "db", "mag sqrd", "root mag"};
 
-int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier transform of */
+int spectset(ENVIRON *csound, SPECTRUM *p)
+                           /* spectrum - calcs disc Fourier transform of */
                            /* oct-downsampled data outputs coefs (mag, */
                            /* db or mag2) of log freq within each octave */
 {
@@ -188,7 +189,8 @@ int spectset(ENVIRON *csound, SPECTRUM *p) /* spectrum - calcs disc Fourier tran
                               nocts, bufsiz, (int)(bufsiz*1000/dwnp->srate));
       if (p->disprd) {                      /* if display requested, */
         totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
-        csound->AuxAlloc(csound, (long)totsize, &p->auxch2);/*  linear output window */
+        csound->AuxAlloc(csound,
+                         (long)totsize, &p->auxch2);/*  linear output window */
         csound->dispset(csound, &p->octwindow, (MYFLT *)p->auxch2.auxp,
                         (long)totsamps, Str("octdown buffers:"), 0, "spectrum");
       }
@@ -567,7 +569,7 @@ int sptrkset(ENVIRON *csound, SPECPTRK *p)
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
         }
-    if ((p->ftimcnt = (int)(csound->ekr * *p->ifprd)) > 0) {/* if displaying wfund   */
+    if ((p->ftimcnt = (int)(csound->ekr**p->ifprd)) > 0) {/* if displaying wfund */
       SPECDISP *fdp = &p->fdisplay;
       fdp->h = p->h;
       fdp->wsig = &p->wfund;                      /*  pass the param pntrs */
@@ -695,8 +697,8 @@ int specptrk(ENVIRON *csound, SPECPTRK *p)
       if ((kvar = *p->kvar) < FZERO)
         kvar = -kvar;
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
-      lobin = (long)((kval - kvar) * inspecp->nfreqs); /* set lims of frq interest */
-      hibin = (long)((kval + kvar) * inspecp->nfreqs);
+      lobin = (long)((kval-kvar) * inspecp->nfreqs); /* set lims of frq interest */
+      hibin = (long)((kval+kvar) * inspecp->nfreqs);
       if ((flop = p->oct0p + lobin) < p->flop)  /*       as fundp bin pntrs */
         flop = p->flop;
       if ((fhip = p->oct0p + hibin) > p->fhip)  /*       within hard limits */
@@ -824,7 +826,8 @@ int spsumset(ENVIRON *csound, SPECSUM *p)
     return OK;
 }
 
-int specsum(ENVIRON *csound, SPECSUM *p)        /* sum all vals of a spectrum and put as ksig */
+int specsum(ENVIRON *csound, SPECSUM *p)
+                               /* sum all vals of a spectrum and put as ksig */
                                /*         optionally interpolate the output  */
 {
     SPECDAT *specp = p->wsig;
@@ -862,7 +865,8 @@ int spadmset(ENVIRON *csound, SPECADDM *p)
       return csound->InitError(csound, Str("inputs have diff. time periods"));
     if (inspec1p->nfreqs != inspec2p->nfreqs)
       /*                frq resoltn */
-      return csound->InitError(csound, Str("inputs have different freq resolution"));
+      return csound->InitError(csound,
+                               Str("inputs have different freq resolution"));
     if (inspec1p->dbout != inspec2p->dbout)
       /*                and db type */
       return csound->InitError(csound, Str("inputs have different amptypes"));
@@ -920,7 +924,8 @@ int spdifset(ENVIRON *csound, SPECDIFF *p)
     lclp = (MYFLT *) p->specsave.auxch.auxp;
     outp = (MYFLT *) p->wdiff->auxch.auxp;
     if (lclp==NULL || outp==NULL) { /* RWD  */
-      return csound->InitError(csound, Str("specdiff: local buffers not initialised"));
+      return csound->InitError(csound,
+                               Str("specdiff: local buffers not initialised"));
     }
     do {
       *lclp++ = FL(0.0);                    /* clr local & out spec bufs */
@@ -981,7 +986,8 @@ int spsclset(ENVIRON *csound, SPECSCAL *p)
     outspecp->dbout = inspecp->dbout;
     p->fscale = (MYFLT *) p->auxch.auxp;       /* setup scale & thresh fn areas */
     if (p->fscale==NULL) {  /* RWD fix */
-      return csound->InitError(csound, Str("specscal: local buffer not initialised"));
+      return csound->InitError(csound,
+                               Str("specscal: local buffer not initialised"));
     }
     p->fthresh = p->fscale + npts;
     if ((ftp=csound->FTFind(csound, p->ifscale)) == NULL) {
@@ -1015,7 +1021,7 @@ int spsclset(ENVIRON *csound, SPECSCAL *p)
       } while (--nn);
     }
     else p->thresh = 0;
-    outspecp->ktimstamp = 0;                        /* mark the out spec not new */
+    outspecp->ktimstamp = 0;                     /* mark the out spec not new */
     return OK;
 }
 
@@ -1076,7 +1082,8 @@ int sphstset(ENVIRON *csound, SPECHIST *p)
     lclp = (MYFLT *) p->accumer.auxch.auxp;
     outp = (MYFLT *) p->wacout->auxch.auxp;
     if (lclp==NULL || outp==NULL) { /* RWD fix */
-      return csound->InitError(csound, Str("spechist: local buffers not intiialised"));
+      return csound->InitError(csound,
+                               Str("spechist: local buffers not intiialised"));
     }
     do {
       *lclp++ = FL(0.0);                    /* clr local & out spec bufs */
@@ -1123,12 +1130,15 @@ int spfilset(ENVIRON *csound, SPECFILT *p)
     if ((npts = inspecp->npts) != outspecp->npts) {  /* if inspec not matched */
       SPECset(csound,
               outspecp, (long)npts);                 /*   reinit the out spec */
-      csound->AuxAlloc(csound, (long)npts*2* sizeof(MYFLT), &p->auxch);/*   & local auxspace  */
+      csound->AuxAlloc(csound,
+                       (long)npts*2* sizeof(MYFLT),
+                       &p->auxch);                   /*   & local auxspace  */
       p->coefs = (MYFLT *) p->auxch.auxp;            /*   reassign filt tbls  */
       p->states = p->coefs + npts;
     }
     if (p->coefs==NULL || p->states==NULL) { /* RWD fix */
-      return csound->InitError(csound, Str("specfilt: local buffers not initialised"));
+      return csound->InitError(csound,
+                               Str("specfilt: local buffers not initialised"));
     }
     outspecp->ktimprd = inspecp->ktimprd;          /* pass other spect info */
     outspecp->nfreqs = inspecp->nfreqs;
@@ -1201,24 +1211,29 @@ int specfilt(ENVIRON *csound, SPECFILT *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "spectrum", S(SPECTRUM),7, "w", "siiiqoooo",(SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
+{ "spectrum", S(SPECTRUM),7, "w", "siiiqoooo",
+                                   (SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
 { "specaddm", S(SPECADDM),5, "w",  "wwp",  (SUBR)spadmset,NULL,  (SUBR)specaddm},
 { "specdiff", S(SPECDIFF),5, "w",  "w",    (SUBR)spdifset,NULL,  (SUBR)specdiff},
 { "specscal", S(SPECSCAL),5, "w",  "wii",  (SUBR)spsclset,NULL,  (SUBR)specscal},
 { "spechist", S(SPECHIST),5, "w",  "w",    (SUBR)sphstset,NULL,  (SUBR)spechist},
 { "specfilt", S(SPECFILT),5, "w",  "wi",   (SUBR)spfilset,NULL,  (SUBR)specfilt},
-{ "specptrk", S(SPECPTRK),5, "kk", "wkiiiiiioqooo",(SUBR)sptrkset,NULL,(SUBR)specptrk},
+{ "specptrk", S(SPECPTRK),5, "kk", "wkiiiiiioqooo",
+                                             (SUBR)sptrkset,NULL,(SUBR)specptrk},
 { "specsum",  S(SPECSUM), 5, "k",  "wo",   (SUBR)spsumset,NULL,  (SUBR)specsum },
 { "specdisp", S(SPECDISP),5, "",   "wio",  (SUBR)spdspset,NULL,  (SUBR)specdisp},
-{ "pitch", S(PITCH),     5,    "kk", "aiiiiqooooojo", (SUBR)pitchset, NULL, (SUBR)pitch },
+{ "pitch", S(PITCH),     5,    "kk", "aiiiiqooooojo",
+                                             (SUBR)pitchset, NULL, (SUBR)pitch },
 { "maca", S(SUM),        5,  "a", "y",    (SUBR)macset,      NULL, (SUBR)maca    },
 { "mac", S(SUM),         5,  "a", "Z",    (SUBR)macset,      NULL, (SUBR)mac     },
 { "clockon", S(CLOCK),   3,  "",  "i",    (SUBR)clockset, (SUBR)clockon, NULL    },
 { "clockoff", S(CLOCK),  3,  "",  "i",    (SUBR)clockset, (SUBR)clockoff, NULL   },
 { "readclock", S(CLKRD), 1,  "i", "i",    (SUBR)clockread, NULL, NULL            },
-{ "pitchamdf",S(PITCHAMDF),5,"kk","aiioppoo", (SUBR)pitchamdfset, NULL, (SUBR)pitchamdf },
+{ "pitchamdf",S(PITCHAMDF),5,"kk","aiioppoo",
+                                       (SUBR)pitchamdfset, NULL, (SUBR)pitchamdf },
 { "hsboscil",S(HSBOSC),  5,  "a", "kkkiiioo",(SUBR)hsboscset,NULL,(SUBR)hsboscil },
-{ "phasorbnk", S(PHSORBNK),7,"s", "xkio", (SUBR)phsbnkset, (SUBR)kphsorbnk, (SUBR)phsorbnk },
+{ "phasorbnk", S(PHSORBNK),7,"s", "xkio",
+                                (SUBR)phsbnkset, (SUBR)kphsorbnk, (SUBR)phsorbnk },
 { "adsynt",S(HSBOSC),    5,  "a", "kkiiiio", (SUBR)adsyntset, NULL, (SUBR)adsynt },
 { "mpulse", S(IMPULSE),  5,  "a", "kko",  (SUBR)impulse_set, NULL, (SUBR)impulse },
 { "sense", S(KSENSE),    3,  "k", "",      (SUBR)isense, (SUBR)ksense, NULL      },

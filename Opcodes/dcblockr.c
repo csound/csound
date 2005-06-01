@@ -47,18 +47,18 @@ int dcblockrset(ENVIRON *csound, DCBlocker* p)
 int dcblockr(ENVIRON *csound, DCBlocker* p)
 {
     MYFLT       *ar = p->ar;
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       gain = p->gain;
     MYFLT       outputs = p->outputs;
     MYFLT       inputs = p->inputs;
     MYFLT       *samp = p->in;
 
-    do {
-      MYFLT sample = *samp++;
+    for (n=0; n<nsmps; n++) {
+      MYFLT sample = samp[n];
       outputs = sample - inputs + (gain * outputs);
       inputs = sample;
-      *ar++ = outputs;
-    } while (--nsmps);
+      ar[n] = outputs;
+    }
     p->outputs = outputs;
     p->inputs = inputs;
     return OK;

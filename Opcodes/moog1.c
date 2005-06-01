@@ -236,7 +236,7 @@ int Moog1(ENVIRON *csound, MOOG1 *p)
 #endif
       temp_time = p->attk.time;
       if (p->attk.time >= (MYFLT)p->attk.wave->flen)
-        output = FL(0.0);                                        /* One shot */
+        output = FL(0.0);                                    /* One shot */
       else {
         itemp = (long) temp_time;    /*  Integer part of time address    */
                                      /*  fractional part of time address */

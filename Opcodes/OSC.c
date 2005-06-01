@@ -126,12 +126,6 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
           else
             return csound->PerfError(csound, Str("Not a string when needed"));
           break;
-/*         case 'y':               /\* Symbol *\/ */
-/*           if (p->XSTRCODE&msk) */
-/*             lo_message_add_symbol(msg, (char*)arg[i]); */
-/*           else */
-/*             return csound->PerfError(csound, Str("Not a string when needed")); */
-/*           break; */
         case 'b':               /* Boolean */
           if (p->XSTRCODE&msk)
             return csound->PerfError(csound, Str("String not expected"));

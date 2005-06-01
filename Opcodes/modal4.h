@@ -61,10 +61,12 @@ typedef struct Modal4 {
 
 void Modal4_clear(Modal4 *);
 void Modal4_setFreq(ENVIRON*, Modal4 *m, MYFLT frequency);
-void Modal4_setRatioAndReson(ENVIRON*,Modal4 *m, int whichOne, MYFLT ratio, MYFLT reson);
+void Modal4_setRatioAndReson(ENVIRON*,Modal4 *m, int whichOne,
+                             MYFLT ratio, MYFLT reson);
 #define Modal4_setMasterGain(m,Gain)    (m->masterGain = aGain)
 #define Modal4_setDirectGain(m,aGain)   (m->directGain = aGain)
-#define Modal4_setFiltGain(m,whichOne,gain) (BiQuad_setGain(m->filters[whichOne], gain))
+#define Modal4_setFiltGain(m,whichOne,gain) \
+                    (BiQuad_setGain(m->filters[whichOne], gain))
 static void Modal4_strike(ENVIRON *, Modal4 *m, MYFLT amplitude);
 static void Modal4_damp(ENVIRON *, Modal4 *m, MYFLT amplitude);
 static MYFLT Modal4_tick(Modal4 *);
