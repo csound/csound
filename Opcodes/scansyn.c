@@ -538,7 +538,7 @@ int scsns_play(ENVIRON *csound, PSCSNS *p)
         p->a_out[i] = *p->k_amp *
           (y2 + x*(-y1/FL(3.0) - y2*FL(0.5) + y3 +
                    x*(y1*FL(0.5) - y2 + y3*FL(0.5) +
-                      x*(-y1/FL(6.0) + y2*FL(0.5) - y3*FL(0.5) + 
+                      x*(-y1/FL(6.0) + y2*FL(0.5) - y3*FL(0.5) +
                          y4/FL(6.0))) - y4/FL(6.0)));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;

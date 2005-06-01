@@ -503,9 +503,9 @@ int agogobel(ENVIRON *csound, VIBRAPHN *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "marimba", S(MARIMBA), 5, "a", "kkiiikkiijj", 
+{ "marimba", S(MARIMBA), 5, "a", "kkiiikkiijj",
                                  (SUBR)marimbaset, NULL, (SUBR)marimba},
-{ "vibes", S(VIBRAPHN),  5, "a", "kkiiikkii", 
+{ "vibes", S(VIBRAPHN),  5, "a", "kkiiikkii",
                                  (SUBR)vibraphnset,NULL,(SUBR)vibraphn},
 { "gogobel",S(VIBRAPHN), 5, "a", "kkiiikki",
                                  (SUBR)agogobelset,NULL, (SUBR)agogobel},

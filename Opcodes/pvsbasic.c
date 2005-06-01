@@ -44,8 +44,6 @@ int pvsinit(ENVIRON *csound, PVSINI *p)
     return OK;
 }
 
-
-
 int pvsmixset(ENVIRON *csound, PVSMIX *p)
 {
     long N = p->fa->N;
