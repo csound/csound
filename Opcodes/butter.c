@@ -188,7 +188,7 @@ int bcbut(ENVIRON *csound, BBFIL *p)    /*      Band reject filter      */
 #define IS_DENORMAL(f) (0)
 #endif
 
-static void butter_filter(long n, MYFLT *in, MYFLT *out, MYFLT *a) 
+static void butter_filter(long n, MYFLT *in, MYFLT *out, MYFLT *a)
                                                  /*      Filter loop */
 {
     MYFLT t, y;

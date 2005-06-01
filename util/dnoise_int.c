@@ -322,7 +322,7 @@ void do_mac_dialogs(void)
     static int  prevFormat =    POPUP_16;        /*set to default*/
     ModalFilterUPP filterupp = NewModalFilterProc(myFilter);
 
-    typeList[0] = 'TEXT';/* -for some reason causing crash...'TEXT'; 
+    typeList[0] = 'TEXT';/* -for some reason causing crash...'TEXT';
                             -sdb changed nil to 'TEXT' */
 
     gFileDlg = GetNewDialog(OPEN_DLG_ID, NULL, (WindowPtr)-1);

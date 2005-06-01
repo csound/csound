@@ -111,7 +111,6 @@ typedef struct _pvsini {
         MYFLT   *framesize;
 } PVSINI;
 
-
 typedef struct _pvsmix {
         OPDS    h;
         PVSDAT  *fout;

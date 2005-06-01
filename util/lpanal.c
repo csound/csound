@@ -345,7 +345,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     dbfs_init(csound, DFLT_DBFS);
 
    /* Allocates for analysis result buffer */
-    
+
     lpbuf = csound->Calloc(csound, LPBUFSIZ);
 
    /* Header is defined at buffer startup */
@@ -432,7 +432,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
         }
       else break;
     } while (--argc);
-    
+
     /* Do some checks on arguments we got */
 
     if (argc != 2)  lpdieu(csound,Str("incorrect number of filenames"));
@@ -447,7 +447,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
       if (O.msglevel & WARNMSG)
         printf(Str("WARNING: hopsize may be too small, "
                    "recommend at least poleCount * 5\n"));
-    
+
     if ((WINDIN = slice * 2) > MAXWINDIN)
       quit(Str("input framesize (inter-frame-offset*2) exceeds maximum allowed"));
     if ((input_dur < 0) || (beg_time < 0))
@@ -470,12 +470,12 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     }
     if ((input_dur < 0) || (beg_time < 0))
       quit(Str("input and begin times cannot be less than zero"));
-    
+
     if (storePoles)
       csound->Message(csound,Str("Using pole storage method\n"));
     else
       csound->Message(csound,Str("Using filter coefficient storage method\n"));
-    
+
     /* Get information on input sound */
     if (
         (infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
@@ -495,7 +495,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
       lph->lpmagic = LP_MAGIC2;
     else
       lph->lpmagic = LP_MAGIC;
-    
+
     lph->npoles = poleCount;
     lph->nvals = poleCount*(storePoles?2:1) + NDATA;
     lph->srate = (MYFLT)p->sr;
@@ -505,20 +505,20 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     lph->headersize = (hsize + 3) & -4;     /* rounded up to 4 byte bndry */
     if (lph->headersize > LPBUFSIZ)    /* UNNECESSARY ?? */
       lph->headersize = LPBUFSIZ;
-    
+
     /* Write header to disk */
     if ((nb = write(ofd,(char *)lph,(int)lph->headersize)) <
         lph->headersize)
       quit(Str("cannot write header"));
-    
+
     /* get buffer size for one analysis frame:
        filtercoef or poles + freq/rms/... */
     osiz = (poleCount*(storePoles?2:1) + NDATA) * sizeof(MYFLT);
-    
+
     /* Allocate signal buffer for sound frame */
     sigbuf = (MYFLT *) mmalloc(csound, (long)WINDIN * sizeof(MYFLT));
     sigbuf2 = sigbuf + slice;
-    
+
     /* Try to read first frame in buffer */
     if ((n = csound->getsndin(csound, infd, sigbuf, WINDIN, p)) < WINDIN)
       quit(Str("soundfile read error, could not fill first frame"));
@@ -536,7 +536,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     csound->dispset(csound, &pwindow, coef + 4, poleCount,
                     "pitch: 0000.00   ", 0, "LPC/POLES");
     /* Space for a array */
-    a = (double (*)[MAXPOLES]) malloc(MAXPOLES * MAXPOLES * sizeof(double)); 
+    a = (double (*)[MAXPOLES]) malloc(MAXPOLES * MAXPOLES * sizeof(double));
     x = (double *) malloc(WINDIN * sizeof(double));  /* alloc a double array */
 #ifdef TRACE
     trace = fopen("lpanal.trace", "w");
@@ -569,9 +569,9 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
       /*                *fp1++ = - (MYFLT) *--dfp; */  /* rev coefs & chng sgn */
       sprintf(pwindow.caption, "pitch: %8.2f", coef[3]);
       display(csound, &pwindow);
-      
+
       /* Prepare buffer for output */
-      
+
       if (storePoles) {
         /* Treat (swap) filter coefs for resolution */
         filterCoef[poleCount] = 1.0;
@@ -581,12 +581,12 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
           filterCoef[i] = filterCoef[j];
           filterCoef[j] = z1;
         }
-        
+
         /* Get the Filter Poles */
-        
+
         polyzero(100,poleCount,filterCoef,polePart1,polePart2,
                  &poleFound,2000,&indic,workArray1);
-        
+
         if (poleFound!=poleCount) {
           csound->Message(csound,Str("Found only %d poles...sorry\n"), poleFound);
 #if !defined(mills_macintosh)
@@ -596,7 +596,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
 #endif
         }
         InvertPoles(poleCount,polePart1,polePart2);
-        
+
 #ifdef TRACE_POLES
         DumpPoles(poleCount,polePart1,polePart2,0,"Extracted Poles");
 #endif
@@ -604,9 +604,9 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
 #ifdef _DEBUG
         /* Resynthetize the filter for check */
         InvertPoles(poleCount,polePart1,polePart2);
-        
+
         synthetize(poleCount,polePart1,polePart2,polyReal,polyImag);
-        
+
         for (i=0; i<poleCount; i++) {
 #ifdef TRACE_FILTER
           printf("filterCoef: %f\n", filterCoef[i]);
@@ -619,7 +619,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
         InvertPoles(poleCount,polePart1,polePart2);
 #endif
         /* Switch to pole magnitude and phase */
-        
+
         for (i=0; i<poleCount;i++) {
           /* Store magnitude and phase (PI,-PI) */
           pr = polePart1[i];
@@ -635,7 +635,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
           polePart1[i] = pm;
           polePart2[i] = pp;
         }
-        
+
         /*    DumpPoles(poleCount,polePart1,polePart2,1,"About to store"); */
 
         /* Store in output buffer */
@@ -652,23 +652,23 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
         for (n=0;n<poleCount; n++)
           *fp1++ = - (MYFLT) *--dfp;
       }
-      
+
       /* Write frame to disk */
       if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
         quit(Str("write error"));
       memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
-      
+
       /* Some unused stuff. I think from when all snd was in mem */
       /*  ( MYFLT *fp2; for (fp1=sigbuf, fp2=sigbuf2, n=slice; n--; ) */
       /* move slice forward */
       /*              *fp1++ = *fp2++;} */
-      
+
       /* Get next sound frame */
       if ((n = csound->getsndin(csound, infd, sigbuf2, slice, p)) == 0)
         break;          /* refill til EOF */
       if (!csoundYield(csound)) break;
     } while (counter < analframes); /* or nsmps done */
-    
+
     /* clean up stuff */
     dispexit(csound);
     printf(Str("%d lpc frames written to %s\n"), counter, outfilnam);
