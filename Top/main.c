@@ -332,7 +332,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         playscore = sortedscore = mytmpnam(csound, nme);
         add_tmpfile(csound, playscore);         /* IV - Feb 03 2005 */
       }
-      if (!(scorin = fopen(csound->scorename, "r")))    /* else sort it   */
+      if (!(scorin = fopen(csound->scorename, "rb")))   /* else sort it   */
         csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       if (!(scorout = fopen(sortedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), sortedscore);
