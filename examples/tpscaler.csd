@@ -1,23 +1,22 @@
 <CsoundSynthesizer>
 <CsOptions>
--odac -iadc -d 
+-odac -iadc -d
 </CsOptions>
 
 <CsInstruments>
 /*************************************/
 /* Independent time & pitch scaler   */
-/* using syncgrain		     */
-/* Victor Lazzarini, 2005	     */
+/* using syncgrain                   */
+/* Victor Lazzarini, 2005            */
 /*************************************/
 sr = 44100
 kr = 441
 ksmps = 100
 nchnls = 1
 
-
 FLcolor  200,10,40, 140,60,60
 
-	FLpanel	"TPScaler",220,435,200,200
+        FLpanel "TPScaler",220,435,200,200
 FLcolor  140,10,40, 140,60,60
 iv1 FLvalue  "time ratio",  80, 20, 20, 240
 iv2 FLvalue  "pitch ratio", 80, 20, 110, 240
@@ -34,8 +33,8 @@ FLsetVal_i 0.04, ih3
 FLsetVal_i 2, ih4
 FLsetVal_i 0.7, ih5
 
-	FLpanelEnd
-	FLrun
+        FLpanelEnd
+        FLrun
 
 instr 1
 
@@ -49,7 +48,7 @@ kps = 1/kol          /* pointer rate scaling */
 
 ain    in
 awp  phasor sr/ftlen(1)
-awin tablei awp, 2, 1 
+awin tablei awp, 2, 1
      tablew ain*awin, awp, 1, 1
 asig syncgrain  gk5, kfr, gk2, kgr, kps*gk1,1, 3, iomax
 
@@ -63,7 +62,7 @@ endin
 f2 0 131072 7 0 36 1 131000 1 36 0
 f3 0  16384 9 0.5 1 0
 f1 0 131072 7 0 131072 0
-i1 0 3600  
+i1 0 3600
 
 </CsScore>
 

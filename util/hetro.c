@@ -326,7 +326,7 @@ GETVAL(double *inb, long smpl)    /* get value at position smpl in array inb */
 }
 
 static void
-PUTVAL(double *outb, long smpl, double value) 
+PUTVAL(double *outb, long smpl, double value)
   /* put value in array outb at postn smpl */
 {
     *(outb + ((smpl + midbuf) & bufmask)) = value;

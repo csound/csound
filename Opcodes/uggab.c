@@ -634,7 +634,7 @@ int fold(ENVIRON *csound, FOLD *p)
     return OK;
 }
 
-/* by Gab Maldonado. Under GNU license with a special exception for 
+/* by Gab Maldonado. Under GNU license with a special exception for
    Canonical Csound addition */
 
 int loopseg_set(ENVIRON *csound, LOOPSEG *p)
@@ -805,7 +805,7 @@ int lpsholdp(ENVIRON *csound, LOOPSEGP *p)
     return OK;
 }
 
-/* by Gab Maldonado. Under GNU license with a special exception 
+/* by Gab Maldonado. Under GNU license with a special exception
    for Canonical Csound addition */
 
 int lineto_set(ENVIRON *csound, LINETO *p)
@@ -1506,7 +1506,7 @@ static OENTRY localops[] = {
 { "vibr",     S(VIBRATO), 3, "k", "kki",  (SUBR)vibr_set, (SUBR)vibr, NULL    },
 { "jitter2",  S(JITTER2), 3, "k", "kkkkkkk", (SUBR)jitter2_set, (SUBR)jitter2    },
 { "jitter",   S(JITTER),  3, "k", "kkk",  (SUBR)jitter_set, (SUBR)jitter, NULL },
-{ "jspline",  S(JITTERS), 7, "s", "xkk",  
+{ "jspline",  S(JITTERS), 7, "s", "xkk",
                                 (SUBR)jitters_set, (SUBR)jitters, (SUBR)jittersa },
 { "loopseg",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL },
 { "lpshold",  S(LOOPSEG), 3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)lpshold, NULL },
@@ -1518,7 +1518,7 @@ static OENTRY localops[] = {
 { "cuserrnd.i", S(CURAND),1,"i",  "iii",  (SUBR)iContinuousUserRand, NULL, NULL },
 { "cuserrnd.k", S(CURAND),2,"k",  "kkk",
                             (SUBR)Cuserrnd_set, (SUBR)kContinuousUserRand, NULL },
-{ "cuserrnd.a",S(CURAND),4, "a", "kkk", 
+{ "cuserrnd.a",S(CURAND),4, "a", "kkk",
                             (SUBR)Cuserrnd_set, NULL, (SUBR)aContinuousUserRand },
 { "random.i", S(RANGERAND), 1, "i", "ii",    (SUBR)ikRangeRand, NULL, NULL      },
 { "random.k", S(RANGERAND), 2, "k", "kk",    NULL, (SUBR)ikRangeRand, NULL      },
@@ -1531,7 +1531,7 @@ static OENTRY localops[] = {
                                  (SUBR)randomh_set,(SUBR)krandomh,(SUBR)randomh },
 { "urd.i",  S(DURAND),  1, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL  },
 { "urd.k",  S(DURAND),  2, "k", "k", (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand },
-{ "urd.a",  S(DURAND),  4, "a", "k", 
+{ "urd.a",  S(DURAND),  4, "a", "k",
                               (SUBR)Cuserrnd_set, NULL, (SUBR)aDiscreteUserRand },
 { "duserrnd.i", S(DURAND),1, "i", "i",  (SUBR)iDiscreteUserRand, NULL, NULL  },
 { "duserrnd.k", S(DURAND),2, "k", "k",

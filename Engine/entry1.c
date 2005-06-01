@@ -768,7 +768,7 @@ OENTRY opcodlst_1[] = {
 { "fouti", S(IOUTFILE), 1, "",     "iiim", (SUBR)ioutfile_set                  },
 { "foutir", S(IOUTFILE_R), 3, "",  "iiim", (SUBR)ioutfile_set_r,(SUBR)ioutfile_r },
 { "fiopen", S(FIOPEN),  1, "i",    "Si",   (SUBR)fiopen                        },
-{ "fin", S(INFILE),     5, "",     "Tiiy", 
+{ "fin", S(INFILE),     5, "",     "Tiiy",
                                         (SUBR)infile_set,NULL,(SUBR)infile_act },
 { "fink", S(KINFILE),   3, "",     "Tiiz", (SUBR)kinfile_set, (SUBR)kinfile    },
 { "fini", S(I_INFILE),  1,  "",     "Tiim", (SUBR)i_infile                     },
