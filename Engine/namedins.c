@@ -58,12 +58,27 @@ const unsigned char strhash_tabl_8[256] = {
         207, 240, 127,  70
 };
 
-#define name_hash(x,y) (strhash_tabl_8[(unsigned char) x ^ (unsigned char) y])
+static inline unsigned char name_hash(const char *s)
+{
+    unsigned char *c = (unsigned char*) &(s[0]);
+    unsigned char h = (unsigned char) 0;
+    for ( ; *c != (unsigned char) 0; c++)
+      h = strhash_tabl_8[*c ^ h];
+    return h;
+}
+
+static inline int sCmp(const char *x, const char *y)
+{
+    int tmp = 0;
+    while (x[tmp] == y[tmp] && x[tmp] != (char) 0)
+      tmp++;
+    return (x[tmp] != y[tmp]);
+}
 
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
 
-int check_instr_name (char *s)
+int check_instr_name(char *s)
 {
     char    *c = s;
 
@@ -77,19 +92,17 @@ int check_instr_name (char *s)
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-long named_instr_find (ENVIRON *csound, char *s)
+long named_instr_find(ENVIRON *csound, char *s)
 {
-    INSTRNAME   *inm;
-    unsigned char h = 0, *c = (unsigned char*) s - 1;
+    INSTRNAME     *inm;
+    unsigned char h = name_hash(s);     /* calculate hash value */
 
     if (!csound->instrumentNames) return 0L;  /* no named instruments defined */
-    /* calculate hash value */
-    while (*++c) h = name_hash(h, *c);
     /* now find instrument */
     if (!(inm = ((INSTRNAME**) csound->instrumentNames)[h])) return 0L;
     if (!inm->prv) return (long) inm->instno;
     /* multiple entries for hash value, need to search */
-    while (inm && strcmp(inm->name, s)) inm = inm->prv;
+    while (inm && sCmp(inm->name, s)) inm = inm->prv;
     if (!inm)
       return 0L;        /* not found */
     else
@@ -102,20 +115,18 @@ long named_instr_find (ENVIRON *csound, char *s)
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc (ENVIRON *csound, char *s, INSTRTXT *ip, long insno)
+int named_instr_alloc(ENVIRON *csound, char *s, INSTRTXT *ip, long insno)
 {
     INSTRNAME   **inm_base = (INSTRNAME**) csound->instrumentNames, *inm, *inm2;
-    unsigned char h = 0, *c = (unsigned char*) s - 1;
+    unsigned char h = name_hash(s);     /* calculate hash value */
 
     if (!inm_base)
       /* no named instruments defined yet */
       inm_base = csound->instrumentNames =
                  (void*) mcalloc(csound, sizeof(INSTRNAME*) * 258);
-    /* calculate hash value */
-    while (*++c) h = name_hash(h, *c);
     /* now check if instrument is already defined */
     if ((inm = inm_base[h])) {
-      while (inm && strcmp(inm->name, s)) inm = inm->prv;
+      while (inm && sCmp(inm->name, s)) inm = inm->prv;
       if (inm) return 0;        /* error: instr exists */
     }
     /* allocate entry, */
@@ -144,7 +155,7 @@ int named_instr_alloc (ENVIRON *csound, char *s, INSTRTXT *ip, long insno)
 /* assign instrument numbers to all named instruments */
 /* called by otran */
 
-void named_instr_assign_numbers (ENVIRON *csound)
+void named_instr_assign_numbers(ENVIRON *csound)
 {
     INSTRNAME   *inm, *inm2, **inm_first, **inm_last;
     int     num = 0, insno_priority = 0;
@@ -194,7 +205,7 @@ void named_instr_assign_numbers (ENVIRON *csound)
 /* free memory used by named instruments */
 /* called by tranRESET() */
 
-void named_instr_free (ENVIRON *csound)
+void named_instr_free(ENVIRON *csound)
 {
     INSTRNAME   *inm;
     int     i;
@@ -214,7 +225,7 @@ void named_instr_free (ENVIRON *csound)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno (ENVIRON *csound, void *p, int is_string)
+long strarg2insno(ENVIRON *csound, void *p, int is_string)
 {
     long    insno;
 
@@ -238,7 +249,7 @@ long strarg2insno (ENVIRON *csound, void *p, int is_string)
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-long strarg2insno_p (ENVIRON *csound, char *s)
+long strarg2insno_p(ENVIRON *csound, char *s)
 {
     long    insno;
 
@@ -255,7 +266,7 @@ long strarg2insno_p (ENVIRON *csound, char *s)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno (ENVIRON *csound, void *p, int is_string, int force_opcode)
+long strarg2opcno(ENVIRON *csound, void *p, int is_string, int force_opcode)
 {
     long    insno = 0;
 
@@ -274,7 +285,7 @@ long strarg2opcno (ENVIRON *csound, void *p, int is_string, int force_opcode)
     }
     if (!insno && is_string) {              /* if no instrument was found, */
       OPCODINFO *inm = csound->opcodeInfo;  /* search for user opcode */
-      while (inm && strcmp(inm->name, (char*) p)) inm = inm->prv;
+      while (inm && sCmp(inm->name, (char*) p)) inm = inm->prv;
       if (inm) insno = (long) inm->instno;
     }
     if (insno < 1) {
@@ -367,7 +378,7 @@ char *strarg2name(ENVIRON *csound, char *s, void *p, const char *baseName,
 
 /* create new opcode list from opcodlst[] */
 
-void opcode_list_create (ENVIRON *csound)
+void opcode_list_create(ENVIRON *csound)
 {
     int     n = csound->oplstend - csound->opcodlst;
 
@@ -384,19 +395,16 @@ void opcode_list_create (ENVIRON *csound)
 
 /* add new entry to opcode list, with optional check for redefined opcodes */
 
-void opcode_list_add_entry (ENVIRON *csound, int opnum, int check_redefine)
+void opcode_list_add_entry(ENVIRON *csound, int opnum, int check_redefine)
 {
-    unsigned char   h = 0;
-    unsigned char   *c = (unsigned char*) csound->opcodlst[opnum].opname - 1;
-
     /* calculate hash value for opcode name */
-    while (*++c) h = name_hash(h, *c);
+    unsigned char h = name_hash(csound->opcodlst[opnum].opname);
     /* link entry into chain */
     if (check_redefine) {
       int   *n = (int*) csound->opcode_list + h;
       /* check if an opcode with the same name is already defined */
-      while (*n && strcmp(csound->opcodlst[*n].opname,
-                          csound->opcodlst[opnum].opname)) {
+      while (*n && sCmp(csound->opcodlst[*n].opname,
+                        csound->opcodlst[opnum].opname)) {
         n = &(csound->opcodlst[*n].prvnum);
       }
       if (!*n) goto newopc;
@@ -420,7 +428,7 @@ newopc:
 
 extern int useropcdset(void*, void*);
 
-void opcode_list_free (ENVIRON *csound)
+void opcode_list_free(ENVIRON *csound)
 {
     OENTRY  *ep = csound->oplstend;
 
@@ -443,14 +451,12 @@ void opcode_list_free (ENVIRON *csound)
 
 int find_opcode(ENVIRON *csound, char *opname)
 {
-    unsigned char   h = 0, *c = (unsigned char*) opname - 1;
-    int     n;
+    int           n;
+    unsigned char h = name_hash(opname);    /* calculate hash value */
 
-    /* calculate hash value for opcode name */
-    while (*++c) h = name_hash(h, *c);
     /* now find entry in opcode chain */
     n = ((int*) csound->opcode_list)[h];
-    while (n && strcmp(csound->opcodlst[n].opname, opname))
+    while (n && sCmp(csound->opcodlst[n].opname, opname))
       n = csound->opcodlst[n].prvnum;
 
     return n;
@@ -491,16 +497,14 @@ void strsav_create(ENVIRON *csound)
 
 char *strsav_string(ENVIRON *csound, char *s)
 {
-    unsigned char   h = 0, *c = (unsigned char*) s - 1;
-    STRSAV  *ssp;
-    int     n;
+    STRSAV        *ssp;
+    int           n;
+    unsigned char h = name_hash(s);     /* calculate hash value */
 
-    /* calculate hash value for the specified string */
-    while (*++c) h = name_hash(h, *c);
     /* now find entry in database */
     ssp = STRSAV_STR_[h];
     while (ssp) {
-      if (!strcmp(ssp->s, s)) return (ssp->s);  /* already defined */
+      if (!sCmp(ssp->s, s)) return (ssp->s);    /* already defined */
       ssp = ssp->nxt;
     }
     /* not found, so need to allocate a new entry */
@@ -841,14 +845,6 @@ typedef struct GlobalVariableEntry_s {
     void *dummy;
 } GlobalVariableEntry_t;
 
-static inline int sCmp(const char *x, const char *y)
-{
-    int tmp = 0;
-    while (x[tmp] == y[tmp] && x[tmp] != (char) 0)
-      tmp++;
-    return (x[tmp] != y[tmp]);
-}
-
 /**
  * Allocate nbytes bytes of memory that can be accessed later by calling
  * csoundQueryGlobalVariable() with the specified name; the space is
@@ -863,7 +859,7 @@ PUBLIC int csoundCreateGlobalVariable(void *csound, const char *name,
     ENVIRON               *csnd = (ENVIRON*) csound;
     GlobalVariableEntry_t *p, **pp;
     int                   i, structBytes, nameBytes, allocBytes;
-    unsigned char         *c, h;
+    unsigned char         h;
     /* create new empty database if it does not exist yet */
     if (csnd->namedGlobals == NULL) {
       csnd->namedGlobals = (void**) malloc(sizeof(void*) * 256);
@@ -880,9 +876,7 @@ PUBLIC int csoundCreateGlobalVariable(void *csound, const char *name,
     if (nbytes < (size_t) 1 || nbytes >= (size_t) 0x7F000000L)
       return CSOUND_ERROR;
     /* calculate hash value */
-    c = (unsigned char*) name - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash(name);
     /* number of bytes to allocate */
     structBytes = ((int) sizeof(GlobalVariableEntry_t) + 15) & (~15);
     nameBytes = (((int) strlen(name) + 1) + 15) & (~15);
@@ -929,7 +923,7 @@ PUBLIC void *csoundQueryGlobalVariable(void *csound, const char *name)
 {
     ENVIRON               *csnd = (ENVIRON*) csound;
     GlobalVariableEntry_t *p;
-    unsigned char         *c, h;
+    unsigned char         h;
     /* check if there is an actual database to search */
     if (csnd->namedGlobals == NULL)
       return NULL;
@@ -939,9 +933,7 @@ PUBLIC void *csoundQueryGlobalVariable(void *csound, const char *name)
     if (name[0] == '\0')
       return NULL;
     /* calculate hash value */
-    c = (unsigned char*) name - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash(name);
     /* search tree */
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
     if (p == NULL)
@@ -964,12 +956,10 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(void *csound, const char *name)
 {
     ENVIRON               *csnd = (ENVIRON*) csound;
     GlobalVariableEntry_t *p;
-    unsigned char         *c, h;
+    unsigned char         h;
 
     /* calculate hash value */
-    c = (unsigned char*) name - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash(name);
     /* search tree */
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
     while (p->nxt != NULL && sCmp(name, (char*) (p->name)) != 0)
@@ -986,15 +976,13 @@ PUBLIC int csoundDestroyGlobalVariable(void *csound, const char *name)
 {
     ENVIRON               *csnd = (ENVIRON*) csound;
     GlobalVariableEntry_t *p, *prvp;
-    unsigned char         *c, h;
+    unsigned char         h;
 
     /* check for a valid name */
     if (csoundQueryGlobalVariable(csound, name) == (void*) NULL)
       return CSOUND_ERROR;
     /* calculate hash value */
-    c = (unsigned char*) name - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash(name);
     /* search database (simple version, as the name will surely be found) */
     prvp = NULL;
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
