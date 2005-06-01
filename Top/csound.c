@@ -1406,7 +1406,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
       memset(&(((OENTRY*) csound->opcodlst)[oldCnt]), 0, sizeof(OENTRY) * 0x80);
     }
     memcpy(&(((OENTRY*) csound->opcodlst)[oldCnt]), ep, sizeof(OENTRY));
-    ((OENTRY*) csound->oplstend)++;
+    csound->oplstend = (OENTRY*) csound->oplstend + (int) 1;
     return 0;
   }
 
@@ -1451,6 +1451,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
   {
     OENTRY  *ep = (OENTRY*) opcodeList;
     int     retval = 0;
+
     if (opcodeList == NULL)
       return -1;
     if (n <= 0)

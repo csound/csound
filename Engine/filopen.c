@@ -299,6 +299,8 @@ PUBLIC int csoundFileClose(void *csound, void *fd)
       ((ENVIRON*) csound)->open_files = (void*) p->nxt;
     else
       p->prv->nxt = p->nxt;
+    if (p->nxt != NULL)
+      p->nxt->prv = p->prv;
     /* free allocated memory */
     free(fd);
     /* return with error value */
