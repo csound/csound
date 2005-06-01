@@ -84,7 +84,8 @@ int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p)
 
     if (!(p->fout->format==PVS_AMP_FREQ) ||
         (p->fout->format==PVS_AMP_PHASE))
-      csound->Die(csound, "pvsdemix: signal format must be amp-phase or amp-freq.\n");
+      csound->Die(csound,
+                  "pvsdemix: signal format must be amp-phase or amp-freq.\n");
 
     return OK;
 }

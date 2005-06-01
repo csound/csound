@@ -76,8 +76,8 @@ int space(ENVIRON *csound, SPACE *p)
     MYFLT       v1, v2, fract, ndx;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
-     if ((ftp = p->ftp) == NULL) {
-       return csound->PerfError(csound, Str("space: not initialised"));
+      if ((ftp = p->ftp) == NULL) {
+        return csound->PerfError(csound, Str("space: not initialised"));
       }
 
       ndx = *p->time * RESOLUTION; /* when data is res. frames/second */

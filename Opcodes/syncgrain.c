@@ -74,7 +74,8 @@ int syncgrain_process(ENVIRON *csound, syncgrain *p)
     MYFLT *ftable = p->efunc->ftable;
     int *streamon = (int *)p->streamon.auxp;
     float start = p->start, frac = p->frac;
-    float *index = (float *) p->index.auxp, *envindex = (float *) p->envindex.auxp;
+    float *index = (float *) p->index.auxp;
+    float *envindex = (float *) p->envindex.auxp;
     int vecpos, vecsize=csound->ksmps, firststream = p->firststream;
     int numstreams = p->numstreams, olaps = p->olaps;
     int count = p->count, i,j, newstream;
@@ -163,7 +164,8 @@ int syncgrain_process(ENVIRON *csound, syncgrain *p)
 }
 
 static OENTRY localops[] = {
-{"syncgrain", sizeof(syncgrain), 5, "a", "kkkkkiii",(SUBR)syncgrain_init, NULL,(SUBR)syncgrain_process }
+{"syncgrain", sizeof(syncgrain), 5, "a", "kkkkkiii",
+                            (SUBR)syncgrain_init, NULL,(SUBR)syncgrain_process }
 };
 
 LINKAGE

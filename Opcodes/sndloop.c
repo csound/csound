@@ -95,16 +95,17 @@ kgain - signal gain
 
 typedef struct _sndloop {
     OPDS h;
-    MYFLT *out, *recon;  /* output, record on */
-    MYFLT *sig, *pitch, *on, *dur, *cfd;  /* in, pitch, sound on, duration, crossfade  */
-    AUXCH buffer; /* loop memory */
-    long  wp;     /* writer pointer */
-    MYFLT rp;     /* read pointer  */
-    long  cfds;   /* crossfade in samples */
-    long durs;    /* duration in samples */
-    int  rst;     /* reset indicator */
-    MYFLT  inc;     /* fade in/out increment/decrement */
-    MYFLT  a;       /* fade amp */
+    MYFLT *out, *recon;       /* output, record on */
+    MYFLT *sig, *pitch, *on;  /* in, pitch, sound on */
+    MYFLT *dur, *cfd;         /* duration, crossfade  */
+    AUXCH buffer;             /* loop memory */
+    long  wp;                 /* writer pointer */
+    MYFLT rp;                 /* read pointer  */
+    long  cfds;               /* crossfade in samples */
+    long durs;                /* duration in samples */
+    int  rst;                 /* reset indicator */
+    MYFLT  inc;               /* fade in/out increment/decrement */
+    MYFLT  a;                 /* fade amp */
 } sndloop;
 
 typedef struct _flooper {
@@ -141,20 +142,20 @@ typedef struct _pvsvoc {
 }
 pvsvoc;
 
-int sndloop_init(ENVIRON *csound, sndloop *p){
+int sndloop_init(ENVIRON *csound, sndloop *p) {
 
     p->durs = (long) (*(p->dur)*csound->esr); /* dur in samps */
     p->cfds = (long) (*(p->cfd)*csound->esr); /* fade in samps */
-    p->inc =  (MYFLT)1/p->cfds;    /* inc/dec */
-    p->a  = (MYFLT) 0;
-    p->wp = 0;   /* intialise write pointer */
-    p->rst = 1;       /* reset the rec control */
+    p->inc  = FL(1.0)/p->cfds;    /* inc/dec */
+    p->a    = FL(0.0);
+    p->wp   = 0;   /* intialise write pointer */
+    p->rst  = 1;       /* reset the rec control */
     if(p->buffer.auxp==NULL)   /* allocate memory if necessary */
       csound->AuxAlloc(csound, p->durs*sizeof(MYFLT), &p->buffer);
     return OK;
 }
 
-int sndloop_process(ENVIRON *csound, sndloop *p){
+int sndloop_process(ENVIRON *csound, sndloop *p) {
 
     int i, on = (int) *(p->on), recon, n = csound->ksmps;
     long durs = p->durs, cfds = p->cfds, wp = p->wp;
@@ -162,18 +163,18 @@ int sndloop_process(ENVIRON *csound, sndloop *p){
     MYFLT *out = p->out, *sig = p->sig, *buffer = p->buffer.auxp;
     MYFLT pitch = *(p->pitch);
 
-    if(on) recon = p->rst; /* restart recording if switched on again */
+    if (on) recon = p->rst; /* restart recording if switched on again */
     else recon = 0;  /* else do not record */
 
-    for(i=0; i < n; i++){
-      if(recon){ /* if the recording is ON */
+    for (i=0; i < n; i++) {
+      if (recon) { /* if the recording is ON */
         /* fade in portion */
-        if(wp < cfds){
+        if (wp < cfds) {
           buffer[wp] = sig[i]*a;
           a += inc;
         }
         else {
-          if(wp >= durs){ /* fade out portion */
+          if (wp >= durs) { /* fade out portion */
             buffer[wp-durs] += sig[i]*a;
             a -= inc;
           }
@@ -182,18 +183,18 @@ int sndloop_process(ENVIRON *csound, sndloop *p){
         /* while recording connect input to output directly */
         out[i] = sig[i];
         wp++; /* increment writer pointer */
-        if(wp == durs+cfds){  /* end of recording */
+        if (wp == durs+cfds) {  /* end of recording */
           recon = 0;  /* OFF */
           p->rst = 0; /* reset to 0 */
           p->rp = (MYFLT) wp; /* rp pointer to start from here */
         }
       }
       else {
-        if(on){ /* if opcode is ON */
+        if (on) { /* if opcode is ON */
           out[i] = buffer[(int)rp]; /* output the looped sound */
           rp += pitch;        /* read pointer increment */
-          while(rp >= durs) rp -= durs; /* wrap-around */
-          while(rp < 0) rp += durs;
+          while (rp >= durs) rp -= durs; /* wrap-around */
+          while (rp < 0) rp += durs;
         }
         else {   /* if opocde is OFF */
           out[i] = sig[i]; /* copy input to the output */
@@ -210,7 +211,7 @@ int sndloop_process(ENVIRON *csound, sndloop *p){
     return OK;
 }
 
-int flooper_init(ENVIRON *csound, flooper *p){
+int flooper_init(ENVIRON *csound, flooper *p) {
 
     MYFLT *tab, *buffer, a = (MYFLT) 0, inc;
     long cfds = (long) (*(p->cfd)*csound->esr);     /* fade in samps  */
@@ -218,58 +219,58 @@ int flooper_init(ENVIRON *csound, flooper *p){
     long durs = (long)  (*(p->dur)*csound->esr);    /* dur in samps   */
     long len, i;
 
-    if(cfds > durs){
+    if (cfds > durs) {
       csound->InitError(csound, "crossfade longer than loop duration\n");
       return NOTOK;
     }
 
-    inc =  (MYFLT)1/cfds;    /* inc/dec */
+    inc =  FL(1.0)/cfds;    /* inc/dec */
     p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
-    if(p->sfunc==NULL){
+    if (p->sfunc==NULL) {
       csound->InitError(csound,"function table not found\n");
       return NOTOK;
     }
     tab = p->sfunc->ftable,  /* func table pointer */
     len = p->sfunc->flen;    /* function table length */
-    if(starts > len){
+    if (starts > len) {
       csound->InitError(csound,"start time beyond end of table\n");
       return NOTOK;
     }
 
-    if(starts+durs+cfds > len){
+    if (starts+durs+cfds > len) {
       csound->InitError(csound,"table not long enough for loop\n");
       return NOTOK;
     }
 
-    if(p->buffer.auxp==NULL)   /* allocate memory if necessary */
+    if (p->buffer.auxp==NULL)   /* allocate memory if necessary */
       csound->AuxAlloc(csound,(durs+1)*sizeof(float), &p->buffer);
 
     inc = (MYFLT)1/cfds;       /* fade envelope incr/decr */
     buffer = p->buffer.auxp;   /* loop memory */
 
     /* we now write the loop into memory */
-    for(i=0; i < durs; i++){
-      if(i < cfds){
+    for (i=0; i < durs; i++) {
+      if (i < cfds) {
         buffer[i] = a*tab[i+starts];
         a += inc;
       }
       else buffer[i] = tab[i+starts];;
        }
     /*  crossfade section */
-    for(i=0; i  < cfds; i++){
+    for (i=0; i  < cfds; i++) {
       buffer[i] += a*tab[i+starts+durs];
       a -= inc;
     }
 
     buffer[durs] = buffer[0]; /* for wrap-around interpolation */
-    p->strts = starts;
-    p->durs = durs;
-    p->ndx = (MYFLT) 0;      /* lookup index */
+    p->strts     = starts;
+    p->durs      = durs;
+    p->ndx       = FL(0.0);   /* lookup index */
     p->loop_off  = 0;
     return OK;
 }
 
-int flooper_process(ENVIRON *csound, flooper *p){
+int flooper_process(ENVIRON *csound, flooper *p) {
 
     int i, n = csound->ksmps;
     long end = p->strts+p->durs, durs = p->durs;
@@ -278,11 +279,11 @@ int flooper_process(ENVIRON *csound, flooper *p){
     MYFLT *tab = p->sfunc->ftable, ndx = p->ndx, frac;
     int tndx, loop_off = p->loop_off;
 
-    for(i=0; i < n; i++){
-          tndx = (int) ndx;
-          frac = ndx - tndx;
+    for (i=0; i < n; i++) {
+      tndx = (int) ndx;
+      frac = ndx - tndx;
       /* this is the start portion of the sound */
-      if(ndx >= 0  && ndx < end && loop_off) {
+      if (ndx >= 0  && ndx < end && loop_off) {
         out[i] = amp*(tab[tndx] + frac*(tab[tndx+1] - tab[tndx]));
         ndx += pitch;
       }
@@ -308,7 +309,7 @@ int flooper_process(ENVIRON *csound, flooper *p){
     return OK;
 }
 
-int pvsarp_init(ENVIRON *csound, pvsarp *p){
+int pvsarp_init(ENVIRON *csound, pvsarp *p) {
     long N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL)
@@ -321,8 +322,9 @@ int pvsarp_init(ENVIRON *csound, pvsarp *p){
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)){
-     return csound->InitError(csound, "pvsarp: signal format must be amp-phase or amp-freq.\n");
+    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)) {
+     return csound->InitError(csound,
+                    "pvsarp: signal format must be amp-phase or amp-freq.\n");
     }
 
     return OK;
@@ -336,14 +338,14 @@ int pvsarp_process(ENVIRON *csound, pvsarp *p)
     float *fin = (float *) p->fin->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
 
-    if(fout==NULL)
+    if (fout==NULL)
        return csound->PerfError(csound,"pvsarp: not initialised\n");
 
-    if(p->lastframe < p->fin->framecount) {
-    cf = cf >= 0 ? (cf < bins ? cf*bins : bins-1) : 0;
-      kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : (MYFLT)1.0): (MYFLT)0.0;
-      for(i=j=0;i < N+2;i+=2, j++) {
-        if(j == (int) cf) fout[i] = fin[i]*g;
+    if (p->lastframe < p->fin->framecount) {
+      cf = cf >= 0 ? (cf < bins ? cf*bins : bins-1) : 0;
+      kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
+      for (i=j=0;i < N+2;i+=2, j++) {
+        if (j == (int) cf) fout[i] = fin[i]*g;
         else fout[i] = (float)(fin[i]*(1-kdepth));
         fout[i+1] = fin[i+1];
       }
@@ -353,7 +355,7 @@ int pvsarp_process(ENVIRON *csound, pvsarp *p)
     return OK;
 }
 
-int pvsvoc_init(ENVIRON *csound, pvsvoc *p){
+int pvsvoc_init(ENVIRON *csound, pvsvoc *p) {
     long N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL)
@@ -366,8 +368,9 @@ int pvsvoc_init(ENVIRON *csound, pvsvoc *p){
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)){
-     return csound->InitError(csound, "pvsvoc: signal format must be amp-phase or amp-freq.\n");
+    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)) {
+     return csound->InitError(csound,
+                    "pvsvoc: signal format must be amp-phase or amp-freq.\n");
     }
 
     return OK;
@@ -382,15 +385,15 @@ int pvsvoc_process(ENVIRON *csound, pvsvoc *p)
     float *ffr = (float *) p->ffr->frame.auxp;
     float *fout = (float *) p->fout->frame.auxp;
 
-    if(fout==NULL)
+    if (fout==NULL)
        return csound->PerfError(csound,"pvsarp: not initialised\n");
 
-    if(p->lastframe < p->fin->framecount) {
+    if (p->lastframe < p->fin->framecount) {
 
-      kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : (MYFLT)1.0): (MYFLT)0.0;
+      kdepth = kdepth >= 0 ? (kdepth <= 1 ? kdepth : FL(1.0)): FL(0.0);
       for(i=0;i < N+2;i+=2) {
         fout[i] = fin[i]*g;
-        fout[i+1] = ffr[i+1]*(kdepth) + fin[i+1]*(1-kdepth);
+        fout[i+1] = ffr[i+1]*(kdepth) + fin[i+1]*(FL(1.0)-kdepth);
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }

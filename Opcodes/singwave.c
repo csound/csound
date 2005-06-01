@@ -50,8 +50,8 @@ void make_SubNoise(SubNoise *p, int subSample)
 MYFLT SubNoise_tick(SubNoise *p)
 {
     if (p->counter==0) {
-        p->lastOutput = Noise_tick(&p->lastOutput);
-        p->counter = p->howOften;
+      p->lastOutput = Noise_tick(&p->lastOutput);
+      p->counter = p->howOften;
     }
     else (p->counter)--;
     return p->lastOutput;
@@ -73,7 +73,8 @@ int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
 
     if ((ftp = csound->FTFind(csound,i)) != NULL)      p->wave = ftp;
     else { /* Expect sine wave */
-      return csound->InitError(csound, csound->LocalizeString("No table for Modulatr"));
+      return csound->InitError(csound,
+                               csound->LocalizeString("No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*     p->v_rate = 6.0; */
@@ -86,14 +87,15 @@ int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
     return 0;
 }
 
-#define Modulatr_setVibFreq(p,vibFreq)  (p.v_rate = vibFreq * (MYFLT)p.wave->flen/csound->esr)
+#define Modulatr_setVibFreq(p,vibFreq)  \
+                          (p.v_rate = vibFreq * (MYFLT)p.wave->flen/csound->esr)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
 MYFLT Modulatr_tick(Modulatr *p)
 {
     MYFLT lastOutput;
     lastOutput = Wave_tick(&p->v_time, p->wave->flen, p->wave->ftable,
-                    p->v_rate, FL(0.0));
+                           p->v_rate, FL(0.0));
     lastOutput *= p->vibAmt;        /*  Compute periodic and */
     /*   random modulations  */
     lastOutput += OnePole_tick(&p->onepole, SubNoise_tick(&p->noise));
@@ -146,11 +148,8 @@ void SingWave_setFreq(ENVIRON *csound, SingWave *p, MYFLT aFreq)
 
 #define SingWave_setVibFreq(p, vibFreq) Modulatr_setVibFreq(p.modulator, vibFreq)
 
-#define SingWave_setVibAmt(p, vibAmount)        (Modulatr_setVibAmt(p.modulator, vibAmount)
-
-/* #define SingWave_setSweepRate(p, swpRate)    (p->sweepRate = swpRate) */
-
-/* #define SingWave_setGainRate(p, gainRate)    Envelope_setRate(&(p.envelope), gainRate) */
+#define SingWave_setVibAmt(p, vibAmount) \
+                          (Modulatr_setVibAmt(p.modulator, vibAmount)
 
 MYFLT SingWave_tick(SingWave *p)
 {
@@ -160,14 +159,14 @@ MYFLT SingWave_tick(SingWave *p)
     MYFLT mytime = p->mytime;
 
     temp_rate = Envelope_tick(&p->pitchEnvelope);
-    mytime += temp_rate;                /*  Update current time            */
-    mytime += temp_rate * Modulatr_tick(&p->modulator); /*  Add vibratos   */
+    mytime += temp_rate;                      /*  Update current time     */
+    mytime += temp_rate * Modulatr_tick(&p->modulator); /* Add vibratos   */
 
-    while (mytime >= (MYFLT)p->wave->flen) {   /*  Check for end of sound  */
-        mytime -= p->wave->flen;               /*  loop back to beginning  */
+    while (mytime >= (MYFLT)p->wave->flen) {  /*  Check for end of sound  */
+      mytime -= p->wave->flen;                /*  loop back to beginning  */
     }
-    while (mytime < 0.0)  {                    /*  Check for end of sound  */
-        mytime += p->wave->flen;               /*  loop back to beginning  */
+    while (mytime < FL(0.0)) {                /*  Check for end of sound  */
+      mytime += p->wave->flen;                /*  loop back to beginning  */
     }
 
     temp = (long) mytime;             /*  Integer part of time address    */
