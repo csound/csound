@@ -197,7 +197,8 @@ BaboMemory_end(const BaboMemory *this)
 static void
 _Babo_common_delay_create(ENVIRON *csound, BaboDelay *this, MYFLT max_time)
 {
-    size_t num_floats = (size_t) bround((MYFLT)ceil((double)(max_time * csound->esr)));
+    size_t num_floats =
+      (size_t)bround((MYFLT)ceil((double)(max_time*csound->esr)));
 
     BaboMemory_create(csound, &this->core, num_floats);
 }

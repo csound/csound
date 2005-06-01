@@ -56,13 +56,13 @@ int sndwarpgetset(ENVIRON *csound, SNDWARP *p)
 
     if ((ftpWind = csound->FTFind(csound, p->ifn)) == NULL) return NOTOK;
     p->ftpWind = ftpWind;
-    p->flen=ftpWind->flen;
+    p->flen    = ftpWind->flen;
 
-    p->maxFr  = -1 + ftpSamp->flen;
-    p->prFlg = 1;    /* true */
-    p->begin = (int)(*p->ibegin * csound->esr);
+    p->maxFr   = -1 + ftpSamp->flen;
+    p->prFlg   = 1;    /* true */
+    p->begin   = (int)(*p->ibegin * csound->esr);
 
-    exp = p->exp;
+    exp        = p->exp;
     exp--;
     for (i=0; i< *p->ioverlap; i++) {
       exp++;

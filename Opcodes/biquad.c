@@ -1240,8 +1240,9 @@ static OENTRY localops[] = {
 { "tbvcf", S(TBVCF),     5, "a", "axxkkp",  (SUBR)tbvcfset, NULL, (SUBR)tbvcf   },
 { "planet", S(PLANET),5,"aaa","kkkiiiiiiioo", (SUBR)planetset, NULL, (SUBR)planet},
 { "pareq", S(PAREQ),     5, "a", "akkkoo",(SUBR)pareqset, NULL, (SUBR)pareq },
-{ "nestedap", S(NESTEDAP),5,"a", "aiiiiooooo", (SUBR)nestedapset, NULL, (SUBR)nestedap},
-{ "lorenz", S(LORENZ), 5, "aaa", "kkkkiiiio", (SUBR)lorenzset, NULL, (SUBR)lorenz},
+{ "nestedap", S(NESTEDAP),5,"a", "aiiiiooooo",
+                                     (SUBR)nestedapset, NULL, (SUBR)nestedap},
+{ "lorenz", S(LORENZ), 5, "aaa", "kkkkiiiio", (SUBR)lorenzset, NULL, (SUBR)lorenz}
 };
 
 LINKAGE

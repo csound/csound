@@ -1,5 +1,9 @@
 #include "csdl.h"
 
+/* ********************************************************** */
+/* THIS FILE IS WITHOUT AUTHOR, COPYRIGHT OR LICENCE          */
+/* ********************************************************** */
+
 typedef struct {
     OPDS  h;
     MYFLT *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;

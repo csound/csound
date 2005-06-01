@@ -170,22 +170,26 @@ static int FM4Op_loadWaves(ENVIRON *csound, FM4OP *p)
     if ((ftp = csound->FTFind(csound, p->ifn0)) != NULL)
       p->waves[0] = ftp;
     else {
-      return csound->PerfError(csound, Str("No table for FM4Op")); /* Expect sine wave */
+      return csound->PerfError(csound,
+                               Str("No table for FM4Op")); /* Expect sine wave */
     }
     if ((ftp = csound->FTFind(csound, p->ifn1)) != NULL)
       p->waves[1] = ftp;
     else {
-      return csound->PerfError(csound, Str("No table for  FM4Op")); /* Expect sine wave */
+      return csound->PerfError(csound,
+                               Str("No table for  FM4Op")); /* Expect sine wave */
     }
     if ((ftp = csound->FTFind(csound, p->ifn2)) != NULL)
       p->waves[2] = ftp;
     else {
-      return csound->PerfError(csound, Str("No table for  FM4Op")); /* Expect sine wave */
+      return csound->PerfError(csound,
+                               Str("No table for  FM4Op")); /* Expect sine wave */
     }
     if ((ftp = csound->FTFind(csound, p->ifn3)) != NULL)
       p->waves[3] = ftp;
     else {
-      return csound->PerfError(csound, Str("No table for  FM4Op")); /* Expect sine wave */
+      return csound->PerfError(csound,
+                               Str("No table for  FM4Op")); /* Expect sine wave */
     }
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;
@@ -289,10 +293,10 @@ int tubebellset(ENVIRON *csound, FM4OP *p)
     p->v_rate = FL(2.0) * p->vibWave->flen * csound->onedsr; /* Vib rate */
                                 /* Set Freq */
     p->baseFreq = *p->frequency;
-    p->w_rate[0] = p->baseFreq *  p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq *  p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] = p->baseFreq *  p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] = p->baseFreq *  p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
+    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * csound->onedsr;
+    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
@@ -314,10 +318,10 @@ int tubebell(ENVIRON *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[76];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[71];
-    p->w_rate[0] = p->baseFreq *  p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq *  p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] = p->baseFreq *  p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] = p->baseFreq *  p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
+    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * csound->onedsr;
+    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
 
     for (n=0;n<nsmps;n++) {
@@ -361,10 +365,10 @@ int rhodeset(ENVIRON *csound, FM4OP *p)
     p->v_rate = FL(2.0) * p->vibWave->flen * csound->onedsr; /* Vib rate */
                                 /* Set Freq */
     p->baseFreq = *p->frequency;
-    p->w_rate[0] = p->baseFreq *  p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq *  p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] = p->baseFreq *  p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] = p->baseFreq *  p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
+    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * csound->onedsr;
+    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
@@ -405,10 +409,10 @@ int wurleyset(ENVIRON *csound, FM4OP *p)
     p->twozero.gain = FL(2.0);
                                 /* Set Freq */
     p->baseFreq = *p->frequency;
-    p->w_rate[0] = p->baseFreq *  p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq *  p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] =                p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] =                p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
+    p->w_rate[2] =               p->ratios[2] * p->waves[2]->flen * csound->onedsr;
+    p->w_rate[3] =               p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
@@ -430,10 +434,10 @@ int wurley(ENVIRON *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[82];
     p->gains[2] = amp * FM4Op_gains[82];
     p->gains[3] = amp * FM4Op_gains[68];
-    p->w_rate[0] = p->baseFreq *  p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq *  p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] =                p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] =                p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
+    p->w_rate[2] =               p->ratios[2] * p->waves[2]->flen * csound->onedsr;
+    p->w_rate[3] =               p->ratios[3] * p->waves[3]->flen * csound->onedsr;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
 
     for (n=0;n<nsmps;n++) {
@@ -525,6 +529,7 @@ int heavymet(ENVIRON *csound, FM4OP *p)
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
+    MYFLT       temp;
 
     p->baseFreq = *p->frequency;
     p->gains[0] = amp * FM4Op_gains[92];
@@ -532,10 +537,11 @@ int heavymet(ENVIRON *csound, FM4OP *p)
     p->gains[2] = amp * FM4Op_gains[91];
     p->gains[3] = amp * FM4Op_gains[68];
 
-    p->w_rate[0] = p->baseFreq *  p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq *  p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] = p->baseFreq *  p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] = p->baseFreq *  p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    temp         = p->baseFreq * csound->onedsr;
+    p->w_rate[0] = temp * p->ratios[0] * p->waves[0]->flen;
+    p->w_rate[1] = temp * p->ratios[1] * p->waves[1]->flen;
+    p->w_rate[2] = temp * p->ratios[2] * p->waves[2]->flen;
+    p->w_rate[3] = temp * p->ratios[3] * p->waves[3]->flen;
     p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
     for (n=0;n<nsmps;n++) {
       MYFLT   lastOutput;
@@ -644,11 +650,11 @@ int hammondB3(ENVIRON *csound, FM4OP *p)
         temp = FL(1.0) + (*p->modDepth * FL(0.1) *
                           Wave_tick(&p->v_time, (int)p->vibWave->flen,
                                     p->vibWave->ftable, p->v_rate, FL(0.0)));
-        temp *= p->baseFreq;
-        p->w_rate[0] = p->ratios[0] * temp * p->waves[0]->flen * csound->onedsr;
-        p->w_rate[1] = p->ratios[1] * temp * p->waves[1]->flen * csound->onedsr;
-        p->w_rate[2] = p->ratios[2] * temp * p->waves[2]->flen * csound->onedsr;
-        p->w_rate[3] = p->ratios[3] * temp * p->waves[3]->flen * csound->onedsr;
+        temp *= p->baseFreq * csound->onedsr;
+        p->w_rate[0] = p->ratios[0] * temp * p->waves[0]->flen;
+        p->w_rate[1] = p->ratios[1] * temp * p->waves[1]->flen;
+        p->w_rate[2] = p->ratios[2] * temp * p->waves[2]->flen;
+        p->w_rate[3] = p->ratios[3] * temp * p->waves[3]->flen;
       }
       lastOutput = FM4Alg8_tick(p, c1, c2);
       ar[n]= lastOutput*AMP_SCALE;
@@ -775,7 +781,8 @@ MYFLT phonParams[32][4][3] =
         { FL(895.0), FL(0.900),  -FL(3.0)},
         {FL(2556.0), FL(0.950), -FL(17.0)},
         {FL(3070.0), FL(0.910), -FL(20.0)}},
-     {  { FL(637.0), FL(0.910),   FL(0.0)},   /* ohh (bone) NOTE:: same as aww (bought) */
+     {  { FL(637.0), FL(0.910),   FL(0.0)},   /* ohh (bone) */
+                              /*NOTE:: same as aww (bought) */
         { FL(895.0), FL(0.900),  -FL(3.0)},
         {FL(2556.0), FL(0.950), -FL(17.0)},
         {FL(3070.0), FL(0.910), -FL(20.0)}},

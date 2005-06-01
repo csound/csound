@@ -74,8 +74,9 @@ int BBCutMonoInit(ENVIRON *csound, BBCUTMONO *p)
     /* allocate space- need no more than a half bar at current
        tempo and barlength */
     if (p->repeatbuffer.auxp == NULL) {
-      csound->AuxAlloc(csound, ((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
-               &p->repeatbuffer);
+      csound->AuxAlloc(csound,
+              ((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
+              &p->repeatbuffer);
     }
 
     p->repeatsampdone = 0;
@@ -301,8 +302,9 @@ int BBCutStereoInit(ENVIRON *csound, BBCUTSTEREO * p)
        and barlength */
     if (p->repeatbuffer.auxp == NULL) {
       /* multiply by 2 for stereo buffer */
-      csound->AuxAlloc(csound, 2*((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
-               &p->repeatbuffer);
+      csound->AuxAlloc(csound,
+              2*((int)(csound->esr*(*p->barlength)/(*p->bps)))*sizeof(MYFLT),
+              &p->repeatbuffer);
     }
 
     p->repeatsampdone = 0;
@@ -504,8 +506,10 @@ int BBCutStereo(ENVIRON *csound, BBCUTSTEREO *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "bbcutm",S(BBCUTMONO), 5, "a","aiiiiipop",(SUBR)BBCutMonoInit, NULL, (SUBR)BBCutMono  },
-{ "bbcuts",S(BBCUTSTEREO),5, "aa","aaiiiiipop",(SUBR)BBCutStereoInit, NULL, (SUBR)BBCutStereo}
+{ "bbcutm",S(BBCUTMONO), 5, "a","aiiiiipop",
+                                 (SUBR)BBCutMonoInit, NULL, (SUBR)BBCutMono  },
+{ "bbcuts",S(BBCUTSTEREO),5, "aa","aaiiiiipop",
+                               (SUBR)BBCutStereoInit, NULL, (SUBR)BBCutStereo}
 };
 
 LINKAGE
