@@ -516,7 +516,7 @@ void sortRoots(fcomplex roots[], int dim)
     complex2polar(roots, plr, dim);
 
     /* Sort by their magnitudes */
-    qsort(plr, dim, sizeof(fpolar), (int (*)(const void *, const void * ))sortfun);
+    qsort(plr, dim, sizeof(fpolar), (int(*)(const void *, const void * ))sortfun);
 
     /* Convert back to complex form */
     polar2complex(plr,roots,dim);

@@ -290,7 +290,8 @@ int SfPlay_set(ENVIRON *csound, SFPLAY *p)
             orgfreq = pitches[orgkey];
             if (flag) {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
-              p->si[spltNum]= (freq/(orgfreq*orgfreq))*sample->dwSampleRate*csound->onedsr;
+              p->si[spltNum]= (freq/(orgfreq*orgfreq))*
+                               sample->dwSampleRate*csound->onedsr;
             }
             else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
@@ -567,7 +568,8 @@ int SfPlayMono_set(ENVIRON *csound, SFPLAYMONO *p)
             orgfreq = pitches[orgkey] ;
             if (flag) {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
-              p->si[spltNum]= (freq/(orgfreq*orgfreq))*sample->dwSampleRate*csound->onedsr;
+              p->si[spltNum]= (freq/(orgfreq*orgfreq))*
+                               sample->dwSampleRate*csound->onedsr;
             }
             else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
@@ -784,12 +786,13 @@ int SfInstrPlay_set(ENVIRON *csound, SFIPLAY *p)
           orgfreq = pitches[orgkey] ;
           if (flag) {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
-            p->si[spltNum] = (freq/(orgfreq*orgfreq))*sample->dwSampleRate*csound->onedsr;
+            p->si[spltNum] = (freq/(orgfreq*orgfreq))*
+                              sample->dwSampleRate*csound->onedsr;
           }
           else {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection)
               * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01)*(notnum - orgkey));
-            p->si[spltNum] = (freq/orgfreq) * (sample->dwSampleRate*csound->onedsr);
+            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
           }
           attenuation = (MYFLT) (split->initialAttenuation);
           attenuation = (MYFLT) pow(2.0, (-1.0/60.0) * attenuation) *
@@ -1016,12 +1019,13 @@ int SfInstrPlayMono_set(ENVIRON *csound, SFIPLAYMONO *p)
           orgfreq = pitches[orgkey];
           if (flag) {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
-            p->si[spltNum] = (freq/(orgfreq*orgfreq))*sample->dwSampleRate*csound->onedsr;
+            p->si[spltNum] = (freq/(orgfreq*orgfreq))*
+                              sample->dwSampleRate*csound->onedsr;
           }
           else {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection)
               * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (notnum-orgkey));
-            p->si[spltNum] = (freq/orgfreq) * (sample->dwSampleRate*csound->onedsr);
+            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
           }
           p->attenuation[spltNum] = (MYFLT) pow(2.0, (-1.0/60.0)*
                                                 split->initialAttenuation)

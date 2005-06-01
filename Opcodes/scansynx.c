@@ -76,7 +76,7 @@ static void unquote(char *dst, char *src)
       strcpy(dst, src);
 }
 
-/****************************************************************************
+/***************************************************************************
  *      Helper functions and macros for updater                            *
  ***************************************************************************/
 
@@ -306,7 +306,8 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
         csound->AuxAlloc(csound, len*len * sizeof(char), &p->aux_f);
         p->f = (char*)p->aux_f.auxp;
 #else
-        csound->AuxAlloc(csound, 1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
+        csound->AuxAlloc(csound,
+                         1L+(len*len*sizeof(long))/BITS_PER_UNIT, &p->aux_f);
         p->f = (unsigned long*)p->aux_f.auxp;
 #endif
         while (pp < mfp->endp) {

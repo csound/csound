@@ -394,7 +394,8 @@ int scsnu_play(ENVIRON *csound, PSCSNU *p)
         for (i = 0 ; i != p->len ; i++) {
 #if PHASE_INTERP == 3
           p->out[i] = p->x1[i] + t*(-p->x3[i]*FL(0.5) +
-                                    t*(p->x3[i]*FL(0.5) - p->x1[i] + p->x2[i]*FL(0.5))
+                                    t*(p->x3[i]*FL(0.5) - p->x1[i] +
+                                       p->x2[i]*FL(0.5))
                                     + p->x2[i]*FL(0.5));
 #else
           p->out[i] = p->x2[i] + (p->x1[i] - p->x2[i]) * t;
@@ -416,10 +417,13 @@ int scsnu_play(ENVIRON *csound, PSCSNU *p)
  */
 #if PHASE_INTERP == 3
 #define pinterp(ii, x) \
-        (pp->x1[p->t[(int)ii]] + x*(-pp->x3[p->t[(int)ii]]*FL(0.5) + x*(pp->x3[p->t[(int)ii]]*FL(0.5) - pp->x1[p->t[(int)ii]] + pp->x2[p->t[(int)ii]]*FL(0.5)) + pp->x2[p->t[(int)ii]]*FL(0.5)))
+        (pp->x1[p->t[(int)ii]] + x*(-pp->x3[p->t[(int)ii]]*FL(0.5) + \
+         x*(pp->x3[p->t[(int)ii]]*FL(0.5) - pp->x1[p->t[(int)ii]] + \
+         pp->x2[p->t[(int)ii]]*FL(0.5)) + pp->x2[p->t[(int)ii]]*FL(0.5)))
 #else
 #define pinterp(ii, x) \
-        (pp->x2[p->t[(int)ii]] + (pp->x1[p->t[(int)ii]] - pp->x2[p->t[(int)ii]]) * x)
+        (pp->x2[p->t[(int)ii]] + (pp->x1[p->t[(int)ii]] - \
+         pp->x2[p->t[(int)ii]]) * x)
 #endif
 
 /*
@@ -534,7 +538,8 @@ int scsns_play(ENVIRON *csound, PSCSNS *p)
         p->a_out[i] = *p->k_amp *
           (y2 + x*(-y1/FL(3.0) - y2*FL(0.5) + y3 +
                    x*(y1*FL(0.5) - y2 + y3*FL(0.5) +
-                      x*(-y1/FL(6.0) + y2*FL(0.5) - y3*FL(0.5) + y4/FL(6.0))) - y4/FL(6.0)));
+                      x*(-y1/FL(6.0) + y2*FL(0.5) - y3*FL(0.5) + 
+                         y4/FL(6.0))) - y4/FL(6.0)));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
         if (phs >= p->tlen)
