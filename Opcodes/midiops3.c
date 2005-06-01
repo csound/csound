@@ -40,7 +40,7 @@
 {                                                                 \
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
-    if (chand > 15)  {                                            \
+    if (chan > 15) {                                              \
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
