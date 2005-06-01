@@ -67,100 +67,101 @@ int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
     if (!*p->istor) p->prvq = FL(0.0);
                                 /* End of rms */
                                 /* Initialise spectrum */
-      p->timcount = (int)(csound->ekr * *p->iprd + FL(0.001)); /* for mac roundoff */
-      nocts = (int)*p->iocts; if (nocts<=0) nocts = 6;
-      nfreqs = (int)*p->ifrqs; if (nfreqs<=0) nfreqs = 12;
-      ncoefs = nocts * nfreqs;
-      Q = *p->iq; if (Q<=FL(0.0)) Q = FL(15.0);
+    /* for mac roundoff */
+    p->timcount = (int)(csound->ekr * *p->iprd + FL(0.001));
+    nocts = (int)*p->iocts; if (nocts<=0) nocts = 6;
+    nfreqs = (int)*p->ifrqs; if (nfreqs<=0) nfreqs = 12;
+    ncoefs = nocts * nfreqs;
+    Q = *p->iq; if (Q<=FL(0.0)) Q = FL(15.0);
 
-      if (p->timcount <= 0)     return csound->InitError(csound, Str("illegal iprd"));
-      if (nocts > MAXOCTS)      return csound->InitError(csound, Str("illegal iocts"));
-      if (nfreqs > MAXFRQS)     return csound->InitError(csound, Str("illegal ifrqs"));
+    if (p->timcount <= 0) return csound->InitError(csound, Str("illegal iprd"));
+    if (nocts > MAXOCTS)  return csound->InitError(csound, Str("illegal iocts"));
+    if (nfreqs > MAXFRQS) return csound->InitError(csound, Str("illegal ifrqs"));
 
-      if (nocts != dwnp->nocts
-          || nfreqs != p->nfreqs  /* if anything has changed */
-          || Q != p->curq ) {                /*     make new tables */
-        double      basfrq, curfrq, frqmlt, Qfactor;
-        double      theta, a, windamp, onedws, pidws;
-        MYFLT       *sinp, *cosp;
-        int         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
-        long        auxsiz, bufsiz;
-        long        majr, minr, totsamps;
-        double      hicps,locps,oct;  /*   must alloc anew */
+    if (nocts != dwnp->nocts
+        || nfreqs != p->nfreqs  /* if anything has changed */
+        || Q != p->curq ) {                /*     make new tables */
+      double      basfrq, curfrq, frqmlt, Qfactor;
+      double      theta, a, windamp, onedws, pidws;
+      MYFLT       *sinp, *cosp;
+      int         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
+      long        auxsiz, bufsiz;
+      long        majr, minr, totsamps;
+      double      hicps,locps,oct;  /*   must alloc anew */
 
-        p->nfreqs = nfreqs;
-        p->curq = Q;
-        p->ncoefs = ncoefs;
-        dwnp->srate = csound->esr;
-        hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
-        oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
-        dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
-        locps = hicps / (1L << nocts);
-        basfrq = hicps/2.0;                          /* oct below retuned top */
-        frqmlt = pow((double)2.0,(double)1.0/nfreqs);  /* nfreq interval mult */
-        Qfactor = Q * dwnp->srate;
-        curfrq = basfrq;
-        for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {
-          *wsizp++ = k = (int)(Qfactor/curfrq) | 01;  /* calc odd wind sizes */
-          *woffp++ = (*(p->winlen) - k) / 2;          /* & symmetric offsets */
-          sumk += k;                                  /*    and find total   */
-          curfrq *= frqmlt;
-        }
-        windsiz = *(p->winlen);
-        auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
-
-        csound->AuxAlloc(csound, (long)auxsiz, &p->auxch1); /* & alloc auxspace  */
-
-        fltp = (MYFLT *) p->auxch1.auxp;
-        p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
-        p->sinp = sinp = fltp;  fltp += sumk;
-        p->cosp = cosp = fltp;                         /* cos gets rem sumk  */
-        wsizp = p->winlen;
-        curfrq = basfrq * TWOPI / dwnp->srate;
-        for (n = nfreqs; n--; ) {                      /* now fill tables */
-          windsiz = *wsizp++;                          /*  (odd win size) */
-          halfsiz = windsiz >> 1;
-          onedws = 1.0 / (windsiz-1);
-          pidws = PI / (windsiz-1);
-          for (k = -halfsiz; k<=halfsiz; k++) {        /*   with sines    */
-            a = cos(k * pidws);
-            windamp = 0.08 + 0.92 * a * a;             /*   times hamming */
-            windamp *= onedws;                         /*   scaled        */
-            theta = k * curfrq;
-            *sinp++ = (MYFLT)(windamp * sin(theta));
-            *cosp++ = (MYFLT)(windamp * cos(theta));
-          }
-          curfrq *= frqmlt;                        /*   step by log freq  */
-        }
-        dwnp->hifrq = (MYFLT)hicps;
-        dwnp->lofrq = (MYFLT)locps;
-        dwnp->nsamps = windsiz = *(p->winlen);
-        dwnp->nocts = nocts;
-        minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
-        majr = windsiz - minr;                /*      & calc totsamps reqd     */
-        totsamps = (majr*nocts) + (minr<<nocts) - minr;
-        DOWNset(dwnp, totsamps);              /* auxalloc in DOWNDAT struct */
-        fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
-        for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
-          bufsiz = majr + minr;
-          octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
-          octp->endp = fltp;  minr *= 2;
-        }
-        SPECset(specp, (long)ncoefs);         /* prep the spec dspace */
-        specp->downsrcp = dwnp;               /*  & record its source */
+      p->nfreqs = nfreqs;
+      p->curq = Q;
+      p->ncoefs = ncoefs;
+      dwnp->srate = csound->esr;
+      hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
+      oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
+      dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
+      locps = hicps / (1L << nocts);
+      basfrq = hicps/2.0;                          /* oct below retuned top */
+      frqmlt = pow((double)2.0,(double)1.0/nfreqs);  /* nfreq interval mult */
+      Qfactor = Q * dwnp->srate;
+      curfrq = basfrq;
+      for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {
+        *wsizp++ = k = (int)(Qfactor/curfrq) | 01;  /* calc odd wind sizes */
+        *woffp++ = (*(p->winlen) - k) / 2;          /* & symmetric offsets */
+        sumk += k;                                  /*    and find total   */
+        curfrq *= frqmlt;
       }
-      for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
-        octp->curp = octp->begp;
-        for (fltp=octp->feedback,n=6; n--; )
-          *fltp++ = FL(0.0);
-        octp->scount = 0;
+      windsiz = *(p->winlen);
+      auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
+
+      csound->AuxAlloc(csound, (long)auxsiz, &p->auxch1); /* & alloc auxspace  */
+
+      fltp = (MYFLT *) p->auxch1.auxp;
+      p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
+      p->sinp = sinp = fltp;  fltp += sumk;
+      p->cosp = cosp = fltp;                         /* cos gets rem sumk  */
+      wsizp = p->winlen;
+      curfrq = basfrq * TWOPI / dwnp->srate;
+      for (n = nfreqs; n--; ) {                      /* now fill tables */
+        windsiz = *wsizp++;                          /*  (odd win size) */
+        halfsiz = windsiz >> 1;
+        onedws = 1.0 / (windsiz-1);
+        pidws = PI / (windsiz-1);
+        for (k = -halfsiz; k<=halfsiz; k++) {        /*   with sines    */
+          a = cos(k * pidws);
+          windamp = 0.08 + 0.92 * a * a;             /*   times hamming */
+          windamp *= onedws;                         /*   scaled        */
+          theta = k * curfrq;
+          *sinp++ = (MYFLT)(windamp * sin(theta));
+          *cosp++ = (MYFLT)(windamp * cos(theta));
+        }
+        curfrq *= frqmlt;                        /*   step by log freq  */
       }
-      specp->nfreqs = p->nfreqs;               /* save the spec descriptors */
-      specp->dbout = 0;
-      specp->ktimstamp = 0;                    /* init specdata to not new  */
-      specp->ktimprd = p->timcount;
-      p->scountdown = p->timcount;             /* prime the spect countdown */
-                                /* Start specptrk */
+      dwnp->hifrq = (MYFLT)hicps;
+      dwnp->lofrq = (MYFLT)locps;
+      dwnp->nsamps = windsiz = *(p->winlen);
+      dwnp->nocts = nocts;
+      minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
+      majr = windsiz - minr;                /*      & calc totsamps reqd     */
+      totsamps = (majr*nocts) + (minr<<nocts) - minr;
+      DOWNset(dwnp, totsamps);              /* auxalloc in DOWNDAT struct */
+      fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
+      for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
+        bufsiz = majr + minr;
+        octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
+        octp->endp = fltp;  minr *= 2;
+      }
+      SPECset(specp, (long)ncoefs);         /* prep the spec dspace */
+      specp->downsrcp = dwnp;               /*  & record its source */
+    }
+    for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
+      octp->curp = octp->begp;
+      for (fltp=octp->feedback,n=6; n--; )
+        *fltp++ = FL(0.0);
+      octp->scount = 0;
+    }
+    specp->nfreqs = p->nfreqs;               /* save the spec descriptors */
+    specp->dbout = 0;
+    specp->ktimstamp = 0;                    /* init specdata to not new  */
+    specp->ktimprd = p->timcount;
+    p->scountdown = p->timcount;             /* prime the spect countdown */
+                                             /* Start specptrk */
     if ((npts = specp->npts) != p->winpts) {        /* if size has changed */
       SPECset(&p->wfund, (long)npts);               /*   realloc for wfund */
       p->wfund.downsrcp = specp->downsrcp;
@@ -449,7 +450,8 @@ output:
 int macset(ENVIRON *csound, SUM *p)
 {
     if ((((int)p->INOCOUNT)&1)==1) {
-      return csound->PerfError(csound, Str("Must have even number of arguments in mac\n"));
+      return csound->PerfError(csound,
+                               Str("Must have even number of arguments in mac\n"));
     }
     return OK;
 }
@@ -796,7 +798,8 @@ int pitchamdfset(ENVIRON *csound, PITCHAMDF *p)
     maxperi = (long)(srate / *p->imincps);
     if (maxperi <= minperi) {
       p->inerr = 1;
-      return csound->InitError(csound, Str("pitchamdf: maxcps must be > mincps !"));
+      return csound->InitError(csound,
+                               Str("pitchamdf: maxcps must be > mincps !"));
     }
 
     if (*p->iexcps < 1)
@@ -854,17 +857,18 @@ int pitchamdfset(ENVIRON *csound, PITCHAMDF *p)
       if (p->median.auxp==NULL || p->median.size < (long)sizeof(MYFLT)*msize)
         csound->AuxAlloc(csound, sizeof(MYFLT)*(msize), &p->median);
       medi = (MYFLT*)p->median.auxp;
-      do
+      do {
         *medi++ = (MYFLT)p->peri;
-      while (--msize);
+      } while (--msize);
     }
 
-    if (p->buffer.auxp==NULL || p->buffer.size < (long)sizeof(MYFLT)*(bufsize)) {
+    if (p->buffer.auxp==NULL ||
+        p->buffer.size < (long)sizeof(MYFLT)*(bufsize)) {
       csound->AuxAlloc(csound, sizeof(MYFLT)*(bufsize), &p->buffer);
       buf = (MYFLT*)p->buffer.auxp;
-      do
+      do {
         *buf++ = FL(0.0);
-      while (--bufsize);
+      } while (--bufsize);
     }
     return OK;
 }

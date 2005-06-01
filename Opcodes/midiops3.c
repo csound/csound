@@ -40,7 +40,7 @@
 {                                                                 \
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
-    if (chan  > 15)  {                                            \
+    if (chand > 15)  {                                            \
       return csound->InitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
@@ -50,7 +50,7 @@
       unsigned char *slnum = p->slnum;                            \
       MYFLT *min = p->min, *max= p->max;                          \
       FUNC **ftp = p->ftp;                                        \
-      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;  \
+      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
       while (j++ < n) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
         if (*slnum > 127) {                                       \
@@ -86,7 +86,7 @@
     MYFLT **result = p->r;                                        \
     while (j++ < n) {                                             \
       value = (MYFLT) (chanblock[*slnum++] * oneTOf7bit);         \
-      if (*(++ftp))             /* if valid ftable,use value as index   */  \
+      if (*(++ftp))   /* if valid ftable,use value as index   */  \
         value = *((*ftp)->ftable + (long)(value * (*ftp)->flen)); \
                                 /* no interpolation */            \
       **result++ = value * (*max++ - *min) + *min;   /* scales the output */ \
@@ -154,7 +154,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
       FUNC **ftp = p->ftp;                                        \
       MYFLT     b;                                                \
       MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                  \
-      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;  \
+      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
       while (j++ < 8) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
         if (*slnum > 127) {                                       \
@@ -172,7 +172,7 @@ int slider64(ENVIRON *csound, SLIDER64 *p)
         else                 *ftp++ = NULL;                       \
         value =  (*sld->initvalue - *min) / (*max++ - *min);      \
         min++;;                                                   \
-        chanblock[*slnum++] =  (MYFLT)(int)(value * f7bit + .5);  \
+        chanblock[*slnum++] =  (MYFLT)(int)(value * f7bit + FL(0.5));\
                                                                   \
                 /*----- init filtering coeffs*/                   \
         *yt1++ = FL(0.0);                                         \
@@ -263,7 +263,7 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
       int j = 0;                                                  \
       ISLD *sld = p->s;                                           \
       unsigned char slnum;                                        \
-      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;  \
+      MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
       FUNC *ftp;                                                  \
       MYFLT **result = p->r;                                      \
                                                                   \
@@ -279,7 +279,8 @@ int slider64f(ENVIRON *csound, SLIDER64f *p)
           value = *( ftp->ftable + (long)(value * ftp->flen));    \
                                 /* no interpolation */            \
         }                                                         \
-        **result++ = value * (*sld->imax - *sld->imin) + *sld->imin;   /* scales the output */ \
+        **result++ = value * (*sld->imax - *sld->imin) + *sld->imin; \
+                                          /* scales the output */ \
         sld++;                                                    \
       }                                                           \
     }                                                             \

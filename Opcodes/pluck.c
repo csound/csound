@@ -119,9 +119,6 @@ int pluckPluck(ENVIRON *csound, WGPLUCK* p)
 #ifdef WG_VERBOSE
     csound->Message(csound, "Initializing bridge filters...");
 #endif
-/*     p->bridge.coeffs=(MYFLT*)p->bridgeCoeffs.auxp;  /\* bridge coeffs *\/ */
-/*     p->bridge.buffer.data=(MYFLT*)p->bridgeData.auxp;/\* bridge data *\/ */
-/*     filterFilter(&p->bridge,3); /\* construct bridge filter object *\/ */
 #ifdef WG_VERBOSE
     csound->Message(csound, "done\n");
 #endif

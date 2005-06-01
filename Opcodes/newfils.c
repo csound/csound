@@ -105,7 +105,7 @@ int statevar_process(ENVIRON *csound,statevar *p)
     double  lpd = p->lpd;
     double  bpd = p->bpd;
     double  lp  = p->lp, hp = 0.0, bp = 0.0, br = 0.0;
-    double f,q,lim;
+    double  f,q,lim;
     int ostimes = p->ostimes,i,j;
 
     f = 2.0*sin(PI*freq/(ostimes*csound->esr));
@@ -160,8 +160,8 @@ int fofilter_process(ENVIRON *csound,fofilter *p)
     double  w1,y1,w2,y2;
     int i;
 
-    ang = p->twopiosr*freq;   /* pole angle */
-    fsc = sin(ang) - 3.0;       /* freq scl   */
+    ang = p->twopiosr*freq;                      /* pole angle */
+    fsc = sin(ang) - 3.0;                        /* freq scl   */
     rad1 =  pow(10.0, fsc/(dec*csound->esr));  /* filter radii */
     rad2 =  pow(10.0, fsc/(ris*csound->esr));
 
@@ -184,9 +184,12 @@ int fofilter_process(ENVIRON *csound,fofilter *p)
 }
 
 static OENTRY localops[] = {
-{"moogladder", sizeof(moogladder), 5, "a", "akkp", (SUBR)moogladder_init, NULL, (SUBR)moogladder_process },
-{"statevar", sizeof(statevar), 5, "aaaa", "akkop", (SUBR)statevar_init, NULL,(SUBR)statevar_process },
-{"fofilter", sizeof(fofilter), 5, "a", "akkkp", (SUBR)fofilter_init, NULL,(SUBR)fofilter_process }
+  {"moogladder", sizeof(moogladder), 5, "a", "akkp", 
+                       (SUBR)moogladder_init, NULL, (SUBR)moogladder_process },
+  {"statevar", sizeof(statevar), 5, "aaaa", "akkop",
+                            (SUBR)statevar_init, NULL,(SUBR)statevar_process },
+  {"fofilter", sizeof(fofilter), 5, "a", "akkkp",
+                            (SUBR)fofilter_init, NULL,(SUBR)fofilter_process }
 };
 
 LINKAGE

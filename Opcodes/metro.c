@@ -1,4 +1,9 @@
 #include "csdl.h"
+
+/* ********************************************************************** */
+/* NO AUTHOR COPYRIGHT OR LICENCE                                         */
+/* ********************************************************************** */
+
 #include <math.h>
 
 typedef struct {
@@ -228,8 +233,9 @@ int timeseq(ENVIRON *csound, TIMEDSEQ *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-  { "metro",  S(METRO),   3,      "k",   "ko",    (SUBR)metro_set, (SUBR)metro   },
-  { "splitrig", S(SPLIT_TRIG), 3, "",    "kkiiz", (SUBR)split_trig_set, (SUBR)split_trig },
+  { "metro",  S(METRO),   3,      "k", "ko",    (SUBR)metro_set, (SUBR)metro   },
+  { "splitrig", S(SPLIT_TRIG), 3, "",  "kkiiz", 
+                                         (SUBR)split_trig_set, (SUBR)split_trig },
   { "timedseq",S(TIMEDSEQ),    3, "k", "kiz",   (SUBR)timeseq_set, (SUBR)timeseq }
 };
 
