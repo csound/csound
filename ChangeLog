@@ -1,3 +1,7 @@
+2005-06-01 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+       * Opcodes/pvsbasic.c pvsbasic.h
+       added opcode pvsinit for fsig initialisation
+
 2005-05-31	Istvan Varga	<istvan@csounds.com>
 	* Engine/otran.c:
 	  allow global f-signals
