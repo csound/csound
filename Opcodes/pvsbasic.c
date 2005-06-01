@@ -31,6 +31,8 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
 int pvsinit(ENVIRON *csound, PVSINI *p)
 {
+    int i;
+    float *bframe;
     long N = (long) *p->framesize;
 
     if (p->fout->frame.auxp==NULL)
@@ -41,6 +43,11 @@ int pvsinit(ENVIRON *csound, PVSINI *p)
     p->fout->wintype = 0;
     p->fout->format = PVS_AMP_FREQ;
     p->fout->framecount = 1;
+    bframe = (float *)  p->fout->frame.auxp;
+    for(i=0; i < N+2; i+=2){
+    bframe[i] = 0.f;
+    bframe[i+1] = (i/2)*N/csound->esr;
+    }
     return OK;
 }
 
