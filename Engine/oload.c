@@ -327,7 +327,6 @@ const ENVIRON cenviron_ = {
         0,              /*  initonly            */
         0,              /*  evt_poll_cnt        */
         0,              /*  evt_poll_maxcnt     */
-        "",             /*  name_full           */
         0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
         FL(-1.0), FL(-1.0), /*  tran_sr,tran_kr */
         FL(-1.0),       /*  tran_ksmps          */

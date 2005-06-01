@@ -56,13 +56,6 @@ extern "C" {
 #define SETBEG    6
 #define PSET      6
 #define SETEND    7
-  /* #define VSET      6 */
-  /* #define GVSET     7 */
-  /* #define VDIM      8 */
-  /* #define VPROGS    9 */
-  /* #define DVPROGS   10 */
-  /* #define PGMINIT   17 */
-  /* #define DPGMINIT  18 */
 
 #define MAXINSNO   (200)
 #define PMAX       (1000)
@@ -734,7 +727,6 @@ extern "C" {
     void (*DestroyThreadLock)(void *csound, void *lock);
     void (*SetFLTKThreadLocking)(void *csound, int isLocking);
     int (*GetFLTKThreadLocking)(void *csound);
-    /* IV - Jan 27 2005: new functions */
     void (*timers_struct_init)(RTCLOCK*);
     double (*timers_get_real_time)(RTCLOCK*);
     double (*timers_get_CPU_time)(RTCLOCK*);
@@ -768,10 +760,10 @@ extern "C" {
     void (*RealFFT)(void *csound, MYFLT *buf, int FFTsize);
     void (*InverseRealFFT)(void *csound, MYFLT *buf, int FFTsize);
     void (*RealFFTMult)(void *csound, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                        int FFTsize, MYFLT scaleFac);
-    int (*AddUtility)(void *csound_, const char *name,
-                      int (*UtilFunc)(void*, int, char**));
-    int (*Utility)(void *csound_, const char *name, int argc, char **argv);
+                                      int FFTsize, MYFLT scaleFac);
+    int (*AddUtility)(void *csound, const char *name,
+                                    int (*UtilFunc)(void*, int, char**));
+    int (*Utility)(void *csound, const char *name, int argc, char **argv);
     char **(*ListUtilities)(void *csound);
     int (*SetUtilityDescription)(void *csound, const char *utilName,
                                                const char *utilDesc);
@@ -882,7 +874,6 @@ extern "C" {
     int           initonly;
     int           evt_poll_cnt;
     int           evt_poll_maxcnt;
-    char          name_full[256];           /* Remember name used */
     int           Mforcdecs, Mxtroffs, MTrkend;
     MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
