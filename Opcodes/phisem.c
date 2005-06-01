@@ -62,7 +62,7 @@ static int my_random(int max) /* Return Random Int Between 0 and max */
 }
 #endif
 
-static MYFLT noise_tick(void) /*  Return random MYFLT float between -1.0 and 1.0 */
+static MYFLT noise_tick(void) /* Return random MYFLT float between -1.0 and 1.0 */
 {
     MYFLT temp =
       ((MYFLT)rand() - (MYFLT)(RAND_MAX/2)) / (MYFLT)(RAND_MAX/2);
@@ -358,16 +358,16 @@ int sekere(ENVIRON *csound, SEKERE *p)
 
     for (n=0;n<nsmps;n++) {
 /*        if (shakeEnergy > MIN_ENERGY) { */
-      shakeEnergy *= systemDecay;               /* Exponential system decay */
+      shakeEnergy *= systemDecay;           /* Exponential system decay */
       if (MY_RANDOM(1024) < p->num_objects) {
         sndLevel += gain * shakeEnergy;
       }
       input = sndLevel * noise_tick();      /* Actual Sound is Random */
-      sndLevel *= soundDecay;                   /* Exponential Sound decay  */
-      input -= outputs0*coeff0; /* Do */
-      input -= outputs1*coeff1; /* resonant */
-      outputs1 = outputs0;       /* filter */
-      outputs0 = input;         /* calculations */
+      sndLevel *= soundDecay;               /* Exponential Sound decay  */
+      input -= outputs0*coeff0;             /* Do */
+      input -= outputs1*coeff1;             /* resonant */
+      outputs1 = outputs0;                  /* filter */
+      outputs0 = input;                     /* calculations */
       p->finalZ2 = p->finalZ1;
       p->finalZ1 = p->finalZ0;
       p->finalZ0 = p->outputs1;
@@ -476,16 +476,16 @@ int guiroset(ENVIRON *csound, GUIRO *p)
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
                - (int)(csound->ekr * *p->dettack);
 
-    p->outputs00 = FL(0.0);
-    p->outputs01 = FL(0.0);
-    p->outputs10 = FL(0.0);
-    p->outputs11 = FL(0.0);
+    p->outputs00    = FL(0.0);
+    p->outputs01    = FL(0.0);
+    p->outputs10    = FL(0.0);
+    p->outputs11    = FL(0.0);
 
     p->totalEnergy  = FL(0.0);
     p->ratchetDelta = FL(0.0005);
-    p->finalZ0    = FL(0.0);
-    p->finalZ1    = FL(0.0);
-    p->finalZ2    = FL(0.0);
+    p->finalZ0      = FL(0.0);
+    p->finalZ1      = FL(0.0);
+    p->finalZ2      = FL(0.0);
 
     p->num_objects = (MYFLT)GUIR_NUM_PARTS;
     p->soundDecay = GUIR_SOUND_DECAY;
@@ -635,17 +635,17 @@ int tambourset(ENVIRON *csound, TAMBOURINE *p)
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
                - (int)(csound->ekr * *p->dettack);
 
-    p->outputs00 = FL(0.0);
-    p->outputs01 = FL(0.0);
-    p->outputs10 = FL(0.0);
-    p->outputs11 = FL(0.0);
-    p->outputs20 = FL(0.0);
-    p->outputs21 = FL(0.0);
+    p->outputs00       = FL(0.0);
+    p->outputs01       = FL(0.0);
+    p->outputs10       = FL(0.0);
+    p->outputs11       = FL(0.0);
+    p->outputs20       = FL(0.0);
+    p->outputs21       = FL(0.0);
 
-    p->totalEnergy  = FL(0.0);
-    p->finalZ0    = FL(0.0);
-    p->finalZ1    = FL(0.0);
-    p->finalZ2    = FL(0.0);
+    p->totalEnergy     = FL(0.0);
+    p->finalZ0         = FL(0.0);
+    p->finalZ1         = FL(0.0);
+    p->finalZ2         = FL(0.0);
 
     p->num_objectsSave = p->num_objects = (MYFLT)TAMB_NUM_TIMBRELS;
     p->soundDecay      = TAMB_SOUND_DECAY;
@@ -736,7 +736,7 @@ int tambourine(ENVIRON *csound, TAMBOURINE *p)
         inputs0 = sndLevel * noise_tick();      /* Actual Sound is Random */
         inputs1 = inputs0;
         inputs2 = inputs0;
-        sndLevel *= soundDecay;                   /* Exponential Sound decay  */
+        sndLevel *= soundDecay;                 /* Exponential Sound decay  */
         p->finalZ2 = p->finalZ1;
         p->finalZ1 = p->finalZ0;
         p->finalZ0 = FL(0.0);
@@ -773,36 +773,36 @@ int bambooset(ENVIRON *csound, BAMBOO *p)
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
                - (int)(csound->ekr * *p->dettack);
 
-    p->outputs00 = FL(0.0);
-    p->outputs01 = FL(0.0);
-    p->outputs10 = FL(0.0);
-    p->outputs11 = FL(0.0);
-    p->outputs20 = FL(0.0);
-    p->outputs21 = FL(0.0);
+    p->outputs00       = FL(0.0);
+    p->outputs01       = FL(0.0);
+    p->outputs10       = FL(0.0);
+    p->outputs11       = FL(0.0);
+    p->outputs20       = FL(0.0);
+    p->outputs21       = FL(0.0);
 
-    p->totalEnergy  = FL(0.0);
+    p->totalEnergy     = FL(0.0);
 
-    p->res_freq0 = BAMB_CENTER_FREQ0;
-    p->res_freq1 = BAMB_CENTER_FREQ1;
-    p->res_freq2 = BAMB_CENTER_FREQ2;
+    p->res_freq0       = BAMB_CENTER_FREQ0;
+    p->res_freq1       = BAMB_CENTER_FREQ1;
+    p->res_freq2       = BAMB_CENTER_FREQ2;
     p->num_objectsSave = p->num_objects = BAMB_NUM_TUBES;
-    p->soundDecay = BAMB_SOUND_DECAY;
-    p->systemDecay = BAMB_SYSTEM_DECAY;
-    temp = (MYFLT)log((double)BAMB_NUM_TUBES) * BAMB_GAIN /
+    p->soundDecay      = BAMB_SOUND_DECAY;
+    p->systemDecay     = BAMB_SYSTEM_DECAY;
+    temp               = (MYFLT)log((double)BAMB_NUM_TUBES) * BAMB_GAIN /
       (MYFLT) BAMB_NUM_TUBES;
-    p->gain=temp;
-    p->coeffs01 = BAMB_RESON * BAMB_RESON;
-    p->coeffs00 = -BAMB_RESON * FL(2.0) *
+    p->gain            = temp;
+    p->coeffs01        = BAMB_RESON * BAMB_RESON;
+    p->coeffs00        = -BAMB_RESON * FL(2.0) *
       (MYFLT)cos((double)BAMB_CENTER_FREQ0 * csound->tpidsr);
-    p->coeffs11 = BAMB_RESON * BAMB_RESON;
-    p->coeffs10 = -BAMB_RESON * FL(2.0) *
+    p->coeffs11        = BAMB_RESON * BAMB_RESON;
+    p->coeffs10        = -BAMB_RESON * FL(2.0) *
       (MYFLT)cos((double)BAMB_CENTER_FREQ1 * csound->tpidsr);
-    p->coeffs21 = BAMB_RESON * BAMB_RESON;
-    p->coeffs20 = -BAMB_RESON * FL(2.0) *
+    p->coeffs21        = BAMB_RESON * BAMB_RESON;
+    p->coeffs20        = -BAMB_RESON * FL(2.0) *
       (MYFLT)cos((double)BAMB_CENTER_FREQ2 * csound->tpidsr);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
-    p->shake_damp = FL(0.0);
+    p->shakeEnergy     = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shake_damp      = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     return OK;
 }
@@ -851,8 +851,8 @@ int bamboo(ENVIRON *csound, BAMBOO *p)
     {
       MYFLT shakeEnergy = p->shakeEnergy;
       MYFLT systemDecay = p->systemDecay;
-      MYFLT sndLevel = p->sndLevel;
-      MYFLT soundDecay = p->soundDecay;
+      MYFLT sndLevel    = p->sndLevel;
+      MYFLT soundDecay  = p->soundDecay;
       MYFLT inputs0, inputs1, inputs2;
       for (n=0;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
@@ -891,11 +891,11 @@ int bamboo(ENVIRON *csound, BAMBOO *p)
         data        += p->gain * p->outputs21;
 /*            if (data > 10000.0f)      data = 10000.0f; */
 /*            if (data < -10000.0f) data = -10000.0f; */
-        lastOutput = data * FL(0.00051);
-        ar[n] = lastOutput*csound->e0dbfs;
+        lastOutput   = data * FL(0.00051);
+        ar[n]        = lastOutput*csound->e0dbfs;
       }
       p->shakeEnergy = shakeEnergy;
-      p->sndLevel = sndLevel;
+      p->sndLevel    = sndLevel;
     }
     return OK;
 }
@@ -908,36 +908,36 @@ int wuterset(ENVIRON *csound, WUTER *p)
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
                - (int)(csound->ekr * *p->dettack);
 
-    p->outputs00 = FL(0.0);
-    p->outputs01 = FL(0.0);
-    p->outputs10 = FL(0.0);
-    p->outputs11 = FL(0.0);
-    p->outputs20 = FL(0.0);
-    p->outputs21 = FL(0.0);
+    p->outputs00       = FL(0.0);
+    p->outputs01       = FL(0.0);
+    p->outputs10       = FL(0.0);
+    p->outputs11       = FL(0.0);
+    p->outputs20       = FL(0.0);
+    p->outputs21       = FL(0.0);
 
-    p->totalEnergy  = FL(0.0);
+    p->totalEnergy     = FL(0.0);
 
-    p->center_freqs0 = p->res_freq0 = WUTR_CENTER_FREQ0;
-    p->center_freqs1 = p->res_freq1 = WUTR_CENTER_FREQ1;
-    p->center_freqs2 = p->res_freq2 = WUTR_CENTER_FREQ2;
+    p->center_freqs0   = p->res_freq0 = WUTR_CENTER_FREQ0;
+    p->center_freqs1   = p->res_freq1 = WUTR_CENTER_FREQ1;
+    p->center_freqs2   = p->res_freq2 = WUTR_CENTER_FREQ2;
     p->num_objectsSave = p->num_objects = (MYFLT)WUTR_NUM_SOURCES;
-    p->soundDecay = WUTR_SOUND_DECAY;
-    p->systemDecay = WUTR_SYSTEM_DECAY;
-    temp = (MYFLT)log((double)WUTR_NUM_SOURCES) * WUTR_GAIN /
+    p->soundDecay      = WUTR_SOUND_DECAY;
+    p->systemDecay     = WUTR_SYSTEM_DECAY;
+    temp               = (MYFLT)log((double)WUTR_NUM_SOURCES) * WUTR_GAIN /
       (MYFLT) WUTR_NUM_SOURCES;
-    p->gains0 = p->gains1 = p->gains2 = temp;
-    p->coeffs01 = WUTR_RESON * WUTR_RESON;
-    p->coeffs00 = -WUTR_RESON * FL(2.0) *
+    p->gains0          = p->gains1 = p->gains2 = temp;
+    p->coeffs01        = WUTR_RESON * WUTR_RESON;
+    p->coeffs00        = -WUTR_RESON * FL(2.0) *
       (MYFLT)cos((double)WUTR_CENTER_FREQ0 * csound->tpidsr);
-    p->coeffs11 = WUTR_RESON * WUTR_RESON;
-    p->coeffs10 = -WUTR_RESON * FL(2.0) *
+    p->coeffs11        = WUTR_RESON * WUTR_RESON;
+    p->coeffs10        = -WUTR_RESON * FL(2.0) *
       (MYFLT)cos((double)WUTR_CENTER_FREQ1 * csound->tpidsr);
-    p->coeffs21 = WUTR_RESON * WUTR_RESON;
-    p->coeffs20 = -WUTR_RESON * FL(2.0) *
+    p->coeffs21        = WUTR_RESON * WUTR_RESON;
+    p->coeffs20        = -WUTR_RESON * FL(2.0) *
       (MYFLT)cos((double)WUTR_CENTER_FREQ2 * csound->tpidsr);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
-    p->shake_damp = FL(0.0);
+    p->shakeEnergy     = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shake_damp      = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     return OK;
 }
@@ -1241,11 +1241,13 @@ static OENTRY localops[] = {
 { "sekere",  S(SEKERE),  5, "a", "iiooo",    (SUBR)sekereset, NULL, (SUBR)sekere},
 { "sandpaper", S(SEKERE),5, "a", "iiooo",    (SUBR)sandset, NULL,   (SUBR)sekere},
 { "stix", S(SEKERE),     5, "a", "iiooo",    (SUBR)stixset, NULL,   (SUBR)sekere},
-{ "guiro", S(GUIRO),     5, "a", "kiooooo",   (SUBR)guiroset, NULL, (SUBR)guiro},
-{ "tambourine", S(TAMBOURINE),5,"a", "kioooooo", (SUBR)tambourset, NULL, (SUBR)tambourine},
+{ "guiro", S(GUIRO),     5, "a", "kiooooo",  (SUBR)guiroset, NULL,  (SUBR)guiro },
+{ "tambourine", S(TAMBOURINE),5,"a", "kioooooo",
+                                        (SUBR)tambourset, NULL, (SUBR)tambourine},
 { "bamboo", S(BAMBOO),   5, "a", "kioooooo", (SUBR)bambooset, NULL, (SUBR)bamboo },
 { "dripwater", S(WUTER), 5, "a", "kioooooo", (SUBR)wuterset, NULL, (SUBR)wuter },
-{ "sleighbells", S(SLEIGHBELLS), 5, "a","kioooooo", (SUBR)sleighset, NULL, (SUBR)sleighbells },
+{ "sleighbells", S(SLEIGHBELLS), 5, "a","kioooooo",
+                                       (SUBR)sleighset, NULL, (SUBR)sleighbells },
 };
 
 LINKAGE

@@ -173,7 +173,8 @@ int lowpr_w_sep(ENVIRON *csound, LOWPR_SEP *p)
 static OENTRY localops[] = {
 { "lowres",   S(LOWPR),   5, "a", "akko", (SUBR)lowpr_set, NULL,   (SUBR)lowpr   },
 { "lowresx",  S(LOWPRX),  5, "a", "akkoo",(SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
-{ "vlowres", S(LOWPR_SEP),5, "a", "akkik",(SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
+{ "vlowres", S(LOWPR_SEP),5, "a", "akkik",
+                                  (SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
 };
 
 LINKAGE

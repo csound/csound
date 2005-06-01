@@ -98,7 +98,7 @@ MYFLT OneZero_tick(OneZero* z, MYFLT sample) /*   Perform Filter Operation  */
 void OneZero_setCoeff(OneZero* z, MYFLT aValue)
 {
     z->zeroCoeff = aValue;
-    if (z->zeroCoeff > FL(0.0))                  /*  Normalize gain to 1.0 max  */
+    if (z->zeroCoeff > FL(0.0))               /*  Normalize gain to 1.0 max  */
       z->sgain = z->gain / (FL(1.0) + z->zeroCoeff);
     else
       z->sgain = z->gain / (FL(1.0) - z->zeroCoeff);
@@ -195,11 +195,11 @@ int clarin(ENVIRON *csound, CLARIN *p)
 
         breathPressure = Envelope_tick(&p->envelope);
         breathPressure += breathPressure * nGain* Noise_tick(&p->noise);
-                                /* Tick on vibrato table */
+                                       /* Tick on vibrato table   */
         vTime += p->v_rate;            /*  Update current time    */
         while (vTime >= v_len)         /*  Check for end of sound */
           vTime -= v_len;              /*  loop back to beginning */
-        while (vTime < FL(0.0))            /*  Check for end of sound */
+        while (vTime < FL(0.0))        /*  Check for end of sound */
           vTime += v_len;              /*  loop back to beginning */
 
         temp_time = vTime;
@@ -209,12 +209,12 @@ int clarin(ENVIRON *csound, CLARIN *p)
           temp_time += p->v_phaseOffset;   /*  Add phase offset       */
           while (temp_time >= v_len)       /*  Check for end of sound */
             temp_time -= v_len;            /*  loop back to beginning */
-          while (temp_time < FL(0.0))          /*  Check for end of sound */
+          while (temp_time < FL(0.0))      /*  Check for end of sound */
             temp_time += v_len;            /*  loop back to beginning */
         }
 #endif
         temp = (long) temp_time;    /*  Integer part of time address    */
-                                /*  fractional part of time address */
+                                    /*  fractional part of time address */
         alpha = temp_time - (MYFLT)temp;
         v_lastOutput = v_data[temp]; /* Do linear interpolation */
                         /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
@@ -223,11 +223,12 @@ int clarin(ENVIRON *csound, CLARIN *p)
         breathPressure += breathPressure * vibGain * v_lastOutput;
         pressureDiff = OneZero_tick(&p->filter, /* differential pressure  */
                                    DLineL_lastOut(&p->delayLine));
-        pressureDiff = (-FL(0.95)*pressureDiff) - breathPressure;  /* of reflected and mouth */
-          nextsamp = pressureDiff * ReedTabl_LookUp(&p->reedTable,pressureDiff);
+        pressureDiff = (-FL(0.95)*pressureDiff) - breathPressure;
+                                    /* of reflected and mouth */
+        nextsamp = pressureDiff * ReedTabl_LookUp(&p->reedTable,pressureDiff);
         nextsamp =  breathPressure + nextsamp;
-        lastOutput =
-          DLineL_tick(&p->delayLine, nextsamp); /* perform scattering in economical way */
+                                  /* perform scattering in economical way */
+        lastOutput = DLineL_tick(&p->delayLine, nextsamp);
         lastOutput *= p->outputGain;
         ar[n] = lastOutput*AMP_SCALE;
     }
@@ -274,7 +275,7 @@ int fluteset(ENVIRON *csound, FLUTE *p)
     long        length;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) p->vibr = ftp;
-    else {                                      /* Expect sine wave */
+    else {                                   /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Flute"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
@@ -312,11 +313,13 @@ int fluteset(ENVIRON *csound, FLUTE *p)
     /*    p->vibrGain = 0.05;  */ /* breath periodic vibrato component  */
     /*    p->jetRatio = 0.32;  */
       p->lastamp = FL(1.0);             /* Remember */
-      ADSR_setAttackRate(csound, &p->adsr, FL(0.02));/* This should be controlled by attack */
+                                        /* This should be controlled by attack */
+      ADSR_setAttackRate(csound, &p->adsr, FL(0.02));
       p->maxPress = FL(2.3) / FL(0.8);
       p->outputGain = FL(1.001);
       ADSR_keyOn(&p->adsr);
-      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*csound->ekr - csound->ekr*(*p->dettack)));
+      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*csound->ekr -
+                               csound->ekr*(*p->dettack)));
 
       p->lastFreq = FL(0.0);
       p->lastJet = -FL(1.0);
@@ -339,7 +342,8 @@ int flute(ENVIRON *csound, FLUTE *p)
     MYFLT       jetRefl, endRefl, noisegain;
 
     if (amp!=p->lastamp) {      /* If amplitude has changed */
-      ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.02));/* This should be controlled by attack */
+                     /* This should be controlled by attack */
+      ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.02));
       p->maxPress = (FL(1.1) + (amp * FL(0.20))) / FL(0.8);
       p->outputGain = amp + FL(0.001);
       p->lastamp = amp;
@@ -351,13 +355,15 @@ int flute(ENVIRON *csound, FLUTE *p)
       p->lastJet = *p->jetRatio;
       /* freq = (2/3)*p->frequency as we're overblowing here */
       /* but 1/(2/3) is 1.5 so multiply for speed */
-      temp = FL(1.5)* csound->esr / p->lastFreq - FL(2.0);/* Length - approx. filter delay */
+                            /* Length - approx. filter delay */
+      temp = FL(1.5)* csound->esr / p->lastFreq - FL(2.0);
       DLineL_setDelay(&p->boreDelay, temp); /* Length of bore tube */
       DLineL_setDelay(&p->jetDelay, temp * p->lastJet); /* jet delay shorter */
     }
     else if (*p->jetRatio != p->lastJet) { /* Freq same but jet changed */
       p->lastJet = *p->jetRatio;
-      temp = FL(1.5)* csound->esr / p->lastFreq - FL(2.0);      /* Length - approx. filter delay */
+                                            /* Length - approx. filter delay */
+      temp = FL(1.5)* csound->esr / p->lastFreq - FL(2.0);
       DLineL_setDelay(&p->jetDelay, temp * p->lastJet); /* jet delay shorter */
     }
                                 /* End SetFreq */
@@ -386,17 +392,17 @@ int flute(ENVIRON *csound, FLUTE *p)
       v_time += p->v_rate;            /*  Update current time    */
       while (v_time >= v_len)         /*  Check for end of sound */
         v_time -= v_len;              /*  loop back to beginning */
-      while (v_time < FL(0.0))           /*  Check for end of sound */
+      while (v_time < FL(0.0))        /*  Check for end of sound */
         v_time += v_len;              /*  loop back to beginning */
 
       temp_time = v_time;
 
 #ifdef phase_offset
       if (p->v_phaseOffset != FL(0.0)) {
-        temp_time += p->v_phaseOffset;   /*  Add phase offset       */
+        temp_time += p->v_phaseOffset;/*  Add phase offset       */
         while (temp_time >= v_len)    /*  Check for end of sound */
           temp_time -= v_len;         /*  loop back to beginning */
-        while (temp_time < FL(0.0))      /*  Check for end of sound */
+        while (temp_time < FL(0.0))   /*  Check for end of sound */
           temp_time += v_len;         /*  loop back to beginning */
       }
 #endif
@@ -417,7 +423,8 @@ int flute(ENVIRON *csound, FLUTE *p)
       pressDiff = DLineL_tick(&p->jetDelay, pressDiff);  /* Jet Delay Line */
       pressDiff = JetTabl_lookup(pressDiff)  /* Non-Lin Jet + reflected */
                      + (endRefl * temf);
-      lastOutput = FL(0.3) * DLineL_tick(&p->boreDelay, pressDiff);  /* Bore Delay and "bell" filter  */
+                                       /* Bore Delay and "bell" filter  */
+      lastOutput = FL(0.3) * DLineL_tick(&p->boreDelay, pressDiff);
 
       lastOutput *= p->outputGain;
       ar[n] = lastOutput*AMP_SCALE*FL(1.4);
@@ -567,11 +574,13 @@ int bowed(ENVIRON *csound, BOWED *p)
 
       bowVelocity = maxVel * ADSR_tick(&p->adsr);
 
-      bridgeRefl = - OnePole_tick(&p->reflFilt, p->bridgeDelay.lastOutput);  /* Bridge Reflection      */
-      nutRefl = - p->neckDelay.lastOutput; /* Nut Reflection  */
-      stringVel = bridgeRefl + nutRefl; /* Sum is String Velocity */
-      velDiff = bowVelocity - stringVel; /* Differential Velocity  */
-      newVel = velDiff * BowTabl_lookup(csound, &p->bowTabl, velDiff);  /* Non-Lin Bow Function   */
+      /* Bridge Reflection      */
+      bridgeRefl = - OnePole_tick(&p->reflFilt, p->bridgeDelay.lastOutput);
+      nutRefl = - p->neckDelay.lastOutput;       /* Nut Reflection  */
+      stringVel = bridgeRefl + nutRefl;          /* Sum is String Velocity */
+      velDiff = bowVelocity - stringVel;         /* Differential Velocity  */
+                                                 /* Non-Lin Bow Function   */
+      newVel = velDiff * BowTabl_lookup(csound, &p->bowTabl, velDiff);
       DLineL_tick(&p->neckDelay, bridgeRefl + newVel);  /* Do string       */
       DLineL_tick(&p->bridgeDelay, nutRefl + newVel);   /*   propagations  */
 
@@ -667,8 +676,9 @@ void make_DLineA(ENVIRON *csound, DLineA *p, long max_length)
 int DLineA_setDelay(ENVIRON *csound, DLineA *p, MYFLT lag)
 {
     MYFLT outputPointer;
-    outputPointer = (MYFLT)p->inPoint - lag + FL(2.0);  /* outPoint chases inpoint        */
-                                                    /*   + 2 for interp and other     */
+  /* outPoint chases inpoint + 2 for interp and other        */
+    outputPointer = (MYFLT)p->inPoint - lag + FL(2.0);
+
     if (p->length<=0) {
       return csound->PerfError(csound, Str("DlineA not initialised"));
     }
@@ -681,7 +691,7 @@ int DLineA_setDelay(ENVIRON *csound, DLineA *p, MYFLT lag)
       p->outPoint++;                        /*  cancellation.  Keeps allpass  */
       p->alpha += FL(1.0);                  /*  delay in range of .1 to 1.1   */
     }
-    p->coeff = (FL(1.0) - p->alpha)/(FL(1.0) + p->alpha); /* coefficient for all pass*/
+    p->coeff = (FL(1.0)-p->alpha)/(FL(1.0)+p->alpha); /* coefficient for all pass*/
     return 0;
 }
 
@@ -736,7 +746,7 @@ MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
     temp = temp*temp;                    /* Simple position to area mapping */
     if (temp > FL(1.0)) temp = FL(1.0);  /* Saturation at + 1.0          */
     output = temp * mouthSample;         /* Assume mouth input = area    */
-    output += (FL(1.0) - temp) * boreSample; /* and Bore reflection is compliment */
+    output += (FL(1.0)-temp) * boreSample; /* and Bore reflection is compliment */
     return output;
 }
 
@@ -777,14 +787,16 @@ int brassset(ENVIRON *csound, BRASS *p)
       /* Set frequency */
       /*      p->slideTarget = (csound->esr / p->frq * FL(2.0)) + 3.0f; */
       /* fudge correction for filter delays */
-      /*      DLineA_setDelay(&p->delayLine, p->slideTarget);*/ /* we'll play a harmonic  */
+      /*      DLineA_setDelay(&p->delayLine, p->slideTarget);*/
+      /* we'll play a harmonic  */
       p->lipTarget = FL(0.0);
 /*        LipFilt_setFreq(csound, &p->lipFilter, p->frq); */
       /* End of set frequency */
       p->frq = FL(0.0);         /* to say we do not know */
       p->lipT = FL(0.0);
       /*     LipFilt_setFreq(csound, &p->lipFilter, */
-      /*                     p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0)); */
+      /*                     p->lipTarget * (MYFLT)pow(4.0,
+                                                       (2.0* p->lipT) -1.0)); */
       {
         int relestim = (int)(csound->ekr * FL(0.1));
         /* 1/10th second decay extention */
@@ -870,9 +882,10 @@ int brass(ENVIRON *csound, BRASS *p)
       lastOutput =
         DLineA_tick(&p->delayLine,        /* bore delay  */
              DCBlock_tick(&p->dcBlock,    /* block DC    */
-                  LipFilt_tick(&p->lipFilter,
-                               FL(0.3) * breathPressure, /* mouth input */
-                               FL(0.85) * p->delayLine.lastOutput))); /* and bore reflection */
+                LipFilt_tick(&p->lipFilter,
+                             FL(0.3) * breathPressure, /* mouth input */
+                                               /* and bore reflection */
+                             FL(0.85) * p->delayLine.lastOutput)));
       ans = lastOutput*AMP_SCALE*FL(3.5);
       ar[n] = ans;
     }
@@ -888,29 +901,29 @@ int brass(ENVIRON *csound, BRASS *p)
 #include "fm4op.h"
 #include "bowedbar.h"
 
-int tubebellset(void*);
-int tubebell(void*);
-int rhodeset(void*);
-int wurleyset(void*);
-int wurley(void*);
-int heavymetset(void*);
-int heavymet(void*);
-int b3set(void*);
-int hammondB3(void*);
-int FMVoiceset(void*);
-int FMVoice(void*);
-int percfluteset(void*);
-int percflute(void*);
-int Moog1set(void*);
-int Moog1(void*);
-int mandolinset(void*);
-int mandolin(void*);
-int voicformset(void*);
-int voicform(void*);
-int shakerset(void*);
-int shaker(void*);
-int bowedbarset(void*);
-int bowedbar(void*);
+int tubebellset(void*,void*);
+int tubebell(void*,void*);
+int rhodeset(void*,void*);
+int wurleyset(void*,void*);
+int wurley(void*,void*);
+int heavymetset(void*,void*);
+int heavymet(void*,void*);
+int b3set(void*,void*);
+int hammondB3(void*,void*);
+int FMVoiceset(void*,void*);
+int FMVoice(void*,void*);
+int percfluteset(void*,void*);
+int percflute(void*,void*);
+int Moog1set(void*,void*);
+int Moog1(void*,void*);
+int mandolinset(void*,void*);
+int mandolin(void*,void*);
+int voicformset(void*,void*);
+int voicform(void*,void*);
+int shakerset(void*,void*);
+int shaker(void*,void*);
+int bowedbarset(void*,void*);
+int bowedbar(void*,void*);
 
 static OENTRY localops[] = {
 { "wgclar",  S(CLARIN),5, "a", "kkkiikkkio",(SUBR)clarinset,NULL,   (SUBR)clarin},
@@ -919,13 +932,16 @@ static OENTRY localops[] = {
 { "wgbrass", S(BRASS), 5, "a", "kkkikkio", (SUBR)brassset, NULL,     (SUBR)brass},
 { "mandol", S(MANDOL), 5, "a", "kkkkkkio", (SUBR)mandolinset, NULL,(SUBR)mandolin},
 { "voice", S(VOICF),   5, "a", "kkkkkkii", (SUBR)voicformset, NULL,(SUBR)voicform},
-{ "fmbell",  S(FM4OP), 5, "a", "kkkkkkiiiii",(SUBR)tubebellset,NULL,(SUBR)tubebell},
+{ "fmbell",  S(FM4OP), 5, "a", "kkkkkkiiiii",
+                                            (SUBR)tubebellset,NULL,(SUBR)tubebell},
 { "fmrhode", S(FM4OP), 5, "a", "kkkkkkiiiii",(SUBR)rhodeset,NULL,  (SUBR)tubebell},
-{ "fmwurlie", S(FM4OP),5, "a", "kkkkkkiiiii",(SUBR)wurleyset, NULL,(SUBR) wurley},
-{ "fmmetal", S(FM4OP), 5, "a", "kkkkkkiiiii",(SUBR)heavymetset, NULL, (SUBR)heavymet},
-{ "fmb3", S(FM4OP),    5, "a", "kkkkkkiiiii", (SUBR)b3set, NULL, (SUBR)hammondB3},
-{ "fmvoice", S(FM4OPV),5, "a", "kkkkkkiiiii",(SUBR)FMVoiceset, NULL, (SUBR)FMVoice},
-{ "fmpercfl", S(FM4OP),5, "a", "kkkkkkiiiii",(SUBR)percfluteset, NULL, (SUBR)percflute},
+{ "fmwurlie", S(FM4OP),5, "a", "kkkkkkiiiii",(SUBR)wurleyset, NULL,(SUBR) wurley },
+{ "fmmetal", S(FM4OP), 5, "a", "kkkkkkiiiii",
+                                          (SUBR)heavymetset, NULL, (SUBR)heavymet},
+{ "fmb3", S(FM4OP),    5, "a", "kkkkkkiiiii", (SUBR)b3set, NULL, (SUBR)hammondB3 },
+{ "fmvoice", S(FM4OPV),5, "a", "kkkkkkiiiii",(SUBR)FMVoiceset,NULL,(SUBR)FMVoice},
+{ "fmpercfl", S(FM4OP),5, "a", "kkkkkkiiiii",
+                                        (SUBR)percfluteset, NULL, (SUBR)percflute},
 { "moog", S(MOOG1),    5, "a", "kkkkkkiii", (SUBR)Moog1set, NULL, (SUBR)Moog1  },
 { "shaker", S(SHAKER), 5, "a", "kkkkko",  (SUBR)shakerset, NULL,   (SUBR)shaker},
 { "wgbowedbar", S(BOWEDBAR), 5, "a","kkkkkoooo",
