@@ -57,8 +57,11 @@ typedef struct in_stack {
     short   args;
     char    *body;
     FILE    *file;
+    void    *fd;
     MACRO   *mac;
     int     line;
+    int     unget_cnt;
+    char    unget_buf[128];
 } IN_STACK;
 
 typedef struct iflabel {            /* for if/else/endif */
@@ -72,7 +75,9 @@ typedef struct {
     MACRO   *macros;
     long    lenmax /* = LENMAX */;  /* Length of input line buffer  */
     char    **linadr;               /* adr of each line in text     */
+#if 0   /* unused */
     int     *srclin;                /* text no. of expanded lines   */
+#endif
     int     curline;                /* current line being examined  */
     char    *collectbuf;            /* splitline collect buffer     */
     char    **group;                /* splitline local storage      */
@@ -91,6 +96,7 @@ typedef struct {
     ARGLST  *nxtarglist, *nullist;
     IN_STACK  *inputs, *str;
     FILE    *fp;
+    void    *fd;
     int     input_size, input_cnt;
     int     pop;                    /* Number of macros to pop      */
     int     ingappop /* = 1 */;
@@ -132,7 +138,9 @@ void orchRESET(ENVIRON *csound)
       return;
 
     mfree(csound, ST(linadr));
+#if 0   /* unused */
     mfree(csound, ST(srclin));
+#endif
     if (ST(nxtarglist) != NULL)
       mfree(csound, ST(nxtarglist));
     if (ST(nullist) != NULL)
@@ -164,22 +172,36 @@ ARGLST* copy_arglist(ENVIRON *csound, ARGLST *old)
     return nn;
 }
 
-/* Two functions to read/unread chracters from
+static inline int isNameChar(int c, int pos)
+{
+    c = (int) ((unsigned char) c);
+    return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
+}
+
+/* Functions to read/unread chracters from
  * a stack of file and macro inputs */
 
-#define ungetorchar(c)                      \
-{                                           \
-    if (ST(str)->string) ST(str)->body--;   \
-    else ungetc(c, ST(str)->file);          \
+static inline void ungetorchar(void *csound, int c)
+{
+    if (ST(str)->unget_cnt < 128)
+      ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
+    else
+      csoundDie(csound, "ungetorchar(): buffer overflow");
 }
 
 static void skiporchar(ENVIRON *csound)
 {
     int c;
  top:
-    if (ST(str)->string) {
-      c= *ST(str)->body++;
-      if (c == '\n' || c == '\r') {
+    if (ST(str)->unget_cnt) {
+      c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
+      if (c == '\n')
+        return;
+      goto top;
+    }
+    else if (ST(str)->string) {
+      c = *ST(str)->body++;
+      if (c == '\n') {
         ST(str)->line++; ST(linepos) = -1;
         return;
       }
@@ -194,11 +216,10 @@ static void skiporchar(ENVIRON *csound)
       c = getc(ST(str)->file);
       if (c == '\n' || c == '\r' || c == 26) {    /* MS-DOS spare ^Z */
         ST(str)->line++; ST(linepos) = -1;
-/*      csound->Message(csound, "ends with %.2x\n", c); */
-        if (c=='\r') {
-          if ((c = getc(ST(str)->file))!='\n') ungetc(c, ST(str)->file);
+        if (c == '\r') {
+          if ((c = getc(ST(str)->file)) != '\n')
+            ungetc(c, ST(str)->file);
         }
-/*      csound->Message(csound, "...ends with %.2x\n", c); */
         return;
       }
       if (c == EOF) {
@@ -206,8 +227,9 @@ static void skiporchar(ENVIRON *csound)
           ST(linepos) = -1;
           return;
         }
-        fclose(ST(str)->file);
-        mfree(csound, ST(str)->body);
+        if (ST(str)->fd != NULL) {
+          csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
+        }
         ST(str)--; ST(input_cnt)--;
         ST(str)->line++; ST(linepos) = -1;
         return;
@@ -221,8 +243,12 @@ static int getorchar(ENVIRON *csound)
 {
     int c;
  top:
-    if (ST(str)->string) {
-      c= *ST(str)->body++;
+    if (ST(str)->unget_cnt) {
+      c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
+      return c;
+    }
+    else if (ST(str)->string) {
+      c = *ST(str)->body++;
       if (c == '\0') {
         ST(pop) += ST(str)->args;
         ST(str)--; ST(input_cnt)--;
@@ -234,18 +260,18 @@ static int getorchar(ENVIRON *csound)
       if (c == 26) goto top;    /* MS-DOS spare ^Z */
       if (c == EOF) {
         if (ST(str) == &ST(inputs)[0]) return EOF;
-        fclose(ST(str)->file);
-        mfree(csound, ST(str)->body);
+        if (ST(str)->fd != NULL) {
+          csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
+        }
         ST(str)--; ST(input_cnt)--; goto top;
       }
     }
     if (c == '\r') {
       int d;
-      if ((d=getc(ST(str)->file)!='\n')) {
-/*      csound->Message(csound, "next char is %c(%.2x)\n", d, d); */
+      if ((d = getc(ST(str)->file) != '\n')) {
         ungetc(d, ST(str)->file);
       }
-      c = '\n';                 /* *** Problem here with line endings *** */
+      c = '\n';
     }
     if (c == '\n') {
       ST(str)->line++; ST(linepos) = -1;
@@ -269,34 +295,31 @@ static int getorchar(ENVIRON *csound)
     return c;
 }
 
-FILE *fopen_path(ENVIRON *csound, char *name, char *basename, char *env)
+void *fopen_path(ENVIRON *csound, FILE **fp, char *name, char *basename,
+                                  char *env)
 {
-    FILE *ff;
-    char *p;
+    void *fd;
                                 /* First try to open name given */
-    strcpy(csound->name_full, name);
-    if ((ff = fopen(csound->name_full, "rb")) != NULL)
-      return ff;
+    fd = csound->FileOpen(csound, fp, CSFILE_STD, name, "rb", NULL);
+    if (fd != NULL)
+      return fd;
                                 /* if that fails try in base directory */
-    strcpy(csound->name_full, basename);
-    p = strrchr(csound->name_full, DIRSEP);
-    if (p == NULL)
-      p = strrchr(csound->name_full, '/');
-    if (p == NULL)
-      p = strrchr(csound->name_full, '\\');
-    if (p != NULL) {
-      strcpy(p+1, name);
-      if ((ff = fopen(csound->name_full, "rb")) != NULL)
-        return ff;
+    if (basename != NULL) {
+      char *p, name_full[1024];
+      strcpy(name_full, basename);
+      p = strrchr(name_full, DIRSEP);
+      if (p == NULL) p = strrchr(name_full, '/');
+      if (p == NULL) p = strrchr(name_full, '\\');
+      if (p != NULL) {
+        strcpy(p + 1, name);
+        fd = csound->FileOpen(csound, fp, CSFILE_STD, name_full, "rb", NULL);
+        if (fd != NULL)
+          return fd;
+      }
     }
                                 /* or use env argument */
-    ff = NULL;
-    p = csoundFindInputFile(csound, name, env);
-    if (p != NULL) {
-      ff = fopen(p, "rb");
-      mfree(csound, p);
-    }
-    return ff;
+    fd = csound->FileOpen(csound, fp, CSFILE_STD, name, "rb", env);
+    return fd;
 }
 
 static void init_omacros(ENVIRON *csound, NAMES *nn)
@@ -363,25 +386,31 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       }
     }
     csound->Message(csound, Str("orch compiler:\n"));
-    if ((ST(fp) = fopen(csound->orchname, "r")) == NULL)
+    if ((ST(fd) = csound->FileOpen(csound, &ST(fp), CSFILE_STD,
+                                   csound->orchname, "rb", NULL)) == NULL)
       csoundDie(csound, Str("cannot open orch file %s"), csound->orchname);
     if (fseek(ST(fp), 0L, SEEK_END) != 0)
       csoundDie(csound, Str("cannot find end of file %s"), csound->orchname);
     if ((ST(orchsiz) = ftell(ST(fp))) <= 0)
       csoundDie(csound, Str("ftell error on %s"), csound->orchname);
     rewind(ST(fp));
-    ST(inputs) = (struct in_stack*)mmalloc(csound, 20*sizeof(struct in_stack));
+    ST(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
     ST(input_size) = 20;
     ST(input_cnt) = 0;
     ST(str) = ST(inputs);
     ST(str)->string = 0;
     ST(str)->file = ST(fp);
+    ST(str)->fd = ST(fd);
     ST(str)->body = csound->orchname;
+    ST(str)->line = 1;
+    ST(str)->unget_cnt = 0;
     ortext = mmalloc(csound, ST(orchsiz) + 1);          /* alloc mem spaces */
     ST(linadr) = (char **) mmalloc(csound, (LINMAX + 1) * sizeof(char *));
+#if 0   /* unused */
     ST(srclin) = (int *) mmalloc(csound, (LINMAX + 1) * sizeof(int));
-    strsav_create(csound);
     ST(srclin)[1] = 1;
+#endif
+    strsav_create(csound);
     lincnt = srccnt = 1;
     cp = ST(linadr)[1] = ortext;
     endspace = ortext + ST(orchsiz) + 1;
@@ -399,8 +428,6 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         ST(orchsiz) = (ST(orchsiz) + 511L) & (~511L);
         ortext = mrealloc(csound, ortext, ST(orchsiz));
         endspace = ortext + ST(orchsiz) + 1;
-/*      csound->Message(csound, "Orchestra Text extended to %ld\n",
-                                ST(orchsiz)); */
         if (ortext != orold) {
           int adj = ortext - orold;
           for (i=1; i<=lincnt; i++)
@@ -410,24 +437,22 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       }
       *cp++ = c;
       if (c == '{' && !openquote) {
-        char c2 = getorchar(csound);
+        char  c2 = getorchar(csound);
         if (c2 == '{') {
           heredoc = 1;
           *cp++ = c;
         }
-        else {
-          ungetorchar(c);
-        }
+        else
+          ungetorchar(csound, c2);
       }
       else if (c == '}' && heredoc) {
-        char c2 = getorchar(csound);
+        char  c2 = getorchar(csound);
         if (c2 == '}') {
           heredoc = 0;
           *cp++ = c;
         }
-        else {
-          ungetorchar(c);
-        }
+        else
+          ungetorchar(csound, c2);
       }
       if (c == ';' && !heredoc) {
         skiporchar(csound);
@@ -445,7 +470,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         if (c == '\n' || c == '\r') {
           cp--;                                      /* Ignore newline */
           srccnt++;                                  /*    record a fakeline */
-/*        ST(srclin)[++lincnt] = 0; */
+/*        ST(srclin)[++lincnt] = 0;     unused  */
 /*        ST(linadr)[lincnt] = cp; */
         }
         else {
@@ -461,23 +486,24 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         }
         srccnt++;
         if (++lincnt >= linmax) {
-/*        csound->Message(csound, "too many lines...increasing\n"); */
           linmax += 100;
           ST(linadr) = (char**) mrealloc(csound, ST(linadr), (linmax + 1)
                                                              * sizeof(char*));
+#if 0   /* unused */
           ST(srclin) = (int*) mrealloc(csound, ST(srclin), (linmax + 1)
                                                            * sizeof(int));
+#endif
         }
-        ST(srclin)[lincnt] = srccnt;
+  /*    ST(srclin)[lincnt] = srccnt;    unused  */
         ST(linadr)[lincnt] = cp;            /* record the adrs */
       }
       else if (c == '#' && ST(linepos) == 0 && !heredoc) {
         /* Start Macro definition */
         /* also deal with #include here */
-        char mname[100];
-        int i=0;
-        int arg = 0;
-        int size = 100;
+        char  mname[100];
+        int   i = 0;
+        int   arg = 0;
+        int   size = 100;
         MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
         mm->margs = MARGS;  /* Initial size */
         cp--;
@@ -488,10 +514,10 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               (c = getorchar(csound))!='e')
             lexerr(csound, Str("Not #define"));
           while (isspace(c = getorchar(csound)));
-          do {
+          while (isNameChar(c, i)) {
             mname[i++] = c;
-          } while (isalpha(c = getorchar(csound)) ||
-                   (i != 0 && (isdigit(c) || c == '_')));
+            c = getorchar(csound);
+          }
           mname[i] = '\0';
           if (csound->oparms->msglevel)
             csound->Message(csound,Str("Macro definition for %s\n"), mname);
@@ -504,7 +530,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             do {
               while (isspace(c = getorchar(csound)));
               i = 0;
-              while (isalpha(c)|| (i!=0 && (isdigit(c)||c=='_'))) {
+              while (isNameChar(c, i)) {
                 mname[i++] = c;
                 c = getorchar(csound);
               }
@@ -518,7 +544,6 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
                 mm = (MACRO*)mrealloc(csound, mm,
                                       sizeof(MACRO)+mm->margs*sizeof(char*));
                 mm->margs += MARGS;
-/*              lexerr(csound, Str("Too many arguments to macro")); */
               }
               while (isspace(c)) c = getorchar(csound);
             } while (c=='\'' || c=='#');
@@ -566,29 +591,25 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             csound->Message(csound, "#include \"%s\"\n", mname);
 #endif
             ST(input_cnt)++;
-            if (ST(input_cnt)>=ST(input_size)) {
+            if (ST(input_cnt) >= ST(input_size)) {
               ST(input_size) += 20;
               ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
                                                         * sizeof(IN_STACK));
-              if (ST(inputs) == NULL) {
-                csoundDie(csound, Str("No space for include files"));
-              }
             }
-            ST(str)++;
+            ST(str) = (IN_STACK*) ST(inputs) + (int) ST(input_cnt);
             ST(str)->string = 0;
-            ST(str)->file = fopen_path(csound,
-                                       mname, csound->orchname, "INCDIR");
-            if (ST(str)->file==0) {
+            ST(str)->fd = fopen_path(csound, &(ST(str)->file),
+                                             mname, csound->orchname, "INCDIR");
+            if (ST(str)->fd == NULL) {
               csound->Message(csound,
                               Str("Cannot open #include'd file %s\n"), mname);
               /* Should this stop things?? */
               ST(str)--; ST(input_cnt)--;
             }
             else {
-              ST(str)->body = (char*) mmalloc(csound,
-                                              strlen(csound->name_full) + 1);
-              strcpy(ST(str)->body, csound->name_full);     /* Remember name */
+              ST(str)->body = csound->GetFileName(ST(str)->fd);
               ST(str)->line = 1;
+              ST(str)->unget_cnt = 0;
               ST(linepos) = -1;
             }
           }
@@ -598,12 +619,11 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               lexerr(csound, "Not #ifdef");
             /* #ifdef XXX */
             while (isspace(c = getorchar(csound)));
-            do {
+            while (isNameChar(c, i)) {
               mname[i++] = c;
-            } while (isalpha(c = getorchar(csound)) ||
-                     (i != 0 && (isdigit(c) || c == '_')));
+              c = getorchar(csound);
+            }
             mname[i] = '\0';
-/*          csound->Message(csound, "found: #ifdef %s\n", mname); */
             mm = ST(macros);
             while (mm != NULL) {  /* Find the definition */
               if (!(strcmp (mname, mm->name))) break;
@@ -620,10 +640,10 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               (c = getorchar(csound))!='e' || (c = getorchar(csound))!='f')
             lexerr(csound, Str("Not #undef"));
           while (isspace(c = getorchar(csound)));
-          do {
+          while (isNameChar(c, i)) {
             mname[i++] = c;
-          } while (isalpha(c = getorchar(csound)) ||
-                   (i != 0 && (isdigit(c) || c == '_')));
+            c = getorchar(csound);
+          }
           mname[i] = '\0';
           if(csound->oparms->msglevel)
             csound->Message(csound,Str("macro %s undefined\n"), mname);
@@ -650,45 +670,44 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           while (c!='\n') c = getorchar(csound);  /* ignore rest of line */
         }
         else {
-          csound->Message(csound,Str("Warning: Unknown # option"));
-          ungetorchar(c);
+          csound->Message(csound, Str("Warning: Unknown # option"));
+          ungetorchar(csound, c);
           c = '#';
         }
       }
       else if (c == '$' && !heredoc) {
-        char name[100];
-        int i=0;
-        int j;
-        MACRO *mm, *mm_save = NULL;
+        char      name[100];
+        int       i = 0;
+        int       j;
+        MACRO     *mm, *mm_save = NULL;
         ST(ingappop) = 0;
-        while (isalpha(c=getorchar(csound))|| (i!=0 && (isdigit(c)||c=='_'))) {
+        while (isNameChar((c = getorchar(csound)), i)) {
           name[i++] = c; name[i] = '\0';
           mm = ST(macros);
           while (mm != NULL) {  /* Find the definition */
-            if (!(strcmp (name, mm->name))) break;
+            if (!(strcmp(name, mm->name))) {
+              mm_save = mm;     /* found a match, save it */
+              break;
+            }
             mm = mm->next;
           }
-          if (mm != NULL) mm_save = mm; /* found a name */
         }
         mm = mm_save;
-        if (mm == NULL) {
-          csound->Die(csound,
-                      Str("Macro expansion symbol ($) without macro name"));
-        }
-        if (strlen (mm->name) != (unsigned) i) {
-          csound->Warning(csound, Str("$%s matches macro name $%s"),
-                                  name, mm->name);
-          do {
-            ungetorchar (c);
-            c = name[--i];
-          } while ((unsigned)i >= strlen (mm->name));
-          c = getorchar(csound); i++;
-        }
-        if (c != '.') ungetorchar(c);
         if (mm == NULL) {
           lexerr(csound, Str("Undefined macro"));
           continue;
         }
+        if ((int) strlen(mm->name) != i) {
+          int cnt = i - (int) strlen(mm->name);
+          csound->Warning(csound, Str("$%s matches macro name $%s"),
+                                  name, mm->name);
+          do {
+            ungetorchar(csound, c);
+            c = name[--i];
+          } while (cnt--);
+        }
+        else if (c != '.')
+          ungetorchar(csound, c);;
 #ifdef MACDEBUG
         csound->Message(csound, "Found macro %s required %d arguments\n",
                                 mm->name, mm->acnt);
@@ -709,7 +728,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             csound->Message(csound, "defining argument %s ", nn->name);
 #endif
             i = 0;
-            nn->body = (char*)mmalloc(csound, 100);
+            nn->body = (char*) mmalloc(csound, 100);
             while ((c = getorchar(csound))!= term && c!=trm1) {
               if (i>98) {
                 csound->Die(csound, Str("Missing argument terminator\n%.98s"),
@@ -730,32 +749,33 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             ST(macros) = nn;
           }
         }
-        cp--;           /* Ignore $ sign */
+        cp--;                   /* Ignore $ sign */
         ST(input_cnt)++;
-        if (ST(input_cnt)>=ST(input_size)) {
+        if (ST(input_cnt) >= ST(input_size)) {
           ST(input_size) += 20;
-          ST(inputs) = mrealloc(csound,
-                            ST(inputs), ST(input_size)*sizeof(struct in_stack));
-          if (ST(inputs) == NULL) {
-            csoundDie(csound, Str("No space for include files"));
-          }
+          ST(inputs) = (IN_STACK*) mrealloc(csound, ST(inputs),
+                                            ST(input_size) * sizeof(IN_STACK));
         }
-        ST(str)++;
+        ST(str) = (IN_STACK*) ST(inputs) + (int) ST(input_cnt);
         ST(str)->string = 1; ST(str)->body = mm->body; ST(str)->args = mm->acnt;
         ST(str)->mac = mm;
         ST(str)->line = 1;
+        ST(str)->unget_cnt = 0;
         ST(ingappop) = 1;
       }
     }
-    if (cp >= endspace) {                               /* Ought to extend */
+    if (cp >= endspace) {                   /* Ought to extend */
       csoundDie(csound, Str("file too large for ortext space"));
     }
-    if (*(cp-1) != '\n')                /* if no final NL,      */
-      *cp++ = '\n';                     /*    add one           */
+    if (*(cp-1) != '\n')                    /* if no final NL,      */
+      *cp++ = '\n';                         /*    add one           */
     else --lincnt;
     ST(linadr)[lincnt+1] = NULL;            /* terminate the adrs list */
     csound->Message(csound,Str("%d lines read\n"),lincnt);
-    fclose(ST(fp));                         /* close the file       */
+    if (ST(fd) != NULL) {
+      csound->FileClose(csound, ST(fd));    /* close the file       */
+      ST(fd) = NULL;
+    }
     ST(curline) = 0;                        /*   & reset to line 1  */
     while (ST(macros)) {                    /* Clear all macros */
       int i;
@@ -763,9 +783,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       mfree(csound, ST(macros)->name);
       for (i=0; i<ST(macros)->acnt; i++) mfree(csound, ST(macros)->arg[i]);
       ST(macros) = ST(macros)->next;
-    }
-    ST(nullist) = (ARGLST *) mmalloc(csound,
-                                 sizeof(ARGLST)); /* nullist is a count only */
+    }                                       /* nullist is a count only */
+    ST(nullist) = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
     ST(nullist)->count = 0;
     ST(nxtarglist) = (ARGLST*) mmalloc(csound, sizeof(ARGLST)
                                                + 200 * sizeof(char*));
@@ -800,12 +819,6 @@ static int splitline(ENVIRON *csound)
         ST(collectbuf) = nn;
       }
       if (c == '"') {                     /* quoted string: */
-#if 0
-        if (collecting) {
-          synterrp(csound, lp - 1, Str("unexpected quote character"));
-          continue;
-        }
-#endif
         if (grpcnt >= ST(grpmax)) {
           ST(grpmax) += GRPMAX;
           ST(group) = (char**) mrealloc(csound, ST(group), (ST(grpmax) + 1)
@@ -822,16 +835,10 @@ static int splitline(ENVIRON *csound)
         continue;
       }
       if (c == '{' && *lp == '{') {       /* multiline quoted string:    */
-#if 0
-        if (collecting) {
-          synterrp(csound, lp - 1, Str("unexpected quote character"));
-          continue;
-        }
-#endif
         if (grpcnt >= ST(grpmax)) {
           ST(grpmax) += GRPMAX;
-          ST(group) = (char **)mrealloc(csound, ST(group), (ST(grpmax) + 1)
-                                                           * sizeof(char*));
+          ST(group) = (char **) mrealloc(csound, ST(group), (ST(grpmax) + 1)
+                                                            * sizeof(char*));
           ST(grpsav) = (char **) mrealloc(csound, ST(grpsav), (ST(grpmax) + 1)
                                                               * sizeof(char*));
         }
@@ -866,10 +873,9 @@ static int splitline(ENVIRON *csound)
       if (c == '/' && *lp == '*') { /* C Style comments */
         char *ll, *eol;
         ll= strstr(lp++, "*/");
-      nxtl:   /* csound->Message(csound, "%%%%%%%%%%at nxtl %.50s\n", lp); */
+      nxtl:
         eol = strchr(lp, '\n');
         if (eol!=NULL && eol<ll) {
-  /*      csound->Message(csound, "%%%%%%%%%%newline in comment\n"); */
           lp = ST(linadr)[++ST(curline)];
           ll= strstr(lp, "*/");
           goto nxtl;
@@ -1548,7 +1554,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         tp->inlist->count = n;
       }
       while (n--) {                     /* inargs:   */
-        long    tfound_m, treqd_m = 0L;         /* IV - Oct 31 2002 */
+        long    tfound_m, treqd_m = 0L;
         s = tp->inlist->arg[n];
         if (n >= nreqd) {               /* det type required */
           switch (types[nreqd-1]) {
@@ -1787,8 +1793,6 @@ static void lblrequest(ENVIRON *csound, char *s)
       LBLREQ *tmp;
       ST(lblmax) += LBLMAX;
       tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ));
-      if (tmp==NULL)
-        csoundDie(csound, Str("label list is full"));
       ST(lblreq) = tmp;
     }
     ST(lblreq)[req].reqline = ST(curline);
@@ -1809,8 +1813,6 @@ static void lblfound(ENVIRON *csound, char *s)
       LBLREQ *tmp;
       ST(lblmax) += LBLMAX;
       tmp = mrealloc(csound, ST(lblreq), ST(lblmax) * sizeof(LBLREQ));
-      if (tmp==NULL)
-        csoundDie(csound, Str("label list is full"));
       ST(lblreq) = tmp;
     }
     ST(lblreq)[req].label = s;
@@ -1892,6 +1894,7 @@ static void lexerr(ENVIRON *csound, char *s)
       }
       curr--;
     }
+    longjmp(csound->exitjmp, 1);
 }
 
 static void printgroups(ENVIRON *csound, int grpcnt)

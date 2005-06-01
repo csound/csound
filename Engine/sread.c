@@ -45,8 +45,11 @@ typedef struct in_stack {       /* Stack of active inputs */
     short args;                 /* Argument count for macro */
     char  *body;                /* String */
     FILE  *file;                /* File case only */
+    void  *fd;
     MACRO *mac;
-    short line;
+    int   line;
+    int   unget_cnt;
+    char  unget_buf[128];
 } IN_STACK;
 
 typedef struct marked_sections {
@@ -96,7 +99,7 @@ static  void    salcinit(ENVIRON *);
 static  void    salcblk(ENVIRON *), flushlin(ENVIRON *);
 static  int     getop(ENVIRON *), getpfld(ENVIRON *);
         MYFLT   stof(ENVIRON *, char *);
-extern  FILE    *fopen_path(ENVIRON *, char *, char *, char *);
+extern  void    *fopen_path(ENVIRON *, FILE **, char *, char *, char *);
 
 #define ST(x)   (((SREAD_GLOBALS*) ((ENVIRON*) csound)->sreadGlobals)->x)
 
@@ -168,19 +171,21 @@ static void scorerr(ENVIRON *csound, char *s)
 {
     struct in_stack *curr = ST(str);
 
-    csound->Message(csound,Str("score error:  %s on line %d position %d"),
-           s, ST(str)->line, ST(linepos));
-
-    while (curr!=ST(inputs)) {
+    csound->MessageS(csound, CSOUNDMSG_ERROR,
+                             Str("score error:  %s on line %d position %d"),
+                             s, ST(str)->line, ST(linepos));
+    while (curr != ST(inputs)) {
       if (curr->string) {
         MACRO *mm = NULL;
         while (mm != curr->mac) mm = mm->next;
-        csound->Message(csound, Str("called from line %d of macro %s\n"),
-                                curr->line, mm->name);
+        csound->MessageS(csound, CSOUNDMSG_ERROR,
+                                 Str("called from line %d of macro %s\n"),
+                                 curr->line, mm->name);
       }
       else {
-        csound->Message(csound, Str("in line %d of file input %s\n"),
-                                curr->line, curr->body);
+        csound->MessageS(csound, CSOUNDMSG_ERROR,
+                                 Str("in line %d of file input %s\n"),
+                                 curr->line, curr->body);
       }
       curr--;
     }
@@ -193,15 +198,15 @@ static MYFLT operate(ENVIRON *csound, MYFLT a, MYFLT b, char c)
     extern MYFLT MOD(MYFLT,MYFLT);
 
     switch (c) {
-    case '+': ans = a+b; break;
-    case '-': ans = a-b; break;
-    case '*': ans = a*b; break;
-    case '/': ans = a/b; break;
-    case '%': ans = MOD(a,b); break;
-    case '^': ans = (MYFLT)pow((double)a, (double)b); break;
-    case '&': ans = (MYFLT)(((long)a)&((long)b)); break;
-    case '|': ans = (MYFLT)(((long)a)|((long)b)); break;
-    case '#': ans = (MYFLT)(((long)a)^((long)b)); break;
+    case '+': ans = a + b; break;
+    case '-': ans = a - b; break;
+    case '*': ans = a * b; break;
+    case '/': ans = a / b; break;
+    case '%': ans = MOD(a, b); break;
+    case '^': ans = (MYFLT) pow((double) a, (double) b); break;
+    case '&': ans = (MYFLT) (MYFLT2LRND(a) & MYFLT2LRND(b)); break;
+    case '|': ans = (MYFLT) (MYFLT2LRND(a) | MYFLT2LRND(b)); break;
+    case '#': ans = (MYFLT) (MYFLT2LRND(a) ^ MYFLT2LRND(b)); break;
     default:
       csoundDie(csound, Str("Internal error op=%c"), c);
       ans = FL(0.0);    /* compiler only */
@@ -209,20 +214,33 @@ static MYFLT operate(ENVIRON *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
-#define ungetscochar(c)         \
-{                               \
-    if (ST(str)->string)        \
-      ST(str)->body--;          \
-    else                        \
-      ungetc(c, ST(str)->file); \
+static inline int isNameChar(int c, int pos)
+{
+    c = (int) ((unsigned char) c);
+    return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
+}
+
+/* Functions to read/unread chracters from
+ * a stack of file and macro inputs */
+
+static inline void ungetscochar(void *csound, int c)
+{
+    if (ST(str)->unget_cnt < 128)
+      ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
+    else
+      csoundDie(csound, "ungetscochar(): buffer overflow");
 }
 
 static int getscochar(ENVIRON *csound, int expand)
 {                   /* Read a score character, expanding macros if flag set */
     int     c;
 top:
-    if (ST(str)->string) {
-      c= *ST(str)->body++;
+    if (ST(str)->unget_cnt) {
+      c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
+      return c;
+    }
+    else if (ST(str)->string) {
+      c = *ST(str)->body++;
       if (c == '\0') {
         ST(pop) += ST(str)->args;
         ST(str)--; ST(input_cnt)--;
@@ -232,13 +250,15 @@ top:
     else {
       c = getc(ST(str)->file);
       if (c == EOF) {
-        if (ST(str) == &ST(inputs)[0]) return EOF;
-        fclose(ST(str)->file);
-        mfree(csound, ST(str)->body);
+        if (ST(str) == &ST(inputs)[0])
+          return EOF;
+        if (ST(str)->fd != NULL) {
+          csound->FileClose(csound, ST(str)->fd); ST(str)->fd = NULL;
+        }
         ST(str)--; ST(input_cnt)--; goto top;
       }
     }
-    if (c =='\r') {
+    if (c == '\r') {    /* can only occur in files, and not in macros */
       if ((c = getc(ST(str)->file)) != '\n')
         ungetc(c, ST(str)->file);   /* For macintosh */
       c = '\n';
@@ -263,39 +283,37 @@ top:
         ST(pop)--;
       } while (ST(pop));
     if (c == '$' && expand) {
-      char name[100];
-      unsigned int i=0;
-      int j;
-      MACRO *mm, *mm_save = NULL;
+      char      name[100];
+      unsigned int i = 0;
+      int       j;
+      MACRO     *mm, *mm_save = NULL;
       ST(ingappop) = 0;
-      while (isalpha(c = getscochar(csound, 1)) ||
-             (i != 0 && (isdigit(c) || c == '_'))) {
+      while (isNameChar((c = getscochar(csound, 1)), (int) i)) {
         name[i++] = c; name[i] = '\0';
         mm = ST(macros);
-        while (mm != NULL) {  /* Find the definition */
-          if (!(strcmp (name, mm->name))) break;
+        while (mm != NULL) {    /* Find the definition */
+          if (!(strcmp(name, mm->name))) {
+            mm_save = mm;       /* found a match, save it */
+            break;
+          }
           mm = mm->next;
         }
-        if (mm != NULL) mm_save = mm;   /* found a name */
       }
       mm = mm_save;
       if (mm == NULL) {
-        csoundDie(csound, Str("Macro expansion symbol ($) without macro name"));
+        scorerr(csound, Str("Undefined macro, or $ without macro name"));
       }
-      if (strlen (mm->name) != i) {
-        csound->Warning(csound, "$%s matches macro name $%s", name, mm->name);
+      if (strlen(mm->name) != i) {
+        int cnt = (int) i - (int) strlen(mm->name);
+        csound->Warning(csound, Str("$%s matches macro name $%s"),
+                                name, mm->name);
         do {
-          ungetscochar (c);
+          ungetscochar(csound, c);
           c = name[--i];
-        } while (i >= strlen (mm->name));
-        c = getscochar(csound, 1); i++;
+        } while (cnt--);
       }
-      if (c!='.') { ungetscochar(c); }
-#ifdef MACDEBUG
-      csound->Message(csound,"Macro %s found\n", name);
-#endif
-      if (mm == NULL)
-        scorerr(csound, Str("Undefined macro"));
+      else if (c != '.')
+        ungetscochar(csound, c);
 #ifdef MACDEBUG
       csound->Message(csound, "Found macro %s required %d arguments\n",
                               mm->name, mm->acnt);
@@ -316,7 +334,7 @@ top:
           csound->Message(csound,"defining argument %s ", nn->name);
 #endif
           i = 0;
-          nn->body = (char*)mmalloc(csound, 100);
+          nn->body = (char*) mmalloc(csound, 100);
           while ((c = getscochar(csound, 1))!= term && c != trm1) {
             nn->body[i++] = c;
             if (i>= size) nn->body = mrealloc(csound, nn->body, size += 100);
@@ -334,17 +352,13 @@ top:
       if (ST(input_cnt)>=ST(input_size)) {
         int old = ST(str)-ST(inputs);
         ST(input_size) += 20;
-/*      csound->Message(csound,"Expanding includes to %d\n", ST(input_size)); */
         ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
                                                   * sizeof(struct in_stack));
-        if (ST(inputs) == NULL) {
-          csoundDie(csound, Str("No space for include files"));
-        }
         ST(str) = &ST(inputs)[old];     /* In case it moves */
       }
       ST(str)++;
       ST(str)->string = 1; ST(str)->body = mm->body; ST(str)->args = mm->acnt;
-      ST(str)->mac = mm; ST(str)->line = 1;
+      ST(str)->mac = mm; ST(str)->line = 1; ST(str)->unget_cnt = 0;
 #ifdef MACDEBUG
       csound->Message(csound,
                       "Macro %s definded as >>%s<<\n", mm->name, mm->body);
@@ -493,7 +507,6 @@ top:
       } while (c!='$');
       /* Make string macro or value */
       sprintf(buffer, "%f", *pv);
-/*    csound->Message(csound, "Buffer:>>>%s<<<\n", buffer); */
       {
         MACRO* nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
         nn->name = mmalloc(csound, 2);
@@ -506,8 +519,6 @@ top:
         ST(input_cnt)++;
         if (ST(input_cnt)>=ST(input_size)) {
           int old = ST(str)-ST(inputs);
-/*        csound->Message(csound, "Expanding includes to %d\n",
-                                  ST(input_size) + 20);             */
           ST(input_size) += 20;
           ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
                                                     * sizeof(struct in_stack));
@@ -518,7 +529,7 @@ top:
         }
         ST(str)++;
         ST(str)->string = 1; ST(str)->body = nn->body; ST(str)->args = 0;
-        ST(str)->mac = NULL; ST(str)->line = 1;
+        ST(str)->mac = NULL; ST(str)->line = 1; ST(str)->unget_cnt = 0;
 #ifdef MACDEBUG
         csound->Message(csound,"[] defined as >>%s<<\n", nn->body);
 #endif
@@ -666,8 +677,9 @@ void sread_init(ENVIRON *csound)
     ST(input_cnt) = 0;
     ST(str) = ST(inputs);
     ST(str)->file = csound->scorein;
+    ST(str)->fd = NULL;
     ST(str)->string = 0; ST(str)->body = csound->scorename;
-    ST(str)->line = 1; ST(str)->mac = NULL;
+    ST(str)->line = 1; ST(str)->unget_cnt = 0; ST(str)->mac = NULL;
     init_smacros(csound, csound->smacros);
 }
 
@@ -721,12 +733,6 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
         if (ST(repeat_cnt)!=0) {
           if (do_repeat(csound)) return (rtncod);
         }
-/*      if (ST(current_name)) { */
-/*        fclose(ST(str)->file); */
-/*        mfree(csound, ST(str)->body); */
-/*        ST(str)--; ST(input_cnt)--; */
-/*        ST(current_name) = NULL; */
-/*      } */
         copylin(csound);
         ST(clock_base) = FL(0.0);
         ST(warp_factor) = FL(1.0);
@@ -748,12 +754,6 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
         {
           char *old_nxp = ST(nxp)-2;
           ST(repeat_index)++;
-/*        if (ST(current_name)) { */
-/*          fclose(ST(str)->file); */
-/*          mfree(csound, ST(str)->body); */
-/*          ST(str)--; ST(input_cnt)--; */
-/*          ST(current_name) = NULL; */
-/*        } */
           if (ST(str)->string) {
             int c;
             csound->Message(csound,Str("LOOP not at top level; ignored\n"));
@@ -803,8 +803,6 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
                       (isdigit(c) || c == '_')));
             *nn = '\0';
             /* Define macro for counter */
-         /* csound->Message(csound,"Found macro definition for %s\n", */
-         /*                        ST(repeat_name)); */
             ST(repeat_mm_n)[ST(repeat_index)]->name =
               mmalloc(csound, strlen(ST(repeat_name_n)[ST(repeat_index)])+1);
             strcpy(ST(repeat_mm_n)[ST(repeat_index)]->name,
@@ -833,12 +831,6 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
         if (ST(repeat_cnt)!=0) {
           if (do_repeat(csound)) return (rtncod);
         }
-/*      if (ST(current_name)) { */
-/*        fclose(ST(str)->file); */
-/*        mfree(csound, ST(str)->body); */
-/*        ST(str)--; */
-/*        ST(current_name) = NULL; */
-/*      } */
         /* Then remember this state */
         *(ST(nxp)-2) = 's'; *ST(nxp)++ = LF;
         if (ST(nxp) >= ST(memend))              /* if this memblk exhausted */
@@ -873,8 +865,6 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
                    (nn!=ST(repeat_name) && (isdigit(c)||c=='_')));
           *nn = '\0';
           /* Define macro for counter */
-          /*             printf("Found macro definition for %s\n", */
-          /*                     ST(repeat_name)); */
           ST(repeat_mm)->name = mmalloc(csound, strlen(ST(repeat_name))+1);
           strcpy(ST(repeat_mm)->name, ST(repeat_name));
           ST(repeat_mm)->acnt = 0;
@@ -895,26 +885,20 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
         if (ST(repeat_cnt)!=0) {
           if (do_repeat(csound)) return (rtncod);
         }
-/*      if (ST(current_name)) { */
-/*        fclose(ST(str)->file); */
-/*        mfree(csound, ST(str)->body); */
-/*        ST(str)--; ST(input_cnt)--; */
-/*        ST(current_name) = NULL; */
-/*      } */
         copylin(csound);
         return(--rtncod);
       case 'm': /* Remember this place */
         {
-          char *old_nxp = ST(nxp)-2;
-          char buff[200];
-          int c;
-          int i = 0;
+          char  *old_nxp = ST(nxp)-2;
+          char  buff[200];
+          int   c;
+          int   i = 0;
           while ((c = getscochar(csound, 1)) == ' ' || c == '\t');
-          do {
+          while (isNameChar(c, i)) {
             buff[i++] = c;
-          } while (isalpha(c = getscochar(csound, 1)) ||
-                   (i != 0 && (isdigit(c) || c == '_')));
-          buff[i]=0;
+            c = getscochar(csound, 1);
+          }
+          buff[i] = '\0';
           if (csound->oparms->msglevel)
             csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
           for (i=0; i<=ST(next_name); i++)
@@ -954,11 +938,11 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
           int c;
           int i = 0;
           while ((c = getscochar(csound, 1)) == ' ' || c == '\t');
-          do {
+          while (isNameChar(c, i)) {
             buff[i++] = c;
-          } while (isalpha(c = getscochar(csound, 1)) ||
-                   (i != 0 && (isdigit(c) || c == '_')));
-          buff[i]='\0';
+            c = getscochar(csound, 1);
+          }
+          buff[i] = '\0';
           flushlin(csound);
           for (i = 0; i<=ST(next_name); i++)
             if (strcmp(buff, ST(names)[i].name)==0) break;
@@ -971,26 +955,23 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
             if (ST(input_cnt)>=ST(input_size)) {
               int old = ST(str)-ST(inputs);
               ST(input_size) += 20;
-/*            csound->Message(csound,
-                              "Expanding includes to %d\n", ST(input_size)); */
               ST(inputs) = mrealloc(csound, ST(inputs),
-                                ST(input_size)*sizeof(struct in_stack));
-              if (ST(inputs) == NULL) {
-                csoundDie(csound, Str("No space for include files"));
-              }
+                                            ST(input_size) * sizeof(IN_STACK));
               ST(str) = &ST(inputs)[old];     /* In case it moves */
             }
             ST(str)++;
             ST(str)->string = 0;
-            ST(str)->file = fopen(ST(names)[i].file, "r");
-            /*RWD 3:2000*/
-            if (ST(str)->file==NULL) {
+            ST(str)->fd = fopen_path(csound, &(ST(str)->file),
+                                             ST(names)[i].file, NULL, NULL);
+            /* RWD 3:2000 */
+            if (ST(str)->fd == NULL) {
               csoundDie(csound, Str("cannot open input file %s"),
-                                   ST(names)[i].file);
+                                ST(names)[i].file);
             }
-            ST(str)->body = mmalloc(csound, strlen(ST(names)[i].file)+1);
+            ST(str)->body = csound->GetFileName(ST(str)->fd);
+            ST(str)->line = 1;  /* may be wrong */
+            ST(str)->unget_cnt = 0;
             fseek(ST(str)->file, ST(names)[i].posit, SEEK_SET);
-            strcpy(ST(str)->body, ST(names)[i].file);
           }
           ST(op) = getop(csound);
           ST(nxp) = old_nxp;
@@ -1026,7 +1007,6 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
             goto ending;
           default:
             flushlin(csound);
-/*          csound->Message(csound,"Ignoring %c\n", ST(op)); */
           }
         };
         break;
@@ -1294,9 +1274,9 @@ void sfree(ENVIRON *csound)      /* free all sorter allocated space */
       ST(curmem) = NULL;
     }
     while (ST(str) != &ST(inputs)[0]) {
-      if (!ST(str)->string) {
-        fclose(ST(str)->file);
-        mfree(csound, ST(str)->body);
+      if (!ST(str)->string && ST(str)->fd != NULL) {
+        csound->FileClose(csound, ST(str)->fd);
+        ST(str)->fd = NULL;
       }
       ST(str)--;
     }
@@ -1326,8 +1306,7 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
       goto srch;
     }
     if (c == '\\') {            /* Deal with continuations and specials */
- /* csound->Message(csound, "Escaped\n"); */
-    again:
+ again:
       c = getscochar(csound, 1);
       if (c==';') {
         while ((c=getscochar(csound, 1)!='\n') && c!=EOF);
@@ -1342,15 +1321,15 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
     }
     if (c == '/') {             /* Could be a C-comment */
       c = getscochar(csound, 1);
-      if (c!='*') {
-        ungetscochar(c);
+      if (c != '*') {
+        ungetscochar(csound, c);
         c = '/';
       }
       else {                    /* It is a comment */
       top:
-        while ((c=getscochar(csound, 1))!='*');
-        if ((c=getscochar(csound, 1))!='/') {
-          if (c!=EOF) goto top;
+        while ((c = getscochar(csound, 1)) != '*');
+        if ((c = getscochar(csound, 1)) != '/') {
+          if (c != EOF) goto top;
           return EOF;
         }
         goto srch;
@@ -1376,26 +1355,24 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
           goto srch;
         }
         while (isspace(c = getscochar(csound, 1)));
-        do {
+        while (isNameChar(c, i)) {
           mname[i++] = c;
-        } while (isalpha(c = getscochar(csound, 1)) ||
-                 (i != 0 && (isdigit(c) || c == '_')));
+          c = getscochar(csound, 1);
+        }
         mname[i] = '\0';
         if (csound->oparms->msglevel)
           csound->Message(csound, Str("Macro definition for %s\n"), mname);
         mm->name = mmalloc(csound, i + 1);
         strcpy(mm->name, mname);
         if (c == '(') { /* arguments */
-/*        csound->Message(csound, "M-arguments: "); */
           do {
             while (isspace(c = getscochar(csound, 1)));
             i = 0;
-            while (isalpha(c) || (i!=0 && (isdigit(c)||c=='_'))) {
+            while (isNameChar(c, i)) {
               mname[i++] = c;
               c = getscochar(csound, 1);
             }
             mname[i] = '\0';
-/*          csound->Message(csound, "%s\t", mname); */
             mm->arg[arg] = mmalloc(csound, i+1);
             strcpy(mm->arg[arg++], mname);
             if (arg>=mm->margs) {
@@ -1459,8 +1436,6 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
         if (ST(input_cnt)>=ST(input_size)) {
           int old = ST(str)-ST(inputs);
           ST(input_size) += 20;
-/*        csound->Message(csound, "Expanding includes to %d\n",
-                                  ST(input_size));                  */
           ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
                                                     * sizeof(struct in_stack));
           if (ST(inputs) == NULL) {
@@ -1470,16 +1445,16 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
         }
         ST(str)++;
         ST(str)->string = 0;
-        ST(str)->file = fopen_path(csound, mname, csound->scorename, "INCDIR");
-        if (ST(str)->file==0) {
-          char buff[256];
-          sprintf(buff, Str("Cannot open #include'd file %s\n"), mname);
-          scorerr(csound, buff);
-/*           ST(str)--; ST(input_cnt)--; */
+        ST(str)->fd = fopen_path(csound, &(ST(str)->file), mname,
+                                         csound->scorename, "INCDIR");
+        if (ST(str)->fd == NULL) {
+          sprintf(csound->errmsg, Str("Cannot open #include'd file %s\n"),
+                                  mname);
+          scorerr(csound, csound->errmsg);
         }
         else {
-          ST(str)->body = mmalloc(csound, strlen(csound->name_full)+1);
-          strcpy(ST(str)->body, csound->name_full);
+          ST(str)->body = csound->GetFileName(ST(str)->fd);
+          ST(str)->line = 1; ST(str)->unget_cnt = 0;
           goto srch;
         }
       }
@@ -1493,10 +1468,10 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
           goto srch;
         }
         while (isspace(c = getscochar(csound, 1)));
-        do {
+        while (isNameChar(c, i)) {
           mname[i++] = c;
-        } while (isalpha(c = getscochar(csound, 1)) ||
-                 (i != 0 && (isdigit(c) || '_')));
+          c = getscochar(csound, 1);
+        }
         mname[i] = '\0';
         if (csound->oparms->msglevel)
           csound->Message(csound, Str("macro %s undefined\n"), mname);
@@ -1580,17 +1555,13 @@ static int getpfld(ENVIRON *csound)     /* get pfield val from SCOREIN file */
 
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
-
-    if (!isdigit(c)                           /* if non-numeric          */
-        && c != '.' && c != '+' && c != '-'   /*    and non-carry        */
-        && c != '^' && c != 'n' && c != 'p'   /*    and non-special-char */
-        && c != '<' && c != '>' && c != '{' && c != '}' && c != '(' && c != ')'
-        && c != '"' && c != '~' ) {
-      ungetscochar(c);                        /* then no more pfields    */
+                    /* if non-numeric, and non-carry, and non-special-char: */
+    if (strchr("0123456789.+-^np<>{}()\"~", c) == NULL) {
+      ungetscochar(csound, c);                /* then no more pfields    */
       if (ST(linpos))
         csound->Message(csound,
-                         Str("sread: unexpected char %c, sect %d line %d\n"),
-                   c, csound->sectcnt, ST(lincnt));
+                        Str("sread: unexpected char %c, sect %d line %d\n"),
+                        c, csound->sectcnt, ST(lincnt));
       return(0);                              /*    so return            */
     }
     p = ST(sp) = ST(nxp);                     /* else start copying to text */
@@ -1622,19 +1593,21 @@ static int getpfld(ENVIRON *csound)     /* get pfield val from SCOREIN file */
       *p++ = c;
       goto blank;
     }
-    while (((c = getscochar(csound, 1)) >= '0' && c <= '9')
-           || c == '.' || c == '+' || c == '-' || c == 'e' || c == 'E'
-           || c == 'n' || c == 'p'          /* else while legal chars,  */
-           || c == '<' || c == '>'
-           /*|| c == '{' || c == '}'*/ || c == '(' || c == ')'
-           || c == '~') { /*   continue to bld string */
-      *p++ = c;
-      /* **** CHECK **** */
-      if (p >= ST(memend))
-        p = (char*) ((uintptr_t) p + expand_nxp(csound));
-      /* **** END CHECK **** */
+    while (1) {
+      c = getscochar(csound, 1);
+      /* else while legal chars, continue to bld string */
+      if (strchr("0123456789.+-eEnp<>()~", c) != NULL) {
+        *p++ = c;
+        /* **** CHECK **** */
+        if (p >= ST(memend))
+          p = (char*) ((uintptr_t) p + expand_nxp(csound));
+        /* **** END CHECK **** */
+      }
+      else {                                /* any illegal is delimiter */
+        ungetscochar(csound, c);
+        break;
+      }
     }
-    ungetscochar(c);                        /* any illegal is delimiter */
  blank:
     *p++ = SP;
     ST(nxp) = p;                            /*  add blank      */
