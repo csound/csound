@@ -332,7 +332,7 @@ static int pvx_loadfile(ENVIRON *csound,
       return NOTOK;
     }
     /* ignore the window spec until we can use it! */
-    totalframes = pvoc_framecount(pvx_id);
+    totalframes = pvoc_framecount(csound, pvx_id);
 
     if (totalframes == 0) {
       sprintf(csound->errmsg,Str("pvoc-ex file %s is empty!\n"),fname);
@@ -352,7 +352,7 @@ static int pvx_loadfile(ENVIRON *csound,
 
       pFrame = memblock;
       for (i=0;i < totalframes;i++) {
-        rc = pvoc_getframes(pvx_id,pFrame,1);
+        rc = pvoc_getframes(csound,pvx_id,pFrame,1);
         if (rc != 1)
           break;         /* read error, but may still have something to use */
         /* scale amps */

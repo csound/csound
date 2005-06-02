@@ -202,7 +202,7 @@ static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
     /* my prerogative: try pvocex file first! */
     fd = pvoc_openfile(csound,sfname,&pvdata,&fmt);
     if (fd >= 0) {
-      nframes   = (MYFLT) pvoc_framecount(fd);
+      nframes   = (MYFLT) pvoc_framecount(csound,fd);
       nchans    = (MYFLT) fmt.nChannels;
       srate     = (MYFLT) fmt.nSamplesPerSec;
       overlap   = (MYFLT) pvdata.dwOverlap;
