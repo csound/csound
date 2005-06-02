@@ -71,11 +71,21 @@ extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 #define DTYPE   2
 #define WTYPE   3
 #define ATYPE   4
-#define Dfloats ((sizeof(DOWNDAT) + sizeof(MYFLT) - 1) / sizeof(MYFLT))
-#define Wfloats ((sizeof(SPECDAT) + sizeof(MYFLT) - 1) / sizeof(MYFLT))
 #define PTYPE   5
-#define Pfloats ((sizeof(PVSDAT) + sizeof(MYFLT) - 1) / sizeof(MYFLT))
 #define STYPE   6
+/* NOTE: these assume that sizeof(MYFLT) is either 4 or 8 */
+#define Dfloats (((int) sizeof(DOWNDAT) + 7) / (int) sizeof(MYFLT))
+#define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
+#define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
+
+#ifdef FLOAT_COMPARE
+#undef FLOAT_COMPARE
+#endif
+#ifdef USE_DOUBLE
+#define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 1.0e-12)
+#else
+#define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 5.0e-7)
+#endif
 
 void tranRESET(ENVIRON *csound)
 {
@@ -421,6 +431,10 @@ void otran(ENVIRON *csound)
             ip->pextrab = ((int) ip->pextrab + 7) & (~7);
             ip->mdepends = threads >> 4;
             ip->lclkcnt = ST(lclnxtkcnt);
+            /* align to 8 bytes for "spectral" types */
+            if ((int) sizeof(MYFLT) < 8 &&
+                (ST(lclnxtdcnt) + ST(lclnxtwcnt) + ST(lclnxtpcnt)) > 0)
+              ip->lclkcnt = (ip->lclkcnt + 1) & (~1);
             ip->lcldcnt = ST(lclnxtdcnt);
             ip->lclwcnt = ST(lclnxtwcnt);
             ip->lclacnt = ST(lclnxtacnt);
@@ -516,38 +530,20 @@ void otran(ENVIRON *csound)
     else if (csound->tran_sr == FL(-1.0)) {
       csound->tran_sr = csound->tran_kr * csound->tran_ksmps;
     }
-                                /* That deals with missing values */
-                                /* However we do need ksmps to be integer */
-    /* IV - Feb 18 2003 */
+    /* That deals with missing values, however we do need ksmps to be integer */
     {
-#ifndef USE_DOUBLE
-      double    max_err = 5.0e-7;
-#else
-      double    max_err = 1.0e-12;
-#endif
-      char      sbuf[256];
-      sprintf(sbuf, "sr = %.7g, kr = %.7g, ksmps = %.7g",
-                    csound->tran_sr, csound->tran_kr, csound->tran_ksmps);
-      if (csound->tran_ksmps < FL(0.75) ||
-          fabs((double) csound->tran_ksmps
-               / (double) ((int) (csound->tran_ksmps + FL(0.5))) - 1.0)
-          > max_err) {
-        strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid ksmps value"));
-      }
-      if (csound->tran_sr <= FL(0.0)) {
-        strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid sample rate"));
-      }
-      if (csound->tran_kr <= FL(0.0)) {
-        strcat(sbuf, "\n"); strcat(sbuf, Str("error: invalid control rate"));
-      }
-      if (fabs((double) csound->tran_sr
-               / ((double) csound->tran_kr * (double) csound->tran_ksmps)
-               - 1.0) > max_err) {
-        strcat(sbuf, "\n");
-        strcat(sbuf, Str("error: inconsistent sr, kr, ksmps"));
-      }
-      if (strchr(sbuf, '\n') != NULL)
-        synterr(csound, Str(sbuf));
+      ENVIRON   *p = (ENVIRON*) csound;
+      sprintf(p->errmsg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
+                         p->tran_sr, p->tran_kr, p->tran_ksmps);
+      if (p->tran_sr <= FL(0.0))
+        synterr(p, Str("%s invalid sample rate"), p->errmsg);
+      if (p->tran_kr <= FL(0.0))
+        synterr(p, Str("%s invalid control rate"), p->errmsg);
+      else if (p->tran_ksmps < FL(0.75) ||
+               FLOAT_COMPARE(p->tran_ksmps, MYFLT2LRND(p->tran_ksmps)))
+        synterr(p, Str("%s invalid ksmps value"), p->errmsg);
+      else if (FLOAT_COMPARE(p->tran_sr, (double) p->tran_kr * p->tran_ksmps))
+        synterr(p, Str("%s inconsistent sr, kr, ksmps"), p->errmsg);
     }
 
     ip = csound->instxtanchor.nxtinstxt;
@@ -581,6 +577,9 @@ void otran(ENVIRON *csound)
     }
     ST(gblfixed) = ST(gblnxtkcnt) + ST(gblnxtpcnt) * (int) Pfloats;
     ST(gblkcount) = ST(gblnxtkcnt);
+    /* align to 8 bytes for "spectral" types */
+    if ((int) sizeof(MYFLT) < 8 && ST(gblnxtpcnt))
+      ST(gblkcount) = (ST(gblkcount) + 1) & (~1);
     ST(gblacount) = ST(gblnxtacnt);
     ST(gblscount) = ST(gblnxtscnt);
 

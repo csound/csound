@@ -49,11 +49,13 @@ int paBlockingReadWriteOpen(ENVIRON *csound,
                             paNoFlag,
                             paBlockingReadWriteStreamCallback,
                             pabs);
-    if(paError == paNoError) paError = Pa_StartStream(pabs->paStream);
+    if (paError == paNoError) paError = Pa_StartStream(pabs->paStream);
 
-    if(paError != paNoError) {
-          ((ENVIRON*) csound)->Free(csound, pabs[INS].actualBuffer);
-          ((ENVIRON*) csound)->Free(csound, pabs[OUTS].actualBuffer);
+    if (paError != paNoError) {
+      ((ENVIRON*) csound)->Free(csound, pabs[INS].actualBuffer);
+      ((ENVIRON*) csound)->Free(csound, pabs[OUTS].actualBuffer);
+      pabs[INS].actualBuffer = NULL;
+      pabs[OUTS].actualBuffer = NULL;
     }
     return paError;
 }
@@ -95,7 +97,7 @@ int paBlockingWriteOpen(ENVIRON *csound,
     }
     if (paError != paNoError) {
       ((ENVIRON*) csound)->Free(csound, pabs->actualBuffer);
-      ((ENVIRON*) csound)->Free(csound, pabs);
+      pabs->actualBuffer = NULL;
     }
     return paError;
 }
@@ -218,7 +220,7 @@ int paBlockingReadOpen(ENVIRON *csound,
     }
     if (paError != paNoError) {
       ((ENVIRON*) csound)->Free(csound, pabs->actualBuffer);
-      ((ENVIRON*) csound)->Free(csound, pabs);
+      pabs->actualBuffer = NULL;
     }
     return paError;
 }
@@ -254,10 +256,12 @@ void paBlockingClose(void *csound, PA_BLOCKING_STREAM *pabs)
 #endif
       }
       ((ENVIRON*) csound)->Free(csound, pabs[OUTS].actualBuffer);
+      pabs[OUTS].actualBuffer = NULL;
       openOnce = (int *)((ENVIRON*)csound)->QueryGlobalVariable(csound,
-                                                                  "openOnce");
+                                                                "openOnce");
       if (!*openOnce)
         ((ENVIRON*) csound)->Free(csound, pabs[INS].actualBuffer);
+      pabs[INS].actualBuffer = NULL;
     }
 }
 
