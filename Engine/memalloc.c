@@ -23,38 +23,43 @@
 */
 
 #include "cs.h"                         /*              MEMALLOC.C      */
-/*RWD 9:2000 for pvocex support */
+/* RWD 9:2000 for pvocex support */
 #include "pvfileio.h"
 /* global here so reachable by all standalones */
+
+#if defined(BETA) && !defined(MEMDEBUG)
+#define MEMDEBUG  1
+#endif
 
 #define MEMALLOC_MAGIC  0x6D426C6B
 
 typedef struct memAllocBlock_s {
+#ifdef MEMDEBUG
     int                     magic;      /* 0x6D426C6B ("mBlk")          */
     void                    *ptr;       /* pointer to allocated area    */
+#endif
     struct memAllocBlock_s  *prv;       /* previous structure in chain  */
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
 } memAllocBlock_t;
 
-#define HDR_SIZE    (((int) sizeof(memAllocBlock_t) + 15) & (~15))
+#define HDR_SIZE    (((int) sizeof(memAllocBlock_t) + 7) & (~7))
 #define ALLOC_BYTES(n)  ((size_t) HDR_SIZE + (size_t) (n))
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int) HDR_SIZE))
 
 #define MEMALLOC_DB (((ENVIRON*) csound)->memalloc_db)
 
-#define NO_ZERO_ALLOCS  1
-
-static void memdie(void *csound, int nbytes)
+static void memdie(void *csound, size_t nbytes)
 {
-    csoundDie(csound, Str("memory allocate failure for %d\n"), nbytes);
+    csoundDie(csound, Str("memory allocate failure for %lu\n"),
+                      (unsigned long) nbytes);
 }
 
 void *mmalloc(void *csound, size_t size)
 {
     void  *p;
 
-#ifdef NO_ZERO_ALLOCS
+#ifdef MEMDEBUG
     if (size == (size_t) 0) {
       fprintf(stderr,
               " *** internal error: mmalloc() called with zero nbytes\n");
@@ -63,12 +68,14 @@ void *mmalloc(void *csound, size_t size)
 #endif
     /* allocate memory */
     if ((p = malloc(ALLOC_BYTES(size))) == NULL) {
-      memdie(csound, (int) size);
+      memdie(csound, size);
       return NULL;
     }
     /* link into chain */
+#ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
+#endif
     ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
     ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
     if (MEMALLOC_DB != NULL)
@@ -82,7 +89,7 @@ void *mcalloc(void *csound, size_t size)
 {
     void  *p;
 
-#ifdef NO_ZERO_ALLOCS
+#ifdef MEMDEBUG
     if (size == (size_t) 0) {
       fprintf(stderr,
               " *** internal error: mcalloc() called with zero nbytes\n");
@@ -91,12 +98,14 @@ void *mcalloc(void *csound, size_t size)
 #endif
     /* allocate memory */
     if ((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL) {
-      memdie(csound, (int) size);
+      memdie(csound, size);
       return NULL;
     }
     /* link into chain */
+#ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
+#endif
     ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
     ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
     if (MEMALLOC_DB != NULL)
@@ -113,6 +122,7 @@ void mfree(void *csound, void *p)
     if (p == NULL)
       return;
     pp = HDR_PTR(p);
+#ifdef MEMDEBUG
     if (pp->magic != MEMALLOC_MAGIC || pp->ptr != p) {
       fprintf(stderr, " *** internal error: mfree() called with invalid "
                       "pointer (0x%p)\n", p);
@@ -120,6 +130,8 @@ void mfree(void *csound, void *p)
       /* as a result of a bug */
       exit(-1);
     }
+    pp->magic = 0;
+#endif
     /* unlink from chain */
     if (pp->nxt != NULL)
       pp->nxt->prv = pp->prv;
@@ -143,6 +155,7 @@ void *mrealloc(void *csound, void *oldp, size_t size)
       return NULL;
     }
     pp = HDR_PTR(oldp);
+#ifdef MEMDEBUG
     if (pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp) {
       fprintf(stderr, " *** internal error: mrealloc() called with invalid "
                       "pointer (0x%p)\n", oldp);
@@ -153,19 +166,24 @@ void *mrealloc(void *csound, void *oldp, size_t size)
     /* mark old header as invalid */
     pp->magic = 0;
     pp->ptr = NULL;
+#endif
     /* allocate memory */
     p = realloc((void*) pp, ALLOC_BYTES(size));
     if (p == NULL) {
+#ifdef MEMDEBUG
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
-      memdie(csound, (int) size);
+#endif
+      memdie(csound, size);
       return NULL;
     }
     /* create new header and update chain pointers */
     pp = (memAllocBlock_t*) p;
+#ifdef MEMDEBUG
     pp->magic = MEMALLOC_MAGIC;
     pp->ptr = DATA_PTR(pp);
+#endif
     if (pp->nxt != NULL)
       pp->nxt->prv = pp;
     if (pp->prv != NULL)
@@ -187,6 +205,9 @@ void all_free(void *csound)
     MEMALLOC_DB = NULL;
     do {
       nxtp = pp->nxt;
+#ifdef MEMDEBUG
+      pp->magic = 0;
+#endif
       free((void*) pp);
       pp = nxtp;
     } while (pp != NULL);
