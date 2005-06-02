@@ -467,7 +467,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           skiporchar(csound);
           c = '\n';
         }
-        if (c == '\n' || c == '\r') {
+        if (c == '\n') {
           cp--;                                      /* Ignore newline */
           srccnt++;                                  /*    record a fakeline */
 /*        ST(srclin)[++lincnt] = 0;     unused  */
@@ -477,7 +477,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           *cp++ = c;
         }
       }
-      else if (c == '\n' || c == '\r') {             /* at each new line */
+      else if (c == '\n') {                          /* at each new line */
         char *lp = ST(linadr)[lincnt];
         while ((c = *lp) == ' ' || c == '\t')
           lp++;
@@ -707,7 +707,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           } while (cnt--);
         }
         else if (c != '.')
-          ungetorchar(csound, c);;
+          ungetorchar(csound, c);
 #ifdef MACDEBUG
         csound->Message(csound, "Found macro %s required %d arguments\n",
                                 mm->name, mm->acnt);
@@ -798,10 +798,10 @@ static int splitline(ENVIRON *csound)
     char    *cp, *lp, *grpp = NULL;
 
     if (ST(collectbuf) == NULL)
-      ST(collectbuf) = mcalloc(csound, (long)ST(lenmax));
+      ST(collectbuf) = mcalloc(csound, ST(lenmax));
  nxtlin:
     if ((lp = ST(linadr)[++ST(curline)]) == NULL)   /* point at next line   */
-      return(0);
+      return 0;
     csound->DebugMsg(csound, Str("LINE %d:"), ST(curline));
     ST(linlabels) = ST(opgrpno) = 0;
     grpcnt = prvif = prvelsif = logical = condassgn = parens = collecting = 0;
@@ -1173,7 +1173,7 @@ static int splitline(ENVIRON *csound)
     ST(linopnum) = ST(opnum);                     /* else save full line ops */
     ST(linopcod) = ST(opcod);
     if (csound->oparms->odebug) printgroups(csound, grpcnt);
-    return(grpcnt);
+    return grpcnt;
 }
 
 TEXT *getoptxt(ENVIRON *csound, int *init)

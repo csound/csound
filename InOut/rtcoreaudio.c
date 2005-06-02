@@ -383,7 +383,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     /* MYFLT norm; */
     p = (ENVIRON*) csound;
     dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
-    n = bytes_ / sizeof(float);
+    n = bytes_ / sizeof(MYFLT);
     chans = dev->nchns;
     ibuffs = dev->inbuffs;
     cur = dev->incurbuff;
@@ -425,7 +425,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     p = (ENVIRON*) csound;
     dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
 
-    n = bytes_ / sizeof(float);
+    n = bytes_ / sizeof(MYFLT);
     chans = dev->nchns;
     obuffs = dev->outbuffs;
     cur = dev->outcurbuff;
@@ -472,6 +472,5 @@ static void rtclose_(void *csound)
       free(dev);
       p->Message(csound, "coreaudio module: device closed\n");
     }
-
 }
 
