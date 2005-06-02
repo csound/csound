@@ -1,3 +1,7 @@
+2005-06-03 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+       * OOps/pvfileio.c: removed statics and added csound* to functions; changed all
+         relevant function calls elsewhere in the code to match the new prototypes
+
 2005-06-01 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
        * Opcodes/pvsbasic.c pvsbasic.h
        added opcode pvsinit for fsig initialisation
