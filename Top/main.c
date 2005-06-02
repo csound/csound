@@ -31,7 +31,7 @@
 
 extern  void    dieu(void *, char *);
 extern  int     argdecode(void*, int, char**);
-extern  void    init_pvsys(void);
+extern  void    init_pvsys(ENVIRON *);
 extern  char    *get_sconame(void *csound);     /* one_file.c */
 
 #ifdef MSVC
@@ -111,7 +111,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
 
     /* IV - Jan 28 2005 */
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
-    init_pvsys();
+    init_pvsys(csound);
     /* utilities depend on this as well as orchs */
     csound->e0dbfs = DFLT_DBFS;         /* may get changed by an orch */
     dbfs_init(csound, csound->e0dbfs);

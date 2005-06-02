@@ -141,7 +141,7 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
     if (pvfile < 0) {
       csound->Message(csound,
                       Str("pvxanal: unable to create analysis file: %s"),
-             pvoc_errorstr());
+             pvoc_errorstr(csound));
       rc = 1;
       goto error;
     }
@@ -162,10 +162,10 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
           chanbuf = inbuf_c[k];
           generate_frame(csound, pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
 
-          if (!pvoc_putframes(pvfile,frame,1)) {
+          if (!pvoc_putframes(csound, pvfile,frame,1)) {
             csound->Message(csound,
                             Str("pvxanal: error writing analysis frames: %s\n"),
-                            pvoc_errorstr());
+                            pvoc_errorstr(csound));
             rc = 1;
             goto error;
           }
@@ -188,10 +188,10 @@ int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
         frame = frame_c[k];
         chanbuf = inbuf_c[k];
         generate_frame(csound,pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
-        if (!pvoc_putframes(pvfile,frame,1)) {
+        if (!pvoc_putframes(csound,pvfile,frame,1)) {
           csound->Message(csound,
                           Str("pvxanal: error writing analysis frames: %s\n"),
-                          pvoc_errorstr());
+                          pvoc_errorstr(csound));
           rc = 1;
           goto error;
         }
