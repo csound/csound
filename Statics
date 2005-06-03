@@ -45,9 +45,6 @@ OOps/lptrkfns.c:static  MYFLT w2 = FL(0.0), w21 = FL(0.0), w22 = FL(0.0);
 OOps/lptrkfns.c:static  MYFLT w3 = FL(0.0), w31 = FL(0.0), w32 = FL(0.0);
 OOps/lptrkfns.c:static  MYFLT w4 = FL(0.0), w41 = FL(0.0), w42 = FL(0.0);
 
-OOps/pvfileio.c:static  char *pv_errstr = "";
-OOps/pvfileio.c:static PVOCFILE *files[MAXFILES];
-
 OOps/pvinterp.c:static  int     pdebug = 0;
 OOps/pvinterp.c:static  PVBUFREAD       *pvbufreadaddr;
 
@@ -81,14 +78,6 @@ Opcodes/fm4op.c:static MYFLT    FM4Op_susLevels[16];
 Opcodes/fm4op.c:static MYFLT    FM4Op_attTimes[32];
 
 Opcodes/locsig.c:static  LOCSIG  *locsigaddr;
-
-Opcodes/osc-sock.c:static oscStateStruct *oscState;
-Opcodes/osc-sock.c:static OSCBoolean oscIsUp = FALSE;
-Opcodes/osc-sock.c:static int oscSockFD = 0;
-Opcodes/osc-sock.c:static OSCcontainer oscTopLevelCont;
-Opcodes/osc-sock.c:static OSCcontainer oscVarCont;
-Opcodes/osc-sock.c:    static short __lineNo;
-Opcodes/osc-sock.c:    static oscContext Sc;
 
 Opcodes/pitch.c:static MYFLT bicoefs[] =
 
@@ -128,10 +117,6 @@ Top/cscorfns.c:static MYFLT curuntil;           /* initialised to zero by filope
 Top/cscorfns.c:static int   wasend;             /* ditto */
 Top/cscorfns.c:static void
 
-Top/csound.c:static  volatile  int init_done = 0;
-Top/csound.c:static  csInstance_t  *instance_list = NULL;
-Top/csound.c:static double timeResolutionSeconds = -1.0;
-
 Top/dl_opcodes.c:    static char errstr[ERR_STR_LEN];
 Top/dl_opcodes.c:    static int err_filled = 0;
 Top/dl_opcodes.c:    static char undersym[257];  /* Saves calls to malloc(3) */
@@ -141,9 +126,6 @@ Top/dnoise_int.c:static int ok_enabled = FALSE;          /* TRUE if allow \r to 
 Top/dnoise_int.c:    static Boolean dispFlag = FALSE;    /* to make it possible to type in
 Top/dnoise_int.c:    static Boolean forTesting = true;
 Top/dnoise_int.c:    static int  prevFormat =    POPUP_16;        /*set to default*/
-
-Top/getstring.c:static  l10ndb_t    getstr_db = { CSLANGUAGE_DEFAULT, { NULL } };
-Top/getstring.c:static LanguageSpec_t lang_list[] = {
 
 Top/scot.c:static char curline[MAXLINE+1]; /* current line of infile */
 Top/scot.c:static int inx,                 /* column # */

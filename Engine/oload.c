@@ -491,9 +491,12 @@ void oloadRESET(ENVIRON *csound)
       tp = nxttp;
     }
     mfree(csound, csound->instrtxtp);           /* Start again */
+    /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
+    pvsys_release(csound);
     close_all_files(csound);
     /* delete temporary files created by this Csound instance */
     remove_tmpfiles(csound);
+    rlsmemfiles(csound);
     /**
      * Copy everything EXCEPT the function pointers.
      * We do it by saving them and copying them back again...
@@ -531,8 +534,6 @@ void oloadRESET(ENVIRON *csound)
     csound->global_hfkprd    = csound->hfkprd;
     csound->global_kicvt     = csound->kicvt;
     csound->global_kcounter  = csound->kcounter;
-    csound->rtin_dev         = 1024;
-    csound->rtout_dev        = 1024;
 }
 
 #ifdef FLOAT_COMPARE
