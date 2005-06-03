@@ -748,7 +748,7 @@ static int pvx_loadfile(ENVIRON *csound,
 
     pvx_id = pvoc_openfile(csound,fname,&pvdata,&fmt);
     if (pvx_id < 0) {
-      sprintf(csound->errmsg, Str("unable to open pvocex file %s.\n"), fname);
+      sprintf(csound->errmsg, Str("unable to open pvocex file %s. %\n"), fname, pvoc_errorstr(csound));
       return 0;
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
