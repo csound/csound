@@ -668,9 +668,9 @@ extern "C" {
     void (*SetRtcloseCallback)(void *csound, void (*rtclose__)(void *csound));
     void (*AuxAlloc)(void *csound, long nbytes, AUXCH *auxchp);
     FUNC *(*FTFind)(void *csound, MYFLT *argp);
-    FUNC *(*FTFindP)(void *csound_, MYFLT *argp);
-    FUNC *(*FTnp2Find)(void *csound_, MYFLT *argp);
-    MYFLT *(*GetTable)(void *csound_, int tableNum, int *tableLength);
+    FUNC *(*FTFindP)(void *csound, MYFLT *argp);
+    FUNC *(*FTnp2Find)(void *csound, MYFLT *argp);
+    MYFLT *(*GetTable)(void *csound, int tableNum, int *tableLength);
     void *(*Malloc)(void *csound, size_t nbytes);
     void *(*Calloc)(void *csound, size_t nbytes);
     void *(*ReAlloc)(void *csound, void *oldp, size_t nbytes);
@@ -778,6 +778,19 @@ extern "C" {
     void *(*FileOpen)(void *, void *, int, const char *, void *, const char *);
     char *(*GetFileName)(void *);
     int (*FileClose)(void *, void *);
+    /* PVOC-EX system */
+    int (*PVOC_CreateFile)(struct ENVIRON_ *, const char *,
+                           unsigned long, unsigned long, unsigned long,
+                           unsigned long, long, int, int,
+                           float, float *, unsigned long);
+    int (*PVOC_OpenFile)(struct ENVIRON_ *, const char *, void *, void *);
+    int (*PVOC_CloseFile)(struct ENVIRON_ *, int);
+    int (*PVOC_PutFrames)(struct ENVIRON_ *, int, const float *, long);
+    int (*PVOC_GetFrames)(struct ENVIRON_ *, int, float *, unsigned long);
+    int (*PVOC_FrameCount)(struct ENVIRON_ *, int);
+    int (*PVOC_Rewind)(struct ENVIRON_ *, int, int);
+    int (*pvxanal)(struct ENVIRON_ *, void *, void *, const char *, long, long,
+                                      long, long, long, int, int);
     /* callback function pointers - not part of the API */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
     void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
@@ -977,6 +990,9 @@ extern "C" {
     void          *searchPathCache;
     void          *sndmemfiles;
     void          *reset_list;
+    void          *pvFileTable;         /* pvfileio.c */
+    int           pvNumFiles;
+    int           pvErrorCode;
   } ENVIRON;
 
 #include "text.h"

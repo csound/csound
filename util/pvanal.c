@@ -42,12 +42,12 @@
 #include <ctype.h>
 #include <sndfile.h>
 
-                 /* prototype arguments */
-extern int pvxanal(ENVIRON *, SOUNDIN *, SNDFILE *, const char *, long, long,
-                   long, long, long, int, int);
+/* prototype arguments */
+
 static long takeFFTs(ENVIRON *csound, SOUNDIN *inputSound, PVSTRUCT *outputPVH,
                      SNDFILE *sndfd, FILE *ofd, long oframeEst, long frameSize,
-                     int WindowType, long frameIncr, long fftfrmBsiz, int verbose);
+                     int WindowType, long frameIncr, long fftfrmBsiz,
+                     int verbose);
 static int  quit(ENVIRON *, char *msg);
 
 #define MINFRMMS        20      /* frame defaults to at least this many ms */
@@ -393,8 +393,9 @@ static int pvanal(void *csound_, int argc, char **argv)
       }
       csound->Message(csound, Str("pvanal: creating pvocex file\n"));
       /* handle all messages in here, for now */
-      if (pvxanal(csound, p, infd, outfilnam, p->sr, p->nchanls, frameSize,
-                  frameIncr, frameSize * 2, PVOC_HAMMING, verbose)) {
+      if (csound->pvxanal(csound, p, infd, outfilnam, p->sr, p->nchanls,
+                                  frameSize, frameIncr, frameSize * 2,
+                                  PVOC_HAMMING, verbose) != 0) {
         csound->Message(csound, Str("error generating pvocex file.\n"));
         return -1;
       }
@@ -431,7 +432,8 @@ static int pvanal(void *csound_, int argc, char **argv)
       }
 #endif
       oframeAct = takeFFTs(csound, p, pvh, infd, ofd, oframeEst,
-                           frameSize, WindowType, frameIncr, fftfrmBsiz, verbose);
+                           frameSize, WindowType, frameIncr, fftfrmBsiz,
+                           verbose);
       if (oframeAct < 0L)
         return -1;
   /*  dispexit();   */
@@ -473,7 +475,8 @@ static int quit(ENVIRON *csound, char *msg)
 
 static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
                      SNDFILE *infd, FILE *ofd, long oframeEst, long frameSize,
-                     int WindowType, long frameIncr, long fftfrmBsiz, int verbose)
+                     int WindowType, long frameIncr, long fftfrmBsiz,
+                     int verbose)
 {
     long    i = -1, nn, read_in;
     MYFLT   *inBuf, *tmpBuf, *oldInPh, *winBuf;
@@ -533,7 +536,7 @@ static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
         if (cnt>latch) dwindow.oabsmax = dwindow.absmax;
       }
 #endif
-      if (!read_in)            /* if previous read had hit EOF, we're done */
+      if (!read_in)          /* if previous read had hit EOF, we're done */
         break;               /* mv conts fwrd by frameIncr, rd more pnts */
       for (fp1 = inBuf+frameIncr, fp2 = inBuf, nn = frameSize-frameIncr; nn--; )
         *fp2++ = *fp1++;     /* getsndin pads with zeros if not complete */
