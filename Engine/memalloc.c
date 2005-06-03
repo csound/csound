@@ -23,9 +23,6 @@
 */
 
 #include "cs.h"                         /*              MEMALLOC.C      */
-/* RWD 9:2000 for pvocex support */
-#include "pvfileio.h"
-/* global here so reachable by all standalones */
 
 #if defined(BETA) && !defined(MEMDEBUG)
 #define MEMDEBUG  1
@@ -194,29 +191,19 @@ void *mrealloc(void *csound, void *oldp, size_t size)
     return DATA_PTR(pp);
 }
 
-void all_free(void *csound)
+void memRESET(ENVIRON *csound)
 {
     memAllocBlock_t *pp, *nxtp;
 
-    if (MEMALLOC_DB == NULL)
-      return;           /* no allocs to free */
-    rlsmemfiles(csound);
     pp = (memAllocBlock_t*) MEMALLOC_DB;
     MEMALLOC_DB = NULL;
-    do {
+    while (pp != NULL) {
       nxtp = pp->nxt;
 #ifdef MEMDEBUG
       pp->magic = 0;
 #endif
       free((void*) pp);
       pp = nxtp;
-    } while (pp != NULL);
-}
-
-void memRESET(ENVIRON *csound)
-{
-    all_free(csound);
-    /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
-    pvsys_release(csound);
+    }
 }
 
