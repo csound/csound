@@ -89,7 +89,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     char    *playscore = NULL;      /* unless we extract */
     FILE    *scorin = NULL, *scorout = NULL, *xfile = NULL;
     int     n;
-
+  
     /* for debugging only */
     if ((n = setjmp(csound->exitjmp))) {
       csound->Message(csound, " *** WARNING: longjmp() called during "
