@@ -321,7 +321,7 @@ int init_pvsys(ENVIRON *csound)
     ENVIRON *p;
     PVOCFILE **files;
     char *pv_errstr;
-    
+
     p = (ENVIRON*) csound;
     p->CreateGlobalVariable(csound, "_pvocFile",
                             sizeof(PVOCFILE *)*MAXFILES);
@@ -730,7 +730,6 @@ static int pvoc_readheader(ENVIRON *csound, int ifd,WAVEFORMATPVOCEX *pWfpx)
     PVOCFILE **files = (PVOCFILE**) (p->QueryGlobalVariable(csound, "_pvocFile"));
     pv_errstr = (char *) (p->QueryGlobalVariable(csound, "_pvocErrstr"));
 
-
 #ifdef _DEBUG
     assert(pWfpx);
     assert(files[ifd]);
@@ -754,12 +753,12 @@ static int pvoc_readheader(ENVIRON *csound, int ifd,WAVEFORMATPVOCEX *pWfpx)
       pv_errstr = Str("\npvsys: not a RIFF file");
       return 0;
     }
-    
+
     if (size < 24 * sizeof(DWORD) + SIZEOF_FMTPVOCEX) {
       pv_errstr = Str("\npvsys: file too small");
       return 0;
     }
-    
+
     riffsize = size;
     if (read(files[ifd]->fd,(char *) &tag,sizeof(DWORD)) != sizeof(DWORD)) {
       pv_errstr = Str("\npvsys: error reading header");
@@ -775,14 +774,14 @@ static int pvoc_readheader(ENVIRON *csound, int ifd,WAVEFORMATPVOCEX *pWfpx)
     }
     riffsize -= sizeof(DWORD);
     /*loop for chunks */
-   
+
     while (riffsize > 0) {
       if (read(files[ifd]->fd,(char *) &tag,sizeof(DWORD)) != sizeof(DWORD)
           || read(files[ifd]->fd,(char *) &size,sizeof(DWORD)) != sizeof(DWORD)) {
         pv_errstr = Str("\npvsys: error reading header");
         return 0;
       }
-     
+
       if (files[ifd]->do_byte_reverse)
         size = REVDWBYTES(size);
       else
@@ -795,7 +794,7 @@ static int pvoc_readheader(ENVIRON *csound, int ifd,WAVEFORMATPVOCEX *pWfpx)
           pv_errstr = Str("\npvsys: not a PVOC-EX file");
           return 0;
         }
-   
+
         if (!pvoc_readfmt(files[ifd]->fd,files[ifd]->do_byte_reverse,pWfpx, pv_errstr)) {
           pv_errstr = Str("\npvsys: error reading format chunk");
           return 0;
@@ -1234,7 +1233,6 @@ int pvoc_rewind(ENVIRON *csound, int ifd,int skip_first_frame)
     PVOCFILE **files = (PVOCFILE**) (p->QueryGlobalVariable(csound, "_pvocFile"));
     pv_errstr = (char *) (p->QueryGlobalVariable(csound, "_pvocErrstr"));
 
-
     if (files[ifd]==NULL) {
       pv_errstr = Str("\npvsys: bad file descriptor");
       return rc;
@@ -1266,7 +1264,7 @@ int pvoc_rewind(ENVIRON *csound, int ifd,int skip_first_frame)
 /* may be more to do in here later on */
 int pvsys_release(ENVIRON *csound)
 {
-  /* at the moment, this should not be called  from memRESET() */  
+  /* at the moment, this should not be called  from memRESET() */
     int i;
     ENVIRON *p = (ENVIRON *)csound;
     char* pv_errstr;
@@ -1289,7 +1287,7 @@ int pvsys_release(ENVIRON *csound)
     ((ENVIRON*) csound)->DestroyGlobalVariable(csound, "_pvocFile");
     ((ENVIRON*) csound)->DestroyGlobalVariable(csound, "_pvocErrstr");
     }
-    
+
     return 1;
 }
 
