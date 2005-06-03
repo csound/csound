@@ -1,3 +1,14 @@
+2005-06-03	Istvan Varga	<istvan@csounds.com>
+	* Engine/oload.c:
+	* H/csoundCore.h:
+	  added (some) PVOC related functions to API
+	* OOps/pvfileio.c:
+	  extensively revised code (needs testing): use ANSI C functions
+	  for file I/O, removed dependencies on sizeof(long)==4 and endianness,
+	  removed limit on number of files
+	* util/pvanal.c:
+	  allow the use of PVOC-EX format again (still no displays though)
+
 2005-06-03 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
 	* OOps/pvfileio.c: removed statics and added csound* to functions;
 	 changed all relevant function calls elsewhere in the code to
