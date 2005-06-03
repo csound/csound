@@ -37,21 +37,17 @@
 #include "cwindow.h"
 #include "soundio.h"
 #include "pvoc.h"
-#if 0
 #include "pvxanal.h"
-#endif
 #include <math.h>
 #include <ctype.h>
 #include <sndfile.h>
 
                  /* prototype arguments */
-#if 0
 extern int pvxanal(ENVIRON *, SOUNDIN *, SNDFILE *, const char *, long, long,
                    long, long, long, int, int);
-#endif
 static long takeFFTs(ENVIRON *csound, SOUNDIN *inputSound, PVSTRUCT *outputPVH,
                      SNDFILE *sndfd, FILE *ofd, long oframeEst, long frameSize,
-                     int WindowType, long frameIncr, long fftfrmBsiz);
+                     int WindowType, long frameIncr, long fftfrmBsiz, int verbose);
 static int  quit(ENVIRON *, char *msg);
 
 #define MINFRMMS        20      /* frame defaults to at least this many ms */
@@ -259,6 +255,8 @@ static int pvanal(void *csound_, int argc, char **argv)
     FILE    *trfil = stdout;
     int     WindowType = 1;
     char    err_msg[512];
+    char    *ext;
+    int     verbose = 0;
 
     csound->oparms->displays = 0;
     if (!(--argc))
@@ -333,11 +331,8 @@ static int pvanal(void *csound_, int argc, char **argv)
                 return quit(csound, Str("Failed to open text file"));
               csound->Message(csound, Str("Writing text form to file %s\n"), s);
             }
-#if 0
           case 'v':
             verbose = 1;
-            break;
-#endif
             break;
           default:
             return quit(csound, Str("unrecognised switch option"));
@@ -386,7 +381,6 @@ static int pvanal(void *csound_, int argc, char **argv)
     csound->Message(csound, Str("%ld output frames estimated\n"),
                             (long) oframeEst);
 
-#if 0
     ext = strrchr(outfilnam, '.');
     /* Look for .pvx extension in any case */
     if (ext != NULL && ext[0] == '.' && tolower(ext[1]) == 'p' &&
@@ -406,7 +400,6 @@ static int pvanal(void *csound_, int argc, char **argv)
       }
     }
     else {
-#endif
       fftfrmBsiz = sizeof(MYFLT) * 2 * (frameSize/2 + 1);
       Estdatasiz = oframeEst * fftfrmBsiz;
       /* alloc & fill PV hdrblk */
@@ -438,15 +431,13 @@ static int pvanal(void *csound_, int argc, char **argv)
       }
 #endif
       oframeAct = takeFFTs(csound, p, pvh, infd, ofd, oframeEst,
-                           frameSize, WindowType, frameIncr, fftfrmBsiz);
+                           frameSize, WindowType, frameIncr, fftfrmBsiz, verbose);
       if (oframeAct < 0L)
         return -1;
   /*  dispexit();   */
       csound->Message(csound, Str("%ld output frames written\n"),
                               (long) oframeAct);
-#if 0
     }
-#endif
     return 0;
 }
 
@@ -482,7 +473,7 @@ static int quit(ENVIRON *csound, char *msg)
 
 static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
                      SNDFILE *infd, FILE *ofd, long oframeEst, long frameSize,
-                     int WindowType, long frameIncr, long fftfrmBsiz)
+                     int WindowType, long frameIncr, long fftfrmBsiz, int verbose)
 {
     long    i = -1, nn, read_in;
     MYFLT   *inBuf, *tmpBuf, *oldInPh, *winBuf;
@@ -555,7 +546,7 @@ static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
       if (!csound->Yield(csound)) break;
 #endif
     } while (i < oframeEst);
-    if (!csound->oparms->displays /* && !verbose */)
+    if (!csound->oparms->displays && !verbose)
       csound->Message(csound, "%ld\n", (long) i);
     if (i < oframeEst)
       csound->Message(csound, Str("\tearly end of file\n"));
