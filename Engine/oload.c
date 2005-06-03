@@ -2,6 +2,7 @@
     oload.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch, Michael Gogins
+              (C) 2005 Istvan Varga
 
     This file is part of Csound.
 
@@ -20,16 +21,16 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
-#include "cs.h"                 /*                              OLOAD.C   */
+                                /*                              OLOAD.C   */
+#include "csoundCore.h"
 #include <math.h>
-#include <setjmp.h>
 #include "oload.h"
 #include "midiops.h"
 #include "insert.h"
 #include "ftgen.h"
-#include "csound.h"
 #include "namedins.h"
+#include "soundio.h"
+#include "pvfileio.h"
 
 int     csoundGetAPIVersion(void);
 void    writeheader(ENVIRON *csound, int ofd, char *ofname);
@@ -48,6 +49,8 @@ void    defaultCsoundKillGraph(void *csound, WINDAT *windat);
 int     defaultCsoundExitGraph(void *csound);
 int     defaultCsoundYield(void *csound);
 void    close_all_files(void *csound);
+int     pvxanal(ENVIRON *, SOUNDIN *, SNDFILE *, const char *,
+                           long, long, long, long, long, pv_wtype, int);
 
 static const OPARMS O_ = {
               0,            /* odebug */
@@ -224,6 +227,16 @@ const ENVIRON cenviron_ = {
         csoundFileOpen,
         csoundGetFileName,
         csoundFileClose,
+        pvoc_createfile,
+        (int (*)(ENVIRON*, const char*, void*, void*)) pvoc_openfile,
+        pvoc_closefile,
+        pvoc_putframes,
+        pvoc_getframes,
+        pvoc_framecount,
+        pvoc_rewind,
+        (int (*)(ENVIRON*, void*, void*, const char*,
+                           long, long, long, long, long, int, int)) pvxanal,
+        /* callback function pointers */
         playopen_dummy,
         rtplay_dummy,
         recopen_dummy,
@@ -426,7 +439,10 @@ const ENVIRON cenviron_ = {
         NULL,           /*  open_files          */
         NULL,           /*  searchPathCache     */
         NULL,           /*  sndmemfiles         */
-        NULL            /*  reset_list          */
+        NULL,           /*  reset_list          */
+        NULL,           /*  pvFileTable         */
+        0,              /*  pvNumFiles          */
+        0               /*  pvErrorCode         */
 };
 
 /* otran.c */
