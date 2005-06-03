@@ -217,7 +217,6 @@ void memRESET(ENVIRON *csound)
 {
     all_free(csound);
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
-    /* VL : 03 06 2005 at the moment calling this here is causing problems */
-    /* pvsys_release(csound); */
+    pvsys_release(csound);
 }
 

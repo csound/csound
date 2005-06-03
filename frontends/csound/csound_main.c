@@ -147,7 +147,6 @@ int main(int argc, char **argv)
 
     /*  Create Csound. */
     csound = csoundCreate(NULL);
-    
 
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
