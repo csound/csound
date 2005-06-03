@@ -304,7 +304,7 @@ extern "C" {
       free(csound);
       return NULL;
     }
- 
+
     csoundLock();
     p->csound = csound;
     p->nxt = instance_list;
@@ -1518,7 +1518,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
   PUBLIC void csoundReset(void *csound)
   {
     csoundCleanup(csound);
-    
+
     /* call registered reset callbacks */
     while (((ENVIRON*) csound)->reset_list != NULL) {
       resetCallback_t *p = (resetCallback_t*) ((ENVIRON*) csound)->reset_list;
@@ -1527,7 +1527,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
       free(p);
       ((ENVIRON*) csound)->reset_list = (void*) nxt;
     }
-       
+
     /* unload plugin opcodes */
     csoundUnloadExternals((ENVIRON*) csound);
     /* call local destructor routines of external modules */

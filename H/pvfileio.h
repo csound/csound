@@ -26,12 +26,7 @@
 #ifndef __PVFILEIO_H_INCLUDED
 #define __PVFILEIO_H_INCLUDED
 
-/* #ifndef WORD  */
-/* #define WORD unsigned short */
-/* #endif */
-/* #ifndef DWORD */
-/* #define DWORD unsigned long */
-/* #endif */
+#include "sysdep.h"
 
 #ifdef _WINDOWS
 #include <windows.h>
@@ -39,18 +34,18 @@
 
 #ifndef _WINDOWS
 #ifndef WORD
-#define WORD unsigned short
+#define WORD uint16_t
 #endif
 #ifndef DWORD
-#define DWORD unsigned long
+#define DWORD uint32_t
 #endif
 
 typedef struct _GUID
 {
-    DWORD                       Data1;
-    WORD                        Data2;
-    WORD                        Data3;
-    unsigned char       Data4[8];
+    DWORD           Data1;
+    WORD            Data2;
+    WORD            Data3;
+    unsigned char   Data4[8];
 } GUID;
 
 typedef struct /*waveformatex */{
