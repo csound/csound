@@ -335,7 +335,7 @@ int spectrum(ENVIRON *csound, SPECTRUM *p)
           c = sqrt(c);                       /*    or root mag          */
         case 0 :
           c = sqrt(c);                       /*    or mag               */
-        case 2: 
+        case 2:
           break;                             /*    or leave mag sqrd    */
         }
         *dftp++ = (MYFLT)c;                  /* store in out spectrum   */
