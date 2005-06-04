@@ -29,7 +29,11 @@
 
 #include "sysdep.h"
 
-#if !(defined(WIN32) || defined(_WIN32) || defined(_MSC_VER))
+#if defined(WIN32)
+
+#include <windows.h>
+
+#elif !(defined(WIN32) || defined(_WIN32) || defined(_MSC_VER))
 
 typedef struct _GUID
 {
