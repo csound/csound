@@ -47,7 +47,8 @@ void FetchInOne(
     MYFLT   pos,        /* fractional frame we want */
     long    mybin)
 {
-    MYFLT   *frm0,*frm1;
+    MYFLT   *frame0;
+    MYFLT   *frame1;
     long    base;
     MYFLT   frac;
     long    twmybin = mybin+mybin; /* Always used thus */
@@ -56,18 +57,18 @@ void FetchInOne(
     base = (long)pos;               /* index of basis frame of interpolation */
     frac = ((MYFLT)(pos - (MYFLT)base));
     /* & how close to get to next */
-    frm0 = inp + ((long)fsize+2L)*base;
-    frm1 = frm0 + ((long)fsize+2L);         /* addresses of both frames */
+    frame0 = inp + ((long)fsize+2L)*base;
+    frame1 = frame0 + ((long)fsize+2L);         /* addresses of both frames */
     if (frac != 0.0) {          /* must have 2 cases to avoid poss seg vlns */
                                 /* and failed computes, else may interp   */
                                 /* bd valid data */
-      buf[0] = frm0[twmybin] + frac*(frm1[twmybin]-frm0[twmybin]);
-      buf[1L] = frm0[twmybin+1L] + frac*(frm1[twmybin+1L]-frm0[twmybin+1L]);
+      buf[0] = frame0[twmybin] + frac*(frame1[twmybin]-frame0[twmybin]);
+      buf[1L] = frame0[twmybin+1L] + frac*(frame1[twmybin+1L]-frame0[twmybin+1L]);
     }
     else {
         /* frac is 0.0 i.e. just copy the source frame */
-      buf[0] = frm0[twmybin];
-      buf[1L] = frm0[twmybin+1L];
+      buf[0] = frame0[twmybin];
+      buf[1L] = frame0[twmybin+1L];
     }
 }
 
