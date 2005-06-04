@@ -531,8 +531,16 @@ long generate_frame(ENVIRON *csound,
     rfftwnd_one_real_to_complex(forward_plan,anal,NULL);
     /* reals_(csound,anal,banal,N2,-2); */
 #else
-    fft_(csound,anal,banal,1,pvx->N2,1,-2);
-    reals_(csound,anal,banal,pvx->N2,-2);
+    if (!(pvx->N & (pvx->N - 1))) {
+      /* if FFT size is power of two: */
+      csound->RealFFT(csound, anal, pvx->N);
+      anal[pvx->N] = anal[1];
+      anal[1] = anal[pvx->N + 1] = FL(0.0);
+    }
+    else {
+      fft_(csound,anal,banal,1,pvx->N2,1,-2);
+      reals_(csound,anal,banal,pvx->N2,-2);
+    }
 #endif
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an

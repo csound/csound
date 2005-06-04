@@ -221,10 +221,17 @@ static void generate_frame(ENVIRON *csound, PVSANAL *p)
     }
 #ifdef USE_FFTW
     rfftwnd_one_real_to_complex(forward_plan,anal,NULL);
-
 #else
-    fft_(csound,anal,banal,1,N2,1,-2);
-    reals_(csound,anal,banal,N2,-2);
+    if (!(N & (N - 1))) {
+      /* if FFT size is power of two: */
+      csound->RealFFT(csound, anal, N);
+      anal[N] = anal[1];
+      anal[1] = anal[N + 1] = FL(0.0);
+    }
+    else {
+      fft_(csound,anal,banal,1,N2,1,-2);
+      reals_(csound,anal,banal,N2,-2);
+    }
 #endif
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
@@ -451,13 +458,6 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
    /* no timescaling, so I(nterpolation) will always = D(ecimation) = overlap*/
       for (i = -halfwinsize; i <= halfwinsize; i+=overlap)
         sum += *(synwinhalf + i) * *(synwinhalf + i);
-
-      sum = FL(1.0)/ sum;
-#ifdef USE_FFTW
-      sum *= Ninv;
-#endif
-      for (i = -halfwinsize; i <= halfwinsize; i++)
-        *(synwinhalf + i) *= sum;
     }
     else {
       switch (wintype) {
@@ -484,15 +484,18 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
            (PI*(i+0.5*(double)Lf)));
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
-
-      sum = FL(1.0)/sum;
-#ifdef USE_FFTW
-      sum *= Ninv;
-#endif
-      for (i = -halfwinsize; i <= halfwinsize; i++)
-        *(synwinhalf + i) *= sum;
     }
-/*     p->invR = FL(1.0) / csound->esr; */
+    sum = FL(1.0)/sum;
+#ifdef USE_FFTW
+    sum *= Ninv;
+#else
+    if (!(N & (N - 1L)))
+      sum *= csound->GetInverseRealFFTScale(csound, (int) N);
+#endif
+    for (i = -halfwinsize; i <= halfwinsize; i++)
+      *(synwinhalf + i) *= sum;
+
+/*  p->invR = FL(1.0) / csound->esr; */
     p->RoverTwoPi = p->arate / TWOPI_F;
     p->TwoPioverR = TWOPI_F / p->arate;
     p->Fexact =  csound->esr / (MYFLT)N;
@@ -605,8 +608,15 @@ static void process_frame(ENVIRON *csound, PVSYNTH *p)
 #ifdef USE_FFTW
     rfftwnd_one_complex_to_real(inverse_plan,(fftw_complex * )syn,NULL);
 #else
-    reals_(csound,syn,bsyn,NO2,2);
-    fft_(csound, syn,bsyn,1,NO2,1,2);
+    if (!(N & (N - 1L))) {
+      syn[1] = syn[N];
+      syn[N] = syn[N + 1L] = FL(0.0);
+      csound->InverseRealFFT(csound, syn, (int) N);
+    }
+    else {
+      reals_(csound,syn,bsyn,NO2,2);
+      fft_(csound, syn,bsyn,1,NO2,1,2);
+    }
 #endif
     j = p->nO - synWinLen - 1;
     while (j < 0)
