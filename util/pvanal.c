@@ -450,7 +450,7 @@ static int pvanal(void *csound_, int argc, char **argv)
                               (long) oframeAct);
 #else
       csound->Message(csound,
-                      Str("Old c=format pvanal being withdrawn; use pvx\n"));
+                      Str("Old format pvanal being withdrawn; use .pvx\n"));
 #endif
     }
     return 0;
