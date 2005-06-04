@@ -70,7 +70,8 @@ Spectral arpeggiator
 PERFORMANCE
 
 fin - input pv streaming signal
-kcf - centre freq of arpeggiation (normalised 0 - 1.0, corresponding to 0 - Nyquist)
+kcf - centre freq of arpeggiation (normalised 0 - 1.0, 
+                                   corresponding to 0 - Nyquist)
 kdepth - depth of attenuation of surrounding frequency bins
 kgain - gain applied to the bin at the centre frequency
 
@@ -322,9 +323,10 @@ int pvsarp_init(ENVIRON *csound, pvsarp *p) {
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)) {
+    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)){
      return csound->InitError(csound,
-                    "pvsarp: signal format must be amp-phase or amp-freq.\n");
+                              "pvsarp: signal format must be amp-phase "
+                              "or amp-freq.\n");
     }
 
     return OK;
@@ -368,9 +370,10 @@ int pvsvoc_init(ENVIRON *csound, pvsvoc *p) {
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)) {
+    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)){
      return csound->InitError(csound,
-                    "pvsvoc: signal format must be amp-phase or amp-freq.\n");
+                              "pvsvoc: signal format must be amp-phase "
+                              "or amp-freq.\n");
     }
 
     return OK;
