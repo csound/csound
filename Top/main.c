@@ -31,16 +31,8 @@
 
 extern  void    dieu(void *, char *);
 extern  int     argdecode(void*, int, char**);
-extern  void    init_pvsys(ENVIRON *);
+extern  int     init_pvsys(ENVIRON *);
 extern  char    *get_sconame(void *csound);     /* one_file.c */
-
-#ifdef MSVC
-#include <windows.h>
-#endif
-
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
 
 void create_opcodlst(void *csound)
 {
