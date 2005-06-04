@@ -62,7 +62,8 @@ int spectset(ENVIRON *csound, SPECTRUM *p)
     DOWNDAT *dwnp = &p->downsig;
     SPECDAT *specp = p->wsig;
 
-    p->timcount = (int)(csound->ekr * *p->iprd + FL(0.001)); /* for mac roundoff */
+    /* for mac roundoff */
+    p->timcount = (int)(csound->ekr * *p->iprd + FL(0.001));
     nocts = (int)*p->iocts;
     nfreqs = (int)*p->ifrqs;
     ncoefs = nocts * nfreqs;
@@ -297,15 +298,15 @@ int spectrum(ENVIRON *csound, SPECTRUM *p)
       int    len, *lenp, *offp, nfreqs;
       MYFLT    *begp, *curp, *endp, *linbufp;
       int      len2;
-      octp--;                              /* for each oct (low to high)   */
+      octp--;                                /* for each oct (low to high)   */
       begp = octp->begp;
       curp = octp->curp;
       endp = octp->endp;
       if ((len = endp - curp) >= winlen)     /*   if no wrap               */
-        linbufp = curp;                    /*     use samples in circbuf */
+        linbufp = curp;                      /*     use samples in circbuf */
       else {
         len2 = winlen - len;
-        linbufp = bufp = p->linbufp;       /*   else cp crcbuf to linbuf */
+        linbufp = bufp = p->linbufp;         /*   else cp crcbuf to linbuf */
         while (len--)
           *bufp++ = *curp++;
         curp = begp;
@@ -320,27 +321,27 @@ int spectrum(ENVIRON *csound, SPECTRUM *p)
         a = FL(0.0);
         b = FL(0.0);
         bufp = linbufp + *offp++;
-        for (len = *lenp++; len--; bufp++) {  /* apply windowed sine seg */
+        for (len = *lenp++; len--; bufp++) { /* apply windowed sine seg */
           a += *bufp * *cosp++;
           b += *bufp * *sinp++;
         }
-        c = a*a + b*b;                        /* get magnitude squared   */
+        c = a*a + b*b;                       /* get magnitude squared   */
         switch (p->dbout) {
         case 1:
-          if (c < .001) c = .001;           /* and convert to db       */
+          if (c < .001) c = .001;            /* and convert to db       */
           c = 10.0 * log10(c);
           break;
         case 3:
-          c = sqrt(c);                      /*    or root mag          */
-        case 0:
-          c = sqrt(c);                      /*    or mag               */
-        case 2:
-          break;                            /*    or leave mag sqrd    */
+          c = sqrt(c);                       /*    or root mag          */
+        case 0 :
+          c = sqrt(c);                       /*    or mag               */
+        case 2: 
+          break;                             /*    or leave mag sqrd    */
         }
-        *dftp++ = (MYFLT)c;                 /* store in out spectrum   */
+        *dftp++ = (MYFLT)c;                  /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = csound->kcounter;    /* time-stamp the output   */
+    specp->ktimstamp = csound->kcounter;     /* time-stamp the output   */
     return OK;
 }
 
@@ -706,7 +707,7 @@ int specptrk(ENVIRON *csound, SPECPTRK *p)
       ilop = inp + (flop - p->fundp);           /* similar for input bins   */
       ihip = inp + (fhip - p->fundp);
       if (p->ftimcnt) {                         /* if displaying,  */
-        for (fp = p->flop; fp < flop; )       /*   clr to limits */
+        for (fp = p->flop; fp < flop; )         /*   clr to limits */
           *fp++ = FZERO;
         for (fp = p->fhip; fp > fhip; )
           *--fp = FZERO;
@@ -911,14 +912,14 @@ int spdifset(ENVIRON *csound, SPECDIFF *p)
     MYFLT *outp;
     int   npts;
 
-    if ((npts = inspecp->npts) != p->specsave.npts) {  /* if inspec not matched  */
+    if ((npts = inspecp->npts) != p->specsave.npts) { /* if inspec not matched  */
       SPECset(csound,
-              &p->specsave, (long)npts);               /*   reinit the save spec */
+              &p->specsave, (long)npts);              /*   reinit the save spec */
       SPECset(csound,
-              p->wdiff, (long)npts);                   /*   & the out diff spec  */
+              p->wdiff, (long)npts);                  /*   & the out diff spec  */
       p->wdiff->downsrcp = inspecp->downsrcp;
     }
-    p->wdiff->ktimprd = inspecp->ktimprd;             /* pass the other specinfo */
+    p->wdiff->ktimprd = inspecp->ktimprd;            /* pass the other specinfo */
     p->wdiff->nfreqs = inspecp->nfreqs;
     p->wdiff->dbout = inspecp->dbout;
     lclp = (MYFLT *) p->specsave.auxch.auxp;
