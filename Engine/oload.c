@@ -66,9 +66,9 @@ static const OPARMS O_ = {
 
 const ENVIRON cenviron_ = {
         /*
-        * Interface functions.
-        */
-        0, /*csoundGetVersion,*/
+         * Interface functions.
+         */
+        NULL, /* csoundGetVersion, */
         csoundGetAPIVersion,
         csoundGetHostData,
         csoundSetHostData,
@@ -234,6 +234,7 @@ const ENVIRON cenviron_ = {
         pvoc_getframes,
         pvoc_framecount,
         pvoc_rewind,
+        pvoc_errorstr,
         (int (*)(ENVIRON*, void*, void*, const char*,
                            long, long, long, long, long, int, int)) pvxanal,
         /* callback function pointers */

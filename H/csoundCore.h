@@ -789,6 +789,7 @@ extern "C" {
     int (*PVOC_GetFrames)(struct ENVIRON_ *, int, float *, unsigned long);
     int (*PVOC_FrameCount)(struct ENVIRON_ *, int);
     int (*PVOC_Rewind)(struct ENVIRON_ *, int, int);
+    const char *(*PVOC_ErrorString)(struct ENVIRON_ *);
     int (*pvxanal)(struct ENVIRON_ *, void *, void *, const char *, long, long,
                                       long, long, long, int, int);
     /* callback function pointers - not part of the API */
