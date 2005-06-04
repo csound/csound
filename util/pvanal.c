@@ -44,10 +44,12 @@
 
 /* prototype arguments */
 
+#ifdef oldcode
 static long takeFFTs(ENVIRON *csound, SOUNDIN *inputSound, PVSTRUCT *outputPVH,
                      SNDFILE *sndfd, FILE *ofd, long oframeEst, long frameSize,
                      int WindowType, long frameIncr, long fftfrmBsiz,
                      int verbose);
+#endif
 static int  quit(ENVIRON *, char *msg);
 
 #define MINFRMMS        20      /* frame defaults to at least this many ms */
@@ -60,6 +62,7 @@ static int  quit(ENVIRON *, char *msg);
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
                             return quit(csound, MSG);
 
+#ifdef oldcode
 static MYFLT *MakeBuf(ENVIRON *csound, long size)
 {
     MYFLT *res, *p;
@@ -227,25 +230,30 @@ static int PVAlloc(
     /* leave info bytes undefined */
     return(PVE_OK);
 }
+#endif
 
 static int pvanal(void *csound_, int argc, char **argv)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
-    PVSTRUCT *pvh;
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
+#ifdef oldcode
+    PVSTRUCT *pvh;
     FILE    *ofd;
     void    *ofd_handle;
-    int     err, channel = ALLCHNLS;
+    int     err;
+    long    Estdatasiz;
+    long    fftfrmBsiz = 0;     /* bytes of fft output frame      */
+    long    oframeAct;          /* output frms  actual */
+#endif
+    int     channel = ALLCHNLS;
     int     ovlp = 0;           /* number of overlapping windows to have */
     SOUNDIN *p;                 /* space allocated by SAsndgetset() */
 
     MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
-    long    oframeEst = 0, oframeAct;   /* output frms estimated, & actual */
-    long    Estdatasiz;
+    long    oframeEst = 0;      /* output frms estimated */
     long    frameSize  = 0;     /* size of FFT frames */
     long    frameIncr  = 0;     /* step between successive frames */
-    long    fftfrmBsiz = 0;     /* bytes of fft output frame      */
 #if 0
     WINDAT  dwindow;
 #endif
@@ -401,6 +409,7 @@ static int pvanal(void *csound_, int argc, char **argv)
       }
     }
     else {
+#ifdef oldcode
       fftfrmBsiz = sizeof(MYFLT) * 2 * (frameSize/2 + 1);
       Estdatasiz = oframeEst * fftfrmBsiz;
       /* alloc & fill PV hdrblk */
@@ -439,6 +448,10 @@ static int pvanal(void *csound_, int argc, char **argv)
   /*  dispexit();   */
       csound->Message(csound, Str("%ld output frames written\n"),
                               (long) oframeAct);
+#else
+      csound->Message(csound,
+                      Str("Old c=format pvanal being withdrawn; use pvx\n"));
+#endif
     }
     return 0;
 }
@@ -467,6 +480,7 @@ static int quit(ENVIRON *csound, char *msg)
     return -1;
 }
 
+#ifdef oldcode
 /*
  * takeFFTs
  *  Go through the (mono) input sound frame by frame and find the
@@ -555,6 +569,7 @@ static long takeFFTs(ENVIRON *csound, SOUNDIN *p, PVSTRUCT *outputPVH,
       csound->Message(csound, Str("\tearly end of file\n"));
     return((long)i + 1);
 }
+#endif
 
 /* module interface */
 
