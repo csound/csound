@@ -268,7 +268,7 @@ static int getorchar(ENVIRON *csound)
     }
     if (c == '\r') {
       int d;
-      if ((d = getc(ST(str)->file) != '\n')) {
+      if ((d = getc(ST(str)->file)) != '\n') {
         ungetc(d, ST(str)->file);
       }
       c = '\n';
