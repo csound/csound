@@ -70,7 +70,7 @@ Spectral arpeggiator
 PERFORMANCE
 
 fin - input pv streaming signal
-kcf - centre freq of arpeggiation (normalised 0 - 1.0, 
+kcf - centre freq of arpeggiation (normalised 0 - 1.0,
                                    corresponding to 0 - Nyquist)
 kdepth - depth of attenuation of surrounding frequency bins
 kgain - gain applied to the bin at the centre frequency
