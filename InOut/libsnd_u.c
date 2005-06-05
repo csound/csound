@@ -234,45 +234,54 @@ int getsndin(void *csound_, void *fd_, MYFLT *fp, int nlocs, void *p_)
     ENVIRON *csound = (ENVIRON*) csound_;
     SNDFILE *fd = (SNDFILE*) fd_;
     SOUNDIN *p = (SOUNDIN*) p_;
-    int     n, nread;
-    MYFLT   *fbeg = fp, *fend = fp + nlocs;
-    MYFLT   scalefac = csound->e0dbfs;
+    int     i = 0, n;
+    MYFLT   scalefac;
 
-    if (p->do_floatscaling)
-      scalefac *= p->fscalefac;
+    if (p->format == AE_FLOAT || p->format == AE_DOUBLE) {
+      if (p->filetyp == TYP_WAV || p->filetyp == TYP_AIFF ||
+          p->filetyp == TYP_W64)
+        scalefac = csound->e0dbfs;
+      else
+        scalefac = FL(1.0);
+      if (p->do_floatscaling)
+        scalefac *= p->fscalefac;
+    }
+    else
+      scalefac = csound->e0dbfs;
 
     if (p->nchanls == 1 || p->channel == ALLCHNLS) {  /* MONO or ALLCHNLS */
-      while (nlocs--) {
+      for ( ; i < nlocs; i++) {
         if (p->inbufp >= p->bufend) {
-          if ((n = sreadin(csound, fd, p->inbuf, p->bufsmps, p)) == 0)
+          if ((n = sreadin(csound, fd, p->inbuf, p->bufsmps, p)) <= 0)
             break;
           p->inbufp = p->inbuf;
           p->bufend = p->inbuf + n;
         }
-        *fp++ = *p->inbufp++ * scalefac;
+        fp[i] = *p->inbufp++ * scalefac;
       }
     }
     else {                                /* MULTI-CHANNEL, SELECT ONE */
-      int chcnt = 0, chreq = p->channel, nchanls = p->nchanls;
-      nlocs *= nchanls;
-      while (nlocs--) {
+      int   chcnt;
+      for ( ; i < nlocs; i++) {
         if (p->inbufp >= p->bufend) {
-          if ((n = sreadin(csound, fd, p->inbuf, p->bufsmps, p)) == 0)
+          if ((n = sreadin(csound, fd, p->inbuf, p->bufsmps, p)) <= 0)
             break;
           p->inbufp = p->inbuf;
           p->bufend = p->inbuf + n;
         }
-        if (++chcnt == chreq)
-          *fp++ = *p->inbufp * scalefac;
-        p->inbufp++;
-        if (chcnt >= nchanls) chcnt = 0;
+        chcnt = 0;
+        do {
+          if (++chcnt == p->channel)
+            fp[i] = *p->inbufp * scalefac;
+          p->inbufp++;
+        } while (chcnt < p->nchanls);
       }
     }
 
-    nread = fp - fbeg;
-    while (fp < fend)    /* if incomplete */
-      *fp++ = FL(0.0);   /*  pad with 0's */
-    return nread;
+    n = i;
+    for ( ; i < nlocs; i++)     /* if incomplete */
+      fp[i] = FL(0.0);          /*  pad with 0's */
+    return n;
 }
 
 int sreadin(void    *csound_,   /* special handling of sound input        */
