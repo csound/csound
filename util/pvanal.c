@@ -380,10 +380,10 @@ static int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
     long        total_sampsread = 0;
 
     switch (p->format) {
-      case AE_SHORT:  stype = STYPE_16;
-      case AE_24INT:  stype = STYPE_24;
-      case AE_LONG:   stype = STYPE_32;
-      case AE_FLOAT:  stype = STYPE_IEEE_FLOAT;
+      case AE_SHORT:  stype = STYPE_16; break;
+      case AE_24INT:  stype = STYPE_24; break;
+      case AE_LONG:   stype = STYPE_32; break;
+      case AE_FLOAT:  stype = STYPE_IEEE_FLOAT; break;
     }
 
     nbins = (fftsize/2) + 1;
