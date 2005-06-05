@@ -25,7 +25,6 @@
 #endif
 
 #include "cs.h"
-#include "csound.h"
 #include <ctype.h>
 #include <errno.h>
 
@@ -219,22 +218,23 @@ int readOptions(void *csound, FILE *unf)
 
 static int createOrchestra(void *csound, FILE *unf)
 {
-    char *p;
-    FILE *orcf;
+    char  *p;
+    FILE  *orcf;
+    void  *fd;
 
     mytmpnam(csound, ST(orcname));            /* Generate orchestra name */
     if ((p=strchr(ST(orcname), '.')) != NULL) *p='\0'; /* with extention */
     strcat(ST(orcname), ".orc");
-    orcf = fopen(ST(orcname), "w");
+    fd = csoundFileOpen(csound, &orcf, CSFILE_STD, ST(orcname), "w", NULL);
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(orcname), orcf);
-    if (orcf == NULL) {
+    if (fd == NULL) {
       csoundDie(csound, Str("Failed to create %s"), ST(orcname));
     }
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = ST(buffer);
-      while (*p==' '||*p=='\t') p++;
+      while (*p == ' ' || *p == '\t') p++;
       if (strstr(p,"</CsInstruments>") == ST(buffer)) {
-        fclose(orcf);
+        csoundFileClose(csound, fd);
         add_tmpfile(csound, ST(orcname));           /* IV - Feb 03 2005 */
         return TRUE;
       }
@@ -245,22 +245,23 @@ static int createOrchestra(void *csound, FILE *unf)
 
 static int createScore(void *csound, FILE *unf)
 {
-    char *p;
-    FILE *scof;
+    char  *p;
+    FILE  *scof;
+    void  *fd;
 
     mytmpnam(csound, ST(sconame));            /* Generate score name */
     if ((p=strchr(ST(sconame), '.')) != NULL) *p='\0'; /* with extention */
     strcat(ST(sconame), ".sco");
-    scof = fopen(ST(sconame), "w");
-        /*RWD 3:2000*/
-    if (scof==NULL)
+    fd = csoundFileOpen(csound, &scof, CSFILE_STD, ST(sconame), "w", NULL);
+    /* RWD 3:2000 */
+    if (fd == NULL)
       return FALSE;
 
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = ST(buffer);
       while (*p==' '||*p=='\t') p++;
      if (strstr(p,"</CsScore>") == ST(buffer)) {
-        fclose(scof);
+        csoundFileClose(csound, fd);
         add_tmpfile(csound, ST(sconame));           /* IV - Feb 03 2005 */
         return TRUE;
       }
@@ -271,18 +272,18 @@ static int createScore(void *csound, FILE *unf)
 
 static int createMIDI(void *csound, FILE *unf)
 {
-    int size;
-    char *p;
-    FILE *midf;
-    int c;
+    int   size, c;
+    char  *p;
+    FILE  *midf;
+    void  *fd;
 
     if (mytmpnam(csound, ST(midname))==NULL) { /* Generate MIDI file name */
       csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
     }
     if ((p=strchr(ST(midname), '.')) != NULL) *p='\0'; /* with extention */
     strcat(ST(midname), ".mid");
-    midf = fopen(ST(midname), "wb");
-    if (midf==NULL) {
+    fd = csoundFileOpen(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL);
+    if (fd == NULL) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
                         ST(midname));
     }
@@ -294,7 +295,7 @@ static int createMIDI(void *csound, FILE *unf)
       c = getc(unf);
       putc(c, midf);
     }
-    fclose(midf);
+    csoundFileClose(csound, fd);
     add_tmpfile(csound, ST(midname));               /* IV - Feb 03 2005 */
     ST(midiSet) = TRUE;
     while (TRUE) {
@@ -358,21 +359,22 @@ static void read_base64(void *csound, FILE *in, FILE *out)
 
 static int createMIDI2(void *csound, FILE *unf)
 {
-    char *p;
-    FILE *midf;
+    char  *p;
+    FILE  *midf;
+    void  *fd;
 
     if (mytmpnam(csound, ST(midname))==NULL) { /* Generate MIDI file name */
       csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
     }
     if ((p=strchr(ST(midname), '.')) != NULL) *p='\0'; /* with extention */
     strcat(ST(midname), ".mid");
-    midf = fopen(ST(midname), "wb");
-    if (midf==NULL) {
+    fd = csoundFileOpen(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL);
+    if (fd == NULL) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
                         ST(midname));
     }
     read_base64(csound, unf, midf);
-    fclose(midf);
+    csoundFileClose(csound, fd);
     add_tmpfile(csound, ST(midname));               /* IV - Feb 03 2005 */
     ST(midiSet) = TRUE;
     while (TRUE) {
@@ -389,22 +391,23 @@ static int createMIDI2(void *csound, FILE *unf)
 
 static int createSample(void *csound, FILE *unf)
 {
-    int num;
-    FILE *smpf;
-    char sampname[256];
+    int   num;
+    FILE  *smpf;
+    void  *fd;
+    char  sampname[256];
 
     sscanf(ST(buffer), "<CsSampleB filename=%d>", &num);
     sprintf(sampname, "soundin.%d", num);
-    if ((smpf=fopen(sampname, "r")) != NULL) {
+    if ((smpf = fopen(sampname, "rb")) != NULL) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), sampname);
     }
-    smpf = fopen(sampname, "wb");
-    if (smpf==NULL) {
+    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL);
+    if (fd == NULL) {
       csoundDie(csound, Str("Cannot open sample file (%s) subfile"), sampname);
     }
     read_base64(csound, unf, smpf);
-    fclose(smpf);
+    csoundFileClose(csound, fd);
     add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     while (TRUE) {
       if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
@@ -420,23 +423,24 @@ static int createSample(void *csound, FILE *unf)
 
 static int createFile(void *csound, FILE *unf)
 {
-    FILE *smpf;
-    char filename[256];
+    FILE  *smpf;
+    void  *fd;
+    char  filename[256];
 
     filename[0] = '\0';
     sscanf(ST(buffer), "<CsFileB filename=%s>", filename);
     if (filename[0] != '\0' && filename[strlen(filename) - 1] == '>')
       filename[strlen(filename) - 1] = '\0';
-    if ((smpf=fopen(filename, "r")) != NULL) {
+    if ((smpf = fopen(filename, "rb")) != NULL) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
     }
-    smpf = fopen(filename, "wb");
-    if (smpf==NULL) {
+    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, filename, "wb", NULL);
+    if (fd == NULL) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
     }
     read_base64(csound, unf, smpf);
-    fclose(smpf);
+    csoundFileClose(csound, fd);
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
 
     while (TRUE) {
@@ -453,10 +457,11 @@ static int createFile(void *csound, FILE *unf)
 
 static int checkVersion(void *csound, FILE *unf)
 {
-    char *p;
-    int major = 0, minor = 0;
-    int result = TRUE;
-    int version = csoundGetVersion();
+    char  *p;
+    int   major = 0, minor = 0;
+    int   result = TRUE;
+    int   version = csoundGetVersion();
+
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = ST(buffer);
       while (*p==' '||*p=='\t') p++;
@@ -483,8 +488,9 @@ static int checkVersion(void *csound, FILE *unf)
 
 static int checkLicence(void *csound, FILE *unf)
 {
-    char *p, *licence;
-    int len = 20;
+    char  *p, *licence;
+    int   len = 20;
+
     csoundMessage(csound, Str("**** Licence Information ****\n"));
     licence = (char*) malloc(len);
     licence[0] = '\0';
@@ -531,13 +537,16 @@ int read_unified_file(void *csound_, char **pname, char **score)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
     char  *name = *pname;
-    FILE  *unf  = fopen(name, "rb");    /* Need to open in binary to deal with
-                                           MIDI and the like. */
+    FILE  *unf;
+    void  *fd;
     int   result = TRUE;
     int   started = FALSE;
     int   r;
+
+    /* Need to open in binary to deal with MIDI and the like. */
+    fd = csoundFileOpen(csound, &unf, CSFILE_STD, name, "rb", NULL);
     /* RWD 3:2000 fopen can fail... */
-    if (unf == NULL) {
+    if (fd == NULL) {
       csound->MessageS(csound, CSOUNDMSG_ERROR,
                                Str("Failed to open csd file: %s\n"),
                                strerror(errno));
@@ -565,7 +574,7 @@ int read_unified_file(void *csound_, char **pname, char **score)
           csound->oparms->FMidiname = ST(midname);
           csound->oparms->FMidiin = 1;
         }
-        fclose(unf);
+        csoundFileClose(csound, fd);
         return result;
       }
       else if (strstr(p,"<CsOptions>") == ST(buffer)) {
@@ -619,7 +628,7 @@ int read_unified_file(void *csound_, char **pname, char **score)
       csound->oparms->FMidiname = ST(midname);
       csound->oparms->FMidiin = 1;
     }
-    fclose(unf);
+    csoundFileClose(csound, fd);
     return result;
 }
 
