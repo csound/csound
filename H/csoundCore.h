@@ -761,6 +761,8 @@ extern "C" {
     void (*InverseRealFFT)(void *csound, MYFLT *buf, int FFTsize);
     void (*RealFFTMult)(void *csound, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
                                       int FFTsize, MYFLT scaleFac);
+    void (*RealFFTnp2)(void *csound, MYFLT *buf, int FFTsize);
+    void (*InverseRealFFTnp2)(void *csound, MYFLT *buf, int FFTsize);
     int (*AddUtility)(void *csound, const char *name,
                                     int (*UtilFunc)(void*, int, char**));
     int (*Utility)(void *csound, const char *name, int argc, char **argv);
@@ -790,8 +792,6 @@ extern "C" {
     int (*PVOC_FrameCount)(struct ENVIRON_ *, int);
     int (*PVOC_Rewind)(struct ENVIRON_ *, int, int);
     const char *(*PVOC_ErrorString)(struct ENVIRON_ *);
-    int (*pvxanal)(struct ENVIRON_ *, void *, void *, const char *, long, long,
-                                      long, long, long, int, int);
     /* callback function pointers - not part of the API */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
     void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);

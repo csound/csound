@@ -49,8 +49,6 @@ void    defaultCsoundKillGraph(void *csound, WINDAT *windat);
 int     defaultCsoundExitGraph(void *csound);
 int     defaultCsoundYield(void *csound);
 void    close_all_files(void *csound);
-int     pvxanal(ENVIRON *, SOUNDIN *, SNDFILE *, const char *,
-                           long, long, long, long, long, pv_wtype, int);
 
 static const OPARMS O_ = {
               0,            /* odebug */
@@ -215,6 +213,8 @@ const ENVIRON cenviron_ = {
         csoundRealFFT,
         csoundInverseRealFFT,
         csoundRealFFTMult,
+        csoundRealFFTnp2,
+        csoundInverseRealFFTnp2,
         csoundAddUtility,
         csoundRunUtility,
         csoundListUtilities,
@@ -235,8 +235,6 @@ const ENVIRON cenviron_ = {
         pvoc_framecount,
         pvoc_rewind,
         pvoc_errorstr,
-        (int (*)(ENVIRON*, void*, void*, const char*,
-                           long, long, long, long, long, int, int)) pvxanal,
         /* callback function pointers */
         playopen_dummy,
         rtplay_dummy,
