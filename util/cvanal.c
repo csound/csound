@@ -66,6 +66,7 @@ static int cvanal(void *csound_, int argc, char **argv)
     long    Hlenpadded = 1;
     char    err_msg[512];
 
+    csound->dbfs_to_float = csound->e0dbfs = FL(1.0);
     if (!(--argc)) {
       return quit(csound, Str("insufficient arguments"));
     }
