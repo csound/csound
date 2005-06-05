@@ -168,7 +168,7 @@ static int pvanal(void *csound_, int argc, char **argv)
  /* int     cnt = 0; */
     int     latch = 200;
     FILE    *trfil = stdout;
-    int     WindowType = 1;
+    pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
     char    *ext;
     int     verbose = 0;
@@ -208,23 +208,20 @@ static int pvanal(void *csound_, int argc, char **argv)
 #endif
             break;
           case 'H':
-            {
-              int c = *s++;
-              if (c == 'M' || c == '\0')
-                WindowType = 0;
-            }
+            WindowType = PVOC_HAMMING;
+            break;
+          case 'K':
+            WindowType = PVOC_KAISER;
             break;
           case 'n':  FIND(Str("no framesize"));
             sscanf(s, "%ld", &frameSize);
             if (frameSize < MINFRMPTS || frameSize > MAXFRMPTS) {
-              sprintf(err_msg, Str("frameSize must be between %d &%d\n"),
+              sprintf(err_msg, Str("frameSize must be between %d and %d"),
                                MINFRMPTS, MAXFRMPTS);
               return quit(csound, err_msg);
             }
-            if (frameSize < 1L || (frameSize & (frameSize - 1L)) != 0L) {
-              sprintf(err_msg, Str("pvanal: frameSize must be 2^r"));
-              return quit(csound, err_msg);
-            }
+            if (frameSize & 1L)
+              return quit(csound, Str("pvanal: frameSize must be even"));
             break;
           case 'w':  FIND(Str("no windfact"));
             sscanf(s, "%d", &ovlp);
@@ -270,22 +267,22 @@ static int pvanal(void *csound_, int argc, char **argv)
     }
     sr = (MYFLT)p->sr;
     /* setup frame size etc according to sampling rate */
-    if (frameSize == 0) {           /* not specified on command line */
+    if (frameSize == 0) {       /* not specified on command line */
       int target;
       target = (int)(sr * (MYFLT)MINFRMMS / FL(1000.0));
-      frameSize = MAXFRMPTS;      /* default frame size is > MINFRMMS msecs */
+      frameSize = MAXFRMPTS;    /* default frame size is > MINFRMMS msecs */
       while ((frameSize>>1) >= target && frameSize > MINFRMPTS)
         frameSize >>= 1;        /* divide down until just larger */
     }
     if (ovlp == 0 && frameIncr == 0) {
-      ovlp = OVLP_DEF;            /* default overlap */
+      ovlp = OVLP_DEF;          /* default overlap */
       frameIncr = frameSize / ovlp;
     }
     else if (ovlp == 0)
       ovlp = frameSize/frameIncr;
     else frameIncr = frameSize/ovlp;
 
-    if (ovlp < 2 || ovlp > 16) {
+    if (ovlp < 2 || ovlp > 64) {
       csound->Message(csound, Str("pvanal: %d is a bad window overlap index\n"),
                               (int) ovlp);
       return -1;
@@ -298,33 +295,32 @@ static int pvanal(void *csound_, int argc, char **argv)
 
     ext = strrchr(outfilnam, '.');
     /* Look for .pvx extension in any case */
-    if (ext != NULL && ext[0] == '.' && tolower(ext[1]) == 'p' &&
-        tolower(ext[2]) == 'v' && tolower(ext[3]) == 'x' && ext[4] == '\0') {
-      /* even for old pvoc file, is absence of extension OK? */
-      if (p->nchanls > MAXPVXCHANS) {
-        csound->Message(csound, Str("pvxanal - source has too many channels: "
-                                    "Maxchans = %d.\n"), MAXPVXCHANS);
-        return -1;
-      }
-      csound->Message(csound, Str("pvanal: creating pvocex file\n"));
-      /* handle all messages in here, for now */
-      if (pvxanal(csound, p, infd, outfilnam, p->sr, p->nchanls,
-                          frameSize, frameIncr, frameSize * 2,
-                          PVOC_HAMMING, verbose) != 0) {
-        csound->Message(csound, Str("error generating pvocex file.\n"));
-        return -1;
-      }
-    }
-    else {
+    if (ext == NULL || ext[0] != '.' || tolower(ext[1]) != 'p' ||
+        tolower(ext[2]) != 'v' || tolower(ext[3]) != 'x' || ext[4] != '\0') {
       csound->MessageS(csound, CSOUNDMSG_ERROR,
                        Str("Old format pvanal being withdrawn; use .pvx\n"));
       return -1;
     }
+    /* even for old pvoc file, is absence of extension OK? */
+    if (p->nchanls > MAXPVXCHANS) {
+      csound->Message(csound, Str("pvxanal - source has too many channels: "
+                                  "Maxchans = %d.\n"), MAXPVXCHANS);
+      return -1;
+    }
+    csound->Message(csound, Str("pvanal: creating pvocex file\n"));
+    /* handle all messages in here, for now */
+    if (pvxanal(csound, p, infd, outfilnam, p->sr, p->nchanls,
+                        frameSize, frameIncr, frameSize * 2,
+                        WindowType, verbose) != 0) {
+      csound->Message(csound, Str("error generating pvocex file.\n"));
+      return -1;
+    }
+
     return 0;
 }
 
 static const char *pvanal_usage_txt[] = {
-    "Usage: pvanal [options...] inputSoundfile outputFFTfile",
+    "Usage: pvanal [options...] inputSoundfile outputFFTfile.pvx",
     "Options:",
     "    -c <channel>",
     "    -b <beginTime>",
@@ -333,7 +329,8 @@ static const char *pvanal_usage_txt[] = {
     "    -w <windowOverlap> | -h <hopSize>",
     "    -g | -G <latch>",
     "    -v | -V <txtFile>",
-    "    -H: use Hamming window instead of Hanning",
+    "    -H: use Hamming window instead of the default (Hanning)",
+    "    -K: use Kaiser window",
     NULL
 };
 
@@ -367,38 +364,26 @@ static int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    long srate, long chans, long fftsize, long overlap,
                    long winsize, pv_wtype wintype, int verbose)
 {
+    int         i, k, pvfile = -1, rc = 0;
+    pv_stype    stype = STYPE_16;
+    long        buflen, buflen_samps;
+    long        sampsread;
+    long        blocks_written = 0;     /* m/c framecount for user */
+    PVX         *pvx[MAXPVXCHANS];
+    MYFLT       *inbuf_c[MAXPVXCHANS];
+    float       *frame_c[MAXPVXCHANS];  /* RWD : MUST be 32bit  */
+    MYFLT       *inbuf = NULL;
+    MYFLT       nyquist, chwidth;
+    float       *frame;                 /* RWD : MUST be 32bit  */
+    MYFLT       *chanbuf;
+    unsigned int  nbins;
+    long        total_sampsread = 0;
 
-    int i,k,pvfile = -1,rc = 0;
-    pv_stype stype = STYPE_16;          /* we assume! */
-    long buflen,buflen_samps;
-    long sampsread;
-    long blocks_written = 0;            /* m/c framecount for user */
-    PVX *pvx[MAXPVXCHANS];
-    MYFLT  *inbuf_c[MAXPVXCHANS];
-    float *frame_c[MAXPVXCHANS];        /* RWD : MUST be 32bit  */
-    MYFLT *inbuf = NULL;
-    MYFLT nyquist,chwidth;
-    float *frame;                       /* RWD : MUST be 32bit  */
-    MYFLT *chanbuf;
-    char *ext;
-    unsigned int nbins;
-    long total_sampsread = 0;
-
-    ext = strrchr(fname,'.');
-
-    if (ext == NULL || ext[0]!='.' || tolower(ext[1]) != 'p' ||
-        tolower(ext[2]) != 'v' ||
-        tolower(ext[3]) != 'x' || ext[4] != '\0') {
-      csound->Message(csound,
-                      Str("pvxanal: outfile name must use extension .pvx\n"));
-      return 1;
-    }
-    if (chans > MAXPVXCHANS) {
-      csound->Message(csound,
-                      Str("pvxanal - source has too many channels: "
-                          "Maxchans = %d.\n"),
-             MAXPVXCHANS);
-      return 1;
+    switch (p->format) {
+      case AE_SHORT:  stype = STYPE_16;
+      case AE_24INT:  stype = STYPE_24;
+      case AE_LONG:   stype = STYPE_32;
+      case AE_FLOAT:  stype = STYPE_IEEE_FLOAT;
     }
 
     nbins = (fftsize/2) + 1;
@@ -961,13 +946,13 @@ static void vonhann(MYFLT *win, int winLen, int even)
 
     if (even) {
       for (i=0; i<winLen; i++)
-        *(win+i) = (MYFLT)(0.5 + 0.5 *cos(ftmp*((double)i+0.5)));
+        *(win+i) = (MYFLT)(0.5 + 0.5 * cos(ftmp*((double)i+0.5)));
       *(win+winLen) = FL(0.0);
     }
     else {
       *(win) = FL(1.0);
       for (i=1; i<=winLen; i++)
-        *(win+i) =(MYFLT)(0.5 + 0.5 *cos(ftmp*(double)i));
+        *(win+i) =(MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
     }
 }
 
