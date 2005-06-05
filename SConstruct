@@ -540,11 +540,9 @@ OOps/pstream.c
 OOps/pvadd.c
 OOps/pvfileio.c
 OOps/pvinterp.c
-OOps/pvoc.c
 OOps/pvocext.c
 OOps/pvread.c
 OOps/pvsanal.c
-OOps/pvxanal.c
 OOps/schedule.c
 OOps/sdif.c
 OOps/sdif-mem.c
