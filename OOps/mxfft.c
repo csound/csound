@@ -30,7 +30,10 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.8  2005-05-28 13:00:02  istvanv
+ *      Revision 1.9  2005-06-05 13:07:08  istvanv
+ *      Added mxfft.c functions to API
+ *
+ *      Revision 1.8  2005/05/28 13:00:02  istvanv
  *      Minor code changes (tabs etc.)
  *
  *      Revision 1.7  2005/04/17 17:56:25  jpff
@@ -40,7 +43,8 @@ static char *rcsid = "$Id$";
  *      added csound pointer to mmalloc, auxalloc, and other functions
  *
  *      Revision 1.5  2005/01/27 19:22:50  istvanv
- *      Merged changes from 4.24.1, including new localization system, timers, and allow use of underscore character in opcode names
+ *      Merged changes from 4.24.1, including new localization system,
+ *      timers, and allow use of underscore character in opcode names
  *
  *      Revision 1.4  2004/09/27 05:52:31  jpff
  *      Minor coding
@@ -62,15 +66,12 @@ static char *rcsid = "$Id$";
  *
  */
 #include "cs.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
-#include "pvoc.h"
 
-void fft_(ENVIRON *,MYFLT *, MYFLT *, int, int, int, int);
-void fftmx(MYFLT *, MYFLT *, int, int, int, int, int,
-      int*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int *, int[]);
-void reals_(ENVIRON *,MYFLT *, MYFLT *, int, int);
+static void fft_(ENVIRON *,MYFLT *, MYFLT *, int, int, int, int);
+static void fftmx(MYFLT *, MYFLT *, int, int, int, int, int,
+                  int*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int *, int[]);
+static void reals_(ENVIRON *,MYFLT *, MYFLT *, int, int);
 
 /*
  *-----------------------------------------------------------------------
@@ -85,8 +86,8 @@ void reals_(ENVIRON *,MYFLT *, MYFLT *, int, int);
  *              fft_(csound,anal,banal,one,N2,one,mtwo);
  */
 
-void
-fft_(ENVIRON *csound, MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
+static void fft_(ENVIRON *csound, MYFLT *a, MYFLT *b,
+                                  int nseg, int n, int nspn, int isn)
   /*    *a,       pointer to array 'anal'  */
   /*    *b;       pointer to array 'banal' */
 {
@@ -103,17 +104,18 @@ fft_(ENVIRON *csound, MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
                 jj,
                 maxf, maxp=-1;
 
-/* work space pointers */
+    /* work space pointers */
+    void        *buf;
     MYFLT       *at, *ck, *bt, *sk;
-    int *np;
+    int         *np;
 
-/* reduce the pointers to input arrays - by doing this, FFT uses FORTRAN
-   indexing but retains compatibility with C arrays */
+    /* reduce the pointers to input arrays - by doing this, FFT uses FORTRAN
+       indexing but retains compatibility with C arrays */
     a--;        b--;
 
-/*
- * determine the factors of n
- */
+    /*
+     * determine the factors of n
+     */
     k=nf=abs(n);
     if (nf==1)
       return;
@@ -121,11 +123,6 @@ fft_(ENVIRON *csound, MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
     nspn=abs(nf*nspn);
     ntot=abs(nspn*nseg);
 
-    if (isn*ntot == 0) {
-      csound->Message(csound,Str("\nerror - zero in fft parameters %d %d %d %d"),
-              nseg, n, nspn, isn);
-      return;
-    }
     for (m=0; !(k%16); nfac[++m]=4,k/=16);
     for (j=3,jj=9; jj<=k; j+=2,jj=j*j)
       for (; !(k%jj); nfac[++m]=j,k/=jj);
@@ -153,9 +150,8 @@ fft_(ENVIRON *csound, MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
     if (m <= kt+1)
       maxp = m + kt + 1;
     if (m+kt > 15) {
-      csound->Message(csound,
-                      Str("\nerror - fft parameter n has more than 15 factors : %d"), n);
-      return;
+      csound->Die(csound, Str("\nerror - fft parameter n has "
+                              "more than 15 factors : %d"), n);
     }
     if (kt!=0) {
       j = kt;
@@ -166,30 +162,22 @@ fft_(ENVIRON *csound, MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
     if (kt > 0 && maxf <nfac[kt])
       maxf = nfac[kt];
 
-/*  allocate workspace - assume no errors! */
-    at = (MYFLT *) calloc(maxf,sizeof(MYFLT));
-    ck = (MYFLT *) calloc(maxf,sizeof(MYFLT));
-    bt = (MYFLT *) calloc(maxf,sizeof(MYFLT));
-    sk = (MYFLT *) calloc(maxf,sizeof(MYFLT));
-    np = (int *) calloc(maxp,sizeof(int));
+    /* allocate workspace - assume no errors! */
+    buf = calloc(sizeof(MYFLT) * 4 * maxf + sizeof(int) * maxp, (size_t) 1);
+    at = (MYFLT*) buf;
+    ck = (MYFLT*) at + (int) maxf;
+    bt = (MYFLT*) ck + (int) maxf;
+    sk = (MYFLT*) bt + (int) maxf;
+    np = (int*) ((void*) ((MYFLT*) sk + (int) maxf));
 
-/* decrement pointers to allow FORTRAN type usage in fftmx */
-    at--;       bt--;   ck--;   sk--;   np--;
+    /* decrement pointers to allow FORTRAN type usage in fftmx */
+    at--; bt--; ck--; sk--; np--;
 
-/* call fft driver */
+    /* call fft driver */
+    fftmx(a, b, ntot, nf, nspn, isn, m, &kt, at, ck, bt, sk, np, nfac);
 
-    fftmx(a,b,ntot,nf,nspn,isn,m,&kt,at,ck,bt,sk,np,nfac);
-
-/* restore pointers before releasing */
-    at++;       bt++;   ck++;   sk++;   np++;
-
-/* release working storage before returning - assume no problems */
-    free(at);
-    free(sk);
-    free(bt);
-    free(ck);
-    free(np);
-    return;
+    /* release working storage before returning - assume no problems */
+    free(buf);
 }
 
 /*
@@ -198,9 +186,11 @@ fft_(ENVIRON *csound, MYFLT *a, MYFLT *b, int nseg, int n, int nspn, int isn)
  * called by subroutine 'fft' to compute mixed-radix fourier transform
  *-----------------------------------------------------------------------
  */
-void
-fftmx(MYFLT *a, MYFLT *b, int ntot, int n, int nspan, int isn, int m,
-      int *kt, MYFLT *at, MYFLT *ck, MYFLT *bt, MYFLT *sk, int *np, int nfac[])
+
+static void fftmx(MYFLT *a, MYFLT *b,
+                  int ntot, int n, int nspan, int isn, int m,
+                  int *kt, MYFLT *at, MYFLT *ck, MYFLT *bt, MYFLT *sk,
+                  int *np, int nfac[])
 {
     int i,inc,
       j,jc,jf, jj,
@@ -814,22 +804,21 @@ lbl570:
 /*
  *-----------------------------------------------------------------------
  * subroutine:
-  reals
+ * reals
  * used with 'fft' to compute fourier transform or inverse for real data
  *-----------------------------------------------------------------------
  *      this is the call from C:
-
+ *
  *              reals_(anal,banal,N2,mtwo);
  *      which has been changed from CARL call
  *              reals_(csound,anal,banal,&N2,&mtwo);
  */
 
-void
-reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
+static void reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
 
   /*    *a,       a refers to an array of floats 'anal'   */
   /*    *b;       b refers to an array of floats 'banal'  */
-/* See IEEE book for a long comment here on usage */
+  /* See IEEE book for a long comment here on usage */
 
 {
     int inc,
@@ -851,11 +840,6 @@ reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
     a--;        b--;
     inc = abs(isn);
     nf = abs(n);
-    if (nf*isn==0) {
-      csound->Message(csound,
-                      Str("\nerror - zero in reals parameters : %d : %d "),n,isn);
-      return;
-    }
     nk = (nf*inc) + 2;
     nh = nk/2;
 /*****************************
@@ -911,5 +895,44 @@ reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
       }
     }
     return;
+}
+
+/**
+ * Compute in-place real FFT, allowing non power of two FFT sizes.
+ *
+ * buf:     array of FFTsize + 2 MYFLT values; output is in interleaved
+ *          real/imaginary format (note: the real part of the Nyquist
+ *          frequency is stored in buf[FFTsize], and not in buf[1]).
+ * FFTsize: FFT length in samples; not required to be an integer power of two,
+ *          but should be even and not have too many factors.
+ */
+PUBLIC void csoundRealFFTnp2(void *csound, MYFLT *buf, int FFTsize)
+{
+    if (FFTsize < 2 || (FFTsize & 1))
+      csoundDie(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
+    buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
+    fft_((ENVIRON*) csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, -2);
+    reals_((ENVIRON*) csound, buf, &(buf[1]), (FFTsize >> 1), -2);
+    buf[1] = buf[FFTsize + 1] = FL(0.0);
+}
+
+/**
+ * Compute in-place inverse real FFT, allowing non power of two FFT sizes.
+ * The output does not need to be scaled.
+ *
+ * buf:     array of FFTsize + 2 MYFLT values, in interleaved real/imaginary
+ *          format (note: the real part of the Nyquist frequency is stored
+ *          in buf[FFTsize], and not in buf[1]).
+ * FFTsize: FFT length in samples; not required to be an integer power of two,
+ *          but should be even and not have too many factors.
+ */
+PUBLIC void csoundInverseRealFFTnp2(void *csound, MYFLT *buf, int FFTsize)
+{
+    if (FFTsize < 2 || (FFTsize & 1))
+      csoundDie(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
+    buf[1] = buf[FFTsize + 1] = FL(0.0);
+    reals_((ENVIRON*) csound, buf, &(buf[1]), (FFTsize >> 1), 2);
+    fft_((ENVIRON*) csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, 2);
+    buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
 }
 
