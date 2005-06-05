@@ -28,7 +28,6 @@
 #include "soundio.h"
 #include "sndinfUG.h"
 #include "oload.h" /* for strset */
-#include "pvoc.h"
 #include "pvfileio.h"
 #include <sndfile.h>
 
@@ -189,48 +188,27 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
 {
     char    *sfname, soundiname[256];
-    int fd;
-    FILE *fp;
+    int     fd;
     PVOCDATA pvdata;
     WAVEFORMATEX fmt;
-    MYFLT nframes,nchans,srate,overlap,arate,dur;
+    MYFLT   nframes, nchans, srate, overlap, arate, dur;
 
     /* leap thru std hoops to get the name */
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
                                 p->XSTRCODE);
     sfname = soundiname;
     /* my prerogative: try pvocex file first! */
-    fd = pvoc_openfile(csound,sfname,&pvdata,&fmt);
+    fd = csound->PVOC_OpenFile(csound, sfname, &pvdata, &fmt);
     if (fd >= 0) {
-      nframes   = (MYFLT) pvoc_framecount(csound,fd);
+      nframes   = (MYFLT) csound->PVOC_FrameCount(csound, fd);
       nchans    = (MYFLT) fmt.nChannels;
       srate     = (MYFLT) fmt.nSamplesPerSec;
       overlap   = (MYFLT) pvdata.dwOverlap;
-      arate     = srate /  overlap;
+      arate     = srate / overlap;
       dur       = (nframes / nchans) / arate;
       *p_dur    = dur;
-      pvoc_closefile(csound, fd);
+      csound->PVOC_CloseFile(csound, fd);
       return 1;
-    }
-    /* then try old soon-to-die pvoc format */
-    fp = fopen(sfname,"rb");
-    if (fp) {
-      PVSTRUCT hdr;
-      int ok = PVReadHdr(csound, fp, &hdr);
-      if (ok== PVE_OK) {
-        MYFLT frsiz;
-        srate   = (MYFLT) hdr.samplingRate;
-        nchans  = (MYFLT) hdr.channels;
-        overlap = (MYFLT) hdr.frameIncr;
-        frsiz   = (MYFLT) (hdr.frameSize + 2);
-        /* just assume PVMYFLT format for now... */
-        nframes = (MYFLT) (hdr.dataBsize / (nchans * frsiz * sizeof(float)));
-        arate   = srate /  overlap;
-        dur     = (nframes / nchans) / arate;
-        *p_dur  = dur;
-        fclose(fp);
-        return 1;
-      }
     }
     return 0;
 }

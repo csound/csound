@@ -31,12 +31,6 @@
 #include "pstream.h"
 #include "oload.h"
 
-/* CARL/CDP fft routines  */
-extern void fft_(ENVIRON*, MYFLT *, MYFLT *,int,int,int,int);
-extern void fftmx(MYFLT *,MYFLT *,int,int,int,int,int,int *,
-                  MYFLT *,MYFLT *,MYFLT *,MYFLT *,int *,int[]);
-extern void reals_(ENVIRON*,MYFLT *,MYFLT *,int,int);
-
 static void generate_frame(ENVIRON*,PVSANAL *p);
 static void process_frame(ENVIRON*,PVSYNTH *p);
 void    hamming(MYFLT *win,int winLen,int even);
@@ -169,7 +163,6 @@ static void generate_frame(ENVIRON *csound, PVSANAL *p)
     float *ofp;                 /* RWD MUST be 32bit */
     MYFLT *fp,*oi,*i0,*i1;
     MYFLT *anal = (MYFLT *) (p->analbuf.auxp);
-    MYFLT *banal = anal + 1;
     MYFLT *input = (MYFLT *) (p->input.auxp);
     MYFLT *analWindow = (MYFLT *) (p->analwinbuf.auxp) + analWinLen;
     MYFLT *oldInPhase = (MYFLT *) (p->oldInPhase.auxp);
@@ -219,20 +212,7 @@ static void generate_frame(ENVIRON *csound, PVSANAL *p)
         k -= N;
       *(anal + k) += *(analWindow + i) * *(input + j);
     }
-#ifdef USE_FFTW
-    rfftwnd_one_real_to_complex(forward_plan,anal,NULL);
-#else
-    if (!(N & (N - 1))) {
-      /* if FFT size is power of two: */
-      csound->RealFFT(csound, anal, N);
-      anal[N] = anal[1];
-      anal[1] = anal[N + 1] = FL(0.0);
-    }
-    else {
-      fft_(csound,anal,banal,1,N2,1,-2);
-      reals_(csound,anal,banal,N2,-2);
-    }
-#endif
+    csound->RealFFTnp2(csound, anal, N);
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in
@@ -486,12 +466,6 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
     }
     sum = FL(1.0)/sum;
-#ifdef USE_FFTW
-    sum *= Ninv;
-#else
-    if (!(N & (N - 1L)))
-      sum *= csound->GetInverseRealFFTScale(csound, (int) N);
-#endif
     for (i = -halfwinsize; i <= halfwinsize; i++)
       *(synwinhalf + i) *= sum;
 
@@ -605,19 +579,7 @@ static void process_frame(ENVIRON *csound, PVSYNTH *p)
        program must take care to zero each location which it "shifts"
        out (to standard output). The subroutines reals and fft
        together perform an efficient inverse FFT.  */
-#ifdef USE_FFTW
-    rfftwnd_one_complex_to_real(inverse_plan,(fftw_complex * )syn,NULL);
-#else
-    if (!(N & (N - 1L))) {
-      syn[1] = syn[N];
-      syn[N] = syn[N + 1L] = FL(0.0);
-      csound->InverseRealFFT(csound, syn, (int) N);
-    }
-    else {
-      reals_(csound,syn,bsyn,NO2,2);
-      fft_(csound, syn,bsyn,1,NO2,1,2);
-    }
-#endif
+    csound->InverseRealFFTnp2(csound, syn, NO);
     j = p->nO - synWinLen - 1;
     while (j < 0)
       j += p->buflen;
@@ -683,5 +645,75 @@ int pvsynth(ENVIRON *csound, PVSYNTH *p)
     for (i=0;i < csound->ksmps;i++)
       aout[i] = synth_tick(csound, p);
     return OK;
+}
+
+void hamming(MYFLT *win, int winLen, int even)
+{
+    double ftmp;
+    int i;
+
+    ftmp = PI/winLen;
+
+    if (even) {
+      for (i=0; i<winLen; i++)
+        *(win+i) = (MYFLT)(0.54 + 0.46*cos(ftmp*((double)i+0.5)));
+      *(win+winLen) = FL(0.0);
+    }
+    else {
+      *(win) = FL(1.0);
+      for (i=1; i<=winLen; i++)
+        *(win+i) = (MYFLT)(0.54 + 0.46*cos(ftmp*(double)i));
+    }
+
+}
+
+double besseli(double x)
+{
+    double ax, ans;
+    double y;
+
+    if (( ax = fabs( x)) < 3.75)     {
+      y = x / 3.75;
+      y *= y;
+      ans = (1.0 + y * ( 3.5156229 +
+                         y * ( 3.0899424 +
+                               y * ( 1.2067492 +
+                                     y * ( 0.2659732 +
+                                           y * ( 0.360768e-1 +
+                                                 y * 0.45813e-2))))));
+    }
+    else {
+      y = 3.75 / ax;
+      ans = ((exp ( ax) / sqrt(ax))
+             * (0.39894228 +
+                y * (0.1328592e-1 +
+                     y * (0.225319e-2 +
+                          y * (-0.157565e-2 +
+                               y * (0.916281e-2 +
+                                    y * (-0.2057706e-1 +
+                                         y * (0.2635537e-1 +
+                                              y * (-0.1647633e-1 +
+                                                   y * 0.392377e-2)))))))));
+    }
+    return ans;
+}
+
+void vonhann(MYFLT *win, int winLen, int even)
+{
+    MYFLT ftmp;
+    int i;
+
+    ftmp = PI_F/winLen;
+
+    if (even) {
+      for (i=0; i<winLen; i++)
+        *(win+i) = (MYFLT)(0.5 + 0.5 *cos(ftmp*((double)i+0.5)));
+      *(win+winLen) = FL(0.0);
+    }
+    else {
+      *(win) = FL(1.0);
+      for (i=1; i<=winLen; i++)
+        *(win+i) =(MYFLT)(0.5 + 0.5 *cos(ftmp*(double)i));
+    }
 }
 
