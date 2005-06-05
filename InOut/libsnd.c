@@ -58,6 +58,7 @@ extern  char    *getstrformat(int format);
 extern  char    *type2string(int);
 extern  short   sfsampsize(int);
 static  void    sndwrterr(void*, unsigned, unsigned);
+static  void    sndfilein_noscale(void *csound);
 
 #define ST(x)   (((LIBSND_GLOBALS*) ((ENVIRON*) csound)->libsndGlobals)->x)
 
@@ -67,20 +68,6 @@ static void alloc_globals(ENVIRON *csound)
       csound->libsndGlobals = csound->Calloc(csound, sizeof(LIBSND_GLOBALS));
       ST(nframes) = 1UL;
     }
-}
-
-/* return sample size (in bytes) of format 'fmt' */
-
-static int format_nbytes(int fmt)
-{
-    switch (fmt) {
-      case AE_SHORT:    return 2;
-      case AE_24INT:    return 3;
-      case AE_LONG:
-      case AE_FLOAT:    return 4;
-      case AE_DOUBLE:   return 8;
-    }
-    return 1;
 }
 
 /* The interface requires 2 functions:
@@ -125,6 +112,46 @@ static void spoutsf(void *csound_)
       }
       else
         ST(nframes)++;
+    } while (--n);
+
+    if (!ST(outbufrem)) {
+      if (ST(osfopen)) {
+        csound->nrecs++;
+        csound->audtran(csound, ST(outbuf), ST(outbufsiz)); /* Flush buffer */
+        ST(outbufp) = (MYFLT*) ST(outbuf);
+      }
+      ST(outbufrem) = csound->oparms->outbufsamps;
+      if (spoutrem) goto nchk;
+    }
+}
+
+/* special version of spoutsf for "raw" floating point files */
+
+static void spoutsf_noscale(void *csound_)
+{
+    ENVIRON       *csound = (ENVIRON*) csound_;
+    int           n, chn = 0, spoutrem = csound->nspout;
+    MYFLT         *sp = csound->spout;
+    MYFLT         absamp;
+
+ nchk:
+    /* if nspout remaining > buf rem, prepare to send in parts */
+    if ((n = spoutrem) > (int) ST(outbufrem))
+      n = ST(outbufrem);
+    spoutrem -= n;
+    ST(outbufrem) -= n;
+    do {
+      absamp = *sp++;
+      if (ST(osfopen))
+        *ST(outbufp)++ = absamp;
+      if (absamp < FL(0.0))
+        absamp = -absamp;
+      if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
+        csound->maxamp[chn] = absamp;
+        csound->maxpos[chn] = ST(nframes);
+      }
+      if (++chn >= csound->nchnls)
+        chn = 0, ST(nframes)++;
     } while (--n);
 
     if (!ST(outbufrem)) {
@@ -293,11 +320,16 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
     }
     /* Do we care about the format?  Can assume float?? */
     O->informat = SF2FORMAT(sfinfo.format);
-    O->insampsiz = format_nbytes(O->informat);  /* & cpy header vals */
     fileType = (int) SF2TYPE(sfinfo.format);
-    csound->audrecv = readsf;       /* will use standard audio gets  */
+    csound->audrecv = readsf;           /* will use standard audio gets  */
+    if ((O->informat == AE_FLOAT || O->informat == AE_DOUBLE) &&
+        !(fileType == TYP_WAV || fileType == TYP_AIFF || fileType == TYP_W64)) {
+      /* do not scale "raw" floating point files */
+      csound->spinrecv = sndfilein_noscale;
+    }
 
  inset:
+    O->insampsiz = (int) sfsampsize(FORMAT2SF(O->informat));
     /* calc inbufsize reqd */
     ST(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
     ST(inbuf) = (MYFLT*) mcalloc(csound, ST(inbufsiz)); /* alloc inbuf space */
@@ -402,7 +434,12 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       sf_command(ST(outfile), SFC_SET_ADD_PEAK_CHUNK, NULL, SF_TRUE);
     if (csound->dither_output)          /* This may not be written yet!! */
       sf_command(ST(outfile), SFC_SET_DITHER_ON_WRITE, NULL, SF_TRUE);
-    csound->spoutran = spoutsf;         /* accumulate output */
+    if (!(O->outformat == AE_FLOAT || O->outformat == AE_DOUBLE) ||
+        (O->filetyp == TYP_WAV || O->filetyp == TYP_AIFF ||
+         O->filetyp == TYP_W64))
+      csound->spoutran = spoutsf;       /* accumulate output */
+    else
+      csound->spoutran = spoutsf_noscale;
     csound->audtran = writesf;          /* flush buffer */
     /* Write any tags. */
     s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_title");
@@ -424,12 +461,13 @@ void sfopenout(void *csound_)                   /* init for sound out       */
     /* file is now open */
     ST(osfopen) = 1;
 
-outset:
+ outset:
+    O->sfsampsize = (int) sfsampsize(FORMAT2SF(O->outformat));
     /* calc outbuf size & alloc bufspace */
     ST(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     ST(outbufp) = ST(outbuf) = mmalloc(csound, ST(outbufsiz));
     csound->Message(csound,Str("writing %d-byte blks of %s to %s"),
-                    O->outbufsamps * format_nbytes(O->outformat),
+                    O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), ST(sfoutname));
     if (ST(pipdevout) == 2)
       /* realtime output has no header */
@@ -512,7 +550,7 @@ void sfcloseout(void *csound_)
 
  report:
     csound->Message(csound, Str("%ld %d-byte soundblks of %s written to %s"),
-                    csound->nrecs, O->outbufsamps * format_nbytes(O->outformat),
+                    csound->nrecs, O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), ST(sfoutname));
     if (ST(pipdevout) == 2)
       /* realtime output has no header */
@@ -552,11 +590,10 @@ void sfnopenout(ENVIRON *csound)
     ST(outbufrem) = csound->oparms->outbufsamps;
 }
 
-static void sndfilein(void *csound_)
+static inline void sndfilein_(ENVIRON *csound, MYFLT scaleFac)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
-    int     i, nsmps, bufpos;
+    int     i, n, nsmps, bufpos;
 
     nsmps = csound->ksmps * csound->nchnls;
     bufpos = (int) O->inbufsamps - (int) ST(inbufrem);
@@ -564,23 +601,34 @@ static void sndfilein(void *csound_)
       if ((int) ST(inbufrem) < 1) {
         ST(inbufrem) = (unsigned) 0;
         do {
-          ST(inbufrem) += (unsigned int)
-                            (csound->audrecv(csound, ST(inbuf),
-                                                     ((int) O->inbufsamps
-                                                      - (int) ST(inbufrem))
-                                                     * (int) sizeof(MYFLT))
-                             / (int) sizeof(MYFLT));
+          n = ((int) O->inbufsamps - (int) ST(inbufrem)) * (int) sizeof(MYFLT);
+          n = csound->audrecv(csound, ST(inbuf) + (int) ST(inbufrem), n);
+          ST(inbufrem) += (unsigned int) (n / (int) sizeof(MYFLT));
         } while ((int) ST(inbufrem) < (int) O->inbufsamps);
         bufpos = 0;
       }
-      csound->spin[i] = ST(inbuf)[bufpos++] * csound->e0dbfs;
+      csound->spin[i] = ST(inbuf)[bufpos++] * scaleFac;
       ST(inbufrem)--;
     }
 }
 
+static void sndfilein(void *csound)
+{
+    sndfilein_((ENVIRON*) csound, ((ENVIRON*) csound)->e0dbfs);
+}
+
+/* special version of sndfilein for "raw" floating point files */
+
+static void sndfilein_noscale(void *csound)
+{
+    sndfilein_((ENVIRON*) csound, FL(1.0));
+}
+
+/* direct recv & tran calls to the right audio formatter  */
+/*                            & init its audio_io bufptr  */
+
 void iotranset(ENVIRON *csound)
-    /* direct recv & tran calls to the right audio formatter  */
-{   /*                            & init its audio_io bufptr  */
+{
     csound->spinrecv = sndfilein;
     csound->spoutran = spoutsf;
 }
