@@ -212,7 +212,13 @@ static void generate_frame(ENVIRON *csound, PVSANAL *p)
         k -= N;
       *(anal + k) += *(analWindow + i) * *(input + j);
     }
-    csound->RealFFTnp2(csound, anal, N);
+    if (!(N & (N - 1))) {
+      csound->RealFFT(csound, anal, N);
+      anal[N] = anal[1];
+      anal[1] = anal[N + 1] = FL(0.0);
+    }
+    else
+      csound->RealFFTnp2(csound, anal, N);
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in
@@ -465,7 +471,10 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
     }
-    sum = FL(1.0)/sum;
+    if (!(N & (N - 1L)))
+      sum = csound->GetInverseRealFFTScale(csound, (int) N) / sum;
+    else
+      sum = FL(1.0) / sum;
     for (i = -halfwinsize; i <= halfwinsize; i++)
       *(synwinhalf + i) *= sum;
 
@@ -579,7 +588,13 @@ static void process_frame(ENVIRON *csound, PVSYNTH *p)
        program must take care to zero each location which it "shifts"
        out (to standard output). The subroutines reals and fft
        together perform an efficient inverse FFT.  */
-    csound->InverseRealFFTnp2(csound, syn, NO);
+    if (!(NO & (NO - 1))) {
+      syn[1] = syn[NO];
+      csound->InverseRealFFT(csound, syn, NO);
+      syn[NO] = syn[NO + 1] = FL(0.0);
+    }
+    else
+      csound->InverseRealFFTnp2(csound, syn, NO);
     j = p->nO - synWinLen - 1;
     while (j < 0)
       j += p->buflen;
@@ -707,13 +722,13 @@ void vonhann(MYFLT *win, int winLen, int even)
 
     if (even) {
       for (i=0; i<winLen; i++)
-        *(win+i) = (MYFLT)(0.5 + 0.5 *cos(ftmp*((double)i+0.5)));
-      *(win+winLen) = FL(0.0);
+        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((double)i+0.5)));
+      win[winLen] = FL(0.0);
     }
     else {
-      *(win) = FL(1.0);
+      win[0] = FL(1.0);
       for (i=1; i<=winLen; i++)
-        *(win+i) =(MYFLT)(0.5 + 0.5 *cos(ftmp*(double)i));
+        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
     }
 }
 

@@ -30,7 +30,10 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.9  2005-06-05 13:07:08  istvanv
+ *      Revision 1.10  2005-06-05 16:36:24  istvanv
+ *      Minor code improvements
+ *
+ *      Revision 1.9  2005/06/05 13:07:08  istvanv
  *      Added mxfft.c functions to API
  *
  *      Revision 1.8  2005/05/28 13:00:02  istvanv
@@ -908,11 +911,18 @@ static void reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
  */
 PUBLIC void csoundRealFFTnp2(void *csound, MYFLT *buf, int FFTsize)
 {
-    if (FFTsize < 2 || (FFTsize & 1))
-      csoundDie(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
-    buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
-    fft_((ENVIRON*) csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, -2);
-    reals_((ENVIRON*) csound, buf, &(buf[1]), (FFTsize >> 1), -2);
+    if (!(FFTsize & (FFTsize - 1))) {
+      /* if FFT size is power of two: */
+      csoundRealFFT(csound, buf, FFTsize);
+      buf[FFTsize] = buf[1];
+    }
+    else {
+      if (FFTsize < 2 || (FFTsize & 1))
+        csoundDie(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
+      buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
+      fft_((ENVIRON*) csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, -2);
+      reals_((ENVIRON*) csound, buf, &(buf[1]), (FFTsize >> 1), -2);
+    }
     buf[1] = buf[FFTsize + 1] = FL(0.0);
 }
 
