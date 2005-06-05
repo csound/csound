@@ -565,7 +565,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p)
     char    name[1024];
     void    *fd;
     SF_INFO sfinfo;
-    int     i, n, fmt, typ;
+    int     n, fmt, typ;
 
     /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
@@ -642,10 +642,12 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p)
     n = p->bufSize * p->nChannels;
     if (n != (int) p->auxData.size)
       csound->AuxAlloc(csound, (long) (n * (int) sizeof(MYFLT)), &(p->auxData));
-    p->bufStartPos = -((int_least64_t) p->bufSize);
     p->buf = (MYFLT*) (p->auxData.auxp);
-    for (i = 0; i < n; i++)
-      p->buf[i] = FL(0.0);
+    /* make sure that read position is not in buffer, to force read */
+    if (p->read_pos < (int_least64_t) 0)
+      p->bufStartPos = (int_least64_t) p->bufSize;
+    else
+      p->bufStartPos = -((int_least64_t) p->bufSize);
     /* done initialisation */
     return OK;
 }
