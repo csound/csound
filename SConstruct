@@ -492,7 +492,6 @@ Engine/envvar.c
 Engine/express.c
 Engine/extract.c
 Engine/fgens.c
-Engine/filopen.c
 Engine/insert.c
 Engine/linevent.c
 Engine/memalloc.c
