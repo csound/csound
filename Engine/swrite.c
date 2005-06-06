@@ -106,13 +106,15 @@ void swrite(ENVIRON *csound)
       break;
     case 's':
     case 'e':
-      {
+      while (*p == ' ' || *p == '\t')
+        p++;
+      if (strchr("+-.0123456789", *p) != NULL) {
         double tt;
-        if (sscanf(p, "%lf", &tt)==1)
+        if (sscanf(p, "%lf", &tt) == 1)
           fprintf(csound->scoreout, "f 0 %f\n", tt);
-         putc(c, csound->scoreout);
-         putc(LF, csound->scoreout);
       }
+      putc(c, csound->scoreout);
+      putc(LF, csound->scoreout);
       break;
     case 'w':
     case 't':
