@@ -454,7 +454,7 @@ char **csoundGetSearchPathFromEnv(ENVIRON *csound, const char *envList)
       mfree(csound, path_lst);
       path_lst = nxt;
       if (csound->oparms->odebug)
-        csound->DebugMsg(csound, "   %2d: \"%s\"", (i + 1), p->lst[i]);
+        csound->DebugMsg(csound, "%5d: \"%s\"", (i + 1), p->lst[i]);
     }
     p->lst[i] = NULL;
     /* link into database */
@@ -633,7 +633,7 @@ static int csoundFindFile_Fd(void *csound, char **fullName,
       }
     }
     /* if write mode, try current directory last */
-    if (write_mode == 'w') {
+    if (write_mode) {
       fd = open(name, WR_OPTS);
       if (fd >= 0) {
         *fullName = name;
