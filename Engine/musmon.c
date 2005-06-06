@@ -48,6 +48,7 @@ extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(ENVIRON *);
 extern  void    iotranset(ENVIRON*), sfclosein(void*), sfcloseout(void*);
 extern  void    MidiClose(ENVIRON*);
 extern  void    RTclose(void*);
+extern  char    **csoundGetSearchPathFromEnv(ENVIRON *, const char *);
 
 static  int     playevents(ENVIRON *);
 
@@ -193,6 +194,12 @@ int musmon(ENVIRON *csound)
 
     if (csound->musmonGlobals == NULL)
       csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
+    /* initialise search path cache */
+    csoundGetSearchPathFromEnv(csound, "SNAPDIR");
+    csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR;INCDIR");
+    csoundGetSearchPathFromEnv(csound, "SFDIR");
+    csoundGetSearchPathFromEnv(csound, "SADIR");
+    csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR");
     m_chn_init_all(csound);     /* allocate MIDI channels */
     dispinit(csound);           /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
