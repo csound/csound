@@ -465,7 +465,7 @@ int find_opcode(ENVIRON *csound, char *opname)
 /* ----------------------------------------------------------------------- */
 /* These functions replace the functionality of strsav() in rdorch.c.      */
 
-#define STRSPACE    (8000)      /* number of bytes in a buffer      */
+#define STRSPACE    (8000)      /* number of bytes in a buffer  */
 
 typedef struct strsav_t {
         struct strsav_t *nxt;   /* pointer to next structure    */
@@ -509,7 +509,7 @@ char *strsav_string(ENVIRON *csound, char *s)
     }
     /* not found, so need to allocate a new entry */
     n = (int) sizeof(STRSAV) + (int) strlen(s); /* number of bytes */
-    n = ((n + 15) >> 4) << 4;   /* round up for alignment (16 bytes) */
+    n = (n + 7) & (~7);           /* round up for 8 byte alignment */
     if ((STRSAV_SPACE_->splim + n) > STRSPACE) {
       STRSAV_SPACE  *sp;
       /* not enough space, allocate new buffer */
