@@ -540,13 +540,10 @@ static FILE *csoundFindFile_Std(void *csound, char **fullName,
         mfree(csound, name);
       return f;
     }
-    if (envList == NULL || envList[0] == '\0') {
-      mfree(csound, name);
-      return (FILE*) NULL;
-    }
     /* search paths defined by environment variable list */
-    searchPath = csoundGetSearchPathFromEnv((ENVIRON*) csound, envList);
-    if (searchPath != NULL) {
+    if (envList != NULL && envList[0] != '\0' &&
+        (searchPath = csoundGetSearchPathFromEnv((ENVIRON*) csound, envList))
+          != NULL) {
       len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = mmalloc(csound, (size_t) strlen(*searchPath) + (size_t) len);
@@ -607,13 +604,10 @@ static int csoundFindFile_Fd(void *csound, char **fullName,
         mfree(csound, name);
       return fd;
     }
-    if (envList == NULL || envList[0] == '\0') {
-      mfree(csound, name);
-      return -1;
-    }
     /* search paths defined by environment variable list */
-    searchPath = csoundGetSearchPathFromEnv((ENVIRON*) csound, envList);
-    if (searchPath != NULL) {
+    if (envList != NULL && envList[0] != '\0' &&
+        (searchPath = csoundGetSearchPathFromEnv((ENVIRON*) csound, envList))
+          != NULL) {
       len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = mmalloc(csound, (size_t) strlen(*searchPath) + (size_t) len);
