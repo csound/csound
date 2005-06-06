@@ -1439,7 +1439,7 @@ static void gen31 (FUNC *ftp, ENVIRON *csound)
     for (j = 6; j < (nargs + 3); j++) {
       n = (int) (FL(0.5) + ff->e.p[j++]); if (n < 1) n = 1; /* frequency */
       a = ff->e.p[j++];                                     /* amplitude */
-      p = ff->e.p[j++];                                     /* phase */
+      p = ff->e.p[j];                                       /* phase     */
       p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
       d_re = cos((double) p); d_im = sin((double) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
