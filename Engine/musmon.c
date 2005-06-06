@@ -271,13 +271,13 @@ int musmon(ENVIRON *csound)
                             (int) O->outbufsamps);
     O->inbufsamps *= csound->nchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
+    iotranset(csound);          /* point recv & tran to audio formatter */
     if (O->sfread)                      /* if audio-in requested,       */
       sfopenin(csound);                 /*   open the infile or device  */
     if (O->sfwrite)                     /* if audio-out requested,      */
       sfopenout(csound);                /*   open the outfile or device */
     else
       sfnopenout(csound);
-    iotranset(csound);          /* point recv & tran to audio formatter */
 
     /*        if (!O->Linein) { */  /*  *************** */
     if (!(csound->scfp = fopen(O->playscore, "r"))) {
