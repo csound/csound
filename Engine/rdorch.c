@@ -74,6 +74,7 @@ typedef struct iflabel {            /* for if/else/endif */
 typedef struct {
     MACRO   *macros;
     long    lenmax /* = LENMAX */;  /* Length of input line buffer  */
+    char    *ortext;
     char    **linadr;               /* adr of each line in text     */
 #if 0   /* unused */
     int     *srclin;                /* text no. of expanded lines   */
@@ -137,10 +138,6 @@ void orchRESET(ENVIRON *csound)
     if (csound->rdorchGlobals == NULL)
       return;
 
-    mfree(csound, ST(linadr));
-#if 0   /* unused */
-    mfree(csound, ST(srclin));
-#endif
     if (ST(nxtarglist) != NULL)
       mfree(csound, ST(nxtarglist));
     if (ST(nullist) != NULL)
@@ -162,10 +159,10 @@ void orchRESET(ENVIRON *csound)
     csound->rdorchGlobals = NULL;
 }
 
-ARGLST* copy_arglist(ENVIRON *csound, ARGLST *old)
+static ARGLST *copy_arglist(ENVIRON *csound, ARGLST *old)
 {
     size_t n = sizeof(ARGLST) + old->count * sizeof(char*) - sizeof(char*);
-    ARGLST *nn = (ARGLST*)mmalloc(csound, n);
+    ARGLST *nn = (ARGLST*) mmalloc(csound, n);
 /*  csound->Message(csound, "copy_arglist: %d args\n", old->count); */
     memcpy(nn, old, n);
     memset(old, 0, n);
@@ -777,11 +774,13 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       ST(fd) = NULL;
     }
     ST(curline) = 0;                        /*   & reset to line 1  */
+    ST(ortext) = ortext;
     while (ST(macros)) {                    /* Clear all macros */
       int i;
       mfree(csound, ST(macros)->body);
       mfree(csound, ST(macros)->name);
-      for (i=0; i<ST(macros)->acnt; i++) mfree(csound, ST(macros)->arg[i]);
+      for (i = 0; i < ST(macros)->acnt; i++)
+        mfree(csound, ST(macros)->arg[i]);
       ST(macros) = ST(macros)->next;
     }                                       /* nullist is a count only */
     ST(nullist) = (ARGLST *) mmalloc(csound, sizeof(ARGLST));
@@ -1192,15 +1191,25 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       ST(opcodblk) = 0;     /* IV - Sep 8 2002 */
       ST(instrcnt) = 0;
       *init    = 0;
-      memset(&ST(optext),0,sizeof(TEXT));
+      memset(&ST(optext), 0, sizeof(TEXT));
     }
 
  tstnxt:
     tp = &ST(optext);
     if (ST(nxtest) >= ST(grpcnt)) {             /* if done with prevline, */
       csound->argcnt_offs = 0;          /* reset temporary variable index */
-      if (!(ST(grpcnt) = splitline(csound)))    /*    attack next line    */
-        return((TEXT *)0);                      /*    (else we're done)   */
+      if (!(ST(grpcnt) = splitline(csound))) {  /*    attack next line    */
+        /* end of orchestra, clean up */
+        mfree(csound, ST(linadr));      ST(linadr) = NULL;
+#if 0   /* unused */
+        mfree(csound, ST(srclin));      ST(srclin) = NULL;
+#endif
+        mfree(csound, ST(ortext));      ST(ortext) = NULL;
+        mfree(csound, ST(collectbuf));  ST(collectbuf) = NULL;
+        mfree(csound, ST(group));       ST(group) = NULL;
+        mfree(csound, ST(grpsav));      ST(grpsav) = NULL;
+        return (TEXT*) NULL;                    /*    (else we're done)   */
+      }
       for (nn=0; nn<ST(grpcnt); nn++)           /*    save the group pntrs */
         ST(grpsav)[nn] = ST(group)[nn];
       ST(xprtstno) = ST(grpcnt) - 1;            /*    and reinit indices  */
