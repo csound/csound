@@ -838,8 +838,9 @@ PUBLIC void *csoundFileOpen(void *csound, void *fd, int type,
         memset(&sfinfo, 0, sizeof(SF_INFO));
         p->sf = sf_open_fd(tmp_fd, SFM_READ, &sfinfo, 0);
         if (p->sf == (SNDFILE*) NULL) {
-          /* open failed: maybe raw file ? */
-          p->sf = sf_open_fd(tmp_fd, SFM_READ, (SF_INFO*) param, 0);
+          /* open failed: maybe raw file ? rewind and try again */
+          if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0)
+            p->sf = sf_open_fd(tmp_fd, SFM_READ, (SF_INFO*) param, 0);
           if (p->sf == (SNDFILE*) NULL) {
             close(tmp_fd);
             free(p);
