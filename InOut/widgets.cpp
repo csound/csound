@@ -30,7 +30,7 @@
 
 #if defined(WIN32)
 #       include <process.h>
-#               include <windows.h>
+#       include <windows.h>
 #endif /* defined(WIN32) */
 #if defined(LINUX) || defined(NETBSD)
 #       include <pthread.h>
@@ -73,7 +73,7 @@
 #include <sstream>
 #include <cstdlib>
 
-using namespace std ;
+using namespace std;
 
 #include "csdl.h"
 
@@ -85,32 +85,71 @@ using namespace std ;
 #undef min
 #undef max
 
+typedef struct rtEvt_s {
+    struct rtEvt_s  *nxt;
+    EVTBLK          evt;
+} rtEvt_t;
+
+typedef struct widgetsGlobals_s {
+    rtEvt_t     *eventQueue;
+    int         update_cnt;
+    int         update_maxcnt;
+    void        *threadLock;
+    int         exit_now;
+} widgetsGlobals_t;
+
 static void lock(ENVIRON *csound)
 {
-#if defined USE_FLTK
-  if (csound->GetFLTKThreadLocking(csound))
-    {
+    if (csound->GetFLTKThreadLocking(csound)) {
       Fl::lock();
     }
-#endif
 }
 
 static void unlock(ENVIRON *csound)
 {
-#if defined USE_FLTK
-  if (csound->GetFLTKThreadLocking(csound))
-    {
+    if (csound->GetFLTKThreadLocking(csound)) {
       Fl::unlock();
     }
-#endif
 }
 
 static void awake(ENVIRON *csound)
 {
-#if defined USE_FLTK
-  Fl::awake();
-#endif
+    Fl::awake();
 }
+
+extern "C" {
+  /* called by sensevents() once in every control period */
+  static void evt_callback(ENVIRON *csound, widgetsGlobals_t *p)
+  {
+    /* flush any pending real time events */
+    if (p->eventQueue != NULL) {
+      csound->WaitThreadLock(csound, p->threadLock, 1000);
+      while (p->eventQueue != NULL) {
+        rtEvt_t *nxt = p->eventQueue->nxt;
+        csound->insert_score_event(csound, &(p->eventQueue->evt),
+                                           csound->sensEvents_state.curTime, 0);
+        free(p->eventQueue);
+        p->eventQueue = nxt;
+      }
+      csound->NotifyThreadLock(csound, p->threadLock);
+    }
+    /* update display */
+    if (--(p->update_cnt) < 0) {
+      p->update_cnt = p->update_maxcnt;
+      lock(csound);
+      Fl::flush();
+      unlock(csound);
+      /* if all windows have been closed, terminate performance */
+      if (p->exit_now) {
+        EVTBLK  e;
+        memset(&e, 0, sizeof(EVTBLK));
+        e.opcod = 'e';
+        csound->insert_score_event(csound, &e, csound->sensEvents_state.curTime,
+                                           0);
+      }
+    }
+  }
+};      // extern "C"
 
 static char hack_o_rama1;       // IV - Aug 23 2002
 static char hack_o_rama2;
@@ -153,34 +192,45 @@ FLkeyboard_init(void)
   return result;
 }
 
-#if defined(__cplusplus)
 extern "C" {
-#endif /* defined(__cplusplus) */
-
   void ButtonSched(ENVIRON *csound, MYFLT *args[], int numargs)
   { /* based on code by rasmus */
-    EVTBLK  evt;
-    int     i;
+    widgetsGlobals_t  *p;
+    rtEvt_t           *evt;
+    int               i;
 
+    /* this is still not fully thread safe... */
+    /* hope that no global variable is created just while this fn is called */
+    p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                        "_widgets_globals");
+    if (p == NULL)
+      return;
     /* Create the new event */
-    evt.strarg = NULL;
-    evt.opcod = (char) *args[0];
-    if (evt.opcod == '\0')
-      evt.opcod = 'i';
-    evt.pcnt = numargs - 1;
-    evt.p[1] = evt.p[2] = evt.p[3] = FL(0.0);
+    evt = (rtEvt_t*) malloc(sizeof(EVTBLK));
+    evt->nxt = NULL;
+    evt->evt.strarg = NULL;
+    evt->evt.opcod = (char) *args[0];
+    if (evt->evt.opcod == '\0')
+      evt->evt.opcod = 'i';
+    evt->evt.pcnt = numargs - 1;
+    evt->evt.p[1] = evt->evt.p[2] = evt->evt.p[3] = FL(0.0);
     for (i = 1; i < numargs; i++)
-      evt.p[i] = *args[i];
-    if (evt.p[2] < FL(0.0))
-      evt.p[2] = FL(0.0);
-    /* FIXME: not thread safe */
-    csound->insert_score_event(csound,
-                               &evt, csound->sensEvents_state.curTime, 0);
+      evt->evt.p[i] = *args[i];
+    if (evt->evt.p[2] < FL(0.0))
+      evt->evt.p[2] = FL(0.0);
+    /* queue event for insertion by main Csound thread */
+    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    if (p->eventQueue == NULL)
+      p->eventQueue = evt;
+    else {
+      rtEvt_t *ep = p->eventQueue;
+      while (ep->nxt != NULL)
+        ep = ep->nxt;
+      ep->nxt = evt;
+    }
+    csound->NotifyThreadLock(csound, p->threadLock);
   }
-
-#if defined(__cplusplus)
 };
-#endif /* defined(__cplusplus) */
 
 // #else        IV - Sep 8 2002
 
@@ -1003,7 +1053,8 @@ Fl_Value_Slider_Input::Fl_Value_Slider_Input(int x, int y,
 struct PANELS {
   Fl_Window *panel;
   int     is_subwindow;
-  PANELS(Fl_Window *new_panel, int flag) : panel(new_panel), is_subwindow(flag){}
+  PANELS(Fl_Window *new_panel, int flag) : panel(new_panel),
+                                           is_subwindow(flag) { }
   PANELS() {panel = NULL; is_subwindow=0; }
 };
 
@@ -1080,8 +1131,9 @@ static void set_butbank_value (Fl_Group *o, MYFLT value)
 }
 
 SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
-{ // the constructor captures current values of all widgets by copying all current
-  //  values from "valuators" vector (AddrSetValue) to the "fields" vector
+{ // the constructor captures current values of all widgets
+  // by copying all current values from "valuators" vector (AddrSetValue)
+  // to the "fields" vector
   is_empty =0;
   for (int i=0; i < (int) valuators.size(); i++) {
     string  opcode_name, widg_name;
@@ -1234,8 +1286,9 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         ((Fl_Positioner*) o)->xvalue(log(val/fld.min) / log(base)) ;
         break;
       default:
-        if (csound->oparms->msglevel & WARNMSG) csound->Message(csound, "WARNING (SNAPSHOT::get): "
-                                         "not implemented yet; exp=%d\n", fld.exp);
+        if (csound->oparms->msglevel & WARNMSG)
+          csound->Warning(csound, "(SNAPSHOT::get): "
+                                  "not implemented yet; exp=%d", fld.exp);
         break;
       }
       val = fld.value2; min = fld.min2; max = fld.max2;
@@ -1252,8 +1305,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         break;
       default:
         if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, "WARNING (SNAPSHOT::get): "
-                 "not implemented yet; exp2=%d\n", fld.exp2);
+          csound->Warning(csound, "(SNAPSHOT::get): "
+                                  "not implemented yet; exp2=%d", fld.exp2);
         break;
       }
       o->do_callback(o, opcode);
@@ -1301,7 +1354,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
           ((Fl_Valuator *) grup->child(j))->value(val);
           /*
             if (csound->oparms->msglevel & WARNMSG)
-            csound->Message(csound, "WARNING: not implemented yet (bogus)");
+            csound->Warning(csound, "not implemented yet (bogus)");
             break;
           */
         }
@@ -1322,8 +1375,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         break;
       default:
         if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, "WARNING (SNAPSHOT::get): not implemented yet; "
-                 "exp=%d\n", fld.exp);
+          csound->Warning(csound, "(SNAPSHOT::get): not implemented yet; "
+                                  "exp=%d", fld.exp);
         break;
       }
       o->do_callback(o, opcode);
@@ -1556,54 +1609,72 @@ static char *GetString(ENVIRON *csound, MYFLT *pname, int is_string)
   return csound->strarg2name(csound, Name, pname, "", is_string);
 }
 
-extern "C" void widgetRESET(ENVIRON *csound)
-{
-  int j;
-  for (j = allocatedStrings.size()-1; j >=0; j--)  {
-    delete allocatedStrings[j];
-    allocatedStrings.pop_back();
-  }
-  for (j=fl_windows.size()-1; j >=0 ; j--) { //destroy all opened panels
-    if  (fl_windows[j].is_subwindow == 0)   delete fl_windows[j].panel;
-    fl_windows.pop_back();
-  }
-  //for (j = AddrValue.size()-1; j >=0; j--)  {
-  //      AddrValue.pop_back();
-  //}
-  int ss = snapshots.size();
-  for (j=0; j< ss; j++) {
-    snapshots[j].fields.erase(snapshots[j].fields.begin(),
-                              snapshots[j].fields.end());
-    snapshots.resize(snapshots.size() + 1);
-  }
-  if (isActivatedKeyb) {
-    delete oKeyb;
-  }
-  //keyb_out=0;
-  isActivatedKeyb=0;
-  keybp = NULL;
+extern "C" {
+  static int widgetRESET(ENVIRON *csound, void *userData)
+  {
+    widgetsGlobals_t  *p;
+    int               j;
 
-  AddrSetValue.erase(AddrSetValue.begin(), AddrSetValue.end());
+    p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                        "_widgets_globals");
+    if (p == NULL)
+      return 0;
+    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    while (p->eventQueue != NULL) {
+      rtEvt_t *nxt = p->eventQueue->nxt;
+      free(p->eventQueue);
+      p->eventQueue = nxt;
+    }
+    csound->NotifyThreadLock(csound, p->threadLock);
+    csound->DestroyThreadLock(csound, p->threadLock);
+    csound->DestroyGlobalVariable(csound, "_widgets_globals");
+    for (j = allocatedStrings.size()-1; j >=0; j--)  {
+      delete allocatedStrings[j];
+      allocatedStrings.pop_back();
+    }
+    for (j=fl_windows.size()-1; j >=0 ; j--) { //destroy all opened panels
+      if  (fl_windows[j].is_subwindow == 0)   delete fl_windows[j].panel;
+      fl_windows.pop_back();
+    }
+    //for (j = AddrValue.size()-1; j >=0; j--)  {
+    //      AddrValue.pop_back();
+    //}
+    int ss = snapshots.size();
+    for (j=0; j< ss; j++) {
+      snapshots[j].fields.erase(snapshots[j].fields.begin(),
+                                snapshots[j].fields.end());
+      snapshots.resize(snapshots.size() + 1);
+    }
+    if (isActivatedKeyb) {
+      delete oKeyb;
+    }
+    //keyb_out=0;
+    isActivatedKeyb=0;
+    keybp = NULL;
 
-  //    curr_x = 0 , curr_y = 0;
-  stack_count       = 0;
+    AddrSetValue.erase(AddrSetValue.begin(), AddrSetValue.end());
 
-  FLcontrol_iheight = 15;
-  FLroller_iheight  = 18;
-  FLcontrol_iwidth  = 400;
-  FLroller_iwidth   = 150;
-  FLvalue_iwidth    = 100;
+    //    curr_x = 0 , curr_y = 0;
+    stack_count       = 0;
 
-  FLcolor           = -1;
-  FLcolor2          = -1;
-  FLtext_size       = 0;
-  FLtext_color      = -1;
-  FLtext_font       = -1;
-  FLtext_align      = 0;
-  //      keyb_out      = 0;
-  FL_ix             = 10;
-  FL_iy             = 10;
-}
+    FLcontrol_iheight = 15;
+    FLroller_iheight  = 18;
+    FLcontrol_iwidth  = 400;
+    FLroller_iwidth   = 150;
+    FLvalue_iwidth    = 100;
+
+    FLcolor           = -1;
+    FLcolor2          = -1;
+    FLtext_size       = 0;
+    FLtext_color      = -1;
+    FLtext_font       = -1;
+    FLtext_align      = 0;
+    //      keyb_out      = 0;
+    FL_ix             = 10;
+    FL_iy             = 10;
+    return 0;
+  }
+};      // extern "C"
 
 //-----------
 
@@ -1611,34 +1682,24 @@ static void __cdecl fltkRun(void *userdata)
 {
   ENVIRON *csound = (ENVIRON *)userdata;
   int j;
-#if defined(LINUX) || defined(NETBSD) || defined(__MACH__)
-  struct itimerval t1;
-  // IV - Aug 27 2002: set up timer to automatically update display at 25 Hz
-  t1.it_value.tv_sec = t1.it_interval.tv_sec = 0;
-  t1.it_value.tv_usec = 1; t1.it_interval.tv_usec = 40000;
-  setitimer (ITIMER_REAL, &t1, NULL);
-#endif
   lock(csound);
   for (j=0; j < (int) fl_windows.size(); j++) {
     fl_windows[j].panel->show();
   }
-#ifdef WIN32 // to make this thread to update GUI when no events are present
-  SetTimer(0,0,200,NULL);
-#else
   awake(csound);
   unlock(csound);
-  if (csound->GetFLTKThreadLocking(csound))
-    return;
-#endif
-  Fl::run();
+  do {
+    lock(csound);
+    j = Fl::wait();
+    unlock(csound);
+  } while (j);
   csound->Message(csound, "end of widget thread\n");
-#if defined(LINUX) || defined(NETBSD)
-  // IV - Aug 27 2002: exit if all windows are closed
-  exit(0);
-#endif
+  // IV - Jun 07 2005: exit if all windows are closed
+  ((widgetsGlobals_t*)
+    csound->QueryGlobalVariable(csound, "_widgets_globals"))->exit_now = -1;
 }
 
-#ifdef WIN32
+#if 0
 static void __cdecl fltkKeybRun(void *userdata)
 {
   ENVIRON *csound = (ENVIRON *)userdata;
@@ -1653,17 +1714,36 @@ static void __cdecl fltkKeybRun(void *userdata)
     }
 
   }
-  if (csound->oparms->msglevel & WARNMSG) csound->Message(csound, "WARNING: end of keyboard thread\n");
+  if (csound->oparms->msglevel & WARNMSG)
+    csound->Warning(csound, "end of keyboard thread");
 }
 #endif
 
 extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
 {
+  widgetsGlobals_t  *pp;
+
+  if (csound->CreateGlobalVariable(csound, "_widgets_globals",
+                                           sizeof(widgetsGlobals_t)) != 0)
+    csound->Die(csound, Str("FL_run: memory allocation failure"));
+  pp = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                       "_widgets_globals");
+  /* update display 25 times per second */
+  pp->update_maxcnt = (int) ((csound->global_ekr / 25.0) + 0.5) - 1;
+  /* create thread lock */
+  pp->threadLock = csound->CreateThreadLock(csound);
+  /* register callback function to be called by sensevents() */
+  csound->RegisterSenseEventCallback(csound,
+                                     (void (*)(void *, void *)) evt_callback,
+                                     (void*) pp);
 #ifdef WIN32
   threadHandle = _beginthread(fltkRun, 0, csound);
+#if 0
   if (isActivatedKeyb)
     threadHandle = _beginthread(fltkKeybRun, 0, csound);
-#elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD) || defined(__MACH__)
+#endif
+#elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD) ||  \
+      defined(__MACH__)
   pthread_attr_t a;
   pthread_t thread1;
   // IV - Aug 27 2002: widget thread is always run with normal priority
@@ -1675,7 +1755,7 @@ extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
   threadHandle = pthread_create(&thread1, &a, (void *(*)(void *)) fltkRun,
                                 csound);
 #else
-#  error Nor run facility in FL_run
+#  error No run facility in FL_run
 #endif
 }
 
@@ -1876,7 +1956,7 @@ static void fl_callbackLinearKnob(Fl_Valuator* w, void *a)
 static void fl_callbackExponentialKnob(Fl_Valuator* w, void *a)
 {
   FLKNOB *p = ((FLKNOB*) a);
-  displ( *p->kout = ((FLKNOB*) a)->min * ::pow (p->base, w->value()), *p->idisp);
+  displ(*p->kout = ((FLKNOB*) a)->min * ::pow (p->base, w->value()), *p->idisp);
 }
 
 static void fl_callbackInterpTableKnob(Fl_Valuator* w, void *a)
@@ -2257,8 +2337,8 @@ extern "C" int fl_setWidgetValuei(ENVIRON *csound, FL_SET_WIDGET_VALUE_I *p)
     break;
   default:
     if (csound->oparms->msglevel & WARNMSG)
-      csound->Message(csound, "WARNING (fl_setWidgetValuei): "
-             "not implemented yet; exp=%d\n", v.exponential);
+      csound->Warning(csound, "(fl_setWidgetValuei): "
+                              "not implemented yet; exp=%d", v.exponential);
   }
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
 #if 0 /* this is broken */
@@ -2278,7 +2358,7 @@ extern "C" int fl_setWidgetValuei(ENVIRON *csound, FL_SET_WIDGET_VALUE_I *p)
   }
   else if (!(strcmp(((OPDS *) v.opcode)->optext->t.opcod, "FLjoy"))) {
     static int flag=1;
-    if (flag) { //FLsetVal  always requires two adjacent calls when setting FLjoy
+    if (flag) { //FLsetVal always requires two adjacent calls when setting FLjoy
       ((Fl_Positioner *)o)->xvalue(val);
       flag = 0;
     }
@@ -2291,8 +2371,8 @@ extern "C" int fl_setWidgetValuei(ENVIRON *csound, FL_SET_WIDGET_VALUE_I *p)
     ((Fl_Valuator *)o)->value(val);
   else
     if (csound->oparms->msglevel & WARNMSG)
-      csound->Message(csound, "WARNING: System error: value() method called from "
-             "non-valuator object\n");
+      csound->Warning(csound, "System error: value() method called from "
+                              "non-valuator object");
   o->do_callback(o, v.opcode);
   unlock(csound);
   return OK;
@@ -2319,8 +2399,8 @@ extern "C" int fl_setWidgetValue_set(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
     break;
   default:
     if (csound->oparms->msglevel & WARNMSG)
-      csound->Message(csound, "WARNING (fl_setWidgetValue_set): "
-             "not implemented yet; exp=%d\n", v.exponential);
+      csound->Warning(csound, "(fl_setWidgetValue_set): "
+                              "not implemented yet; exp=%d", v.exponential);
     return NOTOK;
   }
   return OK;
@@ -2340,8 +2420,9 @@ extern "C" int fl_setWidgetValue(ENVIRON *csound, FL_SET_WIDGET_VALUE *p)
       val = (log(val/p->min) / p->log_base) ;
       break;
     default:
-      if (csound->oparms->msglevel & WARNMSG) csound->Message(csound, "WARNING (fl_setWidgetValue): not "
-                                       "implemented yet; exp=%d\n", p->exp);
+      if (csound->oparms->msglevel & WARNMSG)
+        csound->Warning(csound, "(fl_setWidgetValue): not "
+                                "implemented yet; exp=%d", p->exp);
       return NOTOK;
     }
     Fl_Widget *o = (Fl_Widget *) p->WidgAddress;
@@ -2669,7 +2750,7 @@ extern "C" int fl_slider(ENVIRON *csound, FLSLIDER *p)
 
   if (itype > 10 && iexp == EXP_) {
     if (csound->oparms->msglevel & WARNMSG)
-      csound->Message(csound, "WARNING: FLslider exponential, using non-labeled slider\n");
+      csound->Warning(csound, "FLslider exponential, using non-labeled slider");
     itype -= 10;
   }
 
@@ -3002,11 +3083,11 @@ extern "C" int fl_joystick(ENVIRON *csound, FLJOYSTICK *p)
       }
       else return NOTOK;
       o->ybounds(0,.99999999);
-      /*      if (iexp > 0) //interpolated
-              o->callback((Fl_Callback*)fl_callbackInterpTableSlider,(void *) p);
-              else // non-interpolated
-              o->callback((Fl_Callback*)fl_callbackTableSlider,(void *) p);
-      */
+  /*  if (iexp > 0) //interpolated
+        o->callback((Fl_Callback*)fl_callbackInterpTableSlider,(void *) p);
+      else // non-interpolated
+        o->callback((Fl_Callback*)fl_callbackTableSlider,(void *) p);
+   */
     }
   }
   o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
@@ -3170,8 +3251,9 @@ extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
     if (csound->oparms->msglevel & WARNMSG)
-      csound->Message(csound, "WARNING: FLbutton \"%s\" ignoring snapshot capture retrieve\n",
-             Name);
+      csound->Warning(csound,
+                      "FLbutton \"%s\" ignoring snapshot capture retrieve",
+                      Name);
     type = type-10;
   }
   Fl_Button *w;
@@ -3203,7 +3285,6 @@ extern "C" int fl_button(ENVIRON *csound, FLBUTTON *p)
   o->callback((Fl_Callback*)fl_callbackButton,(void *) p);
   AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
-  csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
   return OK;
 }
 
@@ -3213,8 +3294,9 @@ extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
     if (csound->oparms->msglevel & WARNMSG)
-      csound->Message(csound, "WARNING: FLbutton \"%s\" ignoring snapshot capture retrieve\n",
-             Name);
+      csound->Warning(csound,
+                      "FLbutton \"%s\" ignoring snapshot capture retrieve",
+                      Name);
     type = type-10;
   }
   Fl_Group* o = new Fl_Group((int)*p->ix, (int)*p->iy,
@@ -3250,7 +3332,6 @@ extern "C" int fl_button_bank(ENVIRON *csound, FLBUTTONBANK *p)
 
   //AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
-  csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
   return OK;
 }
 
@@ -3261,13 +3342,15 @@ extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
   //      MYFLT   istep1, istep2;
 
   Fl_Counter* o = new Fl_Counter((int)*p->ix, (int)*p->iy,
-                                 (int)*p->iwidth, (int)*p->iheight, controlName);
+                                 (int)*p->iwidth, (int)*p->iheight,
+                                 controlName);
   widget_attributes(o);
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
     if (csound->oparms->msglevel & WARNMSG)
-      csound->Message(csound, "WARNING: FLcount \"%s\" ignoring snapshot capture retrieve\n",
-             controlName);
+      csound->Warning(csound,
+                      "FLcount \"%s\" ignoring snapshot capture retrieve",
+                      controlName);
     type = type-10;
   }
   switch(type) {
@@ -3286,7 +3369,6 @@ extern "C" int fl_counter(ENVIRON *csound, FLCOUNTER *p)
   o->callback((Fl_Callback*)fl_callbackCounter,(void *) p);
   AddrSetValue.push_back(ADDR_SET_VALUE(1, 0, 100000, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
-  csound->oparms->RTevents = 1;     /* Make sure kperf() looks for RT events */
   return OK;
 }
 
@@ -3538,7 +3620,17 @@ static OENTRY localops[] = {
         (SUBR) FLprintk2set,            (SUBR) FLprintk2,         (SUBR) NULL }
 };
 
-LINKAGE
+PUBLIC long opcode_size(void)
+{
+    return (long) sizeof(localops);
+}
+
+PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+{
+    csound->RegisterResetCallback(csound, NULL,
+                                  (int (*)(void *, void *)) widgetRESET);
+    return localops;
+}
 
 };      // extern "C"
 
