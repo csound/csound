@@ -52,29 +52,21 @@
 
 static void lock(ENVIRON *csound)
 {
-#if defined USE_FLTK
-  if (csound->GetFLTKThreadLocking(csound))
-    {
+    if (csound->GetFLTKThreadLocking(csound)) {
       Fl::lock();
     }
-#endif
 }
 
 static void unlock(ENVIRON *csound)
 {
-#if defined USE_FLTK
-  if (csound->GetFLTKThreadLocking(csound))
-    {
+    if (csound->GetFLTKThreadLocking(csound)) {
       Fl::unlock();
     }
-#endif
 }
 
 // static void awake(ENVIRON *csound)
 // {
-// #if defined USE_FLTK
 //   Fl::awake();
-// #endif
 // }
 
 Fl_Window *form = NULL;
@@ -308,11 +300,6 @@ extern "C"
     lock(csound);
     Fl::wait(0.0);
     unlock(csound);
-#ifdef FLTK_GUI
-    if (fltk_abort) {
-      return 0;
-    }
-#endif
     return 1;
   }
 

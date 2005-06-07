@@ -24,8 +24,9 @@
 #ifndef _CSOUND_PROTO_H
 #define _CSOUND_PROTO_H
 
-#include <stdlib.h>
 #define IGN(X) X = X
+/* to be removed... */
+#define printf  use_csoundMessage_instead_of_printf
 
 #ifndef CSOUND_CSDL_H
 
@@ -112,11 +113,6 @@ int     sreadin(void*, void*, MYFLT*, int, void*);
 
 PUBLIC  SNDMEMFILE  *csoundLoadSoundFile(void *csound_,
                                          const char *name, SF_INFO *sfinfo);
-
-/* to be removed... */
-#define printf  use_csoundMessage_instead_of_printf
-
-extern  int     fltk_abort;
 
 #ifdef __cplusplus
 }

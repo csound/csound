@@ -46,8 +46,6 @@ extern "C" {
 # include <windows.h>
 #endif
 
-  int fltk_abort = 0;
-
   /* from oload.c, initial state of ENVIRON structure */
   extern const ENVIRON cenviron_;
   /* from threads.c */
@@ -73,7 +71,6 @@ extern "C" {
 
     csoundLock();
     init_done = -1;     /* prevent the creation of any new instances */
-    fltk_abort = 1;
     if (instance_list == NULL) {
       csoundUnLock();
       return;
@@ -207,14 +204,7 @@ extern "C" {
 
   static void signal_handler(int sig)
   {
-#if defined(USE_FLTK)
-#if defined(LINUX) || defined(NETBSD) || defined(__MACH__)
-    if (sig == SIGALRM)
-      return;
-#endif
-#endif
     psignal(sig, "Csound tidy up");
-    fltk_abort = 1;
     exit(1);
   }
 
@@ -224,14 +214,14 @@ extern "C" {
     int sigs[] = {
 #if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
       SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS,
-      SIGFPE, SIGSEGV, SIGPIPE, SIGALRM, SIGTERM, SIGXCPU, SIGXFSZ,
+      SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGXCPU, SIGXFSZ,
 #elif defined(CSWIN)
       SIGHUP, SIGINT, SIGQUIT,
 #elif defined(WIN32)
       SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
 #elif defined(__EMX__)
       SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE,
-      SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGALRM, SIGTERM, SIGCHLD,
+      SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGTERM, SIGCHLD,
 #endif
       -1
     };
