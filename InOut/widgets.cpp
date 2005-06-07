@@ -1463,10 +1463,15 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
 {
   char    s[MAXNAME], *s2;
   string  filename;
+  int     n;
 
   // put here some warning message!!
-  if (fl_ask("Saving could overwrite the old file\n"
-             "Are you sure you want to save?")==0) return OK;
+  lock(csound);
+  n = fl_ask("Saving could overwrite the old file\n"
+             "Are you sure you want to save?");
+  unlock(csound);
+  if (!n)
+    return OK;
   csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
   s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
   if (s2 == NULL)
