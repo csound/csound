@@ -95,7 +95,14 @@ typedef struct widgetsGlobals_s {
     int         update_cnt;
     int         update_maxcnt;
     void        *threadLock;
-    int         exit_now;
+    int         exit_now;       /* set by GUI when all windows are closed   */
+    int         end_of_perf;    /* set by main thread at end of performance */
+#ifdef WIN32
+    HANDLE      threadHandle;
+#elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD) ||  \
+      defined(__MACH__)
+    pthread_t   threadHandle;
+#endif
 } widgetsGlobals_t;
 
 static void lock(ENVIRON *csound)
@@ -1411,7 +1418,6 @@ static vector<PANELS> fl_windows; // all panels
 static vector<ADDR_STACK> AddrStack; //addresses of containers
 static vector<ADDR_SET_VALUE> AddrSetValue; //addresses of valuators
 static vector<char*> allocatedStrings;
-static unsigned long threadHandle;
 static vector<SNAPSHOT> snapshots;
 
 static Fl_Window *oKeyb;
@@ -1463,15 +1469,16 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
 {
   char    s[MAXNAME], *s2;
   string  filename;
-  int     n;
-
   // put here some warning message!!
+#ifndef WIN32
+  int     n;
   lock(csound);
   n = fl_ask("Saving could overwrite the old file\n"
              "Are you sure you want to save?");
   unlock(csound);
   if (!n)
     return OK;
+#endif
   csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
   s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
   if (s2 == NULL)
@@ -1617,13 +1624,30 @@ static char *GetString(ENVIRON *csound, MYFLT *pname, int is_string)
 extern "C" {
   static int widgetRESET(ENVIRON *csound, void *userData)
   {
-    widgetsGlobals_t  *p;
-    int               j;
+    volatile widgetsGlobals_t *p;
+    int   j;
 
     p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                         "_widgets_globals");
     if (p == NULL)
       return 0;
+    /* if window(s) still open: */
+    if (!p->exit_now) {
+      /* notify GUI thread... */
+      p->end_of_perf = -1;
+      lock(csound);
+      awake(csound);
+      unlock(csound);
+      /* ...and wait for it to close */
+      while (!p->exit_now) {
+#ifdef WIN32
+        Sleep(10);
+#else
+        usleep(10000);
+#endif
+      }
+    }
+    /* clean up */
     csound->WaitThreadLock(csound, p->threadLock, 1000);
     while (p->eventQueue != NULL) {
       rtEvt_t *nxt = p->eventQueue->nxt;
@@ -1633,14 +1657,18 @@ extern "C" {
     csound->NotifyThreadLock(csound, p->threadLock);
     csound->DestroyThreadLock(csound, p->threadLock);
     csound->DestroyGlobalVariable(csound, "_widgets_globals");
-    for (j = allocatedStrings.size()-1; j >=0; j--)  {
+    for (j = allocatedStrings.size()-1; j >= 0; j--)  {
       delete allocatedStrings[j];
       allocatedStrings.pop_back();
     }
-    for (j=fl_windows.size()-1; j >=0 ; j--) { //destroy all opened panels
-      if  (fl_windows[j].is_subwindow == 0)   delete fl_windows[j].panel;
+    for (j=fl_windows.size()-1; j >= 0; j--) {  // destroy all opened panels
+      if (fl_windows[j].is_subwindow == 0)
+        delete fl_windows[j].panel;
       fl_windows.pop_back();
     }
+    lock(csound);
+    Fl::flush();
+    unlock(csound);
     //for (j = AddrValue.size()-1; j >=0; j--)  {
     //      AddrValue.pop_back();
     //}
@@ -1659,7 +1687,7 @@ extern "C" {
 
     AddrSetValue.erase(AddrSetValue.begin(), AddrSetValue.end());
 
-    //    curr_x = 0 , curr_y = 0;
+ // curr_x =   curr_y = 0;
     stack_count       = 0;
 
     FLcontrol_iheight = 15;
@@ -1674,7 +1702,7 @@ extern "C" {
     FLtext_color      = -1;
     FLtext_font       = -1;
     FLtext_align      = 0;
-    //      keyb_out      = 0;
+ // keyb_out          = 0;
     FL_ix             = 10;
     FL_iy             = 10;
     return 0;
@@ -1685,10 +1713,14 @@ extern "C" {
 
 static void __cdecl fltkRun(void *userdata)
 {
-  ENVIRON *csound = (ENVIRON *)userdata;
-  int j;
+  volatile widgetsGlobals_t *p;
+  ENVIRON   *csound = (ENVIRON*) userdata;
+  int       j;
+
+  p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                      "_widgets_globals");
   lock(csound);
-  for (j=0; j < (int) fl_windows.size(); j++) {
+  for (j = 0; j < (int) fl_windows.size(); j++) {
     fl_windows[j].panel->show();
   }
   awake(csound);
@@ -1697,11 +1729,10 @@ static void __cdecl fltkRun(void *userdata)
     lock(csound);
     j = Fl::wait();
     unlock(csound);
-  } while (j);
+  } while (j && !p->end_of_perf);
   csound->Message(csound, "end of widget thread\n");
   // IV - Jun 07 2005: exit if all windows are closed
-  ((widgetsGlobals_t*)
-    csound->QueryGlobalVariable(csound, "_widgets_globals"))->exit_now = -1;
+  p->exit_now = -1;
 }
 
 #if 0
@@ -1724,10 +1755,12 @@ static void __cdecl fltkKeybRun(void *userdata)
 }
 #endif
 
-extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
+extern "C" int FL_run(ENVIRON *csound, FLRUN *p)
 {
   widgetsGlobals_t  *pp;
 
+  if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
+    return csound->InitError(csound, Str("FLrun was already called"));
   if (csound->CreateGlobalVariable(csound, "_widgets_globals",
                                            sizeof(widgetsGlobals_t)) != 0)
     csound->Die(csound, Str("FL_run: memory allocation failure"));
@@ -1742,7 +1775,7 @@ extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
                                      (void (*)(void *, void *)) evt_callback,
                                      (void*) pp);
 #ifdef WIN32
-  threadHandle = _beginthread(fltkRun, 0, csound);
+  pp->threadHandle = (HANDLE) _beginthread(fltkRun, 0, csound);
 #if 0
   if (isActivatedKeyb)
     threadHandle = _beginthread(fltkKeybRun, 0, csound);
@@ -1750,21 +1783,21 @@ extern "C" void FL_run(ENVIRON *csound, FLRUN *p)
 #elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD) ||  \
       defined(__MACH__)
   pthread_attr_t a;
-  pthread_t thread1;
   // IV - Aug 27 2002: widget thread is always run with normal priority
   pthread_attr_init(&a);
 #if !defined(NETBSD)
   pthread_attr_setschedpolicy(&a, SCHED_OTHER);
   pthread_attr_setinheritsched(&a, PTHREAD_EXPLICIT_SCHED);
 #endif
-  threadHandle = pthread_create(&thread1, &a, (void *(*)(void *)) fltkRun,
-                                csound);
+  /* assume that does not fail... */
+  pthread_create(&(pp->threadHandle), &a, (void *(*)(void *)) fltkRun, csound);
 #else
 #  error No run facility in FL_run
 #endif
+  return OK;
 }
 
-extern "C" void fl_update(ENVIRON *csound, FLRUN *p)
+extern "C" int fl_update(ENVIRON *csound, FLRUN *p)
 {
   lock(csound);
   for (int j=0; j< (int) AddrSetValue.size()-1; j++) {
@@ -1773,11 +1806,12 @@ extern "C" void fl_update(ENVIRON *csound, FLRUN *p)
     o->do_callback(o, v.opcode);
   }
   unlock(csound);
+  return OK;
 }
 
 //----------------------------------------------
 
-inline void displ(MYFLT val, MYFLT index)
+static inline void displ(MYFLT val, MYFLT index)
 {
   if (index >= 0) { //display current value of valuator
     char valString[MAXNAME];
@@ -2078,18 +2112,21 @@ void widget_attributes(Fl_Widget *o)
 
 //-----------
 
-extern "C" void FLkeyb(ENVIRON *csound, FLKEYB *p)
+extern "C" int FLkeyb(ENVIRON *csound, FLKEYB *p)
 {
+#if 0
   isActivatedKeyb = 1;
   oKeyb = FLkeyboard_init();
   keybp = p; //output of the keyboard is stored into a global variable pointer
+#endif
+  return OK;
 }
 
 //-----------
 
-extern "C" void StartPanel(ENVIRON *csound, FLPANEL *p)
+extern "C" int StartPanel(ENVIRON *csound, FLPANEL *p)
 {
-  char* panelName = GetString(csound, p->name, p->XSTRCODE);
+  char *panelName = GetString(csound, p->name, p->XSTRCODE);
 
   int x = (int) *p->ix, y = (int) *p->iy,
     width = (int) *p->iwidth, height = (int) *p->iheight;
@@ -2121,6 +2158,7 @@ extern "C" void StartPanel(ENVIRON *csound, FLPANEL *p)
   PANELS panel(o, (stack_count>0) ? 1 : 0);
   fl_windows.push_back(panel);
   stack_count++;
+  return OK;
 }
 
 extern "C" int EndPanel(ENVIRON *csound, FLPANELEND *p)
