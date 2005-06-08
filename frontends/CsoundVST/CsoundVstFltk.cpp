@@ -108,6 +108,8 @@ static std::string about = "CSOUND AND CSOUND VST\n"
 "Victor Lazzarini\n"
 "Ville Pulkki\n";
 
+static CsoundVstFltk *oneWaiter = 0;
+
 static const char *removeCarriageReturns(std::string &buffer)
 {
   size_t position = 0;
@@ -149,16 +151,24 @@ CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
   csoundVST((CsoundVST *)audioEffect),
   useCount(0)
 {
+  if (oneWaiter == 0)
+    {
+      oneWaiter = this;
+    }
   csoundVST->setEditor(this);
 }
 
 CsoundVstFltk::~CsoundVstFltk(void)
 {
+  if (oneWaiter == this)
+    {
+      oneWaiter = 0;
+    }
 }
 
 void CsoundVstFltk::updateCaption()
 {
-  static std::string caption;
+  std::string caption;
   caption = "[ C S O U N D   V S T ] ";
   if(csoundVST->getIsPython())
     {
@@ -197,7 +207,10 @@ long CsoundVstFltk::getRect(ERect **erect)
 
 long CsoundVstFltk::open(void *parentWindow)
 {
-  Fl::lock();
+  if (oneWaiter == this)
+    {
+      Fl::lock();
+    }
   systemWindow = parentWindow;
   this->csoundVstUi = make_window(this);
   this->mainTabs = ::mainTabs;
@@ -267,9 +280,13 @@ void CsoundVstFltk::close()
 void CsoundVstFltk::idle()
 {
   // Process events for the FLTK GUI.
-  Fl::lock();
-  Fl::wait(0);
-  Fl::unlock();
+  // Only one instance of CsoundVstFltk may call Fl::wait().
+  if (oneWaiter == this) 
+    {
+      Fl::lock();
+      Fl::wait(0);
+      Fl::unlock();
+    }
   // If the VST host has indicated
   // it needs the GUI updated, do it.
   if(updateFlag)
@@ -284,11 +301,11 @@ void CsoundVstFltk::idle()
           while(!messages.empty())
             {
               Fl::lock();
-              this->runtimeMessagesBrowser->add(messages.front().c_str());
-              messages.pop_front();
-              this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
               Fl::flush();
+              this->runtimeMessagesBrowser->add(messages.front().c_str());
+              this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
               Fl::unlock();
+              messages.pop_front();
             }
         }
     }
@@ -300,10 +317,10 @@ void CsoundVstFltk::update()
 {
   if(csoundVstUi)
     {
+      updateCaption();
       Fl::lock();
       csound::System::message("BEGAN CsoundVstFltk::update...\n");
-      updateCaption();
-      static std::string buffer;
+      std::string buffer;
       this->settingsVstPluginModeEffect->value(!csoundVST->getIsSynth());
       this->settingsVstPluginModeInstrument->value(csoundVST->getIsSynth());
       this->settingsCsoundPerformanceModeClassic->value(!csoundVST->getIsPython());
@@ -376,9 +393,9 @@ void CsoundVstFltk::messageCallback(void *userdata, int attribute, const char *f
           else
             {
               Fl::lock();
+              Fl::flush();
               csoundVstFltk->runtimeMessagesBrowser->add(it->c_str());
               csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
-              Fl::flush();
               Fl::unlock();
             }
         }
