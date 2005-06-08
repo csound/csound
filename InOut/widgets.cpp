@@ -90,6 +90,7 @@ typedef struct rtEvt_s {
     EVTBLK          evt;
 } rtEvt_t;
 
+#ifndef NO_FLTK_THREADS
 typedef struct widgetsGlobals_s {
     rtEvt_t     *eventQueue;
     void        *threadLock;
@@ -102,6 +103,7 @@ typedef struct widgetsGlobals_s {
     pthread_t   threadHandle;
 #endif
 } widgetsGlobals_t;
+#endif
 
 static void lock(ENVIRON *csound)
 {
@@ -122,6 +124,7 @@ static void awake(ENVIRON *csound)
     Fl::awake();
 }
 
+#ifndef NO_FLTK_THREADS
 extern "C" {
   /* called by sensevents() once in every control period */
   static void evt_callback(ENVIRON *csound, widgetsGlobals_t *p)
@@ -150,6 +153,7 @@ extern "C" {
     }
   }
 };      // extern "C"
+#endif  // NO_FLTK_THREADS
 
 static char hack_o_rama1;       // IV - Aug 23 2002
 static char hack_o_rama2;
@@ -195,6 +199,7 @@ FLkeyboard_init(void)
 extern "C" {
   void ButtonSched(ENVIRON *csound, MYFLT *args[], int numargs)
   { /* based on code by rasmus */
+#ifndef NO_FLTK_THREADS
     widgetsGlobals_t  *p;
     rtEvt_t           *evt;
     int               i;
@@ -229,6 +234,23 @@ extern "C" {
       ep->nxt = evt;
     }
     csound->NotifyThreadLock(csound, p->threadLock);
+#else   // NO_FLTK_THREADS
+    EVTBLK  e;
+    int     i;
+
+    /* Create the new event */
+    e.strarg = NULL;
+    e.opcod = (char) *args[0];
+    if (e.opcod == '\0')
+      e.opcod = 'i';
+    e.pcnt = numargs - 1;
+    e.p[1] = e.p[2] = e.p[3] = FL(0.0);
+    for (i = 1; i < numargs; i++)
+      e.p[i] = *args[i];
+    if (e.p[2] < FL(0.0))
+      e.p[2] = FL(0.0);
+    csound->insert_score_event(csound, &e, csound->sensEvents_state.curTime, 0);
+#endif  // NO_FLTK_THREADS
   }
 };
 
@@ -1449,7 +1471,7 @@ extern "C" int get_snap(ENVIRON *csound, FLGETSNAP *p)
   int index = (int) *p->index;
   if (!snapshots.empty()) {
     if (index > (int) snapshots.size()) index = snapshots.size();
-    else if (index < 0 ) index=0;
+    else if (index < 0) index=0;
     if (snapshots[index].get(AddrSetValue)!=OK) return NOTOK;
   }
   *p->inum_el = snapshots.size();
@@ -1463,7 +1485,7 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
   char    s[MAXNAME], *s2;
   string  filename;
   // put here some warning message!!
-#if 0
+#ifdef NO_FLTK_THREADS
   int     n;
   lock(csound);
   n = fl_ask("Saving could overwrite the old file\n"
@@ -1617,8 +1639,9 @@ static char *GetString(ENVIRON *csound, MYFLT *pname, int is_string)
 extern "C" {
   static int widgetRESET(ENVIRON *csound, void *userData)
   {
-    volatile widgetsGlobals_t *p;
     int   j;
+#ifndef NO_FLTK_THREADS
+    volatile widgetsGlobals_t *p;
 
     p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                         "_widgets_globals");
@@ -1650,6 +1673,7 @@ extern "C" {
     csound->NotifyThreadLock(csound, p->threadLock);
     csound->DestroyThreadLock(csound, p->threadLock);
     csound->DestroyGlobalVariable(csound, "_widgets_globals");
+#endif  // NO_FLTK_THREADS
     for (j = allocatedStrings.size()-1; j >= 0; j--)  {
       delete allocatedStrings[j];
       allocatedStrings.pop_back();
@@ -1704,6 +1728,7 @@ extern "C" {
 
 //-----------
 
+#ifndef NO_FLTK_THREADS
 static void __cdecl fltkRun(void *userdata)
 {
   volatile widgetsGlobals_t *p;
@@ -1728,6 +1753,7 @@ static void __cdecl fltkRun(void *userdata)
   // IV - Jun 07 2005: exit if all windows are closed
   p->exit_now = -1;
 }
+#endif  // NO_FLTK_THREADS
 
 #if 0
 static void __cdecl fltkKeybRun(void *userdata)
@@ -1751,6 +1777,7 @@ static void __cdecl fltkKeybRun(void *userdata)
 
 extern "C" int FL_run(ENVIRON *csound, FLRUN *p)
 {
+#ifndef NO_FLTK_THREADS
   widgetsGlobals_t  *pp;
 
   if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
@@ -1786,6 +1813,16 @@ extern "C" int FL_run(ENVIRON *csound, FLRUN *p)
 #else
 #  error No run facility in FL_run
 #endif
+#else   // NO_FLTK_THREADS
+  int j;
+
+  lock(csound);
+  for (j = 0; j < (int) fl_windows.size(); j++) {
+    fl_windows[j].panel->show();
+  }
+  awake(csound);
+  unlock(csound);
+#endif  // NO_FLTK_THREADS
   return OK;
 }
 
