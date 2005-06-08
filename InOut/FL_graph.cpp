@@ -33,12 +33,6 @@
 #include "csoundCore.h"
 #include "cwindow.h"
 #include <math.h>
-#ifdef HAVE_STRING_H
-#include <string.h>
-#elif HAVE_STRINGS_H
-#include <strings.h>
-#endif
-#include <stdlib.h>
 
 #define NUMOFWINDOWS (30)
 #define XINIT    10      /* set default window location */
@@ -297,6 +291,12 @@ extern "C"
 
   int POLL_EVENTS(ENVIRON *csound)
   {
+    /* nothing to do, unless displays are enabled, */
+    if (!csound->oparms->displays)
+      return 1;
+    /* and no widget thread is running */
+    if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
+      return 1;
     lock(csound);
     Fl::wait(0.0);
     unlock(csound);
