@@ -95,6 +95,9 @@ opts.Add('useJack',
 opts.Add('useFLTK',
     'Set to 1 to use FLTK for graphs and widget opcodes.',
     '1')
+opts.Add('noFLTKThreads',
+    'Set to 1 to disable use of a separate thread for FLTK widgets.',
+    '0')
 opts.Add('buildCsoundVST',
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).',
     '1')
@@ -599,8 +602,11 @@ if not ((commonEnvironment['useFLTK'] == '1' and fltkFound)):
     print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
 else:
     print 'CONFIGURATION DECISION: Building with FLTK for graphs and widgets.'
-    libCsoundSources.append('InOut/FL_graph.cpp')
-    libCsoundSources.append('InOut/winFLTK.c')
+    fltkEnvironment = csoundLibraryEnvironment.Copy()
+    if (commonEnvironment['noFLTKThreads'] == '1'):
+      fltkEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
+    libCsoundSources.append(fltkEnvironment.Object('InOut/FL_graph.cpp'))
+    libCsoundSources.append(fltkEnvironment.Object('InOut/winFLTK.c'))
 
 if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
   print 'CONFIGURATION DECISION: Building dynamic Csound library'
@@ -756,6 +762,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
 if (commonEnvironment['useFLTK'] == '1' and fltkFound):
   widgetsEnvironment = pluginEnvironment.Copy()
   widgetsEnvironment.Append(LIBS = ['fltk'])
+  if (commonEnvironment['noFLTKThreads'] == '1'):
+    widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
   if getPlatform() == 'linux' or getPlatform() == 'cygwin':
     widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
   elif getPlatform() == 'mingw':

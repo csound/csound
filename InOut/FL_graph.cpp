@@ -291,12 +291,14 @@ extern "C"
 
   int POLL_EVENTS(ENVIRON *csound)
   {
+#ifndef NO_FLTK_THREADS
     /* nothing to do, unless displays are enabled, */
     if (!csound->oparms->displays)
       return 1;
     /* and no widget thread is running */
     if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
       return 1;
+#endif
     lock(csound);
     Fl::wait(0.0);
     unlock(csound);
