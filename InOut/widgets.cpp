@@ -92,8 +92,6 @@ typedef struct rtEvt_s {
 
 typedef struct widgetsGlobals_s {
     rtEvt_t     *eventQueue;
-    int         update_cnt;
-    int         update_maxcnt;
     void        *threadLock;
     int         exit_now;       /* set by GUI when all windows are closed   */
     int         end_of_perf;    /* set by main thread at end of performance */
@@ -132,28 +130,23 @@ extern "C" {
     if (p->eventQueue != NULL) {
       csound->WaitThreadLock(csound, p->threadLock, 1000);
       while (p->eventQueue != NULL) {
-        rtEvt_t *nxt = p->eventQueue->nxt;
-        csound->insert_score_event(csound, &(p->eventQueue->evt),
+        rtEvt_t *ep = p->eventQueue;
+        p->eventQueue = ep->nxt;
+        csound->NotifyThreadLock(csound, p->threadLock);
+        csound->insert_score_event(csound, &(ep->evt),
                                            csound->sensEvents_state.curTime, 0);
-        free(p->eventQueue);
-        p->eventQueue = nxt;
+        free(ep);
+        csound->WaitThreadLock(csound, p->threadLock, 1000);
       }
       csound->NotifyThreadLock(csound, p->threadLock);
     }
-    /* update display */
-    if (--(p->update_cnt) < 0) {
-      p->update_cnt = p->update_maxcnt;
-      lock(csound);
-      Fl::flush();
-      unlock(csound);
-      /* if all windows have been closed, terminate performance */
-      if (p->exit_now) {
-        EVTBLK  e;
-        memset(&e, 0, sizeof(EVTBLK));
-        e.opcod = 'e';
-        csound->insert_score_event(csound, &e, csound->sensEvents_state.curTime,
-                                           0);
-      }
+    /* if all windows have been closed, terminate performance */
+    if (p->exit_now) {
+      EVTBLK  e;
+      memset(&e, 0, sizeof(EVTBLK));
+      e.opcod = 'e';
+      csound->insert_score_event(csound, &e, csound->sensEvents_state.curTime,
+                                         0);
     }
   }
 };      // extern "C"
@@ -1667,7 +1660,7 @@ extern "C" {
       fl_windows.pop_back();
     }
     lock(csound);
-    Fl::flush();
+    Fl::wait(0.0);
     unlock(csound);
     //for (j = AddrValue.size()-1; j >=0; j--)  {
     //      AddrValue.pop_back();
@@ -1727,7 +1720,8 @@ static void __cdecl fltkRun(void *userdata)
   unlock(csound);
   do {
     lock(csound);
-    j = Fl::wait();
+    Fl::wait(0.04);
+    j = (Fl::first_window() != (Fl_Window*) 0);
     unlock(csound);
   } while (j && !p->end_of_perf);
   csound->Message(csound, "end of widget thread\n");
@@ -1766,8 +1760,6 @@ extern "C" int FL_run(ENVIRON *csound, FLRUN *p)
     csound->Die(csound, Str("FL_run: memory allocation failure"));
   pp = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                        "_widgets_globals");
-  /* update display 25 times per second */
-  pp->update_maxcnt = (int) ((csound->global_ekr / 25.0) + 0.5) - 1;
   /* create thread lock */
   pp->threadLock = csound->CreateThreadLock(csound);
   /* register callback function to be called by sensevents() */

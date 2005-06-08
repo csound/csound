@@ -204,9 +204,9 @@ int musmon(ENVIRON *csound)
     dispinit(csound);           /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
 
-    /* kperf() will not call csoundYield() more than 500 times per second */
+    /* kperf() will not call csoundYield() more than 250 times per second */
     csound->evt_poll_cnt = 0;
-    csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 500.0);
+    csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 250.0);
     /* initialise sensevents state */
     {
       sensEvents_t  *p;
