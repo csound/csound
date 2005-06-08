@@ -1463,7 +1463,7 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
   char    s[MAXNAME], *s2;
   string  filename;
   // put here some warning message!!
-#ifndef WIN32
+#if 0
   int     n;
   lock(csound);
   n = fl_ask("Saving could overwrite the old file\n"
