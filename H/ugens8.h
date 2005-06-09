@@ -58,8 +58,9 @@ typedef struct {
     /*RWD 8:2001 for pvocex: need these too */
     long    frInc, chans;
 
-    MYFLT   frPktim, frPrtim, scale, asr, *frPtr, lastPex;
+    MYFLT   frPktim, frPrtim, scale, asr, lastPex;
     MYFLT   PvMaxAmp;
+    float   *frPtr;
     FUNC    *AmpGateFunc;
     MEMFIL  *mfp;
     AUXCH   auxch;

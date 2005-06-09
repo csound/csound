@@ -315,10 +315,10 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     p->winsize = pp.winsize;
     p->fftsize = pp.fftsize;
     p->wintype = pp.wintype;
-    p->format = pp.format;
-    p->chans = pp.chans;
+    p->format  = pp.format;
+    p->chans   = pp.chans;
     p->nframes = pp.nframes;
-    p->arate = pp.arate;
+    p->arate   = csound->esr / (MYFLT) pp.overlap;
     p->membase = (float*) ((void*) pp.mfp->beginp);
 
     if (p->nframes <= 0)
@@ -833,17 +833,16 @@ int PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p)
       return pvx_err_msg(csound, Str("error reading pvoc-ex file %s "
                                      "after %d frames"), fname, i);
     }
-    pp->arate = (MYFLT) fmt.nSamplesPerSec;
-    if (pp->arate != csound->esr) {             /* & chk the data */
+    pp->srate = (MYFLT) fmt.nSamplesPerSec;
+    if (pp->srate != csound->esr) {             /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
-                              fname, pp->arate, csound->esr);
+                              fname, pp->srate, csound->esr);
     }
     pp->fftsize = 2 * (pvdata.nAnalysisBins - 1);
     pp->overlap = pvdata.dwOverlap;
     pp->winsize = pvdata.dwWinlen;
     pp->chans   = fmt.nChannels;
     pp->nframes = (unsigned long) totalframes;
-    pp->arate   = csound->esr / (MYFLT) pp->overlap;
     switch ((pv_wtype) pvdata.wWindowType) {
       case PVOC_DEFAULT:
       case PVOC_HAMMING:

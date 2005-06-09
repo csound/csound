@@ -27,6 +27,13 @@
 #include "disprep.h"
 #include "dsputil.h"
 
+#ifdef MSVC                   /* Thanks to Richard Dobson */
+# define hypot _hypot
+#endif
+#if defined(__WATCOMC__) || defined(__ncc)
+extern double hypot(double, double);
+#endif
+
 static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
 
 void disprepRESET(ENVIRON *csound)
@@ -158,6 +165,30 @@ int dsplay(ENVIRON *csound, DSPLAY *p)
     return OK;
 }
 
+/* Write window coefs into buffer, don't malloc */
+static void FillHalfWin(MYFLT *wBuf, long size, MYFLT max, int hannq)
+    /* 1 => hanning window else hamming */
+{
+    MYFLT       a,b;
+    long        i;
+
+    if (hannq) {
+      a = FL(0.50);
+      b = FL(0.50);
+    }
+    else {
+      a = FL(0.54);
+      b = FL(0.46);
+    }
+
+    if (wBuf!= NULL) {        /* NB: size/2 + 1 long - just indep terms */
+      size /= 2;              /* to fix scaling */
+      for (i=0; i<=size;++i)
+        wBuf[i] = max * (a-b*(MYFLT)cos(PI*(MYFLT)i/(MYFLT)size ) );
+    }
+    return;
+}
+
 int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
                                        /* Transform of collected samples and  */
                                        /* displays coefficients (mag or db)   */
@@ -210,6 +241,48 @@ int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
                       (int) *p->iwtflg, Str("fft"));
     }
     return OK;
+}
+
+/* pack re,im,re,im into re,re */
+static void PackReals(MYFLT *buffer, long size)
+{
+    MYFLT   *b2 = buffer;
+
+    ++size;
+    while (--size) {
+      *b2++ = *buffer++;
+      ++buffer;
+    }
+}
+
+/* Convert Real & Imaginary spectra into Amplitude & Phase */
+static void Rect2Polar(MYFLT *buffer, long size)
+{
+    long    i;
+    MYFLT   *real,*imag;
+    double  re,im;
+    MYFLT   mag;
+
+    real = buffer;
+    imag = buffer+1;
+    for (i = 0; i < size; ++i) {
+      re = (double)real[2L*i];
+      im = (double)imag[2L*i];
+      real[2L*i] = mag = (MYFLT)hypot(re,im);
+      if (mag == FL(0.0))
+        imag[2L*i] = FL(0.0);
+      else
+        imag[2L*i] = (MYFLT)atan2(im,re);
+    }
+}
+
+/* packed buffer ie. reals, not complex */
+static void Lin2DB(MYFLT *buffer, long size)
+{
+    while (size--) {
+      *buffer = /* FL(20.0)*log10 */ FL(8.68589)*(MYFLT)log(*buffer);
+      buffer++;
+    }
 }
 
 static void d_fft(      /* perform an FFT as reqd below */

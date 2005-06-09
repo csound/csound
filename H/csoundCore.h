@@ -544,7 +544,7 @@ extern "C" {
     int           chans;
     unsigned long nframes;
     MEMFIL        *mfp;
-    MYFLT         arate;
+    MYFLT         srate;
   } PVOCEX_MEMFILE;
 
   typedef struct ENVIRON_

@@ -86,8 +86,6 @@ int pvset(ENVIRON *csound, PVOC *p)
     p->frPrtim = csound->esr/((MYFLT) p->frInc);
     /* factor by which to mulitply 'real' time index to get frame index */
     size = pvfrsiz(p);          /* size used in def of OPWLEN ? */
-    p->scale = csound->e0dbfs*FL(2.0)*((MYFLT)csound->ksmps)/((MYFLT)OPWLEN);
-    p->scale *= csound->GetInverseRealFFTScale(csound, (int) size);
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
     /* 1/frSiz is the required scale down before (i)FFT */
     p->prFlg = 1;    /* true */
@@ -185,18 +183,19 @@ int pvoc(ENVIRON *csound, PVOC *p)
     buf[1] = buf[size]; buf[size] = buf[size + 1] = FL(0.0);
     csound->InverseRealFFT(csound, buf, (int) size);
     if (pex != FL(1.0))
-      UDSample(buf,(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,
+      UDSample(buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
                buf2, size, buf2Size, pex);
     else
-      CopySamps(buf+(int)(FL(0.5)*((MYFLT)size - pex*(MYFLT)buf2Size))/*a*/,
-                buf2,buf2Size);
+      CopySamps(buf + (int) (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
+                buf2, buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
     addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
     writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
     p->opBpos += csound->ksmps;
-    if (p->opBpos > circBufSize)     p->opBpos -= circBufSize;
-    addToCircBuf(buf2+csound->ksmps,p->outBuf,
-                 p->opBpos,buf2Size-csound->ksmps,circBufSize);
+    if (p->opBpos > circBufSize)
+      p->opBpos -= circBufSize;
+    addToCircBuf(buf2 + csound->ksmps, p->outBuf,
+                 p->opBpos, buf2Size - csound->ksmps, circBufSize);
     p->lastPex = pex;        /* needs to know last pitchexp to update phase */
     {
       int i;
@@ -214,132 +213,39 @@ int pvoc(ENVIRON *csound, PVOC *p)
 static int pvx_loadfile(ENVIRON *csound,
                         const char *fname, PVOC *p, MEMFIL **mfp)
 {
-    PVOCDATA pvdata;
-    WAVEFORMATEX fmt;
-    MEMFIL  *mfil = NULL;
-    int     i, j, rc = 0, pvx_id = -1;
-    long    pvx_fftsize;
-    long    mem_wanted = 0;
-    long    totalframes, framelen;
-    float   *memblock = NULL;
-    float   cs_ampfac;             /* needs to be overlapsamps */
-    float   *pFrame;
+    PVOCEX_MEMFILE  pp;
 
-    pvx_id = csound->PVOC_OpenFile(csound, fname, &pvdata, &fmt);
-    if (pvx_id < 0) {
+    if (PVOCEX_LoadFile(csound, fname, &pp) != 0) {
       csound->InitError(csound, Str("PVOC cannot load %s"), fname);
       return NOTOK;
     }
-
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
-    pvx_fftsize = 2 * (pvdata.nAnalysisBins-1);
-    framelen = 2 * pvdata.nAnalysisBins;
-    if (pvx_fftsize > PVFRAMSIZE) {
+    if (pp.fftsize > PVFRAMSIZE) {
       csound->InitError(csound, Str("pvoc-ex file %s: "
                                     "FFT size %d too large for Csound"),
-                                fname, (int) pvx_fftsize);
+                                fname, (int) pp.fftsize);
       return NOTOK;
     }
-
-    /* have to reject m/c files for now, until opcodes upgraded*/
-    if (fmt.nChannels > 1) {
+    /* have to reject m/c files for now, until opcodes upgraded */
+    if (pp.chans > 1) {
       csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
       return NOTOK;
     }
-
-    /* also, accept only 32bit floats for now */
-    if (pvdata.wWordFormat != PVOC_IEEE_FLOAT) {
-      csound->InitError(csound, Str("pvoc-ex file %s is not 32bit floats"),
-                                fname);
-      return NOTOK;
-    }
-
-    /* FOR NOW, accept only PVOC_AMP_FREQ : later, we can convert */
-    /* NB Csound knows no other: frameFormat is not read anywhere! */
-    if (pvdata.wAnalFormat != PVOC_AMP_FREQ) {
-      csound->InitError(csound, Str("pvoc-ex file %s not in AMP_FREQ format"),
-                                fname);
-      return NOTOK;
-    }
     /* ignore the window spec until we can use it! */
-    totalframes = csound->PVOC_FrameCount(csound, pvx_id);
-
-    if (totalframes == 0) {
-      csound->InitError(csound, Str("pvoc-ex file %s is empty!"), fname);
-      return NOTOK;
-    }
-    if (!find_memfile(csound, fname, &mfil)) {
-      /* get the memory and load */
-      mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
-      /* try for the big block first! */
-      memblock = (float *) mmalloc(csound, mem_wanted);
-      /* fill'er-up */
-      /* need to loop, as we need to rescale amplitudes for Csound */
-      /* still not sure this is right, yet... */
-      /* what about effect of double-window ? */
-      cs_ampfac = (float ) (pvdata.dwOverlap *
-                            ((float)(framelen-2) /(float) pvdata.dwWinlen)) ;
-
-      pFrame = memblock;
-      for (i = 0; i < totalframes; i++) {
-        rc = csound->PVOC_GetFrames(csound, pvx_id, pFrame, 1);
-        if (rc != 1)
-          break;         /* read error, but may still have something to use */
-        /* scale amps */
-        for (j=0;j < framelen; j+=2)
-          pFrame[j] *= cs_ampfac;
-        pFrame += framelen;
-      }
-      /* so far, not been able to provoke entry to these blocks! */
-      if (rc < 0) {
-        csound->InitError(csound, Str("error reading pvoc-ex file %s"), fname);
-        mfree(csound, memblock);
-        return NOTOK;
-      }
-      if (i < totalframes) {
-        /* if rc==0, there may be an error in the file header */
-        csound->InitError(csound, Str("error reading pvoc-ex file %s "
-                                      "after %d frames"), fname, i);
-        /* be strict. */
-        mfree(csound, memblock);
-        return NOTOK;
-      }
-    }
-    else
-      memblock = (float *) mfil->beginp;
-    csound->PVOC_CloseFile(csound, pvx_id);
-    /* & chk the data */
-    if ((p->asr = (MYFLT) fmt.nSamplesPerSec) != csound->esr) {
-      csound->Warning(csound, Str("%s''s srate = %8.0f, orch's srate = %8.0f"),
-                              fname, p->asr, csound->esr);
-    }
-    p->frSiz    = pvx_fftsize;
-    p->frPtr    = (MYFLT *) memblock;
+    p->frSiz    = pp.fftsize;
+    p->frPtr    = (float*) ((void*) pp.mfp->beginp);
     p->baseFr   = 0;  /* point to first data frame */
-    p->maxFr    = totalframes - 1;
-    p->frInc    = pvdata.dwOverlap;
-    p->chans    = fmt.nChannels;
-
+    p->maxFr    = pp.nframes - 1;
+    p->frInc    = pp.overlap;
+    p->chans    = pp.chans;
+    p->asr      = pp.srate;
+    /* amplitude scale for PVOC */
+    p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
+    p->scale *= csound->GetInverseRealFFTScale(csound, pp.fftsize);
     /* highest possible frame index */
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->esr/((MYFLT) pvdata.dwOverlap);
-
-    /* Need to assign an MEMFIL to p->mfp */
-    if (mfil == NULL) {
-      mfil = (MEMFIL *) mmalloc(csound, sizeof(MEMFIL));
-      /* just hope the filename is short enough...! */
-      mfil->next = NULL;
-      mfil->filename[0] = '\0';
-      strcpy(mfil->filename, fname);
-      mfil->beginp = (char *) memblock;
-      mfil->endp = mfil->beginp + mem_wanted;
-      mfil->length = mem_wanted;
-      /*from memfiles.c */
-      csound->Message(csound, Str("file %s (%ld bytes) loaded into memory\n"),
-                              fname, (long) mem_wanted);
-      add_memfil(csound, mfil);
-    }
-    *mfp = mfil;
+    p->frPrtim = csound->esr / ((MYFLT) pp.overlap);
+    *mfp = pp.mfp;
     return OK;
 }
 

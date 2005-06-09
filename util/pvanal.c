@@ -309,7 +309,8 @@ static int pvanal(void *csound_, int argc, char **argv)
     }
     csound->Message(csound, Str("pvanal: creating pvocex file\n"));
     /* handle all messages in here, for now */
-    if (pvxanal(csound, p, infd, outfilnam, p->sr, p->nchanls,
+    if (pvxanal(csound, p, infd, outfilnam, p->sr,
+                        ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
                         WindowType, verbose) != 0) {
       csound->Message(csound, Str("error generating pvocex file.\n"));
