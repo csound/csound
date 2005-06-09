@@ -36,9 +36,6 @@
 #include <assert.h>
 #endif
 
-/* TODO: a generic form of this function! Oh for C++... */
-static int pvx_loadfile(ENVIRON *, const char *, PVSFREAD *, MEMFIL **);
-
 int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
     if ((f1->overlap    == f2->overlap)
@@ -301,21 +298,28 @@ int pvscross(ENVIRON *csound, PVSCROSS *p)
 
 int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
 {
-    int      i;
-    unsigned long  N;
-    char     pvfilnam[MAXNAME];
-    MEMFIL   *mfp;
-    float       *frptr,*memptr;          /* RWD pvocex format: MUST be 32bit */
+    PVOCEX_MEMFILE  pp;
+    int             i;
+    unsigned long   N;
+    char            pvfilnam[MAXNAME];
+    MEMFIL          *mfp;
+    float           *frptr, *memptr;    /* RWD pvocex format: MUST be 32bit */
 
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
-    mfp = p->mfp;
-    if ((mfp == NULL) || strcmp(mfp->filename, pvfilnam) != 0) {
-      /* if file not already readin */
-      if (!pvx_loadfile(csound, pvfilnam, p, &mfp))
-        /* or get pvsys error message ? */
-        csound->Die(csound, csound->errmsg);
-      p->mfp = mfp;
+    if (PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0) {
+      return csound->InitError(csound, Str("Failed to load PVOC-EX file"));
     }
+    mfp = p->mfp = pp.mfp;
+    p->ptr = 0;
+    p->overlap = pp.overlap;
+    p->winsize = pp.winsize;
+    p->fftsize = pp.fftsize;
+    p->wintype = pp.wintype;
+    p->format = pp.format;
+    p->chans = pp.chans;
+    p->nframes = pp.nframes;
+    p->arate = pp.arate;
+    p->membase = (float*) ((void*) pp.mfp->beginp);
 
     if (p->nframes <= 0)
       csound->Die(csound, Str("pvsfread: file is empty!\n"));
@@ -732,146 +736,137 @@ int pvsinfo(ENVIRON *csound, PVSINFO *p)
 
 /* RWD NB PVOCEX format always 32bit, so no MYFLTs here! */
 
-static int pvx_loadfile(ENVIRON *csound,
-                        const char *fname, PVSFREAD *p, MEMFIL **mfp)
+static int pvx_err_msg(ENVIRON *csound, const char *fmt, ...)
 {
-    PVOCDATA pvdata;
-    WAVEFORMATEX fmt;
-    MEMFIL *mfil = NULL;
-    int i,j,rc = 0,pvx_id = -1;
-    long pvx_fftsize,pvx_winsize;
-    long mem_wanted = 0;
-    long totalframes,framelen;
-    float *pFrame;
-    float *memblock = NULL;
-    pv_wtype wtype;
+    va_list args;
+    csound->MessageS(csound, CSOUNDMSG_ERROR,
+                             Str("PVOCEX_LoadFile(): error:\n    "));
+    va_start(args, fmt);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, fmt, args);
+    va_end(args);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+    return -1;
+}
 
-    pvx_id = pvoc_openfile(csound,fname,&pvdata,&fmt);
-    if (pvx_id < 0) {
-      sprintf(csound->errmsg, Str("unable to open pvocex file %s: %s\n"),
-                              fname, pvoc_errorstr(csound));
+int PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p)
+{
+    PVOCDATA      pvdata;
+    WAVEFORMATEX  fmt;
+    PVOCEX_MEMFILE  *pp;
+    MEMFIL        *mfil = NULL;
+    int           i, j, rc = 0, pvx_id = -1, hdr_size;
+    long          mem_wanted = 0;
+    long          totalframes, framelen;
+    float         *pFrame;
+    float         *memblock = NULL;
+
+    hdr_size = ((int) sizeof(PVOCEX_MEMFILE) + 15) & (~15);
+    /* is this file already loaded ? */
+    if (find_memfile(csound, fname, &mfil)) {
+      memcpy(p, ((char*) mfil->beginp - hdr_size), sizeof(PVOCEX_MEMFILE));
       return 0;
     }
-    /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
-    pvx_fftsize = 2 * (pvdata.nAnalysisBins-1);
-    framelen = 2 * pvdata.nAnalysisBins;
-    /* no need to impose Csound limit on fftsize here */
-    pvx_winsize = pvdata.dwWinlen;
 
+    memset(p, 0, sizeof(PVOCEX_MEMFILE));
+    memset(&pvdata, 0, sizeof(PVOCDATA));
+    memset(&fmt, 0, sizeof(WAVEFORMATEX));
+    pvx_id = csound->PVOC_OpenFile(csound, fname, &pvdata, &fmt);
+    if (pvx_id < 0) {
+      return pvx_err_msg(csound, Str("unable to open pvocex file %s: %s"),
+                                 fname, csound->PVOC_ErrorString(csound));
+    }
+    framelen = 2 * pvdata.nAnalysisBins;
     /* also, accept only 32bit floats for now */
     if (pvdata.wWordFormat != PVOC_IEEE_FLOAT) {
-      sprintf(csound->errmsg,
-              Str("pvoc-ex file %s is not 32bit floats\n"), fname);
-      return 0;
+      return pvx_err_msg(csound, Str("pvoc-ex file %s is not 32bit floats"),
+                                 fname);
     }
-
-    /* FOR NOW, accept only PVOC_AMP_FREQ : later, we can convert */
+    /* FOR NOW, accept only PVOC_AMP_FREQ: later, we can convert */
     /* NB Csound knows no other: frameFormat is not read anywhere! */
     if (pvdata.wAnalFormat != PVOC_AMP_FREQ) {
-      sprintf(csound->errmsg,
-              Str("pvoc-ex file %s not in AMP_FREQ format\n"), fname);
-      return 0;
+      return pvx_err_msg(csound, Str("pvoc-ex file %s not in AMP_FREQ format"),
+                                 fname);
     }
-    p->format = PVS_AMP_FREQ;
     /* ignore the window spec until we can use it! */
-    totalframes = pvoc_framecount(csound,pvx_id);
-    if (totalframes == 0) {
-      sprintf(csound->errmsg,
-              Str("pvoc-ex file %s is empty!\n"), fname);
-      return 0;
+    totalframes = csound->PVOC_FrameCount(csound, pvx_id);
+    if (totalframes <= 0) {
+      return pvx_err_msg(csound, Str("pvoc-ex file %s is empty!"), fname);
     }
-
-    if (!find_memfile(csound, fname, &mfil)) {
-      mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
-      /* try for the big block first! */
-
-      memblock = (float *) mmalloc(csound, mem_wanted);
-
-      pFrame = memblock;
-      /* despite using pvocex infile, and pvocex-style resynth, we ~still~
-         have to rescale to Csound's internal range! This is because all pvocex
-         calculations assume +-1 floatsam i/o.
-         It seems preferable to do this here, rather than force the user
-         to do so. Csound might change one day...*/
-
-      for (i=0;i < totalframes;i++) {
-        rc = pvoc_getframes(csound,pvx_id,pFrame,1);
-        if (rc != 1)
-          break;        /* read error, but may still have something to use */
-        /* scale amps to Csound range, to fit fsig */
-        for (j=0;j < framelen; j+=2) {
-          pFrame[j] *= (float) csound->e0dbfs;
-        }
-#ifdef _DEBUG
-        assert(pFrame[1] < 200.f);
-#endif
-        pFrame += framelen;
+    mem_wanted = totalframes * 2 * pvdata.nAnalysisBins * sizeof(float);
+    /* try for the big block first! */
+    pp = (PVOCEX_MEMFILE*) mmalloc(csound, (size_t) hdr_size
+                                           + (size_t) mem_wanted);
+    pp->mfp = (MEMFIL*) mmalloc(csound, sizeof(MEMFIL));
+    strcpy(pp->mfp->filename, fname);
+    pp->mfp->beginp = (void*) ((char*) pp + (long) hdr_size);
+    pp->mfp->endp = (void*) ((char*) pp->mfp->beginp + (long) mem_wanted);
+    pp->mfp->length = (long) mem_wanted;
+    pp->mfp->next = (MEMFIL*) NULL;
+    memblock = (float*) ((void*) pp->mfp->beginp);
+    pp->format = PVS_AMP_FREQ;
+    pFrame = memblock;
+    /* despite using pvocex infile, and pvocex-style resynth, we ~still~
+       have to rescale to Csound's internal range! This is because all pvocex
+       calculations assume +-1 floatsam i/o.
+       It seems preferable to do this here, rather than force the user
+       to do so. Csound might change one day...
+     */
+    for (i = 0; i < totalframes; i++) {
+      rc = csound->PVOC_GetFrames(csound, pvx_id, pFrame, 1);
+      if (rc != 1)
+        break;          /* read error, but may still have something to use */
+      /* scale amps to Csound range, to fit fsig */
+      for (j = 0; j < framelen; j += 2) {
+        pFrame[j] *= (float) csound->e0dbfs;
       }
-      if (rc <0) {
-        sprintf(csound->errmsg, Str("error reading pvoc-ex file %s\n"), fname);
-        mfree(csound, memblock);
-        return 0;
-      }
-      if (i < totalframes) {
-        sprintf(csound->errmsg,
-                Str("error reading pvoc-ex file %s after %d frames\n"),
-                fname, i);
-        mfree(csound, memblock);
-        return 0;
-      }
+      pFrame += framelen;
     }
-    else
-      memblock = (float *) mfil->beginp;
-
-    pvoc_closefile(csound, pvx_id);
-
-    if ((p->arate = (MYFLT) fmt.nSamplesPerSec) != csound->esr &&
-        (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
-      csound->Message(csound,
-                      Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-              fname, p->arate, csound->esr);
+    csound->PVOC_CloseFile(csound, pvx_id);
+    if (rc < 0) {
+      mfree(csound, pp->mfp);
+      mfree(csound, pp);
+      return pvx_err_msg(csound, Str("error reading pvoc-ex file %s"), fname);
     }
-    p->fftsize  = pvx_fftsize;
-    p->winsize  = pvx_winsize;
-    p->membase  = memblock;
-    p->overlap  = pvdata.dwOverlap;
-    p->chans    = fmt.nChannels;
-    p->nframes = (unsigned) totalframes;
-    p->arate    = csound->esr / (MYFLT) p->overlap;
-    wtype = (pv_wtype) pvdata.wWindowType;
-    switch (wtype) {
-    case PVOC_DEFAULT:
-    case PVOC_HAMMING:
-      p->wintype = PVS_WIN_HAMMING;
-      break;
-    case PVOC_HANN:
-      p->wintype = PVS_WIN_HANN;
-      break;
-    default:
-      /* deal with all other possibilities later! */
-      p->wintype = PVS_WIN_HAMMING;
-      break;
+    if (i < totalframes) {
+      mfree(csound, pp->mfp);
+      mfree(csound, pp);
+      return pvx_err_msg(csound, Str("error reading pvoc-ex file %s "
+                                     "after %d frames"), fname, i);
+    }
+    pp->arate = (MYFLT) fmt.nSamplesPerSec;
+    if (pp->arate != csound->esr) {             /* & chk the data */
+      csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
+                              fname, pp->arate, csound->esr);
+    }
+    pp->fftsize = 2 * (pvdata.nAnalysisBins - 1);
+    pp->overlap = pvdata.dwOverlap;
+    pp->winsize = pvdata.dwWinlen;
+    pp->chans   = fmt.nChannels;
+    pp->nframes = (unsigned long) totalframes;
+    pp->arate   = csound->esr / (MYFLT) pp->overlap;
+    switch ((pv_wtype) pvdata.wWindowType) {
+      case PVOC_DEFAULT:
+      case PVOC_HAMMING:
+        pp->wintype = PVS_WIN_HAMMING;
+        break;
+      case PVOC_HANN:
+        pp->wintype = PVS_WIN_HANN;
+        break;
+      case PVOC_KAISER:
+        pp->wintype = PVS_WIN_KAISER;
+        break;
+      default:
+        /* deal with all other possibilities later! */
+        pp->wintype = PVS_WIN_HAMMING;
+        break;
     }
 
-    /* Need to assign an MEMFIL to p->mfp */
-    if (mfil==NULL) {
-      mfil = (MEMFIL *)  mmalloc(csound, sizeof(MEMFIL));
-      /* just hope the filename is short enough...! */
-      mfil->next = NULL;
-      mfil->filename[0] = '\0';
-      strcpy(mfil->filename,fname);
-      mfil->beginp = (char *) memblock;
-      mfil->endp = mfil->beginp + mem_wanted;
-      mfil->length = mem_wanted;
-      /*from memfiles.c */
-      csound->Message(csound,
-                      Str("file %s (%ld bytes) loaded into memory\n"),
-                      fname,mem_wanted);
-      add_memfil(csound, mfil);
-    }
+    /* Need to assign an MEMFIL to pp->mfp */
+    add_memfil(csound, pp->mfp);
+    csound->Message(csound, Str("file %s (%ld bytes) loaded into memory\n"),
+                            fname, (long) mem_wanted);
 
-    *mfp = mfil;
-
-    return 1;
+    memcpy(p, pp, sizeof(PVOCEX_MEMFILE));
+    return 0;
 }
 
