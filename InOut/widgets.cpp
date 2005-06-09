@@ -1485,11 +1485,17 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
   char    s[MAXNAME], *s2;
   string  filename;
   // put here some warning message!!
-#ifdef NO_FLTK_THREADS
+#ifdef WIN32
+  int id = MessageBox(NULL, Str("Saving could overwrite the old file.\n"
+                                "Are you sure to save ?"), "Warning",
+                      MB_SYSTEMMODAL | MB_ICONWARNING | MB_OKCANCEL);
+  if (id != IDOK)
+    return;
+#elif !defined(NO_FLTK_THREADS)
   int     n;
   lock(csound);
-  n = fl_ask("Saving could overwrite the old file\n"
-             "Are you sure you want to save?");
+  n = fl_ask(Str("Saving could overwrite the old file.\n"
+                 "Are you sure you want to save ?"));
   unlock(csound);
   if (!n)
     return OK;
