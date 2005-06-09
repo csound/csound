@@ -535,6 +535,18 @@ extern "C" {
     float           data[1];        /* interleaved sample data      */
   } SNDMEMFILE;
 
+  typedef struct pvx_memfile_ {
+    int           format;
+    int           fftsize;
+    int           overlap;
+    int           winsize;
+    int           wintype;
+    int           chans;
+    unsigned long nframes;
+    MEMFIL        *mfp;
+    MYFLT         arate;
+  } PVOCEX_MEMFILE;
+
   typedef struct ENVIRON_
   {
     int (*GetVersion)(void);
