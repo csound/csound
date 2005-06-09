@@ -113,6 +113,7 @@ int     sreadin(void*, void*, MYFLT*, int, void*);
 
 PUBLIC  SNDMEMFILE  *csoundLoadSoundFile(void *csound_,
                                          const char *name, SF_INFO *sfinfo);
+int     PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p);
 
 #ifdef __cplusplus
 }
