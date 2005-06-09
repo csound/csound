@@ -28,16 +28,10 @@
 /* 20apr90 dpwe                                                   */
 /******************************************************************/
 
-#include "sysdep.h"
+#include "csoundCore.h"
 #include "dpwelib.h"
 #include "dsputil.h"
 #include <math.h>
-#ifdef MSVC                   /* Thanks to Richard Dobson */
-# define hypot _hypot
-#endif
-#if defined(__WATCOMC__) || defined(__ncc)
-extern double hypot(double,double);
-#endif
 
 /* Do we do the whole buffer, or just indep vals? */
 #define someof(s)       (s)
@@ -52,100 +46,6 @@ void CopySamps(MYFLT *sce, MYFLT *dst, long size) /* just move samples */
     ++size;
     while (--size)
       *dst++ = *sce++;
-}
-
-/* Allocate a cleared buffer */
-MYFLT *MakeBuf(long size)
-{
-    MYFLT *res,*p;
-    long  i;
-
-    res = (MYFLT *) malloc((long)size * sizeof(MYFLT));
-    p = res;
-    for (i=0; i<size; ++i)
-      *p++ = FL(0.0);
-    return(res);
-}
-
-/* Write window coefs into buffer, don't malloc */
-void FillHalfWin(MYFLT *wBuf, long size, MYFLT max, int hannq)
-    /* 1 => hanning window else hamming */
-{
-    MYFLT       a,b;
-    long        i;
-
-    if (hannq) {
-      a = FL(0.50);
-      b = FL(0.50);
-    }
-    else {
-      a = FL(0.54);
-      b = FL(0.46);
-    }
-
-    if (wBuf!= NULL) {        /* NB: size/2 + 1 long - just indep terms */
-      size /= 2;              /* to fix scaling */
-      for (i=0; i<=size;++i)
-        wBuf[i] = max * (a-b*(MYFLT)cos(PI*(MYFLT)i/(MYFLT)size ) );
-    }
-    return;
-}
-
-/* Make 1st half of hamming window for those as desire */
-MYFLT *MakeHalfWin(long size, MYFLT max, int hannq)
-                /* Effective window size (altho only s/2+1 alloc'd */
-                /* 1 => hanning window else hamming */
-{
-    MYFLT       *wBuf;
-
-    wBuf = (MYFLT *) malloc((long)(size/2+1) * sizeof(MYFLT));
-                                /* NB: size/2 + 1 long - just indep terms */
-    FillHalfWin(wBuf,size,max,hannq);
-    return(wBuf);
-}
-
-void UnpackReals(MYFLT *dst, long size) /* expand out size to re,0,re,0 etc */
-{
-    MYFLT       *d2;
-
-    d2 = dst + 2*size - 1;      /* start at ends .. */
-    dst += size - 1;
-    ++size;
-    while (--size) {            /* .. & copy backwards */
-      *d2-- = FL(0.0);
-      *d2-- = *dst--;
-    }
-}
-
-void PackReals(MYFLT *buffer, long size) /* pack re,im,re,im into re,re */
-{
-    MYFLT       *b2 = buffer;
-
-    ++size;
-    while (--size) {
-      *b2++ = *buffer++;
-      ++buffer;
-    }
-}
-
-/* Convert Real & Imaginary spectra into Amplitude & Phase */
-void Rect2Polar(MYFLT *buffer, long size)
-{
-    long        i;
-    MYFLT       *real,*imag;
-    double      re,im;
-    MYFLT       mag;
-
-    real = buffer;      imag = buffer+1;
-    for (i = 0; i< someof(size); ++i) {
-      re = (double)real[2L*i];
-      im = (double)imag[2L*i];
-      real[2L*i] = mag = (MYFLT)hypot(re,im);
-      if (mag == FL(0.0))
-        imag[2L*i] = FL(0.0);
-      else
-        imag[2L*i] = (MYFLT)atan2(im,re);
-    }
 }
 
 void Polar2Rect(MYFLT *buffer, long size) /* reverse above */
@@ -164,61 +64,9 @@ void Polar2Rect(MYFLT *buffer, long size) /* reverse above */
     }
 }
 
-void Lin2DB(MYFLT *buffer, long size)   /* packed buffer i.e. reals, not complex */
-{
-    while (size--) {
-      *buffer = /* FL(20.0)*log10 */ FL(8.68589)*(MYFLT)log(*buffer);
-      buffer++;
-    }
-}
-
-void DB2Lin(MYFLT *buffer, long size)   /* packed buffer i.e. reals, not complex */
-{
-    while (size--) {
-      *buffer = (MYFLT)exp( /* 1/20.0*log10 */ 0.1151292*(*buffer) );
-      buffer++;
-    }
-}
-
-MYFLT maskPhs(MYFLT phs)        /* do it inline instead! */
-{
-    while (phs > PI_F) {
-
-    }
-    while (phs < -PI_F) {
-      phs += FL(2.0)*PI_F;
-    }
-    return(phs);
-}
-
-#define MmaskPhs(phs)   /* macro version of phase masking */ \
-    while (phs > PI_F)    \
-        phs -= FL(2.0)*PI_F; \
-    while (phs < -PI_F)   \
-        phs += FL(2.0)*PI_F; \
-
 #define MMmaskPhs(p,q,s) /* p is pha, q is as int, s is 1/PI */ \
     q = (int)(s*p);     \
     p -= PI_F*(MYFLT)((int)((q+((q>=0)?(q&1):-(q&1) )))); \
-
-void UnwrapPhase(MYFLT *buf, long size, MYFLT *oldPh)
-{
-    long    i;
-    MYFLT   *pha;
-    MYFLT   p, oneOnPi;
-    int     z;
-
-    pha = buf + 1;
-    oneOnPi = FL(1.0)/PI_F;
-    for (i=0; i<someof(size); ++i) {
-      p = pha[2L*i];
-      p -= oldPh[i];              /* find change since last frame */
-      MMmaskPhs(p,z,oneOnPi);
-      /* MmaskPhs(p); */
-      oldPh[i] = pha[2L*i];       /* hold actual phase for next diffce */
-      pha[2L*i] = p;              /* .. but write back phase change */
-    }
-}
 
 void RewrapPhase(MYFLT *buf, long size, MYFLT *oldPh)
 {
@@ -237,38 +85,6 @@ void RewrapPhase(MYFLT *buf, long size, MYFLT *oldPh)
       /* MmaskPhs(p);     */
       oldPh[i] = pha[2L*i] = p;
     }
-}
-
-/* Convert a batch of phase differences to actual target freqs */
-void PhaseToFrq(MYFLT *buf, long size, MYFLT incr, MYFLT sampRate)
-{
-    long    i;
-    MYFLT   *pha,p,q,oneOnPi;
-    int     z;
-    MYFLT   srOn2pi, binMidFrq, frqPerBin;
-    MYFLT   expectedDphas,eDphIncr;
-
-    pha = buf + 1;
-    srOn2pi = sampRate/(FL(2.0)*PI_F*incr);
-    frqPerBin = sampRate/((MYFLT)actual(size));
-    binMidFrq = FL(0.0);
-    /* Of course, you get some phase shift with spot-on frq coz time shift */
-    expectedDphas = FL(0.0);
-    eDphIncr = FL(2.0)*PI_F*incr/((MYFLT)actual(size));
-    oneOnPi = FL(1.0)/PI_F;
-    for (i=0; i<someof(size); ++i) {
-      q = p = pha[2L*i]-expectedDphas;
-      MMmaskPhs(p,z,oneOnPi);
-/*      MmaskPhs(q);    */
-      pha[2L*i] = p;
-      pha[2L*i] *= srOn2pi;
-      pha[2L*i] += binMidFrq;
-
-      expectedDphas += eDphIncr;
-      expectedDphas -= TWOPI_F*(MYFLT)((int)(expectedDphas*oneOnPi));
-      binMidFrq += frqPerBin;
-    }
-    /* Doesn't deal with 'phases' of DC & fs/2 any different */
 }
 
 /* Undo a pile of frequencies back into phase differences */
@@ -306,67 +122,38 @@ void FrqToPhase(MYFLT *buf, long size, MYFLT incr, MYFLT sampRate, MYFLT fixUp)
     /* Does not deal with 'phases' of DC & fs/2 any different */
 }
 
-/* Unpack stored mag/pha data into buffer */
+/* Unpack stored mag/frq data into buffer */
 void FetchIn(
-    MYFLT   *inp,       /* pointer to input data */
-    MYFLT   *buf,       /* where to put our nice mag/pha pairs */
+    float   *inp,       /* pointer to input data */
+    MYFLT   *buf,       /* where to put our nice mag/frq pairs */
     long    fsize,      /* frame size we're working with */
     MYFLT   pos)        /* fractional frame we want */
 {
     long    j;
-    MYFLT   *frm0,*frm1;
+    float   *frm0, *frm1;
     long    base;
     MYFLT   frac;
 
     /***** WITHOUT INFO ON WHERE LAST FRAME IS, MAY 'INTERP' BEYOND IT ****/
-    base = (long)pos;               /* index of basis frame of interpolation */
-    frac = ((MYFLT)(pos - (MYFLT)base));
+    base = (long) pos;          /* index of basis frame of interpolation */
+    frac = (MYFLT) pos - (MYFLT) base;
     /* & how close to get to next */
-    frm0 = inp + ((long)fsize+2L)*base;
-    frm1 = frm0 + ((long)fsize+2L);         /* addresses of both frames */
-    if (frac != FL(0.0)) {         /* must have 2 cases to avoid poss seg vlns */
-                                   /* and failed computes, else may interp   */
-                                   /* bd valid data */
-      for (j=0; j<(fsize/2L + 1L); ++j) {  /* mag/pha for just over 1/2 */
-                                           /* Interpolate both mag and phase */
-        buf[2L*j   ] = frm0[2L*j   ] + frac*(frm1[2L*j   ]-frm0[2L*j   ]);
-        buf[2L*j+1L] = frm0[2L*j+1L] + frac*(frm1[2L*j+1L]-frm0[2L*j+1L]);
+    frm0 = inp  + ((long) fsize + 2L) * base;
+    frm1 = frm0 + ((long) fsize + 2L);          /* addresses of both frames */
+    if (frac != FL(0.0)) {      /* must have 2 cases to avoid poss seg vlns */
+                                /* and failed computes, else may interp     */
+                                        /* bd valid data                    */
+      for (j = 0; j <= fsize; j += 2) { /* mag/frq for just over 1/2        */
+                                        /* Interpolate both mag and freq    */
+        buf[j     ] = frm0[j     ] + frac * (frm1[j     ] - frm0[j     ]);
+        buf[j + 1L] = frm0[j + 1L] + frac * (frm1[j + 1L] - frm0[j + 1L]);
       }
     }
-    else {       /* frac is 0.0 i.e. just copy the source frame */
-      for (j=0; j<(fsize/2L + 1L); ++j) { /* no need to interpolate */
-        buf[2L*j  ] = frm0[2L*j];
-        buf[2L*j+1] = frm0[2L*j+1L];
+    else {                  /* frac is 0.0 i.e. just copy the source frame */
+      for (j = 0; j <= fsize; j += 2) { /* no need to interpolate */
+        buf[j     ] = frm0[j     ];
+        buf[j + 1L] = frm0[j + 1L];
       }
-    }
-}
-
-/* Fill out the dependent 2nd half of iFFT data; scale down & opt conjgt */
-void FillFFTnConj(
-    MYFLT   *buf,
-    long     size,              /* full length of FFT ie 2^n */
-    MYFLT   scale,              /* can apply a scale factor.. */
-    int     conj)               /* flag to conjugate at same time */
-{
-    MYFLT   miscale;            /* scaling for poss. conj part */
-    MYFLT   *mag,*pha;
-    long    j;
-    long    hasiz = 1L + size/2L; /* the indep values */
-
-    if (scale == FL(0.0))
-      scale = FL(1.0);
-    if (conj)
-      miscale = -scale;
-    else
-      miscale = scale;
-    mag = buf;      pha = buf+1;
-    for (j=0; j<hasiz; ++j) {       /* i.e. mag/pha for just over 1/2 */
-      mag[2L*j] *= scale;
-      pha[2L*j] *= miscale;
-    }
-    for (j=hasiz; j<size; ++j) {        /* .. the rest is mirrored .. */
-      mag[2L*j] = mag[2L*(size-j)];     /* For the symmetry extension, */
-      pha[2L*j] = -pha[2L*(size-j)];    /*  conjugate of 1st 1/2 rgdls */
     }
 }
 
@@ -407,38 +194,6 @@ void addToCircBuf(
     return;
 }
 
-/* Write from a circular buffer into a linear output buffer without
-   clearing data
-   UPDATES SOURCE & DESTINATION POINTERS TO REFLECT NEW POSITIONS */
-void writeFromCircBuf(
-    MYFLT   **sce,
-    MYFLT   **dst,              /* Circular source and linear destination */
-    MYFLT   *sceStart,
-    MYFLT   *sceEnd,            /* Address of start & end of source buffer */
-    long    numToDo)            /* How many points to write (<= circBufSize) */
-{
-    MYFLT   *srcindex = *sce;
-    MYFLT   *dstindex = *dst;
-    long    breakPoint;     /* how many points to add before having to wrap */
-
-    breakPoint = sceEnd - srcindex + 1;
-    if (numToDo >= breakPoint) { /*  we will do 2 in 1st loop, rest in 2nd. */
-      numToDo -= breakPoint;
-      for (; breakPoint > 0; --breakPoint) {
-/*                printf("Input audio l1 = %f\n",*srcindex);  */
-        *dstindex++ = *srcindex++;
-      }
-      srcindex = sceStart;
-    }
-    for (; numToDo > 0; --numToDo) {
-/*        printf("Input audio l2 = %f\n",*srcindex);  */
-      *dstindex++ = *srcindex++;
-    }
-    *sce = srcindex;
-    *dst = dstindex;
-    return;
-}
-
 /* Write from a circular buffer into a linear output buffer CLEARING DATA */
 void writeClrFromCircBuf(
     MYFLT   *sce, MYFLT *dst, /* Circular source and linear destination */
@@ -468,25 +223,6 @@ void writeClrFromCircBuf(
       }
     }
     return;
-}
-
-/* Add source array to dest array, results in dest */
-void FixAndAdd(MYFLT *samplSce, short *shortDest, long size)
-{
-    long i;
-    for (i = 0; i < size; i++)
-      shortDest[i] += (short)samplSce[i];
-}
-
-/* Rules to convert between samples and frames, given frSiz & frIncr */
-long NumFrames(long dataSmps, long frSiz, long frInc)
-{
-    return( 1L + (dataSmps - (long)frSiz)/(long)frInc );
-}
-
-long NumSampls(long frames, long frSiz, long frIncr)
-{
-    return(((long)frSiz)+((long)frIncr)*(frames-1L));
 }
 
 /********************************************************************/
@@ -565,22 +301,6 @@ void UDSample(
     }
 }
 
-void FloatAndCopy(short *sce, MYFLT *dst, long size)
-{
-    while (size--)
-      *dst++ = (MYFLT)*sce++;
-}
-
-/* Copy converted frame to the output data */
-void    WriteOut(MYFLT *sce, MYFLT **pdst, long fsize)
-                /* the frame size - but we may not copy them all! */
-{
-    int     j;
-
-    for (j=0; j<(2L*(fsize/2L + 1L)); ++j ) /* i.e. mg/ph for just over 1/2 */
-      *(*pdst)++ = sce[j];                /* pointer updated for next time */
-}
-
 /*--------------------------------------------------------------------*/
 /*---------------------------- sinc module ---------------------------*/
 /*--------------------------------------------------------------------*/
@@ -599,7 +319,6 @@ void MakeSinc(void)             /* initialise our static sinc table */
     if (sncTab == NULL)
         sncTab = (MYFLT *)malloc((long)(stLen+1) * sizeof(MYFLT));
     /* (stLen+1 to include final zero; better for interpolation etc) */
-/*    printf("Make sinc : pts = %d, table = %lx \n",stLen,sncTab);   */
     sncTab[0] =  FL(1.0);
     for (i=1; i<=stLen; ++i) { /* build table of sin x / x */
       theta += dtheta;
@@ -609,43 +328,23 @@ void MakeSinc(void)             /* initialise our static sinc table */
     }
 }
 
-#ifdef never
-void DestroySinc(void)  /* relase the lookup table */
-{
-    free(sncTab);
-}
-#endif
-
-MYFLT SincIntp(MYFLT index)
-/* Calculate the sinc of the 'index' value by interpolating the table */
-/* <index> is scaled s.t. 1.0 is first zero crossing */
-/* ! No checks ! */
-{
-    int     nrst;
-    MYFLT   frac,scaledUp;
-
-    scaledUp = index * SPTS;
-    nrst = (int)scaledUp;
-    frac = scaledUp - (MYFLT)nrst;
-    return(sncTab[nrst] + frac*(sncTab[nrst+1]-sncTab[nrst]) );
-}
-
 /****************************************/
 /** prewarp.c module                    */
 /****************************************/
 
 /* spectral envelope detection: this is a very crude peak picking algorithm
-        which is used to detect and pre-warp the spectral envelope so that
-        pitch transposition can be performed without altering timbre.
-        The basic idea is to disallow large negative slopes between
-        successive values of magnitude vs. frequency. */
+   which is used to detect and pre-warp the spectral envelope so that
+   pitch transposition can be performed without altering timbre.
+   The basic idea is to disallow large negative slopes between
+   successive values of magnitude vs. frequency.
+*/
 
-static  MYFLT   *env = (MYFLT *)NULL;   /* Scratch buffer to hold 'envelope' */
+static  MYFLT   *env = (MYFLT*) NULL;   /* Scratch buffer to hold 'envelope' */
 
 void PreWarpSpec(
     MYFLT   *spec,      /* spectrum as magnitude,phase */
     long     size,      /* full frame size, tho' we only use n/2+1 */
-    MYFLT warpFactor) /* How much pitches are being multd by */
+    MYFLT warpFactor)   /* How much pitches are being multd by */
 {
     MYFLT   eps,slope;
     MYFLT   mag, lastmag, nextmag, pkOld;
@@ -705,8 +404,6 @@ void PreWarpSpec(
         spec[2*i] *= env[j]/env[i];
       else
         spec[2*i] = FL(0.0);
-/*      printf("I<%d>J<%d>S<%.0f>E<%.0f>F<%.0f>T<%0.f>",
-        i, j, mag, env[i], env[j], spec[2*i]);  */
     }
 }
 
