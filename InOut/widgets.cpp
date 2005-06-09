@@ -1490,9 +1490,9 @@ extern "C" int save_snap(ENVIRON *csound, FLSAVESNAPS* p)
                                 "Are you sure to save ?"), "Warning",
                       MB_SYSTEMMODAL | MB_ICONWARNING | MB_OKCANCEL);
   if (id != IDOK)
-    return;
-#elif !defined(NO_FLTK_THREADS)
-  int     n;
+    return OK;
+#elif defined(NO_FLTK_THREADS)
+  int   n;
   lock(csound);
   n = fl_ask(Str("Saving could overwrite the old file.\n"
                  "Are you sure you want to save ?"));
