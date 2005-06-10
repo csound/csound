@@ -60,7 +60,7 @@ typedef struct {
 
     MYFLT   frPktim, frPrtim, scale, asr, lastPex;
     MYFLT   PvMaxAmp;
-    float   *frPtr;
+    float   *frPtr, *pvcopy;
     FUNC    *AmpGateFunc;
     AUXCH   auxch;
     MYFLT   *lastPhase; /* [PVDATASIZE] Keep track of cum. phase */
@@ -68,7 +68,6 @@ typedef struct {
     MYFLT   *dsBuf;     /* [PVFFTSIZE]  Output of downsampling may be 2x */
     MYFLT   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
     MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
-    MYFLT   *pvcopy;
 } PVOC;
 
 #endif
