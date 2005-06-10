@@ -1,3 +1,6 @@
+2005-06-09     Victor Lazzarini <victor.lazzarini@nuim.ie>
+	* InOut/rtcoreaudio.c : further improvements to coreaudio RT IO
+	
 2005-06-03	Istvan Varga	<istvan@csounds.com>
 	* Engine/oload.c:
 	* H/csoundCore.h:
