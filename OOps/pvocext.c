@@ -38,8 +38,8 @@
 /* Spectral Extraction.  Based on ideas from Tom Erbe's SoundHack  */
 
 void SpectralExtract(
-    MYFLT   *inp,       /* pointer to input data */
-    MYFLT   *pvcopy,
+    float   *inp,       /* pointer to input data */
+    float   *pvcopy,
     long    fsize,      /* frame size we're working with */
     long    MaxFrame,
     int     mode,
@@ -47,7 +47,7 @@ void SpectralExtract(
     )
 {
     long    i, j, k;
-    MYFLT   *frm0, *frm1;
+    float   *frm0, *frm1;
     long    ampindex, freqindex, ampfrmjump;
     MYFLT   freqTemp, freqframes[10], freqdiff=FL(0.0), ampscale;
     long            framecurb;
@@ -96,13 +96,13 @@ void SpectralExtract(
 }
 
 MYFLT PvocMaxAmp(
-    MYFLT   *inp,       /* pointer to input data */
+    float   *inp,       /* pointer to input data */
     long    fsize,      /* frame size we're working with */
     long    MaxFrame
     )
 {
     long    j, k;
-    MYFLT   *frm0, *frmx;
+    float   *frm0, *frmx;
     long    ampindex;
     MYFLT   MaxAmpInData = FL(0.0);
 
@@ -133,7 +133,7 @@ void PvAmpGate(
     MYFLT   *buf,       /* where to get our mag/pha pairs */
     long    fsize,      /* frame size we're working with */
     FUNC    *ampfunc,
-    MYFLT    MaxAmpInData
+    MYFLT   MaxAmpInData
     )
 {
     long    j;
