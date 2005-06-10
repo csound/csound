@@ -55,14 +55,17 @@ int pvset(ENVIRON *csound, PVOC *p)
     if (pvx_loadfile(csound, pvfilnam, p) != OK)
       return NOTOK;
 
-    if (*p->imode == 1 || *p->imode == 2)
-      memsize = (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN +
-                       ((p->frSiz+2L) * (p->maxFr+2)));
-    else
-      memsize = (long)(PVDATASIZE + PVFFTSIZE*3 + PVWINLEN);
+    memsize = (long) (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN);
+    if (*p->imode == 1 || *p->imode == 2) {
+#ifndef USE_DOUBLE
+      memsize += (long) ((p->frSiz + 2L) * (p->maxFr + 2L));
+#else
+      memsize += (((long) ((p->frSiz + 2L) * (p->maxFr + 2L)) + 1L) / 2L);
+#endif
+    }
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
-      register MYFLT *fltp;
+      MYFLT *fltp;
       csound->AuxAlloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
@@ -72,10 +75,10 @@ int pvset(ENVIRON *csound, PVOC *p)
       p->window = fltp;
       if (*p->imode == 1 || *p->imode == 2) {
         fltp += PVWINLEN;
-        p->pvcopy = fltp;
+        p->pvcopy = (float*) ((void*) fltp);
       }
     }
-    p->mems=memsize;
+    p->mems = memsize;
     p->frPktim = ((MYFLT)csound->ksmps)/((MYFLT) p->frInc);
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr/((MYFLT) p->frInc);
@@ -88,7 +91,6 @@ int pvset(ENVIRON *csound, PVOC *p)
     p->lastPex = FL(1.0);     /* needs to know last pitchexp to update phase */
     /* Set up time window */
     for (i=0; i < pvdasiz(p); ++i) {  /* or maybe pvdasiz(p) */
-     /* p->window[i] = (0.54-0.46*cos(TWOPI*(MYFLT)i/(MYFLT)(pvfrsiz(p)))); */
       p->lastPhase[i] = FL(0.0);
     }
     if ((OPWLEN/2 + 1)>PVWINLEN ) {
@@ -108,7 +110,7 @@ int pvset(ENVIRON *csound, PVOC *p)
 
     if (*p->imode == 1 || *p->imode == 2) {
       SpectralExtract(p->frPtr, p->pvcopy, size, p->maxFr,
-                      (int)*p->imode, *p->ifreqlim);
+                      (int) *p->imode, *p->ifreqlim);
       p->frPtr = p->pvcopy;
     }
 
@@ -117,7 +119,8 @@ int pvset(ENVIRON *csound, PVOC *p)
     /* NB: HANNING */
     for (i=0; i< pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
-    MakeSinc( /* p->sncTab */ );        /* sinctab is same for all instances */
+    MakeSinc();                         /* sinctab is same for all instances */
+
     return OK;
 }
 
@@ -242,6 +245,7 @@ static int pvx_loadfile(ENVIRON *csound, const char *fname, PVOC *p)
     p->frSiz    = pp.fftsize;
     p->frPtr    = (float*) pp.data;
     p->baseFr   = 0;  /* point to first data frame */
+    /* highest possible frame index */
     p->maxFr    = pp.nframes - 1;
     p->frInc    = pp.overlap;
     p->chans    = pp.chans;
@@ -249,9 +253,7 @@ static int pvx_loadfile(ENVIRON *csound, const char *fname, PVOC *p)
     /* amplitude scale for PVOC */
     p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
     p->scale *= csound->GetInverseRealFFTScale(csound, pp.fftsize);
-    /* highest possible frame index */
-    /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-    p->frPrtim = csound->esr / ((MYFLT) pp.overlap);
+
     return OK;
 }
 

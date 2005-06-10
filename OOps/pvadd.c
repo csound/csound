@@ -31,17 +31,20 @@
 #include "cs.h"
 #include <math.h>
 #include "dsputil.h"
-#include "pvoc.h"
+#include "pvfileio.h"
+#include "pstream.h"
 #include "pvocext.h"
 #include "pvadd.h"
 #include "oload.h"
 
+static int pvx_loadfile(ENVIRON *csound, const char *fname, PVADD *p);
+
 /* This is used in pvadd instead of the Fetch() from dsputil.c */
-void FetchInForAdd(MYFLT *inp, MYFLT *buf, long fsize,
-                MYFLT  pos, int binoffset, int maxbin, int binincr)
+void FetchInForAdd(float *inp, MYFLT *buf, long fsize,
+                   MYFLT pos, int binoffset, int maxbin, int binincr)
 {
     long    j;
-    MYFLT   *frm0,*frm1;
+    float   *frm0, *frm1;
     long    base;
     MYFLT   frac;
 
@@ -69,100 +72,58 @@ int pvaddset(ENVIRON *csound, PVADD *p)
 {
     int      i, ibins;
     char     pvfilnam[MAXNAME];
-    PVSTRUCT *pvh;
-    int      frInc, chans, size;
-    MEMFIL   *mfp;
+    int      size;
     FUNC     *ftp = NULL, *AmpGateFunc = NULL;
     MYFLT    *oscphase;
     long     memsize;
 
-   if (*p->ifn > 0)
+   if (*p->ifn > FL(0.0))
      if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
        return NOTOK;
    p->ftp = ftp;
 
-   if (*p->igatefun > 0)
+   if (*p->igatefun > FL(0.0))
      if ((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)
        return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
-    if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, pvfilnam) != 0)
-      if ( (mfp = ldmemfile(csound, pvfilnam)) == NULL) {
-        sprintf(csound->errmsg, Str("PVADD cannot load %s"), pvfilnam);
-        goto pverr;
-      }
+    if (pvx_loadfile(csound, pvfilnam, p) != OK)
+      return NOTOK;
 
-    pvh = (PVSTRUCT *)mfp->beginp;
-    if (pvh->magic != PVMAGIC) {
-      sprintf(csound->errmsg, Str("%s not a PVOC file (magic %ld)"),
-                              pvfilnam, pvh->magic );
-      goto pverr;
+    memsize = (long) (MAXBINS + PVFFTSIZE + PVFFTSIZE);
+    if (*p->imode == 1 || *p->imode == 2) {
+#ifndef USE_DOUBLE
+      memsize += (long) ((p->frSiz + 2L) * (p->maxFr + 2L));
+#else
+      memsize += (((long) ((p->frSiz + 2L) * (p->maxFr + 2L)) + 1L) / 2L);
+#endif
     }
-
-    chans    = pvh->channels;
-    p->frSiz = pvh->frameSize;
-    p->frPtr = (MYFLT *) ((char *)pvh+pvh->headBsize);
-    p->maxFr = -1 + ( pvh->dataBsize / (chans * (p->frSiz+2) * sizeof(MYFLT)));
-
-    if (*p->imode == 1 || *p->imode == 2)
-      memsize = (long)(MAXBINS+PVFFTSIZE+PVFFTSIZE +
-                       ((p->frSiz+2L) * (p->maxFr+2)));
-    else
-      memsize = (long)(MAXBINS+PVFFTSIZE+PVFFTSIZE);
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
       MYFLT *fltp;
       csound->AuxAlloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
-      p->oscphase = fltp;      fltp += MAXBINS;
+      p->oscphase = fltp;
+      fltp += MAXBINS;
       p->buf = fltp;
       if (*p->imode == 1 || *p->imode == 2) {
         fltp += PVFFTSIZE * 2;
-        p->pvcopy = fltp;
+        p->pvcopy = (float*) ((void*) fltp);
       }
     }
-    p->mems=memsize;
-
-    if ((p->asr = pvh->samplingRate) != csound->esr &&
-        (csound->oparms->msglevel & WARNMSG)) { /* & chk the data */
-      csound->Message(csound, Str("WARNING: %s''s srate = %8.0f, orch's srate = %8.0f\n"),
-             pvfilnam, p->asr, csound->esr);
-    }
-    if (pvh->dataFormat != PVMYFLT) {
-      sprintf(csound->errmsg, Str("unsupported PV data format %ld in %s"),
-                              pvh->dataFormat, pvfilnam);
-      goto pverr;
-    }
-    if (p->frSiz > PVFRAMSIZE) {
-      sprintf(csound->errmsg, Str("PV frame %ld bigger than %ld in %s"),
-                              p->frSiz, (long) PVFRAMSIZE, pvfilnam);
-      goto pverr;
-    }
-    if (p->frSiz < 128) {
-      sprintf(csound->errmsg, Str("PV frame %ld seems too small in %s"),
-                              p->frSiz, pvfilnam);
-      goto pverr;
-    }
-    if (chans != 1) {
-      sprintf(csound->errmsg, Str("%d chans (not 1) in PVOC file %s"),
-                              chans, pvfilnam);
-      goto pverr;
-    }
-
-    frInc    = pvh->frameIncr;
-    p->frPrtim = csound->esr/((MYFLT)frInc);
-    /* factor by which to mulitply 'real' time index to get frame index */
+    p->mems = memsize;
 
     size = pvfrsiz(p);
     p->prFlg = 1;    /* true */
 
    if (*p->igatefun > 0)
-     p->PvMaxAmp = PvocMaxAmp(p->frPtr,size, p->maxFr);
+     p->PvMaxAmp = PvocMaxAmp(p->frPtr, size, p->maxFr);
 
    if (*p->imode == 1 || *p->imode == 2) {
-     SpectralExtract(p->frPtr, p->pvcopy, size, p->maxFr, (int)*p->imode, *p->ifreqlim);
-     p->frPtr = (MYFLT *)p->pvcopy;
+     SpectralExtract(p->frPtr, p->pvcopy, size, p->maxFr,
+                     (int) *p->imode, *p->ifreqlim);
+     p->frPtr = (float*) p->pvcopy;
    }
 
     oscphase = p->oscphase;
@@ -170,70 +131,61 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     for (i=0; i < MAXBINS; i++)
       *oscphase++ = FL(0.0);
 
-    ibins = (*p->ibins==0 ? size/2 : (int)*p->ibins);
-    p->maxbin = ibins + (int)*p->ibinoffset;
-    p->maxbin = (p->maxbin > size/2 ? size/2 : p->maxbin);
-    /*  csound->Message(csound, "maxbin=%d\n", p->maxbin); fflush(stdout); */
+    ibins = (*p->ibins <= FL(0.0) ? (size / 2) : (int) *p->ibins);
+    p->maxbin = ibins + (int) *p->ibinoffset;
+    p->maxbin = (p->maxbin > (size / 2) ? (size / 2) : p->maxbin);
 
     return OK;
-
- pverr:
-    return csound->InitError(csound, csound->errmsg);
 }
 
 int pvadd(ENVIRON *csound, PVADD *p)
 {
-    MYFLT  *ar, *ftab;
-    MYFLT frIndx;
-    int    size = pvfrsiz(p);
-    int i, binincr=(int)*p->ibinincr,  nsmps=csound->ksmps;
-    MYFLT amp, v1, fract, *oscphase;
-    long phase, incr;
-    FUNC *ftp;
-    long lobits;
-/*     int mode = (int)*p->imode; */
+    MYFLT   *ar, *ftab;
+    MYFLT   frIndx;
+    int     size = pvfrsiz(p);
+    int     i, binincr = (int) *p->ibinincr, nsmps = csound->ksmps;
+    MYFLT   amp, frq, v1, fract, *oscphase;
+    long    phase, incr;
+    FUNC    *ftp;
+    long    lobits;
 
-    if (p->auxch.auxp==NULL) {
+    if (p->auxch.auxp == NULL)
       return csound->PerfError(csound, Str("pvadd: not initialised"));
-    }
-
     ftp = p->ftp;
-    if (ftp==NULL) {
-      return csound->PerfError(csound, Str("pvadd: not initialised"));
-    }
-
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
+    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0)
       return csound->PerfError(csound, Str("PVADD timpnt < 0"));
-    }
+
     if (frIndx > p->maxFr) { /* not past last one */
-      frIndx = (MYFLT)p->maxFr;
+      frIndx = (MYFLT) p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: PVADD ktimpnt truncated to last frame"));
+        csound->Warning(csound, Str("PVADD ktimpnt truncated to last frame"));
       }
     }
-    FetchInForAdd(p->frPtr,p->buf, size, frIndx,
-                  (int)*p->ibinoffset, p->maxbin, binincr);
+    FetchInForAdd(p->frPtr, p->buf, size, frIndx,
+                  (int) *p->ibinoffset, p->maxbin, binincr);
 
     if (*p->igatefun > 0)
-      PvAmpGate(p->buf,p->maxbin*2, p->AmpGateFunc, p->PvMaxAmp);
+      PvAmpGate(p->buf, p->maxbin*2, p->AmpGateFunc, p->PvMaxAmp);
 
     ar = p->rslt;
-    for (i=0; i<nsmps; i++) *ar++ = FL(0.0);
+    for (i = 0; i < nsmps; i++)
+      *ar++ = FL(0.0);
     oscphase = p->oscphase;
-    for (i = (int)*p->ibinoffset; i < p->maxbin; i+=binincr) {
+    for (i = (int) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;
       nsmps = csound->ksmps;
       ar = p->rslt;
-      phase = (long)*oscphase;
-      if (p->buf[i*2+1] == 0 || p->buf[i*2+i] == p->asr*.5) {
+      phase = (long) *oscphase;
+      frq = p->buf[i * 2 + 1] * *p->kfmod;
+      if (p->buf[i * 2 + 1] == FL(0.0) || frq >= csound->esr * FL(0.5)) {
         incr = 0;               /* Hope then does not matter */
         amp = FL(0.0);
       }
       else {
-        incr = (long)(p->buf[i*2+1] * *p->kfmod * csound->sicvt);
-        amp = p->buf[i*2];
+        MYFLT tmp = frq * csound->sicvt;
+        incr = (long) MYFLT2LONG(tmp);
+        amp = p->buf[i * 2];
       }
       do {
         fract = PFRAC(phase);
@@ -244,9 +196,44 @@ int pvadd(ENVIRON *csound, PVADD *p)
         phase += incr;
         phase &= PHMASK;
       } while (--nsmps);
-      *oscphase = (MYFLT)phase;
+      *oscphase = (MYFLT) phase;
       oscphase++;
     }
+    return OK;
+}
+
+static int pvx_loadfile(ENVIRON *csound, const char *fname, PVADD *p)
+{
+    PVOCEX_MEMFILE  pp;
+
+    if (PVOCEX_LoadFile(csound, fname, &pp) != 0) {
+      csound->InitError(csound, Str("PVADD cannot load %s"), fname);
+      return NOTOK;
+    }
+    /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
+    if (pp.fftsize > PVFRAMSIZE) {
+      csound->InitError(csound, Str("pvoc-ex file %s: "
+                                    "FFT size %d too large for Csound"),
+                                fname, (int) pp.fftsize);
+      return NOTOK;
+    }
+    if (pp.fftsize < 128) {
+      csound->InitError(csound, Str("PV frame %ld seems too small in %s"),
+                                (long) pp.fftsize, fname);
+      return NOTOK;
+    }
+    /* have to reject m/c files for now, until opcodes upgraded */
+    if (pp.chans > 1) {
+      csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+      return NOTOK;
+    }
+    /* ignore the window spec until we can use it! */
+    p->frSiz    = pp.fftsize;
+    p->frPtr    = (float*) pp.data;
+    p->maxFr    = pp.nframes - 1;
+    p->asr      = pp.srate;
+    /* factor by which to mult expand phase diffs (ratio of samp spacings) */
+    p->frPrtim = csound->esr / (MYFLT) pp.overlap;
     return OK;
 }
 
