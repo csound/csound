@@ -235,6 +235,7 @@ const ENVIRON cenviron_ = {
         pvoc_framecount,
         pvoc_rewind,
         pvoc_errorstr,
+        PVOCEX_LoadFile,
         /* callback function pointers */
         playopen_dummy,
         rtplay_dummy,
@@ -320,7 +321,7 @@ const ENVIRON cenviron_ = {
 #if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mills_macintosh)
         {0},
 #else
-        {{{0}}},        /*  exitjmp_ of type jmp_buf */
+        {{{0}}},        /*  exitjmp of type jmp_buf */
 #endif
         NULL,           /*  frstbp              */
         0,              /*  sectcnt             */
@@ -381,7 +382,7 @@ const ENVIRON cenviron_ = {
         (MGLOBAL*) NULL, /* midiGlobals         */
         NULL,           /*  envVarDB            */
         (MEMFIL*) NULL, /*  memfiles            */
-        (MEMFIL*) NULL, /*  rwd_memfiles        */
+        NULL,           /*  pvx_memfiles        */
         0,              /*  FFT_max_size        */
         NULL,           /*  FFT_table_1         */
         NULL,           /*  FFT_table_2         */

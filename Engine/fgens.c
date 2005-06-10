@@ -2580,7 +2580,6 @@ void gen43(FUNC *ftp, ENVIRON *csound)
     int             nvals = ff->e.pcnt - 4;
     MYFLT           *channel;
     char            filename[MAXNAME];
-    MEMFIL          *mfp;
     PVOCEX_MEMFILE  pp;
     PVSTABLEDAT     p;
     unsigned long   framesize, blockalign, bins;
@@ -2608,7 +2607,6 @@ void gen43(FUNC *ftp, ENVIRON *csound)
     p.chans    = pp.chans;
     p.format   = pp.format;
     p.frames   = pp.nframes;
-    mfp        = pp.mfp;
 
     channel = &ff->e.p[6];
     if (*channel > p.chans) fterror(csound, ff, Str("illegal channel number"));
@@ -2617,13 +2615,13 @@ void gen43(FUNC *ftp, ENVIRON *csound)
     bins = framesize/2;
     frames = p.frames;
 
-    if (*channel > 0 ) {
-      startp = (float *) (mfp->beginp + (p.fftsize+2) * ((int)*channel-1));
+    if (*channel > 0) {
+      startp = (float *) pp.data + (p.fftsize + 2) * ((int) *channel - 1);
       blockalign = (p.fftsize+2) * p.chans; /* only read one channel */
     }
     else {
-      startp = (float *) mfp->beginp;
-      blockalign = (p.fftsize+2);  /* read all channels */
+      startp = (float *) pp.data;
+      blockalign = (p.fftsize+2);           /* read all channels */
     }
 
     framep = startp;

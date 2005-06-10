@@ -281,7 +281,7 @@ void CsoundVstFltk::idle()
 {
   // Process events for the FLTK GUI.
   // Only one instance of CsoundVstFltk may call Fl::wait().
-  if (oneWaiter == this) 
+  if (oneWaiter == this)
     {
       Fl::lock();
       Fl::wait(0);

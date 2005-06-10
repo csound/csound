@@ -306,7 +306,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
         p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
         return -1;
       }
-	  memset(dev->inbuffs[i], 0, buffbytes);
+          memset(dev->inbuffs[i], 0, buffbytes);
 
       if((dev->outbuffs[i] = (float *) malloc(buffbytes)) == NULL){
         free(dev->outbuffs);
@@ -318,7 +318,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
         p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
         return -1;
       }
-	  memset(dev->outbuffs[i], 0, buffbytes);
+          memset(dev->outbuffs[i], 0, buffbytes);
       dev->inused[i] = dev->outused[i] = 1;
     }
 
@@ -383,9 +383,9 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     int       n, i, chans, cur, icount, buffitems, buffnos, *inused, usecs;
     float **ibuffs;
     /* MYFLT norm; */
-	p = (ENVIRON*) csound;
+        p = (ENVIRON*) csound;
     dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
-	usecs = (int) (1000*dev->bufframes/p->esr);
+        usecs = (int) (1000*dev->bufframes/p->esr);
     n = bytes_ / sizeof(MYFLT);
     chans = dev->nchns;
     ibuffs = dev->inbuffs;
@@ -395,7 +395,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     buffnos = dev->buffnos;
     buffitems = dev->bufframes*chans;
     /* norm = p->e0dbfs;  */
- 
+
     for(i = 0; i < n; i++){
       ((MYFLT *)inbuf_)[i] = ibuffs[cur][icount];
       icount++;
@@ -404,7 +404,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
         cur++;
         cur %= buffnos;
         icount = 0;
-		while(!inused[cur]) usleep(usecs);
+                while(!inused[cur]) usleep(usecs);
       }
     } // for
     dev->incount = icount;
@@ -427,7 +427,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
 
     n = bytes_ / sizeof(MYFLT);
-	usecs = (int) (1000*dev->bufframes/p->esr);
+        usecs = (int) (1000*dev->bufframes/p->esr);
     chans = dev->nchns;
     obuffs = dev->outbuffs;
     cur = dev->outcurbuff;
@@ -436,7 +436,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     buffnos = dev->buffnos;
     buffitems = dev->bufframes*chans;
     /* norm = p->e0dbfs; */
-	
+
     for(i = 0; i < n; i++){
       obuffs[cur][ocount] = (float)((MYFLT *)outbuf_)[i];
       ocount++;
