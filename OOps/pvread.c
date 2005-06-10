@@ -114,16 +114,20 @@ static int pvocex_loadfile(ENVIRON *csound, const char *fname, PVREAD *p)
       csound->InitError(csound, Str("PVREAD cannot load %s"), fname);
       return NOTOK;
     }
+    /* have to reject m/c files for now, until opcodes upgraded */
+    if (pp.chans > 1) {
+      csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+      return NOTOK;
+    }
     /* ignore the window spec until we can use it! */
     p->frSiz    = pp.fftsize;
-    p->frPtr    = (float*) ((void*) pp.mfp->beginp);
+    p->frPtr    = (float*) pp.data;
     p->baseFr   = 0;  /* point to first data frame */
     p->maxFr    = pp.nframes - 1;
     p->asr      = pp.srate;
     /* highest possible frame index */
     /* factor by which to mult expand phase diffs (ratio of samp spacings) */
     p->frPrtim = csound->esr / ((MYFLT) pp.overlap);
-    p->mfp = pp.mfp;
     return OK;
 }
 

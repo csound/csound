@@ -101,8 +101,6 @@ int     insert_score_event(ENVIRON*, EVTBLK*, double, int);
 MEMFIL  *ldmemfile(void*, const char*);
 void    rlsmemfiles(void*);
 int     delete_memfile(void*, const char*);
-int     find_memfile(void*, const char*, MEMFIL**);
-void    add_memfil(void*, MEMFIL*);
 
 char    *mytmpnam(ENVIRON *, char *);
 

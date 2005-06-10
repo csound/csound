@@ -57,8 +57,19 @@
 
 /* may be no point supporting Kaiser in an opcode unless we can support the param too
  but we can have kaiser in a PVOCEX file.  */
-enum PVS_WINTYPE {PVS_WIN_HAMMING = 0,PVS_WIN_HANN,PVS_WIN_KAISER,PVS_WIN_CUSTOM};
-enum PVS_ANALFORMAT {PVS_AMP_FREQ = 0,PVS_AMP_PHASE,PVS_COMPLEX};
+
+enum PVS_WINTYPE {
+    PVS_WIN_HAMMING = 0,
+    PVS_WIN_HANN,
+    PVS_WIN_KAISER,
+    PVS_WIN_CUSTOM
+};
+
+enum PVS_ANALFORMAT {
+    PVS_AMP_FREQ = 0,
+    PVS_AMP_PHASE,
+    PVS_COMPLEX
+};
 
 /* description of an fsig analysis frame*/
 /* should go in cs,h eventually ?*/
@@ -68,9 +79,9 @@ typedef struct pvsdat {
         long            overlap;
         long            winsize;
         int             wintype;
-        long            format;             /* fixed for now to AMP:FREQ */
+        long            format;         /* fixed for now to AMP:FREQ */
         unsigned long   framecount;
-        AUXCH           frame;              /* RWD MUST always be 32bit floats */
+        AUXCH           frame;          /* RWD MUST always be 32bit floats */
 } PVSDAT;
 
 typedef struct {
@@ -104,21 +115,22 @@ typedef struct {
         PVSDAT  *fsig;                  /* input signal is an analysis frame */
         MYFLT   *init;                  /* not yet implemented */
         /* internal */
-        long    overlap,winsize,fftsize,wintype,format; /* check these against fsig vals */
+        /* check these against fsig vals */
+        long    overlap,winsize,fftsize,wintype,format;
         /* can we allow variant window tpes?  */
         long    buflen;
         MYFLT   fund,arate;
         MYFLT   RoverTwoPi,TwoPioverR,Fexact;
         MYFLT   *nextOut;
-        long    nO,Ii,IOi;              /* need all these ?*/
+        long    nO,Ii,IOi;      /* need all these ?*/
         long    outptr;
-        long    bin_index;                              /* for phase normalization across frames */
+        long    bin_index;      /* for phase normalization across frames */
         /* renderer gets all format info from fsig */
 
         AUXCH   output;
         AUXCH   overlapbuf;
         AUXCH   synbuf;
-        AUXCH   analwinbuf;        /* may get away with a local alloc and free */
+        AUXCH   analwinbuf;     /* may get away with a local alloc and free */
         AUXCH   synwinbuf;
         AUXCH   oldOutPhase;
 
@@ -132,13 +144,14 @@ typedef struct {
         PVSDAT  *fsig;
         MYFLT   *n_oscs;
         MYFLT   *kfmod;
-        MYFLT   *ibin;                  /* default  0 */
+        MYFLT   *ibin;          /* default  0 */
         MYFLT   *ibinoffset;    /* default 1  */
-        MYFLT   *init;                  /* not yet implemented  */
+        MYFLT   *init;          /* not yet implemented  */
         /* internal */
         long    outptr;
         unsigned long   lastframe;
-        long    overlap,winsize,fftsize,wintype,format,noscs;   /* check these against fsig vals */
+        /* check these against fsig vals */
+        long    overlap,winsize,fftsize,wintype,format,noscs;
         long    maxosc;
         float   one_over_overlap,pi_over_sr, one_over_sr;
         float   fmod;
@@ -149,7 +162,6 @@ typedef struct {
         AUXCH   lastamps;
         AUXCH   freqs;
         AUXCH   outbuf;
-
 } PVADS;
 
 /* for pvscross */
@@ -163,8 +175,7 @@ typedef struct {
         /* internal */
         long    overlap,winsize,fftsize,wintype,format;
         unsigned long   lastframe;
-}
-PVSCROSS;
+} PVSCROSS;
 
 /* for pvsmaska */
 typedef struct {
@@ -176,10 +187,9 @@ typedef struct {
         /* internal*/
         long    overlap,winsize,fftsize,wintype,format;
         unsigned long   lastframe;
-        int             nwarned,pwarned;                                 /* range errors for kdepth */
+        int             nwarned,pwarned;    /* range errors for kdepth */
         FUNC    *maskfunc;
-}
-PVSMASKA;
+} PVSMASKA;
 
 /* for pvsftw, pvsftr */
 
@@ -193,8 +203,7 @@ typedef struct {
         long    overlap,winsize,fftsize,wintype,format;
         unsigned long   lastframe;
         FUNC    *outfna, *outfnf;
-}
-PVSFTW;
+} PVSFTW;
 
 typedef struct {
         OPDS    h;
@@ -207,8 +216,7 @@ typedef struct {
         unsigned long   lastframe;
         FUNC    *infna, *infnf;
         MYFLT   *ftablea,*ftablef;
-}
-PVSFTR;
+} PVSFTR;
 
 /* for pvsfread */
 /*  wsig pvsread ktimpt,ifilcod */
@@ -224,9 +232,7 @@ typedef struct {
         unsigned long   chans, nframes,lastframe,chanoffset,blockalign;
         MYFLT   arate;
         float   *membase;        /* RWD MUST be 32bit: reads file */
-        MEMFIL  *mfp;
-}
-PVSFREAD;
+} PVSFREAD;
 
 /* for pvsinfo */
 
@@ -247,3 +253,4 @@ typedef struct {
 } FASSIGN;
 
 #endif
+

@@ -55,20 +55,19 @@ typedef struct {
     MYFLT   *ifreqlim, *igatefun;
     long    mems;
     long    kcnt, baseFr, maxFr, frSiz, prFlg, opBpos;
-    /*RWD 8:2001 for pvocex: need these too */
+    /* RWD 8:2001 for pvocex: need these too */
     long    frInc, chans;
 
     MYFLT   frPktim, frPrtim, scale, asr, lastPex;
     MYFLT   PvMaxAmp;
     float   *frPtr;
     FUNC    *AmpGateFunc;
-    MEMFIL  *mfp;
     AUXCH   auxch;
-    MYFLT   *lastPhase;         /* [PVDATASIZE] Keep track of cum. phase */
-    MYFLT   *fftBuf;            /* [PVFFTSIZE]  FFT works on Real & Imag */
-    MYFLT   *dsBuf;             /* [PVFFTSIZE]  Output of downsampling may be 2x */
-    MYFLT   *outBuf;            /* [PVFFTSIZE]  Output buffer over win length */
-    MYFLT   *window;            /* [PVWINLEN]   Store 1/2 window */
+    MYFLT   *lastPhase; /* [PVDATASIZE] Keep track of cum. phase */
+    MYFLT   *fftBuf;    /* [PVFFTSIZE]  FFT works on Real & Imag */
+    MYFLT   *dsBuf;     /* [PVFFTSIZE]  Output of downsampling may be 2x */
+    MYFLT   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
+    MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
     MYFLT   *pvcopy;
 } PVOC;
 
