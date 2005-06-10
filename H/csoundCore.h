@@ -536,15 +536,17 @@ extern "C" {
   } SNDMEMFILE;
 
   typedef struct pvx_memfile_ {
-    int           format;
-    int           fftsize;
-    int           overlap;
-    int           winsize;
-    int           wintype;
-    int           chans;
+    char        *filename;
+    struct pvx_memfile_ *nxt;
+    float       *data;
     unsigned long nframes;
-    MEMFIL        *mfp;
-    MYFLT         srate;
+    int         format;
+    int         fftsize;
+    int         overlap;
+    int         winsize;
+    int         wintype;
+    int         chans;
+    MYFLT       srate;
   } PVOCEX_MEMFILE;
 
   typedef struct ENVIRON_
@@ -804,6 +806,7 @@ extern "C" {
     int (*PVOC_FrameCount)(struct ENVIRON_ *, int);
     int (*PVOC_Rewind)(struct ENVIRON_ *, int, int);
     const char *(*PVOC_ErrorString)(struct ENVIRON_ *);
+    int (*PVOCEX_LoadFile)(struct ENVIRON_ *, const char *, PVOCEX_MEMFILE *);
     /* callback function pointers - not part of the API */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
     void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
@@ -945,7 +948,7 @@ extern "C" {
     MGLOBAL       *midiGlobals;
     void          *envVarDB;
     MEMFIL        *memfiles;
-    MEMFIL        *rwd_memfiles;
+    PVOCEX_MEMFILE *pvx_memfiles;
     int           FFT_max_size;
     void          *FFT_table_1;
     void          *FFT_table_2;
