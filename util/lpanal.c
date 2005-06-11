@@ -38,27 +38,27 @@
 #define PITCHMIN        FL(70.0)
 #define PITCHMAX        FL(200.0)   /* default limits in Hz for pitch search */
 
-static  int     poleCount, WINDIN, debug=0, verbose=0, doPitch = 1;
-static  double  *x;
-static  double  (*a)[MAXPOLES];
+typedef struct {
+  int     poleCount, WINDIN, debug, verbose, doPitch;
+  double  *x;
+  double  (*a)[MAXPOLES];
+#ifdef TRACE
+  FILE *trace;
+#endif
+  WINDAT   pwindow;
+} LPC;
 
 /* Forward declaration */
 
-static  void    alpol(MYFLT *, double *, double *, double *, double *);
-static  void    gauss(double (*)[MAXPOLES], double*, double*);
-static  void    quit(char *), lpdieu(ENVIRON*,char *), usage(ENVIRON*);
+static  void    alpol(ENVIRON *,LPC*,MYFLT *, double *, double *, double *, double *);
+static  void    gauss(ENVIRON *, LPC*,double (*)[MAXPOLES], double*, double*);
+static  void    quit(ENVIRON*,char *), lpdieu(ENVIRON*,char *), usage(ENVIRON*);
 extern  void    ptable(ENVIRON*, MYFLT, MYFLT, MYFLT, int);
 extern  MYFLT   getpch(ENVIRON *, MYFLT*);
 
 #ifdef mills_macintosh
 #include "MacTransport.h"
 #endif
-
-#ifdef TRACE
-FILE *trace;
-#endif
-
-static  WINDAT   pwindow;
 
 /* Search for an argument and report of not found */
 #define FIND(MSG)   if (*s == '\0')  \
@@ -328,6 +328,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     char    *lpbuf, *tp;
     MYFLT   pchlow, pchhigh;
     SOUNDIN *p;             /* struct allocated by SAsndgetset */
+    LPC     lpc;
 
 /* Added by MR to handle pole storage */
 
@@ -340,6 +341,9 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     double  polyReal[MAXPOLES], polyImag[MAXPOLES];
 #endif
 
+    lpc.debug=0; 
+    lpc.verbose=0;
+    lpc.doPitch = 1;
     /* must set this for 'standard' behaviour when analysing
        (assume re-entrant Csound) */
     dbfs_init(csound, DFLT_DBFS);
@@ -353,7 +357,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     tp = lph->text;
 
    /* Define default values */
-    poleCount = DEFpoleCount;         /* DEFAULTS... */
+    lpc.poleCount = DEFpoleCount;         /* DEFAULTS... */
     slice = DEFSLICE;
     channel = 1;
     beg_time = FL(0.0);
@@ -361,7 +365,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     *tp = '\0';
     pchlow = PITCHMIN;
     pchhigh = PITCHMAX;
-    O.displays = 0;
+/*     O.displays = 0; */
     dPI = atan2(0,-1);
 
     /* Default is to store filter coefficients */
@@ -398,7 +402,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
         sscanf(s,"%f",&input_dur); break;
 #endif
         case 'p':       FIND(Str("no poles"))
-                          sscanf(s,"%d",&poleCount); break;
+                          sscanf(s,"%d",&lpc.poleCount); break;
         case 'h':       FIND(Str("no hopsize"))
                           sscanf(s,"%d",&slice); break;
         case 'C':       FIND(Str("no comment string"))
@@ -411,7 +415,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
 #else
           sscanf(s,"%f",&pchlow);
 #endif
-          if (pchlow == 0.) doPitch = 0;     /* -P0 inhibits ptrack */
+          if (pchlow == 0.) lpc.doPitch = 0;     /* -P0 inhibits ptrack */
           break;
         case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
@@ -420,15 +424,18 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
         sscanf(s,"%f",&pchhigh); break;
 #endif
         case 'v':       FIND(Str("no verbose level"))
-                          sscanf(s,"%d",&verbose);
-          if (verbose > 1)  debug = 1;
+                          sscanf(s,"%d",&lpc.verbose);
+          if (lpc.verbose > 1)  lpc.debug = 1;
           break;
-        case 'g':       O.displays = 1;
-          break;
+/*         case 'g':       O.displays = 1; */
+/*           break; */
         case 'a':       storePoles=TRUE;
           break;
-        default: sprintf(errmsg,Str("unrecognised flag -%c"), *--s);
+        default: {
+          char errmsg[256];
+          sprintf(errmsg,Str("unrecognised flag -%c"), *--s);
           lpdieu(csound,errmsg);
+        }
         }
       else break;
     } while (--argc);
@@ -438,29 +445,29 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     if (argc != 2)  lpdieu(csound,Str("incorrect number of filenames"));
     infilnam = *argv++;
     outfilnam = *argv;
-    if (poleCount > MAXPOLES)
-      quit(Str("poles exceeds maximum allowed"));
+    if (lpc.poleCount > MAXPOLES)
+      quit(csound,Str("poles exceeds maximum allowed"));
     /* Allocate space now */
-    coef = (MYFLT*) mmalloc(csound, (NDATA+poleCount*2)*sizeof(MYFLT));
+    coef = (MYFLT*) mmalloc(csound, (NDATA+lpc.poleCount*2)*sizeof(MYFLT));
     /* Space allocated */
-    if (slice < poleCount * 5)
-      if (O.msglevel & WARNMSG)
-        printf(Str("WARNING: hopsize may be too small, "
+    if (slice < lpc.poleCount * 5)
+      if (csound->oparms->msglevel & WARNMSG)
+        csound->Message(csound,Str("WARNING: hopsize may be too small, "
                    "recommend at least poleCount * 5\n"));
 
-    if ((WINDIN = slice * 2) > MAXWINDIN)
-      quit(Str("input framesize (inter-frame-offset*2) exceeds maximum allowed"));
+    if ((lpc.WINDIN = slice * 2) > MAXWINDIN)
+      quit(csound,Str("input framesize (inter-frame-offset*2) exceeds maximum allowed"));
     if ((input_dur < 0) || (beg_time < 0))
-      quit(Str("input and begin times cannot be less than zero"));
+      quit(csound,Str("input and begin times cannot be less than zero"));
 
-    if (verbose) {
+    if (lpc.verbose) {
       csound->Message(csound,
                       Str("Reading sound from %s, writing lpfile to %s\n"),
                       infilnam, outfilnam);
       csound->Message(csound,
                       Str("poles=%d hopsize=%d begin=%4.1f"
                           " duration=%4.1f\n"),
-                      poleCount, slice, beg_time, input_dur);
+                      lpc.poleCount, slice, beg_time, input_dur);
       csound->Message(csound,Str("lpheader comment:\n%s\n"), lph->text);
       if (pchlow > 0.)
         csound->Message(csound,
@@ -469,7 +476,7 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
       else csound->Message(csound,Str("pitch tracking inhibited\n"));
     }
     if ((input_dur < 0) || (beg_time < 0))
-      quit(Str("input and begin times cannot be less than zero"));
+      quit(csound,Str("input and begin times cannot be less than zero"));
 
     if (storePoles)
       csound->Message(csound,Str("Using pole storage method\n"));
@@ -477,17 +484,16 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
       csound->Message(csound,Str("Using filter coefficient storage method\n"));
 
     /* Get information on input sound */
-    if (
-        (infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+    if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
                                     &input_dur, &sr, channel)) < 0) {
-      sprintf(errmsg,Str("error while opening %s"), csound->retfilnam);
-      quit(errmsg);
+      char errmsg[256];
+      sprintf(errmsg,Str("error while opening %s"), infilnam);
+      quit(csound,errmsg);
     }
 
     /* Try to open output file */
-
-    if ((ofd = openout(outfilnam, 1)) < 0)  /* open output file */
-      quit(Str("cannot create output file"));
+    if (NULL == csound->FileOpen(csound, &ofd, CSFILE_STD,outfilnam, "w", NULL))
+      quit(csound,Str("cannot create output file"));
 
     /* Prepare header */
 
@@ -496,8 +502,8 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     else
       lph->lpmagic = LP_MAGIC;
 
-    lph->npoles = poleCount;
-    lph->nvals = poleCount*(storePoles?2:1) + NDATA;
+    lph->npoles = lpc.poleCount;
+    lph->nvals = lpc.poleCount*(storePoles?2:1) + NDATA;
     lph->srate = (MYFLT)p->sr;
     lph->framrate = (MYFLT) p->sr / slice;
     lph->duration = input_dur;
@@ -509,23 +515,23 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     /* Write header to disk */
     if ((nb = write(ofd,(char *)lph,(int)lph->headersize)) <
         lph->headersize)
-      quit(Str("cannot write header"));
+      quit(csound,Str("cannot write header"));
 
     /* get buffer size for one analysis frame:
        filtercoef or poles + freq/rms/... */
-    osiz = (poleCount*(storePoles?2:1) + NDATA) * sizeof(MYFLT);
+    osiz = (lpc.poleCount*(storePoles?2:1) + NDATA) * sizeof(MYFLT);
 
     /* Allocate signal buffer for sound frame */
-    sigbuf = (MYFLT *) mmalloc(csound, (long)WINDIN * sizeof(MYFLT));
+    sigbuf = (MYFLT *) mmalloc(csound, (long)lpc.WINDIN * sizeof(MYFLT));
     sigbuf2 = sigbuf + slice;
 
     /* Try to read first frame in buffer */
-    if ((n = csound->getsndin(csound, infd, sigbuf, WINDIN, p)) < WINDIN)
-      quit(Str("soundfile read error, could not fill first frame"));
+    if ((n = csound->getsndin(csound, infd, sigbuf, lpc.WINDIN, p)) < lpc.WINDIN)
+      quit(csound,Str("soundfile read error, could not fill first frame"));
 
     /* initialize frame pitch table ? */
-    if (doPitch)
-      ptable(csound, pchlow, pchhigh, (MYFLT) p->sr, WINDIN);
+    if (lpc.doPitch)
+      ptable(csound, pchlow, pchhigh, (MYFLT) p->sr, lpc.WINDIN);
 
     /* Initialise for analysis */
     counter = 0;
@@ -533,11 +539,11 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
 
     /* Some display stuff */
     dispinit(csound);
-    csound->dispset(csound, &pwindow, coef + 4, poleCount,
+    csound->dispset(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
                     "pitch: 0000.00   ", 0, "LPC/POLES");
     /* Space for a array */
-    a = (double (*)[MAXPOLES]) malloc(MAXPOLES * MAXPOLES * sizeof(double));
-    x = (double *) malloc(WINDIN * sizeof(double));  /* alloc a double array */
+    lpc.a = (double (*)[MAXPOLES]) malloc(MAXPOLES * MAXPOLES * sizeof(double));
+    lpc.x = (double *) malloc(lpc.WINDIN * sizeof(double));  /* alloc a double array */
 #ifdef TRACE
     trace = fopen("lpanal.trace", "w");
 #endif
@@ -551,32 +557,32 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
       printf ("Starting new frame...\n");
 #endif
       counter++;
-      alpol(sigbuf, &errn, &rms1, &rms2, filterCoef);
+      alpol(csound, &lpc, sigbuf, &errn, &rms1, &rms2, filterCoef);
       /* Transfer results */
       coef[0] = (MYFLT)rms2;
       coef[1] = (MYFLT)rms1;
       coef[2] = (MYFLT)errn;
-      if (doPitch)
+      if (lpc.doPitch)
         coef[3] = getpch(csound, sigbuf);
       else coef[3] = FL(0.0);
-      if (debug) csound->Message(csound,"%d\t%9.4f\t%9.4f\t%9.4f\t%9.4f\n",
+      if (lpc.debug) csound->Message(csound,"%d\t%9.4f\t%9.4f\t%9.4f\t%9.4f\n",
                                  counter, coef[0], coef[1], coef[2], coef[3]);
 #ifdef TRACE
-      if (debug) fprintf(trace,"%d\t%9.4f\t%9.4f\t%9.4f\t%9.4f\n",
+      if (lpc.debug) fprintf(trace,"%d\t%9.4f\t%9.4f\t%9.4f\t%9.4f\n",
                          counter, coef[0], coef[1], coef[2], coef[3]);
 #endif
       /*            for (fp1=coef+NDATA, dfp=cc+poleCount, n=poleCount; n--; ) */
       /*                *fp1++ = - (MYFLT) *--dfp; */  /* rev coefs & chng sgn */
-      sprintf(pwindow.caption, "pitch: %8.2f", coef[3]);
-      display(csound, &pwindow);
+      sprintf(lpc.pwindow.caption, "pitch: %8.2f", coef[3]);
+      display(csound, &lpc.pwindow);
 
       /* Prepare buffer for output */
 
       if (storePoles) {
         /* Treat (swap) filter coefs for resolution */
-        filterCoef[poleCount] = 1.0;
-        for (i=0; i<(poleCount+1)/2; i++) {
-          j = poleCount-1-i;
+        filterCoef[lpc.poleCount] = 1.0;
+        for (i=0; i<(lpc.poleCount+1)/2; i++) {
+          j = lpc.poleCount-1-i;
           z1 = filterCoef[i];
           filterCoef[i] = filterCoef[j];
           filterCoef[j] = z1;
@@ -584,10 +590,10 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
 
         /* Get the Filter Poles */
 
-        polyzero(100,poleCount,filterCoef,polePart1,polePart2,
+        polyzero(100,lpc.poleCount,filterCoef,polePart1,polePart2,
                  &poleFound,2000,&indic,workArray1);
 
-        if (poleFound!=poleCount) {
+        if (poleFound!=lpc.poleCount) {
           csound->Message(csound,Str("Found only %d poles...sorry\n"), poleFound);
 #if !defined(mills_macintosh)
           exit(-1);
@@ -595,19 +601,19 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
           return(-1);
 #endif
         }
-        InvertPoles(poleCount,polePart1,polePart2);
+        InvertPoles(lpc.poleCount,polePart1,polePart2);
 
 #ifdef TRACE_POLES
-        DumpPoles(poleCount,polePart1,polePart2,0,"Extracted Poles");
+        DumpPoles(lpc.poleCount,polePart1,polePart2,0,"Extracted Poles");
 #endif
 
 #ifdef _DEBUG
         /* Resynthetize the filter for check */
-        InvertPoles(poleCount,polePart1,polePart2);
+        InvertPoles(lpc.poleCount,polePart1,polePart2);
 
-        synthetize(poleCount,polePart1,polePart2,polyReal,polyImag);
+        synthetize(lpc.poleCount,polePart1,polePart2,polyReal,polyImag);
 
-        for (i=0; i<poleCount; i++) {
+        for (i=0; i<lpc.poleCount; i++) {
 #ifdef TRACE_FILTER
           printf("filterCoef: %f\n", filterCoef[i]);
 #endif
@@ -616,11 +622,11 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
                             i, filterCoef[i], polyReal[poleCount-i]);
         }
         csound->Message(csound,".");
-        InvertPoles(poleCount,polePart1,polePart2);
+        InvertPoles(lpc.poleCount,polePart1,polePart2);
 #endif
         /* Switch to pole magnitude and phase */
 
-        for (i=0; i<poleCount;i++) {
+        for (i=0; i<lpc.poleCount;i++) {
           /* Store magnitude and phase (PI,-PI) */
           pr = polePart1[i];
           pi = polePart2[i];
@@ -640,22 +646,22 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
 
         /* Store in output buffer */
         fp1 = coef+NDATA;
-        for (i=0; i<poleCount;i++) {
+        for (i=0; i<lpc.poleCount;i++) {
           *fp1++ = (MYFLT)polePart1[i];
           *fp1++ = (MYFLT)polePart2[i];
         }
       }
       else {
         /* Move filter data into output buffer */
-        dfp = filterCoef+poleCount;
+        dfp = filterCoef+lpc.poleCount;
         fp1 = coef+NDATA;
-        for (n=0;n<poleCount; n++)
+        for (n=0;n<lpc.poleCount; n++)
           *fp1++ = - (MYFLT) *--dfp;
       }
 
       /* Write frame to disk */
       if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
-        quit(Str("write error"));
+        quit(csound,Str("write error"));
       memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
 
       /* Some unused stuff. I think from when all snd was in mem */
@@ -671,9 +677,10 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
 
     /* clean up stuff */
     dispexit(csound);
-    printf(Str("%d lpc frames written to %s\n"), counter, outfilnam);
+    csound->Message(csound,Str("%d lpc frames written to %s\n"),
+                    counter, outfilnam);
     close(ofd);
-    free(a); free(x);
+    free(lpc.a); free(lpc.x);
     mfree(csound, coef);
 #if !defined(mills_macintosh)
     exit(0);
@@ -681,9 +688,9 @@ int lpanal(ENVIRON *csound, int argc, char **argv)
     return (-1);            /* To quieten compilers */
 }
 
-static void quit(char *msg)
+static void quit(ENVIRON *csound,char *msg)
 {
-    printf("lpanal: %s\n", msg);
+    csound->Message(csound,"lpanal: %s\n", msg);
     csoundDie(csound, Str("analysis aborted"));
 }
 
@@ -700,7 +707,7 @@ static void lpdieu(ENVIRON* csound,char *msg)
  *
  */
 
-static void alpol(MYFLT *sig, double *errn,
+static void alpol(ENVIRON *csound, LPC *thislp, MYFLT *sig, double *errn,
                   double *rms1, double *rms2, double b[MAXPOLES])
                                         /* sig now MYFLT */
                                         /* b filled here */
@@ -711,49 +718,49 @@ static void alpol(MYFLT *sig, double *errn,
     int i, j, k, limit;
 
    /* Transfer signal in x array */
-    for (xp=x; xp-x < WINDIN;++xp,++sig)/*   &  copy sigin into */
+    for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig)/*   &  copy sigin into */
       *xp = (double) *sig;
 
    /* Build system to be solved */
-    for (i=0; i < poleCount;++i)  {
+    for (i=0; i < thislp->poleCount;++i)  {
       sum = (double) 0.0;
-      for (k=poleCount; k < WINDIN;++k)
-        sum += x[k-(i+1)] * x[k];
+      for (k=thislp->poleCount; k < thislp->WINDIN;++k)
+        sum += thislp->x[k-(i+1)] * thislp->x[k];
       v[i] = -sum;
-      if (i != poleCount - 1)  {
-        limit = poleCount - (i+1);
+      if (i != thislp->poleCount - 1)  {
+        limit = thislp->poleCount - (i+1);
         for (j=0; j < limit; j++)  {
-          sum += x[poleCount-(i+1)-(j+1)] * x[poleCount-(j+1)]
-            - x[WINDIN-(i+1)-(j+1)] * x[WINDIN-(j+1)];
-          a[(i+1)+j][j] = a[j][(i+1)+j] = sum;
+          sum += thislp->x[thislp->poleCount-(i+1)-(j+1)] * thislp->x[thislp->poleCount-(j+1)]
+            - thislp->x[thislp->WINDIN-(i+1)-(j+1)] * thislp->x[thislp->WINDIN-(j+1)];
+          thislp->a[(i+1)+j][j] = thislp->a[j][(i+1)+j] = sum;
         }
       }
     }
     sum = (double) 0.0;
-    for (k=poleCount; k < WINDIN;++k)
-      sum +=  x[k]*x[k];
+    for (k=thislp->poleCount; k < thislp->WINDIN;++k)
+      sum +=  thislp->x[k]*thislp->x[k];
     sumy = sumx = sum;
 #ifdef TRACE
     fprintf(trace, "sumy=%f\n", sumy);
 #endif
-    for (j=0; j < poleCount; j++)  {
-      sum += x[poleCount-(j+1)]*x[poleCount-(j+1)] -
-        x[WINDIN-(j+1)]*x[WINDIN-(j+1)];
-      a[j][j] = sum;
+    for (j=0; j < thislp->poleCount; j++)  {
+      sum += thislp->x[thislp->poleCount-(j+1)]*thislp->x[thislp->poleCount-(j+1)] -
+        thislp->x[thislp->WINDIN-(j+1)]*thislp->x[thislp->WINDIN-(j+1)];
+      thislp->a[j][j] = sum;
     }
 
     /* Solves the system */
-    gauss(a, v, b);
+    gauss(csound, thislp, thislp->a, v, b);
 
     /* Compute associted parameters */
-    for (i=0; i < poleCount;++i) {
+    for (i=0; i < thislp->poleCount;++i) {
       sumy -= b[i]*v[i];
 #ifdef TRACE
       fprintf(trace, "b[i]=%f v[i]=%f sumy=%f\n", b[i], v[i], sumy);
 #endif
     }
-    *rms1 = sqrt(sumx / (WINDIN - poleCount) );
-    *rms2 = sqrt(sumy / (WINDIN - poleCount) );
+    *rms1 = sqrt(sumx / (thislp->WINDIN - thislp->poleCount) );
+    *rms2 = sqrt(sumy / (thislp->WINDIN - thislp->poleCount) );
     /*        sum = (*rms2)/(*rms1);  *errn = sum*sum; */
     *errn = sumy/sumx;
 }
@@ -763,23 +770,24 @@ static void alpol(MYFLT *sig, double *errn,
  * Perform gauss elemination: Could be replaced by something more robust
  *
  */
-static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
+static void gauss(ENVIRON *csound, LPC* thislp,
+                  double (*a/*old*/)[MAXPOLES], double *bold, double b[])
 {
     double amax, dum, pivot;
     double c[MAXPOLES];
     int i, j, k, l, istar=-1, ii, lp;
 
     /* bold untouched by this subroutine */
-    for (i=0; i < poleCount;++i)  {
+    for (i=0; i < thislp->poleCount;++i)  {
       c[i] = bold[i];
 #ifdef TRACE
       fprintf(trace, "c[%d]=%f\n", i, c[i]);
 #endif
     }
     /* eliminate i-th unknown */
-    for (i=0; i < poleCount - 1;++i)  {        /* find largest pivot */
+    for (i=0; i < thislp->poleCount - 1;++i)  {        /* find largest pivot */
       amax = 0.0;
-      for (ii=i; ii < poleCount;++ii)  {
+      for (ii=i; ii < thislp->poleCount;++ii)  {
         double npq = fabs(a[ii][i]);
         if (npq >= amax)  {
           istar = ii;
@@ -787,11 +795,12 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
         }
       }
       if (amax < 1e-20) {
-        printf("Row %d or %d have maximum of %g\n", i, poleCount, amax);
+        csound->Message(csound,"Row %d or %d have maximum of %g\n",
+                        i, thislp->poleCount, amax);
         csoundDie(csound, Str("gauss: ill-conditioned"));
       }
       if (i != istar) {
-        for (j=0; j < poleCount;++j)  {    /* switch rows */
+        for (j=0; j < thislp->poleCount;++j)  {    /* switch rows */
           dum = a[istar][j];
           a[istar][j] = a[i][j];
           a[i][j] = dum;
@@ -804,7 +813,7 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
       fprintf(trace, "c[%d]=%f\n", i, c[i]);
 #endif
       amax = a[i][i];           /* To save recalculation */
-      for (j=i+1; j < poleCount;++j)  {             /* pivot */
+      for (j=i+1; j < thislp->poleCount;++j)  {             /* pivot */
         pivot = a[j][i] / amax;
 #ifdef TRACE
         fprintf(trace, "pivot = %f c[%d] = %f\n", pivot, j, c[j]);
@@ -813,26 +822,27 @@ static void gauss(double (*a/*old*/)[MAXPOLES], double *bold, double b[])
 #ifdef TRACE
         fprintf(trace, "c[%d]=%f c[%d]=%f\n", j, c[j], i, c[i]);
 #endif
-        for (k=0; k < poleCount; ++k)
+        for (k=0; k < thislp->poleCount; ++k)
           a[j][k] = a[j][k] - pivot * a[i][k];
       }
     }                               /* return if last pivot is too small */
-    if (fabs(a[poleCount-1][poleCount-1]) < 1e-20) {
-      printf("Row %d or %d have maximum of %g\n",
-             poleCount-1, poleCount, fabs(a[poleCount-1][poleCount-1]));
+    if (fabs(a[thislp->poleCount-1][thislp->poleCount-1]) < 1e-20) {
+      csound->Message(csound,"Row %d or %d have maximum of %g\n",
+             thislp->poleCount-1, thislp->poleCount,
+             fabs(a[thislp->poleCount-1][thislp->poleCount-1]));
       csoundDie(csound, Str("gauss: ill-conditioned"));
     }
 
-    b[poleCount-1] = c[poleCount-1] / a[poleCount-1][poleCount-1];
+    b[thislp->poleCount-1] = c[thislp->poleCount-1] / a[thislp->poleCount-1][thislp->poleCount-1];
 #ifdef TRACE
     fprintf(trace, "b[poleCount-1]=%f c[poleCount-1]=%f a[][]=%f\n",
-            b[poleCount-1], c[poleCount-1], a[poleCount-1][poleCount-1]);
+            b[thislp->poleCount-1], c[thislp->poleCount-1], a[thislp->poleCount-1][thislp->poleCount-1]);
 #endif
-    for (k=0; k<poleCount-1; ++k)  {   /* back substitute */
-      l = poleCount-1 -(k+1);
+    for (k=0; k<thislp->poleCount-1; ++k)  {   /* back substitute */
+      l = thislp->poleCount-1 -(k+1);
       b[l] = c[l];
       lp = l + 1;
-      for (j = lp; j<poleCount; ++j) {
+      for (j = lp; j<thislp->poleCount; ++j) {
         b[l] -= a[l][j] * b[j];
       }
       b[l] /= a[l][l];
