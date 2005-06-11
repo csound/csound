@@ -34,15 +34,15 @@
 
 /* Predeclare static supporting functions */
 
-void CopySamps(MYFLT *, MYFLT *, long);
-void Polar2Rect(MYFLT *, long);
-void RewrapPhase(MYFLT *, long, MYFLT *);
-void FrqToPhase(MYFLT *, long, MYFLT, MYFLT, MYFLT);
-void FetchIn(float *, MYFLT *, long, MYFLT);
-void ApplyHalfWin(MYFLT *, MYFLT *, long);
-void addToCircBuf(MYFLT *, MYFLT *, long, long, long);
-void writeClrFromCircBuf(MYFLT *, MYFLT *, long, long, long);
-void UDSample(MYFLT *, MYFLT, MYFLT *, long, long, MYFLT);
-void MakeSinc(void);
-void PreWarpSpec(MYFLT *, long, MYFLT);
+void    CopySamps(MYFLT *, MYFLT *, long);
+void    Polar2Real_PVOC(ENVIRON *, MYFLT *, int);
+void    RewrapPhase(MYFLT *, long, MYFLT *);
+void    FrqToPhase(MYFLT *, long, MYFLT, MYFLT, MYFLT);
+void    FetchIn(float *, MYFLT *, long, MYFLT);
+void    ApplyHalfWin(MYFLT *, MYFLT *, long);
+void    addToCircBuf(MYFLT *, MYFLT *, long, long, long);
+void    writeClrFromCircBuf(MYFLT *, MYFLT *, long, long, long);
+void    UDSample(MYFLT *, MYFLT, MYFLT *, long, long, MYFLT);
+void    MakeSinc(void);
+void    PreWarpSpec(MYFLT *, long, MYFLT);
 

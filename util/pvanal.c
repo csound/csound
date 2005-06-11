@@ -170,7 +170,6 @@ static int pvanal(void *csound_, int argc, char **argv)
     FILE    *trfil = stdout;
     pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
-    char    *ext;
     int     verbose = 0;
 
     csound->oparms->displays = 0;
@@ -293,14 +292,6 @@ static int pvanal(void *csound_, int argc, char **argv)
     csound->Message(csound, Str("%ld output frames estimated\n"),
                             (long) oframeEst);
 
-    ext = strrchr(outfilnam, '.');
-    /* Look for .pvx extension in any case */
-    if (ext == NULL || ext[0] != '.' || tolower(ext[1]) != 'p' ||
-        tolower(ext[2]) != 'v' || tolower(ext[3]) != 'x' || ext[4] != '\0') {
-      csound->MessageS(csound, CSOUNDMSG_ERROR,
-                       Str("Old format pvanal being withdrawn; use .pvx\n"));
-      return -1;
-    }
     /* even for old pvoc file, is absence of extension OK? */
     if (p->nchanls > MAXPVXCHANS) {
       csound->Message(csound, Str("pvxanal - source has too many channels: "
