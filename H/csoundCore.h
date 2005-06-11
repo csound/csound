@@ -107,8 +107,8 @@ extern "C" {
 #define DFLT_NCHNLS 1
 #define MAXCHNLS   256
 
-#define MAXNAME (128)
-#define ERRSIZ  (200)
+#define MAXNAME (256)
+#define ERRSIZ  (256)
 
 #define DFLT_DBFS (FL(32768.0))
 
@@ -357,6 +357,7 @@ extern "C" {
   } SPECDAT;
 
 #define AIFF_MAXCHAN 8
+
   typedef struct {
     MYFLT   natcps;
     MYFLT   gainfac;
@@ -890,7 +891,7 @@ extern "C" {
     int           sectcnt;
     MCHNBLK       *m_chnbp[MAXCHAN];
     int           inerrcnt, synterrcnt, perferrcnt;
-    char          strmsg[192];
+    char          strmsg[256];
     INSTRTXT      instxtanchor;
     INSDS         actanchor;
     long          rngcnt[MAXCHNLS];
@@ -1009,6 +1010,7 @@ extern "C" {
     void          *pvFileTable;         /* pvfileio.c */
     int           pvNumFiles;
     int           pvErrorCode;
+    void          *pvbufreadaddr;       /* pvinterp.c */
   } ENVIRON;
 
 #include "text.h"

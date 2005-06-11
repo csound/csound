@@ -371,7 +371,7 @@ const ENVIRON cenviron_ = {
         GENMAX+1,       /*  genmax              */
         100,            /*  ftldno              */
         1,              /*  doFLTKThreadLocking */
-        NULL,           /*  namedGlobals -- IV - Jan 28 2005 */
+        NULL,           /*  namedGlobals        */
         0,              /*  namedGlobalsCurrLimit */
         0,              /*  namedGlobalsMaxLimit */
         NULL,           /*  cfgVariableDB       */
@@ -442,7 +442,8 @@ const ENVIRON cenviron_ = {
         NULL,           /*  reset_list          */
         NULL,           /*  pvFileTable         */
         0,              /*  pvNumFiles          */
-        0               /*  pvErrorCode         */
+        0,              /*  pvErrorCode         */
+        NULL            /*  pvbufreadaddr       */
 };
 
 /* otran.c */
