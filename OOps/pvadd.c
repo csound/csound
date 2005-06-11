@@ -44,26 +44,26 @@ void FetchInForAdd(float *inp, MYFLT *buf, long fsize,
                    MYFLT pos, int binoffset, int maxbin, int binincr)
 {
     long    j;
-    float   *frm0, *frm1;
+    float   *frame0, *frame1;
     long    base;
     MYFLT   frac;
 
     base = (long)pos;
     frac = ((MYFLT)(pos - (MYFLT)base));
     /* & how close to get to next */
-    frm0 = inp + ((long)fsize+2L)*base;
-    frm1 = frm0 + ((long)fsize+2L);
+    frame0 = inp + ((long)fsize+2L)*base;
+    frame1 = frame0 + ((long)fsize+2L);
     if (frac != FL(0.0)) {
       for (j = binoffset; j < maxbin; j+=binincr) {
-        buf[2L*j] = frm0[2L*j] + frac*(frm1[2L*j]-frm0[2L*j]);
-        buf[2L*j+1L] = frm0[2L*j+1L]
-          + frac*(frm1[2L*j+1L]-frm0[2L*j+1L]);
+        buf[2L*j] = frame0[2L*j] + frac*(frame1[2L*j]-frame0[2L*j]);
+        buf[2L*j+1L] = frame0[2L*j+1L]
+          + frac*(frame1[2L*j+1L]-frame0[2L*j+1L]);
       }
     }
     else {
       for (j = binoffset; j < maxbin; j+=binincr) {
-        buf[2L*j] = frm0[2L*j];
-        buf[2L*j+1] = frm0[2L*j+1L];
+        buf[2L*j] = frame0[2L*j];
+        buf[2L*j+1] = frame0[2L*j+1L];
       }
     }
 }
