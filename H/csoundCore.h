@@ -1011,6 +1011,7 @@ extern "C" {
     int           pvNumFiles;
     int           pvErrorCode;
     void          *pvbufreadaddr;       /* pvinterp.c */
+    void          *tbladr;              /* vpvoc.c */
   } ENVIRON;
 
 #include "text.h"
