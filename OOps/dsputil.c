@@ -48,20 +48,27 @@ void CopySamps(MYFLT *sce, MYFLT *dst, long size) /* just move samples */
       *dst++ = *sce++;
 }
 
-void Polar2Rect(MYFLT *buffer, long size) /* reverse above */
+/* assumes that FFTsize is an integer multiple of 4 */
+void Polar2Real_PVOC(ENVIRON *csound, MYFLT *buf, int FFTsize)
 {
-    long    i;
-    MYFLT   *magn,*phas;
-    MYFLT   mag;
-    double  pha;
+    MYFLT re, im;
+    int   i;
 
-    magn = buffer;  phas = buffer+1;
-    for (i = 0; i< someof(size); ++i) {
-      mag =         magn[2L*i];
-      pha = (double)phas[2L*i];
-      magn[2L*i] = mag*(MYFLT)cos(pha);
-      phas[2L*i] = mag*(MYFLT)sin(pha);
+    for (i = 0; i < FFTsize; i += 4) {
+      re = buf[i] * (MYFLT) cos(buf[i + 1]);
+      im = buf[i] * (MYFLT) sin(buf[i + 1]);
+      buf[i    ] = re;
+      buf[i + 1] = im;
+      /* Offset the phase to align centres of stretched windows, not starts */
+      re = -(buf[i + 2] * (MYFLT) cos(buf[i + 3]));
+      im = -(buf[i + 2] * (MYFLT) sin(buf[i + 3]));
+      buf[i + 2] = re;
+      buf[i + 3] = im;
     }
+    /* kill spurious imag at dc & fs/2 */
+    buf[1] = buf[i]; buf[i] = buf[i + 1] = FL(0.0);
+    /* calculate inverse FFT */
+    csound->InverseRealFFT(csound, buf, FFTsize);
 }
 
 #define MMmaskPhs(p,q,s) /* p is pha, q is as int, s is 1/PI */ \

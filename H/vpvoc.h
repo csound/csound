@@ -22,9 +22,9 @@
 */
 
 typedef struct {
-        FUNC *function, *nxtfunction;
-        MYFLT d;
-        long   cnt;
+        FUNC    *function, *nxtfunction;
+        MYFLT   d;
+        long    cnt;
 } TSEG;
 
 typedef struct {
@@ -42,13 +42,13 @@ typedef struct {
     OPDS    h;
     MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno, *ispecwp, *isegtab;
     char    *strarg;
-    MEMFIL  *mfp;
     long    kcnt;
     long    baseFr, maxFr, frSiz, prFlg, opBpos;
-      /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
-    MYFLT   frPktim, frPrtim, scale, asr, *frPtr, lastPex;
-      /* asr is analysis sample rate */
-      /* fft frames per k-time (equals phase change expansion factor) */
+    /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
+    MYFLT   frPktim, frPrtim, asr, scale, lastPex;
+    float   *frPtr;
+    /* asr is analysis sample rate */
+    /* fft frames per k-time (equals phase change expansion factor) */
     AUXCH   auxch;          /* manage AUXDS for the following 5 buffer spaces */
     MYFLT   *lastPhase;     /* [PVDATASIZE] Keep track of cum. phase */
     MYFLT   *fftBuf;        /* [PVFFTSIZE]  FFT works on Real & Imag */
