@@ -45,12 +45,6 @@ OOps/lptrkfns.c:static  MYFLT w2 = FL(0.0), w21 = FL(0.0), w22 = FL(0.0);
 OOps/lptrkfns.c:static  MYFLT w3 = FL(0.0), w31 = FL(0.0), w32 = FL(0.0);
 OOps/lptrkfns.c:static  MYFLT w4 = FL(0.0), w41 = FL(0.0), w42 = FL(0.0);
 
-OOps/pvinterp.c:static  int     pdebug = 0;
-OOps/pvinterp.c:static  PVBUFREAD       *pvbufreadaddr;
-
-OOps/pvoc.c:static PVSTRUCT tmphdr;         /* scratch space for pre-load */
-OOps/pvoc.c:static char unspecMsg[27] = "Unspecified error :        ";
-
 OOps/schedule.c:static RSCHED *kicked = NULL;
 
 OOps/sdif.c:static  char    p[BUFSIZE];
@@ -65,12 +59,6 @@ OOps/ugens5.c:static  int     currentLPCSlot=0 ;
 OOps/ugens5.c:static int max_lpc_slot=0;
 OOps/ugens5.c:static  LPREAD  **lprdadr=NULL;
 OOps/ugens5.c:static  char    lpfilname[MAXNAME];
-
-OOps/ugens8.c:static int pvx_loadfile(const char *fname,PVOC *p,MEMFIL **mfp);
-OOps/ugens8.c:static int byterev_pvoc(MEMFIL *mfil);
-OOps/ugens8.c:static
-
-OOps/vpvoc.c:static  TABLESEG        *tbladr;
 
 Opcodes/fm4op.c:static int      FM_tabs_built = 0;
 Opcodes/fm4op.c:static MYFLT    FM4Op_gains[100];
