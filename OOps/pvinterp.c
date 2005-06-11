@@ -33,9 +33,6 @@
 #include "soundio.h"
 #include "oload.h"
 
-static  int     pdebug = 0;
-static  PVBUFREAD       *pvbufreadaddr;
-
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
 
@@ -50,7 +47,7 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
     PVSTRUCT *pvh;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-    pvbufreadaddr=p;
+    ((ENVIRON*) csound)->pvbufreadaddr = (void*) p;
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
@@ -132,7 +129,6 @@ int pvbufread(ENVIRON *csound, PVBUFREAD *p)
     if (p->auxch.auxp==NULL) {  /* RWD fix */
       return csound->PerfError(csound, Str("pvbufread: not initialised"));
     }
-    if (pdebug)  fprintf(stderr, "<%7.4f>",*p->ktimpnt);
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
       return csound->PerfError(csound, Str("PVOC timpnt < 0"));
     }
@@ -161,7 +157,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     PVSTRUCT *pvh;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-    p->pvbufread = pvbufreadaddr;
+    p->pvbufread = (PVBUFREAD*) ((ENVIRON*) csound)->pvbufreadaddr;
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
@@ -275,7 +271,6 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
     if (p->auxch.auxp==NULL) {  /* RWD Fix */
       return csound->PerfError(csound, Str("pvinterp: not initialised"));
     }
-    if (pdebug) fprintf(stderr, "<%7.4f>",*p->ktimpnt);
     pex = *p->kfmod;
     outlen = (int)(((MYFLT)size)/pex);
     /* use outlen to check window/krate/transpose combinations */
@@ -346,7 +341,7 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
     PVSTRUCT *pvh;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-    p->pvbufread = pvbufreadaddr;
+    p->pvbufread = (PVBUFREAD*) ((ENVIRON*) csound)->pvbufreadaddr;
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
         MYFLT *fltp;
@@ -460,7 +455,6 @@ int pvcross(ENVIRON *csound, PVCROSS *p)
     if (p->auxch.auxp==NULL) {  /* RWD Fix */
       return csound->PerfError(csound, Str("pvcross: not initialised"));
     }
-    if (pdebug) fprintf(stderr, "<%7.4f>",*p->ktimpnt);
     pex = *p->kfmod;
     outlen = (int)(((MYFLT)size)/pex);
     /* use outlen to check window/krate/transpose combinations */
