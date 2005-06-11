@@ -186,7 +186,6 @@ const ENVIRON cenviron_ = {
         csoundDestroyThreadLock,
         csoundSetFLTKThreadLocking,
         csoundGetFLTKThreadLocking,
-        /* IV - Jan 27 2005: new functions */
         timers_struct_init,
         timers_get_real_time,
         timers_get_CPU_time,
@@ -252,8 +251,8 @@ const ENVIRON cenviron_ = {
         defaultCsoundExitGraph,
         defaultCsoundYield,
         /*
-        * Data fields.
-        */
+         * Data fields.
+         */
         (OPDS*) NULL,   /*  ids                 */
         (OPDS*) NULL,   /*  pds                 */
         DFLT_KSMPS,     /*  ksmps               */
@@ -268,7 +267,7 @@ const ENVIRON cenviron_ = {
         FL(0.0),        /*  global_kicvt        */
         FL(0.0),        /*  cpu_power_busy      */
         0L,             /*  global_kcounter     */
-        NULL, NULL, NULL,     /* orchname, scorename, xfilename */
+        NULL, NULL, NULL, /* orchname, scorename, xfilename */
         DFLT_DBFS,      /*  e0dbfs              */
         NLABELS,        /*  nlabels             */
         NGOTOS,         /*  ngotos              */
@@ -318,7 +317,7 @@ const ENVIRON cenviron_ = {
         NULL,           /*  pool                */
         NULL,           /*  argoffspace         */
         NULL,           /*  frstoff             */
-#if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mills_macintosh)
+#if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mac_classic)
         {0},
 #else
         {{{0}}},        /*  exitjmp of type jmp_buf */
@@ -443,7 +442,8 @@ const ENVIRON cenviron_ = {
         NULL,           /*  pvFileTable         */
         0,              /*  pvNumFiles          */
         0,              /*  pvErrorCode         */
-        NULL            /*  pvbufreadaddr       */
+        NULL,           /*  pvbufreadaddr       */
+        NULL            /*  tbladr              */
 };
 
 /* otran.c */
@@ -457,6 +457,7 @@ static  int     create_strconst_ndx_list(ENVIRON *csound, int **lst, int offs);
 static  void    convert_strconst_pool(ENVIRON *csound, MYFLT *dst);
 
 /* RWD for reentry */
+
 void oloadRESET(ENVIRON *csound)
 {
     INSTRTXT    *tp = csound->instxtanchor.nxtinstxt;

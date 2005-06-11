@@ -34,8 +34,6 @@
 #include "soundio.h"
 #include "oload.h"
 
-static  TABLESEG        *tbladr;
-
 int tblesegset(ENVIRON *csound, TABLESEG *p)
 {
     TSEG        *segp;
@@ -45,7 +43,7 @@ int tblesegset(ENVIRON *csound, TABLESEG *p)
     long        flength;
     int i;
 
-    tbladr=p;
+    csound->tbladr = (void*) p;
     nsegs = (p->INCOUNT >> 1);  /* count segs & alloc if nec */
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
@@ -149,51 +147,6 @@ int ktablexseg(ENVIRON *csound, TABLESEG *p)
     return OK;
 }
 
-#ifdef never
-int voscset(ENVIRON *csound, VOSC *p)
-{
-    p->tableseg = tbladr;
-    if (*p->iphs >= 0)
-      p->lphs = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
-    return OK;
-}
-
-int voscili(ENVIRON *csound, VOSC *p)
-{
-    FUNC        *ftp;
-    MYFLT       v1, fract, *ar, *ampp, *cpsp, *ftab;
-    long        phs, lobits;
-    int         nsmps = csound->ksmps;
-    TABLESEG    *q = p->tableseg;
-
-    /* RWD fix */
-    if (q->auxch.auxp==NULL) {
-      return csound->PerfError(csound, Str("voscili: not initialised"));
-    }
-    ftp = q->outfunc;
-    ftab = ftp->ftable;
-    lobits = ftp->lobits;
-    phs = p->lphs;
-    ampp = p->xamp;
-    cpsp = p->xcps;
-    ar = p->sr;
-
-    do {
-      long inc;
-      inc = (long)(*cpsp++ * sicvt);
-      fract = PFRAC(phs);
-      ftab =ftp->ftable + (phs >> lobits);
-      v1 = *ftab++;
-      *ar++ = (v1 + (*ftab - v1) * fract) * *ampp;
-      phs += inc;
-      phs &= PHMASK;
-    }
-    while (--nsmps);
-    p->lphs = phs;
-    return OK;
-}
-#endif
-
 /************************************************************/
 /*****************VPVOC**************************************/
 /************************************************************/
@@ -213,8 +166,9 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     MEMFIL   *mfp;
     PVSTRUCT *pvh;
     int     frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
-                                /* If optional table given, fake it up -- JPff */
-    if (*p->isegtab==FL(0.0)) p->tableseg = tbladr;
+                        /* If optional table given, fake it up -- JPff  */
+    if (*p->isegtab == FL(0.0))
+      p->tableseg = (TABLESEG*) csound->tbladr;
     else {
       csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;

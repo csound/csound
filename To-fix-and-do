@@ -5,27 +5,12 @@ K1.	There is no looping structures for aiff (or wav) files
 
 K2.	Parser
 
-K3.     Portaudio.v19 on OSX
-        Kinda patched 
-
-K4.     Use of PortMIDI
-        Seems working -- needs checking
-
-K6.     Installer for Linux
-
 K7.     Installer for MacOSX
-
-K9.     Scaling of floating files not clear
-
-K10.    Dnoise not changed to libsndfile
-
 
 BUGS NOT FIXED
 --------------
 
-B1.     Loading of deferred files in gen1 suspect
+B1.     hetro and lpanal are broken
 
 B2.     Many differences between FL code on Csound and CsoundAV
-
-B3.     If no output format given does not have a sane default.
 
