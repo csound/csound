@@ -93,11 +93,11 @@ int pvaddset(ENVIRON *csound, PVADD *p)
 
     memsize = (long) (MAXBINS + PVFFTSIZE + PVFFTSIZE);
     if (*p->imode == 1 || *p->imode == 2) {
-#ifndef USE_DOUBLE
-      memsize += (long) ((p->frSiz + 2L) * (p->maxFr + 2L));
-#else
-      memsize += (((long) ((p->frSiz + 2L) * (p->maxFr + 2L)) + 1L) / 2L);
+      long  n = (long) ((p->frSiz + 2L) * (p->maxFr + 2L));
+#ifdef USE_DOUBLE
+      n = (n + 1L) * (long) sizeof(float) / (long) sizeof(double);
 #endif
+      memsize += n;
     }
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {

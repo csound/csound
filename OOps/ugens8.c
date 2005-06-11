@@ -57,11 +57,11 @@ int pvset(ENVIRON *csound, PVOC *p)
 
     memsize = (long) (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN);
     if (*p->imode == 1 || *p->imode == 2) {
-#ifndef USE_DOUBLE
-      memsize += (long) ((p->frSiz + 2L) * (p->maxFr + 2L));
-#else
-      memsize += (((long) ((p->frSiz + 2L) * (p->maxFr + 2L)) + 1L) / 2L);
+      long  n = (long) ((p->frSiz + 2L) * (p->maxFr + 2L));
+#ifdef USE_DOUBLE
+      n = (n + 1L) * (long) sizeof(float) / (long) sizeof(double);
 #endif
+      memsize += n;
     }
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
@@ -175,23 +175,8 @@ int pvoc(ENVIRON *csound, PVOC *p)
       /* RWD: THIS CAUSED MASSIVE MEMORY ERROR, BUT DOESN'T WORK ANYWAY */
       PreWarpSpec(buf, asize, pex);
 
-    /* convert from magnitude/phase format to real/imaginary */
-    for (i = 0; i < size; i += 4) {
-      MYFLT re, im;
-      re = buf[i] * (MYFLT) cos(buf[i + 1]);
-      im = buf[i] * (MYFLT) sin(buf[i + 1]);
-      buf[i    ] = re;
-      buf[i + 1] = im;
-      /* Offset the phase to align centres of stretched windows, not starts */
-      re = -(buf[i + 2] * (MYFLT) cos(buf[i + 3]));
-      im = -(buf[i + 2] * (MYFLT) sin(buf[i + 3]));
-      buf[i + 2] = re;
-      buf[i + 3] = im;
-    }
-    /* kill spurious imag at dc & fs/2 */
-    buf[1] = buf[i]; buf[i] = buf[i + 1] = FL(0.0);
+    Polar2Real_PVOC(csound, buf, size);
 
-    csound->InverseRealFFT(csound, buf, (int) size);
     if (pex != FL(1.0))
       UDSample(buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
                buf2, size, buf2Size, pex);
@@ -251,7 +236,9 @@ static int pvx_loadfile(ENVIRON *csound, const char *fname, PVOC *p)
     p->chans    = pp.chans;
     p->asr      = pp.srate;
     /* amplitude scale for PVOC */
-    p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
+ /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
+  */
+    p->scale = (MYFLT) pp.fftsize * FL(0.5);
     p->scale *= csound->GetInverseRealFFTScale(csound, pp.fftsize);
 
     return OK;
