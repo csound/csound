@@ -887,6 +887,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('cvanal',
     ['util/cvanal.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('dnoise',
     ['util/dnoise.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('envext',
+    ['util/envext.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('hetro',
     ['util/hetro.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('lpanal',
@@ -908,8 +910,8 @@ executables.append(csoundProgramEnvironment.Program('cvanal',
     ['util/cvl_main.c']))
 executables.append(csoundProgramEnvironment.Program('dnoise',
     ['util/dnoise_main.c']))
-#executables.append(csoundProgramEnvironment.Program('envext',
-#    ['util2/envext/envext.c']))
+executables.append(csoundProgramEnvironment.Program('envext',
+    ['util/env_main.c']))
 executables.append(csoundProgramEnvironment.Program('extract',
     ['util1/sortex/xmain.c']))
 #executables.append(csoundProgramEnvironment.Program('extractor',
