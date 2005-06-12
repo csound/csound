@@ -265,7 +265,7 @@ static int scale(void *csound_, int argc, char **argv)
             if (strcmp(csound->oparms->outfilename,"stdin") == 0)
               csound->Die(csound, "-o cannot be stdin");
             if (strcmp(csound->oparms->outfilename,"stdout") == 0) {
-#if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
+#if defined mac_classic || defined WIN32
               csound->Die(csound, Str("stdout audio not supported"));
 #else
               if ((csound->oparms->stdoutfd = dup(1)) < 0) /* redefine stdout */
@@ -278,7 +278,8 @@ static int scale(void *csound_, int argc, char **argv)
             if (OO.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (csound->oparms->msglevel & WARNMSG)
-                csound->Message(csound,Str("-A overriding local default WAV out"));
+                csound->Message(csound,
+                                Str("-A overriding local default WAV out"));
             }
             OO.filetyp = TYP_AIFF;     /* AIFF output request  */
             break;
@@ -287,7 +288,9 @@ static int scale(void *csound_, int argc, char **argv)
                 OO.filetyp == TYP_WAV) {
               if (envoutyp == NULL) goto outtyp;
               if (csound->oparms->msglevel & WARNMSG)
-                csound->Message(csound,Str("WARNING: -J overriding local default AIFF/WAV out\n"));
+                csound->Message(csound,
+                                Str("WARNING: -J overriding local "
+                                    "default AIFF/WAV out\n"));
             }
             OO.filetyp = TYP_IRCAM;      /* IRCAM output request */
             break;
@@ -295,7 +298,8 @@ static int scale(void *csound_, int argc, char **argv)
             if (OO.filetyp == TYP_AIFF) {
               if (envoutyp == NULL) goto outtyp;
               if (csound->oparms->msglevel & WARNMSG)
-                csound->Message(csound,Str("-W overriding local default AIFF out"));
+                csound->Message(csound,
+                                Str("-W overriding local default AIFF out"));
             }
             OO.filetyp = TYP_WAV;      /* WAV output request  */
             break;
@@ -359,7 +363,8 @@ static int scale(void *csound_, int argc, char **argv)
  retry:
     /* Read sound file */
     if (!(infile = SCsndgetset(csound, &sc, inputfile))) {
-      csound->Message(csound,Str("%s: error while opening %s"), argv[0], inputfile);
+      csound->Message(csound,Str("%s: error while opening %s"),
+                      argv[0], inputfile);
       exit(1);
     }
     if (factor != 0.0 || factorfile != NULL) {          /* perform scaling */
@@ -369,27 +374,32 @@ static int scale(void *csound_, int argc, char **argv)
       csound->oparms->sfsampsize = sfsampsize(csound->oparms->outformat);
       if (OO.filetyp)
         csound->oparms->filetyp = OO.filetyp;
-      else csound->oparms->outformat = csound->oparms->informat; /* Copy from input file */
+      else                      /* Copy from input file */
+        csound->oparms->outformat = csound->oparms->informat; 
       if (OO.sfheader)
         csound->oparms->sfheader = OO.sfheader;
       else csound->oparms->sfheader = 1;
       if (csound->oparms->filetyp == TYP_AIFF) {
         if (!csound->oparms->sfheader)
-          csound->Die(csound, Str("can't write AIFF/WAV soundfile with no header"));
+          csound->Die(csound,
+                      Str("can't write AIFF/WAV soundfile with no header"));
       }
       if (csound->oparms->filetyp == TYP_WAV) {
         if (!csound->oparms->sfheader)
-          csound->Die(csound, Str("can't write AIFF/WAV soundfile with no header"));
+          csound->Die(csound,
+                      Str("can't write AIFF/WAV soundfile with no header"));
       }
       if (OO.filetyp)
         csound->oparms->filetyp = OO.filetyp;
       if (csound->oparms->rewrt_hdr && !csound->oparms->sfheader)
         csound->Die(csound, Str("can't rewrite header if no header requested"));
-      if (csound->oparms->outfilename == NULL)  csound->oparms->outfilename = "test";
+      if (csound->oparms->outfilename == NULL)
+        csound->oparms->outfilename = "test";
       sfinfo.frames = -1;
       sfinfo.samplerate = (int)(csound->esr = sc.p->sr);
       sfinfo.channels = csound->nchnls = sc.p->nchanls;
-      sfinfo.format = TYPE2SF(csound->oparms->filetyp) | FORMAT2SF(csound->oparms->outformat);
+      sfinfo.format = TYPE2SF(csound->oparms->filetyp) |
+                      FORMAT2SF(csound->oparms->outformat);
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
       outfd = csound->FileOpen(csound, outfd, CSFILE_STD,
@@ -559,9 +569,11 @@ ScaleSound(ENVIRON *csound, SCALE *thissc, SNDFILE *infile, SNDFILE *outfd)
       }
     }
     sf_close(infile);
-    csound->Message(csound,"Max val %d at index %ld (time %.4f, chan %d) %d times\n",
+    csound->Message(csound,
+                    "Max val %d at index %ld (time %.4f, chan %d) %d times\n",
            (int)max,mxpos,tpersample*(mxpos/chans),(int)mxpos%chans, maxtimes);
-    csound->Message(csound,"Min val %d at index %ld (time %.4f, chan %d) %d times\n",
+    csound->Message(csound,
+                    "Min val %d at index %ld (time %.4f, chan %d) %d times\n",
            (int)min,minpos,tpersample*(minpos/chans),(int)minpos%chans, mintimes);
     csound->Message(csound,"Max scale factor = %.3f\n",
            (float)SHORTMAX/(float)((max>-min)?max:-min) );
@@ -597,9 +609,11 @@ static float FindAndReportMax(ENVIRON *csound, SCALE *thissc, SNDFILE *infile)
       block++;
     }
     sf_close(infile);
-    csound->Message(csound,"Max val %d at index %ld (time %.4f, chan %d) %d times\n",
+    csound->Message(csound,
+                    "Max val %d at index %ld (time %.4f, chan %d) %d times\n",
            (int)max,mxpos,tpersample*(mxpos/chans),(int)mxpos%chans,maxtimes);
-    csound->Message(csound,"Min val %d at index %ld (time %.4f, chan %d) %d times\n",
+    csound->Message(csound,
+                    "Min val %d at index %ld (time %.4f, chan %d) %d times\n",
            (int)min,minpos,tpersample*(minpos/chans),(int)minpos%chans,mintimes);
     csound->Message(csound,"Max scale factor = %.3f\n",
            (float)SHORTMAX/(float)((max>-min)?max:-min) );

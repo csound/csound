@@ -41,7 +41,7 @@
 
 /* Static function prototypes */
 
-static SNDFILE *SCsndgetset(ENVIRON *, char *);
+static SNDFILE * SCsndgetset(ENVIRON *, SOUNDIN **, char *);
 static void FindEnvelope(ENVIRON *, SNDFILE *, SOUNDIN *, double);
 
 static char *outname = NULL;
@@ -69,12 +69,11 @@ static int envext(void *csound_, int argc, char **argv)
 
     csound->peakchunks = 1;
 
-    csoundPreCompile(csoundCreate(NULL));
     memset(&OO, 0, sizeof(OO));
 
     /* Check arguments */
     if (!(--argc))
-      envext_usage("Insufficient arguments");
+      envext_usage(csound, "Insufficient arguments");
     do {
       s = *++argv;
       if (*s++ == '-')                        /* read all flags:  */
@@ -92,16 +91,16 @@ static int envext(void *csound_, int argc, char **argv)
             break;
           default:
             sprintf(csound->errmsg,"unknown flag -%c", c);
-            envext_usage(csound->errmsg);
+            envext_usage(csound, csound->errmsg);
           }
       else if (inputfile == NULL) {
         inputfile = --s;
       }
-      else envext_usage("too many arguments");
+      else envext_usage(csound, "too many arguments");
     } while (--argc);
 
     /* Read sound file */
-    if ((infd = SCsndgetset(csound, inputfile))==NULL) {
+    if ((infd = SCsndgetset(csound, &p, inputfile))==NULL) {
       csound->Message(csound,"%s: error while opening %s", argv[0], inputfile);
       return 1;
     }
@@ -125,7 +124,7 @@ SCsndgetset(ENVIRON *csound, SOUNDIN **pp, char *inputfile)
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
-    printf("enveloping %ld sample frames (%3.1f secs)\n",
+    csound->Message(csound,"enveloping %ld sample frames (%3.1f secs)\n",
            (long) p->getframes, dur);
     return(infd);
 }
@@ -168,3 +167,14 @@ FindEnvelope(ENVIRON *csound, SNDFILE *infd, SOUNDIN *p, double window)
     fclose(outfile);
 }
 
+/* module interface */
+
+PUBLIC int csoundModuleCreate(void *csound)
+{
+    int retval = ((ENVIRON*) csound)->AddUtility(csound, "envext", envext);
+    if (!retval) {
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "encext",
+                    "Create a text file of envelope");
+    }
+    return retval;
+}
