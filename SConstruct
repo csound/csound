@@ -532,7 +532,6 @@ OOps/fftlib.c
 OOps/fout.c
 OOps/fprint.c
 OOps/goto_ops.c
-OOps/lptrkfns.c
 OOps/midiinterop.c
 OOps/midiops.c
 OOps/midiout.c

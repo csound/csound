@@ -32,19 +32,6 @@ OOps/disprep.c:        mults = lenmults;                       /* use the static
 OOps/dsputil.c:static MYFLT *sncTab = NULL;    /* point to our sin(x)/x lookup table */
 OOps/dsputil.c:static  MYFLT   *env = (MYFLT *)NULL;   /* Scratch buffer to hold 'envelope' */
 
-OOps/lptrkfns.c:static MYFLT   *tphi[FREQS],*tpsi[FREQS]; /* prv tphi[50][5][25],tpsi[50][6][25] */
-OOps/lptrkfns.c:static MYFLT   *tgamph[FREQS], *tgamps[FREQS], freq[FREQS];
-OOps/lptrkfns.c:static MYFLT    NYQ10;
-OOps/lptrkfns.c:static int      Windsiz, Windsiz2;         /* settable windowsize, halfthat */
-OOps/lptrkfns.c:static int      Dwind, Hwind;              /* settable downsamp10, halfthat */
-OOps/lptrkfns.c:static  int   firstcall = 1, tencount = 0;
-OOps/lptrkfns.c:static  MYFLT *Dwind_dbuf, *Dwind_end1;    /* double buffer for downsamps   */
-OOps/lptrkfns.c:static  MYFLT *dbp1, *dbp2;
-OOps/lptrkfns.c:static  MYFLT w1 = FL(0.0), w11 = FL(0.0), w12 = FL(0.0);
-OOps/lptrkfns.c:static  MYFLT w2 = FL(0.0), w21 = FL(0.0), w22 = FL(0.0);
-OOps/lptrkfns.c:static  MYFLT w3 = FL(0.0), w31 = FL(0.0), w32 = FL(0.0);
-OOps/lptrkfns.c:static  MYFLT w4 = FL(0.0), w41 = FL(0.0), w42 = FL(0.0);
-
 OOps/schedule.c:static RSCHED *kicked = NULL;
 
 OOps/sdif.c:static  char    p[BUFSIZE];
