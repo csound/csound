@@ -889,10 +889,18 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('dnoise',
     ['util/dnoise.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('envext',
     ['util/envext.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('het_export',
+    ['util/het_export.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('het_import',
+    ['util/het_import.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('hetro',
     ['util/hetro.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('lpanal',
     ['util/lpanal.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('lpc_export',
+    ['util/lpc_export.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('lpc_import',
+    ['util/lpc_import.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pvanal',
     ['util/pvanal.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pvlook',
@@ -916,18 +924,18 @@ executables.append(csoundProgramEnvironment.Program('extract',
     ['util1/sortex/xmain.c']))
 #executables.append(csoundProgramEnvironment.Program('extractor',
 #    ['util2/mixer/xtrct.c']))
-#executables.append(csoundProgramEnvironment.Program('het_export',
-#    ['util2/exports/het_export.c']))
-#executables.append(csoundProgramEnvironment.Program('het_import',
-#    ['util2/exports/het_import.c']))
+executables.append(csoundProgramEnvironment.Program('het_export',
+    ['util/hetx_main.c']))
+executables.append(csoundProgramEnvironment.Program('het_import',
+    ['util/heti_main.c']))
 executables.append(csoundProgramEnvironment.Program('hetro',
     ['util/het_main.c']))
 executables.append(csoundProgramEnvironment.Program('lpanal',
     ['util/lpc_main.c']))
-#executables.append(csoundProgramEnvironment.Program('lpc_export',
-#    ['util2/exports/lpc_export.c']))
-#executables.append(csoundProgramEnvironment.Program('lpc_import',
-#    ['util2/exports/lpc_import.c']))
+executables.append(csoundProgramEnvironment.Program('lpc_export',
+    ['util/lpcx_main.c']))
+executables.append(csoundProgramEnvironment.Program('lpc_import',
+    ['util/lpci_main.c']))
 #executables.append(csoundProgramEnvironment.Program('mixer',
 #    ['util2/mixer/mixer.c']))
 #executables.append(csoundProgramEnvironment.Program('pv_export',
