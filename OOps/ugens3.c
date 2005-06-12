@@ -937,17 +937,17 @@ int adsyn(ENVIRON *csound, ADSYN *p)
       return csound->PerfError(csound, Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */
-    ampscale = *p->kamod * csound->dbfs_to_float; /* since 15-bit sine table */
+    ampscale = *p->kamod * csound->e0dbfs;      /* since 15-bit sine table */
     frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
     /* 1024 * msecs of analysis */
     timkincr = (long)(*p->ksmod*FL(1024000.0)*csound->onedkr);
-    sp = (long *) p->rslt;                     /* use out array for sums */
+    sp = (long *) p->rslt;                      /* use out array for sums */
     nsmps = csound->ksmps;
     do {
       *sp++ = 0L;                               /* cleared first to zero */
     } while (--nsmps);
-    curtim = (short)(p->mksecs >> 10);         /* cvt mksecs to msecs */
-    curp = (PTLPTR*)p->aux.auxp;               /* now for each partial:    */
+    curtim = (short)(p->mksecs >> 10);          /* cvt mksecs to msecs */
+    curp = (PTLPTR*)p->aux.auxp;                /* now for each partial:    */
     while ((prvp = curp) && (curp = curp->nxtp) != NULL ) {
       ap = curp->ap;
       fp = curp->fp;
@@ -990,7 +990,7 @@ int adsyn(ENVIRON *csound, ADSYN *p)
     do {
       /* a quick-hack fix: should change adsyn to use floats table and
          buffers and should replace hetro format anyway.... */
-      *ar++ = (MYFLT)((*sp++ * ampscale) / ADSYN_MAXLONG) * csound->e0dbfs;
+      *ar++ = (MYFLT) ((*sp++ * ampscale) / ADSYN_MAXLONG);
     } while (--nsmps);
     return OK;
 }
