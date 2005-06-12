@@ -896,6 +896,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('pvanal',
     ['util/pvanal.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pvlook',
     ['util/pvlook.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('scale',
+    ['util/scale.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndinfo',
     ['util/sndinfo.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('srconv',
@@ -935,8 +937,8 @@ executables.append(csoundProgramEnvironment.Program('pvanal',
     ['util/pvc_main.c']))
 executables.append(csoundProgramEnvironment.Program('pvlook',
     ['util/pvl_main.c']))
-#executables.append(csoundProgramEnvironment.Program('scale',
-#    ['util2/scale.dir/scale.c']))
+executables.append(csoundProgramEnvironment.Program('scale',
+    ['util/scale_main.c']))
 #executables.append(csoundProgramEnvironment.Program('scot',
 #    ['util1/scot/scot_main.c']))
 executables.append(csoundProgramEnvironment.Program('scsort',
