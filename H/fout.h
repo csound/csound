@@ -26,46 +26,44 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *fname,*iflag, *argums[VARGMAX];
+        MYFLT   *fname, *iflag, *argums[VARGMAX];
         SNDFILE *fp;
+        MYFLT   scaleFac;
         int     idx;
-        SUBR    outfilep;
         int     flag;
         int     nargs;
-        long    cnt;
 } OUTFILE;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *fname,*iflag, *argums[VARGMAX];
+        MYFLT   *fname, *iflag, *argums[VARGMAX];
         SNDFILE *fp;
+        MYFLT   scaleFac;
         int     idx;
-        SUBR    koutfilep;
         int     flag;
-        int nargs;
-        long    cnt;
+        int     nargs;
 } KOUTFILE;
 
 typedef struct {
         OPDS    h;
         MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
         SNDFILE *fp;
+        MYFLT   scaleFac;
         int     idx;
-        SUBR    infilep;
-        long currpos;
+        long    currpos;
         int     flag;
-        int nargs;
+        int     nargs;
 } INFILE;
 
 typedef struct {
         OPDS    h;
         MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
         SNDFILE *fp;
+        MYFLT   scaleFac;
         int     idx;
-        SUBR kinfilep;
-        long currpos;
+        long    currpos;
         int     flag;
-        int nargs;
+        int     nargs;
 } KINFILE;
 
 typedef struct {
@@ -88,21 +86,20 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ihandle, *fname;
-        MYFLT   *iascii; /* iascii=0 open ascii (default), iflag=1 open binary */
+        /* iascii=0 open ascii (default), iflag=1 open binary */
+        MYFLT   *iascii;
 } FIOPEN;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
-        /*void (*ioutfilep) (void *); */
 } IOUTFILE;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
-        long counter;
-        int done;
-        /*  void (*ioutfilep) (void *); */
+        long    counter;
+        int     done;
 } IOUTFILE_R;
 
 typedef struct {
