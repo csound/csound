@@ -401,7 +401,7 @@ def buildzip(env, target, source):
 csoundLibraryEnvironment = commonEnvironment.Copy()
 
 pluginEnvironment = commonEnvironment.Copy()
-pluginEnvironment.Append(LIBS = ['sndfile'])
+pluginEnvironment.Append(LIBS = ['csound','sndfile'])
 
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi', '-framework', 'CoreFoundation', '-framework', 'CoreAudio'])
