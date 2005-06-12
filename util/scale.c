@@ -28,7 +28,7 @@
 *   and a certain amount of lifting from Csound itself  *
 \*******************************************************/
 
-#include "cs.h"
+#include "csdl.h"
 #include "soundio.h"
 #ifdef HAVE_CTYPE_H
 #include <ctype.h>
@@ -39,25 +39,66 @@
 #define SHORTMAX 32767
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
-                            csoundDie(csound, MSG);
-
-/* Static function prototypes */
-
-static void  InitScaleTable(ENVIRON *,double, char *);
-static SNDFILE *SCsndgetset(ENVIRON *,char *);
-static void  ScaleSound(ENVIRON *, SNDFILE *, SNDFILE *);
-static float FindAndReportMax(ENVIRON *, SNDFILE *);
-
-/* Externs */
-extern void writeheader(ENVIRON *, int, char *);
-extern char *getstrformat(int);
-extern char* type2string(int);
-extern short sfsampsize(int);
+                            csound->Die(csound, MSG);
 
 /* Static global variables */
-static  SOUNDIN    *p;  /* space allocated by SAsndgetset() */
-static  unsigned   outbufsiz;
-static  MYFLT      *out_buf;
+//static  SOUNDIN    *p;  /* space allocated by SAsndgetset() */
+//static  unsigned   outbufsiz;
+//static  MYFLT      *out_buf;
+
+/* *** Note these function occurs elsewhere but not in APT *** */
+static char *type2string(int x)
+{
+    switch (x) {
+      case TYP_WAV:   return "WAV";
+      case TYP_AIFF:  return "AIFF";
+      case TYP_AU:    return "AU";
+      case TYP_RAW:   return "RAW";
+      case TYP_PAF:   return "PAF";
+      case TYP_SVX:   return "SVX";
+      case TYP_NIST:  return "NIST";
+      case TYP_VOC:   return "VOC";
+      case TYP_IRCAM: return "IRCAM";
+      case TYP_W64:   return "W64";
+      case TYP_MAT4:  return "MAT4";
+      case TYP_MAT5:  return "MAT5";
+      case TYP_PVF:   return "PVF";
+      case TYP_XI:    return "XI";
+      case TYP_HTK:   return "HTK";
+#ifdef SF_FORMAT_SDS
+      case TYP_SDS:   return "SDS";
+#endif
+      default:        return "(unknown)";
+    }
+}
+short sfsampsize(int type)
+{
+    switch (type & SF_FORMAT_SUBMASK) {
+      case SF_FORMAT_PCM_16:  return 2;     /* Signed 16 bit data */
+      case SF_FORMAT_PCM_32:  return 4;     /* Signed 32 bit data */
+      case SF_FORMAT_FLOAT:   return 4;     /* 32 bit float data */
+      case SF_FORMAT_PCM_24:  return 3;     /* Signed 24 bit data */
+      case SF_FORMAT_DOUBLE:  return 8;     /* 64 bit float data */
+    }
+    return 1;
+}
+
+char *getstrformat(int format)  /* used here, and in sfheader.c */
+{
+    switch (format) {
+      case  AE_UNCH:    return "unsigned bytes"; /* J. Mohr 1995 Oct 17 */
+      case  AE_CHAR:    return "signed chars";
+      case  AE_ALAW:    return "alaw bytes";
+      case  AE_ULAW:    return "ulaw bytes";
+      case  AE_SHORT:   return "shorts";
+      case  AE_LONG:    return "longs";
+      case  AE_FLOAT:   return "floats";
+      case  AE_24INT:   return "24bit ints";     /* RWD 5:2001 */
+    }
+    return "unknown";
+}
+
+/* *** end of copies *** */
 
 static void usage(ENVIRON *csound, char *mesg)
 {
@@ -146,6 +187,30 @@ static char set_output_format(ENVIRON *csound, OPARMS *p, char c, char outformch
   return c;
 }
 
+typedef struct scalepoint {
+  double y0;
+  double y1;
+  double yr;
+  int x0;
+  int x1;
+  struct scalepoint *next;
+} scalepoint;
+static scalepoint stattab = {0.0, 0.0, 0.0, 0, 0, NULL};
+typedef struct {
+  double     ff;
+  int        table_used;
+  scalepoint scale_table;
+  scalepoint *end_table;
+  SOUNDIN    *p;
+} SCALE;
+
+/* Static function prototypes */
+
+static void  InitScaleTable(ENVIRON *,SCALE *, double, char *);
+static SNDFILE *SCsndgetset(ENVIRON *, SCALE *, char *);
+static void  ScaleSound(ENVIRON *, SCALE *, SNDFILE *, SNDFILE *);
+static float FindAndReportMax(ENVIRON *, SCALE *, SNDFILE *);
+
 static int scale(void *csound_, int argc, char **argv)
 {
     ENVIRON     *csound = (ENVIRON*) csound_;
@@ -154,18 +219,24 @@ static int scale(void *csound_, int argc, char **argv)
     double      maximum = 0.0;
     char        *factorfile = NULL;
     SNDFILE     *infile = 0, *outfile;
-    FILE        *outfd;
+    FILE        *outfd = NULL;
     char        outformch = 's', c, *s, *filnamp;
     char        *envoutyp;
     SF_INFO     sfinfo;
     OPARMS      OO;
+    SCALE       sc;
+    unsigned    outbufsiz;
+    MYFLT       *out_buf;
 
-    init_getstring(argc, argv);
-    csoundPreCompile(csoundCreate(NULL));
+    sc.ff = 0.0;
+    sc.table_used = 0;
+    sc.scale_table = stattab;
+    sc.end_table = &sc.scale_table;
+ 
     memset(&OO, 0, sizeof(OO));
     /* Check arguments */
     {
-      if ((envoutyp = csoundGetEnv(csound, "SFOUTYP")) != NULL) {
+      if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
         if (strcmp(envoutyp,"AIFF") == 0)
           OO.filetyp = TYP_AIFF;
         else if (strcmp(envoutyp,"WAV") == 0)
@@ -179,7 +250,7 @@ static int scale(void *csound_, int argc, char **argv)
         }
       }
     }
-    csound->oparms->filnamspace = filnamp = mmalloc(csound, (long)1024);
+    csound->oparms->filnamspace = filnamp = csound->Malloc(csound, (long)1024);
     if (!(--argc))
       usage(csound, Str("Insufficient arguments"));
     do {
@@ -192,13 +263,13 @@ static int scale(void *csound_, int argc, char **argv)
             csound->oparms->outfilename = filnamp;            /* soundout name */
             while ((*filnamp++ = *s++)); s--;
             if (strcmp(csound->oparms->outfilename,"stdin") == 0)
-              csoundDie(csound, "-o cannot be stdin");
+              csound->Die(csound, "-o cannot be stdin");
             if (strcmp(csound->oparms->outfilename,"stdout") == 0) {
 #if defined mac_classic || defined SYMANTEC || defined BCC || defined __WATCOMC__ || defined WIN32
-              csoundDie(csound, Str("stdout audio not supported"));
+              csound->Die(csound, Str("stdout audio not supported"));
 #else
               if ((csound->oparms->stdoutfd = dup(1)) < 0) /* redefine stdout */
-                csoundDie(csound, Str("too many open files"));
+                csound->Die(csound, Str("too many open files"));
               dup2(2,1);                /* & send 1's to stderr */
 #endif
             }
@@ -284,18 +355,17 @@ static int scale(void *csound_, int argc, char **argv)
       }
       else usage(csound, Str("too many arguments"));
     } while (--argc);
-    dbfs_init(csound, DFLT_DBFS);
 
  retry:
     /* Read sound file */
-    if (!(infile = SCsndgetset(csound,inputfile))) {
+    if (!(infile = SCsndgetset(csound, &sc, inputfile))) {
       csound->Message(csound,Str("%s: error while opening %s"), argv[0], inputfile);
       exit(1);
     }
     if (factor != 0.0 || factorfile != NULL) {          /* perform scaling */
       if (OO.outformat)                       /* if no audioformat yet  */
         csound->oparms->outformat = OO.outformat;
-      else csound->oparms->outformat = p->format; /* Copy from input file */
+      else csound->oparms->outformat = sc.p->format; /* Copy from input file */
       csound->oparms->sfsampsize = sfsampsize(csound->oparms->outformat);
       if (OO.filetyp)
         csound->oparms->filetyp = OO.filetyp;
@@ -305,20 +375,20 @@ static int scale(void *csound_, int argc, char **argv)
       else csound->oparms->sfheader = 1;
       if (csound->oparms->filetyp == TYP_AIFF) {
         if (!csound->oparms->sfheader)
-          csoundDie(csound, Str("can't write AIFF/WAV soundfile with no header"));
+          csound->Die(csound, Str("can't write AIFF/WAV soundfile with no header"));
       }
       if (csound->oparms->filetyp == TYP_WAV) {
         if (!csound->oparms->sfheader)
-          csoundDie(csound, Str("can't write AIFF/WAV soundfile with no header"));
+          csound->Die(csound, Str("can't write AIFF/WAV soundfile with no header"));
       }
       if (OO.filetyp)
         csound->oparms->filetyp = OO.filetyp;
       if (csound->oparms->rewrt_hdr && !csound->oparms->sfheader)
-        csoundDie(csound, Str("can't rewrite header if no header requested"));
+        csound->Die(csound, Str("can't rewrite header if no header requested"));
       if (csound->oparms->outfilename == NULL)  csound->oparms->outfilename = "test";
       sfinfo.frames = -1;
-      sfinfo.samplerate = (int)(csound->esr = p->sr);
-      sfinfo.channels = csound->nchnls = p->nchanls;
+      sfinfo.samplerate = (int)(csound->esr = sc.p->sr);
+      sfinfo.channels = csound->nchnls = sc.p->nchanls;
       sfinfo.format = TYPE2SF(csound->oparms->filetyp) | FORMAT2SF(csound->oparms->outformat);
       sfinfo.sections = 0;
       sfinfo.seekable = 0;
@@ -326,23 +396,23 @@ static int scale(void *csound_, int argc, char **argv)
                                csound->oparms->outfilename, "w", NULL);
       outfile = sf_open_fd(fileno(outfd), SFM_WRITE, &sfinfo, 1);
       outbufsiz = 1024 * csound->oparms->sfsampsize; /* calc outbuf size  */
-      out_buf = mmalloc(csound, (long)outbufsiz);    /*  & alloc bufspace */
+      out_buf = csound->Malloc(csound, (long)outbufsiz);    /*  & alloc bufspace */
       csound->Message(csound,Str("writing %d-byte blks of %s to %s %s\n"),
                       outbufsiz, getstrformat(csound->oparms->outformat),
                       csound->oparms->outfilename,
                       type2string(csound->oparms->filetyp));
-      InitScaleTable(csound, factor, factorfile);
-      ScaleSound(csound, infile, outfile);
+      InitScaleTable(csound, &sc, factor, factorfile);
+      ScaleSound(csound, &sc, infile, outfile);
       sf_close(outfile);
     }
     else if (maximum!=0.0) {
-      float mm = FindAndReportMax(csound,infile);
+      float mm = FindAndReportMax(csound,&sc,infile);
       factor = maximum / mm;
       sf_close(infile);
       goto retry;
     }
     else
-      FindAndReportMax(csound, infile);
+      FindAndReportMax(csound, &sc,infile);
     if (csound->oparms->ringbell) putc(7, stderr);
     return 0;
 
@@ -351,38 +421,27 @@ static int scale(void *csound_, int argc, char **argv)
             Str("sound output format cannot be both -%c and -%c"),
             outformch, c);
     usage(csound, csound->errmsg);
-    exit(1);
+    return 1;
 }
 
-static double ff = 0.0;
-static int table_used = 0;
-typedef struct scalepoint {
-  double y0;
-  double y1;
-  double yr;
-  int x0;
-  int x1;
-  struct scalepoint *next;
-} scalepoint;
-scalepoint scale_table = {0.0, 0.0, 0.0, 0, 0, NULL};
-scalepoint *end_table = &scale_table;
-
-static void InitScaleTable(ENVIRON *csound, double factor, char *factorfile)
+static void InitScaleTable(ENVIRON *csound, SCALE *thissc,
+                           double factor, char *factorfile)
 {
-    if (factor != 0.0) ff = factor;
+    if (factor != 0.0) thissc->ff = factor;
     else {
       FILE *f = fopen(factorfile, "r");
-      double samplepert = (double)p->sr;
+      double samplepert = (double)thissc->p->sr;
       double x, y;
       while (fscanf(f, "%lf %lf\n", &x, &y) == 2) {
-        scalepoint *newpoint = (scalepoint*) malloc(sizeof(scalepoint));
+        scalepoint *newpoint =
+          (scalepoint*) csound->Malloc(csound,sizeof(scalepoint));
         if (newpoint == NULL) {
           csound->Message(csound, "Insufficient memory\n");
           exit(1);
         }
-        end_table->next = newpoint;
-        newpoint->x0 = end_table->x1;
-        newpoint->y0 = end_table->y1;
+        thissc->end_table->next = newpoint;
+        newpoint->x0 = thissc->end_table->x1;
+        newpoint->y0 = thissc->end_table->y1;
         newpoint->x1 = (int) (x*samplepert);
         newpoint->y1 = y;
         newpoint->yr =
@@ -390,17 +449,18 @@ static void InitScaleTable(ENVIRON *csound, double factor, char *factorfile)
            y - newpoint->y0 :
            (y - newpoint->y0)/((double)(newpoint->x1 - newpoint->x0)));
         newpoint->next = NULL;
-        end_table = newpoint;
+        thissc->end_table = newpoint;
       }
       {
-        scalepoint *newpoint = (scalepoint*) malloc(sizeof(scalepoint));
+        scalepoint *newpoint = (scalepoint*)
+          csound->Malloc(csound,sizeof(scalepoint));
         if (newpoint == NULL) {
           csound->Message(csound, "Insufficient memory\n");
           exit(1);
         }
-        end_table->next = newpoint;
-        newpoint->x0 = end_table->x1;
-        newpoint->y0 = end_table->y1;
+        thissc->end_table->next = newpoint;
+        newpoint->x0 = thissc->end_table->x1;
+        newpoint->y0 = thissc->end_table->y1;
         newpoint->x1 = 0x7fffffff;
         newpoint->y1 = 0.0;
         newpoint->next = NULL;
@@ -408,9 +468,9 @@ static void InitScaleTable(ENVIRON *csound, double factor, char *factorfile)
                         -newpoint->y0 :
                         -newpoint->y0/((double)(0x7fffffff-newpoint->x0)));
       }
-      end_table = &scale_table;
+      thissc->end_table = &thissc->scale_table;
 /*      { */
-/*          scalepoint *tt = &scale_table; */
+/*          scalepoint *tt = &thissc->scale_table; */
 /*          csound->Message(csound, "Scale table is\n"); */
 /*          while (tt != NULL) { */
 /*              csound->Message(csound, "(%d %f) -> %d %f [%f]\n", */
@@ -419,31 +479,35 @@ static void InitScaleTable(ENVIRON *csound, double factor, char *factorfile)
 /*          } */
 /*          csound->Message(csound, "END of Table\n"); */
 /*      } */
-      table_used = 1;
+      thissc->table_used = 1;
     }
 }
 
-static double gain(int i)
+static double gain(SCALE *thissc, int i)
 {
-    if (!table_used) return ff;
-    while (i<end_table->x0 || i>end_table->x1){/* Get correct segment */
+    if (!thissc->table_used) return thissc->ff;
+    while (i<thissc->end_table->x0 ||
+           i>thissc->end_table->x1) {/* Get correct segment */
 /*      csound->Message(csound, "Next table: %d (%d %f) -> %d %f [%f]\n", */
-/*            i, end_table->x0, end_table->y0, end_table->x1, end_table->y1, */
-/*            end_table->yr); */
-        end_table = end_table->next;
+      /*            i, thissc->end_table->x0, thissc->end_table->y0, */
+      /*            thissc->end_table->x1, thissc->end_table->y1, */
+/*            thissc->end_table->yr); */
+        thissc->end_table = thissc->end_table->next;
     }
-    return end_table->y0 + end_table->yr * (double)(i - end_table->x0);
+    return thissc->end_table->y0 +
+      thissc->end_table->yr * (double)(i - thissc->end_table->x0);
 }
 
 static SNDFILE *
-SCsndgetset(ENVIRON *csound, char *inputfile)
+SCsndgetset(ENVIRON *csound, SCALE *thissc, char *inputfile)
 {
     SNDFILE *infile;
     double  dur;
+    SOUNDIN *p;
 
-    csoundInitEnv(csound);      /* stand-alone init of SFDIR etc. */
+    //    csoundInitEnv(csound);      /* stand-alone init of SFDIR etc. */
     csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
-    p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
+    thissc->p = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
     strcpy(p->sfname, inputfile);
@@ -459,25 +523,26 @@ SCsndgetset(ENVIRON *csound, char *inputfile)
 #define BUFFER_LEN (1024)
 
 static void
-ScaleSound(ENVIRON *csound, SNDFILE *infile, SNDFILE *outfd)
+ScaleSound(ENVIRON *csound, SCALE *thissc, SNDFILE *infile, SNDFILE *outfd)
 {
     MYFLT buffer[BUFFER_LEN];
     long  read_in;
-    float tpersample;
-    float max, min;
+    double tpersample;
+    double max, min;
     long  mxpos, minpos;
     int   maxtimes, mintimes;
     int   i, chans;
     long  bytes = 0;
     int   block = 0;
 
-    chans = p->nchanls;
-    tpersample = 1.0/(float)p->sr;
+    chans = thissc->p->nchanls;
+    tpersample = 1.0/(double)thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
-    while ((read_in=csound->getsndin(csound,infile,buffer,BUFFER_LEN,p)) > 0) {
+    while ((read_in=csound->getsndin(csound,infile,buffer,
+                                     BUFFER_LEN,thissc->p)) > 0) {
       for (i=0; i<read_in; i++) {
-        buffer[i] = buffer[i] * gain(i+BUFFER_LEN*block);
+        buffer[i] = buffer[i] * gain(thissc, i+BUFFER_LEN*block);
         if (buffer[i] >= max) ++maxtimes;
         if (buffer[i] <= min) ++mintimes;
         if (buffer[i] > max)
@@ -503,8 +568,7 @@ ScaleSound(ENVIRON *csound, SNDFILE *infile, SNDFILE *outfd)
     return;
 }
 
-static float
-FindAndReportMax(ENVIRON *csound, SNDFILE *infile)
+static float FindAndReportMax(ENVIRON *csound, SCALE *thissc, SNDFILE *infile)
 {
     int      chans;
     double   tpersample;
@@ -516,11 +580,12 @@ FindAndReportMax(ENVIRON *csound, SNDFILE *infile)
     long     read_in;
     int      i;
 
-    chans = p->nchanls;
-    tpersample = 1.0/(double)p->sr;
+    chans = thissc->p->nchanls;
+    tpersample = 1.0/(double)thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
-    while ((read_in=csound->getsndin(csound,infile,buffer,BUFFER_LEN,p)) > 0) {
+    while ((read_in=csound->getsndin(csound,infile,buffer,
+                                     BUFFER_LEN,thissc->p)) > 0) {
       for (i=0; i<read_in; i++) {
         if (buffer[i] >= max) ++maxtimes;
         if (buffer[i] <= min) ++mintimes;
