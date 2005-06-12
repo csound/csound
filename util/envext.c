@@ -173,7 +173,7 @@ PUBLIC int csoundModuleCreate(void *csound)
 {
     int retval = ((ENVIRON*) csound)->AddUtility(csound, "envext", envext);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "encext",
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "envext",
                     "Create a text file of envelope");
     }
     return retval;
