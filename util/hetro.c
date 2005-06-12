@@ -21,31 +21,29 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                          /*  HETRO.C   */
+#include "csdl.h"                                       /*  HETRO.C   */
 #include "soundio.h"
 #include <math.h>
 
+#if 0
 /*RWD need to set this to prevent sdif.h including windows.h */
 #define _WINDOWS_
 /* CNMAT sdif library, subject to change..... */
 #include "sdif.h"
 #include "sdif-mem.h"
-
-#ifdef mills_macintosh
-#include "MacTransport.h"
 #endif
 
-/*  #define PIE 3.14159265358979323846 */
-/*  #define TWOPI   6.28318530717958647692 */
 #define SQRTOF3 1.73205080756887729352
 #define SQUELCH 0.5     /* % of max ampl below which delta_f is frozen */
 #define HMAX    50
 
+#if 0
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;
 
 static int is_sdiffile(char *name);
+#endif
 
 /* Authors:   Tom Sullivan, Nov'86, Mar'87;  bv revised Jun'92, Aug'92  */
 /* Function:  Fixed frequency heterodyne filter analysis.               */
@@ -94,22 +92,26 @@ typedef struct {
   double *c_p,*s_p;      /* pointers to space for sine and cos terms */
 } HET;
 
+#if 0
 static int writesdif(ENVIRON*, HET*);
-static  double  GETVAL(HET*,double *, long);
+#endif
+static  double  GETVAL(HET *, double *, long);
 static  double  sq(double);
-static  void    PUTVAL(HET*,double *, long, double);
-static  void    hetdyn(HET*, int), lpinit(HET*);
-static  void    lowpass(HET*,double *, double *, long);
-static  void    average(HET*,long,double *,double *,long);
-static  void    output(HET*,long, int, int);
-static  void    output_ph(HET*,long), filedump(HET*,ENVIRON *), quit(ENVIRON*, char *);
+static  void    PUTVAL(HET *,double *, long, double);
+static  void    hetdyn(HET *, int), lpinit(HET*);
+static  void    lowpass(HET *,double *, double *, long);
+static  void    average(HET *,long, double *, double *, long);
+static  void    output(HET *,long, int, int);
+static  void    output_ph(HET *, long);
+static  int     filedump(HET *, ENVIRON *);
+static  int     quit(ENVIRON *, char *);
 
 #define sgn(x)  (x<0.0 ? -1 : 1)
 #define u(x)    (x>0.0 ? 1 : 0)
 
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
-                            quit(csound,MSG);
+                            return quit(csound, MSG);
 
 static void init_het(HET *thishet)
 {
@@ -128,25 +130,23 @@ static void init_het(HET *thishet)
     thishet->bufsiz = 1;                     /* circular buffer size */
 }
 
-int hetro(ENVIRON  *csound,
-          int argc, char **argv)  /* called from main.c or anal/adsyn/main.c */
+static int hetro(void *csound_, int argc, char **argv)
 {
-    SNDFILE  *infd;
-    int      i, hno, channel = 1;
-    long     nsamps, smpspc, bufspc, mgfrspc;
-    char     *dsp, *dspace, *mspace;
-    double   *begbufs, *endbufs;
-    HET      het;
-    HET *thishet = &het;
-    SOUNDIN  *p;      /* space allocated by SAsndgetset() */
-    /* must set this for 'standard' behaviour when analysing
-       (assume re-entrant Csound) */
-    dbfs_init(csound, DFLT_DBFS);
+    ENVIRON *csound = (ENVIRON*) csound_;
+    SNDFILE *infd;
+    int     i, hno, channel = 1, retval = 0;
+    long    nsamps, smpspc, bufspc, mgfrspc;
+    char    *dsp, *dspace, *mspace;
+    double  *begbufs, *endbufs;
+    HET     het;
+    HET     *thishet = &het;
+    SOUNDIN *p;         /* space allocated by SAsndgetset() */
 
+ /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0);   Needed ? */
     init_het(thishet);
 
     if (!(--argc)) {
-      quit(csound,Str("no arguments"));
+      return quit(csound,Str("no arguments"));
     }
     do {
       char *s = *++argv;
@@ -213,51 +213,60 @@ int hetro(ENVIRON  *csound,
         case '-':   FIND(Str("no log file"));
           while (*s++); s--;
           break;
-        default:   quit(csound,Str("Invalid switch option"));
+        default:
+          return quit(csound, Str("Invalid switch option"));
         }
       else break;
     } while (--argc);
 
-    if (argc != 2)  quit(csound,Str("incorrect number of filenames"));
+    if (argc != 2)
+      return quit(csound, Str("incorrect number of filenames"));
     thishet->infilnam = *argv++;
     thishet->outfilnam = *argv;
 
     if (thishet->freq_c > 1)
-      fprintf (stderr,Str("Filter cutoff freq. = %f\n"),thishet->freq_c);
+      csound->Message(csound, Str("Filter cutoff freq. = %f\n"),
+                              thishet->freq_c);
 
     if ((thishet->input_dur < 0) || (thishet->beg_time < 0))
-      quit(csound,Str("input and begin times cannot be less than zero"));
+      return quit(csound,Str("input and begin times cannot be less than zero"));
     /* open sndfil, do skiptime */
-    if (
-        (infd = csound->SAsndgetset(csound, thishet->infilnam, &p,
+    if ((infd = csound->SAsndgetset(csound, thishet->infilnam, &p,
                                     &thishet->beg_time, &thishet->input_dur,
                                     &thishet->sr, channel)) < 0) {
       char errmsg[256];
-      sprintf(errmsg,Str("Cannot open %s"), thishet->infilnam);
-      quit(csound,errmsg);
+      sprintf(errmsg, Str("Cannot open %s"), thishet->infilnam);
+      return quit(csound, errmsg);
     }
     nsamps = p->getframes;
     /* alloc for MYFLTs */
     thishet->auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
     /* & read them in */
-    if ((thishet->smpsin = csound->getsndin(csound, infd, thishet->auxp, nsamps, p)) <= 0) {
+    if ((thishet->smpsin = csound->getsndin(csound, infd,
+                                            thishet->auxp, nsamps, p)) <= 0) {
       char errmsg[256];
-      csound->Message(csound,"smpsin = %d\n", thishet->smpsin);
-      sprintf(errmsg,Str("Read error on %s\n"), thishet->infilnam);
-      quit(csound,errmsg);
+      csound->Message(csound, "smpsin = %ld\n", (long) thishet->smpsin);
+      sprintf(errmsg, Str("Read error on %s\n"), thishet->infilnam);
+      return quit(csound, errmsg);
     }
-    thishet->sr = (MYFLT)p->sr;                              /* sr now from open  */
-    thishet->windsiz = (long)(thishet->sr / thishet->fund_est + FL(0.5));      /* samps in fund prd */
-    /*RWD no limit for SDIF files! */
+    thishet->sr = (MYFLT) p->sr;                /* sr now from open  */
+    /* samps in fund prd */
+    thishet->windsiz = (long)(thishet->sr / thishet->fund_est + FL(0.5));
+    /* RWD no limit for SDIF files! */
+#if 0
     if (is_sdiffile(thishet->outfilnam)) {
       if (thishet->num_pts >= nsamps - thishet->windsiz)
-        quit(csound,Str("number of output points is too great"));
+        return quit(csound, Str("number of output points is too great"));
     }
-    else if (thishet->num_pts > 32767 || thishet->num_pts >= nsamps - thishet->windsiz)
-      quit(csound,Str("number of output points is too great"));
+    else
+#endif
+      if (thishet->num_pts > 32767 ||
+          thishet->num_pts >= nsamps - thishet->windsiz)
+        return quit(csound, Str("number of output points is too great"));
     thishet->delta_t = FL(1.0)/thishet->sr;
     thishet->t = FL(1.0)/thishet->fund_est;
-    thishet->outdelta_t = (MYFLT)thishet->num_pts / (thishet->smpsin - thishet->windsiz);
+    thishet->outdelta_t = (MYFLT) thishet->num_pts
+                          / (thishet->smpsin - thishet->windsiz);
 
     while (thishet->bufsiz < (thishet->sr/thishet->fund_est + FL(0.5)))
       thishet->bufsiz *= 2;
@@ -267,36 +276,38 @@ int hetro(ENVIRON  *csound,
     smpspc = thishet->smpsin * sizeof(double);
     bufspc = thishet->bufsiz * sizeof(double);
 
-    dsp = dspace = mmalloc(csound, smpspc * 2 + bufspc * 13);
-    thishet->c_p = (double *) dsp;           dsp += smpspc;  /* space for the    */
-    thishet->s_p = (double *) dsp;           dsp += smpspc;  /* quadrature terms */
+    dsp = dspace = csound->Malloc(csound, smpspc * 2 + bufspc * 13);
+    thishet->c_p = (double *) dsp;      dsp += smpspc;  /* space for the    */
+    thishet->s_p = (double *) dsp;      dsp += smpspc;  /* quadrature terms */
     begbufs = (double *) dsp;
-    thishet->cos_mul = (double *) dsp;       dsp += bufspc;  /* bufs that will be */
-    thishet->sin_mul = (double *) dsp;       dsp += bufspc;  /* refilled each hno */
-    thishet->a_term = (double *) dsp;        dsp += bufspc;
-   thishet-> b_term = (double *) dsp;        dsp += bufspc;
-    thishet->r_ampl = (double *) dsp;        dsp += bufspc;
-    thishet->ph_av1 = (double *) dsp;        dsp += bufspc;
-    thishet->ph_av2 = (double *) dsp;        dsp += bufspc;
-    thishet->ph_av3 = (double *) dsp;        dsp += bufspc;
-    thishet->r_phase = (double *) dsp;       dsp += bufspc;
-    thishet->amp_av1 = (double *) dsp;       dsp += bufspc;
-   thishet-> amp_av2 = (double *) dsp;       dsp += bufspc;
-    thishet->amp_av3 = (double *) dsp;       dsp += bufspc;
-    thishet->a_avg = (double *) dsp;         dsp += bufspc;
+    thishet->cos_mul = (double *) dsp;  dsp += bufspc;  /* bufs that will be */
+    thishet->sin_mul = (double *) dsp;  dsp += bufspc;  /* refilled each hno */
+    thishet->a_term = (double *) dsp;   dsp += bufspc;
+    thishet->b_term = (double *) dsp;   dsp += bufspc;
+    thishet->r_ampl = (double *) dsp;   dsp += bufspc;
+    thishet->ph_av1 = (double *) dsp;   dsp += bufspc;
+    thishet->ph_av2 = (double *) dsp;   dsp += bufspc;
+    thishet->ph_av3 = (double *) dsp;   dsp += bufspc;
+    thishet->r_phase = (double *) dsp;  dsp += bufspc;
+    thishet->amp_av1 = (double *) dsp;  dsp += bufspc;
+    thishet->amp_av2 = (double *) dsp;  dsp += bufspc;
+    thishet->amp_av3 = (double *) dsp;  dsp += bufspc;
+    thishet->a_avg = (double *) dsp;    dsp += bufspc;
     endbufs = (double *) dsp;
 
     mgfrspc = thishet->num_pts * sizeof(MYFLT);
-    dsp = mspace = mmalloc(csound, mgfrspc * thishet->hmax * 2);
-    thishet->MAGS = (MYFLT **) mmalloc(csound, thishet->hmax * sizeof(MYFLT*));
-    thishet->FREQS = (MYFLT **) mmalloc(csound, thishet->hmax * sizeof(MYFLT*));
+    dsp = mspace = csound->Malloc(csound, mgfrspc * thishet->hmax * 2);
+    thishet->MAGS = (MYFLT **) csound->Malloc(csound,
+                                              thishet->hmax * sizeof(MYFLT*));
+    thishet->FREQS = (MYFLT **) csound->Malloc(csound,
+                                               thishet->hmax * sizeof(MYFLT*));
     for (i = 0; i < thishet->hmax; i++) {
       thishet->MAGS[i] = (MYFLT *) dsp;    dsp += mgfrspc;
       thishet->FREQS[i] = (MYFLT *) dsp;   dsp += mgfrspc;
     }
     lpinit(thishet);                        /* calculate LPF coeffs.  */
     thishet->adp = thishet->auxp;           /* point to beg sample data block */
-    for (hno = 0; hno < thishet->hmax; hno++) {      /* for requested harmonics*/
+    for (hno = 0; hno < thishet->hmax; hno++) { /* for requested harmonics*/
       double *dblp;
       thishet->freq_est += thishet->fund_est;               /*   do analysis */
       thishet->cur_est = thishet->freq_est;
@@ -309,55 +320,50 @@ int hetro(ENVIRON  *csound,
 
       csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
       csound->Message(csound,Str("freq est %6.1f,"), thishet->cur_est);
-      hetdyn(thishet,hno);                /* perform actual computation */
-      if (!csoundYield(csound)) exit(1);
-      csound->Message(csound,Str(" max found %6.1f, rel amp %6.1f\n"),
-                      thishet->max_frq, thishet->max_amp);
+      hetdyn(thishet, hno);             /* perform actual computation */
+#if 0
+      if (!csoundYield(csound))
+        return -1;
+#endif
+      csound->Message(csound, Str(" max found %6.1f, rel amp %6.1f\n"),
+                              thishet->max_frq, thishet->max_amp);
     }
-    mfree(csound, dspace);
-#ifdef mills_macintosh
-    if (!(transport.state & kGenKilled))
-#endif
-      {                     /* Note section bracket neded from if above */
-        /*RWD if extension is .sdif, write as 1TRC frames */
-        if (is_sdiffile(thishet->outfilnam)) {
-          if (!writesdif(csound,thishet)) {
-            csound->Message(csound,Str("Unable to write to SDIF file\n"));
-            mfree(csound, mspace);
-            exit(1);
-          }
+    csound->Free(csound, dspace);
+    {                     /* Note section bracket neded from if above */
+#if 0
+      /* RWD if extension is .sdif, write as 1TRC frames */
+      if (is_sdiffile(thishet->outfilnam)) {
+        if (!writesdif(csound,thishet)) {
+          csound->Message(csound, Str("Unable to write to SDIF file\n"));
+          retval = -1;
         }
-        else
-          filedump(thishet,csound);     /* write output to adsyn file */
       }
-    mfree(csound, mspace);
-#if !defined(mills_macintosh)
-    exit(0);
+      else
 #endif
-    return (-1);            /* To keep compiler quiet */
+        retval |= filedump(thishet, csound);  /* write output to adsyn file */
+    }
+
+    return retval;
 }
 
-static double
-GETVAL(HET* thishet, double *inb, long smpl)    /* get value at position smpl in array inb */
-{
-    return(*(inb + ((smpl + thishet->midbuf) & thishet->bufmask)));
+static double GETVAL(HET* thishet, double *inb, long smpl)
+{                               /* get value at position smpl in array inb */
+    return   inb[(smpl + thishet->midbuf) & thishet->bufmask];
 }
 
-static void
-PUTVAL(HET* thishet, double *outb, long smpl, double value)
-  /* put value in array outb at postn smpl */
-{
-    *(outb + ((smpl + thishet->midbuf) & thishet->bufmask)) = value;
+static void PUTVAL(HET* thishet, double *outb, long smpl, double value)
+{                               /* put value in array outb at postn smpl */
+    outb[(smpl + thishet->midbuf) & thishet->bufmask] = value;
 }
 
-static void hetdyn(HET* thishet, int hno)                           /* HETERODYNE FILTER */
+static void hetdyn(HET* thishet, int hno)       /* HETERODYNE FILTER */
 {
     long    smplno;
     double  temp_a, temp_b, tpidelest;
-    double *cos_p, *sin_p, *cos_wp, *sin_wp;
+    double  *cos_p, *sin_p, *cos_wp, *sin_wp;
     long    n;
     int     outpnt, lastout = -1;
-    MYFLT *ptr;
+    MYFLT   *ptr;
 
     thishet->jmp_ph = 0;                     /* set initial phase to 0 */
     temp_a = temp_b = 0;
@@ -366,7 +372,7 @@ static void hetdyn(HET* thishet, int hno)                           /* HETERODYN
     tpidelest = TWOPI * thishet->cur_est * thishet->delta_t;
     for (smplno = 0; smplno < thishet->smpsin; smplno++) {
       double phase = smplno * tpidelest;     /* do all quadrature calcs */
-      ptr = thishet->adp + smplno;                    /* at once and point to it */
+      ptr = thishet->adp + smplno;           /* at once and point to it */
       *cos_p++ = (double)(*ptr) * cos(phase);
       *sin_p++ = (double)(*ptr) * sin(phase);
     }
@@ -374,7 +380,8 @@ static void hetdyn(HET* thishet, int hno)                           /* HETERODYN
     cos_p = cos_wp = thishet->c_p;
     sin_p = sin_wp = thishet->s_p;
     for (smplno = 0; smplno < thishet->smpsin - thishet->windsiz; smplno++) {
-      if (smplno == 0 && thishet->smpsin >= thishet->windsiz) {   /* for first smplno */
+      if (smplno == 0 && thishet->smpsin >= thishet->windsiz) {
+        /* for first smplno */
         n = thishet->windsiz;
         do {
           temp_a += *cos_wp++;     /* sum over windsiz = nsmps in */
@@ -393,19 +400,23 @@ static void hetdyn(HET* thishet, int hno)                           /* HETERODYN
           temp_a = temp_b = 0;
         }
       }
-      PUTVAL(thishet, thishet->cos_mul,smplno,temp_a);     /* store values into buffers*/
-      PUTVAL(thishet,thishet->sin_mul,smplno,temp_b);
+      /* store values into buffers */
+      PUTVAL(thishet, thishet->cos_mul, smplno, temp_a);
+      PUTVAL(thishet, thishet->sin_mul, smplno, temp_b);
       if ((thishet->freq_c <= 1) || (smplno < 3)) {
-        average(thishet, thishet->windsiz,thishet->cos_mul,thishet->a_term,smplno); /* average over previous */
-        average(thishet, thishet->windsiz,thishet->sin_mul,thishet->b_term,smplno); /* values 1 fund prd ago */
+        average(thishet, thishet->windsiz, thishet->cos_mul, thishet->a_term,
+                         smplno); /* average over previous */
+        average(thishet, thishet->windsiz, thishet->sin_mul, thishet->b_term,
+                         smplno); /* values 1 fund prd ago */
       }
       else {
         lowpass(thishet, thishet->a_term,thishet->cos_mul,smplno);
-        lowpass(thishet,thishet->b_term,thishet->sin_mul,smplno);
+        lowpass(thishet, thishet->b_term,thishet->sin_mul,smplno);
       }
-      output_ph(thishet,smplno);            /* calculate mag. & phase for sample */
-      if ((outpnt = (int)(smplno * thishet->outdelta_t)) > lastout) { /* if next out-time */
-        output(thishet, smplno, hno, outpnt);           /*     place in     */
+      output_ph(thishet, smplno);       /* calculate mag. & phase for sample */
+      if ((outpnt = (int)(smplno * thishet->outdelta_t)) > lastout) {
+        /* if next out-time */
+        output(thishet, smplno, hno, outpnt);  /*     place in     */
         lastout = outpnt;                      /*     output array */
       }
       if (thishet->skip) {
@@ -513,31 +524,25 @@ static void output(HET *thishet, long smpl, int hno, int pnt)
         thishet->max_frq = new_freq;
       if (new_amp > thishet->max_amp)
         thishet->max_amp = new_amp;
-      /*printf("A=%f\tF=%f\t%f\n",thishet->MAGS[hno][pnt],thishet->FREQS[hno][pnt],delt_freq);*/
     }
 }
 
 /* If this function worthwhile?  Need to coinsider recalculation */
 static double sq(double num)     /* RETURNS SQUARE OF ARGUMENT */
 {
-    return(num*num);
+    return (num * num);
 }
 
-static void quit (ENVIRON *csound, char *msg)
+static int quit(ENVIRON *csound, char *msg)
 {
-#ifdef mills_macintosh
-    char temp[256];
-    sprintf(temp,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
-    csoundDie(csound, temp);
-#else
-    csound->Message(csound,Str("hetro:  %s\n\tanalysis aborted\n"),msg);
-#endif
-    exit(1);
+    csound->MessageS(csound, CSOUNDMSG_ERROR,
+                             Str("hetro:  %s\n\tanalysis aborted\n"), msg);
+    return -1;
 }
 
 #define END  32767
 
-static void filedump(HET *thishet, ENVIRON *csound)
+static int filedump(HET *thishet, ENVIRON *csound)
   /* WRITE OUTPUT FILE in DATA-REDUCED format */
 {
     int     h, pnt, ofd, nbytes;
@@ -548,23 +553,25 @@ static void filedump(HET *thishet, ENVIRON *csound)
     short   *TIME;
     MYFLT   timesiz;
 
-    mags = (short **) mmalloc(csound, thishet->hmax * sizeof(short*));
-    freqs = (short **) mmalloc(csound, thishet->hmax * sizeof(short*));
+    mags = (short **) csound->Malloc(csound, thishet->hmax * sizeof(short*));
+    freqs = (short **) csound->Malloc(csound, thishet->hmax * sizeof(short*));
     for (h = 0; h < thishet->hmax; h++) {
-      mags[h] = (short *)mmalloc(csound, (long)thishet->num_pts * sizeof(short));
-      freqs[h] = (short *)mmalloc(csound, (long)thishet->num_pts * sizeof(short));
+      mags[h] = (short *)csound->Malloc(csound,
+                                        thishet->num_pts * sizeof(short));
+      freqs[h] = (short *)csound->Malloc(csound,
+                                         thishet->num_pts * sizeof(short));
     }
 
-    TIME = (short *)mmalloc(csound, (long)thishet->num_pts * sizeof(short));
+    TIME = (short *)csound->Malloc(csound, thishet->num_pts * sizeof(short));
     timesiz = FL(1000.0) * thishet->input_dur /thishet-> num_pts;
     for (pnt = 0; pnt < thishet->num_pts; pnt++)
       TIME[pnt] = (short)(pnt * timesiz);
 
-  /* fullpath else cur dir */
-    if (NULL == csound->FileOpen(csound, &ofd, CSFILE_STD,
-                                 thishet->outfilnam, "w", NULL))
-      quit(csound,Str("cannot create output file\n"));
-    
+    /* fullpath else cur dir */
+    if (csound->FileOpen(csound, &ofd, CSFILE_FD_W,
+                                 thishet->outfilnam, NULL, "") == NULL)
+      return quit(csound, Str("cannot create output file\n"));
+
     write(ofd, (char*)&thishet->hmax, sizeof(thishet->hmax)); /* Write header */
 
     for (pnt=0; pnt < thishet->num_pts; pnt++) {
@@ -586,8 +593,10 @@ static void filedump(HET *thishet, ENVIRON *csound)
       }
     }
 
-    magout = (short *)mmalloc(csound, (long)(thishet->num_pts + 1) * 2 * sizeof(short));
-    frqout = (short *)mmalloc(csound, (long)(thishet->num_pts + 1) * 2 * sizeof(short));
+    magout = (short *)csound->Malloc(csound,
+                                     (thishet->num_pts+1) * 2 * sizeof(short));
+    frqout = (short *)csound->Malloc(csound,
+                                     (thishet->num_pts+1) * 2 * sizeof(short));
     for (h = 0; h < thishet->hmax; h++) {
       short *mp = magout, *fp = frqout;
       short *lastmag, *lastfrq, pkamp = 0;
@@ -670,22 +679,24 @@ static void filedump(HET *thishet, ENVIRON *csound)
       csound->Message(csound,
                       Str("harmonic #%d:\tamp points %d, \tfrq points %d,"
                           "\tpeakamp %d\n"),
-                      h,mpoints,fpoints,pkamp);
+                      h, mpoints, fpoints, pkamp);
     }
     csound->Message(csound,Str("wrote %ld bytes to %s\n"),
                     lenfil, thishet->outfilnam);
-    close(ofd);
-    mfree(csound, magout);
-    mfree(csound, frqout);
-    mfree(csound, TIME);
+    csound->Free(csound, magout);
+    csound->Free(csound, frqout);
+    csound->Free(csound, TIME);
     for (h = 0; h < thishet->hmax; h++) {
-      mfree(csound, mags[h]);
-      mfree(csound, freqs[h]);
+      csound->Free(csound, mags[h]);
+      csound->Free(csound, freqs[h]);
     }
-    mfree(csound, mags);
-    mfree(csound, freqs);
+    csound->Free(csound, mags);
+    csound->Free(csound, freqs);
+
+    return 0;
 }
 
+#if 0
 /* simply writes the number of frames generated - no data reduction,
    no interpolation */
 static int writesdif(ENVIRON *csound, HET *thishet)
@@ -693,16 +704,15 @@ static int writesdif(ENVIRON *csound, HET *thishet)
     int         i,j,h, pnt;
     double      scale;
     double      ampsum, maxampsum = 0.0;
-/*    long        lenfil = 0; */
     MYFLT       timesiz;
-/*    sdif_int32  frame_id = 1; */
     SDIFresult  r;
     SDIF_FrameHeader head;
     SDIF_MatrixHeader mh;
     FILE        *sdiffile = NULL;
 
     if (SDIF_Init() != ESDIF_SUCCESS) {
-      csound->Message(csound,Str("OOPS: SDIF does not work on this machine!\n"));
+      csound->Message(csound,
+                      Str("OOPS: SDIF does not work on this machine!\n"));
       return 0;
     }
 
@@ -718,7 +728,6 @@ static int writesdif(ENVIRON *csound, HET *thishet)
     /* SDIF does not specify a range, 'cos it's too clever for that sort
      * of thing, but this seems consistent with existing examples! */
     scale *= (double) csound->dbfs_to_float;
-/*     scale /= 32768.0; */
 
     for (h = 0; h < thishet->hmax; h++) {
       for (pnt = 0; pnt < thishet->num_pts; pnt++) {
@@ -785,7 +794,8 @@ static int writesdif(ENVIRON *csound, HET *thishet)
       /* 64-bit alignment can be relied upon here, so no need to calc padding */
     }
     csound->Message(csound,
-                    Str("wrote %ld 1TRC frames to %s\n"), thishet->num_pts, thishet->outfilnam);
+                    Str("wrote %ld 1TRC frames to %s\n"),
+                    thishet->num_pts, thishet->outfilnam);
     SDIF_CloseWrite(sdiffile);
     return 1;
 }
@@ -802,5 +812,18 @@ static int is_sdiffile(char *name)
         strcmp(dot,".SDIF")==0)
       return 1;
     return 0;
+}
+#endif
+
+/* module interface */
+
+PUBLIC int csoundModuleCreate(void *csound)
+{
+    int retval = ((ENVIRON*) csound)->AddUtility(csound, "hetro", hetro);
+    if (!retval) {
+      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "hetro",
+                    "Soundfile analysis for adsyn");
+    }
+    return retval;
 }
 
