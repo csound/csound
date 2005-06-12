@@ -889,6 +889,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('dnoise',
     ['util/dnoise.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('envext',
     ['util/envext.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('extractor',
+    ['util/xtrct.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('het_export',
     ['util/het_export.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('het_import',
@@ -922,8 +924,8 @@ executables.append(csoundProgramEnvironment.Program('envext',
     ['util/env_main.c']))
 executables.append(csoundProgramEnvironment.Program('extract',
     ['util1/sortex/xmain.c']))
-#executables.append(csoundProgramEnvironment.Program('extractor',
-#    ['util2/mixer/xtrct.c']))
+executables.append(csoundProgramEnvironment.Program('extractor',
+    ['util/xtrc_main.c']))
 executables.append(csoundProgramEnvironment.Program('het_export',
     ['util/hetx_main.c']))
 executables.append(csoundProgramEnvironment.Program('het_import',
