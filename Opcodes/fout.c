@@ -31,14 +31,6 @@
 #include "soundio.h"
 #include <ctype.h>
 
-#ifdef  USE_DOUBLE
-#define sf_writef_MYFLT sf_writef_double
-#define sf_readf_MYFLT  sf_readf_double
-#else
-#define sf_writef_MYFLT sf_writef_float
-#define sf_readf_MYFLT  sf_readf_float
-#endif
-
 static int fout_open_file(FOUT_GLOBALS *pp, FILE **f,
                                             const char *name, const char *mode)
 {
@@ -90,7 +82,7 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
     ENVIRON           *csound = pp->csound;
     struct fileinTag  *p = pp->file_opened;
     void              *fd;
-    int               i, do_scale = 0;
+    int               i, buf_reqd, do_scale = 0;
 
     *sf = (SNDFILE*) NULL;
     if (name == NULL || name[0] == '\0')
@@ -102,6 +94,7 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
         return i;
       }
     }
+    buf_reqd = (int) sfinfo->channels;
     /* attempt to open file */
     if (write_mode) {
       do_scale = (SF2TYPE(sfinfo->format) == TYP_RAW ? 0 : 1);
@@ -121,6 +114,15 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
 #else
       sf_command(*sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
 #endif
+    }
+    /* reallocate buffer if necessary */
+    if ((int) sfinfo->channels > buf_reqd)
+      buf_reqd = (int) sfinfo->channels;
+    buf_reqd *= csound->ksmps;
+    if (buf_reqd > pp->buf_size) {
+      pp->buf_size = buf_reqd;
+      pp->buf = (MYFLT*) csound->ReAlloc(csound, pp->buf, sizeof(MYFLT)
+                                                          * buf_reqd);
     }
     /* allocate new entry */
     if (!((++pp->file_num) & 3)) {
@@ -172,24 +174,25 @@ static int foutRESET(ENVIRON *csound, FOUT_GLOBALS *p)
 static int outfile(ENVIRON *csound, OUTFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
-    int   j, nargs = p->nargs, k;
-    MYFLT **args = p->argums;
-    MYFLT vals[VARGMAX];
+    int   i, j, k;
 
     if (p->fp == NULL) {
       FILE *fp = ((struct fileinTag*) pp->file_opened)[p->idx].raw;
       for (k = 0; k < csound->ksmps; k++) {
-        for (j = 0; j < nargs; j++)
-          fprintf(fp, "%g ", args[j][k]);
+        for (j = 0; j < p->nargs; j++)
+          fprintf(fp, "%g ", p->argums[j][k]);
         fprintf(fp, "\n");
       }
     }
     else {
-      for (k = 0; k < csound->ksmps; k++) {
-        for (j = 0; j < nargs; j++)
-          vals[j] = args[j][k] * p->scaleFac;
-        sf_writef_MYFLT(p->fp, vals, 1);
-      }
+      for (j = k = 0; j < csound->ksmps; j++)
+        for (i = 0; i < p->nargs; i++)
+          pp->buf[k++] = p->argums[i][j] * p->scaleFac;
+#ifndef USE_DOUBLE
+      sf_writef_float(p->fp, (float*) pp->buf, csound->ksmps);
+#else
+      sf_writef_double(p->fp, (double*) pp->buf, csound->ksmps);
+#endif
     }
     return OK;
 }
@@ -228,7 +231,7 @@ static int outfile_set(ENVIRON *csound, OUTFILE *p)
     else { /* file handle as argument */
       n = (int) MYFLT2LRND(*p->fname);
       if (n < 0 || n > pp->file_num ||
-          ((p->fp=((struct fileinTag*) pp->file_opened)[n].file) == NULL &&
+          ((p->fp = ((struct fileinTag*) pp->file_opened)[n].file) == NULL &&
            ((struct fileinTag*) pp->file_opened)[n].raw == NULL))
         csound->Die(csound, Str("fout: invalid file handle"));
       p->idx = n;
@@ -242,14 +245,16 @@ static int outfile_set(ENVIRON *csound, OUTFILE *p)
 
 static int koutfile(ENVIRON *csound, KOUTFILE *p)
 {
-    int   j, nargs = p->nargs;
-    MYFLT **args = p->argums;
-    MYFLT vals[VARGMAX];
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    int   i;
 
-    for (j = 0; j < nargs; j++) {
-      vals[j] = *args[j] * p->scaleFac;
-    }
-    sf_writef_MYFLT(p->fp, vals, 1);
+    for (i = 0; i < p->nargs; i++)
+      pp->buf[i] = p->argums[i][0] * p->scaleFac;
+#ifndef USE_DOUBLE
+    sf_writef_float(p->fp, (float*) pp->buf, 1);
+#else
+    sf_writef_double(p->fp, (double*) pp->buf, 1);
+#endif
     return OK;
 }
 
@@ -275,7 +280,8 @@ static int koutfile_set(ENVIRON *csound, KOUTFILE *p)
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
         break;
       case 2:
-        sfinfo.format = SF_FORMAT_PCM_16 | TYPE2SF(csound->oparms->filetyp);
+        /* according to manual, foutk always writes WAV format */
+        sfinfo.format = SF_FORMAT_PCM_16 | TYPE2SF(TYP_WAV);
         break;
       default:
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
@@ -434,7 +440,7 @@ static int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
         pp->fout_kreset = 0;
         return OK;
       }
-      for (j = 0; j < p->INOCOUNT - 3;j++) {
+      for (j = 0; j < p->INOCOUNT - 3; j++) {
         fprintf(rfil, " %f", (double) *args[j]);
       }
       putc('\n', rfil);
@@ -488,31 +494,27 @@ static int infile_set(ENVIRON *csound, INFILE *p)
 
 static int infile_act(ENVIRON *csound, INFILE *p)
 {
-    int   j, nargs = p->nargs, k = 0;
-    MYFLT **args = p->argums;
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    int   i, j = 0, k = 0, n;
 
     if (p->flag) {
       sf_seek(p->fp, p->currpos, SEEK_SET);
       p->currpos += csound->ksmps;
-      for (k = 0; k < csound->ksmps; k++) {
-        MYFLT vals[VARGMAX];
-        if (sf_readf_MYFLT(p->fp, vals, 1)) {
-          for (j = 0; j < nargs; j++)
-            args[j][k] = vals[j] * p->scaleFac;
-        }
-        else {
-          p->flag = 0;
-          for (j = 0; j < nargs; j++)
-            args[j][k] = FL(0.0);
-        }
-      }
+#ifndef USE_DOUBLE
+      n = (int) sf_readf_float(p->fp, (float*) pp->buf, csound->ksmps);
+#else
+      n = (int) sf_readf_double(p->fp, (double*) pp->buf, csound->ksmps);
+#endif
+      for ( ; j < n; j++)
+        for (i = 0; i < p->nargs; i++)
+          p->argums[i][j] = pp->buf[k++] * p->scaleFac;
+      if (n >= csound->ksmps)
+        return OK;
+      p->flag = 0;
     }
-    else { /* after end of file */
-      for (k = 0; k < csound->ksmps; k++) {
-        for (j = 0; j < nargs; j++)
-          args[j][k] = FL(0.0);
-      }
-    }
+    for ( ; j < csound->ksmps; j++)
+      for (i = 0; i < p->nargs; i++)
+        p->argums[i][j] = FL(0.0);
     return OK;
 }
 
@@ -555,25 +557,26 @@ static int kinfile_set(ENVIRON *csound, KINFILE *p)
 
 static int kinfile(ENVIRON *csound, KINFILE *p)
 {
-    int   j, nargs = p->nargs;
-    MYFLT **args = p->argums;
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    int   i, n;
 
     if (p->flag) {
       sf_seek(p->fp, p->currpos, SEEK_SET);
       p->currpos++;
-      for (j = 0; j < nargs; j++) {
-        if (sf_read_MYFLT(p->fp, args[j], 1))
-          *(args[j]) *= p->scaleFac;
-        else {
-          p->flag = 0;
-          *(args[j]) = FL(0.0);
-        }
+#ifndef USE_DOUBLE
+      n = (int) sf_readf_float(p->fp, (float*) pp->buf, 1);
+#else
+      n = (int) sf_readf_double(p->fp, (double*) pp->buf, 1);
+#endif
+      if (n > 0) {
+        for (i = 0; i < p->nargs; i++)
+          p->argums[i][0] = pp->buf[i] * p->scaleFac;
+        return OK;
       }
+      p->flag = 0;
     }
-    else { /* after end of file */
-      for (j = 0; j < nargs; j++)
-        *(args[j]) = FL(0.0);
-    }
+    for (i = 0; i < p->nargs; i++)
+      p->argums[i][0] = FL(0.0);
     return OK;
 }
 
