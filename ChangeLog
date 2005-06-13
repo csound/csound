@@ -1,3 +1,6 @@
+2005-06-13    Victor Lazzarini <victor.lazzarini@nuim.ie>
+	* Top/dl_opcodes.c: commented out old code that was causing conflict
+	                    on OSX 10.4
 2005-06-09     Victor Lazzarini <victor.lazzarini@nuim.ie>
 	* InOut/rtcoreaudio.c : further improvements to coreaudio RT IO
 	
