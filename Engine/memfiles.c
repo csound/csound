@@ -176,7 +176,7 @@ int PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p)
     PVOCDATA      pvdata;
     WAVEFORMATEX  fmt;
     PVOCEX_MEMFILE  *pp;
-    int           i, j, rc=0, pvx_id, hdr_size, name_size;
+    int           i, j, rc = 0, pvx_id, hdr_size, name_size;
     long          mem_wanted;
     long          totalframes, framelen;
     float         *pFrame;
