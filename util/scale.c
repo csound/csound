@@ -232,7 +232,7 @@ static int scale(void *csound_, int argc, char **argv)
     sc.table_used = 0;
     sc.scale_table = stattab;
     sc.end_table = &sc.scale_table;
- 
+
     memset(&OO, 0, sizeof(OO));
     /* Check arguments */
     {
@@ -375,7 +375,7 @@ static int scale(void *csound_, int argc, char **argv)
       if (OO.filetyp)
         csound->oparms->filetyp = OO.filetyp;
       else                      /* Copy from input file */
-        csound->oparms->outformat = csound->oparms->informat; 
+        csound->oparms->outformat = csound->oparms->informat;
       if (OO.sfheader)
         csound->oparms->sfheader = OO.sfheader;
       else csound->oparms->sfheader = 1;
