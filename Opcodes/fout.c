@@ -1,7 +1,8 @@
 /*
     fout.c:
 
-    Copyright (C) 1999 Gabriel Maldonado, John ffitch
+    Copyright (C) 1999 Gabriel Maldonado, John ffitch, Matt Ingalls
+              (C) 2005 Istvan Varga
 
     This file is part of Csound.
 
@@ -978,7 +979,7 @@ PUBLIC OENTRY *opcode_init(ENVIRON *csound)
     if (csound->RegisterResetCallback(csound, (void*) p,
                                               (int (*)(void*, void*)) foutRESET)
         != 0)
-    csound->Die(csound, Str("fout: error registering reset callback"));
+      csound->Die(csound, Str("fout: error registering reset callback"));
     return localops;
 }
 
