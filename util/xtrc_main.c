@@ -1,5 +1,5 @@
 
 #include "utilmain.h"
 
-UTIL_MAIN("xtrct")
+UTIL_MAIN("extractor")
 
