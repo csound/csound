@@ -302,7 +302,11 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     }
     return value;
 }
+/* VL 13/06/05: commented out, this code does not
+seem to be called anywhere and is causing trouble
+for OSX 10.4 */
 
+/*
 void *dlopen(const char *path, int mode)
 {
     void *module = 0;
@@ -312,11 +316,11 @@ void *dlopen(const char *path, int mode)
     unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR |
       NSLINKMODULE_OPTION_PRIVATE;
     /* If we got no path, the app wants the global namespace,
-       use -1 as the marker in this case */
+    use -1 as the marker in this case *//*
     if (!path)
       return (void *)-1;
     /* Create the object file image, works for things linked
-       with the -bundle arg to ld */
+    with the -bundle arg to ld *//*
     ofirc = NSCreateObjectFileImageFromFile(path, &ofi);
     switch (ofirc) {
     case NSObjectFileImageSuccess:
@@ -325,14 +329,14 @@ void *dlopen(const char *path, int mode)
         printf("ofirc=NSObjectFileImageSuccess\n");
       }
 #endif
-      /* It was okay, so use NSLinkModule to link in the image */
+      /* It was okay, so use NSLinkModule to link in the image *//*
       module = NSLinkModule(ofi, path,flags);
       /* Don't forget to destroy the object file
-         image, unless you like leaks */
+         image, unless you like leaks *//*
       NSDestroyObjectFileImage(ofi);
       /* If the mode was global, then change the module, this avoids
          multiply defined symbol errors to first load private then
-         make global. Silly, isn't it. */
+         make global. Silly, isn't it. *//*
       if (!make_private_module_public) {
         _dyld_func_lookup("__dyld_NSMakePrivateModulePublic",
                           (unsigned long *)&make_private_module_public);
@@ -346,7 +350,7 @@ void *dlopen(const char *path, int mode)
       }
 #endif
      /* It may have been a dynamic library rather
-         than a bundle, try to load it */
+         than a bundle, try to load it *//*
       module = (void *)NSAddImage(path,
                                   NSADDIMAGE_OPTION_RETURN_ON_ERROR);
       break;
@@ -367,7 +371,8 @@ void *dlopen(const char *path, int mode)
       error(0, "Can not open \"%s\"", path);
     return module;
 }
-
+					 */
+/*
 int dlclose(void *handle)
 {
     if ((((struct mach_header *)handle)->magic == MH_MAGIC) ||
@@ -386,11 +391,12 @@ const char *dlerror(void)
 {
     return error(1, (char *)NULL);
 }
+*/
 
-/* dlsym, prepend the underscore and call dlsymIntern */
+/* dlsym, prepend the underscore and call dlsymIntern *//*
 void *dlsym(void *handle, const char *symbol)
 {
-    static char undersym[257];  /* Saves calls to malloc(3) */
+    static char undersym[257];  /* Saves calls to malloc(3) *//*
     int sym_len = strlen(symbol);
     void *value = NULL;
     char *malloc_sym = NULL;
@@ -411,7 +417,7 @@ void *dlsym(void *handle, const char *symbol)
     }
     return value;
 }
-
+							      */
 #else /* case for platforms without shared libraries -- added 062404, akozar */
 
 void *csoundOpenLibrary(const char *libraryPath)
