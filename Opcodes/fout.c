@@ -25,7 +25,7 @@
 /* Code modified by JPff to remove fixed size arrays, allow
    AIFF and WAV, and close files neatly.  Also bugs fixed */
 
-#include "csoundCore.h"
+#include "csdl.h"
 #include <sndfile.h>
 #include "fout.h"
 #include "soundio.h"
@@ -39,19 +39,11 @@
 #define sf_readf_MYFLT  sf_readf_float
 #endif
 
-struct fileinTag {
-    SNDFILE     *file;          /* Used in audio cases */
-    FILE        *raw;           /* Only used if text file */
-    void        *fd;
-    char        *name;
-    char        *fullName;
-    int         do_scale;
-};
-
-static int fout_open_file(ENVIRON *csound, FILE **f,
-                                           const char *name, const char *mode)
+static int fout_open_file(FOUT_GLOBALS *pp, FILE **f,
+                                            const char *name, const char *mode)
 {
-    struct fileinTag  *p = (struct fileinTag*) csound->file_opened;
+    ENVIRON           *csound = pp->csound;
+    struct fileinTag  *p = (struct fileinTag*) pp->file_opened;
     void              *fd;
     int               i;
 
@@ -59,7 +51,7 @@ static int fout_open_file(ENVIRON *csound, FILE **f,
     if (name == NULL || name[0] == '\0')
       return -1;
     /* is this file already open ? */
-    for (i = 0; i <= csound->file_num; i++) {
+    for (i = 0; i <= pp->file_num; i++) {
       if (p[i].raw != NULL && strcmp(p[i].name, name) == 0) {
         *f = p[i].raw;
         return i;
@@ -70,36 +62,33 @@ static int fout_open_file(ENVIRON *csound, FILE **f,
     if (fd == NULL)
       return -1;
     /* allocate new entry */
-    if (!((++csound->file_num) & 3)) {
+    if (!((++pp->file_num) & 3)) {
       /* Expand by 4 each time */
-      csound->file_max = csound->file_num + 4;
-      if (!csound->file_num)
-        p = (struct fileinTag *) mmalloc(csound, sizeof(struct fileinTag)
-                                                 * csound->file_max);
-      else
-        p = (struct fileinTag *) mrealloc(csound, csound->file_opened,
-                                                  sizeof(struct fileinTag)
-                                                  * csound->file_max);
-      csound->file_opened = (void*) p;
-      for (i = csound->file_num; i < csound->file_max; i++)
+      pp->file_max = pp->file_num + 4;
+      p = (struct fileinTag *) csound->ReAlloc(csound, pp->file_opened,
+                                                       sizeof(struct fileinTag)
+                                                       * pp->file_max);
+      pp->file_opened = (void*) p;
+      for (i = pp->file_num; i < pp->file_max; i++)
         memset(&(p[i]), 0, sizeof(struct fileinTag));
     }
     /* store file information */
-    i = csound->file_num;
+    i = pp->file_num;
     p[i].file = (SNDFILE*) NULL;
     p[i].raw = *f;
     p[i].fd = fd;
     p[i].fullName = csound->GetFileName(fd);
-    p[i].name = (char*) mmalloc(csound, strlen(name) + 1);
+    p[i].name = (char*) csound->Malloc(csound, strlen(name) + 1);
     strcpy(p[i].name, name);
     /* return with file handle */
     return i;
 }
 
-static int fout_open_sndfile(ENVIRON *csound, SNDFILE **sf, const char *name,
-                                              int write_mode, SF_INFO *sfinfo)
+static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
+                                               int write_mode, SF_INFO *sfinfo)
 {
-    struct fileinTag  *p = (struct fileinTag*) csound->file_opened;
+    ENVIRON           *csound = pp->csound;
+    struct fileinTag  *p = pp->file_opened;
     void              *fd;
     int               i, do_scale = 0;
 
@@ -107,7 +96,7 @@ static int fout_open_sndfile(ENVIRON *csound, SNDFILE **sf, const char *name,
     if (name == NULL || name[0] == '\0')
       return -1;
     /* is this file already open ? */
-    for (i = 0; i <= csound->file_num; i++) {
+    for (i = 0; i <= pp->file_num; i++) {
       if (p[i].file != NULL && strcmp(p[i].name, name) == 0) {
         *sf = p[i].file;
         return i;
@@ -134,62 +123,61 @@ static int fout_open_sndfile(ENVIRON *csound, SNDFILE **sf, const char *name,
 #endif
     }
     /* allocate new entry */
-    if (!((++csound->file_num) & 3)) {
+    if (!((++pp->file_num) & 3)) {
       /* Expand by 4 each time */
-      csound->file_max = csound->file_num + 4;
-      if (!csound->file_num)
-        p = (struct fileinTag *) mmalloc(csound, sizeof(struct fileinTag)
-                                                 * csound->file_max);
-      else
-        p = (struct fileinTag *) mrealloc(csound, csound->file_opened,
-                                                  sizeof(struct fileinTag)
-                                                  * csound->file_max);
-      csound->file_opened = (void*) p;
-      for (i = csound->file_num; i < csound->file_max; i++)
+      pp->file_max = pp->file_num + 4;
+      p = (struct fileinTag *) csound->ReAlloc(csound, pp->file_opened,
+                                                       sizeof(struct fileinTag)
+                                                       * pp->file_max);
+      pp->file_opened = (void*) p;
+      for (i = pp->file_num; i < pp->file_max; i++)
         memset(&(p[i]), 0, sizeof(struct fileinTag));
     }
     /* store file information */
-    i = csound->file_num;
+    i = pp->file_num;
     p[i].file = *sf;
     p[i].raw = (FILE*) NULL;
     p[i].fd = fd;
     p[i].fullName = csound->GetFileName(fd);
     p[i].do_scale = do_scale;
-    p[i].name = (char*) mmalloc(csound, strlen(name) + 1);
+    p[i].name = (char*) csound->Malloc(csound, strlen(name) + 1);
     strcpy(p[i].name, name);
     /* return with file handle */
     return i;
 }
 
-void foutRESET(ENVIRON *csound)
+static int foutRESET(ENVIRON *csound, FOUT_GLOBALS *p)
 {
-    struct fileinTag *file_opened = (struct fileinTag*) csound->file_opened;
-
-    while (csound->file_num >= 0) {
+    while (p->file_num >= 0) {
       if (csound->oparms->msglevel & 3)
         csound->Message(csound, "%d (%s):",
-                                csound->file_num,
-                                file_opened[csound->file_num].fullName);
-      mfree(csound, file_opened[csound->file_num].name);
-      if (file_opened[csound->file_num].fd != NULL)
-        csound->FileClose(csound, file_opened[csound->file_num].fd);
-      csound->file_num--;
+                                p->file_num,
+                                p->file_opened[p->file_num].fullName);
+      csound->Free(csound, p->file_opened[p->file_num].name);
+      if (p->file_opened[p->file_num].fd != NULL)
+        csound->FileClose(csound, p->file_opened[p->file_num].fd);
+      p->file_num--;
       if (csound->oparms->msglevel & 3)
         csound->Message(csound, Str("\t... closed\n"));
     }
-    mfree(csound, csound->file_opened);
-    csound->file_opened = NULL;
-    csound->file_max = 0;
+    csound->Free(csound, p->file_opened);
+    p->file_opened = NULL;
+    p->file_max = 0;
+    csound->Free(csound, p->buf);
+    p->buf = NULL;
+    p->buf_size = 0;
+    return OK;
 }
 
-int outfile(ENVIRON *csound, OUTFILE *p)
+static int outfile(ENVIRON *csound, OUTFILE *p)
 {
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   j, nargs = p->nargs, k;
     MYFLT **args = p->argums;
     MYFLT vals[VARGMAX];
 
     if (p->fp == NULL) {
-      FILE *fp = ((struct fileinTag*) csound->file_opened)[p->idx].raw;
+      FILE *fp = ((struct fileinTag*) pp->file_opened)[p->idx].raw;
       for (k = 0; k < csound->ksmps; k++) {
         for (j = 0; j < nargs; j++)
           fprintf(fp, "%g ", args[j][k]);
@@ -206,8 +194,9 @@ int outfile(ENVIRON *csound, OUTFILE *p)
     return OK;
 }
 
-int outfile_set(ENVIRON *csound, OUTFILE *p)
+static int outfile_set(ENVIRON *csound, OUTFILE *p)
 {
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int     n;
     SF_INFO sfinfo;
 
@@ -233,25 +222,25 @@ int outfile_set(ENVIRON *csound, OUTFILE *p)
       }
       sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
       sfinfo.channels = p->nargs;
-      if ((p->idx = fout_open_sndfile(csound, &(p->fp), fname, 1, &sfinfo)) < 0)
+      if ((p->idx = fout_open_sndfile(pp, &(p->fp), fname, 1, &sfinfo)) < 0)
         csound->Die(csound, Str("fout: cannot open outfile %s"), fname);
     }
     else { /* file handle as argument */
       n = (int) MYFLT2LRND(*p->fname);
-      if (n < 0 || n > csound->file_num ||
-          ((p->fp=((struct fileinTag*) csound->file_opened)[n].file) == NULL &&
-           ((struct fileinTag*) csound->file_opened)[n].raw == NULL))
+      if (n < 0 || n > pp->file_num ||
+          ((p->fp=((struct fileinTag*) pp->file_opened)[n].file) == NULL &&
+           ((struct fileinTag*) pp->file_opened)[n].raw == NULL))
         csound->Die(csound, Str("fout: invalid file handle"));
       p->idx = n;
     }
-    if (((struct fileinTag*) csound->file_opened)[p->idx].do_scale)
+    if (((struct fileinTag*) pp->file_opened)[p->idx].do_scale)
       p->scaleFac = csound->dbfs_to_float;
     else
       p->scaleFac = FL(1.0);
     return OK;
 }
 
-int koutfile(ENVIRON *csound, KOUTFILE *p)
+static int koutfile(ENVIRON *csound, KOUTFILE *p)
 {
     int   j, nargs = p->nargs;
     MYFLT **args = p->argums;
@@ -264,8 +253,9 @@ int koutfile(ENVIRON *csound, KOUTFILE *p)
     return OK;
 }
 
-int koutfile_set(ENVIRON *csound, KOUTFILE *p)
+static int koutfile_set(ENVIRON *csound, KOUTFILE *p)
 {
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int     n;
     SF_INFO sfinfo;
 
@@ -290,17 +280,17 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
       default:
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
       }
-      if ((p->idx = fout_open_sndfile(csound, &(p->fp), fname, 1, &sfinfo)) < 0)
+      if ((p->idx = fout_open_sndfile(pp, &(p->fp), fname, 1, &sfinfo)) < 0)
         csound->Die(csound, Str("foutk: cannot open outfile %s"), fname);
     }
     else { /* file handle argument */
       n = (int) MYFLT2LRND(*p->fname);
-      if (n < 0 || n > csound->file_num ||
-          (p->fp = ((struct fileinTag*) csound->file_opened)[n].file) == NULL)
+      if (n < 0 || n > pp->file_num ||
+          (p->fp = ((struct fileinTag*) pp->file_opened)[n].file) == NULL)
         csound->Die(csound, Str("foutk: invalid file handle"));
       p->idx = n;
     }
-    if (((struct fileinTag*) csound->file_opened)[p->idx].do_scale)
+    if (((struct fileinTag*) pp->file_opened)[p->idx].do_scale)
       p->scaleFac = csound->dbfs_to_float;
     else
       p->scaleFac = FL(1.0);
@@ -312,9 +302,10 @@ int koutfile_set(ENVIRON *csound, KOUTFILE *p)
 /* syntax:
         ihandle fiopen "filename" [, iascii]
 */
-int fiopen(ENVIRON *csound, FIOPEN *p)  /* open a file and return its handle  */
-{                                       /* the handle is simply a stack index */
-    char    fname[FILENAME_MAX];
+static int fiopen(ENVIRON *csound, FIOPEN *p)
+{                                       /* open a file and return its handle  */
+    char    fname[FILENAME_MAX];        /* the handle is simply a stack index */
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     char    *omodes[] = {"w", "r", "wb", "rb"};
     FILE    *rfp;
     int     idx = (int) MYFLT2LRND(*p->iascii), n;
@@ -322,7 +313,7 @@ int fiopen(ENVIRON *csound, FIOPEN *p)  /* open a file and return its handle  */
     strcpy(fname, (char*) p->fname);
     if (idx < 0 || idx > 3)
       idx = 0;
-    if ((n = fout_open_file(csound, &rfp, fname, omodes[idx])) < 0)
+    if ((n = fout_open_file(pp, &rfp, fname, omodes[idx])) < 0)
       csound->Die(csound, Str("fout: cannot open outfile %s"), fname);
     if (idx > 1)
       setbuf(rfp, NULL);
@@ -334,16 +325,16 @@ int fiopen(ENVIRON *csound, FIOPEN *p)  /* open a file and return its handle  */
    fouti  ihandle, iascii, iflag, iarg1 [, iarg2, ...., iargN]
 */
 
-int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
+static int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
 {
-    int     j;
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     MYFLT   **args = p->argums;
     FILE    *rfil;
-    int     n = (int) MYFLT2LRND(*p->ihandle);
+    int     j, n = (int) MYFLT2LRND(*p->ihandle);
 
-    if (n < 0 || n > csound->file_num)
+    if (n < 0 || n > pp->file_num)
       csound->Die(csound, Str("fouti: invalid file handle"));
-    rfil = ((struct fileinTag*) csound->file_opened)[n].raw;
+    rfil = ((struct fileinTag*) pp->file_opened)[n].raw;
     if (rfil == NULL) csound->Die(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) MYFLT2LRND(*p->iflag)) {
@@ -359,11 +350,11 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
         }
         break;
       case 2: /* with prefix (start at 0 time) */
-        if (csound->fout_kreset == 0)
-          csound->fout_kreset = csound->kcounter;
+        if (pp->fout_kreset == 0)
+          pp->fout_kreset = csound->kcounter;
         {
           int p1 = (int) p->h.insdshead->p1;
-          double p2 = (double) (csound->kcounter - csound->fout_kreset)
+          double p2 = (double) (csound->kcounter - pp->fout_kreset)
                       * csound->onedkr;
           double p3 = p->h.insdshead->p3;
           if (p3 > FL(0.0))
@@ -373,7 +364,7 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
         }
         break;
       case 3: /* reset */
-        csound->fout_kreset = 0;
+        pp->fout_kreset = 0;
         return OK;
       }
       for (j = 0; j < p->INOCOUNT - 3; j++) {
@@ -389,32 +380,34 @@ int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
     return OK;
 }
 
-int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
+static int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
 {
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     if (p->h.insdshead->xtratim < 1)
       p->h.insdshead->xtratim = 1;
     p->counter =  csound->kcounter;
     p->done = 1;
-    if (*p->iflag == 2 && csound->fout_kreset == 0)
-      csound->fout_kreset = csound->kcounter;
+    if (*p->iflag == 2 && pp->fout_kreset == 0)
+      pp->fout_kreset = csound->kcounter;
     return OK;
 }
 
-int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
+static int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
 {
-    int   j;
+    FOUT_GLOBALS  *pp;
     MYFLT **args;
     FILE  *rfil;
-    int   n;
+    int   j, n;
 
     if (!p->h.insdshead->relesing || !p->done)
       return OK;
 
+    pp = fout_get_globals(csound, &(p->p));
     args = p->argums;
     n = (int) MYFLT2LRND(*p->ihandle);
-    if (n < 0 || n > csound->file_num)
+    if (n < 0 || n > pp->file_num)
       csound->Die(csound, Str("fouti: invalid file handle"));
-    rfil = ((struct fileinTag*) csound->file_opened)[n].raw;
+    rfil = ((struct fileinTag*) pp->file_opened)[n].raw;
     if (rfil == NULL)
       csound->Die(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
@@ -431,14 +424,14 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
       case 2: /* with prefix (start at 0 time) */
         {
           int p1 = (int) p->h.insdshead->p1;
-          double p2 = (p->counter - csound->fout_kreset) *csound->onedkr;
+          double p2 = (p->counter - pp->fout_kreset) * csound->onedkr;
           double p3 = (double) (csound->kcounter - p->counter)
                       * csound->onedkr;
           fprintf(rfil, "i %i %f %f ", p1, p2, p3);
         }
         break;
       case 3: /* reset */
-        csound->fout_kreset = 0;
+        pp->fout_kreset = 0;
         return OK;
       }
       for (j = 0; j < p->INOCOUNT - 3;j++) {
@@ -458,8 +451,9 @@ int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
 
 /*----------------------------------*/
 
-int infile_set(ENVIRON *csound, INFILE *p)
+static int infile_set(ENVIRON *csound, INFILE *p)
 {
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     SF_INFO sfinfo;
     int     n = 0;
 
@@ -473,16 +467,16 @@ int infile_set(ENVIRON *csound, INFILE *p)
       else
         sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
       sfinfo.channels = p->INOCOUNT - 3;
-      if ((n = fout_open_sndfile(csound, &(p->fp), fname, 0, &sfinfo)) < 0)
+      if ((n = fout_open_sndfile(pp, &(p->fp), fname, 0, &sfinfo)) < 0)
         csound->Die(csound, Str("fin: cannot open infile %s"), fname);
     }
     else { /* file handle argument */
       n = (int) MYFLT2LRND(*p->fname);
-      if (n < 0 || n > csound->file_num ||
-          (p->fp = ((struct fileinTag*) csound->file_opened)[n].file) == NULL)
+      if (n < 0 || n > pp->file_num ||
+          (p->fp = ((struct fileinTag*) pp->file_opened)[n].file) == NULL)
         csound->Die(csound, Str("fin: invalid file handle"));
     }
-    if (((struct fileinTag*) csound->file_opened)[n].do_scale)
+    if (((struct fileinTag*) pp->file_opened)[n].do_scale)
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);
@@ -492,7 +486,7 @@ int infile_set(ENVIRON *csound, INFILE *p)
     return OK;
 }
 
-int infile_act(ENVIRON *csound, INFILE *p)
+static int infile_act(ENVIRON *csound, INFILE *p)
 {
     int   j, nargs = p->nargs, k = 0;
     MYFLT **args = p->argums;
@@ -524,8 +518,9 @@ int infile_act(ENVIRON *csound, INFILE *p)
 
 /*----------------------------*/
 
-int kinfile_set(ENVIRON *csound, KINFILE *p)
+static int kinfile_set(ENVIRON *csound, KINFILE *p)
 {
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     SF_INFO sfinfo;
     int     n = 0;
 
@@ -539,16 +534,16 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
       else
         sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
       sfinfo.channels = p->INOCOUNT - 3;
-      if ((n = fout_open_sndfile(csound, &(p->fp), fname, 0, &sfinfo)) < 0)
+      if ((n = fout_open_sndfile(pp, &(p->fp), fname, 0, &sfinfo)) < 0)
         csound->Die(csound, Str("fink: cannot open infile %s"), fname);
     }
     else {                      /* file handle argument */
       n = (int) MYFLT2LRND(*p->fname);
-      if (n < 0 || n > csound->file_num ||
-          (p->fp = ((struct fileinTag*) csound->file_opened)[n].file) == NULL)
+      if (n < 0 || n > pp->file_num ||
+          (p->fp = ((struct fileinTag*) pp->file_opened)[n].file) == NULL)
         csound->Die(csound, Str("fink: invalid file handle"));
     }
-    if (((struct fileinTag*) csound->file_opened)[n].do_scale)
+    if (((struct fileinTag*) pp->file_opened)[n].do_scale)
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);
@@ -558,7 +553,7 @@ int kinfile_set(ENVIRON *csound, KINFILE *p)
     return OK;
 }
 
-int kinfile(ENVIRON *csound, KINFILE *p)
+static int kinfile(ENVIRON *csound, KINFILE *p)
 {
     int   j, nargs = p->nargs;
     MYFLT **args = p->argums;
@@ -582,8 +577,9 @@ int kinfile(ENVIRON *csound, KINFILE *p)
     return OK;
 }
 
-int i_infile(ENVIRON *csound, I_INFILE *p)
+static int i_infile(ENVIRON *csound, I_INFILE *p)
 {
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   j, n, nargs;
     FILE  *fp = NULL;
     MYFLT **args = p->argums;
@@ -595,13 +591,13 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
       csound->strarg2name(csound, fname, p->fname, "fout.", p->XSTRCODE);
       if (idx < 0 || idx > 2)
         idx = 0;
-      if ((n = fout_open_file(csound, &fp, fname, omodes[idx])) < 0)
+      if ((n = fout_open_file(pp, &fp, fname, omodes[idx])) < 0)
         csound->Die(csound, Str("fini: cannot open infile %s"), fname);
     }
     else {/* file handle argument */
       n = (int) MYFLT2LRND(*p->fname);
-      if (n < 0 || n > csound->file_num ||
-          (fp = ((struct fileinTag*) csound->file_opened)[n].raw) == NULL)
+      if (n < 0 || n > pp->file_num ||
+          (fp = ((struct fileinTag*) pp->file_opened)[n].raw) == NULL)
         csound->Die(csound, Str("fini: invalid file handle"));
     }
 
@@ -671,7 +667,7 @@ int i_infile(ENVIRON *csound, I_INFILE *p)
 
 /*---------------------------*/
 
-int incr(ENVIRON *csound, INCR *p)
+static int incr(ENVIRON *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
     int   n;
@@ -681,7 +677,7 @@ int incr(ENVIRON *csound, INCR *p)
     return OK;
 }
 
-int clear(ENVIRON *csound, CLEARS *p)
+static int clear(ENVIRON *csound, CLEARS *p)
 {
     int   n, j;
     MYFLT *avar;
@@ -697,8 +693,9 @@ int clear(ENVIRON *csound, CLEARS *p)
 /*---------------------------------*/
 /* formatted output to a text file */
 
-int fprintf_set(ENVIRON *csound, FPRINTF *p)
+static int fprintf_set(ENVIRON *csound, FPRINTF *p)
 {
+    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   n;
     char  *sarg = (char*) p->fmt;
     char  *sdest = p->txtstring;
@@ -709,13 +706,13 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
       /* if char string name given */
       char fname[FILENAME_MAX];
       csound->strarg2name(csound, fname, p->fname, "fout.", p->XSTRCODE);
-      if ((p->idx = fout_open_file(csound, &(p->fp), fname, "w")) < 0)
+      if ((p->idx = fout_open_file(pp, &(p->fp), fname, "w")) < 0)
         csound->Die(csound, Str("fprint: cannot open outfile %s"), fname);
     }
     else { /* file handle as argument */
       n = (int) MYFLT2LRND(*p->fname);
-      if (n < 0 || n > csound->file_num ||
-          (p->fp = ((struct fileinTag*) csound->file_opened)[n].raw) == NULL)
+      if (n < 0 || n > pp->file_num ||
+          (p->fp = ((struct fileinTag*) pp->file_opened)[n].raw) == NULL)
         csound->Die(csound, Str("fout: invalid file handle"));
       p->idx = n;
     }
@@ -819,5 +816,166 @@ int fprintf_set(ENVIRON *csound, FPRINTF *p)
       /* Increment pointer and process next character until end of string.  */
     } while (*++sarg != 0);
     return OK;
+}
+
+/* perform a sprintf-style format  -- matt ingalls */
+static void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
+{
+    char strseg[8192];
+    int i = 0, j = 0;
+    char *segwaiting = 0;
+
+    while (*fmt) {
+      if (*fmt == '%') {
+        /* if already a segment waiting, then lets print it */
+        if (segwaiting) {
+          strseg[i] = '\0';
+
+          switch (*segwaiting) {
+          case 'd':
+          case 'i':
+          case 'o':
+          case 'x':
+          case 'X':
+          case 'u':
+          case 'c':
+            sprintf(outstring, strseg, (int) MYFLT2LRND(*kvals[j]));
+            break;
+          case 'h':
+            sprintf(outstring, strseg, (short) MYFLT2LRND(*kvals[j]));
+            break;
+          case 'l':
+            sprintf(outstring, strseg, (long) MYFLT2LRND(*kvals[j]));
+            break;
+
+          default:
+            sprintf(outstring, strseg, *kvals[j]);
+            break;
+          }
+          outstring += strlen(outstring);
+
+          i = 0;
+          segwaiting = 0;
+
+          /* prevent potential problems */
+          /* if user didnt give enough input params */
+          if (j < numVals-1)
+            j++;
+        }
+
+        /* copy the '%' */
+        strseg[i++] = *fmt++;
+
+        /* find the format code */
+        segwaiting = fmt;
+        while (*segwaiting && !isalpha(*segwaiting))
+          segwaiting++;
+      }
+      else
+        strseg[i++] = *fmt++;
+    }
+
+    if (i) {
+      strseg[i] = '\0';
+      if (segwaiting) {
+        switch (*segwaiting) {
+        case 'd':
+        case 'i':
+        case 'o':
+        case 'x':
+        case 'X':
+        case 'u':
+        case 'c':
+          sprintf(outstring, strseg, (int) MYFLT2LRND(*kvals[j]));
+          break;
+        case 'h':
+          sprintf(outstring, strseg, (short) MYFLT2LRND(*kvals[j]));
+          break;
+        case 'l':
+          sprintf(outstring, strseg, (long) MYFLT2LRND(*kvals[j]));
+          break;
+
+        default:
+          sprintf(outstring, strseg, *kvals[j]);
+          break;
+        }
+      }
+      else
+        sprintf(outstring, strseg);
+    }
+}
+
+static int fprintf_k(ENVIRON *csound, FPRINTF *p)
+{
+    char        string[8192];
+    sprints(string, p->txtstring, p->argums, p->INOCOUNT-2);
+    fprintf(p->fp, string);
+    return OK;
+}
+
+/* i-rate fprints */
+static int fprintf_i(ENVIRON *csound, FPRINTF *p)
+{
+    char        string[8192];
+    fprintf_set(csound,p);
+    sprints(string, p->txtstring, p->argums, p->INOCOUNT-2);
+    fprintf(p->fp, string);
+    return OK;
+}
+
+#define S(x)    sizeof(x)
+
+static OENTRY localops[] = {
+    { "fprints",    S(FPRINTF),     1,  "",     "TSM",
+        (SUBR) fprintf_i,       (SUBR) NULL,        (SUBR) NULL         },
+    { "fprintks",   S(FPRINTF),     3,  "",     "TSM",
+        (SUBR) fprintf_set,     (SUBR) fprintf_k,   (SUBR) NULL         },
+    { "vincr",      S(INCR),        4,  "",     "aa",
+        (SUBR) NULL,            (SUBR) NULL,        (SUBR) incr         },
+    { "clear",      S(CLEARS),      4,  "",     "y",
+        (SUBR) NULL,            (SUBR) NULL,        (SUBR) clear        },
+    { "fout",       S(OUTFILE),     5,  "",     "Tiy",
+        (SUBR) outfile_set,     (SUBR) NULL,        (SUBR) outfile      },
+    { "foutk",      S(KOUTFILE),    3,  "",     "Tiz",
+        (SUBR) koutfile_set,    (SUBR) koutfile,    (SUBR) NULL         },
+    { "fouti",      S(IOUTFILE),    1,  "",     "iiim",
+        (SUBR) ioutfile_set,    (SUBR) NULL,        (SUBR) NULL         },
+    { "foutir",     S(IOUTFILE_R),  3,  "",     "iiim",
+        (SUBR) ioutfile_set_r,  (SUBR) ioutfile_r,  (SUBR) NULL         },
+    { "fiopen",     S(FIOPEN),      1,  "i",    "Si",
+        (SUBR) fiopen,          (SUBR) NULL,        (SUBR) NULL         },
+    { "fin",        S(INFILE),      5,  "",     "Tiiy",
+        (SUBR) infile_set,      (SUBR) NULL,        (SUBR) infile_act   },
+    { "fink",       S(KINFILE),     3,  "",     "Tiiz",
+        (SUBR) kinfile_set,     (SUBR) kinfile,     (SUBR) NULL         },
+    { "fini",       S(I_INFILE),    1,  "",     "Tiim",
+        (SUBR) i_infile,        (SUBR) NULL,        (SUBR) NULL         }
+};
+
+PUBLIC long opcode_size(void)
+{
+    return (long) sizeof(localops);
+}
+
+PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+{
+    FOUT_GLOBALS  *p;
+
+    if (csound->CreateGlobalVariable(csound, "_fout_globals",
+                                             sizeof(FOUT_GLOBALS)) != 0)
+      csound->Die(csound, Str("fout: could not create global structure"));
+    p = csound->QueryGlobalVariableNoCheck(csound, "_fout_globals");
+    p->csound = csound;
+    p->file_opened = (struct fileinTag*) NULL;
+    p->file_max = 0;
+    p->file_num = -1;
+    p->fout_kreset = 0L;
+    p->buf = (MYFLT*) NULL;
+    p->buf_size = 0;
+    if (csound->RegisterResetCallback(csound, (void*) p,
+                                              (int (*)(void*, void*)) foutRESET)
+        != 0)
+    csound->Die(csound, Str("fout: error registering reset callback"));
+    return localops;
 }
 

@@ -920,9 +920,6 @@ extern "C" {
     char *        rtin_devs;
     unsigned int  rtout_dev;
     char *        rtout_devs;
-    void          *file_opened;
-    int           file_max;
-    int           file_num;
     int           nchanik;
     MYFLT*        chanik;
     int           nchania;
@@ -955,7 +952,6 @@ extern "C" {
     void          *FFT_table_2;
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave, *tplim;
-    long          fout_kreset;
     /* Statics from express.c */
     long          polmax;
     long          toklen;

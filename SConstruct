@@ -529,8 +529,6 @@ OOps/disprep.c
 OOps/dsputil.c
 OOps/dumpf.c
 OOps/fftlib.c
-OOps/fout.c
-OOps/fprint.c
 OOps/goto_ops.c
 OOps/midiinterop.c
 OOps/midiops.c
@@ -652,6 +650,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('flanger',
     ['Opcodes/flanger.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('follow',
     ['Opcodes/follow.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('fout',
+    ['Opcodes/fout.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('freeverb',
     ['Opcodes/freeverb.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ftconv',
