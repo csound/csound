@@ -51,7 +51,6 @@
 #include "pvadd.h"
 #include "sndinfUG.h"
 #include "sf.h"
-#include "fout.h"
 #include "ugrw1.h"
 #include "ugrw2.h"
 
@@ -180,8 +179,6 @@ int    tigoto(void*,void*), tival(void*,void*);
 int    printv(void*,void*), dspset(void*,void*), kdsplay(void*,void*);
 int    dsplay(void*,void*);
 int    fftset(void*,void*), kdspfft(void*,void*), dspfft(void*,void*);
-int    infile_act(INFILE *p);
-
 int    xyinset(void*,void*), xyin(void*,void*), tempeset(void*,void*);
 int    tempest(void*,void*), tempset(void*,void*), tempo(void*,void*);
 int    old_kdmpset(void*,void*), old_kdmp2set(void*,void*);
@@ -201,7 +198,6 @@ int    ikcauchy(void*,void*), apcauchy(void*,void*), ikpcauchy(void*,void*);
 int    abeta(void*,void*), ikbeta(void*,void*), aweib(void*,void*);
 int    ikweib(void*,void*), apoiss(void*,void*), ikpoiss(void*,void*);
 int    seedrand(void*,void*);
-
 int    tblesegset(void*,void*), ktableseg(void*,void*), ktablexseg(void*,void*);
 int    vpvset(void*,void*), vpvoc(void*,void*);
 int    pvreadset(void*,void*), pvread(void*,void*), pvcrossset(void*,void*);
@@ -225,7 +221,6 @@ int    guiroset(void*,void*), guiro(void*,void*), sekere(void*,void*);
 int    tambourset(void*,void*), tambourine(void*,void*), bambooset(void*,void*);
 int    bamboo(void*,void*), wuterset(void*,void*), wuter(void*,void*);
 int    sleighset(void*,void*), sleighbells(void*,void*);
-
 int    trig_set(void*,void*), trig(void*,void*), numsamp(void*,void*);
 int    ftsr(void*,void*);
 int    kon2_set(void*,void*), kon2(void*,void*);
@@ -235,7 +230,6 @@ int    cntrl_set(void*,void*), control(void*,void*), ocontrol(void*,void*);
 int    button_set(void*,void*), button(void*,void*), check_set(void*,void*);
 int    check(void*,void*);
 #endif
-
 int    sum(void*,void*), product(void*,void*), macset(void*,void*);
 int    mac(void*,void*), maca(void*,void*);
 int    nestedapset(void*,void*), nestedap(void*,void*);
@@ -245,7 +239,6 @@ int    filepeak(void*,void*);
 int    ilogbasetwo(void*,void*), logbasetwo_set(void*,void*);
 int    powoftwo(void*,void*), powoftwoa(void*,void*);
 int    logbasetwo(void*,void*), logbasetwoa(void*,void*);
-/* int    nlalp_set(void*,void*), nlalp(void*,void*); */
 int    lp2_set(void*,void*), lp2(void*,void*);
 int    phaser2set(void*,void*), phaser2(void*,void*);
 int    phaser1set(void*,void*), phaser1(void*,void*);
@@ -758,20 +751,6 @@ OENTRY opcodlst_1[] = {
 { "printks",S(PRINTKS), 3,   "",   "TiM",  (SUBR)printksset,(SUBR)printks, NULL },
 { "prints",S(PRINTS),   1,   "",   "TM",   (SUBR)printsset, NULL, NULL },
 { "printk2", S(PRINTK2),3,   "",   "ko",   (SUBR)printk2set, (SUBR)printk2, NULL },
-{ "fprints", S(FPRINTF),1,   "",   "TSM",  (SUBR)fprintf_i, NULL, NULL },
-{ "fprintks", S(FPRINTF), 3, "",   "TSM",
-                                      (SUBR)fprintf_set, (SUBR)fprintf_k, NULL },
-{ "vincr", S(INCR),     4, "",     "aa",   NULL, NULL, (SUBR)incr              },
-{ "clear", S(CLEARS),   4, "",     "y",    NULL, NULL, (SUBR)clear             },
-{ "fout", S(OUTFILE),   5, "",     "Tiy",  (SUBR)outfile_set,NULL,(SUBR)outfile },
-{ "foutk", S(KOUTFILE), 3, "",     "Tiz",  (SUBR)koutfile_set, (SUBR)koutfile  },
-{ "fouti", S(IOUTFILE), 1, "",     "iiim", (SUBR)ioutfile_set                  },
-{ "foutir", S(IOUTFILE_R), 3, "",  "iiim", (SUBR)ioutfile_set_r,(SUBR)ioutfile_r },
-{ "fiopen", S(FIOPEN),  1, "i",    "Si",   (SUBR)fiopen                        },
-{ "fin", S(INFILE),     5, "",     "Tiiy",
-                                        (SUBR)infile_set,NULL,(SUBR)infile_act },
-{ "fink", S(KINFILE),   3, "",     "Tiiz", (SUBR)kinfile_set, (SUBR)kinfile    },
-{ "fini", S(I_INFILE),  1,  "",     "Tiim", (SUBR)i_infile                     },
 { "portk",  S(KPORT),   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL   },
 { "tonek",  S(KTONE),   3, "k",     "kko",  (SUBR)ktonset, (SUBR)ktone, NULL   },
 { "atonek", S(KTONE),   3, "k",     "kko",  (SUBR)ktonset, (SUBR)katone, NULL  },
