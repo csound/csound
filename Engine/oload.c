@@ -356,9 +356,6 @@ const ENVIRON cenviron_ = {
         NULL,           /*  rtin_devs           */
         1024,           /*  rtout_dev           */
         NULL,           /*  rtout_devs          */
-        NULL,           /*  file_opened         */
-        0,              /*  file_max            */
-        -1,             /*  file_num            */
         0, NULL,        /*  nchanik, chanik     */
         0, NULL,        /*  nchania, chania     */
         0, NULL,        /*  nchanok, chanok     */
@@ -386,7 +383,6 @@ const ENVIRON cenviron_ = {
         NULL,           /*  FFT_table_1         */
         NULL,           /*  FFT_table_2         */
         NULL, NULL, NULL, /* tseg, tpsave, tplim */
-        0L,             /*  fout_kreset         */
         /* express.c */
         0L,             /*  polmax              */
         0L,             /*  toklen              */
