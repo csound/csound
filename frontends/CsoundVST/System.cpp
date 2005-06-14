@@ -31,6 +31,7 @@
 #include <vector>
 #include <string>
 #include <cstdio>
+#include <csound.h>
 #include "System.hpp"
 #include "CsoundFile.hpp"
 
@@ -292,6 +293,26 @@ namespace csound
   {
   }
 
+  void *System::openLibrary(std::string filename)
+  {
+    void *library = 0;
+    library = csoundOpenLibrary(filename.c_str());
+    return library;
+  }
+
+  void *System::getSymbol(void *library, std::string name)
+  {
+    void *procedureAddress = 0;
+    procedureAddress = csoundGetLibrarySymbol(library, name.c_str()); 
+    return procedureAddress;
+  }
+
+  void System::closeLibrary(void *library)
+  {
+    void *returnValue = 0;
+    returnValue = (void *)csoundCloseLibrary(library);
+  }
+
 #if defined(WIN32) && !defined(__CYGWIN__)
 
 #include <process.h>
@@ -346,21 +367,6 @@ namespace csound
     base = base_;
     file = file_;
     extension = extension_;
-  }
-
-  void *System::openLibrary(std::string filename)
-  {
-    return (void *) LoadLibrary(filename.c_str());
-  }
-
-  void *System::getSymbol(void *library, std::string name)
-  {
-    return (void *) GetProcAddress((HMODULE) library, name.c_str());
-  }
-
-  void System::closeLibrary(void *library)
-  {
-    FreeLibrary((HMODULE) library);
   }
 
   std::vector<std::string> System::getFilenames(std::string path)
@@ -616,30 +622,6 @@ namespace csound
     free(fileTemp);
   }
 
-  void *System::openLibrary(std::string filename)
-  {
-    void *library = 0;
-    library = dlopen(filename.c_str(), RTLD_NOW | RTLD_GLOBAL);
-    if(!library)
-      {
-        System::error("Error in dlopen(): '%s'\n", dlerror());
-      }
-    return library;
-  }
-
-  void *System::getSymbol(void *library, std::string name)
-  {
-    void *procedureAddress = 0;
-    procedureAddress = dlsym(library, name.c_str());
-    return procedureAddress;
-  }
-
-  void System::closeLibrary(void *library)
-  {
-    void *returnValue = 0;
-    returnValue = (void *)dlclose(library);
-  }
-
   std::vector<std::string> System::getFilenames(std::string path)
   {
     std::vector<std::string> names;
@@ -855,30 +837,6 @@ namespace csound
       }
     free(dirTemp);
     free(fileTemp);
-  }
-
-  void *System::openLibrary(std::string filename)
-  {
-    void *library = 0;
-    library = dlopen(filename.c_str(), RTLD_NOW | RTLD_GLOBAL);
-    if(!library)
-      {
-        System::error("Error in dlopen(): '%s'\n", dlerror());
-      }
-    return library;
-  }
-
-  void *System::getSymbol(void *library, std::string name)
-  {
-    void *procedureAddress = 0;
-    procedureAddress = dlsym(library, name.c_str());
-    return procedureAddress;
-  }
-
-  void System::closeLibrary(void *library)
-  {
-    void *returnValue = 0;
-    returnValue = (void *)dlclose(library);
   }
 
   std::vector<std::string> System::getFilenames(std::string path)
