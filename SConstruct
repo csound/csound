@@ -768,7 +768,7 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
   elif getPlatform() == 'mingw':
     widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++', 'kernel32', 'gdi32', 'wsock32', 'ole32', 'uuid', 'winmm'])
   elif getPlatform() == 'darwin':
-    widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm', 'supc++'])
+    widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     widgetsEnvironment.Append(LINKFLAGS = Split('-framework Carbon -framework CoreAudio -framework CoreMidi -framework ApplicationServices'))
   pluginLibraries.append(widgetsEnvironment.SharedLibrary('widgets',
                                                         ['InOut/widgets.cpp']))
@@ -1187,14 +1187,14 @@ if (commonEnvironment['buildPDClass']=='1' and pdhfound):
         pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
         pdClassEnvironment.Append(LIBPATH=['.'])
         if(commonEnvironment['useFLTK'] == '1'):
-           pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile', 'supc++'])
+           pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile'])
         else:
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
     if(getPlatform() == 'linux'):
         pdClassEnvironment.Append(LINKFLAGS = ['-shared'])
         pdClassEnvironment.Program('csoundapi~.pd_linux', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
         if(commonEnvironment['useFLTK'] == '1'):
-           pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile', 'X11', 'supc++'])
+           pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile', 'X11'])
            pdClassEnvironment.Append(LIBPATH=['.', '/usr/X11R6/lib'])
         else:
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
