@@ -176,7 +176,7 @@ extern "C" {
     int     xincod_str;     /* Type switch for string arguments */
     int     xoutcod_str;
     char    intype;         /* Type of first input argument (g,k,a,w etc) */
-    char    pftype;         /* Type of output argument (k, a etc) */
+    char    pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 
   /* This struct is filled out by otran() at orch parse time.
@@ -583,14 +583,14 @@ extern "C" {
     MYFLT (*GetScoreOffsetSeconds)(void *csound);
     void (*SetScoreOffsetSeconds)(void *csound, MYFLT offset);
     void (*RewindScore)(void *csound);
-#ifdef HAVE_GCC3
-    //    __attribute__ ((__format__ (__printf__, 2, 3)))
+#if defined(HAVE_GCC3) && !defined(__MACH__)
+    __attribute__ ((__format__ (__printf__, 2, 3)))
       void (*Message)(void *csound, const char *format, ...);
-    //    __attribute__ ((__format__ (__printf__, 3, 4)))
+    __attribute__ ((__format__ (__printf__, 3, 4)))
       void (*MessageS)(void *csound, int attr, const char *format, ...);
 #else
-      void (*Message)(void *csound, const char *format, ...);
-      void (*MessageS)(void *csound, int attr, const char *format, ...);
+    void (*Message)(void *csound, const char *format, ...);
+    void (*MessageS)(void *csound, int attr, const char *format, ...);
 #endif
     void (*MessageV)(void *csound, int attr, const char *format, va_list args);
     void (*ThrowMessage)(void *csound, const char *format, ...);
@@ -690,16 +690,16 @@ extern "C" {
     void *(*Calloc)(void *csound, size_t nbytes);
     void *(*ReAlloc)(void *csound, void *oldp, size_t nbytes);
     void (*Free)(void *csound, void *ptr);
-#ifdef HAVE_GCC3
-    //    __attribute__ ((__noreturn__, __format__(__printf__, 2, 3)))
+#if defined(HAVE_GCC3) && !defined(__MACH__)
+    __attribute__ ((__noreturn__, __format__(__printf__, 2, 3)))
       void (*Die)(void *csound, const char *msg, ...);
-    //    __attribute__ ((__format__(__printf__, 2, 3)))
+    __attribute__ ((__format__(__printf__, 2, 3)))
       int (*InitError)(void *csound, const char *msg, ...);
-    //    __attribute__ ((__format__(__printf__, 2, 3)))
+    __attribute__ ((__format__(__printf__, 2, 3)))
       int (*PerfError)(void *csound, const char *msg, ...);
-    //    __attribute__ ((__format__(__printf__, 2, 3)))
+    __attribute__ ((__format__(__printf__, 2, 3)))
       void (*Warning)(void *csound, const char *msg, ...);
-    //    __attribute__ ((__format__(__printf__, 2, 3)))
+    __attribute__ ((__format__(__printf__, 2, 3)))
       void (*DebugMsg)(void *csound, const char *msg, ...);
 #else
     void (*Die)(void *csound, const char *msg, ...);

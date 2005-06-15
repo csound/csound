@@ -292,7 +292,7 @@ static int shift_right_kk(ENVIRON *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     int  input2 = (int) MYFLT2LRND(*p->b);
-    *p->r = (MYFLT) (input1 >> input2);
+    *p->r = (MYFLT) (input1 / (1L << input2));
     return OK;
 }
 
@@ -304,7 +304,7 @@ static int shift_right_aa(ENVIRON *csound, AOP *p)
     for (n = 0; n < nsmps; n++) {
       input1 = MYFLT2LRND(p->a[n]);
       input2 = (int) MYFLT2LRND(p->b[n]);
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (MYFLT) (input1 / (1L << input2));
     }
     return OK;
 }
@@ -317,7 +317,7 @@ static int shift_right_ak(ENVIRON *csound, AOP *p)
 
     for (n = 0; n < nsmps; n++) {
       input1 = MYFLT2LRND(p->a[n]);
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (MYFLT) (input1 / (1L << input2));
     }
     return OK;
 }
@@ -329,7 +329,7 @@ static int shift_right_ka(ENVIRON *csound, AOP *p)
 
     for (n = 0; n < nsmps; n++) {
       input2 = MYFLT2LRND(p->b[n]);
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (MYFLT) (input1 / (1L << input2));
     }
     return OK;
 }
