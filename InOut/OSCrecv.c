@@ -49,7 +49,8 @@ static int OSC_handler(const char *path, const char *types,
     fprintf(stderr, "OSC handler called with path/types %s %s\n", path, types);
     // ####
     while (m) {
-      if (strcmp(m->path, path)==0 && strcmp(m->type, types)) {
+      fprintf(stderr, "Compare %s||%s and %s||%s\n", m->path, path, m->type, types);
+      if (strcmp(m->path, path)==0 && strcmp(m->type, types)==0) {
         /* Message is for this guy */
         int i, len = m->length;
         for (i=0; i<len; i++) {
