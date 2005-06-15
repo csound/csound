@@ -4,58 +4,51 @@
 #include <lo/lo.h>
 #include "csdl.h"
 
-typedef struct rtEvt_s {
-     struct rtEvt_s  *nxt;
-     /* ---- put here the event data fields ---- */
-} rtEvt_t;
-
 typedef struct osc_pat {
   struct osc_pat *next;
-  char * path;
-  char *type;
-  int active;
-  int  length;
-  MYFLT args[1];
+  char           *path;
+  char           *type;
+  int            active;
+  int            length;
+  MYFLT          args[1];
 } OSC_PAT;
 
 /* structure for global variables */
 
 typedef struct {
      ENVIRON    *csound;
-     rtEvt_t    *eventQueue;
      void       *threadLock;
-     /* ---- add any other global data here ---- */
      lo_server_thread thread;
-     OSC_PAT    *patterns;
+     OSC_PAT    *patterns;      /* List of things to do */
 } OSC_GLOBALS;
 
+#if 0
 /* callback function called by sensevents() once in every control period */
 
 static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
 {
      /* are there any pending events ? */
-     if (p->eventQueue != NULL) {
+     if (p->patterns != NULL) {
+       OSC_PAT *m = p->patterns;
        csound->WaitThreadLock(csound, p->threadLock, 1000);
-       while (p->eventQueue != NULL) {
-         rtEvt_t *ep = p->eventQueue;
-         p->eventQueue = ep->nxt;
+       while (m) {
          csound->NotifyThreadLock(csound, p->threadLock);
-         /* ---- add code here to handle the event ---- */
-         /* ... */
-         /* ---- end of handler code ---- */
-         free(ep);
+         csound->Message(csound, "Active pattern\n");
          csound->WaitThreadLock(csound, p->threadLock, 1000);
        }
        csound->NotifyThreadLock(csound, p->threadLock);
      }
 }
+#endif
 
 static int OSC_handler(const char *path, const char *types,
                         lo_arg **argv, int argc, void *data, void *p)
 {
     OSC_GLOBALS *pp = (OSC_GLOBALS*)p;
     OSC_PAT *m = pp->patterns;
+    // ####DEBUGGING
     fprintf(stderr, "OSC handler called with path/types %s %s\n", path, types);
+    // ####
     while (m) {
       if (strcmp(m->path, path)==0 && strcmp(m->type, types)) {
         /* Message is for this guy */
@@ -63,7 +56,7 @@ static int OSC_handler(const char *path, const char *types,
         for (i=0; i<len; i++) {
           MYFLT x;
           switch (types[i]) {
-          default:              /* Shoudl not happen */
+          default:              /* Should not happen */
           case 'i':
             x = (MYFLT)argv[i]->i; break;
           case 'l':
@@ -117,7 +110,6 @@ static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
        csound->Die(csound, Str("OSC: failed to allocate globals"));
      pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
      pp->csound = csound;
-     pp->eventQueue = NULL;
      pp->threadLock = csound->CreateThreadLock(csound);
      /* ---- initialise any other data in OSC_GLOBALS here ---- */
      /* ... */
@@ -132,8 +124,8 @@ static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
      lo_server_thread_start(pp->thread);
      /* register callback function for sensevents() */
      /* the function will be called once in every control period */
-     csound->RegisterSenseEventCallback(csound, (void (*)(void*, void*))
-                                                  event_sense_callback, pp);
+/*      csound->RegisterSenseEventCallback(csound, (void (*)(void*, void*)) */
+/*                                                   event_sense_callback, pp); */
      csound->Message(csound, "OSC listener: **EXPERIMENTAL UNFINISHED CODE**\n");
      return OK;
 }
