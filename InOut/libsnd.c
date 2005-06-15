@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                         /*             SNDLIB.C       */
+#include "cs.h"                         /*             SNDLIB.C         */
 #include "soundio.h"
 #include <sndfile.h>
 #ifdef HAVE_SYS_TYPES_H
@@ -57,7 +57,7 @@ typedef struct {
 extern  char    *getstrformat(int format);
 extern  char    *type2string(int);
 extern  short   sfsampsize(int);
-static  void    sndwrterr(void*, unsigned, unsigned);
+static  void    sndwrterr(void*, int, int);
 static  void    sndfilein_noscale(void *csound);
 
 #define ST(x)   (((LIBSND_GLOBALS*) ((ENVIRON*) csound)->libsndGlobals)->x)
@@ -166,17 +166,17 @@ static void spoutsf_noscale(void *csound_)
 }
 
 static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
-                                /* diskfile write option for audtran's */
+{                               /* diskfile write option for audtran's */
                                 /*      assigned during sfopenout()    */
-{
     ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
-    unsigned int     n;
+    int     n;
 
     if (ST(outfile) == NULL)
       return;
-    n = sf_write_MYFLT(ST(outfile), outbuf, nbytes / sizeof(MYFLT));
-    if (n < nbytes / sizeof(MYFLT))
+    n = (int) sf_write_MYFLT(ST(outfile), outbuf, nbytes / sizeof(MYFLT))
+        * (int) sizeof(MYFLT);
+    if (n < nbytes)
       sndwrterr(csound, n, nbytes);
     if (O->rewrt_hdr)
       rewriteheader(ST(outfile), 0);
@@ -192,7 +192,6 @@ static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
         {
           char    s[512];
           double  curTime = csound->sensEvents_state.curTime;
-          int     n;
           sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs, curTime, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
@@ -569,10 +568,9 @@ void soundinRESET(ENVIRON *csound)
     ST(nframes) = 1UL;
 }
 
-static void sndwrterr(void *csound, unsigned nret, unsigned nput)
+static void sndwrterr(void *csound, int nret, int nput)
 {                                   /* report soundfile write(osfd) error   */
     ENVIRON *p = (ENVIRON*) csound; /* called after chk of write() bytecnt  */
-    void sfcloseout(void*);
     p->Message(csound,
                Str("soundfile write returned bytecount of %d, not %d\n"),
                nret, nput);
