@@ -137,7 +137,7 @@ int paBlockingReadWriteStreamCallback(const void *input,
 void paBlockingRead(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer)
 {
  size_t i;
- for(i = 0; i < samples; i++, pabs->currentIndex++) {
+ for(i = 0; i < (unsigned int)samples; i++, pabs->currentIndex++) {
       if (pabs->currentIndex >= pabs->actualBufferSampleCount) {
       /*  ((ENVIRON*) pabs->csound)->NotifyThreadLock(pabs->csound,
                                                       pabs->paLock);
@@ -175,7 +175,7 @@ void paBlockingWrite(PA_BLOCKING_STREAM *pabs, int samples, MYFLT *buffer)
     size_t i;
     if (!pabs) return;
     if (!pabs->actualBuffer) return;
-     for (i = 0; i < samples; i++, pabs->currentIndex++) {
+    for (i = 0; i < (unsigned int)samples; i++, pabs->currentIndex++) {
       if (pabs->currentIndex >= pabs->actualBufferSampleCount) {
        ((ENVIRON*) pabs->csound)->NotifyThreadLock(pabs->csound, pabs->paLock);
        ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound,
