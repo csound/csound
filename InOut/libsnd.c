@@ -171,7 +171,7 @@ static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
-    int     n;
+    unsigned int     n;
 
     if (ST(outfile) == NULL)
       return;

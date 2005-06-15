@@ -1,5 +1,5 @@
 print '''
-C S O U N D   5
+C S O U N D 5
 
 SCons build file for Csound 5:
 API library, plugin opcodes, utilities, and front ends.
@@ -406,7 +406,7 @@ pluginEnvironment.Append(LIBS = ['sndfile'])
 if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi', '-framework', 'CoreFoundation', '-framework', 'CoreAudio'])
     if (commonEnvironment['useDirentFix'] == '1'):
-        pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
+       pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
 
 csoundProgramEnvironment = commonEnvironment.Copy()

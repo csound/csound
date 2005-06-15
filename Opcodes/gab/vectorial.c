@@ -528,7 +528,7 @@ int vcopy_i(ENVIRON *csound,VECTORSOP *p)
 {
     FUNC        *ftp1, *ftp2;
     MYFLT   *vector1 = NULL, *vector2 = NULL;
-    unsigned long       elements;
+    long       elements;
     if ((ftp1 = csound->FTnp2Find(csound,p->ifn1)) != NULL) {
       vector1 = ftp1->ftable;
     }
