@@ -180,6 +180,8 @@ static int OSC_reset(ENVIRON *csound, void *userData)
        return OK;    /* nothing to do */
      /* ---- add code here to stop and destroy OSC thread ---- */
      /* ... */
+     lo_server_thread_stop(p->thread);
+     lo_server_thread_free(p->thread);
      csound->WaitThreadLock(csound, p->threadLock, 1000);
      m = p->patterns; p->patterns = NULL;
      while (m) {
@@ -189,24 +191,52 @@ static int OSC_reset(ENVIRON *csound, void *userData)
      }
      csound->NotifyThreadLock(csound, p->threadLock);
      csound->DestroyThreadLock(csound, p->threadLock);
-     /* ---- perform any other clean-up here ---- */
-     /* ... */
      csound->DestroyGlobalVariable(csound, "_OSC_globals");
      return OK;
 }
 
 /* ---- implement OSC opcodes ---- */
 typedef struct {
+  OPDS h;                     /* default header */
+  MYFLT  *kans;
+  MYFLT  *dest;
+  MYFLT  *type;
+  MYFLT  *args[25];
+  OSC_PAT *pat;
 } OSCLISTEN;
 
 int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
 {
+    OSC_PAT *m = (OSC_PAT*)malloc(sizeof(OSC_PAT)+sizeof(MYFLT)*(p->INOCOUNT-2));
     /* Add a pattern to the list of recognised things */
+    OSC_GLOBALS *pp = (OSC_GLOBALS*)
+                             csound->QueryGlobalVariable(csound, "_OSC_globals");
+    if (pp == NULL) {
+      csound->Message(csound, "OSC not running\n");
+      return NOTOK;
+    }
+    m->path = strdup((char*) p->dest);
+    m->type = strdup((char*) p->type);
+    m->active = 0;
+    m->length = p->INOCOUNT-2;
+    m->next = pp->patterns;
+    pp->patterns = m;
+    p->pat = m;
     return OK;
 }
 
 int OSC_list(ENVIRON *csound, OSCLISTEN *p)
 {
+    OSC_PAT *m = p->pat;
+    if (m->active) {
+      int i;
+      for (i=0; i<m->length; i++)
+        *p->args[i] = m->args[i];
+      m->active = 0;
+      *p->kans = 1;
+    }
+    else
+      *p->kans = 0;
     return OK;
 }
 
