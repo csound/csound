@@ -211,7 +211,7 @@ extern "C" {
     if (p == NULL)
       return;
     /* Create the new event */
-    evt = (rtEvt_t*) malloc(sizeof(EVTBLK));
+    evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
     evt->nxt = NULL;
     evt->evt.strarg = NULL;
     evt->evt.opcod = (char) *args[0];
