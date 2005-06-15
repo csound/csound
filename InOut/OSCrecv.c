@@ -45,11 +45,7 @@ static int OSC_handler(const char *path, const char *types,
 {
     OSC_GLOBALS *pp = (OSC_GLOBALS*)p;
     OSC_PAT *m = pp->patterns;
-    // ####DEBUGGING
-    fprintf(stderr, "OSC handler called with path/types %s %s\n", path, types);
-    // ####
     while (m) {
-      fprintf(stderr, "Compare %s||%s and %s||%s\n", m->path, path, m->type, types);
       if (strcmp(m->path, path)==0 && strcmp(m->type, types)==0) {
         /* Message is for this guy */
         int i, len = m->length;
@@ -124,7 +120,7 @@ static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
 /*      csound->RegisterSenseEventCallback(csound, (void (*)(void*, void*)) */
 /*                                                   event_sense_callback, pp); */
     csound->Message(csound,
-                    "OSC listener started: **EXPERIMENTAL UNFINISHED CODE**\n");
+                    "OSC listener started\n");
     return OK;
 }
 
@@ -194,7 +190,6 @@ int OSC_list(ENVIRON *csound, OSCLISTEN *p)
     OSC_PAT *m = p->pat;
     if (m->active) {
       int i;
-      csound->Message(csound, "Pattern seen\n");
       for (i=0; i<m->length; i++)
         *p->args[i] = m->args[i];
       m->active = 0;
