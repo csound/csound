@@ -38,11 +38,11 @@ typedef struct {
     rtEvt_t *eventQueue;
     void    *threadLock;
     lo_server_thread  st;
+    double  baseTime;
     int     absp2mode;
 } OSC_GLOBALS;
 
-typedef struct
-{
+typedef struct {
     OPDS h;             /* default header */
     MYFLT *kwhen;
     MYFLT *host;
@@ -55,8 +55,7 @@ typedef struct
     int   cnt;
 } OSCSEND;
 
-typedef struct
-{
+typedef struct {
     OPDS    h;
     MYFLT   *i_port;
     MYFLT   *S_path;
@@ -194,7 +193,8 @@ static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
       rtEvt_t *ep = p->eventQueue;
       p->eventQueue = ep->nxt;
       csound->NotifyThreadLock(csound, p->threadLock);
-      startTime = (p->absp2mode ? 0.0 : csound->sensEvents_state.curTime);
+      startTime = (p->absp2mode ? p->baseTime
+                                  : csound->sensEvents_state.curTime);
       startTime += (double) ep->e.p[2];
       ep->e.p[2] = FL(0.0);
       if (ep->e.pcnt < 3 || ep->e.p[3] < FL(0.0) ||
@@ -206,7 +206,10 @@ static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
             ep->e.p[3] -= (MYFLT)(csound->sensEvents_state.curTime - startTime);
           startTime = csound->sensEvents_state.curTime;
         }
-        csound->insert_score_event(csound, &(ep->e), startTime, 0);
+        if (ep->e.opcod == 'T')
+          p->baseTime = csound->sensEvents_state.curTime;
+        else
+          csound->insert_score_event(csound, &(ep->e), startTime, 0);
       }
       if (ep->e.strarg != NULL)
         free(ep->e.strarg);
@@ -239,11 +242,18 @@ static int osc_event_handler(const char *path, const char *types,
       case 's': opcod = (char) argv[0]->s; break;
       default:  return 1;
     }
-    if (strchr("iqfae", opcod) == NULL)
-      return 1;         /* invalid opcode */
-    if (opcod != 'e' &&
-        ((opcod == 'f' && argc < 6) || (opcod != 'f' && argc < 4)))
-      return 1;         /* insufficient p-fields */
+    switch ((int) opcod) {
+      case 'e': break;
+      case 'T': if (argc > 1) return 1;
+                break;
+      case 'f': if (argc < 6) return 1;
+                break;
+      case 'i':
+      case 'q':
+      case 'a': if (argc < 4) return 1;
+                break;
+      default:  return 1;
+    }
     /* Create the new event */
     evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
     if (evt == NULL)
@@ -304,13 +314,14 @@ static int osc_listener_init(ENVIRON *csound, OSCRECV *p)
     OSC_GLOBALS *pp;
     char        portName[256], *pathName;
     /* allocate and initialise the globals structure */
-    if (csound->CreateGlobalVariable(csound, "_OSC_globals",
+    if (csound->CreateGlobalVariable(csound, "__OSC_globals",
                                              sizeof(OSC_GLOBALS)) != 0)
       csound->Die(csound, Str("OSC: failed to allocate globals"));
-    pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+    pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "__OSC_globals");
     pp->csound = csound;
     pp->eventQueue = NULL;
     pp->threadLock = csound->CreateThreadLock(csound);
+    pp->baseTime = 0.0;
     pp->absp2mode = (*(p->i_absp2) == FL(0.0) ? 0 : 1);
     /* create OSC thread */
     sprintf(portName, "%d", (int) MYFLT2LRND(*p->i_port));
@@ -335,7 +346,7 @@ static int osc_listener_init(ENVIRON *csound, OSCRECV *p)
 static int OSC_reset(ENVIRON *csound, void *userData)
 {
     OSC_GLOBALS *p;
-    p = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+    p = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "__OSC_globals");
     if (p == NULL)
       return OK;    /* nothing to do */
     /* stop and destroy OSC thread */
@@ -352,7 +363,7 @@ static int OSC_reset(ENVIRON *csound, void *userData)
     }
     csound->NotifyThreadLock(csound, p->threadLock);
     csound->DestroyThreadLock(csound, p->threadLock);
-    csound->DestroyGlobalVariable(csound, "_OSC_globals");
+    csound->DestroyGlobalVariable(csound, "__OSC_globals");
     return OK;
 }
 
