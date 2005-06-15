@@ -212,6 +212,8 @@ if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
     flags = flags%(commonEnvironment['gcc3opt'])
   commonEnvironment.Prepend(CCFLAGS = Split(flags))
   commonEnvironment.Prepend(CCFLAGS = ['-O3'])
+  if (getPlatform() == 'darwin' and (commonEnvironment['gcc3opt'] == '7450' or commonEnvironment['gcc3opt'] == 'G5')):
+	commonEnvironment.Append(CCFLAGS = ['-fast', '-fPIC'])  
 elif (commonEnvironment['noDebug']=='0'):
   if (getPlatform() == 'darwin'):
     commonEnvironment.Prepend(CCFLAGS = Split('-g -O2'))
@@ -1185,12 +1187,12 @@ pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 if (commonEnvironment['buildPDClass']=='1' and pdhfound):
     print "CONFIGURATION DECISION: Buiding PD csoundapi~ class"
     if(getPlatform() == 'darwin'):
-        pdClassEnvironment.Append(LINKFLAGS = ['-bundle',  '-flat_namespace',  '-undefined',  'suppress', '-framework', 'Carbon','-framework', 'ApplicationServices'])
-        pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
-        pdClassEnvironment.Append(LIBPATH=['.'])
-        if(commonEnvironment['useFLTK'] == '1'):
+	  pdClassEnvironment.Append(LINKFLAGS = ['-bundle','-flat_namespace',  '-undefined',  'suppress', '-framework', 'Carbon','-framework', 'ApplicationServices'])
+	  pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
+	  pdClassEnvironment.Append(LIBPATH=['.'])
+	  if(commonEnvironment['useFLTK'] == '1'):
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile'])
-        else:
+	  else:
            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
     if(getPlatform() == 'linux'):
         pdClassEnvironment.Append(LINKFLAGS = ['-shared'])
