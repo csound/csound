@@ -192,8 +192,8 @@ int OSC_list(ENVIRON *csound, OSCLISTEN *p)
 {
     OSC_PAT *m = p->pat;
     if (m->active) {
-      csound->Message(csound, "Pattern seen\n");
       int i;
+      csound->Message(csound, "Pattern seen\n");
       for (i=0; i<m->length; i++)
         *p->args[i] = m->args[i];
       m->active = 0;
