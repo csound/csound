@@ -50,44 +50,12 @@ static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
      }
 }
 
-/* callback function for OSC thread */
-/* NOTE: this function does not run in the main Csound audio thread, */
-/* so use of the API or access to ENVIRON should be limited or avoided */
-
-static int osc_event_handler(const char *path, const char *types,
-                              lo_arg **argv, int argc, lo_message msg,
-                              void *user_data)
-{
-     OSC_GLOBALS *p = (OSC_GLOBALS*) user_data;
-     ENVIRON     *csound = p->csound;
-     rtEvt_t     *evt;
-
-     /* Create the new event */
-     evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
-     if (evt == NULL)
-       return 1;
-     evt->nxt = NULL;
-     /* ---- store any other event data in structure ---- */
-     /* ... */
-     /* queue event for handling by main Csound thread */
-     csound->WaitThreadLock(csound, p->threadLock, 1000);
-     if (p->eventQueue == NULL)
-       p->eventQueue = evt;
-     else {
-       rtEvt_t *ep = p->eventQueue;
-       while (ep->nxt != NULL)
-         ep = ep->nxt;
-       ep->nxt = evt;
-     }
-     csound->NotifyThreadLock(csound, p->threadLock);
-     return 0;
-}
-
 static int OSC_handler(const char *path, const char *types,
                         lo_arg **argv, int argc, void *data, void *p)
 {
     OSC_GLOBALS *pp = (OSC_GLOBALS*)p;
     OSC_PAT *m = pp->patterns;
+    fprintf(stderr, "OSC handler called with path/types %s %s\n", path, types);
     while (m) {
       if (strcmp(m->path, path)==0 && strcmp(m->type, types)) {
         /* Message is for this guy */
@@ -161,6 +129,7 @@ static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
      /* passing 'pp' as user_data */
      /* ... */
      lo_server_thread_add_method(pp->thread, NULL, NULL, OSC_handler, pp);
+     lo_server_thread_start(pp->thread);
      /* register callback function for sensevents() */
      /* the function will be called once in every control period */
      csound->RegisterSenseEventCallback(csound, (void (*)(void*, void*))
@@ -222,6 +191,8 @@ int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
     m->next = pp->patterns;
     pp->patterns = m;
     p->pat = m;
+    csound->Message(csound, "Looking for dest \"%s\" with types %s %d args\n",
+                    m->path, m->type, m->length);
     return OK;
 }
 
@@ -229,6 +200,7 @@ int OSC_list(ENVIRON *csound, OSCLISTEN *p)
 {
     OSC_PAT *m = p->pat;
     if (m->active) {
+      csound->Message(csound, "Pattern seen\n");
       int i;
       for (i=0; i<m->length; i++)
         *p->args[i] = m->args[i];
