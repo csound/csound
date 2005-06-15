@@ -56,7 +56,7 @@ int vdelset(ENVIRON *csound, VDEL *p)           /*  vdelay set-up   */
 
 int vdelay(ENVIRON *csound, VDEL *p)              /*      vdelay  routine */
 {
-    unsigned long  nn, maxd, indx;
+    long  nn, maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -138,7 +138,7 @@ int vdelay(ENVIRON *csound, VDEL *p)              /*      vdelay  routine */
 
 int vdelay3(ENVIRON *csound, VDEL *p)   /*  vdelay routine with cubic interp */
 {
-    unsigned long  nn, maxd, indx;
+    long  nn, maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;

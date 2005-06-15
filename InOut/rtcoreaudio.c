@@ -175,7 +175,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
     p->Message(csound,
                "==========================================================\n"
                "CoreAudio Module: found %d device(s):\n", (int)devnos);
-    for(i=0; i < devnos; i++){
+    for(i=0; (unsigned int)i < devnos; i++){
       AudioDeviceGetPropertyInfo(sysdevs[i],1,false,
                                  kAudioDevicePropertyDeviceName,
                                  &psize, NULL);
@@ -263,7 +263,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
                            kAudioDevicePropertyStreamFormat,
                            &psize, &format);
 
-    if(format.mChannelsPerFrame != dev->nchns) {
+    if(format.mChannelsPerFrame != (unsigned int)dev->nchns) {
       dev->format.mChannelsPerFrame = format.mChannelsPerFrame;
       p->Message(csound,
                  "CoreAudio module warning: using %d channels; "
@@ -294,7 +294,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
 
     buffbytes = dev->bufframes*dev->nchns*sizeof(float);
 
-    for(i=0; i < dev->buffnos; i++){
+    for(i=0; (unsigned int)i < dev->buffnos; i++){
 
       if((dev->inbuffs[i] = (float *) malloc(buffbytes)) == NULL){
         free(dev->outbuffs);
