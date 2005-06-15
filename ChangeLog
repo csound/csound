@@ -1,3 +1,7 @@
+2005-06-15  John ff  <jpff@codemist.co.uk>
+
+	* InOut/OSCrecv.c: New file for OSC listening
+
 2005-06-15  John ffitch  <jpff@codemist.co.uk>
 
 	* SConstruct: Fixed TAGS so it looks at C files as well
