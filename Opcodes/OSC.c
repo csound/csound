@@ -24,6 +24,23 @@
 #include "csdl.h"
 #include <lo/lo.h>
 
+/* structure for real time event */
+
+typedef struct rtEvt_s {
+    struct rtEvt_s  *nxt;
+    EVTBLK  e;
+} rtEvt_t;
+
+/* structure for global variables */
+
+typedef struct {
+    ENVIRON *csound;
+    rtEvt_t *eventQueue;
+    void    *threadLock;
+    lo_server_thread  st;
+    int     absp2mode;
+} OSC_GLOBALS;
+
 typedef struct
 {
     OPDS h;             /* default header */
@@ -37,6 +54,14 @@ typedef struct
     MYFLT last;
     int   cnt;
 } OSCSEND;
+
+typedef struct
+{
+    OPDS    h;
+    MYFLT   *i_port;
+    MYFLT   *S_path;
+    MYFLT   *i_absp2;
+} OSCRECV;
 
 int osc_send_set(ENVIRON *csound, OSCSEND *p)
 {
@@ -140,7 +165,8 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
             tt.sec = (uint32_t)(*arg[i]+FL(0.5));
             msk <<= 1; i++;
             if (type[i]!='t')
-              return csound->PerfError(csound, Str("Time stanmp is two values"));
+              return csound->PerfError(csound,
+                                       Str("Time stanmp is two values"));
             tt.frac = (uint32_t)(*arg[i]+FL(0.5));
             lo_message_add_timetag(msg, tt);
             break;
@@ -155,11 +181,197 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
     return OK;
 }
 
+/* callback function called by sensevents() once in every control period */
+
+static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
+{
+    /* are there any pending events ? */
+    if (p->eventQueue == NULL)
+      return;
+    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    while (p->eventQueue != NULL) {
+      double  startTime;
+      rtEvt_t *ep = p->eventQueue;
+      p->eventQueue = ep->nxt;
+      csound->NotifyThreadLock(csound, p->threadLock);
+      startTime = (p->absp2mode ? 0.0 : csound->sensEvents_state.curTime);
+      startTime += (double) ep->e.p[2];
+      ep->e.p[2] = FL(0.0);
+      if (ep->e.pcnt < 3 || ep->e.p[3] < FL(0.0) ||
+          ep->e.opcod == 'q' || ep->e.opcod == 'f' || ep->e.opcod == 'e' ||
+          startTime + (double) ep->e.p[3] >= csound->sensEvents_state.curTime) {
+        if (startTime < csound->sensEvents_state.curTime) {
+          if (ep->e.pcnt >= 3 && ep->e.p[3] > FL(0.0) &&
+              ep->e.opcod != 'q' && ep->e.opcod != 'f')
+            ep->e.p[3] -= (MYFLT)(csound->sensEvents_state.curTime - startTime);
+          startTime = csound->sensEvents_state.curTime;
+        }
+        csound->insert_score_event(csound, &(ep->e), startTime, 0);
+      }
+      if (ep->e.strarg != NULL)
+        free(ep->e.strarg);
+      free(ep);
+      csound->WaitThreadLock(csound, p->threadLock, 1000);
+    }
+    csound->NotifyThreadLock(csound, p->threadLock);
+}
+
+/* callback function for OSC thread */
+/* NOTE: this function does not run in the main Csound audio thread, */
+/* so use of the API or access to ENVIRON should be limited or avoided */
+
+static int osc_event_handler(const char *path, const char *types,
+                             lo_arg **argv, int argc, lo_message msg,
+                             void *user_data)
+{
+    OSC_GLOBALS *p = (OSC_GLOBALS*) user_data;
+    ENVIRON     *csound = p->csound;
+    rtEvt_t     *evt;
+    int         i;
+    char        opcod = '\0';
+
+    /* check for valid format */
+    if (argc < 1)
+      return 1;
+    switch ((int) types[0]) {
+      case 'i': opcod = (char) argv[0]->i; break;
+      case 'f': opcod = (char) MYFLT2LRND((MYFLT) argv[0]->f); break;
+      case 's': opcod = (char) argv[0]->s; break;
+      default:  return 1;
+    }
+    if (strchr("iqfae", opcod) == NULL)
+      return 1;         /* invalid opcode */
+    if (opcod != 'e' &&
+        ((opcod == 'f' && argc < 6) || (opcod != 'f' && argc < 4)))
+      return 1;         /* insufficient p-fields */
+    /* Create the new event */
+    evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
+    if (evt == NULL)
+      return 1;
+    evt->nxt = NULL;
+    evt->e.strarg = NULL;
+    evt->e.opcod = opcod;
+    evt->e.pcnt = argc - 1;
+    evt->e.p[1] = evt->e.p[2] = evt->e.p[3] = FL(0.0);
+    for (i = 1; i < argc; i++) {
+      switch ((int) types[i]) {
+      case 'i':
+        evt->e.p[i] = (MYFLT) argv[i]->i;
+        break;
+      case 'f':
+        evt->e.p[i] = (MYFLT) argv[i]->f;
+        break;
+      case 's':
+        /* string argument: cannot have more than one */
+        evt->e.p[i] = (MYFLT) SSTRCOD;
+        if (evt->e.strarg != NULL) {
+          free(evt->e.strarg);
+          free(evt);
+          return 1;
+        }
+        evt->e.strarg = (char*) malloc(strlen(&(argv[i]->s)) + 1);
+        if (evt->e.strarg == NULL) {
+          free(evt);
+          return 1;
+        }
+        strcpy(evt->e.strarg, &(argv[i]->s));
+        break;
+      }
+    }
+    /* queue event for handling by main Csound thread */
+    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    if (p->eventQueue == NULL)
+      p->eventQueue = evt;
+    else {
+      rtEvt_t *ep = p->eventQueue;
+      while (ep->nxt != NULL)
+        ep = ep->nxt;
+      ep->nxt = evt;
+    }
+    csound->NotifyThreadLock(csound, p->threadLock);
+    return 0;
+}
+
+static void osc_error_handler(int n, const char *msg, const char *path)
+{
+    return;
+}
+
+/* opcode for starting the OSC listener (called once from orchestra header) */
+
+static int osc_listener_init(ENVIRON *csound, OSCRECV *p)
+{
+    OSC_GLOBALS *pp;
+    char        portName[256], *pathName;
+    /* allocate and initialise the globals structure */
+    if (csound->CreateGlobalVariable(csound, "_OSC_globals",
+                                             sizeof(OSC_GLOBALS)) != 0)
+      csound->Die(csound, Str("OSC: failed to allocate globals"));
+    pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+    pp->csound = csound;
+    pp->eventQueue = NULL;
+    pp->threadLock = csound->CreateThreadLock(csound);
+    pp->absp2mode = (*(p->i_absp2) == FL(0.0) ? 0 : 1);
+    /* create OSC thread */
+    sprintf(portName, "%d", (int) MYFLT2LRND(*p->i_port));
+    pp->st = lo_server_thread_new(portName,
+                                  (lo_err_handler) osc_error_handler);
+    /* register OSC event handler */
+    pathName = (char*) p->S_path;
+    if (pathName[0] == '\0')
+      pathName = NULL;
+    lo_server_thread_add_method(pp->st, pathName, NULL,
+                                (lo_method_handler) osc_event_handler, pp);
+    /* start thread */
+    lo_server_thread_start(pp->st);
+    /* register callback function for sensevents() */
+    csound->RegisterSenseEventCallback(csound, (void (*)(void*, void*))
+                                                 event_sense_callback, pp);
+    return OK;
+}
+
+/* RESET routine for cleaning up */
+
+static int OSC_reset(ENVIRON *csound, void *userData)
+{
+    OSC_GLOBALS *p;
+    p = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+    if (p == NULL)
+      return OK;    /* nothing to do */
+    /* stop and destroy OSC thread */
+    lo_server_thread_stop(p->st);
+    lo_server_thread_free(p->st);
+    /* delete any pending events */
+    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    while (p->eventQueue != NULL) {
+      rtEvt_t *nxt = p->eventQueue->nxt;
+      if (p->eventQueue->e.strarg != NULL)
+        free(p->eventQueue->e.strarg);
+      free(p->eventQueue);
+      p->eventQueue = nxt;
+    }
+    csound->NotifyThreadLock(csound, p->threadLock);
+    csound->DestroyThreadLock(csound, p->threadLock);
+    csound->DestroyGlobalVariable(csound, "_OSC_globals");
+    return OK;
+}
+
 #define S(x) sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND),  3, "",  "kSiSSN", (SUBR)osc_send_set, (SUBR)osc_send }
+{ "OSCsend", S(OSCSEND), 3, "", "kSiSSN", (SUBR)osc_send_set, (SUBR)osc_send },
+{ "OSCrecv", S(OSCRECV), 1, "", "iSo",    (SUBR)osc_listener_init }
 };
 
-LINKAGE
+PUBLIC long opcode_size(void)
+{
+    return (long) sizeof(localops);
+}
+
+PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+{
+    csound->RegisterResetCallback(csound, NULL,
+                                  (int (*)(void *, void *)) OSC_reset);
+    return localops;
+}
 
