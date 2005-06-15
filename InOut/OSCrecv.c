@@ -33,7 +33,6 @@ static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
        csound->WaitThreadLock(csound, p->threadLock, 1000);
        while (m) {
          csound->NotifyThreadLock(csound, p->threadLock);
-         csound->Message(csound, "Active pattern\n");
          csound->WaitThreadLock(csound, p->threadLock, 1000);
        }
        csound->NotifyThreadLock(csound, p->threadLock);
@@ -102,72 +101,71 @@ typedef struct {
 
 static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
 {
-     OSC_GLOBALS *pp;
-     char buff[12];
-     /* allocate and initialise the globals structure */
-     if (csound->CreateGlobalVariable(csound, "_OSC_globals",
-                                              sizeof(OSC_GLOBALS)) != 0)
-       csound->Die(csound, Str("OSC: failed to allocate globals"));
-     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
-     pp->csound = csound;
-     pp->threadLock = csound->CreateThreadLock(csound);
-     /* ---- initialise any other data in OSC_GLOBALS here ---- */
-     /* ... */
-     pp->patterns = NULL;
-     /* ---- add code to create and start the OSC thread ---- */
-     sprintf(buff, "%d", (int)(*p->port));
-     pp->thread = lo_server_thread_new(buff, OSC_error);
-     /* register osc_event_handler() with lo_server_thread_add_method(), */
-     /* passing 'pp' as user_data */
-     /* ... */
-     lo_server_thread_add_method(pp->thread, NULL, NULL, OSC_handler, pp);
-     lo_server_thread_start(pp->thread);
-     /* register callback function for sensevents() */
-     /* the function will be called once in every control period */
+    OSC_GLOBALS *pp;
+    char buff[12];
+    /* allocate and initialise the globals structure */
+    if (csound->CreateGlobalVariable(csound, "_OSC_globals",
+                                     sizeof(OSC_GLOBALS)) != 0)
+      csound->Die(csound, Str("OSC: failed to allocate globals"));
+    pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+    pp->csound = csound;
+    pp->threadLock = csound->CreateThreadLock(csound);
+    /* ---- initialise any other data in OSC_GLOBALS here ---- */
+    /* ... */
+    pp->patterns = NULL;
+    /* ---- code to create and start the OSC thread ---- */
+    sprintf(buff, "%d", (int)(*p->port));
+    pp->thread = lo_server_thread_new(buff, OSC_error);
+/*     lo_server_thread_add_method(pp->thread, NULL, NULL, OSC_handler, pp); */
+    lo_server_thread_start(pp->thread);
+    /* register callback function for sensevents() */
+    /* the function will be called once in every control period */
 /*      csound->RegisterSenseEventCallback(csound, (void (*)(void*, void*)) */
 /*                                                   event_sense_callback, pp); */
-     csound->Message(csound, "OSC listener: **EXPERIMENTAL UNFINISHED CODE**\n");
-     return OK;
+    csound->Message(csound,
+                    "OSC listener started: **EXPERIMENTAL UNFINISHED CODE**\n");
+    return OK;
 }
 
 /* RESET routine for cleaning up */
 
 static int OSC_reset(ENVIRON *csound, void *userData)
 {
-     OSC_GLOBALS *p;
-     OSC_PAT *m;
-     p = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
-     if (p == NULL)
-       return OK;    /* nothing to do */
-     /* ---- add code here to stop and destroy OSC thread ---- */
-     /* ... */
-     lo_server_thread_stop(p->thread);
-     lo_server_thread_free(p->thread);
-     csound->WaitThreadLock(csound, p->threadLock, 1000);
-     m = p->patterns; p->patterns = NULL;
-     while (m) {
-       OSC_PAT *nxt = m->next;
-       free(m);
-       m = nxt;
-     }
-     csound->NotifyThreadLock(csound, p->threadLock);
-     csound->DestroyThreadLock(csound, p->threadLock);
-     csound->DestroyGlobalVariable(csound, "_OSC_globals");
-     return OK;
+    OSC_GLOBALS *p;
+    OSC_PAT *m;
+    p = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+    if (p == NULL)
+      return OK;    /* nothing to do */
+    /* ---- code to stop and destroy OSC thread ---- */
+    lo_server_thread_stop(p->thread);
+    lo_server_thread_free(p->thread);
+    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    m = p->patterns; p->patterns = NULL;
+    while (m) {
+      OSC_PAT *nxt = m->next;
+      free(m->path); free(m->type);
+      free(m);
+      m = nxt;
+    }
+    csound->NotifyThreadLock(csound, p->threadLock);
+    csound->DestroyThreadLock(csound, p->threadLock);
+    csound->DestroyGlobalVariable(csound, "_OSC_globals");
+    return OK;
 }
 
 /* ---- implement OSC opcodes ---- */
 typedef struct {
-  OPDS h;                     /* default header */
-  MYFLT  *kans;
-  MYFLT  *dest;
-  MYFLT  *type;
-  MYFLT  *args[25];
-  OSC_PAT *pat;
+    OPDS h;                     /* default header */
+    MYFLT  *kans;
+    MYFLT  *dest;
+    MYFLT  *type;
+    MYFLT  *args[25];
+    OSC_PAT *pat;
 } OSCLISTEN;
 
 int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
 {
+    void *x;
     OSC_PAT *m = (OSC_PAT*)malloc(sizeof(OSC_PAT)+sizeof(MYFLT)*(p->INOCOUNT-2));
     /* Add a pattern to the list of recognised things */
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
@@ -183,8 +181,10 @@ int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
     m->next = pp->patterns;
     pp->patterns = m;
     p->pat = m;
-    csound->Message(csound, "Looking for dest \"%s\" with types %s %d args\n",
-                    m->path, m->type, m->length);
+    x = lo_server_thread_add_method(pp->thread, (char*)p->dest, (char*)p->type,
+                                    OSC_handler, pp);
+    csound->Message(csound, "%p: Looking for dest \"%s\" with types %s %d args\n",
+                    x, m->path, m->type, m->length);
     return OK;
 }
 
@@ -221,7 +221,7 @@ PUBLIC long opcode_size(void)
 PUBLIC OENTRY *opcode_init(ENVIRON *csound)
 {
     csound->Message(csound,
-                    "****Loading Eperimental Unfinished code for OSC ****\n");
+                    "****OSC: liblo started****\n");
     csound->RegisterResetCallback(csound, NULL,
                                   (int (*)(void *, void *)) OSC_reset);
     return localops;
