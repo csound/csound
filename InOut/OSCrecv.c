@@ -160,6 +160,36 @@ typedef struct {
     OSC_PAT *pat;
 } OSCLISTEN;
 
+int OSC_listdeinit(ENVIRON *csound, OSCLISTEN *p)
+{
+    /* remove p->pat and also the handler which seems difficult */
+    OSC_PAT *m, *n;
+    OSC_GLOBALS *pp = (OSC_GLOBALS*)
+                             csound->QueryGlobalVariable(csound, "_OSC_globals");
+    if (pp == NULL) {
+      csound->Message(csound, "OSC not running\n");
+      return NOTOK;
+    }
+    m = pp->patterns;
+    if (m==p->pat) {
+      p->pat = m->next;
+      free(m->path); free(m->type);
+      free(m);
+    }
+    else {
+      while (m->next != p->pat) {
+        m = n->next;
+        if (m==NULL) return NOTOK;
+      }
+      n = m;
+      m = m->next;
+      n->next = m->next;
+      free(m->path); free(m->type);
+      free(m);
+    }
+    return OK;
+}
+
 int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
 {
     void *x;
@@ -180,8 +210,9 @@ int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
     p->pat = m;
     x = lo_server_thread_add_method(pp->thread, (char*)p->dest, (char*)p->type,
                                     OSC_handler, pp);
-    csound->Message(csound, "%p: Looking for dest \"%s\" with types %s %d args\n",
-                    x, m->path, m->type, m->length);
+#if 0
+    csound->csoundRegisterDeinitCallback(csound, p, OSC_list_deinit);
+#endif
     return OK;
 }
 
