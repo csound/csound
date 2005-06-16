@@ -44,6 +44,7 @@ typedef struct devparams_ {
   int*     outused;
   float    srate;
   int      nchns;
+  int isNonInterleaved;
 } DEVPARAMS;
 
 /* module interface functions */
@@ -102,26 +103,45 @@ ADIOProc(const AudioBufferList *input,
   int i,j,cnt;
   int chans = cdata->nchns;
   int cachans = input->mBuffers[0].mNumberChannels;
+  int nibuffs = input->mNumberBuffers;
   int items = cdata->bufframes*cachans;
   int buff = cdata->iocurbuff;
-  output->mNumberBuffers = 1;
-  output->mBuffers[0].mDataByteSize = items*sizeof(float);
-  output->mBuffers[0].mNumberChannels = cachans;
-  float *outp = (float *) output->mBuffers[0].mData;
-  float *inp = (float *) input->mBuffers[0].mData;
-  float *ibufp = cdata->inbuffs[buff];
-  float *obufp = cdata->outbuffs[buff];
-
+  float *ibufp = cdata->inbuffs[buff], *inp;
+  float *obufp = cdata->outbuffs[buff], *outp;
+  output->mNumberBuffers = nibuffs;
+    
+ if(!cdata->isNonInterleaved) {
+ 
+ inp = (float *) input->mBuffers[0].mData;
+ outp = (float *) output->mBuffers[0].mData;
+ output->mBuffers[0].mDataByteSize = items*sizeof(float);
+ output->mBuffers[0].mNumberChannels = cachans;
+ 
   for(i = 0, cnt = 0; i < items; i+=cachans){
     for(j=0; j < cachans; j++)
       if(j < chans){
-        outp[i+j]  = obufp[cnt];
-        if(inp!=NULL) ibufp[cnt] = inp[i+j];
+        outp[cnt]  = obufp[j+i];
+        if(inp!=NULL) ibufp[j+i] = inp[cnt];
         cnt++;
       }
-
   }
-
+  }
+else {
+  chans = chans > nibuffs ? nibuffs : chans;
+  items *= chans;
+  for(j=0; j < chans; j++){
+  outp = (float *) output[0].mBuffers[j].mData;
+  inp =  (float *) input[0].mBuffers[j].mData;
+  
+  for(i=j, cnt=0; i < items; i+=chans, cnt++){
+   outp[cnt] = obufp[i];
+   ibufp[i] = inp[cnt];
+  }
+   output->mBuffers[j].mDataByteSize = input[0].mBuffers[j].mDataByteSize;
+   output->mBuffers[j].mNumberChannels = chans;
+  }
+  
+}
   cdata->outused[buff] = cdata->inused[buff] = 1;
   buff++;
   buff %= cdata->buffnos;
@@ -188,9 +208,9 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
     if(parm->devName!=NULL){
       devnum = atoi(parm->devName);
       if(devnum >= 0 && devnum < devnos) dev->dev = sysdevs[devnum];
+	  p->Message(csound,"selected device: %d \n", devnum);
       free(sysdevs);
     }
-
     AudioDeviceGetPropertyInfo(dev->dev,1,false, kAudioDevicePropertyDeviceName,
                                &psize, NULL);
     name = (char *) malloc(psize);
@@ -263,7 +283,14 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
                            kAudioDevicePropertyStreamFormat,
                            &psize, &format);
 
-    if(format.mChannelsPerFrame != (unsigned int)dev->nchns) {
+	if((format.mFormatFlags & kAudioFormatFlagIsNonInterleaved)==0){
+	p->Message(csound, "Coreaudio module: non-interleaved format\n");
+    dev->isNonInterleaved= 1;
+	}
+	else dev->isNonInterleaved= 0;
+	
+    if(format.mChannelsPerFrame != (unsigned int)dev->nchns &&
+	   !dev->isNonInterleaved) {
       dev->format.mChannelsPerFrame = format.mChannelsPerFrame;
       p->Message(csound,
                  "CoreAudio module warning: using %d channels; "
