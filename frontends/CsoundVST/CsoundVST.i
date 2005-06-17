@@ -29,6 +29,7 @@
 %}
 %apply int { size_t };
 %feature("director") Node;
+%include <csound.h>
 %include "Silence.hpp"
 
 
