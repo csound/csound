@@ -1185,7 +1185,7 @@ Opcodes/stk/src/Thread.cpp
 
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 if (commonEnvironment['buildPDClass']=='1' and pdhfound):
-    print "CONFIGURATION DECISION: Buiding PD csoundapi~ class"
+    print "CONFIGURATION DECISION: Building PD csoundapi~ class"
     if(getPlatform() == 'darwin'):
 	  pdClassEnvironment.Append(LINKFLAGS = ['-bundle','-flat_namespace',  '-undefined',  'suppress', '-framework', 'Carbon','-framework', 'ApplicationServices'])
 	  pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')

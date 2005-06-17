@@ -67,6 +67,12 @@ elif sys.platform[:3] == 'win':
     # add it here (you do NOT need to build it first):
     customCPPPATH.append('c:/utah/opt/jdk1.5.0/include')
     customCPPPATH.append('c:/utah/opt/jdk1.5.0/include/win32')
+    ################################################################
+    # If you want to build the PD external csoundapi~
+    # you need PD. If it is not in a standard location,
+    # add it here (you do NOT need to build it first):
+    customCPPPATH.append('c:/utah/opt/pd-0.38-4-devel-2/src')
+    customCPPPATH.append('c:/utah/opt/pd-0.38-4-devel-2/bin')
     platform = 'mingw'
 else:
     platform = 'unsupported platform'
