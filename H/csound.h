@@ -102,8 +102,9 @@ extern "C" {
 /**
  * Platform-dependent definitions and declarations.
  */
-
-#if defined HAVE_CONFIG_H && (defined _WIN32 || defined __CYGWIN__)
+#if defined(SWIG)
+#define PUBLIC 
+#elif defined HAVE_CONFIG_H && (defined _WIN32 || defined __CYGWIN__)
 #  if !defined PIC
 #    define PUBLIC
 #  elif defined BUILDING_LIBCSOUND
@@ -166,7 +167,6 @@ extern "C" {
    * Initialise Csound library.
    * Returns zero on success.
    */
-
   PUBLIC int csoundInitialize(int *argc, char ***argv);
 
   /**
