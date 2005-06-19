@@ -303,7 +303,7 @@ namespace csound
   void *System::getSymbol(void *library, std::string name)
   {
     void *procedureAddress = 0;
-    procedureAddress = csoundGetLibrarySymbol(library, name.c_str()); 
+    procedureAddress = csoundGetLibrarySymbol(library, name.c_str());
     return procedureAddress;
   }
 
