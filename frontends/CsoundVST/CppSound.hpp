@@ -307,17 +307,17 @@ public:
    * directly call this function.
    */
   virtual void setInputValueCallback(void (*inputValueCallback)(void *csound,
-								char *channelName,
-								MYFLT *value));
-  
+                                                                char *channelName,
+                                                                MYFLT *value));
+
   /**
    * Called by external software to set a function for Csound to
    * send output control values.  The 'outvalue' opcodes will
    * directly call this function.
    */
   virtual void setOutputValueCallback(void (*outputValueCallback)(void *csound,
-								  char *channelName,
-								  MYFLT value));
+                                                                  char *channelName,
+                                                                  MYFLT value));
 #endif
 };
 

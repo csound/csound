@@ -432,15 +432,15 @@ std::string CppSound::getOutputSoundfileName() const
 }
 
 void CppSound::setInputValueCallback(void (*inputValueCallback)(void *csound,
-								char *channelName,
-								MYFLT *value))
+                                                                char *channelName,
+                                                                MYFLT *value))
 {
   csoundSetInputValueCallback(csound, inputValueCallback);
 }
 
 void CppSound::setOutputValueCallback(void (*outputValueCallback)(void *csound,
-								  char *channelName,
-								  MYFLT value))
+                                                                  char *channelName,
+                                                                  MYFLT value))
 {
   csoundSetOutputValueCallback(csound, outputValueCallback);
 }
