@@ -117,7 +117,7 @@ ADIOProc(const AudioBufferList *input,
    
   for(i=j, cnt=0; i < items; i+=chans, cnt++){
 	               outp[cnt] = obufp[i];
-                   ibufp[i] = inp[cnt];
+   if(inp != NULL) ibufp[i] = inp[cnt];
   }
    output->mBuffers[j].mDataByteSize = input[0].mBuffers[j].mDataByteSize;
    output->mBuffers[j].mNumberChannels = 1;
