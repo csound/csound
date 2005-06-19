@@ -6,8 +6,8 @@ instr 1
 endin
 
 instr 2
-     kf1 init 0         
-     kf2 init 0       
+     kf1 init 0
+     kf2 init 0
      kk  OSClisten "/foo/bar", "ff", kf1, kf2
      if kk =0 goto ex
         printk 0,kf1

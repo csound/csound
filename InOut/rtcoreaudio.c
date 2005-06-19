@@ -107,22 +107,21 @@ ADIOProc(const AudioBufferList *input,
   int buff = cdata->iocurbuff;
   float *ibufp = cdata->inbuffs[buff], *inp;
   float *obufp = cdata->outbuffs[buff], *outp;
-    
+
   buffs  = nibuffs > nobuffs ? nibuffs : nobuffs;
   output->mNumberBuffers = buffs;
   chans = chans > buffs ? buffs : chans;
   for(j=0; j < chans; j++){
   outp = (float *) output[0].mBuffers[j].mData;
   inp =  (float *) input[0].mBuffers[j].mData;
-   
+
   for(i=j, cnt=0; i < items; i+=chans, cnt++){
-	               outp[cnt] = obufp[i];
+                       outp[cnt] = obufp[i];
    if(inp != NULL) ibufp[i] = inp[cnt];
   }
    output->mBuffers[j].mDataByteSize = input[0].mBuffers[j].mDataByteSize;
    output->mBuffers[j].mNumberChannels = 1;
   }
-  
 
   cdata->outused[buff] = cdata->inused[buff] = 1;
   buff++;
@@ -131,7 +130,6 @@ ADIOProc(const AudioBufferList *input,
 
   return 0;
 }
-
 
 OSStatus Csound_IOProcEntry(AudioDeviceID indev,
                             const AudioTimeStamp *inN,
@@ -191,7 +189,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
     if(parm->devName!=NULL){
       devnum = atoi(parm->devName);
       if(devnum >= 0 && devnum < devnos) dev->dev = sysdevs[devnum];
-	  p->Message(csound,"selected device: %d \n", devnum);
+          p->Message(csound,"selected device: %d \n", devnum);
       free(sysdevs);
     }
     AudioDeviceGetPropertyInfo(dev->dev,1,false, kAudioDevicePropertyDeviceName,
@@ -260,7 +258,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm, DEVPARAMS *dev,int isInp
                            kAudioDevicePropertyStreamFormat,
                            psize, &dev->format);
     AudioDeviceSetProperty(dev->dev,NULL,0,false,
-						kAudioDevicePropertyStreamFormat,
+                                                kAudioDevicePropertyStreamFormat,
                            psize, &dev->format);
     AudioDeviceGetProperty(dev->dev,0,false,
                            kAudioDevicePropertyStreamFormat,
@@ -383,7 +381,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     n = bytes_ / sizeof(MYFLT);
     chans = dev->nchns;
     ibuffs = dev->inbuffs;
-		cschns =p->nchnls;
+                cschns =p->nchnls;
     cur = dev->incurbuff;
     inused = dev->inused;
     icount = dev->incount;
@@ -392,7 +390,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     /* norm = p->e0dbfs;  */
 
     for(i = 0; i < n; i+=cschns){
-	  for(k=0; k < cschns; k++) 
+          for(k=0; k < cschns; k++)
       ((MYFLT *)inbuf_)[i+k] = ibuffs[cur][icount+k];
       icount+=chans;
       if(icount == buffitems){
@@ -425,7 +423,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     n = bytes_ / sizeof(MYFLT);
         usecs = (int) (1000*dev->bufframes/p->esr);
     chans = dev->nchns;
-	cschns = p->nchnls;
+        cschns = p->nchnls;
     obuffs = dev->outbuffs;
     cur = dev->outcurbuff;
     outused = dev->outused;
@@ -435,10 +433,10 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     /* norm = p->e0dbfs; */
 
     for(i = 0; i < n; i+=cschns){
-      for(k=0; k < cschns; k++) 
+      for(k=0; k < cschns; k++)
       obuffs[cur][ocount+k] = (float)((MYFLT *)outbuf_)[i+k];
       ocount+=chans;
-	  
+
       if(ocount == buffitems){
         outused[cur] = 0;
         cur++;

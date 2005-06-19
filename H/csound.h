@@ -103,7 +103,7 @@ extern "C" {
  * Platform-dependent definitions and declarations.
  */
 #if defined(SWIG)
-#define PUBLIC 
+#define PUBLIC
 #elif defined HAVE_CONFIG_H && (defined _WIN32 || defined __CYGWIN__)
 #  if !defined PIC
 #    define PUBLIC
