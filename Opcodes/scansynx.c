@@ -291,13 +291,13 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
       }
       else {
 #define MATRIX "<MATRIX>\n"
-#define MATLEN sizeof(MATRIX)-1
+#define MATLEN (sizeof(MATRIX)-1)
 #define NMATRIX "</MATRIX>\n"
-#define NMATLEN sizeof(NMATRIX)-1
+#define NMATLEN (sizeof(NMATRIX)-1)
         int j;
         char *pp = mfp->beginp;
         if ((i=strncmp(pp, MATRIX, MATLEN))) {
-          csound->Message(csound, "%d: Looking for (%d)%s Found %.12s\n",
+          csound->Message(csound, "%d: Looking for (%ld)%s Found %.12s\n",
                                   i, MATLEN, MATRIX, pp);
           return csound->InitError(csound, "Not a valid matrix");
         }
