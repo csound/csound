@@ -163,7 +163,7 @@ typedef struct {
 int OSC_listdeinit(ENVIRON *csound, OSCLISTEN *p)
 {
     /* remove p->pat and also the handler which seems difficult */
-    OSC_PAT *m, *n;
+    OSC_PAT *m;
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
                              csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (pp == NULL) {
@@ -177,8 +177,9 @@ int OSC_listdeinit(ENVIRON *csound, OSCLISTEN *p)
       free(m);
     }
     else {
+      OSC_PAT *n;
       while (m->next != p->pat) {
-        m = n->next;
+        m = m->next;
         if (m==NULL) return NOTOK;
       }
       n = m;

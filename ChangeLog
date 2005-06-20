@@ -1,3 +1,7 @@
+2005-06-20  John ffitch  <jpff@codemist.co.uk>
+
+	* InOut/OSCrecv.c (OSC_listdeinit): Fixed a typo
+
 2005-06-15  John ff  <jpff@codemist.co.uk>
 
 	* InOut/OSCrecv.c: New file for OSC listening
