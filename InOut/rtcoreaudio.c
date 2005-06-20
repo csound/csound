@@ -44,7 +44,7 @@ typedef struct devparams_ {
   int*     outused;
   float    srate;
   int      nchns;
-  int isInterleaved;
+  int isNInterleaved;
 } DEVPARAMS;
 
 /* module interface functions */
@@ -70,9 +70,9 @@ int csoundModuleCreate(void *csound)
     def =(int*) (p->QueryGlobalVariable(csound, "::cainterleaved"));
     if(def==NULL) p->Message(csound, "warning... could not create global var\n");
     else *def = 0;
-    p->CreateConfigurationVariable(csound, "interleaved", def,
+    p->CreateConfigurationVariable(csound, "noninterleaved", def,
                                    CSOUNDCFG_INTEGER, 0, &min, &max,
-                                   "coreaudio IO uses interleaved audio (eg. Digidesign HW: 0=no, 1=yes)", NULL);
+                                   "coreaudio IO uses non-interleaved audio (eg. Digidesign HW: 0=no, 1=yes)", NULL);
 
     p->Message(csound, "CoreAudio real-time audio module for Csound\n"
                "by Victor Lazzarini\n");
@@ -121,7 +121,7 @@ ADIOProc(const AudioBufferList *input,
   float *obufp = cdata->outbuffs[buff];
   
   
-if(cdata->isInterleaved){
+if(cdata->isNInterleaved){
   
   int nibuffs = input->mNumberBuffers, buffs;
   int nobuffs = output->mNumberBuffers;
@@ -199,8 +199,8 @@ int coreaudio_open(void *csound, csRtAudioParams *parm,
     p->DestroyGlobalVariable(csound, "::cabuffnos");
 	
 	vpt= (int*) (p->QueryGlobalVariable(csound, "::cainterleaved"));
-    if(vpt != NULL) dev->isInterleaved = *vpt;
-    else dev->isInterleaved = 0;
+    if(vpt != NULL) dev->isNInterleaved = *vpt;
+    else dev->isNInterleaved = 0;
 
     p->DeleteConfigurationVariable(csound, "interleaved");
     p->DestroyGlobalVariable(csound, "::cainterleaved");
@@ -309,7 +309,7 @@ int coreaudio_open(void *csound, csRtAudioParams *parm,
                            kAudioDevicePropertyStreamFormat,
                            &psize, &format);
 
-    if(format.mChannelsPerFrame != dev->nchns && !dev->isInterleaved) {
+    if(format.mChannelsPerFrame != dev->nchns && !dev->isNInterleaved) {
       dev->format.mChannelsPerFrame = format.mChannelsPerFrame;
       p->Message(csound,
                  "CoreAudio module warning: using %d channels; "
