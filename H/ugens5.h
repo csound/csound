@@ -84,19 +84,19 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *kr, *asig, *ihp, *istor;
-        MYFLT   c1, c2, prvq;
+        double   c1, c2, prvq;
 } RMS;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *krms, *ihp, *istor;
-        MYFLT   c1, c2, prvq, prva;
+        double  c1, c2, prvq, prva;
 } GAIN;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *csig, *ihp, *istor;
-        MYFLT   c1, c2, prvq, prvr, prva;
+        double  c1, c2, prvq, prvr, prva;
 } BALANCE;
 
 typedef struct {

@@ -921,10 +921,10 @@ int rmsset(ENVIRON *csound, RMS *p)
     double   b;
 
     b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
-    p->c2 = (MYFLT)(b - sqrt(b*b - 1.0));
-    p->c1 = FL(1.0) - p->c2;
+    p->c2 = b - sqrt(b*b - 1.0);
+    p->c1 = 1.0 - p->c2;
     if (!*p->istor)
-      p->prvq = FL(0.0);
+      p->prvq = 0.0;
     return OK;
 }
 
@@ -933,10 +933,10 @@ int gainset(ENVIRON *csound, GAIN *p)
     double   b;
 
     b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
-    p->c2 = (MYFLT)(b - sqrt(b*b - 1.0));
-    p->c1 = FL(1.0) - p->c2;
+    p->c2 = b - sqrt(b*b - 1.0);
+    p->c1 = 1.0 - p->c2;
     if (!*p->istor)
-      p->prvq = p->prva = FL(0.0);
+      p->prvq = p->prva = 0.0;
     return OK;
 }
 
@@ -945,10 +945,10 @@ int balnset(ENVIRON *csound, BALANCE *p)
     double   b;
 
     b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
-    p->c2 = (MYFLT)(b - sqrt(b*b - 1.0));
-    p->c1 = FL(1.0) - p->c2;
+    p->c2 = b - sqrt(b*b - 1.0);
+    p->c1 = 1.0 - p->c2;
     if (!*p->istor)
-      p->prvq = p->prvr = p->prva = FL(0.0);
+      p->prvq = p->prvr = p->prva = 0.0;
     return OK;
 }
 
@@ -956,17 +956,17 @@ int rms(ENVIRON *csound, RMS *p)
 {
     int     nsmps = csound->ksmps;
     MYFLT   *asig;
-    MYFLT   q;
-    MYFLT   c1 = p->c1, c2 = p->c2;
+    double  q;
+    double  c1 = p->c1, c2 = p->c2;
 
     q = p->prvq;
     asig = p->asig;
     do {
-      MYFLT as = *asig++;
+      double as = (double)*asig++;
       q = c1 * as * as + c2 * q;
     } while (--nsmps);
     p->prvq = q;
-    *p->kr = (MYFLT) sqrt((double)q);
+    *p->kr = (MYFLT) sqrt(q);
     return OK;
 }
 
@@ -974,76 +974,75 @@ int gain(ENVIRON *csound, GAIN *p)
 {
     int     nsmps = csound->ksmps;
     MYFLT   *ar, *asig;
-    MYFLT   q, a, m, diff, inc;
-    MYFLT   c1 = p->c1, c2 = p->c2;
+    double  q, a, m, diff, inc;
+    double  c1 = p->c1, c2 = p->c2;
+    int     n;
 
     q = p->prvq;
     asig = p->asig;
-    do {
-      MYFLT as = *asig++;
+    for (n=0; n<nsmps; n++) {
+      double as = (double)asig[n];
       q = c1 * as * as + c2 * q;
-    } while (--nsmps);
+    }
     p->prvq = q;
-    if ((q = (MYFLT)sqrt((double)q)))
+    if ((q = sqrt((double)q)))
       a = *p->krms / q;
     else    a = *p->krms;
-    asig = p->asig;
     ar = p->ar;
-    nsmps = csound->ksmps;
     if ((diff = a - p->prva) != 0) {
       m = p->prva;
-      inc = diff/csound->ksmps;
-      do {
-        *ar++ = *asig++ * m;
+      inc = diff/nsmps;
+      for (n=0; n<nsmps; n++) {
+        ar[n] = asig[n] * m;
         m += inc;
-      } while (--nsmps);
+      }
       p->prva = a;
     }
     else {
-      do {
-        *ar++ = *asig++ * a;
-      } while (--nsmps);
+      for (n=0; n<nsmps; n++) {
+        ar[n] = asig[n] * a;
+      }
     }
     return OK;
 }
 
 int balance(ENVIRON *csound, BALANCE *p)
 {
-    int     nsmps = csound->ksmps;
+    int     n, nsmps = csound->ksmps;
     MYFLT   *ar, *asig, *csig;
-    MYFLT   q, r, a, m, diff, inc;
-    MYFLT   c1 = p->c1, c2 = p->c2;
+    double  q, r, a, m, diff, inc;
+    double   c1 = p->c1, c2 = p->c2;
 
     q = p->prvq;
     r = p->prvr;
     asig = p->asig;
     csig = p->csig;
-    do {
-      MYFLT as = *asig++;
-      MYFLT cs = *csig++;
+    for (n=0; n<nsmps; n++) {
+      double as = (double)asig[n];
+      double cs = (double)csig[n];
       q = c1 * as * as + c2 * q;
       r = c1 * cs * cs + c2 * r;
-    } while (--nsmps);
+    }
     p->prvq = q;
     p->prvr = r;
-    if (q) a = (MYFLT)sqrt(r/q);
-    else   a = (MYFLT)sqrt(r);
+    if (q) a = sqrt(r/q);
+    else   a = sqrt(r);
     asig = p->asig;
     ar = p->ar;
     nsmps = csound->ksmps;
     if ((diff = a - p->prva) != 0) {
       m = p->prva;
-      inc = diff/csound->ksmps;
-      do {
-        *ar++ = *asig++ * m;
+      inc = diff/nsmps;
+      for (n=0; n<nsmps; n++) {
+        ar[n] = asig[n] * m;
         m += inc;
       } while (--nsmps);
       p->prva = a;
     }
     else {
-      do {
-        *ar++ = *asig++ * a;
-      } while (--nsmps);
+      for (n=0; n<nsmps; n++) {
+        ar[n] = asig[n] * a;
+      }
     }
     return OK;
 }
