@@ -908,15 +908,47 @@ extern "C" {
 
 /* dummy functions for the case when no real-time audio module is available */
 
-#ifdef LINUX
-#include <sched.h>
-#endif
-
-int playopen_dummy(void *csound, csRtAudioParams *parm)
+static double *get_dummy_rtaudio_globals(ENVIRON *csound)
 {
-    char *s;
+    double  *p;
 
-    parm = parm;
+    p = (double*) csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
+    if (p == NULL) {
+      if (csound->CreateGlobalVariable(csound, "__rtaudio_null_state",
+                                               sizeof(double) * 4) != 0)
+        csound->Die(csound, Str("rtdummy: failed to allocate globals"));
+      csound->Message(csound, Str("rtaudio: dummy module enabled"));
+      p = (double*) csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
+    }
+    return p;
+}
+
+static void dummy_rtaudio_timer(ENVIRON *csound, double *p)
+{
+    double  timeWait;
+    RTCLOCK *rt;
+    int     i;
+
+    rt = (RTCLOCK*) csoundQueryGlobalVariableNoCheck(csound, "csRtClock");
+    timeWait = p[0] - timers_get_real_time(rt);
+#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
+    i = (int) (timeWait * 1000000.0 + 0.5);
+    if (i > 0)
+      usleep((unsigned long) i);
+#elif defined(WIN32) || defined(_WIN32)
+    i = (int) (timeWait * 1000.0 + 0.5);
+    if (i > 0)
+      Sleep((DWORD) i);
+#endif
+}
+
+int playopen_dummy(void *csound_, csRtAudioParams *parm)
+{
+    ENVIRON *csound = (ENVIRON*) csound_;
+    double  *p;
+    char    *s;
+    RTCLOCK *rt;
+
     /* find out if the use of dummy real-time audio functions was requested, */
     /* or an unknown plugin name was specified; the latter case is an error */
     s = (char*) csoundQueryGlobalVariable(csound, "_RTAUDIO");
@@ -930,27 +962,30 @@ int playopen_dummy(void *csound, csRtAudioParams *parm)
                       Str(" *** error: unknown rtaudio module: '%s'\n"), s);
       return CSOUND_ERROR;
     }
-    /* IV - Feb 08 2005: avoid locking up the system with --sched */
-#ifdef LINUX
-    if (sched_getscheduler(0) != SCHED_OTHER) {
-      csoundMessage(csound,
-                    " *** error: cannot use --sched with dummy audio output\n");
-      return CSOUND_ERROR;
-    }
-#endif
+    p = get_dummy_rtaudio_globals(csound);
+    csound->rtPlay_userdata = (void*) p;
+    rt = (RTCLOCK*) csound->QueryGlobalVariable(csound, "csRtClock");
+    p[0] = csound->timers_get_real_time(rt);
+    p[1] = 1.0 / ((double) ((int) sizeof(MYFLT) * parm->nChannels)
+                  * (double) parm->sampleRate);
     return CSOUND_SUCCESS;
 }
 
 void rtplay_dummy(void *csound, void *outBuf, int nbytes)
 {
-    csound = csound; outBuf = outBuf; nbytes = nbytes;
+    double  *p = (double*) ((ENVIRON*) csound)->rtPlay_userdata;
+    outBuf = outBuf;
+    p[0] += ((double) nbytes * p[1]);
+    dummy_rtaudio_timer((ENVIRON*) csound, p);
 }
 
-int recopen_dummy(void *csound, csRtAudioParams *parm)
+int recopen_dummy(void *csound_, csRtAudioParams *parm)
 {
-    char *s;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    double  *p;
+    char    *s;
+    RTCLOCK *rt;
 
-    parm = parm;
     /* find out if the use of dummy real-time audio functions was requested, */
     /* or an unknown plugin name was specified; the latter case is an error */
     s = (char*) csoundQueryGlobalVariable(csound, "_RTAUDIO");
@@ -964,29 +999,33 @@ int recopen_dummy(void *csound, csRtAudioParams *parm)
                       Str(" *** error: unknown rtaudio module: '%s'\n"), s);
       return CSOUND_ERROR;
     }
-    /* IV - Feb 08 2005: avoid locking up the system with --sched */
-#ifdef LINUX
-    if (sched_getscheduler(0) != SCHED_OTHER) {
-      csoundMessage(csound,
-                    " *** error: cannot use --sched with dummy audio input\n");
-      return CSOUND_ERROR;
-    }
-#endif
+    p = (double*) get_dummy_rtaudio_globals(csound) + 2;
+    csound->rtRecord_userdata = (void*) p;
+    rt = (RTCLOCK*) csound->QueryGlobalVariable(csound, "csRtClock");
+    p[0] = csound->timers_get_real_time(rt);
+    p[1] = 1.0 / ((double) ((int) sizeof(MYFLT) * parm->nChannels)
+                  * (double) parm->sampleRate);
     return CSOUND_SUCCESS;
 }
 
 int rtrecord_dummy(void *csound, void *inBuf, int nbytes)
 {
-    int i;
-    csound = csound;
+    double  *p = (double*) ((ENVIRON*) csound)->rtRecord_userdata;
+    int     i;
+
     for (i = 0; i < (nbytes / (int) sizeof(MYFLT)); i++)
       ((MYFLT*) inBuf)[i] = FL(0.0);
+
+    p[0] += ((double) nbytes * p[1]);
+    dummy_rtaudio_timer((ENVIRON*) csound, p);
+
     return nbytes;
 }
 
 void rtclose_dummy(void *csound)
 {
-    csound = csound;
+    ((ENVIRON*) csound)->rtPlay_userdata = NULL;
+    ((ENVIRON*) csound)->rtRecord_userdata = NULL;
 }
 
 PUBLIC void csoundSetPlayopenCallback(void *csound,
