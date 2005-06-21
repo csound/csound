@@ -405,6 +405,7 @@ void sfopenout(void *csound_)                   /* init for sound out       */
     }
     else if (strcmp(fName, "null") == 0) {
       ST(outfile) = NULL;
+      csound->audtran = writesf;
       goto outset;
     }
     /* set format parameters */
