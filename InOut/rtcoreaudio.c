@@ -306,7 +306,8 @@ int coreaudio_open(void *csound, csRtAudioParams *parm,
                            kAudioDevicePropertyStreamFormat,
                            &psize, &format);
 
-    if(format.mChannelsPerFrame != dev->nchns && !dev->isNInterleaved) {
+    if (format.mChannelsPerFrame != (unsigned int)dev->nchns &&
+       !dev->isNInterleaved) {
       dev->format.mChannelsPerFrame = format.mChannelsPerFrame;
       p->Message(csound,
                  "CoreAudio module warning: using %d channels; "
