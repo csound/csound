@@ -47,7 +47,7 @@ int
 ifd_init(ENVIRON *csound, _IFD *p){
 
 int hsize, fftsize, hopsize, frames;
-int *counter, wintype, i;
+int *counter, wintype, check, i;
 MYFLT *winf, *dwinf;
 double alpha=0.f,fac;
 fftsize = p->fftsize = (int) *p->size;
@@ -60,6 +60,8 @@ csound->Die(csound, "ifd: fftsize should be an integral multiple of hopsize\n");
 
 p->frames = frames;
 p->pi = 4.*atan(1.);
+
+check = 1 - fftsize%2;
 hsize = fftsize/2;
 
 if(p->sigframe.auxp==NULL ||
@@ -117,11 +119,19 @@ switch (wintype) {
       csound->Die(csound, Str("ifd: unsupported value for iwintype\n"));
       break;
     }
-fac = p->pi/hsize;
-
+fac = 2*p->pi/fftsize;
+if(check){
 for(i=0; i < hsize; i++){ 
 winf[i+hsize] = (MYFLT) (alpha + (1.-alpha)*cos(fac*i)); 
 winf[hsize-(i+1)] = winf[i+hsize];
+}
+}
+else {
+winf[hsize] = (MYFLT) 1.0;
+for(i=1; i <= hsize; i++){
+winf[i+hsize] = (MYFLT) (alpha + (1.-alpha)*cos(fac*i)); 
+winf[hsize-i] = winf[i+hsize];
+}
 }
 
 p->norm = 0;
