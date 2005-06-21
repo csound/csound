@@ -67,9 +67,13 @@ hopsize = p->hopsize = (int) *p->hop;
 p->g = *p->scal;
 wintype = p->wintype = (int) *p->type;
 frames = fftsize/hopsize;
+
 if( (frames - (float)fftsize/hopsize) !=  0.f)
 csound->Die(csound, "ifd: fftsize should be an integral multiple of hopsize\n");
 
+if((fftsize & (fftsize - 1)))
+csound->Die(csound, "ifd: fftsize should be power-of-two \n");
+ 
 p->frames = frames;
 p->pi = 4.*atan(1.);
 hsize = fftsize/2;
@@ -180,14 +184,8 @@ signal[i] = tmp1;
 signal[i+hsize] = tmp2;
 }
 
- if (!(fftsize & (fftsize - 1))){
 csound->RealFFT(csound, signal, fftsize);
 csound->RealFFT(csound, diffsig, fftsize);
-} else {
-csound->RealFFTnp2(csound, signal, fftsize);
-csound->RealFFTnp2(csound, diffsig, fftsize);
-}
-
 
 for(i=2; i<fftsize; i+=2){
 
