@@ -165,7 +165,7 @@ int OSC_listdeinit(ENVIRON *csound, OSCLISTEN *p)
     /* remove p->pat and also the handler which seems difficult */
     OSC_PAT *m;
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
-                             csound->QueryGlobalVariable(csound, "_OSC_globals");
+                        csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (pp == NULL) {
       csound->Message(csound, "OSC not running\n");
       return NOTOK;
@@ -197,7 +197,7 @@ int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
     OSC_PAT *m = (OSC_PAT*)malloc(sizeof(OSC_PAT)+sizeof(MYFLT)*(p->INOCOUNT-2));
     /* Add a pattern to the list of recognised things */
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
-                             csound->QueryGlobalVariable(csound, "_OSC_globals");
+                        csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (pp == NULL) {
       csound->Message(csound, "OSC not running\n");
       return NOTOK;
@@ -211,9 +211,8 @@ int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
     p->pat = m;
     x = lo_server_thread_add_method(pp->thread, (char*)p->dest, (char*)p->type,
                                     OSC_handler, pp);
-#if 0
-    csound->csoundRegisterDeinitCallback(csound, p, OSC_list_deinit);
-#endif
+    csound->RegisterDeinitCallback(csound,
+                                   p, (int (*)(void*, void*)) OSC_listdeinit);
     return OK;
 }
 
