@@ -885,10 +885,10 @@ void reverbinit(ENVIRON *csound)        /* called once by oload */
     int n = 6;
 
     csound->revlpsum = 0;
-    do {
-      *lpsizp = (long) ((double) *lptimp++ * (double) csound->esr + 0.5);
-      csound->revlpsum += *lpsizp++;
-    } while (--n);
+    for (n=0; n<6; n++) {
+      lpsizp[n] = (long) ((double) lptimp[n] * (double) csound->esr + 0.5);
+      csound->revlpsum += lpsizp[n];
+    }
 }
 
 int rvbset(ENVIRON *csound, REVERB *p)

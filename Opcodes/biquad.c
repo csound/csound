@@ -44,26 +44,26 @@ int biquadset(ENVIRON *csound, BIQUAD *p)
 {
     /* The biquadratic filter is initialised to zero.    */
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
-      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);
+      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
     }
     return OK;
 } /* end biquadset(p) */
 
 int biquad(ENVIRON *csound, BIQUAD *p)
 {
-    int   n = 0;
-    MYFLT xn, yn;
-    MYFLT a0 = FL(1.0) / *p->a0, a1 = a0 * *p->a1, a2 = a0 * *p->a2;
-    MYFLT b0 = a0 * *p->b0, b1 = a0 * *p->b1, b2 = a0 * *p->b2;
-    do {
-      xn = p->in[n];
+    int   n = 0, nsmps = csound->ksmps;
+    double xn, yn;
+    double a0 = 1.0 / *p->a0, a1 = a0 * *p->a1, a2 = a0 * *p->a2;
+    double b0 = a0 * *p->b0, b1 = a0 * *p->b1, b2 = a0 * *p->b2;
+    for (n=0; n<nsmps; n++) {
+      xn = (double)p->in[n];
       yn = b0*xn + b1*p->xnm1 + b2*p->xnm2 - a1*p->ynm1 - a2*p->ynm2;
       p->xnm2 = p->xnm1;
       p->xnm1 = xn;
       p->ynm2 = p->ynm1;
       p->ynm1 = yn;
-      p->out[n] = yn;
-    } while (++n < csound->ksmps);
+      p->out[n] = (MYFLT)yn;
+    }
     return OK;
 }
 
@@ -71,24 +71,23 @@ int biquad(ENVIRON *csound, BIQUAD *p)
 
 int biquada(ENVIRON *csound, BIQUAD *p)
 {
-    int n;
+    int n, nsmps = csound->ksmps;
     MYFLT *out, *in;
-    MYFLT xn, yn;
+    double xn, yn;
     MYFLT *a0 = p->a0, *a1 = p->a1, *a2 = p->a2;
     MYFLT *b0 = p->b0, *b1 = p->b1, *b2 = p->b2;
-    MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    n    = csound->ksmps;
+    double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     in   = p->in;
     out  = p->out;
-    for (n=0; n<csound->ksmps; n++) {
-      xn = in[n];
-      yn = ( b0[n] * xn + b1[n] * xnm1 + b2[n] * xnm2 -
-             a1[n] * ynm1 - a2[n] * ynm2)/ a0[n];
+    for (n=0; n<nsmps; n++) {
+      xn = (double)in[n];
+      yn = ( (double)b0[n] * xn + (double)b1[n] * xnm1 + (double)b2[n] * xnm2 -
+             a1[n] * ynm1 - (double)a2[n] * ynm2)/ (double)a0[n];
       xnm2 = xnm1;
       xnm1 = xn;
       ynm2 = ynm1;
       ynm1 = yn;
-      out[n] = yn;
+      out[n] = (MYFLT)yn;
     }
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
