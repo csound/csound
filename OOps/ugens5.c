@@ -326,7 +326,7 @@ int resonx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modified  */
       nsmps = csound->ksmps;
       ar = p->ar;
       do {
-        double x = 
+        double x =
         c1 * (double)*asig++ + c2 * *yt1 - c3 * *yt2;
         *yt2 = *yt1;
         *ar++ = (MYFLT)x;
