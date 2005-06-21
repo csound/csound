@@ -98,8 +98,8 @@ int tone(ENVIRON *csound, TONE *p)
     return OK;
 }
 
-int tonsetx(ENVIRON *csound, TONEX *p) /* From Gabriel Maldonado, modified for arbitrary order */
-{
+int tonsetx(ENVIRON *csound, TONEX *p)
+{                   /* From Gabriel Maldonado, modified for arbitrary order */
     {
       double b;
       p->prvhp = *p->khp;
@@ -175,7 +175,7 @@ int atone(ENVIRON *csound, TONE *p)
     return OK;
 }
 
-int atonex(ENVIRON *csound, TONEX *p)     /* Gavriel Maldonado, modified */
+int atonex(ENVIRON *csound, TONEX *p)     /* Gabriel Maldonado, modified */
 {
     MYFLT       *ar, *asig;
     double      c2, *yt1;
@@ -263,11 +263,12 @@ int reson(ENVIRON *csound, RESON *p)
     return OK;
 }
 
-int rsnsetx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modifies for arb order */
-{
+int rsnsetx(ENVIRON *csound, RESONX *p)
+{                               /* Gabriel Maldonado, modifies for arb order */
     int scale;
     p->scale = scale = (int) *p->iscl;
-    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
+    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
+      p->loop = 4; /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (int)(p->loop*2*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(double)), &p->aux);
@@ -411,7 +412,8 @@ int lprdset(ENVIRON *csound, LPREAD *p)
     /* Store adress of opcode for other lpXXXX init to point to */
     if (lprdadr==NULL || currentLPCSlot>max_lpc_slot) {
       max_lpc_slot = currentLPCSlot+MAX_LPC_SLOT;
-      lprdadr = (LPREAD**) mrealloc(csound, lprdadr, max_lpc_slot*sizeof(LPREAD*));
+      lprdadr = (LPREAD**) mrealloc(csound,
+                                    lprdadr, max_lpc_slot*sizeof(LPREAD*));
     }
     lprdadr[currentLPCSlot] = p;
 
@@ -498,9 +500,11 @@ static void
     csound->Message(csound, "%s\n", where);
     for (i=0; i<poleCount; i++) {
       if (isMagn)
-        csound->Message(csound, Str("magnitude: %f   Phase: %f\n"), part1[i], part2[i]);
+        csound->Message(csound, Str("magnitude: %f   Phase: %f\n"),
+                                part1[i], part2[i]);
       else
-        csound->Message(csound, Str("Real: %f   Imag: %f\n"), part1[i], part2[i]);
+        csound->Message(csound, Str("Real: %f   Imag: %f\n"),
+                                part1[i], part2[i]);
     }
 #endif
 }
@@ -669,15 +673,14 @@ int lpread(ENVIRON *csound, LPREAD *p)
       return csound->PerfError(csound, Str("lpread: not initialised"));
     }
     /* Locate frame position range */
-    if ((framphase = (long)(*p->ktimpt*p->framrat16)) < 0) { /* for kfram reqd */
+    if ((framphase = (long)(*p->ktimpt*p->framrat16)) < 0) { /* for kfram reqd*/
       return csound->PerfError(csound, Str("lpread timpnt < 0"));
     }
     if (framphase > p->lastfram16) {                /* not past last one */
       framphase = p->lastfram16;
       if (!p->lastmsg) {
         p->lastmsg = 1;
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: lpread ktimpnt truncated to last frame\n"));
+        csound->Warning(csound, Str("lpread ktimpnt truncated to last frame"));
       }
     }
     /* Locate frames bounding current time */
@@ -845,7 +848,8 @@ int lpfrsnset(ENVIRON *csound, LPFRESON *p)
    /* Connect to previously loaded analysis file */
 
     if (lprdadr[currentLPCSlot]->storePoles) {
-      return csound->InitError(csound, Str("Pole file not supported for this opcode !\n"));
+      return csound->InitError(csound, Str("Pole file not supported "
+                                           "for this opcode !"));
     }
     p->lpread = lprdadr[currentLPCSlot];
     p->prvratio = FL(1.0);
@@ -980,26 +984,27 @@ int gain(ENVIRON *csound, GAIN *p)
 
     q = p->prvq;
     asig = p->asig;
-    for (n=0; n<nsmps; n++) {
-      double as = (double)asig[n];
+    for (n = 0; n < nsmps; n++) {
+      double as = (double) asig[n];
       q = c1 * as * as + c2 * q;
     }
     p->prvq = q;
-    if ((q = sqrt((double)q)))
-      a = *p->krms / q;
-    else    a = *p->krms;
+    if (q > 0.0)
+      a = *p->krms / sqrt(q);
+    else
+      a = *p->krms;
     ar = p->ar;
-    if ((diff = a - p->prva) != 0) {
+    if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff/nsmps;
-      for (n=0; n<nsmps; n++) {
+      inc = diff / (double) nsmps;
+      for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
       }
       p->prva = a;
     }
     else {
-      for (n=0; n<nsmps; n++) {
+      for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * a;
       }
     }
@@ -1011,36 +1016,36 @@ int balance(ENVIRON *csound, BALANCE *p)
     int     n, nsmps = csound->ksmps;
     MYFLT   *ar, *asig, *csig;
     double  q, r, a, m, diff, inc;
-    double   c1 = p->c1, c2 = p->c2;
+    double  c1 = p->c1, c2 = p->c2;
 
     q = p->prvq;
     r = p->prvr;
     asig = p->asig;
     csig = p->csig;
-    for (n=0; n<nsmps; n++) {
-      double as = (double)asig[n];
-      double cs = (double)csig[n];
+    for (n = 0; n < nsmps; n++) {
+      double as = (double) asig[n];
+      double cs = (double) csig[n];
       q = c1 * as * as + c2 * q;
       r = c1 * cs * cs + c2 * r;
     }
     p->prvq = q;
     p->prvr = r;
-    if (q) a = sqrt(r/q);
-    else   a = sqrt(r);
-    asig = p->asig;
+    if (q != 0.0)
+      a = sqrt(r/q);
+    else
+      a = sqrt(r);
     ar = p->ar;
-    nsmps = csound->ksmps;
-    if ((diff = a - p->prva) != 0) {
+    if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff/nsmps;
-      for (n=0; n<nsmps; n++) {
+      inc = diff / (double) nsmps;
+      for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
-      } while (--nsmps);
+      }
       p->prva = a;
     }
     else {
-      for (n=0; n<nsmps; n++) {
+      for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * a;
       }
     }
@@ -1056,11 +1061,12 @@ int lpslotset(ENVIRON *csound, LPSLOT *p)
 
     n = (int)*(p->islotnum);
     if (n<0)
-      return csound->InitError(csound, Str("lpslot number should be positive\n"));
+      return csound->InitError(csound, Str("lpslot number should be positive"));
     else {
       if (n>=max_lpc_slot) {
         max_lpc_slot = n + MAX_LPC_SLOT;
-        lprdadr = (LPREAD**)mrealloc(csound, lprdadr, max_lpc_slot*sizeof(LPREAD**));
+        lprdadr = (LPREAD**)mrealloc(csound,
+                                     lprdadr, max_lpc_slot*sizeof(LPREAD**));
       }
       currentLPCSlot = n;
     }
@@ -1079,10 +1085,12 @@ int lpitpset(ENVIRON *csound, LPINTERPOL *p)
   /* Check if workable */
 
     if ((!p->lp1->storePoles) || (!p->lp2->storePoles)) {
-      return csound->InitError(csound, Str("lpinterpol works only with poles files.."));
+      return csound->InitError(csound, Str("lpinterpol works only "
+                                           "with poles files.."));
     }
     if (p->lp1->npoles != p->lp2->npoles) {
-      return csound->InitError(csound, Str("The poles files have different pole count\n"));
+      return csound->InitError(csound, Str("The poles files "
+                                           "have different pole count"));
     }
 
 #if 0                   /* This is incorrect C */
