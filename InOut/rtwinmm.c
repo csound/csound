@@ -33,16 +33,14 @@
 typedef struct rtWinMMDevice_ {
     HWAVEIN   inDev;
     HWAVEOUT  outDev;
-    int       bufFrames;
-    int       bufSamples;
-    int       bufBytes;
+    int       cur_buf;
     int       nBuffers;
+    int       seed;             /* random seed for dithering */
+    int       enable_buf_timer;
     /* playback sample conversion function */
     void      (*playconv)(int, void*, void*, int*);
     /* record sample conversion function */
     void      (*rec_conv)(int, void*, void*);
-    int       seed;             /* random seed for dithering */
-    int       cur_buf;
     int64_t   prv_time;
     float     timeConv, bufTime;
     WAVEHDR   buffers[MAXBUFFERS];
@@ -51,6 +49,7 @@ typedef struct rtWinMMDevice_ {
 typedef struct rtWinMMGlobals_ {
     rtWinMMDevice *inDev;
     rtWinMMDevice *outDev;
+    int           enable_buf_timer;
 } rtWinMMGlobals;
 
 static inline int64_t large_integer_to_int64(LARGE_INTEGER *p)
@@ -74,27 +73,29 @@ static int allocate_buffers(ENVIRON *csound, rtWinMMDevice *dev,
                                              int is_playback)
 {
     HGLOBAL ptr;
-    int     i, err = 0;
+    int     i, err = 0, bufFrames, bufSamples, bufBytes;
 
-    dev->bufFrames = parm->bufSamp_SW;
-    dev->bufSamples = dev->bufFrames * parm->nChannels;
-    dev->bufBytes = dev->bufSamples * (parm->sampleFormat == AE_SHORT ? 2 : 4);
-    dev->nBuffers = 2 * parm->bufSamp_HW / parm->bufSamp_SW;
-    if (dev->nBuffers < 4)
-      dev->nBuffers = 4;
-    else if (dev->nBuffers > MAXBUFFERS) {
+    bufFrames = parm->bufSamp_SW;
+    bufSamples = bufFrames * parm->nChannels;
+    bufBytes = bufSamples * (parm->sampleFormat == AE_SHORT ? 2 : 4);
+    dev->nBuffers = parm->bufSamp_HW / parm->bufSamp_SW;
+    if (dev->nBuffers < 2)
+      dev->nBuffers = 2;
+    if (dev->enable_buf_timer)
+      dev->nBuffers *= 2;
+    if (dev->nBuffers > MAXBUFFERS) {
       dev->nBuffers = 0;
       return err_msg(csound, Str("too many buffers"));
     }
     for (i = 0; i < dev->nBuffers; i++) {
-      ptr = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE, (SIZE_T) dev->bufBytes);
+      ptr = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE, (SIZE_T) bufBytes);
       if (ptr == (HGLOBAL) NULL) {
         dev->nBuffers = i;
         return err_msg(csound, Str("memory allocation failure"));
       }
       dev->buffers[i].lpData = (LPSTR) GlobalLock(ptr);
-      memset((void*) dev->buffers[i].lpData, 0, (size_t) dev->bufBytes);
-      dev->buffers[i].dwBufferLength = (DWORD) dev->bufBytes;
+      memset((void*) dev->buffers[i].lpData, 0, (size_t) bufBytes);
+      dev->buffers[i].dwBufferLength = (DWORD) bufBytes;
       if (is_playback)
         err = (int) waveOutPrepareHeader(dev->outDev,
                                          (LPWAVEHDR) &(dev->buffers[i]),
@@ -306,17 +307,8 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       csound->Message(csound, Str("winmm: opening input device %d (%s)\n"),
                               devNum, (char*) caps.szPname);
     }
-    p = (rtWinMMGlobals*) csound->QueryGlobalVariable(csound,
-                                                      "_rtwinmm_globals");
-    if (p == NULL) {
-      if (csound->CreateGlobalVariable(csound, "_rtwinmm_globals",
-                                               sizeof(rtWinMMGlobals)) != 0)
-        return err_msg(csound, Str("could not allocate global structure"));
-      p = (rtWinMMGlobals*) csound->QueryGlobalVariable(csound,
-                                                        "_rtwinmm_globals");
-      p->inDev = NULL;
-      p->outDev = NULL;
-    }
+    p = (rtWinMMGlobals*)
+          csound->QueryGlobalVariable(csound, "_rtwinmm_globals");
     dev = (rtWinMMDevice*) malloc(sizeof(rtWinMMDevice));
     if (dev == NULL)
       return err_msg(csound, Str("memory allocation failure"));
@@ -328,6 +320,7 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
     if (is_playback) {
       p->outDev = dev;
       *(csound->GetRtPlayUserData(csound)) = (void*) dev;
+      dev->enable_buf_timer = p->enable_buf_timer;
       if (waveOutOpen((LPHWAVEOUT) &(dev->outDev), (UINT_PTR) devNum,
                       (LPWAVEFORMATEX) &wfx, (DWORD_PTR) 0, (DWORD_PTR) 0,
                       openFlags) != MMSYSERR_NOERROR) {
@@ -352,6 +345,8 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
     else {
       p->inDev = dev;
       *(csound->GetRtRecordUserData(csound)) = (void*) dev;
+      /* disable playback timer in full-duplex mode */
+      dev->enable_buf_timer = p->enable_buf_timer = 0;
       if (waveInOpen((LPHWAVEIN) &(dev->inDev), (UINT_PTR) devNum,
                      (LPWAVEFORMATEX) &wfx, (DWORD_PTR) 0, (DWORD_PTR) 0,
                      openFlags) != MMSYSERR_NOERROR) {
@@ -449,10 +444,10 @@ static void rtplay_(void *csound, void *outBuf, int nbytes)
     waveOutWrite(dev->outDev, (LPWAVEHDR) buf, sizeof(WAVEHDR));
     if (++(dev->cur_buf) >= dev->nBuffers)
       dev->cur_buf = 0;
-#if 0
-    if (*(p->GetRtRecordUserData(p)) != NULL)
+
+    if (!dev->enable_buf_timer)
       return;
-#endif
+
     QueryPerformanceCounter(&pp);
     curTime = large_integer_to_int64(&pp);
     timeDiff = (float) (curTime - dev->prv_time) * dev->timeConv;
@@ -519,31 +514,43 @@ static void rtclose_(void *csound)
 
 int csoundModuleCreate(void *csound)
 {
-    ((ENVIRON*) csound)->Message(csound,
-                                 Str("Windows MME real time audio module "
-                                     "for Csound by Istvan Varga\n"));
-    /* nothing to do, report success */
-    return 0;
+    ENVIRON         *p = (ENVIRON*) csound;
+    rtWinMMGlobals  *pp;
+
+    p->Message(p, Str("Windows MME real time audio module for Csound "
+                      "by Istvan Varga\n"));
+
+    if (p->CreateGlobalVariable(p, "_rtwinmm_globals",
+                                   sizeof(rtWinMMGlobals)) != 0)
+      return err_msg(csound, Str("could not allocate global structure"));
+    pp = (rtWinMMGlobals*) p->QueryGlobalVariable(p, "_rtwinmm_globals");
+    pp->inDev = NULL;
+    pp->outDev = NULL;
+    pp->enable_buf_timer = 1;
+    return (p->CreateConfigurationVariable(p, "mme_playback_timer",
+                                           &(pp->enable_buf_timer),
+                                           CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+                                           "Attempt to reduce timing jitter "
+                                           "in MME sound output (default: on)",
+                                           NULL));
 }
 
 int csoundModuleInit(void *csound)
 {
-    ENVIRON *p;
-    char    *drv;
+    ENVIRON *p = (ENVIRON*) csound;
+    char    *drv = (char*) p->QueryGlobalVariable(p, "_RTAUDIO");
 
-    p = (ENVIRON*) csound;
-    drv = (char*) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
     if (drv == NULL)
       return 0;
     if (!(strcmp(drv, "winmm") == 0 || strcmp(drv, "WinMM") == 0 ||
           strcmp(drv, "mme") == 0 || strcmp(drv, "MME") == 0))
       return 0;
-    p->Message(csound, "rtaudio: WinMM module enabled\n");
-    p->SetPlayopenCallback(csound, playopen_);
-    p->SetRecopenCallback(csound, recopen_);
-    p->SetRtplayCallback(csound, rtplay_);
-    p->SetRtrecordCallback(csound, rtrecord_);
-    p->SetRtcloseCallback(csound, rtclose_);
+    p->Message(p, "rtaudio: WinMM module enabled\n");
+    p->SetPlayopenCallback(p, playopen_);
+    p->SetRecopenCallback(p, recopen_);
+    p->SetRtplayCallback(p, rtplay_);
+    p->SetRtrecordCallback(p, rtrecord_);
+    p->SetRtcloseCallback(p, rtclose_);
     return 0;
 }
 
