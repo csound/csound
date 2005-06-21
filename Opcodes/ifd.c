@@ -20,9 +20,21 @@
     02111-1307 USA
 */
 
-/* IFD
+/* IFD 
+
+Instantaneous Frequency Distribution analysis, plus magnitude
+and phase output.
 
 ffrs, fphs ifd ain, ifftsize, ihopsize, iwintype[,iscal]
+
+ffrs - AMP_FREQ signal
+fphs - AMP_PHASE signal (unwrapped phase)
+
+ain - input
+ifftsize - fftsize (must be integer multiple of hopsize)
+ihopsize - hopsize
+iwintype - O:hamming; 1: hanning,
+iscal - magnitude scaling (defaults to 0)
 
 */
 
@@ -47,7 +59,7 @@ int
 ifd_init(ENVIRON *csound, _IFD *p){
 
 int hsize, fftsize, hopsize, frames;
-int *counter, wintype, check, i;
+int *counter, wintype, i;
 MYFLT *winf, *dwinf;
 double alpha=0.f,fac;
 fftsize = p->fftsize = (int) *p->size;
@@ -60,8 +72,6 @@ csound->Die(csound, "ifd: fftsize should be an integral multiple of hopsize\n");
 
 p->frames = frames;
 p->pi = 4.*atan(1.);
-
-check = 1 - fftsize%2;
 hsize = fftsize/2;
 
 if(p->sigframe.auxp==NULL ||
@@ -119,24 +129,15 @@ switch (wintype) {
       csound->Die(csound, Str("ifd: unsupported value for iwintype\n"));
       break;
     }
-fac = 2*p->pi/fftsize;
-if(check){
-for(i=0; i < hsize; i++){ 
-winf[i+hsize] = (MYFLT) (alpha + (1.-alpha)*cos(fac*i)); 
-winf[hsize-(i+1)] = winf[i+hsize];
-}
-}
-else {
-winf[hsize] = (MYFLT) 1.0;
-for(i=1; i <= hsize; i++){
-winf[i+hsize] = (MYFLT) (alpha + (1.-alpha)*cos(fac*i)); 
-winf[hsize-i] = winf[i+hsize];
-}
-}
+fac = 2.*p->pi/(fftsize-1.);
+
+for(i=0; i < fftsize; i++)
+winf[i] = (MYFLT) (alpha - (1.-alpha)*cos(fac*i)); 
+
 
 p->norm = 0;
 for(i=0; i < fftsize; i++){
-  dwinf[i] = winf[i] - (i ? dwinf[i-1] : 0.f); 
+  dwinf[i] = winf[i] - (i+1<fftsize ? winf[i+1] : 0.f); 
   p->norm += winf[i];
 }
 
@@ -156,7 +157,7 @@ double twopi = p->twopi, pi = p->pi;
 MYFLT scl = p->g/p->norm; 
 MYFLT sr = csound->esr;
 int i2, i, fftsize = p->fftsize, hsize = p->fftsize/2;
-MYFLT tmp, *diffwin = (MYFLT *) p->diffwin.auxp;
+MYFLT tmp1,tmp2, *diffwin = (MYFLT *) p->diffwin.auxp;
 MYFLT *win = (MYFLT *) p->win.auxp;
 MYFLT *diffsig = (MYFLT *) p->diffsig.auxp;
 float *output = (float *) p->fout1->frame.auxp;
@@ -168,12 +169,15 @@ signal[i]  = signal[i]*win[i];
 }
 
 for(i=0; i < hsize; i++){
-tmp = signal[i];
-signal[i] = signal[i+hsize];
-signal[i+hsize] = tmp;
-tmp = diffsig[i];
-diffsig[i] = diffsig[i+hsize];
-diffsig[i+hsize] = tmp;
+tmp1 = diffsig[i+hsize];
+tmp2 = diffsig[i];
+diffsig[i] = tmp1;
+diffsig[i+hsize] = tmp2;
+
+tmp1 = signal[i+hsize];
+tmp2 = signal[i];
+signal[i] = tmp1;
+signal[i+hsize] = tmp2;
 }
 
  if (!(fftsize & (fftsize - 1))){
@@ -188,13 +192,13 @@ csound->RealFFTnp2(csound, diffsig, fftsize);
 for(i=2; i<fftsize; i+=2){
 
     i2 = i/2;
-	a = signal[i];
-	b = signal[i+1];
-    da = diffsig[i];
-	db = diffsig[i+1];
+	a = signal[i]*scl;
+	b = signal[i+1]*scl;
+    da = diffsig[i]*scl;
+	db = diffsig[i+1]*scl;
     powerspec = a*a+b*b;
 	
-	if((outphases[i] = output[i] = (float) sqrt(powerspec)*scl) != 0.f){
+	if((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.f){
        output[i+1] = ((a*db - b*da)/powerspec)*factor + i2*fund;
 	   ph = (float) atan2(b, a);	
 	   d = ph - outphases[i+1];
