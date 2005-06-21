@@ -244,7 +244,7 @@ int flooper_init(ENVIRON *csound, flooper *p) {
     }
 
     if (p->buffer.auxp==NULL)   /* allocate memory if necessary */
-      csound->AuxAlloc(csound,(durs+1)*sizeof(float), &p->buffer);
+      csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT), &p->buffer);
 
     inc = (MYFLT)1/cfds;       /* fade envelope incr/decr */
     buffer = p->buffer.auxp;   /* loop memory */
