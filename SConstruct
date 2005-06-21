@@ -755,7 +755,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
     ['Opcodes/mixer.cpp']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
     ['Opcodes/sndloop.c']))
-
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ifd',
+    ['Opcodes/ifd.c']))
 # Plugins with External Dependencies
 
 # FLTK widgets
