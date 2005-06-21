@@ -1,5 +1,6 @@
 2005-06-21  John ffitch  <jpff@codemist.co.uk>
 
+	* Opcodes/biquad.c (biquada, biquad, biquadset): 
 	* OOps/ugens5.c (porset, port, tonset, tone, tonsetx, tonex,
 	atone, atonex, rsnset, reson, rsnsetx, resonx, areson): Work in
 	doubles internally
