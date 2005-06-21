@@ -56,22 +56,20 @@ int csoundModuleCreate(void *csound)
     min = 2;
     max = 32;
 
-    p->CreateGlobalVariable(csound, "::cabuffnos", sizeof(int));	
+    p->CreateGlobalVariable(csound, "::cabuffnos", sizeof(int));
     def =(int*) (p->QueryGlobalVariable(csound, "::cabuffnos"));
     if(def==NULL) p->Message(csound, "warning... could not create global var\n");
     else *def = 4;
     p->CreateConfigurationVariable(csound, "buffnos", def,
                                    CSOUNDCFG_INTEGER, 0, &min, &max,
                                    "coreaudio IO buffer numbers", NULL);
-				
-	min = 0;
-	max = 1;											   				   
-	p->CreateGlobalVariable(csound, "::cainterleaved", sizeof(int));	
-    def =(int*) (p->QueryGlobalVariable(csound, "::cainterleaved"));
+
+    p->CreateGlobalVariable(csound, "::cainterleaved", sizeof(int));
+    def = (int*) (p->QueryGlobalVariable(csound, "::cainterleaved"));
     if(def==NULL) p->Message(csound, "warning... could not create global var\n");
     else *def = 0;
     p->CreateConfigurationVariable(csound, "noninterleaved", def,
-                                   CSOUNDCFG_INTEGER, 0, &min, &max,
+                                   CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                    "coreaudio IO uses non-interleaved audio (eg. Digidesign HW: 0=no, 1=yes)", NULL);
 
     p->Message(csound, "CoreAudio real-time audio module for Csound\n"
@@ -119,13 +117,12 @@ ADIOProc(const AudioBufferList *input,
   float *outp, *inp;
   float *ibufp = cdata->inbuffs[buff];
   float *obufp = cdata->outbuffs[buff];
-  
-  
+
 if(cdata->isNInterleaved){
-  
+
   int nibuffs = input->mNumberBuffers, buffs;
   int nobuffs = output->mNumberBuffers;
-  items = cdata->bufframes*chans;	  		  
+  items = cdata->bufframes*chans;
   buffs  = nibuffs > nobuffs ? nibuffs : nobuffs;
   output->mNumberBuffers = buffs;
   chans = chans > buffs ? buffs : chans;
@@ -134,7 +131,7 @@ if(cdata->isNInterleaved){
     inp =  (float *) input[0].mBuffers[j].mData;
 
   for(i=j, cnt=0; i < items; i+=chans, cnt++){
-	               outp[cnt] = obufp[i];
+                       outp[cnt] = obufp[i];
                        ibufp[i] = inp[cnt];
   }
    output->mBuffers[j].mDataByteSize = input[0].mBuffers[j].mDataByteSize;
@@ -197,8 +194,8 @@ int coreaudio_open(void *csound, csRtAudioParams *parm,
 
     p->DeleteConfigurationVariable(csound, "buffnos");
     p->DestroyGlobalVariable(csound, "::cabuffnos");
-	
-	vpt= (int*) (p->QueryGlobalVariable(csound, "::cainterleaved"));
+
+        vpt= (int*) (p->QueryGlobalVariable(csound, "::cainterleaved"));
     if(vpt != NULL) dev->isNInterleaved = *vpt;
     else dev->isNInterleaved = 0;
 
