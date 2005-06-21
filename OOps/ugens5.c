@@ -46,16 +46,17 @@ void lpcRESET(ENVIRON *csound)
 
 int porset(ENVIRON *csound, PORT *p)
 {
-    p->c2 = (MYFLT)pow(0.5, (double)csound->onedkr / *p->ihtim);
-    p->c1 = FL(1.0) - p->c2;
+    p->c2 = pow(0.5, (double)csound->onedkr / *p->ihtim);
+    p->c1 = 1.0 - p->c2;
     if (*p->isig >= FL(0.0))
-      p->yt1 = *p->isig;
+      p->yt1 = (double)(*p->isig);
     return OK;
 }
 
 int port(ENVIRON *csound, PORT *p)
 {
-    *p->kr = p->yt1 = p->c1 * *p->ksig + p->c2 * p->yt1;
+    p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
+    *p->kr = (MYFLT)p->yt1;
     return OK;
 }
 
@@ -63,13 +64,13 @@ int tonset(ENVIRON *csound, TONE *p)
 {
     {
       double b;
-      p->prvhp = *p->khp;
+      p->prvhp = (double)*p->khp;
       b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
-      p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
-      p->c1 = FL(1.0) - p->c2;
+      p->c2 = b - sqrt(b * b - 1.0);
+      p->c1 = 1.0 - p->c2;
     }
     if (!(*p->istor))
-      p->yt1 = FL(0.0);
+      p->yt1 = 0.0;
     return OK;
 }
 
@@ -77,20 +78,21 @@ int tone(ENVIRON *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
     int         nsmps = csound->ksmps;
-    MYFLT       c1 = p->c1, c2 = p->c2;
-    MYFLT       yt1 = p->yt1;
+    double      c1 = p->c1, c2 = p->c2;
+    double      yt1 = p->yt1;
 
-    if (*p->khp != p->prvhp) {
+    if (*p->khp != (MYFLT)p->prvhp) {
       double b;
-      p->prvhp = *p->khp;
+      p->prvhp = (double)*p->khp;
       b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
-      p->c2 = c2 = (MYFLT)(b - sqrt(b * b - 1.0));
-      p->c1 = c1 = FL(1.0) - c2;
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+      p->c1 = c1 = 1.0 - c2;
     }
     ar = p->ar;
     asig = p->asig;
     do {
-      *ar++ = yt1 = c1 * *asig++ + c2 * yt1;
+      yt1 = c1 * (double)(*asig++) + c2 * yt1;
+      *ar++ = (MYFLT)yt1;
     } while (--nsmps);
     p->yt1 = yt1;
     return OK;
@@ -102,17 +104,17 @@ int tonsetx(ENVIRON *csound, TONEX *p) /* From Gabriel Maldonado, modified for a
       double b;
       p->prvhp = *p->khp;
       b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
-      p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
-      p->c1 = FL(1.0) - p->c2;
+      p->c2 = b - sqrt(b * b - 1.0);
+      p->c1 = 1.0 - p->c2;
     }
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (int)(p->loop*sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (long)(p->loop*sizeof(MYFLT)), &p->aux);
-    p->yt1 = (MYFLT*)p->aux.auxp;
+                       (int)(p->loop*sizeof(double)) > p->aux.size))
+      csound->AuxAlloc(csound, (long)(p->loop*sizeof(double)), &p->aux);
+    p->yt1 = (double*)p->aux.auxp;
     if (!(*p->istor)) {
       int j;
-      for (j=0; j< p->loop; j++) p->yt1[j] = FL(0.0);
+      for (j=0; j< p->loop; j++) p->yt1[j] = 0.0;
     }
     return OK;
 }
@@ -121,13 +123,14 @@ int tonex(ENVIRON *csound, TONEX *p)     /* From Gabriel Maldonado, modified */
 {
     int j;
     int nsmps;
-    MYFLT *asig, *ar, c1, c2, *yt1;
+    MYFLT *asig, *ar;
+    double c1, c2, *yt1;
     if (*p->khp != p->prvhp) {
       double b;
-      p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
-      p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
-      p->c1 = FL(1.0) - p->c2;
+      p->prvhp = (double)*p->khp;
+      b = 2.0 - cos(p->prvhp * (double)csound->tpidsr);
+      p->c2 = b - sqrt(b * b - 1.0);
+      p->c1 = 1.0 - p->c2;
     }
     c1 = p->c1;
     c2 = p->c2;
@@ -137,7 +140,9 @@ int tonex(ENVIRON *csound, TONEX *p)     /* From Gabriel Maldonado, modified */
       nsmps = csound->ksmps;
       ar = p->ar;
       do {
-        *ar++ = *yt1 = c1 * *asig++ + c2 * *yt1;
+        double x = c1 * *asig++ + c2 * *yt1;
+        *yt1 = x;
+        *ar++ = (MYFLT)x;
       } while (--nsmps);
       yt1++;
       asig = p->ar;
@@ -149,21 +154,21 @@ int atone(ENVIRON *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
     int nsmps = csound->ksmps;
-    /*    MYFLT       c1 = p->c1; */  /* Not used */
-    MYFLT       c2 = p->c2, yt1 = p->yt1;
+    double      c2 = p->c2, yt1 = p->yt1;
 
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
       b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
-      p->c2 = c2 = (MYFLT)(b - sqrt(b * b - 1.0));
-/*      p->c1 = c1 = FL(1.0) - c2; */
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+/*      p->c1 = c1 = 1.0 - c2; */
     }
     ar = p->ar;
     asig = p->asig;
     do {
-      MYFLT sig = *asig++;
-      *ar++ = yt1 = c2 * (yt1 + sig);
+      double sig = (double)*asig++;
+      double x = yt1 = c2 * (yt1 + sig);
+      *ar++ = (MYFLT)x;
       yt1 -= sig;               /* yt1 contains yt1-xt1 */
     } while (--nsmps);
     p->yt1 = yt1;
@@ -173,14 +178,14 @@ int atone(ENVIRON *csound, TONE *p)
 int atonex(ENVIRON *csound, TONEX *p)     /* Gavriel Maldonado, modified */
 {
     MYFLT       *ar, *asig;
-    MYFLT       c2, *yt1;
+    double      c2, *yt1;
     int         nsmps, j;
 
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
       b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
-      p->c2 = (MYFLT)(b - sqrt(b * b - 1.0));
+      p->c2 = b - sqrt(b * b - 1.0);
       /*p->c1 = 1. - p->c2;*/
     }
 
@@ -191,9 +196,10 @@ int atonex(ENVIRON *csound, TONEX *p)     /* Gavriel Maldonado, modified */
       nsmps = csound->ksmps;
       ar = p->ar;
       do {
-        MYFLT sig = *asig++;
-        *ar++ = *yt1 = c2 * (*yt1 + sig);
-        *yt1 -= sig;            /* yt1 contains yt1-xt1 */
+        double sig = *asig++;
+        double x = c2 * (*yt1 + sig);
+        *yt1 = x - sig;            /* yt1 contains yt1-xt1 */
+        *ar++ = (MYFLT)x;
       } while (--nsmps);
       yt1++;
       asig= p->ar;
@@ -209,9 +215,9 @@ int rsnset(ENVIRON *csound, RESON *p)
       sprintf(csound->errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
       return csound->InitError(csound, csound->errmsg);
     }
-    p->prvcf = p->prvbw = -FL(100.0);
+    p->prvcf = p->prvbw = -100.0;
     if (!(*p->istor))
-      p->yt1 = p->yt2 = FL(0.0);
+      p->yt1 = p->yt2 = 0.0;
     return OK;
 }
 
@@ -219,37 +225,37 @@ int reson(ENVIRON *csound, RESON *p)
 {
     int flag = 0, nsmps = csound->ksmps;
     MYFLT       *ar, *asig;
-    MYFLT       c3p1, c3t4, omc3, c2sqr;
-    MYFLT       yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
+    double      c3p1, c3t4, omc3, c2sqr;
+    double      yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
 
-    if (*p->kcf != p->prvcf) {
-      p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(p->prvcf * csound->tpidsr));
+    if (*p->kcf != (MYFLT)p->prvcf) {
+      p->prvcf = (double)*p->kcf;
+      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
       flag = 1;                 /* Mark as changed */
     }
-    if (*p->kbw != p->prvbw) {
-      p->prvbw = *p->kbw;
-      c3 = p->c3 = (MYFLT)exp((double)(p->prvbw * csound->mtpdsr));
+    if (*p->kbw != (MYFLT)p->prvbw) {
+      p->prvbw = (double)*p->kbw;
+      c3 = p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
       flag = 1;                /* Mark as changed */
     }
     if (flag) {
-      c3p1 = c3 + FL(1.0);
-      c3t4 = c3 * FL(4.0);
-      omc3 = FL(1.0) - c3;
+      c3p1 = c3 + 1.0;
+      c3t4 = c3 * 4.0;
+      omc3 = 1.0 - c3;
       c2 = p->c2 = c3t4 * p->cosf / c3p1;               /* -B, so + below */
       c2sqr = c2 * c2;
       if (p->scale == 1)
-        c1 = p->c1 = omc3 * (MYFLT)sqrt(1.0 - (double)c2sqr / (double)c3t4);
+        c1 = p->c1 = omc3 * sqrt(1.0 - c2sqr / c3t4);
       else if (p->scale == 2)
-        c1 = p->c1 = (MYFLT)sqrt((double)((c3p1*c3p1-c2sqr) * omc3/c3p1));
-      else c1 = p->c1 = FL(1.0);
+        c1 = p->c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+      else c1 = p->c1 = 1.0;
     }
     asig = p->asig;
     ar = p->ar;
     yt1 = p->yt1; yt2 = p->yt2;
     do {
-      MYFLT yt0 = c1 * *asig++ + c2 * yt1 - c3 * yt2;
-      *ar++ = yt0;
+      double yt0 = c1 * (double)(*asig++) + c2 * yt1 - c3 * yt2;
+      *ar++ = (MYFLT)yt0;
       yt2 = yt1;
       yt1 = yt0;
     } while (--nsmps);
@@ -263,18 +269,18 @@ int rsnsetx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modifies for arb o
     p->scale = scale = (int) *p->iscl;
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
-    p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
+                       (int)(p->loop*2*sizeof(double)) > p->aux.size))
+      csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(double)), &p->aux);
+    p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
       sprintf(csound->errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
       return csound->InitError(csound, csound->errmsg);
     }
-    p->prvcf = p->prvbw = -FL(100.0);
+    p->prvcf = p->prvbw = -100.0;
 
     if (!(*p->istor)) {
       int j;
-      for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = FL(0.0);
+      for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = 0.0;
     }
     return OK;
 }
@@ -283,30 +289,30 @@ int resonx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modified  */
 {
     int flag = 0, nsmps, j;
     MYFLT       *ar, *asig;
-    MYFLT       c3p1, c3t4, omc3, c2sqr;
-    MYFLT       *yt1, *yt2, c1,c2,c3;
+    double       c3p1, c3t4, omc3, c2sqr;
+    double       *yt1, *yt2, c1,c2,c3;
 
-    if (*p->kcf != p->prvcf) {
-      p->prvcf = *p->kcf;
-      p->cosf = (MYFLT) cos((double)(*p->kcf * csound->tpidsr));
+    if (*p->kcf != (MYFLT)p->prvcf) {
+      p->prvcf = (double)*p->kcf;
+      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
       flag = 1;
     }
-    if (*p->kbw != p->prvbw) {
-      p->prvbw = *p->kbw;
-      p->c3 = (MYFLT) exp((double)(*p->kbw * csound->mtpdsr));
+    if (*p->kbw != (MYFLT)p->prvbw) {
+      p->prvbw = (double)*p->kbw;
+      p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
       flag = 1;
     }
     if (flag) {
-      c3p1 = p->c3 + FL(1.0);
-      c3t4 = p->c3 * FL(4.0);
-      omc3 = FL(1.0) - p->c3;
+      c3p1 = p->c3 + 1.0;
+      c3t4 = p->c3 * 4.0;
+      omc3 = 1.0 - p->c3;
       p->c2 = c3t4 * p->cosf / c3p1;            /* -B, so + below */
       c2sqr = p->c2 * p->c2;
       if (p->scale == 1)
-        p->c1 = omc3 * (MYFLT)sqrt(1.0 - (double)(c2sqr / c3t4));
+        p->c1 = omc3 * sqrt(1.0 - (c2sqr / c3t4));
       else if (p->scale == 2)
-        p->c1 = (MYFLT)sqrt((double)((c3p1*c3p1-c2sqr) * omc3/c3p1));
-      else p->c1 = FL(1.0);
+        p->c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+      else p->c1 = 1.0;
     }
 
     ar   = p->ar;
@@ -320,9 +326,11 @@ int resonx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modified  */
       nsmps = csound->ksmps;
       ar = p->ar;
       do {
-        *ar = c1 * *asig++ + c2 * *yt1 - c3 * *yt2;
+        double x = 
+        c1 * (double)*asig++ + c2 * *yt1 - c3 * *yt2;
         *yt2 = *yt1;
-        *yt1 = *ar++;
+        *ar++ = (MYFLT)x;
+        *yt1 = x;
       } while (--nsmps);
       yt1++;
       yt2++;
@@ -335,49 +343,51 @@ int areson(ENVIRON *csound, RESON *p)
 {
     int flag = 0, nsmps = csound->ksmps;
     MYFLT       *ar, *asig;
-    MYFLT       c3p1, c3t4, omc3, c2sqr, D = FL(2.0); /* 1/RMS = root2 (rand) */
+    double      c3p1, c3t4, omc3, c2sqr, D = 2.0; /* 1/RMS = root2 (rand) */
                                                    /*      or 1/.5  (sine) */
-    MYFLT       yt1, yt2, c1, c2, c3;
+    double      yt1, yt2, c1, c2, c3;
 
-    if (*p->kcf != p->prvcf) {
-      p->prvcf = *p->kcf;
-      p->cosf = (MYFLT)cos((double)(*p->kcf * csound->tpidsr));
+    if (*p->kcf != (MYFLT)p->prvcf) {
+      p->prvcf = (double)*p->kcf;
+      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
       flag = 1;
     }
-    if (*p->kbw != p->prvbw) {
-      p->prvbw = *p->kbw;
-      p->c3 = (MYFLT)exp((double)(*p->kbw * csound->mtpdsr));
+    if (*p->kbw != (MYFLT)p->prvbw) {
+      p->prvbw = (double)*p->kbw;
+      p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
       flag = 1;
     }
     if (flag) {
-      c3p1 = p->c3 + FL(1.0);
-      c3t4 = p->c3 * FL(4.0);
-      omc3 = FL(1.0) - p->c3;
+      c3p1 = p->c3 + 1.0;
+      c3t4 = p->c3 * 4.0;
+      omc3 = 1.0 - p->c3;
       p->c2 = c3t4 * p->cosf / c3p1;
       c2sqr = p->c2 * p->c2;
       if (p->scale == 1)                        /* i.e. 1 - A(reson) */
-        p->c1 = FL(1.0) - omc3 * (MYFLT)sqrt((double)1. - c2sqr / c3t4);
+        p->c1 = 1.0 - omc3 * sqrt(1.0 - c2sqr / c3t4);
       else if (p->scale == 2)                 /* i.e. D - A(reson) */
-        p->c1 = D - (MYFLT)sqrt((double)((c3p1*c3p1-c2sqr)*omc3/c3p1));
-      else p->c1 = FL(0.0);                        /* cannot tell        */
+        p->c1 = D - sqrt((c3p1*c3p1-c2sqr)*omc3/c3p1);
+      else p->c1 = 0.0;                        /* cannot tell        */
     }
     asig = p->asig;
     ar = p->ar;
     c1 = p->c1; c2 = p->c2; c3 = p->c3; yt1 = p->yt1; yt2 = p->yt2;
     if (p->scale == 1 || p->scale == 0) {
       do {
-        MYFLT ans = c1 * *asig + c2 * yt1 - c3 * yt2;
+        double sig = (double)*asig++;
+        double ans = c1 * sig + c2 * yt1 - c3 * yt2;
         yt2 = yt1;
-        yt1 = ans - *asig++;  /* yt1 contains yt1-xt1 */
-        *ar++ = ans;
+        yt1 = ans - sig;  /* yt1 contains yt1-xt1 */
+        *ar++ = (MYFLT)ans;
       } while (--nsmps);
     }
     else if (p->scale == 2) {
       do {
-        MYFLT ans = c1 * *asig + c2 * yt1 - c3 * yt2;
+        double sig = (double)*asig++;
+        double ans = c1 * sig + c2 * yt1 - c3 * yt2;
         yt2 = yt1;
-        yt1 = ans - D * *asig++;      /* yt1 contains yt1-D*xt1 */
-        *ar++ = ans;
+        yt1 = ans - D * sig;      /* yt1 contains yt1-D*xt1 */
+        *ar++ = (MYFLT)ans;
       } while (--nsmps);
     }
     p->yt1 = yt1; p->yt2 = yt2;
