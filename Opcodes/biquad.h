@@ -29,7 +29,7 @@
 typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *b0, *b1, *b2, *a0, *a1, *a2, *reinit;
-    MYFLT   xnm1, xnm2, ynm1, ynm2;
+    double  xnm1, xnm2, ynm1, ynm2;
 } BIQUAD;
 
                                 /* Structure for moogvcf filter */
