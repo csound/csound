@@ -111,7 +111,8 @@ ADIOProc(const AudioBufferList *input,
 {
   int i,j,cnt;
   int chans = cdata->nchns;
-  int cachans = input->mBuffers[0].mNumberChannels;
+  int cachans = output->mBuffers[0].mNumberChannels;
+  int inchans = input->mBuffers[0].mNumberChannels;
   int items;
   int buff = cdata->iocurbuff;
   float *outp, *inp;
@@ -149,9 +150,11 @@ if(cdata->isNInterleaved){
     for(j=0; j < cachans; j++)
       if(j < chans){
         outp[i+j]  = obufp[cnt];
-        if(inp!=NULL) ibufp[cnt] = inp[i+j];
+        if(inp!=NULL && j < inchans) ibufp[cnt] = inp[i+j];
         cnt++;
       }
+	  else
+	   outp[i+j] = 0.f;
 
   }
 }
@@ -453,7 +456,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     } // for
     dev->incount = icount;
     dev->incurbuff = cur;
-
+    
     return bytes_;
 
 }
