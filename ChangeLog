@@ -1,3 +1,8 @@
+2005-06-23  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/sread.c (sread): Do not attempt to read a name in r if at
+	end of line
+
 2005-06-21  John ffitch  <jpff@codemist.co.uk>
 
 	* Opcodes/biquad.c (biquada, biquad, biquadset): 
