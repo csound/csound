@@ -858,11 +858,12 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
             csound->Message(csound,Str("Repeats=%d\n"), ST(repeat_cnt));
           do {
             c = getscochar(csound, 1);
-          } while (c==' '||c=='\t');
-          do {
-            *nn++ = c;
-          } while (isalpha(c=getscochar(csound, 1)) ||
-                   (nn!=ST(repeat_name) && (isdigit(c)||c=='_')));
+          } while (c==' '||c=='\t'||c=='\n');
+          if (c!='\n')          /* Only if there is a name */
+            do {
+              *nn++ = c;
+            } while (isalpha(c=getscochar(csound, 1)) ||
+                     (nn!=ST(repeat_name) && (isdigit(c)||c=='_')));
           *nn = '\0';
           /* Define macro for counter */
           ST(repeat_mm)->name = mmalloc(csound, strlen(ST(repeat_name))+1);
