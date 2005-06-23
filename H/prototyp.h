@@ -62,7 +62,7 @@ void    csoundWarning(void *, const char *, ...);
 void    csoundDebugMsg(void *, const char *, ...);
 #endif
 void    putop(ENVIRON *, TEXT *), putstrg(char *);
-void    rdorchfile(ENVIRON*), otran(ENVIRON*), resetouts(ENVIRON*);
+void    rdorchfile(ENVIRON*), otran(ENVIRON*);
 char    argtyp(ENVIRON *, char *);
 TEXT    *getoptxt(ENVIRON *, int *);
 int     express(ENVIRON *, char *);
@@ -86,13 +86,8 @@ MYFLT   intpow(MYFLT, long);
 void    list_opcodes(ENVIRON *, int);
 short   sfsampsize(int);
 void    rewriteheader(SNDFILE* ofd, int verbose);
-void    scoreRESET(ENVIRON *p);
-int     kperf(ENVIRON*);
 void    writeLine(ENVIRON *csound, const char *text, long size);
-void    mainRESET(ENVIRON *);
-void    create_opcodlst(void *csound);
 int     readOptions(void*, FILE*);
-int     csoundMain(void *csound, int argc, char **argv);
 void    remove_tmpfiles(void*);
 void    add_tmpfile(void*, char*);
 void    xturnoff(ENVIRON*, INSDS*);
@@ -101,20 +96,17 @@ int     insert_score_event(ENVIRON*, EVTBLK*, double, int);
 MEMFIL  *ldmemfile(void*, const char*);
 void    rlsmemfiles(void*);
 int     delete_memfile(void*, const char*);
-
 char    *mytmpnam(ENVIRON *, char *);
-
 void    *SAsndgetset(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
 int     getsndin(void*, void*, MYFLT*, int, void*);
 void    *sndgetset(void*, void*);
 int     sreadin(void*, void*, MYFLT*, int, void*);
-
 PUBLIC  SNDMEMFILE  *csoundLoadSoundFile(void *csound_,
                                          const char *name, SF_INFO *sfinfo);
 int     PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p);
 
 #ifdef __cplusplus
-}
+};
 #endif
 
 #endif      /* CSOUND_CSDL_H */

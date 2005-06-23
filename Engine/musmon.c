@@ -38,7 +38,6 @@
 
 extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
 extern  int     insert(ENVIRON *, int, EVTBLK*);
-extern  void    print_benchmark_info(void*, const char*);     /* main.c */
 extern  void    MidiOpen(void *);
 extern  void    m_chn_init_all(ENVIRON *);
 extern  void    scsort(ENVIRON *, FILE *, FILE *);
@@ -69,6 +68,25 @@ typedef struct {
 } MUSMON_GLOBALS;
 
 #define ST(x)   (((MUSMON_GLOBALS*) ((ENVIRON*) csound)->musmonGlobals)->x)
+
+/* IV - Jan 28 2005 */
+void print_benchmark_info(void *csound_, const char *s)
+{
+    double  rt, ct;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    RTCLOCK *p;
+
+    if ((csound->oparms->msglevel & 0x80) == 0)
+      return;
+    p = (RTCLOCK*) csoundQueryGlobalVariable(csound, "csRtClock");
+    if (p == NULL)
+      return;
+    rt = timers_get_real_time(p);
+    ct = timers_get_CPU_time(p);
+    csound->Message(csound,
+                    Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
+                    (char*) s, rt, ct);
+}
 
 static void settempo(ENVIRON *csound, MYFLT tempo)
 {
@@ -107,26 +125,6 @@ int tempo(ENVIRON *csound, TEMPO *p)
       p->prvtempo = *p->ktempo;
     }
     return OK;
-}
-
-void musRESET(ENVIRON *csound)
-{
-    /* belt, braces, and parachute */
-    int i;
-
-    if (csound->musmonGlobals != NULL) {
-      csound->Free(csound, csound->musmonGlobals);
-      csound->musmonGlobals = NULL;
-    }
-    for (i = 0; i < MAXCHNLS; i++) {
-      csound->maxamp[i]   = FL(0.0);
-      csound->smaxamp[i]  = FL(0.0);
-      csound->omaxamp[i]  = FL(0.0);
-      csound->rngcnt[i]   = 0;
-      csound->omaxpos[i]  = csound->smaxpos[i] = csound->maxpos[i] = 1;
-    }
-    csound->rngflg      = 0;
-    csound->multichan   = 0;
 }
 
 static void print_maxamp(ENVIRON *csound, MYFLT x)
@@ -287,7 +285,7 @@ int musmon(ENVIRON *csound)
     }
     if (O->usingcscore) {
       if (ST(lsect) == NULL) {
-        ST(lsect) = (EVENT *) mmalloc(csound, (long)sizeof(EVENT));
+        ST(lsect) = (EVENT*) mmalloc(csound, sizeof(EVENT));
         ST(lsect)->op = 'l';
       }
       csound->Message(csound, Str("using Cscore processing\n"));
@@ -914,9 +912,9 @@ static int playevents(ENVIRON *csound)
 {
     int retval;
 
-    while ((retval = sensevents(csound)) == 0)
-      kperf(csound);
-    return (retval - 1);
+    while ((retval = csoundPerformBuffer(csound)) == 0);
+
+    return (retval == 2 ? 1 : 0);
 }
 
 /* Schedule new score event to be played. 'time_ofs' is the amount of */

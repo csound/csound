@@ -65,7 +65,7 @@ static GEN or_sub[GENMAX + 1] = {
 
 typedef struct namedgen {
         char            *name;
-        int              genum;
+        int             genum;
         struct namedgen *next;
 } NAMEDGEN;
 
@@ -76,27 +76,6 @@ static  void    ftresdisp(ENVIRON *, FGDATA *, FUNC*);
 static  FUNC    *ftalloc(ENVIRON *);
 
 #define FTPMAX  (150)
-
-void ftRESET(ENVIRON *csound)
-{
-  int i;
-  if (csound->flist) {
-    for (i = 1; i <= csound->maxfnum; i++)
-      mfree(csound, csound->flist[i]);   /* Check this */
-    mfree(csound, csound->flist);
-    csound->flist   = NULL;
-  }
-  csound->maxfnum = 0;
-  if (csound->gensub) {
-    mfree(csound, csound->gensub);
-    csound->gensub = NULL;
-  }
-  while (csound->namedgen) {
-    NAMEDGEN *next = ((NAMEDGEN*) csound->namedgen)->next;
-    mfree(csound, csound->namedgen);
-    csound->namedgen = next;
-  }
-}
 
 static void GENUL(FUNC *ftp, ENVIRON *csound)
 {

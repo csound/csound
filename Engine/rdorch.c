@@ -1175,6 +1175,12 @@ static int splitline(ENVIRON *csound)
     return grpcnt;
 }
 
+static void resetouts(ENVIRON *csound)
+{
+    csound->acount = csound->kcount = csound->icount = 0;
+    csound->Bcount = csound->bcount = 0;
+}
+
 TEXT *getoptxt(ENVIRON *csound, int *init)
 {                               /* get opcod and args from current line */
                                 /*      returns pntr to a TEXT struct   */
