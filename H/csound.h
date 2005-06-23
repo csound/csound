@@ -97,7 +97,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
 /**
  * Platform-dependent definitions and declarations.
@@ -163,11 +163,13 @@ extern "C" {
    * INSTANTIATION
    */
 
+#define CSOUNDINIT_NO_SIGNAL_HANDLER  1
+
   /**
    * Initialise Csound library.
    * Returns zero on success.
    */
-  PUBLIC int csoundInitialize(int *argc, char ***argv);
+  PUBLIC int csoundInitialize(int *argc, char ***argv, int flags);
 
   /**
    * Creates an instance of Csound.
@@ -1115,7 +1117,7 @@ extern "C" {
 
 #ifdef __cplusplus
 };
-#endif  /* __cplusplus */
+#endif
 
 #endif  /* CSOUND_H */
 

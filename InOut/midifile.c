@@ -418,8 +418,13 @@ static int readTrack(ENVIRON *csound, FILE *f)
 
 static int eventTimeCompareFunc(const void *p1, const void *p2)
 {
-    if (((midiEvent_t*) p1)->kcnt == ((midiEvent_t*) p2)->kcnt)
+    if (((midiEvent_t*) p1)->kcnt == ((midiEvent_t*) p2)->kcnt) {
+      if ((uintptr_t) p1 > (uintptr_t) p2)
+        return 1;
+      else if ((uintptr_t) p1 < (uintptr_t) p2)
+        return -1;
       return 0;
+    }
     if (((midiEvent_t*) p1)->kcnt > ((midiEvent_t*) p2)->kcnt)
       return 1;
     return -1;
@@ -427,8 +432,13 @@ static int eventTimeCompareFunc(const void *p1, const void *p2)
 
 static int tempoTimeCompareFunc(const void *p1, const void *p2)
 {
-    if (((tempoEvent_t*) p1)->kcnt == ((tempoEvent_t*) p2)->kcnt)
+    if (((tempoEvent_t*) p1)->kcnt == ((tempoEvent_t*) p2)->kcnt) {
+      if ((uintptr_t) p1 > (uintptr_t) p2)
+        return 1;
+      else if ((uintptr_t) p1 < (uintptr_t) p2)
+        return -1;
       return 0;
+    }
     if (((tempoEvent_t*) p1)->kcnt > ((tempoEvent_t*) p2)->kcnt)
       return 1;
     return -1;

@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 #endif
 
     /* initialise Csound library */
-    csoundInitialize(&argc, &argv);
+    csoundInitialize(&argc, &argv, 0);
 
     /*  Create Csound. */
     csound = csoundCreate(NULL);
@@ -154,11 +154,11 @@ int main(int argc, char **argv)
       if (((ENVIRON*) csound)->oparms->outbufsamps
             <= ((ENVIRON*) csound)->nspout) {
         /* do not need csoundYield(), kperf() will call it */
-        while (csoundPerformKsmps(csound) == 0)
+        while ((result = csoundPerformKsmps(csound)) == 0)
           ;
       }
       else {
-        while (csoundPerformBuffer(csound) == 0)
+        while ((result = csoundPerformBuffer(csound)) == 0)
           ;
       }
     }
@@ -166,9 +166,7 @@ int main(int argc, char **argv)
     csoundDestroy(csound);
     /* remove global configuration variables, if there are any */
     csoundDeleteAllGlobalConfigurationVariables();
-    if (result == CSOUND_EXITJMP_SUCCESS || result == -(CSOUND_EXITJMP_SUCCESS))
-      result = 0;
 
-    return result;
+    return (result >= 0 ? 0 : result);
 }
 

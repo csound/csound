@@ -35,22 +35,6 @@ static  void    deact(ENVIRON *, INSDS *);
 static  void    schedofftim(ENVIRON *, INSDS *);
 static  void    instance(ENVIRON *, int);
 
-void insertRESET(ENVIRON *csound)
-{
-    memset(&(csound->actanchor), 0, sizeof(INSDS));
-    csound->curip           = (INSDS*) NULL;
-    csound->frstoff         = (INSDS*) NULL;
-    csound->kcounter        = 0L;
-    csound->inerrcnt        = 0;
-    csound->perferrcnt      = 0;
-    csound->tieflag         = 0;
-    csound->reinitflag      = 0;
-    csound->ids             = (OPDS*) NULL;
-    csound->pds             = (OPDS*) NULL;
-    csound->cpu_power_busy  = FL(0.0);
-    /* don't forget local externs in this file... */
-}
-
 int init0(ENVIRON *csound)
 {
     INSDS  *ip;
@@ -549,55 +533,6 @@ void infoff(ENVIRON *csound, MYFLT p1)  /* turn off an indef copy of instr p1 */
                     insno);
 }
 
-/* perform currently active instrs for one kperiod */
-/*      & send audio result to output buffer       */
-/* returns non-zero if this kperiod was skipped    */
-
-int kperf(ENVIRON *csound)
-{
-    INSDS   *ip;
-    int     i;
-
-    /* update orchestra time */
-    csound->kcounter++;
-    csound->global_kcounter = csound->kcounter;
-    csound->sensEvents_state.curTime += csound->sensEvents_state.curTime_inc;
-    csound->sensEvents_state.curBeat += csound->sensEvents_state.curBeat_inc;
-    /* if skipping time on request by 'a' score statement: */
-    if (csound->advanceCnt) {
-      csound->advanceCnt--;
-      return 1;
-    }
-    /* if i-time only, return now */
-    if (csound->initonly)
-      return 1;
-    /* PC GUI needs attention, but avoid excessively frequent */
-    /* calls of csoundYield() */
-    if (--(csound->evt_poll_cnt) < 0) {
-      csound->evt_poll_cnt = csound->evt_poll_maxcnt;
-      if (!csoundYield(csound))
-        longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
-    }
-    /* for one kcnt: */
-    if (csound->oparms->sfread)         /*   if audio_infile open  */
-      csound->spinrecv(csound);         /*      fill the spin buf  */
-    csound->spoutactive = 0;            /*   make spout inactive   */
-    ip = csound->actanchor.nxtact;
-    while (ip != NULL) {                /* for each instr active:  */
-      INSDS *nxt = ip->nxtact;
-      csound->pds = (OPDS *)ip;
-      while ((csound->pds = csound->pds->nxtp) != NULL) {
-        (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
-      }
-      ip = nxt;
-    }
-    if (!csound->spoutactive)           /*   results now in spout? */
-      for (i = 0; i < (int) csound->nspout; i++)
-        csound->spout[i] = FL(0.0);
-    csound->spoutran(csound);           /*      send to audio_out  */
-    return 0;
-}
-
 int csoundInitError(void *csound_, const char *s, ...)
 {
     va_list args;
@@ -742,7 +677,7 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
     p->ip->m_pitch = saved_curip->m_pitch;
     p->ip->m_veloc = saved_curip->m_veloc;
 
-    /* copy remainder of pfields        */
+    /* copy remainder of pfields */
     flp = &p->ip->p3 + 1;
     /* by default all inputs are i-rate mapped to p-fields */
     if (p->INOCOUNT > (csound->instrtxtp[instno]->pmax + 1)) {

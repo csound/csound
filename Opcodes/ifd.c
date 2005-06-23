@@ -20,7 +20,7 @@
     02111-1307 USA
 */
 
-/* IFD 
+/* IFD
 
 Instantaneous Frequency Distribution analysis, plus magnitude
 and phase output.
@@ -48,8 +48,8 @@ PVSDAT *fout1, *fout2;
 /* inputs */
 MYFLT *in, *size, *hop, *type, *scal;
 /* data */
-AUXCH sigframe, diffsig, win, diffwin;  
-AUXCH counter; 
+AUXCH sigframe, diffsig, win, diffwin;
+AUXCH counter;
 int fftsize, hopsize, wintype, frames, g;
 double fund, factor, pi, twopi;
 MYFLT norm;
@@ -73,31 +73,31 @@ csound->Die(csound, "ifd: fftsize should be an integral multiple of hopsize\n");
 
 if((fftsize & (fftsize - 1)))
 csound->Die(csound, "ifd: fftsize should be power-of-two \n");
- 
+
 p->frames = frames;
 p->pi = 4.*atan(1.);
 hsize = fftsize/2;
 
 if(p->sigframe.auxp==NULL ||
-	frames * fftsize * sizeof(MYFLT) > (unsigned int) p->sigframe.size)
-      csound->AuxAlloc(csound,  frames * fftsize * sizeof(MYFLT), &p->sigframe); 
+        frames * fftsize * sizeof(MYFLT) > (unsigned int) p->sigframe.size)
+      csound->AuxAlloc(csound,  frames * fftsize * sizeof(MYFLT), &p->sigframe);
 if(p->diffsig.auxp==NULL ||
-	fftsize * sizeof(MYFLT) > (unsigned int) p->diffsig.size)
+        fftsize * sizeof(MYFLT) > (unsigned int) p->diffsig.size)
       csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
 if(p->diffwin.auxp==NULL ||
-	fftsize * sizeof(MYFLT) > (unsigned int) p->diffwin.size)
+        fftsize * sizeof(MYFLT) > (unsigned int) p->diffwin.size)
       csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
 if(p->win.auxp==NULL ||
-	fftsize  * sizeof(MYFLT) > (unsigned int) p->win.size)
+        fftsize  * sizeof(MYFLT) > (unsigned int) p->win.size)
       csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
 if(p->counter.auxp==NULL ||
-	frames * sizeof(int) > (unsigned int) p->counter.size)
-      csound->AuxAlloc(csound, frames * sizeof(int), &p->counter);	  
+        frames * sizeof(int) > (unsigned int) p->counter.size)
+      csound->AuxAlloc(csound, frames * sizeof(int), &p->counter);
 if(p->fout1->frame.auxp==NULL ||
-	(fftsize+2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
+        (fftsize+2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
 if(p->fout2->frame.auxp==NULL ||
-	(fftsize+2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
+        (fftsize+2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
 
     p->fout1->N =  fftsize;
@@ -106,13 +106,13 @@ if(p->fout2->frame.auxp==NULL ||
     p->fout1->wintype = wintype;
     p->fout1->framecount = 1;
     p->fout1->format = PVS_AMP_FREQ;
-	
-	p->fout2->N =  fftsize;
+
+        p->fout2->N =  fftsize;
     p->fout2->overlap = hopsize;
     p->fout2->winsize = fftsize;
     p->fout2->wintype = wintype;
     p->fout2->framecount = 1;
-    p->fout2->format = PVS_AMP_PHASE;  
+    p->fout2->format = PVS_AMP_PHASE;
 
 counter = (int *) p->counter.auxp;
 for(i=0; i < frames; i++) counter[i] = i*hopsize;
@@ -125,23 +125,22 @@ dwinf = (MYFLT *)p->diffwin.auxp;
 switch (wintype) {
      case PVS_WIN_HAMMING:
      alpha = 0.54;
-	  break;
+          break;
     case PVS_WIN_HANN:
      alpha = 0.5;
-      break;    
-	 default:
+      break;
+         default:
       csound->Die(csound, Str("ifd: unsupported value for iwintype\n"));
       break;
     }
 fac = 2.*p->pi/(fftsize-1.);
 
 for(i=0; i < fftsize; i++)
-winf[i] = (MYFLT) (alpha - (1.-alpha)*cos(fac*i)); 
-
+winf[i] = (MYFLT) (alpha - (1.-alpha)*cos(fac*i));
 
 p->norm = 0;
 for(i=0; i < fftsize; i++){
-  dwinf[i] = winf[i] - (i+1<fftsize ? winf[i+1] : 0.f); 
+  dwinf[i] = winf[i] - (i+1<fftsize ? winf[i+1] : 0.f);
   p->norm += winf[i];
 }
 
@@ -152,13 +151,12 @@ p->fund = csound->esr/fftsize;
 return OK;
 }
 
-
 void
 IFAnalysis(ENVIRON *csound, _IFD *p, MYFLT *signal){
 
 double powerspec, da,db, a, b, ph,d, factor=p->factor,fund=p->fund;
 double twopi = p->twopi, pi = p->pi;
-MYFLT scl = p->g/p->norm; 
+MYFLT scl = p->g/p->norm;
 MYFLT sr = csound->esr;
 int i2, i, fftsize = p->fftsize, hsize = p->fftsize/2;
 MYFLT tmp1,tmp2, *diffwin = (MYFLT *) p->diffwin.auxp;
@@ -190,24 +188,24 @@ csound->RealFFT(csound, diffsig, fftsize);
 for(i=2; i<fftsize; i+=2){
 
     i2 = i/2;
-	a = signal[i]*scl;
-	b = signal[i+1]*scl;
+        a = signal[i]*scl;
+        b = signal[i+1]*scl;
     da = diffsig[i]*scl;
-	db = diffsig[i+1]*scl;
+        db = diffsig[i+1]*scl;
     powerspec = a*a+b*b;
-	
-	if((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.f){
+
+        if((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.f){
        output[i+1] = ((a*db - b*da)/powerspec)*factor + i2*fund;
-	   ph = (float) atan2(b, a);	
-	   d = ph - outphases[i+1];
-	   while(d > pi) d -= twopi;
+           ph = (float) atan2(b, a);
+           d = ph - outphases[i+1];
+           while(d > pi) d -= twopi;
        while(d < -pi) d += twopi;
          outphases[i+1] += d;
-	   }
-	else {
-		output[i+1] = i2*fund;
-	    outphases[i+1] = 0.f;
-	}
+           }
+        else {
+                output[i+1] = i2*fund;
+            outphases[i+1] = 0.f;
+        }
   }
  output[0] = outphases[0] = signal[0]*scl;
  output[1] = outphases[1] = outphases[fftsize+1] = 0.f;
@@ -230,19 +228,19 @@ int frames = p->frames;
 
    for(n=0;  n < ksmps; n++){
       for(i=0; i < frames; i++){
-	   sigframe[i*fftsize+counter[i]] = sigin[n]; 
-       counter[i]++;		   
-	   if(counter[i] == fftsize){
+           sigframe[i*fftsize+counter[i]] = sigin[n];
+       counter[i]++;
+           if(counter[i] == fftsize){
           IFAnalysis(csound, p, &sigframe[i*fftsize]);
-		  counter[i] = 0;
-		  }
-		}  
-	}
+                  counter[i] = 0;
+                  }
+                }
+        }
  return OK;
 }
 
 static OENTRY localops[] = {
-{"ifd", sizeof(_IFD), 5, "ff", "aiiip", (SUBR)ifd_init, 0, (SUBR)ifd_process }, 
+{"ifd", sizeof(_IFD), 5, "ff", "aiiip", (SUBR)ifd_init, 0, (SUBR)ifd_process },
 };
 
 LINKAGE

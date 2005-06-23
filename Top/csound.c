@@ -231,7 +231,7 @@ extern "C" {
 
   static int getTimeResolution(void);
 
-  PUBLIC int csoundInitialize(int *argc, char ***argv)
+  PUBLIC int csoundInitialize(int *argc, char ***argv, int flags)
   {
     int n;
     do {
@@ -259,7 +259,8 @@ extern "C" {
       csoundLock(); init_done = -1; csoundUnLock();
       return -1;
     }
-    install_signal_handler();
+    if (!(flags & CSOUNDINIT_NO_SIGNAL_HANDLER))
+      install_signal_handler();
     atexit(destroy_all_instances);
     aops_init_tables();
     csoundLock(); init_done = 1; csoundUnLock();
@@ -274,7 +275,7 @@ extern "C" {
       int argc = 1;
       char *argv_[2] = { "csound", NULL };
       char **argv = &(argv_[0]);
-      if (csoundInitialize(&argc, &argv) != 0)
+      if (csoundInitialize(&argc, &argv, 0) != 0)
         return NULL;
     }
     csound = (ENVIRON*) malloc(sizeof(ENVIRON));
@@ -494,15 +495,55 @@ extern "C" {
 
   extern int sensevents(ENVIRON *);
 
-  PUBLIC int csoundPerform(void *csound, int argc, char **argv)
+  /**
+   * perform currently active instrs for one kperiod
+   *      & send audio result to output buffer
+   * returns non-zero if this kperiod was skipped
+   */
+
+  static inline int kperf(ENVIRON *csound)
   {
-    volatile int returnValue;
-    /* setup jmp for return after an exit() */
-    if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
-      csoundMessage(csound, "Early return from csoundPerform().\n");
-      return returnValue;
+    INSDS   *ip;
+    int     i;
+
+    /* update orchestra time */
+    csound->kcounter++;
+    csound->global_kcounter = csound->kcounter;
+    csound->sensEvents_state.curTime += csound->sensEvents_state.curTime_inc;
+    csound->sensEvents_state.curBeat += csound->sensEvents_state.curBeat_inc;
+    /* if skipping time on request by 'a' score statement: */
+    if (csound->advanceCnt) {
+      csound->advanceCnt--;
+      return 1;
     }
-    return csoundMain(csound, argc, argv);
+    /* if i-time only, return now */
+    if (csound->initonly)
+      return 1;
+    /* PC GUI needs attention, but avoid excessively frequent */
+    /* calls of csoundYield() */
+    if (--(csound->evt_poll_cnt) < 0) {
+      csound->evt_poll_cnt = csound->evt_poll_maxcnt;
+      if (!csoundYield(csound))
+        longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+    }
+    /* for one kcnt: */
+    if (csound->oparms->sfread)         /*   if audio_infile open  */
+      csound->spinrecv(csound);         /*      fill the spin buf  */
+    csound->spoutactive = 0;            /*   make spout inactive   */
+    ip = csound->actanchor.nxtact;
+    while (ip != NULL) {                /* for each instr active:  */
+      INSDS *nxt = ip->nxtact;
+      csound->pds = (OPDS *)ip;
+      while ((csound->pds = csound->pds->nxtp) != NULL) {
+        (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
+      }
+      ip = nxt;
+    }
+    if (!csound->spoutactive)           /*   results now in spout? */
+      for (i = 0; i < (int) csound->nspout; i++)
+        csound->spout[i] = FL(0.0);
+    csound->spoutran(csound);           /*      send to audio_out  */
+    return 0;
   }
 
   PUBLIC int csoundPerformKsmps(void *csound)
@@ -512,7 +553,7 @@ extern "C" {
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
-      return returnValue;
+      return (returnValue & (-256) ? returnValue : -returnValue);
     }
     do {
       if ((done = sensevents(csound))) {
@@ -530,7 +571,7 @@ extern "C" {
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
-      return returnValue;
+      return (returnValue & (-256) ? returnValue : -returnValue);
     }
     do {
       done |= sensevents(csound);
@@ -548,7 +589,7 @@ extern "C" {
     /* Setup jmp for return after an exit(). */
     if ((returnValue = setjmp(csound->exitjmp))) {
       csoundMessage(csound_, "Early return from csoundPerformBuffer().\n");
-      return returnValue;
+      return (returnValue & (-256) ? returnValue : -returnValue);
     }
     csound->sampsNeeded += csound->oparms->outbufsamps;
     while (csound->sampsNeeded > 0) {
@@ -846,7 +887,9 @@ extern "C" {
 
   char getChar(void *csound)
   {
-    return (char) ((ENVIRON*)csound)->inChar_;
+    char  c = (char) ((ENVIRON*) csound)->inChar_;
+    ((ENVIRON*) csound)->inChar_ = 0;
+    return c;
   }
 
   /*
@@ -1544,6 +1587,15 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     struct resetCallback_s  *nxt;
   } resetCallback_t;
 
+  extern void adsynRESET(ENVIRON *);
+  extern void cscoreRESET(ENVIRON *);
+  extern void disprepRESET(ENVIRON *);
+  extern void lpcRESET(ENVIRON *);
+  extern void memRESET(ENVIRON *);
+  extern void oloadRESET(ENVIRON *);
+  extern void orchRESET(ENVIRON *);
+  extern void tranRESET(ENVIRON *);
+
   PUBLIC void csoundReset(void *csound)
   {
     csoundCleanup(csound);
@@ -1566,7 +1618,15 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     /* named dynamic "global" variables of Csound instance */
     csoundDeleteAllConfigurationVariables(csound);
     csoundDeleteAllGlobalVariables(csound);
-    mainRESET(csound);
+
+    cscoreRESET(csound);
+    disprepRESET(csound);
+    tranRESET(csound);
+    orchRESET(csound);
+    adsynRESET(csound);
+    lpcRESET(csound);
+    oloadRESET(csound);     /* should be called last but one */
+    memRESET(csound);       /* and this one should be the last */
   }
 
   PUBLIC int csoundGetDebug(void *csound)

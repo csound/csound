@@ -34,14 +34,6 @@ typedef struct {
 
 int realtset(ENVIRON *, SRTBLK *);
 
-void scoreRESET(ENVIRON *p)
-{
-     if (p->tseg != NULL) {
-       mfree(p, p->tseg);
-       p->tseg = NULL;
-     }
-}
-
 void twarp(ENVIRON *csound) /* time-warp a score section acc to T-statement */
 {
     SRTBLK *bp;

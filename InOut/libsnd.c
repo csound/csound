@@ -562,13 +562,6 @@ void sfcloseout(void *csound_)
     ST(osfopen) = 0;
 }
 
-void soundinRESET(ENVIRON *csound)
-{
-    alloc_globals(csound);
-    memset(csound->libsndGlobals, 0, sizeof(LIBSND_GLOBALS));
-    ST(nframes) = 1UL;
-}
-
 static void sndwrterr(void *csound, int nret, int nput)
 {                                   /* report soundfile write(osfd) error   */
     ENVIRON *p = (ENVIRON*) csound; /* called after chk of write() bytecnt  */

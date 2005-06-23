@@ -40,31 +40,6 @@ static  const char    strmult[] = "*";
 static  void    putokens(ENVIRON*), putoklist(ENVIRON*);
 static  int     nontermin(int);
 
-void expRESET(ENVIRON *csound)
-{
-    mfree(csound, csound->polish);
-    csound->polish      = NULL;
-    csound->polmax      = 0;
-    csound->tokenstring = NULL;
-    csound->toklen      = 0;
-    csound->tokens      = csound->token = csound->tokend = NULL;
-    csound->tokenlist   = csound->revp = csound->pushp =
-                          csound->argp = csound->endlist = NULL;
-    csound->toklength   = TOKMAX;
-    resetouts(csound);
-    csound->stringend   = 0;
-    csound->argcnt_offs = 0;
-    csound->opcode_is_assign = 0;
-    csound->assign_type = 0;
-    csound->assign_outarg = NULL;
-}
-
-void resetouts(ENVIRON *csound)
-{
-    csound->acount = csound->kcount = csound->icount =
-                     csound->Bcount = csound->bcount = 0;
-}
-
 #define copystring(s) strsav_string(csound, s)
 
 int express(ENVIRON *csound, char *s)

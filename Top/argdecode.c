@@ -646,7 +646,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
       if (*s != '\0') {
         if (isdigit(*s)) full = *s++ - '0';
       }
-      create_opcodlst(csound);
+      csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
         longjmp(csound->exitjmp, 1);
       list_opcodes(csound, full);
@@ -951,7 +951,7 @@ int argdecode(void *csound_, int argc, char **argv_)
             if (*s != '\0') {
               if (isdigit(*s)) full = *s++ - '0';
             }
-            create_opcodlst(csound);
+            csoundLoadExternals(csound);
             if (csoundInitModules(csound) != 0)
               longjmp(csound->exitjmp, 1);
             list_opcodes(csound, full);
