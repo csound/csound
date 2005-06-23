@@ -858,7 +858,7 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
             csound->Message(csound,Str("Repeats=%d\n"), ST(repeat_cnt));
           do {
             c = getscochar(csound, 1);
-          } while (c==' '||c=='\t'||c=='\n');
+          } while (c==' '||c=='\t');
           if (c!='\n')          /* Only if there is a name */
             do {
               *nn++ = c;
