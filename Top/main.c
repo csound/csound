@@ -30,11 +30,14 @@
 #include <ctype.h>              /* For isdigit */
 
 extern  void    dieu(void *, char *);
-extern  int     argdecode(void*, int, char**);
+extern  int     argdecode(void *, int, char **);
 extern  int     init_pvsys(ENVIRON *);
-extern  char    *get_sconame(void *csound);     /* one_file.c */
+extern  char    *get_sconame(void *);
+extern  int     musmon2(ENVIRON *);
+extern  char    *getstrformat(int);
+extern  void    print_benchmark_info(void *, const char *);
 
-void create_opcodlst(void *csound)
+static void create_opcodlst(void *csound)
 {
     extern  OENTRY  opcodlst_1[];
     extern  OENTRY  opcodlst_2[];
@@ -44,30 +47,6 @@ void create_opcodlst(void *csound)
     csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
     /* Add entry2 */
     csoundAppendOpcodes(csound, &(opcodlst_2[0]), -1);
-    /* plugin opcodes */
-    csoundLoadExternals(csound);
-}
-
-extern int musmon2(ENVIRON*);
-extern char *getstrformat(int);
-
-/* IV - Jan 28 2005 */
-void print_benchmark_info(void *csound_, const char *s)
-{
-    double  rt, ct;
-    ENVIRON *csound = (ENVIRON*) csound_;
-    RTCLOCK *p;
-
-    if ((csound->oparms->msglevel & 0x80) == 0)
-      return;
-    p = (RTCLOCK*) csoundQueryGlobalVariable(csound, "csRtClock");
-    if (p == NULL)
-      return;
-    rt = timers_get_real_time(p);
-    ct = timers_get_CPU_time(p);
-    csound->Message(csound,
-                    Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
-                    (char*) s, rt, ct);
 }
 
 PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
@@ -138,6 +117,8 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     O->sfheader = 0;
     O->filnamspace = filnamp = mmalloc(csound, (size_t) 1024);
     csound->peakchunks = 1;
+    create_opcodlst(csound);
+
     if (csoundCreateGlobalVariable(csound, "::argdecode::orcNameMode", 8) != 0)
       return -1;
     orcNameMode = (char*) csoundQueryGlobalVariable(csound,
@@ -283,11 +264,11 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
       csound->Message(csound, Str("xfilename: %s\n"), csound->xfilename);
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
-    create_opcodlst(csound);    /* create initial opcode list if not done yet */
+    csoundLoadExternals(csound);    /* load plugin opcodes */
     /* IV - Jan 31 2005: initialise external modules */
     if (csoundInitModules(csound) != 0)
       longjmp(csound->exitjmp, 1);
-    otran(csound);          /*  read orcfile, setup desblks & spaces    */
+    otran(csound);                  /* read orcfile, setup desblks & spaces */
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
     if (!csoundYield(csound)) return (-1);
@@ -367,13 +348,13 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     return musmon(csound);
 }
 
-int csoundMain(void *csound_, int argc, char **argv)
+PUBLIC int csoundPerform(void *csound_, int argc, char **argv)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
     int     n;
 
     if ((n = setjmp(csound->exitjmp))) {
-      csound->Message(csound, "Error return.\n");
+      csound->Message(csound, "Early return from csoundPerform().\n");
       return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
     }
     n = csoundCompile(csound, argc, argv);
@@ -381,43 +362,11 @@ int csoundMain(void *csound_, int argc, char **argv)
     if (n)
       return n;
     if ((n = setjmp(csound->exitjmp))) {
-      csound->Message(csound, "Error return.\n");
+      csound->Message(csound, "Early return from csoundPerform().\n");
       return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
     }
     n = musmon2(csound);
     csound->Message(csound, "musmon returns %d\n", n);
     return n;
-}
-
-void mainRESET(ENVIRON *p)
-{
-    void adsynRESET(ENVIRON *);
-    void cscoreRESET(ENVIRON *);
-    void disprepRESET(ENVIRON *);
-    void expRESET(ENVIRON *);
-    void ftRESET(ENVIRON *);
-    void insertRESET(ENVIRON *);
-    void lpcRESET(ENVIRON *);
-    void memRESET(ENVIRON *);
-    void musRESET(ENVIRON *);
-    void oloadRESET(ENVIRON *);
-    void orchRESET(ENVIRON *);
-    void soundinRESET(ENVIRON *);
-    void tranRESET(ENVIRON *);
-
-    cscoreRESET(p);
-    expRESET(p);
-    ftRESET(p);
-    disprepRESET(p);
-    insertRESET(p);
-    musRESET(p);
-    tranRESET(p);
-    orchRESET(p);
-    soundinRESET(p);
-    adsynRESET(p);
-    lpcRESET(p);
-    scoreRESET(p);
-    oloadRESET(p);      /* should be called last but one */
-    memRESET(p);        /* and this one should be the last */
 }
 

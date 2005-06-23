@@ -70,8 +70,8 @@ const ENVIRON cenviron_ = {
         csoundGetAPIVersion,
         csoundGetHostData,
         csoundSetHostData,
-        csoundPerform,
-        csoundCompile,
+        NULL, /* csoundPerform, */
+        NULL, /* csoundCompile, */
         csoundPerformKsmps,
         csoundPerformBuffer,
         csoundCleanup,
@@ -456,39 +456,7 @@ static  void    convert_strconst_pool(ENVIRON *csound, MYFLT *dst);
 
 void oloadRESET(ENVIRON *csound)
 {
-    INSTRTXT    *tp = csound->instxtanchor.nxtinstxt;
-
-    memset(&(csound->instxtanchor), 0, sizeof(INSTRTXT));
-    csound->argoffspace     = NULL;
-    csound->pool            = NULL;
-    csound->gbloffbas       = NULL;
-    csound->spin            = NULL;
-    csound->spout           = NULL;
-    csound->oparms->odebug  = 0;
-    /* IV - Oct 31 2002: clear instrtxtp array */
-    while (tp) {
-      INSTRTXT  *nxttp = tp->nxtinstxt;
-      OPTXT *bp = tp->nxtop;
-      INSDS *ip = tp->instance;
-      while (ip) {                              /* free all instances, */
-        INSDS *nxtip = ip->nxtinstance;
-        if (ip->opcod_iobufs && ip->insno > csound->maxinsno)
-          mfree(csound, ip->opcod_iobufs);
-        if (ip->fdch.nxtchp)
-          fdchclose(csound, ip);
-        if (ip->auxch.nxtchp)
-          auxchfree(csound, ip);
-        mfree(csound, ip);
-        ip = nxtip;
-      }
-      while (bp) {                              /* and opcode texts */
-        OPTXT *nxtbp = bp->nxtop;
-        mfree(csound, bp); bp = nxtbp;
-      }
-      mfree(csound, tp);
-      tp = nxttp;
-    }
-    mfree(csound, csound->instrtxtp);           /* Start again */
+    csound->oparms->odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release(csound);
     close_all_files(csound);
@@ -524,14 +492,6 @@ void oloadRESET(ENVIRON *csound)
       csound->rtclose_callback = rtclose_dummy;
     }
     memcpy(csound->oparms, &O_, sizeof(OPARMS));
-    /* IV - Sep 8 2002: also reset saved globals */
-    csound->global_ksmps     = csound->ksmps;
-    csound->global_ensmps    = csound->ensmps;
-    csound->global_ekr       = csound->ekr;
-    csound->global_onedkr    = csound->onedkr;
-    csound->global_hfkprd    = csound->hfkprd;
-    csound->global_kicvt     = csound->kicvt;
-    csound->global_kcounter  = csound->kcounter;
 }
 
 #ifdef FLOAT_COMPARE
