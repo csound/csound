@@ -53,23 +53,22 @@
 
 /* CSOUND NB: floats must be kept as 'float', not MYFLT,
    as only 32bit floats supported at present.
-*/
+ */
 
 #include "cs.h"
 #include "pvfileio.h"
 
 #define WAVE_FORMAT_EXTENSIBLE  (0xFFFE)
+#ifndef WAVE_FORMAT_PCM
 #define WAVE_FORMAT_PCM         (0x0001)
+#endif
 #define WAVE_FORMAT_IEEE_FLOAT  (0x0003)
 
 #define PVFILETABLE ((PVOCFILE**) ((ENVIRON*) csound)->pvFileTable)
 
 const GUID KSDATAFORMAT_SUBTYPE_PVOC = {
-                                        0x8312b9c2,
-                                        0x2e6e,
-                                        0x11d4,
-                                        { 0xa8, 0x24, 0xde, 0x5b,
-                                          0x96, 0xc3, 0xab, 0x21 }
+    0x8312b9c2, 0x2e6e, 0x11d4,
+    { 0xa8, 0x24, 0xde, 0x5b, 0x96, 0xc3, 0xab, 0x21 }
 };
 
 typedef struct pvoc_file {

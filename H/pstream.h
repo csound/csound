@@ -24,39 +24,58 @@
 #ifndef __PSTREAM_H_INCLUDED
 #define __PSTREAM_H_INCLUDED
 
-/* pstream.h.  Implementation of PVOCEX streaming opcodes. (c) Richard Dobson August 2001 */
-/* NB pvoc routines based on CARL distribution (Mark Dolson).*/
-/* This file is licensed according to the terms of the GNU LGPL. */
-
-/* opcodes:     PROVISIONAL DEFINITIONS
-    fsig        pvsanal ain,ifftsize,ioverlap,iwinsize,iwintype[,iformat,iinit]
-                    iwintype:  0 =  HAMMING, 1 =  VonHann, 2 = Kaiser(?)
-                                iformat: only PVS_AMP_FREQ (0) supported at present
-                         (TODO: add f-table support for custom window)
-                         ( But: really need a param to associate with the window too,
-                          or just use a standard default value...)
-    fsig    pvsfread ktimpt,ifn[,ichan]
-    asig        pvsynth fsig[,iinit]
-    asig    pvsadsyn fsig,inoscs,kfmod[,ibin,ibinoffset,iinit]
-                                 ibin =  starting bin (defualt 0)
-                                 ibinoffset is distance between successive bins (default 1)
-                 kfmod is multiplier; 1 = no change, 2 = up one octave.
-    fsig        pvscross fsrc,fdest,kamp1,kamp2
-        fsig    pvsmaska  fsrc,ifn,kdepth
-        ioverlap,inumbins,iwinsize,iformat pvsinfo fsig
-                        ( will need sndinfo supporting pvocex files anyway, to know numchans, wintype, etc)
-        fdest   =       fsrc (woo-hoo! operator overloading in Csound!)
-                        ( NB an init statement for fsigs is not supported. One day....)
-
-    kflag       pvsftw fsig,ifna [,ifnf]
-                        pvsftr fsig,ifna [,ifnf]
-                        ( this modifies an ~existing~ signal, does not create a new one, hence no output)
-        Re iinit: not implemented yet: and I still need to establish if it's possible...
-
+/* pstream.h.  Implementation of PVOCEX streaming opcodes.
+   (c) Richard Dobson August 2001
+   NB pvoc routines based on CARL distribution (Mark Dolson).
+   This file is licensed according to the terms of the GNU LGPL.
  */
 
-/* may be no point supporting Kaiser in an opcode unless we can support the param too
- but we can have kaiser in a PVOCEX file.  */
+/* opcodes:     PROVISIONAL DEFINITIONS
+
+  fsig      pvsanal ain,ifftsize,ioverlap,iwinsize,iwintype[,iformat,iinit]
+
+    iwintype:   0 =  HAMMING, 1 =  VonHann, 2 = Kaiser(?)
+    iformat:    only PVS_AMP_FREQ (0) supported at present
+                (TODO: add f-table support for custom window)
+                ( But: really need a param to associate with the window too,
+                       or just use a standard default value...)
+
+  fsig      pvsfread ktimpt,ifn[,ichan]
+
+  asig      pvsynth fsig[,iinit]
+
+  asig      pvsadsyn fsig,inoscs,kfmod[,ibin,ibinoffset,iinit]
+
+    ibin:       starting bin (defualt 0)
+    ibinoffset: distance between successive bins (default 1)
+    kfmod:      multiplier; 1 = no change, 2 = up one octave.
+
+  fsig      pvscross fsrc,fdest,kamp1,kamp2
+
+  fsig      pvsmaska  fsrc,ifn,kdepth
+
+  ioverlap,inumbins,iwinsize,iformat    pvsinfo     fsig
+
+    ( will need sndinfo supporting pvocex files anyway,
+      to know numchans, wintype, etc.)
+
+  fdest     =   fsrc
+
+    ( woo-hoo! operator overloading in Csound!)
+    ( NB an init statement for fsigs is not supported. One day....)
+
+  kflag     pvsftw fsig,ifna [,ifnf]
+            pvsftr fsig,ifna [,ifnf]
+
+    ( this modifies an ~existing~ signal, does not create a new one,
+      hence no output)
+
+  Re iinit: not implemented yet: and I still need to establish
+                                 if it's possible...
+ */
+
+/* may be no point supporting Kaiser in an opcode unless we can support
+   the param too but we can have kaiser in a PVOCEX file. */
 
 enum PVS_WINTYPE {
     PVS_WIN_HAMMING = 0,
@@ -69,7 +88,7 @@ enum PVS_ANALFORMAT {
     PVS_AMP_FREQ = 0,
     PVS_AMP_PHASE,
     PVS_COMPLEX,
-	PVS_TRACKS  /* added VL, 24.06.2005 */
+    PVS_TRACKS          /* added VL, 24.06.2005 */
 };
 
 /* description of an fsig analysis frame*/

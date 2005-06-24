@@ -153,8 +153,8 @@ if(cdata->isNInterleaved){
         if(inp!=NULL && j < inchans) ibufp[cnt] = inp[i+j];
         cnt++;
       }
-	  else
-	   outp[i+j] = 0.f;
+          else
+           outp[i+j] = 0.f;
 
   }
 }
@@ -456,7 +456,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     } // for
     dev->incount = icount;
     dev->incurbuff = cur;
-    
+
     return bytes_;
 
 }
