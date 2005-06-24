@@ -1007,7 +1007,7 @@ static int destroy_entire_db(void **db)
  * Return value is CSOUNDCFG_SUCCESS in case of success.
  */
 
-int csoundDeleteAllGlobalConfigurationVariables(void)
+PUBLIC int csoundDeleteAllGlobalConfigurationVariables(void)
 {
     int retval;
     retval = destroy_entire_db(global_cfg_db);
