@@ -43,7 +43,7 @@ static void sorter(ENVIRON *csound)             /* the main sorting routine */
                    ((diff = newbp->newp2 - prvbp->newp2) < 0 ||
                     (!diff &&
                      ((prdiff = newbp->preced - prvbp->preced) < 0 ||
-                      (!prdiff && c == 'i'&&
+                      (!prdiff && c == 'i' &&
                        ((indiff = newbp->insno - prvbp->insno) < 0 ||
                         (!indiff && newbp->newp3 < prvbp->newp3) )
                        ))))))))
@@ -71,24 +71,25 @@ void sort(ENVIRON *csound)
 
     if ((bp = csound->frstbp) == NULL)
       return;
-    do  {
+    do {
       switch (bp->text[0]) {
       case 'i':
         if (bp->insno < 0)
-          bp->preced = 'a';
+          bp->preced = 'b';
         else bp->preced = 'd';
         break;
       case 'f':
-        bp->preced = 'b';
+        bp->preced = 'c';
         break;
       case 'a':
-        bp->preced = 'c';
+        bp->preced = 'e';
         break;
       case 'q':
       case 'w':
       case 't':
       case 's':
       case 'e':
+        bp->preced = 'a';
         break;
       default:
         csound->Message(csound, Str("sort: illegal opcode %c(%.2x)\n"),
