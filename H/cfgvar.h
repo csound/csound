@@ -361,7 +361,7 @@ typedef union csCfgVariable_u {
    * Csound library or plugins.
    * Return value is CSOUNDCFG_SUCCESS in case of success.
    */
-  int csoundDeleteAllGlobalConfigurationVariables(void);
+  PUBLIC int csoundDeleteAllGlobalConfigurationVariables(void);
 
   /**
    * Remove all configuration variables of Csound instance 'csound'
