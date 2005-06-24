@@ -757,6 +757,10 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
     ['Opcodes/sndloop.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ifd',
     ['Opcodes/ifd.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('partials',
+    ['Opcodes/partials.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('psynth',
+    ['Opcodes/psynth.c']))
 # Plugins with External Dependencies
 
 # FLTK widgets
