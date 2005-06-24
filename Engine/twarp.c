@@ -71,6 +71,7 @@ void twarp(ENVIRON *csound) /* time-warp a score section acc to T-statement */
         bp->newp3 = realt(csound, endtime) - bp->newp2;
         break;
       case 'f':
+      case 'q':
         bp->newp2 = realt(csound, bp->newp2);
         break;
       case 't':
