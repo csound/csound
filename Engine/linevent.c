@@ -131,8 +131,9 @@ void RTclose(void *csound_)
   #ifdef PIPES
     if (csound->oparms->Linename[0] == '|')
       _pclose(csound->Linepipe);
+    else
   #endif
-    else {
+    {
       if (strcmp(csound->oparms->Linename, "stdin") != 0)
         close(csound->Linefd);
   #if !defined(DOSGCC) && !defined(__WATCOMC__) && !defined(WIN32) && \

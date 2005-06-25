@@ -214,6 +214,40 @@ static MYFLT operate(ENVIRON *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
+static int undefine_score_macro(ENVIRON *csound, const char *name)
+{
+    MACRO *mm, *nn;
+    int   i;
+
+    if (strcmp(name, ST(macros)->name) == 0) {
+      mm = ST(macros)->next;
+      mfree(csound, ST(macros)->name);
+      mfree(csound, ST(macros)->body);
+      for (i = 0; i < ST(macros)->acnt; i++)
+        mfree(csound, ST(macros)->arg[i]);
+      mfree(csound, ST(macros));
+      ST(macros) = mm;
+    }
+    else {
+      mm = ST(macros);
+      nn = mm->next;
+      while (strcmp(name, nn->name) != 0) {
+        mm = nn; nn = nn->next;
+        if (nn == NULL) {
+          scorerr(csound, Str("Undefining undefined macro"));
+          return -1;
+        }
+      }
+      mfree(csound, nn->name);
+      mfree(csound, nn->body);
+      for (i = 0; i < nn->acnt; i++)
+        mfree(csound, nn->arg[i]);
+      mm->next = nn->next;
+      mfree(csound, nn);
+    }
+    return 0;
+}
+
 static inline int isNameChar(int c, int pos)
 {
     c = (int) ((unsigned char) c);
@@ -267,21 +301,17 @@ top:
       ST(str)->line++; ST(linepos) = -1;
     }
     else ST(linepos)++;
-    if (ST(ingappop) && ST(pop))
+    if (ST(ingappop) && ST(pop)) {
       do {
-        MACRO *nn = ST(macros)->next;
-        int i;
+        if (ST(macros) != NULL) {
 #ifdef MACDEBUG
-        csound->Message(csound,"popping %s\n", ST(macros)->name);
+          csound->Message(csound,"popping %s\n", ST(macros)->name);
 #endif
-        mfree(csound, ST(macros)->name); mfree(csound, ST(macros)->body);
-        for (i=0; i<ST(macros)->acnt; i++) {
-          mfree(csound, ST(macros)->arg[i]);
+          undefine_score_macro(csound, ST(macros)->name);
         }
-        mfree(csound, ST(macros));
-        ST(macros) = nn;
         ST(pop)--;
       } while (ST(pop));
+    }
     if (c == '$' && expand) {
       char      name[100];
       unsigned int i = 0;
@@ -561,22 +591,7 @@ static int nested_repeat(ENVIRON *csound)               /* gab A9*/
           csound->Message(csound,Str("External LOOP terminated, level:%d\n"),
                           ST(repeat_index));
       }
-      if (strcmp(ST(repeat_name_n)[ST(repeat_index)], ST(macros)->name)==0) {
-        MACRO *mm=ST(macros)->next;
-        mfree(csound, ST(macros)->name); mfree(csound, ST(macros)->body);
-        mfree(csound, ST(macros)); ST(macros) = mm;
-      }
-      else {
-        MACRO *mm = ST(macros);
-        MACRO *nn = mm->next;
-        while (strcmp(ST(repeat_name_n)[ST(repeat_index)], nn->name)!=0) {
-          mm = nn; nn = nn->next;
-          if (nn == NULL)
-            scorerr(csound, Str("Undefining undefined macro"));
-        }
-        mfree(csound, nn->name); mfree(csound, nn->body);
-        mm->next = nn->next; mfree(csound, nn);
-      }
+      undefine_score_macro(csound, ST(repeat_name_n)[ST(repeat_index)]);
       ST(repeat_index)--;
     }
     else {
@@ -611,37 +626,31 @@ static int do_repeat(ENVIRON *csound)
 {                               /* At end of section repeat if necessary */
     ST(repeat_cnt)--;
     if (ST(repeat_cnt) == 0) {  /* Expired */
-      /* Delete macro */
+      /* Delete macro (assuming there is any) */
       if (csound->oparms->msglevel)
-        csound->Message(csound,Str("Loop terminated\n"));
-      if (strcmp(ST(repeat_name), ST(macros)->name)==0) {
-        MACRO *mm=ST(macros)->next;
-        mfree(csound, ST(macros)->name); mfree(csound, ST(macros)->body);
-        mfree(csound, ST(macros)); ST(macros) = mm;
-      }
-      else {
-        MACRO *mm = ST(macros);
-        MACRO *nn = mm->next;
-        while (strcmp(ST(repeat_name), nn->name)!=0) {
-          mm = nn; nn = nn->next;
-          if (nn == NULL)
-            scorerr(csound, Str("Undefining undefined macro"));
-        }
-        mfree(csound, nn->name); mfree(csound, nn->body);
-        mm->next = nn->next; mfree(csound, nn);
-      }
+        csound->Message(csound, Str("Loop terminated\n"));
+      if (ST(repeat_name)[0] != '\0')
+        undefine_score_macro(csound, ST(repeat_name));
+      ST(repeat_name)[0] = '\0';
     }
     else {
       int i;
       fseek(ST(str)->file, ST(repeat_point), SEEK_SET);
-      sscanf(ST(repeat_mm)->body, "%d", &i);
-      i = i + ST(repeat_inc);
-      sprintf(ST(repeat_mm)->body, "%d", i);
-      if (csound->oparms->msglevel)
-        csound->Message(csound,Str("Repeat section (%d)\n"), i);
+      if (ST(repeat_name)[0] != '\0') {
+        sscanf(ST(repeat_mm)->body, "%d", &i);
+        i = i + ST(repeat_inc);
+        sprintf(ST(repeat_mm)->body, "%d", i);
+        if (csound->oparms->msglevel)
+          csound->Message(csound, Str("Repeat section (%d)\n"), i);
+      }
+      else
+        csound->Message(csound, Str("Repeat section\n"));
       *(ST(nxp)-2) = 's'; *ST(nxp)++ = LF;
       if (ST(nxp) >= ST(memend))                /* if this memblk exhausted */
         expand_nxp(csound);
+      ST(clock_base) = FL(0.0);
+      ST(warp_factor) = FL(1.0);
+      ST(prvp2) = -FL(1.0);
       return 1;
     }
     return 0;
@@ -686,19 +695,19 @@ void sread_init(ENVIRON *csound)
 int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
 {                               /*  each score statement gets a sortblock   */
     int  rtncod;                /* return code to calling program:      */
-                                /*   2 = section read, more remaining   */
-                                /*   1 = last section,   0 = null file  */
+                                /*   1 = section read                   */
+                                /*   0 = end of file                    */
     sread_alloc_globals(csound);
     ST(bp) = ST(prvibp) = csound->frstbp = NULL;
     ST(nxp) = NULL;
     ST(warpin) = 0;
     ST(lincnt) = 1;
     csound->sectcnt++;
-    rtncod = 1;
+    rtncod = 0;
     salcinit(csound);           /* init the mem space for this section  */
 
     while ((ST(op) = getop(csound)) != EOF) { /* read next op from scorefile */
-      rtncod = 2;
+      rtncod = 1;
       salcblk(csound);          /* build a line structure; init bp,nxp  */
     again:
       switch (ST(op)) {         /*  and dispatch on opcodes             */
@@ -730,14 +739,15 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
           goto again;
         }
       case 's':
-        if (ST(repeat_cnt)!=0) {
-          if (do_repeat(csound)) return (rtncod);
+        if (ST(repeat_cnt) != 0) {
+          if (do_repeat(csound))
+            return rtncod;
         }
         copylin(csound);
         ST(clock_base) = FL(0.0);
         ST(warp_factor) = FL(1.0);
         ST(prvp2) = -FL(1.0);
-        return(rtncod);
+        return rtncod;
       case '}':
         {
           int temp;
@@ -828,66 +838,66 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
         }
       case 'r':                 /* For now treat as s */
                                 /* First deal with previous section */
-        if (ST(repeat_cnt)!=0) {
-          if (do_repeat(csound)) return (rtncod);
+        if (ST(repeat_cnt) != 0) {
+          if (do_repeat(csound))
+            return rtncod;
         }
         /* Then remember this state */
         *(ST(nxp)-2) = 's'; *ST(nxp)++ = LF;
         if (ST(nxp) >= ST(memend))              /* if this memblk exhausted */
           expand_nxp(csound);
         if (ST(str)->string) {
-          int c;
           csound->Message(csound,Str("Repeat not at top level; ignored\n"));
-          do {    /* Ignore rest of line */
-            c = getscochar(csound, 1);
-          } while (c != LF && c != EOF);
+          flushlin(csound);     /* Ignore rest of line */
         }
         else {
-          char *nn = ST(repeat_name);
-          int c;
-          ST(repeat_mm) = (MACRO*)mmalloc(csound, sizeof(MACRO));
+          int   c, i;
           ST(repeat_cnt) = 0;
           do {
             c = getscochar(csound, 1);
-          } while (c==' '||c=='\t');
-          do {
+          } while (c == ' ' || c == '\t');
+          while (isdigit(c)) {
             ST(repeat_cnt) = 10 * ST(repeat_cnt) + c - '0';
             c = getscochar(csound, 1);
-          } while (isdigit(c));
+          }
+          if (ST(repeat_cnt) <= 0 || (c != ' ' && c != '\t' && c != '\n'))
+            csound->Die(csound, Str("sread: r: invalid repeat count"));
           if (csound->oparms->msglevel)
-            csound->Message(csound,Str("Repeats=%d\n"), ST(repeat_cnt));
-          do {
+            csound->Message(csound, Str("Repeats=%d\n"), ST(repeat_cnt));
+          while (c == ' ' || c == '\t') {
             c = getscochar(csound, 1);
-          } while (c==' '||c=='\t');
-          if (c!='\n')          /* Only if there is a name */
-            do {
-              *nn++ = c;
-            } while (isalpha(c=getscochar(csound, 1)) ||
-                     (nn!=ST(repeat_name) && (isdigit(c)||c=='_')));
-          *nn = '\0';
-          /* Define macro for counter */
-          ST(repeat_mm)->name = mmalloc(csound, strlen(ST(repeat_name))+1);
-          strcpy(ST(repeat_mm)->name, ST(repeat_name));
-          ST(repeat_mm)->acnt = 0;
-          ST(repeat_mm)->body = (char*)mmalloc(csound, 8);
-          sprintf(ST(repeat_mm)->body, "%d", 1); /* Set value */
-          ST(repeat_mm)->next = ST(macros);
-          ST(macros) = ST(repeat_mm);
-          while (c != LF && c != EOF) {  /* Ignore rest of line */
+          }
+          for (i = 0; isNameChar(c, i); i++) {
+            ST(repeat_name)[i] = c;
             c = getscochar(csound, 1);
-          };
+          }
+          ST(repeat_name)[i] = '\0';
+          while (c != '\n' && c != EOF) /* Ignore rest of line */
+            c = getscochar(csound, 1);
+          if (i) {
+            /* Only if there is a name: define macro for counter */
+            ST(repeat_mm) = (MACRO*) mmalloc(csound, sizeof(MACRO));
+            ST(repeat_mm)->name = mmalloc(csound, strlen(ST(repeat_name)) + 1);
+            strcpy(ST(repeat_mm)->name, ST(repeat_name));
+            ST(repeat_mm)->acnt = 0;
+            ST(repeat_mm)->body = (char*)mmalloc(csound, 8);
+            sprintf(ST(repeat_mm)->body, "%d", 1); /* Set value */
+            ST(repeat_mm)->next = ST(macros);
+            ST(macros) = ST(repeat_mm);
+          }
           ST(repeat_point) = ftell(ST(str)->file);
         }
         ST(clock_base) = FL(0.0);
         ST(warp_factor) = FL(1.0);
         ST(prvp2) = -FL(1.0);
-        return (rtncod);
+        return rtncod;
       case 'e':
-        if (ST(repeat_cnt)!=0) {
-          if (do_repeat(csound)) return (rtncod);
+        if (ST(repeat_cnt) != 0) {
+          if (do_repeat(csound))
+            return rtncod;
         }
         copylin(csound);
-        return(--rtncod);
+        return rtncod;
       case 'm': /* Remember this place */
         {
           char  *old_nxp = ST(nxp)-2;
@@ -1001,15 +1011,14 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
           case 'r':
           case 'm':
           case 'e':
-            *(ST(nxp)-2) = ST(op);      /* place op, blank into text    */
+            salcblk(csound);            /* place op, blank into text    */
             goto again;
           case EOF:
-            *(ST(nxp)-2) = 'e';
             goto ending;
           default:
             flushlin(csound);
           }
-        };
+        }
         break;
       default:
         csound->Message(csound,Str("sread is confused on legal opcodes\n"));
@@ -1017,16 +1026,19 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
       }
     }
  ending:
-    if (rtncod < 0)                     /* Ending so clear macros */
+    if (ST(repeat_cnt) > 0) {
+      ST(op) = 'e';
+      salcblk(csound);
+      if (do_repeat(csound))
+        return rtncod;
+      *ST(nxp)++ = LF;
+    }
+    if (!rtncod) {                      /* Ending so clear macros */
       while (ST(macros) != NULL) {
-        int i;
-        mfree(csound, ST(macros)->body);
-        mfree(csound, ST(macros)->name);
-        for (i = 0; i < ST(macros)->acnt; i++)
-          mfree(csound, ST(macros)->arg[i]);
-        ST(macros) = ST(macros)->next;
+        undefine_score_macro(csound, ST(macros)->name);
       }
-    return(--rtncod);
+    }
+    return rtncod;
 }
 
 static void copylin(ENVIRON *csound)    /* copy source line to srtblk   */
@@ -1288,7 +1300,6 @@ static void flushlin(ENVIRON *csound)
     int c;
     while ((c = getscochar(csound, 0)) != LF && c != EOF)
       ;
-    ST(lincnt)++;
     ST(linpos) = 0;
 }
 
@@ -1476,28 +1487,9 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
         mname[i] = '\0';
         if (csound->oparms->msglevel)
           csound->Message(csound, Str("macro %s undefined\n"), mname);
-        if (strcmp(mname, ST(macros)->name)==0) {
-          MACRO *mm=ST(macros)->next;
-          mfree(csound, ST(macros)->name); mfree(csound, ST(macros)->body);
-          for (i=0; i<ST(macros)->acnt; i++)
-            mfree(csound, ST(macros)->arg[i]);
-          mfree(csound, ST(macros)); ST(macros) = mm;
-        }
-        else {
-          MACRO *mm = ST(macros);
-          MACRO *nn = mm->next;
-          while (strcmp(mname, nn->name)!=0) {
-            mm = nn; nn = nn->next;
-            if (nn == NULL)
-              scorerr(csound, Str("Undefining undefined macro"));
-          }
-          mfree(csound, nn->name); mfree(csound, nn->body);
-          for (i=0; i<nn->acnt; i++)
-            mfree(csound, nn->arg[i]);
-          mm->next = nn->next; mfree(csound, nn);
-        }
-        while (c!='\n') c = getscochar(csound, 1); /* ignore rest of line */
-        ST(lincnt)++;
+        undefine_score_macro(csound, mname);
+        while (c != '\n' && c != EOF)
+          c = getscochar(csound, 1); /* ignore rest of line */
       }
       else {
         csound->Message(csound, Str("unknown # option"));

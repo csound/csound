@@ -37,18 +37,17 @@ int scxtract(ENVIRON *csound, FILE *scin, FILE * scout, FILE *xfile)
     readxfil(csound, xfile);
     csound->scorein = scin;
     csound->scoreout = scout;
-
     csound->sectcnt = 0;
     sread_init(csound);
-    do {
-      if ((n = sread(csound)) > 0) {
-        /*  allout();   */
-        /*  textout();  */
-        extract(csound);
-        swrite(csound);
-      }
-    } while (n > 1);
+
+    while ((n = sread(csound)) > 0) {
+      /*  allout();   */
+      /*  textout();  */
+      extract(csound);
+      swrite(csound);
+    }
+
     sfree(csound);              /* return all memory used */
-    return(0);
+    return 0;
 }
 
