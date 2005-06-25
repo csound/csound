@@ -1,3 +1,6 @@
+2005-06-25 Victor  Lazzarini <Victor.Lazzarini@nuim.ie>
+    * Added Opcodes/partials.c and Opcodes/psynth.c, streaming spectral partial track 
+	  analysis/synthesis opcodes.
 2005-06-23  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
     * Improvements/Fixes to rtcoreaudio.c, addition of non-interleaved audio support
 	* Added Opcodes/ifd.c, Instantaneous Frequency Distribution spectral streaming opcode.
