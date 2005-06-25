@@ -2297,15 +2297,28 @@ int ftload(ENVIRON *csound, FTLOAD *p)
 {
     MYFLT **argp = p->argums;
     FUNC  *ftp;
-    char filename[MAXNAME];
-    int nargs;
-    FILE *file;
+    char  filename[MAXNAME];
+    int   nargs = p->INOCOUNT - 2;
+    FILE  *file = NULL;
+    int   (*err_func)(void *, const char *, ...);
+    FUNC  *(*ft_func)(void *, MYFLT *);
 
-    if ((nargs = p->INOCOUNT - 2) <= 0) goto err2;
+    if (strcmp(p->h.optext->t.opcod, "ftload") != 0) {
+      nargs--;
+      ft_func = (FUNC *(*)(void *, MYFLT *)) csound->FTFindP;
+      err_func = (int (*)(void *, const char *, ...)) csound->PerfError;
+    }
+    else {
+      ft_func = (FUNC *(*)(void *, MYFLT *)) csound->FTFind;
+      err_func = (int (*)(void *, const char *, ...)) csound->InitError;
+    }
 
-    if (p->XSTRCODE)                      /* if char string name given */
-      strcpy(filename, (char*) p->ifilno);  /* FIXME: and what if not ? */
-    if (*p->iflag <= 0) {
+    if (nargs <= 0)
+      goto err2;
+
+    if (p->XSTRCODE)                        /* if char string name given */
+      strcpy(filename, (char*) p->ifilno);  /* FIXME: and what if not ?  */
+    if (*p->iflag <= FL(0.0)) {
       if (!(file = fopen(filename, "rb"))) goto err3;
       while (nargs--)  {
         FUNC header;
@@ -2316,7 +2329,7 @@ int ftload(ENVIRON *csound, FTLOAD *p)
         /* ***** Need to do byte order here ***** */
         ff->flen = header.flen;
         header.fno = ff->fno;
-        if ((ftp = csoundFTFind(csound,*argp)) != NULL) {
+        if ((ftp = ft_func(csound, *argp)) != NULL) {
           MYFLT *table = ftp->ftable;
           memcpy(ftp, &header, sizeof(FUNC)-sizeof(MYFLT)-SSTRSIZ);
           ftp = ftalloc(csound);
@@ -2389,7 +2402,7 @@ int ftload(ENVIRON *csound, FTLOAD *p)
            in text format */
         ff->flen = header.flen;
         header.fno = ff->fno;
-        if ((ftp = csoundFTFind(csound,*argp)) != NULL) {
+        if ((ftp = ft_func(csound, *argp)) != NULL) {
           long j;
           MYFLT *table = ftp->ftable;
           memcpy(ftp, &header, sizeof(FUNC)-sizeof(MYFLT));
@@ -2407,47 +2420,58 @@ int ftload(ENVIRON *csound, FTLOAD *p)
     fclose(file);
     return OK;
  err:
-    return csoundInitError(csound,
-                           Str("ftload: Bad table number. Loading is possible "
-                               "only into existing tables."));
+    fclose(file);
+    return err_func(csound, Str("ftload: Bad table number. Loading is possible "
+                                "only into existing tables."));
  err2:
-    return csoundInitError(csound, Str("ftload: no table numbers"));
+    return err_func(csound, Str("ftload: no table numbers"));
  err3:
-    return csoundInitError(csound, Str("ftload: unable to open file"));
+    return err_func(csound, Str("ftload: unable to open file"));
 }
 
 int ftload_k(ENVIRON *csound, FTLOAD_K *p)
 {
-    FTLOAD *pp = &(p->p);
-    if (*p->ktrig)
-      ftload(csound, pp);
+    if (*p->ktrig != FL(0.0))
+      return ftload(csound, &(p->p));
     return OK;
 }
 
 int ftsave(ENVIRON *csound, FTLOAD *p)
 {
     MYFLT **argp = p->argums;
-    char filename[MAXNAME];
-    int nargs;
-    FILE *file;
+    char  filename[MAXNAME];
+    int   nargs = p->INOCOUNT - 2;
+    FILE  *file = NULL;
+    int   (*err_func)(void *, const char *, ...);
+    FUNC  *(*ft_func)(void *, MYFLT *);
 
-    if ((nargs = p->INOCOUNT - 2) <= 0) goto err2;
+    if (strcmp(p->h.optext->t.opcod, "ftsave") != 0) {
+      nargs--;
+      ft_func = (FUNC *(*)(void *, MYFLT *)) csound->FTFindP;
+      err_func = (int (*)(void *, const char *, ...)) csound->PerfError;
+    }
+    else {
+      ft_func = (FUNC *(*)(void *, MYFLT *)) csound->FTFind;
+      err_func = (int (*)(void *, const char *, ...)) csound->InitError;
+    }
 
-    if (p->XSTRCODE)                      /* if char string name given */
-      strcpy(filename, (char*) p->ifilno);  /* FIXME: and what if not ? */
-    if (*p->iflag <= 0) {
+    if (nargs <= 0)
+      goto err2;
+
+    if (p->XSTRCODE)                        /* if char string name given */
+      strcpy(filename, (char*) p->ifilno);  /* FIXME: and what if not ?  */
+    if (*p->iflag <= FL(0.0)) {
       if (!(file = fopen(filename, "wb"))) goto err3;
       while (nargs--) {
         FUNC *ftp;
 
-        if ((ftp = csoundFTFind(csound,*argp)) != NULL) {
+        if ((ftp = ft_func(csound, *argp)) != NULL) {
           MYFLT *table = ftp->ftable;
           long flen = ftp->flen;
           fwrite(ftp, sizeof(FUNC)-sizeof(MYFLT)-SSTRSIZ, 1, file);
           fwrite(table, sizeof(MYFLT), flen, file);
         }
-        else
-          goto err;
+        else goto err;
         argp++;
       }
     }
@@ -2456,7 +2480,7 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
       while (nargs--)  {
         FUNC *ftp;
 
-        if ((ftp = csoundFTFind(csound,*argp)) != NULL) {
+        if ((ftp = ft_func(csound, *argp)) != NULL) {
           long flen = ftp->flen;
           long j;
           MYFLT *table = ftp->ftable;
@@ -2506,32 +2530,28 @@ int ftsave(ENVIRON *csound, FTLOAD *p)
     fclose(file);
     return OK;
  err:
-    return csoundInitError(csound,
-                           Str("ftsave: Bad table number. Saving is possible "
-                               "only for existing tables."));
+    fclose(file);
+    return err_func(csound, Str("ftsave: Bad table number. Saving is possible "
+                                "only for existing tables."));
  err2:
-    csoundInitError(csound, Str("ftsave: no table numbers"));
-    return NOTOK;
+    return err_func(csound, Str("ftsave: no table numbers"));
  err3:
-    csoundInitError(csound, Str("ftsave: unable to open file"));
-    return NOTOK;
+    return err_func(csound, Str("ftsave: unable to open file"));
 }
 
 int ftsave_k_set(ENVIRON *csound, FTLOAD_K *p)
 {
     memcpy(&(p->p.h), &(p->h), sizeof(OPDS));
-    p->p.INOCOUNT = p->INOCOUNT -1;
     p->p.ifilno = p->ifilno;
     p->p.iflag = p->iflag;
-    memcpy( p->p.argums, p->argums, sizeof(MYFLT*)*p->INOCOUNT - 3);
+    memcpy(p->p.argums, p->argums, sizeof(MYFLT*) * (p->INOCOUNT - 3));
     return OK;
 }
 
 int ftsave_k(ENVIRON *csound, FTLOAD_K *p)
 {
-    FTLOAD *pp = &(p->p);
-    if (*p->ktrig)
-      ftsave(csound, pp);
+    if (*p->ktrig != FL(0.0))
+      return ftsave(csound, &(p->p));
     return OK;
 }
 
@@ -2700,7 +2720,7 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
 int allocgen(ENVIRON *csound, char *s, GEN fn)
 {
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
-/*  csound->DebugMsg(csound, Str("**** allocgen %s to %p"), s, fn); */
+
     while (n!=NULL) {
       if (strcmp(s, n->name)==0) return n->genum;
       n = n->next;
@@ -2719,7 +2739,6 @@ int allocgen(ENVIRON *csound, char *s, GEN fn)
     else csound->gensub = (GEN*)mrealloc(csound, csound->gensub,
                                          csound->genmax*sizeof(GEN));
     csound->gensub[csound->genmax-1] = fn;
-/*  csound->DebugMsg(csound, Str("**** allocated %d"), csound->genmax-1); */
     return csound->genmax-1;
 }
 
