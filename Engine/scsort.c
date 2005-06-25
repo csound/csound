@@ -39,14 +39,11 @@ void scsort(ENVIRON *csound, FILE *scin, FILE *scout)
 
     csound->sectcnt = 0;
     sread_init(csound);
-    do {
-      if ((n = sread(csound)) > 0) {
-/*      csound->Message(csound, Str("sread returns with %d\n"), n); */
-        sort(csound);
-        twarp(csound);
-        swrite(csound);
-      }
-    } while (n > 1);
+    while ((n = sread(csound)) > 0) {
+      sort(csound);
+      twarp(csound);
+      swrite(csound);
+    }
     sfree(csound);              /* return all memory used */
 }
 
