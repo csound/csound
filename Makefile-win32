@@ -30,11 +30,11 @@ PLUGINS =	babo.dll bbcut.dll biquad.dll butter.dll clfilt.dll	\
 		het_export.dll het_import.dll hetro.dll lpanal.dll	\
 		lpc_export.dll lpc_import.dll pvanal.dll pvlook.dll	\
 		scale.dll sndinfo.dll srconv.dll			\
-		widgets.dll rtwinmm.dll pmidi.dll
+		widgets.dll rtpa.dll rtwinmm.dll pmidi.dll
 
 UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe pvanal.exe	\
 		scale.exe sndinfo.exe srconv.exe extractor.exe		\
-		scsort.exe extract.exe
+		scsort.exe extract.exe csb64enc.exe makecsd.exe cs.exe
 
 all: $(CSOUNDLIB) $(PROGRAM) $(PLUGINS) $(UTILS)
 
@@ -109,6 +109,9 @@ mixer.dll: Opcodes/mixer.oo
 
 widgets.dll: InOut/widgets.oo
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lfltk $(LIBS)
+
+rtpa.dll: InOut/rtpa.o InOut/pa_blocking.o
+	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) D:/MinGW/lib/portaudio.dll -lwinmm -ldsound -lole32 $(LIBS2)
 
 rtwinmm.dll: InOut/rtwinmm.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
