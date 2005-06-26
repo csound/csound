@@ -72,7 +72,7 @@ elif sys.platform[:3] == 'win':
     # you need PD. If it is not in a standard location,
     # add it here (you do NOT need to build it first):
     customCPPPATH.append('c:/utah/opt/pd-0.38-4-devel-2/src')
-    customCPPPATH.append('c:/utah/opt/pd-0.38-4-devel-2/bin')
+    customLIBPATH.append('c:/utah/opt/pd-0.38-4-devel-2/bin')
     platform = 'mingw'
 else:
     platform = 'unsupported platform'
