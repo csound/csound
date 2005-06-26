@@ -1232,7 +1232,6 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
     Depends(pdClass, csoundLibrary)
     zipDependencies.append(pdClass)
     libs.append(pdClass)
-	
 
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux' and getPlatform() != 'cygwin'):
     print "CONFIGURATION DECISION: Not calling TAGS"
