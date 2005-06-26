@@ -1,10 +1,8 @@
-#include "csound.h"
+
 #include "cs.h"
-#include "prototyp.h"
 
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
-#include <portaudio.h>
 
 PUBLIC void *csoundCreateThread(void *csound,
                                 int (*threadRoutine)(void *userdata),
