@@ -94,27 +94,23 @@ static int recopen_(void *csound, csRtAudioParams *parm)
       paStreamParameters_.device = paUseHostApiSpecificDeviceSpecification;
       paStreamParameters_.hostApiSpecificStreamInfo = &info;
     }
-    else {
+    else
 #endif
+    {
       if (parm->devNum == 1024) {
         parm->devNum = paStreamParameters_.device = Pa_GetDefaultInputDevice();
         ((ENVIRON*) csound)->Message(csound,
                                      Str("No PortAudio input device given; "
                                           "defaulting to device %d\n"),
                                      parm->devNum);
-        paStreamParameters_.suggestedLatency =
-          Pa_GetDeviceInfo(parm->devNum)->defaultLowInputLatency;
       }
       else {
         paStreamParameters_.device = parm->devNum;
-        /* VL: dodgy... only works well with ASIO */
-        paStreamParameters_.suggestedLatency = ((double) oMaxLag)
-                                               / ((double) parm->sampleRate);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
-#if defined(LINUX)
     }
-#endif
+    paStreamParameters_.suggestedLatency = (double) oMaxLag
+                                           / (double) parm->sampleRate;
     paStreamParameters_.channelCount = parm->nChannels;
     paStreamParameters_.sampleFormat = paFloat32;
     ((ENVIRON*) csound)->Message(csound, "Suggested PortAudio latency = "
@@ -169,12 +165,11 @@ static int playopen_(void *csound, csRtAudioParams *parm)
       paStreamParameters_.device = paUseHostApiSpecificDeviceSpecification;
       paStreamParameters_.hostApiSpecificStreamInfo = &info;
     }
-    else {
+    else
 #endif
+    {
       if (parm->devNum == 1024) {
         parm->devNum = paStreamParameters_.device = Pa_GetDefaultOutputDevice();
-        paStreamParameters_.suggestedLatency =
-        Pa_GetDeviceInfo(parm->devNum)->defaultLowOutputLatency;
         ((ENVIRON*) csound)->Message(csound,
                                      Str("No PortAudio output device given; "
                                          "defaulting to device %d.\n"),
@@ -182,14 +177,11 @@ static int playopen_(void *csound, csRtAudioParams *parm)
       }
       else {
         paStreamParameters_.device = parm->devNum;
-        /* VL: dodgy... only works well with ASIO */
-        paStreamParameters_.suggestedLatency = ((double) oMaxLag)
-                                               / ((double) parm->sampleRate);
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
-#if defined(LINUX)
     }
-#endif
+    paStreamParameters_.suggestedLatency = (double) oMaxLag
+                                           / (double) parm->sampleRate;
     paStreamParameters_.channelCount = parm->nChannels;
     paStreamParameters_.sampleFormat = paFloat32;
     openOnce = (int *)((ENVIRON*) csound)->QueryGlobalVariable(csound,"openOnce");
