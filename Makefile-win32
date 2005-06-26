@@ -1,0 +1,216 @@
+
+CC = wine D:/MinGW/bin/gcc
+CXX = wine D:/MinGW/bin/g++
+#CFLAGS = -Wall -g -O2 -march=i586 -mtune=pentium3 -DUSE_DOUBLE -DUSE_LRINT
+CFLAGS = -Wall -O3 -march=pentium3 -fomit-frame-pointer -ffast-math
+CFLAGS += -I. -IH -DWIN32 -DPIPES -DMACROS -DCSOUND_WITH_API -DHAVE_STDINT_H -DHAVE_DIRENT_H -DHAVE_UNISTD_H -DHAVE_CTYPE_H -DHAVE_FCNTL_H -DHAVE_STRING_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DPIC
+CSOUNDLIB = csound32.dll
+PROGRAM = csound32.exe
+LDFLAGS = -L.
+# libraries for main Csound library and executable
+LIBS = -lstdc++ -lole32 -luuid -lwsock32 D:/MinGW/bin/libsndfile-1.dll -lgdi32 -luser32 -lkernel32 -lm
+# libraries for plugin opcodes
+LIBS2 = D:/MinGW/bin/libsndfile-1.dll -lgdi32 -luser32 -lkernel32 -lm
+
+PLUGINS =	babo.dll bbcut.dll biquad.dll butter.dll clfilt.dll	\
+		cross2.dll dam.dll dcblockr.dll filter.dll flanger.dll	\
+		follow.dll fout.dll freeverb.dll ftconv.dll grain.dll	\
+		grain4.dll hrtferX.dll locsig.dll lowpassr.dll		\
+		metro.dll midiops2.dll midiops3.dll modal4.dll		\
+		newfils.dll nlfilt.dll oscbnk.dll phisem.dll		\
+		physmod.dll pitch.dll pluck.dll pvsdemix.dll		\
+		repluck.dll reverbsc.dll scansyn.dll scansynx.dll	\
+		seqtime.dll sfont.dll sndwarp.dll space.dll spat3d.dll	\
+		syncgrain.dll ugens7.dll ugens9.dll ugensa.dll		\
+		uggab.dll ugmoss.dll ugsc.dll vdelayk.dll		\
+		wave-terrain.dll bus.dll pvsbasic.dll pvscent.dll	\
+		ftest.dll gab_gab.dll gab_vectorial.dll mixer.dll	\
+		sndloop.dll ifd.dll partials.dll psynth.dll		\
+		cvanal.dll dnoise.dll envext.dll extractor.dll		\
+		het_export.dll het_import.dll hetro.dll lpanal.dll	\
+		lpc_export.dll lpc_import.dll pvanal.dll pvlook.dll	\
+		scale.dll sndinfo.dll srconv.dll			\
+		widgets.dll rtwinmm.dll pmidi.dll
+
+UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe pvanal.exe	\
+		scale.exe sndinfo.exe srconv.exe extractor.exe		\
+		scsort.exe extract.exe
+
+all: $(CSOUNDLIB) $(PROGRAM) $(PLUGINS) $(UTILS)
+
+CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
+		Engine/entry2.o Engine/envvar.o Engine/express.o	\
+		Engine/extract.o Engine/fgens.o Engine/insert.o		\
+		Engine/linevent.o Engine/memalloc.o Engine/memfiles.o	\
+		Engine/musmon.o Engine/namedins.o Engine/oload.o	\
+		Engine/otran.o Engine/rdorch.o Engine/rdscor.o		\
+		Engine/scsort.o Engine/scxtract.o Engine/sort.o		\
+		Engine/sread.o Engine/swrite.o Engine/twarp.o		\
+		InOut/libsnd.o InOut/libsnd_u.o				\
+		InOut/midifile.o InOut/midirecv.o InOut/midisend.o	\
+		InOut/winascii.o InOut/windin.o InOut/window.o		\
+		InOut/winEPS.o						\
+		OOps/aops.o OOps/cmath.o OOps/control.o OOps/diskin.o	\
+		OOps/diskin2.o OOps/disprep.o OOps/dsputil.o		\
+		OOps/dumpf.o OOps/fftlib.o OOps/goto_ops.o		\
+		OOps/midiinterop.o OOps/midiops.o OOps/midiout.o	\
+		OOps/mxfft.o OOps/oscils.o OOps/pstream.o OOps/pvadd.o	\
+		OOps/pvfileio.o OOps/pvinterp.o OOps/pvocext.o		\
+		OOps/pvread.o OOps/pvsanal.o OOps/schedule.o		\
+		OOps/sdif.o OOps/sdif-mem.o OOps/sndinfUG.o		\
+		OOps/str_ops.o OOps/ugens1.o OOps/ugens2.o		\
+		OOps/ugens3.o OOps/ugens4.o OOps/ugens5.o OOps/ugens6.o	\
+		OOps/ugens8.o OOps/ugrw1.o OOps/ugrw2.o OOps/vbap.o	\
+		OOps/vbap_eight.o OOps/vbap_four.o OOps/vbap_sixteen.o	\
+		OOps/vbap_zak.o OOps/vdelay.o OOps/vpvoc.o		\
+		Top/argdecode.o Top/cscore_internal.o Top/cscorfns.o	\
+		Top/csmodule.o Top/csound.o Top/dl_opcodes.o		\
+		Top/getstring.o Top/main.o Top/natben.o Top/new_opts.o	\
+		Top/one_file.o Top/opcode.o Top/scot.o Top/threads.o	\
+		Top/utility.o
+
+#CFLAGS += -DUSE_FLTK
+#CSOUNDLIB_OBJ += InOut/FL_graph.oo InOut/winFLTK.o
+
+$(CSOUNDLIB): $(CSOUNDLIB_OBJ)
+	$(CXX) -O2 -shared -Wl,--export-all-symbols -o $@ $^ $(LDFLAGS) $(LIBS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.oo: %.cpp
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+Opcodes/butter.o: Opcodes/butter.c
+	$(CC) $(CFLAGS) -fno-strict-aliasing -c $< -o $@
+
+hrtferX.dll: Opcodes/hrtferX.o Opcodes/natben.o
+	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS2)
+
+modal4.dll: Opcodes/modal4.o Opcodes/physutil.o
+	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS2)
+
+physmod.dll: Opcodes/physmod.o Opcodes/physutil.o Opcodes/mandolin.o	\
+	     Opcodes/singwave.o Opcodes/fm4op.o Opcodes/moog1.o		\
+	     Opcodes/shaker.o Opcodes/bowedbar.o
+	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS2)
+
+pitch.dll: Opcodes/pitch.o Opcodes/pitch0.o Opcodes/spectra.o
+	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS2)
+
+gab_gab.dll: Opcodes/gab/gab.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS2)
+
+gab_vectorial.dll: Opcodes/gab/vectorial.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS2)
+
+mixer.dll: Opcodes/mixer.oo
+	$(CXX) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
+
+widgets.dll: InOut/widgets.oo
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lfltk $(LIBS)
+
+rtwinmm.dll: InOut/rtwinmm.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+pmidi.dll: InOut/pmidi.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lportmidi -lporttime -lwinmm $(LIBS2)
+
+cvanal.dll: util/cvanal.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+dnoise.dll: util/dnoise.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+envext.dll: util/envext.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+extractor.dll: util/xtrct.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+het_export.dll: util/het_export.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+het_import.dll: util/het_import.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+hetro.dll: util/hetro.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+lpanal.dll: util/lpanal.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+lpc_export.dll: util/lpc_export.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+lpc_import.dll: util/lpc_import.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+pvanal.dll: util/pvanal.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+pvlook.dll: util/pvlook.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+scale.dll: util/scale.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+sndinfo.dll: util/sndinfo.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+srconv.dll: util/srconv.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
+
+%.dll: Opcodes/%.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS2)
+
+$(PROGRAM): frontends/csound/csound_main.o $(CSOUNDLIB)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+cvanal.exe: util/cvl_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+dnoise.exe: util/dnoise_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+hetro.exe: util/het_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+lpanal.exe: util/lpc_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+pvanal.exe: util/pvl_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+scale.exe: util/scale_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+sndinfo.exe: util/sndinfo_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+srconv.exe: util/srconv_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+extractor.exe: util/xtrc_main.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+scsort.exe: util1/sortex/smain.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+extract.exe: util1/sortex/xmain.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+csb64enc.exe: util1/csd_util/base64.o util1/csd_util/csb64enc.o
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+makecsd.exe: util1/csd_util/base64.o util1/csd_util/makecsd.o
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+cs.exe: util1/csd_util/cs.o
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+clean:
+	-rm `find . -type f \( -name "*.o" -o -name "*.oo" \) -print`
+	-rm `find . -type f \( -name "*.a" -o -name "*.dll" \) -print`
+	-rm `find . -type f \( -name "*.exe" -o -name "*.xmg" \) -print`
+
