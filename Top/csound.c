@@ -64,6 +64,8 @@ extern "C" {
   static  volatile  int init_done = 0;
   /* chain of allocated Csound instances */
   static  csInstance_t  *instance_list = NULL;
+  /* non-zero if performance should be terminated now */
+  static  int           exitNow_ = 0;
 
   static void destroy_all_instances(void)
   {
@@ -205,6 +207,10 @@ extern "C" {
   static void signal_handler(int sig)
   {
     psignal(sig, "Csound tidy up");
+    if ((sig == (int) SIGINT || sig == (int) SIGTERM) && !exitNow_) {
+      exitNow_ = -1;
+      return;
+    }
     exit(1);
   }
 
@@ -1575,6 +1581,8 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 
   int csoundYield(void *csound)
   {
+    if (exitNow_)
+      return 0;
     return ((ENVIRON*) csound)->csoundYieldCallback_(csound);
   }
 
