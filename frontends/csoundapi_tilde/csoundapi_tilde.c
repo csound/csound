@@ -230,18 +230,18 @@ PUBLIC t_int  *csoundapi_perform(int *w){
   for(i=0; i<size; i++){
     if(run && end==0){
       if(pos==samps){
-	if((end = csoundPerformKsmps(x->csound))!=0)
-	  outlet_bang(x->bangout);
-	pos = 0;
-	posn = 0;
+        if((end = csoundPerformKsmps(x->csound))!=0)
+          outlet_bang(x->bangout);
+        pos = 0;
+        posn = 0;
       }
       for(n=0; n < numlets; n++){
-	if(n < chans) csin[posn] = (MYFLT)in[n][i]*scal;
-	posn++;
+        if(n < chans) csin[posn] = (MYFLT)in[n][i]*scal;
+        posn++;
       }
       for(n=0; n < numlets; n++){
-	out[n][i] =  (t_float)(n < chans ? csout[pos]/scal : 0.0);
-	pos++;
+        out[n][i] =  (t_float)(n < chans ? csout[pos]/scal : 0.0);
+        pos++;
       }
     } else for(n=0; n < numlets; n++) out[n][i] = 0.f;
   }
@@ -253,7 +253,7 @@ PUBLIC t_int  *csoundapi_perform(int *w){
 }
 
 PUBLIC void csoundapi_event(t_csoundapi *x, t_symbol *s,
-			    int argc, t_atom *argv){
+                            int argc, t_atom *argv){
   char type[10];
   MYFLT pFields[64];
   int num = argc-1, i;
@@ -273,17 +273,17 @@ PUBLIC void csoundapi_reset(t_csoundapi *x){
     if(x->cmdl!=NULL){
 
       if(x->end && x->cleanup) {
-	csoundCleanup(x->csound);
-	x->cleanup = 0;
+        csoundCleanup(x->csound);
+        x->cleanup = 0;
       }
 
       csoundReset(x->csound);
       x->result = csoundCompile(x->csound, x->argnum, x->cmdl);
 
       if(!x->result){
-	x->end=0;
-	x->pos=0;
-	x->cleanup=1;
+        x->end=0;
+        x->pos=0;
+        x->cleanup=1;
       }
     }
   }
@@ -302,7 +302,7 @@ PUBLIC void csoundapi_rewind(t_csoundapi *x){
 }
 
 PUBLIC void csoundapi_open(t_csoundapi *x, t_symbol *s,
-			   int argc, t_atom *argv){
+                           int argc, t_atom *argv){
   char  **cmdl;
   int i;
   if(CS_VERSION_ >= 500 || x->cmdl==NULL) {
@@ -337,9 +337,9 @@ PUBLIC void csoundapi_open(t_csoundapi *x, t_symbol *s,
       x->pos = 0;
       csoundSetHostData(x->csound, x);
       if(x->chans!=x->numlets)
-	post("csoundapi~ warning: number of orchestra channels (%d)\n"
-	     "does not match number of PD in/outlets (%d)\n" "some channels will be muted",
-	     x->chans,x->numlets);
+        post("csoundapi~ warning: number of orchestra channels (%d)\n"
+             "does not match number of PD in/outlets (%d)\n" "some channels will be muted",
+             x->chans,x->numlets);
     }
     else post("csoundapi~ warning: could not compile");
   } else post("score re-opening not implemented in v.%1.2f", (float)CS_VERSION_/100.f);
@@ -362,7 +362,7 @@ set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value){
     while(strcmp(ch->name->s_name, channel->s_name)){
       ch = ch->next;
       if(ch == NULL){
-	return 0;
+        return 0;
       }
     }
   else return 0;
@@ -378,7 +378,7 @@ get_channel_value(t_csoundapi *x, char *channel){
     while(strcmp(ch->name->s_name, channel)){
       ch = ch->next;
       if(ch == NULL){
-	return (MYFLT) 0;
+        return (MYFLT) 0;
       }
     }
   else return (MYFLT) 0;
