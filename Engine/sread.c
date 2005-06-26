@@ -552,9 +552,6 @@ top:
           ST(input_size) += 20;
           ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
                                                     * sizeof(struct in_stack));
-          if (ST(inputs) == NULL) {
-            csoundDie(csound, Str("No space for include files"));
-          }
           ST(str) = &ST(inputs)[old];     /* In case it moves */
         }
         ST(str)++;
@@ -1303,6 +1300,18 @@ static void flushlin(ENVIRON *csound)
     ST(linpos) = 0;
 }
 
+static inline int check_preproc_name(ENVIRON *csound, const char *name)
+{
+    int   i;
+    char  c;
+    for (i = 1; name[i] != '\0'; i++) {
+      c = (char) getscochar(csound, 1);
+      if (c != name[i])
+        return 0;
+    }
+    return 1;
+}
+
 static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
 {
     int c;
@@ -1348,25 +1357,21 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
       }
     }
     if (c == '#') {
-                                /* Start Macro definition */
-      char mname[100];
-      int i=0;
-      int arg = 0;
-      int size = 100;
-      MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
-      mm->margs = MARGS;
-      while (isspace(c = getscochar(csound, 1)));
+      char  mname[100];         /* Start Macro definition */
+      int   i = 0;
+      while (isspace((c = getscochar(csound, 1))));
       if (c == 'd') {
-        if ((c = getscochar(csound, 1)) != 'e' ||
-            (c = getscochar(csound, 1)) != 'f' ||
-            (c = getscochar(csound, 1)) != 'i' ||
-            (c = getscochar(csound, 1)) != 'n' ||
-            (c = getscochar(csound, 1)) != 'e') {
+        int   arg = 0;
+        int   size = 100;
+        MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
+        mm->margs = MARGS;
+        if (!check_preproc_name(csound, "define")) {
           csound->Message(csound, Str("Not #define"));
+          mfree(csound, mm);
           flushlin(csound);
           goto srch;
         }
-        while (isspace(c = getscochar(csound, 1)));
+        while (isspace((c = getscochar(csound, 1))));
         while (isNameChar(c, i)) {
           mname[i++] = c;
           c = getscochar(csound, 1);
@@ -1378,7 +1383,7 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
         strcpy(mm->name, mname);
         if (c == '(') { /* arguments */
           do {
-            while (isspace(c = getscochar(csound, 1)));
+            while (isspace((c = getscochar(csound, 1))));
             i = 0;
             while (isNameChar(c, i)) {
               mname[i++] = c;
@@ -1428,17 +1433,12 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
       }
       else if (c == 'i') {
         int delim;
-        if ((c = getscochar(csound, 1)) != 'n' ||
-            (c = getscochar(csound, 1)) != 'c' ||
-            (c = getscochar(csound, 1)) != 'l' ||
-            (c = getscochar(csound, 1)) != 'u' ||
-            (c = getscochar(csound, 1)) != 'd' ||
-            (c = getscochar(csound, 1)) != 'e') {
+        if (!check_preproc_name(csound, "include")) {
           csound->Message(csound, Str("Not #include"));
           flushlin(csound);
           goto srch;
         }
-        while (isspace(c = getscochar(csound, 1)));
+        while (isspace((c = getscochar(csound, 1))));
         delim = c;
         i = 0;
         while ((c=getscochar(csound, 1))!=delim) mname[i++] = c;
@@ -1450,9 +1450,6 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
           ST(input_size) += 20;
           ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
                                                     * sizeof(struct in_stack));
-          if (ST(inputs) == NULL) {
-            csoundDie(csound, Str("No space for include files"));
-          }
           ST(str) = &ST(inputs)[old];     /* In case it moves */
         }
         ST(str)++;
@@ -1471,15 +1468,12 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
         }
       }
       else if (c == 'u') {
-        if ((c = getscochar(csound, 1)) != 'n' ||
-            (c = getscochar(csound, 1)) != 'd' ||
-            (c = getscochar(csound, 1)) != 'e' ||
-            (c = getscochar(csound, 1)) != 'f') {
-          csound->Message(csound,Str("Not #undef"));
+        if (!check_preproc_name(csound, "undef")) {
+          csound->Message(csound, Str("Not #undef"));
           flushlin(csound);
           goto srch;
         }
-        while (isspace(c = getscochar(csound, 1)));
+        while (isspace((c = getscochar(csound, 1))));
         while (isNameChar(c, i)) {
           mname[i++] = c;
           c = getscochar(csound, 1);
@@ -1494,13 +1488,11 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
       else {
         csound->Message(csound, Str("unknown # option"));
         flushlin(csound);
-        goto srch;
       }
-      flushlin(csound);
       goto srch;
     }
 
-    return(c);
+    return c;
 }
 
 static int getop(ENVIRON *csound)       /* get next legal opcode */
