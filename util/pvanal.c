@@ -444,8 +444,9 @@ static int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
         for (k=0;k < chans;k++) {
           frame = frame_c[k];
           chanbuf = inbuf_c[k];
+          if (!csound->Yield(csound))
+            longjmp(csound->exitjmp, 1);
           generate_frame(csound, pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
-
           if (!csound->PVOC_PutFrames(csound, pvfile, frame, 1)) {
             csound->Message(csound,
                             Str("pvxanal: error writing analysis frames: %s\n"),
@@ -471,6 +472,8 @@ static int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       for (k=0;k < chans;k++) {
         frame = frame_c[k];
         chanbuf = inbuf_c[k];
+        if (!csound->Yield(csound))
+          longjmp(csound->exitjmp, 1);
         generate_frame(csound,pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
         if (!csound->PVOC_PutFrames(csound, pvfile, frame, 1)) {
           csound->Message(csound,
@@ -938,13 +941,13 @@ static void vonhann(MYFLT *win, int winLen, int even)
 
     if (even) {
       for (i=0; i<winLen; i++)
-        *(win+i) = (MYFLT)(0.5 + 0.5 * cos(ftmp*((double)i+0.5)));
-      *(win+winLen) = FL(0.0);
+        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((double)i+0.5)));
+      win[winLen] = FL(0.0);
     }
     else {
-      *(win) = FL(1.0);
+      win[0] = FL(1.0);
       for (i=1; i<=winLen; i++)
-        *(win+i) =(MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
+        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
     }
 }
 
