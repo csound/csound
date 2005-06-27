@@ -267,7 +267,6 @@ extern "C"
 {
   void DrawGraph_(void *csound, WINDAT *);
   long MakeWindow(char *);
-  int POLL_EVENTS(ENVIRON *csound);
   void kill_graph(int);
   int myFLwait(void);
   void MakeXYin_(void *csound, XYINDAT*, MYFLT, MYFLT);
@@ -289,8 +288,9 @@ extern "C"
     return (long)form;
   }
 
-  int POLL_EVENTS(ENVIRON *csound)
+  int defaultCsoundYield(void *csound_)
   {
+    ENVIRON *csound = (ENVIRON*) csound_;
 #ifndef NO_FLTK_THREADS
     /* nothing to do, unless displays are enabled, */
     if (!csound->oparms->displays)

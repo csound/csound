@@ -1561,18 +1561,11 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
    */
 
 #if !defined(USE_FLTK)
-  int POLL_EVENTS(ENVIRON *csound)
+  int defaultCsoundYield(void *csound)
   {
     return 1;
   }
-#else
-  extern int POLL_EVENTS(ENVIRON *csound);
 #endif
-
-  int defaultCsoundYield(void *csound)
-  {
-    return POLL_EVENTS((ENVIRON*) csound);
-  }
 
   void csoundSetYieldCallback(void *csound, int (*yieldCallback)(void *csound))
   {
@@ -1582,7 +1575,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
   int csoundYield(void *csound)
   {
     if (exitNow_)
-      return 0;
+      longjmp(((ENVIRON*) csound)->exitjmp, 1);
     return ((ENVIRON*) csound)->csoundYieldCallback_(csound);
   }
 
