@@ -190,9 +190,9 @@ for(i=2; i<fftsize; i+=2){
     i2 = i/2;
         a = signal[i]*scl;
         b = signal[i+1]*scl;
-    da = diffsig[i]*scl;
+        da = diffsig[i]*scl;
         db = diffsig[i+1]*scl;
-    powerspec = a*a+b*b;
+        powerspec = a*a+b*b;
 
         if((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.f){
        output[i+1] = ((a*db - b*da)/powerspec)*factor + i2*fund;
@@ -203,7 +203,7 @@ for(i=2; i<fftsize; i+=2){
          outphases[i+1] += d;
            }
         else {
-                output[i+1] = i2*fund;
+		    output[i+1] = i2*fund;
             outphases[i+1] = 0.f;
         }
   }

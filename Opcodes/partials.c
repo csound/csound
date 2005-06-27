@@ -26,7 +26,7 @@ Streaming partial track analysis
 
 ftrk partials ffr, fphs, kthresh, kminpts, kmaxgap, imaxtracks
 
-ftrk - TRACKS streaming pvs signal
+ftrk - TRACKS streaming spectral signal
 
 ffrs - AMP_FREQ input signal
 fphs - AMP_PHASE input signal (unwrapped phase expected)
