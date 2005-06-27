@@ -132,6 +132,7 @@ const ENVIRON cenviron_ = {
         csoundOpenLibrary,
         csoundCloseLibrary,
         csoundGetLibrarySymbol,
+        csoundYield,
         csoundSetYieldCallback,
         csoundGetEnv,
         csoundFindInputFile,
@@ -541,7 +542,7 @@ void oload(ENVIRON *p)
     }
     /* why I want oload() to return an error value.... */
     if (p->e0dbfs <= FL(0.0))
-      csoundDie(p, Str("bad value for 0dbfs: must be positive."));
+      p->Die(p, Str("bad value for 0dbfs: must be positive."));
     if (O->odebug)
       p->Message(p, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
                     "0dbfs = %.1f\n",
@@ -686,7 +687,6 @@ void oload(ENVIRON *p)
     }
     p->Free(p, strConstIndexList);
 
-    csoundInitEnv(p);     /* must be called before instr 0 initiates */
     p->tpidsr = TWOPI_F / p->esr;               /* now set internal  */
     p->mtpdsr = -(p->tpidsr);                   /*    consts         */
     p->pidsr = PI_F / p->esr;

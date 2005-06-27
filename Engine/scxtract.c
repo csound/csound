@@ -28,10 +28,12 @@ extern void sfree(ENVIRON *csound);
 extern int  sread(ENVIRON *csound);
 extern void sread_init(ENVIRON *csound);
 
-int scxtract(ENVIRON *csound, FILE *scin, FILE * scout, FILE *xfile)
-                                /* called from xmain.c or some other main */
-                                /*   extracts events from each score sect */
-{                               /*   according to the controlling xfile   */
+/* called from xmain.c or some other main */
+/*   extracts events from each score sect */
+/*   according to the controlling xfile   */
+
+PUBLIC int scxtract(ENVIRON *csound, FILE *scin, FILE * scout, FILE *xfile)
+{
     int     n;
 
     readxfil(csound, xfile);

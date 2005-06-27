@@ -28,9 +28,10 @@ extern void sfree(ENVIRON *csound);
 extern void sread_init(ENVIRON *csound);
 extern int  sread(ENVIRON *csound);
 
-void scsort(ENVIRON *csound, FILE *scin, FILE *scout)
-    /* called from smain.c or some other main */
-    /* reads,sorts,timewarps each score sect in turn */
+/* called from smain.c or some other main */
+/* reads,sorts,timewarps each score sect in turn */
+
+PUBLIC void scsort(ENVIRON *csound, FILE *scin, FILE *scout)
 {
     int     n;
 
