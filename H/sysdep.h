@@ -169,10 +169,17 @@ typedef short               int16_t;
 typedef unsigned short      uint16_t;
 typedef int                 int32_t;
 typedef unsigned int        uint32_t;
+#ifndef MSVC
 typedef long long           int64_t;
 typedef unsigned long long  uint64_t;
 typedef long long           int_least64_t;
 typedef unsigned long long  uint_least64_t;
+#else
+typedef __int64          int64_t;
+typedef unsigned __int64   uint64_t;
+typedef __int64          int_least64_t;
+typedef unsigned __int64  uint_least64_t;
+#endif
 typedef long                intptr_t;
 typedef unsigned long       uintptr_t;
 #endif
