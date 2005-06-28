@@ -118,11 +118,11 @@ int psynth_process(ENVIRON * csound, _PSYN * p)
     int     contin = 0;
     int     tracks = p->tracks, maxtracks = *p->maxtracks;
     MYFLT  *tab = p->func->ftable, *out = p->out;
-    float  *fin = (float *)p->fin->frame.auxp;
+    float  *fin = (float *) p->fin->frame.auxp;
     int     ksmps = csound->ksmps, pos = p->pos;
     MYFLT  *amps = (MYFLT *) p->amps.auxp, *freqs = (MYFLT *) p->freqs.auxp;
     MYFLT  *phases = (MYFLT *) p->phases.auxp, *outsum = (MYFLT *) p->sum.auxp;
-    int    *trackID = (int *)p->trackID.auxp;
+    int    *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
 
     ratio = size / csound->esr;
@@ -140,7 +140,7 @@ int psynth_process(ENVIRON * csound, _PSYN * p)
         while (i < maxtracks * 4) {
           ampnext = (MYFLT) fin[i] * scale;
           freqnext = (MYFLT) fin[i + 1] * pitch;
-          if ((id = (int)fin[i + 3]) != -1) {
+          if ((id = (int) fin[i + 3]) != -1) {
             j = k + notcontin;
 
             if (k < tracks - notcontin) {
@@ -182,7 +182,7 @@ int psynth_process(ENVIRON * csound, _PSYN * p)
                 phase += size;
               while (phase >= size)
                 phase -= size;
-              ndx = (int)phase;
+              ndx = (int) phase;
               frac = phase - ndx;
               outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
               a += incra;
@@ -265,11 +265,11 @@ int psynth2_process(ENVIRON * csound, _PSYN2 * p)
     int     contin = 0;
     int     tracks = p->tracks, maxtracks = *p->maxtracks;
     MYFLT  *tab = p->func->ftable, *out = p->out;
-    float  *fin = (float *)p->fin->frame.auxp;
+    float  *fin = (float *) p->fin->frame.auxp;
     int     ksmps = csound->ksmps, pos = p->pos;
     MYFLT  *amps = (MYFLT *) p->amps.auxp, *freqs = (MYFLT *) p->freqs.auxp;
     MYFLT  *phases = (MYFLT *) p->phases.auxp, *outsum = (MYFLT *) p->sum.auxp;
-    int    *trackID = (int *)p->trackID.auxp;
+    int    *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
 
     incrph = p->invsr;
@@ -292,7 +292,7 @@ int psynth2_process(ENVIRON * csound, _PSYN2 * p)
           ampnext = (MYFLT) fin[i] * scale;
           freqnext = (MYFLT) fin[i + 1] * twopi;
           phasenext = (MYFLT) fin[i + 2];
-          if ((id = (int)fin[i + 3]) != -1) {
+          if ((id = (int) fin[i + 3]) != -1) {
             j = k + notcontin;
 
             if (k < tracks - notcontin) {
@@ -331,7 +331,7 @@ int psynth2_process(ENVIRON * csound, _PSYN2 * p)
 
             /* update phasediff to match the freq */
             cph = ((freq + freqnext) * factor / 2. - phasediff) / twopi;
-            phasediff += twopi * (int)(cph + 0.5);
+            phasediff += twopi * (int) (cph + 0.5);
             /* interpolation coefs */
             a2 = 3. / facsqr * (phasediff -
                                 factor / 3. * (2. * freq + freqnext));
@@ -348,7 +348,7 @@ int psynth2_process(ENVIRON * csound, _PSYN2 * p)
                 ph += size;
               while (ph >= size)
                 ph -= size;
-              ndx = (int)ph;
+              ndx = (int) ph;
               frac = ph - ndx;
               outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
               a += incra;

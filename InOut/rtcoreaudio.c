@@ -58,7 +58,7 @@ int csoundModuleCreate(void *csound)
     max = 32;
 
     p->CreateGlobalVariable(csound, "::cabuffnos", sizeof(int));
-    def = (int *)(p->QueryGlobalVariable(csound, "::cabuffnos"));
+    def = (int *) (p->QueryGlobalVariable(csound, "::cabuffnos"));
     if (def == NULL)
       p->Message(csound, "warning... could not create global var\n");
     else
@@ -68,7 +68,7 @@ int csoundModuleCreate(void *csound)
                                    "coreaudio IO buffer numbers", NULL);
 
     p->CreateGlobalVariable(csound, "::cainterleaved", sizeof(int));
-    def = (int *)(p->QueryGlobalVariable(csound, "::cainterleaved"));
+    def = (int *) (p->QueryGlobalVariable(csound, "::cainterleaved"));
     if (def == NULL)
       p->Message(csound, "warning... could not create global var\n");
     else
@@ -95,7 +95,7 @@ int csoundModuleInit(void *csound)
     char   *drv;
 
     p = (ENVIRON *) csound;
-    drv = (char *)(p->QueryGlobalVariable(csound, "_RTAUDIO"));
+    drv = (char *) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
     if (drv == NULL)
       return 0;
     if (!(strcmp(drv, "coreaudio") == 0 || strcmp(drv, "CoreAudio") == 0 ||
@@ -134,8 +134,8 @@ ADIOProc(const AudioBufferList * input,
       output->mNumberBuffers = buffs;
       chans = chans > buffs ? buffs : chans;
       for (j = 0; j < chans; j++) {
-        outp = (float *)output[0].mBuffers[j].mData;
-        inp = (float *)input[0].mBuffers[j].mData;
+        outp = (float *) output[0].mBuffers[j].mData;
+        inp = (float *) input[0].mBuffers[j].mData;
 
         for (i = j, cnt = 0; i < items; i += chans, cnt++) {
           outp[cnt] = obufp[i];
@@ -150,8 +150,8 @@ ADIOProc(const AudioBufferList * input,
       output->mNumberBuffers = 1;
       output->mBuffers[0].mDataByteSize = items * sizeof(float);
       output->mBuffers[0].mNumberChannels = cachans;
-      outp = (float *)output->mBuffers[0].mData;
-      inp = (float *)input->mBuffers[0].mData;
+      outp = (float *) output->mBuffers[0].mData;
+      inp = (float *) input->mBuffers[0].mData;
       for (i = 0, cnt = 0; i < items; i += cachans) {
         for (j = 0; j < cachans; j++)
           if (j < chans) {
@@ -199,7 +199,7 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
     memset(dev, 0, sizeof(DEVPARAMS));
     p = (ENVIRON *) csound;
     /* set up parameters */
-    vpt = (int *)(p->QueryGlobalVariable(csound, "::cabuffnos"));
+    vpt = (int *) (p->QueryGlobalVariable(csound, "::cabuffnos"));
     if (vpt != NULL)
       bfns = *vpt;
     else
@@ -208,7 +208,7 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
     p->DeleteConfigurationVariable(csound, "buffnos");
     p->DestroyGlobalVariable(csound, "::cabuffnos");
 
-    vpt = (int *)(p->QueryGlobalVariable(csound, "::cainterleaved"));
+    vpt = (int *) (p->QueryGlobalVariable(csound, "::cainterleaved"));
     if (vpt != NULL)
       dev->isNInterleaved = *vpt;
     else
@@ -227,13 +227,13 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
     AudioHardwareGetProperty(kAudioHardwarePropertyDevices, &psize, sysdevs);
     p->Message(csound,
                "==========================================================\n"
-               "CoreAudio Module: found %d device(s):\n", (int)devnos);
+               "CoreAudio Module: found %d device(s):\n", (int) devnos);
 
-    for (i = 0; (unsigned int)i < devnos; i++) {
+    for (i = 0; (unsigned int) i < devnos; i++) {
 
       AudioDeviceGetPropertyInfo(sysdevs[i], 1, false,
                                  kAudioDevicePropertyDeviceName, &psize, NULL);
-      name = (char *)malloc(psize);
+      name = (char *) malloc(psize);
       AudioDeviceGetProperty(sysdevs[i], 1, false,
                              kAudioDevicePropertyDeviceName, &psize, name);
       p->Message(csound, "=> CoreAudio device %d: %s \n", i, name);
@@ -249,13 +249,13 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
 
     AudioDeviceGetPropertyInfo(dev->dev, 1, false,
                                kAudioDevicePropertyDeviceName, &psize, NULL);
-    name = (char *)malloc(psize);
+    name = (char *) malloc(psize);
     AudioDeviceGetProperty(dev->dev, 1, false, kAudioDevicePropertyDeviceName,
                            &psize, name);
     p->Message(csound, "CoreAudio module: opening %s \n", name);
     free(name);
 
-    dev->srate = (float)(parm->sampleRate);
+    dev->srate = (float) (parm->sampleRate);
     dev->nchns = parm->nChannels;
     dev->bufframes = parm->bufSamp_HW;
     dev->buffnos = bfns;
@@ -317,13 +317,13 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
     AudioDeviceGetProperty(dev->dev, 0, false,
                            kAudioDevicePropertyStreamFormat, &psize, &format);
 
-    if (format.mChannelsPerFrame != (unsigned int)dev->nchns &&
+    if (format.mChannelsPerFrame != (unsigned int) dev->nchns &&
         !dev->isNInterleaved) {
       dev->format.mChannelsPerFrame = format.mChannelsPerFrame;
       p->Message(csound,
                  "CoreAudio module warning: using %d channels; "
                  "requested %d channels\n",
-                 (int)dev->format.mChannelsPerFrame, (int)dev->nchns);
+                 (int) dev->format.mChannelsPerFrame, (int) dev->nchns);
 
     }
 
@@ -331,28 +331,28 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
       *(p->GetRtRecordUserData(csound)) = NULL;
       p->Message(csound,
                  " *** CoreAudio: open: could not set device parameter sr: %d \n",
-                 (int)dev->srate);
+                 (int) dev->srate);
       p->Message(csound, " *** CoreAudio: current device sampling rate is:%d \n"
                  "     try setting the above value in your csound orchestra \n",
-                 (int)format.mSampleRate);
+                 (int) format.mSampleRate);
       free(dev);
       return -1;
     }
     else
       p->Message(csound,
                  "CoreAudio module: sr set to %d with %d audio channels\n",
-                 (int)dev->srate, (int)dev->format.mChannelsPerFrame);
+                 (int) dev->srate, (int) dev->format.mChannelsPerFrame);
 
-    dev->outbuffs = (float **)malloc(sizeof(float *) * dev->buffnos);
-    dev->inbuffs = (float **)malloc(sizeof(float *) * dev->buffnos);
-    dev->inused = (int *)malloc(sizeof(int) * dev->buffnos);
-    dev->outused = (int *)malloc(sizeof(int) * dev->buffnos);
+    dev->outbuffs = (float **) malloc(sizeof(float *) * dev->buffnos);
+    dev->inbuffs = (float **) malloc(sizeof(float *) * dev->buffnos);
+    dev->inused = (int *) malloc(sizeof(int) * dev->buffnos);
+    dev->outused = (int *) malloc(sizeof(int) * dev->buffnos);
 
     buffbytes = dev->bufframes * dev->nchns * sizeof(float);
 
-    for (i = 0; (unsigned int)i < dev->buffnos; i++) {
+    for (i = 0; (unsigned int) i < dev->buffnos; i++) {
 
-      if ((dev->inbuffs[i] = (float *)malloc(buffbytes)) == NULL) {
+      if ((dev->inbuffs[i] = (float *) malloc(buffbytes)) == NULL) {
         free(dev->outbuffs);
         free(dev->inbuffs);
         free(dev->inused);
@@ -364,7 +364,7 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
       }
       memset(dev->inbuffs[i], 0, buffbytes);
 
-      if ((dev->outbuffs[i] = (float *)malloc(buffbytes)) == NULL) {
+      if ((dev->outbuffs[i] = (float *) malloc(buffbytes)) == NULL) {
         free(dev->outbuffs);
         free(dev->inbuffs);
         free(dev->inused);
@@ -385,9 +385,9 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
     AudioDeviceStart(dev->dev, Csound_IOProcEntry);
 
     if (isInput)
-      *(p->GetRtPlayUserData(csound)) = (void *)dev;
+      *(p->GetRtPlayUserData(csound)) = (void *) dev;
     else
-      *(p->GetRtRecordUserData(csound)) = (void *)dev;
+      *(p->GetRtRecordUserData(csound)) = (void *) dev;
 
     p->Message(csound,
                "CoreAudio module: device open with %d buffers of %d frames\n"
@@ -411,7 +411,7 @@ static int recopen_(void *csound, csRtAudioParams * parm)
       p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
       return -1;
     }
-    *(p->GetRtRecordUserData(csound)) = (void *)dev;
+    *(p->GetRtRecordUserData(csound)) = (void *) dev;
 
     return coreaudio_open(csound, parm, dev, 1);
 }
@@ -431,7 +431,7 @@ static int playopen_(void *csound, csRtAudioParams * parm)
       p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
       return -1;
     }
-    *(p->GetRtPlayUserData(csound)) = (void *)dev;
+    *(p->GetRtPlayUserData(csound)) = (void *) dev;
 
     return coreaudio_open(csound, parm, dev, 0);
 }
@@ -446,7 +446,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     /* MYFLT norm; */
     p = (ENVIRON *) csound;
     dev = (DEVPARAMS *) (*(p->GetRtRecordUserData(csound)));
-    usecs = (int)(1000 * dev->bufframes / p->esr);
+    usecs = (int) (1000 * dev->bufframes / p->esr);
     n = bytes_ / sizeof(MYFLT);
     chans = dev->nchns;
     ibuffs = dev->inbuffs;
@@ -490,7 +490,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     dev = (DEVPARAMS *) (*(p->GetRtRecordUserData(csound)));
 
     n = bytes_ / sizeof(MYFLT);
-    usecs = (int)(1000 * dev->bufframes / p->esr);
+    usecs = (int) (1000 * dev->bufframes / p->esr);
     chans = dev->nchns;
     obuffs = dev->outbuffs;
     cur = dev->outcurbuff;
@@ -501,7 +501,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     /* norm = p->e0dbfs; */
 
     for (i = 0; i < n; i++) {
-      obuffs[cur][ocount] = (float)((MYFLT *) outbuf_)[i];
+      obuffs[cur][ocount] = (float) ((MYFLT *) outbuf_)[i];
       ocount++;
       if (ocount == buffitems) {
         outused[cur] = 0;

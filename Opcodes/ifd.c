@@ -63,13 +63,13 @@ int ifd_init(ENVIRON * csound, _IFD * p)
     MYFLT  *winf, *dwinf;
     double  alpha = 0.f, fac;
 
-    fftsize = p->fftsize = (int)*p->size;
-    hopsize = p->hopsize = (int)*p->hop;
+    fftsize = p->fftsize = (int) *p->size;
+    hopsize = p->hopsize = (int) *p->hop;
     p->g = *p->scal;
-    wintype = p->wintype = (int)*p->type;
+    wintype = p->wintype = (int) *p->type;
     frames = fftsize / hopsize;
 
-    if ((frames - (float)fftsize / hopsize) != 0.f)
+    if ((frames - (float) fftsize / hopsize) != 0.f)
       csound->Die(csound,
                   "ifd: fftsize should be an integral multiple of hopsize\n");
 
@@ -81,25 +81,25 @@ int ifd_init(ENVIRON * csound, _IFD * p)
     hsize = fftsize / 2;
 
     if (p->sigframe.auxp == NULL ||
-        frames * fftsize * sizeof(MYFLT) > (unsigned int)p->sigframe.size)
+        frames * fftsize * sizeof(MYFLT) > (unsigned int) p->sigframe.size)
       csound->AuxAlloc(csound, frames * fftsize * sizeof(MYFLT), &p->sigframe);
     if (p->diffsig.auxp == NULL ||
-        fftsize * sizeof(MYFLT) > (unsigned int)p->diffsig.size)
+        fftsize * sizeof(MYFLT) > (unsigned int) p->diffsig.size)
       csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
     if (p->diffwin.auxp == NULL ||
-        fftsize * sizeof(MYFLT) > (unsigned int)p->diffwin.size)
+        fftsize * sizeof(MYFLT) > (unsigned int) p->diffwin.size)
       csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
     if (p->win.auxp == NULL ||
-        fftsize * sizeof(MYFLT) > (unsigned int)p->win.size)
+        fftsize * sizeof(MYFLT) > (unsigned int) p->win.size)
       csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
     if (p->counter.auxp == NULL ||
-        frames * sizeof(int) > (unsigned int)p->counter.size)
+        frames * sizeof(int) > (unsigned int) p->counter.size)
       csound->AuxAlloc(csound, frames * sizeof(int), &p->counter);
     if (p->fout1->frame.auxp == NULL ||
-        (fftsize + 2) * sizeof(MYFLT) > (unsigned int)p->fout1->frame.size)
+        (fftsize + 2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
     if (p->fout2->frame.auxp == NULL ||
-        (fftsize + 2) * sizeof(MYFLT) > (unsigned int)p->fout1->frame.size)
+        (fftsize + 2) * sizeof(MYFLT) > (unsigned int) p->fout1->frame.size)
       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
 
     p->fout1->N = fftsize;
@@ -116,7 +116,7 @@ int ifd_init(ENVIRON * csound, _IFD * p)
     p->fout2->framecount = 1;
     p->fout2->format = PVS_AMP_PHASE;
 
-    counter = (int *)p->counter.auxp;
+    counter = (int *) p->counter.auxp;
     for (i = 0; i < frames; i++)
       counter[i] = i * hopsize;
 
@@ -165,8 +165,8 @@ void IFAnalysis(ENVIRON * csound, _IFD * p, MYFLT * signal)
     MYFLT   tmp1, tmp2, *diffwin = (MYFLT *) p->diffwin.auxp;
     MYFLT  *win = (MYFLT *) p->win.auxp;
     MYFLT  *diffsig = (MYFLT *) p->diffsig.auxp;
-    float  *output = (float *)p->fout1->frame.auxp;
-    float  *outphases = (float *)p->fout2->frame.auxp;
+    float  *output = (float *) p->fout1->frame.auxp;
+    float  *outphases = (float *) p->fout2->frame.auxp;
 
     for (i = 0; i < fftsize; i++) {
       diffsig[i] = signal[i] * diffwin[i];
@@ -197,9 +197,9 @@ void IFAnalysis(ENVIRON * csound, _IFD * p, MYFLT * signal)
       db = diffsig[i + 1] * scl;
       powerspec = a * a + b * b;
 
-      if ((outphases[i] = output[i] = (float)sqrt(powerspec)) != 0.f) {
+      if ((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.f) {
         output[i + 1] = ((a * db - b * da) / powerspec) * factor + i2 * fund;
-        ph = (float)atan2(b, a);
+        ph = (float) atan2(b, a);
         d = ph - outphases[i + 1];
         while (d > pi)
           d -= twopi;
@@ -227,7 +227,7 @@ int ifd_process(ENVIRON * csound, _IFD * p)
     MYFLT  *sigin = p->in;
     MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
     int     fftsize = p->fftsize;
-    int    *counter = (int *)p->counter.auxp;
+    int    *counter = (int *) p->counter.auxp;
     int     ksmps = csound->ksmps;
     int     frames = p->frames;
 
