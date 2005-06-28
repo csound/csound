@@ -444,7 +444,7 @@ static int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
         for (k=0;k < chans;k++) {
           frame = frame_c[k];
           chanbuf = inbuf_c[k];
-          if (!csound->Yield(csound))
+          if (!csound->CheckEvents(csound))
             longjmp(csound->exitjmp, 1);
           generate_frame(csound, pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
           if (!csound->PVOC_PutFrames(csound, pvfile, frame, 1)) {
@@ -472,7 +472,7 @@ static int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       for (k=0;k < chans;k++) {
         frame = frame_c[k];
         chanbuf = inbuf_c[k];
-        if (!csound->Yield(csound))
+        if (!csound->CheckEvents(csound))
           longjmp(csound->exitjmp, 1);
         generate_frame(csound,pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
         if (!csound->PVOC_PutFrames(csound, pvfile, frame, 1)) {

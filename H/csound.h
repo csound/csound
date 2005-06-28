@@ -221,7 +221,7 @@ extern "C" {
   /**
    * Compiles and renders a Csound performance,
    * as directed by the supplied command-line arguments,
-   * in one pass. Returns 1 for success, 0 for failure.
+   * in one pass. Returns 0 for success.
    */
   PUBLIC int csoundPerform(void *csound, int argc, char **argv);
 
@@ -274,14 +274,15 @@ extern "C" {
 
   /**
    * Prints information about the end of a performance.
-   * Must be called after the final call to csoundPerformKsmps.
+   * After calling csoundCleanup(), the operation of the perform
+   * functions is undefined.
    */
   PUBLIC int csoundCleanup(void *csound);
 
   /**
    * Resets all internal memory and state in preparation for a new performance.
    * Enables external software to run successive Csound performances
-   * without reloading Csound.
+   * without reloading Csound. Implies csoundCleanup(), unless already called.
    */
   PUBLIC void csoundReset(void *csound);
 
@@ -898,19 +899,10 @@ extern "C" {
    */
   PUBLIC int csoundGetFLTKThreadLocking(void *csound);
 
-#ifndef RTCLOCK_S_DEFINED
-#define RTCLOCK_S_DEFINED
-
   typedef struct RTCLOCK_S {
-    unsigned long   starttime_real_high;
-    unsigned long   starttime_real_low;
-    double          real_time_to_seconds_scale;
-    unsigned long   starttime_CPU_high;
-    unsigned long   starttime_CPU_low;
-    double          CPU_time_to_seconds_scale;
+    int_least64_t   starttime_real;
+    int_least64_t   starttime_CPU;
   } RTCLOCK;
-
-#endif
 
   /**
    * initialise a timer structure

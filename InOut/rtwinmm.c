@@ -277,13 +277,13 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       if (devNum < 0 || devNum >= ndev) {
         csound->Message(csound, Str("The available output devices are:\n"));
         for (i = 0; i < ndev; i++) {
-          waveOutGetDevCapsA((UINT_PTR) i, (LPWAVEOUTCAPSA) &caps,
+          waveOutGetDevCapsA((unsigned int) i, (LPWAVEOUTCAPSA) &caps,
                              sizeof(WAVEOUTCAPSA));
           csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
         }
         return err_msg(csound, Str("device number is out of range"));
       }
-      waveOutGetDevCapsA((UINT_PTR) devNum, (LPWAVEOUTCAPSA) &caps,
+      waveOutGetDevCapsA((unsigned int) devNum, (LPWAVEOUTCAPSA) &caps,
                          sizeof(WAVEOUTCAPSA));
       csound->Message(csound, Str("winmm: opening output device %d (%s)\n"),
                               devNum, (char*) caps.szPname);
@@ -296,13 +296,13 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       if (devNum < 0 || devNum >= ndev) {
         csound->Message(csound, Str("The available input devices are:\n"));
         for (i = 0; i < ndev; i++) {
-          waveInGetDevCapsA((UINT_PTR) i, (LPWAVEINCAPSA) &caps,
+          waveInGetDevCapsA((unsigned int) i, (LPWAVEINCAPSA) &caps,
                             sizeof(WAVEINCAPSA));
           csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
         }
         return err_msg(csound, Str("device number is out of range"));
       }
-      waveInGetDevCapsA((UINT_PTR) devNum, (LPWAVEINCAPSA) &caps,
+      waveInGetDevCapsA((unsigned int) devNum, (LPWAVEINCAPSA) &caps,
                         sizeof(WAVEINCAPSA));
       csound->Message(csound, Str("winmm: opening input device %d (%s)\n"),
                               devNum, (char*) caps.szPname);

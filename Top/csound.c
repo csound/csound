@@ -63,13 +63,13 @@ extern "C" {
   /* 0: not done yet, 1: complete, 2: in progress, -1: failed */
   static  volatile  int init_done = 0;
   /* chain of allocated Csound instances */
-  static  csInstance_t  *instance_list = NULL;
+  static  volatile  csInstance_t  *instance_list = NULL;
   /* non-zero if performance should be terminated now */
-  static  int           exitNow_ = 0;
+  static  volatile  int exitNow_ = 0;
 
   static void destroy_all_instances(void)
   {
-    csInstance_t  *p;
+    volatile csInstance_t *p;
 
     csoundLock();
     init_done = -1;     /* prevent the creation of any new instances */
@@ -221,8 +221,6 @@ extern "C" {
 #if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
       SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS,
       SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGXCPU, SIGXFSZ,
-#elif defined(CSWIN)
-      SIGHUP, SIGINT, SIGQUIT,
 #elif defined(WIN32)
       SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
 #elif defined(__EMX__)
@@ -304,7 +302,7 @@ extern "C" {
 
     csoundLock();
     p->csound = csound;
-    p->nxt = instance_list;
+    p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
     csoundUnLock();
     csoundReset(csound);
@@ -443,20 +441,18 @@ extern "C" {
 
   PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version)
   {
-    if(strcmp(name, "CSOUND") == 0)
-      {
-        *iface = csoundCreate(0);
-        *version = csoundGetVersion();
-        return 0;
-      }
-    return 1;
+    if (strcmp(name, "CSOUND") != 0)
+      return 1;
+    *iface = csoundCreate(NULL);
+    *version = csoundGetVersion();
+    return 0;
   }
 
   PUBLIC void csoundDestroy(void *csound)
   {
     csInstance_t  *p, *prv = NULL;
     csoundLock();
-    p = instance_list;
+    p = (csInstance_t*) instance_list;
     while (p != NULL && p->csound != (ENVIRON*) csound) {
       prv = p; p = p->nxt;
     }
@@ -473,11 +469,14 @@ extern "C" {
     csoundReset(csound);
     free(((ENVIRON*) csound)->oparms);
     free(csound);
+    /* exit if caught signal and there are no more instances left */
+    if (exitNow_ && instance_list == NULL)
+      exit(1);
   }
 
   PUBLIC int csoundGetVersion(void)
   {
-    return (int) (atof(PACKAGE_VERSION) * 100);
+    return (int) (atof(PACKAGE_VERSION) * 100.0 + 0.5);
   }
 
   int csoundGetAPIVersion(void)
@@ -1673,11 +1672,8 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 #undef HAVE_GETTIMEOFDAY
 #endif
 #if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
-#ifndef WIN32
-/* do not use UNIX code under Win32 */
 #define HAVE_GETTIMEOFDAY 1
 #include <sys/time.h>
-#endif
 #endif
 
 /* enable use of high resolution timer (Linux/i586/GCC only) */
@@ -1744,17 +1740,14 @@ static int getTimeResolution(void)
     }
     /* MHz -> seconds */
     timeResolutionSeconds = 0.000001 / timeResolutionSeconds;
+#elif defined(WIN32)
+    LARGE_INTEGER tmp1;
+    int_least64_t tmp2;
+    QueryPerformanceFrequency(&tmp1);
+    tmp2 = (int_least64_t) tmp1.LowPart + ((int_least64_t) tmp1.HighPart << 32);
+    timeResolutionSeconds = 1.0 / (double) tmp2;
 #elif defined(HAVE_GETTIMEOFDAY)
     timeResolutionSeconds = 0.000001;
-#elif defined(WIN32)
-    {
-      LARGE_INTEGER tmp;
-      QueryPerformanceFrequency(&tmp);
-      timeResolutionSeconds = (double) ((unsigned long) tmp.LowPart);
-      timeResolutionSeconds += (double) ((long) tmp.HighPart)
-                               * 4294967296.0;
-      timeResolutionSeconds = 1.0 / timeResolutionSeconds;
-    }
 #else
     timeResolutionSeconds = 1.0;
 #endif
@@ -1763,59 +1756,47 @@ static int getTimeResolution(void)
     return 0;
 }
 
-/* macro for getting real time */
+/* function for getting real time */
 
+static inline int_least64_t get_real_time(void)
+{
 #if defined(HAVE_RDTSC)
-/* optimised high resolution timer for Linux/i586/GCC only */
-#define get_real_time(h,l)                                              \
-{                                                                       \
-    asm volatile ("rdtsc" : "=a" (l), "=d" (h));                        \
-}
-#elif defined(HAVE_GETTIMEOFDAY)
-/* UNIX: use gettimeofday() - allows 1 us resolution */
-#define get_real_time(h,l)                                              \
-{                                                                       \
-    struct timeval tv;                                                  \
-    gettimeofday(&tv, NULL);                                            \
-    h = (unsigned long) tv.tv_sec;                                      \
-    l = (unsigned long) tv.tv_usec;                                     \
-}
+    /* optimised high resolution timer for Linux/i586/GCC only */
+    uint32_t  l, h;
+    asm volatile ("rdtsc" : "=a" (l), "=d" (h));
+    return ((int_least64_t) l + ((int_least64_t) h << 32));
 #elif defined(WIN32)
-/* Win32: use QueryPerformanceCounter - resolution depends on system, */
-/* but is expected to be better than 1 us. GetSystemTimeAsFileTime    */
-/* seems to have much worse resolution under Win95.                   */
-#define get_real_time(h,l)                                              \
-{                                                                       \
-    LARGE_INTEGER tmp;                                                  \
-    QueryPerformanceCounter(&tmp);                                      \
-    h = (unsigned long) tmp.HighPart;                                   \
-    l = (unsigned long) tmp.LowPart;                                    \
-}
+    /* Win32: use QueryPerformanceCounter - resolution depends on system, */
+    /* but is expected to be better than 1 us. GetSystemTimeAsFileTime    */
+    /* seems to have much worse resolution under Win95.                   */
+    LARGE_INTEGER tmp;
+    QueryPerformanceCounter(&tmp);
+    return ((int_least64_t) tmp.LowPart + ((int_least64_t) tmp.HighPart << 32));
+#elif defined(HAVE_GETTIMEOFDAY)
+    /* UNIX: use gettimeofday() - allows 1 us resolution */
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return ((int_least64_t) tv.tv_usec
+            + (int_least64_t) ((uint32_t) tv.tv_sec * (uint64_t) 1000000));
 #else
-/* other systems: use ANSI C time() - allows 1 second resolution */
-#define get_real_time(h,l)                                              \
-{                                                                       \
-    h = 0UL;                                                            \
-    l = (unsigned long) time(NULL);                                     \
-}
+    /* other systems: use ANSI C time() - allows 1 second resolution */
+    return ((int_least64_t) time(NULL));
 #endif
+}
 
-/* macro for getting CPU time */
+/* function for getting CPU time */
 
-#define get_CPU_time(h,l)                                               \
-{                                                                       \
-    h = 0UL;                                                            \
-    l = (unsigned long) clock();                                        \
+static inline int_least64_t get_CPU_time(void)
+{
+    return ((int_least64_t) ((uint32_t) clock()));
 }
 
 /* initialise a timer structure */
 
 void timers_struct_init(RTCLOCK *p)
 {
-    p->real_time_to_seconds_scale = timeResolutionSeconds;
-    p->CPU_time_to_seconds_scale = 1.0 / (double) CLOCKS_PER_SEC;
-    get_real_time(p->starttime_real_high, p->starttime_real_low)
-    get_CPU_time(p->starttime_CPU_high, p->starttime_CPU_low)
+    p->starttime_real = get_real_time();
+    p->starttime_CPU = get_CPU_time();
 }
 
 /* return the elapsed real time (in seconds) since the specified timer */
@@ -1823,20 +1804,8 @@ void timers_struct_init(RTCLOCK *p)
 
 double timers_get_real_time(RTCLOCK *p)
 {
-    unsigned long h, l;
-    get_real_time(h, l)
-#if defined(HAVE_RDTSC) || defined(WIN32)
-    h -= p->starttime_real_high;
-    if (l < p->starttime_real_low) h--;
-    l -= p->starttime_real_low;
-    return (((double) ((long) h) * 4294967296.0 + (double) l)
-            * p->real_time_to_seconds_scale);
-#elif defined(HAVE_GETTIMEOFDAY)
-    return ((double) ((long) h - (long) p->starttime_real_high)
-            + ((double) ((long) l - (long) p->starttime_real_low) * 0.000001));
-#else
-    return ((double) ((long) (l - p->starttime_real_low)));
-#endif
+    return ((double) (get_real_time() - p->starttime_real)
+            * (double) timeResolutionSeconds);
 }
 
 /* return the elapsed CPU time (in seconds) since the specified timer */
@@ -1844,23 +1813,15 @@ double timers_get_real_time(RTCLOCK *p)
 
 double timers_get_CPU_time(RTCLOCK *p)
 {
-    unsigned long h, l;
-    get_CPU_time(h, l)
-    l -= p->starttime_CPU_low;
-    return ((double) l * p->CPU_time_to_seconds_scale);
+    return ((double) ((uint32_t) get_CPU_time() - (uint32_t) p->starttime_CPU)
+            * (1.0 / (double) CLOCKS_PER_SEC));
 }
 
 /* return a 32-bit unsigned integer to be used as seed from current time */
 
 unsigned long timers_random_seed(void)
 {
-    unsigned long h, l;
-    get_real_time(h, l)
-#if !defined(HAVE_RDTSC) && defined(HAVE_GETTIMEOFDAY)
-    /* make use of all bits */
-    l += (h & 0x00000FFFUL) * 1000000UL;
-#endif
-    return l;
+    return (unsigned long) ((uint32_t) get_real_time());
 }
 
 /**
