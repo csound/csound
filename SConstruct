@@ -164,6 +164,7 @@ opts.Add('useDirentFix',
 opts.Add('buildPDClass', "build csoundapi~ PD class (needs m_pd.h in the standard places)", '0')
 opts.Add('useCoreAudio', "Set to 1 to use CoreAudio for real-time audio input and output.", '1')
 opts.Add('useAltivec', "On OSX use the gcc AltiVec optmisation flags", '0')
+opts.Add('MSVC', "using MSVC build tools", '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -257,17 +258,20 @@ elif getPlatform() == 'darwin':
     if (commonEnvironment['useDirentFix'] == '1'):
         print 'Using OSX dirent fix'
         commonEnvironment.Append(CCFLAGS = "-DDIRENT_FIX")
-elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
+elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':  
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
-    commonEnvironment.Append(CPPPATH = '/usr/include')
-    commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-D_WIN32")
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
     commonEnvironment.Append(CCFLAGS = "-DHAVE_STRING_H")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
-    commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
-    commonEnvironment.Append(CCFLAGS = "-mthreads")
-    #commonEnvironment.Append(CCFLAGS = "-mtune=pentium4")
+    commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")   
+    if commonEnvironment['MSVC'] == '0':
+   	commonEnvironment.Append(CPPPATH = '/usr/local/include')
+    	commonEnvironment.Append(CPPPATH = '/usr/include')
+    	commonEnvironment.Append(CCFLAGS = "-mthreads")
+	commonEnvironment.Append(CCFLAGS = "-mtune=pentium4")
+    else:
+	commonEnvironment.Append(CCFLAGS = "-DMSVC")
 
 if (getPlatform() == 'linux'):
     commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
@@ -451,11 +455,12 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
         vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
-        vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-        guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-        csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-        vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-        guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        if commonEnvironment['MSVC'] == '0':
+           vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+           guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+           csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+       	   vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+           guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
     elif getPlatform() == 'darwin':
         csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
@@ -466,20 +471,51 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
 
 if getPlatform() == 'mingw':
     # These are the Windows system call libraries.
-    csoundProgramEnvironment.Append(LIBS = ['kernel32'])
-    csoundProgramEnvironment.Append(LIBS = ['gdi32'])
-    csoundProgramEnvironment.Append(LIBS = ['wsock32'])
-    csoundProgramEnvironment.Append(LIBS = ['ole32'])
-    csoundProgramEnvironment.Append(LIBS = ['uuid'])
-    csoundProgramEnvironment.Append(LIBS = ['winmm'])
-
-    vstEnvironment.Append(LIBS = ['kernel32'])
-    vstEnvironment.Append(LIBS = ['gdi32'])
-    vstEnvironment.Append(LIBS = ['wsock32'])
-    vstEnvironment.Append(LIBS = ['ole32'])
-    vstEnvironment.Append(LIBS = ['uuid'])
-    vstEnvironment.Append(LIBS = ['winmm'])
-
+   if commonEnvironment['MSVC'] == '0':
+    	csoundProgramEnvironment.Append(LIBS = ['kernel32'])
+    	csoundProgramEnvironment.Append(LIBS = ['gdi32'])
+    	csoundProgramEnvironment.Append(LIBS = ['wsock32'])
+    	csoundProgramEnvironment.Append(LIBS = ['ole32'])
+    	csoundProgramEnvironment.Append(LIBS = ['uuid'])
+    	csoundProgramEnvironment.Append(LIBS = ['winmm'])
+   else:
+        csoundProgramEnvironment.Append(LIBS = ['kernel32'])
+    	csoundProgramEnvironment.Append(LIBS = ['gdi32']) 
+    	csoundProgramEnvironment.Append(LIBS = ['wsock32'])
+    	csoundProgramEnvironment.Append(LIBS = ['ole32'])
+    	csoundProgramEnvironment.Append(LIBS = ['uuid'])
+    	csoundProgramEnvironment.Append(LIBS = ['winmm'])
+    	csoundProgramEnvironment.Append(LIBS = ['user32.lib'])
+    	csoundProgramEnvironment.Append(LIBS = ['ws2_32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['comctl32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['gdi32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['comdlg32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['advapi32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['shell32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['ole32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['oleaut32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['uuid.lib'])
+    	csoundProgramEnvironment.Append(LIBS =['odbc32.lib'])
+    	csoundProgramEnvironment.Append(LIBS =['odbccp32.lib'])
+    	csoundProgramEnvironment.Append(LIBS =['kernel32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['user32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['gdi32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['winspool.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['comdlg32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['advapi32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['shell32.lib'])
+    	csoundProgramEnvironment.Append(LIBS =['ole32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['oleaut32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['uuid.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['odbc32.lib']) 
+    	csoundProgramEnvironment.Append(LIBS =['odbccp32.lib']) 
+    	
+   vstEnvironment.Append(LIBS = ['kernel32'])
+   vstEnvironment.Append(LIBS = ['gdi32'])
+   vstEnvironment.Append(LIBS = ['wsock32'])
+   vstEnvironment.Append(LIBS = ['ole32'])
+   vstEnvironment.Append(LIBS = ['uuid'])
+   vstEnvironment.Append(LIBS = ['winmm'])
 #############################################################################
 #
 #   DEFINE TARGETS AND SOURCES
@@ -774,7 +810,39 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
   if getPlatform() == 'linux' or getPlatform() == 'cygwin':
     widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
   elif getPlatform() == 'mingw':
-    widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++', 'kernel32', 'gdi32', 'wsock32', 'ole32', 'uuid', 'winmm'])
+    if commonEnvironment['MSVC'] == 0:
+        widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++', 'kernel32', 'gdi32', 'wsock32', 'ole32', 'uuid', 'winmm'])
+    else:
+        widgetsEnvironment.Append(LIBS = ['kernel32'])
+    	widgetsEnvironment.Append(LIBS = ['gdi32']) 
+    	widgetsEnvironment.Append(LIBS = ['wsock32'])
+    	widgetsEnvironment.Append(LIBS = ['ole32'])
+    	widgetsEnvironment.Append(LIBS = ['uuid'])
+    	widgetsEnvironment.Append(LIBS = ['winmm'])
+    	widgetsEnvironment.Append(LIBS = ['user32.lib'])
+    	widgetsEnvironment.Append(LIBS = ['ws2_32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['comctl32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['gdi32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['comdlg32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['advapi32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['shell32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['ole32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['oleaut32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['uuid.lib'])
+    	widgetsEnvironment.Append(LIBS =['odbc32.lib'])
+    	widgetsEnvironment.Append(LIBS =['odbccp32.lib'])
+    	widgetsEnvironment.Append(LIBS =['kernel32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['user32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['gdi32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['winspool.lib']) 
+    	widgetsEnvironment.Append(LIBS =['comdlg32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['advapi32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['shell32.lib'])
+    	widgetsEnvironment.Append(LIBS =['ole32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['oleaut32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['uuid.lib']) 
+    	widgetsEnvironment.Append(LIBS =['odbc32.lib']) 
+    	widgetsEnvironment.Append(LIBS =['odbccp32.lib']) 
   elif getPlatform() == 'darwin':
     widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     widgetsEnvironment.Append(LINKFLAGS = Split('-framework Carbon -framework CoreAudio -framework CoreMidi -framework ApplicationServices'))
@@ -882,7 +950,40 @@ else:
 
 if getPlatform() == 'mingw' and fltkFound:
     vst4Environment = vstEnvironment.Copy()
-    vst4Environment.Append(LIBS = ['stdc++', 'fltk'])
+    if commonEnvironment['MSVC'] == 0:
+    	vst4Environment.Append(LIBS = ['stdc++', 'fltk'])
+    else: 
+  	vst4Environment.Append(LIBS = ['fltk'])
+	vst4Environment.Append(LIBS = ['kernel32'])
+    	vst4Environment.Append(LIBS = ['gdi32']) 
+    	vst4Environment.Append(LIBS = ['wsock32'])
+    	vst4Environment.Append(LIBS = ['ole32'])
+    	vst4Environment.Append(LIBS = ['uuid'])
+    	vst4Environment.Append(LIBS = ['winmm'])
+    	vst4Environment.Append(LIBS = ['user32.lib'])
+    	vst4Environment.Append(LIBS = ['ws2_32.lib']) 
+    	vst4Environment.Append(LIBS =['comctl32.lib']) 
+    	vst4Environment.Append(LIBS =['gdi32.lib']) 
+    	vst4Environment.Append(LIBS =['comdlg32.lib']) 
+    	vst4Environment.Append(LIBS =['advapi32.lib']) 
+    	vst4Environment.Append(LIBS =['shell32.lib']) 
+    	vst4Environment.Append(LIBS =['ole32.lib']) 
+    	vst4Environment.Append(LIBS =['oleaut32.lib']) 
+    	vst4Environment.Append(LIBS =['uuid.lib'])
+    	vst4Environment.Append(LIBS =['odbc32.lib'])
+    	vst4Environment.Append(LIBS =['odbccp32.lib'])
+    	vst4Environment.Append(LIBS =['kernel32.lib']) 
+    	vst4Environment.Append(LIBS =['user32.lib']) 
+    	vst4Environment.Append(LIBS =['gdi32.lib']) 
+    	vst4Environment.Append(LIBS =['winspool.lib']) 
+    	vst4Environment.Append(LIBS =['comdlg32.lib']) 
+    	vst4Environment.Append(LIBS =['advapi32.lib']) 
+    	vst4Environment.Append(LIBS =['shell32.lib'])
+    	vst4Environment.Append(LIBS =['ole32.lib']) 
+    	vst4Environment.Append(LIBS =['oleaut32.lib']) 
+    	vst4Environment.Append(LIBS =['uuid.lib']) 
+    	vst4Environment.Append(LIBS =['odbc32.lib']) 
+    	vst4Environment.Append(LIBS =['odbccp32.lib']) 
     if getPlatform() == 'mingw':
         vst4Environment.Append(LIBS = ['kernel32'])
         vst4Environment.Append(LIBS = ['gdi32'])
@@ -990,8 +1091,10 @@ executables.append(commonEnvironment.Program('makecsd',
 
 # Front ends.
 
-executables.append(csoundProgramEnvironment.Program('csound',
-    ['frontends/csound/csound_main.c']))
+if commonEnvironment['MSVC'] == 0:
+   executables.append(csoundProgramEnvironment.Program('csound',['frontends/csound/csound_main.c']))
+else:
+   executables.append(csoundProgramEnvironment.Program('csound5',['frontends/csound/csound_main.c']))
 
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
@@ -1218,15 +1321,52 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
         pdClassEnvironment.Append(LINKFLAGS = ['-shared'])
         pdClass = pdClassEnvironment.SharedLibrary('csoundapi~', 'frontends/csoundapi_tilde/csoundapi_tilde.c', SHLIBPREFIX = '')
         if(commonEnvironment['useFLTK'] == '1'):
-           pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile', 'pd'])
+           if(commonEnvironment['MSVC'] == '0'):
+             pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'fltk', 'sndfile', 'pd'])
+           else:
+             pdClassEnvironment.Append(LIBS=['csound', 'fltk', 'sndfile', 'pd'])
         else:
-           pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile', 'pd'])
-           pdClassEnvironment.Append(LIBPATH=['.'])
+           if(commonEnvironment['MSVC'] == '0'):
+            pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile', 'pd'])
+            pdClassEnvironment.Append(LIBPATH=['.'])
+           else:
+            pdClassEnvironment.Append(LIBS=['csound', 'sndfile', 'pd'])
         pdClassEnvironment.Append(LIBS = ['kernel32'])
         pdClassEnvironment.Append(LIBS = ['gdi32'])
         pdClassEnvironment.Append(LIBS = ['wsock32'])
         pdClassEnvironment.Append(LIBS = ['ole32'])
         pdClassEnvironment.Append(LIBS = ['uuid'])
+	pdClassEnvironment.Append(LIBS = ['fltk'])
+	pdClassEnvironment.Append(LIBS = ['kernel32'])
+    	pdClassEnvironment.Append(LIBS = ['gdi32']) 
+    	pdClassEnvironment.Append(LIBS = ['wsock32'])
+    	pdClassEnvironment.Append(LIBS = ['ole32'])
+    	pdClassEnvironment.Append(LIBS = ['uuid'])
+    	pdClassEnvironment.Append(LIBS = ['winmm'])
+    	pdClassEnvironment.Append(LIBS = ['user32.lib'])
+    	pdClassEnvironment.Append(LIBS = ['ws2_32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['comctl32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['gdi32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['comdlg32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['advapi32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['shell32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['ole32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['oleaut32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['uuid.lib'])
+    	pdClassEnvironment.Append(LIBS =['odbc32.lib'])
+    	pdClassEnvironment.Append(LIBS =['odbccp32.lib'])
+    	pdClassEnvironment.Append(LIBS =['kernel32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['user32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['gdi32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['winspool.lib']) 
+    	pdClassEnvironment.Append(LIBS =['comdlg32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['advapi32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['shell32.lib'])
+    	pdClassEnvironment.Append(LIBS =['ole32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['oleaut32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['uuid.lib']) 
+    	pdClassEnvironment.Append(LIBS =['odbc32.lib']) 
+    	pdClassEnvironment.Append(LIBS =['odbccp32.lib']) 
         pdClassEnvironment.Append(SHLINKFLAGS = ['-module'])
         pdClassEnvironment['ENV']['PATH'] = os.environ['PATH']
     Depends(pdClass, csoundLibrary)
