@@ -21,13 +21,13 @@
     02111-1307 USA
 */
 
+#ifdef MSVC
 #include <windows.h>
+#endif
 #include "csdl.h"
 #include "soundio.h"
-
-#ifdef MSVC
-#define DWORD_PTR DWORD
-
+#ifndef MSVC
+#include <windows.h>
 #endif
 
 #ifdef MAXBUFFERS
@@ -282,13 +282,13 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       if (devNum < 0 || devNum >= ndev) {
         csound->Message(csound, Str("The available output devices are:\n"));
         for (i = 0; i < ndev; i++) {
-          waveOutGetDevCapsA((UINT_PTR) i, (LPWAVEOUTCAPSA) &caps,
+          waveOutGetDevCapsA((unsigned int) i, (LPWAVEOUTCAPSA) &caps,
                              sizeof(WAVEOUTCAPSA));
           csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
         }
         return err_msg(csound, Str("device number is out of range"));
       }
-      waveOutGetDevCapsA((UINT_PTR) devNum, (LPWAVEOUTCAPSA) &caps,
+      waveOutGetDevCapsA((unsigned int) devNum, (LPWAVEOUTCAPSA) &caps,
                          sizeof(WAVEOUTCAPSA));
       csound->Message(csound, Str("winmm: opening output device %d (%s)\n"),
                               devNum, (char*) caps.szPname);
@@ -301,13 +301,13 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       if (devNum < 0 || devNum >= ndev) {
         csound->Message(csound, Str("The available input devices are:\n"));
         for (i = 0; i < ndev; i++) {
-          waveInGetDevCapsA((UINT_PTR) i, (LPWAVEINCAPSA) &caps,
+          waveInGetDevCapsA((unsigned int) i, (LPWAVEINCAPSA) &caps,
                             sizeof(WAVEINCAPSA));
           csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
         }
         return err_msg(csound, Str("device number is out of range"));
       }
-      waveInGetDevCapsA((UINT_PTR) devNum, (LPWAVEINCAPSA) &caps,
+      waveInGetDevCapsA((unsigned int) devNum, (LPWAVEINCAPSA) &caps,
                         sizeof(WAVEINCAPSA));
       csound->Message(csound, Str("winmm: opening input device %d (%s)\n"),
                               devNum, (char*) caps.szPname);
@@ -326,8 +326,8 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       p->outDev = dev;
       *(csound->GetRtPlayUserData(csound)) = (void*) dev;
       dev->enable_buf_timer = p->enable_buf_timer;
-      if (waveOutOpen((LPHWAVEOUT) &(dev->outDev), (UINT_PTR) devNum,
-                      (LPWAVEFORMATEX) &wfx, (DWORD_PTR) 0, (DWORD_PTR) 0,
+      if (waveOutOpen((LPHWAVEOUT) &(dev->outDev), (unsigned int) devNum,
+                      (LPWAVEFORMATEX) &wfx, 0, 0,
                       openFlags) != MMSYSERR_NOERROR) {
         dev->outDev = (HWAVEOUT) 0;
         return err_msg(csound, Str("failed to open device"));
@@ -352,8 +352,8 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       *(csound->GetRtRecordUserData(csound)) = (void*) dev;
       /* disable playback timer in full-duplex mode */
       dev->enable_buf_timer = p->enable_buf_timer = 0;
-      if (waveInOpen((LPHWAVEIN) &(dev->inDev), (UINT_PTR) devNum,
-                     (LPWAVEFORMATEX) &wfx, (DWORD_PTR) 0, (DWORD_PTR) 0,
+      if (waveInOpen((LPHWAVEIN) &(dev->inDev), (unsigned int) devNum,
+                     (LPWAVEFORMATEX) &wfx, 0, 0,
                      openFlags) != MMSYSERR_NOERROR) {
         dev->inDev = (HWAVEIN) 0;
         return err_msg(csound, Str("failed to open device"));
@@ -558,3 +558,4 @@ PUBLIC int csoundModuleInit(void *csound)
     p->SetRtcloseCallback(p, rtclose_);
     return 0;
 }
+
