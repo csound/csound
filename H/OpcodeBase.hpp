@@ -1,7 +1,12 @@
 #ifndef OPCODE_BASE_H
 #define OPCODE_BASE_H
-#include "csoundCore.h"
+#ifdef MSVC
+#include <cmath>
+#else
 #include <cstdarg>
+#endif
+#include "csoundCore.h"
+
 
 /**
  * Template base class, or pseudo-virtual base class,
