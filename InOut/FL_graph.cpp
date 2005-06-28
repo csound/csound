@@ -267,8 +267,9 @@ extern "C"
 {
   void DrawGraph_(void *csound, WINDAT *);
   long MakeWindow(char *);
+  int  defaultCsoundYield(void *);
   void kill_graph(int);
-  int myFLwait(void);
+  int  myFLwait(void);
   void MakeXYin_(void *csound, XYINDAT*, MYFLT, MYFLT);
   void ReadXYin_(void *csound, XYINDAT *wdptr);
   void KillXYin_(void *csound, XYINDAT *x);
