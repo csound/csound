@@ -132,8 +132,8 @@ int partials_init(ENVIRON * csound, _PARTS * p)
     memset(p->tstart.auxp, 0, sizeof(unsigned int) * maxtracks * 2);
     memset(p->lastpk.auxp, 0, sizeof(unsigned int) * maxtracks * 2);
     memset(p->cflag.auxp, 0, sizeof(int) * maxtracks);
-    trkid = (int *)p->trkid.auxp;
-    trndx = (int *)p->trndx.auxp;
+    trkid = (int *) p->trkid.auxp;
+    trndx = (int *) p->trndx.auxp;
     for (i = 0; i < maxtracks; i++)
       trkid[p->cur + i] = trkid[p->prev + i] = trndx[i] = -1;
 
@@ -166,15 +166,15 @@ void Analysis(ENVIRON * csound, _PARTS * p)
     float   ftmp, ftmp2;
     int     numbins = p->numbins, maxtracks = p->mtracks;
     int     prev = p->prev, cur = p->cur, foundcont;
-    int     accum = p->accum, minpoints = (int)(*p->pts > 1 ? *p->pts : 1) - 1;
+    int     accum = p->accum, minpoints = (int) (*p->pts > 1 ? *p->pts : 1) - 1;
     int     tracks = p->tracks;
     MYFLT  *mags = (MYFLT *) p->mags.auxp;
-    double *lmags = (double *)p->lmags.auxp;
-    int    *cflag = (int *)p->cflag.auxp;
-    int    *trkid = (int *)p->trkid.auxp;
-    int    *trndx = (int *)p->trndx.auxp;
-    int    *index = (int *)p->index.auxp;
-    unsigned long *tstart = (unsigned long *)p->tstart.auxp;
+    double *lmags = (double *) p->lmags.auxp;
+    int    *cflag = (int *) p->cflag.auxp;
+    int    *trkid = (int *) p->trkid.auxp;
+    int    *trndx = (int *) p->trndx.auxp;
+    int    *index = (int *) p->index.auxp;
+    unsigned long *tstart = (unsigned long *) p->tstart.auxp;
     MYFLT  *binex = (MYFLT *) p->binex.auxp;
     MYFLT  *magex = (MYFLT *) p->magex.auxp;
     MYFLT  *oldbins = (MYFLT *) p->oldbins.auxp;
@@ -182,9 +182,9 @@ void Analysis(ENVIRON * csound, _PARTS * p)
     MYFLT  *adthresh = (MYFLT *) p->adthresh.auxp;
     MYFLT  *pmags = (MYFLT *) p->pmags.auxp;
     MYFLT  *bins = (MYFLT *) p->bins.auxp;
-    unsigned long *lastpk = (unsigned long *)p->lastpk.auxp;
+    unsigned long *lastpk = (unsigned long *) p->lastpk.auxp;
     unsigned long int timecount = p->timecount,
-        maxgap = (unsigned int)(*p->gap > 0 ? *p->gap : 0);
+        maxgap = (unsigned int) (*p->gap > 0 ? *p->gap : 0);
     int     test1 = 1, test2 = 0;
 
     for (i = 0; i < numbins; i++)
@@ -298,7 +298,7 @@ void Analysis(ENVIRON * csound, _PARTS * p)
         }
       }
       if (foundcont == 0) {
-        if ((mags[(int)(oldbins[prev + j] + 0.5f)]) < (0.2 * pmags[prev + j])
+        if ((mags[(int) (oldbins[prev + j] + 0.5f)]) < (0.2 * pmags[prev + j])
             || (timecount - lastpk[prev + j]) > maxgap)
           cflag[j] = 0;
         else {
@@ -407,15 +407,15 @@ int partials_process(ENVIRON * csound, _PARTS * p)
       for (i = k = 0; i < end; i += 4, k++) {
         if (k < tracks) {
           /* magnitudes */
-          ndx = (int)bins[k];
-          fout[i] = (float)mags[k];
+          ndx = (int) bins[k];
+          fout[i] = (float) mags[k];
           /* fractional part of bin indexes */
           frac = (bins[k] - ndx);
           /* freq interpolation */
           pos = ndx * 2 + 1;
           a = fin1[pos];
           b = (bins[k] < numbins - 1 ? (fin1[pos + 2] - a) : 0);
-          fout[i + 1] = (float)(a + frac * b);
+          fout[i + 1] = (float) (a + frac * b);
           if (!nophase)
             fout[i + 2] = fin2[pos];  /* phase (truncated) */
           else
