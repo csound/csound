@@ -34,7 +34,7 @@ kthresh - analysis threshold (0 <= kthresh <= 1)
 kminpts - minimum number of time-points for a partial track
 kmaxgap - max gap between detected peaks in a track
 imaxtracks - max number of tracks (<= number of analysis bins)
-
+
 */
 
 #include "csdl.h"
