@@ -30,10 +30,12 @@
 #include <FL/fl_draw.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Button.H>
+
+#ifdef MSVC
 #include <math.h>
+#endif
 #include "csoundCore.h"
 #include "cwindow.h"
-
 
 #define NUMOFWINDOWS (30)
 #define XINIT    10      /* set default window location */
