@@ -60,7 +60,7 @@ void listPortAudioDevices(void *csound)
 }
 
 static int recopen_(void *csound, csRtAudioParams * parm)
-       /* open for audio input */
+         /* open for audio input */
 {
     struct PaStreamParameters paStreamParameters_;
     PA_BLOCKING_STREAM *pabs;
@@ -109,8 +109,8 @@ static int recopen_(void *csound, csRtAudioParams * parm)
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
     }
-    paStreamParameters_.suggestedLatency = (double)oMaxLag
-        / (double)parm->sampleRate;
+    paStreamParameters_.suggestedLatency = (double) oMaxLag
+        / (double) parm->sampleRate;
     paStreamParameters_.channelCount = parm->nChannels;
     paStreamParameters_.sampleFormat = paFloat32;
     ((ENVIRON *) csound)->Message(csound, "Suggested PortAudio latency = "
@@ -129,13 +129,13 @@ static int recopen_(void *csound, csRtAudioParams * parm)
                                   ("Opened PortAudio full-duplex device  %i.\n"),
                                   paStreamParameters_.device);
     openOnce =
-        (int *)((ENVIRON *) csound)->QueryGlobalVariable(csound, "openOnce");
+        (int *) ((ENVIRON *) csound)->QueryGlobalVariable(csound, "openOnce");
     *openOnce = 1;
     return 0;
 }
 
 static int playopen_(void *csound, csRtAudioParams * parm)
-       /* open for audio output */
+         /* open for audio output */
 {
     struct PaStreamParameters paStreamParameters_;
     PA_BLOCKING_STREAM *pabs;
@@ -182,12 +182,12 @@ static int playopen_(void *csound, csRtAudioParams * parm)
       }
       paStreamParameters_.hostApiSpecificStreamInfo = NULL;
     }
-    paStreamParameters_.suggestedLatency = (double)oMaxLag
-        / (double)parm->sampleRate;
+    paStreamParameters_.suggestedLatency = (double) oMaxLag
+        / (double) parm->sampleRate;
     paStreamParameters_.channelCount = parm->nChannels;
     paStreamParameters_.sampleFormat = paFloat32;
     openOnce =
-        (int *)((ENVIRON *) csound)->QueryGlobalVariable(csound, "openOnce");
+        (int *) ((ENVIRON *) csound)->QueryGlobalVariable(csound, "openOnce");
     if (!*openOnce) {
       ((ENVIRON *) csound)->Message(csound,
                                     "Suggested PortAudio output latency = "
@@ -267,7 +267,7 @@ PUBLIC int csoundModuleInit(void *csound)
     int    *ptr;
 
     p = (ENVIRON *) csound;
-    drv = (char *)(p->QueryGlobalVariable(csound, "_RTAUDIO"));
+    drv = (char *) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
     if (drv == NULL)
       return 0;
     if (!(strcmp(drv, "portaudio") == 0 || strcmp(drv, "PortAudio") == 0 ||
@@ -278,7 +278,7 @@ PUBLIC int csoundModuleInit(void *csound)
     p->CreateGlobalVariable(csound, "pabsReadWritep",
                             sizeof(PA_BLOCKING_STREAM) * 2);
     p->CreateGlobalVariable(csound, "openOnce", sizeof(int));
-    ptr = (int *)p->QueryGlobalVariable(csound, "openOnce");
+    ptr = (int *) p->QueryGlobalVariable(csound, "openOnce");
     *ptr = 0;
 
     p->Message(csound, "rtaudio: PortAudio module enabled\n");

@@ -45,7 +45,7 @@ int paBlockingReadWriteOpen(ENVIRON * csound,
     paError = Pa_OpenStream(&pabs->paStream,
                             &pabs[INS].paParameters,
                             &pabs[OUTS].paParameters,
-                            (double)csound->GetSr(csound),
+                            (double) csound->GetSr(csound),
                             buf_size,
                             paNoFlag, paBlockingReadWriteStreamCallback, pabs);
     if (paError == paNoError)
@@ -86,7 +86,7 @@ int paBlockingWriteOpen(ENVIRON * csound,
     paError = Pa_OpenStream(&pabs->paStream,
                             0,
                             &pabs->paParameters,
-                            (double)csound->esr,
+                            (double) csound->esr,
                             buf_size,
                             paNoFlag, paBlockingWriteStreamCallback, pabs);
     if (paError == paNoError) {
@@ -111,8 +111,8 @@ int paBlockingReadWriteStreamCallback(const void *input,
     size_t  i;
     size_t  n;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *) userData;
-    float  *paInput = (float *)input;
-    float  *paOutput = (float *)output;
+    float  *paInput = (float *) input;
+    float  *paOutput = (float *) output;
 
     ((ENVIRON *) pabs[OUTS].csound)->WaitThreadLock(pabs[OUTS].csound,
                                                     pabs[OUTS].paLock, 500);
@@ -126,7 +126,7 @@ int paBlockingReadWriteStreamCallback(const void *input,
                                                    pabs[INS].clientLock); */
 
     for (i = 0, n = pabs[OUTS].actualBufferSampleCount; i < n; i++) {
-      paOutput[i] = (float)pabs[OUTS].actualBuffer[i];
+      paOutput[i] = (float) pabs[OUTS].actualBuffer[i];
     }
     ((ENVIRON *) pabs[OUTS].csound)->NotifyThreadLock(pabs[OUTS].csound,
                                                       pabs[OUTS].clientLock);
@@ -137,7 +137,7 @@ void paBlockingRead(PA_BLOCKING_STREAM * pabs, int samples, MYFLT * buffer)
 {
     size_t  i;
 
-    for (i = 0; i < (unsigned int)samples; i++, pabs->currentIndex++) {
+    for (i = 0; i < (unsigned int) samples; i++, pabs->currentIndex++) {
       if (pabs->currentIndex >= pabs->actualBufferSampleCount) {
         /*  ((ENVIRON*) pabs->csound)->NotifyThreadLock(pabs->csound,
            pabs->paLock);
@@ -159,7 +159,7 @@ int paBlockingWriteStreamCallback(const void *input,
     size_t  i;
     size_t  n;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *) userData;
-    float  *paOutput = (float *)output;
+    float  *paOutput = (float *) output;
 
     if (!pabs)
       return paContinue;
@@ -167,7 +167,7 @@ int paBlockingWriteStreamCallback(const void *input,
       return paContinue;
     ((ENVIRON *) pabs->csound)->WaitThreadLock(pabs->csound, pabs->paLock, 500);
     for (i = 0, n = pabs[OUTS].actualBufferSampleCount; i < n; i++) {
-      paOutput[i] = (float)pabs[OUTS].actualBuffer[i];
+      paOutput[i] = (float) pabs[OUTS].actualBuffer[i];
     }
     ((ENVIRON *) pabs->csound)->NotifyThreadLock(pabs->csound,
                                                  pabs->clientLock);
@@ -182,7 +182,7 @@ void paBlockingWrite(PA_BLOCKING_STREAM * pabs, int samples, MYFLT * buffer)
       return;
     if (!pabs->actualBuffer)
       return;
-    for (i = 0; i < (unsigned int)samples; i++, pabs->currentIndex++) {
+    for (i = 0; i < (unsigned int) samples; i++, pabs->currentIndex++) {
       if (pabs->currentIndex >= pabs->actualBufferSampleCount) {
         ((ENVIRON *) pabs->csound)->NotifyThreadLock(pabs->csound,
                                                      pabs->paLock);
@@ -218,7 +218,7 @@ int paBlockingReadOpen(ENVIRON * csound,
                     buf_size);
     paError =
         Pa_OpenStream(&pabs->paStream, &pabs->paParameters, 0,
-                      (double)csound->GetSr(csound), buf_size, paNoFlag,
+                      (double) csound->GetSr(csound), buf_size, paNoFlag,
                       paBlockingReadStreamCallback, pabs);
     if (paError == paNoError) {
       paError = Pa_StartStream(pabs->paStream);
@@ -239,7 +239,7 @@ int paBlockingReadStreamCallback(const void *input,
                                    void *userData)
 {
     size_t  i, n;
-    float  *paInput = (float *)input;
+    float  *paInput = (float *) input;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM *) userData;
 
     ((ENVIRON *) pabs->csound)->WaitThreadLock(pabs->csound, pabs->paLock, 500);
@@ -265,8 +265,8 @@ void paBlockingClose(void *csound, PA_BLOCKING_STREAM * pabs)
       }
       ((ENVIRON *) csound)->Free(csound, pabs[OUTS].actualBuffer);
       pabs[OUTS].actualBuffer = NULL;
-      openOnce = (int *)((ENVIRON *) csound)->QueryGlobalVariable(csound,
-                                                                  "openOnce");
+      openOnce = (int *) ((ENVIRON *) csound)->QueryGlobalVariable(csound,
+                                                                   "openOnce");
       if (!*openOnce)
         ((ENVIRON *) csound)->Free(csound, pabs[INS].actualBuffer);
       pabs[INS].actualBuffer = NULL;
