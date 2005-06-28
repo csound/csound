@@ -321,8 +321,8 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       p->outDev = dev;
       *(csound->GetRtPlayUserData(csound)) = (void*) dev;
       dev->enable_buf_timer = p->enable_buf_timer;
-      if (waveOutOpen((LPHWAVEOUT) &(dev->outDev), (UINT_PTR) devNum,
-                      (LPWAVEFORMATEX) &wfx, (DWORD_PTR) 0, (DWORD_PTR) 0,
+      if (waveOutOpen((LPHWAVEOUT) &(dev->outDev), (unsigned int) devNum,
+                      (LPWAVEFORMATEX) &wfx, 0, 0,
                       openFlags) != MMSYSERR_NOERROR) {
         dev->outDev = (HWAVEOUT) 0;
         return err_msg(csound, Str("failed to open device"));
@@ -347,8 +347,8 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
       *(csound->GetRtRecordUserData(csound)) = (void*) dev;
       /* disable playback timer in full-duplex mode */
       dev->enable_buf_timer = p->enable_buf_timer = 0;
-      if (waveInOpen((LPHWAVEIN) &(dev->inDev), (UINT_PTR) devNum,
-                     (LPWAVEFORMATEX) &wfx, (DWORD_PTR) 0, (DWORD_PTR) 0,
+      if (waveInOpen((LPHWAVEIN) &(dev->inDev), (unsigned int) devNum,
+                     (LPWAVEFORMATEX) &wfx, 0, 0,
                      openFlags) != MMSYSERR_NOERROR) {
         dev->inDev = (HWAVEIN) 0;
         return err_msg(csound, Str("failed to open device"));
@@ -512,7 +512,7 @@ static void rtclose_(void *csound)
 
 /* module interface functions */
 
-int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(void *csound)
 {
     ENVIRON         *p = (ENVIRON*) csound;
     rtWinMMGlobals  *pp;
@@ -535,7 +535,7 @@ int csoundModuleCreate(void *csound)
                                            NULL));
 }
 
-int csoundModuleInit(void *csound)
+PUBLIC int csoundModuleInit(void *csound)
 {
     ENVIRON *p = (ENVIRON*) csound;
     char    *drv = (char*) p->QueryGlobalVariable(p, "_RTAUDIO");
