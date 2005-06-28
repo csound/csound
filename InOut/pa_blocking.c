@@ -190,10 +190,8 @@ void paBlockingWrite(PA_BLOCKING_STREAM * pabs, int samples, MYFLT * buffer)
         pabs->currentIndex = 0;
       }
       pabs->actualBuffer[pabs->currentIndex] = buffer[i];
-      if (chns == 1) {
-        pabs->currentIndex++;
-        pabs->actualBuffer[pabs->currentIndex] = 0;
-      }
+      if (chns == 1)
+        pabs->actualBuffer[++(pabs->currentIndex)] = buffer[i];
     }
 }
 
