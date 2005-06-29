@@ -555,22 +555,22 @@ int csoundModuleCreate(void *csound)
 PUBLIC int csoundModuleInit(void *csound)
 {
     ENVIRON *p;
-    char    *drv;
-    int     err;
+    char    *s, drv[12];
+    int     i, err, useBlockingInterface = 0;
 
     p = (ENVIRON*) csound;
-    drv = (char*) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
-    if (drv == NULL)
+    if ((s = (char*) p->QueryGlobalVariable(p, "_RTAUDIO")) == NULL)
       return 0;
-    if (!(strcmp(drv, "portaudio") == 0 || strcmp(drv, "Portaudio") == 0 ||
-          strcmp(drv, "portAudio") == 0 || strcmp(drv, "PortAudio") == 0 ||
-          strcmp(drv, "pa") == 0 || strcmp(drv, "PA") == 0))
+    for (i = 0; s[i] != '\0' && i < 11; i++)
+      drv[i] = s[i] & (char) 0xDF;
+    drv[i] = '\0';
+    if (!(strcmp(drv, "PORTAUDIO") == 0 || strcmp(drv, "PA") == 0 ||
+          strcmp(drv, "PA_BL") == 0 || strcmp(drv, "PA_CB") == 0))
       return 0;
-    p->Message(csound, "rtaudio: PortAudio module enabled\n");
     /* print PortAudio version */
-    drv = (char*) Pa_GetVersionText();
-    if (drv != NULL)
-      p->Message(csound, "%s\n", drv);
+    s = (char*) Pa_GetVersionText();
+    if (s != NULL)
+      p->Message(csound, "%s\n", s);
     /* initialise PortAudio */
     err = (int) Pa_Initialize();
     if (err != (int) paNoError) {
@@ -579,12 +579,16 @@ PUBLIC int csoundModuleInit(void *csound)
     }
     p->CreateGlobalVariable(csound, "::PortAudio::NeedsTerminate", 1);
     p->Message(csound, "rtaudio: PortAudio module enabled ... ");
-    /* set function pointers */
-    if ((int) Pa_HostApiTypeIdToHostApiIndex(paALSA) >= 0 ||
+    if (strcmp(drv, "PA_BL") == 0 ||
+        (int) Pa_HostApiTypeIdToHostApiIndex(paALSA) >= 0 ||
         ((int) Pa_HostApiTypeIdToHostApiIndex(paMME) >= 0 &&
          (int) Pa_HostApiTypeIdToHostApiIndex(paASIO) < 0 &&
-         (int) Pa_HostApiTypeIdToHostApiIndex(paDirectSound) < 0)) {
-      /* ALSA, MME: use blocking interface */
+         (int) Pa_HostApiTypeIdToHostApiIndex(paDirectSound) < 0))
+      useBlockingInterface = 1;
+    if (strcmp(drv, "PA_CB") == 0)
+      useBlockingInterface = 0;
+    /* set function pointers */
+    if (useBlockingInterface) {
       p->Message(csound, "using blocking interface\n");
       p->SetPlayopenCallback(csound, playopen_blocking);
       p->SetRecopenCallback(csound, recopen_blocking);
@@ -593,7 +597,6 @@ PUBLIC int csoundModuleInit(void *csound)
       p->SetRtcloseCallback(csound, rtclose_blocking);
     }
     else {
-      /* use callback interface */
       /* memory for PA_BLOCKING_STREAM dataspace for both input and output */
       p->Message(csound, "using callback interface\n");
       p->CreateGlobalVariable(csound, "pabsReadWritep",
