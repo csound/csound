@@ -19,7 +19,7 @@ static NGFENS localfgens[] = {
 
 #define S       sizeof
 
-static OENTRY localops[] = {};
+static OENTRY localops[] = {{NULL}};
 
 FLINKAGE
 
