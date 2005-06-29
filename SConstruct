@@ -460,14 +460,14 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
         vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
-	   if commonEnvironment['MSVC'] == '0':
-			vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-			guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-			csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-			vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-			guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-	   else:
-			csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
+        if commonEnvironment['MSVC'] == '0':
+            vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+            guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        else:
+            csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
     elif getPlatform() == 'darwin':
         csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
         vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
