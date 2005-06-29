@@ -83,9 +83,6 @@ opts.Add('useDouble',
 opts.Add('usePortAudio',
     'Set to 1 to use PortAudio for real-time audio input and output.',
     '1')
-opts.Add('useOldPortAudioPlugin',
-    'Set to 1 to use old PortAudio plugin (rtpa.c and pa_blocking.c).',
-    '1')
 opts.Add('useALSA',
     'Set to 1 to use ALSA for real-time audio input and output.',
     '1')
@@ -841,19 +838,10 @@ else:
         portaudioEnvironment.Append(LIBS = ['asound'])
         portaudioEnvironment.Append(LIBS = ['pthread'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
-        portaudioEnvironment.Append(LIBS = ['winmm'])
-        portaudioEnvironment.Append(LIBS = ['dsound'])
-        portaudioEnvironment.Append(LIBS = ['kernel32'])
-        portaudioEnvironment.Append(LIBS = ['gdi32'])
-        portaudioEnvironment.Append(LIBS = ['wsock32'])
-        portaudioEnvironment.Append(LIBS = ['ole32'])
-        portaudioEnvironment.Append(LIBS = ['uuid'])
-    if (commonEnvironment['useOldPortAudioPlugin']=='1'):
-        pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
-                               Split('''InOut/rtpa.c InOut/pa_blocking.c''')))
-    else:
-        pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
-                                                        ['InOut/rtpa_new.c']))
+        portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
+        portaudioEnvironment.Append(LIBS = csoundWindowsLibraries)
+    pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
+                           Split('''InOut/rtpa.c InOut/pa_blocking.c''')))
 
 if (not(commonEnvironment['useJack']=='1' and jackFound)):
     print "CONFIGURATION DECISION: Not building JACK plugin."
