@@ -54,7 +54,6 @@ int paBlockingReadWriteOpen(ENVIRON * csound,
     /* locks */
     pabs[OUTS].paLock = csound->CreateThreadLock(csound);
     pabs[OUTS].clientLock = csound->CreateThreadLock(csound);
-    csound->WaitThreadLock(csound, pabs[OUTS].paLock, 500);
 
     memcpy(&pabs[INS].paParameters, paParameters, sizeof(PaStreamParameters));
     memcpy(&pabs[OUTS].paParameters, paParameters, sizeof(PaStreamParameters));
@@ -94,7 +93,6 @@ int paBlockingWriteOpen(ENVIRON * csound,
     pabs[OUTS].currentIndex = 0;
     pabs[OUTS].paLock = csound->CreateThreadLock(csound);
     pabs[OUTS].clientLock = csound->CreateThreadLock(csound);
-    csound->WaitThreadLock(csound, pabs[OUTS].paLock, 500);
     buf_size = parm->bufSamp_SW;
     pabs[OUTS].actualBufferSampleCount = buf_size * paParameters->channelCount;
     pabs[OUTS].actualBuffer = (MYFLT *)
