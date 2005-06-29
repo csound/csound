@@ -29,10 +29,9 @@ int paBlockingReadWriteOpen(ENVIRON * csound,
         ((ENVIRON *) csound)->Calloc(csound, pabs[OUTS].actualBufferSampleCount
                                      * sizeof(MYFLT));
     /* locks */
-    pabs[INS].paLock = csound->CreateThreadLock(csound);
     pabs[OUTS].paLock = csound->CreateThreadLock(csound);
-    pabs[INS].clientLock = csound->CreateThreadLock(csound);
     pabs[OUTS].clientLock = csound->CreateThreadLock(csound);
+    csound->WaitThreadLock(csound, pabs[OUTS].paLock, 500);
 
     memcpy(&pabs[INS].paParameters, paParameters, sizeof(PaStreamParameters));
     memcpy(&pabs[OUTS].paParameters, paParameters, sizeof(PaStreamParameters));
@@ -72,6 +71,7 @@ int paBlockingWriteOpen(ENVIRON * csound,
     pabs[OUTS].currentIndex = 0;
     pabs[OUTS].paLock = csound->CreateThreadLock(csound);
     pabs[OUTS].clientLock = csound->CreateThreadLock(csound);
+    csound->WaitThreadLock(csound, pabs[OUTS].paLock, 500);
     buf_size = parm->bufSamp_SW;
     pabs[OUTS].actualBufferSampleCount = buf_size * paParameters->channelCount;
     pabs[OUTS].actualBuffer = (MYFLT *)
@@ -114,6 +114,13 @@ int paBlockingReadWriteStreamCallback(const void *input,
     float  *paInput = (float *) input;
     float  *paOutput = (float *) output;
 
+    if (!pabs)
+      return paContinue;
+    if (!pabs->paStream) {
+      for (i = 0, n = pabs[OUTS].actualBufferSampleCount; i < n; i++)
+        paOutput[i] = 0.0f;
+      return paContinue;
+    }
     ((ENVIRON *) pabs[OUTS].csound)->WaitThreadLock(pabs[OUTS].csound,
                                                     pabs[OUTS].paLock, 500);
 /* VL: I am using only the output lock */
@@ -164,14 +171,17 @@ int paBlockingWriteStreamCallback(const void *input,
 
     if (!pabs)
       return paContinue;
-    if (!pabs->paStream)
+    n = pabs[OUTS].actualBufferSampleCount;
+    if (!pabs->paStream) {
+      for (i = 0; i < n; i++)
+        paOutput[i] = 0.0f;
       return paContinue;
-    ((ENVIRON *) pabs->csound)->WaitThreadLock(pabs->csound, pabs->paLock, 500);
-    for (i = 0, n = pabs[OUTS].actualBufferSampleCount; i < n; i++) {
+    }
+    ((ENVIRON*) pabs->csound)->WaitThreadLock(pabs->csound, pabs->paLock, 500);
+    for (i = 0; i < n; i++) {
       paOutput[i] = (float) pabs[OUTS].actualBuffer[i];
     }
-    ((ENVIRON *) pabs->csound)->NotifyThreadLock(pabs->csound,
-                                                 pabs->clientLock);
+    ((ENVIRON*) pabs->csound)->NotifyThreadLock(pabs->csound, pabs->clientLock);
     return paContinue;
 }
 
@@ -251,24 +261,31 @@ int paBlockingReadStreamCallback(const void *input,
     return paContinue;
 }
 
-void paBlockingClose(void *csound, PA_BLOCKING_STREAM * pabs)
+void paBlockingClose(void *csound_, PA_BLOCKING_STREAM * pabs)
 {
-    int    *openOnce;
+    ENVIRON *csound = (ENVIRON*) csound_;
+    int     *openOnce;
 
-    if (pabs) {
-#ifndef __MACH__
-      if (pabs->paStream) {
-        /* OSX seems to get stuck here sometimes */
-        Pa_CloseStream(pabs->paStream);
-        Pa_Sleep(500);
-      }
-#endif
-      ((ENVIRON *) csound)->Free(csound, pabs[OUTS].actualBuffer);
-      pabs[OUTS].actualBuffer = NULL;
-      openOnce = (int *) ((ENVIRON *) csound)->QueryGlobalVariable(csound,
-                                                                   "openOnce");
-      if (!*openOnce)
-        ((ENVIRON *) csound)->Free(csound, pabs[INS].actualBuffer);
-      pabs[INS].actualBuffer = NULL;
+    if (pabs == NULL)
+      return;
+    if (pabs->paStream) {
+      PaStream  *stream = pabs->paStream;
+      pabs->paStream = NULL;
+      Pa_Sleep(300);
+      csound->NotifyThreadLock(csound, pabs->paLock);
+      csound->NotifyThreadLock(csound, pabs->clientLock);
+      Pa_AbortStream(stream);
+      csound->NotifyThreadLock(csound, pabs->paLock);
+      csound->NotifyThreadLock(csound, pabs->clientLock);
+      Pa_CloseStream(stream);
+      Pa_Sleep(100);
     }
+    csound->DestroyThreadLock(csound, pabs->paLock);
+    csound->DestroyThreadLock(csound, pabs->clientLock);
+    csound->Free(csound, pabs[OUTS].actualBuffer);
+    pabs[OUTS].actualBuffer = NULL;
+    openOnce = (int *) csound->QueryGlobalVariable(csound, "openOnce");
+    if (!*openOnce)
+      csound->Free(csound, pabs[INS].actualBuffer);
+    pabs[INS].actualBuffer = NULL;
 }
