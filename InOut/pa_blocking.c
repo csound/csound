@@ -1,3 +1,26 @@
+/*
+    pa_blocking.c:
+
+    Copyright (C) 2004, 2005 Michael Gogins, Victor Lazzarini
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 #include "pa_blocking.h"
 
 #define INS 1
@@ -274,6 +297,7 @@ void paBlockingClose(void *csound_, PA_BLOCKING_STREAM * pabs)
       Pa_Sleep(300);
       csound->NotifyThreadLock(csound, pabs->paLock);
       csound->NotifyThreadLock(csound, pabs->clientLock);
+      Pa_Sleep(100);
       Pa_AbortStream(stream);
       csound->NotifyThreadLock(csound, pabs->paLock);
       csound->NotifyThreadLock(csound, pabs->clientLock);
@@ -285,7 +309,8 @@ void paBlockingClose(void *csound_, PA_BLOCKING_STREAM * pabs)
     csound->Free(csound, pabs[OUTS].actualBuffer);
     pabs[OUTS].actualBuffer = NULL;
     openOnce = (int *) csound->QueryGlobalVariable(csound, "openOnce");
-    if (!*openOnce)
+    if (*openOnce)
       csound->Free(csound, pabs[INS].actualBuffer);
     pabs[INS].actualBuffer = NULL;
 }
+
