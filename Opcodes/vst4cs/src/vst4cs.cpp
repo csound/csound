@@ -23,8 +23,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 //  02111-1307 USA
 
-
-
 #include <cstdlib>
 #include <cmath>
 #include <vector>
@@ -100,7 +98,7 @@ extern "C"
         {
                 VSTAUDIO *p = (VSTAUDIO *)data;
                 size_t i;
-				//ENVIRON *csound = p->h.insdshead->csound;
+                //ENVIRON *csound = p->h.insdshead->csound;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 //plugin->Debug("vstaudio: plugin %x.\n", plugin);
         if(!p->h.insdshead->nxtact) {
@@ -128,7 +126,7 @@ extern "C"
         {
                 VSTAUDIO *p = (VSTAUDIO *)data;
                 size_t i;
-				//ENVIRON *csound = p->h.insdshead->csound;
+                //ENVIRON *csound = p->h.insdshead->csound;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 //plugin->Debug("vstaudio: plugin %x.\n", plugin);
         for(i = 0; i < p->framesPerBlock; i++) {

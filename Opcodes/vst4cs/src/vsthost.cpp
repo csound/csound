@@ -30,7 +30,6 @@
 #include "aeffectx.h"
 #include "vsthost.h"
 
-
 #ifdef MSVC
 #define round int
 #endif
