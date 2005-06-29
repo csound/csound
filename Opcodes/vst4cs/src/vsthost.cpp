@@ -22,14 +22,18 @@
 //  License along with The vst4cs library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 //  02111-1307 USA
-
-#include "AEffEditor.hpp"
-#include "aeffectx.h"
-#include "vsthost.h"
 #include <cmath>
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
+#include "AEffEditor.hpp"
+#include "aeffectx.h"
+#include "vsthost.h"
+
+
+#ifdef MSVC
+#define round int
+#endif
 
 std::map<long,std::string> VSTPlugin::masterOpcodes;
 std::map<long,std::string> VSTPlugin::dispatchOpcodes;
@@ -725,7 +729,7 @@ bool VSTPlugin::IsSynth()
 
 bool VSTPlugin::OnCanDo(const char *ptr)
 {
-    printf("Can do call: %s.\n", ptr);
+    // printf("Can do call: %s.\n", ptr);
     if((!strcmp(ptr, "sendVstMidiEvent")) ||
        (!strcmp(ptr, "receiveVstMidiEvent")) ||
         (!strcmp(ptr, "sendVstEvents")) ||

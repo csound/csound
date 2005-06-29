@@ -23,14 +23,15 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 //  02111-1307 USA
 
-#include "vst4cs.h"
-#include "vsthost.h"
-#include "fxbank.h"
+
 
 #include <cstdlib>
 #include <cmath>
 #include <vector>
 #include <string>
+#include "vst4cs.h"
+#include "vsthost.h"
+#include "fxbank.h"
 
 const static MYFLT SCALING_FACTOR = FL(32767.0);
 
@@ -98,23 +99,24 @@ extern "C"
         int vstaudio(void *csound_, void *data)
         {
                 VSTAUDIO *p = (VSTAUDIO *)data;
-                //ENVIRON *csound = p->h.insdshead->csound;
+                size_t i;
+				//ENVIRON *csound = p->h.insdshead->csound;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 //plugin->Debug("vstaudio: plugin %x.\n", plugin);
         if(!p->h.insdshead->nxtact) {
-            for(size_t i = 0; i < p->framesPerBlock; i++) {
+            for(i = 0; i < p->framesPerBlock; i++) {
                 plugin->inputs_[0][i] = p->ain1[i] / SCALING_FACTOR;
                 plugin->inputs_[1][i] = p->ain2[i] / SCALING_FACTOR;
                 plugin->outputs_[0][i] = FL(0.0);
                 plugin->outputs_[1][i] = FL(0.0);
             }
             plugin->process(&plugin->inputs.front(), &plugin->outputs.front(), p->framesPerBlock);
-            for(size_t i = 0; i < p->framesPerBlock; i++) {
+            for(i = 0; i < p->framesPerBlock; i++) {
                 p->aout1[i] = plugin->outputs_[0][i] * SCALING_FACTOR;
                 p->aout2[i] = plugin->outputs_[1][i] * SCALING_FACTOR;
             }
         } else {
-            for(size_t i = 0; i < p->framesPerBlock; i++) {
+            for(i = 0; i < p->framesPerBlock; i++) {
                p->aout1[i] = p->ain1[i];
                p->aout2[i] = p->ain2[i];
             }
@@ -125,17 +127,18 @@ extern "C"
         int vstaudiog(void *csound_, void *data)
         {
                 VSTAUDIO *p = (VSTAUDIO *)data;
-                //ENVIRON *csound = p->h.insdshead->csound;
+                size_t i;
+				//ENVIRON *csound = p->h.insdshead->csound;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 //plugin->Debug("vstaudio: plugin %x.\n", plugin);
-        for(size_t i = 0; i < p->framesPerBlock; i++) {
+        for(i = 0; i < p->framesPerBlock; i++) {
             plugin->inputs_[0][i] = p->ain1[i] / SCALING_FACTOR;
             plugin->inputs_[1][i] = p->ain2[i] / SCALING_FACTOR;
             plugin->outputs_[0][i] = FL(0.0);
             plugin->outputs_[1][i] = FL(0.0);
         }
         plugin->process(&plugin->inputs.front(), &plugin->outputs.front(), p->framesPerBlock);
-        for(size_t i = 0; i < p->framesPerBlock; i++) {
+        for(i = 0; i < p->framesPerBlock; i++) {
             p->aout1[i] = plugin->outputs_[0][i] * SCALING_FACTOR;
             p->aout2[i] = plugin->outputs_[1][i] * SCALING_FACTOR;
         }
@@ -380,7 +383,7 @@ extern "C" {
 #ifdef WIN32
         void path_convert(char* in)
         {
-                char inpath[strlen(in)];
+                char inpath[128];
                 char outpath[64];
                 int i= 0;
                 int j = 0;
