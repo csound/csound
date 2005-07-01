@@ -100,8 +100,7 @@ char    *mytmpnam(ENVIRON *, char *);
 void    *SAsndgetset(void*, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
 int     getsndin(void*, void*, MYFLT*, int, void*);
 void    *sndgetset(void*, void*);
-int     sreadin(void*, void*, MYFLT*, int, void*);
-PUBLIC  SNDMEMFILE  *csoundLoadSoundFile(void *csound_,
+PUBLIC  SNDMEMFILE  *csoundLoadSoundFile(void *csound,
                                          const char *name, SF_INFO *sfinfo);
 int     PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p);
 

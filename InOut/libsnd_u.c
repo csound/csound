@@ -88,6 +88,30 @@ void *SAsndgetset(
     return (void*) infile;
 }
 
+/* special handling of sound input to accomodate reads thru pipes & net
+ * where nbytes rcvd can be < n requested
+ *
+ * extra arg passed for filetyp testing on POST-HEADER reads of audio samples
+ */
+static int sreadin(ENVIRON *csound, SNDFILE *infd, MYFLT *inbuf,
+                   int nsamples, SOUNDIN *p)
+{
+    /* return the number of samples read */
+    int   n, ntot = 0;
+    do {
+      n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
+      if (n < 0)
+        csound->Die(csound, Str("soundfile read error"));
+    } while (n > 0 && (ntot += n) < nsamples);
+    if (p->audrem > (int64_t) 0) {
+      if ((int64_t) ntot > p->audrem)   /*   chk haven't exceeded */
+        ntot = (int) p->audrem;         /*   limit of audio data  */
+      p->audrem -= (int64_t) ntot;
+      return ntot;
+    }
+    return 0;
+}
+
 void *sndgetset(void *csound_, void *p_)
 {                               /* core of soundinset                */
                                 /* called from sndinset, SAsndgetset, & gen01 */
@@ -282,32 +306,6 @@ int getsndin(void *csound_, void *fd_, MYFLT *fp, int nlocs, void *p_)
     for ( ; i < nlocs; i++)     /* if incomplete */
       fp[i] = FL(0.0);          /*  pad with 0's */
     return n;
-}
-
-int sreadin(void    *csound_,   /* special handling of sound input        */
-            void    *infd_,     /* to accomodate reads thru pipes & net   */
-            MYFLT   *inbuf,     /* where nbytes rcvd can be < n requested */
-            int     nbytes,     /*                                        */
-            void    *p_)        /* extra arg passed for filetyp testing   */
-{                               /* on POST-HEADER reads of audio samples  */
-    ENVIRON *csound = (ENVIRON*) csound_;
-    SNDFILE *infd = (SNDFILE*) infd_;
-    SOUNDIN *p = (SOUNDIN*) p_;
-    /* return the number of samples read */
-    int   n, ntot = 0;
-    int   nsamples = nbytes / sizeof(MYFLT);
-    do {
-      n = sf_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
-      if (n < 0)
-        csound->Die(csound, Str("soundfile read error"));
-    } while (n > 0 && (ntot += n) < nsamples);
-    if (p->audrem > (int64_t) 0) {
-      if ((int64_t) ntot > p->audrem)   /*   chk haven't exceeded */
-        ntot = (int) p->audrem;         /*   limit of audio data  */
-      p->audrem -= (int64_t) ntot;
-      return ntot;
-    }
-    return 0;
 }
 
 void dbfs_init(ENVIRON *csound, MYFLT dbfs)
