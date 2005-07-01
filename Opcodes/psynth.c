@@ -46,7 +46,7 @@ ifn - function table containing a sinusoid (generally a cosine)
 
 RESYN
 
-Streaming partial track additive synthesis with cubic phase interpolation with pitch scaling and support for timescale-modified 
+Streaming partial track additive synthesis with cubic phase interpolation with pitch scaling and support for timescale-modified
 input signals.
 
 asig sinsyn  fin, kscal, kmaxtracks, ifn
@@ -70,7 +70,7 @@ typedef struct _psyn {
     int     tracks, pos, numbins, hopsize;
     FUNC   *func;
     AUXCH   sum, amps, freqs, phases, trackID;
-	MYFLT   invsr, factor, facsqr;
+    MYFLT   invsr, factor, facsqr;
     double  pi, twopi;
 } _PSYN;
 
@@ -509,7 +509,7 @@ int psynth3_process(ENVIRON * csound, _PSYN *p)
             if (contin) {
               amps[k] = ampnext;
               freqs[k] = freqnext;
-			  phasenext += (cph - (int) cph)*twopi;
+              phasenext += (cph - (int) cph) * twopi;
               while (phasenext < 0)
                 phasenext += twopi;
               while (phasenext >= twopi)
@@ -541,9 +541,8 @@ static OENTRY localops[] = {
     {"sinsyn", sizeof(_PSYN2), 5, "a", "fkki", (SUBR) psynth2_init, NULL,
      (SUBR) psynth2_process}
     ,
-	    {"resyn", sizeof(_PSYN), 5, "a", "fkkki", (SUBR) psynth_init, NULL,
+    {"resyn", sizeof(_PSYN), 5, "a", "fkkki", (SUBR) psynth_init, NULL,
      (SUBR) psynth3_process}
-	 ,
 };
 
 LINKAGE
