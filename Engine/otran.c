@@ -684,7 +684,7 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
           csound->nlabels += NLABELS;
           if (lblsp - labels >= csound->nlabels)
             csound->nlabels = lblsp - labels + 2;
-          if(csound->oparms->msglevel)
+          if (csound->oparms->msglevel)
             csound->Message(csound,
                             Str("LABELS list is full...extending to %d\n"),
                             csound->nlabels);
@@ -722,7 +722,7 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
             if (largp - larg >= csound->ngotos) {
               int oldn = csound->ngotos;
               csound->ngotos += NGOTOS;
-              if(csound->oparms->msglevel)
+              if (csound->oparms->msglevel)
                 csound->Message(csound,
                                 Str("GOTOS list is full..extending to %d\n"),
                                 csound->ngotos);
@@ -877,7 +877,7 @@ static int constndx(ENVIRON *csound, char *s)
     if (++ST(poolcount) > ST(nconsts)) {
       int indx = fp - csound->pool;
       ST(nconsts) += NCONSTS;
-      if(csound->oparms->msglevel)
+      if (csound->oparms->msglevel)
         csound->Message(csound, Str("extending Floating pool to %d\n"),
                                 ST(nconsts));
       csound->pool = (MYFLT*) mrealloc(csound, csound->pool,
