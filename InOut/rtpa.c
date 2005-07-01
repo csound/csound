@@ -544,7 +544,7 @@ static void rtclose_blocking(void *csound)
 
 /* module interface functions */
 
-int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(void *csound)
 {
     ENVIRON *p = (ENVIRON*) csound;
     /* nothing to do, report success */
