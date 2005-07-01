@@ -1,4 +1,4 @@
-/*  ifd.c ifd
+/*  ifd.c pvsifd
 
 (c) Victor Lazzarini, 2005
 
@@ -20,12 +20,12 @@
     02111-1307 USA
 */
 
-/* IFD
+/* PVSIFD
 
 Instantaneous Frequency Distribution analysis, plus magnitude
 and phase output.
 
-ffrs, fphs ifd ain, ifftsize, ihopsize, iwintype[,iscal]
+ffrs, fphs pvsifd ain, ifftsize, ihopsize, iwintype[,iscal]
 
 ffrs - AMP_FREQ signal
 fphs - AMP_PHASE signal (unwrapped phase)
@@ -70,11 +70,11 @@ int ifd_init(ENVIRON * csound, _IFD * p)
     frames = fftsize / hopsize;
 
     if ((frames - (float) fftsize / hopsize) != 0.f)
-      csound->Die(csound,
-                  "ifd: fftsize should be an integral multiple of hopsize\n");
+      csound->Die(csound, "pvsifd: "
+                          "fftsize should be an integral multiple of hopsize");
 
     if ((fftsize & (fftsize - 1)))
-      csound->Die(csound, "ifd: fftsize should be power-of-two \n");
+      csound->Die(csound, "pvsifd: fftsize should be power-of-two");
 
     p->frames = frames;
     p->pi = 4. * atan(1.);
@@ -133,7 +133,7 @@ int ifd_init(ENVIRON * csound, _IFD * p)
       alpha = 0.5;
       break;
     default:
-      csound->Die(csound, Str("ifd: unsupported value for iwintype\n"));
+      csound->Die(csound, Str("pvsifd: unsupported value for iwintype\n"));
       break;
     }
     fac = 2. * p->pi / (fftsize - 1.);
@@ -245,9 +245,8 @@ int ifd_process(ENVIRON * csound, _IFD * p)
 }
 
 static OENTRY localops[] = {
-    {"ifd", sizeof(_IFD), 5, "ff", "aiiip", (SUBR) ifd_init, 0,
+    {"pvsifd", sizeof(_IFD), 5, "ff", "aiiip", (SUBR) ifd_init, 0,
      (SUBR) ifd_process}
-    ,
 };
 
 LINKAGE
