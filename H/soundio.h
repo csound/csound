@@ -121,10 +121,10 @@ typedef struct {
         int     sr;                 /* sample rate in Hz                    */
         int     do_floatscaling;    /* scale floats by fscalefac ? 0: no    */
         int64_t audrem, framesrem, getframes;   /* samples, frames, frames */
-        MYFLT   inbuf[SNDINBUFSIZ];
         MYFLT   fscalefac;
         MYFLT   skiptime;
         char    sfname[512];
+        MYFLT   inbuf[SNDINBUFSIZ];
 } SOUNDIN;
 
 #ifdef __cplusplus
