@@ -1,10 +1,13 @@
 2005-06-25 Victor  Lazzarini <Victor.Lazzarini@nuim.ie>
-    * Added Opcodes/partials.c and Opcodes/psynth.c, streaming spectral partial track 
-	  analysis/synthesis opcodes.
+	* Added Opcodes/partials.c and Opcodes/psynth.c, streaming
+	  spectral partial track analysis/synthesis opcodes.
+
 2005-06-23  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
-    * Improvements/Fixes to rtcoreaudio.c, addition of non-interleaved audio support
-	* Added Opcodes/ifd.c, Instantaneous Frequency Distribution spectral streaming opcode.
-	
+	* Improvements/Fixes to rtcoreaudio.c, addition of non-interleaved
+	audio support 
+	* Added Opcodes/ifd.c, Instantaneous Frequency Distribution
+	spectral streaming opcode. 
+
 2005-06-23  John ffitch  <jpff@codemist.co.uk>
 
 	* Engine/sread.c (sread): Do not attempt to read a name in r if at
