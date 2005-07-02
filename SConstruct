@@ -864,6 +864,8 @@ else:
     oscEnvironment.Append(LIBS = ['lo'])
     oscEnvironment.Append(LIBS = ['pthread'])
 #    commonEnvironment.Append(LIBS = ['lo'])
+    if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+        oscEnvironment.Append(LIBS = ['ws2_32']
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
     pluginLibraries.append(oscEnvironment.SharedLibrary('oscrecv',
