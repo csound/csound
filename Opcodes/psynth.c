@@ -49,11 +49,12 @@ RESYN
 Streaming partial track additive synthesis with cubic phase interpolation with pitch scaling and support for timescale-modified
 input signals.
 
-asig sinsyn  fin, kscal, kmaxtracks, ifn
+asig sinsyn  fin, kscal, kpitch, kmaxtracks, ifn
 
 asig - output signal
 fin - TRACKS streaming spectral signal
 kscal - amplitude scaling
+kpitch - pitch scaling
 kmaxtracks - max output tracks
 ifn - function table containing a sinusoid (generally a cosine)
 
@@ -377,10 +378,6 @@ int psynth2_process(ENVIRON * csound, _PSYN2 * p)
             if (contin) {
               amps[k] = ampnext;
               freqs[k] = freqnext;
-              while (phasenext < 0)
-                phasenext += twopi;
-              while (phasenext >= twopi)
-                phasenext -= twopi;
               phases[k] = phasenext;
               trackID[k] = id;
               i += 4;
