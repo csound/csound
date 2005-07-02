@@ -22,24 +22,6 @@ typedef struct {
      OSC_PAT    *patterns;      /* List of things to do */
 } OSC_GLOBALS;
 
-#if 0
-/* callback function called by sensevents() once in every control period */
-
-static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
-{
-     /* are there any pending events ? */
-     if (p->patterns != NULL) {
-       OSC_PAT *m = p->patterns;
-       csound->WaitThreadLock(csound, p->threadLock, 1000);
-       while (m) {
-         csound->NotifyThreadLock(csound, p->threadLock);
-         csound->WaitThreadLock(csound, p->threadLock, 1000);
-       }
-       csound->NotifyThreadLock(csound, p->threadLock);
-     }
-}
-#endif
-
 static int OSC_handler(const char *path, const char *types,
                         lo_arg **argv, int argc, void *data, void *p)
 {
@@ -107,18 +89,11 @@ static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     pp->csound = csound;
     pp->threadLock = csound->CreateThreadLock(csound);
-    /* ---- initialise any other data in OSC_GLOBALS here ---- */
-    /* ... */
     pp->patterns = NULL;
     /* ---- code to create and start the OSC thread ---- */
     sprintf(buff, "%d", (int)(*p->port));
     pp->thread = lo_server_thread_new(buff, OSC_error);
-/*     lo_server_thread_add_method(pp->thread, NULL, NULL, OSC_handler, pp); */
     lo_server_thread_start(pp->thread);
-    /* register callback function for sensevents() */
-    /* the function will be called once in every control period */
-/*      csound->RegisterSenseEventCallback(csound, (void (*)(void*, void*)) */
-/*                                                   event_sense_callback, pp); */
     csound->Message(csound,
                     "OSC listener started\n");
     return OK;
