@@ -62,8 +62,8 @@ int ifd_init(ENVIRON * csound, _IFD * p)
     int    *counter, wintype, i;
     MYFLT  *winf, *dwinf;
     double  alpha = 0.f, fac;
-	p->cnt = 0;
 
+    p->cnt = 0;
     fftsize = p->fftsize = (int) *p->size;
     hopsize = p->hopsize = (int) *p->hop;
     p->g = *p->scal;
@@ -219,7 +219,6 @@ void IFAnalysis(ENVIRON * csound, _IFD * p, MYFLT * signal)
     output[fftsize + 1] = sr / 2.;
     p->fout1->framecount++;
     p->fout2->framecount++;
-
 }
 
 int ifd_process(ENVIRON * csound, _IFD * p)
@@ -231,21 +230,23 @@ int ifd_process(ENVIRON * csound, _IFD * p)
     int    *counter = (int *) p->counter.auxp;
     int     ksmps = csound->ksmps;
     int     frames = p->frames;
-	int cnt = p->cnt;
+    int     cnt = p->cnt;
 
     for (n = 0; n < ksmps; n++) {
       for (i = 0; i < frames; i++) {
         sigframe[i * fftsize + counter[i]] = sigin[n];
         counter[i]++;
         if (counter[i] == fftsize) {
-		  if(cnt < frames) cnt++;
-		  else
-          IFAnalysis(csound, p, &sigframe[i * fftsize]);
+          if (cnt < frames)
+            cnt++;
+          else
+            IFAnalysis(csound, p, &sigframe[i * fftsize]);
           counter[i] = 0;
         }
       }
     }
-	p->cnt = cnt;
+    p->cnt = cnt;
+
     return OK;
 }
 

@@ -2,8 +2,9 @@
     fgens.c:
 
     Copyright (C) 1991, 1994, 1995, 1998, 2000, 2004
-                  Barry Vercoe, John ffitch, Paris Smaragdis, Gabriel Maldonado,
-                  Richard Karpen, Greg Sullivan, Pete Moss, Istvan Varga, Victor Lazzarini
+                  Barry Vercoe, John ffitch, Paris Smaragdis,
+                  Gabriel Maldonado, Richard Karpen, Greg Sullivan,
+                  Pete Moss, Istvan Varga, Victor Lazzarini
 
     This file is part of Csound.
 
