@@ -37,7 +37,8 @@ typedef struct {
   OPDS    h;
   // INPUTS
   MYFLT   *iEngineNumber, *iChannelNumber, *iMidiKeyNumber, *iVelocity;
-  bool released;
+  int     initDone;
+  bool    released;
 } FLUID_NOTE;
 
 typedef struct {
