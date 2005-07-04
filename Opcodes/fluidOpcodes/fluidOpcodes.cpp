@@ -276,7 +276,7 @@ extern "C"
     fluid_synth_noteoff(fluid_engines[engineNum],
                         channelNum,
                         key);
-
+    fluid->initDone = 0;
     return OK;
   }
 
@@ -289,15 +289,18 @@ extern "C"
     int velocity    = (int)(*fluid->iVelocity);
     fluid->released = false;
     // fluid->h.insdshead->csound->Message(fluid->h.insdshead->csound, "%i : %i : %i : %i\n", engineNum, instrNum, key, velocity);
+    if (fluid->initDone)
+      fluidNoteTurnoff((void*) csound, data);
+    else
+      csound->RegisterDeinitCallback((void *)&csound, (void *)&fluid->h,
+                                     &fluidNoteTurnoff);
     fluid_synth_noteon(fluid_engines[engineNum], channelNum, key, velocity);
     //MYFLT offTime = fluid->h.insdshead->p3;
     //unsigned int dur = (int)(offTime *
     //fluid->evt                = new_fluid_event();
     //fluid_event_note(fluid->evt, channelNum, key, vel,
 
-    csound->RegisterDeinitCallback((void *)&csound, (void *)&fluid->h,
-                                   &fluidNoteTurnoff);
-
+    fluid->initDone = 1;
     return OK;
   }
 
