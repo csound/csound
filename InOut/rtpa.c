@@ -64,6 +64,31 @@ typedef struct devparams_ {
     void        (*conv_func)(int, void*, void*);
 } DEVPARAMS;
 
+static void printPortAudioErrorMessage(ENVIRON *csound, int errCode)
+{
+    csound->Message(csound, Str(" *** PortAudio: error %d: %s\n"),
+                            errCode, Pa_GetErrorText((PaError) errCode));
+}
+
+static int initPortAudio(ENVIRON *csound)
+{
+    char  *s;
+    int   err;
+    /* initialise PortAudio */
+    if (!csound->QueryGlobalVariable(csound, "::PortAudio::NeedsTerminate")) {
+      err = (int) Pa_Initialize();
+      if (err != (int) paNoError) {
+        printPortAudioErrorMessage(csound, err);
+        return -1;
+      }
+      csound->CreateGlobalVariable(csound, "::PortAudio::NeedsTerminate", 1);
+      /* print PortAudio version */
+      if ((s = (char*) Pa_GetVersionText()) != NULL)
+        csound->Message(csound, "%s\n", s);
+    }
+    return 0;
+}
+
 void listPortAudioDevices(void *csound)
 {
     PaDeviceIndex deviceIndex = 0;
@@ -97,9 +122,10 @@ static int recopen_(void *csound_, csRtAudioParams * parm)
     ENVIRON *csound = (ENVIRON*) csound_;
     PA_BLOCKING_STREAM *pabs;
     int     oMaxLag;
-    int     *openOnce;
     PaError paError;
 
+    if (initPortAudio(csound) != 0)
+      return -1;
     listPortAudioDevices(csound);
 
     oMaxLag = parm->bufSamp_HW; /* import DAC setting from command line   */
@@ -128,14 +154,12 @@ static int recopen_(void *csound_, csRtAudioParams * parm)
     pabs = csound->QueryGlobalVariable(csound, "pabsReadWritep");
     paError = paBlockingReadWriteOpen(csound, pabs, &sp, parm);
     if (paError != paNoError) {
-      csound->Message(csound, Str("PortAudio error %d: %s.\n"),
-                              paError, Pa_GetErrorText(paError));
+      printPortAudioErrorMessage(csound, (int) paError);
       return -1;
     }
     csound->Message(csound, Str("Opened PortAudio full-duplex device  %i.\n"),
                             sp.device);
-    openOnce = (int *) csound->QueryGlobalVariable(csound, "openOnce");
-    *openOnce = 1;
+    *((int*) csound->QueryGlobalVariable(csound, "openOnce")) = 1;
     return 0;
 }
 
@@ -145,9 +169,10 @@ static int playopen_(void *csound_, csRtAudioParams * parm)
     ENVIRON *csound = (ENVIRON*) csound_;
     PA_BLOCKING_STREAM *pabs;
     int     oMaxLag;
-    int     *openOnce;
     PaError paError;
 
+    if (initPortAudio(csound) != 0)
+      return -1;
     listPortAudioDevices(csound);
 
     oMaxLag = parm->bufSamp_HW; /* import DAC setting from command line   */
@@ -170,8 +195,7 @@ static int playopen_(void *csound_, csRtAudioParams * parm)
     sp.suggestedLatency = (double) oMaxLag / (double) parm->sampleRate;
     sp.channelCount = (parm->nChannels < 2 ? 2 : parm->nChannels);
     sp.sampleFormat = paFloat32;
-    openOnce = (int *) csound->QueryGlobalVariable(csound, "openOnce");
-    if (!*openOnce) {
+    if (!*((int*) csound->QueryGlobalVariable(csound, "openOnce"))) {
       csound->Message(csound, "Suggested PortAudio output latency = "
                               "%f seconds.\n", sp.suggestedLatency);
 
@@ -179,8 +203,7 @@ static int playopen_(void *csound_, csRtAudioParams * parm)
           csound->QueryGlobalVariable(csound, "pabsReadWritep");
       paError = paBlockingWriteOpen(csound, pabs, &sp, parm);
       if (paError != paNoError) {
-        csound->Message(csound, Str("PortAudio error %d: %s.\n"),
-                                paError, Pa_GetErrorText(paError));
+        printPortAudioErrorMessage(csound, (int) paError);
         return -1;
       }
       csound->Message(csound, Str("Opened PortAudio output device %i.\n"),
@@ -244,12 +267,6 @@ static void float_to_double(int nSmps, float *inBuf, double *outBuf)
 {
     while (nSmps--)
       *(outBuf++) = (double) *(inBuf++);
-}
-
-static void printPortAudioErrorMessage(ENVIRON *csound, int errCode)
-{
-    csound->Message(csound, Str(" *** PortAudio: error: %s\n"),
-                            Pa_GetErrorText((PaError) errCode));
 }
 
 /* select sample conversion routine; returns function pointer */
@@ -420,11 +437,12 @@ static int set_device_params(void *csound, DEVPARAMS *dev,
 
 static int recopen_blocking(void *csound, csRtAudioParams *parm)
 {
-    ENVIRON   *p;
+    ENVIRON   *p = (ENVIRON*) csound;
     DEVPARAMS *dev;
     int       retval;
 
-    p = (ENVIRON*) csound;
+    if (initPortAudio(p) != 0)
+      return -1;
     /* check if the device is already opened */
     if (*(p->GetRtRecordUserData(csound)) != NULL)
       return 0;
@@ -446,11 +464,12 @@ static int recopen_blocking(void *csound, csRtAudioParams *parm)
 
 static int playopen_blocking(void *csound, csRtAudioParams *parm)
 {
-    ENVIRON   *p;
+    ENVIRON   *p = (ENVIRON*) csound;
     DEVPARAMS *dev;
     int       retval;
 
-    p = (ENVIRON*) csound;
+    if (initPortAudio(p) != 0)
+      return -1;
     /* check if the device is already opened */
     if (*(p->GetRtPlayUserData(csound)) != NULL)
       return 0;
@@ -554,11 +573,10 @@ PUBLIC int csoundModuleCreate(void *csound)
 
 PUBLIC int csoundModuleInit(void *csound)
 {
-    ENVIRON *p;
+    ENVIRON *p = (ENVIRON*) csound;
     char    *s, drv[12];
-    int     i, err, useBlockingInterface = 0;
+    int     i;
 
-    p = (ENVIRON*) csound;
     if ((s = (char*) p->QueryGlobalVariable(p, "_RTAUDIO")) == NULL)
       return 0;
     for (i = 0; s[i] != '\0' && i < 11; i++)
@@ -567,28 +585,14 @@ PUBLIC int csoundModuleInit(void *csound)
     if (!(strcmp(drv, "PORTAUDIO") == 0 || strcmp(drv, "PA") == 0 ||
           strcmp(drv, "PA_BL") == 0 || strcmp(drv, "PA_CB") == 0))
       return 0;
-    /* print PortAudio version */
-    s = (char*) Pa_GetVersionText();
-    if (s != NULL)
-      p->Message(csound, "%s\n", s);
-    /* initialise PortAudio */
-    err = (int) Pa_Initialize();
-    if (err != (int) paNoError) {
-      printPortAudioErrorMessage(p, err);
-      return -1;
-    }
-    p->CreateGlobalVariable(csound, "::PortAudio::NeedsTerminate", 1);
     p->Message(csound, "rtaudio: PortAudio module enabled ... ");
-    if (strcmp(drv, "PA_BL") == 0 ||
-        (int) Pa_HostApiTypeIdToHostApiIndex(paALSA) >= 0 ||
-        ((int) Pa_HostApiTypeIdToHostApiIndex(paMME) >= 0 &&
-         (int) Pa_HostApiTypeIdToHostApiIndex(paASIO) < 0 &&
-         (int) Pa_HostApiTypeIdToHostApiIndex(paDirectSound) < 0))
-      useBlockingInterface = 1;
-    if (strcmp(drv, "PA_CB") == 0)
-      useBlockingInterface = 0;
     /* set function pointers */
-    if (useBlockingInterface) {
+#ifdef LINUX
+    if (strcmp(drv, "PA_CB") != 0)
+#else
+    if (strcmp(drv, "PA_BL") == 0)
+#endif
+    {
       p->Message(csound, "using blocking interface\n");
       p->SetPlayopenCallback(csound, playopen_blocking);
       p->SetRecopenCallback(csound, recopen_blocking);
