@@ -46,7 +46,9 @@ public:
   {
     ENVIRON *csound = reinterpret_cast<ENVIRON *>(csound_);
     T *opcode = reinterpret_cast<T *>(opcode_);
-    csound->RegisterDeinitCallback(csound, &opcode->h, OpcodeBase<T>::noteoff_);
+    if (!csound->reinitflag && !csound->tieflag)
+      csound->RegisterDeinitCallback(csound,
+                                     &opcode->h, OpcodeBase<T>::noteoff_);
     return opcode->init(csound);
   }
   int kontrol(ENVIRON *csound)
@@ -92,7 +94,7 @@ public:
     if(csound) {
       if(csound->GetMessageLevel(csound) & WARNMSG ||
          csound->GetDebug(csound)) {
-        csound->MessageV(csound, 0, format, args);
+        csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
       }
     }
     else {
