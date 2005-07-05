@@ -170,7 +170,7 @@ static int playopen_(void *csound_, csRtAudioParams * parm)
     PA_BLOCKING_STREAM *pabs;
     int     oMaxLag;
     PaError paError;
-
+	
     if (initPortAudio(csound) != 0)
       return -1;
     listPortAudioDevices(csound);
