@@ -1,8 +1,10 @@
 2005-06-25 Victor  Lazzarini <Victor.Lazzarini@nuim.ie>
+
 	* Added Opcodes/partials.c and Opcodes/psynth.c, streaming
-	  spectral partial track analysis/synthesis opcodes.
+	  spectral partial track  analysis/synthesis opcodes.
 
 2005-06-23  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+
 	* Improvements/Fixes to rtcoreaudio.c, addition of non-interleaved
 	audio support 
 	* Added Opcodes/ifd.c, Instantaneous Frequency Distribution
@@ -15,7 +17,7 @@
 
 2005-06-21  John ffitch  <jpff@codemist.co.uk>
 
-	* Opcodes/biquad.c (biquada, biquad, biquadset): 
+	* Opcodes/biquad.c (biquada, biquad, biquadset):
 	* OOps/ugens5.c (porset, port, tonset, tone, tonsetx, tonex,
 	atone, atonex, rsnset, reson, rsnsetx, resonx, areson): Work in
 	doubles internally
