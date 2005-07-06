@@ -110,8 +110,8 @@ mixer.dll: Opcodes/mixer.oo
 widgets.dll: InOut/widgets.oo
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lfltk $(LIBS)
 
-rtpa.dll: InOut/rtpa.o InOut/pa_blocking.o
-	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) D:/MinGW/lib/portaudio.dll -lwinmm -ldsound -lole32 $(LIBS2)
+rtpa.dll: InOut/rtpa.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) D:/MinGW/lib/portaudio.dll -lwinmm -ldsound -lole32 $(LIBS2)
 
 rtwinmm.dll: InOut/rtwinmm.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lwinmm $(LIBS2)
