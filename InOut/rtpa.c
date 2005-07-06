@@ -230,7 +230,8 @@ static int paBlockingReadWriteOpen(ENVIRON *csound)
       if (pa_SetStreamParameters(csound, &(pabs->inputPaParameters),
                                          &(pabs->inParm), 0) != 0)
         goto err_return;
-      pabs->inBufSamples = pabs->inParm.bufSamp_SW * pabs->inParm.nChannels;
+      pabs->inBufSamples = pabs->inParm.bufSamp_SW
+                           * (int) pabs->inputPaParameters.channelCount;
       pabs->inputBuffer = (float*) calloc((size_t) pabs->inBufSamples,
                                           sizeof(float));
       if (pabs->inputBuffer == NULL) {
@@ -242,7 +243,8 @@ static int paBlockingReadWriteOpen(ENVIRON *csound)
       if (pa_SetStreamParameters(csound, &(pabs->outputPaParameters),
                                          &(pabs->outParm), 1) != 0)
         goto err_return;
-      pabs->outBufSamples = pabs->outParm.bufSamp_SW * pabs->outParm.nChannels;
+      pabs->outBufSamples = pabs->outParm.bufSamp_SW
+                            * (int) pabs->outputPaParameters.channelCount;
       pabs->outputBuffer = (float*) calloc((size_t) pabs->outBufSamples,
                                            sizeof(float));
       if (pabs->outputBuffer == NULL) {
@@ -259,13 +261,20 @@ static int paBlockingReadWriteOpen(ENVIRON *csound)
         pa_PrintErrMsg(csound, Str("inconsistent full-duplex sample rates"));
         goto err_return;
       }
+  /*  pabs->noPaLock = 1; */
     }
+
     pabs->paLock = csound->CreateThreadLock(csound);
     if (pabs->paLock == NULL)
       goto err_return;
     pabs->clientLock = csound->CreateThreadLock(csound);
     if (pabs->clientLock == NULL)
       goto err_return;
+#if 0
+    if (!pabs->noPaLock)
+      csound->WaitThreadLock(csound, pabs->paLock, (size_t) 500);
+    csound->WaitThreadLock(csound, pabs->clientLock, (size_t) 500);
+#endif
 
     err = Pa_OpenStream(&(pabs->paStream),
                         (pabs->mode & 1 ? &(pabs->inputPaParameters)
@@ -467,18 +476,17 @@ static void rtclose_(void *csound_)     /* close the I/O device entirely */
       csound->NotifyThreadLock(csound, pabs->clientLock);
       Pa_Sleep(100);
       Pa_AbortStream(stream);
-      if (!pabs->noPaLock)
-        csound->NotifyThreadLock(csound, pabs->paLock);
-      csound->NotifyThreadLock(csound, pabs->clientLock);
       Pa_CloseStream(stream);
       Pa_Sleep(100);
     }
 
     if (pabs->clientLock != NULL) {
+      csound->NotifyThreadLock(csound, pabs->clientLock);
       csound->DestroyThreadLock(csound, pabs->clientLock);
       pabs->clientLock = NULL;
     }
     if (pabs->paLock != NULL) {
+      csound->NotifyThreadLock(csound, pabs->paLock);
       csound->DestroyThreadLock(csound, pabs->paLock);
       pabs->paLock = NULL;
     }

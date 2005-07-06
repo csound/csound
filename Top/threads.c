@@ -1,3 +1,23 @@
+/*
+    threads.c:
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
 
 #include "cs.h"
 
@@ -9,7 +29,7 @@ PUBLIC void *csoundCreateThread(void *csound,
                                 void *userdata)
 {
     return (void *) _beginthread((void (*)(void *)) threadRoutine,
-                                 (unsigned int)0, userdata);
+                                 (unsigned int) 0, userdata);
 }
 
 PUBLIC int csoundJoinThread(void *csound, void *thread)
@@ -21,10 +41,10 @@ PUBLIC int csoundJoinThread(void *csound, void *thread)
 PUBLIC void *csoundCreateThreadLock(void *csound_)
 {
     ENVIRON *csound = (ENVIRON *)csound_;
-    HANDLE threadLock = CreateEvent(0, 0, 0, 0);
+    HANDLE threadLock = CreateEvent(0, 0, TRUE, 0);
     if (!threadLock) {
-      csound->Message(csound,
-                      "csoundCreateThreadLock: Failed to create thread lock.\n");
+      csound->Message(csound, "csoundCreateThreadLock: "
+                              "Failed to create thread lock.\n");
     }
     return (void *)threadLock;
 }
@@ -46,31 +66,39 @@ PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
 
 /* internal functions for csound.c */
 
+static  HANDLE  cs_mutex = (HANDLE) 0;
+
 void csoundLock(void)
 {
+    if (cs_mutex == (HANDLE) 0)
+      cs_mutex = CreateEvent(0, 0, 0, 0);
+    else
+      WaitForSingleObject(cs_mutex, 10000);
 }
 
 void csoundUnLock(void)
 {
+    if (cs_mutex != (HANDLE) 0)
+      SetEvent(cs_mutex);
 }
 
 #elif defined(LINUX) || defined(__CYGWIN__) || defined(__MACH__)
 
 #include <pthread.h>
 
-void *csoundCreateThread(void *csound,
-                         int (*threadRoutine)(void *userdata), void *userdata)
+PUBLIC void *csoundCreateThread(void *csound,
+                                int (*threadRoutine)(void *userdata),
+                                void *userdata)
 {
     pthread_t pthread = 0;
     if (!pthread_create(&pthread, 0,
                        (void *(*) (void*)) threadRoutine, userdata)) {
       return (void *)pthread;
-    } else {
-      return 0;
     }
+    return NULL;
 }
 
-int csoundJoinThread(void *csound, void *thread)
+PUBLIC int csoundJoinThread(void *csound, void *thread)
 {
     pthread_t pthread = (pthread_t)thread;
     void *threadRoutineReturnValue = NULL;
@@ -82,30 +110,29 @@ int csoundJoinThread(void *csound, void *thread)
     }
 }
 
-void *csoundCreateThreadLock(void *csound)
+PUBLIC void *csoundCreateThreadLock(void *csound)
 {
     pthread_mutex_t *pthread_mutex =
       (pthread_mutex_t *)mmalloc(csound, sizeof(pthread_mutex_t));
     if (pthread_mutex_init(pthread_mutex, 0) == 0) {
       return (void *)pthread_mutex;
-    } else {
-      return 0;
     }
+    return NULL;
 }
 
-void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
+PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
 {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
     /*int returnValue = */pthread_mutex_lock(pthread_mutex);
 }
 
-void csoundNotifyThreadLock(void *csound, void *lock)
+PUBLIC void csoundNotifyThreadLock(void *csound, void *lock)
 {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
     /*int returnValue = */pthread_mutex_unlock(pthread_mutex);
 }
 
-void csoundDestroyThreadLock(void *csound, void *lock)
+PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
 {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
     /*int returnValue = */pthread_mutex_destroy(pthread_mutex);
