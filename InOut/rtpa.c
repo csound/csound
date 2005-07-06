@@ -1,7 +1,8 @@
 /*
     rtpa.c:
 
-    Copyright (C) 2004, 2005 John ffitch, Istvan Varga, Victor Lazzarini
+    Copyright (C) 2004, 2005 John ffitch, Istvan Varga,
+                             Michael Gogins, Victor Lazzarini
 
     This file is part of Csound.
 
@@ -34,19 +35,9 @@
     separately) - VL
 */
 
-#include "csoundCore.h"
-#include "csound.h"
+#include "csdl.h"
 #include "soundio.h"
-#include "pa_blocking.h"
 #include <portaudio.h>
-
-#ifdef Str
-#undef Str
-#endif
-#define Str(x)  (((ENVIRON*) csound)->LocalizeString(x))
-
-#define INS 1
-#define OUTS 0
 
 typedef struct PaAlsaStreamInfo {
     unsigned long size;
@@ -58,16 +49,37 @@ typedef struct PaAlsaStreamInfo {
 typedef struct devparams_ {
     PaStream    *handle;        /* stream handle                    */
     void        *buf;           /* sample conversion buffer         */
-    int         sampleSize;     /* MYFLT sample frame size in bytes */
     int         nchns;          /* number of channels               */
-    /* sample conversion function */
-    void        (*conv_func)(int, void*, void*);
 } DEVPARAMS;
 
-static void printPortAudioErrorMessage(ENVIRON *csound, int errCode)
+typedef struct PA_BLOCKING_STREAM_ {
+    ENVIRON     *csound;
+    PaStream    *paStream;
+    int         mode;                   /* 1: rec, 2: play, 3: full-duplex  */
+    int         noPaLock;
+    int         inBufSamples;
+    int         outBufSamples;
+    int         currentInputIndex;
+    int         currentOutputIndex;
+    float       *inputBuffer;
+    float       *outputBuffer;
+    void        *paLock;                /* thread lock for stream callback  */
+    void        *clientLock;            /* thread lock for rtplay/rtrecord  */
+    csRtAudioParams inParm;
+    csRtAudioParams outParm;
+    PaStreamParameters inputPaParameters;
+    PaStreamParameters outputPaParameters;
+} PA_BLOCKING_STREAM;
+
+static int pa_PrintErrMsg(ENVIRON *csound, const char *fmt, ...)
 {
-    csound->Message(csound, Str(" *** PortAudio: error %d: %s\n"),
-                            errCode, Pa_GetErrorText((PaError) errCode));
+    va_list args;
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str(" *** PortAudio: error: "));
+    va_start(args, fmt);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, fmt, args);
+    va_end(args);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+    return -1;
 }
 
 static int initPortAudio(ENVIRON *csound)
@@ -76,215 +88,19 @@ static int initPortAudio(ENVIRON *csound)
     int   err;
     /* initialise PortAudio */
     if (!csound->QueryGlobalVariable(csound, "::PortAudio::NeedsTerminate")) {
+      if (csound->CreateGlobalVariable(csound,
+                                       "::PortAudio::NeedsTerminate", 1) != 0)
+        return -1;
       err = (int) Pa_Initialize();
       if (err != (int) paNoError) {
-        printPortAudioErrorMessage(csound, err);
-        return -1;
+        return pa_PrintErrMsg(csound, "%d: %s",
+                                      err, Pa_GetErrorText((PaError) err));
       }
-      csound->CreateGlobalVariable(csound, "::PortAudio::NeedsTerminate", 1);
       /* print PortAudio version */
       if ((s = (char*) Pa_GetVersionText()) != NULL)
         csound->Message(csound, "%s\n", s);
     }
     return 0;
-}
-
-void listPortAudioDevices(void *csound)
-{
-    PaDeviceIndex deviceIndex = 0;
-    PaDeviceIndex deviceCount = 0;
-    const PaDeviceInfo *paDeviceInfo;
-
-    deviceCount = Pa_GetDeviceCount();
-    ((ENVIRON *) csound)->Message(csound, "Found %d PortAudio devices:\n",
-                                  deviceCount);
-    for (deviceIndex = 0; deviceIndex < deviceCount; ++deviceIndex) {
-      paDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
-      if (paDeviceInfo) {
-        ((ENVIRON*) csound)->Message(csound, "Device%3d: %s\n",
-                                     deviceIndex, paDeviceInfo->name);
-        ((ENVIRON*) csound)->Message(csound,
-                                     "           Maximum channels in: %7d\n",
-                                     paDeviceInfo->maxInputChannels);
-        ((ENVIRON*) csound)->Message(csound,
-                                     "           Maximum channels out:%7d\n",
-                                     paDeviceInfo->maxOutputChannels);
-        ((ENVIRON*) csound)->Message(csound,
-                                     "           Default sample rate: %11.3f\n",
-                                     paDeviceInfo->defaultSampleRate);
-      }
-    }
-}
-
-static int recopen_(void *csound_, csRtAudioParams * parm)
-{                                               /* open for audio input */
-    struct PaStreamParameters sp;
-    ENVIRON *csound = (ENVIRON*) csound_;
-    PA_BLOCKING_STREAM *pabs;
-    int     oMaxLag;
-    PaError paError;
-
-    if (initPortAudio(csound) != 0)
-      return -1;
-    listPortAudioDevices(csound);
-
-    oMaxLag = parm->bufSamp_HW; /* import DAC setting from command line   */
-    if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
-      oMaxLag = IODACSAMPS;     /*    use the default value               */
-    if (parm->devName != NULL && strlen(parm->devName) != 0) {
-      csound->Message(csound, Str(" *** PortAudio: must specify "
-                                  "a device number, not a name\n"));
-      return -1;
-    }
-    if (parm->devNum == 1024) {
-      parm->devNum = sp.device = Pa_GetDefaultInputDevice();
-      csound->Message(csound, Str("No PortAudio input device given; "
-                                  "defaulting to device %d\n"), parm->devNum);
-    }
-    else {
-      sp.device = parm->devNum;
-    }
-    sp.hostApiSpecificStreamInfo = NULL;
-    sp.suggestedLatency = (double) oMaxLag / (double) parm->sampleRate;
-    sp.channelCount = (parm->nChannels < 2 ? 2 : parm->nChannels);
-    sp.sampleFormat = paFloat32;
-    csound->Message(csound, "Suggested PortAudio latency = %f seconds.\n",
-                            sp.suggestedLatency);
-    /* VL: we will open the device full-duplex if asked to open it for input */
-    pabs = csound->QueryGlobalVariable(csound, "pabsReadWritep");
-    paError = paBlockingReadWriteOpen(csound, pabs, &sp, parm);
-    if (paError != paNoError) {
-      printPortAudioErrorMessage(csound, (int) paError);
-      return -1;
-    }
-    csound->Message(csound, Str("Opened PortAudio full-duplex device  %i.\n"),
-                            sp.device);
-    *((int*) csound->QueryGlobalVariable(csound, "openOnce")) = 1;
-    return 0;
-}
-
-static int playopen_(void *csound_, csRtAudioParams * parm)
-{                                               /* open for audio output */
-    struct PaStreamParameters sp;
-    ENVIRON *csound = (ENVIRON*) csound_;
-    PA_BLOCKING_STREAM *pabs;
-    int     oMaxLag;
-    PaError paError;
-	
-    if (initPortAudio(csound) != 0)
-      return -1;
-    listPortAudioDevices(csound);
-
-    oMaxLag = parm->bufSamp_HW; /* import DAC setting from command line   */
-    if (oMaxLag <= 0)           /* if DAC sampframes ndef in command line */
-      oMaxLag = IODACSAMPS;     /*    use the default value               */
-    if (parm->devName != NULL && strlen(parm->devName) != 0) {
-      csound->Message(csound, Str(" *** PortAudio: must specify "
-                                  "a device number, not a name\n"));
-      return -1;
-    }
-    if (parm->devNum == 1024) {
-      parm->devNum = sp.device = Pa_GetDefaultOutputDevice();
-      csound->Message(csound, Str("No PortAudio output device given; "
-                                  "defaulting to device %d.\n"), sp.device);
-    }
-    else {
-      sp.device = parm->devNum;
-    }
-    sp.hostApiSpecificStreamInfo = NULL;
-    sp.suggestedLatency = (double) oMaxLag / (double) parm->sampleRate;
-    sp.channelCount = (parm->nChannels < 2 ? 2 : parm->nChannels);
-    sp.sampleFormat = paFloat32;
-    if (!*((int*) csound->QueryGlobalVariable(csound, "openOnce"))) {
-      csound->Message(csound, "Suggested PortAudio output latency = "
-                              "%f seconds.\n", sp.suggestedLatency);
-
-      pabs = (PA_BLOCKING_STREAM *)
-          csound->QueryGlobalVariable(csound, "pabsReadWritep");
-      paError = paBlockingWriteOpen(csound, pabs, &sp, parm);
-      if (paError != paNoError) {
-        printPortAudioErrorMessage(csound, (int) paError);
-        return -1;
-      }
-      csound->Message(csound, Str("Opened PortAudio output device %i.\n"),
-                              sp.device);
-    }
-    return 0;
-}
-
-/* get samples from ADC */
-static int rtrecord_(void *csound, void *inbuf_, int bytes_)
-{
-    PA_BLOCKING_STREAM *pabs;
-    int     samples = bytes_ / sizeof(MYFLT);
-
-    pabs = (PA_BLOCKING_STREAM *)
-        ((ENVIRON *) csound)->QueryGlobalVariableNoCheck(csound,
-                                                         "pabsReadWritep");
-    paBlockingRead(&pabs[INS], samples, (MYFLT *) inbuf_);
-    return bytes_;
-}
-
-/* put samples to DAC  */
-static void rtplay_(void *csound, void *outbuf_, int bytes_)
-{
-    PA_BLOCKING_STREAM *pabs;
-    int     samples = bytes_ / sizeof(MYFLT);
-
-    pabs = (PA_BLOCKING_STREAM *)
-        ((ENVIRON *) csound)->QueryGlobalVariableNoCheck(csound,
-                                                         "pabsReadWritep");
-    paBlockingWrite(&pabs[OUTS], samples, (MYFLT *) outbuf_);
-}
-
-static void rtclose_(void *csound)
-{                             /* close the I/O device entirely  */
-    /* called only when both complete */
-    paBlockingClose(csound,
-                    ((ENVIRON*) csound)->QueryGlobalVariable(csound,
-                                                             "pabsReadWritep"));
-    /* VL: pabsReadWritep holds the whole memory block for pabsWrite &
-       pabsRead on full-duplex */
-    ((ENVIRON*) csound)->DestroyGlobalVariable(csound, "pabsReadWritep");
-    ((ENVIRON*) csound)->DestroyGlobalVariable(csound, "openOnce");
-}
-
-/* sample conversion routines */
-
-static void float_to_float(int nSmps, float *inBuf, float *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = *(inBuf++);
-}
-
-static void double_to_float(int nSmps, double *inBuf, float *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = (float) *(inBuf++);
-}
-
-static void float_to_double(int nSmps, float *inBuf, double *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = (double) *(inBuf++);
-}
-
-/* select sample conversion routine; returns function pointer */
-
-static void *set_format(int play, int myflt_is_double)
-{
-    if (play) {
-      if (myflt_is_double)
-        return (void*) double_to_float;
-      else
-        return (void*) float_to_float;
-    }
-    else {
-      if (myflt_is_double)
-        return (void*) float_to_double;
-      else
-        return (void*) float_to_float;
-    }
 }
 
 /* list available input or output devices; returns the number of devices */
@@ -303,15 +119,14 @@ static int listPortAudioDevices_blocking(ENVIRON *csound,
         j++;
     }
     if (!j) {
-      csound->Message(csound,
-                      Str(" *** PortAudio: no %s devices are available\n"),
-                      (play ? "output" : "input"));
+      pa_PrintErrMsg(csound, Str("no %s devices are available\n"),
+                             (play ? Str("output") : Str("input")));
       return 0;
     }
     if (!print_list)
       return j;
     csound->Message(csound, Str("PortAudio: available %s devices:\n"),
-                            (play ? "output" : "input"));
+                            (play ? Str("output") : Str("input")));
     for (i = j = 0; i < ndev; i++) {
       dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) i);
       if ((play && dev_info->maxOutputChannels > 0) ||
@@ -342,9 +157,8 @@ static int selectPortAudioDevice(ENVIRON *csound, int devNum, int play)
     else {
       if (devNum < 0 || devNum > maxNum) {
         listPortAudioDevices_blocking(csound, 1, play);
-        csound->Message(csound, Str(" *** PortAudio: %s device number %d is "
-                                    "out of range\n"),
-                                (play ? "output" : "input"), devNum);
+        pa_PrintErrMsg(csound, Str("%s device number %d is out of range"),
+                               (play ? Str("output") : Str("input")), devNum);
         return -1;
       }
       for (i = j = 0; j <= maxNum; i++) {
@@ -360,8 +174,329 @@ static int selectPortAudioDevice(ENVIRON *csound, int devNum, int play)
     }
     dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) devNum);
     csound->Message(csound, Str("PortAudio: selected %s device '%s'\n"),
-                            (play ? "output" : "input"), dev_info->name);
+                            (play ? Str("output") : Str("input")),
+                            dev_info->name);
     return devNum;
+}
+
+static int pa_SetStreamParameters(ENVIRON *csound, PaStreamParameters *sp,
+                                                   csRtAudioParams *parm,
+                                                   int is_playback)
+{
+    int dev;
+
+    memset(sp, 0, sizeof(PaStreamParameters));
+    if (parm->devName != NULL && parm->devName[0] != '\0') {
+      return pa_PrintErrMsg(csound,
+                            Str("must specify a device number, not a name"));
+    }
+    dev = selectPortAudioDevice(csound, parm->devNum, is_playback);
+    if (dev < 0)
+      return -1;
+    sp->device = (PaDeviceIndex) dev;
+    sp->channelCount = (parm->nChannels < 2 ? 2 : parm->nChannels);
+    sp->sampleFormat = (PaSampleFormat) paFloat32;
+    sp->suggestedLatency = (PaTime) ((double) parm->bufSamp_HW
+                                     / (double) parm->sampleRate);
+    sp->hostApiSpecificStreamInfo = NULL;
+    return 0;
+}
+
+static void rtclose_(void *csound);
+static int  paBlockingReadWriteStreamCallback(const void *, void *,
+                                              unsigned long,
+                                              const PaStreamCallbackTimeInfo *,
+                                              PaStreamCallbackFlags,
+                                              void *);
+
+static int paBlockingReadWriteOpen(ENVIRON *csound)
+{
+    PA_BLOCKING_STREAM  *pabs;
+    PaError             err;
+
+    pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
+                                                             "_rtpaGlobals");
+    if (pabs == NULL)
+      return -1;
+    if (initPortAudio(csound) != 0)
+      goto err_return;
+
+    if ((int) Pa_GetDeviceCount() <= 0) {
+      pa_PrintErrMsg(csound, Str("no sound device is available"));
+      goto err_return;
+    }
+
+    if (pabs->mode & 1) {
+      if (pa_SetStreamParameters(csound, &(pabs->inputPaParameters),
+                                         &(pabs->inParm), 0) != 0)
+        goto err_return;
+      pabs->inBufSamples = pabs->inParm.bufSamp_SW * pabs->inParm.nChannels;
+      pabs->inputBuffer = (float*) calloc((size_t) pabs->inBufSamples,
+                                          sizeof(float));
+      if (pabs->inputBuffer == NULL) {
+        pa_PrintErrMsg(csound, Str("memory allocation failure"));
+        goto err_return;
+      }
+    }
+    if (pabs->mode & 2) {
+      if (pa_SetStreamParameters(csound, &(pabs->outputPaParameters),
+                                         &(pabs->outParm), 1) != 0)
+        goto err_return;
+      pabs->outBufSamples = pabs->outParm.bufSamp_SW * pabs->outParm.nChannels;
+      pabs->outputBuffer = (float*) calloc((size_t) pabs->outBufSamples,
+                                           sizeof(float));
+      if (pabs->outputBuffer == NULL) {
+        pa_PrintErrMsg(csound, Str("memory allocation failure"));
+        goto err_return;
+      }
+    }
+    if ((pabs->mode & 3) == 3) {
+      if (pabs->inParm.bufSamp_SW != pabs->outParm.bufSamp_SW) {
+        pa_PrintErrMsg(csound, Str("inconsistent full-duplex buffer sizes"));
+        goto err_return;
+      }
+      if (pabs->inParm.sampleRate != pabs->outParm.sampleRate) {
+        pa_PrintErrMsg(csound, Str("inconsistent full-duplex sample rates"));
+        goto err_return;
+      }
+    }
+    pabs->paLock = csound->CreateThreadLock(csound);
+    if (pabs->paLock == NULL)
+      goto err_return;
+    pabs->clientLock = csound->CreateThreadLock(csound);
+    if (pabs->clientLock == NULL)
+      goto err_return;
+
+    err = Pa_OpenStream(&(pabs->paStream),
+                        (pabs->mode & 1 ? &(pabs->inputPaParameters)
+                                          : (PaStreamParameters*) NULL),
+                        (pabs->mode & 2 ? &(pabs->outputPaParameters)
+                                          : (PaStreamParameters*) NULL),
+                        (double) (pabs->mode & 2 ? pabs->outParm.sampleRate
+                                                   : pabs->inParm.sampleRate),
+                        (unsigned long) (pabs->mode & 2 ?
+                                         pabs->outParm.bufSamp_SW
+                                         : pabs->inParm.bufSamp_SW),
+                        (PaStreamFlags) paNoFlag,
+                        paBlockingReadWriteStreamCallback,
+                        (void*) pabs);
+    if (err != paNoError) {
+      pabs->paStream = NULL;
+      pa_PrintErrMsg(csound, "%d: %s", (int) err, Pa_GetErrorText(err));
+      goto err_return;
+    }
+
+    err = Pa_StartStream(pabs->paStream);
+    if (err != paNoError) {
+      pa_PrintErrMsg(csound, "%d: %s", (int) err, Pa_GetErrorText(err));
+      goto err_return;
+    }
+
+    return 0;
+
+    /* clean up and report error */
+ err_return:
+    rtclose_(csound);
+    return -1;
+}
+
+static int paBlockingReadWriteStreamCallback(const void *input,
+                                             void *output,
+                                             unsigned long frameCount,
+                                             const PaStreamCallbackTimeInfo
+                                                 *timeInfo,
+                                             PaStreamCallbackFlags statusFlags,
+                                             void *userData)
+{
+    int     i, n;
+    PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) userData;
+    ENVIRON *csound = pabs->csound;
+    float   *paInput = (float*) input;
+    float   *paOutput = (float*) output;
+
+    if (!pabs)
+      return paContinue;
+
+    if (pabs->paStream == NULL) {
+      if (pabs->mode & 2) {
+        for (i = 0, n = pabs->outBufSamples; i < n; i++)
+          paOutput[i] = 0.0f;
+      }
+      return paContinue;
+    }
+
+    if (!pabs->noPaLock)
+      csound->WaitThreadLock(csound, pabs->paLock, (size_t) 500);
+
+    if (pabs->mode & 1) {
+      for (i = 0, n = pabs->inBufSamples; i < n; i++)
+        pabs->inputBuffer[i] = paInput[i];
+    }
+    if (pabs->mode & 2) {
+      for (i = 0, n = pabs->outBufSamples; i < n; i++)
+        paOutput[i] = pabs->outputBuffer[i];
+    }
+
+    csound->NotifyThreadLock(csound, pabs->clientLock);
+
+    return paContinue;
+}
+
+/* get samples from ADC */
+
+static int rtrecord_(void *csound_, void *inbuf_, int bytes_)
+{
+    ENVIRON *csound = (ENVIRON*) csound_;
+    PA_BLOCKING_STREAM  *pabs;
+    MYFLT   *buffer = (MYFLT*) inbuf_;
+    int     i, chns, samples = bytes_ / (int) sizeof(MYFLT);
+
+    pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtRecordUserData(csound));
+    if (pabs == NULL) {
+      memset(inbuf_, 0, bytes_);
+      return bytes_;
+    }
+    if (pabs->paStream == NULL) {
+      if (paBlockingReadWriteOpen(csound) != 0)
+        csound->Die(csound, Str("Failed to initialise real time audio input"));
+    }
+    chns = pabs->inParm.nChannels;
+
+    for (i = 0; i < samples; i++, pabs->currentInputIndex++) {
+      if (pabs->currentInputIndex >= pabs->inBufSamples) {
+        if (pabs->mode == 1) {
+          if (!pabs->noPaLock)
+            csound->NotifyThreadLock(csound, pabs->paLock);
+          csound->WaitThreadLock(csound, pabs->clientLock, 500);
+        }
+        pabs->currentInputIndex = 0;
+      }
+      buffer[i] = (MYFLT) pabs->inputBuffer[pabs->currentInputIndex];
+      if (chns == 1)
+        pabs->currentInputIndex++;
+    }
+
+    return bytes_;
+}
+
+/* put samples to DAC */
+
+static void rtplay_(void *csound_, void *outbuf_, int bytes_)
+{
+    ENVIRON *csound = (ENVIRON*) csound_;
+    PA_BLOCKING_STREAM  *pabs;
+    MYFLT   *buffer = (MYFLT*) outbuf_;
+    int     i, chns, samples = bytes_ / (int) sizeof(MYFLT);
+
+    pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
+    if (pabs == NULL)
+      return;
+    if (pabs->paStream == NULL) {
+      if (paBlockingReadWriteOpen(csound) != 0)
+        csound->Die(csound, Str("Failed to initialise real time audio output"));
+    }
+    chns = pabs->outParm.nChannels;
+
+    for (i = 0; i < samples; i++, pabs->currentOutputIndex++) {
+      if (pabs->currentOutputIndex >= pabs->outBufSamples) {
+        if (!pabs->noPaLock)
+          csound->NotifyThreadLock(csound, pabs->paLock);
+        csound->WaitThreadLock(csound, pabs->clientLock, 500);
+        pabs->currentOutputIndex = 0;
+      }
+      pabs->outputBuffer[pabs->currentOutputIndex] = (float) buffer[i];
+      if (chns == 1)
+        pabs->outputBuffer[++(pabs->currentOutputIndex)] = (float) buffer[i];
+    }
+}
+
+static int recopen_(void *csound, csRtAudioParams *parm)
+{                                               /* open for audio input */
+    ENVIRON *p = (ENVIRON*) csound;
+    PA_BLOCKING_STREAM *pabs;
+
+    pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
+    if (pabs == NULL) {
+      if (p->CreateGlobalVariable(p, "_rtpaGlobals", sizeof(PA_BLOCKING_STREAM))
+          != 0)
+        return -1;
+      pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
+      pabs->csound = p;
+    }
+    pabs->mode |= 1;
+    memcpy(&(pabs->inParm), parm, sizeof(csRtAudioParams));
+    *(p->GetRtRecordUserData(p)) = (void*) pabs;
+
+    return 0;
+}
+
+static int playopen_(void *csound, csRtAudioParams *parm)
+{                                               /* open for audio output */
+    ENVIRON *p = (ENVIRON*) csound;
+    PA_BLOCKING_STREAM *pabs;
+
+    pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
+    if (pabs == NULL) {
+      if (p->CreateGlobalVariable(p, "_rtpaGlobals", sizeof(PA_BLOCKING_STREAM))
+          != 0)
+        return -1;
+      pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
+      pabs->csound = p;
+    }
+    pabs->mode |= 2;
+    memcpy(&(pabs->outParm), parm, sizeof(csRtAudioParams));
+    *(p->GetRtPlayUserData(p)) = (void*) pabs;
+
+    return 0;
+}
+
+static void rtclose_(void *csound_)     /* close the I/O device entirely */
+{
+    ENVIRON *csound = (ENVIRON*) csound_;
+    PA_BLOCKING_STREAM *pabs;
+
+    pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
+                                                             "_rtpaGlobals");
+    if (pabs == NULL)
+      return;
+
+    if (pabs->paStream != NULL) {
+      PaStream  *stream = pabs->paStream;
+      pabs->paStream = NULL;
+      Pa_Sleep(300);
+      if (!pabs->noPaLock)
+        csound->NotifyThreadLock(csound, pabs->paLock);
+      csound->NotifyThreadLock(csound, pabs->clientLock);
+      Pa_Sleep(100);
+      Pa_AbortStream(stream);
+      if (!pabs->noPaLock)
+        csound->NotifyThreadLock(csound, pabs->paLock);
+      csound->NotifyThreadLock(csound, pabs->clientLock);
+      Pa_CloseStream(stream);
+      Pa_Sleep(100);
+    }
+
+    if (pabs->clientLock != NULL) {
+      csound->DestroyThreadLock(csound, pabs->clientLock);
+      pabs->clientLock = NULL;
+    }
+    if (pabs->paLock != NULL) {
+      csound->DestroyThreadLock(csound, pabs->paLock);
+      pabs->paLock = NULL;
+    }
+
+    if (pabs->outputBuffer != NULL) {
+      free(pabs->outputBuffer);
+      pabs->outputBuffer = NULL;
+    }
+    if (pabs->inputBuffer != NULL) {
+      free(pabs->inputBuffer);
+      pabs->inputBuffer = NULL;
+    }
+
+    *(csound->GetRtRecordUserData(csound)) = NULL;
+    *(csound->GetRtPlayUserData(csound)) = NULL;
+    csound->DestroyGlobalVariable(csound, "_rtpaGlobals");
 }
 
 /* set up audio device */
@@ -371,7 +506,7 @@ static int set_device_params(void *csound, DEVPARAMS *dev,
 {
     PaStreamParameters  streamParams;
     ENVIRON             *p;
-    int                 err, myflt_is_double;
+    int                 err;
 
     p = (ENVIRON*) csound;
     /* set parameters */
@@ -420,16 +555,14 @@ static int set_device_params(void *csound, DEVPARAMS *dev,
                                 paNoFlag, NULL, NULL);
     }
     if (err != (int) paNoError) {
-      printPortAudioErrorMessage(p, err);
+      pa_PrintErrMsg(p, "%d: %s", err, Pa_GetErrorText((PaError) err));
       return -1;
     }
     /* set up device parameters */
-    dev->sampleSize = p->GetSizeOfMYFLT() * parm->nChannels;
     dev->nchns = parm->nChannels;
-    myflt_is_double = (p->GetSizeOfMYFLT() == (int) sizeof(double) ? 1 : 0);
-    dev->buf = p->Calloc(p, (size_t) (dev->sampleSize * parm->bufSamp_SW));
-    dev->conv_func = (void (*)(int, void*, void*))
-                       set_format(play, myflt_is_double);
+    dev->buf = p->Calloc(p, (size_t) (parm->bufSamp_SW * parm->nChannels
+                                      * (int) sizeof(float)));
+
     return 0;
 }
 
@@ -493,18 +626,19 @@ static int rtrecord_blocking(void *csound, void *inbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     ENVIRON   *p;
-    int       n, err;
+    int       i, n, err;
 
     p = (ENVIRON*) csound;
     dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
     /* calculate the number of samples to record */
-    n = bytes_ / dev->sampleSize;
+    n = bytes_ / (dev->nchns * (int) sizeof(MYFLT));
     err = (int) Pa_ReadStream(dev->handle, dev->buf, (unsigned long) n);
     if (err != (int) paNoError && (p->GetMessageLevel(csound) & 4))
-      p->Message(csound,
-                 Str("WARNING: buffer overrun in real-time audio input\n"));
+      p->Warning(csound, Str("buffer overrun in real-time audio input"));
     /* convert samples to MYFLT */
-    dev->conv_func(n * dev->nchns, dev->buf, inbuf_);
+    for (i = 0; i < (n * dev->nchns); i++)
+      ((MYFLT*) inbuf_)[i] = (MYFLT) ((float*) dev->buf)[i];
+
     return bytes_;
 }
 
@@ -514,18 +648,18 @@ static void rtplay_blocking(void *csound, void *outbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     ENVIRON   *p;
-    int       n, err;
+    int       i, n, err;
 
     p = (ENVIRON*) csound;
     dev = (DEVPARAMS*) (*(p->GetRtPlayUserData(csound)));
     /* calculate the number of samples to play */
-    n = bytes_ / dev->sampleSize;
+    n = bytes_ / (dev->nchns * (int) sizeof(MYFLT));
     /* convert samples from MYFLT */
-    dev->conv_func(n * dev->nchns, outbuf_, dev->buf);
+    for (i = 0; i < (n * dev->nchns); i++)
+      ((float*) dev->buf)[i] = (float) ((MYFLT*) outbuf_)[i];
     err = (int) Pa_WriteStream(dev->handle, dev->buf, (unsigned long) n);
     if (err != (int) paNoError && (p->GetMessageLevel(csound) & 4))
-      p->Message(csound,
-                 Str("WARNING: buffer underrun in real-time audio output\n"));
+      p->Warning(csound, Str("buffer underrun in real-time audio output"));
 }
 
 /* close the I/O device entirely  */
@@ -601,11 +735,7 @@ PUBLIC int csoundModuleInit(void *csound)
       p->SetRtcloseCallback(csound, rtclose_blocking);
     }
     else {
-      /* memory for PA_BLOCKING_STREAM dataspace for both input and output */
       p->Message(csound, "using callback interface\n");
-      p->CreateGlobalVariable(csound, "pabsReadWritep",
-                                      sizeof(PA_BLOCKING_STREAM) * 2);
-      p->CreateGlobalVariable(csound, "openOnce", sizeof(int));
       p->SetPlayopenCallback(csound, playopen_);
       p->SetRecopenCallback(csound, recopen_);
       p->SetRtplayCallback(csound, rtplay_);

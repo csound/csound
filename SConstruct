@@ -843,7 +843,7 @@ else:
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
         portaudioEnvironment.Append(LIBS = csoundWindowsLibraries)
     pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
-                           Split('''InOut/rtpa.c InOut/pa_blocking.c''')))
+                                                              ['InOut/rtpa.c']))
 
 if (not(commonEnvironment['useJack']=='1' and jackFound)):
     print "CONFIGURATION DECISION: Not building JACK plugin."
