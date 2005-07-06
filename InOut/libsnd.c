@@ -489,10 +489,6 @@ void sfclosein(void *csound_)
       return;
     if (ST(pipdevin) == 2 && (!ST(osfopen) || ST(pipdevout) != 2)) {
       /* close only if not open for output too */
-      extern int rtrecord_dummy(void *csound, void *inBuf, int nBytes);
-      /* make sure that rtrecord does not get called after */
-      /* closing the device, by replacing it with the dummy function */
-      csound->audrecv = (int (*)(void*, MYFLT*, int)) rtrecord_dummy;
       ((ENVIRON*) csound)->rtclose_callback(csound);
     }
     else if (ST(pipdevin) != 2) {
@@ -526,10 +522,6 @@ void sfcloseout(void *csound_)
     }
     if (ST(pipdevout) == 2 && (!ST(isfopen) || ST(pipdevin) != 2)) {
       /* close only if not open for input too */
-      extern void rtplay_dummy(void *csound, void *outBuf, int nBytes);
-      /* make sure that rtplay does not get called after */
-      /* closing the device, by replacing it with the dummy function */
-      csound->audtran = (void (*)(void*, MYFLT*, int)) rtplay_dummy;
       csound->rtclose_callback(csound);
     }
     if (ST(pipdevout) == 2)
@@ -565,13 +557,12 @@ void sfcloseout(void *csound_)
 static void sndwrterr(void *csound, int nret, int nput)
 {                                   /* report soundfile write(osfd) error   */
     ENVIRON *p = (ENVIRON*) csound; /* called after chk of write() bytecnt  */
-    p->Message(csound,
-               Str("soundfile write returned bytecount of %d, not %d\n"),
-               nret, nput);
-    p->Message(csound, Str("(disk may be full...\n closing the file ...)\n"));
+    p->Message(p, Str("soundfile write returned bytecount of %d, not %d\n"),
+                  nret, nput);
+    p->Message(p, Str("(disk may be full...\n closing the file ...)\n"));
     ST(outbufrem) = p->oparms->outbufsamps;     /* consider buf is flushed */
-    sfcloseout(csound);                         /* & try to close the file */
-    csoundDie(csound, Str("\t... closed\n"));
+    sfcloseout(p);                              /* & try to close the file */
+    csoundDie(p, Str("\t... closed\n"));
 }
 
 void sfnopenout(ENVIRON *csound)
