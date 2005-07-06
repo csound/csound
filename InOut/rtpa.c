@@ -349,7 +349,7 @@ static int rtrecord_(void *csound_, void *inbuf_, int bytes_)
     ENVIRON *csound = (ENVIRON*) csound_;
     PA_BLOCKING_STREAM  *pabs;
     MYFLT   *buffer = (MYFLT*) inbuf_;
-    int     i, chns, samples = bytes_ / (int) sizeof(MYFLT);
+    int     i = 0, samples = bytes_ / (int) sizeof(MYFLT);
 
     pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtRecordUserData(csound));
     if (pabs == NULL) {
@@ -360,21 +360,20 @@ static int rtrecord_(void *csound_, void *inbuf_, int bytes_)
       if (paBlockingReadWriteOpen(csound) != 0)
         csound->Die(csound, Str("Failed to initialise real time audio input"));
     }
-    chns = pabs->inParm.nChannels;
 
-    for (i = 0; i < samples; i++, pabs->currentInputIndex++) {
+    do {
+      buffer[i] = (MYFLT) pabs->inputBuffer[pabs->currentInputIndex++];
+      if (pabs->inParm.nChannels == 1)
+        pabs->currentInputIndex++;
       if (pabs->currentInputIndex >= pabs->inBufSamples) {
         if (pabs->mode == 1) {
           if (!pabs->noPaLock)
             csound->NotifyThreadLock(csound, pabs->paLock);
-          csound->WaitThreadLock(csound, pabs->clientLock, 500);
+          csound->WaitThreadLock(csound, pabs->clientLock, (size_t) 500);
         }
         pabs->currentInputIndex = 0;
       }
-      buffer[i] = (MYFLT) pabs->inputBuffer[pabs->currentInputIndex];
-      if (chns == 1)
-        pabs->currentInputIndex++;
-    }
+    } while (++i < samples);
 
     return bytes_;
 }
@@ -386,7 +385,7 @@ static void rtplay_(void *csound_, void *outbuf_, int bytes_)
     ENVIRON *csound = (ENVIRON*) csound_;
     PA_BLOCKING_STREAM  *pabs;
     MYFLT   *buffer = (MYFLT*) outbuf_;
-    int     i, chns, samples = bytes_ / (int) sizeof(MYFLT);
+    int     i = 0, samples = bytes_ / (int) sizeof(MYFLT);
 
     pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
     if (pabs == NULL)
@@ -395,19 +394,18 @@ static void rtplay_(void *csound_, void *outbuf_, int bytes_)
       if (paBlockingReadWriteOpen(csound) != 0)
         csound->Die(csound, Str("Failed to initialise real time audio output"));
     }
-    chns = pabs->outParm.nChannels;
 
-    for (i = 0; i < samples; i++, pabs->currentOutputIndex++) {
+    do {
+      pabs->outputBuffer[pabs->currentOutputIndex++] = (float) buffer[i];
+      if (pabs->outParm.nChannels == 1)
+        pabs->outputBuffer[pabs->currentOutputIndex++] = (float) buffer[i];
       if (pabs->currentOutputIndex >= pabs->outBufSamples) {
         if (!pabs->noPaLock)
           csound->NotifyThreadLock(csound, pabs->paLock);
-        csound->WaitThreadLock(csound, pabs->clientLock, 500);
+        csound->WaitThreadLock(csound, pabs->clientLock, (size_t) 500);
         pabs->currentOutputIndex = 0;
       }
-      pabs->outputBuffer[pabs->currentOutputIndex] = (float) buffer[i];
-      if (chns == 1)
-        pabs->outputBuffer[++(pabs->currentOutputIndex)] = (float) buffer[i];
-    }
+    } while (++i < samples);
 }
 
 static int recopen_(void *csound, csRtAudioParams *parm)
@@ -701,7 +699,7 @@ PUBLIC int csoundModuleCreate(void *csound)
 {
     ENVIRON *p = (ENVIRON*) csound;
     /* nothing to do, report success */
-    p->Message(csound, Str("PortAudio real-time audio module for Csound\n"));
+    p->Message(p, Str("PortAudio real-time audio module for Csound\n"));
     return 0;
 }
 
