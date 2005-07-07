@@ -473,7 +473,7 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
       cps = *freqtbl++ * cps0;
       inc = (long) (cps * csound->sicvt);
       phs = *lphs;
-      ampIncr = (amp - *prevAmp) / (MYFLT) nsmps;
+      ampIncr = (amp - *prevAmp) * csound->onedksmps;
       do {
         *ar++ += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;

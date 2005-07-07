@@ -284,15 +284,11 @@ const ENVIRON cenviron_ = {
         FL(-1.0),       /*  pidsr               */
         FL(-1.0),       /*  mpidsr              */
         FL(-1.0),       /*  mtpdsr              */
-        FL(0.0),        /*  dummy_1   (unused)  */
+        FL(0.0),        /*  onedksmps           */
         DFLT_KR,        /*  ekr                 */
         DFLT_KR,        /*  global_ekr          */
         FL(0.0),        /*  onedkr              */
-        FL(0.0),        /*  global_onedkr       */
-        FL(0.0),        /*  hfkprd              */
-        FL(0.0),        /*  global_hfkprd       */
         FL(0.0),        /*  kicvt               */
-        FL(0.0),        /*  global_kicvt        */
         DFLT_DBFS,      /*  e0dbfs              */
         FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
         0.0,            /*  timeOffs            */
@@ -719,17 +715,14 @@ void oload(ENVIRON *p)
     p->mtpdsr = -(p->tpidsr);                   /*    consts         */
     p->pidsr = PI_F / p->esr;
     p->mpidsr = -(p->pidsr);
+    p->onedksmps = FL(1.0) / (MYFLT) p->ksmps;
     p->sicvt = FMAXLEN / p->esr;
     p->kicvt = FMAXLEN / p->ekr;
-    p->hfkprd = FL(0.5) / p->ekr;
     p->onedsr = FL(1.0) / p->esr;
     p->onedkr = FL(1.0) / p->ekr;
     /* IV - Sep 8 2002: save global variables that depend on ksmps */
     p->global_ksmps     = p->ksmps;
     p->global_ekr       = p->ekr;
-    p->global_onedkr    = p->onedkr;
-    p->global_hfkprd    = p->hfkprd;
-    p->global_kicvt     = p->kicvt;
     p->global_kcounter  = p->kcounter;
     reverbinit(p);
     dbfs_init(p, p->e0dbfs);

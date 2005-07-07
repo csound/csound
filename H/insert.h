@@ -68,7 +68,7 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
         INSDS   *ip, *parent_ip;
         OPCOD_IOBUFS  *buf;
         int     l_ksmps, ksmps_scale;
-        MYFLT   l_ensmps, l_ekr, l_onedkr, l_hfkprd, l_kicvt;
+        MYFLT   l_ekr, l_onedkr, l_onedksmps, l_kicvt;
 } UOPCODE;
 
 /* IV - Sep 8 2002: added opcodes: xin, xout, and setksmps */

@@ -168,7 +168,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *kcps, *kfn, *kphs, *istor;
         unsigned long    phs, lobits, mask;
-        MYFLT   pfrac, *ft, oldfn, old_phs, dv_ksmps;
+        MYFLT   pfrac, *ft, oldfn, old_phs;
         int     init_k;
 } OSCKTP;
 
@@ -226,10 +226,9 @@ typedef struct {
     int     mode;               /* algorithm (0, 1, or 2)                    */
     int     pm_enabled;         /* phase modulation enabled (0: no, 1: yes)  */
 #ifdef VCO2FT_USE_TABLE
-    MYFLT   f_scl, p_min, p_scl, kphs_old, kphs2_old, dv_ksmps;
+    MYFLT   f_scl, p_min, p_scl, kphs_old, kphs2_old;
 #else
     MYFLT   f_scl, p_min, p_scl, *npart_old, *nparts, kphs_old, kphs2_old;
-    MYFLT   dv_ksmps;
     VCO2_TABLE  *tables;        /* pointer to array of tables                */
 #endif
     unsigned long   phs, phs2;  /* oscillator phase                          */

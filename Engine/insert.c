@@ -720,7 +720,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     OPCODINFO *inm;
     OPCOD_IOBUFS  *buf;
     int     g_ksmps;
-    MYFLT   g_ekr, g_onedkr, g_hfkprd, g_kicvt;
+    MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt;
 
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
@@ -742,17 +742,17 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     /* save old globals */
     g_ekr = csound->ekr;
     g_onedkr = csound->onedkr;
-    g_hfkprd = csound->hfkprd;
+    g_onedksmps = csound->onedksmps;
     g_kicvt = csound->kicvt;
     /* set up local variables depending on ksmps, also change globals */
     if (p->l_ksmps != g_ksmps) {
       csound->ksmps = p->l_ksmps;
       p->ksmps_scale = g_ksmps / (int) csound->ksmps;
       csound->pool[O->poolcount + 2] = (MYFLT) p->l_ksmps;
+      p->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) p->l_ksmps;
       p->l_ekr = csound->ekr =
           csound->pool[O->poolcount + 1] = csound->esr / (MYFLT) p->l_ksmps;
       p->l_onedkr = csound->onedkr = FL(1.0) / p->l_ekr;
-      p->l_hfkprd = csound->hfkprd = FL(0.5) / p->l_ekr;
       p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
       csound->kcounter *= p->ksmps_scale;
     }
@@ -836,7 +836,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
       csound->pool[O->poolcount + 2] = (MYFLT) g_ksmps;
       csound->ekr = csound->pool[O->poolcount + 1] = g_ekr;
       csound->onedkr = g_onedkr;
-      csound->hfkprd = g_hfkprd;
+      csound->onedksmps = g_onedksmps;
       csound->kicvt = g_kicvt;
       csound->kcounter = csound->kcounter / p->ksmps_scale;
       /* IV - Sep 17 2002: also select perf routine */
@@ -958,10 +958,10 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
     p->h.insdshead->xtratim *= n;
     pp->l_ksmps = csound->ksmps = l_ksmps;
     csound->pool[O->poolcount + 2] = (MYFLT) csound->ksmps;
+    pp->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
     pp->l_ekr = csound->ekr =
         csound->pool[O->poolcount + 1] = csound->esr / (MYFLT) csound->ksmps;
     pp->l_onedkr = csound->onedkr = FL(1.0) / csound->ekr;
-    pp->l_hfkprd = csound->hfkprd = FL(0.5) / csound->ekr;
     pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
     csound->kcounter *= pp->ksmps_scale;
     return OK;
@@ -1257,7 +1257,7 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
     OPARMS  *O = csound->oparms;
     OPDS    *saved_pds = csound->pds;
     int     g_ksmps, ofs = 0, n;
-    MYFLT   g_ekr, g_onedkr, g_hfkprd, g_kicvt, **tmp, *ptr1, *ptr2;
+    MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
     long    g_kcounter;
 
     /* update release flag */
@@ -1266,7 +1266,7 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
     g_ksmps = csound->ksmps;
     g_ekr = csound->ekr;
     g_onedkr = csound->onedkr;
-    g_hfkprd = csound->hfkprd;
+    g_onedksmps = csound->onedksmps;
     g_kicvt = csound->kicvt;
     g_kcounter = csound->kcounter;
     /* set local ksmps and related values */
@@ -1274,7 +1274,7 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
     csound->pool[O->poolcount + 2] = (MYFLT) p->l_ksmps;
     csound->ekr = csound->pool[O->poolcount + 1] = p->l_ekr;
     csound->onedkr = p->l_onedkr;
-    csound->hfkprd = p->l_hfkprd;
+    csound->onedksmps = p->l_onedksmps;
     csound->kicvt = p->l_kicvt;
     csound->kcounter = csound->kcounter * p->ksmps_scale;
 
@@ -1341,7 +1341,7 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
     csound->pool[O->poolcount + 2] = (MYFLT) g_ksmps;
     csound->ekr = csound->pool[O->poolcount + 1] = g_ekr;
     csound->onedkr = g_onedkr;
-    csound->hfkprd = g_hfkprd;
+    csound->onedksmps = g_onedksmps;
     csound->kicvt = g_kicvt;
     csound->kcounter = g_kcounter;
     csound->pds = saved_pds;
