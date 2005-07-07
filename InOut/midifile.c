@@ -22,11 +22,7 @@
 */
 
 #include "csoundCore.h"
-#include "csound.h"
 #include "midifile.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <errno.h>
 
 static const char *midiFile_ID = "MThd";
@@ -775,7 +771,7 @@ void midifile_rewind_score(ENVIRON *csound)
 int midiTempoOpcode(ENVIRON *csound, MIDITEMPO *p)
 {
     if (MIDIFILE == NULL)
-      *(p->kResult) = (MYFLT) (60.0 / csound->sensEvents_state.beatTime);
+      *(p->kResult) = (MYFLT) (60.0 / csound->beatTime);
     else
       *(p->kResult) = (MYFLT) MF(currentTempo);
     return OK;

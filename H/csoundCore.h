@@ -46,7 +46,7 @@ extern "C" {
 
 /* IV - Feb 19 2005: value to pass to longjmp() to return with success */
 /* (e.g. after --help or running an utility) */
-#define CSOUND_EXITJMP_SUCCESS  256
+#define CSOUND_EXITJMP_SUCCESS  (256)
 
 #define INSTR     1
 #define ENDIN     2
@@ -449,19 +449,6 @@ extern "C" {
 
   typedef void    (*GEN)(FUNC *, struct ENVIRON_ *);
 
-  /* sensevents() state */
-  typedef struct {
-    double  prvbt, curbt, nxtbt;  /* previous, current, and next score beat */
-    double  curp2, nxtim;         /* current and next score time (seconds)  */
-    double  timeOffs, beatOffs;   /* start time of current section          */
-    double  curTime, curTime_inc; /* cur. time in seconds, inc. per kperiod */
-    double  curBeat, curBeat_inc; /* current time in beats, inc per kperiod */
-    double  beatTime;             /* beat time = 60 / tempo                 */
-    int     cyclesRemaining;      /* number of k-periods to kperf() before  */
-                                  /*   next score event                     */
-    EVTBLK  evt;                  /* current score event                    */
-  } sensEvents_t;
-
   /* MIDI globals */
 
 #define MBUFSIZ         (4096)
@@ -552,6 +539,7 @@ extern "C" {
 
   typedef struct ENVIRON_
   {
+    /* Csound API function pointers (272 total) */
     int (*GetVersion)(void);
     int (*GetAPIVersion)(void);
     void *(*GetHostData)(void *csound);
@@ -809,7 +797,13 @@ extern "C" {
     int (*PVOC_Rewind)(struct ENVIRON_ *, int, int);
     const char *(*PVOC_ErrorString)(struct ENVIRON_ *);
     int (*PVOCEX_LoadFile)(struct ENVIRON_ *, const char *, PVOCEX_MEMFILE *);
-    /* callback function pointers - not part of the API */
+#if defined(HAVE_GCC3) && !defined(__MACH__)
+    __attribute__ ((__noreturn__))
+#endif
+      void (*LongJmp)(struct ENVIRON_ *, int);
+    SUBR dummyfn_1;
+    SUBR dummyfn_2[100];
+    /* callback function pointers (48 total) - not part of the API */
     int (*playopen_callback)(void *csound, csRtAudioParams *parm);
     void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
     int (*recopen_callback)(void *csound, csRtAudioParams *parm);
@@ -826,38 +820,50 @@ extern "C" {
     void (*csoundKillGraphCallback_)(void *csound, WINDAT *windat);
     int (*csoundExitGraphCallback_)(void *csound);
     int (*csoundYieldCallback_)(void *csound);
+ /* SUBR dummyfn_3; */
+    SUBR dummyfn_4[34];
     /* End of internals */
-    OPDS          *ids, *pds;       /* used by init and perf loops */
-    int           ksmps, nchnls;
-    MYFLT         esr, ekr;
-    int           global_ksmps;
-    MYFLT         global_ensmps, global_ekr, global_onedkr;
-    MYFLT         global_hfkprd, global_kicvt;
+    /* ----------------------- public data fields ----------------------- */
+    OPDS          *ids, *pds;           /* used by init and perf loops */
+    int           ksmps, global_ksmps, nchnls, spoutactive;
+    long          kcounter, global_kcounter;
+    int           reinitflag;
+    int           tieflag;
+    MYFLT         esr, onedsr, sicvt;
+    MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
+    MYFLT         dummy_1;              /* unused */
+    MYFLT         ekr, global_ekr;
+    MYFLT         onedkr, global_onedkr;
+    MYFLT         hfkprd, global_hfkprd;
+    MYFLT         kicvt, global_kicvt;
+    MYFLT         e0dbfs, dbfs_to_float;
+    double        timeOffs, beatOffs;   /* start time of current section    */
+    double        curTime, curTime_inc; /* cur. time in secs, inc. per kprd */
+    double        curBeat, curBeat_inc; /* cur. time in beats, inc per kprd */
+    double        beatTime;             /* beat time = 60 / tempo           */
+    unsigned int  rtin_dev, rtout_dev;
+    char          *rtin_devs, *rtout_devs;
+    int           nchanik, nchania, nchanok, nchanoa;
+    MYFLT         *chanik, *chania, *chanok, *chanoa;
+    MYFLT         *zkstart;
+    MYFLT         *zastart;
+    long          zklast;
+    long          zalast;
+    MYFLT         *spin;
+    MYFLT         *spout;
+    int           nspin;
+    int           nspout;
+    OPARMS        *oparms;
+    EVTBLK        *currevent;
+    /* ------- private data (not to be used by hosts or externals) ------- */
     MYFLT         cpu_power_busy;
-    long          global_kcounter;
     char          *orchname, *scorename, *xfilename;
-    MYFLT         e0dbfs;
     /* oload.h */
     short         nlabels;
     short         ngotos;
     int           strsmax;
     char          **strsets;
     int           peakchunks;
-    MYFLT         *zkstart;
-    MYFLT         *zastart;
-    long          zklast;
-    long          zalast;
-    long          kcounter;
-    EVTBLK        *currevent;
-    MYFLT         onedkr;
-    MYFLT         onedsr;
-    MYFLT         kicvt;
-    MYFLT         sicvt;
-    MYFLT         *spin;
-    MYFLT         *spout;
-    int           nspin;
-    int           nspout;
-    int           spoutactive;
     int           keep_tmp;
     int           dither_output;
     OENTRY        *opcodlst;
@@ -879,11 +885,8 @@ extern "C" {
     MYFLT         smaxamp[MAXCHNLS];
     MYFLT         omaxamp[MAXCHNLS];
     unsigned long maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
-    int           reinitflag;
-    int           tieflag;
     FILE*         scorein;
     FILE*         scoreout;
-    MYFLT         ensmps, hfkprd;
     MYFLT         *pool;
     int           *argoffspace;
     INSDS         *frstoff;
@@ -909,26 +912,11 @@ extern "C" {
     MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
     int           tran_nchnls;
-    MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
-    OPARMS        *oparms;
     void          *hostdata;
     OPCODINFO     *opcodeInfo;      /* IV - Oct 20 2002 */
     void          *instrumentNames;
     void          *strsav_str;
     void          *strsav_space;
-    MYFLT         dbfs_to_float;
-    unsigned int  rtin_dev;
-    char *        rtin_devs;
-    unsigned int  rtout_dev;
-    char *        rtout_devs;
-    int           nchanik;
-    MYFLT*        chanik;
-    int           nchania;
-    MYFLT*        chania;
-    int           nchanok;
-    MYFLT*        chanok;
-    int           nchanoa;
-    MYFLT*        chanoa;
     FGDATA        ff;
     FUNC**        flist;
     int           maxfnum;
@@ -940,7 +928,10 @@ extern "C" {
     int           namedGlobalsCurrLimit;
     int           namedGlobalsMaxLimit;
     void          **cfgVariableDB;
-    sensEvents_t  sensEvents_state;
+    double        prvbt, curbt, nxtbt;
+    double        curp2, nxtim;
+    int           cyclesRemaining;
+    EVTBLK        evt;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
     void          *memalloc_db;

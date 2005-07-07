@@ -34,10 +34,7 @@ static int util_perform(ENVIRON *csound, const char *name,
 {
     int n;
     if ((n = setjmp(csound->exitjmp)) != 0) {
-      if (n == CSOUND_EXITJMP_SUCCESS)
-        return 0;
-      else
-        return -(abs(n));
+      return (n - CSOUND_EXITJMP_SUCCESS);
     }
     csoundPreCompile(csound);
     csound->scorename = csound->orchname = (char*) name;

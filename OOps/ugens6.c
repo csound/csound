@@ -82,8 +82,8 @@ int interpset(ENVIRON *csound, INTERP *p)
 
 int interp(ENVIRON *csound, INTERP *p)
 {
-    MYFLT       *ar, val, incr;
-    int n, nsmps=csound->ksmps;
+    MYFLT *ar, val, incr;
+    int   n, nsmps=csound->ksmps;
 
     ar = p->rslt;
     if (p->init_k) {            /* IV - Sep 5 2002 */
@@ -91,7 +91,7 @@ int interp(ENVIRON *csound, INTERP *p)
       p->prev = *p->xsig;
     }
     val = p->prev;
-    incr = (*p->xsig - val) / csound->ensmps;
+    incr = (*p->xsig - val) / (MYFLT) nsmps;
     for (n=0; n<nsmps; n++) {
       ar[n] = val += incr;
     }

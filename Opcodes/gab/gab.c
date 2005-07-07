@@ -368,7 +368,7 @@ int adsynt2_set(ENVIRON *csound,ADSYNT2 *p)
     }
     else {
       p->inerr = 1;
-      /*csound->InitError(csound, Str(X_173,"adsynt: wavetable not found!")); */
+      /*csound->InitError(csound, Str("adsynt: wavetable not found!")); */
       return csound->InitError(csound, "adsynt2: wavetable not found!");
     }
 
@@ -382,12 +382,12 @@ int adsynt2_set(ENVIRON *csound,ADSYNT2 *p)
     }
     else {
       p->inerr = 1;
-      /*csound->InitError(csound, Str(X_309,"adsynt: freqtable not found!")); */
+      /*csound->InitError(csound, Str("adsynt: freqtable not found!")); */
       return csound->InitError(csound, "adsynt: freqtable not found!");
     }
     if (ftp->flen < count) {
       p->inerr = 1;
-/* csound->InitError(csound, Str(X_1424,
+/* csound->InitError(csound, Str(
              "adsynt: partial count is greater than freqtable size!")); */
       return csound->InitError(csound, "adsynt: partial count is greater than freqtable size!");
     }
@@ -397,12 +397,12 @@ int adsynt2_set(ENVIRON *csound,ADSYNT2 *p)
     }
     else {
       p->inerr = 1;
-      /*       csound->InitError(csound, Str(X_1473, "adsynt: amptable not found!")); */
+      /*       csound->InitError(csound, Str("adsynt: amptable not found!")); */
       return csound->InitError(csound, "adsynt: amptable not found!");
     }
     if (ftp->flen < count) {
       p->inerr = 1;
-      /* csound->InitError(csound, Str(X_1474,
+      /* csound->InitError(csound, Str(
                    "adsynt: partial count is greater than amptable size!")); */
       return csound->InitError(csound, "adsynt: partial count is greater than amptable size!");
     }
@@ -441,7 +441,7 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
     int     nsmps, count;
 
     if (p->inerr) {
-      /*csound->InitError(csound, Str(X_1475,"adsynt: not initialized")); */
+      /*csound->InitError(csound, Str("adsynt: not initialized")); */
       return csound->InitError(csound, "adsynt: not initialized");
     }
     ftp = p->ftp;
@@ -473,7 +473,7 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
       cps = *freqtbl++ * cps0;
       inc = (long) (cps * csound->sicvt);
       phs = *lphs;
-      ampIncr = (amp - *prevAmp) / csound->ensmps;
+      ampIncr = (amp - *prevAmp) / (MYFLT) nsmps;
       do {
         *ar++ += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;
@@ -490,7 +490,7 @@ int adsynt2(ENVIRON *csound,ADSYNT2 *p)
 
 int exitnow(ENVIRON *csound, EXITNOW *p)
 {
-    longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+    csound->LongJmp(csound, 0);
     return OK;  /* compiler only */
 }
 
@@ -510,7 +510,7 @@ int tabrec_set(ENVIRON *csound,TABREC *p)
 {
     /*FUNC *ftp; */
     /*if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
-    /*  csound->InitError(csound, Str(X_1535,"tabrec: incorrect table number")); */
+    /*  csound->InitError(csound, Str("tabrec: incorrect table number")); */
     /*  return; */
     /*} */
     /*p->table = ftp->ftable; */
@@ -531,7 +531,7 @@ int tabrec_k(ENVIRON *csound,TABREC *p)
         if ((fno = (int)*p->kfn) <= 0 ||
             fno > csound->maxfnum ||
             (ftp = csound->FTnp2Find(csound,&fno)) == NULL) {
-          /*sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"),*p->kfn); */
+          /*sprintf(errmsg, Str("Invalid ftable no. %f"),*p->kfn); */
           return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
         }
         else {
@@ -574,7 +574,7 @@ int tabplay_set(ENVIRON *csound,TABPLAY *p)
 {
     /*   FUNC *ftp; */
     /* if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
-    /*   csound->InitError(csound, Str(X_1535,"tabplay: incorrect table number")); */
+    /*   csound->InitError(csound, Str("tabplay: incorrect table number")); */
     /*   return; */
     /* } */
     /*  p->table = ftp->ftable; */
@@ -596,7 +596,7 @@ int tabplay_k(ENVIRON *csound,TABPLAY *p)
         if ((fno = (int)*p->kfn) <= 0 ||
             fno > csound->maxfnum ||
             (ftp = csound->FTnp2Find(csound,&fno)) == NULL) {
-          /*sprintf(errmsg, Str(X_315,"Invalid ftable no. %f"),*p->kfn); */
+          /*sprintf(errmsg, Str("Invalid ftable no. %f"),*p->kfn); */
           return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
         }
         else {

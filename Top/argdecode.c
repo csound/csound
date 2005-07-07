@@ -157,7 +157,7 @@ static void usage(void *csound_)
   csound->Message(csound, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
   csound->Message(csound, Str("Legal flags are:\n"));
   print_short_usage(csound);
-  longjmp(csound->exitjmp, 1);
+  csound->LongJmp(csound, 1);
 }
 
 static void longusage(void *csound)
@@ -238,7 +238,7 @@ static void longusage(void *csound)
   dump_cfg_variables(csound);
   p->Message(csound,Str("\nShort form:\n"));
   print_short_usage(csound);
-  longjmp(p->exitjmp, CSOUND_EXITJMP_SUCCESS);
+  p->LongJmp(p, 0);
 }
 
 void dieu(void *csound_, char *s)
@@ -246,7 +246,7 @@ void dieu(void *csound_, char *s)
     ENVIRON *csound = (ENVIRON*) csound_;
     csound->Message(csound,Str("Csound Command ERROR:\t%s\n"), s);
     usage(csound);
-    longjmp(csound->exitjmp, 1);
+    csound->LongJmp(csound, 1);
 }
 
 void set_output_format(OPARMS *O, char c)
@@ -607,10 +607,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
       s += 8;
       if (*s=='\0') dieu(csound, Str("no utility name"));
       retval = csound->Utility(csound, s, argc, argv);
-      if (!retval)
-        longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
-      else
-        longjmp(csound->exitjmp, abs(retval));
+      csound->LongJmp(csound, retval);
     }
     /* -v */
     else if (!(strcmp (s, "verbose"))) {
@@ -648,9 +645,9 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
       }
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
-        longjmp(csound->exitjmp, 1);
+        csound->LongJmp(csound, 1);
       list_opcodes(csound, full);
-      longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+      csound->LongJmp(csound, 0);
     }
     /* -Z */
     else if (!(strcmp (s, "dither"))) {
@@ -694,7 +691,7 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
     }
     else if (!(strcmp(s, "help"))) {
       longusage(csound);
-      longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+      csound->LongJmp(csound, 0);
     }
 
     csoundMessage(csound, Str("unknown long option: '--%s'\n"), s);
@@ -739,10 +736,7 @@ int argdecode(void *csound_, int argc, char **argv_)
           FIND(Str("no utility name"));
           {
             int retval = csound->Utility(csound, s, argc, argv);
-            if (!retval)
-              longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
-            else
-              longjmp(csound->exitjmp, abs(retval));
+            csound->LongJmp(csound, retval);
           }
           break;
         case 'C':
@@ -953,10 +947,10 @@ int argdecode(void *csound_, int argc, char **argv_)
             }
             csoundLoadExternals(csound);
             if (csoundInitModules(csound) != 0)
-              longjmp(csound->exitjmp, 1);
+              csound->LongJmp(csound, 1);
             list_opcodes(csound, full);
           }
-          longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+          csound->LongJmp(csound, 0);
           break;
         case 'Z':
           csound->dither_output = 1;
@@ -993,12 +987,12 @@ int argdecode(void *csound_, int argc, char **argv_)
           }
 #endif
           if (!decode_long(csound, s, argc, argv))
-            longjmp(csound->exitjmp, 1);
+            csound->LongJmp(csound, 1);
           while (*(++s));
           break;
         case '+':                                     /* IV - Feb 01 2005 */
           if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
-            longjmp(csound->exitjmp, 1);
+            csound->LongJmp(csound, 1);
           while (*(++s));
           break;
         default:
@@ -1014,7 +1008,7 @@ int argdecode(void *csound_, int argc, char **argv_)
       if (orcNameMode != NULL && strcmp(orcNameMode, "fail") == 0) {
         csoundMessage(csound, Str("error: orchestra and score name is not "
                                   "allowed in .csoundrc\n"));
-        longjmp(csound->exitjmp, 1);
+        csound->LongJmp(csound, 1);
       }
       if (orcNameMode == NULL || strcmp(orcNameMode, "ignore") != 0) {
         if (csound->orchname == NULL)
