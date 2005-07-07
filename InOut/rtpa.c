@@ -212,6 +212,7 @@ static int  paBlockingReadWriteStreamCallback(const void *, void *,
 static int paBlockingReadWriteOpen(ENVIRON *csound)
 {
     PA_BLOCKING_STREAM  *pabs;
+    PaStream            *stream = NULL;
     PaError             err;
 
     pabs = (PA_BLOCKING_STREAM*) csound->QueryGlobalVariable(csound,
@@ -261,7 +262,7 @@ static int paBlockingReadWriteOpen(ENVIRON *csound)
         pa_PrintErrMsg(csound, Str("inconsistent full-duplex sample rates"));
         goto err_return;
       }
-  /*  pabs->noPaLock = 1; */
+  /*  pabs->noPaLock = 1;  */
     }
 
     pabs->paLock = csound->CreateThreadLock(csound);
@@ -270,13 +271,11 @@ static int paBlockingReadWriteOpen(ENVIRON *csound)
     pabs->clientLock = csound->CreateThreadLock(csound);
     if (pabs->clientLock == NULL)
       goto err_return;
-#if 0
     if (!pabs->noPaLock)
       csound->WaitThreadLock(csound, pabs->paLock, (size_t) 500);
     csound->WaitThreadLock(csound, pabs->clientLock, (size_t) 500);
-#endif
 
-    err = Pa_OpenStream(&(pabs->paStream),
+    err = Pa_OpenStream(&stream,
                         (pabs->mode & 1 ? &(pabs->inputPaParameters)
                                           : (PaStreamParameters*) NULL),
                         (pabs->mode & 2 ? &(pabs->outputPaParameters)
@@ -290,17 +289,18 @@ static int paBlockingReadWriteOpen(ENVIRON *csound)
                         paBlockingReadWriteStreamCallback,
                         (void*) pabs);
     if (err != paNoError) {
-      pabs->paStream = NULL;
       pa_PrintErrMsg(csound, "%d: %s", (int) err, Pa_GetErrorText(err));
       goto err_return;
     }
 
-    err = Pa_StartStream(pabs->paStream);
+    err = Pa_StartStream(stream);
     if (err != paNoError) {
+      Pa_CloseStream(stream);
       pa_PrintErrMsg(csound, "%d: %s", (int) err, Pa_GetErrorText(err));
       goto err_return;
     }
 
+    pabs->paStream = stream;
     return 0;
 
     /* clean up and report error */
@@ -399,10 +399,6 @@ static void rtplay_(void *csound_, void *outbuf_, int bytes_)
     pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
     if (pabs == NULL)
       return;
-    if (pabs->paStream == NULL) {
-      if (paBlockingReadWriteOpen(csound) != 0)
-        csound->Die(csound, Str("Failed to initialise real time audio output"));
-    }
 
     do {
       pabs->outputBuffer[pabs->currentOutputIndex++] = (float) buffer[i];
@@ -454,7 +450,7 @@ static int playopen_(void *csound, csRtAudioParams *parm)
     memcpy(&(pabs->outParm), parm, sizeof(csRtAudioParams));
     *(p->GetRtPlayUserData(p)) = (void*) pabs;
 
-    return 0;
+    return (paBlockingReadWriteOpen(p));
 }
 
 static void rtclose_(void *csound_)     /* close the I/O device entirely */
@@ -469,15 +465,17 @@ static void rtclose_(void *csound_)     /* close the I/O device entirely */
 
     if (pabs->paStream != NULL) {
       PaStream  *stream = pabs->paStream;
+      int       i;
       pabs->paStream = NULL;
-      Pa_Sleep(300);
-      if (!pabs->noPaLock)
-        csound->NotifyThreadLock(csound, pabs->paLock);
-      csound->NotifyThreadLock(csound, pabs->clientLock);
-      Pa_Sleep(100);
+      for (i = 0; i < 4; i++) {
+        if (!pabs->noPaLock)
+          csound->NotifyThreadLock(csound, pabs->paLock);
+        csound->NotifyThreadLock(csound, pabs->clientLock);
+        Pa_Sleep(80);
+      }
       Pa_AbortStream(stream);
       Pa_CloseStream(stream);
-      Pa_Sleep(100);
+      Pa_Sleep(80);
     }
 
     if (pabs->clientLock != NULL) {
