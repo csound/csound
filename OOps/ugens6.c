@@ -86,12 +86,12 @@ int interp(ENVIRON *csound, INTERP *p)
     int   n, nsmps=csound->ksmps;
 
     ar = p->rslt;
-    if (p->init_k) {            /* IV - Sep 5 2002 */
+    if (p->init_k) {
       p->init_k = 0;
       p->prev = *p->xsig;
     }
     val = p->prev;
-    incr = (*p->xsig - val) / (MYFLT) nsmps;
+    incr = (*p->xsig - val) * csound->onedksmps;
     for (n=0; n<nsmps; n++) {
       ar[n] = val += incr;
     }

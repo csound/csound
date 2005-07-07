@@ -53,7 +53,7 @@ int aline(ENVIRON *csound, LINE *p)
     val = p->val;
     inc = p->incr;
     p->val += inc;              /* nxtval = val + inc */
-    inc /= (MYFLT) nsmps;
+    inc *= csound->onedksmps;
     ar = p->xr;
     for (n=0; n<nsmps; n++) {
       ar[n] = val;
@@ -98,13 +98,13 @@ int expon(ENVIRON *csound, EXPON *p)
     mlt = p->mlt;
     nxtval = val * mlt;
     inc = nxtval - val;
-    inc /= (MYFLT) nsmps;   /* increment per sample */
+    inc *= csound->onedksmps;   /* increment per sample */
     ar = p->xr;
     for (n=0; n<nsmps; n++) {
       ar[n] = val;
-      val += inc;           /* interp val for ksmps */
+      val += inc;               /* interp val for ksmps */
     }
-    p->val = nxtval;        /* store next value */
+    p->val = nxtval;            /* store next value */
     return OK;
 }
 
@@ -202,7 +202,7 @@ int linseg(ENVIRON *csound, LINSEG *p)
           goto chk1;
         }                                 /*   poslen = new slope */
         p->curinc = (segp->nxtpt - val) / segp->cnt;
-        p->curainc = p->curinc / (MYFLT) nsmps;
+        p->curainc = p->curinc * csound->onedksmps;
       }
       p->curval = val + p->curinc;        /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
@@ -380,7 +380,7 @@ int linsegr(ENVIRON *csound, LINSEG *p)
           goto chk2;
         }                                   /*   else get new slope */
         p->curinc = (segp->nxtpt - val) / segp->cnt;
-        p->curainc = p->curinc / (MYFLT) nsmps;
+        p->curainc = p->curinc * csound->onedksmps;
       }
       p->curval = val + p->curinc;          /* advance the cur val  */
       if ((ainc = p->curainc) == FL(0.0))
@@ -598,7 +598,7 @@ int expseg(ENVIRON *csound, EXXPSEG *p)
       p->cursegp = ++segp;
     val = segp->val;
     nxtval = val * segp->mlt;
-    li = (nxtval - val) / (MYFLT) csound->ksmps;
+    li = (nxtval - val) * csound->onedksmps;
     rs = p->rslt;
     for (n=0; n<csound->ksmps; n++) {
       rs[n] = val;
@@ -761,7 +761,7 @@ int expsegr(ENVIRON *csound, EXPSEG *p)
         else {
           p->curmlt = (MYFLT) pow((double)(segp->nxtpt/val),
                                   1.0/(double)segp->cnt);
-          p->curamlt = (MYFLT) pow(p->curmlt, 1.0 / (double) nsmps);
+          p->curamlt = (MYFLT) pow(p->curmlt, (double) csound->onedksmps);
         }
       }
       p->curval = val * p->curmlt;        /* advance the cur val  */
@@ -846,7 +846,7 @@ int linen(ENVIRON *csound, LINEN *p)
     else p->cnt2--;
     p->val = nxtval;
     if (flag) {
-      li = (nxtval - val) / (MYFLT) nsmps;
+      li = (nxtval - val) * csound->onedksmps;
       if (p->XINCODE) {
         for (n=0; n<nsmps; n++) {
           rs[n] = *sg++ * val;
@@ -934,7 +934,7 @@ int linenr(ENVIRON *csound, LINENR *p)
     }
     p->val = nxtval;
     if (flag) {
-      li = (nxtval - val) / (MYFLT) nsmps;
+      li = (nxtval - val) * csound->onedksmps;
       if (p->XINCODE) {
         for (n=0; n<nsmps; n++) {
           rs[n] = sg[n] * val;
@@ -1118,8 +1118,8 @@ int envlpx(ENVIRON *csound, ENVLPX *p)
       else nxtval *= p->mlt2;
     }
     p->val = nxtval;
-    li = (nxtval - val) / (MYFLT) nsmps;    /* linear interpolation factor */
-    if (p->XINCODE) {                       /* for audio rate amplitude: */
+    li = (nxtval - val) * csound->onedksmps;  /* linear interpolation factor */
+    if (p->XINCODE) {                         /* for audio rate amplitude: */
       for (n=0; n<nsmps;n++) {
         rslt[n] = xamp[n] * val;
         val += li;
@@ -1283,8 +1283,8 @@ int envlpxr(ENVIRON *csound, ENVLPR *p)
           p->val += p->asym;
       }
     }
-    else p->val = nxtval = val * p->mlt2;   /* else do seg 3 decay  */
-    li = (nxtval - val) / (MYFLT) nsmps;    /* all segs use interp  */
+    else p->val = nxtval = val * p->mlt2;     /* else do seg 3 decay  */
+    li = (nxtval - val) * csound->onedksmps;  /* all segs use interp  */
     if (p->XINCODE) {
       for (n=0; n<nsmps; n++) {
         rslt[n] = xamp[n] * val;

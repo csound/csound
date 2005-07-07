@@ -831,11 +831,10 @@ extern "C" {
     int           tieflag;
     MYFLT         esr, onedsr, sicvt;
     MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
-    MYFLT         dummy_1;              /* unused */
+    MYFLT         onedksmps;
     MYFLT         ekr, global_ekr;
-    MYFLT         onedkr, global_onedkr;
-    MYFLT         hfkprd, global_hfkprd;
-    MYFLT         kicvt, global_kicvt;
+    MYFLT         onedkr;
+    MYFLT         kicvt;
     MYFLT         e0dbfs, dbfs_to_float;
     double        timeOffs, beatOffs;   /* start time of current section    */
     double        curTime, curTime_inc; /* cur. time in secs, inc. per kprd */
