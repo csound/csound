@@ -996,7 +996,7 @@ int gain(ENVIRON *csound, GAIN *p)
     ar = p->ar;
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff / (double) nsmps;
+      inc = diff * (double) csound->onedksmps;
       for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
@@ -1037,7 +1037,7 @@ int balance(ENVIRON *csound, BALANCE *p)
     ar = p->ar;
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff / (double) nsmps;
+      inc = diff * (double) csound->onedksmps;
       for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
