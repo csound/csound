@@ -65,7 +65,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     if ((n = setjmp(csound->exitjmp))) {
       csound->Message(csound, " *** WARNING: longjmp() called during "
                               "csoundPreCompile() ***\n");
-      return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
+      return (n - CSOUND_EXITJMP_SUCCESS);
     }
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
@@ -77,7 +77,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         return CSOUND_ERROR;
 
     if ((n = setjmp(csound->exitjmp))) {
-      return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
+      return (n - CSOUND_EXITJMP_SUCCESS);
     }
 
     /* IV - Jan 28 2005 */
@@ -129,7 +129,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     /* command line: allow orc/sco/csd name */
     strcpy(orcNameMode, "normal");
     if (argdecode(csound, argc, argv) == 0)
-      longjmp(csound->exitjmp, 1);
+      csound->LongJmp(csound, 1);
     /* do not allow orc/sco/csd name in .csoundrc */
     strcpy(orcNameMode, "fail");
     {
@@ -267,7 +267,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     csoundLoadExternals(csound);    /* load plugin opcodes */
     /* IV - Jan 31 2005: initialise external modules */
     if (csoundInitModules(csound) != 0)
-      longjmp(csound->exitjmp, 1);
+      csound->LongJmp(csound, 1);
     otran(csound);                  /* read orcfile, setup desblks & spaces */
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
@@ -355,7 +355,7 @@ PUBLIC int csoundPerform(void *csound_, int argc, char **argv)
 
     if ((n = setjmp(csound->exitjmp))) {
       csound->Message(csound, "Early return from csoundPerform().\n");
-      return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
+      return (n - CSOUND_EXITJMP_SUCCESS);
     }
     n = csoundCompile(csound, argc, argv);
     csound->Message(csound, "Compile returns %d\n", n);
@@ -363,7 +363,7 @@ PUBLIC int csoundPerform(void *csound_, int argc, char **argv)
       return n;
     if ((n = setjmp(csound->exitjmp))) {
       csound->Message(csound, "Early return from csoundPerform().\n");
-      return (n == CSOUND_EXITJMP_SUCCESS ? n : -(abs(n)));
+      return (n - CSOUND_EXITJMP_SUCCESS);
     }
     n = musmon2(csound);
     csound->Message(csound, "musmon returns %d\n", n);

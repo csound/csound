@@ -2865,7 +2865,7 @@ int printk(ENVIRON *csound, PRINTK *p)
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
                                (int) p->h.insdshead->p1);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
-                               csound->sensEvents_state.curTime);
+                               csound->curTime);
       /* Print spaces and then the value we want to read.      */
       spcount = p->pspace;
       while (spcount > 0) {

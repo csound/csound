@@ -512,10 +512,9 @@ extern "C" {
     int     i;
 
     /* update orchestra time */
-    csound->kcounter++;
-    csound->global_kcounter = csound->kcounter;
-    csound->sensEvents_state.curTime += csound->sensEvents_state.curTime_inc;
-    csound->sensEvents_state.curBeat += csound->sensEvents_state.curBeat_inc;
+    csound->kcounter = ++(csound->global_kcounter);
+    csound->curTime += csound->curTime_inc;
+    csound->curBeat += csound->curBeat_inc;
     /* if skipping time on request by 'a' score statement: */
     if (csound->advanceCnt) {
       csound->advanceCnt--;
@@ -529,7 +528,7 @@ extern "C" {
     if (--(csound->evt_poll_cnt) < 0) {
       csound->evt_poll_cnt = csound->evt_poll_maxcnt;
       if (!csoundYield(csound))
-        longjmp(csound->exitjmp, CSOUND_EXITJMP_SUCCESS);
+        csound->LongJmp(csound, 0);
     }
     /* for one kcnt: */
     if (csound->oparms->sfread)         /*   if audio_infile open  */
@@ -558,7 +557,7 @@ extern "C" {
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
-      return (returnValue & (-256) ? returnValue : -returnValue);
+      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     do {
       if ((done = sensevents(csound))) {
@@ -576,7 +575,7 @@ extern "C" {
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(((ENVIRON*) csound)->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
-      return (returnValue & (-256) ? returnValue : -returnValue);
+      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     do {
       done |= sensevents(csound);
@@ -594,7 +593,7 @@ extern "C" {
     /* Setup jmp for return after an exit(). */
     if ((returnValue = setjmp(csound->exitjmp))) {
       csoundMessage(csound_, "Early return from csoundPerformBuffer().\n");
-      return (returnValue & (-256) ? returnValue : -returnValue);
+      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     csound->sampsNeeded += csound->oparms->outbufsamps;
     while (csound->sampsNeeded > 0) {
@@ -665,7 +664,7 @@ extern "C" {
 
   PUBLIC MYFLT csoundGetScoreTime(void *csound)
   {
-    return (MYFLT) ((ENVIRON*)csound)->sensEvents_state.curTime;
+    return (MYFLT) ((ENVIRON*)csound)->curTime;
   }
 
   PUBLIC MYFLT csoundGetProgress(void *csound)
@@ -710,7 +709,7 @@ extern "C" {
     if (csound->QueryGlobalVariable(csound, "csRtClock") == NULL)
       return;
     /* otherwise seek to the requested time now */
-    aTime = (double) offset - csound->sensEvents_state.curTime;
+    aTime = (double) offset - csound->curTime;
     if (aTime < 0.0 || offset < prv) {
       csoundRewindScore(csound);    /* will call csoundSetScoreOffsetSeconds */
       return;
@@ -722,7 +721,7 @@ extern "C" {
       evt.pcnt = 3;
       evt.p[2] = evt.p[1] = FL(0.0);
       evt.p[3] = (MYFLT) aTime;
-      insert_score_event(csound, &evt, csound->sensEvents_state.curTime, 0);
+      insert_score_event(csound, &evt, csound->curTime, 0);
     }
   }
 
@@ -820,7 +819,7 @@ extern "C" {
     p->csoundMessageCallback_(p, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
     csoundMessageS(p, CSOUNDMSG_ERROR, "\n");
-    longjmp(p->exitjmp, 1);
+    p->LongJmp(p, 1);
   }
 
   void csoundWarning(void *csound, const char *msg, ...)
@@ -845,6 +844,15 @@ extern "C" {
     ((ENVIRON*) csound)->csoundMessageCallback_(csound, 0, msg, args);
     va_end(args);
     csoundMessage(csound, "\n");
+  }
+
+  void csoundLongJmp(ENVIRON *csound, int retval)
+  {
+    int n = CSOUND_EXITJMP_SUCCESS;
+    n = (retval < 0 ? n + retval : n - retval) & (CSOUND_EXITJMP_SUCCESS - 1);
+    if (!n)
+      n = CSOUND_EXITJMP_SUCCESS;
+    longjmp(csound->exitjmp, n);
   }
 
   PUBLIC void csoundSetThrowMessageCallback(void *csound,
@@ -947,7 +955,7 @@ extern "C" {
       evt.p[i + 1] = pfields[i];
     return
       insert_score_event((ENVIRON*) csound, &evt,
-                         ((ENVIRON*) csound)->sensEvents_state.curTime, 0);
+                         ((ENVIRON*) csound)->curTime, 0);
   }
 
   /*
@@ -1573,9 +1581,10 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
 
   int csoundYield(void *csound)
   {
+    ENVIRON *p = (ENVIRON*) csound;
     if (exitNow_)
-      longjmp(((ENVIRON*) csound)->exitjmp, 1);
-    return ((ENVIRON*) csound)->csoundYieldCallback_(csound);
+      p->LongJmp(p, 1);
+    return p->csoundYieldCallback_(p);
   }
 
   extern void csoundDeleteAllGlobalVariables(void *csound);

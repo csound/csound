@@ -187,27 +187,27 @@ static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
     /* are there any pending events ? */
     if (p->eventQueue == NULL)
       return;
+
     csound->WaitThreadLock(csound, p->threadLock, 1000);
     while (p->eventQueue != NULL) {
       double  startTime;
       rtEvt_t *ep = p->eventQueue;
       p->eventQueue = ep->nxt;
       csound->NotifyThreadLock(csound, p->threadLock);
-      startTime = (p->absp2mode ? p->baseTime
-                                  : csound->sensEvents_state.curTime);
+      startTime = (p->absp2mode ? p->baseTime : csound->curTime);
       startTime += (double) ep->e.p[2];
       ep->e.p[2] = FL(0.0);
       if (ep->e.pcnt < 3 || ep->e.p[3] < FL(0.0) ||
           ep->e.opcod == 'q' || ep->e.opcod == 'f' || ep->e.opcod == 'e' ||
-          startTime + (double) ep->e.p[3] >= csound->sensEvents_state.curTime) {
-        if (startTime < csound->sensEvents_state.curTime) {
+          startTime + (double) ep->e.p[3] >= csound->curTime) {
+        if (startTime < csound->curTime) {
           if (ep->e.pcnt >= 3 && ep->e.p[3] > FL(0.0) &&
               ep->e.opcod != 'q' && ep->e.opcod != 'f')
-            ep->e.p[3] -= (MYFLT)(csound->sensEvents_state.curTime - startTime);
-          startTime = csound->sensEvents_state.curTime;
+            ep->e.p[3] -= (MYFLT) (csound->curTime - startTime);
+          startTime = csound->curTime;
         }
         if (ep->e.opcod == 'T')
-          p->baseTime = csound->sensEvents_state.curTime;
+          p->baseTime = csound->curTime;
         else
           csound->insert_score_event(csound, &(ep->e), startTime, 0);
       }

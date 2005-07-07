@@ -558,12 +558,12 @@ void otran(ENVIRON *csound)
         synterr(csound, Str("perf-pass statements illegal in header blk"));
     }
     if (csound->synterrcnt) {
-      csound->Message(csound, Str("%d syntax errors in orchestra.  "
-                                  "compilation invalid\n"), csound->synterrcnt);
-      longjmp(csound->exitjmp, 1);
+      csound->Die(csound, Str("%d syntax errors in orchestra.  "
+                              "compilation invalid"), csound->synterrcnt);
     }
     if (O->odebug) {
-      long n; MYFLT *p;
+      long n;
+      MYFLT *p;
       csound->Message(csound, "poolcount = %ld, strpool_cnt = %ld\n",
                               ST(poolcount), ST(strpool_cnt));
       csound->Message(csound, "pool:");

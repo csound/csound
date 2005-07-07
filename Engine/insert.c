@@ -50,12 +50,10 @@ int init0(ENVIRON *csound)
 
 void set_xtratim(ENVIRON *csound, INSDS *ip)
 {
-    sensEvents_t  *p;
     if (ip->relesing)
       return;
-    p = &(csound->sensEvents_state);
-    ip->offtim = p->curTime + (p->curTime_inc * (double) ip->xtratim);
-    ip->offbet = p->curBeat + (p->curBeat_inc * (double) ip->xtratim);
+    ip->offtim = csound->curTime + (csound->curTime_inc * (double) ip->xtratim);
+    ip->offbet = csound->curBeat + (csound->curBeat_inc * (double) ip->xtratim);
     ip->relesing = 1;
 }
 
@@ -148,7 +146,7 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
                               insno, n, newevtp->pcnt);
       }
       if (newevtp->p3orig >= FL(0.0))
-        ip->offbet = csound->sensEvents_state.beatOffs
+        ip->offbet = csound->beatOffs
                      + (double) newevtp->p2orig + (double) newevtp->p3orig;
       else
         ip->offbet = -1.0;
@@ -163,8 +161,7 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, "   ending at %p\n", flp);
     }
     if (O->Beatmode)
-      ip->p2 = (MYFLT) (csound->sensEvents_state.curTime
-                        - csound->sensEvents_state.timeOffs);
+      ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
     ip->offtim       = (double) ip->p3;         /* & duplicate p3 for now */
     ip->m_chnbp      = (MCHNBLK*) NULL;
     ip->xtratim      = 0;
@@ -187,13 +184,11 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       return csound->inerrcnt;
     }
     if (ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
-      double p2 = (double) ip->p2 + csound->sensEvents_state.timeOffs;
+      double p2 = (double) ip->p2 + csound->timeOffs;
       ip->offtim = p2 + (double) ip->p3;
       if (O->Beatmode) {
-        p2 -= csound->sensEvents_state.curTime;
-        p2 /= csound->sensEvents_state.beatTime;
-        p2 += csound->sensEvents_state.curBeat;
-        ip->offbet = p2 + ((double) ip->p3 / csound->sensEvents_state.beatTime);
+        p2 = ((p2 - csound->curTime) / csound->beatTime) + csound->curBeat;
+        ip->offbet = p2 + ((double) ip->p3 / csound->beatTime);
       }
       schedofftim(csound, ip);                  /*   put in turnoff list */
     }
@@ -205,7 +200,7 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
       csound->Message(csound, "instr %d now active:\n", insno);
       showallocs(csound);
     }
-    return(0);
+    return 0;
 }
 
 int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
@@ -293,8 +288,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->offtim = -1.0;              /* set indef duration */
     ip->opcod_iobufs = NULL;        /* IV - Sep 8 2002:            */
     ip->p1 = (MYFLT) ip->insno;     /* set these required p-fields */
-    ip->p2 = (MYFLT) (csound->sensEvents_state.curTime
-                      - csound->sensEvents_state.timeOffs);
+    ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
     ip->p3 = FL(-1.0);
     if (tp->psetdata != NULL) {
       MYFLT *pfld = &ip->p3;              /* if pset data present */
@@ -546,7 +540,7 @@ int csoundInitError(void *csound_, const char *s, ...)
       csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
       va_end(args);
       csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
-      longjmp(csound->exitjmp, 1);
+      csound->LongJmp(csound, 1);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = csound->ids->insdshead;
@@ -589,7 +583,7 @@ int csoundPerfError(void *csound_, const char *s, ...)
       csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
       va_end(args);
       csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
-      longjmp(csound->exitjmp, 1);
+      csound->LongJmp(csound, 1);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = csound->pds->insdshead;
@@ -726,7 +720,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     OPCODINFO *inm;
     OPCOD_IOBUFS  *buf;
     int     g_ksmps;
-    MYFLT   g_ensmps, g_ekr, g_onedkr, g_hfkprd, g_kicvt;
+    MYFLT   g_ekr, g_onedkr, g_hfkprd, g_kicvt;
 
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
@@ -746,7 +740,6 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
       p->l_ksmps = i;
     }
     /* save old globals */
-    g_ensmps = csound->ensmps;
     g_ekr = csound->ekr;
     g_onedkr = csound->onedkr;
     g_hfkprd = csound->hfkprd;
@@ -755,10 +748,9 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     if (p->l_ksmps != g_ksmps) {
       csound->ksmps = p->l_ksmps;
       p->ksmps_scale = g_ksmps / (int) csound->ksmps;
-      p->l_ensmps = csound->ensmps =
-                    csound->pool[O->poolcount + 2] = (MYFLT) p->l_ksmps;
+      csound->pool[O->poolcount + 2] = (MYFLT) p->l_ksmps;
       p->l_ekr = csound->ekr =
-                 csound->pool[O->poolcount + 1] = csound->esr / p->l_ensmps;
+          csound->pool[O->poolcount + 1] = csound->esr / (MYFLT) p->l_ksmps;
       p->l_onedkr = csound->onedkr = FL(1.0) / p->l_ekr;
       p->l_hfkprd = csound->hfkprd = FL(0.5) / p->l_ekr;
       p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
@@ -841,7 +833,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
     csound->curip = saved_curip;
     if (csound->ksmps != g_ksmps) {
       csound->ksmps = g_ksmps;
-      csound->ensmps = csound->pool[O->poolcount + 2] = g_ensmps;
+      csound->pool[O->poolcount + 2] = (MYFLT) g_ksmps;
       csound->ekr = csound->pool[O->poolcount + 1] = g_ekr;
       csound->onedkr = g_onedkr;
       csound->hfkprd = g_hfkprd;
@@ -965,10 +957,9 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
     pp->ksmps_scale *= n;
     p->h.insdshead->xtratim *= n;
     pp->l_ksmps = csound->ksmps = l_ksmps;
-    pp->l_ensmps = csound->ensmps =
-                   csound->pool[O->poolcount + 2] = (MYFLT) csound->ksmps;
+    csound->pool[O->poolcount + 2] = (MYFLT) csound->ksmps;
     pp->l_ekr = csound->ekr =
-                csound->pool[O->poolcount + 1] = csound->esr / csound->ensmps;
+        csound->pool[O->poolcount + 1] = csound->esr / (MYFLT) csound->ksmps;
     pp->l_onedkr = csound->onedkr = FL(1.0) / csound->ekr;
     pp->l_hfkprd = csound->hfkprd = FL(0.5) / csound->ekr;
     pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
@@ -1095,8 +1086,7 @@ INSDS *insert_event(ENVIRON *csound,
       if (O->odebug) csound->Message(csound, Str("   ending at %p\n"),flp);
     }
     if (O->Beatmode)
-      ip->p2 = (MYFLT) (csound->sensEvents_state.curTime
-                        - csound->sensEvents_state.timeOffs);
+      ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
     ip->offbet = (double) ip->p3;
     ip->offtim = (double) ip->p3;       /* & duplicate p3 for now */
     ip->xtratim = 0;
@@ -1129,12 +1119,10 @@ INSDS *insert_event(ENVIRON *csound,
     if (!midi &&                                /* if not MIDI activated, */
         ip->p3 > FL(0.0) && ip->offtim > 0.0) { /* and still finite time, */
       double p2;
-      p2 = (double) ip->p2 + csound->sensEvents_state.timeOffs;
+      p2 = (double) ip->p2 + csound->timeOffs;
       ip->offtim = p2 + (double) ip->p3;
-      p2 -= csound->sensEvents_state.curTime;
-      p2 /= csound->sensEvents_state.beatTime;
-      p2 += csound->sensEvents_state.curBeat;
-      ip->offbet = p2 + ((double) ip->p3 / csound->sensEvents_state.beatTime);
+      p2 = ((p2 - csound->curTime) / csound->beatTime) + csound->curBeat;
+      ip->offbet = p2 + ((double) ip->p3 / csound->beatTime);
       schedofftim(csound, ip);  /*       put in turnoff list */
     }
     else {
@@ -1269,14 +1257,13 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
     OPARMS  *O = csound->oparms;
     OPDS    *saved_pds = csound->pds;
     int     g_ksmps, ofs = 0, n;
-    MYFLT   g_ensmps, g_ekr, g_onedkr, g_hfkprd, g_kicvt, **tmp, *ptr1, *ptr2;
+    MYFLT   g_ekr, g_onedkr, g_hfkprd, g_kicvt, **tmp, *ptr1, *ptr2;
     long    g_kcounter;
 
     /* update release flag */
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
     /* save old globals */
     g_ksmps = csound->ksmps;
-    g_ensmps = csound->ensmps;
     g_ekr = csound->ekr;
     g_onedkr = csound->onedkr;
     g_hfkprd = csound->hfkprd;
@@ -1284,7 +1271,7 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
     g_kcounter = csound->kcounter;
     /* set local ksmps and related values */
     csound->ksmps = p->l_ksmps;
-    csound->ensmps = csound->pool[O->poolcount + 2] = p->l_ensmps;
+    csound->pool[O->poolcount + 2] = (MYFLT) p->l_ksmps;
     csound->ekr = csound->pool[O->poolcount + 1] = p->l_ekr;
     csound->onedkr = p->l_onedkr;
     csound->hfkprd = p->l_hfkprd;
@@ -1351,7 +1338,7 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
 
     /* restore globals */
     csound->ksmps = g_ksmps;
-    csound->ensmps = csound->pool[O->poolcount + 2] = g_ensmps;
+    csound->pool[O->poolcount + 2] = (MYFLT) g_ksmps;
     csound->ekr = csound->pool[O->poolcount + 1] = g_ekr;
     csound->onedkr = g_onedkr;
     csound->hfkprd = g_hfkprd;

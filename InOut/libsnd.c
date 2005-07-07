@@ -191,8 +191,7 @@ static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
       case 3:
         {
           char    s[512];
-          double  curTime = csound->sensEvents_state.curTime;
-          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs, curTime, &n);
+          sprintf(s, "%ld(%.3f)%n", (long) csound->nrecs, csound->curTime, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
