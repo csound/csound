@@ -241,15 +241,10 @@ extern "C" {
       e.p[i] = *args[i];
     if (e.p[2] < FL(0.0))
       e.p[2] = FL(0.0);
-    csound->insert_score_event(csound, &e, csound->sensEvents_state.curTime, 0);
+    csound->insert_score_event(csound, &e, csound->curTime, 0);
 #endif  // NO_FLTK_THREADS
   }
 };
-
-// #else        IV - Sep 8 2002
-
-// extern Fl_Window * FLkeyboard_init();
-// extern int FLkeyboard_sensing();
 
 // ---- IV - Aug 23 2002 ---- included file: Fl_Knob.cxx
 
