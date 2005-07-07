@@ -123,7 +123,7 @@ static  void    printgroups(ENVIRON *, int);
 static  int     isopcod(ENVIRON *, char *);
 static  void    lblrequest(ENVIRON *, char *), lblfound(ENVIRON *, char *);
 static  void    lblclear(ENVIRON *), lblchk(ENVIRON *);
-static  void    lexerr(ENVIRON *, char *);
+static  void    lexerr(ENVIRON *, const char *, ...);
 static  void    synterrp(ENVIRON *, const char *, char *);
 
 #include "typetabl.h"                   /* IV - Oct 31 2002 */
@@ -192,8 +192,10 @@ static void skiporchar(ENVIRON *csound)
  top:
     if (ST(str)->unget_cnt) {
       c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
-      if (c == '\n')
+      if (c == '\n') {
+        ST(linepos) = -1;
         return;
+      }
       goto top;
     }
     else if (ST(str)->string) {
@@ -242,6 +244,8 @@ static int getorchar(ENVIRON *csound)
  top:
     if (ST(str)->unget_cnt) {
       c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
+      if (c == '\n')
+        ST(linepos) = -1;
       return c;
     }
     else if (ST(str)->string) {
@@ -691,7 +695,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         }
         mm = mm_save;
         if (mm == NULL) {
-          lexerr(csound, Str("Undefined macro"));
+          lexerr(csound, Str("Undefined macro: '%s'"), name);
           continue;
         }
         if ((int) strlen(mm->name) != i) {
@@ -1889,11 +1893,22 @@ static void synterrp(ENVIRON *csound, const char *errp, char *s)
     csound->MessageS(csound, CSOUNDMSG_ERROR, "^\n");
 }
 
-static void lexerr(ENVIRON *csound, char *s)
+static void lexerr(ENVIRON *csound, const char *s, ...)
 {
+    char      buf[512];
     IN_STACK  *curr = ST(str);
+    va_list   args;
 
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  %s\n"), s);
+    va_start(args, s);
+#ifdef HAVE_C99
+    vsnprintf(buf, (size_t) 512, s, args);
+#else
+    vsprintf(buf, s, args);
+#endif
+    va_end(args);
+    buf[511] = '\0';
+
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  %s\n"), buf);
     while (curr != ST(inputs)) {
       if (curr->string) {
         MACRO *mm = ST(macros);
@@ -1909,7 +1924,7 @@ static void lexerr(ENVIRON *csound, char *s)
       }
       curr--;
     }
-    longjmp(csound->exitjmp, 1);
+    csound->LongJmp(csound, 1);
 }
 
 static void printgroups(ENVIRON *csound, int grpcnt)

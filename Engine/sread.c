@@ -167,13 +167,26 @@ static intptr_t expand_nxp(ENVIRON *csound)
     return offs;
 }
 
-static void scorerr(ENVIRON *csound, char *s)
+static void scorerr(ENVIRON *csound, const char *s, ...)
 {
-    struct in_stack *curr = ST(str);
+    char      buf[512];
+    IN_STACK  *curr = ST(str);
+    va_list   args;
+
+    va_start(args, s);
+#ifdef HAVE_C99
+    vsnprintf(buf, (size_t) 512, s, args);
+#else
+    vsprintf(buf, s, args);
+#endif
+    va_end(args);
+    buf[511] = '\0';
 
     csound->MessageS(csound, CSOUNDMSG_ERROR,
-                             Str("score error:  %s on line %d position %d"),
-                             s, ST(str)->line, ST(linepos));
+                             Str("score error:  %s\n"
+                                 "    on line %d position %d\n"),
+                             buf, ST(str)->line, ST(linepos));
+
     while (curr != ST(inputs)) {
       if (curr->string) {
         MACRO *mm = NULL;
@@ -189,7 +202,7 @@ static void scorerr(ENVIRON *csound, char *s)
       }
       curr--;
     }
-    longjmp(csound->exitjmp, 1);
+    csound->LongJmp(csound, 1);
 }
 
 static MYFLT operate(ENVIRON *csound, MYFLT a, MYFLT b, char c)
@@ -271,6 +284,8 @@ static int getscochar(ENVIRON *csound, int expand)
 top:
     if (ST(str)->unget_cnt) {
       c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
+      if (c == '\n')
+        ST(linepos) = -1;
       return c;
     }
     else if (ST(str)->string) {
@@ -331,7 +346,7 @@ top:
       }
       mm = mm_save;
       if (mm == NULL) {
-        scorerr(csound, Str("Undefined macro, or $ without macro name"));
+        scorerr(csound, Str("Undefined macro: '%s'"), name);
       }
       if (strlen(mm->name) != i) {
         int cnt = (int) i - (int) strlen(mm->name);
@@ -1457,9 +1472,7 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
         ST(str)->fd = fopen_path(csound, &(ST(str)->file), mname,
                                          csound->scorename, "INCDIR");
         if (ST(str)->fd == NULL) {
-          sprintf(csound->errmsg, Str("Cannot open #include'd file %s\n"),
-                                  mname);
-          scorerr(csound, csound->errmsg);
+          scorerr(csound, Str("Cannot open #include'd file %s\n"), mname);
         }
         else {
           ST(str)->body = csound->GetFileName(ST(str)->fd);
