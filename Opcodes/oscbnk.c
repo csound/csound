@@ -1993,7 +1993,7 @@ static int vco2set(ENVIRON *csound, VCO2 *p)
     if (x > FL(0.5)) x = FL(0.5);
     p->p_min = x / (MYFLT) VCO2_MAX_NPART;
     p->p_scl = x;
-    p->dv_ksmps = FL(1.0) / csound->ensmps;
+    p->dv_ksmps = FL(1.0) / (MYFLT) csound->ksmps;
     return OK;
 }
 

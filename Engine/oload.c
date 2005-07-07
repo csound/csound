@@ -63,10 +63,8 @@ static const OPARMS O_ = {
 };
 
 const ENVIRON cenviron_ = {
-        /*
-         * Interface functions.
-         */
-        NULL, /* csoundGetVersion, */
+    /* ----------------- interface functions (272 total) ----------------- */
+        csoundGetVersion,
         csoundGetAPIVersion,
         csoundGetHostData,
         csoundSetHostData,
@@ -236,7 +234,19 @@ const ENVIRON cenviron_ = {
         pvoc_rewind,
         pvoc_errorstr,
         PVOCEX_LoadFile,
-        /* callback function pointers */
+        csoundLongJmp,
+        NULL,
+        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL  },
+    /* -------------- callback function pointers (48 total) -------------- */
         playopen_dummy,
         rtplay_dummy,
         recopen_dummy,
@@ -251,45 +261,73 @@ const ENVIRON cenviron_ = {
         defaultCsoundKillGraph,
         defaultCsoundExitGraph,
         defaultCsoundYield,
-        /*
-         * Data fields.
-         */
+     /* NULL, */
+        { NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL  },
+    /* ----------------------- public data fields ----------------------- */
         (OPDS*) NULL,   /*  ids                 */
         (OPDS*) NULL,   /*  pds                 */
         DFLT_KSMPS,     /*  ksmps               */
-        DFLT_NCHNLS,    /*  nchnls              */
-        FL(0.0),        /*  esr                 */
-        FL(0.0),        /*  ekr                 */
         DFLT_KSMPS,     /*  global_ksmps        */
-        FL(0.0),        /*  global_ensmps       */
-        FL(0.0),        /*  global_ekr          */
-        FL(0.0),        /*  global_onedkr       */
-        FL(0.0),        /*  global_hfkprd       */
-        FL(0.0),        /*  global_kicvt        */
-        FL(0.0),        /*  cpu_power_busy      */
+        DFLT_NCHNLS,    /*  nchnls              */
+        0,              /*  spoutactive         */
+        0L,             /*  kcounter            */
         0L,             /*  global_kcounter     */
-        NULL, NULL, NULL, /* orchname, scorename, xfilename */
+        0,              /*  reinitflag          */
+        0,              /*  tieflag             */
+        DFLT_SR,        /*  esr                 */
+        FL(0.0),        /*  onedsr              */
+        FL(0.0),        /*  sicvt               */
+        FL(-1.0),       /*  tpidsr              */
+        FL(-1.0),       /*  pidsr               */
+        FL(-1.0),       /*  mpidsr              */
+        FL(-1.0),       /*  mtpdsr              */
+        FL(0.0),        /*  dummy_1   (unused)  */
+        DFLT_KR,        /*  ekr                 */
+        DFLT_KR,        /*  global_ekr          */
+        FL(0.0),        /*  onedkr              */
+        FL(0.0),        /*  global_onedkr       */
+        FL(0.0),        /*  hfkprd              */
+        FL(0.0),        /*  global_hfkprd       */
+        FL(0.0),        /*  kicvt               */
+        FL(0.0),        /*  global_kicvt        */
         DFLT_DBFS,      /*  e0dbfs              */
+        FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
+        0.0,            /*  timeOffs            */
+        0.0,            /*  beatOffs            */
+        0.0,            /*  curTime             */
+        0.0,            /*  curTime_inc         */
+        0.0,            /*  curBeat             */
+        0.0,            /*  curBeat_inc         */
+        0.0,            /*  beatTime            */
+        1024U,          /*  rtin_dev            */
+        1024U,          /*  rtout_dev           */
+        NULL,           /*  rtin_devs           */
+        NULL,           /*  rtout_devs          */
+        0, 0,           /*  nchanik, nchania    */
+        0, 0,           /*  nchanok, nchanoa    */
+        NULL, NULL,     /*  chanik, chania      */
+        NULL, NULL,     /*  chanok, chanoa      */
+        NULL,           /*  zkstart             */
+        NULL,           /*  zastart             */
+        0L,             /*  zklast              */
+        0L,             /*  zalast              */
+        NULL,           /*  spin                */
+        NULL,           /*  spout               */
+        0,              /*  nspin               */
+        0,              /*  nspout              */
+        (OPARMS*) NULL, /*  oparms              */
+        NULL,           /*  currevent           */
+    /* ------- private data (not to be used by hosts or externals) ------- */
+        FL(0.0),        /*  cpu_power_busy      */
+        NULL, NULL, NULL, /* orchname, scorename, xfilename */
         NLABELS,        /*  nlabels             */
         NGOTOS,         /*  ngotos              */
         0,              /*  strsmax             */
         NULL,           /*  strsets             */
         1,              /*  peakchunks          */
-        NULL,           /*  zkstart             */
-        NULL,           /*  zastart             */
-        0,              /*  zklast              */
-        0,              /*  zalast              */
-        0,              /*  kcounter            */
-        NULL,           /*  currevent           */
-        FL(0.0),        /*  onedkr              */
-        FL(0.0),        /*  onedsr              */
-        FL(0.0),        /*  kicvt               */
-        FL(0.0),        /*  sicvt               */
-        NULL,           /*  spin                */
-        NULL,           /*  spout               */
-        0,              /*  nspin               */
-        0,              /*  nspout              */
-        0,              /*  spoutactive         */
         0,              /*  keep_tmp            */
         0,              /*  dither_output       */
         NULL,           /*  opcodlst            */
@@ -311,10 +349,7 @@ const ENVIRON cenviron_ = {
         { FL(0.0)},     /*  smaxamp             */
         { FL(0.0)},     /*  omaxamp             */
         {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
-        0,              /*  reinitflag          */
-        0,              /*  tieflag             */
         NULL, NULL,     /*  scorein, scorout    */
-        FL(0.0), FL(0.0), /* ensmps, hfkprd     */
         NULL,           /*  pool                */
         NULL,           /*  argoffspace         */
         NULL,           /*  frstoff             */
@@ -345,22 +380,11 @@ const ENVIRON cenviron_ = {
         FL(-1.0),       /*  tran_ksmps          */
         DFLT_DBFS,      /*  tran_0dbfs          */
         DFLT_NCHNLS,    /*  tran_nchnls         */
-        FL(-1.0), FL(-1.0), FL(-1.0), FL(-1.0), /* tpidsr,pidsr,mpidsr,mtpdsr */
-        (OPARMS*) NULL, /*  oparms              */
         NULL,           /*  hostData            */
         NULL,           /*  opcodeInfo          */
         NULL,           /*  instrumentNames     */
         NULL,           /*  strsav_str          */
         NULL,           /*  strsav_space        */
-        FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
-        1024,           /*  rtin_dev            */
-        NULL,           /*  rtin_devs           */
-        1024,           /*  rtout_dev           */
-        NULL,           /*  rtout_devs          */
-        0, NULL,        /*  nchanik, chanik     */
-        0, NULL,        /*  nchania, chania     */
-        0, NULL,        /*  nchanok, chanok     */
-        0, NULL,        /*  nchanoa, chanoa     */
         {{NULL}, 0.0, 0,0,0,0l,0l,0l},  /*  ff  */
         NULL,           /*  flist               */
         0,              /*  maxfnum             */
@@ -372,7 +396,10 @@ const ENVIRON cenviron_ = {
         0,              /*  namedGlobalsCurrLimit */
         0,              /*  namedGlobalsMaxLimit */
         NULL,           /*  cfgVariableDB       */
-        { 0.0 },        /*  sensEvents_state    */
+        0.0, 0.0, 0.0,  /*  prvbt, curbt, nxtbt */
+        0.0, 0.0,       /*  curp2, nxtim        */
+        0,              /*  cyclesRemaining     */
+        { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) } },   /*  evt     */
         NULL,           /*  rtRecord_userdata   */
         NULL,           /*  rtPlay_userdata     */
         NULL,           /*  memalloc_db         */
@@ -513,9 +540,10 @@ void oload(ENVIRON *p)
     OPTXT   *optxt;
     OPARMS  *O = p->oparms;
     int     *strConstIndexList;
+    MYFLT   ensmps;
 
     p->esr = p->tran_sr; p->ekr = p->tran_kr;
-    p->ksmps = (int) ((p->ensmps = p->tran_ksmps) + FL(0.5));
+    p->ksmps = (int) ((ensmps = p->tran_ksmps) + FL(0.5));
     ip = p->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
     optxt = (OPTXT *) ip;
     while ((optxt = optxt->nxtop) !=  NULL) {
@@ -533,7 +561,7 @@ void oload(ENVIRON *p)
           switch (rindex) {
             case 1:  p->esr = conval;   break;  /* & use those values */
             case 2:  p->ekr = conval;   break;  /*  to set params now */
-            case 3:  p->ksmps = (int) ((p->ensmps = conval) + FL(0.5)); break;
+            case 3:  p->ksmps = (int) ((ensmps = conval) + FL(0.5)); break;
             case 4:  p->nchnls = (int) (conval + FL(0.5));  break;
             default: p->e0dbfs = conval; break;
           }
@@ -550,8 +578,8 @@ void oload(ENVIRON *p)
     if (O->sr_override) {        /* if command-line overrides, apply now */
       p->esr = (MYFLT) O->sr_override;
       p->ekr = (MYFLT) O->kr_override;
-      p->ksmps = (int) ((p->ensmps = ((MYFLT) O->sr_override
-                                      / (MYFLT) O->kr_override)) + FL(0.5));
+      p->ksmps = (int) ((ensmps = ((MYFLT) O->sr_override
+                                   / (MYFLT) O->kr_override)) + FL(0.5));
       p->Message(p, Str("sample rate overrides: "
                         "esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
                     p->esr, p->ekr, p->ksmps);
@@ -576,7 +604,7 @@ void oload(ENVIRON *p)
     gblspace = p->pool + O->poolcount;
     gblspace[0] = p->esr;           /*   & enter        */
     gblspace[1] = p->ekr;           /*   rsvd word      */
-    gblspace[2] = p->ensmps;        /*   curr vals      */
+    gblspace[2] = (MYFLT) p->ksmps; /*   curr vals      */
     gblspace[3] = (MYFLT) p->nchnls;
     gblspace[4] = p->e0dbfs;
     p->gbloffbas = p->pool - 1;
@@ -698,7 +726,6 @@ void oload(ENVIRON *p)
     p->onedkr = FL(1.0) / p->ekr;
     /* IV - Sep 8 2002: save global variables that depend on ksmps */
     p->global_ksmps     = p->ksmps;
-    p->global_ensmps    = p->ensmps;
     p->global_ekr       = p->ekr;
     p->global_onedkr    = p->onedkr;
     p->global_hfkprd    = p->hfkprd;
@@ -714,14 +741,14 @@ void oload(ENVIRON *p)
     {
       char  s[256];
       sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
-                 p->esr, p->ekr, p->ensmps);
-      if (p->ksmps < 1 || FLOAT_COMPARE(p->ensmps, p->ksmps))
+                 p->esr, p->ekr, ensmps);
+      if (p->ksmps < 1 || FLOAT_COMPARE(ensmps, p->ksmps))
         csoundDie(p, Str("%s invalid ksmps value"), s);
       if (p->esr <= FL(0.0))
         csoundDie(p, Str("%s invalid sample rate"), s);
       if (p->ekr <= FL(0.0))
         csoundDie(p, Str("%s invalid control rate"), s);
-      if (FLOAT_COMPARE(p->esr, (double) p->ekr * p->ensmps))
+      if (FLOAT_COMPARE(p->esr, (double) p->ekr * ensmps))
         csoundDie(p, Str("%s inconsistent sr, kr, ksmps"), s);
     }
 

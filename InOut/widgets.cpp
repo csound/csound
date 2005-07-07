@@ -136,8 +136,7 @@ extern "C" {
         rtEvt_t *ep = p->eventQueue;
         p->eventQueue = ep->nxt;
         csound->NotifyThreadLock(csound, p->threadLock);
-        csound->insert_score_event(csound, &(ep->evt),
-                                           csound->sensEvents_state.curTime, 0);
+        csound->insert_score_event(csound, &(ep->evt), csound->curTime, 0);
         free(ep);
         csound->WaitThreadLock(csound, p->threadLock, 1000);
       }
@@ -148,8 +147,7 @@ extern "C" {
       EVTBLK  e;
       memset(&e, 0, sizeof(EVTBLK));
       e.opcod = 'e';
-      csound->insert_score_event(csound, &e, csound->sensEvents_state.curTime,
-                                         0);
+      csound->insert_score_event(csound, &e, csound->curTime, 0);
     }
   }
 };      // extern "C"
@@ -161,31 +159,25 @@ static char hack_o_rama2;
 // ---- IV - Aug 23 2002 ---- included file: Fl_linux_stubs.cpp
 
 /*
- * $Id$
- *
  * this is a file used in the linux distribution to be able to use
  * the DirectCsound 5.1 widget code by Gabriel Maldonado on linux
  * systems.
  *
  * This code has been written by Nicola Bernardini (nicb@centrotemporeale.it)
  * mostly based on ideas by Dave Phillips (dlphip@bright.net)
- *
  */
 
-int
-FLkeyboard_sensing(void)
+int FLkeyboard_sensing(void)
 {
   /*
    * since we still don't know what is FLkeyboard_sensing(void)
    * should be returning, but we know that 0 will avoid troubles (?)
    * we return this for now... [nicb@axnet.it]
    */
-
-  return (0);
+  return 0;
 }
 
-Fl_Window *
-FLkeyboard_init(void)
+Fl_Window *FLkeyboard_init(void)
 {
   /*
    * here too - we don't know what is going on...

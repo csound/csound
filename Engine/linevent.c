@@ -291,7 +291,7 @@ static void sensLine(void *csound_, void *userData)
           csound->Message(csound, Str("-L with negative p2 illegal\n"));
           goto Lerr;
         }
-        insert_score_event(csound, &e, csound->sensEvents_state.curTime, 0);
+        insert_score_event(csound, &e, csound->curTime, 0);
       }
       else ST(Linep) += n;                      /* else just accum the chars */
       continue;
@@ -310,8 +310,7 @@ static void sensLine(void *csound_, void *userData)
     }
 }
 
-/* send a lineevent from the orchestra */
-/* code derived from sensLine() -matt 2001/12/07 */
+/* send a lineevent from the orchestra -matt 2001/12/07 */
 
 static const char *errmsg_1 =
     "event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\"";
@@ -348,8 +347,7 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
     }
-    return (insert_score_event(csound, &evt,
-                               csound->sensEvents_state.curTime, 0) == 0 ?
+    return (insert_score_event(csound, &evt, csound->curTime, 0) == 0 ?
             OK : NOTOK);
 }
 
@@ -385,8 +383,7 @@ int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
     }
-    return (insert_score_event(csound, &evt,
-                               csound->sensEvents_state.curTime, 1) == 0 ?
+    return (insert_score_event(csound, &evt, csound->curTime, 1) == 0 ?
             OK : NOTOK);
 }
 

@@ -25,7 +25,7 @@
 #include "cs.h"
 #include "schedule.h"
 #include <math.h>
-#include "namedins.h"           /* IV - Oct 31 2002 */
+#include "namedins.h"
 
 extern INSDS  *insert_event(ENVIRON*, MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
 
@@ -111,19 +111,17 @@ int schedule(ENVIRON *csound, SCHED *p)
       csound->Message(csound,"SCH: when = %f dur = %f\n", *p->when, dur);
       p->midi = (dur <= FL(0.0));
       if (p->midi) {
-        int *xtra;
         csound->Message(csound,"SCH: MIDI case\n");
-        csound->Message(csound,Str(" *** WARNING: schedule in MIDI mode is not correctly "
-                   "implemented, do not use it\n"));
-        /* set 1 k-cycle of extratime in ordeto allow mtrnoff to
+        csound->Message(csound,Str(" *** WARNING: schedule in MIDI mode is not "
+                                   "implemented correctly, do not use it\n"));
+        /* set 1 k-cycle of extratime in order to allow mtrnoff to
            recognize whether the note is turned off */
-        if (*(xtra = &(p->h.insdshead->xtratim)) < 1 )
-          *xtra = 1;
+        if (p->h.insdshead->xtratim < 1)
+          p->h.insdshead->xtratim = 1;
       }
       if (*p->when <= FL(0.0)) {
         p->kicked = insert_event(csound, (MYFLT) which,
-                                 (MYFLT) (csound->sensEvents_state.curTime
-                                          - csound->sensEvents_state.timeOffs),
+                                 (MYFLT) (csound->curTime - csound->timeOffs),
                                  dur, p->INOCOUNT - 3, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
@@ -132,9 +130,8 @@ int schedule(ENVIRON *csound, SCHED *p)
         }
       }
       else
-        queue_event(csound, (MYFLT) which,
-                    (double) *p->when + csound->sensEvents_state.curTime, dur,
-                    p->INOCOUNT - 3, p->argums);
+        queue_event(csound, (MYFLT) which, (double) *p->when + csound->curTime,
+                            dur, p->INOCOUNT - 3, p->argums);
     }
     return OK;
 }
@@ -193,16 +190,14 @@ int kschedule(ENVIRON *csound, WSCHED *p)
       p->midi = (dur <= FL(0.0));
       if (p->midi)
         csound->Message(csound,
-                        Str(" *** WARNING: schedule in MIDI mode is not correctly "
-                            "implemented, do not use it\n"));
+                        Str(" *** WARNING: schedule in MIDI mode is not "
+                            "implemented correctly, do not use it\n"));
       p->todo = 0;
                                 /* Insert event */
-      starttime = (double) p->abs_when + (double) *(p->when)
-                  + csound->sensEvents_state.timeOffs;
-      if (starttime <= csound->sensEvents_state.curTime) {
+      starttime = (double) p->abs_when + (double) *(p->when) + csound->timeOffs;
+      if (starttime <= csound->curTime) {
         p->kicked = insert_event(csound, (MYFLT) which,
-                                 (MYFLT) (csound->sensEvents_state.curTime
-                                          - csound->sensEvents_state.timeOffs),
+                                 (MYFLT) (csound->curTime - csound->timeOffs),
                                  dur, p->INOCOUNT - 4, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
