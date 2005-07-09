@@ -1,3 +1,26 @@
+/*
+    OSCrecv.c:
+
+    Copyright (C) 2005 John ffitch
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -94,8 +117,7 @@ static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
     sprintf(buff, "%d", (int)(*p->port));
     pp->thread = lo_server_thread_new(buff, OSC_error);
     lo_server_thread_start(pp->thread);
-    csound->Message(csound,
-                    "OSC listener started\n");
+    csound->Message(csound, "OSC listener started\n");
     return OK;
 }
 
@@ -147,7 +169,7 @@ int OSC_listdeinit(ENVIRON *csound, OSCLISTEN *p)
     }
     m = pp->patterns;
     if (m==p->pat) {
-      p->pat = m->next;
+      pp->patterns = m->next;
       free(m->path); free(m->type);
       free(m);
     }
@@ -169,14 +191,15 @@ int OSC_listdeinit(ENVIRON *csound, OSCLISTEN *p)
 int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
 {
     void *x;
-    OSC_PAT *m = (OSC_PAT*)malloc(sizeof(OSC_PAT)+sizeof(MYFLT)*(p->INOCOUNT-2));
+    OSC_PAT *m;
+
     /* Add a pattern to the list of recognised things */
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
                         csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (pp == NULL) {
-      csound->Message(csound, "OSC not running\n");
-      return NOTOK;
+      return csound->InitError(csound, "OSC not running\n");
     }
+    m = (OSC_PAT*)malloc(sizeof(OSC_PAT)+sizeof(MYFLT)*(p->INOCOUNT-2));
     m->path = strdup((char*) p->dest);
     m->type = strdup((char*) p->type);
     m->active = 0;
@@ -222,8 +245,7 @@ PUBLIC long opcode_size(void)
 
 PUBLIC OENTRY *opcode_init(ENVIRON *csound)
 {
-    csound->Message(csound,
-                    "****OSC: liblo started****\n");
+    csound->Message(csound, "****OSC: liblo started****\n");
     csound->RegisterResetCallback(csound, NULL,
                                   (int (*)(void *, void *)) OSC_reset);
     return localops;
