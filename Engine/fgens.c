@@ -2780,10 +2780,12 @@ static void gen53_freq_response_to_ir(ENVIRON *csound,
     buf2 = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (size_t) npts2);
     /* upsample magnitude response by a factor of 2, */
     /* and store result in obuf[0]...obuf[npts]      */
-    for (i = 0; i < npts; i++)
-      buf1[i] = obuf[i];
-    for ( ; i < npts2; i++)
-      buf1[i] = FL(0.0);
+    for (j = 0; j < (npts >> 1); j++)
+      buf1[j] = FL(0.0);
+    for (i = 0; i < npts; i++, j++)
+      buf1[j] = obuf[i];
+    for ( ; j < npts2; j++)
+      buf1[j] = FL(0.0);
     csound->RealFFT(csound, buf1, npts2);
     for (i = j = 0; i < npts; i++, j += 2) {
       tmp = (double) buf1[j];
