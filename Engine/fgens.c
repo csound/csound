@@ -51,7 +51,7 @@ static void gen30(FUNC*,ENVIRON*), gen31(FUNC*,ENVIRON*), gen32(FUNC*,ENVIRON*);
 static void gen33(FUNC*,ENVIRON*), gen34(FUNC*,ENVIRON*), gen40(FUNC*,ENVIRON*);
 static void gen41(FUNC*,ENVIRON*), gen42(FUNC*,ENVIRON*), gen43(FUNC*,ENVIRON*);
 static void gn1314(FUNC*,ENVIRON*, MYFLT, MYFLT);
-static void gen51(FUNC*,ENVIRON*), gen52(FUNC*,ENVIRON*);
+static void gen51(FUNC*,ENVIRON*), gen52(FUNC*,ENVIRON*), gen53(FUNC*,ENVIRON*);
 static void GENUL(FUNC*,ENVIRON*);
 
 static GEN or_sub[GENMAX + 1] = {
@@ -61,7 +61,7 @@ static GEN or_sub[GENMAX + 1] = {
     gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
     gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL,
-    gen51, gen52, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
+    gen51, gen52, gen53, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
 };
 
 typedef struct namedgen {
@@ -2716,6 +2716,185 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
         j += k;
       }
     }
+}
+
+static void gen53_apply_window(ENVIRON *csound, MYFLT *buf, MYFLT *w,
+                               int npts, int wpts, int minphase)
+{
+    int64_t ph, ph_inc;
+    int     i, j;
+    MYFLT   pfrac;
+
+    for (i = 1, j = 0; i < npts; i <<= 1, j++)
+      ;
+    if (!minphase) {
+      ph = (int64_t) 0;
+      ph_inc = ((int64_t) wpts << 32) >> j;
+    }
+    else {
+      ph = (int64_t) wpts << 31;
+      ph_inc = ((int64_t) wpts << 31) >> j;
+    }
+    for (i = 0; i <= npts; i++) {
+      j = (int) (ph >> 32);
+      pfrac = (MYFLT) ((int) (((uint32_t) ph) >> 1));
+      if (j >= wpts) {
+        buf[i] *= w[wpts];
+      }
+      else {
+        pfrac *= (FL(0.5) / (MYFLT) 0x40000000);
+        buf[i] *= (w[j] + ((w[j + 1] - w[j]) * pfrac));
+      }
+      ph += ph_inc;
+    }
+}
+
+static void gen53_freq_response_to_ir(ENVIRON *csound,
+                                      MYFLT *obuf, MYFLT *ibuf, MYFLT *wbuf,
+                                      int npts, int wpts, int mode)
+{
+    MYFLT   *buf1, *buf2;
+    double  tmp;
+    MYFLT   scaleFac;
+    int     i, j, npts2 = (npts << 1);
+
+    scaleFac = csound->GetInverseRealFFTScale(csound, npts);
+    /* ---- linear phase impulse response ---- */
+    i = j = 0;
+    do {
+      obuf[i++] = (MYFLT) (fabs((double) ibuf[j])) * scaleFac; j++;
+      obuf[i++] = FL(0.0);
+      obuf[i++] = -((MYFLT) (fabs((double) ibuf[j])) * scaleFac); j++;
+      obuf[i++] = FL(0.0);
+    } while (i < npts);
+    obuf[1] = ibuf[j] * scaleFac;
+    csound->InverseRealFFT(csound, obuf, npts);
+    obuf[npts] = FL(0.0);               /* clear guard point */
+    if (wbuf != NULL && !(mode & 4))    /* apply window if requested */
+      gen53_apply_window(csound, obuf, wbuf, npts, wpts, 0);
+    if (!(mode & 1))
+      return;
+    /* ---- minimum phase impulse response ---- */
+    scaleFac = csound->GetInverseRealFFTScale(csound, npts2);
+    buf1 = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (size_t) npts2);
+    buf2 = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (size_t) npts2);
+    /* upsample magnitude response by a factor of 2, */
+    /* and store result in obuf[0]...obuf[npts]      */
+    for (i = 0; i < npts; i++)
+      buf1[i] = obuf[i];
+    for ( ; i < npts2; i++)
+      buf1[i] = FL(0.0);
+    csound->RealFFT(csound, buf1, npts2);
+    for (i = j = 0; i < npts; i++, j += 2) {
+      tmp = (double) buf1[j];
+      tmp = sqrt(tmp * tmp + 1.0e-20);
+      obuf[i] = (MYFLT) tmp;
+    }
+    tmp = (double) buf1[1];
+    tmp = sqrt(tmp * tmp + 1.0e-20);
+    obuf[i] = (MYFLT) tmp;
+    /* calculate logarithm of magnitude response, */
+    for (i = 0; i <= npts; i++) {
+      buf1[i] = (MYFLT) log((double) obuf[i]);
+    }
+    for (j = i - 2; i < npts2; i++, j--)    /* need full spectrum,     */
+      buf1[i] = buf1[j];                    /* not just the lower half */
+    csound->RealFFT(csound, buf1, npts2);
+    /* and convolve with 1/tan(x) impulse response */
+    buf2[0] = FL(0.0);
+    buf2[1] = FL(0.0);
+    for (i = 2; i < npts2; i += 2) {
+      buf2[i] = FL(0.0);
+      buf2[i + 1] = (MYFLT) (npts2 - i) / (MYFLT) npts2;
+    }
+    csound->RealFFTMult(csound, buf1, buf1, buf2, npts2, scaleFac);
+    /* store unwrapped phase response in buf1 */
+    csound->InverseRealFFT(csound, buf1, npts2);
+    /* convert from magnitude/phase format to real/imaginary */
+    for (i = 2; i < npts2; i += 2) {
+      double  ph;
+      ph = (double) buf1[i >> 1] / TWOPI;
+      ph = TWOPI * modf(ph, &tmp);
+      ph = (ph < 0.0 ? ph + PI : ph - PI);
+      tmp = -((double) scaleFac * (double) obuf[i >> 1]);
+      buf2[i] = (MYFLT) (tmp * cos(ph));
+      buf2[i + 1] = (MYFLT) (tmp * sin(ph));
+    }
+    buf2[0] = scaleFac * obuf[0];
+    buf2[1] = scaleFac * obuf[npts];
+    /* perform inverse FFT to get impulse response */
+    csound->InverseRealFFT(csound, buf2, npts2);
+    /* copy output, truncating to table length + guard point */
+    for (i = 0; i <= npts; i++)
+      obuf[i] = buf2[i];
+    csound->Free(csound, buf2);
+    csound->Free(csound, buf1);
+    if (wbuf != NULL && !(mode & 8))    /* apply window if requested */
+      gen53_apply_window(csound, obuf, wbuf, npts, wpts, 1);
+}
+
+static void gen53(FUNC *ftp, ENVIRON *csound)
+{
+    FGDATA  *ff = &(csound->ff);
+    MYFLT   *srcftp, *dstftp, *winftp = NULL;
+    int     nargs = ff->e.pcnt - 4;
+    int     mode = 0, srcftno, winftno = 0, srcflen, dstflen, winflen = 0;
+
+    if (nargs < 1 || nargs > 3) {
+      fterror(csound, ff, Str("GEN53: invalid number of gen arguments"));
+      return;
+    }
+    srcftno = (int) MYFLT2LRND(ff->e.p[5]);
+    if (nargs > 1)
+      mode = (int) MYFLT2LRND(ff->e.p[6]);
+    if (nargs > 2)
+      winftno = (int) MYFLT2LRND(ff->e.p[7]);
+
+    dstftp = ftp->ftable; dstflen = (int) ftp->flen;
+    if (dstflen < 8 || (dstflen & (dstflen - 1))) {
+      fterror(csound, ff, Str("GEN53: invalid table length"));
+      return;
+    }
+    srcftp = csound->GetTable(csound, srcftno, &srcflen);
+    if (srcftp == NULL) {
+      fterror(csound, ff, Str("GEN53: invalid source table number"));
+      return;
+    }
+    if (mode & (~15)) {
+      fterror(csound, ff, Str("GEN53: mode must be in the range 0 to 15"));
+      return;
+    }
+    if ((!(mode & 2) && srcflen != (dstflen >> 1)) ||
+        ((mode & 2) && srcflen != dstflen)) {
+      fterror(csound, ff, Str("GEN53: invalid source table length"));
+      return;
+    }
+    if (winftno) {
+      winftp = csound->GetTable(csound, winftno, &winflen);
+      if (winftp == NULL || winflen < 1 || (winflen & (winflen - 1))) {
+        fterror(csound, ff, Str("GEN53: invalid window table"));
+        return;
+      }
+    }
+    if (mode & 2) {     /* if input data is impulse response: */
+      MYFLT *tmpft;
+      int   i, j;
+      tmpft = (MYFLT*) csound->Calloc(csound, sizeof(MYFLT)
+                                              * (size_t) ((dstflen >> 1) + 1));
+      memcpy(dstftp, srcftp, sizeof(MYFLT) * (size_t) dstflen);
+      csound->RealFFT(csound, dstftp, dstflen);
+      tmpft[0] = dstftp[0];
+      for (i = 2, j = 1; i < dstflen; i += 2, j++)
+        tmpft[j] = (MYFLT) sqrt((double) ((dstftp[i] * dstftp[i])
+                                          + (dstftp[i + 1] * dstftp[i + 1])));
+      tmpft[j] = dstftp[1];
+      gen53_freq_response_to_ir(csound, dstftp, tmpft, winftp,
+                                        dstflen, winflen, mode);
+      csound->Free(csound, tmpft);
+    }
+    else                /* input is frequency response: */
+      gen53_freq_response_to_ir(csound, dstftp, srcftp, winftp,
+                                        dstflen, winflen, mode);
 }
 
 int allocgen(ENVIRON *csound, char *s, GEN fn)
