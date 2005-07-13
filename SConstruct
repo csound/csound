@@ -411,6 +411,7 @@ def buildzip(env, target, source):
     print "Finished packaging '" + zipfilename + "'."
 
 csoundLibraryEnvironment = commonEnvironment.Copy()
+csoundLibraryEnvironment.Append(CCFLAGS = ['-D__BUILDING_LIBCSOUND'])
 
 pluginEnvironment = commonEnvironment.Copy()
 pluginEnvironment.Append(LIBS = ['sndfile'])

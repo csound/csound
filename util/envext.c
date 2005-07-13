@@ -46,15 +46,21 @@ static void FindEnvelope(ENVIRON *, SNDFILE *, SOUNDIN *, double);
 
 static char *outname = NULL;
 
-static void envext_usage(ENVIRON *csound, char *mesg)
+static void envext_usage(ENVIRON *csound, char *mesg, ...)
 {
-        csound->Message(csound, "%s\n", mesg);
-        csound->Message(csound,"Usage:\tenvext [-flags] soundfile\n");
-        csound->Message(csound, "Legal flags are:\n");
-        csound->Message(csound,"-o fnam\tsound output filename\n");
-        csound->Message(csound, "-w time\tSize of window\n");
-        csound->Message(csound,"flag defaults: envext -onewenv\n");
-        exit(1);
+    va_list args;
+
+    csound->Message(csound,"Usage:\tenvext [-flags] soundfile\n");
+    csound->Message(csound, "Legal flags are:\n");
+    csound->Message(csound,"-o fnam\tsound output filename\n");
+    csound->Message(csound, "-w time\tSize of window\n");
+    csound->Message(csound,"flag defaults: envext -onewenv\n");
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("envext: error: "));
+    va_start(args, mesg);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, mesg, args);
+    va_end(args);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+    csound->LongJmp(csound, 1);
 }
 
 static int envext(void *csound_, int argc, char **argv)
@@ -66,8 +72,6 @@ static int envext(void *csound_, int argc, char **argv)
     OPARMS      OO;
     double      window = 0.25;
     SOUNDIN     *p;  /* space allocated by SAsndgetset() */
-
-    csound->peakchunks = 1;
 
     memset(&OO, 0, sizeof(OO));
 
@@ -90,8 +94,7 @@ static int envext(void *csound_, int argc, char **argv)
             while (*++s);
             break;
           default:
-            sprintf(csound->errmsg,"unknown flag -%c", c);
-            envext_usage(csound, csound->errmsg);
+            envext_usage(csound, "unknown flag -%c", c);
           }
       else if (inputfile == NULL) {
         inputfile = --s;

@@ -40,8 +40,6 @@
 #define oneTOf14bit      ((MYFLT)1./16383.)
 #define oneTOf21bit      ((MYFLT)1./2097151.)
 
-#define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
-
 /*------------------------------------------------------------------------*/
 /* 7 bit midi control UGs */
 
@@ -560,27 +558,6 @@ int initc21(ENVIRON *csound, INITC21 *p)
     return OK;
 }
 
-int midiin_set(ENVIRON *csound, MIDIIN *p)
-{
-    p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
-    return OK;
-}
-
-int midiin(ENVIRON *csound, MIDIIN *p)
-{
-    unsigned char *temp;                        /* IV - Nov 30 2002 */
-    if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
-      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
-      p->local_buf_index &= MIDIINBUFMSK;
-      *p->status = (MYFLT) (*temp & (unsigned char) 0xf0);
-      *p->chan   = (MYFLT) ((*temp & 0x0f) + 1);
-      *p->data1  = (MYFLT) *++temp;
-      *p->data2  = (MYFLT) *++temp;
-    }
-    else *p->status = FL(0.0);
-    return OK;
-}
-
 #define S       sizeof
 
 static OENTRY localops[] = {
@@ -605,7 +582,6 @@ static OENTRY localops[] = {
 { "initc7", S(INITC7), 1,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
 { "initc14", S(INITC14), 1,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
 { "initc21", S(INITC21), 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
-{ "midiin", S(MIDIIN),   2,   "kkkk", "",     NULL, (SUBR)midiin,   NULL    },
 };
 
 LINKAGE

@@ -31,6 +31,9 @@ extern "C" {
 #include "config.h"
 #endif
 
+#ifdef __GNUC__
+#warning "cs.h is deprecated. Include csoundCore.h instead."
+#endif
 #include "csoundCore.h"
 
 /*

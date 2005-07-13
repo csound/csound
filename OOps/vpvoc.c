@@ -26,7 +26,7 @@
 /*** By Richard Karpen - July-October 1992************/
 /************************************************************/
 
-#include "cs.h"
+#include "csoundCore.h"
 #include <math.h>
 #include "dsputil.h"
 #include "pvfileio.h"
@@ -168,10 +168,10 @@ int vpvset(ENVIRON *csound, VPVOC *p)
       csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
       if ((p->tableseg->outfunc = csound->FTFind(csound, p->isegtab)) == NULL) {
-        sprintf(csound->errmsg,
-                Str("vpvoc: Could not find ifnmagctrl table %f\n"),
-                *p->isegtab);
-        return csound->InitError(csound, csound->errmsg);
+        csound->InitError(csound,
+                          Str("vpvoc: Could not find ifnmagctrl table %f"),
+                          *p->isegtab);
+        return NOTOK;
       }
     }
     if (p->tableseg == NULL)

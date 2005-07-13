@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"         /*                              DISPREP.C       */
+#include "csoundCore.h"         /*                      DISPREP.C       */
 #include <math.h>
 #include "cwindow.h"
 #include "disprep.h"
@@ -62,6 +62,7 @@ int dspset(ENVIRON *csound, DSPLAY *p)
 {
     long   npts, nprds, bufpts, totpts;
     char   *auxp;
+    char   strmsg[256];
 
     if (p->h.optext->t.intype == 'k')
       npts = (long)(*p->iprd * csound->ekr);
@@ -91,10 +92,9 @@ int dspset(ENVIRON *csound, DSPLAY *p)
     }
     p->nxtp = (MYFLT *) auxp;
     p->pntcnt = npts;
-    sprintf(csound->strmsg, Str("instr %d, signal %s:"),
-                            p->h.insdshead->insno,
-                            p->h.optext->t.inlist->arg[0]);
-    dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, csound->strmsg,
+    sprintf(strmsg, Str("instr %d, signal %s:"),
+                    (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
+    dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, strmsg,
                     (int) *p->iwtflg, Str("display"));
     return OK;
 }
@@ -195,6 +195,7 @@ int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
 {
     long  window_size, step_size;
     int   hanning;
+    char  strmsg[256];
 
     window_size = (long)*p->inpts;
     if (window_size > WINDMAX) {
@@ -234,10 +235,10 @@ int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
                   FL(1.0), hanning);  /* fill with proper values */
       if (fftcoefs == NULL)           /* room for WINDMAX*2 floats (fft size) */
         fftcoefs = (MYFLT *) mmalloc(csound, (long)WINDMAX * 2 * sizeof(MYFLT));
-      sprintf(csound->strmsg, Str("instr %d, signal %s, fft (%s):"),
-              p->h.insdshead->insno, p->h.optext->t.inlist->arg[0],
-              p->dbout ? Str("db") : Str("mag"));
-      dispset(csound, &p->dwindow, fftcoefs, p->ncoefs, csound->strmsg,
+      sprintf(strmsg, Str("instr %d, signal %s, fft (%s):"),
+                      (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
+                      p->dbout ? Str("db") : Str("mag"));
+      dispset(csound, &p->dwindow, fftcoefs, p->ncoefs, strmsg,
                       (int) *p->iwtflg, Str("fft"));
     }
     return OK;
@@ -385,10 +386,11 @@ int dspfft(ENVIRON *csound, DSPFFT *p)
 
 int tempeset(ENVIRON *csound, TEMPEST *p)
 {
-    int  npts = 0, nptsm1, minlam = 0, maxlam, lamspan, auxsiz;
+    int   npts = 0, nptsm1, minlam = 0, maxlam, lamspan, auxsiz;
     MYFLT *fltp;
-    FUNC *ftp;
+    FUNC  *ftp;
     MYFLT b, iperiod = *p->iprd;
+    char  strmsg[256];
 
     if ((p->timcount = (int)(csound->ekr * iperiod)) <= 0)
       return csound->InitError(csound, Str("illegal iperiod"));
@@ -433,8 +435,8 @@ int tempeset(ENVIRON *csound, TEMPEST *p)
       p->stmemnow = p->stmemp + nptsm1;
     }
     if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to display stmem & exp */
-      sprintf(csound->strmsg, "instr %d tempest:", p->h.insdshead->insno);
-      dispset(csound, &p->dwindow, p->stmemp, (long)npts * 2, csound->strmsg, 0,
+      sprintf(strmsg, "instr %d tempest:", (int) p->h.insdshead->p1);
+      dispset(csound, &p->dwindow, p->stmemp, (long)npts * 2, strmsg, 0,
                       Str("tempest"));
       p->dwindow.danflag = 1;                    /* for mid-scale axis */
     }

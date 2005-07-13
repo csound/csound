@@ -129,5 +129,11 @@ typedef struct {
     MYFLT  *ipgm, *inst, *ichn;
 } PGMASSIGN;
 
+typedef struct {
+    OPDS   h;
+    MYFLT  *status, *chan, *data1, *data2;
+    int    local_buf_index;         /* IV - Nov 30 2002 */
+} MIDIIN;
+
 #endif
 

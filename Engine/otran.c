@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              OTRAN.C */
+#include "csoundCore.h"         /*                      OTRAN.C         */
 #include "oload.h"
 #include <math.h>
 #include "pstream.h"
@@ -533,17 +533,18 @@ void otran(ENVIRON *csound)
     /* That deals with missing values, however we do need ksmps to be integer */
     {
       ENVIRON   *p = (ENVIRON*) csound;
-      sprintf(p->errmsg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
-                         p->tran_sr, p->tran_kr, p->tran_ksmps);
+      char      err_msg[128];
+      sprintf(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
+                       p->tran_sr, p->tran_kr, p->tran_ksmps);
       if (p->tran_sr <= FL(0.0))
-        synterr(p, Str("%s invalid sample rate"), p->errmsg);
+        synterr(p, Str("%s invalid sample rate"), err_msg);
       if (p->tran_kr <= FL(0.0))
-        synterr(p, Str("%s invalid control rate"), p->errmsg);
+        synterr(p, Str("%s invalid control rate"), err_msg);
       else if (p->tran_ksmps < FL(0.75) ||
                FLOAT_COMPARE(p->tran_ksmps, MYFLT2LRND(p->tran_ksmps)))
-        synterr(p, Str("%s invalid ksmps value"), p->errmsg);
+        synterr(p, Str("%s invalid ksmps value"), err_msg);
       else if (FLOAT_COMPARE(p->tran_sr, (double) p->tran_kr * p->tran_ksmps))
-        synterr(p, Str("%s inconsistent sr, kr, ksmps"), p->errmsg);
+        synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
     }
 
     ip = csound->instxtanchor.nxtinstxt;

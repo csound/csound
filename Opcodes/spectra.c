@@ -345,7 +345,7 @@ int spectrum(ENVIRON *csound, SPECTRUM *p)
     return OK;
 }
 
-#ifdef never
+#if 0
 int nocdfset(ENVIRON *csound, NOCTDFT *p)
     /* noctdft - calcs disc Fourier transform of oct-downsampled data */
     /* outputs coefs (mag, db or mag2) of log freq within each octave */
@@ -509,7 +509,7 @@ int noctdft(ENVIRON *csound, NOCTDFT *p)
 
 int spdspset(ENVIRON *csound, SPECDISP *p)
 {
-
+    char  strmsg[256];
     /* RWD is this enough? */
     if (p->wsig->auxch.auxp==NULL) {
       return csound->InitError(csound, Str("specdisp: not initialised"));
@@ -521,24 +521,24 @@ int spdspset(ENVIRON *csound, SPECDISP *p)
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
       if (downp->lofrq > 5.) {
-        sprintf(csound->strmsg,
+        sprintf(strmsg,
                 Str("instr %d %s, dft (%s), %ld octaves (%d - %d Hz):"),
-                p->h.insdshead->insno, "" /* FIXME: p->STRARG */,
+                (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                 outstring[specp->dbout],
                 downp->nocts, (int)downp->lofrq, (int)downp->hifrq);
       }
-      else {                      /* more detail if low frequency  */
-        sprintf(csound->strmsg,
+      else {                            /* more detail if low frequency  */
+        sprintf(strmsg,
                 Str("instr %d %s, dft (%s), %ld octaves (%3.1f - %3.1f Hz):"),
-                p->h.insdshead->insno, "" /* FIXME: p->STRARG */,
+                (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                 outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
       }
       csound->dispset(csound, &p->dwindow, (MYFLT*) specp->auxch.auxp,
-                      (long)specp->npts, csound->strmsg, (int)*p->iwtflg,
+                      (long)specp->npts, strmsg, (int)*p->iwtflg,
                       "specdisp");
     }
-    p->countdown = p->timcount;          /* prime the countdown */
+    p->countdown = p->timcount;         /* prime the countdown */
     return OK;
 }
 
@@ -563,9 +563,9 @@ int sptrkset(ENVIRON *csound, SPECPTRK *p)
     MYFLT   nfreqs, rolloff, *oct0p, *flop, *fhip, *fundp, *fendp, *fp;
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
-    if ((npts = inspecp->npts) != p->winpts) {        /* if size has changed */
+    if ((npts = inspecp->npts) != p->winpts) {  /* if size has changed */
       SPECset(csound,
-              &p->wfund, (long)npts);                 /*   realloc for wfund */
+              &p->wfund, (long)npts);           /*   realloc for wfund */
       p->wfund.downsrcp = inspecp->downsrcp;
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
@@ -573,13 +573,13 @@ int sptrkset(ENVIRON *csound, SPECPTRK *p)
     if ((p->ftimcnt = (int)(csound->ekr**p->ifprd)) > 0) {/* if displaying wfund */
       SPECDISP *fdp = &p->fdisplay;
       fdp->h = p->h;
-      fdp->wsig = &p->wfund;                      /*  pass the param pntrs */
+      fdp->wsig = &p->wfund;                    /*  pass the param pntrs */
       fdp->iprd = p->ifprd;
       fdp->iwtflg = p->iwtflg;
 /*       fdp->altname = "specptrk"; */
 /*       fdp->altarg = "X-corr"; */
       p->wfund.dbout = inspecp->dbout;
-      spdspset(csound,fdp);                        /*  & call specdisp init */
+      spdspset(csound,fdp);                     /*  & call specdisp init */
     }
     else p->ftimcnt = 0;
     if ((nptls = (long)*p->inptls) <= 0 || nptls > MAXPTL) {
@@ -1262,14 +1262,5 @@ static OENTRY localops[] = {
 #endif
 };
 
-PUBLIC long opcode_size(void)
-{
-    return sizeof(localops);
-}
-
-PUBLIC OENTRY *opcode_init(ENVIRON *xx)
-{
-/*  xx->displop4 = xx->getopnum_("specdisp"); /\* This will not work!!! *\/ */
-    return localops;
-}
+LINKAGE
 

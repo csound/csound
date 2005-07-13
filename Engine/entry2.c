@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                      ENTRY.C         */
+#include "csoundCore.h"         /*                      ENTRY.C         */
 #include "insert.h"
 #include "midiops.h"
 #if defined(TCLTK)
@@ -114,7 +114,7 @@ int    and_kk(void*,void*), and_ka(void*,void*), and_ak(void*,void*), and_aa(voi
 int    or_kk(void*,void*), or_ka(void*,void*), or_ak(void*,void*), or_aa(void*,void*);
 int    xor_kk(void*,void*), xor_ka(void*,void*), xor_ak(void*,void*), xor_aa(void*,void*);
 int    not_k(void*,void*), not_a(void*,void*);
-int    midichn(void*,void*), pgmassign(void*,void*);
+int    midichn(void*,void*), pgmassign(void*,void*), midiin(void*,void*);
 int    midinoteoff(void*,void*), midinoteonkey(void*,void*), midinoteoncps(void*,void*);
 int    midinoteonoct(void*,void*), midinoteonpch(void*,void*), midipolyaftertouch(void*,void*);
 int    midicontrolchange(void*,void*), midiprogramchange(void*,void*);
@@ -261,8 +261,9 @@ OENTRY opcodlst_2[] = {
 { "db.i",     S(EVAL),    1,    "i",    "i",     db                     },
 { "db.k",     S(EVAL),    2,    "k",    "k",     NULL, db               },
 { "db.a",     S(EVAL),    4,    "a",    "a",     NULL, NULL, dba        },
-{ "midichn",  S(MIDICHN), 1,    "i",    "",     midichn, NULL, NULL     },
-{ "pgmassign",S(PGMASSIGN), 1,   "",    "iTo",  pgmassign, NULL, NULL   },
+{ "midichn",  S(MIDICHN), 1,    "i",    "",      midichn, NULL, NULL    },
+{ "pgmassign",S(PGMASSIGN), 1,  "",     "iTo",   pgmassign, NULL, NULL  },
+{ "midiin",   S(MIDIIN),  2,    "kkkk", "",      NULL, midiin, NULL     },
 { "miditempo", S(MIDITEMPO), 3, "k",    "",
                 (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
 { "midinoteoff", S(MIDINOTEON),3,"",    "xx",   midinoteoff, midinoteoff, },

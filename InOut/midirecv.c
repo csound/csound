@@ -104,14 +104,14 @@
                                                   char *(*func)(int));
 */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "midiops.h"
 #include "oload.h"
 #include "midifile.h"
 
 #define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
 
-        void    midNotesOff(ENVIRON *);
+static  void    midNotesOff(ENVIRON *);
 
 static const MYFLT dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
@@ -179,13 +179,17 @@ void midi_ctl_reset(ENVIRON *csound, short chan)
     int     i;
 
     chn = csound->m_chnbp[chan];
-    for (i = 1; i <= 135; i++)                  /* from ctlr 1 to ctlr 109 */
+    for (i = 1; i <= 135; i++)                  /* from ctlr 1 to ctlr 128 */
       chn->ctl_val[i] = FL(0.0);                /*   reset all ctlrs to 0  */
     /* exceptions:  */
-    chn->ctl_val[7]  = FL(127.0);               /*   volume           */
-    chn->ctl_val[8]  = FL(64.0);                /*   balance          */
-    chn->ctl_val[10] = FL(64.0);                /*   pan              */
-    chn->ctl_val[11] = FL(127.0);               /*   expression       */
+    if (!MGLOB(rawControllerMode)) {
+      chn->ctl_val[7]  = FL(127.0);             /*   volume           */
+      chn->ctl_val[8]  = FL(64.0);              /*   balance          */
+      chn->ctl_val[10] = FL(64.0);              /*   pan              */
+      chn->ctl_val[11] = FL(127.0);             /*   expression       */
+    }
+    else
+      chn->ctl_val[0]  = FL(0.0);
     chn->pbensens = FL(2.0);                    /*   pitch bend range */
     chn->datenabl = 0;
     /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
@@ -448,8 +452,11 @@ static void AllNotesOff(ENVIRON *csound, MCHNBLK *chn)
     }
 }
 
-void midNotesOff(ENVIRON *csound) /* turn off ALL curr midi notes, ALL chnls */
-{                                 /*  called by musmon, ctrl 123 & sensMidi  */
+/* turn off ALL curr midi notes, ALL chnls */
+/*  called by musmon, ctrl 123 & sensMidi  */
+
+static void midNotesOff(ENVIRON *csound)
+{
     int chan = 0;
     do {
       AllNotesOff(csound, csound->m_chnbp[chan]);

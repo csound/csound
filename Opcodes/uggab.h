@@ -161,12 +161,12 @@ typedef struct {
 } JITTERS;
 
 #define oneUp31Bit      (4.656612875245796924105750827168e-10)
+
 #define randGab   (MYFLT) ((double)     \
-        (((csound->holdrand = csound->holdrand * 214013L + 2531011L) >> 1)  \
+        (((csound->holdrand = csound->holdrand * 214013 + 2531011) >> 1)  \
          & 0x7fffffff) * oneUp31Bit)
 #define BiRandGab (MYFLT) ((double)     \
-        (csound->holdrand = csound->holdrand * (-214013L) + 2531011L)       \
-        * oneUp31Bit)
+        (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)
 
 typedef struct  {
         OPDS    h;

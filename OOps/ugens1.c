@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                      UGENS1.C        */
+#include "csoundCore.h"         /*                      UGENS1.C        */
 #include "ugens1.h"
 #include <math.h>
 
@@ -437,11 +437,10 @@ int xsgset(ENVIRON *csound, EXXPSEG *p)
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      sprintf(csound->errmsg, Str("ival%d is zero"), n);
+      return csound->InitError(csound, Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      sprintf(csound->errmsg, Str("ival%d is zero"), n+1);
-    else sprintf(csound->errmsg, Str("ival%d sign conflict"), n+1);
-    return csound->InitError(csound, csound->errmsg);
+      return csound->InitError(csound, Str("ival%d is zero"), n+1);
+    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
@@ -484,11 +483,10 @@ int xsgset2(ENVIRON *csound, EXPSEG2 *p)  /*gab-A1 (G.Maldonado) */
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      sprintf(csound->errmsg, Str("ival%d is zero"), n);
+      return csound->InitError(csound, Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      sprintf(csound->errmsg, Str("ival%d is zero"), n+1);
-    else sprintf(csound->errmsg, Str("ival%d sign conflict"), n+1);
-    return NOTOK;
+      return csound->InitError(csound, Str("ival%d is zero"), n+1);
+    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 /***************************************/
@@ -647,11 +645,10 @@ int xsgrset(ENVIRON *csound, EXPSEG *p)
  experr:
     n = segp - p->cursegp + 2;
     if (prvpt == FL(0.0))
-      sprintf(csound->errmsg, Str("ival%d is zero"), n);
+      return csound->InitError(csound, Str("ival%d is zero"), n);
     else if (segp->nxtpt == FL(0.0))
-      sprintf(csound->errmsg, Str("ival%d is zero"), n+1);
-    else sprintf(csound->errmsg, Str("ival%d sign conflict"), n+1);
-    return csound->InitError(csound, csound->errmsg);
+      return csound->InitError(csound, Str("ival%d is zero"), n+1);
+    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 /* **** MXDSR is just a construction and use of expseg */

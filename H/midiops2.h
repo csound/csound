@@ -93,10 +93,5 @@ typedef struct {
     MYFLT  *ichan, *ictlno1, *ictlno2, *ictlno3, *ivalue;
 } INITC21;
 
-typedef struct {
-  OPDS   h;
-  MYFLT  *status, *chan, *data1, *data2;
-  int    local_buf_index;         /* IV - Nov 30 2002 */
-} MIDIIN;
-
 #endif
+
