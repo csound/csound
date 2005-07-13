@@ -1,3 +1,6 @@
+2005-07-13	Istvan Varga	<ivarga@csounds.com>
+	* InOut/midirecv.c: reset controllers 7-11 to 0 in raw controller mode
+
 2005-06-25 Victor  Lazzarini <Victor.Lazzarini@nuim.ie>
 
 	* Added Opcodes/partials.c and Opcodes/psynth.c, streaming

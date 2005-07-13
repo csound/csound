@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              UGENS3.C    */
+#include "csoundCore.h"         /*                              UGENS3.C    */
 #include "ugens3.h"
 #include <math.h>
 #include "oload.h"
@@ -868,8 +868,8 @@ int adset(ENVIRON *csound, ADSYN *p)
     csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       if ((mfp = ldmemfile(csound, filnam)) == NULL) {  /*   readfile if reqd */
-        sprintf(csound->errmsg, Str("ADSYN cannot load %s"),filnam);
-        goto adserr;
+        csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
+        return NOTOK;
       }
       p->mfp = mfp;                               /*   & record         */
     }
@@ -898,16 +898,16 @@ int adset(ENVIRON *csound, ADSYN *p)
           ptlfp->phs = 0;                /*  and clr the phase */
           break;
         default:
-          sprintf(csound->errmsg, Str("illegal code %d encountered"), val);
-          goto adserr;
+          csound->InitError(csound, Str("illegal code %d encountered"), val);
+          return NOTOK;
         }
       }
     } while (adp < endata);
     if (ptlap != ptlfp) {
-      sprintf(csound->errmsg, Str("%d amp tracks, %d freq tracks"),
-                              ptlap - (PTLPTR*)p->aux.auxp - 1,
-                              ptlfp - (PTLPTR*)p->aux.auxp - 1);
-      goto adserr;
+      csound->InitError(csound, Str("%d amp tracks, %d freq tracks"),
+                                (int) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
+                                (int) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
+      return NOTOK;
     }
     ptlap->nxtp = NULL;   /* terminate the chain */
     p->mksecs = 0;
@@ -915,9 +915,7 @@ int adset(ENVIRON *csound, ADSYN *p)
     return OK;
 
  adsful:
-    sprintf(csound->errmsg, Str("partial count exceeds MAXPTLS"));
- adserr:
-    return csound->InitError(csound, csound->errmsg);
+    return csound->InitError(csound, Str("partial count exceeds MAXPTLS"));
 }
 
 #define ADSYN_MAXLONG FL(2147483647.0)

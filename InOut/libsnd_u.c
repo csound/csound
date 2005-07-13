@@ -19,7 +19,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "soundio.h"
 
 char    *type2string(int x);
@@ -139,7 +139,8 @@ void *sndgetset(void *csound_, void *p_)
     p->fd = csound->FileOpen(csound, &(p->sinfd), CSFILE_SND_R, sfname, &sfinfo,
                                      "SFDIR;SSDIR");
     if (p->fd == NULL) {
-      sprintf(csound->errmsg, Str("soundin cannot open %s"), sfname);
+      csound->MessageS(csound, CSOUNDMSG_ERROR,
+                               Str("soundin cannot open %s\n"), sfname);
       goto err_return;
     }
     /* & record fullpath filnam */
@@ -166,8 +167,9 @@ void *sndgetset(void *csound_, void *p_)
                       sfname, (int) sfinfo.samplerate, csound->esr);
     }
     if (p->channel != ALLCHNLS && p->channel > sfinfo.channels) {
-      sprintf(csound->errmsg, Str("error: req chan %d, file %s has only %d"),
-                              (int) p->channel, sfname, (int) sfinfo.channels);
+      csound->MessageS(csound, CSOUNDMSG_ERROR,
+                               Str("error: req chan %d, file %s has only %d\n"),
+                               (int) p->channel, sfname, (int) sfinfo.channels);
       goto err_return;
     }
     p->sr = (int) sfinfo.samplerate;
@@ -197,7 +199,8 @@ void *sndgetset(void *csound_, void *p_)
     if (skipframes < 0) {
       n = -skipframes;
       if (n > framesinbuf) {
-        sprintf(csound->errmsg, Str("soundin: invalid skip time"));
+        csound->MessageS(csound, CSOUNDMSG_ERROR,
+                                 Str("soundin: invalid skip time\n"));
         goto err_return;
       }
       n *= (int) sfinfo.channels;
@@ -230,7 +233,7 @@ void *sndgetset(void *csound_, void *p_)
     else {                                      /* for greater skiptime: */
       /* else seek to bndry */
       if (sf_seek(p->sinfd, (sf_count_t) skipframes, SEEK_SET) < 0) {
-        sprintf(csound->errmsg, Str("soundin seek error"));
+        csound->MessageS(csound, CSOUNDMSG_ERROR, Str("soundin seek error\n"));
         goto err_return;
       }
       /* now rd fulbuf */
@@ -241,6 +244,7 @@ void *sndgetset(void *csound_, void *p_)
     }
     if (p->framesrem != (int64_t) -1)
       p->framesrem -= (int64_t) skipframes;     /* sampleframes to EOF   */
+
     return p->sinfd;                            /* return the active fd  */
 
  err_return:
@@ -248,7 +252,6 @@ void *sndgetset(void *csound_, void *p_)
       csound->FileClose(csound, p->fd);
     p->sinfd = NULL;
     p->fd = NULL;
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "%s\n", csound->errmsg);
     return NULL;
 }
 

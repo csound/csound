@@ -27,30 +27,13 @@
 /* main function for utility frontends */
 
 #include "csoundCore.h"
-#include <setjmp.h>
+#include "cs_util.h"
 
-static int util_perform(ENVIRON *csound, const char *name,
-                                         int argc, char **argv)
-{
-    int n;
-    if ((n = setjmp(csound->exitjmp)) != 0) {
-      return (n - CSOUND_EXITJMP_SUCCESS);
-    }
-    csoundPreCompile(csound);
-    csound->scorename = csound->orchname = (char*) name;
-    return (csound->Utility(csound, name, argc, argv));
-}
-
-#define UTIL_MAIN(x)                                \
-                                                    \
-int main(int argc, char **argv)                     \
-{                                                   \
-    ENVIRON *csound;                                \
-    int     retval;                                 \
-    csound = (ENVIRON*) csoundCreate(NULL);         \
-    retval = util_perform(csound, x, argc, argv);   \
-    csoundDestroy(csound);                          \
-    return retval;                                  \
+#define UTIL_MAIN(x)                            \
+                                                \
+int main(int argc, char **argv)                 \
+{                                               \
+    return (csoundUtilMain(x, argc, argv));     \
 }
 
 #endif      /* CSOUND_UTILMAIN_H */

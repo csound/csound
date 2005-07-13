@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"         /*                              UGENS5.C        */
+#include "csoundCore.h"         /*                      UGENS5.C        */
 #include "ugens5.h"
 #include <math.h>
 #include "oload.h"
@@ -212,8 +212,8 @@ int rsnset(ENVIRON *csound, RESON *p)
     int scale;
     p->scale = scale = (int)*p->iscl;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(csound->errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
-      return csound->InitError(csound, csound->errmsg);
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                                       *p->iscl);
     }
     p->prvcf = p->prvbw = -100.0;
     if (!(*p->istor))
@@ -274,8 +274,8 @@ int rsnsetx(ENVIRON *csound, RESONX *p)
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
     if (scale && scale != 1 && scale != 2) {
-      sprintf(csound->errmsg,Str("illegal reson iscl value, %f"),*p->iscl);
-      return csound->InitError(csound, csound->errmsg);
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                                       *p->iscl);
     }
     p->prvcf = p->prvbw = -100.0;
 
@@ -425,8 +425,7 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
     if ((mfp = ldmemfile(csound, lpfilname)) == NULL) { /* else read file  */
-      sprintf(csound->errmsg,Str("LPREAD cannot load %s"),lpfilname);
-      goto lperr;
+      return csound->InitError(csound, Str("LPREAD cannot load %s"), lpfilname);
     }
     /* Store memory file location in opcode */
     p->mfp = mfp;                                   /*  & record facts   */
@@ -438,18 +437,16 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       p->storePoles = (magic==LP_MAGIC2);
 
       csound->Message(csound, Str("Using %s type of file.\n"),
-             p->storePoles?Str("pole"):Str("filter coefficient"));
+                      p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
       p->headlongs = lph->headersize/sizeof(long);
       /* Check if input values where available */
       if (*p->inpoles || *p->ifrmrate) {
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: lpheader overriding inputs\n"));
+        csound->Warning(csound, Str("lpheader overriding inputs"));
       }
       /* Check orc/analysis sample rate compatibility */
       if (lph->srate != csound->esr) {
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: lpfile srate != orch sr\n"));
+        csound->Warning(csound, Str("lpfile srate != orch sr"));
       }
       p->npoles = lph->npoles;                /* note npoles, etc. */
       /* Store header info in opcode */
@@ -457,23 +454,22 @@ int lprdset(ENVIRON *csound, LPREAD *p)
       p->framrat16 = lph->framrate * FL(65536.0);/* scaled framno cvt */
     }
     else if (BYTREVL(lph->lpmagic) == LP_MAGIC) {   /* Header reversed:  */
-      sprintf(csound->errmsg,Str("file %s bytes are in wrong order"),lpfilname);
-      goto lperr;
+      return csound->InitError(csound, Str("file %s bytes are in wrong order"),
+                                       lpfilname);
     }
-    else {                                          /* No Header on file:*/
+    else {                                    /* No Header on file:*/
       p->headlongs = 0;
       p->npoles = (long)*p->inpoles;          /*  data from inargs */
       p->nvals = p->npoles + 4;
       p->framrat16 = *p->ifrmrate * FL(65536.0);
       if (!p->npoles || !p->framrat16) {
-        sprintf(csound->errmsg,Str("insufficient args and no file header"));
-        goto lperr;
+        return csound->InitError(csound,
+                                 Str("insufficient args and no file header"));
       }
     }
     /* Check  pole number */
     if (p->npoles > MAXPOLES) {
-      sprintf(csound->errmsg,Str("npoles > MAXPOLES"));
-      goto lperr;
+      return csound->InitError(csound, Str("npoles > MAXPOLES"));
     }
     /* Look for total frame data size (file size - header) */
     totvals = (mfp->length/sizeof(long)) - p->headlongs;   /* see NB above!! */
@@ -486,9 +482,6 @@ int lprdset(ENVIRON *csound, LPREAD *p)
  lpend:
     p->lastmsg = 0;
     return OK;
-
- lperr:
-    return csound->InitError(csound, csound->errmsg);
 }
 
 static void
@@ -709,7 +702,7 @@ int lpread(ENVIRON *csound, LPREAD *p)
         DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                             polePhas2,fract,interMagn,interPhas);
       if (!status) {
-        return csound->PerfError(csound, Str("Interpolation failed\n"));
+        return csound->PerfError(csound, Str("Interpolation failed"));
       }
       for (i=0; i<p->npoles; i++) {
         *cp++ = interMagn[i];
@@ -872,8 +865,8 @@ int lpfreson(ENVIRON *csound, LPFRESON *p)
 
     if (*p->kfrqratio != p->prvratio) {             /* for new freqratio */
       if (*p->kfrqratio <= FL(0.0)) {
-        sprintf(csound->errmsg,Str("illegal frqratio, %5.2f"),*p->kfrqratio);
-        return csound->PerfError(csound, csound->errmsg);
+        return csound->PerfError(csound, Str("illegal frqratio, %5.2f"),
+                                         *p->kfrqratio);
       }                                             /*      calculate d  */
       p->d = (*p->kfrqratio - FL(1.0)) / (*p->kfrqratio + FL(1.0));
       p->prvratio = *p->kfrqratio;
@@ -1077,7 +1070,7 @@ int lpitpset(ENVIRON *csound, LPINTERPOL *p)
 {
 
     if ((int)*(p->islot1)>max_lpc_slot || (int)*(p->islot2)>max_lpc_slot)
-      return csound->InitError(csound, Str("LPC slot is not allocated\n"));
+      return csound->InitError(csound, Str("LPC slot is not allocated"));
   /* Get lpread pointers */
     p->lp1 = lprdadr[(int)*(p->islot1)];
     p->lp2 = lprdadr[(int)*(p->islot2)];
@@ -1129,7 +1122,7 @@ int lpinterpol(ENVIRON *csound, LPINTERPOL *p)
     status = DoPoleInterpolation(p->npoles,poleMagn1,polePhas1,poleMagn2,
                                      polePhas2,*p->kmix,interMagn,interPhas);
     if (!status) {
-      return csound->PerfError(csound, Str("Interpolation failed\n"));
+      return csound->PerfError(csound, Str("Interpolation failed"));
     }
 
     cp = p->kcoefs;      /* This is where the coefs get stored */

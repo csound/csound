@@ -45,14 +45,14 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
                                 /* if file not already readin */
       if ( (mfp = csound->ldmemfile(csound, cvfilnam)) == NULL) {
-        sprintf(csound->errmsg,Str("CONVOLVE cannot load %s"), cvfilnam);
-        goto cverr;
+        csound->InitError(csound, Str("CONVOLVE cannot load %s"), cvfilnam);
+        return NOTOK;
       }
     cvh = (CVSTRUCT *)mfp->beginp;
     if (cvh->magic != CVMAGIC) {
-      sprintf(csound->errmsg,Str("%s not a CONVOLVE file (magic %ld)"),
-              cvfilnam, cvh->magic );
-      goto cverr;
+      csound->InitError(csound, Str("%s not a CONVOLVE file (magic %ld)"),
+                                cvfilnam, cvh->magic);
+      return NOTOK;
     }
 
     nchanls = (cvh->channel == ALLCHNLS ? cvh->src_chnls : 1);
@@ -61,28 +61,25 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
       if (p->OUTOCOUNT == nchanls)
         p->nchanls = nchanls;
       else {
-        sprintf(csound->errmsg,
-                Str("CONVOLVE: output channels not equal "
-                    "to number of channels in source"));
-        goto cverr;
+        csound->InitError(csound, Str("CONVOLVE: output channels not equal "
+                                      "to number of channels in source"));
+        return NOTOK;
       }
     }
     else {
       if (*p->channel <= nchanls) {
         if (p->OUTOCOUNT != 1) {
-          sprintf(csound->errmsg,
-                  Str("CONVOLVE: output channels not equal "
-                      "to number of channels in source"));
-          goto cverr;
+          csound->InitError(csound, Str("CONVOLVE: output channels not equal "
+                                        "to number of channels in source"));
+          return NOTOK;
         }
         else
           p->nchanls = 1;
       }
       else {
-        sprintf(csound->errmsg,
-                Str("CONVOLVE: channel number greater than "
-                    "number of channels in source"));
-        goto cverr;
+        csound->InitError(csound, Str("CONVOLVE: channel number greater than "
+                                      "number of channels in source"));
+        return NOTOK;
       }
     }
     Hlen = p->Hlen = cvh->Hlen;
@@ -99,9 +96,10 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
                               cvfilnam, cvh->samplingRate, csound->esr);
     }
     if (cvh->dataFormat != CVMYFLT) {
-      sprintf(csound->errmsg,Str("unsupported CONVOLVE data format %ld in %s"),
-              cvh->dataFormat, cvfilnam);
-      goto cverr;
+      csound->InitError(csound,
+                        Str("unsupported CONVOLVE data format %ld in %s"),
+                        cvh->dataFormat, cvfilnam);
+      return NOTOK;
     }
 
     /* Determine size of circular output buffer */
@@ -130,8 +128,6 @@ static int cvset(ENVIRON *csound, CONVOLVE *p)
     p->obufend = p->outbuf + obufsiz - 1;
     p->outhead = p->outail = p->outbuf;
     return OK;
- cverr:
-    return csound->InitError(csound, csound->errmsg);
 }
 
 /* Write from a circular buffer into a linear output buffer without
@@ -367,13 +363,12 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
                                 p->XSTRCODE);
     IRfile.sr = 0;
     if (channel < 1 || ((channel > 4) && (channel != ALLCHNLS))) {
-      sprintf(csound->errmsg, "channel request %d illegal\n", channel);
-      return csound->PerfError(csound, csound->errmsg);
+      return csound->InitError(csound, "channel request %d illegal", channel);
     }
     IRfile.channel = channel;
     IRfile.analonly = 1;
     if ((infd = csound->sndgetset(csound, &IRfile)) == NULL) {
-      return csound->PerfError(csound, "pconvolve: error while impulse file");
+      return csound->InitError(csound, "pconvolve: error while impulse file");
     }
 
     if (IRfile.framesrem < 0) {
@@ -391,7 +386,7 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
     if (p->nchanls != p->OUTOCOUNT) {
-      return csound->PerfError(csound, "PCONVOLVE: number of output channels "
+      return csound->InitError(csound, "PCONVOLVE: number of output channels "
                                        "not equal to input channels");
     }
 

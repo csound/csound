@@ -1197,6 +1197,7 @@ static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
     }
     if (O->rewrt_hdr)
       csound->rewriteheader(outfd, 0);
+#if 0
     csound->nrecs++;           /* JPff fix */
     if (O->heartbeat) {
       if (O->heartbeat==1) {
@@ -1213,6 +1214,7 @@ static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
       }
       else csound->Message(csound,"\a");
     }
+#endif
     return nsmps;
 }
 

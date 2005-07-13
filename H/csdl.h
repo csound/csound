@@ -28,6 +28,10 @@
 extern "C" {
 #endif
 
+#ifdef __BUILDING_LIBCSOUND
+#undef __BUILDING_LIBCSOUND
+#endif
+
 #include "csoundCore.h"
 #include <limits.h>
 

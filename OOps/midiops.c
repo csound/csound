@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                       /*    MIDIOPS.C    */
+#include "csoundCore.h"                                 /*      MIDIOPS.C   */
 #include "midiops.h"
 #include <math.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
@@ -46,6 +46,8 @@ extern int m_chinsno(ENVIRON *csound, short chan, short insno);
  * does leaves it null if there is no chanel.  The correct fix is to fix that
  * code so the test is not dynamic, but until I understand it.... */
 #define pitchbend_value(m) MIDI_VALUE(m,pchbend)
+
+#define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
 
 /* Now in glob extern INSTRTXT **instrtxtp;  gab-A3 (added) */
 int midibset(ENVIRON *,MIDIKMB *);
@@ -468,6 +470,27 @@ int kpchbend(ENVIRON *csound, MIDIKMAP *p)
 {
     INSDS *lcurip = p->h.insdshead;
     *p->r = p->lo + pitchbend_value(lcurip->m_chnbp) * p->scale;
+    return OK;
+}
+
+int midiin_set(ENVIRON *csound, MIDIIN *p)
+{
+    p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
+    return OK;
+}
+
+int midiin(ENVIRON *csound, MIDIIN *p)
+{
+    unsigned char *temp;                        /* IV - Nov 30 2002 */
+    if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
+      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
+      p->local_buf_index &= MIDIINBUFMSK;
+      *p->status = (MYFLT) (*temp & (unsigned char) 0xf0);
+      *p->chan   = (MYFLT) ((*temp & 0x0f) + 1);
+      *p->data1  = (MYFLT) *++temp;
+      *p->data2  = (MYFLT) *++temp;
+    }
+    else *p->status = FL(0.0);
     return OK;
 }
 

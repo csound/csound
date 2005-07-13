@@ -24,12 +24,12 @@
 #include "config.h"
 #endif
 
-#include "cs.h"                 /*                               MAIN.C */
+#include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
 #include <ctype.h>              /* For isdigit */
 
-extern  void    dieu(void *, char *);
+extern  void    dieu(void *, char *, ...);
 extern  int     argdecode(void *, int, char **);
 extern  int     init_pvsys(ENVIRON *);
 extern  char    *get_sconame(void *);
@@ -207,7 +207,7 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     }
     /* done parsing csoundrc, CSD, and command line options */
     /* if sound file type is still not known, check SFOUTYP */
-    if (O->filetyp < 0) {
+    if (O->filetyp <= 0) {
       envoutyp = csoundGetEnv(csound, "SFOUTYP");
       if (envoutyp != NULL && envoutyp[0] != '\0') {
         if (strcmp(envoutyp,"AIFF") == 0)
@@ -219,9 +219,8 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
         else if (strcmp(envoutyp, "RAW") == 0)
           O->filetyp = TYP_RAW;
         else {
-          sprintf(csound->errmsg,
-                  Str("%s not a recognised SFOUTYP env setting"), envoutyp);
-          dieu(csound, csound->errmsg);
+          dieu(csound, Str("%s not a recognised SFOUTYP env setting"),
+                       envoutyp);
         }
       }
       else

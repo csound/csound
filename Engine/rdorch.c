@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                      RDORCH.C        */
+#include "csoundCore.h"         /*                      RDORCH.C        */
 #include <ctype.h>
 #include "namedins.h"   /* IV - Oct 31 2002 */
 
@@ -1086,8 +1086,9 @@ static int splitline(ENVIRON *csound)
       else if (c == ':' && condassgn)
         ;
       else {
-        sprintf(csound->errmsg, Str("illegal character %c"), c);
-        synterrp(csound, lp - 1, csound->errmsg);
+        char err_msg[64];
+        sprintf(err_msg, Str("illegal character %c"), c);
+        synterrp(csound, lp - 1, err_msg);
       }
       *cp++ = c;                        /* then collect the char   */
     }                                   /*  and loop for next      */

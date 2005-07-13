@@ -26,7 +26,7 @@
 /*      diskin  -       a new soundin that shifts pitch         */
 /*              based on the old soundin code                   */
 /*              Adjusted to include sndfile library             */
-#include "cs.h"
+#include "csoundCore.h"
 #include "soundio.h"
 #include "diskin.h"
 #include "oload.h" /* for strset */
@@ -40,10 +40,6 @@
  *               + ~possible~ bug using krate sig for transp
  *               - problems when this is zero?
  */
-
-#ifdef _DEBUG
-#include <assert.h>
-#endif
 
 extern char* type2string(int);
 extern char  *getstrformat(int format);
@@ -107,14 +103,14 @@ static int sngetset(ENVIRON *csound, SOUNDINEW *p, char *sfname)
       case 7: sfinfo.format |= FORMAT2SF(AE_UNCH);    break;
       case 8: sfinfo.format |= FORMAT2SF(AE_24INT);   break;
       case 9: sfinfo.format |= FORMAT2SF(AE_DOUBLE);  break;
-      default:  sprintf(csound->errmsg, Str("diskin: invalid sample format"));
-                goto errtn;
+      default:  csound->InitError(csound, Str("diskin: invalid sample format"));
+                return (FALSE);
     }
     fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, sfname, &sfinfo,
                                   "SFDIR;SSDIR");
     if (fd == NULL) {                           /* open with full dir paths */
-      sprintf(csound->errmsg, Str("diskin cannot open %s"), sfname);
-      goto errtn;
+      csound->InitError(csound, Str("diskin cannot open %s"), sfname);
+      return (FALSE);
     }
     p->fdch.fd = fd;
     p->format = SF2FORMAT(sfinfo.format);
@@ -130,21 +126,17 @@ static int sngetset(ENVIRON *csound, SOUNDINEW *p, char *sfname)
     p->audrem = p->audsize = sfinfo.frames;
 
     if (sfinfo.samplerate != (int) csound->esr) {  /* non-anal:  cmp w. esr */
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound, Str("WARNING: %s sr = %ld, orch sr = %7.1f\n"),
-                                sfname, (long) sfinfo.samplerate, csound->esr);
+      csound->Warning(csound, Str("%s sr = %ld, orch sr = %7.1f"),
+                              sfname, (long) sfinfo.samplerate, csound->esr);
     }
     if (sfinfo.channels != p->OUTOCOUNT) {         /*        chk nchanls */
-      sprintf(csound->errmsg, Str("diskin: error: %s nchnls = %d "
-                                  "inconsistent with outarg cnt = %d"),
-                              sfname, (int)sfinfo.channels, (int)p->OUTOCOUNT);
-      goto errtn;
+      csound->InitError(csound, Str("diskin: error: %s nchnls = %d "
+                                    "inconsistent with outarg cnt = %d"),
+                        sfname, (int)sfinfo.channels, (int)p->OUTOCOUNT);
+      return (FALSE);
     }
 
     return (TRUE);
-
- errtn:
-    return (FALSE);                      /*              return empty handed */
 }
 
 int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
@@ -176,8 +168,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
 
     if (*p->skipinit != FL(0.0)) return OK;
     if (skiptime < 0) {
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound, Str("WARNING: negative skip time, substituting zero.\n"));
+      csound->Warning(csound, Str("negative skip time, substituting zero."));
       skiptime = FL(0.0);
     }
 
@@ -185,7 +176,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
       /*********** for reinits, we gotta do some stuff here ************/
       /* we get a crash if backwards and 0 skiptime, so lets set it to file
          end instead..*/
-      if (skiptime <= 0 && *p->ktransp < 0) {
+      if (skiptime <= FL(0.0) && *p->ktransp < FL(0.0)) {
         if (p->audsize > 0)
           skiptime = (MYFLT)p->audsize/(MYFLT)(p->sr * p->sampframsiz);
         else
@@ -194,10 +185,8 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
 
       nbytes = (long)(skiptime * p->sr) * p->sampframsiz;
       if (nbytes > p->audrem) { /* RWD says p->audsize but that seems unlikely */
-        if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str(
-                     "WARNING: skip time larger than audio data, "
-                     "substituting zero.\n"));
+        csound->Warning(csound, Str("skip time larger than audio data, "
+                                    "substituting zero."));
         if (*p->ktransp < 0) {
           if (p->audsize > 0)
             skiptime = (MYFLT)p->audsize/(MYFLT)(p->sr * p->sampframsiz);
@@ -244,15 +233,15 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
     /********  open the file  ***********/
     if ((n = p->OUTOCOUNT) &&
         n != 1 && n != 2 && n != 4 && n != 6 && n != 8) { /* if appl,chkchnls */
-      sprintf(csound->errmsg, Str("diskin: illegal no of receiving channels"));
-      goto errtn;
+      csound->InitError(csound,
+                        Str("diskin: illegal no of receiving channels"));
+      return NOTOK;
     }
     /* if char string name given */
-    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
-                                p->XSTRCODE);
+    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.", p->XSTRCODE);
     sfname = soundiname;
     if (!sngetset(csound, p, sfname))
-      return FALSE;
+      return NOTOK;
     sinfd  = p->sf;
 
     /*******  display messages in verbose mode only */
@@ -294,10 +283,8 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
     p->firstsampinfile = sf_seek(sinfd,(off_t)0L,SEEK_CUR);
 
     if ((p->audrem > 0) && (nbytes > p->audrem)) {
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound, Str(
-                   "WARNING: skip time larger than audio data, "
-                   "substituting zero.\n"));
+      csound->Warning(csound, Str("skip time larger than audio data, "
+                                  "substituting zero."));
       nbytes = 0;
     }
 
@@ -331,9 +318,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)  /* init routine for diskin   */
       p->phs = 0.0;
       return OK;
     }
-    else return csound->InitError(csound, csound->errmsg);
 
- errtn:
     return NOTOK;                       /*              return empty handed */
 }
 
@@ -474,10 +459,6 @@ void soundinew(ENVIRON *csound, SOUNDINEW *p)    /*  a-rate routine for soundine
             p->begfile = FALSE;
           }
         }
-#ifdef _DEBUG
-        if (inbufp != p->bufend)
-          assert(((p->bufend - inbufp) % p->sampframsiz)==0);
-#endif
       }
     }
     else {      /* backwards...                 same thing but different */
@@ -687,16 +668,16 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
       case 5: p->c.format = AE_LONG; break;
       case 6: p->c.format = AE_FLOAT; break;
       default:
-        sprintf(csound->errmsg, Str("soundout: invalid sample format: %d"),
-                                (int) (*(p->c.iformat) + FL(0.5)));
-        goto errtn;
+        csound->InitError(csound, Str("soundout: invalid sample format: %d"),
+                                  (int) (*(p->c.iformat) + FL(0.5)));
+        return NOTOK;
     }
     sfinfo.format = TYPE2SF(p->c.filetyp) | FORMAT2SF(p->c.format);
     fd = csound->FileOpen(csound, &outfile, CSFILE_SND_W, sfname, &sfinfo,
                                   "SFDIR");
     if (fd == NULL) {
-      sprintf(csound->errmsg, Str("soundout cannot open %s"), sfname);
-      goto errtn;
+      csound->InitError(csound, Str("soundout cannot open %s"), sfname);
+      return NOTOK;
     }
     sfname = csound->GetFileName(fd);
     if (p->c.format != AE_FLOAT)
@@ -716,9 +697,6 @@ int sndo1set(ENVIRON *csound, SNDOUT *p) /* init routine for instr soundout   */
     p->c.fdch.fd = fd;                      /*     store & log the fd     */
     fdrecord(csound, &p->c.fdch);           /*     instr will close later */
     return OK;
- errtn:
-    /* else just print the errmsg */
-    return csound->InitError(csound, csound->errmsg);
 }
 
 int soundout(ENVIRON *csound, SNDOUT *p)

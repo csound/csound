@@ -1,24 +1,24 @@
 /*
-  utility.c:
+    utility.c:
 
-  Copyright (C) 2005 Istvan Varga
+    Copyright (C) 2005 Istvan Varga
 
-  This file is part of Csound.
+    This file is part of Csound.
 
-  The Csound Library is free software; you can redistribute it
-  and/or modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-  Csound is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
 */
 
 #include "csoundCore.h"
@@ -205,5 +205,29 @@ PUBLIC char *csoundGetUtilityDescription(void *csound_, const char *utilName)
       return NULL;      /* not found */
     /* return with utility description (if any) */
     return p->desc;
+}
+
+/**
+ * Main function for stand-alone utilities.
+ */
+
+PUBLIC int csoundUtilMain(const char *name, int argc, char **argv)
+{
+    volatile  void  *csound;
+    volatile  int   n;
+
+    csound = (void*) csoundCreate(NULL);
+    if (csound == NULL)
+      return -1;
+    if ((n = setjmp(((ENVIRON*) csound)->exitjmp)) != 0)
+      return (n - CSOUND_EXITJMP_SUCCESS);
+    if ((n = csoundPreCompile((ENVIRON*) csound)) == 0) {
+      ((ENVIRON*) csound)->orchname = (char*) name;
+      ((ENVIRON*) csound)->scorename = (char*) name;
+      n = ((ENVIRON*) csound)->Utility((ENVIRON*) csound, name, argc, argv);
+    }
+    csoundDestroy((ENVIRON*) csound);
+
+    return n;
 }
 

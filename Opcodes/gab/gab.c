@@ -257,25 +257,26 @@ int tab15(ENVIRON *csound,FASTB *p) { *p->r = tb15[(long) *p->ndx]; return OK;}
 /* Opcodes from Peter Neubaeker                                */
 /* *********************************************************** */
 
-/* void printi(ENVIRON *csound,PRINTI *p) */
-/* { */
-/*     char    *sarg; */
-/*  */
-/*     if ((*p->ifilcod != sstrcod) || (*p->STRARG == 0))  */
-/*     {   sprintf(errmsg, "printi parameter was not a \"quoted string\"\n"); */
-/*         csound->InitError(csound, errmsg); */
-/*         return NOTOK; */
-/*     } */
-/*     else  */
-/*     {   sarg = p->STRARG; */
-/*         do  */
-/*         { putchar(*sarg); */
-/*         } while (*++sarg != 0); */
-/*         putchar(10); */
-/*         putchar(13); */
-/*     } */
-/*     return OK; */
-/* } */
+#if 0
+void printi(ENVIRON *csound, PRINTI *p)
+{
+    char    *sarg;
+
+    if ((*p->ifilcod != sstrcod) || (*p->STRARG == 0)) {
+      csound->InitError(csound, "printi parameter was not a \"quoted string\"");
+      return NOTOK;
+    }
+    else {
+      sarg = p->STRARG;
+      do {
+        putchar(*sarg);
+      } while (*++sarg != 0);
+      putchar(10);
+      putchar(13);
+    }
+    return OK;
+}
+#endif
 
 /* ====================== */
 /* opcodes from Jens Groh */
@@ -526,23 +527,13 @@ int tabrec_k(ENVIRON *csound,TABREC *p)
 {
     if (*p->ktrig_start) {
       if (*p->kfn != p->old_fn) {
-        FUNC *ftp;
-        MYFLT fno;             /* **** THIS IS AN ERROR **** Uninitialised */
-        if ((fno = (int)*p->kfn) <= 0 ||
-            fno > csound->maxfnum ||
-            (ftp = csound->FTnp2Find(csound,&fno)) == NULL) {
-          /*sprintf(errmsg, Str("Invalid ftable no. %f"),*p->kfn); */
+        int flen;
+        if ((p->table = csound->GetTable(csound, (int) *p->kfn, &flen)) == NULL)
           return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
-        }
-        else {
-          p->tablen = ftp->flen;
-          p->table = &ftp->ftable[1];
-          p->currtic = 0;
-          p->ndx = 0;
-          ftp->ftable[0] = *p->numtics;
-        }
+        p->tablen = (long) flen;
+        *(p->table++) = *p->numtics;
+        p->old_fn = *p->kfn;
       }
-
       p->recording = 1;
       p->ndx = 0;
       p->currtic = 0;
@@ -590,25 +581,15 @@ int tabplay_k(ENVIRON *csound,TABPLAY *p)
 {
     if (*p->ktrig) {
       if (*p->kfn != p->old_fn) {
-        FUNC *ftp;
-        MYFLT fno;             /* **** ERROR *** Uninitialised */
-        /*  if ((fno = (int)*p->kfn) <= 0 || fno > csound->maxfnum || (ftp = flist[fno]) == NULL) { */
-        if ((fno = (int)*p->kfn) <= 0 ||
-            fno > csound->maxfnum ||
-            (ftp = csound->FTnp2Find(csound,&fno)) == NULL) {
-          /*sprintf(errmsg, Str("Invalid ftable no. %f"),*p->kfn); */
+        int flen;
+        if ((p->table = csound->GetTable(csound, (int) *p->kfn, &flen)) == NULL)
           return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
-        }
-        else {
-          p->tablen = ftp->flen;
-          p->table = &ftp->ftable[1];
-          p->currtic = 0;
-          p->ndx = 0;
-          ftp->ftable[0] = *p->numtics;
-          p->old_fn = *p->kfn;
-        }
+        p->tablen = (long) flen;
+        p->currtic = 0;
+        p->ndx = 0;
+        *(p->table++) = *p->numtics;
+        p->old_fn = *p->kfn;
       }
-
       p->playing = 1;
       if (p->currtic == 0)
         p->ndx = 0;
