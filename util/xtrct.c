@@ -71,10 +71,11 @@ static short sfsampsize(int type)
     return 1;
 }
 
-static void usage(ENVIRON *csound, char *mesg)
+static void usage(ENVIRON *csound, char *mesg, ...)
 {
-    csound->Message(csound, "%s\n", mesg);
-    csound->Message(csound,"Usage:\textracter [-flags] soundfile\n");
+    va_list args;
+
+    csound->Message(csound,"Usage:\textractor [-flags] soundfile\n");
     csound->Message(csound, "Legal flags are:\n");
     csound->Message(csound,"-o fname\tsound output filename\n");
     csound->Message(csound,"-N\t\tnotify (ring the bell) when done\n");
@@ -90,6 +91,13 @@ static void usage(ENVIRON *csound, char *mesg)
     csound->Message(csound,"-v\t\tverbose mode for debugging\n");
     csound->Message(csound,"-- fname\tLog output to file\n");
     csound->Message(csound,"flag defaults: extracter -otest -S 0\n");
+
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("extractor: error: "));
+    va_start(args, mesg);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, mesg, args);
+    va_end(args);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+    csound->LongJmp(csound, 1);
 }
 
 static int xtrct(void *csound_, int argc, char **argv)
@@ -244,8 +252,7 @@ static int xtrct(void *csound_, int argc, char **argv)
             debug = 1;
             break;
           default:
-            sprintf(csound->errmsg, "unknown flag -%c", c);
-            usage(csound,csound->errmsg);
+            usage(csound, "unknown flag -%c", c);
           }
       else {
         if (inputfile != NULL) usage(csound,"Too many inputs");

@@ -28,7 +28,7 @@
 /* to be removed... */
 #define printf  use_csoundMessage_instead_of_printf
 
-#ifndef CSOUND_CSDL_H
+#ifdef __BUILDING_LIBCSOUND
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,7 +111,7 @@ int     PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p);
 };
 #endif
 
-#endif      /* CSOUND_CSDL_H */
+#endif      /* __BUILDING_LIBCSOUND */
 
 #endif
 

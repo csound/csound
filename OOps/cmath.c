@@ -68,14 +68,12 @@ int apow(ENVIRON *csound, POW *p)               /* Power routine for a-rate  */
     return OK;
 }
 
-/* Now global: long holdrand = 2345678L;  gab d5 */
-
 int seedrand(ENVIRON *csound, PRAND *p)
 {
-    if ((unsigned int)*p->out == 0) {
-      csound->holdrand = time(NULL);
+    if ((unsigned int)*p->out == 0U) {
+      csound->holdrand = (int) csound->timers_random_seed() & 0x7FFFFFFF;
       csound->Message(csound,
-                      Str("Seeding from current time %ld\n"), csound->holdrand);
+                      Str("Seeding from current time %d\n"), csound->holdrand);
       srand((unsigned int) csound->holdrand);
     }
     else {

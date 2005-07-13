@@ -298,8 +298,11 @@ static int scale(void *csound_, int argc, char **argv)
             O->ringbell = 1;             /* notify on completion */
             break;
           default:
-            sprintf(csound->errmsg,Str("unknown flag -%c"), c);
-            usage(csound, csound->errmsg);
+            {
+              char  err_msg[64];
+              sprintf(err_msg, Str("unknown flag -%c"), c);
+              usage(csound, err_msg);
+            }
           }
       else if (inputfile == NULL) {
         inputfile = --s;

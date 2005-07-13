@@ -108,7 +108,6 @@ extern "C" {
 #define MAXCHNLS   256
 
 #define MAXNAME (256)
-#define ERRSIZ  (256)
 
 #define DFLT_DBFS (FL(32768.0))
 
@@ -131,6 +130,7 @@ extern "C" {
     int     RTevents, Midiin, FMidiin;
     int     ringbell, termifend, stdoutfd;
     int     rewrt_hdr, heartbeat, gen01defer;
+    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
     long    sr_override, kr_override;
     long    instxtcount, optxtsize;
     long    poolcount, gblfixed, gblacount, gblscount;
@@ -139,7 +139,6 @@ extern "C" {
     char    *infilename, *outfilename, *playscore;
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
-    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
   } OPARMS;
 
 #define  ONEPT          1.02197486             /* A440 tuning factor */
@@ -260,16 +259,17 @@ extern "C" {
     MYFLT  polyaft[128];    /* polyphonic pressure indexed by note number */
     MYFLT  ctl_val[136];    /* ... with GS vib_rate, stored in c128-c135 */
     short  pgm2ins[128];    /* program change to instr number (<=0: ignore) */
-    short  ksuscnt;         /* number of held (sustaining) notes */
-    short  sustaining;      /* current state of sustain pedal (0: off) */
     MYFLT  aftouch;         /* channel pressure (0-127) */
     MYFLT  pchbend;         /* pitch bend (-1 to 1) */
     MYFLT  pbensens;        /* pitch bend sensitivity in semitones */
-    DKLST  *klists;         /* chain of dpgm keylists */
-    DPARM  *dparms;         /* drumset params     */
+    MYFLT  dummy_;          /* unused */
+    short  ksuscnt;         /* number of held (sustaining) notes */
+    short  sustaining;      /* current state of sustain pedal (0: off) */
     int    dpmsb;
     int    dplsb;
     int    datenabl;
+    DKLST  *klists;         /* chain of dpgm keylists */
+    DPARM  *dparms;         /* drumset params         */
   } MCHNBLK;
 
   /* This struct holds the info for a concrete instrument event
@@ -854,30 +854,36 @@ extern "C" {
     int           nspout;
     OPARMS        *oparms;
     EVTBLK        *currevent;
+    INSDS         *curip;
+    void          *hostdata;
+    void          *rtRecord_userdata;
+    void          *rtPlay_userdata;
+    char          *orchname, *scorename;
+    int           holdrand;
+    int           strVarMaxLen;     /* maximum length of string variables + 1 */
+    int           maxinsno;
+    int           strsmax;
+    char          **strsets;
+    INSTRTXT      **instrtxtp;
+    MCHNBLK       *m_chnbp[64];     /* reserve space for up to 4 MIDI devices */
     /* ------- private data (not to be used by hosts or externals) ------- */
+#ifdef __BUILDING_LIBCSOUND
     MYFLT         cpu_power_busy;
-    char          *orchname, *scorename, *xfilename;
+    char          *xfilename;
     /* oload.h */
     short         nlabels;
     short         ngotos;
-    int           strsmax;
-    char          **strsets;
     int           peakchunks;
     int           keep_tmp;
     int           dither_output;
     OENTRY        *opcodlst;
     void          *opcode_list;     /* IV - Oct 31 2002 */
     OENTRY        *oplstend;
-    long          holdrand;
-    int           maxinsno;
     int           maxopcno;         /* IV - Oct 24 2002 */
-    INSDS         *curip;
     long          nrecs;
     FILE*         Linepipe;
     int           Linefd;
     MYFLT         *ls_table;
-    INSTRTXT      **instrtxtp;
-    char          errmsg[ERRSIZ];   /* sprintf space for compiling msgs */
     FILE*         scfp;
     FILE*         oscfp;
     MYFLT         maxamp[MAXCHNLS];
@@ -892,9 +898,7 @@ extern "C" {
     jmp_buf       exitjmp;
     SRTBLK        *frstbp;
     int           sectcnt;
-    MCHNBLK       *m_chnbp[MAXCHAN];
     int           inerrcnt, synterrcnt, perferrcnt;
-    char          strmsg[256];
     INSTRTXT      instxtanchor;
     INSDS         actanchor;
     long          rngcnt[MAXCHNLS];
@@ -911,7 +915,6 @@ extern "C" {
     MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
     int           tran_nchnls;
-    void          *hostdata;
     OPCODINFO     *opcodeInfo;      /* IV - Oct 20 2002 */
     void          *instrumentNames;
     void          *strsav_str;
@@ -931,8 +934,6 @@ extern "C" {
     double        curp2, nxtim;
     int           cyclesRemaining;
     EVTBLK        evt;
-    void          *rtRecord_userdata;
-    void          *rtPlay_userdata;
     void          *memalloc_db;
     MGLOBAL       *midiGlobals;
     void          *envVarDB;
@@ -958,12 +959,11 @@ extern "C" {
     TOKEN         **revp, **pushp, **argp, **endlist;
     char          *assign_outarg;
     int           argcnt_offs, opcode_is_assign, assign_type;
+    int           strVarSamples;    /* number of MYFLT locations for string */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *otranGlobals;
     void          *rdorchGlobals;
     void          *sreadGlobals;
-    int           strVarMaxLen;     /* maximum length of string variables + 1 */
-    int           strVarSamples;    /* number of MYFLT locations for string */
     void          *extractGlobals;
     void          *oneFileGlobals;
     void          *lineventGlobals;
@@ -999,6 +999,7 @@ extern "C" {
     int           pvErrorCode;
     void          *pvbufreadaddr;       /* pvinterp.c */
     void          *tbladr;              /* vpvoc.c */
+#endif      /* __BUILDING_LIBCSOUND */
   } ENVIRON;
 
 #include "text.h"

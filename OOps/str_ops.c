@@ -29,8 +29,8 @@
 #define STRSMAX 8
 
 #ifndef HAVE_SNPRINTF
-/* add any system that has snprintf() */
-#if defined(HAVE_C99) || defined(HAVE_GCC3)
+/* add any compiler/system that has snprintf() */
+#if defined(HAVE_C99)
 #define HAVE_SNPRINTF   1
 #endif
 #endif
@@ -207,7 +207,7 @@ int strcmp_opcode(ENVIRON *csound, STRCAT_OP *p)
 
 /* perform a sprintf-style format -- based on code by Matt J. Ingalls */
 
-static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
+static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p, char *err_msg)
 {
     int     len = 0, maxLen = csound->strVarMaxLen;
     int     numVals = (int) p->INOCOUNT - 1, strCode = p->XSTRCODE >> 1;
@@ -218,7 +218,7 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
     int     maxChars;
 
     if (p->XINCODE) {
-      sprintf(csound->errmsg, Str("sprintf: a-rate argument not allowed"));
+      sprintf(err_msg, Str("sprintf: a-rate argument not allowed"));
       return -1;
     }
     if (numVals > 30) {
@@ -227,7 +227,7 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
     }
     while (1) {
       if (i >= 2047) {
-        sprintf(csound->errmsg, Str("sprintf: format string too long"));
+        sprintf(err_msg, Str("sprintf: format string too long"));
         return -1;
       }
       if (*fmt != '%' && *fmt != '\0') {
@@ -244,14 +244,13 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
         maxChars = maxLen - len;
         strseg[i] = '\0';
         if (numVals <= 0) {
-          sprintf(csound->errmsg,
-                  Str("sprintf: insufficient arguments for format"));
+          sprintf(err_msg, Str("sprintf: insufficient arguments for format"));
           return -1;
         }
         numVals--;
         if ((*segwaiting == 's' && !(strCode & 1)) ||
             (*segwaiting != 's' && (strCode & 1))) {
-          sprintf(csound->errmsg,
+          sprintf(err_msg,
                   Str("sprintf: argument type inconsistent with format"));
           return -1;
         }
@@ -285,8 +284,8 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
           break;
         case 's':
           if (pp == p->r) {
-            sprintf(csound->errmsg, Str("sprintf: output argument may not be "
-                                        "the same as any of the input args"));
+            sprintf(err_msg, Str("sprintf: output argument may not be "
+                                 "the same as any of the input args"));
             return -1;
           }
 #ifdef HAVE_SNPRINTF
@@ -296,13 +295,13 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
 #endif
           break;
         default:
-          sprintf(csound->errmsg, Str("sprintf: invalid format string"));
+          sprintf(err_msg, Str("sprintf: invalid format string"));
           return -1;
         }
         if (n < 0 || n >= maxChars) {
 #ifdef HAVE_SNPRINTF
           /* safely detected excess string length */
-          sprintf(csound->errmsg, Str("sprintf: buffer overflow"));
+          sprintf(err_msg, Str("sprintf: buffer overflow"));
 #else
           /* wrote past end of buffer - hope that did not already crash ! */
           csound->Die(csound, Str("sprintf: buffer overflow"));
@@ -323,7 +322,7 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
         segwaiting++;
     }
     if (numVals > 0) {
-      sprintf(csound->errmsg, Str("sprintf: too many arguments for format"));
+      sprintf(err_msg, Str("sprintf: too many arguments for format"));
       return -1;
     }
     return 0;
@@ -331,18 +330,22 @@ static int sprintf_opcode(ENVIRON *csound, SPRINTF_OP *p)
 
 int sprintf_opcode_init(ENVIRON *csound, SPRINTF_OP *p)
 {
-    if (sprintf_opcode(csound, p) != 0) {
+    char  err_msg[128];
+
+    if (sprintf_opcode(csound, p, err_msg) != 0) {
       ((char*) p->r)[0] = '\0';
-      return csound->InitError(csound, csound->errmsg);
+      return csound->InitError(csound, err_msg);
     }
     return OK;
 }
 
 int sprintf_opcode_perf(ENVIRON *csound, SPRINTF_OP *p)
 {
-    if (sprintf_opcode(csound, p) != 0) {
+    char  err_msg[128];
+
+    if (sprintf_opcode(csound, p, err_msg) != 0) {
       ((char*) p->r)[0] = '\0';
-      return csound->PerfError(csound, csound->errmsg);
+      return csound->PerfError(csound, err_msg);
     }
     return OK;
 }

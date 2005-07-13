@@ -21,8 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              ARG_DECODE.C */
-#include "prototyp.h"
+#include "csoundCore.h"         /*                      ARGDECODE.C     */
 #include "soundio.h"
 #include "new_opts.h"
 #include "csmodule.h"
@@ -150,16 +149,6 @@ void print_short_usage(void *csound)
                      IOBUFSAMPS, IODACSAMPS);
 }
 
-static void usage(void *csound_)
-{
-  ENVIRON *csound = (ENVIRON*) csound_;
-
-  csound->Message(csound, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
-  csound->Message(csound, Str("Legal flags are:\n"));
-  print_short_usage(csound);
-  csound->LongJmp(csound, 1);
-}
-
 static void longusage(void *csound)
 {
     ENVIRON *p = (ENVIRON*)csound;
@@ -241,11 +230,20 @@ static void longusage(void *csound)
   p->LongJmp(p, 0);
 }
 
-void dieu(void *csound_, char *s)
+void dieu(void *csound_, char *s, ...)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
-    csound->Message(csound,Str("Csound Command ERROR:\t%s\n"), s);
-    usage(csound);
+    va_list args;
+
+    csound->Message(csound,Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
+    csound->Message(csound,Str("Legal flags are:\n"));
+    print_short_usage(csound);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("Csound Command ERROR:\t"));
+    va_start(args, s);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
+    va_end(args);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+
     csound->LongJmp(csound, 1);
 }
 
@@ -958,15 +956,15 @@ int argdecode(void *csound_, int argc, char **argv_)
         case '@':
           FIND(Str("No indirection file"));
           {
-            FILE *ind = fopen(s, "r");
-            if (ind==0) {
-              sprintf(csound->errmsg, Str("Cannot open indirection file %s\n"),
-                                      s);
-              dieu(csound, csound->errmsg);
+            FILE *ind;
+            void *fd;
+            fd = csound->FileOpen(csound, &ind, CSFILE_STD, s, "rb", NULL);
+            if (fd == NULL) {
+              dieu(csound, Str("Cannot open indirection file %s\n"), s);
             }
             else {
               readOptions(csound, ind);
-              fclose(ind);
+              csound->FileClose(csound, fd);
             }
             while (*s++); s--;
           }
@@ -996,8 +994,7 @@ int argdecode(void *csound_, int argc, char **argv_)
           while (*(++s));
           break;
         default:
-          sprintf(csound->errmsg, Str("unknown flag -%c"), c);
-          dieu(csound, csound->errmsg);
+          dieu(csound, Str("unknown flag -%c"), c);
         }
       }
     }
@@ -1006,9 +1003,8 @@ int argdecode(void *csound_, int argc, char **argv_)
       orcNameMode =
         (char*) csoundQueryGlobalVariable(csound, "::argdecode::orcNameMode");
       if (orcNameMode != NULL && strcmp(orcNameMode, "fail") == 0) {
-        csoundMessage(csound, Str("error: orchestra and score name is not "
-                                  "allowed in .csoundrc\n"));
-        csound->LongJmp(csound, 1);
+        csound->Die(csound, Str("error: orchestra and score name is not "
+                                "allowed in .csoundrc"));
       }
       if (orcNameMode == NULL || strcmp(orcNameMode, "ignore") != 0) {
         if (csound->orchname == NULL)

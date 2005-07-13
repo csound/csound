@@ -24,7 +24,7 @@
 /* sndinfUG.c         -matt 7/25/99
              ugens to retrieve info about a sound file */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "soundio.h"
 #include "sndinfUG.h"
 #include "oload.h" /* for strset */
@@ -63,9 +63,8 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
     }
     s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
     if (s == NULL) {                        /* open with full dir paths */
-      sprintf(csound->errmsg, Str("diskinfo cannot open %s"), sfname);
       /* RWD 5:2001 better to exit in this situation ! */
-      csound->Die(csound, csound->errmsg);
+      csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
     sfname = s;                             /* & record fullpath filnam */
     hdr = (HEADATA*) mcalloc(csound, sizeof(HEADATA));
@@ -82,9 +81,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
       sf = sf_open(sfname, SFM_READ, &sfinfo);
     }
     if (sf == NULL) {
-      sprintf(csound->errmsg, Str("diskinfo cannot open %s"), sfname);
-      mfree(csound, sfname);
-      csound->Die(csound, csound->errmsg);
+      csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
     mfree(csound, sfname);
     hdr->sr = (long) sfinfo.samplerate;
@@ -165,9 +162,8 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
     }
     s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
     if (s == NULL) {                        /* open with full dir paths */
-      sprintf(csound->errmsg, Str("diskinfo cannot open %s"), sfname);
       /* RWD 5:2001 better to exit in this situation ! */
-      csound->Die(csound, csound->errmsg);
+      csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
     sfname = s;                             /* & record fullpath filnam */
     sndfile = sf_open(sfname, SFM_READ, &sfinfo);

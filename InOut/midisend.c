@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                       /*    MIDISEND.C    */
+#include "csoundCore.h"                                 /*    MIDISEND.C    */
 #include "midioops.h"
 
 void send_midi_message(ENVIRON *csound, int status, int data1, int data2)

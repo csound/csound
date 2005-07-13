@@ -50,18 +50,6 @@ int     defaultCsoundExitGraph(void *csound);
 int     defaultCsoundYield(void *csound);
 void    close_all_files(void *csound);
 
-static const OPARMS O_ = {
-              0,            /* odebug */
-              0,1,1,0,      /* sfread, sfwrite, sfheader, filetyp */
-              0,0,          /* inbufsamps, outbufsamps */
-              0,0,          /* informat, outformat */
-              0,0,          /* insampsiz, sfsampsize */
-              1,0,0,7,      /* displays, graphsoff, postscript, msglevel */
-              0,0,0,        /* Beatmode, cmdTempo, oMaxLag */
-              0,0,          /* usingcscore, Linein */
-              0,0,0         /* RTevents, Midiin, FMidiin */
-};
-
 const ENVIRON cenviron_ = {
     /* ----------------- interface functions (272 total) ----------------- */
         csoundGetVersion,
@@ -315,37 +303,42 @@ const ENVIRON cenviron_ = {
         0,              /*  nspin               */
         0,              /*  nspout              */
         (OPARMS*) NULL, /*  oparms              */
-        NULL,           /*  currevent           */
+        (EVTBLK*) NULL, /*  currevent           */
+        (INSDS*) NULL,  /*  curip               */
+        NULL,           /*  hostdata            */
+        NULL,           /*  rtRecord_userdata   */
+        NULL,           /*  rtPlay_userdata     */
+        NULL, NULL,     /*  orchname, scorename */
+        2345678,        /*  holdrand            */
+        256,            /*  strVarMaxLen        */
+        MAXINSNO,       /*  maxinsno            */
+        0,              /*  strsmax             */
+        (char**) NULL,  /*  strsets             */
+        NULL,           /*  instrtxtp           */
+        { NULL },       /*  m_chnbp             */
     /* ------- private data (not to be used by hosts or externals) ------- */
         FL(0.0),        /*  cpu_power_busy      */
-        NULL, NULL, NULL, /* orchname, scorename, xfilename */
+        (char*) NULL,   /*  xfilename           */
         NLABELS,        /*  nlabels             */
         NGOTOS,         /*  ngotos              */
-        0,              /*  strsmax             */
-        NULL,           /*  strsets             */
         1,              /*  peakchunks          */
         0,              /*  keep_tmp            */
         0,              /*  dither_output       */
         NULL,           /*  opcodlst            */
         NULL,           /*  opcode_list         */
         NULL,           /*  opcodlstend         */
-        2345678L,       /*  holdrand            */
-        MAXINSNO,       /*  maxinsno            */
         -1,             /*  maxopcno            */
-        NULL,           /*  curip               */
         0,              /*  nrecs               */
         NULL,           /*  Linepipe            */
         0,              /*  Linefd              */
         NULL,           /*  ls_table            */
-        NULL,           /*  instrtxtp           */
-        "",             /*  errmsg              */
         NULL,           /*  scfp                */
         NULL,           /*  oscfp               */
         { FL(0.0)},     /*  maxamp              */
         { FL(0.0)},     /*  smaxamp             */
         { FL(0.0)},     /*  omaxamp             */
         {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
-        NULL, NULL,     /*  scorein, scorout    */
+        NULL, NULL,     /*  scorein, scoreout   */
         NULL,           /*  pool                */
         NULL,           /*  argoffspace         */
         NULL,           /*  frstoff             */
@@ -356,9 +349,7 @@ const ENVIRON cenviron_ = {
 #endif
         NULL,           /*  frstbp              */
         0,              /*  sectcnt             */
-        {0},            /*  m_chnbp             */
         0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
-        "",             /*  strmsg              */
         {NULL},         /*  instxtanchor        */
         {NULL},         /*  actanchor           */
         {0L },          /*  rngcnt              */
@@ -376,7 +367,6 @@ const ENVIRON cenviron_ = {
         FL(-1.0),       /*  tran_ksmps          */
         DFLT_DBFS,      /*  tran_0dbfs          */
         DFLT_NCHNLS,    /*  tran_nchnls         */
-        NULL,           /*  hostData            */
         NULL,           /*  opcodeInfo          */
         NULL,           /*  instrumentNames     */
         NULL,           /*  strsav_str          */
@@ -396,8 +386,6 @@ const ENVIRON cenviron_ = {
         0.0, 0.0,       /*  curp2, nxtim        */
         0,              /*  cyclesRemaining     */
         { NULL, '\0', 0, FL(0.0), FL(0.0), { FL(0.0) } },   /*  evt     */
-        NULL,           /*  rtRecord_userdata   */
-        NULL,           /*  rtPlay_userdata     */
         NULL,           /*  memalloc_db         */
         (MGLOBAL*) NULL, /* midiGlobals         */
         NULL,           /*  envVarDB            */
@@ -423,12 +411,11 @@ const ENVIRON cenviron_ = {
         NULL, NULL,     /*  argp, endlist       */
         (char*) NULL,   /*  assign_outarg       */
         0, 0, 0,        /*  argcnt_offs, opcode_is_assign, assign_type */
+        0,              /*  strVarSamples       */
         (MYFLT*) NULL,  /*  gbloffbas           */
         NULL,           /*  otranGlobals        */
         NULL,           /*  rdorchGlobals       */
         NULL,           /*  sreadGlobals        */
-        256,            /*  strVarMaxLen        */
-        0,              /*  strVarSamples       */
         NULL,           /*  extractGlobals      */
         NULL,           /*  oneFileGlobals      */
         NULL,           /*  lineventGlobals     */
@@ -515,7 +502,11 @@ void oloadRESET(ENVIRON *csound)
       csound->rtplay_callback = rtplay_dummy;
       csound->rtclose_callback = rtclose_dummy;
     }
-    memcpy(csound->oparms, &O_, sizeof(OPARMS));
+    memset(csound->oparms, 0, sizeof(OPARMS));
+    csound->oparms->sfwrite  = 1;
+    csound->oparms->sfheader = 1;
+    csound->oparms->displays = 1;
+    csound->oparms->msglevel = 135;
 }
 
 #ifdef FLOAT_COMPARE
