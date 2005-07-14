@@ -61,23 +61,15 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     FILE    *scorin = NULL, *scorout = NULL, *xfile = NULL;
     int     n;
 
-    /* for debugging only */
-    if ((n = setjmp(csound->exitjmp))) {
-      csound->Message(csound, " *** WARNING: longjmp() called during "
-                              "csoundPreCompile() ***\n");
-      return (n - CSOUND_EXITJMP_SUCCESS);
+    /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
+    if (csoundQueryGlobalVariable(csound, "_RTAUDIO") == NULL ||
+        csoundQueryGlobalVariable(csound, "csRtClock") != NULL) {
+      if (csoundPreCompile(csound) != CSOUND_SUCCESS)
+        return CSOUND_ERROR;
     }
 
-    /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
-    if (csoundQueryGlobalVariable(csound, "_RTAUDIO") == NULL)
-      if (csoundPreCompile(csound) != CSOUND_SUCCESS)
-        return CSOUND_ERROR;
-    if (csoundQueryGlobalVariable(csound, "csRtClock") != NULL)
-      if (csoundPreCompile(csound) != CSOUND_SUCCESS)
-        return CSOUND_ERROR;
-
     if ((n = setjmp(csound->exitjmp))) {
-      return (n - CSOUND_EXITJMP_SUCCESS);
+      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
 
     /* IV - Jan 28 2005 */
