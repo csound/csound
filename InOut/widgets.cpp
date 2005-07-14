@@ -3591,7 +3591,7 @@ static OENTRY localops[] = {
         (SUBR) fl_counter,              (SUBR) NULL,              (SUBR) NULL },
     { "FLbutton",       S(FLBUTTON),            1,  "ki",   "Tiiiiiiiz",
         (SUBR) fl_button,               (SUBR) NULL,              (SUBR) NULL },
-    { "FLbutBank",      S(FLBUTTONBANK),        1,  "ki",   "iiiiiiiiz",
+    { "FLbutBank",      S(FLBUTTONBANK),        1,  "ki",   "iiiiiiiz",
         (SUBR) fl_button_bank,          (SUBR) NULL,              (SUBR) NULL },
     { "FLkeyb",         S(FLKEYB),              1,  "k",    "z",
         (SUBR) FLkeyb,                  (SUBR) NULL,              (SUBR) NULL },
