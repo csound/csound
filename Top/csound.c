@@ -349,8 +349,12 @@ extern "C" {
     void    *saved_hostdata;
     char    *s;
     int     i, max_len;
+    volatile int  n;
 
     p = (ENVIRON*) csound;
+    if ((n = setjmp(p->exitjmp)) != 0) {
+      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
     /* reset instance, but keep host data pointer */
     saved_hostdata = p->hostdata;
     csoundReset(csound);

@@ -56,11 +56,6 @@ extern "C" {
    */
   PUBLIC char *csoundGetUtilityDescription(void *csound_, const char *utilName);
 
-  /**
-   * Main function for stand-alone utilities.
-   */
-  PUBLIC int csoundUtilMain(const char *name, int argc, char **argv);
-
 #ifdef __cplusplus
 };
 #endif

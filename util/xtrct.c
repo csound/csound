@@ -90,7 +90,7 @@ static void usage(ENVIRON *csound, char *mesg, ...)
     csound->Message(csound,"-H\t\tHeartbeat\n");
     csound->Message(csound,"-v\t\tverbose mode for debugging\n");
     csound->Message(csound,"-- fname\tLog output to file\n");
-    csound->Message(csound,"flag defaults: extracter -otest -S 0\n");
+    csound->Message(csound,"flag defaults: extractor -otest -S 0\n");
 
     csound->MessageS(csound, CSOUNDMSG_ERROR, Str("extractor: error: "));
     va_start(args, mesg);

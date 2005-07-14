@@ -27,7 +27,22 @@
 /* main function for utility frontends */
 
 #include "csoundCore.h"
-#include "cs_util.h"
+
+static int csoundUtilMain(const char *name, int argc, char **argv)
+{
+    ENVIRON *csound;
+    int     n;
+
+    if ((csound = (ENVIRON*) csoundCreate(NULL)) == NULL)
+      return -1;
+    if ((n = csoundPreCompile(csound)) == 0) {
+      csound->scorename = csound->orchname = (char*) name;
+      n = csound->Utility(csound, name, argc, argv);
+    }
+    csoundDestroy(csound);
+
+    return (n == CSOUND_EXITJMP_SUCCESS ? 0 : n);
+}
 
 #define UTIL_MAIN(x)                            \
                                                 \
