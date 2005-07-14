@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include "cs_util.h"
+#include <setjmp.h>
 
 typedef struct csUtility_s {
     char                *name;
@@ -73,9 +74,22 @@ PUBLIC int csoundRunUtility(void *csound_, const char *name,
     ENVIRON     *csound = (ENVIRON*) csound_;
     csUtility_t *p;
     char        **lst;
+    volatile void *saved_exitjmp;
+    volatile int  n;
 
     if (csound == NULL)
       return -1;
+
+    saved_exitjmp = (void*) malloc(sizeof(jmp_buf));
+    if (saved_exitjmp == NULL)
+      return -1;
+    memcpy((void*) saved_exitjmp, (void*) &(csound->exitjmp), sizeof(jmp_buf));
+
+    if ((n = setjmp(csound->exitjmp)) != 0) {
+      n = (n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
+      goto err_return;
+    }
+
     if (name == NULL || name[0] == '\0')
       goto notFound;
     p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
@@ -87,7 +101,8 @@ PUBLIC int csoundRunUtility(void *csound_, const char *name,
       p = p->nxt;
     } while (1);
     csound->Message(csound, Str("util %s:\n"), name);
-    return (p->UtilFunc(csound, argc, argv));
+    n = p->UtilFunc(csound, argc, argv);
+    goto err_return;
 
  notFound:
     csound->MessageS(csound, CSOUNDMSG_ERROR, Str("Error: utility "));
@@ -108,7 +123,12 @@ PUBLIC int csoundRunUtility(void *csound_, const char *name,
     }
     if (lst != NULL)
       csound->Free(csound, lst);
-    return -1;
+    n = -1;
+ err_return:
+    memcpy((void*) &(((ENVIRON*) csound_)->exitjmp), (void*) saved_exitjmp,
+           sizeof(jmp_buf));
+    free((void*) saved_exitjmp);
+    return n;
 }
 
 static int cmp_func(const void *a, const void *b)
@@ -205,29 +225,5 @@ PUBLIC char *csoundGetUtilityDescription(void *csound_, const char *utilName)
       return NULL;      /* not found */
     /* return with utility description (if any) */
     return p->desc;
-}
-
-/**
- * Main function for stand-alone utilities.
- */
-
-PUBLIC int csoundUtilMain(const char *name, int argc, char **argv)
-{
-    volatile  void  *csound;
-    volatile  int   n;
-
-    csound = (void*) csoundCreate(NULL);
-    if (csound == NULL)
-      return -1;
-    if ((n = setjmp(((ENVIRON*) csound)->exitjmp)) != 0)
-      return (n - CSOUND_EXITJMP_SUCCESS);
-    if ((n = csoundPreCompile((ENVIRON*) csound)) == 0) {
-      ((ENVIRON*) csound)->orchname = (char*) name;
-      ((ENVIRON*) csound)->scorename = (char*) name;
-      n = ((ENVIRON*) csound)->Utility((ENVIRON*) csound, name, argc, argv);
-    }
-    csoundDestroy((ENVIRON*) csound);
-
-    return n;
 }
 

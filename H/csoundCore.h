@@ -537,9 +537,8 @@ extern "C" {
     MYFLT       srate;
   } PVOCEX_MEMFILE;
 
-  typedef struct ENVIRON_
-  {
-    /* Csound API function pointers (272 total) */
+  typedef struct ENVIRON_ {
+    /* Csound API function pointers (288 total) */
     int (*GetVersion)(void);
     int (*GetAPIVersion)(void);
     void *(*GetHostData)(void *csound);
@@ -802,27 +801,7 @@ extern "C" {
 #endif
       void (*LongJmp)(struct ENVIRON_ *, int);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[100];
-    /* callback function pointers (48 total) - not part of the API */
-    int (*playopen_callback)(void *csound, csRtAudioParams *parm);
-    void (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
-    int (*recopen_callback)(void *csound, csRtAudioParams *parm);
-    int (*rtrecord_callback)(void *csound, void *inBuf, int nbytes);
-    void (*rtclose_callback)(void *csound);
-    void (*InputValueCallback_)(void *csound, char *channelName, MYFLT *value);
-    void (*OutputValueCallback_)(void *csound, char *channelName, MYFLT value);
-    void (*csoundMessageCallback_)(void *csound, int attr, const char *format,
-                                                           va_list args);
-    void (*csoundThrowMessageCallback_)(void *csound, const char *format,
-                                                      va_list args);
-    void (*csoundMakeGraphCallback_)(void *csound, WINDAT *windat, char *name);
-    void (*csoundDrawGraphCallback_)(void *csound, WINDAT *windat);
-    void (*csoundKillGraphCallback_)(void *csound, WINDAT *windat);
-    int (*csoundExitGraphCallback_)(void *csound);
-    int (*csoundYieldCallback_)(void *csound);
- /* SUBR dummyfn_3; */
-    SUBR dummyfn_4[34];
-    /* End of internals */
+    SUBR dummyfn_2[116];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;
@@ -868,6 +847,31 @@ extern "C" {
     MCHNBLK       *m_chnbp[64];     /* reserve space for up to 4 MIDI devices */
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
+    /* callback function pointers */
+    SUBR          first_callback_;
+    void          (*InputValueCallback_)(void *csound,
+                                         char *channelName, MYFLT *value);
+    void          (*OutputValueCallback_)(void *csound,
+                                          char *channelName, MYFLT value);
+    void          (*csoundMessageCallback_)(void *csound, int attr,
+                                            const char *format, va_list args);
+    void          (*csoundThrowMessageCallback_)(void *csound,
+                                                 const char *format,
+                                                 va_list args);
+    void          (*csoundMakeGraphCallback_)(void *csound, WINDAT *windat,
+                                                            char *name);
+    void          (*csoundDrawGraphCallback_)(void *csound, WINDAT *windat);
+    void          (*csoundKillGraphCallback_)(void *csound, WINDAT *windat);
+    int           (*csoundExitGraphCallback_)(void *csound);
+    int           (*csoundYieldCallback_)(void *csound);
+    SUBR          last_callback_;
+    /* these are not saved on RESET */
+    int           (*playopen_callback)(void *csound, csRtAudioParams *parm);
+    void          (*rtplay_callback)(void *csound, void *outBuf, int nbytes);
+    int           (*recopen_callback)(void *csound, csRtAudioParams *parm);
+    int           (*rtrecord_callback)(void *csound, void *inBuf, int nbytes);
+    void          (*rtclose_callback)(void *csound);
+    /* end of callbacks */
     MYFLT         cpu_power_busy;
     char          *xfilename;
     /* oload.h */
@@ -877,9 +881,9 @@ extern "C" {
     int           keep_tmp;
     int           dither_output;
     OENTRY        *opcodlst;
-    void          *opcode_list;     /* IV - Oct 31 2002 */
+    void          *opcode_list;
     OENTRY        *oplstend;
-    int           maxopcno;         /* IV - Oct 24 2002 */
+    int           maxopcno;
     long          nrecs;
     FILE*         Linepipe;
     int           Linefd;
@@ -915,7 +919,7 @@ extern "C" {
     MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
     int           tran_nchnls;
-    OPCODINFO     *opcodeInfo;      /* IV - Oct 20 2002 */
+    OPCODINFO     *opcodeInfo;
     void          *instrumentNames;
     void          *strsav_str;
     void          *strsav_space;
@@ -926,7 +930,7 @@ extern "C" {
     int           genmax;
     int           ftldno;
     int           doFLTKThreadLocking;
-    void          **namedGlobals;         /* IV - Jan 28 2005 */
+    void          **namedGlobals;
     int           namedGlobalsCurrLimit;
     int           namedGlobalsMaxLimit;
     void          **cfgVariableDB;

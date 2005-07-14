@@ -51,7 +51,7 @@ int     defaultCsoundYield(void *csound);
 void    close_all_files(void *csound);
 
 const ENVIRON cenviron_ = {
-    /* ----------------- interface functions (272 total) ----------------- */
+    /* ----------------- interface functions (288 total) ----------------- */
         csoundGetVersion,
         csoundGetAPIVersion,
         csoundGetHostData,
@@ -224,7 +224,7 @@ const ENVIRON cenviron_ = {
         PVOCEX_LoadFile,
         csoundLongJmp,
         NULL,
-        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        { NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -233,24 +233,6 @@ const ENVIRON cenviron_ = {
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL  },
-    /* -------------- callback function pointers (48 total) -------------- */
-        playopen_dummy,
-        rtplay_dummy,
-        recopen_dummy,
-        rtrecord_dummy,
-        rtclose_dummy,
-        (void (*)(void*, char*, MYFLT*)) NULL,
-        (void (*)(void*, char*, MYFLT)) NULL,
-        csoundDefaultMessageCallback,
-        csoundDefaultThrowMessageCallback,
-        defaultCsoundMakeGraph,
-        defaultCsoundDrawGraph,
-        defaultCsoundKillGraph,
-        defaultCsoundExitGraph,
-        defaultCsoundYield,
-     /* NULL, */
-        { NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL  },
@@ -317,6 +299,25 @@ const ENVIRON cenviron_ = {
         NULL,           /*  instrtxtp           */
         { NULL },       /*  m_chnbp             */
     /* ------- private data (not to be used by hosts or externals) ------- */
+        /* callback function pointers */
+        (SUBR) NULL,    /*  first_callback_     */
+        (void (*)(void*, char*, MYFLT*)) NULL,
+        (void (*)(void*, char*, MYFLT)) NULL,
+        csoundDefaultMessageCallback,
+        csoundDefaultThrowMessageCallback,
+        defaultCsoundMakeGraph,
+        defaultCsoundDrawGraph,
+        defaultCsoundKillGraph,
+        defaultCsoundExitGraph,
+        defaultCsoundYield,
+        (SUBR) NULL,    /*  last_callback_      */
+        /* these are not saved on RESET */
+        playopen_dummy,
+        rtplay_dummy,
+        recopen_dummy,
+        rtrecord_dummy,
+        rtclose_dummy,
+        /* end of callbacks */
         FL(0.0),        /*  cpu_power_busy      */
         (char*) NULL,   /*  xfilename           */
         NLABELS,        /*  nlabels             */
@@ -467,6 +468,10 @@ static  void    convert_strconst_pool(ENVIRON *csound, MYFLT *dst);
 
 void oloadRESET(ENVIRON *csound)
 {
+    ENVIRON   *saved_env;
+    void      *p1, *p2;
+    uintptr_t length;
+
     csound->oparms->odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release(csound);
@@ -478,30 +483,21 @@ void oloadRESET(ENVIRON *csound)
      * Copy everything EXCEPT the function pointers.
      * We do it by saving them and copying them back again...
      */
-    {
-      void    *tempGlobals, *saved_memalloc_db = csound->memalloc_db;
-      void    *saved_hostdata = csound->hostdata;
-      OPARMS  *saved_oparms = csound->oparms;
-      jmp_buf saved_exitjmp;
-      size_t  length;
-      memcpy(&saved_exitjmp, &(csound->exitjmp), sizeof(jmp_buf));
-      length = (size_t) ((uintptr_t) &(csound->ids) - (uintptr_t) csound);
-      tempGlobals = malloc(length);     /* hope that this does not fail... */
-      memcpy(tempGlobals, (void*) csound, length);
-      memcpy(csound, &cenviron_, sizeof(ENVIRON));
-      memcpy((void*) csound, tempGlobals, length);
-      free(tempGlobals);
-      csound->hostdata = saved_hostdata;
-      csound->oparms = saved_oparms;
-      csound->memalloc_db = saved_memalloc_db;
-      memcpy(&(csound->exitjmp), &saved_exitjmp, sizeof(jmp_buf));
-      /* reset rtaudio function pointers */
-      csound->recopen_callback = recopen_dummy;
-      csound->playopen_callback = playopen_dummy;
-      csound->rtrecord_callback = rtrecord_dummy;
-      csound->rtplay_callback = rtplay_dummy;
-      csound->rtclose_callback = rtclose_dummy;
-    }
+    /* hope that this does not fail... */
+    saved_env = (ENVIRON*) malloc(sizeof(ENVIRON));
+    memcpy(saved_env, csound, sizeof(ENVIRON));
+    memcpy(csound, &cenviron_, sizeof(ENVIRON));
+    length = (uintptr_t) &(csound->ids) - (uintptr_t) csound;
+    memcpy((void*) csound, (void*) saved_env, (size_t) length);
+    csound->oparms = saved_env->oparms;
+    csound->hostdata = saved_env->hostdata;
+    p1 = (void*) &(csound->first_callback_);
+    p2 = (void*) &(csound->last_callback_);
+    length = (uintptr_t) p2 - (uintptr_t) p1;
+    memcpy(p1, (void*) &(saved_env->first_callback_), (size_t) length);
+    memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
+    csound->memalloc_db = saved_env->memalloc_db;
+    free(saved_env);
     memset(csound->oparms, 0, sizeof(OPARMS));
     csound->oparms->sfwrite  = 1;
     csound->oparms->sfheader = 1;
