@@ -64,11 +64,11 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
     if (csoundQueryGlobalVariable(csound, "_RTAUDIO") == NULL ||
         csoundQueryGlobalVariable(csound, "csRtClock") != NULL) {
-      if (csoundPreCompile(csound) != CSOUND_SUCCESS)
-        return CSOUND_ERROR;
+      if ((n = csoundPreCompile(csound)) != CSOUND_SUCCESS)
+        return n;
     }
 
-    if ((n = setjmp(csound->exitjmp))) {
+    if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
 

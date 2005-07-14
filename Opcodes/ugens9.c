@@ -390,9 +390,9 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
                                        "not equal to input channels");
     }
 
-    if (IRfile.sr != csound->esr && (csound->oparms->msglevel & WARNMSG)) {
+    if (IRfile.sr != csound->esr) {
       /* ## RWD suggests performing sr conversion here! */
-      csound->Message(csound, "WARNING: IR srate != orch's srate");
+      csound->Warning(csound, "IR srate != orch's srate");
     }
 
     /* make sure the partition size is nonzero and a power of 2  */
