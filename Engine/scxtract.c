@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                    /*  SCXTRACT.C  */
+#include "csoundCore.h"                            /*  SCXTRACT.C  */
 
 extern void readxfil(ENVIRON *, FILE *), extract(ENVIRON *), swrite(ENVIRON *);
 extern void sfree(ENVIRON *csound);

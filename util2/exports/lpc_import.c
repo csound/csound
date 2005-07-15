@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "cs.h"
+#include "csoundCore.h"
 #include "lpc.h"
 
 void lpc_import_usage(void)

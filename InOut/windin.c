@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                           WINDIN.C   */
+#include "csoundCore.h"         /*                           WINDIN.C   */
 #include "cwindow.h"
 #include "windin.h"             /* real-time input control units        */
                                 /* 26aug90 dpwe                         */

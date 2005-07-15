@@ -23,7 +23,7 @@
 
 /* namedins.c -- written by Istvan Varga, Oct 2002, Jan 2005 */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "namedins.h"
 #include <ctype.h>
 

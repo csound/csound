@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                              RDSCOR.C */
+#include "csoundCore.h"         /*                              RDSCOR.C */
 
 static void dumpline(ENVIRON *);
 

@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"             /*                      CSCORFNS.C      */
+#include "csoundCore.h"     /*                      CSCORFNS.C      */
 #include "cscore.h"
 
 #define TYP_FREE   0

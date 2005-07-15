@@ -28,7 +28,7 @@
 #include <sstream>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <cs.h>
+#include <csoundCore.h>
 #include <oload.h>
 
 char staticBuffer[0x1000];

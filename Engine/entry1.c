@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                 /*                      ENTRY.C         */
+#include "csoundCore.h"         /*                      ENTRY.C         */
 #include "insert.h"
 #include "aops.h"
 #include "midiops.h"

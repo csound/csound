@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                 /*      WINDOW.C        */
+#include "csoundCore.h"                         /*      WINDOW.C        */
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
                                                 /*  dpwe 16may90        */

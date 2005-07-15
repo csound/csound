@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                          /*    SWRITE.C  */
+#include "csoundCore.h"                                  /*    SWRITE.C  */
 #include <math.h>
 #include <stdlib.h>
 #include <ctype.h>

@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                     /*   SREAD.C     */
+#include "csoundCore.h"                             /*   SREAD.C     */
 #include <math.h>      /* for fabs() */
 #include <ctype.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */

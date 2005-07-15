@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"
+#include "csoundCore.h"
                                                 /*    winFLTK.c         */
                                                 /* Csound FLTK/X graphs */
                                                 /*   jpff,06Oct02       */

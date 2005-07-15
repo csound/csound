@@ -24,7 +24,7 @@
 #include "config.h"
 #endif
 
-#include "cs.h"
+#include "csoundCore.h"
 
 #ifdef HAVE_LIBDL
 #include <dlfcn.h>

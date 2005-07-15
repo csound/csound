@@ -30,7 +30,10 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.10  2005-06-05 16:36:24  istvanv
+ *      Revision 1.11  2005-07-15 10:13:28  istvanv
+ *      Removed cs.h
+ *
+ *      Revision 1.10  2005/06/05 16:36:24  istvanv
  *      Minor code improvements
  *
  *      Revision 1.9  2005/06/05 13:07:08  istvanv
@@ -68,7 +71,7 @@ static char *rcsid = "$Id$";
  * Starting with rcs
  *
  */
-#include "cs.h"
+#include "csoundCore.h"
 #include <math.h>
 
 static void fft_(ENVIRON *,MYFLT *, MYFLT *, int, int, int, int);

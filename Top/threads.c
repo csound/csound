@@ -19,7 +19,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"
+#include "csoundCore.h"
 
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <windows.h>

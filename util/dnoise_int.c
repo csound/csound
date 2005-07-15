@@ -33,7 +33,7 @@
 #include        <Memory.h>
 #include        <Events.h>
 #include        "resource.h"
-#include        "cs.h"
+#include        "csoundCore.h"
 
 void UpdateFileDlg(SO_FILE);
 void formCmdLine(void);

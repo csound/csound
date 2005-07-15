@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                         /*             SNDLIB.C         */
+#include "csoundCore.h"                 /*             SNDLIB.C         */
 #include "soundio.h"
 #include <sndfile.h>
 #ifdef HAVE_SYS_TYPES_H

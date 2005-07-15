@@ -28,7 +28,7 @@ functions specific to sixteen loudspeaker VBAP
 Ville Pulkki
 */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>

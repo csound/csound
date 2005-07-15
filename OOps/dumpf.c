@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                      /*  DUMPF.C  */
+#include "csoundCore.h"                              /*  DUMPF.C  */
 #include "dumpf.h"
 #include <ctype.h>
 

@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                         /*              MEMALLOC.C      */
+#include "csoundCore.h"                 /*              MEMALLOC.C      */
 
 #if defined(BETA) && !defined(MEMDEBUG)
 #define MEMDEBUG  1

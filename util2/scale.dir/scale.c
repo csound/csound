@@ -28,7 +28,7 @@
 *   and a certain amount of lifting from Csound itself  *
 \*******************************************************/
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "soundio.h"
 #ifdef HAVE_CTYPE_H
 #include <ctype.h>

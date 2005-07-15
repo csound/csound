@@ -24,7 +24,7 @@
 /*      Math functions for Csound coded by Paris Smaragdis 1994         */
 /*      Berklee College of Music Csound development team                */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "cmath.h"
 #include <math.h>
 #include <time.h>   /* for random seeding from the time - mkc July 1997 */

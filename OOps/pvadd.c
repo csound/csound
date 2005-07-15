@@ -28,7 +28,7 @@
 /******************************************/
 /*    PVADD.C        */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include <math.h>
 #include "dsputil.h"
 #include "pvfileio.h"
