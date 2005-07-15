@@ -2,6 +2,7 @@
     diskin.h:
 
     Copyright (C) 1998, 2001 matt ingalls, Richard Dobson, John ffitch
+              (C) 2005 Istvan Varga
 
     This file is part of Csound.
 
@@ -24,56 +25,54 @@
 #ifndef CSOUND_DISKIN_H
 #define CSOUND_DISKIN_H
 
-#define SNDINEWBUFSIZ  (4096)
-#ifndef TRUE
-#define TRUE (1)
-#endif
-#ifndef FALSE
-#define FALSE (0)
-#endif
+#include "diskin2.h"
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *r1, *r2, *r3, *r4;
-    MYFLT       *ifilno, *ktransp, *iskptim, *ilooping, *iformat, *skipinit;
-    short       format, channel, nchanls, sampframsiz, filetyp;
-    short       analonly, endfile, begfile;
-    long        sr, audrem, audsize;
-    SNDFILE     *sf;
-    AIFFDAT     *aiffdata;
-    FDCH        fdch;
-    MYFLT       *inbufp, *bufend, *guardpt;
-    MYFLT       inbuf[SNDINEWBUFSIZ];
-    double      phs;
-    long        filepos, firstsampinfile;
-    /*RWD 3:2000*/
-    float       fscalefac;
-    long        do_floatscaling;
+    OPDS    h;
+    MYFLT   *aOut[DISKIN2_MAXCHN];
+    MYFLT   *iFileCode;
+    MYFLT   *kTranspose;
+    MYFLT   *iSkipTime;
+    MYFLT   *iWrapMode;
+    MYFLT   *iSampleFormat;
+    MYFLT   *iSkipInit;
+ /* ------------------------------------- */
+    int     initDone;
+    int     nChannels;
+    int     bufSize;            /* in sample frames, power of two */
+    int     wrapMode;
+    long    fileLength;         /* in sample frames */
+    long    bufStartPos;
+    int64_t pos_frac;           /* type should be defined in sysdep.h */
+    int64_t pos_frac_inc;
+    SNDFILE *sf;
+    MYFLT   prv_kTranspose;
+    MYFLT   scaleFac;
+    float   buf[4120];          /* 4096 samples + guard point for 24 channels */
+    FDCH    fdch;
 } SOUNDINEW;
 
 #define SNDOUTSMPS   (1024)
 
 typedef struct {
-        MYFLT   *ifilcod, *iformat;
-        short   format, filetyp;
-        AIFFDAT *aiffdata;
-        void    (*swrtmethod)(int, MYFLT *, int);
-        SNDFILE *sf;
-        FDCH    fdch;
-        MYFLT   *outbufp, *bufend;
-        MYFLT   outbuf[SNDOUTSMPS];
+    MYFLT   *ifilcod, *iformat;
+    short   format, filetyp;
+    SNDFILE *sf;
+    void    *fd;
+    MYFLT   *outbufp, *bufend;
+    MYFLT   outbuf[SNDOUTSMPS];
 } SNDCOM;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *asig;
-        SNDCOM  c;
+    OPDS    h;
+    MYFLT   *asig;
+    SNDCOM  c;
 } SNDOUT;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *asig1, *asig2;
-        SNDCOM  c;
+    OPDS    h;
+    MYFLT   *asig1, *asig2;
+    SNDCOM  c;
 } SNDOUTS;
 
 #endif      /* CSOUND_DISKIN_H */
