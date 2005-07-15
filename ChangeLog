@@ -10,6 +10,8 @@
 	  fixed bug in soundout that resulted in not writing the last buffer
 	  to disk
 	  implemented soundouts opcode (stereo soundout)
+	* Engine/fgens.c: fixed memory error in GEN20
+	* Engine/rdorch.c: minor fix in parsing of comments
 
 2005-07-13	Istvan Varga	<ivarga@csounds.com>
 	* InOut/midirecv.c: reset controllers 7-11 to 0 in raw controller mode
