@@ -423,8 +423,8 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
 
     while ((c = getorchar(csound)) != EOF) {    /* read entire orch file  */
       if (cp == endspace-1) {                   /* Must extend */
-        char * orold = ortext;
-        int i;
+        char *orold = ortext;
+        int  i;
         ST(orchsiz) = ST(orchsiz) + (ST(orchsiz) >> 4) + 1L;
         ST(orchsiz) = (ST(orchsiz) + 511L) & (~511L);
         ortext = mrealloc(csound, ortext, ST(orchsiz));
@@ -457,14 +457,14 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
       }
       if (c == ';' && !heredoc) {
         skiporchar(csound);
-        c = '\n';
+        *(cp - 1) = (char) (c = '\n');
       }
       if (c == '"' && !heredoc) {
         openquote = !openquote;
       }
-      if (c == '\\' && !heredoc) {  /* Continuation?? */
+      if (c == '\\' && !heredoc) {                   /* Continuation ?       */
         while ((c = getorchar(csound))==' ' || c == '\t');  /* Ignore spaces */
-        if (c==';') {                                /* Comments get skipped */
+        if (c == ';') {                              /* Comments get skipped */
           skiporchar(csound);
           c = '\n';
         }
