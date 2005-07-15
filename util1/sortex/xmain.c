@@ -20,8 +20,8 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include "csoundCore.h"                            /*   XMAIN.C  */
-#include <string.h>
-#include <stdlib.h>
+
+PUBLIC int scxtract(ENVIRON *, FILE *, FILE *, FILE *);
 
 int main(int ac, char **av)         /* stdio stub for standalone extract */
                                     /*     first opens the control xfile */
@@ -29,7 +29,6 @@ int main(int ac, char **av)         /* stdio stub for standalone extract */
     ENVIRON *csound;
     FILE    *xfp;
 
-    init_getstring(0, NULL);
     csound = (ENVIRON*) csoundCreate(NULL);
     csoundPreCompile(csound);
     ac--;  av++;
