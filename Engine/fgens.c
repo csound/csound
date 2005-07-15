@@ -842,9 +842,9 @@ static void gen19(FUNC *ftp, ENVIRON *csound)
 static void gen20(FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
-    MYFLT cf[4], *ft;
-    double arg, i, xarg, beta = 0.0;
-    int nargs = ff->e.pcnt -4;
+    MYFLT   cf[4], *ft;
+    double  arg, x, xarg, beta = 0.0;
+    int     i, nargs = ff->e.pcnt -4;
 
     ft = ftp->ftable;
     xarg = 1.0;
@@ -869,10 +869,10 @@ static void gen20(FUNC *ftp, ENVIRON *csound)
         break;
     case 3:                     /* Bartlett */
         arg = 2.0/ff->flen;
-        for (i = 0.0 ; i < ff->flen/2.0 ; i++)
-            *ft++ = (MYFLT)(i*arg*xarg);
-        for (; i < ff->flen ; i++)
-            *ft++ = (MYFLT)((2.0 - i*arg)*xarg);
+        for (i = 0, x = 0.0 ; i < ((int) ff->flen >> 1) ; i++, x++)
+            ft[i] = (MYFLT) (x * arg * xarg);
+        for ( ; i < (int) ff->flen ; i++, x++)
+            ft[i] = (MYFLT) ((2.0 - x * arg) * xarg);
         return;
     case 4:                     /* Blackman */
         cf[0] = FL(0.42);
@@ -887,43 +887,44 @@ static void gen20(FUNC *ftp, ENVIRON *csound)
         cf[3] = FL(0.01168);
         break;
     case 6:                     /* Gaussian */
-        arg = 12.0/ff->flen;
-        for (i = -6.0 ; i < 0.0 ; i += arg)
-          *ft++ = (MYFLT)(xarg * (pow( 2.71828, -(i*i)/2.0)));
-        for (i = arg ; i < 6.0 ; i += arg)
-          *ft++ = (MYFLT)(xarg * (pow( 2.71828, -(i*i)/2.0)));
+        arg = 12.0 / ff->flen;
+        for (i = 0, x = -6.0 ; i < ((int) ff->flen >> 1) ; i++, x += arg)
+          ft[i] = (MYFLT) (xarg * (pow( 2.718281828459, -(x*x) / 2.0)));
+        for (x = 0.0 ; i <= (int) ff->flen ; i++, x += arg)
+          ft[i] = (MYFLT) (xarg * (pow( 2.718281828459, -(x*x) / 2.0)));
         return;
     case 7:                     /* Kaiser */
       {
         double flen2 = (double)ff->flen/2.0;
         double flenm12 = (double)(ff->flen-1)*(ff->flen-1);
         double besbeta = besseli( beta);
-        for (i = -flen2 + 0.1 ; i < flen2 ; i++)
-          *ft++ = (MYFLT)(xarg * besseli((beta*sqrt(1.0-i*i/flenm12)))/besbeta);
+        for (i = 0, x = -flen2 + 0.1 ; i <= (int) ff->flen ; i++, x++)
+          ft[i] = (MYFLT) (xarg * besseli((beta * sqrt(1.0 - x * x / flenm12)))
+                                / besbeta);
         return;
       }
     case 8:                     /* Rectangular */
-        for (i = 0 ; i < ff->flen ; i++)
-          *ft++ = FL(1.0);
+        for (i = 0; i <= (int) ff->flen ; i++)
+          ft[i] = FL(1.0);
         return;
     case 9:                     /* Sinc */
         arg = TWOPI / ff->flen;
-        for (i = -PI ; i < 0 ; i += arg)
-          *ft++ = (MYFLT)(xarg * sin(i) / i);
-        *ft++ = (MYFLT)xarg;
-        for (i = arg ; i < PI ; i += arg)
-          *ft++ = (MYFLT)(xarg * sin(i) / i);
+        for (i = 0, x = -PI ; i < ((int) ff->flen >> 1) ; i++, x += arg)
+          ft[i] = (MYFLT) (xarg * sin(x) / x);
+        ft[i++] = (MYFLT) xarg;
+        for (x = arg ; i <= (int) ff->flen ; i++, x += arg)
+          ft[i] = (MYFLT) (xarg * sin(x) / x);
         return;
     default:
         fterror(csound, ff, Str("No such window!"));
         return;
     }
 
-    arg = TWOPI/ff->flen;
+    arg = TWOPI / ff->flen;
 
-    for (i = 0.0 ; i < TWOPI ; i += arg)
-      *ft++ = (MYFLT)(xarg * (cf[0] - cf[1]*cos(i) +
-                              cf[2]*cos(2.0*i) - cf[3]*cos(3.0*i)));
+    for (i = 0, x = 0.0 ; i <= (int) ff->flen ; i++, x += arg)
+      ft[i] = (MYFLT) (xarg * (cf[0] - cf[1]*cos(x) + cf[2]*cos(2.0 * x)
+                                     - cf[3]*cos(3.0 * x)));
 }
 
 static void gen21(FUNC *ftp, ENVIRON *csound)
