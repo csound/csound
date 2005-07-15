@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "sysdep.h"                                 /*    EXTRACT.C   */
 
 #define INSMAX  4096

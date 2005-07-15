@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                       /*    TWARP.C  */
+#include "csoundCore.h"                               /*    TWARP.C  */
 
 #define TSEGMAX (PMAX/2)
 

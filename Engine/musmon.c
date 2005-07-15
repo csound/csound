@@ -25,7 +25,7 @@
 #include "config.h"
 #endif
 
-#include "cs.h"                 /*                         MUSMON.C     */
+#include "csoundCore.h"         /*                         MUSMON.C     */
 #include "cscore.h"
 #include "midiops.h"
 #include "soundio.h"

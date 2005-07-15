@@ -27,7 +27,7 @@
 */
 
 #include <math.h>
-#include "cs.h"
+#include "csoundCore.h"
 #include "pstream.h"
 #include "pvfileio.h"
 #include "oload.h"

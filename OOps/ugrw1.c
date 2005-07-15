@@ -44,7 +44,7 @@
  * clearly indicated as such.
  */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "ugrw1.h"
 #include <math.h>
 #include <ctype.h>

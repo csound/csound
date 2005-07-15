@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                 /*      AUXFD.C         */
+#include "csoundCore.h"                         /*      AUXFD.C         */
 #include <sndfile.h>
 
 static void auxrecord(ENVIRON *, AUXCH *);

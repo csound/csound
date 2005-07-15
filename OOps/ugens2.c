@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"         /*                              UGENS2.C        */
+#include "csoundCore.h" /*                              UGENS2.C        */
 #include "ugens2.h"
 #include <math.h>
 

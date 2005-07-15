@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "cs.h"
+#include "csoundCore.h"
 
 long natlong(long lval)     /* coerce a bigendian long into a natural long */
 {

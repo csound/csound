@@ -46,7 +46,7 @@
  *      Header file containing data structures for UGRW2.C.
  */
 
-#include "cs.h"
+#include "csoundCore.h"
 
 /* KPORT data structure.
  *

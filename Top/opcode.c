@@ -27,7 +27,7 @@
                                 /* John ffitch -- 26 Jan 97 */
                                 /*  4 april 02 -- ma++ */
                                 /*  restructure to retrieve externally  */
-#include "cs.h"
+#include "csoundCore.h"
 #include "opcode.h"
 
 static int mystrcmp(const void *v1, const void *v2)

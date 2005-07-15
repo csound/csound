@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                          /*   SCSORT.C  */
+#include "csoundCore.h"                                  /*   SCSORT.C  */
 
 extern void sort(ENVIRON*), twarp(ENVIRON*), swrite(ENVIRON*);
 extern void sfree(ENVIRON *csound);

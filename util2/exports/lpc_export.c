@@ -27,7 +27,7 @@
 /* John ffitch 1995 Jun 25                                           */
 /* ***************************************************************** */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>

@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                 /*      winascii.c           */
+#include "csoundCore.h"                         /*      winascii.c           */
 #include "cwindow.h"                            /*  teletype csound graphs   */
 
 #define HOR     80

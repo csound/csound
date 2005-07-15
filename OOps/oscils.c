@@ -23,7 +23,7 @@
 
 /* ------ oscils, lphasor, and tablexkt by Istvan Varga (Jan 5 2002) ------ */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include <math.h>
 #define CSOUND_OSCILS_C 1
 #include "oscils.h"

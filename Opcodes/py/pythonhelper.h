@@ -24,7 +24,7 @@
 #include <Python.h>
 
 /*
-  I do it because I can't #include <Python.h> in "cs.h".
+  I do it because I can't #include <Python.h> in "csoundCore.h".
  */
 
 #define GETPYLOCAL(ids) ((PyObject *)ids->pylocal)

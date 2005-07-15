@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                 /*   SORT.C  */
+#include "csoundCore.h"                         /*   SORT.C  */
 
 static void sorter(ENVIRON *csound)             /* the main sorting routine */
 {

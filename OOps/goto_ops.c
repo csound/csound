@@ -23,7 +23,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"         /*                            GOTO_OPS.C        */
+#include "csoundCore.h" /*                            GOTO_OPS.C        */
 #include "oload.h"
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */

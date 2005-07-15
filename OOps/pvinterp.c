@@ -26,7 +26,7 @@
 /******** By Richard Karpen 1996 *********/
 /*****************************************/
 
-#include "cs.h"
+#include "csoundCore.h"
 #include <math.h>
 #include "dsputil.h"
 #include "pvfileio.h"
