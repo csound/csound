@@ -343,14 +343,19 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
     long    ndx;
     int     i, nn, chn, wsized2, warp;
 
-    if (p->initDone <= 0) {
+    if (!p->initDone) {
       csound->PerfError(csound, Str("diskin2: not initialised"));
       return NOTOK;
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
+      double  f;
       p->prv_kTranspose = *(p->kTranspose);
-      p->pos_frac_inc = (int64_t) ((double) p->prv_kTranspose * p->warpScale
-                                   * (double) POS_FRAC_SCALE + 0.5);
+      f = (double) p->prv_kTranspose * p->warpScale * (double) POS_FRAC_SCALE;
+#ifdef HAVE_C99
+      p->pos_frac_inc = (int64_t) llrint(f);
+#else
+      p->pos_frac_inc = (int64_t) (f + (f < 0.0 ? -0.5 : 0.5));
+#endif
     }
     /* clear outputs to zero first */
     for (chn = 0; chn < p->nChannels; chn++)
@@ -552,8 +557,7 @@ static int soundin_calc_buffer_size(SOUNDIN_ *p, int n_monoSamps)
     return nFrames;
 }
 
-static const int soundin_format_list[10] = {
-    SF_FORMAT_PCM_16,
+static const int soundin_format_list[9] = {
     SF_FORMAT_PCM_S8,   SF_FORMAT_ALAW,     SF_FORMAT_ULAW,
     SF_FORMAT_PCM_16,   SF_FORMAT_PCM_32,   SF_FORMAT_FLOAT,
     SF_FORMAT_PCM_U8,   SF_FORMAT_PCM_24,   SF_FORMAT_DOUBLE
@@ -588,7 +592,9 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p)
     n = (int) (*(p->iSampleFormat) + FL(0.5));
     if (n < 0 || n > 9)
       return csound->InitError(csound, Str("soundin: unknown sample format"));
-    sfinfo.format = SF_FORMAT_RAW | soundin_format_list[n];
+    sfinfo.format = SF_FORMAT_RAW;
+    sfinfo.format |= (n ? soundin_format_list[n - 1]
+                          : (int) FORMAT2SF(csound->oparms->outformat));
     /* open file */
     /* FIXME: name can overflow with very long string */
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);

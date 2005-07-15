@@ -164,11 +164,11 @@ int    lpreson(void*,void*), lpfrsnset(void*,void*), lpfreson(void*,void*);
 int    lpslotset(void*,void*), lpitpset(void*,void*),lpinterpol(void*,void*) ;
 int    rmsset(void*,void*), rms(void*,void*), gainset(void*,void*);
 int    gain(void*,void*), sndinset(void*,void*), soundin(void*,void*);
-int    sndo1set(void*,void*), soundout(void*,void*), sndo2set(void*,void*);
-int    soundouts(void*,void*), in(void*,void*),  ins(void*,void*);
-int    inq(void*,void*), inh(void*,void*),  ino(void*,void*), in16(void*,void*);
+int    sndo1set(void*,void*), soundout(void*,void*), soundouts(void*,void*);
+int    in(void*,void*), ins(void*,void*);
+int    inq(void*,void*), inh(void*,void*), ino(void*,void*), in16(void*,void*);
 int    in32(void*,void*), inall(void*,void*);
-int    out(void*,void*),  outs(void*,void*), outs1(void*,void*);
+int    out(void*,void*), outs(void*,void*), outs1(void*,void*);
 int    outs2(void*,void*), outall(void*,void*), outq(void*,void*);
 int    outq1(void*,void*), outq2(void*,void*), outq3(void*,void*);
 int    outq4(void*,void*), igoto(void*,void*), kgoto(void*,void*);
@@ -568,9 +568,9 @@ OENTRY opcodlst_1[] = {
 { "reverb", S(REVERB),  5, "a",  "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
 { "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
 { "soundin",S(SOUNDIN_),5,"mmmmmmmmmmmmmmmmmmmmmmmm","Toooo",
-                                                sndinset,NULL,soundin },
-{ "soundout",S(SNDOUT), 5,      "",     "aTo",  sndo1set,NULL,  soundout},
-/* { "soundouts",S(SNDOUTS),5,     "",     "aaTo", sndo2set,NULL,  soundouts}, */
+                                                sndinset, NULL, soundin   },
+{ "soundout",S(SNDOUT), 5,      "",     "aTo",  sndo1set, NULL, soundout  },
+{ "soundouts",S(SNDOUTS),5,     "",     "aaTo", sndo1set, NULL, soundouts },
 { "in",     S(INM),     4,      "a",    "",     NULL,   NULL,   in      },
 { "ins",    S(INS),     4,      "aa",   "",     NULL,   NULL,   ins     },
 { "inq",    S(INQ),     4,      "aaaa", "",     NULL,   NULL,   inq     },
@@ -660,7 +660,8 @@ OENTRY opcodlst_1[] = {
 { "unirand.i",S(PRAND), 1,     "i",     "k",    ikuniform, NULL,  NULL  },
 { "unirand.k",S(PRAND), 2,     "k",     "k",    NULL,    ikuniform, NULL},
 { "unirand.a",S(PRAND), 4,     "a",     "k",    NULL,    NULL, auniform },
-{ "diskin",S(SOUNDINEW),5,  "mmmm",     "Tkoooo", newsndinset,NULL, soundinew},
+{ "diskin",S(SOUNDINEW),5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Tkoooo",
+                            (SUBR) newsndinset, NULL, (SUBR) soundinew  },
 { "diskin2",S(DISKIN2), 5,  "mmmmmmmmmmmmmmmmmmmmmmmm", "Tkoooooo",
                             (SUBR) diskin2_init, (SUBR) NULL,
                             (SUBR) diskin2_perf                         },

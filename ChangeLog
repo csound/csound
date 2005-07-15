@@ -1,3 +1,16 @@
+2005-07-15	Istvan Varga	<ivarga@csounds.com>
+	* removed use of cs.h; replaced with csoundCore.h
+	* util1/sortex/smain.c, util1/sortex/xmain.c: fixed compiler warnings
+	* OOps/diskin2.c: minor fixes in soundin and diskin2
+	* Engine/entry1.c: added soundouts; diskin extended to 24 channels
+	* H/diskin.h, OOps/diskin.h:
+	  replaced diskin with new implementation based on diskin2 (should
+	  fix many problems, and allows up to 24 channels instead of the
+	  original limit of 4)
+	  fixed bug in soundout that resulted in not writing the last buffer
+	  to disk
+	  implemented soundouts opcode (stereo soundout)
+
 2005-07-13	Istvan Varga	<ivarga@csounds.com>
 	* InOut/midirecv.c: reset controllers 7-11 to 0 in raw controller mode
 
