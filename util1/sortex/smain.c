@@ -20,15 +20,22 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 #include "csoundCore.h"                                /*   SMAIN.C  */
-#include <string.h>
-#include <stdlib.h>
+
+PUBLIC void scsort(ENVIRON *, FILE *, FILE *);
+
+static void msg_callback(void *csound, int attr, const char *fmt, va_list args)
+{
+    if (attr & CSOUNDMSG_TYPE_MASK) {
+      vfprintf(stderr, fmt, args);
+    }
+}
 
 int main(void)                           /* stdio stub for standalone scsort */
 {
     ENVIRON *csound;
 
-    init_getstring(0, NULL);
     csound = (ENVIRON*) csoundCreate(NULL);
+    csoundSetMessageCallback(csound, msg_callback);
     csoundPreCompile(csound);
     scsort(csound, stdin, stdout);
     return 0;
