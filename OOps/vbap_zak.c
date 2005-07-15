@@ -28,7 +28,7 @@
    Ville Pulkki & John ffitch
 */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>

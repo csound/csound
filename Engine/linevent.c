@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"             /*                              LINEVENT.C      */
+#include "csoundCore.h"     /*                              LINEVENT.C      */
 #include <ctype.h>
 #if (defined(mac_classic) && defined(__MWERKS__)) || defined(SYMANTEC)
 #include <console.h>

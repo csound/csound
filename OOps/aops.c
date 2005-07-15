@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"         /*                                      AOPS.C  */
+#include "csoundCore.h" /*                                      AOPS.C  */
 #include "aops.h"
 #include <math.h>
 #include <time.h>

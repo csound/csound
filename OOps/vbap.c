@@ -26,7 +26,7 @@
 assisting functions for VBAP
 functions for loudspeaker table initialization */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>

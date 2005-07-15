@@ -22,7 +22,7 @@
 */
 
 #include "cscore.h"                                   /*   CSCOREMAIN.C   */
-#include "cs.h"
+#include "csoundCore.h"
 #include "text.h"
 
 extern void cscorinit(void), cscore(void);

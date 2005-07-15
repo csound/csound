@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"                                 /*       EXPRESS.C       */
+#include "csoundCore.h"                         /*       EXPRESS.C       */
 #include "namedins.h"
 
 #define BITSHL  0x19

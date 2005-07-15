@@ -25,7 +25,7 @@
 
 #include <stdio.h>
 #include <m_pd.h>
-#include "cs.h"
+#include "csoundCore.h"
 #include "csound.h"
 
 #define CS_MAX_CHANS 32

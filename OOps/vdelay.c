@@ -26,7 +26,7 @@
 /*      Berklee College of Music Csound development team        */
 /*      Copyright (c) May 1994.  All rights reserved            */
 
-#include "cs.h"
+#include "csoundCore.h"
 
 #include <math.h>
 #include "vdelay.h"

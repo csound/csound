@@ -29,7 +29,7 @@
 
 /*    PVOCEXT.C        */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "pvocext.h"
 #include <math.h>
 

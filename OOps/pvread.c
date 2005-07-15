@@ -25,7 +25,7 @@
 /***********pvread ********************************************/
 /*** By Richard Karpen - July-October 1992*********************/
 /**************************************************************/
-#include "cs.h"
+#include "csoundCore.h"
 #include "dsputil.h"
 #include "pvread.h"
 #include "soundio.h"

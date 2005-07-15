@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include "cs.h"
+#include "csoundCore.h"
 #include "schedule.h"
 #include <math.h>
 #include "namedins.h"
