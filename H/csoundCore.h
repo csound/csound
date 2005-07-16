@@ -703,7 +703,7 @@ extern "C" {
     MYFLT (*intpow)(MYFLT, long);
     MEMFIL *(*ldmemfile)(void*, const char*);
     SNDMEMFILE *(*LoadSoundFile)(void *, const char *, SF_INFO *);
-    FUNC *(*hfgens)(struct ENVIRON_*, EVTBLK *);
+    int (*hfgens)(struct ENVIRON_*, FUNC**, EVTBLK*, int);
     int (*getopnum)(struct ENVIRON_*, char *s);
     long (*strarg2insno)(struct ENVIRON_ *csound, void *p, int is_string);
     long (*strarg2opcno)(struct ENVIRON_ *csound, void *p, int is_string,
