@@ -75,8 +75,11 @@ CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 $(CSOUNDLIB): $(CSOUNDLIB_OBJ)
 	$(CXX) -O2 -shared -Wl,--export-all-symbols -o $@ $^ $(LDFLAGS) $(LIBS)
 
-%.o: %.c
+Opcodes/%.o: Opcodes/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.c
+	$(CC) -D__BUILDING_LIBCSOUND $(CFLAGS) -c $< -o $@
 
 %.oo: %.cpp
 	$(CXX) $(CFLAGS) -c $< -o $@

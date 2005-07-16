@@ -22,12 +22,17 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
                                                 /*      FTGEN.H        */
-void    makevt(void);
-FUNC    *hfgens(ENVIRON *, EVTBLK *);
+/**
+ * Create ftable using evtblk data, and store pointer to new table in *ftpp.
+ * If mode is zero, a zero table number is ignored, otherwise a new table
+ * number is automatically assigned.
+ * Returns zero on success.
+ */
+int     hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode);
 
-#define MAXFNUM    100
+#define MAXFNUM 100
+#define GENMAX  60
 
 typedef struct {
         OPDS    h;
@@ -45,7 +50,5 @@ typedef struct {
         FTLOAD  p;
 } FTLOAD_K; /* gab 30 jul 2002 */
 
-#define GENMAX  60
-#define FTPMAX  (150)
-
 #endif /* FTGEN_H */
+

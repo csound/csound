@@ -79,7 +79,6 @@ PUBLIC  int     scxtract(ENVIRON *, FILE *, FILE *, FILE *);
 int     rdscor(ENVIRON *, EVTBLK *);
 int     musmon(ENVIRON *);
 void    RTLineset(ENVIRON *);
-void    fgens(ENVIRON *, EVTBLK *);
 FUNC    *csoundFTFind(void*, MYFLT*);
 FUNC    *csoundFTFindP(void*, MYFLT*);
 FUNC    *csoundFTnp2Find(void*, MYFLT*);
