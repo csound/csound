@@ -56,8 +56,8 @@ const ENVIRON cenviron_ = {
         csoundGetAPIVersion,
         csoundGetHostData,
         csoundSetHostData,
-        NULL, /* csoundPerform, */
-        NULL, /* csoundCompile, */
+        csoundPerform,
+        csoundCompile,
         csoundPerformKsmps,
         csoundPerformBuffer,
         csoundCleanup,
