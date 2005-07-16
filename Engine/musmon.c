@@ -635,7 +635,10 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'f':
-      fgens(p, evt);
+      {
+        FUNC  *dummyftp;
+        csound->hfgens(csound, &dummyftp, evt, 0);
+      }
       break;
     case 'a':
       {
@@ -894,6 +897,19 @@ static int playevents(ENVIRON *csound)
     return (retval == 2 ? 1 : 0);
 }
 
+static inline unsigned long time2kcnt(ENVIRON *csound, double tval)
+{
+    if (tval > 0.0) {
+      tval *= (double) csound->global_ekr;
+#ifdef HAVE_C99
+      return (unsigned long) llrint(tval);
+#else
+      return (unsigned long) (tval + 0.5);
+#endif
+    }
+    return 0UL;
+}
+
 /* Schedule new score event to be played. 'time_ofs' is the amount of */
 /* time in seconds to add to evt->p[2] to get the actual start time   */
 /* of the event (measured from the beginning of performance, and not  */
@@ -958,8 +974,7 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
           goto pfld_err;
         /* calculate actual start time in seconds and k-periods */
         start_time = (double) p[2] + time_ofs;
-        start_kcnt = (unsigned long)
-                       (start_time * (double) csound->global_ekr + 0.5);
+        start_kcnt = time2kcnt(csound, start_time);
         /* correct p2 value for section offset */
         p[2] = (MYFLT) (start_time - st->timeOffs);
         if (p[2] < FL(0.0))
@@ -980,11 +995,9 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
         /* if event should be handled now: */
         if (allow_now &&
             start_kcnt <= (unsigned long) csound->global_kcounter) {
-          int initErr = csound->inerrcnt;
-          int perfErr = csound->perferrcnt;
-          process_score_event(csound, evt, 1);
+          FUNC  *dummyftp;
           /* check for errors */
-          if (csound->inerrcnt <= initErr && csound->perferrcnt <= perfErr)
+          if (csound->hfgens(csound, &dummyftp, evt, 0) == 0)
             retval = 0;   /* no error */
           goto err_return;
         }
@@ -1012,10 +1025,11 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
       case 'e':                         /* end of score, */
       case 'l':                         /*   lplay list, */
       case 's':                         /*   section:    */
-        evt->pcnt = 0;      /* no p-fields for these */
-        start_kcnt = (time_ofs <= 0.0 ?
-                      0UL : (unsigned long)
-                              (time_ofs * (double) csound->global_ekr + 0.5));
+        start_time = time_ofs;
+        if (evt->pcnt >= 2)
+          start_time += (double) p[2];
+        evt->pcnt = 0;
+        start_kcnt = time2kcnt(csound, start_time);
         break;
       default:
         csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
