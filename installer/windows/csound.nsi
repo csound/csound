@@ -409,6 +409,7 @@ Section "${PRODUCT}" SecCopyUI
 
   SetOutPath "$INSTDIR"
   
+  File ..\..\windows_dlls\libsndfile-1.dll
   File ..\..\*.exe
   File ..\..\*.dll
   File ..\..\*.xmg
