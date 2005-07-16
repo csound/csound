@@ -30,8 +30,8 @@
 
 #define CS_MAX_CHANS 32
 #define CS_VERSION_  csoundGetVersion()
-static t_class *csoundapi_class;
-static t_int lockcs;
+static t_class *csoundapi_class = 0;
+static t_int lockcs = 0;
 
 typedef struct _channelname {
   t_symbol *name;
@@ -41,7 +41,6 @@ typedef struct _channelname {
 
 typedef struct t_csoundapi_ {
   t_object x_obj;
-  void *csound; /* csound object */
   t_float f;
   t_sample *outs[CS_MAX_CHANS];
   t_sample *ins[CS_MAX_CHANS];
@@ -60,6 +59,9 @@ typedef struct t_csoundapi_ {
   channelname *iochannels;
   t_outlet *ctlout;
   t_outlet *bangout;
+  t_int padding1;
+  ENVIRON *csound;
+  t_int padding2;
 } t_csoundapi;
 
 PUBLIC int   set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
@@ -119,7 +121,7 @@ PUBLIC void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
   int i;
   if(!lockcs) {
     t_csoundapi *x = (t_csoundapi *) pd_new(csoundapi_class);
-    x->csound = csoundCreate(NULL);
+    x->csound = (ENVIRON *)csoundCreate(x);
     if(CS_VERSION_ < 500) lockcs = 1;
     else lockcs = 0;
     outlet_new(&x->x_obj, gensym("signal"));
@@ -171,9 +173,7 @@ PUBLIC void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
     }
     x->ctlout = outlet_new(&x->x_obj, gensym("list"));
     x->bangout = outlet_new(&x->x_obj, gensym("bang"));
-    csoundSetHostData(x->csound, x);
     return (void *) x;
-
   }
   post("csoundapi~ warning: using API v.%1.2f multiple instances only with v.5.00",
        CS_VERSION_/100.f);
@@ -199,18 +199,18 @@ PUBLIC void csoundapi_dsp(t_csoundapi *x, t_signal **sp){
   }
 
   if(!x->result){
-    dsp_add((t_perfroutine)csoundapi_perform, 1, x);
+    dsp_add((t_perfroutine) csoundapi_perform, 1, x);
   } else post("csoundapi~ warning: orchestra not compiled");
 
 }
 
-PUBLIC t_int  *csoundapi_perform(int *w){
+PUBLIC t_int *csoundapi_perform(int *w){
 
   t_csoundapi *x = (t_csoundapi *) w[1];
   t_int  size = x->vsize;
   t_int pos = x->pos;
   t_int posn = pos;
-  t_float scal  = ((ENVIRON *)x->csound)->e0dbfs;
+  t_float scal  = x->csound->e0dbfs;
   t_int pksmps = x->pksmps;
   t_int numlets = x->numlets;
   t_int chans = x->chans, samps;
