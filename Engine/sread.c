@@ -346,7 +346,10 @@ top:
       }
       mm = mm_save;
       if (mm == NULL) {
-        scorerr(csound, Str("Undefined macro: '%s'"), name);
+        if (!i)
+          scorerr(csound, Str("Macro expansion symbol ($) without macro name"));
+        else
+          scorerr(csound, Str("Undefined macro: '%s'"), name);
       }
       if (strlen(mm->name) != i) {
         int cnt = (int) i - (int) strlen(mm->name);
