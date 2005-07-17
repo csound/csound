@@ -359,13 +359,22 @@ int sndo1set(ENVIRON *csound, void *pp) /* init routine for instr soundout  */
 {
     char    *sfname, *opname, sndoutname[256];
     SNDCOM  *p;
+    MYFLT   *ifilcod, *iformat;
+    int     filetyp = TYP_RAW, format = csound->oparms->outformat, nchns = 1;
     SF_INFO sfinfo;
 
     opname = csound->opcodlst[((OPDS*) pp)->optext->t.opnum].opname;
-    if (strcmp(opname, "soundouts") == 0)
+    if (strcmp(opname, "soundouts") == 0) {
       p = &(((SNDOUTS*) pp)->c);
-    else
+      ifilcod = ((SNDOUTS*) pp)->ifilcod;
+      iformat = ((SNDOUTS*) pp)->iformat;
+      nchns++;
+    }
+    else {
       p = &(((SNDOUT*) pp)->c);
+      ifilcod = ((SNDOUT*) pp)->ifilcod;
+      iformat = ((SNDOUT*) pp)->iformat;
+    }
 
     if (p->fd != NULL)                  /* if file already open, */
       return OK;                        /* return now            */
@@ -373,26 +382,25 @@ int sndo1set(ENVIRON *csound, void *pp) /* init routine for instr soundout  */
     csound->RegisterDeinitCallback(csound, pp,
                                    (int (*)(void*, void*)) soundout_deinit);
 
-    csound->strarg2name(csound, sndoutname, p->ifilcod, "soundout.",
+    csound->strarg2name(csound, sndoutname, ifilcod, "soundout.",
                                 ((OPDS*) pp)->optext->t.xincod_str);
     sfname = sndoutname;
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.frames = -1;
     sfinfo.samplerate = (int) (csound->esr + FL(0.5));
-    sfinfo.channels = (strcmp(opname, "soundouts") == 0 ? 2 : 1);
-    p->filetyp = TYP_RAW;
-    switch ((int) (*(p->iformat) + FL(0.5))) {
-      case 0: p->format = csound->oparms->outformat; break;
-      case 1: p->format = AE_CHAR; break;
-      case 4: p->format = AE_SHORT; break;
-      case 5: p->format = AE_LONG; break;
-      case 6: p->format = AE_FLOAT; break;
+    sfinfo.channels = nchns;
+    switch ((int) (*iformat + FL(0.5))) {
+      case 1: format = AE_CHAR; break;
+      case 4: format = AE_SHORT; break;
+      case 5: format = AE_LONG; break;
+      case 6: format = AE_FLOAT;
+      case 0: break;
       default:
         csound->InitError(csound, Str("%s: invalid sample format: %d"),
-                                  opname, (int) (*(p->iformat) + FL(0.5)));
+                                  opname, (int) (*iformat + FL(0.5)));
         return NOTOK;
     }
-    sfinfo.format = TYPE2SF(p->filetyp) | FORMAT2SF(p->format);
+    sfinfo.format = TYPE2SF(filetyp) | FORMAT2SF(format);
     p->fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_W,
                                        sfname, &sfinfo, "SFDIR");
     if (p->fd == NULL) {
@@ -400,7 +408,7 @@ int sndo1set(ENVIRON *csound, void *pp) /* init routine for instr soundout  */
       return NOTOK;
     }
     sfname = csound->GetFileName(p->fd);
-    if (p->format != AE_FLOAT)
+    if (format != AE_FLOAT)
       sf_command(p->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
     else
       sf_command(p->sf, SFC_SET_CLIPPING, NULL, SF_FALSE);
