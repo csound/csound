@@ -1,3 +1,9 @@
+2005-07-17	Istvan Varga	<ivarga@csounds.com>
+	* Engine/rdorch.c: fixed crash on missing endin
+	* Engine/rdorch.c, Engine/sread.c: fixed error message on $ without
+	  macro name
+	* H/diskin.h, OOps/diskin.c: fixed soundout crash on Win32 with doubles
+
 2005-07-15	Istvan Varga	<ivarga@csounds.com>
 	* removed use of cs.h; replaced with csoundCore.h
 	* util1/sortex/smain.c, util1/sortex/xmain.c: fixed compiler warnings

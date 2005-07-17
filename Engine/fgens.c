@@ -1896,7 +1896,8 @@ static FUNC *ftalloc(ENVIRON *csound)
     FGDATA  *ff = &(csound->ff);
     FUNC *ftp;
     if ((ftp = csound->flist[ff->fno]) != NULL) {
-      csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
+      if (csound->oparms->msglevel & WARNMSG)
+        csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
       if (ff->flen != ftp->flen) {          /* if redraw & diff len, */
         mfree(csound, (char *)ftp);         /*   release old space   */
         csound->flist[ff->fno] = NULL;
