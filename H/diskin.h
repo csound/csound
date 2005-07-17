@@ -52,11 +52,9 @@ typedef struct {
     FDCH    fdch;
 } SOUNDINEW;
 
-#define SNDOUTSMPS   (1024)
+#define SNDOUTSMPS  (1024)
 
 typedef struct {
-    MYFLT   *ifilcod, *iformat;
-    short   format, filetyp;
     SNDFILE *sf;
     void    *fd;
     MYFLT   *outbufp, *bufend;
@@ -65,13 +63,13 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asig;
+    MYFLT   *asig, *ifilcod, *iformat;
     SNDCOM  c;
 } SNDOUT;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asig1, *asig2;
+    MYFLT   *asig1, *asig2, *ifilcod, *iformat;
     SNDCOM  c;
 } SNDOUTS;
 
