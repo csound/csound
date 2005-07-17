@@ -462,8 +462,9 @@ void xturnoff_now(ENVIRON *csound, INSDS *ip)
 
 void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
 {
-    INSTRTXT *txtp;
-    INSDS   *ip, *nxtip, *prvip, **prvnxtloc;
+    INSTRTXT  *txtp;
+    INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
+    int       cnt = 0;
 
     for (txtp = &(csound->instxtanchor);
          txtp != NULL;  txtp = txtp->nxtinstxt) {
@@ -471,7 +472,8 @@ void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
         prvip = NULL;
         prvnxtloc = &txtp->instance;
         do {
-          if (ip->actflg == 0) {
+          if (!ip->actflg) {
+            cnt++;
             if (ip->opcod_iobufs && ip->insno > csound->maxinsno)
               mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
             if (ip->fdch.nxtchp != NULL)
@@ -500,7 +502,8 @@ void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
       }
       txtp->act_instance = NULL;                /* no free instances */
     }
-    csound->Message(csound, Str("inactive allocs returned to freespace\n"));
+    if (cnt)
+      csound->Message(csound, Str("inactive allocs returned to freespace\n"));
 }
 
 void infoff(ENVIRON *csound, MYFLT p1)  /* turn off an indef copy of instr p1 */
