@@ -695,7 +695,10 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         }
         mm = mm_save;
         if (mm == NULL) {
-          lexerr(csound, Str("Undefined macro: '%s'"), name);
+          if (i)
+            lexerr(csound,Str("Undefined macro: '%s'"), name);
+          else
+            lexerr(csound,Str("Macro expansion symbol ($) without macro name"));
           continue;
         }
         if ((int) strlen(mm->name) != i) {
@@ -1867,7 +1870,7 @@ void synterr(ENVIRON *csound, const char *s, ...)
     va_start(args, s);
     csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
     va_end(args);
-    if ((cp = ST(linadr)[ST(curline)]) != NULL) {
+    if (ST(linadr) != NULL && (cp = ST(linadr)[ST(curline)]) != NULL) {
       csound->MessageS(csound, CSOUNDMSG_ERROR,
                                Str(", line %d:\n"), ST(curline));
       do {
