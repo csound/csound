@@ -820,9 +820,8 @@ extern "C" {
     ENVIRON *p = (ENVIRON*) csound;
     va_list args;
     va_start(args, msg);
-    p->csoundMessageCallback_(p, CSOUNDMSG_ERROR, msg, args);
+    p->ErrMsgV(p, (char*) 0, msg, args);
     va_end(args);
-    csoundMessageS(p, CSOUNDMSG_ERROR, "\n");
     p->LongJmp(p, 1);
   }
 
@@ -848,6 +847,26 @@ extern "C" {
     ((ENVIRON*) csound)->csoundMessageCallback_(csound, 0, msg, args);
     va_end(args);
     csoundMessage(csound, "\n");
+  }
+
+  void csoundErrorMsg(void *csound, const char *msg, ...)
+  {
+    ENVIRON *p = (ENVIRON*) csound;
+    va_list args;
+    va_start(args, msg);
+    p->csoundMessageCallback_(p, CSOUNDMSG_ERROR, msg, args);
+    va_end(args);
+    p->MessageS(p, CSOUNDMSG_ERROR, "\n");
+  }
+
+  void csoundErrMsgV(void *csound,
+                     const char *hdr, const char *msg, va_list args)
+  {
+    ENVIRON *p = (ENVIRON*) csound;
+    if (hdr != NULL)
+      p->MessageS(p, CSOUNDMSG_ERROR, "%s", hdr);
+    p->csoundMessageCallback_(p, CSOUNDMSG_ERROR, msg, args);
+    p->MessageS(p, CSOUNDMSG_ERROR, "\n");
   }
 
   void csoundLongJmp(ENVIRON *csound, int retval)
@@ -1523,8 +1542,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     tmpEntry.useropinfo = NULL;
     tmpEntry.prvnum     = 0;
     if (opcode_list_new_oentry((ENVIRON*) csound, &tmpEntry) != 0) {
-      csoundMessageS(csound, CSOUNDMSG_ERROR,
-                             Str("Failed to allocate new opcode entry.\n"));
+      csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
       return -1;
     }
     return 0;
@@ -1548,8 +1566,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
       n = 0x7FFFFFFF;
     while (n && ep->opname != NULL) {
       if (opcode_list_new_oentry((ENVIRON*) csound, ep) != 0) {
-        csoundMessageS(csound, CSOUNDMSG_ERROR,
-                               Str("Failed to allocate opcode entry for %s.\n"),
+        csoundErrorMsg(csound, Str("Failed to allocate opcode entry for %s."),
                                ep->opname);
         retval = -1;
       }
@@ -1932,6 +1949,211 @@ int csoundDeinitialiseOpcodes(ENVIRON *csound, INSDS *ip)
     }
     return err;
 }
+
+  /**
+   * Returns the name of the opcode of which the data structure
+   * is pointed to by 'p'.
+   */
+  char *csoundGetOpcodeName(void *p)
+  {
+    ENVIRON *csound = (ENVIRON*) ((OPDS*) p)->insdshead->csound;
+    return (char*) csound->opcodlst[((OPDS*) p)->optext->t.opnum].opname;
+  }
+
+  /**
+   * Returns the number of input arguments for opcode 'p'.
+   */
+  int csoundGetInputArgCnt(void *p)
+  {
+    return (int) ((OPDS*) p)->optext->t.inoffs->count;
+  }
+
+  /**
+   * Returns a binary value of which bit 0 is set if the first input
+   * argument is a-rate, bit 1 is set if the second input argument is
+   * a-rate, and so on.
+   * Only the first 31 arguments are guaranteed to be reported correctly.
+   */
+  unsigned long csoundGetInputArgAMask(void *p)
+  {
+    return (unsigned long) ((unsigned int) ((OPDS*) p)->optext->t.xincod);
+  }
+
+  /**
+   * Returns a binary value of which bit 0 is set if the first input
+   * argument is a string, bit 1 is set if the second input argument is
+   * a string, and so on.
+   * Only the first 31 arguments are guaranteed to be reported correctly.
+   */
+  unsigned long csoundGetInputArgSMask(void *p)
+  {
+    return (unsigned long) ((unsigned int) ((OPDS*) p)->optext->t.xincod_str);
+  }
+
+  /**
+   * Returns the name of input argument 'n' (counting from 0) for opcode 'p'.
+   */
+  char *csoundGetInputArgName(void *p, int n)
+  {
+    if ((unsigned int) n >= (unsigned int) ((OPDS*) p)->optext->t.inoffs->count)
+      return (char*) NULL;
+    return (char*) ((OPDS*) p)->optext->t.inlist->arg[n];
+  }
+
+  /**
+   * Returns the number of output arguments for opcode 'p'.
+   */
+  int csoundGetOutputArgCnt(void *p)
+  {
+    return (int) ((OPDS*) p)->optext->t.outoffs->count;
+  }
+
+  /**
+   * Returns a binary value of which bit 0 is set if the first output
+   * argument is a-rate, bit 1 is set if the second output argument is
+   * a-rate, and so on.
+   * Only the first 31 arguments are guaranteed to be reported correctly.
+   */
+  unsigned long csoundGetOutputArgAMask(void *p)
+  {
+    return (unsigned long) ((unsigned int) ((OPDS*) p)->optext->t.xoutcod);
+  }
+
+  /**
+   * Returns a binary value of which bit 0 is set if the first output
+   * argument is a string, bit 1 is set if the second output argument is
+   * a string, and so on.
+   * Only the first 31 arguments are guaranteed to be reported correctly.
+   */
+  unsigned long csoundGetOutputArgSMask(void *p)
+  {
+    return (unsigned long) ((unsigned int) ((OPDS*) p)->optext->t.xoutcod_str);
+  }
+
+  /**
+   * Returns the name of output argument 'n' (counting from 0) for opcode 'p'.
+   */
+  char *csoundGetOutputArgName(void *p, int n)
+  {
+    if ((unsigned int) n
+        >= (unsigned int) ((OPDS*) p)->optext->t.outoffs->count)
+      return (char*) NULL;
+    return (char*) ((OPDS*) p)->optext->t.outlist->arg[n];
+  }
+
+  /**
+   * Set release time in control periods (1 / csound->ekr second units)
+   * for opcode 'p' to 'n'. If the current release time is longer than
+   * the specified value, it is not changed.
+   * Returns the new release time.
+   */
+  int csoundSetReleaseLength(void *p, int n)
+  {
+    if (n > (int) ((OPDS*) p)->insdshead->xtratim)
+      ((OPDS*) p)->insdshead->xtratim = n;
+    return (int) ((OPDS*) p)->insdshead->xtratim;
+  }
+
+  /**
+   * Set release time in seconds for opcode 'p' to 'n'.
+   * If the current release time is longer than the specified value,
+   * it is not changed.
+   * Returns the new release time in seconds.
+   */
+  MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n)
+  {
+    int kcnt = (int) (n * ((OPDS*) p)->insdshead->csound->ekr + FL(0.5));
+    if (kcnt > (int) ((OPDS*) p)->insdshead->xtratim)
+      ((OPDS*) p)->insdshead->xtratim = kcnt;
+    return ((MYFLT) ((OPDS*) p)->insdshead->xtratim
+            * ((OPDS*) p)->insdshead->csound->onedkr);
+  }
+
+  /**
+   * Returns MIDI channel number (0 to 15) for the instrument instance
+   * that called opcode 'p'.
+   * In the case of score notes, -1 is returned.
+   */
+  int csoundGetMidiChannelNumber(void *p)
+  {
+    MCHNBLK *chn = ((OPDS*) p)->insdshead->m_chnbp;
+    int     i;
+    if (chn == NULL)
+      return -1;
+    for (i = 0; i < 16; i++) {
+      if (chn == ((OPDS*) p)->insdshead->csound->m_chnbp[i])
+        return i;
+    }
+    return -1;
+  }
+
+  /**
+   * Returns a pointer to the MIDI channel structure for the instrument
+   * instance that called opcode 'p'.
+   * In the case of score notes, NULL is returned.
+   */
+  MCHNBLK *csoundGetMidiChannel(void *p)
+  {
+    return ((OPDS*) p)->insdshead->m_chnbp;
+  }
+
+  /**
+   * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
+   * If the opcode was not called from a MIDI activated instrument
+   * instance, the return value is undefined.
+   */
+  int csoundGetMidiNoteNumber(void *p)
+  {
+    return (int) ((OPDS*) p)->insdshead->m_pitch;
+  }
+
+  /**
+   * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
+   * If the opcode was not called from a MIDI activated instrument
+   * instance, the return value is undefined.
+   */
+  int csoundGetMidiVelocity(void *p)
+  {
+     return (int) ((OPDS*) p)->insdshead->m_veloc;
+  }
+
+  /**
+   * Returns non-zero if the current note (owning opcode 'p') is releasing.
+   */
+  int csoundGetReleaseFlag(void *p)
+  {
+    return (int) ((OPDS*) p)->insdshead->relesing;
+  }
+
+  /**
+   * Returns the note-off time in seconds (measured from the beginning of
+   * performance) of the current instrument instance, from which opcode 'p'
+   * was called. The return value may be negative if the note has indefinite
+   * duration.
+   */
+  double csoundGetOffTime(void *p)
+  {
+    return (double) ((OPDS*) p)->insdshead->offtim;
+  }
+
+  /**
+   * Returns the array of p-fields passed to the instrument instance
+   * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
+   * guaranteed to be available. p2 is measured in seconds from the
+   * beginning of the current section.
+   */
+  MYFLT *csoundGetPFields(void *p)
+  {
+    return (MYFLT*) &(((OPDS*) p)->insdshead->p0);
+  }
+
+  /**
+   * Returns the instrument number (p1) for opcode 'p'.
+   */
+  int csoundGetInstrumentNumber(void *p)
+  {
+    return (int) ((OPDS*) p)->insdshead->p1;
+  }
 
 #ifdef __cplusplus
 };

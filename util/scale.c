@@ -41,63 +41,6 @@
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             csound->Die(csound, MSG);
 
-/* Static global variables */
-
-/* *** Note these function occurs elsewhere but not in APT *** */
-static char *type2string(int x)
-{
-    switch (x) {
-      case TYP_WAV:   return "WAV";
-      case TYP_AIFF:  return "AIFF";
-      case TYP_AU:    return "AU";
-      case TYP_RAW:   return "RAW";
-      case TYP_PAF:   return "PAF";
-      case TYP_SVX:   return "SVX";
-      case TYP_NIST:  return "NIST";
-      case TYP_VOC:   return "VOC";
-      case TYP_IRCAM: return "IRCAM";
-      case TYP_W64:   return "W64";
-      case TYP_MAT4:  return "MAT4";
-      case TYP_MAT5:  return "MAT5";
-      case TYP_PVF:   return "PVF";
-      case TYP_XI:    return "XI";
-      case TYP_HTK:   return "HTK";
-#ifdef SF_FORMAT_SDS
-      case TYP_SDS:   return "SDS";
-#endif
-      default:        return "(unknown)";
-    }
-}
-
-static short sfsampsize(int type)
-{
-    switch (type & SF_FORMAT_SUBMASK) {
-      case SF_FORMAT_PCM_16:  return 2;     /* Signed 16 bit data */
-      case SF_FORMAT_PCM_32:  return 4;     /* Signed 32 bit data */
-      case SF_FORMAT_FLOAT:   return 4;     /* 32 bit float data */
-      case SF_FORMAT_PCM_24:  return 3;     /* Signed 24 bit data */
-      case SF_FORMAT_DOUBLE:  return 8;     /* 64 bit float data */
-    }
-    return 1;
-}
-
-static char *getstrformat(int format)  /* used here, and in sfheader.c */
-{
-    switch (format) {
-      case  AE_UNCH:    return "unsigned bytes"; /* J. Mohr 1995 Oct 17 */
-      case  AE_CHAR:    return "signed chars";
-      case  AE_ALAW:    return "alaw bytes";
-      case  AE_ULAW:    return "ulaw bytes";
-      case  AE_SHORT:   return "shorts";
-      case  AE_LONG:    return "longs";
-      case  AE_FLOAT:   return "floats";
-      case  AE_24INT:   return "24bit ints";     /* RWD 5:2001 */
-    }
-    return "unknown";
-}
-
-/* *** end of copies *** */
-
 static const char *usage_txt[] = {
     "Usage:\tscale [-flags] soundfile",
     "Legal flags are:",
@@ -323,7 +266,7 @@ static int scale(void *csound_, int argc, char **argv)
       if (!O->outformat)
         O->outformat = sc.p->format;
       O->sfheader = (O->filetyp == TYP_RAW ? 0 : 1);
-      O->sfsampsize = sfsampsize(O->outformat);
+      O->sfsampsize = csound->sfsampsize(FORMAT2SF(O->outformat));
       if (!O->sfheader)
         O->rewrt_hdr = 0;
       if (O->outfilename == NULL)
@@ -357,8 +300,10 @@ static int scale(void *csound_, int argc, char **argv)
                             O->outfilename);
       outbufsiz = 1024 * O->sfsampsize;    /* calc outbuf size  */
       csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
-                              (int) outbufsiz, getstrformat(O->outformat),
-                              O->outfilename, type2string(O->filetyp));
+                              (int) outbufsiz,
+                              csound->getstrformat(O->outformat),
+                              O->outfilename,
+                              csound->type2string(O->filetyp));
       InitScaleTable(csound, &sc, factor, factorfile);
       ScaleSound(csound, &sc, infile, outfile);
     }

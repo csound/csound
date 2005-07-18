@@ -35,11 +35,7 @@
 #include "diskin.h"
 #include <math.h>
 
-static
-#ifdef HAVE_GCC3
-  __attribute__ ((__noinline__))
-#endif
-void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
+static CS_NOINLINE void diskin_read_buffer(SOUNDINEW *p, int bufReadPos)
 {
     long  nsmps, bufsmps;
     int   i;
@@ -140,7 +136,7 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)
     char    name[1024];
     void    *fd;
     SF_INFO sfinfo;
-    int     i, n;
+    int     n;
 
     /* check number of channels */
     p->nChannels = (int) (p->OUTOCOUNT);
@@ -250,10 +246,9 @@ int newsndinset(ENVIRON *csound, SOUNDINEW *p)
     /* initialise buffer */
     p->bufSize = diskin_calc_buffer_size(p, 4096);
     p->bufStartPos = -((long) (p->bufSize << 1));
-    for (i = 0; i < 4120; i++)
-      p->buf[i] = 0.0f;
     /* done initialisation */
     p->initDone = -1;
+
     return OK;
 }
 
@@ -325,10 +320,9 @@ int soundinew(ENVIRON *csound, SOUNDINEW *p)
 
 static int soundout_deinit(ENVIRON *csound, void *pp)
 {
-    char    *opname;
+    char    *opname = csound->GetOpcodeName(pp);
     SNDCOM  *p;
 
-    opname = csound->opcodlst[((OPDS*) pp)->optext->t.opnum].opname;
     if (strcmp(opname, "soundouts") == 0)
       p = &(((SNDOUTS*) pp)->c);
     else
@@ -363,7 +357,7 @@ int sndo1set(ENVIRON *csound, void *pp) /* init routine for instr soundout  */
     int     filetyp = TYP_RAW, format = csound->oparms->outformat, nchns = 1;
     SF_INFO sfinfo;
 
-    opname = csound->opcodlst[((OPDS*) pp)->optext->t.opnum].opname;
+    opname = csound->GetOpcodeName(pp);
     if (strcmp(opname, "soundouts") == 0) {
       p = &(((SNDOUTS*) pp)->c);
       ifilcod = ((SNDOUTS*) pp)->ifilcod;

@@ -231,5 +231,57 @@ static inline long MYFLT2LONG(double fval)
 #endif
 #endif
 
+/* function attributes */
+
+#if (defined(__GNUC__) && (__GNUC__ >= 3)) && !defined(DIRENT_FIX)
+/* deprecated function, variable, or type that is to be removed eventually */
+#  define CS_DEPRECATED __attribute__ ((__deprecated__))
+/* a function that should not be inlined */
+#  define CS_NOINLINE   __attribute__ ((__noinline__))
+/* a function that never returns (e.g. csoundDie()) */
+#  define CS_NORETURN   __attribute__ ((__noreturn__))
+/* printf-style function with first argument as format string */
+#  define CS_PRINTF1    __attribute__ ((__format__ (__printf__, 1, 2)))
+/* printf-style function with second argument as format string */
+#  define CS_PRINTF2    __attribute__ ((__format__ (__printf__, 2, 3)))
+/* printf-style function with third argument as format string */
+#  define CS_PRINTF3    __attribute__ ((__format__ (__printf__, 3, 4)))
+/* a function with no side effects or dependencies on volatile data */
+#  define CS_PURE       __attribute__ ((__pure__))
+#else
+#  define CS_DEPRECATED
+#  define CS_NOINLINE
+#  define CS_NORETURN
+#  define CS_PRINTF1
+#  define CS_PRINTF2
+#  define CS_PRINTF3
+#  define CS_PURE
+#endif
+
+/* inline functions and macros for clamping denormals to zero */
+
+#if defined(__i386__) || (defined(_MSC_VER) && !defined(__GNUC__))
+static inline float csoundUndenormalizeFloat(float x)
+{
+    volatile float  tmp = 1.0e-30f;
+    return ((x + 1.0e-30f) - tmp);
+}
+
+static inline double csoundUndenormalizeDouble(double x)
+{
+    volatile double tmp = 1.0e-200;
+    return ((x + 1.0e-200) - tmp);
+}
+#else
+#  define csoundUndenormalizeFloat(x)   x
+#  define csoundUndenormalizeDouble(x)  x
+#endif
+
+#ifndef USE_DOUBLE
+#  define csoundUndenormalizeMYFLT      csoundUndenormalizeFloat
+#else
+#  define csoundUndenormalizeMYFLT      csoundUndenormalizeDouble
+#endif
+
 #endif  /* CSOUND_SYSDEP_H */
 

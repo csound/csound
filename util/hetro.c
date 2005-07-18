@@ -535,15 +535,15 @@ static double sq(double num)     /* RETURNS SQUARE OF ARGUMENT */
 
 static int quit(ENVIRON *csound, char *msg)
 {
-    csound->MessageS(csound, CSOUNDMSG_ERROR,
-                             Str("hetro:  %s\n\tanalysis aborted\n"), msg);
+    csound->ErrorMsg(csound, Str("hetro:  %s\n\tanalysis aborted"), msg);
     return -1;
 }
 
-#define END  32767
+#define END 32767
+
+/* WRITE OUTPUT FILE in DATA-REDUCED format */
 
 static int filedump(HET *thishet, ENVIRON *csound)
-  /* WRITE OUTPUT FILE in DATA-REDUCED format */
 {
     int     h, pnt, ofd, nbytes;
     double  scale,x,y;

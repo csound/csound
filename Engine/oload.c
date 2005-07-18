@@ -49,6 +49,9 @@ void    defaultCsoundKillGraph(void *csound, WINDAT *windat);
 int     defaultCsoundExitGraph(void *csound);
 int     defaultCsoundYield(void *csound);
 void    close_all_files(void *csound);
+char    *getstrformat(int format);
+int     sfsampsize(int format);
+char    *type2string(int type);
 
 const ENVIRON cenviron_ = {
     /* ----------------- interface functions (288 total) ----------------- */
@@ -223,10 +226,32 @@ const ENVIRON cenviron_ = {
         pvoc_errorstr,
         PVOCEX_LoadFile,
         csoundLongJmp,
+        csoundErrorMsg,
+        csoundErrMsgV,
+        getstrformat,
+        sfsampsize,
+        type2string,
+        csoundGetOpcodeName,
+        csoundGetInputArgCnt,
+        csoundGetInputArgAMask,
+        csoundGetInputArgSMask,
+        csoundGetInputArgName,
+        csoundGetOutputArgCnt,
+        csoundGetOutputArgAMask,
+        csoundGetOutputArgSMask,
+        csoundGetOutputArgName,
+        csoundSetReleaseLength,
+        csoundSetReleaseLengthSeconds,
+        csoundGetMidiChannelNumber,
+        csoundGetMidiChannel,
+        csoundGetMidiNoteNumber,
+        csoundGetMidiVelocity,
+        csoundGetReleaseFlag,
+        csoundGetOffTime,
+        csoundGetPFields,
+        csoundGetInstrumentNumber,
         NULL,
-        { NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        { NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,

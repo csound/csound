@@ -55,11 +55,9 @@ static void envext_usage(ENVIRON *csound, char *mesg, ...)
     csound->Message(csound,"-o fnam\tsound output filename\n");
     csound->Message(csound, "-w time\tSize of window\n");
     csound->Message(csound,"flag defaults: envext -onewenv\n");
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("envext: error: "));
     va_start(args, mesg);
-    csound->MessageV(csound, CSOUNDMSG_ERROR, mesg, args);
+    csound->ErrMsgV(csound, Str("envext: error: "), mesg, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
     csound->LongJmp(csound, 1);
 }
 
