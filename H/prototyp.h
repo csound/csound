@@ -35,35 +35,21 @@ extern "C" {
 #endif
 
 void    cscorinit(ENVIRON*), cscore(ENVIRON*);
-void    *mmalloc(void*, size_t), *mcalloc(void*, size_t);
+void    *mmalloc(void*, size_t);
+void    *mcalloc(void*, size_t);
 void    *mrealloc(void*, void*, size_t), mfree(void*, void*);
 void    csoundAuxAlloc(void*, long, AUXCH *), auxchfree(void*, INSDS *);
 void    fdrecord(ENVIRON *, FDCH *), fdclose(ENVIRON *, FDCH *);
 void    fdchclose(ENVIRON *, INSDS *);
-#if defined(HAVE_GCC3) && !defined(__MACH__)
-__attribute__ ((__format__(__printf__, 2, 3)))
-  void    synterr(ENVIRON *, const char *, ...);
-__attribute__ ((__noreturn__, __format__(__printf__, 2, 3)))
-  void    csoundDie(void *, const char *, ...);
-__attribute__ ((__format__(__printf__, 2, 3)))
-  int     csoundInitError(void *, const char *, ...);
-__attribute__ ((__format__(__printf__, 2, 3)))
-  int     csoundPerfError(void *, const char *, ...);
-__attribute__ ((__format__(__printf__, 2, 3)))
-  void    csoundWarning(void *, const char *, ...);
-__attribute__ ((__format__(__printf__, 2, 3)))
-  void    csoundDebugMsg(void *, const char *, ...);
-__attribute__ ((__noreturn__))
-  void    csoundLongJmp(ENVIRON *csound, int retval);
-#else
-void    synterr(ENVIRON *, const char *, ...);
-void    csoundDie(void *, const char *, ...);
-int     csoundInitError(void *, const char *, ...);
-int     csoundPerfError(void *, const char *, ...);
-void    csoundWarning(void *, const char *, ...);
-void    csoundDebugMsg(void *, const char *, ...);
-void    csoundLongJmp(ENVIRON *csound, int retval);
-#endif
+CS_PRINTF2  void    synterr(ENVIRON *, const char *, ...);
+CS_NORETURN CS_PRINTF2  void    csoundDie(void *, const char *, ...);
+CS_PRINTF2  int     csoundInitError(void *, const char *, ...);
+CS_PRINTF2  int     csoundPerfError(void *, const char *, ...);
+CS_PRINTF2  void    csoundWarning(void *, const char *, ...);
+CS_PRINTF2  void    csoundDebugMsg(void *, const char *, ...);
+CS_PRINTF2  void    csoundErrorMsg(void *, const char *, ...);
+            void    csoundErrMsgV(void *, const char *, const char *, va_list);
+CS_NORETURN void    csoundLongJmp(ENVIRON *csound, int retval);
 void    putop(ENVIRON *, TEXT *), putstrg(char *);
 void    rdorchfile(ENVIRON*), otran(ENVIRON*);
 char    argtyp(ENVIRON *, char *);
@@ -86,7 +72,7 @@ MYFLT   *csoundGetTable(void*, int, int*);
 void    cs_beep(ENVIRON *);
 MYFLT   intpow(MYFLT, long);
 void    list_opcodes(ENVIRON *, int);
-short   sfsampsize(int);
+int     sfsampsize(int);
 void    rewriteheader(SNDFILE* ofd, int verbose);
 void    writeLine(ENVIRON *csound, const char *text, long size);
 int     readOptions(void*, FILE*);
@@ -105,6 +91,7 @@ void    *sndgetset(void*, void*);
 PUBLIC  SNDMEMFILE  *csoundLoadSoundFile(void *csound,
                                          const char *name, SF_INFO *sfinfo);
 int     PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p);
+MCHNBLK *csoundGetMidiChannel(void *p);
 
 #ifdef __cplusplus
 };

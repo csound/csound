@@ -182,20 +182,15 @@ int bcbut(ENVIRON *csound, BBFIL *p)    /*      Band reject filter      */
     return OK;
 }
 
-#if defined(WIN32) && !defined(USE_DOUBLE)
-#define IS_DENORMAL(f) (((*(unsigned int*)&f)&0x7f800000)==0)
-#else
-#define IS_DENORMAL(f) (0)
-#endif
+/* Filter loop */
 
 static void butter_filter(long n, MYFLT *in, MYFLT *out, MYFLT *a)
-                                                 /*      Filter loop */
 {
     MYFLT t, y;
 
     do {
       t = *in++ - a[4] * a[6] - a[5] * a[7];
-      if (sizeof(MYFLT)==sizeof(float) && IS_DENORMAL(t)) t = 0.0f;
+      t = csoundUndenormalizeMYFLT(t);
       y = t * a[1] + a[2] * a[6] + a[3] * a[7];
       a[7] = a[6];
       a[6] = t;

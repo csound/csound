@@ -28,43 +28,6 @@
 #include <sndfile.h>
 #include "soundio.h"
 
-static int sfSampSize(int type)
-{
-    switch (type & SF_FORMAT_SUBMASK) {
-      case SF_FORMAT_PCM_16:    return 2;       /* Signed 16 bit data */
-      case SF_FORMAT_PCM_24:    return 3;       /* Signed 24 bit data */
-      case SF_FORMAT_PCM_32:                    /* Signed 32 bit data */
-      case SF_FORMAT_FLOAT:     return 4;       /* 32 bit float data */
-      case SF_FORMAT_DOUBLE:    return 8;       /* 64 bit float data */
-    }
-    return 1;
-}
-
-static char *type2string(int x)
-{
-    switch (x) {
-      case TYP_WAV:     return "WAV";
-      case TYP_AIFF:    return "AIFF";
-      case TYP_AU:      return "AU";
-      case TYP_RAW:     return "RAW";
-      case TYP_PAF:     return "PAF";
-      case TYP_SVX:     return "SVX";
-      case TYP_NIST:    return "NIST";
-      case TYP_VOC:     return "VOC";
-      case TYP_IRCAM:   return "IRCAM";
-      case TYP_W64:     return "W64";
-      case TYP_MAT4:    return "MAT4";
-      case TYP_MAT5:    return "MAT5";
-      case TYP_PVF:     return "PVF";
-      case TYP_XI:      return "XI";
-      case TYP_HTK:     return "HTK";
-#ifdef SF_FORMAT_SDS
-      case TYP_SDS:     return "SDS";
-#endif
-      default:          return "(unknown)";
-    }
-}
-
 static int sndinfo(void *csound_, int argc, char **argv)
 {
     ENVIRON *csound = (ENVIRON*) csound_;
@@ -119,8 +82,8 @@ static int sndinfo(void *csound_, int argc, char **argv)
         csound->Message(csound,
                         Str("\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"),
                         (long) sf_info.samplerate, channame,
-                        (long) (sfSampSize(sf_info.format) * 8),
-                        type2string(SF2TYPE(sf_info.format)),
+                        (long) (csound->sfsampsize(sf_info.format) * 8),
+                        csound->type2string(SF2TYPE(sf_info.format)),
                         (MYFLT) sf_info.frames / sf_info.samplerate);
         csound->Message(csound, Str("\t(%ld sample frames)\n"),
                                 (long) sf_info.frames);

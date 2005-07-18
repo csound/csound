@@ -105,10 +105,10 @@ PUBLIC int csoundRunUtility(void *csound_, const char *name,
     goto err_return;
 
  notFound:
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("Error: utility "));
     if (name != NULL && name[0] != '\0')
-      csound->MessageS(csound, CSOUNDMSG_ERROR, "'%s' ", name);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("not found\n"));
+      csound->ErrorMsg(csound, Str("Error: utility '%s' not found"), name);
+    else
+      csound->ErrorMsg(csound, Str("Error: utility not found"));
     lst = csound->ListUtilities(csound);
     if (lst != NULL && lst[0] != NULL) {
       int i;

@@ -547,8 +547,7 @@ int read_unified_file(void *csound_, char **pname, char **score)
     fd = csoundFileOpen(csound, &unf, CSFILE_STD, name, "rb", NULL);
     /* RWD 3:2000 fopen can fail... */
     if (fd == NULL) {
-      csound->MessageS(csound, CSOUNDMSG_ERROR,
-                               Str("Failed to open csd file: %s\n"),
+      csound->ErrorMsg(csound, Str("Failed to open csd file: %s"),
                                strerror(errno));
       return 0;
     }

@@ -1894,36 +1894,27 @@ static void synterrp(ENVIRON *csound, const char *errp, char *s)
       if (ch != '\t') ch = ' ';
       csound->MessageS(csound, CSOUNDMSG_ERROR, "%c", ch);
     }
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "^\n");
+    csound->ErrorMsg(csound, "^");
 }
 
 static void lexerr(ENVIRON *csound, const char *s, ...)
 {
-    char      buf[512];
     IN_STACK  *curr = ST(str);
     va_list   args;
 
     va_start(args, s);
-#ifdef HAVE_C99
-    vsnprintf(buf, (size_t) 512, s, args);
-#else
-    vsprintf(buf, s, args);
-#endif
+    csound->ErrMsgV(csound, Str("error:  "), s, args);
     va_end(args);
-    buf[511] = '\0';
 
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  %s\n"), buf);
     while (curr != ST(inputs)) {
       if (curr->string) {
         MACRO *mm = ST(macros);
         while (mm != curr->mac) mm = mm->next;
-        csound->MessageS(csound, CSOUNDMSG_ERROR,
-                                 Str("called from line %d of macro %s\n"),
+        csound->ErrorMsg(csound, Str("called from line %d of macro %s"),
                                  curr->line, mm->name);
       }
       else {
-        csound->MessageS(csound, CSOUNDMSG_ERROR,
-                                 Str("in line %d of file input %s\n"),
+        csound->ErrorMsg(csound, Str("in line %d of file input %s"),
                                  curr->line, curr->body);
       }
       curr--;

@@ -96,9 +96,6 @@
 
 static  int     dnoise_usage(ENVIRON *, int);
 static  void    hamming(MYFLT *, int, int);
-static  char    *getStrFormat(ENVIRON *, int);
-static  int     sfSampSize(int);
-static  char    *type2string(int);
 
 static int writebuffer(ENVIRON *, SNDFILE *, MYFLT *, int);
 
@@ -470,7 +467,7 @@ static int dnoise(void *csound_, int argc, char **argv)
       return -1;
     }
     if (O->outformat == 0) O->outformat = p->format;
-    O->sfsampsize = sfSampSize(O->outformat);
+    O->sfsampsize = csound->sfsampsize(FORMAT2SF(O->outformat));
     if (O->filetyp == TYP_RAW) {
       O->sfheader = 0;
       O->rewrt_hdr = 0;
@@ -610,9 +607,9 @@ static int dnoise(void *csound_, int argc, char **argv)
     outbuf = csound->Malloc(csound, (size_t) outbufsiz); /* & alloc bufspace */
 #endif
     csound->Message(csound, Str("writing %u-byte blks of %s to %s"),
-                    outbufsiz, getStrFormat(csound, O->outformat),
+                    outbufsiz, csound->getstrformat(O->outformat),
                     O->outfilename);
-    csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+    csound->Message(csound, " (%s)\n", csound->type2string(O->filetyp));
 /*  spoutran = spoutsf; */
 
     minv = FL(1.0) / (MYFLT)m;
@@ -1216,58 +1213,6 @@ static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
     }
 #endif
     return nsmps;
-}
-
-static char *getStrFormat(ENVIRON *csound, int format)
-{
-    switch (format) {
-      case  AE_UNCH:    return Str("unsigned bytes");
-      case  AE_CHAR:    return Str("signed chars");
-      case  AE_ALAW:    return Str("alaw bytes");
-      case  AE_ULAW:    return Str("ulaw bytes");
-      case  AE_SHORT:   return Str("shorts");
-      case  AE_LONG:    return Str("longs");
-      case  AE_FLOAT:   return Str("floats");
-      case  AE_24INT:   return Str("24bit ints");
-    }
-    return Str("unknown");
-}
-
-static int sfSampSize(int type)
-{
-    switch (type & SF_FORMAT_SUBMASK) {
-      case SF_FORMAT_PCM_16:    return 2;       /* Signed 16 bit data */
-      case SF_FORMAT_PCM_24:    return 3;       /* Signed 24 bit data */
-      case SF_FORMAT_PCM_32:                    /* Signed 32 bit data */
-      case SF_FORMAT_FLOAT:     return 4;       /* 32 bit float data */
-      case SF_FORMAT_DOUBLE:    return 8;       /* 64 bit float data */
-    }
-    return 1;
-}
-
-static char *type2string(int x)
-{
-    switch (x) {
-      case TYP_WAV:     return "WAV";
-      case TYP_AIFF:    return "AIFF";
-      case TYP_AU:      return "AU";
-      case TYP_RAW:     return "RAW";
-      case TYP_PAF:     return "PAF";
-      case TYP_SVX:     return "SVX";
-      case TYP_NIST:    return "NIST";
-      case TYP_VOC:     return "VOC";
-      case TYP_IRCAM:   return "IRCAM";
-      case TYP_W64:     return "W64";
-      case TYP_MAT4:    return "MAT4";
-      case TYP_MAT5:    return "MAT5";
-      case TYP_PVF:     return "PVF";
-      case TYP_XI:      return "XI";
-      case TYP_HTK:     return "HTK";
-#ifdef SF_FORMAT_SDS
-      case TYP_SDS:     return "SDS";
-#endif
-      default:          return "(unknown)";
-    }
 }
 
 static void hamming(MYFLT *win, int winLen, int even)

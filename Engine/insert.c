@@ -535,39 +535,35 @@ int csoundInitError(void *csound_, const char *s, ...)
     va_list args;
     ENVIRON *csound = (ENVIRON*) csound_;
     INSDS   *ip;
+    char    buf[512];
 
     /* RWD: need this! */
     if (csound->ids == NULL) {
-      csoundMessageS(csound, CSOUNDMSG_ERROR, Str("\nINIT ERROR: "));
       va_start(args, s);
-      csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
+      csoundErrMsgV(csound, Str("\nINIT ERROR: "), s, args);
       va_end(args);
-      csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
       csound->LongJmp(csound, 1);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = csound->ids->insdshead;
     if (ip->opcod_iobufs) {
-      OPCOD_IOBUFS *buf = (OPCOD_IOBUFS*) ip->opcod_iobufs;
+      OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
       /* find top level instrument instance */
-      while (ip->opcod_iobufs)
+      do {
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
-      if (buf->opcode_info)
-        csoundMessageS(csound, CSOUNDMSG_ERROR,
-                       Str("INIT ERROR in instr %d (opcode %s): "),
-                       ip->insno, buf->opcode_info->name);
+      } while (ip->opcod_iobufs);
+      if (op)
+        sprintf(buf, Str("INIT ERROR in instr %d (opcode %s): "),
+                     ip->insno, op->name);
       else
-        csoundMessageS(csound, CSOUNDMSG_ERROR,
-                       Str("INIT ERROR in instr %d (subinstr %d): "),
-                       ip->insno, csound->ids->insdshead->insno);
+        sprintf(buf, Str("INIT ERROR in instr %d (subinstr %d): "),
+                     ip->insno, csound->ids->insdshead->insno);
     }
     else
-      csoundMessageS(csound, CSOUNDMSG_ERROR, Str("INIT ERROR in instr %d: "),
-                                              ip->insno);
+      sprintf(buf, Str("INIT ERROR in instr %d: "), ip->insno);
     va_start(args, s);
-    csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
+    csoundErrMsgV(csound, buf, s, args);
     va_end(args);
-    csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
     putop(csound, &(csound->ids->optext->t));
 
     return ++(csound->inerrcnt);
@@ -578,39 +574,35 @@ int csoundPerfError(void *csound_, const char *s, ...)
     va_list args;
     ENVIRON *csound = (ENVIRON*) csound_;
     INSDS   *ip;
+    char    buf[512];
 
     /* RWD and probably this too... */
     if (csound->pds == NULL) {
-      csoundMessageS(csound, CSOUNDMSG_ERROR, Str("\nPERF ERROR: "));
       va_start(args, s);
-      csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
+      csoundErrMsgV(csound, Str("\nPERF ERROR: "), s, args);
       va_end(args);
-      csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
       csound->LongJmp(csound, 1);
     }
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = csound->pds->insdshead;
     if (ip->opcod_iobufs) {
-      OPCOD_IOBUFS *buf = (OPCOD_IOBUFS*) ip->opcod_iobufs;
+      OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
       /* find top level instrument instance */
-      while (ip->opcod_iobufs)
+      do {
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
-      if (buf->opcode_info)
-        csoundMessageS(csound, CSOUNDMSG_ERROR,
-                       Str("PERF ERROR in instr %d (opcode %s): "),
-                       ip->insno, buf->opcode_info->name);
+      } while (ip->opcod_iobufs);
+      if (op)
+        sprintf(buf, Str("PERF ERROR in instr %d (opcode %s): "),
+                     ip->insno, op->name);
       else
-        csoundMessageS(csound, CSOUNDMSG_ERROR,
-                       Str("PERF ERROR in instr %d (subinstr %d): "),
-                       ip->insno, csound->pds->insdshead->insno);
+        sprintf(buf, Str("PERF ERROR in instr %d (subinstr %d): "),
+                     ip->insno, csound->pds->insdshead->insno);
     }
     else
-      csoundMessageS(csound, CSOUNDMSG_ERROR, Str("PERF ERROR in instr %d: "),
-                                              ip->insno);
+      sprintf(buf, Str("PERF ERROR in instr %d: "), ip->insno);
     va_start(args, s);
-    csoundMessageV(csound, CSOUNDMSG_ERROR, s, args);
+    csoundErrMsgV(csound, buf, s, args);
     va_end(args);
-    csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
     putop(csound, &(csound->pds->optext->t));
     csoundMessage(csound, Str("   note aborted\n"));
     csound->perferrcnt++;

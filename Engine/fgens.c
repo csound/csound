@@ -1841,13 +1841,13 @@ static void gen42(FUNC *ftp, ENVIRON *csound) /*gab d5*/
 
 static void fterror(ENVIRON *csound, FGDATA *ff, char *s, ...)
 {
+    char    buf[64];
     va_list args;
 
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("ftable %d: "), ff->fno);
+    sprintf(buf, Str("ftable %d: "), ff->fno);
     va_start(args, s);
-    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
+    csound->ErrMsgV(csound, buf, s, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
     csound->Message(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (ff->e.p[4] == SSTRCOD)

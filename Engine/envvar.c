@@ -756,10 +756,9 @@ PUBLIC void *csoundFileOpen(void *csound, void *fd, int type,
     int     tmp_fd = -1, nbytes = (int) sizeof(CSFILE);
 
     /* check file type */
-    if (!type || ((unsigned int) type > (unsigned int) CSFILE_SND_W)) {
-      csoundMessageS(csound, CSOUNDMSG_ERROR,
-                             Str("internal error: csoundFileOpen(): "
-                                 "invalid type: %d\n"), type);
+    if ((unsigned int) (type - 1) >= (unsigned int) CSFILE_SND_W) {
+      csoundErrorMsg(csound, Str("internal error: csoundFileOpen(): "
+                                 "invalid type: %d"), type);
       return NULL;
     }
     /* get full name and open file */
@@ -911,9 +910,8 @@ PUBLIC void *csoundCreateFileHandle(void *csound, void *fd, int type,
         p->sf = *((SNDFILE**) fd);
         break;
       default:
-        csoundMessageS(csound, CSOUNDMSG_ERROR,
-                               Str("internal error: csoundCreateFileHandle(): "
-                                   "invalid type: %d\n"), type);
+        csoundErrorMsg(csound, Str("internal error: csoundCreateFileHandle(): "
+                                   "invalid type: %d"), type);
         free(p);
         return NULL;
     }

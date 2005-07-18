@@ -162,12 +162,9 @@ int delete_memfile(void *csound, const char *filnam)
 static int pvx_err_msg(ENVIRON *csound, const char *fmt, ...)
 {
     va_list args;
-    csound->MessageS(csound, CSOUNDMSG_ERROR,
-                             Str("PVOCEX_LoadFile(): error:\n    "));
     va_start(args, fmt);
-    csound->MessageV(csound, CSOUNDMSG_ERROR, fmt, args);
+    csound->ErrMsgV(csound, Str("PVOCEX_LoadFile(): error:\n    "), fmt, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
     return -1;
 }
 
@@ -357,9 +354,9 @@ PUBLIC SNDMEMFILE *csoundLoadSoundFile(void *csound_, const char *fileName,
     fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, fileName, sfinfo,
                                   "SFDIR;SSDIR");
     if (fd == NULL) {
-      csound->MessageS(csound, CSOUNDMSG_ERROR, Str("csoundLoadSoundFile(): "
-                                                    "failed to open '%s'\n"),
-                                                fileName);
+      csound->ErrorMsg(csound,
+                       Str("csoundLoadSoundFile(): failed to open '%s'"),
+                       fileName);
       return NULL;
     }
     p = (SNDMEMFILE*)
@@ -393,9 +390,8 @@ PUBLIC SNDMEMFILE *csoundLoadSoundFile(void *csound_, const char *fileName,
       csound->Free(csound, p->name);
       csound->Free(csound, p->fullName);
       csound->Free(csound, p);
-      csound->MessageS(csound, CSOUNDMSG_ERROR, Str("csoundLoadSoundFile(): "
-                                                    "error reading '%s'\n"),
-                                                fileName);
+      csound->ErrorMsg(csound, Str("csoundLoadSoundFile(): error reading '%s'"),
+                               fileName);
       return NULL;
     }
     p->data[p->nFrames] = 0.0f;

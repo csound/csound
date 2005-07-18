@@ -23,7 +23,6 @@
 #include "soundio.h"
 
 char    *type2string(int x);
-short   sfsampsize(int type);
 char    *getstrformat(int format);
 
 void rewriteheader(SNDFILE *ofd, int verbose)
@@ -139,8 +138,7 @@ void *sndgetset(void *csound_, void *p_)
     p->fd = csound->FileOpen(csound, &(p->sinfd), CSFILE_SND_R, sfname, &sfinfo,
                                      "SFDIR;SSDIR");
     if (p->fd == NULL) {
-      csound->MessageS(csound, CSOUNDMSG_ERROR,
-                               Str("soundin cannot open %s\n"), sfname);
+      csound->ErrorMsg(csound, Str("soundin cannot open %s"), sfname);
       goto err_return;
     }
     /* & record fullpath filnam */
@@ -167,8 +165,7 @@ void *sndgetset(void *csound_, void *p_)
                       sfname, (int) sfinfo.samplerate, csound->esr);
     }
     if (p->channel != ALLCHNLS && p->channel > sfinfo.channels) {
-      csound->MessageS(csound, CSOUNDMSG_ERROR,
-                               Str("error: req chan %d, file %s has only %d\n"),
+      csound->ErrorMsg(csound, Str("error: req chan %d, file %s has only %d"),
                                (int) p->channel, sfname, (int) sfinfo.channels);
       goto err_return;
     }
@@ -199,8 +196,7 @@ void *sndgetset(void *csound_, void *p_)
     if (skipframes < 0) {
       n = -skipframes;
       if (n > framesinbuf) {
-        csound->MessageS(csound, CSOUNDMSG_ERROR,
-                                 Str("soundin: invalid skip time\n"));
+        csound->ErrorMsg(csound, Str("soundin: invalid skip time"));
         goto err_return;
       }
       n *= (int) sfinfo.channels;
@@ -233,7 +229,7 @@ void *sndgetset(void *csound_, void *p_)
     else {                                      /* for greater skiptime: */
       /* else seek to bndry */
       if (sf_seek(p->sinfd, (sf_count_t) skipframes, SEEK_SET) < 0) {
-        csound->MessageS(csound, CSOUNDMSG_ERROR, Str("soundin seek error\n"));
+        csound->ErrorMsg(csound, Str("soundin seek error"));
         goto err_return;
       }
       /* now rd fulbuf */
@@ -344,7 +340,7 @@ char *type2string(int x)
     }
 }
 
-short sfsampsize(int type)
+int sfsampsize(int type)
 {
     switch (type & SF_FORMAT_SUBMASK) {
       case SF_FORMAT_PCM_16:  return 2;     /* Signed 16 bit data */
