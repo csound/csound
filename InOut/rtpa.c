@@ -74,11 +74,9 @@ typedef struct PA_BLOCKING_STREAM_ {
 static int pa_PrintErrMsg(ENVIRON *csound, const char *fmt, ...)
 {
     va_list args;
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str(" *** PortAudio: error: "));
     va_start(args, fmt);
-    csound->MessageV(csound, CSOUNDMSG_ERROR, fmt, args);
+    csound->ErrMsgV(csound, Str(" *** PortAudio: error: "), fmt, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
     return -1;
 }
 

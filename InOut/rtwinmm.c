@@ -65,11 +65,9 @@ static inline int64_t large_integer_to_int64(LARGE_INTEGER *p)
 static int err_msg(ENVIRON *csound, const char *fmt, ...)
 {
     va_list args;
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("winmm: error: "));
     va_start(args, fmt);
-    csound->MessageV(csound, CSOUNDMSG_ERROR, fmt, args);
+    csound->ErrMsgV(csound, Str("winmm: error: "), fmt, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
     return -1;
 }
 

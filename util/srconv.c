@@ -62,9 +62,6 @@
 
 static  void    kaiser(int, float *, int, int, double);
 static  void    usage(ENVIRON *);
-static  char    *type2string(int);
-static  short   sfsampsize(int);
-static  char    *getstrformat(ENVIRON *, int);
 
 static int writebuffer(ENVIRON *csound, MYFLT *out_buf, int *block,
                                         SNDFILE *outfd, int length)
@@ -136,7 +133,7 @@ static char set_output_format(ENVIRON *csound, char c, char outformch)
 
 static void dieu(ENVIRON *csound, char *s)
 {
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "srconv: %s\n", s);
+    csound->ErrorMsg(csound, "srconv: %s", s);
     usage(csound);
 }
 
@@ -257,14 +254,12 @@ static int srconv(void *csound_, int argc, char **argv)
               O->outfilename = outfile;            /* soundout name */
             while ((*outfile++ = *s++)); s--;
             if (strcmp(O->outfilename, "stdin") == 0) {
-              csound->MessageS(csound, CSOUNDMSG_ERROR,
-                                       Str("-o cannot be stdin\n"));
+              csound->ErrorMsg(csound, Str("-o cannot be stdin"));
               return -1;
             }
 #if defined mac_classic || defined WIN32
             if (strcmp(O->outfilename, "stdout") == 0) {
-              csound->MessageS(csound, CSOUNDMSG_ERROR,
-                                       Str("stdout audio not supported\n"));
+              csound->ErrorMsg(csound, Str("stdout audio not supported"));
               return -1;
             }
 #endif
@@ -358,8 +353,7 @@ static int srconv(void *csound_, int argc, char **argv)
     }
     if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) < 0) {
-      csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error while opening %s\n"),
-                                                infile);
+      csound->ErrorMsg(csound, Str("error while opening %s"), infile);
       return -1;
     }
     if (Rin == FL(0.0))
@@ -427,11 +421,6 @@ static int srconv(void *csound_, int argc, char **argv)
       tvdy = tvy1 - tvy0;
       tvslope = tvdy / tvdx;
       tvnxt = 1;
-      /*
-        csound->Message(csound, "len=%d\n", tvlen);
-        csound->Message(csound, "x0: %f  y0: %f  x1: %f  y1: %f\n",
-                                tvx0, tvy0, tvx1, tvy1);
-      */
     }
 
     if (P != FL(0.0)) {         /* This is not right *********  */
@@ -442,7 +431,7 @@ static int srconv(void *csound_, int argc, char **argv)
     }
     if (O->outformat == 0)
       O->outformat = p->format;
-    O->sfsampsize = sfsampsize(O->outformat);
+    O->sfsampsize = csound->sfsampsize(FORMAT2SF(O->outformat));
     if (O->filetyp == TYP_RAW) {
       O->sfheader = 0;
       O->rewrt_hdr = 0;
@@ -496,9 +485,9 @@ static int srconv(void *csound_, int argc, char **argv)
 
     outbufsiz = OBUF * O->sfsampsize;                   /* calc outbuf size */
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
-                            outbufsiz, getstrformat(csound, O->outformat),
+                            outbufsiz, csound->getstrformat(O->outformat),
                             O->outfilename);
-    csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+    csound->Message(csound, " (%s)\n", csound->type2string(O->filetyp));
 
  /* this program performs arbitrary sample-rate conversion
     with high fidelity.  the method is to step through the
@@ -728,7 +717,7 @@ static int srconv(void *csound_, int argc, char **argv)
     return 0;
 
  err_rtn_msg:
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "%s\n", err_msg);
+    csound->ErrorMsg(csound, "%s", err_msg);
     return -1;
 }
 
@@ -765,72 +754,6 @@ static void usage(ENVIRON *csound)
 
     while (usage_txt[++i] != NULL)
       csound->Message(csound, "%s\n", Str(usage_txt[i]));
-}
-
-static char *type2string(int x)
-{
-    switch (x) {
-    case TYP_WAV: return "WAV";
-    case TYP_AIFF: return "AIFF";
-    case TYP_AU: return "AU";
-    case TYP_RAW: return "RAW";
-    case TYP_PAF: return "PAF";
-    case TYP_SVX: return "SVX";
-    case TYP_NIST: return "NIST";
-    case TYP_VOC: return "VOC";
-    case TYP_IRCAM: return "IRCAM";
-    case TYP_W64: return "W64";
-    case TYP_MAT4: return "MAT4";
-    case TYP_MAT5: return "MAT5";
-    case TYP_PVF: return "PVF";
-    case TYP_XI: return "XI";
-    case TYP_HTK: return "HTK";
-#ifdef SF_FORMAT_SDS
-    case TYP_SDS: return "SDS";
-#endif
-    default:
-      return "unknown";
-    }
-}
-
-static short sfsampsize(int type)
-{
-    switch (type&SF_FORMAT_SUBMASK) {
-    case SF_FORMAT_PCM_S8:
-      return 1;
-    case SF_FORMAT_ALAW:
-      return 1;
-    case SF_FORMAT_ULAW:
-      return 1;
-    case SF_FORMAT_PCM_16:
-      return 2;       /* Signed 16 bit data */
-    case SF_FORMAT_PCM_32:
-      return 4;       /* Signed 32 bit data */
-    case SF_FORMAT_FLOAT:
-      return 4;       /* 32 bit float data */
-    case SF_FORMAT_PCM_U8:
-      return 1;       /* Unsigned 8 bit data (WAV and RAW only) */
-    case SF_FORMAT_PCM_24:
-      return 3;       /* Signed 24 bit data */
-    case SF_FORMAT_DOUBLE:
-      return 8;       /* 64 bit float data */
-    }
-    return 1;
-}
-
-static char *getstrformat(ENVIRON *csound, int format)
-{
-    switch (format) {
-      case  AE_UNCH:    return Str("unsigned bytes"); /* J. Mohr 1995 Oct 17 */
-      case  AE_CHAR:    return Str("signed chars");
-      case  AE_ALAW:    return Str("alaw bytes");
-      case  AE_ULAW:    return Str("ulaw bytes");
-      case  AE_SHORT:   return Str("shorts");
-      case  AE_LONG:    return Str("longs");
-      case  AE_FLOAT:   return Str("floats");
-      case  AE_24INT:   return Str("24bit ints");     /* RWD 5:2001 */
-    }
-    return Str("unknown");
 }
 
 static double ino(double x)

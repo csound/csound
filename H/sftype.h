@@ -41,12 +41,12 @@
 # error No pack defined
 #endif
 
-typedef unsigned long       DWORD;
-/*  typedef int                 BOOL; */
-typedef unsigned char       BYTE;
-typedef unsigned short      WORD;
-typedef short SHORT;
-typedef char CHAR;
+typedef uint32_t    DWORD;
+/*  typedef int     BOOL; */
+typedef uint8_t     BYTE;
+typedef uint16_t    WORD;
+typedef short       SHORT;
+typedef char        CHAR;
 
 typedef unsigned short SFTransform;
 

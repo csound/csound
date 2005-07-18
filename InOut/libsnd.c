@@ -23,7 +23,6 @@
 
 #include "csoundCore.h"                 /*             SNDLIB.C         */
 #include "soundio.h"
-#include <sndfile.h>
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
@@ -56,7 +55,6 @@ typedef struct {
 
 extern  char    *getstrformat(int format);
 extern  char    *type2string(int);
-extern  short   sfsampsize(int);
 static  void    sndwrterr(void*, int, int);
 static  void    sndfilein_noscale(void *csound);
 

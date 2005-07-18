@@ -26,11 +26,7 @@
 #include "diskin2.h"
 #include <math.h>
 
-static
-#ifdef HAVE_GCC3
-  __attribute__ ((__noinline__))
-#endif
-void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
+static CS_NOINLINE void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
 {
     MYFLT *tmp;
     long  nsmps;
@@ -42,7 +38,7 @@ void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
     p->prvBuf = tmp;
     /* check if requested data can be found in previously used buffer */
     i = (int) ((long) bufReadPos + (p->bufStartPos - p->prvBufStartPos));
-    if (i >= 0 && i < p->bufSize) {
+    if ((unsigned int) i < (unsigned int) p->bufSize) {
       long  tmp2;
       /* yes, only need to swap buffers and return */
       tmp2 = p->bufStartPos;
@@ -55,12 +51,8 @@ void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
     /* calculate new buffer frame start position */
     p->bufStartPos = p->bufStartPos + (long) bufReadPos;
     p->bufStartPos &= (~((long) (p->bufSize - 1)));
-    if (p->bufStartPos < 0L) {
-      /* before beginning of file ? just fill buffer with zero samples */
-      for (i = 0; i < (p->bufSize * p->nChannels); i++)
-        p->buf[i] = FL(0.0);
-    }
-    else {
+    i = 0;
+    if (p->bufStartPos >= 0L) {
       /* number of sample frames to read */
       nsmps = p->fileLength - p->bufStartPos;
       if (nsmps > 0L) {         /* if there is anything to read: */
@@ -73,12 +65,10 @@ void diskin2_read_buffer(DISKIN2 *p, int bufReadPos)
         if (i < 0)  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
-      else
-        i = 0;      /* nothing to read: clear entire buffer to zero */
-      /* fill rest of buffer with zero samples */
-      while (i < (p->bufSize * p->nChannels))
-        p->buf[i++] = FL(0.0);
     }
+    /* fill rest of buffer with zero samples */
+    while (i < (p->bufSize * p->nChannels))
+      p->buf[i++] = FL(0.0);
 }
 
 /* Mix one sample frame from input file at location 'pos' to outputs    */
@@ -96,7 +86,7 @@ static inline void diskin2_get_sample(DISKIN2 *p, long fPos, int n, MYFLT scl)
         fPos += p->fileLength;
     }
     bufPos = (int) (fPos - p->bufStartPos);
-    if (bufPos < 0 || bufPos >= p->bufSize) {
+    if ((unsigned int) bufPos >= (unsigned int) p->bufSize) {
       /* not in current buffer frame, need to read file */
       diskin2_read_buffer(p, bufPos);
       /* recalculate buffer position */
@@ -516,6 +506,7 @@ int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
 static void soundin_read_buffer(SOUNDIN_ *p, int bufReadPos)
 {
     int i = 0;
+
     /* calculate new buffer frame start position */
     p->bufStartPos = p->bufStartPos + (int_least64_t) bufReadPos;
     p->bufStartPos &= (~((int_least64_t) (p->bufSize - 1)));
@@ -544,6 +535,7 @@ static void soundin_read_buffer(SOUNDIN_ *p, int bufReadPos)
 static int soundin_calc_buffer_size(SOUNDIN_ *p, int n_monoSamps)
 {
     int i, nFrames;
+
     /* default to 2048 mono samples if zero or negative */
     if (n_monoSamps <= 0)
       n_monoSamps = 2048;
@@ -668,7 +660,7 @@ int soundin(ENVIRON *csound, SOUNDIN_ *p)
     }
     for (nn = 0; nn < csound->ksmps; nn++) {
       bufPos = (int) (p->read_pos - p->bufStartPos);
-      if (bufPos < 0 || bufPos >= p->bufSize) {
+      if ((unsigned int) bufPos >= (unsigned int) p->bufSize) {
         /* not in current buffer frame, need to read file */
         soundin_read_buffer(p, bufPos);
         /* recalculate buffer position */
@@ -694,6 +686,7 @@ int soundin(ENVIRON *csound, SOUNDIN_ *p)
       }
       p->read_pos++;
     }
+
     return OK;
 }
 

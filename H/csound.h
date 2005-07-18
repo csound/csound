@@ -428,22 +428,15 @@ extern "C" {
   /**
    * Displays an informational message.
    */
-  PUBLIC
-#ifdef HAVE_GCC3
-    __attribute__ ((__format__(__printf__, 2, 3)))
-#endif
-      void csoundMessage(void *csound, const char *format, ...);
+  PUBLIC CS_PRINTF2 void csoundMessage(void *csound, const char *format, ...);
 
   /**
    * Print message with special attributes (see msg_attr.h for the list of
    * available attributes). With attr=0, csoundMessageS() is identical to
    * csoundMessage().
    */
-  PUBLIC
-#ifdef HAVE_GCC3
-    __attribute__ ((__format__(__printf__, 3, 4)))
-#endif
-      void csoundMessageS(void *csound, int attr, const char *format, ...);
+  PUBLIC CS_PRINTF3 void csoundMessageS(void *csound,
+                                        int attr, const char *format, ...);
 
   PUBLIC void csoundMessageV(void *csound, int attr, const char *format,
                                            va_list args);
@@ -452,6 +445,7 @@ extern "C" {
    * Throws an informational message as a C++ exception.
    */
   PUBLIC void csoundThrowMessage(void *csound, const char *format, ...);
+
   PUBLIC void csoundThrowMessageV(void *csound, const char *format,
                                                 va_list args);
 
@@ -1095,6 +1089,127 @@ extern "C" {
    */
   PUBLIC int csoundRegisterResetCallback(void *csound, void *userData,
                                          int (*func)(void *, void *));
+
+  /**
+   * Returns the name of the opcode of which the data structure
+   * is pointed to by 'p'.
+   */
+  char *csoundGetOpcodeName(void *p);
+
+  /**
+   * Returns the number of input arguments for opcode 'p'.
+   */
+  int csoundGetInputArgCnt(void *p);
+
+  /**
+   * Returns a binary value of which bit 0 is set if the first input
+   * argument is a-rate, bit 1 is set if the second input argument is
+   * a-rate, and so on.
+   * Only the first 31 arguments are guaranteed to be reported correctly.
+   */
+  unsigned long csoundGetInputArgAMask(void *p);
+
+  /**
+   * Returns a binary value of which bit 0 is set if the first input
+   * argument is a string, bit 1 is set if the second input argument is
+   * a string, and so on.
+   * Only the first 31 arguments are guaranteed to be reported correctly.
+   */
+  unsigned long csoundGetInputArgSMask(void *p);
+
+  /**
+   * Returns the name of input argument 'n' (counting from 0) for opcode 'p'.
+   */
+  char *csoundGetInputArgName(void *p, int n);
+
+  /**
+   * Returns the number of output arguments for opcode 'p'.
+   */
+  int csoundGetOutputArgCnt(void *p);
+
+  /**
+   * Returns a binary value of which bit 0 is set if the first output
+   * argument is a-rate, bit 1 is set if the second output argument is
+   * a-rate, and so on.
+   * Only the first 31 arguments are guaranteed to be reported correctly.
+   */
+  unsigned long csoundGetOutputArgAMask(void *p);
+
+  /**
+   * Returns a binary value of which bit 0 is set if the first output
+   * argument is a string, bit 1 is set if the second output argument is
+   * a string, and so on.
+   * Only the first 31 arguments are guaranteed to be reported correctly.
+   */
+  unsigned long csoundGetOutputArgSMask(void *p);
+
+  /**
+   * Returns the name of output argument 'n' (counting from 0) for opcode 'p'.
+   */
+  char *csoundGetOutputArgName(void *p, int n);
+
+  /**
+   * Set release time in control periods (1 / csound->ekr second units)
+   * for opcode 'p' to 'n'. If the current release time is longer than
+   * the specified value, it is not changed.
+   * Returns the new release time.
+   */
+  int csoundSetReleaseLength(void *p, int n);
+
+  /**
+   * Set release time in seconds for opcode 'p' to 'n'.
+   * If the current release time is longer than the specified value,
+   * it is not changed.
+   * Returns the new release time in seconds.
+   */
+  MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n);
+
+  /**
+   * Returns MIDI channel number (0 to 15) for the instrument instance
+   * that called opcode 'p'.
+   * In the case of score notes, -1 is returned.
+   */
+  int csoundGetMidiChannelNumber(void *p);
+
+  /**
+   * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
+   * If the opcode was not called from a MIDI activated instrument
+   * instance, the return value is undefined.
+   */
+  int csoundGetMidiNoteNumber(void *p);
+
+  /**
+   * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
+   * If the opcode was not called from a MIDI activated instrument
+   * instance, the return value is undefined.
+   */
+  int csoundGetMidiVelocity(void *p);
+
+  /**
+   * Returns non-zero if the current note (owning opcode 'p') is releasing.
+   */
+  int csoundGetReleaseFlag(void *p);
+
+  /**
+   * Returns the note-off time in seconds (measured from the beginning of
+   * performance) of the current instrument instance, from which opcode 'p'
+   * was called. The return value may be negative if the note has indefinite
+   * duration.
+   */
+  double csoundGetOffTime(void *p);
+
+  /**
+   * Returns the array of p-fields passed to the instrument instance
+   * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
+   * guaranteed to be available. p2 is measured in seconds from the
+   * beginning of the current section.
+   */
+  MYFLT *csoundGetPFields(void *p);
+
+  /**
+   * Returns the instrument number (p1) for opcode 'p'.
+   */
+  int csoundGetInstrumentNumber(void *p);
 
   /* type/macro definitions and interface functions
      for configuration variables */

@@ -570,15 +570,8 @@ extern "C" {
     MYFLT (*GetScoreOffsetSeconds)(void *csound);
     void (*SetScoreOffsetSeconds)(void *csound, MYFLT offset);
     void (*RewindScore)(void *csound);
-#if defined(HAVE_GCC3) && !defined(__MACH__)
-    __attribute__ ((__format__ (__printf__, 2, 3)))
-      void (*Message)(void *csound, const char *format, ...);
-    __attribute__ ((__format__ (__printf__, 3, 4)))
-      void (*MessageS)(void *csound, int attr, const char *format, ...);
-#else
-    void (*Message)(void *csound, const char *format, ...);
-    void (*MessageS)(void *csound, int attr, const char *format, ...);
-#endif
+    CS_PRINTF2 void (*Message)(void *csound, const char *fmt, ...);
+    CS_PRINTF3 void (*MessageS)(void *csound, int attr, const char *fmt, ...);
     void (*MessageV)(void *csound, int attr, const char *format, va_list args);
     void (*ThrowMessage)(void *csound, const char *format, ...);
     void (*ThrowMessageV)(void *csound, const char *format, va_list args);
@@ -678,24 +671,11 @@ extern "C" {
     void *(*Calloc)(void *csound, size_t nbytes);
     void *(*ReAlloc)(void *csound, void *oldp, size_t nbytes);
     void (*Free)(void *csound, void *ptr);
-#if defined(HAVE_GCC3) && !defined(__MACH__)
-    __attribute__ ((__noreturn__, __format__(__printf__, 2, 3)))
-      void (*Die)(void *csound, const char *msg, ...);
-    __attribute__ ((__format__(__printf__, 2, 3)))
-      int (*InitError)(void *csound, const char *msg, ...);
-    __attribute__ ((__format__(__printf__, 2, 3)))
-      int (*PerfError)(void *csound, const char *msg, ...);
-    __attribute__ ((__format__(__printf__, 2, 3)))
-      void (*Warning)(void *csound, const char *msg, ...);
-    __attribute__ ((__format__(__printf__, 2, 3)))
-      void (*DebugMsg)(void *csound, const char *msg, ...);
-#else
-    void (*Die)(void *csound, const char *msg, ...);
-    int (*InitError)(void *csound, const char *msg, ...);
-    int (*PerfError)(void *csound, const char *msg, ...);
-    void (*Warning)(void *csound, const char *msg, ...);
-    void (*DebugMsg)(void *csound, const char *msg, ...);
-#endif
+    CS_NORETURN CS_PRINTF2 void (*Die)(void *csound, const char *msg, ...);
+    CS_PRINTF2 int (*InitError)(void *csound, const char *msg, ...);
+    CS_PRINTF2 int (*PerfError)(void *csound, const char *msg, ...);
+    CS_PRINTF2 void (*Warning)(void *csound, const char *msg, ...);
+    CS_PRINTF2 void (*DebugMsg)(void *csound, const char *msg, ...);
     /* Internal functions that are needed */
     void (*dispset)(void *, WINDAT *, MYFLT *, long, char *, int, char *);
     void (*display)(void *, WINDAT *);
@@ -796,12 +776,33 @@ extern "C" {
     int (*PVOC_Rewind)(struct ENVIRON_ *, int, int);
     const char *(*PVOC_ErrorString)(struct ENVIRON_ *);
     int (*PVOCEX_LoadFile)(struct ENVIRON_ *, const char *, PVOCEX_MEMFILE *);
-#if defined(HAVE_GCC3) && !defined(__MACH__)
-    __attribute__ ((__noreturn__))
-#endif
-      void (*LongJmp)(struct ENVIRON_ *, int);
+    CS_NORETURN void (*LongJmp)(struct ENVIRON_ *, int);
+    CS_PRINTF2 void (*ErrorMsg)(void *csound, const char *fmt, ...);
+    void (*ErrMsgV)(void *csound, const char *hdr, const char *fmt, va_list);
+    char *(*getstrformat)(int format);
+    int (*sfsampsize)(int format);
+    char *(*type2string)(int type);
+    char *(*GetOpcodeName)(void *p);
+    int (*GetInputArgCnt)(void *p);
+    unsigned long (*GetInputArgAMask)(void *p);
+    unsigned long (*GetInputArgSMask)(void *p);
+    char *(*GetInputArgName)(void *p, int n);
+    int (*GetOutputArgCnt)(void *p);
+    unsigned long (*GetOutputArgAMask)(void *p);
+    unsigned long (*GetOutputArgSMask)(void *p);
+    char *(*GetOutputArgName)(void *p, int n);
+    int (*SetReleaseLength)(void *p, int n);
+    MYFLT (*SetReleaseLengthSeconds)(void *p, MYFLT n);
+    int (*GetMidiChannelNumber)(void *p);
+    MCHNBLK *(*GetMidiChannel)(void *p);
+    int (*GetMidiNoteNumber)(void *p);
+    int (*GetMidiVelocity)(void *p);
+    int (*GetReleaseFlag)(void *p);
+    double (*GetOffTime)(void *p);
+    MYFLT *(*GetPFields)(void *p);
+    int (*GetInstrumentNumber)(void *p);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[116];
+    SUBR dummyfn_2[92];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;

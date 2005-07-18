@@ -238,11 +238,9 @@ void dieu(void *csound_, char *s, ...)
     csound->Message(csound,Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
     csound->Message(csound,Str("Legal flags are:\n"));
     print_short_usage(csound);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("Csound Command ERROR:\t"));
     va_start(args, s);
-    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
+    csound->ErrMsgV(csound, Str("Csound Command ERROR:\t"), s, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 
     csound->LongJmp(csound, 1);
 }
