@@ -87,7 +87,7 @@ int bowedbarset(ENVIRON *csound, BOWEDBAR *p)
     make_BiQuad(&p->bandpass[1]);
     make_BiQuad(&p->bandpass[2]);
     make_BiQuad(&p->bandpass[3]);
-
+    make_ADSR(&p->adsr);
     ADSR_setAllTimes(csound, &p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
 
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
@@ -130,7 +130,7 @@ int bowedbarset(ENVIRON *csound, BOWEDBAR *p)
 int bowedbar(ENVIRON *csound, BOWEDBAR *p)
 {
     MYFLT       *ar = p->ar;
-    long        nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     long k;
     int i;
@@ -186,7 +186,7 @@ int bowedbar(ENVIRON *csound, BOWEDBAR *p)
     }
     maxVelocity = FL(0.03) + (FL(0.5) * amp);
 
-    do {
+    for (n=0;n<nsmps;n++) {
       MYFLT data = FL(0.0);
       MYFLT input = FL(0.0);
       if (integration_const == FL(0.0))
@@ -217,8 +217,8 @@ int bowedbar(ENVIRON *csound, BOWEDBAR *p)
         data += p->bandpass[k].lastOutput;
       }
 
-      *ar++ = data * FL(4.0) * AMP_SCALE * FL(20.0);
-    } while (--nsmps);
+      ar[n] = data * AMP_SCALE * FL(20.0); /* 20 is empirical */
+    }
     return OK;
 }
 

@@ -1,3 +1,8 @@
+2005-07-23  John ff  <jpff@codemist.co.uk>
+
+	* Opcodes/bowedbar.c (bowedbarset): ADSR not initialised
+	correctly.  Still has over hash attack.  Also adjust gain.
+
 2005-07-17	Istvan Varga	<ivarga@csounds.com>
 	* Engine/rdorch.c: fixed crash on missing endin
 	* Engine/rdorch.c, Engine/sread.c: fixed error message on $ without
