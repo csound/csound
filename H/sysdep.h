@@ -87,7 +87,7 @@
 /* add any other compiler that supports 'inline' */
 
 #if !(defined(HAVE_C99) || defined(HAVE_GCC3) || defined(__cplusplus))
-#if defined(WIN32) && defined(_MSC_VER)
+#if defined(WIN32) && defined(_MSC_VER) && !defined(__GNUC__)
 #define inline  __inline
 #elif !defined(inline)
 #define inline
@@ -137,7 +137,7 @@
 #        endif
 #      endif
 /*  RWD for WIN32 on VC++ */
-#      ifndef _MSC_VER
+#      if !defined(_MSC_VER) || defined(__GNUC__)
 #        include <sys/file.h>
 #      endif
 #    endif
@@ -220,7 +220,7 @@ static inline long MYFLT2LONG(double fval)
 
 /* function attributes */
 
-#ifdef HAVE_GCC3
+#if defined(HAVE_GCC3) && !defined(SWIG)
 /* deprecated function, variable, or type that is to be removed eventually */
 #  define CS_DEPRECATED __attribute__ ((__deprecated__))
 /* a function that should not be inlined */
