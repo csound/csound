@@ -233,7 +233,7 @@ static inline long MYFLT2LONG(double fval)
 
 /* function attributes */
 
-#if (defined(__GNUC__) && (__GNUC__ >= 3)) && !defined(DIRENT_FIX)
+#ifdef HAVE_GCC3
 /* deprecated function, variable, or type that is to be removed eventually */
 #  define CS_DEPRECATED __attribute__ ((__deprecated__))
 /* a function that should not be inlined */

@@ -124,25 +124,17 @@ extern "C" {
   /* Enables Python interface. */
 
 #ifdef SWIG
-/* printf-style function with second argument as format string */
-#  define CS_PRINTF2    __attribute__ ((__format__ (__printf__, 2, 3)))
-/* printf-style function with third argument as format string */
-#  define CS_PRINTF3    __attribute__ ((__format__ (__printf__, 3, 4)))
-
+  %include "sysdep.h"
   %module csound
   %{
+#endif
 #include "sysdep.h"
 #include "cwindow.h"
 #include "opcode.h"
 #include "text.h"
 #include <stdarg.h>
-    %}
-#else
-#include "sysdep.h"
-#include "cwindow.h"
-#include "opcode.h"
-#include "text.h"
-#include <stdarg.h>
+#ifdef SWIG
+  %}
 #endif
 
   /**
