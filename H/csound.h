@@ -115,22 +115,16 @@ extern "C" {
    */
 
 #ifdef SWIG
-/* the following macros are stubs */
-#  ifndef USE_DOUBLE
-#    define MYFLT   float
-#  else
-#    define MYFLT   double
-#  endif
-#  define CS_PRINTF2
-#  define CS_PRINTF3
-  %module csound
-  %{
+#define CS_PRINTF2
+#define CS_PRINTF3
+%module csound
+%{
 #  include "sysdep.h"
 #  include "cwindow.h"
 #  include "opcode.h"
 #  include "text.h"
 #  include <stdarg.h>
-  %}
+%}
 #else
 #  include "sysdep.h"
 #  include "cwindow.h"
