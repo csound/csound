@@ -92,49 +92,51 @@
  *
  * In general, plugins should ONLY access Csound functionality through the
  * API function pointers.
- *
  */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * Platform-dependent definitions and declarations.
- */
-#if defined(SWIG)
-#define PUBLIC
-#elif defined HAVE_CONFIG_H && (defined _WIN32 || defined __CYGWIN__)
-#  if !defined PIC
-#    define PUBLIC
-#  elif defined BUILDING_LIBCSOUND
-#    define PUBLIC __declspec(dllexport)
-#  else
-#    define PUBLIC __declspec(dllimport)
-#  endif
-#  define LIBRARY_CALL WINAPI
-#elif defined WIN32
-#define PUBLIC __declspec(dllexport)
-#define LIBRARY_CALL WINAPI
+  /**
+   * Platform-dependent definitions and declarations.
+   */
+
+#if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
+#  define PUBLIC        __declspec(dllexport)
+#  define LIBRARY_CALL  WINAPI
 #else
-#define PUBLIC
-#define LIBRARY_CALL
+#  define PUBLIC
+#  define LIBRARY_CALL
 #endif
 
-  /* Enables Python interface. */
+  /**
+   * Enables Python interface.
+   */
 
 #ifdef SWIG
-  %include "sysdep.h"
+/* the following macros are stubs */
+#  ifndef USE_DOUBLE
+#    define MYFLT   float
+#  else
+#    define MYFLT   double
+#  endif
+#  define CS_PRINTF2
+#  define CS_PRINTF3
   %module csound
   %{
-#endif
-#include "sysdep.h"
-#include "cwindow.h"
-#include "opcode.h"
-#include "text.h"
-#include <stdarg.h>
-#ifdef SWIG
+#  include "sysdep.h"
+#  include "cwindow.h"
+#  include "opcode.h"
+#  include "text.h"
+#  include <stdarg.h>
   %}
+#else
+#  include "sysdep.h"
+#  include "cwindow.h"
+#  include "opcode.h"
+#  include "text.h"
+#  include <stdarg.h>
 #endif
 
   /**

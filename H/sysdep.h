@@ -20,7 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-                                                                /* SYSDEP.H */
+
 #ifndef CSOUND_SYSDEP_H
 #define CSOUND_SYSDEP_H
 
@@ -47,12 +47,15 @@
 #define HAVE_C99 1
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
-
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
+#include <string.h>
+#if defined(HAVE_FCNTL_H) || defined(__unix) || defined(__unix__)
+#include <fcntl.h>
+#endif
+#if defined(HAVE_UNISTD_H) || defined(__unix) || defined(__unix__)
+#include <unistd.h>
 #endif
 
 /* find out operating system if not specified on the command line */
@@ -67,14 +70,6 @@
 #endif
 #endif
 
-/* some older systems may have strings.h instead of string.h */
-
-#if defined(HAVE_STRING_H) || !defined(HAVE_STRINGS_H)
-#include <string.h>
-#else
-#include <strings.h>
-#endif
-
 /* Experiment with doubles or floats */
 
 #ifndef __FL_DEF
@@ -86,14 +81,6 @@
 # define FL(x) x
 #endif
 #define __FL_DEF
-#endif
-
-#if defined(HAVE_FCNTL_H) || defined(__unix) || defined(__unix__)
-#include <fcntl.h>
-#endif
-
-#if defined(HAVE_UNISTD_H) || defined(__unix) || defined(__unix__)
-#include <unistd.h>
 #endif
 
 /* inline keyword: always available in C++, C99, and GCC 3.x and above */
