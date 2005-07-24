@@ -61,13 +61,19 @@
 /* find out operating system if not specified on the command line */
 
 #if defined(_WIN32) || defined(__WIN32__)
-#ifndef WIN32
-#define WIN32 1
+#  ifndef WIN32
+#    define WIN32 1
+#  endif
+#elif (defined(linux) || defined(__linux)) && !defined(LINUX)
+#  define LINUX 1
 #endif
-#elif defined(linux) || defined(__linux)
-#ifndef LINUX
-#define LINUX 1
-#endif
+
+#if defined(WIN32) && defined(_MSC_VER) && !defined(__GNUC__)
+#  ifndef MSVC
+#    define MSVC 1
+#  endif
+#elif defined(MSVC)
+#  undef MSVC
 #endif
 
 /* Experiment with doubles or floats */
@@ -87,7 +93,7 @@
 /* add any other compiler that supports 'inline' */
 
 #if !(defined(HAVE_C99) || defined(HAVE_GCC3) || defined(__cplusplus))
-#if defined(WIN32) && defined(_MSC_VER) && !defined(__GNUC__)
+#ifdef MSVC
 #define inline  __inline
 #elif !defined(inline)
 #define inline
@@ -137,7 +143,7 @@
 #        endif
 #      endif
 /*  RWD for WIN32 on VC++ */
-#      if !defined(_MSC_VER) || defined(__GNUC__)
+#      ifndef MSVC
 #        include <sys/file.h>
 #      endif
 #    endif
@@ -183,7 +189,7 @@ typedef unsigned long       uintptr_t;
 #define MYFLT2LONG(x) ((long) lrint((double) (x)))
 #define MYFLT2LRND(x) ((long) lrint((double) (x)))
 #endif
-#elif defined(_WIN32) && defined(_MSC_VER) && !defined(__GNUC__)
+#elif defined(MSVC)
 #ifndef USE_DOUBLE
 static inline long MYFLT2LONG(float fval)
 {
@@ -247,7 +253,7 @@ static inline long MYFLT2LONG(double fval)
 
 /* inline functions and macros for clamping denormals to zero */
 
-#if defined(__i386__) || (defined(_MSC_VER) && !defined(__GNUC__))
+#if defined(__i386__) || defined(MSVC)
 static inline float csoundUndenormalizeFloat(float x)
 {
     volatile float  tmp = 1.0e-30f;
