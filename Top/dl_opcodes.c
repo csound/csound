@@ -20,17 +20,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
 
 #include "csoundCore.h"
+#include "csound.h"
 
 #ifdef HAVE_LIBDL
 #include <dlfcn.h>
-#elif WIN32
-#define PUBLIC __declspec(dllexport)
-#define LIBRARY_CALL WINAPI
+#elif defined(WIN32)
 #include <windows.h>
 #endif
 
