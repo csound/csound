@@ -20,7 +20,6 @@ DOCUMENTATION
  cogoto
  delayk
  event_i
- exitnow
  FLgroup_end
  FLpack_end
  FLpanel_end
@@ -29,19 +28,7 @@ DOCUMENTATION
  loopsegp
  lpsholdp
  oscilv
- OSCsend
- puts
- pvsinit
  seqtime2
- sprintf
- sprintfk
- strcat
- strcatk
- strcmp
- strcmpk
- strcpy
- strcpyk
- strget
  tab
  tab_i
  tabplay
