@@ -17,17 +17,11 @@ B2.     Many differences between FL code on Csound and CsoundAV
 DOCUMENTATION
 -------------
 
- cogoto
- delayk
- event_i
- FLgroup_end
- FLpack_end
- FLpanel_end
- FLscroll_end
- FLtabs_end
+ <<
+ >>
+  event_i
  loopsegp
  lpsholdp
- oscilv
  seqtime2
  tab
  tab_i
@@ -39,15 +33,7 @@ DOCUMENTATION
  tb0_init ... tb15_init
  timedseq
  vcopy_i
- vdelayk
  vdel_k
- vecdelay
- vlimit
- vmap
- vmirror
- vport
  vrandh
  vrandi
- vwrap
- <<
- >>
+ cogoto
