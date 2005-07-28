@@ -1731,12 +1731,6 @@ int chunk_read(FILE *fil, CHUNK *chunk)
     fread(&chunk->ckSize,4,1,fil);
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) malloc( chunk->ckSize);
-#if 0
-#ifdef BETA
-    csound->Message(csound, "read chunk (%.4s) length %ld\n",
-                            (char*) &chunk->ckID, chunk->ckSize);
-#endif
-#endif
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
 
@@ -1767,71 +1761,59 @@ void fill_SfPointers(ENVIRON *csound)
     chkp = (char *) main_chunk->ckDATA+4;
     for  (j=4; j< main_chunk->ckSize;) {
       chkid = /* (DWORD *) chkp*/ dword(chkp);
-#ifdef BETA
-      csound->Message(csound, "Looking at %.4s\n", (char*) &chkid);
-#endif
+/* #ifdef BETA */
+/*       csound->Message(csound, "Looking at %.4s\n", (char*) &chkid); */
+/* #endif */
       if (chkid == s2d("LIST")) {
-#ifdef BETA
-        csound->Message(csound, "LIST ");
-#endif
+/* #ifdef BETA */
+/*         csound->Message(csound, "LIST "); */
+/* #endif */
         j += 4; chkp += 4;
         ChangeByteOrder("d", chkp, 4);
         size = /* (DWORD *) chkp */ dword(chkp);
-#ifdef BETA
-        csound->Message(csound, "**size %u %u\n",
-                        (unsigned int) size, (unsigned int) *((DWORD *) chkp));
-#endif
+/* #ifdef BETA */
+/*         csound->Message(csound, "**size %u %u\n", */
+/*                         (unsigned int) size, (unsigned int) *((DWORD *) chkp)); */
+/* #endif */
         j += 4; chkp += 4;
         chkid = /* (DWORD *) chkp */ dword(chkp);
-#ifdef BETA
-        csound->Message(csound, "**chkid %p %p\n",
-                                (void*) chkid, (void*) (*((DWORD *) chkp)));
-        csound->Message(csound, ":Looking at %.4s (%u)\n",
-                                (char*) &chkid, (unsigned int) size);
-#endif
+/* #ifdef BETA */
+/*         csound->Message(csound, "**chkid %p %p\n", */
+/*                                 (void*) chkid, (void*) (*((DWORD *) chkp))); */
+/*         csound->Message(csound, ":Looking at %.4s (%u)\n", */
+/*                                 (char*) &chkid, (unsigned int) size); */
+/* #endif */
         if (chkid == s2d("INFO")) {
-#ifdef BETA
-          csound->Message(csound, "INFO ");
-#endif
           chkp += size;
           j    += size;
         }
         else if (chkid == s2d("sdta")) {
-#ifdef BETA
-          csound->Message(csound, "sdta ");
-#endif
           j +=4; chkp += 4;
           smplChunk = (CHUNK *) chkp;
           soundFont->sampleData = (SHORT *) &smplChunk->ckDATA;
-#ifdef BETA
-          csound->Message(csound, "Change %d and then %u times w\n",
-                                  (int) *(chkp + 4), (unsigned int) size - 12U);
-#endif
+/* #ifdef BETA */
+/*           csound->Message(csound, "Change %d and then %u times w\n", */
+/*                                   (int) *(chkp + 4), (unsigned int) size - 12U); */
+/* #endif */
           ChangeByteOrder("d", chkp + 4, 4);
           ChangeByteOrder("w", chkp + 8, size - 12);
-#ifdef BETA
-          {
-            DWORD i;
-            for (i=size-12; i< size+4; i++)
-              csound->Message(csound, "%c(%.2x)", chkp[i], chkp[i]);
-            csound->Message(csound, "\n");
-          }
-#endif
+/* #ifdef BETA */
+/*           { */
+/*             DWORD i; */
+/*             for (i=size-12; i< size+4; i++) */
+/*               csound->Message(csound, "%c(%.2x)", chkp[i], chkp[i]); */
+/*             csound->Message(csound, "\n"); */
+/*           } */
+/* #endif */
           chkp += size-4;
           j += size-4;
         }
         else if (chkid  ==  s2d("pdta")) {
-#ifdef BETA
-          csound->Message(csound, "pdta ");
-#endif
           j += 4; chkp += 4;
           do {
             chkid = /* (DWORD *) chkp */ dword(chkp);
          /* csound->Message(csound, "::Looking at %.4s (%d)\n",&chkid,size); */
             if (chkid == s2d("phdr")) {
-#ifdef BETA
-              csound->Message(csound, "phdr ");
-#endif
               phdrChunk = (CHUNK *) chkp;
               soundFont->chunk.phdr= (sfPresetHeader *) &phdrChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1840,9 +1822,6 @@ void fill_SfPointers(ENVIRON *csound)
               j += phdrChunk->ckSize+8;
             }
             else if (chkid == s2d("pbag")) {
-#ifdef BETA
-              csound->Message(csound, "pbag ");
-#endif
               pbagChunk = (CHUNK *) chkp;
               soundFont->chunk.pbag= (sfPresetBag *) &pbagChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1851,9 +1830,6 @@ void fill_SfPointers(ENVIRON *csound)
               j += pbagChunk->ckSize+8;
             }
             else if (chkid == s2d("pmod")) {
-#ifdef BETA
-              csound->Message(csound, "pmod ");
-#endif
               pmodChunk = (CHUNK *) chkp;
               soundFont->chunk.pmod= (sfModList *) &pmodChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1862,9 +1838,6 @@ void fill_SfPointers(ENVIRON *csound)
               j += pmodChunk->ckSize+8;
             }
             else if (chkid == s2d("pgen")) {
-#ifdef BETA
-              csound->Message(csound, "pgen ");
-#endif
               pgenChunk = (CHUNK *) chkp;
               soundFont->chunk.pgen= (sfGenList *) &pgenChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1873,9 +1846,6 @@ void fill_SfPointers(ENVIRON *csound)
               j += pgenChunk->ckSize+8;
             }
             else if (chkid == s2d("inst")) {
-#ifdef BETA
-              csound->Message(csound, "inst ");
-#endif
               instChunk = (CHUNK *) chkp;
               soundFont->chunk.inst= (sfInst *) &instChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1884,9 +1854,6 @@ void fill_SfPointers(ENVIRON *csound)
               j += instChunk->ckSize+8;
             }
             else if (chkid == s2d("ibag")) {
-#ifdef BETA
-              csound->Message(csound, "ibag ");
-#endif
               ibagChunk = (CHUNK *) chkp;
               soundFont->chunk.ibag= (sfInstBag *) &ibagChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1895,9 +1862,6 @@ void fill_SfPointers(ENVIRON *csound)
               j += ibagChunk->ckSize+8;
             }
             else if (chkid == s2d("imod")) {
-#ifdef BETA
-              csound->Message(csound, "imod ");
-#endif
               imodChunk = (CHUNK *) chkp;
               soundFont->chunk.imod= (sfInstModList *) &imodChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1906,9 +1870,6 @@ void fill_SfPointers(ENVIRON *csound)
               j += imodChunk->ckSize+8;
             }
             else if (chkid == s2d("igen")) {
-#ifdef BETA
-              csound->Message(csound, "igen ");
-#endif
               igenChunk = (CHUNK *) chkp;
               soundFont->chunk.igen= (sfInstGenList *) &igenChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1917,9 +1878,6 @@ void fill_SfPointers(ENVIRON *csound)
               j += igenChunk->ckSize+8;
             }
             else if (chkid == s2d("shdr")) {
-#ifdef BETA
-              csound->Message(csound, "shdr ");
-#endif
               shdrChunk = (CHUNK *) chkp;
               soundFont->chunk.shdr= (sfSample *) &shdrChunk->ckDATA;
               ChangeByteOrder("d", chkp + 4, 4);
@@ -1928,10 +1886,10 @@ void fill_SfPointers(ENVIRON *csound)
               j += shdrChunk->ckSize+8;
             }
             else {
-#ifdef BETA
-              csound->Message(csound, "Unknown sfont %.4s(%.8x)\n",
-                                      (char*) &chkid, (unsigned int) chkid);
-#endif
+/* #ifdef BETA */
+/*               csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
+/*                                       (char*) &chkid, (unsigned int) chkid); */
+/* #endif */
               shdrChunk = (CHUNK *) chkp;
               chkp += shdrChunk->ckSize+8;
               j += shdrChunk->ckSize+8;
@@ -1939,20 +1897,20 @@ void fill_SfPointers(ENVIRON *csound)
           } while (j < main_chunk->ckSize);
         }
         else {
-#ifdef BETA
-          csound->Message(csound, "Unknown sfont %.4s(%.8x)\n",
-                                  (char*) &chkid, (unsigned int) chkid);
-#endif
+/* #ifdef BETA */
+/*           csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
+/*                                   (char*) &chkid, (unsigned int) chkid); */
+/* #endif */
           shdrChunk = (CHUNK *) chkp;
           chkp += shdrChunk->ckSize+8;
           j += shdrChunk->ckSize+8;
         }
       }
       else {
-#ifdef BETA
-        csound->Message(csound, "Unknown sfont %.4s(%.8x)\n",
-                                (char*) &chkid, (unsigned int) chkid);
-#endif
+/* #ifdef BETA */
+/*         csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
+/*                                 (char*) &chkid, (unsigned int) chkid); */
+/* #endif */
         shdrChunk = (CHUNK *) chkp;
         chkp += shdrChunk->ckSize+8;
         j += shdrChunk->ckSize+8;

@@ -14,3 +14,53 @@ B1.     hetro and lpanal are broken
 
 B2.     Many differences between FL code on Csound and CsoundAV
 
+DOCUMENTATION
+-------------
+
+ cogoto
+ delayk
+ event_i
+ exitnow
+ FLgroup_end
+ FLpack_end
+ FLpanel_end
+ FLscroll_end
+ FLtabs_end
+ loopsegp
+ lpsholdp
+ oscilv
+ OSCsend
+ puts
+ pvsinit
+ seqtime2
+ sprintf
+ sprintfk
+ strcat
+ strcatk
+ strcmp
+ strcmpk
+ strcpy
+ strcpyk
+ strget
+ tab
+ tab_i
+ tabplay
+ tabrec
+ tabw
+ tabw_i
+ tb0 ... tb15
+ tb0_init ... tb15_init
+ timedseq
+ vcopy_i
+ vdelayk
+ vdel_k
+ vecdelay
+ vlimit
+ vmap
+ vmirror
+ vport
+ vrandh
+ vrandi
+ vwrap
+ <<
+ >>
