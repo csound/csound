@@ -726,14 +726,14 @@ int lpshold(ENVIRON *csound, LOOPSEG *p)
 
 int loopsegp_set(ENVIRON *csound, LOOPSEGP *p)
 {
-    p->nsegs = p->INOCOUNT-1;
-    p->args[0]=FL(0.0);
+    p->nsegs   = p->INOCOUNT-1;
+    p->args[0] = FL(0.0);
     return OK;
 }
 
 int loopsegp(ENVIRON *csound, LOOPSEGP *p)
 {
-    MYFLT *argp=p->args;
+    MYFLT *argp = p->args;
     MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
     MYFLT phs;
     int nsegs=p->nsegs+1;
@@ -741,10 +741,10 @@ int loopsegp(ENVIRON *csound, LOOPSEGP *p)
 
     phs = *p->kphase;
 
-    while (phs >= 1.0)
-      phs -= 1.0;
-    while (phs < 0.0 )
-      phs += 1.0;
+    while (phs >= FL(1.0))
+      phs -= FL(1.0);
+    while (phs < FL(0.0))
+      phs += FL(1.0);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -779,10 +779,10 @@ int lpsholdp(ENVIRON *csound, LOOPSEGP *p)
 
     phs = *p->kphase;
 
-    while (phs >= 1.0)
-      phs -= 1.0;
-    while (phs < 0.0 )
-      phs += 1.0;
+    while (phs >= FL(1.0))
+      phs -= FL(1.0);
+    while (phs < FL(0.0))
+      phs += FL(1.0);
 
     for (j=1; j<nsegs; j++)
       argp[j] = *p->argums[j-1];
@@ -912,11 +912,11 @@ int vibrato(ENVIRON *csound, VIBRATO *p)
     v1 = *ftab++;
     *p->out = (v1 + (*ftab - v1) * fract) *
       (*p->AverageAmp * (MYFLT)pow(2.0,RandAmountAmp));
-    inc = ( *p->AverageFreq * pow(2,RandAmountFreq)) *  p->tablenUPkr;
+    inc = ( *p->AverageFreq * pow(2.0,RandAmountFreq)) *  p->tablenUPkr;
     phs += inc;
     while (phs >= p->tablen)
       phs -= p->tablen;
-    while (phs < 0 )
+    while (phs < 0.0 )
       phs += p->tablen;
     p->lphs = phs;
     p->phsAmpRate += (long)(p->xcpsAmpRate * csound->kicvt);
@@ -988,7 +988,7 @@ int vibr(ENVIRON *csound, VIBR *p)
     phs += inc;
     while (phs >= p->tablen)
       phs -= p->tablen;
-    while (phs < 0 )
+    while (phs < 0.0 )
       phs += p->tablen;
     p->lphs = phs;
 
@@ -1208,7 +1208,7 @@ int iDiscreteUserRand(ENVIRON *csound, DURAND *p)
 int aDiscreteUserRand(ENVIRON *csound, DURAND *p)
 { /* gab d5*/
     MYFLT *out = p->out, *table;
-    long n = csound->ksmps, flen;
+    int n, nsmps = csound->ksmps, flen;
 
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) {
@@ -1219,9 +1219,9 @@ int aDiscreteUserRand(ENVIRON *csound, DURAND *p)
     }
     table = p->ftp->ftable;
     flen = p->ftp->flen;
-    do {
-      *out++ = table[(long)(randGab * flen +FL(0.5))];
-    } while (--n);
+    for (n=0; n<nsmps; n++) {
+      out[n] = table[(long)(randGab * flen +FL(0.5))];
+    }
     return OK;
 }
 
