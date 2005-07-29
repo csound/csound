@@ -79,7 +79,6 @@ static  FUNC    *ftalloc(ENVIRON *);
 static void GENUL(FUNC *ftp, ENVIRON *csound)
 {
     fterror(csound, &(csound->ff), Str("unknown GEN number"));
-    return;
 }
 
 /**
@@ -113,7 +112,7 @@ int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
       } while (ff->fno <= csound->maxfnum && csound->flist[ff->fno] != NULL);
       ff->e.p[1] = (MYFLT) (ff->fno);
     }
-    if (ff->fno < 0) {                      /* fno < 0: remove              */
+    else if (ff->fno < 0) {                 /* fno < 0: remove              */
       ff->fno = -(ff->fno);
       if (ff->fno > csound->maxfnum ||
           (ftp = csound->flist[ff->fno]) == NULL) {
@@ -175,7 +174,7 @@ int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
       }
       else {
         ff->guardreq = ff->flen & 01;       /*   set guard request flg      */
-        ff->flen &= -2;                     /*   flen now w/o guardpt       */
+        ff->flen &= -2L;                    /*   flen now w/o guardpt       */
         ff->flenp1 = ff->flen + 1L;         /*   & flenp1 with guardpt      */
  powOfTwoLen:
         if (ff->flen <= 0L || ff->flen > MAXLEN) {
@@ -193,7 +192,6 @@ int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
         ff->lenmask = ff->flen - 1L;
       }
       ftp = ftalloc(csound);                    /*   alloc ftable space now */
-      ftp->fno      = (long) ff->fno;
       ftp->flen     = ff->flen;
       ftp->lenmask  = ff->lenmask;              /*   init hdr w powof2 data */
       ftp->lobits   = lobits;
@@ -204,20 +202,30 @@ int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
       ftp->nchanls  = 1;                        /*    presume mono for now   */
       ftp->flenfrms = ff->flen;
     }
-    else if (genum != 1 && genum != 23 && genum != 28) {
+    else {
       /* else defer alloc to gen01|gen23|gen28 */
-      fterror(csound, ff, Str("deferred size for GEN1 only"));
-      return -1;
+      if (genum != 1 && genum != 23 && genum != 28) {
+        fterror(csound, ff, Str("deferred size for GEN1 only"));
+        return -1;
+      }
+      csound->Message(csound, Str("ftable %d:\n"), ff->fno);
+      (*csound->gensub[genum])(ftp, csound);
+      ftp = csound->flist[ff->fno];
+      if (ff->fterrcnt) {
+        mfree(csound, ftp);
+        csound->flist[ff->fno] = NULL;
+        return -1;
+      }
+      *ftpp = ftp;
+      return 0;
     }
 
     csound->Message(csound, Str("ftable %d:\n"), ff->fno);
     (*csound->gensub[genum])(ftp, csound);
 
     if (ff->fterrcnt) {
-      if (ftp != NULL) {
-        mfree(csound, ftp);
-        csound->flist[ff->fno] = NULL;
-      }
+      mfree(csound, ftp);
+      csound->flist[ff->fno] = NULL;
       return -1;
     }
 
@@ -230,26 +238,27 @@ int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
     return 0;
 }
 
+/* read ftable values directly from p-args */
+
 static void gen02(FUNC *ftp, ENVIRON *csound)
-{                               /* read ftable values directly from p-args */
+{
     FGDATA  *ff = &(csound->ff);
     MYFLT   *fp = ftp->ftable, *pp = &(ff->e.p[5]);
-    int     nvals = ff->e.pcnt-1;
+    int     nvals = ff->e.pcnt - 4;
 
     if (nvals > ff->flenp1)
       nvals = ff->flenp1;                      /* for all vals up to flen+1 */
-    do  {
+    while (nvals--)
       *fp++ = *pp++;                           /*   copy into ftable   */
-    } while (--nvals);
 }
 
 static void gen03(FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
-    int         ncoefs, nargs = ff->e.pcnt-4;
-    MYFLT       xintvl, xscale;
-    int         xloc, nlocs;
-    MYFLT       *fp = ftp->ftable, x, sum, *coefp, *coef0, *coeflim;
+    int     ncoefs, nargs = ff->e.pcnt-4;
+    MYFLT   xintvl, xscale;
+    int     xloc, nlocs;
+    MYFLT   *fp = ftp->ftable, x, sum, *coefp, *coef0, *coeflim;
 
     if ((ncoefs = nargs - 2) <= 0) {
       fterror(csound, ff, Str("no coefs present"));
@@ -698,41 +707,41 @@ static void gn1314(FUNC *ftp, ENVIRON *csound, MYFLT mxval, MYFLT mxscal)
 static void gen15(FUNC *ftp, ENVIRON *csound)
 {
     FGDATA  *ff = &(csound->ff);
-    MYFLT       xint, xamp, hsin[PMAX/2], h, angle;
-    MYFLT       *fp, *cosp, *sinp;
-    int n, nh;
-    long        *lp, *lp13;
-    int         nargs = ff->e.pcnt -4;
+    MYFLT   xint, xamp, hsin[PMAX/2], h, angle;
+    MYFLT   *fp, *cosp, *sinp;
+    int     n, nh;
+    void    *lp13;
+    int     nargs = ff->e.pcnt - 4;
 
     if (nargs & 01) {
       fterror(csound, ff, Str("uneven number of args")); return;
     }
     nh = (nargs - 2) >>1;
-    fp   = &ff->e.p[5];                                /* save p5, p6  */
+    fp   = &ff->e.p[5];                         /* save p5, p6  */
     xint = *fp++;
     xamp = *fp++;
     for (n = nh, cosp = fp, sinp = hsin; n > 0; n--) {
-      h = *fp++;                                  /* rpl h,angle pairs */
+      h = *fp++;                                /* rpl h,angle pairs */
       angle = (MYFLT)(*fp++ * tpd360);
-      *cosp++ = h * (MYFLT)cos((double)angle);    /* with h cos angle */
-      *sinp++ = h * (MYFLT)sin((double)angle);    /* and save the sine */
+      *cosp++ = h * (MYFLT)cos((double)angle);  /* with h cos angle */
+      *sinp++ = h * (MYFLT)sin((double)angle);  /* and save the sine */
     }
     nargs -= nh;
     gen13(ftp, csound);                         /* call gen13   */
     if (ff->fterrcnt) return;
     ftresdisp(csound, ff, ftp);                 /* and display fno   */
-    lp13 = (long *)ftp;
+    lp13 = (void*) ftp;
     ff->fno++;                                  /* alloc eq. space for fno+1 */
-    ftp = ftalloc(csound);
-    for (lp = (long *)ftp; lp < (long *)ftp->ftable; )  /* & copy header */
-      *lp++ = *lp13++;
+    ftp = ftalloc(csound);                      /* & copy header */
+    memcpy((void*) ftp, lp13, (size_t) ((char*) ftp->ftable - (char*) ftp));
+    ftp->fno = (long) ff->fno;
     fp    = &ff->e.p[5];
-    *fp++ = xint;                                 /* restore p5, p6,   */
+    *fp++ = xint;                               /* restore p5, p6,   */
     *fp++ = xamp;
-    for (n = nh-1, sinp = hsin+1; n > 0; n--)     /* then skip h0*sin  */
-      *fp++ = *sinp++;                            /* & copy rem hn*sin */
+    for (n = nh-1, sinp = hsin+1; n > 0; n--)   /* then skip h0*sin  */
+      *fp++ = *sinp++;                          /* & copy rem hn*sin */
     nargs--;
-    gen14(ftp, csound);                           /* now draw ftable   */
+    gen14(ftp, csound);                         /* now draw ftable   */
 }
 
 static void gen16(FUNC *ftp, ENVIRON *csound)
@@ -1078,8 +1087,7 @@ static void gen23(FUNC *ftp, ENVIRON *csound)
       ff->flen    = ff->flen+2;
       ff->lenmask = ff->flen;
       ff->flenp1  = ff->flen+2;
-      ftp = (FUNC *) mcalloc(csound, sizeof(FUNC) + ff->flen * sizeof(MYFLT));
-      csound->flist[ff->fno]   = ftp;
+      ftp = ftalloc(csound);
       ftp->flen    = ff->flen;
       ftp->lenmask = ff->flen;
     }
@@ -1286,10 +1294,7 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
     ff->flen = ff->flen+2;
     ff->lenmask=ff->flen;
     ff->flenp1=ff->flen+2;
-    ftp=NULL;
-    mfree(csound, (char *)ftp);         /*   release old space   */
-    ftp = (FUNC *) mcalloc(csound, (long)sizeof(FUNC) + ff->flen*sizeof(MYFLT));
-    csound->flist[ff->fno] = ftp;
+    ftp = ftalloc(csound);
     ftp->flen = ff->flen;
     ftp->lenmask=ff->flen;
     fp = ftp->ftable;
@@ -1890,36 +1895,37 @@ static void ftresdisp(ENVIRON *csound, FGDATA *ff, FUNC *ftp)
     display(csound, &dwindow);
 }
 
+/* alloc ftable space for fno (or replace one) */
+/*  set ftp to point to that structure         */
+
 static FUNC *ftalloc(ENVIRON *csound)
-                            /* alloc ftable space for fno (or replace one) */
-{                           /*  set ftp to point to that structure      */
+{
     FGDATA  *ff = &(csound->ff);
-    FUNC *ftp;
-    if ((ftp = csound->flist[ff->fno]) != NULL) {
+    FUNC    *ftp = csound->flist[ff->fno];
+
+    if (ftp != NULL) {
       if (csound->oparms->msglevel & WARNMSG)
         csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
       if (ff->flen != ftp->flen) {          /* if redraw & diff len, */
-        mfree(csound, (char *)ftp);         /*   release old space   */
-        csound->flist[ff->fno] = NULL;
+        mfree(csound, (void*) ftp);         /*   release old space   */
+        csound->flist[ff->fno] = ftp = NULL;
         if (csound->actanchor.nxtact != NULL) { /*   & chk for danger    */
           csound->Warning(csound, Str("ftable %d relocating due to size change"
                                       "\n         currently active instruments "
                                       "may find this disturbing"), ff->fno);
         }
       }
-      else {                            /* else clear it to zero */
-        MYFLT   *fp = ftp->ftable;
-        MYFLT   *finp = &ftp->ftable[ff->flen];
-        while (fp <= finp)
-          *fp++ = FL(0.0);
+      else {                                /* else clear it to zero */
+        size_t  nBytes = sizeof(FUNC) + (size_t) ff->flen * sizeof(MYFLT);
+        memset((void*) ftp, 0, nBytes);
       }
     }
-    if ((ftp = csound->flist[ff->fno]) == NULL) {   /*   alloc space as reqd */
+    if (ftp == NULL) {                      /*   alloc space as reqd */
       size_t  nBytes = sizeof(FUNC) + (size_t) ff->flen * sizeof(MYFLT);
-      csound->DebugMsg(csound, Str("Allocating %ld bytes"), (long) nBytes);
-      ftp = (FUNC*) mcalloc(csound, nBytes);
-      csound->flist[ff->fno] = ftp;
+      csound->flist[ff->fno] = ftp = (FUNC*) mcalloc(csound, nBytes);
     }
+    ftp->fno = (long) ff->fno;
+
     return ftp;
 }
 
@@ -1962,13 +1968,11 @@ MYFLT *csoundGetTable(void *csound_, int tableNum, int *tableLength)
       if (ftp == NULL)
         goto err_return;
     }
-    if (tableLength != NULL)
-      *tableLength = (int) ftp->flen;
+    *tableLength = (int) ftp->flen;
     return &(ftp->ftable[0]);
 
  err_return:
-    if (tableLength != NULL)
-      *tableLength = -1;
+    *tableLength = -1;
     return NULL;
 }
 

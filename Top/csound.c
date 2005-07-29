@@ -1676,14 +1676,14 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(void *csound,
     return tableLength;
   }
 
-  MYFLT csoundTableGet(void *csound, int table, int index)
+  PUBLIC MYFLT csoundTableGet(void *csound, int table, int index)
   {
-    return ((ENVIRON*) csound)->GetTable((ENVIRON*) csound, table, NULL)[index];
+    return ((((ENVIRON*) csound)->flist[table])->ftable[index]);
   }
 
   PUBLIC void csoundTableSet(void *csound, int table, int index, MYFLT value)
   {
-    ((ENVIRON*) csound)->GetTable((ENVIRON*)csound, table, NULL)[index] = value;
+    (((ENVIRON*) csound)->flist[table])->ftable[index] = value;
   }
 
   PUBLIC void csoundSetFLTKThreadLocking(void *csound, int isLocking)
