@@ -19,8 +19,6 @@ DOCUMENTATION
 
  <<
  >>
-  event_i
- loopsegp
  lpsholdp
  seqtime2
  tab
@@ -37,3 +35,9 @@ DOCUMENTATION
  vrandh
  vrandi
  cogoto
+pvsifd : streaming spectral analysis using the IFD
+partials : partial track analysis from a  streaming PV input
+tradsyn : additive synthesis of tracks (linear interpolation)
+sinsyn :  additive synthesis (cubic phase)
+resyn : additive synthesis (cubic phase, adapted for transformed 
+signals)
