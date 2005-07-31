@@ -170,6 +170,9 @@ opts.Add('useAltivec',
 opts.Add('MSVC',
     "using MSVC build tools",
     '0')
+opts.Add('buildDSSI',
+    "build DSSI/LADSPA opcodes",
+    '1')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -1247,6 +1250,15 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
     Depends(pdClass, csoundLibrary)
     zipDependencies.append(pdClass)
     libs.append(pdClass)
+
+if (commonEnvironment['buildDSSI']=='1') and (getPlatform() == 'linux'):
+    dssiEnvironment = vstEnvironment.Copy()
+    print "CONFIGURATION DECISION: Building DSSI plugin support."
+    pluginLibraries.append(dssiEnvironment.SharedLibrary('dssi4cs',
+        Split('''
+        Opcodes/dssi4cs/src/load.c
+        Opcodes/dssi4cs/src/dssi4cs.c
+        ''')))
 
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux' and getPlatform() != 'cygwin'):
     print "CONFIGURATION DECISION: Not calling TAGS"

@@ -1,3 +1,7 @@
+2005-07-31  John ff  <jpff@codemist.co.uk>
+
+	* SConstruct (opts): Added buildDSSI option
+
 2005-07-23  John ff  <jpff@codemist.co.uk>
 
 	* Opcodes/bowedbar.c (bowedbarset): ADSR not initialised
