@@ -59,8 +59,8 @@ dlopenLADSPA(const char * pcFilename, int iFlag) {
     pcDSSIPath = getenv("DSSI_PATH");
     if (pcDSSIPath)
     {
-        strcat(pcLADSPAPath,":");
-        strcat(pcLADSPAPath,pcDSSIPath);
+        strcat((char*)pcLADSPAPath,":");
+        strcat((char*)pcLADSPAPath,pcDSSIPath);
     }
     if (pcLADSPAPath) {
 
