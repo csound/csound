@@ -113,6 +113,7 @@ typedef struct {
     short   xprtstno, polcnt;
     short   instrblk, instrcnt;
     short   opcodblk;               /* IV - Sep 8 2002 */
+    short   opcodflg;               /* 1: xin, 2: xout, 4: setksmps */
     TEXT    optext;                 /* struct to be passed back to caller */
 } RDORCH_GLOBALS;
 
@@ -1404,8 +1405,16 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
     tp->opnum = ST(linopnum);                         /* now use identified   */
     tp->opcod = strsav_string(csound, ST(linopcod));  /*   full line opcode   */
     /* IV - Oct 24 2002: check for invalid use of setksmps */
-    if (!ST(opcodblk) && !strcmp(ST(linopcod), "setksmps"))
-      synterr(csound, Str("setksmps is allowed only in user defined opcodes"));
+    if (strcmp(ST(linopcod), "setksmps") == 0) {
+      if (!ST(opcodblk))
+        synterr(csound,
+                Str("setksmps is allowed only in user defined opcodes"));
+      else if ((int) ST(opcodflg) & 4)
+        synterr(csound,
+                Str("multiple uses of setksmps in the same opcode definition"));
+      else
+        ST(opcodflg) |= (short) 4;
+    }
     if (strncmp(ST(linopcod),"out",3) == 0 && /* but take case of MIDI ops */
         (ST(linopcod)[3] == '\0' || ST(linopcod)[3] == 's' ||
          ST(linopcod)[3] == 'q'  || ST(linopcod)[3] == 'h' ||
@@ -1459,6 +1468,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       else if (ST(instrblk))
         synterr(csound, Str("opcode not allowed in instr block"));
       else ST(instrblk) = ST(opcodblk) = 1;
+      ST(opcodflg) = 0;
       resetouts(csound);                        /* reset #out counts */
       lblclear(csound);                         /* restart labelist  */
     }
@@ -1502,6 +1512,9 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       if (!strcmp(ep->opname, "xout")) {
         if (!ST(opcodblk))
           synterr(csound, Str("xout is allowed only in user defined opcodes"));
+        else if ((int) ST(opcodflg) & 2)
+          synterr(csound,
+                  Str("multiple uses of xout in the same opcode definition"));
         else {
           /* IV - Oct 24 2002: opcodeInfo always points to the most recently */
           /* defined user opcode (or named instrument) structure; in this */
@@ -1509,6 +1522,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
           /* but works) */
           char *c = csound->opcodeInfo->outtypes;
           int i = 0;
+          ST(opcodflg) |= (short) 2;
           nreqd = csound->opcodeInfo->outchns;
           while (c[i]) {
             switch (c[i]) {
@@ -1643,7 +1657,10 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
       nreqd = -1;
       if (!strcmp(ep->opname, "xin")) {
         if (!ST(opcodblk))
-          synterr(csound, Str("xin is allowed only in user opcodes"));
+          synterr(csound, Str("xin is allowed only in user defined opcodes"));
+        else if ((int) ST(opcodflg) & 1)
+          synterr(csound,
+                  Str("multiple uses of xin in the same opcode definition"));
         else {
           /* IV - Oct 24 2002: opcodeInfo always points to the most recently */
           /* defined user opcode (or named instrument) structure; in this */
@@ -1651,6 +1668,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
           /* but works) */
           char *c = csound->opcodeInfo->intypes;
           int i = 0;
+          ST(opcodflg) |= (short) 1;
           nreqd = csound->opcodeInfo->inchns;
           while (c[i]) {
             switch (c[i]) {
