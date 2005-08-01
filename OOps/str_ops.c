@@ -387,6 +387,7 @@ int printf_opcode_perf(ENVIRON *csound, PRINTF_OP *p)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf);
       return err;
     }
+    p->prv_ktrig = *p->ktrig;
     return OK;
 }
 
