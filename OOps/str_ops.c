@@ -375,10 +375,12 @@ int printf_opcode_set(ENVIRON *csound, PRINTF_OP *p)
 
 int printf_opcode_perf(ENVIRON *csound, PRINTF_OP *p)
 {
-    if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
+    if (*p->ktrig == p->prv_ktrig)
+      return OK;
+    p->prv_ktrig = *p->ktrig;
+    if (p->prv_ktrig > FL(0.0)) {
       char  buf[3072];
       int   err;
-      p->prv_ktrig = *p->ktrig;
       err = sprintf_opcode(csound,
                            p, buf, (char*) p->sfmt, &(p->args[0]),
                            (int) p->INOCOUNT - 2, ((int) p->XSTRCODE >> 2),
@@ -387,7 +389,6 @@ int printf_opcode_perf(ENVIRON *csound, PRINTF_OP *p)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf);
       return err;
     }
-    p->prv_ktrig = *p->ktrig;
     return OK;
 }
 
