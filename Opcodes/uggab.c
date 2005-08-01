@@ -1491,10 +1491,14 @@ int random3a(ENVIRON *csound, RANDOM3 *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
+{ "wrap",   0xffff                                                          },
 { "wrap.i", S(WRAP),     1,  "i", "iii",  (SUBR)kwrap, NULL,    NULL        },
-{ "wrap",  S(WRAP),      6,  "s", "xkk",  NULL,  (SUBR)kwrap,  (SUBR)wrap   },
-{ "mirror.i", S(WRAP),   1,  "i", "iii",  (SUBR)kmirror, NULL,  NULL},
-{ "mirror",  S(WRAP),    6,  "s", "xkk",  NULL,  (SUBR)kmirror, (SUBR)mirror },
+{ "wrap.k", S(WRAP),     2,  "k", "kkk",  NULL,  (SUBR)kwrap,   NULL        },
+{ "wrap.a", S(WRAP),     4,  "a", "akk",  NULL,  NULL,          (SUBR)wrap  },
+{ "mirror", 0xffff                                                          },
+{ "mirror.i", S(WRAP),   1,  "i", "iii",  (SUBR)kmirror, NULL,  NULL        },
+{ "mirror.k", S(WRAP),   2,  "k", "kkk",  NULL,  (SUBR)kmirror, NULL        },
+{ "mirror.a", S(WRAP),   4,  "a", "akk",  NULL,  NULL,         (SUBR)mirror },
 { "ntrpol.i",S(INTERPOL), 1, "i", "iiiop",(SUBR)interpol                     },
 { "ntrpol.k",S(INTERPOL), 3, "k", "kkkop",(SUBR)nterpol_init, (SUBR)knterpol },
 { "ntrpol.a",S(INTERPOL), 5, "a", "aakop",(SUBR)nterpol_init,NULL,(SUBR)anterpol },
