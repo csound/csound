@@ -1,3 +1,16 @@
+2005-08-01	Istvan Varga	<ivarga@csounds.com>
+	* Minor fixes in DSSI opcodes (still have problems)
+	* Engine/rdorch.c, Engine/entry1.c, Opcodes/uggab.c:
+	  minor parser changes, including the addition of a new code (fffb)
+	  for selecting opcode name based on the first input argument (i-, k-,
+	  and a-rate, but not constant)
+	* Engine/insert.c:
+	  fixes related to re-initialisation of user defined opcodes
+	* Engine/Entry2.c, H/str_ops.h, OOps/str_ops.c:
+	  new opcodes: printf, printf_i
+	* Engine/Entry2.c, H/insert.h, OOps/goto_ops.c:
+	  new opcodes: loop_l, loop_le, loop_g, loop_ge
+
 2005-07-31  John ff  <jpff@codemist.co.uk>
 
 	* SConstruct (opts): Added buildDSSI option
