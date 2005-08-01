@@ -168,10 +168,10 @@ opts.Add('useAltivec',
     "On OSX use the gcc AltiVec optmisation flags",
     '0')
 opts.Add('MSVC',
-    "using MSVC build tools",
+    "Using MSVC build tools",
     '0')
 opts.Add('buildDSSI',
-    "build DSSI/LADSPA opcodes",
+    "Build DSSI/LADSPA host opcodes",
     '1')
 
 # Define the common part of the build environment.
@@ -1252,13 +1252,13 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
     libs.append(pdClass)
 
 if (commonEnvironment['buildDSSI']=='1') and (getPlatform() == 'linux'):
-    dssiEnvironment = vstEnvironment.Copy()
-    print "CONFIGURATION DECISION: Building DSSI plugin support."
+    print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
+    dssiEnvironment = pluginEnvironment.Copy()
+    dssiEnvironment.Append(LIBS = ['dl'])
     pluginLibraries.append(dssiEnvironment.SharedLibrary('dssi4cs',
-        Split('''
-        Opcodes/dssi4cs/src/load.c
-        Opcodes/dssi4cs/src/dssi4cs.c
-        ''')))
+        ['Opcodes/dssi4cs/src/load.c', 'Opcodes/dssi4cs/src/dssi4cs.c']))
+else:
+    print "CONFIGURATION DECISION: Not building DSSI plugin host opcodes."
 
 if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux' and getPlatform() != 'cygwin'):
     print "CONFIGURATION DECISION: Not calling TAGS"

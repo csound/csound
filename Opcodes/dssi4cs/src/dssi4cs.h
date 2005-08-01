@@ -1,18 +1,20 @@
-//  Copyright (C) 2005 Andres Cabrera
-//  The dssi4cs library is free software; you can redistribute it
-//  and/or modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2.1 of the License, or (at your option) any later version.
-//
-//  The dssi4cs library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with The dssi4cs library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-//  02111-1307 USA
+/*
+ *  Copyright (C) 2005 Andres Cabrera
+ *  The dssi4cs library is free software; you can redistribute it
+ *  and/or modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *
+ *  The dssi4cs library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with The dssi4cs library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ *  02111-1307 USA
+ */
 
 #ifndef DSSI4CS_H
 #define DSSI4CS_H
@@ -20,17 +22,16 @@
 #include "csdl.h"
 #include "dssi.h"
 
-//When changing these remember to change dssiaudio function
+/* When changing these remember to change dssiaudio function */
 #define DSSI4CS_MAX_IN_CHANNELS 4
 #define DSSI4CS_MAX_OUT_CHANNELS 4
 
 enum PluginType {LADSPA, DSSI};
 
-typedef struct DSSI4CS_PLUGIN_
-{
+typedef struct DSSI4CS_PLUGIN_ {
     const LADSPA_Descriptor * Descriptor;
     const DSSI_Descriptor * DSSIDescriptor;
-    // For Type 1=LADSPA 2=DSSI
+    /* For Type 1=LADSPA 2=DSSI */
     enum PluginType Type;
     LADSPA_Handle Handle;
     int Active;
@@ -41,136 +42,112 @@ typedef struct DSSI4CS_PLUGIN_
     int PluginNumber;
     int * PluginCount;
     void * NextPlugin;
-    //float * kinputs_[];
-    //float * koutputs_[];
-}
-DSSI4CS_PLUGIN;
+    /* float * kinputs_[]; */
+    /* float * koutputs_[]; */
+} DSSI4CS_PLUGIN;
 
-typedef struct DSSIINIT_
-{
+typedef struct DSSIINIT_ {
     OPDS h;
-    // Inputs.
+    /* Inputs. */
     MYFLT *iDSSIHandle;
     MYFLT *iplugin;
     MYFLT *iindex;
     MYFLT *iverbose;
-}
-DSSIINIT ;
+} DSSIINIT ;
 
-typedef struct DSSIACTIVATE_
-{
+typedef struct DSSIACTIVATE_ {
     OPDS h;
     MYFLT *iDSSIhandle;
     MYFLT *ktrigger;
     int printflag;
     DSSI4CS_PLUGIN * DSSIPlugin_;
-}
-DSSIACTIVATE ;
+} DSSIACTIVATE ;
 
-
-typedef struct DSSIAUDIO_
-{
+typedef struct DSSIAUDIO_ {
     OPDS h;
-    // Outputs.
+    /* Outputs. */
     MYFLT *aout[DSSI4CS_MAX_OUT_CHANNELS];
-    // Inputs.
+    /* Inputs. */
     MYFLT *iDSSIhandle;
     MYFLT *ain[DSSI4CS_MAX_IN_CHANNELS];
-//     MYFLT *ain1;
-//     MYFLT *ain2;
-//     MYFLT *ain3;
-//     MYFLT *ain4;
+/*  MYFLT *ain1; */
+/*  MYFLT *ain2; */
+/*  MYFLT *ain3; */
+/*  MYFLT *ain4; */
     int NumInputPorts;
     int NumOutputPorts;
     unsigned long * InputPorts;
     unsigned long * OutputPorts;
     DSSI4CS_PLUGIN * DSSIPlugin_;
-    // State.
-    //size_t framesPerBlock;
-    //size_t channels;
-}
-DSSIAUDIO ;
+    /* State. */
+    /* size_t framesPerBlock; */
+    /* size_t channels; */
+} DSSIAUDIO ;
 
-typedef struct DSSICTLS_
-{
+typedef struct DSSICTLS_ {
     OPDS h;
     MYFLT *iDSSIhandle;
     MYFLT *iport;
     MYFLT *val;
     MYFLT *ktrig;
-    //float *Data;
+    /* float *Data; */
     unsigned long PortNumber;
     int HintSampleRate;
     DSSI4CS_PLUGIN * DSSIPlugin_;
-}
-DSSICTLS;
+} DSSICTLS;
 
-
-
-typedef struct DSSISYNTH_
-{
+typedef struct DSSISYNTH_ {
     OPDS h;
     MYFLT *aout[DSSI4CS_MAX_OUT_CHANNELS];
-    // Inputs.
+    /* Inputs. */
     MYFLT *iDSSIhandle;
     int NumInputPorts;
     int NumOutputPorts;
     unsigned long * InputPorts;
     unsigned long * OutputPorts;
     DSSI4CS_PLUGIN * DSSIPlugin_;
-}
-DSSISYNTH;
+} DSSISYNTH;
 
-typedef struct DSSINOTE_
-{
+typedef struct DSSINOTE_ {
     OPDS h;
-    // Inputs.
+    /* Inputs. */
     MYFLT *ktrigger;
     MYFLT *iDSSIhandle;
     MYFLT *knote;
     MYFLT *kveloc;
     MYFLT *kdur;
-}
-DSSINOTE;
+} DSSINOTE;
 
-typedef struct DSSINOTEON_
-{
+typedef struct DSSINOTEON_ {
     OPDS h;
-    // Inputs.
+    /* Inputs. */
     MYFLT *ktrigger;
     MYFLT *iDSSIhandle;
     MYFLT *knote;
     MYFLT *kveloc;
-}
-DSSINOTEON;
+} DSSINOTEON;
 
-typedef struct DSSINOTEOFF_
-{
+typedef struct DSSINOTEOFF_ {
     OPDS h;
-    // Inputs.
+    /* Inputs. */
     MYFLT *ktrigger;
     MYFLT *iDSSIhandle;
     MYFLT *knote;
     MYFLT *kveloc;
-}
-DSSINOTEOFF;
+} DSSINOTEOFF;
 
-typedef struct DSSIPGMCH_
-{
+typedef struct DSSIPGMCH_ {
     OPDS h;
-    // Inputs.
+    /* Inputs. */
     MYFLT *ktrigger;
     MYFLT *iDSSIhandle;
     MYFLT *kprogram;
     MYFLT *kbank;
-}
-DSSIPGMCH;
+} DSSIPGMCH;
 
-typedef struct DSSILIST_
-{
+typedef struct DSSILIST_ {
     OPDS h;
-}
-DSSILIST ;
-
+} DSSILIST ;
 
 #endif
+
