@@ -28,8 +28,6 @@
 extern "C" {
 #endif
 
-#include "sysdep.h"
-
 typedef struct {
     OPDS    h;
     MYFLT   *indx;
@@ -64,6 +62,14 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    MYFLT   *sfmt;
+    MYFLT   *ktrig;
+    MYFLT   *args[64];
+    MYFLT   prv_ktrig;
+} PRINTF_OP;
+
+typedef struct {
+    OPDS    h;
     MYFLT   *str;
     MYFLT   *ktrig;
     MYFLT   *no_newline;
@@ -92,6 +98,10 @@ typedef struct {
     (SUBR) sprintf_opcode_init, (SUBR) NULL, (SUBR) NULL                },
  {  "sprintfk", S(SPRINTF_OP),  3,  "S",    "SN",
     (SUBR) sprintf_opcode_init, (SUBR) sprintf_opcode_perf, (SUBR) NULL },
+ {  "printf_i", S(PRINTF_OP),   1,  "",     "SiN",
+    (SUBR) printf_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "printf",   S(PRINTF_OP),   3,  "",     "SkN",
+    (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, (SUBR) NULL    },
  {  "puts",     S(PUTS_OP),     3,  "",     "Sko",
     (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
  {  "strtod",   S(STRSET_OP),   1,  "i",    "T",
@@ -115,6 +125,9 @@ int strcat_opcode_perf(void *, void *);
 int strcmp_opcode(void *, void *);
 int sprintf_opcode_init(void *, void *);
 int sprintf_opcode_perf(void *, void *);
+int printf_opcode_init(void *, void *);
+int printf_opcode_set(void *, void *);
+int printf_opcode_perf(void *, void *);
 int puts_opcode_init(void *, void *);
 int puts_opcode_perf(void *, void *);
 int strtod_opcode_init(void *, void *);
