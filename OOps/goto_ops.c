@@ -222,3 +222,75 @@ int turnoff2(ENVIRON *csound, TURNOFF2 *p)
     return OK;
 }
 
+int loop_l_i(ENVIRON *csound, LOOP_OPS *p)
+{
+    /* if ((indxvar += iincr) < ilimit) igoto l */
+    *(p->ndxvar) += *(p->incr);
+    if (*(p->ndxvar) < *(p->limit))
+      csound->ids = p->l->prvi;
+    return OK;
+}
+
+int loop_le_i(ENVIRON *csound, LOOP_OPS *p)
+{
+    /* if ((indxvar += iincr) <= ilimit) igoto l */
+    *(p->ndxvar) += *(p->incr);
+    if (*(p->ndxvar) <= *(p->limit))
+      csound->ids = p->l->prvi;
+    return OK;
+}
+
+int loop_g_i(ENVIRON *csound, LOOP_OPS *p)
+{
+    /* if ((indxvar -= idecr) > ilimit) igoto l */
+    *(p->ndxvar) -= *(p->incr);
+    if (*(p->ndxvar) > *(p->limit))
+      csound->ids = p->l->prvi;
+    return OK;
+}
+
+int loop_ge_i(ENVIRON *csound, LOOP_OPS *p)
+{
+    /* if ((indxvar -= idecr) >= ilimit) igoto l */
+    *(p->ndxvar) -= *(p->incr);
+    if (*(p->ndxvar) >= *(p->limit))
+      csound->ids = p->l->prvi;
+    return OK;
+}
+
+int loop_l_p(ENVIRON *csound, LOOP_OPS *p)
+{
+    /* if ((kndxvar += kincr) < klimit) kgoto l */
+    *(p->ndxvar) += *(p->incr);
+    if (*(p->ndxvar) < *(p->limit))
+      csound->pds = p->l->prvp;
+    return OK;
+}
+
+int loop_le_p(ENVIRON *csound, LOOP_OPS *p)
+{
+    /* if ((kndxvar += kincr) <= klimit) kgoto l */
+    *(p->ndxvar) += *(p->incr);
+    if (*(p->ndxvar) <= *(p->limit))
+      csound->pds = p->l->prvp;
+    return OK;
+}
+
+int loop_g_p(ENVIRON *csound, LOOP_OPS *p)
+{
+    /* if ((kndxvar -= kdecr) > klimit) kgoto l */
+    *(p->ndxvar) -= *(p->incr);
+    if (*(p->ndxvar) > *(p->limit))
+      csound->pds = p->l->prvp;
+    return OK;
+}
+
+int loop_ge_p(ENVIRON *csound, LOOP_OPS *p)
+{
+    /* if ((kndxvar -= kdecr) >= klimit) kgoto l */
+    *(p->ndxvar) -= *(p->incr);
+    if (*(p->ndxvar) >= *(p->limit))
+      csound->pds = p->l->prvp;
+    return OK;
+}
+

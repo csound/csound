@@ -34,6 +34,12 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
+        MYFLT   *ndxvar, *incr, *limit;
+        LBLBLK  *l;
+} LOOP_OPS;
+
+typedef struct {
+        OPDS    h;
         MYFLT   *idel, *idur;
         LBLBLK  *lblblk;
         long    cnt1, cnt2;
@@ -44,8 +50,7 @@ typedef struct {
 } LINK;
 
 /* the number of optional outputs defined in entry.c */
-#define SUBINSTNUMOUTS  8       /* IV - Sep 8 2002: for subinstruments ... */
-/* #define OPCODENUMOUTS   24      IV - Oct 24 2002: moved this to cs.h */
+#define SUBINSTNUMOUTS  8
 
 typedef struct {
         OPCODINFO *opcode_info;
