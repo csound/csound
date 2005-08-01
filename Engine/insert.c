@@ -752,14 +752,14 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
       csound->kcounter *= p->ksmps_scale;
     }
 
-    if (!(csound->reinitflag | csound->tieflag)) {
+    if (!p->ip) {
       /* search for already allocated, but not active instance */
       /* if none was found, allocate a new instance */
-      if (!tp->act_instance)            /* IV - Oct 26 2002 */
+      if (!tp->act_instance)
         instance(csound, instno);
-      lcurip = tp->act_instance;            /* use free intance, and */
-      tp->act_instance = lcurip->nxtact;    /* remove from chain */
-      lcurip->actflg++;                 /*    and mark the instr active */
+      lcurip = tp->act_instance;            /* use free intance, and  */
+      tp->act_instance = lcurip->nxtact;    /* remove from chain      */
+      lcurip->actflg++;                     /*    and mark the instr active */
       tp->active++;
       /* link into deact chain */
       lcurip->opcod_deact = parent_ip->opcod_deact;
@@ -867,13 +867,11 @@ int xinset(ENVIRON *csound, XIN *p)
     while (*++ndx_list >= 0)
       *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
 
-    if (csound->reinitflag | csound->tieflag) return OK;
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     tmp = buf->iobufp_ptrs;
-    if (*tmp || *(tmp + 1)) {
-      return csoundInitError(csound, Str("xin was already used in this "
-                                         "opcode definition"));
-    }
+    if (*tmp || *(tmp + 1))
+      return OK;
+
     while (*++ndx_list >= 0) {
       *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
       *(tmp++) = *(p->args + *ndx_list);/* "to" address */
@@ -905,15 +903,13 @@ int xoutset(ENVIRON *csound, XOUT *p)
     while (*++ndx_list >= 0)
       *(*(bufs + *ndx_list)) = *(*(p->args + *ndx_list));
 
-    if (csound->reinitflag | csound->tieflag) return OK;
     /* skip input pointers, including the two delimiter NULLs */
     tmp = buf->iobufp_ptrs;
     if (*tmp || *(tmp + 1)) tmp += (inm->perf_incnt << 1);
     tmp += 2;
-    if (*tmp || *(tmp + 1)) {
-      return csoundInitError(csound, Str("xout was already used in this "
-                                         "opcode definition"));
-    }
+    if (*tmp || *(tmp + 1))
+      return OK;
+
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     while (*++ndx_list >= 0) {
       *(tmp++) = *(p->args + *ndx_list);/* "from" address */
