@@ -147,9 +147,6 @@ DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, ENVIRON * csound)
 
 static int dssideinit(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin)
 {
-    /* TODO check problems here if plugin not initialised correctly.
-            deinit called if init error? */
-    /* TODO finish */
     int     i;
 
     for (i = 0; DSSIPlugin != NULL; i++) {
@@ -458,15 +455,12 @@ int dssiinit(ENVIRON * csound, DSSIINIT * p)
 
 int ActivatePlugin(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin_, int ktrigger)
 {
-    /* TODO: fix activation */
     const LADSPA_Descriptor *Descriptor;
-    DSSI4CS_PLUGIN *DSSIPlugin;
 
     if (!DSSIPlugin_)
       return -100;
-    DSSIPlugin = (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound,
-                                                                "$DSSI4CS");
-    if (DSSIPlugin->Type == LADSPA)
+      
+    if (DSSIPlugin_->Type == LADSPA)
       Descriptor = (LADSPA_Descriptor *) DSSIPlugin_->Descriptor;
     else
       Descriptor =
@@ -681,8 +675,6 @@ int dssiaudio_init(ENVIRON * csound, DSSIAUDIO * p)
     csound->Message(csound,
                     "DSSI4CS: Connected %i audio output ports for: '%s'\n",
                     ConnectedOutputPorts, Descriptor->Name);
-    csound->Message(csound, "DSSI4CS: dbfs_to_float = %f\n",
-                    (csound->dbfs_to_float));
 #endif
 
     p->NumInputPorts = ConnectedInputPorts;
@@ -1014,7 +1006,6 @@ describePluginLibrary(ENVIRON *csound,
 int dssilist(ENVIRON * csound, DSSILIST * p)
 {
     /* Most of this function comes from the ladspa sdk by Richard Furse */
-    /* TODO docs: LADSPA_PATH must be set */
     char   *pcBuffer;
     const char *pcEnd;
     const char *pcLADSPAPath;
