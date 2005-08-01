@@ -459,7 +459,7 @@ int ActivatePlugin(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin_, int ktrigger)
 
     if (!DSSIPlugin_)
       return -100;
-      
+
     if (DSSIPlugin_->Type == LADSPA)
       Descriptor = (LADSPA_Descriptor *) DSSIPlugin_->Descriptor;
     else
