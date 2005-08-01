@@ -1194,7 +1194,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
 {                               /* get opcod and args from current line */
                                 /*      returns pntr to a TEXT struct   */
     TEXT        *tp;
-    char        c, d, str[32], *s;
+    char        c, d, str[64], *s;
     int         nn, incnt, outcnt;
 
     if (*init) {
@@ -1313,7 +1313,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         /* if optimised away, skip line */
         ST(nxtest) = ST(grpcnt); goto tstnxt;
       }
-      if (ST(nxtest) <= ST(opgrpno) - 1) {
+      if (ST(nxtest) < ST(opgrpno)) {
         c = argtyp(csound, ST(group)[ST(nxtest)]);
         switch (c) {
           case 'S': strcpy(str, "strcpy"); break;
@@ -1338,69 +1338,62 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
         csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
       }
     }
-    else if (ST(nxtest) <= ST(opgrpno) - 1) {
-      /* Some aopcodes do not have ans!    */
-      /* use outype to modify some opcodes */
-      c = argtyp(csound, ST(group)[ST(nxtest)]);    /* Flagged as translating */
-      if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xffff ||
-          (( strcmp(ST(linopcod), "table") == 0 ||  /*    with prefix   */
-             strcmp(ST(linopcod), "tablei") == 0 ||
-             strcmp(ST(linopcod), "table3") == 0 ||
-             strcmp(ST(linopcod), "wrap") == 0 ||
-             strcmp(ST(linopcod), "mirror") == 0) && (c == 'i' || c == 'p'))) {
-        if (c == 'p')   c = 'i';
-        if (c == '?')   c = 'a';                /* tmp */
-        sprintf(str, "%s.%c", ST(linopcod), c);
-        if (!(isopcod(csound, str))) {
-          synterr(csound,
-                  Str("failed to find %s, output arg '%s' illegal type"),
-                  str, ST(group)[ST(nxtest)]);  /* report syntax error     */
-          ST(nxtest) = 100;                     /* step way over this line */
-          goto tstnxt;                          /* & go to next            */
-        }
-        ST(linopnum) = ST(opnum);
-        ST(linopcod) = ST(opcod);
-        csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
+    else if (ST(nxtest) < ST(opgrpno) &&  /* Some aopcodes do not have ans! */
+             csound->opcodlst[ST(linopnum)].dsblksiz == 0xffff) {
+      /* use outype to modify some opcodes flagged as translating */
+      c = argtyp(csound, ST(group)[ST(nxtest)]);
+      if (c == 'p')   c = 'i';
+      if (c == '?')   c = 'a';                  /* tmp */
+      sprintf(str, "%s.%c", ST(linopcod), c);
+      if (!(isopcod(csound, str))) {
+        synterr(csound, Str("failed to find %s, output arg '%s' illegal type"),
+                str, ST(group)[ST(nxtest)]);    /* report syntax error     */
+        ST(nxtest) = 100;                       /* step way over this line */
+        goto tstnxt;                            /* & go to next            */
       }
-      else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffd) {
-        if ((c = argtyp(csound, ST(group)[ST(opgrpno) ] )) != 'a') c = 'k';
-        sprintf(str, "%s.%c", ST(linopcod), c);
-        if (!(isopcod(csound, str))) {
-          synterr(csound,
-                  Str("failed to find %s, input arg '%s' illegal type"),
-                  str, ST(group)[ST(opgrpno)]); /* report syntax error     */
-          ST(nxtest) = 100;                     /* step way over this line */
-          goto tstnxt;                          /* & go to next            */
-        }
-        ST(linopnum) = ST(opnum);
-        ST(linopcod) = ST(opcod);
-        csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
-      }
-      else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffe) {
-                                                /* Two tags for OSCIL's    */
-        if ((c = argtyp(csound, ST(group)[ST(opgrpno) ] )) != 'a') c = 'k';
+      ST(linopnum) = ST(opnum);
+      ST(linopcod) = ST(opcod);
+      csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
+    }
+    else if ((int) csound->opcodlst[ST(linopnum)].dsblksiz >= 0xfffb) {
+      c = argtyp(csound, ST(group)[ST(opgrpno)]); /* type of first input arg */
+      strcpy(str, ST(linopcod));
+      switch ((int) csound->opcodlst[ST(linopnum)].dsblksiz) {
+      case 0xfffe:                              /* Two tags for OSCIL's    */
+        if (c != 'a') c = 'k';
         if ((d = argtyp(csound, ST(group)[ST(opgrpno)+1])) != 'a') d = 'k';
         sprintf(str, "%s.%c%c", ST(linopcod), c, d);
-        isopcod(csound, str);   /*  opcode with suffix */
-        ST(linopnum) = ST(opnum);
-        ST(linopcod) = ST(opcod);
-        csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
-        c = argtyp(csound, ST(group)[ST(nxtest)]);  /* reset outype params */
-      }                                 /* need we reset outype again here ? */
-      else if (csound->opcodlst[ST(linopnum)].dsblksiz == 0xfffc) {
-        /* For divz types */
-        c = argtyp(csound, ST(group)[ST(opgrpno)  ]);
+        break;
+      case 0xfffd:                              /* For peak, etc.          */
+        if (c != 'a') c = 'k';
+        sprintf(str, "%s.%c", ST(linopcod), c);
+        break;
+      case 0xfffc:                              /* For divz types          */
         d = argtyp(csound, ST(group)[ST(opgrpno)+1]);
-        if ((c=='i' || c=='c') && (d=='i' || d=='c')) c='i',d = 'i';
+        if ((c=='i' || c=='c') && (d=='i' || d=='c'))
+          c = 'i', d = 'i';
         else {
           if (c != 'a') c = 'k';
           if (d != 'a') d = 'k';
         }
-        sprintf(str,"divz.%c%c",c,d);
-        isopcod(csound, str);   /*  opcode with suffix */
-        ST(linopnum) = ST(opnum);
-        ST(linopcod) = ST(opcod);
+        sprintf(str, "%s.%c%c", ST(linopcod), c, d);
+        break;
+      case 0xfffb:          /* determine opcode by type of first input arg */
+            /* allows a, k, and i types (e.g. Inc, Dec), but not constants */
+        if (ST(typemask_tabl)[(unsigned char) c] & (ARGTYP_i | ARGTYP_p))
+          c = 'i';
+        sprintf(str, "%s.%c", ST(linopcod), c);
+        break;
       }
+      if (!(isopcod(csound, str))) {
+                        /* if opcode is not found: report syntax error     */
+        synterr(csound, Str("failed to find %s, input arg illegal type"), str);
+        ST(nxtest) = 100;                       /* step way over this line */
+        goto tstnxt;                            /* & go to next            */
+      }
+      ST(linopnum) = ST(opnum);
+      ST(linopcod) = ST(opcod);
+      csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
     }
     tp->opnum = ST(linopnum);                         /* now use identified   */
     tp->opcod = strsav_string(csound, ST(linopcod));  /*   full line opcode   */
