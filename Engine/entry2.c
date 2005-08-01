@@ -128,6 +128,10 @@ int    iingoto(void*,void*), kingoto(void*,void*);
 int    nstrnumset(void*,void*), turnoff2(void*,void*);
 int    ftsave(void*,void*), ftload(void*,void*), ftsave_k_set(void*,void*), ftsave_k(void*,void*);
 int    ftsave_k_set(void*,void*), ftload_k(void*,void*);
+int    loop_l_i(void*, void*), loop_le_i(void*, void*);
+int    loop_g_i(void*, void*), loop_ge_i(void*, void*);
+int    loop_l_p(void*, void*), loop_le_p(void*, void*);
+int    loop_g_p(void*, void*), loop_ge_p(void*, void*);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -352,6 +356,10 @@ OENTRY opcodlst_2[] = {
     (SUBR) sprintf_opcode_init, (SUBR) NULL, (SUBR) NULL                },
  {  "sprintfk", S(SPRINTF_OP),  3,  "S",    "SN",
     (SUBR) sprintf_opcode_init, (SUBR) sprintf_opcode_perf, (SUBR) NULL },
+ {  "printf_i", S(PRINTF_OP),   1,  "",     "SiN",
+    (SUBR) printf_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "printf",   S(PRINTF_OP),   3,  "",     "SkN",
+    (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, (SUBR) NULL    },
  {  "puts",     S(PUTS_OP),     3,  "",     "Sko",
     (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
  {  "strtod",   S(STRSET_OP),   1,  "i",    "T",
@@ -362,6 +370,18 @@ OENTRY opcodlst_2[] = {
     (SUBR) strtol_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
  {  "strtolk",  S(STRSET_OP),   3,  "k",    "U",
     (SUBR) strtol_opcode_init, (SUBR) strtol_opcode_perf, (SUBR) NULL   },
+ { "loop_l",    0xfffb                                                  },
+ { "loop_le",   0xfffb                                                  },
+ { "loop_g",    0xfffb                                                  },
+ { "loop_ge",   0xfffb                                                  },
+ { "loop_l.i",  S(LOOP_OPS),  1,  "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
+ { "loop_le.i", S(LOOP_OPS),  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
+ { "loop_g.i",  S(LOOP_OPS),  1,  "", "iiil", (SUBR) loop_g_i, NULL, NULL   },
+ { "loop_ge.i", S(LOOP_OPS),  1,  "", "iiil", (SUBR) loop_ge_i, NULL, NULL  },
+ { "loop_l.k",  S(LOOP_OPS),  1,  "", "kkkl", NULL, (SUBR) loop_l_p, NULL   },
+ { "loop_le.k", S(LOOP_OPS),  1,  "", "kkkl", NULL, (SUBR) loop_le_p, NULL  },
+ { "loop_g.k",  S(LOOP_OPS),  1,  "", "kkkl", NULL, (SUBR) loop_g_p, NULL   },
+ { "loop_ge.k", S(LOOP_OPS),  1,  "", "kkkl", NULL, (SUBR) loop_ge_p, NULL  },
  /* terminate list */
  {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
