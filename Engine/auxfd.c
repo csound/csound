@@ -28,19 +28,32 @@ static void auxrecord(ENVIRON *, AUXCH *);
 static void auxchprint(ENVIRON *, INSDS *);
 static void fdchprint(ENVIRON *, INSDS *);
 
+/* allocate an auxds, or expand an old one */
+/*    call only from init (xxxset) modules */
+
 void csoundAuxAlloc(void *csound_, long nbytes, AUXCH *auxchp)
-     /* allocate an auxds, or expand an old one */
-     /*    call only from init (xxxset) modules */
 {
     ENVIRON *csound = (ENVIRON*) csound_;
-    void    *auxp;
+    void    *auxp = auxchp->auxp;
 
-    if ((auxp = auxchp->auxp) != NULL)  /* if size change only,      */
-      mfree(csound, auxp);              /*      free the old space   */
+    if (auxp != NULL) {
+      if (nbytes != (long) auxchp->size) {  /* if size change only,      */
+        auxchp->auxp = NULL;
+        mfree(csound, auxp);                /*      free the old space   */
+        goto alloc_space;                   /*      and re-allocate      */
+      }
+      else {                                /* if allocd with same size, */
+        memset(auxp, 0, (size_t) nbytes);   /*      just clear to zero   */
+        goto set_params;
+      }
+    }
     else
-      auxrecord(csound, auxchp);        /* else linkin new auxch blk */
-    auxp = mcalloc(csound, nbytes);     /* now alloc the space       */
-    auxchp->size = nbytes;              /* update the internal data  */
+      auxrecord(csound, auxchp);            /* else linkin new auxch blk */
+
+ alloc_space:
+    auxp = mcalloc(csound, nbytes);         /* now alloc the space       */
+ set_params:
+    auxchp->size = nbytes;                  /* update the internal data  */
     auxchp->auxp = auxp;
     auxchp->endp = (char*) auxp + nbytes;
     if (csound->oparms->odebug)
