@@ -52,7 +52,7 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
 
     if (N <= 32)
       csound->Die(csound, Str("pvsanal: fftsize of 32 is too small!\n"));
-    /* check N for powof2? CARL fft routines and FFTW are not limited to that. */
+    /* check N for powof2? CARL fft routines and FFTW are not limited to that */
     N = N  + N%2;       /* Make N even */
     if (M < N)
       csound->Die(csound, Str("pvsanal: window size too small for fftsize\n"));
@@ -72,25 +72,13 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
      */
     Lf = Mf = 1 - M%2;
 
-    if (p->overlapbuf.auxp==NULL ||
-        overlap * sizeof(MYFLT) > (unsigned int)p->overlapbuf.size)
-      csound->AuxAlloc(csound, overlap * sizeof(MYFLT),&p->overlapbuf);
-    if (p->analbuf.auxp==NULL ||
-        (N+2) * sizeof(MYFLT) > (unsigned int)p->analbuf.size)
-      csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT),&p->analbuf);
-    if (p->analwinbuf.auxp==NULL ||
-        (M+Mf) * sizeof(MYFLT) > (unsigned int)p->analwinbuf.size)
-      csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT),&p->analwinbuf);
-    if (p->oldInPhase.auxp==NULL ||
-        nBins * sizeof(MYFLT) > (unsigned int)p->oldInPhase.size)
-      csound->AuxAlloc(csound, nBins * sizeof(MYFLT),&p->oldInPhase);
-    if (p->input.auxp==NULL ||
-        buflen*sizeof(MYFLT) > (unsigned int)p->input.size)
-      csound->AuxAlloc(csound, buflen*sizeof(MYFLT),&p->input);
+    csound->AuxAlloc(csound, overlap * sizeof(MYFLT), &p->overlapbuf);
+    csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->analbuf);
+    csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->analwinbuf);
+    csound->AuxAlloc(csound, nBins * sizeof(MYFLT), &p->oldInPhase);
+    csound->AuxAlloc(csound, buflen * sizeof(MYFLT), &p->input);
     /* the signal itself */
-    if (p->fsig->frame.auxp==NULL ||
-        (N+2)*sizeof(MYFLT) > (unsigned int)p->fsig->frame.size)
-      csound->AuxAlloc(csound, (N+2)*sizeof(MYFLT),&p->fsig->frame);
+    csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->fsig->frame);
 
     /* make the analysis window*/
     analwinbase = (MYFLT *) (p->analwinbuf.auxp);
@@ -361,24 +349,12 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
     nBins = N/2 + 1;
     Lf = Mf = 1 - M%2;
     /* deal with iinit later on! */
-    if (p->overlapbuf.auxp==NULL ||
-        overlap * sizeof(MYFLT) > (unsigned int)p->overlapbuf.size)
-      csound->AuxAlloc(csound, overlap * sizeof(MYFLT),&p->overlapbuf);
-    if (p->synbuf.auxp==NULL ||
-        (N+2) * sizeof(MYFLT) > (unsigned int)p->synbuf.size)
-      csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT),&p->synbuf);
-    if (p->analwinbuf.auxp==NULL ||
-        (M+Mf) * sizeof(MYFLT) > (unsigned int)p->analwinbuf.size)
-      csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT),&p->analwinbuf);
-    if (p->synwinbuf.auxp==NULL ||
-        (M+Mf) * sizeof(MYFLT) > (unsigned int)p->synwinbuf.size)
-      csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT),&p->synwinbuf);
-    if (p->oldOutPhase.auxp==NULL ||
-        nBins * sizeof(MYFLT) > (unsigned int)p->oldOutPhase.size)
-      csound->AuxAlloc(csound, nBins * sizeof(MYFLT),&p->oldOutPhase);
-    if (p->output.auxp==NULL ||
-        buflen*sizeof(MYFLT) > (unsigned int)p->output.size)
-      csound->AuxAlloc(csound, buflen*sizeof(MYFLT),&p->output);
+    csound->AuxAlloc(csound, overlap * sizeof(MYFLT), &p->overlapbuf);
+    csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->synbuf);
+    csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->analwinbuf);
+    csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->synwinbuf);
+    csound->AuxAlloc(csound, nBins * sizeof(MYFLT), &p->oldOutPhase);
+    csound->AuxAlloc(csound, buflen * sizeof(MYFLT), &p->output);
 
     /* have to make analysis window to get amp scaling */
     /* so this ~could~ be a local alloc and free...*/

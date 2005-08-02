@@ -26,7 +26,6 @@
    pvsops.c for everythng else, under ????
 */
 
-#include <math.h>
 #include "csoundCore.h"
 #include "pstream.h"
 #include "pvfileio.h"
@@ -119,20 +118,13 @@ int pvadsynset(ENVIRON *csound, PVADS *p)
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
     /* alloc for all oscs;
        in case we can do something with them dynamically, one day */
-    if (p->a.auxp==NULL)
-      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->a);
-    if (p->x.auxp==NULL)
-      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->x);
-    if (p->y.auxp==NULL)
-      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->y);
-    if (p->amps.auxp==NULL)
-      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->amps);
-    if (p->lastamps.auxp==NULL)
-      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->lastamps);
-    if (p->freqs.auxp==NULL)
-      csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->freqs);
-    if (p->outbuf.auxp==NULL)
-      csound->AuxAlloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
+    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->a);
+    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->x);
+    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->y);
+    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->amps);
+    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->lastamps);
+    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->freqs);
+    csound->AuxAlloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
     /* initialize oscbank */
     p_x = (MYFLT *) p->x.auxp;
     for (i=0;i < noscs;i++)
@@ -249,8 +241,8 @@ int pvscrosset(ENVIRON *csound, PVSCROSS *p)
                               "must have same format\n"));
 
     /* setup output signal */
-    if (p->fout->frame.auxp==NULL)                      /* RWD MUST be 32bit */
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    /* RWD MUST be 32bit */
+    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
     p->fout->winsize = p->winsize;
@@ -299,10 +291,8 @@ int pvscross(ENVIRON *csound, PVSCROSS *p)
 int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
 {
     PVOCEX_MEMFILE  pp;
-    int             i;
     unsigned long   N;
     char            pvfilnam[MAXNAME];
-    float           *frptr, *memptr;    /* RWD pvocex format: MUST be 32bit */
 
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
     if (PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0) {
@@ -337,16 +327,14 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
 
     N = p->fftsize;
     /* setup output signal */
-    if (p->fout->frame.auxp==NULL)
-      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     /* init sig with first frame from file,
        regardless (always zero amps, but with bin freqs) */
-    memptr = (float *) pp.data;                         /* RWD MUST be 32bit */
-    frptr = (float *) p->fout->frame.auxp;              /* RWD MUST be 32bit */
-    for (i=0;i < p->fftsize+2; i++)
-      *frptr++ =   *memptr++;
+    p->chanoffset = (long) MYFLT2LRND(*p->ichan) * (N + 2);
+    memcpy((float *) p->fout->frame.auxp,               /* RWD MUST be 32bit */
+           (float *) pp.data + (long) p->chanoffset,    /* RWD MUST be 32bit */
+           (size_t) ((int) (N + 2) * (int) sizeof(float)));
     p->membase += p->blockalign;  /* move to 2nd frame in file, as startpoint */
-    p->chanoffset = (long) (*p->ichan) * (N+2);
     p->nframes--;
     p->fout->N           =  N;
     p->fout->overlap = p->overlap;
@@ -430,8 +418,8 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
       csound->Die(csound, Str("pvsmaska: "
                               "signal format must be amp-phase or amp-freq."));
     /* setup output signal */
-    if (p->fout->frame.auxp==NULL)                      /* RWD MUST be 32bit */
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    /* RWD MUST be 32bit */
+    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->overlap;
     p->fout->winsize = p->winsize;
