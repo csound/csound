@@ -351,19 +351,24 @@ int sprintf_opcode_perf(ENVIRON *csound, SPRINTF_OP *p)
     return OK;
 }
 
+static CS_NOINLINE int printf_opcode_(ENVIRON *csound, PRINTF_OP *p,
+                                      int (*err_func)(void*, const char*, ...))
+{
+    char  buf[3072];
+    int   err;
+    err = sprintf_opcode(csound,
+                         p, buf, (char*) p->sfmt, &(p->args[0]),
+                         (int) p->INOCOUNT - 2, ((int) p->XSTRCODE >> 2),
+                         3072, err_func);
+    if (err == OK)
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf);
+    return err;
+}
+
 int printf_opcode_init(ENVIRON *csound, PRINTF_OP *p)
 {
-    if (*p->ktrig > FL(0.0)) {
-      char  buf[3072];
-      int   err;
-      err = sprintf_opcode(csound,
-                           p, buf, (char*) p->sfmt, &(p->args[0]),
-                           (int) p->INOCOUNT - 2, ((int) p->XSTRCODE >> 2),
-                           3072, csound->InitError);
-      if (err == OK)
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf);
-      return err;
-    }
+    if (*p->ktrig > FL(0.0))
+      return (printf_opcode_(csound, p, csound->InitError));
     return OK;
 }
 
@@ -378,17 +383,8 @@ int printf_opcode_perf(ENVIRON *csound, PRINTF_OP *p)
     if (*p->ktrig == p->prv_ktrig)
       return OK;
     p->prv_ktrig = *p->ktrig;
-    if (p->prv_ktrig > FL(0.0)) {
-      char  buf[3072];
-      int   err;
-      err = sprintf_opcode(csound,
-                           p, buf, (char*) p->sfmt, &(p->args[0]),
-                           (int) p->INOCOUNT - 2, ((int) p->XSTRCODE >> 2),
-                           3072, csound->PerfError);
-      if (err == OK)
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf);
-      return err;
-    }
+    if (p->prv_ktrig > FL(0.0))
+      return (printf_opcode_(csound, p, csound->PerfError));
     return OK;
 }
 
