@@ -197,6 +197,7 @@ int musmon(ENVIRON *csound)
     csoundGetSearchPathFromEnv(csound, "SFDIR");
     csoundGetSearchPathFromEnv(csound, "SADIR");
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR");
+
     m_chn_init_all(csound);     /* allocate MIDI channels */
     dispinit(csound);           /* initialise graphics or character display */
     oload(csound);              /* set globals and run inits */
@@ -204,17 +205,6 @@ int musmon(ENVIRON *csound)
     /* kperf() will not call csoundYield() more than 250 times per second */
     csound->evt_poll_cnt = 0;
     csound->evt_poll_maxcnt = (int) ((double) csound->ekr / 250.0);
-    /* initialise sensevents state */
-    csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
-    csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
-    csound->curTime = csound->curBeat = 0.0;
-    csound->curTime_inc = csound->curBeat_inc = 1.0 / (double) csound->ekr;
-    csound->beatTime = 1.0;
-    csound->cyclesRemaining = 0;
-    memset(&(csound->evt), 0, sizeof(EVTBLK));
-    /* if performing from beats, set the initial tempo */
-    if (O->Beatmode)
-      settempo(csound, (MYFLT) O->cmdTempo);
     /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O->Midiin || O->FMidiin) {
       O->RTevents = 1;

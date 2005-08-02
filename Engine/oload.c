@@ -756,8 +756,25 @@ void oload(ENVIRON *p)
       if (FLOAT_COMPARE(p->esr, (double) p->ekr * ensmps))
         csoundDie(p, Str("%s inconsistent sr, kr, ksmps"), s);
     }
+    /* initialise sensevents state */
+    p->prvbt = p->curbt = p->nxtbt = 0.0;
+    p->curp2 = p->nxtim = p->timeOffs = p->beatOffs = 0.0;
+    p->curTime = p->curBeat = 0.0;
+    p->curTime_inc = 1.0 / (double) p->ekr;
+    if (O->Beatmode && O->cmdTempo > 0) {
+      /* if performing from beats, set the initial tempo */
+      p->curBeat_inc = (double) O->cmdTempo / (60.0 * (double) p->ekr);
+      p->beatTime = 60.0 / (double) O->cmdTempo;
+    }
+    else {
+      p->curBeat_inc = 1.0 / (double) p->ekr;
+      p->beatTime = 1.0;
+    }
+    p->cyclesRemaining = 0;
+    memset(&(p->evt), 0, sizeof(EVTBLK));
 
-    if ((nn = init0(p)) != 0)                      /* run instr 0 inits */
+    /* run instr 0 inits */
+    if ((nn = init0(p)) != 0)
       csoundDie(p, Str("header init errors"));
 }
 
