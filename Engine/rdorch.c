@@ -1357,7 +1357,6 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
     }
     else if ((int) csound->opcodlst[ST(linopnum)].dsblksiz >= 0xfffb) {
       c = argtyp(csound, ST(group)[ST(opgrpno)]); /* type of first input arg */
-      strcpy(str, ST(linopcod));
       switch ((int) csound->opcodlst[ST(linopnum)].dsblksiz) {
       case 0xfffe:                              /* Two tags for OSCIL's    */
         if (c != 'a') c = 'k';
@@ -1384,6 +1383,8 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
           c = 'i';
         sprintf(str, "%s.%c", ST(linopcod), c);
         break;
+      default:
+        strcpy(str, ST(linopcod));  /* unknown code: use original opcode   */
       }
       if (!(isopcod(csound, str))) {
                         /* if opcode is not found: report syntax error     */
