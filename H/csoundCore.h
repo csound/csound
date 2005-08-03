@@ -28,9 +28,6 @@ extern "C" {
     02111-1307 USA
   */
 
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
 #include "sysdep.h"
 #include <stdarg.h>
 #include <setjmp.h>
@@ -245,8 +242,6 @@ extern "C" {
     long   pgmno;
     MYFLT  keylst[1];       /* cnt + keynos */
   } DKLST;
-
-#define DKBAS  25
 
   typedef struct mchnblk {
     short  pgmno;           /* most recently received program change */
@@ -801,8 +796,12 @@ extern "C" {
     double (*GetOffTime)(void *p);
     MYFLT *(*GetPFields)(void *p);
     int (*GetInstrumentNumber)(void *p);
+    int (*FTAlloc)(struct ENVIRON_ *csound, int tableNum, int len);
+    int (*FTDelete)(struct ENVIRON_ *csound, int tableNum);
+    void (*FDRecord)(struct ENVIRON_ *csound, FDCH *fdchp);
+    void (*FDClose)(struct ENVIRON_ *csound, FDCH *fdchp);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[92];
+    SUBR dummyfn_2[88];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;
