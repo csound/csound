@@ -27,7 +27,7 @@
 #include "oload.h"
 #include "midiops.h"
 #include "insert.h"
-#include "ftgen.h"
+#include "fgens.h"
 #include "namedins.h"
 #include "soundio.h"
 #include "pvfileio.h"

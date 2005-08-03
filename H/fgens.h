@@ -1,7 +1,5 @@
-#ifndef FTGEN_H
-#define FTGEN_H
 /*
-    ftgen.h:
+    fgens.h:
 
     Copyright (C) 1991 Barry Vercoe
 
@@ -22,7 +20,13 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-                                                /*      FTGEN.H        */
+                                                /*      FGENS.H         */
+#ifndef CSOUND_FGENS_H
+#define CSOUND_FGENS_H
+
+#define MAXFNUM 100
+#define GENMAX  60
+
 /**
  * Create ftable using evtblk data, and store pointer to new table in *ftpp.
  * If mode is zero, a zero table number is ignored, otherwise a new table
@@ -31,29 +35,5 @@
  */
 int     hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode);
 
-#define MAXFNUM 100
-#define GENMAX  60
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX];
-} FTGEN;
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *ifilno, *iflag, *argums[VARGMAX];
-} FTLOAD;  /* gab 30 jul 2002 */
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *ifilno, *ktrig, *iflag, *argums[VARGMAX];
-        FTLOAD  p;
-} FTLOAD_K; /* gab 30 jul 2002 */
-
-typedef struct {
-		OPDS	h;
-		MYFLT	*iftno, *ifreeTime;
-} FTFREE;
-
-#endif /* FTGEN_H */
+#endif  /* CSOUND_FGENS_H */
 
