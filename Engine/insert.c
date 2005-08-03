@@ -42,6 +42,8 @@ int init0(ENVIRON *csound)
     instance(csound, 0);                            /* allocate instr 0     */
     csound->curip = ip = csound->instrtxtp[0]->act_instance;
     csound->ids = (OPDS*) ip;
+    csound->instrtxtp[0]->active++;
+    ip->actflg++;
     while ((csound->ids = csound->ids->nxti) != NULL) {
       (*csound->ids->iopadr)(csound, csound->ids);  /*   run all i-code     */
     }
@@ -394,7 +396,7 @@ static void deact(ENVIRON *csound, INSDS *ip)
     /* link into free instance chain */
     ip->nxtact = csound->instrtxtp[ip->insno]->act_instance;
     csound->instrtxtp[ip->insno]->act_instance = ip;
-    if (ip->fdch.nxtchp != NULL)
+    if (ip->fdchp != NULL)
       fdchclose(csound, ip);
 }
 
@@ -476,9 +478,9 @@ void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
             cnt++;
             if (ip->opcod_iobufs && ip->insno > csound->maxinsno)
               mfree(csound, ip->opcod_iobufs);          /* IV - Nov 10 2002 */
-            if (ip->fdch.nxtchp != NULL)
+            if (ip->fdchp != NULL)
               fdchclose(csound, ip);
-            if (ip->auxch.nxtchp != NULL)
+            if (ip->auxchp != NULL)
               auxchfree(csound, ip);
             if ((nxtip = ip->nxtinstance) != NULL)
               nxtip->prvinstance = prvip;

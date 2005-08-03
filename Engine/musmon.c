@@ -571,7 +571,8 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
-        if (insno > p->maxinsno || p->instrtxtp[insno] == NULL) {
+        if ((unsigned int) (insno - 1) >= (unsigned int) p->maxinsno ||
+            p->instrtxtp[insno] == NULL) {
           print_score_time(p, rtEvt);
           p->Message(p, Str(" - note deleted. instr %d(%d) undefined\n"),
                         insno, p->maxinsno);
@@ -604,7 +605,8 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
-        if (insno > p->maxinsno || p->instrtxtp[insno] == NULL) {
+        if ((unsigned int) (insno - 1) >= (unsigned int) p->maxinsno ||
+            p->instrtxtp[insno] == NULL) {
           print_score_time(p, rtEvt);
           p->Message(p, Str(" - note deleted. instr %d(%d) undefined\n"),
                         insno, p->maxinsno);
@@ -1002,7 +1004,8 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
           i = (int) named_instr_find(csound, evt->strarg);
         else
           i = (int) fabs((double) p[1]);
-        if (i < 1 || i > csound->maxinsno || csound->instrtxtp[i] == NULL) {
+        if ((unsigned int) (i - 1) >= (unsigned int) csound->maxinsno ||
+            csound->instrtxtp[i] == NULL) {
           csoundMessage(csound, Str("insert_score_event(): invalid instrument "
                                     "number or name\n"));
           goto err_return;
