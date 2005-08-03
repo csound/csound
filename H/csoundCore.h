@@ -277,8 +277,8 @@ extern "C" {
     struct insds * nxtact;          /* Next in list of active instruments */
     struct insds * prvact;  /* Previous in list of active instruments */
     struct insds * nxtoff;  /* Next instrument to terminate */
-    FDCH    fdch;           /* Chain of files used by opcodes in this instr */
-    AUXCH   auxch;          /* Extra memory used by opcodes in this instr */
+    FDCH    *fdchp;         /* Chain of files used by opcodes in this instr */
+    AUXCH   *auxchp;        /* Extra memory used by opcodes in this instr */
     int     xtratim;        /* Extra release time requested with
                                xtratim opcode */
     MCHNBLK *m_chnbp;       /* MIDI note info block if event started
