@@ -168,7 +168,7 @@ int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
         ff->flen = ff->flenp1 - 1L;
         if (!(ff->flen & (ff->flen - 1L)) || ff->flen > MAXLEN)
           goto powOfTwoLen;
-        ff->lenmask = -1L;
+        ff->lenmask = 0L;
         lobits = 0;                         /* Hope this is not needed!     */
       }
       else {
@@ -233,6 +233,83 @@ int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
       ftresdisp(csound, ff, ftp);               /* rescale and display */
       *ftpp = ftp;
     }
+
+    return 0;
+}
+
+/**
+ * Allocates space for 'tableNum' with a length (not including the guard
+ * point) of 'len' samples. The table data is not cleared to zero.
+ * Return value is zero on success.
+ */
+
+int csoundFTAlloc(ENVIRON *csound, int tableNum, int len)
+{
+    int   i, size;
+    FUNC  **nn, *ftp;
+
+    if (tableNum <= 0 || len <= 0 || len > (int) MAXLEN)
+      return -1;
+    if (tableNum > csound->maxfnum) {       /* extend list if necessary     */
+      for (size = csound->maxfnum; size < tableNum; size += MAXFNUM)
+        ;
+      nn = (FUNC**) mrealloc(csound, csound->flist, (size + 1) * sizeof(FUNC*));
+      csound->flist = nn;
+      for (i = csound->maxfnum + 1; i <= size; i++)
+        csound->flist[i] = NULL;            /* Clear new section            */
+      csound->maxfnum = size;
+    }
+    /* allocate space for table */
+    size = (int) sizeof(FUNC) + (len * (int) sizeof(MYFLT));
+    ftp = csound->flist[tableNum];
+    if (ftp == NULL)
+      csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, (size_t) size);
+    else if (len != (int) ftp->flen) {
+      if (csound->actanchor.nxtact != NULL) { /*   & chk for danger    */
+        csound->Warning(csound, Str("ftable %d relocating due to size change"
+                                    "\n         currently active instruments "
+                                    "may find this disturbing"), tableNum);
+      }
+      csound->flist[tableNum] = NULL;
+      csound->Free(csound, ftp);
+      csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, (size_t) size);
+    }
+    /* initialise table header */
+    ftp = csound->flist[tableNum];
+    memset((void*) ftp, 0, (size_t) ((char*) &(ftp->ftable[0]) - (char*) ftp));
+    ftp->flen = (long) len;
+    if (!(len & (len - 1))) {
+      /* for power of two length: */
+      ftp->lenmask = (long) (len - 1);
+      for (i = len, ftp->lobits = 0L; i < (int) MAXLEN; ftp->lobits++, i <<= 1)
+        ;
+      i = (int) MAXLEN / len;
+      ftp->lomask = (long) (i - 1);
+      ftp->lodiv = FL(1.0) / (MYFLT) i;
+    }
+    ftp->flenfrms = (long) len;
+    ftp->nchanls = 1L;
+    ftp->fno = (long) tableNum;
+
+    return 0;
+}
+
+/**
+ * Deletes a function table.
+ * Return value is zero on success.
+ */
+
+int csoundFTDelete(ENVIRON *csound, int tableNum)
+{
+    FUNC  *ftp;
+
+    if ((unsigned int) (tableNum - 1) >= (unsigned int) csound->maxfnum)
+      return -1;
+    ftp = csound->flist[tableNum];
+    if (ftp == NULL)
+      return -1;
+    csound->flist[tableNum] = NULL;
+    csound->Free(csound, ftp);
 
     return 0;
 }
