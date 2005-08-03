@@ -683,6 +683,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('freeverb',
     ['Opcodes/freeverb.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ftconv',
     ['Opcodes/ftconv.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ftgen',
+    ['Opcodes/ftgen.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('grain',
     ['Opcodes/grain.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4',
