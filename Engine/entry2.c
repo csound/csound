@@ -41,7 +41,6 @@
 #include "oscils.h"
 #include "midifile.h"
 #include "midiinterop.h"
-#include "ftgen.h"
 #include "linevent.h"
 #include "str_ops.h"
 
@@ -121,13 +120,12 @@ int    midicontrolchange(void*,void*), midiprogramchange(void*,void*);
 int    midichannelaftertouch(void*,void*), midipitchbend(void*,void*), mididefault(void*,void*);
 int    invalset(void*,void*), kinval(void*,void*), outvalset(void*,void*), koutval(void*,void*);
 int    subinstrset(void*,void*), subinstr(void*,void*); /* IV - Sep 1 2002 */
-int    useropcdset(void*,void*), useropcd(void*,void*), setksmpsset(void*,void*); /* IV - Sep 8 2002 */
+int    useropcdset(void*,void*), useropcd(void*,void*);
+int    setksmpsset(void*,void*);
 int    xinset(void*,void*), xoutset(void*,void*);       /* IV - Sep 10 2002 */
 int    ingoto(void*,void*), kngoto(void*,void*);
 int    iingoto(void*,void*), kingoto(void*,void*);
 int    nstrnumset(void*,void*), turnoff2(void*,void*);
-int    ftsave(void*,void*), ftload(void*,void*), ftsave_k_set(void*,void*), ftsave_k(void*,void*);
-int    ftsave_k_set(void*,void*), ftload_k(void*,void*);
 int    loop_l_i(void*, void*), loop_le_i(void*, void*);
 int    loop_g_i(void*, void*), loop_ge_i(void*, void*);
 int    loop_l_p(void*, void*), loop_le_p(void*, void*);
@@ -175,10 +173,11 @@ int    loop_g_p(void*, void*), loop_ge_p(void*, void*);
                 X       multiple args (any rate)        IV - Sep 1 2002
    (these types must agree with rdorch.c)                       */
 
-/* If dsblksize is 0xffff then translate on firdt arg*/
+/* If dsblksize is 0xffff then translate on output arg */
 /*                 0xfffe then translate two (oscil) */
-/*                 0xfffd then translate on ans (peak) */
+/*                 0xfffd then translate on first input arg (peak) */
 /*                 0xfffc then translate two (divz) */
+/*                 0xfffb then translate on first input arg (loop_l) */
 
 OENTRY opcodlst_2[] = {
 /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
@@ -301,10 +300,6 @@ OENTRY opcodlst_2[] = {
 { "xin", S(XIN),   1, "XXXXXXXXXXXXXXXXXXXXXXXX", "", xinset, NULL, NULL },
 { "xout", S(XOUT),    1,        "",     "M",    xoutset, NULL, NULL      },
 { "setksmps", S(SETKSMPS), 1,   "",     "i",    setksmpsset, NULL, NULL  },
-{ "ftsave",S(FTLOAD), 1,        "",     "Tim", ftsave                    },
-{ "ftload",S(FTLOAD), 1,        "",     "Tim", ftload                    },
-{ "ftsavek",S(FTLOAD_K), 3,    "",      "Tkim", ftsave_k_set, ftsave_k   },
-{ "ftloadk",S(FTLOAD_K), 3,    "",      "Tkim", ftsave_k_set, ftload_k   },
 { "tempoval", S(GTEMPO), 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
 { "downsamp",S(DOWNSAMP),3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
 { "upsamp", S(UPSAMP),  4,  "a", "k",    NULL,   NULL,   (SUBR)upsamp        },
