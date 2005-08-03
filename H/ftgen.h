@@ -50,5 +50,10 @@ typedef struct {
         FTLOAD  p;
 } FTLOAD_K; /* gab 30 jul 2002 */
 
+typedef struct {
+		OPDS	h;
+		MYFLT	*iftno, *ifreeTime;
+} FTFREE;
+
 #endif /* FTGEN_H */
 

@@ -110,6 +110,7 @@ int    turnon(void*,void*);
 int    kmapset(void*,void*), polyaft(void*,void*), ichanctl(void*,void*);
 int    chctlset(void*,void*);
 int    chanctl(void*,void*), ftgen(void*,void*), linset(void*,void*);
+int    ftfree_init(void*,void*), ftfree_deinit(void*,void*);
 int    kline(void*,void*), aline(void*,void*);
 int    expset(void*,void*), kexpon(void*,void*), expon(void*,void*);
 int    lsgset(void*,void*), klnseg(void*,void*), linseg(void*,void*);
@@ -301,6 +302,8 @@ OENTRY opcodlst_1[] = {
 { "$label", S(LBLBLK),  0,      "",     ""                              },
 { "pset",   S(PVSET),   0,      "",     "m"                             },
 { "ftgen",  S(FTGEN),   1,      "i",   "iiiiTm",ftgen                   },
+{ "ftfree", S(FTFREE),  1,      "",     "ii",	ftfree_init, NULL, NULL, 
+	                                                 ftfree_deinit      },
 { "ctrlinit",S(CTLINIT),1,      "",     "im",   ctrlinit                },
 { "massign",S(MASSIGN), 1,      "",     "iT",   massign                 },
 { "turnon", S(TURNON),  1,      "",     "io",   turnon                  },

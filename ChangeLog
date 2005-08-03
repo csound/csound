@@ -1,3 +1,8 @@
+2005-08-03	Steven Yi	<stevenyi@gmail.com>
+	* Engine/Entry1.c, Engine/fgens.c, H/ftgen.h:
+	  New ftfree opcode, takes in table number and free time arg, if 0 frees at
+	  opcode init time, otherwise at opcode deinit time
+
 2005-08-01	Istvan Varga	<ivarga@csounds.com>
 	* Minor fixes in DSSI opcodes (still have problems)
 	* Engine/rdorch.c, Engine/entry1.c, Opcodes/uggab.c:
