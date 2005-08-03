@@ -2236,6 +2236,37 @@ int ftgen(ENVIRON *csound, FTGEN *p) /* set up and call any GEN routine */
     return OK;
 }
 
+int ftfree_init(ENVIRON *csound, FTFREE *p) {
+	FUNC    *ftp = NULL;
+	int tableNum = (int)*p->iftno;
+	
+	if(*p->ifreeTime == FL(0.0)) {
+		if (tableNum > csound->maxfnum ||
+	          (ftp = csound->flist[tableNum]) == NULL) {
+		    return csound->InitError(csound, Str("ftfree: ftable does not exist"));	        
+	    }
+		csound->flist[tableNum] = NULL;
+		mfree(csound, (void*) ftp);
+	}
+	return OK;
+}
+
+int ftfree_deinit(ENVIRON *csound, FTFREE *p) {
+	FUNC    *ftp = NULL;
+	int tableNum = (int)*p->iftno;
+		
+	if(*p->ifreeTime != FL(0.0)) {
+		if (tableNum > csound->maxfnum ||
+	          (ftp = csound->flist[tableNum]) == NULL) {
+		    return csound->InitError(csound, Str("ftfree: ftable does not exist"));	        
+	    }
+		csound->flist[tableNum] = NULL;
+		mfree(csound, (void*) ftp);
+	}
+	return OK;
+}
+
+
 int ftload(ENVIRON *csound, FTLOAD *p)
 {
     MYFLT **argp = p->argums;
