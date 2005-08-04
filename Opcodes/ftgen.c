@@ -189,6 +189,7 @@ static int ftload(ENVIRON *csound, FTLOAD *p)
         int   fno = (int) MYFLT2LRND(**argp);
         MYFLT fno_f = (MYFLT) fno;
 
+        memset(&header, 0, sizeof(FUNC));
         /* ***** Need to do byte order here ***** */
         fread(&header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
         header.fno = (long) fno;
@@ -196,6 +197,7 @@ static int ftload(ENVIRON *csound, FTLOAD *p)
           goto err;
         ftp = ft_func(csound, &fno_f);
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ);
+        memset(&(ftp->ftable[0]), 0, sizeof(MYFLT) * (ftp->flen + 1));
         fread(&(ftp->ftable[0]), sizeof(MYFLT), ftp->flen + 1, file);
         /* ***** Need to do byte order here ***** */
         argp++;
@@ -268,6 +270,7 @@ static int ftload(ENVIRON *csound, FTLOAD *p)
           goto err;
         ftp = ft_func(csound, &fno_f);
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
+        memset(&(ftp->ftable[0]), 0, sizeof(MYFLT) * (ftp->flen + 1));
         for (j = 0; j <= ftp->flen; j++) {
           fgets(s, 64, file);
           ftp->ftable[j] = (MYFLT) atof(s);

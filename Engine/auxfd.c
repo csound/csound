@@ -37,7 +37,6 @@ void csoundAuxAlloc(void *csound_, long nbytes, AUXCH *auxchp)
       /* if allocd with same size, just clear to zero */
       if (nbytes == (long) auxchp->size) {
         memset(auxchp->auxp, 0, (size_t) nbytes);
-        auxchp->endp = (char*) auxchp->auxp + nbytes;
         return;
       }
       else {
@@ -75,15 +74,15 @@ void fdrecord(ENVIRON *csound, FDCH *fdchp)
 
 void fdclose(ENVIRON *csound, FDCH *fdchp)
 {
-    FDCH    *prvchp, *nxtchp;
+    FDCH    *prvchp = NULL, *nxtchp;
 
-    prvchp = NULL;
     nxtchp = csound->curip->fdchp;              /* from current insds,  */
     while (nxtchp != NULL) {                    /* chain through fdlocs */
       if (nxtchp == fdchp) {                    /*   till find this one */
-        if (fdchp->fd) {
-          csoundFileClose(csound, fdchp->fd);   /* then close the file  */
-          fdchp->fd = NULL;                     /*   delete the fd &    */
+        void  *fd = fdchp->fd;
+        if (fd) {
+          fdchp->fd = NULL;                     /* then delete the fd   */
+          csoundFileClose(csound, fd);          /*   close the file &   */
         }
         if (prvchp)
           prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
@@ -113,8 +112,7 @@ void auxchfree(void *csound, INSDS *ip)
       void  *auxp = (void*) ip->auxchp->auxp;
       AUXCH *nxt = ip->auxchp->nxtchp;
       memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
-      if (auxp)
-        mfree(p, auxp);                             /*  & free the space    */
+      mfree(p, auxp);                               /*  & free the space    */
       ip->auxchp = nxt;
     }
     if (p->oparms->odebug)

@@ -758,6 +758,7 @@ void midifile_rewind_score(ENVIRON *csound)
       MF(currentTempo) = default_tempo;
       MF(eventListIndex) = 0;
       MF(tempoListIndex) = 0;
+      csound->MTrkend = csound->Mxtroffs = csound->Mforcdecs = 0;
       /* reset controllers on all channels */
       for (i = 0; i < MAXCHAN; i++)
         midi_ctl_reset(csound, (short) i);
