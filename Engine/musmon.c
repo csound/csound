@@ -352,13 +352,17 @@ PUBLIC int csoundCleanup(void *csound_)
     csoundDestroyGlobalVariable(csound, "#CLEANUP");
 
     deactivate_all_notes(csound);
-    delete_pending_rt_events(csound);
-    if (csound->instrtxtp[0]->instance->actflg)
+    if (csound->instrtxtp &&
+        csound->instrtxtp[0] &&
+        csound->instrtxtp[0]->instance &&
+        csound->instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->instrtxtp[0]->instance);
+    delete_pending_rt_events(csound);
     orcompact(csound);
     if (csound->scfp) {
       fclose(csound->scfp); csound->scfp = NULL;
     }
+
     /* print stats only if musmon was actually run */
     if (csound->musmonGlobals != NULL) {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
