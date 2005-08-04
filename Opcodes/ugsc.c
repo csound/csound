@@ -23,7 +23,6 @@
 
 /* ugsc.c -- Opcodes from Sean Costello <costello@seanet.com> */
 
-#include <math.h>
 #include "csdl.h"
 #include "ugsc.h"
 
@@ -306,30 +305,29 @@ int resonz(ENVIRON *csound, RESONZ *p)
 
 int phaser1set(ENVIRON *csound, PHASER1 *p)
 {
-    int j;
-    int loop = (int) (*p->iorder + FL(0.5));
-    if (!(*p->istor) || p->auxx.auxp == NULL || p->auxy.auxp == NULL) {
-      csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->auxx);
-      csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &p->auxy);
+    int   loop = (int) (*p->iorder + FL(0.5));
+    long  nBytes = (long) loop * (long) sizeof(MYFLT);
+
+    if (*p->istor == FL(0.0) || p->auxx.auxp == NULL || p->auxy.auxp == NULL) {
+      csound->AuxAlloc(csound, nBytes, &p->auxx);
+      csound->AuxAlloc(csound, nBytes, &p->auxy);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
       p->ynm1 = (MYFLT *) p->auxy.auxp;
-      for (j=0; j< loop; j++)
-        p->xnm1[j] = p->ynm1[j] = FL(0.0);
     }
-    else if (p->auxx.size < loop || p->auxy.size < loop ) {
-                                /* Existing arrays too small so copy */
-      AUXCH tmp1, tmp2;
-      tmp1.auxp = tmp2.auxp = NULL;
-      csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &tmp1);
-      csound->AuxAlloc(csound, (long)loop*sizeof(MYFLT), &tmp2);
-      for (j=0; j< loop; j++) {
-        ((MYFLT*)tmp1.auxp)[j] = p->xnm1[j];
-        ((MYFLT*)tmp2.auxp)[j] = p->ynm1[j];
-      }
-      csound->Free(csound, p->auxx.auxp);       /* and fiddle it */
-      csound->Free(csound, p->auxy.auxp);
-      p->auxx = tmp1;
-      p->auxy = tmp2;
+    else if ((long) p->auxx.size < nBytes || (long) p->auxy.size < nBytes) {
+      /* Existing arrays too small so copy */
+      void    *tmp1, *tmp2;
+      size_t  oldSize1 = (size_t) p->auxx.size;
+      size_t  oldSize2 = (size_t) p->auxy.size;
+      tmp1 = csound->Malloc(csound, oldSize1 + oldSize2);
+      tmp2 = (char*) tmp1 + (int) oldSize1;
+      memcpy(tmp1, p->auxx.auxp, oldSize1);
+      memcpy(tmp2, p->auxy.auxp, oldSize2);
+      csound->AuxAlloc(csound, nBytes, &p->auxx);
+      csound->AuxAlloc(csound, nBytes, &p->auxy);
+      memcpy(p->auxx.auxp, tmp1, oldSize1);
+      memcpy(p->auxy.auxp, tmp2, oldSize2);
+      csound->Free(csound, tmp1);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
       p->ynm1 = (MYFLT *) p->auxy.auxp;
     }

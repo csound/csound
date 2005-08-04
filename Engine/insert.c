@@ -37,17 +37,20 @@ static  void    instance(ENVIRON *, int);
 
 int init0(ENVIRON *csound)
 {
-    INSDS  *ip;
+    INSTRTXT  *tp = csound->instrtxtp[0];
+    INSDS     *ip;
 
     instance(csound, 0);                            /* allocate instr 0     */
-    csound->curip = ip = csound->instrtxtp[0]->act_instance;
+    csound->curip = ip = tp->act_instance;
+    tp->act_instance = ip->nxtact;
     csound->ids = (OPDS*) ip;
-    csound->instrtxtp[0]->active++;
+    tp->active++;
     ip->actflg++;
+    csound->inerrcnt = 0;
     while ((csound->ids = csound->ids->nxti) != NULL) {
       (*csound->ids->iopadr)(csound, csound->ids);  /*   run all i-code     */
     }
-    return (csound->inerrcnt);                      /*   return errcnt      */
+    return csound->inerrcnt;                        /*   return errcnt      */
 }
 
 void set_xtratim(ENVIRON *csound, INSDS *ip)
