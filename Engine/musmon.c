@@ -21,9 +21,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
 
 #include "csoundCore.h"         /*                         MUSMON.C     */
 #include "cscore.h"
@@ -356,6 +353,8 @@ PUBLIC int csoundCleanup(void *csound_)
 
     deactivate_all_notes(csound);
     delete_pending_rt_events(csound);
+    if (csound->instrtxtp[0]->instance->actflg)
+      xturnoff_now(csound, csound->instrtxtp[0]->instance);
     orcompact(csound);
     if (csound->scfp) {
       fclose(csound->scfp); csound->scfp = NULL;
