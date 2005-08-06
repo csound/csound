@@ -422,6 +422,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
     ST(lblreq) = (LBLREQ*)mcalloc(csound, LBLMAX*sizeof(LBLREQ));
     ST(lblmax) = LBLMAX;
 
+ top:
     while ((c = getorchar(csound)) != EOF) {    /* read entire orch file  */
       if (cp == endspace-1) {                   /* Must extend */
         char *orold = ortext;
@@ -615,27 +616,52 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               ST(linepos) = -1;
             }
           }
-          else {
-            if (c !='f' || (c = getorchar(csound))!='d' ||
-                (c = getorchar(csound))!='e' || (c = getorchar(csound))!='f')
-              lexerr(csound, "Not #ifdef");
-            /* #ifdef XXX */
+          else if (c == 'f' && (c = getorchar(csound))=='d' &&
+                   (c = getorchar(csound))=='e' && (c = getorchar(csound))=='f') {
+            int def = 0;
+            MACRO *mm = ST(macros);
             while (isspace(c = getorchar(csound)));
-            while (isNameChar(c, i)) {
+            do {
               mname[i++] = c;
-              c = getorchar(csound);
-            }
+            } while (isalpha(c = getorchar(csound)) ||
+                     (i!=0 && (isdigit(c)||c=='_')));
             mname[i] = '\0';
-            mm = ST(macros);
-            while (mm != NULL) {  /* Find the definition */
-              if (!(strcmp (mname, mm->name))) break;
+            while (mm) {
+              if (strcmp(mname, mm->name)==0) {
+                def = 1;
+                break;
+              }
               mm = mm->next;
             }
-            if (mm==NULL) csound->Message(csound,"...not defined\n");
-            else csound->Message(csound,"...defined\n");
-            /* Problem is what to do about it!! */
-            lexerr(csound, "#ifdef not complete");
+/*             printf("def=%d\n", def); */
+            if (def) {
+              while (c!='\n') { /* Skip to end of line */
+/*                 printf("Ignore %c(%.2x)\n", c, c); */
+                c = getorchar(csound);
+              }
+              srccnt++; goto top;
+            }
+            else {
+              for (;;) {
+                while (c !='\n')  c = getorchar(csound);
+                srccnt++;
+                if ((c = getorchar(csound))=='#' &&
+                    (c = getorchar(csound))=='e' &&
+                    (c = getorchar(csound))=='n' &&
+                    (c = getorchar(csound))=='d') {
+                  while (getorchar(csound)!='\n') ;
+                  goto top;
+                }
+              } /* never returns */
+            }
           }
+          else lexerr(csound, "Not #ifdef");
+        }
+        else if (c=='e' && (c = getorchar(csound))=='n' &&
+                 (c = getorchar(csound))=='d') {
+          /* end of #if section */
+          while (c!='\n') c = getorchar(csound);
+/*           printf("End of #ifdef true\n"); */
         }
         else if (c=='u') {
           if ((c = getorchar(csound))!='n' || (c = getorchar(csound))!='d' ||
