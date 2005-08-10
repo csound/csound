@@ -3157,7 +3157,7 @@ static void fftInit(ENVIRON *csound, int M)
     csound->FFT_max_size |= (1 << M);
 }
 
-static inline int ConvertFFTSize(void *csound, int N)
+static inline int ConvertFFTSize(ENVIRON *csound, int N)
 {
     if (N <= 0)
       return (-N);
@@ -3197,13 +3197,13 @@ static inline int ConvertFFTSize(void *csound, int N)
     return 0;
 }
 
-static inline void getTablePointers(void *p, MYFLT **ct, short **bt,
-                                             int cn, int bn)
+static inline void getTablePointers(ENVIRON *p, MYFLT **ct, short **bt,
+                                                int cn, int bn)
 {
-    if (!(((ENVIRON*) p)->FFT_max_size & (1 << cn)))
-      fftInit((ENVIRON*) p, cn);
-    *ct = ((MYFLT**) ((ENVIRON*) p)->FFT_table_1)[cn];
-    *bt = ((short**) ((ENVIRON*) p)->FFT_table_2)[bn];
+    if (!(p->FFT_max_size & (1 << cn)))
+      fftInit(p, cn);
+    *ct = ((MYFLT**) p->FFT_table_1)[cn];
+    *bt = ((short**) p->FFT_table_2)[bn];
 }
 
 /**
@@ -3211,7 +3211,7 @@ static inline void getTablePointers(void *p, MYFLT **ct, short **bt,
  * an inverse complex FFT with a length of 'FFTsize' samples.
  */
 
-PUBLIC MYFLT csoundGetInverseComplexFFTScale(void *csound, int FFTsize)
+PUBLIC MYFLT csoundGetInverseComplexFFTScale(ENVIRON *csound, int FFTsize)
 {
     return FL(1.0);
 }
@@ -3221,7 +3221,7 @@ PUBLIC MYFLT csoundGetInverseComplexFFTScale(void *csound, int FFTsize)
  * an inverse real FFT with a length of 'FFTsize' samples.
  */
 
-PUBLIC MYFLT csoundGetInverseRealFFTScale(void *csound, int FFTsize)
+PUBLIC MYFLT csoundGetInverseRealFFTScale(ENVIRON *csound, int FFTsize)
 {
     return FL(1.0);
 }
@@ -3233,7 +3233,7 @@ PUBLIC MYFLT csoundGetInverseRealFFTScale(void *csound, int FFTsize)
  *          in interleaved real/imaginary format
  */
 
-PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize)
+PUBLIC void csoundComplexFFT(ENVIRON *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
     short *BRLow;
@@ -3253,7 +3253,7 @@ PUBLIC void csoundComplexFFT(void *csound, MYFLT *buf, int FFTsize)
  * csoundGetInverseComplexFFTScale(csound, FFTsize).
  */
 
-PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf, int FFTsize)
+PUBLIC void csoundInverseComplexFFT(ENVIRON *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
     short *BRLow;
@@ -3272,7 +3272,7 @@ PUBLIC void csoundInverseComplexFFT(void *csound, MYFLT *buf, int FFTsize)
  *          part for the Nyquist frequency
  */
 
-PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize)
+PUBLIC void csoundRealFFT(ENVIRON *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
     short *BRLow;
@@ -3293,7 +3293,7 @@ PUBLIC void csoundRealFFT(void *csound, MYFLT *buf, int FFTsize)
  * csoundGetInverseRealFFTScale(csound, FFTsize).
  */
 
-PUBLIC void csoundInverseRealFFT(void *csound, MYFLT *buf, int FFTsize)
+PUBLIC void csoundInverseRealFFT(ENVIRON *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
     short *BRLow;
@@ -3312,7 +3312,7 @@ PUBLIC void csoundInverseRealFFT(void *csound, MYFLT *buf, int FFTsize)
  * The arrays should contain 'FFTsize' MYFLT values.
  */
 
-PUBLIC void csoundRealFFTMult(void *csound,
+PUBLIC void csoundRealFFTMult(ENVIRON *csound,
                               MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
                               int FFTsize, MYFLT scaleFac)
 {

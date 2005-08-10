@@ -52,7 +52,7 @@ typedef struct {
     EVTBLK  prve;
 } LINEVENT_GLOBALS;
 
-static void sensLine(void *csound_, void *userData);
+static void sensLine(ENVIRON *csound, void *userData);
 
 #define ST(x)   (((LINEVENT_GLOBALS*) ((ENVIRON*) csound)->lineventGlobals)->x)
 
@@ -115,10 +115,8 @@ void RTLineset(ENVIRON *csound)     /* set up Linebuf & ready the input files */
 int _pclose(FILE*);
 #endif
 
-void RTclose(void *csound_)
+void RTclose(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
-
     if (csound->oparms->Linein == 0 || csound->lineventGlobals == NULL)
       return;
     csound->oparms->Linein = 0;
@@ -178,10 +176,11 @@ void writeLine(ENVIRON *csound, const char *text, long size)
     }
 }
 
-static void sensLine(void *csound_, void *userData)
-    /* accumlate RT Linein buffer, & place completed events in EVTBLK */
-{   /* does more syntax checking than rdscor, since not preprocessed  */
-    ENVIRON *csound = (ENVIRON*) csound_;
+/* accumlate RT Linein buffer, & place completed events in EVTBLK */
+/* does more syntax checking than rdscor, since not preprocessed  */
+
+static void sensLine(ENVIRON *csound, void *userData)
+{
     int     c;
     char    *cp;
     int     n, pcnt;

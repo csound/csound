@@ -1,8 +1,8 @@
 #ifndef FLUIDOPCODE_H
-#define  FLUIDOPCODE_H
+#define FLUIDOPCODE_H
 
 #include <fluidsynth.h>
-#include "csoundCore.h"
+#include "csdl.h"
 
 typedef struct {
   OPDS    h;

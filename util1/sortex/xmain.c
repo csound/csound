@@ -19,7 +19,7 @@
     along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include "csoundCore.h"                            /*   XMAIN.C  */
+#include "csound.h"                                /*   XMAIN.C  */
 
 PUBLIC int scxtract(ENVIRON *, FILE *, FILE *, FILE *);
 
@@ -33,11 +33,11 @@ int main(int ac, char **av)         /* stdio stub for standalone extract */
     csoundPreCompile(csound);
     ac--;  av++;
     if (ac != 1) {
-      csound->Message(csound, "usage: extract xfile <in >out\n");
+      fprintf(stderr, "usage: extract xfile <in >out\n");
       exit(1);
     }
     if ((xfp = fopen(*av, "r")) == NULL) {
-      csound->Message(csound, "extract: can't open %s\n", *av);
+      fprintf(stderr, "extract: can't open %s\n", *av);
       exit(1);
     }
     return (scxtract(csound, stdin, stdout, xfp));

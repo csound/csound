@@ -68,21 +68,27 @@ typedef struct {        /* for 'joystick' input window */
 } XYINDAT;
 
 /* WINDAT *SetDisp(); */
-void dispset(void *, WINDAT *, MYFLT *, long, char *, int, char *);
-int dispexit(void *);
-void display(void *, WINDAT*);
+void dispset(ENVIRON *, WINDAT *, MYFLT *, long, char *, int, char *);
+int dispexit(ENVIRON *);
+void display(ENVIRON *, WINDAT*);
 WINDAT *NewWin(char *, int);
-void   DoDisp(WINDAT *,MYFLT *,int);
-
-int  Graphable(void *csound);   /* initialise windows.  Returns 1 if X ok */
-void MakeGraph(void *, WINDAT *, char *);       /* create wdw for a graph */
-void MakeXYin(void *, XYINDAT *, MYFLT, MYFLT);
-                                /* create a mouse input window; init scale */
-void DrawGraph(void *, WINDAT *);   /* update graph in existing window */
-void ReadXYin(void *, XYINDAT *);   /* fetch latest value from ms input wdw */
-void KillGraph(void *, WINDAT *);   /* remove a graph window */
-void KillXYin(void *, XYINDAT *);   /* remove a ms input window */
-int  ExitGraph(void*); /* print click-Exit msg in most recently active window */
+void   DoDisp(WINDAT *, MYFLT *, int);
+/* initialise windows.  Returns 1 if X ok */
+int  Graphable(ENVIRON *csound);
+/* create window for a graph */
+void MakeGraph(ENVIRON *, WINDAT *, char *);
+/* create a mouse input window; init scale */
+void MakeXYin(ENVIRON *, XYINDAT *, MYFLT, MYFLT);
+/* update graph in existing window */
+void DrawGraph(ENVIRON *, WINDAT *);
+/* fetch latest value from mouse input window */
+void ReadXYin(ENVIRON *, XYINDAT *);
+/* remove a graph window */
+void KillGraph(ENVIRON *, WINDAT *);
+/* remove a mouse input window */
+void KillXYin(ENVIRON *, XYINDAT *);
+/* print click-Exit message in most recently active window */
+int  ExitGraph(ENVIRON *);
 
 #endif  /*      CWINDOW_H */
 

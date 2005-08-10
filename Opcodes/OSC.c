@@ -336,7 +336,7 @@ static int osc_listener_init(ENVIRON *csound, OSCRECV *p)
     /* start thread */
     lo_server_thread_start(pp->st);
     /* register callback function for sensevents() */
-    csound->RegisterSenseEventCallback(csound, (void (*)(void*, void*))
+    csound->RegisterSenseEventCallback(csound, (void (*)(ENVIRON*, void*))
                                                  event_sense_callback, pp);
     return OK;
 }
@@ -382,7 +382,7 @@ PUBLIC long opcode_size(void)
 PUBLIC OENTRY *opcode_init(ENVIRON *csound)
 {
     csound->RegisterResetCallback(csound, NULL,
-                                  (int (*)(void *, void *)) OSC_reset);
+                                  (int (*)(ENVIRON *, void *)) OSC_reset);
     return localops;
 }
 

@@ -1784,7 +1784,7 @@ extern "C" int FL_run(ENVIRON *csound, FLRUN *p)
   pp->threadLock = csound->CreateThreadLock(csound);
   /* register callback function to be called by sensevents() */
   csound->RegisterSenseEventCallback(csound,
-                                     (void (*)(void *, void *)) evt_callback,
+                                     (void (*)(ENVIRON *, void *)) evt_callback,
                                      (void*) pp);
 #ifdef WIN32
   pp->threadHandle = (HANDLE) _beginthread(fltkRun, 0, csound);
@@ -3693,7 +3693,7 @@ PUBLIC long opcode_size(void)
 PUBLIC OENTRY *opcode_init(ENVIRON *csound)
 {
     csound->RegisterResetCallback(csound, NULL,
-                                  (int (*)(void *, void *)) widgetRESET);
+                                  (int (*)(ENVIRON *, void *)) widgetRESET);
     return localops;
 }
 

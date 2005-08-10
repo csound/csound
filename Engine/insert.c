@@ -535,10 +535,9 @@ void infoff(ENVIRON *csound, MYFLT p1)  /* turn off an indef copy of instr p1 */
                     insno);
 }
 
-int csoundInitError(void *csound_, const char *s, ...)
+int csoundInitError(ENVIRON *csound, const char *s, ...)
 {
     va_list args;
-    ENVIRON *csound = (ENVIRON*) csound_;
     INSDS   *ip;
     char    buf[512];
 
@@ -574,10 +573,9 @@ int csoundInitError(void *csound_, const char *s, ...)
     return ++(csound->inerrcnt);
 }
 
-int csoundPerfError(void *csound_, const char *s, ...)
+int csoundPerfError(ENVIRON *csound, const char *s, ...)
 {
     va_list args;
-    ENVIRON *csound = (ENVIRON*) csound_;
     INSDS   *ip;
     char    buf[512];
 

@@ -1,11 +1,11 @@
 #ifndef OPCODE_BASE_H
 #define OPCODE_BASE_H
 #ifndef MSVC
-#include "csoundCore.h"
+#include "csdl.h"
 #include <cstdarg>
 #else
 #include <cmath>
-#include "csoundCore.h"
+#include "csdl.h"
 #endif
 
 /**
@@ -42,9 +42,8 @@ public:
   {
     return NOTOK;
   }
-  static int init_(void *csound_, void *opcode_)
+  static int init_(ENVIRON *csound, void *opcode_)
   {
-    ENVIRON *csound = reinterpret_cast<ENVIRON *>(csound_);
     T *opcode = reinterpret_cast<T *>(opcode_);
     if (!csound->reinitflag && !csound->tieflag)
       csound->RegisterDeinitCallback(csound,
@@ -55,25 +54,25 @@ public:
   {
     return NOTOK;
   }
-  static int kontrol_(void *csound, void *opcode)
+  static int kontrol_(ENVIRON *csound, void *opcode)
   {
-    return reinterpret_cast<T *>(opcode)->kontrol(reinterpret_cast<ENVIRON *>(csound));
+    return reinterpret_cast<T *>(opcode)->kontrol(csound);
   }
   int audio(ENVIRON *csound)
   {
     return NOTOK;
   }
-  static int audio_(void *csound, void *opcode)
+  static int audio_(ENVIRON *csound, void *opcode)
   {
-    return reinterpret_cast<T *>(opcode)->audio(reinterpret_cast<ENVIRON *>(csound));
+    return reinterpret_cast<T *>(opcode)->audio(csound);
   }
   int noteoff(ENVIRON *csound)
   {
     return OK;
   }
-  static int noteoff_(void *csound, void *opcode)
+  static int noteoff_(ENVIRON *csound, void *opcode)
   {
-    return reinterpret_cast< OpcodeBase<T> *>(opcode)->noteoff(reinterpret_cast<ENVIRON *>(csound));
+    return reinterpret_cast< OpcodeBase<T> *>(opcode)->noteoff(csound);
   }
   void log(ENVIRON *csound, const char *format,...)
   {

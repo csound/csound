@@ -2531,30 +2531,26 @@ static const OENTRY localops[] = {
             (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                       }
 };
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
     return 0;
 }
 
-PUBLIC int csoundModuleInit(void *csound)
+PUBLIC int csoundModuleInit(ENVIRON *csound)
 {
-    ENVIRON *p = (ENVIRON*) csound;
-
-    if (p->AppendOpcodes(p, &(localops[0]), -1) != 0) {
-      p->Message(csound, Str("oscbnk: error registering opcodes\n"));
+    if (csound->AppendOpcodes(csound, &(localops[0]), -1) != 0) {
+      csound->ErrorMsg(csound, Str("oscbnk: error registering opcodes"));
       return -1;
     }
-    return (p->CreateGlobalVariable(csound, "_oscbnk_globals",
-                                            sizeof(OSCBNK_GLOBALS)));
+    return (csound->CreateGlobalVariable(csound, "_oscbnk_globals",
+                                                 sizeof(OSCBNK_GLOBALS)));
 }
 
-PUBLIC int csoundModuleDestroy(void *csound)
+PUBLIC int csoundModuleDestroy(ENVIRON *csound)
 {
-    ENVIRON *p = (ENVIRON*) csound;
-
-    if (p->QueryGlobalVariable(csound, "_oscbnk_globals") != NULL) {
-      vco2_tables_destroy(p);
-      p->DestroyGlobalVariable(csound, "_oscbnk_globals");
+    if (csound->QueryGlobalVariable(csound, "_oscbnk_globals") != NULL) {
+      vco2_tables_destroy(csound);
+      csound->DestroyGlobalVariable(csound, "_oscbnk_globals");
     }
     return 0;
 }

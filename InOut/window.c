@@ -28,40 +28,40 @@
 /* pointer to window make fn - */
 /*     either teletype         */
 /*     or some graphics system */
-static void (*makeFn)(void *, WINDAT *, char *);
-extern void MakeAscii(void *, WINDAT *, char *);
-extern void MakeGraph(void *, WINDAT *, char *);
+static void (*makeFn)(ENVIRON *, WINDAT *, char *);
+extern void MakeAscii(ENVIRON *, WINDAT *, char *);
+extern void MakeGraph(ENVIRON *, WINDAT *, char *);
 /* pointer to appropriate drawing fn */
-static void (*drawFn)(void *, WINDAT *);
-extern void DrawAscii(void *, WINDAT *);
-extern void DrawGraph(void *, WINDAT *);
+static void (*drawFn)(ENVIRON *, WINDAT *);
+extern void DrawAscii(ENVIRON *, WINDAT *);
+extern void DrawGraph(ENVIRON *, WINDAT *);
 /* pointer to window destroy fn */
-static void (*killFn)(void *, WINDAT *);
-extern void KillAscii(void *, WINDAT *);
-extern void KillGraph(void *, WINDAT *);
+static void (*killFn)(ENVIRON *, WINDAT *);
+extern void KillAscii(ENVIRON *, WINDAT *);
+extern void KillGraph(ENVIRON *, WINDAT *);
 /* pointer to xyinput window creator */
-       void (*mkxyFn)(void *, XYINDAT *, MYFLT, MYFLT);
-static void MkXYDummy(void *, XYINDAT *, MYFLT, MYFLT);
-extern void MakeXYin(void *, XYINDAT *, MYFLT, MYFLT);
+       void (*mkxyFn)(ENVIRON *, XYINDAT *, MYFLT, MYFLT);
+static void MkXYDummy(ENVIRON *, XYINDAT *, MYFLT, MYFLT);
+extern void MakeXYin(ENVIRON *, XYINDAT *, MYFLT, MYFLT);
 /* pointer to xyinput window reader */
-       void (*rdxyFn)(void *, XYINDAT *);
-static void RdXYDummy(void *, XYINDAT *);
-extern void ReadXYin(void *, XYINDAT *);
+       void (*rdxyFn)(ENVIRON *, XYINDAT *);
+static void RdXYDummy(ENVIRON *, XYINDAT *);
+extern void ReadXYin(ENVIRON *, XYINDAT *);
 
-static int (*exitFn)(void *) = NULL; /* pointer to window last exit fn - returns
-                                        0 to exit immediately */
-extern int ExitGraph(void *);
+static int (*exitFn)(ENVIRON *) = NULL; /* pointer to window last exit fn
+                                           - returns 0 to exit immediately */
+extern int ExitGraph(ENVIRON *);
 
 /* somewhere to invoke for no display */
 
-static void DummyFn2(void *csound, WINDAT *p, char *s)
+static void DummyFn2(ENVIRON *csound, WINDAT *p, char *s)
 {
     IGN(csound); IGN(p); IGN(s);
 }
 
 /* somewhere to invoke for no display */
 
-static void DummyFn1(void *csound, WINDAT *p)
+static void DummyFn1(ENVIRON *csound, WINDAT *p)
 {
     IGN(csound); IGN(p);
 }
@@ -70,14 +70,14 @@ static void DummyFn1(void *csound, WINDAT *p)
 /* dummy exit fn */
 /* Used to be 1 but seems silly (MR/JPff) */
 
-static int DummyRFn(void *csound)
+static int DummyRFn(ENVIRON *csound)
 {
     IGN(csound); return(0);
 }
 
 /* initial proportions */
 
-static void MkXYDummy(void *csound, XYINDAT *wdptr, MYFLT x, MYFLT y)
+static void MkXYDummy(ENVIRON *csound, XYINDAT *wdptr, MYFLT x, MYFLT y)
 {
     IGN(csound);
     wdptr->windid = 0;  /* xwin = MakeWindow(1);        */
@@ -88,7 +88,7 @@ static void MkXYDummy(void *csound, XYINDAT *wdptr, MYFLT x, MYFLT y)
     wdptr->x = x;       wdptr->y = y;
 }
 
-static void RdXYDummy(void *csound, XYINDAT *wdptr)
+static void RdXYDummy(ENVIRON *csound, XYINDAT *wdptr)
 {
     IGN(csound);
     IGN(wdptr);
@@ -134,7 +134,7 @@ void dispinit(ENVIRON *csound) /* called once on initialisation of program to */
     }
 }
 
-void dispset(void *csound_,             /* setup a new window       */
+void dispset(ENVIRON *csound,           /* setup a new window       */
              WINDAT *wdptr,             /*   & init the data struct */
              MYFLT  *fdata,
              long   npts,
@@ -142,7 +142,6 @@ void dispset(void *csound_,             /* setup a new window       */
              int    waitflg,
              char   *label)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     char *s = caption;
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
@@ -167,9 +166,8 @@ void dispset(void *csound_,             /* setup a new window       */
     wdptr->danflag  = 0;
 }
 
-int dispexit(void *csound_)
+int dispexit(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     if (csound->oparms->postscript)
       PS_ExitGraph();   /* Write trailer to PostScript file  */
     if (exitFn != NULL)
@@ -179,13 +177,12 @@ int dispexit(void *csound_)
       return 0;
 }
 
-void display(void *c, WINDAT *wdptr)    /* prepare a MYFLT array, then  */
-                                        /*   call the graphing fn       */
+void display(ENVIRON *csound, WINDAT *wdptr)  /* prepare a MYFLT array, then  */
+                                              /*   call the graphing fn       */
 {
-    ENVIRON *csound = c;
-    MYFLT *fp, *fplim;
-    MYFLT       max, min, absmax, fval;
-    int         pol;
+    MYFLT   *fp, *fplim;
+    MYFLT   max, min, absmax, fval;
+    int     pol;
 
     if (!csound->oparms->displays)  return;     /* displays disabled? return */
     fp = wdptr->fdata;

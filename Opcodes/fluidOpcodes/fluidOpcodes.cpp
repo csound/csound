@@ -261,10 +261,8 @@ extern "C"
 
   /* FLUID_NOTE */
 
-  int fluidNoteTurnoff(void *csound_, void *data) {
-
-    //              ENVIRON *csound = (ENVIRON *)csound_;
-
+  int fluidNoteTurnoff(ENVIRON *csound, void *data)
+  {
     FLUID_NOTE *fluid = (FLUID_NOTE *)data;
 
     int engineNum   = (int)(*fluid->iEngineNumber);
@@ -290,9 +288,9 @@ extern "C"
     fluid->released = false;
     // fluid->h.insdshead->csound->Message(fluid->h.insdshead->csound, "%i : %i : %i : %i\n", engineNum, instrNum, key, velocity);
     if (fluid->initDone)
-      fluidNoteTurnoff((void*) csound, data);
+      fluidNoteTurnoff(csound, data);
     else
-      csound->RegisterDeinitCallback((void *)&csound, (void *)&fluid->h,
+      csound->RegisterDeinitCallback(csound, (void*) &fluid->h,
                                      &fluidNoteTurnoff);
     fluid_synth_noteon(fluid_engines[engineNum], channelNum, key, velocity);
     //MYFLT offTime = fluid->h.insdshead->p3;
@@ -657,9 +655,9 @@ extern "C"
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->thread,
                                   ep->outypes, ep->intypes,
-                                  (int (*)(void*, void*)) ep->iopadr,
-                                  (int (*)(void*, void*)) ep->kopadr,
-                                  (int (*)(void*, void*)) ep->aopadr);
+                                  (int (*)(ENVIRON*, void*)) ep->iopadr,
+                                  (int (*)(ENVIRON*, void*)) ep->kopadr,
+                                  (int (*)(ENVIRON*, void*)) ep->aopadr);
       ep++;
     }
     return err;

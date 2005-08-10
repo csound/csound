@@ -28,7 +28,6 @@
 #include <math.h>
 
 #include "csoundCore.h"
-#include "csound.h"
 #include "cfgvar.h"
 
 /* from namedins.c */
@@ -321,7 +320,7 @@ int csoundCreateGlobalConfigurationVariable(const char *name,
  */
 
 PUBLIC int
-  csoundCreateConfigurationVariable(void *csound, const char *name,
+  csoundCreateConfigurationVariable(ENVIRON *csound, const char *name,
                                     void *p, int type, int flags,
                                     void *min, void *max,
                                     const char *shortDesc,
@@ -444,7 +443,7 @@ static int are_cfgvars_compatible(csCfgVariable_t *p1, csCfgVariable_t *p2)
  * future releases of the Csound library.
  */
 
-PUBLIC int csoundCopyGlobalConfigurationVariable(void *csound,
+PUBLIC int csoundCopyGlobalConfigurationVariable(ENVIRON *csound,
                                                  const char *name,
                                                  void *p)
 {
@@ -533,7 +532,7 @@ PUBLIC int csoundCopyGlobalConfigurationVariable(void *csound,
  * future releases of the Csound library.
  */
 
-PUBLIC int csoundCopyGlobalConfigurationVariables(void *csound)
+PUBLIC int csoundCopyGlobalConfigurationVariables(ENVIRON *csound)
 {
     csCfgVariable_t *pp, *lp;
     int             i, j, k, retval;
@@ -690,7 +689,7 @@ PUBLIC int csoundSetGlobalConfigurationVariable(const char *name, void *value)
  */
 
 PUBLIC int
-  csoundSetConfigurationVariable(void *csound, const char *name, void *value)
+  csoundSetConfigurationVariable(ENVIRON *csound, const char *name, void *value)
 {
     csCfgVariable_t *pp;
 
@@ -789,8 +788,8 @@ PUBLIC int
  */
 
 PUBLIC int
-  csoundParseConfigurationVariable(void *csound, const char *name,
-                                                 const char *value)
+  csoundParseConfigurationVariable(ENVIRON *csound, const char *name,
+                                                    const char *value)
 {
     csCfgVariable_t *pp;
 
@@ -844,7 +843,7 @@ PUBLIC csCfgVariable_t
  */
 
 PUBLIC csCfgVariable_t
-    *csoundQueryConfigurationVariable(void *csound, const char *name)
+    *csoundQueryConfigurationVariable(ENVIRON *csound, const char *name)
 {
     return find_cfg_variable(local_cfg_db, name);
 }
@@ -920,7 +919,7 @@ PUBLIC csCfgVariable_t **csoundListGlobalConfigurationVariables(void)
  * however, the variable pointers in the list should not be freed.
  */
 
-PUBLIC csCfgVariable_t **csoundListConfigurationVariables(void *csound)
+PUBLIC csCfgVariable_t **csoundListConfigurationVariables(ENVIRON *csound)
 {
     return (list_db_entries(local_cfg_db));
 }
@@ -975,7 +974,7 @@ PUBLIC int csoundDeleteGlobalConfigurationVariable(const char *name)
  * CSOUNDCFG_INVALID_NAME if the variable was not found.
  */
 
-PUBLIC int csoundDeleteConfigurationVariable(void *csound, const char *name)
+PUBLIC int csoundDeleteConfigurationVariable(ENVIRON *csound, const char *name)
 {
     return (remove_entry_from_db(local_cfg_db, name));
 }
@@ -1021,7 +1020,7 @@ PUBLIC int csoundDeleteAllGlobalConfigurationVariables(void)
  * Return value is CSOUNDCFG_SUCCESS in case of success.
  */
 
-int csoundDeleteAllConfigurationVariables(void *csound)
+int csoundDeleteAllConfigurationVariables(ENVIRON *csound)
 {
     int retval;
     retval = destroy_entire_db(local_cfg_db);

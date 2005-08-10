@@ -28,33 +28,33 @@
 extern "C" {
 #endif
 
-  PUBLIC int csoundAddUtility(void *csound_, const char *name,
-                              int (*UtilFunc)(void*, int, char**));
+  PUBLIC int csoundAddUtility(ENVIRON *, const char *name,
+                              int (*UtilFunc)(ENVIRON *, int, char**));
 
-  PUBLIC int csoundRunUtility(void *csound_, const char *name,
+  PUBLIC int csoundRunUtility(ENVIRON *, const char *name,
                               int argc, char **argv);
 
   /**
    * Returns a NULL terminated list of registered utility names.
-   * The caller is responsible for freeing the returned array (with mfree(),
-   * or csound->Free()), however, the names should not be freed.
+   * The caller is responsible for freeing the returned array with free(),
+   * however, the names should not be freed.
    * The return value may be NULL in case of an error.
    */
-  PUBLIC char **csoundListUtilities(void *csound_);
+  PUBLIC char **csoundListUtilities(ENVIRON *);
 
   /**
    * Set description text for the specified utility.
    * Returns zero on success.
    */
-  PUBLIC int csoundSetUtilityDescription(void *csound_, const char *utilName,
-                                                        const char *utilDesc);
+  PUBLIC int csoundSetUtilityDescription(ENVIRON *, const char *utilName,
+                                                    const char *utilDesc);
 
   /**
    * Get utility description.
    * Returns NULL if the utility was not found, or it has no description,
    * or an error occured.
    */
-  PUBLIC char *csoundGetUtilityDescription(void *csound_, const char *utilName);
+  PUBLIC char *csoundGetUtilityDescription(ENVIRON *, const char *utilName);
 
 #ifdef __cplusplus
 };

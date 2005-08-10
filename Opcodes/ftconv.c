@@ -290,19 +290,17 @@ static int ftconv_perf(ENVIRON *csound, FTCONV *p)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
     return 0;
 }
 
-PUBLIC int csoundModuleInit(void *csound_)
+PUBLIC int csoundModuleInit(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
-
     return csound->AppendOpcode(csound, "ftconv",
                                 (int) sizeof(FTCONV), 5, "mmmmmmmm", "aiiooo",
-                                (int (*)(void*, void*)) ftconv_init,
-                                (int (*)(void*, void*)) NULL,
-                                (int (*)(void*, void*)) ftconv_perf);
+                                (int (*)(ENVIRON *, void*)) ftconv_init,
+                                (int (*)(ENVIRON *, void*)) NULL,
+                                (int (*)(ENVIRON *, void*)) ftconv_perf);
 }
 

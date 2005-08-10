@@ -24,7 +24,7 @@
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 
-PUBLIC void *csoundCreateThread(void *csound,
+PUBLIC void *csoundCreateThread(ENVIRON *csound,
                                 int (*threadRoutine)(void *userdata),
                                 void *userdata)
 {
@@ -32,15 +32,14 @@ PUBLIC void *csoundCreateThread(void *csound,
                                  (unsigned int) 0, userdata);
 }
 
-PUBLIC int csoundJoinThread(void *csound, void *thread)
+PUBLIC int csoundJoinThread(ENVIRON *csound, void *thread)
 {
     WaitForSingleObject(thread, INFINITE);
     return 0;
 }
 
-PUBLIC void *csoundCreateThreadLock(void *csound_)
+PUBLIC void *csoundCreateThreadLock(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON *)csound_;
     HANDLE threadLock = CreateEvent(0, 0, TRUE, 0);
     if (!threadLock) {
       csound->Message(csound, "csoundCreateThreadLock: "
@@ -49,17 +48,18 @@ PUBLIC void *csoundCreateThreadLock(void *csound_)
     return (void *)threadLock;
 }
 
-PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
+PUBLIC void csoundWaitThreadLock(ENVIRON *csound,
+                                 void *lock, size_t milliseconds)
 {
     WaitForSingleObject((HANDLE) lock, milliseconds);
 }
 
-PUBLIC void csoundNotifyThreadLock(void *csound, void *lock)
+PUBLIC void csoundNotifyThreadLock(ENVIRON *csound, void *lock)
 {
     SetEvent((HANDLE) lock);
 }
 
-PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
+PUBLIC void csoundDestroyThreadLock(ENVIRON *csound, void *lock)
 {
     CloseHandle((HANDLE) lock);
 }
@@ -86,7 +86,7 @@ void csoundUnLock(void)
 
 #include <pthread.h>
 
-PUBLIC void *csoundCreateThread(void *csound,
+PUBLIC void *csoundCreateThread(ENVIRON *csound,
                                 int (*threadRoutine)(void *userdata),
                                 void *userdata)
 {
@@ -98,7 +98,7 @@ PUBLIC void *csoundCreateThread(void *csound,
     return NULL;
 }
 
-PUBLIC int csoundJoinThread(void *csound, void *thread)
+PUBLIC int csoundJoinThread(ENVIRON *csound, void *thread)
 {
     pthread_t pthread = (pthread_t)thread;
     void *threadRoutineReturnValue = NULL;
@@ -110,7 +110,7 @@ PUBLIC int csoundJoinThread(void *csound, void *thread)
     }
 }
 
-PUBLIC void *csoundCreateThreadLock(void *csound)
+PUBLIC void *csoundCreateThreadLock(ENVIRON *csound)
 {
     pthread_mutex_t *pthread_mutex =
       (pthread_mutex_t *)mmalloc(csound, sizeof(pthread_mutex_t));
@@ -120,19 +120,20 @@ PUBLIC void *csoundCreateThreadLock(void *csound)
     return NULL;
 }
 
-PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
+PUBLIC void csoundWaitThreadLock(ENVIRON *csound,
+                                 void *lock, size_t milliseconds)
 {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
     /*int returnValue = */pthread_mutex_lock(pthread_mutex);
 }
 
-PUBLIC void csoundNotifyThreadLock(void *csound, void *lock)
+PUBLIC void csoundNotifyThreadLock(ENVIRON *csound, void *lock)
 {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
     /*int returnValue = */pthread_mutex_unlock(pthread_mutex);
 }
 
-PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
+PUBLIC void csoundDestroyThreadLock(ENVIRON *csound, void *lock)
 {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
     /*int returnValue = */pthread_mutex_destroy(pthread_mutex);
@@ -155,48 +156,48 @@ void csoundUnLock(void)
 
 #else
 
-PUBLIC void *csoundCreateThread(void *csound,
+PUBLIC void *csoundCreateThread(ENVIRON *csound,
                                 int (*threadRoutine)(void *userdata),
                                 void *userdata)
 {
-    csoundMessage(csound,
-                  "csoundCreateThread is not implemented on this platform.\n");
+    csoundMessage(csound, "csoundCreateThread "
+                          "is not implemented on this platform.\n");
     return 0;
 }
 
-PUBLIC int csoundJoinThread(void *csound, void *thread)
+PUBLIC int csoundJoinThread(ENVIRON *csound, void *thread)
 {
-    csoundMessage(csound,
-                  "csoundJoinThread is not implemented on this platform.\n");
+    csoundMessage(csound, "csoundJoinThread "
+                          "is not implemented on this platform.\n");
     return 0;
 }
 
-PUBLIC void *csoundCreateThreadLock(void *csound)
+PUBLIC void *csoundCreateThreadLock(ENVIRON *csound)
 {
-    csoundMessage(csound,
-                  "csoundCreateThreadLock is not implemented on this platform.\n");
+    csoundMessage(csound, "csoundCreateThreadLock "
+                          "is not implemented on this platform.\n");
     return NULL;
 }
 
-PUBLIC void csoundWaitThreadLock(void *csound, void *lock, size_t milliseconds)
+PUBLIC void csoundWaitThreadLock(ENVIRON *csound,
+                                 void *lock, size_t milliseconds)
 {
-    csoundMessage(csound,
-                  "csoundWaitThreadLock is not implemented on this platform.\n");
+    csoundMessage(csound, "csoundWaitThreadLock "
+                          "is not implemented on this platform.\n");
     return;
 }
 
-PUBLIC void csoundNotifyThreadLock(void *csound, void *lock)
+PUBLIC void csoundNotifyThreadLock(ENVIRON *csound, void *lock)
 {
-    csoundMessage(csound,
-                  "csoundNotifyThreadLock is not implemented on this platform.\n");
+    csoundMessage(csound, "csoundNotifyThreadLock "
+                          "is not implemented on this platform.\n");
     return;
 }
 
-PUBLIC void csoundDestroyThreadLock(void *csound, void *lock)
+PUBLIC void csoundDestroyThreadLock(ENVIRON *csound, void *lock)
 {
-    csoundMessage(csound,
-                  "csoundDestroyThreadLock is not implemented "
-                  "on this platform.\n");
+    csoundMessage(csound, "csoundDestroyThreadLock "
+                          "is not implemented on this platform.\n");
     return;
 }
 

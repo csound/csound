@@ -31,24 +31,25 @@
 #include "namedins.h"
 #include "soundio.h"
 #include "pvfileio.h"
+#include "fftlib.h"
 
 int     csoundGetAPIVersion(void);
 void    writeheader(ENVIRON *csound, int ofd, char *ofname);
-int     playopen_dummy(void *csound, csRtAudioParams *parm);
-void    rtplay_dummy(void *csound, void *outBuf, int nbytes);
-int     recopen_dummy(void *csound, csRtAudioParams *parm);
-int     rtrecord_dummy(void *csound, void *inBuf, int nbytes);
-void    rtclose_dummy(void *csound);
-void    csoundDefaultMessageCallback(void *csound, int attr,
+int     playopen_dummy(ENVIRON *csound, csRtAudioParams *parm);
+void    rtplay_dummy(ENVIRON *csound, void *outBuf, int nbytes);
+int     recopen_dummy(ENVIRON *csound, csRtAudioParams *parm);
+int     rtrecord_dummy(ENVIRON *csound, void *inBuf, int nbytes);
+void    rtclose_dummy(ENVIRON *csound);
+void    csoundDefaultMessageCallback(ENVIRON *csound, int attr,
                                      const char *format, va_list args);
-void    csoundDefaultThrowMessageCallback(void *csound, const char *format,
-                                                        va_list args);
-void    defaultCsoundMakeGraph(void *csound, WINDAT *windat, char *name);
-void    defaultCsoundDrawGraph(void *csound, WINDAT *windat);
-void    defaultCsoundKillGraph(void *csound, WINDAT *windat);
-int     defaultCsoundExitGraph(void *csound);
-int     defaultCsoundYield(void *csound);
-void    close_all_files(void *csound);
+void    csoundDefaultThrowMessageCallback(ENVIRON *csound, const char *format,
+                                                           va_list args);
+void    defaultCsoundMakeGraph(ENVIRON *csound, WINDAT *windat, char *name);
+void    defaultCsoundDrawGraph(ENVIRON *csound, WINDAT *windat);
+void    defaultCsoundKillGraph(ENVIRON *csound, WINDAT *windat);
+int     defaultCsoundExitGraph(ENVIRON *csound);
+int     defaultCsoundYield(ENVIRON *csound);
+void    close_all_files(ENVIRON *csound);
 char    *getstrformat(int format);
 int     sfsampsize(int format);
 char    *type2string(int type);
@@ -329,8 +330,8 @@ const ENVIRON cenviron_ = {
     /* ------- private data (not to be used by hosts or externals) ------- */
         /* callback function pointers */
         (SUBR) NULL,    /*  first_callback_     */
-        (void (*)(void*, char*, MYFLT*)) NULL,
-        (void (*)(void*, char*, MYFLT)) NULL,
+        (void (*)(ENVIRON*, char*, MYFLT*)) NULL,
+        (void (*)(ENVIRON*, char*, MYFLT)) NULL,
         csoundDefaultMessageCallback,
         csoundDefaultThrowMessageCallback,
         defaultCsoundMakeGraph,
@@ -450,10 +451,10 @@ const ENVIRON cenviron_ = {
         NULL,           /*  lineventGlobals     */
         NULL,           /*  musmonGlobals       */
         NULL,           /*  libsndGlobals       */
-        (void (*)(void*)) NULL,         /*  spinrecv        */
-        (void (*)(void*)) NULL,         /*  spoutran        */
-        (int (*)(void*, MYFLT*, int)) NULL,     /*  audrecv */
-        (void (*)(void*, MYFLT*, int)) NULL,    /*  audtran */
+        (void (*)(ENVIRON*)) NULL,      /*  spinrecv        */
+        (void (*)(ENVIRON*)) NULL,      /*  spoutran        */
+        (int (*)(ENVIRON*, MYFLT*, int)) NULL,  /*  audrecv */
+        (void (*)(ENVIRON*, MYFLT*, int)) NULL, /*  audtran */
         0,              /*  warped              */
         0,              /*  sstrlen             */
         (char*) NULL,   /*  sstrbuf             */

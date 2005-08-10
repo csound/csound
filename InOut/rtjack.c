@@ -25,18 +25,12 @@
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
 #include <stdint.h>
-#include "csoundCore.h"
-#include "csound.h"
+#include "csdl.h"
 #include "soundio.h"
 
 #ifdef LINUX
 #include <sched.h>
 #endif
-
-#ifdef Str
-#undef Str
-#endif
-#define Str(x) (((ENVIRON*) csound)->LocalizeString(x))
 
 typedef struct {
     int                 active;         /* 0: unused, 1: active, 2: running */
@@ -136,7 +130,7 @@ static void freeWheelCallback(int starting, void *arg)
 #endif
 }
 
-#define GETVAR(x)   (p->QueryGlobalVariable(p, x))
+#define GETVAR(x)   (csound->QueryGlobalVariable(csound, x))
 
 static void closeJackStream(CsoundJackClient_t *client, int playback)
 {
@@ -173,11 +167,11 @@ static int openJackStream(CsoundJackClient_t *client, csRtAudioParams *parm,
                           int playback)
 {
     JackStreamParams_t  *pp;
-    ENVIRON             *p;
+    ENVIRON             *p, *csound;
     int                 i, j;
     char                buf[128], buf1[128];
 
-    p = (ENVIRON*) (client->csound);
+    p = csound = (ENVIRON*) (client->csound);
     if (playback)
       pp = &(client->p);
     else
@@ -378,13 +372,12 @@ static int openJackStream(CsoundJackClient_t *client, csRtAudioParams *parm,
 
 /* module interface functions */
 
-int csoundModuleCreate(void *csound)
+int csoundModuleCreate(ENVIRON *csound)
 {
-    ENVIRON *p;
+    ENVIRON *p = csound;
     void    *ptr;
     int     i, j;
 
-    p = (ENVIRON*) csound;
     p->Message(csound, "JACK real-time audio module for Csound "
                        "by Istvan Varga\n");
     /* register options: */
@@ -430,31 +423,29 @@ int csoundModuleCreate(void *csound)
     return 0;
 }
 
-static int playopen_(void*, csRtAudioParams*);
-static int recopen_(void*, csRtAudioParams*);
-static void rtplay_(void*, void*, int);
-static int rtrecord_(void*, void*, int);
-static void rtclose_(void*);
+static int playopen_(ENVIRON*, csRtAudioParams*);
+static int recopen_(ENVIRON*, csRtAudioParams*);
+static void rtplay_(ENVIRON*, void*, int);
+static int rtrecord_(ENVIRON*, void*, int);
+static void rtclose_(ENVIRON*);
 
-int csoundModuleInit(void *csound)
+int csoundModuleInit(ENVIRON *csound)
 {
-    ENVIRON *p;
     char    *drv;
 
-    p = (ENVIRON*) csound;
     drv = (char*) GETVAR("_RTAUDIO");
     if (drv == NULL)
       return 0;
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    p->Message(csound, "rtaudio: JACK module enabled\n");
+    csound->Message(csound, "rtaudio: JACK module enabled\n");
     /* register Csound interface functions */
-    p->SetPlayopenCallback(csound, playopen_);
-    p->SetRecopenCallback(csound, recopen_);
-    p->SetRtplayCallback(csound, rtplay_);
-    p->SetRtrecordCallback(csound, rtrecord_);
-    p->SetRtcloseCallback(csound, rtclose_);
+    csound->SetPlayopenCallback(csound, playopen_);
+    csound->SetRecopenCallback(csound, recopen_);
+    csound->SetRtplayCallback(csound, rtplay_);
+    csound->SetRtrecordCallback(csound, rtrecord_);
+    csound->SetRtcloseCallback(csound, rtclose_);
 
     return 0;
 }
@@ -462,12 +453,11 @@ int csoundModuleInit(void *csound)
 /* connect to JACK server, if not done so already */
 /* returns client pointer on success, or NULL in case of an error */
 
-static CsoundJackClient_t *jackConnectServer(void *csound)
+static CsoundJackClient_t *jackConnectServer(ENVIRON *csound)
 {
-    ENVIRON             *p;
+    ENVIRON             *p = csound;
     CsoundJackClient_t  *client;
 
-    p = (ENVIRON*) csound;
     /* already connected ? */
     client = (CsoundJackClient_t*) GETVAR("::JACK::client");
     if (client != NULL)
@@ -500,12 +490,10 @@ static CsoundJackClient_t *jackConnectServer(void *csound)
 
 /* open for audio input */
 
-static int recopen_(void *csound, csRtAudioParams *parm)
+static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p;
 
-    p = (ENVIRON*) csound;
     /* do we have a connection to the JACK server ? */
     client = jackConnectServer(csound);
     if (client == NULL)
@@ -515,21 +503,19 @@ static int recopen_(void *csound, csRtAudioParams *parm)
       closeJackStream(client, 0);
       closeJackStream(client, 1);
       jack_client_close(client->client);
-      p->DestroyGlobalVariable(csound, "::JACK::client");
+      csound->DestroyGlobalVariable(csound, "::JACK::client");
       return -1;
     }
-    *(p->GetRtRecordUserData(csound)) = &(client->r);
+    *(csound->GetRtRecordUserData(csound)) = &(client->r);
     return 0;
 }
 
 /* open for audio output */
 
-static int playopen_(void *csound, csRtAudioParams *parm)
+static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p;
 
-    p = (ENVIRON*) csound;
     /* do we have a connection to the JACK server ? */
     client = jackConnectServer(csound);
     if (client == NULL)
@@ -539,10 +525,10 @@ static int playopen_(void *csound, csRtAudioParams *parm)
       closeJackStream(client, 0);
       closeJackStream(client, 1);
       jack_client_close(client->client);
-      p->DestroyGlobalVariable(csound, "::JACK::client");
+      csound->DestroyGlobalVariable(csound, "::JACK::client");
       return -1;
     }
-    *(p->GetRtPlayUserData(csound)) = &(client->p);
+    *(csound->GetRtPlayUserData(csound)) = &(client->p);
     return 0;
 }
 
@@ -607,14 +593,13 @@ static int processCallback(jack_nframes_t nframes, void *arg)
     return 0;
 }
 
-static int jackClientActivate(void *csound)
+static int jackClientActivate(ENVIRON *csound)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p;
+    ENVIRON             *p = csound;
     int                 i;
     char                buf1[128], buf2[256];
 
-    p = (ENVIRON*) csound;
     client = (CsoundJackClient_t*) GETVAR("::JACK::client");
     if (client == NULL)
       return -1;
@@ -692,17 +677,15 @@ static int jackClientActivate(void *csound)
 
 /* get samples from ADC */
 
-static int rtrecord_(void *csound, void *inbuf_, int bytes_)
+static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
 {
     JackStreamParams_t  *pp;
-    ENVIRON             *p;
     volatile int        *frames_ahead;
     int                 nframes;
 
-    p = (ENVIRON*) csound;
-    pp = *((JackStreamParams_t**) (p->GetRtRecordUserData(csound)));
+    pp = *((JackStreamParams_t**) (csound->GetRtRecordUserData(csound)));
     if (pp == NULL || pp->active == 0) {
-      p->Message(csound, " *** real time audio input stopped\n");
+      csound->Message(csound, " *** real time audio input stopped\n");
       memset(inbuf_, 0, (size_t) bytes_);
       usleep(100000);
       return bytes_;
@@ -719,7 +702,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
     while (*frames_ahead < pp->parm.bufSamp_SW)
       usleep(pp->sleep_time);
     /* copy from ring buffer */
-    nframes = bytes_ / (pp->parm.nChannels * (int) (p->GetSizeOfMYFLT()));
+    nframes = bytes_ / (pp->parm.nChannels * (int) (csound->GetSizeOfMYFLT()));
     pp->rb_readpos =
       pp->SampleConvFunc(nframes, pp->parm.nChannels,
                          pp->parm.bufSamp_HW, pp->rb_readpos,
@@ -731,17 +714,15 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(void *csound, void *outbuf_, int bytes_)
+static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
 {
     JackStreamParams_t  *pp;
-    ENVIRON             *p;
     volatile int        *frames_ahead;
     int                 nframes;
 
-    p = (ENVIRON*) csound;
-    pp = *((JackStreamParams_t**) (p->GetRtPlayUserData(csound)));
+    pp = *((JackStreamParams_t**) (csound->GetRtPlayUserData(csound)));
     if (pp == NULL || pp->active == 0) {
-      p->Message(csound, " *** real time audio output stopped\n");
+      csound->Message(csound, " *** real time audio output stopped\n");
       usleep(100000);
       return;
     }
@@ -756,7 +737,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
     while (*frames_ahead > (pp->parm.bufSamp_HW - pp->parm.bufSamp_SW))
       usleep(pp->sleep_time);
     /* copy to ring buffer */
-    nframes = bytes_ / (pp->parm.nChannels * (int) (p->GetSizeOfMYFLT()));
+    nframes = bytes_ / (pp->parm.nChannels * (int) (csound->GetSizeOfMYFLT()));
     pp->rb_writepos =
       pp->SampleConvFunc(nframes, pp->parm.nChannels,
                          pp->parm.bufSamp_HW, pp->rb_writepos,
@@ -767,21 +748,19 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
 /* close the I/O device entirely  */
 /* called only when both complete */
 
-static void rtclose_(void *csound)
+static void rtclose_(ENVIRON *csound)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p;
 
-    p = (ENVIRON*) csound;
     client = (CsoundJackClient_t*) GETVAR("::JACK::client");
     if (client == NULL)
       return;       /* already closed */
     closeJackStream(client, 0);
     closeJackStream(client, 1);
     jack_client_close(client->client);
-    p->DestroyGlobalVariable(csound, "::JACK::client");
-    *(p->GetRtRecordUserData(csound)) = NULL;
-    *(p->GetRtPlayUserData(csound)) = NULL;
+    csound->DestroyGlobalVariable(csound, "::JACK::client");
+    *(csound->GetRtRecordUserData(csound)) = NULL;
+    *(csound->GetRtPlayUserData(csound)) = NULL;
 }
 
 /* sample conversion routines */

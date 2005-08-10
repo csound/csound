@@ -1,6 +1,5 @@
 /* Console Csound using the Csound API. */
 
-#include "csoundCore.h"
 #include "csound.h"
 #include "csmodule.h"
 #include <stdio.h>
@@ -124,8 +123,8 @@ static int set_rt_priority(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    void  *csound;
-    int   result;
+    ENVIRON *csound;
+    int     result;
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
         setvbuf(stdout, (char *)NULL, _IONBF, 0);
@@ -151,8 +150,8 @@ int main(int argc, char **argv)
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
     if (!result) {
-      if (((ENVIRON*) csound)->oparms->outbufsamps
-            <= ((ENVIRON*) csound)->nspout) {
+      if (csoundGetOutputBufferSize(csound)
+            <= (csoundGetKsmps(csound) * csoundGetNchnls(csound))) {
         /* do not need csoundYield(), kperf() will call it */
         while ((result = csoundPerformKsmps(csound)) == 0)
           ;
