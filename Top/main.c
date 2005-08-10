@@ -20,28 +20,25 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
 
 #include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
 #include <ctype.h>              /* For isdigit */
 
-extern  void    dieu(void *, char *, ...);
-extern  int     argdecode(void *, int, char **);
+extern  void    dieu(ENVIRON *, char *, ...);
+extern  int     argdecode(ENVIRON *, int, char **);
 extern  int     init_pvsys(ENVIRON *);
-extern  char    *get_sconame(void *);
+extern  char    *get_sconame(ENVIRON *);
 extern  int     musmon2(ENVIRON *);
 extern  char    *getstrformat(int);
-extern  void    print_benchmark_info(void *, const char *);
+extern  void    print_benchmark_info(ENVIRON *, const char *);
 
-static void create_opcodlst(void *csound)
+static void create_opcodlst(ENVIRON *csound)
 {
     extern  OENTRY  opcodlst_1[];
     extern  OENTRY  opcodlst_2[];
-    if (((ENVIRON*) csound)->opcodlst != NULL)
+    if (csound->opcodlst != NULL)
       return;
     /* Basic Entry1 stuff */
     csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
@@ -49,9 +46,8 @@ static void create_opcodlst(void *csound)
     csoundAppendOpcodes(csound, &(opcodlst_2[0]), -1);
 }
 
-PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
+PUBLIC int csoundCompile(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     char    *s, *orcNameMode;
     char    *filnamp, *envoutyp = NULL;
@@ -84,18 +80,18 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
 #ifndef USE_DOUBLE
 #ifdef BETA
     csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
-                            PACKAGE_VERSION, __DATE__);
+                            CS_PACKAGE_VERSION, __DATE__);
 #else
     csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
-                            PACKAGE_VERSION, __DATE__);
+                            CS_PACKAGE_VERSION, __DATE__);
 #endif
 #else
 #ifdef BETA
     csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
-                            PACKAGE_VERSION, __DATE__);
+                            CS_PACKAGE_VERSION, __DATE__);
 #else
     csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
-                            PACKAGE_VERSION, __DATE__);
+                            CS_PACKAGE_VERSION, __DATE__);
 #endif
 #endif
     {
@@ -339,9 +335,8 @@ PUBLIC int csoundCompile(void *csound_, int argc, char **argv)
     return musmon(csound);
 }
 
-PUBLIC int csoundPerform(void *csound_, int argc, char **argv)
+PUBLIC int csoundPerform(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     int     n;
 
     if ((n = setjmp(csound->exitjmp))) {

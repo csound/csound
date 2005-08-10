@@ -210,7 +210,7 @@ int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
     x = lo_server_thread_add_method(pp->thread, (char*)p->dest, (char*)p->type,
                                     OSC_handler, pp);
     csound->RegisterDeinitCallback(csound,
-                                   p, (int (*)(void*, void*)) OSC_listdeinit);
+                                   p, (int (*)(ENVIRON*,void*)) OSC_listdeinit);
     return OK;
 }
 
@@ -245,9 +245,11 @@ PUBLIC long opcode_size(void)
 
 PUBLIC OENTRY *opcode_init(ENVIRON *csound)
 {
+#ifdef BETA
     csound->Message(csound, "****OSC: liblo started****\n");
+#endif
     csound->RegisterResetCallback(csound, NULL,
-                                  (int (*)(void *, void *)) OSC_reset);
+                                  (int (*)(ENVIRON *, void *)) OSC_reset);
     return localops;
 }
 

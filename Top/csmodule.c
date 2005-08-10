@@ -34,20 +34,20 @@
  * however, the presence of csoundModuleCreate() is required for identifying  *
  * the file as a Csound plugin module.                                        *
  *                                                                            *
- * int csoundModuleCreate(void *csound)         (required)                    *
- * ------------------------------------                                       *
+ * int csoundModuleCreate(ENVIRON *csound)      (required)                    *
+ * ---------------------------------------                                    *
  *                                                                            *
  * Pre-initialisation function that is called by csoundCreate() after the     *
  * creation of Csound instance 'csound'.                                      *
  *                                                                            *
- * int csoundModuleInit(void *csound)           (optional)                    *
- * ----------------------------------                                         *
+ * int csoundModuleInit(ENVIRON *csound)        (optional)                    *
+ * -------------------------------------                                      *
  *                                                                            *
  * Called by Csound instances before orchestra translation. One possible use  *
  * of csoundModuleInit() is adding new opcodes with csoundAppendOpcode().     *
  *                                                                            *
- * int csoundModuleDestroy(void *csound)        (optional)                    *
- * -------------------------------------                                      *
+ * int csoundModuleDestroy(ENVIRON *csound)     (optional)                    *
+ * ----------------------------------------                                   *
  *                                                                            *
  * Destructor function for Csound instance 'csound', called at the end of     *
  * performance, after closing audio output.                                   *
@@ -66,7 +66,6 @@
 #include <errno.h>
 
 #include "csoundCore.h"
-#include "csound.h"
 #include "csmodule.h"
 
 #if defined(HAVE_DIRENT_H)
@@ -101,18 +100,17 @@ typedef struct csoundModule_s {
     struct csoundModule_s *nxt;             /* pointer to next link in chain */
     void    *h;                             /* library handle                */
     char    *name;                          /* name of the module            */
-    int     (*PreInitFunc)(void *csound);   /* pre-initialisation routine    */
-    int     (*InitFunc)(void *csound);      /* initialisation routine        */
-    int     (*DestFunc)(void *csound);      /* destructor routine            */
+    int     (*PreInitFunc)(ENVIRON *);      /* pre-initialisation routine    */
+    int     (*InitFunc)(ENVIRON *);         /* initialisation routine        */
+    int     (*DestFunc)(ENVIRON *);         /* destructor routine            */
     char    *(*ErrCodeToStr)(int errcode);  /* convert error code to string  */
 } csoundModule_t;
 
 /* load all modules from plugin directory, and build module database */
 
-static int build_module_database(void *csound_)
+static int build_module_database(ENVIRON *csound)
 {
 #ifdef HAVE_DIRENT_H
-    ENVIRON         *csound = (ENVIRON*) csound_;
     DIR             *dir;
     struct dirent   *f;
     csoundModule_t  *m, **plugin_db;
@@ -135,7 +133,7 @@ static int build_module_database(void *csound_)
     dir = opendir(dname);
     if (dir == (DIR*) NULL) {
       csound->Message(csound, Str("Error opening plugin directory '%s': %s\n"),
-                 dname, strerror(errno));
+                              dname, strerror(errno));
       return CSOUND_ERROR;
     }
     /* get pointer to database */
@@ -217,11 +215,13 @@ static int build_module_database(void *csound_)
       m->name = (char*) m + (((int) sizeof(csoundModule_t) + 15) & (~15));
       strcpy(m->name, fname);
       m->PreInitFunc =
-        (int (*)(void*)) csoundGetLibrarySymbol(h, PreInitFunc_Name);
-      m->InitFunc = (int (*)(void*)) csoundGetLibrarySymbol(h, InitFunc_Name);
-      m->DestFunc = (int (*)(void*)) csoundGetLibrarySymbol(h, DestFunc_Name);
+          (int (*)(ENVIRON *)) csoundGetLibrarySymbol(h, PreInitFunc_Name);
+      m->InitFunc =
+          (int (*)(ENVIRON *)) csoundGetLibrarySymbol(h, InitFunc_Name);
+      m->DestFunc =
+          (int (*)(ENVIRON *)) csoundGetLibrarySymbol(h, DestFunc_Name);
       m->ErrCodeToStr =
-        (char *(*)(int)) csoundGetLibrarySymbol(h, ErrCodeToStr_Name);
+          (char *(*)(int)) csoundGetLibrarySymbol(h, ErrCodeToStr_Name);
       /* link into chain */
       (*plugin_db) = m;
     }
@@ -232,7 +232,7 @@ static int build_module_database(void *csound_)
 
 /* unload all external modules, and free memory used by database */
 
-static void destroy_module_database(void *csound)
+static void destroy_module_database(ENVIRON *csound)
 {
     csoundModule_t  *m, *prv, **plugin_db;
 
@@ -260,9 +260,8 @@ static void destroy_module_database(void *csound)
  * some modules could not be loaded or initialised, and CSOUND_MEMORY
  * if a memory allocation failure has occured.
  */
-int csoundLoadModules(void *csound_)
+int csoundLoadModules(ENVIRON *csound)
 {
-    ENVIRON         *csound = (ENVIRON*) csound_;
     csoundModule_t  *m, **plugin_db;
     int             i, retval;
 
@@ -310,9 +309,8 @@ int csoundLoadModules(void *csound_)
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
  * some modules could not be initialised.
  */
-int csoundInitModules(void *csound_)
+int csoundInitModules(ENVIRON *csound)
 {
-    ENVIRON         *csound = (ENVIRON*) csound_;
     csoundModule_t  *m, **plugin_db;
     int             i, retval;
 
@@ -347,9 +345,8 @@ int csoundInitModules(void *csound_)
  * Return value is CSOUND_SUCCESS if there was no error, and
  * CSOUND_ERROR if some modules could not be de-initialised.
  */
-int csoundDestroyModules(void *csound_)
+int csoundDestroyModules(ENVIRON *csound)
 {
-    ENVIRON         *csound = (ENVIRON*) csound_;
     csoundModule_t  *m, **plugin_db;
     int             i, retval;
 
@@ -357,7 +354,7 @@ int csoundDestroyModules(void *csound_)
     plugin_db =
       (csoundModule_t**) (csoundQueryGlobalVariable(csound, plugindb_name));
     if (plugin_db == NULL)
-      return CSOUND_ERROR;
+      return CSOUND_SUCCESS;
     /* call destructor functions */
     m = (*plugin_db);
     retval = CSOUND_SUCCESS;

@@ -58,11 +58,12 @@ typedef struct {
     int     fno;
 } FTDELETE;
 
-static int ftable_delete(ENVIRON *csound, FTDELETE *p)
+static int ftable_delete(ENVIRON *csound, void *p)
 {
-    int err = csound->FTDelete(csound, p->fno);
+    int err = csound->FTDelete(csound, ((FTDELETE*) p)->fno);
     if (err != OK)
-      csound->ErrorMsg(csound, Str("Error deleting ftable %d"), p->fno);
+      csound->ErrorMsg(csound, Str("Error deleting ftable %d"),
+                               ((FTDELETE*) p)->fno);
     free(p);
     return err;
 }
@@ -74,8 +75,7 @@ static int register_ftable_delete(ENVIRON *csound, void *p, int tableNum)
       return csound->InitError(csound, Str("memory allocation failure"));
     op->h.insdshead = ((OPDS*) p)->insdshead;
     op->fno = tableNum;
-    return csound->RegisterDeinitCallback(csound, op,
-                                          (int (*)(void*,void*)) ftable_delete);
+    return csound->RegisterDeinitCallback(csound, op, ftable_delete);
 }
 
 /* set up and call any GEN routine */

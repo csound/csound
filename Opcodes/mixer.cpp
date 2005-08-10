@@ -271,23 +271,23 @@ extern "C"
     { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
   };
 
-  PUBLIC int csoundModuleCreate(void *csound)
+  PUBLIC int csoundModuleCreate(ENVIRON *csound)
   {
     return 0;
   }
 
-  PUBLIC int csoundModuleInit(void *csound_)
+  PUBLIC int csoundModuleInit(ENVIRON *csound)
   {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OENTRY  *ep = (OENTRY*) &(localops[0]);
     int     err = 0;
 
     while (ep->opname != NULL) {
-      err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->thread,
-                                          ep->outypes, ep->intypes,
-                                          (int (*)(void*, void*)) ep->iopadr,
-                                          (int (*)(void*, void*)) ep->kopadr,
-                                          (int (*)(void*, void*)) ep->aopadr);
+      err |= csound->AppendOpcode(csound,
+                                  ep->opname, ep->dsblksiz, ep->thread,
+                                  ep->outypes, ep->intypes,
+                                  (int (*)(ENVIRON *, void*)) ep->iopadr,
+                                  (int (*)(ENVIRON *, void*)) ep->kopadr,
+                                  (int (*)(ENVIRON *, void*)) ep->aopadr);
       ep++;
     }
     return err;

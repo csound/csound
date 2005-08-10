@@ -426,7 +426,7 @@ newopc:
 
 /* free memory used by opcode list */
 
-extern int useropcdset(void*, void*);
+extern int useropcdset(ENVIRON *, void *);
 
 void opcode_list_free(ENVIRON *csound)
 {
@@ -622,10 +622,9 @@ static void **extendNamedGlobals(ENVIRON *p, int n, int storeIndex)
  * parameters (zero nbytes, invalid or already used name), or
  * CSOUND_MEMORY if there is not enough memory.
  */
-PUBLIC int csoundCreateGlobalVariable(void *csound, const char *name,
-                                      size_t nbytes)
+PUBLIC int csoundCreateGlobalVariable(ENVIRON *csnd,
+                                      const char *name, size_t nbytes)
 {
-    ENVIRON *csnd = (ENVIRON*) csound;
     void    **p = NULL;
     int     i, j, k, len;
     /* create new empty database if it does not exist yet */
@@ -693,9 +692,8 @@ PUBLIC int csoundCreateGlobalVariable(void *csound, const char *name,
  * Get pointer to space allocated with the name "name".
  * Returns NULL if the specified name is not defined.
  */
-PUBLIC void *csoundQueryGlobalVariable(void *csound, const char *name)
+PUBLIC void *csoundQueryGlobalVariable(ENVIRON *csnd, const char *name)
 {
-    ENVIRON *csnd = (ENVIRON*) csound;
     void    **p = NULL;
     int     i, j, k, len;
     /* check if there is an actual database to search */
@@ -742,9 +740,8 @@ PUBLIC void *csoundQueryGlobalVariable(void *csound, const char *name)
  * Faster, but may crash or return an invalid pointer if 'name' is
  * not defined.
  */
-PUBLIC void *csoundQueryGlobalVariableNoCheck(void *csound, const char *name)
+PUBLIC void *csoundQueryGlobalVariableNoCheck(ENVIRON *csnd, const char *name)
 {
-    ENVIRON *csnd = (ENVIRON*) csound;
     void    **p = NULL;
     int     i, j, k, len;
 
@@ -770,13 +767,12 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(void *csound, const char *name)
  * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
  * not defined.
  */
-PUBLIC int csoundDestroyGlobalVariable(void *csound, const char *name)
+PUBLIC int csoundDestroyGlobalVariable(ENVIRON *csnd, const char *name)
 {
-    ENVIRON *csnd = (ENVIRON*) csound;
     void    **p = NULL;
     int     i, j, k, len;
     /* check for a valid name */
-    if (csoundQueryGlobalVariable(csound, name) == (void*) NULL)
+    if (csoundQueryGlobalVariable(csnd, name) == (void*) NULL)
       return CSOUND_ERROR;
     len = (int) strlen(name);
     /* search tree (simple version, as the name will surely be found) */
@@ -825,15 +821,15 @@ static void free_global_variable(void **p)
  * Free entire global variable database. This function is for internal use
  * only (e.g. by RESET routines).
  */
-void csoundDeleteAllGlobalVariables(void *csound)
+void csoundDeleteAllGlobalVariables(ENVIRON *csound)
 {
-    ((ENVIRON*) csound)->namedGlobalsCurrLimit = 0;
-    ((ENVIRON*) csound)->namedGlobalsMaxLimit = 0;
-    if (((ENVIRON*) csound)->namedGlobals == NULL)
+    csound->namedGlobalsCurrLimit = 0;
+    csound->namedGlobalsMaxLimit = 0;
+    if (csound->namedGlobals == NULL)
       return;
-    free_global_variable(((ENVIRON*) csound)->namedGlobals);
-    free(((ENVIRON*) csound)->namedGlobals);
-    ((ENVIRON*) csound)->namedGlobals = (void**) NULL;
+    free_global_variable(csound->namedGlobals);
+    free(csound->namedGlobals);
+    csound->namedGlobals = (void**) NULL;
 }
 
 #else   /* CSGLOBALS_USE_TREE */
@@ -853,10 +849,9 @@ typedef struct GlobalVariableEntry_s {
  * parameters (zero nbytes, invalid or already used name), or
  * CSOUND_MEMORY if there is not enough memory.
  */
-PUBLIC int csoundCreateGlobalVariable(void *csound, const char *name,
-                                      size_t nbytes)
+PUBLIC int csoundCreateGlobalVariable(ENVIRON *csnd,
+                                      const char *name, size_t nbytes)
 {
-    ENVIRON               *csnd = (ENVIRON*) csound;
     GlobalVariableEntry_t *p, **pp;
     int                   i, structBytes, nameBytes, allocBytes;
     unsigned char         h;
@@ -919,9 +914,8 @@ PUBLIC int csoundCreateGlobalVariable(void *csound, const char *name,
  * Get pointer to space allocated with the name "name".
  * Returns NULL if the specified name is not defined.
  */
-PUBLIC void *csoundQueryGlobalVariable(void *csound, const char *name)
+PUBLIC void *csoundQueryGlobalVariable(ENVIRON *csnd, const char *name)
 {
-    ENVIRON               *csnd = (ENVIRON*) csound;
     GlobalVariableEntry_t *p;
     unsigned char         h;
     /* check if there is an actual database to search */
@@ -952,9 +946,8 @@ PUBLIC void *csoundQueryGlobalVariable(void *csound, const char *name)
  * Faster, but may crash or return an invalid pointer if 'name' is
  * not defined.
  */
-PUBLIC void *csoundQueryGlobalVariableNoCheck(void *csound, const char *name)
+PUBLIC void *csoundQueryGlobalVariableNoCheck(ENVIRON *csnd, const char *name)
 {
-    ENVIRON               *csnd = (ENVIRON*) csound;
     GlobalVariableEntry_t *p;
     unsigned char         h;
 
@@ -972,14 +965,13 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(void *csound, const char *name)
  * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
  * not defined.
  */
-PUBLIC int csoundDestroyGlobalVariable(void *csound, const char *name)
+PUBLIC int csoundDestroyGlobalVariable(ENVIRON *csnd, const char *name)
 {
-    ENVIRON               *csnd = (ENVIRON*) csound;
     GlobalVariableEntry_t *p, *prvp;
     unsigned char         h;
 
     /* check for a valid name */
-    if (csoundQueryGlobalVariable(csound, name) == (void*) NULL)
+    if (csoundQueryGlobalVariable(csnd, name) == (void*) NULL)
       return CSOUND_ERROR;
     /* calculate hash value */
     h = name_hash(name);
@@ -1003,16 +995,16 @@ PUBLIC int csoundDestroyGlobalVariable(void *csound, const char *name)
  * Free entire global variable database. This function is for internal use
  * only (e.g. by RESET routines).
  */
-void csoundDeleteAllGlobalVariables(void *csound)
+void csoundDeleteAllGlobalVariables(ENVIRON *csound)
 {
     GlobalVariableEntry_t *p, *prvp;
     int                   i;
 
-    if (((ENVIRON*) csound)->namedGlobals == NULL)
+    if (csound->namedGlobals == NULL)
       return;
     for (i = 0; i < 256; i++) {
       prvp = (GlobalVariableEntry_t*) NULL;
-      p = (GlobalVariableEntry_t*) (((ENVIRON*) csound)->namedGlobals[i]);
+      p = (GlobalVariableEntry_t*) csound->namedGlobals[i];
       while (p != NULL) {
         prvp = p;
         p = (GlobalVariableEntry_t*) (p->nxt);
@@ -1020,8 +1012,8 @@ void csoundDeleteAllGlobalVariables(void *csound)
           free((void*) prvp);
       }
     }
-    free((void*) (((ENVIRON*) csound)->namedGlobals));
-    ((ENVIRON*) csound)->namedGlobals = (void**) NULL;
+    free((void*) csound->namedGlobals);
+    csound->namedGlobals = (void**) NULL;
 }
 
 #endif  /* CSGLOBALS_USE_TREE */

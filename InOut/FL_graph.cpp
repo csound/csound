@@ -268,16 +268,16 @@ void makeWindow(char *name)
 
 extern "C"
 {
-  void DrawGraph_(void *csound, WINDAT *);
+  void DrawGraph_(ENVIRON *csound, WINDAT *);
   long MakeWindow(char *);
-  int  defaultCsoundYield(void *);
+  int  defaultCsoundYield(ENVIRON *);
   void kill_graph(int);
   int  myFLwait(void);
-  void MakeXYin_(void *csound, XYINDAT*, MYFLT, MYFLT);
-  void ReadXYin_(void *csound, XYINDAT *wdptr);
-  void KillXYin_(void *csound, XYINDAT *x);
+  void MakeXYin_(ENVIRON *csound, XYINDAT*, MYFLT, MYFLT);
+  void ReadXYin_(ENVIRON *csound, XYINDAT *wdptr);
+  void KillXYin_(ENVIRON *csound, XYINDAT *x);
 
-  void DrawGraph_(void *csound, WINDAT *wdptr)
+  void DrawGraph_(ENVIRON *csound, WINDAT *wdptr)
   {
     add_graph(wdptr);
     csoundYield(csound);
@@ -292,9 +292,8 @@ extern "C"
     return (long)form;
   }
 
-  int defaultCsoundYield(void *csound_)
+  int defaultCsoundYield(ENVIRON *csound)
   {
-    ENVIRON *csound = (ENVIRON*) csound_;
 #ifndef NO_FLTK_THREADS
     /* nothing to do, unless displays are enabled, */
     if (!csound->oparms->displays)
@@ -333,7 +332,7 @@ extern "C"
 #define GUTTERH 20           /* space for text at top & bottom */
 #define BORDERW 10           /* inset from L & R edge */
 
-  void MakeXYin_(void *csound, XYINDAT *w, MYFLT x, MYFLT y)
+  void MakeXYin_(ENVIRON *csound, XYINDAT *w, MYFLT x, MYFLT y)
   {
     if (w->windid==0) {
       Fl_Window *xyin = new Fl_Window(WIDTH,WIDTH, "XY input");
@@ -356,7 +355,7 @@ extern "C"
     }
   }
 
-  void ReadXYin_(void *csound, XYINDAT *wdptr)
+  void ReadXYin_(ENVIRON *csound, XYINDAT *wdptr)
   {
     short       win_x, win_y;
     short       gra_x, gra_y, gra_w, gra_h;
@@ -398,7 +397,7 @@ extern "C"
     }
   }
 
-  void KillXYin_(void *csound, XYINDAT *wdptr)
+  void KillXYin_(ENVIRON *csound, XYINDAT *wdptr)
   {
     Fl_Window *x = (Fl_Window*)wdptr->windid;
     x->~Fl_Window();

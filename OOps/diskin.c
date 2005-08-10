@@ -349,7 +349,9 @@ static int soundout_deinit(ENVIRON *csound, void *pp)
    what will people want for 0dbfs handling? really need to update
    opcode with more options. */
 
-int sndo1set(ENVIRON *csound, void *pp) /* init routine for instr soundout  */
+/* init routine for instr soundout  */
+
+int sndo1set(ENVIRON *csound, void *pp)
 {
     char    *sfname, *opname, sndoutname[256];
     SNDCOM  *p;
@@ -373,8 +375,7 @@ int sndo1set(ENVIRON *csound, void *pp) /* init routine for instr soundout  */
     if (p->fd != NULL)                  /* if file already open, */
       return OK;                        /* return now            */
 
-    csound->RegisterDeinitCallback(csound, pp,
-                                   (int (*)(void*, void*)) soundout_deinit);
+    csound->RegisterDeinitCallback(csound, pp, soundout_deinit);
 
     csound->strarg2name(csound, sndoutname, ifilcod, "soundout.",
                                 ((OPDS*) pp)->optext->t.xincod_str);

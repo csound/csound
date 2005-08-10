@@ -26,7 +26,8 @@
 
 /* main function for utility frontends */
 
-#include "csoundCore.h"
+/* FIXME: temporary hack to make this file compile */
+#include "csdl.h"
 
 static int csoundUtilMain(const char *name, int argc, char **argv)
 {

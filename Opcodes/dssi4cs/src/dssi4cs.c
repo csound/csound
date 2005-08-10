@@ -222,7 +222,7 @@ int dssiinit(ENVIRON * csound, DSSIINIT * p)
       DSSIPlugin = (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound,
                                                                   "$DSSI4CS");
       csound->RegisterResetCallback(csound, DSSIPlugin,
-                                            (int (*)(void*, void*)) dssideinit);
+                                    (int (*)(ENVIRON*, void*)) dssideinit);
       DSSIPlugin->PluginNumber = 0;
       DSSIPlugin->PluginCount = (int *) csound->Malloc(csound, sizeof(int));
       *DSSIPlugin->PluginCount = 1;

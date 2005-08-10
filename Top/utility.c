@@ -22,22 +22,20 @@
 */
 
 #include "csoundCore.h"
-#include "cs_util.h"
 #include <setjmp.h>
 
 typedef struct csUtility_s {
     char                *name;
     struct csUtility_s  *nxt;
-    int                 (*UtilFunc)(void*, int, char**);
+    int                 (*UtilFunc)(ENVIRON*, int, char**);
     char                *desc;
 } csUtility_t;
 
 static const char list_var[] = "utilities::list";
 
-PUBLIC int csoundAddUtility(void *csound_, const char *name,
-                            int (*UtilFunc)(void*, int, char**))
+PUBLIC int csoundAddUtility(ENVIRON *csound, const char *name,
+                            int (*UtilFunc)(ENVIRON*, int, char**))
 {
-    ENVIRON     *csound = (ENVIRON*) csound_;
     csUtility_t *p;
 
     if (csound == NULL || name == NULL || name[0] == '\0' || UtilFunc == NULL)
@@ -68,10 +66,9 @@ PUBLIC int csoundAddUtility(void *csound_, const char *name,
     return 0;
 }
 
-PUBLIC int csoundRunUtility(void *csound_, const char *name,
+PUBLIC int csoundRunUtility(ENVIRON *csound, const char *name,
                             int argc, char **argv)
 {
-    ENVIRON     *csound = (ENVIRON*) csound_;
     csUtility_t *p;
     char        **lst;
     volatile void *saved_exitjmp;
@@ -122,11 +119,10 @@ PUBLIC int csoundRunUtility(void *csound_, const char *name,
       }
     }
     if (lst != NULL)
-      csound->Free(csound, lst);
+      free(lst);
     n = -1;
  err_return:
-    memcpy((void*) &(((ENVIRON*) csound_)->exitjmp), (void*) saved_exitjmp,
-           sizeof(jmp_buf));
+    memcpy((void*) &(csound->exitjmp), (void*) saved_exitjmp, sizeof(jmp_buf));
     free((void*) saved_exitjmp);
     return n;
 }
@@ -138,14 +134,13 @@ static int cmp_func(const void *a, const void *b)
 
 /**
  * Returns a NULL terminated list of registered utility names.
- * The caller is responsible for freeing the returned array (with mfree(),
- * or csound->Free()), however, the names should not be freed.
+ * The caller is responsible for freeing the returned array with free(),
+ * however, the names should not be freed.
  * The return value may be NULL in case of an error.
  */
 
-PUBLIC char **csoundListUtilities(void *csound_)
+PUBLIC char **csoundListUtilities(ENVIRON *csound)
 {
-    ENVIRON     *csound = (ENVIRON*) csound_;
     csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
     char        **lst;
     int         utilCnt = 0;
@@ -154,7 +149,7 @@ PUBLIC char **csoundListUtilities(void *csound_)
     while (p != NULL)
       p = p->nxt, utilCnt++;
     /* allocate list */
-    lst = (char**) csound->Malloc(csound, sizeof(char*) * (utilCnt + 1));
+    lst = (char**) malloc(sizeof(char*) * (utilCnt + 1));
     if (lst == NULL)
       return NULL;
     /* store pointers to utility names */
@@ -175,10 +170,9 @@ PUBLIC char **csoundListUtilities(void *csound_)
  * Returns zero on success.
  */
 
-PUBLIC int csoundSetUtilityDescription(void *csound_, const char *utilName,
-                                                      const char *utilDesc)
+PUBLIC int csoundSetUtilityDescription(ENVIRON *csound, const char *utilName,
+                                                        const char *utilDesc)
 {
-    ENVIRON     *csound = (ENVIRON*) csound_;
     csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
     char        *desc = NULL;
 
@@ -210,9 +204,8 @@ PUBLIC int csoundSetUtilityDescription(void *csound_, const char *utilName,
  * or an error occured.
  */
 
-PUBLIC char *csoundGetUtilityDescription(void *csound_, const char *utilName)
+PUBLIC char *csoundGetUtilityDescription(ENVIRON *csound, const char *utilName)
 {
-    ENVIRON     *csound = (ENVIRON*) csound_;
     csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
 
     /* check for valid parameters */

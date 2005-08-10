@@ -30,14 +30,9 @@
 /*  Greg Sullivan                                                       */
 /************************************************************************/
 
-#include "csoundCore.h"
+#include "csdl.h"
 #include "soundio.h"
 #include "convolve.h"
-
-#ifdef Str
-#undef Str
-#endif
-#define Str(x) (((ENVIRON*) csound)->LocalizeString(x))
 
 static int takeFFT(ENVIRON *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                    long Hlenpadded, SNDFILE *infd, FILE *ofd);

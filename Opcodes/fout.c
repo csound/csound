@@ -977,8 +977,7 @@ PUBLIC OENTRY *opcode_init(ENVIRON *csound)
     p->buf = (MYFLT*) NULL;
     p->buf_size = 0;
     if (csound->RegisterResetCallback(csound, (void*) p,
-                                              (int (*)(void*, void*)) foutRESET)
-        != 0)
+                                      (int (*)(ENVIRON*,void*)) foutRESET) != 0)
       csound->Die(csound, Str("fout: error registering reset callback"));
     return localops;
 }
