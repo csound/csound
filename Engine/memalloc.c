@@ -44,15 +44,16 @@ typedef struct memAllocBlock_s {
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int) HDR_SIZE))
 
-#define MEMALLOC_DB (((ENVIRON*) csound)->memalloc_db)
+#define MEMALLOC_DB (csound->memalloc_db)
 
-static void memdie(void *csound, size_t nbytes)
+static void memdie(ENVIRON *csound, size_t nbytes)
 {
-    csoundDie(csound, Str("memory allocate failure for %lu\n"),
-                      (unsigned long) nbytes);
+    csound->ErrorMsg(csound, Str("memory allocate failure for %lu"),
+                             (unsigned long) nbytes);
+    csound->LongJmp(csound, CSOUND_MEMORY);
 }
 
-void *mmalloc(void *csound, size_t size)
+void *mmalloc(ENVIRON *csound, size_t size)
 {
     void  *p;
 
@@ -82,7 +83,7 @@ void *mmalloc(void *csound, size_t size)
     return DATA_PTR(p);
 }
 
-void *mcalloc(void *csound, size_t size)
+void *mcalloc(ENVIRON *csound, size_t size)
 {
     void  *p;
 
@@ -112,7 +113,7 @@ void *mcalloc(void *csound, size_t size)
     return DATA_PTR(p);
 }
 
-void mfree(void *csound, void *p)
+void mfree(ENVIRON *csound, void *p)
 {
     memAllocBlock_t *pp;
 
@@ -140,7 +141,7 @@ void mfree(void *csound, void *p)
     free((void*) pp);
 }
 
-void *mrealloc(void *csound, void *oldp, size_t size)
+void *mrealloc(ENVIRON *csound, void *oldp, size_t size)
 {
     memAllocBlock_t *pp;
     void            *p;

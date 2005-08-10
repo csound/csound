@@ -216,7 +216,7 @@ static CS_NOINLINE int
                    int numVals,      /* number of arguments                 */
                    int strCode,      /* bit mask for string arguments       */
                    int maxLen,       /* available space in output buffer    */
-                   int (*err_func)(void *csound, const char *msg, ...))
+                   int (*err_func)(ENVIRON *csound, const char *msg, ...))
 {
     int     len = 0;
     char    strseg[2048], *outstring = dst, *opname = csound->GetOpcodeName(p);
@@ -351,8 +351,9 @@ int sprintf_opcode_perf(ENVIRON *csound, SPRINTF_OP *p)
     return OK;
 }
 
-static CS_NOINLINE int printf_opcode_(ENVIRON *csound, PRINTF_OP *p,
-                                      int (*err_func)(void*, const char*, ...))
+static CS_NOINLINE int
+    printf_opcode_(ENVIRON *csound, PRINTF_OP *p,
+                                    int (*err_func)(ENVIRON*, const char*, ...))
 {
     char  buf[3072];
     int   err;
@@ -414,7 +415,7 @@ int puts_opcode_perf(ENVIRON *csound, PUTS_OP *p)
 }
 
 static int strtod_opcode(ENVIRON *csound, STRSET_OP *p,
-                         int (*err_func)(void*, const char*, ...))
+                         int (*err_func)(ENVIRON*, const char*, ...))
 {
     char    *s = NULL, *tmp;
     double  x;
@@ -444,18 +445,16 @@ static int strtod_opcode(ENVIRON *csound, STRSET_OP *p,
 
 int strtod_opcode_init(ENVIRON *csound, STRSET_OP *p)
 {
-    return strtod_opcode(csound, p, (int (*)(void*, const char*, ...))
-                                    csound->InitError);
+    return strtod_opcode(csound, p, csound->InitError);
 }
 
 int strtod_opcode_perf(ENVIRON *csound, STRSET_OP *p)
 {
-    return strtod_opcode(csound, p, (int (*)(void*, const char*, ...))
-                                    csound->PerfError);
+    return strtod_opcode(csound, p, csound->PerfError);
 }
 
 static int strtol_opcode(ENVIRON *csound, STRSET_OP *p,
-                         int (*err_func)(void*, const char*, ...))
+                         int (*err_func)(ENVIRON*, const char*, ...))
 {
     char  *s = NULL;
     int   sgn = 0, radix = 10;
@@ -519,13 +518,11 @@ static int strtol_opcode(ENVIRON *csound, STRSET_OP *p,
 
 int strtol_opcode_init(ENVIRON *csound, STRSET_OP *p)
 {
-    return strtol_opcode(csound, p, (int (*)(void*, const char*, ...))
-                                    csound->InitError);
+    return strtol_opcode(csound, p, csound->InitError);
 }
 
 int strtol_opcode_perf(ENVIRON *csound, STRSET_OP *p)
 {
-    return strtol_opcode(csound, p, (int (*)(void*, const char*, ...))
-                                    csound->PerfError);
+    return strtol_opcode(csound, p, csound->PerfError);
 }
 

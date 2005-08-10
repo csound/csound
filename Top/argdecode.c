@@ -43,7 +43,7 @@ extern void strset_option(ENVIRON *csound, char *s);    /* from str_ops.c */
 
 /* IV - Feb 19 2005 */
 
-static void set_stdin_assign(void *csound, int type, int state)
+static void set_stdin_assign(ENVIRON *csound, int type, int state)
 {
   int *n;
   n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
@@ -58,7 +58,7 @@ static void set_stdin_assign(void *csound, int type, int state)
     *n &= (~type);
 }
 
-static void set_stdout_assign(void *csound, int type, int state)
+static void set_stdout_assign(ENVIRON *csound, int type, int state)
 {
   int *n;
   n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
@@ -133,106 +133,101 @@ static const char *shortUsageList[] = {
   NULL
 };
 
+static const char *longUsageList[] = {
+  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit,rescale}",
+  "\t\t\tSet sound type",
+  "--aiff\t\t\tSet AIFF format",
+  "--au\t\t\tSet AU format",
+  "--wave\t\t\tSet WAV format",
+  "--ircam\t\t\tSet IRCAM format",
+  "--noheader\t\tRaw format",
+  "--nopeaks\t\tDo not write peak information",
+  "",
+  "--nodisplays\t\tsuppress all displays",
+  "--asciidisplay\t\tsuppress graphics, use ascii displays",
+  "--postscriptdisplay\tsuppress graphics, use Postscript displays",
+  "",
+  "--defer-gen1\t\tdefer GEN01 soundfile loads until performance time",
+  "--iobufsamps=N\t\tsample frames (or -kprds) per software sound I/O buffer",
+  "--hardwarebufsamps=N\tsamples per hardware sound I/O buffer",
+  "--cscore\t\tuse Cscore processing of scorefile",
+  "",
+  "--midifile=FNAME\tread MIDIfile event stream from file",
+  "--midi-device=FNAME\tread MIDI realtime events from device",
+  "--terminate-on-midi\tterminate the performance when miditrack is done",
+  "",
+  "--heartbeat=N\t\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
+  "--notify\t\tnotify (ring the bell) when score or miditrack is done",
+  "--rewrite\t\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
+  "",
+  "--input=FNAME\t\tsound input filename",
+  "--output=FNAME\t\tsound output filename",
+  "--logfile=FNAME\t\tlog output to file",
+  "",
+  "--nosound\t\tno sound onto disk or device",
+  "--tempo=N\t\tuse uninterpreted beats of the score, initially at tempo N",
+  "--i-only\t\tI-time only orch run",
+  "--control-rate=N\torchestra krate overrid",
+  "--sample-rate=N\t\torchestra srate override",
+  "--score-in=FNAME\tread Line-oriented realtime score events from device",
+  "--messagelevel=N\ttty message level, sum of:",
+  "\t\t\t\t1=note amps, 2=out-of-range msg, 4=warnings,",
+  "\t\t\t\t0/32/64/96=note amp format (raw,dB,colors),",
+  "\t\t\t\t128=print benchmark information",
+  "",
+  "--extract-score=FNAME\textract from score.srt using extract file",
+  "--keep-sorted-score",
+  "--expression-opt\toptimise use of temporary variables in expressions",
+  "--env:NAME=VALUE\tset environment variable NAME to VALUE",
+  "--env:NAME+=VALUE\tappend VALUE to environment variable NAME",
+  "--strsetN=VALUE\t\tset strset table at index N to VALUE",
+  "--utility=NAME\t\trun utility program",
+  "--verbose\t\tverbose orch translation",
+  "--list-opcodes\t\tList opcodes in this version",
+  "--list-opcodesN\t\tList opcodes in style N in this version",
+  "--dither\t\tDither output",
+  "--sched\t\t\tset real-time scheduling priority and lock memory",
+  "--sched=N\t\tset priority to N and lock memory",
+  "--opcode-lib=NAMES\tDynamic libraries to load",
+  "--omacro:XXX=YYY\tSet orchestra macro XXX to value YYY",
+  "--smacro:XXX=YYY\tSet score macro XXX to value YYY",
+  "",
+  "--help\t\t\tLong help",
+  NULL
+};
+
 /* IV - Feb 19 2005 */
-void print_short_usage(void *csound)
+void print_short_usage(ENVIRON *csound)
 {
-  ENVIRON *p;
   char    buf[256];
   int     i;
-  p = (ENVIRON*) csound;
   i = -1;
   while (shortUsageList[++i] != NULL) {
     sprintf(buf, "%s\n", shortUsageList[i]);
-    p->Message(csound, Str(buf));
+    csound->Message(csound, Str(buf));
   }
-  p->Message(csound, Str("flag defaults: csound -s -otest -b%d -B%d -m7\n"),
-                     IOBUFSAMPS, IODACSAMPS);
+  csound->Message(csound,
+                  Str("flag defaults: csound -s -otest -b%d -B%d -m%d\n"),
+                  IOBUFSAMPS, IODACSAMPS, csound->oparms->msglevel);
 }
 
-static void longusage(void *csound)
+static void longusage(ENVIRON *p)
 {
-    ENVIRON *p = (ENVIRON*)csound;
-
-  p->Message(csound,Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
-  p->Message(csound,Str("Legal flags are:\n"));
-  p->Message(csound,Str("Long format:\n\n"));
-  p->Message(csound,"--format={alaw,ulaw,"
-             "schar,uchar,float,short,long,24bit,rescale}\t Set sound type\n"
-             "--aiff\t\t\tSet AIFF format\n"
-             "--au\t\t\tSet AU format\n"
-             "--wave\t\t\tSet WAV format\n"
-             "--ircam\t\t\tSet IRCAM format\n"
-             "--noheader\t\tRaw format\n"
-             "--nopeaks\t\tDo not write peak information\n"
-             "\n"
-             "--nodisplays\t\tsuppress all displays\n"
-             "--asciidisplay\t\tsuppress graphics, use ascii displays\n"
-             "--postscriptdisplay\tsuppress graphics, use Postscript displays\n"
-             "\n"
-             "--defer-gen1\t\tdefer GEN01 soundfile loads until performance "
-             "time\n"
-             "--iobufsamps=N\t\tsample frames (or -kprds) per software "
-             "sound I/O buffer\n"
-             "--hardwarebufsamps=N\tsamples per hardware sound I/O buffer\n"
-             "--cscore\t\tuse Cscore processing of scorefile\n"
-             "\n"
-             "--midifile=FNAME\tread MIDIfile event stream from file\n"
-             "--midi-device=FNAME\tread MIDI realtime events from device\n"
-             "--terminate-on-midi\tterminate the performance when "
-             "miditrack is done\n"
-             "\n"
-             "--heartbeat=N\t\tprint a heartbeat style 1, 2 or 3 at "
-             "each soundfile write\n"
-             "--notify\t\tnotify (ring the bell) when score or "
-             "miditrack is done\n"
-             "--rewrite\t\tcontinually rewrite header while writing "
-             "soundfile (WAV/AIFF)\n"
-             "\n"
-             "--input=FNAME\t\tsound input filename\n"
-             "--output=FNAME\t\tsound output filename\n"
-             "--logfile=FNAME\t\tlog output to file\n"
-             "\n"
-             "--nosound\t\tno sound onto disk or device\n"
-             "--tempo=N\t\tuse uninterpreted beats of the score, "
-             "initially at tempo N\n"
-             "--i-only\t\tI-time only orch run\n"
-             "--control-rate=N\torchestra krate overrid\n"
-             "--sample-rate=N\t\torchestra srate override\n"
-             "--score-in=FNAME\tread Line-oriented realtime score "
-             "events from device\n"
-             "--messagelevel=N\ttty message level. Sum of: 1=note amps, "
-             "2=out-of-range msg, 4=warnings\n\n"
-             "\n"
-             "--extract-score=FNAME\textract from score.srt using extract file\n"
-             "--keep-sorted-score\n"
-             "--expression-opt\toptimise use of temporary variables in "
-                                                         "expressions\n"
-             "--env:NAME=VALUE\tset environment variable NAME to VALUE\n"
-             "--env:NAME+=VALUE\tappend VALUE to environment variable NAME\n"
-             "--strsetN=VALUE\t\tset strset table at index N to VALUE\n"
-             "--utility=NAME\t\trun utility program\n"
-             "--verbose\t\tverbose orch translation\n"
-             "--list-opcodes\t\tList opcodes in this version\n"
-             "--list-opcodesN\t\tList opcodes in style N in this version\n"
-             "--dither\t\tDither output\n"
-             "--sched\t\t\tset real-time scheduling priority and lock memory\n"
-             "--sched=N\t\tset priority to N and lock memory\n"
-             "--opcode-lib=NAMES\tDynamic libraries to load\n"
-             "--omacro:XXX=YYY\tSet orchestra macro XXX to value YYY\n"
-             "--smacro:XXX=YYY\tSet score macro XXX to value YYY\n"
-             "\n"
-             "--help\t\t\tLong help\n"
-             );
+  char  **sp;
+  p->Message(p, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
+  p->Message(p, Str("Legal flags are:\n"));
+  p->Message(p, Str("Long format:\n\n"));
+  for (sp = (char**) &(longUsageList[0]); *sp != NULL; sp++)
+    p->Message(p, "%s\n", Str(*sp));
   /* IV - Feb 19 2005 */
-  dump_cfg_variables(csound);
-  p->Message(csound,Str("\nShort form:\n"));
-  print_short_usage(csound);
+  dump_cfg_variables(p);
+  p->Message(p, Str("\nShort form:\n"));
+  print_short_usage(p);
   p->LongJmp(p, 0);
 }
 
-void dieu(void *csound_, char *s, ...)
+void dieu(ENVIRON *csound, char *s, ...)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     va_list args;
 
     csound->Message(csound,Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
@@ -302,9 +297,8 @@ SAMPLE_FORMAT_ENTRY sample_format_map[] = {
   {0, 0}
 };
 
-static int decode_long(void *csound_, char *s, int argc, char **argv)
+static int decode_long(ENVIRON *csound, char *s, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     /* Add other long options here */
     if (O->odebug)
@@ -694,9 +688,8 @@ static int decode_long(void *csound_, char *s, int argc, char **argv)
     return (0);
 }
 
-int argdecode(void *csound_, int argc, char **argv_)
+int argdecode(ENVIRON *csound, int argc, char **argv_)
 {
-  ENVIRON *csound = (ENVIRON*) csound_;
   OPARMS  *O = csound->oparms;
   char    *s, **argv;
   int     n;

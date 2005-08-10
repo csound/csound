@@ -439,9 +439,8 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 
 #define MAX_PLUGINS 1024
 
-int csoundLoadExternal(void *csound_, const char* libraryPath)
+int csoundLoadExternal(ENVIRON *csound, const char* libraryPath)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     void    *handle;
     OENTRY  *opcodlst_n;
     long    length;
@@ -533,9 +532,8 @@ int closedir(DIR*);
 #endif
 #endif
 
-int csoundLoadExternals(void *csound_)
+int csoundLoadExternals(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     char    *s, *buffer;
     int     i, j;
 

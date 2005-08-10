@@ -21,18 +21,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-#if defined HAVE_CONFIG_H
-#include "config.h"
-#endif
 
+#include "csdl.h"       /*                              PITCH.C         */
 #include <math.h>
 #include <limits.h>
-#include "namedins.h"   /* IV - Oct 31 2002 */
 #include "cwindow.h"
 #include "spectra.h"
 #include "pitch.h"
 #include "uggab.h"
-#include "csdl.h"         /*                                    PITCH.C       */
 
 extern void DOWNset(DOWNDAT *, long);
 extern void SPECset(SPECDAT *, long);

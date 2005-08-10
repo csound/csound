@@ -29,6 +29,7 @@
    documentation of your C compiler to choose the appropriate compiler
    directive switch.  */
 
+#include "csdl.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -36,7 +37,6 @@
 #include <errno.h>
 #include "sfenum.h"
 #include "sfont.h"
-#include "csdl.h"
 
 #define s2d(x)  *((DWORD *) (x))
 
@@ -64,7 +64,7 @@ static SHORT *sampleBase[MAX_SFPRESET];
 /* static SHORT *isampleBase[MAX_SFINSTR]; */
 static MYFLT pitches[128];
 
-PUBLIC int csoundModuleDestroy(void *csound)
+PUBLIC int csoundModuleDestroy(ENVIRON *csound)
 {
     int j,k,l;
     for (j=0; j<currSFndx; j++) {
@@ -1955,23 +1955,23 @@ static OENTRY localops[] = {
 { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
     return 0;
 }
 
-PUBLIC int csoundModuleInit(void *csound_)
+PUBLIC int csoundModuleInit(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OENTRY  *ep = (OENTRY*) &(localops[0]);
     int     err = 0;
 
     while (ep->opname != NULL) {
-      err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->thread,
-                                          ep->outypes, ep->intypes,
-                                          (int (*)(void*, void*)) ep->iopadr,
-                                          (int (*)(void*, void*)) ep->kopadr,
-                                          (int (*)(void*, void*)) ep->aopadr);
+      err |= csound->AppendOpcode(csound,
+                                  ep->opname, ep->dsblksiz, ep->thread,
+                                  ep->outypes, ep->intypes,
+                                  (int (*)(ENVIRON *, void*)) ep->iopadr,
+                                  (int (*)(ENVIRON *, void*)) ep->kopadr,
+                                  (int (*)(ENVIRON *, void*)) ep->aopadr);
       ep++;
     }
     return err;

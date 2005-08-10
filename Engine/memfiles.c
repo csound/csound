@@ -30,7 +30,7 @@
 extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 #define name_hash(x,y) (strhash_tabl_8[(unsigned char) x ^ (unsigned char) y])
 
-static int Load_File_(void *csound,
+static int Load_File_(ENVIRON *csound,
                       const char *filnam, char **allocp, long *len)
 {
     FILE *f;
@@ -60,14 +60,14 @@ static int Load_File_(void *csound,
     return 1;
 }
 
-MEMFIL *ldmemfile(void *csound, const char *filnam)
+MEMFIL *ldmemfile(ENVIRON *csound, const char *filnam)
 {                               /* read an entire file into memory and log it */
     MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
     char    *allocp;            /* if not fullpath, look in current directory,*/
     long    len;                /*   then SADIR (if defined).                 */
     char    *pathnam;           /* Used by adsyn, pvoc, and lpread            */
 
-    mfp = ((ENVIRON*) csound)->memfiles;
+    mfp = csound->memfiles;
     while (mfp != NULL) {                               /* Checking chain */
       if (strcmp(mfp->filename, filnam) == 0)           /*   if match     */
         return mfp;                                     /*   we have it   */
@@ -79,7 +79,7 @@ MEMFIL *ldmemfile(void *csound, const char *filnam)
     if (last != NULL)
       last->next = mfp;
     else
-      ((ENVIRON*) csound)->memfiles = mfp;
+      csound->memfiles = mfp;
     mfp->next = NULL;
     strcpy(mfp->filename, filnam);
 
@@ -108,9 +108,9 @@ MEMFIL *ldmemfile(void *csound, const char *filnam)
 
 /* clear the memfile array, & free all allocated space */
 
-void rlsmemfiles(void *csound)
+void rlsmemfiles(ENVIRON *csound)
 {
-    MEMFIL  *mfp = ((ENVIRON*) csound)->memfiles, *nxt;
+    MEMFIL  *mfp = csound->memfiles, *nxt;
 
     while (mfp != NULL) {
       nxt = mfp->next;
@@ -118,15 +118,15 @@ void rlsmemfiles(void *csound)
       mfree(csound, mfp);
       mfp = nxt;
     }
-    ((ENVIRON*) csound)->memfiles = NULL;
+    csound->memfiles = NULL;
 }
 
-int delete_memfile(void *csound, const char *filnam)
+int delete_memfile(ENVIRON *csound, const char *filnam)
 {
     MEMFIL  *mfp, *prv;
 
     prv = NULL;
-    mfp = ((ENVIRON*) csound)->memfiles;
+    mfp = csound->memfiles;
     while (mfp != NULL) {
       if (strcmp(mfp->filename, filnam) == 0)
         break;
@@ -136,7 +136,7 @@ int delete_memfile(void *csound, const char *filnam)
     if (mfp == NULL)
       return -1;
     if (prv == NULL)
-      ((ENVIRON*) csound)->memfiles = mfp->next;
+      csound->memfiles = mfp->next;
     else
       prv->next = mfp->next;
     mfree(csound, mfp->beginp);
@@ -307,10 +307,9 @@ int PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p)
  * be undefined in this case).
  */
 
-PUBLIC SNDMEMFILE *csoundLoadSoundFile(void *csound_, const char *fileName,
-                                                      SF_INFO *sfinfo)
+SNDMEMFILE *csoundLoadSoundFile(ENVIRON *csound, const char *fileName,
+                                                 SF_INFO *sfinfo)
 {
-    ENVIRON       *csound = (ENVIRON*) csound_;
     SNDFILE       *sf;
     void          *fd;
     SNDMEMFILE    *p = NULL;

@@ -31,16 +31,14 @@ void rewriteheader(SNDFILE *ofd, int verbose)
       sf_command(ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
-void *SAsndgetset(
-     void    *csound_,
-     char    *infilnam,                          /* Stand-Alone sndgetset() */
-     void    *ap_,                               /* used by SoundAnal progs */
-     MYFLT   *abeg_time,
-     MYFLT   *ainput_dur,
-     MYFLT   *asr,
-     int     channel)
-{                               /* Return NULL on failure */
-    ENVIRON *csound = (ENVIRON*) csound_;
+/* Stand-Alone sndgetset() */
+/* used by SoundAnal progs */
+/* Returns NULL on failure */
+
+void *SAsndgetset(ENVIRON *csound, char *infilnam, void *ap_,
+                  MYFLT *abeg_time, MYFLT *ainput_dur, MYFLT *asr,
+                  int channel)
+{
     SOUNDIN **ap = (SOUNDIN**) ap_;
     SOUNDIN *p;
     SNDFILE *infile = NULL;
@@ -111,11 +109,12 @@ static int sreadin(ENVIRON *csound, SNDFILE *infd, MYFLT *inbuf,
     return 0;
 }
 
-void *sndgetset(void *csound_, void *p_)
-{                               /* core of soundinset                */
-                                /* called from sndinset, SAsndgetset, & gen01 */
-                                /* Return NULL on failure */
-    ENVIRON *csound = (ENVIRON*) csound_;
+/* core of soundinset     */
+/* called from sndinset, SAsndgetset, & gen01 */
+/* Return NULL on failure */
+
+void *sndgetset(ENVIRON *csound, void *p_)
+{
     SOUNDIN *p = (SOUNDIN*) p_;
     int     n;
     int     framesinbuf, skipframes;
@@ -251,10 +250,10 @@ void *sndgetset(void *csound_, void *p_)
     return NULL;
 }
 
-int getsndin(void *csound_, void *fd_, MYFLT *fp, int nlocs, void *p_)
-        /* a simplified soundin */
+/* a simplified soundin */
+
+int getsndin(ENVIRON *csound, void *fd_, MYFLT *fp, int nlocs, void *p_)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     SNDFILE *fd = (SNDFILE*) fd_;
     SOUNDIN *p = (SOUNDIN*) p_;
     int     i = 0, n;

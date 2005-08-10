@@ -55,10 +55,10 @@ typedef struct {
 
 extern  char    *getstrformat(int format);
 extern  char    *type2string(int);
-static  void    sndwrterr(void*, int, int);
-static  void    sndfilein_noscale(void *csound);
+static  void    sndwrterr(ENVIRON *, int, int);
+static  void    sndfilein_noscale(ENVIRON *csound);
 
-#define ST(x)   (((LIBSND_GLOBALS*) ((ENVIRON*) csound)->libsndGlobals)->x)
+#define ST(x)   (((LIBSND_GLOBALS*) csound->libsndGlobals)->x)
 
 static void alloc_globals(ENVIRON *csound)
 {
@@ -77,9 +77,8 @@ static void alloc_globals(ENVIRON *csound)
    audtran to flush when this happens.
 */
 
-static void spoutsf(void *csound_)
+static void spoutsf(ENVIRON *csound)
 {
-    ENVIRON       *csound = (ENVIRON*) csound_;
     int           n, chn = 0, spoutrem = csound->nspout;
     MYFLT         *sp = csound->spout;
     MYFLT         absamp;
@@ -125,9 +124,8 @@ static void spoutsf(void *csound_)
 
 /* special version of spoutsf for "raw" floating point files */
 
-static void spoutsf_noscale(void *csound_)
+static void spoutsf_noscale(ENVIRON *csound)
 {
-    ENVIRON       *csound = (ENVIRON*) csound_;
     int           n, chn = 0, spoutrem = csound->nspout;
     MYFLT         *sp = csound->spout;
     MYFLT         absamp;
@@ -163,10 +161,9 @@ static void spoutsf_noscale(void *csound_)
     }
 }
 
-static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
+static void writesf(ENVIRON *csound, MYFLT *outbuf, int nbytes)
 {                               /* diskfile write option for audtran's */
                                 /*      assigned during sfopenout()    */
-    ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     int     n;
 
@@ -203,11 +200,11 @@ static void writesf(void *csound_, MYFLT *outbuf, int nbytes)
     }
 }
 
-static int readsf(void *csound, MYFLT *inbuf_, int inbufsize)
+static int readsf(ENVIRON *csound, MYFLT *inbuf_, int inbufsize)
 {
     int i, n;
 
-    csound = csound;
+    (void) csound;
     n = inbufsize / (int) sizeof(MYFLT);
     i = (int) sf_read_MYFLT(ST(infile), inbuf_, n);
     if (i < 0)
@@ -222,9 +219,8 @@ void writeheader(ENVIRON *csound, int ofd, char *ofname)
     sf_command(ST(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
-void sfopenin(void *csound_)        /* init for continuous soundin */
+void sfopenin(ENVIRON *csound)          /* init for continuous soundin */
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     char    *sfname, *fullName;
     SF_INFO sfinfo;
@@ -273,7 +269,8 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
       if (csound->recopen_callback(csound, &parm) != 0)
         csoundDie(csound, Str("Failed to initialise real time audio input"));
       /*  & redirect audio gets  */
-      csound->audrecv = (int (*)(void*, MYFLT*, int)) csound->rtrecord_callback;
+      csound->audrecv =
+          (int (*)(ENVIRON *, MYFLT *, int)) csound->rtrecord_callback;
       ST(pipdevin) = 2;         /* no backward seeks !     */
       goto inset;               /* no header processing    */
     }
@@ -336,9 +333,8 @@ void sfopenin(void *csound_)        /* init for continuous soundin */
     ST(isfopen) = 1;
 }
 
-void sfopenout(void *csound_)                   /* init for sound out       */
+void sfopenout(ENVIRON *csound)                 /* init for sound out       */
 {                                               /* (not called if nosound)  */
-    ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     char    *s, *fName, *fullName;
     SF_INFO sfinfo;
@@ -395,7 +391,8 @@ void sfopenout(void *csound_)                   /* init for sound out       */
       if (csound->playopen_callback(csound, &parm) != 0)
         csoundDie(csound, Str("Failed to initialise real time audio output"));
       /*  & redirect audio puts  */
-      csound->audtran = (void (*)(void*, MYFLT*, int)) csound->rtplay_callback;
+      csound->audtran =
+          (void (*)(ENVIRON *, MYFLT *, int)) csound->rtplay_callback;
       ST(outbufrem) = parm.bufSamp_SW * parm.nChannels;
       ST(pipdevout) = 2;                        /* no backward seeks !   */
       goto outset;                              /* no header needed      */
@@ -477,16 +474,14 @@ void sfopenout(void *csound_)                   /* init for sound out       */
     ST(outbufrem) = O->outbufsamps;
 }
 
-void sfclosein(void *csound_)
+void sfclosein(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
-
     alloc_globals(csound);
     if (!ST(isfopen))
       return;
     if (ST(pipdevin) == 2 && (!ST(osfopen) || ST(pipdevout) != 2)) {
       /* close only if not open for output too */
-      ((ENVIRON*) csound)->rtclose_callback(csound);
+      csound->rtclose_callback(csound);
     }
     else if (ST(pipdevin) != 2) {
       if (ST(infile) != NULL)
@@ -503,9 +498,8 @@ void sfclosein(void *csound_)
     ST(isfopen) = 0;
 }
 
-void sfcloseout(void *csound_)
+void sfcloseout(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
     int     nb;
 
@@ -551,15 +545,19 @@ void sfcloseout(void *csound_)
     ST(osfopen) = 0;
 }
 
-static void sndwrterr(void *csound, int nret, int nput)
-{                                   /* report soundfile write(osfd) error   */
-    ENVIRON *p = (ENVIRON*) csound; /* called after chk of write() bytecnt  */
-    p->Message(p, Str("soundfile write returned bytecount of %d, not %d\n"),
-                  nret, nput);
-    p->Message(p, Str("(disk may be full...\n closing the file ...)\n"));
-    ST(outbufrem) = p->oparms->outbufsamps;     /* consider buf is flushed */
-    sfcloseout(p);                              /* & try to close the file */
-    csoundDie(p, Str("\t... closed\n"));
+/* report soundfile write(osfd) error   */
+/* called after chk of write() bytecnt  */
+
+static void sndwrterr(ENVIRON *csound, int nret, int nput)
+{
+    csound->ErrorMsg(csound,
+                     Str("soundfile write returned bytecount of %d, not %d"),
+                     nret, nput);
+    csound->ErrorMsg(csound,
+                     Str("(disk may be full...\n closing the file ...)"));
+    ST(outbufrem) = csound->oparms->outbufsamps;  /* consider buf is flushed */
+    sfcloseout(csound);                           /* & try to close the file */
+    csound->Die(csound, Str("\t... closed\n"));
 }
 
 void sfnopenout(ENVIRON *csound)
@@ -592,16 +590,16 @@ static inline void sndfilein_(ENVIRON *csound, MYFLT scaleFac)
     }
 }
 
-static void sndfilein(void *csound)
+static void sndfilein(ENVIRON *csound)
 {
-    sndfilein_((ENVIRON*) csound, ((ENVIRON*) csound)->e0dbfs);
+    sndfilein_(csound, csound->e0dbfs);
 }
 
 /* special version of sndfilein for "raw" floating point files */
 
-static void sndfilein_noscale(void *csound)
+static void sndfilein_noscale(ENVIRON *csound)
 {
-    sndfilein_((ENVIRON*) csound, FL(1.0));
+    sndfilein_(csound, FL(1.0));
 }
 
 /* direct recv & tran calls to the right audio formatter  */
@@ -613,16 +611,16 @@ void iotranset(ENVIRON *csound)
     csound->spoutran = spoutsf;
 }
 
-PUBLIC void *csoundGetInputBuffer(void *csound)
+PUBLIC MYFLT *csoundGetInputBuffer(ENVIRON *csound)
 {
-    if (((ENVIRON*) csound)->libsndGlobals == NULL)
+    if (csound->libsndGlobals == NULL)
       return NULL;
     return ST(inbuf);
 }
 
-PUBLIC void *csoundGetOutputBuffer(void *csound)
+PUBLIC MYFLT *csoundGetOutputBuffer(ENVIRON *csound)
 {
-    if (((ENVIRON*) csound)->libsndGlobals == NULL)
+    if (csound->libsndGlobals == NULL)
       return NULL;
     return ST(outbuf);
 }

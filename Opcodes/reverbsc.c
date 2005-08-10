@@ -290,19 +290,17 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
     return 0;
 }
 
-PUBLIC int csoundModuleInit(void *csound_)
+PUBLIC int csoundModuleInit(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
-
     return csound->AppendOpcode(csound, "reverbsc",
                                 (int) sizeof(SC_REVERB), 5, "aa", "aakkjpo",
-                                (int (*)(void*, void*)) sc_reverb_init,
-                                (int (*)(void*, void*)) NULL,
-                                (int (*)(void*, void*)) sc_reverb_perf);
+                                (int (*)(ENVIRON *, void*)) sc_reverb_init,
+                                (int (*)(ENVIRON *, void*)) NULL,
+                                (int (*)(ENVIRON *, void*)) sc_reverb_perf);
 }
 

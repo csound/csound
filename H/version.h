@@ -21,29 +21,31 @@
     02111-1307 USA
 */
 
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#else
+#ifndef CSOUND_VERSION_H
+#define CSOUND_VERSION_H
+
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "Csound"
+#define CS_PACKAGE_NAME     "Csound"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "Csound 5.00"
+#define CS_PACKAGE_STRING   "Csound 5.00.0"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "csound"
+#define CS_PACKAGE_TARNAME  "csound"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "5.00"
-#define VERSION (5)
-#define SUBVER  (0)
-#endif
+#define CS_PACKAGE_VERSION  "5.00.0"
+#define CS_VERSION          (5)
+#define CS_SUBVER           (0)
+#define CS_PATCHLEVEL       (0)
 
-# define APIVERSION 1  /* should be increased anytime a new version
-                          contains changes that an older host will
-                          not be able to handle -- most likely this
-                          will be an change to an API function or
-                          the GLOBALS struct */
-# define APISUBVER 0   /* for minor changes that will still allow
-                          compatiblity with older hosts */
+#define CS_APIVERSION       1   /* should be increased anytime a new version
+                                   contains changes that an older host will
+                                   not be able to handle -- most likely this
+                                   will be a change to an API function or
+                                   the ENVIRON struct */
+#define CS_APISUBVER        0   /* for minor changes that will still allow
+                                   compatiblity with older hosts */
+
+#endif /* CSOUND_VERSION_H */
 

@@ -30,7 +30,10 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.11  2005-07-15 10:13:28  istvanv
+ *      Revision 1.12  2005-08-10 09:57:07  istvanv
+ *      Use ENVIRON* type for Csound instance pointers instead of void*
+ *
+ *      Revision 1.11  2005/07/15 10:13:28  istvanv
  *      Removed cs.h
  *
  *      Revision 1.10  2005/06/05 16:36:24  istvanv
@@ -912,19 +915,19 @@ static void reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-PUBLIC void csoundRealFFTnp2(void *csound, MYFLT *buf, int FFTsize)
+PUBLIC void csoundRealFFTnp2(ENVIRON *csound, MYFLT *buf, int FFTsize)
 {
     if (!(FFTsize & (FFTsize - 1))) {
       /* if FFT size is power of two: */
-      csoundRealFFT(csound, buf, FFTsize);
+      csound->RealFFT(csound, buf, FFTsize);
       buf[FFTsize] = buf[1];
     }
     else {
       if (FFTsize < 2 || (FFTsize & 1))
         csoundDie(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
       buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
-      fft_((ENVIRON*) csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, -2);
-      reals_((ENVIRON*) csound, buf, &(buf[1]), (FFTsize >> 1), -2);
+      fft_(csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, -2);
+      reals_(csound, buf, &(buf[1]), (FFTsize >> 1), -2);
     }
     buf[1] = buf[FFTsize + 1] = FL(0.0);
 }
@@ -939,13 +942,13 @@ PUBLIC void csoundRealFFTnp2(void *csound, MYFLT *buf, int FFTsize)
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-PUBLIC void csoundInverseRealFFTnp2(void *csound, MYFLT *buf, int FFTsize)
+PUBLIC void csoundInverseRealFFTnp2(ENVIRON *csound, MYFLT *buf, int FFTsize)
 {
     if (FFTsize < 2 || (FFTsize & 1))
       csoundDie(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
     buf[1] = buf[FFTsize + 1] = FL(0.0);
-    reals_((ENVIRON*) csound, buf, &(buf[1]), (FFTsize >> 1), 2);
-    fft_((ENVIRON*) csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, 2);
+    reals_(csound, buf, &(buf[1]), (FFTsize >> 1), 2);
+    fft_(csound, buf, &(buf[1]), 1, (FFTsize >> 1), 1, 2);
     buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
 }
 

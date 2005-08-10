@@ -21,8 +21,6 @@
     02111-1307 USA
 */
 
-#include "csoundCore.h"
-
 #if !defined(_SFTYPE_H)
 #ifdef          __GNUC__
 #  ifndef       PACKED

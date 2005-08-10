@@ -296,7 +296,7 @@ static void d_fft(      /* perform an FFT as reqd below */
 {
     CopySamps(sce,dst,size);                    /* copy into scratch buffer */
     ApplyHalfWin(dst,hWin,size);
-    csoundRealFFT(csound, dst, (int) size);  /* perform the FFT */
+    csound->RealFFT(csound, dst, (int) size);   /* perform the FFT */
     dst[size] = dst[1];
     dst[1] = dst[size + 1L] = FL(0.0);
     Rect2Polar(dst, (size >> 1) + 1);

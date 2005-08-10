@@ -2008,15 +2008,14 @@ static FUNC *ftalloc(ENVIRON *csound)
 /* find the ptr to an existing ftable structure */
 /*   called by oscils, etc at init time         */
 
-FUNC *csoundFTFind(void *csound, MYFLT *argp)
+FUNC *csoundFTFind(ENVIRON *csound, MYFLT *argp)
 {
-    ENVIRON *cs = (ENVIRON*) csound;
     FUNC    *ftp;
     int     fno;
 
-    if ((fno = (int)*argp) <= 0 ||
-        fno > cs->maxfnum       ||
-        (ftp = cs->flist[fno]) == NULL) {
+    if ((fno = (int) *argp) <= 0 ||
+        fno > csound->maxfnum       ||
+        (ftp = csound->flist[fno]) == NULL) {
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
@@ -2025,12 +2024,11 @@ FUNC *csoundFTFind(void *csound, MYFLT *argp)
                       Str("deferred-size ftable %f illegal here"), *argp);
       return NULL;
     }
-    return(ftp);
+    return ftp;
 }
 
-MYFLT *csoundGetTable(void *csound_, int tableNum, int *tableLength)
+MYFLT *csoundGetTable(ENVIRON *csound, int tableNum, int *tableLength)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     FUNC    *ftp;
 
     if ((unsigned int) (tableNum - 1) >= (unsigned int) csound->maxfnum)
@@ -2069,16 +2067,15 @@ MYFLT *csoundGetTable(void *csound_, int tableNum, int *tableLength)
  * Maybe this could be achieved, but some exploration would be
  * required to see that this is feasible at performance time.
  */
-FUNC *csoundFTFindP(void *csound_, MYFLT *argp)
+FUNC *csoundFTFindP(ENVIRON *csound, MYFLT *argp)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     FUNC    *ftp;
     int     fno = csound->ff.fno;
 
     /* Check limits, and then index  directly into the flist[] which
      * contains pointers to FUNC data structures for each table.
      */
-    if ((fno = (int)*argp) <= 0 ||
+    if ((fno = (int) *argp) <= 0 ||
         fno > csound->maxfnum           ||
         (ftp = csound->flist[fno]) == NULL) {
       csoundPerfError(csound, Str("Invalid ftable no. %f"), *argp);
@@ -2091,20 +2088,20 @@ FUNC *csoundFTFindP(void *csound_, MYFLT *argp)
                                   "not available at perf time."), *argp);
       return NULL;
     }
-    return(ftp);
+    return ftp;
 }
 
-FUNC *csoundFTnp2Find(void *csound_, MYFLT *argp)
-   /* find ptr to a deferred-size ftable structure */
-   /*   called by loscil at init time, and ftlen   */
+/* find ptr to a deferred-size ftable structure */
+/*   called by loscil at init time, and ftlen   */
+
+FUNC *csoundFTnp2Find(ENVIRON *csound, MYFLT *argp)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     FUNC    *ftp;
     char    strarg[SSTRSIZ];
     EVTBLK  evt;
     FGDATA  *ff = &(csound->ff);
 
-    if ((ff->fno = (int)*argp) <= 0 ||
+    if ((ff->fno = (int) *argp) <= 0 ||
         ff->fno > csound->maxfnum   ||
         (ftp = csound->flist[ff->fno]) == NULL) {
       csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
@@ -2123,7 +2120,7 @@ FUNC *csoundFTnp2Find(void *csound_, MYFLT *argp)
       ff->e.strarg = strarg;
       gen01raw(ftp, csound);
     }
-    return (ftp);
+    return ftp;
 }
 
 static void gen01(FUNC *ftp, ENVIRON *csound)

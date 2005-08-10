@@ -29,10 +29,8 @@ static CS_NOINLINE void fdchprint(ENVIRON *, INSDS *);
 /* allocate an auxds, or expand an old one */
 /*    call only from init (xxxset) modules */
 
-void csoundAuxAlloc(void *csound_, long nbytes, AUXCH *auxchp)
+void csoundAuxAlloc(ENVIRON *csound, long nbytes, AUXCH *auxchp)
 {
-    register ENVIRON *csound = (ENVIRON*) csound_;
-
     if (auxchp->auxp != NULL) {
       /* if allocd with same size, just clear to zero */
       if (nbytes == (long) auxchp->size) {
@@ -102,21 +100,19 @@ void fdclose(ENVIRON *csound, FDCH *fdchp)
 /* release all xds in instr auxp chain */
 /*   called by insert at orcompact     */
 
-void auxchfree(void *csound, INSDS *ip)
+void auxchfree(ENVIRON *csound, INSDS *ip)
 {
-    ENVIRON *p = (ENVIRON*) csound;
-
-    if (p->oparms->odebug)
-      auxchprint(p, ip);
+    if (csound->oparms->odebug)
+      auxchprint(csound, ip);
     while (ip->auxchp != NULL) {                /* for all auxp's in chain: */
       void  *auxp = (void*) ip->auxchp->auxp;
       AUXCH *nxt = ip->auxchp->nxtchp;
       memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
-      mfree(p, auxp);                               /*  & free the space    */
+      mfree(csound, auxp);                          /*  & free the space    */
       ip->auxchp = nxt;
     }
-    if (p->oparms->odebug)
-      auxchprint(p, ip);
+    if (csound->oparms->odebug)
+      auxchprint(csound, ip);
 }
 
 /* close all files in instr fd chain        */

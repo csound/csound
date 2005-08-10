@@ -21,18 +21,20 @@
     02111-1307 USA
 */
 
-#include <alsa/asoundlib.h>
-/* no #ifdef, should always have these on Linux */
-#include <unistd.h>
-#include <stdint.h>
-#include "csoundCore.h"
-#include "csound.h"
-#include "soundio.h"
-
-#ifdef Str
-#undef Str
+#ifndef _ISOC99_SOURCE
+#define _ISOC99_SOURCE 1
 #endif
-#define Str(x) (((ENVIRON*) csound)->LocalizeString(x))
+#ifndef _POSIX_SOURCE
+#define _POSIX_SOURCE 1
+#endif
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE 1
+#endif
+
+#include "csdl.h"
+#include <unistd.h>
+#include <alsa/asoundlib.h>
+#include "soundio.h"
 
 typedef struct devparams_ {
     snd_pcm_t       *handle;        /* handle                           */
@@ -77,38 +79,36 @@ static void float_to_double(int nSmps, float *inBuf, double *outBuf);
 
 /* module interface functions */
 
-int csoundModuleCreate(void *csound)
+int csoundModuleCreate(ENVIRON *csound)
 {
     /* nothing to do, report success */
-    ((ENVIRON*) csound)->Message(csound, "ALSA real-time audio module "
-                                         "for Csound by Istvan Varga\n");
+    csound->Message(csound,
+                    "ALSA real-time audio module for Csound by Istvan Varga\n");
     return 0;
 }
 
-static int playopen_(void*, csRtAudioParams*);
-static int recopen_(void*, csRtAudioParams*);
-static void rtplay_(void*, void*, int);
-static int rtrecord_(void*, void*, int);
-static void rtclose_(void*);
+static int playopen_(ENVIRON*, csRtAudioParams*);
+static int recopen_(ENVIRON*, csRtAudioParams*);
+static void rtplay_(ENVIRON*, void*, int);
+static int rtrecord_(ENVIRON*, void*, int);
+static void rtclose_(ENVIRON*);
 
-int csoundModuleInit(void *csound)
+int csoundModuleInit(ENVIRON *csound)
 {
-    ENVIRON *p;
     char    *drv;
 
-    p = (ENVIRON*) csound;
-    drv = (char*) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
+    drv = (char*) (csound->QueryGlobalVariable(csound, "_RTAUDIO"));
     if (drv == NULL)
       return 0;
     if (!(strcmp(drv, "alsa") == 0 || strcmp(drv, "Alsa") == 0 ||
           strcmp(drv, "ALSA") == 0))
       return 0;
-    p->Message(csound, "rtaudio: ALSA module enabled\n");
-    p->SetPlayopenCallback(csound, playopen_);
-    p->SetRecopenCallback(csound, recopen_);
-    p->SetRtplayCallback(csound, rtplay_);
-    p->SetRtrecordCallback(csound, rtrecord_);
-    p->SetRtcloseCallback(csound, rtclose_);
+    csound->Message(csound, "rtaudio: ALSA module enabled\n");
+    csound->SetPlayopenCallback(csound, playopen_);
+    csound->SetRecopenCallback(csound, recopen_);
+    csound->SetRtplayCallback(csound, rtplay_);
+    csound->SetRtrecordCallback(csound, rtrecord_);
+    csound->SetRtcloseCallback(csound, rtclose_);
     return 0;
 }
 
@@ -168,16 +168,15 @@ static snd_pcm_format_t set_format(void **convFunc, int csound_format, int play,
 
 /* set up audio device */
 
-static int set_device_params(void *csound, DEVPARAMS *dev, int play)
+static int set_device_params(ENVIRON *csound, DEVPARAMS *dev, int play)
 {
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_sw_params_t *sw_params;
     snd_pcm_format_t    alsaFmt;
     int                 err, n, myflt_is_double, alloc_smps;
-    ENVIRON             *p;
+    ENVIRON             *p = csound;
     char                *devName, msg[512];
 
-    p = (ENVIRON*) csound;
     dev->buf = NULL;
     snd_pcm_hw_params_alloca(&hw_params);
     snd_pcm_sw_params_alloca(&sw_params);
@@ -318,23 +317,21 @@ static int set_device_params(void *csound, DEVPARAMS *dev, int play)
 
 /* open for audio input */
 
-static int recopen_(void *csound, csRtAudioParams *parm)
+static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
 {
-    ENVIRON   *p;
     DEVPARAMS *dev;
     int       retval;
 
-    p = (ENVIRON*) csound;
     /* check if the device is already opened */
-    if (*(p->GetRtRecordUserData(csound)) != NULL)
+    if (*(csound->GetRtRecordUserData(csound)) != NULL)
       return 0;
     /* allocate structure */
     dev = (DEVPARAMS*) malloc(sizeof(DEVPARAMS));
     if (dev == NULL) {
-      p->Message(csound, " *** ALSA: recopen: memory allocation failure\n");
+      csound->ErrorMsg(csound, " *** ALSA: recopen: memory allocation failure");
       return -1;
     }
-    *(p->GetRtRecordUserData(csound)) = (void*) dev;
+    *(csound->GetRtRecordUserData(csound)) = (void*) dev;
     memset(dev, 0, sizeof(DEVPARAMS));
     /* set up parameters */
     dev->handle = (snd_pcm_t*) NULL;
@@ -353,30 +350,29 @@ static int recopen_(void *csound, csRtAudioParams *parm)
     retval = set_device_params(csound, dev, 0);
     if (retval != 0) {
       free(dev);
-      *(p->GetRtRecordUserData(csound)) = NULL;
+      *(csound->GetRtRecordUserData(csound)) = NULL;
     }
     return retval;
 }
 
 /* open for audio output */
 
-static int playopen_(void *csound, csRtAudioParams *parm)
+static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
 {
-    ENVIRON   *p;
     DEVPARAMS *dev;
     int       retval;
 
-    p = (ENVIRON*) csound;
     /* check if the device is already opened */
-    if (*(p->GetRtPlayUserData(csound)) != NULL)
+    if (*(csound->GetRtPlayUserData(csound)) != NULL)
       return 0;
     /* allocate structure */
     dev = (DEVPARAMS*) malloc(sizeof(DEVPARAMS));
     if (dev == NULL) {
-      p->Message(csound, " *** ALSA: playopen: memory allocation failure\n");
+      csound->ErrorMsg(csound,
+                       " *** ALSA: playopen: memory allocation failure");
       return -1;
     }
-    *(p->GetRtPlayUserData(csound)) = (void*) dev;
+    *(csound->GetRtPlayUserData(csound)) = (void*) dev;
     memset(dev, 0, sizeof(DEVPARAMS));
     /* set up parameters */
     dev->handle = (snd_pcm_t*) NULL;
@@ -395,7 +391,7 @@ static int playopen_(void *csound, csRtAudioParams *parm)
     retval = set_device_params(csound, dev, 1);
     if (retval != 0) {
       free(dev);
-      *(p->GetRtPlayUserData(csound)) = NULL;
+      *(csound->GetRtPlayUserData(csound)) = NULL;
     }
     return retval;
 }
@@ -405,19 +401,17 @@ static int playopen_(void *csound, csRtAudioParams *parm)
 #ifdef warning
 #undef warning
 #endif
-#define warning(x) {                                \
-    if (p->GetMessageLevel(csound) & 4)             \
-      p->Message(csound, Str("WARNING: %s\n"), x);  \
+#define warning(x) {                            \
+    if (csound->GetMessageLevel(csound) & 4)    \
+      csound->Warning(csound, Str(x));          \
 }
 
-static int rtrecord_(void *csound, void *inbuf_, int bytes_)
+static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
 {
     DEVPARAMS *dev;
-    ENVIRON   *p;
     int       n, m, err;
 
-    p = (ENVIRON*) csound;
-    dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
+    dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     if (dev->handle == NULL) {
       /* no device, return zero samples */
       memset(inbuf_, 0, (size_t) bytes_);
@@ -435,17 +429,18 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
       /* handle I/O errors */
       if (err == -EPIPE) {
         /* buffer underrun */
-        warning(Str("Buffer underrun in real-time audio input")); /* complain */
+        warning("Buffer overrun in real-time audio input");     /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       else if (err == -ESTRPIPE) {
         /* suspend */
-        warning(Str("Real-time audio input suspended"));
+        warning("Real-time audio input suspended");
         while (snd_pcm_resume(dev->handle) == -EAGAIN) sleep(1);
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       /* could not recover from error */
-      p->Message(csound, Str("Error reading data from audio input device\n"));
+      csound->ErrorMsg(csound,
+                       Str("Error reading data from audio input device"));
       snd_pcm_close(dev->handle);
       dev->handle = NULL;
       break;
@@ -457,14 +452,12 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(void *csound, void *outbuf_, int bytes_)
+static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
 {
     DEVPARAMS *dev;
-    ENVIRON   *p;
     int     n, err;
 
-    p = (ENVIRON*) csound;
-    dev = (DEVPARAMS*) (*(p->GetRtPlayUserData(csound)));
+    dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
     if (dev->handle == NULL)
       return;
     /* calculate the number of samples to play */
@@ -481,17 +474,18 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
       /* handle I/O errors */
       if (err == -EPIPE) {
         /* buffer underrun */
-        warning(Str("Buffer underrun in real-time audio output"));/* complain */
+        warning("Buffer underrun in real-time audio output");   /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       else if (err == -ESTRPIPE) {
         /* suspend */
-        warning(Str("Real-time audio output suspended"));
+        warning("Real-time audio output suspended");
         while (snd_pcm_resume(dev->handle) == -EAGAIN) sleep(1);
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       /* could not recover from error */
-      p->Message(csound, Str("Error writing data to audio output device\n"));
+      csound->ErrorMsg(csound,
+                       Str("Error writing data to audio output device"));
       snd_pcm_close(dev->handle);
       dev->handle = NULL;
       break;
@@ -501,24 +495,22 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
 /* close the I/O device entirely  */
 /* called only when both complete */
 
-static void rtclose_(void *csound)
+static void rtclose_(ENVIRON *csound)
 {
     DEVPARAMS *dev;
-    ENVIRON   *p;
 
-    p = (ENVIRON*) csound;
-    dev = (DEVPARAMS*) (*(p->GetRtRecordUserData(csound)));
+    dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     if (dev != NULL) {
-      *(p->GetRtRecordUserData(csound)) = NULL;
+      *(csound->GetRtRecordUserData(csound)) = NULL;
       if (dev->handle != NULL)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)
         free(dev->buf);
       free(dev);
     }
-    dev = (DEVPARAMS*) (*(p->GetRtPlayUserData(csound)));
+    dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
     if (dev != NULL) {
-      *(p->GetRtPlayUserData(csound)) = NULL;
+      *(csound->GetRtPlayUserData(csound)) = NULL;
       if (dev->handle != NULL)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)
@@ -538,7 +530,7 @@ static void float_to_short(int nSmps, float *inBuf, int16_t *outBuf,
       (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
       tmp_f = (float) ((*seed) - 0x8000) * (1.0f / (float) 0x10000);
       tmp_f += *(inBuf++) * (float) 0x8000;
-      tmp_i = (int) (tmp_f + (tmp_f < 0.0f ? -0.5f : 0.5f));
+      tmp_i = (int) lrintf(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
       *(outBuf++) = (int16_t) tmp_i;
@@ -554,7 +546,7 @@ static void double_to_short(int nSmps, double *inBuf, int16_t *outBuf,
       (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
       tmp_f = (double) ((*seed) - 0x8000) * (1.0 / (double) 0x10000);
       tmp_f += *(inBuf++) * (double) 0x8000;
-      tmp_i = (int) (tmp_f + (tmp_f < 0.0 ? -0.5 : 0.5));
+      tmp_i = (int) lrint(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
       *(outBuf++) = (int16_t) tmp_i;
@@ -569,7 +561,7 @@ static void float_to_long(int nSmps, float *inBuf, int32_t *outBuf,
     seed = seed;
     while (nSmps--) {
       tmp_f = *(inBuf++) * (float) 0x80000000UL;
-      tmp_i = (int64_t) (tmp_f + (tmp_f < 0.0f ? -0.5f : 0.5f));
+      tmp_i = (int64_t) llrintf(tmp_f);
       if (tmp_i < -((int64_t) 0x80000000UL))
         tmp_i = -((int64_t) 0x80000000UL);
       if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;
@@ -585,7 +577,7 @@ static void double_to_long(int nSmps, double *inBuf, int32_t *outBuf,
     seed = seed;
     while (nSmps--) {
       tmp_f = *(inBuf++) * (double) 0x80000000UL;
-      tmp_i = (int64_t) (tmp_f + (tmp_f < 0.0 ? -0.5 : 0.5));
+      tmp_i = (int64_t) llrint(tmp_f);
       if (tmp_i < -((int64_t) 0x80000000UL))
         tmp_i = -((int64_t) 0x80000000UL);
       if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;

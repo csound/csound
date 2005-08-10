@@ -24,8 +24,7 @@
 #include <CoreAudio.h>
 #include <unistd.h>
 #include <stdint.h>
-#include "csoundCore.h"
-#include "csound.h"
+#include "csdl.h"
 #include "soundio.h"
 
 typedef struct devparams_ {

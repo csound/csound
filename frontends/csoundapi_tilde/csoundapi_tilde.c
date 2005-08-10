@@ -25,11 +25,11 @@
 
 #include <stdio.h>
 #include <m_pd.h>
-#include "csoundCore.h"
-#include "csound.h"
+/* FIXME: temporary hack to make this file compile */
+#include "csdl.h"
 
 #define CS_MAX_CHANS 32
-#define CS_VERSION_  csoundGetVersion()
+#define CS_VERSION_  (csoundGetVersion() / 10)
 static t_class *csoundapi_class = 0;
 static t_int lockcs = 0;
 

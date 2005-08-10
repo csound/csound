@@ -35,21 +35,21 @@
 
 extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
 extern  int     insert(ENVIRON *, int, EVTBLK*);
-extern  void    MidiOpen(void *);
+extern  void    MidiOpen(ENVIRON *);
 extern  void    m_chn_init_all(ENVIRON *);
 extern  void    scsort(ENVIRON *, FILE *, FILE *);
 extern  void    infoff(ENVIRON*, MYFLT), orcompact(ENVIRON*);
 extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
-extern  void    sfopenin(void*), sfopenout(void*), sfnopenout(ENVIRON *);
-extern  void    iotranset(ENVIRON*), sfclosein(void*), sfcloseout(void*);
-extern  void    MidiClose(ENVIRON*);
-extern  void    RTclose(void*);
+extern  void    sfopenin(ENVIRON *), sfopenout(ENVIRON*), sfnopenout(ENVIRON*);
+extern  void    iotranset(ENVIRON *), sfclosein(ENVIRON*), sfcloseout(ENVIRON*);
+extern  void    MidiClose(ENVIRON *);
+extern  void    RTclose(ENVIRON *);
 extern  char    **csoundGetSearchPathFromEnv(ENVIRON *, const char *);
 
 static  int     playevents(ENVIRON *);
 
 typedef struct evt_cb_func {
-    void    (*func)(void *, void *);
+    void    (*func)(ENVIRON *, void *);
     void    *userData;
     struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
@@ -64,13 +64,12 @@ typedef struct {
     EVENT   *lsect;
 } MUSMON_GLOBALS;
 
-#define ST(x)   (((MUSMON_GLOBALS*) ((ENVIRON*) csound)->musmonGlobals)->x)
+#define ST(x)   (((MUSMON_GLOBALS*) csound->musmonGlobals)->x)
 
 /* IV - Jan 28 2005 */
-void print_benchmark_info(void *csound_, const char *s)
+void print_benchmark_info(ENVIRON *csound, const char *s)
 {
     double  rt, ct;
-    ENVIRON *csound = (ENVIRON*) csound_;
     RTCLOCK *p;
 
     if ((csound->oparms->msglevel & 0x80) == 0)
@@ -171,18 +170,18 @@ int musmon(ENVIRON *csound)
 #ifdef USE_DOUBLE
 #ifdef BETA
     csound->Message(csound, Str("Csound version %s beta (double samples) %s\n"),
-                            PACKAGE_VERSION, __DATE__);
+                            CS_PACKAGE_VERSION, __DATE__);
 #else
     csound->Message(csound, Str("Csound version %s (double samples) %s\n"),
-                            PACKAGE_VERSION, __DATE__);
+                            CS_PACKAGE_VERSION, __DATE__);
 #endif
 #else
 #ifdef BETA
     csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
-                            PACKAGE_VERSION, __DATE__);
+                            CS_PACKAGE_VERSION, __DATE__);
 #else
     csound->Message(csound, Str("Csound version %s (float samples) %s\n"),
-                            PACKAGE_VERSION, __DATE__);
+                            CS_PACKAGE_VERSION, __DATE__);
 #endif
 #endif
 
@@ -338,9 +337,8 @@ static void delete_pending_rt_events(ENVIRON *csound)
     csound->OrcTrigEvts = NULL;
 }
 
-PUBLIC int csoundCleanup(void *csound_)
+PUBLIC int csoundCleanup(ENVIRON *csound)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     MYFLT   *maxp;
     long    *rngp;
     int     n;
@@ -1109,11 +1107,10 @@ void musmon_rewind_score(ENVIRON *csound)
  * as passed to this function.
  * Returns zero on success.
  */
-PUBLIC int csoundRegisterSenseEventCallback(void *csound_,
-                                            void (*func)(void *, void *),
+PUBLIC int csoundRegisterSenseEventCallback(ENVIRON *csound,
+                                            void (*func)(ENVIRON *, void *),
                                             void *userData)
 {
-    ENVIRON     *csound = (ENVIRON*) csound_;
     EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
 
     if (fp == NULL) {

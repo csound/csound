@@ -37,20 +37,20 @@
  * however, the presence of csoundModuleCreate() is required for identifying  *
  * the file as a Csound plugin module.                                        *
  *                                                                            *
- * int csoundModuleCreate(void *csound)         (required)                    *
- * ------------------------------------                                       *
+ * int csoundModuleCreate(ENVIRON *csound)      (required)                    *
+ * ---------------------------------------                                    *
  *                                                                            *
  * Pre-initialisation function that is called by csoundCreate() after the     *
  * creation of Csound instance 'csound'.                                      *
  *                                                                            *
- * int csoundModuleInit(void *csound)           (optional)                    *
- * ----------------------------------                                         *
+ * int csoundModuleInit(ENVIRON *csound)        (optional)                    *
+ * -------------------------------------                                      *
  *                                                                            *
  * Called by Csound instances before orchestra translation. One possible use  *
  * of csoundModuleInit() is adding new opcodes with csoundAppendOpcode().     *
  *                                                                            *
- * int csoundModuleDestroy(void *csound)        (optional)                    *
- * -------------------------------------                                      *
+ * int csoundModuleDestroy(ENVIRON *csound)     (optional)                    *
+ * ----------------------------------------                                   *
  *                                                                            *
  * Destructor function for Csound instance 'csound', called at the end of     *
  * performance, after closing audio output.                                   *
@@ -76,7 +76,7 @@ extern "C" {
  * some modules could not be loaded or initialised, and CSOUND_MEMORY
  * if a memory allocation failure has occured.
  */
-int csoundLoadModules(void *csound);
+int csoundLoadModules(ENVIRON *csound);
 
 /**
  * Call initialisation functions of all loaded modules that have a
@@ -84,7 +84,7 @@ int csoundLoadModules(void *csound);
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
  * some modules could not be initialised.
  */
-int csoundInitModules(void *csound);
+int csoundInitModules(ENVIRON *csound);
 
 /**
  * Call destructor functions of all loaded modules that have a
@@ -92,11 +92,11 @@ int csoundInitModules(void *csound);
  * Return value is CSOUND_SUCCESS if there was no error, and
  * CSOUND_ERROR if some modules could not be de-initialised.
  */
-int csoundDestroyModules(void *csound);
+int csoundDestroyModules(ENVIRON *csound);
 
 #ifdef __cplusplus
 };
 #endif /* __cplusplus */
 
-#endif  /* CSOUND_CSMODULE_H */
+#endif /* CSOUND_CSMODULE_H */
 
