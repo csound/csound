@@ -327,8 +327,10 @@ static void delete_pending_rt_events(ENVIRON *csound)
 
     while (ep != NULL) {
       EVTNODE *nxt = ep->nxt;
-      if (ep->evt.strarg != NULL)
-        csound->Free(csound, ep->evt.strarg);
+      if (ep->evt.strarg != NULL) {
+        free(ep->evt.strarg);
+        ep->evt.strarg = NULL;
+      }
       /* push to stack of free event nodes */
       ep->nxt = csound->freeEvtNodes;
       csound->freeEvtNodes = ep;
@@ -339,6 +341,7 @@ static void delete_pending_rt_events(ENVIRON *csound)
 
 PUBLIC int csoundCleanup(ENVIRON *csound)
 {
+    void    *p;
     MYFLT   *maxp;
     long    *rngp;
     int     n;
@@ -356,6 +359,16 @@ PUBLIC int csoundCleanup(ENVIRON *csound)
         csound->instrtxtp[0]->instance->actflg)
       xturnoff_now(csound, csound->instrtxtp[0]->instance);
     delete_pending_rt_events(csound);
+    while (csound->freeEvtNodes != NULL) {
+      p = (void*) csound->freeEvtNodes;
+      csound->freeEvtNodes = ((EVTNODE*) p)->nxt;
+      free(p);
+    }
+    while (csound->evtFuncChain != NULL) {
+      p = (void*) csound->evtFuncChain;
+      csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
+      free(p);
+    }
     orcompact(csound);
     if (csound->scfp) {
       fclose(csound->scfp); csound->scfp = NULL;
@@ -667,8 +680,10 @@ static int process_rt_event(ENVIRON *csound, int sensType)
       /* pop from the list */
       p->OrcTrigEvts = e->nxt;
       retval = process_score_event(p, evt, 1);
-      if (evt->strarg != NULL)
-        mfree(p, evt->strarg);
+      if (evt->strarg != NULL) {
+        free(evt->strarg);
+        evt->strarg = NULL;
+      }
       /* push back to free alloc stack so it can be reused later */
       e->nxt = p->freeEvtNodes;
       p->freeEvtNodes = e;
@@ -936,19 +951,22 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
       e = csound->freeEvtNodes;                     /*   if available       */
       csound->freeEvtNodes = e->nxt;
     }
-    else
-      e = (EVTNODE*) mcalloc(csound, sizeof(EVTNODE));  /* or alloc new one */
+    else {
+      e = (EVTNODE*) calloc((size_t) 1, sizeof(EVTNODE)); /* or alloc new one */
+      if (e == NULL)
+        return CSOUND_MEMORY;
+    }
     if (evt->strarg != NULL) {  /* copy string argument if present */
-      e->evt.strarg =
-            (char*) mmalloc(csound, (size_t) strlen(evt->strarg) + (size_t) 1);
+      e->evt.strarg = (char*) malloc((size_t) strlen(evt->strarg) + (size_t) 1);
+      if (e->evt.strarg == NULL) {
+        free(e);
+        return CSOUND_MEMORY;
+      }
       strcpy(e->evt.strarg, evt->strarg);
     }
-    else
-      e->evt.strarg = NULL;
     e->evt.opcod = evt->opcod;
     e->evt.pcnt = evt->pcnt;
     p = &(e->evt.p[0]);
-    p[0] = FL(0.0);             /* FIXME: is this ever used ? */
     i = 0;
     while (++i <= evt->pcnt)    /* copy p-field list */
       p[i] = evt->p[i];
@@ -1053,7 +1071,7 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
  err_return:
     /* clean up */
     if (e->evt.strarg != NULL)
-      mfree(csound, e->evt.strarg);
+      free(e->evt.strarg);
     e->evt.strarg = NULL;
     e->nxt = csound->freeEvtNodes;
     csound->freeEvtNodes = e;
@@ -1114,15 +1132,17 @@ PUBLIC int csoundRegisterSenseEventCallback(ENVIRON *csound,
     EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
 
     if (fp == NULL) {
-      fp = (EVT_CB_FUNC*) csound->Malloc(csound, sizeof(EVT_CB_FUNC));
+      fp = (EVT_CB_FUNC*) calloc((size_t) 1, sizeof(EVT_CB_FUNC));
       csound->evtFuncChain = (void*) fp;
     }
     else {
       while (fp->nxt != NULL)
         fp = fp->nxt;
-      fp->nxt = (EVT_CB_FUNC*) csound->Malloc(csound, sizeof(EVT_CB_FUNC));
+      fp->nxt = (EVT_CB_FUNC*) calloc((size_t) 1, sizeof(EVT_CB_FUNC));
       fp = fp->nxt;
     }
+    if (fp == NULL)
+      return CSOUND_MEMORY;
     fp->func = func;
     fp->userData = userData;
     fp->nxt = NULL;

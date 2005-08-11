@@ -25,8 +25,7 @@
 
 #include <stdio.h>
 #include <m_pd.h>
-/* FIXME: temporary hack to make this file compile */
-#include "csdl.h"
+#include "csound.h"
 
 #define CS_MAX_CHANS 32
 #define CS_VERSION_  (csoundGetVersion() / 10)
@@ -68,8 +67,8 @@ PUBLIC int   set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
 PUBLIC MYFLT get_channel_value(t_csoundapi *x, char *channel);
 PUBLIC channelname *create_channel(channelname *ch, char *channel);
 PUBLIC void  destroy_channels(channelname *ch);
-PUBLIC void in_channel_value_callback(void *csound, char *name, MYFLT *val);
-PUBLIC void out_channel_value_callback(void *csound, char *name, MYFLT val);
+PUBLIC void in_channel_value_callback(ENVIRON *csound, char *name, MYFLT *val);
+PUBLIC void out_channel_value_callback(ENVIRON *csound, char *name, MYFLT val);
 PUBLIC void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv);
 PUBLIC void csoundapi_run(t_csoundapi *x, t_floatarg f);
 PUBLIC void csoundapi_offset(t_csoundapi *x, t_floatarg f);
@@ -210,7 +209,7 @@ PUBLIC t_int *csoundapi_perform(int *w){
   t_int  size = x->vsize;
   t_int pos = x->pos;
   t_int posn = pos;
-  t_float scal  = x->csound->e0dbfs;
+  t_float scal  = csoundGet0dBFS(x->csound);
   t_int pksmps = x->pksmps;
   t_int numlets = x->numlets;
   t_int chans = x->chans, samps;
@@ -421,12 +420,12 @@ PUBLIC void csoundapi_control(t_csoundapi *x, t_symbol *s, float f){
 
 }
 
-PUBLIC void in_channel_value_callback(void *csound, char *name, MYFLT *val){
+PUBLIC void in_channel_value_callback(ENVIRON *csound, char *name, MYFLT *val){
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
   *val = get_channel_value(x,name);
 }
 
-PUBLIC void out_channel_value_callback(void *csound, char *name, MYFLT val){
+PUBLIC void out_channel_value_callback(ENVIRON *csound, char *name, MYFLT val){
   t_atom at[2];
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
   SETFLOAT(&at[1], (t_float) val);
