@@ -254,13 +254,13 @@ static inline long MYFLT2LRND(double fval)
 #define MYFLT2LONG(x) ((long) (x))
 static inline long MYFLT2LRND(float fval)
 {
-    return ((long) (fval + fval < 0.0f ? -0.5f : 0.5f));
+    return ((long) (fval + (fval < 0.0f ? -0.5f : 0.5f)));
 }
 #else
 #define MYFLT2LONG(x) ((long) (x))
 static inline long MYFLT2LRND(double fval)
 {
-    return ((long) (fval + fval < 0.0 ? -0.5 : 0.5));
+    return ((long) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
 #endif
 #endif
