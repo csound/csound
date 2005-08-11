@@ -96,7 +96,7 @@ static int ftgen(ENVIRON *csound, FTGEN *p)
     *fp++ = ftevt->p2orig = FL(0.0);                    /* force time 0 */
     *fp++ = ftevt->p3orig = *p->p3;
     *fp++ = *p->p4;
-    if (p->XSTRCODE) {                                  /* string argument: */
+    if (csound->GetInputArgSMask(p)) {          /* string argument: */
       int n = (int) ftevt->p[4];
       *fp++ = SSTRCOD;
       if (n < 0) n = -n;
@@ -112,12 +112,12 @@ static int ftgen(ENVIRON *csound, FTGEN *p)
       *fp++ = *p->p5;
       ftevt->strarg = NULL;                             /* else no string */
     }
-    if ((nargs = p->INOCOUNT - 5) > 0) {
+    ftevt->pcnt = (short) csound->GetInputArgCnt(p);
+    if ((nargs = (int) ftevt->pcnt - 5) > 0) {
       MYFLT **argp = p->argums;
       while (nargs--)                                   /* copy rem arglist */
         *fp++ = **argp++;
     }
-    ftevt->pcnt = p->INOCOUNT;
     if (csound->hfgens(csound, &ftp, ftevt, 1) == 0) {  /* call the fgen */
       if (ftp != NULL)
         *p->ifno = (MYFLT) ftp->fno;                    /* record the fno */
@@ -164,17 +164,17 @@ static int ftload(ENVIRON *csound, FTLOAD *p)
     char  filename[MAXNAME];
     int   nargs = csound->GetInputArgCnt(p) - 2;
     FILE  *file = NULL;
-    int   (*err_func)(void *, const char *, ...);
-    FUNC  *(*ft_func)(void *, MYFLT *);
+    int   (*err_func)(ENVIRON *, const char *, ...);
+    FUNC  *(*ft_func)(ENVIRON *, MYFLT *);
 
     if (strcmp(csound->GetOpcodeName(p), "ftload") != 0) {
       nargs--;
-      ft_func = (FUNC *(*)(void *, MYFLT *)) csound->FTFindP;
-      err_func = (int (*)(void *, const char *, ...)) csound->PerfError;
+      ft_func = csound->FTFindP;
+      err_func = csound->PerfError;
     }
     else {
-      ft_func = (FUNC *(*)(void *, MYFLT *)) csound->FTFind;
-      err_func = (int (*)(void *, const char *, ...)) csound->InitError;
+      ft_func = csound->FTFind;
+      err_func = csound->InitError;
     }
 
     if (nargs <= 0)
@@ -303,17 +303,17 @@ static int ftsave(ENVIRON *csound, FTLOAD *p)
     char  filename[MAXNAME];
     int   nargs = csound->GetInputArgCnt(p) - 2;
     FILE  *file = NULL;
-    int   (*err_func)(void *, const char *, ...);
-    FUNC  *(*ft_func)(void *, MYFLT *);
+    int   (*err_func)(ENVIRON *, const char *, ...);
+    FUNC  *(*ft_func)(ENVIRON *, MYFLT *);
 
     if (strcmp(csound->GetOpcodeName(p), "ftsave") != 0) {
       nargs--;
-      ft_func = (FUNC *(*)(void *, MYFLT *)) csound->FTFindP;
-      err_func = (int (*)(void *, const char *, ...)) csound->PerfError;
+      ft_func = csound->FTFindP;
+      err_func = csound->PerfError;
     }
     else {
-      ft_func = (FUNC *(*)(void *, MYFLT *)) csound->FTFind;
-      err_func = (int (*)(void *, const char *, ...)) csound->InitError;
+      ft_func = csound->FTFind;
+      err_func = csound->InitError;
     }
 
     if (nargs <= 0)
@@ -338,7 +338,7 @@ static int ftsave(ENVIRON *csound, FTLOAD *p)
     }
     else {
       if (!(file = fopen(filename, "w"))) goto err3;
-      while (nargs--)  {
+      while (nargs--) {
         FUNC *ftp;
 
         if ((ftp = ft_func(csound, *argp)) != NULL) {
@@ -405,7 +405,8 @@ static int ftsave_k_set(ENVIRON *csound, FTLOAD_K *p)
     memcpy(&(p->p.h), &(p->h), sizeof(OPDS));
     p->p.ifilno = p->ifilno;
     p->p.iflag = p->iflag;
-    memcpy(p->p.argums, p->argums, sizeof(MYFLT*) * (p->INOCOUNT - 3));
+    memcpy(p->p.argums, p->argums,
+           sizeof(MYFLT*) * (csound->GetInputArgCnt(p) - 3));
     return OK;
 }
 

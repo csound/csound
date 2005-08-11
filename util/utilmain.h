@@ -26,22 +26,18 @@
 
 /* main function for utility frontends */
 
-/* FIXME: temporary hack to make this file compile */
-#include "csdl.h"
+#include "csound.h"
 
 static int csoundUtilMain(const char *name, int argc, char **argv)
 {
     ENVIRON *csound;
-    int     n;
+    int     n = -1;
 
-    if ((csound = (ENVIRON*) csoundCreate(NULL)) == NULL)
-      return -1;
-    if ((n = csoundPreCompile(csound)) == 0) {
-      csound->scorename = csound->orchname = (char*) name;
-      n = csound->Utility(csound, name, argc, argv);
+    if ((csound = csoundCreate(NULL)) != NULL) {
+      if ((n = csoundPreCompile(csound)) == 0)
+        n = csoundRunUtility(csound, name, argc, argv);
+      csoundDestroy(csound);
     }
-    csoundDestroy(csound);
-
     return (n == CSOUND_EXITJMP_SUCCESS ? 0 : n);
 }
 

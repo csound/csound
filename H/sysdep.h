@@ -27,24 +27,26 @@
 /* check for the presence of a modern compiler (for use of certain features) */
 
 #ifdef HAVE_GCC3
-#undef HAVE_GCC3
+#  undef HAVE_GCC3
 #endif
 #ifdef HAVE_C99
-#undef HAVE_C99
+#  undef HAVE_C99
 #endif
 #if (defined(__GNUC__) && (__GNUC__ >= 3))
-#define HAVE_C99 1
-#ifndef _ISOC99_SOURCE
-#define _ISOC99_SOURCE  1
-#endif
-#ifndef _ISOC9X_SOURCE
-#define _ISOC9X_SOURCE  1
-#endif
-#ifndef DIRENT_FIX
-#define HAVE_GCC3 1
-#endif
+#  define HAVE_C99 1
+#  if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
+#    ifndef _ISOC99_SOURCE
+#      define _ISOC99_SOURCE  1
+#    endif
+#    ifndef _ISOC9X_SOURCE
+#      define _ISOC9X_SOURCE  1
+#    endif
+#  endif
+#  ifndef DIRENT_FIX
+#    define HAVE_GCC3 1
+#  endif
 #elif (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
-#define HAVE_C99 1
+#  define HAVE_C99 1
 #endif
 
 #include <stdio.h>
@@ -57,6 +59,21 @@
 #if defined(HAVE_UNISTD_H) || defined(__unix) || defined(__unix__)
 #include <unistd.h>
 #endif
+
+/* Experiment with doubles or floats */
+
+#ifndef __MYFLT_DEF
+#  ifndef USE_DOUBLE
+#    define MYFLT float
+#  else
+#    define MYFLT double
+#  endif
+#  define __MYFLT_DEF
+#endif
+
+#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
+
+#define FL(x) ((MYFLT) (x))
 
 /* find out operating system if not specified on the command line */
 
@@ -76,28 +93,15 @@
 #  undef MSVC
 #endif
 
-/* Experiment with doubles or floats */
-
-#ifndef __FL_DEF
-#ifndef USE_DOUBLE
-# define MYFLT float
-# define FL(x) x##f
-#else
-# define MYFLT double
-# define FL(x) x
-#endif
-#define __FL_DEF
-#endif
-
 /* inline keyword: always available in C++, C99, and GCC 3.x and above */
 /* add any other compiler that supports 'inline' */
 
 #if !(defined(HAVE_C99) || defined(HAVE_GCC3) || defined(__cplusplus))
-#ifdef MSVC
-#define inline  __inline
-#elif !defined(inline)
-#define inline
-#endif
+#  ifdef MSVC
+#    define inline  __inline
+#  elif !defined(inline)
+#    define inline
+#  endif
 #endif
 
 #if defined(macintosh)
@@ -151,6 +155,8 @@
 #  include <sys/stat.h>
 #endif
 
+#endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
+
 /* standard integer types */
 
 #if defined(HAVE_STDINT_H) || defined(HAVE_C99)
@@ -162,7 +168,7 @@ typedef short               int16_t;
 typedef unsigned short      uint16_t;
 typedef int                 int32_t;
 typedef unsigned int        uint32_t;
-#ifndef MSVC
+#if defined(__GNUC__) || !defined(_MSC_VER)
 typedef long long           int64_t;
 typedef unsigned long long  uint64_t;
 typedef long long           int_least64_t;
@@ -175,53 +181,6 @@ typedef unsigned __int64    uint_least64_t;
 #endif
 typedef long                intptr_t;
 typedef unsigned long       uintptr_t;
-#endif
-
-/* macros for converting floats to integers */
-/* MYFLT2LONG: converts with unspecified rounding */
-/* MYFLT2LRND: rounds to nearest integer */
-
-#ifdef USE_LRINT
-#ifndef USE_DOUBLE
-#define MYFLT2LONG(x) ((long) lrintf((float) (x)))
-#define MYFLT2LRND(x) ((long) lrintf((float) (x)))
-#else
-#define MYFLT2LONG(x) ((long) lrint((double) (x)))
-#define MYFLT2LRND(x) ((long) lrint((double) (x)))
-#endif
-#elif defined(MSVC)
-#ifndef USE_DOUBLE
-static inline long MYFLT2LONG(float fval)
-{
-    int result;
-    _asm {
-      fld   fval
-      fistp result
-      mov   eax, result
-    }
-    return result;
-}
-#else
-static inline long MYFLT2LONG(double fval)
-{
-    int result;
-    _asm {
-      fld   fval
-      fistp result
-      mov   eax, result
-    }
-    return result;
-}
-#endif
-#define MYFLT2LRND  MYFLT2LONG
-#else
-#ifndef USE_DOUBLE
-#define MYFLT2LONG(x) ((long) (x))
-#define MYFLT2LRND(x) ((long) ((float)(x) + ((float)(x) < 0.0f ? -0.5f : 0.5f)))
-#else
-#define MYFLT2LONG(x) ((long) (x))
-#define MYFLT2LRND(x) ((long) ((double)(x) + ((double)(x) < 0.0 ? -0.5 : 0.5)))
-#endif
 #endif
 
 /* function attributes */
@@ -251,6 +210,61 @@ static inline long MYFLT2LONG(double fval)
 #  define CS_PURE
 #endif
 
+#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
+
+/* macros for converting floats to integers */
+/* MYFLT2LONG: converts with unspecified rounding */
+/* MYFLT2LRND: rounds to nearest integer */
+
+#ifdef USE_LRINT
+#ifndef USE_DOUBLE
+#define MYFLT2LONG(x) ((long) lrintf((float) (x)))
+#define MYFLT2LRND(x) ((long) lrintf((float) (x)))
+#else
+#define MYFLT2LONG(x) ((long) lrint((double) (x)))
+#define MYFLT2LRND(x) ((long) lrint((double) (x)))
+#endif
+#elif defined(MSVC)
+#ifndef USE_DOUBLE
+static inline long MYFLT2LRND(float fval)
+{
+    int result;
+    _asm {
+      fld   fval
+      fistp result
+      mov   eax, result
+    }
+    return result;
+}
+#else
+static inline long MYFLT2LRND(double fval)
+{
+    int result;
+    _asm {
+      fld   fval
+      fistp result
+      mov   eax, result
+    }
+    return result;
+}
+#endif
+#define MYFLT2LONG(x) MYFLT2LRND(x)
+#else
+#ifndef USE_DOUBLE
+#define MYFLT2LONG(x) ((long) (x))
+static inline long MYFLT2LRND(float fval)
+{
+    return ((long) (fval + fval < 0.0f ? -0.5f : 0.5f));
+}
+#else
+#define MYFLT2LONG(x) ((long) (x))
+static inline long MYFLT2LRND(double fval)
+{
+    return ((long) (fval + fval < 0.0 ? -0.5 : 0.5));
+}
+#endif
+#endif
+
 /* inline functions and macros for clamping denormals to zero */
 
 #if defined(__i386__) || defined(MSVC)
@@ -275,6 +289,8 @@ static inline double csoundUndenormalizeDouble(double x)
 #else
 #  define csoundUndenormalizeMYFLT      csoundUndenormalizeDouble
 #endif
+
+#endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
 #endif  /* CSOUND_SYSDEP_H */
 

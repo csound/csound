@@ -95,6 +95,29 @@ SNDMEMFILE  *csoundLoadSoundFile(ENVIRON *,
 int     PVOCEX_LoadFile(ENVIRON *, const char *fname, PVOCEX_MEMFILE *p);
 
   /**
+   * Register a function to be called at note deactivation.
+   * Should be called from the initialisation routine of an opcode.
+   * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
+   * is the function to be called, with the same arguments and return
+   * value as in the case of opcode init/perf functions.
+   * The functions are called in reverse order of registration.
+   * Returns zero on success.
+   */
+  int csoundRegisterDeinitCallback(ENVIRON *, void *p,
+                                   int (*func)(ENVIRON *, void *));
+
+  /**
+   * Register a function to be called by csoundReset(), in reverse order
+   * of registration, before unloading external modules. The function takes
+   * the Csound instance pointer as the first argument, and the pointer
+   * passed here as 'userData' as the second, and is expected to return zero
+   * on success.
+   * The return value of csoundRegisterResetCallback() is zero on success.
+   */
+  int csoundRegisterResetCallback(ENVIRON *, void *userData,
+                                  int (*func)(ENVIRON *, void *));
+
+  /**
    * Returns the name of the opcode of which the data structure
    * is pointed to by 'p'.
    */

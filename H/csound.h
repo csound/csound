@@ -123,6 +123,14 @@ extern "C" {
 #ifdef SWIG
 #define CS_PRINTF2
 #define CS_PRINTF3
+#ifndef __MYFLT_DEF
+#define __MYFLT_DEF
+#ifndef USE_DOUBLE
+#define MYFLT float
+#else
+#define MYFLT double
+#endif
+#endif
 %module csound
 %{
 #  include "sysdep.h"
@@ -161,10 +169,65 @@ extern "C" {
   CSOUND_STATUS;
 
   /**
+   * Value to pass to csound->LongJmp() to return with success,
+   * for example after --help or running an utility.
+   */
+#define CSOUND_EXITJMP_SUCCESS  (256)
+
+  /**
+   * TYPE DEFINITIONS
+   */
+
+  typedef struct oentry {
+    char    *opname;
+    unsigned short  dsblksiz;
+    unsigned short  thread;
+    char    *outypes;
+    char    *intypes;
+    int     (*iopadr)(ENVIRON *, void *p);
+    int     (*kopadr)(ENVIRON *, void *p);
+    int     (*aopadr)(ENVIRON *, void *p);
+    void    *useropinfo;    /* IV - Oct 12 2002: user opcode parameters */
+    int     prvnum;         /* IV - Oct 31 2002 */
+  } OENTRY;
+
+#ifndef SWIG
+  /**
+   * Signature for external registration function,
+   * such as for plugin opcodes or scripting languages.
+   * The external has complete access to the Csound API,
+   * so a plugin opcode can just call csound->AppendOpcode()
+   * for each of its opcodes.
+   */
+  typedef PUBLIC int (*CsoundRegisterExternalType)(ENVIRON *);
+#endif
+
+  /**
+   * Real-time audio parameters structure
+   */
+  typedef struct {
+    char    *devName;       /* device name (NULL/empty: default)           */
+    int     devNum;         /* device number (0-1023), 1024: default       */
+    int     bufSamp_SW;     /* buffer fragment size in samples             */
+                            /*   (*not* multiplied by nchnls)              */
+    int     bufSamp_HW;     /* total buffer size in samples ( = O.oMaxLag) */
+    int     nChannels;      /* number of channels                          */
+    int     sampleFormat;   /* sample format (AE_SHORT etc.)               */
+    float   sampleRate;     /* sample rate in Hz                           */
+  } csRtAudioParams;
+
+  typedef struct RTCLOCK_S {
+    int_least64_t   starttime_real;
+    int_least64_t   starttime_CPU;
+  } RTCLOCK;
+
+  /**
    * INSTANTIATION
    */
 
 #define CSOUNDINIT_NO_SIGNAL_HANDLER  1
+
+#ifndef CSOUND_CSDL_H
 
   /**
    * Initialise Csound library.
@@ -310,6 +373,11 @@ extern "C" {
    * Returns the number of audio output channels.
    */
   PUBLIC int csoundGetNchnls(ENVIRON *);
+
+  /**
+   * Returns the 0dBFS level of the spin/spout buffers.
+   */
+  PUBLIC MYFLT csoundGet0dBFS(ENVIRON *);
 
   /**
    * Returns the sample format.
@@ -664,19 +732,6 @@ extern "C" {
    */
   PUBLIC void csoundDisposeOpcodeList(opcodelist *opcodelist_);
 
-  typedef struct oentry {
-    char    *opname;
-    unsigned short  dsblksiz;
-    unsigned short  thread;
-    char    *outypes;
-    char    *intypes;
-    int     (*iopadr)(ENVIRON *, void *p);
-    int     (*kopadr)(ENVIRON *, void *p);
-    int     (*aopadr)(ENVIRON *, void *p);
-    void    *useropinfo;    /* IV - Oct 12 2002: user opcode parameters */
-    int     prvnum;         /* IV - Oct 31 2002 */
-  } OENTRY;
-
   /**
    * Appends an opcode implemented by external software
    * to Csound's internal opcode list.
@@ -698,17 +753,6 @@ extern "C" {
    * Returns zero on success.
    */
   PUBLIC int csoundAppendOpcodes(ENVIRON *, const OENTRY *opcodeList, int n);
-
-#ifndef SWIG
-  /**
-   * Signature for external registration function,
-   * such as for plugin opcodes or scripting languages.
-   * The external has complete access to the Csound API,
-   * so a plugin opcode can just call csound->AppendOpcode()
-   * for each of its opcodes.
-   */
-  typedef PUBLIC int (*CsoundRegisterExternalType)(ENVIRON *);
-#endif
 
   /**
    * Registers all opcodes in the library.
@@ -762,20 +806,6 @@ extern "C" {
   /**
    * REAL-TIME AUDIO PLAY AND RECORD
    */
-
-  /**
-   * Real-time audio parameters structure
-   */
-  typedef struct {
-    char    *devName;       /* device name (NULL/empty: default)           */
-    int     devNum;         /* device number (0-1023), 1024: default       */
-    int     bufSamp_SW;     /* buffer fragment size in samples             */
-                            /*   (*not* multiplied by nchnls)              */
-    int     bufSamp_HW;     /* total buffer size in samples ( = O.oMaxLag) */
-    int     nChannels;      /* number of channels                          */
-    int     sampleFormat;   /* sample format (AE_SHORT etc.)               */
-    float   sampleRate;     /* sample rate in Hz                           */
-  } csRtAudioParams;
 
   /**
    * Sets a function to be called by Csound for opening real-time
@@ -889,11 +919,6 @@ extern "C" {
    */
   PUBLIC int csoundGetFLTKThreadLocking(ENVIRON *);
 
-  typedef struct RTCLOCK_S {
-    int_least64_t   starttime_real;
-    int_least64_t   starttime_CPU;
-  } RTCLOCK;
-
   /**
    * initialise a timer structure
    */
@@ -996,95 +1021,7 @@ extern "C" {
                                               void (*func)(ENVIRON *, void *),
                                               void *userData);
 
-#define CSFILE_FD_R     1
-#define CSFILE_FD_W     2
-#define CSFILE_STD      3
-#define CSFILE_SND_R    4
-#define CSFILE_SND_W    5
-
-  /**
-   * Open a file and return handle.
-   *
-   * ENVIRON *csound:
-   *   Csound instance pointer
-   * void *fd:
-   *   pointer a variable of type int, FILE*, or SNDFILE*, depending on 'type',
-   *   for storing handle to be passed to file read/write functions
-   * int type:
-   *   file type, one of the following:
-   *     CSFILE_FD_R:     read file using low level interface (open())
-   *     CSFILE_FD_W:     write file using low level interface (open())
-   *     CSFILE_STD:      use ANSI C interface (fopen())
-   *     CSFILE_SND_R:    read sound file
-   *     CSFILE_SND_W:    write sound file
-   * const char *name:
-   *   file name
-   * void *param:
-   *   parameters, depending on type:
-   *     CSFILE_FD_R:     unused (should be NULL)
-   *     CSFILE_FD_W:     unused (should be NULL)
-   *     CSFILE_STD:      mode parameter (of type char*) to be passed to fopen()
-   *     CSFILE_SND_R:    SF_INFO* parameter for sf_open(), with defaults for
-   *                      raw file; the actual format paramaters of the opened
-   *                      file will be stored in this structure
-   *     CSFILE_SND_W:    SF_INFO* parameter for sf_open(), output file format
-   * const char *env:
-   *   list of environment variables for search path (see csoundFindInputFile()
-   *   for details); if NULL, the specified name is used as it is, without any
-   *   conversion or search.
-   * return value:
-   *   opaque handle to the opened file, for use with csoundGetFileName() or
-   *   csoundFileClose(), or storing in FDCH.fd.
-   *   On failure, NULL is returned.
-   */
-  PUBLIC void *csoundFileOpen(ENVIRON *csound, void *fd, int type,
-                              const char *name, void *param, const char *env);
-
-  /**
-   * Allocate a file handle for an existing file already opened with open(),
-   * fopen(), or sf_open(), for later use with csoundFileClose() or
-   * csoundGetFileName(), or storing in an FDCH structure.
-   * Files registered this way (or opened with csoundFileOpen()) are also
-   * automatically closed by csoundReset().
-   * Parameters and return value are similar to csoundFileOpen(), except
-   * fullName is the name that will be returned by a later call to
-   * csoundGetFileName().
-   */
-  PUBLIC void *csoundCreateFileHandle(ENVIRON *,
-                                      void *fd, int type, const char *fullName);
-
-  /**
-   * Get the full name of a file previously opened with csoundFileOpen().
-   */
-  PUBLIC char *csoundGetFileName(void *fd);
-
-  /**
-   * Close a file previously opened with csoundFileOpen().
-   */
-  PUBLIC int csoundFileClose(ENVIRON *, void *fd);
-
-  /**
-   * Register a function to be called at note deactivation.
-   * Should be called from the initialisation routine of an opcode.
-   * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
-   * is the function to be called, with the same arguments and return
-   * value as in the case of opcode init/perf functions.
-   * The functions are called in reverse order of registration.
-   * Returns zero on success.
-   */
-  PUBLIC int csoundRegisterDeinitCallback(ENVIRON *, void *p,
-                                          int (*func)(ENVIRON *, void *));
-
-  /**
-   * Register a function to be called by csoundReset(), in reverse order
-   * of registration, before unloading external modules. The function takes
-   * the Csound instance pointer as the first argument, and the pointer
-   * passed here as 'userData' as the second, and is expected to return zero
-   * on success.
-   * The return value of csoundRegisterResetCallback() is zero on success.
-   */
-  PUBLIC int csoundRegisterResetCallback(ENVIRON *, void *userData,
-                                         int (*func)(ENVIRON *, void *));
+#endif  /* !CSOUND_CSDL_H */
 
   /* type/macro definitions and interface functions
      for configuration variables */

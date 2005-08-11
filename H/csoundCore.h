@@ -36,20 +36,15 @@ extern "C" {
 
 #include "csound.h"
 #include "envvar.h"
-#include "fftlib.h"
 #include "opcode.h"
 #include "version.h"
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
-# error "Csound plugins and host applications should not include csoundCore.h"
+#  error "Csound plugins and host applications should not include csoundCore.h"
 #endif
 
 #define OK        (0)
 #define NOTOK     (-1)
-
-/* IV - Feb 19 2005: value to pass to longjmp() to return with success */
-/* (e.g. after --help or running an utility) */
-#define CSOUND_EXITJMP_SUCCESS  (256)
 
 #define INSTR     1
 #define ENDIN     2

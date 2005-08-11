@@ -526,7 +526,7 @@ extern "C" {
     if (--(csound->evt_poll_cnt) < 0) {
       csound->evt_poll_cnt = csound->evt_poll_maxcnt;
       if (!csoundYield(csound))
-        csound->LongJmp(csound, 0);
+        csound->LongJmp(csound, 1);
     }
     /* for one kcnt: */
     if (csound->oparms->sfread)         /*   if audio_infile open  */
@@ -535,7 +535,7 @@ extern "C" {
     ip = csound->actanchor.nxtact;
     while (ip != NULL) {                /* for each instr active:  */
       INSDS *nxt = ip->nxtact;
-      csound->pds = (OPDS *)ip;
+      csound->pds = (OPDS*) ip;
       while ((csound->pds = csound->pds->nxtp) != NULL) {
         (*csound->pds->opadr)(csound, csound->pds); /* run each opcode */
       }
@@ -627,6 +627,11 @@ extern "C" {
     return csound->nchnls;
   }
 
+  PUBLIC MYFLT csoundGet0dBFS(ENVIRON *csound)
+  {
+    return csound->e0dbfs;
+  }
+
   PUBLIC int csoundGetSampleFormat(ENVIRON *csound)
   {
     /* should we assume input is same as output ? */
@@ -649,12 +654,12 @@ extern "C" {
     return csound->oparms->outbufsamps;
   }
 
-  PUBLIC MYFLT* csoundGetSpin(ENVIRON *csound)
+  PUBLIC MYFLT *csoundGetSpin(ENVIRON *csound)
   {
     return csound->spin;
   }
 
-  PUBLIC MYFLT* csoundGetSpout(ENVIRON *csound)
+  PUBLIC MYFLT *csoundGetSpout(ENVIRON *csound)
   {
     return csound->spout;
   }
@@ -1869,8 +1874,8 @@ typedef struct opcodeDeinit_s {
  * Returns zero on success.
  */
 
-PUBLIC int csoundRegisterDeinitCallback(ENVIRON *csound, void *p,
-                                        int (*func)(ENVIRON *, void *))
+int csoundRegisterDeinitCallback(ENVIRON *csound, void *p,
+                                 int (*func)(ENVIRON *, void *))
 {
     INSDS           *ip = ((OPDS*) p)->insdshead;
     opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
@@ -1893,8 +1898,8 @@ PUBLIC int csoundRegisterDeinitCallback(ENVIRON *csound, void *p,
  * The return value of csoundRegisterResetCallback() is zero on success.
  */
 
-PUBLIC int csoundRegisterResetCallback(ENVIRON *csound, void *userData,
-                                       int (*func)(ENVIRON *, void *))
+int csoundRegisterResetCallback(ENVIRON *csound, void *userData,
+                                int (*func)(ENVIRON *, void *))
 {
     resetCallback_t *dp = (resetCallback_t*) malloc(sizeof(resetCallback_t));
 
@@ -2089,7 +2094,7 @@ int csoundDeinitialiseOpcodes(ENVIRON *csound, INSDS *ip)
    */
   int csoundGetMidiVelocity(void *p)
   {
-     return (int) ((OPDS*) p)->insdshead->m_veloc;
+    return (int) ((OPDS*) p)->insdshead->m_veloc;
   }
 
   /**
