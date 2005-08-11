@@ -137,9 +137,8 @@ static void dieu(ENVIRON *csound, char *s)
     usage(csound);
 }
 
-static int srconv(void *csound_, int argc, char **argv)
+static int srconv(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     MYFLT
       *input,     /* pointer to start of input buffer */
       *output,    /* pointer to start of output buffer */
@@ -805,12 +804,12 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "srconv", srconv);
+    int retval = csound->AddUtility(csound, "srconv", srconv);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "srconv",
-                    "Sample rate conversion");
+      retval = csound->SetUtilityDescription(csound, "srconv",
+                                             "Sample rate conversion");
     }
     return retval;
 }

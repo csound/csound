@@ -38,9 +38,8 @@ void lpc_import_usage(ENVIRON *csound)
     csound->Message(csound, "Usage: lpc_import cstext_file lpc_file\n");
 }
 
-static int lpc_import(void *csound_, int argc, char **argv)
+static int lpc_import(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = csound_;
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
@@ -89,12 +88,13 @@ static int lpc_import(void *csound_, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "lpc_import", lpc_import);
+    int retval = csound->AddUtility(csound, "lpc_import", lpc_import);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "lpc_import",
+      retval = csound->SetUtilityDescription(csound, "lpc_import",
                     "translate text file to linear predictive coding file");
     }
     return retval;
 }
+

@@ -86,9 +86,8 @@ static void usage(ENVIRON *csound, char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static int xtrct(void *csound_, int argc, char **argv)
+static int xtrct(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON     *csound = csound_;
     OPARMS      *O = csound->oparms;
     char        *inputfile = NULL;
     SNDFILE*    infd;
@@ -365,12 +364,12 @@ ExtractSound(ENVIRON *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "extractor", xtrct);
+    int retval = csound->AddUtility(csound, "extractor", xtrct);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "extractor",
-                    "Extract part of a sound file");
+      retval = csound->SetUtilityDescription(csound, "extractor",
+                                             "Extract part of a sound file");
     }
     return retval;
 }
