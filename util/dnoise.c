@@ -97,7 +97,7 @@
 static  int     dnoise_usage(ENVIRON *, int);
 static  void    hamming(MYFLT *, int, int);
 
-static int writebuffer(ENVIRON *, SNDFILE *, MYFLT *, int);
+static int writebuffer(ENVIRON *, SNDFILE *, MYFLT *, int, int *);
 
 static void fast(ENVIRON *csound, MYFLT *b, int N)
 {
@@ -137,9 +137,8 @@ static void fsst(ENVIRON *csound, MYFLT *b, int N)
     csound->InverseRealFFT(csound, b, N);
 }
 
-static int dnoise(void *csound_, int argc, char **argv)
+static int dnoise(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OPARMS  *O = csound->oparms;
 
     MYFLT   beg = -FL(1.0), end = -FL(1.0);
@@ -254,6 +253,7 @@ static int dnoise(void *csound_, int argc, char **argv)
     char        *envoutyp = NULL;
     unsigned int  outbufsiz = 0U;
     char        outformch = 's';
+    int         nrecs = 0;
 
     csound->e0dbfs = csound->dbfs_to_float = FL(1.0);
 
@@ -902,11 +902,11 @@ static int dnoise(void *csound_, int argc, char **argv)
           }
           else {
             if ((oCnt + obuflen) < nMaxOut) {
-              oCnt += writebuffer(csound, outfd, ob1, obuflen);
+              oCnt += writebuffer(csound, outfd, ob1, obuflen, &nrecs);
             }
             else {
               i = (int) (nMaxOut - oCnt);
-              oCnt += writebuffer(csound, outfd, ob1, i);
+              oCnt += writebuffer(csound, outfd, ob1, i, &nrecs);
             }
           }
           /* zero ob1 */
@@ -1121,12 +1121,12 @@ static int dnoise(void *csound_, int argc, char **argv)
     nMaxOut = (long) (nMax * Chans);
     i = (int) (nMaxOut - oCnt);
     if (i > obuflen) {
-      writebuffer(csound, outfd, ob1, obuflen);
+      writebuffer(csound, outfd, ob1, obuflen, &nrecs);
       i -= obuflen;
       ob1 = ob2;
     }
     if (i > 0)
-      writebuffer(csound, outfd, ob1, i);
+      writebuffer(csound, outfd, ob1, i, &nrecs);
 
 /*  rewriteheader(outfd, 0); */
     csound->Message(csound, "\n\n");
@@ -1182,10 +1182,11 @@ static void sndwrterr(ENVIRON *csound, SNDFILE *outfd,
 }
 
 static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
-                       MYFLT *outbuf, int nsmps)
+                       MYFLT *outbuf, int nsmps, int *nrecs)
 {
     OPARMS  *O = csound->oparms;
     int     n;
+
     if (outfd == NULL) return 0;
     n = sf_write_MYFLT(outfd, outbuf, nsmps);
     if (n < nsmps) {
@@ -1194,24 +1195,24 @@ static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
     }
     if (O->rewrt_hdr)
       csound->rewriteheader(outfd, 0);
-#if 0
-    csound->nrecs++;           /* JPff fix */
-    if (O->heartbeat) {
-      if (O->heartbeat==1) {
-        csound->Message(csound, "%c\010", "|/-\\"[csound->nrecs & 3]);
-      }
-      else if (O->heartbeat == 2)
-        csound->Message(csound, ".");
-      else if (O->heartbeat == 3) {
-        int n;
-        csound->Message(csound, "%ld(%.3f)%n",
-                                (long) csound->nrecs,
-                                (MYFLT) csound->nrecs / csound->ekr, &n);
-        while (n--) csound->Message(csound,"\b");
-      }
-      else csound->Message(csound,"\a");
+
+    (*nrecs)++;                 /* JPff fix */
+    switch (O->heartbeat) {
+    case 1:
+      csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[*nrecs & 3]);
+      break;
+    case 2:
+      csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+      break;
+    case 3:
+      csound->MessageS(csound, CSOUNDMSG_REALTIME, "%d%n", *nrecs, &n);
+      while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\b");
+      break;
+    case 4:
+      csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+      break;
     }
-#endif
+
     return nsmps;
 }
 
@@ -1236,12 +1237,12 @@ static void hamming(MYFLT *win, int winLen, int even)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "dnoise", dnoise);
+    int retval = csound->AddUtility(csound, "dnoise", dnoise);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "dnoise",
-                    "Removes noise from a sound file");
+      retval = csound->SetUtilityDescription(csound, "dnoise",
+                                             "Removes noise from a sound file");
     }
     return retval;
 }

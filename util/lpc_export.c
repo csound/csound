@@ -42,9 +42,8 @@ void lpc_export_usage(ENVIRON *csound)
     csound->Message(csound, "usage: lpc_export lpc_file cstext-file\n");
 }
 
-static int lpc_export(void *csound_, int argc, char **argv)
+static int lpc_export(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = csound_;
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
@@ -93,12 +92,13 @@ static int lpc_export(void *csound_, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "lpc_export", lpc_export);
+    int retval = csound->AddUtility(csound, "lpc_export", lpc_export);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "lpc_export",
+      retval = csound->SetUtilityDescription(csound, "lpc_export",
                     "translate linear predictive coding file to text file");
     }
     return retval;
 }
+

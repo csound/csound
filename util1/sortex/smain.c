@@ -23,7 +23,8 @@
 
 PUBLIC void scsort(ENVIRON *, FILE *, FILE *);
 
-static void msg_callback(void *csound, int attr, const char *fmt, va_list args)
+static void msg_callback(ENVIRON *csound,
+                         int attr, const char *fmt, va_list args)
 {
     if (attr & CSOUNDMSG_TYPE_MASK) {
       vfprintf(stderr, fmt, args);
@@ -34,7 +35,7 @@ int main(void)                           /* stdio stub for standalone scsort */
 {
     ENVIRON *csound;
 
-    csound = (ENVIRON*) csoundCreate(NULL);
+    csound = csoundCreate(NULL);
     csoundSetMessageCallback(csound, msg_callback);
     csoundPreCompile(csound);
     scsort(csound, stdin, stdout);
