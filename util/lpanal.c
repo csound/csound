@@ -323,9 +323,8 @@ static void DumpPoles(ENVIRON *csound,
  *
  */
 
-static int lpanal(void *csound_, int argc, char **argv)
+static int lpanal(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     SNDFILE *infd;
     int     slice, analframes, counter, channel;
     MYFLT   *coef, beg_time, input_dur, sr = FL(0.0);
@@ -1173,11 +1172,11 @@ static void ptable(ENVIRON *csound,
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "lpanal", lpanal);
+    int retval = csound->AddUtility(csound, "lpanal", lpanal);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "lpanal",
+      retval = csound->SetUtilityDescription(csound, "lpanal",
                     "Linear predictive analysis for lpread");
     }
     return retval;

@@ -61,9 +61,8 @@ static void envext_usage(ENVIRON *csound, char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static int envext(void *csound_, int argc, char **argv)
+static int envext(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON     *csound = csound_;
     char        *inputfile = NULL;
     SNDFILE     *infd;
     char        c, *s;
@@ -170,12 +169,13 @@ FindEnvelope(ENVIRON *csound, SNDFILE *infd, SOUNDIN *p, double window)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "envext", envext);
+    int retval = csound->AddUtility(csound, "envext", envext);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "envext",
-                    "Create a text file of envelope");
+      retval = csound->SetUtilityDescription(csound, "envext",
+                                             "Create a text file of envelope");
     }
     return retval;
 }
+

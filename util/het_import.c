@@ -61,9 +61,8 @@ short getnum(FILE* inf, char *term)
     return (short)atoi(buff);
 }
 
-static int het_import(void *csound_, int argc, char **argv)
+static int het_import(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON     *csound = csound_;
     FILE *infd;
     FILE *outf;
 
@@ -99,12 +98,13 @@ static int het_import(void *csound_, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "het_import", het_import);
+    int retval = csound->AddUtility(csound, "het_import", het_import);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "het_import",
+      retval = csound->SetUtilityDescription(csound, "het_import",
                     "translate text form to hetro analysis file");
     }
     return retval;
 }
+

@@ -130,9 +130,8 @@ static SNDFILE *SCsndgetset(ENVIRON *, SCALE *, char *);
 static void  ScaleSound(ENVIRON *, SCALE *, SNDFILE *, SNDFILE *);
 static float FindAndReportMax(ENVIRON *, SCALE *, SNDFILE *);
 
-static int scale(void *csound_, int argc, char **argv)
+static int scale(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON     *csound = (ENVIRON*) csound_;
     char        *inputfile = NULL;
     double      factor = 0.0;
     double      maximum = 0.0;
@@ -507,13 +506,12 @@ static float FindAndReportMax(ENVIRON *csound, SCALE *thissc, SNDFILE *infile)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "scale", scale);
-    if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "scale",
-                    "Report and/or adjusts maximum gain");
-    }
-    return retval;
+    int retval = csound->AddUtility(csound, "scale", scale);
+    if (retval)
+      return retval;
+    return csound->SetUtilityDescription(csound, "scale",
+                                         "Reports and/or adjusts maximum gain");
 }
 

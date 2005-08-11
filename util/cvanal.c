@@ -46,9 +46,8 @@ static int CVAlloc(ENVIRON*, CVSTRUCT**, long, int, MYFLT,
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
                             return quit(csound,MSG);
 
-static int cvanal(void *csound_, int argc, char **argv)
+static int cvanal(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     CVSTRUCT *cvh;
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
@@ -234,12 +233,12 @@ static int CVAlloc(
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "cvanal", cvanal);
+    int retval = csound->AddUtility(csound, "cvanal", cvanal);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "cvanal",
-                    "Soundfile analysis for convolve");
+      retval = csound->SetUtilityDescription(csound, "cvanal",
+                                             "Soundfile analysis for convolve");
     }
     return retval;
 }

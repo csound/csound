@@ -148,9 +148,8 @@ static  int     quit(ENVIRON *, char *msg);
 #define MAXPVXCHANS (8)
 #define DEFAULT_BUFLEN (8192)   /* per channel */
 
-static int pvanal(void *csound_, int argc, char **argv)
+static int pvanal(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
     int     channel = ALLCHNLS;
@@ -338,12 +337,12 @@ static int quit(ENVIRON *csound, char *msg)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "pvanal", pvanal);
+    int retval = csound->AddUtility(csound, "pvanal", pvanal);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "pvanal",
-                    "Soundfile analysis for pvoc");
+      retval = csound->SetUtilityDescription(csound, "pvanal",
+                                             "Soundfile analysis for pvoc");
     }
     return retval;
 }

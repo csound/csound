@@ -130,9 +130,8 @@ static void init_het(HET *thishet)
     thishet->bufsiz = 1;                     /* circular buffer size */
 }
 
-static int hetro(void *csound_, int argc, char **argv)
+static int hetro(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     SNDFILE *infd;
     int     i, hno, channel = 1, retval = 0;
     long    nsamps, smpspc, bufspc, mgfrspc;
@@ -817,12 +816,12 @@ static int is_sdiffile(char *name)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "hetro", hetro);
+    int retval = csound->AddUtility(csound, "hetro", hetro);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "hetro",
-                    "Soundfile analysis for adsyn");
+      retval = csound->SetUtilityDescription(csound, "hetro",
+                                             "Soundfile analysis for adsyn");
     }
     return retval;
 }

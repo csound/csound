@@ -158,9 +158,8 @@ static char set_output_format(ENVIRON *csound, char c, char outformch)
     return c;
 }
 
-static int mixer_main(void *csound_, int argc, char **argv)
+static int mixer_main(ENVIRON *csound, int argc, char **argv)
 {
-    ENVIRON     *csound = (ENVIRON*) csound_;
     OPARMS      *O = csound->oparms;
     char        *inputfile = NULL;
     SNDFILE     *infd, *outfd;
@@ -660,10 +659,9 @@ static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound_)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
     char    buf[128];
-    ENVIRON *csound = (ENVIRON*) csound_;
     int     retval = csound->AddUtility(csound, "mixer", mixer_main);
 
     sprintf(buf, "Mixes sound files (max. %d)", (int) NUMBER_OF_FILES);

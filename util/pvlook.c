@@ -54,9 +54,8 @@ typedef struct pvstruct
     char        info[PVDFLTBYTS];       /* extendable byte area */
 } PVSTRUCT;
 
-static int pvlook(void *csound_, int argc, char *argv[])
+static int pvlook(ENVIRON *csound, int argc, char *argv[])
 {
-    ENVIRON *csound = (ENVIRON*) csound_;
     int     i, j, k;
     FILE    *fp, *outfd = stdout;
     float   *pvdataF, *pvdataA;
@@ -213,11 +212,11 @@ static int pvlook(void *csound_, int argc, char *argv[])
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(void *csound)
+PUBLIC int csoundModuleCreate(ENVIRON *csound)
 {
-    int retval = ((ENVIRON*) csound)->AddUtility(csound, "pvlook", pvlook);
+    int retval = csound->AddUtility(csound, "pvlook", pvlook);
     if (!retval) {
-      retval = ((ENVIRON*) csound)->SetUtilityDescription(csound, "pvlook",
+      retval = csound->SetUtilityDescription(csound, "pvlook",
                     "Prints information about PVOC analysis files");
     }
     return retval;
