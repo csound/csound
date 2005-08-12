@@ -49,7 +49,7 @@ void CopySamps(MYFLT *sce, MYFLT *dst, long size) /* just move samples */
 }
 
 /* assumes that FFTsize is an integer multiple of 4 */
-void Polar2Real_PVOC(ENVIRON *csound, MYFLT *buf, int FFTsize)
+void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT re, im;
     int   i;

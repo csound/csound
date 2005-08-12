@@ -34,10 +34,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_zak_moving_control(ENVIRON *, VBAP_ZAK_MOVING *);
-int vbap_zak_control(ENVIRON *,VBAP_ZAK *);
+int vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
+int vbap_zak_control(CSOUND *,VBAP_ZAK *);
 
-int vbap_zak(ENVIRON *csound, VBAP_ZAK *p) /* during note performance:   */
+int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -79,7 +79,7 @@ int vbap_zak(ENVIRON *csound, VBAP_ZAK *p) /* during note performance:   */
     return OK;
 }
 
-int vbap_zak_control(ENVIRON *csound, VBAP_ZAK *p)
+int vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -186,7 +186,7 @@ int vbap_zak_control(ENVIRON *csound, VBAP_ZAK *p)
     return OK;
 }
 
-int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
+int vbap_zak_init(CSOUND *csound, VBAP_ZAK   *p)
 {                               /* Initializations before run time*/
     int i,j, indx;
     MYFLT *ptr; /* , *gains; */
@@ -249,8 +249,8 @@ int vbap_zak_init(ENVIRON *csound, VBAP_ZAK  *p)
     return OK;
 }
 
-int vbap_zak_moving(ENVIRON *csound, VBAP_ZAK_MOVING *p) /* during note performance:   */
-{
+int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
+{                                           /* during note performance: */
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
@@ -290,7 +290,7 @@ int vbap_zak_moving(ENVIRON *csound, VBAP_ZAK_MOVING *p) /* during note performa
     return OK;
 }
 
-int vbap_zak_moving_control(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
+int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -477,7 +477,7 @@ int vbap_zak_moving_control(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
   return OK;
 }
 
-int vbap_zak_moving_init(ENVIRON *csound, VBAP_ZAK_MOVING  *p)
+int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING   *p)
 {
     int i,j, indx;
     MYFLT *ptr;

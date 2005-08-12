@@ -35,7 +35,7 @@ struct fileinTag {
 };
 
 typedef struct {
-    ENVIRON     *csound;
+    CSOUND      *csound;
     struct fileinTag  *file_opened;
     int         file_max;
     int         file_num;
@@ -139,7 +139,7 @@ typedef struct {
     char        txtstring[8192]; /* Place to store the string printed */
 } FPRINTF;
 
-static inline FOUT_GLOBALS *fout_get_globals(ENVIRON *csound, FOUT_GLOBALS **p)
+static inline FOUT_GLOBALS *fout_get_globals(CSOUND *csound, FOUT_GLOBALS **p)
 {
     if (*p == NULL)
       *p = (FOUT_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,

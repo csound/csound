@@ -60,7 +60,7 @@ class Fl_Window;
 class VSTPlugin
 {
 public:
-    ENVIRON *csound;
+    CSOUND *csound;
         void *libraryHandle;
         AEffect *aeffect;
         bool hasEditor;
@@ -90,7 +90,7 @@ public:
     static std::map<long,std::string> masterOpcodes;
     static std::map<long,std::string> dispatchOpcodes;
 
-    VSTPlugin(ENVIRON *csound);
+    VSTPlugin(CSOUND *csound);
         virtual ~VSTPlugin();
         virtual void StopEditing();
         virtual int GetNumCategories();

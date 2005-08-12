@@ -143,7 +143,7 @@ static void set_buf_pointers(FTCONV *p,
     }
 }
 
-static int ftconv_init(ENVIRON *csound, FTCONV *p)
+static int ftconv_init(CSOUND *csound, FTCONV *p)
 {
     FUNC    *ftp;
     int     i, j, k, n, nBytes, skipSamples;
@@ -238,7 +238,7 @@ static int ftconv_init(ENVIRON *csound, FTCONV *p)
     return OK;
 }
 
-static int ftconv_perf(ENVIRON *csound, FTCONV *p)
+static int ftconv_perf(CSOUND *csound, FTCONV *p)
 {
     MYFLT         *x, *rBuf;
     int           i, n, nn, nSamples, rBufPos;
@@ -290,17 +290,17 @@ static int ftconv_perf(ENVIRON *csound, FTCONV *p)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     return 0;
 }
 
-PUBLIC int csoundModuleInit(ENVIRON *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "ftconv",
                                 (int) sizeof(FTCONV), 5, "mmmmmmmm", "aiiooo",
-                                (int (*)(ENVIRON *, void*)) ftconv_init,
-                                (int (*)(ENVIRON *, void*)) NULL,
-                                (int (*)(ENVIRON *, void*)) ftconv_perf);
+                                (int (*)(CSOUND *, void*)) ftconv_init,
+                                (int (*)(CSOUND *, void*)) NULL,
+                                (int (*)(CSOUND *, void*)) ftconv_perf);
 }
 

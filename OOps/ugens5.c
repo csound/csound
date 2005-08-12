@@ -37,14 +37,14 @@ static int max_lpc_slot=0;
 static  LPREAD  **lprdadr=NULL;
 static  char    lpfilname[MAXNAME];
 
-void lpcRESET(ENVIRON *csound)
+void lpcRESET(CSOUND *csound)
 {
     currentLPCSlot = 0;
     mfree(csound, lprdadr);
     lprdadr = NULL;
 }
 
-int porset(ENVIRON *csound, PORT *p)
+int porset(CSOUND *csound, PORT *p)
 {
     p->c2 = pow(0.5, (double)csound->onedkr / *p->ihtim);
     p->c1 = 1.0 - p->c2;
@@ -53,14 +53,14 @@ int porset(ENVIRON *csound, PORT *p)
     return OK;
 }
 
-int port(ENVIRON *csound, PORT *p)
+int port(CSOUND *csound, PORT *p)
 {
     p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
     *p->kr = (MYFLT)p->yt1;
     return OK;
 }
 
-int tonset(ENVIRON *csound, TONE *p)
+int tonset(CSOUND *csound, TONE *p)
 {
     {
       double b;
@@ -74,7 +74,7 @@ int tonset(ENVIRON *csound, TONE *p)
     return OK;
 }
 
-int tone(ENVIRON *csound, TONE *p)
+int tone(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
     int         nsmps = csound->ksmps;
@@ -98,7 +98,7 @@ int tone(ENVIRON *csound, TONE *p)
     return OK;
 }
 
-int tonsetx(ENVIRON *csound, TONEX *p)
+int tonsetx(CSOUND *csound, TONEX *p)
 {                   /* From Gabriel Maldonado, modified for arbitrary order */
     {
       double b;
@@ -119,7 +119,7 @@ int tonsetx(ENVIRON *csound, TONEX *p)
     return OK;
 }
 
-int tonex(ENVIRON *csound, TONEX *p)     /* From Gabriel Maldonado, modified */
+int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
 {
     int j;
     int nsmps;
@@ -150,7 +150,7 @@ int tonex(ENVIRON *csound, TONEX *p)     /* From Gabriel Maldonado, modified */
     return OK;
 }
 
-int atone(ENVIRON *csound, TONE *p)
+int atone(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
     int nsmps = csound->ksmps;
@@ -175,7 +175,7 @@ int atone(ENVIRON *csound, TONE *p)
     return OK;
 }
 
-int atonex(ENVIRON *csound, TONEX *p)     /* Gabriel Maldonado, modified */
+int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 {
     MYFLT       *ar, *asig;
     double      c2, *yt1;
@@ -207,7 +207,7 @@ int atonex(ENVIRON *csound, TONEX *p)     /* Gabriel Maldonado, modified */
     return OK;
 }
 
-int rsnset(ENVIRON *csound, RESON *p)
+int rsnset(CSOUND *csound, RESON *p)
 {
     int scale;
     p->scale = scale = (int)*p->iscl;
@@ -221,7 +221,7 @@ int rsnset(ENVIRON *csound, RESON *p)
     return OK;
 }
 
-int reson(ENVIRON *csound, RESON *p)
+int reson(CSOUND *csound, RESON *p)
 {
     int flag = 0, nsmps = csound->ksmps;
     MYFLT       *ar, *asig;
@@ -263,7 +263,7 @@ int reson(ENVIRON *csound, RESON *p)
     return OK;
 }
 
-int rsnsetx(ENVIRON *csound, RESONX *p)
+int rsnsetx(CSOUND *csound, RESONX *p)
 {                               /* Gabriel Maldonado, modifies for arb order */
     int scale;
     p->scale = scale = (int) *p->iscl;
@@ -286,7 +286,7 @@ int rsnsetx(ENVIRON *csound, RESONX *p)
     return OK;
 }
 
-int resonx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modified  */
+int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 {
     int flag = 0, nsmps, j;
     MYFLT       *ar, *asig;
@@ -340,7 +340,7 @@ int resonx(ENVIRON *csound, RESONX *p) /* Gabriel Maldonado, modified  */
     return OK;
 }
 
-int areson(ENVIRON *csound, RESON *p)
+int areson(CSOUND *csound, RESON *p)
 {
     int flag = 0, nsmps = csound->ksmps;
     MYFLT       *ar, *asig;
@@ -402,7 +402,7 @@ int areson(ENVIRON *csound, RESON *p)
  *
  */
 
-int lprdset(ENVIRON *csound, LPREAD *p)
+int lprdset(CSOUND *csound, LPREAD *p)
 {
     LPHEADER *lph;
     MEMFIL   *mfp;
@@ -652,7 +652,7 @@ static inline void
  *
  */
 
-int lpread(ENVIRON *csound, LPREAD *p)
+int lpread(CSOUND *csound, LPREAD *p)
 {
     MYFLT   *bp, *np, *cp;
     long    nn, framphase;
@@ -736,7 +736,7 @@ int lpread(ENVIRON *csound, LPREAD *p)
  *
  *
  */
-int lprsnset(ENVIRON *csound, LPRESON *p)
+int lprsnset(CSOUND *csound, LPRESON *p)
 {
     LPREAD *q;
 
@@ -755,7 +755,7 @@ int lprsnset(ENVIRON *csound, LPRESON *p)
  *                  Uses a circular buffer to store previous signal values.
  */
 
-int lpreson(ENVIRON *csound, LPRESON *p)
+int lpreson(CSOUND *csound, LPRESON *p)
 {
     LPREAD *q = p->lpread;
     int     nn, nsmps = csound->ksmps;
@@ -835,7 +835,7 @@ int lpreson(ENVIRON *csound, LPRESON *p)
  * LPFRESON : Initialisation time
  *
  */
-int lpfrsnset(ENVIRON *csound, LPFRESON *p)
+int lpfrsnset(CSOUND *csound, LPFRESON *p)
 {
 
    /* Connect to previously loaded analysis file */
@@ -856,7 +856,7 @@ int lpfrsnset(ENVIRON *csound, LPFRESON *p)
  * LPFRESON : k & a time : actually filters the data
  *
  */
-int lpfreson(ENVIRON *csound, LPFRESON *p)
+int lpfreson(CSOUND *csound, LPFRESON *p)
 {
     LPREAD  *q = p->lpread;
     int     nn, nsmps = csound->ksmps;
@@ -913,7 +913,7 @@ int lpfreson(ENVIRON *csound, LPFRESON *p)
     return OK;
 }
 
-int rmsset(ENVIRON *csound, RMS *p)
+int rmsset(CSOUND *csound, RMS *p)
 {
     double   b;
 
@@ -925,7 +925,7 @@ int rmsset(ENVIRON *csound, RMS *p)
     return OK;
 }
 
-int gainset(ENVIRON *csound, GAIN *p)
+int gainset(CSOUND *csound, GAIN *p)
 {
     double   b;
 
@@ -937,7 +937,7 @@ int gainset(ENVIRON *csound, GAIN *p)
     return OK;
 }
 
-int balnset(ENVIRON *csound, BALANCE *p)
+int balnset(CSOUND *csound, BALANCE *p)
 {
     double   b;
 
@@ -949,7 +949,7 @@ int balnset(ENVIRON *csound, BALANCE *p)
     return OK;
 }
 
-int rms(ENVIRON *csound, RMS *p)
+int rms(CSOUND *csound, RMS *p)
 {
     int     nsmps = csound->ksmps;
     MYFLT   *asig;
@@ -967,7 +967,7 @@ int rms(ENVIRON *csound, RMS *p)
     return OK;
 }
 
-int gain(ENVIRON *csound, GAIN *p)
+int gain(CSOUND *csound, GAIN *p)
 {
     int     nsmps = csound->ksmps;
     MYFLT   *ar, *asig;
@@ -1004,7 +1004,7 @@ int gain(ENVIRON *csound, GAIN *p)
     return OK;
 }
 
-int balance(ENVIRON *csound, BALANCE *p)
+int balance(CSOUND *csound, BALANCE *p)
 {
     int     n, nsmps = csound->ksmps;
     MYFLT   *ar, *asig, *csig;
@@ -1048,7 +1048,7 @@ int balance(ENVIRON *csound, BALANCE *p)
 /*
  *   Set current lpc slot
  */
-int lpslotset(ENVIRON *csound, LPSLOT *p)
+int lpslotset(CSOUND *csound, LPSLOT *p)
 {
     int n;
 
@@ -1066,7 +1066,7 @@ int lpslotset(ENVIRON *csound, LPSLOT *p)
     return OK;
 }
 
-int lpitpset(ENVIRON *csound, LPINTERPOL *p)
+int lpitpset(CSOUND *csound, LPINTERPOL *p)
 {
 
     if ((int)*(p->islot1)>max_lpc_slot || (int)*(p->islot2)>max_lpc_slot)
@@ -1097,7 +1097,7 @@ int lpitpset(ENVIRON *csound, LPINTERPOL *p)
     return OK;
 }
 
-int lpinterpol(ENVIRON *csound, LPINTERPOL *p)
+int lpinterpol(CSOUND *csound, LPINTERPOL *p)
 {
     int     i,status;
     MYFLT   *cp,*cp1,*cp2;

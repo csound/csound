@@ -37,7 +37,7 @@
 
 /* strset by John ffitch */
 
-static void str_set(ENVIRON *csound, int ndx, const char *s)
+static void str_set(CSOUND *csound, int ndx, const char *s)
 {
     if (csound->strsets == NULL) {
       csound->strsmax = STRSMAX;
@@ -73,7 +73,7 @@ static void str_set(ENVIRON *csound, int ndx, const char *s)
       csound->Message(csound, "Strsets[%d]: '%s'\n", ndx, s);
 }
 
-int strset_init(ENVIRON *csound, STRSET_OP *p)
+int strset_init(CSOUND *csound, STRSET_OP *p)
 {
     str_set(csound, (int) MYFLT2LRND(*p->indx), (char*) p->str);
     return OK;
@@ -81,7 +81,7 @@ int strset_init(ENVIRON *csound, STRSET_OP *p)
 
 /* for argdecode.c */
 
-void strset_option(ENVIRON *csound, char *s)
+void strset_option(CSOUND *csound, char *s)
 {
     int indx = 0;
 
@@ -95,7 +95,7 @@ void strset_option(ENVIRON *csound, char *s)
     str_set(csound, indx, s);
 }
 
-int strget_init(ENVIRON *csound, STRGET_OP *p)
+int strget_init(CSOUND *csound, STRGET_OP *p)
 {
     int   indx;
 
@@ -120,7 +120,7 @@ int strget_init(ENVIRON *csound, STRGET_OP *p)
 
 /* strcpy */
 
-int strcpy_opcode_init(ENVIRON *csound, STRCPY_OP *p)
+int strcpy_opcode_init(CSOUND *csound, STRCPY_OP *p)
 {
     char  *newVal = (char*) p->str;
 
@@ -132,7 +132,7 @@ int strcpy_opcode_init(ENVIRON *csound, STRCPY_OP *p)
     return OK;
 }
 
-int strcpy_opcode_perf(ENVIRON *csound, STRCPY_OP *p)
+int strcpy_opcode_perf(CSOUND *csound, STRCPY_OP *p)
 {
     char  *newVal = (char*) p->str;
 
@@ -146,7 +146,7 @@ int strcpy_opcode_perf(ENVIRON *csound, STRCPY_OP *p)
 
 /* strcat */
 
-int strcat_opcode_init(ENVIRON *csound, STRCAT_OP *p)
+int strcat_opcode_init(CSOUND *csound, STRCAT_OP *p)
 {
     char  *newVal1 = (char*) p->str1;
     char  *newVal2 = (char*) p->str2;
@@ -167,7 +167,7 @@ int strcat_opcode_init(ENVIRON *csound, STRCAT_OP *p)
     return OK;
 }
 
-int strcat_opcode_perf(ENVIRON *csound, STRCAT_OP *p)
+int strcat_opcode_perf(CSOUND *csound, STRCAT_OP *p)
 {
     char  *newVal1 = (char*) p->str1;
     char  *newVal2 = (char*) p->str2;
@@ -190,7 +190,7 @@ int strcat_opcode_perf(ENVIRON *csound, STRCAT_OP *p)
 
 /* strcmp */
 
-int strcmp_opcode(ENVIRON *csound, STRCAT_OP *p)
+int strcmp_opcode(CSOUND *csound, STRCAT_OP *p)
 {
     int i;
 
@@ -208,7 +208,7 @@ int strcmp_opcode(ENVIRON *csound, STRCAT_OP *p)
 /* perform a sprintf-style format -- based on code by Matt J. Ingalls */
 
 static CS_NOINLINE int
-    sprintf_opcode(ENVIRON *csound,
+    sprintf_opcode(CSOUND *csound,
                    void *p,          /* opcode data structure pointer       */
                    char *dst,        /* pointer to space for output string  */
                    const char *fmt,  /* format string                       */
@@ -216,7 +216,7 @@ static CS_NOINLINE int
                    int numVals,      /* number of arguments                 */
                    int strCode,      /* bit mask for string arguments       */
                    int maxLen,       /* available space in output buffer    */
-                   int (*err_func)(ENVIRON *csound, const char *msg, ...))
+                   int (*err_func)(CSOUND *csound, const char *msg, ...))
 {
     int     len = 0;
     char    strseg[2048], *outstring = dst, *opname = csound->GetOpcodeName(p);
@@ -329,7 +329,7 @@ static CS_NOINLINE int
     return 0;
 }
 
-int sprintf_opcode_init(ENVIRON *csound, SPRINTF_OP *p)
+int sprintf_opcode_init(CSOUND *csound, SPRINTF_OP *p)
 {
     if (sprintf_opcode(csound, p, (char*) p->r, (char*) p->sfmt, &(p->args[0]),
                                (int) p->INOCOUNT - 1, ((int) p->XSTRCODE >> 1),
@@ -340,7 +340,7 @@ int sprintf_opcode_init(ENVIRON *csound, SPRINTF_OP *p)
     return OK;
 }
 
-int sprintf_opcode_perf(ENVIRON *csound, SPRINTF_OP *p)
+int sprintf_opcode_perf(CSOUND *csound, SPRINTF_OP *p)
 {
     if (sprintf_opcode(csound, p, (char*) p->r, (char*) p->sfmt, &(p->args[0]),
                                (int) p->INOCOUNT - 1, ((int) p->XSTRCODE >> 1),
@@ -352,8 +352,8 @@ int sprintf_opcode_perf(ENVIRON *csound, SPRINTF_OP *p)
 }
 
 static CS_NOINLINE int
-    printf_opcode_(ENVIRON *csound, PRINTF_OP *p,
-                                    int (*err_func)(ENVIRON*, const char*, ...))
+    printf_opcode_(CSOUND *csound, PRINTF_OP *p,
+                                    int (*err_func)(CSOUND*, const char*, ...))
 {
     char  buf[3072];
     int   err;
@@ -366,20 +366,20 @@ static CS_NOINLINE int
     return err;
 }
 
-int printf_opcode_init(ENVIRON *csound, PRINTF_OP *p)
+int printf_opcode_init(CSOUND *csound, PRINTF_OP *p)
 {
     if (*p->ktrig > FL(0.0))
       return (printf_opcode_(csound, p, csound->InitError));
     return OK;
 }
 
-int printf_opcode_set(ENVIRON *csound, PRINTF_OP *p)
+int printf_opcode_set(CSOUND *csound, PRINTF_OP *p)
 {
     p->prv_ktrig = FL(0.0);
     return OK;
 }
 
-int printf_opcode_perf(ENVIRON *csound, PRINTF_OP *p)
+int printf_opcode_perf(CSOUND *csound, PRINTF_OP *p)
 {
     if (*p->ktrig == p->prv_ktrig)
       return OK;
@@ -389,7 +389,7 @@ int printf_opcode_perf(ENVIRON *csound, PRINTF_OP *p)
     return OK;
 }
 
-int puts_opcode_init(ENVIRON *csound, PUTS_OP *p)
+int puts_opcode_init(CSOUND *csound, PUTS_OP *p)
 {
     p->noNewLine = (*p->no_newline == FL(0.0) ? 0 : 1);
     if (*p->ktrig > FL(0.0)) {
@@ -402,7 +402,7 @@ int puts_opcode_init(ENVIRON *csound, PUTS_OP *p)
     return OK;
 }
 
-int puts_opcode_perf(ENVIRON *csound, PUTS_OP *p)
+int puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
 {
     if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
       p->prv_ktrig = *p->ktrig;
@@ -414,8 +414,8 @@ int puts_opcode_perf(ENVIRON *csound, PUTS_OP *p)
     return OK;
 }
 
-static int strtod_opcode(ENVIRON *csound, STRSET_OP *p,
-                         int (*err_func)(ENVIRON*, const char*, ...))
+static int strtod_opcode(CSOUND *csound, STRSET_OP *p,
+                         int (*err_func)(CSOUND*, const char*, ...))
 {
     char    *s = NULL, *tmp;
     double  x;
@@ -443,18 +443,18 @@ static int strtod_opcode(ENVIRON *csound, STRSET_OP *p,
     return OK;
 }
 
-int strtod_opcode_init(ENVIRON *csound, STRSET_OP *p)
+int strtod_opcode_init(CSOUND *csound, STRSET_OP *p)
 {
     return strtod_opcode(csound, p, csound->InitError);
 }
 
-int strtod_opcode_perf(ENVIRON *csound, STRSET_OP *p)
+int strtod_opcode_perf(CSOUND *csound, STRSET_OP *p)
 {
     return strtod_opcode(csound, p, csound->PerfError);
 }
 
-static int strtol_opcode(ENVIRON *csound, STRSET_OP *p,
-                         int (*err_func)(ENVIRON*, const char*, ...))
+static int strtol_opcode(CSOUND *csound, STRSET_OP *p,
+                         int (*err_func)(CSOUND*, const char*, ...))
 {
     char  *s = NULL;
     int   sgn = 0, radix = 10;
@@ -516,12 +516,12 @@ static int strtol_opcode(ENVIRON *csound, STRSET_OP *p,
     return OK;
 }
 
-int strtol_opcode_init(ENVIRON *csound, STRSET_OP *p)
+int strtol_opcode_init(CSOUND *csound, STRSET_OP *p)
 {
     return strtol_opcode(csound, p, csound->InitError);
 }
 
-int strtol_opcode_perf(ENVIRON *csound, STRSET_OP *p)
+int strtol_opcode_perf(CSOUND *csound, STRSET_OP *p)
 {
     return strtol_opcode(csound, p, csound->PerfError);
 }

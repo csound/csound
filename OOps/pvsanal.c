@@ -31,12 +31,12 @@
 #include "pstream.h"
 #include "oload.h"
 
-static void generate_frame(ENVIRON*,PVSANAL *p);
-static void process_frame(ENVIRON*,PVSYNTH *p);
+static void generate_frame(CSOUND*,PVSANAL *p);
+static void process_frame(CSOUND*,PVSYNTH *p);
 void    hamming(MYFLT *win,int winLen,int even);
 void    vonhann(MYFLT *win,int winLen,int even);
 
-int pvsanalset(ENVIRON *csound, PVSANAL *p)
+int pvsanalset(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *analwinhalf,*analwinbase;
     MYFLT sum;
@@ -140,7 +140,7 @@ int pvsanalset(ENVIRON *csound, PVSANAL *p)
     return OK;
 }
 
-static void generate_frame(ENVIRON *csound, PVSANAL *p)
+static void generate_frame(CSOUND *csound, PVSANAL *p)
 {
     int got, tocp,i,j,k;
     int N = p->fsig->N;
@@ -289,7 +289,7 @@ static void generate_frame(ENVIRON *csound, PVSANAL *p)
     p->IOi = p->Ii;
 }
 
-static void anal_tick(ENVIRON *csound, PVSANAL *p,MYFLT samp)
+static void anal_tick(CSOUND *csound, PVSANAL *p,MYFLT samp)
 {
     MYFLT *inbuf = (MYFLT *) (p->overlapbuf.auxp);
 
@@ -303,7 +303,7 @@ static void anal_tick(ENVIRON *csound, PVSANAL *p,MYFLT samp)
 
 }
 
-int pvsanal(ENVIRON *csound, PVSANAL *p)
+int pvsanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
     int i;
@@ -319,7 +319,7 @@ int pvsanal(ENVIRON *csound, PVSANAL *p)
     return OK;
 }
 
-int pvsynthset(ENVIRON *csound, PVSYNTH *p)
+int pvsynthset(CSOUND *csound, PVSYNTH *p)
 {
     MYFLT *analwinhalf;
     MYFLT *synwinhalf;
@@ -467,7 +467,7 @@ int pvsynthset(ENVIRON *csound, PVSYNTH *p)
     return OK;
 }
 
-static MYFLT synth_tick(ENVIRON *csound, PVSYNTH *p)
+static MYFLT synth_tick(CSOUND *csound, PVSYNTH *p)
 {
     MYFLT *outbuf = (MYFLT *) (p->overlapbuf.auxp);
 
@@ -478,7 +478,7 @@ static MYFLT synth_tick(ENVIRON *csound, PVSYNTH *p)
     return outbuf[p->outptr++];
 }
 
-static void process_frame(ENVIRON *csound, PVSYNTH *p)
+static void process_frame(CSOUND *csound, PVSYNTH *p)
 {
     int n,i,j,k,NO,NO2;
     float *anal;                                        /* RWD MUST be 32bit */
@@ -625,7 +625,7 @@ static void process_frame(ENVIRON *csound, PVSYNTH *p)
     p->IOi =  p->Ii;
 }
 
-int pvsynth(ENVIRON *csound, PVSYNTH *p)
+int pvsynth(CSOUND *csound, PVSYNTH *p)
 {
     int i;
     MYFLT *aout = p->aout;

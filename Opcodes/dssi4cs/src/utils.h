@@ -23,12 +23,12 @@
    message to stderr and calling exit(1). It is alright (although
    inefficient) to call this more than once for the same file. */
 
-void * dlopenLADSPA(ENVIRON * csound, const char * pcFilename, int iFlag);
+void * dlopenLADSPA(CSOUND * csound, const char * pcFilename, int iFlag);
 
-void * loadLADSPAPluginLibrary(ENVIRON * csound, const char * pcPluginFilename);
+void * loadLADSPAPluginLibrary(CSOUND * csound, const char * pcPluginFilename);
 
 /* This function unloads a LADSPA plugin library. */
-void unloadLADSPAPluginLibrary(ENVIRON * csound, void * pvLADSPAPluginLibrary);
+void unloadLADSPAPluginLibrary(CSOUND * csound, void * pvLADSPAPluginLibrary);
 
 /* This function locates a LADSPA plugin within a plugin library
    loaded with loadLADSPAPluginLibrary(). Errors are handled by
@@ -36,7 +36,7 @@ void unloadLADSPAPluginLibrary(ENVIRON * csound, void * pvLADSPAPluginLibrary);
    plugin library filename is only included to help provide
    informative error messages. */
 const LADSPA_Descriptor *
-findLADSPAPluginDescriptor(ENVIRON * csound,
+findLADSPAPluginDescriptor(CSOUND * csound,
                            void * pvLADSPAPluginLibrary,
                            const char * pcPluginLibraryFilename,
                            const char * pcPluginLabel);
@@ -50,7 +50,7 @@ findLADSPAPluginDescriptor(ENVIRON * csound,
    style) and a LADSPA_DescriptorFunction (from which
    LADSPA_Descriptors can be acquired). */
 typedef void LADSPAPluginSearchCallbackFunction
-(ENVIRON * csound,
+(CSOUND * csound,
  const char * pcFullFilename,
  void * pvPluginHandle,
  LADSPA_Descriptor_Function fDescriptorFunction);
@@ -60,7 +60,7 @@ typedef void LADSPAPluginSearchCallbackFunction
    dlopen() and dlsym(,"ladspa_descriptor"). After loading each
    library, the callback function is called to process it. This
    function leaves items passed to the callback function open. */
-void LADSPAPluginSearch(ENVIRON * csound,
+void LADSPAPluginSearch(CSOUND * csound,
                         LADSPAPluginSearchCallbackFunction fCallbackFunction);
 
 /*****************************************************************************/
@@ -69,7 +69,7 @@ void LADSPAPluginSearch(ENVIRON * csound,
 
 /* Find the default value for a port. Return 0 if a default is found
    and -1 if not. */
-int getLADSPADefault(ENVIRON * csound,
+int getLADSPADefault(CSOUND * csound,
                      const LADSPA_PortRangeHint * psPortRangeHint,
                      const unsigned long          lSampleRate,
                      LADSPA_Data                * pfResult);

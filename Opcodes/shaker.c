@@ -54,7 +54,7 @@ But we're smarter than that!!!  See below
 #include "csdl.h"
 #include "shaker.h"
 
-int shakerset(ENVIRON *csound, SHAKER *p)
+int shakerset(CSOUND *csound, SHAKER *p)
 {
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
@@ -84,7 +84,7 @@ int shakerset(ENVIRON *csound, SHAKER *p)
     return OK;
 }
 
-int shaker(ENVIRON *csound, SHAKER *p)
+int shaker(CSOUND *csound, SHAKER *p)
 {
     MYFLT *ar = p->ar;
     int n;

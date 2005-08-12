@@ -23,7 +23,7 @@
 
 #include "csoundCore.h"                         /*   SORT.C  */
 
-static void sorter(ENVIRON *csound)             /* the main sorting routine */
+static void sorter(CSOUND *csound)              /* the main sorting routine */
 {
     SRTBLK *newbp, *prvbp;
     SRTBLK *bp;
@@ -65,7 +65,7 @@ static void sorter(ENVIRON *csound)             /* the main sorting routine */
     }
 }
 
-void sort(ENVIRON *csound)
+void sort(CSOUND *csound)
 {
     SRTBLK *bp;
 

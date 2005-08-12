@@ -40,7 +40,7 @@ int check_instr_name (char*);
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-long named_instr_find (ENVIRON*, char*);
+long named_instr_find (CSOUND*, char*);
 
 /* allocate entry for named instrument ip with name s (s must not be freed */
 /* after the call, because only the pointer is stored); instrument number */
@@ -48,29 +48,29 @@ long named_instr_find (ENVIRON*, char*);
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc (ENVIRON*, char*, INSTRTXT*, long);
+int named_instr_alloc (CSOUND*, char*, INSTRTXT*, long);
 
 /* assign instrument numbers to all named instruments */
 /* called by otran */
 
-void named_instr_assign_numbers (ENVIRON*);
+void named_instr_assign_numbers (CSOUND*);
 
 /* free memory used by named instruments */
 /* called by tranRESET() */
 
-void named_instr_free (ENVIRON*);
+void named_instr_free (CSOUND*);
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno (ENVIRON*, void*, int);
+long strarg2insno (CSOUND*, void*, int);
 
 /* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-long strarg2insno_p (ENVIRON*, char*);
+long strarg2insno_p (CSOUND*, char*);
 
 /* convert opcode string argument to instrument number */
 /* (also allows user defined opcode names); if the integer */
@@ -78,10 +78,10 @@ long strarg2insno_p (ENVIRON*, char*);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno (ENVIRON*, void*, int, int);
+long strarg2opcno (CSOUND*, void*, int, int);
 
 /* create file name from opcode argument (string or MYFLT)      */
-/*   ENVIRON *csound:                                           */
+/*   CSOUND *csound:                                            */
 /*      pointer to Csound instance                              */
 /*   char *s:                                                   */
 /*      output buffer, should have enough space; if NULL, the   */
@@ -117,45 +117,45 @@ long strarg2opcno (ENVIRON*, void*, int, int);
 /*      mmalloc() and the caller is responsible for freeing the */
 /*      allocated memory with mfree() or csound->Free()         */
 
-char *strarg2name(ENVIRON*, char*, void*, const char*, int);
+char *strarg2name(CSOUND*, char*, void*, const char*, int);
 
 /* ----------------------------------------------------------------------- */
 /* the following functions are for efficient management of the opcode list */
 
 /* create new opcode list from opcodlst[] */
 
-void opcode_list_create (ENVIRON*);
+void opcode_list_create (CSOUND*);
 
 /* add new entry to opcode list, with optional check for redefined opcodes */
 
-void opcode_list_add_entry (ENVIRON*, int, int);
+void opcode_list_add_entry (CSOUND*, int, int);
 
 /* free memory used by opcode list */
 
-void opcode_list_free (ENVIRON*);
+void opcode_list_free (CSOUND*);
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
 
-int find_opcode(ENVIRON*, char*);
+int find_opcode(CSOUND*, char*);
 
 /* ----------------------------------------------------------------------- */
 /* These functions replace the functionality of strsav() in rdorch.c.      */
 
 /* allocate space for strsav (called once from rdorchfile()) */
 
-void strsav_create(ENVIRON*);
+void strsav_create(CSOUND*);
 
 /* Locate string s in database, and return address of stored string (not */
 /* necessarily the same as s). If the string is not defined yet, it is   */
 /* copied to the database (in such cases, it is allowed to free s after  */
 /* the call).                                                            */
 
-char *strsav_string(ENVIRON*, char*);
+char *strsav_string(CSOUND*, char*);
 
 /* Free all memory used by strsav space. Called from orchRESET(). */
 
-void strsav_destroy(ENVIRON*);
+void strsav_destroy(CSOUND*);
 
 #ifdef __cplusplus
 }

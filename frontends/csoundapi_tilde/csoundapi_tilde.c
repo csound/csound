@@ -59,7 +59,7 @@ typedef struct t_csoundapi_ {
   t_outlet *ctlout;
   t_outlet *bangout;
   t_int padding1;
-  ENVIRON *csound;
+  CSOUND *csound;
   t_int padding2;
 } t_csoundapi;
 
@@ -67,8 +67,8 @@ PUBLIC int   set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
 PUBLIC MYFLT get_channel_value(t_csoundapi *x, char *channel);
 PUBLIC channelname *create_channel(channelname *ch, char *channel);
 PUBLIC void  destroy_channels(channelname *ch);
-PUBLIC void in_channel_value_callback(ENVIRON *csound, char *name, MYFLT *val);
-PUBLIC void out_channel_value_callback(ENVIRON *csound, char *name, MYFLT val);
+PUBLIC void in_channel_value_callback(CSOUND *csound, char *name, MYFLT *val);
+PUBLIC void out_channel_value_callback(CSOUND *csound, char *name, MYFLT val);
 PUBLIC void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv);
 PUBLIC void csoundapi_run(t_csoundapi *x, t_floatarg f);
 PUBLIC void csoundapi_offset(t_csoundapi *x, t_floatarg f);
@@ -120,7 +120,7 @@ PUBLIC void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
   int i;
   if(!lockcs) {
     t_csoundapi *x = (t_csoundapi *) pd_new(csoundapi_class);
-    x->csound = (ENVIRON *)csoundCreate(x);
+    x->csound = (CSOUND *)csoundCreate(x);
     if(CS_VERSION_ < 500) lockcs = 1;
     else lockcs = 0;
     outlet_new(&x->x_obj, gensym("signal"));
@@ -420,12 +420,12 @@ PUBLIC void csoundapi_control(t_csoundapi *x, t_symbol *s, float f){
 
 }
 
-PUBLIC void in_channel_value_callback(ENVIRON *csound, char *name, MYFLT *val){
+PUBLIC void in_channel_value_callback(CSOUND *csound, char *name, MYFLT *val){
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
   *val = get_channel_value(x,name);
 }
 
-PUBLIC void out_channel_value_callback(ENVIRON *csound, char *name, MYFLT val){
+PUBLIC void out_channel_value_callback(CSOUND *csound, char *name, MYFLT val){
   t_atom at[2];
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
   SETFLOAT(&at[1], (t_float) val);

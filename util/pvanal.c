@@ -116,15 +116,15 @@ typedef struct pvocex_ch {
 
 /* prototype arguments */
 
-static  int     pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd,
+static  int     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
                                          const char *fname,
                                          long srate, long chans, long fftsize,
                                          long overlap, long winsize,
                                          pv_wtype wintype, int verbose);
 static  void    pvx_release(PVX **ppvx, long chans);
-static  long    generate_frame(ENVIRON*, PVX *pvx, MYFLT *fbuf, float *outanal,
+static  long    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
                                          long samps, int frametype);
-static  void    chan_split(ENVIRON*, const MYFLT *inbuf, MYFLT **chbuf,
+static  void    chan_split(CSOUND*, const MYFLT *inbuf, MYFLT **chbuf,
                                      long insize, long chans);
 static  int     init(PVX **pvx, long srate, long fftsize, long winsize,
                      long overlap, pv_wtype wintype);
@@ -133,7 +133,7 @@ static  void    hamming(MYFLT *win, int winLen, int even);
 static  double  besseli(double x);
 static  void    kaiser(MYFLT *win, int len, double Beta);
 static  void    vonhann(MYFLT *win, int winLen, int even);
-static  int     quit(ENVIRON *, char *msg);
+static  int     quit(CSOUND *, char *msg);
 
 #define MINFRMMS        20      /* frame defaults to at least this many ms */
 #define MAXFRMPTS       65536
@@ -148,7 +148,7 @@ static  int     quit(ENVIRON *, char *msg);
 #define MAXPVXCHANS (8)
 #define DEFAULT_BUFLEN (8192)   /* per channel */
 
-static int pvanal(ENVIRON *csound, int argc, char **argv)
+static int pvanal(CSOUND *csound, int argc, char **argv)
 {
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
@@ -325,7 +325,7 @@ static const char *pvanal_usage_txt[] = {
     NULL
 };
 
-static int quit(ENVIRON *csound, char *msg)
+static int quit(CSOUND *csound, char *msg)
 {
     int i;
 
@@ -337,7 +337,7 @@ static int quit(ENVIRON *csound, char *msg)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "pvanal", pvanal);
     if (!retval) {
@@ -351,7 +351,7 @@ PUBLIC int csoundModuleCreate(ENVIRON *csound)
 
 /* not sure how to use 'verbose' yet; but it's here...*/
 /* cannot add display code, as we may have 8 channels here...*/
-static int pvxanal(ENVIRON *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
+static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    long srate, long chans, long fftsize, long overlap,
                    long winsize, pv_wtype wintype, int verbose)
 {
@@ -733,7 +733,7 @@ static void pvx_release(PVX **ppvx, long chans)
 
 /* RWD outanal MUST be 32bit */
 
-static long generate_frame(ENVIRON *csound, PVX *pvx,
+static long generate_frame(CSOUND *csound, PVX *pvx,
                                             MYFLT *fbuf, float *outanal,
                                             long samps, int frametype)
 {
@@ -846,7 +846,7 @@ static long generate_frame(ENVIRON *csound, PVX *pvx,
     return pvx->D;
 }
 
-static void chan_split(ENVIRON *csound, const MYFLT *inbuf, MYFLT **chbuf,
+static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
                                         long insize, long chans)
 {
     long i,j,len;

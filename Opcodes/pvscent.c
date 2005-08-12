@@ -31,7 +31,7 @@ typedef struct {
         unsigned long   lastframe;
 } PVSCENT;
 
-int pvscentset(ENVIRON *csound, PVSCENT *p)
+int pvscentset(CSOUND *csound, PVSCENT *p)
 {
      p->lastframe = 0;
      *p->ans = FL(0.0);
@@ -42,7 +42,7 @@ int pvscentset(ENVIRON *csound, PVSCENT *p)
      return OK;
 }
 
-int pvscent(ENVIRON *csound, PVSCENT *p)
+int pvscent(CSOUND *csound, PVSCENT *p)
 {
     long i,N = p->fin->N;
     MYFLT c = FL(0.0);

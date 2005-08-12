@@ -31,7 +31,7 @@
 
 /* RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
-static int pvx_loadfile(ENVIRON *, const char *, PVOC *);
+static int pvx_loadfile(CSOUND *, const char *, PVOC *);
 
 /********************************************/
 /* Originated by Dan Ellis, MIT             */
@@ -43,7 +43,7 @@ static int pvx_loadfile(ENVIRON *, const char *, PVOC *);
 #define WLN   1                         /* time window is WLN*2*ksmps long  */
 #define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
 
-int pvset(ENVIRON *csound, PVOC *p)
+int pvset(CSOUND *csound, PVOC *p)
 {
     int      i;
     long     memsize;
@@ -124,7 +124,7 @@ int pvset(ENVIRON *csound, PVOC *p)
     return OK;
 }
 
-int pvoc(ENVIRON *csound, PVOC *p)
+int pvoc(CSOUND *csound, PVOC *p)
 {
     MYFLT  *ar = p->rslt;
     MYFLT  frIndx;
@@ -206,7 +206,7 @@ int pvoc(ENVIRON *csound, PVOC *p)
 
   this version applies scaling to match  existing  pvanal format
  */
-static int pvx_loadfile(ENVIRON *csound, const char *fname, PVOC *p)
+static int pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
 {
     PVOCEX_MEMFILE  pp;
 

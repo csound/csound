@@ -46,8 +46,8 @@ extern "C" {
 # include <windows.h>
 #endif
 
-  /* from oload.c, initial state of ENVIRON structure */
-  extern const ENVIRON cenviron_;
+  /* from oload.c, initial state of CSOUND structure */
+  extern const CSOUND cenviron_;
   /* from threads.c */
   void csoundLock(void);
   void csoundUnLock(void);
@@ -55,7 +55,7 @@ extern "C" {
   void aops_init_tables(void);
 
   typedef struct csInstance_s {
-    ENVIRON             *csound;
+    CSOUND              *csound;
     struct csInstance_s *nxt;
   } csInstance_t;
 
@@ -271,9 +271,9 @@ extern "C" {
     return 0;
   }
 
-  PUBLIC ENVIRON *csoundCreate(void *hostdata)
+  PUBLIC CSOUND *csoundCreate(void *hostdata)
   {
-    ENVIRON       *csound;
+    CSOUND        *csound;
     csInstance_t  *p;
     if (init_done != 1) {
       int argc = 1;
@@ -282,10 +282,10 @@ extern "C" {
       if (csoundInitialize(&argc, &argv, 0) != 0)
         return NULL;
     }
-    csound = (ENVIRON*) malloc(sizeof(ENVIRON));
+    csound = (CSOUND*) malloc(sizeof(CSOUND));
     if (csound == NULL)
       return NULL;
-    memcpy(csound, &cenviron_, sizeof(ENVIRON));
+    memcpy(csound, &cenviron_, sizeof(CSOUND));
     csound->oparms = (OPARMS*) malloc(sizeof(OPARMS));
     if (csound->oparms == NULL) {
       free(csound);
@@ -310,16 +310,16 @@ extern "C" {
   }
 
   /* dummy real time MIDI functions */
-  static int DummyMidiInOpen(ENVIRON *csound, void **userData,
+  static int DummyMidiInOpen(CSOUND *csound, void **userData,
                              const char *devName);
-  static int DummyMidiRead(ENVIRON *csound, void *userData,
+  static int DummyMidiRead(CSOUND *csound, void *userData,
                            unsigned char *buf, int nbytes);
-  static int DummyMidiInClose(ENVIRON *csound, void *userData);
-  static int DummyMidiOutOpen(ENVIRON *csound, void **userData,
+  static int DummyMidiInClose(CSOUND *csound, void *userData);
+  static int DummyMidiOutOpen(CSOUND *csound, void **userData,
                               const char *devName);
-  static int DummyMidiWrite(ENVIRON *csound, void *userData,
+  static int DummyMidiWrite(CSOUND *csound, void *userData,
                             unsigned char *buf, int nbytes);
-  static int DummyMidiOutClose(ENVIRON *csound, void *userData);
+  static int DummyMidiOutClose(CSOUND *csound, void *userData);
   static char *DummyMidiErrorString(int errcode);
 
   static  const   char    *id_option_table[][3] = {
@@ -343,7 +343,7 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
    * CSOUND_MEMORY if an error occured.
    */
-  PUBLIC int csoundPreCompile(ENVIRON *p)
+  PUBLIC int csoundPreCompile(CSOUND *p)
   {
     char    *s;
     int     i, max_len;
@@ -446,7 +446,7 @@ extern "C" {
     return 0;
   }
 
-  PUBLIC void csoundDestroy(ENVIRON *csound)
+  PUBLIC void csoundDestroy(CSOUND *csound)
   {
     csInstance_t  *p, *prv = NULL;
     csoundLock();
@@ -479,12 +479,12 @@ extern "C" {
     return CS_APIVERSION * 100 + CS_APISUBVER;
   }
 
-  PUBLIC void *csoundGetHostData(ENVIRON *csound)
+  PUBLIC void *csoundGetHostData(CSOUND *csound)
   {
     return csound->hostdata;
   }
 
-  PUBLIC void csoundSetHostData(ENVIRON *csound, void *hostData)
+  PUBLIC void csoundSetHostData(CSOUND *csound, void *hostData)
   {
     csound->hostdata = hostData;
   }
@@ -493,7 +493,7 @@ extern "C" {
    * PERFORMANCE
    */
 
-  extern int sensevents(ENVIRON *);
+  extern int sensevents(CSOUND *);
 
   /**
    * perform currently active instrs for one kperiod
@@ -501,7 +501,7 @@ extern "C" {
    * returns non-zero if this kperiod was skipped
    */
 
-  static inline int kperf(ENVIRON *csound)
+  static inline int kperf(CSOUND *csound)
   {
     INSDS   *ip;
     int     i;
@@ -545,7 +545,7 @@ extern "C" {
     return 0;
   }
 
-  PUBLIC int csoundPerformKsmps(ENVIRON *csound)
+  PUBLIC int csoundPerformKsmps(CSOUND *csound)
   {
     int done;
     volatile int returnValue;
@@ -563,7 +563,7 @@ extern "C" {
     return 0;
   }
 
-  PUBLIC int csoundPerformKsmpsAbsolute(ENVIRON *csound)
+  PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
   {
     int done = 0;
     volatile int returnValue;
@@ -580,7 +580,7 @@ extern "C" {
 
   /* external host's outbuffer passed in csoundPerformBuffer() */
 
-  PUBLIC int csoundPerformBuffer(ENVIRON *csound)
+  PUBLIC int csoundPerformBuffer(CSOUND *csound)
   {
     volatile int returnValue;
     int     done;
@@ -604,84 +604,84 @@ extern "C" {
    * ATTRIBUTES
    */
 
-  PUBLIC MYFLT csoundGetSr(ENVIRON *csound)
+  PUBLIC MYFLT csoundGetSr(CSOUND *csound)
   {
     return csound->esr;
   }
 
-  PUBLIC MYFLT csoundGetKr(ENVIRON *csound)
+  PUBLIC MYFLT csoundGetKr(CSOUND *csound)
   {
     return csound->ekr;
   }
 
-  PUBLIC int csoundGetKsmps(ENVIRON *csound)
+  PUBLIC int csoundGetKsmps(CSOUND *csound)
   {
     return csound->ksmps;
   }
 
-  PUBLIC int csoundGetNchnls(ENVIRON *csound)
+  PUBLIC int csoundGetNchnls(CSOUND *csound)
   {
     return csound->nchnls;
   }
 
-  PUBLIC MYFLT csoundGet0dBFS(ENVIRON *csound)
+  PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)
   {
     return csound->e0dbfs;
   }
 
-  PUBLIC int csoundGetSampleFormat(ENVIRON *csound)
+  PUBLIC int csoundGetSampleFormat(CSOUND *csound)
   {
     /* should we assume input is same as output ? */
     return csound->oparms->outformat;
   }
 
-  PUBLIC int csoundGetSampleSize(ENVIRON *csound)
+  PUBLIC int csoundGetSampleSize(CSOUND *csound)
   {
     /* should we assume input is same as output ? */
     return csound->oparms->sfsampsize;
   }
 
-  PUBLIC long csoundGetInputBufferSize(ENVIRON *csound)
+  PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
   {
     return csound->oparms->inbufsamps;
   }
 
-  PUBLIC long csoundGetOutputBufferSize(ENVIRON *csound)
+  PUBLIC long csoundGetOutputBufferSize(CSOUND *csound)
   {
     return csound->oparms->outbufsamps;
   }
 
-  PUBLIC MYFLT *csoundGetSpin(ENVIRON *csound)
+  PUBLIC MYFLT *csoundGetSpin(CSOUND *csound)
   {
     return csound->spin;
   }
 
-  PUBLIC MYFLT *csoundGetSpout(ENVIRON *csound)
+  PUBLIC MYFLT *csoundGetSpout(CSOUND *csound)
   {
     return csound->spout;
   }
 
-  PUBLIC const char *csoundGetOutputFileName(ENVIRON *csound)
+  PUBLIC const char *csoundGetOutputFileName(CSOUND *csound)
   {
     return (const char*) csound->oparms->outfilename;
   }
 
-  PUBLIC MYFLT csoundGetScoreTime(ENVIRON *csound)
+  PUBLIC MYFLT csoundGetScoreTime(CSOUND *csound)
   {
     return (MYFLT) csound->curTime;
   }
 
-  PUBLIC MYFLT csoundGetProgress(ENVIRON *csound)
+  PUBLIC MYFLT csoundGetProgress(CSOUND *csound)
   {
     return -1;
   }
 
-  PUBLIC MYFLT csoundGetProfile(ENVIRON *csound)
+  PUBLIC MYFLT csoundGetProfile(CSOUND *csound)
   {
     return -1;
   }
 
-  PUBLIC MYFLT csoundGetCpuUsage(ENVIRON *csound)
+  PUBLIC MYFLT csoundGetCpuUsage(CSOUND *csound)
   {
     return -1;
   }
@@ -690,17 +690,17 @@ extern "C" {
    * SCORE HANDLING
    */
 
-  PUBLIC int csoundIsScorePending(ENVIRON *csound)
+  PUBLIC int csoundIsScorePending(CSOUND *csound)
   {
     return csound->csoundIsScorePending_;
   }
 
-  PUBLIC void csoundSetScorePending(ENVIRON *csound, int pending)
+  PUBLIC void csoundSetScorePending(CSOUND *csound, int pending)
   {
     csound->csoundIsScorePending_ = pending;
   }
 
-  PUBLIC void csoundSetScoreOffsetSeconds(ENVIRON *csound, MYFLT offset)
+  PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset)
   {
     double  aTime;
     MYFLT   prv = (MYFLT) csound->csoundScoreOffsetSeconds_;
@@ -728,21 +728,21 @@ extern "C" {
     }
   }
 
-  PUBLIC MYFLT csoundGetScoreOffsetSeconds(ENVIRON *csound)
+  PUBLIC MYFLT csoundGetScoreOffsetSeconds(CSOUND *csound)
   {
     return csound->csoundScoreOffsetSeconds_;
   }
 
-  extern void musmon_rewind_score(ENVIRON *csound);     /* musmon.c */
-  extern void midifile_rewind_score(ENVIRON *csound);   /* midifile.c */
+  extern void musmon_rewind_score(CSOUND *csound);      /* musmon.c */
+  extern void midifile_rewind_score(CSOUND *csound);    /* midifile.c */
 
-  PUBLIC void csoundRewindScore(ENVIRON *csound)
+  PUBLIC void csoundRewindScore(CSOUND *csound)
   {
     musmon_rewind_score(csound);
     midifile_rewind_score(csound);
   }
 
-  void csoundDefaultMessageCallback(ENVIRON *csound, int attr,
+  void csoundDefaultMessageCallback(CSOUND *csound, int attr,
                                     const char *format, va_list args)
   {
 #if defined(WIN32) || defined(MAC)
@@ -777,14 +777,14 @@ extern "C" {
 #endif
   }
 
-  void csoundDefaultThrowMessageCallback(ENVIRON *csound,
+  void csoundDefaultThrowMessageCallback(CSOUND *csound,
                                          const char *format, va_list args)
   {
     csoundDefaultMessageCallback(csound, CSOUNDMSG_ERROR, format, args);
   }
 
-  PUBLIC void csoundSetMessageCallback(ENVIRON *csound,
-                            void (*csoundMessageCallback)(ENVIRON *csound,
+  PUBLIC void csoundSetMessageCallback(CSOUND *csound,
+                            void (*csoundMessageCallback)(CSOUND *csound,
                                                           int attr,
                                                           const char *format,
                                                           va_list args))
@@ -792,13 +792,13 @@ extern "C" {
     csound->csoundMessageCallback_ = csoundMessageCallback;
   }
 
-  PUBLIC void csoundMessageV(ENVIRON *csound,
+  PUBLIC void csoundMessageV(CSOUND *csound,
                              int attr, const char *format, va_list args)
   {
     csound->csoundMessageCallback_(csound, attr, format, args);
   }
 
-  PUBLIC void csoundMessage(ENVIRON *csound, const char *format, ...)
+  PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
   {
     va_list args;
     va_start(args, format);
@@ -806,7 +806,7 @@ extern "C" {
     va_end(args);
   }
 
-  PUBLIC void csoundMessageS(ENVIRON *csound, int attr, const char *format, ...)
+  PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
   {
     va_list args;
     va_start(args, format);
@@ -814,7 +814,7 @@ extern "C" {
     va_end(args);
   }
 
-  void csoundDie(ENVIRON *csound, const char *msg, ...)
+  void csoundDie(CSOUND *csound, const char *msg, ...)
   {
     va_list args;
     va_start(args, msg);
@@ -823,7 +823,7 @@ extern "C" {
     csound->LongJmp(csound, 1);
   }
 
-  void csoundWarning(ENVIRON *csound, const char *msg, ...)
+  void csoundWarning(CSOUND *csound, const char *msg, ...)
   {
     va_list args;
     if (!(csound->oparms->msglevel & WARNMSG))
@@ -835,7 +835,7 @@ extern "C" {
     csoundMessageS(csound, CSOUNDMSG_WARNING, "\n");
   }
 
-  void csoundDebugMsg(ENVIRON *csound, const char *msg, ...)
+  void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
   {
     va_list args;
     if (!(csound->oparms->odebug))
@@ -846,7 +846,7 @@ extern "C" {
     csoundMessage(csound, "\n");
   }
 
-  void csoundErrorMsg(ENVIRON *csound, const char *msg, ...)
+  void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
   {
     va_list args;
     va_start(args, msg);
@@ -855,7 +855,7 @@ extern "C" {
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
   }
 
-  void csoundErrMsgV(ENVIRON *csound,
+  void csoundErrMsgV(CSOUND *csound,
                      const char *hdr, const char *msg, va_list args)
   {
     if (hdr != NULL)
@@ -864,7 +864,7 @@ extern "C" {
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
   }
 
-  void csoundLongJmp(ENVIRON *csound, int retval)
+  void csoundLongJmp(CSOUND *csound, int retval)
   {
     int n = CSOUND_EXITJMP_SUCCESS;
     n = (retval < 0 ? n + retval : n - retval) & (CSOUND_EXITJMP_SUCCESS - 1);
@@ -873,21 +873,21 @@ extern "C" {
     longjmp(csound->exitjmp, n);
   }
 
-  PUBLIC void csoundSetThrowMessageCallback(ENVIRON *csound,
-                    void (*csoundThrowMessageCallback)(ENVIRON *csound,
+  PUBLIC void csoundSetThrowMessageCallback(CSOUND *csound,
+                    void (*csoundThrowMessageCallback)(CSOUND *csound,
                                                        const char *format,
                                                        va_list args))
   {
     csound->csoundThrowMessageCallback_ = csoundThrowMessageCallback;
   }
 
-  PUBLIC void csoundThrowMessageV(ENVIRON *csound,
+  PUBLIC void csoundThrowMessageV(CSOUND *csound,
                                   const char *format, va_list args)
   {
     csound->csoundThrowMessageCallback_(csound, format, args);
   }
 
-  PUBLIC void csoundThrowMessage(ENVIRON *csound, const char *format, ...)
+  PUBLIC void csoundThrowMessage(CSOUND *csound, const char *format, ...)
   {
     va_list args;
     va_start(args, format);
@@ -895,27 +895,27 @@ extern "C" {
     va_end(args);
   }
 
-  PUBLIC int csoundGetMessageLevel(ENVIRON *csound)
+  PUBLIC int csoundGetMessageLevel(CSOUND *csound)
   {
     return csound->oparms->msglevel;
   }
 
-  PUBLIC void csoundSetMessageLevel(ENVIRON *csound, int messageLevel)
+  PUBLIC void csoundSetMessageLevel(CSOUND *csound, int messageLevel)
   {
     csound->oparms->msglevel = messageLevel;
   }
 
-  PUBLIC void csoundInputMessage(ENVIRON *csound, const char *message)
+  PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
   {
     writeLine(csound, message, strlen(message));
   }
 
-  PUBLIC void csoundKeyPress(ENVIRON *csound, char c)
+  PUBLIC void csoundKeyPress(CSOUND *csound, char c)
   {
     csound->inChar_ = (int) ((unsigned char) c);
   }
 
-  char getChar(ENVIRON *csound)
+  char getChar(CSOUND *csound)
   {
     char  c = (char) csound->inChar_;
     csound->inChar_ = 0;
@@ -927,8 +927,8 @@ extern "C" {
    */
 
   PUBLIC void
-    csoundSetInputValueCallback(ENVIRON *csound,
-                                void (*inputValueCalback)(ENVIRON *csound,
+    csoundSetInputValueCallback(CSOUND *csound,
+                                void (*inputValueCalback)(CSOUND *csound,
                                                           char *channelName,
                                                           MYFLT *value))
   {
@@ -936,15 +936,15 @@ extern "C" {
   }
 
   PUBLIC void
-    csoundSetOutputValueCallback(ENVIRON *csound,
-                                 void (*outputValueCalback)(ENVIRON *csound,
+    csoundSetOutputValueCallback(CSOUND *csound,
+                                 void (*outputValueCalback)(CSOUND *csound,
                                                             char *channelName,
                                                             MYFLT value))
   {
     csound->OutputValueCallback_ = outputValueCalback;
   }
 
-  void InputValue(ENVIRON *csound, char *channelName, MYFLT *value)
+  void InputValue(CSOUND *csound, char *channelName, MYFLT *value)
   {
     if (csound->InputValueCallback_)
       csound->InputValueCallback_(csound, channelName, value);
@@ -952,14 +952,14 @@ extern "C" {
       *value = FL(0.0);
   }
 
-  void OutputValue(ENVIRON *csound, char *channelName, MYFLT value)
+  void OutputValue(CSOUND *csound, char *channelName, MYFLT value)
   {
     if (csound->OutputValueCallback_) {
       csound->OutputValueCallback_(csound, channelName, value);
     }
   }
 
-  PUBLIC int csoundScoreEvent(ENVIRON *csound, char type,
+  PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
                               MYFLT *pfields, long numFields)
   {
     EVTBLK        evt;
@@ -979,7 +979,7 @@ extern "C" {
 
 /* dummy functions for the case when no real-time audio module is available */
 
-static double *get_dummy_rtaudio_globals(ENVIRON *csound)
+static double *get_dummy_rtaudio_globals(CSOUND *csound)
 {
     double  *p;
 
@@ -994,7 +994,7 @@ static double *get_dummy_rtaudio_globals(ENVIRON *csound)
     return p;
 }
 
-static void dummy_rtaudio_timer(ENVIRON *csound, double *p)
+static void dummy_rtaudio_timer(CSOUND *csound, double *p)
 {
     double  timeWait;
     RTCLOCK *rt;
@@ -1013,7 +1013,7 @@ static void dummy_rtaudio_timer(ENVIRON *csound, double *p)
 #endif
 }
 
-int playopen_dummy(ENVIRON *csound, csRtAudioParams *parm)
+int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
 {
     double  *p;
     char    *s;
@@ -1041,7 +1041,7 @@ int playopen_dummy(ENVIRON *csound, csRtAudioParams *parm)
     return CSOUND_SUCCESS;
 }
 
-void rtplay_dummy(ENVIRON *csound, void *outBuf, int nbytes)
+void rtplay_dummy(CSOUND *csound, void *outBuf, int nbytes)
 {
     double  *p = (double*) csound->rtPlay_userdata;
     outBuf = outBuf;
@@ -1049,7 +1049,7 @@ void rtplay_dummy(ENVIRON *csound, void *outBuf, int nbytes)
     dummy_rtaudio_timer(csound, p);
 }
 
-int recopen_dummy(ENVIRON *csound, csRtAudioParams *parm)
+int recopen_dummy(CSOUND *csound, csRtAudioParams *parm)
 {
     double  *p;
     char    *s;
@@ -1077,7 +1077,7 @@ int recopen_dummy(ENVIRON *csound, csRtAudioParams *parm)
     return CSOUND_SUCCESS;
 }
 
-int rtrecord_dummy(ENVIRON *csound, void *inBuf, int nbytes)
+int rtrecord_dummy(CSOUND *csound, void *inBuf, int nbytes)
 {
     double  *p = (double*) csound->rtRecord_userdata;
     int     i;
@@ -1091,50 +1091,50 @@ int rtrecord_dummy(ENVIRON *csound, void *inBuf, int nbytes)
     return nbytes;
 }
 
-void rtclose_dummy(ENVIRON *csound)
+void rtclose_dummy(CSOUND *csound)
 {
     csound->rtPlay_userdata = NULL;
     csound->rtRecord_userdata = NULL;
 }
 
-PUBLIC void csoundSetPlayopenCallback(ENVIRON *csound,
-                                      int (*playopen__)(ENVIRON *csound,
+PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
+                                      int (*playopen__)(CSOUND *csound,
                                                         csRtAudioParams *parm))
 {
     csound->playopen_callback = playopen__;
 }
 
-PUBLIC void csoundSetRtplayCallback(ENVIRON *csound,
-                                    void (*rtplay__)(ENVIRON *csound,
+PUBLIC void csoundSetRtplayCallback(CSOUND *csound,
+                                    void (*rtplay__)(CSOUND *csound,
                                                      void *outBuf, int nbytes))
 {
     csound->rtplay_callback = rtplay__;
 }
 
-PUBLIC void csoundSetRecopenCallback(ENVIRON *csound,
-                                     int (*recopen__)(ENVIRON *csound,
+PUBLIC void csoundSetRecopenCallback(CSOUND *csound,
+                                     int (*recopen__)(CSOUND *csound,
                                                       csRtAudioParams *parm))
 {
     csound->recopen_callback = recopen__;
 }
 
-PUBLIC void csoundSetRtrecordCallback(ENVIRON *csound,
-                                      int (*rtrecord__)(ENVIRON *csound,
+PUBLIC void csoundSetRtrecordCallback(CSOUND *csound,
+                                      int (*rtrecord__)(CSOUND *csound,
                                                         void *inBuf,
                                                         int nbytes))
 {
     csound->rtrecord_callback = rtrecord__;
 }
 
-PUBLIC void csoundSetRtcloseCallback(ENVIRON *csound,
-                                     void (*rtclose__)(ENVIRON *csound))
+PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
+                                     void (*rtclose__)(CSOUND *csound))
 {
     csound->rtclose_callback = rtclose__;
 }
 
 /* dummy real time MIDI functions */
 
-static int DummyMidiInOpen(ENVIRON *csound,
+static int DummyMidiInOpen(CSOUND *csound,
                            void **userData, const char *devName)
 {
     char *s;
@@ -1155,18 +1155,18 @@ static int DummyMidiInOpen(ENVIRON *csound,
     return -1;
 }
 
-static int DummyMidiRead(ENVIRON *csound,
+static int DummyMidiRead(CSOUND *csound,
                          void *userData, unsigned char *buf, int nbytes)
 {
     return 0;
 }
 
-static int DummyMidiInClose(ENVIRON *csound, void *userData)
+static int DummyMidiInClose(CSOUND *csound, void *userData)
 {
     return 0;
 }
 
-static int DummyMidiOutOpen(ENVIRON *csound,
+static int DummyMidiOutOpen(CSOUND *csound,
                             void **userData, const char *devName)
 {
     char *s;
@@ -1187,13 +1187,13 @@ static int DummyMidiOutOpen(ENVIRON *csound,
     return -1;
 }
 
-static int DummyMidiWrite(ENVIRON *csound,
+static int DummyMidiWrite(CSOUND *csound,
                           void *userData, unsigned char *buf, int nbytes)
 {
     return nbytes;
 }
 
-static int DummyMidiOutClose(ENVIRON *csound, void *userData)
+static int DummyMidiOutClose(CSOUND *csound, void *userData)
 {
     return 0;
 }
@@ -1210,7 +1210,7 @@ static char *DummyMidiErrorString(int errcode)
  * data pointer in *userData. Return value is zero on success,
  * and a non-zero error code if an error occured.
  */
-int csoundExternalMidiInOpen(ENVIRON *csound, void **userData,
+int csoundExternalMidiInOpen(CSOUND *csound, void **userData,
                              const char *devName)
 {
     if (csound->midiGlobals->MidiInOpenCallback == NULL)
@@ -1226,7 +1226,7 @@ int csoundExternalMidiInOpen(ENVIRON *csound, void **userData,
  * as a note on status without the data bytes) should not be
  * returned.
  */
-int csoundExternalMidiRead(ENVIRON *csound, void *userData,
+int csoundExternalMidiRead(CSOUND *csound, void *userData,
                            unsigned char *buf, int nbytes)
 {
     if (csound->midiGlobals->MidiReadCallback == NULL)
@@ -1240,7 +1240,7 @@ int csoundExternalMidiRead(ENVIRON *csound, void *userData,
  * Return value is zero on success, and a non-zero error
  * code on failure.
  */
-int csoundExternalMidiInClose(ENVIRON *csound, void *userData)
+int csoundExternalMidiInClose(CSOUND *csound, void *userData)
 {
     int retval;
     if (csound->midiGlobals->MidiInCloseCallback == NULL)
@@ -1255,7 +1255,7 @@ int csoundExternalMidiInClose(ENVIRON *csound, void *userData)
  * data pointer in *userData. Return value is zero on success,
  * and a non-zero error code if an error occured.
  */
-int csoundExternalMidiOutOpen(ENVIRON *csound, void **userData,
+int csoundExternalMidiOutOpen(CSOUND *csound, void **userData,
                               const char *devName)
 {
     if (csound->midiGlobals->MidiOutOpenCallback == NULL)
@@ -1270,7 +1270,7 @@ int csoundExternalMidiOutOpen(ENVIRON *csound, void **userData,
  * Returns the actual number of bytes written, or a negative
  * error code.
  */
-int csoundExternalMidiWrite(ENVIRON *csound, void *userData,
+int csoundExternalMidiWrite(CSOUND *csound, void *userData,
                             unsigned char *buf, int nbytes)
 {
     if (csound->midiGlobals->MidiWriteCallback == NULL)
@@ -1284,7 +1284,7 @@ int csoundExternalMidiWrite(ENVIRON *csound, void *userData,
  * Return value is zero on success, and a non-zero error
  * code on failure.
  */
-int csoundExternalMidiOutClose(ENVIRON *csound, void *userData)
+int csoundExternalMidiOutClose(CSOUND *csound, void *userData)
 {
     int retval;
     if (csound->midiGlobals->MidiOutCloseCallback == NULL)
@@ -1298,7 +1298,7 @@ int csoundExternalMidiOutClose(ENVIRON *csound, void *userData)
  * Returns pointer to a string constant storing an error massage
  * for error code 'errcode'.
  */
-char *csoundExternalMidiErrorString(ENVIRON *csound, int errcode)
+char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
 {
     if (csound->midiGlobals->MidiErrorStringCallback == NULL)
       return NULL;
@@ -1307,47 +1307,47 @@ char *csoundExternalMidiErrorString(ENVIRON *csound, int errcode)
 
 /* Set real time MIDI function pointers. */
 
-PUBLIC void csoundSetExternalMidiInOpenCallback(ENVIRON *csound,
-                                                int (*func)(ENVIRON*, void**,
+PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *csound,
+                                                int (*func)(CSOUND*, void**,
                                                             const char*))
 {
     csound->midiGlobals->MidiInOpenCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiReadCallback(ENVIRON *csound,
-                                              int (*func)(ENVIRON*, void*,
+PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *csound,
+                                              int (*func)(CSOUND*, void*,
                                                           unsigned char*, int))
 {
     csound->midiGlobals->MidiReadCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiInCloseCallback(ENVIRON *csound,
-                                                 int (*func)(ENVIRON*, void*))
+PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *csound,
+                                                 int (*func)(CSOUND*, void*))
 {
     csound->midiGlobals->MidiInCloseCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiOutOpenCallback(ENVIRON *csound,
-                                                 int (*func)(ENVIRON*, void**,
+PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *csound,
+                                                 int (*func)(CSOUND*, void**,
                                                              const char*))
 {
     csound->midiGlobals->MidiOutOpenCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiWriteCallback(ENVIRON *csound,
-                                               int (*func)(ENVIRON*, void*,
+PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *csound,
+                                               int (*func)(CSOUND*, void*,
                                                            unsigned char*, int))
 {
     csound->midiGlobals->MidiWriteCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiOutCloseCallback(ENVIRON *csound,
-                                                  int (*func)(ENVIRON*, void*))
+PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *csound,
+                                                  int (*func)(CSOUND*, void*))
 {
     csound->midiGlobals->MidiOutCloseCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiErrorStringCallback(ENVIRON *csound,
+PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
                                                      char *(*func)(int))
 {
     csound->midiGlobals->MidiErrorStringCallback = func;
@@ -1357,108 +1357,108 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(ENVIRON *csound,
    *    FUNCTION TABLE DISPLAY.
    */
 
-  PUBLIC void csoundSetIsGraphable(ENVIRON *csound, int isGraphable)
+  PUBLIC void csoundSetIsGraphable(CSOUND *csound, int isGraphable)
   {
     csound->isGraphable_ = isGraphable;
   }
 
-  int Graphable(ENVIRON *csound)
+  int Graphable(CSOUND *csound)
   {
     return csound->isGraphable_;
   }
 
-  void defaultCsoundMakeGraph(ENVIRON *csound, WINDAT *windat, char *name)
+  void defaultCsoundMakeGraph(CSOUND *csound, WINDAT *windat, char *name)
   {
 #if defined(USE_FLTK)
-    extern void MakeGraph_(ENVIRON *, WINDAT *, char *);
+    extern void MakeGraph_(CSOUND *, WINDAT *, char *);
     MakeGraph_(csound, windat, name);
 #else
-    extern void MakeAscii(ENVIRON *, WINDAT *, char *);
+    extern void MakeAscii(CSOUND *, WINDAT *, char *);
     MakeAscii(csound, windat, name);
 #endif
   }
 
-  PUBLIC void csoundSetMakeGraphCallback(ENVIRON *csound,
-                                    void (*makeGraphCallback)(ENVIRON *csound,
+  PUBLIC void csoundSetMakeGraphCallback(CSOUND *csound,
+                                    void (*makeGraphCallback)(CSOUND *csound,
                                                               WINDAT *windat,
                                                               char *name))
   {
     csound->csoundMakeGraphCallback_ = makeGraphCallback;
   }
 
-  void MakeGraph(ENVIRON *csound, WINDAT *windat, char *name)
+  void MakeGraph(CSOUND *csound, WINDAT *windat, char *name)
   {
     csound->csoundMakeGraphCallback_(csound, windat, name);
   }
 
-  void defaultCsoundDrawGraph(ENVIRON *csound, WINDAT *windat)
+  void defaultCsoundDrawGraph(CSOUND *csound, WINDAT *windat)
   {
 #if defined(USE_FLTK)
-    extern void DrawGraph_(ENVIRON *, WINDAT *);
+    extern void DrawGraph_(CSOUND *, WINDAT *);
     DrawGraph_(csound, windat);
 #else
-    extern void DrawAscii(ENVIRON *, WINDAT *);
+    extern void DrawAscii(CSOUND *, WINDAT *);
     DrawAscii(csound, windat);
 #endif
   }
 
-  PUBLIC void csoundSetDrawGraphCallback(ENVIRON *csound,
-                                    void (*drawGraphCallback)(ENVIRON *csound,
+  PUBLIC void csoundSetDrawGraphCallback(CSOUND *csound,
+                                    void (*drawGraphCallback)(CSOUND *csound,
                                                               WINDAT *windat))
   {
     csound->csoundDrawGraphCallback_ = drawGraphCallback;
   }
 
-  void DrawGraph(ENVIRON *csound, WINDAT *windat)
+  void DrawGraph(CSOUND *csound, WINDAT *windat)
   {
     csound->csoundDrawGraphCallback_(csound, windat);
   }
 
-  void defaultCsoundKillGraph(ENVIRON *csound, WINDAT *windat)
+  void defaultCsoundKillGraph(CSOUND *csound, WINDAT *windat)
   {
 #if defined(USE_FLTK)
-    extern void KillGraph_(ENVIRON *, WINDAT *);
+    extern void KillGraph_(CSOUND *, WINDAT *);
     KillGraph_(csound, windat);
 #else
-    extern void KillAscii(ENVIRON *, WINDAT *);
+    extern void KillAscii(CSOUND *, WINDAT *);
     KillAscii(csound, windat);
 #endif
   }
 
-  PUBLIC void csoundSetKillGraphCallback(ENVIRON *csound,
-                                    void (*killGraphCallback)(ENVIRON *csound,
+  PUBLIC void csoundSetKillGraphCallback(CSOUND *csound,
+                                    void (*killGraphCallback)(CSOUND *csound,
                                                               WINDAT *windat))
   {
     csound->csoundKillGraphCallback_ = killGraphCallback;
   }
 
-  void KillGraph(ENVIRON *csound, WINDAT *windat)
+  void KillGraph(CSOUND *csound, WINDAT *windat)
   {
     csound->csoundKillGraphCallback_(csound, windat);
   }
 
-  int defaultCsoundExitGraph(ENVIRON *csound)
+  int defaultCsoundExitGraph(CSOUND *csound)
   {
     return CSOUND_SUCCESS;
   }
 
-  PUBLIC void csoundSetExitGraphCallback(ENVIRON *csound,
-                                         int (*exitGraphCallback)(ENVIRON *))
+  PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
+                                         int (*exitGraphCallback)(CSOUND *))
   {
     csound->csoundExitGraphCallback_ = exitGraphCallback;
   }
 
-  int ExitGraph(ENVIRON *csound)
+  int ExitGraph(CSOUND *csound)
   {
     return csound->csoundExitGraphCallback_(csound);
   }
 
-  void MakeXYin(ENVIRON *csound, XYINDAT *xyindat, MYFLT x, MYFLT y)
+  void MakeXYin(CSOUND *csound, XYINDAT *xyindat, MYFLT x, MYFLT y)
   {
     csoundMessage(csound, "xyin not supported. use invalue opcode instead.\n");
   }
 
-  void ReadXYin(ENVIRON *csound, XYINDAT *xyindat)
+  void ReadXYin(CSOUND *csound, XYINDAT *xyindat)
   {
     csoundMessage(csound, "xyin not supported. use invlaue opcodes instead.\n");
   }
@@ -1480,7 +1480,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(ENVIRON *csound,
     /* dispose_opcode_list(list); */
   }
 
-  static inline int opcode_list_new_oentry(ENVIRON *csound, OENTRY *ep)
+  static inline int opcode_list_new_oentry(CSOUND *csound, OENTRY *ep)
   {
     int     oldCnt = 0;
 
@@ -1504,12 +1504,12 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(ENVIRON *csound,
     return 0;
   }
 
-  PUBLIC int csoundAppendOpcode(ENVIRON *csound,
+  PUBLIC int csoundAppendOpcode(CSOUND *csound,
                                 char *opname, int dsblksiz, int thread,
                                 char *outypes, char *intypes,
-                                int (*iopadr)(ENVIRON *, void *),
-                                int (*kopadr)(ENVIRON *, void *),
-                                int (*aopadr)(ENVIRON *, void *))
+                                int (*iopadr)(CSOUND *, void *),
+                                int (*kopadr)(CSOUND *, void *),
+                                int (*aopadr)(CSOUND *, void *))
   {
     OENTRY  tmpEntry;
 
@@ -1537,7 +1537,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(ENVIRON *csound,
    * in 'n'. Returns zero on success.
    */
 
-  PUBLIC int csoundAppendOpcodes(ENVIRON *csound,
+  PUBLIC int csoundAppendOpcodes(CSOUND *csound,
                                  const OENTRY *opcodeList, int n)
   {
     OENTRY  *ep = (OENTRY*) opcodeList;
@@ -1572,43 +1572,43 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(ENVIRON *csound,
    */
 
 #if !defined(USE_FLTK)
-  int defaultCsoundYield(ENVIRON *csound)
+  int defaultCsoundYield(CSOUND *csound)
   {
     return 1;
   }
 #endif
 
-  void csoundSetYieldCallback(ENVIRON *csound, int (*yieldCallback)(ENVIRON *))
+  void csoundSetYieldCallback(CSOUND *csound, int (*yieldCallback)(CSOUND *))
   {
     csound->csoundYieldCallback_ = yieldCallback;
   }
 
-  int csoundYield(ENVIRON *csound)
+  int csoundYield(CSOUND *csound)
   {
     if (exitNow_)
       csound->LongJmp(csound, CSOUND_SIGNAL);
     return csound->csoundYieldCallback_(csound);
   }
 
-  extern void csoundDeleteAllGlobalVariables(ENVIRON *csound);
-  extern int  csoundUnloadExternals(ENVIRON *csound);
+  extern void csoundDeleteAllGlobalVariables(CSOUND *csound);
+  extern int  csoundUnloadExternals(CSOUND *csound);
 
   typedef struct resetCallback_s {
     void    *userData;
-    int     (*func)(ENVIRON *, void *);
+    int     (*func)(CSOUND *, void *);
     struct resetCallback_s  *nxt;
   } resetCallback_t;
 
-  extern void adsynRESET(ENVIRON *);
-  extern void cscoreRESET(ENVIRON *);
-  extern void disprepRESET(ENVIRON *);
-  extern void lpcRESET(ENVIRON *);
-  extern void memRESET(ENVIRON *);
-  extern void oloadRESET(ENVIRON *);
-  extern void orchRESET(ENVIRON *);
-  extern void tranRESET(ENVIRON *);
+  extern void adsynRESET(CSOUND *);
+  extern void cscoreRESET(CSOUND *);
+  extern void disprepRESET(CSOUND *);
+  extern void lpcRESET(CSOUND *);
+  extern void memRESET(CSOUND *);
+  extern void oloadRESET(CSOUND *);
+  extern void orchRESET(CSOUND *);
+  extern void tranRESET(CSOUND *);
 
-  PUBLIC void csoundReset(ENVIRON *csound)
+  PUBLIC void csoundReset(CSOUND *csound)
   {
     csoundCleanup(csound);
 
@@ -1641,39 +1641,39 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(ENVIRON *csound,
     memRESET(csound);       /* and this one should be the last */
   }
 
-  PUBLIC int csoundGetDebug(ENVIRON *csound)
+  PUBLIC int csoundGetDebug(CSOUND *csound)
   {
     return csound->oparms->odebug;
   }
 
-  PUBLIC void csoundSetDebug(ENVIRON *csound, int debug)
+  PUBLIC void csoundSetDebug(CSOUND *csound, int debug)
   {
     csound->oparms->odebug = debug;
   }
 
-  PUBLIC int csoundTableLength(ENVIRON *csound, int table)
+  PUBLIC int csoundTableLength(CSOUND *csound, int table)
   {
     int tableLength;
     csound->GetTable(csound, table, &tableLength);
     return tableLength;
   }
 
-  PUBLIC MYFLT csoundTableGet(ENVIRON *csound, int table, int index)
+  PUBLIC MYFLT csoundTableGet(CSOUND *csound, int table, int index)
   {
     return ((csound->flist[table])->ftable[index]);
   }
 
-  PUBLIC void csoundTableSet(ENVIRON *csound, int table, int index, MYFLT value)
+  PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
   {
     (csound->flist[table])->ftable[index] = value;
   }
 
-  PUBLIC void csoundSetFLTKThreadLocking(ENVIRON *csound, int isLocking)
+  PUBLIC void csoundSetFLTKThreadLocking(CSOUND *csound, int isLocking)
   {
     csound->doFLTKThreadLocking = isLocking;
   }
 
-  PUBLIC int csoundGetFLTKThreadLocking(ENVIRON *csound)
+  PUBLIC int csoundGetFLTKThreadLocking(CSOUND *csound)
   {
     return csound->doFLTKThreadLocking;
   }
@@ -1847,7 +1847,7 @@ PUBLIC int csoundGetSizeOfMYFLT(void)
 /**
  * Return pointer to user data pointer for real time audio input.
  */
-PUBLIC void **csoundGetRtRecordUserData(ENVIRON *csound)
+PUBLIC void **csoundGetRtRecordUserData(CSOUND *csound)
 {
     return &(csound->rtRecord_userdata);
 }
@@ -1855,14 +1855,14 @@ PUBLIC void **csoundGetRtRecordUserData(ENVIRON *csound)
 /**
  * Return pointer to user data pointer for real time audio output.
  */
-PUBLIC void **csoundGetRtPlayUserData(ENVIRON *csound)
+PUBLIC void **csoundGetRtPlayUserData(CSOUND *csound)
 {
     return &(csound->rtPlay_userdata);
 }
 
 typedef struct opcodeDeinit_s {
     void    *p;
-    int     (*func)(ENVIRON *, void *);
+    int     (*func)(CSOUND *, void *);
     void    *nxt;
 } opcodeDeinit_t;
 
@@ -1876,8 +1876,8 @@ typedef struct opcodeDeinit_s {
  * Returns zero on success.
  */
 
-int csoundRegisterDeinitCallback(ENVIRON *csound, void *p,
-                                 int (*func)(ENVIRON *, void *))
+int csoundRegisterDeinitCallback(CSOUND *csound, void *p,
+                                 int (*func)(CSOUND *, void *))
 {
     INSDS           *ip = ((OPDS*) p)->insdshead;
     opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
@@ -1900,8 +1900,8 @@ int csoundRegisterDeinitCallback(ENVIRON *csound, void *p,
  * The return value of csoundRegisterResetCallback() is zero on success.
  */
 
-int csoundRegisterResetCallback(ENVIRON *csound, void *userData,
-                                int (*func)(ENVIRON *, void *))
+int csoundRegisterResetCallback(CSOUND *csound, void *userData,
+                                int (*func)(CSOUND *, void *))
 {
     resetCallback_t *dp = (resetCallback_t*) malloc(sizeof(resetCallback_t));
 
@@ -1918,7 +1918,7 @@ int csoundRegisterResetCallback(ENVIRON *csound, void *userData,
 /* call the opcode deinitialisation routines of an instrument instance */
 /* called from deact() in insert.c */
 
-int csoundDeinitialiseOpcodes(ENVIRON *csound, INSDS *ip)
+int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
 {
     int err = 0;
 
@@ -1938,7 +1938,7 @@ int csoundDeinitialiseOpcodes(ENVIRON *csound, INSDS *ip)
    */
   char *csoundGetOpcodeName(void *p)
   {
-    ENVIRON *csound = (ENVIRON*) ((OPDS*) p)->insdshead->csound;
+    CSOUND *csound = (CSOUND*) ((OPDS*) p)->insdshead->csound;
     return (char*) csound->opcodlst[((OPDS*) p)->optext->t.opnum].opname;
   }
 

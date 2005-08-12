@@ -30,7 +30,7 @@
 
 static int csoundUtilMain(const char *name, int argc, char **argv)
 {
-    ENVIRON *csound;
+    CSOUND *csound;
     int     n = -1;
 
     if ((csound = csoundCreate(NULL)) != NULL) {

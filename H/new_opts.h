@@ -40,14 +40,14 @@ extern "C" {
 
 /* list command line usage of all registered configuration variables */
 
-void dump_cfg_variables(ENVIRON *csound);
+void dump_cfg_variables(CSOUND *csound);
 
 /* Parse 's' as an assignment to a configuration variable in the format */
 /* '-+NAME=VALUE'. In the case of boolean variables, the format may also */
 /* be '-+NAME' for true, and '-+no-NAME' for false. */
 /* Return value is zero on success. */
 
-int parse_option_as_cfgvar(ENVIRON *csound, const char *s);
+int parse_option_as_cfgvar(CSOUND *csound, const char *s);
 
 #ifdef __cplusplus
 };

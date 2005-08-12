@@ -55,7 +55,7 @@ typedef struct _parts {
 
 } _PARTS;
 
-int partials_init(ENVIRON * csound, _PARTS * p)
+int partials_init(CSOUND * csound, _PARTS * p)
 {
 
     int     N = p->fin1->N, maxtracks;
@@ -156,7 +156,7 @@ int partials_init(ENVIRON * csound, _PARTS * p)
     return OK;
 }
 
-void Analysis(ENVIRON * csound, _PARTS * p)
+void Analysis(CSOUND * csound, _PARTS * p)
 {
 
     float   absthresh, logthresh;
@@ -381,7 +381,7 @@ void Analysis(ENVIRON * csound, _PARTS * p)
 
 }
 
-int partials_process(ENVIRON * csound, _PARTS * p)
+int partials_process(CSOUND * csound, _PARTS * p)
 {
 
     int     pos, ndx, end, fftsize = p->fin1->N;
@@ -438,3 +438,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

@@ -123,7 +123,7 @@ static int set_rt_priority(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    ENVIRON *csound;
+    CSOUND *csound;
     int     result;
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {

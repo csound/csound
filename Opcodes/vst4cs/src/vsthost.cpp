@@ -174,7 +174,7 @@ void VSTPlugin::initializeOpcodes()
     initialized = true;
 }
 
-VSTPlugin::VSTPlugin(ENVIRON *csound_) :
+VSTPlugin::VSTPlugin(CSOUND *csound_) :
     csound(csound_),
     libraryHandle(0),
     aeffect(0),
@@ -753,7 +753,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
     long value, void *ptr, float opt)
 {
     VSTPlugin *plugin = 0;
-    ENVIRON *csound = 0;
+    CSOUND *csound = 0;
     if(effect) {
         plugin = (VSTPlugin *)effect->user;
         if(plugin) {

@@ -1,7 +1,13 @@
+2005-08-12	Istvan Varga	<ivarga@csounds.com>
+	* renamed struct ENVIRON_ to struct CSOUND_, and ENVIRON to CSOUND
+	* replaced uses of void* Csound instance pointers with CSOUND*
+	* changes to header files to clean up the API; more need to be done
+	* attempts to fix CsoundVST build - still not quite right
+
 2005-08-03	Steven Yi	<stevenyi@gmail.com>
 	* Engine/Entry1.c, Engine/fgens.c, H/ftgen.h:
-	  New ftfree opcode, takes in table number and free time arg, if 0 frees at
-	  opcode init time, otherwise at opcode deinit time
+	  New ftfree opcode, takes in table number and free time arg,
+	  if zero frees at opcode init time, otherwise at opcode deinit time
 
 2005-08-01	Istvan Varga	<ivarga@csounds.com>
 	* Minor fixes in DSSI opcodes (still have problems)

@@ -61,9 +61,9 @@
 }
 
 static  void    kaiser(int, float *, int, int, double);
-static  void    usage(ENVIRON *);
+static  void    usage(CSOUND *);
 
-static int writebuffer(ENVIRON *csound, MYFLT *out_buf, int *block,
+static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
                                         SNDFILE *outfd, int length)
 {
     sf_write_MYFLT(outfd, out_buf, length);
@@ -91,7 +91,7 @@ static int writebuffer(ENVIRON *csound, MYFLT *out_buf, int *block,
     return length;
 }
 
-static char set_output_format(ENVIRON *csound, char c, char outformch)
+static char set_output_format(CSOUND *csound, char c, char outformch)
 {
     if (csound->oparms->outformat) {
       csound->Warning(csound, Str("Sound format -%c has been overruled by -%c"),
@@ -131,13 +131,13 @@ static char set_output_format(ENVIRON *csound, char c, char outformch)
     return c;
 }
 
-static void dieu(ENVIRON *csound, char *s)
+static void dieu(CSOUND *csound, char *s)
 {
     csound->ErrorMsg(csound, "srconv: %s", s);
     usage(csound);
 }
 
-static int srconv(ENVIRON *csound, int argc, char **argv)
+static int srconv(CSOUND *csound, int argc, char **argv)
 {
     MYFLT
       *input,     /* pointer to start of input buffer */
@@ -747,7 +747,7 @@ static const char *usage_txt[] = {
     NULL
 };
 
-static void usage(ENVIRON *csound)
+static void usage(CSOUND *csound)
 {
     int i = -1;
 
@@ -804,7 +804,7 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "srconv", srconv);
     if (!retval) {

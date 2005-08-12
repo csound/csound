@@ -44,9 +44,9 @@ typedef struct {         /* struct for passing data to/from sfheader routines */
     long    firstlong;
 } HEADATA;
 
-static int anal_filelen(ENVIRON *csound, SNDINFO *p, MYFLT *p_length);
+static int anal_filelen(CSOUND *csound, SNDINFO *p, MYFLT *p_length);
 
-static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
+static HEADATA *getsndinfo(CSOUND *csound, SNDINFO *p)
 {
     HEADATA *hdr = NULL;
     char    *sfname, *s, soundiname[512];
@@ -100,7 +100,7 @@ static HEADATA *getsndinfo(ENVIRON *csound, SNDINFO *p)
     return hdr;
 }
 
-int filelen(ENVIRON *csound, SNDINFO *p)
+int filelen(CSOUND *csound, SNDINFO *p)
 {
     HEADATA *hdr;
     MYFLT dur = FL(0.0);        /*RWD 8:2001 */
@@ -119,7 +119,7 @@ int filelen(ENVIRON *csound, SNDINFO *p)
     return OK;
 }
 
-int filenchnls(ENVIRON *csound, SNDINFO *p)
+int filenchnls(CSOUND *csound, SNDINFO *p)
 {
     HEADATA *hdr;
 
@@ -129,7 +129,7 @@ int filenchnls(ENVIRON *csound, SNDINFO *p)
     return OK;
 }
 
-int filesr(ENVIRON *csound, SNDINFO *p)
+int filesr(CSOUND *csound, SNDINFO *p)
 {
     HEADATA *hdr;
 
@@ -142,7 +142,7 @@ int filesr(ENVIRON *csound, SNDINFO *p)
 /* RWD 8:2001: now supports all relevant files, */
 /* and scans overall peak properly */
 
-int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
+int filepeak(CSOUND *csound, SNDINFOPEAK *p)
 {
     csound->Die(csound, Str("filepeak is not implemented"));
     return NOTOK;
@@ -181,7 +181,7 @@ int filepeak(ENVIRON *csound, SNDINFOPEAK *p)
 
 /* RWD 8:2001 support analysis files in filelen opcode  */
 
-static int anal_filelen(ENVIRON *csound, SNDINFO *p,MYFLT *p_dur)
+static int anal_filelen(CSOUND *csound, SNDINFO *p,MYFLT *p_dur)
 {
     char    *sfname, soundiname[256];
     int     fd;

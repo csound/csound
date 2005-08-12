@@ -42,13 +42,13 @@
 /*************PVBUFREAD**************************************/
 /************************************************************/
 
-int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
+int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
 {
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-    ((ENVIRON*) csound)->pvbufreadaddr = (void*) p;
+    ((CSOUND*) csound)->pvbufreadaddr = (void*) p;
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
@@ -109,7 +109,7 @@ int pvbufreadset(ENVIRON *csound, PVBUFREAD *p)
     return OK;
 }
 
-int pvbufread(ENVIRON *csound, PVBUFREAD *p)
+int pvbufread(CSOUND *csound, PVBUFREAD *p)
 {
     MYFLT  frIndx;
     MYFLT  *buf = p->fftBuf;
@@ -137,7 +137,7 @@ int pvbufread(ENVIRON *csound, PVBUFREAD *p)
 /************************************************************/
 /*************PVINTERP**************************************/
 /************************************************************/
-int pvinterpset(ENVIRON *csound, PVINTERP *p)
+int pvinterpset(CSOUND *csound, PVINTERP *p)
 {
     int      i;
     char     pvfilnam[MAXNAME];
@@ -225,7 +225,7 @@ int pvinterpset(ENVIRON *csound, PVINTERP *p)
     return OK;
 }
 
-int pvinterp(ENVIRON *csound, PVINTERP *p)
+int pvinterp(CSOUND *csound, PVINTERP *p)
 {
     MYFLT   *ar = p->rslt;
     MYFLT   frIndx;
@@ -306,7 +306,7 @@ int pvinterp(ENVIRON *csound, PVINTERP *p)
 /************************************************************/
 /************* PVCROSS **************************************/
 /************************************************************/
-int pvcrossset(ENVIRON *csound, PVCROSS *p)
+int pvcrossset(CSOUND *csound, PVCROSS *p)
 {
     int      i;
     char     pvfilnam[MAXNAME];
@@ -390,7 +390,7 @@ int pvcrossset(ENVIRON *csound, PVCROSS *p)
     return OK;
 }
 
-int pvcross(ENVIRON *csound, PVCROSS *p)
+int pvcross(CSOUND *csound, PVCROSS *p)
 {
     int     n;
     MYFLT   *ar = p->rslt;

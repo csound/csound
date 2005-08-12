@@ -28,14 +28,14 @@
 
 #define log001 (-FL(6.9078))    /* log(.001) */
 
-int downset(ENVIRON *csound, DOWNSAMP *p)
+int downset(CSOUND *csound, DOWNSAMP *p)
 {
     if ((p->len = (int)*p->ilen) > csound->ksmps)
       return csound->InitError(csound, Str("ilen > ksmps"));
     return OK;
 }
 
-int downsamp(ENVIRON *csound, DOWNSAMP *p)
+int downsamp(CSOUND *csound, DOWNSAMP *p)
 {
     MYFLT       *asig, sum;
     int len;
@@ -54,7 +54,7 @@ int downsamp(ENVIRON *csound, DOWNSAMP *p)
     return OK;
 }
 
-int upsamp(ENVIRON *csound, UPSAMP *p)
+int upsamp(CSOUND *csound, UPSAMP *p)
 {
     MYFLT kval = *p->ksig;
     int   n;
@@ -64,14 +64,14 @@ int upsamp(ENVIRON *csound, UPSAMP *p)
     return OK;
 }
 
-int a_k_set(ENVIRON *csound, INTERP *p)
+int a_k_set(CSOUND *csound, INTERP *p)
 {
     p->prev = FL(0.0);
     p->init_k = 0;              /* IV - Sep 5 2002 */
     return OK;
 }
 
-int interpset(ENVIRON *csound, INTERP *p)
+int interpset(CSOUND *csound, INTERP *p)
 {
     if (*p->istor == FL(0.0)) {
       p->prev = FL(0.0);
@@ -80,7 +80,7 @@ int interpset(ENVIRON *csound, INTERP *p)
     return OK;
 }
 
-int interp(ENVIRON *csound, INTERP *p)
+int interp(CSOUND *csound, INTERP *p)
 {
     MYFLT *ar, val, incr;
     int   n, nsmps=csound->ksmps;
@@ -99,20 +99,20 @@ int interp(ENVIRON *csound, INTERP *p)
     return OK;
 }
 
-int indfset(ENVIRON *csound, INDIFF *p)
+int indfset(CSOUND *csound, INDIFF *p)
 {
     if (*p->istor == FL(0.0))   /* IV - Sep 5 2002 */
       p->prev = FL(0.0);
     return OK;
 }
 
-int kntegrate(ENVIRON *csound, INDIFF *p)
+int kntegrate(CSOUND *csound, INDIFF *p)
 {
     *p->rslt = p->prev += *p->xsig;
     return OK;
 }
 
-int integrate(ENVIRON *csound, INDIFF *p)
+int integrate(CSOUND *csound, INDIFF *p)
 {
     MYFLT       *rslt, *asig, sum;
     int n, nsmps=csound->ksmps;
@@ -127,7 +127,7 @@ int integrate(ENVIRON *csound, INDIFF *p)
     return OK;
 }
 
-int kdiff(ENVIRON *csound, INDIFF *p)
+int kdiff(CSOUND *csound, INDIFF *p)
 {
     MYFLT       tmp;
     tmp = *p->xsig;             /* IV - Sep 5 2002: fix to make */
@@ -136,7 +136,7 @@ int kdiff(ENVIRON *csound, INDIFF *p)
     return OK;
 }
 
-int diff(ENVIRON *csound, INDIFF *p)
+int diff(CSOUND *csound, INDIFF *p)
 {
     MYFLT       *ar, *asig, prev, tmp;
     int n, nsmps=csound->ksmps;
@@ -153,7 +153,7 @@ int diff(ENVIRON *csound, INDIFF *p)
     return OK;
 }
 
-int samphset(ENVIRON *csound, SAMPHOLD *p)
+int samphset(CSOUND *csound, SAMPHOLD *p)
 {
     if (!(*p->istor))
       p->state = *p->ival;
@@ -161,7 +161,7 @@ int samphset(ENVIRON *csound, SAMPHOLD *p)
     return OK;
 }
 
-int ksmphold(ENVIRON *csound, SAMPHOLD *p)
+int ksmphold(CSOUND *csound, SAMPHOLD *p)
 {
     if (*p->xgate > 0.)
       p->state = *p->xsig;
@@ -169,7 +169,7 @@ int ksmphold(ENVIRON *csound, SAMPHOLD *p)
     return OK;
 }
 
-int samphold(ENVIRON *csound, SAMPHOLD *p)
+int samphold(CSOUND *csound, SAMPHOLD *p)
 {
     MYFLT       *ar, *asig, *agate, state;
     int n, nsmps=csound->ksmps;
@@ -201,7 +201,7 @@ int samphold(ENVIRON *csound, SAMPHOLD *p)
     return OK;
 }
 
-int delset(ENVIRON *csound, DELAY *p)
+int delset(CSOUND *csound, DELAY *p)
 {
     long        npts;
     char        *auxp;
@@ -228,7 +228,7 @@ int delset(ENVIRON *csound, DELAY *p)
     return OK;
 }
 
-int delrset(ENVIRON *csound, DELAYR *p)
+int delrset(CSOUND *csound, DELAYR *p)
 {
     long        npts;
     MYFLT       *auxp;
@@ -271,7 +271,7 @@ int delrset(ENVIRON *csound, DELAYR *p)
     return OK;
 }
 
-int delwset(ENVIRON *csound, DELAYW *p)
+int delwset(CSOUND *csound, DELAYW *p)
 {
    /* fifo for delayr pointers by Jens Groh: */
     if (csound->first_delayr == NULL) {
@@ -289,7 +289,7 @@ int delwset(ENVIRON *csound, DELAYW *p)
     return OK;
 }
 
-static DELAYR *delayr_find(ENVIRON *csound, MYFLT *ndx)
+static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
 {
     DELAYR  *d = (DELAYR*) csound->first_delayr;
     int     n = (int) (*ndx + (*ndx < FL(0.0) ? FL(-0.5) : FL(0.5)));
@@ -316,13 +316,13 @@ static DELAYR *delayr_find(ENVIRON *csound, MYFLT *ndx)
     return d;
 }
 
-int tapset(ENVIRON *csound, DELTAP *p)
+int tapset(CSOUND *csound, DELTAP *p)
 {
     p->delayr = delayr_find(csound, p->indx);
     return (p->delayr != NULL ? OK : NOTOK);
 }
 
-int delay(ENVIRON *csound, DELAY *p)
+int delay(CSOUND *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
     int n, nsmps = csound->ksmps;
@@ -345,7 +345,7 @@ int delay(ENVIRON *csound, DELAY *p)
     return OK;
 }
 
-int delayr(ENVIRON *csound, DELAYR *p)
+int delayr(CSOUND *csound, DELAYR *p)
 {
     MYFLT       *ar, *curp, *endp;
     int n, nsmps = csound->ksmps;
@@ -364,7 +364,7 @@ int delayr(ENVIRON *csound, DELAYR *p)
     return OK;
 }
 
-int delayw(ENVIRON *csound, DELAYW *p)
+int delayw(CSOUND *csound, DELAYW *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *asig, *curp, *endp;
@@ -385,7 +385,7 @@ int delayw(ENVIRON *csound, DELAYW *p)
     return OK;
 }
 
-int deltap(ENVIRON *csound, DELTAP *p)
+int deltap(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *endp;
@@ -407,7 +407,7 @@ int deltap(ENVIRON *csound, DELTAP *p)
     return OK;
 }
 
-int deltapi(ENVIRON *csound, DELTAP *p)
+int deltapi(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
@@ -456,7 +456,7 @@ int deltapi(ENVIRON *csound, DELTAP *p)
 
 /* ***** From Hans Mikelson ************* */
 /* Delay N samples */
-int deltapn(ENVIRON *csound, DELTAP *p)
+int deltapn(CSOUND *csound, DELTAP *p)
 {
     DELAYR *q = p->delayr;
     MYFLT *ar, *tap, *begp, *endp;
@@ -500,7 +500,7 @@ int deltapn(ENVIRON *csound, DELTAP *p)
 }
 
 /* **** JPff **** */
-int deltap3(ENVIRON *csound, DELTAP *p)
+int deltap3(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
@@ -573,7 +573,7 @@ int deltap3(ENVIRON *csound, DELTAP *p)
 
 /* deltapx and deltapxw opcodes by Istvan Varga */
 
-int tapxset(ENVIRON *csound, DELTAPX *p)
+int tapxset(CSOUND *csound, DELTAPX *p)
 {
     p->delayr = delayr_find(csound, p->indx);
     if (p->delayr == NULL)
@@ -588,7 +588,7 @@ int tapxset(ENVIRON *csound, DELTAPX *p)
     return OK;
 }
 
-int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
+int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 {
     DELAYR  *q = p->delayr;
     MYFLT   *out1, *del, *buf1, *bufp, *bufend;
@@ -669,7 +669,7 @@ int deltapx(ENVIRON *csound, DELTAPX *p)                /* deltapx opcode */
     return OK;
 }
 
-int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
+int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
 {
     DELAYR  *q = p->delayr;
     MYFLT   *in1, *del, *buf1, *bufp, *bufend;
@@ -750,14 +750,14 @@ int deltapxw(ENVIRON *csound, DELTAPX *p)               /* deltapxw opcode */
     return OK;
 }
 
-int del1set(ENVIRON *csound, DELAY1 *p)
+int del1set(CSOUND *csound, DELAY1 *p)
 {
     if (!(*p->istor))
       p->sav1 = FL(0.0);
     return OK;
 }
 
-int delay1(ENVIRON *csound, DELAY1 *p)
+int delay1(CSOUND *csound, DELAY1 *p)
 {
     MYFLT       *ar, *asig;
     int         n, nsmps = csound->ksmps;
@@ -773,7 +773,7 @@ int delay1(ENVIRON *csound, DELAY1 *p)
     return OK;
 }
 
-int cmbset(ENVIRON *csound, COMB *p)
+int cmbset(CSOUND *csound, COMB *p)
 {
     long        lpsiz, nbytes;
 
@@ -804,7 +804,7 @@ int cmbset(ENVIRON *csound, COMB *p)
     return OK;
 }
 
-int comb(ENVIRON *csound, COMB *p)
+int comb(CSOUND *csound, COMB *p)
 {
     int n, nsmps = csound->ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
@@ -846,7 +846,7 @@ int comb(ENVIRON *csound, COMB *p)
     return OK;
 }
 
-int alpass(ENVIRON *csound, COMB *p)
+int alpass(CSOUND *csound, COMB *p)
 {
     int n, nsmps = csound->ksmps;
     MYFLT       *ar, *asig, *xp, *endp;
@@ -878,7 +878,7 @@ int alpass(ENVIRON *csound, COMB *p)
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
                                     FL(0.0437), FL(0.005), FL(0.0017)};
 
-void reverbinit(ENVIRON *csound)        /* called once by oload */
+void reverbinit(CSOUND *csound)         /* called once by oload */
 {                                       /*  to init reverb data */
     MYFLT       *lptimp = (MYFLT*) revlptimes;
     long        *lpsizp = csound->revlpsiz;
@@ -891,7 +891,7 @@ void reverbinit(ENVIRON *csound)        /* called once by oload */
     }
 }
 
-int rvbset(ENVIRON *csound, REVERB *p)
+int rvbset(CSOUND *csound, REVERB *p)
 {
     if (p->auxch.auxp == NULL) {                        /* if no space yet, */
       long      *sizp = csound->revlpsiz;               /*    allocate it   */
@@ -924,7 +924,7 @@ int rvbset(ENVIRON *csound, REVERB *p)
     return OK;
 }
 
-int reverb(ENVIRON *csound, REVERB *p)
+int reverb(CSOUND *csound, REVERB *p)
 {
     MYFLT       *asig, *p1, *p2, *p3, *p4, *p5, *p6, *ar, *endp;
     int nsmps = csound->ksmps;
@@ -982,7 +982,7 @@ int reverb(ENVIRON *csound, REVERB *p)
     return OK;
 }
 
-int panset(ENVIRON *csound, PAN *p)
+int panset(CSOUND *csound, PAN *p)
 {
     FUNC *ftp;
 
@@ -998,7 +998,7 @@ int panset(ENVIRON *csound, PAN *p)
     return OK;
 }
 
-int pan(ENVIRON *csound, PAN *p)
+int pan(CSOUND *csound, PAN *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
     long        xndx, yndx, flen;

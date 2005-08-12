@@ -82,7 +82,7 @@ void FormSwep_setTargets(FormSwep *p, MYFLT aFreq, MYFLT aReson, MYFLT aGain)
     p->sweepState  = FL(0.0);
 }
 
-MYFLT FormSwep_tick(ENVIRON *csound,
+MYFLT FormSwep_tick(CSOUND *csound,
                     FormSwep *p, MYFLT sample) /* Perform Filter Operation */
 {
     MYFLT temp;
@@ -151,7 +151,7 @@ static MYFLT Samp_tick(Wave *p)
     return lastOutput;
 }
 
-int Moog1set(ENVIRON *csound, MOOG1 *p)
+int Moog1set(CSOUND *csound, MOOG1 *p)
 {
     FUNC        *ftp;
     MYFLT       tempCoeffs[2] = {FL(0.0),-FL(1.0)};
@@ -184,7 +184,7 @@ int Moog1set(ENVIRON *csound, MOOG1 *p)
     return OK;
 }
 
-int Moog1(ENVIRON *csound, MOOG1 *p)
+int Moog1(CSOUND *csound, MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;

@@ -34,7 +34,7 @@
 
 #define ESR     (csound->esr/FL(1000.0))
 
-int vdelset(ENVIRON *csound, VDEL *p)           /*  vdelay set-up   */
+int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
     unsigned long n = (long)(*p->imaxd * ESR)+1;
     MYFLT *buf;
@@ -54,7 +54,7 @@ int vdelset(ENVIRON *csound, VDEL *p)           /*  vdelay set-up   */
     return OK;
 }
 
-int vdelay(ENVIRON *csound, VDEL *p)              /*      vdelay  routine */
+int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
     long  nn, maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
@@ -136,7 +136,7 @@ int vdelay(ENVIRON *csound, VDEL *p)              /*      vdelay  routine */
     return OK;
 }
 
-int vdelay3(ENVIRON *csound, VDEL *p)   /*  vdelay routine with cubic interp */
+int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
 {
     long  nn, maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
@@ -239,7 +239,7 @@ int vdelay3(ENVIRON *csound, VDEL *p)   /*  vdelay routine with cubic interp */
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
 /* coded by Istvan Varga, Mar 2001 */
 
-int vdelxset(ENVIRON *csound, VDELX *p)     /*  vdelayx set-up (1 channel) */
+int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
 {
     unsigned int n = (int)(*p->imaxd * csound->esr);
     unsigned int i;
@@ -262,7 +262,7 @@ int vdelxset(ENVIRON *csound, VDELX *p)     /*  vdelayx set-up (1 channel) */
     return OK;
 }
 
-int vdelxsset(ENVIRON *csound, VDELXS *p)   /*  vdelayxs set-up (stereo) */
+int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
 {
     unsigned int n = (int)(*p->imaxd * csound->esr);
     unsigned int i;
@@ -292,7 +292,7 @@ int vdelxsset(ENVIRON *csound, VDELXS *p)   /*  vdelayxs set-up (stereo) */
     return OK;
 }
 
-int vdelxqset(ENVIRON *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
+int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 {
     unsigned int n = (int)(*p->imaxd * csound->esr);
     unsigned int i;
@@ -329,7 +329,7 @@ int vdelxqset(ENVIRON *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
     return OK;
 }
 
-int vdelayx(ENVIRON *csound, VDELX *p)              /*      vdelayx routine  */
+int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 {
     long  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -391,7 +391,7 @@ int vdelayx(ENVIRON *csound, VDELX *p)              /*      vdelayx routine  */
     return OK;
 }
 
-int vdelayxw(ENVIRON *csound, VDELX *p)     /*      vdelayxw routine  */
+int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 {
     long  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -453,7 +453,7 @@ int vdelayxw(ENVIRON *csound, VDELX *p)     /*      vdelayxw routine  */
     return OK;
 }
 
-int vdelayxs(ENVIRON *csound, VDELXS *p)    /*      vdelayxs routine  */
+int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 {
     long  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -520,7 +520,7 @@ int vdelayxs(ENVIRON *csound, VDELXS *p)    /*      vdelayxs routine  */
     return OK;
 }
 
-int vdelayxws(ENVIRON *csound, VDELXS *p)   /*      vdelayxws routine  */
+int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 {
     long  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -586,7 +586,7 @@ int vdelayxws(ENVIRON *csound, VDELXS *p)   /*      vdelayxws routine  */
     return OK;
 }
 
-int vdelayxq(ENVIRON *csound, VDELXQ *p)    /*      vdelayxq routine  */
+int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 {
     long  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -664,7 +664,7 @@ int vdelayxq(ENVIRON *csound, VDELXQ *p)    /*      vdelayxq routine  */
     return OK;
 }
 
-int vdelayxwq(ENVIRON *csound, VDELXQ *p)   /*      vdelayxwq routine  */
+int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 {
     long  nn, maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
@@ -742,7 +742,7 @@ int vdelayxwq(ENVIRON *csound, VDELXQ *p)   /*      vdelayxwq routine  */
     return OK;
 }
 
-int multitap_set(ENVIRON *csound, MDEL *p)
+int multitap_set(CSOUND *csound, MDEL *p)
 {
     long n;
     MYFLT *buf, max = FL(0.0);
@@ -771,7 +771,7 @@ int multitap_set(ENVIRON *csound, MDEL *p)
     return OK;
 }
 
-int multitap_play(ENVIRON *csound, MDEL *p)
+int multitap_play(CSOUND *csound, MDEL *p)
 {                               /* assign object data to local variables   */
     long  n, nn = csound->ksmps, indx = p->left, delay;
     MYFLT *out = p->sr, *in = p->ain;
@@ -872,7 +872,7 @@ MYFLT ngc_gain[Combs] = {FL(0.822), FL(0.802), FL(0.773),
 MYFLT nga_time[Alpas] = {FL(347.0), FL(113.0), FL(37.0), FL(59.0), FL(43.0)};
 MYFLT nga_gain = FL(0.7);
 
-int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass,
+int nreverb_set(CSOUND *csound, NREV *p)    /* 6-comb/lowpass,
                                                5-allpass reverberator */
 {
     long i, n;
@@ -931,7 +931,7 @@ int nreverb_set(ENVIRON *csound, NREV *p)   /* 6-comb/lowpass,
     return OK;
 }
 
-int nreverb(ENVIRON *csound, NREV *p)
+int nreverb(CSOUND *csound, NREV *p)
 {
     long       i, n = csound->ksmps;
     MYFLT      *in, *out = p->out, *buf, *end;
@@ -1051,7 +1051,7 @@ MYFLT ca_time[orgAlpas] = {FL(0.013533014) /*347.0/25641.0*/,
                            FL(0.0016770017) /*43.0/25641.0*/};
 MYFLT ca_gain[orgAlpas] = {FL(0.7), FL(0.7), FL(0.7), FL(0.7), FL(0.7)};
 
-int reverbx_set(ENVIRON *csound, NREV2 *p)
+int reverbx_set(CSOUND *csound, NREV2 *p)
 {
     long i, n;
     MYFLT *temp;
@@ -1203,7 +1203,7 @@ int reverbx_set(ENVIRON *csound, NREV2 *p)
     return OK;
 }
 
-int reverbx(ENVIRON *csound, NREV2 *p)
+int reverbx(CSOUND *csound, NREV2 *p)
 {
     long       i, n = csound->ksmps;
     MYFLT      *in, *out = p->out, *buf, *end;

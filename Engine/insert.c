@@ -30,12 +30,12 @@
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
 
-static  void    showallocs(ENVIRON *);
-static  void    deact(ENVIRON *, INSDS *);
-static  void    schedofftim(ENVIRON *, INSDS *);
-static  void    instance(ENVIRON *, int);
+static  void    showallocs(CSOUND *);
+static  void    deact(CSOUND *, INSDS *);
+static  void    schedofftim(CSOUND *, INSDS *);
+static  void    instance(CSOUND *, int);
 
-int init0(ENVIRON *csound)
+int init0(CSOUND *csound)
 {
     INSTRTXT  *tp = csound->instrtxtp[0];
     INSDS     *ip;
@@ -53,7 +53,7 @@ int init0(ENVIRON *csound)
     return csound->inerrcnt;                        /*   return errcnt      */
 }
 
-void set_xtratim(ENVIRON *csound, INSDS *ip)
+void set_xtratim(CSOUND *csound, INSDS *ip)
 {
     if (ip->relesing)
       return;
@@ -62,7 +62,7 @@ void set_xtratim(ENVIRON *csound, INSDS *ip)
     ip->relesing = 1;
 }
 
-int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
+int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
                                     /* insert an instr copy into active list */
 {                                   /*      then run an init pass            */
     INSTRTXT  *tp;
@@ -208,7 +208,7 @@ int insert(ENVIRON *csound, int insno, EVTBLK *newevtp)
     return 0;
 }
 
-int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
+int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 /* insert a MIDI instr copy into active list */
 /*  then run an init pass           */
 {
@@ -324,7 +324,7 @@ int MIDIinsert(ENVIRON *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     return 0;
 }
 
-static void showallocs(ENVIRON *csound)     /* debugging aid */
+static void showallocs(CSOUND *csound)      /* debugging aid */
 {
     INSTRTXT *txtp;
     INSDS   *p;
@@ -346,7 +346,7 @@ static void showallocs(ENVIRON *csound)     /* debugging aid */
       }
 }
 
-static void schedofftim(ENVIRON *csound, INSDS *ip)
+static void schedofftim(CSOUND *csound, INSDS *ip)
 {                               /* put an active instr into offtime list  */
     INSDS *prvp, *nxtp;         /* called by insert() & midioff + xtratim */
 
@@ -363,10 +363,10 @@ static void schedofftim(ENVIRON *csound, INSDS *ip)
 }
 
 /* csound.c */
-extern  int     csoundDeinitialiseOpcodes(ENVIRON *csound, INSDS *ip);
-        int     useropcd(ENVIRON *, UOPCODE*);
+extern  int     csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip);
+        int     useropcd(CSOUND *, UOPCODE*);
 
-static void deact(ENVIRON *csound, INSDS *ip)
+static void deact(CSOUND *csound, INSDS *ip)
 {                               /* unlink single instr from activ chain */
     INSDS  *nxtp;               /*      and mark it inactive            */
                                 /*   close any files in fd chain        */
@@ -406,7 +406,7 @@ static void deact(ENVIRON *csound, INSDS *ip)
 /* Turn off a particular insalloc, also remove from list of active */
 /* MIDI notes. Allows for releasing if ip->xtratim > 0. */
 
-void xturnoff(ENVIRON *csound, INSDS *ip) /* turnoff a particular insalloc */
+void xturnoff(CSOUND *csound, INSDS *ip) /* turnoff a particular insalloc */
 {                                         /* called by inexclus on ctrl 111 */
     MCHNBLK *chn;
 
@@ -458,14 +458,14 @@ void xturnoff(ENVIRON *csound, INSDS *ip) /* turnoff a particular insalloc */
 /* Turn off instrument instance immediately, without releasing. */
 /* Removes alloc from list of active MIDI notes. */
 
-void xturnoff_now(ENVIRON *csound, INSDS *ip)
+void xturnoff_now(CSOUND *csound, INSDS *ip)
 {
     ip->xtratim = 0;
     ip->relesing = 0;
     xturnoff(csound, ip);
 }
 
-void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
+void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
 {
     INSTRTXT  *txtp;
     INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
@@ -511,7 +511,7 @@ void orcompact(ENVIRON *csound)         /* free all inactive instr spaces */
       csound->Message(csound, Str("inactive allocs returned to freespace\n"));
 }
 
-void infoff(ENVIRON *csound, MYFLT p1)  /* turn off an indef copy of instr p1 */
+void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
 {                                       /*      called by musmon              */
     INSDS *ip;
     int   insno;
@@ -535,7 +535,7 @@ void infoff(ENVIRON *csound, MYFLT p1)  /* turn off an indef copy of instr p1 */
                     insno);
 }
 
-int csoundInitError(ENVIRON *csound, const char *s, ...)
+int csoundInitError(CSOUND *csound, const char *s, ...)
 {
     va_list args;
     INSDS   *ip;
@@ -573,7 +573,7 @@ int csoundInitError(ENVIRON *csound, const char *s, ...)
     return ++(csound->inerrcnt);
 }
 
-int csoundPerfError(ENVIRON *csound, const char *s, ...)
+int csoundPerfError(CSOUND *csound, const char *s, ...)
 {
     va_list args;
     INSDS   *ip;
@@ -609,7 +609,7 @@ int csoundPerfError(ENVIRON *csound, const char *s, ...)
     putop(csound, &(csound->pds->optext->t));
     csoundMessage(csound, Str("   note aborted\n"));
     csound->perferrcnt++;
-    xturnoff_now((ENVIRON*) csound, ip);      /* rm ins fr actlist */
+    xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
     while (csound->pds->nxtp != NULL)
       csound->pds = csound->pds->nxtp;        /* loop to last opds */
 
@@ -618,7 +618,7 @@ int csoundPerfError(ENVIRON *csound, const char *s, ...)
 
 /* IV - Oct 12 2002: new simplified subinstr functions */
 
-int subinstrset(ENVIRON *csound, SUBINST *p)
+int subinstrset(CSOUND *csound, SUBINST *p)
 {
     OPDS    *saved_ids = csound->ids;
     INSDS   *saved_curip = csound->curip;
@@ -706,9 +706,9 @@ int subinstrset(ENVIRON *csound, SUBINST *p)
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
 /* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
 
-int useropcd1(ENVIRON *, UOPCODE*), useropcd2(ENVIRON *, UOPCODE*);
+int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
 
-int useropcdset(ENVIRON *csound, UOPCODE *p)
+int useropcdset(CSOUND *csound, UOPCODE *p)
 {
     OPARMS  *O = csound->oparms;
     OPDS    *saved_ids = csound->ids;
@@ -847,7 +847,7 @@ int useropcdset(ENVIRON *csound, UOPCODE *p)
 
 /* IV - Sep 17 2002: dummy user opcode function for not initialised case */
 
-int useropcd(ENVIRON *csound, UOPCODE *p)
+int useropcd(CSOUND *csound, UOPCODE *p)
 {
     return csoundPerfError(csound, Str("%s: not initialised"),
                                    p->h.optext->t.opcod);
@@ -855,7 +855,7 @@ int useropcd(ENVIRON *csound, UOPCODE *p)
 
 /* IV - Sep 1 2002: new opcodes: xin, xout */
 
-int xinset(ENVIRON *csound, XIN *p)
+int xinset(CSOUND *csound, XIN *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
@@ -891,7 +891,7 @@ int xinset(ENVIRON *csound, XIN *p)
     return OK;
 }
 
-int xoutset(ENVIRON *csound, XOUT *p)
+int xoutset(CSOUND *csound, XOUT *p)
 {
     OPCOD_IOBUFS  *buf;
     OPCODINFO   *inm;
@@ -930,7 +930,7 @@ int xoutset(ENVIRON *csound, XOUT *p)
 
 /* IV - Sep 8 2002: new opcode: setksmps */
 
-int setksmpsset(ENVIRON *csound, SETKSMPS *p)
+int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
     OPARMS        *O = csound->oparms;
     OPCOD_IOBUFS  *buf;
@@ -964,7 +964,7 @@ int setksmpsset(ENVIRON *csound, SETKSMPS *p)
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */
 /* named instrument) */
 
-int nstrnumset(ENVIRON *csound, NSTRNUM *p)
+int nstrnumset(CSOUND *csound, NSTRNUM *p)
 {
     /* IV - Oct 31 2002 */
     *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, (p->XSTRCODE & 1));
@@ -974,7 +974,7 @@ int nstrnumset(ENVIRON *csound, NSTRNUM *p)
 /* IV - Nov 16 2002: moved insert_event() here to have access to some static */
 /* variables defined in this file */
 
-INSDS *insert_event(ENVIRON *csound,
+INSDS *insert_event(CSOUND *csound,
                     MYFLT instr,
                     MYFLT when,
                     MYFLT dur,
@@ -1139,7 +1139,7 @@ INSDS *insert_event(ENVIRON *csound,
 
 /* IV - Feb 05 2005: changed to double */
 
-void beatexpire(ENVIRON *csound, double beat)
+void beatexpire(CSOUND *csound, double beat)
                                 /* unlink expired notes from activ chain */
 {                               /*      and mark them inactive          */
     INSDS  *ip;                 /*    close any files in each fdchain   */
@@ -1168,7 +1168,7 @@ void beatexpire(ENVIRON *csound, double beat)
 
 /* IV - Feb 05 2005: changed to double */
 
-void timexpire(ENVIRON *csound, double time)
+void timexpire(CSOUND *csound, double time)
                                 /* unlink expired notes from activ chain */
 {                               /*      and mark them inactive           */
     INSDS  *ip;                 /*    close any files in each fdchain    */
@@ -1196,7 +1196,7 @@ void timexpire(ENVIRON *csound, double time)
     }
 }
 
-int subinstr(ENVIRON *csound, SUBINST *p)
+int subinstr(CSOUND *csound, SUBINST *p)
 {
     OPDS    *saved_pds = csound->pds;
     int     saved_sa = csound->spoutactive;
@@ -1246,7 +1246,7 @@ int subinstr(ENVIRON *csound, SUBINST *p)
 
 /* IV - Sep 17 2002 -- case 1: local ksmps is used */
 
-int useropcd1(ENVIRON *csound, UOPCODE *p)
+int useropcd1(CSOUND *csound, UOPCODE *p)
 {
     OPARMS  *O = csound->oparms;
     OPDS    *saved_pds = csound->pds;
@@ -1347,7 +1347,7 @@ int useropcd1(ENVIRON *csound, UOPCODE *p)
 
 /* IV - Sep 17 2002 -- case 2: simplified routine for no local ksmps */
 
-int useropcd2(ENVIRON *csound, UOPCODE *p)
+int useropcd2(CSOUND *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = csound->pds;
     int     n;
@@ -1412,7 +1412,7 @@ int useropcd2(ENVIRON *csound, UOPCODE *p)
     return OK;
 }
 
-static void instance(ENVIRON *csound, int insno)
+static void instance(CSOUND *csound, int insno)
 {                               /* create instance of an instr template */
     INSTRTXT *tp;               /*   allocates and sets up all pntrs    */
     INSDS   *ip;
@@ -1589,7 +1589,7 @@ static void instance(ENVIRON *csound, int insno)
       *largp->argpp = (MYFLT *) lopds[largp->lblno]; /* now label refs */
 }
 
-int prealloc(ENVIRON *csound, AOP *p)
+int prealloc(CSOUND *csound, AOP *p)
 {
     int     n, a;
 

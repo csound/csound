@@ -38,11 +38,11 @@ template<typename T>
 class OpcodeBase
 {
 public:
-  int init(ENVIRON *csound)
+  int init(CSOUND *csound)
   {
     return NOTOK;
   }
-  static int init_(ENVIRON *csound, void *opcode_)
+  static int init_(CSOUND *csound, void *opcode_)
   {
     T *opcode = reinterpret_cast<T *>(opcode_);
     if (!csound->reinitflag && !csound->tieflag)
@@ -50,31 +50,31 @@ public:
                                      &opcode->h, OpcodeBase<T>::noteoff_);
     return opcode->init(csound);
   }
-  int kontrol(ENVIRON *csound)
+  int kontrol(CSOUND *csound)
   {
     return NOTOK;
   }
-  static int kontrol_(ENVIRON *csound, void *opcode)
+  static int kontrol_(CSOUND *csound, void *opcode)
   {
     return reinterpret_cast<T *>(opcode)->kontrol(csound);
   }
-  int audio(ENVIRON *csound)
+  int audio(CSOUND *csound)
   {
     return NOTOK;
   }
-  static int audio_(ENVIRON *csound, void *opcode)
+  static int audio_(CSOUND *csound, void *opcode)
   {
     return reinterpret_cast<T *>(opcode)->audio(csound);
   }
-  int noteoff(ENVIRON *csound)
+  int noteoff(CSOUND *csound)
   {
     return OK;
   }
-  static int noteoff_(ENVIRON *csound, void *opcode)
+  static int noteoff_(CSOUND *csound, void *opcode)
   {
     return reinterpret_cast< OpcodeBase<T> *>(opcode)->noteoff(csound);
   }
-  void log(ENVIRON *csound, const char *format,...)
+  void log(CSOUND *csound, const char *format,...)
   {
     va_list args;
     va_start(args, format);
@@ -86,7 +86,7 @@ public:
     }
     va_end(args);
   }
-  void warn(ENVIRON *csound, const char *format,...)
+  void warn(CSOUND *csound, const char *format,...)
   {
     va_list args;
     va_start(args, format);
@@ -105,3 +105,4 @@ public:
 };
 
 #endif
+

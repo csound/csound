@@ -28,26 +28,26 @@
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
 
-int igoto(ENVIRON *csound, GOTO *p)
+int igoto(CSOUND *csound, GOTO *p)
 {
     csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int kgoto(ENVIRON *csound, GOTO *p)
+int kgoto(CSOUND *csound, GOTO *p)
 {
     csound->pds = p->lblblk->prvp;
     return OK;
 }
 
-int icgoto(ENVIRON *csound, CGOTO *p)
+int icgoto(CSOUND *csound, CGOTO *p)
 {
     if (*p->cond)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int kcgoto(ENVIRON *csound, CGOTO *p)
+int kcgoto(CSOUND *csound, CGOTO *p)
 {
     if (*p->cond)
       csound->pds = p->lblblk->prvp;
@@ -55,7 +55,7 @@ int kcgoto(ENVIRON *csound, CGOTO *p)
 }
 
 /* an 'if-then' variant of 'if-goto' */
-int ingoto(ENVIRON *csound, CGOTO *p)
+int ingoto(CSOUND *csound, CGOTO *p)
 {
     /* Make sure we have an i-time conditional */
     if (p->h.optext->t.intype == 'b' && !*p->cond)
@@ -63,7 +63,7 @@ int ingoto(ENVIRON *csound, CGOTO *p)
     return OK;
 }
 
-int kngoto(ENVIRON *csound, CGOTO *p)
+int kngoto(CSOUND *csound, CGOTO *p)
 {
     if (!*p->cond)
       csound->pds = p->lblblk->prvp;
@@ -72,20 +72,20 @@ int kngoto(ENVIRON *csound, CGOTO *p)
 
 /* an i-rate version that ALWAYS jumps at p-time */
 
-int iingoto(ENVIRON *csound, CGOTO *p)
+int iingoto(CSOUND *csound, CGOTO *p)
 {
     if (!*p->cond)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int kingoto(ENVIRON *csound, CGOTO *p)
+int kingoto(CSOUND *csound, CGOTO *p)
 {
     csound->pds = p->lblblk->prvp;
     return OK;
 }
 
-int timset(ENVIRON *csound, TIMOUT *p)
+int timset(CSOUND *csound, TIMOUT *p)
 {
     if ((p->cnt1 = (long)(*p->idel * csound->ekr + FL(0.5))) < 0L
         || (p->cnt2 = (long)(*p->idur * csound->ekr + FL(0.5))) < 0L)
@@ -93,7 +93,7 @@ int timset(ENVIRON *csound, TIMOUT *p)
     return OK;
 }
 
-int timout(ENVIRON *csound, TIMOUT *p)
+int timout(CSOUND *csound, TIMOUT *p)
 {
     if (p->cnt1)                            /* once delay has expired, */
       p->cnt1--;
@@ -102,13 +102,13 @@ int timout(ENVIRON *csound, TIMOUT *p)
     return OK;
 }
 
-int rireturn(ENVIRON *csound, LINK *p)
+int rireturn(CSOUND *csound, LINK *p)
 {
     IGN(p);
     return OK;
 }
 
-int reinit(ENVIRON *csound, GOTO *p)
+int reinit(CSOUND *csound, GOTO *p)
 {
     csound->reinitflag = 1;
     csound->curip = p->h.insdshead;
@@ -120,28 +120,28 @@ int reinit(ENVIRON *csound, GOTO *p)
     return OK;
 }
 
-int rigoto(ENVIRON *csound, GOTO *p)
+int rigoto(CSOUND *csound, GOTO *p)
 {
     if (csound->reinitflag)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int tigoto(ENVIRON *csound, GOTO *p)    /* I-time only, NOP at reinit */
+int tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
 {
     if (csound->tieflag && !csound->reinitflag)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int tival(ENVIRON *csound, EVAL *p)     /* I-time only, NOP at reinit */
+int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 {
     if (!csound->reinitflag)
       *p->r = (csound->tieflag ? FL(1.0) : FL(0.0));
     return OK;
 }
 
-int ihold(ENVIRON *csound, LINK *p)     /* make this note indefinit duration */
+int ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
 {                                       /* called by ihold statmnt at Itime  */
     if (!csound->reinitflag) {          /* no-op at reinit                   */
       csound->curip->offbet = -1.0;
@@ -150,7 +150,7 @@ int ihold(ENVIRON *csound, LINK *p)     /* make this note indefinit duration */
     return OK;
 }
 
-int turnoff(ENVIRON *csound, LINK *p)   /* terminate the current instrument  */
+int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     INSDS  *lcurip = csound->pds->insdshead;
     /* IV - Oct 16 2002: check for subinstr and user opcode */
@@ -166,7 +166,7 @@ int turnoff(ENVIRON *csound, LINK *p)   /* terminate the current instrument  */
 
 /* turnoff2 opcode */
 
-int turnoff2(ENVIRON *csound, TURNOFF2 *p)
+int turnoff2(CSOUND *csound, TURNOFF2 *p)
 {
     MYFLT p1;
     INSDS *ip, *ip2;
@@ -222,7 +222,7 @@ int turnoff2(ENVIRON *csound, TURNOFF2 *p)
     return OK;
 }
 
-int loop_l_i(ENVIRON *csound, LOOP_OPS *p)
+int loop_l_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar += iincr) < ilimit) igoto l */
     *(p->ndxvar) += *(p->incr);
@@ -231,7 +231,7 @@ int loop_l_i(ENVIRON *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_le_i(ENVIRON *csound, LOOP_OPS *p)
+int loop_le_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar += iincr) <= ilimit) igoto l */
     *(p->ndxvar) += *(p->incr);
@@ -240,7 +240,7 @@ int loop_le_i(ENVIRON *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_g_i(ENVIRON *csound, LOOP_OPS *p)
+int loop_g_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar -= idecr) > ilimit) igoto l */
     *(p->ndxvar) -= *(p->incr);
@@ -249,7 +249,7 @@ int loop_g_i(ENVIRON *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_ge_i(ENVIRON *csound, LOOP_OPS *p)
+int loop_ge_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar -= idecr) >= ilimit) igoto l */
     *(p->ndxvar) -= *(p->incr);
@@ -258,7 +258,7 @@ int loop_ge_i(ENVIRON *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_l_p(ENVIRON *csound, LOOP_OPS *p)
+int loop_l_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar += kincr) < klimit) kgoto l */
     *(p->ndxvar) += *(p->incr);
@@ -267,7 +267,7 @@ int loop_l_p(ENVIRON *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_le_p(ENVIRON *csound, LOOP_OPS *p)
+int loop_le_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar += kincr) <= klimit) kgoto l */
     *(p->ndxvar) += *(p->incr);
@@ -276,7 +276,7 @@ int loop_le_p(ENVIRON *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_g_p(ENVIRON *csound, LOOP_OPS *p)
+int loop_g_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar -= kdecr) > klimit) kgoto l */
     *(p->ndxvar) -= *(p->incr);
@@ -285,7 +285,7 @@ int loop_g_p(ENVIRON *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_ge_p(ENVIRON *csound, LOOP_OPS *p)
+int loop_ge_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar -= kdecr) >= klimit) kgoto l */
     *(p->ndxvar) -= *(p->incr);

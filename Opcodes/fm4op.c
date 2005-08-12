@@ -132,7 +132,7 @@ void build_FM(void)
     FM_tabs_built = 1;
 }
 
-int make_FM4Op(ENVIRON *csound, FM4OP *p)
+int make_FM4Op(CSOUND *csound, FM4OP *p)
 {
     MYFLT       tempCoeffs[2] = {FL(0.0), -FL(1.0)};
     FUNC        *ftp;
@@ -163,7 +163,7 @@ int make_FM4Op(ENVIRON *csound, FM4OP *p)
     return OK;
 }
 
-static int FM4Op_loadWaves(ENVIRON *csound, FM4OP *p)
+static int FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
 {
     FUNC        *ftp;
 
@@ -266,7 +266,7 @@ MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 /*  Recoded in C by John ffitch 1997-98                        */
 /***************************************************************/
 
-int tubebellset(ENVIRON *csound, FM4OP *p)
+int tubebellset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -304,7 +304,7 @@ int tubebellset(ENVIRON *csound, FM4OP *p)
     return OK;
 }
 
-int tubebell(ENVIRON *csound, FM4OP *p)
+int tubebell(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -337,7 +337,7 @@ int tubebell(ENVIRON *csound, FM4OP *p)
 /*  Recoded in C by John ffitch 1997-98                          */
 /*****************************************************************/
 
-int rhodeset(ENVIRON *csound, FM4OP *p)
+int rhodeset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -382,7 +382,7 @@ int rhodeset(ENVIRON *csound, FM4OP *p)
 /*  Recoded in C by John ffitch 1997-98                        */
 /***************************************************************/
 
-int wurleyset(ENVIRON *csound, FM4OP *p)
+int wurleyset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -420,7 +420,7 @@ int wurleyset(ENVIRON *csound, FM4OP *p)
     return OK;
 }
 
-int wurley(ENVIRON *csound, FM4OP *p)
+int wurley(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -496,7 +496,7 @@ MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2)
     return lastOutput;
 }
 
-int heavymetset(ENVIRON *csound, FM4OP *p)
+int heavymetset(CSOUND *csound, FM4OP *p)
 {
     if (make_FM4Op(csound,p)) return NOTOK;
     if (FM4Op_loadWaves(csound,p)) return NOTOK;  /* Mixed -- 2 x sine;
@@ -522,7 +522,7 @@ int heavymetset(ENVIRON *csound, FM4OP *p)
     return OK;
 }
 
-int heavymet(ENVIRON *csound, FM4OP *p)
+int heavymet(CSOUND *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
     int         n, nsmps = csound->ksmps;
@@ -598,7 +598,7 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 /*  Recoded in C by John ffitch 1997-98                       */
 /**************************************************************/
 
-int b3set(ENVIRON *csound, FM4OP *p)
+int b3set(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -629,7 +629,7 @@ int b3set(ENVIRON *csound, FM4OP *p)
     return OK;
 }
 
-int hammondB3(ENVIRON *csound, FM4OP *p)
+int hammondB3(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -675,7 +675,7 @@ int hammondB3(ENVIRON *csound, FM4OP *p)
 /*                                                          */
 /************************************************************/
 
-MYFLT FM4Alg6_tick(ENVIRON *csound, FM4OPV *q)
+MYFLT FM4Alg6_tick(CSOUND *csound, FM4OPV *q)
 {
     MYFLT       temp,temp2;
     FM4OP       *p = (FM4OP*)q;
@@ -932,7 +932,7 @@ void FMVoices_setFreq(FM4OPV *q, MYFLT frequency)
     q->gains[2] = FL(1.0);  /* pow(10.0f,phonParams[tempi2][2][2] * 0.05f); */
 }
 
-int FMVoiceset(ENVIRON *csound, FM4OPV *q)
+int FMVoiceset(CSOUND *csound, FM4OPV *q)
 {
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
@@ -980,7 +980,7 @@ int FMVoiceset(ENVIRON *csound, FM4OPV *q)
     return OK;
 }
 
-int FMVoice(ENVIRON *csound, FM4OPV *q)
+int FMVoice(CSOUND *csound, FM4OPV *q)
 {
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
@@ -1021,7 +1021,7 @@ int FMVoice(ENVIRON *csound, FM4OPV *q)
 /*                                                       */
 /*********************************************************/
 
-MYFLT FM4Alg4_tick(ENVIRON *csound, FM4OP *p, MYFLT c1, MYFLT c2)
+MYFLT FM4Alg4_tick(CSOUND *csound, FM4OP *p, MYFLT c1, MYFLT c2)
 {
     MYFLT       temp;
     MYFLT       lastOutput;
@@ -1057,7 +1057,7 @@ MYFLT FM4Alg4_tick(ENVIRON *csound, FM4OP *p, MYFLT c1, MYFLT c2)
     return lastOutput;
 }
 
-int percfluteset(ENVIRON *csound, FM4OP *p)
+int percfluteset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -1094,7 +1094,7 @@ int percfluteset(ENVIRON *csound, FM4OP *p)
     return OK;
 }
 
-int percflute(ENVIRON *csound, FM4OP *p)
+int percflute(CSOUND *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
     int         n, nsmps = csound->ksmps;

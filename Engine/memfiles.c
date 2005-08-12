@@ -30,7 +30,7 @@
 extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 #define name_hash(x,y) (strhash_tabl_8[(unsigned char) x ^ (unsigned char) y])
 
-static int Load_File_(ENVIRON *csound,
+static int Load_File_(CSOUND *csound,
                       const char *filnam, char **allocp, long *len)
 {
     FILE *f;
@@ -60,7 +60,7 @@ static int Load_File_(ENVIRON *csound,
     return 1;
 }
 
-MEMFIL *ldmemfile(ENVIRON *csound, const char *filnam)
+MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
 {                               /* read an entire file into memory and log it */
     MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
     char    *allocp;            /* if not fullpath, look in current directory,*/
@@ -108,7 +108,7 @@ MEMFIL *ldmemfile(ENVIRON *csound, const char *filnam)
 
 /* clear the memfile array, & free all allocated space */
 
-void rlsmemfiles(ENVIRON *csound)
+void rlsmemfiles(CSOUND *csound)
 {
     MEMFIL  *mfp = csound->memfiles, *nxt;
 
@@ -121,7 +121,7 @@ void rlsmemfiles(ENVIRON *csound)
     csound->memfiles = NULL;
 }
 
-int delete_memfile(ENVIRON *csound, const char *filnam)
+int delete_memfile(CSOUND *csound, const char *filnam)
 {
     MEMFIL  *mfp, *prv;
 
@@ -159,7 +159,7 @@ int delete_memfile(ENVIRON *csound, const char *filnam)
 
 /* RWD NB PVOCEX format always 32bit, so no MYFLTs here! */
 
-static int pvx_err_msg(ENVIRON *csound, const char *fmt, ...)
+static int pvx_err_msg(CSOUND *csound, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -168,7 +168,7 @@ static int pvx_err_msg(ENVIRON *csound, const char *fmt, ...)
     return -1;
 }
 
-int PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p)
+int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
 {
     PVOCDATA      pvdata;
     WAVEFORMATEX  fmt;
@@ -307,7 +307,7 @@ int PVOCEX_LoadFile(ENVIRON *csound, const char *fname, PVOCEX_MEMFILE *p)
  * be undefined in this case).
  */
 
-SNDMEMFILE *csoundLoadSoundFile(ENVIRON *csound, const char *fileName,
+SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
                                                  SF_INFO *sfinfo)
 {
     SNDFILE       *sf;

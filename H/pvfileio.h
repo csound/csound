@@ -144,22 +144,22 @@ extern  const GUID KSDATAFORMAT_SUBTYPE_PVOC;
 
 /* pvoc file handling functions */
 
-const char *pvoc_errorstr(ENVIRON *);
-int     init_pvsys(ENVIRON *);
-int     pvoc_createfile(ENVIRON *, const char *,
+const char *pvoc_errorstr(CSOUND *);
+int     init_pvsys(CSOUND *);
+int     pvoc_createfile(CSOUND *, const char *,
                         unsigned long, unsigned long, unsigned long,
                         unsigned long, long, int, int,
                         float, float *, unsigned long);
-int     pvoc_openfile(ENVIRON *,
+int     pvoc_openfile(CSOUND *,
                       const char *filename, PVOCDATA *data, WAVEFORMATEX *fmt);
-int     pvoc_closefile(ENVIRON *, int);
-int     pvoc_putframes(ENVIRON *,
+int     pvoc_closefile(CSOUND *, int);
+int     pvoc_putframes(CSOUND *,
                        int ofd, const float *frame, long numframes);
-int     pvoc_getframes(ENVIRON *,
+int     pvoc_getframes(CSOUND *,
                        int ifd, float *frames, unsigned long nframes);
-int     pvoc_framecount(ENVIRON *, int ifd);
-int     pvoc_rewind(ENVIRON *, int ifd, int skip_first_frame);
-int     pvsys_release(ENVIRON *);
+int     pvoc_framecount(CSOUND *, int ifd);
+int     pvoc_rewind(CSOUND *, int ifd, int skip_first_frame);
+int     pvsys_release(CSOUND *);
 
 #endif  /* CSOUND_CSDL_H */
 

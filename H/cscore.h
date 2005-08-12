@@ -53,20 +53,21 @@ typedef struct {
         EVENT *e[1];
 } EVLIST;
 
-EVENT  *createv(ENVIRON *, int), *defev(ENVIRON *, char*), *getev(ENVIRON *);
-EVENT  *copyev(ENVIRON *, EVENT*);
-EVLIST *lcreat(ENVIRON *, int), *lappev(ENVIRON *, EVLIST*,EVENT*);
-EVLIST *lappstrev(ENVIRON *,EVLIST*,char*);
-EVLIST *lget(ENVIRON *), *lgetnext(ENVIRON *,MYFLT), *lgetuntil(ENVIRON*,MYFLT),
-       *lcopy(ENVIRON *, EVLIST*);
-EVLIST *lcopyev(ENVIRON *, EVLIST*), *lxins(ENVIRON *,EVLIST*,char*),
-       *lxtimev(ENVIRON *,EVLIST*,MYFLT,MYFLT);
-EVLIST *lsepf(ENVIRON *, EVLIST*), *lseptwf(ENVIRON *, EVLIST*),
-       *lcat(ENVIRON *,EVLIST*,EVLIST*);
-void    putstr(ENVIRON *, char*), putev(ENVIRON *, EVENT*), relev(EVENT*),
-        lput(ENVIRON *, EVLIST*);
+EVENT  *createv(CSOUND *, int), *defev(CSOUND *, char*), *getev(CSOUND *);
+EVENT  *copyev(CSOUND *, EVENT*);
+EVLIST *lcreat(CSOUND *, int), *lappev(CSOUND *, EVLIST*,EVENT*);
+EVLIST *lappstrev(CSOUND *,EVLIST*,char*);
+EVLIST *lget(CSOUND *), *lgetnext(CSOUND *,MYFLT), *lgetuntil(CSOUND*,MYFLT),
+       *lcopy(CSOUND *, EVLIST*);
+EVLIST *lcopyev(CSOUND *, EVLIST*), *lxins(CSOUND *,EVLIST*,char*),
+       *lxtimev(CSOUND *,EVLIST*,MYFLT,MYFLT);
+EVLIST *lsepf(CSOUND *, EVLIST*), *lseptwf(CSOUND *, EVLIST*),
+       *lcat(CSOUND *,EVLIST*,EVLIST*);
+void    putstr(CSOUND *, char*), putev(CSOUND *, EVENT*), relev(EVENT*),
+        lput(CSOUND *, EVLIST*);
 void lsort(EVLIST*), lrel(EVLIST*), lrelev(EVLIST*);
-int lplay(ENVIRON *,EVLIST*);
+int lplay(CSOUND *,EVLIST*);
 int lcount(EVLIST *);
-FILE *filopen(ENVIRON *, char*), *getcurfp(ENVIRON *);
-void filclose(ENVIRON *, FILE*), setcurfp(ENVIRON *, FILE*);
+FILE *filopen(CSOUND *, char*), *getcurfp(CSOUND *);
+void filclose(CSOUND *, FILE*), setcurfp(CSOUND *, FILE*);
+

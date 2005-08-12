@@ -63,7 +63,7 @@ typedef struct DLineL{
 } DLineL;
 
 #define DLineL_lastOut(d)       ((d)->lastOutput)
-void make_DLineL(ENVIRON *,DLineL *, long);
+void make_DLineL(CSOUND *,DLineL *, long);
 void DLineL_setDelay(DLineL *, MYFLT);
 MYFLT DLineL_tick(DLineL *, MYFLT);
 
@@ -93,11 +93,11 @@ typedef struct Envelope {
 void make_Envelope(Envelope*);
 void Envelope_keyOn(Envelope*);
 void Envelope_keyOff(Envelope*);
-void Envelope_setRate(ENVIRON *,Envelope*, MYFLT);
+void Envelope_setRate(CSOUND *,Envelope*, MYFLT);
 void Envelope_setTarget(Envelope*, MYFLT);
 void Envelope_setValue(Envelope*,MYFLT);
 MYFLT Envelope_tick(Envelope*);
-void Envelope_print(ENVIRON *,Envelope*);
+void Envelope_print(CSOUND *,Envelope*);
 
 /*******************************************/
 /*  One Pole Filter Class,                 */
@@ -128,7 +128,7 @@ void make_OnePole(OnePole*);
 void OnePole_setPole(OnePole*, MYFLT aValue);
 void OnePole_setGain(OnePole*, MYFLT aValue);
 MYFLT OnePole_tick(OnePole*, MYFLT sample);
-void OnePole_print(ENVIRON*, OnePole*);
+void OnePole_print(CSOUND*, OnePole*);
 
 /*******************************************/
 /*  DC Blocking Filter                     */
@@ -185,14 +185,14 @@ void make_ADSR(ADSR*);
 void dest_ADSR(ADSR*);
 void ADSR_keyOn(ADSR*);
 void ADSR_keyOff(ADSR*);
-void ADSR_setAttackRate(ENVIRON *,ADSR*, MYFLT);
-void ADSR_setDecayRate(ENVIRON *,ADSR*, MYFLT);
-void ADSR_setSustainLevel(ENVIRON *,ADSR*, MYFLT);
-void ADSR_setReleaseRate(ENVIRON *,ADSR*, MYFLT);
-void ADSR_setAll(ENVIRON *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
-void ADSR_setAllTimes(ENVIRON *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
-void ADSR_setTarget(ENVIRON *,ADSR*, MYFLT);
-void ADSR_setValue(ENVIRON *,ADSR*, MYFLT);
+void ADSR_setAttackRate(CSOUND *,ADSR*, MYFLT);
+void ADSR_setDecayRate(CSOUND *,ADSR*, MYFLT);
+void ADSR_setSustainLevel(CSOUND *,ADSR*, MYFLT);
+void ADSR_setReleaseRate(CSOUND *,ADSR*, MYFLT);
+void ADSR_setAll(CSOUND *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
+void ADSR_setAllTimes(CSOUND *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
+void ADSR_setTarget(CSOUND *,ADSR*, MYFLT);
+void ADSR_setValue(CSOUND *,ADSR*, MYFLT);
 MYFLT ADSR_tick(ADSR*);
 int ADSR_informTick(ADSR*);
 MYFLT ADSR_lastOut(ADSR*);

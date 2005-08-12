@@ -27,7 +27,7 @@
 #include "csmodule.h"
 #include <ctype.h>
 
-extern void strset_option(ENVIRON *csound, char *s);    /* from str_ops.c */
+extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 #define FIND(MSG)   if (*s == '\0')  \
                       if (!(--argc) || (((s = *++argv) != NULL) && *s == '-')) \
@@ -43,7 +43,7 @@ extern void strset_option(ENVIRON *csound, char *s);    /* from str_ops.c */
 
 /* IV - Feb 19 2005 */
 
-static void set_stdin_assign(ENVIRON *csound, int type, int state)
+static void set_stdin_assign(CSOUND *csound, int type, int state)
 {
   int *n;
   n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
@@ -58,7 +58,7 @@ static void set_stdin_assign(ENVIRON *csound, int type, int state)
     *n &= (~type);
 }
 
-static void set_stdout_assign(ENVIRON *csound, int type, int state)
+static void set_stdout_assign(CSOUND *csound, int type, int state)
 {
   int *n;
   n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
@@ -197,7 +197,7 @@ static const char *longUsageList[] = {
 };
 
 /* IV - Feb 19 2005 */
-void print_short_usage(ENVIRON *csound)
+void print_short_usage(CSOUND *csound)
 {
   char    buf[256];
   int     i;
@@ -211,7 +211,7 @@ void print_short_usage(ENVIRON *csound)
                   IOBUFSAMPS, IODACSAMPS, csound->oparms->msglevel);
 }
 
-static void longusage(ENVIRON *p)
+static void longusage(CSOUND *p)
 {
   char  **sp;
   p->Message(p, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
@@ -226,7 +226,7 @@ static void longusage(ENVIRON *p)
   p->LongJmp(p, 0);
 }
 
-void dieu(ENVIRON *csound, char *s, ...)
+void dieu(CSOUND *csound, char *s, ...)
 {
     va_list args;
 
@@ -297,7 +297,7 @@ SAMPLE_FORMAT_ENTRY sample_format_map[] = {
   {0, 0}
 };
 
-static int decode_long(ENVIRON *csound, char *s, int argc, char **argv)
+static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     /* Add other long options here */
@@ -688,7 +688,7 @@ static int decode_long(ENVIRON *csound, char *s, int argc, char **argv)
     return (0);
 }
 
-int argdecode(ENVIRON *csound, int argc, char **argv_)
+int argdecode(CSOUND *csound, int argc, char **argv_)
 {
   OPARMS  *O = csound->oparms;
   char    *s, **argv;

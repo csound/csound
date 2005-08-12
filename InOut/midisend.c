@@ -25,7 +25,7 @@
 #include "csoundCore.h"                                 /*    MIDISEND.C    */
 #include "midioops.h"
 
-void send_midi_message(ENVIRON *csound, int status, int data1, int data2)
+void send_midi_message(CSOUND *csound, int status, int data1, int data2)
 {
     unsigned char buf[4];
 
@@ -53,42 +53,42 @@ void send_midi_message(ENVIRON *csound, int status, int data1, int data2)
     }
 }
 
-void note_on(ENVIRON *csound, int chan, int num, int vel)
+void note_on(CSOUND *csound, int chan, int num, int vel)
 {
     send_midi_message(csound, (chan & 0x0F) | MD_NOTEON, num, vel);
 }
 
-void note_off(ENVIRON *csound, int chan, int num, int vel)
+void note_off(CSOUND *csound, int chan, int num, int vel)
 {
     send_midi_message(csound, (chan & 0x0F) | MD_NOTEOFF, num, vel);
 }
 
-void control_change(ENVIRON *csound, int chan, int num, int value)
+void control_change(CSOUND *csound, int chan, int num, int value)
 {
     send_midi_message(csound, (chan & 0x0F) | MD_CNTRLCHG, num, value);
 }
 
-void after_touch(ENVIRON *csound, int chan, int value)
+void after_touch(CSOUND *csound, int chan, int value)
 {
     send_midi_message(csound, (chan & 0x0F) | MD_CHANPRESS, value, 0);
 }
 
-void program_change(ENVIRON *csound, int chan, int num)
+void program_change(CSOUND *csound, int chan, int num)
 {
     send_midi_message(csound, (chan & 0x0F) | MD_PGMCHG, num, 0);
 }
 
-void pitch_bend(ENVIRON *csound, int chan, int lsb, int msb)
+void pitch_bend(CSOUND *csound, int chan, int lsb, int msb)
 {
     send_midi_message(csound, (chan & 0x0F) | MD_PTCHBENDCHG, lsb, msb);
 }
 
-void poly_after_touch(ENVIRON *csound, int chan, int note_num, int value)
+void poly_after_touch(CSOUND *csound, int chan, int note_num, int value)
 {
     send_midi_message(csound, (chan & 0x0F) | MD_POLYAFTER, note_num, value);
 }
 
-void openMIDIout(ENVIRON *csound)
+void openMIDIout(CSOUND *csound)
 {
     int retval;
 

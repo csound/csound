@@ -36,63 +36,63 @@
 extern "C" {
 #endif
 
-void    cscorinit(ENVIRON *), cscore(ENVIRON *);
-void    *mmalloc(ENVIRON *, size_t);
-void    *mcalloc(ENVIRON *, size_t);
-void    *mrealloc(ENVIRON *, void*, size_t), mfree(ENVIRON *, void*);
-void    csoundAuxAlloc(ENVIRON *, long, AUXCH *), auxchfree(ENVIRON *, INSDS *);
-void    fdrecord(ENVIRON *, FDCH *), fdclose(ENVIRON *, FDCH *);
-void    fdchclose(ENVIRON *, INSDS *);
-CS_PRINTF2  void    synterr(ENVIRON *, const char *, ...);
-CS_NORETURN CS_PRINTF2  void    csoundDie(ENVIRON *, const char *, ...);
-CS_PRINTF2  int     csoundInitError(ENVIRON *, const char *, ...);
-CS_PRINTF2  int     csoundPerfError(ENVIRON *, const char *, ...);
-CS_PRINTF2  void    csoundWarning(ENVIRON *, const char *, ...);
-CS_PRINTF2  void    csoundDebugMsg(ENVIRON *, const char *, ...);
-CS_PRINTF2  void    csoundErrorMsg(ENVIRON *, const char *, ...);
-void    csoundErrMsgV(ENVIRON *, const char *, const char *, va_list);
-CS_NORETURN void    csoundLongJmp(ENVIRON *, int retval);
-void    putop(ENVIRON *, TEXT *), putstrg(char *);
-void    rdorchfile(ENVIRON *), otran(ENVIRON *);
-char    argtyp(ENVIRON *, char *);
-TEXT    *getoptxt(ENVIRON *, int *);
-int     express(ENVIRON *, char *);
-int     getopnum(ENVIRON *, char *), lgexist(ENVIRON *, const char *);
-void    oload(ENVIRON *);
-void    reverbinit(ENVIRON *);
-void    dispinit(ENVIRON *);
-int     init0(ENVIRON *);
-PUBLIC  void    scsort(ENVIRON *, FILE *, FILE *);
-PUBLIC  int     scxtract(ENVIRON *, FILE *, FILE *, FILE *);
-int     rdscor(ENVIRON *, EVTBLK *);
-int     musmon(ENVIRON *);
-void    RTLineset(ENVIRON *);
-FUNC    *csoundFTFind(ENVIRON *, MYFLT*);
-FUNC    *csoundFTFindP(ENVIRON *, MYFLT*);
-FUNC    *csoundFTnp2Find(ENVIRON *, MYFLT*);
-MYFLT   *csoundGetTable(ENVIRON *, int, int*);
-void    cs_beep(ENVIRON *);
+void    cscorinit(CSOUND *), cscore(CSOUND *);
+void    *mmalloc(CSOUND *, size_t);
+void    *mcalloc(CSOUND *, size_t);
+void    *mrealloc(CSOUND *, void*, size_t), mfree(CSOUND *, void*);
+void    csoundAuxAlloc(CSOUND *, long, AUXCH *), auxchfree(CSOUND *, INSDS *);
+void    fdrecord(CSOUND *, FDCH *), fdclose(CSOUND *, FDCH *);
+void    fdchclose(CSOUND *, INSDS *);
+CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
+CS_NORETURN CS_PRINTF2  void    csoundDie(CSOUND *, const char *, ...);
+CS_PRINTF2  int     csoundInitError(CSOUND *, const char *, ...);
+CS_PRINTF2  int     csoundPerfError(CSOUND *, const char *, ...);
+CS_PRINTF2  void    csoundWarning(CSOUND *, const char *, ...);
+CS_PRINTF2  void    csoundDebugMsg(CSOUND *, const char *, ...);
+CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
+void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
+CS_NORETURN void    csoundLongJmp(CSOUND *, int retval);
+void    putop(CSOUND *, TEXT *), putstrg(char *);
+void    rdorchfile(CSOUND *), otran(CSOUND *);
+char    argtyp(CSOUND *, char *);
+TEXT    *getoptxt(CSOUND *, int *);
+int     express(CSOUND *, char *);
+int     getopnum(CSOUND *, char *), lgexist(CSOUND *, const char *);
+void    oload(CSOUND *);
+void    reverbinit(CSOUND *);
+void    dispinit(CSOUND *);
+int     init0(CSOUND *);
+PUBLIC  void    scsort(CSOUND *, FILE *, FILE *);
+PUBLIC  int     scxtract(CSOUND *, FILE *, FILE *, FILE *);
+int     rdscor(CSOUND *, EVTBLK *);
+int     musmon(CSOUND *);
+void    RTLineset(CSOUND *);
+FUNC    *csoundFTFind(CSOUND *, MYFLT*);
+FUNC    *csoundFTFindP(CSOUND *, MYFLT*);
+FUNC    *csoundFTnp2Find(CSOUND *, MYFLT*);
+MYFLT   *csoundGetTable(CSOUND *, int, int*);
+void    cs_beep(CSOUND *);
 MYFLT   intpow(MYFLT, long);
-void    list_opcodes(ENVIRON *, int);
+void    list_opcodes(CSOUND *, int);
 int     sfsampsize(int);
 void    rewriteheader(SNDFILE* ofd, int verbose);
-void    writeLine(ENVIRON *, const char *text, long size);
-int     readOptions(ENVIRON *, FILE*);
-void    remove_tmpfiles(ENVIRON *);
-void    add_tmpfile(ENVIRON *, char*);
-void    xturnoff(ENVIRON *, INSDS*);
-void    xturnoff_now(ENVIRON *, INSDS*);
-int     insert_score_event(ENVIRON *, EVTBLK*, double, int);
-MEMFIL  *ldmemfile(ENVIRON *, const char*);
-void    rlsmemfiles(ENVIRON *);
-int     delete_memfile(ENVIRON *, const char*);
-char    *mytmpnam(ENVIRON *, char *);
-void    *SAsndgetset(ENVIRON *, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
-int     getsndin(ENVIRON *, void*, MYFLT*, int, void*);
-void    *sndgetset(ENVIRON *, void*);
-SNDMEMFILE  *csoundLoadSoundFile(ENVIRON *,
+void    writeLine(CSOUND *, const char *text, long size);
+int     readOptions(CSOUND *, FILE*);
+void    remove_tmpfiles(CSOUND *);
+void    add_tmpfile(CSOUND *, char*);
+void    xturnoff(CSOUND *, INSDS*);
+void    xturnoff_now(CSOUND *, INSDS*);
+int     insert_score_event(CSOUND *, EVTBLK*, double, int);
+MEMFIL  *ldmemfile(CSOUND *, const char*);
+void    rlsmemfiles(CSOUND *);
+int     delete_memfile(CSOUND *, const char*);
+char    *mytmpnam(CSOUND *, char *);
+void    *SAsndgetset(CSOUND *, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
+int     getsndin(CSOUND *, void*, MYFLT*, int, void*);
+void    *sndgetset(CSOUND *, void*);
+SNDMEMFILE  *csoundLoadSoundFile(CSOUND *,
                                  const char *name, SF_INFO *sfinfo);
-int     PVOCEX_LoadFile(ENVIRON *, const char *fname, PVOCEX_MEMFILE *p);
+int     PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
 
   /**
    * Register a function to be called at note deactivation.
@@ -103,8 +103,8 @@ int     PVOCEX_LoadFile(ENVIRON *, const char *fname, PVOCEX_MEMFILE *p);
    * The functions are called in reverse order of registration.
    * Returns zero on success.
    */
-  int csoundRegisterDeinitCallback(ENVIRON *, void *p,
-                                   int (*func)(ENVIRON *, void *));
+  int csoundRegisterDeinitCallback(CSOUND *, void *p,
+                                   int (*func)(CSOUND *, void *));
 
   /**
    * Register a function to be called by csoundReset(), in reverse order
@@ -114,8 +114,8 @@ int     PVOCEX_LoadFile(ENVIRON *, const char *fname, PVOCEX_MEMFILE *p);
    * on success.
    * The return value of csoundRegisterResetCallback() is zero on success.
    */
-  int csoundRegisterResetCallback(ENVIRON *, void *userData,
-                                  int (*func)(ENVIRON *, void *));
+  int csoundRegisterResetCallback(CSOUND *, void *userData,
+                                  int (*func)(CSOUND *, void *));
 
   /**
    * Returns the name of the opcode of which the data structure

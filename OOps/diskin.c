@@ -130,7 +130,7 @@ static int diskin_calc_buffer_size(SOUNDINEW *p, int n_monoSamps)
 
 /* init routine for diskin */
 
-int newsndinset(ENVIRON *csound, SOUNDINEW *p)
+int newsndinset(CSOUND *csound, SOUNDINEW *p)
 {
     double  pos;
     char    name[1024];
@@ -270,7 +270,7 @@ static inline void diskin_file_pos_inc(SOUNDINEW *p, long *ndx)
 
 /* a-rate routine for soundinew */
 
-int soundinew(ENVIRON *csound, SOUNDINEW *p)
+int soundinew(CSOUND *csound, SOUNDINEW *p)
 {
     MYFLT   a0, a1;
     long    ndx;
@@ -318,7 +318,7 @@ int soundinew(ENVIRON *csound, SOUNDINEW *p)
     return OK;
 }
 
-static int soundout_deinit(ENVIRON *csound, void *pp)
+static int soundout_deinit(CSOUND *csound, void *pp)
 {
     char    *opname = csound->GetOpcodeName(pp);
     SNDCOM  *p;
@@ -351,7 +351,7 @@ static int soundout_deinit(ENVIRON *csound, void *pp)
 
 /* init routine for instr soundout  */
 
-int sndo1set(ENVIRON *csound, void *pp)
+int sndo1set(CSOUND *csound, void *pp)
 {
     char    *sfname, *opname, sndoutname[256];
     SNDCOM  *p;
@@ -420,7 +420,7 @@ int sndo1set(ENVIRON *csound, void *pp)
     return OK;
 }
 
-int soundout(ENVIRON *csound, SNDOUT *p)
+int soundout(CSOUND *csound, SNDOUT *p)
 {
     int nn, nsamps = csound->ksmps;
 
@@ -437,7 +437,7 @@ int soundout(ENVIRON *csound, SNDOUT *p)
     return OK;
 }
 
-int soundouts(ENVIRON *csound, SNDOUTS *p)
+int soundouts(CSOUND *csound, SNDOUTS *p)
 {
     int nn, nsamps = csound->ksmps;
 

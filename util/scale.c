@@ -67,7 +67,7 @@ static const char *usage_txt[] = {
     NULL
 };
 
-static void usage(ENVIRON *csound, char *mesg)
+static void usage(CSOUND *csound, char *mesg)
 {
     int i;
     for (i = 0; usage_txt[i] != NULL; i++)
@@ -75,7 +75,7 @@ static void usage(ENVIRON *csound, char *mesg)
     csound->Die(csound, "\n%s", mesg);
 }
 
-static char set_output_format(ENVIRON *csound, OPARMS *p,
+static char set_output_format(CSOUND *csound, OPARMS *p,
                               char c, char outformch)
 {
     switch (c) {
@@ -125,12 +125,12 @@ typedef struct {
 
 /* Static function prototypes */
 
-static void  InitScaleTable(ENVIRON *,SCALE *, double, char *);
-static SNDFILE *SCsndgetset(ENVIRON *, SCALE *, char *);
-static void  ScaleSound(ENVIRON *, SCALE *, SNDFILE *, SNDFILE *);
-static float FindAndReportMax(ENVIRON *, SCALE *, SNDFILE *);
+static void  InitScaleTable(CSOUND *,SCALE *, double, char *);
+static SNDFILE *SCsndgetset(CSOUND *, SCALE *, char *);
+static void  ScaleSound(CSOUND *, SCALE *, SNDFILE *, SNDFILE *);
+static float FindAndReportMax(CSOUND *, SCALE *, SNDFILE *);
 
-static int scale(ENVIRON *csound, int argc, char **argv)
+static int scale(CSOUND *csound, int argc, char **argv)
 {
     char        *inputfile = NULL;
     double      factor = 0.0;
@@ -318,7 +318,7 @@ static int scale(ENVIRON *csound, int argc, char **argv)
     return 0;
 }
 
-static void InitScaleTable(ENVIRON *csound, SCALE *thissc,
+static void InitScaleTable(CSOUND *csound, SCALE *thissc,
                            double factor, char *factorfile)
 {
     if (factor != 0.0) thissc->ff = factor;
@@ -388,7 +388,7 @@ static double gain(SCALE *thissc, int i)
 }
 
 static SNDFILE *
-SCsndgetset(ENVIRON *csound, SCALE *thissc, char *inputfile)
+SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
 {
     SNDFILE *infile;
     double  dur;
@@ -412,7 +412,7 @@ SCsndgetset(ENVIRON *csound, SCALE *thissc, char *inputfile)
 #define BUFFER_LEN (1024)
 
 static void
-ScaleSound(ENVIRON *csound, SCALE *thissc, SNDFILE *infile, SNDFILE *outfd)
+ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile, SNDFILE *outfd)
 {
     MYFLT buffer[BUFFER_LEN];
     long  read_in;
@@ -459,7 +459,7 @@ ScaleSound(ENVIRON *csound, SCALE *thissc, SNDFILE *infile, SNDFILE *outfd)
                             (double) csound->e0dbfs / (max > -min ? max:-min));
 }
 
-static float FindAndReportMax(ENVIRON *csound, SCALE *thissc, SNDFILE *infile)
+static float FindAndReportMax(CSOUND *csound, SCALE *thissc, SNDFILE *infile)
 {
     MYFLT   buffer[BUFFER_LEN];
     long    read_in;
@@ -506,7 +506,7 @@ static float FindAndReportMax(ENVIRON *csound, SCALE *thissc, SNDFILE *infile)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "scale", scale);
     if (retval)

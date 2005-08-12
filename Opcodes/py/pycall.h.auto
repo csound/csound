@@ -4,10 +4,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL0;
 
-extern int pycall0_krate(ENVIRON *csound, PYCALL0 *p);
-extern int pylcall0_irate(ENVIRON *csound, PYCALL0 *p);
-extern int pylcall0_krate(ENVIRON *csound, PYCALL0 *p);
-extern int pylcall0i_irate(ENVIRON *csound, PYCALL0 *p);
+extern int pycall0_krate(CSOUND *csound, PYCALL0 *p);
+extern int pylcall0_irate(CSOUND *csound, PYCALL0 *p);
+extern int pylcall0_krate(CSOUND *csound, PYCALL0 *p);
+extern int pylcall0i_irate(CSOUND *csound, PYCALL0 *p);
 
 typedef struct {
   OPDS h;
@@ -16,9 +16,9 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL0T;
 
-extern int pycall0t_krate(ENVIRON *csound, PYCALL0T *p);
-extern int pylcall0t_irate(ENVIRON *csound, PYCALL0T *p);
-extern int pylcall0t_krate(ENVIRON *csound, PYCALL0T *p);
+extern int pycall0t_krate(CSOUND *csound, PYCALL0T *p);
+extern int pylcall0t_irate(CSOUND *csound, PYCALL0T *p);
+extern int pylcall0t_krate(CSOUND *csound, PYCALL0T *p);
 
 typedef struct {
   OPDS h;
@@ -27,10 +27,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL1;
 
-extern int pycall1_krate(ENVIRON *csound, PYCALL1 *p);
-extern int pylcall1_irate(ENVIRON *csound, PYCALL1 *p);
-extern int pylcall1_krate(ENVIRON *csound, PYCALL1 *p);
-extern int pylcall1i_irate(ENVIRON *csound, PYCALL1 *p);
+extern int pycall1_krate(CSOUND *csound, PYCALL1 *p);
+extern int pylcall1_irate(CSOUND *csound, PYCALL1 *p);
+extern int pylcall1_krate(CSOUND *csound, PYCALL1 *p);
+extern int pylcall1i_irate(CSOUND *csound, PYCALL1 *p);
 
 typedef struct {
   OPDS h;
@@ -41,9 +41,9 @@ typedef struct {
   MYFLT oresult;
 } PYCALL1T;
 
-extern int pycall1t_krate(ENVIRON *csound, PYCALL1T *p);
-extern int pylcall1t_irate(ENVIRON *csound, PYCALL1T *p);
-extern int pylcall1t_krate(ENVIRON *csound, PYCALL1T *p);
+extern int pycall1t_krate(CSOUND *csound, PYCALL1T *p);
+extern int pylcall1t_irate(CSOUND *csound, PYCALL1T *p);
+extern int pylcall1t_krate(CSOUND *csound, PYCALL1T *p);
 
 typedef struct {
   OPDS h;
@@ -53,10 +53,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL2;
 
-extern int pycall2_krate(ENVIRON *csound, PYCALL2 *p);
-extern int pylcall2_irate(ENVIRON *csound, PYCALL2 *p);
-extern int pylcall2_krate(ENVIRON *csound, PYCALL2 *p);
-extern int pylcall2i_irate(ENVIRON *csound, PYCALL2 *p);
+extern int pycall2_krate(CSOUND *csound, PYCALL2 *p);
+extern int pylcall2_irate(CSOUND *csound, PYCALL2 *p);
+extern int pylcall2_krate(CSOUND *csound, PYCALL2 *p);
+extern int pylcall2i_irate(CSOUND *csound, PYCALL2 *p);
 
 typedef struct {
   OPDS h;
@@ -69,9 +69,9 @@ typedef struct {
   MYFLT oresult2;
 } PYCALL2T;
 
-extern int pycall2t_krate(ENVIRON *csound, PYCALL2T *p);
-extern int pylcall2t_irate(ENVIRON *csound, PYCALL2T *p);
-extern int pylcall2t_krate(ENVIRON *csound, PYCALL2T *p);
+extern int pycall2t_krate(CSOUND *csound, PYCALL2T *p);
+extern int pylcall2t_irate(CSOUND *csound, PYCALL2T *p);
+extern int pylcall2t_krate(CSOUND *csound, PYCALL2T *p);
 
 typedef struct {
   OPDS h;
@@ -82,10 +82,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL3;
 
-extern int pycall3_krate(ENVIRON *csound, PYCALL3 *p);
-extern int pylcall3_irate(ENVIRON *csound, PYCALL3 *p);
-extern int pylcall3_krate(ENVIRON *csound, PYCALL3 *p);
-extern int pylcall3i_irate(ENVIRON *csound, PYCALL3 *p);
+extern int pycall3_krate(CSOUND *csound, PYCALL3 *p);
+extern int pylcall3_irate(CSOUND *csound, PYCALL3 *p);
+extern int pylcall3_krate(CSOUND *csound, PYCALL3 *p);
+extern int pylcall3i_irate(CSOUND *csound, PYCALL3 *p);
 
 typedef struct {
   OPDS h;
@@ -100,9 +100,9 @@ typedef struct {
   MYFLT oresult3;
 } PYCALL3T;
 
-extern int pycall3t_krate(ENVIRON *csound, PYCALL3T *p);
-extern int pylcall3t_irate(ENVIRON *csound, PYCALL3T *p);
-extern int pylcall3t_krate(ENVIRON *csound, PYCALL3T *p);
+extern int pycall3t_krate(CSOUND *csound, PYCALL3T *p);
+extern int pylcall3t_irate(CSOUND *csound, PYCALL3T *p);
+extern int pylcall3t_krate(CSOUND *csound, PYCALL3T *p);
 
 typedef struct {
   OPDS h;
@@ -114,10 +114,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL4;
 
-extern int pycall4_krate(ENVIRON *csound, PYCALL4 *p);
-extern int pylcall4_irate(ENVIRON *csound, PYCALL4 *p);
-extern int pylcall4_krate(ENVIRON *csound, PYCALL4 *p);
-extern int pylcall4i_irate(ENVIRON *csound, PYCALL4 *p);
+extern int pycall4_krate(CSOUND *csound, PYCALL4 *p);
+extern int pylcall4_irate(CSOUND *csound, PYCALL4 *p);
+extern int pylcall4_krate(CSOUND *csound, PYCALL4 *p);
+extern int pylcall4i_irate(CSOUND *csound, PYCALL4 *p);
 
 typedef struct {
   OPDS h;
@@ -134,9 +134,9 @@ typedef struct {
   MYFLT oresult4;
 } PYCALL4T;
 
-extern int pycall4t_krate(ENVIRON *csound, PYCALL4T *p);
-extern int pylcall4t_irate(ENVIRON *csound, PYCALL4T *p);
-extern int pylcall4t_krate(ENVIRON *csound, PYCALL4T *p);
+extern int pycall4t_krate(CSOUND *csound, PYCALL4T *p);
+extern int pylcall4t_irate(CSOUND *csound, PYCALL4T *p);
+extern int pylcall4t_krate(CSOUND *csound, PYCALL4T *p);
 
 typedef struct {
   OPDS h;
@@ -149,10 +149,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL5;
 
-extern int pycall5_krate(ENVIRON *csound, PYCALL5 *p);
-extern int pylcall5_irate(ENVIRON *csound, PYCALL5 *p);
-extern int pylcall5_krate(ENVIRON *csound, PYCALL5 *p);
-extern int pylcall5i_irate(ENVIRON *csound, PYCALL5 *p);
+extern int pycall5_krate(CSOUND *csound, PYCALL5 *p);
+extern int pylcall5_irate(CSOUND *csound, PYCALL5 *p);
+extern int pylcall5_krate(CSOUND *csound, PYCALL5 *p);
+extern int pylcall5i_irate(CSOUND *csound, PYCALL5 *p);
 
 typedef struct {
   OPDS h;
@@ -171,9 +171,9 @@ typedef struct {
   MYFLT oresult5;
 } PYCALL5T;
 
-extern int pycall5t_krate(ENVIRON *csound, PYCALL5T *p);
-extern int pylcall5t_irate(ENVIRON *csound, PYCALL5T *p);
-extern int pylcall5t_krate(ENVIRON *csound, PYCALL5T *p);
+extern int pycall5t_krate(CSOUND *csound, PYCALL5T *p);
+extern int pylcall5t_irate(CSOUND *csound, PYCALL5T *p);
+extern int pylcall5t_krate(CSOUND *csound, PYCALL5T *p);
 
 typedef struct {
   OPDS h;
@@ -187,10 +187,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL6;
 
-extern int pycall6_krate(ENVIRON *csound, PYCALL6 *p);
-extern int pylcall6_irate(ENVIRON *csound, PYCALL6 *p);
-extern int pylcall6_krate(ENVIRON *csound, PYCALL6 *p);
-extern int pylcall6i_irate(ENVIRON *csound, PYCALL6 *p);
+extern int pycall6_krate(CSOUND *csound, PYCALL6 *p);
+extern int pylcall6_irate(CSOUND *csound, PYCALL6 *p);
+extern int pylcall6_krate(CSOUND *csound, PYCALL6 *p);
+extern int pylcall6i_irate(CSOUND *csound, PYCALL6 *p);
 
 typedef struct {
   OPDS h;
@@ -211,9 +211,9 @@ typedef struct {
   MYFLT oresult6;
 } PYCALL6T;
 
-extern int pycall6t_krate(ENVIRON *csound, PYCALL6T *p);
-extern int pylcall6t_irate(ENVIRON *csound, PYCALL6T *p);
-extern int pylcall6t_krate(ENVIRON *csound, PYCALL6T *p);
+extern int pycall6t_krate(CSOUND *csound, PYCALL6T *p);
+extern int pylcall6t_irate(CSOUND *csound, PYCALL6T *p);
+extern int pylcall6t_krate(CSOUND *csound, PYCALL6T *p);
 
 typedef struct {
   OPDS h;
@@ -228,10 +228,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL7;
 
-extern int pycall7_krate(ENVIRON *csound, PYCALL7 *p);
-extern int pylcall7_irate(ENVIRON *csound, PYCALL7 *p);
-extern int pylcall7_krate(ENVIRON *csound, PYCALL7 *p);
-extern int pylcall7i_irate(ENVIRON *csound, PYCALL7 *p);
+extern int pycall7_krate(CSOUND *csound, PYCALL7 *p);
+extern int pylcall7_irate(CSOUND *csound, PYCALL7 *p);
+extern int pylcall7_krate(CSOUND *csound, PYCALL7 *p);
+extern int pylcall7i_irate(CSOUND *csound, PYCALL7 *p);
 
 typedef struct {
   OPDS h;
@@ -254,9 +254,9 @@ typedef struct {
   MYFLT oresult7;
 } PYCALL7T;
 
-extern int pycall7t_krate(ENVIRON *csound, PYCALL7T *p);
-extern int pylcall7t_irate(ENVIRON *csound, PYCALL7T *p);
-extern int pylcall7t_krate(ENVIRON *csound, PYCALL7T *p);
+extern int pycall7t_krate(CSOUND *csound, PYCALL7T *p);
+extern int pylcall7t_irate(CSOUND *csound, PYCALL7T *p);
+extern int pylcall7t_krate(CSOUND *csound, PYCALL7T *p);
 
 typedef struct {
   OPDS h;
@@ -272,10 +272,10 @@ typedef struct {
   MYFLT *args[VARGMAX-3];
 } PYCALL8;
 
-extern int pycall8_krate(ENVIRON *csound, PYCALL8 *p);
-extern int pylcall8_irate(ENVIRON *csound, PYCALL8 *p);
-extern int pylcall8_krate(ENVIRON *csound, PYCALL8 *p);
-extern int pylcall8i_irate(ENVIRON *csound, PYCALL8 *p);
+extern int pycall8_krate(CSOUND *csound, PYCALL8 *p);
+extern int pylcall8_irate(CSOUND *csound, PYCALL8 *p);
+extern int pylcall8_krate(CSOUND *csound, PYCALL8 *p);
+extern int pylcall8i_irate(CSOUND *csound, PYCALL8 *p);
 
 typedef struct {
   OPDS h;
@@ -300,7 +300,7 @@ typedef struct {
   MYFLT oresult8;
 } PYCALL8T;
 
-extern int pycall8t_krate(ENVIRON *csound, PYCALL8T *p);
-extern int pylcall8t_irate(ENVIRON *csound, PYCALL8T *p);
-extern int pylcall8t_krate(ENVIRON *csound, PYCALL8T *p);
+extern int pycall8t_krate(CSOUND *csound, PYCALL8T *p);
+extern int pylcall8t_irate(CSOUND *csound, PYCALL8T *p);
+extern int pylcall8t_krate(CSOUND *csound, PYCALL8T *p);
 

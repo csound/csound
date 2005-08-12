@@ -36,13 +36,13 @@ extern double hypot(double, double);
 
 static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
 
-void disprepRESET(ENVIRON *csound)
+void disprepRESET(CSOUND *csound)
 {
     if (fftcoefs) mfree(csound, fftcoefs);
     fftcoefs = NULL;
 }
 
-int printv(ENVIRON *csound, PRINTV *p)
+int printv(CSOUND *csound, PRINTV *p)
 {
     int    nargs = p->INOCOUNT;
     char   **txtp = p->h.optext->t.inlist->arg;
@@ -58,7 +58,7 @@ int printv(ENVIRON *csound, PRINTV *p)
     return OK;
 }
 
-int dspset(ENVIRON *csound, DSPLAY *p)
+int dspset(CSOUND *csound, DSPLAY *p)
 {
     long   npts, nprds, bufpts, totpts;
     char   *auxp;
@@ -99,7 +99,7 @@ int dspset(ENVIRON *csound, DSPLAY *p)
     return OK;
 }
 
-int kdsplay(ENVIRON *csound, DSPLAY *p)
+int kdsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp;
 
@@ -131,7 +131,7 @@ int kdsplay(ENVIRON *csound, DSPLAY *p)
     return OK;
 }
 
-int dsplay(ENVIRON *csound, DSPLAY *p)
+int dsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
     int    nsmps = csound->ksmps;
@@ -189,7 +189,7 @@ static void FillHalfWin(MYFLT *wBuf, long size, MYFLT max, int hannq)
     return;
 }
 
-int fftset(ENVIRON *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
+int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
                                        /* Transform of collected samples and  */
                                        /* displays coefficients (mag or db)   */
 {
@@ -287,7 +287,7 @@ static void Lin2DB(MYFLT *buffer, long size)
 }
 
 static void d_fft(      /* perform an FFT as reqd below */
-  ENVIRON *csound,
+  CSOUND *csound,
   MYFLT *sce,   /* input array - pure packed real */
   MYFLT *dst,   /* output array - packed magnitude, only half-length */
   long  size,   /* number of points in input */
@@ -305,7 +305,7 @@ static void d_fft(      /* perform an FFT as reqd below */
       Lin2DB(dst, (size >> 1) + 1);
 }
 
-int kdspfft(ENVIRON *csound, DSPFFT *p)
+int kdspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *bufp = p->bufp, *endp = p->endp;
 
@@ -340,7 +340,7 @@ int kdspfft(ENVIRON *csound, DSPFFT *p)
     return OK;
 }
 
-int dspfft(ENVIRON *csound, DSPFFT *p)
+int dspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
     int   nsmps = csound->ksmps;
@@ -384,7 +384,7 @@ int dspfft(ENVIRON *csound, DSPFFT *p)
 #define NTERMS  4
 #define NCROSS  (NTERMS * (NTERMS-1))
 
-int tempeset(ENVIRON *csound, TEMPEST *p)
+int tempeset(CSOUND *csound, TEMPEST *p)
 {
     int   npts = 0, nptsm1, minlam = 0, maxlam, lamspan, auxsiz;
     MYFLT *fltp;
@@ -506,7 +506,7 @@ static MYFLT lenfracs[NMULTS*2] = { FL(0.30), FL(0.3667), FL(0.45), FL(0.55),
                                     FL(0.92), FL(1.08), FL(1.88), FL(2.12),
                                     FL(2.85), FL(3.15) };
 
-int tempest(ENVIRON *csound, TEMPEST *p)
+int tempest(CSOUND *csound, TEMPEST *p)
 {
     p->yt1 = p->coef0 * *p->kin + p->coef1 * p->yt1;  /* get lo-pass of kinput */
 

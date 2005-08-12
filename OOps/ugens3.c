@@ -28,12 +28,12 @@
 
 static short *isintab = NULL;
 
-void adsynRESET(ENVIRON *csound)
+void adsynRESET(CSOUND *csound)
 {
     isintab = NULL;   /* hope this is enough... */
 }
 
-int foscset(ENVIRON *csound, FOSC *p)
+int foscset(CSOUND *csound, FOSC *p)
 {
     FUNC   *ftp;
 
@@ -49,7 +49,7 @@ int foscset(ENVIRON *csound, FOSC *p)
     return NOTOK;
 }
 
-int foscil(ENVIRON *csound, FOSC *p)
+int foscil(CSOUND *csound, FOSC *p)
 {
     FUNC   *ftp;
     MYFLT  *ar, *ampp, *modp, cps, amp;
@@ -116,7 +116,7 @@ int foscil(ENVIRON *csound, FOSC *p)
     return OK;
 }
 
-int foscili(ENVIRON *csound, FOSC *p)
+int foscili(CSOUND *csound, FOSC *p)
 {
     FUNC   *ftp;
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
@@ -192,7 +192,7 @@ int foscili(ENVIRON *csound, FOSC *p)
     return OK;
 }
 
-int losset(ENVIRON *csound, LOSC *p)
+int losset(CSOUND *csound, LOSC *p)
 {
     FUNC   *ftp;
 
@@ -269,7 +269,7 @@ int losset(ENVIRON *csound, LOSC *p)
     return csound->InitError(csound, Str("illegal release loop data"));
 }
 
-int loscil(ENVIRON *csound, LOSC *p)
+int loscil(CSOUND *csound, LOSC *p)
 {
     FUNC   *ftp;
     MYFLT  *ar1, *ftbl, *ftab, *xamp;
@@ -485,7 +485,7 @@ int loscil(ENVIRON *csound, LOSC *p)
     return OK;
 }
 
-int loscil3(ENVIRON *csound, LOSC *p)
+int loscil3(CSOUND *csound, LOSC *p)
 {
     FUNC   *ftp;
     MYFLT  *ar1, *ftbl, *xamp;
@@ -850,7 +850,7 @@ int loscil3(ENVIRON *csound, LOSC *p)
 #define ISINSIZ 32768L
 #define ADMASK  32767L
 
-int adset(ENVIRON *csound, ADSYN *p)
+int adset(CSOUND *csound, ADSYN *p)
 {
     long    n;
     char    filnam[MAXNAME];
@@ -920,7 +920,7 @@ int adset(ENVIRON *csound, ADSYN *p)
 
 #define ADSYN_MAXLONG FL(2147483647.0)
 
-int adsyn(ENVIRON *csound, ADSYN *p)
+int adsyn(CSOUND *csound, ADSYN *p)
 {
     PTLPTR  *curp, *prvp;
     DUPLE   *ap, *fp;

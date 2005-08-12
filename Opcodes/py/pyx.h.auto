@@ -9,16 +9,16 @@ typedef struct {
   MYFLT *string;
 } PYEXECT;
 
-extern int pyexec_krate(ENVIRON *csound, PYEXEC *p);
-extern int pyexeci_irate(ENVIRON *csound, PYEXEC *p);
+extern int pyexec_krate(CSOUND *csound, PYEXEC *p);
+extern int pyexeci_irate(CSOUND *csound, PYEXEC *p);
 
-extern int pylexec_irate(ENVIRON *csound, PYEXEC *p);
-extern int pylexec_krate(ENVIRON *csound, PYEXEC *p);
-extern int pylexeci_irate(ENVIRON *csound, PYEXEC *p);
+extern int pylexec_irate(CSOUND *csound, PYEXEC *p);
+extern int pylexec_krate(CSOUND *csound, PYEXEC *p);
+extern int pylexeci_irate(CSOUND *csound, PYEXEC *p);
 
-extern int pyexect_krate(ENVIRON *csound, PYEXECT *p);
-extern int pylexect_irate(ENVIRON *csound, PYEXECT *p);
-extern int pylexect_krate(ENVIRON *csound, PYEXECT *p);
+extern int pyexect_krate(CSOUND *csound, PYEXECT *p);
+extern int pylexect_irate(CSOUND *csound, PYEXECT *p);
+extern int pylexect_krate(CSOUND *csound, PYEXECT *p);
 
 typedef struct {
   OPDS h;
@@ -31,16 +31,16 @@ typedef struct {
   MYFLT *string;
 } PYRUNT;
 
-extern int pyrun_krate(ENVIRON *csound, PYRUN *p);
-extern int pyruni_irate(ENVIRON *csound, PYRUN *p);
+extern int pyrun_krate(CSOUND *csound, PYRUN *p);
+extern int pyruni_irate(CSOUND *csound, PYRUN *p);
 
-extern int pylrun_irate(ENVIRON *csound, PYRUN *p);
-extern int pylrun_krate(ENVIRON *csound, PYRUN *p);
-extern int pylruni_irate(ENVIRON *csound, PYRUN *p);
+extern int pylrun_irate(CSOUND *csound, PYRUN *p);
+extern int pylrun_krate(CSOUND *csound, PYRUN *p);
+extern int pylruni_irate(CSOUND *csound, PYRUN *p);
 
-extern int pyrunt_krate(ENVIRON *csound, PYRUNT *p);
-extern int pylrunt_irate(ENVIRON *csound, PYRUNT *p);
-extern int pylrunt_krate(ENVIRON *csound, PYRUNT *p);
+extern int pyrunt_krate(CSOUND *csound, PYRUNT *p);
+extern int pylrunt_irate(CSOUND *csound, PYRUNT *p);
+extern int pylrunt_krate(CSOUND *csound, PYRUNT *p);
 
 typedef struct {
   OPDS h;
@@ -56,16 +56,16 @@ typedef struct {
   MYFLT oresult;
 } PYEVALT;
 
-extern int pyeval_krate(ENVIRON *csound, PYEVAL *p);
-extern int pyevali_irate(ENVIRON *csound, PYEVAL *p);
+extern int pyeval_krate(CSOUND *csound, PYEVAL *p);
+extern int pyevali_irate(CSOUND *csound, PYEVAL *p);
 
-extern int pyleval_irate(ENVIRON *csound, PYEVAL *p);
-extern int pyleval_krate(ENVIRON *csound, PYEVAL *p);
-extern int pylevali_irate(ENVIRON *csound, PYEVAL *p);
+extern int pyleval_irate(CSOUND *csound, PYEVAL *p);
+extern int pyleval_krate(CSOUND *csound, PYEVAL *p);
+extern int pylevali_irate(CSOUND *csound, PYEVAL *p);
 
-extern int pyevalt_krate(ENVIRON *csound, PYEVALT *p);
-extern int pylevalt_irate(ENVIRON *csound, PYEVALT *p);
-extern int pylevalt_krate(ENVIRON *csound, PYEVALT *p);
+extern int pyevalt_krate(CSOUND *csound, PYEVALT *p);
+extern int pylevalt_irate(CSOUND *csound, PYEVALT *p);
+extern int pylevalt_krate(CSOUND *csound, PYEVALT *p);
 
 typedef struct {
   OPDS h;
@@ -80,14 +80,14 @@ typedef struct {
   MYFLT *value;
 } PYASSIGNT;
 
-extern int pyassign_krate(ENVIRON *csound, PYASSIGN *p);
-extern int pyassigni_irate(ENVIRON *csound, PYASSIGN *p);
+extern int pyassign_krate(CSOUND *csound, PYASSIGN *p);
+extern int pyassigni_irate(CSOUND *csound, PYASSIGN *p);
 
-extern int pylassign_irate(ENVIRON *csound, PYASSIGN *p);
-extern int pylassign_krate(ENVIRON *csound, PYASSIGN *p);
-extern int pylassigni_irate(ENVIRON *csound, PYASSIGN *p);
+extern int pylassign_irate(CSOUND *csound, PYASSIGN *p);
+extern int pylassign_krate(CSOUND *csound, PYASSIGN *p);
+extern int pylassigni_irate(CSOUND *csound, PYASSIGN *p);
 
-extern int pyassignt_krate(ENVIRON *csound, PYASSIGNT *p);
-extern int pylassignt_irate(ENVIRON *csound, PYASSIGNT *p);
-extern int pylassignt_krate(ENVIRON *csound, PYASSIGNT *p);
+extern int pyassignt_krate(CSOUND *csound, PYASSIGNT *p);
+extern int pylassignt_irate(CSOUND *csound, PYASSIGNT *p);
+extern int pylassignt_krate(CSOUND *csound, PYASSIGNT *p);
 

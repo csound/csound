@@ -113,7 +113,7 @@ static int allpass_nbytes(FREEVERB *p, double delTime)
     return ((nbytes + 15) & (~15));
 }
 
-static int freeverb_init(ENVIRON *csound, FREEVERB *p)
+static int freeverb_init(CSOUND *csound, FREEVERB *p)
 {
     int             i, j, k, nbytes;
     freeVerbComb    *combp;
@@ -167,7 +167,7 @@ static int freeverb_init(ENVIRON *csound, FREEVERB *p)
     return OK;
 }
 
-static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
+static int freeverb_perf(CSOUND *csound, FREEVERB *p)
 {
     double          feedback, damp1, damp2, x;
     freeVerbComb    *combp;
@@ -258,17 +258,17 @@ static int freeverb_perf(ENVIRON *csound, FREEVERB *p)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     return 0;
 }
 
-PUBLIC int csoundModuleInit(ENVIRON *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "freeverb",
                                 (int) sizeof(FREEVERB), 5, "aa", "aakkjo",
-                                (int (*)(ENVIRON*, void*)) freeverb_init,
-                                (int (*)(ENVIRON*, void*)) NULL,
-                                (int (*)(ENVIRON*, void*)) freeverb_perf);
+                                (int (*)(CSOUND*, void*)) freeverb_init,
+                                (int (*)(CSOUND*, void*)) NULL,
+                                (int (*)(CSOUND*, void*)) freeverb_perf);
 }
 

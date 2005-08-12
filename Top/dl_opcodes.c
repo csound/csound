@@ -439,12 +439,12 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 
 #define MAX_PLUGINS 1024
 
-int csoundLoadExternal(ENVIRON *csound, const char* libraryPath)
+int csoundLoadExternal(CSOUND *csound, const char* libraryPath)
 {
     void    *handle;
     OENTRY  *opcodlst_n;
     long    length;
-    OENTRY  *(*init)(ENVIRON*);
+    OENTRY  *(*init)(CSOUND*);
     long    (*size)(void);
 
     handle = csoundOpenLibrary(libraryPath);
@@ -496,11 +496,11 @@ int csoundLoadExternal(ENVIRON *csound, const char* libraryPath)
     /* deal with fgens if there are any, */
     /* signalled by setting top bit of length */
     if (length<0) {
-      NGFENS *(*nfgens)(ENVIRON*);
+      NGFENS *(*nfgens)(CSOUND*);
       length = length&0x7fffffff; /* Assumes 32 bit */
       nfgens = csoundGetLibrarySymbol(handle, "fgen_init");
       if (nfgens) {
-        int allocgen(ENVIRON *, char *, void(*)(void));
+        int allocgen(CSOUND *, char *, void(*)(void));
         NGFENS *names = (*nfgens)(csound);
         int i=0;
         while (names[i].word!=NULL) {
@@ -532,7 +532,7 @@ int closedir(DIR*);
 #endif
 #endif
 
-int csoundLoadExternals(ENVIRON *csound)
+int csoundLoadExternals(CSOUND *csound)
 {
     char    *s, *buffer;
     int     i, j;
@@ -620,7 +620,7 @@ int csoundLoadExternals(ENVIRON *csound)
 
 /* unload plugin libraries (called from csoundReset()) */
 
-int csoundUnloadExternals(ENVIRON *csound)
+int csoundUnloadExternals(CSOUND *csound)
 {
     void    **handle_list;
     int     i = (int) MAX_PLUGINS, retval = 0;

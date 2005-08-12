@@ -34,10 +34,10 @@
 #include "soundio.h"
 #include "convolve.h"
 
-static int takeFFT(ENVIRON *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
+static int takeFFT(CSOUND *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                    long Hlenpadded, SNDFILE *infd, FILE *ofd);
-static int quit(ENVIRON*, char *msg);
-static int CVAlloc(ENVIRON*, CVSTRUCT**, long, int, MYFLT,
+static int quit(CSOUND*, char *msg);
+static int CVAlloc(CSOUND*, CVSTRUCT**, long, int, MYFLT,
                    int, int, long, int, int);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
@@ -46,7 +46,7 @@ static int CVAlloc(ENVIRON*, CVSTRUCT**, long, int, MYFLT,
                         if (!(--argc) || ((s = *++argv) && *s == '-'))  \
                             return quit(csound,MSG);
 
-static int cvanal(ENVIRON *csound, int argc, char **argv)
+static int cvanal(CSOUND *csound, int argc, char **argv)
 {
     CVSTRUCT *cvh;
     char    *infilnam, *outfilnam;
@@ -142,7 +142,7 @@ static int cvanal(ENVIRON *csound, int argc, char **argv)
     return 0;
 }
 
-static int quit(ENVIRON *csound, char *msg)
+static int quit(CSOUND *csound, char *msg)
 {
     csound->Message(csound, Str("cvanal error: %s\n"), msg);
     csound->Message(csound, Str("Usage: cvanal [-d<duration>] "
@@ -151,7 +151,7 @@ static int quit(ENVIRON *csound, char *msg)
     return -1;
 }
 
-static int takeFFT(ENVIRON *csound, SOUNDIN *p, CVSTRUCT *cvh,
+static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
                    long Hlenpadded, SNDFILE *infd, FILE *ofd)
 {
     int     i, j, read_in;
@@ -197,7 +197,7 @@ static int takeFFT(ENVIRON *csound, SOUNDIN *p, CVSTRUCT *cvh,
 }
 
 static int CVAlloc(
-    ENVIRON     *csound,
+    CSOUND      *csound,
     CVSTRUCT    **pphdr,        /* returns address of new block */
     long        dataBsize,      /* desired bytesize of datablock */
     int         dataFormat,     /* data format - PVMYFLT etc */
@@ -233,7 +233,7 @@ static int CVAlloc(
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "cvanal", cvanal);
     if (!retval) {

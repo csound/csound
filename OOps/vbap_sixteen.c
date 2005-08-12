@@ -34,9 +34,9 @@ Ville Pulkki
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p);
+int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p);
 
-int vbap_SIXTEEN(ENVIRON *csound, VBAP_SIXTEEN  *p) /* during note performance:   */
+int vbap_SIXTEEN(CSOUND *csound, VBAP_SIXTEEN   *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -80,7 +80,7 @@ int vbap_SIXTEEN(ENVIRON *csound, VBAP_SIXTEEN  *p) /* during note performance: 
     return OK;
 }
 
-int vbap_SIXTEEN_control(ENVIRON *csound, VBAP_SIXTEEN  *p)
+int vbap_SIXTEEN_control(CSOUND *csound, VBAP_SIXTEEN   *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -187,7 +187,7 @@ int vbap_SIXTEEN_control(ENVIRON *csound, VBAP_SIXTEEN  *p)
     return OK;
 }
 
-int vbap_SIXTEEN_init(ENVIRON *csound, VBAP_SIXTEEN  *p)
+int vbap_SIXTEEN_init(CSOUND *csound, VBAP_SIXTEEN   *p)
 {                               /* Initializations before run time*/
     int i,j;
     MYFLT *ptr;
@@ -234,7 +234,7 @@ int vbap_SIXTEEN_init(ENVIRON *csound, VBAP_SIXTEEN  *p)
     return OK;
 }
 
-int vbap_SIXTEEN_moving(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p) /* during note performance: */
+int vbap_SIXTEEN_moving(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p) /* during note performance: */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -275,7 +275,7 @@ int vbap_SIXTEEN_moving(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p) /* during note
     return OK;
 }
 
-int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
+int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -460,7 +460,7 @@ int vbap_SIXTEEN_moving_control(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
     return OK;
 }
 
-int vbap_SIXTEEN_moving_init(ENVIRON *csound, VBAP_SIXTEEN_MOVING  *p)
+int vbap_SIXTEEN_moving_init(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
 {
     int i,j;
     MYFLT *ptr;

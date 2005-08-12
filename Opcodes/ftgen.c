@@ -58,7 +58,7 @@ typedef struct {
     int     fno;
 } FTDELETE;
 
-static int ftable_delete(ENVIRON *csound, void *p)
+static int ftable_delete(CSOUND *csound, void *p)
 {
     int err = csound->FTDelete(csound, ((FTDELETE*) p)->fno);
     if (err != OK)
@@ -68,7 +68,7 @@ static int ftable_delete(ENVIRON *csound, void *p)
     return err;
 }
 
-static int register_ftable_delete(ENVIRON *csound, void *p, int tableNum)
+static int register_ftable_delete(CSOUND *csound, void *p, int tableNum)
 {
     FTDELETE  *op = (FTDELETE*) calloc((size_t) 1, sizeof(FTDELETE));
     if (op == NULL)
@@ -80,7 +80,7 @@ static int register_ftable_delete(ENVIRON *csound, void *p, int tableNum)
 
 /* set up and call any GEN routine */
 
-static int ftgen(ENVIRON *csound, FTGEN *p)
+static int ftgen(CSOUND *csound, FTGEN *p)
 {
     MYFLT   *fp;
     FUNC    *ftp;
@@ -130,7 +130,7 @@ static int ftgen(ENVIRON *csound, FTGEN *p)
     return OK;
 }
 
-static int ftgentmp(ENVIRON *csound, FTGEN *p)
+static int ftgentmp(CSOUND *csound, FTGEN *p)
 {
     int   p1, fno;
 
@@ -143,7 +143,7 @@ static int ftgentmp(ENVIRON *csound, FTGEN *p)
     return register_ftable_delete(csound, p, fno);
 }
 
-static int ftfree(ENVIRON *csound, FTFREE *p)
+static int ftfree(CSOUND *csound, FTFREE *p)
 {
     int fno = (int) MYFLT2LRND(*p->iftno);
 
@@ -157,15 +157,15 @@ static int ftfree(ENVIRON *csound, FTFREE *p)
     return register_ftable_delete(csound, p, fno);
 }
 
-static int ftload(ENVIRON *csound, FTLOAD *p)
+static int ftload(CSOUND *csound, FTLOAD *p)
 {
     MYFLT **argp = p->argums;
     FUNC  *ftp;
     char  filename[MAXNAME];
     int   nargs = csound->GetInputArgCnt(p) - 2;
     FILE  *file = NULL;
-    int   (*err_func)(ENVIRON *, const char *, ...);
-    FUNC  *(*ft_func)(ENVIRON *, MYFLT *);
+    int   (*err_func)(CSOUND *, const char *, ...);
+    FUNC  *(*ft_func)(CSOUND *, MYFLT *);
 
     if (strcmp(csound->GetOpcodeName(p), "ftload") != 0) {
       nargs--;
@@ -290,21 +290,21 @@ static int ftload(ENVIRON *csound, FTLOAD *p)
     return err_func(csound, Str("ftload: unable to open file"));
 }
 
-static int ftload_k(ENVIRON *csound, FTLOAD_K *p)
+static int ftload_k(CSOUND *csound, FTLOAD_K *p)
 {
     if (*p->ktrig != FL(0.0))
       return ftload(csound, &(p->p));
     return OK;
 }
 
-static int ftsave(ENVIRON *csound, FTLOAD *p)
+static int ftsave(CSOUND *csound, FTLOAD *p)
 {
     MYFLT **argp = p->argums;
     char  filename[MAXNAME];
     int   nargs = csound->GetInputArgCnt(p) - 2;
     FILE  *file = NULL;
-    int   (*err_func)(ENVIRON *, const char *, ...);
-    FUNC  *(*ft_func)(ENVIRON *, MYFLT *);
+    int   (*err_func)(CSOUND *, const char *, ...);
+    FUNC  *(*ft_func)(CSOUND *, MYFLT *);
 
     if (strcmp(csound->GetOpcodeName(p), "ftsave") != 0) {
       nargs--;
@@ -400,7 +400,7 @@ static int ftsave(ENVIRON *csound, FTLOAD *p)
     return err_func(csound, Str("ftsave: unable to open file"));
 }
 
-static int ftsave_k_set(ENVIRON *csound, FTLOAD_K *p)
+static int ftsave_k_set(CSOUND *csound, FTLOAD_K *p)
 {
     memcpy(&(p->p.h), &(p->h), sizeof(OPDS));
     p->p.ifilno = p->ifilno;
@@ -410,7 +410,7 @@ static int ftsave_k_set(ENVIRON *csound, FTLOAD_K *p)
     return OK;
 }
 
-static int ftsave_k(ENVIRON *csound, FTLOAD_K *p)
+static int ftsave_k(CSOUND *csound, FTLOAD_K *p)
 {
     if (*p->ktrig != FL(0.0))
       return ftsave(csound, &(p->p));

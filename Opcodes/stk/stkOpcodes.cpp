@@ -65,7 +65,7 @@
 
 #include <OpcodeBase.hpp>
 
-std::map<ENVIRON *, std::vector<Instrmnt *> > stkInstances;
+std::map<CSOUND *, std::vector<Instrmnt *> > stkInstances;
 
 template<typename T>
 class STKInstrumentAdapter : public OpcodeBase< STKInstrumentAdapter<T> >
@@ -97,7 +97,7 @@ public:
   MYFLT oldkcontroller3;
   MYFLT oldkvalue3;
   STKInstrumentAdapter() : instrument(0) {}
-  int init(ENVIRON *csound)
+  int init(CSOUND *csound)
   {
     if(!instrument)
       {
@@ -118,13 +118,13 @@ public:
     oldkvalue3 = -1.0;
     return OK;
   }
-  int noteoff(ENVIRON *csound)
+  int noteoff(CSOUND *csound)
   {
     released = true;
     instrument->noteoff(0.5);
     return OK;
   }
-  int kontrol(ENVIRON *csound)
+  int kontrol(CSOUND *csound)
   {
     if(!released)
       {
@@ -198,7 +198,7 @@ public:
   MYFLT oldkcontroller3;
   MYFLT oldkvalue3;
   STKInstrumentAdapter1() : instrument(0) {}
-  int init(ENVIRON *csound)
+  int init(CSOUND *csound)
   {
     if(!instrument)
       {
@@ -219,13 +219,13 @@ public:
     oldkvalue3 = -1.0;
     return OK;
   }
-  int noteoff(ENVIRON *csound)
+  int noteoff(CSOUND *csound)
   {
     released = true;
     instrument->noteoff(0.5);
     return OK;
   }
-  int kontrol(ENVIRON *csound)
+  int kontrol(CSOUND *csound)
   {
     if(!released)
       {
@@ -555,12 +555,12 @@ extern "C"
       }
     };
 
-  PUBLIC int csoundModuleCreate(ENVIRON *csound)
+  PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
     return 0;
   }
 
-  PUBLIC int csoundModuleInit(ENVIRON *csound)
+  PUBLIC int csoundModuleInit(CSOUND *csound)
   {
     const char *path = std::getenv("RAWWAVE_PATH");
     if(!path)
@@ -576,14 +576,14 @@ extern "C"
       {
         status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz, oentry->thread,
                                        oentry->outypes, oentry->intypes,
-                                       (int (*)(ENVIRON*,void*)) oentry->iopadr,
-                                       (int (*)(ENVIRON*,void*)) oentry->kopadr,
-                                       (int (*)(ENVIRON*,void*)) oentry->aopadr);
+                                       (int (*)(CSOUND*,void*)) oentry->iopadr,
+                                       (int (*)(CSOUND*,void*)) oentry->kopadr,
+                                       (int (*)(CSOUND*,void*)) oentry->aopadr);
       }
     return status;
   }
 
-  PUBLIC int csoundModuleDestroy(ENVIRON *csound)
+  PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
     for(size_t i = 0, n = stkInstances[csound].size(); i < n; ++i)
       {

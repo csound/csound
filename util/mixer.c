@@ -70,7 +70,7 @@ typedef struct inputs {
 } inputs;
 
 typedef struct mixer_globals_ {
-    ENVIRON   *csound;
+    CSOUND    *csound;
     inputs    mixin[NUMBER_OF_FILES];
     int       outputs;
     int       debug;
@@ -83,7 +83,7 @@ typedef struct mixer_globals_ {
 
 static  void    InitScaleTable(MIXER_GLOBALS *, int);
 static  MYFLT   gain(MIXER_GLOBALS *, int, int);
-static  SNDFILE *MXsndgetset(ENVIRON*,inputs *);
+static  SNDFILE *MXsndgetset(CSOUND*,inputs *);
 static  void    MixSound(MIXER_GLOBALS *, int, SNDFILE *);
 
 static const char *usage_txt[] = {
@@ -116,7 +116,7 @@ static const char *usage_txt[] = {
     NULL
 };
 
-static void usage(ENVIRON *csound, const char *mesg, ...)
+static void usage(CSOUND *csound, const char *mesg, ...)
 {
     char    **sp;
     va_list args;
@@ -130,7 +130,7 @@ static void usage(ENVIRON *csound, const char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static char set_output_format(ENVIRON *csound, char c, char outformch)
+static char set_output_format(CSOUND *csound, char c, char outformch)
 {
     OPARMS  *O = csound->oparms;
 
@@ -158,7 +158,7 @@ static char set_output_format(ENVIRON *csound, char c, char outformch)
     return c;
 }
 
-static int mixer_main(ENVIRON *csound, int argc, char **argv)
+static int mixer_main(CSOUND *csound, int argc, char **argv)
 {
     OPARMS      *O = csound->oparms;
     char        *inputfile = NULL;
@@ -430,7 +430,7 @@ static int mixer_main(ENVIRON *csound, int argc, char **argv)
 static void
 InitScaleTable(MIXER_GLOBALS *pp, int i)
 {
-    ENVIRON *csound = pp->csound;
+    CSOUND *csound = pp->csound;
     FILE    *f;
     inputs  *mixin = &(pp->mixin[0]);
     MYFLT   samplepert = (MYFLT) mixin[i].p->sr;
@@ -498,7 +498,7 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
 
 static MYFLT gain(MIXER_GLOBALS *pp, int n, int i)
 {
-    ENVIRON *csound = pp->csound;
+    CSOUND *csound = pp->csound;
     inputs  *mixin = &(pp->mixin[0]);
 
     if (!mixin[n].use_table) return mixin[n].factor;
@@ -516,7 +516,7 @@ static MYFLT gain(MIXER_GLOBALS *pp, int n, int i)
                             mixin[n].table->yr*(MYFLT)(i - mixin[n].table->x0));
 }
 
-static SNDFILE *MXsndgetset(ENVIRON *csound, inputs *ddd)
+static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
 {
     SNDFILE *infd;
     MYFLT   dur;
@@ -541,7 +541,7 @@ static SNDFILE *MXsndgetset(ENVIRON *csound, inputs *ddd)
 
 static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
 {
-    ENVIRON *csound = pp->csound;
+    CSOUND *csound = pp->csound;
     OPARMS  *O = csound->oparms;
     inputs  *mixin = &(pp->mixin[0]);
     MYFLT   *buffer = (MYFLT*) csound->Calloc(csound, sizeof(MYFLT)
@@ -659,7 +659,7 @@ static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     char    buf[128];
     int     retval = csound->AddUtility(csound, "mixer", mixer_main);

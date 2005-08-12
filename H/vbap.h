@@ -262,10 +262,10 @@ typedef struct ls_triplet_chain {
 
 void initialize( ls lss[CHANNELS]);
 void angle_to_cart_II( ANG_VEC *from,  CART_VEC *to);
-extern void choose_ls_triplets( ENVIRON *csound, ls lss[CHANNELS],
+extern void choose_ls_triplets( CSOUND *csound, ls lss[CHANNELS],
                                 ls_triplet_chain **ls_triplets,
                                 int ls_amount);
-extern void choose_ls_tuplets( ENVIRON *csound, ls lss[CHANNELS],
+extern void choose_ls_tuplets( CSOUND *csound, ls lss[CHANNELS],
                                 ls_triplet_chain **ls_triplets,
                                int ls_amount);
 int lines_intersect(int i,int j,int k,int l, ls lss[CHANNELS]);
@@ -285,7 +285,7 @@ extern void add_ldsp_triplet(int i, int j, int k,
 void remove_connections_in_plane(int i,int j,int k,int l,
                                    ls  lss[CHANNELS],
                                     int connections[CHANNELS][CHANNELS]);
-extern void  calculate_3x3_matrixes(ENVIRON *csound, ls_triplet_chain *ls_triplets,
+extern void  calculate_3x3_matrixes(CSOUND *csound, ls_triplet_chain *ls_triplets,
                                  ls lss[CHANNELS], int ls_amount);
 int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4]);
 extern void sort_2D_lss(ls lss[CHANNELS], int sorted_lss[CHANNELS],
@@ -295,9 +295,9 @@ extern void cart_to_angle(CART_VEC cvec, ANG_VEC *avec);
 extern void angle_to_cart(ANG_VEC avec, CART_VEC *cvec);
 extern void normalize_wts(OUT_WTS *wts);
 
-extern int vbap_FOUR_control(ENVIRON*, VBAP_FOUR *p);
-extern int vbap_EIGHT_control(ENVIRON*, VBAP_EIGHT *p);
-extern int vbap_SIXTEEN_control(ENVIRON*, VBAP_SIXTEEN *p);
+extern int vbap_FOUR_control(CSOUND*, VBAP_FOUR *p);
+extern int vbap_EIGHT_control(CSOUND*, VBAP_EIGHT *p);
+extern int vbap_SIXTEEN_control(CSOUND*, VBAP_SIXTEEN *p);
 
 void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
                    MYFLT *gains, int ls_amount,

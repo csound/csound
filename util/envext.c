@@ -41,12 +41,12 @@
 
 /* Static function prototypes */
 
-static SNDFILE * SCsndgetset(ENVIRON *, SOUNDIN **, char *);
-static void FindEnvelope(ENVIRON *, SNDFILE *, SOUNDIN *, double);
+static SNDFILE * SCsndgetset(CSOUND *, SOUNDIN **, char *);
+static void FindEnvelope(CSOUND *, SNDFILE *, SOUNDIN *, double);
 
 static char *outname = NULL;
 
-static void envext_usage(ENVIRON *csound, char *mesg, ...)
+static void envext_usage(CSOUND *csound, char *mesg, ...)
 {
     va_list args;
 
@@ -61,7 +61,7 @@ static void envext_usage(ENVIRON *csound, char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static int envext(ENVIRON *csound, int argc, char **argv)
+static int envext(CSOUND *csound, int argc, char **argv)
 {
     char        *inputfile = NULL;
     SNDFILE     *infd;
@@ -109,7 +109,7 @@ static int envext(ENVIRON *csound, int argc, char **argv)
 }
 
 static SNDFILE *
-SCsndgetset(ENVIRON *csound, SOUNDIN **pp, char *inputfile)
+SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
 {
     SNDFILE *infd;
     double  dur;
@@ -130,7 +130,7 @@ SCsndgetset(ENVIRON *csound, SOUNDIN **pp, char *inputfile)
 }
 
 static void
-FindEnvelope(ENVIRON *csound, SNDFILE *infd, SOUNDIN *p, double window)
+FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p, double window)
 {
     int         chans;
     double      tpersample;
@@ -169,7 +169,7 @@ FindEnvelope(ENVIRON *csound, SNDFILE *infd, SOUNDIN *p, double window)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "envext", envext);
     if (!retval) {

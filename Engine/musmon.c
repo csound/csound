@@ -33,23 +33,23 @@
 #define SEGAMPS 01
 #define SORMSG  02
 
-extern  int     MIDIinsert(ENVIRON *, int, MCHNBLK*, MEVENT*);
-extern  int     insert(ENVIRON *, int, EVTBLK*);
-extern  void    MidiOpen(ENVIRON *);
-extern  void    m_chn_init_all(ENVIRON *);
-extern  void    scsort(ENVIRON *, FILE *, FILE *);
-extern  void    infoff(ENVIRON*, MYFLT), orcompact(ENVIRON*);
-extern  void    beatexpire(ENVIRON *, double), timexpire(ENVIRON *, double);
-extern  void    sfopenin(ENVIRON *), sfopenout(ENVIRON*), sfnopenout(ENVIRON*);
-extern  void    iotranset(ENVIRON *), sfclosein(ENVIRON*), sfcloseout(ENVIRON*);
-extern  void    MidiClose(ENVIRON *);
-extern  void    RTclose(ENVIRON *);
-extern  char    **csoundGetSearchPathFromEnv(ENVIRON *, const char *);
+extern  int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
+extern  int     insert(CSOUND *, int, EVTBLK*);
+extern  void    MidiOpen(CSOUND *);
+extern  void    m_chn_init_all(CSOUND *);
+extern  void    scsort(CSOUND *, FILE *, FILE *);
+extern  void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
+extern  void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
+extern  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
+extern  void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
+extern  void    MidiClose(CSOUND *);
+extern  void    RTclose(CSOUND *);
+extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 
-static  int     playevents(ENVIRON *);
+static  int     playevents(CSOUND *);
 
 typedef struct evt_cb_func {
-    void    (*func)(ENVIRON *, void *);
+    void    (*func)(CSOUND *, void *);
     void    *userData;
     struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
@@ -67,7 +67,7 @@ typedef struct {
 #define ST(x)   (((MUSMON_GLOBALS*) csound->musmonGlobals)->x)
 
 /* IV - Jan 28 2005 */
-void print_benchmark_info(ENVIRON *csound, const char *s)
+void print_benchmark_info(CSOUND *csound, const char *s)
 {
     double  rt, ct;
     RTCLOCK *p;
@@ -84,7 +84,7 @@ void print_benchmark_info(ENVIRON *csound, const char *s)
                     (char*) s, rt, ct);
 }
 
-static void settempo(ENVIRON *csound, MYFLT tempo)
+static void settempo(CSOUND *csound, MYFLT tempo)
 {
     if (tempo <= FL(0.0))
       return;
@@ -92,7 +92,7 @@ static void settempo(ENVIRON *csound, MYFLT tempo)
     csound->curBeat_inc = (double) tempo / (60.0 * (double) csound->global_ekr);
 }
 
-int gettempo(ENVIRON *csound, GTEMPO *p)
+int gettempo(CSOUND *csound, GTEMPO *p)
 {
     if (csound->oparms->Beatmode)
       *p->ans = (MYFLT) (60.0 / csound->beatTime);
@@ -101,7 +101,7 @@ int gettempo(ENVIRON *csound, GTEMPO *p)
     return OK;
 }
 
-int tempset(ENVIRON *csound, TEMPO *p)
+int tempset(CSOUND *csound, TEMPO *p)
 {
     MYFLT tempo;
 
@@ -113,7 +113,7 @@ int tempset(ENVIRON *csound, TEMPO *p)
     return OK;
 }
 
-int tempo(ENVIRON *csound, TEMPO *p)
+int tempo(CSOUND *csound, TEMPO *p)
 {
     if (*p->ktempo != p->prvtempo) {
       settempo(csound, *p->ktempo);
@@ -122,7 +122,7 @@ int tempo(ENVIRON *csound, TEMPO *p)
     return OK;
 }
 
-static void print_maxamp(ENVIRON *csound, MYFLT x)
+static void print_maxamp(CSOUND *csound, MYFLT x)
 {
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
       if (csound->e0dbfs > FL(3000.0))
@@ -161,9 +161,9 @@ static void print_maxamp(ENVIRON *csound, MYFLT x)
     }
 }
 
-int musmon2(ENVIRON *csound);
+int musmon2(CSOUND *csound);
 
-int musmon(ENVIRON *csound)
+int musmon(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
 
@@ -302,7 +302,7 @@ int musmon(ENVIRON *csound)
     return 0;                        /* we exit here to playevents later   */
 }
 
-int musmon2(ENVIRON *csound)
+int musmon2(CSOUND *csound)
 {
     if (csound->musmonGlobals == NULL)
       csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
@@ -310,7 +310,7 @@ int musmon2(ENVIRON *csound)
     return csoundCleanup(csound);
 }
 
-static void deactivate_all_notes(ENVIRON *csound)
+static void deactivate_all_notes(CSOUND *csound)
 {
     INSDS *ip = csound->actanchor.nxtact;
 
@@ -321,7 +321,7 @@ static void deactivate_all_notes(ENVIRON *csound)
     }
 }
 
-static void delete_pending_rt_events(ENVIRON *csound)
+static void delete_pending_rt_events(CSOUND *csound)
 {
     EVTNODE *ep = csound->OrcTrigEvts;
 
@@ -339,7 +339,7 @@ static void delete_pending_rt_events(ENVIRON *csound)
     csound->OrcTrigEvts = NULL;
 }
 
-PUBLIC int csoundCleanup(ENVIRON *csound)
+PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
@@ -412,7 +412,7 @@ PUBLIC int csoundCleanup(ENVIRON *csound)
     /* for Mac, dispexit returns 0 to exit immediately */
 }
 
-void cs_beep(ENVIRON *csound)
+void cs_beep(CSOUND *csound)
 {
 #ifdef mac_classic
     SysBeep(30L);
@@ -421,7 +421,7 @@ void cs_beep(ENVIRON *csound)
 #endif
 }
 
-int lplay(ENVIRON *csound, EVLIST *a)   /* cscore re-entry into musmon */
+int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 {
     if (csound->musmonGlobals == NULL)
       csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
@@ -437,7 +437,7 @@ int lplay(ENVIRON *csound, EVLIST *a)   /* cscore re-entry into musmon */
 /* make list to turn on instrs for indef */
 /* perf called from i0 for execution in playevents */
 
-int turnon(ENVIRON *csound, TURNON *p)
+int turnon(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
 
@@ -454,9 +454,9 @@ int turnon(ENVIRON *csound, TURNON *p)
 
 /* Print current amplitude values, and update section amps. */
 
-static void print_amp_values(ENVIRON *csound, int score_evt)
+static void print_amp_values(CSOUND *csound, int score_evt)
 {
-    ENVIRON       *p = csound;
+    CSOUND        *p = csound;
     MYFLT         *maxp, *smaxp;
     unsigned long *maxps, *smaxps;
     long          *rngp, *srngp;
@@ -503,9 +503,9 @@ static void print_amp_values(ENVIRON *csound, int score_evt)
 /* Update overall amplitudes from section values, */
 /* and optionally print message (1: section end, 2: lplay end). */
 
-static void section_amps(ENVIRON *csound, int enable_msgs)
+static void section_amps(CSOUND *csound, int enable_msgs)
 {
-    ENVIRON       *p = csound;
+    CSOUND        *p = csound;
     MYFLT         *maxp, *smaxp;
     unsigned long *maxps, *smaxps;
     long          *rngp, *srngp;
@@ -543,7 +543,7 @@ static void section_amps(ENVIRON *csound, int enable_msgs)
     }
 }
 
-static void print_score_time(ENVIRON *p, int rtEvt)
+static void print_score_time(CSOUND *p, int rtEvt)
 {
     if (rtEvt)
       p->Message(p, "\t\t   T%7.3f", p->curp2 - p->timeOffs);
@@ -551,9 +551,9 @@ static void print_score_time(ENVIRON *p, int rtEvt)
       p->Message(p, "\t  B%7.3f", p->curbt - p->beatOffs);
 }
 
-static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
+static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
 {
-    ENVIRON *p = csound;
+    CSOUND *p = csound;
     EVTBLK  *saved_currevent;
     int     insno, n;
 
@@ -662,9 +662,9 @@ static int process_score_event(ENVIRON *csound, EVTBLK *evt, int rtEvt)
     return 0;
 }
 
-static int process_rt_event(ENVIRON *csound, int sensType)
+static int process_rt_event(CSOUND *csound, int sensType)
 {
-    ENVIRON *p = csound;
+    CSOUND *p = csound;
     EVTBLK  *evt;
     int     retval, insno, n;
 
@@ -727,7 +727,7 @@ static int process_rt_event(ENVIRON *csound, int sensType)
 
 #define RNDINT(x) ((int) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
-extern  int     sensMidi(ENVIRON *);
+extern  int     sensMidi(CSOUND *);
 
 /* sense events for one k-period            */
 /* return value is one of the following:    */
@@ -735,9 +735,9 @@ extern  int     sensMidi(ENVIRON *);
 /*   1: terminate (e.g. end of MIDI file)   */
 /*   2: normal end of score                 */
 
-int sensevents(ENVIRON *csound)
+int sensevents(CSOUND *csound)
 {
-    ENVIRON *p = csound;
+    CSOUND *p = csound;
     EVTBLK  *e;
     OPARMS  *O = csound->oparms;
     int     retval, sensType;
@@ -896,7 +896,7 @@ int sensevents(ENVIRON *csound)
 
 /* play all events in a score or an lplay list */
 
-static int playevents(ENVIRON *csound)
+static int playevents(CSOUND *csound)
 {
     int retval;
 
@@ -905,7 +905,7 @@ static int playevents(ENVIRON *csound)
     return (retval == 2 ? 1 : 0);
 }
 
-static inline unsigned long time2kcnt(ENVIRON *csound, double tval)
+static inline unsigned long time2kcnt(CSOUND *csound, double tval)
 {
     if (tval > 0.0) {
       tval *= (double) csound->global_ekr;
@@ -935,12 +935,12 @@ static inline unsigned long time2kcnt(ENVIRON *csound, double tval)
 /* made.                                                              */
 /* Return value is zero on success.                                   */
 
-int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
+int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs,
                        int allow_now)
 {
     double        start_time;
     EVTNODE       *e, *prv;
-    ENVIRON       *st = csound;
+    CSOUND        *st = csound;
     MYFLT         *p;
     unsigned long start_kcnt;
     int           i, retval;
@@ -1080,7 +1080,7 @@ int insert_score_event(ENVIRON *csound, EVTBLK *evt, double time_ofs,
 
 /* called by csoundRewindScore() to reset performance to time zero */
 
-void musmon_rewind_score(ENVIRON *csound)
+void musmon_rewind_score(CSOUND *csound)
 {
     /* deactivate all currently playing notes */
     deactivate_all_notes(csound);
@@ -1125,8 +1125,8 @@ void musmon_rewind_score(ENVIRON *csound)
  * as passed to this function.
  * Returns zero on success.
  */
-PUBLIC int csoundRegisterSenseEventCallback(ENVIRON *csound,
-                                            void (*func)(ENVIRON *, void *),
+PUBLIC int csoundRegisterSenseEventCallback(CSOUND *csound,
+                                            void (*func)(CSOUND *, void *),
                                             void *userData)
 {
     EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;

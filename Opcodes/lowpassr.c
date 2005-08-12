@@ -27,7 +27,7 @@
 #include "csdl.h"
 #include "lowpassr.h"
 
-int lowpr_set(ENVIRON *csound, LOWPR *p)
+int lowpr_set(CSOUND *csound, LOWPR *p)
 {
     if (*p->istor==FL(0.0))
       p->ynm1 = p->ynm2 = FL(0.0);
@@ -37,7 +37,7 @@ int lowpr_set(ENVIRON *csound, LOWPR *p)
     return OK;
 }
 
-int lowpr(ENVIRON *csound, LOWPR *p)
+int lowpr(CSOUND *csound, LOWPR *p)
 {
     MYFLT b, k = p->k;
     MYFLT *ar, *asig, yn, ynm1, ynm2 ;
@@ -68,7 +68,7 @@ int lowpr(ENVIRON *csound, LOWPR *p)
     return OK;
 }
 
-int lowpr_setx(ENVIRON *csound, LOWPRX *p)
+int lowpr_setx(CSOUND *csound, LOWPRX *p)
 {
     int j;
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
@@ -81,7 +81,7 @@ int lowpr_setx(ENVIRON *csound, LOWPRX *p)
     return OK;
 }
 
-int lowprx(ENVIRON *csound, LOWPRX *p)
+int lowprx(CSOUND *csound, LOWPRX *p)
 {
     MYFLT b, k = p->k;
     MYFLT *ar, *asig, yn,*ynm1, *ynm2 ;
@@ -115,7 +115,7 @@ int lowprx(ENVIRON *csound, LOWPRX *p)
     return OK;
 }
 
-int lowpr_w_sep_set(ENVIRON *csound, LOWPR_SEP *p)
+int lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
 {
     int j;
     if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
@@ -127,7 +127,7 @@ int lowpr_w_sep_set(ENVIRON *csound, LOWPR_SEP *p)
     return OK;
 }
 
-int lowpr_w_sep(ENVIRON *csound, LOWPR_SEP *p)
+int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 {
     MYFLT b, k;
     MYFLT *ar, *asig, yn,*ynm1, *ynm2 ;

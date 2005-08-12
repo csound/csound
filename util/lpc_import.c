@@ -33,12 +33,12 @@
 #include "csdl.h"
 #include "lpc.h"
 
-void lpc_import_usage(ENVIRON *csound)
+void lpc_import_usage(CSOUND *csound)
 {
     csound->Message(csound, "Usage: lpc_import cstext_file lpc_file\n");
 }
 
-static int lpc_import(ENVIRON *csound, int argc, char **argv)
+static int lpc_import(CSOUND *csound, int argc, char **argv)
 {
     FILE *inf;
     FILE *outf;
@@ -88,7 +88,7 @@ static int lpc_import(ENVIRON *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "lpc_import", lpc_import);
     if (!retval) {

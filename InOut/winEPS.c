@@ -90,7 +90,7 @@ static FILE *psFile;
 static char  ps_date[40];                /* Print time & date on every plot  */
 static int   currentPage = 0;            /* Current page number              */
 
-void PS_MakeGraph(ENVIRON *csound, WINDAT *wdptr, char *name)
+void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, char *name)
 {
     char      *filenam;
     char      *pathnam_;
@@ -315,7 +315,7 @@ PS_drawAxes(char *cxmin, char *cxmax, char *cymin, char *cymax)
     fprintf(psFile,"(%s) show \n", cymax);
 }
 
-void PS_DrawGraph(ENVIRON *csound, WINDAT *wdptr)
+void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
 {
     int   iskip = (wdptr->npts < MyPS_WIDTH) ? 1 :
                   (int)(wdptr->npts / MyPS_WIDTH);

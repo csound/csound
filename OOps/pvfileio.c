@@ -64,7 +64,7 @@
 #endif
 #define WAVE_FORMAT_IEEE_FLOAT  (0x0003)
 
-#define PVFILETABLE ((PVOCFILE**) ((ENVIRON*) csound)->pvFileTable)
+#define PVFILETABLE ((PVOCFILE**) ((CSOUND*) csound)->pvFileTable)
 
 const GUID KSDATAFORMAT_SUBTYPE_PVOC = {
     0x8312b9c2, 0x2e6e, 0x11d4,
@@ -133,8 +133,8 @@ static const char *pvErrorStrings[] = {
     NULL                                                            /* -43 */
 };
 
-static  int     pvoc_writeheader(ENVIRON *csound, PVOCFILE *p);
-static  int     pvoc_readheader(ENVIRON *csound, PVOCFILE *p,
+static  int     pvoc_writeheader(CSOUND *csound, PVOCFILE *p);
+static  int     pvoc_readheader(CSOUND *csound, PVOCFILE *p,
                                                  WAVEFORMATPVOCEX *pWfpx);
 
 /* thanks to the SNDAN programmers for this! */
@@ -292,7 +292,7 @@ static int pvoc_readWindow(PVOCFILE *p, float *window, uint32_t length)
     return (pvfile_read_32(p, window, (long) length) != (long) length);
 }
 
-const char *pvoc_errorstr(ENVIRON *csound)
+const char *pvoc_errorstr(CSOUND *csound)
 {
     int i = -(csound->pvErrorCode);
 
@@ -309,7 +309,7 @@ const char *pvoc_errorstr(ENVIRON *csound)
  * But avoiding the full monty of a C++ implementation.
  *******************************************/
 
-int init_pvsys(ENVIRON *csound)
+int init_pvsys(CSOUND *csound)
 {
     if (csound->pvNumFiles) {
       csound->pvErrorCode = -2;
@@ -319,14 +319,14 @@ int init_pvsys(ENVIRON *csound)
     return 1;
 }
 
-static inline PVOCFILE *pvsys_getFileHandle(ENVIRON *csound, int fd)
+static inline PVOCFILE *pvsys_getFileHandle(CSOUND *csound, int fd)
 {
     if (fd < 0 || fd >= csound->pvNumFiles)
       return (PVOCFILE*) NULL;
     return (PVFILETABLE[fd]);
 }
 
-static int pvsys_createFileHandle(ENVIRON *csound)
+static int pvsys_createFileHandle(CSOUND *csound)
 {
     int i;
     for (i = 0; i < csound->pvNumFiles; i++) {
@@ -402,7 +402,7 @@ static void prepare_pvfmt(WAVEFORMATEX *pfmt, unsigned long chans,
 /* NB currently this does not enforce a soundfile extension; */
 /* probably it should... */
 
-int  pvoc_createfile(ENVIRON *csound, const char *filename,
+int  pvoc_createfile(CSOUND *csound, const char *filename,
                      unsigned long fftlen, unsigned long overlap,
                      unsigned long chans, unsigned long format,
                      long srate, int stype, int wtype,
@@ -509,7 +509,7 @@ int  pvoc_createfile(ENVIRON *csound, const char *filename,
     return fd;
 }
 
-int pvoc_openfile(ENVIRON *csound,
+int pvoc_openfile(CSOUND *csound,
                   const char *filename, PVOCDATA *data, WAVEFORMATEX *fmt)
 {
     WAVEFORMATPVOCEX  wfpx;
@@ -559,7 +559,7 @@ int pvoc_openfile(ENVIRON *csound,
     return fd;
 }
 
-static int pvoc_readfmt(ENVIRON *csound, PVOCFILE *p, WAVEFORMATPVOCEX *pWfpx)
+static int pvoc_readfmt(CSOUND *csound, PVOCFILE *p, WAVEFORMATPVOCEX *pWfpx)
 {
     WAVEFORMATEXTENSIBLE  *wxfmt = &(pWfpx->wxFormat);
     WAVEFORMATEX          *fmt = &(wxfmt->Format);
@@ -626,7 +626,7 @@ static int pvoc_readfmt(ENVIRON *csound, PVOCFILE *p, WAVEFORMATPVOCEX *pWfpx)
     return 0;
 }
 
-static int pvoc_readheader(ENVIRON *csound, PVOCFILE *p,
+static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
                                             WAVEFORMATPVOCEX *pWfpx)
 {
     char      tag[5];
@@ -726,7 +726,7 @@ static int pvoc_readheader(ENVIRON *csound, PVOCFILE *p,
     return -1;
 }
 
-static int pvoc_writeheader(ENVIRON *csound, PVOCFILE *p)
+static int pvoc_writeheader(CSOUND *csound, PVOCFILE *p)
 {
     uint32_t  version, size = (uint32_t) 0;
     int       err = 0;
@@ -811,7 +811,7 @@ static int pvoc_writeheader(ENVIRON *csound, PVOCFILE *p)
     return 0;
 }
 
-static int pvoc_updateheader(ENVIRON *csound, int ofd)
+static int pvoc_updateheader(CSOUND *csound, int ofd)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
     uint32_t  riffsize, datasize;
@@ -847,7 +847,7 @@ static int pvoc_updateheader(ENVIRON *csound, int ofd)
     return 1;
 }
 
-int pvoc_closefile(ENVIRON *csound, int ofd)
+int pvoc_closefile(CSOUND *csound, int ofd)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
     int       rc = 1;
@@ -894,7 +894,7 @@ int pvoc_closefile(ENVIRON *csound, int ofd)
  *
  * return 0 for error, 1 for success. This could change....
  */
-int pvoc_putframes(ENVIRON *csound, int ofd, const float *frame, long numframes)
+int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, long numframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
     long      towrite;  /* count in 'words' */
@@ -922,7 +922,7 @@ int pvoc_putframes(ENVIRON *csound, int ofd, const float *frame, long numframes)
  * best practice here is to read nChannels frames
  * return -1 for error, 0 for EOF, else numframes read
  */
-int pvoc_getframes(ENVIRON *csound, int ifd, float *frames,
+int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
                                     unsigned long nframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
@@ -954,7 +954,7 @@ int pvoc_getframes(ENVIRON *csound, int ifd, float *frames,
     return (int) nframes;
 }
 
-int pvoc_rewind(ENVIRON *csound, int ifd, int skip_first_frame)
+int pvoc_rewind(CSOUND *csound, int ifd, int skip_first_frame)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
     long      pos, skipframes, skipsize;
@@ -983,7 +983,7 @@ int pvoc_rewind(ENVIRON *csound, int ifd, int skip_first_frame)
 
 /* may be more to do in here later on */
 
-int pvsys_release(ENVIRON *csound)
+int pvsys_release(CSOUND *csound)
 {
     int i;
 
@@ -1005,7 +1005,7 @@ int pvsys_release(ENVIRON *csound)
 
 /* return raw framecount: channel-agnostic for now */
 
-int pvoc_framecount(ENVIRON *csound, int ifd)
+int pvoc_framecount(CSOUND *csound, int ifd)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
     if (p == NULL) {

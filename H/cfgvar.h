@@ -220,7 +220,7 @@ typedef union csCfgVariable_u {
    * csoundCreateGlobalConfigurationVariable().
    */
   PUBLIC int
-    csoundCreateConfigurationVariable(ENVIRON *csound, const char *name,
+    csoundCreateConfigurationVariable(CSOUND *csound, const char *name,
                                       void *p, int type, int flags,
                                       void *min, void *max,
                                       const char *shortDesc,
@@ -231,7 +231,7 @@ typedef union csCfgVariable_u {
    * This function is experimental and may be subject to changes in
    * future releases of the Csound library.
    */
-  PUBLIC int csoundCopyGlobalConfigurationVariable(ENVIRON *csound,
+  PUBLIC int csoundCopyGlobalConfigurationVariable(CSOUND *csound,
                                                    const char *name, void *p);
 
   /**
@@ -239,7 +239,7 @@ typedef union csCfgVariable_u {
    * This function is experimental and may be subject to changes in
    * future releases of the Csound library.
    */
-  PUBLIC int csoundCopyGlobalConfigurationVariables(ENVIRON *csound);
+  PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound);
 
   /**
    * Set the value of a global configuration variable; should be called by the
@@ -268,7 +268,7 @@ typedef union csCfgVariable_u {
    * The 'name' and 'value' parameters, and return value are the same as
    * in the case of csoundSetGlobalConfigurationVariable().
    */
-  PUBLIC int csoundSetConfigurationVariable(ENVIRON *csound, const char *name,
+  PUBLIC int csoundSetConfigurationVariable(CSOUND *csound, const char *name,
                                                              void *value);
 
   /**
@@ -299,7 +299,7 @@ typedef union csCfgVariable_u {
    * The 'name' and 'value' parameters, and return value are the same as
    * in the case of csoundParseGlobalConfigurationVariable().
    */
-  PUBLIC int csoundParseConfigurationVariable(ENVIRON *csound, const char *name,
+  PUBLIC int csoundParseConfigurationVariable(CSOUND *csound, const char *name,
                                               const char *value);
 
   /**
@@ -316,7 +316,7 @@ typedef union csCfgVariable_u {
    * The return value may be NULL if the variable is not found in the database.
    */
   PUBLIC csCfgVariable_t
-    *csoundQueryConfigurationVariable(ENVIRON *csound, const char *name);
+    *csoundQueryConfigurationVariable(CSOUND *csound, const char *name);
 
   /**
    * Create an alphabetically sorted list of all global configuration variables.
@@ -335,7 +335,7 @@ typedef union csCfgVariable_u {
    * The caller is responsible for freeing the returned list with free(),
    * however, the variable pointers in the list should not be freed.
    */
-  PUBLIC csCfgVariable_t **csoundListConfigurationVariables(ENVIRON *csound);
+  PUBLIC csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound);
 
   /**
    * Remove the global configuration variable with the specified name
@@ -353,7 +353,7 @@ typedef union csCfgVariable_u {
    * Return value is CSOUNDCFG_SUCCESS in case of success, or
    * CSOUNDCFG_INVALID_NAME if the variable was not found.
    */
-  PUBLIC int csoundDeleteConfigurationVariable(ENVIRON *csound,
+  PUBLIC int csoundDeleteConfigurationVariable(CSOUND *csound,
                                                const char *name);
 
   /**
@@ -369,7 +369,7 @@ typedef union csCfgVariable_u {
    * and free database. This function is called by csoundReset().
    * Return value is CSOUNDCFG_SUCCESS in case of success.
    */
-  int csoundDeleteAllConfigurationVariables(ENVIRON *csound);
+  int csoundDeleteAllConfigurationVariables(CSOUND *csound);
 
   /**
    * Returns pointer to an error string constant for the specified

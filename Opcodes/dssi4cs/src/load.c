@@ -14,7 +14,7 @@
    not an absolute path (i.e. does not begin with / character), this
    routine will search the LADSPA_PATH for the file. */
 /* TODO static? */
-void   *dlopenLADSPA(ENVIRON *csound, const char *pcFilename, int iFlag)
+void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
 {
 
     char   *pcBuffer;
@@ -109,7 +109,7 @@ void   *dlopenLADSPA(ENVIRON *csound, const char *pcFilename, int iFlag)
 
 /*****************************************************************************/
 
-void   *loadLADSPAPluginLibrary(ENVIRON *csound, const char *pcPluginFilename)
+void   *loadLADSPAPluginLibrary(CSOUND *csound, const char *pcPluginFilename)
 {
 
     void   *pvPluginHandle;
@@ -126,7 +126,7 @@ void   *loadLADSPAPluginLibrary(ENVIRON *csound, const char *pcPluginFilename)
 
 /*****************************************************************************/
 
-void unloadLADSPAPluginLibrary(ENVIRON *csound, void *pvLADSPAPluginLibrary)
+void unloadLADSPAPluginLibrary(CSOUND *csound, void *pvLADSPAPluginLibrary)
 {
     dlclose(pvLADSPAPluginLibrary);
 }
@@ -134,7 +134,7 @@ void unloadLADSPAPluginLibrary(ENVIRON *csound, void *pvLADSPAPluginLibrary)
 /*****************************************************************************/
 
 const LADSPA_Descriptor *
-    findLADSPAPluginDescriptor(ENVIRON *csound,
+    findLADSPAPluginDescriptor(CSOUND *csound,
                                void *pvLADSPAPluginLibrary,
                                const char *pcPluginLibraryFilename,
                                const char *pcPluginLabel)

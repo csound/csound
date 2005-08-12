@@ -23,15 +23,15 @@
 
 #include "csoundCore.h"                                  /*   SCSORT.C  */
 
-extern void sort(ENVIRON*), twarp(ENVIRON*), swrite(ENVIRON*);
-extern void sfree(ENVIRON *csound);
-extern void sread_init(ENVIRON *csound);
-extern int  sread(ENVIRON *csound);
+extern void sort(CSOUND*), twarp(CSOUND*), swrite(CSOUND*);
+extern void sfree(CSOUND *csound);
+extern void sread_init(CSOUND *csound);
+extern int  sread(CSOUND *csound);
 
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */
 
-PUBLIC void scsort(ENVIRON *csound, FILE *scin, FILE *scout)
+PUBLIC void scsort(CSOUND *csound, FILE *scin, FILE *scout)
 {
     int     n;
 

@@ -28,9 +28,9 @@
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
-static   int    newpulse(ENVIRON *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
+static   int    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
 
-static int fofset0(ENVIRON *csound, FOFS *p, int flag)
+static int fofset0(CSOUND *csound, FOFS *p, int flag)
 {
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
     if ((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
@@ -74,17 +74,17 @@ static int fofset0(ENVIRON *csound, FOFS *p, int flag)
     return OK;
 }
 
-int fofset(ENVIRON *csound, FOFS        *p)
+int fofset(CSOUND *csound, FOFS         *p)
 {
     return fofset0(csound, p, 1);
 }
 
-int fofset2(ENVIRON *csound, FOFS       *p)
+int fofset2(CSOUND *csound, FOFS        *p)
 {
     return fofset0(csound, p, 0);
 }
 
-int fof(ENVIRON *csound, FOFS *p)
+int fof(CSOUND *csound, FOFS *p)
 {
     OVRLAP *ovp;
     FUNC    *ftp1,  *ftp2;
@@ -172,7 +172,7 @@ int fof(ENVIRON *csound, FOFS *p)
     return OK;
 }
 
-static int newpulse(ENVIRON *csound,
+static int newpulse(CSOUND *csound,
                     FOFS *p, OVRLAP *ovp, MYFLT *amp, MYFLT *fund, MYFLT *form)
 {
     MYFLT   octamp = *amp, oct;
@@ -242,7 +242,7 @@ static int newpulse(ENVIRON *csound,
 
 static int hrngflg=0;
 
-int harmset(ENVIRON *csound, HARMON *p)
+int harmset(CSOUND *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
     if (minfrq < FL(64.0)) {
@@ -285,7 +285,7 @@ int harmset(ENVIRON *csound, HARMON *p)
     return OK;
 }
 
-int harmon(ENVIRON *csound, HARMON *p)
+int harmon(CSOUND *csound, HARMON *p)
 {
     MYFLT *src1, *src2, *src3, *inp1, *inp2, *outp;
     MYFLT c1, c2, qval, *inq1, *inq2;

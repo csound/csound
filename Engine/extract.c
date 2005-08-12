@@ -26,10 +26,10 @@
 
 #define INSMAX  4096
 
-extern  int     realtset(ENVIRON *, SRTBLK *);
-extern  MYFLT   realt(ENVIRON *, MYFLT);
+extern  int     realtset(CSOUND *, SRTBLK *);
+extern  MYFLT   realt(CSOUND *, MYFLT);
 
-static  void    include(ENVIRON *, SRTBLK *);
+static  void    include(CSOUND *, SRTBLK *);
 
 typedef struct {
     char    inslst[INSMAX];         /*   values set by readxfil         */
@@ -43,7 +43,7 @@ typedef struct {
     SRTBLK  e;
 } EXTRACT_GLOBALS;
 
-#define ST(x)   (((EXTRACT_GLOBALS*) ((ENVIRON*) csound)->extractGlobals)->x)
+#define ST(x)   (((EXTRACT_GLOBALS*) ((CSOUND*) csound)->extractGlobals)->x)
 
 static  const   SRTBLK a0 = {
     NULL, NULL, 0, 3, FL(0.0), FL(0.0), FL(0.0), FL(0.0), FL(0.0),
@@ -60,7 +60,7 @@ static  const   SRTBLK e = {
     SP, "e\n"
 };
 
-static void alloc_globals(ENVIRON *csound)
+static void alloc_globals(CSOUND *csound)
 {
     if (csound->extractGlobals == NULL) {
       csound->extractGlobals = csound->Calloc(csound, sizeof(EXTRACT_GLOBALS));
@@ -72,7 +72,7 @@ static void alloc_globals(ENVIRON *csound)
     }
 }
 
-void readxfil(ENVIRON *csound, FILE *xfp)   /* read the extract control file */
+void readxfil(CSOUND *csound, FILE *xfp)    /* read the extract control file */
 {
     int  flag, all;
     char s[82];
@@ -124,7 +124,7 @@ void readxfil(ENVIRON *csound, FILE *xfp)   /* read the extract control file */
     ST(offtime) = ST(f0).newp2 = ST(f0).p2val = ST(offbeat);
 }
 
-void extract(ENVIRON *csound) /* extract instr events within the time period */
+void extract(CSOUND *csound) /* extract instr events within the time period */
 {
     SRTBLK  *bp;
     MYFLT   turnoff, anticip;
@@ -235,7 +235,7 @@ void extract(ENVIRON *csound) /* extract instr events within the time period */
 
 /* wire a srtblk into the outlist */
 
-static void include(ENVIRON *csound, SRTBLK *bp)
+static void include(CSOUND *csound, SRTBLK *bp)
 {
     if (ST(frstout) == NULL)                /* first one is special */
       ST(frstout) = bp;

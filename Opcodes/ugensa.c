@@ -28,9 +28,9 @@
 
 /* FOG generator */
 
-static int newpulse(ENVIRON *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
+static int newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
 
-int fogset(ENVIRON *csound, FOGS *p)
+int fogset(CSOUND *csound, FOGS *p)
 {
     /* legato test, not sure if the last bit (auxch) is correct? */
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
@@ -76,7 +76,7 @@ int fogset(ENVIRON *csound, FOGS *p)
     return OK;
 }
 
-int fog(ENVIRON *csound, FOGS *p)
+int fog(CSOUND *csound, FOGS *p)
 {
     OVERLAP *ovp;
     FUNC        *ftp1,  *ftp2;
@@ -157,7 +157,7 @@ int fog(ENVIRON *csound, FOGS *p)
     return OK;
 }
 
-static int newpulse(ENVIRON *csound, FOGS *p, OVERLAP *ovp, MYFLT  *amp,
+static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
                     MYFLT *fund, MYFLT *ptch)
 {
     MYFLT       octamp = *amp, oct;

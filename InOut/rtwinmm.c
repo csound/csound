@@ -62,7 +62,7 @@ static inline int64_t large_integer_to_int64(LARGE_INTEGER *p)
     return ((int64_t) p->LowPart + ((int64_t) p->HighPart << 32));
 }
 
-static int err_msg(ENVIRON *csound, const char *fmt, ...)
+static int err_msg(CSOUND *csound, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -71,7 +71,7 @@ static int err_msg(ENVIRON *csound, const char *fmt, ...)
     return -1;
 }
 
-static int allocate_buffers(ENVIRON *csound, rtWinMMDevice *dev,
+static int allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
                                              csRtAudioParams *parm,
                                              int is_playback)
 {
@@ -114,7 +114,7 @@ static int allocate_buffers(ENVIRON *csound, rtWinMMDevice *dev,
     return 0;
 }
 
-static int set_format_params(ENVIRON *csound, WAVEFORMATEX *wfx,
+static int set_format_params(CSOUND *csound, WAVEFORMATEX *wfx,
                                               csRtAudioParams *parm)
 {
     int sampsize = 4, framsize;
@@ -255,7 +255,7 @@ static void float_to_double(int nSmps, float *inBuf, double *outBuf)
       *(outBuf++) = (double) *(inBuf++);
 }
 
-static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
+static int open_device(CSOUND *csound, csRtAudioParams *parm, int is_playback)
 {
     rtWinMMGlobals  *p;
     rtWinMMDevice   *dev;
@@ -385,21 +385,21 @@ static int open_device(ENVIRON *csound, csRtAudioParams *parm, int is_playback)
 
 /* open for audio input */
 
-static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
+static int recopen_(CSOUND *csound, csRtAudioParams *parm)
 {
     return open_device(csound, parm, 0);
 }
 
 /* open for audio output */
 
-static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
+static int playopen_(CSOUND *csound, csRtAudioParams *parm)
 {
     return open_device(csound, parm, 1);
 }
 
 /* get samples from ADC */
 
-static int rtrecord_(ENVIRON *csound, void *inBuf, int nbytes)
+static int rtrecord_(CSOUND *csound, void *inBuf, int nbytes)
 {
     rtWinMMDevice   *dev = (rtWinMMDevice*)
                                *(csound->GetRtRecordUserData(csound));
@@ -430,7 +430,7 @@ static int rtrecord_(ENVIRON *csound, void *inBuf, int nbytes)
 /* eliminate MIDI jitter by requesting that both be made synchronous with */
 /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 
-static void rtplay_(ENVIRON *csound, void *outBuf, int nbytes)
+static void rtplay_(CSOUND *csound, void *outBuf, int nbytes)
 {
     rtWinMMDevice   *dev = (rtWinMMDevice*)
                                *(csound->GetRtPlayUserData(csound));
@@ -470,7 +470,7 @@ static void rtplay_(ENVIRON *csound, void *outBuf, int nbytes)
       Sleep((DWORD) i);
 }
 
-static void rtclose_(ENVIRON *csound)
+static void rtclose_(CSOUND *csound)
 {
     rtWinMMGlobals  *pp;
     rtWinMMDevice   *inDev, *outDev;
@@ -516,7 +516,7 @@ static void rtclose_(ENVIRON *csound)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     rtWinMMGlobals  *pp;
 
@@ -538,7 +538,7 @@ PUBLIC int csoundModuleCreate(ENVIRON *csound)
                 "in MME sound output (default: on)", NULL));
 }
 
-PUBLIC int csoundModuleInit(ENVIRON *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
 

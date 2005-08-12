@@ -29,7 +29,7 @@
 #include "soundio.h"
 #include "oload.h"
 
-static int cvset(ENVIRON *csound, CONVOLVE *p)
+static int cvset(CSOUND *csound, CONVOLVE *p)
 {
     char     cvfilnam[MAXNAME];
     MEMFIL   *mfp;
@@ -160,7 +160,7 @@ static void writeFromCircBuf(
     return;
 }
 
-static int convolve(ENVIRON *csound, CONVOLVE *p)
+static int convolve(CSOUND *csound, CONVOLVE *p)
 {
     int    nsmpso=csound->ksmps,nsmpsi=csound->ksmps,nsmpso_sav,outcnt_sav;
     int    nchm1 = p->nchanls - 1,chn;
@@ -345,7 +345,7 @@ static int convolve(ENVIRON *csound, CONVOLVE *p)
    allow this opcode to accept .con files.
    -ma++ april 2004 */
 
-static int pconvset(ENVIRON *csound, PCONVOLVE *p)
+static int pconvset(CSOUND *csound, PCONVOLVE *p)
 {
     int      channel = (*(p->channel) <= 0 ? ALLCHNLS : *(p->channel));
     SNDFILE *infd;
@@ -477,7 +477,7 @@ static int pconvset(ENVIRON *csound, PCONVOLVE *p)
     return OK;
 }
 
-static int pconvolve(ENVIRON *csound, PCONVOLVE *p)
+static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 {
     int    nsmpsi = csound->ksmps;
     MYFLT  *ai = p->ain;

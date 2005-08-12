@@ -35,7 +35,7 @@
 
 /* rewritten code for dconv, includes speedup tip from
    Moore: Elements of Computer Music */
-int dconvset(ENVIRON *csound, DCONV *p)
+int dconvset(CSOUND *csound, DCONV *p)
 {
     FUNC *ftp;
 
@@ -54,7 +54,7 @@ int dconvset(ENVIRON *csound, DCONV *p)
     return OK;
 }
 
-int dconv(ENVIRON *csound, DCONV *p)
+int dconv(CSOUND *csound, DCONV *p)
 {
     long i = 0;
     int n, nsmps = csound->ksmps;
@@ -86,7 +86,7 @@ int dconv(ENVIRON *csound, DCONV *p)
     return OK;
 }
 
-int and_kk(ENVIRON *csound, AOP *p)
+int and_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     long input2 = MYFLT2LRND(*p->b);
@@ -94,7 +94,7 @@ int and_kk(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int and_aa(ENVIRON *csound, AOP *p)
+int and_aa(CSOUND *csound, AOP *p)
 {
     MYFLT *r    = p->r;
     MYFLT *in1  = p->a;
@@ -110,7 +110,7 @@ int and_aa(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int and_ak(ENVIRON *csound, AOP *p)
+int and_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -124,7 +124,7 @@ int and_ak(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int and_ka(ENVIRON *csound, AOP *p)
+int and_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
@@ -138,7 +138,7 @@ int and_ka(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int or_kk(ENVIRON *csound, AOP *p)
+int or_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     long input2 = MYFLT2LRND(*p->b);
@@ -146,7 +146,7 @@ int or_kk(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int or_aa(ENVIRON *csound, AOP *p)
+int or_aa(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -162,7 +162,7 @@ int or_aa(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int or_ak(ENVIRON *csound, AOP *p)
+int or_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -176,7 +176,7 @@ int or_ak(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int or_ka(ENVIRON *csound, AOP *p)
+int or_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
@@ -190,7 +190,7 @@ int or_ka(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int xor_kk(ENVIRON *csound, AOP *p)
+int xor_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     long input2 = MYFLT2LRND(*p->b);
@@ -198,7 +198,7 @@ int xor_kk(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int xor_aa(ENVIRON *csound, AOP *p)
+int xor_aa(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -214,7 +214,7 @@ int xor_aa(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int xor_ak(ENVIRON *csound, AOP *p)
+int xor_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -228,7 +228,7 @@ int xor_ak(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int xor_ka(ENVIRON *csound, AOP *p)
+int xor_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
@@ -242,7 +242,7 @@ int xor_ka(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-static int shift_left_kk(ENVIRON *csound, AOP *p)
+static int shift_left_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     int  input2 = (int) MYFLT2LRND(*p->b);
@@ -250,7 +250,7 @@ static int shift_left_kk(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-static int shift_left_aa(ENVIRON *csound, AOP *p)
+static int shift_left_aa(CSOUND *csound, AOP *p)
 {
     long  input1;
     int   input2, n, nsmps = csound->ksmps;
@@ -263,7 +263,7 @@ static int shift_left_aa(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-static int shift_left_ak(ENVIRON *csound, AOP *p)
+static int shift_left_ak(CSOUND *csound, AOP *p)
 {
     long  input1;
     int   input2 = MYFLT2LRND(*p->b);
@@ -276,7 +276,7 @@ static int shift_left_ak(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-static int shift_left_ka(ENVIRON *csound, AOP *p)
+static int shift_left_ka(CSOUND *csound, AOP *p)
 {
     long  input1 = MYFLT2LRND(*p->a);
     int   input2, n, nsmps = csound->ksmps;
@@ -288,7 +288,7 @@ static int shift_left_ka(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-static int shift_right_kk(ENVIRON *csound, AOP *p)
+static int shift_right_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     int  input2 = (int) MYFLT2LRND(*p->b);
@@ -296,7 +296,7 @@ static int shift_right_kk(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-static int shift_right_aa(ENVIRON *csound, AOP *p)
+static int shift_right_aa(CSOUND *csound, AOP *p)
 {
     long  input1;
     int   input2, n, nsmps = csound->ksmps;
@@ -309,7 +309,7 @@ static int shift_right_aa(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-static int shift_right_ak(ENVIRON *csound, AOP *p)
+static int shift_right_ak(CSOUND *csound, AOP *p)
 {
     long  input1;
     int   input2 = MYFLT2LRND(*p->b);
@@ -322,7 +322,7 @@ static int shift_right_ak(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-static int shift_right_ka(ENVIRON *csound, AOP *p)
+static int shift_right_ka(CSOUND *csound, AOP *p)
 {
     long  input1 = MYFLT2LRND(*p->a);
     int   input2, n, nsmps = csound->ksmps;
@@ -334,14 +334,14 @@ static int shift_right_ka(ENVIRON *csound, AOP *p)
     return OK;
 }
 
-int not_k(ENVIRON *csound, AOP *p)      /* Added for completeness by JPff */
+int not_k(CSOUND *csound, AOP *p)       /* Added for completeness by JPff */
 {
     long input1 = MYFLT2LRND(*p->a);
     *p->r = (MYFLT)(~input1);
     return OK;
 }
 
-int not_a(ENVIRON *csound, AOP *p)
+int not_a(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -358,7 +358,7 @@ int not_a(ENVIRON *csound, AOP *p)
 /* all the vcomb and valpass stuff adapted from comb() and alpass()
    with additional insight from me (petemoss@petemoss.org)  */
 
-int vcombset(ENVIRON *csound, VCOMB *p)
+int vcombset(CSOUND *csound, VCOMB *p)
 {
     long        lpsiz, nbytes;
 
@@ -394,7 +394,7 @@ int vcombset(ENVIRON *csound, VCOMB *p)
     return OK;
 }
 
-int vcomb(ENVIRON *csound, VCOMB *p)
+int vcomb(CSOUND *csound, VCOMB *p)
 {
     int n, nsmps = csound->ksmps;
     unsigned long xlpt, maxlpt = (unsigned long)p->maxlpt;
@@ -446,7 +446,7 @@ int vcomb(ENVIRON *csound, VCOMB *p)
     return OK;
 }
 
-int valpass(ENVIRON *csound, VCOMB *p)
+int valpass(CSOUND *csound, VCOMB *p)
 {
     int nsmps = csound->ksmps;
     unsigned long xlpt, maxlpt = (unsigned long)p->maxlpt;
@@ -500,7 +500,7 @@ int valpass(ENVIRON *csound, VCOMB *p)
     return OK;
 }
 
-int ftmorfset(ENVIRON *csound, FTMORF *p)
+int ftmorfset(CSOUND *csound, FTMORF *p)
 {
     FUNC *ftp;
     int j = 0;
@@ -538,7 +538,7 @@ int ftmorfset(ENVIRON *csound, FTMORF *p)
     return OK;
 }
 
-int ftmorf(ENVIRON *csound, FTMORF *p)
+int ftmorf(CSOUND *csound, FTMORF *p)
 {
     unsigned int j = 0;
     int i;

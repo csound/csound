@@ -38,7 +38,7 @@ typedef struct  {
         int             counter;
 } P_MAXIMUM;
 
-int kdel_set(ENVIRON *csound, KDEL *p)
+int kdel_set(CSOUND *csound, KDEL *p)
 {
     unsigned long n;
     MYFLT *buf;
@@ -59,7 +59,7 @@ int kdel_set(ENVIRON *csound, KDEL *p)
     return OK;
 }
 
-int kdelay(ENVIRON *csound, KDEL *p)
+int kdelay(CSOUND *csound, KDEL *p)
 {
     long maxd = p->maxd, indx, v1, v2;
     MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
@@ -86,14 +86,14 @@ int kdelay(ENVIRON *csound, KDEL *p)
     return OK;
 }
 
-int partial_maximum_set(ENVIRON *csound, P_MAXIMUM *p)
+int partial_maximum_set(CSOUND *csound, P_MAXIMUM *p)
 {
     p->max = 0;
     p->counter = 0;
     return OK;
 }
 
-int partial_maximum(ENVIRON *csound, P_MAXIMUM *p)
+int partial_maximum(CSOUND *csound, P_MAXIMUM *p)
 {
     int n = csound->ksmps, flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;

@@ -44,7 +44,7 @@ static MYFLT *ewin = NULL;
 /*
  *      Wavetable init
  */
-static int scsnu_initw(ENVIRON *csound, PSCSNU *p)
+static int scsnu_initw(CSOUND *csound, PSCSNU *p)
 {
     int i;
     FUNC *fi = csound->FTFind(csound,  p->i_init);
@@ -62,7 +62,7 @@ static int scsnu_initw(ENVIRON *csound, PSCSNU *p)
 /*
  *      Hammer hit
  */
-static int scsnu_hammer(ENVIRON *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
+static int scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
 {
     int i, i1, i2;
     FUNC *fi;
@@ -155,7 +155,7 @@ void listrm(PSCSNU *p)
 #endif
 
 /* Return from list according to id */
-PSCSNU *listget(ENVIRON *csound, int id)
+PSCSNU *listget(CSOUND *csound, int id)
 {
     struct scsn_elem *i = &scsn_list;
     if (i->p == NULL) {
@@ -176,7 +176,7 @@ PSCSNU *listget(ENVIRON *csound, int id)
 /*
  *      Setup the updater
  */
-int scsnu_init(ENVIRON *csound, PSCSNU *p)
+int scsnu_init(CSOUND *csound, PSCSNU *p)
 {
     /* Get parameter table pointers and check lengths */
     FUNC *f;
@@ -339,7 +339,7 @@ int scsnu_init(ENVIRON *csound, PSCSNU *p)
 
 #define dt  (FL(1.0))
 
-int scsnu_play(ENVIRON *csound, PSCSNU *p)
+int scsnu_play(CSOUND *csound, PSCSNU *p)
 {
     int n;
     int len = p->len;
@@ -429,7 +429,7 @@ int scsnu_play(ENVIRON *csound, PSCSNU *p)
 /*
  *      Init scaner
  */
-int scsns_init(ENVIRON *csound, PSCSNS *p)
+int scsns_init(CSOUND *csound, PSCSNS *p)
 {
     /* Get corresponding update */
     p->p = listget(csound, (int)*p->i_id);
@@ -474,7 +474,7 @@ int scsns_init(ENVIRON *csound, PSCSNS *p)
 /*
  *      Performance function for scanner
  */
-int scsns_play(ENVIRON *csound, PSCSNS *p)
+int scsns_play(CSOUND *csound, PSCSNS *p)
 {
     int i;
     MYFLT phs = p->phs, inc = *p->k_freq * p->fix;

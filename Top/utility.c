@@ -27,14 +27,14 @@
 typedef struct csUtility_s {
     char                *name;
     struct csUtility_s  *nxt;
-    int                 (*UtilFunc)(ENVIRON*, int, char**);
+    int                 (*UtilFunc)(CSOUND*, int, char**);
     char                *desc;
 } csUtility_t;
 
 static const char list_var[] = "utilities::list";
 
-PUBLIC int csoundAddUtility(ENVIRON *csound, const char *name,
-                            int (*UtilFunc)(ENVIRON*, int, char**))
+PUBLIC int csoundAddUtility(CSOUND *csound, const char *name,
+                            int (*UtilFunc)(CSOUND*, int, char**))
 {
     csUtility_t *p;
 
@@ -66,7 +66,7 @@ PUBLIC int csoundAddUtility(ENVIRON *csound, const char *name,
     return 0;
 }
 
-PUBLIC int csoundRunUtility(ENVIRON *csound, const char *name,
+PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
                             int argc, char **argv)
 {
     csUtility_t *p;
@@ -140,7 +140,7 @@ static int cmp_func(const void *a, const void *b)
  * The return value may be NULL in case of an error.
  */
 
-PUBLIC char **csoundListUtilities(ENVIRON *csound)
+PUBLIC char **csoundListUtilities(CSOUND *csound)
 {
     csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
     char        **lst;
@@ -171,7 +171,7 @@ PUBLIC char **csoundListUtilities(ENVIRON *csound)
  * Returns zero on success.
  */
 
-PUBLIC int csoundSetUtilityDescription(ENVIRON *csound, const char *utilName,
+PUBLIC int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
                                                         const char *utilDesc)
 {
     csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
@@ -205,7 +205,7 @@ PUBLIC int csoundSetUtilityDescription(ENVIRON *csound, const char *utilName,
  * or an error occured.
  */
 
-PUBLIC char *csoundGetUtilityDescription(ENVIRON *csound, const char *utilName)
+PUBLIC char *csoundGetUtilityDescription(CSOUND *csound, const char *utilName)
 {
     csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
 
