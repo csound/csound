@@ -352,9 +352,8 @@ void CsoundVstFltk::postUpdate()
   updateFlag = 1;
 }
 
-void CsoundVstFltk::messageCallback(void *userdata, int attribute, const char *format, va_list valist)
+void CsoundVstFltk::messageCallback(ENVIRON *csound, int attribute, const char *format, va_list valist)
 {
-  ENVIRON *csound = (ENVIRON *)userdata;
   if(!csound)
     {
       return;

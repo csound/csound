@@ -97,9 +97,9 @@ namespace csound
 
   int System::messageLevel = ERROR_LEVEL | WARNING_LEVEL | INFORMATION_LEVEL | DEBUGGING_LEVEL;
 
-  void *System::userdata_ = 0;
+  void * System::userdata_ = 0;
 
-  void (*System::messageCallback)(void *userdata, int attribute, const char *format, va_list valist) = 0;
+  void (*System::messageCallback)(ENVIRON *csound, int attribute, const char *format, va_list valist) = 0;
 
   void System::setUserdata(void *userdata)
   {
@@ -111,24 +111,24 @@ namespace csound
     return userdata_;
   }
 
-  void System::message(void *userdata, int level, const char *format,...)
+  void System::message(ENVIRON *csound, int level, const char *format,...)
   {
     if((level & messageLevel) == level)
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata, level, format, marker);
+        message(csound, level, format, marker);
         va_end(marker);
       }
   }
 
-  void System::error(void *userdata, const char *format,...)
+  void System::error(ENVIRON *csound, const char *format,...)
   {
     if((ERROR_LEVEL & messageLevel) == ERROR_LEVEL)
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata, ERROR_LEVEL, format, marker);
+        message(csound, ERROR_LEVEL, format, marker);
         va_end(marker);
       }
   }
@@ -139,18 +139,18 @@ namespace csound
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata_, ERROR_LEVEL, format, marker);
+        message((ENVIRON*) userdata_, ERROR_LEVEL, format, marker);
         va_end(marker);
       }
   }
 
-  void System::warn(void *userdata, const char *format,...)
+  void System::warn(ENVIRON *csound, const char *format,...)
   {
     if((WARNING_LEVEL & messageLevel) == WARNING_LEVEL)
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata, WARNING_LEVEL, format, marker);
+        message(csound, WARNING_LEVEL, format, marker);
         va_end(marker);
       }
   }
@@ -161,18 +161,18 @@ namespace csound
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata_, WARNING_LEVEL, format, marker);
+        message((ENVIRON*) userdata_, WARNING_LEVEL, format, marker);
         va_end(marker);
       }
   }
 
-  void System::inform(void *userdata, const char *format,...)
+  void System::inform(ENVIRON *csound, const char *format,...)
   {
     if((INFORMATION_LEVEL & messageLevel) == INFORMATION_LEVEL)
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata, INFORMATION_LEVEL, format, marker);
+        message(csound, INFORMATION_LEVEL, format, marker);
         va_end(marker);
       }
   }
@@ -183,18 +183,18 @@ namespace csound
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata_, INFORMATION_LEVEL, format, marker);
+        message((ENVIRON*) userdata_, INFORMATION_LEVEL, format, marker);
         va_end(marker);
       }
   }
 
-  void System::debug(void *userdata, const char *format,...)
+  void System::debug(ENVIRON *csound, const char *format,...)
   {
     if((DEBUGGING_LEVEL & messageLevel) == DEBUGGING_LEVEL)
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata, DEBUGGING_LEVEL, format, marker);
+        message(csound, DEBUGGING_LEVEL, format, marker);
         va_end(marker);
       }
   }
@@ -205,16 +205,16 @@ namespace csound
       {
         va_list marker;
         va_start(marker, format);
-        message(userdata_, DEBUGGING_LEVEL, format, marker);
+        message((ENVIRON*) userdata_, DEBUGGING_LEVEL, format, marker);
         va_end(marker);
       }
   }
 
-  void System::message(void *userdata, const char *format,...)
+  void System::message(ENVIRON *csound, const char *format,...)
   {
     va_list marker;
     va_start(marker, format);
-    message(userdata, messageLevel, format, marker);
+    message(csound, messageLevel, format, marker);
     va_end(marker);
   }
 
@@ -222,20 +222,20 @@ namespace csound
   {
     va_list marker;
     va_start(marker, format);
-    message(userdata_, messageLevel, format, marker);
+    message((ENVIRON*) userdata_, messageLevel, format, marker);
     va_end(marker);
   }
 
   void System::message(const char *format, va_list valist)
   {
-    message(userdata_, messageLevel, format, valist);
+    message((ENVIRON*) userdata_, messageLevel, format, valist);
   }
 
-  void System::message(void *userdata, const char *format, va_list valist)
+  void System::message(ENVIRON *csound, const char *format, va_list valist)
   {
     if(messageCallback)
       {
-        messageCallback(userdata, messageLevel, format, valist);
+        messageCallback(csound, messageLevel, format, valist);
       }
     else
       {
@@ -243,11 +243,11 @@ namespace csound
       }
   }
 
-  void System::message(void *userdata, int attribute, const char *format, va_list valist)
+  void System::message(ENVIRON *csound, int attribute, const char *format, va_list valist)
   {
     if(messageCallback)
       {
-        messageCallback(userdata, attribute, format, valist);
+        messageCallback(csound, attribute, format, valist);
       }
     else
       {
@@ -267,7 +267,7 @@ namespace csound
     return messageLevel;
   }
 
-  void System::setMessageCallback(void (*messageCallback_)(void *userdata, int attribute, const char *format, va_list valist))
+  void System::setMessageCallback(void (*messageCallback_)(ENVIRON *csound, int attribute, const char *format, va_list valist))
   {
     messageCallback = messageCallback_;
   }

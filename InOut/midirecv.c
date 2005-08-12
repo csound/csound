@@ -26,14 +26,14 @@
     Real time MIDI interface functions:
     -----------------------------------
 
-    int csoundExternalMidiInOpen(void *csound, void **userData,
+    int csoundExternalMidiInOpen(ENVIRON *csound, void **userData,
                                  const char *devName);
 
       Open MIDI input device 'devName', and store stream specific
       data pointer in *userData. Return value is zero on success,
       and a non-zero error code if an error occured.
 
-    int csoundExternalMidiRead(void *csound, void *userData,
+    int csoundExternalMidiRead(ENVIRON *csound, void *userData,
                                unsigned char *buf, int nbytes);
 
       Read at most 'nbytes' bytes of MIDI data from input stream
@@ -43,20 +43,20 @@
       as a note on status without the data bytes) should not be
       returned.
 
-    int csoundExternalMidiInClose(void *csound, void *userData);
+    int csoundExternalMidiInClose(ENVIRON *csound, void *userData);
 
       Close MIDI input device associated with 'userData'.
       Return value is zero on success, and a non-zero error
       code on failure.
 
-    int csoundExternalMidiOutOpen(void *csound, void **userData,
+    int csoundExternalMidiOutOpen(ENVIRON *csound, void **userData,
                                   const char *devName);
 
       Open MIDI output device 'devName', and store stream specific
       data pointer in *userData. Return value is zero on success,
       and a non-zero error code if an error occured.
 
-    int csoundExternalMidiWrite(void *csound, void *userData,
+    int csoundExternalMidiWrite(ENVIRON *csound, void *userData,
                                 unsigned char *buf, int nbytes);
 
       Write 'nbytes' bytes of MIDI data to output stream 'userData'
@@ -64,13 +64,13 @@
       Returns the actual number of bytes written, or a negative
       error code.
 
-    int csoundExternalMidiOutClose(void *csound, void *userData);
+    int csoundExternalMidiOutClose(ENVIRON *csound, void *userData);
 
       Close MIDI output device associated with '*userData'.
       Return value is zero on success, and a non-zero error
       code on failure.
 
-    char *csoundExternalMidiErrorString(void *csound, int errcode);
+    char *csoundExternalMidiErrorString(ENVIRON *csound, int errcode);
 
       Returns pointer to a string constant storing an error massage
       for error code 'errcode'.
@@ -78,29 +78,29 @@
     Setting function pointers:
     --------------------------
 
-    void csoundSetExternalMidiInOpenCallback(void *csound,
-                                             int (*func)(void*, void**,
+    void csoundSetExternalMidiInOpenCallback(ENVIRON *csound,
+                                             int (*func)(ENVIRON*, void**,
                                                          const char*));
 
-    void csoundSetExternalMidiReadCallback(void *csound,
-                                           int (*func)(void*, void*,
+    void csoundSetExternalMidiReadCallback(ENVIRON *csound,
+                                           int (*func)(ENVIRON*, void*,
                                                        unsigned char*, int));
 
-    void csoundSetExternalMidiInCloseCallback(void *csound,
-                                              int (*func)(void*, void*));
+    void csoundSetExternalMidiInCloseCallback(ENVIRON *csound,
+                                              int (*func)(ENVIRON*, void*));
 
-    void csoundSetExternalMidiOutOpenCallback(void *csound,
-                                              int (*func)(void*, void**,
+    void csoundSetExternalMidiOutOpenCallback(ENVIRON *csound,
+                                              int (*func)(ENVIRON*, void**,
                                                           const char*));
 
-    void csoundSetExternalMidiWriteCallback(void *csound,
-                                            int (*func)(void*, void*,
+    void csoundSetExternalMidiWriteCallback(ENVIRON *csound,
+                                            int (*func)(ENVIRON*, void*,
                                                         unsigned char*, int));
 
-    void csoundSetExternalMidiOutCloseCallback(void *csound,
-                                               int (*func)(void*, void*));
+    void csoundSetExternalMidiOutCloseCallback(ENVIRON *csound,
+                                               int (*func)(ENVIRON*, void*));
 
-    void csoundSetExternalMidiErrorStringCallback(void *csound,
+    void csoundSetExternalMidiErrorStringCallback(ENVIRON *csound,
                                                   char *(*func)(int));
 */
 
@@ -109,7 +109,7 @@
 #include "oload.h"
 #include "midifile.h"
 
-#define MGLOB(x) (((ENVIRON*) csound)->midiGlobals->x)
+#define MGLOB(x) (csound->midiGlobals->x)
 
 static  void    midNotesOff(ENVIRON *);
 
@@ -120,13 +120,15 @@ static const MYFLT dsctl_map[12] = {
 
 static const short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
+/* open a Midi event stream for reading, alloc bufs */
+/*     callable once from main.c                    */
+
 void MidiOpen(ENVIRON *csound)
-                      /* open a Midi event stream for reading, alloc bufs */
-{                     /*     callable once from main.c                    */
+{
     OPARMS  *O = csound->oparms;
     /* First set up buffers. */
     int     i;
-    MGLOB(Midevtblk) = (MEVENT *) mcalloc(csound, (long) sizeof(MEVENT));
+    MGLOB(Midevtblk) = (MEVENT*) mcalloc(csound, sizeof(MEVENT));
     MGLOB(sexp) = 0;
     /* Then open device... */
     if (O->Midiin) {

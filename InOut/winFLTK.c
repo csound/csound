@@ -26,20 +26,16 @@
                                                 /* Csound FLTK/X graphs */
                                                 /*   jpff,06Oct02       */
 #include <stdio.h>
-#ifndef MYFLT
-#include "sysdep.h"
-#endif
 #include "cwindow.h"
-#include "text.h"
 
 extern long MakeWindow(char *);
 extern void kill_graph(int);
-extern   int myFLwait(void);
+extern int  myFLwait(void);
 extern void *XOpenDisplay(char *);
 
-int Graphable_(void *csound)    /* called during program initialisation */
-{               /* decides whether to use X or not; initializes X if so */
-    int         rc = 0;         /* default : don't use X, use tty ascii */
+int Graphable_(ENVIRON *csound)     /* called during program initialisation */
+{                   /* decides whether to use X or not; initializes X if so */
+    int         rc = 0;             /* default : don't use X, use tty ascii */
 #if defined(USE_FLTK)
     rc = 1;
 #else
@@ -48,19 +44,19 @@ int Graphable_(void *csound)    /* called during program initialisation */
     return(rc);
 }
 
-void MakeGraph_(void *csound, WINDAT *wdptr, char *name)
+void MakeGraph_(ENVIRON *csound, WINDAT *wdptr, char *name)
 {
     wdptr->windid = MakeWindow(name);
 }
 
-void KillGraph_(void *csound, WINDAT *wdptr)
+void KillGraph_(ENVIRON *csound, WINDAT *wdptr)
 {
     kill_graph(wdptr->windid);
 }
 
 /* print click-Exit message in most recently active window */
 
-int ExitGraph_(void *csound)
+int ExitGraph_(ENVIRON *csound)
 {
     char *env = csoundGetEnv(csound, "CSNOSTOP");
     if (env==NULL || strcmp(env,"yes")==0)

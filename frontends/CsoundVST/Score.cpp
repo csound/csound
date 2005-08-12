@@ -22,6 +22,7 @@
 #if defined(_MSC_VER) && !defined(__GNUC__)
 #pragma warning (disable:4786)
 #endif
+#include "CppSound.hpp"
 #include "Midifile.hpp"
 #include "Score.hpp"
 #include "System.hpp"

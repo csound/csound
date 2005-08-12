@@ -30,15 +30,15 @@ extern "C" {
 
 /* open MIDI file, read all tracks, and create event list */
 
-int csoundMIDIFileOpen(void *csound_, const char *name);
+int csoundMIDIFileOpen(ENVIRON *csound, const char *name);
 
 /* read MIDI file event data at performace time */
 
-int csoundMIDIFileRead(void *csound_, unsigned char *buf, int nBytes);
+int csoundMIDIFileRead(ENVIRON *csound, unsigned char *buf, int nBytes);
 
 /* destroy MIDI file event list */
 
-int csoundMIDIFileClose(void *csound);
+int csoundMIDIFileClose(ENVIRON *csound);
 
  /* ------------------------------------------------------------------------ */
 

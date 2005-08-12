@@ -48,7 +48,7 @@ typedef struct devparams_ {
 
 /* module interface functions */
 
-int csoundModuleCreate(void *csound)
+int csoundModuleCreate(ENVIRON *csound)
 {
     int     min, max, *def;
     ENVIRON *p = csound;
@@ -88,7 +88,7 @@ static void rtplay_(void *, void *, int);
 static int rtrecord_(void *, void *, int);
 static void rtclose_(void *);
 
-int csoundModuleInit(void *csound)
+int csoundModuleInit(ENVIRON *csound)
 {
     ENVIRON *p;
     char   *drv;
@@ -182,7 +182,7 @@ OSStatus Csound_IOProcEntry(AudioDeviceID indev,
     return ADIOProc(input, output, (DEVPARAMS *) cdata);
 }
 
-int coreaudio_open(void *csound, csRtAudioParams * parm,
+int coreaudio_open(ENVIRON *csound, csRtAudioParams * parm,
                      DEVPARAMS * dev, int isInput)
 {
 
@@ -396,7 +396,7 @@ int coreaudio_open(void *csound, csRtAudioParams * parm,
 }
 
 /* open for audio input */
-static int recopen_(void *csound, csRtAudioParams * parm)
+static int recopen_(ENVIRON *csound, csRtAudioParams * parm)
 {
     ENVIRON *p;
     DEVPARAMS *dev;
@@ -416,7 +416,7 @@ static int recopen_(void *csound, csRtAudioParams * parm)
 }
 
 /* open for audio output */
-static int playopen_(void *csound, csRtAudioParams * parm)
+static int playopen_(ENVIRON *csound, csRtAudioParams * parm)
 {
     ENVIRON *p;
     DEVPARAMS *dev;
@@ -435,7 +435,7 @@ static int playopen_(void *csound, csRtAudioParams * parm)
     return coreaudio_open(csound, parm, dev, 0);
 }
 
-static int rtrecord_(void *csound, void *inbuf_, int bytes_)
+static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     ENVIRON *p;
@@ -477,7 +477,7 @@ static int rtrecord_(void *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(void *csound, void *outbuf_, int bytes_)
+static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     ENVIRON *p;
@@ -519,7 +519,7 @@ static void rtplay_(void *csound, void *outbuf_, int bytes_)
 /* close the I/O device entirely  */
 /* called only when both complete */
 
-static void rtclose_(void *csound)
+static void rtclose_(ENVIRON *csound)
 {
     DEVPARAMS *dev;
     ENVIRON *p;

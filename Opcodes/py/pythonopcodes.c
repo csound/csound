@@ -130,7 +130,7 @@ int pyinit(PYINIT *p)
 #include "pyx.c.auto"
 #include "pycall.c.auto"
 
-int pycalln_krate(void *csound_, PYCALLN *p)
+int pycalln_krate(ENVIRON *csound, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -150,14 +150,14 @@ int pycalln_krate(void *csound_, PYCALLN *p)
     }
   else
     {
-      ((ENVIRON*)csound_)->Message( ((ENVIRON *)csound_), "pycalln_krate: ERROR\n");
+      csound->Message(csound, "pycalln_krate: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }
   return OK;
 }
 
-int pylcalln_irate(void *csound_, PYCALLN *p)
+int pylcalln_irate(ENVIRON *csound, PYCALLN *p)
 {
 /*   if (*p->function != SSTRCOD) */
 /*     return NOTOK; */
@@ -166,7 +166,7 @@ int pylcalln_irate(void *csound_, PYCALLN *p)
   return OK;
 }
 
-int pylcalln_krate(void *csound_, PYCALLN *p)
+int pylcalln_krate(ENVIRON *csound, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -186,14 +186,14 @@ int pylcalln_krate(void *csound_, PYCALLN *p)
     }
   else
     {
-      ((ENVIRON*)csound_)->Message( ((ENVIRON *)csound_), "pycalln: ERROR\n");
+      csound->Message(csound, "pycalln: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }
   return OK;
 }
 
-int pylcallni_irate(void *csound_, PYCALLN *p)
+int pylcallni_irate(ENVIRON *csound, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -215,7 +215,7 @@ int pylcallni_irate(void *csound_, PYCALLN *p)
     }
   else
     {
-      ((ENVIRON*)csound_)->Message( ((ENVIRON *)csound_), "pycalln: ERROR\n");
+      csound->Message(csound, "pycalln: ERROR\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -352,7 +352,7 @@ OENTRY oentries[] = {
 * Called by Csound to obtain the size of
 * the table of OENTRY structures defined in this shared library.
 */
-long opcode_size(void)
+PUBLIC long opcode_size(void)
 {
     return sizeof(oentries);
 }
@@ -361,7 +361,7 @@ long opcode_size(void)
 * Called by Csound to obtain a pointer to
 * the table of OENTRY structures defined in this shared library.
 */
-OENTRY *opcode_init(ENVIRON *csound)
+PUBLIC OENTRY *opcode_init(ENVIRON *csound)
 {
     return oentries;
 }

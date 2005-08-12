@@ -183,7 +183,7 @@ void CsoundVST::closeView()
   editor->close();
 }
 
-int CsoundVST::midiDeviceOpen(void *csound, void **userData,
+int CsoundVST::midiDeviceOpen(ENVIRON *csound, void **userData,
                               const char *devName)
 {
   *userData = csoundGetHostData(csound);
@@ -261,13 +261,13 @@ extern "C"
   extern int POLL_EVENTS(ENVIRON *);
 }
 
-static int threadYieldCallback(void *csound)
+static int threadYieldCallback(ENVIRON *csound)
 {
   Fl::wait(0.0);
   return 1;
 }
 
-static int nonThreadYieldCallback(void *)
+static int nonThreadYieldCallback(ENVIRON *)
 {
   return 1;
 }
@@ -408,28 +408,46 @@ long CsoundVST::processEvents(VstEvents *vstEvents)
     }
 }
 
-int CsoundVST::midiRead(void *csound, void *userData,
+int CsoundVST::midiRead(ENVIRON *csound, void *userData,
                         unsigned char *midiData, int nbytes)
 {
   CsoundVST *csoundVST = (CsoundVST *)userData;
-  if(csoundVST->midiEventQueue.empty())
-    {
-      return 0;
+  int cnt = 0;
+  while (!csoundVST->midiEventQueue.empty() && cnt <= (nbytes - 3)) {
+    const VstMidiEvent &event = csoundVST->midiEventQueue.front();
+    midiData[cnt + 0] = (unsigned char) event.midiData[0];
+    midiData[cnt + 1] = (unsigned char) event.midiData[1];
+    midiData[cnt + 2] = (unsigned char) event.midiData[2];
+    csoundVST->midiEventQueue.pop_front();
+    csound::System::message("CsoundVST::midiRead(%x, %x, %x)\n",
+                            (int) midiData[cnt + 0],
+                            (int) midiData[cnt + 1],
+                            (int) midiData[cnt + 2]);
+    switch ((int) midiData[cnt] & 0xF0) {
+      case 0x80:    /* note off */
+      case 0x90:    /* note on */
+      case 0xA0:    /* polyphonic pressure */
+      case 0xB0:    /* control change */
+      case 0xE0:    /* pitch bend */
+        cnt += 3;
+        break;
+      case 0xC0:    /* program change */
+      case 0xD0:    /* channel pressure */
+        cnt += 2;
+        break;
+      case 0xF0:
+        switch ((int) midiData[cnt]) {
+          case 0xF8:    /* timing clock */
+          case 0xFA:    /* start */
+          case 0xFB:    /* continue */
+          case 0xFC:    /* stop */
+          case 0xFF:    /* reset */
+            cnt++;
+        }
+        break;      /* ignore any other message */
     }
-  else
-    {
-      MIDIMESSAGE *midiMessage = (MIDIMESSAGE *)midiData;
-      const VstMidiEvent &event = csoundVST->midiEventQueue.front();
-      midiMessage->bData[0] = event.midiData[0];
-      midiMessage->bData[1] = event.midiData[1];
-      midiMessage->bData[2] = event.midiData[2];
-      csound::System::message("CsoundVST::midiRead(%x, %x, %x)\n",
-                              (int) midiMessage->bData[0],
-                              (int) midiMessage->bData[1],
-                              (int) midiMessage->bData[2]);
-      csoundVST->midiEventQueue.pop_front();
-      return 3;
-    }
+  }
+  return cnt;
 }
 
 void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
