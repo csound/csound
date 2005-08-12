@@ -34,9 +34,9 @@ Ville Pulkki
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_EIGHT_moving_control(ENVIRON *, VBAP_EIGHT_MOVING  *);
+int vbap_EIGHT_moving_control(CSOUND *, VBAP_EIGHT_MOVING   *);
 
-int vbap_EIGHT(ENVIRON *csound, VBAP_EIGHT  *p) /* during note performance:   */
+int vbap_EIGHT(CSOUND *csound, VBAP_EIGHT   *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -80,7 +80,7 @@ int vbap_EIGHT(ENVIRON *csound, VBAP_EIGHT  *p) /* during note performance:   */
     return OK;
 }
 
-int vbap_EIGHT_control(ENVIRON *csound, VBAP_EIGHT  *p)
+int vbap_EIGHT_control(CSOUND *csound, VBAP_EIGHT   *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -186,7 +186,7 @@ int vbap_EIGHT_control(ENVIRON *csound, VBAP_EIGHT  *p)
     return OK;
 }
 
-int vbap_EIGHT_init(ENVIRON *csound, VBAP_EIGHT  *p)
+int vbap_EIGHT_init(CSOUND *csound, VBAP_EIGHT   *p)
 {                               /* Initializations before run time*/
     int i,j;
     MYFLT *ptr;
@@ -233,7 +233,7 @@ int vbap_EIGHT_init(ENVIRON *csound, VBAP_EIGHT  *p)
     return OK;
 }
 
-int vbap_EIGHT_moving(ENVIRON *csound, VBAP_EIGHT_MOVING  *p) /* during note performance:   */
+int vbap_EIGHT_moving(CSOUND *csound, VBAP_EIGHT_MOVING   *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -274,7 +274,7 @@ int vbap_EIGHT_moving(ENVIRON *csound, VBAP_EIGHT_MOVING  *p) /* during note per
     return OK;
 }
 
-int vbap_EIGHT_moving_control(ENVIRON *csound, VBAP_EIGHT_MOVING  *p)
+int vbap_EIGHT_moving_control(CSOUND *csound, VBAP_EIGHT_MOVING   *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -459,7 +459,7 @@ int vbap_EIGHT_moving_control(ENVIRON *csound, VBAP_EIGHT_MOVING  *p)
   return OK;
 }
 
-int vbap_EIGHT_moving_init(ENVIRON *csound, VBAP_EIGHT_MOVING  *p)
+int vbap_EIGHT_moving_init(CSOUND *csound, VBAP_EIGHT_MOVING   *p)
 {
     int i,j;
     MYFLT *ptr;

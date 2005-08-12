@@ -56,10 +56,10 @@ typedef struct {
 
 /* Static function prototypes */
 
-static SNDFILE*  EXsndgetset(ENVIRON *, XTRC*,char *);
-static void ExtractSound(ENVIRON *, XTRC *, SNDFILE*, SNDFILE*);
+static SNDFILE*  EXsndgetset(CSOUND *, XTRC*,char *);
+static void ExtractSound(CSOUND *, XTRC *, SNDFILE*, SNDFILE*);
 
-static void usage(ENVIRON *csound, char *mesg, ...)
+static void usage(CSOUND *csound, char *mesg, ...)
 {
     va_list args;
 
@@ -86,7 +86,7 @@ static void usage(ENVIRON *csound, char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static int xtrct(ENVIRON *csound, int argc, char **argv)
+static int xtrct(CSOUND *csound, int argc, char **argv)
 {
     OPARMS      *O = csound->oparms;
     char        *inputfile = NULL;
@@ -312,7 +312,7 @@ static int xtrct(ENVIRON *csound, int argc, char **argv)
 }
 
 static SNDFILE*
-EXsndgetset(ENVIRON *csound, XTRC *x, char *name)
+EXsndgetset(CSOUND *csound, XTRC *x, char *name)
 {
     SNDFILE*    infd;
     MYFLT       dur;
@@ -332,7 +332,7 @@ EXsndgetset(ENVIRON *csound, XTRC *x, char *name)
 }
 
 static void
-ExtractSound(ENVIRON *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd)
+ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd)
 {
     double buffer[NUMBER_OF_SAMPLES];
     long  read_in;
@@ -364,7 +364,7 @@ ExtractSound(ENVIRON *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "extractor", xtrct);
     if (!retval) {

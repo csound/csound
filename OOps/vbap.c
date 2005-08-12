@@ -221,7 +221,7 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[CHANNELS] )
       return FL(0.0);
 }
 
-void choose_ls_triplets(ENVIRON *csound, ls lss[CHANNELS],
+void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
                         struct ls_triplet_chain **ls_triplets, int ls_amount)
      /* Selects the loudspeaker triplets, and
       calculates the inversion matrices for each selected triplet.
@@ -472,7 +472,7 @@ void cross_prod(CART_VEC v1,CART_VEC v2,
     res->z /= length;
 }
 
-void vec_print(ENVIRON *csound, CART_VEC v)
+void vec_print(CSOUND *csound, CART_VEC v)
 {
     csound->Message(csound, "vec_print %f %f %f\n", v.x, v.y,v.z);
 
@@ -529,7 +529,7 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[CHANNELS])
     }
 }
 
-void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
+void vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
      /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
         according to current dimension. The inversion matrices are
         stored in transposed form to ease calculation at run time.*/
@@ -583,7 +583,7 @@ void vbap_ls_init (ENVIRON *csound, VBAP_LS_INIT *p)
     }
 }
 
-void  calculate_3x3_matrixes(ENVIRON *csound,
+void  calculate_3x3_matrixes(CSOUND *csound,
                              struct ls_triplet_chain *ls_triplets,
                          ls lss[CHANNELS], int ls_amount)
      /* Calculates the inverse matrices for 3D */
@@ -659,7 +659,7 @@ void  calculate_3x3_matrixes(ENVIRON *csound,
     }
 }
 
-void choose_ls_tuplets( ENVIRON *csound,
+void choose_ls_tuplets( CSOUND *csound,
                         ls lss[CHANNELS],
                         ls_triplet_chain **ls_triplets,
                         int ls_amount)

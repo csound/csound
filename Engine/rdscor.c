@@ -23,9 +23,9 @@
 
 #include "csoundCore.h"         /*                              RDSCOR.C */
 
-static void dumpline(ENVIRON *);
+static void dumpline(CSOUND *);
 
-static void flushline(ENVIRON *csound)  /* flush scorefile to next newline */
+static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
 {
     int     c;
     FILE    *xx = csound->scfp;
@@ -33,7 +33,7 @@ static void flushline(ENVIRON *csound)  /* flush scorefile to next newline */
         ;
 }
 
-static int scanflt(ENVIRON *csound, MYFLT *pfld)
+static int scanflt(CSOUND *csound, MYFLT *pfld)
 {   /* read a MYFLT from scorefile; return 1 if OK, else 0 */
     int     c;
     FILE    *xx = csound->scfp;
@@ -71,7 +71,7 @@ static int scanflt(ENVIRON *csound, MYFLT *pfld)
     return(1);
 }
 
-static void dumpline(ENVIRON *csound)   /* print the line while flushing it */
+static void dumpline(CSOUND *csound)    /* print the line while flushing it */
 {
     int     c;
     FILE    *xx = csound->scfp;
@@ -81,7 +81,7 @@ static void dumpline(ENVIRON *csound)   /* print the line while flushing it */
     csound->Message(csound, Str("\n\tremainder of line flushed\n"));
 }
 
-int rdscor(ENVIRON *csound, EVTBLK *e) /* read next score-line from scorefile */
+int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                        /*  & maintain section warped status   */
 {                                      /*      presumes good format if warped */
     MYFLT   *pp, *plim;

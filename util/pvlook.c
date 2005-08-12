@@ -54,7 +54,7 @@ typedef struct pvstruct
     char        info[PVDFLTBYTS];       /* extendable byte area */
 } PVSTRUCT;
 
-static int pvlook(ENVIRON *csound, int argc, char *argv[])
+static int pvlook(CSOUND *csound, int argc, char *argv[])
 {
     int     i, j, k;
     FILE    *fp, *outfd = stdout;
@@ -212,7 +212,7 @@ static int pvlook(ENVIRON *csound, int argc, char *argv[])
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "pvlook", pvlook);
     if (!retval) {

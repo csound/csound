@@ -36,13 +36,13 @@
 #include "pluck.h"
 
 /* external prototypes */
-static void error(ENVIRON*, const char*, const char*);
-static void pluckSetFilters(ENVIRON*, WGPLUCK*, MYFLT, MYFLT);
-static MYFLT *pluckShape(ENVIRON*, WGPLUCK*);    /* pluck shape function */
+static void error(CSOUND*, const char*, const char*);
+static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);
+static MYFLT *pluckShape(CSOUND*, WGPLUCK*);     /* pluck shape function */
 
 /* ***** plucked string class member function definitions ***** */
 static /* pluck::excite -- excitation function for plucked string */
-int pluckExcite(ENVIRON *csound, WGPLUCK* p)
+int pluckExcite(CSOUND *csound, WGPLUCK* p)
 {
     MYFLT *shape;
     int i;
@@ -83,7 +83,7 @@ int pluckExcite(ENVIRON *csound, WGPLUCK* p)
 }
 
 /* ::pluck -- create the plucked-string instrument */
-int pluckPluck(ENVIRON *csound, WGPLUCK* p)
+int pluckPluck(CSOUND *csound, WGPLUCK* p)
 {
     /* ndelay = total required delay - 1.0 */
     len_t ndelay = (len_t) (csound->esr / *p->freq - FL(1.0));
@@ -134,7 +134,7 @@ int pluckPluck(ENVIRON *csound, WGPLUCK* p)
 }
 
 /* pluck::setFilters -- frequency dependent filter calculations */
-static void pluckSetFilters(ENVIRON *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
+static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
 {
     /* Define the required magnitude response of H1 at w0 and PI */
 
@@ -158,7 +158,7 @@ static void pluckSetFilters(ENVIRON *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
 }
 
 /* ::pluckShape -- the pluck function for a string */
-static MYFLT *pluckShape(ENVIRON *csound, WGPLUCK* p)
+static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
 {
     MYFLT scale = *p->amp;
     MYFLT  *shape;
@@ -192,7 +192,7 @@ inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 }
 
 /* ::getSamps -- the sample generating routine */
-int pluckGetSamps(ENVIRON *csound, WGPLUCK* p)
+int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 {
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
     MYFLT *ar = p->out;    /* The sample output buffer */
@@ -236,7 +236,7 @@ int pluckGetSamps(ENVIRON *csound, WGPLUCK* p)
  * This routine assumes that the DATA pointer has already been
  * allocated by the calling routine.
  */
-void circularBufferCircularBuffer(ENVIRON *csound, circularBuffer* cb, len_t N)
+void circularBufferCircularBuffer(CSOUND *csound, circularBuffer* cb, len_t N)
 {
     MYFLT *data = cb->data;
     if (!data)
@@ -297,7 +297,7 @@ MYFLT guideRailAccess(guideRail* gr, len_t pos)
 
 /* unused */
 #if 0
-void dumpRail(ENVIRON *csound, guideRail* gr, len_t M)
+void dumpRail(CSOUND *csound, guideRail* gr, len_t M)
 {
     MYFLT *s = gr->pointer;
     while (M-- >= 0) {
@@ -353,7 +353,7 @@ MYFLT filterAllpass(waveguide* wg,MYFLT s)
  * total delay length = (SR/f0)
  * also sets tuning filter for fractional delay for exact tuning
  */
-void waveguideWaveguide(ENVIRON *csound,
+void waveguideWaveguide(CSOUND *csound,
                         waveguide* wg,
                         MYFLT  freq,
                         MYFLT* upperData,
@@ -392,7 +392,7 @@ void waveguideWaveguide(ENVIRON *csound,
 }
 
 /* Set the allpass tuning filter coefficient */
-void waveguideSetTuning(ENVIRON *csound, waveguide* wg, MYFLT df)
+void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 {
     MYFLT k=csound->onedsr * wg->w0;
 
@@ -405,7 +405,7 @@ void waveguideSetTuning(ENVIRON *csound, waveguide* wg, MYFLT df)
 }
 
 /* error -- report errors */
-static void error(ENVIRON *csound, const char* a, const char* b)
+static void error(CSOUND *csound, const char* a, const char* b)
 {
     csound->Die(csound, Str("Error: %s, %s"), a, b);
 }

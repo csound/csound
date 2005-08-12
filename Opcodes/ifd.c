@@ -55,7 +55,7 @@ typedef struct _ifd {
     MYFLT   norm, g;
 } _IFD;
 
-int ifd_init(ENVIRON * csound, _IFD * p)
+int ifd_init(CSOUND * csound, _IFD * p)
 {
 
     int     hsize, fftsize, hopsize, frames;
@@ -155,7 +155,7 @@ int ifd_init(ENVIRON * csound, _IFD * p)
     return OK;
 }
 
-void IFAnalysis(ENVIRON * csound, _IFD * p, MYFLT * signal)
+void IFAnalysis(CSOUND * csound, _IFD * p, MYFLT * signal)
 {
 
     double  powerspec, da, db, a, b, ph, d, factor = p->factor, fund = p->fund;
@@ -221,7 +221,7 @@ void IFAnalysis(ENVIRON * csound, _IFD * p, MYFLT * signal)
     p->fout2->framecount++;
 }
 
-int ifd_process(ENVIRON * csound, _IFD * p)
+int ifd_process(CSOUND * csound, _IFD * p)
 {
     int     i, n;
     MYFLT  *sigin = p->in;
@@ -256,3 +256,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

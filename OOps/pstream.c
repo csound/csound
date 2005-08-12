@@ -51,7 +51,7 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 /* Pandora's box opcode, but we can make it at least plausible,
    by forbidding copy to different format. */
 
-int fassign(ENVIRON *csound, FASSIGN *p)
+int fassign(CSOUND *csound, FASSIGN *p)
 {
     int i;
     long framesize;
@@ -70,7 +70,7 @@ int fassign(ENVIRON *csound, FASSIGN *p)
 
 /************* OSCBANK SYNTH ***********/
 
-int pvadsynset(ENVIRON *csound, PVADS *p)
+int pvadsynset(CSOUND *csound, PVADS *p)
 {
     /* get params from input fsig */
     /* we trust they are legit! */
@@ -143,7 +143,7 @@ static inline MYFLT fastoscil(MYFLT *a, MYFLT *x, MYFLT *y)
     return *y;
 }
 
-static void adsyn_frame(ENVIRON *csound, PVADS *p)
+static void adsyn_frame(CSOUND *csound, PVADS *p)
 {
     int i,j;
     long startbin,lastbin,binoffset;
@@ -197,7 +197,7 @@ static void adsyn_frame(ENVIRON *csound, PVADS *p)
     }
 }
 
-static MYFLT adsyn_tick(ENVIRON *csound, PVADS *p)
+static MYFLT adsyn_tick(CSOUND *csound, PVADS *p)
 {
     MYFLT *outbuf = (MYFLT *) (p->outbuf.auxp);
 
@@ -209,7 +209,7 @@ static MYFLT adsyn_tick(ENVIRON *csound, PVADS *p)
     return  outbuf[p->outptr++];
 }
 
-int pvadsyn(ENVIRON *csound, PVADS *p)
+int pvadsyn(CSOUND *csound, PVADS *p)
 {
     int i;
 
@@ -225,7 +225,7 @@ int pvadsyn(ENVIRON *csound, PVADS *p)
 
 /******* PVSCROSS ***********/
 
-int pvscrosset(ENVIRON *csound, PVSCROSS *p)
+int pvscrosset(CSOUND *csound, PVSCROSS *p)
 {
     long N = p->fsrc->N;
     /* source fsig */
@@ -253,7 +253,7 @@ int pvscrosset(ENVIRON *csound, PVSCROSS *p)
     return OK;
 }
 
-int pvscross(ENVIRON *csound, PVSCROSS *p)
+int pvscross(CSOUND *csound, PVSCROSS *p)
 {
     long i,N = p->fftsize;
     MYFLT amp1 = (MYFLT) fabs(*p->kamp1);
@@ -288,7 +288,7 @@ int pvscross(ENVIRON *csound, PVSCROSS *p)
 
 /******** PVSFREAD ************/
 
-int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
+int pvsfreadset(CSOUND *csound, PVSFREAD *p)
 {
     PVOCEX_MEMFILE  pp;
     unsigned long   N;
@@ -346,7 +346,7 @@ int pvsfreadset(ENVIRON *csound, PVSFREAD *p)
     return OK;
 }
 
-int pvsfread(ENVIRON *csound, PVSFREAD *p)
+int pvsfread(CSOUND *csound, PVSFREAD *p)
 {
     int i,j;
     MYFLT pos = *p->kpos;
@@ -402,7 +402,7 @@ int pvsfread(ENVIRON *csound, PVSFREAD *p)
 }
 
 /************* PVSMASKA ****************/
-int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
+int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
 {
     int i;
     MYFLT *ftable;
@@ -445,7 +445,7 @@ int pvsmaskaset(ENVIRON *csound, PVSMASKA *p)
     return OK;
 }
 
-int pvsmaska(ENVIRON *csound, PVSMASKA *p)
+int pvsmaska(CSOUND *csound, PVSMASKA *p)
 {
     int i;
     long flen, nbins;
@@ -509,7 +509,7 @@ int pvsmaska(ENVIRON *csound, PVSMASKA *p)
 
 /**************PVSFTW ******************/
 
-int pvsftwset(ENVIRON *csound, PVSFTW *p)
+int pvsftwset(CSOUND *csound, PVSFTW *p)
 {
     int i;
     MYFLT *ftablea,*ftablef;
@@ -565,7 +565,7 @@ int pvsftwset(ENVIRON *csound, PVSFTW *p)
     return OK;
 }
 
-int pvsftw(ENVIRON *csound, PVSFTW *p)
+int pvsftw(CSOUND *csound, PVSFTW *p)
 {
     int i;
     long nbins;
@@ -607,7 +607,7 @@ int pvsftw(ENVIRON *csound, PVSFTW *p)
 
 /************ PVSFTR ****************/
 
-int pvsftrset(ENVIRON *csound, PVSFTR *p)
+int pvsftrset(CSOUND *csound, PVSFTR *p)
 {
     int i;
     float *fdest;                         /* RWD MUST be 32bit */
@@ -668,7 +668,7 @@ int pvsftrset(ENVIRON *csound, PVSFTR *p)
     return OK;
 }
 
-int pvsftr(ENVIRON *csound, PVSFTR *p)
+int pvsftr(CSOUND *csound, PVSFTR *p)
 {
     int i;
     long nbins;
@@ -696,7 +696,7 @@ int pvsftr(ENVIRON *csound, PVSFTR *p)
 
 /************** PVSINFO ***********/
 
-int pvsinfo(ENVIRON *csound, PVSINFO *p)
+int pvsinfo(CSOUND *csound, PVSINFO *p)
 {
 #ifdef _DEBUG
     /* init stage opcode : this should always be a proper fsig */

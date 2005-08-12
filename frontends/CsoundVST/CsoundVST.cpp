@@ -183,7 +183,7 @@ void CsoundVST::closeView()
   editor->close();
 }
 
-int CsoundVST::midiDeviceOpen(ENVIRON *csound, void **userData,
+int CsoundVST::midiDeviceOpen(CSOUND *csound, void **userData,
                               const char *devName)
 {
   *userData = csoundGetHostData(csound);
@@ -258,16 +258,16 @@ void performanceThreadRoutine_(void *data)
 
 extern "C"
 {
-  extern int POLL_EVENTS(ENVIRON *);
+  extern int POLL_EVENTS(CSOUND *);
 }
 
-static int threadYieldCallback(ENVIRON *csound)
+static int threadYieldCallback(CSOUND *csound)
 {
   Fl::wait(0.0);
   return 1;
 }
 
-static int nonThreadYieldCallback(ENVIRON *)
+static int nonThreadYieldCallback(CSOUND *)
 {
   return 1;
 }
@@ -408,7 +408,7 @@ long CsoundVST::processEvents(VstEvents *vstEvents)
     }
 }
 
-int CsoundVST::midiRead(ENVIRON *csound, void *userData,
+int CsoundVST::midiRead(CSOUND *csound, void *userData,
                         unsigned char *midiData, int nbytes)
 {
   CsoundVST *csoundVST = (CsoundVST *)userData;

@@ -41,8 +41,8 @@
 #define s2d(x)  *((DWORD *) (x))
 
 int chunk_read(FILE *f, CHUNK *chunk);
-void fill_SfPointers(ENVIRON *);
-void fill_SfStruct(ENVIRON *);
+void fill_SfPointers(CSOUND *);
+void fill_SfStruct(CSOUND *);
 void layerDefaults(layerType *layer);
 void splitDefaults(splitType *split);
 
@@ -64,7 +64,7 @@ static SHORT *sampleBase[MAX_SFPRESET];
 /* static SHORT *isampleBase[MAX_SFINSTR]; */
 static MYFLT pitches[128];
 
-PUBLIC int csoundModuleDestroy(ENVIRON *csound)
+PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
     int j,k,l;
     for (j=0; j<currSFndx; j++) {
@@ -93,7 +93,7 @@ void fill_pitches(void)
     }
 }
 
-void SoundFontLoad(ENVIRON *csound, char *fname)
+void SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     char *pathnam;
@@ -139,7 +139,7 @@ static int compare(presetType * elem1, presetType *elem2)
 
 static char *Gfname;
 
-int SfLoad(ENVIRON *csound, SFLOAD *p)  /* open a file and return its handle */
+int SfLoad(CSOUND *csound, SFLOAD *p)   /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char fname[256];
     SFBANK *sf;
@@ -172,7 +172,7 @@ static char *filter_string(char *s, char temp_string[24])
     return temp_string;
 }
 
-int Sfplist(ENVIRON *csound, SFPLIST *p)
+int Sfplist(CSOUND *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     char temp_string[24];
@@ -188,7 +188,7 @@ int Sfplist(ENVIRON *csound, SFPLIST *p)
     return OK;
 }
 
-int SfAssignAllPresets(ENVIRON *csound, SFPASSIGN *p)
+int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
@@ -210,7 +210,7 @@ int SfAssignAllPresets(ENVIRON *csound, SFPASSIGN *p)
     return OK;
 }
 
-int Sfilist(ENVIRON *csound, SFPLIST *p)
+int Sfilist(CSOUND *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int j;
@@ -223,7 +223,7 @@ int Sfilist(ENVIRON *csound, SFPLIST *p)
     return OK;
 }
 
-int SfPreset(ENVIRON *csound, SFPRESET *p)
+int SfPreset(CSOUND *csound, SFPRESET *p)
 {
     int j, presetHandle = (int) *p->iPresetHandle;
     SFBANK *sf = &sfArray[(DWORD) *p->isfhandle];
@@ -253,7 +253,7 @@ int SfPreset(ENVIRON *csound, SFPRESET *p)
     return OK;
 }
 
-int SfPlay_set(ENVIRON *csound, SFPLAY *p)
+int SfPlay_set(CSOUND *csound, SFPLAY *p)
 {
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset = presetp[index];
@@ -366,7 +366,7 @@ int SfPlay_set(ENVIRON *csound, SFPLAY *p)
         *outemp2++ += *right * out;\
         *phs += si;
 
-int SfPlay(ENVIRON *csound, SFPLAY *p)
+int SfPlay(CSOUND *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
     int   nsmps = csound->ksmps, j = p->spltNum, arate;
@@ -449,7 +449,7 @@ int SfPlay(ENVIRON *csound, SFPLAY *p)
     return OK;
 }
 
-int SfPlay3(ENVIRON *csound, SFPLAY *p)
+int SfPlay3(CSOUND *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
     int nsmps = csound->ksmps, j = p->spltNum, arate;
@@ -531,7 +531,7 @@ int SfPlay3(ENVIRON *csound, SFPLAY *p)
     return OK;
 }
 
-int SfPlayMono_set(ENVIRON *csound, SFPLAYMONO *p)
+int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
 {
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset = presetp[index];
@@ -596,7 +596,7 @@ int SfPlayMono_set(ENVIRON *csound, SFPLAYMONO *p)
     return OK;
 }
 
-int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
+int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1  ;
     int nsmps = csound->ksmps, j = p->spltNum, arate;
@@ -676,7 +676,7 @@ int SfPlayMono(ENVIRON *csound, SFPLAYMONO *p)
     return OK;
 }
 
-int SfPlayMono3(ENVIRON *csound, SFPLAYMONO *p)
+int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1;
     int nsmps = csound->ksmps, j = p->spltNum, arate;
@@ -757,7 +757,7 @@ int SfPlayMono3(ENVIRON *csound, SFPLAYMONO *p)
     return OK;
 }
 
-int SfInstrPlay_set(ENVIRON *csound, SFIPLAY *p)
+int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 {
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
@@ -817,7 +817,7 @@ int SfInstrPlay_set(ENVIRON *csound, SFIPLAY *p)
     return OK;
 }
 
-int SfInstrPlay(ENVIRON *csound, SFIPLAY *p)
+int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
     int nsmps= csound->ksmps, j = p->spltNum, arate;
@@ -904,7 +904,7 @@ int SfInstrPlay(ENVIRON *csound, SFIPLAY *p)
     return OK;
 }
 
-int SfInstrPlay3(ENVIRON *csound, SFIPLAY *p)
+int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
     int nsmps= csound->ksmps, j = p->spltNum, arate;
@@ -991,7 +991,7 @@ int SfInstrPlay3(ENVIRON *csound, SFIPLAY *p)
     return OK;
 }
 
-int SfInstrPlayMono_set(ENVIRON *csound, SFIPLAYMONO *p)
+int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
 {
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
@@ -1045,7 +1045,7 @@ int SfInstrPlayMono_set(ENVIRON *csound, SFIPLAYMONO *p)
     return OK;
 }
 
-int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
+int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
     int nsmps= csound->ksmps, j = p->spltNum, arate;
@@ -1126,7 +1126,7 @@ int SfInstrPlayMono(ENVIRON *csound, SFIPLAYMONO *p)
     return OK;
 }
 
-int SfInstrPlayMono3(ENVIRON *csound, SFIPLAYMONO *p)
+int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
     int nsmps= csound->ksmps, j = p->spltNum, arate;
@@ -1250,7 +1250,7 @@ ChangeByteOrder(char *fmt, char *p, long size)
 #define ChangeByteOrder(fmt, p, size) /* nothing */
 #endif
 
-void fill_SfStruct(ENVIRON *csound)
+void fill_SfStruct(CSOUND *csound)
 {
 #if defined(SYMANTEC)
 #pragma options(!global_optimizer)
@@ -1747,7 +1747,7 @@ DWORD dword(char *p)
     return x.i;
 }
 
-void fill_SfPointers(ENVIRON *csound)
+void fill_SfPointers(CSOUND *csound)
 {
     char *chkp;
     DWORD chkid, j, size;
@@ -1955,12 +1955,12 @@ static OENTRY localops[] = {
 { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     return 0;
 }
 
-PUBLIC int csoundModuleInit(ENVIRON *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     OENTRY  *ep = (OENTRY*) &(localops[0]);
     int     err = 0;
@@ -1969,9 +1969,9 @@ PUBLIC int csoundModuleInit(ENVIRON *csound)
       err |= csound->AppendOpcode(csound,
                                   ep->opname, ep->dsblksiz, ep->thread,
                                   ep->outypes, ep->intypes,
-                                  (int (*)(ENVIRON *, void*)) ep->iopadr,
-                                  (int (*)(ENVIRON *, void*)) ep->kopadr,
-                                  (int (*)(ENVIRON *, void*)) ep->aopadr);
+                                  (int (*)(CSOUND *, void*)) ep->iopadr,
+                                  (int (*)(CSOUND *, void*)) ep->kopadr,
+                                  (int (*)(CSOUND *, void*)) ep->aopadr);
       ep++;
     }
     return err;

@@ -39,7 +39,7 @@ typedef struct osc_pat {
 /* structure for global variables */
 
 typedef struct {
-     ENVIRON    *csound;
+     CSOUND     *csound;
      void       *threadLock;
      lo_server_thread thread;
      OSC_PAT    *patterns;      /* List of things to do */
@@ -101,7 +101,7 @@ typedef struct {
     MYFLT *port;                /* Port number on which to listen */
 } OSCINIT;
 
-static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
+static int osc_listener_init(CSOUND *csound, OSCINIT *p)
 {
     OSC_GLOBALS *pp;
     char buff[12];
@@ -123,7 +123,7 @@ static int osc_listener_init(ENVIRON *csound, OSCINIT *p)
 
 /* RESET routine for cleaning up */
 
-static int OSC_reset(ENVIRON *csound, void *userData)
+static int OSC_reset(CSOUND *csound, void *userData)
 {
     OSC_GLOBALS *p;
     OSC_PAT *m;
@@ -157,7 +157,7 @@ typedef struct {
     OSC_PAT *pat;
 } OSCLISTEN;
 
-int OSC_listdeinit(ENVIRON *csound, OSCLISTEN *p)
+int OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 {
     /* remove p->pat and also the handler which seems difficult */
     OSC_PAT *m;
@@ -188,7 +188,7 @@ int OSC_listdeinit(ENVIRON *csound, OSCLISTEN *p)
     return OK;
 }
 
-int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
+int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
 {
     void *x;
     OSC_PAT *m;
@@ -210,11 +210,11 @@ int OSC_list_init(ENVIRON *csound, OSCLISTEN *p)
     x = lo_server_thread_add_method(pp->thread, (char*)p->dest, (char*)p->type,
                                     OSC_handler, pp);
     csound->RegisterDeinitCallback(csound,
-                                   p, (int (*)(ENVIRON*,void*)) OSC_listdeinit);
+                                   p, (int (*)(CSOUND*,void*)) OSC_listdeinit);
     return OK;
 }
 
-int OSC_list(ENVIRON *csound, OSCLISTEN *p)
+int OSC_list(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m = p->pat;
     if (m->active) {
@@ -243,13 +243,13 @@ PUBLIC long opcode_size(void)
      return (long) sizeof(localops);
 }
 
-PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+PUBLIC OENTRY *opcode_init(CSOUND *csound)
 {
 #ifdef BETA
     csound->Message(csound, "****OSC: liblo started****\n");
 #endif
     csound->RegisterResetCallback(csound, NULL,
-                                  (int (*)(ENVIRON *, void *)) OSC_reset);
+                                  (int (*)(CSOUND *, void *)) OSC_reset);
     return localops;
 }
 

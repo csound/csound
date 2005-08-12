@@ -34,7 +34,7 @@
 #include "csdl.h"
 #include "dcblockr.h"
 
-int dcblockrset(ENVIRON *csound, DCBlocker* p)
+int dcblockrset(CSOUND *csound, DCBlocker* p)
 {
     p->outputs = FL(0.0);
     p->inputs = FL(0.0);
@@ -44,7 +44,7 @@ int dcblockrset(ENVIRON *csound, DCBlocker* p)
     return OK;
 }
 
-int dcblockr(ENVIRON *csound, DCBlocker* p)
+int dcblockr(CSOUND *csound, DCBlocker* p)
 {
     MYFLT       *ar = p->ar;
     int         n, nsmps = csound->ksmps;

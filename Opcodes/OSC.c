@@ -34,7 +34,7 @@ typedef struct rtEvt_s {
 /* structure for global variables */
 
 typedef struct {
-    ENVIRON *csound;
+    CSOUND *csound;
     rtEvt_t *eventQueue;
     void    *threadLock;
     lo_server_thread  st;
@@ -62,7 +62,7 @@ typedef struct {
     MYFLT   *i_absp2;
 } OSCRECV;
 
-int osc_send_set(ENVIRON *csound, OSCSEND *p)
+int osc_send_set(CSOUND *csound, OSCSEND *p)
 {
     char port[8];
     char *pp= port;
@@ -88,7 +88,7 @@ int osc_send_set(ENVIRON *csound, OSCSEND *p)
     return OK;
 }
 
-int osc_send(ENVIRON *csound, OSCSEND *p)
+int osc_send(CSOUND *csound, OSCSEND *p)
 {
     /* Types I allow at present:
        0) int
@@ -182,7 +182,7 @@ int osc_send(ENVIRON *csound, OSCSEND *p)
 
 /* callback function called by sensevents() once in every control period */
 
-static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
+static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
 {
     /* are there any pending events ? */
     if (p->eventQueue == NULL)
@@ -221,14 +221,14 @@ static void event_sense_callback(ENVIRON *csound, OSC_GLOBALS *p)
 
 /* callback function for OSC thread */
 /* NOTE: this function does not run in the main Csound audio thread, */
-/* so use of the API or access to ENVIRON should be limited or avoided */
+/* so use of the API or access to CSOUND should be limited or avoided */
 
 static int osc_event_handler(const char *path, const char *types,
                              lo_arg **argv, int argc, lo_message msg,
                              void *user_data)
 {
     OSC_GLOBALS *p = (OSC_GLOBALS*) user_data;
-    ENVIRON     *csound = p->csound;
+    CSOUND      *csound = p->csound;
     rtEvt_t     *evt;
     int         i;
     char        opcod = '\0';
@@ -309,7 +309,7 @@ static void osc_error_handler(int n, const char *msg, const char *path)
 
 /* opcode for starting the OSC listener (called once from orchestra header) */
 
-static int osc_listener_init(ENVIRON *csound, OSCRECV *p)
+static int osc_listener_init(CSOUND *csound, OSCRECV *p)
 {
     OSC_GLOBALS *pp;
     char        portName[256], *pathName;
@@ -336,14 +336,14 @@ static int osc_listener_init(ENVIRON *csound, OSCRECV *p)
     /* start thread */
     lo_server_thread_start(pp->st);
     /* register callback function for sensevents() */
-    csound->RegisterSenseEventCallback(csound, (void (*)(ENVIRON*, void*))
+    csound->RegisterSenseEventCallback(csound, (void (*)(CSOUND*, void*))
                                                  event_sense_callback, pp);
     return OK;
 }
 
 /* RESET routine for cleaning up */
 
-static int OSC_reset(ENVIRON *csound, void *userData)
+static int OSC_reset(CSOUND *csound, void *userData)
 {
     OSC_GLOBALS *p;
     p = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "__OSC_globals");
@@ -379,10 +379,10 @@ PUBLIC long opcode_size(void)
     return (long) sizeof(localops);
 }
 
-PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+PUBLIC OENTRY *opcode_init(CSOUND *csound)
 {
     csound->RegisterResetCallback(csound, NULL,
-                                  (int (*)(ENVIRON *, void *)) OSC_reset);
+                                  (int (*)(CSOUND *, void *)) OSC_reset);
     return localops;
 }
 

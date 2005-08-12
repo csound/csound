@@ -37,7 +37,7 @@
 #include "pvadd.h"
 #include "oload.h"
 
-static int pvx_loadfile(ENVIRON *csound, const char *fname, PVADD *p);
+static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 
 /* This is used in pvadd instead of the Fetch() from dsputil.c */
 void FetchInForAdd(float *inp, MYFLT *buf, long fsize,
@@ -68,7 +68,7 @@ void FetchInForAdd(float *inp, MYFLT *buf, long fsize,
     }
 }
 
-int pvaddset(ENVIRON *csound, PVADD *p)
+int pvaddset(CSOUND *csound, PVADD *p)
 {
     int      i, ibins;
     char     pvfilnam[MAXNAME];
@@ -138,7 +138,7 @@ int pvaddset(ENVIRON *csound, PVADD *p)
     return OK;
 }
 
-int pvadd(ENVIRON *csound, PVADD *p)
+int pvadd(CSOUND *csound, PVADD *p)
 {
     MYFLT   *ar, *ftab;
     MYFLT   frIndx;
@@ -202,7 +202,7 @@ int pvadd(ENVIRON *csound, PVADD *p)
     return OK;
 }
 
-static int pvx_loadfile(ENVIRON *csound, const char *fname, PVADD *p)
+static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
 {
     PVOCEX_MEMFILE  pp;
 

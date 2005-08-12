@@ -39,7 +39,7 @@
 
 #define END  32767
 
-void het_import_usage(ENVIRON *csound)
+void het_import_usage(CSOUND *csound)
 {
     csound->Message(csound, Str("Usage: het_import commafile hetfile\n"));
 }
@@ -61,7 +61,7 @@ short getnum(FILE* inf, char *term)
     return (short)atoi(buff);
 }
 
-static int het_import(ENVIRON *csound, int argc, char **argv)
+static int het_import(CSOUND *csound, int argc, char **argv)
 {
     FILE *infd;
     FILE *outf;
@@ -98,7 +98,7 @@ static int het_import(ENVIRON *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "het_import", het_import);
     if (!retval) {

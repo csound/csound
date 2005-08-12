@@ -28,7 +28,7 @@
 #include <sndfile.h>
 #include "soundio.h"
 
-static int sndinfo(ENVIRON *csound, int argc, char **argv)
+static int sndinfo(CSOUND *csound, int argc, char **argv)
 {
     char    *infilnam, *fname;
     char    channame[32];
@@ -94,7 +94,7 @@ static int sndinfo(ENVIRON *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "sndinfo", sndinfo);
     if (!retval) {

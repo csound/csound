@@ -23,7 +23,7 @@
 
 #include "cscore.h"                              /*  CSCORE_DEFAULT.C   */
 
-void cscore(ENVIRON *cs) /* callable from Csound or standalone cscore  */
+void cscore(CSOUND *cs)  /* callable from Csound or standalone cscore  */
                          /* csound -C will run Csound scores as normal */
 {
     EVLIST *a;
@@ -39,3 +39,4 @@ void cscore(ENVIRON *cs) /* callable from Csound or standalone cscore  */
     lplay(cs, a);               /* end-of-score for summaries */
     lrelev(a);
 }
+

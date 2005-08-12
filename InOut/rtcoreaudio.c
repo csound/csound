@@ -48,10 +48,10 @@ typedef struct devparams_ {
 
 /* module interface functions */
 
-int csoundModuleCreate(ENVIRON *csound)
+int csoundModuleCreate(CSOUND *csound)
 {
     int     min, max, *def;
-    ENVIRON *p = csound;
+    CSOUND *p = csound;
 
     min = 2;
     max = 32;
@@ -88,12 +88,12 @@ static void rtplay_(void *, void *, int);
 static int rtrecord_(void *, void *, int);
 static void rtclose_(void *);
 
-int csoundModuleInit(ENVIRON *csound)
+int csoundModuleInit(CSOUND *csound)
 {
-    ENVIRON *p;
+    CSOUND *p;
     char   *drv;
 
-    p = (ENVIRON *) csound;
+    p = (CSOUND *) csound;
     drv = (char *) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
     if (drv == NULL)
       return 0;
@@ -182,11 +182,11 @@ OSStatus Csound_IOProcEntry(AudioDeviceID indev,
     return ADIOProc(input, output, (DEVPARAMS *) cdata);
 }
 
-int coreaudio_open(ENVIRON *csound, csRtAudioParams * parm,
+int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
                      DEVPARAMS * dev, int isInput)
 {
 
-    ENVIRON *p;
+    CSOUND *p;
     UInt32  psize, devnum, devnos;
     double  sr;
     AudioDeviceID *sysdevs;
@@ -196,7 +196,7 @@ int coreaudio_open(ENVIRON *csound, csRtAudioParams * parm,
     UInt32  obufframes, ibufframes, buffbytes;
 
     memset(dev, 0, sizeof(DEVPARAMS));
-    p = (ENVIRON *) csound;
+    p = (CSOUND *) csound;
     /* set up parameters */
     vpt = (int *) (p->QueryGlobalVariable(csound, "::cabuffnos"));
     if (vpt != NULL)
@@ -396,12 +396,12 @@ int coreaudio_open(ENVIRON *csound, csRtAudioParams * parm,
 }
 
 /* open for audio input */
-static int recopen_(ENVIRON *csound, csRtAudioParams * parm)
+static int recopen_(CSOUND *csound, csRtAudioParams * parm)
 {
-    ENVIRON *p;
+    CSOUND *p;
     DEVPARAMS *dev;
 
-    p = (ENVIRON *) csound;
+    p = (CSOUND *) csound;
     if (*(p->GetRtRecordUserData(csound)) != NULL)
       return 0;
     /* allocate structure */
@@ -416,12 +416,12 @@ static int recopen_(ENVIRON *csound, csRtAudioParams * parm)
 }
 
 /* open for audio output */
-static int playopen_(ENVIRON *csound, csRtAudioParams * parm)
+static int playopen_(CSOUND *csound, csRtAudioParams * parm)
 {
-    ENVIRON *p;
+    CSOUND *p;
     DEVPARAMS *dev;
 
-    p = (ENVIRON *) csound;
+    p = (CSOUND *) csound;
     if (*(p->GetRtPlayUserData(csound)) != NULL)
       return 0;
     /* allocate structure */
@@ -435,15 +435,15 @@ static int playopen_(ENVIRON *csound, csRtAudioParams * parm)
     return coreaudio_open(csound, parm, dev, 0);
 }
 
-static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
+static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
 {
     DEVPARAMS *dev;
-    ENVIRON *p;
+    CSOUND *p;
     int     n, i, chans, cur, icount, buffitems, buffnos, *inused, usecs;
     float **ibuffs;
 
     /* MYFLT norm; */
-    p = (ENVIRON *) csound;
+    p = (CSOUND *) csound;
     dev = (DEVPARAMS *) (*(p->GetRtRecordUserData(csound)));
     usecs = (int) (1000 * dev->bufframes / p->esr);
     n = bytes_ / sizeof(MYFLT);
@@ -477,15 +477,15 @@ static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
 {
     DEVPARAMS *dev;
-    ENVIRON *p;
+    CSOUND *p;
     int     n, i, chans, cur, ocount, buffitems, buffnos, *outused, usecs;
     float **obuffs;
 
     /* MYFLT norm; */
-    p = (ENVIRON *) csound;
+    p = (CSOUND *) csound;
     dev = (DEVPARAMS *) (*(p->GetRtRecordUserData(csound)));
 
     n = bytes_ / sizeof(MYFLT);
@@ -519,12 +519,12 @@ static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
 /* close the I/O device entirely  */
 /* called only when both complete */
 
-static void rtclose_(ENVIRON *csound)
+static void rtclose_(CSOUND *csound)
 {
     DEVPARAMS *dev;
-    ENVIRON *p;
+    CSOUND *p;
 
-    p = (ENVIRON *) csound;
+    p = (CSOUND *) csound;
     dev = (DEVPARAMS *) (*(p->GetRtRecordUserData(csound)));
     if (dev != NULL) {
       p->Message(csound, "coreaudio module: closing device...\n");
@@ -539,3 +539,4 @@ static void rtclose_(ENVIRON *csound)
       p->Message(csound, "coreaudio module: device closed\n");
     }
 }
+

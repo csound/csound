@@ -130,7 +130,7 @@ int pyinit(PYINIT *p)
 #include "pyx.c.auto"
 #include "pycall.c.auto"
 
-int pycalln_krate(ENVIRON *csound, PYCALLN *p)
+int pycalln_krate(CSOUND *csound, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -157,7 +157,7 @@ int pycalln_krate(ENVIRON *csound, PYCALLN *p)
   return OK;
 }
 
-int pylcalln_irate(ENVIRON *csound, PYCALLN *p)
+int pylcalln_irate(CSOUND *csound, PYCALLN *p)
 {
 /*   if (*p->function != SSTRCOD) */
 /*     return NOTOK; */
@@ -166,7 +166,7 @@ int pylcalln_irate(ENVIRON *csound, PYCALLN *p)
   return OK;
 }
 
-int pylcalln_krate(ENVIRON *csound, PYCALLN *p)
+int pylcalln_krate(CSOUND *csound, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -193,7 +193,7 @@ int pylcalln_krate(ENVIRON *csound, PYCALLN *p)
   return OK;
 }
 
-int pylcallni_irate(ENVIRON *csound, PYCALLN *p)
+int pylcallni_irate(CSOUND *csound, PYCALLN *p)
 {
   int i;
   char command[1024];
@@ -361,7 +361,7 @@ PUBLIC long opcode_size(void)
 * Called by Csound to obtain a pointer to
 * the table of OENTRY structures defined in this shared library.
 */
-PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+PUBLIC OENTRY *opcode_init(CSOUND *csound)
 {
     return oentries;
 }

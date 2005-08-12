@@ -100,7 +100,7 @@ static int Lorisgens_Ksamps = 0;
 // ---------------------------------------------------------------------------
 //      setup_globals
 // ---------------------------------------------------------------------------
-static void setup_globals( ENVIRON * csound )
+static void setup_globals( CSOUND * csound )
 {
   Lorisgens_Srate = csound->GetSr( csound );
   Lorisgens_Krate = csound->GetKr( csound );
@@ -603,7 +603,7 @@ LorisReader::updateEnvelopePoints( double time, double fscale, double ascale, do
 #pragma mark -- lorisread generator functions --
 
 extern "C"
-int lorisread_cleanup(ENVIRON *, void * p);
+int lorisread_cleanup(CSOUND *, void * p);
 
 // ---------------------------------------------------------------------------
 //      lorisread_setup
@@ -611,7 +611,7 @@ int lorisread_cleanup(ENVIRON *, void * p);
 //      Runs at initialization time for lorisplay.
 //
 extern "C"
-int lorisread_setup( ENVIRON *csound, LORISREAD * params )
+int lorisread_setup( CSOUND *csound, LORISREAD * params )
 {
   if (!Lorisgens_Srate)
     setup_globals( csound );
@@ -656,7 +656,7 @@ int lorisread_setup( ENVIRON *csound, LORISREAD * params )
 //      Control-rate generator function.
 //
 extern "C"
-int lorisread( ENVIRON *csound, LORISREAD * p )
+int lorisread( CSOUND *csound, LORISREAD * p )
 {
   //*(p->result) =
   p->imp->updateEnvelopePoints( *p->time, *p->freqenv, *p->ampenv, *p->bwenv );
@@ -669,7 +669,7 @@ int lorisread( ENVIRON *csound, LORISREAD * p )
 //      Cleans up after lorisread.
 //
 extern "C"
-int lorisread_cleanup(ENVIRON *, void * p)
+int lorisread_cleanup(CSOUND *, void * p)
 {
   LORISREAD * tp = (LORISREAD *)p;
 #ifdef DEBUG_LORISGENS
@@ -694,7 +694,7 @@ struct LorisPlayer
 
   std::vector< double > dblbuffer;
 
-  LorisPlayer( ENVIRON *csound, LORISPLAY * params );
+  LorisPlayer( CSOUND *csound, LORISPLAY * params );
   ~LorisPlayer( void ) {}
 };
 
@@ -702,7 +702,7 @@ struct LorisPlayer
 //      LorisPlayer contructor
 // ---------------------------------------------------------------------------
 //
-LorisPlayer::LorisPlayer( ENVIRON *csound, LORISPLAY * params ) :
+LorisPlayer::LorisPlayer( CSOUND *csound, LORISPLAY * params ) :
   reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->readerIdx) ) ),
      dblbuffer( csound->GetKsmps(csound), 0. )
 {
@@ -716,7 +716,7 @@ LorisPlayer::LorisPlayer( ENVIRON *csound, LORISPLAY * params ) :
 #pragma mark -- lorisplay generator functions --
 
 extern "C"
-int lorisplay_cleanup(ENVIRON *, void * p);
+int lorisplay_cleanup(CSOUND *, void * p);
 
 // ---------------------------------------------------------------------------
 //      lorisplay_setup
@@ -724,7 +724,7 @@ int lorisplay_cleanup(ENVIRON *, void * p);
 //      Runs at initialization time for lorisplay.
 //
 extern "C"
-int lorisplay_setup( ENVIRON *csound, LORISPLAY * p )
+int lorisplay_setup( CSOUND *csound, LORISPLAY * p )
 {
   if (!Lorisgens_Srate)
     setup_globals( csound );
@@ -743,7 +743,7 @@ int lorisplay_setup( ENVIRON *csound, LORISPLAY * p )
 //      Audio-rate generator function.
 //
 extern "C"
-int lorisplay( ENVIRON *csound, LORISPLAY * p )
+int lorisplay( CSOUND *csound, LORISPLAY * p )
 {
   LorisPlayer & player = *p->imp;
 
@@ -777,7 +777,7 @@ int lorisplay( ENVIRON *csound, LORISPLAY * p )
 //      Cleans up after lorisplay.
 //
 extern "C"
-int lorisplay_cleanup(ENVIRON *csound, void * p)
+int lorisplay_cleanup(CSOUND *csound, void * p)
 {
   LORISPLAY * tp = (LORISPLAY *)p;
 #ifdef DEBUG_LORISGENS
@@ -1083,14 +1083,14 @@ LorisMorpher::updateEnvelopes( void )
 #pragma mark -- lorismorph generator functions --
 
 extern "C"
-int lorismorph_cleanup(ENVIRON *csound, void * p);
+int lorismorph_cleanup(CSOUND *csound, void * p);
 // ---------------------------------------------------------------------------
 //      lorismorph_setup
 // ---------------------------------------------------------------------------
 //      Runs at initialization time for lorismorph.
 //
 extern "C"
-int lorismorph_setup( ENVIRON *csound, LORISMORPH * p )
+int lorismorph_setup( CSOUND *csound, LORISMORPH * p )
 {
   if (!Lorisgens_Srate)
     setup_globals( csound );
@@ -1109,7 +1109,7 @@ int lorismorph_setup( ENVIRON *csound, LORISMORPH * p )
 //      Audio-rate generator function.
 //
 extern "C"
-int lorismorph( ENVIRON *csound, LORISMORPH * p )
+int lorismorph( CSOUND *csound, LORISMORPH * p )
 {
   //*p->result =
   p->imp->updateEnvelopes();
@@ -1122,7 +1122,7 @@ int lorismorph( ENVIRON *csound, LORISMORPH * p )
 //      Cleans up after lorismorph.
 //
 extern "C"
-int lorismorph_cleanup(ENVIRON *csound, void * p)
+int lorismorph_cleanup(CSOUND *csound, void * p)
 {
   LORISMORPH * tp = (LORISMORPH *)p;
 #ifdef DEBUG_LORISGENS
@@ -1163,7 +1163,7 @@ extern "C"
    * the table of OENTRY structures defined in this shared library.
    */
 
-  PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+  PUBLIC OENTRY *opcode_init(CSOUND *csound)
   {
     return lorisOentry;
   }

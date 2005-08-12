@@ -77,10 +77,10 @@ static int double_to_double_p(int nSmps, int nChannels, int bufSize, int ofs,
 static int bufSizeCallback(jack_nframes_t nframes, void *arg)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p;
+    CSOUND              *p;
 
     client = (CsoundJackClient_t*) arg;
-    p = (ENVIRON*) (client->csound);
+    p = (CSOUND*) (client->csound);
     if ((client->r.parm.bufSamp_SW > 0 &&
          client->r.parm.bufSamp_SW != (int) nframes) ||
         (client->p.parm.bufSamp_SW > 0 &&
@@ -95,10 +95,10 @@ static int bufSizeCallback(jack_nframes_t nframes, void *arg)
 static int sampleRateCallback(jack_nframes_t nframes, void *arg)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p;
+    CSOUND              *p;
 
     client = (CsoundJackClient_t*) arg;
-    p = (ENVIRON*) (client->csound);
+    p = (CSOUND*) (client->csound);
     if (((int) (client->r.parm.sampleRate + 0.5f) > 0 &&
          (int) (client->r.parm.sampleRate + 0.5f) != (int) nframes) ||
         ((int) (client->r.parm.sampleRate + 0.5f) > 0 &&
@@ -113,10 +113,10 @@ static int sampleRateCallback(jack_nframes_t nframes, void *arg)
 static void freeWheelCallback(int starting, void *arg)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p;
+    CSOUND              *p;
 
     client = (CsoundJackClient_t*) arg;
-    p = (ENVIRON*) (client->csound);
+    p = (CSOUND*) (client->csound);
 #ifdef LINUX
     if (starting) {
       if (sched_getscheduler(0) != SCHED_OTHER) {
@@ -167,11 +167,11 @@ static int openJackStream(CsoundJackClient_t *client, csRtAudioParams *parm,
                           int playback)
 {
     JackStreamParams_t  *pp;
-    ENVIRON             *p, *csound;
+    CSOUND              *p, *csound;
     int                 i, j;
     char                buf[128], buf1[128];
 
-    p = csound = (ENVIRON*) (client->csound);
+    p = csound = (CSOUND*) (client->csound);
     if (playback)
       pp = &(client->p);
     else
@@ -372,9 +372,9 @@ static int openJackStream(CsoundJackClient_t *client, csRtAudioParams *parm,
 
 /* module interface functions */
 
-int csoundModuleCreate(ENVIRON *csound)
+int csoundModuleCreate(CSOUND *csound)
 {
-    ENVIRON *p = csound;
+    CSOUND *p = csound;
     void    *ptr;
     int     i, j;
 
@@ -423,13 +423,13 @@ int csoundModuleCreate(ENVIRON *csound)
     return 0;
 }
 
-static int playopen_(ENVIRON*, csRtAudioParams*);
-static int recopen_(ENVIRON*, csRtAudioParams*);
-static void rtplay_(ENVIRON*, void*, int);
-static int rtrecord_(ENVIRON*, void*, int);
-static void rtclose_(ENVIRON*);
+static int playopen_(CSOUND*, csRtAudioParams*);
+static int recopen_(CSOUND*, csRtAudioParams*);
+static void rtplay_(CSOUND*, void*, int);
+static int rtrecord_(CSOUND*, void*, int);
+static void rtclose_(CSOUND*);
 
-int csoundModuleInit(ENVIRON *csound)
+int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
 
@@ -453,9 +453,9 @@ int csoundModuleInit(ENVIRON *csound)
 /* connect to JACK server, if not done so already */
 /* returns client pointer on success, or NULL in case of an error */
 
-static CsoundJackClient_t *jackConnectServer(ENVIRON *csound)
+static CsoundJackClient_t *jackConnectServer(CSOUND *csound)
 {
-    ENVIRON             *p = csound;
+    CSOUND              *p = csound;
     CsoundJackClient_t  *client;
 
     /* already connected ? */
@@ -490,7 +490,7 @@ static CsoundJackClient_t *jackConnectServer(ENVIRON *csound)
 
 /* open for audio input */
 
-static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
+static int recopen_(CSOUND *csound, csRtAudioParams *parm)
 {
     CsoundJackClient_t  *client;
 
@@ -512,7 +512,7 @@ static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
 
 /* open for audio output */
 
-static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
+static int playopen_(CSOUND *csound, csRtAudioParams *parm)
 {
     CsoundJackClient_t  *client;
 
@@ -535,12 +535,12 @@ static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
 static int processCallback(jack_nframes_t nframes, void *arg)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p;
+    CSOUND              *p;
     jack_default_audio_sample_t *bufp, *bufp2;
     int                 i, j, k = 0;
 
     client = (CsoundJackClient_t*) arg;
-    p = (ENVIRON*) (client->csound);
+    p = (CSOUND*) (client->csound);
     if (!client->active)
       return -1;
     if (client->r.active == 2 &&                          /* capture active */
@@ -593,10 +593,10 @@ static int processCallback(jack_nframes_t nframes, void *arg)
     return 0;
 }
 
-static int jackClientActivate(ENVIRON *csound)
+static int jackClientActivate(CSOUND *csound)
 {
     CsoundJackClient_t  *client;
-    ENVIRON             *p = csound;
+    CSOUND              *p = csound;
     int                 i;
     char                buf1[128], buf2[256];
 
@@ -677,7 +677,7 @@ static int jackClientActivate(ENVIRON *csound)
 
 /* get samples from ADC */
 
-static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
+static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
 {
     JackStreamParams_t  *pp;
     volatile int        *frames_ahead;
@@ -714,7 +714,7 @@ static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
 {
     JackStreamParams_t  *pp;
     volatile int        *frames_ahead;
@@ -748,7 +748,7 @@ static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
 /* close the I/O device entirely  */
 /* called only when both complete */
 
-static void rtclose_(ENVIRON *csound)
+static void rtclose_(CSOUND *csound)
 {
     CsoundJackClient_t  *client;
 

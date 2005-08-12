@@ -23,16 +23,16 @@
 
 #include "csoundCore.h"                            /*  SCXTRACT.C  */
 
-extern void readxfil(ENVIRON *, FILE *), extract(ENVIRON *), swrite(ENVIRON *);
-extern void sfree(ENVIRON *csound);
-extern int  sread(ENVIRON *csound);
-extern void sread_init(ENVIRON *csound);
+extern void readxfil(CSOUND *, FILE *), extract(CSOUND *), swrite(CSOUND *);
+extern void sfree(CSOUND *csound);
+extern int  sread(CSOUND *csound);
+extern void sread_init(CSOUND *csound);
 
 /* called from xmain.c or some other main */
 /*   extracts events from each score sect */
 /*   according to the controlling xfile   */
 
-PUBLIC int scxtract(ENVIRON *csound, FILE *scin, FILE * scout, FILE *xfile)
+PUBLIC int scxtract(CSOUND *csound, FILE *scin, FILE * scout, FILE *xfile)
 {
     int     n;
 

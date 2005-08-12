@@ -104,7 +104,7 @@ void OneZero_setCoeff(OneZero* z, MYFLT aValue)
       z->sgain = z->gain / (FL(1.0) - z->zeroCoeff);
 }
 
-void OneZero_print(ENVIRON *csound, OneZero *p)
+void OneZero_print(CSOUND *csound, OneZero *p)
 {
     csound->Message(csound,
                     "OneZero: gain=%f inputs=%f zeroCoeff=%f sgain=%f\n",
@@ -112,7 +112,7 @@ void OneZero_print(ENVIRON *csound, OneZero *p)
 }
 
 /* *********************************************************************** */
-int clarinset(ENVIRON *csound, CLARIN *p)
+int clarinset(CSOUND *csound, CLARIN *p)
 {
     FUNC        *ftp;
 
@@ -154,7 +154,7 @@ int clarinset(ENVIRON *csound, CLARIN *p)
     return OK;
 }
 
-int clarin(ENVIRON *csound, CLARIN *p)
+int clarin(CSOUND *csound, CLARIN *p)
 {
     MYFLT *ar = p->ar;
     int   n,nsmps = csound->ksmps;
@@ -269,7 +269,7 @@ static MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
     return j;
 }
 
-int fluteset(ENVIRON *csound, FLUTE *p)
+int fluteset(CSOUND *csound, FLUTE *p)
 {
     FUNC        *ftp;
     long        length;
@@ -329,7 +329,7 @@ int fluteset(ENVIRON *csound, FLUTE *p)
     return OK;
 }
 
-int flute(ENVIRON *csound, FLUTE *p)
+int flute(CSOUND *csound, FLUTE *p)
 {
     MYFLT       *ar = p->ar;
     int         n,nsmps = csound->ksmps;
@@ -453,7 +453,7 @@ int flute(ENVIRON *csound, FLUTE *p)
 /******************************************/
 
  /*  Perform Table Lookup    */
-MYFLT BowTabl_lookup(ENVIRON *csound, BowTabl *b, MYFLT sample)
+MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
 {                                              /*  sample is differential  */
     MYFLT lastOutput;                          /*  string vs. bow velocity */
     MYFLT input;
@@ -466,7 +466,7 @@ MYFLT BowTabl_lookup(ENVIRON *csound, BowTabl *b, MYFLT sample)
     return lastOutput;
 }
 
-int bowedset(ENVIRON *csound, BOWED *p)
+int bowedset(CSOUND *csound, BOWED *p)
 {
     long        length;
     FUNC        *ftp;
@@ -526,7 +526,7 @@ int bowedset(ENVIRON *csound, BOWED *p)
     return OK;
 }
 
-int bowed(ENVIRON *csound, BOWED *p)
+int bowed(CSOUND *csound, BOWED *p)
 {
     MYFLT       *ar = p->ar;
     int         n,nsmps = csound->ksmps;
@@ -653,7 +653,7 @@ int bowed(ENVIRON *csound, BOWED *p)
 /*  often (each sample)).                                                   */
 /****************************************************************************/
 
-void make_DLineA(ENVIRON *csound, DLineA *p, long max_length)
+void make_DLineA(CSOUND *csound, DLineA *p, long max_length)
 {
     int i;
     p->length = max_length;
@@ -673,7 +673,7 @@ void make_DLineA(ENVIRON *csound, DLineA *p, long max_length)
 /*     p->lastOutput = FL(0.0); */
 /* } */
 
-int DLineA_setDelay(ENVIRON *csound, DLineA *p, MYFLT lag)
+int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
 {
     MYFLT outputPointer;
   /* outPoint chases inpoint + 2 for interp and other        */
@@ -722,7 +722,7 @@ MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */
 
 #define make_LipFilt(p) make_BiQuad(p)
 
-void LipFilt_setFreq(ENVIRON *csound, LipFilt *p, MYFLT frequency)
+void LipFilt_setFreq(CSOUND *csound, LipFilt *p, MYFLT frequency)
 {
     MYFLT coeffs[2];
     coeffs[0] = FL(2.0) * FL(0.997) *
@@ -752,7 +752,7 @@ MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
 
 /* ====================================================================== */
 
-int brassset(ENVIRON *csound, BRASS *p)
+int brassset(CSOUND *csound, BRASS *p)
 {
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
@@ -809,7 +809,7 @@ int brassset(ENVIRON *csound, BRASS *p)
     return OK;
 }
 
-int brass(ENVIRON *csound, BRASS *p)
+int brass(CSOUND *csound, BRASS *p)
 {
     MYFLT *ar = p->ar;
     int n, nsmps = csound->ksmps;

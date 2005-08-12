@@ -35,22 +35,22 @@ extern double besseli(double);
 
 /* Start of moving static data into a single structure */
 
-static void gen01raw(FUNC*,ENVIRON*);
-static void gen01(FUNC*,ENVIRON*), gen02(FUNC*,ENVIRON*), gen03(FUNC*,ENVIRON*);
-static void gen04(FUNC*,ENVIRON*), gen05(FUNC*,ENVIRON*), gen06(FUNC*,ENVIRON*);
-static void gen07(FUNC*,ENVIRON*), gen08(FUNC*,ENVIRON*), gen09(FUNC*,ENVIRON*);
-static void gen10(FUNC*,ENVIRON*), gen11(FUNC*,ENVIRON*), gen12(FUNC*,ENVIRON*);
-static void gen13(FUNC*,ENVIRON*), gen14(FUNC*,ENVIRON*), gen15(FUNC*,ENVIRON*);
-static void gen17(FUNC*,ENVIRON*), gen18(FUNC*,ENVIRON*);
-static void gen19(FUNC*,ENVIRON*), gen20(FUNC*,ENVIRON*), gen21(FUNC*,ENVIRON*);
-static void gen23(FUNC*,ENVIRON*), gen24(FUNC*,ENVIRON*), gen16(FUNC*,ENVIRON*);
-static void gen25(FUNC*,ENVIRON*), gen27(FUNC*,ENVIRON*), gen28(FUNC*,ENVIRON*);
-static void gen30(FUNC*,ENVIRON*), gen31(FUNC*,ENVIRON*), gen32(FUNC*,ENVIRON*);
-static void gen33(FUNC*,ENVIRON*), gen34(FUNC*,ENVIRON*), gen40(FUNC*,ENVIRON*);
-static void gen41(FUNC*,ENVIRON*), gen42(FUNC*,ENVIRON*), gen43(FUNC*,ENVIRON*);
-static void gn1314(FUNC*,ENVIRON*, MYFLT, MYFLT);
-static void gen51(FUNC*,ENVIRON*), gen52(FUNC*,ENVIRON*), gen53(FUNC*,ENVIRON*);
-static void GENUL(FUNC*,ENVIRON*);
+static void gen01raw(FUNC*,CSOUND*);
+static void gen01(FUNC*,CSOUND*), gen02(FUNC*,CSOUND*), gen03(FUNC*,CSOUND*);
+static void gen04(FUNC*,CSOUND*), gen05(FUNC*,CSOUND*), gen06(FUNC*,CSOUND*);
+static void gen07(FUNC*,CSOUND*), gen08(FUNC*,CSOUND*), gen09(FUNC*,CSOUND*);
+static void gen10(FUNC*,CSOUND*), gen11(FUNC*,CSOUND*), gen12(FUNC*,CSOUND*);
+static void gen13(FUNC*,CSOUND*), gen14(FUNC*,CSOUND*), gen15(FUNC*,CSOUND*);
+static void gen17(FUNC*,CSOUND*), gen18(FUNC*,CSOUND*);
+static void gen19(FUNC*,CSOUND*), gen20(FUNC*,CSOUND*), gen21(FUNC*,CSOUND*);
+static void gen23(FUNC*,CSOUND*), gen24(FUNC*,CSOUND*), gen16(FUNC*,CSOUND*);
+static void gen25(FUNC*,CSOUND*), gen27(FUNC*,CSOUND*), gen28(FUNC*,CSOUND*);
+static void gen30(FUNC*,CSOUND*), gen31(FUNC*,CSOUND*), gen32(FUNC*,CSOUND*);
+static void gen33(FUNC*,CSOUND*), gen34(FUNC*,CSOUND*), gen40(FUNC*,CSOUND*);
+static void gen41(FUNC*,CSOUND*), gen42(FUNC*,CSOUND*), gen43(FUNC*,CSOUND*);
+static void gn1314(FUNC*,CSOUND*, MYFLT, MYFLT);
+static void gen51(FUNC*,CSOUND*), gen52(FUNC*,CSOUND*), gen53(FUNC*,CSOUND*);
+static void GENUL(FUNC*,CSOUND*);
 
 static GEN or_sub[GENMAX + 1] = {
     GENUL,
@@ -70,11 +70,11 @@ typedef struct namedgen {
 
 #define tpd360  (0.0174532925199433)
 
-static  void    fterror(ENVIRON *, FGDATA *, char *, ...);
-static  void    ftresdisp(ENVIRON *, FGDATA *, FUNC*);
-static  FUNC    *ftalloc(ENVIRON *);
+static  void    fterror(CSOUND *, FGDATA *, char *, ...);
+static  void    ftresdisp(CSOUND *, FGDATA *, FUNC*);
+static  FUNC    *ftalloc(CSOUND *);
 
-static void GENUL(FUNC *ftp, ENVIRON *csound)
+static void GENUL(FUNC *ftp, CSOUND *csound)
 {
     fterror(csound, &(csound->ff), Str("unknown GEN number"));
 }
@@ -86,7 +86,7 @@ static void GENUL(FUNC *ftp, ENVIRON *csound)
  * Returns zero on success.
  */
 
-int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
+int hfgens(CSOUND *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
 {
     long    ltest, lobits, lomod, genum;
     FUNC    *ftp = NULL;
@@ -243,7 +243,7 @@ int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode)
  * Return value is zero on success.
  */
 
-int csoundFTAlloc(ENVIRON *csound, int tableNum, int len)
+int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
 {
     int   i, size;
     FUNC  **nn, *ftp;
@@ -299,7 +299,7 @@ int csoundFTAlloc(ENVIRON *csound, int tableNum, int len)
  * Return value is zero on success.
  */
 
-int csoundFTDelete(ENVIRON *csound, int tableNum)
+int csoundFTDelete(CSOUND *csound, int tableNum)
 {
     FUNC  *ftp;
 
@@ -316,7 +316,7 @@ int csoundFTDelete(ENVIRON *csound, int tableNum)
 
 /* read ftable values directly from p-args */
 
-static void gen02(FUNC *ftp, ENVIRON *csound)
+static void gen02(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   *fp = ftp->ftable, *pp = &(ff->e.p[5]);
@@ -328,7 +328,7 @@ static void gen02(FUNC *ftp, ENVIRON *csound)
       *fp++ = *pp++;                           /*   copy into ftable   */
 }
 
-static void gen03(FUNC *ftp, ENVIRON *csound)
+static void gen03(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     int     ncoefs, nargs = ff->e.pcnt-4;
@@ -361,7 +361,7 @@ static void gen03(FUNC *ftp, ENVIRON *csound)
     } while (--nlocs);
 }
 
-static void gen04(FUNC *ftp, ENVIRON *csound)
+static void gen04(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   *valp, *rvalp, *fp = ftp->ftable;
@@ -424,7 +424,7 @@ static void gen04(FUNC *ftp, ENVIRON *csound)
     ff->e.p[4] = -FL(4.0);             /*   and rescaling         */
 }
 
-static void gen05(FUNC *ftp, ENVIRON *csound)
+static void gen05(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     int     nsegs, seglen;
@@ -461,7 +461,7 @@ static void gen05(FUNC *ftp, ENVIRON *csound)
     return;
 }
 
-static void gen07(FUNC *ftp, ENVIRON *csound)
+static void gen07(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     int     nsegs, seglen;
@@ -493,7 +493,7 @@ static void gen07(FUNC *ftp, ENVIRON *csound)
     return;
 }
 
-static void gen06(FUNC *ftp, ENVIRON *csound)
+static void gen06(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   *segp, *extremp, *inflexp, *segptsp, *fp, *finp;
@@ -532,7 +532,7 @@ static void gen06(FUNC *ftp, ENVIRON *csound)
     *fp = *(segp + 2);                      /* write last target point */
 }
 
-static void gen08(FUNC *ftp, ENVIRON *csound)
+static void gen08(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   R, x, c3, c2, c1, c0, *fp, *fplim, *valp;
@@ -597,7 +597,7 @@ static void gen08(FUNC *ftp, ENVIRON *csound)
       *fp++ = f0;                       /* & repeat the last value      */
 }
 
-static void gen09(FUNC *ftp, ENVIRON *csound)
+static void gen09(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     int     hcnt;
@@ -618,7 +618,7 @@ static void gen09(FUNC *ftp, ENVIRON *csound)
     } while (--hcnt);
 }
 
-static void gen10(FUNC *ftp, ENVIRON *csound)
+static void gen10(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     long    phs, hcnt;
@@ -638,7 +638,7 @@ static void gen10(FUNC *ftp, ENVIRON *csound)
     while (--hcnt);
 }
 
-static void gen11(FUNC *ftp, ENVIRON *csound)
+static void gen11(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT  *fp, *finp;
@@ -702,7 +702,7 @@ static void gen11(FUNC *ftp, ENVIRON *csound)
     }
 }
 
-static void gen12(FUNC *ftp, ENVIRON *csound)
+static void gen12(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     static const double coefs[] = { 3.5156229, 3.0899424, 1.2067492,
@@ -727,17 +727,17 @@ static void gen12(FUNC *ftp, ENVIRON *csound)
     }
 }
 
-static void gen13(FUNC *ftp, ENVIRON *csound)
+static void gen13(FUNC *ftp, CSOUND *csound)
 {
     gn1314(ftp, csound, FL(2.0), FL(0.5));
 }
 
-static void gen14(FUNC *ftp, ENVIRON *csound)
+static void gen14(FUNC *ftp, CSOUND *csound)
 {
     gn1314(ftp, csound, FL(1.0), FL(1.0));
 }
 
-static void gn1314(FUNC *ftp, ENVIRON *csound, MYFLT mxval, MYFLT mxscal)
+static void gn1314(FUNC *ftp, CSOUND *csound, MYFLT mxval, MYFLT mxscal)
 {
     long        nh, nn;
     MYFLT       *mp, *mspace, *hp, *oddhp;
@@ -780,7 +780,7 @@ static void gn1314(FUNC *ftp, ENVIRON *csound, MYFLT mxval, MYFLT mxscal)
     gen03(ftp, csound);                         /* then call gen03 to write */
 }
 
-static void gen15(FUNC *ftp, ENVIRON *csound)
+static void gen15(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   xint, xamp, hsin[PMAX/2], h, angle;
@@ -820,7 +820,7 @@ static void gen15(FUNC *ftp, ENVIRON *csound)
     gen14(ftp, csound);                         /* now draw ftable   */
 }
 
-static void gen16(FUNC *ftp, ENVIRON *csound)
+static void gen16(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT *fp, *valp, val;
@@ -855,7 +855,7 @@ static void gen16(FUNC *ftp, ENVIRON *csound)
     }
 }
 
-static void gen17(FUNC *ftp, ENVIRON *csound)
+static void gen17(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     int     nsegs, ndx, nxtndx;
@@ -888,7 +888,7 @@ static void gen17(FUNC *ftp, ENVIRON *csound)
     fterror(csound, ff, Str("gen call has illegal x-ordinate values:"));
 }
 
-static void gen18(FUNC *ftp, ENVIRON *csound)
+static void gen18(FUNC *ftp, CSOUND *csound)
 {  /* by pete moss (petemoss@petemoss.org), jan 2002 */
     FGDATA  *ff = &(csound->ff);
     int cnt, start, finish, fnlen, j;
@@ -928,7 +928,7 @@ static void gen18(FUNC *ftp, ENVIRON *csound)
     }
 }
 
-static void gen19(FUNC *ftp, ENVIRON *csound)
+static void gen19(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     int     hcnt;
@@ -952,7 +952,7 @@ static void gen19(FUNC *ftp, ENVIRON *csound)
 }
 
 /*  GEN20 and GEN21 by Paris Smaragdis 1994 B.C.M. Csound development team  */
-static void gen20(FUNC *ftp, ENVIRON *csound)
+static void gen20(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   cf[4], *ft;
@@ -1040,7 +1040,7 @@ static void gen20(FUNC *ftp, ENVIRON *csound)
                                      - cf[3]*cos(3.0 * x)));
 }
 
-static void gen21(FUNC *ftp, ENVIRON *csound)
+static void gen21(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     long i;
@@ -1115,7 +1115,7 @@ static void gen21(FUNC *ftp, ENVIRON *csound)
     }
 }
 
-static void gen23(FUNC *ftp, ENVIRON *csound)
+static void gen23(FUNC *ftp, CSOUND *csound)
                                 /* ASCII file table read Gab 17-feb-98*/
                                 /* Modified after Paris Smaragdis by JPff */
 {
@@ -1194,7 +1194,7 @@ static void gen23(FUNC *ftp, ENVIRON *csound)
     csound->FileClose(csound, fd);
 }
 
-static void gen24(FUNC *ftp, ENVIRON *csound)
+static void gen24(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT       *fp = ftp->ftable, *fp_source;
@@ -1236,7 +1236,7 @@ static void gen24(FUNC *ftp, ENVIRON *csound)
     fp[j] = fp[j-1];
 }
 
-static void gen25(FUNC *ftp, ENVIRON *csound)
+static void gen25(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     int nsegs,  seglen;
@@ -1287,7 +1287,7 @@ static void gen25(FUNC *ftp, ENVIRON *csound)
     return;
 }
 
-static void gen27(FUNC *ftp, ENVIRON *csound)
+static void gen27(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     int nsegs;
@@ -1330,7 +1330,7 @@ static void gen27(FUNC *ftp, ENVIRON *csound)
     return;
 }
 
-static void gen28(FUNC *ftp, ENVIRON *csound)
+static void gen28(FUNC *ftp, CSOUND *csound)
 {                       /* read X Y values directly from ascii file */
     FGDATA  *ff = &(csound->ff);
     MYFLT   *fp = ftp->ftable, *finp;
@@ -1417,7 +1417,7 @@ static void gen28(FUNC *ftp, ENVIRON *csound)
 
 /* gen30: extract a range of harmonic partials from source table */
 
-static void gen30(FUNC *ftp, ENVIRON *csound)
+static void gen30(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   *x, *f1, *f2;
@@ -1497,7 +1497,7 @@ static void gen30(FUNC *ftp, ENVIRON *csound)
 
 /* gen31: transpose, phase shift, and mix source table */
 
-static void gen31 (FUNC *ftp, ENVIRON *csound)
+static void gen31 (FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   *x, *y, *f1, *f2;
@@ -1560,7 +1560,7 @@ static void gen31 (FUNC *ftp, ENVIRON *csound)
 
 /* gen32: transpose, phase shift, and mix source tables */
 
-static void gen32(FUNC *ftp, ENVIRON *csound)
+static void gen32(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   *x, *y, *f1, *f2;
@@ -1675,7 +1675,7 @@ static void gen32(FUNC *ftp, ENVIRON *csound)
 
 /* GEN33 by Istvan Varga */
 
-static void gen33 (FUNC *ftp, ENVIRON *csound)
+static void gen33 (FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   fmode, *ft, *srcft, scl, amp, phs;
@@ -1753,7 +1753,7 @@ static void gen33 (FUNC *ftp, ENVIRON *csound)
 
 /* GEN34 by Istvan Varga */
 
-static void gen34 (FUNC *ftp, ENVIRON *csound)
+static void gen34 (FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   fmode, *ft, *srcft, scl;
@@ -1847,7 +1847,7 @@ static void gen34 (FUNC *ftp, ENVIRON *csound)
     mfree(csound, tmp); mfree(csound, xn); mfree(csound, cn); mfree(csound, vn);
 }
 
-static void gen40(FUNC *ftp, ENVIRON *csound)              /*gab d5*/
+static void gen40(FUNC *ftp, CSOUND *csound)               /*gab d5*/
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT       *fp = ftp->ftable, *fp_source, *fp_temp;
@@ -1879,7 +1879,7 @@ static void gen40(FUNC *ftp, ENVIRON *csound)              /*gab d5*/
     free(fp_temp);
 }
 
-static void gen41(FUNC *ftp, ENVIRON *csound)  /*gab d5*/
+static void gen41(FUNC *ftp, CSOUND *csound)   /*gab d5*/
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT       *fp = ftp->ftable, *pp = &ff->e.p[5];
@@ -1899,7 +1899,7 @@ static void gen41(FUNC *ftp, ENVIRON *csound)  /*gab d5*/
     *fp = pp[j-1];
 }
 
-static void gen42(FUNC *ftp, ENVIRON *csound) /*gab d5*/
+static void gen42(FUNC *ftp, CSOUND *csound) /*gab d5*/
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT       *fp = ftp->ftable, *pp = &ff->e.p[5], inc;
@@ -1920,7 +1920,7 @@ static void gen42(FUNC *ftp, ENVIRON *csound) /*gab d5*/
     *fp = *(fp-1);
 }
 
-static void fterror(ENVIRON *csound, FGDATA *ff, char *s, ...)
+static void fterror(CSOUND *csound, FGDATA *ff, char *s, ...)
 {
     char    buf[64];
     va_list args;
@@ -1942,7 +1942,7 @@ static void fterror(ENVIRON *csound, FGDATA *ff, char *s, ...)
     ff->fterrcnt++;
 }
 
-static void ftresdisp(ENVIRON *csound, FGDATA *ff, FUNC *ftp)
+static void ftresdisp(CSOUND *csound, FGDATA *ff, FUNC *ftp)
 {                       /* set guardpt, rescale the function, and display it */
     MYFLT   *fp, *finp = &ftp->ftable[ff->flen];
     MYFLT   abs, maxval;
@@ -1974,7 +1974,7 @@ static void ftresdisp(ENVIRON *csound, FGDATA *ff, FUNC *ftp)
 /* alloc ftable space for fno (or replace one) */
 /*  set ftp to point to that structure         */
 
-static FUNC *ftalloc(ENVIRON *csound)
+static FUNC *ftalloc(CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     FUNC    *ftp = csound->flist[ff->fno];
@@ -2008,7 +2008,7 @@ static FUNC *ftalloc(ENVIRON *csound)
 /* find the ptr to an existing ftable structure */
 /*   called by oscils, etc at init time         */
 
-FUNC *csoundFTFind(ENVIRON *csound, MYFLT *argp)
+FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
     int     fno;
@@ -2027,7 +2027,7 @@ FUNC *csoundFTFind(ENVIRON *csound, MYFLT *argp)
     return ftp;
 }
 
-MYFLT *csoundGetTable(ENVIRON *csound, int tableNum, int *tableLength)
+MYFLT *csoundGetTable(CSOUND *csound, int tableNum, int *tableLength)
 {
     FUNC    *ftp;
 
@@ -2067,7 +2067,7 @@ MYFLT *csoundGetTable(ENVIRON *csound, int tableNum, int *tableLength)
  * Maybe this could be achieved, but some exploration would be
  * required to see that this is feasible at performance time.
  */
-FUNC *csoundFTFindP(ENVIRON *csound, MYFLT *argp)
+FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
     int     fno = csound->ff.fno;
@@ -2094,7 +2094,7 @@ FUNC *csoundFTFindP(ENVIRON *csound, MYFLT *argp)
 /* find ptr to a deferred-size ftable structure */
 /*   called by loscil at init time, and ftlen   */
 
-FUNC *csoundFTnp2Find(ENVIRON *csound, MYFLT *argp)
+FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
     char    strarg[SSTRSIZ];
@@ -2123,7 +2123,7 @@ FUNC *csoundFTnp2Find(ENVIRON *csound, MYFLT *argp)
     return ftp;
 }
 
-static void gen01(FUNC *ftp, ENVIRON *csound)
+static void gen01(FUNC *ftp, CSOUND *csound)
                                 /* read ftable values from a sound file */
 {                               /* stops reading when table is full     */
     FGDATA  *ff = &(csound->ff);
@@ -2148,7 +2148,7 @@ static void gen01(FUNC *ftp, ENVIRON *csound)
     gen01raw(ftp, csound);
 }
 
-static void needsiz(ENVIRON *csound, FGDATA *ff, long maxend)
+static void needsiz(CSOUND *csound, FGDATA *ff, long maxend)
 {
     long nxtpow;
     maxend -= 1; nxtpow = 2;
@@ -2158,7 +2158,7 @@ static void needsiz(ENVIRON *csound, FGDATA *ff, long maxend)
                             (int) ff->fno, nxtpow);
 }
 
-static void gen01raw(FUNC *ftp, ENVIRON *csound)
+static void gen01raw(FUNC *ftp, CSOUND *csound)
                                 /* read ftable values from a sound file */
 {                               /* stops reading when table is full     */
     FGDATA  *ff = &(csound->ff);
@@ -2275,7 +2275,7 @@ typedef struct _pvstabledat {
     unsigned long frames;
 } PVSTABLEDAT;
 
-void gen43(FUNC *ftp, ENVIRON *csound)
+void gen43(FUNC *ftp, CSOUND *csound)
 {
     FGDATA          *ff = &(csound->ff);
     MYFLT           *fp = ftp->ftable;
@@ -2344,7 +2344,7 @@ void gen43(FUNC *ftp, ENVIRON *csound)
     }
 }
 
-static void gen51(FUNC *ftp, ENVIRON *csound)   /* Gab 1/3/2005 */
+static void gen51(FUNC *ftp, CSOUND *csound)    /* Gab 1/3/2005 */
 {
     int   j, notenum, grade, numgrades, basekeymidi, nvals;
     MYFLT basefreq, factor, interval;
@@ -2379,7 +2379,7 @@ static void gen51(FUNC *ftp, ENVIRON *csound)   /* Gab 1/3/2005 */
     }
 }
 
-static void gen52 (FUNC *ftp, ENVIRON *csound)
+static void gen52 (FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   *src, *dst;
@@ -2421,7 +2421,7 @@ static void gen52 (FUNC *ftp, ENVIRON *csound)
     }
 }
 
-static void gen53_apply_window(ENVIRON *csound, MYFLT *buf, MYFLT *w,
+static void gen53_apply_window(CSOUND *csound, MYFLT *buf, MYFLT *w,
                                int npts, int wpts, int minphase)
 {
     int64_t ph, ph_inc;
@@ -2452,7 +2452,7 @@ static void gen53_apply_window(ENVIRON *csound, MYFLT *buf, MYFLT *w,
     }
 }
 
-static void gen53_freq_response_to_ir(ENVIRON *csound,
+static void gen53_freq_response_to_ir(CSOUND *csound,
                                       MYFLT *obuf, MYFLT *ibuf, MYFLT *wbuf,
                                       int npts, int wpts, int mode)
 {
@@ -2538,7 +2538,7 @@ static void gen53_freq_response_to_ir(ENVIRON *csound,
       gen53_apply_window(csound, obuf, wbuf, npts, wpts, 1);
 }
 
-static void gen53(FUNC *ftp, ENVIRON *csound)
+static void gen53(FUNC *ftp, CSOUND *csound)
 {
     FGDATA  *ff = &(csound->ff);
     MYFLT   *srcftp, *dstftp, *winftp = NULL;
@@ -2602,7 +2602,7 @@ static void gen53(FUNC *ftp, ENVIRON *csound)
                                         dstflen, winflen, mode);
 }
 
-int allocgen(ENVIRON *csound, char *s, GEN fn)
+int allocgen(CSOUND *csound, char *s, GEN fn)
 {
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
 

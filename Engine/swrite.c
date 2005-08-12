@@ -27,18 +27,18 @@
 #include <ctype.h>
 
 static SRTBLK *nxtins(SRTBLK *), *prvins(SRTBLK *);
-static char   *pfout(ENVIRON *,SRTBLK *, char *, int, int);
-static char   *nextp(ENVIRON *,SRTBLK *, char *, int, int);
-static char   *prevp(ENVIRON *,SRTBLK *, char *, int, int);
-static char   *ramp(ENVIRON *,SRTBLK *, char *, int, int);
-static char   *expramp(ENVIRON *,SRTBLK *, char *, int, int);
-static char   *randramp(ENVIRON *,SRTBLK *, char *, int, int);
-static char   *pfStr(ENVIRON *,char *, int, int);
-static char   *fpnum(ENVIRON *,char *, int, int);
+static char   *pfout(CSOUND *,SRTBLK *, char *, int, int);
+static char   *nextp(CSOUND *,SRTBLK *, char *, int, int);
+static char   *prevp(CSOUND *,SRTBLK *, char *, int, int);
+static char   *ramp(CSOUND *,SRTBLK *, char *, int, int);
+static char   *expramp(CSOUND *,SRTBLK *, char *, int, int);
+static char   *randramp(CSOUND *,SRTBLK *, char *, int, int);
+static char   *pfStr(CSOUND *,char *, int, int);
+static char   *fpnum(CSOUND *,char *, int, int);
 
 #define fltout(n) fprintf(csound->scoreout, "%.6f", n)
 
-void swrite(ENVIRON *csound)
+void swrite(CSOUND *csound)
 {
     SRTBLK *bp;
     char *p, c, isntAfunc;
@@ -133,7 +133,7 @@ void swrite(ENVIRON *csound)
       goto nxtlin;
 }
 
-static char *pfout(ENVIRON *csound, SRTBLK *bp, char *p,int lincnt, int pcnt)
+static char *pfout(CSOUND *csound, SRTBLK *bp, char *p,int lincnt, int pcnt)
 {
     switch (*p) {
     case 'n':
@@ -185,7 +185,7 @@ static SRTBLK *prvins(SRTBLK *bp) /* find prv note with same p1 */
     return(bp);
 }
 
-static char *nextp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
+static char *nextp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
 {
     char *q;
     int n;
@@ -224,7 +224,7 @@ static char *nextp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
     return(p);
 }
 
-static char *prevp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
+static char *prevp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
 {
     char *q;
     int n;
@@ -263,14 +263,14 @@ static char *prevp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
     return(p);
 }
 
-static char *ramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
+static char *ramp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char    *q;
     char    *psav;
     SRTBLK  *prvbp, *nxtbp;
     MYFLT   pval, qval, rval, p2span;
-    extern  MYFLT stof(ENVIRON *, char *);
+    extern  MYFLT stof(CSOUND *, char *);
     int     pnum, n;
 
     psav = ++p;
@@ -327,7 +327,7 @@ static char *ramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
     return(psav);
 }
 
-static char *expramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
+static char *expramp(CSOUND *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char    *q;
@@ -335,7 +335,7 @@ static char *expramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
     SRTBLK  *prvbp, *nxtbp;
     MYFLT   pval, qval, rval;
     double  p2span;
-    extern  MYFLT stof(ENVIRON *, char *);
+    extern  MYFLT stof(CSOUND *, char *);
     int     pnum, n;
 
     psav = ++p;
@@ -395,7 +395,7 @@ static char *expramp(ENVIRON *csound, SRTBLK *bp, char *p, int lincnt, int pcnt)
     return(psav);
 }
 
-static char *randramp(ENVIRON *csound,
+static char *randramp(CSOUND *csound,
                       SRTBLK *bp, char *p, int lincnt, int pcnt)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
@@ -403,7 +403,7 @@ static char *randramp(ENVIRON *csound,
     char    *psav;
     SRTBLK  *prvbp, *nxtbp;
     MYFLT   pval, qval, rval;
-    extern  MYFLT stof(ENVIRON *, char *);
+    extern  MYFLT stof(CSOUND *, char *);
     int     pnum, n;
 
     psav = ++p;
@@ -459,7 +459,7 @@ static char *randramp(ENVIRON *csound,
     return(psav);
 }
 
-static char *pfStr(ENVIRON *csound, char *p, int lincnt, int pcnt)
+static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt)
 {                             /* moves quoted ascii string to SCOREOUT file */
     char *q = p;              /*   with no internal format chk              */
     putc(*p++, csound->scoreout);
@@ -479,7 +479,7 @@ static char *pfStr(ENVIRON *csound, char *p, int lincnt, int pcnt)
     return(p);
 }
 
-static char *fpnum(ENVIRON *csound,
+static char *fpnum(CSOUND *csound,
                    char *p, int lincnt, int pcnt) /* moves ascii string */
   /* to SCOREOUT file with fpnum format chk */
 {

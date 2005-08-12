@@ -29,7 +29,7 @@
 extern void (*mkxyFn)(XYINDAT*,MYFLT,MYFLT);/* pointer to xyinput window creator */
 extern void (*rdxyFn)(XYINDAT*);            /* pointer to xyinput window creator */
 
-int xyinset(ENVIRON *csound, XYIN *p)
+int xyinset(CSOUND *csound, XYIN *p)
 {
     MYFLT       f;
     MYFLT       iymax = *p->iymax;
@@ -70,7 +70,7 @@ int xyinset(ENVIRON *csound, XYIN *p)
 }
 
 #ifndef mills_macintosh
-int xyin(ENVIRON *csound, XYIN *p)
+int xyin(CSOUND *csound, XYIN *p)
 {
     if (!(--p->countdown)) {                  /* at each countdown   */
       p->countdown = p->timcount;             /*   reset counter &   */
@@ -82,7 +82,7 @@ int xyin(ENVIRON *csound, XYIN *p)
     return OK;
 }
 #else
-int xyin(ENVIRON *csound, XYIN *p)
+int xyin(CSOUND *csound, XYIN *p)
 {
     int inside = 0;
     CursHandle cursor;

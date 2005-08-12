@@ -54,7 +54,7 @@ typedef struct {
 #define ST(x)   (((ONE_FILE_GLOBALS*) csound->oneFileGlobals)->x)
 
 #ifdef WIN32
-char *mytmpnam(ENVIRON *csound, char *a)
+char *mytmpnam(CSOUND *csound, char *a)
 {
     char *dir = csoundGetEnv(csound, "SFDIR");
     if (dir==NULL) dir = csoundGetEnv(csound, "HOME");
@@ -64,20 +64,20 @@ char *mytmpnam(ENVIRON *csound, char *a)
     return a;
 }
 #else
-char *mytmpnam(ENVIRON *csound, char *a)
+char *mytmpnam(CSOUND *csound, char *a)
 {
     return tmpnam(a);
 }
 #endif
 
-static void alloc_globals(ENVIRON *csound)
+static void alloc_globals(CSOUND *csound)
 {
     if (csound->oneFileGlobals == NULL) {
       csound->oneFileGlobals = mcalloc(csound, sizeof(ONE_FILE_GLOBALS));
     }
 }
 
-char *get_sconame(ENVIRON *csound)
+char *get_sconame(CSOUND *csound)
 {
     alloc_globals(csound);
     return ST(sconame);
@@ -109,7 +109,7 @@ static char *my_fgets(char *s, int n, FILE *stream)
     return a;
 }
 
-void remove_tmpfiles(ENVIRON *csound)           /* IV - Feb 03 2005 */
+void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
 {                               /* use one fn to delete all temporary files */
     alloc_globals(csound);
     while (ST(toremove) != NULL) {
@@ -127,7 +127,7 @@ void remove_tmpfiles(ENVIRON *csound)           /* IV - Feb 03 2005 */
     }
 }
 
-void add_tmpfile(ENVIRON *csound, char *name)   /* IV - Feb 03 2005 */
+void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
 {                               /* add temporary file to delete list */
     NAMELST *tmp;
     alloc_globals(csound);
@@ -138,9 +138,9 @@ void add_tmpfile(ENVIRON *csound, char *name)   /* IV - Feb 03 2005 */
     ST(toremove) = tmp;
 }
 
-extern int argdecode(ENVIRON*, int, char**);
+extern int argdecode(CSOUND*, int, char**);
 
-int readOptions(ENVIRON *csound, FILE *unf)
+int readOptions(CSOUND *csound, FILE *unf)
 {
     char *p;
     int argc = 0;
@@ -212,7 +212,7 @@ int readOptions(ENVIRON *csound, FILE *unf)
     return FALSE;
 }
 
-static int createOrchestra(ENVIRON *csound, FILE *unf)
+static int createOrchestra(CSOUND *csound, FILE *unf)
 {
     char  *p;
     FILE  *orcf;
@@ -239,7 +239,7 @@ static int createOrchestra(ENVIRON *csound, FILE *unf)
     return FALSE;
 }
 
-static int createScore(ENVIRON *csound, FILE *unf)
+static int createScore(CSOUND *csound, FILE *unf)
 {
     char  *p;
     FILE  *scof;
@@ -266,7 +266,7 @@ static int createScore(ENVIRON *csound, FILE *unf)
     return FALSE;
 }
 
-static int createMIDI(ENVIRON *csound, FILE *unf)
+static int createMIDI(CSOUND *csound, FILE *unf)
 {
     int   size, c;
     char  *p;
@@ -306,7 +306,7 @@ static int createMIDI(ENVIRON *csound, FILE *unf)
     return FALSE;
 }
 
-static void read_base64(ENVIRON *csound, FILE *in, FILE *out)
+static void read_base64(CSOUND *csound, FILE *in, FILE *out)
 {
     int c;
     int n, nbits;
@@ -353,7 +353,7 @@ static void read_base64(ENVIRON *csound, FILE *in, FILE *out)
     }
 }
 
-static int createMIDI2(ENVIRON *csound, FILE *unf)
+static int createMIDI2(CSOUND *csound, FILE *unf)
 {
     char  *p;
     FILE  *midf;
@@ -385,7 +385,7 @@ static int createMIDI2(ENVIRON *csound, FILE *unf)
     return FALSE;
 }
 
-static int createSample(ENVIRON *csound, FILE *unf)
+static int createSample(CSOUND *csound, FILE *unf)
 {
     int   num;
     FILE  *smpf;
@@ -417,7 +417,7 @@ static int createSample(ENVIRON *csound, FILE *unf)
     return FALSE;
 }
 
-static int createFile(ENVIRON *csound, FILE *unf)
+static int createFile(CSOUND *csound, FILE *unf)
 {
     FILE  *smpf;
     void  *fd;
@@ -451,7 +451,7 @@ static int createFile(ENVIRON *csound, FILE *unf)
     return FALSE;
 }
 
-static int checkVersion(ENVIRON *csound, FILE *unf)
+static int checkVersion(CSOUND *csound, FILE *unf)
 {
     char  *p;
     int   major = 0, minor = 0;
@@ -482,7 +482,7 @@ static int checkVersion(ENVIRON *csound, FILE *unf)
     return result;
 }
 
-static int checkLicence(ENVIRON *csound, FILE *unf)
+static int checkLicence(CSOUND *csound, FILE *unf)
 {
     char  *p, *licence;
     int   len = 20;
@@ -517,7 +517,7 @@ static int eat_to_eol(char *buf)
     return i;   /* keep the \n for further processing */
 }
 
-static int blank_buffer(ENVIRON *csound)
+static int blank_buffer(CSOUND *csound)
 {
     int i=0;
     if (ST(buffer)[i] == ';')
@@ -529,7 +529,7 @@ static int blank_buffer(ENVIRON *csound)
     return TRUE;
 }
 
-int read_unified_file(ENVIRON *csound, char **pname, char **score)
+int read_unified_file(CSOUND *csound, char **pname, char **score)
 {
     char  *name = *pname;
     FILE  *unf;

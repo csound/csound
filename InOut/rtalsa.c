@@ -79,7 +79,7 @@ static void float_to_double(int nSmps, float *inBuf, double *outBuf);
 
 /* module interface functions */
 
-int csoundModuleCreate(ENVIRON *csound)
+int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     csound->Message(csound,
@@ -87,13 +87,13 @@ int csoundModuleCreate(ENVIRON *csound)
     return 0;
 }
 
-static int playopen_(ENVIRON*, csRtAudioParams*);
-static int recopen_(ENVIRON*, csRtAudioParams*);
-static void rtplay_(ENVIRON*, void*, int);
-static int rtrecord_(ENVIRON*, void*, int);
-static void rtclose_(ENVIRON*);
+static int playopen_(CSOUND*, csRtAudioParams*);
+static int recopen_(CSOUND*, csRtAudioParams*);
+static void rtplay_(CSOUND*, void*, int);
+static int rtrecord_(CSOUND*, void*, int);
+static void rtclose_(CSOUND*);
 
-int csoundModuleInit(ENVIRON *csound)
+int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
 
@@ -168,13 +168,13 @@ static snd_pcm_format_t set_format(void **convFunc, int csound_format, int play,
 
 /* set up audio device */
 
-static int set_device_params(ENVIRON *csound, DEVPARAMS *dev, int play)
+static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
 {
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_sw_params_t *sw_params;
     snd_pcm_format_t    alsaFmt;
     int                 err, n, myflt_is_double, alloc_smps;
-    ENVIRON             *p = csound;
+    CSOUND              *p = csound;
     char                *devName, msg[512];
 
     dev->buf = NULL;
@@ -317,7 +317,7 @@ static int set_device_params(ENVIRON *csound, DEVPARAMS *dev, int play)
 
 /* open for audio input */
 
-static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
+static int recopen_(CSOUND *csound, csRtAudioParams *parm)
 {
     DEVPARAMS *dev;
     int       retval;
@@ -357,7 +357,7 @@ static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
 
 /* open for audio output */
 
-static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
+static int playopen_(CSOUND *csound, csRtAudioParams *parm)
 {
     DEVPARAMS *dev;
     int       retval;
@@ -406,7 +406,7 @@ static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
       csound->Warning(csound, Str(x));          \
 }
 
-static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
+static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     int       n, m, err;
@@ -452,7 +452,7 @@ static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     int     n, err;
@@ -495,7 +495,7 @@ static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
 /* close the I/O device entirely  */
 /* called only when both complete */
 
-static void rtclose_(ENVIRON *csound)
+static void rtclose_(CSOUND *csound)
 {
     DEVPARAMS *dev;
 

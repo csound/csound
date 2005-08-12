@@ -29,7 +29,7 @@
 
 int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
-int pvsinit(ENVIRON *csound, PVSINI *p)
+int pvsinit(CSOUND *csound, PVSINI *p)
 {
     int i;
     float *bframe;
@@ -51,7 +51,7 @@ int pvsinit(ENVIRON *csound, PVSINI *p)
     return OK;
 }
 
-int pvsmixset(ENVIRON *csound, PVSMIX *p)
+int pvsmixset(CSOUND *csound, PVSMIX *p)
 {
     long N = p->fa->N;
 
@@ -72,7 +72,7 @@ int pvsmixset(ENVIRON *csound, PVSMIX *p)
     return OK;
 }
 
-int pvsmix(ENVIRON *csound, PVSMIX *p)
+int pvsmix(CSOUND *csound, PVSMIX *p)
 {
     int i;
     long framesize;
@@ -108,7 +108,7 @@ int pvsmix(ENVIRON *csound, PVSMIX *p)
 
 /* pvsfilter  */
 
-int pvsfilterset(ENVIRON *csound, PVSFILTER *p)
+int pvsfilterset(CSOUND *csound, PVSFILTER *p)
 {
     long N = p->fin->N;
 
@@ -129,7 +129,7 @@ int pvsfilterset(ENVIRON *csound, PVSFILTER *p)
     return OK;
 }
 
-int pvsfilter(ENVIRON *csound, PVSFILTER *p)
+int pvsfilter(CSOUND *csound, PVSFILTER *p)
 {
     long i,N = p->fout->N;
     float g = (float) *p->gain;
@@ -158,7 +158,7 @@ int pvsfilter(ENVIRON *csound, PVSFILTER *p)
 
 /* pvscale  */
 
-int pvsscaleset(ENVIRON *csound, PVSSCALE *p)
+int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 {
     long N = p->fin->N;
 
@@ -175,7 +175,7 @@ int pvsscaleset(ENVIRON *csound, PVSSCALE *p)
     return OK;
 }
 
-int pvsscale(ENVIRON *csound, PVSSCALE *p)
+int pvsscale(CSOUND *csound, PVSSCALE *p)
 {
     long i,chan,newchan,N = p->fout->N;
     float max = 0.f;
@@ -223,7 +223,7 @@ int pvsscale(ENVIRON *csound, PVSSCALE *p)
 
 /* pvshift */
 
-int pvsshiftset(ENVIRON *csound, PVSSHIFT *p)
+int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 {
     long N = p->fin->N;
 
@@ -240,7 +240,7 @@ int pvsshiftset(ENVIRON *csound, PVSSHIFT *p)
     return OK;
 }
 
-int pvsshift(ENVIRON *csound, PVSSHIFT *p)
+int pvsshift(CSOUND *csound, PVSSHIFT *p)
 {
     long i,chan,newchan,N = p->fout->N;
     MYFLT pshift = (MYFLT) *p->kshift;
@@ -299,7 +299,7 @@ int pvsshift(ENVIRON *csound, PVSSHIFT *p)
 }
 /* pvsblur */
 
-int pvsblurset(ENVIRON *csound, PVSBLUR *p)
+int pvsblurset(CSOUND *csound, PVSBLUR *p)
 {
     float* delay;
     long N = p->fin->N, i, j;
@@ -334,7 +334,7 @@ int pvsblurset(ENVIRON *csound, PVSBLUR *p)
     return OK;
 }
 
-int pvsblur(ENVIRON *csound, PVSBLUR *p)
+int pvsblur(CSOUND *csound, PVSBLUR *p)
 {
     long j,i,N = p->fout->N, first, framesize=N+2;
     long countr = p->count;
@@ -390,7 +390,7 @@ int pvsblur(ENVIRON *csound, PVSBLUR *p)
 }
 
 /* pvstencil  */
-int pvstencilset(ENVIRON *csound, PVSTENCIL *p)
+int pvstencilset(CSOUND *csound, PVSTENCIL *p)
 {
     long N = p->fin->N, i;
     long chans = N/2+1;
@@ -427,7 +427,7 @@ int pvstencilset(ENVIRON *csound, PVSTENCIL *p)
     return OK;
 }
 
-int pvstencil(ENVIRON *csound, PVSTENCIL *p)
+int pvstencil(CSOUND *csound, PVSTENCIL *p)
 {
     long framesize, i, j;
     int test;

@@ -352,7 +352,7 @@ void CsoundVstFltk::postUpdate()
   updateFlag = 1;
 }
 
-void CsoundVstFltk::messageCallback(ENVIRON *csound, int attribute, const char *format, va_list valist)
+void CsoundVstFltk::messageCallback(CSOUND *csound, int attribute, const char *format, va_list valist)
 {
   if(!csound)
     {
@@ -759,3 +759,4 @@ void onAutoPlayCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk
 {
   csoundVstFltk->onAutoPlayCheckButton(button, csoundVstFltk);
 }
+

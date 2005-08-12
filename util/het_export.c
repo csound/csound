@@ -33,12 +33,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #define END  32767
 
-void het_export_usage(ENVIRON *csound)
+void het_export_usage(CSOUND *csound)
 {
     csound->Message(csound, "Usage: het_export het_file cstext_file\n");
 }
 
-static int het_export(ENVIRON *csound, int argc, char **argv)
+static int het_export(CSOUND *csound, int argc, char **argv)
 {
     MEMFIL *inf;
     FILE *outf;
@@ -73,7 +73,7 @@ static int het_export(ENVIRON *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "het_export", het_export);
     if (!retval) {

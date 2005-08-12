@@ -35,7 +35,7 @@
 static int fout_open_file(FOUT_GLOBALS *pp, FILE **f,
                                             const char *name, const char *mode)
 {
-    ENVIRON           *csound = pp->csound;
+    CSOUND            *csound = pp->csound;
     struct fileinTag  *p = (struct fileinTag*) pp->file_opened;
     void              *fd;
     int               i;
@@ -80,7 +80,7 @@ static int fout_open_file(FOUT_GLOBALS *pp, FILE **f,
 static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
                                                int write_mode, SF_INFO *sfinfo)
 {
-    ENVIRON           *csound = pp->csound;
+    CSOUND            *csound = pp->csound;
     struct fileinTag  *p = pp->file_opened;
     void              *fd;
     int               i, buf_reqd, do_scale = 0;
@@ -149,7 +149,7 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
     return i;
 }
 
-static int foutRESET(ENVIRON *csound, FOUT_GLOBALS *p)
+static int foutRESET(CSOUND *csound, FOUT_GLOBALS *p)
 {
     while (p->file_num >= 0) {
       if (csound->oparms->msglevel & 3)
@@ -172,7 +172,7 @@ static int foutRESET(ENVIRON *csound, FOUT_GLOBALS *p)
     return OK;
 }
 
-static int outfile(ENVIRON *csound, OUTFILE *p)
+static int outfile(CSOUND *csound, OUTFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   i, j, k;
@@ -198,7 +198,7 @@ static int outfile(ENVIRON *csound, OUTFILE *p)
     return OK;
 }
 
-static int outfile_set(ENVIRON *csound, OUTFILE *p)
+static int outfile_set(CSOUND *csound, OUTFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int     n;
@@ -244,7 +244,7 @@ static int outfile_set(ENVIRON *csound, OUTFILE *p)
     return OK;
 }
 
-static int koutfile(ENVIRON *csound, KOUTFILE *p)
+static int koutfile(CSOUND *csound, KOUTFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   i;
@@ -259,7 +259,7 @@ static int koutfile(ENVIRON *csound, KOUTFILE *p)
     return OK;
 }
 
-static int koutfile_set(ENVIRON *csound, KOUTFILE *p)
+static int koutfile_set(CSOUND *csound, KOUTFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int     n;
@@ -309,7 +309,7 @@ static int koutfile_set(ENVIRON *csound, KOUTFILE *p)
 /* syntax:
         ihandle fiopen "filename" [, iascii]
 */
-static int fiopen(ENVIRON *csound, FIOPEN *p)
+static int fiopen(CSOUND *csound, FIOPEN *p)
 {                                       /* open a file and return its handle  */
     char    fname[FILENAME_MAX];        /* the handle is simply a stack index */
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
@@ -332,7 +332,7 @@ static int fiopen(ENVIRON *csound, FIOPEN *p)
    fouti  ihandle, iascii, iflag, iarg1 [, iarg2, ...., iargN]
 */
 
-static int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
+static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     MYFLT   **args = p->argums;
@@ -387,7 +387,7 @@ static int ioutfile_set(ENVIRON *csound, IOUTFILE *p)
     return OK;
 }
 
-static int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
+static int ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     if (p->h.insdshead->xtratim < 1)
@@ -399,7 +399,7 @@ static int ioutfile_set_r(ENVIRON *csound, IOUTFILE_R *p)
     return OK;
 }
 
-static int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
+static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 {
     FOUT_GLOBALS  *pp;
     MYFLT **args;
@@ -458,7 +458,7 @@ static int ioutfile_r(ENVIRON *csound, IOUTFILE_R *p)
 
 /*----------------------------------*/
 
-static int infile_set(ENVIRON *csound, INFILE *p)
+static int infile_set(CSOUND *csound, INFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     SF_INFO sfinfo;
@@ -493,7 +493,7 @@ static int infile_set(ENVIRON *csound, INFILE *p)
     return OK;
 }
 
-static int infile_act(ENVIRON *csound, INFILE *p)
+static int infile_act(CSOUND *csound, INFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   i, j = 0, k = 0, n;
@@ -521,7 +521,7 @@ static int infile_act(ENVIRON *csound, INFILE *p)
 
 /*----------------------------*/
 
-static int kinfile_set(ENVIRON *csound, KINFILE *p)
+static int kinfile_set(CSOUND *csound, KINFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     SF_INFO sfinfo;
@@ -556,7 +556,7 @@ static int kinfile_set(ENVIRON *csound, KINFILE *p)
     return OK;
 }
 
-static int kinfile(ENVIRON *csound, KINFILE *p)
+static int kinfile(CSOUND *csound, KINFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   i, n;
@@ -581,7 +581,7 @@ static int kinfile(ENVIRON *csound, KINFILE *p)
     return OK;
 }
 
-static int i_infile(ENVIRON *csound, I_INFILE *p)
+static int i_infile(CSOUND *csound, I_INFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   j, n, nargs;
@@ -671,7 +671,7 @@ static int i_infile(ENVIRON *csound, I_INFILE *p)
 
 /*---------------------------*/
 
-static int incr(ENVIRON *csound, INCR *p)
+static int incr(CSOUND *csound, INCR *p)
 {
     MYFLT *avar = p->avar, *aincr = p->aincr;
     int   n;
@@ -681,7 +681,7 @@ static int incr(ENVIRON *csound, INCR *p)
     return OK;
 }
 
-static int clear(ENVIRON *csound, CLEARS *p)
+static int clear(CSOUND *csound, CLEARS *p)
 {
     int   n, j;
     MYFLT *avar;
@@ -697,7 +697,7 @@ static int clear(ENVIRON *csound, CLEARS *p)
 /*---------------------------------*/
 /* formatted output to a text file */
 
-static int fprintf_set(ENVIRON *csound, FPRINTF *p)
+static int fprintf_set(CSOUND *csound, FPRINTF *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
     int   n;
@@ -909,7 +909,7 @@ static void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
     }
 }
 
-static int fprintf_k(ENVIRON *csound, FPRINTF *p)
+static int fprintf_k(CSOUND *csound, FPRINTF *p)
 {
     char        string[8192];
     sprints(string, p->txtstring, p->argums, p->INOCOUNT-2);
@@ -918,7 +918,7 @@ static int fprintf_k(ENVIRON *csound, FPRINTF *p)
 }
 
 /* i-rate fprints */
-static int fprintf_i(ENVIRON *csound, FPRINTF *p)
+static int fprintf_i(CSOUND *csound, FPRINTF *p)
 {
     char        string[8192];
     fprintf_set(csound,p);
@@ -961,7 +961,7 @@ PUBLIC long opcode_size(void)
     return (long) sizeof(localops);
 }
 
-PUBLIC OENTRY *opcode_init(ENVIRON *csound)
+PUBLIC OENTRY *opcode_init(CSOUND *csound)
 {
     FOUT_GLOBALS  *p;
 
@@ -977,7 +977,7 @@ PUBLIC OENTRY *opcode_init(ENVIRON *csound)
     p->buf = (MYFLT*) NULL;
     p->buf_size = 0;
     if (csound->RegisterResetCallback(csound, (void*) p,
-                                      (int (*)(ENVIRON*,void*)) foutRESET) != 0)
+                                      (int (*)(CSOUND*,void*)) foutRESET) != 0)
       csound->Die(csound, Str("fout: error registering reset callback"));
     return localops;
 }

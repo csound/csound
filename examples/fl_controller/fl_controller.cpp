@@ -54,7 +54,7 @@ protected:
         static void cb_button_load_csd_( Fl_Button*, void* p_data );
         void cb_button_load_csd( Fl_Button*);
         // Csound yield callback:
-        static int cb_thread_yield(ENVIRON *csound);
+        static int cb_thread_yield(CSOUND *csound);
         void csound_start();
         // Csound rendering thread routine:
         static int csound_thread_routine_(void* p_data );
@@ -249,7 +249,7 @@ void ControlWindow::cb_button_load_csd( Fl_Button *p_button)
 * While Csound is rendering,
 * safely dispatch FLTK events.
 */
-int ControlWindow::cb_thread_yield(ENVIRON *csound)
+int ControlWindow::cb_thread_yield(CSOUND *csound)
 {
     Fl::lock();
     Fl::wait(0.0);

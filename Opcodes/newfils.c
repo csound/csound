@@ -27,7 +27,7 @@
 #include "newfils.h"
 #include <math.h>
 
-int moogladder_init(ENVIRON *csound,moogladder *p)
+int moogladder_init(CSOUND *csound,moogladder *p)
 {
     int i;
     if (*p->istor==FL(0.0)) {
@@ -37,7 +37,7 @@ int moogladder_init(ENVIRON *csound,moogladder *p)
     return OK;
 }
 
-int moogladder_process(ENVIRON *csound,moogladder *p)
+int moogladder_process(CSOUND *csound,moogladder *p)
 {
     MYFLT  *out = p->out;
     MYFLT  *in = p->in;
@@ -83,7 +83,7 @@ int moogladder_process(ENVIRON *csound,moogladder *p)
     return OK;
 }
 
-int statevar_init(ENVIRON *csound,statevar *p)
+int statevar_init(CSOUND *csound,statevar *p)
 {
     if (*p->istor==FL(0.0)) {
       p->bpd = p->lpd = p->lp = 0.0;
@@ -93,7 +93,7 @@ int statevar_init(ENVIRON *csound,statevar *p)
     return OK;
 }
 
-int statevar_process(ENVIRON *csound,statevar *p)
+int statevar_process(CSOUND *csound,statevar *p)
 {
     MYFLT  *outhp = p->outhp;
     MYFLT  *outlp = p->outlp;
@@ -138,7 +138,7 @@ int statevar_process(ENVIRON *csound,statevar *p)
     return OK;
 }
 
-int fofilter_init(ENVIRON *csound,fofilter *p)
+int fofilter_init(CSOUND *csound,fofilter *p)
 {
     int i;
     if (*p->istor==FL(0.0)) {
@@ -149,7 +149,7 @@ int fofilter_init(ENVIRON *csound,fofilter *p)
     return OK;
 }
 
-int fofilter_process(ENVIRON *csound,fofilter *p)
+int fofilter_process(CSOUND *csound,fofilter *p)
 {
     MYFLT  *out = p->out;
     MYFLT  *in = p->in;

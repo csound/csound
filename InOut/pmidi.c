@@ -33,7 +33,7 @@
 
 static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
-static int portMidiErrMsg(ENVIRON *csound, const char *msg, ...)
+static int portMidiErrMsg(CSOUND *csound, const char *msg, ...)
 {
     va_list args;
 
@@ -106,7 +106,7 @@ static PmDeviceInfo *portMidi_getDeviceInfo(int dev, int output)
     return ((PmDeviceInfo*) Pm_GetDeviceInfo((PmDeviceID) i));
 }
 
-static void portMidi_listDevices(ENVIRON *csound, int output)
+static void portMidi_listDevices(CSOUND *csound, int output)
 {
     int           i, cnt;
     PmDeviceInfo  *info;
@@ -127,7 +127,7 @@ static void portMidi_listDevices(ENVIRON *csound, int output)
     }
 }
 
-static int start_portmidi(ENVIRON *csound)
+static int start_portmidi(CSOUND *csound)
 {
     if (Pm_Initialize() != pmNoError) {
       csound->ErrorMsg(csound, Str(" *** error initialising PortMIDI"));
@@ -140,7 +140,7 @@ static int start_portmidi(ENVIRON *csound)
     return 0;
 }
 
-static int OpenMidiInDevice_(ENVIRON *csound, void **userData, const char *dev)
+static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
     int         cntdev, devnum;
     PmEvent     buffer;
@@ -198,7 +198,7 @@ static int OpenMidiInDevice_(ENVIRON *csound, void **userData, const char *dev)
     return 0;
 }
 
-static int OpenMidiOutDevice_(ENVIRON *csound, void **userData, const char *dev)
+static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
 {
     int         cntdev, devnum;
     PmError     retval;
@@ -250,7 +250,7 @@ static int OpenMidiOutDevice_(ENVIRON *csound, void **userData, const char *dev)
     return 0;
 }
 
-static int ReadMidiData_(ENVIRON *csound, void *userData,
+static int ReadMidiData_(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int nbytes)
 {
     int             n, retval, st, d1, d2;
@@ -309,7 +309,7 @@ static int ReadMidiData_(ENVIRON *csound, void *userData,
     return n;
 }
 
-static int WriteMidiData_(ENVIRON *csound, void *userData,
+static int WriteMidiData_(CSOUND *csound, void *userData,
                           unsigned char *mbuf, int nbytes)
 {
     int             n, st;
@@ -355,7 +355,7 @@ static int WriteMidiData_(ENVIRON *csound, void *userData,
     return n;
 }
 
-static int CloseMidiInDevice_(ENVIRON *csound, void *userData)
+static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
     PmError retval;
 
@@ -368,7 +368,7 @@ static int CloseMidiInDevice_(ENVIRON *csound, void *userData)
     return 0;
 }
 
-static int CloseMidiOutDevice_(ENVIRON *csound, void *userData)
+static int CloseMidiOutDevice_(CSOUND *csound, void *userData)
 {
     PmError retval;
 
@@ -383,14 +383,14 @@ static int CloseMidiOutDevice_(ENVIRON *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     csound->Message(csound, "PortMIDI real time MIDI plugin for Csound\n");
     return 0;
 }
 
-PUBLIC int csoundModuleInit(ENVIRON *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
 
@@ -410,7 +410,7 @@ PUBLIC int csoundModuleInit(ENVIRON *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleDestroy(ENVIRON *csound)
+PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
     Pm_Terminate();
     return 0;

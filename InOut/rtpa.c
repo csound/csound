@@ -53,7 +53,7 @@ typedef struct devparams_ {
 } DEVPARAMS;
 
 typedef struct PA_BLOCKING_STREAM_ {
-    ENVIRON     *csound;
+    CSOUND      *csound;
     PaStream    *paStream;
     int         mode;                   /* 1: rec, 2: play, 3: full-duplex  */
     int         noPaLock;
@@ -71,7 +71,7 @@ typedef struct PA_BLOCKING_STREAM_ {
     PaStreamParameters outputPaParameters;
 } PA_BLOCKING_STREAM;
 
-static int pa_PrintErrMsg(ENVIRON *csound, const char *fmt, ...)
+static int pa_PrintErrMsg(CSOUND *csound, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -80,7 +80,7 @@ static int pa_PrintErrMsg(ENVIRON *csound, const char *fmt, ...)
     return -1;
 }
 
-static int initPortAudio(ENVIRON *csound)
+static int initPortAudio(CSOUND *csound)
 {
     char  *s;
     int   err;
@@ -103,7 +103,7 @@ static int initPortAudio(ENVIRON *csound)
 
 /* list available input or output devices; returns the number of devices */
 
-static int listPortAudioDevices_blocking(ENVIRON *csound,
+static int listPortAudioDevices_blocking(CSOUND *csound,
                                          int print_list, int play)
 {
     PaDeviceInfo  *dev_info;
@@ -138,7 +138,7 @@ static int listPortAudioDevices_blocking(ENVIRON *csound,
 
 /* select PortAudio device; returns the actual device number */
 
-static int selectPortAudioDevice(ENVIRON *csound, int devNum, int play)
+static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
 {
     PaDeviceInfo  *dev_info;
     int           i, j, maxNum;
@@ -177,7 +177,7 @@ static int selectPortAudioDevice(ENVIRON *csound, int devNum, int play)
     return devNum;
 }
 
-static int pa_SetStreamParameters(ENVIRON *csound, PaStreamParameters *sp,
+static int pa_SetStreamParameters(CSOUND *csound, PaStreamParameters *sp,
                                                    csRtAudioParams *parm,
                                                    int is_playback)
 {
@@ -200,14 +200,14 @@ static int pa_SetStreamParameters(ENVIRON *csound, PaStreamParameters *sp,
     return 0;
 }
 
-static void rtclose_(ENVIRON *csound);
+static void rtclose_(CSOUND *csound);
 static int  paBlockingReadWriteStreamCallback(const void *, void *,
                                               unsigned long,
                                               const PaStreamCallbackTimeInfo *,
                                               PaStreamCallbackFlags,
                                               void *);
 
-static int paBlockingReadWriteOpen(ENVIRON *csound)
+static int paBlockingReadWriteOpen(CSOUND *csound)
 {
     PA_BLOCKING_STREAM  *pabs;
     PaStream            *stream = NULL;
@@ -317,7 +317,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
 {
     int     i, n;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) userData;
-    ENVIRON *csound = pabs->csound;
+    CSOUND *csound = pabs->csound;
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
 
@@ -351,7 +351,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
 
 /* get samples from ADC */
 
-static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
+static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
 {
     PA_BLOCKING_STREAM  *pabs;
     MYFLT   *buffer = (MYFLT*) inbuf_;
@@ -386,7 +386,7 @@ static int rtrecord_(ENVIRON *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
 {
     PA_BLOCKING_STREAM  *pabs;
     MYFLT   *buffer = (MYFLT*) outbuf_;
@@ -411,9 +411,9 @@ static void rtplay_(ENVIRON *csound, void *outbuf_, int bytes_)
 
 /* open for audio input */
 
-static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
+static int recopen_(CSOUND *csound, csRtAudioParams *parm)
 {
-    ENVIRON *p = csound;
+    CSOUND *p = csound;
     PA_BLOCKING_STREAM *pabs;
 
     pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
@@ -433,9 +433,9 @@ static int recopen_(ENVIRON *csound, csRtAudioParams *parm)
 
 /* open for audio output */
 
-static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
+static int playopen_(CSOUND *csound, csRtAudioParams *parm)
 {
-    ENVIRON *p = csound;
+    CSOUND *p = csound;
     PA_BLOCKING_STREAM *pabs;
 
     pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
@@ -455,7 +455,7 @@ static int playopen_(ENVIRON *csound, csRtAudioParams *parm)
 
 /* close the I/O device entirely */
 
-static void rtclose_(ENVIRON *csound)
+static void rtclose_(CSOUND *csound)
 {
     PA_BLOCKING_STREAM *pabs;
 
@@ -506,11 +506,11 @@ static void rtclose_(ENVIRON *csound)
 
 /* set up audio device */
 
-static int set_device_params(ENVIRON *csound, DEVPARAMS *dev,
+static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
                              csRtAudioParams *parm, int play)
 {
     PaStreamParameters  streamParams;
-    ENVIRON             *p = csound;
+    CSOUND              *p = csound;
     int                 err;
 
     /* set parameters */
@@ -572,7 +572,7 @@ static int set_device_params(ENVIRON *csound, DEVPARAMS *dev,
 
 /* open for audio input */
 
-static int recopen_blocking(ENVIRON *csound, csRtAudioParams *parm)
+static int recopen_blocking(CSOUND *csound, csRtAudioParams *parm)
 {
     DEVPARAMS *dev;
     int       retval;
@@ -598,7 +598,7 @@ static int recopen_blocking(ENVIRON *csound, csRtAudioParams *parm)
 
 /* open for audio output */
 
-static int playopen_blocking(ENVIRON *csound, csRtAudioParams *parm)
+static int playopen_blocking(CSOUND *csound, csRtAudioParams *parm)
 {
     DEVPARAMS *dev;
     int       retval;
@@ -624,7 +624,7 @@ static int playopen_blocking(ENVIRON *csound, csRtAudioParams *parm)
 
 /* get samples from ADC */
 
-static int rtrecord_blocking(ENVIRON *csound, void *inbuf_, int bytes_)
+static int rtrecord_blocking(CSOUND *csound, void *inbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     int       i, n, err;
@@ -644,7 +644,7 @@ static int rtrecord_blocking(ENVIRON *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_blocking(ENVIRON *csound, void *outbuf_, int bytes_)
+static void rtplay_blocking(CSOUND *csound, void *outbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     int       i, n, err;
@@ -663,7 +663,7 @@ static void rtplay_blocking(ENVIRON *csound, void *outbuf_, int bytes_)
 /* close the I/O device entirely  */
 /* called only when both complete */
 
-static void rtclose_blocking(ENVIRON *csound)
+static void rtclose_blocking(CSOUND *csound)
 {
     DEVPARAMS *dev;
 
@@ -693,7 +693,7 @@ static void rtclose_blocking(ENVIRON *csound)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     csound->Message(csound,
@@ -701,7 +701,7 @@ PUBLIC int csoundModuleCreate(ENVIRON *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleInit(ENVIRON *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *s, drv[12];
     int     i;
@@ -740,7 +740,7 @@ PUBLIC int csoundModuleInit(ENVIRON *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleDestroy(ENVIRON *csound)
+PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
     if (csound->QueryGlobalVariable(csound, "::PortAudio::NeedsTerminate")) {
       csound->DestroyGlobalVariable(csound, "::PortAudio::NeedsTerminate");

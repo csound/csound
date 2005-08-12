@@ -71,7 +71,7 @@ static int infoTick(MANDOL *p)
 }
 
 /* Suggested values pluckAmp = 0.3; pluckPos = 0.4; detuning = 0.995; */
-int mandolinset(ENVIRON *csound, MANDOL *p)
+int mandolinset(CSOUND *csound, MANDOL *p)
 {
     FUNC        *ftp;
 
@@ -125,7 +125,7 @@ int mandolinset(ENVIRON *csound, MANDOL *p)
     return OK;
 }
 
-int mandolin(ENVIRON *csound, MANDOL *p)
+int mandolin(CSOUND *csound, MANDOL *p)
 {
     MYFLT *ar = p->ar;
     int  n,nsmps = csound->ksmps;

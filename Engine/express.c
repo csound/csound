@@ -37,12 +37,12 @@
 static  const char    strminus1[] = "-1";
 static  const char    strmult[] = "*";
 
-static  void    putokens(ENVIRON*), putoklist(ENVIRON*);
+static  void    putokens(CSOUND*), putoklist(CSOUND*);
 static  int     nontermin(int);
 
 #define copystring(s) strsav_string(csound, s)
 
-int express(ENVIRON *csound, char *s)
+int express(CSOUND *csound, char *s)
 {
     POLISH      *pp;
     char        xprmsg[128];
@@ -529,7 +529,7 @@ static int nontermin(int c)
     }
 }
 
-static void putokens(ENVIRON *csound)       /* for debugging check only */
+static void putokens(CSOUND *csound)        /* for debugging check only */
 {
     TOKEN *tp = csound->tokens;
 
@@ -551,7 +551,7 @@ static void putokens(ENVIRON *csound)       /* for debugging check only */
     csound->Message(csound, "\n");
 }
 
-static void putoklist(ENVIRON *csound)      /*      ditto           */
+static void putoklist(CSOUND *csound)       /*      ditto           */
 {
     TOKEN **tpp = csound->tokenlist;
 

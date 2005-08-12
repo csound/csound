@@ -179,7 +179,7 @@ MYFLT *CppSound::getSpout()
   return csoundGetSpout(csound);
 }
 
-void CppSound::setMessageCallback(void (*messageCallback)(ENVIRON *csound, int attr, const char *format, va_list args))
+void CppSound::setMessageCallback(void (*messageCallback)(CSOUND *csound, int attr, const char *format, va_list args))
 {
   csoundSetMessageCallback(csound, messageCallback);
 }
@@ -217,24 +217,24 @@ void CppSound::throwMessageV(const char *format, va_list args)
   csoundThrowMessageV(csound, format, args);
 }
 
-void CppSound::setThrowMessageCallback(void (*throwCallback)(ENVIRON *csound, const char *format, va_list args))
+void CppSound::setThrowMessageCallback(void (*throwCallback)(CSOUND *csound, const char *format, va_list args))
 {
   csoundSetThrowMessageCallback(this->csound, throwCallback);
 }
 
-void CppSound::setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(ENVIRON *csound, void **userData,
+void CppSound::setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(CSOUND *csound, void **userData,
                                                                        const char *devName))
 {
   csoundSetExternalMidiInOpenCallback(this->csound, ExternalMidiInOpen);
 }
 
-void CppSound::setExternalMidiReadCallback(int (*ExternalMidiRead)(ENVIRON *csound, void *userData,
+void CppSound::setExternalMidiReadCallback(int (*ExternalMidiRead)(CSOUND *csound, void *userData,
                                                                    unsigned char *buf, int nbytes))
 {
   csoundSetExternalMidiReadCallback(this->csound, ExternalMidiRead);
 }
 
-void CppSound::setExternalMidiInCloseCallback(int (*ExternalMidiInClose)(ENVIRON *csound, void *userData))
+void CppSound::setExternalMidiInCloseCallback(int (*ExternalMidiInClose)(CSOUND *csound, void *userData))
 {
   csoundSetExternalMidiInCloseCallback(this->csound, ExternalMidiInClose);
 }
@@ -274,7 +274,7 @@ MYFLT CppSound::getKr()
   return csoundGetKr(csound);
 }
 
-int CppSound::appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, int (*iopadr)(ENVIRON*, void*), int (*kopadr)(ENVIRON*, void*), int (*aopadr)(ENVIRON*, void*))
+int CppSound::appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, int (*iopadr)(CSOUND*, void*), int (*kopadr)(CSOUND*, void*), int (*aopadr)(CSOUND*, void*))
 {
   return csoundAppendOpcode(csound, opname, dsblksiz, thread, outypes, intypes, iopadr, kopadr, aopadr);
 }
@@ -315,7 +315,7 @@ void CppSound::inputMessage(std::string istatement)
   csoundScoreEvent(csound, opcode[0], &pfields.front(), pfields.size());
 }
 
-ENVIRON *CppSound::getCsound()
+CSOUND *CppSound::getCsound()
 {
   return csound;
 }
@@ -357,11 +357,11 @@ bool CppSound::getIsGo() const
 
 extern "C"
 {
-  void csoundSetMessageCallback(ENVIRON *csound, void (*csoundMessageCallback)(ENVIRON *csound, int attr, const char *format, va_list valist));
+  void csoundSetMessageCallback(CSOUND *csound, void (*csoundMessageCallback)(CSOUND *csound, int attr, const char *format, va_list valist));
   int PyRun_SimpleString(const char *string);
 }
 
-static void pythonMessageCallback(ENVIRON *csound, int attr, const char *format, va_list valist)
+static void pythonMessageCallback(CSOUND *csound, int attr, const char *format, va_list valist)
 {
   static char buffer[0x1000];
   static char buffer1[0x1000];
@@ -429,14 +429,14 @@ std::string CppSound::getOutputSoundfileName() const
     return "";
 }
 
-void CppSound::setInputValueCallback(void (*inputValueCallback)(ENVIRON *csound,
+void CppSound::setInputValueCallback(void (*inputValueCallback)(CSOUND *csound,
                                                                 char *channelName,
                                                                 MYFLT *value))
 {
   csoundSetInputValueCallback(csound, inputValueCallback);
 }
 
-void CppSound::setOutputValueCallback(void (*outputValueCallback)(ENVIRON *csound,
+void CppSound::setOutputValueCallback(void (*outputValueCallback)(CSOUND *csound,
                                                                   char *channelName,
                                                                   MYFLT value))
 {

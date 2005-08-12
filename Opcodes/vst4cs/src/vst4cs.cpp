@@ -41,7 +41,7 @@ extern "C"
         void path_convert(char* in);
 #endif
 
-        int vstinit (ENVIRON *csound, void *data)
+        int vstinit (CSOUND *csound, void *data)
         {
                 VSTINIT *p = (VSTINIT *)data;
                 VSTPlugin *plugin = new VSTPlugin(csound);
@@ -74,7 +74,7 @@ extern "C"
                 return OK;
         }
 
-        int vstinfo(ENVIRON *csound, void *data)
+        int vstinfo(CSOUND *csound, void *data)
         {
                 VSTINFO *p = (VSTINFO *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -82,7 +82,7 @@ extern "C"
                 return OK;
         }
 
-        int vstaudio_init(ENVIRON *csound, void *data)
+        int vstaudio_init(CSOUND *csound, void *data)
         {
                 VSTAUDIO *p = (VSTAUDIO *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -92,7 +92,7 @@ extern "C"
                 return OK;
         }
 
-        int vstaudio(ENVIRON *csound, void *data)
+        int vstaudio(CSOUND *csound, void *data)
         {
                 VSTAUDIO *p = (VSTAUDIO *)data;
                 size_t i;
@@ -119,7 +119,7 @@ extern "C"
                 return OK;
         }
 
-        int vstaudiog(ENVIRON *csound, void *data)
+        int vstaudiog(CSOUND *csound, void *data)
         {
                 VSTAUDIO *p = (VSTAUDIO *)data;
                 size_t i;
@@ -139,7 +139,7 @@ extern "C"
                 return OK;
         }
 
-        int vstnote_init (ENVIRON *csound, void * data)
+        int vstnote_init (CSOUND *csound, void * data)
         {
                 VSTNOTE *p = (VSTNOTE *)data;
                 VSTPlugin *vstPlugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -149,7 +149,7 @@ extern "C"
                 return OK;
         }
 
-        int vstnote (ENVIRON *csound, void * data)
+        int vstnote (CSOUND *csound, void * data)
         {
                 VSTNOTE *p = (VSTNOTE *)data;
         if(p->framesRemaining >= 0) {
@@ -163,7 +163,7 @@ extern "C"
                 return OK;
         }
 
-        int vstmidiout_init(ENVIRON *csound, void *data)
+        int vstmidiout_init(CSOUND *csound, void *data)
         {
                 VSTMIDIOUT *p = (VSTMIDIOUT *)data;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -174,7 +174,7 @@ extern "C"
                 return OK;
         }
 
-        int vstmidiout (ENVIRON *csound, void *data)
+        int vstmidiout (CSOUND *csound, void *data)
         {
                 VSTMIDIOUT *p = (VSTMIDIOUT *)data;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -231,12 +231,12 @@ extern "C"
                 return OK;
         }
 
-        int vstparamget_init (ENVIRON *csound, void *data)
+        int vstparamget_init (CSOUND *csound, void *data)
         {
                 return OK;
         }
 
-        int vstparamget(ENVIRON *csound, void *data)
+        int vstparamget(CSOUND *csound, void *data)
         {
                 VSTPARAMGET *p = (VSTPARAMGET *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -247,7 +247,7 @@ extern "C"
                 return OK;
         }
 
-        int vstparamset_init (ENVIRON *csound, void *data)
+        int vstparamset_init (CSOUND *csound, void *data)
         {
                 VSTPARAMSET *p = (VSTPARAMSET *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -257,7 +257,7 @@ extern "C"
                 return OK;
         }
 
-        int vstparamset(ENVIRON *csound, void *data)
+        int vstparamset(CSOUND *csound, void *data)
         {
                 VSTPARAMSET *p = (VSTPARAMSET *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -271,7 +271,7 @@ extern "C"
                 return OK;
         }
 
-        int vstbankload(ENVIRON *csound, void *data)
+        int vstbankload(CSOUND *csound, void *data)
         {
                 VSTBANKLOAD *p = (VSTBANKLOAD *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -331,7 +331,7 @@ extern "C"
         return OK;
     }
 
-        int vstprogset(ENVIRON *csound, void *data)
+        int vstprogset(CSOUND *csound, void *data)
         {
                 VSTPROGSET *p = (VSTPROGSET *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -339,7 +339,7 @@ extern "C"
                 return OK;
     }
 
-    int vstedit_init(ENVIRON *csound, void *data)
+    int vstedit_init(CSOUND *csound, void *data)
     {
         VSTEDIT *p = (VSTEDIT *)data;
         VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -348,12 +348,12 @@ extern "C"
     }
 
 extern "C" {
-  PUBLIC int csoundModuleDestroy(ENVIRON *csound)
+  PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
 #ifdef __GNUC__
 #warning "Need to fix deinitialisation..."
 #endif
- // int vstdeinit(ENVIRON *csound, void *data)
+ // int vstdeinit(CSOUND *csound, void *data)
  // {
         //VSTINIT *p = (VSTINIT *)data;
         //VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -361,7 +361,7 @@ extern "C" {
  //     return OK;
  // }
 
- // int vstedit_deinit(ENVIRON *csound, void *data)
+ // int vstedit_deinit(CSOUND *csound, void *data)
  // {
  //     VSTEDIT *p = (VSTEDIT *)data;
  //     VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -411,12 +411,12 @@ extern "C" {
         { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
     };
 
-  PUBLIC int csoundModuleCreate(ENVIRON *csound)
+  PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
     return 0;
   }
 
-  PUBLIC int csoundModuleInit(ENVIRON *csound)
+  PUBLIC int csoundModuleInit(CSOUND *csound)
   {
     OENTRY  *ep = (OENTRY*) &(localops[0]);
     int     err = 0;
@@ -425,9 +425,9 @@ extern "C" {
       err |= csound->AppendOpcode(csound,
                                   ep->opname, ep->dsblksiz, ep->thread,
                                   ep->outypes, ep->intypes,
-                                  (int (*)(ENVIRON *, void*)) ep->iopadr,
-                                  (int (*)(ENVIRON *, void*)) ep->kopadr,
-                                  (int (*)(ENVIRON *, void*)) ep->aopadr);
+                                  (int (*)(CSOUND *, void*)) ep->iopadr,
+                                  (int (*)(CSOUND *, void*)) ep->kopadr,
+                                  (int (*)(CSOUND *, void*)) ep->aopadr);
       ep++;
     }
     return err;

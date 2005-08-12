@@ -25,7 +25,7 @@
 #include "dumpf.h"
 #include <ctype.h>
 
-int kdmpset(ENVIRON *csound, KDUMP *p)
+int kdmpset(CSOUND *csound, KDUMP *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
@@ -50,7 +50,7 @@ int kdmpset(ENVIRON *csound, KDUMP *p)
     return OK;
 }
 
-int kdmp2set(ENVIRON *csound, KDUMP2 *p)
+int kdmp2set(CSOUND *csound, KDUMP2 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
@@ -75,7 +75,7 @@ int kdmp2set(ENVIRON *csound, KDUMP2 *p)
     return OK;
 }
 
-int kdmp3set(ENVIRON *csound, KDUMP3 *p)
+int kdmp3set(CSOUND *csound, KDUMP3 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
@@ -100,7 +100,7 @@ int kdmp3set(ENVIRON *csound, KDUMP3 *p)
     return OK;
 }
 
-int kdmp4set(ENVIRON *csound, KDUMP4 *p)
+int kdmp4set(CSOUND *csound, KDUMP4 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
@@ -125,7 +125,7 @@ int kdmp4set(ENVIRON *csound, KDUMP4 *p)
     return OK;
 }
 
-static void nkdump(ENVIRON *csound, MYFLT *kp, FILE *ofd, int format, int nk)
+static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format, int nk)
 {
     char  buf1[128], outbuf[256];
     int   len = 0;
@@ -183,7 +183,7 @@ static void nkdump(ENVIRON *csound, MYFLT *kp, FILE *ofd, int format, int nk)
     fwrite(outbuf, 1, len, ofd);                /* now write the buffer */
 }
 
-int kdump(ENVIRON *csound, KDUMP *p)
+int kdump(CSOUND *csound, KDUMP *p)
 {
     MYFLT kval[4];
 
@@ -195,7 +195,7 @@ int kdump(ENVIRON *csound, KDUMP *p)
     return OK;
 }
 
-int kdump2(ENVIRON *csound, KDUMP2 *p)
+int kdump2(CSOUND *csound, KDUMP2 *p)
 {
     MYFLT kval[4];
 
@@ -208,7 +208,7 @@ int kdump2(ENVIRON *csound, KDUMP2 *p)
     return OK;
 }
 
-int kdump3(ENVIRON *csound, KDUMP3 *p)
+int kdump3(CSOUND *csound, KDUMP3 *p)
 {
     MYFLT kval[4];
 
@@ -222,7 +222,7 @@ int kdump3(ENVIRON *csound, KDUMP3 *p)
     return OK;
 }
 
-int kdump4(ENVIRON *csound, KDUMP4 *p)
+int kdump4(CSOUND *csound, KDUMP4 *p)
 {
     MYFLT kval[4];
 
@@ -241,7 +241,7 @@ int kdump4(ENVIRON *csound, KDUMP4 *p)
 /* ******** READK and friends; new code 1999 Feb 14 by JPff    ******** */
 /* ******************************************************************** */
 
-int krdset(ENVIRON *csound, KREAD *p)
+int krdset(CSOUND *csound, KREAD *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
@@ -267,7 +267,7 @@ int krdset(ENVIRON *csound, KREAD *p)
     return OK;
 }
 
-int krd2set(ENVIRON *csound, KREAD2 *p)
+int krd2set(CSOUND *csound, KREAD2 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
@@ -293,7 +293,7 @@ int krd2set(ENVIRON *csound, KREAD2 *p)
     return OK;
 }
 
-int krd3set(ENVIRON *csound, KREAD3 *p)
+int krd3set(CSOUND *csound, KREAD3 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
@@ -319,7 +319,7 @@ int krd3set(ENVIRON *csound, KREAD3 *p)
     return OK;
 }
 
-int krd4set(ENVIRON *csound, KREAD4 *p)
+int krd4set(CSOUND *csound, KREAD4 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
@@ -345,7 +345,7 @@ int krd4set(ENVIRON *csound, KREAD4 *p)
     return OK;
 }
 
-static void nkread(ENVIRON *csound, MYFLT *kp, FILE *ifd, int format, int nk)
+static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
 {
     int   len;
     char  inbuf[256];
@@ -426,7 +426,7 @@ static void nkread(ENVIRON *csound, MYFLT *kp, FILE *ifd, int format, int nk)
     }
 }
 
-int kread(ENVIRON *csound, KREAD *p)
+int kread(CSOUND *csound, KREAD *p)
 {
     MYFLT kval[4];
 
@@ -439,7 +439,7 @@ int kread(ENVIRON *csound, KREAD *p)
     return OK;
 }
 
-int kread2(ENVIRON *csound, KREAD2 *p)
+int kread2(CSOUND *csound, KREAD2 *p)
 {
     MYFLT kval[4];
 
@@ -456,7 +456,7 @@ int kread2(ENVIRON *csound, KREAD2 *p)
     return OK;
 }
 
-int kread3(ENVIRON *csound, KREAD3 *p)
+int kread3(CSOUND *csound, KREAD3 *p)
 {
     MYFLT kval[4];
 
@@ -475,7 +475,7 @@ int kread3(ENVIRON *csound, KREAD3 *p)
     return OK;
 }
 
-int kread4(ENVIRON *csound, KREAD4 *p)
+int kread4(CSOUND *csound, KREAD4 *p)
 {
     MYFLT kval[4];
 

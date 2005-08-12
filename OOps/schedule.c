@@ -27,7 +27,7 @@
 #include <math.h>
 #include "namedins.h"
 
-extern INSDS  *insert_event(ENVIRON*, MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
+extern INSDS  *insert_event(CSOUND*, MYFLT, MYFLT, MYFLT, int, MYFLT **, int);
 
 typedef struct rsched {
   void          *parent;
@@ -56,7 +56,7 @@ static void unquote(char *dst, char *src)
       strcpy(dst, src);
 }
 
-static void queue_event(ENVIRON *csound,
+static void queue_event(CSOUND *csound,
                         MYFLT instr, double when, MYFLT dur,
                         int narg, MYFLT **args)
 {
@@ -75,7 +75,7 @@ static void queue_event(ENVIRON *csound,
 }
 
 /* ********** Need to add turnoff stuff *************** */
-int schedule(ENVIRON *csound, SCHED *p)
+int schedule(CSOUND *csound, SCHED *p)
 {
     RSCHED *rr = kicked;        /* First ensure any stragglers die */
     RSCHED *ss = NULL;          /* really incase of reinit */
@@ -136,7 +136,7 @@ int schedule(ENVIRON *csound, SCHED *p)
     return OK;
 }
 
-int schedwatch(ENVIRON *csound, SCHED *p)
+int schedwatch(CSOUND *csound, SCHED *p)
 {                               /* If MIDI case watch for release */
     if (p->midi && p->h.insdshead->relesing) {
       p->midi = 0;
@@ -162,7 +162,7 @@ int schedwatch(ENVIRON *csound, SCHED *p)
     return OK;
 }
 
-int ifschedule(ENVIRON *csound, WSCHED *p)
+int ifschedule(CSOUND *csound, WSCHED *p)
 {                       /* All we need to do is ensure the trigger is set */
     p->todo = 1;
     p->abs_when = p->h.insdshead->p2;
@@ -170,7 +170,7 @@ int ifschedule(ENVIRON *csound, WSCHED *p)
     return OK;
 }
 
-int kschedule(ENVIRON *csound, WSCHED *p)
+int kschedule(CSOUND *csound, WSCHED *p)
 {
     if (p->todo && *p->trigger != FL(0.0)) { /* If not done and trigger */
       double starttime;
@@ -238,7 +238,7 @@ int kschedule(ENVIRON *csound, WSCHED *p)
 
 #define MAXPHASE 0x1000000
 #define MAXMASK  0x0ffffff
-int lfoset(ENVIRON *csound, LFO *p)
+int lfoset(CSOUND *csound, LFO *p)
 {
   /* Types: 0:  sine
             1:  triangles
@@ -267,7 +267,7 @@ int lfoset(ENVIRON *csound, LFO *p)
     return OK;
 }
 
-int lfok(ENVIRON *csound, LFO *p)
+int lfok(CSOUND *csound, LFO *p)
 {
     long        phs;
     MYFLT       fract;
@@ -317,7 +317,7 @@ int lfok(ENVIRON *csound, LFO *p)
     return OK;
 }
 
-int lfoa(ENVIRON *csound, LFO *p)
+int lfoa(CSOUND *csound, LFO *p)
 {
     int         n;
     long        phs;
@@ -380,9 +380,9 @@ int lfoa(ENVIRON *csound, LFO *p)
 /* Changes made also to Cs.h, Musmon.c and Insert.c; look for "(re Aug 1999)" */
 /******************************************************************************/
 
-int ktriginstr(ENVIRON *csound, TRIGINSTR *p);
+int ktriginstr(CSOUND *csound, TRIGINSTR *p);
 
-int triginset(ENVIRON *csound, TRIGINSTR *p)
+int triginset(CSOUND *csound, TRIGINSTR *p)
 {
     p->prvmintim = *p->mintime;
     p->timrem = 0;
@@ -405,7 +405,7 @@ int triginset(ENVIRON *csound, TRIGINSTR *p)
     return OK;
 }
 
-static int get_absinsno(ENVIRON *csound, TRIGINSTR *p)
+static int get_absinsno(CSOUND *csound, TRIGINSTR *p)
 {
     int insno;
 
@@ -428,7 +428,7 @@ static int get_absinsno(ENVIRON *csound, TRIGINSTR *p)
     return insno;
 }
 
-int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
+int ktriginstr(CSOUND *csound, TRIGINSTR *p)
 {         /* k-rate event generator */
     double  starttime;
     int     i, argnum;
@@ -511,7 +511,7 @@ int ktriginstr(ENVIRON *csound, TRIGINSTR *p)
 
 /* Maldonado triggering of events */
 
-int trigseq_set(ENVIRON *csound, TRIGSEQ *p)     /* by G.Maldonado */
+int trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
@@ -525,7 +525,7 @@ int trigseq_set(ENVIRON *csound, TRIGSEQ *p)     /* by G.Maldonado */
     return OK;
 }
 
-int trigseq(ENVIRON *csound, TRIGSEQ *p)
+int trigseq(CSOUND *csound, TRIGSEQ *p)
 {
     if (p->done) return OK;
     else {

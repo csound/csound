@@ -47,21 +47,21 @@
 #define TXHGHT   14      /* baseline offset for text */
 #define MAXLSEGS 4096    /* X can only deal with so many linesegs .. */
 
-static void lock(ENVIRON *csound)
+static void lock(CSOUND *csound)
 {
     if (csound->GetFLTKThreadLocking(csound)) {
       Fl::lock();
     }
 }
 
-static void unlock(ENVIRON *csound)
+static void unlock(CSOUND *csound)
 {
     if (csound->GetFLTKThreadLocking(csound)) {
       Fl::unlock();
     }
 }
 
-// static void awake(ENVIRON *csound)
+// static void awake(CSOUND *csound)
 // {
 //   Fl::awake();
 // }
@@ -268,16 +268,16 @@ void makeWindow(char *name)
 
 extern "C"
 {
-  void DrawGraph_(ENVIRON *csound, WINDAT *);
+  void DrawGraph_(CSOUND *csound, WINDAT *);
   long MakeWindow(char *);
-  int  defaultCsoundYield(ENVIRON *);
+  int  defaultCsoundYield(CSOUND *);
   void kill_graph(int);
   int  myFLwait(void);
-  void MakeXYin_(ENVIRON *csound, XYINDAT*, MYFLT, MYFLT);
-  void ReadXYin_(ENVIRON *csound, XYINDAT *wdptr);
-  void KillXYin_(ENVIRON *csound, XYINDAT *x);
+  void MakeXYin_(CSOUND *csound, XYINDAT*, MYFLT, MYFLT);
+  void ReadXYin_(CSOUND *csound, XYINDAT *wdptr);
+  void KillXYin_(CSOUND *csound, XYINDAT *x);
 
-  void DrawGraph_(ENVIRON *csound, WINDAT *wdptr)
+  void DrawGraph_(CSOUND *csound, WINDAT *wdptr)
   {
     add_graph(wdptr);
     csoundYield(csound);
@@ -292,7 +292,7 @@ extern "C"
     return (long)form;
   }
 
-  int defaultCsoundYield(ENVIRON *csound)
+  int defaultCsoundYield(CSOUND *csound)
   {
 #ifndef NO_FLTK_THREADS
     /* nothing to do, unless displays are enabled, */
@@ -332,7 +332,7 @@ extern "C"
 #define GUTTERH 20           /* space for text at top & bottom */
 #define BORDERW 10           /* inset from L & R edge */
 
-  void MakeXYin_(ENVIRON *csound, XYINDAT *w, MYFLT x, MYFLT y)
+  void MakeXYin_(CSOUND *csound, XYINDAT *w, MYFLT x, MYFLT y)
   {
     if (w->windid==0) {
       Fl_Window *xyin = new Fl_Window(WIDTH,WIDTH, "XY input");
@@ -355,7 +355,7 @@ extern "C"
     }
   }
 
-  void ReadXYin_(ENVIRON *csound, XYINDAT *wdptr)
+  void ReadXYin_(CSOUND *csound, XYINDAT *wdptr)
   {
     short       win_x, win_y;
     short       gra_x, gra_y, gra_w, gra_h;
@@ -397,7 +397,7 @@ extern "C"
     }
   }
 
-  void KillXYin_(ENVIRON *csound, XYINDAT *wdptr)
+  void KillXYin_(CSOUND *csound, XYINDAT *wdptr)
   {
     Fl_Window *x = (Fl_Window*)wdptr->windid;
     x->~Fl_Window();

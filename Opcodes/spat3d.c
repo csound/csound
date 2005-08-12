@@ -37,7 +37,7 @@
 
 /* initialise FIR filter for downsampling */
 
-int    spat3d_init_window (ENVIRON *csound, SPAT3D *p)
+int    spat3d_init_window (CSOUND *csound, SPAT3D *p)
 {
     int     i, j, o;
     double  d, w;
@@ -70,7 +70,7 @@ int    spat3d_init_window (ENVIRON *csound, SPAT3D *p)
 
 /* initialise parameric equalizer (code taken from pareq opcode) */
 
-int spat3d_init_eq (ENVIRON *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
+int spat3d_init_eq (CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
 {
     int     eqmode;
     double  omega, k, kk, vk, vkk, vkdq, sq, a0, a1, a2, b0, b1, b2;
@@ -122,7 +122,7 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
     SPAT3D_WALL     *ws;
     MYFLT           *ft, a, d, w, x, y, z;
     double          d0, d1;
-    ENVIRON         *csound = p->h.insdshead->csound;
+    CSOUND          *csound = p->h.insdshead->csound;
 
     /* update random seed */
 
@@ -229,7 +229,7 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
 
 /* allocate space for delay buffers */
 
-int spat3d_init_delay (ENVIRON *csound, SPAT3D *p)
+int spat3d_init_delay (CSOUND *csound, SPAT3D *p)
 {
     long    i, j;
 
@@ -281,7 +281,7 @@ void spat3d_count_refl (long *cnt, int *md, int d, int mdep, int w, int wm)
 
 /* initialise opcode structure */
 
-int spat3d_set_opcode_params (ENVIRON *csound, SPAT3D *p)
+int spat3d_set_opcode_params (CSOUND *csound, SPAT3D *p)
 {
     int     xidist, xift, ximode, ximdel, xiovr, xirlen, xioutft;
     int     d, wmask;
@@ -394,7 +394,7 @@ int spat3d_set_opcode_params (ENVIRON *csound, SPAT3D *p)
 
 /* spat3d set-up */
 
-int    spat3dset (ENVIRON *csound, SPAT3D *p)
+int    spat3dset (CSOUND *csound, SPAT3D *p)
 {
     long    wmax;
 
@@ -413,7 +413,7 @@ int    spat3dset (ENVIRON *csound, SPAT3D *p)
 
 /* spat3di set-up */
 
-int    spat3diset (ENVIRON *csound, SPAT3D *p)
+int    spat3diset (CSOUND *csound, SPAT3D *p)
 {
     long    wmax;
 
@@ -432,7 +432,7 @@ int    spat3diset (ENVIRON *csound, SPAT3D *p)
 
 /* spat3d wall perf */
 
-void    spat3d_wall_perf (ENVIRON      *csound, /* General environment       */
+void    spat3d_wall_perf (CSOUND       *csound, /* General environment       */
                           SPAT3D       *p,      /* opcode struct             */
                           MYFLT        *xn,     /* input signal              */
                           SPAT3D_WALL  *ws,     /* wall parameters structure */
@@ -582,7 +582,7 @@ void    spat3d_wall_perf (ENVIRON      *csound, /* General environment       */
 
 /* spat3d routine */
 
-int    spat3d (ENVIRON *csound, SPAT3D *p)
+int    spat3d (CSOUND *csound, SPAT3D *p)
 {
     long        nn, i, j;
     MYFLT       *aoutW, *aoutX, *aoutY, *aoutZ, w;
@@ -737,7 +737,7 @@ void    spat3di_wall_perf (SPAT3D       *p,     /* opcode struct            */
 
 /* spat3di routine */
 
-int    spat3di (ENVIRON *csound, SPAT3D *p)
+int    spat3di (CSOUND *csound, SPAT3D *p)
 {
     long        nn;
     MYFLT       *a_outW, *a_outX, *a_outY, *a_outZ;
@@ -839,7 +839,7 @@ void    spat3dt_wall_perf (SPAT3D       *p,     /* opcode struct            */
 
 /* spat3dt opcode (i-time only) */
 
-int    spat3dt (ENVIRON *csound, SPAT3D *p)
+int    spat3dt (CSOUND *csound, SPAT3D *p)
 {
     long    wmax;
     MYFLT   *ir;

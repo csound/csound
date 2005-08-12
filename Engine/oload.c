@@ -34,27 +34,27 @@
 #include "fftlib.h"
 
 int     csoundGetAPIVersion(void);
-void    writeheader(ENVIRON *csound, int ofd, char *ofname);
-int     playopen_dummy(ENVIRON *csound, csRtAudioParams *parm);
-void    rtplay_dummy(ENVIRON *csound, void *outBuf, int nbytes);
-int     recopen_dummy(ENVIRON *csound, csRtAudioParams *parm);
-int     rtrecord_dummy(ENVIRON *csound, void *inBuf, int nbytes);
-void    rtclose_dummy(ENVIRON *csound);
-void    csoundDefaultMessageCallback(ENVIRON *csound, int attr,
+void    writeheader(CSOUND *csound, int ofd, char *ofname);
+int     playopen_dummy(CSOUND *csound, csRtAudioParams *parm);
+void    rtplay_dummy(CSOUND *csound, void *outBuf, int nbytes);
+int     recopen_dummy(CSOUND *csound, csRtAudioParams *parm);
+int     rtrecord_dummy(CSOUND *csound, void *inBuf, int nbytes);
+void    rtclose_dummy(CSOUND *csound);
+void    csoundDefaultMessageCallback(CSOUND *csound, int attr,
                                      const char *format, va_list args);
-void    csoundDefaultThrowMessageCallback(ENVIRON *csound, const char *format,
+void    csoundDefaultThrowMessageCallback(CSOUND *csound, const char *format,
                                                            va_list args);
-void    defaultCsoundMakeGraph(ENVIRON *csound, WINDAT *windat, char *name);
-void    defaultCsoundDrawGraph(ENVIRON *csound, WINDAT *windat);
-void    defaultCsoundKillGraph(ENVIRON *csound, WINDAT *windat);
-int     defaultCsoundExitGraph(ENVIRON *csound);
-int     defaultCsoundYield(ENVIRON *csound);
-void    close_all_files(ENVIRON *csound);
+void    defaultCsoundMakeGraph(CSOUND *csound, WINDAT *windat, char *name);
+void    defaultCsoundDrawGraph(CSOUND *csound, WINDAT *windat);
+void    defaultCsoundKillGraph(CSOUND *csound, WINDAT *windat);
+int     defaultCsoundExitGraph(CSOUND *csound);
+int     defaultCsoundYield(CSOUND *csound);
+void    close_all_files(CSOUND *csound);
 char    *getstrformat(int format);
 int     sfsampsize(int format);
 char    *type2string(int type);
 
-const ENVIRON cenviron_ = {
+const CSOUND cenviron_ = {
     /* ----------------- interface functions (288 total) ----------------- */
         csoundGetVersion,
         csoundGetAPIVersion,
@@ -218,7 +218,7 @@ const ENVIRON cenviron_ = {
         csoundGetFileName,
         csoundFileClose,
         pvoc_createfile,
-        (int (*)(ENVIRON*, const char*, void*, void*)) pvoc_openfile,
+        (int (*)(CSOUND*, const char*, void*, void*)) pvoc_openfile,
         pvoc_closefile,
         pvoc_putframes,
         pvoc_getframes,
@@ -330,8 +330,8 @@ const ENVIRON cenviron_ = {
     /* ------- private data (not to be used by hosts or externals) ------- */
         /* callback function pointers */
         (SUBR) NULL,    /*  first_callback_     */
-        (void (*)(ENVIRON*, char*, MYFLT*)) NULL,
-        (void (*)(ENVIRON*, char*, MYFLT)) NULL,
+        (void (*)(CSOUND*, char*, MYFLT*)) NULL,
+        (void (*)(CSOUND*, char*, MYFLT)) NULL,
         csoundDefaultMessageCallback,
         csoundDefaultThrowMessageCallback,
         defaultCsoundMakeGraph,
@@ -451,10 +451,10 @@ const ENVIRON cenviron_ = {
         NULL,           /*  lineventGlobals     */
         NULL,           /*  musmonGlobals       */
         NULL,           /*  libsndGlobals       */
-        (void (*)(ENVIRON*)) NULL,      /*  spinrecv        */
-        (void (*)(ENVIRON*)) NULL,      /*  spoutran        */
-        (int (*)(ENVIRON*, MYFLT*, int)) NULL,  /*  audrecv */
-        (void (*)(ENVIRON*, MYFLT*, int)) NULL, /*  audtran */
+        (void (*)(CSOUND*)) NULL,       /*  spinrecv        */
+        (void (*)(CSOUND*)) NULL,       /*  spoutran        */
+        (int (*)(CSOUND*, MYFLT*, int)) NULL,   /*  audrecv */
+        (void (*)(CSOUND*, MYFLT*, int)) NULL,  /*  audtran */
         0,              /*  warped              */
         0,              /*  sstrlen             */
         (char*) NULL,   /*  sstrbuf             */
@@ -484,20 +484,20 @@ const ENVIRON cenviron_ = {
 };
 
 /* otran.c */
-extern  void    get_strpool_ptrs(ENVIRON *csound,
+extern  void    get_strpool_ptrs(CSOUND *csound,
                                  int *strpool_cnt, char ***strpool);
-extern  void    strpool_delete(ENVIRON *csound);
+extern  void    strpool_delete(CSOUND *csound);
 
 static  int     strlen_to_samples(const char *s);
 static  void    unquote_string(char *dst, const char *src);
-static  int     create_strconst_ndx_list(ENVIRON *csound, int **lst, int offs);
-static  void    convert_strconst_pool(ENVIRON *csound, MYFLT *dst);
+static  int     create_strconst_ndx_list(CSOUND *csound, int **lst, int offs);
+static  void    convert_strconst_pool(CSOUND *csound, MYFLT *dst);
 
 /* RWD for reentry */
 
-void oloadRESET(ENVIRON *csound)
+void oloadRESET(CSOUND *csound)
 {
-    ENVIRON   *saved_env;
+    CSOUND    *saved_env;
     void      *p1, *p2;
     uintptr_t length;
 
@@ -513,9 +513,9 @@ void oloadRESET(ENVIRON *csound)
      * We do it by saving them and copying them back again...
      */
     /* hope that this does not fail... */
-    saved_env = (ENVIRON*) malloc(sizeof(ENVIRON));
-    memcpy(saved_env, csound, sizeof(ENVIRON));
-    memcpy(csound, &cenviron_, sizeof(ENVIRON));
+    saved_env = (CSOUND*) malloc(sizeof(CSOUND));
+    memcpy(saved_env, csound, sizeof(CSOUND));
+    memcpy(csound, &cenviron_, sizeof(CSOUND));
     length = (uintptr_t) &(csound->ids) - (uintptr_t) csound;
     memcpy((void*) csound, (void*) saved_env, (size_t) length);
     csound->oparms = saved_env->oparms;
@@ -543,7 +543,7 @@ void oloadRESET(ENVIRON *csound)
 #define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 5.0e-7)
 #endif
 
-void oload(ENVIRON *p)
+void oload(CSOUND *p)
 {
     long    n, nn, combinedsize, insno, *lp;
     long    gblabeg, gblsbeg, gblscbeg, lclabeg, lclsbeg;
@@ -826,7 +826,7 @@ static void unquote_string(char *dst, const char *src)
     dst[j] = '\0';
 }
 
-static int create_strconst_ndx_list(ENVIRON *csound, int **lst, int offs)
+static int create_strconst_ndx_list(CSOUND *csound, int **lst, int offs)
 {
     int     *ndx_lst;
     char    **strpool;
@@ -844,7 +844,7 @@ static int create_strconst_ndx_list(ENVIRON *csound, int **lst, int offs)
     return (ndx - offs);
 }
 
-static void convert_strconst_pool(ENVIRON *csound, MYFLT *dst)
+static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
 {
     char    **strpool, *s;
     int     strpool_cnt, ndx, i;

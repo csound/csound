@@ -72,7 +72,7 @@ typedef struct midiFile_s {
 #define MIDIFILE    (csound->midiGlobals->midiFileData)
 #define MF(x)       (((midiFile_t*) MIDIFILE)->x)
 
-static int getCh(ENVIRON *csound, FILE *f, int *bytesLeft)
+static int getCh(CSOUND *csound, FILE *f, int *bytesLeft)
 {
     int c;
 
@@ -92,7 +92,7 @@ static int getCh(ENVIRON *csound, FILE *f, int *bytesLeft)
     return (c & 0xFF);
 }
 
-static int getVLenData(ENVIRON *csound, FILE *f, int *bytesLeft)
+static int getVLenData(CSOUND *csound, FILE *f, int *bytesLeft)
 {
     int c, n, cnt;
 
@@ -150,7 +150,7 @@ static int msgDataBytes(int c)
     return -1;
 }
 
-static int alloc_event(ENVIRON *csound,
+static int alloc_event(CSOUND *csound,
                        unsigned long kcnt, unsigned char *data,
                        int st, int d1, int d2)
 {
@@ -183,7 +183,7 @@ static int alloc_event(ENVIRON *csound,
     return 0;
 }
 
-static int alloc_tempo(ENVIRON *csound, unsigned long kcnt, double tempoVal)
+static int alloc_tempo(CSOUND *csound, unsigned long kcnt, double tempoVal)
 {
     tempoEvent_t *tmp;
     /* expand array if necessary */
@@ -208,10 +208,10 @@ static int alloc_tempo(ENVIRON *csound, unsigned long kcnt, double tempoVal)
     return 0;
 }
 
-static int readEvent(ENVIRON *csound, FILE *f, int *tlen,
+static int readEvent(CSOUND *csound, FILE *f, int *tlen,
                      unsigned long tickCnt, int st, int *saved_st);
 
-static int checkRealTimeEvent(ENVIRON *csound, FILE *f, int *tlen,
+static int checkRealTimeEvent(CSOUND *csound, FILE *f, int *tlen,
                               unsigned long tickCnt, int st, int *saved_st)
 {
     if (st & 0x80) {
@@ -228,7 +228,7 @@ static int checkRealTimeEvent(ENVIRON *csound, FILE *f, int *tlen,
     return st;
 }
 
-static int readEvent(ENVIRON *csound, FILE *f, int *tlen,
+static int readEvent(CSOUND *csound, FILE *f, int *tlen,
                      unsigned long tickCnt, int st, int *saved_st)
 {
     int i, c, d, cnt, dataBytes[2];
@@ -366,7 +366,7 @@ static int readEvent(ENVIRON *csound, FILE *f, int *tlen,
     return -1;
 }
 
-static int readTrack(ENVIRON *csound, FILE *f)
+static int readTrack(CSOUND *csound, FILE *f)
 {
     unsigned int    tickCnt;
     int             i, c, tlen, st, saved_st;
@@ -442,7 +442,7 @@ static int tempoTimeCompareFunc(const void *p1, const void *p2)
 
 /* sort event lists by time and convert tick times to Csound k-periods */
 
-static void sortEventLists(ENVIRON *csound)
+static void sortEventLists(CSOUND *csound)
 {
     double        timeVal, tempoVal;
     unsigned long prvTicks, curTicks, tickEvent, tickTempo;
@@ -519,7 +519,7 @@ static void sortEventLists(ENVIRON *csound)
 
 /* open MIDI file, read all tracks, and create event list */
 
-int csoundMIDIFileOpen(ENVIRON *csound, const char *name)
+int csoundMIDIFileOpen(CSOUND *csound, const char *name)
 {
     FILE    *f = NULL;
     char    *m;
@@ -672,7 +672,7 @@ int csoundMIDIFileOpen(ENVIRON *csound, const char *name)
 
 /* read MIDI file event data at performace time */
 
-int csoundMIDIFileRead(ENVIRON *csound, unsigned char *buf, int nBytes)
+int csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int nBytes)
 {
     midiFile_t  *mf;
     int         i, j, n, nRead;
@@ -733,7 +733,7 @@ int csoundMIDIFileRead(ENVIRON *csound, unsigned char *buf, int nBytes)
 
 /* destroy MIDI file event list */
 
-int csoundMIDIFileClose(ENVIRON *csound)
+int csoundMIDIFileClose(CSOUND *csound)
 {
     /* nothing to do: all_free() will free any allocated memory */
     MIDIFILE = (void*) NULL;
@@ -741,11 +741,11 @@ int csoundMIDIFileClose(ENVIRON *csound)
 }
 
 /* midirecv.c, resets MIDI controllers on a channel */
-extern  void    midi_ctl_reset(ENVIRON *csound, short chan);
+extern  void    midi_ctl_reset(CSOUND *csound, short chan);
 
 /* called by csoundRewindScore() to reset performance to time zero */
 
-void midifile_rewind_score(ENVIRON *csound)
+void midifile_rewind_score(CSOUND *csound)
 {
     int i;
 
@@ -765,7 +765,7 @@ void midifile_rewind_score(ENVIRON *csound)
 
 /* miditempo opcode: returns the current tempo of MIDI file or score */
 
-int midiTempoOpcode(ENVIRON *csound, MIDITEMPO *p)
+int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
 {
     if (MIDIFILE == NULL)
       *(p->kResult) = (MYFLT) (60.0 / csound->beatTime);

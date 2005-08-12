@@ -43,7 +43,7 @@
                                    contains changes that an older host will
                                    not be able to handle -- most likely this
                                    will be a change to an API function or
-                                   the ENVIRON struct */
+                                   the CSOUND struct */
 #define CS_APISUBVER        0   /* for minor changes that will still allow
                                    compatiblity with older hosts */
 

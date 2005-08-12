@@ -92,18 +92,18 @@ typedef struct {
     MACRO   *repeat_mm;
 } SREAD_GLOBALS;
 
-static  void    copylin(ENVIRON *), copypflds(ENVIRON *);
-static  void    ifa(ENVIRON *), setprv(ENVIRON *);
-static  void    carryerror(ENVIRON *), pcopy(ENVIRON *, int, int, SRTBLK*);
-static  void    salcinit(ENVIRON *);
-static  void    salcblk(ENVIRON *), flushlin(ENVIRON *);
-static  int     getop(ENVIRON *), getpfld(ENVIRON *);
-        MYFLT   stof(ENVIRON *, char *);
-extern  void    *fopen_path(ENVIRON *, FILE **, char *, char *, char *);
+static  void    copylin(CSOUND *), copypflds(CSOUND *);
+static  void    ifa(CSOUND *), setprv(CSOUND *);
+static  void    carryerror(CSOUND *), pcopy(CSOUND *, int, int, SRTBLK*);
+static  void    salcinit(CSOUND *);
+static  void    salcblk(CSOUND *), flushlin(CSOUND *);
+static  int     getop(CSOUND *), getpfld(CSOUND *);
+        MYFLT   stof(CSOUND *, char *);
+extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *);
 
 #define ST(x)   (((SREAD_GLOBALS*) csound->sreadGlobals)->x)
 
-static void sread_alloc_globals(ENVIRON *csound)
+static void sread_alloc_globals(CSOUND *csound)
 {
     if (csound->sreadGlobals != NULL)
       return;
@@ -119,7 +119,7 @@ static void sread_alloc_globals(ENVIRON *csound)
     ST(repeat_inc) = 1;
 }
 
-static intptr_t expand_nxp(ENVIRON *csound)
+static intptr_t expand_nxp(CSOUND *csound)
 {
     char      *oldp;
     SRTBLK    *p;
@@ -167,7 +167,7 @@ static intptr_t expand_nxp(ENVIRON *csound)
     return offs;
 }
 
-static void scorerr(ENVIRON *csound, const char *s, ...)
+static void scorerr(CSOUND *csound, const char *s, ...)
 {
     IN_STACK  *curr = ST(str);
     va_list   args;
@@ -194,7 +194,7 @@ static void scorerr(ENVIRON *csound, const char *s, ...)
     csound->LongJmp(csound, 1);
 }
 
-static MYFLT operate(ENVIRON *csound, MYFLT a, MYFLT b, char c)
+static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
 {
     MYFLT ans;
     extern MYFLT MOD(MYFLT,MYFLT);
@@ -216,7 +216,7 @@ static MYFLT operate(ENVIRON *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
-static int undefine_score_macro(ENVIRON *csound, const char *name)
+static int undefine_score_macro(CSOUND *csound, const char *name)
 {
     MACRO *mm, *nn;
     int   i;
@@ -259,7 +259,7 @@ static inline int isNameChar(int c, int pos)
 /* Functions to read/unread chracters from
  * a stack of file and macro inputs */
 
-static inline void ungetscochar(ENVIRON *csound, int c)
+static inline void ungetscochar(CSOUND *csound, int c)
 {
     if (ST(str)->unget_cnt < 128)
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
@@ -267,7 +267,7 @@ static inline void ungetscochar(ENVIRON *csound, int c)
       csoundDie(csound, "ungetscochar(): buffer overflow");
 }
 
-static int getscochar(ENVIRON *csound, int expand)
+static int getscochar(CSOUND *csound, int expand)
 {                   /* Read a score character, expanding macros if flag set */
     int     c;
 top:
@@ -574,7 +574,7 @@ top:
     return c;
 }
 
-static int nested_repeat(ENVIRON *csound)               /* gab A9*/
+static int nested_repeat(CSOUND *csound)                /* gab A9*/
 {
     ST(repeat_cnt_n)[ST(repeat_index)]--;
     if (ST(repeat_cnt_n)[ST(repeat_index)] == 0) {      /* Expired */
@@ -626,7 +626,7 @@ static int nested_repeat(ENVIRON *csound)               /* gab A9*/
     return 0;
 }
 
-static int do_repeat(ENVIRON *csound)
+static int do_repeat(CSOUND *csound)
 {                               /* At end of section repeat if necessary */
     ST(repeat_cnt)--;
     if (ST(repeat_cnt) == 0) {  /* Expired */
@@ -660,7 +660,7 @@ static int do_repeat(ENVIRON *csound)
     return 0;
 }
 
-static void init_smacros(ENVIRON *csound, NAMES *nn)
+static void init_smacros(CSOUND *csound, NAMES *nn)
 {
     while (nn) {
       char *s = nn->mac;
@@ -682,7 +682,7 @@ static void init_smacros(ENVIRON *csound, NAMES *nn)
     }
 }
 
-void sread_init(ENVIRON *csound)
+void sread_init(CSOUND *csound)
 {
     sread_alloc_globals(csound);
     ST(inputs) = (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
@@ -696,7 +696,7 @@ void sread_init(ENVIRON *csound)
     init_smacros(csound, csound->smacros);
 }
 
-int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
+int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
 {                               /*  each score statement gets a sortblock   */
     int  rtncod;                /* return code to calling program:      */
                                 /*   1 = section read                   */
@@ -1045,7 +1045,7 @@ int sread(ENVIRON *csound)      /*  called from main,  reads from SCOREIN   */
     return rtncod;
 }
 
-static void copylin(ENVIRON *csound)    /* copy source line to srtblk   */
+static void copylin(CSOUND *csound)     /* copy source line to srtblk   */
 {
     int c;
     ST(nxp)--;
@@ -1060,7 +1060,7 @@ static void copylin(ENVIRON *csound)    /* copy source line to srtblk   */
     ST(linpos) = 0;
 }
 
-static void copypflds(ENVIRON *csound)
+static void copypflds(CSOUND *csound)
 {
     ST(bp)->pcnt = 0;
     while (getpfld(csound))     /* copy each pfield,    */
@@ -1068,7 +1068,7 @@ static void copypflds(ENVIRON *csound)
     *(ST(nxp)-1) = LF;          /* terminate with newline */
 }
 
-static void ifa(ENVIRON *csound)
+static void ifa(CSOUND *csound)
 {
     SRTBLK *prvbp;
     int n;
@@ -1167,7 +1167,7 @@ static void ifa(ENVIRON *csound)
     *(ST(nxp)-1) = LF;                  /* terminate this stmnt with newline */
 }
 
-static void setprv(ENVIRON *csound)     /*  set insno = (int) p1val         */
+static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
 {                                       /*  prvibp = prv note, same insno   */
     SRTBLK *p = ST(bp);
     short n;
@@ -1194,7 +1194,7 @@ static void setprv(ENVIRON *csound)     /*  set insno = (int) p1val         */
     ST(prvibp) = NULL;                      /*  if there is one */
 }
 
-static void carryerror(ENVIRON *csound)     /* print offending text line  */
+static void carryerror(CSOUND *csound)      /* print offending text line  */
 {                                           /*      (partial)             */
     char *p;
 
@@ -1209,7 +1209,7 @@ static void carryerror(ENVIRON *csound)     /* print offending text line  */
     *(ST(nxp) - 2) = '0';
 }
 
-static void pcopy(ENVIRON *csound, int pfno, int ncopy, SRTBLK *prvbp)
+static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
                                 /* cpy pfields from prev note of this instr */
                                 /*     begin at pfno, copy 'ncopy' fields   */
                                 /*     uses *nxp++;    sp untouched         */
@@ -1252,7 +1252,7 @@ static void pcopy(ENVIRON *csound, int pfno, int ncopy, SRTBLK *prvbp)
     ST(nxp) = p;                                /* adjust globl nxp pntr */
 }
 
-static void salcinit(ENVIRON *csound)
+static void salcinit(CSOUND *csound)
 {                             /* init the sorter mem space for a new section */
     if (ST(curmem) == NULL) { /*  alloc 1st memblk if nec; init *nxp to this */
       ST(curmem) = (char*) mmalloc(csound, (size_t) (MEMSIZ + MARGIN));
@@ -1261,7 +1261,7 @@ static void salcinit(ENVIRON *csound)
     ST(nxp) = (char*) ST(curmem);
 }
 
-static void salcblk(ENVIRON *csound)
+static void salcblk(CSOUND *csound)
 {                               /* alloc a srtblk from current mem space:   */
     SRTBLK  *prvbp;             /*   align following *nxp, set new bp, nxp  */
                                 /*   set srtblk lnks, put op+blank in text  */
@@ -1283,7 +1283,7 @@ static void salcblk(ENVIRON *csound)
     *ST(nxp) = '\0';
 }
 
-void sfree(ENVIRON *csound)      /* free all sorter allocated space */
+void sfree(CSOUND *csound)       /* free all sorter allocated space */
 {                                /*    called at completion of sort */
     sread_alloc_globals(csound);
     if (ST(curmem) != NULL) {
@@ -1299,7 +1299,7 @@ void sfree(ENVIRON *csound)      /* free all sorter allocated space */
     }
 }
 
-static void flushlin(ENVIRON *csound)
+static void flushlin(CSOUND *csound)
 {                                   /* flush input to end-of-line; inc lincnt */
     int c;
     while ((c = getscochar(csound, 0)) != LF && c != EOF)
@@ -1307,7 +1307,7 @@ static void flushlin(ENVIRON *csound)
     ST(linpos) = 0;
 }
 
-static inline int check_preproc_name(ENVIRON *csound, const char *name)
+static inline int check_preproc_name(CSOUND *csound, const char *name)
 {
     int   i;
     char  c;
@@ -1319,7 +1319,7 @@ static inline int check_preproc_name(ENVIRON *csound, const char *name)
     return 1;
 }
 
-static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
+static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 {
     int c;
 
@@ -1500,7 +1500,7 @@ static int sget1(ENVIRON *csound)   /* get first non-white, non-comment char */
     return c;
 }
 
-static int getop(ENVIRON *csound)       /* get next legal opcode */
+static int getop(CSOUND *csound)        /* get next legal opcode */
 {
     int c;
 
@@ -1538,7 +1538,7 @@ static int getop(ENVIRON *csound)       /* get next legal opcode */
     return(c);
 }
 
-static int getpfld(ENVIRON *csound)     /* get pfield val from SCOREIN file */
+static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
 {                                       /*      set sp, nxp                 */
     int  c;
     char *p;
@@ -1604,7 +1604,7 @@ static int getpfld(ENVIRON *csound)     /* get pfield val from SCOREIN file */
     return(1);                              /*  and report ok  */
 }
 
-MYFLT stof(ENVIRON *csound, char s[])           /* convert string to MYFLT  */
+MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
                                     /* (assumes no white space at beginning */
 {                                   /*      but a blank or nl at end)       */
     char *p;                        /* sbrandon adds: or a \0, on NeXT m68k */

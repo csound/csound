@@ -171,7 +171,7 @@ static int diskin2_calc_buffer_size(DISKIN2 *p, int n_monoSamps)
     return nFrames;
 }
 
-int diskin2_init(ENVIRON *csound, DISKIN2 *p)
+int diskin2_init(CSOUND *csound, DISKIN2 *p)
 {
     double  pos;
     char    name[1024];
@@ -326,7 +326,7 @@ static inline void diskin2_file_pos_inc(DISKIN2 *p, long *ndx)
     }
 }
 
-int diskin2_perf(ENVIRON *csound, DISKIN2 *p)
+int diskin2_perf(CSOUND *csound, DISKIN2 *p)
 {
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
@@ -555,7 +555,7 @@ static const int soundin_format_list[9] = {
     SF_FORMAT_PCM_U8,   SF_FORMAT_PCM_24,   SF_FORMAT_DOUBLE
 };
 
-int sndinset(ENVIRON *csound, SOUNDIN_ *p)
+int sndinset(CSOUND *csound, SOUNDIN_ *p)
 {
     double  pos;
     char    name[1024];
@@ -650,7 +650,7 @@ int sndinset(ENVIRON *csound, SOUNDIN_ *p)
     return OK;
 }
 
-int soundin(ENVIRON *csound, SOUNDIN_ *p)
+int soundin(CSOUND *csound, SOUNDIN_ *p)
 {
     int nn, bufPos, i;
 
