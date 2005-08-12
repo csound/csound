@@ -117,7 +117,7 @@ typedef struct {
     TEXT    optext;                 /* struct to be passed back to caller */
 } RDORCH_GLOBALS;
 
-#define ST(x)   (((RDORCH_GLOBALS*) ((ENVIRON*) csound)->rdorchGlobals)->x)
+#define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
 
 static  void    intyperr(ENVIRON *, int, char, char);
 static  void    printgroups(ENVIRON *, int);
@@ -179,7 +179,7 @@ static inline int isNameChar(int c, int pos)
 /* Functions to read/unread chracters from
  * a stack of file and macro inputs */
 
-static inline void ungetorchar(void *csound, int c)
+static inline void ungetorchar(ENVIRON *csound, int c)
 {
     if (ST(str)->unget_cnt < 128)
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
@@ -579,7 +579,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
         else if (c=='i') {
           int delim;
           c = getorchar(csound);
-          if (c=='n') {         /* #include */
+          if (c == 'n') {               /* #include */
             if ((c = getorchar(csound))!='c' || (c = getorchar(csound))!='l' ||
                 (c = getorchar(csound))!='u' || (c = getorchar(csound))!='d' ||
                 (c = getorchar(csound))!='e')
@@ -616,40 +616,45 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
               ST(linepos) = -1;
             }
           }
-          else if (c == 'f' && (c = getorchar(csound))=='d' &&
-                   (c = getorchar(csound))=='e' && (c = getorchar(csound))=='f') {
+          else if (c == 'f' &&          /* #ifdef */
+                   (c = getorchar(csound)) == 'd' &&
+                   (c = getorchar(csound)) == 'e' &&
+                   (c = getorchar(csound)) == 'f') {
             int def = 0;
             MACRO *mm = ST(macros);
             while (isspace(c = getorchar(csound)));
-            do {
+            while (isNameChar(c, i)) {
               mname[i++] = c;
-            } while (isalpha(c = getorchar(csound)) ||
-                     (i!=0 && (isdigit(c)||c=='_')));
+              c = getorchar(csound);
+            }
             mname[i] = '\0';
             while (mm) {
-              if (strcmp(mname, mm->name)==0) {
+              if (strcmp(mname, mm->name) == 0) {
                 def = 1;
                 break;
               }
               mm = mm->next;
             }
-/*             printf("def=%d\n", def); */
             if (def) {
-              while (c!='\n') { /* Skip to end of line */
-/*                 printf("Ignore %c(%.2x)\n", c, c); */
+              while (c != '\n' && c != EOF) {   /* Skip to end of line */
                 c = getorchar(csound);
               }
               srccnt++; goto top;
             }
             else {
               for (;;) {
-                while (c !='\n')  c = getorchar(csound);
+                while (c != '\n') {
+                  if (c == EOF)
+                    lexerr(csound, Str("unmatched #ifdef"));
+                  c = getorchar(csound);
+                }
                 srccnt++;
-                if ((c = getorchar(csound))=='#' &&
-                    (c = getorchar(csound))=='e' &&
-                    (c = getorchar(csound))=='n' &&
-                    (c = getorchar(csound))=='d') {
-                  while (getorchar(csound)!='\n') ;
+                if ((c = getorchar(csound)) == '#' &&
+                    (c = getorchar(csound)) == 'e' &&
+                    (c = getorchar(csound)) == 'n' &&
+                    (c = getorchar(csound)) == 'd') {
+                  while ((c = getorchar(csound)) != '\n' && c != EOF)
+                    ;
                   goto top;
                 }
               } /* never returns */
@@ -657,11 +662,11 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
           }
           else lexerr(csound, "Not #ifdef");
         }
-        else if (c=='e' && (c = getorchar(csound))=='n' &&
-                 (c = getorchar(csound))=='d') {
-          /* end of #if section */
-          while (c!='\n') c = getorchar(csound);
-/*           printf("End of #ifdef true\n"); */
+        else if (c == 'e' && (c = getorchar(csound)) == 'n' &&
+                 (c = getorchar(csound)) == 'd') {
+          /* end of #ifdef section */
+          while (c != '\n' && c != EOF)
+            c = getorchar(csound);
         }
         else if (c=='u') {
           if ((c = getorchar(csound))!='n' || (c = getorchar(csound))!='d' ||
@@ -673,7 +678,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
             c = getorchar(csound);
           }
           mname[i] = '\0';
-          if(csound->oparms->msglevel)
+          if (csound->oparms->msglevel)
             csound->Message(csound,Str("macro %s undefined\n"), mname);
           if (strcmp(mname, ST(macros)->name)==0) {
             MACRO *mm=ST(macros)->next;

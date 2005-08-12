@@ -1,3 +1,4 @@
+#include "CppSound.hpp"
 #include "Counterpoint.hpp"
 #include <vector>
 #include <iostream>

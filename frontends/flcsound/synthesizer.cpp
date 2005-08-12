@@ -33,12 +33,12 @@ namespace {
 #if defined SINGLE_INSTANCE_CSOUND
   Synthesizer *s_synth = 0;
 
-  inline Synthesizer *get_synth_instance(void *csound)
+  inline Synthesizer *get_synth_instance(ENVIRON *csound)
   {
     return s_synth;
   }
 #else
-  inline Synthesizer *get_synth_instance(void *csound)
+  inline Synthesizer *get_synth_instance(ENVIRON *csound)
   {
     return (Synthesizer *)csoundGetHostData(csound);
   }
@@ -46,11 +46,11 @@ namespace {
 
   // This namespace is used to hide WINDAT from the synthesizer header.
 
-  extern "C" void make_a_graph(void *csound, WINDAT *windat, char *name)
+  extern "C" void make_a_graph(ENVIRON *csound, WINDAT *windat, char *name)
   {
   }
 
-  extern "C" void draw_a_graph(void *csound, WINDAT *windat)
+  extern "C" void draw_a_graph(ENVIRON *csound, WINDAT *windat)
   {
     windat->caption[CAPSIZE - 1] = 0; // Just in case...
     Polarity polarity;
@@ -81,11 +81,11 @@ namespace {
     Synthesizer::s_draw_graph(csound, curve);
   }
 
-  extern "C" void kill_a_graph(void *csound, WINDAT *windat)
+  extern "C" void kill_a_graph(ENVIRON *csound, WINDAT *windat)
   {
   }
 
-  extern "C" int exit_a_graph(void* csound)
+  extern "C" int exit_a_graph(ENVIRON *csound)
   {
     return 0;
   }
@@ -120,7 +120,7 @@ void Synthesizer::set_yield_callback(void *data, yield_callback_t callback)
   csoundSetYieldCallback(m_csound, s_yield);
 }
 
-int Synthesizer::s_yield(void *csound)
+int Synthesizer::s_yield(ENVIRON *csound)
 {
   Synthesizer *synth = get_synth_instance(csound);
   return !synth || synth->yield();
@@ -139,7 +139,7 @@ void Synthesizer::set_message_callback(void * data,
   csoundSetMessageCallback(m_csound, s_message);
 }
 
-void Synthesizer::s_message(void *csound, const char *format, va_list args)
+void Synthesizer::s_message(ENVIRON *csound, const char *format, va_list args)
 {
   Synthesizer *synth = get_synth_instance(csound);
   if (synth)
@@ -160,7 +160,7 @@ void Synthesizer::set_throw_message_callback(void *data,
   csoundSetThrowMessageCallback(m_csound, s_throw_message);
 }
 
-void Synthesizer::s_throw_message(void *csound, const char *format,
+void Synthesizer::s_throw_message(ENVIRON *csound, const char *format,
                                   va_list args)
 {
   Synthesizer *synth = get_synth_instance(csound);
@@ -186,7 +186,7 @@ void Synthesizer::set_draw_graph_callback(void *data,
   csoundSetExitGraphCallback(m_csound, exit_a_graph);
 }
 
-void Synthesizer::s_draw_graph(void *csound, Curve *curve)
+void Synthesizer::s_draw_graph(ENVIRON *csound, Curve *curve)
 {
   Synthesizer *synth = get_synth_instance(csound);
   if (synth)

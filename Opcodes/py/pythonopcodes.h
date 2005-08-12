@@ -37,9 +37,9 @@ typedef struct {
   MYFLT *args[VARGMAX];
 } PYCALLN;
 
-extern int pycalln_krate(void *csound_, PYCALLN *p);
-extern int pylcalln_irate(void *csound_, PYCALLN *p);
-extern int pylcalln_krate(void *csound_, PYCALLN *p);
-extern int pylcallni_irate(void *csound_, PYCALLN *p);
+extern int pycalln_krate(ENVIRON *csound, PYCALLN *p);
+extern int pylcalln_irate(ENVIRON *csound, PYCALLN *p);
+extern int pylcalln_krate(ENVIRON *csound, PYCALLN *p);
+extern int pylcallni_irate(ENVIRON *csound, PYCALLN *p);
 
 #endif /* _pycsound_pythonopcodes_h_ */

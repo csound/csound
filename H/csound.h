@@ -428,6 +428,11 @@ extern "C" {
   PUBLIC MYFLT *csoundGetSpout(ENVIRON *);
 
   /**
+   * Returns the output sound file name (-o).
+   */
+  PUBLIC const char *csoundGetOutputFileName(ENVIRON *);
+
+  /**
    * Returns the current score time.
    */
   PUBLIC MYFLT csoundGetScoreTime(ENVIRON *);

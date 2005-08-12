@@ -69,7 +69,7 @@ typedef struct midiFile_s {
     int             tempoListIndex;     /* index of next tempo change       */
 } midiFile_t;
 
-#define MIDIFILE    (((ENVIRON*) csound)->midiGlobals->midiFileData)
+#define MIDIFILE    (csound->midiGlobals->midiFileData)
 #define MF(x)       (((midiFile_t*) MIDIFILE)->x)
 
 static int getCh(ENVIRON *csound, FILE *f, int *bytesLeft)
@@ -519,15 +519,13 @@ static void sortEventLists(ENVIRON *csound)
 
 /* open MIDI file, read all tracks, and create event list */
 
-int csoundMIDIFileOpen(void *csound_, const char *name)
+int csoundMIDIFileOpen(ENVIRON *csound, const char *name)
 {
-    ENVIRON *csound;
     FILE    *f = NULL;
     char    *m;
     int     i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
     int     mute_track;
 
-    csound = (ENVIRON*) csound_;
     if (MIDIFILE != NULL)
       return 0;         /* already opened */
     /* open file */
@@ -674,13 +672,11 @@ int csoundMIDIFileOpen(void *csound_, const char *name)
 
 /* read MIDI file event data at performace time */
 
-int csoundMIDIFileRead(void *csound_, unsigned char *buf, int nBytes)
+int csoundMIDIFileRead(ENVIRON *csound, unsigned char *buf, int nBytes)
 {
     midiFile_t  *mf;
-    ENVIRON     *csound;
     int         i, j, n, nRead;
 
-    csound = (ENVIRON*) csound_;
     mf = (midiFile_t*) MIDIFILE;
     if (mf == NULL)
       return 0;
@@ -737,7 +733,7 @@ int csoundMIDIFileRead(void *csound_, unsigned char *buf, int nBytes)
 
 /* destroy MIDI file event list */
 
-int csoundMIDIFileClose(void *csound)
+int csoundMIDIFileClose(ENVIRON *csound)
 {
     /* nothing to do: all_free() will free any allocated memory */
     MIDIFILE = (void*) NULL;

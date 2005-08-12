@@ -1,5 +1,5 @@
 int
-pyexec_krate(void *csound_, PYEXEC *p)
+pyexec_krate(ENVIRON *csound, PYEXEC *p)
 {
   char source[1024];
   PyObject *result;
@@ -9,7 +9,7 @@ pyexec_krate(void *csound_, PYEXEC *p)
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexec_krate: python exception\n");
+      csound->Message(csound, "pyexec_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -18,7 +18,7 @@ pyexec_krate(void *csound_, PYEXEC *p)
 }
 
 int
-pyexeci_irate(void *csound_, PYEXEC *p)
+pyexeci_irate(ENVIRON *csound, PYEXEC *p)
 {
   char source[1024];
   PyObject *result;
@@ -28,7 +28,7 @@ pyexeci_irate(void *csound_, PYEXEC *p)
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexeci_irate: python exception\n");
+      csound->Message(csound, "pyexeci_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -37,7 +37,7 @@ pyexeci_irate(void *csound_, PYEXEC *p)
 }
 
 int
-pylexec_irate(void *csound_, PYEXEC *p)
+pylexec_irate(ENVIRON *csound, PYEXEC *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -45,7 +45,7 @@ pylexec_irate(void *csound_, PYEXEC *p)
 }
 
 int
-pylexec_krate(void *csound_, PYEXEC *p)
+pylexec_krate(ENVIRON *csound, PYEXEC *p)
 {
   char source[1024];
   PyObject *result;
@@ -55,7 +55,7 @@ pylexec_krate(void *csound_, PYEXEC *p)
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylexec_krate: python exception\n");
+      csound->Message(csound, "pylexec_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -64,7 +64,7 @@ pylexec_krate(void *csound_, PYEXEC *p)
 }
 
 int
-pylexeci_irate(void *csound_, PYEXEC *p)
+pylexeci_irate(ENVIRON *csound, PYEXEC *p)
 {
   char source[1024];
   PyObject *result;
@@ -76,7 +76,7 @@ pylexeci_irate(void *csound_, PYEXEC *p)
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylexeci_irate: python exception\n");
+      csound->Message(csound, "pylexeci_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -85,7 +85,7 @@ pylexeci_irate(void *csound_, PYEXEC *p)
 }
 
 int
-pyexect_krate(void *csound_, PYEXECT *p)
+pyexect_krate(ENVIRON *csound, PYEXECT *p)
 {
   char source[1024];
   PyObject *result;
@@ -97,7 +97,7 @@ pyexect_krate(void *csound_, PYEXECT *p)
   result = exec_file_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyexec_krate: python exception\n");
+      csound->Message(csound, "pyexec_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -106,7 +106,7 @@ pyexect_krate(void *csound_, PYEXECT *p)
 }
 
 int
-pylexect_irate(void *csound_, PYEXECT *p)
+pylexect_irate(ENVIRON *csound, PYEXECT *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -114,7 +114,7 @@ pylexect_irate(void *csound_, PYEXECT *p)
 }
 
 int
-pylexect_krate(void *csound_, PYEXECT *p)
+pylexect_krate(ENVIRON *csound, PYEXECT *p)
 {
   char source[1024];
   PyObject *result;
@@ -126,7 +126,7 @@ pylexect_krate(void *csound_, PYEXECT *p)
   result = exec_file_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylexec_krate: python exception\n");
+      csound->Message(csound, "pylexec_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -135,7 +135,7 @@ pylexect_krate(void *csound_, PYEXECT *p)
 }
 
 int
-pyrun_krate(void *csound_, PYRUN *p)
+pyrun_krate(ENVIRON *csound, PYRUN *p)
 {
   char source[40960];
   PyObject *result;
@@ -145,7 +145,7 @@ pyrun_krate(void *csound_, PYRUN *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyrun_krate: python exception\n");
+      csound->Message(csound, "pyrun_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -154,7 +154,7 @@ pyrun_krate(void *csound_, PYRUN *p)
 }
 
 int
-pyruni_irate(void *csound_, PYRUN *p)
+pyruni_irate(ENVIRON *csound, PYRUN *p)
 {
   char source[40960];
   PyObject *result;
@@ -164,7 +164,7 @@ pyruni_irate(void *csound_, PYRUN *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyruni_irate: python exception\n");
+      csound->Message(csound, "pyruni_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -173,7 +173,7 @@ pyruni_irate(void *csound_, PYRUN *p)
 }
 
 int
-pylrun_irate(void *csound_, PYRUN *p)
+pylrun_irate(ENVIRON *csound, PYRUN *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -181,7 +181,7 @@ pylrun_irate(void *csound_, PYRUN *p)
 }
 
 int
-pylrun_krate(void *csound_, PYRUN *p)
+pylrun_krate(ENVIRON *csound, PYRUN *p)
 {
   char source[40960];
   PyObject *result;
@@ -191,7 +191,7 @@ pylrun_krate(void *csound_, PYRUN *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylrun_krate: python exception\n");
+      csound->Message(csound, "pylrun_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -200,7 +200,7 @@ pylrun_krate(void *csound_, PYRUN *p)
 }
 
 int
-pylruni_irate(void *csound_, PYRUN *p)
+pylruni_irate(ENVIRON *csound, PYRUN *p)
 {
   char source[40960];
   PyObject *result;
@@ -212,7 +212,7 @@ pylruni_irate(void *csound_, PYRUN *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylruni_irate: python exception\n");
+      csound->Message(csound, "pylruni_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -221,7 +221,7 @@ pylruni_irate(void *csound_, PYRUN *p)
 }
 
 int
-pyrunt_krate(void *csound_, PYRUNT *p)
+pyrunt_krate(ENVIRON *csound, PYRUNT *p)
 {
   char source[40960];
   PyObject *result;
@@ -233,7 +233,7 @@ pyrunt_krate(void *csound_, PYRUNT *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyrun_krate: python exception\n");
+      csound->Message(csound, "pyrun_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -242,7 +242,7 @@ pyrunt_krate(void *csound_, PYRUNT *p)
 }
 
 int
-pylrunt_irate(void *csound_, PYRUNT *p)
+pylrunt_irate(ENVIRON *csound, PYRUNT *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -250,7 +250,7 @@ pylrunt_irate(void *csound_, PYRUNT *p)
 }
 
 int
-pylrunt_krate(void *csound_, PYRUNT *p)
+pylrunt_krate(ENVIRON *csound, PYRUNT *p)
 {
   char source[40960];
   PyObject *result;
@@ -262,7 +262,7 @@ pylrunt_krate(void *csound_, PYRUNT *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylrun_krate: python exception\n");
+      csound->Message(csound, "pylrun_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -271,7 +271,7 @@ pylrunt_krate(void *csound_, PYRUNT *p)
 }
 
 int
-pyeval_krate(void *csound_, PYEVAL *p)
+pyeval_krate(ENVIRON *csound, PYEVAL *p)
 {
   char source[1024];
   PyObject *result;
@@ -281,13 +281,13 @@ pyeval_krate(void *csound_, PYEVAL *p)
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: python exception\n");
+      csound->Message(csound, "pyeval_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: expression must evaluate in a float\n");
+      csound->Message(csound, "pyeval_krate: expression must evaluate in a float\n");
     }
   else
     {
@@ -298,7 +298,7 @@ pyeval_krate(void *csound_, PYEVAL *p)
 }
 
 int
-pyevali_irate(void *csound_, PYEVAL *p)
+pyevali_irate(ENVIRON *csound, PYEVAL *p)
 {
   char source[1024];
   PyObject *result;
@@ -308,13 +308,13 @@ pyevali_irate(void *csound_, PYEVAL *p)
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyevali_irate: python exception\n");
+      csound->Message(csound, "pyevali_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyevali_irate: expression must evaluate in a float\n");
+      csound->Message(csound, "pyevali_irate: expression must evaluate in a float\n");
     }
   else
     {
@@ -325,7 +325,7 @@ pyevali_irate(void *csound_, PYEVAL *p)
 }
 
 int
-pyleval_irate(void *csound_, PYEVAL *p)
+pyleval_irate(ENVIRON *csound, PYEVAL *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -333,7 +333,7 @@ pyleval_irate(void *csound_, PYEVAL *p)
 }
 
 int
-pyleval_krate(void *csound_, PYEVAL *p)
+pyleval_krate(ENVIRON *csound, PYEVAL *p)
 {
   char source[1024];
   PyObject *result;
@@ -343,13 +343,13 @@ pyleval_krate(void *csound_, PYEVAL *p)
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyleval_krate: python exception\n");
+      csound->Message(csound, "pyleval_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyleval_krate: expression must evaluate in a float\n");
+      csound->Message(csound, "pyleval_krate: expression must evaluate in a float\n");
     }
   else
     {
@@ -360,7 +360,7 @@ pyleval_krate(void *csound_, PYEVAL *p)
 }
 
 int
-pylevali_irate(void *csound_, PYEVAL *p)
+pylevali_irate(ENVIRON *csound, PYEVAL *p)
 {
   char source[1024];
   PyObject *result;
@@ -372,13 +372,13 @@ pylevali_irate(void *csound_, PYEVAL *p)
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylevali_irate: python exception\n");
+      csound->Message(csound, "pylevali_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylevali_irate: expression must evaluate in a float\n");
+      csound->Message(csound, "pylevali_irate: expression must evaluate in a float\n");
     }
   else
     {
@@ -389,7 +389,7 @@ pylevali_irate(void *csound_, PYEVAL *p)
 }
 
 int
-pyevalt_krate(void *csound_, PYEVALT *p)
+pyevalt_krate(ENVIRON *csound, PYEVALT *p)
 {
   char source[1024];
   PyObject *result;
@@ -404,13 +404,13 @@ pyevalt_krate(void *csound_, PYEVALT *p)
   result = eval_string_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: python exception\n");
+      csound->Message(csound, "pyeval_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyeval_krate: expression must evaluate in a float\n");
+      csound->Message(csound, "pyeval_krate: expression must evaluate in a float\n");
     }
   else
     {
@@ -422,7 +422,7 @@ pyevalt_krate(void *csound_, PYEVALT *p)
 }
 
 int
-pylevalt_irate(void *csound_, PYEVALT *p)
+pylevalt_irate(ENVIRON *csound, PYEVALT *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -430,7 +430,7 @@ pylevalt_irate(void *csound_, PYEVALT *p)
 }
 
 int
-pylevalt_krate(void *csound_, PYEVALT *p)
+pylevalt_krate(ENVIRON *csound, PYEVALT *p)
 {
   char source[1024];
   PyObject *result;
@@ -445,13 +445,13 @@ pylevalt_krate(void *csound_, PYEVALT *p)
   result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyleval_krate: python exception\n");
+      csound->Message(csound, "pyleval_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
   else if (!PyFloat_Check(result))
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyleval_krate: expression must evaluate in a float\n");
+      csound->Message(csound, "pyleval_krate: expression must evaluate in a float\n");
     }
   else
     {
@@ -463,7 +463,7 @@ pylevalt_krate(void *csound_, PYEVALT *p)
 }
 
 int
-pyassign_krate(void *csound_, PYASSIGN *p)
+pyassign_krate(ENVIRON *csound, PYASSIGN *p)
 {
   char source[1024];
   PyObject *result;
@@ -473,7 +473,7 @@ pyassign_krate(void *csound_, PYASSIGN *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassign_krate: python exception\n");
+      csound->Message(csound, "pyassign_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -482,7 +482,7 @@ pyassign_krate(void *csound_, PYASSIGN *p)
 }
 
 int
-pyassigni_irate(void *csound_, PYASSIGN *p)
+pyassigni_irate(ENVIRON *csound, PYASSIGN *p)
 {
   char source[1024];
   PyObject *result;
@@ -492,7 +492,7 @@ pyassigni_irate(void *csound_, PYASSIGN *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassigni_irate: python exception\n");
+      csound->Message(csound, "pyassigni_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -501,7 +501,7 @@ pyassigni_irate(void *csound_, PYASSIGN *p)
 }
 
 int
-pylassign_irate(void *csound_, PYASSIGN *p)
+pylassign_irate(ENVIRON *csound, PYASSIGN *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -509,7 +509,7 @@ pylassign_irate(void *csound_, PYASSIGN *p)
 }
 
 int
-pylassign_krate(void *csound_, PYASSIGN *p)
+pylassign_krate(ENVIRON *csound, PYASSIGN *p)
 {
   char source[1024];
   PyObject *result;
@@ -519,7 +519,7 @@ pylassign_krate(void *csound_, PYASSIGN *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylassign_krate: python exception\n");
+      csound->Message(csound, "pylassign_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -528,7 +528,7 @@ pylassign_krate(void *csound_, PYASSIGN *p)
 }
 
 int
-pylassigni_irate(void *csound_, PYASSIGN *p)
+pylassigni_irate(ENVIRON *csound, PYASSIGN *p)
 {
   char source[1024];
   PyObject *result;
@@ -540,7 +540,7 @@ pylassigni_irate(void *csound_, PYASSIGN *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylassigni_irate: python exception\n");
+      csound->Message(csound, "pylassigni_irate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -549,7 +549,7 @@ pylassigni_irate(void *csound_, PYASSIGN *p)
 }
 
 int
-pyassignt_krate(void *csound_, PYASSIGNT *p)
+pyassignt_krate(ENVIRON *csound, PYASSIGNT *p)
 {
   char source[1024];
   PyObject *result;
@@ -561,7 +561,7 @@ pyassignt_krate(void *csound_, PYASSIGNT *p)
   result = run_statement_in_given_context(source, 0);
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pyassign_krate: python exception\n");
+      csound->Message(csound, "pyassign_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
@@ -570,7 +570,7 @@ pyassignt_krate(void *csound_, PYASSIGNT *p)
 }
 
 int
-pylassignt_irate(void *csound_, PYASSIGNT *p)
+pylassignt_irate(ENVIRON *csound, PYASSIGNT *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -578,7 +578,7 @@ pylassignt_irate(void *csound_, PYASSIGNT *p)
 }
 
 int
-pylassignt_krate(void *csound_, PYASSIGNT *p)
+pylassignt_krate(ENVIRON *csound, PYASSIGNT *p)
 {
   char source[1024];
   PyObject *result;
@@ -590,7 +590,7 @@ pylassignt_krate(void *csound_, PYASSIGNT *p)
   result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
   if (result == NULL)
     {
-      ((ENVIRON *)csound_)->Message(((ENVIRON *)csound_), "pylassign_krate: python exception\n");
+      csound->Message(csound, "pylassign_krate: python exception\n");
       PyErr_Print();
       return NOTOK;
     }
