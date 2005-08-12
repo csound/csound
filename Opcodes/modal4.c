@@ -34,7 +34,7 @@
 #include "vibraphn.h"
 #include <math.h>
 
-static int make_Modal4(ENVIRON *csound,
+static int make_Modal4(CSOUND *csound,
                        Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 {
     FUNC        *ftp;
@@ -91,7 +91,7 @@ static int make_Modal4(ENVIRON *csound,
 /*     BiQuad_clear(&m->filters[3]); */
 /* } */
 
-void Modal4_setFreq(ENVIRON *csound, Modal4 *m, MYFLT frequency)
+void Modal4_setFreq(CSOUND *csound, Modal4 *m, MYFLT frequency)
 {
     m->baseFreq = frequency;
     Modal4_setRatioAndReson(csound, m, 0,m->ratios[0],m->resons[0]);
@@ -100,7 +100,7 @@ void Modal4_setFreq(ENVIRON *csound, Modal4 *m, MYFLT frequency)
     Modal4_setRatioAndReson(csound, m, 3,m->ratios[3],m->resons[3]);
 }
 
-void Modal4_setRatioAndReson(ENVIRON *csound,
+void Modal4_setRatioAndReson(CSOUND *csound,
                              Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
 {
     MYFLT temp;
@@ -120,7 +120,7 @@ void Modal4_setRatioAndReson(ENVIRON *csound,
     BiQuad_setFreqAndReson(m->filters[whichOne], temp,reson);
 }
 
-static void Modal4_strike(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
+static void Modal4_strike(CSOUND *csound, Modal4 *m, MYFLT amplitude)
 {
     int i;
     MYFLT temp;
@@ -141,7 +141,7 @@ static void Modal4_strike(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
     }
 }
 
-static void Modal4_damp(ENVIRON *csound, Modal4 *m, MYFLT amplitude)
+static void Modal4_damp(CSOUND *csound, Modal4 *m, MYFLT amplitude)
 {
     int i;
     MYFLT temp;
@@ -242,7 +242,7 @@ static MYFLT Modal4_tick(Modal4 *m)
 /*                vibAmt                   */
 /*******************************************/
 
-int marimbaset(ENVIRON *csound, MARIMBA *p)
+int marimbaset(CSOUND *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       temp,temp2;
@@ -315,7 +315,7 @@ int marimbaset(ENVIRON *csound, MARIMBA *p)
     return OK;
 }
 
-int marimba(ENVIRON *csound, MARIMBA *p)
+int marimba(CSOUND *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
@@ -358,7 +358,7 @@ int marimba(ENVIRON *csound, MARIMBA *p)
 /*                MOD_WHEEL= vibAmt        */
 /*******************************************/
 
-int vibraphnset(ENVIRON *csound, VIBRAPHN *p)
+int vibraphnset(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       temp;
@@ -401,7 +401,7 @@ int vibraphnset(ENVIRON *csound, VIBRAPHN *p)
     return OK;
 }
 
-int vibraphn(ENVIRON *csound, VIBRAPHN *p)
+int vibraphn(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
@@ -439,7 +439,7 @@ int vibraphn(ENVIRON *csound, VIBRAPHN *p)
 /*   Modes measured from my Agogo Bell by FFT:  */
 /*   360, 1470, 2401, 4600                      */
 
-int agogobelset(ENVIRON *csound, VIBRAPHN *p)
+int agogobelset(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     FUNC        *ftp;
@@ -480,7 +480,7 @@ int agogobelset(ENVIRON *csound, VIBRAPHN *p)
     return OK;
 }
 
-int agogobel(ENVIRON *csound, VIBRAPHN *p)
+int agogobel(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;

@@ -159,7 +159,7 @@ int sortfun(fpolar *a, fpolar *b);
 void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact);
 void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact);
 
-static void zroots(ENVIRON*, fcomplex [], int, fcomplex []);
+static void zroots(CSOUND*, fcomplex [], int, fcomplex []);
 fcomplex Cadd(fcomplex, fcomplex);
 fcomplex Csub(fcomplex, fcomplex);
 fcomplex Cmul(fcomplex, fcomplex);
@@ -170,7 +170,7 @@ fcomplex Csqrt(fcomplex);
 fcomplex RCmul(double, fcomplex);
 
 /* Filter initialization routine */
-int ifilter(ENVIRON *csound, FILTER* p)
+int ifilter(CSOUND *csound, FILTER* p)
 {
     int i;
 
@@ -205,7 +205,7 @@ int ifilter(ENVIRON *csound, FILTER* p)
 }
 
 /* izfilter - initialize z-plane controllable filter */
-int izfilter(ENVIRON *csound, ZFILTER *p)
+int izfilter(CSOUND *csound, ZFILTER *p)
 {
     fcomplex a[MAXPOLES];
     fcomplex *roots;
@@ -268,7 +268,7 @@ int izfilter(ENVIRON *csound, ZFILTER *p)
  *                      - a(1)*y(n-1) - ... - a(na)*y(n-na)
  *
  */
-int afilter(ENVIRON *csound, FILTER* p)
+int afilter(CSOUND *csound, FILTER* p)
 {
     int n,i;
 
@@ -314,7 +314,7 @@ int afilter(ENVIRON *csound, FILTER* p)
  *                      - a(1)*y(k-1) - ... - a(na)*y(k-na)
  *
  */
-int kfilter(ENVIRON *csound, FILTER* p)
+int kfilter(CSOUND *csound, FILTER* p)
 {
     int i;
 
@@ -361,7 +361,7 @@ int kfilter(ENVIRON *csound, FILTER* p)
  * The rest of the filter is the same as filter
  *
  */
-int azfilter(ENVIRON *csound, ZFILTER* p)
+int azfilter(CSOUND *csound, ZFILTER* p)
 {
     int n,i;
 
@@ -632,7 +632,7 @@ void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact)
 /* Simple definition is sufficient */
 #define FPMAX(a,b) (a>b ? a : b)
 
-void laguer(ENVIRON *csound, fcomplex a[], int m, fcomplex *x, int *its)
+void laguer(CSOUND *csound, fcomplex a[], int m, fcomplex *x, int *its)
 {
     int iter,j;
     double abx,abp,abm,err;
@@ -689,9 +689,9 @@ void laguer(ENVIRON *csound, fcomplex a[], int m, fcomplex *x, int *its)
 #define EPS (2.0e-6)
 #define MAXM (100)
 
-static void zroots(ENVIRON *csound,fcomplex a[], int m, fcomplex roots[])
+static void zroots(CSOUND *csound,fcomplex a[], int m, fcomplex roots[])
 {
-    void laguer(ENVIRON*, fcomplex a[], int m, fcomplex *x, int *its);
+    void laguer(CSOUND*, fcomplex a[], int m, fcomplex *x, int *its);
     int i,its,j,jj;
     fcomplex x,b,c,ad[MAXM];
 

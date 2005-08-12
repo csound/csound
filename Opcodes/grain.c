@@ -36,7 +36,7 @@
 
 #define Unirand(a)      (((MYFLT)rand() / (MYFLT)RAND_MAX) * (a))
 
-int agsset(ENVIRON *csound, PGRA *p)        /*      Granular U.G. set-up */
+int agsset(CSOUND *csound, PGRA *p)         /*      Granular U.G. set-up */
 {
     FUNC        *gftp, *eftp;
     long        bufsize;
@@ -73,7 +73,7 @@ int agsset(ENVIRON *csound, PGRA *p)        /*      Granular U.G. set-up */
     return OK;
 }
 
-int ags(ENVIRON *csound, PGRA *p)   /*  Granular U.G. a-rate main routine   */
+int ags(CSOUND *csound, PGRA *p)    /*  Granular U.G. a-rate main routine   */
 {
     FUNC        *gtp, *etp;
     MYFLT       *buf, *out, *rem, *gtbl, *etbl;

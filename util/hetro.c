@@ -93,7 +93,7 @@ typedef struct {
 } HET;
 
 #if 0
-static int writesdif(ENVIRON*, HET*);
+static int writesdif(CSOUND*, HET*);
 #endif
 static  double  GETVAL(HET *, double *, long);
 static  double  sq(double);
@@ -103,8 +103,8 @@ static  void    lowpass(HET *,double *, double *, long);
 static  void    average(HET *,long, double *, double *, long);
 static  void    output(HET *,long, int, int);
 static  void    output_ph(HET *, long);
-static  int     filedump(HET *, ENVIRON *);
-static  int     quit(ENVIRON *, char *);
+static  int     filedump(HET *, CSOUND *);
+static  int     quit(CSOUND *, char *);
 
 #define sgn(x)  (x<0.0 ? -1 : 1)
 #define u(x)    (x>0.0 ? 1 : 0)
@@ -130,7 +130,7 @@ static void init_het(HET *thishet)
     thishet->bufsiz = 1;                     /* circular buffer size */
 }
 
-static int hetro(ENVIRON *csound, int argc, char **argv)
+static int hetro(CSOUND *csound, int argc, char **argv)
 {
     SNDFILE *infd;
     int     i, hno, channel = 1, retval = 0;
@@ -532,7 +532,7 @@ static double sq(double num)     /* RETURNS SQUARE OF ARGUMENT */
     return (num * num);
 }
 
-static int quit(ENVIRON *csound, char *msg)
+static int quit(CSOUND *csound, char *msg)
 {
     csound->ErrorMsg(csound, Str("hetro:  %s\n\tanalysis aborted"), msg);
     return -1;
@@ -542,7 +542,7 @@ static int quit(ENVIRON *csound, char *msg)
 
 /* WRITE OUTPUT FILE in DATA-REDUCED format */
 
-static int filedump(HET *thishet, ENVIRON *csound)
+static int filedump(HET *thishet, CSOUND *csound)
 {
     int     h, pnt, ofd, nbytes;
     double  scale,x,y;
@@ -698,7 +698,7 @@ static int filedump(HET *thishet, ENVIRON *csound)
 #if 0
 /* simply writes the number of frames generated - no data reduction,
    no interpolation */
-static int writesdif(ENVIRON *csound, HET *thishet)
+static int writesdif(CSOUND *csound, HET *thishet)
 {
     int         i,j,h, pnt;
     double      scale;
@@ -816,7 +816,7 @@ static int is_sdiffile(char *name)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "hetro", hetro);
     if (!retval) {

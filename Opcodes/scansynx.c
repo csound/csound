@@ -83,7 +83,7 @@ static void unquote(char *dst, char *src)
 /*
  *      Wavetable init
  */
-static int scsnux_initw(ENVIRON *csound, PSCSNUX *p)
+static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
 {
     int i;
     long len = p->len;
@@ -102,7 +102,7 @@ static int scsnux_initw(ENVIRON *csound, PSCSNUX *p)
 /*
  *      Hammer hit
  */
-static int scsnux_hammer(ENVIRON *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
+static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
 {
     int i, i1, i2;
     FUNC *fi;
@@ -176,7 +176,7 @@ static void listadd(PSCSNUX *p)
 }
 
 /* Return from list according to id */
-static PSCSNUX *listget(ENVIRON *csound, int id)
+static PSCSNUX *listget(CSOUND *csound, int id)
 {
     struct scsnx_elem *i = scsnx_list;
     if (i == NULL) {
@@ -202,7 +202,7 @@ static PSCSNUX *listget(ENVIRON *csound, int id)
  *      Setup the updater
  */
 
-int scsnux_init(ENVIRON *csound, PSCSNUX *p)
+int scsnux_init(CSOUND *csound, PSCSNUX *p)
 {
     /* Get parameter table pointers and check lengths */
     FUNC *f;
@@ -433,7 +433,7 @@ int scsnux_init(ENVIRON *csound, PSCSNUX *p)
 
 #define dt FL(1.0)
 
-int scsnux(ENVIRON *csound, PSCSNUX *p)
+int scsnux(CSOUND *csound, PSCSNUX *p)
 {
     int n;
     int len    = p->len;
@@ -533,7 +533,7 @@ int scsnux(ENVIRON *csound, PSCSNUX *p)
 /*
  *      Init scaner
  */
-int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
+int scsnsx_init(CSOUND *csound, PSCSNSX *p)
 {
     /* Get corresponding update */
     p->p = listget(csound, (int)*p->i_id);
@@ -578,7 +578,7 @@ int scsnsx_init(ENVIRON *csound, PSCSNSX *p)
 /*
  *      Performance function for scanner
  */
-int scsnsx(ENVIRON *csound, PSCSNSX *p)
+int scsnsx(CSOUND *csound, PSCSNSX *p)
 {
     int i;
     long tlen   = p->tlen;
@@ -651,14 +651,14 @@ int scsnsx(ENVIRON *csound, PSCSNSX *p)
     return OK;
 }
 
-int scsnmapx_init(ENVIRON *csound, PSCSNMAPX *p)
+int scsnmapx_init(CSOUND *csound, PSCSNMAPX *p)
 {
     /* Get corresponding update */
     p->p = listget(csound, (int)*p->i_id);
     return OK;
 }
 
-int scsnmapx(ENVIRON *csound, PSCSNMAPX *p)
+int scsnmapx(CSOUND *csound, PSCSNMAPX *p)
 {
     PSCSNUX *pp = p->p;
     *p->k_pos = *p->k_pamp * pp->x0[(int)(*p->k_which)];
@@ -666,7 +666,7 @@ int scsnmapx(ENVIRON *csound, PSCSNMAPX *p)
     return OK;
 }
 
-int scsnsmapx(ENVIRON *csound, PSCSNMAPX *p)
+int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 {
     PSCSNUX *pp = p->p;
     pp->x0[(int)(*p->k_which)] = *p->k_pos/(*p->k_pamp);

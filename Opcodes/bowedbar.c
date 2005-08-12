@@ -35,7 +35,7 @@
 
 /* Number of banded waveguide modes */
 
-static void make_DLineN(ENVIRON *csound, DLINEN *p, long length)
+static void make_DLineN(CSOUND *csound, DLINEN *p, long length)
 {
     int i;
     /* Writing before reading allows delays from 0 to length-1.
@@ -49,7 +49,7 @@ static void make_DLineN(ENVIRON *csound, DLINEN *p, long length)
     p->lastOutput = FL(0.0);
 }
 
-static void DLineN_setDelay(ENVIRON *csound, DLINEN *p, int lag)
+static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int lag)
 {
     if (lag > p->length-1) {                   /* if delay is too big, */
       csound->Message(csound, Str("DLineN: Delay length too big ... setting to "
@@ -73,7 +73,7 @@ static void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
 /*     return p->lastOutput; */
 }
 
-int bowedbarset(ENVIRON *csound, BOWEDBAR *p)
+int bowedbarset(CSOUND *csound, BOWEDBAR *p)
 {
     long i;
     MYFLT amplitude = *p->amp * AMP_RSCALE;
@@ -127,7 +127,7 @@ int bowedbarset(ENVIRON *csound, BOWEDBAR *p)
     return OK;
 }
 
-int bowedbar(ENVIRON *csound, BOWEDBAR *p)
+int bowedbar(CSOUND *csound, BOWEDBAR *p)
 {
     MYFLT       *ar = p->ar;
     int         n, nsmps = csound->ksmps;

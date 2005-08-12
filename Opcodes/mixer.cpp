@@ -6,13 +6,13 @@
  * The busses are laid out:
  * busses[csound][bus][channel][frame].
  */
-static std::map<ENVIRON *, std::map<size_t, std::vector< std::vector<MYFLT> > > > busses;
+static std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > busses;
 
 /**
  * The mixer matrix is laid out:
  * matrix[csound][send][bus].
  */
-static std::map<ENVIRON *, std::map<size_t, std::map<size_t, MYFLT> > > matrix;
+static std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > matrix;
 
 /**
  * MixerSetLevel isend, ibuss, kgain
@@ -30,7 +30,7 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
   // State.
   size_t send;
   size_t buss;
-  int init(ENVIRON *csound)
+  int init(CSOUND *csound)
   {
     //warn(csound, "MixerSetLevel::init...\n");
     send = static_cast<size_t>(*isend);
@@ -50,7 +50,7 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
     //warn(csound, "MixerSetLevel::kontrol: instance %d send %d buss %d gain %f\n", csound, send, buss, gain);
     return OK;
   }
-  int kontrol(ENVIRON *csound)
+  int kontrol(CSOUND *csound)
   {
     //warn(csound, "MixerSetLevel::kontrol...\n");
     matrix[csound][send][buss] = *kgain;
@@ -60,7 +60,7 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
 };
 
 extern "C" {
-PUBLIC int csoundModuleDestroy(ENVIRON *csound)
+PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
     if (busses.begin() != busses.end()) {
       busses.clear();
@@ -87,13 +87,13 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel>
   // State.
   size_t send;
   size_t buss;
-  int init(ENVIRON *csound)
+  int init(CSOUND *csound)
   {
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
     return OK;
   }
-  int kontrol(ENVIRON *csound)
+  int kontrol(CSOUND *csound)
   {
     *kgain = matrix[csound][send][buss];
     return OK;
@@ -119,7 +119,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
   size_t channel;
   size_t frames;
   MYFLT *busspointer;
-  int init(ENVIRON *csound)
+  int init(CSOUND *csound)
   {
     //warn(csound, "MixerSend::init...\n");
     send = static_cast<size_t>(*isend);
@@ -130,7 +130,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
     //warn(csound, "MixerSend::init: instance %d send %d buss %d channel %d frames %d busspointer 0x%x\n", csound, send, buss, channel, frames, busspointer);
     return OK;
   }
-  int audio(ENVIRON *csound)
+  int audio(CSOUND *csound)
   {
     //warn(csound, "MixerSend::audio...\n");
     MYFLT gain = matrix[csound][send][buss];
@@ -162,7 +162,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
   size_t channel;
   size_t frames;
   MYFLT *busspointer;
-  int init(ENVIRON *csound)
+  int init(CSOUND *csound)
   {
     //warn(csound, "MixerReceive::init...\n");
     buss = static_cast<size_t>(*ibuss);
@@ -172,7 +172,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     //warn(csound, "MixerReceive::init instance %d buss %d channel %d frames %d busspointer 0x%x\n", instance, buss, channel, frames, busspointer);
     return OK;
   }
-  int audio(ENVIRON *csound)
+  int audio(CSOUND *csound)
   {
     //warn(csound, "MixerReceive::audio...\n");
     for(size_t i = 0; i < frames; i++)
@@ -196,7 +196,7 @@ struct MixerClear : public OpcodeBase<MixerClear>
   // No output.
   // No input.
   // No state.
-  int audio(ENVIRON *csound)
+  int audio(CSOUND *csound)
   {
     //warn(csound, "MixerClear::audio...\n")
     for(std::map<size_t, std::vector< std::vector<MYFLT> > >::iterator busi = busses[csound].begin(); busi != busses[csound].end(); ++busi)
@@ -271,12 +271,12 @@ extern "C"
     { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
   };
 
-  PUBLIC int csoundModuleCreate(ENVIRON *csound)
+  PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
     return 0;
   }
 
-  PUBLIC int csoundModuleInit(ENVIRON *csound)
+  PUBLIC int csoundModuleInit(CSOUND *csound)
   {
     OENTRY  *ep = (OENTRY*) &(localops[0]);
     int     err = 0;
@@ -285,9 +285,9 @@ extern "C"
       err |= csound->AppendOpcode(csound,
                                   ep->opname, ep->dsblksiz, ep->thread,
                                   ep->outypes, ep->intypes,
-                                  (int (*)(ENVIRON *, void*)) ep->iopadr,
-                                  (int (*)(ENVIRON *, void*)) ep->kopadr,
-                                  (int (*)(ENVIRON *, void*)) ep->aopadr);
+                                  (int (*)(CSOUND *, void*)) ep->iopadr,
+                                  (int (*)(CSOUND *, void*)) ep->kopadr,
+                                  (int (*)(CSOUND *, void*)) ep->aopadr);
       ep++;
     }
     return err;

@@ -64,7 +64,7 @@ static void init_sine_gen(double a, double f, double p,
 
 /* -------- oscils set-up -------- */
 
-int oscils_set(ENVIRON *csound, OSCILS *p)
+int oscils_set(CSOUND *csound, OSCILS *p)
 {
     int     iflg;
 
@@ -84,7 +84,7 @@ int oscils_set(ENVIRON *csound, OSCILS *p)
 
 /* -------- oscils performance -------- */
 
-int oscils(ENVIRON *csound, OSCILS *p)
+int oscils(CSOUND *csound, OSCILS *p)
 {
     int     nn;
     MYFLT   *ar, x, c, v;
@@ -117,7 +117,7 @@ int oscils(ENVIRON *csound, OSCILS *p)
 
 /* -------- lphasor set-up -------- */
 
-int lphasor_set(ENVIRON *csound, LPHASOR *p)
+int lphasor_set(CSOUND *csound, LPHASOR *p)
 {
     if (*(p->istor) != FL(0.0)) return OK;               /* nothing to do */
 
@@ -132,7 +132,7 @@ int lphasor_set(ENVIRON *csound, LPHASOR *p)
 
 /* -------- lphasor performance -------- */
 
-int lphasor(ENVIRON *csound, LPHASOR *p)
+int lphasor(CSOUND *csound, LPHASOR *p)
 {
     int     nn, loop_mode, dir;
     MYFLT   *ar, *xtrns;
@@ -175,7 +175,7 @@ int lphasor(ENVIRON *csound, LPHASOR *p)
 
 /* -------- tablexkt set-up -------- */
 
-int tablexkt_set(ENVIRON *csound, TABLEXKT *p)
+int tablexkt_set(CSOUND *csound, TABLEXKT *p)
 {
     p->wsize = (int)(*(p->iwsize) + 0.5);                  /* window size */
     if (p->wsize < 3) {
@@ -199,7 +199,7 @@ int tablexkt_set(ENVIRON *csound, TABLEXKT *p)
 
 /* -------- tablexkt opcode -------- */
 
-int tablexkt(ENVIRON *csound, TABLEXKT *p)
+int tablexkt(CSOUND *csound, TABLEXKT *p)
 {
     int     i, nn, wsize, wsized2, wrap_ndx, warp;
     double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;

@@ -92,7 +92,7 @@ int check_instr_name(char *s)
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-long named_instr_find(ENVIRON *csound, char *s)
+long named_instr_find(CSOUND *csound, char *s)
 {
     INSTRNAME     *inm;
     unsigned char h = name_hash(s);     /* calculate hash value */
@@ -115,7 +115,7 @@ long named_instr_find(ENVIRON *csound, char *s)
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc(ENVIRON *csound, char *s, INSTRTXT *ip, long insno)
+int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, long insno)
 {
     INSTRNAME   **inm_base = (INSTRNAME**) csound->instrumentNames, *inm, *inm2;
     unsigned char h = name_hash(s);     /* calculate hash value */
@@ -155,7 +155,7 @@ int named_instr_alloc(ENVIRON *csound, char *s, INSTRTXT *ip, long insno)
 /* assign instrument numbers to all named instruments */
 /* called by otran */
 
-void named_instr_assign_numbers(ENVIRON *csound)
+void named_instr_assign_numbers(CSOUND *csound)
 {
     INSTRNAME   *inm, *inm2, **inm_first, **inm_last;
     int     num = 0, insno_priority = 0;
@@ -205,7 +205,7 @@ void named_instr_assign_numbers(ENVIRON *csound)
 /* free memory used by named instruments */
 /* called by tranRESET() */
 
-void named_instr_free(ENVIRON *csound)
+void named_instr_free(CSOUND *csound)
 {
     INSTRNAME   *inm;
     int     i;
@@ -225,7 +225,7 @@ void named_instr_free(ENVIRON *csound)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno(ENVIRON *csound, void *p, int is_string)
+long strarg2insno(CSOUND *csound, void *p, int is_string)
 {
     long    insno;
 
@@ -249,7 +249,7 @@ long strarg2insno(ENVIRON *csound, void *p, int is_string)
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-long strarg2insno_p(ENVIRON *csound, char *s)
+long strarg2insno_p(CSOUND *csound, char *s)
 {
     long    insno;
 
@@ -266,7 +266,7 @@ long strarg2insno_p(ENVIRON *csound, char *s)
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno(ENVIRON *csound, void *p, int is_string, int force_opcode)
+long strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
 {
     long    insno = 0;
 
@@ -297,7 +297,7 @@ long strarg2opcno(ENVIRON *csound, void *p, int is_string, int force_opcode)
 }
 
 /* create file name from opcode argument (string or MYFLT)      */
-/*   ENVIRON *csound:                                           */
+/*   CSOUND *csound:                                            */
 /*      pointer to Csound instance                              */
 /*   char *s:                                                   */
 /*      output buffer, should have enough space; if NULL, the   */
@@ -333,7 +333,7 @@ long strarg2opcno(ENVIRON *csound, void *p, int is_string, int force_opcode)
 /*      mmalloc() and the caller is responsible for freeing the */
 /*      allocated memory with mfree() or csound->Free()         */
 
-char *strarg2name(ENVIRON *csound, char *s, void *p, const char *baseName,
+char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
                                    int is_string)
 {
     if (is_string) {
@@ -378,7 +378,7 @@ char *strarg2name(ENVIRON *csound, char *s, void *p, const char *baseName,
 
 /* create new opcode list from opcodlst[] */
 
-void opcode_list_create(ENVIRON *csound)
+void opcode_list_create(CSOUND *csound)
 {
     int     n = csound->oplstend - csound->opcodlst;
 
@@ -395,7 +395,7 @@ void opcode_list_create(ENVIRON *csound)
 
 /* add new entry to opcode list, with optional check for redefined opcodes */
 
-void opcode_list_add_entry(ENVIRON *csound, int opnum, int check_redefine)
+void opcode_list_add_entry(CSOUND *csound, int opnum, int check_redefine)
 {
     /* calculate hash value for opcode name */
     unsigned char h = name_hash(csound->opcodlst[opnum].opname);
@@ -426,9 +426,9 @@ newopc:
 
 /* free memory used by opcode list */
 
-extern int useropcdset(ENVIRON *, void *);
+extern int useropcdset(CSOUND *, void *);
 
-void opcode_list_free(ENVIRON *csound)
+void opcode_list_free(CSOUND *csound)
 {
     OENTRY  *ep = csound->oplstend;
 
@@ -449,7 +449,7 @@ void opcode_list_free(ENVIRON *csound)
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
 
-int find_opcode(ENVIRON *csound, char *opname)
+int find_opcode(CSOUND *csound, char *opname)
 {
     int           n;
     unsigned char h = name_hash(opname);    /* calculate hash value */
@@ -483,7 +483,7 @@ typedef struct strsav_space_t {
 
 /* allocate space for strsav (called once from rdorchfile()) */
 
-void strsav_create(ENVIRON *csound)
+void strsav_create(CSOUND *csound)
 {
     if (csound->strsav_space != NULL) return;   /* already allocated */
     csound->strsav_space = mcalloc(csound, sizeof(STRSAV_SPACE));
@@ -495,7 +495,7 @@ void strsav_create(ENVIRON *csound)
 /* copied to the database (in such cases, it is allowed to free s after  */
 /* the call).                                                            */
 
-char *strsav_string(ENVIRON *csound, char *s)
+char *strsav_string(CSOUND *csound, char *s)
 {
     STRSAV        *ssp;
     int           n;
@@ -535,7 +535,7 @@ char *strsav_string(ENVIRON *csound, char *s)
 
 /* Free all memory used by strsav space. Called from orchRESET(). */
 
-void strsav_destroy(ENVIRON *csound)
+void strsav_destroy(CSOUND *csound)
 {
     STRSAV_SPACE  *sp = STRSAV_SPACE_;
 
@@ -578,7 +578,7 @@ static void fix_pointers_in_db(void **p,
     }
 }
 
-static void **extendNamedGlobals(ENVIRON *p, int n, int storeIndex)
+static void **extendNamedGlobals(CSOUND *p, int n, int storeIndex)
 {
     void  **ptr = NULL;
     int   i, oldlimit;
@@ -622,7 +622,7 @@ static void **extendNamedGlobals(ENVIRON *p, int n, int storeIndex)
  * parameters (zero nbytes, invalid or already used name), or
  * CSOUND_MEMORY if there is not enough memory.
  */
-PUBLIC int csoundCreateGlobalVariable(ENVIRON *csnd,
+PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
                                       const char *name, size_t nbytes)
 {
     void    **p = NULL;
@@ -692,7 +692,7 @@ PUBLIC int csoundCreateGlobalVariable(ENVIRON *csnd,
  * Get pointer to space allocated with the name "name".
  * Returns NULL if the specified name is not defined.
  */
-PUBLIC void *csoundQueryGlobalVariable(ENVIRON *csnd, const char *name)
+PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
 {
     void    **p = NULL;
     int     i, j, k, len;
@@ -740,7 +740,7 @@ PUBLIC void *csoundQueryGlobalVariable(ENVIRON *csnd, const char *name)
  * Faster, but may crash or return an invalid pointer if 'name' is
  * not defined.
  */
-PUBLIC void *csoundQueryGlobalVariableNoCheck(ENVIRON *csnd, const char *name)
+PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
 {
     void    **p = NULL;
     int     i, j, k, len;
@@ -767,7 +767,7 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(ENVIRON *csnd, const char *name)
  * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
  * not defined.
  */
-PUBLIC int csoundDestroyGlobalVariable(ENVIRON *csnd, const char *name)
+PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
 {
     void    **p = NULL;
     int     i, j, k, len;
@@ -821,7 +821,7 @@ static void free_global_variable(void **p)
  * Free entire global variable database. This function is for internal use
  * only (e.g. by RESET routines).
  */
-void csoundDeleteAllGlobalVariables(ENVIRON *csound)
+void csoundDeleteAllGlobalVariables(CSOUND *csound)
 {
     csound->namedGlobalsCurrLimit = 0;
     csound->namedGlobalsMaxLimit = 0;
@@ -849,7 +849,7 @@ typedef struct GlobalVariableEntry_s {
  * parameters (zero nbytes, invalid or already used name), or
  * CSOUND_MEMORY if there is not enough memory.
  */
-PUBLIC int csoundCreateGlobalVariable(ENVIRON *csnd,
+PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
                                       const char *name, size_t nbytes)
 {
     GlobalVariableEntry_t *p, **pp;
@@ -914,7 +914,7 @@ PUBLIC int csoundCreateGlobalVariable(ENVIRON *csnd,
  * Get pointer to space allocated with the name "name".
  * Returns NULL if the specified name is not defined.
  */
-PUBLIC void *csoundQueryGlobalVariable(ENVIRON *csnd, const char *name)
+PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
 {
     GlobalVariableEntry_t *p;
     unsigned char         h;
@@ -946,7 +946,7 @@ PUBLIC void *csoundQueryGlobalVariable(ENVIRON *csnd, const char *name)
  * Faster, but may crash or return an invalid pointer if 'name' is
  * not defined.
  */
-PUBLIC void *csoundQueryGlobalVariableNoCheck(ENVIRON *csnd, const char *name)
+PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
 {
     GlobalVariableEntry_t *p;
     unsigned char         h;
@@ -965,7 +965,7 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(ENVIRON *csnd, const char *name)
  * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
  * not defined.
  */
-PUBLIC int csoundDestroyGlobalVariable(ENVIRON *csnd, const char *name)
+PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
 {
     GlobalVariableEntry_t *p, *prvp;
     unsigned char         h;
@@ -995,7 +995,7 @@ PUBLIC int csoundDestroyGlobalVariable(ENVIRON *csnd, const char *name)
  * Free entire global variable database. This function is for internal use
  * only (e.g. by RESET routines).
  */
-void csoundDeleteAllGlobalVariables(ENVIRON *csound)
+void csoundDeleteAllGlobalVariables(CSOUND *csound)
 {
     GlobalVariableEntry_t *p, *prvp;
     int                   i;

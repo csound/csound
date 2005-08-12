@@ -31,7 +31,7 @@
 #include "uggab.h"
 #include <math.h>
 
-int wrap(ENVIRON *csound, WRAP *p)
+int wrap(CSOUND *csound, WRAP *p)
 {
     MYFLT       *adest= p->xdest;
     MYFLT       *asig = p->xsig;
@@ -55,7 +55,7 @@ int wrap(ENVIRON *csound, WRAP *p)
     return OK;
 }
 
-int kwrap(ENVIRON *csound, WRAP *p)
+int kwrap(CSOUND *csound, WRAP *p)
 {
     MYFLT xsig, xlow, xhigh;
 
@@ -72,7 +72,7 @@ int kwrap(ENVIRON *csound, WRAP *p)
 
 /*---------------------------------------------------------------------*/
 
-int kmirror(ENVIRON *csound, WRAP *p)
+int kmirror(CSOUND *csound, WRAP *p)
 {
     MYFLT  xsig, xlow, xhigh;
     xsig = *p->xsig;
@@ -92,7 +92,7 @@ int kmirror(ENVIRON *csound, WRAP *p)
     return OK;
 }
 
-int mirror(ENVIRON *csound, WRAP *p)
+int mirror(CSOUND *csound, WRAP *p)
 {
     MYFLT       *adest, *asig;
     MYFLT       xlow, xhigh, xaverage, xsig;
@@ -124,13 +124,13 @@ int mirror(ENVIRON *csound, WRAP *p)
     return OK;
 }
 
-int trig_set(ENVIRON *csound, TRIG *p)
+int trig_set(CSOUND *csound, TRIG *p)
 {
     p->old_sig = FL(0.0);
     return OK;
 }
 
-int trig(ENVIRON *csound, TRIG *p)
+int trig(CSOUND *csound, TRIG *p)
 {
     switch ((int) (*p->kmode + FL(0.5))) {
     case 0:       /* down-up */
@@ -161,27 +161,27 @@ int trig(ENVIRON *csound, TRIG *p)
 
 /*-------------------------------*/
 
-int interpol(ENVIRON *csound, INTERPOL *p)
+int interpol(CSOUND *csound, INTERPOL *p)
 {
     MYFLT point_value = (*p->point - *p->imin) / (*p->imax - *p->imin);
     *p->r = point_value * (*p->val2 - *p->val1) + *p->val1;
     return OK;
 }
 
-int nterpol_init(ENVIRON *csound, INTERPOL *p)
+int nterpol_init(CSOUND *csound, INTERPOL *p)
 {
     p->point_factor = FL(1.0)/(*p->imax - *p->imin);
     return OK;
 }
 
-int knterpol(ENVIRON *csound, INTERPOL *p)
+int knterpol(CSOUND *csound, INTERPOL *p)
 {
     MYFLT point_value = (*p->point - *p->imin ) * p->point_factor;
     *p->r = point_value * (*p->val2 - *p->val1) + *p->val1;
     return OK;
 }
 
-int anterpol(ENVIRON *csound, INTERPOL *p)
+int anterpol(CSOUND *csound, INTERPOL *p)
 {
     MYFLT point_value = (*p->point - *p->imin ) * p->point_factor;
     MYFLT *out = p->r, *val1 = p->val1, *val2 = p->val2;
@@ -196,7 +196,7 @@ int anterpol(ENVIRON *csound, INTERPOL *p)
 
 /* Oscilators */
 
-int posc_set(ENVIRON *csound, POSC *p)
+int posc_set(CSOUND *csound, POSC *p)
 {
     FUNC *ftp;
 
@@ -208,7 +208,7 @@ int posc_set(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-int posckk(ENVIRON *csound, POSC *p)
+int posckk(CSOUND *csound, POSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
     MYFLT       *curr_samp, fract;
@@ -232,7 +232,7 @@ int posckk(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-int poscaa(ENVIRON *csound, POSC *p)
+int poscaa(CSOUND *csound, POSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
     MYFLT       *curr_samp, fract;
@@ -259,7 +259,7 @@ int poscaa(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-int poscka(ENVIRON *csound, POSC *p)
+int poscka(CSOUND *csound, POSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
     MYFLT       *curr_samp, fract;
@@ -282,7 +282,7 @@ int poscka(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-int poscak(ENVIRON *csound, POSC *p)
+int poscak(CSOUND *csound, POSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
     MYFLT       *curr_samp, fract;
@@ -307,7 +307,7 @@ int poscak(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-int kposc(ENVIRON *csound, POSC *p)
+int kposc(CSOUND *csound, POSC *p)
 {
     double      phs = p->phs;
     double      si = *p->freq * p->tablen / csound->ekr;
@@ -324,7 +324,7 @@ int kposc(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-int posc3(ENVIRON *csound, POSC *p)
+int posc3(CSOUND *csound, POSC *p)
 {
     MYFLT       *out = p->out, *ftab = p->ftp->ftable;
     MYFLT       fract;
@@ -365,7 +365,7 @@ int posc3(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-int kposc3(ENVIRON *csound, POSC *p)
+int kposc3(CSOUND *csound, POSC *p)
 {
     double      phs   = p->phs;
     double      si    = *p->freq * p->tablen / csound->ekr;
@@ -400,7 +400,7 @@ int kposc3(ENVIRON *csound, POSC *p)
     return OK;
 }
 
-int lposc_set(ENVIRON *csound, LPOSC *p)
+int lposc_set(CSOUND *csound, LPOSC *p)
 {
     FUNC *ftp;
     MYFLT  loop, end, looplength;
@@ -428,7 +428,7 @@ int lposc_set(ENVIRON *csound, LPOSC *p)
      return OK;
 }
 
-int lposc(ENVIRON *csound, LPOSC *p)
+int lposc(CSOUND *csound, LPOSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
     MYFLT       *curr_samp, fract;
@@ -453,7 +453,7 @@ int lposc(ENVIRON *csound, LPOSC *p)
     return OK;
 }
 
-int lposc3(ENVIRON *csound, LPOSC *p)
+int lposc3(CSOUND *csound, LPOSC *p)
 {
     MYFLT       *out = p->out, *ftab = p->ftp->ftable;
     MYFLT       fract;
@@ -495,7 +495,7 @@ int lposc3(ENVIRON *csound, LPOSC *p)
     return OK;
 }
 
-int sum(ENVIRON *csound, SUM *p)
+int sum(CSOUND *csound, SUM *p)
 {
     int count=(int) p->INOCOUNT,j,k=0;
     MYFLT *ar = p->ar, **args = p->argums;
@@ -509,7 +509,7 @@ int sum(ENVIRON *csound, SUM *p)
 }
 
 /* Actually by JPff but after Gabriel */
-int product(ENVIRON *csound, SUM *p)
+int product(CSOUND *csound, SUM *p)
 {
     int count=(int) p->INOCOUNT,j,k=0;
     MYFLT *ar = p->ar, **args = p->argums;
@@ -522,7 +522,7 @@ int product(ENVIRON *csound, SUM *p)
     return OK;
 }
 
-int rsnsety(ENVIRON *csound, RESONY *p)
+int rsnsety(CSOUND *csound, RESONY *p)
 {
     int scale;
     int j;
@@ -546,7 +546,7 @@ int rsnsety(ENVIRON *csound, RESONY *p)
     return OK;
 }
 
-int resony(ENVIRON *csound, RESONY *p)
+int resony(CSOUND *csound, RESONY *p)
 {
     int nsmps, j;
     MYFLT       *ar, *asig;
@@ -602,14 +602,14 @@ int resony(ENVIRON *csound, RESONY *p)
     return OK;
 }
 
-int fold_set(ENVIRON *csound, FOLD *p)
+int fold_set(CSOUND *csound, FOLD *p)
 {
     p->sample_index = 0;
     p->index = 0.0;
     return OK;
 }
 
-int fold(ENVIRON *csound, FOLD *p)
+int fold(CSOUND *csound, FOLD *p)
 {
     int nsmps = csound->ksmps;
     MYFLT *ar = p->ar;
@@ -637,7 +637,7 @@ int fold(ENVIRON *csound, FOLD *p)
 /* by Gab Maldonado. Under GNU license with a special exception for
    Canonical Csound addition */
 
-int loopseg_set(ENVIRON *csound, LOOPSEG *p)
+int loopseg_set(CSOUND *csound, LOOPSEG *p)
 {
     p->nsegs   = p->INOCOUNT-3;
     p->args[0] = FL(0.0);
@@ -645,7 +645,7 @@ int loopseg_set(ENVIRON *csound, LOOPSEG *p)
     return OK;
 }
 
-int loopseg(ENVIRON *csound, LOOPSEG *p)
+int loopseg(CSOUND *csound, LOOPSEG *p)
 {
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
@@ -686,7 +686,7 @@ int loopseg(ENVIRON *csound, LOOPSEG *p)
     return OK;
 }
 
-int lpshold(ENVIRON *csound, LOOPSEG *p)
+int lpshold(CSOUND *csound, LOOPSEG *p)
 {
     MYFLT *argp=p->args;
     MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
@@ -724,14 +724,14 @@ int lpshold(ENVIRON *csound, LOOPSEG *p)
     return OK;
 }
 
-int loopsegp_set(ENVIRON *csound, LOOPSEGP *p)
+int loopsegp_set(CSOUND *csound, LOOPSEGP *p)
 {
     p->nsegs   = p->INOCOUNT-1;
     p->args[0] = FL(0.0);
     return OK;
 }
 
-int loopsegp(ENVIRON *csound, LOOPSEGP *p)
+int loopsegp(CSOUND *csound, LOOPSEGP *p)
 {
     MYFLT *argp = p->args;
     MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
@@ -769,7 +769,7 @@ int loopsegp(ENVIRON *csound, LOOPSEGP *p)
     return OK;
 }
 
-int lpsholdp(ENVIRON *csound, LOOPSEGP *p)
+int lpsholdp(CSOUND *csound, LOOPSEGP *p)
 {
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
@@ -808,7 +808,7 @@ int lpsholdp(ENVIRON *csound, LOOPSEGP *p)
 /* by Gab Maldonado. Under GNU license with a special exception
    for Canonical Csound addition */
 
-int lineto_set(ENVIRON *csound, LINETO *p)
+int lineto_set(CSOUND *csound, LINETO *p)
 {
     p->current_time = FL(0.0);
     p->incr=FL(0.0);
@@ -817,7 +817,7 @@ int lineto_set(ENVIRON *csound, LINETO *p)
     return OK;
 }
 
-int lineto(ENVIRON *csound, LINETO *p)
+int lineto(CSOUND *csound, LINETO *p)
 {
     if (p->flag) {
       p->val_incremented = p->current_val = *p->ksig;
@@ -839,7 +839,7 @@ int lineto(ENVIRON *csound, LINETO *p)
     return OK;
 }
 
-int tlineto_set(ENVIRON *csound, LINETO2 *p)
+int tlineto_set(CSOUND *csound, LINETO2 *p)
 {
     p->current_time = FL(0.0);
     p->incr=FL(0.0);
@@ -848,7 +848,7 @@ int tlineto_set(ENVIRON *csound, LINETO2 *p)
     return OK;
 }
 
-int tlineto(ENVIRON *csound, LINETO2 *p)
+int tlineto(CSOUND *csound, LINETO2 *p)
 {
     if (p->flag) {
       p->val_incremented = p->current_val = *p->ksig;
@@ -873,7 +873,7 @@ int tlineto(ENVIRON *csound, LINETO2 *p)
 /* by Gabriel Maldonado. Under GNU license with a special exception
    for Canonical Csound addition */
 
-int vibrato_set(ENVIRON *csound, VIBRATO *p)
+int vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
@@ -890,7 +890,7 @@ int vibrato_set(ENVIRON *csound, VIBRATO *p)
     return OK;
 }
 
-int vibrato(ENVIRON *csound, VIBRATO *p)
+int vibrato(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
     double      phs, inc;
@@ -940,7 +940,7 @@ int vibrato(ENVIRON *csound, VIBRATO *p)
     return OK;
 }
 
-int vibr_set(ENVIRON *csound, VIBR *p)
+int vibr_set(CSOUND *csound, VIBR *p)
   /* faster and easier to use than vibrato, but less flexible */
 {
     FUNC        *ftp;
@@ -965,7 +965,7 @@ int vibr_set(ENVIRON *csound, VIBR *p)
     return OK;
 }
 
-int vibr(ENVIRON *csound, VIBR *p)
+int vibr(CSOUND *csound, VIBR *p)
 {
     FUNC        *ftp;
     double      phs, inc;
@@ -1019,7 +1019,7 @@ int vibr(ENVIRON *csound, VIBR *p)
     return OK;
 }
 
-int jitter2_set(ENVIRON *csound, JITTER2 *p)
+int jitter2_set(CSOUND *csound, JITTER2 *p)
 {
     if (*p->cps1==FL(0.0) && *p->cps2==FL(0.0) && /* accept default values */
         *p->cps2==FL(0.0) && *p->amp1==FL(0.0) &&
@@ -1032,7 +1032,7 @@ int jitter2_set(ENVIRON *csound, JITTER2 *p)
     return OK;
 }
 
-int jitter2(ENVIRON *csound, JITTER2 *p)
+int jitter2(CSOUND *csound, JITTER2 *p)
 {
     MYFLT out1,out2,out3;
     out1 = (p->num1a + (MYFLT)p->phs1 * p->dfdmax1);
@@ -1072,7 +1072,7 @@ int jitter2(ENVIRON *csound, JITTER2 *p)
     return OK;
 }
 
-int jitter_set(ENVIRON *csound, JITTER *p)
+int jitter_set(CSOUND *csound, JITTER *p)
 {
     p->num2     = BiRandGab;
     p->initflag = 1;
@@ -1080,7 +1080,7 @@ int jitter_set(ENVIRON *csound, JITTER *p)
     return OK;
 }
 
-int jitter(ENVIRON *csound, JITTER *p)
+int jitter(CSOUND *csound, JITTER *p)
 {
     if (p->initflag) {
       p->initflag = 0;
@@ -1101,7 +1101,7 @@ int jitter(ENVIRON *csound, JITTER *p)
     return OK;
 }
 
-int jitters_set(ENVIRON *csound, JITTERS *p)
+int jitters_set(CSOUND *csound, JITTERS *p)
 {
     p->num1     = BiRandGab;
     p->num2     = BiRandGab;
@@ -1112,7 +1112,7 @@ int jitters_set(ENVIRON *csound, JITTERS *p)
     return OK;
 }
 
-int jitters(ENVIRON *csound, JITTERS *p)
+int jitters(CSOUND *csound, JITTERS *p)
 {
     MYFLT       x, c3= p->c3, c2= p->c2;
     MYFLT       f0 = p->num0, df0= p->df0;
@@ -1144,7 +1144,7 @@ int jitters(ENVIRON *csound, JITTERS *p)
     return OK;
 }
 
-int jittersa(ENVIRON *csound, JITTERS *p)
+int jittersa(CSOUND *csound, JITTERS *p)
 {
     MYFLT   x, c3=p->c3, c2=p->c2;
     MYFLT   f0= p->num0, df0 = p->df0;
@@ -1185,7 +1185,7 @@ int jittersa(ENVIRON *csound, JITTERS *p)
     return OK;
 }
 
-int kDiscreteUserRand(ENVIRON *csound, DURAND *p)
+int kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (long)*p->tableNum) {
       if ( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL) {
@@ -1198,14 +1198,14 @@ int kDiscreteUserRand(ENVIRON *csound, DURAND *p)
     return OK;
 }
 
-int iDiscreteUserRand(ENVIRON *csound, DURAND *p)
+int iDiscreteUserRand(CSOUND *csound, DURAND *p)
 {
   p->pfn = 0L;
   kDiscreteUserRand(csound,p);
   return OK;
 }
 
-int aDiscreteUserRand(ENVIRON *csound, DURAND *p)
+int aDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     MYFLT *out = p->out, *table;
     int n, nsmps = csound->ksmps, flen;
@@ -1225,7 +1225,7 @@ int aDiscreteUserRand(ENVIRON *csound, DURAND *p)
     return OK;
 }
 
-int kContinuousUserRand(ENVIRON *csound, CURAND *p)
+int kContinuousUserRand(CSOUND *csound, CURAND *p)
 { /* gab d5*/
     long indx;
     MYFLT findx, fract, v1, v2;
@@ -1245,20 +1245,20 @@ int kContinuousUserRand(ENVIRON *csound, CURAND *p)
     return OK;
 }
 
-int iContinuousUserRand(ENVIRON *csound, CURAND *p)
+int iContinuousUserRand(CSOUND *csound, CURAND *p)
 {
     p->pfn = 0;
     kContinuousUserRand(csound,p);
     return OK;
 }
 
-int Cuserrnd_set(ENVIRON *csound, CURAND *p)
+int Cuserrnd_set(CSOUND *csound, CURAND *p)
 {
     p->pfn = 0;
     return OK;
 }
 
-int aContinuousUserRand(ENVIRON *csound, CURAND *p)
+int aContinuousUserRand(CSOUND *csound, CURAND *p)
 { /* gab d5*/
     MYFLT min = *p->min, rge = *p->max;
     MYFLT *out = p->out, *table;
@@ -1288,13 +1288,13 @@ int aContinuousUserRand(ENVIRON *csound, CURAND *p)
     return OK;
 }
 
-int ikRangeRand(ENVIRON *csound, RANGERAND *p)
+int ikRangeRand(CSOUND *csound, RANGERAND *p)
 { /* gab d5*/
     *p->out = randGab * (*p->max - *p->min) + *p->min;
     return OK;
 }
 
-int aRangeRand(ENVIRON *csound, RANGERAND *p)
+int aRangeRand(CSOUND *csound, RANGERAND *p)
 { /* gab d5*/
     MYFLT min = *p->min, max = *p->max, *out = p->out;
     long n = csound->ksmps;
@@ -1306,14 +1306,14 @@ int aRangeRand(ENVIRON *csound, RANGERAND *p)
     return OK;
 }
 
-int randomi_set(ENVIRON *csound, RANDOMI *p)
+int randomi_set(CSOUND *csound, RANDOMI *p)
 {
     p->cpscod = (XINARG2) ? 1 : 0;
     p->dfdmax = FL(0.0);
     return OK;
 }
 
-int krandomi(ENVIRON *csound, RANDOMI *p)
+int krandomi(CSOUND *csound, RANDOMI *p)
 {
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * (*p->max - *p->min) + *p->min;
     p->phs += (long)(*p->xcps * csound->kicvt);
@@ -1326,7 +1326,7 @@ int krandomi(ENVIRON *csound, RANDOMI *p)
     return OK;
 }
 
-int randomi(ENVIRON *csound, RANDOMI *p)
+int randomi(CSOUND *csound, RANDOMI *p)
 {
     long        phs = p->phs, inc;
     int         n = csound->ksmps;
@@ -1354,13 +1354,13 @@ int randomi(ENVIRON *csound, RANDOMI *p)
     return OK;
 }
 
-int randomh_set(ENVIRON *csound, RANDOMH *p)
+int randomh_set(CSOUND *csound, RANDOMH *p)
 {
     p->cpscod = (XINARG2) ? 1 : 0;
     return OK;
 }
 
-int krandomh(ENVIRON *csound, RANDOMH *p)
+int krandomh(CSOUND *csound, RANDOMH *p)
 {
     *p->ar = p->num1 * (*p->max - *p->min) + *p->min;
     p->phs += (long)(*p->xcps * csound->kicvt);
@@ -1371,7 +1371,7 @@ int krandomh(ENVIRON *csound, RANDOMH *p)
     return OK;
 }
 
-int randomh(ENVIRON *csound, RANDOMH *p)
+int randomh(CSOUND *csound, RANDOMH *p)
 {
     long        phs = p->phs, inc;
     int         n = csound->ksmps;
@@ -1397,7 +1397,7 @@ int randomh(ENVIRON *csound, RANDOMH *p)
     return OK;
 }
 
-int random3_set(ENVIRON *csound, RANDOM3 *p)
+int random3_set(CSOUND *csound, RANDOM3 *p)
 {
     p->num1     = randGab;
     p->num2     = randGab;
@@ -1407,7 +1407,7 @@ int random3_set(ENVIRON *csound, RANDOM3 *p)
     return OK;
 }
 
-int random3(ENVIRON *csound, RANDOM3 *p)
+int random3(CSOUND *csound, RANDOM3 *p)
 {
     MYFLT       x, c3= p->c3, c2= p->c2;
     MYFLT       f0 = p->num0, df0= p->df0;
@@ -1440,7 +1440,7 @@ int random3(ENVIRON *csound, RANDOM3 *p)
     return OK;
 }
 
-int random3a(ENVIRON *csound, RANDOM3 *p)
+int random3a(CSOUND *csound, RANDOM3 *p)
 {
 
     MYFLT       x, c3=p->c3, c2=p->c2;

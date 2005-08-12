@@ -44,7 +44,7 @@ def generate_x_method(f, action, context, rate0, triggered):
     name = 'py%(prefix)s%(action)s%(rate)s%(t)s_%(rate0)srate' % locals()
 
     print >> f, 'int'
-    print >> f, '%(name)s(ENVIRON *csound, PY%(ACTION)s%(T)s *p)' % locals()
+    print >> f, '%(name)s(CSOUND *csound, PY%(ACTION)s%(T)s *p)' % locals()
     print >> f, '{'
     print >> f, '  char source[%d];' % size
     print >> f, '  PyObject *result;'
@@ -111,7 +111,7 @@ def generate_init_method(f, action, triggered):
         t, T = '', ''
 
     print >> f, 'int'
-    print >> f, 'pyl%(action)s%(t)s_irate(ENVIRON *csound, PY%(ACTION)s%(T)s *p)' % locals()
+    print >> f, 'pyl%(action)s%(t)s_irate(CSOUND *csound, PY%(ACTION)s%(T)s *p)' % locals()
     print >> f, '{'
 ##    print >> f, '  if (*p->string != SSTRCOD)'
 ##    print >> f, '    return NOTOK;'
@@ -145,16 +145,16 @@ def generate_pycall_opcode_struct(f, action, triggered):
 
 def generate_pycall_method_declaration(f, action):
     ACTION = action.upper()
-    print >> f, 'extern int py%s_krate(ENVIRON *csound, PY%s *p);' % (action, ACTION)
-    print >> f, 'extern int py%si_irate(ENVIRON *csound, PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int py%s_krate(CSOUND *csound, PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int py%si_irate(CSOUND *csound, PY%s *p);' % (action, ACTION)
     print >> f
-    print >> f, 'extern int pyl%s_irate(ENVIRON *csound, PY%s *p);' % (action, ACTION)
-    print >> f, 'extern int pyl%s_krate(ENVIRON *csound, PY%s *p);' % (action, ACTION)
-    print >> f, 'extern int pyl%si_irate(ENVIRON *csound, PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%s_irate(CSOUND *csound, PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%s_krate(CSOUND *csound, PY%s *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%si_irate(CSOUND *csound, PY%s *p);' % (action, ACTION)
     print >> f
-    print >> f, 'extern int py%st_krate(ENVIRON *csound, PY%sT *p);' % (action, ACTION)
-    print >> f, 'extern int pyl%st_irate(ENVIRON *csound, PY%sT *p);' % (action, ACTION)
-    print >> f, 'extern int pyl%st_krate(ENVIRON *csound, PY%sT *p);' % (action, ACTION)
+    print >> f, 'extern int py%st_krate(CSOUND *csound, PY%sT *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%st_irate(CSOUND *csound, PY%sT *p);' % (action, ACTION)
+    print >> f, 'extern int pyl%st_krate(CSOUND *csound, PY%sT *p);' % (action, ACTION)
     print >> f
 
 f = open('pyx.c.auto', 'w')
@@ -177,3 +177,4 @@ for action in ['exec', 'run', 'eval', 'assign']:
         generate_pycall_opcode_struct(f, action, triggered)
     generate_pycall_method_declaration(f, action)
 f.close()
+

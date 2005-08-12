@@ -31,7 +31,7 @@
  *          en6mjg@bath.ac.uk
  */
 
-int wtinit(ENVIRON *csound, WAVETER *p)
+int wtinit(CSOUND *csound, WAVETER *p)
 {
     /* DECLARE */
     int i;
@@ -67,7 +67,7 @@ int wtinit(ENVIRON *csound, WAVETER *p)
     return OK;
 }
 
-int wtPerf(ENVIRON *csound, WAVETER *p)
+int wtPerf(CSOUND *csound, WAVETER *p)
 {
     int i, nsmps=csound->ksmps;
     int xloc, yloc;
@@ -115,7 +115,7 @@ int wtPerf(ENVIRON *csound, WAVETER *p)
  *          en6mjg@bath.ac.uk
  */
 
-int scanhinit(ENVIRON *csound, SCANHAMMER *p)
+int scanhinit(CSOUND *csound, SCANHAMMER *p)
 {
   int srcpos = 0;
   int dstpos = (int)(*p->ipos + FL(0.5));
@@ -149,7 +149,7 @@ int scanhinit(ENVIRON *csound, SCANHAMMER *p)
  *          en6mjg@bath.ac.uk
  */
 
-int scantinit(ENVIRON *csound, SCANTABLE *p)
+int scantinit(CSOUND *csound, SCANTABLE *p)
 {
     /* DECLARE */
     FUNC *fpoint = csound->FTFind(csound, p->i_point);
@@ -202,7 +202,7 @@ int scantinit(ENVIRON *csound, SCANTABLE *p)
     return OK;
 }
 
-int scantPerf(ENVIRON *csound, SCANTABLE *p)
+int scantPerf(CSOUND *csound, SCANTABLE *p)
 {
     int i, nsmps = csound->ksmps;
     MYFLT force, fc1, fc2;

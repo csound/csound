@@ -63,8 +63,8 @@ typedef struct {
     AUXCH   auxData;            /* for dynamically allocated buffers */
 } DISKIN2;
 
-int diskin2_init(ENVIRON *csound, DISKIN2 *p);
-int diskin2_perf(ENVIRON *csound, DISKIN2 *p);
+int diskin2_init(CSOUND *csound, DISKIN2 *p);
+int diskin2_perf(CSOUND *csound, DISKIN2 *p);
 
 typedef struct {
     OPDS    h;

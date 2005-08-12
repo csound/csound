@@ -144,10 +144,10 @@ public:
   virtual void setIsMultiThreaded(bool isMultiThreaded);
   virtual bool getIsAutoPlayback() const;
   virtual void setIsAutoPlayback(bool autoPlay);
-  static int midiDeviceOpen(ENVIRON *csound, void **userData,
+  static int midiDeviceOpen(CSOUND *csound, void **userData,
                             const char *devName);
 
-  static int midiRead(ENVIRON *csound, void *userData,
+  static int midiRead(CSOUND *csound, void *userData,
                       unsigned char *buf, int nbytes);
 };
 
@@ -161,3 +161,4 @@ extern "C"
 #endif
 
 #endif
+

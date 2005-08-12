@@ -28,10 +28,10 @@
 extern "C" {
 #endif
 
-  PUBLIC int csoundAddUtility(ENVIRON *, const char *name,
-                              int (*UtilFunc)(ENVIRON *, int, char**));
+  PUBLIC int csoundAddUtility(CSOUND *, const char *name,
+                              int (*UtilFunc)(CSOUND *, int, char**));
 
-  PUBLIC int csoundRunUtility(ENVIRON *, const char *name,
+  PUBLIC int csoundRunUtility(CSOUND *, const char *name,
                               int argc, char **argv);
 
   /**
@@ -40,13 +40,13 @@ extern "C" {
    * however, the names should not be freed.
    * The return value may be NULL in case of an error.
    */
-  PUBLIC char **csoundListUtilities(ENVIRON *);
+  PUBLIC char **csoundListUtilities(CSOUND *);
 
   /**
    * Set description text for the specified utility.
    * Returns zero on success.
    */
-  PUBLIC int csoundSetUtilityDescription(ENVIRON *, const char *utilName,
+  PUBLIC int csoundSetUtilityDescription(CSOUND *, const char *utilName,
                                                     const char *utilDesc);
 
   /**
@@ -54,7 +54,7 @@ extern "C" {
    * Returns NULL if the utility was not found, or it has no description,
    * or an error occured.
    */
-  PUBLIC char *csoundGetUtilityDescription(ENVIRON *, const char *utilName);
+  PUBLIC char *csoundGetUtilityDescription(CSOUND *, const char *utilName);
 
 #ifdef __cplusplus
 };

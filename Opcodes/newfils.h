@@ -100,8 +100,8 @@ typedef struct _moogladder {
   double  delay[6];
 } moogladder;
 
-int moogladder_init(ENVIRON *csound,moogladder *p);
-int moogladder_process(ENVIRON *csound,moogladder *p);
+int moogladder_init(CSOUND *csound,moogladder *p);
+int moogladder_process(CSOUND *csound,moogladder *p);
 
 typedef struct _statevar {
   OPDS    h;
@@ -121,8 +121,8 @@ typedef struct _statevar {
   int  ostimes;
 } statevar;
 
-int statevar_init(ENVIRON *csound,statevar *p);
-int statevar_process(ENVIRON *csound,statevar *p);
+int statevar_init(CSOUND *csound,statevar *p);
+int statevar_process(CSOUND *csound,statevar *p);
 
 typedef struct _fofilter {
   OPDS    h;
@@ -137,8 +137,8 @@ typedef struct _fofilter {
   double  twopiosr;
 } fofilter;
 
-int fofilter_init(ENVIRON *csound,fofilter *p);
-int fofilter_process(ENVIRON *csound,fofilter *p);
+int fofilter_init(CSOUND *csound,fofilter *p);
+int fofilter_process(CSOUND *csound,fofilter *p);
 
 #endif
 

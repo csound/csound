@@ -30,7 +30,7 @@
 #define DIR_SEP '/'
 #endif
 
-int mtable_i(ENVIRON *csound,MTABLEI *p)
+int mtable_i(CSOUND *csound,MTABLEI *p)
 {
     FUNC *ftp;
     int j, nargs;
@@ -62,7 +62,7 @@ int mtable_i(ENVIRON *csound,MTABLEI *p)
     return OK;
 }
 
-int mtable_set(ENVIRON *csound,MTABLE *p)        /*  mtab by G.Maldonado */
+int mtable_set(CSOUND *csound,MTABLE *p)         /*  mtab by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -77,7 +77,7 @@ int mtable_set(ENVIRON *csound,MTABLE *p)        /*  mtab by G.Maldonado */
     return OK;
 }
 
-int mtable_k(ENVIRON *csound,MTABLE *p)
+int mtable_k(CSOUND *csound,MTABLE *p)
 {
     int j, nargs = p->nargs;
     MYFLT **out = p->outargs;
@@ -124,7 +124,7 @@ int mtable_k(ENVIRON *csound,MTABLE *p)
     return OK;
 }
 
-int mtable_a(ENVIRON *csound,MTABLE *p)
+int mtable_a(CSOUND *csound,MTABLE *p)
 {
     int j, nargs = p->nargs;
     int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k=0;
@@ -184,7 +184,7 @@ int mtable_a(ENVIRON *csound,MTABLE *p)
     return OK;
 }
 
-int mtab_i(ENVIRON *csound,MTABI *p)
+int mtab_i(CSOUND *csound,MTABI *p)
 {
     FUNC *ftp;
     int j, nargs;
@@ -202,7 +202,7 @@ int mtab_i(ENVIRON *csound,MTABI *p)
     return OK;
 }
 
-int mtab_set(ENVIRON *csound,MTAB *p)    /* mtab by G.Maldonado */
+int mtab_set(CSOUND *csound,MTAB *p)     /* mtab by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -215,7 +215,7 @@ int mtab_set(ENVIRON *csound,MTAB *p)    /* mtab by G.Maldonado */
     return OK;
 }
 
-int mtab_k(ENVIRON *csound,MTAB *p)
+int mtab_k(CSOUND *csound,MTAB *p)
 {
     int j, nargs = p->nargs;
     MYFLT **out = p->outargs;
@@ -230,7 +230,7 @@ int mtab_k(ENVIRON *csound,MTAB *p)
     return OK;
 }
 
-int mtab_a(ENVIRON *csound,MTAB *p)
+int mtab_a(CSOUND *csound,MTAB *p)
 {
     int j, nargs = p->nargs;
     int nsmps = csound->ksmps, k=0;
@@ -252,7 +252,7 @@ int mtab_a(ENVIRON *csound,MTAB *p)
 
 /* ////////// mtab end /////////////// */
 
-int mtablew_i(ENVIRON *csound,MTABLEIW *p)
+int mtablew_i(CSOUND *csound,MTABLEIW *p)
 {
     FUNC *ftp;
     int j, nargs;
@@ -271,7 +271,7 @@ int mtablew_i(ENVIRON *csound,MTABLEIW *p)
     return OK;
 }
 
-int mtablew_set(ENVIRON *csound,MTABLEW *p)      /* mtabw by G.Maldonado */
+int mtablew_set(CSOUND *csound,MTABLEW *p)       /* mtabw by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -286,7 +286,7 @@ int mtablew_set(ENVIRON *csound,MTABLEW *p)      /* mtabw by G.Maldonado */
     return OK;
 }
 
-int mtablew_k(ENVIRON *csound,MTABLEW *p)
+int mtablew_k(CSOUND *csound,MTABLEW *p)
 {
     int j, nargs = p->nargs;
     MYFLT **in = p->inargs;
@@ -312,7 +312,7 @@ int mtablew_k(ENVIRON *csound,MTABLEW *p)
     return OK;
 }
 
-int mtablew_a(ENVIRON *csound,MTABLEW *p)
+int mtablew_a(CSOUND *csound,MTABLEW *p)
 {
     int j, nargs = p->nargs;
     int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k=0;
@@ -348,7 +348,7 @@ int mtablew_a(ENVIRON *csound,MTABLEW *p)
 
 /* ////////////////////////////////////// */
 
-int mtabw_i(ENVIRON *csound,MTABIW *p)
+int mtabw_i(CSOUND *csound,MTABIW *p)
 {
     FUNC *ftp;
     int j, nargs;
@@ -365,7 +365,7 @@ int mtabw_i(ENVIRON *csound,MTABIW *p)
     return OK;
 }
 
-int mtabw_set(ENVIRON *csound,MTABW *p)  /* mtabw by G.Maldonado */
+int mtabw_set(CSOUND *csound,MTABW *p)   /* mtabw by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -378,7 +378,7 @@ int mtabw_set(ENVIRON *csound,MTABW *p)  /* mtabw by G.Maldonado */
     return OK;
 }
 
-int mtabw_k(ENVIRON *csound,MTABW *p)
+int mtabw_k(CSOUND *csound,MTABW *p)
 {
     int j, nargs = p->nargs;
     MYFLT **in = p->inargs;
@@ -401,7 +401,7 @@ int mtabw_k(ENVIRON *csound,MTABW *p)
     return OK;
 }
 
-int mtabw_a(ENVIRON *csound,MTABW *p)
+int mtabw_a(CSOUND *csound,MTABW *p)
 {
     int j, nargs = p->nargs;
     int nsmps = csound->ksmps, k=0;
@@ -433,7 +433,7 @@ int mtabw_a(ENVIRON *csound,MTABW *p)
 
 /* The following opcodes come from CsoundAV/vectorial.c */
 
-int vectorOp_set(ENVIRON *csound,VECTOROP *p)
+int vectorOp_set(CSOUND *csound,VECTOROP *p)
 {
     FUNC        *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
@@ -446,7 +446,7 @@ int vectorOp_set(ENVIRON *csound,VECTOROP *p)
     return OK;
 }
 
-int vadd(ENVIRON *csound,VECTOROP *p)
+int vadd(CSOUND *csound,VECTOROP *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -458,7 +458,7 @@ int vadd(ENVIRON *csound,VECTOROP *p)
     return OK;
 }
 
-int vmult(ENVIRON *csound,VECTOROP *p)
+int vmult(CSOUND *csound,VECTOROP *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -470,7 +470,7 @@ int vmult(ENVIRON *csound,VECTOROP *p)
     return OK;
 }
 
-int vpow(ENVIRON *csound,VECTOROP *p)
+int vpow(CSOUND *csound,VECTOROP *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -483,7 +483,7 @@ int vpow(ENVIRON *csound,VECTOROP *p)
     return OK;
 }
 
-int vexp(ENVIRON *csound,VECTOROP *p)
+int vexp(CSOUND *csound,VECTOROP *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -497,7 +497,7 @@ int vexp(ENVIRON *csound,VECTOROP *p)
 }
 /* ------------------------- */
 
-int vectorsOp_set(ENVIRON *csound,VECTORSOP *p)
+int vectorsOp_set(CSOUND *csound,VECTORSOP *p)
 {
     FUNC        *ftp1, *ftp2;
     if ((ftp1 = csound->FTnp2Find(csound,p->ifn1)) != NULL) {
@@ -513,7 +513,7 @@ int vectorsOp_set(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vcopy(ENVIRON *csound,VECTORSOP *p)
+int vcopy(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -524,7 +524,7 @@ int vcopy(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vcopy_i(ENVIRON *csound,VECTORSOP *p)
+int vcopy_i(CSOUND *csound,VECTORSOP *p)
 {
     FUNC        *ftp1, *ftp2;
     MYFLT   *vector1 = NULL, *vector2 = NULL;
@@ -546,7 +546,7 @@ int vcopy_i(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vaddv(ENVIRON *csound,VECTORSOP *p)
+int vaddv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -557,7 +557,7 @@ int vaddv(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vsubv(ENVIRON *csound,VECTORSOP *p)
+int vsubv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -568,7 +568,7 @@ int vsubv(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vmultv(ENVIRON *csound,VECTORSOP *p)
+int vmultv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -579,7 +579,7 @@ int vmultv(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vdivv(ENVIRON *csound,VECTORSOP *p)
+int vdivv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -590,7 +590,7 @@ int vdivv(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vpowv(ENVIRON *csound,VECTORSOP *p)
+int vpowv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -602,7 +602,7 @@ int vpowv(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vexpv(ENVIRON *csound,VECTORSOP *p)
+int vexpv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -614,7 +614,7 @@ int vexpv(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vmap(ENVIRON *csound,VECTORSOP *p)
+int vmap(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -626,7 +626,7 @@ int vmap(ENVIRON *csound,VECTORSOP *p)
     return OK;
 }
 
-int vlimit_set(ENVIRON *csound,VLIMIT *p)
+int vlimit_set(CSOUND *csound,VLIMIT *p)
 {
     FUNC        *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
@@ -639,7 +639,7 @@ int vlimit_set(ENVIRON *csound,VLIMIT *p)
     return OK;
 }
 
-int vlimit(ENVIRON *csound,VLIMIT *p)
+int vlimit(CSOUND *csound,VLIMIT *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -652,7 +652,7 @@ int vlimit(ENVIRON *csound,VLIMIT *p)
 }
 
 /*-----------------------------*/
-int vport_set(ENVIRON *csound,VPORT *p)
+int vport_set(CSOUND *csound,VPORT *p)
 {
     FUNC        *ftp;
     int elements;
@@ -689,7 +689,7 @@ int vport_set(ENVIRON *csound,VPORT *p)
     return OK;
 }
 
-int vport(ENVIRON *csound,VPORT *p)
+int vport(CSOUND *csound,VPORT *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector, *yt1 = p->yt1, c1, c2;
@@ -708,7 +708,7 @@ int vport(ENVIRON *csound,VPORT *p)
 }
 
 /*-------------------------------*/
-int vwrap(ENVIRON *csound,VLIMIT *p)
+int vwrap(CSOUND *csound,VLIMIT *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -735,7 +735,7 @@ int vwrap(ENVIRON *csound,VLIMIT *p)
     return OK;
 }
 
-int vmirror(ENVIRON *csound,VLIMIT *p)
+int vmirror(CSOUND *csound,VLIMIT *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -763,7 +763,7 @@ int vmirror(ENVIRON *csound,VLIMIT *p)
 
 /* #include "newopcodes.h" */
 
-int vrandh_set(ENVIRON *csound,VRANDH *p)
+int vrandh_set(CSOUND *csound,VRANDH *p)
 {
     FUNC        *ftp;
     int elements = 0;
@@ -786,7 +786,7 @@ int vrandh_set(ENVIRON *csound,VRANDH *p)
     return OK;
 }
 
-int vrandh(ENVIRON *csound,VRANDH *p)
+int vrandh(CSOUND *csound,VRANDH *p)
 {
     MYFLT *vector = p->vector, *num1 = p->num1;
     MYFLT value = *p->krange;
@@ -809,7 +809,7 @@ int vrandh(ENVIRON *csound,VRANDH *p)
     return OK;
 }
 
-int vrandi_set(ENVIRON *csound,VRANDI *p)
+int vrandi_set(CSOUND *csound,VRANDI *p)
 {
     FUNC        *ftp;
     MYFLT fmaxlen = (MYFLT)MAXLEN;
@@ -838,7 +838,7 @@ int vrandi_set(ENVIRON *csound,VRANDI *p)
     return OK;
 }
 
-int vrandi(ENVIRON *csound,VRANDI *p)
+int vrandi(CSOUND *csound,VRANDI *p)
 {
     MYFLT *vector = p->vector, *num1 = p->num1, *num2, *dfdmax = p->dfdmax;
     MYFLT value = *p->krange;
@@ -867,7 +867,7 @@ int vrandi(ENVIRON *csound,VRANDI *p)
     return OK;
 }
 
-int vecdly_set(ENVIRON *csound,VECDEL *p)
+int vecdly_set(CSOUND *csound,VECDEL *p)
 {
     FUNC        *ftp;
     int elements = (p->elements = (int) *p->ielements), j;
@@ -928,7 +928,7 @@ int vecdly_set(ENVIRON *csound,VECDEL *p)
     return OK;
 }
 
-int vecdly(ENVIRON *csound,VECDEL *p)
+int vecdly(CSOUND *csound,VECDEL *p)
 {
     long maxd = p->maxd, *indx=p->left, v1, v2;
     MYFLT **buf = p->buf, fv1, fv2, *inVec = p->invec;
@@ -954,7 +954,7 @@ int vecdly(ENVIRON *csound,VECDEL *p)
     return OK;
 }
 
-int vseg_set(ENVIRON *csound,VSEG *p)
+int vseg_set(CSOUND *csound,VSEG *p)
 {
     TSEG        *segp;
     int nsegs;
@@ -1009,7 +1009,7 @@ int vseg_set(ENVIRON *csound,VSEG *p)
     return OK;
 }
 
-int vlinseg(ENVIRON *csound,VSEG *p)
+int vlinseg(CSOUND *csound,VSEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0), *vector;
@@ -1039,7 +1039,7 @@ int vlinseg(ENVIRON *csound,VSEG *p)
     return OK;
 }
 
-int vexpseg(ENVIRON *csound,VSEG *p)
+int vexpseg(CSOUND *csound,VSEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, cntoverdur=FL(0.0), *vector;
@@ -1068,7 +1068,7 @@ int vexpseg(ENVIRON *csound,VSEG *p)
 }
 
 /* ----------------------------------------------- */
-int vphaseseg_set(ENVIRON *csound,VPSEG *p)
+int vphaseseg_set(CSOUND *csound,VPSEG *p)
 {
     TSEG2       *segp;
     int nsegs,j;
@@ -1141,7 +1141,7 @@ int vphaseseg_set(ENVIRON *csound,VPSEG *p)
     return OK;
 }
 
-int vphaseseg(ENVIRON *csound,VPSEG *p)
+int vphaseseg(CSOUND *csound,VPSEG *p)
 {
 
     TSEG2       *segp = p->cursegp;
@@ -1173,7 +1173,7 @@ int vphaseseg(ENVIRON *csound,VPSEG *p)
 }
 
 /* ------------------------- */
-int kdel_set(ENVIRON *csound,KDEL *p)
+int kdel_set(CSOUND *csound,KDEL *p)
 {
     unsigned long n;
     MYFLT *buf;
@@ -1194,7 +1194,7 @@ int kdel_set(ENVIRON *csound,KDEL *p)
     return OK;
 }
 
-int kdelay(ENVIRON *csound,KDEL *p)
+int kdelay(CSOUND *csound,KDEL *p)
 {
     long maxd = p->maxd, indx, v1, v2;
     MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
@@ -1223,7 +1223,7 @@ int kdelay(ENVIRON *csound,KDEL *p)
 }
 
 /*  From fractals.c */
-int ca_set(ENVIRON *csound,CELLA *p)
+int ca_set(CSOUND *csound,CELLA *p)
 {
     FUNC        *ftp;
     int elements;
@@ -1258,7 +1258,7 @@ int ca_set(ENVIRON *csound,CELLA *p)
     return OK;
 }
 
-int ca(ENVIRON *csound,CELLA *p)
+int ca(CSOUND *csound,CELLA *p)
 {
     if (*p->kreinit) {
       MYFLT *currLine = p->currLine, *initVec = p->initVec;

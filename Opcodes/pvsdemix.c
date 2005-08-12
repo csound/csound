@@ -47,7 +47,7 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 }
 #define FLOATMAX_ 3.402823466e+38f
 
-int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p)
+int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
 {
     long N = p->finleft->N;
     int olap = p->finleft->overlap;
@@ -90,7 +90,7 @@ int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p)
     return OK;
 }
 
-int pvsdemix_process(ENVIRON *csound, PVSDEMIX *p)
+int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 {
     int n, i, n2, N = p->fout->N, imax;
     int framesize = N+2;

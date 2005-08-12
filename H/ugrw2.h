@@ -137,15 +137,15 @@ typedef struct {
         MYFLT   *xdest, *xsig, *xlow, *xhigh;
 } LIMIT;
 
-int kporset(ENVIRON*,KPORT *p);
-int kport(ENVIRON*,KPORT *p);
-int ktonset(ENVIRON*,KTONE *p);
-int ktone(ENVIRON*,KTONE *p);
-int katone(ENVIRON*,KTONE *p);
-int krsnset(ENVIRON*,KRESON *p);
-int kreson(ENVIRON*,KRESON *p);
-int kareson(ENVIRON*,KRESON *p);
-int limitset(ENVIRON*,LIMIT *p);
-int klimit(ENVIRON*,LIMIT *p);
-int limit(ENVIRON*,LIMIT *p);
+int kporset(CSOUND*,KPORT *p);
+int kport(CSOUND*,KPORT *p);
+int ktonset(CSOUND*,KTONE *p);
+int ktone(CSOUND*,KTONE *p);
+int katone(CSOUND*,KTONE *p);
+int krsnset(CSOUND*,KRESON *p);
+int kreson(CSOUND*,KRESON *p);
+int kareson(CSOUND*,KRESON *p);
+int limitset(CSOUND*,LIMIT *p);
+int klimit(CSOUND*,LIMIT *p);
+int limit(CSOUND*,LIMIT *p);
 

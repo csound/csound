@@ -51,13 +51,13 @@ typedef struct {
 
 /* Forward declaration */
 
-static  void    alpol(ENVIRON *, LPC *, MYFLT *,
+static  void    alpol(CSOUND *, LPC *, MYFLT *,
                                  double *, double *, double *, double *);
-static  void    gauss(ENVIRON *, LPC *, double (*)[MAXPOLES], double*, double*);
-static  void    quit(ENVIRON *, char *), lpdieu(ENVIRON *, char *);
-static  void    usage(ENVIRON *);
-static  void    ptable(ENVIRON *, MYFLT, MYFLT, MYFLT, int);
-static  MYFLT   getpch(ENVIRON *, MYFLT *);
+static  void    gauss(CSOUND *, LPC *, double (*)[MAXPOLES], double*, double*);
+static  void    quit(CSOUND *, char *), lpdieu(CSOUND *, char *);
+static  void    usage(CSOUND *);
+static  void    ptable(CSOUND *, MYFLT, MYFLT, MYFLT, int);
+static  MYFLT   getpch(CSOUND *, MYFLT *);
 
 #ifdef mills_macintosh
 #include "MacTransport.h"
@@ -300,7 +300,7 @@ static void InvertPoles(int count, double *real, double *imag)
 
 #ifdef TRACE_POLES
 
-static void DumpPoles(ENVIRON *csound,
+static void DumpPoles(CSOUND *csound,
                       int poleCount, double *part1, double *part2,
                       int isMagn, char *where)
 {
@@ -323,7 +323,7 @@ static void DumpPoles(ENVIRON *csound,
  *
  */
 
-static int lpanal(ENVIRON *csound, int argc, char **argv)
+static int lpanal(CSOUND *csound, int argc, char **argv)
 {
     SNDFILE *infd;
     int     slice, analframes, counter, channel;
@@ -700,13 +700,13 @@ static int lpanal(ENVIRON *csound, int argc, char **argv)
     return 0;
 }
 
-static void quit(ENVIRON *csound, char *msg)
+static void quit(CSOUND *csound, char *msg)
 {
     csound->Message(csound,"lpanal: %s\n", msg);
     csound->Die(csound, Str("analysis aborted"));
 }
 
-static void lpdieu(ENVIRON *csound, char *msg)
+static void lpdieu(CSOUND *csound, char *msg)
 {
     usage(csound);
     csound->Die(csound, "lpanal: %s\n", msg);
@@ -718,7 +718,7 @@ static void lpdieu(ENVIRON *csound, char *msg)
  *
  */
 
-static void alpol(ENVIRON *csound, LPC *thislp, MYFLT *sig, double *errn,
+static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
                   double *rms1, double *rms2, double b[MAXPOLES])
                                         /* sig now MYFLT */
                                         /* b filled here */
@@ -781,7 +781,7 @@ static void alpol(ENVIRON *csound, LPC *thislp, MYFLT *sig, double *errn,
  * Perform gauss elemination: Could be replaced by something more robust
  *
  */
-static void gauss(ENVIRON *csound, LPC* thislp,
+static void gauss(CSOUND *csound, LPC* thislp,
                   double (*a/*old*/)[MAXPOLES], double *bold, double b[])
 {
     double amax, dum, pivot;
@@ -882,7 +882,7 @@ static const char *usage_txt[] = {
     NULL
 };
 
-static void usage(ENVIRON *csound)
+static void usage(CSOUND *csound)
 {
     int i;
     for (i = 0; usage_txt[i] != NULL; i++)
@@ -1085,7 +1085,7 @@ static  MYFLT w4 = FL(0.0), w41 = FL(0.0), w42 = FL(0.0);
         return(y);
 }
 
-static MYFLT getpch(ENVIRON *csound, MYFLT *sigbuf)
+static MYFLT getpch(CSOUND *csound, MYFLT *sigbuf)
 {
 static  int   firstcall = 1, tencount = 0;
 static  MYFLT *Dwind_dbuf, *Dwind_end1;    /* double buffer for downsamps   */
@@ -1140,7 +1140,7 @@ static  MYFLT *dbp1, *dbp2;
         return ( search(&fm, qsum, g, h) );
 }
 
-static void ptable(ENVIRON *csound,
+static void ptable(CSOUND *csound,
                    MYFLT fmin, MYFLT fmax, MYFLT sr, int windsiz)
 {
     int   i, n;
@@ -1172,7 +1172,7 @@ static void ptable(ENVIRON *csound,
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "lpanal", lpanal);
     if (!retval) {

@@ -109,7 +109,7 @@ extern "C" {
 
 #define DFLT_DBFS (FL(32768.0))
 
-  void dbfs_init(ENVIRON *, MYFLT dbfs);
+  void dbfs_init(CSOUND *, MYFLT dbfs);
 
   typedef struct {
     int     odebug;
@@ -291,7 +291,7 @@ extern "C" {
     double  offtim;         /* Time to turn off event, in seconds (negative on
                                indef/tie) */
     void    *pylocal;       /* Python namespace for just this instance. */
-    ENVIRON *csound;        /* ptr to Csound engine and API for externals */
+    CSOUND  *csound;        /* ptr to Csound engine and API for externals */
     void    *opcod_iobufs;  /* user defined opcode I/O buffers */
     void    *opcod_deact, *subins_deact;
     void    *nxtd;          /* opcodes to be run at note deactivation */
@@ -302,7 +302,7 @@ extern "C" {
     MYFLT   p3;
   } INSDS;
 
-  typedef int    (*SUBR)(ENVIRON *, void *);
+  typedef int    (*SUBR)(CSOUND *, void *);
 
   /* This struct holds the info for one opcode in a concrete
      instrument instance in performance. */
@@ -438,7 +438,7 @@ extern "C" {
 #include "sort.h"
 #include "midiops2.h"
 
-  typedef void    (*GEN)(FUNC *, ENVIRON *);
+  typedef void    (*GEN)(FUNC *, CSOUND *);
 
   /* MIDI globals */
 
@@ -464,12 +464,12 @@ extern "C" {
     int     MIDIoutDONE;
     int     MIDIINbufIndex;
     MIDIMESSAGE MIDIINbuffer2[MIDIINBUFMAX];
-    int     (*MidiInOpenCallback)(ENVIRON*, void**, const char*);
-    int     (*MidiReadCallback)(ENVIRON*, void*, unsigned char*, int);
-    int     (*MidiInCloseCallback)(ENVIRON*, void*);
-    int     (*MidiOutOpenCallback)(ENVIRON*, void**, const char*);
-    int     (*MidiWriteCallback)(ENVIRON*, void*, unsigned char*, int);
-    int     (*MidiOutCloseCallback)(ENVIRON*, void*);
+    int     (*MidiInOpenCallback)(CSOUND*, void**, const char*);
+    int     (*MidiReadCallback)(CSOUND*, void*, unsigned char*, int);
+    int     (*MidiInCloseCallback)(CSOUND*, void*);
+    int     (*MidiOutOpenCallback)(CSOUND*, void**, const char*);
+    int     (*MidiWriteCallback)(CSOUND*, void*, unsigned char*, int);
+    int     (*MidiOutCloseCallback)(CSOUND*, void*);
     char    *(*MidiErrorStringCallback)(int);
     void    *midiInUserData;
     void    *midiOutUserData;
@@ -528,246 +528,240 @@ extern "C" {
     MYFLT       srate;
   } PVOCEX_MEMFILE;
 
-  struct ENVIRON_ {
+  struct CSOUND_ {
     /* Csound API function pointers (288 total) */
     int (*GetVersion)(void);
     int (*GetAPIVersion)(void);
-    void *(*GetHostData)(ENVIRON *);
-    void (*SetHostData)(ENVIRON *, void *hostData);
-    int (*Perform)(ENVIRON *, int argc, char **argv);
-    int (*Compile)(ENVIRON *, int argc, char **argv);
-    int (*PerformKsmps)(ENVIRON *);
-    int (*PerformBuffer)(ENVIRON *);
-    int (*Cleanup)(ENVIRON *);
-    void (*Reset)(ENVIRON *);
-    MYFLT (*GetSr)(ENVIRON *);
-    MYFLT (*GetKr)(ENVIRON *);
-    int (*GetKsmps)(ENVIRON *);
-    int (*GetNchnls)(ENVIRON *);
-    int (*GetSampleFormat)(ENVIRON *);
-    int (*GetSampleSize)(ENVIRON *);
-    long (*GetInputBufferSize)(ENVIRON *);
-    long (*GetOutputBufferSize)(ENVIRON *);
-    MYFLT *(*GetInputBuffer)(ENVIRON *);
-    MYFLT *(*GetOutputBuffer)(ENVIRON *);
-    MYFLT *(*GetSpin)(ENVIRON *);
-    MYFLT *(*GetSpout)(ENVIRON *);
-    MYFLT (*GetScoreTime)(ENVIRON *);
-    MYFLT (*GetProgress)(ENVIRON *);
-    MYFLT (*GetProfile)(ENVIRON *);
-    MYFLT (*GetCpuUsage)(ENVIRON *);
-    int (*IsScorePending)(ENVIRON *);
-    void (*SetScorePending)(ENVIRON *, int pending);
-    MYFLT (*GetScoreOffsetSeconds)(ENVIRON *);
-    void (*SetScoreOffsetSeconds)(ENVIRON *, MYFLT offset);
-    void (*RewindScore)(ENVIRON *);
-    CS_PRINTF2 void (*Message)(ENVIRON *, const char *fmt, ...);
-    CS_PRINTF3 void (*MessageS)(ENVIRON *, int attr, const char *fmt, ...);
-    void (*MessageV)(ENVIRON *, int attr, const char *format, va_list args);
-    void (*ThrowMessage)(ENVIRON *, const char *format, ...);
-    void (*ThrowMessageV)(ENVIRON *, const char *format, va_list args);
-    void (*SetMessageCallback)(ENVIRON *,
-                               void (*csoundMessageCallback)(ENVIRON *,
+    void *(*GetHostData)(CSOUND *);
+    void (*SetHostData)(CSOUND *, void *hostData);
+    int (*Perform)(CSOUND *, int argc, char **argv);
+    int (*Compile)(CSOUND *, int argc, char **argv);
+    int (*PerformKsmps)(CSOUND *);
+    int (*PerformBuffer)(CSOUND *);
+    int (*Cleanup)(CSOUND *);
+    void (*Reset)(CSOUND *);
+    MYFLT (*GetSr)(CSOUND *);
+    MYFLT (*GetKr)(CSOUND *);
+    int (*GetKsmps)(CSOUND *);
+    int (*GetNchnls)(CSOUND *);
+    int (*GetSampleFormat)(CSOUND *);
+    int (*GetSampleSize)(CSOUND *);
+    long (*GetInputBufferSize)(CSOUND *);
+    long (*GetOutputBufferSize)(CSOUND *);
+    MYFLT *(*GetInputBuffer)(CSOUND *);
+    MYFLT *(*GetOutputBuffer)(CSOUND *);
+    MYFLT *(*GetSpin)(CSOUND *);
+    MYFLT *(*GetSpout)(CSOUND *);
+    MYFLT (*GetScoreTime)(CSOUND *);
+    MYFLT (*GetProgress)(CSOUND *);
+    MYFLT (*GetProfile)(CSOUND *);
+    MYFLT (*GetCpuUsage)(CSOUND *);
+    int (*IsScorePending)(CSOUND *);
+    void (*SetScorePending)(CSOUND *, int pending);
+    MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
+    void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT offset);
+    void (*RewindScore)(CSOUND *);
+    CS_PRINTF2 void (*Message)(CSOUND *, const char *fmt, ...);
+    CS_PRINTF3 void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
+    void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
+    void (*ThrowMessage)(CSOUND *, const char *format, ...);
+    void (*ThrowMessageV)(CSOUND *, const char *format, va_list args);
+    void (*SetMessageCallback)(CSOUND *,
+                               void (*csoundMessageCallback)(CSOUND *,
                                                              int attr,
                                                              const char *format,
                                                              va_list valist));
-    void (*SetThrowMessageCallback)(ENVIRON *,
-                     void (*throwMessageCallback)(ENVIRON *,
-                                                  const char *format,
-                                                  va_list valist));
-    int (*GetMessageLevel)(ENVIRON *);
-    void (*SetMessageLevel)(ENVIRON *, int messageLevel);
-    void (*InputMessage)(ENVIRON *, const char *message__);
-    void (*KeyPress)(ENVIRON *, char c__);
-    void (*SetInputValueCallback)(ENVIRON *,
-                                  void (*inputValueCalback)(ENVIRON *,
+    void (*SetThrowMessageCallback)(CSOUND *,
+                                void (*throwMessageCallback)(CSOUND *,
+                                                             const char *format,
+                                                             va_list valist));
+    int (*GetMessageLevel)(CSOUND *);
+    void (*SetMessageLevel)(CSOUND *, int messageLevel);
+    void (*InputMessage)(CSOUND *, const char *message__);
+    void (*KeyPress)(CSOUND *, char c__);
+    void (*SetInputValueCallback)(CSOUND *,
+                                  void (*inputValueCalback)(CSOUND *,
                                                             char *channelName,
                                                             MYFLT *value));
-    void (*SetOutputValueCallback)(ENVIRON *,
-                                   void (*outputValueCalback)(ENVIRON *,
+    void (*SetOutputValueCallback)(CSOUND *,
+                                   void (*outputValueCalback)(CSOUND *,
                                                               char *channelName,
                                                               MYFLT value));
-    int (*ScoreEvent)(ENVIRON *, char type, MYFLT *pFields, long numFields);
-    void (*SetExternalMidiInOpenCallback)(ENVIRON *,
-                                          int (*func)(ENVIRON*, void**,
-                                                      const char*));
-    void (*SetExternalMidiReadCallback)(ENVIRON *,
-                                        int (*func)(ENVIRON*, void*,
+    int (*ScoreEvent)(CSOUND *, char type, MYFLT *pFields, long numFields);
+    void (*SetExternalMidiInOpenCallback)(CSOUND *, int (*func)(CSOUND*, void**,
+                                                                const char*));
+    void (*SetExternalMidiReadCallback)(CSOUND *,
+                                        int (*func)(CSOUND*, void*,
                                                     unsigned char*, int));
-    void (*SetExternalMidiInCloseCallback)(ENVIRON *,
-                                           int (*func)(ENVIRON*, void*));
-    void (*SetExternalMidiOutOpenCallback)(ENVIRON *,
-                                           int (*func)(ENVIRON*, void**,
+    void (*SetExternalMidiInCloseCallback)(CSOUND *,
+                                           int (*func)(CSOUND*, void*));
+    void (*SetExternalMidiOutOpenCallback)(CSOUND *,
+                                           int (*func)(CSOUND*, void**,
                                                        const char*));
-    void (*SetExternalMidiWriteCallback)(ENVIRON *,
-                                         int (*func)(ENVIRON*, void*,
+    void (*SetExternalMidiWriteCallback)(CSOUND *,
+                                         int (*func)(CSOUND*, void*,
                                                      unsigned char*, int));
-    void (*SetExternalMidiOutCloseCallback)(ENVIRON *,
-                                            int (*func)(ENVIRON*, void*));
-    void (*SetExternalMidiErrorStringCallback)(ENVIRON *, char *(*func)(int));
-    void (*SetIsGraphable)(ENVIRON *, int isGraphable);
-    void (*SetMakeGraphCallback)(ENVIRON *,
-                                 void (*makeGraphCallback)(ENVIRON *,
+    void (*SetExternalMidiOutCloseCallback)(CSOUND *,
+                                            int (*func)(CSOUND*, void*));
+    void (*SetExternalMidiErrorStringCallback)(CSOUND *, char *(*func)(int));
+    void (*SetIsGraphable)(CSOUND *, int isGraphable);
+    void (*SetMakeGraphCallback)(CSOUND *,
+                                 void (*makeGraphCallback)(CSOUND *,
                                                            WINDAT *p,
                                                            char *name));
-    void (*SetDrawGraphCallback)(ENVIRON *,
-                                 void (*drawGraphCallback)(ENVIRON *,
+    void (*SetDrawGraphCallback)(CSOUND *,
+                                 void (*drawGraphCallback)(CSOUND *,
                                                            WINDAT *p));
-    void (*SetKillGraphCallback)(ENVIRON *,
-                                 void (*killGraphCallback)(ENVIRON *,
+    void (*SetKillGraphCallback)(CSOUND *,
+                                 void (*killGraphCallback)(CSOUND *,
                                                            WINDAT *p));
-    void (*SetExitGraphCallback)(ENVIRON *,
-                                 int (*exitGraphCallback)(ENVIRON *));
+    void (*SetExitGraphCallback)(CSOUND *, int (*exitGraphCallback)(CSOUND *));
     opcodelist *(*NewOpcodeList)(void);
     void (*DisposeOpcodeList)(opcodelist *opcodelist_);
-    int (*AppendOpcode)(ENVIRON *, char *opname, int dsblksiz,
+    int (*AppendOpcode)(CSOUND *, char *opname, int dsblksiz,
                         int thread, char *outypes, char *intypes,
-                        int (*iopadr)(ENVIRON *, void*),
-                        int (*kopadr)(ENVIRON *, void*),
-                        int (*aopadr)(ENVIRON *, void*));
-    int (*AppendOpcodes)(ENVIRON *, const OENTRY *opcodeList, int n);
-    int (*LoadExternal)(ENVIRON *, const char *libraryPath);
-    int (*LoadExternals)(ENVIRON *);
+                        int (*iopadr)(CSOUND *, void*),
+                        int (*kopadr)(CSOUND *, void*),
+                        int (*aopadr)(CSOUND *, void*));
+    int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
+    int (*LoadExternal)(CSOUND *, const char *libraryPath);
+    int (*LoadExternals)(CSOUND *);
     void *(*OpenLibrary)(const char *libraryPath);
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
-    int (*CheckEvents)(ENVIRON *);
-    void (*SetYieldCallback)(ENVIRON *, int (*yieldCallback)(ENVIRON *));
-    char *(*GetEnv)(ENVIRON *, const char *name);
-    char *(*FindInputFile)(ENVIRON *,
-                           const char *filename, const char *envList);
-    char *(*FindOutputFile)(ENVIRON *,
+    int (*CheckEvents)(CSOUND *);
+    void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));
+    char *(*GetEnv)(CSOUND *, const char *name);
+    char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
+    char *(*FindOutputFile)(CSOUND *,
                             const char *filename, const char *envList);
-    void (*SetPlayopenCallback)(ENVIRON *,
-                                int (*playopen__)(ENVIRON *,
+    void (*SetPlayopenCallback)(CSOUND *,
+                                int (*playopen__)(CSOUND *,
                                                   csRtAudioParams *parm));
-    void (*SetRtplayCallback)(ENVIRON *,
-                              void (*rtplay__)(ENVIRON *, void *outBuf,
-                                               int nbytes));
-    void (*SetRecopenCallback)(ENVIRON *,
-                               int (*recopen__)(ENVIRON *,
+    void (*SetRtplayCallback)(CSOUND *, void (*rtplay__)(CSOUND *, void *outBuf,
+                                                                   int nbytes));
+    void (*SetRecopenCallback)(CSOUND *,
+                               int (*recopen__)(CSOUND *,
                                                 csRtAudioParams *parm));
-    void (*SetRtrecordCallback)(ENVIRON *,
-                                int (*rtrecord__)(ENVIRON *, void *inBuf,
+    void (*SetRtrecordCallback)(CSOUND *,
+                                int (*rtrecord__)(CSOUND *, void *inBuf,
                                                   int nbytes));
-    void (*SetRtcloseCallback)(ENVIRON *, void (*rtclose__)(ENVIRON *));
-    void (*AuxAlloc)(ENVIRON *, long nbytes, AUXCH *auxchp);
-    FUNC *(*FTFind)(ENVIRON *, MYFLT *argp);
-    FUNC *(*FTFindP)(ENVIRON *, MYFLT *argp);
-    FUNC *(*FTnp2Find)(ENVIRON *, MYFLT *argp);
-    MYFLT *(*GetTable)(ENVIRON *, int tableNum, int *tableLength);
-    void *(*Malloc)(ENVIRON *, size_t nbytes);
-    void *(*Calloc)(ENVIRON *, size_t nbytes);
-    void *(*ReAlloc)(ENVIRON *, void *oldp, size_t nbytes);
-    void (*Free)(ENVIRON *, void *ptr);
-    CS_NORETURN CS_PRINTF2 void (*Die)(ENVIRON *, const char *msg, ...);
-    CS_PRINTF2 int (*InitError)(ENVIRON *, const char *msg, ...);
-    CS_PRINTF2 int (*PerfError)(ENVIRON *, const char *msg, ...);
-    CS_PRINTF2 void (*Warning)(ENVIRON *, const char *msg, ...);
-    CS_PRINTF2 void (*DebugMsg)(ENVIRON *, const char *msg, ...);
+    void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
+    void (*AuxAlloc)(CSOUND *, long nbytes, AUXCH *auxchp);
+    FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
+    FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
+    FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
+    MYFLT *(*GetTable)(CSOUND *, int tableNum, int *tableLength);
+    void *(*Malloc)(CSOUND *, size_t nbytes);
+    void *(*Calloc)(CSOUND *, size_t nbytes);
+    void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
+    void (*Free)(CSOUND *, void *ptr);
+    CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
+    CS_PRINTF2 int (*InitError)(CSOUND *, const char *msg, ...);
+    CS_PRINTF2 int (*PerfError)(CSOUND *, const char *msg, ...);
+    CS_PRINTF2 void (*Warning)(CSOUND *, const char *msg, ...);
+    CS_PRINTF2 void (*DebugMsg)(CSOUND *, const char *msg, ...);
     /* Internal functions that are needed */
-    void (*dispset)(ENVIRON *, WINDAT *, MYFLT *, long, char *, int, char *);
-    void (*display)(ENVIRON *, WINDAT *);
-    int (*dispexit)(ENVIRON *);
+    void (*dispset)(CSOUND *, WINDAT *, MYFLT *, long, char *, int, char *);
+    void (*display)(CSOUND *, WINDAT *);
+    int (*dispexit)(CSOUND *);
     MYFLT (*intpow)(MYFLT, long);
-    MEMFIL *(*ldmemfile)(ENVIRON *, const char *);
-    SNDMEMFILE *(*LoadSoundFile)(ENVIRON *, const char *, SF_INFO *);
-    int (*hfgens)(ENVIRON *, FUNC **, EVTBLK *, int);
-    int (*getopnum)(ENVIRON *, char *s);
-    long (*strarg2insno)(ENVIRON *, void *p, int is_string);
-    long (*strarg2opcno)(ENVIRON *, void *p, int is_string, int force_opcode);
-    char *(*strarg2name)(ENVIRON *, char*, void*, const char*, int);
-    int (*insert_score_event)(ENVIRON *, EVTBLK *, double, int);
+    MEMFIL *(*ldmemfile)(CSOUND *, const char *);
+    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, SF_INFO *);
+    int (*hfgens)(CSOUND *, FUNC **, EVTBLK *, int);
+    int (*getopnum)(CSOUND *, char *s);
+    long (*strarg2insno)(CSOUND *, void *p, int is_string);
+    long (*strarg2opcno)(CSOUND *, void *p, int is_string, int force_opcode);
+    char *(*strarg2name)(CSOUND *, char*, void*, const char*, int);
+    int (*insert_score_event)(CSOUND *, EVTBLK *, double, int);
     void (*rewriteheader)(SNDFILE *ofd, int verbose);
-    void (*writeheader)(ENVIRON *, int ofd, char *ofname);
-    void *(*SAsndgetset)(ENVIRON *, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
-    void *(*sndgetset)(ENVIRON *, void*);
-    int (*getsndin)(ENVIRON *, void*, MYFLT*, int, void*);
-    int (*PerformKsmpsAbsolute)(ENVIRON *);
-    int (*GetDebug)(ENVIRON *);
-    void (*SetDebug)(ENVIRON *, int d);
-    int (*TableLength)(ENVIRON *, int table);
-    MYFLT (*TableGet)(ENVIRON *, int table, int index);
-    void (*TableSet)(ENVIRON *, int table, int index, MYFLT value);
-    void *(*CreateThread)(ENVIRON *,
+    void (*writeheader)(CSOUND *, int ofd, char *ofname);
+    void *(*SAsndgetset)(CSOUND *, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
+    void *(*sndgetset)(CSOUND *, void*);
+    int (*getsndin)(CSOUND *, void*, MYFLT*, int, void*);
+    int (*PerformKsmpsAbsolute)(CSOUND *);
+    int (*GetDebug)(CSOUND *);
+    void (*SetDebug)(CSOUND *, int d);
+    int (*TableLength)(CSOUND *, int table);
+    MYFLT (*TableGet)(CSOUND *, int table, int index);
+    void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
+    void *(*CreateThread)(CSOUND *,
                           int (*threadRoutine)(void *userdata), void *userdata);
-    int (*JoinThread)(ENVIRON *, void *thread);
-    void *(*CreateThreadLock)(ENVIRON *);
-    void (*WaitThreadLock)(ENVIRON *, void *lock, size_t milliseconds);
-    void (*NotifyThreadLock)(ENVIRON *, void *lock);
-    void (*DestroyThreadLock)(ENVIRON *, void *lock);
-    void (*SetFLTKThreadLocking)(ENVIRON *, int isLocking);
-    int (*GetFLTKThreadLocking)(ENVIRON *);
+    int (*JoinThread)(CSOUND *, void *thread);
+    void *(*CreateThreadLock)(CSOUND *);
+    void (*WaitThreadLock)(CSOUND *, void *lock, size_t milliseconds);
+    void (*NotifyThreadLock)(CSOUND *, void *lock);
+    void (*DestroyThreadLock)(CSOUND *, void *lock);
+    void (*SetFLTKThreadLocking)(CSOUND *, int isLocking);
+    int (*GetFLTKThreadLocking)(CSOUND *);
     void (*timers_struct_init)(RTCLOCK *);
     double (*timers_get_real_time)(RTCLOCK *);
     double (*timers_get_CPU_time)(RTCLOCK *);
     unsigned long (*timers_random_seed)(void);
     char *(*LocalizeString)(const char*);
-    int (*CreateGlobalVariable)(ENVIRON *, const char *name, size_t nbytes);
-    void *(*QueryGlobalVariable)(ENVIRON *, const char *name);
-    void *(*QueryGlobalVariableNoCheck)(ENVIRON *, const char *name);
-    int (*DestroyGlobalVariable)(ENVIRON *, const char *name);
-    int (*CreateConfigurationVariable)(ENVIRON *, const char *name,
+    int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
+    void *(*QueryGlobalVariable)(CSOUND *, const char *name);
+    void *(*QueryGlobalVariableNoCheck)(CSOUND *, const char *name);
+    int (*DestroyGlobalVariable)(CSOUND *, const char *name);
+    int (*CreateConfigurationVariable)(CSOUND *, const char *name,
                                        void *p, int type, int flags,
                                        void *min, void *max,
                                        const char *shortDesc,
                                        const char *longDesc);
-    int (*SetConfigurationVariable)(ENVIRON *, const char *name, void *value);
-    int (*ParseConfigurationVariable)(ENVIRON *,
+    int (*SetConfigurationVariable)(CSOUND *, const char *name, void *value);
+    int (*ParseConfigurationVariable)(CSOUND *,
                                       const char *name, const char *value);
-    csCfgVariable_t *(*QueryConfigurationVariable)(ENVIRON *,
-                                                   const char *name);
-    csCfgVariable_t **(*ListConfigurationVariables)(ENVIRON *);
-    int (*DeleteConfigurationVariable)(ENVIRON *, const char *name);
+    csCfgVariable_t *(*QueryConfigurationVariable)(CSOUND *, const char *name);
+    csCfgVariable_t **(*ListConfigurationVariables)(CSOUND *);
+    int (*DeleteConfigurationVariable)(CSOUND *, const char *name);
     char *(*CfgErrorCodeToString)(int errcode);
     int (*GetSizeOfMYFLT)(void);
-    void **(*GetRtRecordUserData)(ENVIRON *);
-    void **(*GetRtPlayUserData)(ENVIRON *);
-    MYFLT (*GetInverseComplexFFTScale)(ENVIRON *, int FFTsize);
-    MYFLT (*GetInverseRealFFTScale)(ENVIRON *, int FFTsize);
-    void (*ComplexFFT)(ENVIRON *, MYFLT *buf, int FFTsize);
-    void (*InverseComplexFFT)(ENVIRON *, MYFLT *buf, int FFTsize);
-    void (*RealFFT)(ENVIRON *, MYFLT *buf, int FFTsize);
-    void (*InverseRealFFT)(ENVIRON *, MYFLT *buf, int FFTsize);
-    void (*RealFFTMult)(ENVIRON *, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                                   int FFTsize, MYFLT scaleFac);
-    void (*RealFFTnp2)(ENVIRON *, MYFLT *buf, int FFTsize);
-    void (*InverseRealFFTnp2)(ENVIRON *, MYFLT *buf, int FFTsize);
-    int (*AddUtility)(ENVIRON *, const char *name,
-                      int (*UtilFunc)(ENVIRON *, int, char **));
-    int (*Utility)(ENVIRON *, const char *name, int argc, char **argv);
-    char **(*ListUtilities)(ENVIRON *);
-    int (*SetUtilityDescription)(ENVIRON *, const char *utilName,
+    void **(*GetRtRecordUserData)(CSOUND *);
+    void **(*GetRtPlayUserData)(CSOUND *);
+    MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
+    MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
+    void (*ComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*RealFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*InverseRealFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*RealFFTMult)(CSOUND *, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
+                                  int FFTsize, MYFLT scaleFac);
+    void (*RealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    int (*AddUtility)(CSOUND *, const char *name,
+                      int (*UtilFunc)(CSOUND *, int, char **));
+    int (*Utility)(CSOUND *, const char *name, int argc, char **argv);
+    char **(*ListUtilities)(CSOUND *);
+    int (*SetUtilityDescription)(CSOUND *, const char *utilName,
                                             const char *utilDesc);
-    char *(*GetUtilityDescription)(ENVIRON *, const char *utilName);
-    int (*RegisterSenseEventCallback)(ENVIRON *,
-                                      void (*func)(ENVIRON *, void *),
-                                      void *userData);
-    int (*RegisterDeinitCallback)(ENVIRON *, void *p,
-                                             int (*func)(ENVIRON *, void *));
-    int (*RegisterResetCallback)(ENVIRON *, void *userData,
-                                            int (*func)(ENVIRON *, void *));
-    void *(*CreateFileHandle)(ENVIRON *, void *, int, const char *);
-    void *(*FileOpen)(ENVIRON *,
+    char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
+    int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
+                                                void *userData);
+    int (*RegisterDeinitCallback)(CSOUND *, void *p,
+                                            int (*func)(CSOUND *, void *));
+    int (*RegisterResetCallback)(CSOUND *, void *userData,
+                                           int (*func)(CSOUND *, void *));
+    void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
+    void *(*FileOpen)(CSOUND *,
                       void *, int, const char *, void *, const char *);
     char *(*GetFileName)(void *);
-    int (*FileClose)(ENVIRON *, void *);
+    int (*FileClose)(CSOUND *, void *);
     /* PVOC-EX system */
-    int (*PVOC_CreateFile)(ENVIRON *, const char *,
+    int (*PVOC_CreateFile)(CSOUND *, const char *,
                            unsigned long, unsigned long, unsigned long,
                            unsigned long, long, int, int,
                            float, float *, unsigned long);
-    int (*PVOC_OpenFile)(ENVIRON *, const char *, void *, void *);
-    int (*PVOC_CloseFile)(ENVIRON *, int);
-    int (*PVOC_PutFrames)(ENVIRON *, int, const float *, long);
-    int (*PVOC_GetFrames)(ENVIRON *, int, float *, unsigned long);
-    int (*PVOC_FrameCount)(ENVIRON *, int);
-    int (*PVOC_Rewind)(ENVIRON *, int, int);
-    const char *(*PVOC_ErrorString)(ENVIRON *);
-    int (*PVOCEX_LoadFile)(ENVIRON *, const char *, PVOCEX_MEMFILE *);
-    CS_NORETURN void (*LongJmp)(ENVIRON *, int);
-    CS_PRINTF2 void (*ErrorMsg)(ENVIRON *, const char *fmt, ...);
-    void (*ErrMsgV)(ENVIRON *, const char *hdr, const char *fmt, va_list);
+    int (*PVOC_OpenFile)(CSOUND *, const char *, void *, void *);
+    int (*PVOC_CloseFile)(CSOUND *, int);
+    int (*PVOC_PutFrames)(CSOUND *, int, const float *, long);
+    int (*PVOC_GetFrames)(CSOUND *, int, float *, unsigned long);
+    int (*PVOC_FrameCount)(CSOUND *, int);
+    int (*PVOC_Rewind)(CSOUND *, int, int);
+    const char *(*PVOC_ErrorString)(CSOUND *);
+    int (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
+    CS_NORETURN void (*LongJmp)(CSOUND *, int);
+    CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
+    void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
     char *(*getstrformat)(int format);
     int (*sfsampsize)(int format);
     char *(*type2string)(int type);
@@ -790,10 +784,10 @@ extern "C" {
     double (*GetOffTime)(void *p);
     MYFLT *(*GetPFields)(void *p);
     int (*GetInstrumentNumber)(void *p);
-    int (*FTAlloc)(ENVIRON *, int tableNum, int len);
-    int (*FTDelete)(ENVIRON *, int tableNum);
-    void (*FDRecord)(ENVIRON *, FDCH *fdchp);
-    void (*FDClose)(ENVIRON *, FDCH *fdchp);
+    int (*FTAlloc)(CSOUND *, int tableNum, int len);
+    int (*FTDelete)(CSOUND *, int tableNum);
+    void (*FDRecord)(CSOUND *, FDCH *fdchp);
+    void (*FDClose)(CSOUND *, FDCH *fdchp);
     SUBR dummyfn_1;
     SUBR dummyfn_2[88];
     /* ----------------------- public data fields ----------------------- */
@@ -843,28 +837,27 @@ extern "C" {
 #ifdef __BUILDING_LIBCSOUND
     /* callback function pointers */
     SUBR          first_callback_;
-    void          (*InputValueCallback_)(ENVIRON *,
+    void          (*InputValueCallback_)(CSOUND *,
                                          char *channelName, MYFLT *value);
-    void          (*OutputValueCallback_)(ENVIRON *,
+    void          (*OutputValueCallback_)(CSOUND *,
                                           char *channelName, MYFLT value);
-    void          (*csoundMessageCallback_)(ENVIRON *, int attr,
+    void          (*csoundMessageCallback_)(CSOUND *, int attr,
                                             const char *format, va_list args);
-    void          (*csoundThrowMessageCallback_)(ENVIRON *,
-                                                 const char *format,
-                                                 va_list args);
-    void          (*csoundMakeGraphCallback_)(ENVIRON *, WINDAT *windat,
-                                                         char *name);
-    void          (*csoundDrawGraphCallback_)(ENVIRON *, WINDAT *windat);
-    void          (*csoundKillGraphCallback_)(ENVIRON *, WINDAT *windat);
-    int           (*csoundExitGraphCallback_)(ENVIRON *);
-    int           (*csoundYieldCallback_)(ENVIRON *);
+    void          (*csoundThrowMessageCallback_)(CSOUND *, const char *format,
+                                                           va_list args);
+    void          (*csoundMakeGraphCallback_)(CSOUND *, WINDAT *windat,
+                                                        char *name);
+    void          (*csoundDrawGraphCallback_)(CSOUND *, WINDAT *windat);
+    void          (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat);
+    int           (*csoundExitGraphCallback_)(CSOUND *);
+    int           (*csoundYieldCallback_)(CSOUND *);
     SUBR          last_callback_;
     /* these are not saved on RESET */
-    int           (*playopen_callback)(ENVIRON *, csRtAudioParams *parm);
-    void          (*rtplay_callback)(ENVIRON *, void *outBuf, int nbytes);
-    int           (*recopen_callback)(ENVIRON *, csRtAudioParams *parm);
-    int           (*rtrecord_callback)(ENVIRON *, void *inBuf, int nbytes);
-    void          (*rtclose_callback)(ENVIRON *);
+    int           (*playopen_callback)(CSOUND *, csRtAudioParams *parm);
+    void          (*rtplay_callback)(CSOUND *, void *outBuf, int nbytes);
+    int           (*recopen_callback)(CSOUND *, csRtAudioParams *parm);
+    int           (*rtrecord_callback)(CSOUND *, void *inBuf, int nbytes);
+    void          (*rtclose_callback)(CSOUND *);
     /* end of callbacks */
     MYFLT         cpu_power_busy;
     char          *xfilename;
@@ -967,10 +960,10 @@ extern "C" {
     void          *lineventGlobals;
     void          *musmonGlobals;
     void          *libsndGlobals;
-    void          (*spinrecv)(ENVIRON *);
-    void          (*spoutran)(ENVIRON *);
-    int           (*audrecv)(ENVIRON *, MYFLT *, int);
-    void          (*audtran)(ENVIRON *, MYFLT *, int);
+    void          (*spinrecv)(CSOUND *);
+    void          (*spoutran)(CSOUND *);
+    int           (*audrecv)(CSOUND *, MYFLT *, int);
+    void          (*audtran)(CSOUND *, MYFLT *, int);
     int           warped;               /* rdscor.c */
     int           sstrlen;
     char          *sstrbuf;

@@ -159,7 +159,7 @@ static void init_delay_line(SC_REVERB *p, delayLine *lp, int n)
       lp->buf[i] = FL(0.0);
 }
 
-static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
+static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
 {
     int i, nBytes;
 
@@ -200,7 +200,7 @@ static int sc_reverb_init(ENVIRON *csound, SC_REVERB *p)
     return OK;
 }
 
-static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
+static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 {
     double    ainL, ainR, aoutL, aoutR;
     double    vm1, v0, v1, v2, am1, a0, a1, a2, frac;
@@ -290,17 +290,17 @@ static int sc_reverb_perf(ENVIRON *csound, SC_REVERB *p)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     return 0;
 }
 
-PUBLIC int csoundModuleInit(ENVIRON *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "reverbsc",
                                 (int) sizeof(SC_REVERB), 5, "aa", "aakkjpo",
-                                (int (*)(ENVIRON *, void*)) sc_reverb_init,
-                                (int (*)(ENVIRON *, void*)) NULL,
-                                (int (*)(ENVIRON *, void*)) sc_reverb_perf);
+                                (int (*)(CSOUND *, void*)) sc_reverb_init,
+                                (int (*)(CSOUND *, void*)) NULL,
+                                (int (*)(CSOUND *, void*)) sc_reverb_perf);
 }
 

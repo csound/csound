@@ -34,9 +34,9 @@ Ville Pulkki
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_FOUR_moving_control(ENVIRON *, VBAP_FOUR_MOVING *);
+int vbap_FOUR_moving_control(CSOUND *, VBAP_FOUR_MOVING *);
 
-int vbap_FOUR(ENVIRON *csound, VBAP_FOUR  *p)   /* during note performance:   */
+int vbap_FOUR(CSOUND *csound, VBAP_FOUR *p) /* during note performance: */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -80,7 +80,7 @@ int vbap_FOUR(ENVIRON *csound, VBAP_FOUR  *p)   /* during note performance:   */
     return OK;
 }
 
-int vbap_FOUR_control(ENVIRON *csound, VBAP_FOUR  *p)
+int vbap_FOUR_control(CSOUND *csound, VBAP_FOUR   *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -186,7 +186,7 @@ int vbap_FOUR_control(ENVIRON *csound, VBAP_FOUR  *p)
     return OK;
 }
 
-int vbap_FOUR_init(ENVIRON *csound, VBAP_FOUR  *p)
+int vbap_FOUR_init(CSOUND *csound, VBAP_FOUR   *p)
 {                               /* Initializations before run time*/
     int i,j;
     MYFLT *ptr;
@@ -233,7 +233,7 @@ int vbap_FOUR_init(ENVIRON *csound, VBAP_FOUR  *p)
     return OK;
 }
 
-int vbap_FOUR_moving(ENVIRON *csound, VBAP_FOUR_MOVING  *p) /* during note performance:   */
+int vbap_FOUR_moving(CSOUND *csound, VBAP_FOUR_MOVING   *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
@@ -274,7 +274,7 @@ int vbap_FOUR_moving(ENVIRON *csound, VBAP_FOUR_MOVING  *p) /* during note perfo
     return OK;
 }
 
-int vbap_FOUR_moving_control(ENVIRON *csound, VBAP_FOUR_MOVING *p)
+int vbap_FOUR_moving_control(CSOUND *csound, VBAP_FOUR_MOVING *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -459,7 +459,7 @@ int vbap_FOUR_moving_control(ENVIRON *csound, VBAP_FOUR_MOVING *p)
     return OK;
 }
 
-int vbap_FOUR_moving_init(ENVIRON *csound, VBAP_FOUR_MOVING  *p)
+int vbap_FOUR_moving_init(CSOUND *csound, VBAP_FOUR_MOVING   *p)
 {
     int i,j;
     MYFLT *ptr;

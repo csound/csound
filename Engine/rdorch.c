@@ -119,17 +119,17 @@ typedef struct {
 
 #define ST(x)   (((RDORCH_GLOBALS*) csound->rdorchGlobals)->x)
 
-static  void    intyperr(ENVIRON *, int, char, char);
-static  void    printgroups(ENVIRON *, int);
-static  int     isopcod(ENVIRON *, char *);
-static  void    lblrequest(ENVIRON *, char *), lblfound(ENVIRON *, char *);
-static  void    lblclear(ENVIRON *), lblchk(ENVIRON *);
-static  void    lexerr(ENVIRON *, const char *, ...);
-static  void    synterrp(ENVIRON *, const char *, char *);
+static  void    intyperr(CSOUND *, int, char, char);
+static  void    printgroups(CSOUND *, int);
+static  int     isopcod(CSOUND *, char *);
+static  void    lblrequest(CSOUND *, char *), lblfound(CSOUND *, char *);
+static  void    lblclear(CSOUND *), lblchk(CSOUND *);
+static  void    lexerr(CSOUND *, const char *, ...);
+static  void    synterrp(CSOUND *, const char *, char *);
 
 #include "typetabl.h"                   /* IV - Oct 31 2002 */
 
-void orchRESET(ENVIRON *csound)
+void orchRESET(CSOUND *csound)
 {
     int     i;
 
@@ -160,7 +160,7 @@ void orchRESET(ENVIRON *csound)
     csound->rdorchGlobals = NULL;
 }
 
-static ARGLST *copy_arglist(ENVIRON *csound, ARGLST *old)
+static ARGLST *copy_arglist(CSOUND *csound, ARGLST *old)
 {
     size_t n = sizeof(ARGLST) + old->count * sizeof(char*) - sizeof(char*);
     ARGLST *nn = (ARGLST*) mmalloc(csound, n);
@@ -179,7 +179,7 @@ static inline int isNameChar(int c, int pos)
 /* Functions to read/unread chracters from
  * a stack of file and macro inputs */
 
-static inline void ungetorchar(ENVIRON *csound, int c)
+static inline void ungetorchar(CSOUND *csound, int c)
 {
     if (ST(str)->unget_cnt < 128)
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
@@ -187,7 +187,7 @@ static inline void ungetorchar(ENVIRON *csound, int c)
       csoundDie(csound, "ungetorchar(): buffer overflow");
 }
 
-static void skiporchar(ENVIRON *csound)
+static void skiporchar(CSOUND *csound)
 {
     int c;
  top:
@@ -239,7 +239,7 @@ static void skiporchar(ENVIRON *csound)
     goto top;
 }
 
-static int getorchar(ENVIRON *csound)
+static int getorchar(CSOUND *csound)
 {
     int c;
  top:
@@ -297,7 +297,7 @@ static int getorchar(ENVIRON *csound)
     return c;
 }
 
-void *fopen_path(ENVIRON *csound, FILE **fp, char *name, char *basename,
+void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
                                   char *env)
 {
     void *fd;
@@ -324,7 +324,7 @@ void *fopen_path(ENVIRON *csound, FILE **fp, char *name, char *basename,
     return fd;
 }
 
-static void init_omacros(ENVIRON *csound, NAMES *nn)
+static void init_omacros(CSOUND *csound, NAMES *nn)
 {
     while (nn) {
       char *s = nn->mac;
@@ -347,7 +347,7 @@ static void init_omacros(ENVIRON *csound, NAMES *nn)
     }
 }
 
-void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
+void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
 {
     int     c, lincnt;
     int     srccnt;
@@ -828,7 +828,7 @@ void rdorchfile(ENVIRON *csound)    /* read entire orch file into txt space */
                                                + 200 * sizeof(char*));
 }
 
-static int splitline(ENVIRON *csound)
+static int splitline(CSOUND *csound)
 {                          /* split next orch line into atomic groups, count */
                            /*  labels this line, and set opgrpno where found */
     int     grpcnt, prvif, prvelsif, logical, condassgn, parens;
@@ -1215,13 +1215,13 @@ static int splitline(ENVIRON *csound)
     return grpcnt;
 }
 
-static void resetouts(ENVIRON *csound)
+static void resetouts(CSOUND *csound)
 {
     csound->acount = csound->kcount = csound->icount = 0;
     csound->Bcount = csound->bcount = 0;
 }
 
-TEXT *getoptxt(ENVIRON *csound, int *init)
+TEXT *getoptxt(CSOUND *csound, int *init)
 {                               /* get opcod and args from current line */
                                 /*      returns pntr to a TEXT struct   */
     TEXT        *tp;
@@ -1750,7 +1750,7 @@ TEXT *getoptxt(ENVIRON *csound, int *init)
     return(tp);                         /* return the text blk */
 }
 
-static void intyperr(ENVIRON *csound, int n, char tfound, char expect)
+static void intyperr(CSOUND *csound, int n, char tfound, char expect)
 {
     char    *s = ST(grpsav)[ST(opgrpno) + n];
     char    t[10];
@@ -1780,7 +1780,7 @@ static void intyperr(ENVIRON *csound, int n, char tfound, char expect)
                         "not allowed when expecting %c"), s, t, expect);
 }
 
-static int isopcod(ENVIRON *csound, char *s)
+static int isopcod(CSOUND *csound, char *s)
 {                               /* tst a string against opcodlst  */
     int     n;                  /*   & set op carriers if matched */
 
@@ -1791,7 +1791,7 @@ static int isopcod(ENVIRON *csound, char *s)
     return(1);                              /*  & report success */
 }
 
-int getopnum(ENVIRON *csound, char *s)
+int getopnum(CSOUND *csound, char *s)
 {                               /* tst a string against opcodlst  */
     int     n;                  /*   & return with opnum          */
 
@@ -1812,7 +1812,7 @@ static int pnum(char *s)        /* check a char string for pnum format  */
     return(-1);
 }
 
-char argtyp(ENVIRON *csound, char *s)
+char argtyp(CSOUND *csound, char *s)
 {                       /* find arg type:  d, w, a, k, i, c, p, r, S, B, b */
     char c = *s;        /*   also set lgprevdef if !c && !p && !S */
 
@@ -1843,12 +1843,12 @@ char argtyp(ENVIRON *csound, char *s)
     else return('?');
 }
 
-static void lblclear(ENVIRON *csound)
+static void lblclear(CSOUND *csound)
 {
     ST(lblcnt) = 0;
 }
 
-static void lblrequest(ENVIRON *csound, char *s)
+static void lblrequest(CSOUND *csound, char *s)
 {
     int     req;
 
@@ -1865,7 +1865,7 @@ static void lblrequest(ENVIRON *csound, char *s)
     ST(lblreq)[req].label =s;
 }
 
-static void lblfound(ENVIRON *csound, char *s)
+static void lblfound(CSOUND *csound, char *s)
 {
     int     req;
 
@@ -1886,7 +1886,7 @@ noprob:
     ST(lblreq)[req].reqline = 0;
 }
 
-static void lblchk(ENVIRON *csound)
+static void lblchk(CSOUND *csound)
 {
     int req;
     int n;
@@ -1903,7 +1903,7 @@ static void lblchk(ENVIRON *csound)
       }
 }
 
-void synterr(ENVIRON *csound, const char *s, ...)
+void synterr(CSOUND *csound, const char *s, ...)
 {
     va_list args;
     char    *cp;
@@ -1926,7 +1926,7 @@ void synterr(ENVIRON *csound, const char *s, ...)
     csound->synterrcnt++;
 }
 
-static void synterrp(ENVIRON *csound, const char *errp, char *s)
+static void synterrp(CSOUND *csound, const char *errp, char *s)
 {
     char    *cp;
 
@@ -1940,7 +1940,7 @@ static void synterrp(ENVIRON *csound, const char *errp, char *s)
     csound->ErrorMsg(csound, "^");
 }
 
-static void lexerr(ENVIRON *csound, const char *s, ...)
+static void lexerr(CSOUND *csound, const char *s, ...)
 {
     IN_STACK  *curr = ST(str);
     va_list   args;
@@ -1965,7 +1965,7 @@ static void lexerr(ENVIRON *csound, const char *s, ...)
     csound->LongJmp(csound, 1);
 }
 
-static void printgroups(ENVIRON *csound, int grpcnt)
+static void printgroups(CSOUND *csound, int grpcnt)
 {                                       /*   debugging aid (onto stdout) */
     char    c, *cp = ST(group)[0];
 

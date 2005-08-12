@@ -21,9 +21,9 @@
 */
 #include "csound.h"                                    /*   SMAIN.C  */
 
-PUBLIC void scsort(ENVIRON *, FILE *, FILE *);
+PUBLIC void scsort(CSOUND *, FILE *, FILE *);
 
-static void msg_callback(ENVIRON *csound,
+static void msg_callback(CSOUND *csound,
                          int attr, const char *fmt, va_list args)
 {
     if (attr & CSOUNDMSG_TYPE_MASK) {
@@ -33,7 +33,7 @@ static void msg_callback(ENVIRON *csound,
 
 int main(void)                           /* stdio stub for standalone scsort */
 {
-    ENVIRON *csound;
+    CSOUND *csound;
 
     csound = csoundCreate(NULL);
     csoundSetMessageCallback(csound, msg_callback);

@@ -66,7 +66,8 @@ typedef struct _pvsdemix {
 }
 PVSDEMIX;
 
-int pvsdemix_init(ENVIRON *csound, PVSDEMIX *p);
-int pvsdemix_process(ENVIRON *csound, PVSDEMIX *p);
+int pvsdemix_init(CSOUND *csound, PVSDEMIX *p);
+int pvsdemix_process(CSOUND *csound, PVSDEMIX *p);
 
 #endif
+

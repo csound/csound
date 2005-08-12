@@ -87,7 +87,7 @@ typedef struct _psyn2 {
     double  pi, twopi;
 } _PSYN2;
 
-int psynth_init(ENVIRON * csound, _PSYN * p)
+int psynth_init(CSOUND * csound, _PSYN * p)
 {
     int     numbins = p->fin->N / 2 + 1;
 
@@ -125,7 +125,7 @@ int psynth_init(ENVIRON * csound, _PSYN * p)
     return OK;
 }
 
-int psynth_process(ENVIRON * csound, _PSYN * p)
+int psynth_process(CSOUND * csound, _PSYN * p)
 {
 
     MYFLT   ampnext, amp, freq, freqnext, phase, ratio;
@@ -232,7 +232,7 @@ int psynth_process(ENVIRON * csound, _PSYN * p)
 
 }
 
-int psynth2_init(ENVIRON * csound, _PSYN2 * p)
+int psynth2_init(CSOUND * csound, _PSYN2 * p)
 {
     int     numbins = p->fin->N / 2 + 1;
 
@@ -270,7 +270,7 @@ int psynth2_init(ENVIRON * csound, _PSYN2 * p)
     return OK;
 }
 
-int psynth2_process(ENVIRON * csound, _PSYN2 * p)
+int psynth2_process(CSOUND * csound, _PSYN2 * p)
 {
 
     MYFLT   ampnext, amp, freq, freqnext, phase, phasenext, ratio;
@@ -398,7 +398,7 @@ int psynth2_process(ENVIRON * csound, _PSYN2 * p)
 
 }
 
-int psynth3_process(ENVIRON * csound, _PSYN *p)
+int psynth3_process(CSOUND * csound, _PSYN *p)
 {
 
     MYFLT   ampnext, amp, freq, freqnext, phase, phasenext, ratio;
@@ -543,3 +543,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
+

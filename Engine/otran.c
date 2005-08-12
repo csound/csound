@@ -49,23 +49,23 @@ typedef struct {
     int       nconsts;
 } OTRAN_GLOBALS;
 
-static  int     gexist(ENVIRON *, char *), gbloffndx(ENVIRON *, char *);
-static  int     lcloffndx(ENVIRON *, char *);
-static  int     constndx(ENVIRON *, char *);
-static  int     strconstndx(ENVIRON *, const char *);
-static  void    insprep(ENVIRON *, INSTRTXT *);
-static  void    lgbuild(ENVIRON *, char *);
-static  void    gblnamset(ENVIRON *, char *);
-static  int     plgndx(ENVIRON *, char *);
-static  NAME    *lclnamset(ENVIRON *, char *);
-        int     lgexist(ENVIRON *, const char *);
-static  void    delete_global_namepool(ENVIRON *);
-static  void    delete_local_namepool(ENVIRON *);
+static  int     gexist(CSOUND *, char *), gbloffndx(CSOUND *, char *);
+static  int     lcloffndx(CSOUND *, char *);
+static  int     constndx(CSOUND *, char *);
+static  int     strconstndx(CSOUND *, const char *);
+static  void    insprep(CSOUND *, INSTRTXT *);
+static  void    lgbuild(CSOUND *, char *);
+static  void    gblnamset(CSOUND *, char *);
+static  int     plgndx(CSOUND *, char *);
+static  NAME    *lclnamset(CSOUND *, char *);
+        int     lgexist(CSOUND *, const char *);
+static  void    delete_global_namepool(CSOUND *);
+static  void    delete_local_namepool(CSOUND *);
 
 extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 
 #define txtcpy(a,b) memcpy(a,b,sizeof(TEXT));
-#define ST(x)   (((OTRAN_GLOBALS*) ((ENVIRON*) csound)->otranGlobals)->x)
+#define ST(x)   (((OTRAN_GLOBALS*) ((CSOUND*) csound)->otranGlobals)->x)
 
 #define KTYPE   1
 #define DTYPE   2
@@ -87,7 +87,7 @@ extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 #define FLOAT_COMPARE(x,y)  (fabs((double) (x) / (double) (y) - 1.0) > 5.0e-7)
 #endif
 
-void tranRESET(ENVIRON *csound)
+void tranRESET(CSOUND *csound)
 {
     delete_local_namepool(csound);
     delete_global_namepool(csound);
@@ -116,7 +116,7 @@ void tranRESET(ENVIRON *csound)
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
 
-static int parse_opcode_args(ENVIRON *csound, OENTRY *opc)
+static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
@@ -232,7 +232,7 @@ static int pnum(char *s)        /* check a char string for pnum format  */
     return(-1);
 }
 
-void otran(ENVIRON *csound)
+void otran(CSOUND *csound)
 {
     OPARMS      *O = csound->oparms;
     TEXT        *tp;
@@ -532,7 +532,7 @@ void otran(ENVIRON *csound)
     }
     /* That deals with missing values, however we do need ksmps to be integer */
     {
-      ENVIRON   *p = (ENVIRON*) csound;
+      CSOUND    *p = (CSOUND*) csound;
       char      err_msg[128];
       sprintf(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
                        p->tran_sr, p->tran_kr, p->tran_ksmps);
@@ -643,7 +643,7 @@ void otran(ENVIRON *csound)
 /* prep an instr template for efficient allocs  */
 /* repl arg refs by offset ndx to lcl/gbl space */
 
-static void insprep(ENVIRON *csound, INSTRTXT *tp)
+static void insprep(CSOUND *csound, INSTRTXT *tp)
 {
     OPARMS      *O = csound->oparms;
     OPTXT       *optxt;
@@ -765,7 +765,7 @@ static void insprep(ENVIRON *csound, INSTRTXT *tp)
     mfree(csound, larg);
 }
 
-static void lgbuild(ENVIRON *csound, char *s)
+static void lgbuild(CSOUND *csound, char *s)
 {                               /* build pool of floating const values  */
     char c;                     /* build lcl/gbl list of ds names, offsets */
                                 /*   (no need to save the returned values) */
@@ -781,7 +781,7 @@ static void lgbuild(ENVIRON *csound, char *s)
     }
 }
 
-static int plgndx(ENVIRON *csound, char *s)
+static int plgndx(CSOUND *csound, char *s)
 {                               /* get storage ndx of const, pnum, lcl or gbl */
     char        c;              /* argument const/gbl indexes are positiv+1, */
     int         n, indx;        /* pnum/lcl negativ-1 called only after      */
@@ -805,13 +805,13 @@ static int plgndx(ENVIRON *csound, char *s)
 
 /* for oload.c */
 
-void get_strpool_ptrs(ENVIRON *csound, int *strpool_cnt, char ***strpool)
+void get_strpool_ptrs(CSOUND *csound, int *strpool_cnt, char ***strpool)
 {
     *strpool_cnt = ST(strpool_cnt);
     *strpool = ST(strpool);
 }
 
-void strpool_delete(ENVIRON *csound)
+void strpool_delete(CSOUND *csound)
 {
     int i;
 
@@ -824,7 +824,7 @@ void strpool_delete(ENVIRON *csound)
     ST(strpool_cnt) = 0;
 }
 
-static int strconstndx(ENVIRON *csound, const char *s)
+static int strconstndx(CSOUND *csound, const char *s)
 {                                   /* get storage ndx of string const value */
     int     i, cnt;                 /* builds value pool on 1st occurrence   */
 
@@ -853,7 +853,7 @@ static int strconstndx(ENVIRON *csound, const char *s)
     return cnt;
 }
 
-static int constndx(ENVIRON *csound, char *s)
+static int constndx(CSOUND *csound, char *s)
 {                                   /* get storage ndx of float const value */
     MYFLT   newval;                 /* builds value pool on 1st occurrence  */
     long    n;                      /* final poolcount used in plgndx above */
@@ -894,7 +894,7 @@ static int constndx(ENVIRON *csound, char *s)
     return(0);
 }
 
-void putop(ENVIRON *csound, TEXT *tp)
+void putop(CSOUND *csound, TEXT *tp)
 {
     int n, nn;
 
@@ -931,7 +931,7 @@ static inline int sCmp(const char *x, const char *y)
 /* tests whether variable name exists   */
 /*      in gbl namelist                 */
 
-static int gexist(ENVIRON *csound, char *s)
+static int gexist(CSOUND *csound, char *s)
 {
     unsigned char h = name_hash(s);
     NAME          *p;
@@ -942,7 +942,7 @@ static int gexist(ENVIRON *csound, char *s)
 
 /* returns non-zero if 's' is defined in the global or local pool of names */
 
-int lgexist(ENVIRON *csound, const char *s)
+int lgexist(CSOUND *csound, const char *s)
 {
     unsigned char h = name_hash(s);
     NAME          *p;
@@ -956,7 +956,7 @@ int lgexist(ENVIRON *csound, const char *s)
 
 /* builds namelist & type counts for gbl names */
 
-static void gblnamset(ENVIRON *csound, char *s)
+static void gblnamset(CSOUND *csound, char *s)
 {
     unsigned char h = name_hash(s);
     NAME          *p = ST(gblNames)[h];
@@ -984,7 +984,7 @@ static void gblnamset(ENVIRON *csound, char *s)
 /*  called by otran for each instr for lcl cnts */
 /*  lists then redone by insprep via lcloffndx  */
 
-static NAME *lclnamset(ENVIRON *csound, char *s)
+static NAME *lclnamset(CSOUND *csound, char *s)
 {
     unsigned char h = name_hash(s);
     NAME          *p = ST(lclNames)[h];
@@ -1013,7 +1013,7 @@ static NAME *lclnamset(ENVIRON *csound, char *s)
 /* get named offset index into gbl dspace     */
 /* called only after otran and gblfixed valid */
 
-static int gbloffndx(ENVIRON *csound, char *s)
+static int gbloffndx(CSOUND *csound, char *s)
 {
     unsigned char h = name_hash(s);
     NAME          *p = ST(gblNames)[h];
@@ -1032,7 +1032,7 @@ static int gbloffndx(ENVIRON *csound, char *s)
 /* get named offset index into instr lcl dspace   */
 /* called by insprep aftr lclcnts, lclfixed valid */
 
-static int lcloffndx(ENVIRON *csound, char *s)
+static int lcloffndx(CSOUND *csound, char *s)
 {
     NAME    *np = lclnamset(csound, s);         /* rebuild the table    */
     switch (np->type) {                         /* use cnts to calc ndx */
@@ -1050,7 +1050,7 @@ static int lcloffndx(ENVIRON *csound, char *s)
     return 0;
 }
 
-static void delete_global_namepool(ENVIRON *csound)
+static void delete_global_namepool(CSOUND *csound)
 {
     int i;
 
@@ -1065,7 +1065,7 @@ static void delete_global_namepool(ENVIRON *csound)
     }
 }
 
-static void delete_local_namepool(ENVIRON *csound)
+static void delete_local_namepool(CSOUND *csound)
 {
     int i;
 

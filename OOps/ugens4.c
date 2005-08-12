@@ -25,7 +25,7 @@
 #include "ugens4.h"
 #include <math.h>
 
-int bzzset(ENVIRON *csound, BUZZ *p)
+int bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
 
@@ -41,7 +41,7 @@ int bzzset(ENVIRON *csound, BUZZ *p)
     return NOTOK;
 }
 
-int buzz(ENVIRON *csound, BUZZ *p)
+int buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
@@ -89,7 +89,7 @@ int buzz(ENVIRON *csound, BUZZ *p)
     return OK;
 }
 
-int gbzset(ENVIRON *csound, GBUZZ *p)
+int gbzset(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
 
@@ -123,7 +123,7 @@ MYFLT intpow(MYFLT x, long n)   /* Binary power function */
     return ans;
 }
 
-int gbuzz(ENVIRON *csound, GBUZZ *p)
+int gbuzz(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
@@ -194,7 +194,7 @@ int gbuzz(ENVIRON *csound, GBUZZ *p)
 static  short   rand15(void);
 static  short   rand16(void);
 
-int plukset(ENVIRON *csound, PLUCK *p)
+int plukset(CSOUND *csound, PLUCK *p)
 {
     int n;
     long        npts, iphs;
@@ -274,7 +274,7 @@ int plukset(ENVIRON *csound, PLUCK *p)
     return OK;
 }
 
-int pluck(ENVIRON *csound, PLUCK *p)
+int pluck(CSOUND *csound, PLUCK *p)
 {
     MYFLT       *ar, *fp;
     long        phs256, phsinc, ltwopi, offset;
@@ -434,7 +434,7 @@ long randint31(long seed31)
     return (long)rilo;
 }
 
-int rndset(ENVIRON *csound, RAND *p)
+int rndset(CSOUND *csound, RAND *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {
@@ -463,7 +463,7 @@ int rndset(ENVIRON *csound, RAND *p)
     return OK;
 }
 
-int krand(ENVIRON *csound, RAND *p)
+int krand(CSOUND *csound, RAND *p)
 {
     if (p->new) {
       long r = randint31(p->rand);         /* result is a 31-bit value */
@@ -482,7 +482,7 @@ int krand(ENVIRON *csound, RAND *p)
     return OK;
 }
 
-int arand(ENVIRON *csound, RAND *p)
+int arand(CSOUND *csound, RAND *p)
 {
     MYFLT       *ar;
     short       rndmul = RNDMUL, n = csound->ksmps;
@@ -534,7 +534,7 @@ int arand(ENVIRON *csound, RAND *p)
     return OK;
 }
 
-int rhset(ENVIRON *csound, RANDH *p)
+int rhset(CSOUND *csound, RANDH *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
@@ -570,7 +570,7 @@ int rhset(ENVIRON *csound, RANDH *p)
     return OK;
 }
 
-int krandh(ENVIRON *csound, RANDH *p)
+int krandh(CSOUND *csound, RANDH *p)
 {
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + p->num1 * *p->xamp;     /* rslt = num * amp     */
@@ -593,7 +593,7 @@ int krandh(ENVIRON *csound, RANDH *p)
     return OK;
 }
 
-int randh(ENVIRON *csound, RANDH *p)
+int randh(CSOUND *csound, RANDH *p)
 {
     long        phs = p->phs, inc;
     int n = csound->ksmps;
@@ -632,7 +632,7 @@ int randh(ENVIRON *csound, RANDH *p)
     return OK;
 }
 
-int riset(ENVIRON *csound, RANDI *p)
+int riset(CSOUND *csound, RANDI *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
@@ -686,7 +686,7 @@ int riset(ENVIRON *csound, RANDI *p)
     return OK;
 }
 
-int krandi(ENVIRON *csound, RANDI *p)
+int krandi(CSOUND *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = *p->base + (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
@@ -712,7 +712,7 @@ int krandi(ENVIRON *csound, RANDI *p)
     return OK;
 }
 
-int randi(ENVIRON *csound, RANDI *p)
+int randi(CSOUND *csound, RANDI *p)
 {
     long        phs = p->phs, inc;
     int         n = csound->ksmps;

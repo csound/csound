@@ -94,12 +94,12 @@
     }                                                               \
 }
 
-static  int     dnoise_usage(ENVIRON *, int);
+static  int     dnoise_usage(CSOUND *, int);
 static  void    hamming(MYFLT *, int, int);
 
-static int writebuffer(ENVIRON *, SNDFILE *, MYFLT *, int, int *);
+static int writebuffer(CSOUND *, SNDFILE *, MYFLT *, int, int *);
 
-static void fast(ENVIRON *csound, MYFLT *b, int N)
+static void fast(CSOUND *csound, MYFLT *b, int N)
 {
   /* The DC term is returned in location b[0] with b[1] set to 0.
      Thereafter, the i'th harmonic is returned as a complex
@@ -115,7 +115,7 @@ static void fast(ENVIRON *csound, MYFLT *b, int N)
     b[1] = b[N + 1] = FL(0.0);
 }
 
-static void fsst(ENVIRON *csound, MYFLT *b, int N)
+static void fsst(CSOUND *csound, MYFLT *b, int N)
 {
   /* This subroutine synthesizes the real vector b[k] for k=0, 1,
      ..., N-1 from the fourier coefficients stored in the b
@@ -137,7 +137,7 @@ static void fsst(ENVIRON *csound, MYFLT *b, int N)
     csound->InverseRealFFT(csound, b, N);
 }
 
-static int dnoise(ENVIRON *csound, int argc, char **argv)
+static int dnoise(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
 
@@ -1140,7 +1140,7 @@ static int dnoise(ENVIRON *csound, int argc, char **argv)
     return 0;
 }
 
-static int dnoise_usage(ENVIRON *csound, int exitcode)
+static int dnoise_usage(CSOUND *csound, int exitcode)
 {
     csound->Message(csound,
             "usage: dnoise [flags] input_file\n"
@@ -1169,7 +1169,7 @@ static int dnoise_usage(ENVIRON *csound, int exitcode)
     return exitcode;
 }
 
-static void sndwrterr(ENVIRON *csound, SNDFILE *outfd,
+static void sndwrterr(CSOUND *csound, SNDFILE *outfd,
                       int nret, int nput)
                                 /* report soundfile write(osfd) error      */
 {                               /*    called after chk of write() bytecnt  */
@@ -1181,7 +1181,7 @@ static void sndwrterr(ENVIRON *csound, SNDFILE *outfd,
     csound->Die(csound, Str("\t... closed\n"));
 }
 
-static int writebuffer(ENVIRON *csound, SNDFILE *outfd,
+static int writebuffer(CSOUND *csound, SNDFILE *outfd,
                        MYFLT *outbuf, int nsmps, int *nrecs)
 {
     OPARMS  *O = csound->oparms;
@@ -1237,7 +1237,7 @@ static void hamming(MYFLT *win, int winLen, int even)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "dnoise", dnoise);
     if (!retval) {

@@ -38,14 +38,14 @@
  *
  */
 
-int svfset(ENVIRON *csound, SVF *p)
+int svfset(CSOUND *csound, SVF *p)
 {
     /* set initial delay states to 0 */
     p->ynm1 = p->ynm2 = FL(0.0);
     return OK;
 }
 
-int svf(ENVIRON *csound, SVF *p)
+int svf(CSOUND *csound, SVF *p)
 {
     MYFLT f1, q1, scale;
     MYFLT *low, *high, *band, *in, ynm1, ynm2;
@@ -99,7 +99,7 @@ int svf(ENVIRON *csound, SVF *p)
  * Allpass coefficients are calculated at i-time.
  */
 
-int hilbertset(ENVIRON *csound, HILBERT *p)
+int hilbertset(CSOUND *csound, HILBERT *p)
 {
     int j;  /* used to increment for loop */
 
@@ -122,7 +122,7 @@ int hilbertset(ENVIRON *csound, HILBERT *p)
     return OK;
 }
 
-int hilbert(ENVIRON *csound, HILBERT *p)
+int hilbert(CSOUND *csound, HILBERT *p)
 {
     MYFLT xn1 = FL(0.0), yn1 = FL(0.0), xn2 = FL(0.0), yn2 = FL(0.0);
     MYFLT *out1, *out2, *in;
@@ -177,7 +177,7 @@ int hilbert(ENVIRON *csound, HILBERT *p)
  *
  */
 
-int resonzset(ENVIRON *csound, RESONZ *p)
+int resonzset(CSOUND *csound, RESONZ *p)
 {
     /* error message code derived from code for reson in ugens5.c */
     int scaletype;
@@ -194,7 +194,7 @@ int resonzset(ENVIRON *csound, RESONZ *p)
     return OK;
 }
 
-int resonr(ENVIRON *csound, RESONZ *p)
+int resonr(CSOUND *csound, RESONZ *p)
 {
     /*
      *
@@ -247,7 +247,7 @@ int resonr(ENVIRON *csound, RESONZ *p)
     return OK;
 }
 
-int resonz(ENVIRON *csound, RESONZ *p)
+int resonz(CSOUND *csound, RESONZ *p)
 {
     /*
      *
@@ -303,7 +303,7 @@ int resonz(ENVIRON *csound, RESONZ *p)
     return OK;
 }
 
-int phaser1set(ENVIRON *csound, PHASER1 *p)
+int phaser1set(CSOUND *csound, PHASER1 *p)
 {
     int   loop = (int) (*p->iorder + FL(0.5));
     long  nBytes = (long) loop * (long) sizeof(MYFLT);
@@ -335,7 +335,7 @@ int phaser1set(ENVIRON *csound, PHASER1 *p)
     return OK;
 }
 
-int phaser1(ENVIRON *csound, PHASER1 *p)
+int phaser1(CSOUND *csound, PHASER1 *p)
 {
     MYFLT xn = FL(0.0), yn = FL(0.0);
     MYFLT *out, *in;
@@ -378,7 +378,7 @@ int phaser1(ENVIRON *csound, PHASER1 *p)
     return OK;
 }
 
-int phaser2set(ENVIRON *csound, PHASER2 *p)
+int phaser2set(CSOUND *csound, PHASER2 *p)
 {
     int modetype, j;
     int loop;
@@ -399,7 +399,7 @@ int phaser2set(ENVIRON *csound, PHASER2 *p)
     return OK;
 }
 
-int phaser2(ENVIRON *csound, PHASER2 *p)
+int phaser2(CSOUND *csound, PHASER2 *p)
 {
     MYFLT xn = FL(0.0), yn = FL(0.0);
     MYFLT *out, *in;
@@ -469,7 +469,7 @@ int phaser2(ENVIRON *csound, PHASER2 *p)
 }
 
 /* initialization for 2nd-order lowpass filter */
-int lp2_set(ENVIRON *csound, LP2 *p)
+int lp2_set(CSOUND *csound, LP2 *p)
 {
     if (!(*p->istor))
       p->ynm1 = p->ynm2 = FL(0.0);
@@ -478,7 +478,7 @@ int lp2_set(ENVIRON *csound, LP2 *p)
 
 /* k-time code for 2nd-order lowpass filter. Derived from code in
 Hal Chamberlin's "Musical Applications of Microprocessors." */
-int lp2(ENVIRON *csound, LP2 *p)
+int lp2(CSOUND *csound, LP2 *p)
 {
     MYFLT a, b, c, temp;
     MYFLT *out, *in, yn, ynm1, ynm2;

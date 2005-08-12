@@ -30,8 +30,11 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.12  2005-08-10 09:57:07  istvanv
- *      Use ENVIRON* type for Csound instance pointers instead of void*
+ *      Revision 1.13  2005-08-12 19:01:23  istvanv
+ *      Renamed ENVIRON to CSOUND
+ *
+ *      Revision 1.12  2005/08/10 09:57:07  istvanv
+ *      Use CSOUND* type for Csound instance pointers instead of void*
  *
  *      Revision 1.11  2005/07/15 10:13:28  istvanv
  *      Removed cs.h
@@ -77,10 +80,10 @@ static char *rcsid = "$Id$";
 #include "csoundCore.h"
 #include <math.h>
 
-static void fft_(ENVIRON *,MYFLT *, MYFLT *, int, int, int, int);
+static void fft_(CSOUND *,MYFLT *, MYFLT *, int, int, int, int);
 static void fftmx(MYFLT *, MYFLT *, int, int, int, int, int,
                   int*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int *, int[]);
-static void reals_(ENVIRON *,MYFLT *, MYFLT *, int, int);
+static void reals_(CSOUND *,MYFLT *, MYFLT *, int, int);
 
 /*
  *-----------------------------------------------------------------------
@@ -95,7 +98,7 @@ static void reals_(ENVIRON *,MYFLT *, MYFLT *, int, int);
  *              fft_(csound,anal,banal,one,N2,one,mtwo);
  */
 
-static void fft_(ENVIRON *csound, MYFLT *a, MYFLT *b,
+static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
                                   int nseg, int n, int nspn, int isn)
   /*    *a,       pointer to array 'anal'  */
   /*    *b;       pointer to array 'banal' */
@@ -823,7 +826,7 @@ lbl570:
  *              reals_(csound,anal,banal,&N2,&mtwo);
  */
 
-static void reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
+static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int n, int isn)
 
   /*    *a,       a refers to an array of floats 'anal'   */
   /*    *b;       b refers to an array of floats 'banal'  */
@@ -915,7 +918,7 @@ static void reals_(ENVIRON *csound, MYFLT *a, MYFLT *b, int n, int isn)
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-PUBLIC void csoundRealFFTnp2(ENVIRON *csound, MYFLT *buf, int FFTsize)
+PUBLIC void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     if (!(FFTsize & (FFTsize - 1))) {
       /* if FFT size is power of two: */
@@ -942,7 +945,7 @@ PUBLIC void csoundRealFFTnp2(ENVIRON *csound, MYFLT *buf, int FFTsize)
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-PUBLIC void csoundInverseRealFFTnp2(ENVIRON *csound, MYFLT *buf, int FFTsize)
+PUBLIC void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     if (FFTsize < 2 || (FFTsize & 1))
       csoundDie(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));

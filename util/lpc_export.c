@@ -37,12 +37,12 @@
 #include "lpc.h"
 #include "text.h"
 
-void lpc_export_usage(ENVIRON *csound)
+void lpc_export_usage(CSOUND *csound)
 {
     csound->Message(csound, "usage: lpc_export lpc_file cstext-file\n");
 }
 
-static int lpc_export(ENVIRON *csound, int argc, char **argv)
+static int lpc_export(CSOUND *csound, int argc, char **argv)
 {
     FILE *inf;
     FILE *outf;
@@ -92,7 +92,7 @@ static int lpc_export(ENVIRON *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(ENVIRON *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "lpc_export", lpc_export);
     if (!retval) {

@@ -1,5 +1,5 @@
 int
-pyexec_krate(ENVIRON *csound, PYEXEC *p)
+pyexec_krate(CSOUND *csound, PYEXEC *p)
 {
   char source[1024];
   PyObject *result;
@@ -18,7 +18,7 @@ pyexec_krate(ENVIRON *csound, PYEXEC *p)
 }
 
 int
-pyexeci_irate(ENVIRON *csound, PYEXEC *p)
+pyexeci_irate(CSOUND *csound, PYEXEC *p)
 {
   char source[1024];
   PyObject *result;
@@ -37,7 +37,7 @@ pyexeci_irate(ENVIRON *csound, PYEXEC *p)
 }
 
 int
-pylexec_irate(ENVIRON *csound, PYEXEC *p)
+pylexec_irate(CSOUND *csound, PYEXEC *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -45,7 +45,7 @@ pylexec_irate(ENVIRON *csound, PYEXEC *p)
 }
 
 int
-pylexec_krate(ENVIRON *csound, PYEXEC *p)
+pylexec_krate(CSOUND *csound, PYEXEC *p)
 {
   char source[1024];
   PyObject *result;
@@ -64,7 +64,7 @@ pylexec_krate(ENVIRON *csound, PYEXEC *p)
 }
 
 int
-pylexeci_irate(ENVIRON *csound, PYEXEC *p)
+pylexeci_irate(CSOUND *csound, PYEXEC *p)
 {
   char source[1024];
   PyObject *result;
@@ -85,7 +85,7 @@ pylexeci_irate(ENVIRON *csound, PYEXEC *p)
 }
 
 int
-pyexect_krate(ENVIRON *csound, PYEXECT *p)
+pyexect_krate(CSOUND *csound, PYEXECT *p)
 {
   char source[1024];
   PyObject *result;
@@ -106,7 +106,7 @@ pyexect_krate(ENVIRON *csound, PYEXECT *p)
 }
 
 int
-pylexect_irate(ENVIRON *csound, PYEXECT *p)
+pylexect_irate(CSOUND *csound, PYEXECT *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -114,7 +114,7 @@ pylexect_irate(ENVIRON *csound, PYEXECT *p)
 }
 
 int
-pylexect_krate(ENVIRON *csound, PYEXECT *p)
+pylexect_krate(CSOUND *csound, PYEXECT *p)
 {
   char source[1024];
   PyObject *result;
@@ -135,7 +135,7 @@ pylexect_krate(ENVIRON *csound, PYEXECT *p)
 }
 
 int
-pyrun_krate(ENVIRON *csound, PYRUN *p)
+pyrun_krate(CSOUND *csound, PYRUN *p)
 {
   char source[40960];
   PyObject *result;
@@ -154,7 +154,7 @@ pyrun_krate(ENVIRON *csound, PYRUN *p)
 }
 
 int
-pyruni_irate(ENVIRON *csound, PYRUN *p)
+pyruni_irate(CSOUND *csound, PYRUN *p)
 {
   char source[40960];
   PyObject *result;
@@ -173,7 +173,7 @@ pyruni_irate(ENVIRON *csound, PYRUN *p)
 }
 
 int
-pylrun_irate(ENVIRON *csound, PYRUN *p)
+pylrun_irate(CSOUND *csound, PYRUN *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -181,7 +181,7 @@ pylrun_irate(ENVIRON *csound, PYRUN *p)
 }
 
 int
-pylrun_krate(ENVIRON *csound, PYRUN *p)
+pylrun_krate(CSOUND *csound, PYRUN *p)
 {
   char source[40960];
   PyObject *result;
@@ -200,7 +200,7 @@ pylrun_krate(ENVIRON *csound, PYRUN *p)
 }
 
 int
-pylruni_irate(ENVIRON *csound, PYRUN *p)
+pylruni_irate(CSOUND *csound, PYRUN *p)
 {
   char source[40960];
   PyObject *result;
@@ -221,7 +221,7 @@ pylruni_irate(ENVIRON *csound, PYRUN *p)
 }
 
 int
-pyrunt_krate(ENVIRON *csound, PYRUNT *p)
+pyrunt_krate(CSOUND *csound, PYRUNT *p)
 {
   char source[40960];
   PyObject *result;
@@ -242,7 +242,7 @@ pyrunt_krate(ENVIRON *csound, PYRUNT *p)
 }
 
 int
-pylrunt_irate(ENVIRON *csound, PYRUNT *p)
+pylrunt_irate(CSOUND *csound, PYRUNT *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -250,7 +250,7 @@ pylrunt_irate(ENVIRON *csound, PYRUNT *p)
 }
 
 int
-pylrunt_krate(ENVIRON *csound, PYRUNT *p)
+pylrunt_krate(CSOUND *csound, PYRUNT *p)
 {
   char source[40960];
   PyObject *result;
@@ -271,7 +271,7 @@ pylrunt_krate(ENVIRON *csound, PYRUNT *p)
 }
 
 int
-pyeval_krate(ENVIRON *csound, PYEVAL *p)
+pyeval_krate(CSOUND *csound, PYEVAL *p)
 {
   char source[1024];
   PyObject *result;
@@ -298,7 +298,7 @@ pyeval_krate(ENVIRON *csound, PYEVAL *p)
 }
 
 int
-pyevali_irate(ENVIRON *csound, PYEVAL *p)
+pyevali_irate(CSOUND *csound, PYEVAL *p)
 {
   char source[1024];
   PyObject *result;
@@ -325,7 +325,7 @@ pyevali_irate(ENVIRON *csound, PYEVAL *p)
 }
 
 int
-pyleval_irate(ENVIRON *csound, PYEVAL *p)
+pyleval_irate(CSOUND *csound, PYEVAL *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -333,7 +333,7 @@ pyleval_irate(ENVIRON *csound, PYEVAL *p)
 }
 
 int
-pyleval_krate(ENVIRON *csound, PYEVAL *p)
+pyleval_krate(CSOUND *csound, PYEVAL *p)
 {
   char source[1024];
   PyObject *result;
@@ -360,7 +360,7 @@ pyleval_krate(ENVIRON *csound, PYEVAL *p)
 }
 
 int
-pylevali_irate(ENVIRON *csound, PYEVAL *p)
+pylevali_irate(CSOUND *csound, PYEVAL *p)
 {
   char source[1024];
   PyObject *result;
@@ -389,7 +389,7 @@ pylevali_irate(ENVIRON *csound, PYEVAL *p)
 }
 
 int
-pyevalt_krate(ENVIRON *csound, PYEVALT *p)
+pyevalt_krate(CSOUND *csound, PYEVALT *p)
 {
   char source[1024];
   PyObject *result;
@@ -422,7 +422,7 @@ pyevalt_krate(ENVIRON *csound, PYEVALT *p)
 }
 
 int
-pylevalt_irate(ENVIRON *csound, PYEVALT *p)
+pylevalt_irate(CSOUND *csound, PYEVALT *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -430,7 +430,7 @@ pylevalt_irate(ENVIRON *csound, PYEVALT *p)
 }
 
 int
-pylevalt_krate(ENVIRON *csound, PYEVALT *p)
+pylevalt_krate(CSOUND *csound, PYEVALT *p)
 {
   char source[1024];
   PyObject *result;
@@ -463,7 +463,7 @@ pylevalt_krate(ENVIRON *csound, PYEVALT *p)
 }
 
 int
-pyassign_krate(ENVIRON *csound, PYASSIGN *p)
+pyassign_krate(CSOUND *csound, PYASSIGN *p)
 {
   char source[1024];
   PyObject *result;
@@ -482,7 +482,7 @@ pyassign_krate(ENVIRON *csound, PYASSIGN *p)
 }
 
 int
-pyassigni_irate(ENVIRON *csound, PYASSIGN *p)
+pyassigni_irate(CSOUND *csound, PYASSIGN *p)
 {
   char source[1024];
   PyObject *result;
@@ -501,7 +501,7 @@ pyassigni_irate(ENVIRON *csound, PYASSIGN *p)
 }
 
 int
-pylassign_irate(ENVIRON *csound, PYASSIGN *p)
+pylassign_irate(CSOUND *csound, PYASSIGN *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -509,7 +509,7 @@ pylassign_irate(ENVIRON *csound, PYASSIGN *p)
 }
 
 int
-pylassign_krate(ENVIRON *csound, PYASSIGN *p)
+pylassign_krate(CSOUND *csound, PYASSIGN *p)
 {
   char source[1024];
   PyObject *result;
@@ -528,7 +528,7 @@ pylassign_krate(ENVIRON *csound, PYASSIGN *p)
 }
 
 int
-pylassigni_irate(ENVIRON *csound, PYASSIGN *p)
+pylassigni_irate(CSOUND *csound, PYASSIGN *p)
 {
   char source[1024];
   PyObject *result;
@@ -549,7 +549,7 @@ pylassigni_irate(ENVIRON *csound, PYASSIGN *p)
 }
 
 int
-pyassignt_krate(ENVIRON *csound, PYASSIGNT *p)
+pyassignt_krate(CSOUND *csound, PYASSIGNT *p)
 {
   char source[1024];
   PyObject *result;
@@ -570,7 +570,7 @@ pyassignt_krate(ENVIRON *csound, PYASSIGNT *p)
 }
 
 int
-pylassignt_irate(ENVIRON *csound, PYASSIGNT *p)
+pylassignt_irate(CSOUND *csound, PYASSIGNT *p)
 {
 
   create_private_namespace_if_needed(&p->h);
@@ -578,7 +578,7 @@ pylassignt_irate(ENVIRON *csound, PYASSIGNT *p)
 }
 
 int
-pylassignt_krate(ENVIRON *csound, PYASSIGNT *p)
+pylassignt_krate(CSOUND *csound, PYASSIGNT *p)
 {
   char source[1024];
   PyObject *result;

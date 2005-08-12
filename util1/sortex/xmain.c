@@ -21,15 +21,15 @@
 */
 #include "csound.h"                                /*   XMAIN.C  */
 
-PUBLIC int scxtract(ENVIRON *, FILE *, FILE *, FILE *);
+PUBLIC int scxtract(CSOUND *, FILE *, FILE *, FILE *);
 
 int main(int ac, char **av)         /* stdio stub for standalone extract */
                                     /*     first opens the control xfile */
 {
-    ENVIRON *csound;
+    CSOUND *csound;
     FILE    *xfp;
 
-    csound = (ENVIRON*) csoundCreate(NULL);
+    csound = (CSOUND*) csoundCreate(NULL);
     csoundPreCompile(csound);
     ac--;  av++;
     if (ac != 1) {

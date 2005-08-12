@@ -26,15 +26,15 @@
 #include "csmodule.h"
 #include <ctype.h>              /* For isdigit */
 
-extern  void    dieu(ENVIRON *, char *, ...);
-extern  int     argdecode(ENVIRON *, int, char **);
-extern  int     init_pvsys(ENVIRON *);
-extern  char    *get_sconame(ENVIRON *);
-extern  int     musmon2(ENVIRON *);
+extern  void    dieu(CSOUND *, char *, ...);
+extern  int     argdecode(CSOUND *, int, char **);
+extern  int     init_pvsys(CSOUND *);
+extern  char    *get_sconame(CSOUND *);
+extern  int     musmon2(CSOUND *);
 extern  char    *getstrformat(int);
-extern  void    print_benchmark_info(ENVIRON *, const char *);
+extern  void    print_benchmark_info(CSOUND *, const char *);
 
-static void create_opcodlst(ENVIRON *csound)
+static void create_opcodlst(CSOUND *csound)
 {
     extern  OENTRY  opcodlst_1[];
     extern  OENTRY  opcodlst_2[];
@@ -46,7 +46,7 @@ static void create_opcodlst(ENVIRON *csound)
     csoundAppendOpcodes(csound, &(opcodlst_2[0]), -1);
 }
 
-PUBLIC int csoundCompile(ENVIRON *csound, int argc, char **argv)
+PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s, *orcNameMode;
@@ -328,14 +328,14 @@ PUBLIC int csoundCompile(ENVIRON *csound, int argc, char **argv)
     O->filnamsize = filnamp - O->filnamspace;
     /* open MIDI output (moved here from argdecode) */
     {
-      extern void openMIDIout(ENVIRON *);
+      extern void openMIDIout(CSOUND *);
       if (O->Midioutname != NULL && O->Midioutname[0] != '\0')
         openMIDIout(csound);
     }
     return musmon(csound);
 }
 
-PUBLIC int csoundPerform(ENVIRON *csound, int argc, char **argv)
+PUBLIC int csoundPerform(CSOUND *csound, int argc, char **argv)
 {
     int     n;
 

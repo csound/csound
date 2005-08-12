@@ -99,7 +99,7 @@ public:
   std::string messagebuffer;
   CsoundVstFltk(AudioEffect *audioEffect);
   virtual ~CsoundVstFltk(void);
-  static void messageCallback(ENVIRON *csound, int attribute, const char *format, va_list valist);
+  static void messageCallback(CSOUND *csound, int attribute, const char *format, va_list valist);
   virtual void updateCaption();
   virtual void updateModel();
   //    AEffEditor overrides.
@@ -129,3 +129,4 @@ public:
 };
 
 #endif
+

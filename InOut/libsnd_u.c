@@ -35,7 +35,7 @@ void rewriteheader(SNDFILE *ofd, int verbose)
 /* used by SoundAnal progs */
 /* Returns NULL on failure */
 
-void *SAsndgetset(ENVIRON *csound, char *infilnam, void *ap_,
+void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
                   MYFLT *abeg_time, MYFLT *ainput_dur, MYFLT *asr,
                   int channel)
 {
@@ -90,7 +90,7 @@ void *SAsndgetset(ENVIRON *csound, char *infilnam, void *ap_,
  *
  * extra arg passed for filetyp testing on POST-HEADER reads of audio samples
  */
-static int sreadin(ENVIRON *csound, SNDFILE *infd, MYFLT *inbuf,
+static int sreadin(CSOUND *csound, SNDFILE *infd, MYFLT *inbuf,
                    int nsamples, SOUNDIN *p)
 {
     /* return the number of samples read */
@@ -113,7 +113,7 @@ static int sreadin(ENVIRON *csound, SNDFILE *infd, MYFLT *inbuf,
 /* called from sndinset, SAsndgetset, & gen01 */
 /* Return NULL on failure */
 
-void *sndgetset(ENVIRON *csound, void *p_)
+void *sndgetset(CSOUND *csound, void *p_)
 {
     SOUNDIN *p = (SOUNDIN*) p_;
     int     n;
@@ -252,7 +252,7 @@ void *sndgetset(ENVIRON *csound, void *p_)
 
 /* a simplified soundin */
 
-int getsndin(ENVIRON *csound, void *fd_, MYFLT *fp, int nlocs, void *p_)
+int getsndin(CSOUND *csound, void *fd_, MYFLT *fp, int nlocs, void *p_)
 {
     SNDFILE *fd = (SNDFILE*) fd_;
     SOUNDIN *p = (SOUNDIN*) p_;
@@ -306,7 +306,7 @@ int getsndin(ENVIRON *csound, void *fd_, MYFLT *fp, int nlocs, void *p_)
     return n;
 }
 
-void dbfs_init(ENVIRON *csound, MYFLT dbfs)
+void dbfs_init(CSOUND *csound, MYFLT dbfs)
 {
     csound->dbfs_to_float = FL(1.0) / dbfs;
     csound->e0dbfs = dbfs;

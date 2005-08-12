@@ -34,7 +34,7 @@
 
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
-static int pvocex_loadfile(ENVIRON *, const char *fname, PVREAD *p);
+static int pvocex_loadfile(CSOUND *, const char *fname, PVREAD *p);
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
@@ -71,7 +71,7 @@ void FetchInOne(
     }
 }
 
-int pvreadset(ENVIRON *csound, PVREAD *p)
+int pvreadset(CSOUND *csound, PVREAD *p)
 {
     char      pvfilnam[256];
 
@@ -84,7 +84,7 @@ int pvreadset(ENVIRON *csound, PVREAD *p)
     return NOTOK;
 }
 
-int pvread(ENVIRON *csound, PVREAD *p)
+int pvread(CSOUND *csound, PVREAD *p)
 {
     MYFLT  frIndx;
     MYFLT  *buf = (MYFLT*) p->fftBuf.auxp;
@@ -106,7 +106,7 @@ int pvread(ENVIRON *csound, PVREAD *p)
     return OK;
 }
 
-static int pvocex_loadfile(ENVIRON *csound, const char *fname, PVREAD *p)
+static int pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
 {
     PVOCEX_MEMFILE  pp;
 

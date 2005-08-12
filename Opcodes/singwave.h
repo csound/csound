@@ -80,7 +80,7 @@ typedef struct Modulatr {
     MYFLT    lastOutput;
 } Modulatr;
 
-int make_Modulatr(ENVIRON *, Modulatr *, MYFLT *);
+int make_Modulatr(CSOUND *, Modulatr *, MYFLT *);
 void Modulatr_reset(Modulatr *);
 void Modulatr_setRndAmt(Modulatr *, MYFLT rndAmount);
 MYFLT Modulatr_tick(Modulatr *);
@@ -98,9 +98,9 @@ typedef struct SingWave {
 } SingWave;
 
 void SingWave_reset(SingWave *);
-void SingWave_setFreq(ENVIRON *csound,SingWave *,MYFLT aFreq);
+void SingWave_setFreq(CSOUND *csound,SingWave *,MYFLT aFreq);
 MYFLT SingWave_tick(SingWave *);
-void SingWave_print(ENVIRON *,SingWave *);
+void SingWave_print(CSOUND *,SingWave *);
 
 /*******************************************/
 /*  4 Formant Synthesis Instrument         */
@@ -147,9 +147,10 @@ typedef struct VOICF {
 
 void make_VoicForm(VOICF*);
 void VoicForm_clear(VOICF*);
-void VoicForm_setPhoneme(ENVIRON *,VOICF*, int i, MYFLT s);
+void VoicForm_setPhoneme(CSOUND *,VOICF*, int i, MYFLT s);
 void VoicForm_setVoicedUnVoiced(VOICF*, MYFLT vGain, MYFLT nGain);
 void VoicForm_noteOn(VOICF*, MYFLT freq, MYFLT amp);
 void VoicForm_noteOff(VOICF*);
 
 #endif
+

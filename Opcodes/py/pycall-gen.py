@@ -25,7 +25,7 @@ def generate_pycall_common_init_code(f, n, pre, post, rate, triggered=0):
         t, T = '', ''
     name = 'py%scall%d%s%s_%srate' % (pre, n, post, t, rate)
     print >> f, 'int'
-    print >> f, '%s(ENVIRON *csound, PYCALL%d%s *p)' % (name, n, T)
+    print >> f, '%s(CSOUND *csound, PYCALL%d%s *p)' % (name, n, T)
     print >> f, '{'
     print >> f, '  char command[1024];'
     print >> f, '  PyObject *result;'
@@ -138,7 +138,7 @@ def generate_pylcall_irate_method(f, n, triggered=0):
 
     name = 'pylcall%d%s_irate' % (n, t)
     print >> f, 'int'
-    print >> f, '%s(ENVIRON *csound, PYCALL%d%s *p)' % (name, n, T)
+    print >> f, '%s(CSOUND *csound, PYCALL%d%s *p)' % (name, n, T)
     print >> f, '{'
 ##    print >> f, '  if (*p->function != SSTRCOD)'
 ##    print >> f, '    {'
@@ -191,16 +191,16 @@ def generate_pycall_opcode_struct(f, n, triggered=0):
     print >> f
 
 def generate_pycall_method_declaration(f, n):
-    print >> f, 'extern int pycall%d_krate(ENVIRON *csound, PYCALL%d *p);' % (n, n)
-    print >> f, 'extern int pylcall%d_irate(ENVIRON *csound, PYCALL%d *p);' % (n, n)
-    print >> f, 'extern int pylcall%d_krate(ENVIRON *csound, PYCALL%d *p);' % (n, n)
-    print >> f, 'extern int pylcall%di_irate(ENVIRON *csound, PYCALL%d *p);' % (n, n)
+    print >> f, 'extern int pycall%d_krate(CSOUND *csound, PYCALL%d *p);' % (n, n)
+    print >> f, 'extern int pylcall%d_irate(CSOUND *csound, PYCALL%d *p);' % (n, n)
+    print >> f, 'extern int pylcall%d_krate(CSOUND *csound, PYCALL%d *p);' % (n, n)
+    print >> f, 'extern int pylcall%di_irate(CSOUND *csound, PYCALL%d *p);' % (n, n)
     print >> f
 
 def generate_triggered_pycall_method_declaration(f, n):
-    print >> f, 'extern int pycall%dt_krate(ENVIRON *csound, PYCALL%dT *p);' % (n, n)
-    print >> f, 'extern int pylcall%dt_irate(ENVIRON *csound, PYCALL%dT *p);' % (n, n)
-    print >> f, 'extern int pylcall%dt_krate(ENVIRON *csound, PYCALL%dT *p);' % (n, n)
+    print >> f, 'extern int pycall%dt_krate(CSOUND *csound, PYCALL%dT *p);' % (n, n)
+    print >> f, 'extern int pylcall%dt_irate(CSOUND *csound, PYCALL%dT *p);' % (n, n)
+    print >> f, 'extern int pylcall%dt_krate(CSOUND *csound, PYCALL%dT *p);' % (n, n)
     print >> f
 
 # --------
@@ -224,3 +224,4 @@ for n in range(9):
     generate_pycall_opcode_struct(f, n, 1)
     generate_triggered_pycall_method_declaration(f, n)
 f.close()
+

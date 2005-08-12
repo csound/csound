@@ -78,7 +78,7 @@ void make_OneZero(OneZero*);
 MYFLT OneZero_tick(OneZero*, MYFLT);
 void OneZero_setGain(OneZero*, MYFLT);
 void OneZero_setCoeff(OneZero*, MYFLT);
-void OneZero_print(ENVIRON*, OneZero*);
+void OneZero_print(CSOUND*, OneZero*);
 
 /* ********************************************************************** */
 typedef struct CLARIN {
@@ -106,3 +106,4 @@ typedef struct CLARIN {
 /* int clarinet(CLARINET *p) */
 
 #endif
+

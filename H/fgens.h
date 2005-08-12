@@ -33,20 +33,20 @@
  * number is automatically assigned.
  * Returns zero on success.
  */
-int hfgens(ENVIRON *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode);
+int hfgens(CSOUND *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode);
 
 /**
  * Allocates space for 'tableNum' with a length (not including the guard
  * point) of 'len' samples. The table data is not cleared to zero.
  * Return value is zero on success.
  */
-int csoundFTAlloc(ENVIRON *csound, int tableNum, int len);
+int csoundFTAlloc(CSOUND *csound, int tableNum, int len);
 
 /**
  * Deletes a function table.
  * Return value is zero on success.
  */
-int csoundFTDelete(ENVIRON *csound, int tableNum);
+int csoundFTDelete(CSOUND *csound, int tableNum);
 
 #endif  /* CSOUND_FGENS_H */
 

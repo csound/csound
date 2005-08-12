@@ -67,7 +67,7 @@ MYFLT SubNoise_tick(SubNoise *p)
 #define POLE_POS  (FL(0.999))
 #define RND_SCALE (FL(10.0))
 
-int make_Modulatr(ENVIRON *csound,Modulatr *p, MYFLT *i)
+int make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 {
     FUNC        *ftp;
 
@@ -102,13 +102,13 @@ MYFLT Modulatr_tick(Modulatr *p)
     return lastOutput;
 }
 
-static void Modulatr_print(ENVIRON *csound, Modulatr *p)
+static void Modulatr_print(CSOUND *csound, Modulatr *p)
 {
     csound->Message(csound, "Modulatr: v_rate=%f v_time=%f vibAmt=%f\n",
                             p->v_rate, p->v_time, p->vibAmt);
 }
 
-static int make_SingWave(ENVIRON *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
+static int make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 {
     FUNC        *ftp;
 
@@ -135,7 +135,7 @@ static int make_SingWave(ENVIRON *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
     return OK;
 }
 
-void SingWave_setFreq(ENVIRON *csound, SingWave *p, MYFLT aFreq)
+void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq)
 {
     MYFLT temp = p->rate;
 
@@ -182,7 +182,7 @@ MYFLT SingWave_tick(SingWave *p)
     return lastOutput;
 }
 
-void SingWave_print(ENVIRON *csound, SingWave *p)
+void SingWave_print(CSOUND *csound, SingWave *p)
 {
     csound->Message(csound, Str("SingWave: rate=%f sweepRate=%f mytime=%f\n"),
                             p->rate, p->sweepRate, p->mytime);
@@ -236,7 +236,7 @@ char phonemes[32][4] =
 #define VoicForm_setFormantAll(p,w,f,r,g) \
         FormSwep_setTargets(& p->filters[w],f,r,g)
 
-void VoicForm_setPhoneme(ENVIRON *csound, VOICF *p, int i, MYFLT sc)
+void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int i, MYFLT sc)
 {
     if (i>16) i = i%16;
     VoicForm_setFormantAll(p, 0,sc*phonParams[i][0][0], phonParams[i][0][1],
@@ -269,7 +269,7 @@ void VoicForm_noteOff(VOICF *p)
     Envelope_keyOff(&p->voiced.envelope);
 }
 
-void voicprint(ENVIRON *csound, VOICF *p)
+void voicprint(CSOUND *csound, VOICF *p)
 {
     SingWave_print(csound, &p->voiced);
     OneZero_print(csound, &p->onezero);
@@ -294,7 +294,7 @@ static void make_FormSwep(FormSwep *p)
     p->outputs[0]    = p->outputs[1] = FL(0.0);
 }
 
-int voicformset(ENVIRON *csound, VOICF *p)
+int voicformset(CSOUND *csound, VOICF *p)
 {
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
@@ -342,7 +342,7 @@ int voicformset(ENVIRON *csound, VOICF *p)
     return OK;
 }
 
-int voicform(ENVIRON *csound, VOICF *p)
+int voicform(CSOUND *csound, VOICF *p)
 {
     MYFLT *ar = p->ar;
     long nsmps = csound->ksmps;

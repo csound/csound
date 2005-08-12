@@ -45,7 +45,7 @@ static int mystrcmp(const void *v1, const void *v2)
 /* create a list of all the opcodes */
 /* caller is responsible for disposing the*/
 /* returned list! - use dispose_opcode_list() */
-static opcodelist *new_opcode_list(ENVIRON *csound)
+static opcodelist *new_opcode_list(CSOUND *csound)
 {
     OENTRY *ops = csound->opcodlst;
     opcodelist *list = (opcodelist *)mmalloc(csound, sizeof(opcodelist));
@@ -77,7 +77,7 @@ static opcodelist *new_opcode_list(ENVIRON *csound)
    return list;
 }
 
-static void dispose_opcode_list(ENVIRON *csound, opcodelist *list)
+static void dispose_opcode_list(CSOUND *csound, opcodelist *list)
 {
     if (list) {
       while (list->size--) {
@@ -89,7 +89,7 @@ static void dispose_opcode_list(ENVIRON *csound, opcodelist *list)
     }
 }
 
-void list_opcodes(ENVIRON *csound, int level)
+void list_opcodes(CSOUND *csound, int level)
 {
     int     j, k;
     int     len = 0;

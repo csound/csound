@@ -35,7 +35,7 @@
 #include "soundio.h"
 #include "oload.h"
 
-int tblesegset(ENVIRON *csound, TABLESEG *p)
+int tblesegset(CSOUND *csound, TABLESEG *p)
 {
     TSEG    *segp;
     int     nsegs;
@@ -89,7 +89,7 @@ int tblesegset(ENVIRON *csound, TABLESEG *p)
     return OK;
 }
 
-int ktableseg(ENVIRON *csound, TABLESEG *p)
+int ktableseg(CSOUND *csound, TABLESEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0);
@@ -120,7 +120,7 @@ int ktableseg(ENVIRON *csound, TABLESEG *p)
     return OK;
 }
 
-int ktablexseg(ENVIRON *csound, TABLESEG *p)
+int ktablexseg(CSOUND *csound, TABLESEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, cntoverdur=FL(0.0);
@@ -155,7 +155,7 @@ int ktablexseg(ENVIRON *csound, TABLESEG *p)
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
 
-int vpvset(ENVIRON *csound, VPVOC *p)
+int vpvset(CSOUND *csound, VPVOC *p)
 {
     int      i;
     char     pvfilnam[64];
@@ -256,7 +256,7 @@ int vpvset(ENVIRON *csound, VPVOC *p)
     return OK;
 }
 
-int vpvoc(ENVIRON *csound, VPVOC *p)
+int vpvoc(CSOUND *csound, VPVOC *p)
 {
     int       n;
     MYFLT     *ar = p->rslt;

@@ -32,14 +32,14 @@ extern "C" {
    * Get pointer to value of environment variable 'name'.
    * Return value is NULL if the variable is not set.
    */
-  PUBLIC char *csoundGetEnv(ENVIRON *csound, const char *name);
+  PUBLIC char *csoundGetEnv(CSOUND *csound, const char *name);
 
   /**
    * Set environment variable 'name' to 'value'.
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
    */
-  int csoundSetEnv(ENVIRON *csound, const char *name, const char *value);
+  int csoundSetEnv(CSOUND *csound, const char *name, const char *value);
 
   /**
    * Append 'value' to environment variable 'name', using ';' as
@@ -47,7 +47,7 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
    */
-  int csoundAppendEnv(ENVIRON *csound, const char *name, const char *value);
+  int csoundAppendEnv(CSOUND *csound, const char *name, const char *value);
 
   /**
    * Initialise environment variable database, and copy system
@@ -55,7 +55,7 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
    * CSOUND_MEMORY in case of an error.
    */
-  int csoundInitEnv(ENVIRON *csound);
+  int csoundInitEnv(CSOUND *csound);
 
   /**
    * Parse 's' as an assignment to environment variable, in the format
@@ -64,7 +64,7 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
    * CSOUND_MEMORY in case of an error.
    */
-  int csoundParseEnv(ENVIRON *csound, const char *s);
+  int csoundParseEnv(CSOUND *csound, const char *s);
 
   /**
    * Search for input file 'filename'.
@@ -86,7 +86,7 @@ extern "C" {
    * or an error has occured. The caller is responsible for freeing the memory
    * pointed to by the return value, by calling mfree().
    */
-  PUBLIC char *csoundFindInputFile(ENVIRON *csound,
+  PUBLIC char *csoundFindInputFile(CSOUND *csound,
                                    const char *filename, const char *envList);
 
   /**
@@ -110,7 +110,7 @@ extern "C" {
    * The caller is responsible for freeing the memory pointed to by the return
    * value, by calling mfree().
    */
-  PUBLIC char *csoundFindOutputFile(ENVIRON *csound,
+  PUBLIC char *csoundFindOutputFile(CSOUND *csound,
                                     const char *filename, const char *envList);
 
 #define CSFILE_FD_R     1
@@ -122,7 +122,7 @@ extern "C" {
   /**
    * Open a file and return handle.
    *
-   * ENVIRON *csound:
+   * CSOUND *csound:
    *   Csound instance pointer
    * void *fd:
    *   pointer a variable of type int, FILE*, or SNDFILE*, depending on 'type',
@@ -154,7 +154,7 @@ extern "C" {
    *   csoundFileClose(), or storing in FDCH.fd.
    *   On failure, NULL is returned.
    */
-  PUBLIC void *csoundFileOpen(ENVIRON *csound, void *fd, int type,
+  PUBLIC void *csoundFileOpen(CSOUND *csound, void *fd, int type,
                               const char *name, void *param, const char *env);
 
   /**
@@ -167,7 +167,7 @@ extern "C" {
    * fullName is the name that will be returned by a later call to
    * csoundGetFileName().
    */
-  PUBLIC void *csoundCreateFileHandle(ENVIRON *,
+  PUBLIC void *csoundCreateFileHandle(CSOUND *,
                                       void *fd, int type, const char *fullName);
 
   /**
@@ -178,7 +178,7 @@ extern "C" {
   /**
    * Close a file previously opened with csoundFileOpen().
    */
-  PUBLIC int csoundFileClose(ENVIRON *, void *fd);
+  PUBLIC int csoundFileClose(CSOUND *, void *fd);
 
 #ifdef __cplusplus
 };

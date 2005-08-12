@@ -43,7 +43,7 @@ static MYFLT bicoefs[] =
        FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)
     };
 
-int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
+int pitchset(CSOUND *csound, PITCH *p)     /* pitch - uses specta technology */
 {
     MYFLT       b;              /* For RMS */
     int     n, nocts, nfreqs, ncoefs;
@@ -228,7 +228,7 @@ int pitchset(ENVIRON *csound, PITCH *p)    /* pitch - uses specta technology */
     return OK;
 }
 
-int pitch(ENVIRON *csound, PITCH *p)
+int pitch(CSOUND *csound, PITCH *p)
 {
     MYFLT       *asig;
     MYFLT       q;
@@ -443,7 +443,7 @@ output:
 
 /* Multiply and accumulate opcodes */
 
-int macset(ENVIRON *csound, SUM *p)
+int macset(CSOUND *csound, SUM *p)
 {
     if ((((int)p->INOCOUNT)&1)==1) {
       return csound->PerfError(csound,
@@ -452,7 +452,7 @@ int macset(ENVIRON *csound, SUM *p)
     return OK;
 }
 
-int maca(ENVIRON *csound, SUM *p)
+int maca(CSOUND *csound, SUM *p)
 {
     int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k=0;
     MYFLT *ar = p->ar, **args = p->argums;
@@ -466,7 +466,7 @@ int maca(ENVIRON *csound, SUM *p)
     return OK;
 }
 
-int mac(ENVIRON *csound, SUM *p)
+int mac(CSOUND *csound, SUM *p)
 {
     int nsmps=csound->ksmps, count=(int) p->INOCOUNT, j, k=0;
     MYFLT *ar = p->ar, **args = p->argums;
@@ -486,7 +486,7 @@ typedef struct {
     int     running[33];
 } CPU_CLOCK;
 
-static void initClockStruct(ENVIRON *csound, void **p)
+static void initClockStruct(CSOUND *csound, void **p)
 {
     *p = csound->QueryGlobalVariable(csound, "readClock::counters");
     if (*p == NULL) {
@@ -497,14 +497,14 @@ static void initClockStruct(ENVIRON *csound, void **p)
     }
 }
 
-static inline CPU_CLOCK *getClockStruct(ENVIRON *csound, void **p)
+static inline CPU_CLOCK *getClockStruct(CSOUND *csound, void **p)
 {
     if (*p == NULL)
       initClockStruct(csound, p);
     return (CPU_CLOCK*) (*p);
 }
 
-int clockset(ENVIRON *csound, CLOCK *p)
+int clockset(CSOUND *csound, CLOCK *p)
 {
     p->c = (int)*p->cnt;
     if (p->c < 0 || p->c > 31)
@@ -512,7 +512,7 @@ int clockset(ENVIRON *csound, CLOCK *p)
     return OK;
 }
 
-int clockon(ENVIRON *csound, CLOCK *p)
+int clockon(CSOUND *csound, CLOCK *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     if (!clk->running[p->c]) {
@@ -522,7 +522,7 @@ int clockon(ENVIRON *csound, CLOCK *p)
     return OK;
 }
 
-int clockoff(ENVIRON *csound, CLOCK *p)
+int clockoff(CSOUND *csound, CLOCK *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     if (clk->running[p->c]) {
@@ -533,7 +533,7 @@ int clockoff(ENVIRON *csound, CLOCK *p)
     return OK;
 }
 
-int clockread(ENVIRON *csound, CLKRD *p)
+int clockread(CSOUND *csound, CLKRD *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     int cnt = (int) *p->a;
@@ -550,7 +550,7 @@ int clockread(ENVIRON *csound, CLKRD *p)
 /* Opcodes from Peter Neubäcker                                 */
 /* ************************************************************ */
 
-int adsyntset(ENVIRON *csound, ADSYNT *p)
+int adsyntset(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp;
     int     count;
@@ -615,7 +615,7 @@ int adsyntset(ENVIRON *csound, ADSYNT *p)
     return OK;
 }
 
-int adsynt(ENVIRON *csound, ADSYNT *p)
+int adsynt(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
     MYFLT   *ar, *ar0, *ftbl, *freqtbl, *amptbl;
@@ -664,7 +664,7 @@ int adsynt(ENVIRON *csound, ADSYNT *p)
     return OK;
 }
 
-int hsboscset(ENVIRON *csound, HSBOSC *p)
+int hsboscset(CSOUND *csound, HSBOSC *p)
 {
     FUNC        *ftp;
     int         octcnt, i;
@@ -689,7 +689,7 @@ int hsboscset(ENVIRON *csound, HSBOSC *p)
     return OK;
 }
 
-int hsboscil(ENVIRON *csound, HSBOSC  *p)
+int hsboscil(CSOUND *csound, HSBOSC   *p)
 {
     FUNC        *ftp, *mixtp;
     MYFLT       fract, v1, amp0, amp, *ar0, *ar, *ftab, *mtab;
@@ -768,7 +768,7 @@ int hsboscil(ENVIRON *csound, HSBOSC  *p)
     return OK;
 }
 
-int pitchamdfset(ENVIRON *csound, PITCHAMDF *p)
+int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT srate, downs;
     long  size, minperi, maxperi, downsamp, upsamp, msize, bufsize, interval;
@@ -916,7 +916,7 @@ MYFLT medianvalue(unsigned long n, MYFLT *vals)
 }
 #undef SWAP
 
-int pitchamdf(ENVIRON *csound, PITCHAMDF *p)
+int pitchamdf(CSOUND *csound, PITCHAMDF *p)
 {
     MYFLT *buffer = (MYFLT*)p->buffer.auxp;
     MYFLT *rmsmedian = (MYFLT*)p->rmsmedian.auxp;
@@ -1088,7 +1088,7 @@ int pitchamdf(ENVIRON *csound, PITCHAMDF *p)
 /* phasorbnk                                                        */
 /*==================================================================*/
 
-int phsbnkset(ENVIRON *csound, PHSORBNK *p)
+int phsbnkset(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
     int    count;
@@ -1115,7 +1115,7 @@ int phsbnkset(ENVIRON *csound, PHSORBNK *p)
     return OK;
 }
 
-int kphsorbnk(ENVIRON *csound, PHSORBNK *p)
+int kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
     double  *curphs = (double*)p->curphs.auxp;
@@ -1140,7 +1140,7 @@ int kphsorbnk(ENVIRON *csound, PHSORBNK *p)
     return OK;
 }
 
-int phsorbnk(ENVIRON *csound, PHSORBNK *p)
+int phsorbnk(CSOUND *csound, PHSORBNK *p)
 {
     int     nsmps = csound->ksmps;
     MYFLT   *rs;
@@ -1206,10 +1206,10 @@ int phsorbnk(ENVIRON *csound, PHSORBNK *p)
 #define KELLET_PINK ((MYFLT)1.0)
 #define KELLET_CHEAP_PINK ((MYFLT)2.0)
 
-int GardnerPink_init(ENVIRON *csound, PINKISH *p);
-int GardnerPink_perf(ENVIRON *csound, PINKISH *p);
+int GardnerPink_init(CSOUND *csound, PINKISH *p);
+int GardnerPink_perf(CSOUND *csound, PINKISH *p);
 
-int pinkset(ENVIRON *csound, PINKISH *p)
+int pinkset(CSOUND *csound, PINKISH *p)
 {
         /* Check valid method */
     if (*p->imethod != GARDNER_PINK && *p->imethod != KELLET_PINK
@@ -1239,7 +1239,7 @@ int pinkset(ENVIRON *csound, PINKISH *p)
     return OK;
 }
 
-int pinkish(ENVIRON *csound, PINKISH *p)
+int pinkish(CSOUND *csound, PINKISH *p)
 {
     MYFLT       *aout, *ain;
     double      c0, c1, c2, c3, c4, c5, c6, nxtin, nxtout;
@@ -1335,7 +1335,7 @@ static long GenerateRandomNumber(unsigned long randSeed)
 /************************************************************/
 
 /* Set up for user-selected number of bands of noise generators. */
-int GardnerPink_init(ENVIRON *csound, PINKISH *p)
+int GardnerPink_init(CSOUND *csound, PINKISH *p)
 {
     int i;
     MYFLT pmax;
@@ -1389,7 +1389,7 @@ int GardnerPink_init(ENVIRON *csound, PINKISH *p)
 }
 
 /* Generate numRows octave-spaced white bands and sum to pink noise. */
-int GardnerPink_perf(ENVIRON *csound, PINKISH *p)
+int GardnerPink_perf(CSOUND *csound, PINKISH *p)
 {
     MYFLT *aout, *amp, scalar;
     long *rows, rowIndex, indexMask, randSeed, newRandom;
@@ -1465,7 +1465,7 @@ int GardnerPink_perf(ENVIRON *csound, PINKISH *p)
 /* Methods 0 and 2 OK, method1 broken */
 
 double tanh(double);
-int clip_set(ENVIRON *csound, CLIP *p)
+int clip_set(CSOUND *csound, CLIP *p)
 {
     int meth = (int)(*p->imethod + FL(0.5));
     p->meth = meth;
@@ -1492,7 +1492,7 @@ int clip_set(ENVIRON *csound, CLIP *p)
     return OK;
 }
 
-int clip(ENVIRON *csound, CLIP *p)
+int clip(CSOUND *csound, CLIP *p)
 {
     MYFLT *aout = p->aout, *ain = p->ain;
     int nsmps = csound->ksmps;
@@ -1553,7 +1553,7 @@ int clip(ENVIRON *csound, CLIP *p)
 
 #include "ugens2.h"
 
-int Foscset(ENVIRON *csound, XOSC *p)
+int Foscset(CSOUND *csound, XOSC *p)
 {
     FUNC        *ftp;
 
@@ -1569,7 +1569,7 @@ int Foscset(ENVIRON *csound, XOSC *p)
     return OK;
 }
 
-int Fosckk(ENVIRON *csound, XOSC *p)
+int Fosckk(CSOUND *csound, XOSC *p)
 {
     FUNC        *ftp;
     MYFLT       amp, *ar, *ftbl;
@@ -1596,7 +1596,7 @@ int Fosckk(ENVIRON *csound, XOSC *p)
     return OK;
 }
 
-int Foscak(ENVIRON *csound, XOSC *p)
+int Foscak(CSOUND *csound, XOSC *p)
 {
     FUNC        *ftp;
     MYFLT       *ampp, *ar, *ftbl;
@@ -1623,7 +1623,7 @@ int Foscak(ENVIRON *csound, XOSC *p)
     return OK;
 }
 
-int Foscka(ENVIRON *csound, XOSC *p)
+int Foscka(CSOUND *csound, XOSC *p)
 {
     FUNC        *ftp;
     MYFLT       amp, *ar, *cpsp, *ftbl;
@@ -1652,7 +1652,7 @@ int Foscka(ENVIRON *csound, XOSC *p)
     return OK;
 }
 
-int Foscaa(ENVIRON *csound, XOSC *p)
+int Foscaa(CSOUND *csound, XOSC *p)
 {
     FUNC        *ftp;
     MYFLT       *ampp, *ar, *ftbl;
@@ -1699,7 +1699,7 @@ int Foscaa(ENVIRON *csound, XOSC *p)
 struct termios tty;
 #endif
 
-int isense(ENVIRON *csound, KSENSE *p)
+int isense(CSOUND *csound, KSENSE *p)
 {
 #if defined(WIN32)
     setvbuf(stdin, NULL, _IONBF, 0); /* Does not seem to work */
@@ -1711,7 +1711,7 @@ int isense(ENVIRON *csound, KSENSE *p)
     return OK;
 }
 
-int ksense(ENVIRON *csound, KSENSE *p)
+int ksense(CSOUND *csound, KSENSE *p)
 {
     fd_set rfds;
     struct timeval tv;
@@ -1738,14 +1738,14 @@ int ksense(ENVIRON *csound, KSENSE *p)
     return OK;
 }
 #else
-int isense(ENVIRON *csound, KSENSE *p)
+int isense(CSOUND *csound, KSENSE *p)
 {
     return OK;
 }
 # ifdef WIN32
 #include <conio.h>
 
-int ksense(ENVIRON *csound, KSENSE *p)
+int ksense(CSOUND *csound, KSENSE *p)
 {
     if (_kbhit())
       *p->ans = (MYFLT)_getch();
@@ -1754,7 +1754,7 @@ int ksense(ENVIRON *csound, KSENSE *p)
     return OK;
 }
 # else
-int ksense(ENVIRON *csound, KSENSE *p)
+int ksense(CSOUND *csound, KSENSE *p)
 {
         *p->ans = getchar();
         return OK;
@@ -1766,13 +1766,13 @@ int ksense(ENVIRON *csound, KSENSE *p)
 /* *************** IMPULSE ********************************************** */
 /* ********************************************************************** */
 
-int impulse_set(ENVIRON *csound, IMPULSE *p)
+int impulse_set(CSOUND *csound, IMPULSE *p)
 {
     p->next = (int)(FL(0.5) + *p->offset * csound->esr);
     return OK;
 }
 
-int impulse(ENVIRON *csound, IMPULSE *p)
+int impulse(CSOUND *csound, IMPULSE *p)
 {
     int nsmps = csound->ksmps;
     int next = p->next;
@@ -1808,7 +1808,7 @@ int impulse(ENVIRON *csound, IMPULSE *p)
 /* or                                                                     */
 /*         y0 + (y1 - y0) * t if alpha is zero                            */
 /* ********************************************************************** */
-int trnset(ENVIRON *csound, TRANSEG *p)
+int trnset(CSOUND *csound, TRANSEG *p)
 {
     NSEG        *segp;
     int         nsegs;
@@ -1856,7 +1856,7 @@ int trnset(ENVIRON *csound, TRANSEG *p)
     return OK;
 }
 
-int ktrnseg(ENVIRON *csound, TRANSEG *p)
+int ktrnseg(CSOUND *csound, TRANSEG *p)
 {
     *p->rslt = p->curval;               /* put the cur value    */
     if (p->auxch.auxp==NULL) { /* RWD fix */
@@ -1889,7 +1889,7 @@ int ktrnseg(ENVIRON *csound, TRANSEG *p)
     return OK;
 }
 
-int trnseg(ENVIRON *csound, TRANSEG *p)
+int trnseg(CSOUND *csound, TRANSEG *p)
 {
     MYFLT  val, *rs = p->rslt;
     int         nsmps = csound->ksmps;
@@ -1942,7 +1942,7 @@ putk:
 
 extern long randint31(long);
 
-int varicolset(ENVIRON *csound, VARI *p)
+int varicolset(CSOUND *csound, VARI *p)
 {
     p->last = FL(0.0);
     p->lastbeta = *p->beta;
@@ -1952,7 +1952,7 @@ int varicolset(ENVIRON *csound, VARI *p)
     return OK;
 }
 
-int varicol(ENVIRON *csound, VARI *p)
+int varicol(CSOUND *csound, VARI *p)
 {
     int         nsmps = csound->ksmps;
     MYFLT       beta = *p->beta;
@@ -1987,7 +1987,7 @@ int varicol(ENVIRON *csound, VARI *p)
 
 /* This code is transcribed from a Csound macro, so no real comments */
 
-int lpf18set(ENVIRON *csound, LPF18 *p)
+int lpf18set(CSOUND *csound, LPF18 *p)
 {
     /* Initialise delay lines */
     p->ay1 = FL(0.0);
@@ -1997,7 +1997,7 @@ int lpf18set(ENVIRON *csound, LPF18 *p)
     return OK;
 }
 
-int lpf18db(ENVIRON *csound, LPF18 *p)
+int lpf18db(CSOUND *csound, LPF18 *p)
 {
     int         nsmps = csound->ksmps;
     MYFLT kfcn = FL(2.0) * *p->fco * csound->onedsr;
@@ -2042,7 +2042,7 @@ int lpf18db(ENVIRON *csound, LPF18 *p)
 /* **** John ffitch Jan 2001 ************************ */
 /* ************************************************** */
 
-int wavesetset(ENVIRON *csound, BARRI *p)
+int wavesetset(CSOUND *csound, BARRI *p)
 {
     if (*p->len == FL(0.0))
       p->length = 1 + (int)(p->h.insdshead->p3 * csound->esr * FL(0.5));
@@ -2060,7 +2060,7 @@ int wavesetset(ENVIRON *csound, BARRI *p)
     return OK;
 }
 
-int waveset(ENVIRON *csound, BARRI *p)
+int waveset(CSOUND *csound, BARRI *p)
 {
     MYFLT *in = p->ain;
     MYFLT *out = p->ar;

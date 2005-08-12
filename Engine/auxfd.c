@@ -23,13 +23,13 @@
 
 #include "csoundCore.h"                         /*      AUXFD.C         */
 
-static CS_NOINLINE void auxchprint(ENVIRON *, INSDS *);
-static CS_NOINLINE void fdchprint(ENVIRON *, INSDS *);
+static CS_NOINLINE void auxchprint(CSOUND *, INSDS *);
+static CS_NOINLINE void fdchprint(CSOUND *, INSDS *);
 
 /* allocate an auxds, or expand an old one */
 /*    call only from init (xxxset) modules */
 
-void csoundAuxAlloc(ENVIRON *csound, long nbytes, AUXCH *auxchp)
+void csoundAuxAlloc(CSOUND *csound, long nbytes, AUXCH *auxchp)
 {
     if (auxchp->auxp != NULL) {
       /* if allocd with same size, just clear to zero */
@@ -59,7 +59,7 @@ void csoundAuxAlloc(ENVIRON *csound, long nbytes, AUXCH *auxchp)
 /* put fdchp into chain of fd's for this instr */
 /*      call only from init (xxxset) modules   */
 
-void fdrecord(ENVIRON *csound, FDCH *fdchp)
+void fdrecord(CSOUND *csound, FDCH *fdchp)
 {
     fdchp->nxtchp = csound->curip->fdchp;
     csound->curip->fdchp = fdchp;
@@ -70,7 +70,7 @@ void fdrecord(ENVIRON *csound, FDCH *fdchp)
 /* close a file and remove from fd chain */
 /*  call only from inits, after fdrecord */
 
-void fdclose(ENVIRON *csound, FDCH *fdchp)
+void fdclose(CSOUND *csound, FDCH *fdchp)
 {
     FDCH    *prvchp = NULL, *nxtchp;
 
@@ -100,7 +100,7 @@ void fdclose(ENVIRON *csound, FDCH *fdchp)
 /* release all xds in instr auxp chain */
 /*   called by insert at orcompact     */
 
-void auxchfree(ENVIRON *csound, INSDS *ip)
+void auxchfree(CSOUND *csound, INSDS *ip)
 {
     if (csound->oparms->odebug)
       auxchprint(csound, ip);
@@ -119,7 +119,7 @@ void auxchfree(ENVIRON *csound, INSDS *ip)
 /* called by insert on deact & expire       */
 /* (also musmon on s-code, & fgens for gen01) */
 
-void fdchclose(ENVIRON *csound, INSDS *ip)
+void fdchclose(CSOUND *csound, INSDS *ip)
 {
     if (csound->oparms->odebug)
       fdchprint(csound, ip);
@@ -137,7 +137,7 @@ void fdchclose(ENVIRON *csound, INSDS *ip)
 
 /* print the xp chain for this insds blk */
 
-static CS_NOINLINE void auxchprint(ENVIRON *csound, INSDS *ip)
+static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
 {
     AUXCH   *curchp;
 
@@ -151,7 +151,7 @@ static CS_NOINLINE void auxchprint(ENVIRON *csound, INSDS *ip)
 
 /* print the fd chain for this insds blk */
 
-static CS_NOINLINE void fdchprint(ENVIRON *csound, INSDS *ip)
+static CS_NOINLINE void fdchprint(CSOUND *csound, INSDS *ip)
 {
     FDCH    *curchp;
 

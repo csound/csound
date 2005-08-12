@@ -52,11 +52,11 @@ typedef struct {
     EVTBLK  prve;
 } LINEVENT_GLOBALS;
 
-static void sensLine(ENVIRON *csound, void *userData);
+static void sensLine(CSOUND *csound, void *userData);
 
-#define ST(x)   (((LINEVENT_GLOBALS*) ((ENVIRON*) csound)->lineventGlobals)->x)
+#define ST(x)   (((LINEVENT_GLOBALS*) ((CSOUND*) csound)->lineventGlobals)->x)
 
-void RTLineset(ENVIRON *csound)     /* set up Linebuf & ready the input files */
+void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 {                                   /*     callable once from musmon.c        */
     OPARMS  *O = csound->oparms;
     csound->lineventGlobals = (LINEVENT_GLOBALS*)
@@ -115,7 +115,7 @@ void RTLineset(ENVIRON *csound)     /* set up Linebuf & ready the input files */
 int _pclose(FILE*);
 #endif
 
-void RTclose(ENVIRON *csound)
+void RTclose(CSOUND *csound)
 {
     if (csound->oparms->Linein == 0 || csound->lineventGlobals == NULL)
       return;
@@ -158,7 +158,7 @@ static int containsLF(char *cp, char *endp)/* does string segment contain LF? */
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
-void writeLine(ENVIRON *csound, const char *text, long size)
+void writeLine(CSOUND *csound, const char *text, long size)
 {
     if (ST(Linebuf)) {
       if ((ST(Linep) + size) < ST(Linebufend)) {
@@ -179,7 +179,7 @@ void writeLine(ENVIRON *csound, const char *text, long size)
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
-static void sensLine(ENVIRON *csound, void *userData)
+static void sensLine(CSOUND *csound, void *userData)
 {
     int     c;
     char    *cp;
@@ -316,7 +316,7 @@ static const char *errmsg_1 =
 static const char *errmsg_2 =
     "event: string name is allowed only for \"i\" and \"q\" events";
 
-int eventOpcode(ENVIRON *csound, LINEVENT *p)
+int eventOpcode(CSOUND *csound, LINEVENT *p)
 {
     EVTBLK  evt;
     int     i;
@@ -352,7 +352,7 @@ int eventOpcode(ENVIRON *csound, LINEVENT *p)
 
 /* i-time version of event opcode */
 
-int eventOpcodeI(ENVIRON *csound, LINEVENT *p)
+int eventOpcodeI(CSOUND *csound, LINEVENT *p)
 {
     EVTBLK  evt;
     int     i;

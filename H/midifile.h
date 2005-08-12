@@ -30,15 +30,15 @@ extern "C" {
 
 /* open MIDI file, read all tracks, and create event list */
 
-int csoundMIDIFileOpen(ENVIRON *csound, const char *name);
+int csoundMIDIFileOpen(CSOUND *csound, const char *name);
 
 /* read MIDI file event data at performace time */
 
-int csoundMIDIFileRead(ENVIRON *csound, unsigned char *buf, int nBytes);
+int csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int nBytes);
 
 /* destroy MIDI file event list */
 
-int csoundMIDIFileClose(ENVIRON *csound);
+int csoundMIDIFileClose(CSOUND *csound);
 
  /* ------------------------------------------------------------------------ */
 
@@ -49,7 +49,7 @@ typedef struct {
 
 /* miditempo opcode: returns the current tempo of MIDI file */
 
-extern int midiTempoOpcode(ENVIRON *csound, MIDITEMPO *p);
+extern int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
 
 #ifdef __cplusplus
 };

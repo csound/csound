@@ -36,7 +36,7 @@ static const char   *version = "0.1alpha";
 /****************************************************************************
            dssiinit
 *****************************************************************************/
-void info(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
+void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
 {
     int     Ksmps = csound->ksmps;
     unsigned long PortCount;
@@ -109,7 +109,7 @@ void info(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
                             "===============================\n");
 }
 
-DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, ENVIRON * csound)
+DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, CSOUND * csound)
 {
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
@@ -145,7 +145,7 @@ DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, ENVIRON * csound)
     return DSSIPlugin_;
 }
 
-static int dssideinit(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin)
+static int dssideinit(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin)
 {
     int     i;
 
@@ -177,7 +177,7 @@ static int dssideinit(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin)
     return OK;
 }
 
-int dssiinit(ENVIRON * csound, DSSIINIT * p)
+int dssiinit(CSOUND * csound, DSSIINIT * p)
 {
     /* TODO check if plugin has already been loaded and use same function */
     csound = p->h.insdshead->csound;
@@ -222,7 +222,7 @@ int dssiinit(ENVIRON * csound, DSSIINIT * p)
       DSSIPlugin = (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound,
                                                                   "$DSSI4CS");
       csound->RegisterResetCallback(csound, DSSIPlugin,
-                                    (int (*)(ENVIRON*, void*)) dssideinit);
+                                    (int (*)(CSOUND*, void*)) dssideinit);
       DSSIPlugin->PluginNumber = 0;
       DSSIPlugin->PluginCount = (int *) csound->Malloc(csound, sizeof(int));
       *DSSIPlugin->PluginCount = 1;
@@ -453,7 +453,7 @@ int dssiinit(ENVIRON * csound, DSSIINIT * p)
            dssiactivate
 *****************************************************************************/
 
-int ActivatePlugin(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin_, int ktrigger)
+int ActivatePlugin(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_, int ktrigger)
 {
     const LADSPA_Descriptor *Descriptor;
 
@@ -497,7 +497,7 @@ int ActivatePlugin(ENVIRON * csound, DSSI4CS_PLUGIN * DSSIPlugin_, int ktrigger)
     return -200;
 }
 
-int dssiactivate_init(ENVIRON * csound, DSSIACTIVATE * p)
+int dssiactivate_init(CSOUND * csound, DSSIACTIVATE * p)
 {
     int     Number = *p->iDSSIhandle;
 
@@ -519,7 +519,7 @@ int dssiactivate_init(ENVIRON * csound, DSSIACTIVATE * p)
     return OK;
 }
 
-int dssiactivate(ENVIRON * csound, DSSIACTIVATE * p)
+int dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
 {
     LADSPA_Descriptor *Descriptor;
 
@@ -589,7 +589,7 @@ int dssiactivate(ENVIRON * csound, DSSIACTIVATE * p)
 /****************************************************************************
            dssiaudio
 *****************************************************************************/
-int dssiaudio_init(ENVIRON * csound, DSSIAUDIO * p)
+int dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 {
     /* TODO not realtime safe, try to make it so. */
     int     Number = *p->iDSSIhandle;
@@ -696,7 +696,7 @@ int dssiaudio_init(ENVIRON * csound, DSSIAUDIO * p)
     return OK;
 }
 
-int dssiaudio(ENVIRON * csound, DSSIAUDIO * p)
+int dssiaudio(CSOUND * csound, DSSIAUDIO * p)
 {
     const LADSPA_Descriptor *Descriptor;
 
@@ -735,7 +735,7 @@ int dssiaudio(ENVIRON * csound, DSSIAUDIO * p)
 /****************************************************************************
            dssictls
 *****************************************************************************/
-int dssictls_kk(ENVIRON * csound, DSSICTLS * p)
+int dssictls_kk(CSOUND * csound, DSSICTLS * p)
 {
     LADSPA_Data Value = *p->val;
 
@@ -746,14 +746,14 @@ int dssictls_kk(ENVIRON * csound, DSSICTLS * p)
     return OK;
 }
 
-int dssictls_ak(ENVIRON * csound, DSSICTLS * p)
+int dssictls_ak(CSOUND * csound, DSSICTLS * p)
 {
     csound->PerfError(csound,
                       "DSSI4CS: Audio Rate control ports not implemented yet.");
     return NOTOK;
 }
 
-int dssictls_init(ENVIRON * csound, DSSICTLS * p)
+int dssictls_init(CSOUND * csound, DSSICTLS * p)
 {
     /* TODO warning possible crash or unpredictable behaviour if invalid port.
             Crash if audio port selected */
@@ -822,7 +822,7 @@ int dssictls_init(ENVIRON * csound, DSSICTLS * p)
     return OK;
 }
 
-int dssictls_dummy(ENVIRON * csound, DSSICTLS * p)
+int dssictls_dummy(CSOUND * csound, DSSICTLS * p)
 {
     csound->PerfError(csound,
                       Str("DSSI4CS: Not initialised or wrong argument types."));
@@ -833,14 +833,14 @@ int dssictls_dummy(ENVIRON * csound, DSSICTLS * p)
            dssisynth
 *****************************************************************************/
 
-int dssisynth_init(ENVIRON * csound, DSSISYNTH * p)
+int dssisynth_init(CSOUND * csound, DSSISYNTH * p)
 {
     /* TODO docs: dssisynth only for DSSI plugs */
     csound->InitError(csound, "DSSI4CS: dssisynth not implemented yet.");
     return NOTOK;
 }
 
-int dssisynth(ENVIRON * csound, DSSISYNTH * p)
+int dssisynth(CSOUND * csound, DSSISYNTH * p)
 {
     return OK;
 }
@@ -848,24 +848,24 @@ int dssisynth(ENVIRON * csound, DSSISYNTH * p)
 /****************************************************************************
            dssinotes
 *****************************************************************************/
-int dssinote_init(ENVIRON * csound, DSSINOTE * p)
+int dssinote_init(CSOUND * csound, DSSINOTE * p)
 {
     csound->InitError(csound, "DSSI4CS: dssinote not implemented yet.");
     return NOTOK;
 }
 
-int dssinote(ENVIRON * csound, DSSINOTE * p)
+int dssinote(CSOUND * csound, DSSINOTE * p)
 {
     return OK;
 }
 
-int dssievent_init(ENVIRON * csound, DSSINOTEON * p)
+int dssievent_init(CSOUND * csound, DSSINOTEON * p)
 {
     csound->InitError(csound, "DSSI4CS: dssievent not implemented yet.");
     return NOTOK;
 }
 
-int dssievent(ENVIRON * csound, DSSINOTEON * p)
+int dssievent(CSOUND * csound, DSSINOTEON * p)
 {
     return OK;
 }
@@ -876,7 +876,7 @@ int dssievent(ENVIRON * csound, DSSINOTEON * p)
 
 static void
       LADSPADirectoryPluginSearch
-      (ENVIRON * csound,
+      (CSOUND * csound,
        const char * pcDirectory,
        LADSPAPluginSearchCallbackFunction fCallbackFunction) {
     char   *pcFilename;
@@ -938,7 +938,7 @@ static void
 }
 
 void
-LADSPAPluginSearch(ENVIRON *csound,
+LADSPAPluginSearch(CSOUND *csound,
                    LADSPAPluginSearchCallbackFunction fCallbackFunction)
 {
     char   *pcBuffer;
@@ -984,7 +984,7 @@ LADSPAPluginSearch(ENVIRON *csound,
 }
 
 void
-describePluginLibrary(ENVIRON *csound,
+describePluginLibrary(CSOUND *csound,
                       const char *pcFullFilename,
                       void *pvPluginHandle,
                       LADSPA_Descriptor_Function fDescriptorFunction)
@@ -1003,7 +1003,7 @@ describePluginLibrary(ENVIRON *csound,
     dlclose(pvPluginHandle);
 }
 
-int dssilist(ENVIRON * csound, DSSILIST * p)
+int dssilist(CSOUND * csound, DSSILIST * p)
 {
     /* Most of this function comes from the ladspa sdk by Richard Furse */
     char   *pcBuffer;

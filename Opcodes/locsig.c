@@ -35,7 +35,7 @@
 
 static  LOCSIG  *locsigaddr;
 
-int locsigset(ENVIRON *csound, LOCSIG *p)
+int locsigset(CSOUND *csound, LOCSIG *p)
 {
     int outcount=p->OUTOCOUNT;
 
@@ -62,7 +62,7 @@ int locsigset(ENVIRON *csound, LOCSIG *p)
     return OK;
 }
 
-int locsig(ENVIRON *csound, LOCSIG *p)
+int locsig(CSOUND *csound, LOCSIG *p)
 {
     MYFLT *r1, *r2, *r3=NULL, *r4=NULL, degree, *asig;
     MYFLT direct, *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
@@ -131,7 +131,7 @@ int locsig(ENVIRON *csound, LOCSIG *p)
     return OK;
 }
 
-int locsendset(ENVIRON *csound, LOCSEND *p)
+int locsendset(CSOUND *csound, LOCSEND *p)
 {
     LOCSIG *q;
 
@@ -145,7 +145,7 @@ int locsendset(ENVIRON *csound, LOCSEND *p)
     return OK;
 }
 
-int locsend(ENVIRON *csound, LOCSEND *p)
+int locsend(CSOUND *csound, LOCSEND *p)
 {
     MYFLT       *r1, *r2, *r3=NULL, *r4=NULL;
     MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
