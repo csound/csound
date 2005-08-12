@@ -1,3 +1,4 @@
+#include "CppSound.hpp"
 #include "CounterpointNode.hpp"
 #include "System.hpp"
 #include "Conversions.hpp"

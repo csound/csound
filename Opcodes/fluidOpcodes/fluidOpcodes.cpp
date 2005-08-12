@@ -641,14 +641,13 @@ extern "C"
     { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
   };
 
-  PUBLIC int csoundModuleCreate(void *csound)
+  PUBLIC int csoundModuleCreate(ENVIRON *csound)
   {
     return 0;
   }
 
-  PUBLIC int csoundModuleInit(void *csound_)
+  PUBLIC int csoundModuleInit(ENVIRON *csound)
   {
-    ENVIRON *csound = (ENVIRON*) csound_;
     OENTRY  *ep = (OENTRY*) &(localops[0]);
     int     err = 0;
 
@@ -667,9 +666,8 @@ extern "C"
    * Called by Csound to de-initialize the opcode
    * just before destroying it.
    */
-  PUBLIC int csoundModuleDestroy(void *csound_)
+  PUBLIC int csoundModuleDestroy(ENVIRON *csound)
   {
-    ENVIRON *csound = (ENVIRON*) csound_;
     if(!fluid_engines.empty()) {
       csound->Message(csound,
                       "Cleaning up Fluid Engines - Found: %d\n",

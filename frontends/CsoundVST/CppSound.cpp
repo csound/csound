@@ -37,7 +37,7 @@ CppSound::CppSound() :  csound(0),
                         go(false),
                         spoutSize(0)
 {
-  csound = (ENVIRON *)csoundCreate(this);
+  csound = csoundCreate(this);
 }
 
 CppSound::~CppSound()
@@ -166,6 +166,7 @@ int CppSound::performKsmps(bool absolute)
 void CppSound::cleanup()
 {
   csoundCleanup(csound);
+  csoundReset(csound);
 }
 
 MYFLT *CppSound::getSpin()
@@ -178,7 +179,7 @@ MYFLT *CppSound::getSpout()
   return csoundGetSpout(csound);
 }
 
-void CppSound::setMessageCallback(void (*messageCallback)(void *hostData, int attr, const char *format, va_list args))
+void CppSound::setMessageCallback(void (*messageCallback)(ENVIRON *csound, int attr, const char *format, va_list args))
 {
   csoundSetMessageCallback(csound, messageCallback);
 }
@@ -216,24 +217,24 @@ void CppSound::throwMessageV(const char *format, va_list args)
   csoundThrowMessageV(csound, format, args);
 }
 
-void CppSound::setThrowMessageCallback(void (*throwCallback)(void *csound_, const char *format, va_list args))
+void CppSound::setThrowMessageCallback(void (*throwCallback)(ENVIRON *csound, const char *format, va_list args))
 {
   csoundSetThrowMessageCallback(this->csound, throwCallback);
 }
 
-void CppSound::setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(void *csound, void **userData,
+void CppSound::setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(ENVIRON *csound, void **userData,
                                                                        const char *devName))
 {
   csoundSetExternalMidiInOpenCallback(this->csound, ExternalMidiInOpen);
 }
 
-void CppSound::setExternalMidiReadCallback(int (*ExternalMidiRead)(void *csound, void *userData,
+void CppSound::setExternalMidiReadCallback(int (*ExternalMidiRead)(ENVIRON *csound, void *userData,
                                                                    unsigned char *buf, int nbytes))
 {
   csoundSetExternalMidiReadCallback(this->csound, ExternalMidiRead);
 }
 
-void CppSound::setExternalMidiInCloseCallback(int (*ExternalMidiInClose)(void *csound, void *userData))
+void CppSound::setExternalMidiInCloseCallback(int (*ExternalMidiInClose)(ENVIRON *csound, void *userData))
 {
   csoundSetExternalMidiInCloseCallback(this->csound, ExternalMidiInClose);
 }
@@ -273,7 +274,7 @@ MYFLT CppSound::getKr()
   return csoundGetKr(csound);
 }
 
-int CppSound::appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, SUBR iopadr, SUBR kopadr, SUBR aopadr)
+int CppSound::appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, int (*iopadr)(ENVIRON*, void*), int (*kopadr)(ENVIRON*, void*), int (*aopadr)(ENVIRON*, void*))
 {
   return csoundAppendOpcode(csound, opname, dsblksiz, thread, outypes, intypes, iopadr, kopadr, aopadr);
 }
@@ -314,7 +315,7 @@ void CppSound::inputMessage(std::string istatement)
   csoundScoreEvent(csound, opcode[0], &pfields.front(), pfields.size());
 }
 
-void *CppSound::getCsound()
+ENVIRON *CppSound::getCsound()
 {
   return csound;
 }
@@ -356,11 +357,11 @@ bool CppSound::getIsGo() const
 
 extern "C"
 {
-  void csoundSetMessageCallback(void *csound, void (*csoundMessageCallback)(void *csound, int attr, const char *format, va_list valist));
+  void csoundSetMessageCallback(ENVIRON *csound, void (*csoundMessageCallback)(ENVIRON *csound, int attr, const char *format, va_list valist));
   int PyRun_SimpleString(const char *string);
 }
 
-static void pythonMessageCallback(void *csound, int attr, const char *format, va_list valist)
+static void pythonMessageCallback(ENVIRON *csound, int attr, const char *format, va_list valist)
 {
   static char buffer[0x1000];
   static char buffer1[0x1000];
@@ -421,24 +422,21 @@ bool CppSound::getFLTKThreadLocking()
 
 std::string CppSound::getOutputSoundfileName() const
 {
-  if(csound->oparms->outfilename)
-    {
-      return csound->oparms->outfilename;
-    }
+  char *s = (char*) csoundGetOutputFileName(csound);
+  if (s)
+    return s;
   else
-    {
-      return "";
-    }
+    return "";
 }
 
-void CppSound::setInputValueCallback(void (*inputValueCallback)(void *csound,
+void CppSound::setInputValueCallback(void (*inputValueCallback)(ENVIRON *csound,
                                                                 char *channelName,
                                                                 MYFLT *value))
 {
   csoundSetInputValueCallback(csound, inputValueCallback);
 }
 
-void CppSound::setOutputValueCallback(void (*outputValueCallback)(void *csound,
+void CppSound::setOutputValueCallback(void (*outputValueCallback)(ENVIRON *csound,
                                                                   char *channelName,
                                                                   MYFLT value))
 {
@@ -448,13 +446,13 @@ void CppSound::setOutputValueCallback(void (*outputValueCallback)(void *csound,
 /**
  * Glue for incomplete Csound API.
  */
+#ifdef WIN32
 extern "C"
 {
-
-#ifdef WIN32
   int XOpenDisplay(char *)
   {
     return 1;
   }
-#endif
 };
+#endif
+

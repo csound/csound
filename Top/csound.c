@@ -467,9 +467,6 @@ extern "C" {
     csoundReset(csound);
     free(csound->oparms);
     free(csound);
-    /* exit if caught signal and there are no more instances left */
-    if (exitNow_ && instance_list == NULL)
-      exit(1);
   }
 
   PUBLIC int csoundGetVersion(void)
@@ -662,6 +659,11 @@ extern "C" {
   PUBLIC MYFLT *csoundGetSpout(ENVIRON *csound)
   {
     return csound->spout;
+  }
+
+  PUBLIC const char *csoundGetOutputFileName(ENVIRON *csound)
+  {
+    return (const char*) csound->oparms->outfilename;
   }
 
   PUBLIC MYFLT csoundGetScoreTime(ENVIRON *csound)

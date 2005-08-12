@@ -555,14 +555,13 @@ extern "C"
       }
     };
 
-  PUBLIC int csoundModuleCreate(void *csound)
+  PUBLIC int csoundModuleCreate(ENVIRON *csound)
   {
     return 0;
   }
 
-  PUBLIC int csoundModuleInit(void *csound_)
+  PUBLIC int csoundModuleInit(ENVIRON *csound)
   {
-    ENVIRON *csound = (ENVIRON*) csound_;
     const char *path = std::getenv("RAWWAVE_PATH");
     if(!path)
       {
@@ -577,16 +576,15 @@ extern "C"
       {
         status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz, oentry->thread,
                                        oentry->outypes, oentry->intypes,
-                                       (int (*)(void*, void*)) oentry->iopadr,
-                                       (int (*)(void*, void*)) oentry->kopadr,
-                                       (int (*)(void*, void*)) oentry->aopadr);
+                                       (int (*)(ENVIRON*,void*)) oentry->iopadr,
+                                       (int (*)(ENVIRON*,void*)) oentry->kopadr,
+                                       (int (*)(ENVIRON*,void*)) oentry->aopadr);
       }
     return status;
   }
 
-  PUBLIC int csoundModuleDestroy(void *csound_)
+  PUBLIC int csoundModuleDestroy(ENVIRON *csound)
   {
-    ENVIRON *csound = (ENVIRON*) csound_;
     for(size_t i = 0, n = stkInstances[csound].size(); i < n; ++i)
       {
         delete stkInstances[csound][i];
@@ -595,3 +593,4 @@ extern "C"
     return 0;
   }
 };
+

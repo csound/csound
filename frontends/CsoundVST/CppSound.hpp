@@ -36,7 +36,6 @@
 #include <string>
 #include <vector>
 #include <csound.h>
-#include <csoundCore.h>
 #endif
 
 /**
@@ -132,7 +131,7 @@ public:
   /**
    *    Sets a function for Csound to call to print informational messages through external software.
    */
-  virtual void setMessageCallback(void (*messageCallback)(void *hostData, int attr, const char *format, va_list args));
+  virtual void setMessageCallback(void (*messageCallback)(ENVIRON *csound, int attr, const char *format, va_list args));
   /**
    *    Print an informational message.
    */
@@ -153,21 +152,21 @@ public:
    *    Called by external software to set a funtion for Csound to stop execution
    *    with an error message or exception.
    */
-  virtual void setThrowMessageCallback(void (*throwMessageCallback)(void *csound, const char *format, va_list args));
+  virtual void setThrowMessageCallback(void (*throwMessageCallback)(ENVIRON *csound, const char *format, va_list args));
   /**
    *    Called by external software to set a function for Csound to call to open MIDI input.
    */
-  virtual void setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(void *csound, void **userData,
+  virtual void setExternalMidiInOpenCallback(int (*ExternalMidiInOpen)(ENVIRON *csound, void **userData,
                                                                        const char *devName));
   /**
    *    Called by external software to set a function for Csound to call to read MIDI messages.
    */
-  virtual void setExternalMidiReadCallback(int (*ExternalMidiRead)(void *csound, void *userData,
+  virtual void setExternalMidiReadCallback(int (*ExternalMidiRead)(ENVIRON *csound, void *userData,
                                                                    unsigned char *buf, int nbytes));
   /**
    *    Called by external software to set a function for Csound to call to close MIDI input.
    */
-  virtual void setExternalMidiInCloseCallback(int (*ExternalMidiInClose)(void *csound, void *userData));
+  virtual void setExternalMidiInCloseCallback(int (*ExternalMidiInClose)(ENVIRON *csound, void *userData));
   /**
    *    Returns the number of audio sample frames per control sample.
    */
@@ -187,7 +186,7 @@ public:
   /**
    *    Appends an opcode to the opcode list.
    */
-  int appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, SUBR iopadr, SUBR kopadr, SUBR aopadr);
+  int appendOpcode(char *opname, int dsblksiz, int thread, char *outypes, char *intypes, int (*iopadr)(ENVIRON*, void*), int (*kopadr)(ENVIRON*, void*), int (*aopadr)(ENVIRON*, void*));
   /**
    *    Returns whether Csound's score is synchronized with external software.
    */
@@ -225,7 +224,7 @@ public:
   /**
    *    Returns a function table.
    */
-  FUNC *(*ftfind)(MYFLT *index);
+/* FIXME: FUNC */ void *(*ftfind)(MYFLT *index);
   /**
    *    Sends a line event.
    */
@@ -233,7 +232,7 @@ public:
   /**
    *   Returns the actual instance of Csound.
    */
-  virtual void *getCsound();
+  virtual ENVIRON *getCsound();
   /**
    *   For Python.
    */
@@ -306,7 +305,7 @@ public:
    * fetch input control values.  The 'invalue' opcodes will
    * directly call this function.
    */
-  virtual void setInputValueCallback(void (*inputValueCallback)(void *csound,
+  virtual void setInputValueCallback(void (*inputValueCallback)(ENVIRON *csound,
                                                                 char *channelName,
                                                                 MYFLT *value));
 
@@ -315,7 +314,7 @@ public:
    * send output control values.  The 'outvalue' opcodes will
    * directly call this function.
    */
-  virtual void setOutputValueCallback(void (*outputValueCallback)(void *csound,
+  virtual void setOutputValueCallback(void (*outputValueCallback)(ENVIRON *csound,
                                                                   char *channelName,
                                                                   MYFLT value));
 #endif

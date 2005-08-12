@@ -60,7 +60,7 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
 };
 
 extern "C" {
-PUBLIC int csoundModuleDestroy(void *csound)
+PUBLIC int csoundModuleDestroy(ENVIRON *csound)
 {
     if (busses.begin() != busses.end()) {
       busses.clear();

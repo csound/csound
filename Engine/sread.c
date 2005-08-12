@@ -101,7 +101,7 @@ static  int     getop(ENVIRON *), getpfld(ENVIRON *);
         MYFLT   stof(ENVIRON *, char *);
 extern  void    *fopen_path(ENVIRON *, FILE **, char *, char *, char *);
 
-#define ST(x)   (((SREAD_GLOBALS*) ((ENVIRON*) csound)->sreadGlobals)->x)
+#define ST(x)   (((SREAD_GLOBALS*) csound->sreadGlobals)->x)
 
 static void sread_alloc_globals(ENVIRON *csound)
 {
@@ -259,7 +259,7 @@ static inline int isNameChar(int c, int pos)
 /* Functions to read/unread chracters from
  * a stack of file and macro inputs */
 
-static inline void ungetscochar(void *csound, int c)
+static inline void ungetscochar(ENVIRON *csound, int c)
 {
     if (ST(str)->unget_cnt < 128)
       ST(str)->unget_buf[ST(str)->unget_cnt++] = (char) c;
