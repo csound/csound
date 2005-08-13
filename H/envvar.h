@@ -29,12 +29,6 @@ extern "C" {
 #endif /* __cplusplus */
 
   /**
-   * Get pointer to value of environment variable 'name'.
-   * Return value is NULL if the variable is not set.
-   */
-  PUBLIC char *csoundGetEnv(CSOUND *csound, const char *name);
-
-  /**
    * Set environment variable 'name' to 'value'.
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
@@ -86,8 +80,8 @@ extern "C" {
    * or an error has occured. The caller is responsible for freeing the memory
    * pointed to by the return value, by calling mfree().
    */
-  PUBLIC char *csoundFindInputFile(CSOUND *csound,
-                                   const char *filename, const char *envList);
+  char *csoundFindInputFile(CSOUND *csound,
+                            const char *filename, const char *envList);
 
   /**
    * Search for a location to write file 'filename'.
@@ -110,8 +104,8 @@ extern "C" {
    * The caller is responsible for freeing the memory pointed to by the return
    * value, by calling mfree().
    */
-  PUBLIC char *csoundFindOutputFile(CSOUND *csound,
-                                    const char *filename, const char *envList);
+  char *csoundFindOutputFile(CSOUND *csound,
+                             const char *filename, const char *envList);
 
 #define CSFILE_FD_R     1
 #define CSFILE_FD_W     2
@@ -154,8 +148,8 @@ extern "C" {
    *   csoundFileClose(), or storing in FDCH.fd.
    *   On failure, NULL is returned.
    */
-  PUBLIC void *csoundFileOpen(CSOUND *csound, void *fd, int type,
-                              const char *name, void *param, const char *env);
+  void *csoundFileOpen(CSOUND *csound, void *fd, int type,
+                       const char *name, void *param, const char *env);
 
   /**
    * Allocate a file handle for an existing file already opened with open(),
@@ -167,18 +161,18 @@ extern "C" {
    * fullName is the name that will be returned by a later call to
    * csoundGetFileName().
    */
-  PUBLIC void *csoundCreateFileHandle(CSOUND *,
-                                      void *fd, int type, const char *fullName);
+  void *csoundCreateFileHandle(CSOUND *,
+                               void *fd, int type, const char *fullName);
 
   /**
    * Get the full name of a file previously opened with csoundFileOpen().
    */
-  PUBLIC char *csoundGetFileName(void *fd);
+  char *csoundGetFileName(void *fd);
 
   /**
    * Close a file previously opened with csoundFileOpen().
    */
-  PUBLIC int csoundFileClose(CSOUND *, void *fd);
+  int csoundFileClose(CSOUND *, void *fd);
 
 #ifdef __cplusplus
 };

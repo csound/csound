@@ -425,8 +425,8 @@ int csoundModuleCreate(CSOUND *csound)
 
 static int playopen_(CSOUND*, csRtAudioParams*);
 static int recopen_(CSOUND*, csRtAudioParams*);
-static void rtplay_(CSOUND*, void*, int);
-static int rtrecord_(CSOUND*, void*, int);
+static void rtplay_(CSOUND*, MYFLT*, int);
+static int rtrecord_(CSOUND*, MYFLT*, int);
 static void rtclose_(CSOUND*);
 
 int csoundModuleInit(CSOUND *csound)
@@ -677,7 +677,7 @@ static int jackClientActivate(CSOUND *csound)
 
 /* get samples from ADC */
 
-static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
+static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
 {
     JackStreamParams_t  *pp;
     volatile int        *frames_ahead;
@@ -714,7 +714,7 @@ static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, MYFLT *outbuf_, int bytes_)
 {
     JackStreamParams_t  *pp;
     volatile int        *frames_ahead;

@@ -48,7 +48,7 @@ typedef struct PaAlsaStreamInfo {
 
 typedef struct devparams_ {
     PaStream    *handle;        /* stream handle                    */
-    void        *buf;           /* sample conversion buffer         */
+    float       *buf;           /* sample conversion buffer         */
     int         nchns;          /* number of channels               */
 } DEVPARAMS;
 
@@ -351,16 +351,15 @@ static int paBlockingReadWriteStreamCallback(const void *input,
 
 /* get samples from ADC */
 
-static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
+static int rtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
 {
     PA_BLOCKING_STREAM  *pabs;
-    MYFLT   *buffer = (MYFLT*) inbuf_;
-    int     i = 0, samples = bytes_ / (int) sizeof(MYFLT);
+    int     i = 0, samples = nbytes / (int) sizeof(MYFLT);
 
     pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtRecordUserData(csound));
     if (pabs == NULL) {
-      memset(inbuf_, 0, bytes_);
-      return bytes_;
+      memset(buffer, 0, nbytes);
+      return nbytes;
     }
     if (pabs->paStream == NULL) {
       if (paBlockingReadWriteOpen(csound) != 0)
@@ -381,16 +380,15 @@ static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
       }
     } while (++i < samples);
 
-    return bytes_;
+    return nbytes;
 }
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, MYFLT *buffer, int nbytes)
 {
     PA_BLOCKING_STREAM  *pabs;
-    MYFLT   *buffer = (MYFLT*) outbuf_;
-    int     i = 0, samples = bytes_ / (int) sizeof(MYFLT);
+    int     i = 0, samples = nbytes / (int) sizeof(MYFLT);
 
     pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
     if (pabs == NULL)
@@ -520,8 +518,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
     if (parm->devName != NULL && parm->devName[0] != '\0') {
 #if !defined(LINUX)
       listPortAudioDevices_blocking(p, 1, play);
-      p->Message(p, Str(" *** PortAudio: "
-                        "must specify a device number, not a name\n"));
+      pa_PrintErrMsg(p, Str("must specify a device number, not a name"));
       return -1;
 #else
       PaAlsaStreamInfo info;
@@ -564,8 +561,9 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
     }
     /* set up device parameters */
     dev->nchns = parm->nChannels;
-    dev->buf = p->Calloc(p, (size_t) (parm->bufSamp_SW * parm->nChannels
-                                      * (int) sizeof(float)));
+    dev->buf = (float*) p->Calloc(p, (size_t) (parm->bufSamp_SW
+                                               * parm->nChannels
+                                               * (int) sizeof(float)));
 
     return 0;
 }
@@ -624,37 +622,37 @@ static int playopen_blocking(CSOUND *csound, csRtAudioParams *parm)
 
 /* get samples from ADC */
 
-static int rtrecord_blocking(CSOUND *csound, void *inbuf_, int bytes_)
+static int rtrecord_blocking(CSOUND *csound, MYFLT *inbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int       i, n, err;
 
     dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     /* calculate the number of samples to record */
-    n = bytes_ / (dev->nchns * (int) sizeof(MYFLT));
+    n = nbytes / (dev->nchns * (int) sizeof(MYFLT));
     err = (int) Pa_ReadStream(dev->handle, dev->buf, (unsigned long) n);
     if (err != (int) paNoError && (csound->GetMessageLevel(csound) & 4))
       csound->Warning(csound, Str("buffer overrun in real-time audio input"));
     /* convert samples to MYFLT */
     for (i = 0; i < (n * dev->nchns); i++)
-      ((MYFLT*) inbuf_)[i] = (MYFLT) ((float*) dev->buf)[i];
+      inbuf[i] = (MYFLT) dev->buf[i];
 
-    return bytes_;
+    return nbytes;
 }
 
 /* put samples to DAC */
 
-static void rtplay_blocking(CSOUND *csound, void *outbuf_, int bytes_)
+static void rtplay_blocking(CSOUND *csound, MYFLT *outbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int       i, n, err;
 
     dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
     /* calculate the number of samples to play */
-    n = bytes_ / (dev->nchns * (int) sizeof(MYFLT));
+    n = nbytes / (dev->nchns * (int) sizeof(MYFLT));
     /* convert samples from MYFLT */
     for (i = 0; i < (n * dev->nchns); i++)
-      ((float*) dev->buf)[i] = (float) ((MYFLT*) outbuf_)[i];
+      dev->buf[i] = (float) outbuf[i];
     err = (int) Pa_WriteStream(dev->handle, dev->buf, (unsigned long) n);
     if (err != (int) paNoError && (csound->GetMessageLevel(csound) & 4))
       csound->Warning(csound, Str("buffer underrun in real-time audio output"));

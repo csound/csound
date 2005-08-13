@@ -72,8 +72,8 @@ static int err_msg(CSOUND *csound, const char *fmt, ...)
 }
 
 static int allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
-                                             csRtAudioParams *parm,
-                                             int is_playback)
+                                            csRtAudioParams *parm,
+                                            int is_playback)
 {
     HGLOBAL ptr;
     int     i, err = 0, bufFrames, bufSamples, bufBytes;
@@ -115,7 +115,7 @@ static int allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
 }
 
 static int set_format_params(CSOUND *csound, WAVEFORMATEX *wfx,
-                                              csRtAudioParams *parm)
+                                             csRtAudioParams *parm)
 {
     int sampsize = 4, framsize;
     memset(wfx, 0, sizeof(WAVEFORMATEX));
@@ -399,7 +399,7 @@ static int playopen_(CSOUND *csound, csRtAudioParams *parm)
 
 /* get samples from ADC */
 
-static int rtrecord_(CSOUND *csound, void *inBuf, int nbytes)
+static int rtrecord_(CSOUND *csound, MYFLT *inBuf, int nbytes)
 {
     rtWinMMDevice   *dev = (rtWinMMDevice*)
                                *(csound->GetRtRecordUserData(csound));
@@ -430,7 +430,7 @@ static int rtrecord_(CSOUND *csound, void *inBuf, int nbytes)
 /* eliminate MIDI jitter by requesting that both be made synchronous with */
 /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 
-static void rtplay_(CSOUND *csound, void *outBuf, int nbytes)
+static void rtplay_(CSOUND *csound, MYFLT *outBuf, int nbytes)
 {
     rtWinMMDevice   *dev = (rtWinMMDevice*)
                                *(csound->GetRtPlayUserData(csound));

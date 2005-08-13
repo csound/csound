@@ -200,17 +200,17 @@ static void writesf(CSOUND *csound, MYFLT *outbuf, int nbytes)
     }
 }
 
-static int readsf(CSOUND *csound, MYFLT *inbuf_, int inbufsize)
+static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
 {
     int i, n;
 
     (void) csound;
     n = inbufsize / (int) sizeof(MYFLT);
-    i = (int) sf_read_MYFLT(ST(infile), inbuf_, n);
+    i = (int) sf_read_MYFLT(ST(infile), inbuf, n);
     if (i < 0)
       i = 0;
     while (i < n)
-      inbuf_[i++] = FL(0.0);
+      inbuf[i++] = FL(0.0);
     return inbufsize;
 }
 
@@ -269,8 +269,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       if (csound->recopen_callback(csound, &parm) != 0)
         csoundDie(csound, Str("Failed to initialise real time audio input"));
       /*  & redirect audio gets  */
-      csound->audrecv =
-          (int (*)(CSOUND *, MYFLT *, int)) csound->rtrecord_callback;
+      csound->audrecv = csound->rtrecord_callback;
       ST(pipdevin) = 2;         /* no backward seeks !     */
       goto inset;               /* no header processing    */
     }
@@ -391,8 +390,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       if (csound->playopen_callback(csound, &parm) != 0)
         csoundDie(csound, Str("Failed to initialise real time audio output"));
       /*  & redirect audio puts  */
-      csound->audtran =
-          (void (*)(CSOUND *, MYFLT *, int)) csound->rtplay_callback;
+      csound->audtran = csound->rtplay_callback;
       ST(outbufrem) = parm.bufSamp_SW * parm.nChannels;
       ST(pipdevout) = 2;                        /* no backward seeks !   */
       goto outset;                              /* no header needed      */
