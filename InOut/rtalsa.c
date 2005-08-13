@@ -89,8 +89,8 @@ int csoundModuleCreate(CSOUND *csound)
 
 static int playopen_(CSOUND*, csRtAudioParams*);
 static int recopen_(CSOUND*, csRtAudioParams*);
-static void rtplay_(CSOUND*, void*, int);
-static int rtrecord_(CSOUND*, void*, int);
+static void rtplay_(CSOUND*, MYFLT*, int);
+static int rtrecord_(CSOUND*, MYFLT*, int);
 static void rtclose_(CSOUND*);
 
 int csoundModuleInit(CSOUND *csound)
@@ -406,7 +406,7 @@ static int playopen_(CSOUND *csound, csRtAudioParams *parm)
       csound->Warning(csound, Str(x));          \
 }
 
-static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
+static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int       n, m, err;
@@ -414,11 +414,11 @@ static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
     dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
     if (dev->handle == NULL) {
       /* no device, return zero samples */
-      memset(inbuf_, 0, (size_t) bytes_);
-      return bytes_;
+      memset(inbuf, 0, (size_t) nbytes);
+      return nbytes;
     }
     /* calculate the number of samples to record */
-    n = bytes_ / dev->sampleSize;
+    n = nbytes / dev->sampleSize;
 
     m = 0;
     while (n) {
@@ -446,13 +446,13 @@ static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
       break;
     }
     /* convert samples to MYFLT */
-    dev->rec_conv(m * dev->nchns, dev->buf, inbuf_);
+    dev->rec_conv(m * dev->nchns, dev->buf, inbuf);
     return (m * dev->sampleSize);
 }
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, MYFLT *outbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int     n, err;
@@ -461,10 +461,10 @@ static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
     if (dev->handle == NULL)
       return;
     /* calculate the number of samples to play */
-    n = bytes_ / dev->sampleSize;
+    n = nbytes / dev->sampleSize;
 
     /* convert samples from MYFLT */
-    dev->playconv(n * dev->nchns, outbuf_, dev->buf, &(dev->seed));
+    dev->playconv(n * dev->nchns, outbuf, dev->buf, &(dev->seed));
 
     while (n) {
       err = (int) snd_pcm_writei(dev->handle, dev->buf, (snd_pcm_uframes_t) n);

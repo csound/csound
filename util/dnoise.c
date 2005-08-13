@@ -250,7 +250,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     int         channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     MYFLT       beg_ntime = FL(0.0), input_ndur = FL(0.0), srn = FL(0.0);
-    char        *envoutyp = NULL;
+    const char  *envoutyp = NULL;
     unsigned int  outbufsiz = 0U;
     char        outformch = 's';
     int         nrecs = 0;
@@ -260,11 +260,11 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     O->filnamspace = outfile = (char*) csound->Calloc(csound, (size_t) 1024);
     nfile = (char*) csound->Calloc(csound, (size_t) 1024);
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
-      if (strcmp(envoutyp,"AIFF") == 0)
+      if (strcmp(envoutyp, "AIFF") == 0)
         O->filetyp = TYP_AIFF;
-      else if (strcmp(envoutyp,"WAV") == 0)
+      else if (strcmp(envoutyp, "WAV") == 0)
         O->filetyp = TYP_WAV;
-      else if (strcmp(envoutyp,"IRCAM") == 0)
+      else if (strcmp(envoutyp, "IRCAM") == 0)
         O->filetyp = TYP_IRCAM;
       else {
         csound->Message(csound, Str("%s not a recognised SFOUTYP env setting"),

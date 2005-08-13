@@ -33,6 +33,7 @@ extern  char    *get_sconame(CSOUND *);
 extern  int     musmon2(CSOUND *);
 extern  char    *getstrformat(int);
 extern  void    print_benchmark_info(CSOUND *, const char *);
+extern  void    openMIDIout(CSOUND *);
 
 static void create_opcodlst(CSOUND *csound)
 {
@@ -50,7 +51,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s, *orcNameMode;
-    char    *filnamp, *envoutyp = NULL;
+    char    *filnamp;
     char    *sortedscore = NULL;
     char    *xtractedscore = "score.xtr";
     char    *playscore = NULL;      /* unless we extract */
@@ -121,43 +122,36 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* do not allow orc/sco/csd name in .csoundrc */
     strcpy(orcNameMode, "fail");
     {
-      char *csrcname;
-      FILE *csrc;
+      const char  *csrcname;
+      const char  *home_dir;
+      FILE        *csrc = NULL;
+      void        *fd = NULL;
       /* IV - Feb 17 2005 */
       csrcname = csoundGetEnv(csound, "CSOUNDRC");
-      csrc = NULL;
       if (csrcname != NULL && csrcname[0] != '\0') {
-        csrc = fopen(csrcname, "r");
-        if (csrc == NULL)
-          csound->Message(csound,
-                          Str("WARNING: cannot open csoundrc file %s\n"),
-                          csrcname);
+        fd = csound->FileOpen(csound, &csrc, CSFILE_STD, csrcname, "r", NULL);
+        if (fd == NULL)
+          csoundMessage(csound, Str("WARNING: cannot open csoundrc file %s\n"),
+                                csrcname);
       }
-      if (csrc == NULL &&
-          (csoundGetEnv(csound, "HOME") != NULL &&
-           csoundGetEnv(csound, "HOME")[0] != '\0')) {
+      if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
+                         home_dir[0] != '\0')) {
         /* 11 bytes for DIRSEP, ".csoundrc" (9 chars), and null character */
-        csrcname = (char*)
-          malloc((size_t) strlen(csoundGetEnv(csound, "HOME")) + (size_t) 11);
-        if (csrcname == NULL) {
-          csound->Die(csound, Str(" *** memory allocation failure"));
-          return -1;
-        }
-        sprintf(csrcname, "%s%c%s",
-                          csoundGetEnv(csound, "HOME"), DIRSEP, ".csoundrc");
-        csrc = fopen(csrcname, "r");
-        free(csrcname);
+        s = (char*) mmalloc(csound, (size_t) strlen(home_dir) + (size_t) 11);
+        sprintf(s, "%s%c%s", home_dir, DIRSEP, ".csoundrc");
+        fd = csound->FileOpen(csound, &csrc, CSFILE_STD, s, "r", NULL);
+        mfree(csound, s);
       }
       /* read global .csoundrc file (if exists) */
-      if (csrc != NULL) {
+      if (fd != NULL) {
         readOptions(csound, csrc);
-        fclose(csrc);
+        csound->FileClose(csound, fd);
       }
       /* check for .csoundrc in current directory */
-      csrc = fopen(".csoundrc", "r");
-      if (csrc != NULL) {
+      fd = csound->FileOpen(csound, &csrc, CSFILE_STD, ".csoundrc", "r", NULL);
+      if (fd != NULL) {
         readOptions(csound, csrc);
-        fclose(csrc);
+        csound->FileClose(csound, fd);
       }
     }
     /* check for CSD file */
@@ -196,13 +190,14 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* done parsing csoundrc, CSD, and command line options */
     /* if sound file type is still not known, check SFOUTYP */
     if (O->filetyp <= 0) {
+      const char  *envoutyp;
       envoutyp = csoundGetEnv(csound, "SFOUTYP");
       if (envoutyp != NULL && envoutyp[0] != '\0') {
-        if (strcmp(envoutyp,"AIFF") == 0)
+        if (strcmp(envoutyp, "AIFF") == 0)
           O->filetyp = TYP_AIFF;
-        else if (strcmp(envoutyp,"WAV") == 0 || strcmp(envoutyp,"WAVE") == 0)
+        else if (strcmp(envoutyp, "WAV") == 0 || strcmp(envoutyp, "WAVE") == 0)
           O->filetyp = TYP_WAV;
-        else if (strcmp(envoutyp,"IRCAM") == 0)
+        else if (strcmp(envoutyp, "IRCAM") == 0)
           O->filetyp = TYP_IRCAM;
         else if (strcmp(envoutyp, "RAW") == 0)
           O->filetyp = TYP_RAW;
@@ -241,7 +236,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
     if (!O->outformat)                      /* if no audioformat yet  */
       O->outformat = AE_SHORT;              /*  default to short_ints */
-    O->sfsampsize = sfsampsize(O->outformat);
+    O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
     O->informat = O->outformat;     /* informat defaults; */
     O->insampsiz = O->sfsampsize;   /* resettable by readinheader */
     csound->Message(csound,Str("orchname:  %s\n"), csound->orchname);
@@ -327,11 +322,9 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
  perf:
     O->filnamsize = filnamp - O->filnamspace;
     /* open MIDI output (moved here from argdecode) */
-    {
-      extern void openMIDIout(CSOUND *);
-      if (O->Midioutname != NULL && O->Midioutname[0] != '\0')
-        openMIDIout(csound);
-    }
+    if (O->Midioutname != NULL && O->Midioutname[0] != '\0')
+      openMIDIout(csound);
+
     return musmon(csound);
 }
 

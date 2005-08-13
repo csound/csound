@@ -41,6 +41,7 @@ static const char *envVar_list[] = {
     "INCDIR",
     "OPCODEDIR",
     "OPCODEDIR64",
+    "RAWWAVE_PATH",
     "SADIR",
     "SFDIR",
     "SFOUTYP",
@@ -99,6 +100,15 @@ typedef struct CSFILE_ {
     char            fullName[1];
 } CSFILE;
 
+/* Space for 16 global environment variables, */
+/* 32 bytes for name and 480 bytes for value. */
+/* Only written by csoundSetDefaultEnv().     */
+
+static char globalEnvVars[8192] = { (char) 0 };
+
+#define globalEnvVarName(x)   ((char*) &(globalEnvVars[(int) (x) << 9]))
+#define globalEnvVarValue(x)  ((char*) &(globalEnvVars[((int) (x) << 9) + 32]))
+
 static inline unsigned char name_hash(const char *s)
 {
     unsigned char *c = (unsigned char*) &(s[0]);
@@ -149,21 +159,60 @@ static int is_valid_envvar_name(const char *name)
  * Return value is NULL if the variable is not set.
  */
 
-PUBLIC char *csoundGetEnv(CSOUND *csound, const char *name)
+PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
 {
     envVarEntry_t **pp, *p;
 
-    if (csound == NULL)
-      return NULL;
+    if (csound == NULL) {
+      int i;
+      if (name == NULL || name[0] == '\0')
+        return (const char*) NULL;
+      for (i = 0; i < 16; i++) {
+        if (strcmp(globalEnvVarName(i), name) == 0)
+          return (const char*) globalEnvVarValue(i);
+      }
+      return (const char*) getenv(name);
+    }
     pp = getEnvVarChain(csound, name);
     if (pp == NULL)
-      return NULL;
+      return (const char*) NULL;
     p = *pp;
     while (p != NULL && sCmp(p->name, name) != 0)
       p = p->nxt;
     if (p == NULL)
-      return NULL;
-    return p->value;
+      return (const char*) NULL;
+    return (const char*) p->value;
+}
+
+/**
+ * Set the default value of environment variable 'name' to 'value'.
+ * It is not safe to call this function while any Csound instances
+ * are active.
+ * Returns zero on success.
+ */
+
+PUBLIC int csoundSetDefaultEnv(const char *name, const char *value)
+{
+    int   i;
+
+    if (name == NULL || name[0] == '\0' || (int) strlen(name) >= 32)
+      return -1;                        /* invalid name             */
+    for (i = 0; i < 16; i++) {
+      if ((value != NULL && globalEnvVarName(i)[0] == '\0') ||
+          strcmp(name, globalEnvVarName(i)) == 0)
+        break;
+    }
+    if (i >= 16)                        /* not found / no free slot */
+      return -1;
+    if (value == NULL) {
+      globalEnvVarName(i)[0] = '\0';    /* delete existing variable */
+      return 0;
+    }
+    if (strlen(value) >= 480)
+      return -1;                        /* string value is too long */
+    strcpy(globalEnvVarName(i), name);
+    strcpy(globalEnvVarValue(i), value);
+    return 0;
 }
 
 /**
@@ -242,8 +291,9 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
 
 int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
 {
-    char  *oldval, *newval;
-    int   retval;
+    const char  *oldval;
+    char        *newval;
+    int         retval;
 
     /* check for valid parameters */
     if (csound == NULL || !is_valid_envvar_name(name))
@@ -286,11 +336,19 @@ int csoundInitEnv(CSOUND *csound)
     for (i = 0; i < 256; i++)
       ((envVarEntry_t**) ENV_DB)[i] = (envVarEntry_t*) NULL;
     /* copy standard Csound environment variables */
-    i = -1;
-    while (envVar_list[++i] != NULL) {
+    for (i = 0; envVar_list[i] != NULL; i++) {
       retval = csoundSetEnv(csound, envVar_list[i], getenv(envVar_list[i]));
       if (retval != CSOUND_SUCCESS)
         return retval;
+    }
+    /* copy any global defaults set with csoundSetDefaultEnv() */
+    for (i = 0; i < 16; i++) {
+      if (globalEnvVarName(i)[0] != '\0') {
+        retval = csoundSetEnv(csound, globalEnvVarName(i),
+                                      globalEnvVarValue(i));
+        if (retval != CSOUND_SUCCESS)
+          return retval;
+      }
     }
     /* done */
     return CSOUND_SUCCESS;
@@ -659,8 +717,8 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
  * or an error has occured. The caller is responsible for freeing the memory
  * pointed to by the return value, by calling mfree().
  */
-PUBLIC char *csoundFindInputFile(CSOUND *csound,
-                                 const char *filename, const char *envList)
+char *csoundFindInputFile(CSOUND *csound,
+                          const char *filename, const char *envList)
 {
     char  *name_found;
     int   fd;
@@ -694,8 +752,8 @@ PUBLIC char *csoundFindInputFile(CSOUND *csound,
  * The caller is responsible for freeing the memory pointed to by the return
  * value, by calling mfree().
  */
-PUBLIC char *csoundFindOutputFile(CSOUND *csound,
-                                  const char *filename, const char *envList)
+char *csoundFindOutputFile(CSOUND *csound,
+                           const char *filename, const char *envList)
 {
     char  *name_found;
     int   fd;
@@ -746,8 +804,8 @@ PUBLIC char *csoundFindOutputFile(CSOUND *csound,
  *   On failure, NULL is returned.
  */
 
-PUBLIC void *csoundFileOpen(CSOUND *csound, void *fd, int type,
-                            const char *name, void *param, const char *env)
+void *csoundFileOpen(CSOUND *csound, void *fd, int type,
+                     const char *name, void *param, const char *env)
 {
     CSFILE  *p = NULL;
     char    *fullName = NULL;
@@ -875,8 +933,8 @@ PUBLIC void *csoundFileOpen(CSOUND *csound, void *fd, int type,
  * csoundGetFileName().
  */
 
-PUBLIC void *csoundCreateFileHandle(CSOUND *csound,
-                                    void *fd, int type, const char *fullName)
+void *csoundCreateFileHandle(CSOUND *csound,
+                             void *fd, int type, const char *fullName)
 {
     CSFILE  *p = NULL;
     int     nbytes = (int) sizeof(CSFILE);
@@ -927,7 +985,7 @@ PUBLIC void *csoundCreateFileHandle(CSOUND *csound,
  * Get the full name of a file previously opened with csoundFileOpen().
  */
 
-PUBLIC char *csoundGetFileName(void *fd)
+char *csoundGetFileName(void *fd)
 {
     return &(((CSFILE*) fd)->fullName[0]);
 }
@@ -936,7 +994,7 @@ PUBLIC char *csoundGetFileName(void *fd)
  * Close a file previously opened with csoundFileOpen().
  */
 
-PUBLIC int csoundFileClose(CSOUND *csound, void *fd)
+int csoundFileClose(CSOUND *csound, void *fd)
 {
     CSFILE  *p = (CSFILE*) fd;
     int     retval = -1;

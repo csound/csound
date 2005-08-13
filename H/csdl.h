@@ -46,7 +46,7 @@ PUBLIC long opcode_size(void)           \
     return (long) sizeof(localops);     \
 }                                       \
                                         \
-PUBLIC OENTRY *opcode_init(CSOUND *xx) \
+PUBLIC OENTRY *opcode_init(CSOUND *xx)  \
 {                                       \
     return localops;                    \
 }
@@ -56,7 +56,7 @@ PUBLIC long opcode_size(void)           \
 {   if (localops == NULL) return LONG_MIN;              \
     else return ((long) sizeof(localops) | LONG_MIN); } \
                                         \
-PUBLIC OENTRY *opcode_init(CSOUND *xx) \
+PUBLIC OENTRY *opcode_init(CSOUND *xx)  \
 {   return localops;    }               \
                                         \
 PUBLIC NGFENS *fgen_init(CSOUND *xx)    \

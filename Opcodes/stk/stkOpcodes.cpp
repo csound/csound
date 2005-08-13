@@ -562,7 +562,7 @@ extern "C"
 
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
-    const char *path = std::getenv("RAWWAVE_PATH");
+    const char *path = csound->GetEnv(csound, "RAWWAVE_PATH");
     if(!path)
       {
         csound->Message(csound, "Error: define environment variable RAWWAVE_PATH (points to rawwaves directory) to use STK opcodes.\n");
@@ -574,7 +574,8 @@ extern "C"
     int status = 0;
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
       {
-        status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz, oentry->thread,
+        status |= csound->AppendOpcode(csound, oentry->opname,
+                                       oentry->dsblksiz, oentry->thread,
                                        oentry->outypes, oentry->intypes,
                                        (int (*)(CSOUND*,void*)) oentry->iopadr,
                                        (int (*)(CSOUND*,void*)) oentry->kopadr,

@@ -58,8 +58,8 @@ void KillGraph_(CSOUND *csound, WINDAT *wdptr)
 
 int ExitGraph_(CSOUND *csound)
 {
-    char *env = csoundGetEnv(csound, "CSNOSTOP");
-    if (env==NULL || strcmp(env,"yes")==0)
+    const char *env = csoundGetEnv(csound, "CSNOSTOP");
+    if (env == NULL || strcmp(env, "yes") == 0)
       myFLwait();
     return 0;
 }

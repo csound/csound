@@ -23,19 +23,17 @@
 */
 
 #include "csoundCore.h"
+
 #ifdef HAVE_DIRENT_H
-#include <sys/types.h>
-#include <dirent.h>
-#ifdef __MACH__
-#ifdef DIRENT_FIX
+#  include <sys/types.h>
+#  include <dirent.h>
+#  if defined(__MACH__) && defined(DIRENT_FIX)
 typedef void* DIR;
 DIR opendir(const char *);
 struct dirent *readdir(DIR*);
 int closedir(DIR*);
+#  endif
 #endif
-#endif
-#endif
-#include "csound.h"
 
 #define name_hash_10(x,y)       (hash_table_10[(x) ^ (y)])
 
@@ -455,13 +453,13 @@ static int load_language_file(const char *fname, cslanguage_t lang_code)
 
 PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 {
-    int     nr_strings = 0;
-    char    *dirnam;
+    int         nr_strings = 0;
+    const char  *dirnam;
 #ifdef HAVE_DIRENT_H
-    int     i;
-    char    *s, dir_name[1024], file_name[1024];
-    DIR     *dirptr;
-    struct dirent   *ent;
+    int         i;
+    char        *s, dir_name[1024], file_name[1024];
+    DIR         *dirptr;
+    struct dirent *ent;
 #endif
 
     if (lang_code == CSLANGUAGE_DEFAULT)
@@ -480,7 +478,7 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
       return;
 
     /* load all files from CSSTRNGS directory */
-    dirnam = getenv("CSSTRNGS");
+    dirnam = csoundGetEnv(NULL, "CSSTRNGS");
     if (dirnam == NULL)
       return;
 
@@ -539,13 +537,13 @@ static LanguageSpec_t lang_list[] = {
 
 void init_getstring(int argc, char **argv)
 {
-    char    *s;
-    int     n;
+    const char  *s;
+    int         n;
 
-    argc = argc;
-    argv = argv;
+    (void) argc;
+    (void) argv;
 
-    s = getenv("CS_LANG");
+    s = csoundGetEnv(NULL, "CS_LANG");
     if (s == NULL)
       csoundSetLanguage(CSLANGUAGE_DEFAULT);
     else {
