@@ -646,7 +646,7 @@ int lorisread_setup( CSOUND *csound, LORISREAD * params )
 
   // set lorisplay_cleanup as cleanup routine:
   csound->RegisterDeinitCallback(csound, params,
-                                 (int (*)(void*, void*)) lorisread_cleanup);
+                                 (int (*)(CSOUND*, void*)) lorisread_cleanup);
   return OK;
 }
 
@@ -733,7 +733,7 @@ int lorisplay_setup( CSOUND *csound, LORISPLAY * p )
 #endif
   p->imp = new LorisPlayer( csound, p );
   csound->RegisterDeinitCallback(csound, p,
-                                 (int (*)(void*, void*)) lorisplay_cleanup);
+                                 (int (*)(CSOUND*, void*)) lorisplay_cleanup);
   return OK;
 }
 
@@ -1099,7 +1099,7 @@ int lorismorph_setup( CSOUND *csound, LORISMORPH * p )
 #endif
   p->imp = new LorisMorpher( p );
   csound->RegisterDeinitCallback(csound, p,
-                                 (int (*)(void*, void*)) lorismorph_cleanup);
+                                 (int (*)(CSOUND*, void*)) lorismorph_cleanup);
   return OK;
 }
 
