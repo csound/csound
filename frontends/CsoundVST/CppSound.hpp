@@ -55,6 +55,7 @@ protected:
    */
   bool go;
   size_t spoutSize;
+  std::string renderedSoundfile;
 public:
   /**
    *    Default creator.
