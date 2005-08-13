@@ -30,7 +30,10 @@ static char *rcsid = "$Id$";
  */
 /*
  *      $Log$
- *      Revision 1.13  2005-08-12 19:01:23  istvanv
+ *      Revision 1.14  2005-08-13 14:44:37  istvanv
+ *      Minor code changes
+ *
+ *      Revision 1.13  2005/08/12 19:01:23  istvanv
  *      Renamed ENVIRON to CSOUND
  *
  *      Revision 1.12  2005/08/10 09:57:07  istvanv
@@ -918,7 +921,7 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int n, int isn)
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-PUBLIC void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     if (!(FFTsize & (FFTsize - 1))) {
       /* if FFT size is power of two: */
@@ -945,7 +948,7 @@ PUBLIC void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-PUBLIC void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     if (FFTsize < 2 || (FFTsize & 1))
       csoundDie(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));

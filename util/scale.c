@@ -36,7 +36,6 @@
 
 /* Constants */
 
-#define SHORTMAX 32767
 #define FIND(MSG)   if (*s == '\0')  \
                         if (!(--argc) || ((s = *++argv) && *s == '-')) \
                             csound->Die(csound, MSG);
@@ -75,8 +74,7 @@ static void usage(CSOUND *csound, char *mesg)
     csound->Die(csound, "\n%s", mesg);
 }
 
-static char set_output_format(CSOUND *csound, OPARMS *p,
-                              char c, char outformch)
+static char set_output_format(CSOUND *csound, OPARMS *p, char c, char outformch)
 {
     switch (c) {
       case 'a': p->outformat = AE_ALAW;   /* a-law soundfile */
@@ -139,7 +137,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
     SNDFILE     *infile = NULL, *outfile;
     void        *fd;
     char        outformch = 's', c, *s, *filnamp;
-    char        *envoutyp;
+    const char  *envoutyp;
     SF_INFO     sfinfo;
     OPARMS      *O = csound->oparms;
     SCALE       sc;
@@ -154,11 +152,11 @@ static int scale(CSOUND *csound, int argc, char **argv)
     O->filetyp = O->outformat = 0;
     /* Check arguments */
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
-      if (strcmp(envoutyp,"AIFF") == 0)
+      if (strcmp(envoutyp, "AIFF") == 0)
         O->filetyp = TYP_AIFF;
-      else if (strcmp(envoutyp,"WAV") == 0)
+      else if (strcmp(envoutyp, "WAV") == 0)
         O->filetyp = TYP_WAV;
-      else if (strcmp(envoutyp,"IRCAM") == 0)
+      else if (strcmp(envoutyp, "IRCAM") == 0)
         O->filetyp = TYP_IRCAM;
       else {
         csound->Die(csound, Str("%s not a recognized SFOUTYP env setting"),

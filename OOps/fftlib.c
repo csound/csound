@@ -3211,7 +3211,7 @@ static inline void getTablePointers(CSOUND *p, MYFLT **ct, short **bt,
  * an inverse complex FFT with a length of 'FFTsize' samples.
  */
 
-PUBLIC MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int FFTsize)
+MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int FFTsize)
 {
     return FL(1.0);
 }
@@ -3221,7 +3221,7 @@ PUBLIC MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int FFTsize)
  * an inverse real FFT with a length of 'FFTsize' samples.
  */
 
-PUBLIC MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
+MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
 {
     return FL(1.0);
 }
@@ -3233,7 +3233,7 @@ PUBLIC MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
  *          in interleaved real/imaginary format
  */
 
-PUBLIC void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
     short *BRLow;
@@ -3253,7 +3253,7 @@ PUBLIC void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
  * csoundGetInverseComplexFFTScale(csound, FFTsize).
  */
 
-PUBLIC void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
     short *BRLow;
@@ -3272,7 +3272,7 @@ PUBLIC void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
  *          part for the Nyquist frequency
  */
 
-PUBLIC void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
     short *BRLow;
@@ -3293,7 +3293,7 @@ PUBLIC void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
  * csoundGetInverseRealFFTScale(csound, FFTsize).
  */
 
-PUBLIC void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
 {
     MYFLT *Utbl;
     short *BRLow;
@@ -3312,9 +3312,8 @@ PUBLIC void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
  * The arrays should contain 'FFTsize' MYFLT values.
  */
 
-PUBLIC void csoundRealFFTMult(CSOUND *csound,
-                              MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                              int FFTsize, MYFLT scaleFac)
+void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
+                       MYFLT *buf1, MYFLT *buf2, int FFTsize, MYFLT scaleFac)
 {
     MYFLT re, im;
     int   i;

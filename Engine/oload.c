@@ -36,9 +36,9 @@
 int     csoundGetAPIVersion(void);
 void    writeheader(CSOUND *csound, int ofd, char *ofname);
 int     playopen_dummy(CSOUND *csound, csRtAudioParams *parm);
-void    rtplay_dummy(CSOUND *csound, void *outBuf, int nbytes);
+void    rtplay_dummy(CSOUND *csound, MYFLT *outBuf, int nbytes);
 int     recopen_dummy(CSOUND *csound, csRtAudioParams *parm);
-int     rtrecord_dummy(CSOUND *csound, void *inBuf, int nbytes);
+int     rtrecord_dummy(CSOUND *csound, MYFLT *inBuf, int nbytes);
 void    rtclose_dummy(CSOUND *csound);
 void    csoundDefaultMessageCallback(CSOUND *csound, int attr,
                                      const char *format, va_list args);

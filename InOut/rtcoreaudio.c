@@ -82,11 +82,11 @@ int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-static int playopen_(void *, csRtAudioParams *);
-static int recopen_(void *, csRtAudioParams *);
-static void rtplay_(void *, void *, int);
-static int rtrecord_(void *, void *, int);
-static void rtclose_(void *);
+static int playopen_(CSOUND *, csRtAudioParams *);
+static int recopen_(CSOUND *, csRtAudioParams *);
+static void rtplay_(CSOUND *, MYFLT *, int);
+static int rtrecord_(CSOUND *, MYFLT *, int);
+static void rtclose_(CSOUND *);
 
 int csoundModuleInit(CSOUND *csound)
 {
@@ -435,7 +435,7 @@ static int playopen_(CSOUND *csound, csRtAudioParams * parm)
     return coreaudio_open(csound, parm, dev, 0);
 }
 
-static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
+static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     CSOUND *p;
@@ -477,7 +477,7 @@ static int rtrecord_(CSOUND *csound, void *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, void *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, MYFLT *outbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     CSOUND *p;

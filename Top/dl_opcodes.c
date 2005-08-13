@@ -22,7 +22,6 @@
 */
 
 #include "csoundCore.h"
-#include "csound.h"
 
 #ifdef HAVE_LIBDL
 #include <dlfcn.h>
@@ -542,7 +541,7 @@ int csoundLoadExternals(CSOUND *csound)
     {
       DIR           *directory;
       struct dirent *file;
-      char          *opcodedir;
+      const char    *opcodedir;
       int           warn64bit;
 
       opcodedir = NULL;

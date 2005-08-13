@@ -210,7 +210,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     char        *infile = NULL, *outfile = NULL, *bfile = NULL;
     SNDFILE     *inf = NULL;
     char        c, *s;
-    char        *envoutyp = NULL;
+    const char  *envoutyp;
     char        outformch = 's';
     unsigned    outbufsiz = 0U;
     SNDFILE     *outfd = NULL;

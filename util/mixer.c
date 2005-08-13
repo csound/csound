@@ -165,7 +165,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     SNDFILE     *infd, *outfd;
     int         i;
     char        outformch='s', c, *s, *filnamp;
-    char        *envoutyp;
+    const char  *envoutyp;
     int         n = 0;
     SF_INFO     sfinfo;
     MIXER_GLOBALS *pp = (MIXER_GLOBALS*) csound->Calloc(csound,
@@ -176,11 +176,11 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     csound->dbfs_to_float = csound->e0dbfs = FL(1.0);
     /* Check arguments */
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
-      if (strcmp(envoutyp,"AIFF") == 0)
+      if (strcmp(envoutyp, "AIFF") == 0)
         O->filetyp = TYP_AIFF;
-      else if (strcmp(envoutyp,"WAV") == 0)
+      else if (strcmp(envoutyp, "WAV") == 0)
         O->filetyp = TYP_WAV;
-      else if (strcmp(envoutyp,"IRCAM") == 0)
+      else if (strcmp(envoutyp, "IRCAM") == 0)
         O->filetyp = TYP_IRCAM;
       else {
         csound->ErrorMsg(csound, Str("%s not a recognized SFOUTYP env setting"),

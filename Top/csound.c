@@ -1041,7 +1041,7 @@ int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     return CSOUND_SUCCESS;
 }
 
-void rtplay_dummy(CSOUND *csound, void *outBuf, int nbytes)
+void rtplay_dummy(CSOUND *csound, MYFLT *outBuf, int nbytes)
 {
     double  *p = (double*) csound->rtPlay_userdata;
     outBuf = outBuf;
@@ -1077,7 +1077,7 @@ int recopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     return CSOUND_SUCCESS;
 }
 
-int rtrecord_dummy(CSOUND *csound, void *inBuf, int nbytes)
+int rtrecord_dummy(CSOUND *csound, MYFLT *inBuf, int nbytes)
 {
     double  *p = (double*) csound->rtRecord_userdata;
     int     i;
@@ -1106,7 +1106,7 @@ PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
 
 PUBLIC void csoundSetRtplayCallback(CSOUND *csound,
                                     void (*rtplay__)(CSOUND *csound,
-                                                     void *outBuf, int nbytes))
+                                                     MYFLT *outBuf, int nbytes))
 {
     csound->rtplay_callback = rtplay__;
 }
@@ -1120,7 +1120,7 @@ PUBLIC void csoundSetRecopenCallback(CSOUND *csound,
 
 PUBLIC void csoundSetRtrecordCallback(CSOUND *csound,
                                       int (*rtrecord__)(CSOUND *csound,
-                                                        void *inBuf,
+                                                        MYFLT *inBuf,
                                                         int nbytes))
 {
     csound->rtrecord_callback = rtrecord__;
@@ -1134,8 +1134,7 @@ PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
 
 /* dummy real time MIDI functions */
 
-static int DummyMidiInOpen(CSOUND *csound,
-                           void **userData, const char *devName)
+static int DummyMidiInOpen(CSOUND *csound, void **userData, const char *devName)
 {
     char *s;
 
@@ -1211,7 +1210,7 @@ static char *DummyMidiErrorString(int errcode)
  * and a non-zero error code if an error occured.
  */
 int csoundExternalMidiInOpen(CSOUND *csound, void **userData,
-                             const char *devName)
+                                             const char *devName)
 {
     if (csound->midiGlobals->MidiInOpenCallback == NULL)
       return -1;
@@ -1256,7 +1255,7 @@ int csoundExternalMidiInClose(CSOUND *csound, void *userData)
  * and a non-zero error code if an error occured.
  */
 int csoundExternalMidiOutOpen(CSOUND *csound, void **userData,
-                              const char *devName)
+                                              const char *devName)
 {
     if (csound->midiGlobals->MidiOutOpenCallback == NULL)
       return -1;

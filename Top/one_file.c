@@ -56,8 +56,9 @@ typedef struct {
 #ifdef WIN32
 char *mytmpnam(CSOUND *csound, char *a)
 {
-    char *dir = csoundGetEnv(csound, "SFDIR");
-    if (dir==NULL) dir = csoundGetEnv(csound, "HOME");
+    const char *dir = csoundGetEnv(csound, "SFDIR");
+    if (dir == NULL)
+      dir = csoundGetEnv(csound, "HOME");
     dir = _tempnam(dir, "cs");
     strcpy(a, dir);
     free(dir);

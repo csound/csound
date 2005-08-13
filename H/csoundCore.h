@@ -620,9 +620,9 @@ extern "C" {
     void (*DisposeOpcodeList)(opcodelist *opcodelist_);
     int (*AppendOpcode)(CSOUND *, char *opname, int dsblksiz,
                         int thread, char *outypes, char *intypes,
-                        int (*iopadr)(CSOUND *, void*),
-                        int (*kopadr)(CSOUND *, void*),
-                        int (*aopadr)(CSOUND *, void*));
+                        int (*iopadr)(CSOUND *, void *),
+                        int (*kopadr)(CSOUND *, void *),
+                        int (*aopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
     int (*LoadExternal)(CSOUND *, const char *libraryPath);
     int (*LoadExternals)(CSOUND *);
@@ -631,21 +631,22 @@ extern "C" {
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     int (*CheckEvents)(CSOUND *);
     void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));
-    char *(*GetEnv)(CSOUND *, const char *name);
+    const char *(*GetEnv)(CSOUND *, const char *name);
     char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
     char *(*FindOutputFile)(CSOUND *,
                             const char *filename, const char *envList);
     void (*SetPlayopenCallback)(CSOUND *,
                                 int (*playopen__)(CSOUND *,
                                                   csRtAudioParams *parm));
-    void (*SetRtplayCallback)(CSOUND *, void (*rtplay__)(CSOUND *, void *outBuf,
-                                                                   int nbytes));
+    void (*SetRtplayCallback)(CSOUND *,
+                                void (*rtplay__)(CSOUND *, MYFLT *outBuf,
+                                                           int nbytes));
     void (*SetRecopenCallback)(CSOUND *,
-                               int (*recopen__)(CSOUND *,
-                                                csRtAudioParams *parm));
+                                int (*recopen__)(CSOUND *,
+                                                 csRtAudioParams *parm));
     void (*SetRtrecordCallback)(CSOUND *,
-                                int (*rtrecord__)(CSOUND *, void *inBuf,
-                                                  int nbytes));
+                                int (*rtrecord__)(CSOUND *, MYFLT *inBuf,
+                                                            int nbytes));
     void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
     void (*AuxAlloc)(CSOUND *, long nbytes, AUXCH *auxchp);
     FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
@@ -733,7 +734,7 @@ extern "C" {
     int (*Utility)(CSOUND *, const char *name, int argc, char **argv);
     char **(*ListUtilities)(CSOUND *);
     int (*SetUtilityDescription)(CSOUND *, const char *utilName,
-                                            const char *utilDesc);
+                                           const char *utilDesc);
     char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
     int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
                                                 void *userData);
@@ -854,9 +855,9 @@ extern "C" {
     SUBR          last_callback_;
     /* these are not saved on RESET */
     int           (*playopen_callback)(CSOUND *, csRtAudioParams *parm);
-    void          (*rtplay_callback)(CSOUND *, void *outBuf, int nbytes);
+    void          (*rtplay_callback)(CSOUND *, MYFLT *outBuf, int nbytes);
     int           (*recopen_callback)(CSOUND *, csRtAudioParams *parm);
-    int           (*rtrecord_callback)(CSOUND *, void *inBuf, int nbytes);
+    int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
     /* end of callbacks */
     MYFLT         cpu_power_busy;
