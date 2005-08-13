@@ -55,10 +55,10 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #endif
 
-#include "Conversions.hpp"
-#include "CppSound.hpp"
-#include "System.hpp"
 #include "CsoundFile.hpp"
+#include "CppSound.hpp"
+#include "Conversions.hpp"
+#include "System.hpp"
 #include "Event.hpp"
 #include "Midifile.hpp"
 #include "Score.hpp"
