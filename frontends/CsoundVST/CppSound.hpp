@@ -29,7 +29,7 @@
 #include "CsoundFile.hpp"
 #include <string>
 #include <vector>
-  %}
+%}
 %template(MyfltVector) std::vector<MYFLT>;
 #else
 #include "CsoundFile.hpp"
@@ -41,8 +41,7 @@
 /**
  * Class interface to the Csound API.
  */
-class CppSound :
-  public CsoundFile
+class CppSound : public CsoundFile
 {
 protected:
   CSOUND *csound;
