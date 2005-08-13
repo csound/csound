@@ -62,18 +62,17 @@
 
 /* Experiment with doubles or floats */
 
-#ifndef __MYFLT_DEF
+#ifndef MYFLT
 #  ifndef USE_DOUBLE
 #    define MYFLT float
 #  else
 #    define MYFLT double
 #  endif
-#  define __MYFLT_DEF
 #endif
 
-#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
-
 #define FL(x) ((MYFLT) (x))
+
+#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
 /* find out operating system if not specified on the command line */
 
