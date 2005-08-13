@@ -1047,7 +1047,7 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
         vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
         if getPlatform() == 'cygwin':
-                vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
+            vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows'])
         vstEnvironment.Append(LIBS = ['python23'])
         vstEnvironment.Append(LIBS = ['fltk_images'])
@@ -1056,10 +1056,12 @@ else:
     for option in vstEnvironment['CPPPATH']:
         option = '-I' + option
         vstEnvironment.Append(SWIGFLAGS = [option])
-    for option in vstEnvironment['CCFLAGS']:
-        if string.find(option, '-D') == 0:
-           vstEnvironment.Append(SWIGFLAGS = [option])
-
+	for option in vstEnvironment['CCFLAGS']:
+		if string.find(option, '-D') == 0:
+			vstEnvironment.Append(SWIGFLAGS = [option])
+	for option in vstEnvironment['CPPFLAGS']:
+		if string.find(option, '-D') == 0:
+			vstEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =',commonEnvironment['ENV']['PATH']
     csoundVstSources = Split('''
     frontends/CsoundVST/AudioEffect.cpp
