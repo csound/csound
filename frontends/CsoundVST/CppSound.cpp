@@ -85,6 +85,7 @@ int CppSound::perform(int argc, char **argv)
     {
       return result;
     }
+  renderedSoundfile = csoundGetOutputFileName(csound);
   for(result = 0; (result == 0) && go; )
     {
       result = performKsmps();
@@ -422,11 +423,7 @@ bool CppSound::getFLTKThreadLocking()
 
 std::string CppSound::getOutputSoundfileName() const
 {
-  char *s = (char*) csoundGetOutputFileName(csound);
-  if (s)
-    return s;
-  else
-    return "";
+  return renderedSoundfile;
 }
 
 void CppSound::setInputValueCallback(void (*inputValueCallback)(CSOUND *csound,
