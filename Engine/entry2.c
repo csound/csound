@@ -29,7 +29,6 @@
 #endif
 #include "schedule.h"
 #include "cwindow.h"
-#include "spectra.h"
 #include "vbap.h"
 #include "aops.h"
 #include "ugens1.h"
@@ -123,13 +122,7 @@ int     lineto_set(CSOUND *, void *), lineto(CSOUND *, void *);
 int     tlineto_set(CSOUND *, void *),tlineto(CSOUND *, void *);
 int     vibrato_set(CSOUND *, void *), vibrato(CSOUND *, void *);
 int     vibr_set(CSOUND *, void *), vibr(CSOUND *, void *);
-int     oscbnkset(CSOUND *, void *), oscbnk(CSOUND *, void *);
 int     userrnd_set(CSOUND *, void *);
-int     oscktset(CSOUND *, void *), kosclikt(CSOUND *, void *);
-int     osckkikt(CSOUND *, void *), osckaikt(CSOUND *, void *);
-int     oscakikt(CSOUND *, void *), oscaaikt(CSOUND *, void *);
-int     oscktpset(CSOUND *, void *), oscktp(CSOUND *, void *);
-int     oscktsset(CSOUND *, void *), osckts(CSOUND *, void *);
 int     iDiscreteUserRand(CSOUND *, void *);
 int     kDiscreteUserRand(CSOUND *, void *);
 int     Cuserrnd_set(CSOUND *, void *);
@@ -149,13 +142,6 @@ int     powoftwoa(CSOUND *, void *), dba(CSOUND *, void *);
 int     powoftwo(CSOUND *, void *);
 int     semitone(CSOUND *, void *), asemitone(CSOUND *, void *);
 int     cent(CSOUND *, void *), acent(CSOUND *, void *);
-int     and_kk(CSOUND *, void *), and_ka(CSOUND *, void *);
-int     and_ak(CSOUND *, void *), and_aa(CSOUND *, void *);
-int     or_kk(CSOUND *, void *), or_ka(CSOUND *, void *);
-int     or_ak(CSOUND *, void *), or_aa(CSOUND *, void *);
-int     xor_kk(CSOUND *, void *), xor_ka(CSOUND *, void *);
-int     xor_ak(CSOUND *, void *), xor_aa(CSOUND *, void *);
-int     not_k(CSOUND *, void *), not_a(CSOUND *, void *);
 int     midichn(CSOUND *, void *), pgmassign(CSOUND *, void *);
 int     midiin(CSOUND *, void *);
 int     midinoteoff(CSOUND *, void *), midinoteonkey(CSOUND *, void *);

@@ -36,7 +36,7 @@
  * http://www.cerlsoundgroup.org/Loris/
  *
  */
-#include "csound.h"
+
 #include "csdl.h"
 
 /* declare structures holding private internal data */

@@ -29,10 +29,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* Deal with localisation of mesages */
-
-#define Str(x)  csoundLocalizeString(x)
-
 /* list of languages */
 
 typedef enum {
@@ -110,9 +106,13 @@ typedef enum {
     CSLANGUAGE_VIETNAMESE
 } cslanguage_t;
 
-/* NOTE: function prototypes are in csound.h */
+#ifdef __BUILDING_LIBCSOUND
 
-#include "csound.h"
+/* Deal with localisation of mesages */
+
+#define Str(x)  csoundLocalizeString(x)
+
+/* NOTE: function prototypes are in csound.h */
 
 /*
  * Set language to 'lang_code' (lang_code can be for example
@@ -137,9 +137,11 @@ typedef enum {
 
 void init_getstring(int argc, char **argv);
 
+#endif  /* __BUILDING_LIBCSOUND */
+
 #ifdef __cplusplus
 };
 #endif /* __cplusplus */
 
-#endif          /* CSOUND_TEXT_H */
+#endif  /* CSOUND_TEXT_H */
 

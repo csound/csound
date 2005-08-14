@@ -46,21 +46,9 @@ extern "C" {
 #define OK        (0)
 #define NOTOK     (-1)
 
-#define INSTR     1
-#define ENDIN     2
-#define OPCODE    3
-#define ENDOP     4
-#define LABEL     5
-#define SETBEG    6
-#define PSET      6
-#define SETEND    7
-
-#define MAXINSNO   (200)
-#define PMAX       (1000)
-#define VARGMAX    (1001)
-#define TOKMAX  50L             /* Should be 50 but bust */
-/* IV - Oct 24 2002: max number of input/output args for user defined opcodes */
-#define OPCODENUMOUTS   24
+#define MAXINSNO  (200)
+#define PMAX      (1000)
+#define VARGMAX   (1001)
 
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
@@ -109,7 +97,28 @@ extern "C" {
 
 #define DFLT_DBFS (FL(32768.0))
 
-  void dbfs_init(CSOUND *, MYFLT dbfs);
+#define MAXOCTS         8
+#define AIFF_MAXCHAN    8
+#define MAXCHAN         16      /* 16 MIDI channels; only one port for now */
+
+#define ONEPT           1.02197486              /* A440 tuning factor */
+#define LOG10D20        0.11512925              /* for db to ampfac   */
+#define DV32768         FL(0.000030517578125)
+
+#ifndef PI
+#define PI      (3.14159265358979323846)
+#endif
+#define TWOPI   (6.28318530717958647692)
+#define PI_F    ((MYFLT) PI)
+#define TWOPI_F ((MYFLT) TWOPI)
+
+#define WARNMSG 04
+#define IGN(X)  (void) X
+#define printf  use_csoundMessage_instead_of_printf
+
+#if !(defined(__CYGWIN__) || defined(WIN32) || defined(__cdecl))
+#  define __cdecl
+#endif
 
   typedef struct {
     int     odebug;
@@ -133,16 +142,6 @@ extern "C" {
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
   } OPARMS;
-
-#define  ONEPT          1.02197486             /* A440 tuning factor */
-#define  LOG10D20       0.11512925             /* for db to ampfac   */
-#define  DV32768        FL(0.000030517578125)
-
-  typedef struct polish {
-    char    opcod[12];
-    int     incount;
-    char    *arg[4];     /* Was [4][12] */
-  } POLISH;
 
   typedef struct arglst {
     int     count;
@@ -331,8 +330,6 @@ extern "C" {
     long    scount;
   } OCTDAT;
 
-#define MAXOCTS 8
-
   typedef struct {
     long    npts, nocts, nsamps;
     MYFLT   lofrq, hifrq, looct, srate;
@@ -347,7 +344,15 @@ extern "C" {
     AUXCH   auxch;
   } SPECDAT;
 
-#define AIFF_MAXCHAN 8
+  /* This struct holds the data for one score event. */
+  typedef struct event {
+    char    *strarg;        /* Original argument list string of event */
+    char    opcod;          /* Event type */
+    short   pcnt;           /* Number of p-fields */
+    MYFLT   p2orig;         /* Event start time */
+    MYFLT   p3orig;         /* Length */
+    MYFLT   p[PMAX+1];      /* All p-fields for this event */
+  } EVTBLK;
 
   typedef struct {
     MYFLT   natcps;
@@ -378,7 +383,7 @@ extern "C" {
     MYFLT   cvtbas, cpscvt;
     short   loopmode1;
     short   loopmode2;
-    long    begin1, end1;   /* all these in ..  */
+    long    begin1, end1;       /* all these in ..  */
     long    begin2, end2;
     long    soundend, flenfrms; /* .. sample frames */
     long    nchanls;
@@ -387,30 +392,6 @@ extern "C" {
     MYFLT   ftable[1];
   } FUNC;
 
-  typedef struct MEMFIL {
-    char    filename[256];  /* Made larger RWD */
-    char    *beginp;
-    char    *endp;
-    long    length;
-    struct MEMFIL  *next;
-  } MEMFIL;
-
-  /* This struct holds the data for one score event. */
-  typedef struct event {
-    char    *strarg;        /* Original argument list string of event */
-    char    opcod;          /* Event type */
-    short   pcnt;           /* Number of p-fields */
-    MYFLT   p2orig;         /* Event start time */
-    MYFLT   p3orig;         /* Length */
-    MYFLT   p[PMAX+1];      /* All p-fields for this event */
-  } EVTBLK;
-
-  typedef struct eventnode {
-    struct eventnode  *nxt;
-    unsigned long     start_kcnt;
-    EVTBLK            evt;
-  } EVTNODE;
-
   typedef struct {
     EVTBLK  e;
     double  tpdlen;
@@ -418,33 +399,15 @@ extern "C" {
     long    flen, flenp1, lenmask;
   } FGDATA;
 
-  typedef struct {
-    OPDS    h;
-    MYFLT   *ktempo, *istartempo;
-    MYFLT   prvtempo;
-  } TEMPO;
+  typedef void (*GEN)(FUNC *, CSOUND *);
 
-  typedef struct opcodinfo {              /* IV - Oct 24 2002 */
-    long    instno;
-    char    *name, *intypes, *outtypes;
-    short   inchns, outchns, perf_incnt, perf_outcnt;
-    short   *in_ndx_list, *out_ndx_list;
-    INSTRTXT *ip;
-    struct  opcodinfo *prv;
-  } OPCODINFO;
-
-#define MAXCHAN 16      /* 16 MIDI channels; only one port for now */
-
-#include "sort.h"
-#include "midiops2.h"
-
-  typedef void    (*GEN)(FUNC *, CSOUND *);
-
-  /* MIDI globals */
-
-#define MBUFSIZ         (4096)
-#define MIDIINBUFMAX    (1024)
-#define MIDIINBUFMSK    (MIDIINBUFMAX-1)
+  typedef struct MEMFIL {
+    char    filename[256];      /* Made larger RWD */
+    char    *beginp;
+    char    *endp;
+    long    length;
+    struct MEMFIL  *next;
+  } MEMFIL;
 
   typedef union {
     unsigned long dwData;
@@ -457,39 +420,6 @@ extern "C" {
     short  dat1;
     short  dat2;
   } MEVENT;
-
-  typedef struct midiglobals {
-    MEVENT  *Midevtblk;
-    int     sexp;
-    int     MIDIoutDONE;
-    int     MIDIINbufIndex;
-    MIDIMESSAGE MIDIINbuffer2[MIDIINBUFMAX];
-    int     (*MidiInOpenCallback)(CSOUND*, void**, const char*);
-    int     (*MidiReadCallback)(CSOUND*, void*, unsigned char*, int);
-    int     (*MidiInCloseCallback)(CSOUND*, void*);
-    int     (*MidiOutOpenCallback)(CSOUND*, void**, const char*);
-    int     (*MidiWriteCallback)(CSOUND*, void*, unsigned char*, int);
-    int     (*MidiOutCloseCallback)(CSOUND*, void*);
-    char    *(*MidiErrorStringCallback)(int);
-    void    *midiInUserData;
-    void    *midiOutUserData;
-    void    *midiFileData;
-    int     rawControllerMode;
-    char    muteTrackList[256];
-    unsigned char mbuf[MBUFSIZ];
-    unsigned char *bufp, *endatp;
-    short   datreq, datcnt;
-  } MGLOBAL;
-
-  typedef struct token {
-        char    *str;
-        short   prec;
-  } TOKEN;
-
-  typedef struct names {
-        char *mac;
-        struct names *next;
-  } NAMES;
 
   typedef struct SNDMEMFILE_ {
     char            *name;          /* file ID (short name)         */
@@ -527,6 +457,94 @@ extern "C" {
     int         chans;
     MYFLT       srate;
   } PVOCEX_MEMFILE;
+
+#ifdef __BUILDING_LIBCSOUND
+
+#define INSTR   1
+#define ENDIN   2
+#define OPCODE  3
+#define ENDOP   4
+#define LABEL   5
+#define SETBEG  6
+#define PSET    6
+#define SETEND  7
+
+#define TOKMAX  50L     /* Should be 50 but bust */
+
+/* IV - Oct 24 2002: max number of input/output args for user defined opcodes */
+#define OPCODENUMOUTS   24
+
+#define MBUFSIZ         (4096)
+#define MIDIINBUFMAX    (1024)
+#define MIDIINBUFMSK    (MIDIINBUFMAX-1)
+
+  /* MIDI globals */
+
+  typedef struct midiglobals {
+    MEVENT  *Midevtblk;
+    int     sexp;
+    int     MIDIoutDONE;
+    int     MIDIINbufIndex;
+    MIDIMESSAGE MIDIINbuffer2[MIDIINBUFMAX];
+    int     (*MidiInOpenCallback)(CSOUND*, void**, const char*);
+    int     (*MidiReadCallback)(CSOUND*, void*, unsigned char*, int);
+    int     (*MidiInCloseCallback)(CSOUND*, void*);
+    int     (*MidiOutOpenCallback)(CSOUND*, void**, const char*);
+    int     (*MidiWriteCallback)(CSOUND*, void*, unsigned char*, int);
+    int     (*MidiOutCloseCallback)(CSOUND*, void*);
+    char    *(*MidiErrorStringCallback)(int);
+    void    *midiInUserData;
+    void    *midiOutUserData;
+    void    *midiFileData;
+    int     rawControllerMode;
+    char    muteTrackList[256];
+    unsigned char mbuf[MBUFSIZ];
+    unsigned char *bufp, *endatp;
+    short   datreq, datcnt;
+  } MGLOBAL;
+
+  typedef struct eventnode {
+    struct eventnode  *nxt;
+    unsigned long     start_kcnt;
+    EVTBLK            evt;
+  } EVTNODE;
+
+  typedef struct {
+    OPDS    h;
+    MYFLT   *ktempo, *istartempo;
+    MYFLT   prvtempo;
+  } TEMPO;
+
+  typedef struct opcodinfo {              /* IV - Oct 24 2002 */
+    long    instno;
+    char    *name, *intypes, *outtypes;
+    short   inchns, outchns, perf_incnt, perf_outcnt;
+    short   *in_ndx_list, *out_ndx_list;
+    INSTRTXT *ip;
+    struct  opcodinfo *prv;
+  } OPCODINFO;
+
+  typedef struct polish {
+    char    opcod[12];
+    int     incount;
+    char    *arg[4];     /* Was [4][12] */
+  } POLISH;
+
+  typedef struct token {
+        char    *str;
+        short   prec;
+  } TOKEN;
+
+  typedef struct names {
+        char *mac;
+        struct names *next;
+  } NAMES;
+
+#include "sort.h"
+#include "text.h"
+#include "prototyp.h"
+
+#endif  /* __BUILDING_LIBCSOUND */
 
   struct CSOUND_ {
     /* Csound API function pointers (288 total) */
@@ -991,25 +1009,8 @@ extern "C" {
     int           pvErrorCode;
     void          *pvbufreadaddr;       /* pvinterp.c */
     void          *tbladr;              /* vpvoc.c */
-#endif      /* __BUILDING_LIBCSOUND */
+#endif  /* __BUILDING_LIBCSOUND */
   };
-
-#include "text.h"
-
-#if !(defined(__CYGWIN__) || defined(WIN32) || defined(__cdecl))
-#  define __cdecl
-#endif
-
-#include "prototyp.h"
-
-#ifndef PI
-#define PI      (3.14159265358979323846)
-#endif
-#define TWOPI   (6.28318530717958647692)
-#define PI_F    ((MYFLT) PI)
-#define TWOPI_F ((MYFLT) TWOPI)
-
-#define WARNMSG 04
 
 /*
  * Move the C++ guards to enclose the entire file,
