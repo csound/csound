@@ -52,7 +52,7 @@
 #include "ugrw1.h"
 #include "ugrw2.h"
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 int     ihold(CSOUND *, void *), turnoff(CSOUND *, void *);
 int     assign(CSOUND *, void *), rassign(CSOUND *, void *);
@@ -308,7 +308,7 @@ int     prealloc(CSOUND *, void *);
                 3 =     1  AND  2
                 4 =                     4
                 5 =     1  AND          4
-                7 =     1  AND (2  OR   4)                      */
+                7 =     1  AND (2  OR   4)                              */
 
 /* inarg types include the following:
 
@@ -336,15 +336,19 @@ int     prealloc(CSOUND *, void *);
                 h       "            "        127
                 y       begins indef list of aargs (any count)
                 z       begins indef list of kargs (any count)
-                Z       begins alternating kakaka...list (any count)
-   outarg types include:
-                m       multiple outargs (1 to 4 allowed)
-   (these types must agree with rdorch.c)                       */
+                Z       begins alternating kakaka...list (any count)    */
 
-/* If dsblksize is 0xffff then translate */
-/*                 0xfffe then translate two (oscil) */
-/*                 0xfffd then translate two (peak) */
-/*                 0xfffc then translate two (divz) */
+/* outarg types include:
+                m       multiple out aargs
+                z               multiple out kargs
+                X       multiple args (any rate)        IV - Sep 1 2002
+   (these types must agree with rdorch.c)                               */
+
+/* If dsblksize is 0xffff then translate on output arg
+                   0xfffe then translate two (oscil)
+                   0xfffd then translate on first input arg (peak)
+                   0xfffc then translate two (divz)
+                   0xfffb then translate on first input arg (loop_l)    */
 
 OENTRY opcodlst_1[] = {
 /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */

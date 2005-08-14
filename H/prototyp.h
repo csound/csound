@@ -21,16 +21,8 @@
     02111-1307 USA
 */
                                                         /*  PROTOTYP.H  */
-#ifndef _CSOUND_PROTO_H
+#if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
 #define _CSOUND_PROTO_H
-
-#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
-#  define IGN(X)  (void) X
-/* to be removed... */
-#  define printf  use_csoundMessage_instead_of_printf
-#endif
-
-#ifdef __BUILDING_LIBCSOUND
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,9 +82,9 @@ char    *mytmpnam(CSOUND *, char *);
 void    *SAsndgetset(CSOUND *, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
 int     getsndin(CSOUND *, void*, MYFLT*, int, void*);
 void    *sndgetset(CSOUND *, void*);
-SNDMEMFILE  *csoundLoadSoundFile(CSOUND *,
-                                 const char *name, SF_INFO *sfinfo);
-int     PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
+void    dbfs_init(CSOUND *, MYFLT dbfs);
+SNDMEMFILE  *csoundLoadSoundFile(CSOUND *, const char *name, SF_INFO *sfinfo);
+int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
 
   /**
    * Register a function to be called at note deactivation.
@@ -303,8 +295,6 @@ int     PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
 #ifdef __cplusplus
 };
 #endif
-
-#endif      /* __BUILDING_LIBCSOUND */
 
 #endif
 
