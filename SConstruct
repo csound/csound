@@ -1056,12 +1056,12 @@ else:
     for option in vstEnvironment['CPPPATH']:
         option = '-I' + option
         vstEnvironment.Append(SWIGFLAGS = [option])
-	for option in vstEnvironment['CCFLAGS']:
-		if string.find(option, '-D') == 0:
-			vstEnvironment.Append(SWIGFLAGS = [option])
-	for option in vstEnvironment['CPPFLAGS']:
-		if string.find(option, '-D') == 0:
-			vstEnvironment.Append(SWIGFLAGS = [option])
+        for option in vstEnvironment['CCFLAGS']:
+                if string.find(option, '-D') == 0:
+                        vstEnvironment.Append(SWIGFLAGS = [option])
+        for option in vstEnvironment['CPPFLAGS']:
+                if string.find(option, '-D') == 0:
+                        vstEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =',commonEnvironment['ENV']['PATH']
     csoundVstSources = Split('''
     frontends/CsoundVST/AudioEffect.cpp

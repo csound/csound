@@ -23,17 +23,9 @@
 
 /*                                                      SCOT.C       */
 /* aldel Jul 91 */
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
 
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
+#include "csoundCore.h"
 #include "scot.h"
-#include "text.h"
 
 static char curline[MAXLINE+1]; /* current line of infile */
 static int inx,                 /* column # */
