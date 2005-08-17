@@ -35,7 +35,10 @@ import copy
 zipDependencies = []
 pluginLibraries = []
 executables = []
-headers = glob.glob('H/*.h')
+headers = Split('''H/cfgvar.h H/csdl.h H/csoundCore.h H/csound.h
+                   H/cs_util.h H/cwindow.h H/envvar.h H/msg_attr.h
+                   H/OpcodeBase.hpp H/opcode.h H/pstream.h H/pvfileio.h
+                   H/soundio.h H/sysdep.h H/text.h H/version.h''')
 libs = []
 
 def today():
@@ -213,7 +216,7 @@ if (commonEnvironment['useLrint'] != '0'):
 if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
   if (commonEnvironment['gcc4opt'] != '0'):
     commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
-  commonEnvironment.Prepend(CCFLAGS = Split('-fomit-frame-pointer -ffast-math'))
+  commonEnvironment.Prepend(CCFLAGS = ['-fomit-frame-pointer', '-ffast-math'])
   if (getPlatform() == 'darwin'):
     flags = '-mcpu=%s'
   else:
@@ -228,15 +231,15 @@ if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
     commonEnvironment.Append(CCFLAGS = ['-fast', '-fPIC'])
 elif (commonEnvironment['noDebug']=='0'):
   if (getPlatform() == 'darwin'):
-    commonEnvironment.Prepend(CCFLAGS = Split('-g -O2'))
+    commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
   else:
-    commonEnvironment.Prepend(CCFLAGS = Split('-g -gstabs -O2'))
+    commonEnvironment.Prepend(CCFLAGS = ['-g', '-gstabs', '-O2'])
 else:
   commonEnvironment.Prepend(CCFLAGS = ['-O2'])
 if (commonEnvironment['useGprof']=='1'):
   commonEnvironment.Append(CCFLAGS = ['-pg'])
   commonEnvironment.Append(LINKFLAGS = ['-pg'])
-commonEnvironment.Prepend(CXXFLAGS = Split('-DCSOUND_WITH_API -fexceptions'))
+commonEnvironment.Prepend(CXXFLAGS = ['-DCSOUND_WITH_API', '-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
 if (commonEnvironment['Word64']=='1'):
@@ -285,7 +288,7 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         commonEnvironment.Append(CCFLAGS = "-DMSVC")
 
 if (getPlatform() == 'linux'):
-    commonEnvironment.Append(LINKFLAGS = Split('-Wl,-Bdynamic'))
+    commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
@@ -1323,12 +1326,15 @@ PREFIX = commonEnvironment['prefix']
 BIN_DIR = PREFIX + "/bin"
 INCLUDE_DIR = PREFIX + "/include/csound"
 
-if commonEnvironment['Word64']=='1':
+if (commonEnvironment['Word64'] == '1'):
     LIB_DIR = PREFIX + "/lib64"
-    OPCODE_DIR = PREFIX + "/lib64/csound/opcodes"
 else:
     LIB_DIR = PREFIX + "/lib"
-    OPCODE_DIR = PREFIX + "/lib/csound/opcodes"
+
+if (commonEnvironment['useDouble'] == '0'):
+    OPCODE_DIR = LIB_DIR + "/csound/opcodes"
+else:
+    OPCODE_DIR = LIB_DIR + "/csound/opcodes64"
 
 if commonEnvironment['install']=='1':
     installExecutables = Alias('install-executables',
