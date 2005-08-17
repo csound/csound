@@ -691,8 +691,8 @@ extern "C" {
     int (*getopnum)(CSOUND *, char *s);
     long (*strarg2insno)(CSOUND *, void *p, int is_string);
     long (*strarg2opcno)(CSOUND *, void *p, int is_string, int force_opcode);
-    char *(*strarg2name)(CSOUND *, char*, void*, const char*, int);
-    int (*insert_score_event)(CSOUND *, EVTBLK *, double, int);
+    char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
+    int (*insert_score_event)(CSOUND *, EVTBLK *, double);
     void (*rewriteheader)(SNDFILE *ofd, int verbose);
     void (*writeheader)(CSOUND *, int ofd, char *ofname);
     void *(*SAsndgetset)(CSOUND *, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
