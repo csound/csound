@@ -290,7 +290,7 @@ static void sensLine(CSOUND *csound, void *userData)
           csound->Message(csound, Str("-L with negative p2 illegal\n"));
           goto Lerr;
         }
-        insert_score_event(csound, &e, csound->curTime, 0);
+        insert_score_event(csound, &e, csound->curTime);
       }
       else ST(Linep) += n;                      /* else just accum the chars */
       continue;
@@ -322,11 +322,9 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
     int     i;
     char    opcod;
 
-    if (!(p->XSTRCODE & 1))
-      return csound->PerfError(csound, Str(errmsg_1));
     opcod = ((char*) p->args[0])[0];
-    if (opcod == '\0' || ((char*) p->args[0])[1] != '\0' ||
-        strchr("aiqfe", (int) opcod) == NULL)
+    if ((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
+         opcod != 'e') || ((char*) p->args[0])[1] != '\0')
       return csound->PerfError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
@@ -346,8 +344,10 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
     }
-    return (insert_score_event(csound, &evt, csound->curTime, 0) == 0 ?
-            OK : NOTOK);
+    if (insert_score_event(csound, &evt, csound->curTime) != 0)
+      return csound->PerfError(csound, Str("event: error creating '%c' event"),
+                                       opcod);
+    return OK;
 }
 
 /* i-time version of event opcode */
@@ -355,14 +355,12 @@ int eventOpcode(CSOUND *csound, LINEVENT *p)
 int eventOpcodeI(CSOUND *csound, LINEVENT *p)
 {
     EVTBLK  evt;
-    int     i;
+    int     i, err = 0;
     char    opcod;
 
-    if (!(p->XSTRCODE & 1))
-      return csound->InitError(csound, Str(errmsg_1));
     opcod = ((char*) p->args[0])[0];
-    if (opcod == '\0' || ((char*) p->args[0])[1] != '\0' ||
-        strchr("aiqfe", (int) opcod) == NULL)
+    if ((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
+         opcod != 'e') || ((char*) p->args[0])[1] != '\0')
       return csound->InitError(csound, Str(errmsg_1));
     evt.strarg = NULL;
     evt.opcod = opcod;
@@ -382,7 +380,15 @@ int eventOpcodeI(CSOUND *csound, LINEVENT *p)
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
     }
-    return (insert_score_event(csound, &evt, csound->curTime, 1) == 0 ?
-            OK : NOTOK);
+    if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
+      FUNC  *dummyftp;
+      err = csound->hfgens(csound, &dummyftp, &evt, 0);
+    }
+    else
+      err = insert_score_event(csound, &evt, csound->curTime);
+    if (err)
+      csound->InitError(csound, Str("event_i: error creating '%c' event"),
+                                opcod);
+    return (err == 0 ? OK : NOTOK);
 }
 

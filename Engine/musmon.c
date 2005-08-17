@@ -448,7 +448,7 @@ int turnon(CSOUND *csound, TURNON *p)
     evt.p[2] = *p->itime;
     evt.p[3] = FL(-1.0);
 
-    return (insert_score_event(csound, &evt, csound->curTime, 0) == 0 ?
+    return (insert_score_event(csound, &evt, csound->curTime) == 0 ?
             OK : NOTOK);
 }
 
@@ -922,8 +922,6 @@ static inline unsigned long time2kcnt(CSOUND *csound, double tval)
 /* time in seconds to add to evt->p[2] to get the actual start time   */
 /* of the event (measured from the beginning of performance, and not  */
 /* section) in seconds.                                               */
-/* If 'allow_now' is non-zero and event type is 'f', the function     */
-/* table may be created immediately depending on start time.          */
 /* Required parameters in 'evt':                                      */
 /*   char   *strarg   string argument of event (NULL if none)         */
 /*   char   opcod     event opcode (a, e, f, i, l, q, s)              */
@@ -935,8 +933,7 @@ static inline unsigned long time2kcnt(CSOUND *csound, double tval)
 /* made.                                                              */
 /* Return value is zero on success.                                   */
 
-int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs,
-                       int allow_now)
+int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
 {
     double        start_time;
     EVTNODE       *e, *prv;
@@ -1002,17 +999,6 @@ int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs,
     }
 
     switch (evt->opcod) {
-      case 'f':                         /* function table */
-        /* if event should be handled now: */
-        if (allow_now &&
-            start_kcnt <= (unsigned long) csound->global_kcounter) {
-          FUNC  *dummyftp;
-          /* check for errors */
-          if (csound->hfgens(csound, &dummyftp, evt, 0) == 0)
-            retval = 0;   /* no error */
-          goto err_return;
-        }
-        break;
       case 'i':                         /* note event */
         /* calculate the length in beats */
         if (evt->p3orig > FL(0.0))
@@ -1033,6 +1019,7 @@ int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs,
       case 'a':                         /* advance score time */
         /* calculate the length in beats */
         evt->p3orig = (MYFLT) ((double) evt->p3orig / st->beatTime);
+      case 'f':                         /* function table */
         break;
       case 'e':                         /* end of score, */
       case 'l':                         /*   lplay list, */

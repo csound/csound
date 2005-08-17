@@ -71,7 +71,7 @@ static void queue_event(CSOUND *csound,
     evt.p[3] = dur;
     for (i = 0; i < narg; i++)
       evt.p[i + 4] = *(args[i]);
-    insert_score_event(csound, &evt, when, 0);
+    insert_score_event(csound, &evt, when);
 }
 
 /* ********** Need to add turnoff stuff *************** */
@@ -442,7 +442,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
 
     /* Check if mintime has changed */
     if (p->prvmintim != *p->mintime) {
-      long timrem = (int) (*p->mintime * csound->global_ekr + FL(0.5));
+      long timrem = (long) (*p->mintime * csound->global_ekr + FL(0.5));
       if (timrem > 0) {
         /* Adjust countdown for new mintime */
         p->timrem += timrem - p->prvktim;
@@ -506,7 +506,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
       p->timrem = (long) (*p->mintime * csound->global_ekr + FL(0.5));
     else
       p->timrem = 0;
-    return (insert_score_event(csound, &evt, starttime, 0) == 0 ? OK : NOTOK);
+    return (insert_score_event(csound, &evt, starttime) == 0 ? OK : NOTOK);
 }
 
 /* Maldonado triggering of events */

@@ -136,7 +136,7 @@ extern "C" {
         rtEvt_t *ep = p->eventQueue;
         p->eventQueue = ep->nxt;
         csound->NotifyThreadLock(csound, p->threadLock);
-        csound->insert_score_event(csound, &(ep->evt), csound->curTime, 0);
+        csound->insert_score_event(csound, &(ep->evt), csound->curTime);
         free(ep);
         csound->WaitThreadLock(csound, p->threadLock, 1000);
       }
@@ -147,7 +147,7 @@ extern "C" {
       EVTBLK  e;
       memset(&e, 0, sizeof(EVTBLK));
       e.opcod = 'e';
-      csound->insert_score_event(csound, &e, csound->curTime, 0);
+      csound->insert_score_event(csound, &e, csound->curTime);
     }
   }
 };      // extern "C"
@@ -241,7 +241,7 @@ extern "C" {
       e.p[i] = *args[i];
     if (e.p[2] < FL(0.0))
       e.p[2] = FL(0.0);
-    csound->insert_score_event(csound, &e, csound->curTime, 0);
+    csound->insert_score_event(csound, &e, csound->curTime);
 #endif  // NO_FLTK_THREADS
   }
 };

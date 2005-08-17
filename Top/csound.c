@@ -724,7 +724,7 @@ extern "C" {
       evt.pcnt = 3;
       evt.p[2] = evt.p[1] = FL(0.0);
       evt.p[3] = (MYFLT) aTime;
-      insert_score_event(csound, &evt, csound->curTime, 0);
+      insert_score_event(csound, &evt, csound->curTime);
     }
   }
 
@@ -970,7 +970,7 @@ extern "C" {
     evt.pcnt = (short) numFields;
     for (i = 0; i < (int) numFields; i++)
       evt.p[i + 1] = pfields[i];
-    return insert_score_event(csound, &evt, csound->curTime, 0);
+    return insert_score_event(csound, &evt, csound->curTime);
   }
 
   /*
