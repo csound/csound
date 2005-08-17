@@ -209,7 +209,7 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
         if (ep->e.opcod == 'T')
           p->baseTime = csound->curTime;
         else
-          csound->insert_score_event(csound, &(ep->e), startTime, 0);
+          csound->insert_score_event(csound, &(ep->e), startTime);
       }
       if (ep->e.strarg != NULL)
         free(ep->e.strarg);
