@@ -35,16 +35,34 @@ extern  char    *getstrformat(int);
 extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 
+extern  OENTRY  opcodlst_1[];
+extern  OENTRY  opcodlst_2[];
+
 static void create_opcodlst(CSOUND *csound)
 {
-    extern  OENTRY  opcodlst_1[];
-    extern  OENTRY  opcodlst_2[];
-    if (csound->opcodlst != NULL)
-      return;
+    OENTRY  *saved_opcodlst = NULL;
+    int     old_cnt = 0, err = 0;
+
+    if (csound->opcodlst != NULL && csound->oplstend != NULL)
+      old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) csound->opcodlst);
+    if (old_cnt) {
+      size_t  nBytes = (size_t) ((int) sizeof(OENTRY) * old_cnt);
+      saved_opcodlst = (OENTRY*) mmalloc(csound, nBytes);
+      memcpy(saved_opcodlst, csound->opcodlst, nBytes);
+      free(csound->opcodlst);
+      csound->oplstend = csound->opcodlst = NULL;
+    }
     /* Basic Entry1 stuff */
-    csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
+    err |= csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
     /* Add entry2 */
-    csoundAppendOpcodes(csound, &(opcodlst_2[0]), -1);
+    err |= csoundAppendOpcodes(csound, &(opcodlst_2[0]), -1);
+    /* Add opcodes registered by host application */
+    if (old_cnt) {
+      err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
+      mfree(csound, saved_opcodlst);
+    }
+    if (err)
+      csoundDie(csound, Str("Error allocating opcode list"));
 }
 
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
@@ -73,8 +91,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
     init_pvsys(csound);
     /* utilities depend on this as well as orchs */
-    csound->e0dbfs = DFLT_DBFS;         /* may get changed by an orch */
-    dbfs_init(csound, csound->e0dbfs);
+    dbfs_init(csound, DFLT_DBFS);       /* may get changed by an orch */
     timers_struct_init((RTCLOCK*)
                        csoundQueryGlobalVariable(csound, "csRtClock"));
     csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
