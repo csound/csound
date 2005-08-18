@@ -418,10 +418,6 @@ newopc:
       csound->opcodlst[opnum].prvnum = ((int*) csound->opcode_list)[h];
       ((int*) csound->opcode_list)[h] = opnum;
     }
-    if (csound->oparms->odebug && (csound->oparms->msglevel & 0x100000))
-      csound->Message(csound,
-                      "Added opcode opname = %s, hash = %d, opnum = %d\n",
-                      csound->opcodlst[opnum].opname, (int) h, opnum);
 }
 
 /* free memory used by opcode list */
@@ -442,8 +438,8 @@ void opcode_list_free(CSOUND *csound)
       mfree(csound, ep->outypes);
     }
     /* and opcodlst */
-    mfree(csound, csound->opcodlst);
-    csound->opcodlst = csound->oplstend = NULL;
+    free(csound->opcodlst);
+    csound->oplstend = csound->opcodlst = NULL;
 }
 
 /* find opcode with the specified name in opcode list */

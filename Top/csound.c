@@ -1466,19 +1466,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
    * OPCODES
    */
 
-  PUBLIC opcodelist *csoundNewOpcodeList(void)
-  {
-    /* create_opcodlst();
-       return new_opcode_list(); */
-
-    return NULL;
-  }
-
-  PUBLIC void csoundDisposeOpcodeList(opcodelist *list)
-  {
-    /* dispose_opcode_list(list); */
-  }
-
   static inline int opcode_list_new_oentry(CSOUND *csound, OENTRY *ep)
   {
     int     oldCnt = 0;
@@ -1489,11 +1476,11 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
       OENTRY  *newList;
       size_t  nBytes = (size_t) (oldCnt + 0x80) * sizeof(OENTRY);
       if (!oldCnt)
-        newList = (OENTRY*) csound->Malloc(csound, nBytes);
+        newList = (OENTRY*) malloc(nBytes);
       else
-        newList = (OENTRY*) csound->ReAlloc(csound, csound->opcodlst, nBytes);
+        newList = (OENTRY*) realloc(csound->opcodlst, nBytes);
       if (newList == NULL)
-        return -1;
+        return CSOUND_MEMORY;
       csound->opcodlst = newList;
       csound->oplstend = ((OENTRY*) newList + (int) oldCnt);
       memset(&(((OENTRY*) csound->opcodlst)[oldCnt]), 0, sizeof(OENTRY) * 0x80);
@@ -1504,29 +1491,30 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
   }
 
   PUBLIC int csoundAppendOpcode(CSOUND *csound,
-                                char *opname, int dsblksiz, int thread,
-                                char *outypes, char *intypes,
+                                const char *opname, int dsblksiz, int thread,
+                                const char *outypes, const char *intypes,
                                 int (*iopadr)(CSOUND *, void *),
                                 int (*kopadr)(CSOUND *, void *),
                                 int (*aopadr)(CSOUND *, void *))
   {
     OENTRY  tmpEntry;
+    int     err;
 
-    tmpEntry.opname     = opname;
+    tmpEntry.opname     = (char*) opname;
     tmpEntry.dsblksiz   = (unsigned short) dsblksiz;
     tmpEntry.thread     = (unsigned short) thread;
-    tmpEntry.outypes    = outypes;
-    tmpEntry.intypes    = intypes;
+    tmpEntry.outypes    = (char*) outypes;
+    tmpEntry.intypes    = (char*) intypes;
     tmpEntry.iopadr     = (SUBR) iopadr;
     tmpEntry.kopadr     = (SUBR) kopadr;
     tmpEntry.aopadr     = (SUBR) aopadr;
     tmpEntry.useropinfo = NULL;
     tmpEntry.prvnum     = 0;
-    if (opcode_list_new_oentry(csound, &tmpEntry) != 0) {
+    err = opcode_list_new_oentry(csound, &tmpEntry);
+    if (err)
       csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
-      return -1;
-    }
-    return 0;
+
+    return err;
   }
 
   /**
@@ -1536,21 +1524,20 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
    * in 'n'. Returns zero on success.
    */
 
-  PUBLIC int csoundAppendOpcodes(CSOUND *csound,
-                                 const OENTRY *opcodeList, int n)
+  int csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList, int n)
   {
     OENTRY  *ep = (OENTRY*) opcodeList;
-    int     retval = 0;
+    int     err, retval = 0;
 
     if (opcodeList == NULL)
       return -1;
     if (n <= 0)
       n = 0x7FFFFFFF;
     while (n && ep->opname != NULL) {
-      if (opcode_list_new_oentry(csound, ep) != 0) {
+      if ((err = opcode_list_new_oentry(csound, ep)) != 0) {
         csoundErrorMsg(csound, Str("Failed to allocate opcode entry for %s."),
                                ep->opname);
-        retval = -1;
+        retval = err;
       }
       else {
         ((OENTRY*) csound->oplstend - 1)->useropinfo = NULL;
@@ -1559,11 +1546,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
       n--, ep++;
     }
     return retval;
-  }
-
-  int csoundOpcodeCompare(const void *v1, const void *v2)
-  {
-    return strcmp(((OENTRY*)v1)->opname, ((OENTRY*)v2)->opname);
   }
 
   /*
@@ -1636,6 +1618,9 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
     orchRESET(csound);
     adsynRESET(csound);
     lpcRESET(csound);
+    if (csound->opcodlst != NULL)
+      free(csound->opcodlst);
+    csound->oplstend = csound->opcodlst = NULL;
     oloadRESET(csound);     /* should be called last but one */
     memRESET(csound);       /* and this one should be the last */
   }
