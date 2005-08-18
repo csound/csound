@@ -134,15 +134,11 @@ extern "C" {
 %module csound
 %{
 #  include "sysdep.h"
-#  include "cwindow.h"
-#  include "opcode.h"
 #  include "text.h"
 #  include <stdarg.h>
 %}
 #else
 #  include "sysdep.h"
-#  include "cwindow.h"
-#  include "opcode.h"
 #  include "text.h"
 #  include <stdarg.h>
 #endif
@@ -178,19 +174,6 @@ extern "C" {
    * TYPE DEFINITIONS
    */
 
-  typedef struct oentry {
-    char    *opname;
-    unsigned short  dsblksiz;
-    unsigned short  thread;
-    char    *outypes;
-    char    *intypes;
-    int     (*iopadr)(CSOUND *, void *p);
-    int     (*kopadr)(CSOUND *, void *p);
-    int     (*aopadr)(CSOUND *, void *p);
-    void    *useropinfo;    /* IV - Oct 12 2002: user opcode parameters */
-    int     prvnum;         /* IV - Oct 31 2002 */
-  } OENTRY;
-
 #ifndef SWIG
   /**
    * Signature for external registration function,
@@ -220,6 +203,15 @@ extern "C" {
     int_least64_t   starttime_real;
     int_least64_t   starttime_CPU;
   } RTCLOCK;
+
+  typedef struct {
+    char    *opname;
+    char    *outypes;
+    char    *intypes;
+  } opcodeListEntry;
+
+  typedef struct windat_  WINDAT;
+  typedef struct xyindat_ XYINDAT;
 
   /**
    * INSTANTIATION
@@ -687,15 +679,17 @@ extern "C" {
    */
 
   /**
-   * Gets a list of all opcodes.
+   * Gets an alphabetically sorted list of all opcodes.
+   * Should be called after externals are loaded by csoundCompile().
+   * Returns the number of opcodes, or a negative error code on failure.
    * Make sure to call csoundDisposeOpcodeList() when done with the list.
    */
-  PUBLIC opcodelist *csoundNewOpcodeList(void);
+  PUBLIC int csoundNewOpcodeList(CSOUND *, opcodeListEntry **opcodelist);
 
   /**
-   * Releases an opcode list
+   * Releases an opcode list.
    */
-  PUBLIC void csoundDisposeOpcodeList(opcodelist *opcodelist_);
+  PUBLIC void csoundDisposeOpcodeList(CSOUND *, opcodeListEntry *opcodelist);
 
   /**
    * Appends an opcode implemented by external software
@@ -704,30 +698,12 @@ extern "C" {
    * and the parameters are copied into the new slot.
    * Returns zero on success.
    */
-  PUBLIC int csoundAppendOpcode(CSOUND *, char *opname, int dsblksiz,
-                                int thread, char *outypes, char *intypes,
+  PUBLIC int csoundAppendOpcode(CSOUND *, const char *opname,
+                                int dsblksiz, int thread,
+                                const char *outypes, const char *intypes,
                                 int (*iopadr)(CSOUND *, void *),
                                 int (*kopadr)(CSOUND *, void *),
                                 int (*aopadr)(CSOUND *, void *));
-
-  /**
-   * Appends a list of opcodes implemented by external software to Csound's
-   * internal opcode list. The list should either be terminated with an entry
-   * that has a NULL opname, or the number of entries (> 0) should be specified
-   * in 'n'.
-   * Returns zero on success.
-   */
-  PUBLIC int csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int n);
-
-  /**
-   * Registers all opcodes in the library.
-   */
-  PUBLIC int csoundLoadExternal(CSOUND *, const char *libraryPath);
-
-  /**
-   * Registers all opcodes in all libraries in the opcodes directory.
-   */
-  PUBLIC int csoundLoadExternals(CSOUND *);
 
   /**
    * MISCELLANEOUS FUNCTIONS
@@ -756,7 +732,7 @@ extern "C" {
   /**
    * Called by external software to set a function for
    * checking system events, yielding cpu time for
-   * coopertative multitasking, etc..
+   * coopertative multitasking, etc.
    * This function is optional.  It is often used as a way
    * to 'turn off' Csound, allowing it to exit gracefully.
    * In addition, some operations like utility analysis
@@ -765,8 +741,7 @@ extern "C" {
    *
    * Returns an 'OK to continue' boolean
    */
-  PUBLIC void csoundSetYieldCallback(CSOUND *,
-                                     int (*yieldCallback)(CSOUND *));
+  PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 
   /**
    * REAL-TIME AUDIO PLAY AND RECORD
