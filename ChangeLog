@@ -1,3 +1,22 @@
+2005-08-18	Istvan Varga	<ivarga@csounds.com>
+	* Engine/namedins.c:
+	* Top/csound.c:
+	* Top/main.c:
+	  changes to allow host applications to register opcodes with
+	  csoundAppendOpcode(); should be called between csoundPreCompile()
+	  and csoundCompile()
+	* Engine/oload.c:
+	* H/csound.h:
+	* H/csoundCore.h:
+	  removed csoundLoadExternal() and csoundLoadExternals() from public
+	  interface
+	* H/opcode.h:
+	  removed file
+	* Top/opcode.c:
+	  implemented csoundNewOpcodeList() and csoundDisposeOpcodeList()
+	  currently, the opcodes can only be listed after loading an orchestra
+	  with csoundCompile()
+
 2005-08-12	Istvan Varga	<ivarga@csounds.com>
 	* renamed struct ENVIRON_ to struct CSOUND_, and ENVIRON to CSOUND
 	* replaced uses of void* Csound instance pointers with CSOUND*
