@@ -2,6 +2,7 @@
     opcode.c:
 
     Copyright (C) 1997 John ffitch
+              (C) 2005 Istvan Varga
 
     This file is part of Csound.
 
@@ -28,111 +29,145 @@
                                 /*  4 april 02 -- ma++ */
                                 /*  restructure to retrieve externally  */
 #include "csoundCore.h"
-#include "opcode.h"
+#include <ctype.h>
 
-static int mystrcmp(const void *v1, const void *v2)
+static int opcode_cmp_func(const void *a, const void *b)
 {
-    sortable *s1 = (sortable *)v1;
-    sortable *s2 = (sortable *)v2;
-    int ans;
-/*     printf("Compare %s and %s =>", s1, s2); */
-/* Make this stop at . would improve things */
-    ans = strcmp(s1->name, s2->name);
-/*     printf(" %d\n", ans); */
-    return ans;
+    opcodeListEntry *ep1 = (opcodeListEntry*) a;
+    opcodeListEntry *ep2 = (opcodeListEntry*) b;
+    int             retval;
+
+    if ((retval = strcmp(ep1->opname, ep2->opname)) != 0)
+      return retval;
+    if ((retval = strcmp(ep1->outypes, ep2->outypes)) != 0)
+      return retval;
+    if ((retval = strcmp(ep1->intypes, ep2->intypes)) != 0)
+      return retval;
+    if (ep1 < ep2)
+      return -1;
+    if (ep1 > ep2)
+      return 1;
+
+    return 0;
 }
 
-/* create a list of all the opcodes */
-/* caller is responsible for disposing the*/
-/* returned list! - use dispose_opcode_list() */
-static opcodelist *new_opcode_list(CSOUND *csound)
+/**
+ * Gets an alphabetically sorted list of all opcodes.
+ * Should be called after externals are loaded by csoundCompile().
+ * Returns the number of opcodes, or a negative error code on failure.
+ * Make sure to call csoundDisposeOpcodeList() when done with the list.
+ */
+
+PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
 {
-    OENTRY *ops = csound->opcodlst;
-    opcodelist *list = (opcodelist *)mmalloc(csound, sizeof(opcodelist));
+    void    *lst;
+    OENTRY  *ep = (OENTRY*) csound->opcodlst;
+    char    *s;
+    size_t  nBytes = (size_t) 0;
+    int     i, cnt = 0;
 
-                                /* All this hassle 'cos of MAC */
-    long n = (long)((char*)csound->oplstend-(char *)csound->opcodlst);
-    n /= sizeof(OENTRY);
-    n *= sizeof(sortable);
-
-    list->size = 0;
-    list->table = (sortable*)mmalloc(csound, n);
-                                /* Skip first entry */
-    while (++ops<csound->oplstend) {
-      char *x = mmalloc(csound, strlen(ops->opname)+1);
-      strcpy(x, ops->opname);
-      list->table[list->size].name = x;
-      if ((x=strchr(x,'.'))) *x = '\0';
-      list->table[list->size].ans = ops->outypes;
-      list->table[list->size].args = ops->intypes;
-      if (ops->outypes == NULL && ops->intypes == NULL)
-        n--;
-      else
-        list->size ++;
-    }
-                                /* Sort into alphabetical order */
-    csound->Message(csound, Str("%d opcodes\n"), list->size);
-    qsort(list->table, list->size, sizeof(sortable), mystrcmp);
-
-   return list;
-}
-
-static void dispose_opcode_list(CSOUND *csound, opcodelist *list)
-{
-    if (list) {
-      while (list->size--) {
-        mfree(csound, list->table[list->size].name);
+    (*lstp) = NULL;
+    if (ep == NULL)
+      return -1;
+    /* count the number of opcodes, and bytes to allocate */
+    for ( ; ep < (OENTRY*) csound->oplstend; ep++) {
+      if (ep->opname != NULL &&
+          ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
+          ep->outypes != NULL && ep->intypes != NULL) {
+        cnt++;
+        nBytes += sizeof(opcodeListEntry);
+        for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++)
+          ;
+        nBytes += (size_t) i;
+        nBytes += strlen(ep->outypes);
+        nBytes += strlen(ep->intypes);
+        nBytes += 3;    /* for null characters */
       }
-
-      mfree(csound, list->table);
-      mfree(csound, list);
     }
+    nBytes += sizeof(opcodeListEntry);
+    /* allocate memory for opcode list */
+    lst = malloc(nBytes);
+    if (lst == NULL)
+      return CSOUND_MEMORY;
+    (*lstp) = (opcodeListEntry*) lst;
+    /* store opcodes in list */
+    ep = (OENTRY*) csound->opcodlst;
+    s = (char*) lst + ((int) sizeof(opcodeListEntry) * (cnt + 1));
+    for (cnt = 0; ep < (OENTRY*) csound->oplstend; ep++) {
+      if (ep->opname != NULL &&
+          ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
+          ep->outypes != NULL && ep->intypes != NULL) {
+        for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++)
+          s[i] = ep->opname[i];
+        s[i++] = '\0';
+        ((opcodeListEntry*) lst)[cnt].opname = s;
+        s += i;
+        strcpy(s, ep->outypes);
+        ((opcodeListEntry*) lst)[cnt].outypes = s;
+        s += ((int) strlen(ep->outypes) + 1);
+        strcpy(s, ep->intypes);
+        ((opcodeListEntry*) lst)[cnt].intypes = s;
+        s += ((int) strlen(ep->intypes) + 1);
+        cnt++;
+      }
+    }
+    ((opcodeListEntry*) lst)[cnt].opname = NULL;
+    ((opcodeListEntry*) lst)[cnt].outypes = NULL;
+    ((opcodeListEntry*) lst)[cnt].intypes = NULL;
+    /* sort list */
+    qsort(lst, (size_t) cnt, sizeof(opcodeListEntry), opcode_cmp_func);
+    /* return the number of opcodes */
+    return cnt;
+}
+
+PUBLIC void csoundDisposeOpcodeList(CSOUND *csound, opcodeListEntry *lst)
+{
+    (void) csound;
+    free(lst);
 }
 
 void list_opcodes(CSOUND *csound, int level)
 {
-    int     j, k;
-    int     len = 0;
+    opcodeListEntry *lst;
+    const char      *sp = "                    ";   /* length should be 20 */
+    int             j, k;
+    int             cnt, len = 0;
 
-    opcodelist *list = new_opcode_list(csound);
+    cnt = csoundNewOpcodeList(csound, &lst);
+    if (cnt <= 0) {
+      csound->ErrorMsg(csound, Str("Error creating opcode list"));
+      return;
+    }
+    csound->Message(csound, Str("%d opcodes\n"), cnt);
                                                 /* Print in 4 columns */
-    for (j = 0, k = 0; j< list->size; j++) {
+    for (j = 0, k = -1; j < cnt; j++) {
       if (level == 0) {
-        if (j>0 &&
-            strcmp( list->table[j-1].name,  list->table[j].name)==0) continue;
+        if (j > 0 && strcmp(lst[j - 1].opname, lst[j].opname) == 0)
+          continue;
         k++;
-        if ((k%3)==0) {
-          csound->Message(csound, "\n"); len = 0;
-        }
-        else {
-          do {
-            csound->Message(csound, " ");
-            len++;
-          } while (len<20*(k%3));
-        }
-        csound->Message(csound, "%s", list->table[j].name);
-        len += strlen(list->table[j].name);
+        if (!(k & 3))
+          csound->Message(csound, "\n");
+        else if (len < 20)
+          csound->Message(csound, "%s", sp + len);
+        csound->Message(csound, "%s", lst[j].opname);
+        len = (int) strlen(lst[j].opname);
       }
       else {
-        char *ans = list->table[j].ans, *arg = list->table[j].args;
-        csound->Message(csound, "%s", list->table[j].name);
-        len = strlen(list->table[j].name);
-        do {
-          csound->Message(csound, " ");
-          len++;
-        } while (len<10);
-        if (ans==NULL || *ans=='\0') ans = "(null)";
-        if (arg==NULL || *arg=='\0') arg = "(null)";
+        char *ans = lst[j].outypes, *arg = lst[j].intypes;
+        csound->Message(csound, "%s", lst[j].opname);
+        len = (int) strlen(lst[j].opname);
+        if (len < 12)
+          csound->Message(csound, "%s", sp + (len + 8));
+        if (ans == NULL || *ans == '\0') ans = "(null)";
+        if (arg == NULL || *arg == '\0') arg = "(null)";
         csound->Message(csound, "%s", ans);
-        len = strlen(ans);
-        do {
-          csound->Message(csound, " ");
-          len++;
-        } while (len<8);
+        len = (int) strlen(ans);
+        if (len < 12)
+          csound->Message(csound, "%s", sp + (len + 8));
         csound->Message(csound, "%s\n", arg);
       }
     }
     csound->Message(csound, "\n");
-    dispose_opcode_list(csound, list);
+    csoundDisposeOpcodeList(csound, lst);
 }
 
