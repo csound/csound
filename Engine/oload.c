@@ -25,7 +25,6 @@
 #include "csoundCore.h"
 #include <math.h>
 #include "oload.h"
-#include "midiops.h"
 #include "insert.h"
 #include "fgens.h"
 #include "namedins.h"
@@ -117,8 +116,6 @@ const CSOUND cenviron_ = {
         csoundDisposeOpcodeList,
         csoundAppendOpcode,
         csoundAppendOpcodes,
-        csoundLoadExternal,
-        csoundLoadExternals,
         csoundOpenLibrary,
         csoundCloseLibrary,
         csoundGetLibrarySymbol,
@@ -256,7 +253,7 @@ const CSOUND cenviron_ = {
         fdrecord,
         fdclose,
         NULL,
-        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,

@@ -31,7 +31,7 @@ extern "C" {
 void    cscorinit(CSOUND *), cscore(CSOUND *);
 void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
-void    *mrealloc(CSOUND *, void*, size_t), mfree(CSOUND *, void*);
+void    *mrealloc(CSOUND *, void *, size_t), mfree(CSOUND *, void *);
 void    csoundAuxAlloc(CSOUND *, long, AUXCH *), auxchfree(CSOUND *, INSDS *);
 void    fdrecord(CSOUND *, FDCH *), fdclose(CSOUND *, FDCH *);
 void    fdchclose(CSOUND *, INSDS *);
@@ -59,29 +59,29 @@ PUBLIC  int     scxtract(CSOUND *, FILE *, FILE *, FILE *);
 int     rdscor(CSOUND *, EVTBLK *);
 int     musmon(CSOUND *);
 void    RTLineset(CSOUND *);
-FUNC    *csoundFTFind(CSOUND *, MYFLT*);
-FUNC    *csoundFTFindP(CSOUND *, MYFLT*);
-FUNC    *csoundFTnp2Find(CSOUND *, MYFLT*);
-MYFLT   *csoundGetTable(CSOUND *, int, int*);
+FUNC    *csoundFTFind(CSOUND *, MYFLT *);
+FUNC    *csoundFTFindP(CSOUND *, MYFLT *);
+FUNC    *csoundFTnp2Find(CSOUND *, MYFLT *);
+MYFLT   *csoundGetTable(CSOUND *, int, int *);
 void    cs_beep(CSOUND *);
 MYFLT   intpow(MYFLT, long);
 void    list_opcodes(CSOUND *, int);
 int     sfsampsize(int);
-void    rewriteheader(SNDFILE* ofd, int verbose);
+void    rewriteheader(SNDFILE *ofd, int verbose);
 void    writeLine(CSOUND *, const char *text, long size);
-int     readOptions(CSOUND *, FILE*);
+int     readOptions(CSOUND *, FILE *);
 void    remove_tmpfiles(CSOUND *);
-void    add_tmpfile(CSOUND *, char*);
-void    xturnoff(CSOUND *, INSDS*);
-void    xturnoff_now(CSOUND *, INSDS*);
+void    add_tmpfile(CSOUND *, char *);
+void    xturnoff(CSOUND *, INSDS *);
+void    xturnoff_now(CSOUND *, INSDS *);
 int     insert_score_event(CSOUND *, EVTBLK *, double);
-MEMFIL  *ldmemfile(CSOUND *, const char*);
+MEMFIL  *ldmemfile(CSOUND *, const char *);
 void    rlsmemfiles(CSOUND *);
-int     delete_memfile(CSOUND *, const char*);
+int     delete_memfile(CSOUND *, const char *);
 char    *mytmpnam(CSOUND *, char *);
-void    *SAsndgetset(CSOUND *, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
-int     getsndin(CSOUND *, void*, MYFLT*, int, void*);
-void    *sndgetset(CSOUND *, void*);
+void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
+int     getsndin(CSOUND *, void *, MYFLT *, int, void *);
+void    *sndgetset(CSOUND *, void *);
 void    dbfs_init(CSOUND *, MYFLT dbfs);
 SNDMEMFILE  *csoundLoadSoundFile(CSOUND *, const char *name, SF_INFO *sfinfo);
 int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
@@ -267,8 +267,7 @@ int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
    * data pointer in *userData. Return value is zero on success,
    * and a non-zero error code if an error occured.
    */
-  int csoundExternalMidiOutOpen(CSOUND *,
-                                void **userData, const char *devName);
+  int csoundExternalMidiOutOpen(CSOUND *, void **userData, const char *devName);
 
   /**
    * Write 'nbytes' bytes of MIDI data to output stream 'userData'
@@ -291,6 +290,25 @@ int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
    * for error code 'errcode'.
    */
   char *csoundExternalMidiErrorString(CSOUND *, int errcode);
+
+  /**
+   * Appends a list of opcodes implemented by external software to Csound's
+   * internal opcode list. The list should either be terminated with an entry
+   * that has a NULL opname, or the number of entries (> 0) should be specified
+   * in 'n'.
+   * Returns zero on success.
+   */
+  int csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int n);
+
+  /**
+   * Registers all opcodes in the library.
+   */
+  int csoundLoadExternal(CSOUND *, const char *libraryPath);
+
+  /**
+   * Registers all opcodes in all libraries in the opcodes directory.
+   */
+  int csoundLoadExternals(CSOUND *);
 
 #ifdef __cplusplus
 };

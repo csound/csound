@@ -295,7 +295,7 @@ void CppSound::messageV(const char *format, va_list args)
 
 int CppSound::loadExternals()
 {
-  return csoundLoadExternals(csound);
+  return 1;
 }
 
 size_t CppSound::getSpoutSize() const

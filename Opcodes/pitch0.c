@@ -22,12 +22,11 @@
 */
 
 #include "csdl.h"       /*                                  PITCH.C       */
+#include "cwindow.h"
 #include <limits.h>
 #include "spectra.h"
 #include "pitch.h"
 #include "uggab.h"
-#include "namedins.h"   /* IV - Oct 31 2002 */
-#include "csdl.h"
 
 int mute_inst(CSOUND *csound, MUTE *p)
 {

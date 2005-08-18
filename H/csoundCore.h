@@ -36,7 +36,6 @@ extern "C" {
 
 #include "csound.h"
 #include "envvar.h"
-#include "opcode.h"
 #include "version.h"
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
@@ -314,6 +313,19 @@ extern "C" {
     INSDS   *insdshead;     /* Owner instrument instance data structure */
   } OPDS;
 
+  typedef struct oentry {
+    char    *opname;
+    unsigned short  dsblksiz;
+    unsigned short  thread;
+    char    *outypes;
+    char    *intypes;
+    int     (*iopadr)(CSOUND *, void *p);
+    int     (*kopadr)(CSOUND *, void *p);
+    int     (*aopadr)(CSOUND *, void *p);
+    void    *useropinfo;    /* IV - Oct 12 2002: user opcode parameters */
+    int     prvnum;         /* IV - Oct 31 2002 */
+  } OENTRY;
+
   typedef struct lblblk {
     OPDS    h;
     OPDS    *prvi;
@@ -531,18 +543,19 @@ extern "C" {
   } POLISH;
 
   typedef struct token {
-        char    *str;
-        short   prec;
+    char    *str;
+    short   prec;
   } TOKEN;
 
   typedef struct names {
-        char *mac;
-        struct names *next;
+    char    *mac;
+    struct names *next;
   } NAMES;
 
 #include "sort.h"
 #include "text.h"
 #include "prototyp.h"
+#include "cwindow.h"
 
 #endif  /* __BUILDING_LIBCSOUND */
 
@@ -634,16 +647,14 @@ extern "C" {
                                  void (*killGraphCallback)(CSOUND *,
                                                            WINDAT *p));
     void (*SetExitGraphCallback)(CSOUND *, int (*exitGraphCallback)(CSOUND *));
-    opcodelist *(*NewOpcodeList)(void);
-    void (*DisposeOpcodeList)(opcodelist *opcodelist_);
-    int (*AppendOpcode)(CSOUND *, char *opname, int dsblksiz,
-                        int thread, char *outypes, char *intypes,
+    int (*NewOpcodeList)(CSOUND *, opcodeListEntry **);
+    void (*DisposeOpcodeList)(CSOUND *, opcodeListEntry *);
+    int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz,
+                        int thread, const char *outypes, const char *intypes,
                         int (*iopadr)(CSOUND *, void *),
                         int (*kopadr)(CSOUND *, void *),
                         int (*aopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
-    int (*LoadExternal)(CSOUND *, const char *libraryPath);
-    int (*LoadExternals)(CSOUND *);
     void *(*OpenLibrary)(const char *libraryPath);
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
@@ -808,7 +819,7 @@ extern "C" {
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[88];
+    SUBR dummyfn_2[90];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;

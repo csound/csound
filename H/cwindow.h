@@ -30,17 +30,11 @@
 *       08nov90 dpwe                                    *
 \*******************************************************/
 
-#ifndef NULL
-#define NULL 0L
-#endif
-
-#ifndef MYFLT
-#include "sysdep.h"
-#endif
+#include "csound.h"
 
 #define CAPSIZE  60
 
-typedef struct {
+struct windat_ {
         long    windid;                 /* set by MakeGraph() */
         MYFLT   *fdata;                 /* data passed to DrawGraph */
         long    npts;                   /* size of above array */
@@ -51,21 +45,21 @@ typedef struct {
         MYFLT   absmax;                 /* workspace .. largest of above */
         MYFLT   oabsmax;                /* Y axis scaling factor */
         int     danflag;                /* set to 1 for extra Yaxis mid span */
-} WINDAT;
+};
 
-enum {        /* symbols for WINDAT.polarity field */
+enum {                  /* symbols for WINDAT.polarity field */
         NOPOL,
         NEGPOL,
         POSPOL,
         BIPOL
 };
 
-typedef struct {        /* for 'joystick' input window */
+struct xyindat_ {       /* for 'joystick' input window */
         long     windid;        /* xwindow handle */
         int      m_x,m_y;       /* current crosshair pixel adr */
         MYFLT    x,y;           /* current proportions of fsd */
         int      down;
-} XYINDAT;
+};
 
 /* WINDAT *SetDisp(); */
 void dispset(CSOUND *, WINDAT *, MYFLT *, long, char *, int, char *);

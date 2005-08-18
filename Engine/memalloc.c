@@ -123,7 +123,7 @@ void mfree(CSOUND *csound, void *p)
 #ifdef MEMDEBUG
     if (pp->magic != MEMALLOC_MAGIC || pp->ptr != p) {
       fprintf(stderr, " *** internal error: mfree() called with invalid "
-                      "pointer (0x%p)\n", p);
+                      "pointer (%p)\n", p);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
       exit(-1);
@@ -156,7 +156,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
 #ifdef MEMDEBUG
     if (pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp) {
       fprintf(stderr, " *** internal error: mrealloc() called with invalid "
-                      "pointer (0x%p)\n", oldp);
+                      "pointer (%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
       exit(-1);
