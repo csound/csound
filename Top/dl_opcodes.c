@@ -78,7 +78,7 @@ void *csoundOpenLibrary(const char *libraryPath)
     strstr(libraryPath, ".dylib")
 #endif
     ){
-      library = dlopen(libraryPath, RTLD_NOW | RTLD_GLOBAL );
+      library = dlopen(libraryPath, RTLD_NOW /* | RTLD_GLOBAL */ );
       if (!library) {
         fprintf(stderr, "Error '%s' in dlopen(%s).\n", dlerror(), libraryPath);
       }
