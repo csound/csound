@@ -40,27 +40,24 @@ extern  OENTRY  opcodlst_2[];
 
 static void create_opcodlst(CSOUND *csound)
 {
-    OENTRY  *saved_opcodlst = NULL;
+    OENTRY  *saved_opcodlst = csound->opcodlst;
     int     old_cnt = 0, err = 0;
 
-    if (csound->opcodlst != NULL && csound->oplstend != NULL)
-      old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) csound->opcodlst);
-    if (old_cnt) {
-      size_t  nBytes = (size_t) ((int) sizeof(OENTRY) * old_cnt);
-      saved_opcodlst = (OENTRY*) mmalloc(csound, nBytes);
-      memcpy(saved_opcodlst, csound->opcodlst, nBytes);
-      free(csound->opcodlst);
-      csound->oplstend = csound->opcodlst = NULL;
+    if (saved_opcodlst != NULL) {
+      csound->opcodlst = NULL;
+      if (csound->oplstend != NULL)
+        old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
+      csound->oplstend = NULL;
     }
     /* Basic Entry1 stuff */
     err |= csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
     /* Add entry2 */
     err |= csoundAppendOpcodes(csound, &(opcodlst_2[0]), -1);
     /* Add opcodes registered by host application */
-    if (old_cnt) {
+    if (old_cnt)
       err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
-      mfree(csound, saved_opcodlst);
-    }
+    if (saved_opcodlst != NULL)
+      free(saved_opcodlst);
     if (err)
       csoundDie(csound, Str("Error allocating opcode list"));
 }
