@@ -672,7 +672,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
       /* Write frame to disk */
       if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
-        quit(csound,Str("write error"));
+        quit(csound, Str("write error"));
       memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
 
       /* Some unused stuff. I think from when all snd was in mem */
@@ -683,9 +683,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
       /* Get next sound frame */
       if ((n = csound->getsndin(csound, infd, sigbuf2, slice, p)) == 0)
         break;          /* refill til EOF */
-#if 0
-      if (!csoundYield(csound)) break;
-#endif
+      if (!csound->CheckEvents(csound))
+        return -1;
     } while (counter < analframes); /* or nsmps done */
 #if 0
     /* clean up stuff */
