@@ -725,11 +725,6 @@ extern "C" {
   PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
   /**
-   * Check system events, yielding cpu time for coopertative multitasking, etc.
-   */
-  PUBLIC int csoundYield(CSOUND *);
-
-  /**
    * Called by external software to set a function for
    * checking system events, yielding cpu time for
    * coopertative multitasking, etc.
@@ -812,42 +807,43 @@ extern "C" {
 
   /**
    * Creates and starts a new thread of execution.
-   * Returns an opaque pointer that represents the thread on success, or
-   * null for failure.
+   * Returns an opaque pointer that represents the thread on success,
+   * or NULL for failure.
    * The userdata pointer is passed to the thread routine.
    */
-  PUBLIC void *csoundCreateThread(CSOUND *,
-                                  int (*threadRoutine)(void *userdata),
+  PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                   void *userdata);
 
   /**
    * Waits until the indicated thread's routine has finished.
    * Returns the value returned by the thread routine.
    */
-  PUBLIC int csoundJoinThread(CSOUND *, void *thread);
+  PUBLIC uintptr_t csoundJoinThread(void *thread);
 
   /**
-   * Creates and returns a monitor object, or null if not successful.
+   * Creates and returns a monitor object, or NULL if not successful.
+   * The object is initially in signaled state.
    */
-  PUBLIC void *csoundCreateThreadLock(CSOUND *);
+  PUBLIC void *csoundCreateThreadLock(void);
 
   /**
-   * Waits on the indicated monitor object for the indicated period.
+   * Waits on the indicated monitor object for the indicated period
+   * (must be greater than zero; the timeout is not implemented on
+   * some platforms).
    * The function returns either when the monitor object is notified,
    * or when the period has elapsed, whichever is sooner.
-   * If the period is 0, the wait is infinite.
    */
-  PUBLIC void csoundWaitThreadLock(CSOUND *, void *lock, size_t milliseconds);
+  PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds);
 
   /**
    * Notifies the indicated monitor object.
    */
-  PUBLIC void csoundNotifyThreadLock(CSOUND *, void *lock);
+  PUBLIC void csoundNotifyThreadLock(void *lock);
 
   /**
    * Destroys the indicated monitor object.
    */
-  PUBLIC void csoundDestroyThreadLock(CSOUND *, void *lock);
+  PUBLIC void csoundDestroyThreadLock(void *lock);
 
   /**
    * Sets whether or not the FLTK widget thread calls Fl::lock().

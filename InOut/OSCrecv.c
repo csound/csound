@@ -80,13 +80,13 @@ static int OSC_handler(const char *path, const char *types,
           }
           m->args[i] = (MYFLT) (x);
         }
-        pp->csound->NotifyThreadLock(pp->csound, pp->threadLock);
+        pp->csound->NotifyThreadLock(pp->threadLock);
         m->active = 1;
         return 0;
       }
       m = m->next;
     }
-    pp->csound->NotifyThreadLock(pp->csound, pp->threadLock);
+    pp->csound->NotifyThreadLock(pp->threadLock);
     return 1;
 }
 
@@ -111,7 +111,7 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
       csound->Die(csound, Str("OSC: failed to allocate globals"));
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     pp->csound = csound;
-    pp->threadLock = csound->CreateThreadLock(csound);
+    pp->threadLock = csound->CreateThreadLock();
     pp->patterns = NULL;
     /* ---- code to create and start the OSC thread ---- */
     sprintf(buff, "%d", (int)(*p->port));
@@ -133,7 +133,7 @@ static int OSC_reset(CSOUND *csound, void *userData)
     /* ---- code to stop and destroy OSC thread ---- */
     lo_server_thread_stop(p->thread);
     lo_server_thread_free(p->thread);
-    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    csound->WaitThreadLock(p->threadLock, 1000);
     m = p->patterns; p->patterns = NULL;
     while (m) {
       OSC_PAT *nxt = m->next;
@@ -141,8 +141,8 @@ static int OSC_reset(CSOUND *csound, void *userData)
       free(m);
       m = nxt;
     }
-    csound->NotifyThreadLock(csound, p->threadLock);
-    csound->DestroyThreadLock(csound, p->threadLock);
+    csound->NotifyThreadLock(p->threadLock);
+    csound->DestroyThreadLock(p->threadLock);
     csound->DestroyGlobalVariable(csound, "_OSC_globals");
     return OK;
 }
