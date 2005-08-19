@@ -57,7 +57,7 @@ protected:
         static int cb_thread_yield(CSOUND *csound);
         void csound_start();
         // Csound rendering thread routine:
-        static int csound_thread_routine_(void* p_data );
+        static uintptr_t csound_thread_routine_(void *p_data);
         int csound_thread_routine( );
         void csound_stop();
         // Other Csound routines:
@@ -66,7 +66,7 @@ protected:
         void csound_load_ftable( int table_num, double val_0, double val_0, double val_0, double val_0 );
         void csound_update_ftable( int table_num, int table_indx, double table_value );
         // Csound state:
-        void *csound;
+        CSOUND *csound;
         int cs_ftable_num;;
         bool cs_performing;
         bool go;
@@ -257,9 +257,10 @@ int ControlWindow::cb_thread_yield(CSOUND *csound)
     return 1;
 }
 
-int ControlWindow::csound_thread_routine_(void *p_data)
+uintptr_t ControlWindow::csound_thread_routine_(void *p_data)
 {
-   return ((ControlWindow *)p_data)->csound_thread_routine();
+    int retval = ((ControlWindow*) p_data)->csound_thread_routine();
+    return (uintptr_t) ((intptr_t) retval);
 }
 
 /**
@@ -268,7 +269,7 @@ int ControlWindow::csound_thread_routine_(void *p_data)
 */
 int ControlWindow::csound_thread_routine()
 {
-        const char *argv[] = {"csound", csd_filename.c_str()};
+    const char *argv[] = {"csound", csd_filename.c_str()};
     csoundCompile(csound, 2, (char **)argv);
     // cs_performing is set by Csound, and go is set by the user.
     for(cs_performing = true, go = true; cs_performing && go; ) {
@@ -287,7 +288,7 @@ int ControlWindow::csound_thread_routine()
 void ControlWindow::csound_start()
 {
     csoundSetYieldCallback(csound, cb_thread_yield);
-    csoundCreateThread(csound, &ControlWindow::csound_thread_routine_, this);
+    csoundCreateThread(&ControlWindow::csound_thread_routine_, this);
 }
 
 /**
@@ -314,16 +315,25 @@ void ControlWindow::csound_load_csd()
 */
 void ControlWindow::csound_play_note( double cs_dur, double cs_amp, double cs_pitch, double cs_p6 )
 {
-    char buffer[0xff];
-    sprintf(buffer, "i 1.0 0.0 %5.2f %5.2f %5.2f %5.2f\n", cs_dur, cs_amp, cs_pitch, cs_p6);
-    printf( "Sending note to Csound: %s", buffer);
-    csoundInputMessage(csound, buffer);
+    MYFLT   p[7];
+
+    p[1] = (MYFLT) 1;
+    p[2] = (MYFLT) 0;
+    p[3] = (MYFLT) cs_dur;
+    p[4] = (MYFLT) cs_amp;
+    p[5] = (MYFLT) cs_pitch;
+    p[6] = (MYFLT) cs_p6;
+    csoundScoreEvent(csound, 'i', &(p[1]), 6);
  }
 
 void ControlWindow::csound_load_ftable( int cs_table_num, double cs_val_0, double cs_val_1, double cs_val_2, double cs_val_3 )
 {
-        printf( "Loading Csound table #%i:\n %5.2f %5.2f %5.2f %5.2f\n", \
+        printf( "Loading Csound table #%i:\n %5.2f %5.2f %5.2f %5.2f\n",
                 cs_table_num, cs_val_0, cs_val_1, cs_val_2, cs_val_3 );
+        if (csoundTableLength(csound, cs_table_num) < 3) {
+                printf("Invalid ftable %d\n", cs_table_num);
+                return;
+        }
         csoundTableSet(csound, cs_table_num, 0, cs_val_0);
         csoundTableSet(csound, cs_table_num, 1, cs_val_1);
         csoundTableSet(csound, cs_table_num, 2, cs_val_2);
@@ -332,8 +342,12 @@ void ControlWindow::csound_load_ftable( int cs_table_num, double cs_val_0, doubl
 
 void ControlWindow::csound_update_ftable( int cs_table_num, int cs_table_indx, double cs_table_value )
 {
-        printf( "Updating Csound table #%i, index %i, value %5.2f\n", \
+        printf( "Updating Csound table #%i, index %i, value %5.2f\n",
                 cs_table_num, cs_table_indx, cs_table_value );
+        if (csoundTableLength(csound, cs_table_num) < cs_table_indx) {
+                printf("Invalid ftable %d\n", cs_table_num);
+                return;
+        }
         csoundTableSet(csound, cs_table_num, cs_table_indx, cs_table_value);
 }
 
