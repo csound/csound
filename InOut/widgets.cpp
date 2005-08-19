@@ -131,16 +131,16 @@ extern "C" {
   {
     /* flush any pending real time events */
     if (p->eventQueue != NULL) {
-      csound->WaitThreadLock(csound, p->threadLock, 1000);
+      csound->WaitThreadLock(p->threadLock, 1000);
       while (p->eventQueue != NULL) {
         rtEvt_t *ep = p->eventQueue;
         p->eventQueue = ep->nxt;
-        csound->NotifyThreadLock(csound, p->threadLock);
+        csound->NotifyThreadLock(p->threadLock);
         csound->insert_score_event(csound, &(ep->evt), csound->curTime);
         free(ep);
-        csound->WaitThreadLock(csound, p->threadLock, 1000);
+        csound->WaitThreadLock(p->threadLock, 1000);
       }
-      csound->NotifyThreadLock(csound, p->threadLock);
+      csound->NotifyThreadLock(p->threadLock);
     }
     /* if all windows have been closed, terminate performance */
     if (p->exit_now) {
@@ -216,7 +216,7 @@ extern "C" {
     if (evt->evt.p[2] < FL(0.0))
       evt->evt.p[2] = FL(0.0);
     /* queue event for insertion by main Csound thread */
-    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    csound->WaitThreadLock(p->threadLock, 1000);
     if (p->eventQueue == NULL)
       p->eventQueue = evt;
     else {
@@ -225,7 +225,7 @@ extern "C" {
         ep = ep->nxt;
       ep->nxt = evt;
     }
-    csound->NotifyThreadLock(csound, p->threadLock);
+    csound->NotifyThreadLock(p->threadLock);
 #else   // NO_FLTK_THREADS
     EVTBLK  e;
     int     i;
@@ -1657,14 +1657,14 @@ extern "C" {
       }
     }
     /* clean up */
-    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    csound->WaitThreadLock(p->threadLock, 1000);
     while (p->eventQueue != NULL) {
       rtEvt_t *nxt = p->eventQueue->nxt;
       free(p->eventQueue);
       p->eventQueue = nxt;
     }
-    csound->NotifyThreadLock(csound, p->threadLock);
-    csound->DestroyThreadLock(csound, p->threadLock);
+    csound->NotifyThreadLock(p->threadLock);
+    csound->DestroyThreadLock(p->threadLock);
     csound->DestroyGlobalVariable(csound, "_widgets_globals");
 #endif  // NO_FLTK_THREADS
     for (j = allocatedStrings.size()-1; j >= 0; j--)  {
@@ -1781,7 +1781,7 @@ extern "C" int FL_run(CSOUND *csound, FLRUN *p)
   pp = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                        "_widgets_globals");
   /* create thread lock */
-  pp->threadLock = csound->CreateThreadLock(csound);
+  pp->threadLock = csound->CreateThreadLock();
   /* register callback function to be called by sensevents() */
   csound->RegisterSenseEventCallback(csound,
                                      (void (*)(CSOUND *, void *)) evt_callback,

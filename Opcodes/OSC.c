@@ -188,12 +188,12 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
     if (p->eventQueue == NULL)
       return;
 
-    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    csound->WaitThreadLock(p->threadLock, 1000);
     while (p->eventQueue != NULL) {
       double  startTime;
       rtEvt_t *ep = p->eventQueue;
       p->eventQueue = ep->nxt;
-      csound->NotifyThreadLock(csound, p->threadLock);
+      csound->NotifyThreadLock(p->threadLock);
       startTime = (p->absp2mode ? p->baseTime : csound->curTime);
       startTime += (double) ep->e.p[2];
       ep->e.p[2] = FL(0.0);
@@ -214,9 +214,9 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
       if (ep->e.strarg != NULL)
         free(ep->e.strarg);
       free(ep);
-      csound->WaitThreadLock(csound, p->threadLock, 1000);
+      csound->WaitThreadLock(p->threadLock, 1000);
     }
-    csound->NotifyThreadLock(csound, p->threadLock);
+    csound->NotifyThreadLock(p->threadLock);
 }
 
 /* callback function for OSC thread */
@@ -289,7 +289,7 @@ static int osc_event_handler(const char *path, const char *types,
       }
     }
     /* queue event for handling by main Csound thread */
-    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    csound->WaitThreadLock(p->threadLock, 1000);
     if (p->eventQueue == NULL)
       p->eventQueue = evt;
     else {
@@ -298,7 +298,7 @@ static int osc_event_handler(const char *path, const char *types,
         ep = ep->nxt;
       ep->nxt = evt;
     }
-    csound->NotifyThreadLock(csound, p->threadLock);
+    csound->NotifyThreadLock(p->threadLock);
     return 0;
 }
 
@@ -320,7 +320,7 @@ static int osc_listener_init(CSOUND *csound, OSCRECV *p)
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "__OSC_globals");
     pp->csound = csound;
     pp->eventQueue = NULL;
-    pp->threadLock = csound->CreateThreadLock(csound);
+    pp->threadLock = csound->CreateThreadLock();
     pp->baseTime = 0.0;
     pp->absp2mode = (*(p->i_absp2) == FL(0.0) ? 0 : 1);
     /* create OSC thread */
@@ -353,7 +353,7 @@ static int OSC_reset(CSOUND *csound, void *userData)
     lo_server_thread_stop(p->st);
     lo_server_thread_free(p->st);
     /* delete any pending events */
-    csound->WaitThreadLock(csound, p->threadLock, 1000);
+    csound->WaitThreadLock(p->threadLock, 1000);
     while (p->eventQueue != NULL) {
       rtEvt_t *nxt = p->eventQueue->nxt;
       if (p->eventQueue->e.strarg != NULL)
@@ -361,8 +361,8 @@ static int OSC_reset(CSOUND *csound, void *userData)
       free(p->eventQueue);
       p->eventQueue = nxt;
     }
-    csound->NotifyThreadLock(csound, p->threadLock);
-    csound->DestroyThreadLock(csound, p->threadLock);
+    csound->NotifyThreadLock(p->threadLock);
+    csound->DestroyThreadLock(p->threadLock);
     csound->DestroyGlobalVariable(csound, "__OSC_globals");
     return OK;
 }

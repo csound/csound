@@ -92,7 +92,7 @@ extern "C" {
 #define DFLT_NCHNLS 1
 #define MAXCHNLS   256
 
-#define MAXNAME (256)
+#define MAXNAME   (256)
 
 #define DFLT_DBFS (FL(32768.0))
 
@@ -715,13 +715,12 @@ extern "C" {
     int (*TableLength)(CSOUND *, int table);
     MYFLT (*TableGet)(CSOUND *, int table, int index);
     void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
-    void *(*CreateThread)(CSOUND *,
-                          int (*threadRoutine)(void *userdata), void *userdata);
-    int (*JoinThread)(CSOUND *, void *thread);
-    void *(*CreateThreadLock)(CSOUND *);
-    void (*WaitThreadLock)(CSOUND *, void *lock, size_t milliseconds);
-    void (*NotifyThreadLock)(CSOUND *, void *lock);
-    void (*DestroyThreadLock)(CSOUND *, void *lock);
+    void *(*CreateThread)(uintptr_t (*threadRoutine)(void *), void *userdata);
+    uintptr_t (*JoinThread)(void *thread);
+    void *(*CreateThreadLock)(void);
+    void (*WaitThreadLock)(void *lock, size_t milliseconds);
+    void (*NotifyThreadLock)(void *lock);
+    void (*DestroyThreadLock)(void *lock);
     void (*SetFLTKThreadLocking)(CSOUND *, int isLocking);
     int (*GetFLTKThreadLocking)(CSOUND *);
     void (*timers_struct_init)(RTCLOCK *);
