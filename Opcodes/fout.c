@@ -149,29 +149,6 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
     return i;
 }
 
-static int foutRESET(CSOUND *csound, FOUT_GLOBALS *p)
-{
-    while (p->file_num >= 0) {
-      if (csound->oparms->msglevel & 3)
-        csound->Message(csound, "%d (%s):",
-                                p->file_num,
-                                p->file_opened[p->file_num].fullName);
-      csound->Free(csound, p->file_opened[p->file_num].name);
-      if (p->file_opened[p->file_num].fd != NULL)
-        csound->FileClose(csound, p->file_opened[p->file_num].fd);
-      p->file_num--;
-      if (csound->oparms->msglevel & 3)
-        csound->Message(csound, Str("\t... closed\n"));
-    }
-    csound->Free(csound, p->file_opened);
-    p->file_opened = NULL;
-    p->file_max = 0;
-    csound->Free(csound, p->buf);
-    p->buf = NULL;
-    p->buf_size = 0;
-    return OK;
-}
-
 static int outfile(CSOUND *csound, OUTFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
@@ -976,9 +953,7 @@ PUBLIC OENTRY *opcode_init(CSOUND *csound)
     p->fout_kreset = 0L;
     p->buf = (MYFLT*) NULL;
     p->buf_size = 0;
-    if (csound->RegisterResetCallback(csound, (void*) p,
-                                      (int (*)(CSOUND*,void*)) foutRESET) != 0)
-      csound->Die(csound, Str("fout: error registering reset callback"));
+
     return localops;
 }
 
