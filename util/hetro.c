@@ -320,27 +320,23 @@ static int hetro(CSOUND *csound, int argc, char **argv)
       csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
       csound->Message(csound,Str("freq est %6.1f,"), thishet->cur_est);
       hetdyn(thishet, hno);             /* perform actual computation */
-#if 0
-      if (!csoundYield(csound))
+      if (!csound->CheckEvents(csound))
         return -1;
-#endif
       csound->Message(csound, Str(" max found %6.1f, rel amp %6.1f\n"),
                               thishet->max_frq, thishet->max_amp);
     }
     csound->Free(csound, dspace);
-    {                     /* Note section bracket neded from if above */
 #if 0
-      /* RWD if extension is .sdif, write as 1TRC frames */
-      if (is_sdiffile(thishet->outfilnam)) {
-        if (!writesdif(csound,thishet)) {
-          csound->Message(csound, Str("Unable to write to SDIF file\n"));
-          retval = -1;
-        }
+    /* RWD if extension is .sdif, write as 1TRC frames */
+    if (is_sdiffile(thishet->outfilnam)) {
+      if (!writesdif(csound,thishet)) {
+        csound->Message(csound, Str("Unable to write to SDIF file\n"));
+        retval = -1;
       }
-      else
-#endif
-        retval |= filedump(thishet, csound);  /* write output to adsyn file */
     }
+    else
+#endif
+      retval |= filedump(thishet, csound);  /* write output to adsyn file */
 
     return retval;
 }
