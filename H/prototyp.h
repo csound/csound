@@ -238,54 +238,6 @@ int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
   int csoundGetInstrumentNumber(void *p);
 
   /**
-   * Open MIDI input device 'devName', and store stream specific
-   * data pointer in *userData. Return value is zero on success,
-   * and a non-zero error code if an error occured.
-   */
-  int csoundExternalMidiInOpen(CSOUND *, void **userData, const char *devName);
-
-  /**
-   * Read at most 'nbytes' bytes of MIDI data from input stream
-   * 'userData', and store in 'buf'. Returns the actual number of
-   * bytes read, which may be zero if there were no events, and
-   * negative in case of an error. Note: incomplete messages (such
-   * as a note on status without the data bytes) should not be
-   * returned.
-   */
-  int csoundExternalMidiRead(CSOUND *,
-                             void *userData, unsigned char *buf, int nbytes);
-
-  /**
-   * Close MIDI input device associated with 'userData'.
-   * Return value is zero on success, and a non-zero error
-   * code on failure.
-   */
-  int csoundExternalMidiInClose(CSOUND *, void *userData);
-
-  /**
-   * Open MIDI output device 'devName', and store stream specific
-   * data pointer in *userData. Return value is zero on success,
-   * and a non-zero error code if an error occured.
-   */
-  int csoundExternalMidiOutOpen(CSOUND *, void **userData, const char *devName);
-
-  /**
-   * Write 'nbytes' bytes of MIDI data to output stream 'userData'
-   * from 'buf' (the buffer will not contain incomplete messages).
-   * Returns the actual number of bytes written, or a negative
-   * error code.
-   */
-  int csoundExternalMidiWrite(CSOUND *,
-                              void *userData, unsigned char *buf, int nbytes);
-
-  /**
-   * Close MIDI output device associated with '*userData'.
-   * Return value is zero on success, and a non-zero error
-   * code on failure.
-   */
-  int csoundExternalMidiOutClose(CSOUND *, void *userData);
-
-  /**
    * Returns pointer to a string constant storing an error massage
    * for error code 'errcode'.
    */
@@ -309,6 +261,11 @@ int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
    * Registers all opcodes in all libraries in the opcodes directory.
    */
   int csoundLoadExternals(CSOUND *);
+
+  /**
+   * Check system events, yielding cpu time for coopertative multitasking, etc.
+   */
+  int csoundYield(CSOUND *);
 
 #ifdef __cplusplus
 };
