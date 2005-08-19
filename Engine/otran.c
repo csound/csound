@@ -89,29 +89,16 @@ extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 
 void tranRESET(CSOUND *csound)
 {
+    void  *p;
+
     delete_local_namepool(csound);
     delete_global_namepool(csound);
-    if (csound->otranGlobals != NULL) {
-      csound->Free(csound, csound->otranGlobals);
-      csound->otranGlobals = NULL;
-    }
-    csound->tran_sr     = FL(-1.0);
-    csound->tran_kr     = FL(-1.0);
-    csound->tran_ksmps  = FL(-1.0);
-    csound->tran_nchnls = DFLT_NCHNLS;
-    csound->tran_0dbfs  = DFLT_DBFS;
-    csound->nlabels     = NLABELS;
-    /* IV - Oct 12 2002: free all instrument names */
-    while (csound->opcodeInfo != NULL) {
-      OPCODINFO *inm = csound->opcodeInfo->prv;
-      /* note: out_ndx_list should not be mfree'd */
-      if (csound->opcodeInfo->in_ndx_list != NULL)
-        mfree(csound, csound->opcodeInfo->in_ndx_list);
-      mfree(csound, csound->opcodeInfo);
-      csound->opcodeInfo = inm;
-    }
-    named_instr_free(csound);        /* IV - Oct 31 2002 */
-    opcode_list_free(csound);
+    p = (void*) csound->opcodlst;
+    csound->opcodlst = NULL;
+    csound->oplstend = NULL;
+    if (p != NULL)
+      free(p);
+    csound->otranGlobals = NULL;
 }
 
 /* IV - Oct 12 2002: new function to parse arguments of opcode definitions */

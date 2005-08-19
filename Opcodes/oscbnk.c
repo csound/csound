@@ -81,11 +81,8 @@ static void oscbnk_seedrand(CSOUND *csound, long *seed, MYFLT seedval)
 static unsigned long oscbnk_rnd_phase(long *seed)
 {
     /* update random seed */
-
     oscbnk_rand31(seed);
-
     /* convert seed to phase */
-
     return ((unsigned long) *seed >> OSCBNK_RNDPHS);
 }
 
@@ -1471,22 +1468,6 @@ static void vco2_delete_table_array(CSOUND *csound, int w)
     pp->vco2_tables[w] = NULL;
 }
 
-/* free memory used by all vco2 table arrays */
-
-static void vco2_tables_destroy(CSOUND *csound)
-{
-    OSCBNK_GLOBALS  *pp = get_oscbnk_globals(csound);
-    int             i;
-
-    if (pp->vco2_tables != (VCO2_TABLE_ARRAY**) NULL) { /* if there are any */
-      for (i = 0; i < pp->vco2_nr_table_arrays; i++)    /* tables: */
-        vco2_delete_table_array(csound, i);
-      csound->Free(csound, pp->vco2_tables);
-      pp->vco2_tables = (VCO2_TABLE_ARRAY**) NULL;
-      pp->vco2_nr_table_arrays = 0;
-    }
-}
-
 /* generate a table using the waveform specified in tp */
 
 static void vco2_calculate_table(CSOUND *csound,
@@ -2544,14 +2525,5 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     return (csound->CreateGlobalVariable(csound, "_oscbnk_globals",
                                                  sizeof(OSCBNK_GLOBALS)));
-}
-
-PUBLIC int csoundModuleDestroy(CSOUND *csound)
-{
-    if (csound->QueryGlobalVariable(csound, "_oscbnk_globals") != NULL) {
-      vco2_tables_destroy(csound);
-      csound->DestroyGlobalVariable(csound, "_oscbnk_globals");
-    }
-    return 0;
 }
 
