@@ -28,29 +28,26 @@
 void send_midi_message(CSOUND *csound, int status, int data1, int data2)
 {
     unsigned char buf[4];
+    int           nbytes = 0;
 
-    buf[0] = (unsigned char) status;
-    buf[1] = (unsigned char) data1;
-    buf[2] = (unsigned char) data2;
-    switch (status & 0xF0) {
-      case 0xC0:
-      case 0xD0:
-        csoundExternalMidiWrite(csound,
-                                csound->midiGlobals->midiOutUserData,
-                                &(buf[0]), 2);
-        break;
-      case 0xF0:
-        if (status >= 0xF8) {
-          csoundExternalMidiWrite(csound,
-                                  csound->midiGlobals->midiOutUserData,
-                                  &(buf[0]), 1);
-        }
-        break;
-      default:
-        csoundExternalMidiWrite(csound,
-                                csound->midiGlobals->midiOutUserData,
-                                &(buf[0]), 3);
+    buf[nbytes++] = (unsigned char) status;
+    buf[nbytes++] = (unsigned char) data1;
+    if (buf[0] < (unsigned char) 0xC0) {
+      buf[nbytes++] = (unsigned char) data2;
+      if (buf[0] < (unsigned char) 0x80)
+        return;
     }
+    else if (buf[0] >= (unsigned char) 0xE0) {
+      buf[nbytes++] = (unsigned char) data2;
+      if (buf[0] >= (unsigned char) 0xF0) {
+        if (buf[0] < (unsigned char) 0xF8)
+          return;
+        nbytes = 1;
+      }
+    }
+    csound->midiGlobals->MidiWriteCallback(csound,
+                                           csound->midiGlobals->midiOutUserData,
+                                           &(buf[0]), nbytes);
 }
 
 void note_on(CSOUND *csound, int chan, int num, int vel)
@@ -90,19 +87,23 @@ void poly_after_touch(CSOUND *csound, int chan, int note_num, int value)
 
 void openMIDIout(CSOUND *csound)
 {
-    int retval;
+    MGLOBAL *p = csound->midiGlobals;
+    int     retval;
 
-    if (csound->midiGlobals->MIDIoutDONE)
+    if (p->MIDIoutDONE)
       return;
-    csound->midiGlobals->MIDIoutDONE = 1;
+    if (p->MidiOutOpenCallback == NULL)
+      csoundDie(csound, Str(" *** no callback for opening MIDI output"));
+    if (p->MidiWriteCallback == NULL)
+      csoundDie(csound, Str(" *** no callback for writing MIDI data"));
 
-    retval = csoundExternalMidiOutOpen(csound,
-                                       &(csound->midiGlobals->midiOutUserData),
-                                       csound->oparms->Midioutname);
+    p->MIDIoutDONE = 1;
+    retval = p->MidiOutOpenCallback(csound,
+                                    &(csound->midiGlobals->midiOutUserData),
+                                    csound->oparms->Midioutname);
     if (retval != 0) {
-      csoundDie(csound,
-                Str(" *** error opening MIDI out device: %d (%s)"),
-                retval, csoundExternalMidiErrorString(csound, retval));
+      csoundDie(csound, Str(" *** error opening MIDI out device: %d (%s)"),
+                        retval, csoundExternalMidiErrorString(csound, retval));
     }
 }
 

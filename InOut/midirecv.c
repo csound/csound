@@ -23,18 +23,18 @@
 */
 
 /*
-    Real time MIDI interface functions:
-    -----------------------------------
+    Real time MIDI callback functions:
+    ----------------------------------
 
-    int csoundExternalMidiInOpen(CSOUND *csound, void **userData,
-                                 const char *devName);
+    int (*MidiInOpenCallback)(CSOUND *csound, void **userData,
+                                              const char *devName);
 
       Open MIDI input device 'devName', and store stream specific
       data pointer in *userData. Return value is zero on success,
       and a non-zero error code if an error occured.
 
-    int csoundExternalMidiRead(CSOUND *csound, void *userData,
-                               unsigned char *buf, int nbytes);
+    int (*MidiReadCallback)(CSOUND *csound, void *userData,
+                                            unsigned char *buf, int nbytes);
 
       Read at most 'nbytes' bytes of MIDI data from input stream
       'userData', and store in 'buf'. Returns the actual number of
@@ -43,34 +43,34 @@
       as a note on status without the data bytes) should not be
       returned.
 
-    int csoundExternalMidiInClose(CSOUND *csound, void *userData);
+    int (*MidiInCloseCallback)(CSOUND *csound, void *userData);
 
       Close MIDI input device associated with 'userData'.
       Return value is zero on success, and a non-zero error
       code on failure.
 
-    int csoundExternalMidiOutOpen(CSOUND *csound, void **userData,
-                                  const char *devName);
+    int (*MidiOutOpenCallback)(CSOUND *csound, void **userData,
+                                               const char *devName);
 
       Open MIDI output device 'devName', and store stream specific
       data pointer in *userData. Return value is zero on success,
       and a non-zero error code if an error occured.
 
-    int csoundExternalMidiWrite(CSOUND *csound, void *userData,
-                                unsigned char *buf, int nbytes);
+    int (*MidiWriteCallback)(CSOUND *csound, void *userData,
+                                             unsigned char *buf, int nbytes);
 
       Write 'nbytes' bytes of MIDI data to output stream 'userData'
       from 'buf' (the buffer will not contain incomplete messages).
       Returns the actual number of bytes written, or a negative
       error code.
 
-    int csoundExternalMidiOutClose(CSOUND *csound, void *userData);
+    int (*MidiOutCloseCallback)(CSOUND *csound, void *userData);
 
       Close MIDI output device associated with '*userData'.
       Return value is zero on success, and a non-zero error
       code on failure.
 
-    char *csoundExternalMidiErrorString(CSOUND *csound, int errcode);
+    char *(*MidiErrorStringCallback)(int errcode);
 
       Returns pointer to a string constant storing an error massage
       for error code 'errcode'.
@@ -125,26 +125,28 @@ static const short datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
 void MidiOpen(CSOUND *csound)
 {
+    MGLOBAL *p = csound->midiGlobals;
     OPARMS  *O = csound->oparms;
+    int     err;
     /* First set up buffers. */
-    int     i;
-    MGLOB(Midevtblk) = (MEVENT*) mcalloc(csound, sizeof(MEVENT));
-    MGLOB(sexp) = 0;
+    p->Midevtblk = (MEVENT*) mcalloc(csound, sizeof(MEVENT));
+    p->sexp = 0;
     /* Then open device... */
     if (O->Midiin) {
-      i = csoundExternalMidiInOpen(csound, &MGLOB(midiInUserData), O->Midiname);
-      if (i != 0) {
-        csound->Die(csound,
-                    Str(" *** error opening MIDI in device: %d (%s)"),
-                    i, csoundExternalMidiErrorString(csound, i));
+      if (p->MidiInOpenCallback == NULL)
+        csound->Die(csound, Str(" *** no callback for opening MIDI input"));
+      if (p->MidiReadCallback == NULL)
+        csound->Die(csound, Str(" *** no callback for reading MIDI data"));
+      err = p->MidiInOpenCallback(csound, &(p->midiInUserData), O->Midiname);
+      if (err != 0) {
+        csound->Die(csound, Str(" *** error opening MIDI in device: %d (%s)"),
+                            err, csoundExternalMidiErrorString(csound, err));
       }
     }
     /* and file. */
     if (O->FMidiin && O->FMidiname != NULL) {
-      i = csoundMIDIFileOpen(csound, O->FMidiname);
-      if (i != 0) {
+      if (csoundMIDIFileOpen(csound, O->FMidiname) != 0)
         csound->Die(csound, Str("Failed to load MIDI file."));
-      }
     }
 }
 
@@ -470,133 +472,137 @@ static void midNotesOff(CSOUND *csound)
 
 int sensMidi(CSOUND *csound)
 {
-    MEVENT  *mep = MGLOB(Midevtblk);
+    MGLOBAL *p = csound->midiGlobals;
+    MEVENT  *mep = p->Midevtblk;
     OPARMS  *O = csound->oparms;
     int     n;
     short   c, type;
 
  nxtchr:
-    if (MGLOB(bufp) >= MGLOB(endatp)) {
-      MGLOB(bufp) = &(MGLOB(mbuf)[0]);
-      MGLOB(endatp) = MGLOB(bufp);
+    if (p->bufp >= p->endatp) {
+      p->bufp = &(p->mbuf[0]);
+      p->endatp = p->bufp;
       if (O->Midiin && !csound->advanceCnt) {   /* read MIDI device */
-        n = csoundExternalMidiRead(csound, MGLOB(midiInUserData),
-                                   MGLOB(bufp), MBUFSIZ);
+        n = p->MidiReadCallback(csound, p->midiInUserData, p->bufp, MBUFSIZ);
         if (n < 0)
-          csoundMessage(csound,
-                        Str(" *** error reading MIDI device: %d (%s)\n"),
-                        n, csoundExternalMidiErrorString(csound, n));
+          csoundErrorMsg(csound, Str(" *** error reading MIDI device: %d (%s)"),
+                                 n, csoundExternalMidiErrorString(csound, n));
         else
-          MGLOB(endatp) += (int) n;
+          p->endatp += (int) n;
       }
       if (O->FMidiin) {                         /* read MIDI file */
-        n = csoundMIDIFileRead(csound, MGLOB(endatp),
-                               MBUFSIZ - (int) (MGLOB(endatp) - MGLOB(bufp)));
+        n = csoundMIDIFileRead(csound, p->endatp,
+                               MBUFSIZ - (int) (p->endatp - p->bufp));
         if (n > 0)
-          MGLOB(endatp) += (int) n;
+          p->endatp += (int) n;
       }
-      if (MGLOB(endatp) <= MGLOB(bufp))
+      if (p->endatp <= p->bufp)
         return 0;               /* no events were received */
     }
 
-    if ((c = *(MGLOB(bufp)++)) & 0x80) { /* STATUS byte:      */
+    if ((c = *(p->bufp++)) & 0x80) {    /* STATUS byte:         */
       type = c & 0xF0;
       if (type == SYSTEM_TYPE) {
         short lo3 = (c & 0x07);
-        if (c & 0x08)                    /* sys_realtime:     */
-          switch (lo3) {                 /*   dispatch now    */
-          case 0: /* m_clktim++; */      /* timing clock      */
-          case 2:                        /* start             */
-          case 3:                        /* continue          */
-          case 4:                        /* stop              */
-          case 6:                        /* active sensing    */
-          case 7:                        /* system reset      */
+        if (c & 0x08)                   /* sys_realtime:        */
+          switch (lo3) {                /*   dispatch now       */
+          case 0: /* m_clktim++; */     /* timing clock         */
+          case 2:                       /* start                */
+          case 3:                       /* continue             */
+          case 4:                       /* stop                 */
+          case 6:                       /* active sensing       */
+          case 7:                       /* system reset         */
             goto nxtchr;
           default:
             csound->Message(csound, Str("undefined sys-realtime msg %x\n"), c);
             goto nxtchr;
           }
-        else {                           /* sys_non-realtime status:   */
-          MGLOB(sexp) = 0;               /* implies sys_exclus end     */
-          switch (lo3) {                 /* dispatch on lo3:  */
-          case 7: goto nxtchr;           /* EOX: already done */
-          case 0: MGLOB(sexp) = 1;       /* sys_ex begin:     */
-            goto nxtchr;                 /*   goto copy data  */
+        else {                          /* sys_non-realtime status: */
+          p->sexp = 0;                  /* implies sys_exclus end   */
+          switch (lo3) {                /* dispatch on lo3:     */
+          case 7: goto nxtchr;          /* EOX: already done    */
+          case 0: p->sexp = 1;          /* sys_ex begin:        */
+            goto nxtchr;                /*   goto copy data     */
           /* sys_common: need some data, so build evt */
-          case 1:                        /* MTC quarter frame */
-          case 3: MGLOB(datreq) = 1;     /* song select       */
+          case 1:                       /* MTC quarter frame    */
+          case 3: p->datreq = 1;        /* song select          */
             break;
-          case 2: MGLOB(datreq) = 2;     /* song position     */
+          case 2: p->datreq = 2;        /* song position        */
             break;
-          case 6:                        /* tune request      */
+          case 6:                       /* tune request         */
             goto nxtchr;
           default:
             csound->Message(csound, Str("undefined sys_common msg %x\n"), c);
-            MGLOB(datreq) = 32767;       /* waste any data following */
-            MGLOB(datcnt) = 0;
+            p->datreq = 32767;          /* waste any data following */
+            p->datcnt = 0;
             goto nxtchr;
           }
         }
         mep->type = type;               /* begin sys_com event  */
         mep->chan = lo3;                /* holding code in chan */
-        MGLOB(datcnt) = 0;
+        p->datcnt = 0;
         goto nxtchr;
       }
       else {                            /* other status types:  */
         short chan;
-        MGLOB(sexp) = 0;                /* also implies sys_exclus end */
+        p->sexp = 0;                    /* also implies sys_exclus end */
         chan = c & 0xF;
-        mep->type = type;               /* & begin new event */
+        mep->type = type;               /* & begin new event    */
         mep->chan = chan;
-        MGLOB(datreq) = datbyts[(type>>4) & 0x7];
-        MGLOB(datcnt) = 0;
+        p->datreq = datbyts[(type>>4) & 0x7];
+        p->datcnt = 0;
         goto nxtchr;
       }
     }
-    if (MGLOB(sexp) != 0) {             /* NON-STATUS byte:      */
+    if (p->sexp != 0) {                 /* NON-STATUS byte:     */
       goto nxtchr;
     }
-    if (MGLOB(datcnt) == 0)
-      mep->dat1 = c;                    /* else normal data      */
+    if (p->datcnt == 0)
+      mep->dat1 = c;                    /* else normal data     */
     else mep->dat2 = c;
-    if (++MGLOB(datcnt) < MGLOB(datreq))  /* if msg incomplete     */
-      goto nxtchr;                        /*   get next char       */
+    if (++p->datcnt < p->datreq)        /* if msg incomplete    */
+      goto nxtchr;                      /*   get next char      */
     /* Enter the input event into a buffer used by 'midiin'. */
     if (mep->type != SYSTEM_TYPE) {
       unsigned char *pMessage =
-                    &(MGLOB(MIDIINbuffer2)[MGLOB(MIDIINbufIndex)++].bData[0]);
-      MGLOB(MIDIINbufIndex) &= MIDIINBUFMSK;
+                    &(p->MIDIINbuffer2[p->MIDIINbufIndex++].bData[0]);
+      p->MIDIINbufIndex &= MIDIINBUFMSK;
       *pMessage++ = mep->type | mep->chan;
-      *pMessage++ = (unsigned char)mep->dat1;
-      *pMessage = (MGLOB(datreq) < 2 ? (unsigned char) 0 : mep->dat2);
+      *pMessage++ = (unsigned char) mep->dat1;
+      *pMessage = (p->datreq < 2 ? (unsigned char) 0 : mep->dat2);
     }
-    MGLOB(datcnt) = 0;                  /* else allow a repeat   */
+    p->datcnt = 0;                      /* else allow a repeat  */
     /* NB:  this allows repeat in syscom 1,2,3 too */
-    if (mep->type > NOTEON_TYPE) {      /* if control or syscom  */
-      m_chanmsg(csound, mep);           /*   handle from here    */
-      goto nxtchr;                      /*   & go look for more  */
+    if (mep->type > NOTEON_TYPE) {      /* if control or syscom */
+      m_chanmsg(csound, mep);           /*   handle from here   */
+      goto nxtchr;                      /*   & go look for more */
     }
-    return(2);                          /* else it's note_on/off */
+    return 2;                           /* else it's note_on/off */
 }
 
 void MidiClose(CSOUND *csound)
 {
-    int retval;
+    MGLOBAL *p = csound->midiGlobals;
+    int     retval;
 
-    retval = csoundExternalMidiInClose(csound, MGLOB(midiInUserData));
-    if (retval != 0)
-      csoundMessage(csound, Str("Error closing MIDI in device: %d (%s)\n"),
-                    retval, csoundExternalMidiErrorString(csound, retval));
-    if (MGLOB(MIDIoutDONE)) {
-      retval = csoundExternalMidiOutClose(csound, MGLOB(midiOutUserData));
+    if (p->MidiInCloseCallback != NULL) {
+      retval = p->MidiInCloseCallback(csound, p->midiInUserData);
       if (retval != 0)
-        csoundMessage(csound, Str("Error closing MIDI out device: %d (%s)\n"),
-                      retval, csoundExternalMidiErrorString(csound, retval));
-      MGLOB(MIDIoutDONE) = 0;
+        csoundErrorMsg(csound, Str("Error closing MIDI in device: %d (%s)"),
+                       retval, csoundExternalMidiErrorString(csound, retval));
     }
-    if (MGLOB(midiFileData) != NULL) {
+    p->midiInUserData = NULL;
+    if (p->MIDIoutDONE && p->MidiOutCloseCallback != NULL) {
+      retval = p->MidiOutCloseCallback(csound, p->midiOutUserData);
+      if (retval != 0)
+        csoundErrorMsg(csound, Str("Error closing MIDI out device: %d (%s)"),
+                       retval, csoundExternalMidiErrorString(csound, retval));
+      p->MIDIoutDONE = 0;
+    }
+    p->midiOutUserData = NULL;
+    if (p->midiFileData != NULL) {
       csoundMIDIFileClose(csound);
-      MGLOB(midiFileData) = NULL;
+      p->midiFileData = NULL;
     }
 }
 
