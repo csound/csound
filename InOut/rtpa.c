@@ -263,15 +263,15 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
   /*  pabs->noPaLock = 1;  */
     }
 
-    pabs->paLock = csound->CreateThreadLock(csound);
+    pabs->paLock = csound->CreateThreadLock();
     if (pabs->paLock == NULL)
       goto err_return;
-    pabs->clientLock = csound->CreateThreadLock(csound);
+    pabs->clientLock = csound->CreateThreadLock();
     if (pabs->clientLock == NULL)
       goto err_return;
     if (!pabs->noPaLock)
-      csound->WaitThreadLock(csound, pabs->paLock, (size_t) 500);
-    csound->WaitThreadLock(csound, pabs->clientLock, (size_t) 500);
+      csound->WaitThreadLock(pabs->paLock, (size_t) 500);
+    csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
 
     err = Pa_OpenStream(&stream,
                         (pabs->mode & 1 ? &(pabs->inputPaParameters)
@@ -333,7 +333,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     }
 
     if (!pabs->noPaLock)
-      csound->WaitThreadLock(csound, pabs->paLock, (size_t) 500);
+      csound->WaitThreadLock(pabs->paLock, (size_t) 500);
 
     if (pabs->mode & 1) {
       for (i = 0, n = pabs->inBufSamples; i < n; i++)
@@ -344,7 +344,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
         paOutput[i] = pabs->outputBuffer[i];
     }
 
-    csound->NotifyThreadLock(csound, pabs->clientLock);
+    csound->NotifyThreadLock(pabs->clientLock);
 
     return paContinue;
 }
@@ -373,8 +373,8 @@ static int rtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
       if (pabs->currentInputIndex >= pabs->inBufSamples) {
         if (pabs->mode == 1) {
           if (!pabs->noPaLock)
-            csound->NotifyThreadLock(csound, pabs->paLock);
-          csound->WaitThreadLock(csound, pabs->clientLock, (size_t) 500);
+            csound->NotifyThreadLock(pabs->paLock);
+          csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
         }
         pabs->currentInputIndex = 0;
       }
@@ -400,8 +400,8 @@ static void rtplay_(CSOUND *csound, MYFLT *buffer, int nbytes)
         pabs->outputBuffer[pabs->currentOutputIndex++] = (float) buffer[i];
       if (pabs->currentOutputIndex >= pabs->outBufSamples) {
         if (!pabs->noPaLock)
-          csound->NotifyThreadLock(csound, pabs->paLock);
-        csound->WaitThreadLock(csound, pabs->clientLock, (size_t) 500);
+          csound->NotifyThreadLock(pabs->paLock);
+        csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
         pabs->currentOutputIndex = 0;
       }
     } while (++i < samples);
@@ -468,8 +468,8 @@ static void rtclose_(CSOUND *csound)
       pabs->paStream = NULL;
       for (i = 0; i < 4; i++) {
         if (!pabs->noPaLock)
-          csound->NotifyThreadLock(csound, pabs->paLock);
-        csound->NotifyThreadLock(csound, pabs->clientLock);
+          csound->NotifyThreadLock(pabs->paLock);
+        csound->NotifyThreadLock(pabs->clientLock);
         Pa_Sleep(80);
       }
       Pa_AbortStream(stream);
@@ -478,13 +478,13 @@ static void rtclose_(CSOUND *csound)
     }
 
     if (pabs->clientLock != NULL) {
-      csound->NotifyThreadLock(csound, pabs->clientLock);
-      csound->DestroyThreadLock(csound, pabs->clientLock);
+      csound->NotifyThreadLock(pabs->clientLock);
+      csound->DestroyThreadLock(pabs->clientLock);
       pabs->clientLock = NULL;
     }
     if (pabs->paLock != NULL) {
-      csound->NotifyThreadLock(csound, pabs->paLock);
-      csound->DestroyThreadLock(csound, pabs->paLock);
+      csound->NotifyThreadLock(pabs->paLock);
+      csound->DestroyThreadLock(pabs->paLock);
       pabs->paLock = NULL;
     }
 
