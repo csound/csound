@@ -35,12 +35,12 @@ extern "C" {
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
 
-int check_instr_name (char*);
+int check_instr_name(char*);
 
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-long named_instr_find (CSOUND*, char*);
+long named_instr_find(CSOUND*, char*);
 
 /* allocate entry for named instrument ip with name s (s must not be freed */
 /* after the call, because only the pointer is stored); instrument number */
@@ -48,29 +48,24 @@ long named_instr_find (CSOUND*, char*);
 /* returns zero if the named instr entry could not be allocated */
 /* (e.g. because it already exists) */
 
-int named_instr_alloc (CSOUND*, char*, INSTRTXT*, long);
+int named_instr_alloc(CSOUND*, char*, INSTRTXT*, long);
 
 /* assign instrument numbers to all named instruments */
 /* called by otran */
 
-void named_instr_assign_numbers (CSOUND*);
-
-/* free memory used by named instruments */
-/* called by tranRESET() */
-
-void named_instr_free (CSOUND*);
+void named_instr_assign_numbers(CSOUND*);
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2insno (CSOUND*, void*, int);
+long strarg2insno(CSOUND*, void*, int);
 
 /* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-long strarg2insno_p (CSOUND*, char*);
+long strarg2insno_p(CSOUND*, char*);
 
 /* convert opcode string argument to instrument number */
 /* (also allows user defined opcode names); if the integer */
@@ -78,7 +73,7 @@ long strarg2insno_p (CSOUND*, char*);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-long strarg2opcno (CSOUND*, void*, int, int);
+long strarg2opcno(CSOUND*, void*, int, int);
 
 /* create file name from opcode argument (string or MYFLT)      */
 /*   CSOUND *csound:                                            */
@@ -124,15 +119,11 @@ char *strarg2name(CSOUND*, char*, void*, const char*, int);
 
 /* create new opcode list from opcodlst[] */
 
-void opcode_list_create (CSOUND*);
+void opcode_list_create(CSOUND*);
 
 /* add new entry to opcode list, with optional check for redefined opcodes */
 
-void opcode_list_add_entry (CSOUND*, int, int);
-
-/* free memory used by opcode list */
-
-void opcode_list_free (CSOUND*);
+void opcode_list_add_entry(CSOUND*, int, int);
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
@@ -153,12 +144,8 @@ void strsav_create(CSOUND*);
 
 char *strsav_string(CSOUND*, char*);
 
-/* Free all memory used by strsav space. Called from orchRESET(). */
-
-void strsav_destroy(CSOUND*);
-
 #ifdef __cplusplus
-}
+};
 #endif
 
 #endif          /* CSOUND_NAMEDINS_H */
