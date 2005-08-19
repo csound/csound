@@ -1205,102 +1205,13 @@ static char *DummyMidiErrorString(int errcode)
 }
 
 /**
- * Open MIDI input device 'devName', and store stream specific
- * data pointer in *userData. Return value is zero on success,
- * and a non-zero error code if an error occured.
- */
-int csoundExternalMidiInOpen(CSOUND *csound, void **userData,
-                                             const char *devName)
-{
-    if (csound->midiGlobals->MidiInOpenCallback == NULL)
-      return -1;
-    return (csound->midiGlobals->MidiInOpenCallback(csound, userData, devName));
-}
-
-/**
- * Read at most 'nbytes' bytes of MIDI data from input stream
- * 'userData', and store in 'buf'. Returns the actual number of
- * bytes read, which may be zero if there were no events, and
- * negative in case of an error. Note: incomplete messages (such
- * as a note on status without the data bytes) should not be
- * returned.
- */
-int csoundExternalMidiRead(CSOUND *csound, void *userData,
-                           unsigned char *buf, int nbytes)
-{
-    if (csound->midiGlobals->MidiReadCallback == NULL)
-      return -1;
-    return (csound->midiGlobals->MidiReadCallback(csound,
-                                                  userData, buf, nbytes));
-}
-
-/**
- * Close MIDI input device associated with 'userData'.
- * Return value is zero on success, and a non-zero error
- * code on failure.
- */
-int csoundExternalMidiInClose(CSOUND *csound, void *userData)
-{
-    int retval;
-    if (csound->midiGlobals->MidiInCloseCallback == NULL)
-      return -1;
-    retval = csound->midiGlobals->MidiInCloseCallback(csound, userData);
-    csound->midiGlobals->midiInUserData = NULL;
-    return retval;
-}
-
-/**
- * Open MIDI output device 'devName', and store stream specific
- * data pointer in *userData. Return value is zero on success,
- * and a non-zero error code if an error occured.
- */
-int csoundExternalMidiOutOpen(CSOUND *csound, void **userData,
-                                              const char *devName)
-{
-    if (csound->midiGlobals->MidiOutOpenCallback == NULL)
-      return -1;
-    return (csound->midiGlobals->MidiOutOpenCallback(csound,
-                                                     userData, devName));
-}
-
-/**
- * Write 'nbytes' bytes of MIDI data to output stream 'userData'
- * from 'buf' (the buffer will not contain incomplete messages).
- * Returns the actual number of bytes written, or a negative
- * error code.
- */
-int csoundExternalMidiWrite(CSOUND *csound, void *userData,
-                            unsigned char *buf, int nbytes)
-{
-    if (csound->midiGlobals->MidiWriteCallback == NULL)
-      return -1;
-    return (csound->midiGlobals->MidiWriteCallback(csound,
-                                                   userData, buf, nbytes));
-}
-
-/**
- * Close MIDI output device associated with '*userData'.
- * Return value is zero on success, and a non-zero error
- * code on failure.
- */
-int csoundExternalMidiOutClose(CSOUND *csound, void *userData)
-{
-    int retval;
-    if (csound->midiGlobals->MidiOutCloseCallback == NULL)
-      return -1;
-    retval = csound->midiGlobals->MidiOutCloseCallback(csound, userData);
-    csound->midiGlobals->midiOutUserData = NULL;
-    return retval;
-}
-
-/**
  * Returns pointer to a string constant storing an error massage
  * for error code 'errcode'.
  */
 char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
 {
     if (csound->midiGlobals->MidiErrorStringCallback == NULL)
-      return NULL;
+      return (char*) midi_err_msg;
     return (csound->midiGlobals->MidiErrorStringCallback(errcode));
 }
 
@@ -1586,7 +1497,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
   extern void lpcRESET(CSOUND *);
   extern void memRESET(CSOUND *);
   extern void oloadRESET(CSOUND *);
-  extern void orchRESET(CSOUND *);
   extern void tranRESET(CSOUND *);
 
   PUBLIC void csoundReset(CSOUND *csound)
@@ -1596,10 +1506,9 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
     /* call registered reset callbacks */
     while (csound->reset_list != NULL) {
       resetCallback_t *p = (resetCallback_t*) csound->reset_list;
-      resetCallback_t *nxt = (resetCallback_t*) p->nxt;
       p->func(csound, p->userData);
+      csound->reset_list = (void*) p->nxt;
       free(p);
-      csound->reset_list = (void*) nxt;
     }
 
     /* unload plugin opcodes */
@@ -1615,12 +1524,8 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
     cscoreRESET(csound);
     disprepRESET(csound);
     tranRESET(csound);
-    orchRESET(csound);
     adsynRESET(csound);
     lpcRESET(csound);
-    if (csound->opcodlst != NULL)
-      free(csound->opcodlst);
-    csound->oplstend = csound->opcodlst = NULL;
     oloadRESET(csound);     /* should be called last but one */
     memRESET(csound);       /* and this one should be the last */
   }
@@ -1644,12 +1549,12 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
 
   PUBLIC MYFLT csoundTableGet(CSOUND *csound, int table, int index)
   {
-    return ((csound->flist[table])->ftable[index]);
+    return csound->flist[table]->ftable[index];
   }
 
   PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
   {
-    (csound->flist[table])->ftable[index] = value;
+    csound->flist[table]->ftable[index] = value;
   }
 
   PUBLIC void csoundSetFLTKThreadLocking(CSOUND *csound, int isLocking)
@@ -1850,19 +1755,19 @@ typedef struct opcodeDeinit_s {
     void    *nxt;
 } opcodeDeinit_t;
 
-/**
- * Register a function to be called at note deactivation.
- * Should be called from the initialisation routine of an opcode.
- * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
- * is the function to be called, with the same arguments and return
- * value as in the case of opcode init/perf functions.
- * The functions are called in reverse order of registration.
- * Returns zero on success.
- */
+  /**
+   * Register a function to be called at note deactivation.
+   * Should be called from the initialisation routine of an opcode.
+   * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
+   * is the function to be called, with the same arguments and return
+   * value as in the case of opcode init/perf functions.
+   * The functions are called in reverse order of registration.
+   * Returns zero on success.
+   */
 
-int csoundRegisterDeinitCallback(CSOUND *csound, void *p,
-                                 int (*func)(CSOUND *, void *))
-{
+  int csoundRegisterDeinitCallback(CSOUND *csound, void *p,
+                                   int (*func)(CSOUND *, void *))
+  {
     INSDS           *ip = ((OPDS*) p)->insdshead;
     opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
 
@@ -1873,20 +1778,20 @@ int csoundRegisterDeinitCallback(CSOUND *csound, void *p,
     dp->nxt = ip->nxtd;
     ip->nxtd = dp;
     return CSOUND_SUCCESS;
-}
+  }
 
-/**
- * Register a function to be called by csoundReset(), in reverse order
- * of registration, before unloading external modules. The function takes
- * the Csound instance pointer as the first argument, and the pointer
- * passed here as 'userData' as the second, and is expected to return zero
- * on success.
- * The return value of csoundRegisterResetCallback() is zero on success.
- */
+  /**
+   * Register a function to be called by csoundReset(), in reverse order
+   * of registration, before unloading external modules. The function takes
+   * the Csound instance pointer as the first argument, and the pointer
+   * passed here as 'userData' as the second, and is expected to return zero
+   * on success.
+   * The return value of csoundRegisterResetCallback() is zero on success.
+   */
 
-int csoundRegisterResetCallback(CSOUND *csound, void *userData,
-                                int (*func)(CSOUND *, void *))
-{
+  int csoundRegisterResetCallback(CSOUND *csound, void *userData,
+                                  int (*func)(CSOUND *, void *))
+  {
     resetCallback_t *dp = (resetCallback_t*) malloc(sizeof(resetCallback_t));
 
     if (dp == NULL)
@@ -1896,25 +1801,23 @@ int csoundRegisterResetCallback(CSOUND *csound, void *userData,
     dp->nxt = csound->reset_list;
     csound->reset_list = (void*) dp;
     return CSOUND_SUCCESS;
+  }
 
-}
+  /* call the opcode deinitialisation routines of an instrument instance */
+  /* called from deact() in insert.c */
 
-/* call the opcode deinitialisation routines of an instrument instance */
-/* called from deact() in insert.c */
-
-int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
-{
+  int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
+  {
     int err = 0;
 
     while (ip->nxtd != NULL) {
       opcodeDeinit_t  *dp = (opcodeDeinit_t*) ip->nxtd;
-      opcodeDeinit_t  *nxt = dp->nxt;
       err |= dp->func(csound, dp->p);
-      free(ip->nxtd);
-      ip->nxtd = (void*) nxt;
+      ip->nxtd = (void*) dp->nxt;
+      free(dp);
     }
     return err;
-}
+  }
 
   /**
    * Returns the name of the opcode of which the data structure
