@@ -202,25 +202,6 @@ void named_instr_assign_numbers(CSOUND *csound)
     *inm_first = *inm_last = NULL;
 }
 
-/* free memory used by named instruments */
-/* called by tranRESET() */
-
-void named_instr_free(CSOUND *csound)
-{
-    INSTRNAME   *inm;
-    int     i;
-
-    if (!csound->instrumentNames) return;       /* nothing to free */
-    for (i = 0; i < 256; i++) {
-      inm = ((INSTRNAME**) csound->instrumentNames)[i];
-      while (inm) {
-        INSTRNAME   *prvinm = inm->prv;
-        mfree(csound, inm);
-        inm = prvinm;
-      }
-    }
-}
-
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
@@ -420,28 +401,6 @@ newopc:
     }
 }
 
-/* free memory used by opcode list */
-
-extern int useropcdset(CSOUND *, void *);
-
-void opcode_list_free(CSOUND *csound)
-{
-    OENTRY  *ep = csound->oplstend;
-
-    if (!csound->opcode_list) return;
-    /* free memory used by temporary list, */
-    mfree(csound, csound->opcode_list);
-    csound->opcode_list = NULL;
-    /* user defined opcode argument types, */
-    while ((--ep)->iopadr == (SUBR) useropcdset) {
-      mfree(csound, ep->intypes);
-      mfree(csound, ep->outypes);
-    }
-    /* and opcodlst */
-    free(csound->opcodlst);
-    csound->oplstend = csound->opcodlst = NULL;
-}
-
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
 
@@ -527,24 +486,6 @@ char *strsav_string(CSOUND *csound, char *s)
     ssp->nxt = STRSAV_STR_[h];
     STRSAV_STR_[h] = ssp;
     return (ssp->s);
-}
-
-/* Free all memory used by strsav space. Called from orchRESET(). */
-
-void strsav_destroy(CSOUND *csound)
-{
-    STRSAV_SPACE  *sp = STRSAV_SPACE_;
-
-    if (!sp) return;                    /* nothing to free */
-    csound->strsav_space = NULL;
-    do {
-      STRSAV_SPACE  *prvsp = sp->prv;
-      mfree(csound, sp);
-      sp = prvsp;
-    } while (sp);
-
-    mfree(csound, STRSAV_STR_);
-    csound->strsav_str = NULL;
 }
 
 /* -------- IV - Jan 29 2005 -------- */

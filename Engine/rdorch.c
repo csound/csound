@@ -24,6 +24,7 @@
 #include "csoundCore.h"         /*                      RDORCH.C        */
 #include <ctype.h>
 #include "namedins.h"   /* IV - Oct 31 2002 */
+#include "typetabl.h"   /* IV - Oct 31 2002 */
 
 #ifdef sun
 #define   SEEK_SET        0
@@ -127,44 +128,10 @@ static  void    lblclear(CSOUND *), lblchk(CSOUND *);
 static  void    lexerr(CSOUND *, const char *, ...);
 static  void    synterrp(CSOUND *, const char *, char *);
 
-#include "typetabl.h"                   /* IV - Oct 31 2002 */
-
-void orchRESET(CSOUND *csound)
-{
-    int     i;
-
-    csound->synterrcnt = 0;
-    strsav_destroy(csound);
-
-    if (csound->rdorchGlobals == NULL)
-      return;
-
-    if (ST(nxtarglist) != NULL)
-      mfree(csound, ST(nxtarglist));
-    if (ST(nullist) != NULL)
-      mfree(csound, ST(nullist));
-    while (ST(macros)) {
-      mfree(csound, ST(macros)->body);
-      mfree(csound, ST(macros)->name);
-      for (i = 0; i < ST(macros)->acnt; i++)
-        mfree(csound, ST(macros)->arg[i]);
-      ST(macros) = ST(macros)->next;
-    }
-    /* IV - Oct 31 2002 */
-    if (ST(typemask_tabl)) {
-      mfree(csound, ST(typemask_tabl));
-      mfree(csound, ST(typemask_tabl_in));
-      mfree(csound, ST(typemask_tabl_out));
-    }
-    csound->Free(csound, csound->rdorchGlobals);
-    csound->rdorchGlobals = NULL;
-}
-
 static ARGLST *copy_arglist(CSOUND *csound, ARGLST *old)
 {
     size_t n = sizeof(ARGLST) + old->count * sizeof(char*) - sizeof(char*);
     ARGLST *nn = (ARGLST*) mmalloc(csound, n);
-/*  csound->Message(csound, "copy_arglist: %d args\n", old->count); */
     memcpy(nn, old, n);
     memset(old, 0, n);
     return nn;
