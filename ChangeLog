@@ -1,3 +1,15 @@
+2005-08-19	Istvan Varga	<ivarga@csounds.com>
+	* Engine/namedins.c, Engine/otran.c, Engine/rdorch.c:
+	* Opcodes/fout.c, Opcodes/oscbnk.c:
+	  removed unneeded/redundant RESET code
+	* H/csound.h, H/csoundCore.h, Top/threads.c:
+	* InOut/rtpa.c, InOut/widgets.cpp, InOut/OSCrecv.c, Opcodes/OSC.c:
+	  attempts to clean up thread interface
+	* H/prototyp.h:
+	  moved declaration of csoundYield() here from csound.h
+	* examples/fl_controller/fl_controller.cpp:
+	  fixed a few minor errors
+
 2005-08-18	Istvan Varga	<ivarga@csounds.com>
 	* Engine/namedins.c:
 	* Top/csound.c:
