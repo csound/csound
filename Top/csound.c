@@ -233,11 +233,15 @@ extern "C" {
       signal(*x, signal_handler);
   }
 
+  static const char *defaultCmdLine_[2] = { "csound", NULL };
+
   static int getTimeResolution(void);
 
   PUBLIC int csoundInitialize(int *argc, char ***argv, int flags)
   {
-    int n;
+    char  **argv_;
+    int   argc_, n;
+
     do {
       csoundLock();
       n = init_done;
@@ -258,6 +262,12 @@ extern "C" {
     } while (n);
     init_done = 2;
     csoundUnLock();
+    if (argc == NULL || argv == NULL || *argc <= 0 || *argv == NULL) {
+      argc_ = 1;
+      argv_ = (char**) &(defaultCmdLine_[0]);
+      argc = &argc_;
+      argv = &argv_;
+    }
     init_getstring(*argc, *argv);
     if (getTimeResolution() != 0) {
       csoundLock(); init_done = -1; csoundUnLock();
@@ -276,10 +286,7 @@ extern "C" {
     CSOUND        *csound;
     csInstance_t  *p;
     if (init_done != 1) {
-      int argc = 1;
-      char *argv_[2] = { "csound", NULL };
-      char **argv = &(argv_[0]);
-      if (csoundInitialize(&argc, &argv, 0) != 0)
+      if (csoundInitialize(NULL, NULL, 0) != 0)
         return NULL;
     }
     csound = (CSOUND*) malloc(sizeof(CSOUND));
@@ -1470,7 +1477,8 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
   }
 #endif
 
-  void csoundSetYieldCallback(CSOUND *csound, int (*yieldCallback)(CSOUND *))
+  PUBLIC void csoundSetYieldCallback(CSOUND *csound,
+                                     int (*yieldCallback)(CSOUND *))
   {
     csound->csoundYieldCallback_ = yieldCallback;
   }
@@ -1694,7 +1702,7 @@ static inline int_least64_t get_CPU_time(void)
 
 /* initialise a timer structure */
 
-void timers_struct_init(RTCLOCK *p)
+PUBLIC void timers_struct_init(RTCLOCK *p)
 {
     p->starttime_real = get_real_time();
     p->starttime_CPU = get_CPU_time();
@@ -1703,7 +1711,7 @@ void timers_struct_init(RTCLOCK *p)
 /* return the elapsed real time (in seconds) since the specified timer */
 /* structure was initialised */
 
-double timers_get_real_time(RTCLOCK *p)
+PUBLIC double timers_get_real_time(RTCLOCK *p)
 {
     return ((double) (get_real_time() - p->starttime_real)
             * (double) timeResolutionSeconds);
@@ -1712,7 +1720,7 @@ double timers_get_real_time(RTCLOCK *p)
 /* return the elapsed CPU time (in seconds) since the specified timer */
 /* structure was initialised */
 
-double timers_get_CPU_time(RTCLOCK *p)
+PUBLIC double timers_get_CPU_time(RTCLOCK *p)
 {
     return ((double) ((uint32_t) get_CPU_time() - (uint32_t) p->starttime_CPU)
             * (1.0 / (double) CLOCKS_PER_SEC));
@@ -1720,7 +1728,7 @@ double timers_get_CPU_time(RTCLOCK *p)
 
 /* return a 32-bit unsigned integer to be used as seed from current time */
 
-unsigned long timers_random_seed(void)
+PUBLIC unsigned long timers_random_seed(void)
 {
     return (unsigned long) ((uint32_t) get_real_time());
 }

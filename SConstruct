@@ -36,9 +36,9 @@ zipDependencies = []
 pluginLibraries = []
 executables = []
 headers = Split('''H/cfgvar.h H/csdl.h H/csoundCore.h H/csound.h
-                   H/cs_util.h H/cwindow.h H/envvar.h H/msg_attr.h
-                   H/OpcodeBase.hpp H/pstream.h H/pvfileio.h H/soundio.h
-                   H/sysdep.h H/text.h H/version.h''')
+                   H/cwindow.h H/envvar.h H/msg_attr.h H/OpcodeBase.hpp
+                   H/pstream.h H/pvfileio.h H/soundio.h H/sysdep.h
+                   H/text.h H/version.h''')
 libs = []
 
 def today():
@@ -336,10 +336,6 @@ if configure.CheckHeader("stdint.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STDINT_H')
 if configure.CheckHeader("malloc.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_MALLOC_H')
-if configure.CheckHeader("os.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_OS_H')
-if configure.CheckHeader("sys/ioctl.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_SYS_IOCTL_H')
 if configure.CheckHeader("sys/time.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_SYS_TIME_H')
 if configure.CheckHeader("sys/types.h", language = "C"):
@@ -814,7 +810,7 @@ if (commonEnvironment['useFLTK'] == '1' and fltkFound):
 
 # REAL TIME AUDIO
 
-if(commonEnvironment['useCoreAudio']=='1' and getPlatform() == 'darwin'):
+if (commonEnvironment['useCoreAudio']=='1' and getPlatform() == 'darwin'):
     print "CONFIGURATION DECISION: Building CoreAudio plugin."
     coreaudioEnvironment = pluginEnvironment.Copy()
     coreaudioEnvironment.Append(CCFLAGS = ['-I/system/library/Frameworks/CoreAudio.framework/Headers'])
@@ -875,7 +871,6 @@ else:
     oscEnvironment = pluginEnvironment.Copy()
     oscEnvironment.Append(LIBS = ['lo'])
     oscEnvironment.Append(LIBS = ['pthread'])
-#   commonEnvironment.Append(LIBS = ['lo'])
     if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         oscEnvironment.Append(LIBS = ['ws2_32'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
