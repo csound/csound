@@ -25,29 +25,25 @@
 #include "csoundCore.h"                                 /*    MIDISEND.C    */
 #include "midioops.h"
 
+static const unsigned char midiMsgBytes[32] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 0, 1
+};
+
 void send_midi_message(CSOUND *csound, int status, int data1, int data2)
 {
     unsigned char buf[4];
-    int           nbytes = 0;
+    unsigned char nbytes;
 
-    buf[nbytes++] = (unsigned char) status;
-    buf[nbytes++] = (unsigned char) data1;
-    if (buf[0] < (unsigned char) 0xC0) {
-      buf[nbytes++] = (unsigned char) data2;
-      if (buf[0] < (unsigned char) 0x80)
-        return;
-    }
-    else if (buf[0] >= (unsigned char) 0xE0) {
-      buf[nbytes++] = (unsigned char) data2;
-      if (buf[0] >= (unsigned char) 0xF0) {
-        if (buf[0] < (unsigned char) 0xF8)
-          return;
-        nbytes = 1;
-      }
-    }
+    buf[0] = (unsigned char) status;
+    nbytes = midiMsgBytes[(unsigned char) status >> 3];
+    buf[1] = (unsigned char) data1;
+    buf[2] = (unsigned char) data2;
+    if (!nbytes)
+      return;
     csound->midiGlobals->MidiWriteCallback(csound,
                                            csound->midiGlobals->midiOutUserData,
-                                           &(buf[0]), nbytes);
+                                           &(buf[0]), (int) nbytes);
 }
 
 void note_on(CSOUND *csound, int chan, int num, int vel)
@@ -98,9 +94,8 @@ void openMIDIout(CSOUND *csound)
       csoundDie(csound, Str(" *** no callback for writing MIDI data"));
 
     p->MIDIoutDONE = 1;
-    retval = p->MidiOutOpenCallback(csound,
-                                    &(csound->midiGlobals->midiOutUserData),
-                                    csound->oparms->Midioutname);
+    retval = p->MidiOutOpenCallback(csound, &(p->midiOutUserData),
+                                            csound->oparms->Midioutname);
     if (retval != 0) {
       csoundDie(csound, Str(" *** error opening MIDI out device: %d (%s)"),
                         retval, csoundExternalMidiErrorString(csound, retval));

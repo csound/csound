@@ -33,8 +33,8 @@ typedef struct csUtility_s {
 
 static const char list_var[] = "utilities::list";
 
-PUBLIC int csoundAddUtility(CSOUND *csound, const char *name,
-                            int (*UtilFunc)(CSOUND*, int, char**))
+int csoundAddUtility(CSOUND *csound, const char *name,
+                                     int (*UtilFunc)(CSOUND*, int, char**))
 {
     csUtility_t *p;
 
@@ -171,8 +171,8 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
  * Returns zero on success.
  */
 
-PUBLIC int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
-                                                        const char *utilDesc)
+int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
+                                                const char *utilDesc)
 {
     csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
     char        *desc = NULL;
