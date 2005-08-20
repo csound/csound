@@ -17,7 +17,7 @@ PLUGINS =	babo.dll bbcut.dll biquad.dll butter.dll clfilt.dll	\
 		follow.dll fout.dll freeverb.dll ftconv.dll grain.dll	\
 		grain4.dll hrtferX.dll locsig.dll lowpassr.dll		\
 		metro.dll midiops2.dll midiops3.dll modal4.dll		\
-		newfils.dll nlfilt.dll oscbnk.dll phisem.dll		\
+		newfils.dll nlfilt.dll oscbnk.dll phisem.dll ftgen.dll	\
 		physmod.dll pitch.dll pluck.dll pvsdemix.dll		\
 		repluck.dll reverbsc.dll scansyn.dll scansynx.dll	\
 		seqtime.dll sfont.dll sndwarp.dll space.dll spat3d.dll	\

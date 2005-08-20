@@ -957,6 +957,30 @@ extern "C" {
                                               void (*func)(CSOUND *, void *),
                                               void *userData);
 
+  /**
+   * Run utility with the specified name and command line arguments.
+   * Should be called after loading utility plugins with csoundPreCompile();
+   * use csoundReset() to clean up after calling this function.
+   * Returns zero if the utility was run successfully.
+   */
+  PUBLIC int csoundRunUtility(CSOUND *, const char *name,
+                                        int argc, char **argv);
+
+  /**
+   * Returns a NULL terminated list of registered utility names.
+   * The caller is responsible for freeing the returned array with free(),
+   * however, the names should not be freed.
+   * The return value may be NULL in case of an error.
+   */
+  PUBLIC char **csoundListUtilities(CSOUND *);
+
+  /**
+   * Get utility description.
+   * Returns NULL if the utility was not found, or it has no description,
+   * or an error occured.
+   */
+  PUBLIC char *csoundGetUtilityDescription(CSOUND *, const char *utilName);
+
 #endif  /* !CSOUND_CSDL_H */
 
   /* type/macro definitions and interface functions
@@ -965,8 +989,6 @@ extern "C" {
   /* message attribute definitions
      (for csoundMessageS() and csoundMessageV()) */
 #include "msg_attr.h"
-  /* interface functions for utility plugins */
-#include "cs_util.h"
 
 #ifdef __cplusplus
 };

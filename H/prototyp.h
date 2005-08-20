@@ -267,6 +267,20 @@ int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
    */
   int csoundYield(CSOUND *);
 
+  /**
+   * Register utility with the specified name.
+   * Returns zero on success.
+   */
+  int csoundAddUtility(CSOUND *, const char *name,
+                                 int (*UtilFunc)(CSOUND *, int, char**));
+
+  /**
+   * Set description text for the specified utility.
+   * Returns zero on success.
+   */
+  int csoundSetUtilityDescription(CSOUND *, const char *utilName,
+                                            const char *utilDesc);
+
 #ifdef __cplusplus
 };
 #endif
