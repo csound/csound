@@ -171,6 +171,7 @@ const CSOUND cenviron_ = {
         csoundCreateThreadLock,
         csoundWaitThreadLock,
         csoundNotifyThreadLock,
+        csoundWaitThreadLockNoTimeout,
         csoundDestroyThreadLock,
         csoundSetFLTKThreadLocking,
         csoundGetFLTKThreadLocking,
@@ -252,7 +253,7 @@ const CSOUND cenviron_ = {
         csoundFTDelete,
         fdrecord,
         fdclose,
-        NULL,
+     /* NULL, */
         { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,

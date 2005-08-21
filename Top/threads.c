@@ -19,6 +19,11 @@
     02111-1307 USA
 */
 
+#ifdef LINUX
+/* for pthread_mutex_timedlock() */
+#define _XOPEN_SOURCE 600
+#endif
+
 #include "csoundCore.h"
 
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -83,6 +88,11 @@ PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds)
     WaitForSingleObject((HANDLE) lock, milliseconds);
 }
 
+PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
+{
+    WaitForSingleObject((HANDLE) lock, INFINITE);
+}
+
 PUBLIC void csoundNotifyThreadLock(void *lock)
 {
     SetEvent((HANDLE) lock);
@@ -114,6 +124,10 @@ void csoundUnLock(void)
 #elif defined(LINUX) || defined(__CYGWIN__) || defined(__MACH__)
 
 #include <pthread.h>
+#ifdef LINUX
+#include <time.h>
+#include <sys/time.h>
+#endif
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
@@ -152,10 +166,56 @@ PUBLIC void *csoundCreateThreadLock(void)
     return (void*) pthread_mutex;
 }
 
+#ifdef LINUX
+
 PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-    /* TODO: implement timeout */
-    (void) milliseconds;
+    if (pthread_mutex_trylock((pthread_mutex_t*) lock) == 0)
+      return;
+    else if (milliseconds) {
+      if (milliseconds >= (size_t) 0x00100000)
+        pthread_mutex_lock((pthread_mutex_t*) lock);
+      else {
+        struct timeval  tv;
+        struct timespec ts;
+        uint64_t        wait_ns_ll;
+        unsigned int    wait_ns;
+        gettimeofday(&tv, NULL);
+        wait_ns_ll = (uint64_t) (((int) milliseconds * 1000 + (int) tv.tv_usec)
+                                 * (int64_t) 1000);
+        ts.tv_sec = tv.tv_sec;
+        if (wait_ns_ll >= (uint64_t) 0x100000000LL) {
+          while (wait_ns_ll >= (uint64_t) 4000000000U) {
+            wait_ns_ll -= (uint64_t) 4000000000U;
+            ts.tv_sec += 4;
+          }
+        }
+        wait_ns = (unsigned int) wait_ns_ll;
+        while (wait_ns >= 1000000000U) {
+          wait_ns -= 1000000000U;
+          ts.tv_sec++;
+        }
+        ts.tv_nsec = (long) ((int) wait_ns);
+        pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
+      }
+    }
+}
+
+#else
+
+PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds)
+{
+    /* TODO: implement timeout for platforms other than Linux */
+    if (!milliseconds)
+      pthread_mutex_trylock((pthread_mutex_t*) lock);
+    else
+      pthread_mutex_lock((pthread_mutex_t*) lock);
+}
+
+#endif  /* LINUX */
+
+PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
+{
     pthread_mutex_lock((pthread_mutex_t*) lock);
 }
 
@@ -186,44 +246,48 @@ void csoundUnLock(void)
 
 #else
 
+static CS_NOINLINE void notImplementedWarning_(const char *name)
+{
+    fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
+}
+
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
 {
-    fprintf(stderr,
-            "csoundCreateThread() is not implemented on this platform.\n");
+    notImplementedWarning_("csoundCreateThread");
     return NULL;
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
 {
-    fprintf(stderr,
-            "csoundJoinThread() is not implemented on this platform.\n");
+    notImplementedWarning_("csoundJoinThread");
     return (uintptr_t) 0;
 }
 
 PUBLIC void *csoundCreateThreadLock(void)
 {
-    fprintf(stderr,
-            "csoundCreateThreadLock() is not implemented on this platform.\n");
+    notImplementedWarning_("csoundCreateThreadLock");
     return NULL;
 }
 
 PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-    fprintf(stderr,
-            "csoundWaitThreadLock() is not implemented on this platform.\n");
+    notImplementedWarning_("csoundWaitThreadLock");
+}
+
+PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
+{
+    notImplementedWarning_("csoundWaitThreadLockNoTimeout");
 }
 
 PUBLIC void csoundNotifyThreadLock(void *lock)
 {
-    fprintf(stderr,
-            "csoundNotifyThreadLock() is not implemented on this platform.\n");
+    notImplementedWarning_("csoundNotifyThreadLock");
 }
 
 PUBLIC void csoundDestroyThreadLock(void *lock)
 {
-    fprintf(stderr,
-            "csoundDestroyThreadLock() is not implemented on this platform.\n");
+    notImplementedWarning_("csoundDestroyThreadLock");
 }
 
 /* internal functions for csound.c */
