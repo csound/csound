@@ -36,9 +36,8 @@ zipDependencies = []
 pluginLibraries = []
 executables = []
 headers = Split('''H/cfgvar.h H/csdl.h H/csoundCore.h H/csound.h
-                   H/cwindow.h H/envvar.h H/msg_attr.h H/OpcodeBase.hpp
-                   H/pstream.h H/pvfileio.h H/soundio.h H/sysdep.h
-                   H/text.h H/version.h''')
+                   H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h
+                   H/pvfileio.h H/soundio.h H/sysdep.h H/text.h H/version.h''')
 libs = []
 
 def today():

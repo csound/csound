@@ -35,7 +35,6 @@ extern "C" {
 #include <sndfile.h>
 
 #include "csound.h"
-#include "envvar.h"
 #include "version.h"
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
@@ -44,6 +43,12 @@ extern "C" {
 
 #define OK        (0)
 #define NOTOK     (-1)
+
+#define CSFILE_FD_R     1
+#define CSFILE_FD_W     2
+#define CSFILE_STD      3
+#define CSFILE_SND_R    4
+#define CSFILE_SND_W    5
 
 #define MAXINSNO  (200)
 #define PMAX      (1000)
@@ -556,6 +561,7 @@ extern "C" {
 #include "text.h"
 #include "prototyp.h"
 #include "cwindow.h"
+#include "envvar.h"
 
 #endif  /* __BUILDING_LIBCSOUND */
 
@@ -720,6 +726,7 @@ extern "C" {
     void *(*CreateThreadLock)(void);
     void (*WaitThreadLock)(void *lock, size_t milliseconds);
     void (*NotifyThreadLock)(void *lock);
+    void (*WaitThreadLockNoTimeout)(void *lock);
     void (*DestroyThreadLock)(void *lock);
     void (*SetFLTKThreadLocking)(CSOUND *, int isLocking);
     int (*GetFLTKThreadLocking)(CSOUND *);
@@ -817,7 +824,7 @@ extern "C" {
     int (*FTDelete)(CSOUND *, int tableNum);
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
-    SUBR dummyfn_1;
+ /* SUBR dummyfn_1; */
     SUBR dummyfn_2[90];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
@@ -1031,5 +1038,5 @@ extern "C" {
 };
 #endif
 
-#endif  /*      CSOUNDCORE_H */
+#endif  /* CSOUNDCORE_H */
 

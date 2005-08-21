@@ -107,12 +107,6 @@ extern "C" {
   char *csoundFindOutputFile(CSOUND *csound,
                              const char *filename, const char *envList);
 
-#define CSFILE_FD_R     1
-#define CSFILE_FD_W     2
-#define CSFILE_STD      3
-#define CSFILE_SND_R    4
-#define CSFILE_SND_W    5
-
   /**
    * Open a file and return handle.
    *

@@ -302,7 +302,6 @@ extern "C" {
    * but does not perform them. Returns a non-zero error code on failure.
    * In this (host-driven) mode, the sequence of calls should be as follows:
    * /code
-   *
    *       csoundCompile(csound, argc, argv, thisObj);
    *       while(!csoundPerformBuffer(csound));
    *       csoundCleanup(csound);
@@ -548,18 +547,18 @@ extern "C" {
                                                          va_list valist));
 
   /**
-   * Returns the Csound message level (from 0 to 7).
+   * Returns the Csound message level (from 0 to 231).
    */
   PUBLIC int csoundGetMessageLevel(CSOUND *);
 
   /**
-   * Sets the Csound message level (from 0 to 7).
+   * Sets the Csound message level (from 0 to 231).
    */
   PUBLIC void csoundSetMessageLevel(CSOUND *, int messageLevel);
 
   /**
    * Input a NULL-terminated string (as if from a console)
-   * usually used for lineevents
+   * usually used for lineevents (requires -L command line option)
    */
   PUBLIC void csoundInputMessage(CSOUND *, const char *message);
 
@@ -602,10 +601,11 @@ extern "C" {
                                                        MYFLT value));
 
   /**
-   * Send a new score event. 'type' is the score event type ('i', 'f', or 'e')
-   * 'numFields' is the size of the pFields array.  'pFields' is an array
-   *  of floats with all the pfields for this event, starting with the p1 value
-   *  specified in pFields[0].
+   * Send a new score event. 'type' is the score event type ('a', 'i', 'q',
+   * 'f', or 'e').
+   * 'numFields' is the size of the pFields array.  'pFields' is an array of
+   * floats with all the pfields for this event, starting with the p1 value
+   * specified in pFields[0].
    */
   PUBLIC int csoundScoreEvent(CSOUND *,
                               char type, MYFLT *pFields, long numFields);
@@ -790,18 +790,20 @@ extern "C" {
   PUBLIC void csoundSetDebug(CSOUND *, int debug);
 
   /**
-   * Returns the length of a function table, or -1 if the table does
-   * not exist.
+   * Returns the length of a function table (not including the guard point),
+   * or -1 if the table does not exist.
    */
   PUBLIC int csoundTableLength(CSOUND *, int table);
 
   /**
    * Returns the value of a slot in a function table.
+   * The table number and index are assumed to be valid.
    */
   PUBLIC MYFLT csoundTableGet(CSOUND *, int table, int index);
 
   /**
    * Sets the value of a slot in a function table.
+   * The table number and index are assumed to be valid.
    */
   PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
 
@@ -834,6 +836,11 @@ extern "C" {
    * or when the period has elapsed, whichever is sooner.
    */
   PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds);
+
+  /**
+   * Waits on the indicated monitor object until it is notified.
+   */
+  PUBLIC void csoundWaitThreadLockNoTimeout(void *lock);
 
   /**
    * Notifies the indicated monitor object.

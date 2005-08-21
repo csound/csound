@@ -1,3 +1,13 @@
+2005-08-20	Istvan Varga	<ivarga@csounds.com>
+	* Engine/oload.c, H/csound.h, H/csoundCore.h, Top/threads.c:
+	  new API function: csoundWaitThreadLockNoTimeout()
+	  similar to csoundWaitThreadLock(), but with infinite timeout,
+	  allowing for a possibly more efficient implementation
+	* Top/threads.c:
+	  csoundWaitThreadLock(): implemented timeout for Linux
+	* H/csoundCore.h, H/envvar.h, SConstruct:
+	  removed envvar.h from installation
+
 2005-08-19	Istvan Varga	<ivarga@csounds.com>
 	* Engine/namedins.c, Engine/otran.c, Engine/rdorch.c:
 	* Opcodes/fout.c, Opcodes/oscbnk.c:
