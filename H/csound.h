@@ -189,14 +189,13 @@ extern "C" {
    * Real-time audio parameters structure
    */
   typedef struct {
-    char    *devName;       /* device name (NULL/empty: default)           */
-    int     devNum;         /* device number (0-1023), 1024: default       */
-    int     bufSamp_SW;     /* buffer fragment size in samples             */
-                            /*   (*not* multiplied by nchnls)              */
-    int     bufSamp_HW;     /* total buffer size in samples ( = O.oMaxLag) */
-    int     nChannels;      /* number of channels                          */
-    int     sampleFormat;   /* sample format (AE_SHORT etc.)               */
-    float   sampleRate;     /* sample rate in Hz                           */
+    char    *devName;       /* device name (NULL/empty: default)          */
+    int     devNum;         /* device number (0-1023), 1024: default      */
+    int     bufSamp_SW;     /* buffer fragment size (-b) in sample frames */
+    int     bufSamp_HW;     /* total buffer size (-B) in sample frames    */
+    int     nChannels;      /* number of channels                         */
+    int     sampleFormat;   /* sample format (AE_SHORT etc.)              */
+    float   sampleRate;     /* sample rate in Hz                          */
   } csRtAudioParams;
 
   typedef struct RTCLOCK_S {
@@ -222,7 +221,8 @@ extern "C" {
 #ifndef CSOUND_CSDL_H
 
   /**
-   * Initialise Csound library.
+   * Initialise Csound library; should be called once before creating
+   * any Csound instances.
    * Returns zero on success.
    */
   PUBLIC int csoundInitialize(int *argc, char ***argv, int flags);
@@ -230,7 +230,7 @@ extern "C" {
   /**
    * Creates an instance of Csound.
    * Returns an opaque pointer that must be passed to most Csound API functions.
-   * The hostData parameter can be null, or it can be a pointer to any sort of
+   * The hostData parameter can be NULL, or it can be a pointer to any sort of
    * data; this pointer can be accessed from the Csound instance that is passed
    * to callback routines.
    */
@@ -302,7 +302,7 @@ extern "C" {
    * but does not perform them. Returns a non-zero error code on failure.
    * In this (host-driven) mode, the sequence of calls should be as follows:
    * /code
-   *       csoundCompile(csound, argc, argv, thisObj);
+   *       csoundCompile(csound, argc, argv);
    *       while(!csoundPerformBuffer(csound));
    *       csoundCleanup(csound);
    *       csoundReset(csound);
@@ -437,6 +437,17 @@ extern "C" {
    * Returns the output sound file name (-o).
    */
   PUBLIC const char *csoundGetOutputFileName(CSOUND *);
+
+  /**
+   * Calling this function with a non-zero 'state' value between
+   * csoundPreCompile() and csoundCompile() will disable all default
+   * handling of sound I/O by the Csound library, allowing the host
+   * application to use the spin/spout/input/output buffers directly.
+   * If 'bufSize' is greater than zero, the buffer size (-b) will be
+   * set to the integer multiple of ksmps that is nearest to the value
+   * specified.
+   */
+  PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state, int bufSize);
 
   /**
    * Returns the current score time.
@@ -824,21 +835,26 @@ extern "C" {
 
   /**
    * Creates and returns a monitor object, or NULL if not successful.
-   * The object is initially in signaled state.
+   * The object is initially in signaled (notified) state.
    */
   PUBLIC void *csoundCreateThreadLock(void);
 
   /**
    * Waits on the indicated monitor object for the indicated period
-   * (must be greater than zero; the timeout is not implemented on
-   * some platforms).
+   * (the timeout is not implemented on some platforms, so any non-zero
+   * value may possibly request infinite wait time).
    * The function returns either when the monitor object is notified,
-   * or when the period has elapsed, whichever is sooner.
+   * or when the period has elapsed, whichever is sooner; in the first case,
+   * zero is returned.
+   * If 'milliseconds' is zero and the object is not notified, the function
+   * will return immediately with a non-zero status.
    */
-  PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds);
+  PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds);
 
   /**
    * Waits on the indicated monitor object until it is notified.
+   * This function is similar to csoundWaitThreadLock() with an infinite
+   * wait time, but may be more efficient.
    */
   PUBLIC void csoundWaitThreadLockNoTimeout(void *lock);
 
