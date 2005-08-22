@@ -83,9 +83,9 @@ PUBLIC void *csoundCreateThreadLock(void)
     return (void*) threadLock;
 }
 
-PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds)
+PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-    WaitForSingleObject((HANDLE) lock, milliseconds);
+    return (int) WaitForSingleObject((HANDLE) lock, milliseconds);
 }
 
 PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
@@ -168,48 +168,51 @@ PUBLIC void *csoundCreateThreadLock(void)
 
 #ifdef LINUX
 
-PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds)
+PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-    if (pthread_mutex_trylock((pthread_mutex_t*) lock) == 0)
-      return;
-    else if (milliseconds) {
-      if (milliseconds >= (size_t) 0x00100000)
-        pthread_mutex_lock((pthread_mutex_t*) lock);
-      else {
-        struct timeval  tv;
-        struct timespec ts;
-        uint64_t        wait_ns_ll;
-        unsigned int    wait_ns;
-        gettimeofday(&tv, NULL);
-        wait_ns_ll = (uint64_t) (((int) milliseconds * 1000 + (int) tv.tv_usec)
-                                 * (int64_t) 1000);
-        ts.tv_sec = tv.tv_sec;
-        if (wait_ns_ll >= (uint64_t) 0x100000000LL) {
-          while (wait_ns_ll >= (uint64_t) 4000000000U) {
-            wait_ns_ll -= (uint64_t) 4000000000U;
-            ts.tv_sec += 4;
-          }
+    {
+      register int    retval;
+      retval = pthread_mutex_trylock((pthread_mutex_t*) lock);
+      if (!retval || !milliseconds)
+        return retval;
+    }
+    if (milliseconds >= (size_t) 0x00100000)
+      return pthread_mutex_lock((pthread_mutex_t*) lock);
+    else {
+      struct timeval  tv;
+      struct timespec ts;
+      uint64_t        wait_ns_ll;
+      unsigned int    wait_ns;
+
+      gettimeofday(&tv, NULL);
+      wait_ns_ll = (uint64_t) (((int) milliseconds * 1000 + (int) tv.tv_usec)
+                               * (int64_t) 1000);
+      ts.tv_sec = tv.tv_sec;
+      if (wait_ns_ll >= (uint64_t) 0x100000000LL) {
+        while (wait_ns_ll >= (uint64_t) 4000000000U) {
+          wait_ns_ll -= (uint64_t) 4000000000U;
+          ts.tv_sec += 4;
         }
-        wait_ns = (unsigned int) wait_ns_ll;
-        while (wait_ns >= 1000000000U) {
-          wait_ns -= 1000000000U;
-          ts.tv_sec++;
-        }
-        ts.tv_nsec = (long) ((int) wait_ns);
-        pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
       }
+      wait_ns = (unsigned int) wait_ns_ll;
+      while (wait_ns >= 1000000000U) {
+        wait_ns -= 1000000000U;
+        ts.tv_sec++;
+      }
+      ts.tv_nsec = (long) ((int) wait_ns);
+      return pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
     }
 }
 
 #else
 
-PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds)
+PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
     /* TODO: implement timeout for platforms other than Linux */
     if (!milliseconds)
-      pthread_mutex_trylock((pthread_mutex_t*) lock);
+      return pthread_mutex_trylock((pthread_mutex_t*) lock);
     else
-      pthread_mutex_lock((pthread_mutex_t*) lock);
+      return pthread_mutex_lock((pthread_mutex_t*) lock);
 }
 
 #endif  /* LINUX */
@@ -270,9 +273,10 @@ PUBLIC void *csoundCreateThreadLock(void)
     return NULL;
 }
 
-PUBLIC void csoundWaitThreadLock(void *lock, size_t milliseconds)
+PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
     notImplementedWarning_("csoundWaitThreadLock");
+    return 0;
 }
 
 PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
