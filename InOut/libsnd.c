@@ -600,13 +600,48 @@ static void sndfilein_noscale(CSOUND *csound)
     sndfilein_(csound, FL(1.0));
 }
 
+static int audrecv_dummy(CSOUND *csound, MYFLT *buf, int nbytes)
+{
+    (void) csound; (void) buf;
+    return nbytes;
+}
+
+static void audtran_dummy(CSOUND *csound, MYFLT *buf, int nbytes)
+{
+    (void) csound; (void) buf; (void) nbytes;
+}
+
 /* direct recv & tran calls to the right audio formatter  */
 /*                            & init its audio_io bufptr  */
 
 void iotranset(CSOUND *csound)
 {
+    OPARMS  *O;
+
     csound->spinrecv = sndfilein;
     csound->spoutran = spoutsf;
+    if (!csound->enableHostImplementedAudioIO)
+      return;
+    alloc_globals(csound);
+    O = csound->oparms;
+    csound->audrecv = audrecv_dummy;
+    csound->audtran = audtran_dummy;
+    ST(inbufrem) = (unsigned int) O->inbufsamps;
+    ST(outbufrem) = (unsigned int) O->outbufsamps;
+    if (!csound->hostRequestedBufferSize) {
+      O->sfread = 0;
+      O->sfwrite = 0;
+      ST(osfopen) = 0;
+      return;
+    }
+    ST(inbufsiz) = (unsigned int) (O->inbufsamps * (int) sizeof(MYFLT));
+    ST(inbuf) = (MYFLT*) mcalloc(csound, ST(inbufsiz));
+    ST(outbufsiz) = (unsigned int) (O->outbufsamps * (int) sizeof(MYFLT));
+    ST(outbuf) = (MYFLT*) mcalloc(csound, ST(outbufsiz));
+    ST(outbufp) = ST(outbuf);
+    O->sfread = 1;
+    O->sfwrite = 1;
+    ST(osfopen) = 1;
 }
 
 PUBLIC MYFLT *csoundGetInputBuffer(CSOUND *csound)

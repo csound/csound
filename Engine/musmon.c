@@ -70,15 +70,11 @@ typedef struct {
 void print_benchmark_info(CSOUND *csound, const char *s)
 {
     double  rt, ct;
-    RTCLOCK *p;
 
-    if ((csound->oparms->msglevel & 0x80) == 0)
+    if ((csound->oparms->msglevel & 0x80) == 0 || csound->csRtClock == NULL)
       return;
-    p = (RTCLOCK*) csoundQueryGlobalVariable(csound, "csRtClock");
-    if (p == NULL)
-      return;
-    rt = timers_get_real_time(p);
-    ct = timers_get_CPU_time(p);
+    rt = timers_get_real_time(csound->csRtClock);
+    ct = timers_get_CPU_time(csound->csRtClock);
     csound->Message(csound,
                     Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
                     (char*) s, rt, ct);
@@ -204,47 +200,59 @@ int musmon(CSOUND *csound)
     /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O->Midiin || O->FMidiin) {
       O->RTevents = 1;
-      MidiOpen(csound);         /*   alloc bufs & open files    */
+      MidiOpen(csound);                 /*   alloc bufs & open files    */
     }
     csound->Message(csound, Str("orch now loaded\n"));
 
-    csound->multichan = (csound->nchnls > 1) ? 1:0;
+    csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     ST(segamps) = O->msglevel & SEGAMPS;
     ST(sormsg) = O->msglevel & SORMSG;
 
-    if (O->Linein) RTLineset(csound);   /* if realtime input expected     */
-    if (O->outbufsamps < 0) {           /* if k-aligned iobufs requested  */
-      /* set from absolute value */
-      O->outbufsamps *= -(csound->ksmps);
-      O->inbufsamps = O->outbufsamps;
-      csound->Message(csound, Str("k-period aligned audio buffering\n"));
+    if (O->Linein)
+      RTLineset(csound);                /* if realtime input expected   */
+
+    if (csound->enableHostImplementedAudioIO &&
+        csound->hostRequestedBufferSize) {
+      int bufsize = (int) csound->hostRequestedBufferSize;
+      int ksmps = (int) csound->ksmps;
+      bufsize = (bufsize + (ksmps >> 1)) / ksmps;
+      bufsize = (bufsize ? bufsize * ksmps : ksmps);
+      O->outbufsamps = O->inbufsamps = bufsize;
     }
-    /* else keep the user values */
-    if (!O->oMaxLag)
-      O->oMaxLag = IODACSAMPS;
-    if (!O->inbufsamps)
-      O->inbufsamps = IOBUFSAMPS;
-    if (!O->outbufsamps)
-      O->outbufsamps = IOBUFSAMPS;
-    /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
-    /* are usable */
-    if (O->infilename != NULL &&
-        (strncmp(O->infilename, "adc", 3) == 0 ||
-         strncmp(O->infilename, "devaudio", 8) == 0)) {
-      O->oMaxLag = ((O->oMaxLag + O->inbufsamps - 1) / O->inbufsamps)
-                   * O->inbufsamps;
-      if (O->oMaxLag <= O->inbufsamps)
-        O->inbufsamps >>= 1;
-      O->outbufsamps = O->inbufsamps;
-    }
-    if (O->outfilename != NULL &&
-        (strncmp(O->outfilename, "dac", 3) == 0 ||
-         strncmp(O->outfilename, "devaudio", 8) == 0)) {
-      O->oMaxLag = ((O->oMaxLag + O->outbufsamps - 1) / O->outbufsamps)
-                   * O->outbufsamps;
-      if (O->oMaxLag <= O->outbufsamps)
-        O->outbufsamps >>= 1;
-      O->inbufsamps = O->outbufsamps;
+    else {
+      if (O->outbufsamps < 0) {         /* if k-aligned iobufs requested  */
+        /* set from absolute value */
+        O->outbufsamps *= -(csound->ksmps);
+        O->inbufsamps = O->outbufsamps;
+        csound->Message(csound, Str("k-period aligned audio buffering\n"));
+      }
+      /* else keep the user values */
+      if (!O->oMaxLag)
+        O->oMaxLag = IODACSAMPS;
+      if (!O->inbufsamps)
+        O->inbufsamps = IOBUFSAMPS;
+      if (!O->outbufsamps)
+        O->outbufsamps = IOBUFSAMPS;
+      /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
+      /* are usable */
+      if (O->infilename != NULL &&
+          (strncmp(O->infilename, "adc", 3) == 0 ||
+           strncmp(O->infilename, "devaudio", 8) == 0)) {
+        O->oMaxLag = ((O->oMaxLag + O->inbufsamps - 1) / O->inbufsamps)
+                     * O->inbufsamps;
+        if (O->oMaxLag <= O->inbufsamps)
+          O->inbufsamps >>= 1;
+        O->outbufsamps = O->inbufsamps;
+      }
+      if (O->outfilename != NULL &&
+          (strncmp(O->outfilename, "dac", 3) == 0 ||
+           strncmp(O->outfilename, "devaudio", 8) == 0)) {
+        O->oMaxLag = ((O->oMaxLag + O->outbufsamps - 1) / O->outbufsamps)
+                     * O->outbufsamps;
+        if (O->oMaxLag <= O->outbufsamps)
+          O->outbufsamps >>= 1;
+        O->inbufsamps = O->outbufsamps;
+      }
     }
     csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
                             (int) O->outbufsamps);
@@ -252,12 +260,14 @@ int musmon(CSOUND *csound)
     O->outbufsamps *= csound->nchnls;
     iotranset(csound);          /* point recv & tran to audio formatter */
       /* open audio file or device for input first, and then for output */
-    if (O->sfread)
-      sfopenin(csound);
-    if (O->sfwrite)
-      sfopenout(csound);
-    else
-      sfnopenout(csound);
+    if (!csound->enableHostImplementedAudioIO) {
+      if (O->sfread)
+        sfopenin(csound);
+      if (O->sfwrite)
+        sfopenout(csound);
+      else
+        sfnopenout(csound);
+    }
 
     if (!(csound->scfp = fopen(O->playscore, "r"))) {
       if (!O->Linein) {
@@ -346,11 +356,17 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     long    *rngp;
     int     n;
 
+    while (csound->evtFuncChain != NULL) {
+      p = (void*) csound->evtFuncChain;
+      csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
+      free(p);
+    }
+
     /* check if we have already cleaned up */
-    if (csoundQueryGlobalVariable(csound, "#CLEANUP") == NULL)
+    if (!(csound->engineState & 8))
       return 0;
     /* will not clean up more than once */
-    csoundDestroyGlobalVariable(csound, "#CLEANUP");
+    csound->engineState &= ~8;
 
     deactivate_all_notes(csound);
     if (csound->instrtxtp &&
@@ -362,11 +378,6 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;
       csound->freeEvtNodes = ((EVTNODE*) p)->nxt;
-      free(p);
-    }
-    while (csound->evtFuncChain != NULL) {
-      p = (void*) csound->evtFuncChain;
-      csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
       free(p);
     }
     orcompact(csound);
@@ -399,17 +410,17 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     RTclose(csound);
     /* close MIDI input */
     MidiClose(csound);
-    /* IV - Feb 03 2005: do not need to call rtclose from here, as */
-    /* sfclosein/sfcloseout will do that. Checking O.sfread and */
-    /* O.sfwrite is not needed either. */
-    sfclosein(csound);
-    sfcloseout(csound);
-    if (!csound->oparms->sfwrite)
-      csound->Message(csound, Str("no sound written to disk\n"));
+    /* IV - Feb 03 2005: do not need to call rtclose from here, */
+    /* as sfclosein/sfcloseout will do that. */
+    if (!csound->enableHostImplementedAudioIO) {
+      sfclosein(csound);
+      sfcloseout(csound);
+      if (!csound->oparms->sfwrite)
+        csound->Message(csound, Str("no sound written to disk\n"));
+    }
     if (csound->oparms->ringbell)
       cs_beep(csound);
     return dispexit(csound);    /* hold or terminate the display output     */
-    /* for Mac, dispexit returns 0 to exit immediately */
 }
 
 void cs_beep(CSOUND *csound)
