@@ -90,13 +90,14 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
     if (name == NULL || name[0] == '\0')
       goto notFound;
     p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
-    do {
+    while (1) {
       if (p == NULL)
         goto notFound;
       if (strcmp(p->name, name) == 0)
         break;
       p = p->nxt;
-    } while (1);
+    }
+    csound->engineState |= 4;
     csound->scorename = csound->orchname = (char*) name;    /* needed? */
     csound->Message(csound, Str("util %s:\n"), name);
     n = p->UtilFunc(csound, argc, argv);
