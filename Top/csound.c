@@ -363,8 +363,10 @@ extern "C" {
     csoundReset(p);
     /* copy system environment variables */
     i = csoundInitEnv(p);
-    if (i != CSOUND_SUCCESS)
+    if (i != CSOUND_SUCCESS) {
+      p->engineState |= 16;
       return i;
+    }
     /* allow selecting real time audio module */
     max_len = 21;
     csoundCreateGlobalVariable(p, "_RTAUDIO", (size_t) max_len);
@@ -439,6 +441,7 @@ extern "C" {
                                         "Start score playback at the specified "
                                         "time, skipping earlier events", NULL);
     }
+    p->engineState |= 1;
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     return csoundLoadModules(p);
@@ -673,6 +676,23 @@ extern "C" {
     return (const char*) csound->oparms->outfilename;
   }
 
+  /**
+   * Calling this function with a non-zero 'state' value between
+   * csoundPreCompile() and csoundCompile() will disable all default
+   * handling of sound I/O by the Csound library, allowing the host
+   * application to use the spin/spout/input/output buffers directly.
+   * If 'bufSize' is greater than zero, the buffer size (-b) will be
+   * set to the integer multiple of ksmps that is nearest to the value
+   * specified.
+   */
+
+  PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *csound,
+                                              int state, int bufSize)
+  {
+    csound->enableHostImplementedAudioIO = state;
+    csound->hostRequestedBufferSize = (bufSize > 0 ? bufSize : 0);
+  }
+
   PUBLIC MYFLT csoundGetScoreTime(CSOUND *csound)
   {
     return (MYFLT) csound->curTime;
@@ -716,7 +736,7 @@ extern "C" {
     if (offset < FL(0.0))
       return;
     /* if csoundCompile() was not called yet, just store the offset */
-    if (csound->QueryGlobalVariable(csound, "csRtClock") == NULL)
+    if (!(csound->engineState & 2))
       return;
     /* otherwise seek to the requested time now */
     aTime = (double) offset - csound->curTime;
@@ -877,6 +897,7 @@ extern "C" {
     n = (retval < 0 ? n + retval : n - retval) & (CSOUND_EXITJMP_SUCCESS - 1);
     if (!n)
       n = CSOUND_EXITJMP_SUCCESS;
+    csound->engineState |= 16;
     longjmp(csound->exitjmp, n);
   }
 
@@ -1004,11 +1025,9 @@ static double *get_dummy_rtaudio_globals(CSOUND *csound)
 static void dummy_rtaudio_timer(CSOUND *csound, double *p)
 {
     double  timeWait;
-    RTCLOCK *rt;
     int     i;
 
-    rt = (RTCLOCK*) csoundQueryGlobalVariableNoCheck(csound, "csRtClock");
-    timeWait = p[0] - timers_get_real_time(rt);
+    timeWait = p[0] - timers_get_real_time(csound->csRtClock);
 #if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
     i = (int) (timeWait * 1000000.0 + 0.5);
     if (i > 0)
@@ -1024,7 +1043,6 @@ int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
 {
     double  *p;
     char    *s;
-    RTCLOCK *rt;
 
     /* find out if the use of dummy real-time audio functions was requested, */
     /* or an unknown plugin name was specified; the latter case is an error */
@@ -1041,8 +1059,7 @@ int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     }
     p = get_dummy_rtaudio_globals(csound);
     csound->rtPlay_userdata = (void*) p;
-    rt = (RTCLOCK*) csound->QueryGlobalVariable(csound, "csRtClock");
-    p[0] = csound->timers_get_real_time(rt);
+    p[0] = csound->timers_get_real_time(csound->csRtClock);
     p[1] = 1.0 / ((double) ((int) sizeof(MYFLT) * parm->nChannels)
                   * (double) parm->sampleRate);
     return CSOUND_SUCCESS;
@@ -1060,7 +1077,6 @@ int recopen_dummy(CSOUND *csound, csRtAudioParams *parm)
 {
     double  *p;
     char    *s;
-    RTCLOCK *rt;
 
     /* find out if the use of dummy real-time audio functions was requested, */
     /* or an unknown plugin name was specified; the latter case is an error */
@@ -1077,8 +1093,7 @@ int recopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     }
     p = (double*) get_dummy_rtaudio_globals(csound) + 2;
     csound->rtRecord_userdata = (void*) p;
-    rt = (RTCLOCK*) csound->QueryGlobalVariable(csound, "csRtClock");
-    p[0] = csound->timers_get_real_time(rt);
+    p[0] = csound->timers_get_real_time(csound->csRtClock);
     p[1] = 1.0 / ((double) ((int) sizeof(MYFLT) * parm->nChannels)
                   * (double) parm->sampleRate);
     return CSOUND_SUCCESS;

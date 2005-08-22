@@ -724,7 +724,7 @@ extern "C" {
     void *(*CreateThread)(uintptr_t (*threadRoutine)(void *), void *userdata);
     uintptr_t (*JoinThread)(void *thread);
     void *(*CreateThreadLock)(void);
-    void (*WaitThreadLock)(void *lock, size_t milliseconds);
+    int (*WaitThreadLock)(void *lock, size_t milliseconds);
     void (*NotifyThreadLock)(void *lock);
     void (*WaitThreadLockNoTimeout)(void *lock);
     void (*DestroyThreadLock)(void *lock);
@@ -766,7 +766,6 @@ extern "C" {
     void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
     int (*AddUtility)(CSOUND *, const char *name,
                       int (*UtilFunc)(CSOUND *, int, char **));
-    int (*Utility)(CSOUND *, const char *name, int argc, char **argv);
     char **(*ListUtilities)(CSOUND *);
     int (*SetUtilityDescription)(CSOUND *, const char *utilName,
                                            const char *utilDesc);
@@ -824,7 +823,7 @@ extern "C" {
     int (*FTDelete)(CSOUND *, int tableNum);
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
- /* SUBR dummyfn_1; */
+    SUBR dummyfn_1;
     SUBR dummyfn_2[90];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
@@ -869,6 +868,8 @@ extern "C" {
     char          **strsets;
     INSTRTXT      **instrtxtp;
     MCHNBLK       *m_chnbp[64];     /* reserve space for up to 4 MIDI devices */
+    RTCLOCK       *csRtClock;
+ /* void          *reserved; */
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
     /* callback function pointers */
@@ -1026,6 +1027,16 @@ extern "C" {
     int           pvErrorCode;
     void          *pvbufreadaddr;       /* pvinterp.c */
     void          *tbladr;              /* vpvoc.c */
+    int           enableHostImplementedAudioIO;
+    int           hostRequestedBufferSize;
+    /* engineState is sum of:
+     *   1: csoundPreCompile was called
+     *   2: csoundCompile was called
+     *   4: csoundRunUtility was called
+     *   8: csoundCleanup needs to be called
+     *  16: csoundLongJmp was called
+     */
+    int           engineState;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
