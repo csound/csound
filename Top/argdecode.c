@@ -596,7 +596,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       int retval;
       s += 8;
       if (*s=='\0') dieu(csound, Str("no utility name"));
-      retval = csound->Utility(csound, s, argc, argv);
+      retval = csoundRunUtility(csound, s, argc, argv);
       csound->LongJmp(csound, retval);
     }
     /* -v */
@@ -685,7 +685,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
 
     csoundMessage(csound, Str("unknown long option: '--%s'\n"), s);
-    return (0);
+    return 0;
 }
 
 int argdecode(CSOUND *csound, int argc, char **argv_)
@@ -704,7 +704,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
     nbytes = (argc + 1) * (int) sizeof(char*);
     for (i = 0; i <= argc; i++)
       nbytes += ((int) strlen(argv_[i]) + 1);
-    p1 = (char*) mmalloc(csound, nbytes);   /* will be freed by all_free() */
+    p1 = (char*) mmalloc(csound, nbytes);   /* will be freed by memRESET() */
     p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
     argv = (char**) p1;
     for (i = 0; i <= argc; i++) {
@@ -716,15 +716,14 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
   csound->keep_tmp = 0;
 
   do {
-
     s = *++argv;
-    if (*s++ == '-') {                        /* read all flags:  */
+    if (*s++ == '-') {                  /* read all flags:  */
       while ((c = *s++) != '\0') {
-        switch(c) {
+        switch (c) {
         case 'U':
           FIND(Str("no utility name"));
           {
-            int retval = csound->Utility(csound, s, argc, argv);
+            int retval = csoundRunUtility(csound, s, argc, argv);
             csound->LongJmp(csound, retval);
           }
           break;
@@ -754,7 +753,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'o':
           FIND(Str("no outfilename"));
-          O->outfilename = s;          /* soundout name */
+          O->outfilename = s;           /* soundout name */
           s += (int) strlen(s);
           if (strcmp(O->outfilename,"stdin") == 0)
             dieu(csound, Str("-o cannot be stdin"));
@@ -783,18 +782,18 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'A':
           O->sfheader = 1;
-          O->filetyp = TYP_AIFF;     /* AIFF output request*/
+          O->filetyp = TYP_AIFF;        /* AIFF output request*/
           break;
         case 'J':
           O->sfheader = 1;
-          O->filetyp = TYP_IRCAM;      /* IRCAM output request */
+          O->filetyp = TYP_IRCAM;       /* IRCAM output request */
           break;
         case 'W':
           O->sfheader = 1;
-          O->filetyp = TYP_WAV;      /* WAV output request */
+          O->filetyp = TYP_WAV;         /* WAV output request */
           break;
         case 'h':
-          O->sfheader = 0;           /* skip sfheader  */
+          O->sfheader = 0;              /* skip sfheader  */
           O->filetyp = TYP_RAW;
           break;
         case 'c':
@@ -822,7 +821,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           while (*++s);
           break;
         case 'v':
-          O->odebug = 1;    /* verbose otran  */
+          O->odebug = 1;                /* verbose otran  */
           break;
         case 'm':
           FIND(Str("no message level"));
@@ -830,24 +829,24 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           s += n;
           break;
         case 'd':
-          O->displays = 0;           /* no func displays */
+          O->displays = 0;              /* no func displays */
           break;
         case 'g':
-          O->graphsoff = 1;          /* don't use graphics */
+          O->graphsoff = 1;             /* don't use graphics */
           break;
         case 'G':
-          O->postscript = 1;         /* Postscript graphics*/
+          O->postscript = 1;            /* Postscript graphics*/
           break;
         case 'x':
           FIND(Str("no xfilename"));
-          csound->xfilename = s;     /* extractfile name */
+          csound->xfilename = s;        /* extractfile name */
           while (*++s);
           break;
         case 't':
           FIND(Str("no tempo value"));
           {
             int val;
-            sscanf(s,"%d%n",&val, &n);/* use this tempo .. */
+            sscanf(s,"%d%n",&val, &n);  /* use this tempo .. */
             s += n;
             if (val < 0) dieu(csound, Str("illegal tempo"));
             else if (val == 0) {
@@ -855,12 +854,12 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
               break;
             }
             else O->cmdTempo = val;
-            O->Beatmode = 1;       /* on uninterpreted Beats */
+            O->Beatmode = 1;            /* on uninterpreted Beats */
           }
           break;
         case 'L':
           FIND(Str("no Linein score device_name"));
-          O->Linename = s;           /* Linein device name */
+          O->Linename = s;              /* Linein device name */
           s += (int) strlen(s);
           if (!strcmp(O->Linename,"stdin")) {
             set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
@@ -874,7 +873,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'M':
           FIND(Str("no midi device_name"));
-          O->Midiname = s;           /* Midi device name */
+          O->Midiname = s;              /* Midi device name */
           s += (int) strlen(s);
           if (!strcmp(O->Midiname,"stdin")) {
             set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
@@ -888,7 +887,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'F':
           FIND(Str("no midifile name"));
-          O->FMidiname = s;          /* Midifile name */
+          O->FMidiname = s;             /* Midifile name */
           s += (int) strlen(s);
           if (!strcmp(O->FMidiname,"stdin")) {
             set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
@@ -898,7 +897,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           }
           else
             set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
-          O->FMidiin = 1;            /***************/
+          O->FMidiin = 1;               /*****************/
           break;
         case 'Q':
           FIND(Str("no MIDI output device"));
@@ -916,17 +915,17 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           else O->heartbeat = 1;
           break;
         case 'N':
-          O->ringbell = 1;        /* notify on completion */
+          O->ringbell = 1;              /* notify on completion */
           break;
         case 'T':
-          O->termifend = 1;       /* terminate on midifile end */
+          O->termifend = 1;             /* terminate on midifile end */
           break;
         case 'D':
-          O->gen01defer = 1;  /* defer GEN01 sample loads
-                                until performance time */
+          O->gen01defer = 1;            /* defer GEN01 sample loads
+                                           until performance time */
           break;
         case 'K':
-          csound->peakchunks = 0; /* Do not write peak information */
+          csound->peakchunks = 0;       /* Do not write peak information */
           break;
         case 'z':
           {
@@ -966,7 +965,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case '-':
 #if defined(LINUX)
-          if (!(strcmp (s, "sched"))) {           /* ignore --sched */
+          if (!(strcmp (s, "sched"))) {             /* ignore --sched */
             while (*(++s));
             break;
           }
@@ -979,7 +978,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
             csound->LongJmp(csound, 1);
           while (*(++s));
           break;
-        case '+':                                     /* IV - Feb 01 2005 */
+        case '+':                                   /* IV - Feb 01 2005 */
           if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
             csound->LongJmp(csound, 1);
           while (*(++s));

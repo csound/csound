@@ -572,9 +572,7 @@ int ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado ****/
 int rtclock(CSOUND *csound, EVAL *p)
 {
     /* IV - Jan 29 2005 */
-    *p->r = (MYFLT)
-            timers_get_real_time(csoundQueryGlobalVariableNoCheck(csound,
-                                                                  "csRtClock"));
+    *p->r = (MYFLT) timers_get_real_time(csound->csRtClock);
     return OK;
 }
 

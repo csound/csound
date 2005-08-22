@@ -74,8 +74,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     int     n;
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
-    if (csoundQueryGlobalVariable(csound, "_RTAUDIO") == NULL ||
-        csoundQueryGlobalVariable(csound, "csRtClock") != NULL) {
+    if (csound->engineState != 1) {
       if ((n = csoundPreCompile(csound)) != CSOUND_SUCCESS)
         return n;
     }
@@ -84,14 +83,13 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
 
-    /* IV - Jan 28 2005 */
-    csoundCreateGlobalVariable(csound, "csRtClock", sizeof(RTCLOCK));
     init_pvsys(csound);
     /* utilities depend on this as well as orchs */
     dbfs_init(csound, DFLT_DBFS);       /* may get changed by an orch */
-    timers_struct_init((RTCLOCK*)
-                       csoundQueryGlobalVariable(csound, "csRtClock"));
-    csoundCreateGlobalVariable(csound, "#CLEANUP", (size_t) 1);
+    csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
+    timers_struct_init(csound->csRtClock);
+    csound->engineState |= 10;
+
 #ifndef USE_DOUBLE
 #ifdef BETA
     csound->Message(csound, Str("Csound version %s beta (float samples) %s\n"),
@@ -112,7 +110,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     {
       char buffer[128];
       sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
-      csound->Message(csound,"%s\n", buffer);
+      csound->Message(csound, "%s\n", buffer);
     }
 
     /* do not know file type yet */
@@ -177,7 +175,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       int   read_unified_file(void*, char **, char **);
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
       strcpy(orcNameMode, "normal");
-      csound->Message(csound,"UnifiedCSD:  %s\n", csound->orchname);
+      csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
       if (!read_unified_file(csound, &(csound->orchname),
                                      &(csound->scorename))) {
         csound->Die(csound, Str("Decode failed....stopping"));
@@ -253,9 +251,9 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
     O->informat = O->outformat;     /* informat defaults; */
     O->insampsiz = O->sfsampsize;   /* resettable by readinheader */
-    csound->Message(csound,Str("orchname:  %s\n"), csound->orchname);
+    csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
     if (csound->scorename != NULL)
-      csound->Message(csound,Str("scorename: %s\n"), csound->scorename);
+      csound->Message(csound, Str("scorename: %s\n"), csound->scorename);
     if (csound->xfilename != NULL)
       csound->Message(csound, Str("xfilename: %s\n"), csound->xfilename);
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
@@ -267,7 +265,8 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     otran(csound);                  /* read orcfile, setup desblks & spaces */
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
-    if (!csoundYield(csound)) return (-1);
+    if (!csoundYield(csound))
+      return -1;
     /* IV - Oct 31 2002: now we can read and sort the score */
     if (csound->scorename == NULL || csound->scorename[0]=='\0') {
       if (O->RTevents) {
@@ -286,10 +285,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         }
       }
     }
-    if ((n = strlen(csound->scorename)) > 4     /* if score ?.srt or ?.xtr */
-        && (!strcmp(csound->scorename+n-4,".srt") ||
-            !strcmp(csound->scorename+n-4,".xtr"))) {
-      csound->Message(csound,Str("using previous %s\n"),csound->scorename);
+    if ((n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
+        (!strcmp(csound->scorename + (n - 4), ".srt") ||
+         !strcmp(csound->scorename + (n - 4), ".xtr"))) {
+      csound->Message(csound, Str("using previous %s\n"), csound->scorename);
       playscore = sortedscore = csound->scorename;  /*   use that one */
     }
     else {
@@ -311,7 +310,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       fclose(scorout);
     }
     if (csound->xfilename != NULL) {            /* optionally extract */
-      if (!strcmp(csound->scorename,"score.xtr"))
+      if (!strcmp(csound->scorename, "score.xtr"))
         csoundDie(csound, Str("cannot extract %s, name conflict"),
                           csound->scorename);
       if (!(xfile = fopen(csound->xfilename, "r")))
@@ -320,14 +319,14 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csoundDie(csound, Str("cannot reopen %s"), sortedscore);
       if (!(scorout = fopen(xtractedscore, "w")))
         csoundDie(csound, Str("cannot open %s for writing"), xtractedscore);
-      csound->Message(csound,Str("  ... extracting ...\n"));
+      csound->Message(csound, Str("  ... extracting ...\n"));
       scxtract(csound, scorin, scorout, xfile);
       fclose(scorin);
       fclose(scorout);
       fclose(xfile);
       playscore = xtractedscore;
     }
-    csound->Message(csound,Str("\t... done\n"));
+    csound->Message(csound, Str("\t... done\n"));
     s = playscore;
     O->playscore = filnamp;
     while ((*filnamp++ = *s++));    /* copy sorted score name */
