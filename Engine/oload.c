@@ -204,7 +204,6 @@ const CSOUND cenviron_ = {
         csoundRealFFTnp2,
         csoundInverseRealFFTnp2,
         csoundAddUtility,
-        csoundRunUtility,
         csoundListUtilities,
         csoundSetUtilityDescription,
         csoundGetUtilityDescription,
@@ -253,7 +252,7 @@ const CSOUND cenviron_ = {
         csoundFTDelete,
         fdrecord,
         fdclose,
-     /* NULL, */
+        NULL,
         { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -325,6 +324,7 @@ const CSOUND cenviron_ = {
         (char**) NULL,  /*  strsets             */
         NULL,           /*  instrtxtp           */
         { NULL },       /*  m_chnbp             */
+        NULL,           /*  csRtClock           */
     /* ------- private data (not to be used by hosts or externals) ------- */
         /* callback function pointers */
         (SUBR) NULL,    /*  first_callback_     */
@@ -478,7 +478,10 @@ const CSOUND cenviron_ = {
         0,              /*  pvNumFiles          */
         0,              /*  pvErrorCode         */
         NULL,           /*  pvbufreadaddr       */
-        NULL            /*  tbladr              */
+        NULL,           /*  tbladr              */
+        0,              /*  enableHostImplementedAudioIO  */
+        0,              /*  hostRequestedBufferSize       */
+        0               /*  engineState         */
 };
 
 /* otran.c */
@@ -687,11 +690,11 @@ void oload(CSOUND *p)
             p->Warning(p, Str("i%d pset args != pmax"), (int) insno);
             if (n < ip->pmax) n = ip->pmax; /* cf pset, pmax    */
           }                                 /* alloc the larger */
-          ip->psetdata = (MYFLT *) mcalloc(p, (long)n * sizeof(MYFLT));
-          for (n=aoffp->count,fp1=ip->psetdata,ndxp=aoffp->indx;
+          ip->psetdata = (MYFLT *) mcalloc(p, n * sizeof(MYFLT));
+          for (n = aoffp->count, fp1 = ip->psetdata, ndxp = aoffp->indx;
                n--; ) {
             *fp1++ = p->gbloffbas[*ndxp++];
-            p->Message(p,"..%f..", *(fp1-1));
+            p->Message(p, "..%f..", *(fp1-1));
           }
           p->Message(p, "\n");
           break;
