@@ -30,10 +30,6 @@ DOCUMENTATION
  tb0 ... tb15
  tb0_init ... tb15_init
  timedseq
- vcopy_i
- vdel_k
- vrandh
- vrandi
  cogoto
 pvsifd : streaming spectral analysis using the IFD
 partials : partial track analysis from a  streaming PV input
