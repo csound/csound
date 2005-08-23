@@ -171,36 +171,29 @@ PUBLIC void *csoundCreateThreadLock(void)
 PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
     {
-      register int    retval;
-      retval = pthread_mutex_trylock((pthread_mutex_t*) lock);
-      if (!retval || !milliseconds)
+      register int retval = pthread_mutex_trylock((pthread_mutex_t*) lock);
+      if (!retval)
+        return retval;
+      if (!milliseconds)
         return retval;
     }
-    if (milliseconds >= (size_t) 0x00100000)
+    if (milliseconds >= (size_t) 2000000)
       return pthread_mutex_lock((pthread_mutex_t*) lock);
     else {
-      struct timeval  tv;
-      struct timespec ts;
-      uint64_t        wait_ns_ll;
-      unsigned int    wait_ns;
-
-      gettimeofday(&tv, NULL);
-      wait_ns_ll = (uint64_t) (((int) milliseconds * 1000 + (int) tv.tv_usec)
-                               * (int64_t) 1000);
-      ts.tv_sec = tv.tv_sec;
-      if (wait_ns_ll >= (uint64_t) 0x100000000LL) {
-        while (wait_ns_ll >= (uint64_t) 4000000000U) {
-          wait_ns_ll -= (uint64_t) 4000000000U;
-          ts.tv_sec += 4;
-        }
-      }
-      wait_ns = (unsigned int) wait_ns_ll;
-      while (wait_ns >= 1000000000U) {
-        wait_ns -= 1000000000U;
-        ts.tv_sec++;
-      }
-      ts.tv_nsec = (long) ((int) wait_ns);
-      return pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
+      union {
+        struct timeval  tv;
+        struct timespec ts;
+      } t;
+      register size_t   i, j, n, s;
+      gettimeofday(&(t.tv), NULL);
+      n = (size_t) ((int) milliseconds * 1000 + (int) t.tv.tv_usec);
+      s = (size_t) t.tv.tv_sec;
+      for (i = 1, j = 1000000; n >= j; i <<= 1, j <<= 1)
+        s += i, n -= j;
+      n = (size_t) ((int) n * 1000);
+      t.ts.tv_sec = (time_t) s;
+      t.ts.tv_nsec = (long) n;
+      return pthread_mutex_timedlock((pthread_mutex_t*) lock, &(t.ts));
     }
 }
 

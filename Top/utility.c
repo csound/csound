@@ -31,8 +31,6 @@ typedef struct csUtility_s {
     char                *desc;
 } csUtility_t;
 
-static const char list_var[] = "utilities::list";
-
 int csoundAddUtility(CSOUND *csound, const char *name,
                                      int (*UtilFunc)(CSOUND*, int, char**))
 {
@@ -40,7 +38,7 @@ int csoundAddUtility(CSOUND *csound, const char *name,
 
     if (csound == NULL || name == NULL || name[0] == '\0' || UtilFunc == NULL)
       return -1;
-    p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
+    p = (csUtility_t*) csound->utility_db;
     if (p != NULL) {
       do {
         if (strcmp(p->name, name) == 0)
@@ -53,10 +51,8 @@ int csoundAddUtility(CSOUND *csound, const char *name,
       p = p->nxt;
     }
     else {
-      if (csound->CreateGlobalVariable(csound, list_var,
-                                               sizeof(csUtility_t)) != 0)
-        return -1;
-      p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
+      csound->utility_db = csound->Calloc(csound, sizeof(csUtility_t));
+      p = (csUtility_t*) csound->utility_db;
     }
     p->name = csound->Malloc(csound, strlen(name) + 1);
     strcpy(p->name, name);
@@ -89,7 +85,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
 
     if (name == NULL || name[0] == '\0')
       goto notFound;
-    p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
+    p = (csUtility_t*) csound->utility_db;
     while (1) {
       if (p == NULL)
         goto notFound;
@@ -143,7 +139,7 @@ static int cmp_func(const void *a, const void *b)
 
 PUBLIC char **csoundListUtilities(CSOUND *csound)
 {
-    csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
+    csUtility_t *p = (csUtility_t*) csound->utility_db;
     char        **lst;
     int         utilCnt = 0;
 
@@ -156,7 +152,7 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
       return NULL;
     /* store pointers to utility names */
     utilCnt = 0;
-    p = (csUtility_t*) csound->QueryGlobalVariable(csound, list_var);
+    p = (csUtility_t*) csound->utility_db;
     while (p != NULL) {
       lst[utilCnt++] = (char*) p->name;
       p = p->nxt;
@@ -175,7 +171,7 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
 int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
                                                 const char *utilDesc)
 {
-    csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
+    csUtility_t *p = (csUtility_t*) csound->utility_db;
     char        *desc = NULL;
 
     /* check for valid parameters */
@@ -208,7 +204,7 @@ int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
 
 PUBLIC char *csoundGetUtilityDescription(CSOUND *csound, const char *utilName)
 {
-    csUtility_t *p = (csUtility_t*) csoundQueryGlobalVariable(csound, list_var);
+    csUtility_t *p = (csUtility_t*) csound->utility_db;
 
     /* check for valid parameters */
     if (utilName == NULL)

@@ -416,8 +416,7 @@ void *dlsym(void *handle, const char *symbol)
 
 void *csoundOpenLibrary(const char *libraryPath)
 {
-    void *library = NULL;
-    return library;
+    return NULL;
 }
 
 int csoundCloseLibrary(void *library)
@@ -460,19 +459,11 @@ int csoundLoadExternal(CSOUND *csound, const char* libraryPath)
     {
       void **handle_list;
       int  i;
-      handle_list =
-        (void**) csoundQueryGlobalVariable(csound, "::dl_opcodes::loaded_libs");
+      handle_list = (void**) csound->dl_opcodes_db;
       if (handle_list == NULL) {
-        csoundCreateGlobalVariable(csound, "::dl_opcodes::loaded_libs",
-                                           sizeof(void*) * MAX_PLUGINS);
-        handle_list =
-          (void**) csoundQueryGlobalVariable(csound,
-                                             "::dl_opcodes::loaded_libs");
-        if (handle_list == NULL) {
-          csoundMessage(csound, Str(" *** csoundLoadExternal(): "
-                                    "memory allocation failure\n"));
-          goto err_return;
-        }
+        csound->dl_opcodes_db = csound->Calloc(csound,
+                                               sizeof(void*) * MAX_PLUGINS);
+        handle_list = (void**) csound->dl_opcodes_db;
         for (i = 0; i < MAX_PLUGINS; i++)
           handle_list[i] = (void*) NULL;
       }
@@ -592,7 +583,7 @@ int csoundLoadExternals(CSOUND *csound)
       closedir(directory);
     }
 #endif
-    s = (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
+    s = (char*) csound->dl_opcodes_oplibs;
     if (s == NULL || s[0] == '\0') {
       mfree(csound, buffer);
       return 1;
@@ -624,15 +615,15 @@ int csoundUnloadExternals(CSOUND *csound)
     void    **handle_list;
     int     i = (int) MAX_PLUGINS, retval = 0;
 
-    handle_list =
-      (void**) csoundQueryGlobalVariable(csound, "::dl_opcodes::loaded_libs");
+    handle_list = (void**) csound->dl_opcodes_db;
     if (handle_list == NULL)
       return 0;
     while (--i >= 0) {
-      if (handle_list[i] != NULL)
+      if (handle_list[i] != NULL) {
         retval |= csoundCloseLibrary(handle_list[i]);
+        handle_list[i] = NULL;
+      }
     }
-    csoundDestroyGlobalVariable(csound, "::dl_opcodes::loaded_libs");
     return retval;
 }
 

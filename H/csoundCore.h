@@ -1037,6 +1037,20 @@ extern "C" {
      *  16: csoundLongJmp was called
      */
     int           engineState;
+    int           stdin_assign_flg;
+    int           stdout_assign_flg;
+    int           orcname_mode;         /* 0: normal, 1: ignore, 2: fail */
+    void          *csmodule_db;
+    char          *dl_opcodes_oplibs;
+    void          *dl_opcodes_db;
+    char          *SF_csd_licence;
+    char          *SF_id_title;
+    char          *SF_id_copyright;
+    char          *SF_id_software;
+    char          *SF_id_artist;
+    char          *SF_id_comment;
+    char          *SF_id_date;
+    void          *utility_db;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
