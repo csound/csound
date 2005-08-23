@@ -65,7 +65,7 @@ static void create_opcodlst(CSOUND *csound)
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
-    char    *s, *orcNameMode;
+    char    *s;
     char    *filnamp;
     char    *sortedscore = NULL;
     char    *xtractedscore = "score.xtr";
@@ -109,7 +109,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 #endif
     {
       char buffer[128];
-      sf_command (NULL, SFC_GET_LIB_VERSION, buffer, 128);
+      sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
       csound->Message(csound, "%s\n", buffer);
     }
 
@@ -120,19 +120,15 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     csound->peakchunks = 1;
     create_opcodlst(csound);
 
-    if (csoundCreateGlobalVariable(csound, "::argdecode::orcNameMode", 8) != 0)
-      return -1;
-    orcNameMode = (char*) csoundQueryGlobalVariable(csound,
-                                                    "::argdecode::orcNameMode");
     if (--argc == 0) {
       dieu(csound, Str("insufficient arguments"));
     }
     /* command line: allow orc/sco/csd name */
-    strcpy(orcNameMode, "normal");
+    csound->orcname_mode = 0;   /* 0: normal, 1: ignore, 2: fail */
     if (argdecode(csound, argc, argv) == 0)
       csound->LongJmp(csound, 1);
     /* do not allow orc/sco/csd name in .csoundrc */
-    strcpy(orcNameMode, "fail");
+    csound->orcname_mode = 2;
     {
       const char  *csrcname;
       const char  *home_dir;
@@ -174,7 +170,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
              (csound->scorename==NULL || strlen(csound->scorename)==0)) {
       int   read_unified_file(void*, char **, char **);
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
-      strcpy(orcNameMode, "normal");
+      csound->orcname_mode = 0;
       csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
       if (!read_unified_file(csound, &(csound->orchname),
                                      &(csound->scorename))) {
@@ -184,20 +180,16 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
     /* command line options override CSD options */
     /* this assumes that argdecode is safe to run multiple times */
-    strcpy(orcNameMode, "ignore");
+    csound->orcname_mode = 1;           /* ignore orc/sco name */
     argdecode(csound, argc, argv);      /* should not fail this time */
     /* some error checking */
-    {
-      int *nn;
-      nn = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
-      if (nn != NULL && *nn != 0 && (*nn & (*nn - 1)) != 0) {
-        csound->Die(csound, Str("error: multiple uses of stdin"));
-      }
-      nn =
-        (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
-      if (nn != NULL && *nn != 0 && (*nn & (*nn - 1)) != 0) {
-        csound->Die(csound, Str("error: multiple uses of stdout"));
-      }
+    if (csound->stdin_assign_flg &&
+        (csound->stdin_assign_flg & (csound->stdin_assign_flg - 1)) != 0) {
+      csound->Die(csound, Str("error: multiple uses of stdin"));
+    }
+    if (csound->stdout_assign_flg &&
+        (csound->stdout_assign_flg & (csound->stdout_assign_flg - 1)) != 0) {
+      csound->Die(csound, Str("error: multiple uses of stdout"));
     }
     /* done parsing csoundrc, CSD, and command line options */
     /* if sound file type is still not known, check SFOUTYP */

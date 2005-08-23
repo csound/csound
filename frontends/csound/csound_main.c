@@ -1,7 +1,6 @@
 /* Console Csound using the Csound API. */
 
 #include "csound.h"
-#include "csmodule.h"
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -123,11 +122,11 @@ static int set_rt_priority(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    CSOUND *csound;
+    CSOUND  *csound;
     int     result;
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
-        setvbuf(stdout, (char *)NULL, _IONBF, 0);
+      setvbuf(stdout, (char*) NULL, _IONBF, 0);
     }
     /* Real-time priority on Linux by Istvan Varga (Jan 6 2002) */
     /* This function is called before anything else to avoid    */

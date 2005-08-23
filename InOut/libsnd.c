@@ -434,22 +434,20 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       csound->spoutran = spoutsf_noscale;
     csound->audtran = writesf;          /* flush buffer */
     /* Write any tags. */
-    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_title");
-    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_TITLE, s);
-    s = (char*) csound->QueryGlobalVariable(csound, "::SF::csd_licence");
-    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
-    else {
-      s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_copyright");
-      if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
-    }
-    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_software");
-    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_SOFTWARE, s);
-    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_artist");
-    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_ARTIST, s);
-    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_comment");
-    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_COMMENT, s);
-    s = (char*) csound->QueryGlobalVariable(csound, "::SF::id_date");
-    if (s && *s != '\0') sf_set_string(ST(outfile), SF_STR_DATE, s);
+    if ((s = csound->SF_id_title) != NULL && *s != '\0')
+      sf_set_string(ST(outfile), SF_STR_TITLE, s);
+    if ((s = csound->SF_csd_licence) == NULL || *s == '\0')
+      s = csound->SF_id_copyright;
+    if (s != NULL && *s != '\0')
+      sf_set_string(ST(outfile), SF_STR_COPYRIGHT, s);
+    if ((s = csound->SF_id_software) != NULL && *s != '\0')
+      sf_set_string(ST(outfile), SF_STR_SOFTWARE, s);
+    if ((s = csound->SF_id_artist) != NULL && *s != '\0')
+      sf_set_string(ST(outfile), SF_STR_ARTIST, s);
+    if ((s = csound->SF_id_comment) != NULL && *s != '\0')
+      sf_set_string(ST(outfile), SF_STR_COMMENT, s);
+    if ((s = csound->SF_id_date) != NULL && *s != '\0')
+      sf_set_string(ST(outfile), SF_STR_DATE, s);
     /* file is now open */
     ST(osfopen) = 1;
 
