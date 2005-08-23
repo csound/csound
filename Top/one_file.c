@@ -486,35 +486,31 @@ static int checkVersion(CSOUND *csound, FILE *unf)
 static int checkLicence(CSOUND *csound, FILE *unf)
 {
     char  *p, *licence;
-    int   len = 20;
+    int   len = 1;
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    licence = (char*) malloc(len);
-    licence[0] = '\0';
+    licence = (char*) mcalloc(csound, len);
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
       if (strstr(p, "</CsLicence>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
-        csoundDestroyGlobalVariable(csound, "::SF::csd_licence");
-        csoundCreateGlobalVariable(csound, "::SF::csd_licence", len);
-        p = (char*) csoundQueryGlobalVariable(csound, "::SF::csd_licence");
-        strcpy(p, licence);
-        free(licence);
+        mfree(csound, csound->SF_csd_licence);
+        csound->SF_csd_licence = licence;
         return TRUE;
       }
       csoundMessage(csound, "%s", p);
       len += strlen(p);
-      licence = realloc(licence, len);
+      licence = mrealloc(csound, licence, len);
       strcat(licence, p);
     }
-    free(licence);
+    mfree(csound, licence);
     return FALSE;
 }
 
 static int eat_to_eol(char *buf)
 {
-    int i=0;
-    while(buf[i] != '\n') i++;
+    int i = 0;
+    while (buf[i] != '\n') i++;
     return i;   /* keep the \n for further processing */
 }
 

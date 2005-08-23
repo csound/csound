@@ -93,8 +93,6 @@ static  const   char    *plugindir64_envvar =   "OPCODEDIR64";
 #endif
 /* default directory to load plugins from if environment variable is not set */
 static  const   char    *default_plugin_dir =   ".";
-/* name of dynamic variable storing plugin database */
-static  const   char    *plugindb_name =        "::modules.DB";
 
 typedef struct csoundModule_s {
     struct csoundModule_s *nxt;             /* pointer to next link in chain */
@@ -113,7 +111,7 @@ static int build_module_database(CSOUND *csound)
 #ifdef HAVE_DIRENT_H
     DIR             *dir;
     struct dirent   *f;
-    csoundModule_t  *m, **plugin_db;
+    csoundModule_t  *m;
     char            *dname = NULL, *fname, *buf1;
     void            *h, *sym;
     int             is_library, len;
@@ -136,11 +134,6 @@ static int build_module_database(CSOUND *csound)
                               dname, strerror(errno));
       return CSOUND_ERROR;
     }
-    /* get pointer to database */
-    plugin_db =
-      (csoundModule_t**) (csoundQueryGlobalVariable(csound, plugindb_name));
-    if (plugin_db == NULL)
-      return CSOUND_ERROR;
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
       is_library = 0;
@@ -204,15 +197,15 @@ static int build_module_database(CSOUND *csound)
       /* create module structure */
       m = (csoundModule_t*)
             ((void*) malloc((size_t)
-                            ((((int) sizeof(csoundModule_t) + 15) & (~15))
-                             + (((len + 1) + 15) & (~15)))));
+                            ((((int) sizeof(csoundModule_t) + 7) & (~7))
+                             + (((len + 1) + 7) & (~7)))));
       if (m == NULL) {
         csoundCloseLibrary(h);
         return CSOUND_MEMORY;
       }
-      m->nxt = (*plugin_db);
+      m->nxt = (csoundModule_t*) csound->csmodule_db;
       m->h = h;
-      m->name = (char*) m + (((int) sizeof(csoundModule_t) + 15) & (~15));
+      m->name = (char*) m + (((int) sizeof(csoundModule_t) + 7) & (~7));
       strcpy(m->name, fname);
       m->PreInitFunc =
           (int (*)(CSOUND *)) csoundGetLibrarySymbol(h, PreInitFunc_Name);
@@ -223,34 +216,11 @@ static int build_module_database(CSOUND *csound)
       m->ErrCodeToStr =
           (char *(*)(int)) csoundGetLibrarySymbol(h, ErrCodeToStr_Name);
       /* link into chain */
-      (*plugin_db) = m;
+      csound->csmodule_db = (void*) m;
     }
     closedir(dir);
 #endif  /* HAVE_DIRENT_H */
     return CSOUND_SUCCESS;
-}
-
-/* unload all external modules, and free memory used by database */
-
-static void destroy_module_database(CSOUND *csound)
-{
-    csoundModule_t  *m, *prv, **plugin_db;
-
-    /* get pointer to database */
-    plugin_db =
-      (csoundModule_t**) (csoundQueryGlobalVariable(csound, plugindb_name));
-    if (plugin_db == NULL)
-      return;
-    prv = (csoundModule_t*) NULL;
-    m = (*plugin_db);
-    while (m != NULL) {
-      prv = m;
-      csoundCloseLibrary(m->h);
-      m = m->nxt;
-      free((void*) prv);
-    }
-    (*plugin_db) = (csoundModule_t*) NULL;
-    csoundDestroyGlobalVariable(csound, plugindb_name);
 }
 
 /**
@@ -262,39 +232,30 @@ static void destroy_module_database(CSOUND *csound)
  */
 int csoundLoadModules(CSOUND *csound)
 {
-    csoundModule_t  *m, **plugin_db;
+    csoundModule_t  *m;
     int             i, retval;
 
     /* create database */
-    plugin_db =
-      (csoundModule_t**) (csoundQueryGlobalVariable(csound, plugindb_name));
-    if (plugin_db != NULL)
+    if (csound->csmodule_db != NULL)
       return CSOUND_ERROR;      /* already have one */
-    retval = csoundCreateGlobalVariable(csound, plugindb_name,
-                                        sizeof(csoundModule_t*));
-    if (retval != CSOUND_SUCCESS)
-      return retval;
     retval = build_module_database(csound);
     if (retval != CSOUND_SUCCESS)
       return retval;
-    /* get pointer to database */
-    plugin_db =
-      (csoundModule_t**) (csoundQueryGlobalVariable(csound, plugindb_name));
-    if (plugin_db == NULL)
-      return CSOUND_ERROR;
     /* call init functions */
-    m = (*plugin_db);
+    m = (csoundModule_t*) csound->csmodule_db;
     retval = CSOUND_SUCCESS;
     while (m != NULL) {
       if (m->PreInitFunc != NULL) {
         i = m->PreInitFunc(csound);
         if (i != 0) {
           retval = CSOUND_ERROR;
-          csound->Message(csound, Str("Error in pre-initialisation function "
-                                      "of module '%s'"), m->name);
           if (m->ErrCodeToStr != NULL)
-            csound->Message(csound, ": %s", Str(m->ErrCodeToStr(i)));
-          csound->Message(csound, "\n");
+            csound->ErrorMsg(csound, Str("Error in pre-initialisation function "
+                                         "of module '%s': %s"),
+                                     m->name, Str(m->ErrCodeToStr(i)));
+          else
+            csound->ErrorMsg(csound, Str("Error in pre-initialisation function "
+                                         "of module '%s'"), m->name);
         }
       }
       m = m->nxt;
@@ -311,26 +272,23 @@ int csoundLoadModules(CSOUND *csound)
  */
 int csoundInitModules(CSOUND *csound)
 {
-    csoundModule_t  *m, **plugin_db;
+    csoundModule_t  *m;
     int             i, retval;
 
-    /* get pointer to database */
-    plugin_db =
-      (csoundModule_t**) (csoundQueryGlobalVariable(csound, plugindb_name));
-    if (plugin_db == NULL)
-      return CSOUND_ERROR;
     /* call init functions */
-    m = (*plugin_db);
+    m = (csoundModule_t*) csound->csmodule_db;
     retval = CSOUND_SUCCESS;
     while (m != NULL) {
       if (m->InitFunc != NULL) {
         i = m->InitFunc(csound);
         if (i != 0) {
           retval = CSOUND_ERROR;
-          csound->Message(csound, Str("Error starting module '%s'"), m->name);
           if (m->ErrCodeToStr != NULL)
-            csound->Message(csound, ": %s", Str(m->ErrCodeToStr(i)));
-          csound->Message(csound, "\n");
+            csound->ErrorMsg(csound, Str("Error starting module '%s': %s"),
+                                     m->name, Str(m->ErrCodeToStr(i)));
+          else
+            csound->ErrorMsg(csound, Str("Error starting module '%s'"),
+                                     m->name);
         }
       }
       m = m->nxt;
@@ -347,33 +305,32 @@ int csoundInitModules(CSOUND *csound)
  */
 int csoundDestroyModules(CSOUND *csound)
 {
-    csoundModule_t  *m, **plugin_db;
+    csoundModule_t  *m;
     int             i, retval;
 
-    /* get pointer to database */
-    plugin_db =
-      (csoundModule_t**) (csoundQueryGlobalVariable(csound, plugindb_name));
-    if (plugin_db == NULL)
-      return CSOUND_SUCCESS;
-    /* call destructor functions */
-    m = (*plugin_db);
     retval = CSOUND_SUCCESS;
-    while (m != NULL) {
+    while (csound->csmodule_db != NULL) {
+      m = (csoundModule_t*) csound->csmodule_db;
+      /* call destructor functions */
       if (m->DestFunc != NULL) {
         i = m->DestFunc(csound);
         if (i != 0) {
           retval = CSOUND_ERROR;
-          csound->Message(csound, Str("Error de-initialising module '%s'"),
-                                  m->name);
           if (m->ErrCodeToStr != NULL)
-            csound->Message(csound, ": %s", Str(m->ErrCodeToStr(i)));
-          csound->Message(csound, "\n");
+            csound->ErrorMsg(csound,
+                             Str("Error de-initialising module '%s': %s"),
+                             m->name, Str(m->ErrCodeToStr(i)));
+          else
+            csound->ErrorMsg(csound, Str("Error de-initialising module '%s'"),
+                                     m->name);
         }
       }
-      m = m->nxt;
+      /* unload library */
+      csoundCloseLibrary(m->h);
+      csound->csmodule_db = (void*) m->nxt;
+      /* free memory used by database */
+      free((void*) m);
     }
-    /* unload modules */
-    destroy_module_database(csound);
     /* return with error code */
     return retval;
 }

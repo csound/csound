@@ -481,7 +481,21 @@ const CSOUND cenviron_ = {
         NULL,           /*  tbladr              */
         0,              /*  enableHostImplementedAudioIO  */
         0,              /*  hostRequestedBufferSize       */
-        0               /*  engineState         */
+        0,              /*  engineState         */
+        0,              /*  stdin_assign_flg    */
+        0,              /*  stdout_assign_flg   */
+        0,              /*  orcname_mode        */
+        NULL,           /*  csmodule_db         */
+        (char*) NULL,   /*  dl_opcodes_oplibs   */
+        NULL,           /*  dl_opcodes_db       */
+        (char*) NULL,   /*  SF_csd_licence      */
+        (char*) NULL,   /*  SF_id_title         */
+        (char*) NULL,   /*  SF_id_copyright     */
+        (char*) NULL,   /*  SF_id_software      */
+        (char*) NULL,   /*  SF_id_artist        */
+        (char*) NULL,   /*  SF_id_comment       */
+        (char*) NULL,   /*  SF_id_date          */
+        NULL            /*  utility_db          */
 };
 
 /* otran.c */

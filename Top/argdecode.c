@@ -45,32 +45,18 @@ extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 
 static void set_stdin_assign(CSOUND *csound, int type, int state)
 {
-  int *n;
-  n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
-  if (n == NULL) {
-    csoundCreateGlobalVariable(csound,
-                               "::argdecode::stdinassign", sizeof(int));
-    n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdinassign");
-  }
   if (state)
-    *n |= type;
+    csound->stdin_assign_flg |= type;
   else
-    *n &= (~type);
+    csound->stdin_assign_flg &= (~type);
 }
 
 static void set_stdout_assign(CSOUND *csound, int type, int state)
 {
-  int *n;
-  n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
-  if (n == NULL) {
-    csoundCreateGlobalVariable(csound,
-                               "::argdecode::stdoutassign", sizeof(int));
-    n = (int*) csoundQueryGlobalVariable(csound, "::argdecode::stdoutassign");
-  }
   if (state)
-    *n |= type;
+    csound->stdout_assign_flg |= type;
   else
-    *n &= (~type);
+    csound->stdout_assign_flg &= (~type);
 }
 
 /* IV - Feb 19 2005 */
@@ -645,37 +631,22 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp(s, "opcode-lib=", 11))) {
+      int   nbytes;
       s += 11;
-      {
-        char  *oplibs;
-        int   nbytes;
-        nbytes = (int) strlen(s);
-        oplibs =
-          (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
-        if (oplibs == NULL) {
-          csoundCreateGlobalVariable(csound, "::dl_opcodes::oplibs", 4096);
-          oplibs =
-            (char*) csoundQueryGlobalVariable(csound, "::dl_opcodes::oplibs");
-          if (oplibs == NULL) {
-            csoundMessage(csound, "argdecode(): memory allocation failure\n");
-            return 0;
-          }
-        }
-        else
-          nbytes += ((int) strlen(oplibs) + 1);
-        if (nbytes >= 4096) {
-          csoundMessage(csound, "argdecode(): opcode library list too long\n");
-          return 0;
-        }
-        if (oplibs[0] == '\0') {
-          /* start new library list */
-          strcpy(oplibs, s);
-        }
-        else {
-          /* append to existing list */
-          strcat(oplibs, ",");
-          strcat(oplibs, s);
-        }
+      nbytes = (int) strlen(s) + 1;
+      if (csound->dl_opcodes_oplibs == NULL) {
+        /* start new library list */
+        csound->dl_opcodes_oplibs = (char*) mmalloc(csound, (size_t) nbytes);
+        strcpy(csound->dl_opcodes_oplibs, s);
+      }
+      else {
+        /* append to existing list */
+        nbytes += ((int) strlen(csound->dl_opcodes_oplibs) + 1);
+        csound->dl_opcodes_oplibs = (char*) mrealloc(csound,
+                                                     csound->dl_opcodes_oplibs,
+                                                     (size_t) nbytes);
+        strcat(csound->dl_opcodes_oplibs, ",");
+        strcat(csound->dl_opcodes_oplibs, s);
       }
       return 1;
     }
@@ -989,14 +960,12 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
       }
     }
     else {
-      char *orcNameMode;
-      orcNameMode =
-        (char*) csoundQueryGlobalVariable(csound, "::argdecode::orcNameMode");
-      if (orcNameMode != NULL && strcmp(orcNameMode, "fail") == 0) {
-        csound->Die(csound, Str("error: orchestra and score name is not "
+      /* 0: normal, 1: ignore, 2: fail */
+      if (csound->orcname_mode == 2) {
+        csound->Die(csound, Str("error: orchestra and score name not "
                                 "allowed in .csoundrc"));
       }
-      if (orcNameMode == NULL || strcmp(orcNameMode, "ignore") != 0) {
+      else if (csound->orcname_mode == 0) {
         if (csound->orchname == NULL)
           csound->orchname = --s;
         else if (csound->scorename == NULL)

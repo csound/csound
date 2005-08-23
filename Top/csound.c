@@ -329,22 +329,6 @@ extern "C" {
   static int DummyMidiOutClose(CSOUND *csound, void *userData);
   static char *DummyMidiErrorString(int errcode);
 
-  static  const   char    *id_option_table[][3] = {
-      { "::SF::id_title", "id_title",
-        "Title tag in output soundfile (no spaces)" },
-      { "::SF::id_copyright", "id_copyright",
-        "Copyright tag in output soundfile (no spaces)" },
-      { "::SF::id_software", "id_software",
-        "Software tag in output soundfile (no spaces)" },
-      { "::SF::id_artist", "id_artist",
-        "Artist tag in output soundfile (no spaces)" },
-      { "::SF::id_comment", "id_comment",
-        "Comment tag in output soundfile (no spaces)" },
-      { "::SF::id_date", "id_date",
-        "Date tag in output soundfile (no spaces)" },
-      { NULL, NULL, NULL }
-  };
-
   /**
    * Reset and prepare an instance of Csound for compilation.
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
@@ -410,15 +394,31 @@ extern "C" {
                                       "(sustain pedal etc.)", NULL);
     /* sound file tag options */
     max_len = 201;
-    i = -1;
-    while (id_option_table[++i][0] != NULL) {
-      csoundCreateGlobalVariable(p, id_option_table[i][0], (size_t) max_len);
-      csoundCreateConfigurationVariable(
-                    p, id_option_table[i][1],
-                    csoundQueryGlobalVariable(p, id_option_table[i][0]),
-                    CSOUNDCFG_STRING, 0, NULL, &max_len,
-                    id_option_table[i][2], NULL);
-    }
+    i = (max_len + 7) & (~7);
+    p->SF_id_title = (char*) mcalloc(p, (size_t) i * (size_t) 6);
+    csoundCreateConfigurationVariable(
+        p, "id_title", p->SF_id_title, CSOUNDCFG_STRING, 0,
+        NULL, &max_len, "Title tag in output soundfile (no spaces)", NULL);
+    p->SF_id_copyright = (char*) p->SF_id_title + (int) i;
+    csoundCreateConfigurationVariable(
+        p, "id_copyright", p->SF_id_copyright, CSOUNDCFG_STRING, 0,
+        NULL, &max_len, "Copyright tag in output soundfile (no spaces)", NULL);
+    p->SF_id_software = (char*) p->SF_id_copyright + (int) i;
+    csoundCreateConfigurationVariable(
+        p, "id_software", p->SF_id_software, CSOUNDCFG_STRING, 0,
+        NULL, &max_len, "Software tag in output soundfile (no spaces)", NULL);
+    p->SF_id_artist = (char*) p->SF_id_software + (int) i;
+    csoundCreateConfigurationVariable(
+        p, "id_artist", p->SF_id_artist, CSOUNDCFG_STRING, 0,
+        NULL, &max_len, "Artist tag in output soundfile (no spaces)", NULL);
+    p->SF_id_comment = (char*) p->SF_id_artist + (int) i;
+    csoundCreateConfigurationVariable(
+        p, "id_comment", p->SF_id_comment, CSOUNDCFG_STRING, 0,
+        NULL, &max_len, "Comment tag in output soundfile (no spaces)", NULL);
+    p->SF_id_date = (char*) p->SF_id_comment + (int) i;
+    csoundCreateConfigurationVariable(
+        p, "id_date", p->SF_id_date, CSOUNDCFG_STRING, 0,
+        NULL, &max_len, "Date tag in output soundfile (no spaces)", NULL);
     /* max. length of string variables */
     {
       int minVal = 10;
