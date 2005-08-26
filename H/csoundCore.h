@@ -120,10 +120,6 @@ extern "C" {
 #define IGN(X)  (void) X
 #define printf  use_csoundMessage_instead_of_printf
 
-#if !(defined(__CYGWIN__) || defined(WIN32) || defined(__cdecl))
-#  define __cdecl
-#endif
-
   typedef struct {
     int     odebug;
     int     sfread, sfwrite, sfheader, filetyp;
@@ -213,17 +209,17 @@ extern "C" {
 
   typedef struct fdch {
     struct fdch * nxtchp;
-    void   *fd;             /* handle returned by csound->FileOpen() */
+    void    *fd;            /* handle returned by csound->FileOpen() */
   } FDCH;
 
   typedef struct auxch {
     struct auxch * nxtchp;
-    long   size;
-    void   *auxp, *endp;    /* was char* */
+    long    size;
+    void    *auxp, *endp;   /* was char* */
   } AUXCH;
 
   typedef struct monblk {
-    short  pch;
+    short   pch;
     struct monblk *prv;
   } MONPCH;
 
@@ -232,48 +228,48 @@ extern "C" {
   } DPEXCL;
 
   typedef struct {
-    DPEXCL dpexcl[8];
-    int    exclset[75];     /* for keys 25-99 */
+    DPEXCL  dpexcl[8];
+    int     exclset[75];    /* for keys 25-99 */
   } DPARM;
 
   typedef struct dklst {
     struct dklst *nxtlst;
-    long   pgmno;
-    MYFLT  keylst[1];       /* cnt + keynos */
+    long    pgmno;
+    MYFLT   keylst[1];      /* cnt + keynos */
   } DKLST;
 
   typedef struct mchnblk {
-    short  pgmno;           /* most recently received program change */
-    short  insno;           /* instrument number assigned to this channel */
-    short  RegParNo;
-    short  mono;
-    MONPCH *monobas;
-    MONPCH *monocur;
+    short   pgmno;          /* most recently received program change */
+    short   insno;          /* instrument number assigned to this channel */
+    short   RegParNo;
+    short   mono;
+    MONPCH  *monobas;
+    MONPCH  *monocur;
     struct insds *kinsptr[128]; /* list of active notes (NULL: not active) */
-    MYFLT  polyaft[128];    /* polyphonic pressure indexed by note number */
-    MYFLT  ctl_val[136];    /* ... with GS vib_rate, stored in c128-c135 */
-    short  pgm2ins[128];    /* program change to instr number (<=0: ignore) */
-    MYFLT  aftouch;         /* channel pressure (0-127) */
-    MYFLT  pchbend;         /* pitch bend (-1 to 1) */
-    MYFLT  pbensens;        /* pitch bend sensitivity in semitones */
-    MYFLT  dummy_;          /* unused */
-    short  ksuscnt;         /* number of held (sustaining) notes */
-    short  sustaining;      /* current state of sustain pedal (0: off) */
-    int    dpmsb;
-    int    dplsb;
-    int    datenabl;
-    DKLST  *klists;         /* chain of dpgm keylists */
-    DPARM  *dparms;         /* drumset params         */
+    MYFLT   polyaft[128];   /* polyphonic pressure indexed by note number */
+    MYFLT   ctl_val[136];   /* ... with GS vib_rate, stored in c128-c135 */
+    short   pgm2ins[128];   /* program change to instr number (<=0: ignore) */
+    MYFLT   aftouch;        /* channel pressure (0-127) */
+    MYFLT   pchbend;        /* pitch bend (-1 to 1) */
+    MYFLT   pbensens;       /* pitch bend sensitivity in semitones */
+    MYFLT   dummy_;         /* unused */
+    short   ksuscnt;        /* number of held (sustaining) notes */
+    short   sustaining;     /* current state of sustain pedal (0: off) */
+    int     dpmsb;
+    int     dplsb;
+    int     datenabl;
+    DKLST   *klists;        /* chain of dpgm keylists */
+    DPARM   *dparms;        /* drumset params         */
   } MCHNBLK;
 
   /* This struct holds the info for a concrete instrument event
      instance in performance. */
   typedef struct insds {
-    struct opds * nxti;             /* Chain of init-time opcodes */
-    struct opds * nxtp;             /* Chain of performance-time opcodes */
-    struct insds * nxtinstance;     /* Next allocated instance */
-    struct insds * prvinstance;     /* Previous allocated instance */
-    struct insds * nxtact;          /* Next in list of active instruments */
+    struct opds * nxti;     /* Chain of init-time opcodes */
+    struct opds * nxtp;     /* Chain of performance-time opcodes */
+    struct insds * nxtinstance; /* Next allocated instance */
+    struct insds * prvinstance; /* Previous allocated instance */
+    struct insds * nxtact;  /* Next in list of active instruments */
     struct insds * prvact;  /* Previous in list of active instruments */
     struct insds * nxtoff;  /* Next instrument to terminate */
     FDCH    *fdchp;         /* Chain of files used by opcodes in this instr */
@@ -538,7 +534,7 @@ extern "C" {
     short   inchns, outchns, perf_incnt, perf_outcnt;
     short   *in_ndx_list, *out_ndx_list;
     INSTRTXT *ip;
-    struct  opcodinfo *prv;
+    struct opcodinfo *prv;
   } OPCODINFO;
 
   typedef struct polish {
@@ -571,12 +567,14 @@ extern "C" {
     int (*GetAPIVersion)(void);
     void *(*GetHostData)(CSOUND *);
     void (*SetHostData)(CSOUND *, void *hostData);
-    int (*Perform)(CSOUND *, int argc, char **argv);
+    CSOUND *(*Create)(void *hostData);
     int (*Compile)(CSOUND *, int argc, char **argv);
+    int (*Perform)(CSOUND *, int argc, char **argv);
     int (*PerformKsmps)(CSOUND *);
     int (*PerformBuffer)(CSOUND *);
     int (*Cleanup)(CSOUND *);
     void (*Reset)(CSOUND *);
+    void (*Destroy)(CSOUND *);
     MYFLT (*GetSr)(CSOUND *);
     MYFLT (*GetKr)(CSOUND *);
     int (*GetKsmps)(CSOUND *);
@@ -715,7 +713,6 @@ extern "C" {
     void *(*SAsndgetset)(CSOUND *, char*, void*, MYFLT*, MYFLT*, MYFLT*, int);
     void *(*sndgetset)(CSOUND *, void*);
     int (*getsndin)(CSOUND *, void*, MYFLT*, int, void*);
-    int (*PerformKsmpsAbsolute)(CSOUND *);
     int (*GetDebug)(CSOUND *);
     void (*SetDebug)(CSOUND *, int d);
     int (*TableLength)(CSOUND *, int table);
@@ -724,16 +721,18 @@ extern "C" {
     void *(*CreateThread)(uintptr_t (*threadRoutine)(void *), void *userdata);
     uintptr_t (*JoinThread)(void *thread);
     void *(*CreateThreadLock)(void);
+    void (*DestroyThreadLock)(void *lock);
     int (*WaitThreadLock)(void *lock, size_t milliseconds);
     void (*NotifyThreadLock)(void *lock);
     void (*WaitThreadLockNoTimeout)(void *lock);
-    void (*DestroyThreadLock)(void *lock);
+    void (*Sleep)(size_t milliseconds);
+    void (*InitTimerStruct)(RTCLOCK *);
+    double (*GetRealTime)(RTCLOCK *);
+    double (*GetCPUTime)(RTCLOCK *);
+    uint32_t (*GetRandomSeedFromTime)(void);
     void (*SetFLTKThreadLocking)(CSOUND *, int isLocking);
     int (*GetFLTKThreadLocking)(CSOUND *);
-    void (*timers_struct_init)(RTCLOCK *);
-    double (*timers_get_real_time)(RTCLOCK *);
-    double (*timers_get_CPU_time)(RTCLOCK *);
-    unsigned long (*timers_random_seed)(void);
+    int (*PerformKsmpsAbsolute)(CSOUND *);
     char *(*LocalizeString)(const char*);
     int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
     void *(*QueryGlobalVariable)(CSOUND *, const char *name);
@@ -766,6 +765,7 @@ extern "C" {
     void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
     int (*AddUtility)(CSOUND *, const char *name,
                       int (*UtilFunc)(CSOUND *, int, char **));
+    int (*RunUtility)(CSOUND *, const char *name, int argc, char **argv);
     char **(*ListUtilities)(CSOUND *);
     int (*SetUtilityDescription)(CSOUND *, const char *utilName,
                                            const char *utilDesc);
@@ -824,7 +824,7 @@ extern "C" {
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[90];
+    SUBR dummyfn_2[86];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;

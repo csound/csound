@@ -440,7 +440,7 @@ int rndset(CSOUND *csound, RAND *p)
     if (*p->iseed >= FL(0.0)) {
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
         unsigned long seed;         /* I reinterpret >1 as a time seed */
-        seed = timers_random_seed();
+        seed = csound->GetRandomSeedFromTime();
         csound->Message(csound, Str("Seeding from current time %lu\n"), seed);
         if (!p->new) {
           p->rand = (long) (seed & 0xFFFFUL);
@@ -540,7 +540,7 @@ int rhset(CSOUND *csound, RANDH *p)
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
         unsigned long seed;         /* I reinterpret >1 as a time seed */
-        seed = timers_random_seed();
+        seed = csound->GetRandomSeedFromTime();
         csound->Message(csound, Str("Seeding from current time %lu\n"), seed);
         if (!p->new) {
           p->rand = (long) (seed & 0xFFFFUL);
@@ -638,7 +638,7 @@ int riset(CSOUND *csound, RANDI *p)
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
         unsigned long seed;         /* I reinterpret >1 as a time seed */
-        seed = timers_random_seed();
+        seed = csound->GetRandomSeedFromTime();
         csound->Message(csound, Str("Seeding from current time %lu\n"), seed);
         if (!p->new) {
           short rand = (short)seed;

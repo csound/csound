@@ -257,11 +257,11 @@ static int openJackStream(CsoundJackClient_t *client, csRtAudioParams *parm,
         return CSOUND_ERROR;
       }
     }
-    if (!playback && (((pp->parm.bufSamp_SW / p->GetKsmps(p)) * p->GetKsmps(p))
+    if (!playback && (((pp->parm.bufSamp_SW / p->ksmps) * p->ksmps)
                       != pp->parm.bufSamp_SW)) {
       p->Message(p, " *** openJackStream(): period size %d is not an integer "
                     "multiple of ksmps (%d)\n",
-                    pp->parm.bufSamp_SW, p->GetKsmps(p));
+                    pp->parm.bufSamp_SW, p->ksmps);
       return CSOUND_ERROR;
     }
     /* check sample rate */
@@ -506,7 +506,7 @@ static int recopen_(CSOUND *csound, csRtAudioParams *parm)
       csound->DestroyGlobalVariable(csound, "::JACK::client");
       return -1;
     }
-    *(csound->GetRtRecordUserData(csound)) = &(client->r);
+    csound->rtRecord_userdata = &(client->r);
     return 0;
 }
 
@@ -528,7 +528,7 @@ static int playopen_(CSOUND *csound, csRtAudioParams *parm)
       csound->DestroyGlobalVariable(csound, "::JACK::client");
       return -1;
     }
-    *(csound->GetRtPlayUserData(csound)) = &(client->p);
+    csound->rtPlay_userdata = &(client->p);
     return 0;
 }
 
@@ -670,8 +670,8 @@ static int jackClientActivate(CSOUND *csound)
     closeJackStream(client, 1);
     jack_client_close(client->client);
     p->DestroyGlobalVariable(csound, "::JACK::client");
-    *(p->GetRtRecordUserData(csound)) = NULL;
-    *(p->GetRtPlayUserData(csound)) = NULL;
+    p->rtRecord_userdata = NULL;
+    p->rtPlay_userdata = NULL;
     return -1;
 }
 
@@ -683,7 +683,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     volatile int        *frames_ahead;
     int                 nframes;
 
-    pp = *((JackStreamParams_t**) (csound->GetRtRecordUserData(csound)));
+    pp = (JackStreamParams_t*) csound->rtRecord_userdata;
     if (pp == NULL || pp->active == 0) {
       csound->Message(csound, " *** real time audio input stopped\n");
       memset(inbuf_, 0, (size_t) bytes_);
@@ -720,7 +720,7 @@ static void rtplay_(CSOUND *csound, MYFLT *outbuf_, int bytes_)
     volatile int        *frames_ahead;
     int                 nframes;
 
-    pp = *((JackStreamParams_t**) (csound->GetRtPlayUserData(csound)));
+    pp = (JackStreamParams_t*) csound->rtPlay_userdata;
     if (pp == NULL || pp->active == 0) {
       csound->Message(csound, " *** real time audio output stopped\n");
       usleep(100000);
@@ -759,8 +759,8 @@ static void rtclose_(CSOUND *csound)
     closeJackStream(client, 1);
     jack_client_close(client->client);
     csound->DestroyGlobalVariable(csound, "::JACK::client");
-    *(csound->GetRtRecordUserData(csound)) = NULL;
-    *(csound->GetRtPlayUserData(csound)) = NULL;
+    csound->rtRecord_userdata = NULL;
+    csound->rtPlay_userdata = NULL;
 }
 
 /* sample conversion routines */

@@ -43,16 +43,18 @@ static inline OSCBNK_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 
 /* update random seed */
 
-static void oscbnk_rand31(long *seed)
+static CS_PURE long oscbnk_rand31(long seed)
 {
-    unsigned long       x, xl, xh;
+    uint64_t tmp1;
+    uint32_t tmp2;
 
     /* x = (16807 * x) % 0x7FFFFFFF */
-    x = (unsigned long) *seed;
-    xl = (x & 0xFFFFUL) * 16807UL; xh = (x >> 16) * 16807UL;
-    x = xl + ((xh & 0x7FFFUL) << 16) + (xh >> 15);
-    if (x >= 0x7FFFFFFFUL) x = (x + 1UL) & 0x7FFFFFFFUL;
-    *seed = (long) x;
+    tmp1 = (uint64_t) ((int32_t) seed * (int64_t) 16807);
+    tmp2 = (uint32_t) tmp1 & (uint32_t) 0x7FFFFFFF;
+    tmp2 += (uint32_t) (tmp1 >> 31);
+    if ((int32_t) tmp2 < (int32_t) 0)
+      tmp2 = (tmp2 + (uint32_t) 1) & (uint32_t) 0x7FFFFFFF;
+    return (long) tmp2;
 }
 
 /* initialise random seed */
@@ -65,15 +67,15 @@ static void oscbnk_seedrand(CSOUND *csound, long *seed, MYFLT seedval)
       if (pp->oscbnk_seed > 0UL)
         pp->oscbnk_seed += 23UL;
       else
-        pp->oscbnk_seed = (unsigned long) csound->timers_random_seed();
+        pp->oscbnk_seed = (unsigned long) csound->GetRandomSeedFromTime();
       pp->oscbnk_seed = ((pp->oscbnk_seed - 1UL) % 0x7FFFFFFEUL) + 1UL;
       *seed = (long) pp->oscbnk_seed;
     }
     else {
       *seed = ((*seed - 1L) % 0x7FFFFFFEL) + 1L;
     }
-    oscbnk_rand31(seed);
-    oscbnk_rand31(seed);
+    *seed = oscbnk_rand31(*seed);
+    *seed = oscbnk_rand31(*seed);
 }
 
 /* return a random phase value between 0 and OSCBNK_PHSMAX */
@@ -81,7 +83,7 @@ static void oscbnk_seedrand(CSOUND *csound, long *seed, MYFLT seedval)
 static unsigned long oscbnk_rnd_phase(long *seed)
 {
     /* update random seed */
-    oscbnk_rand31(seed);
+    *seed = oscbnk_rand31(*seed);
     /* convert seed to phase */
     return ((unsigned long) *seed >> OSCBNK_RNDPHS);
 }
@@ -95,7 +97,7 @@ static MYFLT oscbnk_rnd_bipolar(long *seed, MYFLT rpow, int rmode)
 
     /* update random seed */
 
-    oscbnk_rand31(seed);
+    *seed = oscbnk_rand31(*seed);
 
     /* convert to floating point */
 
@@ -129,7 +131,7 @@ static MYFLT oscbnk_rand(OSCBNK *p)
 
     /* update random seed */
 
-    oscbnk_rand31(&(p->seed));
+    p->seed = oscbnk_rand31(p->seed);
 
     /* convert to float */
 
@@ -1086,7 +1088,7 @@ static int rnd31a(CSOUND *csound, RND31 *p)
       /* IV - Jan 30 2003: optimised code for uniform distribution */
       scl *= (FL(1.0) / (MYFLT) 0x3FFFFFFFL);
       do {
-        oscbnk_rand31(&(p->seed));
+        p->seed = oscbnk_rand31(p->seed);
         *(out++) = scl * ((MYFLT) p->seed - (MYFLT) 0x3FFFFFFFL);
       } while (--nn);
       return OK;

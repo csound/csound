@@ -65,8 +65,7 @@ static void create_opcodlst(CSOUND *csound)
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
-    char    *s;
-    char    *filnamp;
+    char    *s, *filnamp;
     char    *sortedscore = NULL;
     char    *xtractedscore = "score.xtr";
     char    *playscore = NULL;      /* unless we extract */
@@ -84,10 +83,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
 
     init_pvsys(csound);
-    /* utilities depend on this as well as orchs */
-    dbfs_init(csound, DFLT_DBFS);       /* may get changed by an orch */
+    /* utilities depend on this as well as orchs; may get changed by an orch */
+    dbfs_init(csound, DFLT_DBFS);
     csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
-    timers_struct_init(csound->csRtClock);
+    csoundInitTimerStruct(csound->csRtClock);
     csound->engineState |= 10;
 
 #ifndef USE_DOUBLE
@@ -120,7 +119,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     csound->peakchunks = 1;
     create_opcodlst(csound);
 
-    if (--argc == 0) {
+    if (--argc <= 0) {
       dieu(csound, Str("insufficient arguments"));
     }
     /* command line: allow orc/sco/csd name */
@@ -167,7 +166,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       dieu(csound, Str("no orchestra name"));
     else if ((strcmp(csound->orchname+strlen(csound->orchname)-4, ".csd")==0 ||
               strcmp(csound->orchname+strlen(csound->orchname)-4, ".CSD")==0) &&
-             (csound->scorename==NULL || strlen(csound->scorename)==0)) {
+             (csound->scorename == NULL || strlen(csound->scorename) == 0)) {
       int   read_unified_file(void*, char **, char **);
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
       csound->orcname_mode = 0;
@@ -260,7 +259,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (!csoundYield(csound))
       return -1;
     /* IV - Oct 31 2002: now we can read and sort the score */
-    if (csound->scorename == NULL || csound->scorename[0]=='\0') {
+    if (csound->scorename == NULL || csound->scorename[0] == '\0') {
       if (O->RTevents) {
         csound->Message(csound, Str("realtime performance using dummy "
                                     "numeric scorefile\n"));

@@ -73,8 +73,8 @@ void print_benchmark_info(CSOUND *csound, const char *s)
 
     if ((csound->oparms->msglevel & 0x80) == 0 || csound->csRtClock == NULL)
       return;
-    rt = timers_get_real_time(csound->csRtClock);
-    ct = timers_get_CPU_time(csound->csRtClock);
+    rt = csoundGetRealTime(csound->csRtClock);
+    ct = csoundGetCPUTime(csound->csRtClock);
     csound->Message(csound,
                     Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
                     (char*) s, rt, ct);

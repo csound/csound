@@ -70,15 +70,15 @@ int apow(CSOUND *csound, POW *p)                /* Power routine for a-rate  */
 
 int seedrand(CSOUND *csound, PRAND *p)
 {
-    if ((unsigned int)*p->out == 0U) {
-      csound->holdrand = (int) csound->timers_random_seed() & 0x7FFFFFFF;
+    if ((unsigned int) *p->out == 0U) {
+      csound->holdrand = (int) csound->GetRandomSeedFromTime() & 0x7FFFFFFF;
       csound->Message(csound,
                       Str("Seeding from current time %d\n"), csound->holdrand);
       srand((unsigned int) csound->holdrand);
     }
     else {
-      csound->Message(csound,Str("Seeding with %.3f\n"), *p->out);
-      srand((unsigned int) (csound->holdrand = (int)*p->out));
+      csound->Message(csound, Str("Seeding with %.3f\n"), *p->out);
+      srand((unsigned int) (csound->holdrand = (int) *p->out));
     }
     return OK;
 }

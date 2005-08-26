@@ -21,22 +21,19 @@
     02111-1307 USA
 */
 
-#ifdef _WIN32
-#       pragma warning(disable: 4117 4804)
-#endif
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
 
 #if defined(WIN32)
-#       include <process.h>
-#       include <windows.h>
+#  include <windows.h>
 #endif /* defined(WIN32) */
-#if defined(LINUX) || defined(NETBSD)
-#       include <pthread.h>
-#       include <sched.h>
-#       include <sys/time.h>
-#endif /* defined(LINUX) || defined(NETBSD) */
+
+#if defined(LINUX)
+#  include <pthread.h>
+#  include <sched.h>
+#  include <sys/time.h>
+#endif /* defined(LINUX) */
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
@@ -96,12 +93,7 @@ typedef struct widgetsGlobals_s {
     void        *threadLock;
     int         exit_now;       /* set by GUI when all windows are closed   */
     int         end_of_perf;    /* set by main thread at end of performance */
-#ifdef WIN32
-    HANDLE      threadHandle;
-#elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD) ||  \
-      defined(__MACH__)
-    pthread_t   threadHandle;
-#endif
+    void        *threadHandle;
 } widgetsGlobals_t;
 #endif
 
@@ -1648,13 +1640,8 @@ extern "C" {
       awake(csound);
       unlock(csound);
       /* ...and wait for it to close */
-      while (!p->exit_now) {
-#ifdef WIN32
-        Sleep(10);
-#else
-        usleep(10000);
-#endif
-      }
+      csound->JoinThread(p->threadHandle);
+      p->threadHandle = NULL;
     }
     /* clean up */
     csound->WaitThreadLock(p->threadLock, 1000);
@@ -1722,7 +1709,10 @@ extern "C" {
 //-----------
 
 #ifndef NO_FLTK_THREADS
-static void __cdecl fltkRun(void *userdata)
+
+extern "C" {
+
+static uintptr_t fltkRun(void *userdata)
 {
   volatile widgetsGlobals_t *p;
   CSOUND    *csound = (CSOUND*) userdata;
@@ -1730,6 +1720,15 @@ static void __cdecl fltkRun(void *userdata)
 
   p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                       "_widgets_globals");
+#ifdef LINUX
+  {
+    struct sched_param  sp;
+    // IV - Aug 27 2002: widget thread is always run with normal priority
+    memset(&sp, 0, sizeof(struct sched_param));
+    pthread_setschedparam(pthread_self(), SCHED_OTHER, &sp);
+  }
+#endif
+
   lock(csound);
   for (j = 0; j < (int) fl_windows.size(); j++) {
     fl_windows[j].panel->show();
@@ -1745,28 +1744,12 @@ static void __cdecl fltkRun(void *userdata)
   csound->Message(csound, "end of widget thread\n");
   // IV - Jun 07 2005: exit if all windows are closed
   p->exit_now = -1;
+  return (uintptr_t) 0;
 }
+
+};  // extern "C"
+
 #endif  // NO_FLTK_THREADS
-
-#if 0
-static void __cdecl fltkKeybRun(void *userdata)
-{
-  CSOUND *csound = (CSOUND *)userdata;
-  oKeyb->show();
-  //Fl::run();
-
-  while(Fl::wait()) {
-    int temp = FLkeyboard_sensing();
-    if (temp != 0 && *keybp->args[1] >=1 ) {
-      *keybp->kout = temp;
-      ButtonSched((CSOUND *)userdata, keybp->args, keybp->INOCOUNT);
-    }
-
-  }
-  if (csound->oparms->msglevel & WARNMSG)
-    csound->Warning(csound, "end of keyboard thread");
-}
-#endif
 
 extern "C" int FL_run(CSOUND *csound, FLRUN *p)
 {
@@ -1786,26 +1769,7 @@ extern "C" int FL_run(CSOUND *csound, FLRUN *p)
   csound->RegisterSenseEventCallback(csound,
                                      (void (*)(CSOUND *, void *)) evt_callback,
                                      (void*) pp);
-#ifdef WIN32
-  pp->threadHandle = (HANDLE) _beginthread(fltkRun, 0, csound);
-#if 0
-  if (isActivatedKeyb)
-    threadHandle = _beginthread(fltkKeybRun, 0, csound);
-#endif
-#elif defined(LINUX) || defined(NETBSD) || defined(HAVE_LIBPTHREAD) ||  \
-      defined(__MACH__)
-  pthread_attr_t a;
-  // IV - Aug 27 2002: widget thread is always run with normal priority
-  pthread_attr_init(&a);
-#if !defined(NETBSD)
-  pthread_attr_setschedpolicy(&a, SCHED_OTHER);
-  pthread_attr_setinheritsched(&a, PTHREAD_EXPLICIT_SCHED);
-#endif
-  /* assume that does not fail... */
-  pthread_create(&(pp->threadHandle), &a, (void *(*)(void *)) fltkRun, csound);
-#else
-#  error No run facility in FL_run
-#endif
+  pp->threadHandle = csound->CreateThread(fltkRun, (void*) csound);
 #else   // NO_FLTK_THREADS
   int j;
 
@@ -2495,9 +2459,6 @@ extern "C" int fl_setWidgetValue(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
     ((Fl_Valuator *)o)->value(val);
     o->do_callback(o, p->opcode);
     unlock(csound);
-#ifdef WIN32
-    //      PostMessage(callback_target,0,0,0);
-#endif
   }
   return OK;
 }
