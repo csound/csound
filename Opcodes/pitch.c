@@ -493,7 +493,7 @@ static void initClockStruct(CSOUND *csound, void **p)
       csound->CreateGlobalVariable(csound, "readClock::counters",
                                            sizeof(CPU_CLOCK));
       *p = csound->QueryGlobalVariable(csound, "readClock::counters");
-      csound->timers_struct_init(&(((CPU_CLOCK*) (*p))->r));
+      csound->InitTimerStruct(&(((CPU_CLOCK*) (*p))->r));
     }
 }
 
@@ -517,7 +517,7 @@ int clockon(CSOUND *csound, CLOCK *p)
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     if (!clk->running[p->c]) {
       clk->running[p->c] = 1;
-      clk->counters[p->c] = csound->timers_get_CPU_time(&(clk->r));
+      clk->counters[p->c] = csound->GetCPUTime(&(clk->r));
     }
     return OK;
 }
@@ -527,8 +527,7 @@ int clockoff(CSOUND *csound, CLOCK *p)
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
     if (clk->running[p->c]) {
       clk->running[p->c] = 0;
-      clk->counters[p->c] = csound->timers_get_CPU_time(&(clk->r))
-                            - clk->counters[p->c];
+      clk->counters[p->c] = csound->GetCPUTime(&(clk->r)) - clk->counters[p->c];
     }
     return OK;
 }
@@ -1200,11 +1199,9 @@ int phsorbnk(CSOUND *csound, PHSORBNK *p)
    at the far high end.
  */
 
-#include <time.h>   /* for random seeding from current time (Gardner default) */
-
-#define GARDNER_PINK ((MYFLT)0.0)
-#define KELLET_PINK ((MYFLT)1.0)
-#define KELLET_CHEAP_PINK ((MYFLT)2.0)
+#define GARDNER_PINK        FL(0.0)
+#define KELLET_PINK         FL(1.0)
+#define KELLET_CHEAP_PINK   FL(2.0)
 
 int GardnerPink_init(CSOUND *csound, PINKISH *p);
 int GardnerPink_perf(CSOUND *csound, PINKISH *p);
@@ -1355,12 +1352,12 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
     }
 
     /* Seed random generator by user value or by time (default) */
-    if (*p->iseed != 0) {
+    if (*p->iseed != FL(0.0)) {
       if (*p->iseed > -1.0 && *p->iseed < 1.0)
         p->randSeed = (unsigned long) (*p->iseed * (MYFLT)0x80000000);
       else p->randSeed = (unsigned long) *p->iseed;
     }
-    else p->randSeed = (unsigned long)time(NULL);
+    else p->randSeed = (unsigned long) csound->GetRandomSeedFromTime();
 
     numRows = p->grd_NumRows;
     p->grd_Index = 0;

@@ -87,8 +87,8 @@ extern "C"
                 VSTAUDIO *p = (VSTAUDIO *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 plugin->Debug("vstaudio_init.\n");
-                p->framesPerBlock = csound->GetKsmps(csound);
-                p->channels = csound->GetNchnls(csound);
+                p->framesPerBlock = csound->ksmps;
+                p->channels = csound->nchnls;
                 return OK;
         }
 
@@ -153,7 +153,7 @@ extern "C"
         {
                 VSTNOTE *p = (VSTNOTE *)data;
         if(p->framesRemaining >= 0) {
-            p->framesRemaining -= (size_t) csound->GetKsmps(csound);
+            p->framesRemaining -= (size_t) csound->ksmps;
             if(p->framesRemaining <= 0) {
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 plugin->Debug("vstnote.\n");

@@ -101,11 +101,11 @@ public:
   {
     if(!instrument)
       {
-        Stk::setSampleRate(csound->GetSr(csound));
+        Stk::setSampleRate(csound->esr);
         instrument = new T();
         stkInstances[csound].push_back(instrument);
       }
-    ksmps = csound->GetKsmps(csound);
+    ksmps = csound->ksmps;
     instrument->noteOn(*ifrequency, *igain);
     released = false;
     oldkcontroller0 = -1.0;
@@ -202,11 +202,11 @@ public:
   {
     if(!instrument)
       {
-        Stk::setSampleRate(csound->GetSr(csound));
+        Stk::setSampleRate(csound->esr);
         instrument = new T((StkFloat) 10.0);
         stkInstances[csound].push_back(instrument);
       }
-    ksmps = csound->GetKsmps(csound);
+    ksmps = csound->ksmps;
     instrument->noteOn(*ifrequency, *igain);
     released = false;
     oldkcontroller0 = -1.0;

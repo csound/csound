@@ -102,9 +102,9 @@ static int Lorisgens_Ksamps = 0;
 // ---------------------------------------------------------------------------
 static void setup_globals( CSOUND * csound )
 {
-  Lorisgens_Srate = csound->GetSr( csound );
-  Lorisgens_Krate = csound->GetKr( csound );
-  Lorisgens_Ksamps = csound->GetKsmps( csound );
+  Lorisgens_Srate = csound->esr;
+  Lorisgens_Krate = csound->ekr;
+  Lorisgens_Ksamps = csound->ksmps;
   // std::cerr << "*** sample rate is " << Lorisgens_Srate << std::endl;
   // std::cerr << "*** control rate is " << Lorisgens_Krate << std::endl;
 }
@@ -704,7 +704,7 @@ struct LorisPlayer
 //
 LorisPlayer::LorisPlayer( CSOUND *csound, LORISPLAY * params ) :
   reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->readerIdx) ) ),
-     dblbuffer( csound->GetKsmps(csound), 0. )
+     dblbuffer( csound->ksmps, 0.0 )
 {
   if ( reader != NULL ) {
     oscils.resize( reader->size() );
@@ -749,7 +749,7 @@ int lorisplay( CSOUND *csound, LORISPLAY * p )
 
   //    clear the buffer first!
   double * bufbegin =  &(player.dblbuffer[0]);
-  clear_buffer( bufbegin, csound->GetKsmps(csound) );
+  clear_buffer( bufbegin, csound->ksmps );
 
   //    now accumulate samples into the buffer:
   for( size_t i = 0; i < player.oscils.size(); ++i )
@@ -763,11 +763,11 @@ int lorisplay( CSOUND *csound, LORISPLAY * p )
                               (*p->ampenv) * bp.amplitude(),
                               (*p->bwenv) * bp.bandwidth(),
                               bp.phase() );
-      accum_samples( player.oscils[i], modifiedBp, bufbegin, csound->GetKsmps(csound) );
+      accum_samples( player.oscils[i], modifiedBp, bufbegin, csound->ksmps );
     }
 
   //    transfer samples into the result buffer:
-  convert_samples( bufbegin, p->result, csound->GetKsmps(csound) );
+  convert_samples( bufbegin, p->result, csound->ksmps );
   return OK;
 }
 

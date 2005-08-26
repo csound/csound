@@ -123,7 +123,7 @@ extern "C"
     fluid_synth_t *fluidSynth = 0;
     fluid_settings_t *fluidSettings = new_fluid_settings();
     fluidSynth = new_fluid_synth(fluidSettings);
-    float samplingRate_ = (float) csound->GetSr(csound);
+    float samplingRate_ = (float) csound->esr;
     fluid_settings_setnum(fluidSettings, "synth.sample-rate", samplingRate_);
     fluid_settings_setint(fluidSettings, "synth.polyphony", 4096);
     fluid_settings_setint(fluidSettings, "synth.midi-channels", 256);
@@ -308,10 +308,10 @@ extern "C"
   //    int engineNum   = (int)(*fluid->iEngineNumber);
   //    int channelNum  = (int)(*fluid->iChannelNumber);
   //    int key         = (int)(*fluid->iMidiKeyNumber);
-  //    MYFLT scoreTime = csound->GetScoreTime(csound);
+  //    MYFLT scoreTime = csound->curTime;
   //    MYFLT offTime = fluid->h.insdshead->offtim;
-  //    //int kSmps = csound->GetKsmps(csound);
-  //    //int sRate = (int)csound->GetSr(csound);
+  //    //int kSmps = csound->ksmps;
+  //    //int sRate = (int) csound->esr;
   //    //csound->Message(csound, "Times score:%f off:%f\n", scoreTime, offTime);
   //    if(!fluid->released &&
   //       ( offTime <= scoreTime + .025 || fluid->h.insdshead->relesing)) {
@@ -329,7 +329,7 @@ extern "C"
   int fluidOutIopadr(CSOUND *csound, void *data)
   {
     FLUIDOUT *fluid = (FLUIDOUT *)data;
-    fluid->blockSize = csound->GetKsmps(csound);
+    fluid->blockSize = csound->ksmps;
     return OK;
   }
 
@@ -367,7 +367,7 @@ extern "C"
   int fluidAllOutIopadr(CSOUND *csound, void *data)
   {
     FLUIDALLOUT *fluid = (FLUIDALLOUT *)data;
-    fluid->blockSize = csound->GetKsmps(csound);
+    fluid->blockSize = csound->ksmps;
     return OK;
   }
 
@@ -524,7 +524,7 @@ extern "C"
             }
         }
       if((!released) &&
-         (h.insdshead->offtim <= csound->GetScoreTime(csound) + 0.25 ||
+         (h.insdshead->offtim <= csound->curTime + 0.25 ||
           h.insdshead->relesing)) {
         released = true;
         fluid_synth_noteoff(fluid_engines[fluidId],

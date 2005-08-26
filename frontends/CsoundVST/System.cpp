@@ -465,7 +465,7 @@ namespace csound
 
   void System::sleep(double milliseconds)
   {
-    Sleep((int) milliseconds);
+    Sleep((int) (milliseconds + 0.999));
   }
 
   void System::beep()
@@ -690,7 +690,7 @@ namespace csound
 
   void System::sleep(double milliseconds)
   {
-    sleep((int) milliseconds);
+    csoundSleep((int) (milliseconds + 0.999));
   }
 
   void System::beep()
@@ -902,7 +902,7 @@ namespace csound
 
   void System::sleep(double milliseconds)
   {
-    sleep((int) milliseconds);
+    csoundSleep((int) (milliseconds + 0.999));
   }
 
   void System::beep()

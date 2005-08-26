@@ -150,9 +150,8 @@ static int msgDataBytes(int c)
     return -1;
 }
 
-static int alloc_event(CSOUND *csound,
-                       unsigned long kcnt, unsigned char *data,
-                       int st, int d1, int d2)
+static int alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *data,
+                                       int st, int d1, int d2)
 {
     midiEvent_t *tmp;
     /* expand array if necessary */
@@ -308,8 +307,8 @@ static int readEvent(CSOUND *csound, FILE *f, int *tlen,
       i = getVLenData(csound, f, tlen);         /* message length */
       if (i < 0 || *tlen < 0) return -1;
       if (i > 0 &&
-          ((st >= 1 && st <= 5 && (csound->GetMessageLevel(csound) & 7) == 7) ||
-           (st == 3 && csound->GetMessageLevel(csound) != 0))) {
+          ((st >= 1 && st <= 5 && (csound->oparms->msglevel & 7) == 7) ||
+           (st == 3 && csound->oparms->msglevel != 0))) {
         /* print non-empty text meta events, depending on message level */
         switch (st) {
           case 0x01: csound->Message(csound, Str("  Message: ")); break;
@@ -463,8 +462,7 @@ static void sortEventLists(CSOUND *csound)
       tempoVal = default_tempo;
       prvTicks = curTicks = 0UL;
       /* k-periods per tick */
-      tempoVal = (double) (csound->GetKr(csound))
-                 / (tempoVal * MF(timeCode) / 60.0);
+      tempoVal = (double) csound->ekr / (tempoVal * MF(timeCode) / 60.0);
       i = j = 0;
       while (i < MF(nEvents) || j < MF(nTempo)) {
         prvTicks = curTicks;
@@ -482,8 +480,7 @@ static void sortEventLists(CSOUND *csound)
           timeVal += ((double) ((long) (curTicks - prvTicks)) * tempoVal);
           tempoVal = MF(tempoList)[j].tempoVal;     /* new tempo */
           /* k-periods per tick */
-          tempoVal = (double) (csound->GetKr(csound))
-                     / (tempoVal * MF(timeCode) / 60.0);
+          tempoVal = (double) csound->ekr / (tempoVal * MF(timeCode) / 60.0);
           MF(tempoList)[j++].kcnt = (unsigned long) (timeVal + 0.5);
         }
       }
@@ -495,7 +492,7 @@ static void sortEventLists(CSOUND *csound)
       /* simple case: time based tick values */
       tempoVal = -(MF(timeCode));
       /* k-periods per tick */
-      tempoVal = (double) (csound->GetKr(csound)) / tempoVal;
+      tempoVal = (double) csound->ekr / tempoVal;
       i = -1;
       while (++i < MF(nEvents)) {
         curTicks = MF(eventList)[i].kcnt;
@@ -522,6 +519,7 @@ static void sortEventLists(CSOUND *csound)
 int csoundMIDIFileOpen(CSOUND *csound, const char *name)
 {
     FILE    *f = NULL;
+    void    *fd = NULL;
     char    *m;
     int     i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
     int     mute_track;
@@ -533,12 +531,13 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
       return -1;
     if (strcmp(name, "stdin") == 0)
       f = stdin;
-    else
-      f = fopen(name, "rb");
-    if (f == NULL) {
-      csound->Message(csound, Str(" *** error opening MIDI file '%s': %s\n"),
-                              name, strerror(errno));
-      return -1;
+    else {
+      fd = csound->FileOpen(csound, &f, CSFILE_STD, name, "rb", NULL);
+      if (fd == NULL) {
+        csound->ErrorMsg(csound, Str(" *** error opening MIDI file '%s': %s"),
+                                 name, strerror(errno));
+        return -1;
+      }
     }
     csound->Message(csound, Str("Reading MIDI file '%s'...\n"), name);
     /* check header */
@@ -654,8 +653,8 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
       if (mute_track)                   /* if track is muted, discard any */
         MF(nEvents) = saved_nEvents;    /* non-tempo events read */
     }
-    if (strcmp(name, "stdin") != 0)
-      fclose(f);
+    if (fd != NULL)
+      csound->FileClose(csound, fd);
     /* prepare event and tempo list for reading */
     sortEventLists(csound);
     /* successfully read MIDI file */
@@ -664,8 +663,8 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
 
     /* in case of error: clean up and report error */
  err_return:
-    if (f != NULL && strcmp(name, "stdin") != 0)
-      fclose(f);
+    if (fd != NULL)
+      csound->FileClose(csound, fd);
     csoundMIDIFileClose(csound);
     return -1;
 }

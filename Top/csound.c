@@ -78,13 +78,7 @@ extern "C" {
       return;
     }
     csoundUnLock();
-#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
-    usleep(250000);
-#elif defined(WIN32)
-    Sleep(1000);
-#else
-    sleep(1);
-#endif
+    csoundSleep(250);
     while (1) {
       csoundLock(); p = instance_list; csoundUnLock();
       if (p == NULL)
@@ -248,11 +242,7 @@ extern "C" {
       switch (n) {
         case 2:
           csoundUnLock();
-#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
-          usleep(1000);
-#elif defined(WIN32)
-          Sleep(1);
-#endif
+          csoundSleep(1);
         case 0:
           break;
         default:
@@ -1027,16 +1017,10 @@ static void dummy_rtaudio_timer(CSOUND *csound, double *p)
     double  timeWait;
     int     i;
 
-    timeWait = p[0] - timers_get_real_time(csound->csRtClock);
-#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
-    i = (int) (timeWait * 1000000.0 + 0.5);
-    if (i > 0)
-      usleep((unsigned long) i);
-#elif defined(WIN32) || defined(_WIN32)
+    timeWait = p[0] - csoundGetRealTime(csound->csRtClock);
     i = (int) (timeWait * 1000.0 + 0.5);
     if (i > 0)
-      Sleep((DWORD) i);
-#endif
+      csoundSleep((size_t) i);
 }
 
 int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
@@ -1059,7 +1043,7 @@ int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     }
     p = get_dummy_rtaudio_globals(csound);
     csound->rtPlay_userdata = (void*) p;
-    p[0] = csound->timers_get_real_time(csound->csRtClock);
+    p[0] = csound->GetRealTime(csound->csRtClock);
     p[1] = 1.0 / ((double) ((int) sizeof(MYFLT) * parm->nChannels)
                   * (double) parm->sampleRate);
     return CSOUND_SUCCESS;
@@ -1093,7 +1077,7 @@ int recopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     }
     p = (double*) get_dummy_rtaudio_globals(csound) + 2;
     csound->rtRecord_userdata = (void*) p;
-    p[0] = csound->timers_get_real_time(csound->csRtClock);
+    p[0] = csound->GetRealTime(csound->csRtClock);
     p[1] = 1.0 / ((double) ((int) sizeof(MYFLT) * parm->nChannels)
                   * (double) parm->sampleRate);
     return CSOUND_SUCCESS;
@@ -1703,7 +1687,7 @@ static inline int_least64_t get_real_time(void)
     return ((int_least64_t) tv.tv_usec
             + (int_least64_t) ((uint32_t) tv.tv_sec * (uint64_t) 1000000));
 #else
-    /* other systems: use ANSI C time() - allows 1 second resolution */
+    /* other systems: use time() - allows 1 second resolution */
     return ((int_least64_t) time(NULL));
 #endif
 }
@@ -1717,7 +1701,7 @@ static inline int_least64_t get_CPU_time(void)
 
 /* initialise a timer structure */
 
-PUBLIC void timers_struct_init(RTCLOCK *p)
+PUBLIC void csoundInitTimerStruct(RTCLOCK *p)
 {
     p->starttime_real = get_real_time();
     p->starttime_CPU = get_CPU_time();
@@ -1726,7 +1710,7 @@ PUBLIC void timers_struct_init(RTCLOCK *p)
 /* return the elapsed real time (in seconds) since the specified timer */
 /* structure was initialised */
 
-PUBLIC double timers_get_real_time(RTCLOCK *p)
+PUBLIC double csoundGetRealTime(RTCLOCK *p)
 {
     return ((double) (get_real_time() - p->starttime_real)
             * (double) timeResolutionSeconds);
@@ -1735,7 +1719,7 @@ PUBLIC double timers_get_real_time(RTCLOCK *p)
 /* return the elapsed CPU time (in seconds) since the specified timer */
 /* structure was initialised */
 
-PUBLIC double timers_get_CPU_time(RTCLOCK *p)
+PUBLIC double csoundGetCPUTime(RTCLOCK *p)
 {
     return ((double) ((uint32_t) get_CPU_time() - (uint32_t) p->starttime_CPU)
             * (1.0 / (double) CLOCKS_PER_SEC));
@@ -1743,9 +1727,9 @@ PUBLIC double timers_get_CPU_time(RTCLOCK *p)
 
 /* return a 32-bit unsigned integer to be used as seed from current time */
 
-PUBLIC unsigned long timers_random_seed(void)
+PUBLIC uint32_t csoundGetRandomSeedFromTime(void)
 {
-    return (unsigned long) ((uint32_t) get_real_time());
+    return (uint32_t) get_real_time();
 }
 
 /**

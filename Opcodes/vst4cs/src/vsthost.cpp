@@ -433,9 +433,9 @@ void VSTPlugin::Free() // Called also in destruction
 void VSTPlugin::Init()
 {
     Debug("VSTPlugin::Init.\n");
-        framesPerSecond = size_t(csound->GetSr(csound));
-        framesPerBlock = csound->GetKsmps(csound);
-        channels = csound->GetNchnls(csound);
+        framesPerSecond = size_t(csound->esr);
+        framesPerBlock = csound->ksmps;
+        channels = csound->nchnls;
         Log("VSTPlugin::Init framesPerSecond %d framesPerBlock %d channels %d.\n",
            framesPerSecond, framesPerBlock, channels);
         inputs_.resize(channels);
@@ -711,8 +711,8 @@ int VSTPlugin::NumPrograms()
 VstTimeInfo *VSTPlugin::GetTime()
 {
     Debug("VSGPlugin::GetTime().\n");
-    if(csound)
-        vstTimeInfo.samplePos = csound->GetScoreTime(csound) / csound->GetSr(csound);
+    if (csound)
+        vstTimeInfo.samplePos = csound->curTime * csound->esr;
     else
         vstTimeInfo.samplePos = 0;
     vstTimeInfo.sampleRate = framesPerSecond;
