@@ -19,7 +19,7 @@
     02111-1307 USA
 */
 
-#ifdef LINUX
+#if defined(__linux) || defined(__linux__) || defined(__MACH__)
 /* for pthread_mutex_timedlock() */
 #define _XOPEN_SOURCE 600
 #endif
@@ -103,6 +103,11 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
     CloseHandle((HANDLE) lock);
 }
 
+PUBLIC void csoundSleep(size_t milliseconds)
+{
+    Sleep((DWORD) milliseconds);
+}
+
 /* internal functions for csound.c */
 
 static  HANDLE  cs_mutex = (HANDLE) 0;
@@ -124,10 +129,8 @@ void csoundUnLock(void)
 #elif defined(LINUX) || defined(__CYGWIN__) || defined(__MACH__)
 
 #include <pthread.h>
-#ifdef LINUX
 #include <time.h>
 #include <sys/time.h>
-#endif
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
@@ -166,7 +169,7 @@ PUBLIC void *csoundCreateThreadLock(void)
     return (void*) pthread_mutex;
 }
 
-#ifdef LINUX
+#if defined(LINUX) || defined(__MACH__)
 
 PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
@@ -177,23 +180,18 @@ PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
       if (!milliseconds)
         return retval;
     }
-    if (milliseconds >= (size_t) 2000000)
-      return pthread_mutex_lock((pthread_mutex_t*) lock);
-    else {
-      union {
-        struct timeval  tv;
-        struct timespec ts;
-      } t;
-      register size_t   i, j, n, s;
-      gettimeofday(&(t.tv), NULL);
-      n = (size_t) ((int) milliseconds * 1000 + (int) t.tv.tv_usec);
-      s = (size_t) t.tv.tv_sec;
-      for (i = 1, j = 1000000; n >= j; i <<= 1, j <<= 1)
-        s += i, n -= j;
-      n = (size_t) ((int) n * 1000);
-      t.ts.tv_sec = (time_t) s;
-      t.ts.tv_nsec = (long) n;
-      return pthread_mutex_timedlock((pthread_mutex_t*) lock, &(t.ts));
+    {
+      struct timeval  tv;
+      struct timespec ts;
+      register size_t n, s;
+      gettimeofday(&tv, NULL);
+      s = milliseconds / (size_t) 1000;
+      n = milliseconds - (s * (size_t) 1000);
+      s += (size_t) tv.tv_sec;
+      n = (size_t) (((int) n * 1000 + (int) tv.tv_usec) * 1000);
+      ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
+      ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
+      return pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
     }
 }
 
@@ -201,14 +199,14 @@ PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 
 PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-    /* TODO: implement timeout for platforms other than Linux */
+    /* TODO: implement timeout for other platforms */
     if (!milliseconds)
       return pthread_mutex_trylock((pthread_mutex_t*) lock);
     else
       return pthread_mutex_lock((pthread_mutex_t*) lock);
 }
 
-#endif  /* LINUX */
+#endif  /* LINUX || __MACH__ */
 
 PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
 {
@@ -224,6 +222,20 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
 {
     pthread_mutex_destroy((pthread_mutex_t*) lock);
     free(lock);
+}
+
+PUBLIC void csoundSleep(size_t milliseconds)
+{
+    struct timespec ts;
+    register size_t n, s;
+
+    s = milliseconds / (size_t) 1000;
+    n = milliseconds - (s * (size_t) 1000);
+    n = (size_t) ((int) n * 1000000);
+    ts.tv_sec = (time_t) s;
+    ts.tv_nsec = (long) n;
+    while (nanosleep(&ts, &ts) != 0)
+      ;
 }
 
 /* internal functions for csound.c */
@@ -285,6 +297,11 @@ PUBLIC void csoundNotifyThreadLock(void *lock)
 PUBLIC void csoundDestroyThreadLock(void *lock)
 {
     notImplementedWarning_("csoundDestroyThreadLock");
+}
+
+PUBLIC void csoundSleep(size_t milliseconds)
+{
+    notImplementedWarning_("csoundSleep");
 }
 
 /* internal functions for csound.c */
