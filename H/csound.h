@@ -52,17 +52,17 @@
  *     external opcodes and/or drivers for audio or MIDI input and output.
  *
  * Hosts using the Csound API must #include <csound.h>, and link with the
- * Csound API library.
+ * Csound API library. Plugin libraries should #include <csdl.h> to get
+ * access to the API function pointers in the CSOUND structure, and do not
+ * need to link with the Csound API library.
+ * Only one of csound.h and csdl.h may be included by a compilation unit.
  *
  * Hosts must first create an instance of Csound using the \c csoundCreate
  * API function. When hosts are finished using Csound, they must destroy the
  * instance of csound using the \c csoundDestroy API function.
  * Most of the other Csound API functions take the Csound instance as their
  * first argument.
- * Hosts can call either the standalone API functions defined in csound.h,
- * e.g. \c csoundGetSr(csound), or the function pointers in the Csound instance
- * structure, e.g. csound->GetSr(csound). Each function in the Csound API has
- * a corresponding function pointer in the Csound instance structure.
+ * Hosts can only call the standalone API functions declared in csound.h.
  *
  * Here is the complete code for the simplest possible Csound API host,
  * a command-line Csound application:
@@ -73,7 +73,7 @@
  *
  * int main(int argc, char **argv)
  * {
- *     CSOUND *csound = csoundCreate(0);
+ *     CSOUND *csound = csoundCreate(NULL);
  *     int result = csoundPerform(csound, argc, argv);
  *     csoundDestroy(csound);
  *     return result;
@@ -83,15 +83,15 @@
  *
  * All opcodes, including plugins, receive a pointer to their host
  * instance of Csound as the first argument. Therefore, plugins MUST NOT
- * create an instance of Csound, and MUST call the Csound API function
- * pointers off the Csound instance pointer.
+ * compile, perform, or destroy the host instance of Csound, and MUST call
+ * the Csound API function pointers off the Csound instance pointer.
  *
  * \code
  * MYFLT sr = csound->GetSr(csound);
  * \endcode
  *
  * In general, plugins should ONLY access Csound functionality through the
- * API function pointers.
+ * API function pointers and public members of the CSOUND structure.
  */
 
 #ifdef __cplusplus
@@ -303,7 +303,7 @@ extern "C" {
    * In this (host-driven) mode, the sequence of calls should be as follows:
    * /code
    *       csoundCompile(csound, argc, argv);
-   *       while(!csoundPerformBuffer(csound));
+   *       while (!csoundPerformBuffer(csound));
    *       csoundCleanup(csound);
    *       csoundReset(csound);
    * /endcode
@@ -869,6 +869,12 @@ extern "C" {
   PUBLIC void csoundDestroyThreadLock(void *lock);
 
   /**
+   * Waits for at least the specified number of milliseconds,
+   * yielding the CPU to other threads.
+   */
+  PUBLIC void csoundSleep(size_t milliseconds);
+
+  /**
    * Sets whether or not the FLTK widget thread calls Fl::lock().
    */
   PUBLIC void csoundSetFLTKThreadLocking(CSOUND *, int isLocking);
@@ -879,26 +885,26 @@ extern "C" {
   PUBLIC int csoundGetFLTKThreadLocking(CSOUND *);
 
   /**
-   * initialise a timer structure
+   * Initialise a timer structure.
    */
-  PUBLIC void timers_struct_init(RTCLOCK*);
+  PUBLIC void csoundInitTimerStruct(RTCLOCK*);
 
   /**
    * Return the elapsed real time (in seconds) since the specified timer
    * structure was initialised.
    */
-  PUBLIC double timers_get_real_time(RTCLOCK*);
+  PUBLIC double csoundGetRealTime(RTCLOCK*);
 
   /**
    * Return the elapsed CPU time (in seconds) since the specified timer
    * structure was initialised.
    */
-  PUBLIC double timers_get_CPU_time(RTCLOCK*);
+  PUBLIC double csoundGetCPUTime(RTCLOCK*);
 
   /**
    * Return a 32-bit unsigned integer to be used as seed from current time.
    */
-  PUBLIC unsigned long timers_random_seed(void);
+  PUBLIC uint32_t csoundGetRandomSeedFromTime(void);
 
   /**
    * Set language to 'lang_code' (lang_code can be for example

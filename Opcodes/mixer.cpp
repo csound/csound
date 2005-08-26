@@ -37,8 +37,8 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
     buss = static_cast<size_t>(*ibuss);
     if(busses[csound].find(buss) == busses[csound].end())
       {
-        size_t channels = csound->GetNchnls(csound);
-        size_t frames = csound->GetKsmps(csound);
+        size_t channels = csound->nchnls;
+        size_t frames = csound->ksmps;
         busses[csound][buss].resize(channels);
         for(size_t channel = 0; channel < channels; channel++)
           {
@@ -125,7 +125,7 @@ struct MixerSend : public OpcodeBase<MixerSend>
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
-    frames = csound->GetKsmps(csound);
+    frames = csound->ksmps;
     busspointer = &busses[csound][buss][channel].front();
     //warn(csound, "MixerSend::init: instance %d send %d buss %d channel %d frames %d busspointer 0x%x\n", csound, send, buss, channel, frames, busspointer);
     return OK;
@@ -167,7 +167,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive>
     //warn(csound, "MixerReceive::init...\n");
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
-    frames = csound->GetKsmps(csound);
+    frames = csound->ksmps;
     busspointer = &busses[csound][buss][channel].front();
     //warn(csound, "MixerReceive::init instance %d buss %d channel %d frames %d busspointer 0x%x\n", instance, buss, channel, frames, busspointer);
     return OK;
