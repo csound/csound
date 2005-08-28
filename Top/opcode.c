@@ -131,7 +131,7 @@ void list_opcodes(CSOUND *csound, int level)
     opcodeListEntry *lst;
     const char      *sp = "                    ";   /* length should be 20 */
     int             j, k;
-    int             cnt, len = 0;
+    int             cnt, len = 0, xlen = 0;
 
     cnt = csoundNewOpcodeList(csound, &lst);
     if (cnt <= 0) {
@@ -139,31 +139,41 @@ void list_opcodes(CSOUND *csound, int level)
       return;
     }
     csound->Message(csound, Str("%d opcodes\n"), cnt);
-                                                /* Print in 4 columns */
+
     for (j = 0, k = -1; j < cnt; j++) {
-      if (level == 0) {
+      if (level == 0) {                         /* Print in 4 columns */
         if (j > 0 && strcmp(lst[j - 1].opname, lst[j].opname) == 0)
           continue;
         k++;
+        xlen = 0;
         if (!(k & 3))
           csound->Message(csound, "\n");
-        else if (len < 20)
+        else {
+          if (len > 19) {
+            xlen = len - 19;
+            len = 19;
+          }
           csound->Message(csound, "%s", sp + len);
+        }
         csound->Message(csound, "%s", lst[j].opname);
-        len = (int) strlen(lst[j].opname);
+        len = (int) strlen(lst[j].opname) + xlen;
       }
       else {
         char *ans = lst[j].outypes, *arg = lst[j].intypes;
         csound->Message(csound, "%s", lst[j].opname);
         len = (int) strlen(lst[j].opname);
-        if (len < 12)
-          csound->Message(csound, "%s", sp + (len + 8));
+        if (len > 11) {
+          xlen = len - 11;
+          len = 11;
+        }
+        csound->Message(csound, "%s", sp + (len + 8));
         if (ans == NULL || *ans == '\0') ans = "(null)";
         if (arg == NULL || *arg == '\0') arg = "(null)";
         csound->Message(csound, "%s", ans);
-        len = (int) strlen(ans);
-        if (len < 12)
-          csound->Message(csound, "%s", sp + (len + 8));
+        len = (int) strlen(ans) + xlen;
+        len = (len < 11 ? len : 11);
+        xlen = 0;
+        csound->Message(csound, "%s", sp + (len + 8));
         csound->Message(csound, "%s\n", arg);
       }
     }
