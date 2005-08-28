@@ -1,7 +1,5 @@
-2005-08-23  John ff  <jpff@codemist.co.uk>
-
-	* frontends/csound/csound_main.c: Hacked in missing declarations
-	until it is fixed properly
+2005-08-28	Istvan Varga	<ivarga@csounds.com>
+	* Opcodes/ugnorman.c, Opcodes/ugnorman.h: new opcodes
 
 2005-08-22	Istvan Varga	<ivarga@csounds.com>
 	* Engine/musmon.c, H/csound.h, InOut/libsnd.c, Top/csound.c:
