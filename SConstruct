@@ -758,6 +758,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('uggab',
     ['Opcodes/uggab.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ugmoss',
     ['Opcodes/ugmoss.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ugnorman',
+    ['Opcodes/ugnorman.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ugsc',
     ['Opcodes/ugsc.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('vdelayk',
