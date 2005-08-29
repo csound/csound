@@ -68,12 +68,18 @@ kamp            atsinterpread   kfreq
       1270.0, 1480.0, 1720.0, 2000.0, 2320.0, 2700.0, 3150.0, 3700.0,       \
       4400.0, 5300.0, 6400.0, 7700.0, 9500.0, 12000.0, 15500.0, 20000.0 }
 
+typedef struct {
+    ATSBUFREAD  *atsbufreadaddr;    /* must be the first structure member */
+    long        seed;
+    int         swapped_warning;
+} ATS_GLOBALS;
+
 /* static variables used for atsbufread and atsbufreadnz */
 static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound, ATSBUFREAD ***p)
 {
     if (*p == NULL)
       *p = (ATSBUFREAD**) csound->QueryGlobalVariableNoCheck(csound,
-                                                             "ugnorman::buf");
+                                                             "ugNorman_");
     return *p;
 }
 
@@ -102,9 +108,10 @@ static CS_PURE double bswap(const double *swap_me)
 static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                                         void *name_arg)
 {
-    char      opname[64];
-    ATSSTRUCT *atsh;
-    int       i;
+    char        opname[64];
+    ATS_GLOBALS *pp;
+    ATSSTRUCT   *atsh;
+    int         i;
 
     strcpy(opname, csound->GetOpcodeName(p));   /* opcode name */
     for (i = 0; opname[i] != '\0'; i++)
@@ -133,7 +140,8 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                                 opname, fname);
       return -1;
     }
-    if (csound->QueryGlobalVariable(csound, "ugnorman::swWarn") != NULL)
+    pp = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
+    if (pp->swapped_warning)
       return 1;
     csound->Warning(csound,
                     Str("%s: %s is byte-swapped\n"
@@ -141,7 +149,7 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                         "byte-swapped files\n\twill not result in different "
                         "audio, but they may slow down processing."),
                     opname, fname);
-    csound->CreateGlobalVariable(csound, "ugnorman::swWarn", (size_t) 1);
+    pp->swapped_warning = 1;
     return 1;
 }
 
@@ -732,20 +740,18 @@ static CS_PURE long oscbnk_rand31(long seed)
  */
 
 static void randiats_setup(CSOUND *csound,
-                           MYFLT sr, MYFLT freq, long *seed, RANDIATS *radat)
+                           MYFLT freq, long *seed, RANDIATS *radat)
 {
-    long    first, second;
+    long    tmp;
 
-    second = *seed;
-    second = (second <= 0x7FFFFFE7L ? second + 23L : second - 0x7FFFFFE7L);
-    *seed = second;
-    first = oscbnk_rand31(second);
-    second = oscbnk_rand31(first);
+    tmp = *seed;
+    tmp = (tmp <= 0x7FFFFFE7L ? tmp + 23L : tmp - 0x7FFFFFE7L);
+    *seed = tmp;
 
-    radat->size = (int) MYFLT2LRND(sr / freq);
-    radat->a1 = first;
-    radat->a2 = second;
+    radat->size = (int) MYFLT2LRND(csound->esr / freq);
     radat->cnt = 0;
+    radat->a1 = oscbnk_rand31(tmp);
+    radat->a2 = oscbnk_rand31(radat->a1);
 }
 
 /* ------------------------------------------------------------------ */
@@ -765,8 +771,7 @@ static MYFLT randiats(RANDIATS *radat)
     output = (((MYFLT) (radat->a2 - radat->a1) / (MYFLT) radat->size)
               * (MYFLT) radat->cnt) + (MYFLT) radat->a1;
     radat->cnt++;
-    return (FL(1.0) - ((MYFLT) output * (FL(1.0) / (MYFLT) 0x7FFFFFFF)
-                       * FL(2.0)));
+    return (FL(1.0) - ((MYFLT) output * (FL(2.0) / (MYFLT) 0x7FFFFFFF)));
 }
 
 /* ------------------------------------------------------------------ */
@@ -788,8 +793,7 @@ static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
               * (MYFLT) radat->cnt) + (MYFLT) radat->a1;
     radat->cnt++;
 
-    return (FL(1.0) - ((MYFLT) output * (FL(1.0) / (MYFLT) 0x7FFFFFFF)
-                       * FL(2.0)));
+    return (FL(1.0) - ((MYFLT) output * (FL(2.0) / (MYFLT) 0x7FFFFFFF)));
 }
 
 static void FetchADDNZbands(ATSADDNZ *p, double *buf, MYFLT position)
@@ -831,10 +835,10 @@ static void FetchADDNZbands(ATSADDNZ *p, double *buf, MYFLT position)
 
 static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 {
-    char    atsfilname[MAXNAME];
-    ATSSTRUCT *atsh;
-    long    *seed;
-    int     i, type, n_partials;
+    char        atsfilname[MAXNAME];
+    ATS_GLOBALS *pp;
+    ATSSTRUCT   *atsh;
+    int         i, type, n_partials;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
@@ -978,10 +982,9 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     p->oscphase[24] = 0.0;
 
     /* initialise band limited noise parameters */
-    seed = (long*) csound->QueryGlobalVariableNoCheck(csound, "ugnorman::seed");
+    pp = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
     for (i = 0; i < 25; i++) {
-      randiats_setup(csound,
-                     csound->esr, p->nfreq[i], seed, &(p->randinoise[i]));
+      randiats_setup(csound, p->nfreq[i], &(pp->seed), &(p->randinoise[i]));
     }
 
     /* flag set to reduce the amount of warnings sent out */
@@ -1115,10 +1118,10 @@ static void fetchSINNOIpartials(ATSSINNOI *, MYFLT);
 
 static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 {
-    char    atsfilname[MAXNAME];
-    ATSSTRUCT *atsh;
-    long    *seed;
-    int     i, memsize, nzmemsize, type;
+    char        atsfilname[MAXNAME];
+    ATS_GLOBALS *pp;
+    ATSSTRUCT   *atsh;
+    int         i, memsize, nzmemsize, type;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
@@ -1227,9 +1230,9 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     p->nzmemsize = nzmemsize;
 
     /* initialise band limited noise parameters */
-    seed = (long*) csound->QueryGlobalVariableNoCheck(csound, "ugnorman::seed");
+    pp = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
     for (i = 0; i < (int) *p->iptls; i++) {
-      randiats_setup(csound, csound->esr, 10, seed, &(p->randinoise[i]));
+      randiats_setup(csound, FL(10.0), &(pp->seed), &(p->randinoise[i]));
     }
     /* flag set to reduce the amount of warnings sent out */
     /* for time pointer out of range */
@@ -2099,14 +2102,17 @@ PUBLIC long opcode_size(void)
 
 PUBLIC OENTRY *opcode_init(CSOUND *csound)
 {
-    int err;
-    err = csound->CreateGlobalVariable(csound, "ugnorman::buf",
-                                               sizeof(ATSBUFREAD*));
-    err |= csound->CreateGlobalVariable(csound, "ugnorman::seed", sizeof(long));
-    if (err)
+    ATS_GLOBALS *p;
+
+    if (csound->CreateGlobalVariable(csound, "ugNorman_", sizeof(ATS_GLOBALS))
+        != 0)
       csound->Die(csound, Str("ugnorman.c: error allocating globals"));
-    *((long*) csound->QueryGlobalVariableNoCheck(csound, "ugnorman::seed")) =
-        (long) (csound->GetRandomSeedFromTime() & (uint32_t) 0x7FFFFFFC) + 1L;
+    p = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
+    p->atsbufreadaddr = NULL;
+    p->seed = (long) (csound->GetRandomSeedFromTime() & (uint32_t) 0x7FFFFFFD);
+    p->seed++;
+    p->swapped_warning = 0;
+
     return localops;
 }
 
