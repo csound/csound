@@ -27,35 +27,35 @@
 
 Some basic info:
 
-atsinfo:
+ATSinfo:
 
-idata           atsinfo     iatsfile, idataloc
+idata           ATSinfo     iatsfile, idataloc
 
 read functions:
 
-kfreq, kamp     atsread     ktimepnt, ifile, ipartial
-kenergy         atsreadnz   ktimepnt, ifile, iband
+kfreq, kamp     ATSread     ktimepnt, ifile, ipartial
+kenergy         ATSreadnz   ktimepnt, ifile, iband
 
 add functions:
 
-ar              atsadd      ktimepnt, kfmod, iatsfile, ifn, ipartials   \
+ar              ATSadd      ktimepnt, kfmod, iatsfile, ifn, ipartials   \
                             [, ipartialoffset, ipartialincr, igatefn]
-ar              atsaddnz    ktimepnt, iatsfile, ibands                  \
+ar              ATSaddnz    ktimepnt, iatsfile, ibands                  \
                             [, ibandoffset, ibandincr]
 
 sinnoi function:
 
-ar              atssinnoi   ktimepnt, ksinlev, knzlev, kfreqscale,      \
+ar              ATSsinnoi   ktimepnt, ksinlev, knzlev, kfreqscale,      \
                             iatsfile, ipartials[, ipartialoffset, ipartialincr]
 
 buf/cross functions:
 
-                atsbufread  ktimepnt, kfmod, iatsfile, ipartials        \
+                ATSbufread  ktimepnt, kfmod, iatsfile, ipartials        \
                             [, ipartialoffset, ipartialincr]
-ar              atscross    ktimepnt, kfmod, iatsfile, ifn, kmyamp,     \
+ar              ATScross    ktimepnt, kfmod, iatsfile, ifn, kmyamp,     \
                             kbufamp, ipartials[, ipartialoffset, ipartialincr]
-kfreq, kamp     atspartialtap   ipartialnum
-kamp            atsinterpread   kfreq
+kfreq, kamp     ATSpartialtap   ipartialnum
+kamp            ATSinterpread   kfreq
 
 */
 
@@ -88,8 +88,8 @@ static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound, ATSBUFREAD ***p)
 static CS_PURE double bswap(const double *swap_me)
 {
     double        d;
-    const uint8_t *p1 = (const uint8_t *) ((const void *) swap_me);
-    uint8_t       *p2 = (uint8_t *) ((void *) &d);
+    const unsigned char *p1 = (const unsigned char *) swap_me;
+    unsigned char *p2 = (unsigned char *) &d;
 
     p2[0] = p1[7];
     p2[1] = p1[6];
@@ -2073,25 +2073,25 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    { "atsread",        S(ATSREAD),         3,  "kk",   "kTi",
+    { "ATSread",        S(ATSREAD),         3,  "kk",   "kTi",
         (SUBR) atsreadset,          (SUBR) atsread,         (SUBR) NULL      },
-    { "atsreadnz",      S(ATSREADNZ),       3,  "k",    "kTi",
+    { "ATSreadnz",      S(ATSREADNZ),       3,  "k",    "kTi",
         (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL      },
-    { "atsadd",         S(ATSADD),          5,  "a",    "kkTiiopo",
+    { "ATSadd",         S(ATSADD),          5,  "a",    "kkTiiopo",
         (SUBR) atsaddset,           (SUBR) NULL,            (SUBR) atsadd    },
-    { "atsaddnz",       S(ATSADDNZ),        5,  "a",    "kTiop",
+    { "ATSaddnz",       S(ATSADDNZ),        5,  "a",    "kTiop",
         (SUBR) atsaddnzset,         (SUBR) NULL,            (SUBR) atsaddnz  },
-    { "atssinnoi",      S(ATSSINNOI),       5,  "a",    "kkkkTiop",
+    { "ATSsinnoi",      S(ATSSINNOI),       5,  "a",    "kkkkTiop",
         (SUBR) atssinnoiset,        (SUBR) NULL,            (SUBR) atssinnoi },
-    { "atsbufread",     S(ATSBUFREAD),      3,  "",     "kkTiop",
+    { "ATSbufread",     S(ATSBUFREAD),      3,  "",     "kkTiop",
         (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) NULL      },
-    { "atspartialtap",  S(ATSPARTIALTAP),   3,  "kk",   "i",
+    { "ATSpartialtap",  S(ATSPARTIALTAP),   3,  "kk",   "i",
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL      },
-    { "atsinterpread",  S(ATSINTERPREAD),   3,  "k",    "k",
+    { "ATSinterpread",  S(ATSINTERPREAD),   3,  "k",    "k",
         (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL      },
-    { "atscross",       S(ATSCROSS),        5,  "a",    "kkTikkiopo",
+    { "ATScross",       S(ATSCROSS),        5,  "a",    "kkTikkiopo",
         (SUBR) atscrossset,         (SUBR) NULL,            (SUBR) atscross  },
-    { "atsinfo",        S(ATSINFO),         1,  "i",    "Ti",
+    { "ATSinfo",        S(ATSINFO),         1,  "i",    "Ti",
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }
 };
 
