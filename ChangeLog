@@ -1,3 +1,7 @@
+2005-08-30	Istvan Varga	<ivarga@csounds.com>
+	* Opcodes/ugnorman.c:
+	  renamed opcodes from ats* to ATS* to avoid namespace pollution
+
 2005-08-28	Istvan Varga	<ivarga@csounds.com>
 	* Opcodes/ugnorman.c, Opcodes/ugnorman.h: new opcodes
 
