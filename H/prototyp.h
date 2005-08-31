@@ -272,7 +272,7 @@ int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
    * Returns zero on success.
    */
   int csoundAddUtility(CSOUND *, const char *name,
-                                 int (*UtilFunc)(CSOUND *, int, char**));
+                                 int (*UtilFunc)(CSOUND *, int, char **));
 
   /**
    * Set description text for the specified utility.
@@ -282,8 +282,8 @@ int         PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
                                             const char *utilDesc);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
-#endif
+#endif  /* __BUILDING_LIBCSOUND && !_CSOUND_PROTO_H */
 

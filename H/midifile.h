@@ -52,7 +52,7 @@ typedef struct {
 extern int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif      /* CSOUND_MIDIFILE_H */

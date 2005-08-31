@@ -378,7 +378,7 @@ typedef union csCfgVariable_u {
   PUBLIC char *csoundCfgErrorCodeToString(int errcode);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif  /* CSOUND_CFGVAR_H */

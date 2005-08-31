@@ -20,8 +20,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-                        /*                              SOUNDIO.H       */
-
+                                /*                      SOUNDIO.H       */
 #ifndef CSOUND_SOUNDIO_H
 #define CSOUND_SOUNDIO_H
 
@@ -128,7 +127,7 @@ typedef struct {
 } SOUNDIN;
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif      /* CSOUND_SOUNDIO_H */

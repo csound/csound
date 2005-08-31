@@ -60,8 +60,8 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel>
 };
 
 extern "C" {
-PUBLIC int csoundModuleDestroy(CSOUND *csound)
-{
+  PUBLIC int csoundModuleDestroy(CSOUND *csound)
+  {
     if (busses.begin() != busses.end()) {
       busses.clear();
     }
@@ -69,8 +69,8 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
       matrix.clear();
     }
     return 0;
+  }
 }
-};
 
 /**
  * kgain MixerGetLevel isend, ibuss
@@ -293,5 +293,5 @@ extern "C"
     return err;
   }
 
-}; // END EXTERN C
+}   // END EXTERN C
 

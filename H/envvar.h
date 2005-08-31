@@ -26,7 +26,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
   /**
    * Set environment variable 'name' to 'value'.
@@ -169,8 +169,8 @@ extern "C" {
   int csoundFileClose(CSOUND *, void *fd);
 
 #ifdef __cplusplus
-};
-#endif /* __cplusplus */
+}
+#endif
 
-#endif /* CSOUND_ENVVAR_H */
+#endif  /* CSOUND_ENVVAR_H */
 

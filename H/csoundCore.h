@@ -1,14 +1,7 @@
-#ifndef CSOUNDCORE_H
-#define CSOUNDCORE_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-  /*
+/*
     csoundCore.h:
 
-    Copyright (C) 1991-2003 Barry Vercoe, John ffitch
+    Copyright (C) 1991-2005 Barry Vercoe, John ffitch, Istvan Varga
 
     This file is part of Csound.
 
@@ -26,7 +19,18 @@ extern "C" {
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
-  */
+*/
+
+#if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
+#  error "Csound plugins and host applications should not include csoundCore.h"
+#endif
+
+#ifndef CSOUNDCORE_H
+#define CSOUNDCORE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "sysdep.h"
 
@@ -36,10 +40,6 @@ extern "C" {
 
 #include "csound.h"
 #include "version.h"
-
-#if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
-#  error "Csound plugins and host applications should not include csoundCore.h"
-#endif
 
 #define OK        (0)
 #define NOTOK     (-1)
@@ -64,7 +64,7 @@ extern "C" {
 #  define XINARG2   (p->XINCODE & 2)
 #  define XINARG3   (p->XINCODE & 4)
 #  define XINARG4   (p->XINCODE & 8)
-#define XOUTCODE    ORTXT.xoutcod       /* IV - Apr 25 2005 */
+#define XOUTCODE    ORTXT.xoutcod
 #define XSTRCODE    ORTXT.xincod_str
 #define XOUTSTRCODE ORTXT.xoutcod_str
 
@@ -1060,7 +1060,7 @@ extern "C" {
  */
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif  /* CSOUNDCORE_H */
