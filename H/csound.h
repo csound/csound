@@ -1,11 +1,11 @@
-#ifndef CSOUND_H
-#define CSOUND_H
 /**
  * C S O U N D
  *
  * An auto-extensible system for making music on computers
  * by means of software alone.
- * Copyright (c) 2001 by Michael Gogins. All rights reserved.
+ *
+ * Copyright (C) 2001-2005 Michael Gogins, Matt Ingalls, John D. Ramsdell,
+ *                         John P. ffitch, Istvan Varga
  *
  * L I C E N S E
  *
@@ -23,6 +23,9 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+#ifndef CSOUND_H
+#define CSOUND_H
 
 /** \file
  * \brief Declares the public Csound application programming interface (API).
@@ -1020,7 +1023,7 @@ extern "C" {
 #include "msg_attr.h"
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif  /* CSOUND_H */

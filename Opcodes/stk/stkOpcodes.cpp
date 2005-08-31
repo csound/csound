@@ -593,5 +593,5 @@ extern "C"
     stkInstances[csound].clear();
     return 0;
   }
-};
+}
 

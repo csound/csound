@@ -21,10 +21,6 @@
   02111-1307 USA
 */
 
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
-
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/fl_draw.H>
@@ -101,7 +97,9 @@ Fl_Menu_Item menu[] = {
   {NULL,        0, 0, (void*)NULL}, //27
   {NULL,        0, 0, (void*)NULL}, //28
   {NULL,        0, 0, (void*)NULL}, //29
-  NULL};
+// -------------------------------------
+  {NULL, 0, 0, (void*) NULL}
+};
 
 class graph_box: public Fl_Window {
   void draw();
@@ -266,8 +264,7 @@ void makeWindow(char *name)
   }
 }
 
-extern "C"
-{
+extern "C" {
   void DrawGraph_(CSOUND *csound, WINDAT *);
   long MakeWindow(char *);
   int  defaultCsoundYield(CSOUND *);
@@ -402,5 +399,5 @@ extern "C"
     Fl_Window *x = (Fl_Window*)wdptr->windid;
     x->~Fl_Window();
   }
-};
+}
 

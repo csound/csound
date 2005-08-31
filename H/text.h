@@ -27,7 +27,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
 /* list of languages */
 
@@ -140,8 +140,8 @@ void init_getstring(int argc, char **argv);
 #endif  /* __BUILDING_LIBCSOUND */
 
 #ifdef __cplusplus
-};
-#endif /* __cplusplus */
+}
+#endif
 
 #endif  /* CSOUND_TEXT_H */
 

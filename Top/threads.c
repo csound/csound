@@ -19,14 +19,14 @@
     02111-1307 USA
 */
 
-#if defined(__linux) || defined(__linux__) || defined(__MACH__)
+#if defined(__linux) || defined(__linux__)
 /* for pthread_mutex_timedlock() */
 #define _XOPEN_SOURCE 600
 #endif
 
 #include "csoundCore.h"
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32)
 
 #include <windows.h>
 #include <process.h>
@@ -126,7 +126,7 @@ void csoundUnLock(void)
       SetEvent(cs_mutex);
 }
 
-#elif defined(LINUX) || defined(__CYGWIN__) || defined(__MACH__)
+#elif defined(LINUX) || defined(__MACH__)
 
 #include <pthread.h>
 #include <time.h>
@@ -135,7 +135,7 @@ void csoundUnLock(void)
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
 {
-    pthread_t pthread = 0;
+    pthread_t pthread = (pthread_t) 0;
     if (!pthread_create(&pthread, (pthread_attr_t*) NULL,
                         (void *(*)(void *)) threadRoutine, userdata)) {
       return (void*) pthread;
@@ -145,11 +145,11 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
 {
-    pthread_t pthread = (pthread_t) thread;
     void      *threadRoutineReturnValue = NULL;
     int       pthreadReturnValue;
 
-    pthreadReturnValue = pthread_join(pthread, &threadRoutineReturnValue);
+    pthreadReturnValue = pthread_join((pthread_t) thread,
+                                      &threadRoutineReturnValue);
     if (pthreadReturnValue)
       return (uintptr_t) ((intptr_t) pthreadReturnValue);
     return (uintptr_t) threadRoutineReturnValue;
@@ -169,7 +169,7 @@ PUBLIC void *csoundCreateThreadLock(void)
     return (void*) pthread_mutex;
 }
 
-#if defined(LINUX) || defined(__MACH__)
+#if defined(LINUX)
 
 PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
@@ -206,7 +206,7 @@ PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
       return pthread_mutex_lock((pthread_mutex_t*) lock);
 }
 
-#endif  /* LINUX || __MACH__ */
+#endif  /* LINUX */
 
 PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
 {

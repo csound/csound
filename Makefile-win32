@@ -84,7 +84,7 @@ Opcodes/%.o: Opcodes/%.c
 %.oo: %.cpp
 	$(CXX) $(CFLAGS) -c $< -o $@
 
-Opcodes/butter.o: Opcodes/butter.c
+Opcodes/sfont.o: Opcodes/sfont.c
 	$(CC) $(CFLAGS) -fno-strict-aliasing -c $< -o $@
 
 hrtferX.dll: Opcodes/hrtferX.o Opcodes/natben.o

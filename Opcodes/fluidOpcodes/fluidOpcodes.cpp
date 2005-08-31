@@ -681,5 +681,5 @@ extern "C"
     return 0;
   }
 
-}; // END EXTERN C
+}  // END EXTERN C
 

@@ -26,7 +26,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
 /**
  * Assignment to configuration variables from the command line can be done
@@ -50,8 +50,8 @@ void dump_cfg_variables(CSOUND *csound);
 int parse_option_as_cfgvar(CSOUND *csound, const char *s);
 
 #ifdef __cplusplus
-};
-#endif /* __cplusplus */
+}
+#endif
 
-#endif /* CSOUND_NEW_OPTS_H */
+#endif  /* CSOUND_NEW_OPTS_H */
 
