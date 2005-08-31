@@ -1141,33 +1141,16 @@ int lorismorph_cleanup(CSOUND *csound, void * p)
 //
 extern "C"
 {
-  OENTRY lorisOentry[] =
+  static OENTRY localops[] =
     {
       {"lorisread",  sizeof(LORISREAD),  3, "",  "kSikkko", (SUBR) lorisread_setup,  (SUBR) lorisread,  0 },
       {"lorisplay",  sizeof(LORISPLAY),  5, "a", "ikkk",    (SUBR) lorisplay_setup,  0,                 (SUBR) lorisplay },
       {"lorismorph", sizeof(LORISMORPH), 3, "",  "iiikkk",  (SUBR) lorismorph_setup, (SUBR) lorismorph, 0 }
     };
 
-  /**
-   * Called by Csound to obtain the size of
-   * the table of OENTRY structures defined in this shared library.
-   */
+LINKAGE
 
-  PUBLIC long opcode_size(void)
-  {
-    return sizeof(OENTRY) * 3;
-  }
-
-  /**
-   * Called by Csound to obtain a pointer to
-   * the table of OENTRY structures defined in this shared library.
-   */
-
-  PUBLIC OENTRY *opcode_init(CSOUND *csound)
-  {
-    return lorisOentry;
-  }
-};
+}
 
 /*
   This works:

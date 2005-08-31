@@ -116,29 +116,29 @@ typedef struct {
 
 #ifndef CSOUND_STR_OPS_C
 
-int strset_init(void *, void *);
-int strget_init(void *, void *);
-int strcpy_opcode_init(void *, void *);
-int strcpy_opcode_perf(void *, void *);
-int strcat_opcode_init(void *, void *);
-int strcat_opcode_perf(void *, void *);
-int strcmp_opcode(void *, void *);
-int sprintf_opcode_init(void *, void *);
-int sprintf_opcode_perf(void *, void *);
-int printf_opcode_init(void *, void *);
-int printf_opcode_set(void *, void *);
-int printf_opcode_perf(void *, void *);
-int puts_opcode_init(void *, void *);
-int puts_opcode_perf(void *, void *);
-int strtod_opcode_init(void *, void *);
-int strtod_opcode_perf(void *, void *);
-int strtol_opcode_init(void *, void *);
-int strtol_opcode_perf(void *, void *);
+int strset_init(CSOUND *, void *);
+int strget_init(CSOUND *, void *);
+int strcpy_opcode_init(CSOUND *, void *);
+int strcpy_opcode_perf(CSOUND *, void *);
+int strcat_opcode_init(CSOUND *, void *);
+int strcat_opcode_perf(CSOUND *, void *);
+int strcmp_opcode(CSOUND *, void *);
+int sprintf_opcode_init(CSOUND *, void *);
+int sprintf_opcode_perf(CSOUND *, void *);
+int printf_opcode_init(CSOUND *, void *);
+int printf_opcode_set(CSOUND *, void *);
+int printf_opcode_perf(CSOUND *, void *);
+int puts_opcode_init(CSOUND *, void *);
+int puts_opcode_perf(CSOUND *, void *);
+int strtod_opcode_init(CSOUND *, void *);
+int strtod_opcode_perf(CSOUND *, void *);
+int strtol_opcode_init(CSOUND *, void *);
+int strtol_opcode_perf(CSOUND *, void *);
 
 #endif      /* CSOUND_STR_OPS_C */
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif      /* CSOUND_STR_OPS_H */

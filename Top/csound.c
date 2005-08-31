@@ -3,7 +3,9 @@
  *
  * An auto-extensible system for making music on computers
  * by means of software alone.
- * Copyright (c) 2001 by Michael Gogins. All rights reserved.
+ *
+ * Copyright (C) 2001-2005 Michael Gogins, Matt Ingalls, John D. Ramsdell,
+ *                         John P. ffitch, Istvan Varga
  *
  * L I C E N S E
  *
@@ -275,6 +277,7 @@ extern "C" {
   {
     CSOUND        *csound;
     csInstance_t  *p;
+
     if (init_done != 1) {
       if (csoundInitialize(NULL, NULL, 0) != 0)
         return NULL;
@@ -296,13 +299,13 @@ extern "C" {
       free(csound);
       return NULL;
     }
-
     csoundLock();
     p->csound = csound;
     p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
     csoundUnLock();
     csoundReset(csound);
+
     return csound;
   }
 
@@ -2032,6 +2035,6 @@ typedef struct opcodeDeinit_s {
   }
 
 #ifdef __cplusplus
-};
+}
 #endif
 

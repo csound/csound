@@ -370,7 +370,7 @@ extern "C" {
  // }
     return 0;
   }
-};
+}
 
 #ifdef WIN32
         void path_convert(char* in)
@@ -433,5 +433,5 @@ extern "C" {
     return err;
   }
 
-};
+}
 

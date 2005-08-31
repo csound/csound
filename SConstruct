@@ -738,7 +738,10 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('scansynx',
     ['Opcodes/scansynx.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('seqtime',
     ['Opcodes/seqtime.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('sfont',
+sfontEnvironment = pluginEnvironment.Copy()
+if (commonEnvironment['MSVC'] == '0'):
+    sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
+pluginLibraries.append(sfontEnvironment.SharedLibrary('sfont',
     ['Opcodes/sfont.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndwarp',
     ['Opcodes/sndwarp.c']))

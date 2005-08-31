@@ -47,39 +47,27 @@ typedef struct devparams_ {
     int             buffer_smps;    /* buffer length in samples         */
     int             period_smps;    /* period time in samples           */
     /* playback sample conversion function */
-    void            (*playconv)(int, void*, void*, int*);
+    void            (*playconv)(int, MYFLT*, void*, int*);
     /* record sample conversion function */
-    void            (*rec_conv)(int, void*, void*);
+    void            (*rec_conv)(int, void*, MYFLT*);
     int             seed;           /* random seed for dithering        */
 } DEVPARAMS;
 
 /* sample conversion routines for playback */
 
-static void float_to_short(int nSmps, float *inBuf, int16_t *outBuf,
-                           int *seed);
-static void double_to_short(int nSmps, double *inBuf, int16_t *outBuf,
-                            int *seed);
-static void float_to_long(int nSmps, float *inBuf, int32_t *outBuf,
-                          int *seed);
-static void double_to_long(int nSmps, double *inBuf, int32_t *outBuf,
-                           int *seed);
-static void float_to_float_p(int nSmps, float *inBuf, float *outBuf,
-                             int *seed);
-static void double_to_float(int nSmps, double *inBuf, float *outBuf,
-                            int *seed);
+static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed);
+static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed);
+static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed);
 
 /* sample conversion routines for recording */
 
-static void short_to_float(int nSmps, int16_t *inBuf, float *outBuf);
-static void short_to_double(int nSmps, int16_t *inBuf, double *outBuf);
-static void long_to_float(int nSmps, int32_t *inBuf, float *outBuf);
-static void long_to_double(int nSmps, int32_t *inBuf, double *outBuf);
-static void float_to_float_r(int nSmps, float *inBuf, float *outBuf);
-static void float_to_double(int nSmps, float *inBuf, double *outBuf);
+static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf);
+static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf);
+static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf);
 
 /* module interface functions */
 
-int csoundModuleCreate(CSOUND *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     csound->Message(csound,
@@ -93,7 +81,7 @@ static void rtplay_(CSOUND*, MYFLT*, int);
 static int rtrecord_(CSOUND*, MYFLT*, int);
 static void rtclose_(CSOUND*);
 
-int csoundModuleInit(CSOUND *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
 
@@ -112,10 +100,15 @@ int csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
+PUBLIC int csoundModuleMYFLTSize(void)
+{
+    return (int) sizeof(MYFLT);
+}
+
 /* select sample format */
 
-static snd_pcm_format_t set_format(void **convFunc, int csound_format, int play,
-                                   int myflt_is_double)
+static snd_pcm_format_t set_format(void (**convFunc)(void), int csound_format,
+                                   int play)
 {
     short   endian_test = 0x1234;
 
@@ -124,27 +117,21 @@ static snd_pcm_format_t set_format(void **convFunc, int csound_format, int play,
     switch (csound_format) {
       case AE_SHORT:
         if (play)
-          (*convFunc) = (myflt_is_double ? (void*) double_to_short
-                                           : (void*) float_to_short);
+          *convFunc = (void (*)(void)) MYFLT_to_short;
         else
-          (*convFunc) = (myflt_is_double ? (void*) short_to_double
-                                           : (void*) short_to_float);
+          *convFunc = (void (*)(void)) short_to_MYFLT;
         break;
       case AE_LONG:
         if (play)
-          (*convFunc) = (myflt_is_double ? (void*) double_to_long
-                                           : (void*) float_to_long);
+          *convFunc = (void (*)(void)) MYFLT_to_long;
         else
-          (*convFunc) = (myflt_is_double ? (void*) long_to_double
-                                           : (void*) long_to_float);
+          *convFunc = (void (*)(void)) long_to_MYFLT;
         break;
       case AE_FLOAT:
         if (play)
-          (*convFunc) = (myflt_is_double ? (void*) double_to_float
-                                           : (void*) float_to_float_p);
+          *convFunc = (void (*)(void)) MYFLT_to_float;
         else
-          (*convFunc) = (myflt_is_double ? (void*) float_to_double
-                                           : (void*) float_to_float_r);
+          *convFunc = (void (*)(void)) float_to_MYFLT;
         break;
     }
     if (*((unsigned char*) (&endian_test)) == (unsigned char) 0x34) {
@@ -173,118 +160,121 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_sw_params_t *sw_params;
     snd_pcm_format_t    alsaFmt;
-    int                 err, n, myflt_is_double, alloc_smps;
+    int                 err, n, alloc_smps;
     CSOUND              *p = csound;
     char                *devName, msg[512];
 
     dev->buf = NULL;
     snd_pcm_hw_params_alloca(&hw_params);
     snd_pcm_sw_params_alloca(&sw_params);
-    /* open the device ... */
+    /* open the device */
     if (dev->device == NULL || dev->device[0] == '\0')
       devName = "default";
     else
       devName = dev->device;
-    if (play) {
-      /* ... for playback */
-      err = snd_pcm_open(&(dev->handle), devName,
-                         SND_PCM_STREAM_PLAYBACK, 0);
-      if (err < 0) {
-        p->Message(csound, " *** Cannot open device %s for audio output: %s\n",
-                           devName, snd_strerror(err));
-        return -1;
-      }
-    }
-    else {
-      /* ... for capture */
-      err = snd_pcm_open(&(dev->handle), devName,
-                         SND_PCM_STREAM_CAPTURE, 0);
-      if (err < 0) {
-        p->Message(csound, " *** Cannot open device %s for audio input: %s\n",
-                           devName, snd_strerror(err));
-        return -1;
-      }
+    err = snd_pcm_open(&(dev->handle), devName,
+                       (play ? SND_PCM_STREAM_PLAYBACK
+                               : SND_PCM_STREAM_CAPTURE), 0);
+    if (err < 0) {
+      if (play)
+        p->ErrorMsg(p, Str(" *** Cannot open device '%s' for audio output: %s"),
+                       devName, snd_strerror(err));
+      else
+        p->ErrorMsg(p, Str(" *** Cannot open device '%s' for audio input: %s"),
+                       devName, snd_strerror(err));
+      return -1;
     }
     /* allocate hardware and software parameters */
     if (snd_pcm_hw_params_any(dev->handle, hw_params) < 0) {
-      sprintf(msg, " *** No real-time audio configurations found\n");
+      sprintf(msg, "No real-time audio configurations found");
       goto err_return_msg;
     }
     /* now set the various hardware parameters: */
     /* access method, */
     if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
                                      SND_PCM_ACCESS_RW_INTERLEAVED) < 0) {
-      sprintf(msg, " *** Error setting access type for soundcard\n");
+      sprintf(msg, "Error setting access type for soundcard");
       goto err_return_msg;
     }
     /* sample format, */
     alsaFmt = SND_PCM_FORMAT_UNKNOWN;
-    dev->sampleSize = (int) p->GetSizeOfMYFLT() * dev->nchns;
-    myflt_is_double = (p->GetSizeOfMYFLT() == (int) sizeof(float) ? 0 : 1);
-    if (play)
-      alsaFmt = set_format((void**) &(dev->playconv), dev->format, 1,
-                           myflt_is_double);
-    else
-      alsaFmt = set_format((void**) &(dev->rec_conv), dev->format, 0,
-                           myflt_is_double);
+    dev->sampleSize = (int) sizeof(MYFLT) * dev->nchns;
+    {
+      void  (*fp)(void) = NULL;
+      alsaFmt = set_format(&fp, dev->format, play);
+      if (play) dev->playconv = (void (*)(int, MYFLT*, void*, int*)) fp;
+      else      dev->rec_conv = (void (*)(int, void*, MYFLT*)) fp;
+    }
     if (alsaFmt == SND_PCM_FORMAT_UNKNOWN) {
-      sprintf(msg, " *** Unknown sample format. Only 16-bit and 32-bit "
-                   "integers,\n *** and 32-bit floats are supported.\n");
+      sprintf(msg, "Unknown sample format.\n *** Only 16-bit and 32-bit "
+                   "integers, and 32-bit floats are supported.");
       goto err_return_msg;
     }
     if (snd_pcm_hw_params_set_format(dev->handle, hw_params, alsaFmt) < 0) {
-      sprintf(msg, " *** Unable to set requested sample format on soundcard\n");
+      sprintf(msg, "Unable to set requested sample format on soundcard");
       goto err_return_msg;
     }
     /* number of channels, */
     if (snd_pcm_hw_params_set_channels(dev->handle, hw_params,
                                        (unsigned int) dev->nchns) < 0) {
-      sprintf(msg, " *** Unable to set number of channels on soundcard\n");
+      sprintf(msg, "Unable to set number of channels on soundcard");
       goto err_return_msg;
     }
     /* sample rate, */
     if (snd_pcm_hw_params_set_rate(dev->handle, hw_params,
                                    (unsigned int) dev->srate, 0) < 0) {
-      sprintf(msg, " *** Unable to set sample rate on soundcard\n");
+      sprintf(msg, "Unable to set sample rate on soundcard");
       goto err_return_msg;
     }
     /* buffer size, */
-    if (dev->buffer_smps == 0) dev->buffer_smps = 1024;
-    if (dev->buffer_smps < 64) dev->buffer_smps = 64;
-    if (snd_pcm_hw_params_set_buffer_size(dev->handle, hw_params,
-                                          (snd_pcm_uframes_t) dev->buffer_smps)
-        < 0) {
-      sprintf(msg, " *** Failed while trying to set soundcard "
-                   "DMA buffer size\n");
-      goto err_return_msg;
+    if (dev->buffer_smps == 0)
+      dev->buffer_smps = 1024;
+    else if (dev->buffer_smps < 64)
+      dev->buffer_smps = 64;
+    {
+      snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->buffer_smps;
+      err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
+      if (err < 0 || (int) nn != dev->buffer_smps) {
+        if (err >= 0)
+          p->Message(p, Str("ALSA: -B %d not allowed on this device; "
+                            "use %d instead\n"), dev->buffer_smps, (int) nn);
+        sprintf(msg, "Failed while trying to set soundcard DMA buffer size");
+        goto err_return_msg;
+      }
     }
     /* and period size */
     alloc_smps = dev->period_smps;
-    if (dev->period_smps == 0) dev->period_smps = 256;
-    if (dev->period_smps < 16) dev->period_smps = 16;
-    if (dev->period_smps > (dev->buffer_smps >> 1))
+    if (dev->period_smps == 0)
+      dev->period_smps = 256;
+    else if (dev->period_smps < 16)
+      dev->period_smps = 16;
+    else if (dev->period_smps > (dev->buffer_smps >> 1))
       dev->period_smps = (dev->buffer_smps >> 1);
     if (alloc_smps < dev->period_smps)  /* make sure that enough memory */
       alloc_smps = dev->period_smps;    /* is allocated for the buffer */
-    if (snd_pcm_hw_params_set_period_size(dev->handle, hw_params,
-                                          (snd_pcm_uframes_t) dev->period_smps,
-                                          0) < 0) {
-      sprintf(msg, " *** Error setting period time for real-time audio\n");
-      goto err_return_msg;
+    {
+      snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->period_smps;
+      int               dir = 0;
+      err = snd_pcm_hw_params_set_period_size_near(dev->handle, hw_params, &nn,
+                                                   &dir);
+      if (err < 0 || (int) nn != dev->period_smps) {
+        if (err >= 0)
+          p->Message(p, Str("ALSA: -b %d not allowed on this device; "
+                            "use %d instead\n"), dev->period_smps, (int) nn);
+        sprintf(msg, "Error setting period time for real-time audio");
+        goto err_return_msg;
+      }
     }
     /* set up device according to the above parameters */
     if (snd_pcm_hw_params(dev->handle, hw_params) < 0) {
-      sprintf(msg, " *** Error setting hardware parameters "
-                   "for real-time audio\n");
+      sprintf(msg, "Error setting hardware parameters for real-time audio");
       goto err_return_msg;
     }
     /* print settings */
-    if (p->GetMessageLevel(csound) != 0) {
-      sprintf(msg, "ALSA %s: total buffer size: %d, fragment size: %d\n",
-                   (play ? "output" : "input"),
-                   dev->buffer_smps, dev->period_smps);
-      p->Message(csound, msg);
-    }
+    if (p->GetMessageLevel(p) != 0)
+      p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d\n"),
+                    (play ? "output" : "input"),
+                    dev->buffer_smps, dev->period_smps);
     /* now set software parameters */
     n = (play ? dev->buffer_smps : 1);
     if (snd_pcm_sw_params_current(dev->handle, sw_params) < 0
@@ -294,15 +284,14 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                                            dev->period_smps) < 0
         || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0
         || snd_pcm_sw_params(dev->handle, sw_params) < 0) {
-      sprintf(msg, " *** Error setting software parameters "
-                   "for real-time audio\n");
+      sprintf(msg, "Error setting software parameters for real-time audio");
       goto err_return_msg;
     }
     /* allocate memory for sample conversion buffer */
     n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
     dev->buf = (void*) malloc((size_t) n);
     if (dev->buf == NULL) {
-      sprintf(msg, " *** Memory allocation failure\n");
+      sprintf(msg, "Memory allocation failure");
       goto err_return_msg;
     }
     memset(dev->buf, 0, (size_t) n);
@@ -310,90 +299,70 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     return 0;
 
  err_return_msg:
-    p->Message(csound, msg);
+    p->MessageS(p, CSOUNDMSG_ERROR, " *** %s\n", Str(msg));
     snd_pcm_close(dev->handle);
     return -1;
+}
+
+static int open_device(CSOUND *csound, csRtAudioParams *parm, int play)
+{
+    DEVPARAMS *dev;
+    void      **userDataPtr;
+    int       retval;
+
+    userDataPtr = (play ? (void**) &(csound->rtPlay_userdata)
+                          : (void**) &(csound->rtRecord_userdata));
+    /* check if the device is already opened */
+    if (*userDataPtr != NULL)
+      return 0;
+    if (parm->devNum != 1024) {
+      csound->ErrorMsg(csound, Str(" *** ALSA: must specify a device name, "
+                                   "not a number"));
+      return -1;
+    }
+    /* allocate structure */
+    dev = (DEVPARAMS*) malloc(sizeof(DEVPARAMS));
+    if (dev == NULL) {
+      csound->ErrorMsg(csound, Str(" *** ALSA: %s: memory allocation failure"),
+                               (play ? "playopen" : "recopen"));
+      return -1;
+    }
+    *userDataPtr = (void*) dev;
+    memset(dev, 0, sizeof(DEVPARAMS));
+    /* set up parameters */
+    dev->handle = (snd_pcm_t*) NULL;
+    dev->buf = NULL;
+    dev->device = parm->devName;
+    dev->format = parm->sampleFormat;
+    dev->sampleSize = 1;
+    dev->srate = (int) (parm->sampleRate + 0.5f);
+    dev->nchns = parm->nChannels;
+    dev->buffer_smps = parm->bufSamp_HW;
+    dev->period_smps = parm->bufSamp_SW;
+    dev->playconv = (void (*)(int, MYFLT*, void*, int*)) NULL;
+    dev->rec_conv = (void (*)(int, void*, MYFLT*)) NULL;
+    dev->seed = 1;
+    /* open device */
+    retval = set_device_params(csound, dev, play);
+    if (retval != 0) {
+      free(dev);
+      *userDataPtr = NULL;
+    }
+    return retval;
 }
 
 /* open for audio input */
 
 static int recopen_(CSOUND *csound, csRtAudioParams *parm)
 {
-    DEVPARAMS *dev;
-    int       retval;
-
-    /* check if the device is already opened */
-    if (*(csound->GetRtRecordUserData(csound)) != NULL)
-      return 0;
-    /* allocate structure */
-    dev = (DEVPARAMS*) malloc(sizeof(DEVPARAMS));
-    if (dev == NULL) {
-      csound->ErrorMsg(csound, " *** ALSA: recopen: memory allocation failure");
-      return -1;
-    }
-    *(csound->GetRtRecordUserData(csound)) = (void*) dev;
-    memset(dev, 0, sizeof(DEVPARAMS));
-    /* set up parameters */
-    dev->handle = (snd_pcm_t*) NULL;
-    dev->buf = NULL;
-    dev->device = parm->devName;
-    dev->format = parm->sampleFormat;
-    dev->sampleSize = 1;
-    dev->srate = (int) (parm->sampleRate + 0.5f);
-    dev->nchns = parm->nChannels;
-    dev->buffer_smps = parm->bufSamp_HW;
-    dev->period_smps = parm->bufSamp_SW;
-    dev->playconv = (void (*)(int, void*, void*, int*)) NULL;
-    dev->rec_conv = (void (*)(int, void*, void*)) NULL;
-    dev->seed = 1;
-    /* open device */
-    retval = set_device_params(csound, dev, 0);
-    if (retval != 0) {
-      free(dev);
-      *(csound->GetRtRecordUserData(csound)) = NULL;
-    }
-    return retval;
+    return open_device(csound, parm, 0);
 }
 
 /* open for audio output */
 
 static int playopen_(CSOUND *csound, csRtAudioParams *parm)
 {
-    DEVPARAMS *dev;
-    int       retval;
-
-    /* check if the device is already opened */
-    if (*(csound->GetRtPlayUserData(csound)) != NULL)
-      return 0;
-    /* allocate structure */
-    dev = (DEVPARAMS*) malloc(sizeof(DEVPARAMS));
-    if (dev == NULL) {
-      csound->ErrorMsg(csound,
-                       " *** ALSA: playopen: memory allocation failure");
-      return -1;
-    }
-    *(csound->GetRtPlayUserData(csound)) = (void*) dev;
-    memset(dev, 0, sizeof(DEVPARAMS));
-    /* set up parameters */
-    dev->handle = (snd_pcm_t*) NULL;
-    dev->buf = NULL;
-    dev->device = parm->devName;
-    dev->format = parm->sampleFormat;
-    dev->sampleSize = 1;
-    dev->srate = (int) (parm->sampleRate + 0.5f);
-    dev->nchns = parm->nChannels;
-    dev->buffer_smps = parm->bufSamp_HW;
-    dev->period_smps = parm->bufSamp_SW;
-    dev->playconv = (void (*)(int, void*, void*, int*)) NULL;
-    dev->rec_conv = (void (*)(int, void*, void*)) NULL;
-    dev->seed = 1;
-    /* open device */
-    retval = set_device_params(csound, dev, 1);
-    if (retval != 0) {
-      free(dev);
-      *(csound->GetRtPlayUserData(csound)) = NULL;
-    }
-    return retval;
+    return open_device(csound, parm, 1);
 }
 
 /* get samples from ADC */
@@ -411,7 +380,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
     DEVPARAMS *dev;
     int       n, m, err;
 
-    dev = (DEVPARAMS*) (*(csound->GetRtRecordUserData(csound)));
+    dev = (DEVPARAMS*) csound->rtRecord_userdata;
     if (dev->handle == NULL) {
       /* no device, return zero samples */
       memset(inbuf, 0, (size_t) nbytes);
@@ -457,7 +426,7 @@ static void rtplay_(CSOUND *csound, MYFLT *outbuf, int nbytes)
     DEVPARAMS *dev;
     int     n, err;
 
-    dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
+    dev = (DEVPARAMS*) csound->rtPlay_userdata;
     if (dev->handle == NULL)
       return;
     /* calculate the number of samples to play */
@@ -521,63 +490,37 @@ static void rtclose_(CSOUND *csound)
 
 /* sample conversion routines for playback */
 
-static void float_to_short(int nSmps, float *inBuf, int16_t *outBuf,
-                           int *seed)
+static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
 {
-    float tmp_f;
+    MYFLT tmp_f;
     int   tmp_i;
     while (nSmps--) {
       (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
-      tmp_f = (float) ((*seed) - 0x8000) * (1.0f / (float) 0x10000);
-      tmp_f += *(inBuf++) * (float) 0x8000;
+      tmp_f = (MYFLT) ((*seed) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
+      tmp_f += *(inBuf++) * (MYFLT) 0x8000;
+#ifndef USE_DOUBLE
       tmp_i = (int) lrintf(tmp_f);
-      if (tmp_i < -0x8000) tmp_i = -0x8000;
-      if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      *(outBuf++) = (int16_t) tmp_i;
-    }
-}
-
-static void double_to_short(int nSmps, double *inBuf, int16_t *outBuf,
-                            int *seed)
-{
-    double  tmp_f;
-    int     tmp_i;
-    while (nSmps--) {
-      (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
-      tmp_f = (double) ((*seed) - 0x8000) * (1.0 / (double) 0x10000);
-      tmp_f += *(inBuf++) * (double) 0x8000;
+#else
       tmp_i = (int) lrint(tmp_f);
+#endif
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
       *(outBuf++) = (int16_t) tmp_i;
     }
 }
 
-static void float_to_long(int nSmps, float *inBuf, int32_t *outBuf,
-                          int *seed)
+static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
 {
-    float   tmp_f;
+    MYFLT   tmp_f;
     int64_t tmp_i;
-    seed = seed;
+    (void) seed;
     while (nSmps--) {
-      tmp_f = *(inBuf++) * (float) 0x80000000UL;
+      tmp_f = *(inBuf++) * (MYFLT) 0x80000000UL;
+#ifndef USE_DOUBLE
       tmp_i = (int64_t) llrintf(tmp_f);
-      if (tmp_i < -((int64_t) 0x80000000UL))
-        tmp_i = -((int64_t) 0x80000000UL);
-      if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;
-      *(outBuf++) = (int32_t) tmp_i;
-    }
-}
-
-static void double_to_long(int nSmps, double *inBuf, int32_t *outBuf,
-                           int *seed)
-{
-    double  tmp_f;
-    int64_t tmp_i;
-    seed = seed;
-    while (nSmps--) {
-      tmp_f = *(inBuf++) * (double) 0x80000000UL;
+#else
       tmp_i = (int64_t) llrint(tmp_f);
+#endif
       if (tmp_i < -((int64_t) 0x80000000UL))
         tmp_i = -((int64_t) 0x80000000UL);
       if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;
@@ -585,57 +528,30 @@ static void double_to_long(int nSmps, double *inBuf, int32_t *outBuf,
     }
 }
 
-static void float_to_float_p(int nSmps, float *inBuf, float *outBuf,
-                             int *seed)
+static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed)
 {
-    seed = seed;
-    while (nSmps--)
-      *(outBuf++) = *(inBuf++);
-}
-
-static void double_to_float(int nSmps, double *inBuf, float *outBuf,
-                            int *seed)
-{
-    seed = seed;
+    (void) seed;
     while (nSmps--)
       *(outBuf++) = (float) *(inBuf++);
 }
 
 /* sample conversion routines for recording */
 
-static void short_to_float(int nSmps, int16_t *inBuf, float *outBuf)
+static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf)
 {
     while (nSmps--)
-      *(outBuf++) = (float) *(inBuf++) * (1.0f / (float) 0x8000);
+      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x8000);
 }
 
-static void short_to_double(int nSmps, int16_t *inBuf, double *outBuf)
+static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf)
 {
     while (nSmps--)
-      *(outBuf++) = (double) *(inBuf++) * (1.0 / (double) 0x8000);
+      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x80000000UL);
 }
 
-static void long_to_float(int nSmps, int32_t *inBuf, float *outBuf)
+static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
 {
     while (nSmps--)
-      *(outBuf++) = (float) *(inBuf++) * (1.0f / (float) 0x80000000UL);
-}
-
-static void long_to_double(int nSmps, int32_t *inBuf, double *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = (double) *(inBuf++) * (1.0 / (double) 0x80000000UL);
-}
-
-static void float_to_float_r(int nSmps, float *inBuf, float *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = *(inBuf++);
-}
-
-static void float_to_double(int nSmps, float *inBuf, double *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = (double) *(inBuf++);
+      *(outBuf++) = (MYFLT) *(inBuf++);
 }
 

@@ -142,7 +142,7 @@ extern "C" {
       csound->insert_score_event(csound, &e, csound->curTime);
     }
   }
-};      // extern "C"
+}       // extern "C"
 #endif  // NO_FLTK_THREADS
 
 static char hack_o_rama1;       // IV - Aug 23 2002
@@ -236,7 +236,7 @@ extern "C" {
     csound->insert_score_event(csound, &e, csound->curTime);
 #endif  // NO_FLTK_THREADS
   }
-};
+}
 
 // ---- IV - Aug 23 2002 ---- included file: Fl_Knob.cxx
 
@@ -1414,11 +1414,6 @@ static vector<ADDR_SET_VALUE> AddrSetValue; //addresses of valuators
 static vector<char*> allocatedStrings;
 static vector<SNAPSHOT> snapshots;
 
-static Fl_Window *oKeyb;
-static int isActivatedKeyb=0;
-//static int keyb_out=0;
-static FLKEYB* keybp = NULL;
-
 extern "C" int set_snap(CSOUND *csound, FLSETSNAP *p)
 {
   SNAPSHOT snap(AddrSetValue);
@@ -1429,9 +1424,9 @@ extern "C" int set_snap(CSOUND *csound, FLSETSNAP *p)
 
   if (*p->ifn >= 1) { // if the table number is valid
     FUNC    *ftp;   // store the snapshot into the table
-    if ((ftp = csound->FTFind(p->h.insdshead->csound,p->ifn)) != NULL) {
-      MYFLT * table = ftp->ftable;
-      for ( int j=0; j < numfields; j++) {
+    if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
+      MYFLT *table = ftp->ftable;
+      for (int j = 0; j < numfields; j++) {
         table[index*numfields+j] = snap.fields[j].value;
       }
     }
@@ -1675,12 +1670,6 @@ extern "C" {
                                 snapshots[j].fields.end());
       snapshots.resize(snapshots.size() + 1);
     }
-    if (isActivatedKeyb) {
-      delete oKeyb;
-    }
-    //keyb_out=0;
-    isActivatedKeyb=0;
-    keybp = NULL;
 
     AddrSetValue.erase(AddrSetValue.begin(), AddrSetValue.end());
 
@@ -1699,12 +1688,11 @@ extern "C" {
     FLtext_color      = -1;
     FLtext_font       = -1;
     FLtext_align      = 0;
- // keyb_out          = 0;
     FL_ix             = 10;
     FL_iy             = 10;
     return 0;
   }
-};      // extern "C"
+}       // extern "C"
 
 //-----------
 
@@ -1747,7 +1735,7 @@ static uintptr_t fltkRun(void *userdata)
   return (uintptr_t) 0;
 }
 
-};  // extern "C"
+}   // extern "C"
 
 #endif  // NO_FLTK_THREADS
 
@@ -2100,11 +2088,8 @@ void widget_attributes(Fl_Widget *o)
 
 extern "C" int FLkeyb(CSOUND *csound, FLKEYB *p)
 {
-#if 0
-  isActivatedKeyb = 1;
-  oKeyb = FLkeyboard_init();
-  keybp = p; //output of the keyboard is stored into a global variable pointer
-#endif
+  (void) csound;
+  (void) p;
   return OK;
 }
 
@@ -3658,5 +3643,5 @@ PUBLIC OENTRY *opcode_init(CSOUND *csound)
     return localops;
 }
 
-};      // extern "C"
+}       // extern "C"
 

@@ -31,17 +31,16 @@
  *                                                                            *
  * Plugin libraries are loaded from the directory defined by the environment  *
  * variable OPCODEDIR (or the current directory if OPCODEDIR is unset) by     *
- * csoundCreate() after the creation of a Csound instance, and are unloaded   *
- * at the end of performance.                                                 *
- * A library may export any of the following four interface functions,        *
+ * csoundPreCompile() while initialising a Csound instance, and are unloaded  *
+ * at the end of performance by csoundReset().                                *
+ * A library may export any of the following five interface functions,        *
  * however, the presence of csoundModuleCreate() is required for identifying  *
  * the file as a Csound plugin module.                                        *
  *                                                                            *
  * int csoundModuleCreate(CSOUND *csound)       (required)                    *
  * --------------------------------------                                     *
  *                                                                            *
- * Pre-initialisation function that is called by csoundCreate() after the     *
- * creation of Csound instance 'csound'.                                      *
+ * Pre-initialisation function, called by csoundPreCompile().                 *
  *                                                                            *
  * int csoundModuleInit(CSOUND *csound)         (optional)                    *
  * ------------------------------------                                       *
@@ -60,6 +59,13 @@
  *                                                                            *
  * Converts error codes returned by any of the initialisation or destructor   *
  * functions to a string message.                                             *
+ *                                                                            *
+ * int csoundModuleMYFLTSize(void)              (optional)                    *
+ * -------------------------------                                            *
+ *                                                                            *
+ * Returns the size of the MYFLT type with which the module was compiled.     *
+ * If it does not match the type used by libcsound, the plugin will not be    *
+ * loaded.                                                                    *
  *                                                                            *
  ******************************************************************************/
 
@@ -95,7 +101,7 @@ int csoundInitModules(CSOUND *csound);
 int csoundDestroyModules(CSOUND *csound);
 
 #ifdef __cplusplus
-};
+}
 #endif /* __cplusplus */
 
 #endif /* CSOUND_CSMODULE_H */

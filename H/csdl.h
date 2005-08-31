@@ -40,30 +40,38 @@ extern "C" {
 #endif
 #define Str(x) (((CSOUND*) csound)->LocalizeString(x))
 
+PUBLIC  long    opcode_size(void);
+PUBLIC  OENTRY  *opcode_init(CSOUND *);
+PUBLIC  NGFENS  *fgen_init(CSOUND *);
+
+PUBLIC  int     csoundModuleCreate(CSOUND *);
+PUBLIC  int     csoundModuleInit(CSOUND *);
+PUBLIC  int     csoundModuleDestroy(CSOUND *);
+PUBLIC  char    *csoundModuleErrorCodeToString(int);
+
+PUBLIC  int     csoundModuleMYFLTSize(void);
+
 #define LINKAGE                         \
 PUBLIC long opcode_size(void)           \
-{                                       \
-    return (long) sizeof(localops);     \
-}                                       \
-                                        \
+{   return (long) sizeof(localops); }   \
 PUBLIC OENTRY *opcode_init(CSOUND *xx)  \
-{                                       \
-    return localops;                    \
-}
+{   (void) xx; return localops;     }   \
+PUBLIC int csoundModuleMYFLTSize(void)  \
+{   return (int) sizeof(MYFLT);     }
 
 #define FLINKAGE                        \
 PUBLIC long opcode_size(void)           \
 {   if (localops == NULL) return LONG_MIN;              \
     else return ((long) sizeof(localops) | LONG_MIN); } \
-                                        \
 PUBLIC OENTRY *opcode_init(CSOUND *xx)  \
-{   return localops;    }               \
-                                        \
+{   (void) xx; return localops;     }   \
 PUBLIC NGFENS *fgen_init(CSOUND *xx)    \
-{   return localfgens;  }
+{   (void) xx; return localfgens;   }   \
+PUBLIC int csoundModuleMYFLTSize(void)  \
+{   return (int) sizeof(MYFLT);     }
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif      /* CSOUND_CSDL_H */
