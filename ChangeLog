@@ -1,3 +1,19 @@
+2005-09-01	Istvan Varga	<ivarga@csounds.com>
+	* Top/csmodule.c:
+	  revised code for loading plugin libraries
+	  new function: csoundModuleInfo() can be used in plugin libraries to
+	  allow for checking API version and MYFLT type
+	* Top/dl_opcodes.c:
+	  merged into csmodule.c; removed file
+	* Engine/oload.c, H/csoundCore.h, OOps/ugens3.c, OOps/ugens5.c:
+	  removed static variables from ugens3.c and ugens5.c
+	* Top/csound.c:
+	  removed adsyn/lpc RESET routines that are no longer needed
+	* Opcodes/hrtferX, Opcodes/natben.c, Top/natben.c, SConstruct:
+	  removed unused endianness conversion code
+	* SConstruct:
+	  fixed bug that broke building libcsound as a shared library
+
 2005-08-30	Istvan Varga	<ivarga@csounds.com>
 	* Opcodes/ugnorman.c:
 	  renamed opcodes from ats* to ATS* to avoid namespace pollution
