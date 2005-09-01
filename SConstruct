@@ -593,10 +593,8 @@ Top/cscore_internal.c
 Top/cscorfns.c
 Top/csmodule.c
 Top/csound.c
-Top/dl_opcodes.c
 Top/getstring.c
 Top/main.c
-Top/natben.c
 Top/new_opts.c
 Top/one_file.c
 Top/opcode.c
@@ -621,12 +619,16 @@ else:
     print 'CONFIGURATION DECISION: Building without real time MIDI support.'
 
 if not ((commonEnvironment['useFLTK'] == '1' and fltkFound)):
-    print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
+  print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
 else:
-    print 'CONFIGURATION DECISION: Building with FLTK for graphs and widgets.'
-    fltkEnvironment = csoundLibraryEnvironment.Copy()
-    if (commonEnvironment['noFLTKThreads'] == '1'):
-      fltkEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
+  print 'CONFIGURATION DECISION: Building with FLTK for graphs and widgets.'
+  fltkEnvironment = csoundLibraryEnvironment.Copy()
+  if (commonEnvironment['noFLTKThreads'] == '1'):
+    fltkEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
+  if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
+    libCsoundSources.append(fltkEnvironment.SharedObject('InOut/FL_graph.cpp'))
+    libCsoundSources.append(fltkEnvironment.SharedObject('InOut/winFLTK.c'))
+  else:
     libCsoundSources.append(fltkEnvironment.Object('InOut/FL_graph.cpp'))
     libCsoundSources.append(fltkEnvironment.Object('InOut/winFLTK.c'))
 
@@ -688,8 +690,7 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('grain',
 pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4',
     ['Opcodes/grain4.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('hrtferX',
-    Split('''Opcodes/hrtferX.c
-    Opcodes/natben.c''')))
+    ['Opcodes/hrtferX.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('locsig',
     ['Opcodes/locsig.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('lowpassr',
