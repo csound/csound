@@ -1,3 +1,7 @@
+2005-0901	Michael Gogins	<gogins@pipeline.com>
+	* Added CsoundVST.Soundfile wrapper class for Python access
+	to libsndfile.
+
 2005-09-01	Istvan Varga	<ivarga@csounds.com>
 	* Top/csmodule.c:
 	  revised code for loading plugin libraries
