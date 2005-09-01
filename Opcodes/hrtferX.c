@@ -59,18 +59,17 @@
 /* This array transferred here so as to be declared once.  Belongs to
    the structure of the HRTF data really in 3Dug.h */
 
-int elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72,
-                              60, 56, 45, 36, 24, 12, 1 };
+static const int elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72,
+                                           60, 56, 45, 36, 24, 12, 1 };
 
 #define ROUND(x) ((int)floor((x)+FL(0.5)))
 #define GET_NFAZ(el_index)      ((elevation_data[el_index] / 2) + 1)
 
-extern int bytrevhost(void);
-
-int hrtferxkSet(CSOUND *csound, HRTFER *p)
+static int hrtferxkSet(CSOUND *csound, HRTFER *p)
 {
     int    i; /* standard loop counter */
     char   filename[MAXNAME];
+    int    bytrev_test;
     MEMFIL *mfp;
 
         /* first check if orchestra's sampling rate is compatible with HRTF
@@ -93,21 +92,23 @@ int hrtferxkSet(CSOUND *csound, HRTFER *p)
     if ((mfp = p->mfp) == NULL)
       mfp = csound->ldmemfile(csound, filename);
     p->mfp = mfp;
-    p->fpbegin = (short *) mfp->beginp;
-    if (bytrevhost()) {         /* Byte reverse on data set if necessary */
+    p->fpbegin = (short*) mfp->beginp;
+    bytrev_test = 0x1234;
+    if (*((unsigned char*) &bytrev_test) == (unsigned char) 0x34) {
+      /* Byte reverse on data set if necessary */
       short *x = p->fpbegin;
       long len = (mfp->length)/sizeof(short);
-      while (len!=0) {
+      while (len != 0) {
         short v = *x;
-        v = ((v&0xFF)<<8) + ((v>>8)&0xFF); /* Swap bytes */
+        v = ((v & 0xFF) << 8) + ((v >> 8) & 0xFF);  /* Swap bytes */
         *x = v;
         x++; len--;
       }
     }
 #ifdef CLICKS
         /* initialize ramp arrays for crossfading */
-    for (i=0; i<FILT_LEN; i++) {
-        p->rampup[i] = (MYFLT)i / (MYFLT) FILT_LEN;
+    for (i = 0; i < FILT_LEN; i++) {
+        p->rampup[i] = (MYFLT) i / (MYFLT) FILT_LEN;
         p->rampdown[i] = FL(1.0) - p->rampup[i];
     }
 #endif
@@ -146,7 +147,7 @@ int hrtferxkSet(CSOUND *csound, HRTFER *p)
 
 /********************** a-rate code ***********************************/
 
-int hrtferxk(CSOUND *csound, HRTFER *p)
+static int hrtferxk(CSOUND *csound, HRTFER *p)
 {
     MYFLT      *aLeft, *aRight; /* audio output streams */
     MYFLT      *aIn, *kAz, *kElev; /* audio and control input streams */
@@ -489,7 +490,7 @@ int hrtferxk(CSOUND *csound, HRTFER *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "hrtfer",   S(HRTFER),5, "aa", "akkS", (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
