@@ -40,6 +40,7 @@
 
 #ifdef SWIG
 %module CsoundVST
+%include "typemaps.i"
 %{
     #include <string>
     #include <vector>
@@ -77,6 +78,7 @@
 #include "StrangeAttractor.hpp"
 #include "Lindenmayer.hpp"
 #include "MCRM.hpp"
+#include "Soundfile.hpp"
 
 #endif
 
