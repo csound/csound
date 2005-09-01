@@ -60,18 +60,21 @@
  * Converts error codes returned by any of the initialisation or destructor   *
  * functions to a string message.                                             *
  *                                                                            *
- * int csoundModuleMYFLTSize(void)              (optional)                    *
- * -------------------------------                                            *
+ * int csoundModuleInfo(void)                   (optional)                    *
+ * --------------------------                                                 *
  *                                                                            *
- * Returns the size of the MYFLT type with which the module was compiled.     *
- * If it does not match the type used by libcsound, the plugin will not be    *
- * loaded.                                                                    *
+ * Returns information that can be used to determine if the plugin was built  *
+ * for a compatible version of libcsound. The return value may be the sum of  *
+ * any of the following two values:                                           *
+ *                                                                            *
+ *   ((CS_APIVERSION << 16) + (CS_APISUBVER << 8))      API version           *
+ *   (int) sizeof(MYFLT)                                MYFLT type            *
  *                                                                            *
  ******************************************************************************/
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
 /* ------------------------ INTERNAL API FUNCTIONS ------------------------ */
 
@@ -102,7 +105,7 @@ int csoundDestroyModules(CSOUND *csound);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* CSOUND_CSMODULE_H */
 

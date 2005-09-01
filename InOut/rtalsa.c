@@ -47,9 +47,9 @@ typedef struct devparams_ {
     int             buffer_smps;    /* buffer length in samples         */
     int             period_smps;    /* period time in samples           */
     /* playback sample conversion function */
-    void            (*playconv)(int, MYFLT*, void*, int*);
+    void            (*playconv)(int, MYFLT *, void *, int *);
     /* record sample conversion function */
-    void            (*rec_conv)(int, void*, MYFLT*);
+    void            (*rec_conv)(int, void *, MYFLT *);
     int             seed;           /* random seed for dithering        */
 } DEVPARAMS;
 
@@ -100,9 +100,9 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleMYFLTSize(void)
+PUBLIC int csoundModuleInfo(void)
 {
-    return (int) sizeof(MYFLT);
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
 /* select sample format */
