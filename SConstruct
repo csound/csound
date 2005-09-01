@@ -1096,6 +1096,7 @@ else:
     frontends/CsoundVST/Shell.cpp
     frontends/CsoundVST/StrangeAttractor.cpp
     frontends/CsoundVST/System.cpp
+    frontends/CsoundVST/Soundfile.cpp
     ''')
     # These are the Windows system call libraries.
     if getPlatform() == 'mingw':
