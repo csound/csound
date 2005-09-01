@@ -49,15 +49,15 @@ PUBLIC  int     csoundModuleInit(CSOUND *);
 PUBLIC  int     csoundModuleDestroy(CSOUND *);
 PUBLIC  char    *csoundModuleErrorCodeToString(int);
 
-PUBLIC  int     csoundModuleMYFLTSize(void);
+PUBLIC  int     csoundModuleInfo(void);
 
 #define LINKAGE                         \
 PUBLIC long opcode_size(void)           \
 {   return (long) sizeof(localops); }   \
 PUBLIC OENTRY *opcode_init(CSOUND *xx)  \
 {   (void) xx; return localops;     }   \
-PUBLIC int csoundModuleMYFLTSize(void)  \
-{   return (int) sizeof(MYFLT);     }
+PUBLIC int csoundModuleInfo(void)       \
+{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
 #define FLINKAGE                        \
 PUBLIC long opcode_size(void)           \
@@ -67,8 +67,8 @@ PUBLIC OENTRY *opcode_init(CSOUND *xx)  \
 {   (void) xx; return localops;     }   \
 PUBLIC NGFENS *fgen_init(CSOUND *xx)    \
 {   (void) xx; return localfgens;   }   \
-PUBLIC int csoundModuleMYFLTSize(void)  \
-{   return (int) sizeof(MYFLT);     }
+PUBLIC int csoundModuleInfo(void)       \
+{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
 #ifdef __cplusplus
 }
