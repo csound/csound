@@ -1042,7 +1042,6 @@ extern "C" {
     int           orcname_mode;         /* 0: normal, 1: ignore, 2: fail */
     void          *csmodule_db;
     char          *dl_opcodes_oplibs;
-    void          *dl_opcodes_db;
     char          *SF_csd_licence;
     char          *SF_id_title;
     char          *SF_id_copyright;
@@ -1051,6 +1050,10 @@ extern "C" {
     char          *SF_id_comment;
     char          *SF_id_date;
     void          *utility_db;
+    short         *isintab;             /* ugens3.c */
+    void          *lprdaddr;            /* ugens5.c */
+    int           currentLPCSlot;
+    int           max_lpc_slot;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
