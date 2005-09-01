@@ -26,13 +26,6 @@
 #include <math.h>
 #include "oload.h"
 
-static short *isintab = NULL;
-
-void adsynRESET(CSOUND *csound)
-{
-    isintab = NULL;   /* hope this is enough... */
-}
-
 int foscset(CSOUND *csound, FOSC *p)
 {
     FUNC   *ftp;
@@ -859,9 +852,9 @@ int adset(CSOUND *csound, ADSYN *p)
     PTLPTR *ptlap, *ptlfp, *ptlim;
     int size;
 
-    if (isintab == NULL) {          /* if no sin table yet, make one */
+    if (csound->isintab == NULL) {  /* if no sin table yet, make one */
       short *ip;
-      isintab = ip = (short *) mmalloc(csound, (long)ISINSIZ * sizeof(short));
+      csound->isintab = ip = (short*) mmalloc(csound, ISINSIZ * sizeof(short));
       for (n = 0; n < ISINSIZ; n++)
         *ip++ = (short) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
@@ -931,7 +924,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
     MYFLT   ampscale, frqscale;
     long    timkincr, nxtim;
 
-    if (isintab==NULL) {    /* RWD fix */
+    if (csound->isintab == NULL) {      /* RWD fix */
       return csound->PerfError(csound, Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */
@@ -959,7 +952,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
         sp = (long *) p->rslt;
         nsmps = csound->ksmps;            /*   addin a sinusoid */
         do {
-          *sp++ += *(isintab + phs) * amp;
+          *sp++ += csound->isintab[phs] * amp;
           phs += sinc;
           phs &= ADMASK;
         } while (--nsmps);

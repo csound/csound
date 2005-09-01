@@ -491,7 +491,6 @@ const CSOUND cenviron_ = {
         0,              /*  orcname_mode        */
         NULL,           /*  csmodule_db         */
         (char*) NULL,   /*  dl_opcodes_oplibs   */
-        NULL,           /*  dl_opcodes_db       */
         (char*) NULL,   /*  SF_csd_licence      */
         (char*) NULL,   /*  SF_id_title         */
         (char*) NULL,   /*  SF_id_copyright     */
@@ -499,13 +498,16 @@ const CSOUND cenviron_ = {
         (char*) NULL,   /*  SF_id_artist        */
         (char*) NULL,   /*  SF_id_comment       */
         (char*) NULL,   /*  SF_id_date          */
-        NULL            /*  utility_db          */
+        NULL,           /*  utility_db          */
+        (short*) NULL,  /*  isintab             */
+        NULL,           /*  lprdaddr            */
+        0,              /*  currentLPCSlot      */
+        0               /*  max_lpc_slot        */
 };
 
 /* otran.c */
-extern  void    get_strpool_ptrs(CSOUND *csound,
-                                 int *strpool_cnt, char ***strpool);
-extern  void    strpool_delete(CSOUND *csound);
+extern  void    get_strpool_ptrs(CSOUND *, int *strpool_cnt, char ***strpool);
+extern  void    strpool_delete(CSOUND *);
 
 static  int     strlen_to_samples(const char *s);
 static  void    unquote_string(char *dst, const char *src);
