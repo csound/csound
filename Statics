@@ -40,13 +40,6 @@ OOps/sdif.c:    static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!"
 OOps/sdif-mem.c:static void *(*my_malloc)(int numBytes);
 OOps/sdif-mem.c:static void (*my_free)(void *memory, int numBytes);
 
-OOps/ugens3.c:static short *isintab = NULL;
-
-OOps/ugens5.c:static  int     currentLPCSlot=0 ;
-OOps/ugens5.c:static int max_lpc_slot=0;
-OOps/ugens5.c:static  LPREAD  **lprdadr=NULL;
-OOps/ugens5.c:static  char    lpfilname[MAXNAME];
-
 Opcodes/fm4op.c:static int      FM_tabs_built = 0;
 Opcodes/fm4op.c:static MYFLT    FM4Op_gains[100];
 Opcodes/fm4op.c:static MYFLT    FM4Op_susLevels[16];
@@ -92,10 +85,9 @@ Top/cscorfns.c:static MYFLT curuntil;           /* initialised to zero by filope
 Top/cscorfns.c:static int   wasend;             /* ditto */
 Top/cscorfns.c:static void
 
-Top/dl_opcodes.c:    static char errstr[ERR_STR_LEN];
-Top/dl_opcodes.c:    static int err_filled = 0;
-Top/dl_opcodes.c:    static char undersym[257];  /* Saves calls to malloc(3) */
-Top/dl_opcodes.c:    static char undersym[257];  /* Saves calls to malloc(3) */
+Top/csmodule.c:    static char errstr[ERR_STR_LEN];
+Top/csmodule.c:    static int err_filled = 0;
+Top/csmodule.c:    static int (*make_private_module_public) (NSModule module) = NULL;
 
 Top/dnoise_int.c:static int ok_enabled = FALSE;          /* TRUE if allow \r to mean OK button */
 Top/dnoise_int.c:    static Boolean dispFlag = FALSE;    /* to make it possible to type in

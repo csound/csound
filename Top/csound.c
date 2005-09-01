@@ -1493,7 +1493,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
   }
 
   extern void csoundDeleteAllGlobalVariables(CSOUND *csound);
-  extern int  csoundUnloadExternals(CSOUND *csound);
 
   typedef struct resetCallback_s {
     void    *userData;
@@ -1501,13 +1500,11 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
     struct resetCallback_s  *nxt;
   } resetCallback_t;
 
-  extern void adsynRESET(CSOUND *);
   extern void cscoreRESET(CSOUND *);
   extern void disprepRESET(CSOUND *);
-  extern void lpcRESET(CSOUND *);
-  extern void memRESET(CSOUND *);
-  extern void oloadRESET(CSOUND *);
   extern void tranRESET(CSOUND *);
+  extern void oloadRESET(CSOUND *);
+  extern void memRESET(CSOUND *);
 
   PUBLIC void csoundReset(CSOUND *csound)
   {
@@ -1521,8 +1518,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
       free(p);
     }
 
-    /* unload plugin opcodes */
-    csoundUnloadExternals(csound);
     /* call local destructor routines of external modules */
     /* should check return value... */
     csoundDestroyModules(csound);
@@ -1534,8 +1529,6 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
     cscoreRESET(csound);
     disprepRESET(csound);
     tranRESET(csound);
-    adsynRESET(csound);
-    lpcRESET(csound);
     oloadRESET(csound);     /* should be called last but one */
     memRESET(csound);       /* and this one should be the last */
   }

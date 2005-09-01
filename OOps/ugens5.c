@@ -30,19 +30,7 @@
  * LPC storage slots
  */
 
-static  int     currentLPCSlot=0 ;
 #define MAX_LPC_SLOT 20
-static int max_lpc_slot=0;
-
-static  LPREAD  **lprdadr=NULL;
-static  char    lpfilname[MAXNAME];
-
-void lpcRESET(CSOUND *csound)
-{
-    currentLPCSlot = 0;
-    mfree(csound, lprdadr);
-    lprdadr = NULL;
-}
 
 int porset(CSOUND *csound, PORT *p)
 {
@@ -408,20 +396,23 @@ int lprdset(CSOUND *csound, LPREAD *p)
     MEMFIL   *mfp;
     long     magic;
     long     totvals;  /* NB - presumes sizeof(MYFLT) == sizeof(long) !! */
+    char     lpfilname[MAXNAME];
 
     /* Store adress of opcode for other lpXXXX init to point to */
-    if (lprdadr==NULL || currentLPCSlot>max_lpc_slot) {
-      max_lpc_slot = currentLPCSlot+MAX_LPC_SLOT;
-      lprdadr = (LPREAD**) mrealloc(csound,
-                                    lprdadr, max_lpc_slot*sizeof(LPREAD*));
+    if (csound->lprdaddr == NULL ||
+        csound->currentLPCSlot >= csound->max_lpc_slot) {
+      csound->max_lpc_slot = csound->currentLPCSlot + MAX_LPC_SLOT;
+      csound->lprdaddr = mrealloc(csound,
+                                  csound->lprdaddr,
+                                  csound->max_lpc_slot * sizeof(LPREAD*));
     }
-    lprdadr[currentLPCSlot] = p;
+    ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = p;
 
     /* Build file name */
     csound->strarg2name(csound, lpfilname, p->ifilno, "lp.", p->XSTRCODE);
 
     /* Do not reload existing file ? */
-    if ((mfp = p->mfp) != NULL && strcmp(mfp->filename,lpfilname) == 0)
+    if ((mfp = p->mfp) != NULL && strcmp(mfp->filename, lpfilname) == 0)
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
     if ((mfp = ldmemfile(csound, lpfilname)) == NULL) { /* else read file  */
@@ -741,7 +732,8 @@ int lprsnset(CSOUND *csound, LPRESON *p)
     LPREAD *q;
 
    /* connect to previously loaded lpc analysis */
-    p->lpread = q = lprdadr[currentLPCSlot];     /* get adr lpread struct */
+   /* get adr lpread struct */
+    p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
 
    /* Initialize pointer to circulat buffer (for filtering) */
     p->circjp = p->circbuf;
@@ -840,11 +832,11 @@ int lpfrsnset(CSOUND *csound, LPFRESON *p)
 
    /* Connect to previously loaded analysis file */
 
-    if (lprdadr[currentLPCSlot]->storePoles) {
+    if (((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot]->storePoles) {
       return csound->InitError(csound, Str("Pole file not supported "
                                            "for this opcode !"));
     }
-    p->lpread = lprdadr[currentLPCSlot];
+    p->lpread = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
     p->prvratio = FL(1.0);
     p->d = FL(0.0);
     p->prvout = FL(0.0);
@@ -1052,16 +1044,17 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
 {
     int n;
 
-    n = (int)*(p->islotnum);
-    if (n<0)
+    n = (int) *(p->islotnum);
+    if (n < 0)
       return csound->InitError(csound, Str("lpslot number should be positive"));
     else {
-      if (n>=max_lpc_slot) {
-        max_lpc_slot = n + MAX_LPC_SLOT;
-        lprdadr = (LPREAD**)mrealloc(csound,
-                                     lprdadr, max_lpc_slot*sizeof(LPREAD**));
+      if (n >= csound->max_lpc_slot) {
+        csound->max_lpc_slot = n + MAX_LPC_SLOT;
+        csound->lprdaddr = mrealloc(csound,
+                                    csound->lprdaddr,
+                                    csound->max_lpc_slot * sizeof(LPREAD**));
       }
-      currentLPCSlot = n;
+      csound->currentLPCSlot = n;
     }
     return OK;
 }
@@ -1069,11 +1062,14 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
 int lpitpset(CSOUND *csound, LPINTERPOL *p)
 {
 
-    if ((int)*(p->islot1)>max_lpc_slot || (int)*(p->islot2)>max_lpc_slot)
+    if ((unsigned int) ((int) *(p->islot1))
+          >= (unsigned int) csound->max_lpc_slot ||
+        (unsigned int) ((int) *(p->islot2))
+          >= (unsigned int) csound->max_lpc_slot)
       return csound->InitError(csound, Str("LPC slot is not allocated"));
   /* Get lpread pointers */
-    p->lp1 = lprdadr[(int)*(p->islot1)];
-    p->lp2 = lprdadr[(int)*(p->islot2)];
+    p->lp1 = ((LPREAD**) csound->lprdaddr)[(int) *(p->islot1)];
+    p->lp2 = ((LPREAD**) csound->lprdaddr)[(int) *(p->islot2)];
 
   /* Check if workable */
 
@@ -1093,7 +1089,7 @@ int lpitpset(CSOUND *csound, LPINTERPOL *p)
 
     p->npoles = p->lp1->npoles;
     p->storePoles = 1;
-    lprdadr[currentLPCSlot] = (LPREAD*)p;
+    ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = (LPREAD*) p;
     return OK;
 }
 
