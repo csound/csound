@@ -1,9 +1,9 @@
 
 CC = wine D:/MinGW/bin/gcc
 CXX = wine D:/MinGW/bin/g++
-#CFLAGS = -Wall -g -O2 -march=i586 -mtune=pentium3 -DUSE_DOUBLE -DUSE_LRINT
+#CFLAGS = -Wall -O2 -march=i586 -mtune=pentium3 -fomit-frame-pointer -ffast-math -DUSE_DOUBLE -DUSE_LRINT
 CFLAGS = -Wall -O3 -march=pentium3 -fomit-frame-pointer -ffast-math
-CFLAGS += -I. -IH -DWIN32 -DPIPES -DMACROS -DCSOUND_WITH_API -DHAVE_STDINT_H -DHAVE_DIRENT_H -DHAVE_UNISTD_H -DHAVE_CTYPE_H -DHAVE_FCNTL_H -DHAVE_STRING_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DPIC
+CFLAGS += -I. -IH -DWIN32 -DPIPES -DCSOUND_WITH_API -DHAVE_STDINT_H -DHAVE_DIRENT_H -DHAVE_UNISTD_H -DHAVE_CTYPE_H -DHAVE_FCNTL_H -DHAVE_STRING_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DPIC
 CSOUNDLIB = csound32.dll
 PROGRAM = csound32.exe
 LDFLAGS = -L.
@@ -65,7 +65,7 @@ CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		OOps/vbap_zak.o OOps/vdelay.o OOps/vpvoc.o		\
 		Top/argdecode.o Top/cscore_internal.o Top/cscorfns.o	\
 		Top/csmodule.o Top/csound.o Top/dl_opcodes.o		\
-		Top/getstring.o Top/main.o Top/natben.o Top/new_opts.o	\
+		Top/getstring.o Top/main.o Top/new_opts.o		\
 		Top/one_file.o Top/opcode.o Top/scot.o Top/threads.o	\
 		Top/utility.o
 
@@ -86,9 +86,6 @@ Opcodes/%.o: Opcodes/%.c
 
 Opcodes/sfont.o: Opcodes/sfont.c
 	$(CC) $(CFLAGS) -fno-strict-aliasing -c $< -o $@
-
-hrtferX.dll: Opcodes/hrtferX.o Opcodes/natben.o
-	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS2)
 
 modal4.dll: Opcodes/modal4.o Opcodes/physutil.o
 	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS2)
