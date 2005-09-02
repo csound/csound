@@ -43,40 +43,40 @@
 
 namespace csound
 {
-	/**
-	* Simple, basic read/write access, in sample frames, to PCM soundfiles.
-	* Reads and writes any format, but write defaults to WAV float format.
-	* This class is designed for Python wrapping with SWIG.
-	*/
-	class Soundfile
-	{
-		SNDFILE *sndfile;
-		SF_INFO sf_info;
-		std::vector<double> framebuffer;
-		public:
-			Soundfile();
-			virtual ~Soundfile() ;
-			virtual void initialize() ;
-			virtual int getFramesPerSecond() const;
-			virtual void setFramesPerSecond(int framesPerSecond);
-			virtual int getChannelsPerFrame() const;
-			virtual void setChannelsPerFrame(int channelsPerFrame);
-			virtual int getFormat() const;
-			virtual void setFormat(int format);
-			virtual int getFrames() const;
-			virtual int open(std::string filename);
-			virtual int create(std::string filename, int framesPerSecond = 44100, int channelsPerFrame = 2, int format = SF_FORMAT_WAV | SF_FORMAT_FLOAT);
-			/**
-			* Set whence to 0 for SEEK_SET, 1 for SEEK_CUR, 2 for SEEK_END.
-			* Calling with whence = SEEK_CUR and frames = 0 returns the current frame pointer.
-			*/
-			virtual int seek(int frames, int whence = 0);
-			virtual double seekSeconds(double seconds, int whence = 0);
-			virtual int read(double *samples, int frames);
-			virtual int write(double *frames, int samples);
-			virtual void updateHeader();
-			virtual int close() ;
-			virtual void error() const;
-	};
+        /**
+        * Simple, basic read/write access, in sample frames, to PCM soundfiles.
+        * Reads and writes any format, but write defaults to WAV float format.
+        * This class is designed for Python wrapping with SWIG.
+        */
+        class Soundfile
+        {
+                SNDFILE *sndfile;
+                SF_INFO sf_info;
+                std::vector<double> framebuffer;
+                public:
+                        Soundfile();
+                        virtual ~Soundfile() ;
+                        virtual void initialize() ;
+                        virtual int getFramesPerSecond() const;
+                        virtual void setFramesPerSecond(int framesPerSecond);
+                        virtual int getChannelsPerFrame() const;
+                        virtual void setChannelsPerFrame(int channelsPerFrame);
+                        virtual int getFormat() const;
+                        virtual void setFormat(int format);
+                        virtual int getFrames() const;
+                        virtual int open(std::string filename);
+                        virtual int create(std::string filename, int framesPerSecond = 44100, int channelsPerFrame = 2, int format = SF_FORMAT_WAV | SF_FORMAT_FLOAT);
+                        /**
+                        * Set whence to 0 for SEEK_SET, 1 for SEEK_CUR, 2 for SEEK_END.
+                        * Calling with whence = SEEK_CUR and frames = 0 returns the current frame pointer.
+                        */
+                        virtual int seek(int frames, int whence = 0);
+                        virtual double seekSeconds(double seconds, int whence = 0);
+                        virtual int read(double *samples, int frames);
+                        virtual int write(double *frames, int samples);
+                        virtual void updateHeader();
+                        virtual int close() ;
+                        virtual void error() const;
+        };
 }
 #endif
