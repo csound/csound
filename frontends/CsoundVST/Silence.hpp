@@ -40,6 +40,7 @@
 
 #ifdef SWIG
 %module CsoundVST
+%feature("autodoc", "1");
 %include "typemaps.i"
 %{
     #include <string>

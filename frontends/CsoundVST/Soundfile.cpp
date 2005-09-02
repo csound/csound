@@ -23,115 +23,129 @@
 
 namespace csound
 {
-        Soundfile::Soundfile()
-                {
-                        initialize();
+	Soundfile::Soundfile()
+		{
+			initialize();
+		}
+	Soundfile::~Soundfile() 
+		{	
+			close();
+		}
+	void Soundfile::initialize() 
+		{
+			sndfile = 0;
+			std::memset(&sf_info, 0, sizeof(sf_info));
+		}
+	int Soundfile::getFramesPerSecond() const 
+		{
+			return sf_info.samplerate;
+		}
+	void Soundfile::setFramesPerSecond(int framesPerSecond)
+		{
+			sf_info.samplerate = framesPerSecond;
+		}
+	int Soundfile::getChannelsPerFrame() const 
+		{
+			return sf_info.channels;
+		}
+	void Soundfile::setChannelsPerFrame(int channelsPerFrame)
+		{
+			sf_info.channels = channelsPerFrame;
+		}
+	int Soundfile::getFormat() const 
+		{
+			return sf_info.format;
+		}
+	void Soundfile::setFormat(int format)
+		{
+			sf_info.format = format;
+		}
+	int Soundfile::getFrames() const
+		{
+			return (int) sf_info.frames;
+		}
+	int Soundfile::open(std::string filename)
+		{
+			close();
+			sndfile = sf_open(filename.c_str(), SFM_RDWR, &sf_info);
+			if (!sndfile) {
+				error();
+			}
+			return (int) sndfile;
+		}
+	int Soundfile::create(std::string filename, int framesPerSecond, int channelsPerFrame, int format)
+		{
+			close();
+			sf_info.samplerate = framesPerSecond;
+			sf_info.channels = channelsPerFrame;
+			sf_info.format = format;
+			sndfile = sf_open(filename.c_str(), SFM_RDWR, &sf_info);
+			if (!sndfile) {
+				error();
+			}
+			return (int) sndfile;
+		}
+	int Soundfile::seek(int frames, int whence)
+		{
+			int frame = sf_seek(sndfile, frames, whence);
+			if (frame == -1) {
+				error();
+			}
+			return frame;
+		}
+	double Soundfile::seekSeconds(double seconds, int whence)
+		{
+			int frame = int(seconds * double(sf_info.samplerate));
+			frame = sf_seek(sndfile, frame, whence);
+			if (frame == -1) {
+				error();
+			}
+			return frame;
+		}
+	int Soundfile::readFrame(double *outputFrame)
+		{
+			return sf_readf_double(sndfile, outputFrame, 1);
+		}
+	int Soundfile::writeFrame(double *inputFrame)
+		{
+			return sf_writef_double(sndfile, inputFrame, 1);
+		}
+	int Soundfile::readFrames(double *outputFrames, int samples)
+		{
+			return sf_read_double(sndfile, outputFrames, samples);
+		}
+	int Soundfile::writeFrames(double *inputFrames, int samples)
+		{
+			return sf_write_double(sndfile, inputFrames, samples);
+		}
+	int Soundfile::mixFrames(double *inputFrames, int samples, double *mixedFrames)
+		{
+			size_t position = sf_seek(sndfile, 0, SEEK_CUR);
+			sf_readf_double(sndfile, mixedFrames, samples);
+			for (int i = 0; i < samples; i++) {
+				mixedFrames[i] += inputFrames[i];
+			}
+			sf_seek(sndfile, position, SEEK_SET);
+			return sf_writef_double(sndfile, mixedFrames, samples);
+		}
+    void Soundfile::updateHeader()
+        {
+            int status = sf_command(sndfile, SFC_UPDATE_HEADER_NOW, 0, 0);
+        }
+    int Soundfile::close()
+        {
+            int status = 0;
+            if (sndfile) {
+                status = sf_close(sndfile);
+                if (status) {
+                    std::cerr << sf_error_number(status) << std::endl;
                 }
-        Soundfile::~Soundfile()
-                {
-                        close();
-                }
-        void Soundfile::initialize()
-                {
-                        sndfile = 0;
-                        std::memset(&sf_info, 0, sizeof(sf_info));
-                        framebuffer.resize(0);
-                }
-        int Soundfile::getFramesPerSecond() const
-                {
-                        return sf_info.samplerate;
-                }
-        void Soundfile::setFramesPerSecond(int framesPerSecond)
-                {
-                        sf_info.samplerate = framesPerSecond;
-                }
-        int Soundfile::getChannelsPerFrame() const
-                {
-                        return sf_info.channels;
-                }
-        void Soundfile::setChannelsPerFrame(int channelsPerFrame)
-                {
-                        sf_info.channels = channelsPerFrame;
-                }
-        int Soundfile::getFormat() const
-                {
-                        return sf_info.format;
-                }
-        void Soundfile::setFormat(int format)
-                {
-                        sf_info.format = format;
-                }
-        int Soundfile::getFrames() const
-                {
-                        return (int) sf_info.frames;
-                }
-        int Soundfile::open(std::string filename)
-                {
-                        close();
-                        sndfile = sf_open(filename.c_str(), SFM_RDWR, &sf_info);
-                        if (!sndfile) {
-                                error();
-                        }
-                        framebuffer.resize(getChannelsPerFrame());
-                        return (int) sndfile;
-                }
-        int Soundfile::create(std::string filename, int framesPerSecond, int channelsPerFrame, int format)
-                {
-                        close();
-                        sf_info.samplerate = framesPerSecond;
-                        sf_info.channels = channelsPerFrame;
-                        sf_info.format = format;
-                        sndfile = sf_open(filename.c_str(), SFM_RDWR, &sf_info);
-                        if (!sndfile) {
-                                error();
-                        }
-                        framebuffer.resize(getChannelsPerFrame());
-                        return (int) sndfile;
-                }
-        int Soundfile::seek(int frames, int whence)
-                {
-                        int frame = sf_seek(sndfile, frames, whence);
-                        if (frame == -1) {
-                                error();
-                        }
-                        return frame;
-                }
-        double Soundfile::seekSeconds(double seconds, int whence)
-                {
-                        int frame = seconds * double(sf_info.samplerate);
-                        frame = sf_seek(sndfile, frame, whence);
-                        if (frame == -1) {
-                                error();
-                        }
-                        return frame;
-                }
-        int Soundfile::read(double *samples, int frames)
-                {
-                        return sf_readf_double(sndfile, samples, frames);
-                }
-        int Soundfile::write(double *samples, int frames)
-                {
-                        return sf_writef_double(sndfile, samples, frames);
-                }
-
-        void Soundfile::updateHeader()
-                {
-                        int status = sf_command(sndfile, SFC_UPDATE_HEADER_NOW, 0, 0);
-                }
-        int Soundfile::close()
-                {
-                        int status = 0;
-                        if (sndfile) {
-                                status = sf_close(sndfile);
-                                if (status) {
-                                        std::cerr << sf_error_number(status) << std::endl;
-                                }
-                        }
-                        initialize();
-                        return status;
-                }
-        void Soundfile::error() const
-                {
-                        std::cerr << sf_strerror(sndfile) << std::endl;
-                }
+            }
+            initialize();
+            return status;
+        }
+    void Soundfile::error() const
+        {
+            std::cerr << sf_strerror(sndfile) << std::endl;
+        }
 }
