@@ -121,9 +121,8 @@ static  const   char    *InfoFunc_Name =      "csoundModuleInfo";
 
 /* environment variable storing path to plugin libraries */
 static  const   char    *plugindir_envvar =   "OPCODEDIR";
-#ifdef USE_DOUBLE
 static  const   char    *plugindir64_envvar = "OPCODEDIR64";
-#endif
+
 /* default directory to load plugins from if environment variable is not set */
 static  const   char    *default_plugin_dir =   ".";
 
@@ -140,15 +139,26 @@ typedef struct csoundModule_s {
     char    *(*ErrCodeToStr)(int);          /* convert error code to string  */
 } csoundModule_t;
 
+static CS_NOINLINE void print_module_error(CSOUND *csound,
+                                           const char *fmt, const char *fname,
+                                           const csoundModule_t *m, int err)
+{
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str(fmt), fname);
+    if (m != NULL && m->ErrCodeToStr != NULL)
+      csound->MessageS(csound, CSOUNDMSG_ERROR,
+                       ": %s\n", Str(m->ErrCodeToStr(err)));
+    else
+      csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+}
+
 static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
 {
     int     myfltSize, minorVersion, majorVersion;
 
     myfltSize = n & 0xFF;
     if (myfltSize != 0 && myfltSize != (int) sizeof(MYFLT)) {
-      csound->MessageS(csound, CSOUNDMSG_WARNING,
-                       Str("WARNING: not loading '%s' (uses incompatible "
-                           "floating point type)\n"), fname);
+      csound->Warning(csound, Str("not loading '%s' (uses incompatible "
+                                  "floating point type)"), fname);
       return -1;
     }
     if (n & (~0xFF)) {
@@ -156,9 +166,8 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
       majorVersion = (n & (~0xFFFF)) >> 16;
       if (majorVersion != (int) CS_APIVERSION ||
           minorVersion > (int) CS_APISUBVER) {
-        csound->MessageS(csound, CSOUNDMSG_WARNING,
-                         Str("WARNING: not loading '%s' (incompatible "
-                             "with this version of Csound)\n"), fname);
+        csound->Warning(csound, Str("not loading '%s' (incompatible "
+                                    "with this version of Csound)"), fname);
         return -1;
       }
     }
@@ -171,7 +180,7 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
 int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
 {
     csoundModule_t  m;
-    volatile jmp_buf saved_exitjmp;
+    volatile jmp_buf tmpExitJmp;
     csoundModule_t  *mp;
     char            *fname;
     void            *h, *p;
@@ -192,9 +201,7 @@ int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
     /* load library */
     h = (void*) csoundOpenLibrary(libraryPath);
     if (h == NULL) {
-      csound->MessageS(csound, CSOUNDMSG_WARNING,
-                       Str("WARNING: could not open library '%s'\n"),
-                       libraryPath);
+      csound->Warning(csound, Str("could not open library '%s'"), libraryPath);
       return CSOUND_ERROR;
     }
     /* check if the library is compatible with this version of Csound */
@@ -223,8 +230,9 @@ int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
     if (m.opcode_size != NULL) {
       m.opcode_init =
           (OENTRY *(*)(CSOUND *)) csoundGetLibrarySymbol(h, opcode_init_Name);
-      m.fgen_init =
-          (NGFENS *(*)(CSOUND *)) csoundGetLibrarySymbol(h, fgen_init_Name);
+      if (m.opcode_size() < 0L)
+        m.fgen_init =
+            (NGFENS *(*)(CSOUND *)) csoundGetLibrarySymbol(h, fgen_init_Name);
       /* must have at least one of opcode_init() and fgen_init() */
       if (m.opcode_init == NULL && m.fgen_init == NULL)
         m.opcode_size = NULL;
@@ -239,9 +247,8 @@ int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
     }
     if (m.opcode_size == NULL && m.PreInitFunc == NULL) {
       csoundCloseLibrary(h);
-      csound->MessageS(csound, CSOUNDMSG_WARNING,
-                       Str("WARNING: '%s' is not a Csound plugin library\n"),
-                       libraryPath);
+      csound->Warning(csound, Str("'%s' is not a Csound plugin library"),
+                              libraryPath);
       return CSOUND_ERROR;
     }
     /* set up module info structure */
@@ -261,24 +268,19 @@ int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
     csound->csmodule_db = (void*) mp;
     /* call csoundModuleCreate() if available */
     if (m.PreInitFunc != NULL) {
-      memcpy((void*) &saved_exitjmp, (void*) &(csound->exitjmp),
-             sizeof(jmp_buf));
+      memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
       if ((err = setjmp(csound->exitjmp)) != 0) {
-        memcpy((void*) &(csound->exitjmp), (void*) &saved_exitjmp,
-               sizeof(jmp_buf));
-        return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+        memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+        print_module_error(csound, "Error in pre-initialisation function "
+                                   "of module '%s'", fname, NULL, 0);
+        return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
+                CSOUND_MEMORY : CSOUND_INITIALIZATION);
       }
       err = m.PreInitFunc(csound);
-      memcpy((void*) &(csound->exitjmp), (void*) &saved_exitjmp,
-             sizeof(jmp_buf));
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
       if (err != 0) {
-        if (m.ErrCodeToStr != NULL)
-          csound->ErrorMsg(csound, Str("Error in pre-initialisation function "
-                                       "of module '%s': %s"),
-                                   fname, Str(m.ErrCodeToStr(err)));
-        else
-          csound->ErrorMsg(csound, Str("Error in pre-initialisation function "
-                                       "of module '%s'"), fname);
+        print_module_error(csound, "Error in pre-initialisation function "
+                                   "of module '%s'", fname, &m, err);
         return CSOUND_INITIALIZATION;
       }
     }
@@ -299,63 +301,68 @@ int csoundLoadModules(CSOUND *csound)
     DIR             *dir;
     struct dirent   *f;
     char            *dname = NULL, *fname;
-    char            buf1[1024];
-    int             is_library, i, n, len, err = CSOUND_SUCCESS;
+    char            buf[1024];
+    int             i, n, len, err = CSOUND_SUCCESS;
 
     if (csound->csmodule_db != NULL)
       return CSOUND_ERROR;
 
     /* open plugin directory */
+    fname = (sizeof(MYFLT) == sizeof(float) ? (char*) plugindir_envvar
+                                              : (char*) plugindir64_envvar);
+    dname = (char*) csoundGetEnv(csound, fname);
+    if (dname == NULL) {
+      const char  *s = Str("the current directory");
 #ifdef USE_DOUBLE
-    if (csoundGetEnv(csound, plugindir64_envvar) != NULL)
-      dname = (char*) csoundGetEnv(csound, plugindir64_envvar);
-    else {
-#endif
-      if (csoundGetEnv(csound, plugindir_envvar) != NULL)
-        dname = (char*) csoundGetEnv(csound, plugindir_envvar);
+      dname = (char*) csoundGetEnv(csound, plugindir_envvar);
+      if (dname != NULL)
+        s = plugindir_envvar;
       else
-        dname = (char*) default_plugin_dir;
-#ifdef USE_DOUBLE
-    }
 #endif
+        dname = (char*) default_plugin_dir;
+      if (csound->oparms->msglevel & 4) {
+        csound->Warning(csound, Str("%s undefined, loading plugins from %s"),
+                                fname, s);
+        csoundSleep(1000);
+      }
+    }
     dir = opendir(dname);
     if (dir == (DIR*) NULL) {
-      csound->Message(csound, Str("Error opening plugin directory '%s': %s\n"),
-                              dname, strerror(errno));
+      csound->ErrorMsg(csound, Str("Error opening plugin directory '%s': %s"),
+                               dname, strerror(errno));
       return CSOUND_ERROR;
     }
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
-      is_library = 0;
       fname = (char*) &(f->d_name[0]);
-      len = (int) strlen(fname);
+      n = len = (int) strlen(fname);
 #if defined(WIN32)
-      strcpy(buf1, "dll");
+      strcpy(buf, "dll");
+      n -= 4;
 #elif defined(__MACH__)
-      strcpy(buf1, "dylib");
+      strcpy(buf, "dylib");
+      n -= 6;
 #else
-      strcpy(buf1, "so");
+      strcpy(buf, "so");
+      n -= 3;
 #endif
-      n = len - ((int) strlen(buf1) + 1);
-      if (n > 0 && fname[n] == '.') {
-        for (i = 0; buf1[i] != '\0'; i++) {
-          if ((fname[++n] | (char) 0x20) != buf1[i])
-            break;
-        }
-        if (buf1[i] == '\0')
-          is_library = 1;
-      }
-      if (!is_library)
+      if (n <= 0 || fname[n] != '.')
+        continue;
+      i = 0;
+      do {
+        if ((fname[++n] | (char) 0x20) != buf[i])
+          break;
+      } while (buf[++i] != '\0');
+      if (buf[i] != '\0')
         continue;
       /* found a dynamic library, attempt to open it */
       if (((int) strlen(dname) + len + 2) > 1024) {
-        csound->MessageS(csound, CSOUNDMSG_WARNING,
-                         Str("WARNING: path name too long, skipping '%s'\n"),
-                         fname);
+        csound->Warning(csound, Str("path name too long, skipping '%s'"),
+                                fname);
         continue;
       }
-      sprintf(buf1, "%s%c%s", dname, DIRSEP, fname);
-      n = csoundLoadExternal(csound, buf1);
+      sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
+      n = csoundLoadExternal(csound, buf);
       if (n == CSOUND_ERROR)
         continue;               /* ignore non-plugin files */
       if (n < err)
@@ -370,30 +377,34 @@ int csoundLoadModules(CSOUND *csound)
 
 int csoundLoadExternals(CSOUND *csound)
 {
-    char    *s, *buffer;
-    int     i, j;
+    char    *s;
+    int     err;
 
-    s = (char*) csound->dl_opcodes_oplibs;
+    s = csound->dl_opcodes_oplibs;
     if (s == NULL || s[0] == '\0')
       return 0;
     /* IV - Feb 19 2005 */
     csound->Message(csound, Str("Loading command-line libraries:\n"));
-    buffer = (char*) mcalloc(csound, (size_t) 1024);
-    i = j = -1;
+    s += (int) strlen(csound->dl_opcodes_oplibs);
     do {
-      i++; j++;
-      if (s[i] == ',' || s[i] == '\0') {
-        buffer[j] = '\0';
-        j = -1;
-        if (buffer[0] != '\0') {
-          if (csoundLoadExternal(csound, buffer) == 0)
-            csound->Message(csound, "  %s\n", buffer);
-        }
-      }
+      if (*(s - 1) == ',')
+        *(s - 1) = '\0';
       else
-        buffer[j] = s[i];
-    } while (s[i] != '\0');
-    mfree(csound, buffer);
+        s--;
+      if ((s == csound->dl_opcodes_oplibs || *(s - 1) == '\0') && *s != '\0') {
+        /* hack to avoid printing redundant files */
+        void  *prv_plugin = (void*) csound->csmodule_db;
+        err = csoundLoadExternal(csound, s);
+        if (err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY)
+          csound->Die(csound, Str(" *** error loading '%s'"), s);
+        else if (!err && (void*) csound->csmodule_db != prv_plugin)
+          csound->Message(csound, "  %s\n", s);
+      }
+    } while (s != csound->dl_opcodes_oplibs);
+    /* file list is no longer needed */
+    s = (char*) csound->dl_opcodes_oplibs;
+    csound->dl_opcodes_oplibs = NULL;
+    mfree(csound, s);
     return 0;
 }
 
@@ -405,23 +416,17 @@ int csoundLoadExternals(CSOUND *csound)
  */
 int csoundInitModules(CSOUND *csound)
 {
-    csoundModule_t  *m;
-    int             i, retval;
+    csoundModule_t  *m = (csoundModule_t*) csound->csmodule_db;
+    int             i, retval = CSOUND_SUCCESS;
 
     /* call init functions */
-    m = (csoundModule_t*) csound->csmodule_db;
-    retval = CSOUND_SUCCESS;
     while (m != NULL) {
       if (m->InitFunc != NULL) {
         i = m->InitFunc(csound);
         if (i != 0) {
+          print_module_error(csound, "Error starting module '%s'",
+                                     m->name, m, i);
           retval = CSOUND_ERROR;
-          if (m->ErrCodeToStr != NULL)
-            csound->ErrorMsg(csound, Str("Error starting module '%s': %s"),
-                                     m->name, Str(m->ErrCodeToStr(i)));
-          else
-            csound->ErrorMsg(csound, Str("Error starting module '%s'"),
-                                     m->name);
         }
       }
       if (m->opcode_size != NULL) {
@@ -472,14 +477,9 @@ int csoundDestroyModules(CSOUND *csound)
       if (m->DestFunc != NULL) {
         i = m->DestFunc(csound);
         if (i != 0) {
+          print_module_error(csound, "Error de-initialising module '%s'",
+                                     m->name, m, i);
           retval = CSOUND_ERROR;
-          if (m->ErrCodeToStr != NULL)
-            csound->ErrorMsg(csound,
-                             Str("Error de-initialising module '%s': %s"),
-                             m->name, Str(m->ErrCodeToStr(i)));
-          else
-            csound->ErrorMsg(csound, Str("Error de-initialising module '%s'"),
-                                     m->name);
         }
       }
       /* unload library */
@@ -550,10 +550,10 @@ static const char *error(int setget, const char *str, ...)
       if (setget == 0) {
         NSLinkEditError(&ler, &lerno, &file, &dylderrstr);
 #if 0
-        fprintf(stderr,"dyld: %s\n",dylderrstr);
+        fprintf(stderr, "dyld: %s\n", dylderrstr);
 #endif
         if (dylderrstr && strlen(dylderrstr))
-          strncpy(errstr,dylderrstr,ERR_STR_LEN);
+          strncpy(errstr, dylderrstr, ERR_STR_LEN);
       }
       err_filled = 1;
       retval = NULL;
@@ -569,7 +569,7 @@ static const char *error(int setget, const char *str, ...)
 }
 
 /* dlsymIntern is used by dlsym to find the symbol */
-void *dlsymIntern(void *handle, const char *symbol)
+static void *dlsymIntern(void *handle, const char *symbol)
 {
     NSSymbol *nssym = NULL;
     /* If the handle is -1, if is the app global context */
@@ -579,7 +579,7 @@ void *dlsymIntern(void *handle, const char *symbol)
         nssym = NSLookupAndBindSymbol(symbol);
       }
     }
-    /* Now see if the handle is a struch mach_header* or not,
+    /* Now see if the handle is a struct mach_header* or not,
        use NSLookupSymbol in image for libraries, and
        NSLookupSymbolInModule for bundles */
     else {
@@ -590,8 +590,7 @@ void *dlsymIntern(void *handle, const char *symbol)
         if (NSIsSymbolNameDefinedInImage((struct mach_header *)handle,
                                          symbol)) {
           nssym = NSLookupSymbolInImage(
-                            (struct mach_header *)handle,
-                            symbol,
+                            (struct mach_header *)handle, symbol,
                             NSLOOKUPSYMBOLINIMAGE_OPTION_BIND |
                             NSLOOKUPSYMBOLINIMAGE_OPTION_RETURN_ON_ERROR);
         }
@@ -615,11 +614,7 @@ void *csoundOpenLibrary(const char *libraryPath)
     static int (*make_private_module_public) (NSModule module) = NULL;
     unsigned int flags =  NSLINKMODULE_OPTION_RETURN_ON_ERROR |
                           NSLINKMODULE_OPTION_PRIVATE;
-#if 0
-    if (O.odebug) {
-      printf("csoundOpenLibrary\n");
-    }
-#endif
+
     /* If we got no path, the app wants the global namespace,
        use -1 as the marker in this case */
     if (!libraryPath)
@@ -627,20 +622,10 @@ void *csoundOpenLibrary(const char *libraryPath)
     /* Create the object file image, works for things linked
        with the -bundle arg to ld */
     ofirc = NSCreateObjectFileImageFromFile(libraryPath, &ofi);
-#if 0
-    if (O.odebug) {
-      printf("ofirc=%d\n", ofirc);
-    }
-#endif
     switch (ofirc) {
     case NSObjectFileImageSuccess:
-#if 0
-      if (O.odebug) {
-        printf("ofirc=NSObjectFileImageSuccess\n");
-      }
-#endif
       /* It was okay, so use NSLinkModule to link in the image */
-      module = NSLinkModule(ofi, libraryPath,flags);
+      module = NSLinkModule(ofi, libraryPath, flags);
       /* Don't forget to destroy the object file
          image, unless you like leaks */
       NSDestroyObjectFileImage(ofi);
@@ -649,19 +634,14 @@ void *csoundOpenLibrary(const char *libraryPath)
          make global. Silly, isn't it. */
       if (!make_private_module_public) {
         _dyld_func_lookup("__dyld_NSMakePrivateModulePublic",
-                          (unsigned long *)&make_private_module_public);
+                          (unsigned long*) &make_private_module_public);
       }
       make_private_module_public(module);
       break;
     case NSObjectFileImageInappropriateFile:
-#if 0
-      if (O.odebug) {
-        printf("ofirc=NSObjectFileImageInappropriateFile\n");
-      }
-#endif
       /* It may have been a dynamic library rather
          than a bundle, try to load it */
-      module = (void *)NSAddImage(libraryPath,
+      module = (void*) NSAddImage(libraryPath,
                                   NSADDIMAGE_OPTION_RETURN_ON_ERROR);
       break;
     case NSObjectFileImageFailure:
@@ -698,25 +678,14 @@ int csoundCloseLibrary(void *library)
 
 void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
-    char  undersym[257];    /* Saves calls to malloc(3) */
-    int   sym_len = strlen(procedureName);
-    void  *value = NULL;
-    char  *malloc_sym = NULL;
-    if (sym_len < 256) {
-      sprintf(undersym, "_%s", procedureName);
-      value = dlsymIntern(library, undersym);
+    char  undersym[257];
+
+    if ((int) strlen(procedureName) > 255) {
+      error(-1, "Symbol name is too long");
+      return NULL;
     }
-    else {
-      malloc_sym = malloc(sym_len + 2);
-      if (malloc_sym) {
-        sprintf(malloc_sym, "_%s", procedureName);
-        value = dlsymIntern(library, malloc_sym);
-        free(malloc_sym);
-      }
-      else
-        error(-1, "Unable to allocate memory");
-    }
-    return value;
+    sprintf(undersym, "_%s", procedureName);
+    return (void*) dlsymIntern(library, undersym);
 }
 
 #else /* case for platforms without shared libraries -- added 062404, akozar */
