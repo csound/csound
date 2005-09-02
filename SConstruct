@@ -1042,6 +1042,17 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
+    elif getPlatform() == 'darwin':
+        vstEnvironment.Append(LIBS = ['python2.3', 'dl', 'm'])
+        vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
+        vstEnvironment.Append(cxxflags = ['-fabi-version=0']) # if gcc3.2-3
+        if commonEnvironment['Word64']=='1':
+            vstEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
+        else:
+            vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
+        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        guiProgramEnvironment.Prepend(LINKFLAGS = ['_CsoundVST.so'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         pythonImportLibrary = vstEnvironment.Command('/usr/local/lib/libpython23.a',
         '$SYSTEMROOT/System32/python23.dll',
@@ -1214,6 +1225,15 @@ Opcodes/stk/src/Thread.cpp
             pyEnvironment.Append(LIBPATH = ['/usr/local/lib64/python2.3/config'])
         else:
             pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
+        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+    elif getPlatform() == 'darwin':
+        pyEnvironment.Append(LIBS = ['python2.3', 'dl', 'm'])
+        pyEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
+        if commonEnvironment['Word64']=='1':
+            pyEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
+        else:
+            pyEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
         pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':

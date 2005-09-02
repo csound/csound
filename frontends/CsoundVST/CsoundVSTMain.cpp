@@ -36,7 +36,7 @@ bool oome = false;
 #if defined(__GNUC__) && defined(WIN32)
 #define main main_plugin
 extern "C" __declspec(dllexport) AEffect *main_plugin (audioMasterCallback audioMaster)
-#elif defined(LINUX)
+#elif defined(LINUX) || defined(MACOSX)
 AEffect *main_plugin (audioMasterCallback audioMaster)
 #else
 AEffect *main(audioMasterCallback audioMaster)
