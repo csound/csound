@@ -20,7 +20,7 @@
                 long value, void *ptr, float opt));
 */
 
-#if CARBON
+#if CARBON || MACOSX
 #if PRAGMA_STRUCT_ALIGN || __MWERKS__
         #pragma options align=mac68k
 #endif
@@ -178,7 +178,7 @@ enum
                                                                         // will always return true.
 };
 
-#if CARBON
+#if CARBON || MACOSX
 #if PRAGMA_STRUCT_ALIGN || __MWERKS__
         #pragma options align=reset
 #endif

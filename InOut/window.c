@@ -40,11 +40,11 @@ static void (*killFn)(CSOUND *, WINDAT *);
 extern void KillAscii(CSOUND *, WINDAT *);
 extern void KillGraph(CSOUND *, WINDAT *);
 /* pointer to xyinput window creator */
-       void (*mkxyFn)(CSOUND *, XYINDAT *, MYFLT, MYFLT);
+       void (*mkxyFn)(CSOUND *, XYINDAT *, MYFLT, MYFLT) = NULL;
 static void MkXYDummy(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 extern void MakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 /* pointer to xyinput window reader */
-       void (*rdxyFn)(CSOUND *, XYINDAT *);
+       void (*rdxyFn)(CSOUND *, XYINDAT *) = NULL;
 static void RdXYDummy(CSOUND *, XYINDAT *);
 extern void ReadXYin(CSOUND *, XYINDAT *);
 
