@@ -33,7 +33,7 @@
 #define ONEdLOG2    (1.4426950408889634074)
 
 /* static lookup tables, initialised once at start-up */
-        MYFLT   cpsocfrc[OCTRES];
+        MYFLT   cpsocfrc[OCTRES] = { FL(0.0) };
 static  MYFLT   powerof2[4096];
 
 /* initialise the tables, called by csoundInitialize() */
