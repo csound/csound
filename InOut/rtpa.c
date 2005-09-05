@@ -22,28 +22,17 @@
     02111-1307 USA
 */
 
-/*                                               RTPA.C for PortAudio  */
-
-/*  This module is included when RTAUDIO is defined at compile time.
-    It provides an interface between Csound realtime record/play calls
-    and the device-driver code that controls the actual hardware.
-    Uses PortAudio library without callbacks -- JPff
-
-    We will open the device full-duplex if asked to open it for
-    input, regardless whether we are asked to open it for output.
-    In that case we only open ONCE not twice(for input and output,
-    separately) - VL
-*/
+/*                                              RTPA.C for PortAudio    */
 
 #include "csdl.h"
 #include "soundio.h"
 #include <portaudio.h>
 
 typedef struct PaAlsaStreamInfo {
-    unsigned long size;
-    int /*PaHostApiTypeId */ hostApiType;
-    unsigned long version;
-    const char *deviceString;
+    unsigned long   size;
+    PaHostApiTypeId hostApiType;
+    unsigned long   version;
+    const char      *deviceString;
 } PaAlsaStreamInfo;
 
 typedef struct devparams_ {
@@ -178,8 +167,8 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
 }
 
 static int pa_SetStreamParameters(CSOUND *csound, PaStreamParameters *sp,
-                                                   csRtAudioParams *parm,
-                                                   int is_playback)
+                                                  csRtAudioParams *parm,
+                                                  int is_playback)
 {
     int dev;
 
@@ -385,7 +374,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, MYFLT *buffer, int nbytes)
+static void rtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
 {
     PA_BLOCKING_STREAM  *pabs;
     int     i = 0, samples = nbytes / (int) sizeof(MYFLT);
@@ -409,7 +398,7 @@ static void rtplay_(CSOUND *csound, MYFLT *buffer, int nbytes)
 
 /* open for audio input */
 
-static int recopen_(CSOUND *csound, csRtAudioParams *parm)
+static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     CSOUND *p = csound;
     PA_BLOCKING_STREAM *pabs;
@@ -431,7 +420,7 @@ static int recopen_(CSOUND *csound, csRtAudioParams *parm)
 
 /* open for audio output */
 
-static int playopen_(CSOUND *csound, csRtAudioParams *parm)
+static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     CSOUND *p = csound;
     PA_BLOCKING_STREAM *pabs;
@@ -505,7 +494,7 @@ static void rtclose_(CSOUND *csound)
 /* set up audio device */
 
 static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
-                             csRtAudioParams *parm, int play)
+                             const csRtAudioParams *parm, int play)
 {
     PaStreamParameters  streamParams;
     CSOUND              *p = csound;
@@ -570,7 +559,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
 
 /* open for audio input */
 
-static int recopen_blocking(CSOUND *csound, csRtAudioParams *parm)
+static int recopen_blocking(CSOUND *csound, const csRtAudioParams *parm)
 {
     DEVPARAMS *dev;
     int       retval;
@@ -596,7 +585,7 @@ static int recopen_blocking(CSOUND *csound, csRtAudioParams *parm)
 
 /* open for audio output */
 
-static int playopen_blocking(CSOUND *csound, csRtAudioParams *parm)
+static int playopen_blocking(CSOUND *csound, const csRtAudioParams *parm)
 {
     DEVPARAMS *dev;
     int       retval;
@@ -642,7 +631,7 @@ static int rtrecord_blocking(CSOUND *csound, MYFLT *inbuf, int nbytes)
 
 /* put samples to DAC */
 
-static void rtplay_blocking(CSOUND *csound, MYFLT *outbuf, int nbytes)
+static void rtplay_blocking(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int       i, n, err;
@@ -745,5 +734,10 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
       return ((int) Pa_Terminate() == (int) paNoError ? 0 : -1);
     }
     return 0;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

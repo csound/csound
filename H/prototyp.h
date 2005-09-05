@@ -31,7 +31,8 @@ extern "C" {
 void    cscorinit(CSOUND *), cscore(CSOUND *);
 void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
-void    *mrealloc(CSOUND *, void *, size_t), mfree(CSOUND *, void *);
+void    *mrealloc(CSOUND *, void *, size_t);
+void    mfree(CSOUND *, void *);
 void    csoundAuxAlloc(CSOUND *, long, AUXCH *), auxchfree(CSOUND *, INSDS *);
 void    fdrecord(CSOUND *, FDCH *), fdclose(CSOUND *, FDCH *);
 void    fdchclose(CSOUND *, INSDS *);
@@ -44,12 +45,12 @@ CS_PRINTF2  void    csoundDebugMsg(CSOUND *, const char *, ...);
 CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
 void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
 CS_NORETURN void    csoundLongJmp(CSOUND *, int retval);
-void    putop(CSOUND *, TEXT *), putstrg(char *);
+void    putop(CSOUND *, TEXT *);
 void    rdorchfile(CSOUND *), otran(CSOUND *);
 char    argtyp(CSOUND *, char *);
 TEXT    *getoptxt(CSOUND *, int *);
 int     express(CSOUND *, char *);
-int     getopnum(CSOUND *, char *), lgexist(CSOUND *, const char *);
+int     lgexist(CSOUND *, const char *);
 void    oload(CSOUND *);
 void    reverbinit(CSOUND *);
 void    dispinit(CSOUND *);
@@ -67,7 +68,7 @@ void    cs_beep(CSOUND *);
 MYFLT   intpow(MYFLT, long);
 void    list_opcodes(CSOUND *, int);
 int     sfsampsize(int);
-void    rewriteheader(SNDFILE *ofd, int verbose);
+void    rewriteheader(SNDFILE *ofd);
 void    writeLine(CSOUND *, const char *text, long size);
 int     readOptions(CSOUND *, FILE *);
 void    remove_tmpfiles(CSOUND *);
@@ -243,7 +244,7 @@ int csoundGetInstrumentNumber(void *p);
  * Returns pointer to a string constant storing an error massage
  * for error code 'errcode'.
  */
-char *csoundExternalMidiErrorString(CSOUND *, int errcode);
+const char *csoundExternalMidiErrorString(CSOUND *, int errcode);
 
 /**
  * Appends a list of opcodes implemented by external software to Csound's

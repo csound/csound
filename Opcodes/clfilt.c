@@ -36,7 +36,7 @@
 #include <math.h>
 #include "clfilt.h"
 
-int clfiltset(CSOUND *csound, CLFILT *p)
+static int clfiltset(CSOUND *csound, CLFILT *p)
 {
     MYFLT tanfpi, tanfpi2, cotfpi, cotfpi2;
     double eps, bethe, aleph, zee;
@@ -286,7 +286,7 @@ int clfiltset(CSOUND *csound, CLFILT *p)
     return OK;
 } /* end clfiltset(p) */
 
-int clfilt(CSOUND *csound, CLFILT *p)
+static int clfilt(CSOUND *csound, CLFILT *p)
 {
     long n;
     int m, nsec;

@@ -220,6 +220,7 @@ extern "C" {
    */
 
 #define CSOUNDINIT_NO_SIGNAL_HANDLER  1
+#define CSOUNDINIT_NO_ATEXIT          2
 
 #ifndef CSOUND_CSDL_H
 
@@ -601,7 +602,7 @@ extern "C" {
    */
   PUBLIC void csoundSetInputValueCallback(CSOUND *,
                             void (*inputValueCalback)(CSOUND *,
-                                                      char *channelName,
+                                                      const char *channelName,
                                                       MYFLT *value));
 
   /**
@@ -611,7 +612,7 @@ extern "C" {
    */
   PUBLIC void csoundSetOutputValueCallback(CSOUND *,
                             void (*outputValueCalback)(CSOUND *,
-                                                       char *channelName,
+                                                       const char *channelName,
                                                        MYFLT value));
 
   /**
@@ -622,7 +623,7 @@ extern "C" {
    * specified in pFields[0].
    */
   PUBLIC int csoundScoreEvent(CSOUND *,
-                              char type, MYFLT *pFields, long numFields);
+                              char type, const MYFLT *pFields, long numFields);
 
   /**
    * MIDI
@@ -631,25 +632,25 @@ extern "C" {
   /* Set real time MIDI function pointers. */
 
   PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
-                            int (*func)(CSOUND*, void**, const char*));
+                        int (*func)(CSOUND*, void**, const char*));
 
   PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
-                            int (*func)(CSOUND*, void*, unsigned char*, int));
+                        int (*func)(CSOUND*, void*, unsigned char*, int));
 
   PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
-                            int (*func)(CSOUND*, void*));
+                        int (*func)(CSOUND*, void*));
 
   PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
-                            int (*func)(CSOUND*, void**, const char*));
+                        int (*func)(CSOUND*, void**, const char*));
 
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-                            int (*func)(CSOUND*, void*, unsigned char*, int));
+                        int (*func)(CSOUND*, void*, const unsigned char*, int));
 
   PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *,
-                            int (*func)(CSOUND*, void*));
+                        int (*func)(CSOUND*, void*));
 
   PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
-                            char *(*func)(int));
+                        const char *(*func)(int));
 
   /**
    * FUNCTION TABLE DISPLAY
@@ -666,7 +667,7 @@ extern "C" {
   PUBLIC void csoundSetMakeGraphCallback(CSOUND *,
                             void (*makeGraphCallback)(CSOUND *,
                                                       WINDAT *windat,
-                                                      char *name));
+                                                      const char *name));
 
   /**
    * Called by external software to set Csound's DrawGraph function.
@@ -762,30 +763,31 @@ extern "C" {
    */
   PUBLIC void csoundSetPlayopenCallback(CSOUND *,
                             int (*playopen__)(CSOUND *,
-                                              csRtAudioParams *parm));
+                                              const csRtAudioParams *parm));
 
   /**
    * Sets a function to be called by Csound for performing real-time
    * audio playback.
    */
   PUBLIC void csoundSetRtplayCallback(CSOUND *,
-                            void (*rtplay__)(CSOUND *, MYFLT *outBuf,
-                                                       int nbytes));
+                            void (*rtplay__)(CSOUND *,
+                                             const MYFLT *outBuf, int nbytes));
 
   /**
    * Sets a function to be called by Csound for opening real-time
    * audio recording.
    */
   PUBLIC void csoundSetRecopenCallback(CSOUND *,
-                            int (*recopen_)(CSOUND *, csRtAudioParams *parm));
+                            int (*recopen_)(CSOUND *,
+                                            const csRtAudioParams *parm));
 
   /**
    * Sets a function to be called by Csound for performing real-time
    * audio recording.
    */
   PUBLIC void csoundSetRtrecordCallback(CSOUND *,
-                            int (*rtrecord__)(CSOUND *, MYFLT *inBuf,
-                                                        int nbytes));
+                            int (*rtrecord__)(CSOUND *,
+                                              MYFLT *inBuf, int nbytes));
 
   /**
    * Sets a function to be called by Csound for closing real-time
@@ -1011,15 +1013,14 @@ extern "C" {
    * Returns NULL if the utility was not found, or it has no description,
    * or an error occured.
    */
-  PUBLIC char *csoundGetUtilityDescription(CSOUND *, const char *utilName);
+  PUBLIC const char *csoundGetUtilityDescription(CSOUND *,
+                                                 const char *utilName);
 
 #endif  /* !CSOUND_CSDL_H */
 
-  /* type/macro definitions and interface functions
-     for configuration variables */
+  /* typedefs, macros, and interface functions for configuration variables */
 #include "cfgvar.h"
-  /* message attribute definitions
-     (for csoundMessageS() and csoundMessageV()) */
+  /* message attribute definitions for csoundMessageS() and csoundMessageV() */
 #include "msg_attr.h"
 
 #ifdef __cplusplus

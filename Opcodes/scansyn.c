@@ -114,10 +114,10 @@ struct scsn_elem {
     struct scsn_elem    *next;
 };
 
-struct scsn_elem scsn_list = {0, NULL, NULL};
+static struct scsn_elem scsn_list = {0, NULL, NULL};
 
 /* add to list */
-void listadd(PSCSNU *p)
+static void listadd(PSCSNU *p)
 {
 /*     int cnt = 0; */
     struct scsn_elem *i = &scsn_list;
@@ -138,7 +138,7 @@ void listadd(PSCSNU *p)
 #ifdef never
 /* This code is not used as csound has no dealloc method */
 /* remove from list */
-void listrm(PSCSNU *p)
+static void listrm(PSCSNU *p)
 {
     struct scsn_elem *q;
     struct scsn_elem *i = &scsn_list;
@@ -155,7 +155,7 @@ void listrm(PSCSNU *p)
 #endif
 
 /* Return from list according to id */
-PSCSNU *listget(CSOUND *csound, int id)
+static PSCSNU *listget(CSOUND *csound, int id)
 {
     struct scsn_elem *i = &scsn_list;
     if (i->p == NULL) {
@@ -176,7 +176,7 @@ PSCSNU *listget(CSOUND *csound, int id)
 /*
  *      Setup the updater
  */
-int scsnu_init(CSOUND *csound, PSCSNU *p)
+static int scsnu_init(CSOUND *csound, PSCSNU *p)
 {
     /* Get parameter table pointers and check lengths */
     FUNC *f;
@@ -339,7 +339,7 @@ int scsnu_init(CSOUND *csound, PSCSNU *p)
 
 #define dt  (FL(1.0))
 
-int scsnu_play(CSOUND *csound, PSCSNU *p)
+static int scsnu_play(CSOUND *csound, PSCSNU *p)
 {
     int n;
     int len = p->len;
@@ -429,7 +429,7 @@ int scsnu_play(CSOUND *csound, PSCSNU *p)
 /*
  *      Init scaner
  */
-int scsns_init(CSOUND *csound, PSCSNS *p)
+static int scsns_init(CSOUND *csound, PSCSNS *p)
 {
     /* Get corresponding update */
     p->p = listget(csound, (int)*p->i_id);
@@ -474,7 +474,7 @@ int scsns_init(CSOUND *csound, PSCSNS *p)
 /*
  *      Performance function for scanner
  */
-int scsns_play(CSOUND *csound, PSCSNS *p)
+static int scsns_play(CSOUND *csound, PSCSNS *p)
 {
     int i;
     MYFLT phs = p->phs, inc = *p->k_freq * p->fix;

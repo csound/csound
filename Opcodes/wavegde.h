@@ -60,21 +60,17 @@ typedef struct {
 } circularBuffer;
 
 /* circular buffer member functions */
-void circularBufferCircularBuffer(CSOUND *,circularBuffer*,len_t);/* constructor */
-void circularBufferWrite(circularBuffer*, MYFLT);  /* write a sample */
-MYFLT circularBufferRead(circularBuffer*);         /* read next sample */
+static void circularBufferCircularBuffer(CSOUND *,circularBuffer*,len_t);/* constructor */
+#if 0
+static void circularBufferWrite(circularBuffer*, MYFLT);  /* write a sample */
+static MYFLT circularBufferRead(circularBuffer*);         /* read next sample */
+#endif
 
 /* class filter -- recursive filter implementation class */
 typedef struct {
   circularBuffer buffer; /* The filter's delay line */
   MYFLT* coeffs;         /* The filter's coefficients */
 } filter;
-
-/* filter member functions */
-void filterFilter(filter*,len_t); /* constructor */
-void filterSet(filter*,MYFLT*); /* set the coefficients */
-MYFLT filterGet(filter*,len_t);  /* check index range, return coefficient */
-MYFLT filterFIR(filter*,MYFLT);   /* convolution filter routine */
 
 /* class filter3-- JPff */
 typedef struct {
@@ -83,17 +79,15 @@ typedef struct {
 } filter3;
 
 /* filter member functions */
-void filter3Filter(filter3*); /* constructor */
-void filter3Set(filter3*,MYFLT,MYFLT); /* set the coefficients */
-MYFLT filter3FIR(filter3*,MYFLT);   /* convolution filter routine */
+static void filter3Set(filter3*,MYFLT,MYFLT); /* set the coefficients */
+static MYFLT filter3FIR(filter3*,MYFLT);      /* convolution filter routine */
 
 /* waveguide rail implementation class */
 typedef circularBuffer guideRail; /* It's just a circular buffer really */
 
 /* guideRail member functions */
-void guideRailGuideRail(CSOUND *,guideRail*,len_t);/* constructor */
-MYFLT guideRailAccess(guideRail*,len_t);  /* delay line access routine */
-void guideRailUpdate(guideRail*,MYFLT);   /* delay line update routine */
+static MYFLT guideRailAccess(guideRail*,len_t);  /* delay line access routine */
+static void guideRailUpdate(guideRail*,MYFLT);   /* delay line update routine */
 
 /* waveguide -- abstract base class definition for waveguide classes */
 typedef struct{
@@ -106,15 +100,10 @@ typedef struct{
   MYFLT f0;            /* The fundamental frequency (Hertz) */
 } waveguide;
 
-MYFLT filterAllpass(waveguide*,MYFLT);/* 1st-order allpass filtering*/
+static MYFLT filterAllpass(waveguide*,MYFLT);/* 1st-order allpass filtering*/
 
 /* waveguide member functions */
-void waveguideWaveguide(CSOUND *,
-                        waveguide*,
-                        MYFLT,
-                        MYFLT*,
-                        MYFLT*);
-MYFLT waveguideGetFreq(waveguide*);   /* return f0 frequency */
-void waveguideSetTuning(CSOUND *,waveguide*, MYFLT); /* Set tuning filters */
+static void waveguideWaveguide(CSOUND *, waveguide*, MYFLT, MYFLT*, MYFLT*);
+static void waveguideSetTuning(CSOUND *,waveguide*, MYFLT); /* Set tuning filters */
 #endif
 

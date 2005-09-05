@@ -31,16 +31,16 @@
 #include "csdl.h"
 #include "repluck.h"
 
-int wgpsetin(CSOUND *, WGPLUCK2 *);
+static int wgpsetin(CSOUND *, WGPLUCK2 *);
 
-int wgpset(CSOUND *csound, WGPLUCK2 *p)
+static int wgpset(CSOUND *csound, WGPLUCK2 *p)
 {
     p->ain = NULL;
     wgpsetin(csound,p);
     return OK;
 }
 
-int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
+static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
 {
     int     npts;
     int     pickpt;
@@ -145,7 +145,7 @@ static MYFLT getvalue(DelayLine *dl, int position)
 #define OVERSHT (8)
 #define OVERMSK (0xFF)
 
-int wgpluck(CSOUND *csound, WGPLUCK2 *p)
+static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 {
     MYFLT   *ar, *ain;
     int     n,nsmps=csound->ksmps;
@@ -232,7 +232,7 @@ int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 /*          Victor Lazzarini, 1998                     */
 /*******************************************************/
 
-int stresonset(CSOUND *csound, STRES *p)
+static int stresonset(CSOUND *csound, STRES *p)
 {
     int n;
     p->size = (int) (csound->esr/20);   /* size of delay line */
@@ -245,7 +245,7 @@ int stresonset(CSOUND *csound, STRES *p)
     return OK;
 }
 
-int streson(CSOUND *csound, STRES *p)
+static int streson(CSOUND *csound, STRES *p)
 {
     MYFLT *out = p->result;
     MYFLT *in = p->ainput;
@@ -293,13 +293,5 @@ static OENTRY localops[] = {
 { "streson", S(STRES),    5, "a",  "aki",  (SUBR)stresonset, NULL, (SUBR)streson}
 };
 
-PUBLIC long opcode_size(void)
-{
-    return sizeof(localops);
-}
-
-PUBLIC OENTRY *opcode_init(CSOUND *xx)
-{
-    return localops;
-}
+LINKAGE
 

@@ -47,7 +47,7 @@ PUBLIC  NGFENS  *fgen_init(CSOUND *);
 PUBLIC  int     csoundModuleCreate(CSOUND *);
 PUBLIC  int     csoundModuleInit(CSOUND *);
 PUBLIC  int     csoundModuleDestroy(CSOUND *);
-PUBLIC  char    *csoundModuleErrorCodeToString(int);
+PUBLIC  const char  *csoundModuleErrorCodeToString(int);
 
 PUBLIC  int     csoundModuleInfo(void);
 

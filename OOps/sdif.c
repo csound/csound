@@ -78,11 +78,7 @@ Music and Audio Technologies, University of California, Berkeley.
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
+#include <string.h>
 
 #include "H/sdif.h"
 

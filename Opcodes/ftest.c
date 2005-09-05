@@ -1,7 +1,7 @@
 #include "csdl.h"
 #include <math.h>
 
-void tanhtable(FUNC *ftp, FGDATA *ff)
+static void tanhtable(FUNC *ftp, FGDATA *ff)
 {
     MYFLT *fp = ftp->ftable;
     MYFLT range = ff->e.p[5];

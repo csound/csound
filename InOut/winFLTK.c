@@ -44,9 +44,9 @@ int Graphable_(CSOUND *csound)      /* called during program initialisation */
     return(rc);
 }
 
-void MakeGraph_(CSOUND *csound, WINDAT *wdptr, char *name)
+void MakeGraph_(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
-    wdptr->windid = MakeWindow(name);
+    wdptr->windid = MakeWindow((char*) name);
 }
 
 void KillGraph_(CSOUND *csound, WINDAT *wdptr)

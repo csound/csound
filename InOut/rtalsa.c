@@ -75,11 +75,11 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-static int playopen_(CSOUND*, csRtAudioParams*);
-static int recopen_(CSOUND*, csRtAudioParams*);
-static void rtplay_(CSOUND*, MYFLT*, int);
-static int rtrecord_(CSOUND*, MYFLT*, int);
-static void rtclose_(CSOUND*);
+static int playopen_(CSOUND *, const csRtAudioParams *);
+static int recopen_(CSOUND *, const csRtAudioParams *);
+static void rtplay_(CSOUND *, const MYFLT *, int);
+static int rtrecord_(CSOUND *, MYFLT *, int);
+static void rtclose_(CSOUND *);
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
@@ -304,7 +304,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     return -1;
 }
 
-static int open_device(CSOUND *csound, csRtAudioParams *parm, int play)
+static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
 {
     DEVPARAMS *dev;
     void      **userDataPtr;
@@ -353,14 +353,14 @@ static int open_device(CSOUND *csound, csRtAudioParams *parm, int play)
 
 /* open for audio input */
 
-static int recopen_(CSOUND *csound, csRtAudioParams *parm)
+static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     return open_device(csound, parm, 0);
 }
 
 /* open for audio output */
 
-static int playopen_(CSOUND *csound, csRtAudioParams *parm)
+static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     return open_device(csound, parm, 1);
 }
@@ -421,7 +421,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, MYFLT *outbuf, int nbytes)
+static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 {
     DEVPARAMS *dev;
     int     n, err;
@@ -433,7 +433,7 @@ static void rtplay_(CSOUND *csound, MYFLT *outbuf, int nbytes)
     n = nbytes / dev->sampleSize;
 
     /* convert samples from MYFLT */
-    dev->playconv(n * dev->nchns, outbuf, dev->buf, &(dev->seed));
+    dev->playconv(n * dev->nchns, (MYFLT*) outbuf, dev->buf, &(dev->seed));
 
     while (n) {
       err = (int) snd_pcm_writei(dev->handle, dev->buf, (snd_pcm_uframes_t) n);

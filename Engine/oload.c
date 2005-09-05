@@ -33,22 +33,21 @@
 #include "fftlib.h"
 
 int     csoundGetAPIVersion(void);
-void    writeheader(CSOUND *csound, int ofd, char *ofname);
-int     playopen_dummy(CSOUND *csound, csRtAudioParams *parm);
-void    rtplay_dummy(CSOUND *csound, MYFLT *outBuf, int nbytes);
-int     recopen_dummy(CSOUND *csound, csRtAudioParams *parm);
-int     rtrecord_dummy(CSOUND *csound, MYFLT *inBuf, int nbytes);
-void    rtclose_dummy(CSOUND *csound);
-void    csoundDefaultMessageCallback(CSOUND *csound, int attr,
+int     playopen_dummy(CSOUND *, const csRtAudioParams *parm);
+void    rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
+int     recopen_dummy(CSOUND *, const csRtAudioParams *parm);
+int     rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
+void    rtclose_dummy(CSOUND *);
+void    csoundDefaultMessageCallback(CSOUND *, int attr,
                                      const char *format, va_list args);
-void    csoundDefaultThrowMessageCallback(CSOUND *csound, const char *format,
-                                                           va_list args);
-void    defaultCsoundMakeGraph(CSOUND *csound, WINDAT *windat, char *name);
-void    defaultCsoundDrawGraph(CSOUND *csound, WINDAT *windat);
-void    defaultCsoundKillGraph(CSOUND *csound, WINDAT *windat);
-int     defaultCsoundExitGraph(CSOUND *csound);
-int     defaultCsoundYield(CSOUND *csound);
-void    close_all_files(CSOUND *csound);
+void    csoundDefaultThrowMessageCallback(CSOUND *, const char *format,
+                                                    va_list args);
+void    defaultCsoundMakeGraph(CSOUND *, WINDAT *windat, const char *name);
+void    defaultCsoundDrawGraph(CSOUND *, WINDAT *windat);
+void    defaultCsoundKillGraph(CSOUND *, WINDAT *windat);
+int     defaultCsoundExitGraph(CSOUND *);
+int     defaultCsoundYield(CSOUND *);
+void    close_all_files(CSOUND *);
 char    *getstrformat(int format);
 int     sfsampsize(int format);
 char    *type2string(int type);
@@ -132,38 +131,38 @@ const CSOUND cenviron_ = {
         csoundSetRtrecordCallback,
         csoundSetRtcloseCallback,
         csoundAuxAlloc,
-        csoundFTFind,
-        csoundFTFindP,
-        csoundFTnp2Find,
-        csoundGetTable,
         mmalloc,
         mcalloc,
         mrealloc,
         mfree,
-        csoundDie,
-        csoundInitError,
-        csoundPerfError,
-        csoundWarning,
-        csoundDebugMsg,
         dispset,
         display,
         dispexit,
         intpow,
         ldmemfile,
-        csoundLoadSoundFile,
-        hfgens,
-        getopnum,
         strarg2insno,
-        strarg2opcno,
         strarg2name,
+        hfgens,
         insert_score_event,
-        rewriteheader,
-        writeheader,
+        csoundFTAlloc,
+        csoundFTDelete,
+        csoundFTFind,
+        csoundFTFindP,
+        csoundFTnp2Find,
+        csoundGetTable,
+        csoundLoadSoundFile,
+        getstrformat,
+        sfsampsize,
+        type2string,
         SAsndgetset,
         sndgetset,
         getsndin,
-        csoundGetDebug,
+        rewriteheader,
+        (SUBR) NULL,
+        fdrecord,
+        fdclose,
         csoundSetDebug,
+        csoundGetDebug,
         csoundTableLength,
         csoundTableGet,
         csoundTableSet,
@@ -227,12 +226,6 @@ const CSOUND cenviron_ = {
         pvoc_rewind,
         pvoc_errorstr,
         PVOCEX_LoadFile,
-        csoundLongJmp,
-        csoundErrorMsg,
-        csoundErrMsgV,
-        getstrformat,
-        sfsampsize,
-        type2string,
         csoundGetOpcodeName,
         csoundGetInputArgCnt,
         csoundGetInputArgAMask,
@@ -252,12 +245,16 @@ const CSOUND cenviron_ = {
         csoundGetOffTime,
         csoundGetPFields,
         csoundGetInstrumentNumber,
-        csoundFTAlloc,
-        csoundFTDelete,
-        fdrecord,
-        fdclose,
+        csoundDie,
+        csoundInitError,
+        csoundPerfError,
+        csoundWarning,
+        csoundDebugMsg,
+        csoundLongJmp,
+        csoundErrorMsg,
+        csoundErrMsgV,
         NULL,
-        { NULL, NULL, NULL, NULL, NULL, NULL,
+        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -332,8 +329,8 @@ const CSOUND cenviron_ = {
     /* ------- private data (not to be used by hosts or externals) ------- */
         /* callback function pointers */
         (SUBR) NULL,    /*  first_callback_     */
-        (void (*)(CSOUND*, char*, MYFLT*)) NULL,
-        (void (*)(CSOUND*, char*, MYFLT)) NULL,
+        (void (*)(CSOUND*, const char*, MYFLT*)) NULL,
+        (void (*)(CSOUND*, const char*, MYFLT)) NULL,
         csoundDefaultMessageCallback,
         csoundDefaultThrowMessageCallback,
         defaultCsoundMakeGraph,
@@ -366,15 +363,16 @@ const CSOUND cenviron_ = {
         NULL,           /*  ls_table            */
         NULL,           /*  scfp                */
         NULL,           /*  oscfp               */
-        { FL(0.0)},     /*  maxamp              */
-        { FL(0.0)},     /*  smaxamp             */
-        { FL(0.0)},     /*  omaxamp             */
+        { FL(0.0) },    /*  maxamp              */
+        { FL(0.0) },    /*  smaxamp             */
+        { FL(0.0) },    /*  omaxamp             */
         {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
         NULL, NULL,     /*  scorein, scoreout   */
         NULL,           /*  pool                */
         NULL,           /*  argoffspace         */
         NULL,           /*  frstoff             */
-#if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mac_classic)
+#if defined(__WATCOMC__) || defined(__POWERPC__) || defined(mac_classic) || \
+    (defined(_WIN32) && defined(__GNUC__))
         {0},
 #else
         {{{0}}},        /*  exitjmp of type jmp_buf */
@@ -453,10 +451,10 @@ const CSOUND cenviron_ = {
         NULL,           /*  lineventGlobals     */
         NULL,           /*  musmonGlobals       */
         NULL,           /*  libsndGlobals       */
-        (void (*)(CSOUND*)) NULL,       /*  spinrecv        */
-        (void (*)(CSOUND*)) NULL,       /*  spoutran        */
-        (int (*)(CSOUND*, MYFLT*, int)) NULL,   /*  audrecv */
-        (void (*)(CSOUND*, MYFLT*, int)) NULL,  /*  audtran */
+        (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
+        (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
+        (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
+        (void (*)(CSOUND *, const MYFLT *, int)) NULL,  /*  audtran     */
         0,              /*  warped              */
         0,              /*  sstrlen             */
         (char*) NULL,   /*  sstrbuf             */
@@ -566,7 +564,7 @@ void oloadRESET(CSOUND *csound)
 
 void oload(CSOUND *p)
 {
-    long    n, nn, combinedsize, insno, *lp;
+    long    n, combinedsize, insno, *lp;
     long    gblabeg, gblsbeg, gblscbeg, lclabeg, lclsbeg;
     MYFLT   *combinedspc, *gblspace, *fp1;
     INSTRTXT *ip;
@@ -799,7 +797,7 @@ void oload(CSOUND *p)
     memset(&(p->evt), 0, sizeof(EVTBLK));
 
     /* run instr 0 inits */
-    if ((nn = init0(p)) != 0)
+    if (init0(p) != 0)
       csoundDie(p, Str("header init errors"));
 }
 

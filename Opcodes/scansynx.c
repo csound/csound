@@ -155,7 +155,7 @@ struct scsnx_elem {
     struct scsnx_elem   *next;
 };
 
-struct scsnx_elem *scsnx_list = NULL;
+static struct scsnx_elem *scsnx_list = NULL;
 
 /* add to list */
 static void listadd(PSCSNUX *p)
@@ -202,7 +202,7 @@ static PSCSNUX *listget(CSOUND *csound, int id)
  *      Setup the updater
  */
 
-int scsnux_init(CSOUND *csound, PSCSNUX *p)
+static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 {
     /* Get parameter table pointers and check lengths */
     FUNC *f;
@@ -433,7 +433,7 @@ int scsnux_init(CSOUND *csound, PSCSNUX *p)
 
 #define dt FL(1.0)
 
-int scsnux(CSOUND *csound, PSCSNUX *p)
+static int scsnux(CSOUND *csound, PSCSNUX *p)
 {
     int n;
     int len    = p->len;
@@ -533,7 +533,7 @@ int scsnux(CSOUND *csound, PSCSNUX *p)
 /*
  *      Init scaner
  */
-int scsnsx_init(CSOUND *csound, PSCSNSX *p)
+static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
 {
     /* Get corresponding update */
     p->p = listget(csound, (int)*p->i_id);
@@ -578,7 +578,7 @@ int scsnsx_init(CSOUND *csound, PSCSNSX *p)
 /*
  *      Performance function for scanner
  */
-int scsnsx(CSOUND *csound, PSCSNSX *p)
+static int scsnsx(CSOUND *csound, PSCSNSX *p)
 {
     int i;
     long tlen   = p->tlen;
@@ -651,14 +651,14 @@ int scsnsx(CSOUND *csound, PSCSNSX *p)
     return OK;
 }
 
-int scsnmapx_init(CSOUND *csound, PSCSNMAPX *p)
+static int scsnmapx_init(CSOUND *csound, PSCSNMAPX *p)
 {
     /* Get corresponding update */
     p->p = listget(csound, (int)*p->i_id);
     return OK;
 }
 
-int scsnmapx(CSOUND *csound, PSCSNMAPX *p)
+static int scsnmapx(CSOUND *csound, PSCSNMAPX *p)
 {
     PSCSNUX *pp = p->p;
     *p->k_pos = *p->k_pamp * pp->x0[(int)(*p->k_which)];
@@ -666,7 +666,7 @@ int scsnmapx(CSOUND *csound, PSCSNMAPX *p)
     return OK;
 }
 
-int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
+static int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 {
     PSCSNUX *pp = p->p;
     pp->x0[(int)(*p->k_which)] = *p->k_pos/(*p->k_pamp);

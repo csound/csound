@@ -306,7 +306,7 @@ public:
    * directly call this function.
    */
   virtual void setInputValueCallback(void (*inputValueCallback)(CSOUND *csound,
-                                                                char *channelName,
+                                                                const char *channelName,
                                                                 MYFLT *value));
 
   /**
@@ -315,7 +315,7 @@ public:
    * directly call this function.
    */
   virtual void setOutputValueCallback(void (*outputValueCallback)(CSOUND *csound,
-                                                                  char *channelName,
+                                                                  const char *channelName,
                                                                   MYFLT value));
 #endif
 };

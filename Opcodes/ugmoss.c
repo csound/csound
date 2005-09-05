@@ -35,7 +35,7 @@
 
 /* rewritten code for dconv, includes speedup tip from
    Moore: Elements of Computer Music */
-int dconvset(CSOUND *csound, DCONV *p)
+static int dconvset(CSOUND *csound, DCONV *p)
 {
     FUNC *ftp;
 
@@ -54,7 +54,7 @@ int dconvset(CSOUND *csound, DCONV *p)
     return OK;
 }
 
-int dconv(CSOUND *csound, DCONV *p)
+static int dconv(CSOUND *csound, DCONV *p)
 {
     long i = 0;
     int n, nsmps = csound->ksmps;
@@ -86,7 +86,7 @@ int dconv(CSOUND *csound, DCONV *p)
     return OK;
 }
 
-int and_kk(CSOUND *csound, AOP *p)
+static int and_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     long input2 = MYFLT2LRND(*p->b);
@@ -94,7 +94,7 @@ int and_kk(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int and_aa(CSOUND *csound, AOP *p)
+static int and_aa(CSOUND *csound, AOP *p)
 {
     MYFLT *r    = p->r;
     MYFLT *in1  = p->a;
@@ -110,7 +110,7 @@ int and_aa(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int and_ak(CSOUND *csound, AOP *p)
+static int and_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -124,7 +124,7 @@ int and_ak(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int and_ka(CSOUND *csound, AOP *p)
+static int and_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
@@ -138,7 +138,7 @@ int and_ka(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int or_kk(CSOUND *csound, AOP *p)
+static int or_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     long input2 = MYFLT2LRND(*p->b);
@@ -146,7 +146,7 @@ int or_kk(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int or_aa(CSOUND *csound, AOP *p)
+static int or_aa(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -162,7 +162,7 @@ int or_aa(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int or_ak(CSOUND *csound, AOP *p)
+static int or_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -176,7 +176,7 @@ int or_ak(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int or_ka(CSOUND *csound, AOP *p)
+static int or_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
@@ -190,7 +190,7 @@ int or_ka(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int xor_kk(CSOUND *csound, AOP *p)
+static int xor_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     long input2 = MYFLT2LRND(*p->b);
@@ -198,7 +198,7 @@ int xor_kk(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int xor_aa(CSOUND *csound, AOP *p)
+static int xor_aa(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -214,7 +214,7 @@ int xor_aa(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int xor_ak(CSOUND *csound, AOP *p)
+static int xor_ak(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -228,7 +228,7 @@ int xor_ak(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int xor_ka(CSOUND *csound, AOP *p)
+static int xor_ka(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
@@ -334,14 +334,14 @@ static int shift_right_ka(CSOUND *csound, AOP *p)
     return OK;
 }
 
-int not_k(CSOUND *csound, AOP *p)       /* Added for completeness by JPff */
+static int not_k(CSOUND *csound, AOP *p)    /* Added for completeness by JPff */
 {
     long input1 = MYFLT2LRND(*p->a);
     *p->r = (MYFLT)(~input1);
     return OK;
 }
 
-int not_a(CSOUND *csound, AOP *p)
+static int not_a(CSOUND *csound, AOP *p)
 {
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
@@ -358,7 +358,7 @@ int not_a(CSOUND *csound, AOP *p)
 /* all the vcomb and valpass stuff adapted from comb() and alpass()
    with additional insight from me (petemoss@petemoss.org)  */
 
-int vcombset(CSOUND *csound, VCOMB *p)
+static int vcombset(CSOUND *csound, VCOMB *p)
 {
     long        lpsiz, nbytes;
 
@@ -394,7 +394,7 @@ int vcombset(CSOUND *csound, VCOMB *p)
     return OK;
 }
 
-int vcomb(CSOUND *csound, VCOMB *p)
+static int vcomb(CSOUND *csound, VCOMB *p)
 {
     int n, nsmps = csound->ksmps;
     unsigned long xlpt, maxlpt = (unsigned long)p->maxlpt;
@@ -446,7 +446,7 @@ int vcomb(CSOUND *csound, VCOMB *p)
     return OK;
 }
 
-int valpass(CSOUND *csound, VCOMB *p)
+static int valpass(CSOUND *csound, VCOMB *p)
 {
     int nsmps = csound->ksmps;
     unsigned long xlpt, maxlpt = (unsigned long)p->maxlpt;
@@ -500,7 +500,7 @@ int valpass(CSOUND *csound, VCOMB *p)
     return OK;
 }
 
-int ftmorfset(CSOUND *csound, FTMORF *p)
+static int ftmorfset(CSOUND *csound, FTMORF *p)
 {
     FUNC *ftp;
     int j = 0;
@@ -538,7 +538,7 @@ int ftmorfset(CSOUND *csound, FTMORF *p)
     return OK;
 }
 
-int ftmorf(CSOUND *csound, FTMORF *p)
+static int ftmorf(CSOUND *csound, FTMORF *p)
 {
     unsigned int j = 0;
     int i;

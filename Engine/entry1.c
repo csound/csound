@@ -42,7 +42,6 @@
 #include "pvread.h"
 #include "pvinterp.h"
 #include "vpvoc.h"
-#include "fhtfun.h"
 #include "diskin.h"
 #include "diskin2.h"
 #include "oload.h"

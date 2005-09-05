@@ -70,7 +70,7 @@ static long plog2(long x)
 /*     } while (--size); */
 /* } */
 
-void getmag(MYFLT *x, long size)
+static void getmag(MYFLT *x, long size)
 {
     MYFLT       *i = x + 1, *j = x + size - 1, max = FL(0.0);
     long        n = size/2 - 1;
@@ -135,7 +135,7 @@ void getmag(MYFLT *x, long size)
 /*     while ( --i); */
 /* } */
 
-void mult(MYFLT *x, MYFLT *y, long size, MYFLT w)
+static void mult(MYFLT *x, MYFLT *y, long size, MYFLT w)
 {
     MYFLT *j = x + size - 1;
 
@@ -147,7 +147,7 @@ void mult(MYFLT *x, MYFLT *y, long size, MYFLT w)
     } while (--size);
 }
 
-void lineaprox(MYFLT *x, long size, long m)
+static void lineaprox(MYFLT *x, long size, long m)
 {
     long i, c;
     MYFLT a, f;
@@ -172,7 +172,7 @@ void lineaprox(MYFLT *x, long size, long m)
     }
 }
 
-void do_fht(MYFLT *real, long n)
+static void do_fht(MYFLT *real, long n)
 {
     MYFLT       a, b;
     long        i, j, k;
@@ -186,7 +186,7 @@ void do_fht(MYFLT *real, long n)
     }
 }
 
-void do_ifht(MYFLT *real, long n)
+static void do_ifht(MYFLT *real, long n)
 {
     MYFLT       a, b;
     long        i, j, k;
@@ -201,7 +201,7 @@ void do_ifht(MYFLT *real, long n)
     pfht(real,n);
 }
 
-void pfht(MYFLT *fz, long n)
+static void pfht(MYFLT *fz, long n)
 {
     long        i, k, k1, k2, k3, k4, kx;
     MYFLT       *fi, *fn, *gi;
@@ -374,7 +374,7 @@ void pfht(MYFLT *fz, long n)
     } while (k4 < n);
 }
 
-int Xsynthset(CSOUND *csound, CON *p)
+static int Xsynthset(CSOUND *csound, CON *p)
 {
     long flen, bufsize;
     MYFLT       *b;
@@ -412,7 +412,7 @@ int Xsynthset(CSOUND *csound, CON *p)
     return OK;
 }
 
-int Xsynth(CSOUND *csound, CON *p)
+static int Xsynth(CSOUND *csound, CON *p)
 {
     MYFLT               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
     long                n, size, samps, div;

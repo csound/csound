@@ -42,7 +42,6 @@ typedef struct {
         short pcnt;
         MYFLT p2orig;
         MYFLT p3orig;
-        MYFLT offtim;
         MYFLT p[1];
 } EVENT;
 

@@ -189,7 +189,7 @@ static MYFLT noise_tick(void) /* Return random MYFLT float between -1.0 and 1.0 
 #define MAX_SHAKE FL(2000.0)
 #define MIN_ENERGY FL(0.0)          /* 0.1 or 0.3?? */
 
-int cabasaset(CSOUND *csound, CABASA *p)
+static int cabasaset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
@@ -213,7 +213,7 @@ int cabasaset(CSOUND *csound, CABASA *p)
     return OK;
 }
 
-int cabasa(CSOUND *csound, CABASA *p)
+static int cabasa(CSOUND *csound, CABASA *p)
 {
     MYFLT *ar = p->ar;
     int   n,nsmps = csound->ksmps;
@@ -285,7 +285,7 @@ int cabasa(CSOUND *csound, CABASA *p)
     return OK;
 }
 
-int sekereset(CSOUND *csound, SEKERE *p)
+static int sekereset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
@@ -312,7 +312,7 @@ int sekereset(CSOUND *csound, SEKERE *p)
     return OK;
 }
 
-int sekere(CSOUND *csound, SEKERE *p)
+static int sekere(CSOUND *csound, SEKERE *p)
 {
     MYFLT *ar = p->ar;
     int   n,nsmps = csound->ksmps;
@@ -387,7 +387,7 @@ int sekere(CSOUND *csound, SEKERE *p)
     return OK;
 }
 
-int sandset(CSOUND *csound, SEKERE *p)
+static int sandset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
@@ -415,7 +415,7 @@ int sandset(CSOUND *csound, SEKERE *p)
     return OK;
 }
 
-int stixset(CSOUND *csound, SEKERE *p)
+static int stixset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
@@ -443,7 +443,7 @@ int stixset(CSOUND *csound, SEKERE *p)
     return OK;
 }
 
-int crunchset(CSOUND *csound, CABASA *p)
+static int crunchset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
     p->kloop = (int)(p->h.insdshead->offtim * csound->ekr)
@@ -468,7 +468,7 @@ int crunchset(CSOUND *csound, CABASA *p)
     return OK;
 }
 
-int guiroset(CSOUND *csound, GUIRO *p)
+static int guiroset(CSOUND *csound, GUIRO *p)
 {
     MYFLT temp;
 
@@ -513,7 +513,7 @@ int guiroset(CSOUND *csound, GUIRO *p)
     return OK;
 }
 
-int guiro(CSOUND *csound, GUIRO *p)
+static int guiro(CSOUND *csound, GUIRO *p)
 {
     MYFLT *ar = p->ar;
     int  n,nsmps = csound->ksmps;
@@ -627,7 +627,7 @@ int guiro(CSOUND *csound, GUIRO *p)
     return OK;
 }
 
-int tambourset(CSOUND *csound, TAMBOURINE *p)
+static int tambourset(CSOUND *csound, TAMBOURINE *p)
 {
     MYFLT temp;
 
@@ -674,7 +674,7 @@ int tambourset(CSOUND *csound, TAMBOURINE *p)
     return OK;
 }
 
-int tambourine(CSOUND *csound, TAMBOURINE *p)
+static int tambourine(CSOUND *csound, TAMBOURINE *p)
 {
     MYFLT *ar = p->ar;
     int  n,nsmps = csound->ksmps;
@@ -765,7 +765,7 @@ int tambourine(CSOUND *csound, TAMBOURINE *p)
     return OK;
 }
 
-int bambooset(CSOUND *csound, BAMBOO *p)
+static int bambooset(CSOUND *csound, BAMBOO *p)
 {
     MYFLT temp;
 
@@ -807,7 +807,7 @@ int bambooset(CSOUND *csound, BAMBOO *p)
     return OK;
 }
 
-int bamboo(CSOUND *csound, BAMBOO *p)
+static int bamboo(CSOUND *csound, BAMBOO *p)
 {
     MYFLT *ar = p->ar;
     int   n, nsmps = csound->ksmps;
@@ -900,7 +900,7 @@ int bamboo(CSOUND *csound, BAMBOO *p)
     return OK;
 }
 
-int wuterset(CSOUND *csound, WUTER *p)
+static int wuterset(CSOUND *csound, WUTER *p)
 {
     MYFLT temp;
 
@@ -942,7 +942,7 @@ int wuterset(CSOUND *csound, WUTER *p)
     return OK;
 }
 
-int wuter(CSOUND *csound, WUTER *p)
+static int wuter(CSOUND *csound, WUTER *p)
 {
     MYFLT *ar = p->ar;
     int   n, nsmps = csound->ksmps;
@@ -1070,7 +1070,7 @@ int wuter(CSOUND *csound, WUTER *p)
     return OK;
 }
 
-int sleighset(CSOUND *csound, SLEIGHBELLS *p)
+static int sleighset(CSOUND *csound, SLEIGHBELLS *p)
 {
     MYFLT temp;
 
@@ -1122,7 +1122,7 @@ int sleighset(CSOUND *csound, SLEIGHBELLS *p)
     return OK;
 }
 
-int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
+static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 {
     MYFLT *ar = p->ar;
     int  n, nsmps = csound->ksmps;

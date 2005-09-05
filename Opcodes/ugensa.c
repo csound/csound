@@ -30,7 +30,7 @@
 
 static int newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
 
-int fogset(CSOUND *csound, FOGS *p)
+static int fogset(CSOUND *csound, FOGS *p)
 {
     /* legato test, not sure if the last bit (auxch) is correct? */
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
@@ -76,7 +76,7 @@ int fogset(CSOUND *csound, FOGS *p)
     return OK;
 }
 
-int fog(CSOUND *csound, FOGS *p)
+static int fog(CSOUND *csound, FOGS *p)
 {
     OVERLAP *ovp;
     FUNC        *ftp1,  *ftp2;

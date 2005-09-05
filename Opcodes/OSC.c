@@ -62,7 +62,7 @@ typedef struct {
     MYFLT   *i_absp2;
 } OSCRECV;
 
-int osc_send_set(CSOUND *csound, OSCSEND *p)
+static int osc_send_set(CSOUND *csound, OSCSEND *p)
 {
     char port[8];
     char *pp= port;
@@ -88,7 +88,7 @@ int osc_send_set(CSOUND *csound, OSCSEND *p)
     return OK;
 }
 
-int osc_send(CSOUND *csound, OSCSEND *p)
+static int osc_send(CSOUND *csound, OSCSEND *p)
 {
     /* Types I allow at present:
        0) int

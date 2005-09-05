@@ -1033,11 +1033,11 @@ int csoundDeleteAllConfigurationVariables(CSOUND *csound)
  * CSOUNDCFG error code. The string is not translated.
  */
 
-PUBLIC char *csoundCfgErrorCodeToString(int errcode)
+PUBLIC const char *csoundCfgErrorCodeToString(int errcode)
 {
     if (errcode > 0 || errcode < CSOUNDCFG_LASTERROR)
-      return (char*) &(errmsg_list[1 - CSOUNDCFG_LASTERROR][0]);  /* unknown */
+      return errmsg_list[1 - CSOUNDCFG_LASTERROR];      /* unknown */
     else
-      return (char*) &(errmsg_list[(-errcode)][0]);
+      return errmsg_list[(-errcode)];
 }
 

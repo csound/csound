@@ -707,10 +707,11 @@ static void gen12(FUNC *ftp, CSOUND *csound)
     FGDATA  *ff = &(csound->ff);
     static const double coefs[] = { 3.5156229, 3.0899424, 1.2067492,
                                      0.2659732, 0.0360768, 0.0045813 };
-    double *coefp, sum, tsquare, evenpowr, *cplim = (double*) coefs + 6;
-    int    n;
+    const double *coefp, *cplim = coefs + 6;
+    double  sum, tsquare, evenpowr;
+    int     n;
     MYFLT   *fp;
-    double xscale;
+    double  xscale;
 
     if (ff->e.pcnt < 5) {
       fterror(csound, ff, Str("insufficient arguments")); return;
@@ -719,7 +720,7 @@ static void gen12(FUNC *ftp, CSOUND *csound)
     for (n=0,fp=ftp->ftable; n<=ff->flen; n++) {
       tsquare  = (double) n * xscale;
       tsquare *= tsquare;
-      for (sum=evenpowr=1.0, coefp = (double*) coefs; coefp<cplim; coefp++) {
+      for (sum=evenpowr=1.0, coefp = coefs; coefp<cplim; coefp++) {
         evenpowr *= tsquare;
         sum += *coefp * evenpowr;
       }

@@ -25,7 +25,7 @@
 #include "csdl.h"
 #include "syncgrain.h"
 
-int syncgrain_init(CSOUND *csound, syncgrain *p)
+static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
     p->efunc = csound->FTFind(p->h.insdshead->csound,p->ifn2);
     if (p->efunc==NULL) {
@@ -66,7 +66,7 @@ int syncgrain_init(CSOUND *csound, syncgrain *p)
    return OK;
 }
 
-int syncgrain_process(CSOUND *csound, syncgrain *p)
+static int syncgrain_process(CSOUND *csound, syncgrain *p)
 {
     MYFLT sig, pitch, amp, grsize, envincr, period, fperiod, prate;
     MYFLT *output = p->output;

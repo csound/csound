@@ -39,11 +39,7 @@ Technologies, University of California, Berkeley.
 */
 
 #include <stdio.h>
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
+#include <string.h>
 #include <assert.h>
 #include <errno.h>
 #include "H/sdif-mem.h"

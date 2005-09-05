@@ -29,7 +29,6 @@
 /******************************************************************/
 
 #include "csoundCore.h"
-#include "dpwelib.h"
 #include "dsputil.h"
 #include <math.h>
 

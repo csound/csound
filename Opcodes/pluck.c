@@ -41,8 +41,9 @@ static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);
 static MYFLT *pluckShape(CSOUND*, WGPLUCK*);     /* pluck shape function */
 
 /* ***** plucked string class member function definitions ***** */
-static /* pluck::excite -- excitation function for plucked string */
-int pluckExcite(CSOUND *csound, WGPLUCK* p)
+
+/* pluck::excite -- excitation function for plucked string */
+static int pluckExcite(CSOUND *csound, WGPLUCK* p)
 {
     MYFLT *shape;
     int i;
@@ -83,7 +84,7 @@ int pluckExcite(CSOUND *csound, WGPLUCK* p)
 }
 
 /* ::pluck -- create the plucked-string instrument */
-int pluckPluck(CSOUND *csound, WGPLUCK* p)
+static int pluckPluck(CSOUND *csound, WGPLUCK* p)
 {
     /* ndelay = total required delay - 1.0 */
     len_t ndelay = (len_t) (csound->esr / *p->freq - FL(1.0));
@@ -184,7 +185,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
 }
 
 /* ::update -- waveguide rail insert and update routine */
-inline void guideRailUpdate(guideRail *gr,MYFLT samp)
+static inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 {
     *gr->pointer++ = samp;
     if (gr->pointer > gr->endPoint)
@@ -192,7 +193,7 @@ inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 }
 
 /* ::getSamps -- the sample generating routine */
-int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
+static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 {
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
     MYFLT *ar = p->out;    /* The sample output buffer */
@@ -236,7 +237,7 @@ int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
  * This routine assumes that the DATA pointer has already been
  * allocated by the calling routine.
  */
-void circularBufferCircularBuffer(CSOUND *csound, circularBuffer* cb, len_t N)
+static void circularBufferCircularBuffer(CSOUND *csound, circularBuffer* cb, len_t N)
 {
     MYFLT *data = cb->data;
     if (!data)
@@ -252,8 +253,9 @@ void circularBufferCircularBuffer(CSOUND *csound, circularBuffer* cb, len_t N)
     cb->extractionPoint = data;
 }
 
+#if 0
 /* ::write -- insert new value in the buffer, update insertion pointer */
-void circularBufferWrite(circularBuffer* cb, MYFLT val)
+static void circularBufferWrite(circularBuffer* cb, MYFLT val)
 {
     /* update the extraction point */
     cb->extractionPoint = cb->insertionPoint;
@@ -267,7 +269,7 @@ void circularBufferWrite(circularBuffer* cb, MYFLT val)
 }
 
 /* ::read -- extract the value at the extraction point */
-MYFLT circularBufferRead(circularBuffer* cb)
+static MYFLT circularBufferRead(circularBuffer* cb)
 {
     MYFLT val;
     /* Read the value at the extraction point */
@@ -279,13 +281,14 @@ MYFLT circularBufferRead(circularBuffer* cb)
 
     return val;
 }
+#endif
 
 /* ***** class guideRail -- waveguide rail derived class ***** */
 /* Guide rail is a circular buffer */
 #define guideRailGuideRail(csound,gr,d) circularBufferCircularBuffer(csound, gr,d)
 
 /* ::access -- waveguide rail access routine */
-MYFLT guideRailAccess(guideRail* gr, len_t pos)
+static MYFLT guideRailAccess(guideRail* gr, len_t pos)
 {
     MYFLT *s = gr->pointer - pos;
     while(s < gr->data)
@@ -297,7 +300,7 @@ MYFLT guideRailAccess(guideRail* gr, len_t pos)
 
 /* unused */
 #if 0
-void dumpRail(CSOUND *csound, guideRail* gr, len_t M)
+static void dumpRail(CSOUND *csound, guideRail* gr, len_t M)
 {
     MYFLT *s = gr->pointer;
     while (M-- >= 0) {
@@ -311,7 +314,7 @@ void dumpRail(CSOUND *csound, guideRail* gr, len_t M)
 /* ***** class filter3 -- JPff ****** */
 
 /* ::set -- set the coefficients */
-void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
+static void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
 {
     filt->a0 = a0;
     filt->a1 = a1;
@@ -325,7 +328,7 @@ void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
 }
 
 /* ::FIR -- direct convolution filter routine */
- MYFLT filter3FIR(filter3* filt, MYFLT s)
+static MYFLT filter3FIR(filter3* filt, MYFLT s)
 {
     /* y[n] = c1*x[n] + c2*x[n-1] + ... + cM*x[n-M+1] */
     MYFLT ans = filt->a0 * (s+filt->x2) + filt->a1 * filt->x1;
@@ -336,7 +339,7 @@ void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
 
 /* ::allpass -- accurate 1st-order allpass filter routine */
 /*   c = allpass filter coefficient, input sample */
-MYFLT filterAllpass(waveguide* wg,MYFLT s)
+static MYFLT filterAllpass(waveguide* wg,MYFLT s)
 {
     /* p[n] = x[n] + gp[n-1], y[n] = p[n-1] - gp[n] */
     MYFLT q = s + wg->c*wg->p;
@@ -353,7 +356,7 @@ MYFLT filterAllpass(waveguide* wg,MYFLT s)
  * total delay length = (SR/f0)
  * also sets tuning filter for fractional delay for exact tuning
  */
-void waveguideWaveguide(CSOUND *csound,
+static void waveguideWaveguide(CSOUND *csound,
                         waveguide* wg,
                         MYFLT  freq,
                         MYFLT* upperData,
@@ -392,7 +395,7 @@ void waveguideWaveguide(CSOUND *csound,
 }
 
 /* Set the allpass tuning filter coefficient */
-void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
+static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 {
     MYFLT k=csound->onedsr * wg->w0;
 

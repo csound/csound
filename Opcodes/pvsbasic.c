@@ -27,9 +27,9 @@
 #include "pvsbasic.h"
 #include <math.h>
 
-int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
+static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
 
-int pvsinit(CSOUND *csound, PVSINI *p)
+static int pvsinit(CSOUND *csound, PVSINI *p)
 {
     int i;
     float *bframe;
@@ -51,7 +51,7 @@ int pvsinit(CSOUND *csound, PVSINI *p)
     return OK;
 }
 
-int pvsmixset(CSOUND *csound, PVSMIX *p)
+static int pvsmixset(CSOUND *csound, PVSMIX *p)
 {
     long N = p->fa->N;
 
@@ -72,7 +72,7 @@ int pvsmixset(CSOUND *csound, PVSMIX *p)
     return OK;
 }
 
-int pvsmix(CSOUND *csound, PVSMIX *p)
+static int pvsmix(CSOUND *csound, PVSMIX *p)
 {
     int i;
     long framesize;
@@ -108,7 +108,7 @@ int pvsmix(CSOUND *csound, PVSMIX *p)
 
 /* pvsfilter  */
 
-int pvsfilterset(CSOUND *csound, PVSFILTER *p)
+static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
 {
     long N = p->fin->N;
 
@@ -129,7 +129,7 @@ int pvsfilterset(CSOUND *csound, PVSFILTER *p)
     return OK;
 }
 
-int pvsfilter(CSOUND *csound, PVSFILTER *p)
+static int pvsfilter(CSOUND *csound, PVSFILTER *p)
 {
     long i,N = p->fout->N;
     float g = (float) *p->gain;
@@ -158,7 +158,7 @@ int pvsfilter(CSOUND *csound, PVSFILTER *p)
 
 /* pvscale  */
 
-int pvsscaleset(CSOUND *csound, PVSSCALE *p)
+static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 {
     long N = p->fin->N;
 
@@ -175,7 +175,7 @@ int pvsscaleset(CSOUND *csound, PVSSCALE *p)
     return OK;
 }
 
-int pvsscale(CSOUND *csound, PVSSCALE *p)
+static int pvsscale(CSOUND *csound, PVSSCALE *p)
 {
     long i,chan,newchan,N = p->fout->N;
     float max = 0.f;
@@ -223,7 +223,7 @@ int pvsscale(CSOUND *csound, PVSSCALE *p)
 
 /* pvshift */
 
-int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
+static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 {
     long N = p->fin->N;
 
@@ -240,7 +240,7 @@ int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
     return OK;
 }
 
-int pvsshift(CSOUND *csound, PVSSHIFT *p)
+static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 {
     long i,chan,newchan,N = p->fout->N;
     MYFLT pshift = (MYFLT) *p->kshift;
@@ -299,7 +299,7 @@ int pvsshift(CSOUND *csound, PVSSHIFT *p)
 }
 /* pvsblur */
 
-int pvsblurset(CSOUND *csound, PVSBLUR *p)
+static int pvsblurset(CSOUND *csound, PVSBLUR *p)
 {
     float* delay;
     long N = p->fin->N, i, j;
@@ -334,7 +334,7 @@ int pvsblurset(CSOUND *csound, PVSBLUR *p)
     return OK;
 }
 
-int pvsblur(CSOUND *csound, PVSBLUR *p)
+static int pvsblur(CSOUND *csound, PVSBLUR *p)
 {
     long j,i,N = p->fout->N, first, framesize=N+2;
     long countr = p->count;
@@ -390,7 +390,7 @@ int pvsblur(CSOUND *csound, PVSBLUR *p)
 }
 
 /* pvstencil  */
-int pvstencilset(CSOUND *csound, PVSTENCIL *p)
+static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
 {
     long N = p->fin->N, i;
     long chans = N/2+1;
@@ -427,7 +427,7 @@ int pvstencilset(CSOUND *csound, PVSTENCIL *p)
     return OK;
 }
 
-int pvstencil(CSOUND *csound, PVSTENCIL *p)
+static int pvstencil(CSOUND *csound, PVSTENCIL *p)
 {
     long framesize, i, j;
     int test;
@@ -460,7 +460,7 @@ int pvstencil(CSOUND *csound, PVSTENCIL *p)
     return OK;
 }
 
-int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
+static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
     if ((f1->overlap    == f2->overlap)
         && (f1->winsize == f2->winsize)
