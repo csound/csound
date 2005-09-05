@@ -26,7 +26,7 @@
 
 /* my auxilliary functions */
 
-int roundoffint(MYFLT x)
+static int roundoffint(MYFLT x)
 {
     if (x > 0)
       return((int)(x + 0.500001)); /* in case of a close rounding
@@ -35,17 +35,17 @@ int roundoffint(MYFLT x)
       return((int)(x - 0.5));
 }
 
-int random_number (int a, int b)
+static int random_number (int a, int b)
 {
     return roundoffint((MYFLT)a+((MYFLT)rand()/(MYFLT)RAND_MAX)*(MYFLT)(b-a));
 }
 
-MYFLT myfltrandom(MYFLT a, MYFLT b)
+static MYFLT myfltrandom(MYFLT a, MYFLT b)
 {
     return (a+((MYFLT)rand()/RAND_MAX)*(b-a));
 }
 
-int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
+static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 {
     /* call seed random at time now? */
     /* later for efficiency- lookup table for grain envelope */
@@ -104,7 +104,7 @@ int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
       /* true tempo is determined by samplesperunit (which has been rounded off) */
       /* only make floating point corrections for stutters with stutterspeed>1 */
 
-int BBCutMono(CSOUND *csound, BBCUTMONO *p)
+static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
 {
     int i;
     int oddmax,unitproj;
@@ -269,7 +269,7 @@ int BBCutMono(CSOUND *csound, BBCUTMONO *p)
    for interleaved stereo save and code in audio output part
    to cope with that, variables out1,out2 for 2 channels */
 
-int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
+static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 {
     /* call seed random at time now? */
 
@@ -331,7 +331,7 @@ int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 /* rounding errors will accumulate slowly with respect to bps,  */
 /* true tempo is determined by samplesperunit (which has been rounded off) */
 /* only make floating point corrections for stutters with stutterspeed>1 */
-int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
+static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 {
     int i;
     int oddmax,unitproj;

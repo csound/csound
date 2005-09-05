@@ -232,7 +232,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
     /* open sndfil, do skiptime */
     if ((infd = csound->SAsndgetset(csound, thishet->infilnam, &p,
                                     &thishet->beg_time, &thishet->input_dur,
-                                    &thishet->sr, channel)) < 0) {
+                                    &thishet->sr, channel)) == NULL) {
       char errmsg[256];
       sprintf(errmsg, Str("Cannot open %s"), thishet->infilnam);
       return quit(csound, errmsg);

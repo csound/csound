@@ -30,9 +30,7 @@
 
 #include "csdl.h"
 #include "soundio.h"
-#ifdef HAVE_CTYPE_H
 #include <ctype.h>
-#endif
 
 /* Constants */
 
@@ -511,5 +509,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
       return retval;
     return csound->SetUtilityDescription(csound, "scale",
                                          "Reports and/or adjusts maximum gain");
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

@@ -63,15 +63,10 @@ typedef struct{
 /*   long               m, count; */
 /* } MRH; */
 
-void getmag(MYFLT *x, long size);
-void makepolar(MYFLT *x, long size);
-void makerect(MYFLT *x, long size);
-void makelog(MYFLT *x, long size);
-void unlog(MYFLT *x, long size);
-void scalemod(MYFLT *y, long size);
-void scalemag(MYFLT *x, long size);
-void mult(MYFLT *x, MYFLT *y, long size, MYFLT w);
-void lineaprox(MYFLT *x, long size, long m);
-void do_fht(MYFLT *real, long n);
-void do_ifht(MYFLT *real, long n);
-void pfht(MYFLT *fz, long n);
+static void getmag(MYFLT *x, long size);
+static void mult(MYFLT *x, MYFLT *y, long size, MYFLT w);
+static void lineaprox(MYFLT *x, long size, long m);
+static void do_fht(MYFLT *real, long n);
+static void do_ifht(MYFLT *real, long n);
+static void pfht(MYFLT *fz, long n);
+

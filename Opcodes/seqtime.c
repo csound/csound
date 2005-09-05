@@ -24,7 +24,7 @@ typedef struct {
     MYFLT *table, curr_unit_time;
 } SEQTIM2;
 
-int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
+static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
 {
     FUNC *ftp;
     long start, loop;
@@ -60,7 +60,7 @@ int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
     return OK;
 }
 
-int seqtim(CSOUND *csound, SEQTIM *p)
+static int seqtim(CSOUND *csound, SEQTIM *p)
 {
     if (p->done)
       *p->ktrig=FL(0.0);
@@ -128,7 +128,7 @@ int seqtim(CSOUND *csound, SEQTIM *p)
 
 /**---------------------------------------**/
 
-int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
+static int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
 {
     FUNC *ftp;
     long start, loop;
@@ -162,7 +162,7 @@ int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
     return OK;
 }
 
-int seqtim2(CSOUND *csound, SEQTIM2 *p)
+static int seqtim2(CSOUND *csound, SEQTIM2 *p)
 {
     if (*p->ktrigin) {
       p->ndx = (long) *p->kinitndx;

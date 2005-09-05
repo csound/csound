@@ -67,8 +67,10 @@ PUBLIC int   set_channel_value(t_csoundapi *x, t_symbol *channel, MYFLT value);
 PUBLIC MYFLT get_channel_value(t_csoundapi *x, char *channel);
 PUBLIC channelname *create_channel(channelname *ch, char *channel);
 PUBLIC void  destroy_channels(channelname *ch);
-PUBLIC void in_channel_value_callback(CSOUND *csound, char *name, MYFLT *val);
-PUBLIC void out_channel_value_callback(CSOUND *csound, char *name, MYFLT val);
+PUBLIC void in_channel_value_callback(CSOUND *csound,
+                                      const char *name, MYFLT *val);
+PUBLIC void out_channel_value_callback(CSOUND *csound,
+                                       const char *name, MYFLT val);
 PUBLIC void csoundapi_event(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv);
 PUBLIC void csoundapi_run(t_csoundapi *x, t_floatarg f);
 PUBLIC void csoundapi_offset(t_csoundapi *x, t_floatarg f);
@@ -420,16 +422,20 @@ PUBLIC void csoundapi_control(t_csoundapi *x, t_symbol *s, float f){
 
 }
 
-PUBLIC void in_channel_value_callback(CSOUND *csound, char *name, MYFLT *val){
+PUBLIC void in_channel_value_callback(CSOUND *csound,
+                                      const char *name, MYFLT *val)
+{
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
-  *val = get_channel_value(x,name);
+  *val = get_channel_value(x, (char*) name);
 }
 
-PUBLIC void out_channel_value_callback(CSOUND *csound, char *name, MYFLT val){
+PUBLIC void out_channel_value_callback(CSOUND *csound,
+                                       const char *name, MYFLT val)
+{
   t_atom at[2];
   t_csoundapi *x = (t_csoundapi *) csoundGetHostData(csound);
   SETFLOAT(&at[1], (t_float) val);
-  SETSYMBOL(&at[0], gensym(name));
-  outlet_list(x->ctlout,gensym("list"), 2, at);
+  SETSYMBOL(&at[0], gensym((char*) name));
+  outlet_list(x->ctlout, gensym("list"), 2, at);
 }
 

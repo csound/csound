@@ -880,7 +880,7 @@ static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
 
 void reverbinit(CSOUND *csound)         /* called once by oload */
 {                                       /*  to init reverb data */
-    MYFLT       *lptimp = (MYFLT*) revlptimes;
+    const MYFLT *lptimp = revlptimes;
     long        *lpsizp = csound->revlpsiz;
     int n = 6;
 
@@ -933,8 +933,8 @@ int reverb(CSOUND *csound, REVERB *p)
       return csound->PerfError(csound, Str("reverb: not intialised"));
     }
     if (p->prvt != *p->krvt) {
-      MYFLT     *lptimp = (MYFLT*) revlptimes;
-      MYFLT     logdrvt = log001 / *p->krvt;
+      const MYFLT *lptimp = revlptimes;
+      MYFLT       logdrvt = log001 / *p->krvt;
       p->c1 = (MYFLT)exp(logdrvt * *lptimp++);
       p->c2 = (MYFLT)exp(logdrvt * *lptimp++);
       p->c3 = (MYFLT)exp(logdrvt * *lptimp++);

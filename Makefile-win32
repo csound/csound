@@ -3,7 +3,7 @@ CC = wine D:/MinGW/bin/gcc
 CXX = wine D:/MinGW/bin/g++
 #CFLAGS = -Wall -O2 -march=i586 -mtune=pentium3 -fomit-frame-pointer -ffast-math -DUSE_DOUBLE -DUSE_LRINT
 CFLAGS = -Wall -O3 -march=pentium3 -fomit-frame-pointer -ffast-math
-CFLAGS += -I. -IH -DWIN32 -DPIPES -DCSOUND_WITH_API -DHAVE_STDINT_H -DHAVE_DIRENT_H -DHAVE_UNISTD_H -DHAVE_CTYPE_H -DHAVE_FCNTL_H -DHAVE_STRING_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DPIC
+CFLAGS += -I. -IH -DWIN32 -DPIPES -DHAVE_STDINT_H -DHAVE_DIRENT_H -DHAVE_UNISTD_H -DHAVE_FCNTL_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DPIC
 CSOUNDLIB = csound32.dll
 PROGRAM = csound32.exe
 LDFLAGS = -L.

@@ -334,7 +334,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
     init_omacros(csound, csound->omacros);
     /* IV - Oct 31 2002: create tables for easier checking for common types */
     if (!ST(typemask_tabl)) {
-      long *ptr = (long*) typetabl1;
+      const long *ptr = typetabl1;
       ST(typemask_tabl) = (long*) mcalloc(csound, sizeof(long) * 256);
       ST(typemask_tabl_in) = (long*) mcalloc(csound, sizeof(long) * 256);
       ST(typemask_tabl_out) = (long*) mcalloc(csound, sizeof(long) * 256);
@@ -343,12 +343,12 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         ST(typemask_tabl)[pos] = ST(typemask_tabl_in)[pos] =
                                  ST(typemask_tabl_out)[pos] = *ptr++;
       }
-      ptr = (long*) typetabl2;
+      ptr = typetabl2;
       while (*ptr) {            /* input types */
         long pos = *ptr++;
         ST(typemask_tabl_in)[pos] = *ptr++;
       }
-      ptr = (long*) typetabl3;
+      ptr = typetabl3;
       while (*ptr) {            /* output types */
         long pos = *ptr++;
         ST(typemask_tabl_out)[pos] = *ptr++;
@@ -1756,16 +1756,6 @@ static int isopcod(CSOUND *csound, char *s)
     ST(opcod) = csound->opcodlst[n].opname; /*  set op carriers */
 
     return(1);                              /*  & report success */
-}
-
-int getopnum(CSOUND *csound, char *s)
-{                               /* tst a string against opcodlst  */
-    int     n;                  /*   & return with opnum          */
-
-    if ((n = find_opcode(csound, s))) return n;  /* IV - Oct 31 2002 */
-    csound->Message(csound,"opcode=%s\n", s);
-    csound->Die(csound, Str("unknown opcode"));
-    return NOTOK;
 }
 
 static int pnum(char *s)        /* check a char string for pnum format  */

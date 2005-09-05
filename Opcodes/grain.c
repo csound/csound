@@ -36,7 +36,7 @@
 
 #define Unirand(a)      (((MYFLT)rand() / (MYFLT)RAND_MAX) * (a))
 
-int agsset(CSOUND *csound, PGRA *p)         /*      Granular U.G. set-up */
+static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
 {
     FUNC        *gftp, *eftp;
     long        bufsize;
@@ -58,7 +58,7 @@ int agsset(CSOUND *csound, PGRA *p)         /*      Granular U.G. set-up */
       p->pr = FL(0.0);
 
     bufsize = sizeof(MYFLT) * (2L * (long) (csound->esr * *p->imkglen)
-                               +  (3L * csound->ksmps));
+                               + (3L * csound->ksmps));
 
     if (p->aux.auxp == NULL || bufsize > p->aux.size)
       csound->AuxAlloc(csound, bufsize, &p->aux);
@@ -73,7 +73,7 @@ int agsset(CSOUND *csound, PGRA *p)         /*      Granular U.G. set-up */
     return OK;
 }
 
-int ags(CSOUND *csound, PGRA *p)    /*  Granular U.G. a-rate main routine   */
+static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 {
     FUNC        *gtp, *etp;
     MYFLT       *buf, *out, *rem, *gtbl, *etbl;

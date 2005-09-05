@@ -32,7 +32,7 @@
 #include "csdl.h"
 #include "sndwarp.h"
 
-int sndwarpgetset(CSOUND *csound, SNDWARP *p)
+static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 {
     int         i;
     int         nsections;
@@ -88,7 +88,7 @@ int sndwarpgetset(CSOUND *csound, SNDWARP *p)
     return OK;
 }
 
-int sndwarp(CSOUND *csound, SNDWARP *p)
+static int sndwarp(CSOUND *csound, SNDWARP *p)
 {
     int         nsmps = csound->ksmps;
     MYFLT       frm0,frm1;
@@ -187,7 +187,7 @@ int sndwarp(CSOUND *csound, SNDWARP *p)
 /**************STEREO VERSION OF SNDWARP*************************/
 /****************************************************************/
 
-int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
+static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
 {
     int         i;
     int         nsections;
@@ -249,12 +249,12 @@ int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     return OK;
 }
 
-int sndwarpstset(CSOUND *csound, SNDWARPST *p)
+static int sndwarpstset(CSOUND *csound, SNDWARPST *p)
 {
     return sndwarpstgetset(csound,p);
 }
 
-int sndwarpst(CSOUND *csound, SNDWARPST *p)
+static int sndwarpst(CSOUND *csound, SNDWARPST *p)
 {
     int         nsmps = csound->ksmps;
     MYFLT       frm10,frm11, frm20, frm21;

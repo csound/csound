@@ -34,7 +34,7 @@
 #include "nlfilt.h"
 
 #define MAX_DELAY       (1024)
-int nlfiltset(CSOUND *csound, NLFILT *p)
+static int nlfiltset(CSOUND *csound, NLFILT *p)
 {
     int   i;
     MYFLT *fp;
@@ -50,7 +50,7 @@ int nlfiltset(CSOUND *csound, NLFILT *p)
 } /* end nlfset(p) */
 
 #define MAXAMP (FL(64000.0))
-int nlfilt(CSOUND *csound, NLFILT *p)
+static int nlfilt(CSOUND *csound, NLFILT *p)
 {
     MYFLT       *ar;
     int         n,nsmps=csound->ksmps;

@@ -143,8 +143,8 @@ typedef struct _pvsvoc {
 }
 pvsvoc;
 
-int sndloop_init(CSOUND *csound, sndloop *p) {
-
+static int sndloop_init(CSOUND *csound, sndloop *p)
+{
     p->durs = (long) (*(p->dur)*csound->esr); /* dur in samps */
     p->cfds = (long) (*(p->cfd)*csound->esr); /* fade in samps */
     p->inc  = FL(1.0)/p->cfds;    /* inc/dec */
@@ -156,8 +156,8 @@ int sndloop_init(CSOUND *csound, sndloop *p) {
     return OK;
 }
 
-int sndloop_process(CSOUND *csound, sndloop *p) {
-
+static int sndloop_process(CSOUND *csound, sndloop *p)
+{
     int i, on = (int) *(p->on), recon, n = csound->ksmps;
     long durs = p->durs, cfds = p->cfds, wp = p->wp;
     MYFLT rp = p->rp, a = p->a, inc = p->inc;
@@ -212,8 +212,8 @@ int sndloop_process(CSOUND *csound, sndloop *p) {
     return OK;
 }
 
-int flooper_init(CSOUND *csound, flooper *p) {
-
+static int flooper_init(CSOUND *csound, flooper *p)
+{
     MYFLT *tab, *buffer, a = (MYFLT) 0, inc;
     long cfds = (long) (*(p->cfd)*csound->esr);     /* fade in samps  */
     long starts = (long) (*(p->start)*csound->esr); /* start in samps */
@@ -271,8 +271,8 @@ int flooper_init(CSOUND *csound, flooper *p) {
     return OK;
 }
 
-int flooper_process(CSOUND *csound, flooper *p) {
-
+static int flooper_process(CSOUND *csound, flooper *p)
+{
     int i, n = csound->ksmps;
     long end = p->strts+p->durs, durs = p->durs;
     MYFLT *out = p->out, *buffer = p->buffer.auxp;
@@ -310,7 +310,8 @@ int flooper_process(CSOUND *csound, flooper *p) {
     return OK;
 }
 
-int pvsarp_init(CSOUND *csound, pvsarp *p) {
+static int pvsarp_init(CSOUND *csound, pvsarp *p)
+{
     long N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL)
@@ -332,7 +333,7 @@ int pvsarp_init(CSOUND *csound, pvsarp *p) {
     return OK;
 }
 
-int pvsarp_process(CSOUND *csound, pvsarp *p)
+static int pvsarp_process(CSOUND *csound, pvsarp *p)
 {
     long i,j,N = p->fout->N, bins = N/2 + 1;
     float g = (float) *p->gain;
@@ -357,7 +358,8 @@ int pvsarp_process(CSOUND *csound, pvsarp *p)
     return OK;
 }
 
-int pvsvoc_init(CSOUND *csound, pvsvoc *p) {
+static int pvsvoc_init(CSOUND *csound, pvsvoc *p)
+{
     long N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL)
@@ -379,7 +381,7 @@ int pvsvoc_init(CSOUND *csound, pvsvoc *p) {
     return OK;
 }
 
-int pvsvoc_process(CSOUND *csound, pvsvoc *p)
+static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 {
     long i,N = p->fout->N;
     float g = (float) *p->gain;

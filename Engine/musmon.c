@@ -807,10 +807,11 @@ int sensevents(CSOUND *csound)
       else {
         /* else read next score event */
         if (O->usingcscore) {           /*    get next lplay event      */
+          /* FIXME: this may be non-portable */
           if (ST(ep) < ST(epend))                       /* nxt event    */
-            memcpy(e, (EVTBLK *) &((*ST(ep)++)->strarg), sizeof(EVTBLK));
+            memcpy((void*) e, (void*) &((*ST(ep)++)->strarg), sizeof(EVTBLK));
           else                                          /* else lcode   */
-            memcpy(e, (EVTBLK *) &(ST(lsect)->strarg), sizeof(EVTBLK));
+            memcpy((void*) e, (void*) &(ST(lsect)->strarg), sizeof(EVTBLK));
         }
         else if (!(rdscor(p, e)))       /*   or rd nxt evt from scorfil */
           e->opcod = 'e';

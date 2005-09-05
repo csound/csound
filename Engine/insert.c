@@ -158,12 +158,12 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       flp = &ip->p1;
       fep = &newevtp->p[1];
       if (O->odebug)
-        csound->Message(csound, "psave beg at %p\n", flp);
+        csound->Message(csound, "psave beg at %p\n", (void*) flp);
       if (n > newevtp->pcnt) n = newevtp->pcnt; /* IV - Oct 20 2002 */
       memcpy(flp, fep, n * sizeof(MYFLT)); flp += n;
       if (n < tp->pmax) memset(flp, 0, (tp->pmax - n) * sizeof(MYFLT));
       if (O->odebug)
-        csound->Message(csound, "   ending at %p\n", flp);
+        csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
@@ -339,9 +339,10 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
          */
         do {
           csound->Message(csound, "%d\t%p\t%p\t%p\t%p\t%p\t%p\t%d\t%3.1f\n",
-                          (int) p->insno, p,
-                          p->nxtinstance, p->prvinstance, p->nxtact,
-                          p->prvact, p->nxtoff, p->actflg, p->offtim);
+                          (int) p->insno, (void*) p,
+                          (void*) p->nxtinstance, (void*) p->prvinstance,
+                          (void*) p->nxtact, (void*) p->prvact,
+                          (void*) p->nxtoff, p->actflg, p->offtim);
         } while ((p = p->nxtinstance) != NULL);
       }
 }
@@ -516,7 +517,7 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
     INSDS *ip;
     int   insno;
 
-    insno = (int)p1;
+    insno = (int) p1;
     if ((ip = (csound->instrtxtp[insno])->instance) != NULL) {
       do {
         if (ip->insno == insno          /* if find the insno */
@@ -688,7 +689,7 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     csound->ids = (OPDS *)p->ip;
 
     while ((csound->ids = csound->ids->nxti) != NULL) {
-      (*csound->ids->iopadr)(csound,csound->ids);
+      (*csound->ids->iopadr)(csound, csound->ids);
     }
     /* copy length related parameters back to caller instr */
     saved_curip->xtratim = csound->curip->xtratim;
@@ -813,7 +814,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->curip = lcurip;
     csound->ids = (OPDS *) (lcurip->nxti);
     while (csound->ids != NULL) {
-      (*csound->ids->iopadr)(csound,csound->ids);
+      (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
     }
     /* copy length related parameters back to caller instr */
@@ -1019,7 +1020,7 @@ INSDS *insert_event(CSOUND *csound,
     }
     /* Insert this event into event queue */
     if (O->odebug)
-      csound->Message(csound, "activating instr %d\n",insno);
+      csound->Message(csound, "activating instr %d\n", insno);
     if ((tp->mdepends & 4) && !midi) {
       csound->Message(csound, Str("instr %d expects midi event data, "
                                   "cannot run from score\n"), insno);
@@ -1070,14 +1071,14 @@ INSDS *insert_event(CSOUND *csound,
       ip->p2 = when;
       ip->p3 = dur;
       flp = &(ip->p1) + 3;
-      if (O->odebug) csound->Message(csound, Str("psave beg at %p\n"),flp);
+      if (O->odebug) csound->Message(csound, Str("psave beg at %p\n"), flp);
       for (i = 0; i < imax; i++) {
         if (i < narg)
           *flp++ = *(args[i]);
         else
           *flp++ = FL(0.0);
       }
-      if (O->odebug) csound->Message(csound, Str("   ending at %p\n"),flp);
+      if (O->odebug) csound->Message(csound, Str("   ending at %p\n"), flp);
     }
     if (O->Beatmode)
       ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
@@ -1160,8 +1161,8 @@ void beatexpire(CSOUND *csound, double beat)
       while ((ip = ip->nxtoff) != NULL && ip->offbet <= beat);
       csound->frstoff = ip;
       if (csound->oparms->odebug) {
-        csound->Message(csound, "deactivated all notes to beat %7.3f\n",beat);
-        csound->Message(csound, "frstoff = %p\n", csound->frstoff);
+        csound->Message(csound, "deactivated all notes to beat %7.3f\n", beat);
+        csound->Message(csound, "frstoff = %p\n", (void*) csound->frstoff);
       }
     }
 }
@@ -1190,8 +1191,8 @@ void timexpire(CSOUND *csound, double time)
       while ((ip = ip->nxtoff) != NULL && ip->offtim <= time);
       csound->frstoff = ip;
       if (csound->oparms->odebug) {
-        csound->Message(csound, "deactivated all notes to time %7.3f\n",time);
-        csound->Message(csound, "frstoff = %p\n", csound->frstoff);
+        csound->Message(csound, "deactivated all notes to time %7.3f\n", time);
+        csound->Message(csound, "frstoff = %p\n", (void*) csound->frstoff);
       }
     }
 }
@@ -1215,7 +1216,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     /*  run each opcode  */
     csound->pds = (OPDS *)p->ip;
     while ((csound->pds = csound->pds->nxtp) != NULL) {
-      (*csound->pds->opadr)(csound,csound->pds);
+      (*csound->pds->opadr)(csound, csound->pds);
     }
 
     /* copy outputs */
@@ -1285,7 +1286,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
-          (*csound->pds->opadr)(csound,csound->pds);
+          (*csound->pds->opadr)(csound, csound->pds);
         }
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
@@ -1311,7 +1312,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         /*  run each opcode  */
         csound->pds = (OPDS *) (p->ip);
         while ((csound->pds = csound->pds->nxtp)) {
-          (*csound->pds->opadr)(csound,csound->pds);
+          (*csound->pds->opadr)(csound, csound->pds);
         }
         /* copy outputs */
         while (*(++tmp)) {              /* a-rate */
@@ -1372,7 +1373,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       }
       /*  run each opcode  */
       do {
-        (*csound->pds->opadr)(csound,csound->pds);
+        (*csound->pds->opadr)(csound, csound->pds);
       } while ((csound->pds = csound->pds->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
@@ -1393,7 +1394,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       }
       /*  run each opcode  */
       do {
-        (*csound->pds->opadr)(csound,csound->pds);
+        (*csound->pds->opadr)(csound, csound->pds);
       } while ((csound->pds = csound->pds->nxtp));
       /* copy outputs */
       while (*(++tmp)) {                /* a-rate */
@@ -1533,7 +1534,7 @@ static void instance(CSOUND *csound, int insno)
           opds->opadr = ep->kopadr;                 /*      krate or    */
         else opds->opadr = ep->aopadr;              /*      arate       */
         if (O->odebug)
-          csound->Message(csound, "opadr = %p\n", opds->opadr);
+          csound->Message(csound, "opadr = %p\n", (void*) opds->opadr);
         if (opds->opadr == NULL)
           csoundDie(csound, Str("null opadr"));
       }
@@ -1549,7 +1550,7 @@ static void instance(CSOUND *csound, int insno)
         else
           fltp = lcloffbas + (-indx);
         if (O->odebug)
-          csound->Message(csound, "\t%p", fltp);
+          csound->Message(csound, "\t%p", (void*) fltp);
         *argpp++ = fltp;
       }
       while (reqd--) {                          /* if more outypes, pad */
@@ -1572,7 +1573,7 @@ static void instance(CSOUND *csound, int insno)
           else
             fltp = lcloffbas + (-indx);
           if (O->odebug)
-            csound->Message(csound, "\t%p", fltp);
+            csound->Message(csound, "\t%p", (void*) fltp);
           *argpp++ = fltp;
         }
       }

@@ -82,9 +82,9 @@ int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-static int playopen_(CSOUND *, csRtAudioParams *);
-static int recopen_(CSOUND *, csRtAudioParams *);
-static void rtplay_(CSOUND *, MYFLT *, int);
+static int playopen_(CSOUND *, const csRtAudioParams *);
+static int recopen_(CSOUND *, const csRtAudioParams *);
+static void rtplay_(CSOUND *, const MYFLT *, int);
 static int rtrecord_(CSOUND *, MYFLT *, int);
 static void rtclose_(CSOUND *);
 
@@ -182,7 +182,7 @@ OSStatus Csound_IOProcEntry(AudioDeviceID indev,
     return ADIOProc(input, output, (DEVPARAMS *) cdata);
 }
 
-int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
+int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
                      DEVPARAMS * dev, int isInput)
 {
 
@@ -270,7 +270,7 @@ int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
                            kAudioDevicePropertyBufferFrameSize,
                            psize, &dev->bufframes);
 
-    // check that it matches the expected size
+    /* check that it matches the expected size */
     AudioDeviceGetProperty(dev->dev, 0, true,
                            kAudioDevicePropertyBufferFrameSize,
                            &psize, &ibufframes);
@@ -284,7 +284,7 @@ int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
         dev->bufframes = obufframes;
       else {
         free(dev);
-        *(p->GetRtRecordUserData(csound)) = NULL;
+        csound->rtRecord_userdata = NULL;
         p->Message(csound, " *** CoreAudio: open: could not set buffer size\n");
         return -1;
       }
@@ -327,7 +327,7 @@ int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
     }
 
     if (format.mSampleRate != dev->srate) {
-      *(p->GetRtRecordUserData(csound)) = NULL;
+      csound->rtRecord_userdata = NULL;
       p->Message(csound,
                  " *** CoreAudio: open: could not set device parameter sr: %d \n",
                  (int) dev->srate);
@@ -357,7 +357,7 @@ int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
         free(dev->inused);
         free(dev->outused);
         free(dev);
-        *(p->GetRtRecordUserData(csound)) = NULL;
+        csound->rtRecord_userdata = NULL;
         p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
         return -1;
       }
@@ -369,7 +369,7 @@ int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
         free(dev->inused);
         free(dev->outused);
         free(dev);
-        *(p->GetRtRecordUserData(csound)) = NULL;
+        csound->rtRecord_userdata = NULL;
         p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
         return -1;
       }
@@ -384,9 +384,9 @@ int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
     AudioDeviceStart(dev->dev, Csound_IOProcEntry);
 
     if (isInput)
-      *(p->GetRtPlayUserData(csound)) = (void *) dev;
+      csound->rtPlay_userdata = (void *) dev;
     else
-      *(p->GetRtRecordUserData(csound)) = (void *) dev;
+      csound->rtRecord_userdata = (void *) dev;
 
     p->Message(csound,
                "CoreAudio module: device open with %d buffers of %d frames\n"
@@ -396,13 +396,13 @@ int coreaudio_open(CSOUND *csound, csRtAudioParams * parm,
 }
 
 /* open for audio input */
-static int recopen_(CSOUND *csound, csRtAudioParams * parm)
+static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
 {
     CSOUND *p;
     DEVPARAMS *dev;
 
     p = (CSOUND *) csound;
-    if (*(p->GetRtRecordUserData(csound)) != NULL)
+    if (csound->rtRecord_userdata != NULL)
       return 0;
     /* allocate structure */
     dev = (DEVPARAMS *) malloc(sizeof(DEVPARAMS));
@@ -410,19 +410,19 @@ static int recopen_(CSOUND *csound, csRtAudioParams * parm)
       p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
       return -1;
     }
-    *(p->GetRtRecordUserData(csound)) = (void *) dev;
+    csound->rtRecord_userdata = (void *) dev;
 
     return coreaudio_open(csound, parm, dev, 1);
 }
 
 /* open for audio output */
-static int playopen_(CSOUND *csound, csRtAudioParams * parm)
+static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
 {
     CSOUND *p;
     DEVPARAMS *dev;
 
     p = (CSOUND *) csound;
-    if (*(p->GetRtPlayUserData(csound)) != NULL)
+    if (csound->rtPlay_userdata != NULL)
       return 0;
     /* allocate structure */
     dev = (DEVPARAMS *) malloc(sizeof(DEVPARAMS));
@@ -430,7 +430,7 @@ static int playopen_(CSOUND *csound, csRtAudioParams * parm)
       p->Message(csound, " *** CoreAudio: open: memory allocation failure\n");
       return -1;
     }
-    *(p->GetRtPlayUserData(csound)) = (void *) dev;
+    csound->rtPlay_userdata = (void *) dev;
 
     return coreaudio_open(csound, parm, dev, 0);
 }
@@ -444,7 +444,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
 
     /* MYFLT norm; */
     p = (CSOUND *) csound;
-    dev = (DEVPARAMS *) (*(p->GetRtRecordUserData(csound)));
+    dev = (DEVPARAMS *) (csound->rtRecord_userdata);
     usecs = (int) (1000 * dev->bufframes / p->esr);
     n = bytes_ / sizeof(MYFLT);
     chans = dev->nchns;
@@ -467,7 +467,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
         while (!inused[cur])
           usleep(usecs);
       }
-    }                           // for
+    }                           /* for */
     dev->incount = icount;
     dev->incurbuff = cur;
 
@@ -477,7 +477,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, MYFLT *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
 {
     DEVPARAMS *dev;
     CSOUND *p;
@@ -486,7 +486,7 @@ static void rtplay_(CSOUND *csound, MYFLT *outbuf_, int bytes_)
 
     /* MYFLT norm; */
     p = (CSOUND *) csound;
-    dev = (DEVPARAMS *) (*(p->GetRtRecordUserData(csound)));
+    dev = (DEVPARAMS *) (csound->rtRecord_userdata);
 
     n = bytes_ / sizeof(MYFLT);
     usecs = (int) (1000 * dev->bufframes / p->esr);
@@ -500,7 +500,7 @@ static void rtplay_(CSOUND *csound, MYFLT *outbuf_, int bytes_)
     /* norm = p->e0dbfs; */
 
     for (i = 0; i < n; i++) {
-      obuffs[cur][ocount] = (float) ((MYFLT *) outbuf_)[i];
+      obuffs[cur][ocount] = (float) outbuf_[i];
       ocount++;
       if (ocount == buffitems) {
         outused[cur] = 0;
@@ -525,12 +525,12 @@ static void rtclose_(CSOUND *csound)
     CSOUND *p;
 
     p = (CSOUND *) csound;
-    dev = (DEVPARAMS *) (*(p->GetRtRecordUserData(csound)));
+    dev = (DEVPARAMS *) (csound->rtRecord_userdata);
     if (dev != NULL) {
       p->Message(csound, "coreaudio module: closing device...\n");
       AudioDeviceStop(dev->dev, Csound_IOProcEntry);
       AudioDeviceRemoveIOProc(dev->dev, Csound_IOProcEntry);
-      *(p->GetRtRecordUserData(csound)) = NULL;
+      csound->rtRecord_userdata = NULL;
       free(dev->outbuffs);
       free(dev->inbuffs);
       free(dev->inused);

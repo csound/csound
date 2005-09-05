@@ -30,12 +30,13 @@
 #include "gab.h"
 #include <math.h>
 
-int krsnsetx(CSOUND *csound, KRESONX *p)
+static int krsnsetx(CSOUND *csound, KRESONX *p)
   /* Gabriel Maldonado, modifies for arb order  */
 {
     int scale;
     p->scale = scale = (int) *p->iscl;
-    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
+    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
+      p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                       (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
@@ -52,7 +53,7 @@ int krsnsetx(CSOUND *csound, KRESONX *p)
     return OK;
 }
 
-int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified  */
+static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 {
     int flag = 0, j;
     MYFLT       *ar, *asig;
@@ -101,7 +102,7 @@ int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified  */
 
 /* /////////////////////////////////////////// */
 
-int fastab_set(CSOUND *csound, FASTAB *p)
+static int fastab_set(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -116,7 +117,7 @@ int fastab_set(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-int fastabw(CSOUND *csound, FASTAB *p)
+static int fastabw(CSOUND *csound, FASTAB *p)
 {
     int nsmps = csound->ksmps;
     MYFLT *tab = p->table;
@@ -132,7 +133,7 @@ int fastabw(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-int fastabk(CSOUND *csound, FASTAB *p)
+static int fastabk(CSOUND *csound, FASTAB *p)
 {
     if (p->xmode)
       *p->rslt =  *(p->table + (long) (*p->xndx * p->xbmul));
@@ -141,7 +142,7 @@ int fastabk(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-int fastabkw(CSOUND *csound, FASTAB *p)
+static int fastabkw(CSOUND *csound, FASTAB *p)
 {
     if (p->xmode)
       *(p->table + (long) (*p->xndx * p->xbmul)) = *p->rslt;
@@ -150,7 +151,7 @@ int fastabkw(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-int fastabi(CSOUND *csound, FASTAB *p)
+static int fastabi(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
     /*ftp = csound->FTFind(p->xfn); */
@@ -165,7 +166,7 @@ int fastabi(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-int fastabiw(CSOUND *csound, FASTAB *p)
+static int fastabiw(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
     /*ftp = csound->FTFind(p->xfn); */
@@ -179,7 +180,7 @@ int fastabiw(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-int fastab(CSOUND *csound,FASTAB *p)
+static int fastab(CSOUND *csound,FASTAB *p)
 {
     int nsmps = csound->ksmps;
     MYFLT *tab = p->table;
@@ -203,62 +204,78 @@ static MYFLT *tb0,*tb1,*tb2,*tb3,*tb4,*tb5,*tb6,*tb7,*tb8,
       return csound->InitError(csound, "tab_init: incorrect table number");\
     }\
 
-int tab0_init(CSOUND *csound,TB_INIT *p)
+static int tab0_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb0 = ftp->ftable; return OK;}
-int tab1_init(CSOUND *csound,TB_INIT *p)
+static int tab1_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb1 = ftp->ftable; return OK;}
-int tab2_init(CSOUND *csound,TB_INIT *p)
+static int tab2_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb2 = ftp->ftable; return OK;}
-int tab3_init(CSOUND *csound,TB_INIT *p)
+static int tab3_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb3 = ftp->ftable; return OK;}
-int tab4_init(CSOUND *csound,TB_INIT *p)
+static int tab4_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb4 = ftp->ftable; return OK;}
-int tab5_init(CSOUND *csound,TB_INIT *p)
+static int tab5_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb5 = ftp->ftable; return OK;}
-int tab6_init(CSOUND *csound,TB_INIT *p)
+static int tab6_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb6 = ftp->ftable; return OK;}
-int tab7_init(CSOUND *csound,TB_INIT *p)
+static int tab7_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb7 = ftp->ftable; return OK;}
-int tab8_init(CSOUND *csound,TB_INIT *p)
+static int tab8_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb8 = ftp->ftable; return OK;}
-int tab9_init(CSOUND *csound,TB_INIT *p)
+static int tab9_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb9 = ftp->ftable; return OK;}
-int tab10_init(CSOUND *csound,TB_INIT *p)
+static int tab10_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb10 = ftp->ftable; return OK;}
-int tab11_init(CSOUND *csound,TB_INIT *p)
+static int tab11_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb11 = ftp->ftable; return OK;}
-int tab12_init(CSOUND *csound,TB_INIT *p)
+static int tab12_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb12 = ftp->ftable; return OK;}
-int tab13_init(CSOUND *csound,TB_INIT *p)
+static int tab13_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb13 = ftp->ftable; return OK;}
-int tab14_init(CSOUND *csound,TB_INIT *p)
+static int tab14_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb14 = ftp->ftable; return OK;}
-int tab15_init(CSOUND *csound,TB_INIT *p)
+static int tab15_init(CSOUND *csound,TB_INIT *p)
 { tabMacro      tb15 = ftp->ftable; return OK;}
 
-int tab0(CSOUND *csound,FASTB *p) { *p->r = tb0[(long) *p->ndx]; return OK;}
-int tab1(CSOUND *csound,FASTB *p) { *p->r = tb1[(long) *p->ndx]; return OK;}
-int tab2(CSOUND *csound,FASTB *p) { *p->r = tb2[(long) *p->ndx]; return OK;}
-int tab3(CSOUND *csound,FASTB *p) { *p->r = tb3[(long) *p->ndx]; return OK;}
-int tab4(CSOUND *csound,FASTB *p) { *p->r = tb4[(long) *p->ndx]; return OK;}
-int tab5(CSOUND *csound,FASTB *p) { *p->r = tb5[(long) *p->ndx]; return OK;}
-int tab6(CSOUND *csound,FASTB *p) { *p->r = tb6[(long) *p->ndx]; return OK;}
-int tab7(CSOUND *csound,FASTB *p) { *p->r = tb7[(long) *p->ndx]; return OK;}
-int tab8(CSOUND *csound,FASTB *p) { *p->r = tb8[(long) *p->ndx]; return OK;}
-int tab9(CSOUND *csound,FASTB *p) { *p->r = tb9[(long) *p->ndx]; return OK;}
-int tab10(CSOUND *csound,FASTB *p) { *p->r = tb10[(long) *p->ndx]; return OK;}
-int tab11(CSOUND *csound,FASTB *p) { *p->r = tb11[(long) *p->ndx]; return OK;}
-int tab12(CSOUND *csound,FASTB *p) { *p->r = tb12[(long) *p->ndx]; return OK;}
-int tab13(CSOUND *csound,FASTB *p) { *p->r = tb13[(long) *p->ndx]; return OK;}
-int tab14(CSOUND *csound,FASTB *p) { *p->r = tb14[(long) *p->ndx]; return OK;}
-int tab15(CSOUND *csound,FASTB *p) { *p->r = tb15[(long) *p->ndx]; return OK;}
+static int tab0(CSOUND *csound,FASTB *p)
+{ *p->r = tb0[(long) *p->ndx]; return OK;}
+static int tab1(CSOUND *csound,FASTB *p)
+{ *p->r = tb1[(long) *p->ndx]; return OK;}
+static int tab2(CSOUND *csound,FASTB *p)
+{ *p->r = tb2[(long) *p->ndx]; return OK;}
+static int tab3(CSOUND *csound,FASTB *p)
+{ *p->r = tb3[(long) *p->ndx]; return OK;}
+static int tab4(CSOUND *csound,FASTB *p)
+{ *p->r = tb4[(long) *p->ndx]; return OK;}
+static int tab5(CSOUND *csound,FASTB *p)
+{ *p->r = tb5[(long) *p->ndx]; return OK;}
+static int tab6(CSOUND *csound,FASTB *p)
+{ *p->r = tb6[(long) *p->ndx]; return OK;}
+static int tab7(CSOUND *csound,FASTB *p)
+{ *p->r = tb7[(long) *p->ndx]; return OK;}
+static int tab8(CSOUND *csound,FASTB *p)
+{ *p->r = tb8[(long) *p->ndx]; return OK;}
+static int tab9(CSOUND *csound,FASTB *p)
+{ *p->r = tb9[(long) *p->ndx]; return OK;}
+static int tab10(CSOUND *csound,FASTB *p)
+{ *p->r = tb10[(long) *p->ndx]; return OK;}
+static int tab11(CSOUND *csound,FASTB *p)
+{ *p->r = tb11[(long) *p->ndx]; return OK;}
+static int tab12(CSOUND *csound,FASTB *p)
+{ *p->r = tb12[(long) *p->ndx]; return OK;}
+static int tab13(CSOUND *csound,FASTB *p)
+{ *p->r = tb13[(long) *p->ndx]; return OK;}
+static int tab14(CSOUND *csound,FASTB *p)
+{ *p->r = tb14[(long) *p->ndx]; return OK;}
+static int tab15(CSOUND *csound,FASTB *p)
+{ *p->r = tb15[(long) *p->ndx]; return OK;}
 
 /************************************************************* */
 /* Opcodes from Peter Neubaeker                                */
 /* *********************************************************** */
 
 #if 0
-void printi(CSOUND *csound, PRINTI *p)
+static void printi(CSOUND *csound, PRINTI *p)
 {
     char    *sarg;
 
@@ -282,7 +299,7 @@ void printi(CSOUND *csound, PRINTI *p)
 /* opcodes from Jens Groh */
 /* ====================== */
 
-int nlalp_set(CSOUND *csound,NLALP *p)
+static int nlalp_set(CSOUND *csound,NLALP *p)
 {
    if (!(*p->istor)) {
      p->m0 = 0.0;
@@ -291,7 +308,7 @@ int nlalp_set(CSOUND *csound,NLALP *p)
    return OK;
 }
 
-int nlalp(CSOUND *csound,NLALP *p)
+static int nlalp(CSOUND *csound,NLALP *p)
 {
    int nsmps;
    MYFLT *rp;
@@ -355,7 +372,7 @@ int nlalp(CSOUND *csound,NLALP *p)
 
 /* ----------------------------------------------- */
 
-int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
+static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp;
     MYFLT fmaxlen = (MYFLT)MAXLEN;
@@ -432,7 +449,7 @@ int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     return OK;
 }
 
-int adsynt2(CSOUND *csound,ADSYNT2 *p)
+static int adsynt2(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
     MYFLT   *ar, *ar0, *ftbl, *freqtbl, *amptbl, *prevAmp;
@@ -489,7 +506,7 @@ int adsynt2(CSOUND *csound,ADSYNT2 *p)
     return OK;
 }
 
-int exitnow(CSOUND *csound, EXITNOW *p)
+static int exitnow(CSOUND *csound, EXITNOW *p)
 {
     csound->LongJmp(csound, 0);
     return OK;  /* compiler only */
@@ -507,7 +524,7 @@ int exitnow(CSOUND *csound, EXITNOW *p)
         p->prev = FL(0.0);
 }*/
 
-int tabrec_set(CSOUND *csound,TABREC *p)
+static int tabrec_set(CSOUND *csound,TABREC *p)
 {
     /*FUNC *ftp; */
     /*if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
@@ -523,7 +540,7 @@ int tabrec_set(CSOUND *csound,TABREC *p)
     return OK;
 }
 
-int tabrec_k(CSOUND *csound,TABREC *p)
+static int tabrec_k(CSOUND *csound,TABREC *p)
 {
     if (*p->ktrig_start) {
       if (*p->kfn != p->old_fn) {
@@ -561,7 +578,7 @@ int tabrec_k(CSOUND *csound,TABREC *p)
     return OK;
 }
 /*-------------------------*/
-int tabplay_set(CSOUND *csound,TABPLAY *p)
+static int tabplay_set(CSOUND *csound,TABPLAY *p)
 {
     /*   FUNC *ftp; */
     /* if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
@@ -577,7 +594,7 @@ int tabplay_set(CSOUND *csound,TABPLAY *p)
     return OK;
 }
 
-int tabplay_k(CSOUND *csound,TABPLAY *p)
+static int tabplay_k(CSOUND *csound,TABPLAY *p)
 {
     if (*p->ktrig) {
       if (*p->kfn != p->old_fn) {
@@ -617,13 +634,13 @@ int tabplay_k(CSOUND *csound,TABPLAY *p)
     return OK;
 }
 
-int isChanged_set(CSOUND *csound,ISCHANGED *p)
+static int isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
     p->numargs = p->INOCOUNT;
     return OK;
 }
 
-int isChanged(CSOUND *csound,ISCHANGED *p)
+static int isChanged(CSOUND *csound,ISCHANGED *p)
 {
     MYFLT **inargs = p->inargs;
     MYFLT *old_inargs = p->old_inargs;
@@ -647,14 +664,14 @@ int isChanged(CSOUND *csound,ISCHANGED *p)
 
 /* ------------------------- */
 
-int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
+static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 {
     p->max = 0;
     p->counter = 0;
     return OK;
 }
 
-int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
+static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 {
     int n = csound->ksmps, flag = (int) *p->imaxflag;
     MYFLT *a = p->asig;
@@ -706,7 +723,7 @@ int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 
 /* From fractals.c */
 /* mandelbrot set scanner  */
-int mandel_set(CSOUND *csound,MANDEL *p)
+static int mandel_set(CSOUND *csound,MANDEL *p)
 {
     p->oldx=-99999; /*probably unused values  */
     p->oldy=-99999;
@@ -714,7 +731,7 @@ int mandel_set(CSOUND *csound,MANDEL *p)
     return OK;
 }
 
-int mandel(CSOUND *csound,MANDEL *p)
+static int mandel(CSOUND *csound,MANDEL *p)
 {
     MYFLT px=*p->kx, py=*p->ky;
     if (*p->ktrig && (px != p->oldx || py != p->oldy)) {
@@ -819,6 +836,8 @@ static OENTRY localops[] = {
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },
   /*{ "ftlen_k",S(EVAL),    2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
   { "max_k",  S(P_MAXIMUM), 5,      "k",    "aki",
+            (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
+  { "maxk",   S(P_MAXIMUM), 5,      "k",    "aki",
             (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
   { "mandel",S(MANDEL),     3,      "kk",    "kkkk",
                             (SUBR) mandel_set, (SUBR) mandel, NULL },

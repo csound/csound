@@ -1,25 +1,25 @@
 /*
-  pmidi.c:
+    pmidi.c:
 
-  Copyright (C) 2004 John ffitch after Barry Vercoe
-            (C) 2005 Istvan Varga
+    Copyright (C) 2004 John ffitch after Barry Vercoe
+              (C) 2005 Istvan Varga
 
-  This file is part of Csound.
+    This file is part of Csound.
 
-  The Csound Library is free software; you can redistribute it
-  and/or modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-  Csound is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
 */
 
 /* Realtime MIDI using Portmidi library */
@@ -29,7 +29,6 @@
 #include "oload.h"
 #include <portmidi.h>
 #include <porttime.h>
-#include <errno.h>
 
 static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
@@ -263,9 +262,8 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     retval = Pm_Poll(midistream);
     if (retval == FALSE)
       return 0;
-    if (retval < 0) {
+    if (retval < 0)
       return portMidiErrMsg(csound, Str("error polling input device"));
-    }
     n = 0;
     while ((retval = Pm_Read(midistream, &mev, 1L)) > 0) {
       st = (int) Pm_MessageStatus(mev.message);
@@ -310,7 +308,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 }
 
 static int WriteMidiData_(CSOUND *csound, void *userData,
-                          unsigned char *mbuf, int nbytes)
+                          const unsigned char *mbuf, int nbytes)
 {
     int             n, st;
     PmEvent         mev;
@@ -323,7 +321,7 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       return 0;
     n = 0;
     do {
-      st = (int) (*mbuf++);
+      st = (int) *(mbuf++);
       if (st < 0x80) {
         portMidiErrMsg(csound, Str("invalid MIDI out data"));
         break;
@@ -343,9 +341,9 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       mev.timestamp = (PmTimestamp) 0;
       mev.message |= (PmMessage) Pm_Message(st, 0, 0);
       if (datbyts[(st - 0x80) >> 4] > 0)
-        mev.message |= (PmMessage) Pm_Message(0, (int) (*mbuf++), 0);
+        mev.message |= (PmMessage) Pm_Message(0, (int) *(mbuf++), 0);
       if (datbyts[(st - 0x80) >> 4] > 1)
-        mev.message |= (PmMessage) Pm_Message(0, 0, (int) (*mbuf++));
+        mev.message |= (PmMessage) Pm_Message(0, 0, (int) *(mbuf++));
       if (Pm_Write(midistream, &mev, 1L) != pmNoError)
         portMidiErrMsg(csound, Str("MIDI out: error writing message"));
       else
@@ -414,5 +412,11 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
     Pm_Terminate();
     return 0;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    /* does not depend on MYFLT type */
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));
 }
 

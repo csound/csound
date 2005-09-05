@@ -30,7 +30,7 @@ typedef struct  {
 
 } TIMEDSEQ;
 
-int metro_set(CSOUND *csound, METRO *p)
+static int metro_set(CSOUND *csound, METRO *p)
 {
     double      phs = *p->iphs;
     long  longphs;
@@ -44,7 +44,7 @@ int metro_set(CSOUND *csound, METRO *p)
     return OK;
 }
 
-int metro(CSOUND *csound, METRO *p)
+static int metro(CSOUND *csound, METRO *p)
 {
     double      phs= p->curphs;
     if(phs == 0.0 && p->flag) {
@@ -62,7 +62,7 @@ int metro(CSOUND *csound, METRO *p)
     return OK;
 }
 
-int split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
+static int split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
 {
 
     /* syntax of each table element:
@@ -92,7 +92,7 @@ int split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     return OK;
 }
 
-int split_trig(CSOUND *csound, SPLIT_TRIG *p)
+static int split_trig(CSOUND *csound, SPLIT_TRIG *p)
 {
     int j;
     int numouts =  p->numouts;
@@ -125,7 +125,7 @@ int split_trig(CSOUND *csound, SPLIT_TRIG *p)
     return OK;
 }
 
-int timeseq_set(CSOUND *csound, TIMEDSEQ *p)
+static int timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 {
     FUNC *ftp;
     MYFLT *table;
@@ -144,7 +144,7 @@ int timeseq_set(CSOUND *csound, TIMEDSEQ *p)
     return OK;
 }
 
-int timeseq(CSOUND *csound, TIMEDSEQ *p)
+static int timeseq(CSOUND *csound, TIMEDSEQ *p)
 {
     MYFLT *table = p->table, minDist = csound->onedkr;
     MYFLT phs = *p->kphs, endseq = p->endSeq;

@@ -163,8 +163,8 @@ static void closeJackStream(CsoundJackClient_t *client, int playback)
     pp->jackPorts = NULL;
 }
 
-static int openJackStream(CsoundJackClient_t *client, csRtAudioParams *parm,
-                          int playback)
+static int openJackStream(CsoundJackClient_t *client,
+                          const csRtAudioParams *parm, int playback)
 {
     JackStreamParams_t  *pp;
     CSOUND              *p, *csound;
@@ -374,7 +374,7 @@ static int openJackStream(CsoundJackClient_t *client, csRtAudioParams *parm,
 
 int csoundModuleCreate(CSOUND *csound)
 {
-    CSOUND *p = csound;
+    CSOUND  *p = csound;
     void    *ptr;
     int     i, j;
 
@@ -423,11 +423,11 @@ int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-static int playopen_(CSOUND*, csRtAudioParams*);
-static int recopen_(CSOUND*, csRtAudioParams*);
-static void rtplay_(CSOUND*, MYFLT*, int);
-static int rtrecord_(CSOUND*, MYFLT*, int);
-static void rtclose_(CSOUND*);
+static int playopen_(CSOUND *, const csRtAudioParams *);
+static int recopen_(CSOUND *, const csRtAudioParams *);
+static void rtplay_(CSOUND *, const MYFLT *, int);
+static int rtrecord_(CSOUND *, MYFLT *, int);
+static void rtclose_(CSOUND *);
 
 int csoundModuleInit(CSOUND *csound)
 {
@@ -490,7 +490,7 @@ static CsoundJackClient_t *jackConnectServer(CSOUND *csound)
 
 /* open for audio input */
 
-static int recopen_(CSOUND *csound, csRtAudioParams *parm)
+static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     CsoundJackClient_t  *client;
 
@@ -512,7 +512,7 @@ static int recopen_(CSOUND *csound, csRtAudioParams *parm)
 
 /* open for audio output */
 
-static int playopen_(CSOUND *csound, csRtAudioParams *parm)
+static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     CsoundJackClient_t  *client;
 
@@ -714,7 +714,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, MYFLT *outbuf_, int bytes_)
+static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
 {
     JackStreamParams_t  *pp;
     volatile int        *frames_ahead;

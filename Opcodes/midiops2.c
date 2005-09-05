@@ -43,7 +43,7 @@
 /*------------------------------------------------------------------------*/
 /* 7 bit midi control UGs */
 
-int imidic7(CSOUND *csound, MIDICTL2 *p)
+static int imidic7(CSOUND *csound, MIDICTL2 *p)
 {
     MYFLT value;
     FUNC  *ftp;
@@ -63,7 +63,7 @@ int imidic7(CSOUND *csound, MIDICTL2 *p)
     return OK;
 }
 
-int midic7set(CSOUND *csound, MIDICTL2 *p)
+static int midic7set(CSOUND *csound, MIDICTL2 *p)
 {
     long  ctlno;
     if ((ctlno = (long)*p->ictlno) < 0 || ctlno > 127) {
@@ -79,7 +79,7 @@ int midic7set(CSOUND *csound, MIDICTL2 *p)
     return OK;
 }
 
-int midic7(CSOUND *csound, MIDICTL2 *p)
+static int midic7(CSOUND *csound, MIDICTL2 *p)
 {
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
@@ -96,7 +96,7 @@ int midic7(CSOUND *csound, MIDICTL2 *p)
 /*------------------------------------------------------------------------*/
 /* 14 bit midi control UGs */
 
-int imidic14(CSOUND *csound, MIDICTL3 *p)
+static int imidic14(CSOUND *csound, MIDICTL3 *p)
 {
     MYFLT value;
     FUNC  *ftp;
@@ -133,7 +133,7 @@ int imidic14(CSOUND *csound, MIDICTL3 *p)
     return OK;
 }
 
-int midic14set(CSOUND *csound, MIDICTL3 *p)
+static int midic14set(CSOUND *csound, MIDICTL3 *p)
 {
     long   ctlno1;
     long   ctlno2;
@@ -153,7 +153,7 @@ int midic14set(CSOUND *csound, MIDICTL3 *p)
     return OK;
 }
 
-int midic14(CSOUND *csound, MIDICTL3 *p)
+static int midic14(CSOUND *csound, MIDICTL3 *p)
 {
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
@@ -190,7 +190,7 @@ int midic14(CSOUND *csound, MIDICTL3 *p)
 /*-----------------------------------------------------------------------------*/
 /* 21 bit midi control UGs */
 
-int imidic21(CSOUND *csound, MIDICTL4 *p)
+static int imidic21(CSOUND *csound, MIDICTL4 *p)
 {
     MYFLT value;
     long   ctlno1;
@@ -223,7 +223,7 @@ int imidic21(CSOUND *csound, MIDICTL4 *p)
     return OK;
 }
 
-int midic21set(CSOUND *csound, MIDICTL4 *p)
+static int midic21set(CSOUND *csound, MIDICTL4 *p)
 {
     long   ctlno1;
     long   ctlno2;
@@ -247,7 +247,7 @@ int midic21set(CSOUND *csound, MIDICTL4 *p)
     return OK;
 }
 
-int midic21(CSOUND *csound, MIDICTL4 *p)
+static int midic21(CSOUND *csound, MIDICTL4 *p)
 {
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
@@ -285,7 +285,7 @@ int midic21(CSOUND *csound, MIDICTL4 *p)
 /* GLOBAL MIDI IN CONTROLS activable by score-oriented instruments*/
 /*-----------------------------------------------------------------*/
 
-int ictrl7(CSOUND *csound, CTRL7 *p)
+static int ictrl7(CSOUND *csound, CTRL7 *p)
 {
     MYFLT value;
     FUNC *ftp;
@@ -306,7 +306,7 @@ int ictrl7(CSOUND *csound, CTRL7 *p)
     return OK;
 }
 
-int ctrl7set(CSOUND *csound, CTRL7 *p)
+static int ctrl7set(CSOUND *csound, CTRL7 *p)
 {
     long  ctlno;
     int chan;
@@ -328,7 +328,7 @@ int ctrl7set(CSOUND *csound, CTRL7 *p)
     return OK;
 }
 
-int ctrl7(CSOUND *csound, CTRL7 *p)
+static int ctrl7(CSOUND *csound, CTRL7 *p)
 {
     MYFLT value = (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[p->ctlno]
                            * oneTOf7bit);
@@ -342,7 +342,7 @@ int ctrl7(CSOUND *csound, CTRL7 *p)
 
 /* 14 bit midi control UGs */
 
-int ictrl14(CSOUND *csound, CTRL14 *p)
+static int ictrl14(CSOUND *csound, CTRL14 *p)
 {
     MYFLT value;
     long  ctlno1;
@@ -375,7 +375,7 @@ int ictrl14(CSOUND *csound, CTRL14 *p)
     return OK;
 }
 
-int ctrl14set(CSOUND *csound, CTRL14 *p)
+static int ctrl14set(CSOUND *csound, CTRL14 *p)
 {
     long   ctlno1;
     long   ctlno2;
@@ -399,7 +399,7 @@ int ctrl14set(CSOUND *csound, CTRL14 *p)
     return OK;
 }
 
-int ctrl14(CSOUND *csound, CTRL14 *p)
+static int ctrl14(CSOUND *csound, CTRL14 *p)
 {
     MYFLT value;
     int chan=(int) *p->ichan-1;
@@ -421,7 +421,7 @@ int ctrl14(CSOUND *csound, CTRL14 *p)
 /*-----------------------------------------------------------------------------*/
 /* 21 bit midi control UGs */
 
-int ictrl21(CSOUND *csound, CTRL21 *p)
+static int ictrl21(CSOUND *csound, CTRL21 *p)
 {
     MYFLT  value;
     long   ctlno1;
@@ -457,7 +457,7 @@ int ictrl21(CSOUND *csound, CTRL21 *p)
     return OK;
 }
 
-int ctrl21set(CSOUND *csound, CTRL21 *p)
+static int ctrl21set(CSOUND *csound, CTRL21 *p)
 {
     long   ctlno1;
     long   ctlno2;
@@ -484,7 +484,7 @@ int ctrl21set(CSOUND *csound, CTRL21 *p)
     return OK;
 }
 
-int ctrl21(CSOUND *csound, CTRL21 *p)
+static int ctrl21(CSOUND *csound, CTRL21 *p)
 {
     MYFLT value;
     int chan=(int) *p->ichan-1;
@@ -502,7 +502,7 @@ int ctrl21(CSOUND *csound, CTRL21 *p)
     return OK;
 }
 
-int initc7(CSOUND *csound, INITC7 *p)
+static int initc7(CSOUND *csound, INITC7 *p)
                    /* for setting a precise value use the following formula:*/
 {                  /* (value - min) / (max - min) */
     MYFLT fvalue;
@@ -518,7 +518,7 @@ int initc7(CSOUND *csound, INITC7 *p)
     return OK;
 }
 
-int initc14(CSOUND *csound, INITC14 *p)
+static int initc14(CSOUND *csound, INITC14 *p)
 {
     MYFLT fvalue;
     int value, msb, lsb, chan;
@@ -537,7 +537,7 @@ int initc14(CSOUND *csound, INITC14 *p)
     return OK;
 }
 
-int initc21(CSOUND *csound, INITC21 *p)
+static int initc21(CSOUND *csound, INITC21 *p)
 {
     MYFLT fvalue;
     int value, msb, xsb, lsb, chan;

@@ -34,7 +34,7 @@ static SPACE    *spaceaddr;
 
 #define RESOLUTION 100
 
-int spaceset(CSOUND *csound, SPACE *p)
+static int spaceset(CSOUND *csound, SPACE *p)
 {
 
    FUNC *ftp=NULL;
@@ -60,7 +60,7 @@ int spaceset(CSOUND *csound, SPACE *p)
    return OK;
 }
 
-int space(CSOUND *csound, SPACE *p)
+static int space(CSOUND *csound, SPACE *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
     MYFLT distance=FL(1.0), distr, distrsq, direct;
@@ -163,13 +163,13 @@ int space(CSOUND *csound, SPACE *p)
     return OK;
 }
 
-int spsendset(CSOUND *csound, SPSEND *p)
+static int spsendset(CSOUND *csound, SPSEND *p)
 {
     p->space=spaceaddr;
     return OK;
 }
 
-int spsend(CSOUND *csound, SPSEND *p)
+static int spsend(CSOUND *csound, SPSEND *p)
 {
     MYFLT       *r1, *r2, *r3, *r4, *rrev1, *rrev2, *rrev3, *rrev4;
     SPACE *q = p->space;
@@ -196,7 +196,7 @@ int spsend(CSOUND *csound, SPSEND *p)
     return OK;
 }
 
-int spdistset(CSOUND *csound, SPDIST *p)
+static int spdistset(CSOUND *csound, SPDIST *p)
 {
    FUNC *ftp;
 
@@ -208,7 +208,7 @@ int spdistset(CSOUND *csound, SPDIST *p)
    return OK;
 }
 
-int spdist(CSOUND *csound, SPDIST *p)
+static int spdist(CSOUND *csound, SPDIST *p)
 {
     MYFLT *r;
     MYFLT distance, xndx, yndx;

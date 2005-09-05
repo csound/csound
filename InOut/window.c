@@ -28,9 +28,9 @@
 /* pointer to window make fn - */
 /*     either teletype         */
 /*     or some graphics system */
-static void (*makeFn)(CSOUND *, WINDAT *, char *);
-extern void MakeAscii(CSOUND *, WINDAT *, char *);
-extern void MakeGraph(CSOUND *, WINDAT *, char *);
+static void (*makeFn)(CSOUND *, WINDAT *, const char *);
+extern void MakeAscii(CSOUND *, WINDAT *, const char *);
+extern void MakeGraph(CSOUND *, WINDAT *, const char *);
 /* pointer to appropriate drawing fn */
 static void (*drawFn)(CSOUND *, WINDAT *);
 extern void DrawAscii(CSOUND *, WINDAT *);
@@ -54,7 +54,7 @@ extern int ExitGraph(CSOUND *);
 
 /* somewhere to invoke for no display */
 
-static void DummyFn2(CSOUND *csound, WINDAT *p, char *s)
+static void DummyFn2(CSOUND *csound, WINDAT *p, const char *s)
 {
     IGN(csound); IGN(p); IGN(s);
 }
@@ -150,7 +150,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     if (!wdptr->windid) {               /* if no window defined for this str  */
       (*makeFn)(csound, wdptr, label);  /*    create one  */
       if (csound->oparms->postscript)
-        PS_MakeGraph(csound, wdptr,label); /* open PS file + write header     */
+        PS_MakeGraph(csound, wdptr, label); /* open PS file + write header    */
     }
     wdptr->fdata    = fdata;            /* init remainder of data structure   */
     wdptr->npts     = npts;

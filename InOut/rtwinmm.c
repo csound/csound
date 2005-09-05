@@ -43,9 +43,9 @@ typedef struct rtWinMMDevice_ {
     int       seed;             /* random seed for dithering */
     int       enable_buf_timer;
     /* playback sample conversion function */
-    void      (*playconv)(int, void*, void*, int*);
+    void      (*playconv)(int, MYFLT*, void*, int*);
     /* record sample conversion function */
-    void      (*rec_conv)(int, void*, void*);
+    void      (*rec_conv)(int, void*, MYFLT*);
     int64_t   prv_time;
     float     timeConv, bufTime;
     WAVEHDR   buffers[MAXBUFFERS];
@@ -72,7 +72,7 @@ static int err_msg(CSOUND *csound, const char *fmt, ...)
 }
 
 static int allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
-                                            csRtAudioParams *parm,
+                                            const csRtAudioParams *parm,
                                             int is_playback)
 {
     HGLOBAL ptr;
@@ -115,7 +115,7 @@ static int allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
 }
 
 static int set_format_params(CSOUND *csound, WAVEFORMATEX *wfx,
-                                             csRtAudioParams *parm)
+                                             const csRtAudioParams *parm)
 {
     int sampsize = 4, framsize;
     memset(wfx, 0, sizeof(WAVEFORMATEX));
@@ -142,45 +142,29 @@ static int set_format_params(CSOUND *csound, WAVEFORMATEX *wfx,
 
 /* sample conversion routines for playback */
 
-static void float_to_short(int nSmps, float *inBuf, int16_t *outBuf, int *seed)
+static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
 {
-    float tmp_f;
-    int   tmp_i;
-    while (nSmps--) {
-      (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
-      tmp_f = (float) ((*seed) - 0x8000) * (1.0f / (float) 0x10000);
-      tmp_f += *(inBuf++) * (float) 0x8000;
-      tmp_i = (int) (tmp_f + (tmp_f < 0.0f ? -0.5f : 0.5f));
-      if (tmp_i < -0x8000) tmp_i = -0x8000;
-      if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      *(outBuf++) = (int16_t) tmp_i;
-    }
-}
-
-static void double_to_short(int nSmps, double *inBuf, int16_t *outBuf,
-                            int *seed)
-{
-    double  tmp_f;
+    MYFLT   tmp_f;
     int     tmp_i;
     while (nSmps--) {
       (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
-      tmp_f = (double) ((*seed) - 0x8000) * (1.0 / (double) 0x10000);
-      tmp_f += *(inBuf++) * (double) 0x8000;
-      tmp_i = (int) (tmp_f + (tmp_f < 0.0 ? -0.5 : 0.5));
+      tmp_f = (MYFLT) ((*seed) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
+      tmp_f += *(inBuf++) * (MYFLT) 0x8000;
+      tmp_i = (int) MYFLT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
       *(outBuf++) = (int16_t) tmp_i;
     }
 }
 
-static void float_to_long(int nSmps, float *inBuf, int32_t *outBuf, int *seed)
+static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
 {
-    float   tmp_f;
+    MYFLT   tmp_f;
     int64_t tmp_i;
-    seed = seed;
+    (void) seed;
     while (nSmps--) {
-      tmp_f = *(inBuf++) * (float) 0x80000000UL;
-      tmp_i = (int64_t) (tmp_f + (tmp_f < 0.0f ? -0.5f : 0.5f));
+      tmp_f = *(inBuf++) * (MYFLT) 0x80000000UL;
+      tmp_i = (int64_t) (tmp_f + (tmp_f < FL(0.0) ? FL(-0.5) : FL(0.5)));
       if (tmp_i < -((int64_t) 0x80000000UL))
         tmp_i = -((int64_t) 0x80000000UL);
       if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;
@@ -188,74 +172,35 @@ static void float_to_long(int nSmps, float *inBuf, int32_t *outBuf, int *seed)
     }
 }
 
-static void double_to_long(int nSmps, double *inBuf, int32_t *outBuf, int *seed)
+static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed)
 {
-    double  tmp_f;
-    int64_t tmp_i;
-    seed = seed;
-    while (nSmps--) {
-      tmp_f = *(inBuf++) * (double) 0x80000000UL;
-      tmp_i = (int64_t) (tmp_f + (tmp_f < 0.0 ? -0.5 : 0.5));
-      if (tmp_i < -((int64_t) 0x80000000UL))
-        tmp_i = -((int64_t) 0x80000000UL);
-      if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;
-      *(outBuf++) = (int32_t) tmp_i;
-    }
-}
-
-static void float_to_float_p(int nSmps, float *inBuf, float *outBuf, int *seed)
-{
-    seed = seed;
-    while (nSmps--)
-      *(outBuf++) = *(inBuf++);
-}
-
-static void double_to_float(int nSmps, double *inBuf, float *outBuf, int *seed)
-{
-    seed = seed;
+    (void) seed;
     while (nSmps--)
       *(outBuf++) = (float) *(inBuf++);
 }
 
 /* sample conversion routines for recording */
 
-static void short_to_float(int nSmps, int16_t *inBuf, float *outBuf)
+static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf)
 {
     while (nSmps--)
-      *(outBuf++) = (float) *(inBuf++) * (1.0f / (float) 0x8000);
+      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x8000);
 }
 
-static void short_to_double(int nSmps, int16_t *inBuf, double *outBuf)
+static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf)
 {
     while (nSmps--)
-      *(outBuf++) = (double) *(inBuf++) * (1.0 / (double) 0x8000);
+      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x80000000UL);
 }
 
-static void long_to_float(int nSmps, int32_t *inBuf, float *outBuf)
+static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
 {
     while (nSmps--)
-      *(outBuf++) = (float) *(inBuf++) * (1.0f / (float) 0x80000000UL);
+      *(outBuf++) = (MYFLT) *(inBuf++);
 }
 
-static void long_to_double(int nSmps, int32_t *inBuf, double *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = (double) *(inBuf++) * (1.0 / (double) 0x80000000UL);
-}
-
-static void float_to_float_r(int nSmps, float *inBuf, float *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = *(inBuf++);
-}
-
-static void float_to_double(int nSmps, float *inBuf, double *outBuf)
-{
-    while (nSmps--)
-      *(outBuf++) = (double) *(inBuf++);
-}
-
-static int open_device(CSOUND *csound, csRtAudioParams *parm, int is_playback)
+static int open_device(CSOUND *csound,
+                       const csRtAudioParams *parm, int is_playback)
 {
     rtWinMMGlobals  *p;
     rtWinMMDevice   *dev;
@@ -318,11 +263,9 @@ static int open_device(CSOUND *csound, csRtAudioParams *parm, int is_playback)
     memset(dev, 0, sizeof(rtWinMMDevice));
     conv_idx = (parm->sampleFormat == AE_SHORT ?
                 0 : (parm->sampleFormat == AE_LONG ? 1 : 2));
-    if (csound->GetSizeOfMYFLT() != (int) sizeof(float))
-      conv_idx += 3;
     if (is_playback) {
       p->outDev = dev;
-      *(csound->GetRtPlayUserData(csound)) = (void*) dev;
+      csound->rtPlay_userdata = (void*) dev;
       dev->enable_buf_timer = p->enable_buf_timer;
       if (waveOutOpen((LPHWAVEOUT) &(dev->outDev), (unsigned int) devNum,
                       (LPWAVEFORMATEX) &wfx, 0, 0,
@@ -332,22 +275,16 @@ static int open_device(CSOUND *csound, csRtAudioParams *parm, int is_playback)
       }
       switch (conv_idx) {
         case 0: dev->playconv =
-                  (void (*)(int, void*, void*, int*)) float_to_short;   break;
+                  (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_short;  break;
         case 1: dev->playconv =
-                  (void (*)(int, void*, void*, int*)) float_to_long;    break;
+                  (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_long;   break;
         case 2: dev->playconv =
-                  (void (*)(int, void*, void*, int*)) float_to_float_p; break;
-        case 3: dev->playconv =
-                  (void (*)(int, void*, void*, int*)) double_to_short;  break;
-        case 4: dev->playconv =
-                  (void (*)(int, void*, void*, int*)) double_to_long;   break;
-        case 5: dev->playconv =
-                  (void (*)(int, void*, void*, int*)) double_to_float;  break;
+                  (void (*)(int, MYFLT*, void*, int*)) MYFLT_to_float;  break;
       }
     }
     else {
       p->inDev = dev;
-      *(csound->GetRtRecordUserData(csound)) = (void*) dev;
+      csound->rtRecord_userdata = (void*) dev;
       /* disable playback timer in full-duplex mode */
       dev->enable_buf_timer = p->enable_buf_timer = 0;
       if (waveInOpen((LPHWAVEIN) &(dev->inDev), (unsigned int) devNum,
@@ -358,17 +295,11 @@ static int open_device(CSOUND *csound, csRtAudioParams *parm, int is_playback)
       }
       switch (conv_idx) {
         case 0: dev->rec_conv =
-                  (void (*)(int, void*, void*)) short_to_float;   break;
+                  (void (*)(int, void*, MYFLT*)) short_to_MYFLT;  break;
         case 1: dev->rec_conv =
-                  (void (*)(int, void*, void*)) long_to_float;    break;
+                  (void (*)(int, void*, MYFLT*)) long_to_MYFLT;   break;
         case 2: dev->rec_conv =
-                  (void (*)(int, void*, void*)) float_to_float_r; break;
-        case 3: dev->rec_conv =
-                  (void (*)(int, void*, void*)) short_to_double;  break;
-        case 4: dev->rec_conv =
-                  (void (*)(int, void*, void*)) long_to_double;   break;
-        case 5: dev->rec_conv =
-                  (void (*)(int, void*, void*)) float_to_double;  break;
+                  (void (*)(int, void*, MYFLT*)) float_to_MYFLT;  break;
       }
     }
     if (allocate_buffers(csound, dev, parm, is_playback) != 0)
@@ -385,14 +316,14 @@ static int open_device(CSOUND *csound, csRtAudioParams *parm, int is_playback)
 
 /* open for audio input */
 
-static int recopen_(CSOUND *csound, csRtAudioParams *parm)
+static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     return open_device(csound, parm, 0);
 }
 
 /* open for audio output */
 
-static int playopen_(CSOUND *csound, csRtAudioParams *parm)
+static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     return open_device(csound, parm, 1);
 }
@@ -401,13 +332,11 @@ static int playopen_(CSOUND *csound, csRtAudioParams *parm)
 
 static int rtrecord_(CSOUND *csound, MYFLT *inBuf, int nbytes)
 {
-    rtWinMMDevice   *dev = (rtWinMMDevice*)
-                               *(csound->GetRtRecordUserData(csound));
+    rtWinMMDevice   *dev = (rtWinMMDevice*) csound->rtRecord_userdata;
     WAVEHDR         *buf = &(dev->buffers[dev->cur_buf]);
     volatile DWORD  *dwFlags = &(buf->dwFlags);
 
-    dev->rec_conv(nbytes / csound->GetSizeOfMYFLT(),
-                  (void*) buf->lpData, inBuf);
+    dev->rec_conv(nbytes / (int) sizeof(MYFLT), (void*) buf->lpData, inBuf);
     while (!(*dwFlags & WHDR_DONE))
       Sleep(1);
     waveInAddBuffer(dev->inDev, (LPWAVEHDR) buf, sizeof(WAVEHDR));
@@ -430,10 +359,9 @@ static int rtrecord_(CSOUND *csound, MYFLT *inBuf, int nbytes)
 /* eliminate MIDI jitter by requesting that both be made synchronous with */
 /* the above audio I/O blocks, i.e. by setting -b to some 1 or 2 K-prds.  */
 
-static void rtplay_(CSOUND *csound, MYFLT *outBuf, int nbytes)
+static void rtplay_(CSOUND *csound, const MYFLT *outBuf, int nbytes)
 {
-    rtWinMMDevice   *dev = (rtWinMMDevice*)
-                               *(csound->GetRtPlayUserData(csound));
+    rtWinMMDevice   *dev = (rtWinMMDevice*) csound->rtPlay_userdata;
     WAVEHDR         *buf = &(dev->buffers[dev->cur_buf]);
     volatile DWORD  *dwFlags = &(buf->dwFlags);
     LARGE_INTEGER   pp;
@@ -443,8 +371,8 @@ static void rtplay_(CSOUND *csound, MYFLT *outBuf, int nbytes)
 
     while (!(*dwFlags & WHDR_DONE))
       Sleep(1);
-    dev->playconv(nbytes / csound->GetSizeOfMYFLT(),
-                  outBuf, (void*) buf->lpData, &(dev->seed));
+    dev->playconv(nbytes / (int) sizeof(MYFLT),
+                  (MYFLT*) outBuf, (void*) buf->lpData, &(dev->seed));
     waveOutWrite(dev->outDev, (LPWAVEHDR) buf, sizeof(WAVEHDR));
     if (++(dev->cur_buf) >= dev->nBuffers)
       dev->cur_buf = 0;
@@ -476,8 +404,8 @@ static void rtclose_(CSOUND *csound)
     rtWinMMDevice   *inDev, *outDev;
     int             i;
 
-    *(csound->GetRtPlayUserData(csound)) = NULL;
-    *(csound->GetRtRecordUserData(csound)) = NULL;
+    csound->rtPlay_userdata = NULL;
+    csound->rtRecord_userdata = NULL;
     pp = (rtWinMMGlobals*) csound->QueryGlobalVariable(csound,
                                                        "_rtwinmm_globals");
     if (pp == NULL)
@@ -554,5 +482,10 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetRtrecordCallback(csound, rtrecord_);
     csound->SetRtcloseCallback(csound, rtclose_);
     return 0;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

@@ -462,7 +462,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       return -1;
     }
     if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
-                                   &input_dur, &sr, channel)) < 0) {
+                                   &input_dur, &sr, channel)) == NULL) {
       csound->Message(csound, Str("error while opening %s"), infile);
       return -1;
     }
@@ -521,7 +521,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     /* read noise reference file */
 
     if ((fp = csound->SAsndgetset(csound, nfile, &pn, &beg_ntime,
-                                  &input_ndur, &srn, channel)) < 0) {
+                                  &input_ndur, &srn, channel)) == NULL) {
       csound->Message(csound, "dnoise: cannot open noise reference file\n");
       return -1;
     }
@@ -1128,7 +1128,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     if (i > 0)
       writebuffer(csound, outfd, ob1, i, &nrecs);
 
-/*  rewriteheader(outfd, 0); */
+/*  csound->rewriteheader(outfd); */
     csound->Message(csound, "\n\n");
     if (Verbose) {
       csound->Message(csound, "processing complete\n");
@@ -1194,7 +1194,7 @@ static int writebuffer(CSOUND *csound, SNDFILE *outfd,
       return -1;
     }
     if (O->rewrt_hdr)
-      csound->rewriteheader(outfd, 0);
+      csound->rewriteheader(outfd);
 
     (*nrecs)++;                 /* JPff fix */
     switch (O->heartbeat) {

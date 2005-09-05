@@ -199,11 +199,11 @@ void print_short_usage(CSOUND *csound)
 
 static void longusage(CSOUND *p)
 {
-  char  **sp;
+  const char **sp;
   p->Message(p, Str("Usage:\tcsound [-flags] orchfile scorefile\n"));
   p->Message(p, Str("Legal flags are:\n"));
   p->Message(p, Str("Long format:\n\n"));
-  for (sp = (char**) &(longUsageList[0]); *sp != NULL; sp++)
+  for (sp = &(longUsageList[0]); *sp != NULL; sp++)
     p->Message(p, "%s\n", Str(*sp));
   /* IV - Feb 19 2005 */
   dump_cfg_variables(p);

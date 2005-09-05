@@ -40,11 +40,11 @@
 
 #define s2d(x)  *((DWORD *) (x))
 
-int chunk_read(FILE *f, CHUNK *chunk);
-void fill_SfPointers(CSOUND *);
-void fill_SfStruct(CSOUND *);
-void layerDefaults(layerType *layer);
-void splitDefaults(splitType *split);
+static int chunk_read(FILE *f, CHUNK *chunk);
+static void fill_SfPointers(CSOUND *);
+static void fill_SfStruct(CSOUND *);
+static void layerDefaults(layerType *layer);
+static void splitDefaults(splitType *split);
 
 #define MAX_SFONT               (10)
 #define MAX_SFPRESET            (512)
@@ -85,7 +85,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
     return 0;
 }
 
-void fill_pitches(void)
+static void fill_pitches(void)
 {
     int j;
     for (j=0; j<128; j++) {
@@ -93,7 +93,7 @@ void fill_pitches(void)
     }
 }
 
-void SoundFontLoad(CSOUND *csound, char *fname)
+static void SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     char *pathnam;
@@ -139,7 +139,7 @@ static int compare(presetType * elem1, presetType *elem2)
 
 static char *Gfname;
 
-int SfLoad(CSOUND *csound, SFLOAD *p)   /* open a file and return its handle */
+static int SfLoad(CSOUND *csound, SFLOAD *p)   /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char fname[256];
     SFBANK *sf;
@@ -172,7 +172,7 @@ static char *filter_string(char *s, char temp_string[24])
     return temp_string;
 }
 
-int Sfplist(CSOUND *csound, SFPLIST *p)
+static int Sfplist(CSOUND *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     char temp_string[24];
@@ -188,7 +188,7 @@ int Sfplist(CSOUND *csound, SFPLIST *p)
     return OK;
 }
 
-int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
+static int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
@@ -210,7 +210,7 @@ int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
     return OK;
 }
 
-int Sfilist(CSOUND *csound, SFPLIST *p)
+static int Sfilist(CSOUND *csound, SFPLIST *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int j;
@@ -223,7 +223,7 @@ int Sfilist(CSOUND *csound, SFPLIST *p)
     return OK;
 }
 
-int SfPreset(CSOUND *csound, SFPRESET *p)
+static int SfPreset(CSOUND *csound, SFPRESET *p)
 {
     int j, presetHandle = (int) *p->iPresetHandle;
     SFBANK *sf = &sfArray[(DWORD) *p->isfhandle];
@@ -253,7 +253,7 @@ int SfPreset(CSOUND *csound, SFPRESET *p)
     return OK;
 }
 
-int SfPlay_set(CSOUND *csound, SFPLAY *p)
+static int SfPlay_set(CSOUND *csound, SFPLAY *p)
 {
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset = presetp[index];
@@ -366,7 +366,7 @@ int SfPlay_set(CSOUND *csound, SFPLAY *p)
         *outemp2++ += *right * out;\
         *phs += si;
 
-int SfPlay(CSOUND *csound, SFPLAY *p)
+static int SfPlay(CSOUND *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
     int   nsmps = csound->ksmps, j = p->spltNum, arate;
@@ -449,7 +449,7 @@ int SfPlay(CSOUND *csound, SFPLAY *p)
     return OK;
 }
 
-int SfPlay3(CSOUND *csound, SFPLAY *p)
+static int SfPlay3(CSOUND *csound, SFPLAY *p)
 {
     MYFLT *out1 = p->out1, *out2 = p->out2;
     int nsmps = csound->ksmps, j = p->spltNum, arate;
@@ -531,7 +531,7 @@ int SfPlay3(CSOUND *csound, SFPLAY *p)
     return OK;
 }
 
-int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
+static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
 {
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset = presetp[index];
@@ -596,7 +596,7 @@ int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     return OK;
 }
 
-int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
+static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1  ;
     int nsmps = csound->ksmps, j = p->spltNum, arate;
@@ -676,7 +676,7 @@ int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
     return OK;
 }
 
-int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
+static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
 {
     MYFLT *out1 = p->out1;
     int nsmps = csound->ksmps, j = p->spltNum, arate;
@@ -757,7 +757,7 @@ int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
     return OK;
 }
 
-int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
+static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 {
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
@@ -817,7 +817,7 @@ int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     return OK;
 }
 
-int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
+static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
     int nsmps= csound->ksmps, j = p->spltNum, arate;
@@ -904,7 +904,7 @@ int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
     return OK;
 }
 
-int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
+static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 {
     MYFLT *out1= p->out1, *out2= p->out2;
     int nsmps= csound->ksmps, j = p->spltNum, arate;
@@ -991,7 +991,7 @@ int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
     return OK;
 }
 
-int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
+static int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
 {
     int index = (int) *p->sfBank;
     SFBANK *sf = &sfArray[index];
@@ -1045,7 +1045,7 @@ int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
     return OK;
 }
 
-int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
+static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
     int nsmps= csound->ksmps, j = p->spltNum, arate;
@@ -1126,7 +1126,7 @@ int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
     return OK;
 }
 
-int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
+static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
 {
     MYFLT *out1= p->out1  ;
     int nsmps= csound->ksmps, j = p->spltNum, arate;
@@ -1213,8 +1213,7 @@ int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
  *  b:byte (no conversion), w:word, d:double word, digits(optional):repeat n times
  */
 #ifdef WORDS_BIGENDIAN
-static void
-ChangeByteOrder(char *fmt, char *p, long size)
+static void ChangeByteOrder(char *fmt, char *p, long size)
 {
     char c, c1, c2, c3, c4;
     char *fmt_org = fmt;
@@ -1250,7 +1249,7 @@ ChangeByteOrder(char *fmt, char *p, long size)
 #define ChangeByteOrder(fmt, p, size) /* nothing */
 #endif
 
-void fill_SfStruct(CSOUND *csound)
+static void fill_SfStruct(CSOUND *csound)
 {
 #if defined(SYMANTEC)
 #pragma options(!global_optimizer)
@@ -1692,7 +1691,7 @@ void fill_SfStruct(CSOUND *csound)
     }
 }
 
-void layerDefaults(layerType *layer)
+static void layerDefaults(layerType *layer)
 {
     layer->splits_num         = 0;
     layer->minNoteRange       = 0;
@@ -1706,7 +1705,7 @@ void layerDefaults(layerType *layer)
     layer->pan                = 0;
 }
 
-void splitDefaults(splitType *split)
+static void splitDefaults(splitType *split)
 {
     split->sampleModes        = 0;
     split->minNoteRange       = 0;
@@ -1725,7 +1724,7 @@ void splitDefaults(splitType *split)
     split->pan                = 0;
 }
 
-int chunk_read(FILE *fil, CHUNK *chunk)
+static int chunk_read(FILE *fil, CHUNK *chunk)
 {
     fread(chunk->ckID,1,4, fil);
     fread(&chunk->ckSize,4,1,fil);
@@ -1734,7 +1733,7 @@ int chunk_read(FILE *fil, CHUNK *chunk)
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
 
-DWORD dword(char *p)
+static DWORD dword(char *p)
 {
     union cheat {
       DWORD i;
@@ -1747,7 +1746,7 @@ DWORD dword(char *p)
     return x.i;
 }
 
-void fill_SfPointers(CSOUND *csound)
+static void fill_SfPointers(CSOUND *csound)
 {
     char *chkp;
     DWORD chkid, j, size;
