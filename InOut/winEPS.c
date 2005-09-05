@@ -66,11 +66,7 @@
  *
   --------------------------------------------------------------------------*/
 
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
+#include <string.h>
 #include <time.h>
 
           /*
@@ -86,11 +82,11 @@
 
 static int   winPSinitialized = 0;
 static int   psFileOk = 0;               /* Flag for ``psFile opened O.K.''  */
-static FILE *psFile;
+static FILE  *psFile;
 static char  ps_date[40];                /* Print time & date on every plot  */
 static int   currentPage = 0;            /* Current page number              */
 
-void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, char *name)
+void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
     char      *filenam;
     char      *pathnam_;

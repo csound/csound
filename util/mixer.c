@@ -118,10 +118,10 @@ static const char *usage_txt[] = {
 
 static void usage(CSOUND *csound, const char *mesg, ...)
 {
-    char    **sp;
-    va_list args;
+    const char  **sp;
+    va_list     args;
 
-    for (sp = (char**) &(usage_txt[0]); *sp != NULL; sp++)
+    for (sp = &(usage_txt[0]); *sp != NULL; sp++)
       csound->Message(csound, "%s\n", Str(*sp));
 
     va_start(args, mesg);
@@ -638,7 +638,7 @@ static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
       }
       sample += size;
     }
-    csound->rewriteheader(outfd, 0);
+    csound->rewriteheader(outfd);
     min *= (DFLT_DBFS * csound->dbfs_to_float);
     max *= (DFLT_DBFS * csound->dbfs_to_float);
     csound->Message(csound, Str("Max val %d at index %ld (time %.4f, chan %d) "
@@ -669,5 +669,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
       retval = csound->SetUtilityDescription(csound, "mixer", buf);
     }
     return retval;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

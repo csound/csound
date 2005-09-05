@@ -31,12 +31,11 @@
 
 static  char    *points = NULL;
 
-void MakeAscii(CSOUND *csound, WINDAT *wdptr, char *n)
+void MakeAscii(CSOUND *csound, WINDAT *wdptr, const char *n)
 {
     wdptr->windid = -1;                         /* just so it's not null */
     if (points == NULL)
-      points = mmalloc(csound,
-                       (long)((VER+1) * HOR));  /* alloc the 2-Dim array */
+      points = mmalloc(csound, (VER+1) * HOR);  /* alloc the 2-Dim array */
 }
 
 void KillAscii(CSOUND *csound, WINDAT *wdptr)

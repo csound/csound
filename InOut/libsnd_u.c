@@ -25,7 +25,7 @@
 char    *type2string(int x);
 char    *getstrformat(int format);
 
-void rewriteheader(SNDFILE *ofd, int verbose)
+void rewriteheader(SNDFILE *ofd)
 {
     if (ofd != NULL)
       sf_command(ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);

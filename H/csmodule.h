@@ -54,8 +54,8 @@
  * Destructor function for Csound instance 'csound', called at the end of     *
  * performance, after closing audio output.                                   *
  *                                                                            *
- * char *csoundModuleErrorCodeToString(int errcode)     (optional)            *
- * ------------------------------------------------                           *
+ * const char *csoundModuleErrorCodeToString(int errcode)   (optional)        *
+ * ------------------------------------------------------                     *
  *                                                                            *
  * Converts error codes returned by any of the initialisation or destructor   *
  * functions to a string message.                                             *

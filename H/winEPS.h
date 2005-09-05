@@ -26,7 +26,7 @@
    /*                             */
 
   /* Open PS file & write header */
-void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, char *name);
+void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name);
   /* Make one plot per page      */
 void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr);
 int  PS_ExitGraph(void);                       /* Write PS trailer            */

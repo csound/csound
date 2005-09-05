@@ -21,9 +21,6 @@
     02111-1307 USA
 */
 
-#if defined(HAVE_CONFIG_H)
-#include "config.h"
-#endif
 #include "csdl.h"                                   /*  SNDINFO.C  */
 #include <sndfile.h>
 #include "soundio.h"
@@ -102,5 +99,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                     "Prints information about sound files");
     }
     return retval;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));
 }
 

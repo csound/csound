@@ -161,20 +161,22 @@ static void spoutsf_noscale(CSOUND *csound)
     }
 }
 
-static void writesf(CSOUND *csound, MYFLT *outbuf, int nbytes)
-{                               /* diskfile write option for audtran's */
-                                /*      assigned during sfopenout()    */
+/* diskfile write option for audtran's */
+/*      assigned during sfopenout()    */
+
+static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+{
     OPARMS  *O = csound->oparms;
     int     n;
 
     if (ST(outfile) == NULL)
       return;
-    n = (int) sf_write_MYFLT(ST(outfile), outbuf, nbytes / sizeof(MYFLT))
-        * (int) sizeof(MYFLT);
+    n = (int) sf_write_MYFLT(ST(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (n < nbytes)
       sndwrterr(csound, n, nbytes);
     if (O->rewrt_hdr)
-      rewriteheader(ST(outfile), 0);
+      rewriteheader(ST(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -214,11 +216,6 @@ static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
     return inbufsize;
 }
 
-void writeheader(CSOUND *csound, int ofd, char *ofname)
-{
-    sf_command(ST(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
-}
-
 void sfopenin(CSOUND *csound)           /* init for continuous soundin */
 {
     OPARMS  *O = csound->oparms;
@@ -251,11 +248,11 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       /* get device name/number */
       if (!strncmp(sfname, "devaudio", 8) && sfname[8] != '\0') {
         if (sfname[8] == ':')   csound->rtin_devs = &(sfname[9]);
-        else                    sscanf(sfname + 8, "%d", &(csound->rtin_dev));
+        else                    sscanf(sfname + 8, "%u", &(csound->rtin_dev));
       }
       else if (!strncmp(sfname, "adc", 3) && sfname[3] != '\0') {
         if (sfname[3] == ':')   csound->rtin_devs = &(sfname[4]);
-        else                    sscanf(sfname + 3, "%d", &(csound->rtin_dev));
+        else                    sscanf(sfname + 3, "%u", &(csound->rtin_dev));
       }
       /* set device parameters (should get these from CSOUND...) */
       parm.devName = csound->rtin_devs;
@@ -371,11 +368,11 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       /* get device number/name */
       if (!strncmp(fName, "devaudio", 8) && fName[8] != '\0') {
         if (fName[8] == ':')    csound->rtout_devs = &(fName[9]);
-        else                    sscanf(fName + 8, "%d", &(csound->rtout_dev));
+        else                    sscanf(fName + 8, "%u", &(csound->rtout_dev));
       }
       else if (!strncmp(fName, "dac", 3) && fName[3] != '\0') {
         if (fName[3] == ':')    csound->rtout_devs = &(fName[4]);
-        else                    sscanf(fName + 3, "%d", &(csound->rtout_dev));
+        else                    sscanf(fName + 3, "%u", &(csound->rtout_dev));
       }
       /* set device parameters (should get these from CSOUND...) */
       parm.devName = csound->rtout_devs;
@@ -604,7 +601,7 @@ static int audrecv_dummy(CSOUND *csound, MYFLT *buf, int nbytes)
     return nbytes;
 }
 
-static void audtran_dummy(CSOUND *csound, MYFLT *buf, int nbytes)
+static void audtran_dummy(CSOUND *csound, const MYFLT *buf, int nbytes)
 {
     (void) csound; (void) buf; (void) nbytes;
 }

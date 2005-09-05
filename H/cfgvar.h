@@ -375,7 +375,7 @@ typedef union csCfgVariable_u {
    * Returns pointer to an error string constant for the specified
    * CSOUNDCFG error code. The string is not translated.
    */
-  PUBLIC char *csoundCfgErrorCodeToString(int errcode);
+  PUBLIC const char *csoundCfgErrorCodeToString(int errcode);
 
 #ifdef __cplusplus
 }

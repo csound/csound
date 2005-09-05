@@ -22,15 +22,7 @@
 #include "vectorial.h"
 #include <math.h>
 
-#ifdef MAKEDLL
-/* #define PUBLIC __declspec(dllexport) */
-#define DIR_SEP '\\'
-#else
-/* #define PUBLIC */
-#define DIR_SEP '/'
-#endif
-
-int mtable_i(CSOUND *csound,MTABLEI *p)
+static int mtable_i(CSOUND *csound,MTABLEI *p)
 {
     FUNC *ftp;
     int j, nargs;
@@ -62,7 +54,7 @@ int mtable_i(CSOUND *csound,MTABLEI *p)
     return OK;
 }
 
-int mtable_set(CSOUND *csound,MTABLE *p)         /*  mtab by G.Maldonado */
+static int mtable_set(CSOUND *csound,MTABLE *p) /*  mtab by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -77,7 +69,7 @@ int mtable_set(CSOUND *csound,MTABLE *p)         /*  mtab by G.Maldonado */
     return OK;
 }
 
-int mtable_k(CSOUND *csound,MTABLE *p)
+static int mtable_k(CSOUND *csound,MTABLE *p)
 {
     int j, nargs = p->nargs;
     MYFLT **out = p->outargs;
@@ -124,7 +116,7 @@ int mtable_k(CSOUND *csound,MTABLE *p)
     return OK;
 }
 
-int mtable_a(CSOUND *csound,MTABLE *p)
+static int mtable_a(CSOUND *csound,MTABLE *p)
 {
     int j, nargs = p->nargs;
     int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k=0;
@@ -184,7 +176,7 @@ int mtable_a(CSOUND *csound,MTABLE *p)
     return OK;
 }
 
-int mtab_i(CSOUND *csound,MTABI *p)
+static int mtab_i(CSOUND *csound,MTABI *p)
 {
     FUNC *ftp;
     int j, nargs;
@@ -202,7 +194,7 @@ int mtab_i(CSOUND *csound,MTABI *p)
     return OK;
 }
 
-int mtab_set(CSOUND *csound,MTAB *p)     /* mtab by G.Maldonado */
+static int mtab_set(CSOUND *csound,MTAB *p)     /* mtab by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -215,7 +207,7 @@ int mtab_set(CSOUND *csound,MTAB *p)     /* mtab by G.Maldonado */
     return OK;
 }
 
-int mtab_k(CSOUND *csound,MTAB *p)
+static int mtab_k(CSOUND *csound,MTAB *p)
 {
     int j, nargs = p->nargs;
     MYFLT **out = p->outargs;
@@ -230,7 +222,7 @@ int mtab_k(CSOUND *csound,MTAB *p)
     return OK;
 }
 
-int mtab_a(CSOUND *csound,MTAB *p)
+static int mtab_a(CSOUND *csound,MTAB *p)
 {
     int j, nargs = p->nargs;
     int nsmps = csound->ksmps, k=0;
@@ -252,7 +244,7 @@ int mtab_a(CSOUND *csound,MTAB *p)
 
 /* ////////// mtab end /////////////// */
 
-int mtablew_i(CSOUND *csound,MTABLEIW *p)
+static int mtablew_i(CSOUND *csound,MTABLEIW *p)
 {
     FUNC *ftp;
     int j, nargs;
@@ -271,7 +263,7 @@ int mtablew_i(CSOUND *csound,MTABLEIW *p)
     return OK;
 }
 
-int mtablew_set(CSOUND *csound,MTABLEW *p)       /* mtabw by G.Maldonado */
+static int mtablew_set(CSOUND *csound,MTABLEW *p)   /* mtabw by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -286,7 +278,7 @@ int mtablew_set(CSOUND *csound,MTABLEW *p)       /* mtabw by G.Maldonado */
     return OK;
 }
 
-int mtablew_k(CSOUND *csound,MTABLEW *p)
+static int mtablew_k(CSOUND *csound,MTABLEW *p)
 {
     int j, nargs = p->nargs;
     MYFLT **in = p->inargs;
@@ -312,7 +304,7 @@ int mtablew_k(CSOUND *csound,MTABLEW *p)
     return OK;
 }
 
-int mtablew_a(CSOUND *csound,MTABLEW *p)
+static int mtablew_a(CSOUND *csound,MTABLEW *p)
 {
     int j, nargs = p->nargs;
     int nsmps = csound->ksmps, ixmode = (int) *p->ixmode, k=0;
@@ -348,7 +340,7 @@ int mtablew_a(CSOUND *csound,MTABLEW *p)
 
 /* ////////////////////////////////////// */
 
-int mtabw_i(CSOUND *csound,MTABIW *p)
+static int mtabw_i(CSOUND *csound,MTABIW *p)
 {
     FUNC *ftp;
     int j, nargs;
@@ -365,7 +357,7 @@ int mtabw_i(CSOUND *csound,MTABIW *p)
     return OK;
 }
 
-int mtabw_set(CSOUND *csound,MTABW *p)   /* mtabw by G.Maldonado */
+static int mtabw_set(CSOUND *csound,MTABW *p)   /* mtabw by G.Maldonado */
 {
     FUNC *ftp;
     if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL) {
@@ -378,7 +370,7 @@ int mtabw_set(CSOUND *csound,MTABW *p)   /* mtabw by G.Maldonado */
     return OK;
 }
 
-int mtabw_k(CSOUND *csound,MTABW *p)
+static int mtabw_k(CSOUND *csound,MTABW *p)
 {
     int j, nargs = p->nargs;
     MYFLT **in = p->inargs;
@@ -401,7 +393,7 @@ int mtabw_k(CSOUND *csound,MTABW *p)
     return OK;
 }
 
-int mtabw_a(CSOUND *csound,MTABW *p)
+static int mtabw_a(CSOUND *csound,MTABW *p)
 {
     int j, nargs = p->nargs;
     int nsmps = csound->ksmps, k=0;
@@ -433,7 +425,7 @@ int mtabw_a(CSOUND *csound,MTABW *p)
 
 /* The following opcodes come from CsoundAV/vectorial.c */
 
-int vectorOp_set(CSOUND *csound,VECTOROP *p)
+static int vectorOp_set(CSOUND *csound,VECTOROP *p)
 {
     FUNC        *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
@@ -446,7 +438,7 @@ int vectorOp_set(CSOUND *csound,VECTOROP *p)
     return OK;
 }
 
-int vadd(CSOUND *csound,VECTOROP *p)
+static int vadd(CSOUND *csound,VECTOROP *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -458,7 +450,7 @@ int vadd(CSOUND *csound,VECTOROP *p)
     return OK;
 }
 
-int vmult(CSOUND *csound,VECTOROP *p)
+static int vmult(CSOUND *csound,VECTOROP *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -470,7 +462,7 @@ int vmult(CSOUND *csound,VECTOROP *p)
     return OK;
 }
 
-int vpow(CSOUND *csound,VECTOROP *p)
+static int vpow(CSOUND *csound,VECTOROP *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -483,7 +475,7 @@ int vpow(CSOUND *csound,VECTOROP *p)
     return OK;
 }
 
-int vexp(CSOUND *csound,VECTOROP *p)
+static int vexp(CSOUND *csound,VECTOROP *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -497,7 +489,7 @@ int vexp(CSOUND *csound,VECTOROP *p)
 }
 /* ------------------------- */
 
-int vectorsOp_set(CSOUND *csound,VECTORSOP *p)
+static int vectorsOp_set(CSOUND *csound,VECTORSOP *p)
 {
     FUNC        *ftp1, *ftp2;
     if ((ftp1 = csound->FTnp2Find(csound,p->ifn1)) != NULL) {
@@ -513,7 +505,7 @@ int vectorsOp_set(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vcopy(CSOUND *csound,VECTORSOP *p)
+static int vcopy(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -524,7 +516,7 @@ int vcopy(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vcopy_i(CSOUND *csound,VECTORSOP *p)
+static int vcopy_i(CSOUND *csound,VECTORSOP *p)
 {
     FUNC        *ftp1, *ftp2;
     MYFLT   *vector1 = NULL, *vector2 = NULL;
@@ -546,7 +538,7 @@ int vcopy_i(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vaddv(CSOUND *csound,VECTORSOP *p)
+static int vaddv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -557,7 +549,7 @@ int vaddv(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vsubv(CSOUND *csound,VECTORSOP *p)
+static int vsubv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -568,7 +560,7 @@ int vsubv(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vmultv(CSOUND *csound,VECTORSOP *p)
+static int vmultv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -579,7 +571,7 @@ int vmultv(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vdivv(CSOUND *csound,VECTORSOP *p)
+static int vdivv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -590,7 +582,7 @@ int vdivv(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vpowv(CSOUND *csound,VECTORSOP *p)
+static int vpowv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -602,7 +594,7 @@ int vpowv(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vexpv(CSOUND *csound,VECTORSOP *p)
+static int vexpv(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -614,7 +606,7 @@ int vexpv(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vmap(CSOUND *csound,VECTORSOP *p)
+static int vmap(CSOUND *csound,VECTORSOP *p)
 {
     int elements = p->elements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
@@ -626,7 +618,7 @@ int vmap(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-int vlimit_set(CSOUND *csound,VLIMIT *p)
+static int vlimit_set(CSOUND *csound,VLIMIT *p)
 {
     FUNC        *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
@@ -639,7 +631,7 @@ int vlimit_set(CSOUND *csound,VLIMIT *p)
     return OK;
 }
 
-int vlimit(CSOUND *csound,VLIMIT *p)
+static int vlimit(CSOUND *csound,VLIMIT *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -652,7 +644,7 @@ int vlimit(CSOUND *csound,VLIMIT *p)
 }
 
 /*-----------------------------*/
-int vport_set(CSOUND *csound,VPORT *p)
+static int vport_set(CSOUND *csound,VPORT *p)
 {
     FUNC        *ftp;
     int elements;
@@ -689,7 +681,7 @@ int vport_set(CSOUND *csound,VPORT *p)
     return OK;
 }
 
-int vport(CSOUND *csound,VPORT *p)
+static int vport(CSOUND *csound,VPORT *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector, *yt1 = p->yt1, c1, c2;
@@ -708,7 +700,7 @@ int vport(CSOUND *csound,VPORT *p)
 }
 
 /*-------------------------------*/
-int vwrap(CSOUND *csound,VLIMIT *p)
+static int vwrap(CSOUND *csound,VLIMIT *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -735,7 +727,7 @@ int vwrap(CSOUND *csound,VLIMIT *p)
     return OK;
 }
 
-int vmirror(CSOUND *csound,VLIMIT *p)
+static int vmirror(CSOUND *csound,VLIMIT *p)
 {
     int elements = p->elements;
     MYFLT *vector = p->vector;
@@ -763,7 +755,7 @@ int vmirror(CSOUND *csound,VLIMIT *p)
 
 /* #include "newopcodes.h" */
 
-int vrandh_set(CSOUND *csound,VRANDH *p)
+static int vrandh_set(CSOUND *csound,VRANDH *p)
 {
     FUNC        *ftp;
     int elements = 0;
@@ -786,7 +778,7 @@ int vrandh_set(CSOUND *csound,VRANDH *p)
     return OK;
 }
 
-int vrandh(CSOUND *csound,VRANDH *p)
+static int vrandh(CSOUND *csound,VRANDH *p)
 {
     MYFLT *vector = p->vector, *num1 = p->num1;
     MYFLT value = *p->krange;
@@ -809,7 +801,7 @@ int vrandh(CSOUND *csound,VRANDH *p)
     return OK;
 }
 
-int vrandi_set(CSOUND *csound,VRANDI *p)
+static int vrandi_set(CSOUND *csound,VRANDI *p)
 {
     FUNC        *ftp;
     MYFLT fmaxlen = (MYFLT)MAXLEN;
@@ -838,7 +830,7 @@ int vrandi_set(CSOUND *csound,VRANDI *p)
     return OK;
 }
 
-int vrandi(CSOUND *csound,VRANDI *p)
+static int vrandi(CSOUND *csound,VRANDI *p)
 {
     MYFLT *vector = p->vector, *num1 = p->num1, *num2, *dfdmax = p->dfdmax;
     MYFLT value = *p->krange;
@@ -867,7 +859,7 @@ int vrandi(CSOUND *csound,VRANDI *p)
     return OK;
 }
 
-int vecdly_set(CSOUND *csound,VECDEL *p)
+static int vecdly_set(CSOUND *csound,VECDEL *p)
 {
     FUNC        *ftp;
     int elements = (p->elements = (int) *p->ielements), j;
@@ -928,7 +920,7 @@ int vecdly_set(CSOUND *csound,VECDEL *p)
     return OK;
 }
 
-int vecdly(CSOUND *csound,VECDEL *p)
+static int vecdly(CSOUND *csound,VECDEL *p)
 {
     long maxd = p->maxd, *indx=p->left, v1, v2;
     MYFLT **buf = p->buf, fv1, fv2, *inVec = p->invec;
@@ -954,7 +946,7 @@ int vecdly(CSOUND *csound,VECDEL *p)
     return OK;
 }
 
-int vseg_set(CSOUND *csound,VSEG *p)
+static int vseg_set(CSOUND *csound,VSEG *p)
 {
     TSEG        *segp;
     int nsegs;
@@ -1009,7 +1001,7 @@ int vseg_set(CSOUND *csound,VSEG *p)
     return OK;
 }
 
-int vlinseg(CSOUND *csound,VSEG *p)
+static int vlinseg(CSOUND *csound,VSEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0), *vector;
@@ -1039,7 +1031,7 @@ int vlinseg(CSOUND *csound,VSEG *p)
     return OK;
 }
 
-int vexpseg(CSOUND *csound,VSEG *p)
+static int vexpseg(CSOUND *csound,VSEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, cntoverdur=FL(0.0), *vector;
@@ -1068,7 +1060,9 @@ int vexpseg(CSOUND *csound,VSEG *p)
 }
 
 /* ----------------------------------------------- */
-int vphaseseg_set(CSOUND *csound,VPSEG *p)
+
+#if 0
+static int vphaseseg_set(CSOUND *csound,VPSEG *p)
 {
     TSEG2       *segp;
     int nsegs,j;
@@ -1141,7 +1135,7 @@ int vphaseseg_set(CSOUND *csound,VPSEG *p)
     return OK;
 }
 
-int vphaseseg(CSOUND *csound,VPSEG *p)
+static int vphaseseg(CSOUND *csound,VPSEG *p)
 {
 
     TSEG2       *segp = p->cursegp;
@@ -1171,9 +1165,10 @@ int vphaseseg(CSOUND *csound,VPSEG *p)
     } while (--flength);
     return OK;
 }
+#endif
 
 /* ------------------------- */
-int kdel_set(CSOUND *csound,KDEL *p)
+static int kdel_set(CSOUND *csound,KDEL *p)
 {
     unsigned long n;
     MYFLT *buf;
@@ -1194,7 +1189,7 @@ int kdel_set(CSOUND *csound,KDEL *p)
     return OK;
 }
 
-int kdelay(CSOUND *csound,KDEL *p)
+static int kdelay(CSOUND *csound,KDEL *p)
 {
     long maxd = p->maxd, indx, v1, v2;
     MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
@@ -1223,7 +1218,7 @@ int kdelay(CSOUND *csound,KDEL *p)
 }
 
 /*  From fractals.c */
-int ca_set(CSOUND *csound,CELLA *p)
+static int ca_set(CSOUND *csound,CELLA *p)
 {
     FUNC        *ftp;
     int elements;
@@ -1258,7 +1253,7 @@ int ca_set(CSOUND *csound,CELLA *p)
     return OK;
 }
 
-int ca(CSOUND *csound,CELLA *p)
+static int ca(CSOUND *csound,CELLA *p)
 {
     if (*p->kreinit) {
       MYFLT *currLine = p->currLine, *initVec = p->initVec;

@@ -185,16 +185,12 @@ extern "C" {
     }
   }
 
-#ifndef __MACH__
-  void psignal(int sig, char *str)
+  static void psignal(int sig, char *str)
   {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
   }
-#endif
-#endif
-
-#if defined(__BEOS__)
-  void psignal(int sig, char *str)
+#elif defined(__BEOS__)
+  static void psignal(int sig, char *str)
   {
     fprintf(stderr, "%s: %s\n", str, strsignal(sig));
   }
@@ -229,14 +225,11 @@ extern "C" {
       signal(*x, signal_handler);
   }
 
-  static const char *defaultCmdLine_[2] = { "csound", NULL };
-
   static int getTimeResolution(void);
 
   PUBLIC int csoundInitialize(int *argc, char ***argv, int flags)
   {
-    char  **argv_;
-    int   argc_, n;
+    int     n;
 
     do {
       csoundLock();
@@ -254,20 +247,18 @@ extern "C" {
     } while (n);
     init_done = 2;
     csoundUnLock();
-    if (argc == NULL || argv == NULL || *argc <= 0 || *argv == NULL) {
-      argc_ = 1;
-      argv_ = (char**) &(defaultCmdLine_[0]);
-      argc = &argc_;
-      argv = &argv_;
-    }
-    init_getstring(*argc, *argv);
+    if (argc == NULL || argv == NULL || *argc <= 0 || *argv == NULL)
+      init_getstring(0, (char**) NULL);
+    else
+      init_getstring(*argc, *argv);
     if (getTimeResolution() != 0) {
       csoundLock(); init_done = -1; csoundUnLock();
       return -1;
     }
     if (!(flags & CSOUNDINIT_NO_SIGNAL_HANDLER))
       install_signal_handler();
-    atexit(destroy_all_instances);
+    if (!(flags & CSOUNDINIT_NO_ATEXIT))
+      atexit(destroy_all_instances);
     aops_init_tables();
     csoundLock(); init_done = 1; csoundUnLock();
     return 0;
@@ -318,9 +309,9 @@ extern "C" {
   static int DummyMidiOutOpen(CSOUND *csound, void **userData,
                               const char *devName);
   static int DummyMidiWrite(CSOUND *csound, void *userData,
-                            unsigned char *buf, int nbytes);
+                            const unsigned char *buf, int nbytes);
   static int DummyMidiOutClose(CSOUND *csound, void *userData);
-  static char *DummyMidiErrorString(int errcode);
+  static const char *DummyMidiErrorString(int errcode);
 
   /**
    * Reset and prepare an instance of Csound for compilation.
@@ -349,9 +340,9 @@ extern "C" {
     csoundCreateGlobalVariable(p, "_RTAUDIO", (size_t) max_len);
     s = csoundQueryGlobalVariable(p, "_RTAUDIO");
     strcpy(s, "PortAudio");
-    csoundCreateConfigurationVariable(p, "rtaudio", s,
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      "Real time audio module name", NULL);
+    csoundCreateConfigurationVariable(
+        p, "rtaudio", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
+        "Real time audio module name", NULL);
     /* initialise real time MIDI */
     p->midiGlobals = (MGLOBAL*) mcalloc(p, sizeof(MGLOBAL));
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
@@ -370,21 +361,19 @@ extern "C" {
     csoundCreateGlobalVariable(p, "_RTMIDI", (size_t) max_len);
     s = csoundQueryGlobalVariable(p, "_RTMIDI");
     strcpy(s, "PortMIDI");
-    csoundCreateConfigurationVariable(p, "rtmidi", s,
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      "Real time MIDI module name", NULL);
+    csoundCreateConfigurationVariable(
+        p, "rtmidi", s, CSOUNDCFG_STRING, 0, NULL, &max_len,
+        "Real time MIDI module name", NULL);
     max_len = 256;  /* should be the same as in csoundCore.h */
-    csoundCreateConfigurationVariable(p, "mute_tracks",
-                                      &(p->midiGlobals->muteTrackList[0]),
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      "Ignore events (other than tempo "
-                                      "changes) in tracks defined by pattern",
-                                      NULL);
-    csoundCreateConfigurationVariable(p, "raw_controller_mode",
-                                      &(p->midiGlobals->rawControllerMode),
-                                      CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                      "Do not handle special MIDI controllers "
-                                      "(sustain pedal etc.)", NULL);
+    csoundCreateConfigurationVariable(
+        p, "mute_tracks", &(p->midiGlobals->muteTrackList[0]),
+        CSOUNDCFG_STRING, 0, NULL, &max_len,
+        "Ignore events (other than tempo changes) in tracks defined by pattern",
+        NULL);
+    csoundCreateConfigurationVariable(
+        p, "raw_controller_mode", &(p->midiGlobals->rawControllerMode),
+        CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+        "Do not handle special MIDI controllers (sustain pedal etc.)", NULL);
     /* sound file tag options */
     max_len = 201;
     i = (max_len + 7) & (~7);
@@ -412,27 +401,24 @@ extern "C" {
     csoundCreateConfigurationVariable(
         p, "id_date", p->SF_id_date, CSOUNDCFG_STRING, 0,
         NULL, &max_len, "Date tag in output soundfile (no spaces)", NULL);
-    /* max. length of string variables */
     {
-      int minVal = 10;
-      int maxVal = 10000;
-      csoundCreateConfigurationVariable(p, "max_str_len",
-                                        &(p->strVarMaxLen),
-                                        CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
-                                        "Maximum length of "
-                                        "string variables + 1", NULL);
-    }
-    csoundCreateConfigurationVariable(p, "msg_color", &(p->enableMsgAttr),
-                                      CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                      "Enable message attributes (colors etc.)",
-                                      NULL);
-    {
-      MYFLT minVal = FL(0.0);
-      csoundCreateConfigurationVariable(p, "skip_seconds",
-                                        &(p->csoundScoreOffsetSeconds_),
-                                        CSOUNDCFG_MYFLT, 0, &minVal, NULL,
-                                        "Start score playback at the specified "
-                                        "time, skipping earlier events", NULL);
+      int   minVal = 10;
+      int   maxVal = 10000;
+      MYFLT minValF = FL(0.0);
+      /* max. length of string variables */
+      csoundCreateConfigurationVariable(
+          p, "max_str_len", &(p->strVarMaxLen),
+          CSOUNDCFG_INTEGER, 0, &minVal, &maxVal,
+          "Maximum length of string variables + 1", NULL);
+      csoundCreateConfigurationVariable(
+          p, "msg_color", &(p->enableMsgAttr),
+          CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+          "Enable message attributes (colors etc.)", NULL);
+      csoundCreateConfigurationVariable(
+          p, "skip_seconds", &(p->csoundScoreOffsetSeconds_),
+          CSOUNDCFG_MYFLT, 0, &minValF, NULL,
+          "Start score playback at the specified time, skipping earlier events",
+          NULL);
     }
     p->engineState |= 1;
     /* now load and pre-initialise external modules for this instance */
@@ -693,16 +679,19 @@ extern "C" {
 
   PUBLIC MYFLT csoundGetProgress(CSOUND *csound)
   {
+    (void) csound;
     return -1;
   }
 
   PUBLIC MYFLT csoundGetProfile(CSOUND *csound)
   {
+    (void) csound;
     return -1;
   }
 
   PUBLIC MYFLT csoundGetCpuUsage(CSOUND *csound)
   {
+    (void) csound;
     return -1;
   }
 
@@ -947,41 +936,24 @@ extern "C" {
    * CONTROL AND EVENTS
    */
 
-  PUBLIC void
-    csoundSetInputValueCallback(CSOUND *csound,
-                                void (*inputValueCalback)(CSOUND *csound,
-                                                          char *channelName,
-                                                          MYFLT *value))
+  PUBLIC void csoundSetInputValueCallback(CSOUND *csound,
+                  void (*inputValueCalback)(CSOUND *csound,
+                                            const char *channelName,
+                                            MYFLT *value))
   {
     csound->InputValueCallback_ = inputValueCalback;
   }
 
-  PUBLIC void
-    csoundSetOutputValueCallback(CSOUND *csound,
-                                 void (*outputValueCalback)(CSOUND *csound,
-                                                            char *channelName,
-                                                            MYFLT value))
+  PUBLIC void csoundSetOutputValueCallback(CSOUND *csound,
+                  void (*outputValueCalback)(CSOUND *csound,
+                                             const char *channelName,
+                                             MYFLT value))
   {
     csound->OutputValueCallback_ = outputValueCalback;
   }
 
-  void InputValue(CSOUND *csound, char *channelName, MYFLT *value)
-  {
-    if (csound->InputValueCallback_)
-      csound->InputValueCallback_(csound, channelName, value);
-    else
-      *value = FL(0.0);
-  }
-
-  void OutputValue(CSOUND *csound, char *channelName, MYFLT value)
-  {
-    if (csound->OutputValueCallback_) {
-      csound->OutputValueCallback_(csound, channelName, value);
-    }
-  }
-
   PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
-                              MYFLT *pfields, long numFields)
+                              const MYFLT *pfields, long numFields)
   {
     EVTBLK        evt;
     int           i;
@@ -1026,7 +998,7 @@ static void dummy_rtaudio_timer(CSOUND *csound, double *p)
       csoundSleep((size_t) i);
 }
 
-int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
+int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
 {
     double  *p;
     char    *s;
@@ -1037,11 +1009,11 @@ int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     if (s != NULL && !(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
                        strcmp(s, "NULL") == 0)) {
       if (s[0] == '\0')
-        csoundMessage(csound,
-                      Str(" *** error: rtaudio module set to empty string\n"));
+        csoundErrorMsg(csound,
+                       Str(" *** error: rtaudio module set to empty string"));
       else
-        csoundMessage(csound,
-                      Str(" *** error: unknown rtaudio module: '%s'\n"), s);
+        csoundErrorMsg(csound,
+                       Str(" *** error: unknown rtaudio module: '%s'"), s);
       return CSOUND_ERROR;
     }
     p = get_dummy_rtaudio_globals(csound);
@@ -1052,15 +1024,15 @@ int playopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     return CSOUND_SUCCESS;
 }
 
-void rtplay_dummy(CSOUND *csound, MYFLT *outBuf, int nbytes)
+void rtplay_dummy(CSOUND *csound, const MYFLT *outBuf, int nbytes)
 {
     double  *p = (double*) csound->rtPlay_userdata;
-    outBuf = outBuf;
+    (void) outBuf;
     p[0] += ((double) nbytes * p[1]);
     dummy_rtaudio_timer(csound, p);
 }
 
-int recopen_dummy(CSOUND *csound, csRtAudioParams *parm)
+int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
 {
     double  *p;
     char    *s;
@@ -1071,11 +1043,11 @@ int recopen_dummy(CSOUND *csound, csRtAudioParams *parm)
     if (s != NULL && !(strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
                        strcmp(s, "NULL") == 0)) {
       if (s[0] == '\0')
-        csoundMessage(csound,
-                      Str(" *** error: rtaudio module set to empty string\n"));
+        csoundErrorMsg(csound,
+                       Str(" *** error: rtaudio module set to empty string"));
       else
-        csoundMessage(csound,
-                      Str(" *** error: unknown rtaudio module: '%s'\n"), s);
+        csoundErrorMsg(csound,
+                       Str(" *** error: unknown rtaudio module: '%s'"), s);
       return CSOUND_ERROR;
     }
     p = (double*) get_dummy_rtaudio_globals(csound) + 2;
@@ -1106,40 +1078,35 @@ void rtclose_dummy(CSOUND *csound)
     csound->rtRecord_userdata = NULL;
 }
 
-PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
-                                      int (*playopen__)(CSOUND *csound,
-                                                        csRtAudioParams *parm))
-{
+  PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
+                  int (*playopen__)(CSOUND *, const csRtAudioParams *parm))
+  {
     csound->playopen_callback = playopen__;
-}
+  }
 
-PUBLIC void csoundSetRtplayCallback(CSOUND *csound,
-                                    void (*rtplay__)(CSOUND *csound,
-                                                     MYFLT *outBuf, int nbytes))
-{
+  PUBLIC void csoundSetRtplayCallback(CSOUND *csound,
+                  void (*rtplay__)(CSOUND *, const MYFLT *outBuf, int nbytes))
+  {
     csound->rtplay_callback = rtplay__;
-}
+  }
 
-PUBLIC void csoundSetRecopenCallback(CSOUND *csound,
-                                     int (*recopen__)(CSOUND *csound,
-                                                      csRtAudioParams *parm))
-{
+  PUBLIC void csoundSetRecopenCallback(CSOUND *csound,
+                  int (*recopen__)(CSOUND *, const csRtAudioParams *parm))
+  {
     csound->recopen_callback = recopen__;
-}
+  }
 
-PUBLIC void csoundSetRtrecordCallback(CSOUND *csound,
-                                      int (*rtrecord__)(CSOUND *csound,
-                                                        MYFLT *inBuf,
-                                                        int nbytes))
-{
+  PUBLIC void csoundSetRtrecordCallback(CSOUND *csound,
+                  int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes))
+  {
     csound->rtrecord_callback = rtrecord__;
-}
+  }
 
-PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
-                                     void (*rtclose__)(CSOUND *csound))
-{
+  PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
+                  void (*rtclose__)(CSOUND *))
+  {
     csound->rtclose_callback = rtclose__;
-}
+  }
 
 /* dummy real time MIDI functions */
 
@@ -1147,30 +1114,33 @@ static int DummyMidiInOpen(CSOUND *csound, void **userData, const char *devName)
 {
     char *s;
 
+    (void) devName;
     *userData = NULL;
     s = (char*) csoundQueryGlobalVariable(csound, "_RTMIDI");
     if (s == NULL ||
         (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
          strcmp(s, "NULL") == 0)) {
-      csoundMessage(csound, "WARNING: real time midi input disabled, "
-                            "using dummy functions\n");
+      csoundMessage(csound, Str("WARNING: real time midi input disabled, "
+                                "using dummy functions\n"));
       return 0;
     }
     if (s[0] == '\0')
-      csoundMessage(csound, "error: -+rtmidi set to empty string\n");
+      csoundErrorMsg(csound, Str("error: -+rtmidi set to empty string"));
     else
-      csoundMessage(csound, "error: -+rtmidi='%s': unknown module\n", s);
+      csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module"), s);
     return -1;
 }
 
 static int DummyMidiRead(CSOUND *csound,
                          void *userData, unsigned char *buf, int nbytes)
 {
+    (void) csound; (void) userData; (void) buf; (void) nbytes;
     return 0;
 }
 
 static int DummyMidiInClose(CSOUND *csound, void *userData)
 {
+    (void) csound; (void) userData;
     return 0;
 }
 
@@ -1179,98 +1149,98 @@ static int DummyMidiOutOpen(CSOUND *csound,
 {
     char *s;
 
+    (void) devName;
     *userData = NULL;
     s = (char*) csoundQueryGlobalVariable(csound, "_RTMIDI");
     if (s == NULL ||
         (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
          strcmp(s, "NULL") == 0)) {
-      csoundMessage(csound, "WARNING: real time midi output disabled, "
-                            "using dummy functions\n");
+      csoundMessage(csound, Str("WARNING: real time midi output disabled, "
+                                "using dummy functions\n"));
       return 0;
     }
     if (s[0] == '\0')
-      csoundMessage(csound, "error: -+rtmidi set to empty string\n");
+      csoundErrorMsg(csound, Str("error: -+rtmidi set to empty string"));
     else
-      csoundMessage(csound, "error: -+rtmidi='%s': unknown module\n", s);
+      csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module"), s);
     return -1;
 }
 
 static int DummyMidiWrite(CSOUND *csound,
-                          void *userData, unsigned char *buf, int nbytes)
+                          void *userData, const unsigned char *buf, int nbytes)
 {
+    (void) csound; (void) userData; (void) buf;
     return nbytes;
 }
 
 static int DummyMidiOutClose(CSOUND *csound, void *userData)
 {
+    (void) csound; (void) userData;
     return 0;
 }
 
 static const char *midi_err_msg = "Unknown MIDI error";
 
-static char *DummyMidiErrorString(int errcode)
+static const char *DummyMidiErrorString(int errcode)
 {
-    return (char*) midi_err_msg;
+    (void) errcode;
+    return midi_err_msg;
 }
 
 /**
  * Returns pointer to a string constant storing an error massage
  * for error code 'errcode'.
  */
-char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
+const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
 {
     if (csound->midiGlobals->MidiErrorStringCallback == NULL)
-      return (char*) midi_err_msg;
+      return midi_err_msg;
     return (csound->midiGlobals->MidiErrorStringCallback(errcode));
 }
 
 /* Set real time MIDI function pointers. */
 
-PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *csound,
-                                                int (*func)(CSOUND*, void**,
-                                                            const char*))
-{
+  PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *csound,
+                  int (*func)(CSOUND *, void **, const char *))
+  {
     csound->midiGlobals->MidiInOpenCallback = func;
-}
+  }
 
-PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *csound,
-                                              int (*func)(CSOUND*, void*,
-                                                          unsigned char*, int))
-{
+  PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *csound,
+                  int (*func)(CSOUND *, void *, unsigned char *, int))
+  {
     csound->midiGlobals->MidiReadCallback = func;
-}
+  }
 
-PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *csound,
-                                                 int (*func)(CSOUND*, void*))
-{
+  PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *csound,
+                  int (*func)(CSOUND *, void *))
+  {
     csound->midiGlobals->MidiInCloseCallback = func;
-}
+  }
 
-PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *csound,
-                                                 int (*func)(CSOUND*, void**,
-                                                             const char*))
-{
+  PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *csound,
+                  int (*func)(CSOUND *, void **, const char *))
+  {
     csound->midiGlobals->MidiOutOpenCallback = func;
-}
+  }
 
-PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *csound,
-                                               int (*func)(CSOUND*, void*,
-                                                           unsigned char*, int))
-{
+  PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *csound,
+                  int (*func)(CSOUND *, void *, const unsigned char *, int))
+  {
     csound->midiGlobals->MidiWriteCallback = func;
-}
+  }
 
-PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *csound,
-                                                  int (*func)(CSOUND*, void*))
-{
+  PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *csound,
+                  int (*func)(CSOUND *, void *))
+  {
     csound->midiGlobals->MidiOutCloseCallback = func;
-}
+  }
 
-PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
-                                                     char *(*func)(int))
-{
+  PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
+                  const char *(*func)(int))
+  {
     csound->midiGlobals->MidiErrorStringCallback = func;
-}
+  }
 
   /*
    *    FUNCTION TABLE DISPLAY.
@@ -1286,26 +1256,25 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
     return csound->isGraphable_;
   }
 
-  void defaultCsoundMakeGraph(CSOUND *csound, WINDAT *windat, char *name)
+  void defaultCsoundMakeGraph(CSOUND *csound, WINDAT *windat, const char *name)
   {
 #if defined(USE_FLTK)
-    extern void MakeGraph_(CSOUND *, WINDAT *, char *);
+    extern void MakeGraph_(CSOUND *, WINDAT *, const char *);
     MakeGraph_(csound, windat, name);
 #else
-    extern void MakeAscii(CSOUND *, WINDAT *, char *);
+    extern void MakeAscii(CSOUND *, WINDAT *, const char *);
     MakeAscii(csound, windat, name);
 #endif
   }
 
   PUBLIC void csoundSetMakeGraphCallback(CSOUND *csound,
-                                    void (*makeGraphCallback)(CSOUND *csound,
-                                                              WINDAT *windat,
-                                                              char *name))
+                  void (*makeGraphCallback)(CSOUND *csound,
+                                            WINDAT *windat, const char *name))
   {
     csound->csoundMakeGraphCallback_ = makeGraphCallback;
   }
 
-  void MakeGraph(CSOUND *csound, WINDAT *windat, char *name)
+  void MakeGraph(CSOUND *csound, WINDAT *windat, const char *name)
   {
     csound->csoundMakeGraphCallback_(csound, windat, name);
   }
@@ -1322,8 +1291,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
   }
 
   PUBLIC void csoundSetDrawGraphCallback(CSOUND *csound,
-                                    void (*drawGraphCallback)(CSOUND *csound,
-                                                              WINDAT *windat))
+                  void (*drawGraphCallback)(CSOUND *csound, WINDAT *windat))
   {
     csound->csoundDrawGraphCallback_ = drawGraphCallback;
   }
@@ -1345,8 +1313,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
   }
 
   PUBLIC void csoundSetKillGraphCallback(CSOUND *csound,
-                                    void (*killGraphCallback)(CSOUND *csound,
-                                                              WINDAT *windat))
+                  void (*killGraphCallback)(CSOUND *csound, WINDAT *windat))
   {
     csound->csoundKillGraphCallback_ = killGraphCallback;
   }
@@ -1358,6 +1325,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
 
   int defaultCsoundExitGraph(CSOUND *csound)
   {
+    (void) csound;
     return CSOUND_SUCCESS;
   }
 
@@ -1374,12 +1342,14 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
 
   void MakeXYin(CSOUND *csound, XYINDAT *xyindat, MYFLT x, MYFLT y)
   {
+    (void) xyindat; (void) x; (void) y;
     csoundMessage(csound, "xyin not supported. use invalue opcode instead.\n");
   }
 
   void ReadXYin(CSOUND *csound, XYINDAT *xyindat)
   {
-    csoundMessage(csound, "xyin not supported. use invlaue opcodes instead.\n");
+    (void) xyindat;
+    csoundMessage(csound, "xyin not supported. use invalue opcode instead.\n");
   }
 
   /*
@@ -1475,6 +1445,7 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
 #if !defined(USE_FLTK)
   int defaultCsoundYield(CSOUND *csound)
   {
+    (void) csound;
     return 1;
   }
 #endif
@@ -1594,13 +1565,13 @@ PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
 #endif
 #endif
 
-/* hopefully cannot change during performance */
-static double timeResolutionSeconds = -1.0;
+  /* hopefully cannot change during performance */
+  static double timeResolutionSeconds = -1.0;
 
-/* find out CPU frequency based on /proc/cpuinfo */
+  /* find out CPU frequency based on /proc/cpuinfo */
 
-static int getTimeResolution(void)
-{
+  static int getTimeResolution(void)
+  {
 #if defined(HAVE_RDTSC)
     FILE    *f;
     char    buf[256];
@@ -1658,12 +1629,12 @@ static int getTimeResolution(void)
     fprintf(stderr, "time resolution is %.3f ns\n",
                     1.0e9 * timeResolutionSeconds);
     return 0;
-}
+  }
 
-/* function for getting real time */
+  /* function for getting real time */
 
-static inline int_least64_t get_real_time(void)
-{
+  static inline int_least64_t get_real_time(void)
+  {
 #if defined(HAVE_RDTSC)
     /* optimised high resolution timer for Linux/i586/GCC only */
     uint32_t  l, h;
@@ -1686,77 +1657,79 @@ static inline int_least64_t get_real_time(void)
     /* other systems: use time() - allows 1 second resolution */
     return ((int_least64_t) time(NULL));
 #endif
-}
+  }
 
-/* function for getting CPU time */
+  /* function for getting CPU time */
 
-static inline int_least64_t get_CPU_time(void)
-{
+  static inline int_least64_t get_CPU_time(void)
+  {
     return ((int_least64_t) ((uint32_t) clock()));
-}
+  }
 
-/* initialise a timer structure */
+  /* initialise a timer structure */
 
-PUBLIC void csoundInitTimerStruct(RTCLOCK *p)
-{
+  PUBLIC void csoundInitTimerStruct(RTCLOCK *p)
+  {
     p->starttime_real = get_real_time();
     p->starttime_CPU = get_CPU_time();
-}
+  }
 
-/* return the elapsed real time (in seconds) since the specified timer */
-/* structure was initialised */
-
-PUBLIC double csoundGetRealTime(RTCLOCK *p)
-{
+  /**
+   * return the elapsed real time (in seconds) since the specified timer
+   * structure was initialised
+   */
+  PUBLIC double csoundGetRealTime(RTCLOCK *p)
+  {
     return ((double) (get_real_time() - p->starttime_real)
             * (double) timeResolutionSeconds);
-}
+  }
 
-/* return the elapsed CPU time (in seconds) since the specified timer */
-/* structure was initialised */
-
-PUBLIC double csoundGetCPUTime(RTCLOCK *p)
-{
+  /**
+   * return the elapsed CPU time (in seconds) since the specified timer
+   * structure was initialised
+   */
+  PUBLIC double csoundGetCPUTime(RTCLOCK *p)
+  {
     return ((double) ((uint32_t) get_CPU_time() - (uint32_t) p->starttime_CPU)
             * (1.0 / (double) CLOCKS_PER_SEC));
-}
+  }
 
-/* return a 32-bit unsigned integer to be used as seed from current time */
+  /* return a 32-bit unsigned integer to be used as seed from current time */
 
-PUBLIC uint32_t csoundGetRandomSeedFromTime(void)
-{
+  PUBLIC uint32_t csoundGetRandomSeedFromTime(void)
+  {
     return (uint32_t) get_real_time();
-}
+  }
 
-/**
- * Return the size of MYFLT in bytes.
- */
-PUBLIC int csoundGetSizeOfMYFLT(void)
-{
+  /**
+   * Return the size of MYFLT in bytes.
+   */
+  PUBLIC int csoundGetSizeOfMYFLT(void)
+  {
     return (int) sizeof(MYFLT);
-}
+  }
 
-/**
- * Return pointer to user data pointer for real time audio input.
- */
-PUBLIC void **csoundGetRtRecordUserData(CSOUND *csound)
-{
+  /**
+   * Return pointer to user data pointer for real time audio input.
+   */
+  PUBLIC void **csoundGetRtRecordUserData(CSOUND *csound)
+  {
     return &(csound->rtRecord_userdata);
-}
+  }
 
-/**
- * Return pointer to user data pointer for real time audio output.
- */
-PUBLIC void **csoundGetRtPlayUserData(CSOUND *csound)
-{
+  /**
+   * Return pointer to user data pointer for real time audio output.
+   */
+  PUBLIC void **csoundGetRtPlayUserData(CSOUND *csound)
+  {
     return &(csound->rtPlay_userdata);
-}
+  }
 
-typedef struct opcodeDeinit_s {
+  typedef struct opcodeDeinit_s {
     void    *p;
     int     (*func)(CSOUND *, void *);
     void    *nxt;
-} opcodeDeinit_t;
+  } opcodeDeinit_t;
 
   /**
    * Register a function to be called at note deactivation.
@@ -1774,6 +1747,7 @@ typedef struct opcodeDeinit_s {
     INSDS           *ip = ((OPDS*) p)->insdshead;
     opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
 
+    (void) csound;
     if (dp == NULL)
       return CSOUND_MEMORY;
     dp->p = p;

@@ -32,7 +32,6 @@
 #include "vbap.h"
 #include "aops.h"
 #include "ugens1.h"
-#include "fhtfun.h"
 #include "vdelay.h"
 #include "ugens2.h"
 #include "ugens6.h"

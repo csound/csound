@@ -110,8 +110,8 @@ typedef struct _syncgrain {
     float start,frac;
 } syncgrain;
 
-int syncgrain_process(CSOUND *csound, syncgrain *p);
-int syncgrain_init(CSOUND *csound, syncgrain *p);
+static int syncgrain_process(CSOUND *csound, syncgrain *p);
+static int syncgrain_init(CSOUND *csound, syncgrain *p);
 
 #endif
 

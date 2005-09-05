@@ -69,7 +69,7 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
     sf_write_MYFLT(outfd, out_buf, length);
     (*block)++;
     if (csound->oparms->rewrt_hdr)
-       csound->rewriteheader(outfd, 0);
+       csound->rewriteheader(outfd);
     switch (csound->oparms->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
@@ -351,7 +351,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       return -1;
     }
     if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
-                                   &input_dur, &sr, channel)) < 0) {
+                                   &input_dur, &sr, channel)) == NULL) {
       csound->ErrorMsg(csound, Str("error while opening %s"), infile);
       return -1;
     }
@@ -812,5 +812,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                              "Sample rate conversion");
     }
     return retval;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

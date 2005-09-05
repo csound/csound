@@ -26,15 +26,15 @@
     Real time MIDI callback functions:
     ----------------------------------
 
-    int (*MidiInOpenCallback)(CSOUND *csound, void **userData,
-                                              const char *devName);
+    int (*MidiInOpenCallback)(CSOUND *csound,
+                              void **userData, const char *devName);
 
       Open MIDI input device 'devName', and store stream specific
       data pointer in *userData. Return value is zero on success,
       and a non-zero error code if an error occured.
 
-    int (*MidiReadCallback)(CSOUND *csound, void *userData,
-                                            unsigned char *buf, int nbytes);
+    int (*MidiReadCallback)(CSOUND *csound,
+                            void *userData, unsigned char *buf, int nbytes);
 
       Read at most 'nbytes' bytes of MIDI data from input stream
       'userData', and store in 'buf'. Returns the actual number of
@@ -49,15 +49,15 @@
       Return value is zero on success, and a non-zero error
       code on failure.
 
-    int (*MidiOutOpenCallback)(CSOUND *csound, void **userData,
-                                               const char *devName);
+    int (*MidiOutOpenCallback)(CSOUND *csound,
+                               void **userData, const char *devName);
 
       Open MIDI output device 'devName', and store stream specific
       data pointer in *userData. Return value is zero on success,
       and a non-zero error code if an error occured.
 
     int (*MidiWriteCallback)(CSOUND *csound, void *userData,
-                                             unsigned char *buf, int nbytes);
+                             const unsigned char *buf, int nbytes);
 
       Write 'nbytes' bytes of MIDI data to output stream 'userData'
       from 'buf' (the buffer will not contain incomplete messages).
@@ -70,7 +70,7 @@
       Return value is zero on success, and a non-zero error
       code on failure.
 
-    char *(*MidiErrorStringCallback)(int errcode);
+    const char *(*MidiErrorStringCallback)(int errcode);
 
       Returns pointer to a string constant storing an error massage
       for error code 'errcode'.
@@ -79,29 +79,25 @@
     --------------------------
 
     void csoundSetExternalMidiInOpenCallback(CSOUND *csound,
-                                             int (*func)(CSOUND*, void**,
-                                                         const char*));
+                    int (*func)(CSOUND *, void **, const char *));
 
     void csoundSetExternalMidiReadCallback(CSOUND *csound,
-                                           int (*func)(CSOUND*, void*,
-                                                       unsigned char*, int));
+                    int (*func)(CSOUND *, void *, unsigned char *, int));
 
     void csoundSetExternalMidiInCloseCallback(CSOUND *csound,
-                                              int (*func)(CSOUND*, void*));
+                    int (*func)(CSOUND *, void *));
 
     void csoundSetExternalMidiOutOpenCallback(CSOUND *csound,
-                                              int (*func)(CSOUND*, void**,
-                                                          const char*));
+                    int (*func)(CSOUND *, void **, const char *));
 
     void csoundSetExternalMidiWriteCallback(CSOUND *csound,
-                                            int (*func)(CSOUND*, void*,
-                                                        unsigned char*, int));
+                    int (*func)(CSOUND *, void *, const unsigned char *, int));
 
     void csoundSetExternalMidiOutCloseCallback(CSOUND *csound,
-                                               int (*func)(CSOUND*, void*));
+                    int (*func)(CSOUND *, void *));
 
     void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
-                                                  char *(*func)(int));
+                    const char *(*func)(int));
 */
 
 #include "csoundCore.h"
@@ -213,13 +209,13 @@ void midi_ctl_reset(CSOUND *csound, short chan)
 static void m_chanmsg(CSOUND *csound, MEVENT *mep)
 {
     MCHNBLK *chn = csound->m_chnbp[mep->chan];
-    short n;
-    MYFLT *fp;
+    short   n;
+    MYFLT   *fp;
 
     switch (mep->type) {
-    case PROGRAM_TYPE:                    /* PROGRAM CHANGE */
+    case PROGRAM_TYPE:                  /* PROGRAM CHANGE */
       chn->pgmno = mep->dat1;
-      if (chn->insno <= 0)                /* ignore if channel is muted */
+      if (chn->insno <= 0)              /* ignore if channel is muted */
         break;
       n = (short) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
       if (n > 0 && n <= csound->maxinsno &&     /* if corresp instr exists  */
@@ -230,15 +226,15 @@ static void m_chanmsg(CSOUND *csound, MEVENT *mep)
       }
       break;
     case POLYAFT_TYPE:
-      chn->polyaft[mep->dat1] = mep->dat2;     /* Polyphon per-Key Press  */
+      chn->polyaft[mep->dat1] = mep->dat2;      /* Polyphon per-Key Press  */
       break;
-    case CONTROL_TYPE:                    /* CONTROL CHANGE MESSAGES: */
+    case CONTROL_TYPE:                  /* CONTROL CHANGE MESSAGES: */
       n = mep->dat1;
       if (MGLOB(rawControllerMode)) {           /* "raw" mode:        */
         chn->ctl_val[n] = (MYFLT) mep->dat2;    /*   only store value */
         break;
       }
-      if (n >= 111)                       /* if special, redirect */
+      if (n >= 111)                             /* if special, redirect */
         goto special;
       if (n == NRPNMSB || n == RPNMSB) {
         chn->dpmsb = mep->dat2;
@@ -272,7 +268,7 @@ static void m_chanmsg(CSOUND *csound, MEVENT *mep)
             goto err;
           }
           fval = (MYFLT) (mep->dat2 - 64);
-          chn->ctl_val[ctl] = fval;           /* then store     */
+          chn->ctl_val[ctl] = fval;             /* then store     */
         }
         else {
           if (msb < 24 || msb == 25 || msb == 27 ||
@@ -290,7 +286,7 @@ static void m_chanmsg(CSOUND *csound, MEVENT *mep)
               fp = (MYFLT*) &(dsctl_map[parnum*2]);
               if (*fp != FL(0.0)) {
                 MYFLT xx = (fval * *fp++);
-                fval = xx + *fp;    /* optionally map */
+                fval = xx + *fp;                /* optionally map */
               }
             }
             csound->Message(csound, Str("CHAN %d DRUMKEY %d not in keylst, "
@@ -300,14 +296,14 @@ static void m_chanmsg(CSOUND *csound, MEVENT *mep)
         }
       }
       else
-        chn->ctl_val[n] = (MYFLT) mep->dat2;      /* record data as MYFLT */
+        chn->ctl_val[n] = (MYFLT) mep->dat2;    /* record data as MYFLT */
     err:
-      if (n == SUSTAIN_SW) {                      /* if sustainP changed  */
+      if (n == SUSTAIN_SW) {                    /* if sustainP changed  */
         if (mep->dat2 > 0)
           chn->sustaining = 1;
-        else if (chn->sustaining) {               /*  & going off         */
+        else if (chn->sustaining) {             /*  & going off         */
           chn->sustaining = 0;
-          sustsoff(csound, chn);                  /*      reles any notes */
+          sustsoff(csound, chn);                /*      reles any notes */
         }
       }
       break;

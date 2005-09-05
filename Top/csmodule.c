@@ -51,8 +51,8 @@
  * Destructor function for Csound instance 'csound', called at the end of     *
  * performance, after closing audio output.                                   *
  *                                                                            *
- * char *csoundModuleErrorCodeToString(int errcode)     (optional)            *
- * ------------------------------------------------                           *
+ * const char *csoundModuleErrorCodeToString(int errcode)   (optional)        *
+ * ------------------------------------------------------                     *
  *                                                                            *
  * Converts error codes returned by any of the initialisation or destructor   *
  * functions to a string message.                                             *
@@ -128,15 +128,15 @@ static  const   char    *default_plugin_dir =   ".";
 
 typedef struct csoundModule_s {
     struct csoundModule_s *nxt;             /* pointer to next link in chain */
-    void    *h;                             /* library handle                */
-    char    *name;                          /* name of the module            */
-    long    (*opcode_size)(void);           /* total size of opcode entries  */
-    OENTRY  *(*opcode_init)(CSOUND *);      /* list of opcode entries        */
-    NGFENS  *(*fgen_init)(CSOUND *);        /* list of named GEN routines    */
-    int     (*PreInitFunc)(CSOUND *);       /* pre-initialisation routine    */
-    int     (*InitFunc)(CSOUND *);          /* initialisation routine        */
-    int     (*DestFunc)(CSOUND *);          /* destructor routine            */
-    char    *(*ErrCodeToStr)(int);          /* convert error code to string  */
+    void        *h;                         /* library handle                */
+    char        *name;                      /* name of the module            */
+    long        (*opcode_size)(void);       /* total size of opcode entries  */
+    OENTRY      *(*opcode_init)(CSOUND *);  /* list of opcode entries        */
+    NGFENS      *(*fgen_init)(CSOUND *);    /* list of named GEN routines    */
+    int         (*PreInitFunc)(CSOUND *);   /* pre-initialisation routine    */
+    int         (*InitFunc)(CSOUND *);      /* initialisation routine        */
+    int         (*DestFunc)(CSOUND *);      /* destructor routine            */
+    const char  *(*ErrCodeToStr)(int);      /* convert error code to string  */
 } csoundModule_t;
 
 static CS_NOINLINE void print_module_error(CSOUND *csound,
@@ -243,7 +243,7 @@ int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
       m.DestFunc =
           (int (*)(CSOUND *)) csoundGetLibrarySymbol(h, DestFunc_Name);
       m.ErrCodeToStr =
-          (char *(*)(int)) csoundGetLibrarySymbol(h, ErrCodeToStr_Name);
+          (const char *(*)(int)) csoundGetLibrarySymbol(h, ErrCodeToStr_Name);
     }
     if (m.opcode_size == NULL && m.PreInitFunc == NULL) {
       csoundCloseLibrary(h);

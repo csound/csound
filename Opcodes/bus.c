@@ -39,17 +39,19 @@ typedef struct  {
         MYFLT   *ar, *kn;   /* The parameter */
 } CHANI;
 
-int chanokset(CSOUND *csound, CHANO *p)
+#if 0
+static int chanokset(CSOUND *csound, CHANO *p)
 {
     return OK;
 } /* end chanokset(p) */
 
-int chanoaset(CSOUND *csound, CHANO *p)
+static int chanoaset(CSOUND *csound, CHANO *p)
 {
     return OK;
 } /* end chanset(p) */
+#endif
 
-int chanokdo(CSOUND *csound, CHANO *p)
+static int chanokdo(CSOUND *csound, CHANO *p)
 {
     int kn = (int)(*p->kn + 0.5);
     if (kn < 0)
@@ -63,7 +65,7 @@ int chanokdo(CSOUND *csound, CHANO *p)
     return OK;
 }
 
-int chanoado(CSOUND *csound, CHANO *p)
+static int chanoado(CSOUND *csound, CHANO *p)
 {
     int i,j;
     int kn = (int)(*p->kn + 0.5);
@@ -81,17 +83,19 @@ int chanoado(CSOUND *csound, CHANO *p)
     return OK;
 } /* end chanoas(p) */
 
-int chanikset(CSOUND *csound, CHANI *p)
+#if 0
+static int chanikset(CSOUND *csound, CHANI *p)
 {
     return OK;
 } /* end chaniset(p) */
 
-int chaniaset(CSOUND *csound, CHANI *p)
+static int chaniaset(CSOUND *csound, CHANI *p)
 {
     return OK;
 } /* end chaniaset(p) */
+#endif
 
-int chanikdo(CSOUND *csound, CHANI *p)
+static int chanikdo(CSOUND *csound, CHANI *p)
 {
     int kn = (int)(*p->kn + 0.5);
     if (kn < 0)
@@ -105,7 +109,7 @@ int chanikdo(CSOUND *csound, CHANI *p)
     return OK;
 }
 
-int chaniado(CSOUND *csound, CHANI *p)
+static int chaniado(CSOUND *csound, CHANI *p)
 {
     int i,j;
     int kn = (int)(*p->kn + 0.5);

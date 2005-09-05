@@ -25,11 +25,7 @@
 /* aldel Jul 91 */
 
 #include <stdio.h>
-#ifdef HAVE_STRING_H
-# include <string.h>
-#elif HAVE_STRINGS_H
-# include <strings.h>
-#endif
+#include <string.h>
 #include <ctype.h>
 
 #ifndef TRUE

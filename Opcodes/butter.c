@@ -32,7 +32,7 @@
 
 static void butter_filter(long, MYFLT *, MYFLT *, MYFLT *);
 
-int butset(CSOUND *csound, BFIL *p)     /*      Hi/Lo pass set-up       */
+static int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = FL(0.0);
@@ -41,7 +41,7 @@ int butset(CSOUND *csound, BFIL *p)     /*      Hi/Lo pass set-up       */
     return OK;
 }
 
-int bbutset(CSOUND *csound, BBFIL *p)   /*      Band set-up     */
+static int bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = FL(0.0);
@@ -51,7 +51,7 @@ int bbutset(CSOUND *csound, BBFIL *p)   /*      Band set-up     */
     return OK;
 }
 
-int hibut(CSOUND *csound, BFIL *p)      /*      Hipass filter   */
+static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
 {
     MYFLT       *out, *in;
 
@@ -83,7 +83,7 @@ int hibut(CSOUND *csound, BFIL *p)      /*      Hipass filter   */
     return OK;
 }
 
-int lobut(CSOUND *csound, BFIL *p)      /*      Lopass filter   */
+static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
     MYFLT       *out, *in;
 
@@ -117,7 +117,7 @@ int lobut(CSOUND *csound, BFIL *p)      /*      Lopass filter   */
     return OK;
 }
 
-int bpbut(CSOUND *csound, BBFIL *p)     /*      Bandpass filter */
+static int bpbut(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
 {
     MYFLT       *out, *in;
 
@@ -147,7 +147,7 @@ int bpbut(CSOUND *csound, BBFIL *p)     /*      Bandpass filter */
     return OK;
 }
 
-int bcbut(CSOUND *csound, BBFIL *p)     /*      Band reject filter      */
+static int bcbut(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 {
     MYFLT       *out, *in;
 

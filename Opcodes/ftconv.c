@@ -304,3 +304,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
                                 (int (*)(CSOUND *, void*)) ftconv_perf);
 }
 
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+}
+

@@ -74,17 +74,17 @@ static int fofset0(CSOUND *csound, FOFS *p, int flag)
     return OK;
 }
 
-int fofset(CSOUND *csound, FOFS         *p)
+static int fofset(CSOUND *csound, FOFS *p)
 {
     return fofset0(csound, p, 1);
 }
 
-int fofset2(CSOUND *csound, FOFS        *p)
+static int fofset2(CSOUND *csound, FOFS *p)
 {
     return fofset0(csound, p, 0);
 }
 
-int fof(CSOUND *csound, FOFS *p)
+static int fof(CSOUND *csound, FOFS *p)
 {
     OVRLAP *ovp;
     FUNC    *ftp1,  *ftp2;
@@ -242,7 +242,7 @@ static int newpulse(CSOUND *csound,
 
 static int hrngflg=0;
 
-int harmset(CSOUND *csound, HARMON *p)
+static int harmset(CSOUND *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
     if (minfrq < FL(64.0)) {
@@ -285,7 +285,7 @@ int harmset(CSOUND *csound, HARMON *p)
     return OK;
 }
 
-int harmon(CSOUND *csound, HARMON *p)
+static int harmon(CSOUND *csound, HARMON *p)
 {
     MYFLT *src1, *src2, *src3, *inp1, *inp2, *outp;
     MYFLT c1, c2, qval, *inq1, *inq2;

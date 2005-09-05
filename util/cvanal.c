@@ -108,7 +108,7 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
     outfilnam = *argv;
 
     if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
-                                    &input_dur, &sr, channel)) < 0) {
+                                    &input_dur, &sr, channel)) == NULL) {
       sprintf(err_msg, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
     }
@@ -241,5 +241,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                              "Soundfile analysis for convolve");
     }
     return retval;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

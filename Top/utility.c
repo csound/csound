@@ -109,7 +109,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
       int i;
       csound->Message(csound, Str("The available utilities are:\n"));
       for (i = 0; lst[i] != NULL; i++) {
-        char  *desc = csound->GetUtilityDescription(csound, lst[i]);
+        const char *desc = csound->GetUtilityDescription(csound, lst[i]);
         if (desc != NULL)
           csound->Message(csound, "    %s\t%s\n", lst[i], Str(desc));
         else
@@ -202,7 +202,8 @@ int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
  * or an error occured.
  */
 
-PUBLIC char *csoundGetUtilityDescription(CSOUND *csound, const char *utilName)
+PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
+                                               const char *utilName)
 {
     csUtility_t *p = (csUtility_t*) csound->utility_db;
 
@@ -215,6 +216,6 @@ PUBLIC char *csoundGetUtilityDescription(CSOUND *csound, const char *utilName)
     if (p == NULL)
       return NULL;      /* not found */
     /* return with utility description (if any) */
-    return p->desc;
+    return (const char*) p->desc;
 }
 

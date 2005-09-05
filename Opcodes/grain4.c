@@ -61,7 +61,7 @@
 static MYFLT grand(GRAINV4 *);
 /* MYFLT envv4(int *, GRAINV4 *); */
 
-int grainsetv4(CSOUND *csound, GRAINV4 *p)
+static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     int         nvoice, cnt;
@@ -307,7 +307,7 @@ int grainsetv4(CSOUND *csound, GRAINV4 *p)
     return OK;
 } /* end grainsetv4(p) */
 
-int graingenv4(CSOUND *csound, GRAINV4 *p)
+static int graingenv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
@@ -475,7 +475,7 @@ int graingenv4(CSOUND *csound, GRAINV4 *p)
     returns a float between 0.0 to 1.0
 */
 #ifdef never
-MYFLT envv4(int *nvoice, GRAINV4 *p)
+static MYFLT envv4(int *nvoice, GRAINV4 *p)
 {
     long     att_len, dec_len, att_sus;
     MYFLT    tmp, result;

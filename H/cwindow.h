@@ -70,7 +70,7 @@ void   DoDisp(WINDAT *, MYFLT *, int);
 /* initialise windows.  Returns 1 if X ok */
 int  Graphable(CSOUND *csound);
 /* create window for a graph */
-void MakeGraph(CSOUND *, WINDAT *, char *);
+void MakeGraph(CSOUND *, WINDAT *, const char *);
 /* create a mouse input window; init scale */
 void MakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 /* update graph in existing window */

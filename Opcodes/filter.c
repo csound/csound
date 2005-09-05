@@ -151,26 +151,26 @@ static void insertFilter(FILTER*,double);
 typedef struct FPOLAR {double mag,ph;} fpolar;
 
 /* Routines associated with pole control */
-void expandPoly(fcomplex[], double[], int);
-void complex2polar(fcomplex[],fpolar[], int);
-void polar2complex(fpolar[],fcomplex[], int);
-void sortRoots(fcomplex roots[], int dim);
-int sortfun(fpolar *a, fpolar *b);
-void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact);
-void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact);
+static void expandPoly(fcomplex[], double[], int);
+static void complex2polar(fcomplex[],fpolar[], int);
+static void polar2complex(fpolar[],fcomplex[], int);
+static void sortRoots(fcomplex roots[], int dim);
+static int sortfun(fpolar *a, fpolar *b);
+static void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact);
+static void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact);
 
 static void zroots(CSOUND*, fcomplex [], int, fcomplex []);
-fcomplex Cadd(fcomplex, fcomplex);
-fcomplex Csub(fcomplex, fcomplex);
-fcomplex Cmul(fcomplex, fcomplex);
-fcomplex Cdiv(fcomplex, fcomplex);
-fcomplex Complex(double, double);
-double Cabs(fcomplex);
-fcomplex Csqrt(fcomplex);
-fcomplex RCmul(double, fcomplex);
+static fcomplex Cadd(fcomplex, fcomplex);
+static fcomplex Csub(fcomplex, fcomplex);
+static fcomplex Cmul(fcomplex, fcomplex);
+static fcomplex Cdiv(fcomplex, fcomplex);
+static fcomplex Complex(double, double);
+static double Cabs(fcomplex);
+static fcomplex Csqrt(fcomplex);
+static fcomplex RCmul(double, fcomplex);
 
 /* Filter initialization routine */
-int ifilter(CSOUND *csound, FILTER* p)
+static int ifilter(CSOUND *csound, FILTER* p)
 {
     int i;
 
@@ -205,7 +205,7 @@ int ifilter(CSOUND *csound, FILTER* p)
 }
 
 /* izfilter - initialize z-plane controllable filter */
-int izfilter(CSOUND *csound, ZFILTER *p)
+static int izfilter(CSOUND *csound, ZFILTER *p)
 {
     fcomplex a[MAXPOLES];
     fcomplex *roots;
@@ -268,7 +268,7 @@ int izfilter(CSOUND *csound, ZFILTER *p)
  *                      - a(1)*y(n-1) - ... - a(na)*y(n-na)
  *
  */
-int afilter(CSOUND *csound, FILTER* p)
+static int afilter(CSOUND *csound, FILTER* p)
 {
     int n,i;
 
@@ -314,7 +314,7 @@ int afilter(CSOUND *csound, FILTER* p)
  *                      - a(1)*y(k-1) - ... - a(na)*y(k-na)
  *
  */
-int kfilter(CSOUND *csound, FILTER* p)
+static int kfilter(CSOUND *csound, FILTER* p)
 {
     int i;
 
@@ -361,7 +361,7 @@ int kfilter(CSOUND *csound, FILTER* p)
  * The rest of the filter is the same as filter
  *
  */
-int azfilter(CSOUND *csound, ZFILTER* p)
+static int azfilter(CSOUND *csound, ZFILTER* p)
 {
     int n,i;
 
@@ -465,7 +465,7 @@ static void insertFilter(FILTER* p, double val)
 /* The expanded polynomial is computed as a[0..N] in
  * descending powers of Z
  */
-void expandPoly(fcomplex roots[], double a[], int dim)
+static void expandPoly(fcomplex roots[], double a[], int dim)
 {
     int j,k;
     fcomplex z[MAXPOLES],d[MAXPOLES];
@@ -487,7 +487,7 @@ void expandPoly(fcomplex roots[], double a[], int dim)
 
 #define SQR(a) (a*a)
 
-void complex2polar(fcomplex a[], fpolar b[], int N)
+static void complex2polar(fcomplex a[], fpolar b[], int N)
 {
     int i;
 
@@ -497,7 +497,7 @@ void complex2polar(fcomplex a[], fpolar b[], int N)
     }
 }
 
-void polar2complex(fpolar a[], fcomplex b[],int N)
+static void polar2complex(fpolar a[], fcomplex b[],int N)
 {
     int i;
 
@@ -508,7 +508,7 @@ void polar2complex(fpolar a[], fcomplex b[],int N)
 }
 
 /* Sort poles in decreasing order of magnitudes */
-void sortRoots(fcomplex roots[], int dim)
+static void sortRoots(fcomplex roots[], int dim)
 {
     fpolar plr[MAXPOLES];
 
@@ -524,7 +524,7 @@ void sortRoots(fcomplex roots[], int dim)
 }
 
 /* Comparison function for sorting in DECREASING order */
-int sortfun(fpolar *a, fpolar *b)
+static int sortfun(fpolar *a, fpolar *b)
 {
     if (a->mag<b->mag)
       return 1;
@@ -544,7 +544,7 @@ int sortfun(fpolar *a, fpolar *b)
  * without affecting the overall frequency response characteristic.
  *
  */
-void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
+static void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
 {
     double eps = .000001; /* To avoid underflow comparisons */
     double nudgefact;
@@ -583,7 +583,7 @@ void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
  *
  * Multiply phases of all poles by factor
  */
-void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact)
+static void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact)
 {
     double eps = .000001; /* To avoid underflow comparisons */
     double nudgefact;
@@ -632,7 +632,7 @@ void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact)
 /* Simple definition is sufficient */
 #define FPMAX(a,b) (a>b ? a : b)
 
-void laguer(CSOUND *csound, fcomplex a[], int m, fcomplex *x, int *its)
+static void laguer(CSOUND *csound, fcomplex a[], int m, fcomplex *x, int *its)
 {
     int iter,j;
     double abx,abp,abm,err;
@@ -728,7 +728,7 @@ static void zroots(CSOUND *csound,fcomplex a[], int m, fcomplex roots[])
  * Numerical Recipes in C, 2nd Edition, Cambridge 1992.
  */
 
-fcomplex Cadd(fcomplex a, fcomplex b)
+static fcomplex Cadd(fcomplex a, fcomplex b)
 {
     fcomplex c;
     c.r = a.r+b.r;
@@ -736,7 +736,7 @@ fcomplex Cadd(fcomplex a, fcomplex b)
     return c;
 }
 
-fcomplex Csub(fcomplex a, fcomplex b)
+static fcomplex Csub(fcomplex a, fcomplex b)
 {
     fcomplex c;
     c.r = a.r-b.r;
@@ -744,7 +744,7 @@ fcomplex Csub(fcomplex a, fcomplex b)
     return c;
 }
 
-fcomplex Cmul(fcomplex a, fcomplex b)
+static fcomplex Cmul(fcomplex a, fcomplex b)
 {
     fcomplex c;
     c.r = a.r*b.r-a.i*b.i;
@@ -752,7 +752,7 @@ fcomplex Cmul(fcomplex a, fcomplex b)
     return c;
 }
 
-fcomplex Complex(double re, double im)
+static fcomplex Complex(double re, double im)
 {
     fcomplex c;
     c.r = re;
@@ -768,7 +768,7 @@ fcomplex Complex(double re, double im)
 /*     return c; */
 /* } */
 
-fcomplex Cdiv(fcomplex a, fcomplex b)
+static fcomplex Cdiv(fcomplex a, fcomplex b)
 {
     fcomplex c;
     double r,den;
@@ -787,7 +787,7 @@ fcomplex Cdiv(fcomplex a, fcomplex b)
     return c;
 }
 
-double Cabs(fcomplex z)
+static double Cabs(fcomplex z)
 {
     double x,y,ans;
     double temp;
@@ -808,7 +808,7 @@ double Cabs(fcomplex z)
     return ans;
 }
 
-fcomplex Csqrt(fcomplex z)
+static fcomplex Csqrt(fcomplex z)
 {
     fcomplex c;
     double w;
@@ -840,7 +840,7 @@ fcomplex Csqrt(fcomplex z)
     }
 }
 
-fcomplex RCmul(double x, fcomplex a)
+static fcomplex RCmul(double x, fcomplex a)
 {
     fcomplex c;
     c.r = x*a.r;

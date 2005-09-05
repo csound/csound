@@ -42,7 +42,7 @@
  *      Initialisation code
  */
 
-int daminit(CSOUND *csound, DAM *p)
+static int daminit(CSOUND *csound, DAM *p)
 {
     int i;
 
@@ -72,7 +72,7 @@ int daminit(CSOUND *csound, DAM *p)
  * Run-time computation code
  */
 
-int dam(CSOUND *csound, DAM *p)
+static int dam(CSOUND *csound, DAM *p)
 {
     int i;
     MYFLT *ain,*aout;
