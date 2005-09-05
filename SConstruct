@@ -209,7 +209,6 @@ print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 print
 
 commonEnvironment.Prepend(CPPPATH = ['.', './H'])
-commonEnvironment.Prepend(CCFLAGS = ['-DCSOUND_WITH_API'])
 if (commonEnvironment['useLrint'] != '0'):
   commonEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
 if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
@@ -238,7 +237,7 @@ else:
 if (commonEnvironment['useGprof']=='1'):
   commonEnvironment.Append(CCFLAGS = ['-pg'])
   commonEnvironment.Append(LINKFLAGS = ['-pg'])
-commonEnvironment.Prepend(CXXFLAGS = ['-DCSOUND_WITH_API', '-fexceptions'])
+commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
 if (commonEnvironment['Word64']=='1'):
@@ -254,16 +253,17 @@ else:
 
 # Define different build environments for different types of targets.
 
+if commonEnvironment['MSVC'] == '0':
+    commonEnvironment.Prepend(CCFLAGS = "-Wall")
+
 if getPlatform() == 'linux':
     commonEnvironment.Append(CCFLAGS = "-DLINUX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
-    commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
 elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
-    commonEnvironment.Append(CCFLAGS = "-Wall")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     if (commonEnvironment['useAltivec'] == '1'):
         print 'CONFIGURATION DECISION using Altivec optmisation'
@@ -274,15 +274,12 @@ elif getPlatform() == 'darwin':
 elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
     commonEnvironment.Append(CCFLAGS = "-D_WIN32")
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
-    commonEnvironment.Append(CCFLAGS = "-DHAVE_STRING_H")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
     if commonEnvironment['MSVC'] == '0':
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
-        commonEnvironment.Append(CCFLAGS = "-Wall")
         commonEnvironment.Append(CCFLAGS = "-mthreads")
-        commonEnvironment.Append(CCFLAGS = "-mtune=pentium4")
     else:
         commonEnvironment.Append(CCFLAGS = "-DMSVC")
 
@@ -333,20 +330,12 @@ if configure.CheckHeader("unistd.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_UNISTD_H')
 if configure.CheckHeader("stdint.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_STDINT_H')
-if configure.CheckHeader("malloc.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_MALLOC_H')
 if configure.CheckHeader("sys/time.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_SYS_TIME_H')
 if configure.CheckHeader("sys/types.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_SYS_TYPES_H')
-if configure.CheckHeader("ctype.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_CTYPE_H')
 if configure.CheckHeader("termios.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_TERMIOS_H')
-if configure.CheckHeader("string.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_STRING_H')
-elif configure.CheckHeader("strings.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_STRINGS_H')
 if getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
 elif configure.CheckHeader("dirent.h", language = "C"):
@@ -618,6 +607,18 @@ if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
 else:
     print 'CONFIGURATION DECISION: Building without real time MIDI support.'
 
+if (getPlatform() == 'mingw' or getPlatform() == 'cygwin'):
+    win32MidiEnvironment = pluginEnvironment.Copy()
+    win32MidiEnvironment.Append(LIBS = ['winmm'])
+    pluginLibraries.append(win32MidiEnvironment.SharedLibrary('w32midi',
+                                                        ['InOut/w32midi.c']))
+
+if (getPlatform() == 'linux' and alsaFound):
+    alsaMidiEnvironment = pluginEnvironment.Copy()
+    alsaMidiEnvironment.Append(LIBS = ['asound'])
+    pluginLibraries.append(alsaMidiEnvironment.SharedLibrary('alsamidi',
+                                                        ['InOut/alsamidi.c']))
+
 if not ((commonEnvironment['useFLTK'] == '1' and fltkFound)):
   print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
 else:
@@ -661,6 +662,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('bbcut',
     ['Opcodes/bbcut.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('biquad',
     ['Opcodes/biquad.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('bus',
+    ['Opcodes/bus.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('butter',
     ['Opcodes/butter.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('clfilt',
@@ -683,14 +686,22 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('freeverb',
     ['Opcodes/freeverb.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ftconv',
     ['Opcodes/ftconv.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest',
+    ['Opcodes/ftest.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ftgen',
     ['Opcodes/ftgen.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_gab',
+    ['Opcodes/gab/gab.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_vectorial',
+    ['Opcodes/gab/vectorial.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('grain',
     ['Opcodes/grain.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4',
     ['Opcodes/grain4.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('hrtferX',
     ['Opcodes/hrtferX.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ifd',
+    ['Opcodes/ifd.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('locsig',
     ['Opcodes/locsig.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('lowpassr',
@@ -701,15 +712,18 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops2',
     ['Opcodes/midiops2.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops3',
     ['Opcodes/midiops3.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
+    ['Opcodes/mixer.cpp']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('modal4',
-    Split('''Opcodes/modal4.c
-    Opcodes/physutil.c''')))
+    ['Opcodes/modal4.c', 'Opcodes/physutil.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('newfils',
     ['Opcodes/newfils.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('nlfilt',
     ['Opcodes/nlfilt.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('oscbnk',
     ['Opcodes/oscbnk.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('partials',
+    ['Opcodes/partials.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('phisem',
     ['Opcodes/phisem.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod',
@@ -722,11 +736,15 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod',
     Opcodes/shaker.c
     Opcodes/bowedbar.c''')))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch',
-    Split('''Opcodes/pitch.c
-    Opcodes/pitch0.c
-    Opcodes/spectra.c''')))
+    ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pluck',
     ['Opcodes/pluck.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('psynth',
+    ['Opcodes/psynth.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic',
+    ['Opcodes/pvsbasic.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('pvscent',
+    ['Opcodes/pvscent.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsdemix',
     ['Opcodes/pvsdemix.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('repluck',
@@ -744,6 +762,8 @@ if (commonEnvironment['MSVC'] == '0'):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 pluginLibraries.append(sfontEnvironment.SharedLibrary('sfont',
     ['Opcodes/sfont.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
+    ['Opcodes/sndloop.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('sndwarp',
     ['Opcodes/sndwarp.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('space',
@@ -766,32 +786,9 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('ugnorman',
     ['Opcodes/ugnorman.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ugsc',
     ['Opcodes/ugsc.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('vdelayk',
-    ['Opcodes/vdelayk.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('wave-terrain',
     ['Opcodes/wave-terrain.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('bus',
-    ['Opcodes/bus.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic',
-    ['Opcodes/pvsbasic.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pvscent',
-    ['Opcodes/pvscent.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest',
-    ['Opcodes/ftest.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_gab',
-    ['Opcodes/gab/gab.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_vectorial',
-    ['Opcodes/gab/vectorial.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
-    ['Opcodes/mixer.cpp']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
-    ['Opcodes/sndloop.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ifd',
-    ['Opcodes/ifd.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('partials',
-    ['Opcodes/partials.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('psynth',
-    ['Opcodes/psynth.c']))
+
 # Plugins with External Dependencies
 
 # FLTK widgets
@@ -1013,9 +1010,7 @@ executables.append(commonEnvironment.Program('makecsd',
 #executables.append(csoundProgramEnvironment.Program('scot',
 #    ['util1/scot/scot_main.c']))
 #executables.append(csoundProgramEnvironment.Program('sdif2ad',
-#    Split('''SDIF/sdif2adsyn.c
-#    SDIF/sdif.c
-#    SDIF/sdif-mem.c''')))
+#    ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
 # Front ends.
 
@@ -1127,7 +1122,7 @@ else:
         print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
         csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java', '-package', 'CsoundVST'])
         csoundVstSources.append(csoundVstJavaWrapper)
-        jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.', JAVACFLAGS = Split('''-source 1.4 -target 1.4'''))
+        jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.', JAVACFLAGS = ['-source 1.4', '-target 1.4'])
         zipDependencies.append(jcsound)
         jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', ['manifest.mf', 'frontends/CsoundVST/classes'], JARCHDIR = 'frontends/CsoundVST/classes')
     else:
