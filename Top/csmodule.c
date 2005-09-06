@@ -104,7 +104,7 @@ int             closedir(DIR*);
 #  include <mach-o/dyld.h>
 #endif
 
-extern  int     allocgen(CSOUND *, char *, void(*)(void));
+extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
 
 /* module interface function names */
 
@@ -185,7 +185,7 @@ int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
     char            *fname;
     void            *h, *p;
     int             (*infoFunc)(void);
-    volatile int    err;
+    int             err;
 
     /* check for a valid name */
     if (libraryPath == NULL || libraryPath[0] == '\0')
@@ -439,8 +439,8 @@ int csoundInitModules(CSOUND *csound)
           length &= 0x7FFFFFFFL;    /* Assumes 32 bit */
           if (m->fgen_init != NULL) {
             NGFENS  *names = m->fgen_init(csound);
-            for (i = 0; names[i].word != NULL; i++)
-              allocgen(csound, names[i].word, names[i].fn);
+            for (i = 0; names[i].name != NULL; i++)
+              allocgen(csound, names[i].name, names[i].fn);
           }
         }
         if (m->opcode_init != NULL) {

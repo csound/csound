@@ -334,11 +334,6 @@ extern "C" {
   } LBLBLK;
 
   typedef struct {
-    char *word;
-    void (*fn)(void);
-  } NGFENS;
-
-  typedef struct {
     MYFLT   *begp, *curp, *endp, feedback[6];
     long    scount;
   } OCTDAT;
@@ -406,13 +401,19 @@ extern "C" {
   } FUNC;
 
   typedef struct {
-    EVTBLK  e;
-    double  tpdlen;
-    int     fno, guardreq, fterrcnt;
+    CSOUND  *csound;
     long    flen, flenp1, lenmask;
+    int     fno, guardreq;
+    double  tpdlen;
+    EVTBLK  e;
   } FGDATA;
 
-  typedef void (*GEN)(FUNC *, CSOUND *);
+  typedef struct {
+    char *name;
+    int  (*fn)(FGDATA *, FUNC *);
+  } NGFENS;
+
+  typedef int (*GEN)(FGDATA *, FUNC *);
 
   typedef struct MEMFIL {
     char    filename[256];      /* Made larger RWD */
