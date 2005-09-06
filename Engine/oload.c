@@ -401,7 +401,7 @@ const CSOUND cenviron_ = {
         NULL,           /*  instrumentNames     */
         NULL,           /*  strsav_str          */
         NULL,           /*  strsav_space        */
-        {{NULL}, 0.0, 0,0,0,0l,0l,0l},  /*  ff  */
+        { NULL, 0L, 0L, 0L, 0, 0, 0.0, { NULL } },  /*  ff  */
         NULL,           /*  flist               */
         0,              /*  maxfnum             */
         NULL,           /*  gensub              */
