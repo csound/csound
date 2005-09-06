@@ -1,23 +1,26 @@
+
 #include "csdl.h"
 #include <math.h>
 
-static void tanhtable(FUNC *ftp, FGDATA *ff)
+static int tanhtable(FGDATA *ff, FUNC *ftp)
 {
-    MYFLT *fp = ftp->ftable;
-    MYFLT range = ff->e.p[5];
-    double step = (double)range/(ff->e.p[3]);
-    int i;
-    double x;
-    for (i=0, x=FL(0.0); i<ff->e.p[3]; i++, x+=step)
-      *fp++ = (MYFLT)tanh(x);
+ /* CSOUND  *csound = ff->csound; */
+    MYFLT   *fp = ftp->ftable;
+    MYFLT   range = ff->e.p[5];
+    double  step = (double) range / (double) ftp->flen;
+    int     i;
+    double  x;
+
+    for (i = 0, x = 0.0; i <= (int) ftp->flen; i++, x += step)
+      fp[i] = (MYFLT) tanh(x);
+
+    return OK;
 }
 
 static NGFENS localfgens[] = {
-   { "tanh", (void(*)(void))tanhtable},
-   { NULL, NULL}
+   { "tanh", tanhtable },
+   { NULL, NULL }
 };
-
-#define S       sizeof
 
 static OENTRY *localops = NULL;
 
