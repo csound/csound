@@ -53,8 +53,6 @@ typedef struct {
 # endif
 #endif
 
-extern  char    *getstrformat(int format);
-extern  char    *type2string(int);
 static  void    sndwrterr(CSOUND *, int, int);
 static  void    sndfilein_noscale(CSOUND *csound);
 
