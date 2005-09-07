@@ -1016,6 +1016,13 @@ extern "C" {
   PUBLIC const char *csoundGetUtilityDescription(CSOUND *,
                                                  const char *utilName);
 
+/* TODO: */
+
+PUBLIC MYFLT *csoundGetTable(CSOUND *, int tableNum, int *tableLength);
+PUBLIC int csoundGetStrVarMaxLen(CSOUND *);
+PUBLIC int csoundGetChannelPtr(CSOUND *, MYFLT **p, const char *name, int type);
+PUBLIC int csoundListChannels(CSOUND *, char ***names, int **types);
+
 #endif  /* !CSOUND_CSDL_H */
 
   /* typedefs, macros, and interface functions for configuration variables */
