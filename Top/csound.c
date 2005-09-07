@@ -322,7 +322,7 @@ extern "C" {
   {
     char    *s;
     int     i, max_len;
-    volatile int  n;
+    int     n;
 
     if ((n = setjmp(p->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
@@ -537,7 +537,7 @@ extern "C" {
   PUBLIC int csoundPerformKsmps(CSOUND *csound)
   {
     int done;
-    volatile int returnValue;
+    int returnValue;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
@@ -555,7 +555,7 @@ extern "C" {
   PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
   {
     int done = 0;
-    volatile int returnValue;
+    int returnValue;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
@@ -571,8 +571,8 @@ extern "C" {
 
   PUBLIC int csoundPerformBuffer(CSOUND *csound)
   {
-    volatile int returnValue;
-    int     done;
+    int returnValue;
+    int done;
     /* Setup jmp for return after an exit(). */
     if ((returnValue = setjmp(csound->exitjmp))) {
       csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
@@ -616,6 +616,11 @@ extern "C" {
   PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)
   {
     return csound->e0dbfs;
+  }
+
+  PUBLIC int csoundGetStrVarMaxLen(CSOUND *csound)
+  {
+    return csound->strVarMaxLen;
   }
 
   PUBLIC int csoundGetSampleFormat(CSOUND *csound)
