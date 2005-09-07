@@ -33,7 +33,7 @@
  * number is automatically assigned.
  * Returns zero on success.
  */
-int hfgens(CSOUND *csound, FUNC **ftpp, EVTBLK *evtblkp, int mode);
+int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode);
 
 /**
  * Allocates space for 'tableNum' with a length (not including the guard
