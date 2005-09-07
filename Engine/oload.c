@@ -48,9 +48,6 @@ void    defaultCsoundKillGraph(CSOUND *, WINDAT *windat);
 int     defaultCsoundExitGraph(CSOUND *);
 int     defaultCsoundYield(CSOUND *);
 void    close_all_files(CSOUND *);
-char    *getstrformat(int format);
-int     sfsampsize(int format);
-char    *type2string(int type);
 
 const CSOUND cenviron_ = {
     /* ----------------- interface functions (288 total) ----------------- */
@@ -253,8 +250,10 @@ const CSOUND cenviron_ = {
         csoundLongJmp,
         csoundErrorMsg,
         csoundErrMsgV,
+        csoundGetChannelPtr,
+        csoundListChannels,
         NULL,
-        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        { NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -401,7 +400,6 @@ const CSOUND cenviron_ = {
         NULL,           /*  instrumentNames     */
         NULL,           /*  strsav_str          */
         NULL,           /*  strsav_space        */
-        { NULL, 0L, 0L, 0L, 0, 0, 0.0, { NULL } },  /*  ff  */
         NULL,           /*  flist               */
         0,              /*  maxfnum             */
         NULL,           /*  gensub              */
@@ -500,7 +498,8 @@ const CSOUND cenviron_ = {
         (short*) NULL,  /*  isintab             */
         NULL,           /*  lprdaddr            */
         0,              /*  currentLPCSlot      */
-        0               /*  max_lpc_slot        */
+        0,              /*  max_lpc_slot        */
+        NULL            /*  chn_db              */
 };
 
 /* otran.c */
