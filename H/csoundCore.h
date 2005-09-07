@@ -402,15 +402,14 @@ extern "C" {
 
   typedef struct {
     CSOUND  *csound;
-    long    flen, flenp1, lenmask;
+    long    flen;
     int     fno, guardreq;
-    double  tpdlen;
     EVTBLK  e;
   } FGDATA;
 
   typedef struct {
-    char *name;
-    int  (*fn)(FGDATA *, FUNC *);
+    char    *name;
+    int     (*fn)(FGDATA *, FUNC *);
   } NGFENS;
 
   typedef int (*GEN)(FGDATA *, FUNC *);
@@ -683,7 +682,7 @@ extern "C" {
     MEMFIL *(*ldmemfile)(CSOUND *, const char *);
     long (*strarg2insno)(CSOUND *, void *p, int is_string);
     char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
-    int (*hfgens)(CSOUND *, FUNC **, EVTBLK *, int);
+    int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
     int (*insert_score_event)(CSOUND *, EVTBLK *, double);
     int (*FTAlloc)(CSOUND *, int tableNum, int len);
     int (*FTDelete)(CSOUND *, int tableNum);
@@ -811,8 +810,10 @@ extern "C" {
     CS_NORETURN void (*LongJmp)(CSOUND *, int);
     CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
     void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
+    int (*GetChannelPtr)(CSOUND *, MYFLT **p, const char *name, int type);
+    int (*ListChannels)(CSOUND *, char ***names, int **types);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[88];
+    SUBR dummyfn_2[86];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;
@@ -935,7 +936,6 @@ extern "C" {
     void          *instrumentNames;
     void          *strsav_str;
     void          *strsav_space;
-    FGDATA        ff;
     FUNC**        flist;
     int           maxfnum;
     GEN           *gensub;
@@ -1042,6 +1042,7 @@ extern "C" {
     void          *lprdaddr;            /* ugens5.c */
     int           currentLPCSlot;
     int           max_lpc_slot;
+    void          *chn_db;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
