@@ -31,7 +31,6 @@ extern  int     argdecode(CSOUND *, int, char **);
 extern  int     init_pvsys(CSOUND *);
 extern  char    *get_sconame(CSOUND *);
 extern  int     musmon2(CSOUND *);
-extern  char    *getstrformat(int);
 extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 

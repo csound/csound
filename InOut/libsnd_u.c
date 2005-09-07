@@ -22,9 +22,6 @@
 #include "csoundCore.h"
 #include "soundio.h"
 
-char    *type2string(int x);
-char    *getstrformat(int format);
-
 void rewriteheader(SNDFILE *ofd)
 {
     if (ofd != NULL)
@@ -335,7 +332,7 @@ char *type2string(int x)
 #ifdef SF_FORMAT_SDS
       case TYP_SDS:   return "SDS";
 #endif
-      default:        return "(unknown)";
+      default:        return Str("unknown");
     }
 }
 
