@@ -412,7 +412,7 @@ extern "C" {
   /**
    * Returns the address of the Csound audio input buffer.
    * Enables external software to write audio into Csound before calling
-   * csoundPerformBuffer
+   * csoundPerformBuffer.
    */
   PUBLIC MYFLT *csoundGetInputBuffer(CSOUND *);
 
@@ -572,8 +572,8 @@ extern "C" {
   PUBLIC void csoundSetMessageLevel(CSOUND *, int messageLevel);
 
   /**
-   * Input a NULL-terminated string (as if from a console)
-   * usually used for lineevents (requires -L command line option)
+   * Input a NULL-terminated string (as if from a console),
+   * used for line events (requires -L command line option).
    */
   PUBLIC void csoundInputMessage(CSOUND *, const char *message);
 
@@ -749,7 +749,7 @@ extern "C" {
    * routines are not reentrant and you should use this
    * function to do any kind of updating during the operation.
    *
-   * Returns an 'OK to continue' boolean
+   * Returns an 'OK to continue' boolean.
    */
   PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 
@@ -822,6 +822,13 @@ extern "C" {
    * The table number and index are assumed to be valid.
    */
   PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
+
+  /**
+   * Returns pointer to a function table, and stores table length (not
+   * including the guard point) in *tableLength.
+   * If the table does not exist, NULL is returned.
+   */
+  PUBLIC MYFLT *csoundGetTable(CSOUND *, int tableNum, int *tableLength);
 
   /**
    * Creates and starts a new thread of execution.
@@ -1015,13 +1022,6 @@ extern "C" {
    */
   PUBLIC const char *csoundGetUtilityDescription(CSOUND *,
                                                  const char *utilName);
-
-/* TODO: */
-
-PUBLIC MYFLT *csoundGetTable(CSOUND *, int tableNum, int *tableLength);
-PUBLIC int csoundGetStrVarMaxLen(CSOUND *);
-PUBLIC int csoundGetChannelPtr(CSOUND *, MYFLT **p, const char *name, int type);
-PUBLIC int csoundListChannels(CSOUND *, char ***names, int **types);
 
 #endif  /* !CSOUND_CSDL_H */
 
