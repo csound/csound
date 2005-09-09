@@ -419,7 +419,7 @@ extern "C" {
     char    *beginp;
     char    *endp;
     long    length;
-    struct MEMFIL  *next;
+    struct MEMFIL *next;
   } MEMFIL;
 
   typedef union {
@@ -810,10 +810,8 @@ extern "C" {
     CS_NORETURN void (*LongJmp)(CSOUND *, int);
     CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
     void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
-    int (*GetChannelPtr)(CSOUND *, MYFLT **p, const char *name, int type);
-    int (*ListChannels)(CSOUND *, char ***names, int **types);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[86];
+    SUBR dummyfn_2[88];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;
@@ -1042,7 +1040,6 @@ extern "C" {
     void          *lprdaddr;            /* ugens5.c */
     int           currentLPCSlot;
     int           max_lpc_slot;
-    void          *chn_db;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

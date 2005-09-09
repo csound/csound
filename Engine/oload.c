@@ -250,10 +250,8 @@ const CSOUND cenviron_ = {
         csoundLongJmp,
         csoundErrorMsg,
         csoundErrMsgV,
-        csoundGetChannelPtr,
-        csoundListChannels,
         NULL,
-        { NULL, NULL, NULL, NULL, NULL, NULL,
+        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -498,8 +496,7 @@ const CSOUND cenviron_ = {
         (short*) NULL,  /*  isintab             */
         NULL,           /*  lprdaddr            */
         0,              /*  currentLPCSlot      */
-        0,              /*  max_lpc_slot        */
-        NULL            /*  chn_db              */
+        0               /*  max_lpc_slot        */
 };
 
 /* otran.c */
