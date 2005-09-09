@@ -28,10 +28,10 @@
 #include <ctype.h>
 
 typedef struct namedInstr {
-        long    instno;
-        char    *name;
-        INSTRTXT    *ip;
-        struct namedInstr   *prv;
+    long        instno;
+    char        *name;
+    INSTRTXT    *ip;
+    struct namedInstr   *prv;
 } INSTRNAME;
 
 /* do not touch this ! */
@@ -315,7 +315,7 @@ long strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
 /*      allocated memory with mfree() or csound->Free()         */
 
 char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
-                                   int is_string)
+                                  int is_string)
 {
     if (is_string) {
       /* opcode string argument */
@@ -954,183 +954,6 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 }
 
 #endif  /* CSGLOBALS_USE_TREE */
-
-typedef struct channelEntry_s {
-    char    *name;
-    struct channelEntry_s *nxt;
-    int     type;
-    int     dummy;
-    MYFLT   data[1];
-} channelEntry_t;
-
-static int delete_channel_db(CSOUND *csound, void *p)
-{
-    channelEntry_t  **db, *pp;
-    int             i;
-
-    (void) p;
-    db = (channelEntry_t**) csound->chn_db;
-    if (db == NULL)
-      return 0;
-    for (i = 0; i < 256; i++) {
-      while (db[i] != NULL) {
-        pp = db[i];
-        db[i] = pp->nxt;
-        free((void*) pp);
-      }
-    }
-    csound->chn_db = NULL;
-    free((void*) db);
-    return 0;
-}
-
-static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
-                                          const char *name, int type)
-{
-    void          *pp;
-    const char    *s;
-    unsigned char h;
-    int           nbytes;
-
-    *p = (MYFLT*) NULL;
-    /* check for valid parameters and calculate hash value */
-    if (type < 1 || type > 3)
-      return CSOUND_ERROR;
-    if (name == NULL || name[0] == '\0')
-      return CSOUND_ERROR;
-    s = name;
-    if (!isalpha((unsigned char) *s))
-      return CSOUND_ERROR;
-    h = strhash_tabl_8[(unsigned char) *(s++)];
-    for ( ; *s != (char) 0; s++) {
-      if (!isalnum((unsigned char) *s) && *s != '_')
-        return CSOUND_ERROR;
-      h = strhash_tabl_8[(unsigned char) *s ^ h];
-    }
-    /* create new empty database on first call */
-    if (csound->chn_db == NULL) {
-      if (csound->RegisterResetCallback(csound, NULL, delete_channel_db) != 0)
-        return CSOUND_MEMORY;
-      csound->chn_db = (void*) calloc((size_t) 256, sizeof(channelEntry_t*));
-      if (csound->chn_db == NULL)
-        return CSOUND_MEMORY;
-    }
-    /* allocate new entry */
-    nbytes = sizeof(channelEntry_t);
-    if (type == 2)
-      nbytes += ((csound->ksmps - 1) * (int) sizeof(MYFLT));
-    else if (type == 3)
-      nbytes += (((csound->strVarMaxLen - 1) / (int) sizeof(MYFLT))
-                 * (int) sizeof(MYFLT));
-    pp = (void*) calloc((size_t) 1, (size_t) nbytes + strlen(name) + 1);
-    if (pp == NULL)
-      return CSOUND_MEMORY;
-    ((channelEntry_t*) pp)->name = ((char*) pp + (int) nbytes);
-    ((channelEntry_t*) pp)->nxt = ((channelEntry_t**) csound->chn_db)[h];
-    ((channelEntry_t*) pp)->type = type;
-    strcpy(((channelEntry_t*) pp)->name, name);
-    ((channelEntry_t**) csound->chn_db)[h] = (channelEntry_t*) pp;
-
-    *p = &(((channelEntry_t*) pp)->data[0]);
-    return CSOUND_SUCCESS;
-}
-
-PUBLIC int csoundGetChannelPtr(CSOUND *csound,
-                               MYFLT **p, const char *name, int type)
-{
-    channelEntry_t  *pp;
-
-    *p = (MYFLT*) NULL;
-    if (name == NULL)
-      return CSOUND_ERROR;
-    if (csound->chn_db != NULL) {
-      pp = ((channelEntry_t**) csound->chn_db)[name_hash(name)];
-      while (pp != NULL) {
-        if (sCmp(pp->name, name) == 0) {
-          if (pp->type != type)
-            return pp->type;
-          *p = &(pp->data[0]);
-          return CSOUND_SUCCESS;
-        }
-        pp = pp->nxt;
-      }
-    }
-    return create_new_channel(csound, p, name, type);
-}
-
-static void sort_func(int n, char **names, int *types)
-{
-    char  *name_ref;
-    int   i, j, c1, c2;
-
-    if (n < 2)
-      return;
-    name_ref = names[n >> 1];
-    i = 0; j = n - 1;
-    do {
-      c1 = strcmp(names[i], name_ref);
-      c2 = strcmp(names[j], name_ref);
-      if (c1 > 0 || c2 < 0) {
-        char  *tmp1;
-        int   tmp2;
-        tmp1 = names[i]; names[i] = names[j]; names[j] = tmp1;
-        tmp2 = types[i]; types[i] = types[j]; types[j] = tmp2;
-        if (c2 <= 0) i++;
-        if (c1 >= 0) j--;
-      }
-      else {
-        if (c1 <= 0) i++;
-        if (c2 >= 0) j--;
-      }
-    } while (i <= j);
-    sort_func(i, names, types);
-    sort_func((n - i), &(names[i]), &(types[i]));
-}
-
-PUBLIC int csoundListChannels(CSOUND *csound, char ***names, int **types)
-{
-    channelEntry_t  *pp;
-    int             i, n;
-
-    *names = (char**) NULL;
-    *types = (int*) NULL;
-    if (csound->chn_db == NULL)
-      return 0;
-    /* count the number of channels */
-    n = 0;
-    for (i = 0; i < 256; i++) {
-      pp = ((channelEntry_t**) csound->chn_db)[i];
-      while (pp != NULL) {
-        n++;
-        pp = pp->nxt;
-      }
-    }
-    if (!n)
-      return 0;
-    /* create list, initially in unsorted order */
-    *names = (char**) malloc((size_t) n * sizeof(char*));
-    if (*names == NULL)
-      return CSOUND_MEMORY;
-    *types = (int*) malloc((size_t) n * sizeof(int));
-    if (*types == NULL) {
-      free((void*) *names);
-      return CSOUND_MEMORY;
-    }
-    n = 0;
-    for (i = 0; i < 256; i++) {
-      pp = ((channelEntry_t**) csound->chn_db)[i];
-      while (pp != NULL) {
-        (*names)[n] = pp->name;
-        (*types)[n] = pp->type;
-        n++;
-        pp = pp->nxt;
-      }
-    }
-    /* sort list */
-    sort_func(n, *names, *types);
-
-    return n;
-}
 
 #ifdef __cplusplus
 }
