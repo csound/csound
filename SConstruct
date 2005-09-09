@@ -1047,6 +1047,7 @@ else:
             vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        vstEnvironment['SHLIBSUFFIX'] = '.so'
         guiProgramEnvironment.Prepend(LINKFLAGS = ['_CsoundVST.so'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         pythonImportLibrary = vstEnvironment.Command('/usr/local/lib/libpython23.a',
