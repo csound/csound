@@ -126,17 +126,28 @@ static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 /* default directory to load plugins from if environment variable is not set */
 static  const   char    *default_plugin_dir =   ".";
 
+typedef struct opcodeLibFunc_s {
+    long        (*opcode_size)(void);       /* total size of opcode entries  */
+    OENTRY      *(*opcode_init)(CSOUND *);  /* list of opcode entries        */
+    NGFENS      *(*fgen_init)(CSOUND *);    /* list of named GEN routines    */
+} opcodeLibFunc_t;
+
+typedef struct pluginLibFunc_s {
+    int         (*InitFunc)(CSOUND *);      /* initialisation routine        */
+    int         (*DestFunc)(CSOUND *);      /* destructor routine            */
+    const char  *(*ErrCodeToStr)(int);      /* convert error code to string  */
+} pluginLibFunc_t;
+
 typedef struct csoundModule_s {
     struct csoundModule_s *nxt;             /* pointer to next link in chain */
     void        *h;                         /* library handle                */
     char        *name;                      /* name of the module            */
-    long        (*opcode_size)(void);       /* total size of opcode entries  */
-    OENTRY      *(*opcode_init)(CSOUND *);  /* list of opcode entries        */
-    NGFENS      *(*fgen_init)(CSOUND *);    /* list of named GEN routines    */
     int         (*PreInitFunc)(CSOUND *);   /* pre-initialisation routine    */
-    int         (*InitFunc)(CSOUND *);      /* initialisation routine        */
-    int         (*DestFunc)(CSOUND *);      /* destructor routine            */
-    const char  *(*ErrCodeToStr)(int);      /* convert error code to string  */
+                                            /*   (always NULL if opcode lib) */
+    union {
+      pluginLibFunc_t   p;                  /* generic plugin interface      */
+      opcodeLibFunc_t   o;                  /* opcode library interface      */
+    } fn;
 } csoundModule_t;
 
 static CS_NOINLINE void print_module_error(CSOUND *csound,
@@ -144,9 +155,9 @@ static CS_NOINLINE void print_module_error(CSOUND *csound,
                                            const csoundModule_t *m, int err)
 {
     csound->MessageS(csound, CSOUNDMSG_ERROR, Str(fmt), fname);
-    if (m != NULL && m->ErrCodeToStr != NULL)
+    if (m != NULL && m->fn.p.ErrCodeToStr != NULL)
       csound->MessageS(csound, CSOUNDMSG_ERROR,
-                       ": %s\n", Str(m->ErrCodeToStr(err)));
+                       ": %s\n", Str(m->fn.p.ErrCodeToStr(err)));
     else
       csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
@@ -223,33 +234,38 @@ int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
     memset(&m, 0, sizeof(csoundModule_t));
     m.h = h;
     m.name = fname;     /* will copy later */
-    m.opcode_size =
-        (long (*)(void)) csoundGetLibrarySymbol(h, opcode_size_Name);
     m.PreInitFunc =
         (int (*)(CSOUND *)) csoundGetLibrarySymbol(h, PreInitFunc_Name);
-    if (m.opcode_size != NULL) {
-      m.opcode_init =
-          (OENTRY *(*)(CSOUND *)) csoundGetLibrarySymbol(h, opcode_init_Name);
-      if (m.opcode_size() < 0L)
-        m.fgen_init =
-            (NGFENS *(*)(CSOUND *)) csoundGetLibrarySymbol(h, fgen_init_Name);
-      /* must have at least one of opcode_init() and fgen_init() */
-      if (m.opcode_init == NULL && m.fgen_init == NULL)
-        m.opcode_size = NULL;
-    }
     if (m.PreInitFunc != NULL) {
-      m.InitFunc =
+      /* generic plugin library */
+      m.fn.p.InitFunc =
           (int (*)(CSOUND *)) csoundGetLibrarySymbol(h, InitFunc_Name);
-      m.DestFunc =
+      m.fn.p.DestFunc =
           (int (*)(CSOUND *)) csoundGetLibrarySymbol(h, DestFunc_Name);
-      m.ErrCodeToStr =
+      m.fn.p.ErrCodeToStr =
           (const char *(*)(int)) csoundGetLibrarySymbol(h, ErrCodeToStr_Name);
     }
-    if (m.opcode_size == NULL && m.PreInitFunc == NULL) {
-      csoundCloseLibrary(h);
-      csound->Warning(csound, Str("'%s' is not a Csound plugin library"),
-                              libraryPath);
-      return CSOUND_ERROR;
+    else {
+      /* opcode library */
+      m.fn.o.opcode_size =
+          (long (*)(void)) csoundGetLibrarySymbol(h, opcode_size_Name);
+      if (m.fn.o.opcode_size == NULL)
+        goto notPluginErr;
+      m.fn.o.opcode_init =
+          (OENTRY *(*)(CSOUND *)) csoundGetLibrarySymbol(h, opcode_init_Name);
+      if (m.fn.o.opcode_size() < 0L)
+        m.fn.o.fgen_init =
+            (NGFENS *(*)(CSOUND *)) csoundGetLibrarySymbol(h, fgen_init_Name);
+      else
+        m.fn.o.fgen_init = NULL;
+      /* must have at least one of opcode_init() and fgen_init() */
+      if (m.fn.o.opcode_init == NULL && m.fn.o.fgen_init == NULL) {
+ notPluginErr:
+        csoundCloseLibrary(h);
+        csound->Warning(csound, Str("'%s' is not a Csound plugin library"),
+                                libraryPath);
+        return CSOUND_ERROR;
+      }
     }
     /* set up module info structure */
     p = (void*) malloc(sizeof(csoundModule_t) + (size_t) (strlen(fname) + 1));
@@ -300,7 +316,7 @@ int csoundLoadModules(CSOUND *csound)
 #ifdef HAVE_DIRENT_H
     DIR             *dir;
     struct dirent   *f;
-    char            *dname = NULL, *fname;
+    const char      *dname, *fname;
     char            buf[1024];
     int             i, n, len, err = CSOUND_SUCCESS;
 
@@ -308,23 +324,15 @@ int csoundLoadModules(CSOUND *csound)
       return CSOUND_ERROR;
 
     /* open plugin directory */
-    fname = (sizeof(MYFLT) == sizeof(float) ? (char*) plugindir_envvar
-                                              : (char*) plugindir64_envvar);
-    dname = (char*) csoundGetEnv(csound, fname);
+    dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
+                                  plugindir_envvar : plugindir64_envvar));
     if (dname == NULL) {
-      const char  *s = Str("the current directory");
+      csound->opcodedirWasOK = 0;
 #ifdef USE_DOUBLE
-      dname = (char*) csoundGetEnv(csound, plugindir_envvar);
-      if (dname != NULL)
-        s = plugindir_envvar;
-      else
+      dname = csoundGetEnv(csound, plugindir_envvar);
+      if (dname == NULL)
 #endif
-        dname = (char*) default_plugin_dir;
-      if (csound->oparms->msglevel & 4) {
-        csound->Warning(csound, Str("%s undefined, loading plugins from %s"),
-                                fname, s);
-        csoundSleep(1000);
-      }
+        dname = default_plugin_dir;
     }
     dir = opendir(dname);
     if (dir == (DIR*) NULL) {
@@ -334,7 +342,7 @@ int csoundLoadModules(CSOUND *csound)
     }
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
-      fname = (char*) &(f->d_name[0]);
+      fname = &(f->d_name[0]);
       n = len = (int) strlen(fname);
 #if defined(WIN32)
       strcpy(buf, "dll");
@@ -416,35 +424,37 @@ int csoundLoadExternals(CSOUND *csound)
  */
 int csoundInitModules(CSOUND *csound)
 {
-    csoundModule_t  *m = (csoundModule_t*) csound->csmodule_db;
+    csoundModule_t  *m;
     int             i, retval = CSOUND_SUCCESS;
 
     /* call init functions */
-    while (m != NULL) {
-      if (m->InitFunc != NULL) {
-        i = m->InitFunc(csound);
-        if (i != 0) {
-          print_module_error(csound, "Error starting module '%s'",
-                                     m->name, m, i);
-          retval = CSOUND_ERROR;
+    for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
+      if (m->PreInitFunc != NULL) {
+        if (m->fn.p.InitFunc != NULL) {
+          i = m->fn.p.InitFunc(csound);
+          if (i != 0) {
+            print_module_error(csound, "Error starting module '%s'",
+                                       m->name, m, i);
+            retval = CSOUND_ERROR;
+          }
         }
       }
-      if (m->opcode_size != NULL) {
+      else {
         OENTRY  *opcodlst_n;
         long    length;
-        length = m->opcode_size();
+        length = m->fn.o.opcode_size();
         /* deal with fgens if there are any, */
         /* signalled by setting top bit of length */
         if (length < 0L) {
           length &= 0x7FFFFFFFL;    /* Assumes 32 bit */
-          if (m->fgen_init != NULL) {
-            NGFENS  *names = m->fgen_init(csound);
+          if (m->fn.o.fgen_init != NULL) {
+            NGFENS  *names = m->fn.o.fgen_init(csound);
             for (i = 0; names[i].name != NULL; i++)
               allocgen(csound, names[i].name, names[i].fn);
           }
         }
-        if (m->opcode_init != NULL) {
-          opcodlst_n = m->opcode_init(csound);
+        if (m->fn.o.opcode_init != NULL) {
+          opcodlst_n = m->fn.o.opcode_init(csound);
           length /= (long) sizeof(OENTRY);
           if (length > 0L) {
             i = csound->AppendOpcodes(csound, opcodlst_n, (int) length);
@@ -453,7 +463,6 @@ int csoundInitModules(CSOUND *csound)
           }
         }
       }
-      m = m->nxt;
     }
     /* return with error code */
     return retval;
@@ -474,8 +483,8 @@ int csoundDestroyModules(CSOUND *csound)
     while (csound->csmodule_db != NULL) {
       m = (csoundModule_t*) csound->csmodule_db;
       /* call destructor functions */
-      if (m->DestFunc != NULL) {
-        i = m->DestFunc(csound);
+      if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
+        i = m->fn.p.DestFunc(csound);
         if (i != 0) {
           print_module_error(csound, "Error de-initialising module '%s'",
                                      m->name, m, i);
@@ -706,4 +715,27 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 }
 
 #endif
+
+static const char *opcodedirWarnMsg[] = {
+    "################################################################",
+#ifndef USE_DOUBLE
+    "#               WARNING: OPCODEDIR IS NOT SET !                #",
+#else
+    "#              WARNING: OPCODEDIR64 IS NOT SET !               #",
+#endif
+    "# Csound requires this environment variable to be set to find  #",
+    "# its plugin libraries. If it is not set, you may experience   #",
+    "# missing opcodes, audio/MIDI drivers, or utilities.           #",
+    "################################################################",
+    NULL
+};
+
+void print_opcodedir_warning(CSOUND *p)
+{
+    if (!p->opcodedirWasOK) {
+      const char  **sp;
+      for (sp = &(opcodedirWarnMsg[0]); *sp != NULL; sp++)
+        p->MessageS(p, CSOUNDMSG_WARNING, "        %s\n", Str(*sp));
+    }
+}
 
