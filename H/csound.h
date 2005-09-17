@@ -215,14 +215,27 @@ extern "C" {
   typedef struct windat_  WINDAT;
   typedef struct xyindat_ XYINDAT;
 
-  /**
-   * INSTANTIATION
-   */
-
 #define CSOUNDINIT_NO_SIGNAL_HANDLER  1
 #define CSOUNDINIT_NO_ATEXIT          2
 
+#define CSOUND_CONTROL_CHANNEL      1
+#define CSOUND_AUDIO_CHANNEL        2
+#define CSOUND_STRING_CHANNEL       3
+
+#define CSOUND_CHANNEL_TYPE_MASK    15
+
+#define CSOUND_INPUT_CHANNEL        16
+#define CSOUND_OUTPUT_CHANNEL       32
+
+#define CSOUND_CONTROL_CHANNEL_INT  1
+#define CSOUND_CONTROL_CHANNEL_LIN  2
+#define CSOUND_CONTROL_CHANNEL_EXP  3
+
 #ifndef CSOUND_CSDL_H
+
+  /**
+   * INSTANTIATION
+   */
 
   /**
    * Initialise Csound library; should be called once before creating
@@ -260,9 +273,14 @@ extern "C" {
   PUBLIC void csoundDestroy(CSOUND *);
 
   /**
-   * Returns the version number times 1000 (4.20.0 = 4200).
+   * Returns the version number times 1000 (5.00.0 = 5000).
    */
   PUBLIC int csoundGetVersion(void);
+
+  /**
+   * Returns the API version number times 100 (1.00 = 100).
+   */
+  PUBLIC int csoundGetAPIVersion(void);
 
   /**
    * Returns host data.
@@ -388,6 +406,13 @@ extern "C" {
    * Returns the 0dBFS level of the spin/spout buffers.
    */
   PUBLIC MYFLT csoundGet0dBFS(CSOUND *);
+
+  /**
+   * Returns the number of bytes allocated for a string variable
+   * (the actual length is one less because of the null character
+   * at the end of the string). Should be called after csoundCompile().
+   */
+  PUBLIC int csoundGetStrVarMaxLen(CSOUND *);
 
   /**
    * Returns the sample format.
@@ -629,7 +654,7 @@ extern "C" {
    * MIDI
    */
 
-  /* Set real time MIDI function pointers. */
+  /* Set real time MIDI callback function pointers. */
 
   PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
                         int (*func)(CSOUND*, void**, const char*));
@@ -899,19 +924,19 @@ extern "C" {
   /**
    * Initialise a timer structure.
    */
-  PUBLIC void csoundInitTimerStruct(RTCLOCK*);
+  PUBLIC void csoundInitTimerStruct(RTCLOCK *);
 
   /**
    * Return the elapsed real time (in seconds) since the specified timer
    * structure was initialised.
    */
-  PUBLIC double csoundGetRealTime(RTCLOCK*);
+  PUBLIC double csoundGetRealTime(RTCLOCK *);
 
   /**
    * Return the elapsed CPU time (in seconds) since the specified timer
    * structure was initialised.
    */
-  PUBLIC double csoundGetCPUTime(RTCLOCK*);
+  PUBLIC double csoundGetCPUTime(RTCLOCK *);
 
   /**
    * Return a 32-bit unsigned integer to be used as seed from current time.
@@ -1022,6 +1047,20 @@ extern "C" {
    */
   PUBLIC const char *csoundGetUtilityDescription(CSOUND *,
                                                  const char *utilName);
+
+  /* TODO: */
+
+  PUBLIC int csoundGetChannelPtr(CSOUND *,
+                                 MYFLT **p, const char *name, int type);
+
+  PUBLIC int csoundListChannels(CSOUND *, char ***names, int **types);
+
+  PUBLIC int csoundSetControlChannelParams(CSOUND *, const char *name,
+                                           int type, MYFLT dflt,
+                                           MYFLT min, MYFLT max);
+
+  PUBLIC int csoundGetControlChannelParams(CSOUND *, const char *name,
+                                           MYFLT *dflt, MYFLT *min, MYFLT *max);
 
 #endif  /* !CSOUND_CSDL_H */
 
