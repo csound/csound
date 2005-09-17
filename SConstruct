@@ -515,7 +515,6 @@ Engine/memalloc.c
 Engine/memfiles.c
 Engine/musmon.c
 Engine/namedins.c
-Engine/oload.c
 Engine/otran.c
 Engine/rdorch.c
 Engine/rdscor.c
@@ -991,15 +990,12 @@ executables.append(csoundProgramEnvironment.Program('scsort',
     ['util1/sortex/smain.c']))
 executables.append(csoundProgramEnvironment.Program('extract',
     ['util1/sortex/xmain.c']))
-executables.append(commonEnvironment.Program('cs', ['util1/csd_util/cs.c']))
+executables.append(commonEnvironment.Program('cs',
+    ['util1/csd_util/cs.c']))
 executables.append(commonEnvironment.Program('csb64enc',
-                                             Split('''util1/csd_util/base64.c
-                                                      util1/csd_util/csb64enc.c
-                                                   ''')))
+    ['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
 executables.append(commonEnvironment.Program('makecsd',
-                                             Split('''util1/csd_util/base64.c
-                                                      util1/csd_util/makecsd.c
-                                                   ''')))
+    ['util1/csd_util/base64.c', 'util1/csd_util/makecsd.c']))
 
 #executables.append(csoundProgramEnvironment.Program('cscore',
 #    ['util1/cscore/cscore_main.c']))
@@ -1108,11 +1104,7 @@ else:
     ''')
     # These are the Windows system call libraries.
     if getPlatform() == 'mingw':
-        vstEnvironment.Append(LIBS = ['kernel32'])
-        vstEnvironment.Append(LIBS = ['gdi32'])
-        vstEnvironment.Append(LIBS = ['wsock32'])
-        vstEnvironment.Append(LIBS = ['ole32'])
-        vstEnvironment.Append(LIBS = ['uuid'])
+        vstEnvironment.Append(LIBS = csoundWindowsLibraries)
         vstEnvironment.Append(SHLINKFLAGS = ['-module'])
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')

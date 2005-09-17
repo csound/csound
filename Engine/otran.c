@@ -546,11 +546,12 @@ void otran(CSOUND *csound)
         synterr(csound, Str("perf-pass statements illegal in header blk"));
     }
     if (csound->synterrcnt) {
+      print_opcodedir_warning(csound);
       csound->Die(csound, Str("%d syntax errors in orchestra.  "
                               "compilation invalid"), csound->synterrcnt);
     }
     if (O->odebug) {
-      long n;
+      long  n;
       MYFLT *p;
       csound->Message(csound, "poolcount = %ld, strpool_cnt = %ld\n",
                               ST(poolcount), ST(strpool_cnt));
@@ -788,27 +789,6 @@ static int plgndx(CSOUND *csound, char *s)
       indx = -(ST(lclpmax) + 1 + lcloffndx(csound, s));
 /*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
     return(indx);
-}
-
-/* for oload.c */
-
-void get_strpool_ptrs(CSOUND *csound, int *strpool_cnt, char ***strpool)
-{
-    *strpool_cnt = ST(strpool_cnt);
-    *strpool = ST(strpool);
-}
-
-void strpool_delete(CSOUND *csound)
-{
-    int i;
-
-    if (ST(strpool) == NULL)
-      return;
-    for (i = 0; i < (int) ST(strpool_cnt); i++)
-      csound->Free(csound, ST(strpool)[i]);
-    csound->Free(csound, ST(strpool));
-    ST(strpool) = NULL;
-    ST(strpool_cnt) = 0;
 }
 
 static int strconstndx(CSOUND *csound, const char *s)
@@ -1065,5 +1045,331 @@ static void delete_local_namepool(CSOUND *csound)
         ST(lclNames)[i] = nxt;
       }
     }
+}
+
+ /* ------------------------------------------------------------------------ */
+
+/* get size of string in MYFLT units */
+
+static int strlen_to_samples(const char *s)
+{
+    int n = (int) strlen(s);
+    n = (n + (int) sizeof(MYFLT)) / (int) sizeof(MYFLT);
+    return n;
+}
+
+/* convert string constant */
+
+static void unquote_string(char *dst, const char *src)
+{
+    int i, j, n = (int) strlen(src) - 1;
+    for (i = 1, j = 0; i < n; i++) {
+      if (src[i] != '\\')
+        dst[j++] = src[i];
+      else {
+        switch (src[++i]) {
+        case 'a':   dst[j++] = '\a';  break;
+        case 'b':   dst[j++] = '\b';  break;
+        case 'f':   dst[j++] = '\f';  break;
+        case 'n':   dst[j++] = '\n';  break;
+        case 'r':   dst[j++] = '\r';  break;
+        case 't':   dst[j++] = '\t';  break;
+        case 'v':   dst[j++] = '\v';  break;
+        case '"':   dst[j++] = '"';   break;
+        case '\\':  dst[j++] = '\\';  break;
+        default:
+          if (src[i] >= '0' && src[i] <= '7') {
+            int k = 0, l = (int) src[i] - '0';
+            while (++k < 3 && src[i + 1] >= '0' && src[i + 1] <= '7')
+              l = (l << 3) | ((int) src[++i] - '0');
+            dst[j++] = (char) l;
+          }
+          else {
+            dst[j++] = '\\'; i--;
+          }
+        }
+      }
+    }
+    dst[j] = '\0';
+}
+
+static int create_strconst_ndx_list(CSOUND *csound, int **lst, int offs)
+{
+    int     *ndx_lst;
+    char    **strpool;
+    int     strpool_cnt, ndx, i;
+
+    strpool_cnt = ST(strpool_cnt);
+    strpool = ST(strpool);
+    /* strpool_cnt always >= 1 because of empty string at index 0 */
+    ndx_lst = (int*) csound->Malloc(csound, strpool_cnt * sizeof(int));
+    for (i = 0, ndx = offs; i < strpool_cnt; i++) {
+      ndx_lst[i] = ndx;
+      ndx += strlen_to_samples(strpool[i]);
+    }
+    *lst = ndx_lst;
+    /* return with total size in MYFLT units */
+    return (ndx - offs);
+}
+
+static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
+{
+    char    **strpool, *s;
+    int     strpool_cnt, ndx, i;
+
+    strpool_cnt = ST(strpool_cnt);
+    strpool = ST(strpool);
+    if (strpool == NULL)
+      return;
+    for (ndx = i = 0; i < strpool_cnt; i++) {
+      s = (char*) ((MYFLT*) dst + (int) ndx);
+      unquote_string(s, strpool[i]);
+      ndx += strlen_to_samples(strpool[i]);
+    }
+    /* original pool is no longer needed */
+    ST(strpool) = NULL;
+    ST(strpool_cnt) = 0;
+    for (i = 0; i < strpool_cnt; i++)
+      csound->Free(csound, strpool[i]);
+    csound->Free(csound, strpool);
+}
+
+void oload(CSOUND *p)
+{
+    long    n, combinedsize, insno, *lp;
+    long    gblabeg, gblsbeg, gblscbeg, lclabeg, lclsbeg;
+    MYFLT   *combinedspc, *gblspace, *fp1;
+    INSTRTXT *ip;
+    OPTXT   *optxt;
+    OPARMS  *O = p->oparms;
+    int     *strConstIndexList;
+    MYFLT   ensmps;
+
+    p->esr = p->tran_sr; p->ekr = p->tran_kr;
+    p->ksmps = (int) ((ensmps = p->tran_ksmps) + FL(0.5));
+    ip = p->instxtanchor.nxtinstxt;        /* for instr 0 optxts:  */
+    optxt = (OPTXT *) ip;
+    while ((optxt = optxt->nxtop) !=  NULL) {
+      TEXT  *ttp = &optxt->t;
+      ARGOFFS *inoffp, *outoffp;
+      int opnum = ttp->opnum;
+      if (opnum == ENDIN) break;
+      if (opnum == LABEL) continue;
+      outoffp = ttp->outoffs;           /* use unexpanded ndxes */
+      inoffp = ttp->inoffs;             /* to find sr.. assigns */
+      if (outoffp->count == 1 && inoffp->count == 1) {
+        int rindex = (int) outoffp->indx[0] - (int) O->poolcount;
+        if (rindex > 0 && rindex <= 5) {
+          MYFLT conval = p->pool[inoffp->indx[0] - 1];
+          switch (rindex) {
+            case 1:  p->esr = conval;   break;  /* & use those values */
+            case 2:  p->ekr = conval;   break;  /*  to set params now */
+            case 3:  p->ksmps = (int) ((ensmps = conval) + FL(0.5)); break;
+            case 4:  p->nchnls = (int) (conval + FL(0.5));  break;
+            default: p->e0dbfs = conval; break;
+          }
+        }
+      }
+    }
+    /* why I want oload() to return an error value.... */
+    if (p->e0dbfs <= FL(0.0))
+      p->Die(p, Str("bad value for 0dbfs: must be positive."));
+    if (O->odebug)
+      p->Message(p, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
+                    "0dbfs = %.1f\n",
+                    p->esr, p->ekr, p->ksmps, p->nchnls, p->e0dbfs);
+    if (O->sr_override) {        /* if command-line overrides, apply now */
+      p->esr = (MYFLT) O->sr_override;
+      p->ekr = (MYFLT) O->kr_override;
+      p->ksmps = (int) ((ensmps = ((MYFLT) O->sr_override
+                                   / (MYFLT) O->kr_override)) + FL(0.5));
+      p->Message(p, Str("sample rate overrides: "
+                        "esr = %7.1f, ekr = %7.1f, ksmps = %d\n"),
+                    p->esr, p->ekr, p->ksmps);
+    }
+    /* number of MYFLT locations to allocate for a string variable */
+    p->strVarSamples = (p->strVarMaxLen + (int) sizeof(MYFLT) - 1)
+                       / (int) sizeof(MYFLT);
+    p->strVarMaxLen = p->strVarSamples * (int) sizeof(MYFLT);
+    /* calculate total size of global pool */
+    combinedsize = O->poolcount                 /* floating point constants */
+                   + O->gblfixed                /* k-rate / spectral        */
+                   + O->gblacount * p->ksmps            /* a-rate variables */
+                   + O->gblscount * p->strVarSamples;   /* string variables */
+    gblscbeg = combinedsize + 1;                /* string constants         */
+    combinedsize += create_strconst_ndx_list(p, &strConstIndexList, gblscbeg);
+
+    combinedspc = (MYFLT*) mcalloc(p, combinedsize * sizeof(MYFLT));
+    /* copy pool into combined space */
+    memcpy(combinedspc, p->pool, O->poolcount * sizeof(MYFLT));
+    mfree(p, (void*) p->pool);
+    p->pool = combinedspc;
+    gblspace = p->pool + O->poolcount;
+    gblspace[0] = p->esr;           /*   & enter        */
+    gblspace[1] = p->ekr;           /*   rsvd word      */
+    gblspace[2] = (MYFLT) p->ksmps; /*   curr vals      */
+    gblspace[3] = (MYFLT) p->nchnls;
+    gblspace[4] = p->e0dbfs;
+    p->gbloffbas = p->pool - 1;
+    /* string constants: unquote, convert escape sequences, and copy to pool */
+    convert_strconst_pool(p, (MYFLT*) p->gbloffbas + (long) gblscbeg);
+
+    gblabeg = O->poolcount + O->gblfixed + 1;
+    gblsbeg = gblabeg + O->gblacount;
+    ip = &(p->instxtanchor);
+    while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
+      optxt = (OPTXT *) ip;                     /*   (and set localen)        */
+      lclabeg = (long) (ip->pmax + ip->lclfixed + 1);
+      lclsbeg = (long) (lclabeg + ip->lclacnt);
+      if (O->odebug) p->Message(p, "lclabeg %ld, lclsbeg %ld\n",
+                                   lclabeg, lclsbeg);
+      ip->localen = ((long) ip->lclfixed
+                     + (long) ip->lclacnt * (long) p->ksmps
+                     + (long) ip->lclscnt * (long) p->strVarSamples)
+                    * (long) sizeof(MYFLT);
+      /* align to 64 bits */
+      ip->localen = (ip->localen + 7L) & (~7L);
+      for (insno=0, n=0; insno <= p->maxinsno; insno++)
+        if (p->instrtxtp[insno] == ip)  n++;            /* count insnos  */
+      lp = ip->inslist = (long *) mmalloc(p, (long)(n+1) * sizeof(long));
+      for (insno=0; insno <= p->maxinsno; insno++)
+        if (p->instrtxtp[insno] == ip)  *lp++ = insno;  /* creat inslist */
+      *lp = -1;                                         /*   & terminate */
+      insno = *ip->inslist;                             /* get the first */
+      while ((optxt = optxt->nxtop) !=  NULL) {
+        TEXT    *ttp = &optxt->t;
+        ARGOFFS *aoffp;
+        long    indx;
+        long    posndx;
+        int     *ndxp;
+        int     opnum = ttp->opnum;
+        if (opnum == ENDIN || opnum == ENDOP) break;    /* IV - Sep 8 2002 */
+        if (opnum == LABEL) continue;
+        aoffp = ttp->outoffs;           /* ------- OUTARGS -------- */
+        n = aoffp->count;
+        for (ndxp = aoffp->indx; n--; ndxp++) {
+          indx = *ndxp;
+          if (indx > 0) {               /* positive index: global   */
+            if (indx >= STR_OFS)        /* string constant          */
+              p->Die(p, Str("internal error: string constant outarg"));
+            if (indx > gblsbeg)         /* global string variable   */
+              indx = gblsbeg + (indx - gblsbeg) * p->strVarSamples;
+            else if (indx > gblabeg)    /* global a-rate variable   */
+              indx = gblabeg + (indx - gblabeg) * p->ksmps;
+            else if (indx <= 3 && O->sr_override &&
+                     ip == p->instxtanchor.nxtinstxt)   /* for instr 0 */
+              indx += 3;        /* deflect any old sr,kr,ksmps targets */
+          }
+          else {                        /* negative index: local    */
+            posndx = -indx;
+            if (indx < LABELIM)         /* label                    */
+              continue;
+            if (posndx > lclsbeg)       /* local string variable    */
+              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVarSamples);
+            else if (posndx > lclabeg)  /* local a-rate variable    */
+              indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
+          }
+          *ndxp = (int) indx;
+        }
+        aoffp = ttp->inoffs;            /* inargs:                  */
+        if (opnum >= SETEND) goto realops;
+        switch (opnum) {                /*      do oload SETs NOW   */
+        case PSET:
+          p->Message(p, "PSET: isno=%ld, pmax=%d\n", insno, ip->pmax);
+          if ((n = aoffp->count) != ip->pmax) {
+            p->Warning(p, Str("i%d pset args != pmax"), (int) insno);
+            if (n < ip->pmax) n = ip->pmax; /* cf pset, pmax    */
+          }                                 /* alloc the larger */
+          ip->psetdata = (MYFLT *) mcalloc(p, n * sizeof(MYFLT));
+          for (n = aoffp->count, fp1 = ip->psetdata, ndxp = aoffp->indx;
+               n--; ) {
+            *fp1++ = p->gbloffbas[*ndxp++];
+            p->Message(p, "..%f..", *(fp1-1));
+          }
+          p->Message(p, "\n");
+          break;
+        }
+        continue;       /* no runtime role for the above SET types */
+
+      realops:
+        n = aoffp->count;               /* -------- INARGS -------- */
+        for (ndxp = aoffp->indx; n--; ndxp++) {
+          indx = *ndxp;
+          if (indx > 0) {               /* positive index: global   */
+            if (indx >= STR_OFS)        /* string constant          */
+              indx = (long) strConstIndexList[indx - (long) (STR_OFS + 1)];
+            else if (indx > gblsbeg)    /* global string variable   */
+              indx = gblsbeg + (indx - gblsbeg) * p->strVarSamples;
+            else if (indx > gblabeg)    /* global a-rate variable   */
+              indx = gblabeg + (indx - gblabeg) * p->ksmps;
+          }
+          else {                        /* negative index: local    */
+            posndx = -indx;
+            if (indx < LABELIM)         /* label                    */
+              continue;
+            if (posndx > lclsbeg)       /* local string variable    */
+              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVarSamples);
+            else if (posndx > lclabeg)  /* local a-rate variable    */
+              indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
+          }
+          *ndxp = (int) indx;
+        }
+      }
+    }
+    p->Free(p, strConstIndexList);
+
+    p->tpidsr = TWOPI_F / p->esr;               /* now set internal  */
+    p->mtpdsr = -(p->tpidsr);                   /*    consts         */
+    p->pidsr = PI_F / p->esr;
+    p->mpidsr = -(p->pidsr);
+    p->onedksmps = FL(1.0) / (MYFLT) p->ksmps;
+    p->sicvt = FMAXLEN / p->esr;
+    p->kicvt = FMAXLEN / p->ekr;
+    p->onedsr = FL(1.0) / p->esr;
+    p->onedkr = FL(1.0) / p->ekr;
+    /* IV - Sep 8 2002: save global variables that depend on ksmps */
+    p->global_ksmps     = p->ksmps;
+    p->global_ekr       = p->ekr;
+    p->global_kcounter  = p->kcounter;
+    reverbinit(p);
+    dbfs_init(p, p->e0dbfs);
+    p->nspout = p->ksmps * p->nchnls;  /* alloc spin & spout */
+    p->nspin = p->nspout;
+    p->spin  = (MYFLT *) mcalloc(p, p->nspin * sizeof(MYFLT));
+    p->spout = (MYFLT *) mcalloc(p, p->nspout * sizeof(MYFLT));
+    /* chk consistency one more time (FIXME: needed ?) */
+    {
+      char  s[256];
+      sprintf(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
+                 p->esr, p->ekr, ensmps);
+      if (p->ksmps < 1 || FLOAT_COMPARE(ensmps, p->ksmps))
+        csoundDie(p, Str("%s invalid ksmps value"), s);
+      if (p->esr <= FL(0.0))
+        csoundDie(p, Str("%s invalid sample rate"), s);
+      if (p->ekr <= FL(0.0))
+        csoundDie(p, Str("%s invalid control rate"), s);
+      if (FLOAT_COMPARE(p->esr, (double) p->ekr * ensmps))
+        csoundDie(p, Str("%s inconsistent sr, kr, ksmps"), s);
+    }
+    /* initialise sensevents state */
+    p->prvbt = p->curbt = p->nxtbt = 0.0;
+    p->curp2 = p->nxtim = p->timeOffs = p->beatOffs = 0.0;
+    p->curTime = p->curBeat = 0.0;
+    p->curTime_inc = 1.0 / (double) p->ekr;
+    if (O->Beatmode && O->cmdTempo > 0) {
+      /* if performing from beats, set the initial tempo */
+      p->curBeat_inc = (double) O->cmdTempo / (60.0 * (double) p->ekr);
+      p->beatTime = 60.0 / (double) O->cmdTempo;
+    }
+    else {
+      p->curBeat_inc = 1.0 / (double) p->ekr;
+      p->beatTime = 1.0;
+    }
+    p->cyclesRemaining = 0;
+    memset(&(p->evt), 0, sizeof(EVTBLK));
+
+    /* run instr 0 inits */
+    if (init0(p) != 0)
+      csoundDie(p, Str("header init errors"));
 }
 
