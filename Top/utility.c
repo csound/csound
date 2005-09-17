@@ -94,14 +94,16 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
       p = p->nxt;
     }
     csound->engineState |= 4;
-    csound->scorename = csound->orchname = (char*) name;    /* needed? */
+    csound->scorename = csound->orchname = (char*) name;    /* needed ? */
     csound->Message(csound, Str("util %s:\n"), name);
     n = p->UtilFunc(csound, argc, argv);
     goto err_return;
 
  notFound:
-    if (name != NULL && name[0] != '\0')
+    if (name != NULL && name[0] != '\0') {
+      print_opcodedir_warning(csound);
       csound->ErrorMsg(csound, Str("Error: utility '%s' not found"), name);
+    }
     else
       csound->ErrorMsg(csound, Str("Error: utility not found"));
     lst = csound->ListUtilities(csound);
