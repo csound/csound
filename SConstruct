@@ -1037,7 +1037,7 @@ else:
     elif getPlatform() == 'darwin':
         vstEnvironment.Append(LIBS = ['python2.3', 'dl', 'm'])
         vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-         #vstEnvironment.Append(cxxflags = ['-fabi-version=0']) # if gcc3.2-3
+        # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
         if commonEnvironment['Word64']=='1':
             vstEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
         else:
