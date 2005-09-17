@@ -139,19 +139,17 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     ST(toremove) = tmp;
 }
 
-extern int argdecode(CSOUND*, int, char**);
-
 int readOptions(CSOUND *csound, FILE *unf)
 {
-    char *p;
-    int argc = 0;
-    char *argv[100];
+    char  *p;
+    int   argc = 0;
+    char  *argv[100];
 
     alloc_globals(csound);
-    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
-      while (*p==' ' || *p=='\t') p++;
-      if (strstr(p,"</CsOptions>") == ST(buffer)) {
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "</CsOptions>") == p) {
         return TRUE;
       }
       /**
@@ -230,7 +228,7 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = ST(buffer);
       while (*p == ' ' || *p == '\t') p++;
-      if (strstr(p,"</CsInstruments>") == ST(buffer)) {
+      if (strstr(p, "</CsInstruments>") == p) {
         csoundFileClose(csound, fd);
         add_tmpfile(csound, ST(orcname));           /* IV - Feb 03 2005 */
         return TRUE;
@@ -256,8 +254,8 @@ static int createScore(CSOUND *csound, FILE *unf)
 
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
       p = ST(buffer);
-      while (*p==' '||*p=='\t') p++;
-     if (strstr(p,"</CsScore>") == ST(buffer)) {
+      while (*p == ' ' || *p == '\t') p++;
+     if (strstr(p, "</CsScore>") == p) {
         csoundFileClose(csound, fd);
         add_tmpfile(csound, ST(sconame));           /* IV - Feb 03 2005 */
         return TRUE;
@@ -298,8 +296,8 @@ static int createMIDI(CSOUND *csound, FILE *unf)
     while (TRUE) {
       if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
         p = ST(buffer);
-        while (*p==' '||*p=='\t') p++;
-        if (strstr(p,"</CsMidifile>") == ST(buffer)) {
+        while (*p == ' ' || *p == '\t') p++;
+        if (strstr(p, "</CsMidifile>") == p) {
           return TRUE;
         }
       }
@@ -377,8 +375,8 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
     while (TRUE) {
       if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
         p = ST(buffer);
-        while (*p==' '||*p=='\t') p++;
-        if (strstr(p,"</CsMidifileB>") == ST(buffer)) {
+        while (*p == ' ' || *p == '\t') p++;
+        if (strstr(p, "</CsMidifileB>") == p) {
           return TRUE;
         }
       }
@@ -409,8 +407,8 @@ static int createSample(CSOUND *csound, FILE *unf)
     while (TRUE) {
       if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
         char *p = ST(buffer);
-        while (*p==' '||*p=='\t') p++;
-        if (strstr(p,"</CsSampleB>") == ST(buffer)) {
+        while (*p == ' ' || *p == '\t') p++;
+        if (strstr(p, "</CsSampleB>") == p) {
           return TRUE;
         }
       }
@@ -443,8 +441,8 @@ static int createFile(CSOUND *csound, FILE *unf)
     while (TRUE) {
       if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
         char *p = ST(buffer);
-        while (*p==' '||*p=='\t') p++;
-        if (strstr(p,"</CsFileB>") == ST(buffer)) {
+        while (*p == ' ' || *p == '\t') p++;
+        if (strstr(p, "</CsFileB>") == p) {
           return TRUE;
         }
       }
@@ -459,24 +457,23 @@ static int checkVersion(CSOUND *csound, FILE *unf)
     int   result = TRUE;
     int   version = csoundGetVersion();
 
-    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)!= NULL) {
+    while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
-      while (*p==' '||*p=='\t') p++;
-      if (strstr(p, "</CsVersion>")==0)
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "</CsVersion>") != NULL)
         return result;
-      if (strstr(p, "Before")==0) {
+      if (strstr(p, "Before") != NULL) {
         sscanf(p, "Before %d.%d", &major, &minor);
-        if (version > ((major * 100) + minor))
+        if (version > ((major * 1000) + minor))
           result = FALSE;
       }
-      else if (strstr(p, "After")==0) {
+      else if (strstr(p, "After") != NULL) {
         sscanf(p, "After %d.%d", &major, &minor);
-        if (version < ((major * 100) + minor))
+        if (version < ((major * 1000) + minor))
           result = FALSE;
       }
-      else if (sscanf(p, "%d.%d", &major, &minor)==2) {
-        sscanf(p, "Before %d.%d", &major, &minor);
-        if (version > ((major * 100) + minor))
+      else if (sscanf(p, "%d.%d", &major, &minor) == 2) {
+        if (version < ((major * 1000) + minor))
           result = FALSE;
       }
     }
@@ -507,21 +504,14 @@ static int checkLicence(CSOUND *csound, FILE *unf)
     return FALSE;
 }
 
-static int eat_to_eol(char *buf)
-{
-    int i = 0;
-    while (buf[i] != '\n') i++;
-    return i;   /* keep the \n for further processing */
-}
-
 static int blank_buffer(CSOUND *csound)
 {
-    int i=0;
-    if (ST(buffer)[i] == ';')
-      i += eat_to_eol(&ST(buffer)[i]);
-    while (ST(buffer)[i] != '\n' && ST(buffer)[i] != '\0') {
-      if (ST(buffer)[i] != ' ' && ST(buffer)[i] != '\t') return FALSE;
-      i++;
+    const char *s;
+    for (s = &(ST(buffer)[0]); *s != '\0' && *s != '\n'; s++) {
+      if (*s == ';')
+        return TRUE;
+      if (*s != ' ' && *s != '\t')
+        return FALSE;
     }
     return TRUE;
 }
@@ -551,14 +541,14 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
 #endif
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf)) {
       char *p = ST(buffer);
-      while (*p==' '||*p=='\t') p++;
-      if (strstr(p,"<CsoundSynthesizer>") == ST(buffer) ||
-          strstr(p,"<CsoundSynthesiser>") == ST(buffer)) {
+      while (*p == ' ' || *p == '\t') p++;
+      if (strstr(p, "<CsoundSynthesizer>") == p ||
+          strstr(p, "<CsoundSynthesiser>") == p) {
         csoundMessage(csound, Str("STARTING FILE\n"));
         started = TRUE;
       }
-      else if (strstr(p,"</CsoundSynthesizer>") == ST(buffer) ||
-               strstr(p,"</CsoundSynthesiser>") == ST(buffer)) {
+      else if (strstr(p, "</CsoundSynthesizer>") == p ||
+               strstr(p, "</CsoundSynthesiser>") == p) {
         *pname = ST(orcname);
         *score = ST(sconame);
         if (ST(midiSet)) {
@@ -568,43 +558,56 @@ int read_unified_file(CSOUND *csound, char **pname, char **score)
         csoundFileClose(csound, fd);
         return result;
       }
-      else if (strstr(p,"<CsOptions>") == ST(buffer)) {
-        csoundMessage(csound, Str("Creating options\n"));
-        csound->orchname = NULL;    /* allow orchestra/score name in CSD file */
-        r = readOptions(csound, unf);
-        result = r && result;
+      else if (strstr(p, "<CsOptions>") == p) {
+        if (!csound->disable_csd_options) {
+          csoundMessage(csound, Str("Creating options\n"));
+          csound->orchname = NULL;  /* allow orchestra/score name in CSD file */
+          r = readOptions(csound, unf);
+          result = r && result;
+        }
+        else {
+          csoundMessage(csound, Str("Skipping <CsOptions>\n"));
+          do {
+            if (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) == NULL) {
+              result = FALSE;
+              break;
+            }
+            p = ST(buffer);
+            while (*p == ' ' || *p == '\t') p++;
+          } while (strstr(p, "</CsOptions>") != p);
+        }
       }
-      else if (strstr(p,"<CsInstruments>") == ST(buffer)) {
+      else if (strstr(p, "<CsInstruments>") == p) {
         csoundMessage(csound, Str("Creating orchestra\n"));
         r = createOrchestra(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsScore>") == ST(buffer)) {
+      else if (strstr(p, "<CsScore>") == p) {
         csoundMessage(csound, Str("Creating score\n"));
         r = createScore(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsMidifile>") == ST(buffer)) {
+      else if (strstr(p, "<CsMidifile>") == p) {
         r = createMIDI(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsMidifileB>") == ST(buffer)) {
+      else if (strstr(p, "<CsMidifileB>") == p) {
         r = createMIDI2(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsSampleB filename=") == ST(buffer)) {
+      else if (strstr(p, "<CsSampleB filename=") == p) {
         r = createSample(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsFileB filename=") == ST(buffer)) {
+      else if (strstr(p, "<CsFileB filename=") == p) {
         r = createFile(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsVersion>") == ST(buffer)) {
+      else if (strstr(p, "<CsVersion>") == p) {
         r = checkVersion(csound, unf);
         result = r && result;
       }
-      else if (strstr(p,"<CsLicence>") == ST(buffer)) {
+      else if (strstr(p, "<CsLicence>") == p) {
         r = checkLicence(csound, unf);
         result = r && result;
       }
