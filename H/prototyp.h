@@ -72,6 +72,7 @@ char    *type2string(int type);
 void    rewriteheader(SNDFILE *ofd);
 void    writeLine(CSOUND *, const char *text, long size);
 int     readOptions(CSOUND *, FILE *);
+int     argdecode(CSOUND *, int, char **);
 void    remove_tmpfiles(CSOUND *);
 void    add_tmpfile(CSOUND *, char *);
 void    xturnoff(CSOUND *, INSDS *);
@@ -89,6 +90,7 @@ int     csoundLoadExternal(CSOUND *, const char *libraryPath);
 int     csoundLoadExternals(CSOUND *);
 SNDMEMFILE  *csoundLoadSoundFile(CSOUND *, const char *name, SF_INFO *sfinfo);
 int     PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
+void    print_opcodedir_warning(CSOUND *);
 
 /**
  * Register a function to be called at note deactivation.
