@@ -242,7 +242,7 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
       devnum = atoi(parm->devName);
       if (devnum >= 0 && devnum < devnos)
         dev->dev = sysdevs[devnum];
-      p->Message(csound, "selected device: %d \n", devnum);
+      p->Message(csound, "selected device: %u \n", (unsigned int) devnum);
       free(sysdevs);
     }
 
