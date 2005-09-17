@@ -562,7 +562,7 @@ extern "C" {
 #endif  /* __BUILDING_LIBCSOUND */
 
   struct CSOUND_ {
-    /* Csound API function pointers (288 total) */
+    /* Csound API function pointers (320 total) */
     int (*GetVersion)(void);
     int (*GetAPIVersion)(void);
     void *(*GetHostData)(CSOUND *);
@@ -810,8 +810,14 @@ extern "C" {
     CS_NORETURN void (*LongJmp)(CSOUND *, int);
     CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
     void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
+    int (*GetChannelPtr)(CSOUND *, MYFLT **p, const char *name, int type);
+    int (*ListChannels)(CSOUND *, char ***names, int **types);
+    int (*SetControlChannelParams)(CSOUND *, const char *name,
+                                   int type, MYFLT dflt, MYFLT min, MYFLT max);
+    int (*GetControlChannelParams)(CSOUND *, const char *name,
+                                   MYFLT *dflt, MYFLT *min, MYFLT *max);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[88];
+    SUBR dummyfn_2[116];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;
@@ -1040,6 +1046,9 @@ extern "C" {
     void          *lprdaddr;            /* ugens5.c */
     int           currentLPCSlot;
     int           max_lpc_slot;
+    void          *chn_db;
+    int           opcodedirWasOK;
+    int           disable_csd_options;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
