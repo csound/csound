@@ -955,6 +955,178 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 
 #endif  /* CSGLOBALS_USE_TREE */
 
+/* TODO: this interface is not fully implemented yet */
+
+typedef struct channelEntry_s {
+    char    *name;
+    struct channelEntry_s *nxt;
+    int     type;
+    MYFLT   *data;
+} channelEntry_t;
+
+static int delete_channel_db(CSOUND *csound, void *p)
+{
+    channelEntry_t  **db, *pp;
+    int             i;
+
+    (void) p;
+    db = (channelEntry_t**) csound->chn_db;
+    if (db == NULL)
+      return 0;
+    for (i = 0; i < 256; i++) {
+      while (db[i] != NULL) {
+        pp = db[i];
+        db[i] = pp->nxt;
+        free((void*) pp);
+      }
+    }
+    csound->chn_db = NULL;
+    free((void*) db);
+    return 0;
+}
+
+static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
+                                          const char *name, int type)
+{
+    void          *pp;
+    const char    *s;
+    unsigned char h;
+    int           nbytes;
+
+    /* check for valid parameters and calculate hash value */
+    if ((type & (~51)) || !(type & 3) || !(type & 48))
+      return CSOUND_ERROR;
+    if (name == NULL || name[0] == '\0')
+      return CSOUND_ERROR;
+    s = name;
+    if (!isalpha((unsigned char) *s))
+      return CSOUND_ERROR;
+    h = strhash_tabl_8[(unsigned char) *(s++)];
+    for ( ; *s != (char) 0; s++) {
+      if (!isalnum((unsigned char) *s) && *s != '_')
+        return CSOUND_ERROR;
+      h = strhash_tabl_8[(unsigned char) *s ^ h];
+    }
+    /* create new empty database on first call */
+    if (csound->chn_db == NULL) {
+      if (csound->RegisterResetCallback(csound, NULL, delete_channel_db) != 0)
+        return CSOUND_MEMORY;
+      csound->chn_db = (void*) calloc((size_t) 256, sizeof(channelEntry_t*));
+      if (csound->chn_db == NULL)
+        return CSOUND_MEMORY;
+    }
+    /* allocate new entry */
+    nbytes = sizeof(channelEntry_t);
+    if (*p == NULL) {
+      nbytes = (nbytes + (int) sizeof(MYFLT) - 1) / (int) sizeof(MYFLT);
+      switch (type & CSOUND_CHANNEL_TYPE_MASK) {
+        case CSOUND_CONTROL_CHANNEL:  nbytes += 1;                      break;
+        case CSOUND_AUDIO_CHANNEL:    nbytes += csound->ksmps;          break;
+        case CSOUND_STRING_CHANNEL:   nbytes += csound->strVarSamples;  break;
+      }
+      nbytes *= (int) sizeof(MYFLT);
+    }
+    pp = (void*) calloc((size_t) 1, (size_t) nbytes + strlen(name) + 1);
+    if (pp == NULL)
+      return CSOUND_MEMORY;
+    ((channelEntry_t*) pp)->name = ((char*) pp + (int) nbytes);
+    ((channelEntry_t*) pp)->nxt = ((channelEntry_t**) csound->chn_db)[h];
+    ((channelEntry_t*) pp)->type = type;
+    if (*p == NULL)
+      (*p) = (MYFLT*) pp + (((int) sizeof(channelEntry_t)
+                             + (int) sizeof(MYFLT) - 1) / (int) sizeof(MYFLT));
+    ((channelEntry_t*) pp)->data = *p;
+    strcpy(((channelEntry_t*) pp)->name, name);
+    ((channelEntry_t**) csound->chn_db)[h] = (channelEntry_t*) pp;
+
+    return CSOUND_SUCCESS;
+}
+
+PUBLIC int csoundGetChannelPtr(CSOUND *csound,
+                               MYFLT **p, const char *name, int type)
+{
+    channelEntry_t  *pp;
+
+    *p = (MYFLT*) NULL;
+    if (name == NULL)
+      return CSOUND_ERROR;
+    if (csound->chn_db != NULL) {
+      pp = ((channelEntry_t**) csound->chn_db)[name_hash(name)];
+      while (pp != NULL) {
+        if (sCmp(pp->name, name) == 0) {
+          if (pp->type != type)
+            return pp->type;
+          *p = pp->data;
+          return CSOUND_SUCCESS;
+        }
+        pp = pp->nxt;
+      }
+    }
+    return create_new_channel(csound, p, name, type);
+}
+
+static int cmp_func(const void *p1, const void *p2)
+{
+    return strcmp(*((const char **) p1), *((const char **) p2));
+}
+
+PUBLIC int csoundListChannels(CSOUND *csound, char ***names, int **types)
+{
+    channelEntry_t  *pp;
+    int             i, n;
+
+    *names = (char**) NULL;
+    *types = (int*) NULL;
+    if (csound->chn_db == NULL)
+      return 0;
+    /* count the number of channels */
+    for (n = 0, i = 0; i < 256; i++) {
+      for (pp = ((channelEntry_t**) csound->chn_db)[i];
+           pp != NULL;
+           pp = pp->nxt, n++)
+        ;
+    }
+    if (!n)
+      return 0;
+    /* create list, initially in unsorted order */
+    *names = (char**) malloc((size_t) n * sizeof(char*));
+    if (*names == NULL)
+      return CSOUND_MEMORY;
+    *types = (int*) malloc((size_t) n * sizeof(int));
+    if (*types == NULL) {
+      free((void*) (*names));
+      return CSOUND_MEMORY;
+    }
+    for (n = 0, i = 0; i < 256; i++) {
+      for (pp = ((channelEntry_t**) csound->chn_db)[i];
+           pp != NULL;
+           pp = pp->nxt, n++)
+        (*names)[n] = pp->name;
+    }
+    /* sort list */
+    qsort((void*) (*names), (size_t) n, sizeof(char*), cmp_func);
+    /* hack: find out type by trying to query with bad type */
+    for (i = 0; i < n; i++) {
+      MYFLT *dummy;
+      (*types)[i] = csound->GetChannelPtr(csound, &dummy, (*names)[i], 0);
+    }
+    /* return the number of channels */
+    return n;
+}
+
+PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
+                                         int type, MYFLT dflt,
+                                         MYFLT min, MYFLT max)
+{
+    return 0;
+}
+
+PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
+                                         MYFLT *dflt, MYFLT *min, MYFLT *max)
+{
+    return 0;
+}
+
 #ifdef __cplusplus
 }
 #endif
