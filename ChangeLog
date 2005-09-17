@@ -1,4 +1,20 @@
-2005-0901	Michael Gogins	<gogins@pipeline.com>
+2005-09-17	Istvan Varga	<ivarga@csounds.com>
+	* Engine/namedins.c:
+	  started to implement bus with named channels; this is not
+	  complete yet
+	* Engine/oload.c, Engine/otran.c, Top/csound.c:
+	  moved some parts of oload.c to otran.c while others to csound.c
+	  removed oload.c
+	* H/csound.h, H/csoundCore.h:
+	  new API functions, and variables in CSOUND structure
+	* Engine/otran.c, Top/csmodule.c, Top/csound.c, Top/utility.c:
+	  improved warning message for undefined OPCODEDIR/OPCODEDIR64
+	* Top/csound.c, Top/one_file.c:
+	  new command line flag (-+ignore_csopts) to disable the use of
+	  options specified in a CSD file
+	  one_file.c: minor fixes in parsing CSD files
+
+2005-09-01	Michael Gogins	<gogins@pipeline.com>
 	* Added CsoundVST.Soundfile wrapper class for Python access
 	to libsndfile.
 
