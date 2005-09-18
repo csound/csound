@@ -1,3 +1,10 @@
+2005-09-18	Istvan Varga	<ivarga@csounds.com>
+	* Engine/namedins.c, H/csound.h:
+	  more complete implementation of bus interface (may still need
+	  some changes)
+	* Engine/entry2.c, H/str_ops.h, OOps/str_ops.c:
+	  new opcodes
+
 2005-09-17	Istvan Varga	<ivarga@csounds.com>
 	* Engine/namedins.c:
 	  started to implement bus with named channels; this is not
