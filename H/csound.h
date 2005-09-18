@@ -1048,17 +1048,89 @@ extern "C" {
   PUBLIC const char *csoundGetUtilityDescription(CSOUND *,
                                                  const char *utilName);
 
-  /* TODO: */
-
+  /**
+   * Stores a pointer to the specified channel of the bus in *p,
+   * creating the channel first if it does not exist yet.
+   * 'type' must be the bitwise OR of exactly one of the following values,
+   *   CSOUND_CONTROL_CHANNEL
+   *     control data (one MYFLT value)
+   *   CSOUND_AUDIO_CHANNEL
+   *     audio data (csoundGetKsmps(csound) MYFLT values)
+   *   CSOUND_STRING_CHANNEL
+   *     string data (MYFLT values with enough space to store
+   *     csoundGetStrVarMaxLen(csound) characters, including the
+   *     NULL character at the end of the string)
+   * and at least one of these:
+   *   CSOUND_INPUT_CHANNEL
+   *   CSOUND_OUTPUT_CHANNEL
+   * If the channel already exists, it must match the data type (control,
+   * audio, or string), however, the input/output bits are OR'd with the
+   * new value. Note that audio and string channels can only be created
+   * after calling csoundCompile(), because the storage size is not known
+   * until then.
+   * Return value is zero on success, or a negative error code,
+   *   CSOUND_MEMORY  there is not enough memory for allocating the channel
+   *   CSOUND_ERROR   the specified name or type is invalid
+   * or, if a channel with the same name but incompatible type already exists,
+   * the type of the existing channel. In the case of any non-zero return
+   * value, *p is set to NULL.
+   * Note: to find out the type of a channel without actually creating or
+   * changing it, set 'type' to zero, so that the return value will be either
+   * the type of the channel, or CSOUND_ERROR if it does not exist.
+   */
   PUBLIC int csoundGetChannelPtr(CSOUND *,
                                  MYFLT **p, const char *name, int type);
 
+  /**
+   * Returns a list of allocated channels, storing a pointer to an array
+   * of channel names in *names, and a pointer to an array of channel types
+   * in *types. (*types)[n] corresponds to (*names)[n], and has the same
+   * format as the 'type' parameter of csoundGetChannelPtr().
+   * The return value is the number of channels, which may be zero if there
+   * are none, or CSOUND_MEMORY if there is not enough memory for allocating
+   * the lists. In the case of no channels or an error, *names and *types are
+   * set to NULL.
+   * Note: the caller is responsible for freeing the lists returned in *names
+   * and *types with free(), however, the actual channel names should not be
+   * changed or freed. Also, the name pointers may become invalid after calling
+   * csoundReset().
+   */
   PUBLIC int csoundListChannels(CSOUND *, char ***names, int **types);
 
+  /**
+   * Sets special parameters for a control channel. The parameters are:
+   *   type:  must be one of CSOUND_CONTROL_CHANNEL_INT,
+   *          CSOUND_CONTROL_CHANNEL_LIN, or CSOUND_CONTROL_CHANNEL_EXP for
+   *          integer, linear, or exponential channel data, respectively,
+   *          or zero to delete any previously assigned parameter information
+   *   dflt:  the control value that is assumed to be the default, should be
+   *          greater than or equal to 'min', and less than or equal to 'max'
+   *   min:   the minimum value expected; if the control type is exponential,
+   *          it must be non-zero
+   *   max:   the maximum value expected, should be greater than 'min';
+   *          if the control type is exponential, it must be non-zero and
+   *          match the sign of 'min'
+   * Returns zero on success, or a non-zero error code on failure:
+   *   CSOUND_ERROR:  the channel does not exist, is not a control channel,
+   *                  or the specified parameters are invalid
+   *   CSOUND_MEMORY: could not allocate memory
+   */
   PUBLIC int csoundSetControlChannelParams(CSOUND *, const char *name,
                                            int type, MYFLT dflt,
                                            MYFLT min, MYFLT max);
 
+  /**
+   * Returns special parameters (assuming there are any) of a control channel,
+   * previously set with csoundSetControlChannelParams().
+   * If the channel exists, is a control channel, and has the special parameters
+   * assigned, then the default, minimum, and maximum value is stored in *dflt,
+   * *min, and *max, respectively, and a positive value that is one of
+   * CSOUND_CONTROL_CHANNEL_INT, CSOUND_CONTROL_CHANNEL_LIN, and
+   * CSOUND_CONTROL_CHANNEL_EXP is returned.
+   * In any other case, *dflt, *min, and *max are not changed, and the return
+   * value is zero if the channel exists, is a control channel, but has no
+   * special parameters set; otherwise, a negative error code is returned.
+   */
   PUBLIC int csoundGetControlChannelParams(CSOUND *, const char *name,
                                            MYFLT *dflt, MYFLT *min, MYFLT *max);
 
