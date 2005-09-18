@@ -77,6 +77,51 @@ typedef struct {
     int     noNewLine;
 } PUTS_OP;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *arg;
+    MYFLT   *iname;
+    MYFLT   *fp;
+} CHNGET;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *iname;
+    MYFLT   *imode;
+    MYFLT   *itype;
+    MYFLT   *idflt;
+    MYFLT   *imin;
+    MYFLT   *imax;
+} CHN_OPCODE_K;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *iname;
+    MYFLT   *imode;
+} CHN_OPCODE;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *arg;
+    MYFLT   *iname;
+    MYFLT   *imode;
+    MYFLT   *itype;
+    MYFLT   *idflt;
+    MYFLT   *imin;
+    MYFLT   *imax;
+} CHNEXPORT_OPCODE;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *itype;
+    MYFLT   *imode;
+    MYFLT   *ictltype;
+    MYFLT   *idflt;
+    MYFLT   *imin;
+    MYFLT   *imax;
+    MYFLT   *iname;
+} CHNPARAMS_OPCODE;
+
 /*
  {  "strset",   S(STRSET_OP),   1,  "",     "iS",
     (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
@@ -112,6 +157,48 @@ typedef struct {
     (SUBR) strtol_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
  {  "strtolk",  S(STRSET_OP),   3,  "k",    "U",
     (SUBR) strtol_opcode_init, (SUBR) strtol_opcode_perf, (SUBR) NULL   },
+ {  "chnget",      0xFFFF,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chnget.i",    S(CHNGET),           1,      "i",            "S",
+    (SUBR) chnget_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnget.k",    S(CHNGET),           3,      "k",            "S",
+    (SUBR) chnget_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+ {  "chnget.a",    S(CHNGET),           5,      "a",            "S",
+    (SUBR) chnget_opcode_init_a, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+ {  "chnget.S",    S(CHNGET),           1,      "S",            "S",
+    (SUBR) chnget_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnset",      0xFFFB,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chnset.i",    S(CHNGET),           1,      "",             "iS",
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnset.r",    S(CHNGET),           1,      "",             "iS",
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnset.c",    S(CHNGET),           1,      "",             "iS",
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnset.k",    S(CHNGET),           3,      "",             "kS",
+    (SUBR) chnset_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+ {  "chnset.a",    S(CHNGET),           5,      "",             "aS",
+    (SUBR) chnset_opcode_init_a, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+ {  "chnset.S",    S(CHNGET),           1,      "",             "SS",
+    (SUBR) chnset_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+ {  "chn_k",       S(CHN_OPCODE_K),     1,      "",             "Sioooo",
+    (SUBR) chn_k_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+ {  "chn_a",       S(CHN_OPCODE),       1,      "",             "Si",
+    (SUBR) chn_a_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+ {  "chn_S",       S(CHN_OPCODE),       1,      "",             "Si",
+    (SUBR) chn_S_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+ {  "chnexport",   0xFFFF,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chnexport.i", S(CHNEXPORT_OPCODE), 1,      "i",            "Sioooo",
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chnexport.k", S(CHNEXPORT_OPCODE), 1,      "k",            "Sioooo",
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chnexport.a", S(CHNEXPORT_OPCODE), 1,      "a",            "Si",
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chnexport.S", S(CHNEXPORT_OPCODE), 1,      "S",            "Si",
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chnparams",   S(CHNPARAMS_OPCODE), 1,      "iiiiii",       "S",
+    (SUBR) chnparams_opcode_init, (SUBR) NULL, (SUBR) NULL              },
 */
 
 #ifndef CSOUND_STR_OPS_C
@@ -134,6 +221,20 @@ int strtod_opcode_init(CSOUND *, void *);
 int strtod_opcode_perf(CSOUND *, void *);
 int strtol_opcode_init(CSOUND *, void *);
 int strtol_opcode_perf(CSOUND *, void *);
+int notinit_opcode_stub(CSOUND *, void *);
+int chnget_opcode_init_i(CSOUND *, void *);
+int chnget_opcode_init_k(CSOUND *, void *);
+int chnget_opcode_init_a(CSOUND *, void *);
+int chnget_opcode_init_S(CSOUND *, void *);
+int chnset_opcode_init_i(CSOUND *, void *);
+int chnset_opcode_init_k(CSOUND *, void *);
+int chnset_opcode_init_a(CSOUND *, void *);
+int chnset_opcode_init_S(CSOUND *, void *);
+int chn_k_opcode_init(CSOUND *, void *);
+int chn_a_opcode_init(CSOUND *, void *);
+int chn_S_opcode_init(CSOUND *, void *);
+int chnexport_opcode_init(CSOUND *, void *);
+int chnparams_opcode_init(CSOUND *, void *);
 
 #endif      /* CSOUND_STR_OPS_C */
 
