@@ -957,11 +957,19 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 
 /* TODO: this interface is not fully implemented yet */
 
-typedef struct channelEntry_s {
-    char    *name;
-    struct channelEntry_s *nxt;
+typedef struct controlChannelInfo_s {
     int     type;
-    MYFLT   *data;
+    MYFLT   dflt;
+    MYFLT   min;
+    MYFLT   max;
+} controlChannelInfo_t;
+
+typedef struct channelEntry_s {
+    struct channelEntry_s *nxt;
+    controlChannelInfo_t  *info;
+    MYFLT       *data;
+    int         type;
+    char        name[1];
 } channelEntry_t;
 
 static int delete_channel_db(CSOUND *csound, void *p)
@@ -977,6 +985,8 @@ static int delete_channel_db(CSOUND *csound, void *p)
       while (db[i] != NULL) {
         pp = db[i];
         db[i] = pp->nxt;
+        if (pp->info != NULL)
+          free((void*) pp->info);
         free((void*) pp);
       }
     }
@@ -985,13 +995,59 @@ static int delete_channel_db(CSOUND *csound, void *p)
     return 0;
 }
 
-static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
-                                          const char *name, int type)
+static inline channelEntry_t *find_channel(CSOUND *csound, const char *name)
 {
-    void          *pp;
-    const char    *s;
-    unsigned char h;
-    int           nbytes;
+    if (csound->chn_db != NULL) {
+      channelEntry_t *pp = ((channelEntry_t**) csound->chn_db)[name_hash(name)];
+      for ( ; pp != NULL; pp = pp->nxt) {
+        if (sCmp(pp->name, name) == 0)
+          return pp;
+      }
+    }
+    return NULL;
+}
+
+static CS_NOINLINE channelEntry_t *alloc_channel(CSOUND *csound, MYFLT **p,
+                                                 const char *name, int type)
+{
+    channelEntry_t  dummy;
+    void            *pp;
+    int             nbytes, nameOffs, dataOffs;
+
+    (void) dummy;
+    nameOffs = (int) ((char*) &(dummy.name[0]) - (char*) &dummy);
+    dataOffs = nameOffs + ((int) strlen(name) + 1);
+    dataOffs += ((int) sizeof(MYFLT) - 1);
+    dataOffs = (dataOffs / (int) sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    nbytes = dataOffs;
+    if (*p == NULL) {
+      switch (type & CSOUND_CHANNEL_TYPE_MASK) {
+      case CSOUND_CONTROL_CHANNEL:
+        nbytes += (int) sizeof(MYFLT);
+        break;
+      case CSOUND_AUDIO_CHANNEL:
+        nbytes += ((int) sizeof(MYFLT) * csound->ksmps);
+        break;
+      case CSOUND_STRING_CHANNEL:
+        nbytes += ((int) sizeof(MYFLT) * csound->strVarSamples);
+        break;
+      }
+    }
+    pp = (void*) malloc((size_t) nbytes);
+    if (pp == NULL)
+      return (channelEntry_t*) NULL;
+    memset(pp, 0, (size_t) nbytes);
+    if (*p == NULL)
+      *p = (MYFLT*) ((char*) pp + (int) dataOffs);
+    return (channelEntry_t*) pp;
+}
+
+CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
+                                   const char *name, int type)
+{
+    channelEntry_t  *pp;
+    const char      *s;
+    unsigned char   h;
 
     /* check for valid parameters and calculate hash value */
     if ((type & (~51)) || !(type & 3) || !(type & 48))
@@ -1016,31 +1072,49 @@ static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
         return CSOUND_MEMORY;
     }
     /* allocate new entry */
-    nbytes = sizeof(channelEntry_t);
-    if (*p == NULL) {
-      nbytes = (nbytes + (int) sizeof(MYFLT) - 1) / (int) sizeof(MYFLT);
-      switch (type & CSOUND_CHANNEL_TYPE_MASK) {
-        case CSOUND_CONTROL_CHANNEL:  nbytes += 1;                      break;
-        case CSOUND_AUDIO_CHANNEL:    nbytes += csound->ksmps;          break;
-        case CSOUND_STRING_CHANNEL:   nbytes += csound->strVarSamples;  break;
-      }
-      nbytes *= (int) sizeof(MYFLT);
-    }
-    pp = (void*) calloc((size_t) 1, (size_t) nbytes + strlen(name) + 1);
+    pp = alloc_channel(csound, p, name, type);
     if (pp == NULL)
       return CSOUND_MEMORY;
-    ((channelEntry_t*) pp)->name = ((char*) pp + (int) nbytes);
-    ((channelEntry_t*) pp)->nxt = ((channelEntry_t**) csound->chn_db)[h];
-    ((channelEntry_t*) pp)->type = type;
-    if (*p == NULL)
-      (*p) = (MYFLT*) pp + (((int) sizeof(channelEntry_t)
-                             + (int) sizeof(MYFLT) - 1) / (int) sizeof(MYFLT));
-    ((channelEntry_t*) pp)->data = *p;
-    strcpy(((channelEntry_t*) pp)->name, name);
-    ((channelEntry_t**) csound->chn_db)[h] = (channelEntry_t*) pp;
+    pp->nxt = ((channelEntry_t**) csound->chn_db)[h];
+    pp->info = NULL;
+    pp->data = (*p);
+    pp->type = type;
+    strcpy(&(pp->name[0]), name);
+    ((channelEntry_t**) csound->chn_db)[h] = pp;
 
     return CSOUND_SUCCESS;
 }
+
+/**
+ * Stores a pointer to the specified channel of the bus in *p,
+ * creating the channel first if it does not exist yet.
+ * 'type' must be the bitwise OR of exactly one of the following values,
+ *   CSOUND_CONTROL_CHANNEL
+ *     control data (one MYFLT value)
+ *   CSOUND_AUDIO_CHANNEL
+ *     audio data (csoundGetKsmps(csound) MYFLT values)
+ *   CSOUND_STRING_CHANNEL
+ *     string data (MYFLT values with enough space to store
+ *     csoundGetStrVarMaxLen(csound) characters, including the
+ *     NULL character at the end of the string)
+ * and at least one of these:
+ *   CSOUND_INPUT_CHANNEL
+ *   CSOUND_OUTPUT_CHANNEL
+ * If the channel already exists, it must match the data type (control,
+ * audio, or string), however, the input/output bits are OR'd with the
+ * new value. Note that audio and string channels can only be created
+ * after calling csoundCompile(), because the storage size is not known
+ * until then.
+ * Return value is zero on success, or a negative error code,
+ *   CSOUND_MEMORY  there is not enough memory for allocating the channel
+ *   CSOUND_ERROR   the specified name or type is invalid
+ * or, if a channel with the same name but incompatible type already exists,
+ * the type of the existing channel. In the case of any non-zero return
+ * value, *p is set to NULL.
+ * Note: to find out the type of a channel without actually creating or
+ * changing it, set 'type' to zero, so that the return value will be either
+ * the type of the channel, or CSOUND_ERROR if it does not exist.
+ */
 
 PUBLIC int csoundGetChannelPtr(CSOUND *csound,
                                MYFLT **p, const char *name, int type)
@@ -1050,17 +1124,13 @@ PUBLIC int csoundGetChannelPtr(CSOUND *csound,
     *p = (MYFLT*) NULL;
     if (name == NULL)
       return CSOUND_ERROR;
-    if (csound->chn_db != NULL) {
-      pp = ((channelEntry_t**) csound->chn_db)[name_hash(name)];
-      while (pp != NULL) {
-        if (sCmp(pp->name, name) == 0) {
-          if (pp->type != type)
-            return pp->type;
-          *p = pp->data;
-          return CSOUND_SUCCESS;
-        }
-        pp = pp->nxt;
-      }
+    pp = find_channel(csound, name);
+    if (pp != NULL) {
+      if ((pp->type ^ type) & CSOUND_CHANNEL_TYPE_MASK)
+        return pp->type;
+      pp->type |= (type & (CSOUND_INPUT_CHANNEL | CSOUND_OUTPUT_CHANNEL));
+      *p = pp->data;
+      return CSOUND_SUCCESS;
     }
     return create_new_channel(csound, p, name, type);
 }
@@ -1069,6 +1139,21 @@ static int cmp_func(const void *p1, const void *p2)
 {
     return strcmp(*((const char **) p1), *((const char **) p2));
 }
+
+/**
+ * Returns a list of allocated channels, storing a pointer to an array
+ * of channel names in *names, and a pointer to an array of channel types
+ * in *types. (*types)[n] corresponds to (*names)[n], and has the same
+ * format as the 'type' parameter of csoundGetChannelPtr().
+ * The return value is the number of channels, which may be zero if there
+ * are none, or CSOUND_MEMORY if there is not enough memory for allocating
+ * the lists. In the case of no channels or an error, *names and *types are
+ * set to NULL.
+ * Note: the caller is responsible for freeing the lists returned in *names
+ * and *types with free(), however, the actual channel names should not be
+ * changed or freed. Also, the name pointers may become invalid after calling
+ * csoundReset().
+ */
 
 PUBLIC int csoundListChannels(CSOUND *csound, char ***names, int **types)
 {
@@ -1114,17 +1199,103 @@ PUBLIC int csoundListChannels(CSOUND *csound, char ***names, int **types)
     return n;
 }
 
+/**
+ * Sets special parameters for a control channel. The parameters are:
+ *   type:  must be one of CSOUND_CONTROL_CHANNEL_INT,
+ *          CSOUND_CONTROL_CHANNEL_LIN, or CSOUND_CONTROL_CHANNEL_EXP for
+ *          integer, linear, or exponential channel data, respectively,
+ *          or zero to delete any previously assigned parameter information
+ *   dflt:  the control value that is assumed to be the default, should be
+ *          greater than or equal to 'min', and less than or equal to 'max'
+ *   min:   the minimum value expected; if the control type is exponential,
+ *          it must be non-zero
+ *   max:   the maximum value expected, should be greater than 'min';
+ *          if the control type is exponential, it must be non-zero and
+ *          match the sign of 'min'
+ * Returns zero on success, or a non-zero error code on failure:
+ *   CSOUND_ERROR:  the channel does not exist, is not a control channel,
+ *                  or the specified parameters are invalid
+ *   CSOUND_MEMORY: could not allocate memory
+ */
+
 PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
                                          int type, MYFLT dflt,
                                          MYFLT min, MYFLT max)
 {
-    return 0;
+    channelEntry_t  *pp;
+
+    if (name == NULL)
+      return CSOUND_ERROR;
+    pp = find_channel(csound, name);
+    if (pp == NULL)
+      return CSOUND_ERROR;
+    if ((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
+      return CSOUND_ERROR;
+    if (!type) {
+      if (pp->info != NULL) {
+        free((void*) pp->info);
+        pp->info = NULL;
+      }
+      return CSOUND_SUCCESS;
+    }
+    switch (type) {
+    case CSOUND_CONTROL_CHANNEL_INT:
+      dflt = (MYFLT) ((long) MYFLT2LRND(dflt));
+      min = (MYFLT) ((long) MYFLT2LRND(min));
+      max = (MYFLT) ((long) MYFLT2LRND(max));
+      break;
+    case CSOUND_CONTROL_CHANNEL_LIN:
+    case CSOUND_CONTROL_CHANNEL_EXP:
+      break;
+    default:
+      return CSOUND_ERROR;
+    }
+    if (min >= max || dflt < min || dflt > max ||
+        (type == CSOUND_CONTROL_CHANNEL_EXP && ((min * max) <= FL(0.0))))
+      return CSOUND_ERROR;
+    if (pp->info == NULL) {
+      pp->info = (controlChannelInfo_t*) malloc(sizeof(controlChannelInfo_t));
+      if (pp->info == NULL)
+        return CSOUND_MEMORY;
+    }
+    pp->info->type = type;
+    pp->info->dflt = dflt;
+    pp->info->min = min;
+    pp->info->max = max;
+    return CSOUND_SUCCESS;
 }
+
+/**
+ * Returns special parameters (assuming there are any) of a control channel,
+ * previously set with csoundSetControlChannelParams().
+ * If the channel exists, is a control channel, and has the special parameters
+ * assigned, then the default, minimum, and maximum value is stored in *dflt,
+ * *min, and *max, respectively, and a positive value that is one of
+ * CSOUND_CONTROL_CHANNEL_INT, CSOUND_CONTROL_CHANNEL_LIN, and
+ * CSOUND_CONTROL_CHANNEL_EXP is returned.
+ * In any other case, *dflt, *min, and *max are not changed, and the return
+ * value is zero if the channel exists, is a control channel, but has no
+ * special parameters set; otherwise, a negative error code is returned.
+ */
 
 PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
                                          MYFLT *dflt, MYFLT *min, MYFLT *max)
 {
-    return 0;
+    channelEntry_t  *pp;
+
+    if (name == NULL)
+      return CSOUND_ERROR;
+    pp = find_channel(csound, name);
+    if (pp == NULL)
+      return CSOUND_ERROR;
+    if ((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
+      return CSOUND_ERROR;
+    if (pp->info == NULL)
+      return 0;
+    (*dflt) = pp->info->dflt;
+    (*min) = pp->info->min;
+    (*max) = pp->info->max;
+    return pp->info->type;
 }
 
 #ifdef __cplusplus
