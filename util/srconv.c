@@ -207,7 +207,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     void        *dummy;
     int         channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
-    char        *infile = NULL, *outfile = NULL, *bfile = NULL;
+    char        *infile = NULL, *bfile = NULL;
     SNDFILE     *inf = NULL;
     char        c, *s;
     const char  *envoutyp;
@@ -220,7 +220,6 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
     csound->e0dbfs = csound->dbfs_to_float = FL(1.0);
 
-    O->filnamspace = outfile = (char*) csound->Malloc(csound, 1024);
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
         O->filetyp = TYP_AIFF;
@@ -241,17 +240,17 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     ++argv;
     while (--argc > 0) {
       s = *argv++;
-      if (*s++ == '-') {                        /* read all flags:  */
+      if (*s++ == '-') {                /* read all flags:  */
         while ((c = *s++) != '\0') {
           switch (c) {
           case 'j':
             FIND("")
-              while (*++s);
+            while (*++s);
             break;
           case 'o':
             FIND(Str("no outfilename"))
-              O->outfilename = outfile;            /* soundout name */
-            while ((*outfile++ = *s++)); s--;
+            O->outfilename = s;         /* soundout name */
+            for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0) {
               csound->ErrorMsg(csound, Str("-o cannot be stdin"));
               return -1;

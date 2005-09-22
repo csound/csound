@@ -134,7 +134,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
     char        *factorfile = NULL;
     SNDFILE     *infile = NULL, *outfile;
     void        *fd;
-    char        outformch = 's', c, *s, *filnamp;
+    char        outformch = 's', c, *s;
     const char  *envoutyp;
     SF_INFO     sfinfo;
     OPARMS      *O = csound->oparms;
@@ -161,18 +161,17 @@ static int scale(CSOUND *csound, int argc, char **argv)
                             envoutyp);
       }
     }
-    O->filnamspace = filnamp = csound->Malloc(csound, 1024);
     if (!(--argc))
       usage(csound, Str("Insufficient arguments"));
     do {
       s = *++argv;
-      if (*s++ == '-')                        /* read all flags:  */
+      if (*s++ == '-')                  /* read all flags:  */
         while ((c = *s++) != '\0')
           switch(c) {
           case 'o':
             FIND(Str("no outfilename"))
-            O->outfilename = filnamp;      /* soundout name */
-            while ((*filnamp++ = *s++)); s--;
+            O->outfilename = s;         /* soundout name */
+            for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
               csound->Die(csound, "-o cannot be stdin");
 #if defined(mac_classic) || defined(WIN32)
@@ -182,13 +181,13 @@ static int scale(CSOUND *csound, int argc, char **argv)
 #endif
             break;
           case 'A':
-            O->filetyp = TYP_AIFF;     /* AIFF output request  */
+            O->filetyp = TYP_AIFF;      /* AIFF output request  */
             break;
           case 'J':
-            O->filetyp = TYP_IRCAM;      /* IRCAM output request */
+            O->filetyp = TYP_IRCAM;     /* IRCAM output request */
             break;
           case 'W':
-            O->filetyp = TYP_WAV;      /* WAV output request  */
+            O->filetyp = TYP_WAV;       /* WAV output request  */
             break;
           case 'F':
             FIND(Str("no scale factor"));

@@ -64,7 +64,7 @@ static void create_opcodlst(CSOUND *csound)
 PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
-    char    *s, *filnamp;
+    char    *s;
     char    *sortedscore = NULL;
     char    *xtractedscore = "score.xtr";
     char    *playscore = NULL;      /* unless we extract */
@@ -114,7 +114,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* do not know file type yet */
     O->filetyp = -1;
     O->sfheader = 0;
-    O->filnamspace = filnamp = mmalloc(csound, (size_t) 1024);
     csound->peakchunks = 1;
     create_opcodlst(csound);
 
@@ -317,13 +316,12 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       playscore = xtractedscore;
     }
     csound->Message(csound, Str("\t... done\n"));
-    s = playscore;
-    O->playscore = filnamp;
-    while ((*filnamp++ = *s++));    /* copy sorted score name */
+    /* copy sorted score name */
+    O->playscore = (char*) mmalloc(csound, strlen(playscore) + 1);
+    strcpy(O->playscore, playscore);
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of score sort"));
  perf:
-    O->filnamsize = filnamp - O->filnamspace;
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] != '\0')
       openMIDIout(csound);
