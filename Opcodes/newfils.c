@@ -32,7 +32,8 @@ static int moogladder_init(CSOUND *csound,moogladder *p)
     int i;
     if (*p->istor==FL(0.0)) {
       for (i=0;i<6; i++)
-        p->delay[i] = 0;
+        if(i<3) p->tanhstg[i] = 0;
+		p->delay[i] = 0;
     }
     return OK;
 }
@@ -44,9 +45,10 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     MYFLT  freq = *p->freq;
     MYFLT  res = *p->res;
     double  *delay = p->delay;
+	double *tanhstg = p->tanhstg;
     double stg[4], input;
     double f,fc,fc2,fc3,fcr,acr,tune;
-    int thermal = 40000; /* transistor thermal voltage */
+    float thermal = 40000.f; /* transistor thermal voltage */
     int j,k,i;
 
     if (res < 0) res = 0;
@@ -66,13 +68,19 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
       for (j=0;j<2;j++) {
         /* filter stages  */
         for (k=0;k<4;k++) {
-          if (k) input = stg[k-1];
-          else  input = in[i]
-                  - 4.0*res*acr*delay[5];
+          if (k){
+		  input = stg[k-1];
+		  stg[k] = delay[k] +
+            tune*((tanhstg[k-1] = tanh(input/thermal)) - 
+			       (k != 3 ? tanhstg[k] : tanh(delay[k]/thermal)));
+		  }
+          else {
+		    input = in[i] - 4.0*res*acr*delay[5];
           stg[k] = delay[k] +
-            tune*(tanh(input/thermal)
-                  - tanh(delay[k]/thermal));
+            tune*(tanh(input/thermal) - tanhstg[k]);
+		  }
           delay[k] = stg[k];
+		
         }
         /* 1/2-sample delay for phase compensation  */
         delay[5] = (stg[3] + delay[4])*0.5;
