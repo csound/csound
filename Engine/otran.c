@@ -584,7 +584,7 @@ void otran(CSOUND *csound)
         if ((count = ttp->inlist->count)!=0)
           sumcount += count +1;                     /* count the non-nullist */
         if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
-          sumcount += count +1;
+          sumcount += (count + 1);
       }
       ip->optxtcount = optxtcount;                  /* optxts in this instxt */
     }
@@ -621,8 +621,6 @@ void otran(CSOUND *csound)
     O->gblfixed = ST(gblnxtkcnt) + ST(gblnxtpcnt) * (int) Pfloats;
     O->gblacount = ST(gblnxtacnt);
     O->gblscount = ST(gblnxtscnt);
-    O->argoffsize = ST(argoffsize);
-    O->argoffspace = (char *) csound->argoffspace;
     /* clean up */
     delete_local_namepool(csound);
     delete_global_namepool(csound);

@@ -136,8 +136,6 @@ extern "C" {
     long    sr_override, kr_override;
     long    instxtcount, optxtsize;
     long    poolcount, gblfixed, gblacount, gblscount;
-    long    argoffsize, filnamsize;
-    char    *argoffspace, *filnamspace;
     char    *infilename, *outfilename, *playscore;
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */

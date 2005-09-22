@@ -244,7 +244,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
 
     SOUNDIN     *p, *pn;
     void        *dummy;
-    char        *infile = NULL, *outfile = NULL, *nfile = NULL;
+    char        *infile = NULL, *nfile = NULL;
     SNDFILE     *inf = NULL, *outfd = NULL;
     char        c, *s;
     int         channel = ALLCHNLS;
@@ -257,8 +257,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
 
     csound->e0dbfs = csound->dbfs_to_float = FL(1.0);
 
-    O->filnamspace = outfile = (char*) csound->Calloc(csound, (size_t) 1024);
-    nfile = (char*) csound->Calloc(csound, (size_t) 1024);
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
         O->filetyp = TYP_AIFF;
@@ -285,8 +283,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
               break;
             case 'o':
               FIND("no outfilename");
-                O->outfilename = outfile;            /* soundout name */
-              while ((*outfile++ = *s++)); s--;
+              O->outfilename = s;                 /* soundout name */
+              for ( ; *s != '\0'; s++) ;
               if (strcmp(O->outfilename, "stdin") == 0) {
                 csound->Message(csound, Str("-o cannot be stdin\n"));
                 return -1;
@@ -296,10 +294,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
               break;
             case 'i':
               FIND("no noisefilename");
-              {
-                char *nn = nfile;
-                while ((*nn++ = *s++)); s--;
-              }
+              nfile = s;
+              for ( ; *s != '\0'; s++) ;
               break;
             case 'A':
               if (O->filetyp == TYP_WAV)
@@ -1245,5 +1241,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                              "Removes noise from a sound file");
     }
     return retval;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
