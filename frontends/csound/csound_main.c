@@ -1,144 +1,97 @@
+/*
+    csound_main.c:
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 /* Console Csound using the Csound API. */
 
 #include "csound.h"
 #include <stdio.h>
 #include <stdarg.h>
-
-#if defined(LINUX)
-
-#include <unistd.h>
-#include <sys/types.h>
+#include <string.h>
 #include <errno.h>
-#include <sched.h>
-#include <sys/mman.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-
-static int set_rt_priority(int argc, char **argv)
-{
-    int     rtmode;
-    struct sched_param p;
-    int     i, not_root, priority;
-
-    if ((int) geteuid() == 0)
-      not_root = 0;
-    else
-      not_root = 1;
-
-    memset(&p, 0, sizeof(struct sched_param));
-    priority = sched_get_priority_max(SCHED_RR);
-    rtmode = 0;
-    if (argc > 2) {
-      for (i = 1; i <= (argc - 2); i++) {
-        if (!(strcmp(argv[i], "-o")) &&                 /* check if input   */
-            (!(strncmp(argv[i + 1], "dac", 3)) ||       /* or output is     */
-             !(strncmp(argv[i + 1], "devaudio", 8))))   /* audio device     */
-          rtmode |= 2;
-        if (!(strcmp(argv[i], "-i")) &&
-            (!(strncmp(argv[i + 1], "adc", 3)) ||
-             !(strncmp(argv[i + 1], "devaudio", 8))))
-          rtmode |= 2;
-      }
-    }
-    if (argc > 1) {
-      for (i = 1; i <= (argc - 1); i++) {
-        if (!(strncmp(argv[i], "-iadc", 5))) rtmode |= 2;
-        if (!(strncmp(argv[i], "-odac", 5))) rtmode |= 2;
-        if (!(strncmp(argv[i], "-idevaudio", 10))) rtmode |= 2;
-        if (!(strncmp(argv[i], "-odevaudio", 10))) rtmode |= 2;
-        /* also check for --sched option, and -d */
-        if (!(strcmp(argv[i], "--sched"))) rtmode |= 1;
-        if (!(strncmp(argv[i], "--sched=", 8))) {
-          /* priority value specified */
-          priority = (int) atoi(&(argv[i][8]));
-          if (priority < -20 || priority > sched_get_priority_max(SCHED_RR)) {
-            fprintf(stderr, "--sched: invalid priority value: '%s'\n",
-                            &(argv[i][8]));
-            fprintf(stderr, "The allowed range is:\n");
-            fprintf(stderr, "  -20 to -1: set nice level\n");
-            fprintf(stderr, "          0: normal scheduling, "
-                            "but lock memory\n");
-            fprintf(stderr, "    1 to %d: SCHED_RR with the specified priority "
-                            "(DANGEROUS)\n", sched_get_priority_max(SCHED_RR));
-            return -1;
-          }
-          rtmode |= 1;
-        }
-        if (!(strcmp(argv[i], "-d"))) rtmode |= 4;
-      }
-    }
-
-    if (rtmode != 7) {          /* all the above are required to enable */
-      setuid(getuid());         /* error: give up root privileges */
-      if (rtmode & 1) {
-        fprintf(stderr, "csound: --sched requires -d and either -o dac ");
-        fprintf(stderr, "or -o devaudio\n");
-        return -1;
-      }
-      return 0;
-    }
-
-    if (not_root) {
-      fprintf(stderr, "WARNING: not running as root, --sched ignored\n");
-      return 0;
-    }
-
-#ifndef __FreeBSD__
-    /* lock all pages into physical memory */
-    if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0) {
-      fprintf(stderr, "csound: cannot lock memory pages: %s\n",
-                      strerror(errno));
-      return -1;
-    }
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
-    /* set scheduling policy and priority */
-    if (priority > 0) {
-      p.sched_priority = priority;
-      if (sched_setscheduler(0, SCHED_RR, &p) != 0) {
-        fprintf(stderr, "csound: cannot set scheduling policy to "
-                        "SCHED_RR: %s\n", strerror(errno));
-        return -1;
-      }
-    }
-    else if (priority == 0) {
-      p.sched_priority = priority;
-      sched_setscheduler(0, SCHED_OTHER, &p);   /* hope this does not fail ! */
-    }
-    else {
-      /* nice requested */
-      if (setpriority(PRIO_PROCESS, 0, priority) != 0) {
-        fprintf(stderr, "csound: cannot set nice level to %d: %s\n",
-                        priority, strerror(errno));
-        return -1;
-      }
-    }
-    /* give up root privileges */
-    setuid(getuid());
-    return 0;
-}
+#ifdef LINUX
+extern int set_rt_priority(int argc, char **argv);
+#endif
 
-#endif  /* LINUX */
+static FILE *logFile = NULL;
+
+static void msg_callback(CSOUND *csound,
+                         int attr, const char *format, va_list args)
+{
+    (void) csound;
+    if ((attr & CSOUNDMSG_TYPE_MASK) != CSOUNDMSG_REALTIME) {
+      vfprintf(logFile, format, args);
+      fflush(logFile);
+    }
+#if defined(WIN32) || defined(MAC)
+    switch (attr & CSOUNDMSG_TYPE_MASK) {
+      case CSOUNDMSG_ERROR:
+      case CSOUNDMSG_WARNING:
+      case CSOUNDMSG_REALTIME:
+        break;
+      default:
+        vfprintf(stdout, format, args);
+        return;
+    }
+#endif
+    vfprintf(stderr, format, args);
+}
 
 int main(int argc, char **argv)
 {
     CSOUND  *csound;
-    int     result;
+    char    *fname = NULL;
+    int     i, result;
+
     /* set stdout to non buffering if not outputing to console window */
     if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
     }
-    /* Real-time priority on Linux by Istvan Varga (Jan 6 2002) */
-    /* This function is called before anything else to avoid    */
-    /* running "normal" Csound code with setuid root.           */
-    /* set_rt_priority gives up root privileges after setting   */
-    /* priority and locking memory; init_getstring () and other */
-    /* functions below will be run as a normal user (unless     */
-    /* Csound was actually run as root, and not setuid root).   */
-#if defined(LINUX)
+
+    /* Real-time scheduling on Linux by Istvan Varga (Jan 6 2002) */
+#ifdef LINUX
     if (set_rt_priority(argc, argv) != 0)
       return -1;
 #endif
+
+    /* open log file if specified */
+    for (i = 1; i < argc; i++) {
+      if (strncmp(argv[i], "-O", 2) == 0 && (int) strlen(argv[i]) > 2)
+        fname = argv[i] + 2;
+      else if (strncmp(argv[i], "--logfile=", 10) == 0 &&
+               (int) strlen(argv[i]) > 10)
+        fname = argv[i] + 10;
+      else if (i < (argc - 1) && strcmp(argv[i], "-O") == 0)
+        fname = argv[i + 1];
+    }
+    if (fname != NULL) {
+      if ((logFile = fopen(fname, "a")) == NULL) {
+        fprintf(stderr, "Error opening log file '%s': %s\n",
+                        fname, strerror(errno));
+        return -1;
+      }
+    }
 
     /* initialise Csound library */
     csoundInitialize(&argc, &argv, 0);
@@ -146,12 +99,15 @@ int main(int argc, char **argv)
     /*  Create Csound. */
     csound = csoundCreate(NULL);
 
+    /* if logging to file, set message callback */
+    if (logFile != NULL)
+      csoundSetMessageCallback(csound, msg_callback);
+
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
     if (!result) {
       if (csoundGetOutputBufferSize(csound)
             <= (csoundGetKsmps(csound) * csoundGetNchnls(csound))) {
-        /* do not need csoundYield(), kperf() will call it */
         while ((result = csoundPerformKsmps(csound)) == 0)
           ;
       }
@@ -162,6 +118,9 @@ int main(int argc, char **argv)
     }
     /* delete Csound instance */
     csoundDestroy(csound);
+    /* close log file */
+    if (logFile != NULL)
+      fclose(logFile);
     /* remove global configuration variables, if there are any */
     csoundDeleteAllGlobalConfigurationVariables();
 
