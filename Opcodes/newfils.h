@@ -98,6 +98,7 @@ typedef struct _moogladder {
   MYFLT   *istor;
 
   double  delay[6];
+  double tanhstg[3];
 } moogladder;
 
 static int moogladder_init(CSOUND *csound,moogladder *p);
