@@ -1,3 +1,13 @@
+2005-09-22	Istvan Varga	<ivarga@csounds.com>
+	* frontends/csound/csound_main.c:
+	  allow logging to file (-O NAME or --logfile=NAME)
+	* frontends/csound/sched.c:
+	  --sched can be used in the format --sched=P,C,T now, where
+	  the parameters are:
+	    P: priority (-20 to -1: nice, 0: normal, 1 to 99: SCHED_RR)
+	    C: maximum allowed CPU usage (1 to 99 percents)
+	    T: time interval to check CPU usage (1 to 60 seconds)
+
 2005-09-18	Istvan Varga	<ivarga@csounds.com>
 	* Engine/namedins.c, H/csound.h:
 	  more complete implementation of bus interface (may still need
