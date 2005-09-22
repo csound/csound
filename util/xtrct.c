@@ -93,14 +93,13 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     SNDFILE*    infd;
     SNDFILE*    outfd;
     void        *fd;
-    char        c, *s, *filnamp;
+    char        c, *s;
     SF_INFO     sfinfo;
     int         debug   = 0;
     int         Omsg = csound->oparms->msglevel;
     XTRC        xtrc;
 
     /* Check arguments */
-    O->filnamspace = filnamp = csound->Malloc(csound, (long)1024);
     xtrc.sample = -1; xtrc.stime = -FL(1.0);
     xtrc.stop  = -1; xtrc.endtime = -FL(1.0);
     xtrc.numsamps = -1; xtrc.dur = -FL(1.0);
@@ -115,8 +114,8 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
           switch(c) {
           case 'o':
             FIND("no outfilename")
-            O->outfilename = filnamp;   /* soundout name */
-            while ((*filnamp++ = *s++)); s--;
+            O->outfilename = s;         /* soundout name */
+            for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
               csound->Die(csound, "-o cannot be stdin");
 #ifdef THINK_C

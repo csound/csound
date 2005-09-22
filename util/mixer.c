@@ -164,7 +164,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     char        *inputfile = NULL;
     SNDFILE     *infd, *outfd;
     int         i;
-    char        outformch='s', c, *s, *filnamp;
+    char        outformch='s', c, *s;
     const char  *envoutyp;
     int         n = 0;
     SF_INFO     sfinfo;
@@ -188,7 +188,6 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
         return -1;
       }
     }
-    O->filnamspace = filnamp = csound->Malloc(csound, (size_t) 1024);
     mixin[n].start = -1; mixin[n].time = -FL(1.0);
     mixin[n].factor = FL(1.0); mixin[n].non_clear = 0;
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
@@ -197,17 +196,17 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       usage(csound,Str("Insufficient arguments"));
     do {
       s = *++argv;
-      if (*s++ == '-')                      /* read all flags:  */
+      if (*s++ == '-')                  /* read all flags:  */
         while ((c = *s++) != '\0')
           switch(c) {
           case 'j':
             FIND("")
-              while (*++s);
+            while (*++s);
             break;
           case 'o':
             FIND(Str("no outfilename"))
-              O->outfilename = filnamp;            /* soundout name */
-            while ((*filnamp++ = *s++)); s--;
+            O->outfilename = s;         /* soundout name */
+            for ( ; *s != '\0'; s++) ;
             if (strcmp(O->outfilename, "stdin") == 0)
               csound->Die(csound, Str("mixer: -o cannot be stdin"));
 #if defined(mac_classic) || defined(SYMANTEC) || defined(BCC) ||  \
