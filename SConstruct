@@ -1011,8 +1011,12 @@ executables.append(commonEnvironment.Program('makecsd',
 
 # Front ends.
 
-executables.append(csoundProgramEnvironment.Program('csound',
-    ['frontends/csound/csound_main.c']))
+if getPlatform() == 'linux':
+    executables.append(csoundProgramEnvironment.Program('csound',
+        ['frontends/csound/sched.c', 'frontends/csound/csound_main.c']))
+else:
+    executables.append(csoundProgramEnvironment.Program('csound',
+        ['frontends/csound/csound_main.c']))
 
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
