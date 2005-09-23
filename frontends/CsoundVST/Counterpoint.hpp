@@ -323,11 +323,11 @@ public:
 
   int BasePitch,Mode,TotalTime;
 
-  int Us(int n, int v) {return(Ctrpt[n][v]);}
+  int Us(int n, int v) {return(Ctrpt(n,v));}
   int LastNote(int n, int v) {return(n == TotalNotes[v]);}
   int FirstNote(int n, int v) {return(n == 1);}
   int NextToLastNote(int n, int v) {return(n == (TotalNotes[v]-1));}
-  void SetUs(int n, int p, int v) {Ctrpt[n][v]=p;}
+  void SetUs(int n, int p, int v) {Ctrpt(n,v)=p;}
 
   int TotalRange(int Cn, int Cp, int v)
   {
@@ -343,17 +343,17 @@ public:
     return(Maxp-Minp);
   }
 
-  int Cantus(int n, int v) {return(Ctrpt[((Onset[n][v]) >> 3) + 1][0]);}
+  int Cantus(int n, int v) {return(Ctrpt(((Onset(n,v)) >> 3) + 1,0));}
 
   int VIndex(int Time, int VNum)
   {
     int i;
     for (i=1;i<TotalNotes[VNum];i++)
-      if ((Onset[i][VNum] <= Time) && ((Onset[i][VNum]+Dur[i][VNum])>Time)) return(i);
+      if ((Onset(i,VNum) <= Time) && ((Onset(i,VNum)+Dur(i,VNum))>Time)) return(i);
     return(i);
   }
 
-  int Other(int Cn, int v, int v1) {return(Ctrpt[VIndex(Onset[Cn][v],v1)][v1]);}
+  int Other(int Cn, int v, int v1) {return(Ctrpt(VIndex(Onset(Cn,v),v1),v1));}
 
   int Bass(int Cn, int v)
   {
@@ -374,7 +374,7 @@ public:
   };
 
   int Beat8(int n) {return(n % 8);}
-  int DownBeat(int n, int v) {return(Beat8(Onset[n][v]) == 0);}
+  int DownBeat(int n, int v) {return(Beat8(Onset(n,v)) == 0);}
   int UpBeat(int n, int v) {return(!(DownBeat(n,v)));}
 
   int PitchRepeats(int Cn, int Cp, int v)
@@ -421,10 +421,10 @@ public:
     for (i=0;i<17;i++) Ints[i]=0;
     for (i=2;i<Cn;i++)
       {
-        k=(Size(Ctrpt[i][v]-Ctrpt[i-1][v])+8);
+        k=(Size(Ctrpt(i,v)-Ctrpt(i-1,v))+8);
         Ints[k]++;
       }
-    k=(Size(Cp-Ctrpt[Cn-1][v])+8);
+    k=(Size(Cp-Ctrpt(Cn-1,v))+8);
     MinL=0;
     for (i=1;i<17;i++) {if ((i != k) && (Ints[i]>Ints[MinL])) MinL=i;}
     return(Ints[k]>(Ints[MinL]+6));
@@ -433,7 +433,7 @@ public:
   int ADissonance(int Interval, int Cn, int Cp, int v, int Species)
   {
     int MelInt;
-    if ((Species == 1) || (Dur[Cn][v] == WholeNote))
+    if ((Species == 1) || (Dur(Cn,v) == WholeNote))
       return(Dissonance[Interval]);
     else
       {
@@ -447,7 +447,7 @@ public:
           {
             if (Species == 3)
               {
-                if ((Beat8(Onset[Cn][v]) == 0) || (FirstNote(Cn,v) || LastNote(Cn,v)))
+                if ((Beat8(Onset(Cn,v)) == 0) || (FirstNote(Cn,v) || LastNote(Cn,v)))
                   return(Dissonance[Interval]);
                 MelInt=(Cp-Us(Cn-1,v));
                 if (!(AStep(MelInt))) return(Dissonance[Interval]);
@@ -472,7 +472,7 @@ public:
                   {
                     if (Species == 5)
                       {
-                        if (Beat8(Onset[Cn][v]) == 0)
+                        if (Beat8(Onset(Cn,v)) == 0)
                           {
                             if (Cp == Us(Cn-1,v)) return(0);
                             else return(Dissonance[Interval]);
@@ -627,10 +627,10 @@ public:
             Above=(Interval >= 0);
 
             /* added check to stop optimizer from changing 4th beat passing tones into repeated notes+skip */
-            if (((Beat8(Onset[Cn][v]) == 6) || (Beat8(Onset[Cn][v]) == 7)) && (Cp == Us(Cn-1,v))) Val += UnisonOnBeat4Penalty;
+            if (((Beat8(Onset(Cn,v)) == 6) || (Beat8(Onset(Cn,v)) == 7)) && (Cp == Us(Cn-1,v))) Val += UnisonOnBeat4Penalty;
 
             /* skip to down beat seems not so great */
-            if (Beat8(Onset[Cn][v]) == 0)
+            if (Beat8(Onset(Cn,v)) == 0)
               {
                 if (ASkip(MelInt)) Val += SkipToDownBeatPenalty;
                 if ((Cn>2) && ((ActInt == Unison) || (ActInt == Fifth)))
@@ -638,7 +638,7 @@ public:
                     if (Species == 5)
                       {
                         i=(Cn-1);
-                        while ((i>0) && ((Beat8(Onset[i][v])) != 0)) i--;
+                        while ((i>0) && ((Beat8(Onset(i,v))) != 0)) i--;
                       }
                     else i=(Cn-4);
                     if (((ABS(Us(i,v)-Bass(i,v))) % 12) == ActInt) Val += DownBeatUnisonPenalty;
@@ -646,7 +646,7 @@ public:
               }
 
             /* check for cambiata not resolved correctly (on 4th beat) */
-            if ((Beat8(Onset[Cn][v]) == 6) &&
+            if ((Beat8(Onset(Cn,v)) == 6) &&
                 ((AThird(ABS(LastMelInt))) &&
                  ((Dissonance[(ABS(Us(Cn-2,v)-Other2)) % 12]) &&
                   ((MelInt<0) || ((ABS(MelInt) != MajorSecond) && (ABS(MelInt) != MinorSecond))))))
@@ -655,7 +655,7 @@ public:
 
             if ((Species == 3) && ((Cn>1) && (Dissonance[LastIntClass])))
               {
-                switch (Beat8(Onset[Cn][v]))
+                switch (Beat8(Onset(Cn,v)))
                   {
                   case 0: case 6:
                     if ((!(AStep(MelInt))) || ((!(AStep(LastMelInt))) || ((MelInt*LastMelInt)<0))) Val += DissonancePenalty;
@@ -686,26 +686,26 @@ public:
 
             if (Species == 5)
               {
-                if ((Cn>1) && ((Beat8(Onset[Cn][v]) == 0) && ((Cp != Us(Cn-1,v)) && (Dur[Cn][v] <= Dur[Cn-1][v]))))
+                if ((Cn>1) && ((Beat8(Onset(Cn,v)) == 0) && ((Cp != Us(Cn-1,v)) && (Dur(Cn,v) <= Dur(Cn-1,v)))))
                   Val += LesserLigaturePenalty;
-                if ((Cn>3) && ((Dur[Cn][v] == HalfNote) && ((Beat8(Onset[Cn][v]) == 4) &&
-                                                            ((Dur[Cn-1][v] == QuarterNote) && (Dur[Cn-2][v] == QuarterNote)))))
+                if ((Cn>3) && ((Dur(Cn,v) == HalfNote) && ((Beat8(Onset(Cn,v)) == 4) &&
+                                                            ((Dur(Cn-1,v) == QuarterNote) && (Dur(Cn-2,v) == QuarterNote)))))
                   Val += HalfUntiedPenalty;
-                if ((Dur[Cn][v] == EighthNote) && ((DownBeat(Cn,v)) && (Dissonance[ActInt])))
+                if ((Dur(Cn,v) == EighthNote) && ((DownBeat(Cn,v)) && (Dissonance[ActInt])))
                   Val += DissonancePenalty;
                 if (Val >= CurLim) return(Val);
                 if (Cn>1) {LastDisInt = ((ABS(Us(Cn-1,v)-Other1)) % 12);}
                 if ((Cn>1) && (Dissonance[LastDisInt]))
                   {
-                    switch (Beat8(Onset[Cn-1][v]))
+                    switch (Beat8(Onset(Cn-1,v)))
                       {
                       case 6: case 4:
                         if (!((LastDisInt == Fourth) && ((MelInt == Unison) &&
-                                                         (((Other0-Other1) == Unison) && (Beat8(Onset[Cn][v]) == 0)))))
+                                                         (((Other0-Other1) == Unison) && (Beat8(Onset(Cn,v)) == 0)))))
                           {
                             if ((!(AStep(MelInt))) || ((!(AStep(LastMelInt))) ||
-                                                       (((MelInt*LastMelInt)<0) || ((Dur[Cn-1][v] == EighthNote) ||
-                                                                                    ((Dur[Cn-1][v] == QuarterNote) && (Dur[Cn-2][v] == HalfNote))))))
+                                                       (((MelInt*LastMelInt)<0) || ((Dur(Cn-1,v) == EighthNote) ||
+                                                                                    ((Dur(Cn-1,v) == QuarterNote) && (Dur(Cn-2,v) == HalfNote))))))
                               Val += DissonancePenalty;
                           }
                         break;
@@ -714,7 +714,7 @@ public:
                           Val += DissonancePenalty;
                         break;
                       case 0:
-                        if ((Dur[Cn-2][v] == EighthNote) || (Dur[Cn-2][v]<Dur[Cn-1][v])) Val += NoTimeForaLigaturePenalty;
+                        if ((Dur(Cn-2,v) == EighthNote) || (Dur(Cn-2,v)<Dur(Cn-1,v))) Val += NoTimeForaLigaturePenalty;
                         if ((MelInt != (-MinorSecond)) && (MelInt != (-MajorSecond))) Val += UnresolvedLigaturePenalty;
                         if ((ActInt == Fourth) || (ActInt == Tritone)) Val += NoTimeForaLigaturePenalty;
                         if ((ActInt == Fifth) && (Interval<0)) Val += NoTimeForaLigaturePenalty;
@@ -723,7 +723,7 @@ public:
                         break;
                       case 2:
                         if ((!(AStep(LastMelInt))) || ((ABS(MelInt)>MajorThird) ||
-                                                       ((MelInt == 0) || ((Dur[Cn-1][v] == EighthNote) || ((LastMelInt*MelInt)<0)))))
+                                                       ((MelInt == 0) || ((Dur(Cn-1,v) == EighthNote) || ((LastMelInt*MelInt)<0)))))
                           Val += DissonancePenalty;
                         else
                           {
@@ -742,8 +742,8 @@ public:
                         break;
                       }
                   }
-                if ((Cn>1) && ((Dur[Cn-1][v] == EighthNote) && (!(AStep(MelInt))))) Val += EighthJumpPenalty;
-                if ((Cn>1) && ((Dur[Cn-1][v] == HalfNote) && ((Beat8(Onset[Cn][v]) == 4) && (MelInt == Unison))))
+                if ((Cn>1) && ((Dur(Cn-1,v) == EighthNote) && (!(AStep(MelInt))))) Val += EighthJumpPenalty;
+                if ((Cn>1) && ((Dur(Cn-1,v) == HalfNote) && ((Beat8(Onset(Cn,v)) == 4) && (MelInt == Unison))))
                   Val += UnisonUpbeatPenalty;
               }
           }
@@ -1282,9 +1282,9 @@ public:
       {
         for (i=1;i<=TotalNotes[v];i++)
           {
-            BestFit2[i][v]=BestFit1[i][v];
-            BestFit1[i][v]=BestFit[i][v];
-            BestFit[i][v]=Ctrpt[i][v]+BasePitch;
+            BestFit2(i,v)=BestFit1(i,v);
+            BestFit1(i,v)=BestFit(i,v);
+            BestFit(i,v)=Ctrpt(i,v)+BasePitch;
           }
       }
     message("Best fit: %d", BestFitPenalty);
@@ -1294,7 +1294,7 @@ public:
         message("Voice %d: ", v);
         for (i=1;i<=TotalNotes[v];i++)
           {
-            message("%d ",BestFit[i][v]);
+            message("%d ",BestFit(i,v));
           }
         message("\n");
       }
@@ -1308,7 +1308,7 @@ public:
     NewLim=Lim;
     for (Is[CurVoice]=1;Is[CurVoice]<=16;Is[CurVoice]++)
       {
-        Pit=Indx[Is[CurVoice]]+Ctrpt[CurNotes[CurVoice]-1][CurVoice];
+        Pit=Indx[Is[CurVoice]]+Ctrpt(CurNotes[CurVoice]-1,CurVoice);
         if (CurVoice == NumParts) tmp1=Species; else tmp1=1;
         penalty=CurPen+Check(CurNotes[CurVoice],Pit,CurVoice,NumParts,tmp1,NewLim);
         SetUs(CurNotes[CurVoice],Pit,CurVoice);
@@ -1365,13 +1365,13 @@ public:
     NextTime=infinity;
     for (i=0;i<=NumParts;i++)
       {
-        OurTime=Onset[VIndex(CurTime,i)+1][i];
+        OurTime=Onset(VIndex(CurTime,i)+1,i);
         if (OurTime != 0) NextTime=MIN(NextTime,OurTime);
       }
     for (i=1;i<=NumParts;i++)
       {
         j=VIndex(NextTime,i);
-        if (Onset[j][i] == NextTime) CurNotes[i]=j;
+        if (Onset(j,i) == NextTime) CurNotes[i]=j;
       }
     i=1;
     while (i<=NumParts)
@@ -1420,30 +1420,30 @@ public:
 
   void FillRhyPat()
   {
-    RhyPat[0][1]=WholeNote;
+    RhyPat(0,1)=WholeNote;
     RhyNotes[0]=1;
-    RhyPat[1][0]=0; RhyPat[1][1]=HalfNote; RhyPat[1][2]=HalfNote;
+    RhyPat(1,0)=0; RhyPat(1,1)=HalfNote; RhyPat(1,2)=HalfNote;
     RhyNotes[1]=2;
-    RhyPat[2][0]=0; RhyPat[2][1]=HalfNote; RhyPat[2][2]=QuarterNote; RhyPat[2][3]=QuarterNote;
+    RhyPat(2,0)=0; RhyPat(2,1)=HalfNote; RhyPat(2,2)=QuarterNote; RhyPat(2,3)=QuarterNote;
     RhyNotes[2]=3;
-    RhyPat[3][0]=0; RhyPat[3][1]=QuarterNote; RhyPat[3][2]=QuarterNote; RhyPat[3][3]=QuarterNote; RhyPat[3][4]=QuarterNote;
+    RhyPat(3,0)=0; RhyPat(3,1)=QuarterNote; RhyPat(3,2)=QuarterNote; RhyPat(3,3)=QuarterNote; RhyPat(3,4)=QuarterNote;
     RhyNotes[3]=4;
-    RhyPat[4][0]=0; RhyPat[4][1]=QuarterNote; RhyPat[4][2]=QuarterNote; RhyPat[4][3]=HalfNote;
+    RhyPat(4,0)=0; RhyPat(4,1)=QuarterNote; RhyPat(4,2)=QuarterNote; RhyPat(4,3)=HalfNote;
     RhyNotes[4]=3;
-    RhyPat[5][0]=0; RhyPat[5][1]=QuarterNote; RhyPat[5][2]=EighthNote; RhyPat[5][3]=EighthNote; RhyPat[5][4]=HalfNote;
+    RhyPat(5,0)=0; RhyPat(5,1)=QuarterNote; RhyPat(5,2)=EighthNote; RhyPat(5,3)=EighthNote; RhyPat(5,4)=HalfNote;
     RhyNotes[5]=4;
-    RhyPat[6][0]=0; RhyPat[6][1]=QuarterNote; RhyPat[6][2]=EighthNote; RhyPat[6][3]=EighthNote; RhyPat[6][4]=QuarterNote;
-    RhyPat[6][5]=QuarterNote;
+    RhyPat(6,0)=0; RhyPat(6,1)=QuarterNote; RhyPat(6,2)=EighthNote; RhyPat(6,3)=EighthNote; RhyPat(6,4)=QuarterNote;
+    RhyPat(6,5)=QuarterNote;
     RhyNotes[6]=5;
-    RhyPat[7][0]=0; RhyPat[7][1]=HalfNote; RhyPat[7][2]=QuarterNote; RhyPat[7][3]=EighthNote; RhyPat[7][4]=EighthNote;
+    RhyPat(7,0)=0; RhyPat(7,1)=HalfNote; RhyPat(7,2)=QuarterNote; RhyPat(7,3)=EighthNote; RhyPat(7,4)=EighthNote;
     RhyNotes[7]=4;
-    RhyPat[8][0]=0; RhyPat[8][1]=QuarterNote; RhyPat[8][2]=EighthNote; RhyPat[8][3]=EighthNote;
-    RhyPat[8][4]=QuarterNote; RhyPat[8][5]=EighthNote; RhyPat[8][6]=EighthNote;
+    RhyPat(8,0)=0; RhyPat(8,1)=QuarterNote; RhyPat(8,2)=EighthNote; RhyPat(8,3)=EighthNote;
+    RhyPat(8,4)=QuarterNote; RhyPat(8,5)=EighthNote; RhyPat(8,6)=EighthNote;
     RhyNotes[8]=6;
-    RhyPat[9][0]=0; RhyPat[9][1]=QuarterNote; RhyPat[9][2]=QuarterNote; RhyPat[9][3]=QuarterNote;
-    RhyPat[9][4]=EighthNote; RhyPat[9][5]=EighthNote;
+    RhyPat(9,0)=0; RhyPat(9,1)=QuarterNote; RhyPat(9,2)=QuarterNote; RhyPat(9,3)=QuarterNote;
+    RhyPat(9,4)=EighthNote; RhyPat(9,5)=EighthNote;
     RhyNotes[9]=5;
-    RhyPat[10][1]=WholeNote;
+    RhyPat(10,1)=WholeNote;
     RhyNotes[10]=1;
   }
 
@@ -1454,9 +1454,9 @@ public:
     return amp * (*uniform_real_generator)();
   }
 
-  void UsedRhy(int n) {RhyPat[n][0]=RhyPat[n][0]+1;}
-  int CurRhy(int n) {return(RhyPat[n][0]);}
-  void CleanRhy() {int i; for (i=1;i<10;i++) RhyPat[i][0]=0;}
+  void UsedRhy(int n) {RhyPat(n,0)=RhyPat(n,0)+1;}
+  int CurRhy(int n) {return(RhyPat(n,0));}
+  void CleanRhy() {int i; for (i=1;i<10;i++) RhyPat(i,0)=0;}
   int GoodRhy()
   {
     int i;
@@ -1474,8 +1474,8 @@ public:
     for (i=0;i<MostNotes;i++)
       for (j=1;j<MostVoices;j++)
         {
-          BestFit[i][j]=0;
-          Ctrpt[i][j]=0;
+          BestFit(i,j)=0;
+          Ctrpt(i,j)=0;
         }
     PenaltyRatio=(1.0-(Species*CurV*.01));
     BrLim=(50*(6-CurV)*(6-Species));
@@ -1483,7 +1483,7 @@ public:
     Mode=OurMode;
     TotalTime=((CantusFirmusLength-1)*8);
     TotalNotes[0]=CantusFirmusLength;
-    BasePitch=((Ctrpt[CantusFirmusLength][0]) % 12);
+    BasePitch=((Ctrpt(CantusFirmusLength,0)) % 12);
     BestFitPenalty=infinity;
     MaxPenalty=infinity;
     AllDone=0;
@@ -1491,9 +1491,9 @@ public:
 
     for (i=1;i<=CantusFirmusLength;i++)
       {
-        Ctrpt[i][0] -= BasePitch;
-        Dur[i][0] = WholeNote;
-        Onset[i][0] = ((i-1)*8);
+        Ctrpt(i,0) -= BasePitch;
+        Dur(i,0) = WholeNote;
+        Onset(i,0) = ((i-1)*8);
       }
     OldSpecies=Species;
     for (v=1;v<=CurV;v++)
@@ -1503,25 +1503,25 @@ public:
         if (Species == 1)
           {
             TotalNotes[v]=CantusFirmusLength;
-            for (i=1;i<CantusFirmusLength;i++) Dur[i][v] = WholeNote;
+            for (i=1;i<CantusFirmusLength;i++) Dur(i,v) = WholeNote;
           }
         else
           if (Species == 2)
             {
               TotalNotes[v]=(CantusFirmusLength*2)-1;
-              for (i=1;i<TotalNotes[v];i++) Dur[i][v] = HalfNote;
+              for (i=1;i<TotalNotes[v];i++) Dur(i,v) = HalfNote;
             }
           else
             if (Species == 3)
               {
                 TotalNotes[v]=(CantusFirmusLength*4)-3;
-                for (i=1;i<TotalNotes[v];i++) Dur[i][v] = QuarterNote;
+                for (i=1;i<TotalNotes[v];i++) Dur(i,v) = QuarterNote;
               }
             else
               if (Species == 4)
                 {
                   TotalNotes[v]=(CantusFirmusLength*2)-1;
-                  for (i=1;i<TotalNotes[v];i++) Dur[i][v] = HalfNote;
+                  for (i=1;i<TotalNotes[v];i++) Dur(i,v) = HalfNote;
                 }
               else
                 {
@@ -1531,15 +1531,15 @@ public:
                     {
                       j=GoodRhy();
                       UsedRhy(j);
-                      for (k=1;k<=(RhyNotes[j]);k++) Dur[k+m][v]=RhyPat[j][k];
+                      for (k=1;k<=(RhyNotes[j]);k++) Dur(k+m,v)=RhyPat(j,k);
                       m += RhyNotes[j];
                     }
                   TotalNotes[v]=(m+1);
                 }
-        Dur[TotalNotes[v]][v]=WholeNote;
-        Onset[1][v]=0;
-        for (k=2;k<=TotalNotes[v];k++) Onset[k][v]=(Onset[k-1][v]+Dur[k-1][v]);
-        Ctrpt[1][v]=(StartPitches[v-1]-BasePitch);
+        Dur(TotalNotes[v],v)=WholeNote;
+        Onset(1,v)=0;
+        for (k=2;k<=TotalNotes[v];k++) Onset(k,v)=(Onset(k-1,v)+Dur(k-1,v));
+        Ctrpt(1,v)=(StartPitches[v-1]-BasePitch);
       }
     if (CurV == 1) MaxPenalty=(2*RealBad); else MaxPenalty=infinity;
     BestFitFirst(0,0,CurV,Species,BrLim);
@@ -1547,9 +1547,9 @@ public:
 
   void fillCantus(int c0, int c1, int c2, int c3, int c4, int c5, int c6, int c7, int c8, int c9, int c10, int c11, int c12, int c13, int c14)
   {
-    Ctrpt[1][0]=c0; Ctrpt[2][0]=c1; Ctrpt[3][0]=c2; Ctrpt[4][0]=c3; Ctrpt[5][0]=c4; Ctrpt[6][0]=c5; Ctrpt[7][0]=c6;
-    Ctrpt[8][0]=c7; Ctrpt[9][0]=c8; Ctrpt[10][0]=c9; Ctrpt[11][0]=c10; Ctrpt[12][0]=c11; Ctrpt[13][0]=c12;
-    Ctrpt[14][0]=c13; Ctrpt[15][0]=c14;
+    Ctrpt(1,0)=c0; Ctrpt(2,0)=c1; Ctrpt(3,0)=c2; Ctrpt(4,0)=c3; Ctrpt(5,0)=c4; Ctrpt(6,0)=c5; Ctrpt(7,0)=c6;
+    Ctrpt(8,0)=c7; Ctrpt(9,0)=c8; Ctrpt(10,0)=c9; Ctrpt(11,0)=c10; Ctrpt(12,0)=c11; Ctrpt(13,0)=c12;
+    Ctrpt(14,0)=c13; Ctrpt(15,0)=c14;
   }
 
   void toCsoundScore(std::string filename, double secondsPerPulse);
@@ -1562,10 +1562,10 @@ public:
         k=(v*MostNotes)+1;
         for (i=1;i<=TotalNotes[v];i++,k++)
           {
-            best[k]=BestFit[i][v];
-            best1[k]=BestFit1[i][v];
-            best2[k]=BestFit2[i][v];
-            durs[k]=Dur[i][v];
+            best[k]=BestFit(i,v);
+            best1[k]=BestFit1(i,v);
+            best2[k]=BestFit2(i,v);
+            durs[k]=Dur(i,v);
           }
       }
     data[0]=Fits[0];

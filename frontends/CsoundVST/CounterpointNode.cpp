@@ -103,11 +103,11 @@ namespace csound
         double time = 0;
         for(int note = 1; note <= TotalNotes[voice]; note++)
           {
-            time = double(Onset[note][voice]);
+            time = double(Onset(note,voice));
             time *= secondsPerPulse;
-            duration = double(Dur[note][voice]);
+            duration = double(Dur(note,voice));
             duration *= secondsPerPulse;
-            key = double(Ctrpt[note][voice]);
+            key = double(Ctrpt(note,voice));
             // Set the exact pitch class so that something of the counterpoint will be preserved if the tessitura is rescaled.
             pcs = Conversions::midiToPitchClass(key);
             System::message("%f %f %f %f %f %f %f %f %f %f %f\n", time, duration, double(144), double(voice), key, velocity, phase, x, y, z, pcs);
