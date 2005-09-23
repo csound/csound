@@ -1281,19 +1281,17 @@ int    tablewkt(CSOUND *csound, TABLEW *p)
  * between these i time and perf time.  */
 int    tableng(CSOUND *csound, TABLENG *p)
 {
-    /*  Pointer to data structure for accessing table. */
-    FUNC        *ftp;
+    int     flen;
     /* Check to see we can find the table and find its location in
      * memory.  Returns zero if not found.  Report and error, which
      * will cause this instrument to be de-activated.  */
 
-    if ((ftp = csound->FTFindP(csound, p->xfn)) == NULL) {
+    if (csound->GetTable(csound, (int) *(p->xfn), &flen) == NULL) {
       *p->kout = FL(0.0);
       return csound->PerfError(csound, Str("Table %f not found"), *(p->xfn));
     }
     /* Return length as a float if we do find the table. */
-    else
-      *p->kout = (MYFLT) ftp->flen;
+    *p->kout = (MYFLT) flen;
     return OK;
 }
 /*-----------------------------------*/
@@ -1304,20 +1302,17 @@ int    tableng(CSOUND *csound, TABLENG *p)
  */
 int    itableng(CSOUND *csound, TABLENG *p)
 {
-    /*
-     * Pointer to data structure for accessing table.  */
-    FUNC        *ftp;
+    int     flen;
     /* Check to see we can find the table and find its location in
      * memory.  Returns zero if not found.  Report and error, which
      * will cause this instrument initialisation to fail.  */
 
-    if ((ftp = csound->FTFind(csound, p->xfn)) == NULL) {
+    if (csound->GetTable(csound, (int) *(p->xfn), &flen) == NULL) {
       *p->kout = FL(0.0);
-      return NOTOK;
+      return csound->InitError(csound, Str("Table %f not found"), *(p->xfn));
     }
     /* Return length as a float if we do find the table. */
-    else
-      *p->kout = (MYFLT) ftp->flen;
+    *p->kout = (MYFLT) flen;
     return OK;
 }
 
