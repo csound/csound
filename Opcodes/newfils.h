@@ -1,7 +1,7 @@
-/* newfils.h:
-   Filter opcodes
+/*  newfils.h:
+    Filter opcodes
 
-   (c) Victor Lazzarini, 2004
+    (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
@@ -19,7 +19,6 @@
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
-
 */
 
 /*
@@ -98,7 +97,7 @@ typedef struct _moogladder {
   MYFLT   *istor;
 
   double  delay[6];
-  double tanhstg[3];
+  double  tanhstg[3];
 } moogladder;
 
 static int moogladder_init(CSOUND *csound,moogladder *p);
@@ -119,7 +118,7 @@ typedef struct _statevar {
   double  bpd;
   double  lpd;
   double  lp;
-  int  ostimes;
+  int     ostimes;
 } statevar;
 
 static int statevar_init(CSOUND *csound,statevar *p);
