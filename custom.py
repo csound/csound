@@ -55,7 +55,6 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('c:/utah/opt/Python23/include')
     customCPPPATH.append('c:/utah/usr/mingw/include')
     customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')
-    customSWIGFLAGS.append('-Derrmsg=err_msg')
     ################################################################
     # If you want to build CsoundVST you need boost.
     # If it is not in a standard lcoation add it here

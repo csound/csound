@@ -194,7 +194,7 @@ void CsoundVST::performanceThreadRoutine()
 {
   getCppSound()->stop();
   getCppSound()->reset();
-  getCppSound()->setFLTKThreadLocking(true);
+// getCppSound()->setFLTKThreadLocking(true);
   if(getIsPython())
     {
       Shell::save(Shell::getFilename());
@@ -347,7 +347,7 @@ void CsoundVST::open()
     {
       cppSound->setFilename(filename_);
     }
-  cppSound->setFLTKThreadLocking(false);
+// cppSound->setFLTKThreadLocking(false);
 }
 
 void CsoundVST::reset()

@@ -586,9 +586,9 @@ extern "C" {
     MYFLT *(*GetSpin)(CSOUND *);
     MYFLT *(*GetSpout)(CSOUND *);
     MYFLT (*GetScoreTime)(CSOUND *);
-    MYFLT (*GetProgress)(CSOUND *);
-    MYFLT (*GetProfile)(CSOUND *);
-    MYFLT (*GetCpuUsage)(CSOUND *);
+    SUBR dummyfn_6;     /* unused slots */
+    SUBR dummyfn_7;
+    SUBR dummyfn_8;
     int (*IsScorePending)(CSOUND *);
     void (*SetScorePending)(CSOUND *, int pending);
     MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
@@ -717,8 +717,8 @@ extern "C" {
     double (*GetRealTime)(RTCLOCK *);
     double (*GetCPUTime)(RTCLOCK *);
     uint32_t (*GetRandomSeedFromTime)(void);
-    void (*SetFLTKThreadLocking)(CSOUND *, int isLocking);
-    int (*GetFLTKThreadLocking)(CSOUND *);
+    SUBR dummyfn_4;     /* unused slots */
+    SUBR dummyfn_5;
     int (*PerformKsmpsAbsolute)(CSOUND *);
     char *(*LocalizeString)(const char *);
     int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
@@ -943,7 +943,6 @@ extern "C" {
     GEN           *gensub;
     int           genmax;
     int           ftldno;
-    int           doFLTKThreadLocking;
     void          **namedGlobals;
     int           namedGlobalsCurrLimit;
     int           namedGlobalsMaxLimit;

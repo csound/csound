@@ -100,7 +100,11 @@
 #  ifdef MSVC
 #    define inline  __inline
 #  elif !defined(inline)
-#    define inline
+#    if defined(__GNUC__) && defined(__STRICT_ANSI__)
+#      define inline __inline__
+#    else
+#      define inline
+#    endif
 #  endif
 #endif
 
@@ -108,12 +112,10 @@
 #  define mac_classic   /* All Mac Compiles Before OSX, including Carbon */
 /* #  define mills_macintosh  DEFINE THIS to COMPILE the Mills "Perf" Version */
 #  include <stat.h>
-#  define  WINDOWS
 #  define  O_NDELAY (0)
 #  define  DIRSEP ':'
 #elif defined(SYMANTEC)
 #  include <unix.h>     /* for open() etc protos on mac */
-#  define  WINDOWS      /* with winmac.c */
 #  define  DIRSEP ':'
    extern  off_t lseek(int, off_t, int);
 #else

@@ -411,14 +411,15 @@ pluginEnvironment = commonEnvironment.Copy()
 pluginEnvironment.Append(LIBS = ['sndfile'])
 
 if getPlatform() == 'darwin':
-    pluginEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi', '-framework', 'CoreFoundation', '-framework', 'CoreAudio'])
+    pluginEnvironment.Append(LINKFLAGS = Split('''
+        -framework CoreMidi -framework CoreFoundation -framework CoreAudio
+    '''))
     if (commonEnvironment['useDirentFix'] == '1'):
-       pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
+        pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
 
 csoundProgramEnvironment = commonEnvironment.Copy()
 csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
-csoundProgramEnvironment.ParseConfig('fltk-config --cflags --cxxflags --ldflags')
 
 vstEnvironment = commonEnvironment.Copy()
 if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags'):
@@ -428,56 +429,19 @@ guiProgramEnvironment = commonEnvironment.Copy()
 
 pdClassEnvironment = commonEnvironment.Copy()
 
-if commonEnvironment['useALSA']=='1' and alsaFound:
-    guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-elif commonEnvironment['usePortAudio']=='1' and portaudioFound:
-    guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-
-if getPlatform() == 'linux':
-    csoundProgramEnvironment.Append(LIBS = ['dl', 'pthread'])
-    vstEnvironment.Append(LIBS = ['dl'])
-    guiProgramEnvironment.Append(LIBS = ['dl'])
-
-if (commonEnvironment['useFLTK'] == '1' and fltkFound):
-    csoundLibraryEnvironment.Append(CCFLAGS = '-DWINDOWS')
-    pluginEnvironment.Append(CCFLAGS = '-DWINDOWS')
-    csoundProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
-    vstEnvironment.Append(CCFLAGS = '-DWINDOWS')
-    guiProgramEnvironment.Append(CCFLAGS = '-DWINDOWS')
-    csoundLibraryEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-    pluginEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-    csoundProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-    vstEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-    guiProgramEnvironment.Append(CCFLAGS = '-DUSE_FLTK')
-    csoundProgramEnvironment.Append(LIBS = ['fltk'])
-    if getPlatform() == 'linux' or getPlatform() == 'cygwin':
-        csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    elif getPlatform() == 'mingw':
-        if commonEnvironment['MSVC'] == '0':
-            vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-            guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-            csoundProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-        else:
-            csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
-    elif getPlatform() == 'darwin':
-        csoundProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-        csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'Carbon'])
-        csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreAudio'])
-        csoundProgramEnvironment.Append(LINKFLAGS = ['-framework', 'CoreMidi'])
-
 if getPlatform() == 'mingw':
-    # These are the Windows system call libraries.
-    if (commonEnvironment['MSVC'] == '0'):
+    if commonEnvironment['MSVC'] == '0':
+        vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+        guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+        vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        # These are the Windows system call libraries.
         csoundWindowsLibraries = Split('''
                                        kernel32 gdi32 wsock32 ole32 uuid winmm
                                        ''')
     else:
+        csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
+        # These are the Windows system call libraries.
         csoundWindowsLibraries = Split('''
                                        kernel32 gdi32 wsock32 ole32 uuid winmm
                                        user32.lib ws2_32.lib comctl32.lib
@@ -491,6 +455,19 @@ if getPlatform() == 'mingw':
                                        ''')
     csoundProgramEnvironment.Append(LIBS = csoundWindowsLibraries)
     vstEnvironment.Append(LIBS = csoundWindowsLibraries)
+    guiProgramEnvironment.Append(LIBS = csoundWindowsLibraries)
+else:
+    if getPlatform() == 'linux':
+        csoundProgramEnvironment.Append(LIBS = ['dl'])
+        vstEnvironment.Append(LIBS = ['dl'])
+        guiProgramEnvironment.Append(LIBS = ['dl'])
+    csoundProgramEnvironment.Append(LIBS = ['pthread', 'm'])
+    vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    if getPlatform() == 'darwin':
+        csoundProgramEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework CoreAudio -framework CoreMidi
+        '''))
 
 #############################################################################
 #
@@ -618,20 +595,6 @@ if (getPlatform() == 'linux' and alsaFound):
     alsaMidiEnvironment.Append(LIBS = ['asound'])
     pluginLibraries.append(alsaMidiEnvironment.SharedLibrary('alsamidi',
                                                         ['InOut/alsamidi.c']))
-
-if not ((commonEnvironment['useFLTK'] == '1' and fltkFound)):
-  print 'CONFIGURATION DECISION: Not building with FLTK for graphs and widgets.'
-else:
-  print 'CONFIGURATION DECISION: Building with FLTK for graphs and widgets.'
-  fltkEnvironment = csoundLibraryEnvironment.Copy()
-  if (commonEnvironment['noFLTKThreads'] == '1'):
-    fltkEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
-  if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
-    libCsoundSources.append(fltkEnvironment.SharedObject('InOut/FL_graph.cpp'))
-    libCsoundSources.append(fltkEnvironment.SharedObject('InOut/winFLTK.c'))
-  else:
-    libCsoundSources.append(fltkEnvironment.Object('InOut/FL_graph.cpp'))
-    libCsoundSources.append(fltkEnvironment.Object('InOut/winFLTK.c'))
 
 if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
   print 'CONFIGURATION DECISION: Building dynamic Csound library'
@@ -793,22 +756,28 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('wave-terrain',
 
 # FLTK widgets
 
-if (commonEnvironment['useFLTK'] == '1' and fltkFound):
-  widgetsEnvironment = pluginEnvironment.Copy()
-  widgetsEnvironment.Append(LIBS = ['fltk'])
-  if (commonEnvironment['noFLTKThreads'] == '1'):
-    widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
-  if getPlatform() == 'linux' or getPlatform() == 'cygwin':
-    widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-  elif getPlatform() == 'mingw':
-    if (commonEnvironment['MSVC'] == '0'):
-      widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-    widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
-  elif getPlatform() == 'darwin':
-    widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    widgetsEnvironment.Append(LINKFLAGS = Split('-framework Carbon -framework CoreAudio -framework CoreMidi -framework ApplicationServices'))
-  pluginLibraries.append(widgetsEnvironment.SharedLibrary('widgets',
-                                                        ['InOut/widgets.cpp']))
+if not (commonEnvironment['useFLTK'] == '1' and fltkFound):
+    print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
+else:
+    print 'CONFIGURATION DECISION: Building with FLTK graphs and widgets.'
+    widgetsEnvironment = pluginEnvironment.Copy()
+    if (commonEnvironment['noFLTKThreads'] == '1'):
+        widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
+    widgetsEnvironment.Append(LIBS = ['fltk'])
+    if getPlatform() == 'linux' or getPlatform() == 'cygwin':
+        widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    elif getPlatform() == 'mingw':
+        if (commonEnvironment['MSVC'] == '0'):
+            widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
+    elif getPlatform() == 'darwin':
+        widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+        widgetsEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework CoreAudio -framework CoreMidi
+            -framework ApplicationServices
+        '''))
+    pluginLibraries.append(widgetsEnvironment.SharedLibrary('widgets',
+        ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp']))
 
 # REAL TIME AUDIO
 
