@@ -691,7 +691,6 @@ static void laguer(CSOUND *csound, fcomplex a[], int m, fcomplex *x, int *its)
 
 static void zroots(CSOUND *csound,fcomplex a[], int m, fcomplex roots[])
 {
-    void laguer(CSOUND*, fcomplex a[], int m, fcomplex *x, int *its);
     int i,its,j,jj;
     fcomplex x,b,c,ad[MAXM];
 
@@ -854,7 +853,7 @@ static OENTRY localops[] = {
 { "filter2",0xffff,                                                     },
 { "filter2.a",  S(FILTER), 5, "a", "aiim", (SUBR)ifilter, NULL, (SUBR)afilter},
 { "filter2.k", S(FILTER), 3,  "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
-{ "zfilter2", S(ZFILTER), 5,  "a", "akkiim", (SUBR)izfilter, NULL, (SUBR)azfilter},
+{ "zfilter2", S(ZFILTER), 5,  "a", "akkiim", (SUBR)izfilter, NULL, (SUBR)azfilter}
 };
 
 LINKAGE

@@ -98,9 +98,9 @@ static const CSOUND cenviron_ = {
         csoundGetSpin,
         csoundGetSpout,
         csoundGetScoreTime,
-        csoundGetProgress,
-        csoundGetProfile,
-        csoundGetCpuUsage,
+        (SUBR) NULL,
+        (SUBR) NULL,
+        (SUBR) NULL,
         csoundIsScorePending,
         csoundSetScorePending,
         csoundGetScoreOffsetSeconds,
@@ -197,8 +197,8 @@ static const CSOUND cenviron_ = {
         csoundGetRealTime,
         csoundGetCPUTime,
         csoundGetRandomSeedFromTime,
-        csoundSetFLTKThreadLocking,
-        csoundGetFLTKThreadLocking,
+        (SUBR) NULL,
+        (SUBR) NULL,
         csoundPerformKsmpsAbsolute,
         csoundLocalizeString,
         csoundCreateGlobalVariable,
@@ -432,7 +432,6 @@ static const CSOUND cenviron_ = {
         NULL,           /*  gensub              */
         GENMAX+1,       /*  genmax              */
         100,            /*  ftldno              */
-        1,              /*  doFLTKThreadLocking */
         NULL,           /*  namedGlobals        */
         0,              /*  namedGlobalsCurrLimit */
         0,              /*  namedGlobalsMaxLimit */
@@ -487,7 +486,7 @@ static const CSOUND cenviron_ = {
         0,              /*  sampsNeeded         */
         FL(0.0),        /*  csoundScoreOffsetSeconds_   */
         0,              /*  inChar_             */
-        1,              /*  isGraphable_        */
+        0,              /*  isGraphable_        */
         0,              /*  delayr_stack_depth  */
         NULL,           /*  first_delayr        */
         NULL,           /*  last_delayr         */
@@ -1167,24 +1166,6 @@ static const CSOUND cenviron_ = {
     return (MYFLT) csound->curTime;
   }
 
-  PUBLIC MYFLT csoundGetProgress(CSOUND *csound)
-  {
-    (void) csound;
-    return -1;
-  }
-
-  PUBLIC MYFLT csoundGetProfile(CSOUND *csound)
-  {
-    (void) csound;
-    return -1;
-  }
-
-  PUBLIC MYFLT csoundGetCpuUsage(CSOUND *csound)
-  {
-    (void) csound;
-    return -1;
-  }
-
   /*
    * SCORE HANDLING
    */
@@ -1755,23 +1736,14 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
     return csound->isGraphable_;
   }
 
-#if defined(USE_FLTK)
-  extern void MakeGraph_(CSOUND *, WINDAT *, const char *);
-  extern void DrawGraph_(CSOUND *, WINDAT *);
-  extern void KillGraph_(CSOUND *, WINDAT *);
-#else
   extern void MakeAscii(CSOUND *, WINDAT *, const char *);
   extern void DrawAscii(CSOUND *, WINDAT *);
   extern void KillAscii(CSOUND *, WINDAT *);
-# define MakeGraph_ MakeAscii
-# define DrawGraph_ DrawAscii
-# define KillGraph_ KillAscii
-#endif
 
   static void defaultCsoundMakeGraph(CSOUND *csound,
                                      WINDAT *windat, const char *name)
   {
-    MakeGraph_(csound, windat, name);
+    MakeAscii(csound, windat, name);
   }
 
   PUBLIC void csoundSetMakeGraphCallback(CSOUND *csound,
@@ -1788,7 +1760,7 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
 
   static void defaultCsoundDrawGraph(CSOUND *csound, WINDAT *windat)
   {
-    DrawGraph_(csound, windat);
+    DrawAscii(csound, windat);
   }
 
   PUBLIC void csoundSetDrawGraphCallback(CSOUND *csound,
@@ -1804,7 +1776,7 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
 
   static void defaultCsoundKillGraph(CSOUND *csound, WINDAT *windat)
   {
-    KillGraph_(csound, windat);
+    KillAscii(csound, windat);
   }
 
   PUBLIC void csoundSetKillGraphCallback(CSOUND *csound,
@@ -1937,13 +1909,11 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
    * MISC FUNCTIONS
    */
 
-#if !defined(USE_FLTK)
   int defaultCsoundYield(CSOUND *csound)
   {
     (void) csound;
     return 1;
   }
-#endif
 
   PUBLIC void csoundSetYieldCallback(CSOUND *csound,
                                      int (*yieldCallback)(CSOUND *))
@@ -2059,16 +2029,6 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
   PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
   {
     csound->flist[table]->ftable[index] = value;
-  }
-
-  PUBLIC void csoundSetFLTKThreadLocking(CSOUND *csound, int isLocking)
-  {
-    csound->doFLTKThreadLocking = isLocking;
-  }
-
-  PUBLIC int csoundGetFLTKThreadLocking(CSOUND *csound)
-  {
-    return csound->doFLTKThreadLocking;
   }
 
 /* -------- IV - Jan 27 2005: timer functions -------- */

@@ -411,16 +411,6 @@ CsoundFile *CppSound::getThisCsoundFile()
   return (CsoundFile *)this;
 }
 
-void CppSound::setFLTKThreadLocking(bool isLocking)
-{
-  csoundSetFLTKThreadLocking(csound, isLocking);
-}
-
-bool CppSound::getFLTKThreadLocking()
-{
-  return csoundGetFLTKThreadLocking(csound);
-}
-
 std::string CppSound::getOutputSoundfileName() const
 {
   return renderedSoundfile;
@@ -439,17 +429,4 @@ void CppSound::setOutputValueCallback(void (*outputValueCallback)(CSOUND *csound
 {
   csoundSetOutputValueCallback(csound, outputValueCallback);
 }
-
-/**
- * Glue for incomplete Csound API.
- */
-#ifdef WIN32
-extern "C"
-{
-  int XOpenDisplay(char *)
-  {
-    return 1;
-  }
-};
-#endif
 

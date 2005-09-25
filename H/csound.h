@@ -479,25 +479,10 @@ extern "C" {
   PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state, int bufSize);
 
   /**
-   * Returns the current score time.
+   * Returns the current score time in seconds
+   * since the beginning of performance.
    */
   PUBLIC MYFLT csoundGetScoreTime(CSOUND *);
-
-  /**
-   * Returns the % of score completed (unimplemented).
-   */
-  PUBLIC MYFLT csoundGetProgress(CSOUND *);
-
-  /**
-   * Returns the scoreTime vs. calculatedTime ratio (unimplemented).
-   * For real-time performance this value should be always == 1.
-   */
-  PUBLIC MYFLT csoundGetProfile(CSOUND *);
-
-  /**
-   * Returns the sampsTime vs. calculatedTime ratio (unimplemented).
-   */
-  PUBLIC MYFLT csoundGetCpuUsage(CSOUND *);
 
   /**
    * SCORE HANDLING
@@ -910,16 +895,6 @@ extern "C" {
    * yielding the CPU to other threads.
    */
   PUBLIC void csoundSleep(size_t milliseconds);
-
-  /**
-   * Sets whether or not the FLTK widget thread calls Fl::lock().
-   */
-  PUBLIC void csoundSetFLTKThreadLocking(CSOUND *, int isLocking);
-
-  /**
-   * Returns whether or not the FLTK widget thread calls Fl::lock().
-   */
-  PUBLIC int csoundGetFLTKThreadLocking(CSOUND *);
 
   /**
    * Initialise a timer structure.

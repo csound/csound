@@ -97,22 +97,21 @@ typedef struct widgetsGlobals_s {
 } widgetsGlobals_t;
 #endif
 
-static void lock(CSOUND *csound)
+static inline void lock(CSOUND *csound)
 {
-    if (csound->GetFLTKThreadLocking(csound)) {
-      Fl::lock();
-    }
+    (void) csound;
+    Fl::lock();
 }
 
-static void unlock(CSOUND *csound)
+static inline void unlock(CSOUND *csound)
 {
-    if (csound->GetFLTKThreadLocking(csound)) {
-      Fl::unlock();
-    }
+    (void) csound;
+    Fl::unlock();
 }
 
-static void awake(CSOUND *csound)
+static inline void awake(CSOUND *csound)
 {
+    (void) csound;
     Fl::awake();
 }
 
@@ -1617,11 +1616,11 @@ static char *GetString(CSOUND *csound, MYFLT *pname, int is_string)
 }
 
 extern "C" {
-  static int widgetRESET(CSOUND *csound, void *userData)
+  PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
     int   j;
 #ifndef NO_FLTK_THREADS
-    volatile widgetsGlobals_t *p;
+    widgetsGlobals_t *p;
 
     p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                         "_widgets_globals");
@@ -3631,16 +3630,36 @@ static OENTRY localops[] = {
         (SUBR) FLprintk2set,            (SUBR) FLprintk2,         (SUBR) NULL }
 };
 
-PUBLIC long opcode_size(void)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
-    return (long) sizeof(localops);
+    (void) csound;
+    return 0;
 }
 
-PUBLIC OENTRY *opcode_init(CSOUND *csound)
+extern "C" void set_display_callbacks(CSOUND *csound);
+
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
-    csound->RegisterResetCallback(csound, NULL,
-                                  (int (*)(CSOUND *, void *)) widgetRESET);
-    return localops;
+    const OENTRY  *ep = &(localops[0]);
+    int           n = (int) sizeof(localops) / (int) sizeof(OENTRY);
+
+    set_display_callbacks(csound);
+    for ( ; n; ep++, n--) {
+      if (csound->AppendOpcode(csound, ep->opname,
+                               (int) ep->dsblksiz, (int) ep->thread,
+                               ep->outypes, ep->intypes,
+                               ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
+        csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
+                                 ep->opname);
+        return -1;
+      }
+    }
+    return 0;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
 }       // extern "C"

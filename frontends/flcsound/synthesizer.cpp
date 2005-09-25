@@ -105,7 +105,6 @@ Synthesizer::Synthesizer()
 #if defined SINGLE_INSTANCE_CSOUND
   s_synth = this;
 #endif
-  csoundSetFLTKThreadLocking(m_csound, true);
 }
 
 Synthesizer::~Synthesizer()
@@ -227,8 +226,8 @@ int Synthesizer::perform(std::vector<std::string> args)
 std::string Synthesizer::get_version()
 {
   int version = csoundGetVersion();
-  int major = version / 100;
-  int minor = version % 100;
+  int major = version / 1000;
+  int minor = (version % 1000) / 10;
   std::ostringstream ost;
   ost << major << '.';
   ost.width(2);

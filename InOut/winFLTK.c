@@ -21,46 +21,73 @@
     02111-1307 USA
 */
 
-#include "csoundCore.h"
-                                                /*    winFLTK.c         */
-                                                /* Csound FLTK/X graphs */
-                                                /*   jpff,06Oct02       */
+/*    winFLTK.c         */
+/* Csound FLTK/X graphs */
+/*   jpff,06Oct02       */
+
+#include "csdl.h"
 #include <stdio.h>
 #include "cwindow.h"
 
-extern long MakeWindow(char *);
+#ifdef LINUX
+#include <X11/Xlib.h>
+#endif
+
+extern long MakeWindow_FLTK(char *);
+extern void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr);
+extern int  CsoundYield_FLTK(CSOUND *csound);
 extern void kill_graph(int);
 extern int  myFLwait(void);
-extern void *XOpenDisplay(char *);
 
-int Graphable_(CSOUND *csound)      /* called during program initialisation */
-{                   /* decides whether to use X or not; initializes X if so */
-    int         rc = 0;             /* default : don't use X, use tty ascii */
-#if defined(USE_FLTK)
-    rc = 1;
-#else
-    if (XOpenDisplay(NULL)) rc = 1;  /*       so set return code  */
-#endif
-    return(rc);
-}
-
-void MakeGraph_(CSOUND *csound, WINDAT *wdptr, const char *name)
+static void MakeGraph_FLTK(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
-    wdptr->windid = MakeWindow((char*) name);
+    wdptr->windid = MakeWindow_FLTK((char*) name);
 }
 
-void KillGraph_(CSOUND *csound, WINDAT *wdptr)
+static void KillGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
 {
     kill_graph(wdptr->windid);
 }
 
 /* print click-Exit message in most recently active window */
 
-int ExitGraph_(CSOUND *csound)
+#if 0
+static int ExitGraph_FLTK(CSOUND *csound)
 {
     const char *env = csoundGetEnv(csound, "CSNOSTOP");
     if (env == NULL || strcmp(env, "yes") == 0)
       myFLwait();
     return 0;
+}
+#endif
+
+void set_display_callbacks(CSOUND *csound)
+{
+#ifdef LINUX
+    Display *dpy = XOpenDisplay(NULL);
+    if (dpy == NULL) {
+      csound->SetIsGraphable(csound, 0);
+      return;
+    }
+    XCloseDisplay(dpy);
+#endif
+    csound->SetIsGraphable(csound, 1);
+#ifdef NO_FLTK_THREADS
+    csound->SetYieldCallback(csound, CsoundYield_FLTK);
+#endif
+    if (!csound->oparms->displays)
+      return;
+    if (csound->oparms->graphsoff || csound->oparms->postscript)
+      return;
+#ifndef NO_FLTK_THREADS
+    csound->SetYieldCallback(csound, CsoundYield_FLTK);
+#endif
+    csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
+    csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
+    csound->SetKillGraphCallback(csound, KillGraph_FLTK);
+ /* csound->SetExitGraphCallback(csound, ExitGraph_FLTK); */
+ /* csound->SetMakeXYinCallback(csound, MakeXYin_FLTK); */
+ /* csound->SetReadXYinCallback(csound, ReadXYin_FLTK); */
+ /* csound->SetKillXYinCallback(csound, KillXYin_FLTK); */
 }
 

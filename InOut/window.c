@@ -109,7 +109,6 @@ void dispinit(CSOUND *csound) /* called once on initialisation of program to */
       rdxyFn = RdXYDummy;
       exitFn = DummyRFn;
     }
-#ifdef WINDOWS
     else if (!csound->oparms->graphsoff && Graphable(csound)) {
                        /* provided by window driver: is this session able? */
       makeFn = MakeGraph;
@@ -119,7 +118,6 @@ void dispinit(CSOUND *csound) /* called once on initialisation of program to */
       rdxyFn = ReadXYin;
       exitFn = ExitGraph;
     }
-#endif
     else {
       csound->Message(csound, Str("graphics %s, ascii substituted\n"),
                               (csound->oparms->graphsoff ?

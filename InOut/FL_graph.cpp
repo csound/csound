@@ -30,7 +30,7 @@
 #ifdef MSVC
 #include <math.h>
 #endif
-#include "csoundCore.h"
+#include "csdl.h"
 #include "cwindow.h"
 
 #define NUMOFWINDOWS (30)
@@ -39,34 +39,33 @@
 #define WIDTH    450     /* start off small - user resizes */
 #define HEIGHT   150
 #define BDR      5
-#define BORDERW 10           /* inset from L & R edge */
+#define BORDERW  10      /* inset from L & R edge */
 #define TXHGHT   14      /* baseline offset for text */
 #define MAXLSEGS 4096    /* X can only deal with so many linesegs .. */
 
-static void lock(CSOUND *csound)
+static inline void lock(CSOUND *csound)
 {
-    if (csound->GetFLTKThreadLocking(csound)) {
-      Fl::lock();
-    }
+    (void) csound;
+    Fl::lock();
 }
 
-static void unlock(CSOUND *csound)
+static inline void unlock(CSOUND *csound)
 {
-    if (csound->GetFLTKThreadLocking(csound)) {
-      Fl::unlock();
-    }
+    (void) csound;
+    Fl::unlock();
 }
 
-// static void awake(CSOUND *csound)
+// static inline void awake(CSOUND *csound)
 // {
+//   (void) csound;
 //   Fl::awake();
 // }
 
-Fl_Window *form = NULL;
-Fl_Choice *choice;
-Fl_Button *end;
+static Fl_Window *form = NULL;
+static Fl_Choice *choice;
+static Fl_Button *end;
 
-Fl_Menu_Item menu[] = {
+static Fl_Menu_Item menu[] = {
   {NULL,        0, 0, (void*)NULL}, //0
   {NULL,        0, 0, (void*)NULL}, //1
   {NULL,        0, 0, (void*)NULL}, //2
@@ -265,22 +264,22 @@ void makeWindow(char *name)
 }
 
 extern "C" {
-  void DrawGraph_(CSOUND *csound, WINDAT *);
-  long MakeWindow(char *);
-  int  defaultCsoundYield(CSOUND *);
+  void DrawGraph_FLTK(CSOUND *csound, WINDAT *);
+  long MakeWindow_FLTK(char *);
+  int  CsoundYield_FLTK(CSOUND *);
   void kill_graph(int);
   int  myFLwait(void);
-  void MakeXYin_(CSOUND *csound, XYINDAT*, MYFLT, MYFLT);
-  void ReadXYin_(CSOUND *csound, XYINDAT *wdptr);
-  void KillXYin_(CSOUND *csound, XYINDAT *x);
+  void MakeXYin_FLTK(CSOUND *csound, XYINDAT*, MYFLT, MYFLT);
+  void ReadXYin_FLTK(CSOUND *csound, XYINDAT *wdptr);
+  void KillXYin_FLTK(CSOUND *csound, XYINDAT *x);
 
-  void DrawGraph_(CSOUND *csound, WINDAT *wdptr)
+  void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
   {
     add_graph(wdptr);
-    csoundYield(csound);
+    csound->CheckEvents(csound);
   }
 
-  long MakeWindow(char *name)
+  long MakeWindow_FLTK(char *name)
   {
     if (form==NULL) {
       makeWindow(name);
@@ -289,13 +288,10 @@ extern "C" {
     return (long)form;
   }
 
-  int defaultCsoundYield(CSOUND *csound)
+  int CsoundYield_FLTK(CSOUND *csound)
   {
 #ifndef NO_FLTK_THREADS
-    /* nothing to do, unless displays are enabled, */
-    if (!csound->oparms->displays)
-      return 1;
-    /* and no widget thread is running */
+    /* nothing to do, unless no widget thread is running */
     if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
       return 1;
 #endif
@@ -329,7 +325,7 @@ extern "C" {
 #define GUTTERH 20           /* space for text at top & bottom */
 #define BORDERW 10           /* inset from L & R edge */
 
-  void MakeXYin_(CSOUND *csound, XYINDAT *w, MYFLT x, MYFLT y)
+  void MakeXYin_FLTK(CSOUND *csound, XYINDAT *w, MYFLT x, MYFLT y)
   {
     if (w->windid==0) {
       Fl_Window *xyin = new Fl_Window(WIDTH,WIDTH, "XY input");
@@ -352,7 +348,7 @@ extern "C" {
     }
   }
 
-  void ReadXYin_(CSOUND *csound, XYINDAT *wdptr)
+  void ReadXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
     short       win_x, win_y;
     short       gra_x, gra_y, gra_w, gra_h;
@@ -394,7 +390,7 @@ extern "C" {
     }
   }
 
-  void KillXYin_(CSOUND *csound, XYINDAT *wdptr)
+  void KillXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
     Fl_Window *x = (Fl_Window*)wdptr->windid;
     x->~Fl_Window();
