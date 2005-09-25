@@ -1,3 +1,18 @@
+2005-09-25	Istvan Varga	<ivarga@csounds.com>
+	* frontends/CsoundVST/CppSound.cpp, frontends/CsoundVST/CppSound.hpp:
+	* frontends/CsoundVST/CsoundVST.cpp:
+	* flcsound/synthesizer.cpp:
+	* H/csoundCore.h, H/csound.h, Top/csound.c:
+	  removed the following API functions:
+	    csoundSetFLTKThreadLocking()    (FLTK moved out of libcsound)
+	    csoundGetFLTKThreadLocking()    (FLTK moved out of libcsound)
+	    csoundGetProgress()             (was unimplemented)
+	    csoundGetProfile()              (was unimplemented)
+	    csoundGetCpuUsage()             (was unimplemented)
+	* InOut/FL_graph.cpp, InOut/widgets.cpp, InOut/winFLTK.c:
+	* InOut/window.c, Makefile-win32, SConstruct:
+	  moved FLTK display code from libcsound to the widgets plugin
+
 2005-09-22	Istvan Varga	<ivarga@csounds.com>
 	* frontends/csound/csound_main.c:
 	  allow logging to file (-O NAME or --logfile=NAME)
@@ -175,9 +190,9 @@
 2005-06-23  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
 
 	* Improvements/Fixes to rtcoreaudio.c, addition of non-interleaved
-	audio support 
+	audio support
 	* Added Opcodes/ifd.c, Instantaneous Frequency Distribution
-	spectral streaming opcode. 
+	spectral streaming opcode.
 
 2005-06-23  John ffitch  <jpff@codemist.co.uk>
 
@@ -300,7 +315,7 @@
 2005-05-23 Victor Lazzarini <victor.lazzarini@nuim.ie>
         * late entry to the log: added InOut/rtcoreaudio.c
         * late entry to the log: added Opcodes/sndloop.c (sndloop,
-	flooper, pvsarp, pvsvoc) 
+	flooper, pvsarp, pvsvoc)
         * late entry to the log: fixed globals in rtpa.c
         * late entry to the log: added full-duplex support to the portaudio module
 	 (rtpa.c pa_blocking.c), aimed primarily at coreaudio

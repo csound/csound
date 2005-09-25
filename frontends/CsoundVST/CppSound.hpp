@@ -286,14 +286,6 @@ public:
    */
   virtual CsoundFile *getThisCsoundFile();
   /**
-   * Set whether the FLTK widgets thread calls Fl::lock().
-   */
-  virtual void setFLTKThreadLocking(bool isLocking);
-  /**
-   * Return whether the FLTK widgets thread calls Fl::lock().
-   */
-  virtual bool getFLTKThreadLocking();
-  /**
    * Return the name of the output soundfile from the Csound
    * parameters structure.
    */
