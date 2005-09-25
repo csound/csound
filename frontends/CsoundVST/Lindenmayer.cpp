@@ -297,12 +297,12 @@ namespace csound
                 ublas::matrix<double> rotation = ublas::matrix<double>(Event::ELEMENT_COUNT, Event::ELEMENT_COUNT);
                 for(int i = 0; i < Event::ELEMENT_COUNT; i++)
                 {
-                        rotation[i][i] = 1.0;
+                        rotation(i,i) = 1.0;
                 }
-                rotation[dimension1][dimension1] =  cos(angle);
-                rotation[dimension1][dimension2] = -sin(angle);
-                rotation[dimension2][dimension1] =  sin(angle);
-                rotation[dimension2][dimension2] =  cos(angle);
+                rotation(dimension1,dimension1) =  cos(angle);
+                rotation(dimension1,dimension2) = -sin(angle);
+                rotation(dimension2,dimension1) =  sin(angle);
+                rotation(dimension2,dimension2) =  cos(angle);
                 return rotation;
         }
 
