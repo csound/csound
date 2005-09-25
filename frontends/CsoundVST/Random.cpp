@@ -124,7 +124,7 @@ namespace csound
     ublas::matrix<double> transformation = localCoordinates;
     for(int i = 0; i < Event::HOMOGENEITY; i++)
       {
-        transformation[i][Event::HOMOGENEITY] *= sample();
+        transformation(i,Event::HOMOGENEITY) *= sample();
       }
     return transformation;
   }

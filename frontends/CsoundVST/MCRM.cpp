@@ -49,19 +49,19 @@ namespace csound
                 {
                         for(size_t successor = 0; successor < transformations.size(); successor++)
                         {
-                                weights[precursor][successor] = 1.0;
+                                weights(precursor,successor) = 1.0;
                         }
                 }
         }
 
         void MCRM::setTransformationElement(size_t index, size_t row, size_t column, double value)
         {
-                transformations[index][row][column] = value;
+                transformations[index](row,column) = value;
         }
 
         void MCRM::setWeight(size_t precursor, size_t successor, double weight)
         {
-                weights[precursor][successor] = weight;
+                weights(precursor,successor) = weight;
         }
 
         void MCRM::iterate(int d, size_t p, const Event &event, double weight)
@@ -89,7 +89,7 @@ namespace csound
                                 }
                                 else
                                 {
-                                        w = weights[p][s] * weight;
+                                        w = weights(p,s) * weight;
                                 }
                                 iterate(d, s, e, w);
                         }
