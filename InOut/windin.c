@@ -26,8 +26,11 @@
 #include "windin.h"             /* real-time input control units        */
                                 /* 26aug90 dpwe                         */
 
-extern void (*mkxyFn)(XYINDAT*,MYFLT,MYFLT);/* pointer to xyinput window creator */
-extern void (*rdxyFn)(XYINDAT*);            /* pointer to xyinput window creator */
+static int deinit_func(CSOUND *csound, void *p)
+{
+    csound->csoundKillXYinCallback_(csound, &(((XYIN*) p)->w));
+    return OK;
+}
 
 int xyinset(CSOUND *csound, XYIN *p)
 {
@@ -59,52 +62,28 @@ int xyinset(CSOUND *csound, XYIN *p)
       ixmax = ixmin + FL(1.0);          /* say.. */
       ixmin -= FL(1.0);
     }
-    if (ixinit < ixmin)                 ixinit = ixmin;
-    else if (ixinit > ixmax)    ixinit = ixmax;
+    if (ixinit < ixmin)
+      ixinit = ixmin;
+    else if (ixinit > ixmax)
+      ixinit = ixmax;
 
-    (*mkxyFn)(&p->w,(ixinit - ixmin)/(ixmax - ixmin),
-                   (iyinit - iymin)/(iymax - iymin) );
+    csound->csoundMakeXYinCallback_(csound, &p->w,
+                                    (ixinit - ixmin) / (ixmax - ixmin),
+                                    (iyinit - iymin) / (iymax - iymin));
+    csound->RegisterDeinitCallback(csound, (void*) p, deinit_func);
 
     p->countdown = 1;           /* init counter to run xyin on first call */
     return OK;
 }
 
-#ifndef mills_macintosh
 int xyin(CSOUND *csound, XYIN *p)
 {
-    if (!(--p->countdown)) {                  /* at each countdown   */
-      p->countdown = p->timcount;             /*   reset counter &   */
-      (*rdxyFn)(&p->w);                       /*   read cursor postn */
+    if (!(--p->countdown)) {                          /* at each countdown   */
+      p->countdown = p->timcount;                     /*   reset counter &   */
+      csound->csoundReadXYinCallback_(csound, &p->w); /*   read cursor postn */
       *(p->kxrslt) = *p->ixmin + p->w.x * (*p->ixmax - *p->ixmin);
       *(p->kyrslt) = *p->iymin + (FL(1.0) - p->w.y) * (*p->iymax - *p->iymin);
-      /*  printf("x: %5.2f   y:%5.2f \n", *p->kxrslt, *p->kyrslt); */
     }
     return OK;
 }
-#else
-int xyin(CSOUND *csound, XYIN *p)
-{
-    int inside = 0;
-    CursHandle cursor;
-
-    if (!(--p->countdown)) {                  /* at each countdown   */
-      p->countdown = p->timcount;             /*   reset counter &   */
-      (*rdxyFn)(&p->w);                       /*   read cursor postn */
-/*      *(p->kxrslt) = *p->ixmin + p->w.x * (*p->ixmax - *p->ixmin); */
-/*      *(p->kyrslt) = *p->iymin + (1.0 - p->w.y) * (*p->iymax - *p->iymin); */
-      if (p->w.x >= *p->ixmin && p->w.x <= *p->ixmax) inside++;
-      if (p->w.y >= *p->iymin && p->w.y <= *p->iymax) inside++;
-      if (inside == 2) {
-        *(p->kxrslt) = p->w.x;               /* Mike 11/2/96 for Mac */
-        *(p->kyrslt) = p->w.y;               /* /Mike 11/2/96 for Mac */
-        cursor = GetCursor(128);
-        SetCursor(*cursor);
-      } else {
-        SetCursor(&(qd.arrow));
-      }
-      /*  printf("x: %5.2f   y:%5.2f \n", *p->kxrslt, *p->kyrslt); */
-    }
-    return OK;
-}
-#endif
 

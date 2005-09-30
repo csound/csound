@@ -1994,7 +1994,14 @@ static void fl_callbackLinearValueInput(Fl_Valuator* w, void *a)
 }
 
 //-----------
-void widget_attributes(Fl_Widget *o)
+
+static int rand_31_i(CSOUND *csound, int maxVal)
+{
+    double  x = (double) (csound->Rand31(&(csound->randSeed2)) - 1);
+    return (int) (x * (double) (maxVal + 1) / 2147483646.0);
+}
+
+static void widget_attributes(CSOUND *csound, Fl_Widget *o)
 {
   if (FLtext_size == -2 ) {
     FLtext_size = -1;
@@ -2007,13 +2014,8 @@ void widget_attributes(Fl_Widget *o)
     o->labelsize(FLtext_size); // if > 0 assign it, else skip, leaving default
   switch ((int) FLtext_color) {
   case -2: // random color
-    o->labelcolor(
-          fl_rgb_color(
-               (int) (FL(0.5) + (MYFLT) rand() * FL(255.0) / (MYFLT) RAND_MAX),
-               (int) (FL(0.5) + (MYFLT) rand() * FL(255.0) / (MYFLT) RAND_MAX),
-               (int) (FL(0.5) + (MYFLT) rand() * FL(255.0) / (MYFLT) RAND_MAX)
-               )
-          );
+    o->labelcolor(fl_rgb_color(rand_31_i(csound, 255), rand_31_i(csound, 255),
+                               rand_31_i(csound, 255)));
     break;
   case -1:
     // if FLtext_color is == -1, color assignment is skipped,
@@ -2058,20 +2060,16 @@ void widget_attributes(Fl_Widget *o)
     case 7: type  = FL_ALIGN_TOP_RIGHT; break;
     case 8: type  = FL_ALIGN_BOTTOM_LEFT; break;
     case 9: type  = FL_ALIGN_BOTTOM_RIGHT; break;
-    case -1:          // What type is this?
+    case -1:                // What type is this?
     default: type = FL_ALIGN_BOTTOM; break;
     }
     o->align(type);
   }
-  switch ((int) FLcolor) { // random color
+  switch ((int) FLcolor) {  // random color
   case -2:
     o->color(FL_GRAY,
-     fl_rgb_color(
-          (int) (FL(0.5) + (MYFLT) rand() * FL(255.0) / (MYFLT) RAND_MAX),
-          (int) (FL(0.5) + (MYFLT) rand() * FL(255.0) / (MYFLT) RAND_MAX),
-          (int) (FL(0.5) + (MYFLT) rand() * FL(255.0) / (MYFLT) RAND_MAX)
-          )
-             );
+             fl_rgb_color(rand_31_i(csound, 255), rand_31_i(csound, 255),
+                          rand_31_i(csound, 255)));
     break;
   case -1:
     // if FLcolor is == -1, color assignment is skipped,
@@ -2119,10 +2117,10 @@ extern "C" int StartPanel(CSOUND *csound, FLPANEL *p)
   Fl_Window *o;
   if (x < 0) o = new Fl_Window(width,height, panelName);
   else    o = new Fl_Window(x,y,width,height, panelName);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   o->box((Fl_Boxtype) borderType);
   o->resizable(o);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   ADDR_STACK adrstk(&p->h, (void *) o, stack_count);
   AddrStack.push_back(adrstk);
   PANELS panel(o, (stack_count>0) ? 1 : 0);
@@ -2179,7 +2177,7 @@ extern "C" int StartTabs(CSOUND *csound, FLTABS *p)
 {
   Fl_Tabs *o = new Fl_Tabs ((int) *p->ix, (int) *p->iy,
                             (int) *p->iwidth, (int) *p->iheight);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   ADDR_STACK adrstk(&p->h,o,stack_count);
   AddrStack.push_back(adrstk);
   stack_count++;
@@ -2209,7 +2207,7 @@ extern "C" int StartGroup(CSOUND *csound, FLGROUP *p)
   char *Name = GetString(csound, p->name, p->XSTRCODE);
   Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
                               (int) *p->iwidth, (int) *p->iheight,Name);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   int borderType;
   switch((int)*p->border ) {
   case 0: borderType = FL_FLAT_BOX; break;
@@ -2223,7 +2221,7 @@ extern "C" int StartGroup(CSOUND *csound, FLGROUP *p)
   default: borderType = FL_FLAT_BOX;
   }
   o->box((Fl_Boxtype) borderType);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   ADDR_STACK adrstk(&p->h,o,stack_count);
   AddrStack.push_back(adrstk);
   stack_count++;
@@ -2548,7 +2546,7 @@ extern "C" int fl_box(CSOUND *csound, FL_BOX *p)
   char *text = GetString(csound, p->itext, p->XSTRCODE);
   Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
                           (int)*p->iwidth, (int)*p->iheight, text);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   Fl_Boxtype type;
   switch ((int) *p->itype) {
   case 1: type  = FL_FLAT_BOX; break;
@@ -2718,7 +2716,7 @@ extern "C" int fl_value(CSOUND *csound, FLVALUE *p)
     o->color(FL_GRAY );
   else
     o->color(FLcolor, FLcolor2);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   //AddrValue.push_back((void *) o);
   AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   //*p->ihandle = AddrValue.size()-1;
@@ -2783,7 +2781,7 @@ extern "C" int fl_slider(CSOUND *csound, FLSLIDER *p)
   case 6:  o->type(FL_VERT_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
   default: return csound->InitError(csound, "FLslider: invalid slider type");
   }
-  widget_attributes(o);
+  widget_attributes(csound, o);
   MYFLT min = p->min = *p->imin, max = *p->imax, range;
   switch (iexp) {
   case LIN_: //linear
@@ -2888,20 +2886,12 @@ extern "C" int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
     int x = (int) *p->ix,  y = (int) *p->iy + j*10;
     Fl_Slider *o;
     int slider_type;
-    if ((int) *p->itypetable <=0)  // no slider type table
-      if (*p->itypetable >= -7) //  all sliders are of the same type
-        slider_type = - (int) *p->itypetable;
-      else { // random type
-        //(rand()*128. / RAND_MAX) * FL_NUM_RED/256,
-        slider_type = (int) (rand()*7. / RAND_MAX);
-        switch(slider_type) {
-        case 0: slider_type = 1; break;
-        case 2: slider_type = 3; break;
-        case 4: slider_type = 5; break;
-        case 6: slider_type = 7; break;
-        default: slider_type = 1;
-        }
-      }
+    if ((int) *p->itypetable <= 0) {    // no slider type table
+      if (*p->itypetable >= -7)         //  all sliders are of the same type
+        slider_type = -((int) *p->itypetable);
+      else                              // random type
+        slider_type = rand_31_i(csound, 7) | 1;
+    }
     else
       slider_type = (int) typetable[j];
 
@@ -2921,7 +2911,7 @@ extern "C" int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
     default: o->type(FL_HOR_NICE_SLIDER); o->box(FL_FLAT_BOX); break;
     }
     o->align(FL_ALIGN_LEFT);
-    widget_attributes(o);
+    widget_attributes(csound, o);
     MYFLT min, max, range;
     if ((int) *p->iminmaxtable > 0) {
       min = minmaxtable[j*2];
@@ -3042,7 +3032,7 @@ extern "C" int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
   */
 
   Fl_Positioner *o = new Fl_Positioner(ix, iy, iwidth, iheight, Name);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   switch (iexpx) {
   case LIN_: //linear
     o->xbounds(*p->iminx,*p->imaxx); break;
@@ -3158,7 +3148,7 @@ extern "C" int fl_knob(CSOUND *csound, FLKNOB *p)
   default:
     return csound->InitError(csound, "FLknob: invalid knob type");
   }
-  widget_attributes(o);
+  widget_attributes(csound, o);
   o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
   o->range(*p->imin,*p->imax);
   switch (iexp) {
@@ -3247,7 +3237,7 @@ extern "C" int fl_text(CSOUND *csound, FLTEXT *p)
     return NOTOK;
   }
   o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   o->callback((Fl_Callback*)fl_callbackLinearValueInput,(void *) p);
   AddrSetValue.push_back(ADDR_SET_VALUE(1, *p->imin, *p->imax,
                                         (void *) o, (void *) p));
@@ -3291,7 +3281,7 @@ extern "C" int fl_button(CSOUND *csound, FLBUTTON *p)
   }
   Fl_Button *o = w;
   o->align(FL_ALIGN_WRAP);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   o->callback((Fl_Callback*)fl_callbackButton,(void *) p);
   AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
@@ -3328,7 +3318,7 @@ extern "C" int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
       default: return csound->InitError(csound, "FLbuttonBank: "
                                                 "invalid button type");
       }
-      widget_attributes(w);
+      widget_attributes(csound, w);
       w->type(FL_RADIO_BUTTON);
       w->callback((Fl_Callback*)fl_callbackButtonBank,(void *) p);
     }
@@ -3354,7 +3344,7 @@ extern "C" int fl_counter(CSOUND *csound, FLCOUNTER *p)
   Fl_Counter* o = new Fl_Counter((int)*p->ix, (int)*p->iy,
                                  (int)*p->iwidth, (int)*p->iheight,
                                  controlName);
-  widget_attributes(o);
+  widget_attributes(csound, o);
   int type = (int) *p->itype;
   if (type >9 ) { // ignored when getting snapshots
     if (csound->oparms->msglevel & WARNMSG)
@@ -3375,7 +3365,7 @@ extern "C" int fl_counter(CSOUND *csound, FLCOUNTER *p)
   // range is accepted only if min and max are different
   if (*p->imin != *p->imax)
     o->range(*p->imin,*p->imax); //otherwise no-range
-  widget_attributes(o);
+  widget_attributes(csound, o);
   o->callback((Fl_Callback*)fl_callbackCounter,(void *) p);
   AddrSetValue.push_back(ADDR_SET_VALUE(1, 0, 100000, (void *) o, (void *) p));
   *p->ihandle = AddrSetValue.size()-1;
@@ -3427,7 +3417,7 @@ extern "C" int fl_roller(CSOUND *csound, FLROLLER *p)
   default:
     return csound->InitError(csound, "FLroller: invalid roller type");
   }
-  widget_attributes(o);
+  widget_attributes(csound, o);
   o->step(istep);
   switch (iexp) {
   case LIN_: //linear

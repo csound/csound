@@ -23,6 +23,7 @@
 
 #ifndef CWINDOW_H
 #define CWINDOW_H
+
 /*******************************************************\
 *       cwindow.h                                       *
 *       portable window graphs stolen from Csound       *
@@ -35,40 +36,40 @@
 #define CAPSIZE  60
 
 struct windat_ {
-        long    windid;                 /* set by MakeGraph() */
-        MYFLT   *fdata;                 /* data passed to DrawGraph */
-        long    npts;                   /* size of above array */
-        char    caption[CAPSIZE];       /* caption string for graph */
-        short   waitflg;                /* set =1 to wait for ms after Draw */
-        short   polarity;               /* controls positioning of X axis */
-        MYFLT   max, min;               /* workspace .. extrema this frame */
-        MYFLT   absmax;                 /* workspace .. largest of above */
-        MYFLT   oabsmax;                /* Y axis scaling factor */
-        int     danflag;                /* set to 1 for extra Yaxis mid span */
+    uintptr_t windid;           /* set by MakeGraph() */
+    MYFLT   *fdata;             /* data passed to DrawGraph */
+    long    npts;               /* size of above array */
+    char    caption[CAPSIZE];   /* caption string for graph */
+    short   waitflg;            /* set =1 to wait for ms after Draw */
+    short   polarity;           /* controls positioning of X axis */
+    MYFLT   max, min;           /* workspace .. extrema this frame */
+    MYFLT   absmax;             /* workspace .. largest of above */
+    MYFLT   oabsmax;            /* Y axis scaling factor */
+    int     danflag;            /* set to 1 for extra Yaxis mid span */
 };
 
 enum {                  /* symbols for WINDAT.polarity field */
-        NOPOL,
-        NEGPOL,
-        POSPOL,
-        BIPOL
+    NOPOL,
+    NEGPOL,
+    POSPOL,
+    BIPOL
 };
 
 struct xyindat_ {       /* for 'joystick' input window */
-        long     windid;        /* xwindow handle */
-        int      m_x,m_y;       /* current crosshair pixel adr */
-        MYFLT    x,y;           /* current proportions of fsd */
-        int      down;
+    uintptr_t windid;   /* xwindow handle */
+    int     m_x,m_y;    /* current crosshair pixel adr */
+    MYFLT   x,y;        /* current proportions of fsd */
+    int     down;
 };
 
-/* WINDAT *SetDisp(); */
+ /* ------------------------------------------------------------------------ */
+
+#ifdef __BUILDING_LIBCSOUND
+
 void dispset(CSOUND *, WINDAT *, MYFLT *, long, char *, int, char *);
 int dispexit(CSOUND *);
 void display(CSOUND *, WINDAT*);
-WINDAT *NewWin(char *, int);
-void   DoDisp(WINDAT *, MYFLT *, int);
-/* initialise windows.  Returns 1 if X ok */
-int  Graphable(CSOUND *csound);
+#if 0
 /* create window for a graph */
 void MakeGraph(CSOUND *, WINDAT *, const char *);
 /* create a mouse input window; init scale */
@@ -83,6 +84,9 @@ void KillGraph(CSOUND *, WINDAT *);
 void KillXYin(CSOUND *, XYINDAT *);
 /* print click-Exit message in most recently active window */
 int  ExitGraph(CSOUND *);
+#endif
 
-#endif  /*      CWINDOW_H */
+#endif  /*  __BUILDING_LIBCSOUND */
+
+#endif  /*  CWINDOW_H */
 
