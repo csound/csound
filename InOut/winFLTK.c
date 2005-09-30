@@ -33,11 +33,16 @@
 #include <X11/Xlib.h>
 #endif
 
-extern long MakeWindow_FLTK(char *);
+extern uintptr_t  MakeWindow_FLTK(char *);
 extern void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr);
 extern int  CsoundYield_FLTK(CSOUND *csound);
-extern void kill_graph(int);
+extern void kill_graph(uintptr_t);
+extern void MakeXYin_FLTK(CSOUND *, XYINDAT *, MYFLT, MYFLT);
+extern void ReadXYin_FLTK(CSOUND *, XYINDAT *);
+extern void KillXYin_FLTK(CSOUND *, XYINDAT *);
+#if 0
 extern int  myFLwait(void);
+#endif
 
 static void MakeGraph_FLTK(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
@@ -54,7 +59,7 @@ static void KillGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
 #if 0
 static int ExitGraph_FLTK(CSOUND *csound)
 {
-    const char *env = csoundGetEnv(csound, "CSNOSTOP");
+    const char *env = csound->GetEnv(csound, "CSNOSTOP");
     if (env == NULL || strcmp(env, "yes") == 0)
       myFLwait();
     return 0;
@@ -65,16 +70,15 @@ void set_display_callbacks(CSOUND *csound)
 {
 #ifdef LINUX
     Display *dpy = XOpenDisplay(NULL);
-    if (dpy == NULL) {
-      csound->SetIsGraphable(csound, 0);
+    if (dpy == NULL)
       return;
-    }
     XCloseDisplay(dpy);
 #endif
-    csound->SetIsGraphable(csound, 1);
 #ifdef NO_FLTK_THREADS
     csound->SetYieldCallback(csound, CsoundYield_FLTK);
 #endif
+    if (csound->SetIsGraphable(csound, 1) != 0)
+      return;
     if (!csound->oparms->displays)
       return;
     if (csound->oparms->graphsoff || csound->oparms->postscript)
@@ -86,8 +90,8 @@ void set_display_callbacks(CSOUND *csound)
     csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
     csound->SetKillGraphCallback(csound, KillGraph_FLTK);
  /* csound->SetExitGraphCallback(csound, ExitGraph_FLTK); */
- /* csound->SetMakeXYinCallback(csound, MakeXYin_FLTK); */
- /* csound->SetReadXYinCallback(csound, ReadXYin_FLTK); */
- /* csound->SetKillXYinCallback(csound, KillXYin_FLTK); */
+    csound->SetMakeXYinCallback(csound, MakeXYin_FLTK);
+    csound->SetReadXYinCallback(csound, ReadXYin_FLTK);
+    csound->SetKillXYinCallback(csound, KillXYin_FLTK);
 }
 

@@ -265,9 +265,9 @@ void makeWindow(char *name)
 
 extern "C" {
   void DrawGraph_FLTK(CSOUND *csound, WINDAT *);
-  long MakeWindow_FLTK(char *);
+  uintptr_t MakeWindow_FLTK(char *);
   int  CsoundYield_FLTK(CSOUND *);
-  void kill_graph(int);
+  void kill_graph(uintptr_t);
   int  myFLwait(void);
   void MakeXYin_FLTK(CSOUND *csound, XYINDAT*, MYFLT, MYFLT);
   void ReadXYin_FLTK(CSOUND *csound, XYINDAT *wdptr);
@@ -279,13 +279,13 @@ extern "C" {
     csound->CheckEvents(csound);
   }
 
-  long MakeWindow_FLTK(char *name)
+  uintptr_t MakeWindow_FLTK(char *name)
   {
-    if (form==NULL) {
+    if (form == NULL) {
       makeWindow(name);
       form->show();
     }
-    return (long)form;
+    return (uintptr_t) form;
   }
 
   int CsoundYield_FLTK(CSOUND *csound)
@@ -301,15 +301,23 @@ extern "C" {
     return 1;
   }
 
-  void kill_graph(int m)
+  void kill_graph(uintptr_t m)
   {
-    WINDAT *n = (WINDAT*)menu[m].user_data_;
-    free(n->fdata);
-    free(n);
-    menu[m].user_data_ = NULL;
-    menu[m].text = "(deleted)";
+    WINDAT *n;
+    int    i;
+    for (i = 0; i < NUMOFWINDOWS; i++) {
+      n = (WINDAT*) menu[i].user_data_;
+      if (n != NULL && n->windid == m) {
+        free(n->fdata);
+        free(n);
+        menu[i].user_data_ = NULL;
+        menu[i].text = "(deleted)";
+        return;
+      }
+    }
   }
 
+#if 0
   int myFLwait()
   {
     if (form==NULL) return 1;
@@ -321,13 +329,14 @@ extern "C" {
     }
     return 1;
   }
+#endif
 
 #define GUTTERH 20           /* space for text at top & bottom */
 #define BORDERW 10           /* inset from L & R edge */
 
   void MakeXYin_FLTK(CSOUND *csound, XYINDAT *w, MYFLT x, MYFLT y)
   {
-    if (w->windid==0) {
+    if (w->windid == (uintptr_t) 0) {
       Fl_Window *xyin = new Fl_Window(WIDTH,WIDTH, "XY input");
       short   win_x, win_y;
       short   gra_x, gra_y, gra_w, gra_h;
@@ -343,7 +352,7 @@ extern "C" {
       fl_line_style(FL_DOT);
       fl_line(gra_x,w->m_y,(gra_x+gra_w),w->m_y);
       fl_line(w->m_x,gra_y, w->m_x,(gra_y+gra_h));
-      w->windid = (long) xyin;
+      w->windid = (uintptr_t) xyin;
       xyin->show();
     }
   }

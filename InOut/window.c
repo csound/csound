@@ -25,54 +25,31 @@
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
                                                 /*  dpwe 16may90        */
-/* pointer to window make fn - */
-/*     either teletype         */
-/*     or some graphics system */
-static void (*makeFn)(CSOUND *, WINDAT *, const char *);
 extern void MakeAscii(CSOUND *, WINDAT *, const char *);
-extern void MakeGraph(CSOUND *, WINDAT *, const char *);
-/* pointer to appropriate drawing fn */
-static void (*drawFn)(CSOUND *, WINDAT *);
 extern void DrawAscii(CSOUND *, WINDAT *);
-extern void DrawGraph(CSOUND *, WINDAT *);
-/* pointer to window destroy fn */
-static void (*killFn)(CSOUND *, WINDAT *);
 extern void KillAscii(CSOUND *, WINDAT *);
-extern void KillGraph(CSOUND *, WINDAT *);
-/* pointer to xyinput window creator */
-       void (*mkxyFn)(CSOUND *, XYINDAT *, MYFLT, MYFLT) = NULL;
-static void MkXYDummy(CSOUND *, XYINDAT *, MYFLT, MYFLT);
-extern void MakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
-/* pointer to xyinput window reader */
-       void (*rdxyFn)(CSOUND *, XYINDAT *) = NULL;
-static void RdXYDummy(CSOUND *, XYINDAT *);
-extern void ReadXYin(CSOUND *, XYINDAT *);
-
-static int (*exitFn)(CSOUND *) = NULL; /* pointer to window last exit fn
-                                           - returns 0 to exit immediately */
-extern int ExitGraph(CSOUND *);
 
 /* somewhere to invoke for no display */
 
-static void DummyFn2(CSOUND *csound, WINDAT *p, const char *s)
+static void DummyFn1(CSOUND *csound, WINDAT *p, const char *s)
 {
     IGN(csound); IGN(p); IGN(s);
 }
 
 /* somewhere to invoke for no display */
 
-static void DummyFn1(CSOUND *csound, WINDAT *p)
+static void DummyFn2(CSOUND *csound, WINDAT *p)
 {
     IGN(csound); IGN(p);
 }
 
-/* somewhere to invoke that returns 1 (!) for */
-/* dummy exit fn */
+/* somewhere to invoke that returns 1 (!) for dummy exit fn */
 /* Used to be 1 but seems silly (MR/JPff) */
 
-static int DummyRFn(CSOUND *csound)
+static int DummyFn3(CSOUND *csound)
 {
-    IGN(csound); return(0);
+    IGN(csound);
+    return 0;
 }
 
 /* initial proportions */
@@ -85,51 +62,40 @@ static void MkXYDummy(CSOUND *csound, XYINDAT *wdptr, MYFLT x, MYFLT y)
 
     wdptr->m_x = 0;
     wdptr->m_y = 0;
-    wdptr->x = x;       wdptr->y = y;
+    wdptr->x = x;
+    wdptr->y = y;
 }
 
 static void RdXYDummy(CSOUND *csound, XYINDAT *wdptr)
 {
     IGN(csound);
     IGN(wdptr);
-/*      wdptr->m_x = m_x;       wdptr->m_y = m_y;
-        wdptr->x = ((MYFLT)m_x-gra_x)/(MYFLT)gra_w;
-        wdptr->y = ((MYFLT)m_y-gra_y)/(MYFLT)gra_h;
-        */
 }
 
 void dispinit(CSOUND *csound) /* called once on initialisation of program to */
-{                              /*  choose between teletype or bitmap graphics */
-    if (!csound->oparms->displays) {
+{                             /*  choose between teletype or bitmap graphics */
+    OPARMS  *O = csound->oparms;
+    if (O->displays && csound->isGraphable_ && !(O->graphsoff || O->postscript))
+      return;           /* provided by window driver: is this session able? */
+    if (!O->displays) {
       csound->Message(csound, Str("displays suppressed\n"));
-      makeFn = DummyFn2;
-      drawFn = DummyFn1;
-      killFn = DummyFn1;
-      mkxyFn = MkXYDummy;
-      rdxyFn = RdXYDummy;
-      exitFn = DummyRFn;
-    }
-    else if (!csound->oparms->graphsoff && Graphable(csound)) {
-                       /* provided by window driver: is this session able? */
-      makeFn = MakeGraph;
-      drawFn = DrawGraph;
-      killFn = KillGraph;
-      mkxyFn = MakeXYin;
-      rdxyFn = ReadXYin;
-      exitFn = ExitGraph;
+      csound->csoundMakeGraphCallback_ = DummyFn1;
+      csound->csoundDrawGraphCallback_ = DummyFn2;
+      csound->csoundKillGraphCallback_ = DummyFn2;
     }
     else {
       csound->Message(csound, Str("graphics %s, ascii substituted\n"),
-                              (csound->oparms->graphsoff ?
-                               Str("suppressed")
-                               : Str("not supported on this terminal")));
-      makeFn = MakeAscii;
-      drawFn = DrawAscii;
-      killFn = KillAscii;
-      mkxyFn = MkXYDummy;
-      rdxyFn = RdXYDummy;
-      exitFn = DummyRFn;
+                      ((O->graphsoff || O->postscript) ?
+                       Str("suppressed")
+                       : Str("not supported on this terminal")));
+      csound->csoundMakeGraphCallback_ = MakeAscii;
+      csound->csoundDrawGraphCallback_ = DrawAscii;
+      csound->csoundKillGraphCallback_ = KillAscii;
     }
+    csound->csoundMakeXYinCallback_ = MkXYDummy;
+    csound->csoundReadXYinCallback_ = RdXYDummy;
+    csound->csoundKillXYinCallback_ = RdXYDummy;
+    csound->csoundExitGraphCallback_ = DummyFn3;
 }
 
 void dispset(CSOUND *csound,            /* setup a new window       */
@@ -144,16 +110,16 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
 
-    if (!csound->oparms->displays) return;  /* return if displays disabled */
-    if (!wdptr->windid) {               /* if no window defined for this str  */
-      (*makeFn)(csound, wdptr, label);  /*    create one  */
+    if (!csound->oparms->displays) return;    /* return if displays disabled */
+    if (!wdptr->windid) {   /* if no window defined for this str, create one */
+      csound->csoundMakeGraphCallback_(csound, wdptr, label);
       if (csound->oparms->postscript)
         PS_MakeGraph(csound, wdptr, label); /* open PS file + write header    */
     }
     wdptr->fdata    = fdata;            /* init remainder of data structure   */
     wdptr->npts     = npts;
     while (*s != '\0' && t < tlim)
-        *t++ = *s++;                    /*  (copy the caption) */
+      *t++ = *s++;                      /*  (copy the caption) */
     *t = '\0';
     wdptr->waitflg  = waitflg;
     wdptr->polarity = (short)NOPOL;
@@ -168,11 +134,8 @@ int dispexit(CSOUND *csound)
 {
     if (csound->oparms->postscript)
       PS_ExitGraph();   /* Write trailer to PostScript file  */
-    if (exitFn != NULL)
-      /* prompt for exit from last active window */
-      return (*exitFn)(csound);
-    else
-      return 0;
+    /* prompt for exit from last active window */
+    return csound->csoundExitGraphCallback_(csound);
 }
 
 void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
@@ -182,10 +145,10 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     MYFLT   max, min, absmax, fval;
     int     pol;
 
-    if (!csound->oparms->displays)  return;     /* displays disabled? return */
+    if (!csound->oparms->displays)  return;   /* displays disabled? return */
     fp = wdptr->fdata;
     fplim = fp + wdptr->npts;
-    for (max = *fp++, min = max; fp < fplim; ) { /* find max & min values */
+    for (max = *fp++, min = max; fp < fplim; ) {  /* find max & min values */
       if ((fval = *fp++) > max)       max = fval;
       else if (fval < min)            min = fval;
     }
@@ -205,9 +168,10 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     else if (pol == (short)POSPOL && min < FL(0.0)) pol = (short)BIPOL;
     else if (pol == (short)NEGPOL && max > FL(0.0)) pol = (short)BIPOL;
     wdptr->polarity = pol;
-
-    (*drawFn)(csound, wdptr);           /* now graph the function */
+    /* now graph the function */
+    csound->csoundDrawGraphCallback_(csound, wdptr);
+    /* Write postscript code */
     if (csound->oparms->postscript)
-      PS_DrawGraph(csound, wdptr);      /* Write postscript code  */
+      PS_DrawGraph(csound, wdptr);
 }
 
