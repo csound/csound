@@ -107,10 +107,8 @@ extern "C" {
 
 #if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
 #  define PUBLIC        __declspec(dllexport)
-#  define LIBRARY_CALL  WINAPI
 #else
 #  define PUBLIC
-#  define LIBRARY_CALL
 #endif
 
   /**
@@ -167,26 +165,35 @@ extern "C" {
     }
   CSOUND_STATUS;
 
-  /**
-   * Value to pass to csound->LongJmp() to return with success,
-   * for example after --help or running an utility.
-   */
+  /* Compilation or performance aborted, but not as a result of an error
+     (e.g. --help, or running an utility with -U). */
 #define CSOUND_EXITJMP_SUCCESS  (256)
+
+  /**
+   * Flags for csoundInitialize().
+   */
+#define CSOUNDINIT_NO_SIGNAL_HANDLER  1
+#define CSOUNDINIT_NO_ATEXIT          2
+
+  /**
+   * Constants used by the bus interface (csoundGetChannelPtr() etc.).
+   */
+#define CSOUND_CONTROL_CHANNEL      1
+#define CSOUND_AUDIO_CHANNEL        2
+#define CSOUND_STRING_CHANNEL       3
+
+#define CSOUND_CHANNEL_TYPE_MASK    15
+
+#define CSOUND_INPUT_CHANNEL        16
+#define CSOUND_OUTPUT_CHANNEL       32
+
+#define CSOUND_CONTROL_CHANNEL_INT  1
+#define CSOUND_CONTROL_CHANNEL_LIN  2
+#define CSOUND_CONTROL_CHANNEL_EXP  3
 
   /**
    * TYPE DEFINITIONS
    */
-
-#ifndef SWIG
-  /**
-   * Signature for external registration function,
-   * such as for plugin opcodes or scripting languages.
-   * The external has complete access to the Csound API,
-   * so a plugin opcode can just call csound->AppendOpcode()
-   * for each of its opcodes.
-   */
-  typedef PUBLIC int (*CsoundRegisterExternalType)(CSOUND *);
-#endif
 
   /**
    * Real-time audio parameters structure
@@ -212,24 +219,13 @@ extern "C" {
     char    *intypes;
   } opcodeListEntry;
 
+  typedef struct CsoundRandMTState_ {
+    int       mti;
+    uint32_t  mt[624];
+  } CsoundRandMTState;
+
   typedef struct windat_  WINDAT;
   typedef struct xyindat_ XYINDAT;
-
-#define CSOUNDINIT_NO_SIGNAL_HANDLER  1
-#define CSOUNDINIT_NO_ATEXIT          2
-
-#define CSOUND_CONTROL_CHANNEL      1
-#define CSOUND_AUDIO_CHANNEL        2
-#define CSOUND_STRING_CHANNEL       3
-
-#define CSOUND_CHANNEL_TYPE_MASK    15
-
-#define CSOUND_INPUT_CHANNEL        16
-#define CSOUND_OUTPUT_CHANNEL       32
-
-#define CSOUND_CONTROL_CHANNEL_INT  1
-#define CSOUND_CONTROL_CHANNEL_LIN  2
-#define CSOUND_CONTROL_CHANNEL_EXP  3
 
 #ifndef CSOUND_CSDL_H
 
@@ -263,7 +259,7 @@ extern "C" {
   /**
    * Returns a pointer to the requested interface, if available, in the
    * interface argument, and its version number, in the version argument.
-   * Returns 0 for success and 1 for failure.
+   * Returns 0 for success.
    */
   PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version);
 
@@ -667,9 +663,10 @@ extern "C" {
    */
 
   /**
-   * Tells Csound supports external graphic table display.
+   * Tells Csound whether external graphic table display is supported.
+   * Returns the previously set value (initially zero).
    */
-  PUBLIC void csoundSetIsGraphable(CSOUND *, int isGraphable);
+  PUBLIC int csoundSetIsGraphable(CSOUND *, int isGraphable);
 
   /**
    * Called by external software to set Csound's MakeGraph function.
@@ -692,6 +689,25 @@ extern "C" {
   PUBLIC void csoundSetKillGraphCallback(CSOUND *,
                             void (*killGraphCallback)(CSOUND *,
                                                       WINDAT *windat));
+
+  /**
+   * Called by external software to set Csound's MakeXYin function.
+   */
+  PUBLIC void csoundSetMakeXYinCallback(CSOUND *,
+                            void (*makeXYinCallback)(CSOUND *, XYINDAT *,
+                                                     MYFLT x, MYFLT y));
+
+  /**
+   * Called by external software to set Csound's ReadXYin function.
+   */
+  PUBLIC void csoundSetReadXYinCallback(CSOUND *,
+                            void (*readXYinCallback)(CSOUND *, XYINDAT *));
+
+  /**
+   * Called by external software to set Csound's KillXYin function.
+   */
+  PUBLIC void csoundSetKillXYinCallback(CSOUND *,
+                            void (*killXYinCallback)(CSOUND *, XYINDAT *));
 
   /**
    * Called by external software to set Csound's ExitGraph function.
@@ -1108,6 +1124,29 @@ extern "C" {
    */
   PUBLIC int csoundGetControlChannelParams(CSOUND *, const char *name,
                                            MYFLT *dflt, MYFLT *min, MYFLT *max);
+
+  /**
+   * Simple linear congruential random number generator:
+   *   (*seedVal) = (*seedVal) * 742938285 % 2147483647
+   * the initial value of *seedVal must be in the range 1 to 2147483646.
+   * Returns the next number from the pseudo-random sequence,
+   * in the range 1 to 2147483646.
+   */
+  PUBLIC int csoundRand31(int *seedVal);
+
+  /**
+   * Initialise Mersenne Twister (MT19937) random number generator,
+   * using 'keyLength' unsigned 32 bit values from 'initKey' as seed.
+   * If the array is NULL, the length parameter is used for seeding.
+   */
+  PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
+                               const uint32_t *initKey, uint32_t keyLength);
+
+  /**
+   * Returns next random number from MT19937 generator.
+   * The PRNG must be initialised first by calling csoundSeedRandMT().
+   */
+  PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p);
 
 #endif  /* !CSOUND_CSDL_H */
 
