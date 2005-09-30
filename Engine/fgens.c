@@ -1041,69 +1041,13 @@ static int gen20(FGDATA *ff, FUNC *ftp)
 
 static int gen21(FGDATA *ff, FUNC *ftp)
 {
-    long    i;
-    MYFLT   *ft;
-    MYFLT   scale;
-    int     nargs = ff->e.pcnt - 4;
+    int     retval = gen21_rand(ff, ftp);
 
-    ft = ftp->ftable;
-
-    if (nargs == 1) scale = FL(1.0);
-    else scale = ff->e.p[6];
-
-    switch ((int) ff->e.p[5])  {
-    case 1:                     /* Uniform distribution */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = unifrand(scale);
-      break;
-    case 2:                     /* Linear distribution */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = linrand(  scale);
-      break;
-    case 3:                     /* Triangular about 0.5 */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = trirand(  scale);
-      break;
-    case 4:                     /* Exponential */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = exprand(  scale);
-      break;
-    case 5:                     /* Bilateral exponential */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = biexprand(  scale);
-      break;
-    case 6:                     /* Gaussian distribution */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = gaussrand(  scale);
-      break;
-    case 7:                     /* Cauchy distribution */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = cauchrand(  scale);
-      break;
-    case 8:                     /* Positive Cauchy */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = pcauchrand(  scale);
-      break;
-    case 9:                     /* Beta distribution */
-      if (nargs < 3)  {
-        return fterror(ff, Str("Wrong number of input arguments"));
-      }
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = betarand(scale, (MYFLT)ff->e.p[7], (MYFLT)ff->e.p[8]);
-      break;
-    case 10:                    /* Weibull Distribution */
-      if (nargs < 2)  {
-        return fterror(ff, Str("Wrong number of input arguments"));
-      }
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = weibrand(  scale, (MYFLT) ff->e.p[7]);
-      break;
-    case 11:                    /* Poisson Distribution */
-      for (i = 0 ; i < ff->flen ; i++)
-        *ft++ = poissrand(  scale);
-      break;
-    default:
-      return fterror(ff, Str("unknown distribution"));
+    switch (retval) {
+      case 0:   break;
+      case -1:  return fterror(ff, Str("Wrong number of input arguments"));
+      case -2:  return fterror(ff, Str("unknown distribution"));
+      default:  return NOTOK;
     }
     return OK;
 }

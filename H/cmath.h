@@ -22,17 +22,10 @@
 */
 
 double besseli(double);
-MYFLT unifrand(MYFLT);
-MYFLT linrand(MYFLT);
-MYFLT trirand(MYFLT);
-MYFLT exprand(MYFLT);
-MYFLT biexprand(MYFLT);
-MYFLT gaussrand(MYFLT);
-MYFLT cauchrand(MYFLT);
-MYFLT pcauchrand(MYFLT);
-MYFLT weibrand(MYFLT, MYFLT);
-MYFLT betarand(MYFLT, MYFLT, MYFLT);
-MYFLT poissrand(MYFLT);
+
+/* returns 0 on success, -1 if there are insufficient arguments, */
+/* and -2 in the case of an unknown distribution */
+int gen21_rand(FGDATA *ff, FUNC *ftp);
 
 typedef struct  {
         OPDS    h;
@@ -43,3 +36,4 @@ typedef struct  {
         OPDS    h;
         MYFLT   *out, *arg1, *arg2, *arg3;
 } PRAND;
+

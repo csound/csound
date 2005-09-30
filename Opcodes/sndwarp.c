@@ -32,6 +32,8 @@
 #include "csdl.h"
 #include "sndwarp.h"
 
+#define unirand(x) ((MYFLT) (x->Rand31(&(x->randSeed1)) - 1) / FL(2147483645))
+
 static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 {
     int         i;
@@ -72,8 +74,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
         exp->ampphs = FL(0.0);
       }
       else {
-        exp->wsize = (int)(*p->iwsize +
-                           (((MYFLT)rand()/RAND_MAX)*(*p->irandw)));
+        exp->wsize = (int) (*p->iwsize + (unirand(csound) * (*p->irandw)));
         exp->cnt=(int)(exp->wsize*((MYFLT)i/(*p->ioverlap)));
         exp->ampphs = p->flen*((MYFLT)i/(*p->ioverlap));
       }
@@ -134,7 +135,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
           exp->offset += (MYFLT)exp->wsize/(*timewarpby);
 
         exp->cnt=0;
-        exp->wsize = (int)(iwsize + (((MYFLT)rand()/RAND_MAX)*(*p->irandw)));
+        exp->wsize = (int) (iwsize + (unirand(csound) * (*p->irandw)));
         exp->ampphs = FL(0.0);
         exp->ampincr = flen/(exp->wsize-1);
 
@@ -233,8 +234,7 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
         exp->ampphs = FL(0.0);
       }
       else {
-        exp->wsize = (int)(*p->iwsize +
-          (((MYFLT)rand()/RAND_MAX)*(*p->irandw)));
+        exp->wsize = (int) (*p->iwsize + (unirand(csound) * (*p->irandw)));
         exp->cnt=(int)(exp->wsize*((MYFLT)i/(*p->ioverlap)));
         exp->ampphs = p->flen*(i/(*p->ioverlap));
       }
@@ -310,7 +310,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
           exp->offset += (MYFLT)exp->wsize/(*timewarpby);
 
         exp->cnt=0;
-        exp->wsize = (int)(iwsize + (((MYFLT)rand()/RAND_MAX)*(*p->irandw)));
+        exp->wsize = (int) (iwsize + (unirand(csound) * (*p->irandw)));
         exp->ampphs = FL(0.0);
         exp->ampincr = flen/(exp->wsize-1);
 

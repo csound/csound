@@ -288,7 +288,7 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     {
       int triples = (*p->triples<=FL(0.0) ? 20 : (int)*p->triples);
       int doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int)*p->doubles);
-      itemp = rand() % 100;
+      itemp = csound->Rand31(&(csound->randSeed1)) % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
         if (csound->oparms->msglevel & 02)

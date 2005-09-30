@@ -74,7 +74,7 @@ int shakerset(CSOUND *csound, SHAKER *p)
                 p->shake_speed,  p->shake_speed, FL(0.0),  p->shake_speed);
     p->num_beans = (int)*p->beancount;
     if (p->num_beans<1) p->num_beans = 1;
-    p->wait_time = RAND_MAX / p->num_beans;
+    p->wait_time = 0x7FFFFFFE / p->num_beans;
     p->gain_norm = FL(0.0005);
     p->shake_num = (int)*p->times;
     ADSR_keyOn(&p->envelope);
@@ -100,7 +100,7 @@ int shaker(CSOUND *csound, SHAKER *p)
       BiQuad_setFreqAndReson(p->filter, p->freq = *p->kfreq, FL(0.96));
     if (p->num_beans != (int)*p->beancount) { /* Bean Count */
       p->num_beans = (int)*p->beancount;
-      p->wait_time = RAND_MAX / p->num_beans;
+      p->wait_time = 0x7FFFFFFE / p->num_beans;
     }
     if (shake_speed != p->shake_speed) {
       p->shake_speed = shake_speed;
@@ -134,16 +134,18 @@ int shaker(CSOUND *csound, SHAKER *p)
     /* Decaying System Energy.  All add together for total     */
     /* exponentially decaying sound energy.                    */
 
-        if (rand() < p->wait_time) {
+        if (csound->Rand31(&(csound->randSeed1)) <= p->wait_time) {
           ngain += gain * sEnergy;
         }
-        lastOutput = ngain *
-                     ((MYFLT) rand() - (MYFLT)(RAND_MAX/2)) /
-                   (MYFLT)(RAND_MAX/2);  /* Actual Sound is Random   */
-        ngain *= p->coll_damp;               /* Each (all) event(s)      */
-                                             /* decay(s) exponentially   */
+        /* Actual Sound is Random */
+        lastOutput = ngain * ((MYFLT) csound->Rand31(&(csound->randSeed1))
+                              - FL(1073741823.5))
+                           * (MYFLT) (1.0 / 1073741823.0);
+        /* Each (all) event(s) decay(s) exponentially */
+        ngain *= p->coll_damp;
+
         lastOutput = BiQuad_tick(&p->filter, lastOutput);
-        ar[n] = lastOutput*AMP_SCALE* FL(7.0); /* As too quiet */
+        ar[n] = lastOutput * AMP_SCALE * FL(7.0); /* As too quiet */
     }
     p->noiseGain = ngain;
     p->shakeEnergy = sEnergy;

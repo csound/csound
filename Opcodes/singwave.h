@@ -36,9 +36,7 @@
 #if !defined(__SingWave_h)
 #define __SingWave_h
 
-#ifndef MYFLT
-#include "sysdep.h"
-#endif
+#include "csdl.h"
 
 extern MYFLT phonGains[32][2];
 extern MYFLT phonParams[32][4][3];
@@ -55,17 +53,11 @@ extern char phonemes[32][4];
 #include "clarinet.h"
 #include "moog1.h"
 
-typedef struct SubNoise
-{
+typedef struct SubNoise {
      Noise      lastOutput;
      int        counter;
      int        howOften;
 } SubNoise;
-
-/* void make_SubNoise(SubNoise *); */
-void make_SubNoise(SubNoise *, int subSample);
-void SubNoise_setHowOften(SubNoise *, int howOft);
-MYFLT SubNoise_tick(SubNoise *);
 
 typedef struct Modulatr {
     FUNC     *wave;
@@ -80,12 +72,6 @@ typedef struct Modulatr {
     MYFLT    lastOutput;
 } Modulatr;
 
-int make_Modulatr(CSOUND *, Modulatr *, MYFLT *);
-void Modulatr_reset(Modulatr *);
-void Modulatr_setRndAmt(Modulatr *, MYFLT rndAmount);
-MYFLT Modulatr_tick(Modulatr *);
-MYFLT Modulatr_lastOut(Modulatr *);
-
 typedef struct SingWave {
     Modulatr    modulator;
     Envelope    envelope;
@@ -96,11 +82,6 @@ typedef struct SingWave {
     MYFLT       mytime;
     MYFLT       lastOutput;
 } SingWave;
-
-void SingWave_reset(SingWave *);
-void SingWave_setFreq(CSOUND *csound,SingWave *,MYFLT aFreq);
-MYFLT SingWave_tick(SingWave *);
-void SingWave_print(CSOUND *,SingWave *);
 
 /*******************************************/
 /*  4 Formant Synthesis Instrument         */
@@ -144,13 +125,6 @@ typedef struct VOICF {
     OnePole     onepole;
     OneZero     onezero;
 } VOICF;
-
-void make_VoicForm(VOICF*);
-void VoicForm_clear(VOICF*);
-void VoicForm_setPhoneme(CSOUND *,VOICF*, int i, MYFLT s);
-void VoicForm_setVoicedUnVoiced(VOICF*, MYFLT vGain, MYFLT nGain);
-void VoicForm_noteOn(VOICF*, MYFLT freq, MYFLT amp);
-void VoicForm_noteOff(VOICF*);
 
 #endif
 
