@@ -132,25 +132,26 @@ PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
     p->mti = N;
     if (initKey == NULL)
       return;
-    i = 1; j = 0;
+    i = 0; j = 0;
     k = (N > (int) keyLength ? N : (int) keyLength);
-    x = p->mt[0];
     for ( ; k; k--) {
+      x = p->mt[i++];
       p->mt[i] = (p->mt[i] ^ ((x ^ (x >> 30)) * (uint32_t) 1664525))
                  + initKey[j] + (uint32_t) j;   /* non linear */
-      if (++i >= N) {
-        p->mt[0] = x = p->mt[N - 1];
-        i = 1;
+      if (i == (N - 1)) {
+        p->mt[0] = p->mt[N - 1];
+        i = 0;
       }
       if (++j >= (int) keyLength)
         j = 0;
     }
     for (k = (N - 1); k; k--) {
+      x = p->mt[i++];
       p->mt[i] = (p->mt[i] ^ ((x ^ (x >> 30)) * (uint32_t) 1566083941))
                  - (uint32_t) i;                /* non linear */
-      if (++i >= N) {
-        p->mt[0] = x = p->mt[N - 1];
-        i = 1;
+      if (i == (N - 1)) {
+        p->mt[0] = p->mt[N - 1];
+        i = 0;
       }
     }
     /* MSB is 1; assuring non-zero initial array */
