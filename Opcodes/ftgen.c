@@ -28,9 +28,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include "soundio.h"
-#include "cwindow.h"
 #include <math.h>
-#include "cmath.h"
 
 typedef struct {
     OPDS    h;

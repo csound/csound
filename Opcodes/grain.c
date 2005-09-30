@@ -30,11 +30,12 @@
 #include "csdl.h"
 #include "grain.h"
 
-#ifndef RAND_MAX
-#define RAND_MAX        (32767)
-#endif
-
-#define Unirand(a)      (((MYFLT)rand() / (MYFLT)RAND_MAX) * (a))
+static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
+{
+    MYFLT x;
+    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645);
+    return (x * a);
+}
 
 static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
 {
@@ -119,10 +120,10 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     for (i = 0 ; i < csound->ksmps ; i++) {
       if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
-        amp = *xamp + Unirand(*p->kabnd);
-        isc = (long) Unirand(p->pr);
+        amp = *xamp + Unirand(csound, *p->kabnd);
+        isc = (long) Unirand(csound, p->pr);
         isc2 = 0;
-        inc = (long) ((*xlfr + Unirand(*p->kbnd)) * csound->sicvt);
+        inc = (long) ((*xlfr + Unirand(csound, *p->kbnd)) * csound->sicvt);
 
         temp = buf + i;
         n = ekglen;

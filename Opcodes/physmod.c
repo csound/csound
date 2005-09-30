@@ -194,7 +194,7 @@ int clarin(CSOUND *csound, CLARIN *p)
         MYFLT   lastOutput;
 
         breathPressure = Envelope_tick(&p->envelope);
-        breathPressure += breathPressure * nGain* Noise_tick(&p->noise);
+        breathPressure += breathPressure * nGain * Noise_tick(csound,&p->noise);
                                        /* Tick on vibrato table   */
         vTime += p->v_rate;            /*  Update current time    */
         while (vTime >= v_len)         /*  Check for end of sound */
@@ -312,8 +312,8 @@ int fluteset(CSOUND *csound, FLUTE *p)
     /*    p->noiseGain = 0.15; */ /* Breath pressure random component   */
     /*    p->vibrGain = 0.05;  */ /* breath periodic vibrato component  */
     /*    p->jetRatio = 0.32;  */
-      p->lastamp = FL(1.0);             /* Remember */
-                                        /* This should be controlled by attack */
+      p->lastamp = FL(1.0);       /* Remember */
+                                  /* This should be controlled by attack */
       ADSR_setAttackRate(csound, &p->adsr, FL(0.02));
       p->maxPress = FL(2.3) / FL(0.8);
       p->outputGain = FL(1.001);
@@ -387,8 +387,8 @@ int flute(CSOUND *csound, FLUTE *p)
       MYFLT     v_lastOutput;
 
       breathPress = p->maxPress * ADSR_tick(&p->adsr); /* Breath Pressure */
-      randPress = noisegain * Noise_tick(&p->noise);   /* Random Deviation */
-                                /* Tick on vibrato table */
+      randPress = noisegain*Noise_tick(csound,&p->noise); /* Random Deviation */
+                                      /* Tick on vibrato table */
       v_time += p->v_rate;            /*  Update current time    */
       while (v_time >= v_len)         /*  Check for end of sound */
         v_time -= v_len;              /*  loop back to beginning */
@@ -417,11 +417,11 @@ int flute(CSOUND *csound, FLUTE *p)
       randPress += vibGain * v_lastOutput; /* + breath vibrato       */
       randPress *= breathPress;            /* All scaled by Breath Pressure */
       temf = OnePole_tick(&p->filter, DLineL_lastOut(&p->boreDelay));
-      temf = DCBlock_tick(&p->dcBlock, temf);        /* Block DC on reflection */
-      pressDiff = breathPress + randPress    /* Breath Pressure   */
-                     - (jetRefl * temf); /*  - reflected      */
+      temf = DCBlock_tick(&p->dcBlock, temf);   /* Block DC on reflection */
+      pressDiff = breathPress + randPress       /* Breath Pressure   */
+                     - (jetRefl * temf);        /*  - reflected      */
       pressDiff = DLineL_tick(&p->jetDelay, pressDiff);  /* Jet Delay Line */
-      pressDiff = JetTabl_lookup(pressDiff)  /* Non-Lin Jet + reflected */
+      pressDiff = JetTabl_lookup(pressDiff)     /* Non-Lin Jet + reflected */
                      + (endRefl * temf);
                                        /* Bore Delay and "bell" filter  */
       lastOutput = FL(0.3) * DLineL_tick(&p->boreDelay, pressDiff);

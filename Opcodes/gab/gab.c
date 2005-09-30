@@ -432,11 +432,12 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     lphs = (long*)p->lphs.auxp;
     if (*p->iphs > 1) {
       do {
-        *lphs++ = ((long)((MYFLT)((double)rand()/(double)RAND_MAX)
-                          * fmaxlen)) & PHMASK;
+        *lphs++ = ((long)
+                   ((MYFLT) ((double) (csound->Rand31(&(csound->randSeed1)) - 1)
+                             / 2147483645.0) * fmaxlen)) & PHMASK;
       } while (--count);
     }
-    else if (*p->iphs >= 0){
+    else if (*p->iphs >= 0) {
       do {
         *lphs++ = ((long)(*p->iphs * fmaxlen)) & PHMASK;
       } while (--count);

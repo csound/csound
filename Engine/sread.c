@@ -405,13 +405,13 @@ top:
     }
 /* End of macro expander */
     if (expand && c == '[') {           /* Evaluable section */
-      char stack[30];
+      char  stack[30];
       MYFLT vv[30];
-      char *op = stack-1;
-      MYFLT *pv = vv-1;
-      char buffer[100];
-      int i;
-      int type=0;
+      char  *op = stack - 1;
+      MYFLT *pv = vv - 1;
+      char  buffer[100];
+      int   i;
+      int   type = 0;
       *++op = '[';
       c = getscochar(csound, 1);
       do {
@@ -419,7 +419,7 @@ top:
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
         case '.':
-          if (type==1) {
+          if (type) {
             csoundDie(csound, Str("Number not allowed in context []"));
           }
           i = 0;
@@ -432,15 +432,16 @@ top:
           type = 1;
           break;
         case '~':
-          if (type==1) {
+          if (type) {
             csoundDie(csound, Str("Random not in context []"));
           }
-          *++pv = (MYFLT) rand()/(MYFLT)RAND_MAX;
+          *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1)
+                  / FL(2147483645);
           type = 1;
           c = getscochar(csound, 1);
           break;
         case '@':
-          if (type==1) {
+          if (type) {
             csoundDie(csound, Str("Upper not in context []"));
           }
           {
@@ -459,9 +460,8 @@ top:
           }
           break;
         case '+': case '-':
-          if (type==0) {
-            csoundDie(csound,
-                      Str("Operator %c not allowed in context []"), c);
+          if (!type) {
+            csoundDie(csound, Str("Operator %c not allowed in context []"), c);
           }
           if (*op != '[' && *op != '(') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -473,9 +473,8 @@ top:
         case '*':
         case '/':
         case '%':
-          if (type==0) {
-            csoundDie(csound,
-                      Str("Operator %c not allowed in context []"), c);
+          if (!type) {
+            csoundDie(csound, Str("Operator %c not allowed in context []"), c);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -487,9 +486,8 @@ top:
         case '&':
         case '|':
         case '#':
-          if (type==0) {
-            csoundDie(csound,
-                      Str("Operator %c not allowed in context []"), c);
+          if (!type) {
+            csoundDie(csound, Str("Operator %c not allowed in context []"), c);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -499,16 +497,14 @@ top:
           type = 0;
           *++op = c; c = getscochar(csound, 1); break;
         case '(':
-          if (type==1) {
-            csoundDie(csound,
-                      Str("Open bracket not allowed in context []"));
+          if (type) {
+            csoundDie(csound, Str("Open bracket not allowed in context []"));
           }
           type = 0;
           *++op = c; c = getscochar(csound, 1); break;
         case ')':
-          if (type==0) {
-            csoundDie(csound,
-                      Str("Closing bracket not allowed in context []"));
+          if (!type) {
+            csoundDie(csound, Str("Closing bracket not allowed in context []"));
           }
           while (*op != '(') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -521,9 +517,8 @@ top:
           type = 0;
           *++op = c; c = getscochar(csound, 1); break;
         case ']':
-          if (type==0) {
-            csoundDie(csound,
-                      Str("Closing bracket not allowed in context []"));
+          if (!type) {
+            csoundDie(csound, Str("Closing bracket not allowed in context []"));
           }
           while (*op != '[') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
@@ -541,7 +536,7 @@ top:
           csound->Message(csound,"read %c(%.2x)\n", c, c);
           csoundDie(csound, Str("Incorrect evaluation"));
         }
-      } while (c!='$');
+      } while (c != '$');
       /* Make string macro or value */
       sprintf(buffer, "%f", *pv);
       {
