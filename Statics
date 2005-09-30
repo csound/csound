@@ -2,11 +2,6 @@ Engine/cfgvar.c:static  void    **global_cfg_db = NULL;
 
 InOut/winascii.c:static  char    *points = NULL;
 
-InOut/window.c:static void (*makeFn)(WINDAT*, char*);  /* pointer to window make fn - */
-InOut/window.c:static void (*drawFn)(WINDAT *);        /* pointer to appropriate drawing fn */
-InOut/window.c:static void (*killFn)(WINDAT *);        /* pointer to window destroy fn */
-InOut/window.c:static int (*exitFn)(void) = NULL; /* pointer to window last exit fn - returns
-
 InOut/winEPS.c:static int   winPSinitialized = 0;
 InOut/winEPS.c:static int   psFileOk = 0;               /* Flag for ``psFile opened O.K.''  */
 InOut/winEPS.c:static FILE *psFile;

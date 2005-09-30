@@ -33,7 +33,7 @@ static  char    *points = NULL;
 
 void MakeAscii(CSOUND *csound, WINDAT *wdptr, const char *n)
 {
-    wdptr->windid = -1;                         /* just so it's not null */
+    wdptr->windid = ~((uintptr_t) 0);           /* just so it's not null */
     if (points == NULL)
       points = mmalloc(csound, (VER+1) * HOR);  /* alloc the 2-Dim array */
 }
