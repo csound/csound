@@ -54,21 +54,22 @@ extern "C" {
 #include "pvfileio.h"
 #include "fftlib.h"
 
+extern void MakeAscii(CSOUND *, WINDAT *, const char *);
+extern void DrawAscii(CSOUND *, WINDAT *);
+extern void KillAscii(CSOUND *, WINDAT *);
+
 static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 static void rtclose_dummy(CSOUND *);
-static void csoundDefaultMessageCallback(CSOUND *, int attr,
-                                         const char *format, va_list args);
-static void csoundDefaultThrowMessageCallback(CSOUND *,
-                                              const char *format, va_list args);
-static void defaultCsoundMakeGraph(CSOUND *, WINDAT *windat, const char *name);
-static void defaultCsoundDrawGraph(CSOUND *, WINDAT *windat);
-static void defaultCsoundKillGraph(CSOUND *, WINDAT *windat);
+static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
+static void csoundDefaultThrowMessageCallback(CSOUND *, const char *, va_list);
+static void defaultCsoundMakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
+static void defaultCsoundReadKillXYin(CSOUND *, XYINDAT *);
 static int  defaultCsoundExitGraph(CSOUND *);
+static int  defaultCsoundYield(CSOUND *);
 
-int     defaultCsoundYield(CSOUND *);
 void    close_all_files(CSOUND *);
 
 static const CSOUND cenviron_ = {
@@ -98,9 +99,9 @@ static const CSOUND cenviron_ = {
         csoundGetSpin,
         csoundGetSpout,
         csoundGetScoreTime,
-        (SUBR) NULL,
-        (SUBR) NULL,
-        (SUBR) NULL,
+        csoundSetMakeXYinCallback,
+        csoundSetReadXYinCallback,
+        csoundSetKillXYinCallback,
         csoundIsScorePending,
         csoundSetScorePending,
         csoundGetScoreOffsetSeconds,
@@ -177,7 +178,7 @@ static const CSOUND cenviron_ = {
         sndgetset,
         getsndin,
         rewriteheader,
-        (SUBR) NULL,
+        csoundRand31,
         fdrecord,
         fdclose,
         csoundSetDebug,
@@ -197,8 +198,8 @@ static const CSOUND cenviron_ = {
         csoundGetRealTime,
         csoundGetCPUTime,
         csoundGetRandomSeedFromTime,
-        (SUBR) NULL,
-        (SUBR) NULL,
+        csoundSeedRandMT,
+        csoundRandMT,
         csoundPerformKsmpsAbsolute,
         csoundLocalizeString,
         csoundCreateGlobalVariable,
@@ -352,6 +353,9 @@ static const CSOUND cenviron_ = {
         NULL,           /*  instrtxtp           */
         { NULL },       /*  m_chnbp             */
         NULL,           /*  csRtClock           */
+        NULL,           /*  csRandState         */
+        0,              /*  randSeed1           */
+        0,              /*  randSeed2           */
     /* ------- private data (not to be used by hosts or externals) ------- */
         /* callback function pointers */
         (SUBR) NULL,    /*  first_callback_     */
@@ -359,11 +363,14 @@ static const CSOUND cenviron_ = {
         (void (*)(CSOUND*, const char*, MYFLT)) NULL,
         csoundDefaultMessageCallback,
         csoundDefaultThrowMessageCallback,
-        defaultCsoundMakeGraph,
-        defaultCsoundDrawGraph,
-        defaultCsoundKillGraph,
+        MakeAscii,
+        DrawAscii,
+        KillAscii,
         defaultCsoundExitGraph,
         defaultCsoundYield,
+        defaultCsoundMakeXYin,
+        defaultCsoundReadKillXYin,
+        defaultCsoundReadKillXYin,
         (SUBR) NULL,    /*  last_callback_      */
         /* these are not saved on RESET */
         playopen_dummy,
@@ -527,7 +534,8 @@ static const CSOUND cenviron_ = {
         0,              /*  max_lpc_slot        */
         NULL,           /*  chn_db              */
         1,              /*  opcodedirWasOK      */
-        0               /*  disable_csd_options */
+        0,              /*  disable_csd_options */
+        { 0, { 0U } }   /*  randState_          */
 };
 
   /* from threads.c */
@@ -792,6 +800,8 @@ static const CSOUND cenviron_ = {
                             const unsigned char *buf, int nbytes);
   static int DummyMidiOutClose(CSOUND *csound, void *userData);
   static const char *DummyMidiErrorString(int errcode);
+  /* random.c */
+  extern void csound_init_rand(CSOUND *);
 
   /**
    * Reset and prepare an instance of Csound for compilation.
@@ -815,6 +825,7 @@ static const CSOUND cenviron_ = {
       p->engineState |= 16;
       return i;
     }
+    csound_init_rand(p);
     /* allow selecting real time audio module */
     max_len = 21;
     csoundCreateGlobalVariable(p, "_RTAUDIO", (size_t) max_len);
@@ -826,13 +837,13 @@ static const CSOUND cenviron_ = {
     /* initialise real time MIDI */
     p->midiGlobals = (MGLOBAL*) mcalloc(p, sizeof(MGLOBAL));
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
-    csoundSetExternalMidiInOpenCallback(p, DummyMidiInOpen);
-    csoundSetExternalMidiReadCallback(p, DummyMidiRead);
-    csoundSetExternalMidiInCloseCallback(p, DummyMidiInClose);
-    csoundSetExternalMidiOutOpenCallback(p, DummyMidiOutOpen);
-    csoundSetExternalMidiWriteCallback(p, DummyMidiWrite);
-    csoundSetExternalMidiOutCloseCallback(p, DummyMidiOutClose);
-    csoundSetExternalMidiErrorStringCallback(p, DummyMidiErrorString);
+    p->midiGlobals->MidiInOpenCallback = DummyMidiInOpen;
+    p->midiGlobals->MidiReadCallback = DummyMidiRead;
+    p->midiGlobals->MidiInCloseCallback = DummyMidiInClose;
+    p->midiGlobals->MidiOutOpenCallback = DummyMidiOutOpen;
+    p->midiGlobals->MidiWriteCallback = DummyMidiWrite;
+    p->midiGlobals->MidiOutCloseCallback = DummyMidiOutClose;
+    p->midiGlobals->MidiErrorStringCallback = DummyMidiErrorString;
     p->midiGlobals->midiInUserData = NULL;
     p->midiGlobals->midiOutUserData = NULL;
     p->midiGlobals->midiFileData = NULL;
@@ -1397,13 +1408,6 @@ static const CSOUND cenviron_ = {
     csound->inChar_ = (int) ((unsigned char) c);
   }
 
-  char getChar(CSOUND *csound)
-  {
-    char  c = (char) csound->inChar_;
-    csound->inChar_ = 0;
-    return c;
-  }
-
   /*
    * CONTROL AND EVENTS
    */
@@ -1726,24 +1730,11 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
    *    FUNCTION TABLE DISPLAY.
    */
 
-  PUBLIC void csoundSetIsGraphable(CSOUND *csound, int isGraphable)
+  PUBLIC int csoundSetIsGraphable(CSOUND *csound, int isGraphable)
   {
+    int prv = csound->isGraphable_;
     csound->isGraphable_ = isGraphable;
-  }
-
-  int Graphable(CSOUND *csound)
-  {
-    return csound->isGraphable_;
-  }
-
-  extern void MakeAscii(CSOUND *, WINDAT *, const char *);
-  extern void DrawAscii(CSOUND *, WINDAT *);
-  extern void KillAscii(CSOUND *, WINDAT *);
-
-  static void defaultCsoundMakeGraph(CSOUND *csound,
-                                     WINDAT *windat, const char *name)
-  {
-    MakeAscii(csound, windat, name);
+    return prv;
   }
 
   PUBLIC void csoundSetMakeGraphCallback(CSOUND *csound,
@@ -1753,41 +1744,16 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
     csound->csoundMakeGraphCallback_ = makeGraphCallback;
   }
 
-  void MakeGraph(CSOUND *csound, WINDAT *windat, const char *name)
-  {
-    csound->csoundMakeGraphCallback_(csound, windat, name);
-  }
-
-  static void defaultCsoundDrawGraph(CSOUND *csound, WINDAT *windat)
-  {
-    DrawAscii(csound, windat);
-  }
-
   PUBLIC void csoundSetDrawGraphCallback(CSOUND *csound,
                   void (*drawGraphCallback)(CSOUND *csound, WINDAT *windat))
   {
     csound->csoundDrawGraphCallback_ = drawGraphCallback;
   }
 
-  void DrawGraph(CSOUND *csound, WINDAT *windat)
-  {
-    csound->csoundDrawGraphCallback_(csound, windat);
-  }
-
-  static void defaultCsoundKillGraph(CSOUND *csound, WINDAT *windat)
-  {
-    KillAscii(csound, windat);
-  }
-
   PUBLIC void csoundSetKillGraphCallback(CSOUND *csound,
                   void (*killGraphCallback)(CSOUND *csound, WINDAT *windat))
   {
     csound->csoundKillGraphCallback_ = killGraphCallback;
-  }
-
-  void KillGraph(CSOUND *csound, WINDAT *windat)
-  {
-    csound->csoundKillGraphCallback_(csound, windat);
   }
 
   static int defaultCsoundExitGraph(CSOUND *csound)
@@ -1802,21 +1768,36 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
     csound->csoundExitGraphCallback_ = exitGraphCallback;
   }
 
-  int ExitGraph(CSOUND *csound)
+  static void defaultCsoundMakeXYin(CSOUND *csound,
+                                    XYINDAT *xyindat, MYFLT x, MYFLT y)
   {
-    return csound->csoundExitGraphCallback_(csound);
+    (void) x; (void) y;
+    memset(xyindat, 0, sizeof(XYINDAT));
+    csoundWarning(csound, "xyin not supported. use invalue opcode instead.");
   }
 
-  void MakeXYin(CSOUND *csound, XYINDAT *xyindat, MYFLT x, MYFLT y)
+  static void defaultCsoundReadKillXYin(CSOUND *csound, XYINDAT *xyindat)
   {
-    (void) xyindat; (void) x; (void) y;
-    csoundMessage(csound, "xyin not supported. use invalue opcode instead.\n");
+    (void) csound; (void) xyindat;
   }
 
-  void ReadXYin(CSOUND *csound, XYINDAT *xyindat)
+  PUBLIC void csoundSetMakeXYinCallback(CSOUND *csound,
+                  void (*makeXYinCallback)(CSOUND *, XYINDAT *xyindat,
+                                           MYFLT x, MYFLT y))
   {
-    (void) xyindat;
-    csoundMessage(csound, "xyin not supported. use invalue opcode instead.\n");
+    csound->csoundMakeXYinCallback_ = makeXYinCallback;
+  }
+
+  PUBLIC void csoundSetReadXYinCallback(CSOUND *csound,
+                  void (*readXYinCallback)(CSOUND *, XYINDAT *xyindat))
+  {
+    csound->csoundReadXYinCallback_ = readXYinCallback;
+  }
+
+  PUBLIC void csoundSetKillXYinCallback(CSOUND *csound,
+                  void (*killXYinCallback)(CSOUND *, XYINDAT *xyindat))
+  {
+    csound->csoundKillXYinCallback_ = killXYinCallback;
   }
 
   /*
@@ -2128,7 +2109,11 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
 #if defined(HAVE_RDTSC)
     /* optimised high resolution timer for Linux/i586/GCC only */
     uint32_t  l, h;
+#ifndef __STRICT_ANSI__
     asm volatile ("rdtsc" : "=a" (l), "=d" (h));
+#else
+    __asm__ volatile ("rdtsc" : "=a" (l), "=d" (h));
+#endif
     return ((int_least64_t) l + ((int_least64_t) h << 32));
 #elif defined(WIN32)
     /* Win32: use QueryPerformanceCounter - resolution depends on system, */
