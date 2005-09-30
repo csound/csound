@@ -70,7 +70,6 @@ kamp            ATSinterpread   kfreq
 
 typedef struct {
     ATSBUFREAD  *atsbufreadaddr;    /* must be the first structure member */
-    long        seed;
     int         swapped_warning;
 } ATS_GLOBALS;
 
@@ -711,22 +710,6 @@ static void AtsAmpGate(            /* adaption of PvAmpGate by Richard Karpen */
     }
 }
 
-/* oscbnk_rand31 from oscbnk.c; written by Istvan Varga */
-
-static CS_PURE long oscbnk_rand31(long seed)
-{
-    uint64_t tmp1;
-    uint32_t tmp2;
-
-    /* x = (16807 * x) % 0x7FFFFFFF */
-    tmp1 = (uint64_t) ((int32_t) seed * (int64_t) 16807);
-    tmp2 = (uint32_t) tmp1 & (uint32_t) 0x7FFFFFFF;
-    tmp2 += (uint32_t) (tmp1 >> 31);
-    if ((int32_t) tmp2 < (int32_t) 0)
-      tmp2 = (tmp2 + (uint32_t) 1) & (uint32_t) 0x7FFFFFFF;
-    return (long) tmp2;
-}
-
 /************************************************************/
 /*********  ATSADDNZ      ***********************************/
 /************************************************************/
@@ -739,32 +722,23 @@ static CS_PURE long oscbnk_rand31(long seed)
  * the intermediate values.
  */
 
-static void randiats_setup(CSOUND *csound,
-                           MYFLT freq, long *seed, RANDIATS *radat)
+static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat)
 {
-    long    tmp;
-
-    tmp = *seed;
-    tmp = (tmp <= 0x7FFFFFE7L ? tmp + 23L : tmp - 0x7FFFFFE7L);
-    *seed = tmp;
-
     radat->size = (int) MYFLT2LRND(csound->esr / freq);
     radat->cnt = 0;
-    radat->a1 = oscbnk_rand31(tmp);
-    radat->a2 = oscbnk_rand31(radat->a1);
+    radat->a1 = (long) csound->Rand31(&(csound->randSeed1));
+    radat->a2 = (long) csound->Rand31(&(csound->randSeed1));
 }
 
 /* ------------------------------------------------------------------ */
 
-static MYFLT randiats(RANDIATS *radat)
+static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 {
-    long    second;
     MYFLT   output;
 
     if (radat->cnt == radat->size) {  /* get a new random value */
       radat->a1 = radat->a2;
-      second = oscbnk_rand31(radat->a2);
-      radat->a2 = second;
+      radat->a2 = (long) csound->Rand31(&(csound->randSeed1));
       radat->cnt = 0;
     }
 
@@ -778,13 +752,11 @@ static MYFLT randiats(RANDIATS *radat)
 
 static MYFLT randifats(CSOUND *csound, RANDIATS *radat, MYFLT freq)
 {
-    long    second;
     MYFLT   output;
 
     if (radat->cnt == radat->size) {  /* get a new random value */
       radat->a1 = radat->a2;
-      second = oscbnk_rand31(radat->a2);
-      radat->a2 = second;
+      radat->a2 = (long) csound->Rand31(&(csound->randSeed1));
       radat->cnt = 0;
       radat->size = (int) MYFLT2LRND(csound->esr / freq);
     }
@@ -984,7 +956,7 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     /* initialise band limited noise parameters */
     pp = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
     for (i = 0; i < 25; i++) {
-      randiats_setup(csound, p->nfreq[i], &(pp->seed), &(p->randinoise[i]));
+      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]));
     }
 
     /* flag set to reduce the amount of warnings sent out */
@@ -1047,7 +1019,8 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
         ar = p->aoutput;
         nsmps = csound->ksmps;
         do {
-          *ar += cos(p->oscphase[i]) * amp * randiats(&(p->randinoise[i]));
+          *ar += (cos(p->oscphase[i])
+                  * amp * randiats(csound, &(p->randinoise[i])));
           p->oscphase[i] += p->phaseinc[i];
           ar++;
         } while (--nsmps);
@@ -1232,7 +1205,7 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     /* initialise band limited noise parameters */
     pp = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
     for (i = 0; i < (int) *p->iptls; i++) {
-      randiats_setup(csound, FL(10.0), &(pp->seed), &(p->randinoise[i]));
+      randiats_setup(csound, FL(10.0), &(p->randinoise[i]));
     }
     /* flag set to reduce the amount of warnings sent out */
     /* for time pointer out of range */
@@ -2109,8 +2082,6 @@ PUBLIC OENTRY *opcode_init(CSOUND *csound)
       csound->Die(csound, Str("ugnorman.c: error allocating globals"));
     p = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
     p->atsbufreadaddr = NULL;
-    p->seed = (long) (csound->GetRandomSeedFromTime() & (uint32_t) 0x7FFFFFFD);
-    p->seed++;
     p->swapped_warning = 0;
 
     return localops;

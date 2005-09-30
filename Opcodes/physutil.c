@@ -35,13 +35,15 @@
 /*  White noise as often as you like.      */
 /*******************************************/
 
-#define ONE_OVER_RANDLIMIT (1.0f/(MYFLT)(RAND_MAX/2))
+/* Return random MYFLT float between -1.0 and 1.0 */
 
-MYFLT Noise_tick(Noise *n)
+MYFLT Noise_tick(CSOUND *csound, Noise *n)
 {
-    *n = (MYFLT) rand() - (MYFLT)(RAND_MAX/2);
-    *n *= ONE_OVER_RANDLIMIT;
-    return *n;
+    MYFLT temp;
+    temp = (MYFLT) csound->Rand31(&(csound->randSeed1)) - FL(1073741823.5);
+    temp *= (MYFLT) (1.0 / 1073741823.0);
+    *n = (Noise) temp;
+    return temp;
 }
 
 /*******************************************/

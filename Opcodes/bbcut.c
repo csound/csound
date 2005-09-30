@@ -35,14 +35,18 @@ static int roundoffint(MYFLT x)
       return((int)(x - 0.5));
 }
 
-static int random_number (int a, int b)
+static int random_number(CSOUND *csound, int a, int b)
 {
-    return roundoffint((MYFLT)a+((MYFLT)rand()/(MYFLT)RAND_MAX)*(MYFLT)(b-a));
+    MYFLT x;
+    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645);
+    return roundoffint((MYFLT) a + x * (MYFLT) (b - a));
 }
 
-static MYFLT myfltrandom(MYFLT a, MYFLT b)
+static MYFLT myfltrandom(CSOUND *csound, MYFLT a, MYFLT b)
 {
-    return (a+((MYFLT)rand()/RAND_MAX)*(b-a));
+    MYFLT x;
+    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645);
+    return (a + x * (b - a));
 }
 
 static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
@@ -100,9 +104,9 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
     return OK;
 }
 
-      /* rounding errors will accumulate slowly with respect to bps,  */
-      /* true tempo is determined by samplesperunit (which has been rounded off) */
-      /* only make floating point corrections for stutters with stutterspeed>1 */
+/* rounding errors will accumulate slowly with respect to bps,  */
+/* true tempo is determined by samplesperunit (which has been rounded off) */
+/* only make floating point corrections for stutters with stutterspeed>1 */
 
 static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
 {
@@ -113,7 +117,7 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
 
     for (i=0;i<csound->ksmps;i++) {
       if ((p->unitsdone+FL(0.000001))>=p->totalunits) { /* a new phrase of cuts */
-        p->numbarsnow  = random_number(1,p->Phrasebars);
+        p->numbarsnow  = random_number(csound, 1, p->Phrasebars);
         p->totalunits  = p->numbarsnow*p->Subdiv;
 
         p->unitsdone   = 0;
@@ -128,7 +132,7 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
         p->repeatsdone = 0;
 
         /* STUTTER- only within half a bar of the end */
-        if ((*p->stutterchance> myfltrandom(FL(0.0),FL(1.0))) &&
+        if ((*p->stutterchance > myfltrandom(csound, FL(0.0), FL(1.0))) &&
             (p->unitsleft<(p->Subdiv/2))) {
           /* stutterspeed must be an integer greater than zero */
 
@@ -145,7 +149,7 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
           else
             oddmax = (oddmax-1)/2;
 
-          unitb = random_number(0,oddmax);
+          unitb = random_number(csound, 0, oddmax);
           unitb = (2*unitb)+1;
 
           unitl = roundoffint(p->unitsleft);
@@ -159,7 +163,8 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
           /* if (unitblock<=0, {"this should never happen".postln}); */
           /* p->repeats is the total number of repeats, including
              initial statement */
-          p->repeats = random_number(1,p->Numrepeats+1); /* usually 1 or 2  */
+          /* usually 1 or 2  */
+          p->repeats = random_number(csound, 1, p->Numrepeats + 1);
           /* take right arg as p->Numrepeats+1 if make param more sensible */
           unitproj = (p->repeats*unitb)+ unitd;
           /* should be same logic as old algorithm for numrepeats=2 */
@@ -340,7 +345,7 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 
     for (i=0;i<csound->ksmps;i++) {
       if ((p->unitsdone+FL(0.000001))>=p->totalunits) {/* a new phrase of cuts */
-        p->numbarsnow  = random_number(1,p->Phrasebars);
+        p->numbarsnow  = random_number(csound, 1, p->Phrasebars);
         p->totalunits  = p->numbarsnow*p->Subdiv;
 
         p->unitsdone   = 0;
@@ -355,7 +360,7 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
         p->repeatsdone = 0;
 
         /* STUTTER- only within half a bar of the end */
-        if ((*p->stutterchance> myfltrandom(FL(0.0),FL(1.0))) &&
+        if ((*p->stutterchance > myfltrandom(csound, FL(0.0), FL(1.0))) &&
             (p->unitsleft<(p->Subdiv/2))) {
           /* stutterspeed must be an integer greater than zero */
 
@@ -372,7 +377,7 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
           else
             oddmax = (oddmax-1)/2;
 
-          unitb = random_number(0,oddmax);
+          unitb = random_number(csound, 0, oddmax);
           unitb = (2*unitb)+1;
 
           unitl = roundoffint(p->unitsleft);
@@ -387,8 +392,8 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 
           /* p->repeats is the total number of repeats, including
              initial statement */
-
-          p->repeats = random_number(1,p->Numrepeats+1); /* usually 1 or 2  */
+          /* usually 1 or 2  */
+          p->repeats = random_number(csound, 1, p->Numrepeats + 1);
           /* take right arg as p->Numrepeats+1 if make param more sensible */
 
           unitproj = (p->repeats*unitb)+ unitd;

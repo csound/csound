@@ -33,15 +33,17 @@
 extern void DOWNset(DOWNDAT *, long);
 extern void SPECset(SPECDAT *, long);
 
-#define STARTING 1
-#define PLAYING  2
-#define LOGTWO (0.693147)
+#define STARTING  1
+#define PLAYING   2
+#define LOGTWO    (0.693147)
 
-static MYFLT bicoefs[] =
-    { -FL(0.2674054), FL(0.7491305), FL(0.7160484), FL(0.0496285), FL(0.7160484),
-       FL(0.0505247), FL(0.3514850), FL(0.5257536), FL(0.3505025), FL(0.5257536),
-       FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)
-    };
+static MYFLT bicoefs[] = {
+    -FL(0.2674054), FL(0.7491305), FL(0.7160484), FL(0.0496285), FL(0.7160484),
+     FL(0.0505247), FL(0.3514850), FL(0.5257536), FL(0.3505025), FL(0.5257536),
+     FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)
+};
+
+#define rand_31(x) (x->Rand31(&(x->randSeed1)) - 1)
 
 int pitchset(CSOUND *csound, PITCH *p)     /* pitch - uses specta technology */
 {
@@ -601,15 +603,15 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
 
     lphs = (long*)p->lphs.auxp;
     if (*p->iphs > 1) {
-      do
-        *lphs++ = ((long)((MYFLT)((double)rand()/(double)RAND_MAX)
-                          * FMAXLEN)) & PHMASK;
-      while (--count);
+      do {
+        *lphs++ = ((long) ((MYFLT) ((double) rand_31(csound) / 2147483645.0)
+                           * FMAXLEN)) & PHMASK;
+      } while (--count);
     }
     else if (*p->iphs >= 0) {
-      do
-        *lphs++ = ((long)(*p->iphs * FMAXLEN)) & PHMASK;
-      while (--count);
+      do {
+        *lphs++ = ((long) (*p->iphs * FMAXLEN)) & PHMASK;
+      } while (--count);
     }
     return OK;
 }
@@ -1102,14 +1104,14 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
 
     curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {
-      do
-        *curphs++ = (double)rand()/(double)RAND_MAX;
-      while (--count);
+      do {
+        *curphs++ = (double) rand_31(csound) / 2147483645.0;
+      } while (--count);
     }
     else if ((phs = *p->iphs) >= 0) {
-      do
+      do {
         *curphs++ = phs;
-      while (--count);
+      } while (--count);
     }
     return OK;
 }
@@ -1320,13 +1322,13 @@ int pinkish(CSOUND *csound, PINKISH *p)
 
 #define PINK_RANDOM_BITS       (24)
 /* Left-shift one bit less 24 to allow negative values (re) */
-#define PINK_RANDOM_SHIFT      ((sizeof(long)*8)-PINK_RANDOM_BITS-1)
+#define PINK_RANDOM_SHIFT      (7)
 
 /* Calculate pseudo-random 32 bit number based on linear congruential method. */
 static long GenerateRandomNumber(unsigned long randSeed)
 {
-    randSeed = (randSeed * 196314165) + 907633515;
-    return randSeed;
+    randSeed = ((uint32_t) randSeed * 196314165U) + 907633515UL;
+    return (long) ((int32_t) ((uint32_t) randSeed));
 }
 
 /************************************************************/
@@ -1967,7 +1969,7 @@ int varicol(CSOUND *csound, VARI *p)
     }
 
     do {
-      MYFLT rnd =  FL(2.0)*(MYFLT)rand()/(MYFLT)RAND_MAX - FL(1.0);
+      MYFLT rnd = FL(2.0) * (MYFLT) rand_31(csound) / FL(2147483645) - FL(1.0);
       lastx = lastx * beta + sq1mb2 * rnd;
       *rslt++ = lastx * *kamp * ampmod;
       kamp += ampinc;

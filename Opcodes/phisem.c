@@ -53,20 +53,16 @@
    "10: Wrench", "12: CokeCan"};
 */
 
-#define MY_RANDOM(max) rand()%(max+1)
-#ifdef never
-static int my_random(int max) /* Return Random Int Between 0 and max */
-{
-    int ans = rand()%(max+1);
-    return ans;
+static inline int my_random(CSOUND *csound, int max)
+{                                   /* Return Random Int Between 0 and max */
+    return (csound->Rand31(&(csound->randSeed1)) % (max + 1));
 }
-#endif
 
-static MYFLT noise_tick(void) /* Return random MYFLT float between -1.0 and 1.0 */
-{
-    MYFLT temp =
-      ((MYFLT)rand() - (MYFLT)(RAND_MAX/2)) / (MYFLT)(RAND_MAX/2);
-    return temp;
+static MYFLT noise_tick(CSOUND *csound)
+{                         /* Return random MYFLT float between -1.0 and 1.0 */
+    MYFLT temp;
+    temp = (MYFLT) csound->Rand31(&(csound->randSeed1)) - FL(1073741823.5);
+    return (temp * (MYFLT) (1.0 / 1073741823.0));
 }
 
 /************************* MARACA *****************************/
@@ -260,10 +256,10 @@ static int cabasa(CSOUND *csound, CABASA *p)
     for (n=0;n<nsmps;n++) {
 /*        if (shakeEnergy > MIN_ENERGY) { */
       shakeEnergy *= systemDecay;               /* Exponential system decay */
-      if (MY_RANDOM(1024) < p->num_objects) {
+      if (my_random(csound, 1024) < p->num_objects) {
         sndLevel += gain * shakeEnergy;
       }
-      input = sndLevel * noise_tick();      /* Actual Sound is Random */
+      input = sndLevel * noise_tick(csound);    /* Actual Sound is Random */
       sndLevel *= soundDecay;                   /* Exponential Sound decay  */
       input -= outputs0*coeff0; /* Do */
       input -= outputs1*coeff1; /* resonant */
@@ -359,10 +355,10 @@ static int sekere(CSOUND *csound, SEKERE *p)
     for (n=0;n<nsmps;n++) {
 /*        if (shakeEnergy > MIN_ENERGY) { */
       shakeEnergy *= systemDecay;           /* Exponential system decay */
-      if (MY_RANDOM(1024) < p->num_objects) {
+      if (my_random(csound, 1024) < p->num_objects) {
         sndLevel += gain * shakeEnergy;
       }
-      input = sndLevel * noise_tick();      /* Actual Sound is Random */
+      input = sndLevel * noise_tick(csound);  /* Actual Sound is Random */
       sndLevel *= soundDecay;               /* Exponential Sound decay  */
       input -= outputs0*coeff0;             /* Do */
       input -= outputs1*coeff1;             /* resonant */
@@ -584,11 +580,11 @@ static int guiro(CSOUND *csound, GUIRO *p)
             ratchetPos -= 1;
           }
           totalEnergy = ratchet;
-          if (MY_RANDOM(1024) < num_objects) {
+          if (my_random(csound, 1024) < num_objects) {
             sndLevel += FL(512.0) * ratchet * totalEnergy;
           }
           inputs0     = sndLevel;
-          inputs0    *= noise_tick() * ratchet;
+          inputs0    *= noise_tick(csound) * ratchet;
           sndLevel   *= soundDecay;
 
           inputs1     = inputs0;
@@ -724,16 +720,16 @@ static int tambourine(CSOUND *csound, TAMBOURINE *p)
       MYFLT inputs0, inputs1, inputs2;
       for (n=0;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
-        if (MY_RANDOM(1024) < p->num_objects) {
+        if (my_random(csound, 1024) < p->num_objects) {
           sndLevel += p->gain * shakeEnergy;
-          temp_rand = p->res_freq1 * (FL(1.0) + (FL(0.05) * noise_tick()));
+          temp_rand = p->res_freq1 * (FL(1.0) + (FL(0.05)*noise_tick(csound)));
           p->coeffs10 = -TAMB_CYMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
-          temp_rand = p->res_freq2 * (FL(1.0) + (FL(0.05) * noise_tick()));
+          temp_rand = p->res_freq2 * (FL(1.0) + (FL(0.05)*noise_tick(csound)));
           p->coeffs20 = -TAMB_CYMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
         }
-        inputs0 = sndLevel * noise_tick();      /* Actual Sound is Random */
+        inputs0 = sndLevel * noise_tick(csound);  /* Actual Sound is Random */
         inputs1 = inputs0;
         inputs2 = inputs0;
         sndLevel *= soundDecay;                 /* Exponential Sound decay  */
@@ -856,21 +852,21 @@ static int bamboo(CSOUND *csound, BAMBOO *p)
       MYFLT inputs0, inputs1, inputs2;
       for (n=0;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
-        if (MY_RANDOM(1024) < p->num_objects) {
+        if (my_random(csound, 1024) < p->num_objects) {
           sndLevel += shakeEnergy;
-          temp_rand = p->res_freq0 * (FL(1.0) + (FL(0.2) * noise_tick()));
+          temp_rand = p->res_freq0 * (FL(1.0) + (FL(0.2) * noise_tick(csound)));
           p->coeffs00 = -BAMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq1 * (FL(1.0) +
-                                      (FL(0.2) * noise_tick()));
+                                      (FL(0.2) * noise_tick(csound)));
           p->coeffs10 = -BAMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
           temp_rand = p->res_freq2 * (FL(1.0) +
-                                      (FL(0.2) * noise_tick()));
+                                      (FL(0.2) * noise_tick(csound)));
           p->coeffs20 = -BAMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
         }
-        inputs0      = sndLevel * noise_tick();  /* Actual Sound is Random */
+        inputs0 = sndLevel * noise_tick(csound); /* Actual Sound is Random */
         inputs1      = inputs0;
         inputs2      = inputs0;
         sndLevel    *= soundDecay;               /* Exponential Sound decay  */
@@ -993,24 +989,24 @@ static int wuter(CSOUND *csound, WUTER *p)
       for (n=0;n<nsmps;n++) {
 
         shakeEnergy *= systemDecay;               /* Exponential system decay */
-        if (MY_RANDOM(32767) < num_objects) {
+        if (my_random(csound, 32767) < num_objects) {
           int j;
           sndLevel = shakeEnergy;
-          j = MY_RANDOM(3);
+          j = my_random(csound, 3);
           if (j == 0)   {
             p->center_freqs0 = p->res_freq1 *
-              (FL(0.75) + (FL(0.25) * noise_tick()));
-            p->gains0 = (MYFLT)fabs(noise_tick());
+              (FL(0.75) + (FL(0.25) * noise_tick(csound)));
+            p->gains0 = (MYFLT)fabs(noise_tick(csound));
           }
           else if (j == 1)      {
             p->center_freqs1 = p->res_freq1 *
-              (FL(1.0) + (FL(0.25) * noise_tick()));
-            p->gains1 = (MYFLT)fabs(noise_tick());
+              (FL(1.0) + (FL(0.25) * noise_tick(csound)));
+            p->gains1 = (MYFLT)fabs(noise_tick(csound));
           }
           else  {
             p->center_freqs2 = p->res_freq1 *
-              (FL(1.25) + (FL(0.25) * noise_tick()));
-            p->gains2 = (MYFLT)fabs(noise_tick());
+              (FL(1.25) + (FL(0.25) * noise_tick(csound)));
+            p->gains2 = (MYFLT)fabs(noise_tick(csound));
           }
         }
 
@@ -1033,10 +1029,10 @@ static int wuter(CSOUND *csound, WUTER *p)
             (MYFLT)cos((double)p->center_freqs2 * csound->tpidsr);
         }
 
-        sndLevel    *= soundDecay;        /* Each (all) event(s)  */
+        sndLevel    *= soundDecay;          /* Each (all) event(s)  */
         /* decay(s) exponentially  */
         inputs0      = sndLevel;
-        inputs0     *= noise_tick();     /* Actual Sound is Random */
+        inputs0     *= noise_tick(csound);  /* Actual Sound is Random */
         inputs1      = inputs0 * p->gains1;
         inputs2      = inputs0 * p->gains2;
         inputs0     *= p->gains0;
@@ -1171,34 +1167,34 @@ static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
       MYFLT inputs0, inputs1, inputs2, inputs3, inputs4;
       for (n=0;n<nsmps;n++) {
         shakeEnergy *= systemDecay; /* Exponential system decay */
-        if (MY_RANDOM(1024) < p->num_objects) {
+        if (my_random(csound, 1024) < p->num_objects) {
           sndLevel += p->gain * shakeEnergy;
-          temp_rand = p->res_freq0 * (FL(1.0) + (FL(0.03) * noise_tick()));
+          temp_rand = p->res_freq0 * (FL(1.0) + (FL(0.03)*noise_tick(csound)));
           p->coeffs00 = -SLEI_CYMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
-          temp_rand = p->res_freq1 * (FL(1.0) + (FL(0.03) * noise_tick()));
+          temp_rand = p->res_freq1 * (FL(1.0) + (FL(0.03)*noise_tick(csound)));
           p->coeffs10 = -SLEI_CYMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
-          temp_rand = p->res_freq2 * (FL(1.0) + (FL(0.03) * noise_tick()));
+          temp_rand = p->res_freq2 * (FL(1.0) + (FL(0.03)*noise_tick(csound)));
           p->coeffs20 = -SLEI_CYMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
-          temp_rand = p->res_freq3 * (FL(1.0) + (FL(0.03) * noise_tick()));
+          temp_rand = p->res_freq3 * (FL(1.0) + (FL(0.03)*noise_tick(csound)));
           p->coeffs30 = -SLEI_CYMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
-          temp_rand = p->res_freq4 * (FL(1.0) + (FL(0.03) * noise_tick()));
+          temp_rand = p->res_freq4 * (FL(1.0) + (FL(0.03)*noise_tick(csound)));
           p->coeffs40 = -SLEI_CYMB_RESON * FL(2.0) *
             (MYFLT)cos((double)temp_rand * csound->tpidsr);
         }
-        inputs0      = sndLevel * noise_tick();     /* Actual Sound is Random */
+        inputs0 = sndLevel * noise_tick(csound);  /* Actual Sound is Random */
         inputs1      = inputs0;
         inputs2      = inputs0;
         inputs3      = inputs0 * FL(0.5);
         inputs4      = inputs0 * FL(0.3);
-        sndLevel    *= soundDecay;                  /* ExponentialSound decay */
-        inputs0     -= p->outputs00*p->coeffs00;    /* Do */
-        inputs0     -= p->outputs01*p->coeffs01;    /* resonant */
-        p->outputs01 = p->outputs00;                /* filter */
-        p->outputs00 = inputs0;                     /* calculations */
+        sndLevel    *= soundDecay;                /* ExponentialSound decay */
+        inputs0     -= p->outputs00*p->coeffs00;  /* Do */
+        inputs0     -= p->outputs01*p->coeffs01;  /* resonant */
+        p->outputs01 = p->outputs00;              /* filter */
+        p->outputs00 = inputs0;                   /* calculations */
         data         = p->outputs01;
         inputs1     -= p->outputs10*p->coeffs10;    /* Do */
         inputs1     -= p->outputs11*p->coeffs11;    /* resonant */
@@ -1247,7 +1243,7 @@ static OENTRY localops[] = {
 { "bamboo", S(BAMBOO),   5, "a", "kioooooo", (SUBR)bambooset, NULL, (SUBR)bamboo },
 { "dripwater", S(WUTER), 5, "a", "kioooooo", (SUBR)wuterset, NULL, (SUBR)wuter },
 { "sleighbells", S(SLEIGHBELLS), 5, "a","kioooooo",
-                                       (SUBR)sleighset, NULL, (SUBR)sleighbells },
+                                       (SUBR)sleighset, NULL, (SUBR)sleighbells }
 };
 
 LINKAGE

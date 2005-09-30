@@ -29,8 +29,6 @@
 
 #define AMP_SCALE (csound->e0dbfs)
 #define AMP_RSCALE (csound->dbfs_to_float)
-/* #define AMP_SCALE       (FL(32768.0)) */
-/* #define AMP_RSCALE      (FL(0.000030517578125)) */
 
 /*******************************************/
 /*  Noise Generator Class,                 */
@@ -43,7 +41,7 @@ typedef MYFLT Noise;
 
 #define make_Noise(n) n = FL(0.0)
 
-MYFLT Noise_tick(Noise*);
+MYFLT Noise_tick(CSOUND *, Noise *);
 #define Noise_lastOut(n) (n)
 
 /*******************************************/
