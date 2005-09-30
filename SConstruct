@@ -533,6 +533,7 @@ OOps/pvinterp.c
 OOps/pvocext.c
 OOps/pvread.c
 OOps/pvsanal.c
+OOps/random.c
 OOps/schedule.c
 OOps/sdif.c
 OOps/sdif-mem.c

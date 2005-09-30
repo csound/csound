@@ -299,7 +299,7 @@ extern "C" {
     MYFLT   p3;
   } INSDS;
 
-  typedef int    (*SUBR)(CSOUND *, void *);
+  typedef int (*SUBR)(CSOUND *, void *);
 
   /* This struct holds the info for one opcode in a concrete
      instrument instance in performance. */
@@ -371,13 +371,13 @@ extern "C" {
   } AIFFDAT;
 
   typedef struct {
-    MYFLT gen01;
-    MYFLT ifilno;
-    MYFLT iskptim;
-    MYFLT iformat;
-    MYFLT channel;
-    MYFLT sample_rate;
-    char  strarg[SSTRSIZ];
+    MYFLT   gen01;
+    MYFLT   ifilno;
+    MYFLT   iskptim;
+    MYFLT   iformat;
+    MYFLT   channel;
+    MYFLT   sample_rate;
+    char    strarg[SSTRSIZ];
   } GEN01ARGS;
 
   typedef struct {
@@ -426,10 +426,10 @@ extern "C" {
   } MIDIMESSAGE;
 
   typedef struct {
-    short  type;
-    short  chan;
-    short  dat1;
-    short  dat2;
+    short   type;
+    short   chan;
+    short   dat1;
+    short   dat2;
   } MEVENT;
 
   typedef struct SNDMEMFILE_ {
@@ -586,9 +586,10 @@ extern "C" {
     MYFLT *(*GetSpin)(CSOUND *);
     MYFLT *(*GetSpout)(CSOUND *);
     MYFLT (*GetScoreTime)(CSOUND *);
-    SUBR dummyfn_6;     /* unused slots */
-    SUBR dummyfn_7;
-    SUBR dummyfn_8;
+    void (*SetMakeXYinCallback)(CSOUND *,
+                                void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT));
+    void (*SetReadXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
+    void (*SetKillXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
     int (*IsScorePending)(CSOUND *);
     void (*SetScorePending)(CSOUND *, int pending);
     MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
@@ -632,7 +633,7 @@ extern "C" {
                 int (*func)(CSOUND *, void *));
     void (*SetExternalMidiErrorStringCallback)(CSOUND *,
                 const char *(*func)(int));
-    void (*SetIsGraphable)(CSOUND *, int isGraphable);
+    int (*SetIsGraphable)(CSOUND *, int isGraphable);
     void (*SetMakeGraphCallback)(CSOUND *,
                 void (*makeGraphCallback)(CSOUND *, WINDAT *p,
                                                     const char *name));
@@ -697,7 +698,7 @@ extern "C" {
     void *(*sndgetset)(CSOUND *, void *);
     int (*getsndin)(CSOUND *, void *, MYFLT *, int, void *);
     void (*rewriteheader)(SNDFILE *ofd);
-    SUBR dummyfn_3;     /* unused slot */
+    int (*Rand31)(int *seedVal);
     void (*FDRecord)(CSOUND *, FDCH *fdchp);
     void (*FDClose)(CSOUND *, FDCH *fdchp);
     void (*SetDebug)(CSOUND *, int d);
@@ -717,8 +718,9 @@ extern "C" {
     double (*GetRealTime)(RTCLOCK *);
     double (*GetCPUTime)(RTCLOCK *);
     uint32_t (*GetRandomSeedFromTime)(void);
-    SUBR dummyfn_4;     /* unused slots */
-    SUBR dummyfn_5;
+    void (*SeedRandMT)(CsoundRandMTState *p,
+                       const uint32_t *initKey, uint32_t keyLength);
+    uint32_t (*RandMT)(CsoundRandMTState *p);
     int (*PerformKsmpsAbsolute)(CSOUND *);
     char *(*LocalizeString)(const char *);
     int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
@@ -860,7 +862,9 @@ extern "C" {
     INSTRTXT      **instrtxtp;
     MCHNBLK       *m_chnbp[64];     /* reserve space for up to 4 MIDI devices */
     RTCLOCK       *csRtClock;
- /* void          *reserved; */
+    CsoundRandMTState *csRandState;
+    int           randSeed1;
+    int           randSeed2;
     /* ------- private data (not to be used by hosts or externals) ------- */
 #ifdef __BUILDING_LIBCSOUND
     /* callback function pointers */
@@ -879,6 +883,9 @@ extern "C" {
     void          (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat);
     int           (*csoundExitGraphCallback_)(CSOUND *);
     int           (*csoundYieldCallback_)(CSOUND *);
+    void          (*csoundMakeXYinCallback_)(CSOUND *, XYINDAT *, MYFLT, MYFLT);
+    void          (*csoundReadXYinCallback_)(CSOUND *, XYINDAT *);
+    void          (*csoundKillXYinCallback_)(CSOUND *, XYINDAT *);
     SUBR          last_callback_;
     /* these are not saved on RESET */
     int           (*playopen_callback)(CSOUND *, const csRtAudioParams *parm);
@@ -1046,6 +1053,7 @@ extern "C" {
     void          *chn_db;
     int           opcodedirWasOK;
     int           disable_csd_options;
+    CsoundRandMTState randState_;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
