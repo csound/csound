@@ -34,42 +34,42 @@ static int deinit_func(CSOUND *csound, void *p)
 
 int xyinset(CSOUND *csound, XYIN *p)
 {
-    MYFLT       f;
-    MYFLT       iymax = *p->iymax;
-    MYFLT       iymin = *p->iymin;
-    MYFLT       ixmax = *p->ixmax;
-    MYFLT       ixmin = *p->ixmin;
-    MYFLT       iyinit = *p->iyinit;
-    MYFLT       ixinit = *p->ixinit;
+    MYFLT   x, y;
+    MYFLT   iymax = *p->iymax;
+    MYFLT   iymin = *p->iymin;
+    MYFLT   ixmax = *p->ixmax;
+    MYFLT   ixmin = *p->ixmin;
+    MYFLT   iyinit = *p->iyinit;
+    MYFLT   ixinit = *p->ixinit;
 
-    if ((p->timcount = (int) (csound->ekr * *p->iprd)) <= 0) {
+    if ((p->timcount = (int) (csound->ekr * *p->iprd + FL(0.5))) <= 0) {
       return csound->InitError(csound, Str("illegal iprd"));
     }
-    if (iymin > iymax) {                /* swap if wrong order */
-      f = iymin; iymin = iymax; iymax = f;
+    if (iymin > iymax) {        /* swap if wrong order */
+      y = iymin; iymin = iymax; iymax = y;
     }
-    if (iymin == iymax) { /* force some room (why?) */
-      iymax = iymin + FL(1.0);          /* say.. */
-      iymin -= FL(1.0);
-    }
-    if (iyinit < iymin)         iyinit = iymin;
-    else if (iyinit > iymax)    iyinit = iymax;
+    if (iyinit < iymin)
+      iyinit = iymin;
+    else if (iyinit > iymax)
+      iyinit = iymax;
+    *(p->kyrslt) = iyinit;
+    y = (*p->iymax != *p->iymin ? (*p->iymax - iyinit) / (*p->iymax - *p->iymin)
+                                  : FL(0.5));
+    p->w.y = y;
 
     if (ixmin > ixmax) {        /* swap if wrong order */
-      f = ixmin; ixmin = ixmax; ixmax = f;
-    }
-    if (ixmin == ixmax) {       /* force some room (why?) */
-      ixmax = ixmin + FL(1.0);          /* say.. */
-      ixmin -= FL(1.0);
+      x = ixmin; ixmin = ixmax; ixmax = x;
     }
     if (ixinit < ixmin)
       ixinit = ixmin;
     else if (ixinit > ixmax)
       ixinit = ixmax;
+    *(p->kxrslt) = ixinit;
+    x = (*p->ixmax != *p->ixmin ? (ixinit - *p->ixmin) / (*p->ixmax - *p->ixmin)
+                                  : FL(0.5));
+    p->w.x = x;
 
-    csound->csoundMakeXYinCallback_(csound, &p->w,
-                                    (ixinit - ixmin) / (ixmax - ixmin),
-                                    (iyinit - iymin) / (iymax - iymin));
+    csound->csoundMakeXYinCallback_(csound, &p->w, x, y);
     csound->RegisterDeinitCallback(csound, (void*) p, deinit_func);
 
     p->countdown = 1;           /* init counter to run xyin on first call */
