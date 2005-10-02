@@ -24,9 +24,6 @@
 #include "csoundCore.h"         /*                      ENTRY.C         */
 #include "insert.h"
 #include "midiops.h"
-#if defined(TCLTK)
-#include "control.h"
-#endif
 #include "schedule.h"
 #include "cwindow.h"
 #include "vbap.h"
@@ -42,17 +39,8 @@
 #include "linevent.h"
 #include "str_ops.h"
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
-#if defined(TCLTK)
-int     cntrl_set(CSOUND *, void *);
-int     control(CSOUND *, void *), ocontrol(CSOUND *, void *);
-int     button_set(CSOUND *, void *), button(CSOUND *, void *);
-int     check_set(CSOUND *, void *), check(CSOUND *, void *);
-int     textflash(CSOUND *, void *);
-#endif
-int     instcount(CSOUND *, void *);
-int     varicolset(CSOUND *, void *), varicol(CSOUND *, void *);
 int     inh(CSOUND *, void *), ino(CSOUND *, void *);
 int     in16(CSOUND *, void *), in32(CSOUND *, void *);
 int     inall(CSOUND *, void *), inz(CSOUND *, void *);
@@ -98,13 +86,6 @@ int     vbap_SIXTEEN_moving_init(CSOUND *, void *);
 int     vbap_SIXTEEN_moving(CSOUND *, void *);
 int     vbap_zak_moving_init(CSOUND *, void *);
 int     vbap_zak_moving(CSOUND *, void *);
-#ifdef JPFF
-int     Foscset(CSOUND *, void *);
-int     Fosckk(CSOUND *, void *), Foscka(CSOUND *, void *);
-int     Foscak(CSOUND *, void *), Foscaa(CSOUND *, void *);
-#endif
-int     lpf18set(CSOUND *, void *), lpf18db(CSOUND *, void *);
-int     pfun(CSOUND *, void *);
 int     pvsanalset(CSOUND *, void *), pvsanal(CSOUND *, void *);
 int     pvsynthset(CSOUND *, void *), pvsynth(CSOUND *, void *);
 int     pvadsynset(CSOUND *, void *), pvadsyn(CSOUND *, void *);
@@ -237,14 +218,6 @@ OENTRY opcodlst_2[] = {
 { "cpstun", S(CPSTUN),  2,      "k",    "kkk",   NULL,   cpstun         },
 { "cpstuni",S(CPSTUNI), 1,      "i",    "ii",   cpstun_i,               },
 { "cpstmid", S(CPSTABLE), 1, "i", "i",    (SUBR)cpstmid                    },
-{ "active", 0xffff                                                         },
-#if defined(TCLTK)
-{ "control", S(CNTRL),   3,     "k",    "k",    cntrl_set, control, NULL   },
-{ "setctrl", S(SCNTRL),  1,     "",     "iTi",  ocontrol, NULL, NULL   },
-{ "button", S(CNTRL),    3,     "k",    "k",    button_set, button, NULL   },
-{ "checkbox", S(CNTRL),  3,     "k",    "k",    check_set, check,   NULL   },
-{ "flashtxt", S(TXTWIN), 1,     "",     "iT",   textflash, NULL,    NULL   },
-#endif
 { "adsr", S(LINSEG),     7,     "s",    "iiiio",adsrset,klnseg, linseg     },
 { "madsr", S(LINSEG),    7,     "s",    "iiiioj", madsrset,klnsegr, linsegr },
 { "xadsr", S(EXXPSEG),   7,     "s",    "iiiio", xdsrset, kxpseg, expseg    },

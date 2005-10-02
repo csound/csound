@@ -343,32 +343,46 @@ extern "C" {
 
       win_x = 0;  win_y = 0;           /* window pixels addressed relative */
 
+      Fl::lock();
+      xyin->show();
+      Fl::wait(0.0);
+      Fl::unlock();
+
       /* set new width and height so we leave a 20% border around the plot */
       gra_w = xyin->w() - 2*BORDERW;      gra_h = xyin->h() - 2*GUTTERH;
       gra_x = win_x + BORDERW;            gra_y = win_y + GUTTERH;
       w->m_x = gra_x + (int)(x * (MYFLT)gra_w);
       w->m_y = gra_y + (int)(y * (MYFLT)gra_h);
+      w->down = 0;
+
+      Fl::lock();
+      Fl::wait(0.0);
+      xyin->make_current();
       fl_color(0,0,0);
       fl_line_style(FL_DOT);
       fl_line(gra_x,w->m_y,(gra_x+gra_w),w->m_y);
       fl_line(w->m_x,gra_y, w->m_x,(gra_y+gra_h));
+      Fl::unlock();
       w->windid = (uintptr_t) xyin;
-      xyin->show();
     }
   }
 
   void ReadXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
-    short       win_x, win_y;
-    short       gra_x, gra_y, gra_w, gra_h;
-    short       m_x, m_y;
-    Fl_Window *xwin = (Fl_Window *)wdptr->windid;
+    short     win_x, win_y;
+    short     gra_x, gra_y, gra_w, gra_h;
+    short     m_x, m_y;
+    Fl_Window *xwin = (Fl_Window*) wdptr->windid;
 
     Fl::lock();
-    Fl::wait(0.1);
-    Fl::unlock();
+    Fl::wait(0.0);
     m_x = Fl::event_x();
     m_y = Fl::event_y();
+    wdptr->down = (short) (Fl::event_button1() ? 1 : 0);
+    Fl::unlock();
+
+    if (!wdptr->down)
+      return;
 
     win_x = 0;  win_y = 0;      /* window pixels addressed relative */
 
@@ -383,6 +397,8 @@ extern "C" {
     else if (m_y > gra_y+gra_h) m_y = gra_y+gra_h;
 
     if (m_x != wdptr->m_x || m_y != wdptr->m_y) { /* only redo if changed */
+      Fl::lock();
+      xwin->make_current();
       /* undraw old crosshairs */
       fl_color(FL_BACKGROUND_COLOR);
       fl_line_style(FL_SOLID);
@@ -393,6 +409,7 @@ extern "C" {
       fl_line_style(FL_SOLID);
       fl_line(gra_x, m_y, (gra_x + gra_w), m_y);
       fl_line(m_x, gra_y, m_x, (gra_y + gra_h));
+      Fl::unlock();
       wdptr->m_x = m_x;       wdptr->m_y = m_y;
       wdptr->x = ((MYFLT)m_x-gra_x)/(MYFLT)gra_w;
       wdptr->y = ((MYFLT)m_y-gra_y)/(MYFLT)gra_h;
@@ -401,7 +418,7 @@ extern "C" {
 
   void KillXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
-    Fl_Window *x = (Fl_Window*)wdptr->windid;
+    Fl_Window *x = (Fl_Window*) wdptr->windid;
     x->~Fl_Window();
   }
 }
