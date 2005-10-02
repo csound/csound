@@ -47,7 +47,7 @@ CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		InOut/midifile.o InOut/midirecv.o InOut/midisend.o	\
 		InOut/winascii.o InOut/windin.o InOut/window.o		\
 		InOut/winEPS.o						\
-		OOps/aops.o OOps/cmath.o OOps/control.o OOps/diskin.o	\
+		OOps/aops.o OOps/cmath.o OOps/diskin.o			\
 		OOps/diskin2.o OOps/disprep.o OOps/dsputil.o		\
 		OOps/dumpf.o OOps/fftlib.o OOps/goto_ops.o		\
 		OOps/midiinterop.o OOps/midiops.o OOps/midiout.o	\

@@ -25,17 +25,40 @@
 /* Controls                                 */
 /********************************************/
 
+#include "csdl.h"
+
+typedef struct CONTROL_GLOBALS_ {
+    CSOUND  *csound;
+    char    cmd[100];
+    int     wish_pid;
+    int     pip1[2];
+    int     pip2[2];
+    FILE    *wish_cmd, *wish_res;
+    int     *values;
+    int     *minvals;
+    int     *maxvals;
+    int     max_sliders;
+    int     *buttons;
+    int     *checks;
+    int     max_button;
+    int     max_check;
+} CONTROL_GLOBALS;
+
 typedef struct {
-    OPDS  h;
-    MYFLT *kdest, *kcntl;
+    OPDS    h;
+    MYFLT   *kdest, *kcntl;
+    CONTROL_GLOBALS *p;
 } CNTRL;
 
 typedef struct {
-    OPDS  h;
-    MYFLT *kcntl, *val, *which;
+    OPDS    h;
+    MYFLT   *kcntl, *val, *which;
+    CONTROL_GLOBALS *p;
 } SCNTRL;
 
 typedef struct {
-    OPDS  h;
-    MYFLT *kcntl, *val;
+    OPDS    h;
+    MYFLT   *kcntl, *val;
+    CONTROL_GLOBALS *p;
 } TXTWIN;
+

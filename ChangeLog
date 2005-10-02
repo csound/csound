@@ -1,3 +1,15 @@
+2005-10-02	Istvan Varga	<ivarga@csounds.com>
+	* restored Tcl/Tk control opcodes
+	* xyin fixes
+
+2005-09-30	Istvan Varga	<ivarga@csounds.com>
+	* new API functions for random numbers:
+	  csoundRand31(), csoundSeedRandMT(), csoundRandMT()
+	* removed all uses of rand(), csoundRandMT() is used instead in
+	  the "x-class" random opcodes and GEN21, and csoundRand31()
+	  in all other opcodes that previously used rand()
+	* attempts to get xyin working
+
 2005-09-25	Istvan Varga	<ivarga@csounds.com>
 	* frontends/CsoundVST/CppSound.cpp, frontends/CsoundVST/CppSound.hpp:
 	* frontends/CsoundVST/CsoundVST.cpp:
