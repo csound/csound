@@ -86,6 +86,7 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
       dup2(p->pip2[0], 0);
       dup2(p->pip1[1], 1);
       setvbuf(stdout, (char*) NULL, _IOLBF, 0);
+      signal(SIGINT, SIG_IGN);  /* child process should ignore ^C */
       execvp("/bin/sh", argv);
       exit(127);
     }
@@ -155,13 +156,13 @@ static void readvalues(CONTROL_GLOBALS *p)
     }
 }
 
-int cntrl_set(CSOUND *csound, CNTRL *p)
+static int cntrl_set(CSOUND *csound, CNTRL *p)
 {
     ensure_slider(get_globals(csound, &(p->p)), (int) (*p->kcntl + FL(0.5)));
     return OK;
 }
 
-int control(CSOUND *csound, CNTRL *p)
+static int control(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     readvalues(pp);
@@ -169,7 +170,7 @@ int control(CSOUND *csound, CNTRL *p)
     return OK;
 }
 
-int ocontrol(CSOUND *csound, SCNTRL *p)
+static int ocontrol(CSOUND *csound, SCNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     int c = (int) *p->which;
@@ -208,7 +209,7 @@ int ocontrol(CSOUND *csound, SCNTRL *p)
     return OK;
 }
 
-int button_set(CSOUND *csound, CNTRL *p)
+static int button_set(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     int n = (int) (FL(0.5) + *p->kcntl);
@@ -225,7 +226,7 @@ int button_set(CSOUND *csound, CNTRL *p)
     return OK;
 }
 
-int button(CSOUND *csound, CNTRL *p)
+static int button(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     readvalues(pp);
@@ -234,7 +235,7 @@ int button(CSOUND *csound, CNTRL *p)
     return OK;
 }
 
-int check_set(CSOUND *csound, CNTRL *p)
+static int check_set(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     int n = (int) (FL(0.5) + *p->kcntl);
@@ -251,7 +252,7 @@ int check_set(CSOUND *csound, CNTRL *p)
     return OK;
 }
 
-int check(CSOUND *csound, CNTRL *p)
+static int check(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     readvalues(pp);
@@ -261,7 +262,7 @@ int check(CSOUND *csound, CNTRL *p)
 
 /* **** Text Windows **** */
 
-int textflash(CSOUND *csound, TXTWIN *p)
+static int textflash(CSOUND *csound, TXTWIN *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     int   wind = (int) (*p->kcntl + FL(0.5));
