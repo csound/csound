@@ -35,7 +35,7 @@ import copy
 zipDependencies = []
 pluginLibraries = []
 executables = []
-headers = Split('''H/cfgvar.h H/csdl.h H/csoundCore.h H/csound.h
+headers = Split('''H/cfgvar.h H/cscore.h H/csdl.h H/csoundCore.h H/csound.h
                    H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h
                    H/pvfileio.h H/soundio.h H/sysdep.h H/text.h H/version.h''')
 libs = []
@@ -534,8 +534,6 @@ OOps/pvread.c
 OOps/pvsanal.c
 OOps/random.c
 OOps/schedule.c
-OOps/sdif.c
-OOps/sdif-mem.c
 OOps/sndinfUG.c
 OOps/str_ops.c
 OOps/ugens1.c
@@ -582,19 +580,7 @@ if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
     pluginLibraries.append(portMidiEnvironment.SharedLibrary('pmidi',
                                                              ['InOut/pmidi.c']))
 else:
-    print 'CONFIGURATION DECISION: Building without real time MIDI support.'
-
-if (getPlatform() == 'mingw' or getPlatform() == 'cygwin'):
-    win32MidiEnvironment = pluginEnvironment.Copy()
-    win32MidiEnvironment.Append(LIBS = ['winmm'])
-    pluginLibraries.append(win32MidiEnvironment.SharedLibrary('w32midi',
-                                                        ['InOut/w32midi.c']))
-
-if (getPlatform() == 'linux' and alsaFound):
-    alsaMidiEnvironment = pluginEnvironment.Copy()
-    alsaMidiEnvironment.Append(LIBS = ['asound'])
-    pluginLibraries.append(alsaMidiEnvironment.SharedLibrary('alsamidi',
-                                                        ['InOut/alsamidi.c']))
+    print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
 if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
   print 'CONFIGURATION DECISION: Building dynamic Csound library'
@@ -692,15 +678,10 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('partials',
     ['Opcodes/partials.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('phisem',
     ['Opcodes/phisem.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod',
-    Split('''Opcodes/physmod.c
-    Opcodes/physutil.c
-    Opcodes/mandolin.c
-    Opcodes/singwave.c
-    Opcodes/fm4op.c
-    Opcodes/moog1.c
-    Opcodes/shaker.c
-    Opcodes/bowedbar.c''')))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod', Split('''
+    Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
+    Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
+    ''')))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch',
     ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pluck',
@@ -1181,7 +1162,7 @@ Opcodes/stk/src/Thread.cpp
         pluginLibraries.append(stk)
         libs.append(stk)
 
-    pyEnvironment = pluginEnvironment.Copy();
+    pyEnvironment = pluginEnvironment.Copy()
     if getPlatform() == 'linux':
         pyEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
         pyEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
@@ -1190,8 +1171,6 @@ Opcodes/stk/src/Thread.cpp
             pyEnvironment.Append(LIBPATH = ['/usr/local/lib64/python2.3/config'])
         else:
             pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
-        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     elif getPlatform() == 'darwin':
         pyEnvironment.Append(LIBS = ['python2.3', 'dl', 'm'])
         pyEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
@@ -1199,15 +1178,13 @@ Opcodes/stk/src/Thread.cpp
             pyEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
         else:
             pyEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
-        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         pyEnvironment['ENV']['PATH'] = os.environ['PATH']
-        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         if getPlatform() == 'cygwin':
             pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
         pyEnvironment.Append(LIBS = ['python23'])
+    pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+    pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
     Depends(py, csoundvst)
     pluginLibraries.append(py)
@@ -1215,7 +1192,10 @@ Opcodes/stk/src/Thread.cpp
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
     if getPlatform() == 'darwin':
-        pdClassEnvironment.Append(LINKFLAGS = ['-bundle','-flat_namespace',  '-undefined',  'suppress', '-framework', 'Carbon','-framework', 'ApplicationServices'])
+        pdClassEnvironment.Append(LINKFLAGS = Split('''
+            -bundle -flat_namespace -undefined suppress
+            -framework Carbon -framework ApplicationServices
+        '''))
         pdClass = pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
         pdClassEnvironment.Append(LIBPATH=['.'])
         pdClassEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
