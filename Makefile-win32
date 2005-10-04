@@ -54,7 +54,7 @@ CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		OOps/mxfft.o OOps/oscils.o OOps/pstream.o OOps/pvadd.o	\
 		OOps/pvfileio.o OOps/pvinterp.o OOps/pvocext.o		\
 		OOps/pvread.o OOps/pvsanal.o OOps/schedule.o		\
-		OOps/sdif.o OOps/sdif-mem.o OOps/sndinfUG.o		\
+		OOps/sndinfUG.o						\
 		OOps/str_ops.o OOps/ugens1.o OOps/ugens2.o		\
 		OOps/ugens3.o OOps/ugens4.o OOps/ugens5.o OOps/ugens6.o	\
 		OOps/ugens8.o OOps/ugrw1.o OOps/ugrw2.o OOps/vbap.o	\
