@@ -53,56 +53,87 @@ typedef struct devparams_ {
     int             seed;           /* random seed for dithering        */
 } DEVPARAMS;
 
+#ifdef BUF_SIZE
+#undef BUF_SIZE
+#endif
+#define BUF_SIZE  4096
+
+typedef struct alsaMidiInputDevice_ {
+    unsigned char  buf[BUF_SIZE];
+    snd_rawmidi_t  *dev;
+    int            bufpos, nbytes, datreq;
+    unsigned char  prvStatus, dat1, dat2;
+} alsaMidiInputDevice;
+
+static const unsigned char dataBytes[16] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 2, 0
+};
+
 /* sample conversion routines for playback */
 
-static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed);
-static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed);
-static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed);
+static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+{
+    MYFLT tmp_f;
+    int   tmp_i;
+    while (nSmps--) {
+      (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
+      tmp_f = (MYFLT) ((*seed) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
+      tmp_f += *(inBuf++) * (MYFLT) 0x8000;
+#ifndef USE_DOUBLE
+      tmp_i = (int) lrintf(tmp_f);
+#else
+      tmp_i = (int) lrint(tmp_f);
+#endif
+      if (tmp_i < -0x8000) tmp_i = -0x8000;
+      if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
+      *(outBuf++) = (int16_t) tmp_i;
+    }
+}
+
+static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
+{
+    MYFLT   tmp_f;
+    int64_t tmp_i;
+    (void) seed;
+    while (nSmps--) {
+      tmp_f = *(inBuf++) * (MYFLT) 0x80000000UL;
+#ifndef USE_DOUBLE
+      tmp_i = (int64_t) llrintf(tmp_f);
+#else
+      tmp_i = (int64_t) llrint(tmp_f);
+#endif
+      if (tmp_i < -((int64_t) 0x80000000UL))
+        tmp_i = -((int64_t) 0x80000000UL);
+      if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;
+      *(outBuf++) = (int32_t) tmp_i;
+    }
+}
+
+static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed)
+{
+    (void) seed;
+    while (nSmps--)
+      *(outBuf++) = (float) *(inBuf++);
+}
 
 /* sample conversion routines for recording */
 
-static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf);
-static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf);
-static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf);
-
-/* module interface functions */
-
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf)
 {
-    /* nothing to do, report success */
-    csound->Message(csound,
-                    "ALSA real-time audio module for Csound by Istvan Varga\n");
-    return 0;
+    while (nSmps--)
+      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x8000);
 }
 
-static int playopen_(CSOUND *, const csRtAudioParams *);
-static int recopen_(CSOUND *, const csRtAudioParams *);
-static void rtplay_(CSOUND *, const MYFLT *, int);
-static int rtrecord_(CSOUND *, MYFLT *, int);
-static void rtclose_(CSOUND *);
-
-PUBLIC int csoundModuleInit(CSOUND *csound)
+static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf)
 {
-    char    *drv;
-
-    drv = (char*) (csound->QueryGlobalVariable(csound, "_RTAUDIO"));
-    if (drv == NULL)
-      return 0;
-    if (!(strcmp(drv, "alsa") == 0 || strcmp(drv, "Alsa") == 0 ||
-          strcmp(drv, "ALSA") == 0))
-      return 0;
-    csound->Message(csound, "rtaudio: ALSA module enabled\n");
-    csound->SetPlayopenCallback(csound, playopen_);
-    csound->SetRecopenCallback(csound, recopen_);
-    csound->SetRtplayCallback(csound, rtplay_);
-    csound->SetRtrecordCallback(csound, rtrecord_);
-    csound->SetRtcloseCallback(csound, rtclose_);
-    return 0;
+    while (nSmps--)
+      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x80000000UL);
 }
 
-PUBLIC int csoundModuleInfo(void)
+static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    while (nSmps--)
+      *(outBuf++) = (MYFLT) *(inBuf++);
 }
 
 /* select sample format */
@@ -488,70 +519,174 @@ static void rtclose_(CSOUND *csound)
     }
 }
 
-/* sample conversion routines for playback */
-
-static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
 {
-    MYFLT tmp_f;
-    int   tmp_i;
-    while (nSmps--) {
-      (*seed) = (((*seed) * 15625) + 1) & 0xFFFF;
-      tmp_f = (MYFLT) ((*seed) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
-      tmp_f += *(inBuf++) * (MYFLT) 0x8000;
-#ifndef USE_DOUBLE
-      tmp_i = (int) lrintf(tmp_f);
-#else
-      tmp_i = (int) lrint(tmp_f);
-#endif
-      if (tmp_i < -0x8000) tmp_i = -0x8000;
-      if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      *(outBuf++) = (int16_t) tmp_i;
+    alsaMidiInputDevice *dev;
+    const char  *s = "hw:0,0";
+    int         err;
+
+    (*userData) = NULL;
+    dev = (alsaMidiInputDevice*) malloc(sizeof(alsaMidiInputDevice));
+    if (dev == NULL) {
+      csound->ErrorMsg(csound, Str("ALSA MIDI: memory allocation failure"));
+      return -1;
     }
-}
-
-static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
-{
-    MYFLT   tmp_f;
-    int64_t tmp_i;
-    (void) seed;
-    while (nSmps--) {
-      tmp_f = *(inBuf++) * (MYFLT) 0x80000000UL;
-#ifndef USE_DOUBLE
-      tmp_i = (int64_t) llrintf(tmp_f);
-#else
-      tmp_i = (int64_t) llrint(tmp_f);
-#endif
-      if (tmp_i < -((int64_t) 0x80000000UL))
-        tmp_i = -((int64_t) 0x80000000UL);
-      if (tmp_i > (int64_t) 0x7FFFFFFF) tmp_i = (int64_t) 0x7FFFFFFF;
-      *(outBuf++) = (int32_t) tmp_i;
+    memset(dev, 0, sizeof(alsaMidiInputDevice));
+    if (devName != NULL && devName[0] != '\0')
+      s = devName;
+    err = snd_rawmidi_open(&(dev->dev), NULL, s, SND_RAWMIDI_NONBLOCK);
+    if (err != 0) {
+      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI input device"));
+      free((void*) dev);
+      return -1;
     }
+    csound->Message(csound, Str("ALSA: opened MIDI input device '%s'\n"), s);
+    (*userData) = (void*) dev;
+    return 0;
 }
 
-static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed)
+static int midi_in_read(CSOUND *csound,
+                        void *userData, unsigned char *buf, int nbytes)
 {
-    (void) seed;
-    while (nSmps--)
-      *(outBuf++) = (float) *(inBuf++);
+    alsaMidiInputDevice *dev = (alsaMidiInputDevice*) userData;
+    int             bufpos = 0;
+    unsigned char   c;
+
+    (void) csound;
+    while ((nbytes - bufpos) >= 3) {
+      if (dev->bufpos >= dev->nbytes) { /* read from device */
+        int n = (int) snd_rawmidi_read(dev->dev, &(dev->buf[0]), BUF_SIZE);
+        dev->bufpos = 0;
+        if (n <= 0) {                   /* until there is no more data left */
+          dev->nbytes = 0;
+          break;
+        }
+        dev->nbytes = n;
+      }
+      c = dev->buf[dev->bufpos++];
+      if (c >= (unsigned char) 0xF8) {          /* real time message */
+        buf[bufpos++] = c;
+        continue;
+      }
+      if (c == (unsigned char) 0xF7)            /* end of system exclusive */
+        c = dev->prvStatus;
+      if (c < (unsigned char) 0x80) {           /* data byte */
+        if (dev->datreq <= 0)
+          continue;
+        if (dev->datreq == (int) dataBytes[(int) dev->prvStatus >> 4])
+          dev->dat1 = c;
+        else
+          dev->dat2 = c;
+        if (--(dev->datreq) != 0)
+          continue;
+        dev->datreq = dataBytes[(int) dev->prvStatus >> 4];
+        buf[bufpos] = dev->prvStatus;
+        buf[bufpos + 1] = dev->dat1;
+        buf[bufpos + 2] = dev->dat2;
+        bufpos += (dev->datreq + 1);
+        continue;
+      }
+      else if (c < (unsigned char) 0xF0) {      /* channel message */
+        dev->prvStatus = c;
+        dev->datreq = dataBytes[(int) c >> 4];
+        continue;
+      }
+      if (c < (unsigned char) 0xF4)             /* ignore system messages */
+        dev->datreq = -1;
+    }
+    return bufpos;
 }
 
-/* sample conversion routines for recording */
-
-static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf)
+static int midi_in_close(CSOUND *csound, void *userData)
 {
-    while (nSmps--)
-      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x8000);
+    int retval;
+    (void) csound;
+    retval = snd_rawmidi_close(((alsaMidiInputDevice*) userData)->dev);
+    free(userData);
+    return retval;
 }
 
-static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf)
+static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
 {
-    while (nSmps--)
-      *(outBuf++) = (MYFLT) *(inBuf++) * (FL(1.0) / (MYFLT) 0x80000000UL);
+    snd_rawmidi_t *dev = NULL;
+    const char  *s = "hw:0,0";
+    int         err;
+
+    (*userData) = NULL;
+    if (devName != NULL && devName[0] != '\0')
+      s = devName;
+    err = snd_rawmidi_open(NULL, &dev, s, SND_RAWMIDI_NONBLOCK);
+    if (err != 0) {
+      csound->ErrorMsg(csound, Str("ALSA: error opening MIDI output device"));
+      return -1;
+    }
+    csound->Message(csound, Str("ALSA: opened MIDI output device '%s'\n"), s);
+    (*userData) = (void*) dev;
+    return 0;
 }
 
-static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
+static int midi_out_write(CSOUND *csound,
+                          void *userData, const unsigned char *buf, int nbytes)
 {
-    while (nSmps--)
-      *(outBuf++) = (MYFLT) *(inBuf++);
+    (void) csound;
+    snd_rawmidi_write((snd_rawmidi_t*) userData, buf, (size_t) nbytes);
+ /* snd_rawmidi_drain((snd_rawmidi_t*) userData); */
+    return nbytes;
+}
+
+static int midi_out_close(CSOUND *csound, void *userData)
+{
+    int retval;
+    (void) csound;
+    snd_rawmidi_drain((snd_rawmidi_t*) userData);
+    retval = snd_rawmidi_close((snd_rawmidi_t*) userData);
+    return retval;
+}
+
+/* module interface functions */
+
+PUBLIC int csoundModuleCreate(CSOUND *csound)
+{
+    /* nothing to do, report success */
+    csound->Message(csound, "ALSA real-time audio and MIDI module "
+                            "for Csound by Istvan Varga\n");
+    return 0;
+}
+
+static CS_NOINLINE int check_name(const char *s)
+{
+    if (s != NULL &&
+        (s[0] | (char) 0x20) == 'a' && (s[1] | (char) 0x20) == 'l' &&
+        (s[2] | (char) 0x20) == 's' && (s[3] | (char) 0x20) == 'a' &&
+        s[4] == '\0')
+      return 1;
+    return 0;
+}
+
+PUBLIC int csoundModuleInit(CSOUND *csound)
+{
+    if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTAUDIO"))) {
+      csound->Message(csound, "rtaudio: ALSA module enabled\n");
+      csound->SetPlayopenCallback(csound, playopen_);
+      csound->SetRecopenCallback(csound, recopen_);
+      csound->SetRtplayCallback(csound, rtplay_);
+      csound->SetRtrecordCallback(csound, rtrecord_);
+      csound->SetRtcloseCallback(csound, rtclose_);
+    }
+    if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTMIDI"))) {
+      csound->Message(csound, "rtmidi: ALSA module enabled\n");
+      csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
+      csound->SetExternalMidiReadCallback(csound, midi_in_read);
+      csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
+      csound->SetExternalMidiOutOpenCallback(csound, midi_out_open);
+      csound->SetExternalMidiWriteCallback(csound, midi_out_write);
+      csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
+    }
+    return 0;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
