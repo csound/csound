@@ -8,17 +8,6 @@ InOut/winEPS.c:static FILE *psFile;
 InOut/winEPS.c:static char  ps_date[40];                /* Print time & date on every plot  */
 InOut/winEPS.c:static int   currentPage = 0;            /* Current page number              */
 
-OOps/control.c:static char cmd[100];
-OOps/control.c:static int wish_pid = 0;
-OOps/control.c:static int *values = NULL;
-OOps/control.c:static int *minvals = NULL;
-OOps/control.c:static int *maxvals = NULL;
-OOps/control.c:static int max_sliders  = 0;
-OOps/control.c:static int *buttons = NULL;
-OOps/control.c:static int *checks = NULL;
-OOps/control.c:static int max_button  = 0;
-OOps/control.c:static int max_check  = 0;
-
 OOps/disprep.c:static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
 OOps/disprep.c:static MYFLT lenmults[NMULTS] = { FL(3.0), FL(2.0), FL(1.0), FL(0.5), FL(0.333)};
 OOps/disprep.c:static MYFLT lenfracs[NMULTS*2] = { FL(0.30), FL(0.3667), FL(0.45), FL(0.55),
@@ -28,12 +17,6 @@ OOps/dsputil.c:static MYFLT *sncTab = NULL;    /* point to our sin(x)/x lookup t
 OOps/dsputil.c:static  MYFLT   *env = (MYFLT *)NULL;   /* Scratch buffer to hold 'envelope' */
 
 OOps/schedule.c:static RSCHED *kicked = NULL;
-
-OOps/sdif.c:static  char    p[BUFSIZE];
-OOps/sdif.c:    static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
-
-OOps/sdif-mem.c:static void *(*my_malloc)(int numBytes);
-OOps/sdif-mem.c:static void (*my_free)(void *memory, int numBytes);
 
 Opcodes/fm4op.c:static int      FM_tabs_built = 0;
 Opcodes/fm4op.c:static MYFLT    FM4Op_gains[100];

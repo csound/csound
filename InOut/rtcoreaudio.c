@@ -90,22 +90,20 @@ static void rtclose_(CSOUND *);
 
 int csoundModuleInit(CSOUND *csound)
 {
-    CSOUND *p;
     char   *drv;
 
-    p = (CSOUND *) csound;
-    drv = (char *) (p->QueryGlobalVariable(csound, "_RTAUDIO"));
+    drv = (char *) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
       return 0;
     if (!(strcmp(drv, "coreaudio") == 0 || strcmp(drv, "CoreAudio") == 0 ||
           strcmp(drv, "COREAUDIO") == 0))
       return 0;
-    p->Message(csound, "rtaudio: CoreAudio module enabled\n");
-    p->SetPlayopenCallback(csound, playopen_);
-    p->SetRecopenCallback(csound, recopen_);
-    p->SetRtplayCallback(csound, rtplay_);
-    p->SetRtrecordCallback(csound, rtrecord_);
-    p->SetRtcloseCallback(csound, rtclose_);
+    csound->Message(csound, "rtaudio: CoreAudio module enabled\n");
+    csound->SetPlayopenCallback(csound, playopen_);
+    csound->SetRecopenCallback(csound, recopen_);
+    csound->SetRtplayCallback(csound, rtplay_);
+    csound->SetRtrecordCallback(csound, rtrecord_);
+    csound->SetRtcloseCallback(csound, rtclose_);
     return 0;
 }
 
@@ -138,7 +136,7 @@ ADIOProc(const AudioBufferList * input,
 
         for (i = j, cnt = 0; i < items; i += chans, cnt++) {
           outp[cnt] = obufp[i];
-		  obufp[i] = 0.f;
+          obufp[i] = 0.0f;
           ibufp[i] = inp[cnt];
         }
         output->mBuffers[j].mDataByteSize = input[0].mBuffers[j].mDataByteSize;
@@ -156,14 +154,13 @@ ADIOProc(const AudioBufferList * input,
         for (j = 0; j < cachans; j++)
           if (j < chans) {
             outp[i + j] = obufp[cnt];
-			obufp[cnt] = 0.f;
+            obufp[cnt] = 0.0f;
             if (inp != NULL && j < inchans)
               ibufp[cnt] = inp[i + j];
             cnt++;
           }
           else
-            outp[i + j] = 0.f;
-
+            outp[i + j] = 0.0f;
       }
     }
     cdata->outused[buff] = cdata->inused[buff] = 1;
