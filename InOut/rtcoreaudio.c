@@ -138,6 +138,7 @@ ADIOProc(const AudioBufferList * input,
 
         for (i = j, cnt = 0; i < items; i += chans, cnt++) {
           outp[cnt] = obufp[i];
+		  obufp[i] = 0.f;
           ibufp[i] = inp[cnt];
         }
         output->mBuffers[j].mDataByteSize = input[0].mBuffers[j].mDataByteSize;
@@ -155,6 +156,7 @@ ADIOProc(const AudioBufferList * input,
         for (j = 0; j < cachans; j++)
           if (j < chans) {
             outp[i + j] = obufp[cnt];
+			obufp[cnt] = 0.f;
             if (inp != NULL && j < inchans)
               ibufp[cnt] = inp[i + j];
             cnt++;
