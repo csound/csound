@@ -87,17 +87,13 @@ int seedrand(CSOUND *csound, PRAND *p)
 
 /* * * * * * RANDOM NUMBER GENERATORS * * * * * */
 
-#define UInt32toFlt(x)  (((double) ((int32_t) ((x) ^ (uint32_t) 0x80000000U)) \
-                          + 2147483648.03125) * (1.0 / 4294967295.0625))
+#define UInt32toFlt(x) ((double) (x) * (1.0 / 4294967295.03125))
 
-static inline MYFLT unirand(CSOUND *csound)
-{
-    return (MYFLT) UInt32toFlt(csoundRandMT(&(csound->randState_)));
-}
+#define unirand(c) ((MYFLT) UInt32toFlt(csoundRandMT(&((c)->randState_))))
 
 static inline MYFLT unifrand(CSOUND *csound, MYFLT range)
 {
-    return range * unirand(csound);
+    return (range * unirand(csound));
 }
 
 /* linear distribution routine */
@@ -116,14 +112,13 @@ static inline MYFLT linrand(CSOUND *csound, MYFLT range)
 
 static inline MYFLT trirand(CSOUND *csound, MYFLT range)
 {
-    double  r1, r2;
+    uint64_t  r1;
 
-    r1 = (double) ((int32_t) (csoundRandMT(&(csound->randState_))
-                              ^ (uint32_t) 0x80000000U));
-    r2 = (double) ((int32_t) (csoundRandMT(&(csound->randState_))
-                              ^ (uint32_t) 0x80000000U));
+    r1 = (uint64_t) csoundRandMT(&(csound->randState_));
+    r1 += (uint64_t) csoundRandMT(&(csound->randState_));
 
-    return ((MYFLT) ((r1 + r2 + 1.0) * (1.0 / 4294967295.0625)) * range);
+    return ((MYFLT) ((double) ((int64_t) r1 - (int64_t) 0xFFFFFFFFU)
+                     * (1.0 / 4294967295.03125)) * range);
 }
 
 /* exponential distribution routine */
@@ -131,8 +126,6 @@ static inline MYFLT trirand(CSOUND *csound, MYFLT range)
 static MYFLT exprand(CSOUND *csound, MYFLT l)
 {
     uint32_t  r1;
-
-    if (l < FL(0.0)) return (FL(0.0));
 
     do {
       r1 = csoundRandMT(&(csound->randState_));
@@ -146,8 +139,6 @@ static MYFLT exprand(CSOUND *csound, MYFLT l)
 static MYFLT biexprand(CSOUND *csound, MYFLT l)
 {
     int32_t r1;
-
-    if (l < FL(0.0)) return (FL(0.0));
 
     do {
       r1 = (int32_t) csoundRandMT(&(csound->randState_));
@@ -163,15 +154,15 @@ static MYFLT biexprand(CSOUND *csound, MYFLT l)
 
 static MYFLT gaussrand(CSOUND *csound, MYFLT s)
 {
-    uint64_t  r1 = (uint64_t) 0;
+    int64_t   r1 = -((int64_t) 0xFFFFFFFFU * 6);
     int       n = 12;
     double    x;
 
     do {
-      r1 += (uint64_t) csoundRandMT(&(csound->randState_));
+      r1 += (int64_t) csoundRandMT(&(csound->randState_));
     } while (--n);
-    x = (double) ((int64_t) r1) - 25769803770.0;
-    return (MYFLT) (x * ((double) s * (1.0 / (3.83 * 4294967295.0625))));
+    x = (double) r1;
+    return (MYFLT) (x * ((double) s * (1.0 / (3.83 * 4294967295.03125))));
 }
 
 /* cauchy distribution routine */
@@ -182,10 +173,9 @@ static MYFLT cauchrand(CSOUND *csound, MYFLT a)
     MYFLT     x;
 
     do {
-      r1 = csoundRandMT(&(csound->randState_)) ^ (uint32_t) 0x80000000U;
-      x = (MYFLT) tan(((double) ((int32_t) r1) + 2147483648.03125)
-                      * (PI / 4294967295.0625)) * (MYFLT) (1.0 / 318.3);
-    } while (x > FL(1.0) || x < -FL(1.0));      /* Limit range artificially */
+      r1 = csoundRandMT(&(csound->randState_)); /* Limit range artificially */
+    } while (r1 > (uint32_t) 2143188560U && r1 < (uint32_t) 2151778735U);
+    x = (MYFLT) (tan((double) r1 * (PI / 4294967295.0)) * (1.0 / 318.3));
     return (x * a);
 }
 
@@ -197,13 +187,9 @@ static MYFLT pcauchrand(CSOUND *csound, MYFLT a)
     MYFLT     x;
 
     do {
-      do {
-        r1 = csoundRandMT(&(csound->randState_));
-      } while (r1 == (uint32_t) 0xFFFFFFFFU);
-      r1 ^= (uint32_t) 0x80000000U;
-      x = (MYFLT) tan(((double) ((int32_t) r1) + 2147483648.03125)
-                      * (PI * 0.5 / 4294967295.0625)) * (MYFLT) (1.0 / 318.3);
-    } while (x > FL(1.0));                      /* Limit range artificially */
+      r1 = csoundRandMT(&(csound->randState_));
+    } while (r1 > (uint32_t) 4286377121U);      /* Limit range artificially */
+    x = (MYFLT) (tan((double) r1 * (PI * 0.5 / 4294967295.0)) * (1.0 / 318.3));
     return (x * a);
 }
 
@@ -211,43 +197,43 @@ static MYFLT pcauchrand(CSOUND *csound, MYFLT a)
 
 static MYFLT betarand(CSOUND *csound, MYFLT range, MYFLT a, MYFLT b)
 {
-    MYFLT r1, r2;
+    double  r1, r2;
 
-    if (a < FL(0.0) || b < FL(0.0))
+    if (a <= FL(0.0) || b <= FL(0.0))
       return FL(0.0);
 
     do {
+      uint32_t  tmp;
       do {
-        r1 = unirand(csound);
-      } while (r1 == FL(0.0));
-
+        tmp = csoundRandMT(&(csound->randState_));
+      } while (!tmp);
+      r1 = pow(UInt32toFlt(tmp), 1.0 / (double) a);
       do {
-        r2 = unirand(csound);
-      } while (r2 == FL(0.0));
+        tmp = csoundRandMT(&(csound->randState_));
+      } while (!tmp);
+      r2 = r1 + pow(UInt32toFlt(tmp), 1.0 / (double) b);
+    } while (r2 > 1.0);
 
-      r1 = (MYFLT) pow(r1, 1.0 / (double) a);
-      r2 = (MYFLT) pow(r2, 1.0 / (double) b);
-    } while ((r1 + r2) > FL(1.0));
-
-    return ((r1 / (r1 + r2)) * range);
+    return (((MYFLT) r1 / (MYFLT) r2) * range);
 }
 
 /* weibull distribution routine */
 
 static MYFLT weibrand(CSOUND *csound, MYFLT s, MYFLT t)
 {
-    MYFLT r1, r2;
+    uint32_t  r1;
+    double    r2;
 
-    if (t < FL(0.0))
+    if (t <= FL(0.0))
       return FL(0.0);
 
     do {
-      r1 = unirand(csound);
-    } while (r1 == FL(0.0) || r1 == FL(1.0));
+      r1 = csoundRandMT(&(csound->randState_));
+    } while (!r1 || r1 == (uint32_t) 0xFFFFFFFFU);
 
-    r2 = FL(1.0) /  (FL(1.0) - r1);
+    r2 = 1.0 - ((double) r1 * (1.0 / 4294967295.0));
 
-    return (s * (MYFLT) pow(log((double) r2), (1.0 / (double) t)));
+    return (s * (MYFLT) pow(-(log(r2)), (1.0 / (double) t)));
 }
 
 /* Poisson distribution routine */
@@ -275,12 +261,12 @@ static MYFLT poissrand(CSOUND *csound, MYFLT l)
 
 int auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
 {
-    int   n, nsmps = csound->ksmps;
-    MYFLT *out = p->out;
-    MYFLT arg1 = *p->arg1;
+    MYFLT   *out = p->out, *endp = p->out + csound->ksmps;
+    double  scale = (double) *p->arg1 * (1.0 / 4294967295.03125);
 
-    for (n = 0; n < nsmps; n++)
-      out[n] = unifrand(csound, arg1);
+    do {
+      *(out++) = (MYFLT) ((double) csoundRandMT(&(csound->randState_)) * scale);
+    } while (out < endp);
     return OK;
 }
 
@@ -481,53 +467,53 @@ int gen21_rand(FGDATA *ff, FUNC *ftp)
     switch ((int) ff->e.p[5]) {
     case 1:                     /* Uniform distribution */
       for (i = 0 ; i < n ; i++)
-        *ft++ = unifrand(csound, scale);
+        ft[i] = unifrand(csound, scale);
       break;
     case 2:                     /* Linear distribution */
       for (i = 0 ; i < n ; i++)
-        *ft++ = linrand(csound, scale);
+        ft[i] = linrand(csound, scale);
       break;
     case 3:                     /* Triangular about 0.5 */
       for (i = 0 ; i < n ; i++)
-        *ft++ = trirand(csound, scale);
+        ft[i] = trirand(csound, scale);
       break;
     case 4:                     /* Exponential */
       for (i = 0 ; i < n ; i++)
-        *ft++ = exprand(csound, scale);
+        ft[i] = exprand(csound, scale);
       break;
     case 5:                     /* Bilateral exponential */
       for (i = 0 ; i < n ; i++)
-        *ft++ = biexprand(csound, scale);
+        ft[i] = biexprand(csound, scale);
       break;
     case 6:                     /* Gaussian distribution */
       for (i = 0 ; i < n ; i++)
-        *ft++ = gaussrand(csound, scale);
+        ft[i] = gaussrand(csound, scale);
       break;
     case 7:                     /* Cauchy distribution */
       for (i = 0 ; i < n ; i++)
-        *ft++ = cauchrand(csound, scale);
+        ft[i] = cauchrand(csound, scale);
       break;
     case 8:                     /* Positive Cauchy */
       for (i = 0 ; i < n ; i++)
-        *ft++ = pcauchrand(csound, scale);
+        ft[i] = pcauchrand(csound, scale);
       break;
     case 9:                     /* Beta distribution */
       if (nargs < 3) {
         return -1;
       }
       for (i = 0 ; i < n ; i++)
-        *ft++ = betarand(csound, scale, (MYFLT)ff->e.p[7], (MYFLT)ff->e.p[8]);
+        ft[i] = betarand(csound, scale, (MYFLT) ff->e.p[7], (MYFLT) ff->e.p[8]);
       break;
     case 10:                    /* Weibull Distribution */
       if (nargs < 2) {
         return -1;
       }
       for (i = 0 ; i < n ; i++)
-        *ft++ = weibrand(csound, scale, (MYFLT) ff->e.p[7]);
+        ft[i] = weibrand(csound, scale, (MYFLT) ff->e.p[7]);
       break;
     case 11:                    /* Poisson Distribution */
       for (i = 0 ; i < n ; i++)
-        *ft++ = poissrand(csound, scale);
+        ft[i] = poissrand(csound, scale);
       break;
     default:
       return -2;
