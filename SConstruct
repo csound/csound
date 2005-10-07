@@ -585,7 +585,7 @@ else:
 if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
   print 'CONFIGURATION DECISION: Building dynamic Csound library'
   if (getPlatform() == 'darwin'):
-	csoundLibraryEnvironment.Append(LINKFLAGS='-lsndfile')
+    csoundLibraryEnvironment.Append(LIBS = ['sndfile'])
   csoundLibrary = csoundLibraryEnvironment.SharedLibrary('csound',
                                                          libCsoundSources)
 else:
