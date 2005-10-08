@@ -886,6 +886,7 @@ extern "C" {
     void          (*csoundMakeXYinCallback_)(CSOUND *, XYINDAT *, MYFLT, MYFLT);
     void          (*csoundReadXYinCallback_)(CSOUND *, XYINDAT *);
     void          (*csoundKillXYinCallback_)(CSOUND *, XYINDAT *);
+    void          (*cscoreCallback_)(CSOUND *);
     SUBR          last_callback_;
     /* these are not saved on RESET */
     int           (*playopen_callback)(CSOUND *, const csRtAudioParams *parm);

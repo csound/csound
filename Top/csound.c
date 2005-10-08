@@ -371,6 +371,7 @@ static const CSOUND cenviron_ = {
         defaultCsoundMakeXYin,
         defaultCsoundReadKillXYin,
         defaultCsoundReadKillXYin,
+        cscore,         /*  cscoreCallback_     */
         (SUBR) NULL,    /*  last_callback_      */
         /* these are not saved on RESET */
         playopen_dummy,
@@ -1231,6 +1232,13 @@ static const CSOUND cenviron_ = {
   {
     musmon_rewind_score(csound);
     midifile_rewind_score(csound);
+  }
+
+  PUBLIC void csoundSetCscoreCallback(CSOUND *csound, void (*cscoreCallback)(CSOUND *))
+  {
+    if (cscoreCallback != NULL)  csound->cscoreCallback_ = cscoreCallback;
+    else                         csound->cscoreCallback_ = cscore;
+    return;
   }
 
   static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
