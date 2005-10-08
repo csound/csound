@@ -1,3 +1,9 @@
+2005-10-07	Anthony Kozar	<anthonykozar@sbcglobal.net>
+	* H/csound.h, H/csoundCore.h,
+	  Top/csound.c, Engine/musmon.c:  Added new API function
+		csoundSetCscoreCallback() for using an external cscore routine.
+	* SDIF/sdif-mem.h:  Changed #include "H/sdif.h" to "sdif.h".
+
 2005-10-02	Istvan Varga	<ivarga@csounds.com>
 	* restored Tcl/Tk control opcodes
 	* xyin fixes

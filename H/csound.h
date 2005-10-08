@@ -523,6 +523,13 @@ extern "C" {
   PUBLIC void csoundRewindScore(CSOUND *);
 
   /**
+   * Sets an external callback for Cscore processing.
+   * Pass NULL to reset to the internal cscore() function (which does nothing).
+   * This callback is retained after a csoundReset() call.
+   */
+  PUBLIC void csoundSetCscoreCallback(CSOUND *, void (*cscoreCallback)(CSOUND *));
+
+  /**
    * MESSAGES & TEXT
    */
 

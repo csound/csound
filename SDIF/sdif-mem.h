@@ -47,7 +47,7 @@ Version 1.0, 9/21/99
 /*RWD TODO: declare objects, no pounters */
 #ifndef CSOUND_SDIF_MEM_H
 #define CSOUND_SDIF_MEM_H
-#include "H/sdif.h"
+#include "sdif.h"
 
 typedef struct SDIFmemMatrixStruct {
     SDIF_MatrixHeader header;

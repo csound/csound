@@ -285,7 +285,7 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot create cscore.out"));
       /* rdscor for cscorefns */
       cscorinit(csound);
-      cscore(csound);      /* call cscore, optionally re-enter via lplay() */
+      csound->cscoreCallback_(csound);      /* call cscore, optionally re-enter via lplay() */
       fclose(csound->oscfp); csound->oscfp = NULL;
       fclose(csound->scfp); csound->scfp = NULL;
       if (ST(lplayed)) return 0;
