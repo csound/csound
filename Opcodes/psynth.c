@@ -46,8 +46,8 @@ ifn - function table containing a sinusoid (generally a cosine)
 
 RESYN
 
-Streaming partial track additive synthesis with cubic phase interpolation with pitch scaling and support for timescale-modified
-input signals.
+Streaming partial track additive synthesis with cubic phase interpolation
+with pitch scaling and support for timescale-modified input signals.
 
 asig sinsyn  fin, kscal, kpitch, kmaxtracks, ifn
 
@@ -111,15 +111,20 @@ static int psynth_init(CSOUND * csound, _PSYN * p)
     p->pi = 4. * atan(1.);
     p->twopi = 2. * p->pi;
 
-    if (p->amps.auxp == NULL && p->amps.size < sizeof(MYFLT) * numbins)
+    if (p->amps.auxp == NULL &&
+        (unsigned)p->amps.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->amps);
-    if (p->freqs.auxp == NULL && p->freqs.size < sizeof(MYFLT) * numbins)
+    if (p->freqs.auxp == NULL &&
+        (unsigned)p->freqs.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->freqs);
-    if (p->phases.auxp == NULL && p->phases.size < sizeof(MYFLT) * numbins)
+    if (p->phases.auxp == NULL &&
+        (unsigned)p->phases.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->phases);
-    if (p->sum.auxp == NULL && p->sum.size < sizeof(MYFLT) * p->hopsize)
+    if (p->sum.auxp == NULL &&
+        (unsigned)p->sum.size < sizeof(MYFLT) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(MYFLT) * p->hopsize, &p->sum);
-    if (p->trackID.auxp == NULL && p->trackID.size < sizeof(int) * numbins)
+    if (p->trackID.auxp == NULL &&
+        (unsigned)p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
 
     return OK;
@@ -256,15 +261,20 @@ static int psynth2_init(CSOUND * csound, _PSYN2 * p)
     p->pi = 4. * atan(1.);
     p->twopi = 2. * p->pi;
 
-    if (p->amps.auxp == NULL && p->amps.size < sizeof(MYFLT) * numbins)
+    if (p->amps.auxp == NULL &&
+        (unsigned)p->amps.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->amps);
-    if (p->freqs.auxp == NULL && p->freqs.size < sizeof(MYFLT) * numbins)
+    if (p->freqs.auxp == NULL &&
+        (unsigned)p->freqs.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->freqs);
-    if (p->phases.auxp == NULL && p->phases.size < sizeof(MYFLT) * numbins)
+    if (p->phases.auxp == NULL &&
+        (unsigned)p->phases.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->phases);
-    if (p->sum.auxp == NULL && p->sum.size < sizeof(MYFLT) * p->hopsize)
+    if (p->sum.auxp == NULL &&
+        (unsigned)p->sum.size < sizeof(MYFLT) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(MYFLT) * p->hopsize, &p->sum);
-    if (p->trackID.auxp == NULL && p->trackID.size < sizeof(int) * numbins)
+    if (p->trackID.auxp == NULL &&
+        (unsigned)p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
 
     return OK;
