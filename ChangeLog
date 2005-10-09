@@ -1,7 +1,8 @@
 2005-10-09  John ff  <jpff@codemist.co.uk>
 
 	* Opcodes/psynth.c (psynth2_init, psynth_init): Added cast to
-	unsigned to avoid compiler warnings
+	unsigned to avoid compiler warnings.  Also change && to || as I
+	think that is more likely correct.
 
 2005-10-07	Anthony Kozar	<anthonykozar@sbcglobal.net>
 	* H/csound.h, H/csoundCore.h,

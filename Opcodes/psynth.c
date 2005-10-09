@@ -111,19 +111,19 @@ static int psynth_init(CSOUND * csound, _PSYN * p)
     p->pi = 4. * atan(1.);
     p->twopi = 2. * p->pi;
 
-    if (p->amps.auxp == NULL &&
+    if (p->amps.auxp == NULL ||
         (unsigned)p->amps.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->amps);
-    if (p->freqs.auxp == NULL &&
+    if (p->freqs.auxp == NULL ||
         (unsigned)p->freqs.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->freqs);
-    if (p->phases.auxp == NULL &&
+    if (p->phases.auxp == NULL ||
         (unsigned)p->phases.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->phases);
-    if (p->sum.auxp == NULL &&
+    if (p->sum.auxp == NULL ||
         (unsigned)p->sum.size < sizeof(MYFLT) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(MYFLT) * p->hopsize, &p->sum);
-    if (p->trackID.auxp == NULL &&
+    if (p->trackID.auxp == NULL ||
         (unsigned)p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
 
@@ -261,19 +261,19 @@ static int psynth2_init(CSOUND * csound, _PSYN2 * p)
     p->pi = 4. * atan(1.);
     p->twopi = 2. * p->pi;
 
-    if (p->amps.auxp == NULL &&
+    if (p->amps.auxp == NULL ||
         (unsigned)p->amps.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->amps);
-    if (p->freqs.auxp == NULL &&
+    if (p->freqs.auxp == NULL ||
         (unsigned)p->freqs.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->freqs);
-    if (p->phases.auxp == NULL &&
+    if (p->phases.auxp == NULL ||
         (unsigned)p->phases.size < sizeof(MYFLT) * numbins)
       csound->AuxAlloc(csound, sizeof(MYFLT) * numbins, &p->phases);
-    if (p->sum.auxp == NULL &&
+    if (p->sum.auxp == NULL ||
         (unsigned)p->sum.size < sizeof(MYFLT) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(MYFLT) * p->hopsize, &p->sum);
-    if (p->trackID.auxp == NULL &&
+    if (p->trackID.auxp == NULL ||
         (unsigned)p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
 
