@@ -1234,11 +1234,10 @@ static const CSOUND cenviron_ = {
     midifile_rewind_score(csound);
   }
 
-  PUBLIC void csoundSetCscoreCallback(CSOUND *csound, void (*cscoreCallback)(CSOUND *))
+  PUBLIC void csoundSetCscoreCallback(CSOUND *p,
+                                      void (*cscoreCallback)(CSOUND *))
   {
-    if (cscoreCallback != NULL)  csound->cscoreCallback_ = cscoreCallback;
-    else                         csound->cscoreCallback_ = cscore;
-    return;
+    p->cscoreCallback_ = (cscoreCallback != NULL ? cscoreCallback : cscore);
   }
 
   static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
