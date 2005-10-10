@@ -220,39 +220,32 @@ int musmon(CSOUND *csound)
       O->outbufsamps = O->inbufsamps = bufsize;
     }
     else {
-      if (O->outbufsamps < 0) {         /* if k-aligned iobufs requested  */
-        /* set from absolute value */
-        O->outbufsamps *= -(csound->ksmps);
-        O->inbufsamps = O->outbufsamps;
-        csound->Message(csound, Str("k-period aligned audio buffering\n"));
-      }
-      /* else keep the user values */
       if (!O->oMaxLag)
         O->oMaxLag = IODACSAMPS;
-      if (!O->inbufsamps)
-        O->inbufsamps = IOBUFSAMPS;
       if (!O->outbufsamps)
         O->outbufsamps = IOBUFSAMPS;
+      else if (O->outbufsamps < 0) {    /* if k-aligned iobufs requested  */
+        /* set from absolute value */
+        O->outbufsamps *= -(csound->ksmps);
+        csound->Message(csound, Str("k-period aligned audio buffering\n"));
+        if (O->oMaxLag <= O->outbufsamps)
+          O->oMaxLag = O->outbufsamps << 1;
+      }
+      /* else keep the user values */
       /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
       /* are usable */
-      if (O->infilename != NULL &&
-          (strncmp(O->infilename, "adc", 3) == 0 ||
-           strncmp(O->infilename, "devaudio", 8) == 0)) {
-        O->oMaxLag = ((O->oMaxLag + O->inbufsamps - 1) / O->inbufsamps)
-                     * O->inbufsamps;
-        if (O->oMaxLag <= O->inbufsamps)
-          O->inbufsamps >>= 1;
-        O->outbufsamps = O->inbufsamps;
-      }
-      if (O->outfilename != NULL &&
-          (strncmp(O->outfilename, "dac", 3) == 0 ||
-           strncmp(O->outfilename, "devaudio", 8) == 0)) {
+      if ((O->infilename != NULL &&
+           (strncmp(O->infilename, "adc", 3) == 0 ||
+            strncmp(O->infilename, "devaudio", 8) == 0)) ||
+          (O->outfilename != NULL &&
+           (strncmp(O->outfilename, "dac", 3) == 0 ||
+            strncmp(O->outfilename, "devaudio", 8) == 0))) {
         O->oMaxLag = ((O->oMaxLag + O->outbufsamps - 1) / O->outbufsamps)
                      * O->outbufsamps;
-        if (O->oMaxLag <= O->outbufsamps)
+        if (O->oMaxLag <= O->outbufsamps && O->outbufsamps > 1)
           O->outbufsamps >>= 1;
-        O->inbufsamps = O->outbufsamps;
       }
+      O->inbufsamps = O->outbufsamps;
     }
     csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
                             (int) O->outbufsamps);
@@ -285,7 +278,8 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot create cscore.out"));
       /* rdscor for cscorefns */
       cscorinit(csound);
-      csound->cscoreCallback_(csound);      /* call cscore, optionally re-enter via lplay() */
+      /* call cscore, optionally re-enter via lplay() */
+      csound->cscoreCallback_(csound);
       fclose(csound->oscfp); csound->oscfp = NULL;
       fclose(csound->scfp); csound->scfp = NULL;
       if (ST(lplayed)) return 0;
@@ -554,17 +548,23 @@ static void section_amps(CSOUND *csound, int enable_msgs)
     }
 }
 
-static void print_score_time(CSOUND *p, int rtEvt)
+static CS_NOINLINE void printScoreError(CSOUND *p, int rtEvt,
+                                        const char *fmt, ...)
 {
+    va_list args;
+
     if (rtEvt)
       p->Message(p, "\t\t   T%7.3f", p->curp2 - p->timeOffs);
     else
       p->Message(p, "\t  B%7.3f", p->curbt - p->beatOffs);
+    va_start(args, fmt);
+    p->ErrMsgV(p, NULL, fmt, args);
+    va_end(args);
+    p->perferrcnt++;
 }
 
-static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
+static int process_score_event(CSOUND *p, EVTBLK *evt, int rtEvt)
 {
-    CSOUND *p = csound;
     EVTBLK  *saved_currevent;
     int     insno, n;
 
@@ -584,10 +584,8 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     case 'q':
       if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
         if ((insno = (int) named_instr_find(p, evt->strarg)) < 1) {
-          print_score_time(p, rtEvt);
-          p->Message(p, Str(" - note deleted. instr %s undefined\n"),
-                        evt->strarg);
-          p->perferrcnt++;
+          printScoreError(p, rtEvt, Str(" - note deleted. instr %s undefined"),
+                                    evt->strarg);
           break;
         }
         p->Message(p, Str("Setting instrument %s %s\n"),
@@ -598,10 +596,9 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         insno = abs((int) evt->p[1]);
         if ((unsigned int) (insno - 1) >= (unsigned int) p->maxinsno ||
             p->instrtxtp[insno] == NULL) {
-          print_score_time(p, rtEvt);
-          p->Message(p, Str(" - note deleted. instr %d(%d) undefined\n"),
-                        insno, p->maxinsno);
-          p->perferrcnt++;
+          printScoreError(p, rtEvt,
+                          Str(" - note deleted. instr %d(%d) undefined"),
+                          insno, p->maxinsno);
           break;
         }
         p->Message(p, Str("Setting instrument %d %s\n"),
@@ -612,41 +609,36 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     case 'i':
       if (evt->p[1] == SSTRCOD && evt->strarg) {    /* IV - Oct 31 2002 */
         if ((insno = (int) named_instr_find(p, evt->strarg)) < 1) {
-          print_score_time(p, rtEvt);
-          p->Message(p, Str(" - note deleted. instr %s undefined\n"),
-                        evt->strarg);
-          p->perferrcnt++;
+          printScoreError(p, rtEvt, Str(" - note deleted. instr %s undefined"),
+                                    evt->strarg);
           break;
         }
         evt->p[1] = (MYFLT) insno;
-        if (p->oparms->Beatmode && evt->p3orig > FL(0.0))
+        if (p->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
           evt->p[3] = evt->p3orig * (MYFLT) p->beatTime;
-        if ((n = insert(p, insno, evt))) { /* else alloc, init, activate */
-          print_score_time(p, rtEvt);
-          p->Message(p, Str(" - note deleted.  i%d (%s) had %d init errors\n"),
-                        insno, evt->strarg, n);
-          p->perferrcnt++;
+        if ((n = insert(p, insno, evt))) {      /* else alloc, init, activate */
+          printScoreError(p, rtEvt,
+                          Str(" - note deleted.  i%d (%s) had %d init errors"),
+                          insno, evt->strarg, n);
         }
       }
       else {                                        /* IV - Oct 31 2002 */
         insno = abs((int) evt->p[1]);
         if ((unsigned int) (insno - 1) >= (unsigned int) p->maxinsno ||
             p->instrtxtp[insno] == NULL) {
-          print_score_time(p, rtEvt);
-          p->Message(p, Str(" - note deleted. instr %d(%d) undefined\n"),
-                        insno, p->maxinsno);
-          p->perferrcnt++;
+          printScoreError(p, rtEvt,
+                          Str(" - note deleted. instr %d(%d) undefined"),
+                          insno, p->maxinsno);
         }
         else if (evt->p[1] < FL(0.0))           /* if p1 neg,             */
-          infoff(p, -evt->p[1]);           /*  turnoff any infin cpy */
+          infoff(p, -evt->p[1]);                /*  turnoff any infin cpy */
         else {
-          if (p->oparms->Beatmode && evt->p3orig > FL(0.0))
+          if (p->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
             evt->p[3] = evt->p3orig * (MYFLT) p->beatTime;
-          if ((n = insert(p, insno, evt))) { /* else alloc,init,activat */
-            print_score_time(p, rtEvt);
-            p->Message(p, Str(" - note deleted.  i%d had %d init errors\n"),
-                          insno, n);
-            p->perferrcnt++;
+          if ((n = insert(p, insno, evt))) {    /* else alloc, init, activate */
+            printScoreError(p, rtEvt,
+                            Str(" - note deleted.  i%d had %d init errors"),
+                            insno, n);
           }
         }
       }
@@ -654,7 +646,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     case 'f':
       {
         FUNC  *dummyftp;
-        csound->hfgens(csound, &dummyftp, evt, 0);
+        p->hfgens(p, &dummyftp, evt, 0);
       }
       break;
     case 'a':
@@ -673,9 +665,8 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     return 0;
 }
 
-static int process_rt_event(CSOUND *csound, int sensType)
+static int process_rt_event(CSOUND *p, int sensType)
 {
-    CSOUND *p = csound;
     EVTBLK  *evt;
     int     retval, insno, n;
 
@@ -1118,10 +1109,10 @@ void musmon_rewind_score(CSOUND *csound)
 
 /**
  * Register a function to be called once in every control period
- * by sensevents(). Any number of functions may be registered.
- * The callback function takes two arguments of type void*, the first
- * is the Csound instance pointer, and the second is the userData pointer
- * as passed to this function.
+ * by sensevents(). Any number of functions may be registered,
+ * and will be called in the order of registration.
+ * The callback function takes two arguments: the Csound instance
+ * pointer, and the userData pointer as passed to this function.
  * Returns zero on success.
  */
 PUBLIC int csoundRegisterSenseEventCallback(CSOUND *csound,
