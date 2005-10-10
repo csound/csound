@@ -518,7 +518,8 @@ extern "C" {
   PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *, MYFLT time);
 
   /**
-   * Rewinds a compiled Csound score to its beginning.
+   * Rewinds a compiled Csound score to the time specified with
+   * csoundSetScoreOffsetSeconds().
    */
   PUBLIC void csoundRewindScore(CSOUND *);
 
@@ -527,7 +528,8 @@ extern "C" {
    * Pass NULL to reset to the internal cscore() function (which does nothing).
    * This callback is retained after a csoundReset() call.
    */
-  PUBLIC void csoundSetCscoreCallback(CSOUND *, void (*cscoreCallback)(CSOUND *));
+  PUBLIC void csoundSetCscoreCallback(CSOUND *,
+                                      void (*cscoreCallback)(CSOUND *));
 
   /**
    * MESSAGES & TEXT
@@ -645,25 +647,25 @@ extern "C" {
   /* Set real time MIDI callback function pointers. */
 
   PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
-                        int (*func)(CSOUND*, void**, const char*));
+                    int (*func)(CSOUND *, void **, const char *));
 
   PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
-                        int (*func)(CSOUND*, void*, unsigned char*, int));
+                    int (*func)(CSOUND *, void *, unsigned char *, int));
 
   PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
-                        int (*func)(CSOUND*, void*));
+                    int (*func)(CSOUND *, void *));
 
   PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
-                        int (*func)(CSOUND*, void**, const char*));
+                    int (*func)(CSOUND *, void **, const char *));
 
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-                        int (*func)(CSOUND*, void*, const unsigned char*, int));
+                    int (*func)(CSOUND *, void *, const unsigned char *, int));
 
   PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *,
-                        int (*func)(CSOUND*, void*));
+                    int (*func)(CSOUND *, void *));
 
   PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
-                        const char *(*func)(int));
+                    const char *(*func)(int));
 
   /**
    * FUNCTION TABLE DISPLAY
@@ -1011,10 +1013,10 @@ extern "C" {
 
   /**
    * Register a function to be called once in every control period
-   * by sensevents(). Any number of functions may be registered.
-   * The callback function takes two arguments of type void*, the first
-   * is the Csound instance pointer, and the second is the userData pointer
-   * as passed to this function.
+   * by sensevents(). Any number of functions may be registered,
+   * and will be called in the order of registration.
+   * The callback function takes two arguments: the Csound instance
+   * pointer, and the userData pointer as passed to this function.
    * Returns zero on success.
    */
   PUBLIC int csoundRegisterSenseEventCallback(CSOUND *,
