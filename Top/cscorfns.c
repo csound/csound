@@ -29,7 +29,7 @@
 #define TYP_EVLIST 2
 #define TYP_SPACE  3
 #define WMYFLTS    4        /* extra floats for warped events */
-#define NSLOTS     100      /* default slots in lcreat list   */
+#define NSLOTS     100      /* default slots in cscoreListCreate list   */
 #define MAXALLOC   32768L
 
 typedef struct space {
@@ -46,7 +46,7 @@ typedef struct {
 } INFILE;
 static INFILE *infiles = NULL;    /* array of infile status blks */
 
-/* next two from defev() really */
+/* next two from cscoreDefineEvent() really */
 static  EVENT  *evtmp = NULL;
 static  EVTBLK *evtmpblk;
 
@@ -146,7 +146,7 @@ static void csfree(CSHDR *bp)
     }
 }
 
-EVLIST * lcreat(CSOUND *csound, int nslots)
+PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int nslots)
   /* creat an array of event pointer slots */
 {
     CSHDR *newblk, *newfree;
@@ -172,7 +172,7 @@ EVLIST * lcreat(CSOUND *csound, int nslots)
     return(a);
 }
 
-EVENT * createv(CSOUND *csound, int pcnt) /* creat a new event space */
+PUBLIC EVENT * cscoreCreateEvent(CSOUND *csound, int pcnt) /* creat a new event space */
 {
     CSHDR *newblk, *newfree;
     EVENT *e;
@@ -196,14 +196,14 @@ EVENT * createv(CSOUND *csound, int pcnt) /* creat a new event space */
     return(e);
 }
 
-EVENT * copyev(CSOUND *csound, EVENT *e)   /* make a new copy of an event */
+PUBLIC EVENT * cscoreCopyEvent(CSOUND *csound, EVENT *e)   /* make a new copy of an event */
 {
     EVENT *f;
     int  n;
     MYFLT *p, *q;
 
     n = e->pcnt;
-    f = createv(csound, n);
+    f = cscoreCreateEvent(csound, n);
     f->op = e->op;
     f->strarg = e->strarg;
     p = &e->p2orig;
@@ -218,12 +218,12 @@ EVENT * copyev(CSOUND *csound, EVENT *e)   /* make a new copy of an event */
 /* Can only do reentry by moving statics outside: fortunately, */
 /* names are unique */
 
-EVENT * defev(CSOUND *csound, char *s)    /* define an event from string arg */
+PUBLIC EVENT * cscoreDefineEvent(CSOUND *csound, char *s)    /* define an event from string arg */
 {
     MYFLT *p, *q;
 
     if (evtmp == NULL) {
-      evtmp = createv(csound, PMAX);
+      evtmp = cscoreCreateEvent(csound, PMAX);
       evtmpblk = (EVTBLK *) &evtmp->strarg;
     }
     while (*s == ' ')
@@ -234,10 +234,11 @@ EVENT * defev(CSOUND *csound, char *s)    /* define an event from string arg */
     p = &evtmp->p[1];
     q = &evtmp->p[PMAX];
 #ifdef USE_DOUBLE
-    while (sscanf(s,"%lf",p++) > 0) {       /* read pfields */
+    while (sscanf(s,"%lf",p++) > 0)         /* read pfields */
 #else
-    while (sscanf(s,"%f",p++) > 0) {        /* read pfields */
+    while (sscanf(s,"%f",p++) > 0)          /* read pfields */
 #endif
+    {
       while ((*s >= '0' && *s <= '9') || *s == '.' || *s == '-')
         s++;
       while (*s == ' ')
@@ -252,22 +253,22 @@ EVENT * defev(CSOUND *csound, char *s)    /* define an event from string arg */
     evtmp->pcnt = p - &evtmp->p[1] - 1;     /* set count of params recvd */
     evtmp->p2orig = evtmp->p[2];
     evtmp->p3orig = evtmp->p[3];
-    return(copyev(csound, evtmp));          /* copy event to a new space */
+    return(cscoreCopyEvent(csound, evtmp));          /* copy event to a new space */
 }
 
-EVENT * getev(CSOUND *csound)        /* get nxt event from input score buf */
+PUBLIC EVENT * cscoreGetEvent(CSOUND *csound)        /* get nxt event from input score buf */
 {                                                 /*   and  refill the buf */
     EVENT *e;
 
     if (nxtevt->op != '\0')
-      e = copyev(csound, nxtevt);
+      e = cscoreCopyEvent(csound, nxtevt);
     else e = NULL;
     if (!(rdscor(csound, nxtevtblk)))
       nxtevt->op = '\0';
     return(e);
 }
 
-void putev(CSOUND *csound, EVENT *e) /* put an event to cscore outfile */
+PUBLIC void cscorePutEvent(CSOUND *csound, EVENT *e) /* put an event to cscore outfile */
 {
     int  pcnt;
     MYFLT *q;
@@ -297,7 +298,7 @@ void putev(CSOUND *csound, EVENT *e) /* put an event to cscore outfile */
     if (c == 'w')  warpout = 1; /* was warp statement: sect now warped */
 }
 
-void putstr(CSOUND *csound, char *s)
+PUBLIC void cscorePutString(CSOUND *csound, char *s)
 {
     fprintf(csound->oscfp,"%s\n", s);
     if (*s == 's')  warpout = 0;
@@ -312,7 +313,7 @@ static EVLIST * lexpand(CSOUND *csound, EVLIST *a)
     EVENT **p, **q;
     int n;
 
-    b = lcreat(csound, a->nslots + NSLOTS);
+    b = cscoreListCreate(csound, a->nslots + NSLOTS);
     b->nevents = n = a->nevents;
     p = &a->e[1];
     q = &b->e[1];
@@ -322,7 +323,7 @@ static EVLIST * lexpand(CSOUND *csound, EVLIST *a)
     return(b);
 }
 
-EVLIST * lappev(CSOUND *csound,
+PUBLIC EVLIST * cscoreListAppendEvent(CSOUND *csound,
                 EVLIST *a, EVENT *e) /* append an event to a list */
 {
     int  n;
@@ -334,22 +335,22 @@ EVLIST * lappev(CSOUND *csound,
     return(a);
 }
 
-EVLIST * lappstrev(CSOUND *csound,
+PUBLIC EVLIST * cscoreListAppendStringEvent(CSOUND *csound,
                    EVLIST *a, char *s) /* append a string event to a list */
 {
-    EVENT *e = defev(csound, s);
-    return(lappev(csound,a,e));
+    EVENT *e = cscoreDefineEvent(csound, s);
+    return(cscoreListAppendEvent(csound,a,e));
 }
 
-EVLIST * lget(CSOUND *csound)     /* get section events from the scorefile */
+PUBLIC EVLIST * cscoreListGetSection(CSOUND *csound)     /* get section events from the scorefile */
 {
     EVLIST *a;
     EVENT *e, **p;
     int nevents = 0;
 
-    a = lcreat(csound, NSLOTS);
+    a = cscoreListCreate(csound, NSLOTS);
     p = &a->e[1];
-    while ((e = getev(csound)) != NULL) {
+    while ((e = cscoreGetEvent(csound)) != NULL) {
       if (e->op == 's' || e->op == 'e')
         break;
       if (nevents == a->nslots) {
@@ -364,10 +365,10 @@ EVLIST * lget(CSOUND *csound)     /* get section events from the scorefile */
     return(a);
 }
 
-static MYFLT curuntil;           /* initialised to zero by filopen */
+static MYFLT curuntil;           /* initialised to zero by cscoreFileOpen */
 static int   wasend;             /* ditto */
 
-EVLIST * lgetuntil(CSOUND *csound,
+PUBLIC EVLIST * cscoreListGetUntil(CSOUND *csound,
                    MYFLT beatno) /* get section events from the scorefile */
 {
     EVLIST *a;
@@ -375,11 +376,11 @@ EVLIST * lgetuntil(CSOUND *csound,
     int nevents = 0;
     char op;
 
-    a = lcreat(csound, NSLOTS);
+    a = cscoreListCreate(csound, NSLOTS);
     p = &a->e[1];
     while ((op = nxtevt->op) == 't' || op == 'w' || op == 's' || op == 'e'
            || (op != '\0' && nxtevt->p2orig < beatno)) {
-      e = getev(csound);
+      e = cscoreGetEvent(csound);
       if (e->op == 's') {
         wasend = 1;
         break;
@@ -398,7 +399,7 @@ EVLIST * lgetuntil(CSOUND *csound,
     return(a);
 }
 
-EVLIST * lgetnext(CSOUND *csound,
+PUBLIC EVLIST * cscoreListGetNext(CSOUND *csound,
                   MYFLT nbeats) /* get section events from the scorefile */
 {
     if (wasend) {
@@ -406,10 +407,10 @@ EVLIST * lgetnext(CSOUND *csound,
       curuntil = nbeats;
     }
     else curuntil += nbeats;
-    return(lgetuntil(csound,curuntil));
+    return(cscoreListGetUntil(csound,curuntil));
 }
 
-void lput(CSOUND *csound,
+PUBLIC void cscoreListPut(CSOUND *csound,
           EVLIST *a)            /* put listed events to cscore output */
 {
     EVENT **p;
@@ -418,16 +419,21 @@ void lput(CSOUND *csound,
     n = a->nevents;
     p = &a->e[1];
     while (n--)
-      putev(csound, *p++);
+      cscorePutEvent(csound, *p++);
 }
 
-EVLIST * lcopy(CSOUND *csound, EVLIST *a)
+PUBLIC int cscoreListPlay(CSOUND *csound, EVLIST *a)
+{
+    return lplay(csound, a);
+}
+
+PUBLIC EVLIST * cscoreListCopy(CSOUND *csound, EVLIST *a)
 {
     EVLIST *b;
     EVENT **p, **q;
     int  n = a->nevents;
 
-    b = lcreat(csound, n);
+    b = cscoreListCreate(csound, n);
     b->nevents = n;
     p = &a->e[1];
     q = &b->e[1];
@@ -436,22 +442,22 @@ EVLIST * lcopy(CSOUND *csound, EVLIST *a)
     return(b);
 }
 
-EVLIST * lcopyev(CSOUND *csound, EVLIST *a)
+PUBLIC EVLIST * cscoreListCopyEvents(CSOUND *csound, EVLIST *a)
 {
     EVLIST *b;
     EVENT **p, **q;
     int  n = a->nevents;
 
-    b = lcreat(csound, n);
+    b = cscoreListCreate(csound, n);
     b->nevents = n;
     p = &a->e[1];
     q = &b->e[1];
     while (n--)
-      *q++ = copyev(csound, *p++);
+      *q++ = cscoreCopyEvent(csound, *p++);
     return(b);
 }
 
-EVLIST * lcat(CSOUND *csound, EVLIST *a, EVLIST *b)
+PUBLIC EVLIST * cscoreListAppendList(CSOUND *csound, EVLIST *a, EVLIST *b)
 {
     EVENT **p, **q;
     int i, j;
@@ -461,7 +467,7 @@ EVLIST * lcat(CSOUND *csound, EVLIST *a, EVLIST *b)
     if (i + j >= a->nslots) {
       EVLIST *c;
       int n = i;
-      c = lcreat(csound, i+j);
+      c = cscoreListCreate(csound, i+j);
       p = &a->e[1];
       q = &c->e[1];
       while (n--)
@@ -477,7 +483,12 @@ EVLIST * lcat(CSOUND *csound, EVLIST *a, EVLIST *b)
     return(a);
 }
 
-void lsort(EVLIST *a)   /* put evlist pointers into chronological order */
+PUBLIC EVLIST * cscoreListConcatenate(CSOUND *csound, EVLIST *a, EVLIST *b)
+{
+    return cscoreListAppendList(csound, a, b);
+}
+
+PUBLIC void cscoreListSort(CSOUND *csound, EVLIST *a)   /* put evlist pointers into chronological order */
 {
     EVENT **p, **q;
     EVENT *e, *f;
@@ -513,7 +524,7 @@ void lsort(EVLIST *a)   /* put evlist pointers into chronological order */
         }
 }
 
-EVLIST * lxins(CSOUND *csound,
+PUBLIC EVLIST * cscoreListExtractInstruments(CSOUND *csound,
                EVLIST *a, char *s) /* list extract by instr numbers */
 {
     int     x[5], xcnt;
@@ -523,7 +534,7 @@ EVLIST * lxins(CSOUND *csound,
 
     xcnt = sscanf(s,"%d%d%d%d%d",&x[0],&x[1],&x[2],&x[3],&x[4]);
     n = a->nevents;
-    b = lcreat(csound, n);
+    b = cscoreListCreate(csound, n);
     p = &a->e[1];
     q = &b->e[1];
     while ((n--) && (e = *p++) != NULL) {
@@ -539,12 +550,12 @@ EVLIST * lxins(CSOUND *csound,
           }
       }
     }
-    c = lcopy(csound,b);
+    c = cscoreListCopy(csound,b);
     csfree((CSHDR *) b);
     return(c);
 }
 
-EVLIST * lxtimev(CSOUND *csound,
+PUBLIC EVLIST * cscoreListExtractTime(CSOUND *csound,
                  EVLIST *a, MYFLT from, MYFLT to) /* list extract by time */
 {
     EVENT **p, **q, *e;
@@ -553,7 +564,7 @@ EVLIST * lxtimev(CSOUND *csound,
     int  n;
 
     n = a->nevents;
-    b = lcreat(csound,n);
+    b = cscoreListCreate(csound,n);
     p = &a->e[1];
     q = &b->e[1];
     maxp3 = to - from;
@@ -561,7 +572,7 @@ EVLIST * lxtimev(CSOUND *csound,
       switch (e->op) {
       case 'f':
         if (e->p[2] < to) {
-          *q++ = e = copyev(csound,e);
+          *q++ = e = cscoreCopyEvent(csound,e);
           if (e->p[2] <= from)
             e->p[2] = FL(0.0);
           else e->p[2] -= from;
@@ -570,7 +581,7 @@ EVLIST * lxtimev(CSOUND *csound,
       case 'i':
         if (e->p[2] < from) {
           if (e->p[2] + e->p[3] > from) {
-            *q++ = e = copyev(csound,e);
+            *q++ = e = cscoreCopyEvent(csound,e);
             e->p[3] -= from - e->p[2];
             e->p[2] = FL(0.0);
             if (e->p[3] > maxp3)
@@ -578,17 +589,17 @@ EVLIST * lxtimev(CSOUND *csound,
           }
         }
         else if (e->p[2] < to) {
-          *q++ = e = copyev(csound, e);
+          *q++ = e = cscoreCopyEvent(csound, e);
           if (e->p[2] + e->p[3] > to)
             e->p[3] = to - e->p[2];
             e->p[2] -= from;
         }
         break;
       default:
-        *q++ = copyev(csound,e);
+        *q++ = cscoreCopyEvent(csound,e);
         break;
       }
-    c = lcopy(csound,b);
+    c = cscoreListCopy(csound,b);
     csfree((CSHDR *) b);
     return(c);
 }
@@ -606,14 +617,14 @@ static void fp2chk(CSOUND *csound, EVLIST *a, char *s)
                               s, count, count==1 ? "" : Str("s"));
 }
 
-EVLIST * lsepf(CSOUND *csound, EVLIST *a) /* separate f events from evlist */
+PUBLIC EVLIST * cscoreListSeparateF(CSOUND *csound, EVLIST *a) /* separate f events from evlist */
 {
     EVLIST  *b, *c;
     EVENT   **p, **q, **r;
     int     n;
 
     n = a->nevents;
-    b = lcreat(csound, n);
+    b = cscoreListCreate(csound, n);
     p = q = &a->e[1];
     r = &b->e[1];
     while (n--) {
@@ -623,13 +634,13 @@ EVLIST * lsepf(CSOUND *csound, EVLIST *a) /* separate f events from evlist */
     }
     a->nevents = q - &a->e[1];
     b->nevents = r - &b->e[1];
-    c = lcopy(csound,b);
+    c = cscoreListCopy(csound,b);
     csfree((CSHDR *) b);
-    fp2chk(csound, c, "lsepf");
+    fp2chk(csound, c, "cscoreListSeparateF");
     return(c);
 }
 
-EVLIST * lseptwf(CSOUND *csound, EVLIST *a)
+PUBLIC EVLIST * cscoreListSeparateTWF(CSOUND *csound, EVLIST *a)
   /* separate t,w,f events from evlist */
 {
     EVLIST *b, *c;
@@ -637,7 +648,7 @@ EVLIST * lseptwf(CSOUND *csound, EVLIST *a)
     int   n, op;
 
     n = a->nevents;
-    b = lcreat(csound,n);
+    b = cscoreListCreate(csound,n);
     p = q = &a->e[1];
     r = &b->e[1];
     while (n--) {
@@ -647,23 +658,23 @@ EVLIST * lseptwf(CSOUND *csound, EVLIST *a)
     }
     a->nevents = q - &a->e[1];
     b->nevents = r - &b->e[1];
-    c = lcopy(csound,b);
+    c = cscoreListCopy(csound,b);
     csfree((CSHDR *) b);
-    fp2chk(csound, c, "lseptwf");
+    fp2chk(csound, c, "cscoreListSeparateTWF");
     return(c);
 }
 
-void relev(EVENT *e)            /* give back event space */
+PUBLIC void cscoreFreeEvent(CSOUND *csound, EVENT *e) /* give back event space */
 {
     csfree((CSHDR *) e);
 }
 
-void lrel(EVLIST *a)                    /* give back list space */
+PUBLIC void cscoreListFree(CSOUND *csound, EVLIST *a) /* give back list space */
 {
     csfree((CSHDR *) a);
 }
 
-void lrelev(EVLIST *a)          /* give back list and its event spaces */
+PUBLIC void cscoreListFreeEvents(CSOUND *csound, EVLIST *a) /* give back list and its event spaces */
 {
     EVENT **p = &a->e[1];
     int  n = a->nevents;
@@ -732,21 +743,31 @@ static void makecurrent(CSOUND *csound, FILE *fp)
     exit(0);
 }
 
-void cscorinit(CSOUND *csound) /* verify initial scfp, init other data */
+PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco) 
+                                /* verify initial scfp, init other data */
 {                               /* record & make all this current       */
     EVENT   *next;
 
-    if (csound->scfp == NULL) {
-      csound->Message(csound, Str("cscorinit: scorin not yet open"));
-      exit(0);
+    if (insco == NULL) {
+      csound->Message(csound, Str("csoundInitializeCscore: no input score given."));
+      return CSOUND_INITIALIZATION;
     }
-    next = createv(csound, PMAX);       /* creat EVENT blk receiving buf */
+    if (outsco == NULL) {
+      csound->Message(csound, Str("csoundInitializeCscore: no output score given."));
+      return CSOUND_INITIALIZATION;
+    }
+    csound->scfp = insco;
+    csound->oscfp = outsco;
+    
+    next = cscoreCreateEvent(csound, PMAX);       /* creat EVENT blk receiving buf */
     savinfdata(csound, csound->scfp,
                next, FL(0.0), 1, 0);    /* curuntil 0, wasend, non-warp  */
     makecurrent(csound, csound->scfp);  /* make all this current         */
+    
+    return CSOUND_SUCCESS;
 }
 
-FILE *filopen(CSOUND *csound,
+PUBLIC FILE *cscoreFileOpen(CSOUND *csound,
               char *name)       /* open new cscore input file, init data */
                                 /* & save;  no rdscor until made current */
 {
@@ -758,19 +779,19 @@ FILE *filopen(CSOUND *csound,
       exit(0);
     }
     /* alloc a receiving evtblk */
-    next = createv(csound,PMAX);
+    next = cscoreCreateEvent(csound,PMAX);
     /* save all, wasend, non-warped */
     savinfdata(csound, fp, next, FL(0.0), 1, 0);
     return(fp);
 }
 
-void filclose(CSOUND *csound, FILE *fp)
+PUBLIC void cscoreFileClose(CSOUND *csound, FILE *fp)
 {
     INFILE *infp;
     int n;
 
     if (fp == NULL) {
-      csound->Message(csound, Str("filclose: NULL file pointer\n"));
+      csound->Message(csound, Str("cscoreFileClose: NULL file pointer\n"));
       return;
     }
     if ((infp = infiles) != NULL)
@@ -782,19 +803,19 @@ void filclose(CSOUND *csound, FILE *fp)
           if (csound->scfp == fp) csound->scfp = NULL;
           return;
         }
-    csound->Message(csound, Str("filclose: fp not recorded\n"));
+    csound->Message(csound, Str("cscoreFileClose: fp not recorded\n"));
 }
 
-FILE *getcurfp(CSOUND *csound)
+PUBLIC FILE *cscoreFileGetCurrent(CSOUND *csound)
 {
     if (csound->scfp == NULL) {
-      csound->Message(csound, Str("getcurfp: no fp current\n"));
+      csound->Message(csound, Str("cscoreFileGetCurrent: no fp current\n"));
       exit(0);
     }
     return(csound->scfp);
 }
 
-void setcurfp(CSOUND *csound,
+PUBLIC void cscoreFileSetCurrent(CSOUND *csound,
               FILE *fp)         /* save the current infil states */
                                 /* make fp & its states current  */
 {
@@ -804,7 +825,7 @@ void setcurfp(CSOUND *csound,
     makecurrent(csound, fp);
 }
 
-int lcount(EVLIST *a)           /* count entries in event list */
+PUBLIC int cscoreListCount(CSOUND *csound, EVLIST *a)  /* count entries in event list */
 {
     EVENT **p;
     int  n, nrem;
