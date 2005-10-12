@@ -625,7 +625,7 @@ static int vlimit_set(CSOUND *csound,VLIMIT *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
-    if ( p->elements >= ftp->flen ) {
+    if ( p->elements > ftp->flen ) {
       return csound->InitError(csound, "vectorop: invalid num of elements");
     }
     return OK;
@@ -653,14 +653,14 @@ static int vport_set(CSOUND *csound,VPORT *p)
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
       vector = (p->vector = ftp->ftable);
       elements = (p->elements = (int) *p->ielements);
-      if ( elements >= ftp->flen )
+      if ( elements > ftp->flen )
         return csound->InitError(csound, "vport: invalid table length or num of elements");
     }
     else return csound->InitError(csound, "vport: invalid table");
     if (*p->ifnInit) {
       if ((ftp = csound->FTnp2Find(csound,p->ifnInit)) != NULL) {
         vecInit = ftp->ftable;
-        if ( elements >= ftp->flen )
+        if ( elements > ftp->flen )
           return csound->InitError(csound, "vport: invalid init table length or num of elements");
       }
       else return csound->InitError(csound, "vport: invalid init table");
@@ -765,7 +765,7 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
       elements = (p->elements = (int) *p->ielements);
     }
     else return NOTOK;
-    if ( p->elements >= ftp->flen )
+    if ( p->elements > ftp->flen )
       return csound->InitError(csound, "vectorop: invalid num of elements");
 
     p->phs = 0;
@@ -812,7 +812,7 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
       elements = (p->elements = (int) *p->ielements);
     }
     else return NOTOK;
-    if ( p->elements >= ftp->flen )
+    if ( p->elements > ftp->flen )
       return csound->InitError(csound, "vectorop: invalid num of elements");
 
     p->phs = 0;
@@ -868,19 +868,19 @@ static int vecdly_set(CSOUND *csound,VECDEL *p)
     if ((ftp = csound->FTnp2Find(csound,p->ifnOut)) != NULL) {
       p->outvec = ftp->ftable;
       elements = (p->elements = (int) *p->ielements);
-      if ( elements >= ftp->flen )
+      if ( elements > ftp->flen )
         return csound->InitError(csound, "vecdelay: invalid num of elements");
     }
     else return csound->InitError(csound, "vecdly: invalid output table");
     if ((ftp = csound->FTnp2Find(csound,p->ifnIn)) != NULL) {
       p->invec = ftp->ftable;
-      if (elements >= ftp->flen)
+      if (elements > ftp->flen)
         return csound->InitError(csound, "vecdelay: invalid num of elements");
     }
     else return csound->InitError(csound, "vecdly: invalid input table");
     if ((ftp = csound->FTnp2Find(csound,p->ifnDel)) != NULL) {
       p->dlyvec = ftp->ftable;
-      if ( elements >= ftp->flen )
+      if ( elements > ftp->flen )
         return csound->InitError(csound, "vecdelay: invalid num of elements");
     }
     else return csound->InitError(csound, "vecdly: invalid delay table");
@@ -968,7 +968,7 @@ static int vseg_set(CSOUND *csound,VSEG *p)
       p->vector = ftp->ftable;
       p->elements = (int) *p->ielements;
     }
-    if ( p->elements >= ftp->flen )
+    if ( p->elements > ftp->flen )
       return csound->InitError(csound, "vlinseg/vexpseg: invalid num. of elements");
     vector = p->vector;
     flength = p->elements;
