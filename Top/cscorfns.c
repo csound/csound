@@ -260,7 +260,7 @@ PUBLIC EVENT * cscoreGetEvent(CSOUND *csound)        /* get nxt event from input
 {                                                 /*   and  refill the buf */
     EVENT *e;
 
-    if (nxtevt->op != '\0')
+    if (csound->scfp != NULL && nxtevt->op != '\0')
       e = cscoreCopyEvent(csound, nxtevt);
     else e = NULL;
     if (!(rdscor(csound, nxtevtblk)))
@@ -760,6 +760,7 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
     csound->oscfp = outsco;
     
     next = cscoreCreateEvent(csound, PMAX);       /* creat EVENT blk receiving buf */
+    next->op = '\0';
     savinfdata(csound, csound->scfp,
                next, FL(0.0), 1, 0);    /* curuntil 0, wasend, non-warp  */
     makecurrent(csound, csound->scfp);  /* make all this current         */

@@ -1,4 +1,7 @@
 2005-10-12	Anthony Kozar	<anthonykozar@sbcglobal.net>
+	* Top/cscorfns.c: (cscoreGetEvent) Check for file closed to avoid loop.
+		(csoundInitializeCscore) Set next->op = '\0'.
+	* Top/one_file.c: (createOrchestra,createScore) Make messages debug only.
 	* Opcodes/gab/vectorial.c:  Fixed small bugs in checking table size.
 
 2005-10-11	Anthony Kozar	<anthonykozar@sbcglobal.net>

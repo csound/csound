@@ -221,7 +221,9 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     if ((p=strchr(ST(orcname), '.')) != NULL) *p='\0'; /* with extention */
     strcat(ST(orcname), ".orc");
     fd = csoundFileOpen(csound, &orcf, CSFILE_STD, ST(orcname), "w", NULL);
+#ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(orcname), orcf);
+#endif
     if (fd == NULL) {
       csoundDie(csound, Str("Failed to create %s"), ST(orcname));
     }
@@ -248,6 +250,9 @@ static int createScore(CSOUND *csound, FILE *unf)
     if ((p=strchr(ST(sconame), '.')) != NULL) *p='\0'; /* with extention */
     strcat(ST(sconame), ".sco");
     fd = csoundFileOpen(csound, &scof, CSFILE_STD, ST(sconame), "w", NULL);
+#ifdef _DEBUG
+    csoundMessage(csound, Str("Creating %s (%p)\n"), ST(sconame), scof);
+#endif
     /* RWD 3:2000 */
     if (fd == NULL)
       return FALSE;
