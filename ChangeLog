@@ -1,3 +1,15 @@
+2005-10-11	Anthony Kozar	<anthonykozar@sbcglobal.net>
+	* H/cscore.h, Top/cscorfns.c, Top/cscore_internal.c:  Renamed all Cscore
+		functions that are to be exported in the "Cscore API".  Made all of
+		these take a CSOUND* argument if they did not yet.  Added some glue
+		for cscoreListPlay() (not done yet though).
+	* H/csound.h, H/prototyp.h, Engine/musmon.c:  Added new API function
+		csoundInitializeCscore() to replace internal cscorinit() call.  It
+		sets up the input/output files for Cscore and allows a host to 
+		function in "standalone Cscore" mode.
+	* Top/cscormai.c: Transformed this main() stub for standalone Cscore
+		processing into a client of the API.  (Still needs more work!)
+
 2005-10-09  John ff  <jpff@codemist.co.uk>
 
 	* Opcodes/psynth.c (psynth2_init, psynth_init): Added cast to

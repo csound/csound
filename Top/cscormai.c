@@ -25,49 +25,56 @@
 #include "csoundCore.h"
 #include "text.h"
 
-extern void cscorinit(void), cscore(void);
-extern void lput(EVLIST *);
-void scfopen(int, char **);
+extern void cscore(CSOUND*);
 void err_printf(char *, ...);
 
 int main(int argc, char **argv) /* cscore stub to run a user prog standalone   */
 {
-    init_getstring(argc,argv);
-    scfopen(argc,argv);     /* open the command line scorein file */
-    cscorinit();
-    cscore();               /* and call the user cscore program   */
+    CSOUND*  cs;
+    FILE*    insco;
+    int      result;
+    
+    /* Standalone Cscore is now a client of the Csound API */
+    result = csoundInitialize(0, NULL, 0);
+    if  (result != CSOUND_SUCCESS) {
+        err_printf("Could not initialize the Csound library.");
+        exit(-1);
+    }
+    cs = csoundCreate(NULL);
+    if  (cs == NULL) {
+        err_printf("Could not instantiate Csound.");
+        exit(-1);
+    }
+    
+    /* open the command line scorein file */
+    if (!(--argc)) {
+        err_printf("Insufficient arguments: must provide an input filename.\n");
+        exit(-1);
+    }
+    if (!(insco = fopen(*++argv, "r"))) {
+        err_printf("Cannot open the input score %s\n", *argv);
+        exit(-1);
+    }
+
+    csoundInitializeCscore(cs, insco, stdout);
+    cscore(cs);                         /* and call the user cscore program   */
     return 0;
 }
 
-void scfopen(int argc, char **argv)     /* simple open of command-line score */
-                                        /* input file use only if not opened */
-                                        /* by other main program */
-{
-    if (!(--argc)) {
-        printf(Str("insufficient arguments\n"));
-        exit(0);
-    }
-    if (!(scfp = fopen(*++argv, "r"))) {
-        printf(Str("cannot find %s\n"), *argv);
-        exit(0);
-    }
-}
-
-int lplay(EVLIST *a)           /* for standalone cscore: no full Csound, so */
-                                /*  field lplay calls & put events to stderr */
+/*int lplay(CSOUND* cs, EVLIST *a)        /* for standalone cscore: no full Csound, so *\/
+                                        /* field lplay calls & put events to stderr  *\/
 {
     FILE *osave;
 
-    err_printf(
-        Str(
-            "cscore lplay:  full Csound would now play the following score\n"));
-    osave = oscfp;
-    oscfp = stderr;
-    lput(a);
-    oscfp = osave;
+    csoundMessage(cs, 
+        Str("cscore lplay:  full Csound would now play the following score\n"));
+    osave = cs->oscfp;
+    cs->oscfp = stderr;
+    cscoreListPut(cs,a);
+    cs->oscfp = osave;
     return OK;
 }
-
+*/
 /* This standalone cscore stub is invoked with cscore_xxx.c as follows:    */
 /*       cc -o cscore cscore_xxx.c -lcscore                                */
 /* or, if no libcscore.a was created at installation:                      */
