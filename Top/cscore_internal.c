@@ -1,5 +1,5 @@
 /*
-    cscore.c:
+    cscore_internal.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
 
@@ -28,15 +28,18 @@ void cscore(CSOUND *cs)  /* callable from Csound or standalone cscore  */
 {
     EVLIST *a;
 
-    while ((a = lget(cs)) != NULL
-           && a->nevents > 0) { /* read each sect from score */
-      lappstrev(cs, a,"s");     /* re-append the s statement */
-      lplay(cs,a);              /* play this section         */
-      lrelev(a);                /* reclaim the space         */
+    while ((a = cscoreListGetSection(cs)) != NULL
+           && a->nevents > 0) {                    /* read each sect from score */
+      a = cscoreListAppendStringEvent(cs, a,"s");  /* re-append the s statement */
+      cscoreListPlay(cs, a);                       /* play this section */
+      cscoreListFreeEvents(cs, a);                 /* reclaim the space */
     }
-    a = lcreat(cs, 0);
-    lappstrev(cs, a,"e");
-    lplay(cs, a);               /* end-of-score for summaries */
-    lrelev(a);
+    
+    if (a) cscoreListFreeEvents(cs, a);            /* reclaim space from lget() */
+    a = cscoreListCreate(cs, 1);
+    a = cscoreListAppendStringEvent(cs, a,"e");
+    cscoreListPlay(cs, a);                         /* end-of-score for summaries */
+    cscoreListFreeEvents(cs, a);
+    
+    return;
 }
-

@@ -21,7 +21,10 @@
     02111-1307 USA
 */
 
-#include <stdio.h>                     /*             CSCORE.H     */
+#ifndef  CSCORE_H
+#define  CSCORE_H
+
+#include <stdio.h>
 
 #ifndef MYFLT
 #include "sysdep.h"
@@ -35,6 +38,7 @@ typedef struct cshdr {
         short  size;
 } CSHDR;
 
+/* Single score event structure */
 typedef struct {
         CSHDR h;
         char  *strarg;
@@ -45,6 +49,7 @@ typedef struct {
         MYFLT p[1];
 } EVENT;
 
+/* Event list structure */
 typedef struct {
         CSHDR h;
         int   nslots;
@@ -52,21 +57,43 @@ typedef struct {
         EVENT *e[1];
 } EVLIST;
 
-EVENT  *createv(CSOUND *, int), *defev(CSOUND *, char*), *getev(CSOUND *);
-EVENT  *copyev(CSOUND *, EVENT*);
-EVLIST *lcreat(CSOUND *, int), *lappev(CSOUND *, EVLIST*,EVENT*);
-EVLIST *lappstrev(CSOUND *,EVLIST*,char*);
-EVLIST *lget(CSOUND *), *lgetnext(CSOUND *,MYFLT), *lgetuntil(CSOUND*,MYFLT),
-       *lcopy(CSOUND *, EVLIST*);
-EVLIST *lcopyev(CSOUND *, EVLIST*), *lxins(CSOUND *,EVLIST*,char*),
-       *lxtimev(CSOUND *,EVLIST*,MYFLT,MYFLT);
-EVLIST *lsepf(CSOUND *, EVLIST*), *lseptwf(CSOUND *, EVLIST*),
-       *lcat(CSOUND *,EVLIST*,EVLIST*);
-void    putstr(CSOUND *, char*), putev(CSOUND *, EVENT*), relev(EVENT*),
-        lput(CSOUND *, EVLIST*);
-void lsort(EVLIST*), lrel(EVLIST*), lrelev(EVLIST*);
-int lplay(CSOUND *,EVLIST*);
-int lcount(EVLIST *);
-FILE *filopen(CSOUND *, char*), *getcurfp(CSOUND *);
-void filclose(CSOUND *, FILE*), setcurfp(CSOUND *, FILE*);
+/* Functions for working with single events */
+PUBLIC EVENT  *cscoreCreateEvent(CSOUND*, int);
+PUBLIC EVENT  *cscoreDefineEvent(CSOUND*, char*);
+PUBLIC EVENT  *cscoreCopyEvent(CSOUND*, EVENT*);
+PUBLIC EVENT  *cscoreGetEvent(CSOUND*);
+PUBLIC void    cscorePutEvent(CSOUND*, EVENT*);
+PUBLIC void    cscorePutString(CSOUND*, char*);
 
+/* Functions for working with event lists */
+PUBLIC EVLIST *cscoreListCreate(CSOUND*, int);
+PUBLIC EVLIST *cscoreListAppendEvent(CSOUND*, EVLIST*, EVENT*);
+PUBLIC EVLIST *cscoreListAppendStringEvent(CSOUND*, EVLIST*, char*);
+PUBLIC EVLIST *cscoreListGetSection(CSOUND*);
+PUBLIC EVLIST *cscoreListGetNext(CSOUND *, MYFLT);
+PUBLIC EVLIST *cscoreListGetUntil(CSOUND*, MYFLT);
+PUBLIC EVLIST *cscoreListCopy(CSOUND*, EVLIST*);
+PUBLIC EVLIST *cscoreListCopyEvents(CSOUND*, EVLIST*);
+PUBLIC EVLIST *cscoreListExtractInstruments(CSOUND*, EVLIST*, char*);
+PUBLIC EVLIST *cscoreListExtractTime(CSOUND*, EVLIST*, MYFLT, MYFLT);
+PUBLIC EVLIST *cscoreListSeparateF(CSOUND*, EVLIST*);
+PUBLIC EVLIST *cscoreListSeparateTWF(CSOUND*, EVLIST*);
+PUBLIC EVLIST *cscoreListAppendList(CSOUND*, EVLIST*, EVLIST*);
+PUBLIC EVLIST *cscoreListConcatenate(CSOUND*, EVLIST*, EVLIST*);
+PUBLIC void    cscoreListPut(CSOUND*, EVLIST*);
+PUBLIC int     cscoreListPlay(CSOUND*, EVLIST*);
+PUBLIC void    cscoreListSort(CSOUND*, EVLIST*);
+PUBLIC int     cscoreListCount(CSOUND*, EVLIST *);
+
+/* Functions for reclaiming memory */
+PUBLIC void    cscoreFreeEvent(CSOUND*, EVENT*);
+PUBLIC void    cscoreListFree(CSOUND*, EVLIST*);
+PUBLIC void    cscoreListFreeEvents(CSOUND*, EVLIST*);
+
+/* Functions for working with multiple input score files */
+PUBLIC FILE   *cscoreFileOpen(CSOUND*, char*);
+PUBLIC void    cscoreFileClose(CSOUND*, FILE*);
+PUBLIC FILE   *cscoreFileGetCurrent(CSOUND*);
+PUBLIC void    cscoreFileSetCurrent(CSOUND*, FILE*);
+
+#endif
