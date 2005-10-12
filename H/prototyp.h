@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-void    cscorinit(CSOUND *), cscore(CSOUND *);
+void    cscore(CSOUND *);
 void    *mmalloc(CSOUND *, size_t);
 void    *mcalloc(CSOUND *, size_t);
 void    *mrealloc(CSOUND *, void *, size_t);
