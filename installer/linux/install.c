@@ -98,8 +98,10 @@ int main(int argc, char **argv)
            size==1 ? "32bit" : size==2 ? "64bit" : "both 32 and 64 bit");
     for (;;) {
       char buff[80];
+      char *p;
       printf("Type Y to continue or N to abort\n");
-      gets(buff);
+      fgets(buff, 80, stdin);
+      if ((p=strchr(buff, '\n'))!=NULL) *p='\0';
       if (strcmp("Y", buff)==0 || strcmp("y", buff)==0 ||
           strcmp("Yes", buff)==0 || strcmp("yes", buff)==0 ||
           strcmp("YES", buff)==0)  break;
@@ -152,7 +154,7 @@ int main(int argc, char **argv)
       system(s);
     }
     {
-      /* Install Opcodes etc from opc[fd] or opc[fd]64 */
+      /* Install libraries from lib[fd] or lib[fd]64 */
       char b[100], s[120];
       strcpy(b,prefix);
       strcat(b,"lib");
