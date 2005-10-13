@@ -41,8 +41,9 @@ typedef struct osc_pat {
 typedef struct {
      CSOUND     *csound;
      void       *threadLock;
-     lo_server_thread thread;
+     lo_server_thread *thread;
      OSC_PAT    *patterns;      /* List of things to do */
+     int        nport;          /* Number of active ports */
 } OSC_GLOBALS;
 
 static int OSC_handler(const char *path, const char *types,
@@ -101,38 +102,21 @@ typedef struct {
     MYFLT *port;                /* Port number on which to listen */
 } OSCINIT;
 
-static int osc_listener_init(CSOUND *csound, OSCINIT *p)
-{
-    OSC_GLOBALS *pp;
-    char buff[12];
-    /* allocate and initialise the globals structure */
-    if (csound->CreateGlobalVariable(csound, "_OSC_globals",
-                                     sizeof(OSC_GLOBALS)) != 0)
-      csound->Die(csound, Str("OSC: failed to allocate globals"));
-    pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
-    pp->csound = csound;
-    pp->threadLock = csound->CreateThreadLock();
-    pp->patterns = NULL;
-    /* ---- code to create and start the OSC thread ---- */
-    sprintf(buff, "%d", (int)(*p->port));
-    pp->thread = lo_server_thread_new(buff, OSC_error);
-    lo_server_thread_start(pp->thread);
-    csound->Message(csound, "OSC listener started\n");
-    return OK;
-}
-
 /* RESET routine for cleaning up */
 
 static int OSC_reset(CSOUND *csound, void *userData)
 {
     OSC_GLOBALS *p;
     OSC_PAT *m;
+    int i;
     p = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (p == NULL)
       return OK;    /* nothing to do */
     /* ---- code to stop and destroy OSC thread ---- */
-    lo_server_thread_stop(p->thread);
-    lo_server_thread_free(p->thread);
+    for (i=0; i<p->nport; i++) {
+      lo_server_thread_stop(p->thread[i]);
+      lo_server_thread_free(p->thread[i]);
+    }
     csound->WaitThreadLock(p->threadLock, 1000);
     m = p->patterns; p->patterns = NULL;
     while (m) {
@@ -144,6 +128,37 @@ static int OSC_reset(CSOUND *csound, void *userData)
     csound->NotifyThreadLock(p->threadLock);
     csound->DestroyThreadLock(p->threadLock);
     csound->DestroyGlobalVariable(csound, "_OSC_globals");
+    return OK;
+}
+
+static int osc_listener_init(CSOUND *csound, OSCINIT *p)
+{
+    OSC_GLOBALS *pp;
+    char buff[20];
+    int port = (int)(*p->port+FL(0.5));
+    /* allocate and initialise the globals structure */
+    if (csound->CreateGlobalVariable(csound, "_OSC_globals",
+                                     sizeof(OSC_GLOBALS)) ==  0) {
+      pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+      pp->csound = csound;
+      pp->threadLock = csound->CreateThreadLock();
+      pp->patterns = NULL;
+      pp->thread = (lo_server_thread*)csound->Malloc(csound, sizeof(lo_server_thread));
+      pp->nport = 1;
+      csound->RegisterResetCallback(csound, pp,
+                                    (int (*)(CSOUND *, void *)) OSC_reset);
+    }
+    else {
+      pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+      pp->nport++;
+      pp->thread = (lo_server_thread*)csound->ReAlloc(csound, pp->thread,
+                                         sizeof(lo_server_thread)*pp->nport);
+    }
+    /* ---- code to create and start the OSC thread ---- */
+    sprintf(buff, "%d", port);
+    pp->thread[pp->nport-1] = lo_server_thread_new(buff, OSC_error);
+    lo_server_thread_start(pp->thread[pp->nport-1]);
+    csound->Message(csound, "OSC listener on port %d started\n", port);
     return OK;
 }
 
@@ -192,6 +207,7 @@ int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
 {
     void *x;
     OSC_PAT *m;
+    int i;
 
     /* Add a pattern to the list of recognised things */
     OSC_GLOBALS *pp = (OSC_GLOBALS*)
@@ -207,8 +223,9 @@ int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     m->next = pp->patterns;
     pp->patterns = m;
     p->pat = m;
-    x = lo_server_thread_add_method(pp->thread, (char*)p->dest, (char*)p->type,
-                                    OSC_handler, pp);
+    for (i=0; i<pp->nport; i++)
+      x = lo_server_thread_add_method(pp->thread[i], (char*)p->dest,
+                                      (char*)p->type, OSC_handler, pp);
     csound->RegisterDeinitCallback(csound,
                                    p, (int (*)(CSOUND*,void*)) OSC_listdeinit);
     return OK;
@@ -248,8 +265,6 @@ PUBLIC OENTRY *opcode_init(CSOUND *csound)
 #ifdef BETA
     csound->Message(csound, "****OSC: liblo started****\n");
 #endif
-    csound->RegisterResetCallback(csound, NULL,
-                                  (int (*)(CSOUND *, void *)) OSC_reset);
     return localops;
 }
 

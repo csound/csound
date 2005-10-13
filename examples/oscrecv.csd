@@ -3,6 +3,7 @@
 <CsInstruments>
 instr 1
     OSCinit     7770
+    OSCinit     7771
 endin
 
 instr 2
