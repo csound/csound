@@ -1,3 +1,8 @@
+2005-10-13  John ff  <jpff@codemist.co.uk>
+
+	* InOut/OSCrecv.c: Many changes to allow listening on multiple
+	ports.  Uses same patterns though.
+
 2005-10-12	Anthony Kozar	<anthonykozar@sbcglobal.net>
 	* Top/cscorfns.c: (cscoreGetEvent) Check for file closed to avoid loop.
 		(csoundInitializeCscore) Set next->op = '\0'.
