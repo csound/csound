@@ -708,7 +708,7 @@ static void savinfdata(         /* store input file data */
       if (infp->iscfp == NULL)
         goto save;
     csound->Message(csound, Str("too many input files open\n"));
-    exit(0);
+    exit(0);     /* FIX ME: should not call exit */
 
  save:
     infp->iscfp = fp;
@@ -740,7 +740,7 @@ static void makecurrent(CSOUND *csound, FILE *fp)
           return;
         }
     csound->Message(csound, Str("makecurrent: fp not recorded\n"));
-    exit(0);
+    exit(0);     /* FIX ME: should not call exit */
 }
 
 PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
@@ -777,10 +777,10 @@ PUBLIC FILE *cscoreFileOpen(CSOUND *csound,
 
     if ((fp = fopen(name, "r")) == NULL) {
       csound->Message(csound, Str("error in opening %s\n"), name);
-      exit(0);
+      exit(0);     /* FIX ME: should not call exit */
     }
     /* alloc a receiving evtblk */
-    next = cscoreCreateEvent(csound,PMAX);
+    next = cscoreCreateEvent(csound,PMAX);  /* FIX ME: need next->op = '\0' ?? */
     /* save all, wasend, non-warped */
     savinfdata(csound, fp, next, FL(0.0), 1, 0);
     return(fp);
@@ -811,7 +811,7 @@ PUBLIC FILE *cscoreFileGetCurrent(CSOUND *csound)
 {
     if (csound->scfp == NULL) {
       csound->Message(csound, Str("cscoreFileGetCurrent: no fp current\n"));
-      exit(0);
+      exit(0);     /* FIX ME: should not call exit */
     }
     return(csound->scfp);
 }
