@@ -33,7 +33,7 @@ int main(int argc, char **argv) /* cscore stub to run a user prog standalone   *
     CSOUND*  cs;
     FILE*    insco;
     int      result;
-    
+
     /* Standalone Cscore is now a client of the Csound API */
     result = csoundInitialize(0, NULL, 0);
     if  (result != CSOUND_SUCCESS) {
@@ -45,7 +45,7 @@ int main(int argc, char **argv) /* cscore stub to run a user prog standalone   *
         err_printf("Could not instantiate Csound.");
         exit(-1);
     }
-    
+
     /* open the command line scorein file */
     if (!(--argc)) {
         err_printf("Insufficient arguments: must provide an input filename.\n");
@@ -66,7 +66,7 @@ int main(int argc, char **argv) /* cscore stub to run a user prog standalone   *
 {
     FILE *osave;
 
-    csoundMessage(cs, 
+    csoundMessage(cs,
         Str("cscore lplay:  full Csound would now play the following score\n"));
     osave = cs->oscfp;
     cs->oscfp = stderr;
