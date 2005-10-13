@@ -34,12 +34,12 @@ void cscore(CSOUND *cs)  /* callable from Csound or standalone cscore  */
       cscoreListPlay(cs, a);                       /* play this section */
       cscoreListFreeEvents(cs, a);                 /* reclaim the space */
     }
-    
+
     if (a) cscoreListFreeEvents(cs, a);            /* reclaim space from lget() */
     a = cscoreListCreate(cs, 1);
     a = cscoreListAppendStringEvent(cs, a,"e");
     cscoreListPlay(cs, a);                         /* end-of-score for summaries */
     cscoreListFreeEvents(cs, a);
-    
+
     return;
 }

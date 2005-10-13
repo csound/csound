@@ -743,7 +743,7 @@ static void makecurrent(CSOUND *csound, FILE *fp)
     exit(0);
 }
 
-PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco) 
+PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
                                 /* verify initial scfp, init other data */
 {                               /* record & make all this current       */
     EVENT   *next;
@@ -758,13 +758,13 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
     }
     csound->scfp = insco;
     csound->oscfp = outsco;
-    
+
     next = cscoreCreateEvent(csound, PMAX);       /* creat EVENT blk receiving buf */
     next->op = '\0';
     savinfdata(csound, csound->scfp,
                next, FL(0.0), 1, 0);    /* curuntil 0, wasend, non-warp  */
     makecurrent(csound, csound->scfp);  /* make all this current         */
-    
+
     return CSOUND_SUCCESS;
 }
 

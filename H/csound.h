@@ -259,17 +259,17 @@ extern "C" {
   /**
    * csoundInitializeCscore() prepares an instance of Csound for Cscore
    * processing outside of running an orchestra (i.e. "standalone Cscore").
-   * It is an alternative to csoundPreCompile(), csoundCompile(), and 
-   * csoundPerform*() and should not be used with these functions. 
+   * It is an alternative to csoundPreCompile(), csoundCompile(), and
+   * csoundPerform*() and should not be used with these functions.
    * You must call this function before using the interface in "cscore.h"
-   * when you do not wish to compile an orchestra. 
+   * when you do not wish to compile an orchestra.
    * Pass it the already open FILE* pointers to the input and
    * output score files.
    * It returns CSOUND_SUCCESS on success and CSOUND_INITIALIZATION or other
    * error code if it fails.
    */
   PUBLIC int csoundInitializeCscore(CSOUND *, FILE* insco, FILE* outsco);
-  
+
   /**
    * Returns a pointer to the requested interface, if available, in the
    * interface argument, and its version number, in the version argument.
