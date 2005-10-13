@@ -4,22 +4,27 @@
 	ports.  Uses same patterns though.
 
 2005-10-12	Anthony Kozar	<anthonykozar@sbcglobal.net>
-	* Top/cscorfns.c: (cscoreGetEvent) Check for file closed to avoid loop.
-		(csoundInitializeCscore) Set next->op = '\0'.
-	* Top/one_file.c: (createOrchestra,createScore) Make messages debug only.
-	* Opcodes/gab/vectorial.c:  Fixed small bugs in checking table size.
+	* Top/cscorfns.c:
+	  cscoreGetEvent(): Check for file closed to avoid loop.
+	  csoundInitializeCscore(): Set next->op = '\0'.
+	* Top/one_file.c:
+	  createOrchestra(), createScore(): Make messages debug only.
+	* Opcodes/gab/vectorial.c:
+	  Fixed small bugs in checking table size.
 
 2005-10-11	Anthony Kozar	<anthonykozar@sbcglobal.net>
-	* H/cscore.h, Top/cscorfns.c, Top/cscore_internal.c:  Renamed all Cscore
-		functions that are to be exported in the "Cscore API".  Made all of
-		these take a CSOUND* argument if they did not yet.  Added some glue
-		for cscoreListPlay() (not done yet though).
-	* H/csound.h, H/prototyp.h, Engine/musmon.c:  Added new API function
-		csoundInitializeCscore() to replace internal cscorinit() call.  It
-		sets up the input/output files for Cscore and allows a host to 
-		function in "standalone Cscore" mode.
-	* Top/cscormai.c: Transformed this main() stub for standalone Cscore
-		processing into a client of the API.  (Still needs more work!)
+	* H/cscore.h, Top/cscorfns.c, Top/cscore_internal.c:
+	  Renamed all Cscore functions that are to be exported in the
+	  "Cscore API".  Made all of these take a CSOUND* argument if they
+	  did not yet.  Added some glue for cscoreListPlay() (not done yet
+	  though).
+	* H/csound.h, H/prototyp.h, Engine/musmon.c:
+	  Added new API function csoundInitializeCscore() to replace internal
+	  cscorinit() call.  It sets up the input/output files for Cscore and
+	  allows a host to function in "standalone Cscore" mode.
+	* Top/cscormai.c:
+	  Transformed this main() stub for standalone Cscore processing into
+	  a client of the API.  (Still needs more work!)
 
 2005-10-09  John ff  <jpff@codemist.co.uk>
 
@@ -28,9 +33,9 @@
 	think that is more likely correct.
 
 2005-10-07	Anthony Kozar	<anthonykozar@sbcglobal.net>
-	* H/csound.h, H/csoundCore.h,
-	  Top/csound.c, Engine/musmon.c:  Added new API function
-		csoundSetCscoreCallback() for using an external cscore routine.
+	* H/csound.h, H/csoundCore.h, Top/csound.c, Engine/musmon.c:
+	  Added new API function csoundSetCscoreCallback() for using an
+	  external cscore routine.
 	* SDIF/sdif-mem.h:  Changed #include "H/sdif.h" to "sdif.h".
 
 2005-10-02	Istvan Varga	<ivarga@csounds.com>
