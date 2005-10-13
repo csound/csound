@@ -124,6 +124,9 @@ opts.Add('buildLoris',
 opts.Add('useOSC',
     'Set to 1 if you want OSC support',
     '0')
+opts.Add('buildPythonOpcodes',
+    'Set to 1 to build Python opcodes',
+    '0')
 opts.Add('prefix',
     'Base directory for installs.  Defaults to /usr/local.',
     '/usr/local')
@@ -821,7 +824,7 @@ else:
     pluginLibraries.append(jackEnvironment.SharedLibrary('rtjack',
                                                          ['InOut/rtjack.c']))
 
-if (not(commonEnvironment['useOSC']=='1' and oscFound)):
+if not (commonEnvironment['useOSC'] == '1' and oscFound):
     print "CONFIGURATION DECISION: Not building OSC plugin."
 else:
     print "CONFIGURATION DECISION: Building OSC plugin."
@@ -832,8 +835,6 @@ else:
         oscEnvironment.Append(LIBS = ['ws2_32'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
-    pluginLibraries.append(oscEnvironment.SharedLibrary('oscrecv',
-                                                        ['InOut/OSCrecv.c']))
 
 # FLUIDSYNTH OPCODES
 
@@ -1164,6 +1165,13 @@ Opcodes/stk/src/Thread.cpp
         pluginLibraries.append(stk)
         libs.append(stk)
 
+pythonFound = configure.CheckHeader("Python.h", language = "C")
+if not pythonFound:
+    pythonFound = configure.CheckHeader("python2.3/Python.h", language = "C")
+if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
+    print "CONFIGURATION DECISION: Not building Python opcodes."
+else:
+    print "CONFIGURATION DECISION: Building Python opcodes."
     pyEnvironment = pluginEnvironment.Copy()
     if getPlatform() == 'linux':
         pyEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
@@ -1188,7 +1196,6 @@ Opcodes/stk/src/Thread.cpp
     pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
     pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
-    Depends(py, csoundvst)
     pluginLibraries.append(py)
 
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
