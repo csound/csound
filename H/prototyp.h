@@ -86,7 +86,6 @@ void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
 int     getsndin(CSOUND *, void *, MYFLT *, int, void *);
 void    *sndgetset(CSOUND *, void *);
 void    dbfs_init(CSOUND *, MYFLT dbfs);
-int     csoundLoadExternal(CSOUND *, const char *libraryPath);
 int     csoundLoadExternals(CSOUND *);
 SNDMEMFILE  *csoundLoadSoundFile(CSOUND *, const char *name, SF_INFO *sfinfo);
 int     PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
