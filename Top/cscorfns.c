@@ -424,6 +424,7 @@ PUBLIC void cscoreListPut(CSOUND *csound,
 
 PUBLIC int cscoreListPlay(CSOUND *csound, EVLIST *a)
 {
+    int lplay(CSOUND *, EVLIST *);
     return lplay(csound, a);
 }
 
