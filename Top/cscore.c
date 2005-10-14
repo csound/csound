@@ -22,6 +22,7 @@
 */
 
 #include "cscore.h"                              /*  CSCORE_DEFAULT.C   */
+int lplay(CSOUND *, EVLIST *);
 
 void cscore(void)        /* callable from Csound or standalone cscore  */
                          /* csound -C will run Csound scores as normal */
