@@ -188,7 +188,8 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
 /* load a single plugin library, and run csoundModuleCreate() if present */
 /* returns zero on success */
 
-int csoundLoadExternal(CSOUND *csound, const char *libraryPath)
+static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
+                                          const char *libraryPath)
 {
     csoundModule_t  m;
     volatile jmp_buf tmpExitJmp;
@@ -383,35 +384,51 @@ int csoundLoadModules(CSOUND *csound)
 #endif  /* HAVE_DIRENT_H */
 }
 
+static int cmp_func(const void *p1, const void *p2)
+{
+    return (strcmp(*((const char**) p1), *((const char**) p2)));
+}
+
 int csoundLoadExternals(CSOUND *csound)
 {
-    char    *s;
-    int     err;
+    char    *s, **lst;
+    int     i, cnt, err;
 
     s = csound->dl_opcodes_oplibs;
     if (s == NULL || s[0] == '\0')
       return 0;
     /* IV - Feb 19 2005 */
-    csound->Message(csound, Str("Loading command-line libraries:\n"));
-    s += (int) strlen(csound->dl_opcodes_oplibs);
-    do {
-      if (*(s - 1) == ',')
-        *(s - 1) = '\0';
-      else
-        s--;
-      if ((s == csound->dl_opcodes_oplibs || *(s - 1) == '\0') && *s != '\0') {
-        /* hack to avoid printing redundant files */
-        void  *prv_plugin = (void*) csound->csmodule_db;
-        err = csoundLoadExternal(csound, s);
-        if (err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY)
-          csound->Die(csound, Str(" *** error loading '%s'"), s);
-        else if (!err && (void*) csound->csmodule_db != prv_plugin)
-          csound->Message(csound, "  %s\n", s);
-      }
-    } while (s != csound->dl_opcodes_oplibs);
-    /* file list is no longer needed */
-    s = (char*) csound->dl_opcodes_oplibs;
     csound->dl_opcodes_oplibs = NULL;
+    csound->Message(csound, Str("Loading command-line libraries:\n"));
+    cnt = 1;
+    i = 0;
+    do {
+      if (s[i] == ',')
+        cnt++;
+    } while (s[++i] != '\0');
+    lst = (char**) mmalloc(csound, sizeof(char*) * cnt);
+    i = cnt = 0;
+    lst[cnt++] = s;
+    do {
+      if (s[i] == ',') {
+        lst[cnt++] = &(s[i + 1]);
+        s[i] = '\0';
+      }
+    } while (s[++i] != '\0');
+    qsort((void*) lst, (size_t) cnt, sizeof(char*), cmp_func);
+    i = 0;
+    do {
+      char  *fname = lst[i];
+      if (fname[0] != '\0' && !(i && strcmp(fname, lst[i - 1]) == 0)) {
+        err = csoundLoadExternal(csound, fname);
+        if (err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY)
+          csound->Die(csound, Str(" *** error loading '%s'"), fname);
+        else if (!err)
+          csound->Message(csound, "  %s\n", fname);
+      }
+    } while (++i < cnt);
+    /* file list is no longer needed */
+    mfree(csound, lst);
     mfree(csound, s);
     return 0;
 }
