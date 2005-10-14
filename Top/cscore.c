@@ -22,11 +22,11 @@
 */
 
 #include "cscore.h"                              /*  CSCORE_DEFAULT.C   */
-int lplay(CSOUND *, EVLIST *);
 
-void cscore(void)        /* callable from Csound or standalone cscore  */
-                         /* csound -C will run Csound scores as normal */
-{
+extern int lplay(CSOUND *, EVLIST *);
+
+void cscore(CSOUND *csound) /* callable from Csound or standalone cscore  */
+{                           /* csound -C will run Csound scores as normal */
     EVLIST *a;
 
     while ((a = lget()) != NULL
@@ -40,3 +40,4 @@ void cscore(void)        /* callable from Csound or standalone cscore  */
     lplay(a);                   /* end-of-score for summaries */
     lrelev(a);
 }
+
