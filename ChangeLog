@@ -1,3 +1,8 @@
+2005-10-15	Michael Gogins	<gogins@pipeline.com>
+	* Fixed SConstruct to build CsoundVST using Csound as a 
+	  shared library.
+	* Added csound.lisp FFI for CLisp (experimental).
+
 2005-10-15	Anthony Kozar	<anthonykozar@sbcglobal.net>
 	* Top/csmodule.c:  Implemented csoundOpenLibrary, csoundCloseLibrary,
 	  and csoundGetLibrarySymbol for platform (mac_classic).
