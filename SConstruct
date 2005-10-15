@@ -181,6 +181,9 @@ opts.Add('buildDSSI',
 opts.Add('buildUtilities',
     "Build stand-alone executables for utilities that can also be used with -U",
     '1')
+opts.Add('buildTclcsound',
+    "Build Tclcsound frontend (cstclsh and cswish). Requires Tcl/Tk headers and libs",
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -228,8 +231,11 @@ if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
     flags = flags%(commonEnvironment['gcc3opt'])
   commonEnvironment.Prepend(CCFLAGS = Split(flags))
   commonEnvironment.Prepend(CCFLAGS = ['-O3'])
-  if (getPlatform() == 'darwin' and (commonEnvironment['gcc3opt'] == '7450' or commonEnvironment['gcc3opt'] == 'G5')):
-    commonEnvironment.Append(CCFLAGS = ['-fast', '-fPIC'])
+  if (getPlatform() == 'darwin'):
+    if (commonEnvironment['gcc4opt'] == 'G5' or commonEnvironment['gcc3opt'] == 'G5'):
+       commonEnvironment.Append(CCFLAGS = ['-mtune=G5'])
+    elif(commonEnvironment['gcc3opt'] == '7450'):
+       commonEnvironment.Append(CCFLAGS = ['-mtune=7450'])
 elif (commonEnvironment['noDebug']=='0'):
   if (getPlatform() == 'darwin'):
     commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
@@ -319,6 +325,7 @@ jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
+tclhfound = configure.CheckHeader("tcl.h", language = "C")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -431,6 +438,7 @@ if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ld
 guiProgramEnvironment = commonEnvironment.Copy()
 
 pdClassEnvironment = commonEnvironment.Copy()
+csTclEnvironment = commonEnvironment.Copy()
 
 if getPlatform() == 'mingw':
     if commonEnvironment['MSVC'] == '0':
@@ -1233,6 +1241,37 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
     Depends(pdClass, csoundLibrary)
     zipDependencies.append(pdClass)
     libs.append(pdClass)
+
+if commonEnvironment['buildTclcsound']=='1' and tclhfound:
+    print "CONFIGURATION DECISION: Building Tclcsound frontend"
+    if getPlatform() == 'darwin':
+		csTclEnvironment.Append(CCFLAGS= ['-I/Library/Frameworks/Tcl.Framework/Headers',
+		'-I/Library/Frameworks/Tk.Framework/Headers', '-I/System/Library/Frameworks/Tcl.Framework/Headers',
+		'-I/System/Library/Frameworks/Tk.Framework/Headers']) 
+		csTclEnvironment.Append(LINKFLAGS = Split('''-framework tk -framework tcl'''))
+		csTclEnvironment.Append(LIBPATH=['.'])
+		csTclEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile'])
+    elif getPlatform() == 'linux':
+		csTclEnvironment.Append(LIBPATH=['.'])
+		csTclEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile', 'tcl', 'tk', 'X11'])
+    elif getPlatform() == 'mingw':
+ 		csTclEnvironment.Append(LIBPATH=['.'])
+		if commonEnvironment['MSVC'] == '0':
+		   csTclEnvironment.Append(LIBS=['csound', 'stdc++', 'sndfile', 'tcl', 'tk', 'X11'])
+		else:
+		   csTclEnvironment.Append(LIBS=['csound', 'sndfile', 'tcl', 'tk', 'X11'])
+    csTkEnvironment = csTclEnvironment.Copy()
+    csTclEnvironment.Append(CCFLAGS= ['-DTCLSH'])
+    csTkEnvironment.Append(CCFLAGS= ['-DWISH'])
+    csTclEnvironment.Object('tclcs_tclsh.o', 'frontends/tclcsound/tclcs.c')
+    csTcl = csTclEnvironment.Program('cstclsh', 'tclcs_tclsh.o')
+    csTkEnvironment.Object('tclcs_wish.o', 'frontends/tclcsound/tclcs.c')
+    csTk = csTkEnvironment.Program('cswish', 'tclcs_wish.o')
+    csTkEnvironment.Command('cswish_resources','cswish', "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
+    Depends(csTcl, csoundLibrary)
+    Depends(csTk, csoundLibrary)
+    zipDependencies.append(csTcl)
+    zipDependencies.append(csTk)
 
 if (commonEnvironment['buildDSSI']=='1') and (getPlatform() == 'linux'):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
