@@ -1,0 +1,2567 @@
+#								Csound Makefile
+# edit the following definitions according to need:
+
+INCLUDE	= /usr/local/include
+LIB	= /usr/local/lib
+DEST	= /usr/local/bin
+MAN	= /usr/local/man
+MAN1	= $(MAN)/man1
+CAT1	= $(MAN)/cat1
+# these directories must exist for stages beyond 'make csound'
+
+CDEP =
+COBS =	$(COBJS)
+CC = cc
+# choose either -
+#	CDEP =			for UNIX
+#	COBS = $(COBJS)
+#	CC = cc
+# or -
+#	CDEP = $(CRFILE)	for MSDOS
+#	COBS = @$(CDEP)
+#	CC = gcc
+#	.c.o:
+#		$(CC) $(CFLAGS) -c $*.c -o $@
+
+DEFINES = -DSFIRCAM -DSYS5 -DWINDOWS -DMACOSX -DPIPES -DMACROS -DRTAUDIO
+# choose any of -
+#	-DSYS5	    invoke System 5 headers (e.g. 'string.h' for 'strings.h')
+#	-DWINDOWS   include window system calls (X11, SGI, or FG graphics)
+#	-DRTAUDIO   include real-time sound i/o via DEC or other audio-board
+#	-DDOSGCC    for PC, if above defined CC = gcc compiler under MSDOS
+#	-DHPUX -D_HPUX_SOURCE	for HP compilation under HP Unix
+#	-DPIPES     if system supports popen and pclose calls
+# at most one of -
+#	-DSFIRCAM   read/write IRCAM-format soundfiles, with 1024-byte header;
+#	-DSFSUN41   read/write SUN4.1-format soundfiles, with their own header;
+#	-DNeXT      read/write NeXT-format soundfiles, with their own header;
+#			(else read/write sound with no headers)
+# and at most one of -
+#	-DDEC		send rtaudio calls to DEC audio device handler
+#	-DSGI		send rtaudio calls to SGI audio device handler
+#	-Dsun		send rtaudio calls to sun audio device handler
+#	-Dsol		send rtaudio calls to solaris audio handler
+#	-DHP		send rtaudio calls to HP  audio device handler
+#	-DLINUX		send rtaudio calls to Linux audio device handler
+#	-DMACOSX	
+# Defining LINUX also enables an additional command-line option (-V <volume>)
+# and includes an extra header in 'midirecv.c'.
+# If LINUX is defined, but the target is Linux on a big-endian architecture
+# (e.g., Linux on SPARC [not tested]), you should also define -
+#       -DLINUX_BE      Linux audio device handler for big-endian samples
+
+CFLAGS = -O2 -I/usr/include/sys -I/usr/X11R6/include $(RPM_OPT_FLAGS) $(DEFINES)
+#	-O		Simple optimisation
+#	-O2		to be more specific about the optimization level
+#	-f		compile single-precision floats (4.3,VAX,DEC-RISC)
+# 	-fsingle	as above, for SUN Unix
+# 	-float -cckr 	as above, for SGI Unix
+#	-f68881		employ the 68881 co-processor
+#	-ffpa		employ the SUN fl-pt accelerator
+#	-f -DWITHx87	for PC with 80x87 floating-point coprocessor
+#	-w -D__STDC__	for PC
+#	-Aa		for HP to invoke ANSI C compiler
+#	+e		for HPUX rtaudio compilation
+#	+x		generate HP inline 68020 and 68881 code
+#	+Nd1200		expand SYS5 pass3 tablesize
+#	-DWITHx87	for fpt chip on LINUX
+#	-march=i586 -mcpu=i686	Recommended for GNU/Linux is PentiumIII/Athlon.#
+#			Still not clear for which processor this works
+#	-malign-loops=4	Recommended for GNU/Linux
+#	-malign-jumps=4	Recommended for GNU/Linux
+#       -malign-functions=4
+#       -fno-gcse -fno-strict-aliasing    (recommended bug-arounds for gcc 2.9x)
+#       -mfancy-math-387                  (may not be necessary, but safe to add)
+#       -ffast-math                       produces faster and smaller code, not
+#						 fully tested:
+#   these produce larger code, but may (or may not) be faster:
+#     -fomit-frame-pointer
+#     -finline-functions                  (N.B. do not use this with gcc 2.95.2)
+#     -funroll-loops                      (unfortunately this option generates
+#                                           much larger executables)
+#	-I/usr/demo/SOUND		to find SUN4.1 audio includes
+#	-I/usr/include/X11R4		to find HP X11 includes, v.4
+#	-I/usr/include/sys		to find NeXT malloc.h
+#	-I/usr/openwin/include		Solaris openwin interface
+#	-I/usr/demo/SOUND/include	Solaris sound interface
+#  -I/usr/X11R6/include	       A common location for X headers, including Apple
+
+LIBS =  -L/usr/local/lib -L/usr/X11R6/lib/ -lX11 -framework CoreAudio
+#	-lefence
+#	-lm		    		required
+#	-lX11				for X window calls
+#	-L/usr/lib/X11R4		for HP X11 library, v.4
+#	-L$(newlib)			for other special access
+#	-lfm_s -lgl_s 			for SGI graphics library
+#	fgp.lib				for PC FlashGraphics lib
+#	-l881				tell -lm to use 68881
+#	-laudio				on SUN, for SFSUN41
+#	-laudio				on SGI, to include rt devaudio library
+#	-lAlib				on HP, to include rt devaudio library
+#	-lmidi				on NeXT, to find the midi support
+#	-lbsd				on old LINUX
+#	-L/usr/demo/SOUND/lib		on Solaris 2.4
+#	-L/usr/X11R6/lib		on LINUX
+# note: SuSE 7.3 users should use -ltcl8.3 -ltk8.3, but another
+# (probably better) solution is to create symbolic links
+
+WINSRC = winX11.c
+WINOBJ = winX11.o
+# ;if WINDOWS enabled in DEFINES, choose one of -
+#	winX11.o	for X11 window graphics
+#	winSGI.o	for SGI window graphics
+#	winfg.o 	for PC  Flash Graphics
+
+
+AUDSRC = rtcoreaudio.c
+AUDOBJ = rtcoreaudio.o
+# ;if RTAUDIO enabled in DEFINES, include one of
+#	rtaudio.o		general interface to audio handlers & libraries
+#	rtDEC.c		rtSGI.c		rtHP.c		rtSUN.c
+#	rtmacintosh.c	rtnext.c	rtlinux.c	rtwin32.c
+# and at most one set of -
+#	rtDEC.c DECaudio.o DECplay.o	rt_handlers for DECaudio (with -DDEC)
+#	rtSGI.c SGIplay.o		rt_handler  for SGIaudio (with -DSGI)
+#	rtHP.c HPplay.o		rt_handler  for HP audio (with -DHP)
+#	rtSUN.c			for SUN audio lib  (with -Dsun)
+#       rtlinux.c LINUXaudio.o  set Linux soundcard parameters (with -DLINUX)
+#	rtmacintosh.c		macintosh
+#	rtnext.c		NeXT
+#	rtwin32.c		Windows 32bit MM library
+#	[other things]		device handlers for other hardware
+
+AUDHDR = 
+# ;if RTAUDIO enabled include
+#	DECplay.h		for rtaudio and DECplay (with -DDEC)
+# ;else leave blank
+
+
+# The Csound MAKE can be run in separate stages, or as a single command.
+# To create just the 'csound' executable, type
+#	make csound
+# This module contains most of the functions below as Utility options
+# (see the Csound manual), but they are also available as standalones:
+
+# To create the standalone 'hetro', 'lpanal', 'pvanal', type
+#	make hetro
+#	make lpanal
+#	make pvanal
+# To create all three standalones, type
+#	make anals
+
+# To create standalone 'scot', 'cscore', 'scsort', 'extract', type
+#	make scots
+#	make cscores
+#	make scsort
+#	make extract
+# To create all four standalones, type
+#	make utils1
+
+# To create standalone 'sndinfo', type
+#	make sndinfo
+# or
+#	make utils2
+
+# To create all the above, from 'csound' to 'utils2', type
+#	make all
+
+# If you have completed the above, and have defined the INCLUDE, LIB & DEST
+# directories, you can now install all the executables in a single command:
+#	make install
+
+# do not edit below this line
+# --------------------------------------------------------------------------
+
+# macros passed to lower-level Makef files
+#	CFLAGS INCLUDE LIB DEST
+MAC = "CFLAGS=$(CFLAGS)" "INCLUDE=$(INCLUDE)" "LIB=$(LIB)" "DEST=$(DEST)" "LIBS=$(LIBS)"
+
+MAKE = make -f makef $(MAC)
+
+SHELL = /bin/sh
+
+CSCMS  = cscormai.c natbem.c
+CSRC1 =	main.c argdecode.c musmon.c otran.c oload.c rdorch.c express.c
+CSRC2 = rdscor.c linevent.c cscore.c cscorfns.c insert.c entry1.c entry2.c aops.c
+CSRC3 = midiops.c midirecv.c fgens.c ugens1.c ugens2.c ugens3.c ugens4.c
+CSRC4 =	ugens5.c ugens6.c ugens7.c ugens8.c ugens9.c spectra.c disprep.c
+CSRC5 =	window.c winascii.c $(WINSRC) hetro.c lpanal.c lptrkfns.c pvanal.c
+CSRC6 =	pvoc.c fft.c dsputil.c sndinfo.c sfheader.c soundin.c soundio.c
+CSRC7 = ulaw.c aiff.c wave.c ieee80.c filopen.c memalloc.c memfiles.c auxfd.c
+CSRC8 = windin.c dumpf.c $(AUDSRC) scot.c scsort.c scxtract.c sread.c sort.c
+CSRC9 = extract.c twarp.c swrite.c butter.c grain.c vdelay.c cmath.c follow.c
+CSRCA = cvanal.c grain4.c pvinterp.c pvread.c sndwarp.c vpvoc.c hrtferX.c
+CSRCB = winEPS.c nlfilt.c opcode.c ugrw1.c ugrw2.c ugensa.c cross2.c dam.c
+CSRCC = midiout.c midiops2.c midisend.c wavegde.c filter.c complex.c repluck.c
+CSRCD = pluck.c physutil.c physmod.c modal4.c shaker.c fm4op.c diskin.c
+CSRCE = pvadd.c moog1.c singwave.c mandolin.c space.c locsig.c dcblockr.c
+CSRCF = pvocext.c flanger.c aifc.c lowpassr.c uggab.c biquad.c one_file.c
+CSRCG = schedule.c midiops3.c pitch.c getstring.c ugsc.c fout.c sndinfUG.c
+CSRCH = pvlook.c scansyn.c sfont.c vbap.c vbap_four.c vbap_eight.c 
+CSRCI = vbap_sixteen.c vbap_zak.c control.c bowedbar.c phisem.c sdif.c
+CSRCJ = sdif-mem.c babo.c ugmoss.c bbcut.c spat3d.c pvxanal.c mxfft.c
+CSRCK = pvsanal.c pstream.c pvfileio.c oscbnk.c scansynx.c oscils.c
+CSRCL = wave-terrain.c dnoise.c dnfft.c mididevice.c clfilt.c midiinterop.c
+CSRCM = dl_opcodes.c jpff_glue.c namedins.c
+CSRCS =	$(CSRC1) $(CSRC2) $(CSRC3) $(CSRC4) $(CSRC5) $(CSRC6) $(CSRC7) \
+	$(CSRC8) $(CSRC9) $(CSRCA) $(CSRCB) $(CSRCC) $(CSRCD) $(CSRCE) \
+	$(CSRCF) $(CSRCG) $(CSRCH) $(CSRCI) $(CSRCJ) $(CSRCK) $(CSRCL) \
+        $(CSRCM)
+
+CSCM  = cscormai.o natben.o
+COBJ1 =	main.o argdecode.o musmon.o otran.o oload.o rdorch.o express.o
+COBJ2 = rdscor.o linevent.o cscore.o cscorfns.o insert.o entry1.o entry2.o aops.o
+COBJ3 = midiops.o midirecv.o fgens.o ugens1.o ugens2.o ugens3.o ugens4.o
+COBJ4 =	ugens5.o ugens6.o ugens7.o ugens8.o ugens9.o spectra.o disprep.o
+COBJ5 =	window.o winascii.o $(WINOBJ) hetro.o lpanal.o lptrkfns.o pvanal.o
+COBJ6 =	pvoc.o fft.o dsputil.o sndinfo.o sfheader.o soundin.o soundio.o
+COBJ7 = ulaw.o aiff.o wave.o ieee80.o filopen.o memalloc.o memfiles.o auxfd.o
+COBJ8 = windin.o dumpf.o $(AUDOBJ) scot.o scsort.o scxtract.o sread.o sort.o
+COBJ9 = extract.o twarp.o swrite.o butter.o grain.o vdelay.o cmath.o follow.o
+COBJA = cvanal.o grain4.o pvinterp.o pvread.o sndwarp.o vpvoc.o hrtferX.o
+COBJB = winEPS.o nlfilt.o opcode.o ugrw1.o ugrw2.o ugensa.o cross2.o dam.o
+COBJC = midiout.o midiops2.o midisend.o wavegde.o filter.o complex.o repluck.o
+COBJD = pluck.o physutil.o physmod.o modal4.o shaker.o fm4op.o diskin.o
+COBJE = pvadd.o moog1.o singwave.o mandolin.o space.o locsig.o dcblockr.o
+COBJF = pvocext.o flanger.o aifc.o lowpassr.o uggab.o biquad.o one_file.o
+COBJG = schedule.o midiops3.o pitch.o getstring.o ugsc.o fout.o sndinfUG.o
+COBJH = pvlook.o scansyn.o sfont.o vbap.o vbap_four.o vbap_eight.o
+COBJI = vbap_sixteen.o vbap_zak.o control.o bowedbar.o phisem.o sdif.o 
+COBJJ = sdif-mem.o babo.o ugmoss.o bbcut.o spat3d.o pvxanal.o mxfft.o
+COBJK = pvsanal.o pstream.o pvfileio.o oscbnk.o scansynx.o oscils.o
+COBKL = wave-terrain.o dnoise.o dnfft.o mididevice.o clfilt.o midiinterop.o
+COBJM = dl_opcodes.o jpff_glue.o namedins.o
+COBJS =	$(COBJ1) $(COBJ2) $(COBJ3) $(COBJ4) $(COBJ5) $(COBJ6) $(COBJ7) \
+	$(COBJ8) $(COBJ9) $(COBJA) $(COBJB) $(COBJC) $(COBJD) $(COBJE) \
+	$(COBJF) $(COBJG) $(COBJH) $(COBJI) $(COBJJ) $(COBJK) $(COBKL) \
+	$(COBJM)
+
+HDRS =  3Dug.h aiff.h aops.h bowed.h brass.h butter.h clarinet.h \
+	cmath.h complex.h convolve.h cs.h cscore.h dam.h diskin.h disprep.h \
+	dpwelib.h dsputil.h dumpf.h fft.h fhtfun.h filter.h flute.h fm4op.h \
+	follow.h ftgen.h grain.h grain4.h hrtferx.h ieee80.h insert.h \
+	lpc.h marimba.h midioops.h midiops.h midiops2.h midiout.h modal4.h \
+	moog1.h nlfilt.h oload.h physutil.h pluck.h prototyp.h ptrigtbl.h \
+	pvadd.h pvinterp.h pvoc.h pvread.h repluck.h revsets.h scot.h \
+	sfheader.h shaker.h singwave.h sndwarp.h sort.h soundio.h spectra.h \
+	sysdep.h ugens1.h ugens2.h ugens3.h ugens4.h ugens5.h ugens6.h \
+	ugens7.h ugens8.h ugens9.h ugensa.h ugrw1.h ugrw2.h vdelay.h \
+	version.h vibraphn.h vpvoc.h wave.h wavegde.h winEPS.h windin.h \
+	cwindow.h mandolin.h space.h locsig.h dcblockr.h pvocext.h flanger.h \
+	lowpassr.h uggab.h biquad.h schedule.h midiops3.h pitch.h text.h \
+	ugsc.h fout.h sndinfUG.h scansyn.h sf.h sfont.h sfenum.h sftype.h \
+	vbap.h control.h bowedbar.h phisem.h sdif.h sdif-mem.h babo.h \
+	ugmoss.h bbcut.h spat3d.h pstream.h pvfileio.h pvxanal.h oscbnk.h \
+	scansynx.h oscils.h wave-terrain.h clfilt.h midiinterop.h opcode.h \
+	csdl.h namedins.h
+
+PROGS   = csound
+SUBDIRS = anals utils1 utils2 utils3
+
+all:		$(PROGS) $(SUBDIRS)            	#must be run in this order
+
+csound:		$(COBJS) $(CSUM) $(CDEP) csound.xmg
+		$(CC) $(CFLAGS) -o csound $(COBJS) $(LIBS)
+
+TAGS:	$(CSRCS) $(HDRS)
+		etags $(CSRCS) $(HDRS)
+
+csound.a:	$(COBJS) $(CDEP)
+		-rm csound.a
+		ar q csound.a $(COBS)
+		-ranlib csound.a
+
+xmg:	American.xmg English.xmg csound.xmg
+
+American.xmg:	all_strings makedb
+	./makedb all_strings American
+
+English.xmg:	english-strings makedb
+	./makedb english-strings English
+
+csound.xmg:	all_strings English.xmg
+	cp English.xmg csound.xmg
+#	cp American.xmg csound.xmg
+
+makedb:	makedb.c text.h
+	$(CC) -o makedb makedb.c
+
+.c.o:
+	$(CC) $(CFLAGS) -c $*.c -o $*.o
+
+ADSYNS = hetro 						#targets in anal/adsyn
+LPCS = lpanal						#targets in anal/lpc
+PVOCS = pvanal 						#targets in anal/pvoc
+ANALS = adsyns $(ADSYNS) lpcs $(LPCS) pvocs $(PVOCS)	#targets in anal
+anals $(ANALS):
+		cd anal; $(MAKE) $@
+
+SCOTS = scots						#targets in util1/scot
+CSCORES = cscores					#targets in util1/cscore
+SORTEXS = scsort extract				#targets in util1/sortex
+UTILS1 = $(SCOTS) $(CSCORES) sortexs $(SORTEXS)		#targets in util1
+utils1 $(UTILS1): natben.o
+		cd util1; $(MAKE) $@
+
+UTILS2 = sndinfos scale mixers extractor envelope pvlook dnoise srconv #targets in util2
+utils2 $(UTILS2):
+		cd util2; $(MAKE) $@
+
+UTIL3 = sdif2adsyn.c sdif.c sdif-mem.c
+
+UTILS3 = sdif2ad
+utils3: $(UTILS3)
+
+sdif2ad: sdif2adsyn.o sdif.o sdif-mem.o
+	$(CC) sdif2adsyn.o sdif.o sdif-mem.o -o sdif2ad
+
+install:	$(PROGS) $(CSA) csound.a sdif2ad
+		-strip $(PROGS)
+		-rm $(DEST)/csound
+		cp $(PROGS) $(DEST)
+		-rm $(LIB)/libcsound.a
+		-cp csound.a $(LIB)/libcsound.a
+		cd anal; $(MAKE) install
+		cd util1; $(MAKE) install
+		cd util2; $(MAKE) install
+		-cp sdif2ad $(DEST)/sdif2ad
+#		cd util3; $(MAKE) install
+
+MANPP = csound hetro lpanal pvanal
+manpp:
+		-for i in $(MANPP); do rm -f $(CAT1)/$$i.1; done
+		-for i in $(MANPP); do cp man/$$i.man $(MAN1)/$$i.1; done
+
+clean:
+		-rm $(COBS) cscormai.o dmain.o $(PROGS) $(CSA) dsound *.s
+		cd anal; $(MAKE) clean
+		cd util1; $(MAKE) clean
+		cd util2; $(MAKE) clean
+		cd testfils; rm -f core score.srt score.xtr
+		cd tutofils; rm -f core score.srt score.xtr
+		cd scorfils; rm -f core score.srt score.xtr
+		cd morefils; rm -f core score.srt score.xtr
+		cd midifils; rm -f core score.srt score.xtr
+		cd analfils; rm -f core pv.medlab
+		cd cscofils; rm -f core cscore csound *.o *.out *.srt
+
+rmbak:
+		-rm *.bak *~
+		cd anal; $(MAKE) rmbak
+		cd util1; $(MAKE) rmbak
+		cd util2; $(MAKE) rmbak
+		cd man; rm -f *.bak *~
+		cd testfils; rm -f *.bak *~
+		cd tutofils; rm -f *.bak *~
+		cd scorfils; rm -f *.bak *~
+		cd morefils; rm -f *.bak *~
+		cd midifils; rm -f *.bak *~
+		cd cscofils; rm -f *.bak *~
+
+CSMacOSX.bin.tgz: /usr/local/bin/csound /usr/local/bin/hetro \
+	/usr/local/bin/lpanal /usr/local/bin/pvanal /usr/local/bin/scot \
+	/usr/local/bin/scsort /usr/local/bin/extract /usr/local/bin/sndinfo \
+	/usr/local/bin/scale /usr/local/bin/mixer /usr/local/bin/extractor \
+	/usr/local/bin/envext /usr/local/bin/pvlook /usr/local/bin/sdif2ad \
+	/usr/local/bin/dnoise /usr/local/bin/srconv /usr/local/bin/cvanal
+	(cd /usr/local/bin; tar cvzf ~/csound/CSMacOSX.bin.tgz csound \
+	hetro lpanal pvanal scot scsort extract sndinfo scale mixer \
+	extractor envext pvlook sdif2ad dnoise srconv cvanal )
+
+Csound.tar.gz:  all_files \
+	$(CSRCS) $(HDRS) \
+	LINUXaudio.c DECaudio.c DECplay.c HPplay.c DECaudio.h \
+	DECplay.h SGIplay.c anal/adsyn/main.c anal/adsyn/makef anal/lpc/main.c \
+	anal/lpc/makef anal/makef anal/makef anal/pvoc/main.c anal/pvoc/makef \
+	Makefile.sol cscofils/combine.c cscofils/default.c cscofils/pulse.c \
+	cscofils/sine.orc cscofils/sine.sco cscofils/switch.c cscofils/test.c \
+	cscofils/test2.c cscofils/README cscofils/aliases cscormai.c Makefile \
+	util1/cscore/makef util1/makef util1/scot/main.c util1/scot/makef \
+	util1/sortex/makef util1/sortex/smain.c util1/sortex/xmain.c \
+	util2/envext/envext.c util2/envext/makef util2/exports/Makefile \
+	util2/exports/het_export.c util2/exports/het_import.c \
+	util2/exports/lpc_export.c util2/exports/pv_export.c \
+	util2/exports/pv_import.c util2/makef util2/mixer/makef \
+	util2/mixer/mixer.c util2/mixer/xtrct.c util2/mkgraph/fg.h \
+	util2/mkgraph/fgdemo.c util2/mkgraph/mkgraph.c util2/scale.dir/makef \
+	util2/scale.dir/scale.c util2/sndinfo/main.c \
+	util2/sndinfo/makef util2/pvlook.dir/makef winSGI.c winbor.c winwat.c winfg.c
+		tar cvf - `cat all_files` | gzip > Csound.tar.gz
+
+distrib:	all Csound.tar.gz
+	cp MUSIC/csound/Csound.tar.gz ~ftp/pub/dream
+	cp MUSIC/csound/csound ~ftp/pub/dream/SGI
+	cp MUSIC/csound/anal/hetro ~ftp/pub/dream/SGI
+	cp MUSIC/csound/anal/lpanal ~ftp/pub/dream/SGI
+	cp MUSIC/csound/anal/pvanal ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util1/scot/scot ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util1/cscore/cscore.a ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util1/sortex/extract ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util1/sortex/scsort ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/envext/envext ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/het_import ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/het_export ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/pv_import ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/pv_export ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/exports/lpc_export ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/mixer/mixer ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/mixer/extractot ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/scale.dir/scale ~ftp/pub/dream/SGI
+	cp MUSIC/csound/util2/sndinfo/sndinfo ~ftp/pub/dream/SGI
+
+depend:
+	$(CC) -M $(DEFINES) $(CSRCS) $(CSMS) $(UTIL3) > deps
+	cat Makefile deps > makefile
+
+# DO NOT DELETE THIS LINE
+main.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h /usr/include/ctype.h \
+  /usr/include/runetype.h /usr/include/signal.h /usr/include/sys/signal.h 
+argdecode.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h /usr/include/ctype.h \
+  /usr/include/runetype.h 
+musmon.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h cscore.h midiops.h oload.h soundio.h schedule.h \
+  /usr/include/math.h 
+otran.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h oload.h /usr/include/math.h pstream.h insert.h 
+oload.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h oload.h midiops.h 
+rdorch.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/ctype.h /usr/include/runetype.h 
+express.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+rdscor.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+linevent.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/ctype.h /usr/include/runetype.h \
+  schedule.h 
+cscore.o : cscore.h /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h sysdep.h /usr/include/stdlib.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h 
+cscorfns.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h cscore.h 
+insert.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h insert.h aops.h midiops.h schedule.h 
+entry1.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h insert.h aops.h midiops.h ugens1.h ugens2.h \
+  ugens3.h ugens4.h ugens5.h lpc.h ugens6.h ugens7.h dsputil.h ugens8.h \
+  ugens9.h ugensa.h windin.h spectra.h disprep.h soundio.h dumpf.h \
+  vdelay.h follow.h butter.h grain.h grain4.h cmath.h hrtferx.h 3Dug.h \
+  pvread.h pvinterp.h vpvoc.h sndwarp.h fhtfun.h ugrw1.h ugrw2.h diskin.h \
+  ftgen.h oload.h midiout.h midiops2.h midiops3.h filter.h pluck.h \
+  wavegde.h /usr/include/math.h dam.h pitch.h pvadd.h locsig.h space.h \
+  flanger.h lowpassr.h uggab.h fout.h biquad.h ugsc.h sndinfUG.h sf.h \
+  sftype.h sfont.h 
+entry2.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h insert.h clarinet.h physutil.h \
+  /usr/include/math.h flute.h bowed.h bowedbar.h marimba.h modal4.h \
+  brass.h vibraphn.h shaker.h phisem.h fm4op.h moog1.h singwave.h \
+  mandolin.h midiops.h dcblockr.h flanger.h lowpassr.h schedule.h \
+  spectra.h pitch.h scansyn.h scansynx.h vbap.h uggab.h repluck.h aops.h \
+  ugens1.h nlfilt.h fhtfun.h vdelay.h ugens2.h babo.h ugmoss.h bbcut.h \
+  spat3d.h pstream.h oscbnk.h oscils.h wave-terrain.h clfilt.h \
+  midiinterop.h ftgen.h 
+aops.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h aops.h /usr/include/math.h 
+midiops.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h midiops.h /usr/include/math.h 
+midirecv.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h midiops.h oload.h 
+fgens.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/ctype.h /usr/include/runetype.h \
+  soundio.h /usr/include/math.h cmath.h ftgen.h fft.h 
+ugens1.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugens1.h /usr/include/math.h 
+ugens2.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugens2.h /usr/include/math.h 
+ugens3.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugens3.h /usr/include/math.h oload.h 
+ugens4.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugens4.h /usr/include/math.h 
+ugens5.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugens5.h lpc.h /usr/include/math.h oload.h 
+ugens6.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugens6.h /usr/include/math.h 
+ugens7.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugens7.h /usr/include/math.h 
+ugens8.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h dsputil.h fft.h pvoc.h \
+  pvocext.h ugens8.h soundio.h oload.h pvfileio.h 
+ugens9.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h fft.h dsputil.h convolve.h \
+  ugens9.h soundio.h oload.h 
+spectra.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h spectra.h 
+disprep.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h disprep.h fft.h dsputil.h 
+window.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h winEPS.h 
+winascii.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+winX11.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/X11R6/include/X11/X.h \
+  /usr/X11R6/include/X11/Xlib.h /usr/X11R6/include/X11/Xfuncproto.h \
+  /usr/X11R6/include/X11/Xosdefs.h /usr/include/stddef.h 
+hetro.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h /usr/include/math.h sdif.h sdif-mem.h 
+lpanal.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h lpc.h /usr/include/math.h 
+lptrkfns.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h lpc.h /usr/include/math.h 
+pvanal.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h fft.h dsputil.h pvoc.h pvxanal.h \
+  pvfileio.h /usr/include/ctype.h /usr/include/runetype.h 
+fft.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h fft.h 
+sndinfo.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h 
+sfheader.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h sfheader.h 
+soundin.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h oload.h 
+soundio.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h /usr/include/math.h 
+ulaw.o : 
+aiff.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h aiff.h sfheader.h /usr/include/math.h \
+  ieee80.h 
+wave.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h wave.h sfheader.h /usr/include/math.h 
+ieee80.o : ieee80.h /usr/include/math.h /usr/include/sys/cdefs.h \
+  /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/machine/types.h /usr/include/ppc/types.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h \
+  /usr/include/machine/endian.h /usr/include/ppc/endian.h \
+  /usr/include/stdlib.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/ppc/setjmp.h /usr/include/machine/signal.h \
+  /usr/include/ppc/signal.h sysdep.h /usr/include/sys/file.h \
+  /usr/include/sys/fcntl.h /usr/include/sys/unistd.h \
+  /usr/include/sys/stat.h /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+filopen.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/ctype.h /usr/include/runetype.h 
+memalloc.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h pvfileio.h 
+memfiles.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+auxfd.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+windin.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h windin.h 
+dumpf.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h dumpf.h /usr/include/ctype.h \
+  /usr/include/runetype.h 
+rtOSX.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+scot.o : scot.h /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/string.h /usr/include/ctype.h \
+  /usr/include/runetype.h /usr/include/stdlib.h text.h 
+scsort.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+scxtract.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+sread.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h /usr/include/ctype.h \
+  /usr/include/runetype.h 
+sort.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+extract.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+twarp.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+swrite.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h /usr/include/ctype.h \
+  /usr/include/runetype.h 
+butter.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h butter.h /usr/include/math.h 
+grain.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h grain.h 
+vdelay.o : /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/math.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h vdelay.h revsets.h 
+cmath.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h cmath.h /usr/include/math.h 
+follow.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h follow.h 
+cvanal.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h fft.h dsputil.h convolve.h 
+grain4.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h grain4.h /usr/include/math.h 
+pvinterp.o : /usr/include/math.h /usr/include/sys/cdefs.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h dsputil.h fft.h pvoc.h pvinterp.h ugens8.h \
+  soundio.h oload.h 
+pvread.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h dsputil.h fft.h pvoc.h pvread.h ugens8.h \
+  soundio.h /usr/include/math.h oload.h pvfileio.h 
+sndwarp.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h sndwarp.h 
+vpvoc.o : /usr/include/math.h /usr/include/sys/cdefs.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h dsputil.h fft.h pvoc.h vpvoc.h ugens8.h \
+  soundio.h oload.h 
+hrtferX.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h hrtferx.h 3Dug.h 
+winEPS.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h 
+nlfilt.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h nlfilt.h 
+opcode.o : opcode.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h version.h sort.h \
+  text.h prototyp.h 
+ugrw1.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugrw1.h /usr/include/math.h 
+ugrw2.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugrw2.h /usr/include/math.h 
+ugensa.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugensa.h ugens7.h /usr/include/math.h 
+cross2.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ptrigtbl.h fhtfun.h /usr/include/math.h 
+dam.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h dam.h /usr/include/math.h 
+midiout.o : /usr/include/math.h /usr/include/sys/cdefs.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h midiout.h 
+midiops2.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h midiops2.h 
+midisend.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h midioops.h 
+wavegde.o : /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h wavegde.h /usr/include/math.h 
+filter.o : /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h filter.h complex.h /usr/include/math.h 
+complex.o : /usr/include/math.h /usr/include/sys/cdefs.h 
+repluck.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h repluck.h 
+pluck.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h wavegde.h /usr/include/math.h pluck.h 
+physutil.o : /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h physutil.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h 
+physmod.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h clarinet.h physutil.h /usr/include/math.h \
+  flute.h bowed.h brass.h 
+modal4.o : modal4.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h physutil.h /usr/include/math.h marimba.h \
+  vibraphn.h 
+shaker.o : shaker.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h physutil.h /usr/include/math.h 
+fm4op.o : fm4op.h physutil.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h 
+diskin.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h diskin.h oload.h 
+pvadd.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h dsputil.h pvoc.h pvocext.h \
+  pvadd.h oload.h 
+moog1.o : moog1.h fm4op.h physutil.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h 
+singwave.o : singwave.h sysdep.h /usr/include/stdlib.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h \
+  /usr/include/sys/cdefs.h /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/machine/types.h /usr/include/ppc/types.h \
+  /usr/include/machine/endian.h /usr/include/ppc/endian.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h physutil.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h cwindow.h \
+  opcode.h version.h sort.h text.h prototyp.h /usr/include/math.h \
+  clarinet.h moog1.h fm4op.h 
+mandolin.o : mandolin.h clarinet.h physutil.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h brass.h 
+space.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h space.h /usr/include/math.h 
+locsig.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h locsig.h /usr/include/math.h 
+dcblockr.o : dcblockr.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+pvocext.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h pvocext.h /usr/include/math.h 
+flanger.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h flanger.h 
+aifc.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h aiff.h sfheader.h /usr/include/math.h \
+  ieee80.h 
+lowpassr.o : /usr/include/math.h /usr/include/sys/cdefs.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h lowpassr.h 
+uggab.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h uggab.h /usr/include/math.h 
+biquad.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h biquad.h 
+one_file.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/ctype.h /usr/include/runetype.h 
+schedule.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h schedule.h /usr/include/math.h 
+midiops3.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h midiops.h midiops3.h /usr/include/math.h 
+pitch.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h /usr/include/limits.h \
+  /usr/include/sys/syslimits.h spectra.h pitch.h uggab.h 
+getstring.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+ugsc.o : /usr/include/math.h /usr/include/sys/cdefs.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugsc.h 
+fout.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/string.h /usr/include/ctype.h \
+  /usr/include/runetype.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h cwindow.h opcode.h version.h sort.h text.h \
+  prototyp.h fout.h 
+sndinfUG.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h sndinfUG.h oload.h pvoc.h pvfileio.h 
+pvlook.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/stdlib.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+scansyn.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h scansyn.h /usr/include/math.h 
+sfont.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/stdlib.h /usr/include/math.h \
+  /usr/include/ctype.h /usr/include/runetype.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h sfenum.h sfont.h sftype.h sf.h \
+  /usr/include/errno.h /usr/include/sys/errno.h 
+vbap.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h vbap.h /usr/include/math.h 
+vbap_four.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h vbap.h /usr/include/math.h 
+vbap_eight.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h vbap.h /usr/include/math.h 
+vbap_sixteen.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h vbap.h /usr/include/math.h 
+vbap_zak.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h vbap.h /usr/include/math.h 
+control.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h control.h 
+bowedbar.o : bowedbar.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h physutil.h /usr/include/math.h bowed.h 
+phisem.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h phisem.h physutil.h /usr/include/math.h 
+sdif.o : /usr/include/assert.h /usr/include/errno.h \
+  /usr/include/sys/errno.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/stdlib.h /usr/include/string.h \
+  sdif.h 
+sdif-mem.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/string.h /usr/include/assert.h \
+  /usr/include/errno.h /usr/include/sys/errno.h sdif.h sdif-mem.h 
+babo.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h babo.h /usr/include/math.h 
+ugmoss.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h ugmoss.h aops.h /usr/include/math.h 
+bbcut.o : bbcut.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h 
+spat3d.o : /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/math.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/fcntl.h /usr/include/string.h \
+  cwindow.h opcode.h version.h sort.h text.h prototyp.h ftgen.h spat3d.h 
+pvxanal.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h soundio.h /usr/include/math.h \
+  /usr/include/ctype.h /usr/include/runetype.h pvxanal.h pvfileio.h 
+mxfft.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h pvoc.h 
+pvsanal.o : /usr/include/math.h /usr/include/sys/cdefs.h \
+  /usr/include/string.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/machine/types.h /usr/include/ppc/types.h \
+  /usr/include/machine/endian.h /usr/include/ppc/endian.h \
+  /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/ppc/setjmp.h /usr/include/machine/signal.h \
+  /usr/include/ppc/signal.h sysdep.h /usr/include/sys/file.h \
+  /usr/include/sys/fcntl.h /usr/include/sys/unistd.h \
+  /usr/include/sys/stat.h /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h cwindow.h opcode.h version.h sort.h text.h \
+  prototyp.h pstream.h oload.h 
+pstream.o : /usr/include/math.h /usr/include/sys/cdefs.h \
+  /usr/include/string.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/machine/types.h /usr/include/ppc/types.h \
+  /usr/include/machine/endian.h /usr/include/ppc/endian.h \
+  /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/ppc/setjmp.h /usr/include/machine/signal.h \
+  /usr/include/ppc/signal.h sysdep.h /usr/include/sys/file.h \
+  /usr/include/sys/fcntl.h /usr/include/sys/unistd.h \
+  /usr/include/sys/stat.h /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h cwindow.h opcode.h version.h sort.h text.h \
+  prototyp.h pstream.h pvfileio.h oload.h 
+pvfileio.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h pvfileio.h 
+oscbnk.o : /usr/include/math.h /usr/include/sys/cdefs.h /usr/include/time.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h \
+  /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/machine/types.h /usr/include/ppc/types.h \
+  /usr/include/machine/endian.h /usr/include/ppc/endian.h \
+  /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/ppc/setjmp.h /usr/include/machine/signal.h \
+  /usr/include/ppc/signal.h sysdep.h /usr/include/sys/file.h \
+  /usr/include/sys/fcntl.h /usr/include/sys/unistd.h \
+  /usr/include/sys/stat.h /usr/include/sys/time.h /usr/include/fcntl.h \
+  /usr/include/string.h cwindow.h opcode.h version.h sort.h text.h \
+  prototyp.h oscbnk.h 
+scansynx.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h scansynx.h /usr/include/math.h 
+oscils.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h oscils.h 
+wave-terrain.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h wave-terrain.h /usr/include/math.h 
+dnoise.o : /usr/include/math.h /usr/include/sys/cdefs.h \
+  /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/machine/types.h /usr/include/ppc/types.h \
+  /usr/include/machine/ansi.h /usr/include/ppc/ansi.h \
+  /usr/include/machine/endian.h /usr/include/ppc/endian.h \
+  /usr/include/stdlib.h /usr/include/ctype.h /usr/include/runetype.h cs.h \
+  /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h sfheader.h soundio.h 
+dnfft.o : /usr/include/math.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h cs.h /usr/include/stdarg.h \
+  /usr/include/gcc/darwin/2.95.2/va-ppc.h /usr/include/stdlib.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+mididevice.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/sys/ioctl.h \
+  /usr/include/sys/ttycom.h /usr/include/sys/ioccom.h \
+  /usr/include/sys/filio.h /usr/include/sys/sockio.h \
+  /usr/include/sys/ioctl_compat.h /usr/include/sys/ttychars.h \
+  /usr/include/sys/ttydefaults.h /usr/include/sys/ttydev.h 
+clfilt.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h /usr/include/math.h clfilt.h 
+midiinterop.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h midiinterop.h 
+dl_opcodes.o : cs.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/stdlib.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/ppc/setjmp.h \
+  /usr/include/machine/signal.h /usr/include/ppc/signal.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h version.h \
+  sort.h text.h prototyp.h 
+jpff_glue.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/stdarg.h /usr/include/gcc/darwin/2.95.2/va-ppc.h \
+  /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/ppc/setjmp.h /usr/include/machine/signal.h \
+  /usr/include/ppc/signal.h version.h cs.h /usr/include/stdlib.h sysdep.h \
+  /usr/include/sys/file.h /usr/include/sys/fcntl.h \
+  /usr/include/sys/unistd.h /usr/include/sys/stat.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/machine/limits.h /usr/include/ppc/limits.h \
+  /usr/include/fcntl.h /usr/include/string.h cwindow.h opcode.h sort.h \
+  text.h prototyp.h 
+sdif2adsyn.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/stdlib.h /usr/include/math.h \
+  /usr/include/string.h sdif.h sdif-mem.h 
+sdif.o : /usr/include/assert.h /usr/include/errno.h \
+  /usr/include/sys/errno.h /usr/include/sys/cdefs.h /usr/include/stdio.h \
+  /usr/include/sys/types.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/stdlib.h /usr/include/string.h \
+  sdif.h 
+sdif-mem.o : /usr/include/stdio.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/types.h \
+  /usr/include/ppc/types.h /usr/include/machine/ansi.h \
+  /usr/include/ppc/ansi.h /usr/include/machine/endian.h \
+  /usr/include/ppc/endian.h /usr/include/string.h /usr/include/assert.h \
+  /usr/include/errno.h /usr/include/sys/errno.h sdif.h sdif-mem.h 
+
+
+
+
+
+#
+# added by Hans-Christoph Steiner <hans@eds.org>
+# to generate MacOS X packages
+# 
+
+CSOUND_MAJOR_VERSION = $(shell grep ' VERSION ' version.h | cut -c19)
+CSOUND_MINOR_VERSION = $(shell grep ' SUBVER' version.h | cut -c19-20)
+CSOUND_BUGFIX_VERSION = $(shell grep 'BUGFIX' version.h | cut -c19-20)
+CSOUND_VERSION = $(CSOUND_MAJOR_VERSION).$(CSOUND_MINOR_VERSION)f$(CSOUND_BUGFIX_VERSION)
+
+PACKAGE_PREFIX = csound
+PACKAGE_NAME = $(PACKAGE_PREFIX)-$(CSOUND_VERSION)
+
+DMG_NAME = $(PACKAGE_NAME)
+
+darwin_pkg_clean:
+	-sudo rm -Rf installroot $(PACKAGE_NAME)*
+	-rm -f $(PACKAGE_PREFIX)-*.info 1 License.html
+
+
+darwin_pkg_license:
+  # generate HTML version of License
+	echo "<HTML><BODY><FONT SIZE="-1">" > License.html
+	cat COPYING | sed -e 's/^$$/\<P\>/g' >> License.html
+	echo "</FONT></BODY></HTML>" >> License.html
+
+# I can't get csound to compile, so this is to install the binaries
+temp_install:
+	install -d $(DEST) $(INCLUDE) 
+	install -m555 cvanal extract lpanal pvanal scot sndinfo \
+				dnoise extractor mixer pvlook scsort srconv csound \
+				envext hetro scale sdif2ad $(DEST)
+	install -m555 csound.h $(INCLUDE)
+
+
+darwin_pkg: DESTDIR = installroot
+darwin_pkg: INSTALL_PREFIX = $(DESTDIR)
+darwin_pkg: DEST = $(INSTALL_PREFIX)/bin
+darwin_pkg: INCLUDE = $(INSTALL_PREFIX)/include
+darwin_pkg: LIB = $(INSTALL_PREFIX)/lib
+darwin_pkg: MAN = $(INSTALL_PREFIX)/man/man1
+darwin_pkg: temp_install darwin_pkg_license
+	cp -f csound.info $(PACKAGE_NAME).info
+# delete cruft
+	-find ../installroot -name .DS_Store -delete
+	-rm -f 1
+# set proper permissions
+	sudo chown -R root:staff $(INSTALL_PREFIX)
+	sudo package installroot $(PACKAGE_NAME).info -d . -ignoreDSStore
+# install pkg docs
+	sudo install -m 644 License.html $(PACKAGE_NAME).pkg/Contents/Resources
+	sudo chown -R root:staff $(PACKAGE_NAME).pkg/Contents/Resources
+
+
+
+dmg: 
+	mkdir "$(DMG_NAME)"
+	mv $(PACKAGE_NAME).pkg "$(DMG_NAME)"
+	cp LICENSE.html "$(DMG_NAME)"
+	/bin/sh mkdmg "$(DMG_NAME)"
+
+
