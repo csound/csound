@@ -589,6 +589,12 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
   print 'CONFIGURATION DECISION: Building dynamic Csound library'
   if (getPlatform() == 'darwin'):
     csoundLibraryEnvironment.Append(LIBS = ['sndfile'])
+  if getPlatform() == 'mingw':
+    csoundLibraryEnvironment.Append(LIBS = ['sndfile'])
+    csoundLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
+    csoundLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
+    csoundLibraryEnvironment['ENV']['PATH'] = os.environ['PATH']
+
   csoundLibrary = csoundLibraryEnvironment.SharedLibrary('csound',
                                                          libCsoundSources)
 else:
@@ -1071,7 +1077,7 @@ else:
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
     swigflags = vstEnvironment['SWIGFLAGS']
     csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags,'-python'])
-    csoundVstSources.append(csoundVstPythonWrapper)
+    csoundVstSources.insert(0,csoundVstPythonWrapper)
     if configure.CheckHeader('jni.h', language = 'C++') and commonEnvironment['buildJavaWrapper']=='1':
         print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
         csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java', '-package', 'CsoundVST'])
