@@ -714,6 +714,81 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) dlsymIntern(library, undersym);
 }
 
+#elif defined(mac_classic)
+
+PUBLIC void *csoundOpenLibrary(const char *libraryName)
+{
+    CFragConnectionID  connID;
+    Ptr                mainAddr;
+    OSErr              err;
+    Str63              macLibName;
+    Str255             errName;
+
+    if  (strlen(libraryName) < 64)  {
+        strcpy((char*)macLibName, libraryName);
+        c2pstr((char*)macLibName);
+    }
+    else {
+        /*csoundMessage("%s is not a valid library name because it is too long.\n", libraryName);*/
+        return NULL;
+    }
+    /* first, test to see if the library is already loaded */
+    err = GetSharedLibrary(macLibName, kPowerPCCFragArch, kFindCFrag, &connID, &mainAddr, errName);
+    if  (err == noErr)  return NULL;     /* already loaded */
+    else if (err != cfragLibConnErr) {   /* some other error occurred */
+        /*csoundMessage("Failed to load plugin library %s with Mac error %d.\n", libraryName, err);*/
+        return NULL;
+    }
+    else {  /* attempt to load the library */
+        err = GetSharedLibrary(macLibName, kPowerPCCFragArch, kLoadCFrag, &connID, &mainAddr, errName);
+        if  (err != noErr) {
+            /*csoundMessage("Failed to load plugin library %s with Mac error %d.\n", libraryName, err);*/
+            return NULL;
+        }
+    }
+    return (void*) connID;
+}
+
+PUBLIC int csoundCloseLibrary(void *library)
+{
+    CFragConnectionID  connID;
+    OSErr              err;
+    
+    connID = (CFragConnectionID)library;
+    err = CloseConnection(&connID);
+    return 0;  /* ignore errors */
+}
+
+PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+{
+    OSErr              err;
+    Ptr                symAddr;
+    CFragSymbolClass   symClass;
+    CFragConnectionID  connID;
+    Str255             macProcName;
+    
+    connID = (CFragConnectionID)library;
+    if  (strlen(procedureName) < 256)  {
+        strcpy((char*)macProcName, procedureName);
+        c2pstr((char*)macProcName);
+    }
+    else {
+        /*csoundMessage("%s is not a valid library procedure name because it is too long.\n", procedureName);*/
+        return NULL;
+    }
+    err = FindSymbol(connID, macProcName, &symAddr, &symClass);
+    if  (err != noErr)  {
+        /*csoundMessage("Failed to find library procedure %s with Mac error %d.\n", procedureName, err);*/
+        return NULL;
+    }
+    else if (symClass == kDataCFragSymbol)  {
+        /*csoundMessage("Failed to load procedure %s because it is not a code symbol.\n", procedureName);*/
+        return NULL;
+    }
+    
+    return (void*) symAddr;
+}
+
 #else /* case for platforms without shared libraries -- added 062404, akozar */
 
 void *csoundOpenLibrary(const char *libraryPath)
