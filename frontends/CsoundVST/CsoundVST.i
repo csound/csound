@@ -58,6 +58,7 @@
 
 %feature("director") Node;
 %include <csound.h>
+%include <cfgvar.h>
 %include "Silence.hpp"
 
 
