@@ -1,0 +1,17 @@
+Title Csound
+Version UNIX-style paths
+Description Csound is a sound and music synthesis system, providing facilities for composition and performance over a wide range of platforms.
+DefaultLocation /usr/local
+DeleteWarning No more Csound? :(
+
+### Package Flags
+
+NeedsAuthorization YES
+Required YES
+Relocatable YES
+RequiresReboot NO
+UseUserMask NO
+OverwritePermissions NO
+InstallFat NO
+RootVolumeOnly NO
+
