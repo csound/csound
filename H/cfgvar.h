@@ -369,7 +369,7 @@ typedef union csCfgVariable_u {
    * and free database. This function is called by csoundReset().
    * Return value is CSOUNDCFG_SUCCESS in case of success.
    */
-  int csoundDeleteAllConfigurationVariables(CSOUND *csound);
+  PUBLIC int csoundDeleteAllConfigurationVariables(CSOUND *csound);
 
   /**
    * Returns pointer to an error string constant for the specified
