@@ -541,7 +541,12 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 
 PUBLIC void *csoundOpenLibrary(const char *libraryPath)
 {
-    return (void*) dlopen(libraryPath, RTLD_NOW | RTLD_LOCAL);
+    void *ans = (void*) dlopen(libraryPath, RTLD_NOW | RTLD_LOCAL);
+    if (ans==NULL) {
+      char *str = dlerror();
+      if (str!=NULL) fputs(str, stderr);
+    }
+    return ans;
 }
 
 PUBLIC int csoundCloseLibrary(void *library)
