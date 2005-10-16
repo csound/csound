@@ -567,9 +567,7 @@ extern "C" {
     void (*SetHostData)(CSOUND *, void *hostData);
     CSOUND *(*Create)(void *hostData);
     int (*Compile)(CSOUND *, int argc, char **argv);
-    int (*CompileCsd)(CSOUND *, char *);
     int (*Perform)(CSOUND *, int argc, char **argv);
-    int (*PerformCsd)(CSOUND *, char *);
     int (*PerformKsmps)(CSOUND *);
     int (*PerformBuffer)(CSOUND *);
     int (*Cleanup)(CSOUND *);
@@ -652,7 +650,7 @@ extern "C" {
                         int (*kopadr)(CSOUND *, void *),
                         int (*aopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
-    void *(*OpenLibrary)(const char *libraryPath);
+    int (*OpenLibrary)(void **library, const char *libraryPath);
     int (*CloseLibrary)(void *library);
     void *(*GetLibrarySymbol)(void *library, const char *procedureName);
     int (*CheckEvents)(CSOUND *);

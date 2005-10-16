@@ -329,8 +329,7 @@ bool VSTPlugin::DescribeValue(int parameter,char* value)
 int VSTPlugin::Instantiate(const char *libraryName_)
 {
     Debug("VSTPlugin::Instance.\n");
-        libraryHandle = csound->OpenLibrary(libraryName_);
-        if(!libraryHandle)
+        if (csound->OpenLibrary(&libraryHandle, libraryName_) != 0)
         {
                 Log("WARNING! '%s' was not found or is invalid.\n", libraryName_);
                 return VSTINSTANCE_ERR_NO_VALID_FILE;

@@ -1365,9 +1365,11 @@
 
 (:name "csoundOpenLibrary")
 
-(:arguments (libraryPath ffi:c-string))
+(:arguments (library (ffi:c-ptr (ffi:c-ptr NIL)))
 
-(:return-type (ffi:c-pointer NIL))
+	(libraryPath ffi:c-string))
+
+(:return-type (ffi:int))
 
 (:library "csound.dll"))
 

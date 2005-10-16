@@ -73,7 +73,7 @@ namespace csound
     /**
      *  Opens a shared library; useful for loading plugins.
      */
-    static void *openLibrary(std::string filename);
+    static int openLibrary(void **library, std::string filename);
     /**
      *  Returns the address of a symbol (function or object) in a shared library;
      *  useful for loading plugin functions.

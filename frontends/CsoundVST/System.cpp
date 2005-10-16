@@ -290,11 +290,9 @@ namespace csound
   {
   }
 
-  void *System::openLibrary(std::string filename)
+  int System::openLibrary(void **library, std::string filename)
   {
-    void *library = 0;
-    library = csoundOpenLibrary(filename.c_str());
-    return library;
+    return csoundOpenLibrary(library, filename.c_str());
   }
 
   void *System::getSymbol(void *library, std::string name)
