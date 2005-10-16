@@ -156,17 +156,16 @@ static int diskin2_calc_buffer_size(DISKIN2 *p, int n_monoSamps)
       n_monoSamps = 4096;
     /* convert mono samples -> sample frames */
     i = n_monoSamps / p->nChannels;
-    /* buffer size must be an integer power of two, so round up */
-    nFrames = 1;
-    while (nFrames < i)
-      nFrames <<= 1;
     /* limit to sane range */
-    if (nFrames < 512)
-      nFrames = 512;
-    else if (nFrames < p->winSize)
-      nFrames = 1024;
-    else if (nFrames > 1048576)
-      nFrames = 1048576;
+    if (i < p->winSize)
+      i = p->winSize;
+    else if (i > 1048576)
+      i = 1048576;
+    /* buffer size must be an integer power of two, so round up */
+    nFrames = 64;       /* will be at least 128 sample frames */
+    do {
+      nFrames <<= 1;
+    } while (nFrames < i);
 
     return nFrames;
 }
@@ -257,9 +256,12 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
       p->winSize = 4;               /* use cubic interpolation by default */
     else if (p->winSize > 2) {
       /* cubic/sinc: round to nearest integer multiple of 4 */
-      p->winSize = (p->winSize + 2) & (~3);
-      if (p->winSize > 1024)
+      p->winSize = (p->winSize + 2) & (~3L);
+      if ((unsigned long) p->winSize > 1024UL)
         p->winSize = 1024;
+      /* constant for window calculation */
+      p->winFact = (MYFLT) ((1.0 - pow((double) p->winSize * 0.85172, -0.89624))
+                            / ((double) ((p->winSize * p->winSize) >> 2)));
     }
     /* set file parameters from header info */
     p->fileLength = (long) sfinfo.frames;
@@ -270,9 +272,8 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
         p->warpScale = (double) sfinfo.samplerate / (double) csound->esr;
       }
       else {
-        csound->Message(csound,
-                        Str("diskin2: warning: file sample rate (%d) "
-                            "!= orchestra sr (%d)\n"),
+        csound->Message(csound, Str("diskin2: warning: file sample rate (%d) "
+                                    "!= orchestra sr (%d)\n"),
                         sfinfo.samplerate, (int) (csound->esr + FL(0.5)));
       }
     }
@@ -291,9 +292,6 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     }
     p->pos_frac_inc = (int64_t) 0;
     p->prv_kTranspose = FL(0.0);
-    /* constant for window calculation */
-    p->winFact = (MYFLT) ((1.0 - pow((double) p->winSize * 0.85172, -0.89624))
-                          / ((double) (p->winSize * p->winSize) * 0.25));
     /* allocate and initialise buffers */
     p->bufSize = diskin2_calc_buffer_size(p, (int) (*(p->iBufSize) + FL(0.5)));
     n = 2 * p->bufSize * p->nChannels * (int) sizeof(MYFLT);
@@ -541,11 +539,15 @@ static int soundin_calc_buffer_size(SOUNDIN_ *p, int n_monoSamps)
       n_monoSamps = 2048;
     /* convert mono samples -> sample frames */
     i = n_monoSamps / p->nChannels;
-    /* buffer size must be an integer power of two, so round up */
-    for (nFrames = 1; nFrames < i; nFrames <<= 1);
     /* limit to sane range */
-    if (nFrames < 64)           nFrames = 64;
-    else if (nFrames > 1048576) nFrames = 1048576;
+    if (i > 1048576)
+      i = 1048576;
+    /* buffer size must be an integer power of two, so round up */
+    nFrames = 32;       /* will be at least 64 sample frames */
+    do {
+      nFrames <<= 1;
+    } while (nFrames < i);
+
     return nFrames;
 }
 
