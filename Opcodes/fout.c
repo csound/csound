@@ -98,15 +98,17 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
     buf_reqd = (int) sfinfo->channels;
     /* attempt to open file */
     if (write_mode) {
-      do_scale = (SF2TYPE(sfinfo->format) == TYP_RAW ? 0 : 1);
+      do_scale = sfinfo->format;
       fd = csound->FileOpen(csound, sf, CSFILE_SND_W, name, sfinfo,
                                     "SFDIR");
     }
     else {
       fd = csound->FileOpen(csound, sf, CSFILE_SND_R, name, sfinfo,
                                     "SFDIR;SSDIR");
-      do_scale = (SF2TYPE(sfinfo->format) == TYP_RAW ? 0 : 1);
+      do_scale = sfinfo->format;
     }
+    do_scale = SF2TYPE(do_scale);
+    do_scale = (do_scale == TYP_RAW || do_scale == TYP_IRCAM ? 0 : 1);
     if (fd == NULL)
       return -1;
     if (!do_scale) {
@@ -175,6 +177,37 @@ static int outfile(CSOUND *csound, OUTFILE *p)
     return OK;
 }
 
+static const int fout_format_table[50] = {
+    /* 0 - 9 */
+    (SF_FORMAT_FLOAT | SF_FORMAT_RAW), (SF_FORMAT_PCM_16 | SF_FORMAT_RAW),
+    SF_FORMAT_PCM_16, SF_FORMAT_ULAW, SF_FORMAT_PCM_16, SF_FORMAT_PCM_32,
+    SF_FORMAT_FLOAT, SF_FORMAT_PCM_U8, SF_FORMAT_PCM_24, SF_FORMAT_DOUBLE,
+    /* 10 - 19 */
+    SF_FORMAT_WAV, (SF_FORMAT_PCM_S8 | SF_FORMAT_WAV),
+    (SF_FORMAT_ALAW | SF_FORMAT_WAV), (SF_FORMAT_ULAW | SF_FORMAT_WAV),
+    (SF_FORMAT_PCM_16 | SF_FORMAT_WAV), (SF_FORMAT_PCM_32 | SF_FORMAT_WAV),
+    (SF_FORMAT_FLOAT | SF_FORMAT_WAV), (SF_FORMAT_PCM_U8 | SF_FORMAT_WAV),
+    (SF_FORMAT_PCM_24 | SF_FORMAT_WAV), (SF_FORMAT_DOUBLE | SF_FORMAT_WAV),
+    /* 20 - 29 */
+    SF_FORMAT_AIFF, (SF_FORMAT_PCM_S8 | SF_FORMAT_AIFF),
+    (SF_FORMAT_ALAW | SF_FORMAT_AIFF), (SF_FORMAT_ULAW | SF_FORMAT_AIFF),
+    (SF_FORMAT_PCM_16 | SF_FORMAT_AIFF), (SF_FORMAT_PCM_32 | SF_FORMAT_AIFF),
+    (SF_FORMAT_FLOAT | SF_FORMAT_AIFF), (SF_FORMAT_PCM_U8 | SF_FORMAT_AIFF),
+    (SF_FORMAT_PCM_24 | SF_FORMAT_AIFF), (SF_FORMAT_DOUBLE | SF_FORMAT_AIFF),
+    /* 30 - 39 */
+    SF_FORMAT_RAW, (SF_FORMAT_PCM_S8 | SF_FORMAT_RAW),
+    (SF_FORMAT_ALAW | SF_FORMAT_RAW), (SF_FORMAT_ULAW | SF_FORMAT_RAW),
+    (SF_FORMAT_PCM_16 | SF_FORMAT_RAW), (SF_FORMAT_PCM_32 | SF_FORMAT_RAW),
+    (SF_FORMAT_FLOAT | SF_FORMAT_RAW), (SF_FORMAT_PCM_U8 | SF_FORMAT_RAW),
+    (SF_FORMAT_PCM_24 | SF_FORMAT_RAW), (SF_FORMAT_DOUBLE | SF_FORMAT_RAW),
+    /* 40 - 49 */
+    SF_FORMAT_IRCAM, (SF_FORMAT_PCM_S8 | SF_FORMAT_IRCAM),
+    (SF_FORMAT_ALAW | SF_FORMAT_IRCAM), (SF_FORMAT_ULAW | SF_FORMAT_IRCAM),
+    (SF_FORMAT_PCM_16 | SF_FORMAT_IRCAM), (SF_FORMAT_PCM_32 | SF_FORMAT_IRCAM),
+    (SF_FORMAT_FLOAT | SF_FORMAT_IRCAM), (SF_FORMAT_PCM_U8 | SF_FORMAT_IRCAM),
+    (SF_FORMAT_PCM_24 | SF_FORMAT_IRCAM), (SF_FORMAT_DOUBLE | SF_FORMAT_IRCAM)
+};
+
 static int outfile_set(CSOUND *csound, OUTFILE *p)
 {
     FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
@@ -188,19 +221,14 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
       /* Need to open file */
       memset(&sfinfo, 0, sizeof(SF_INFO));
       p->flag = (int) MYFLT2LRND(*p->iflag);
-      switch (p->flag) {
-      case 0:
-        sfinfo.format = SF_FORMAT_FLOAT | SF_FORMAT_RAW;
-        break;
-      case 1:
+      if ((unsigned int) p->flag >= (unsigned int) 50)
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
-        break;
-      case 2:
-        sfinfo.format = SF_FORMAT_PCM_16 | TYPE2SF(csound->oparms->filetyp);
-        break;
-      default:
-        sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
-      }
+      else
+        sfinfo.format = fout_format_table[p->flag];
+      if (!SF2FORMAT(sfinfo.format))
+        sfinfo.format |= FORMAT2SF(csound->oparms->outformat);
+      if (!SF2TYPE(sfinfo.format))
+        sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
       sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
       sfinfo.channels = p->nargs;
       if ((p->idx = fout_open_sndfile(pp, &(p->fp), fname, 1, &sfinfo)) < 0)
@@ -250,20 +278,10 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
       sfinfo.channels = p->nargs;
       sfinfo.samplerate = (int) MYFLT2LRND(csound->ekr);
       p->flag = (int) MYFLT2LRND(*p->iflag);
-      switch (p->flag) {
-      case 0:
-        sfinfo.format = SF_FORMAT_FLOAT | SF_FORMAT_RAW;
-        break;
-      case 1:
+      if ((unsigned int) p->flag >= (unsigned int) 10)
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
-        break;
-      case 2:
-        /* according to manual, foutk always writes WAV format */
-        sfinfo.format = SF_FORMAT_PCM_16 | TYPE2SF(TYP_WAV);
-        break;
-      default:
-        sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
-      }
+      else
+        sfinfo.format = fout_format_table[p->flag] | SF_FORMAT_RAW;
       if ((p->idx = fout_open_sndfile(pp, &(p->fp), fname, 1, &sfinfo)) < 0)
         csound->Die(csound, Str("foutk: cannot open outfile %s"), fname);
     }
@@ -933,12 +951,7 @@ static OENTRY localops[] = {
         (SUBR) i_infile,        (SUBR) NULL,        (SUBR) NULL         }
 };
 
-PUBLIC long opcode_size(void)
-{
-    return (long) sizeof(localops);
-}
-
-PUBLIC OENTRY *opcode_init(CSOUND *csound)
+PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
 {
     FOUT_GLOBALS  *p;
 
@@ -948,12 +961,15 @@ PUBLIC OENTRY *opcode_init(CSOUND *csound)
     p = csound->QueryGlobalVariableNoCheck(csound, "_fout_globals");
     p->csound = csound;
     p->file_opened = (struct fileinTag*) NULL;
-    p->file_max = 0;
     p->file_num = -1;
-    p->fout_kreset = 0L;
     p->buf = (MYFLT*) NULL;
-    p->buf_size = 0;
 
-    return localops;
+    *ep = localops;
+    return (long) sizeof(localops);
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
