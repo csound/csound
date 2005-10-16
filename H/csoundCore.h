@@ -567,7 +567,9 @@ extern "C" {
     void (*SetHostData)(CSOUND *, void *hostData);
     CSOUND *(*Create)(void *hostData);
     int (*Compile)(CSOUND *, int argc, char **argv);
+    int (*CompileCsd)(CSOUND *, char *);
     int (*Perform)(CSOUND *, int argc, char **argv);
+    int (*PerformCsd)(CSOUND *, char *);
     int (*PerformKsmps)(CSOUND *);
     int (*PerformBuffer)(CSOUND *);
     int (*Cleanup)(CSOUND *);
