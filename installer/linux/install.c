@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     char *libdir = libdir32;
     int single = 0;
     int size = 0;
-    
+
     argv++;
     while (argc>1) {
       if (strncmp(*argv, "-PREFIX=", 8)==0) {
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
           strcpy(p, prefix);
           strcat(p, "/");
         }
-      }      
+      }
       else if (strcmp(*argv, "-float")==0 || strcmp(*argv, "-FLOAT")==0) {
         opcdir = opcdir32;
         single |= 1;
@@ -229,5 +229,4 @@ int main(int argc, char **argv)
     /* Also need to check existence of libsndfile and other necessary libraries */
 
 }
-
 
