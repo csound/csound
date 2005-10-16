@@ -22,7 +22,5 @@ static NGFENS localfgens[] = {
    { NULL, NULL }
 };
 
-static OENTRY *localops = NULL;
-
 FLINKAGE
 

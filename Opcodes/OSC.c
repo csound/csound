@@ -698,17 +698,15 @@ static OENTRY localops[] = {
 { "OSClisten", S(OSCLISTEN),3, "k", "iSSN", (SUBR)OSC_list_init, (SUBR)OSC_list}
 };
 
-PUBLIC long opcode_size(void)
-{
-    return (long) sizeof(localops);
-}
-
-PUBLIC OENTRY *opcode_init(CSOUND *csound)
+PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
 {
 #ifdef BETA
     csound->Message(csound, "**** OSC: liblo started ****\n");
+#else
+    (void) csound;
 #endif
-    return localops;
+    *ep = localops;
+    return (long) sizeof(localops);
 }
 
 PUBLIC int csoundModuleInfo(void)

@@ -2068,12 +2068,7 @@ static OENTRY localops[] = {
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }
 };
 
-PUBLIC long opcode_size(void)
-{
-    return (long) sizeof(localops);
-}
-
-PUBLIC OENTRY *opcode_init(CSOUND *csound)
+PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
 {
     ATS_GLOBALS *p;
 
@@ -2082,8 +2077,7 @@ PUBLIC OENTRY *opcode_init(CSOUND *csound)
       csound->Die(csound, Str("ugnorman.c: error allocating globals"));
     p = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
     p->atsbufreadaddr = NULL;
-    p->swapped_warning = 0;
-
-    return localops;
+    *ep = localops;
+    return (long) sizeof(localops);
 }
 
