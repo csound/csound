@@ -33,16 +33,12 @@ extern "C" {
 #endif
 
 #include "csoundCore.h"
-#include <limits.h>
 
-#ifdef Str
 #undef Str
-#endif
-#define Str(x) (((CSOUND*) csound)->LocalizeString(x))
+#define Str(x)  (csound->LocalizeString(x))
 
-PUBLIC  long    opcode_size(void);
-PUBLIC  OENTRY  *opcode_init(CSOUND *);
-PUBLIC  NGFENS  *fgen_init(CSOUND *);
+PUBLIC  long    csound_opcode_init(CSOUND *, OENTRY **);
+PUBLIC  NGFENS  *csound_fgen_init(CSOUND *);
 
 PUBLIC  int     csoundModuleCreate(CSOUND *);
 PUBLIC  int     csoundModuleInit(CSOUND *);
@@ -51,23 +47,16 @@ PUBLIC  const char  *csoundModuleErrorCodeToString(int);
 
 PUBLIC  int     csoundModuleInfo(void);
 
-#define LINKAGE                         \
-PUBLIC long opcode_size(void)           \
-{   return (long) sizeof(localops); }   \
-PUBLIC OENTRY *opcode_init(CSOUND *xx)  \
-{   (void) xx; return localops;     }   \
-PUBLIC int csoundModuleInfo(void)       \
+#define LINKAGE                                                         \
+PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
+{   (void) csound; *ep = localops; return (long) sizeof(localops);  }   \
+PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
-#define FLINKAGE                        \
-PUBLIC long opcode_size(void)           \
-{   if (localops == NULL) return LONG_MIN;              \
-    else return ((long) sizeof(localops) | LONG_MIN); } \
-PUBLIC OENTRY *opcode_init(CSOUND *xx)  \
-{   (void) xx; return localops;     }   \
-PUBLIC NGFENS *fgen_init(CSOUND *xx)    \
-{   (void) xx; return localfgens;   }   \
-PUBLIC int csoundModuleInfo(void)       \
+#define FLINKAGE                                                        \
+PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
+{   (void) csound; return localfgens;                               }   \
+PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
 #ifdef __cplusplus
