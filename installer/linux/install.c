@@ -161,15 +161,73 @@ int main(int argc, char **argv)
       if (size==2) strcat(b,"64");
       check_exists(b);
       if (single==1) {
-        sprintf(s, "cp -pv libf%s/* %s", (size==1?"":"64"),b);
+        sprintf(s, "cp -pv libf%s/libcsound.a %s", (size==1?"":"64"),b);
         system(s);
       }
       else {
-        sprintf(s, "cp -pv libd%s/* %s", (size==1?"":"64"),b);
+        sprintf(s, "cp -pv libd%s/libcsound.a %s", (size==1?"":"64"),b);
         system(s);
       }
     }
-
+    /* Need to setup OPCODEDIR or OPCODEDIR64 */
+    /* This differs according to which shell is being used, so for
+       bash, sh,  add to .profile "OPCODEDIRxx=$prefix/$opcdir; export OPCODEDIRxx"
+       csh, tcsh  add to .cshrc "setenv OPCODEDIRxx $prefix/$opcdir"
+    */
+    {
+      char *shell = getenv("SHELL");
+      if (strstr(shell,"csh")!=NULL) { /* CShell and friends */
+        char buff[120];
+        char temp[32];
+        FILE *rc;
+        FILE *new;
+        char name[32];
+        strcpy(name, (single==2 ? "OPCODEDIR32 " : "OPCODEDIR32 "));
+        strcpy(buff, getenv("HOME"));
+        strcat(buff, "/.cshrc");
+        rc = fopen(buff, "r");
+        strcpy(temp, buff); strcat(temp, ".XXXXXX");
+        if (mkstemp(temp)== -1) exit(2);
+        new = fopen(temp, "w");
+        while (!feof(rc)) {
+          char b[100];
+          fgets(b, 100, rc);
+          if (strstr(b, name)!=0) {
+            putc('#', new);
+          }
+          fputs(b, new);
+        }
+        fprintf(new, "setenv %s %s/%s\n", name, prefix , opcdir);
+        fclose(new); fclose(rc); unlink(buff); link(temp, buff);
+      }
+      else {
+        char buff[120];
+        char temp[32];
+        FILE *rc;
+        FILE *new;
+        char name[32];
+        strcpy(name, (single==2 ? "OPCODEDIR32 " : "OPCODEDIR32 "));
+        strcpy(buff, getenv("HOME"));
+        strcat(buff, "/.profile");
+        rc = fopen(buff, "r");
+        strcpy(temp, buff); strcat(temp, ".XXXXXX");
+        if (mkstemp(temp)== -1) exit(2);
+        new = fopen(temp, "w");
+        while (!feof(rc)) {
+          char b[100];
+          fgets(b, 100, rc);
+          if (strstr(b, name)!=0) {
+            putc('#', new);
+          }
+          fputs(b, new);
+        }
+        fprintf(new, "%s=%s/%s; export name\n", name, prefix , opcdir, name);
+        fclose(new); fclose(rc); unlink(buff); link(temp, buff);
+      }
+    }
+    /* and check /etc/ld.so.conf. If that is not writable change users LD_PATH */
+    /* Also need to check existence of libsndfile and other necessary libraries */
 
 }
+
 
