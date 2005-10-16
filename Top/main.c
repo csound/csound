@@ -329,14 +329,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     return musmon(csound);
 }
 
-PUBLIC int csoundCompileCsd(CSOUND *csound, char *csdFilename)
-{
-	char *argv[2];
-	argv[0] = "csound";
-	argv[1] = csdFilename;
-	return csoundCompile(csound, 2, argv);
-}
-
 PUBLIC int csoundPerform(CSOUND *csound, int argc, char **argv)
 {
     int     n;
@@ -358,10 +350,3 @@ PUBLIC int csoundPerform(CSOUND *csound, int argc, char **argv)
     return n;
 }
 
-PUBLIC int csoundPerformCsd(CSOUND *csound, char *csdFilename)
-{
-	char *argv[2];
-	argv[0] = "csound";
-	argv[1] = csdFilename;
-	return csoundPerform(csound, 2, argv);
-}
