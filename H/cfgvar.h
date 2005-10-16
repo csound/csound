@@ -269,7 +269,7 @@ typedef union csCfgVariable_u {
    * in the case of csoundSetGlobalConfigurationVariable().
    */
   PUBLIC int csoundSetConfigurationVariable(CSOUND *csound, const char *name,
-                                                             void *value);
+                                                            void *value);
 
   /**
    * Set the value of a global configuration variable, by parsing a string;
@@ -363,13 +363,6 @@ typedef union csCfgVariable_u {
    * Return value is CSOUNDCFG_SUCCESS in case of success.
    */
   PUBLIC int csoundDeleteAllGlobalConfigurationVariables(void);
-
-  /**
-   * Remove all configuration variables of Csound instance 'csound'
-   * and free database. This function is called by csoundReset().
-   * Return value is CSOUNDCFG_SUCCESS in case of success.
-   */
-  PUBLIC int csoundDeleteAllConfigurationVariables(CSOUND *csound);
 
   /**
    * Returns pointer to an error string constant for the specified
