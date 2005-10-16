@@ -259,7 +259,7 @@ extern "C" {
   /**
    * csoundInitializeCscore() prepares an instance of Csound for Cscore
    * processing outside of running an orchestra (i.e. "standalone Cscore").
-   * It is an alternative to csoundPreCompile(), 333333(), and
+   * It is an alternative to csoundPreCompile(), csoundCompile(), and
    * csoundPerform*() and should not be used with these functions.
    * You must call this function before using the interface in "cscore.h"
    * when you do not wish to compile an orchestra.
@@ -329,13 +329,6 @@ extern "C" {
   PUBLIC int csoundPerform(CSOUND *, int argc, char **argv);
 
   /**
-   * Compiles and renders a Csound performance,
-   * as directed by the supplied CSD file,
-   * in one pass. Returns 0 for success.
-   */
-  PUBLIC int csoundPerformCsd(CSOUND *, char *csdFilename);
-
-  /**
    * Compiles Csound input files (such as an orchestra and score)
    * as directed by the supplied command-line arguments,
    * but does not perform them. Returns a non-zero error code on failure.
@@ -348,20 +341,6 @@ extern "C" {
    * /endcode
    */
   PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
-
-/**
-   * Compiles a Csound input file (.csd file)
-   * which includes command-line arguments,
-   * but does not perform the file. Returns a non-zero error code on failure.
-   * In this (host-driven) mode, the sequence of calls should be as follows:
-   * /code
-   *       csoundCompileCsd(csound, argc, argv);
-   *       while (!csoundPerformBuffer(csound));
-   *       csoundCleanup(csound);
-   *       csoundReset(csound);
-   * /endcode
-   */
-  PUBLIC int csoundCompileCsd(CSOUND *, char *csdFilename);
 
   /**
    * Senses input events, and performs one control sample worth (ksmps) of
@@ -797,7 +776,7 @@ extern "C" {
   /**
    * Platform-independent function to load a shared library.
    */
-  PUBLIC void *csoundOpenLibrary(const char *libraryPath);
+  PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
 
   /**
    * Platform-independent function to unload a shared library.
