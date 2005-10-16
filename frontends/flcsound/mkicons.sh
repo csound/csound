@@ -16,5 +16,5 @@ done
 
 # Convert each to xpm's and then
 #
-# sed 's/#FFFFFF/None/' flcsound?*.xpm > flcsound.xpm 
+# sed 's/#FFFFFF/None/' flcsound?*.xpm > flcsound.xpm
 
