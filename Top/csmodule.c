@@ -213,12 +213,18 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     /* load library */
     h = (void*) csoundOpenLibrary(libraryPath);
     if (h == NULL) {
+#if defined(LINUX) || defined(__CYGWIN__)
+      csound->Warning(csound, "%s\n", dlerror());
+#endif
       csound->Warning(csound, Str("could not open library '%s'"), libraryPath);
       return CSOUND_ERROR;
     }
     /* check if the library is compatible with this version of Csound */
     infoFunc = (int (*)(void)) csoundGetLibrarySymbol(h, InfoFunc_Name);
     if (infoFunc != NULL) {
+#if defined(LINUX) || defined(__CYGWIN__)
+      csound->Warning(csound, "%s\n", dlerror());
+#endif
       if (check_plugin_compatibility(csound, fname, infoFunc()) != 0) {
         csoundCloseLibrary(h);
         return CSOUND_ERROR;
@@ -541,12 +547,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 
 PUBLIC void *csoundOpenLibrary(const char *libraryPath)
 {
-    void *ans = (void*) dlopen(libraryPath, RTLD_NOW | RTLD_LOCAL);
-    if (ans==NULL) {
-      char *str = dlerror();
-      if (str!=NULL) fputs(str, stderr);
-    }
-    return ans;
+    return (void*) dlopen(libraryPath, RTLD_NOW | RTLD_LOCAL);
 }
 
 PUBLIC int csoundCloseLibrary(void *library)
