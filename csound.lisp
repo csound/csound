@@ -53,7 +53,9 @@
 	:csoundGetEnv
 	:csoundSetDefaultEnv
 	:csoundPerform
+	:csoundPerformCsd
 	:csoundCompile
+	:csoundCompileCsd
 	:csoundPerformKsmps
 	:csoundPerformKsmpsAbsolute
 	:csoundPerformBuffer
@@ -292,7 +294,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -304,7 +306,7 @@
 
 (:return-type (ffi:c-pointer CSOUND))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -316,7 +318,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -332,7 +334,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -348,7 +350,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -358,7 +360,7 @@
 
 (:arguments (arg0 (ffi:c-pointer CSOUND)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -368,7 +370,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -378,7 +380,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -390,7 +392,7 @@
 
 (:return-type (ffi:c-pointer NIL))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -402,7 +404,7 @@
 
 	(hostData (ffi:c-pointer NIL)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -416,7 +418,7 @@
 
 (:return-type ffi:c-string)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -430,7 +432,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -446,7 +448,20 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
+
+
+(ffi:def-call-out csoundPerformCsd
+
+(:name "csoundPerformCsd")
+
+(:arguments (arg0 (ffi:c-pointer CSOUND))
+
+	(csdFilename ffi:c-string))
+
+(:return-type ffi:int)
+
+(:library "csound.dll"))
 
 
 
@@ -462,8 +477,20 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
+
+(ffi:def-call-out csoundCompileCsd
+
+(:name "csoundCompileCsd")
+
+(:arguments (arg0 (ffi:c-pointer CSOUND))
+
+	(csdFilename ffi:c-string))
+
+(:return-type ffi:int)
+
+(:library "csound.dll"))
 
 
 (ffi:def-call-out csoundPerformKsmps
@@ -474,7 +501,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -486,7 +513,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -498,7 +525,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -510,7 +537,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -520,7 +547,7 @@
 
 (:arguments (arg0 (ffi:c-pointer CSOUND)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -532,7 +559,7 @@
 
 (:return-type SINGLE-FLOAT)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -544,7 +571,7 @@
 
 (:return-type SINGLE-FLOAT)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -556,7 +583,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -568,7 +595,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -580,7 +607,7 @@
 
 (:return-type SINGLE-FLOAT)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -592,7 +619,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -604,7 +631,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -616,7 +643,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -628,7 +655,7 @@
 
 (:return-type ffi:long)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -640,7 +667,7 @@
 
 (:return-type ffi:long)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -652,7 +679,7 @@
 
 (:return-type (ffi:c-ptr SINGLE-FLOAT))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -664,7 +691,7 @@
 
 (:return-type (ffi:c-ptr SINGLE-FLOAT))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -676,7 +703,7 @@
 
 (:return-type (ffi:c-ptr SINGLE-FLOAT))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -688,7 +715,7 @@
 
 (:return-type (ffi:c-ptr SINGLE-FLOAT))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -700,7 +727,7 @@
 
 (:return-type ffi:c-string)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -714,7 +741,7 @@
 
 	(bufSize ffi:int))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -726,7 +753,7 @@
 
 (:return-type SINGLE-FLOAT)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -738,7 +765,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -750,7 +777,7 @@
 
 	(pending ffi:int))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -762,7 +789,7 @@
 
 (:return-type SINGLE-FLOAT)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -774,7 +801,7 @@
 
 	(time SINGLE-FLOAT))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -784,7 +811,7 @@
 
 (:arguments (arg0 (ffi:c-pointer CSOUND)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -798,7 +825,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -812,7 +839,7 @@
 ;;
 ;;	(arg2 ...))
 ;;
-;;(:library "_CsoundVST.dll"))
+;;(:library "csound.dll"))
 
 
 
@@ -828,7 +855,7 @@
 ;;
 ;;	(arg3 ...))
 ;;
-;;(:library "_CsoundVST.dll"))
+;;(:library "csound.dll"))
 
 
 
@@ -844,7 +871,7 @@
 ;;
 ;;	(args va_list))
 ;;
-;;(:library "_CsoundVST.dll"))
+;;(:library "csound.dll"))
 
 
 
@@ -858,7 +885,7 @@
 ;;
 ;;	(arg2 ...))
 ;;
-;;(:library "_CsoundVST.dll"))
+;;(:library "csound.dll"))
 
 
 
@@ -872,7 +899,7 @@
 ;;
 ;;	(args va_list))
 ;;
-;;(:library "_CsoundVST.dll"))
+;;(:library "csound.dll"))
 
 
 
@@ -892,7 +919,7 @@
 ;;
 ;;				(:return-type NIL))))
 ;;
-;;(:library "_CsoundVST.dll"))
+;;(:library "csound.dll"))
 
 
 
@@ -910,7 +937,7 @@
 ;;
 ;;				(:return-type NIL))))
 ;;
-;;(:library "_CsoundVST.dll"))
+;;(:library "csound.dll"))
 
 
 
@@ -922,7 +949,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -934,7 +961,7 @@
 
 	(messageLevel ffi:int))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -946,7 +973,7 @@
 
 	(message ffi:c-string))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -958,7 +985,7 @@
 
 	(c character))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -976,7 +1003,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -994,7 +1021,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1012,7 +1039,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1030,7 +1057,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1050,7 +1077,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1066,7 +1093,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1084,7 +1111,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1104,7 +1131,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1120,7 +1147,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1134,7 +1161,7 @@
 
 				(:return-type ffi:c-string))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1148,7 +1175,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1166,7 +1193,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1182,7 +1209,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1198,7 +1225,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1218,7 +1245,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1234,7 +1261,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1250,7 +1277,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1264,7 +1291,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1278,7 +1305,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1290,7 +1317,7 @@
 
 	(opcodelist (ffi:c-pointer opcodeListEntry)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1330,7 +1357,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1342,7 +1369,7 @@
 
 (:return-type (ffi:c-pointer NIL))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1354,7 +1381,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1368,7 +1395,7 @@
 
 (:return-type (ffi:c-pointer NIL))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1382,7 +1409,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1398,7 +1425,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1416,7 +1443,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1432,7 +1459,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1450,7 +1477,7 @@
 
 				(:return-type ffi:int))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1464,7 +1491,7 @@
 
 				(:return-type NIL))))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1476,7 +1503,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1488,7 +1515,7 @@
 
 	(debug ffi:int))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1502,7 +1529,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1518,7 +1545,7 @@
 
 (:return-type SINGLE-FLOAT)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1534,7 +1561,7 @@
 
 	(value SINGLE-FLOAT))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1550,7 +1577,7 @@
 
 (:return-type (ffi:c-ptr SINGLE-FLOAT))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1566,7 +1593,7 @@
 
 (:return-type (ffi:c-pointer NIL))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1578,7 +1605,7 @@
 
 (:return-type uintptr_t)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1588,7 +1615,7 @@
 
 (:return-type (ffi:c-pointer NIL))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1602,7 +1629,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1612,7 +1639,7 @@
 
 (:arguments (lock (ffi:c-pointer NIL)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1622,7 +1649,7 @@
 
 (:arguments (lock (ffi:c-pointer NIL)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1632,7 +1659,7 @@
 
 (:arguments (lock (ffi:c-pointer NIL)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1642,7 +1669,7 @@
 
 (:arguments (milliseconds size_t))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1652,7 +1679,7 @@
 
 (:arguments (arg0 (ffi:c-pointer RTCLOCK)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1664,7 +1691,7 @@
 
 (:return-type DOUBLE-FLOAT)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1676,7 +1703,7 @@
 
 (:return-type DOUBLE-FLOAT)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1686,7 +1713,7 @@
 
 (:return-type uint32)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1696,7 +1723,7 @@
 
 (:arguments (lang_code cslanguage_t))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1708,7 +1735,7 @@
 
 (:return-type ffi:c-string)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1724,7 +1751,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1738,7 +1765,7 @@
 
 (:return-type (ffi:c-pointer NIL))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1752,7 +1779,7 @@
 
 (:return-type (ffi:c-pointer NIL))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1766,7 +1793,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1776,7 +1803,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1788,7 +1815,7 @@
 
 (:return-type (ffi:c-pointer (ffi:c-pointer NIL)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1800,7 +1827,7 @@
 
 (:return-type (ffi:c-pointer (ffi:c-pointer NIL)))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1820,7 +1847,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1838,7 +1865,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1850,7 +1877,7 @@
 
 (:return-type (ffi:c-ptr ffi:c-string))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1864,7 +1891,7 @@
 
 (:return-type ffi:c-string)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1882,7 +1909,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1898,7 +1925,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1920,7 +1947,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1940,7 +1967,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1952,7 +1979,7 @@
 
 (:return-type ffi:int)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1966,7 +1993,7 @@
 
 	(keyLength uint32))
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
 
 
@@ -1978,5 +2005,5 @@
 
 (:return-type uint32)
 
-(:library "_CsoundVST.dll"))
+(:library "csound.dll"))
 
