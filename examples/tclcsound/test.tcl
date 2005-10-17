@@ -1,6 +1,7 @@
 # script to test cswish
 # use csOpcodedir to set OPCODEDIR in your system
 # if needed
+# Tcl/Tk 8.4
 # VL, 2005
 
 global filename fval aval

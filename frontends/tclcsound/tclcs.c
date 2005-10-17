@@ -399,7 +399,7 @@ void out_channel_value_callback(CSOUND *csound,
 {
   csdata *p = (csdata *) csoundGetHostData(csound);
   if(SetChannelValue(p->outchan, (char*) name, val)==CHAN_FOUND){
-   Tcl_UpdateLinkedVar(p->interp, name);
+   Tcl_UpdateLinkedVar(p->interp, (char *)name);
    }
 }
 
