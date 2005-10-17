@@ -1,5 +1,5 @@
 /*  partials.c
-
+ 
 (c) Victor Lazzarini, 2005
 
 This file is part of Csound.

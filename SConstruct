@@ -1249,9 +1249,9 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
             -framework tk -framework tcl
         '''))
     elif getPlatform() == 'linux':
-        csTclEnvironment.Append(LIBS = ['tcl', 'tk', 'X11'])
+        csTclEnvironment.Append(LIBS = ['tcl', 'tk', 'pthread'])
     elif getPlatform() == 'mingw':
-        csTclEnvironment.Append(LIBS = ['tcl', 'tk', 'X11'])
+        csTclEnvironment.Append(LIBS = ['tcl', 'tk'])
     csTkEnvironment = csTclEnvironment.Copy()
     csTclEnvironment.Append(CCFLAGS = ['-DTCLSH'])
     csTkEnvironment.Append(CCFLAGS = ['-DWISH'])
