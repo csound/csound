@@ -557,6 +557,7 @@ OOps/vbap_zak.c
 OOps/vdelay.c
 OOps/vpvoc.c
 Top/argdecode.c
+Top/filebuilding.cpp
 Top/cscore_internal.c
 Top/cscorfns.c
 Top/csmodule.c
