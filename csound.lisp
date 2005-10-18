@@ -457,7 +457,7 @@
 
 (:arguments (arg0 (ffi:c-pointer CSOUND))
 
-	(csdFilename ffi:c-string))
+	(filename ffi:c-string))
 
 (:return-type ffi:int)
 
@@ -480,17 +480,19 @@
 (:library "csound.dll"))
 
 
+
 (ffi:def-call-out csoundCompileCsd
 
 (:name "csoundCompileCsd")
 
 (:arguments (arg0 (ffi:c-pointer CSOUND))
 
-	(csdFilename ffi:c-string))
+	(argv ffi:c-string))
 
 (:return-type ffi:int)
 
 (:library "csound.dll"))
+
 
 
 (ffi:def-call-out csoundPerformKsmps
@@ -1365,11 +1367,9 @@
 
 (:name "csoundOpenLibrary")
 
-(:arguments (library (ffi:c-ptr (ffi:c-ptr NIL)))
+(:arguments (libraryPath ffi:c-string))
 
-	(libraryPath ffi:c-string))
-
-(:return-type (ffi:int))
+(:return-type (ffi:c-pointer NIL))
 
 (:library "csound.dll"))
 
