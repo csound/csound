@@ -2197,10 +2197,22 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     /* FIXME: no looping possible yet */
-    ftp->cpscvt = FL(0.0);
-    ftp->loopmode1 = 0;
-    ftp->loopmode2 = 0;
-    ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
+    {
+      SF_LOOP_INFO lpd;
+      int ans = sf_command(fd, SFC_GET_LOOP_INFO, &lpd, sizeof(SF_LOOP_INFO));
+#ifdef BETA
+      fprintf(stderr, "Loop info: time_sig_num=%d time_sig_den=%d loop_mode=%d\n",
+              lpd.time_sig_num, lpd.time_sig_den, lpd.loop_mode);
+      fprintf(stderr, "         : num_beats=%d root_key=%d ans=%d\n",
+              lpd.num_beats, lpd.root_key, ans);
+#endif
+      ftp->cpscvt = FL(0.0);
+      ftp->loopmode1 = (lpd.loop_mode==SF_LOOP_NONE ? 0 :
+                        lpd.loop_mode==SF_LOOP_FORWARD ? 1 :
+                        2);
+      ftp->loopmode2 = 0;
+      ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
+    }
     /* read sound with opt gain */
     if ((inlocs = getsndin(csound, fd, ftp->ftable, ff->flen + 1, p)) < 0) {
       return fterror(ff, Str("GEN1 read error"));
