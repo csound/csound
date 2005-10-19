@@ -7,7 +7,7 @@ The main build system for Csound 5 uses SCons. Its use is briefly described here
 All Csound 5 builds require the following:
 
 1. On Linux, install gcc; on Windows, install MinGW with MSYS, or install MSVC; on OS X, install the latest XCode development system.
-2. Install Python from http://www.python.org.
+2. Install Python from http://www.python.org. Note that on Windows, if you have installed both MinGW and MSVC, it is best to use batch files to set up a separate environment for each compiler that does not refer to any header, library, DLL, or executable of the other compiler.
 3. Install SCons from http://www.scons.org.
 4. Install libdsndfile from http://www.mega-nerd.com/libsndfile.
 
@@ -15,7 +15,7 @@ It is best to obtain current Csound 5 sources from CVS at http://sourceforge.net
 
 Optional configurations can include the following. In most cases it is best to install the most recent stable versions.
 
-4. For GUI widgets, install FLTK from http://www.fltk.org. You must build FLTK with --enable-threads.
+4. For GUI widgets, install FLTK from http://www.fltk.org. You must configure and build FLTK with "--enable-threads".
 5. Real-time audio can use ALSA, the Windows multimedia library, or PortAudio (v19-devel branch) from http://www.portaudio.com/usingcvs.html.
 6. Real-time MIDI can use PortMidi from http://www.cs.cmu.edu/~music/portmusic.
 7. CsoundVST, which is both a standalone GUI, a Python extension module, and a VST plugin form of Csound with extensive facilities for algorithmic composition, requires FLTK and the boost C++ libraries from http://www.boost.org.
@@ -25,7 +25,7 @@ Optional configurations can include the following. In most cases it is best to i
 
 Execute "scons -h" to discover the current configuration options.
 
-Modify custom.py as required for your installation (required on Windows, may not be required on Linux).
+Modify custom.py as required for your installation (usually required on Windows, may not be required on Linux).
 
 Execute "scons" with the options you desire.
 
