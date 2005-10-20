@@ -18,14 +18,14 @@ For documentation, please see the files in the doc subdirectory.
 For a list of major changes to Loris, organized by release number,
 please see the file NEWS.
 
-INSTALLATION: 
+INSTALLATION:
 
 For generic configuration and installation instructions, see
 the file INSTALL.
 
 In order to compile and link the Loris library and scripting
 extensions, you will need the FFTW Fourier transform routines,
-available at www.fftw.org. FFTW is covered by its own 
+available at www.fftw.org. FFTW is covered by its own
 license and copyright, and is entirely separate from Loris.
 
 Loris no longer has any dependency on the IRCAM SDIF library.
@@ -33,31 +33,30 @@ Loris no longer has any dependency on the IRCAM SDIF library.
 MacOS INSTALLATION:
 
 Loris can be built using the standard GNU tools from a Terminal window
-under Mac OS X (Darwin), follow the instructions for the standard 
-distribution. All compatibility issues that caused poor performance 
-or failure of the standard configuration and build tools under 
+under Mac OS X (Darwin), follow the instructions for the standard
+distribution. All compatibility issues that caused poor performance
+or failure of the standard configuration and build tools under
 Darwin have (long since) been resolved (except that the Tcl
 module fails to load under MacOS 10.2). You will, of course, need
 the developers' tools, available from Apple, in order to compile
 Loris (or anything else) under Darwin. It is also possible to
-build Loris using CodeWarrior or ProjectBuilder under OS X. 
+build Loris using CodeWarrior or ProjectBuilder under OS X.
 
-Loris can also be built for older versions of the Mac OS, but 
-owing to the difficulty of maintaining the project files for 
+Loris can also be built for older versions of the Mac OS, but
+owing to the difficulty of maintaining the project files for
 new releases of the CodeWarrior development environment, we are
 no longer attempting to distribute those project files in any
 form. Users wanting to build Loris using CodeWarrior can simply
 drag the source files in the classes and pi directories into
 a new project along with appropriate versions of the SDIF and
-FFTW libraries (available from their respecitve websites). 
-Users wanting to build an extension for MacPython should 
+FFTW libraries (available from their respecitve websites).
+Users wanting to build an extension for MacPython should
 follow the directions for building MacPython extensions using
 CodeWarrior, using loris_python_wrap.C from the scripting
-directory to build the module, loriscmodule.shlib, or something 
+directory to build the module, loriscmodule.shlib, or something
 similar (the suffix convention differs depending on the version
-of MacPython), and loris.py from the scripting directory as the 
-interface to the C module. 
-
+of MacPython), and loris.py from the scripting directory as the
+interface to the C module.
 
 COPYRIGHT AND LICENSE:
 
