@@ -760,7 +760,7 @@ else:
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
     if getPlatform() == 'linux' or getPlatform() == 'cygwin':
-        widgetsEnvironment.ParseConfig('fltk-config --ldflags')
+        widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags  --ldflags')
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
         widgetsEnvironment.Append(LIBS = ['fltk'])
