@@ -50,93 +50,114 @@ extern "C" {
  * Initialize an internal CSD file.
  */
 PUBLIC void csoundCsdCreate(CSOUND *csound);
-	
+
 /**
  * Set the CsOptions element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdSetOptions(CSOUND *csound, char *options);
-	
+
 /**
  * Return the CsOptions element of the internal CSD file.
- */		
+ */
 PUBLIC const char* csoundCsdGetOptions(CSOUND *csound);
-	
+
 /**
  * Set the CsInstruments element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdSetOrchestra(CSOUND *csound, char *orchestra);
 
 /**
  * Return the CsInstruments element of the internal CSD file.
- */		
+ */
 PUBLIC const char* csoundCsdGetOrchestra(CSOUND *csound);
-	
+
 /**
  * Append a line of text to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddScoreLine(CSOUND *csound, char *line);
-	
+
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent11(CSOUND *csound, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9, double p10, double p11);
-	
+
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent10(CSOUND *csound, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9, double p10);
-	
+
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent9(CSOUND *csound, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9);
 
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent8(CSOUND *csound, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
 
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent7(CSOUND *csound, double p1, double p2, double p3, double p4, double p5, double p6, double p7);
 
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent6(CSOUND *csound, double p1, double p2, double p3, double p4, double p5, double p6);
 
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent5(CSOUND *csound, double p1, double p2, double p3, double p4, double p5);
 
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent4(CSOUND *csound, double p1, double p2, double p3, double p4);
 
 /**
  * Append an 'i' event to the CsScore element of the internal CSD file.
- */		
+ */
 PUBLIC void csoundCsdAddEvent3(CSOUND *csound, double p1, double p2, double p3);
-	
+
 /**
  * Save the internal CSD file to the indicated filename, which must end in '.csd'.
- */		
+ */
 PUBLIC int csoundCsdSave(CSOUND *csound, char *filename);
-	
+
 /**
  * Convenience function that saves the internal CSD file to the indicated filename,
  * which must end in '.csd, then performs the file.
- */		
+ */
 PUBLIC int csoundCsdCompile(CSOUND *csound, char *filename);
 
 /**
  * Convenience function that saves the internal CSD file to the indicated filename,
  * which must end in '.csd, then compiles the file for later performance.
- */		
+ */
 PUBLIC int csoundCsdPerform(CSOUND *csound, char *filename);
+
+/**
+ * Compiles a Csound input file (.csd file)
+ * which includes command-line arguments,
+ * but does not perform the file. Returns a non-zero error code on failure.
+ * In this (host-driven) mode, the sequence of calls should be as follows:
+ * /code
+ *       csoundCompileCsd(csound, argc, argv);
+ *       while (!csoundPerformBuffer(csound));
+ *       csoundCleanup(csound);
+ *       csoundReset(csound);
+ * /endcode
+ */
+PUBLIC int csoundCompileCsd(CSOUND *, char *csdFilename);
+
+/**
+ * Compiles and renders a Csound performance,
+ * as directed by the supplied CSD file,
+ * in one pass. Returns 0 for success.
+ */
+PUBLIC int csoundPerformCsd(CSOUND *, char *csdFilename);
 
 #ifdef __cplusplus
 };
