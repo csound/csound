@@ -557,7 +557,6 @@ OOps/vbap_zak.c
 OOps/vdelay.c
 OOps/vpvoc.c
 Top/argdecode.c
-Top/filebuilding.cpp
 Top/cscore_internal.c
 Top/cscorfns.c
 Top/csmodule.c
@@ -1070,6 +1069,7 @@ else:
     frontends/CsoundVST/StrangeAttractor.cpp
     frontends/CsoundVST/System.cpp
     frontends/CsoundVST/Soundfile.cpp
+    frontends/CsoundVST/filebuilding.cpp
     ''')
     # These are the Windows system call libraries.
     if getPlatform() == 'mingw':
