@@ -31,4 +31,3 @@ Execute "scons" with the options you desire.
 
 11. To install on Linux, execute "scons install". To install on Windows, use the NSIS installer from http://nsis.sourceforge.net and run csound5/installer/windows/csound.nsi.
 
-
