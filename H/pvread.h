@@ -33,7 +33,6 @@ typedef struct {
     /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
     MYFLT   frPrtim, asr;
     float   *frPtr;
-    AUXCH   fftBuf;
     long    mybin;
 } PVREAD;
 

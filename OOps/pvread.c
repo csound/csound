@@ -39,7 +39,7 @@ static int pvocex_loadfile(CSOUND *, const char *fname, PVREAD *p);
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
 
-void FetchInOne(
+static void FetchInOne(
     float   *inp,       /* pointer to input data */
     MYFLT   *buf,       /* where to put our nice mag/pha pairs */
     long    fsize,      /* frame size we're working with */
@@ -50,7 +50,7 @@ void FetchInOne(
     float   *frame1;
     long    base;
     MYFLT   frac;
-    long    twmybin = mybin+mybin; /* Always used thus */
+    long    twmybin = mybin+mybin;  /* Always used thus */
 
     /***** WITHOUT INFO ON WHERE LAST FRAME IS, MAY 'INTERP' BEYOND IT ****/
     base = (long)pos;               /* index of basis frame of interpolation */
@@ -58,9 +58,9 @@ void FetchInOne(
     /* & how close to get to next */
     frame0 = inp + ((long) fsize + 2L) * base + twmybin;
     frame1 = frame0 + ((long) fsize + 2L);      /* addresses of both frames */
-    if (frac != 0.0) {          /* must have 2 cases to avoid poss seg vlns */
-                                /* and failed computes, else may interp   */
-                                /* bd valid data */
+    if (frac != 0.0) {  /* must have 2 cases to avoid possible segmentation */
+                        /* violations and failed computes, else may interp  */
+                        /* beyond valid data */
       buf[0] = frame0[0] + frac * (frame1[0] - frame0[0]);
       buf[1] = frame0[1] + frac * (frame1[1] - frame0[1]);
     }
@@ -87,7 +87,7 @@ int pvreadset(CSOUND *csound, PVREAD *p)
 int pvread(CSOUND *csound, PVREAD *p)
 {
     MYFLT  frIndx;
-    MYFLT  *buf = (MYFLT*) p->fftBuf.auxp;
+    MYFLT  buf[2];
     int    size = pvfrsiz(p);
 
     if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) {
@@ -100,7 +100,7 @@ int pvread(CSOUND *csound, PVREAD *p)
         csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
       }
     }
-    FetchInOne(p->frPtr, buf, size, frIndx, p->mybin);
+    FetchInOne(p->frPtr, &(buf[0]), size, frIndx, p->mybin);
     *p->kfreq = buf[1];
     *p->kamp = buf[0];
     return OK;
