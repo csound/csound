@@ -31,10 +31,68 @@
 #include "pstream.h"
 #include "oload.h"
 
-static void generate_frame(CSOUND*,PVSANAL *p);
-static void process_frame(CSOUND*,PVSYNTH *p);
-void    hamming(MYFLT *win,int winLen,int even);
-void    vonhann(MYFLT *win,int winLen,int even);
+        double  besseli(double x);
+static  void    hamming(MYFLT *win, int winLen, int even);
+static  void    vonhann(MYFLT *win, int winLen, int even);
+
+static  void    generate_frame(CSOUND *, PVSANAL *p);
+static  void    process_frame(CSOUND *, PVSYNTH *p);
+
+/* generate half-window */
+
+static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
+                                        int type, int winLen)
+{
+    double  fpos, inc;
+    MYFLT   *ftable;
+    int     i, n, flen, even;
+
+    even = (winLen + 1) & 1;
+    switch (type) {
+      case 0:   /* Hamming */
+        hamming(buf, (winLen >> 1), even);
+        return OK;
+      case 1:   /* Hanning */
+        vonhann(buf, (winLen >> 1), even);
+        return OK;
+      case 2:   /* Kaiser */
+        {
+          double  beta = 6.8;
+          double  x, flen2, besbeta;
+          flen2 = 1.0 / ((double) (winLen >> 1) * (double) (winLen >> 1));
+          besbeta = 1.0 / besseli(beta);
+          n = winLen >> 1;
+          x = (even ? 0.5 : 0.05);
+          for (i = 0; i < n; i++, x += 1.0)
+            buf[i] = (MYFLT) (besseli(beta * sqrt(1.0 - x * x * flen2))
+                              * besbeta);
+          buf[i] = FL(0.0);
+        }
+        return OK;
+      default:
+        if (type >= 0)
+          return csound->InitError(csound, Str("invalid window type"));
+    }
+    /* use table created with GEN20 */
+    ftable = csound->GetTable(csound, -(type), &flen);
+    if (ftable == NULL)
+      return csound->InitError(csound, Str("ftable for window not found"));
+    inc = (double) flen / (double) (winLen & (~1));
+    fpos = ((double) flen + (double) even * inc) * 0.5;
+    n = winLen >> 1;
+    /* this assumes that for a window with even size, space for an extra */
+    /* sample is allocated */
+    for (i = 0; i < n; i++) {
+      double  frac, tmp;
+      int     pos;
+      frac = modf(fpos, &tmp);
+      pos = (int) tmp;
+      buf[i] = ftable[pos] + ((ftable[pos + 1] - ftable[pos]) * (MYFLT) frac);
+      fpos += inc;
+    }
+    buf[n] = (even ? FL(0.0) : ftable[flen]);
+    return OK;
+}
 
 int pvsanalset(CSOUND *csound, PVSANAL *p)
 {
@@ -84,18 +142,8 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     analwinbase = (MYFLT *) (p->analwinbuf.auxp);
     analwinhalf = analwinbase + halfwinsize;
 
-    switch (wintype) {
-    case PVS_WIN_HAMMING:
-      hamming(analwinhalf,halfwinsize,Mf);
-      break;
-    case PVS_WIN_HANN:
-      vonhann(analwinhalf,halfwinsize,Mf);
-      break;
-      /* KAISER ... etc.... ? */
-    default:
-      csound->Die(csound, Str("pvsanal: unsupported value for iwintype\n"));
-      break;
-    }
+    if (PVS_CreateWindow(csound, analwinhalf, wintype, M) != OK)
+      return NOTOK;
 
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf - i) = *(analwinhalf + i - Mf);
@@ -362,22 +410,13 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     analwinhalf = (MYFLT *) (p->analwinbuf.auxp) + halfwinsize;
     synwinhalf = (MYFLT *) (p->synwinbuf.auxp) + halfwinsize;
 
-    switch (wintype) {
-    case PVS_WIN_HAMMING:
-      hamming(analwinhalf,halfwinsize,Mf);
-      break;
-    case PVS_WIN_HANN:
-      vonhann(analwinhalf,halfwinsize,Mf);
-      break;
-    default:
-      csound->Die(csound, Str("pvsanal: unsupported value for iwintype\n"));
-      break;
-    }
+    if (PVS_CreateWindow(csound, analwinhalf, wintype, M) != OK)
+      return NOTOK;
 
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf - i) = *(analwinhalf + i - Mf);
     if (M > N) {
-      /*  sinc function */
+      /* sinc function */
       if (Mf)
         *analwinhalf *= (MYFLT)((double)N * sin(PI*0.5/(double)N) /
                                 ( PI*0.5));
@@ -391,24 +430,14 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     sum = FL(0.0);
     for (i = -halfwinsize; i <= halfwinsize; i++)
       sum += *(analwinhalf + i);
-    sum = FL(2.0) / sum;  /*factor of 2 comes in later in trig identity*/
+    sum = FL(2.0) / sum;  /* factor of 2 comes in later in trig identity */
     for (i = -halfwinsize; i <= halfwinsize; i++)
       *(analwinhalf + i) *= sum;
 
-    /* synthesis windows*/
+    /* synthesis windows */
     if (M <= N) {
-      switch (wintype) {
-      case PVS_WIN_HAMMING:
-        hamming(synwinhalf,halfwinsize,Lf);
-        break;
-      case PVS_WIN_HANN:
-        vonhann(synwinhalf,halfwinsize,Lf);
-        break;
-      default:
-        csound->Die(csound, Str("pvsynth: internal error: "
-                "fsig has unrecognised value for iwintype\n"));
-        break;
-      }
+      if (PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK)
+        return NOTOK;
 
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
@@ -417,23 +446,13 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
         *(synwinhalf + i) *= sum;
 
       sum = FL(0.0);
-   /* no timescaling, so I(nterpolation) will always = D(ecimation) = overlap*/
+   /* no timescaling, so I(nterpolation) will always = D(ecimation) = overlap */
       for (i = -halfwinsize; i <= halfwinsize; i+=overlap)
         sum += *(synwinhalf + i) * *(synwinhalf + i);
     }
     else {
-      switch (wintype) {
-      case PVS_WIN_HAMMING:
-        hamming(synwinhalf,halfwinsize,Lf);
-        break;
-      case PVS_WIN_HANN:
-        vonhann(synwinhalf,halfwinsize,Lf);
-        break;
-      default:
-        csound->Die(csound, Str("pvsynth: internal error: "
-                "fsig has unrecognised value for iwintype\n"));
-        break;
-      }
+      if (PVS_CreateWindow(csound, synwinhalf, wintype, M) != OK)
+        return NOTOK;
 
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
@@ -638,7 +657,7 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
     return OK;
 }
 
-void hamming(MYFLT *win, int winLen, int even)
+static void hamming(MYFLT *win, int winLen, int even)
 {
     double ftmp;
     int i;
@@ -689,7 +708,7 @@ double besseli(double x)
     return ans;
 }
 
-void vonhann(MYFLT *win, int winLen, int even)
+static void vonhann(MYFLT *win, int winLen, int even)
 {
     MYFLT ftmp;
     int i;
