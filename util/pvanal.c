@@ -160,11 +160,6 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     long    oframeEst = 0;      /* output frms estimated */
     long    frameSize  = 0;     /* size of FFT frames */
     long    frameIncr  = 0;     /* step between successive frames */
-#if 0
-    WINDAT  dwindow;
-#endif
- /* MYFLT   max = 0.0; */
- /* int     cnt = 0; */
     int     latch = 200;
     FILE    *trfil = stdout;
     pv_wtype  WindowType = PVOC_HANN;
@@ -921,7 +916,7 @@ static void kaiser(MYFLT *win, int len, double Beta)
 {
     MYFLT *ft = win;
     double i, xarg = 1.0;        /*xarg = amp scalefactor */
-    for (i = -len/2.0 + 0.1 ; i < len/2.0 ; i++) {
+    for (i = -(double)len/2.0 + 0.1 ; i < (double)len/2.0 ; i++) {
       double z = 2.0*i/(double)(len - 1);
       *ft++ = (MYFLT) (xarg *
                        besseli(Beta * sqrt(1.0-z*z)) /
