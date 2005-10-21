@@ -267,7 +267,7 @@ static int flooper_init(CSOUND *csound, flooper *p)
     p->strts     = starts;
     p->durs      = durs;
     p->ndx       = FL(0.0);   /* lookup index */
-    p->loop_off  = 0;
+    p->loop_off  = 1;
     return OK;
 }
 
