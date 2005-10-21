@@ -34,9 +34,9 @@ endin
 </CsInstruments>
 
 <CsScore>
-f0 36000000
+f0 450000
 f1 0 4096 10 1
-i2 0 36000
+i2 0 450000
 </CsScore>
 
 </CsoundSynthesizer>
