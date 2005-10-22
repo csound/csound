@@ -1006,12 +1006,13 @@ static int gen20(FGDATA *ff, FUNC *ftp)
         return OK;
     case 7:                     /* Kaiser */
       {
-        double flen2 = (double) ff->flen / 2.0;
-        double flenm12 = (double) (ff->flen-1) * (ff->flen-1);
-        double besbeta = besseli(beta);
-        for (i = 0, x = -flen2 + 0.1 ; i <= (int) ff->flen ; i++, x++)
-          ft[i] = (MYFLT) (xarg * besseli((beta * sqrt(1.0 - x * x / flenm12)))
-                                / besbeta);
+        double flen2 = 4.0 / ((double) ff->flen * (double) ff->flen);
+        double besbeta = 1.0 / besseli(beta);
+        x = (double) ff->flen * -0.5 + 1.0;
+        ft[0] = ft[ff->flen] = (MYFLT) (xarg * besbeta);
+        for (i = 1 ; i < (int) ff->flen ; i++, x += 1.0)
+          ft[i] = (MYFLT) (xarg * besseli(beta * sqrt(1.0 - x * x * flen2))
+                                * besbeta);
         return OK;
       }
     case 8:                     /* Rectangular */
