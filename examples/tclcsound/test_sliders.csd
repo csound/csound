@@ -28,12 +28,3 @@ i1 0 600
 </CsScore>
 
 </CsoundSynthesizer>
-
-</CsInstruments>
-<CsScore>
-f1 0 16384 10 1
-i1 0 60
-
-</CsScore>
-
-</CsoundSynthesizer>
