@@ -419,12 +419,31 @@ csoundLibraryEnvironment.Append(CCFLAGS = ['-D__BUILDING_LIBCSOUND'])
 csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Copy()
 csoundDynamicLibraryEnvironment.Append(LIBS = ['sndfile'])
 if getPlatform() == 'mingw':
+    if commonEnvironment['MSVC'] == '0':
+        # These are the Windows system call libraries.
+        csoundWindowsLibraries = Split('''
+                                       kernel32 gdi32 wsock32 ole32 uuid winmm
+                                       ''')
+    else:
+        # These are the Windows system call libraries.
+        csoundWindowsLibraries = Split('''
+                                       kernel32 gdi32 wsock32 ole32 uuid winmm
+                                       user32.lib ws2_32.lib comctl32.lib
+                                       gdi32.lib comdlg32.lib advapi32.lib
+                                       shell32.lib ole32.lib oleaut32.lib
+                                       uuid.lib odbc32.lib odbccp32.lib
+                                       kernel32.lib user32.lib gdi32.lib
+                                       winspool.lib comdlg32.lib advapi32.lib
+                                       shell32.lib ole32.lib oleaut32.lib
+                                       uuid.lib odbc32.lib odbccp32.lib
+                                       ''')
+if getPlatform() == 'mingw':
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
     csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
     csoundDynamicLibraryEnvironment['ENV']['PATH'] = os.environ['PATH']
 elif getPlatform() == 'linux':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
-csoundWrapperLibraryEnvironment = csoundDynamicLibraryEnvironment.Copy()
+csndInterfacesEnvironment = csoundDynamicLibraryEnvironment.Copy()
 
 pluginEnvironment = commonEnvironment.Copy()
 pluginEnvironment.Append(LIBS = ['sndfile'])
@@ -448,31 +467,14 @@ guiProgramEnvironment = commonEnvironment.Copy()
 
 pdClassEnvironment = commonEnvironment.Copy()
 csTclEnvironment = commonEnvironment.Copy()
-
 if getPlatform() == 'mingw':
     if commonEnvironment['MSVC'] == '0':
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
         guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-        # These are the Windows system call libraries.
-        csoundWindowsLibraries = Split('''
-                                       kernel32 gdi32 wsock32 ole32 uuid winmm
-                                       ''')
     else:
         csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
-        # These are the Windows system call libraries.
-        csoundWindowsLibraries = Split('''
-                                       kernel32 gdi32 wsock32 ole32 uuid winmm
-                                       user32.lib ws2_32.lib comctl32.lib
-                                       gdi32.lib comdlg32.lib advapi32.lib
-                                       shell32.lib ole32.lib oleaut32.lib
-                                       uuid.lib odbc32.lib odbccp32.lib
-                                       kernel32.lib user32.lib gdi32.lib
-                                       winspool.lib comdlg32.lib advapi32.lib
-                                       shell32.lib ole32.lib oleaut32.lib
-                                       uuid.lib odbc32.lib odbccp32.lib
-                                       ''')
     csoundProgramEnvironment.Append(LIBS = csoundWindowsLibraries)
     vstEnvironment.Append(LIBS = csoundWindowsLibraries)
     guiProgramEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -612,26 +614,38 @@ else:
 libs.append(csoundLibrary)
 zipDependencies.append(csoundLibrary)
 
-if not (pythonFound and swigFound and boostFound and commonEnvironment['buildCsoundVST'] == '1'):
-    print 'CONFIGURATION DECISION: Not building C++ and Python wrappers.'
+if not (pythonFound and swigFound):
+    print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
 else:
-    print 'CONFIGURATION DECISION: Building wrapper library for C++ and Python.'
-    csoundWrapperLibraryEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
-    csoundWrapperLibrarySources = Split('''
-        frontends/CsoundVST/filebuilding.cpp
+    print 'CONFIGURATION DECISION: Building Csound interfaces library.'
+    csndInterfacesEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
+    csndInterfacesSources = Split('''
+        interfaces/filebuilding.cpp
     ''')
     if commonEnvironment['dynamicCsoundLibrary']=='1' or getPlatform()=='mingw':
-        csoundWrapperLibraryEnvironment.Prepend(LIBS = ['csound'])
+        csndInterfacesEnvironment.Prepend(LIBS = ['csound'])
     else:
-        csoundWrapperLibrarySources += libCsoundSources
+        csndInterfacesSources += libCsoundSources
     if getPlatform() == 'linux' or getPlatform() == 'darwin':
-        csoundWrapperLibraryEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
+        csndInterfacesEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
     elif getPlatform() == 'mingw':
-        csoundWrapperLibraryEnvironment.Prepend(LIBS = ['stdc++'])
-    csoundWrapperLibrary = csoundWrapperLibraryEnvironment.SharedLibrary('cppsound', csoundWrapperLibrarySources)
-    Depends(csoundWrapperLibrary, csoundLibrary)
-    libs.append(csoundWrapperLibrary)
-    zipDependencies.append(csoundWrapperLibrary)
+        csndInterfacesEnvironment.Prepend(LIBS = ['python23', 'stdc++'])
+	csndInterfacesEnvironment.Append(SWIGFLAGS = Split('-c -includeall -I. -IH -Iinterfaces'))
+    swigflags = csndInterfacesEnvironment['SWIGFLAGS']
+    for option in csndInterfacesEnvironment['CPPPATH']:
+        option = '-I' + option
+        csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
+    for option in csndInterfacesEnvironment['CCFLAGS']:
+            if string.find(option, '-D') == 0:
+                csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
+    csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces.i', SWIGFLAGS = [swigflags,'-python'])
+    csndInterfacesSources.insert(0, csndPythonInterface)
+    csndInterfacesEnvironment.Append(LIBS = csoundWindowsLibraries)
+    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+    csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
+    Depends(csndInterfaces, csoundLibrary)
+    libs.append(csndInterfaces)
+    zipDependencies.append(csndInterfaces)
 
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
@@ -1023,7 +1037,7 @@ else:
     headers += glob.glob('frontends/CsoundVST/*.hpp')
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
-    vstEnvironment.Prepend(LIBS = ['cppsound', 'sndfile'])
+    vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
@@ -1067,12 +1081,12 @@ else:
     for option in vstEnvironment['CPPPATH']:
         option = '-I' + option
         vstEnvironment.Append(SWIGFLAGS = [option])
-        for option in vstEnvironment['CCFLAGS']:
-                if string.find(option, '-D') == 0:
-                        vstEnvironment.Append(SWIGFLAGS = [option])
-        for option in vstEnvironment['CPPFLAGS']:
-                if string.find(option, '-D') == 0:
-                        vstEnvironment.Append(SWIGFLAGS = [option])
+    for option in vstEnvironment['CCFLAGS']:
+            if string.find(option, '-D') == 0:
+                vstEnvironment.Append(SWIGFLAGS = [option])
+    #for option in vstEnvironment['CPPFLAGS']:
+    #        if string.find(option, '-D') == 0:
+    #                vstEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =',commonEnvironment['ENV']['PATH']
     csoundVstSources = Split('''
     frontends/CsoundVST/AudioEffect.cpp
@@ -1130,7 +1144,7 @@ else:
     zipDependencies.append(csoundvst)
     libs.append(csoundvst)
     libs.append('CsoundVST.py')
-    Depends(csoundvst, csoundWrapperLibrary)
+    Depends(csoundvst, csndInterfaces)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
