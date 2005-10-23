@@ -339,6 +339,6 @@ PUBLIC int csoundPerformCsd(CSOUND *csound, char *csdFilename)
 }
 
 #ifdef __cplusplus
-};
+}
 #endif
 
