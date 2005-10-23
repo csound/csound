@@ -616,8 +616,10 @@ else:
 
 # Plugin opcodes.
 
-pluginLibraries.append(pluginEnvironment.SharedLibrary('babo',
-    ['Opcodes/babo.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ambicode',
+    ['Opcodes/ambicode.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('ambideco',
+    ['Opcodes/ambideco.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('bbcut',
     ['Opcodes/bbcut.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('biquad',
