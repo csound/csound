@@ -160,7 +160,7 @@ PUBLIC int csoundCompileCsd(CSOUND *, char *csdFilename);
 PUBLIC int csoundPerformCsd(CSOUND *, char *csdFilename);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

@@ -319,6 +319,13 @@ oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
+swigFound = 'swig' in commonEnvironment['TOOLS']
+print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
+pythonFound = configure.CheckHeader("Python.h", language = "C")
+if not pythonFound:
+    pythonFound = configure.CheckHeader("python2.3/Python.h", language = "C")
+if not pythonFound:
+    pythonFound = configure.CheckHeader("python2.4/Python.h", language = "C")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -409,6 +416,15 @@ def buildzip(env, target, source):
 
 csoundLibraryEnvironment = commonEnvironment.Copy()
 csoundLibraryEnvironment.Append(CCFLAGS = ['-D__BUILDING_LIBCSOUND'])
+csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Copy()
+csoundDynamicLibraryEnvironment.Append(LIBS = ['sndfile'])
+if getPlatform() == 'mingw':
+    csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
+    csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
+    csoundDynamicLibraryEnvironment['ENV']['PATH'] = os.environ['PATH']
+elif getPlatform() == 'linux':
+    csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
+csoundWrapperLibraryEnvironment = csoundDynamicLibraryEnvironment.Copy()
 
 pluginEnvironment = commonEnvironment.Copy()
 pluginEnvironment.Append(LIBS = ['sndfile'])
@@ -587,21 +603,35 @@ else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
 if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
-  print 'CONFIGURATION DECISION: Building dynamic Csound library'
-  csoundLibraryEnvironment.Append(LIBS = ['sndfile'])
-  if getPlatform() == 'mingw':
-    csoundLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
-    csoundLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
-    csoundLibraryEnvironment['ENV']['PATH'] = os.environ['PATH']
-  elif getPlatform() == 'linux':
-    csoundLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
-  csoundLibrary = csoundLibraryEnvironment.SharedLibrary('csound',
-                                                         libCsoundSources)
+    print 'CONFIGURATION DECISION: Building dynamic Csound library'
+    csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary('csound',
+                                                              libCsoundSources)
 else:
-  print 'CONFIGURATION DECISION: Building static Csound library'
-  csoundLibrary = csoundLibraryEnvironment.Library('csound', libCsoundSources)
+    print 'CONFIGURATION DECISION: Building static Csound library'
+    csoundLibrary = csoundLibraryEnvironment.Library('csound', libCsoundSources)
 libs.append(csoundLibrary)
 zipDependencies.append(csoundLibrary)
+
+if not (pythonFound and swigFound and boostFound and commonEnvironment['buildCsoundVST'] == '1'):
+    print 'CONFIGURATION DECISION: Not building C++ and Python wrappers.'
+else:
+    print 'CONFIGURATION DECISION: Building wrapper library for C++ and Python.'
+    csoundWrapperLibraryEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
+    csoundWrapperLibrarySources = Split('''
+        frontends/CsoundVST/filebuilding.cpp
+    ''')
+    if commonEnvironment['dynamicCsoundLibrary']=='1' or getPlatform()=='mingw':
+        csoundWrapperLibraryEnvironment.Prepend(LIBS = ['csound'])
+    else:
+        csoundWrapperLibrarySources += libCsoundSources
+    if getPlatform() == 'linux' or getPlatform() == 'darwin':
+        csoundWrapperLibraryEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
+    elif getPlatform() == 'mingw':
+        csoundWrapperLibraryEnvironment.Prepend(LIBS = ['stdc++'])
+    csoundWrapperLibrary = csoundWrapperLibraryEnvironment.SharedLibrary('cppsound', csoundWrapperLibrarySources)
+    Depends(csoundWrapperLibrary, csoundLibrary)
+    libs.append(csoundWrapperLibrary)
+    zipDependencies.append(csoundWrapperLibrary)
 
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
@@ -620,6 +650,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('ambicode',
     ['Opcodes/ambicode.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ambideco',
     ['Opcodes/ambideco.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('babo',
+    ['Opcodes/babo.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('bbcut',
     ['Opcodes/bbcut.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('biquad',
@@ -991,7 +1023,7 @@ else:
     headers += glob.glob('frontends/CsoundVST/*.hpp')
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
-    vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
+    vstEnvironment.Prepend(LIBS = ['cppsound', 'sndfile'])
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
@@ -1002,7 +1034,10 @@ else:
             vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-        guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows', '_CsoundVST.so'])
+        vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
+            -Wl,-rpath-link,. _CsoundVST.so
+        '''))
     elif getPlatform() == 'darwin':
         vstEnvironment.Append(LIBS = ['python2.3', 'dl', 'm'])
         vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
@@ -1071,7 +1106,6 @@ else:
     frontends/CsoundVST/StrangeAttractor.cpp
     frontends/CsoundVST/System.cpp
     frontends/CsoundVST/Soundfile.cpp
-    frontends/CsoundVST/filebuilding.cpp
     ''')
     # These are the Windows system call libraries.
     if getPlatform() == 'mingw':
@@ -1096,7 +1130,7 @@ else:
     zipDependencies.append(csoundvst)
     libs.append(csoundvst)
     libs.append('CsoundVST.py')
-    Depends(csoundvst, csoundLibrary)
+    Depends(csoundvst, csoundWrapperLibrary)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
@@ -1175,9 +1209,6 @@ Opcodes/stk/src/Thread.cpp
         pluginLibraries.append(stk)
         libs.append(stk)
 
-pythonFound = configure.CheckHeader("Python.h", language = "C")
-if not pythonFound:
-    pythonFound = configure.CheckHeader("python2.3/Python.h", language = "C")
 if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
     print "CONFIGURATION DECISION: Not building Python opcodes."
 else:
