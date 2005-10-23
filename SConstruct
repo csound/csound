@@ -841,7 +841,7 @@ else:
     if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         oscEnvironment.Append(LIBS = ['ws2_32'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
-                                                        ['Opcodes/OSC.c']))
+        ['InOut/OSCrecv.c', 'Opcodes/OSC.c']))
 
 # FLUIDSYNTH OPCODES
 
