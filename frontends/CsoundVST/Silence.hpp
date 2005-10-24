@@ -43,7 +43,7 @@
 %feature("autodoc", "1");
 %include "typemaps.i"
 %{
-	#include <csound.h>
+    #include <csound.h>
     #include <string>
     #include <vector>
     #include <map>
