@@ -627,10 +627,14 @@ else:
     else:
         csndInterfacesSources += libCsoundSources
     if getPlatform() == 'linux' or getPlatform() == 'darwin':
-        csndInterfacesEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
+        csndInterfacesEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
+        csndInterfacesEnvironment.Prepend(LIBS = ['swigpy', 'python2.3', 'stdc++'])
     elif getPlatform() == 'mingw':
         csndInterfacesEnvironment.Prepend(LIBS = ['python23', 'stdc++'])
-	csndInterfacesEnvironment.Append(SWIGFLAGS = Split('-c -includeall -I. -IH -Iinterfaces'))
+        csndInterfacesEnvironment.Append(LIBS = csoundWindowsLibraries)
+    csndInterfacesEnvironment.Append(SWIGFLAGS = Split('''
+        -c -includeall -I. -IH -Iinterfaces
+    '''))
     swigflags = csndInterfacesEnvironment['SWIGFLAGS']
     for option in csndInterfacesEnvironment['CPPPATH']:
         option = '-I' + option
@@ -638,9 +642,8 @@ else:
     for option in csndInterfacesEnvironment['CCFLAGS']:
             if string.find(option, '-D') == 0:
                 csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
-    csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces.i', SWIGFLAGS = [swigflags,'-python'])
+    csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces.i', SWIGFLAGS = [swigflags, '-python'])
     csndInterfacesSources.insert(0, csndPythonInterface)
-    csndInterfacesEnvironment.Append(LIBS = csoundWindowsLibraries)
     csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
     csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
     Depends(csndInterfaces, csoundLibrary)
@@ -662,8 +665,6 @@ else:
 
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ambicode',
     ['Opcodes/ambicode.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ambideco',
-    ['Opcodes/ambideco.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('babo',
     ['Opcodes/babo.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('bbcut',
@@ -889,7 +890,7 @@ else:
     if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
         oscEnvironment.Append(LIBS = ['ws2_32'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
-        ['InOut/OSCrecv.c', 'Opcodes/OSC.c']))
+                                                        ['Opcodes/OSC.c']))
 
 # FLUIDSYNTH OPCODES
 
