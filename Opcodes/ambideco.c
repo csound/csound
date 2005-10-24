@@ -321,7 +321,7 @@ int aambideco(CSOUND *csound, AMBID *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-  { "ambideco",  S(AMBID),  5, "mmmmmmmm", "iaaay",
+  { "bformdec",  S(AMBID),  5, "mmmmmmmm", "iaaay",
                             (SUBR)iambideco, NULL, (SUBR)aambideco }
 };
 
