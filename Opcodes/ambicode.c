@@ -123,9 +123,6 @@ static int aambicode(CSOUND *csound, AMBIC *p)
 {
     int nn = csound->ksmps;  /* array size from orchestra */
 
-    /* update coefficients */
-    ambicode_set_coefficients(p);
-
     /* init input array pointer */
     MYFLT *inptp = p->asig;
 
@@ -152,6 +149,9 @@ static int aambicode(CSOUND *csound, AMBIC *p)
     MYFLT *rsltp_o = p->mo;
     MYFLT *rsltp_p = p->mp;
     MYFLT *rsltp_q = p->mq;
+
+    /* update coefficients */
+    ambicode_set_coefficients(p);
 
     if (p->OUTOCOUNT == 4 && p->INOCOUNT == 5) {
       /* 1st order */
