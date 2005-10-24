@@ -83,48 +83,54 @@ static int ftgen(CSOUND *csound, FTGEN *p)
     MYFLT   *fp;
     FUNC    *ftp;
     EVTBLK  *ftevt;
-    int     nargs;
+    int     n;
 
     *p->ifno = FL(0.0);
-    ftevt = (EVTBLK*) csound->Calloc(csound, sizeof(EVTBLK));
+    ftevt = (EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
     ftevt->opcod = 'f';
     ftevt->strarg = NULL;
-    fp = &ftevt->p[1];
-    *fp++ = *p->p1;                                     /* copy p1 - p5 */
-    *fp++ = ftevt->p2orig = FL(0.0);                    /* force time 0 */
-    *fp++ = ftevt->p3orig = *p->p3;
-    *fp++ = *p->p4;
-    if (csound->GetInputArgSMask(p)) {          /* string argument: */
-      int n = (int) ftevt->p[4];
-      *fp++ = SSTRCOD;
-      if (n < 0) n = -n;
-      if (n == 1 || n == 23 || n == 28) {       /*   must be Gen01, 23 or 28 */
+    fp = &ftevt->p[0];
+    fp[0] = FL(0.0);
+    fp[1] = *p->p1;                                     /* copy p1 - p5 */
+    fp[2] = ftevt->p2orig = FL(0.0);                    /* force time 0 */
+    fp[3] = ftevt->p3orig = *p->p3;
+    fp[4] = *p->p4;
+    if (csound->GetInputArgSMask(p)) {  /* string argument: */
+      n = (int) fp[4];
+      fp[5] = SSTRCOD;
+      if (n < 0)
+        n = -n;
+      switch (n) {                      /*   must be Gen01, 23, 28, or 43 */
+      case 1:
+      case 23:
+      case 28:
+      case 43:
         ftevt->strarg = (char*) p->p5;
-      }
-      else {
+        break;
+      default:
         csound->Free(csound, ftevt);
         return csound->InitError(csound, Str("ftgen string arg not allowed"));
       }
     }
     else {
-      *fp++ = *p->p5;
-      ftevt->strarg = NULL;                             /* else no string */
+      fp[5] = *p->p5;                                   /* else no string */
     }
-    ftevt->pcnt = (short) csound->GetInputArgCnt(p);
-    if ((nargs = (int) ftevt->pcnt - 5) > 0) {
+    n = csound->GetInputArgCnt(p);
+    ftevt->pcnt = (short) n;
+    n -= 5;
+    if (n > 0) {
       MYFLT **argp = p->argums;
-      while (nargs--)                                   /* copy rem arglist */
-        *fp++ = **argp++;
+      fp += 6;
+      do {
+        *fp++ = **argp++;                               /* copy rem arglist */
+      } while (--n);
     }
-    if (csound->hfgens(csound, &ftp, ftevt, 1) == 0) {  /* call the fgen */
-      if (ftp != NULL)
-        *p->ifno = (MYFLT) ftp->fno;                    /* record the fno */
-    }
-    else {
-      csound->Free(csound, ftevt);
-      return csound->InitError(csound, Str("ftgen error"));
-    }
+    n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
     csound->Free(csound, ftevt);
+    if (n != 0)
+      return csound->InitError(csound, Str("ftgen error"));
+    if (ftp != NULL)
+      *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
     return OK;
 }
 
