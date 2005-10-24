@@ -230,7 +230,7 @@ int aambicode(CSOUND *csound, AMBIC *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-  { "ambicode", S(AMBIC), 5, "mmmmmmmmmmmmmmmm", "akz",
+  { "bformenc", S(AMBIC), 5, "mmmmmmmmmmmmmmmm", "akz",
                           (SUBR)iambicode, NULL, (SUBR)aambicode }
 };
 
