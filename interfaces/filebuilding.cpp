@@ -1,7 +1,13 @@
+
 #include "filebuilding.h"
+#include <stdlib.h>
 #include <string>
 #include <vector>
 #include <map>
+
+#ifdef MACOSX
+#define gcvt(val,dig,buf) snprintf(buf,dig,"%f",val)
+#endif
 
 struct CsoundFile
 {
