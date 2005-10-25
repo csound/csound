@@ -661,6 +661,7 @@ else:
         print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
         csndLuaInterface = csndInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
         csndInterfacesSources.insert(0, csndLuaInterface)
+        csndInterfacesEnvironment.Prepend(LIBS = ['lua50'])
 
     csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
     csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
