@@ -107,8 +107,7 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
                                     "SFDIR;SSDIR");
       do_scale = sfinfo->format;
     }
-    do_scale = SF2TYPE(do_scale);
-    do_scale = (do_scale == TYP_RAW || do_scale == TYP_IRCAM ? 0 : 1);
+    do_scale = (SF2TYPE(do_scale) == TYP_RAW ? 0 : 1);
     if (fd == NULL)
       return -1;
     if (!do_scale) {
