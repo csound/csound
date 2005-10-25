@@ -1,6 +1,10 @@
+2005-10-25  John ff  <jpff@codemist.co.uk>
+
+	* SConstruct: Make building interfaces optoinal
+
 2005-10-05 Victor Lazzarini <victor.lazzarini@nuim.ie>
 	* Added Tcl/TK frontends (cstclsh and cswish)
-	
+
 2005-10-15	Michael Gogins	<gogins@pipeline.com>
 	* Fixed SConstruct to build CsoundVST using Csound as a 
 	  shared library.

@@ -2203,18 +2203,45 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       /* should use SFC_GET_INSTRUMENT eventually */
       SF_LOOP_INFO lpd;
       int ans = sf_command(fd, SFC_GET_LOOP_INFO, &lpd, sizeof(SF_LOOP_INFO));
+      if (ans) {
 #ifdef BETA
-      fprintf(stderr,
-              "Loop info: time_sig_num=%d time_sig_den=%d loop_mode=%d\n",
-              lpd.time_sig_num, lpd.time_sig_den, lpd.loop_mode);
-      fprintf(stderr, "         : num_beats=%d root_key=%d ans=%d\n",
-              lpd.num_beats, lpd.root_key, ans);
+        fprintf(stderr,
+                "Loop info: time_sig_num=%d time_sig_den=%d loop_mode=%d\n",
+                lpd.time_sig_num, lpd.time_sig_den, lpd.loop_mode);
+        fprintf(stderr, "         : num_beats=%d root_key=%d ans=%d\n",
+                lpd.num_beats, lpd.root_key, ans);
 #endif
-      ftp->cpscvt = FL(0.0);
-      ftp->loopmode1 = (lpd.loop_mode == SF_LOOP_NONE ? 0 :
-                        lpd.loop_mode == SF_LOOP_FORWARD ? 1 : 2);
-      ftp->loopmode2 = 0;
-      ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
+/*         adp->natcps = (float)(pow((double)2.0, (lpd.basenote + lpd.detune/100.) / 12.0 + 3.0) * ONEPT); */
+/*         adp->gainfac = (float)exp((double)(natshort(instr.gain)) * LOG10D20); */
+        ftp->cpscvt = csound->esr * lpd.basenote / (LOFACT * p->sr);
+        ftp->loopmode1 = (lpd.sustain_mode==SF_LOOP_NONE ? 0 :
+                          lpd.sustain_mode==SF_LOOP_FORWARD ? 1 :
+                          2);
+        ftp->loopmode2 = (lpd.release_mode==SF_LOOP_NONE ? 0 :
+                          lpd.release_mode==SF_LOOP_FORWARD ? 1 :
+                          2);
+        ftp->begin1 = lpd.sustain_start; ftp->begin2 = lpd.release_start;
+        if (ftp->loopmode1) /* Greg Sullivan */
+          ftp->end1 = lpd.sustain_end;
+        else
+          ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
+        ftp->end2 = lpd.release_end;
+        if (ftp->end1 > ff->flen || ftp->end2 > ff->flen) {
+          long maxend;
+          csound->Warning(csound, Str("GEN1: input file truncated by ftable size"));
+          if ((maxend = ftp->end1) < ftp->end2)
+            maxend = ftp->end2;
+          csound->Message(csound,Str("\tlooping endpoint %ld exceeds ftsize %ld\n"),
+                          maxend,ff->flen);
+          needsiz(csound, ff, maxend);
+          truncmsg = 1;
+        }
+      }
+      else {
+        ftp->cpscvt = FL(0.0);      /* else no looping possible   */
+        ftp->loopmode1 = 0;
+        ftp->loopmode2 = 0;
+        ftp->end1 = ftp->flenfrms; /* Greg Sullivan */        }
     }
 #else
     ftp->cpscvt = FL(0.0);
