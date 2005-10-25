@@ -299,19 +299,19 @@ if getPlatform() == 'linux':
     path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
     path2 = '/usr/local/include/python%s' % commonEnvironment['pythonVersion']
     pythonIncludePath = [path1, path2]
+    pythonLinkFlags = []
     if (commonEnvironment['Word64'] == '1'):
         tmp = '/usr/lib64/python%s/config' % commonEnvironment['pythonVersion']
     else:
         tmp = '/usr/lib/python%s/config' % commonEnvironment['pythonVersion']
-    pythonLinkFlags = []
     pythonLibraryPath = [tmp]
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
 elif getPlatform() == 'darwin':
     pyBasePath = '/System/Library/Frameworks/Python.framework'
     pythonIncludePath = ['%s/Headers' % pyBasePath]
-    path1 = '%s/Versions/Current/lib' % pyBasePath
-    path2 = '%spython%s/config' % (path1, commonEnvironment['pythonVersion'])
     pythonLinkFlags = ['-framework', 'python']
+    path1 = '%s/Versions/Current/lib' % pyBasePath
+    path2 = '%s/python%s/config' % (path1, commonEnvironment['pythonVersion'])
     pythonLibraryPath = [path1, path2]
     pythonLibs = []
 elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
@@ -682,7 +682,6 @@ else:
                 csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
     csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
     csndInterfacesSources.insert(0, csndPythonInterface)
-
     if javaFound and commonEnvironment['buildJavaWrapper']=='1':
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
         csndJavaInterface = csndInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags, '-java', '-package', 'csnd', '-outdir', 'interfaces'])
