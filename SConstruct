@@ -97,6 +97,9 @@ opts.Add('useFLTK',
 opts.Add('noFLTKThreads',
     'Set to 1 to disable use of a separate thread for FLTK widgets.',
     '0')
+opts.Add('pythonVersion',
+    'Set to the Python version to be used.',
+    '2.3')
 opts.Add('buildCsoundVST',
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).',
     '1')
@@ -185,7 +188,7 @@ opts.Add('buildTclcsound',
     "Build Tclcsound frontend (cstclsh and cswish). Requires Tcl/Tk headers and libs",
     '0')
 opts.Add('buildInterfaces',
-    "Build various interfaces",
+    "Build interface library for Python, JAVA, Lua, C++, and other languages",
     '1')
 
 # Define the common part of the build environment.
@@ -292,6 +295,31 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
 if (getPlatform() == 'linux'):
     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 
+if getPlatform() == 'linux':
+    path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
+    path2 = '/usr/local/include/python%s' % commonEnvironment['pythonVersion']
+    pythonIncludePath = [path1, path2]
+    if (commonEnvironment['Word64'] == '1'):
+        tmp = '/usr/lib64/python%s/config' % commonEnvironment['pythonVersion']
+    else:
+        tmp = '/usr/lib/python%s/config' % commonEnvironment['pythonVersion']
+    pythonLinkFlags = []
+    pythonLibraryPath = [tmp]
+    pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
+elif getPlatform() == 'darwin':
+    pyBasePath = '/System/Library/Frameworks/Python.framework'
+    pythonIncludePath = ['%s/Headers' % pyBasePath]
+    path1 = '%s/Versions/Current/lib' % pyBasePath
+    path2 = '%spython%s/config' % (path1, commonEnvironment['pythonVersion'])
+    pythonLinkFlags = ['-framework', 'python']
+    pythonLibraryPath = [path1, path2]
+    pythonLibs = []
+elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+    pythonIncludePath = []
+    pythonLinkFlags = []
+    pythonLibraryPath = []
+    pythonLibs = ['python%s' % commonEnvironment['pythonVersion'].replace('.', '')]
+
 # Adding libraries and flags if using -mno-cygwin with cygwin
 
 if (commonEnvironment['noCygwin'] == '1' and getPlatform() == 'cygwin'):
@@ -327,11 +355,13 @@ swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
 pythonFound = configure.CheckHeader("Python.h", language = "C")
 if not pythonFound:
-    pythonFound = configure.CheckHeader("python2.3/Python.h", language = "C")
-if not pythonFound:
-    pythonFound = configure.CheckHeader("python2.4/Python.h", language = "C")
-if ((not pythonFound) and getPlatform() == 'darwin'):
-	pythonFound = configure.CheckHeader("/System/Library/Frameworks/Python.framework/Headers/Python.h")
+    for i in pythonIncludePath:
+        tmp = '%s/Python.h' % i
+        pythonFound = pythonFound or configure.CheckHeader(tmp, language = "C")
+if getPlatform() != 'darwin':
+    javaFound = configure.CheckHeader("jni.h", language = "C++")
+else:
+    javaFound = configure.CheckHeader("/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h", language = "C++")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -362,10 +392,6 @@ if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHe
     print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
 else:
     print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
-if(getPlatform() != 'darwin'):
-	javaFound = configure.CheckHeader("jni.h", language = "C++")
-else:
-	javaFound = configure.CheckHeader("/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h", language = "C++")
 if javaFound:
     commonEnvironment.Append(CCFLAGS = '-DHAVE_JNI_H')
 
@@ -624,71 +650,63 @@ else:
 libs.append(csoundLibrary)
 zipDependencies.append(csoundLibrary)
 
-if not ((pythonFound or luaFound or javaFound) and swigFound):
+if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironment['buildInterfaces'] == '1'):
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
 else:
-    if (commonEnvironment['buildInterfaces'] == '0'):
-      print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
+    print 'CONFIGURATION DECISION: Building Csound interfaces library.'
+    csndInterfacesEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
+    csndInterfacesSources = Split('''
+        interfaces/filebuilding.cpp
+    ''')
+    if commonEnvironment['dynamicCsoundLibrary']=='1' or getPlatform()=='mingw':
+        csndInterfacesEnvironment.Prepend(LIBS = ['csound'])
     else:
-        print 'CONFIGURATION DECISION: Building Csound interfaces library.'
-        csndInterfacesEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
-        csndInterfacesSources = Split('''
-            interfaces/filebuilding.cpp
-        ''')
-        if commonEnvironment['dynamicCsoundLibrary']=='1' or getPlatform()=='mingw':
-            csndInterfacesEnvironment.Prepend(LIBS = ['csound'])
-        else:
-            csndInterfacesSources += libCsoundSources
-        if getPlatform() == 'linux': 
-            csndInterfacesEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-            csndInterfacesEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
-        elif getPlatform() == 'darwin':
-            csndInterfacesEnvironment.Prepend(LIBPATH =  ['/System/Library/Frameworks/Python.framework/Versions/Current/lib'])
-            csndInterfacesEnvironment.Append(LIBS = ['stdc++'])
-            csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework python'''))
-            csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework JavaVM'''))
-            csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/Python.framework/Headers'])
-            csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])	
-        elif getPlatform() == 'mingw':
-            csndInterfacesEnvironment.Prepend(LIBS = ['python23', 'stdc++'])
-        csndInterfacesEnvironment.Append(SWIGFLAGS = Split('''
-            -c -includeall -I. -IH -Iinterfaces
-        '''))
-        swigflags = csndInterfacesEnvironment['SWIGFLAGS']
-        for option in csndInterfacesEnvironment['CPPPATH']:
-            option = '-I' + option
-            csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
-        for option in csndInterfacesEnvironment['CCFLAGS']:
-                if string.find(option, '-D') == 0:
-                    csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
-        csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
-        csndInterfacesSources.insert(0, csndPythonInterface)
+        csndInterfacesSources += libCsoundSources
+    csndInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
+    csndInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+    csndInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+    csndInterfacesEnvironment.Prepend(LIBS = pythonLibs)
+    csndInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
+    if getPlatform() == 'darwin':
+        csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework JavaVM'''))
+        csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
+    csndInterfacesEnvironment.Append(SWIGFLAGS = Split('''
+        -c -includeall -I. -IH -Iinterfaces
+    '''))
+    swigflags = csndInterfacesEnvironment['SWIGFLAGS']
+    for option in csndInterfacesEnvironment['CPPPATH']:
+        option = '-I' + option
+        csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
+    for option in csndInterfacesEnvironment['CCFLAGS']:
+            if string.find(option, '-D') == 0:
+                csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
+    csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
+    csndInterfacesSources.insert(0, csndPythonInterface)
 
-        if javaFound and commonEnvironment['buildJavaWrapper']=='1':
-            print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
-            csndJavaInterface = csndInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags,'-java', '-package', 'csnd', '-outdir', 'interfaces'])
-            csndInterfacesSources.append(csndJavaInterface)
-            jcsnd = csndInterfacesEnvironment.Java(target = 'interfaces/classes', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
-            zipDependencies.append(jcsnd)
-            jcsndJar = csndInterfacesEnvironment.Jar('csnd.jar', ['interfaces/classes'], JARCHDIR = 'interfaces/classes')
-        else:
-            print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
-    		
-        if not (luaFound and swigFound):
-            print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
-        else:
-            print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
-            csndLuaInterface = csndInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
-            csndInterfacesSources.insert(0, csndLuaInterface)
-            csndInterfacesEnvironment.Prepend(LIBS = ['lua50'])
-    	if (getPlatform != 'darwin'):
-    	    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-    	else:
-    	    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
-        csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
-        Depends(csndInterfaces, csoundLibrary)
-        libs.append(csndInterfaces)
-        zipDependencies.append(csndInterfaces)
+    if javaFound and commonEnvironment['buildJavaWrapper']=='1':
+        print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
+        csndJavaInterface = csndInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags, '-java', '-package', 'csnd', '-outdir', 'interfaces'])
+        csndInterfacesSources.append(csndJavaInterface)
+        jcsnd = csndInterfacesEnvironment.Java(target = 'interfaces/classes', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+        zipDependencies.append(jcsnd)
+        jcsndJar = csndInterfacesEnvironment.Jar('csnd.jar', ['interfaces/classes'], JARCHDIR = 'interfaces/classes')
+    else:
+        print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
+    if not (luaFound and swigFound):
+        print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
+    else:
+        print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
+        csndLuaInterface = csndInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
+        csndInterfacesSources.insert(0, csndLuaInterface)
+        csndInterfacesEnvironment.Prepend(LIBS = ['lua50'])
+    if getPlatform != 'darwin':
+        csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+    else:
+        csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
+    csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
+    Depends(csndInterfaces, csoundLibrary)
+    libs.append(csndInterfaces)
+    zipDependencies.append(csndInterfaces)
 
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
@@ -1078,15 +1096,14 @@ else:
     headers += glob.glob('frontends/CsoundVST/*.hpp')
     vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
     guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
+    vstEnvironment.Append(CPPPATH = pythonIncludePath)
+    vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+    vstEnvironment.Append(LIBPATH = pythonLibraryPath)
+    vstEnvironment.Prepend(LIBS = pythonLibs)
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
-        vstEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
-        vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-        if commonEnvironment['Word64']=='1':
-            vstEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
-        else:
-            vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
+        vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
@@ -1095,13 +1112,7 @@ else:
         '''))
     elif getPlatform() == 'darwin':
         vstEnvironment.Append(LIBS = ['dl', 'm'])
-        vstEnvironment.Append(LINKFLAGS = Split(''' -framework python '''))
-        vstEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/Python.Framework/Headers'])
         # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
-        if commonEnvironment['Word64']=='1':
-            vstEnvironment.Append(LIBPATH = ['/System/Library/Frameworks/Python.Framework/Versions/Current/lib/python2.3/config'])
-        else:
-            vstEnvironment.Append(LIBPATH = ['/System/Library/Frameworks/Python.Framework/Versions/Current/lib/python2.3/config'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         vstEnvironment['SHLIBSUFFIX'] = '.so'
@@ -1116,7 +1127,6 @@ else:
         if getPlatform() == 'cygwin':
             vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows'])
-        vstEnvironment.Append(LIBS = ['python23'])
         vstEnvironment.Append(LIBS = ['fltk_images'])
         vstEnvironment.Append(LIBS = ['fltk'])
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
@@ -1270,29 +1280,18 @@ if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
 else:
     print "CONFIGURATION DECISION: Building Python opcodes."
     pyEnvironment = pluginEnvironment.Copy()
+    pyEnvironment.Append(CPPPATH = pythonIncludePath)
+    pyEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+    pyEnvironment.Append(LIBPATH = pythonLibraryPath)
+    pyEnvironment.Append(LIBS = pythonLibs)
     if getPlatform() == 'linux':
-        pyEnvironment.Append(LIBS = ['python2.3', 'util', 'dl', 'm'])
-        pyEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-        pyEnvironment.Append(CPPPATH = ['/usr/local/include/python2.3'])
-        if commonEnvironment['Word64']=='1':
-            pyEnvironment.Append(LIBPATH = ['/usr/local/lib64/python2.3/config'])
-        else:
-            pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
+        pyEnvironment.Append(LIBS = ['util', 'dl', 'm'])
     elif getPlatform() == 'darwin':
-		pyEnvironment.Prepend(LIBPATH =  ['/System/Library/Frameworks/Python.framework/Versions/Current/lib'])
-		pyEnvironment.Append(LIBS = ['dl', 'm'])
-		pyEnvironment.Append(LINKFLAGS= Split('''-framework python'''))
-		pyEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/Python.framework/Headers'])
-		if commonEnvironment['Word64']=='1':
-			pyEnvironment.Append(LIBPATH = ['/System/Library/Frameworks/Python.framework/Versions/Current/lib/python2.3/config'])
-		else:
-			pyEnvironment.Append(LIBPATH =  ['/System/Library/Frameworks/Python.framework/Versions/Current/lib/python2.3/config'])			
+        pyEnvironment.Append(LIBS = ['dl', 'm'])
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
-		pyEnvironment['ENV']['PATH'] = os.environ['PATH']
-		if getPlatform() == 'cygwin':
-			pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
-			pyEnvironment.Append(LIBS = ['python23'])
-			
+        pyEnvironment['ENV']['PATH'] = os.environ['PATH']
+        if getPlatform() == 'cygwin':
+            pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
     pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
     pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])

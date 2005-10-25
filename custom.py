@@ -17,8 +17,6 @@ customSWIGFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
-    customCPPPATH.append('/usr/local/include/python2.3')
-    customLIBPATH.append('/usr/local/lib/python2.3/config')
 elif sys.platform == 'cygwin':
     platform = 'cygwin'
     customCPPPATH.append('c:/utah/usr/Python23/include')
