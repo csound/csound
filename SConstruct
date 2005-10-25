@@ -184,6 +184,9 @@ opts.Add('buildUtilities',
 opts.Add('buildTclcsound',
     "Build Tclcsound frontend (cstclsh and cswish). Requires Tcl/Tk headers and libs",
     '0')
+opts.Add('buildInterfaces',
+    "Build various interfaces",
+    '1')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -624,65 +627,68 @@ zipDependencies.append(csoundLibrary)
 if not ((pythonFound or luaFound or javaFound) and swigFound):
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
 else:
-    print 'CONFIGURATION DECISION: Building Csound interfaces library.'
-    csndInterfacesEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
-    csndInterfacesSources = Split('''
-        interfaces/filebuilding.cpp
-    ''')
-    if commonEnvironment['dynamicCsoundLibrary']=='1' or getPlatform()=='mingw':
-        csndInterfacesEnvironment.Prepend(LIBS = ['csound'])
+    if (commonEnvironment['buildInterfaces'] == '0'):
+      print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
     else:
-        csndInterfacesSources += libCsoundSources
-    if getPlatform() == 'linux': 
-        csndInterfacesEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-        csndInterfacesEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
-    elif getPlatform() == 'darwin':
-        csndInterfacesEnvironment.Prepend(LIBPATH =  ['/System/Library/Frameworks/Python.framework/Versions/Current/lib'])
-        csndInterfacesEnvironment.Append(LIBS = ['stdc++'])
-        csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework python'''))
-        csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework JavaVM'''))
-        csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/Python.framework/Headers'])
-        csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])	
-    elif getPlatform() == 'mingw':
-        csndInterfacesEnvironment.Prepend(LIBS = ['python23', 'stdc++'])
-    csndInterfacesEnvironment.Append(SWIGFLAGS = Split('''
-        -c -includeall -I. -IH -Iinterfaces
-    '''))
-    swigflags = csndInterfacesEnvironment['SWIGFLAGS']
-    for option in csndInterfacesEnvironment['CPPPATH']:
-        option = '-I' + option
-        csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
-    for option in csndInterfacesEnvironment['CCFLAGS']:
-            if string.find(option, '-D') == 0:
-                csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
-    csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
-    csndInterfacesSources.insert(0, csndPythonInterface)
+        print 'CONFIGURATION DECISION: Building Csound interfaces library.'
+        csndInterfacesEnvironment.Append(CPPPATH = ['frontends/CsoundVST'])
+        csndInterfacesSources = Split('''
+            interfaces/filebuilding.cpp
+        ''')
+        if commonEnvironment['dynamicCsoundLibrary']=='1' or getPlatform()=='mingw':
+            csndInterfacesEnvironment.Prepend(LIBS = ['csound'])
+        else:
+            csndInterfacesSources += libCsoundSources
+        if getPlatform() == 'linux': 
+            csndInterfacesEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
+            csndInterfacesEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
+        elif getPlatform() == 'darwin':
+            csndInterfacesEnvironment.Prepend(LIBPATH =  ['/System/Library/Frameworks/Python.framework/Versions/Current/lib'])
+            csndInterfacesEnvironment.Append(LIBS = ['stdc++'])
+            csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework python'''))
+            csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework JavaVM'''))
+            csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/Python.framework/Headers'])
+            csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])	
+        elif getPlatform() == 'mingw':
+            csndInterfacesEnvironment.Prepend(LIBS = ['python23', 'stdc++'])
+        csndInterfacesEnvironment.Append(SWIGFLAGS = Split('''
+            -c -includeall -I. -IH -Iinterfaces
+        '''))
+        swigflags = csndInterfacesEnvironment['SWIGFLAGS']
+        for option in csndInterfacesEnvironment['CPPPATH']:
+            option = '-I' + option
+            csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
+        for option in csndInterfacesEnvironment['CCFLAGS']:
+                if string.find(option, '-D') == 0:
+                    csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
+        csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
+        csndInterfacesSources.insert(0, csndPythonInterface)
 
-    if javaFound and commonEnvironment['buildJavaWrapper']=='1':
-        print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
-        csndJavaInterface = csndInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags,'-java', '-package', 'csnd', '-outdir', 'interfaces'])
-        csndInterfacesSources.append(csndJavaInterface)
-        jcsnd = csndInterfacesEnvironment.Java(target = 'interfaces/classes', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
-        zipDependencies.append(jcsnd)
-        jcsndJar = csndInterfacesEnvironment.Jar('csnd.jar', ['interfaces/classes'], JARCHDIR = 'interfaces/classes')
-    else:
-        print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
-		
-    if not (luaFound and swigFound):
-        print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
-    else:
-        print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
-        csndLuaInterface = csndInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
-        csndInterfacesSources.insert(0, csndLuaInterface)
-        csndInterfacesEnvironment.Prepend(LIBS = ['lua50'])
-	if (getPlatform != 'darwin'):
-	    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-	else:
-	    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
-    csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
-    Depends(csndInterfaces, csoundLibrary)
-    libs.append(csndInterfaces)
-    zipDependencies.append(csndInterfaces)
+        if javaFound and commonEnvironment['buildJavaWrapper']=='1':
+            print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
+            csndJavaInterface = csndInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags,'-java', '-package', 'csnd', '-outdir', 'interfaces'])
+            csndInterfacesSources.append(csndJavaInterface)
+            jcsnd = csndInterfacesEnvironment.Java(target = 'interfaces/classes', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+            zipDependencies.append(jcsnd)
+            jcsndJar = csndInterfacesEnvironment.Jar('csnd.jar', ['interfaces/classes'], JARCHDIR = 'interfaces/classes')
+        else:
+            print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
+    		
+        if not (luaFound and swigFound):
+            print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
+        else:
+            print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
+            csndLuaInterface = csndInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
+            csndInterfacesSources.insert(0, csndLuaInterface)
+            csndInterfacesEnvironment.Prepend(LIBS = ['lua50'])
+    	if (getPlatform != 'darwin'):
+    	    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+    	else:
+    	    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
+        csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
+        Depends(csndInterfaces, csoundLibrary)
+        libs.append(csndInterfaces)
+        zipDependencies.append(csndInterfaces)
 
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
