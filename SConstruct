@@ -319,6 +319,7 @@ oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
+luaFound = configure.CheckHeader("lua.h", language = "C")
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
 pythonFound = configure.CheckHeader("Python.h", language = "C")
@@ -614,7 +615,7 @@ else:
 libs.append(csoundLibrary)
 zipDependencies.append(csoundLibrary)
 
-if not (pythonFound and swigFound):
+if not ((pythonFound or luaFound or javaFound) and swigFound):
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
 else:
     print 'CONFIGURATION DECISION: Building Csound interfaces library.'
@@ -628,10 +629,9 @@ else:
         csndInterfacesSources += libCsoundSources
     if getPlatform() == 'linux' or getPlatform() == 'darwin':
         csndInterfacesEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-        csndInterfacesEnvironment.Prepend(LIBS = ['swigpy', 'python2.3', 'stdc++'])
+        csndInterfacesEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
     elif getPlatform() == 'mingw':
         csndInterfacesEnvironment.Prepend(LIBS = ['python23', 'stdc++'])
-        csndInterfacesEnvironment.Append(LIBS = csoundWindowsLibraries)
     csndInterfacesEnvironment.Append(SWIGFLAGS = Split('''
         -c -includeall -I. -IH -Iinterfaces
     '''))
@@ -642,8 +642,26 @@ else:
     for option in csndInterfacesEnvironment['CCFLAGS']:
             if string.find(option, '-D') == 0:
                 csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
-    csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces.i', SWIGFLAGS = [swigflags, '-python'])
+    csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
     csndInterfacesSources.insert(0, csndPythonInterface)
+
+    if configure.CheckHeader('jni.h', language = 'C++') and commonEnvironment['buildJavaWrapper']=='1':
+        print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
+        csndJavaInterface = csndInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags,'-java', '-package', 'csnd', '-outdir', 'interfaces'])
+        csndInterfacesSources.append(csndJavaInterface)
+        jcsnd = csndInterfacesEnvironment.Java(target = 'interfaces/classes', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+        zipDependencies.append(jcsnd)
+        jcsndJar = csndInterfacesEnvironment.Jar('csnd.jar', ['interfaces/classes'], JARCHDIR = 'interfaces/classes')
+    else:
+        print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
+
+    if not (luaFound and swigFound):
+        print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
+    else:
+        print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
+        csndLuaInterface = csndInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
+        csndInterfacesSources.insert(0, csndLuaInterface)
+
     csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
     csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
     Depends(csndInterfaces, csoundLibrary)

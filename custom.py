@@ -56,10 +56,15 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('c:/utah/usr/mingw/include')
     customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')
     ################################################################
+    # If you want to build Lua interfaces you need Lua.
+    # Add it here:
+    customCPPPATH.append('c:/utah/opt/lua50/include')
+    customLIBPATH.append('c:/utah/opt/lua50/lib/mingw3')
+    ################################################################
     # If you want to build CsoundVST you need boost.
     # If it is not in a standard lcoation add it here
     # (you do NOT need to build it first):
-    customCPPPATH.append('c:/utah/opt/boost')
+    customCPPPATH.append('c:/utah/opt/boost/')
     ################################################################
     # If you want to build the FluidSynth opcodes
     # you need FluidSynth. If it is not a standard location,
