@@ -633,9 +633,16 @@ else:
         csndInterfacesEnvironment.Prepend(LIBS = ['csound'])
     else:
         csndInterfacesSources += libCsoundSources
-    if getPlatform() == 'linux' or getPlatform() == 'darwin':
+    if getPlatform() == 'linux': 
         csndInterfacesEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
         csndInterfacesEnvironment.Prepend(LIBS = ['python2.3', 'stdc++'])
+    elif getPlatform() == 'darwin':
+        csndInterfacesEnvironment.Prepend(LIBPATH =  ['/System/Library/Frameworks/Python.framework/Versions/Current/lib'])
+        csndInterfacesEnvironment.Append(LIBS = ['stdc++'])
+        csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework python'''))
+        csndInterfacesEnvironment.Append(LINKFLAGS= Split('''-framework JavaVM'''))
+        csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/Python.framework/Headers'])
+        csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])	
     elif getPlatform() == 'mingw':
         csndInterfacesEnvironment.Prepend(LIBS = ['python23', 'stdc++'])
     csndInterfacesEnvironment.Append(SWIGFLAGS = Split('''
@@ -651,7 +658,7 @@ else:
     csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
     csndInterfacesSources.insert(0, csndPythonInterface)
 
-    if configure.CheckHeader('jni.h', language = 'C++') and commonEnvironment['buildJavaWrapper']=='1':
+    if javaFound and commonEnvironment['buildJavaWrapper']=='1':
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
         csndJavaInterface = csndInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags,'-java', '-package', 'csnd', '-outdir', 'interfaces'])
         csndInterfacesSources.append(csndJavaInterface)
@@ -668,8 +675,10 @@ else:
         csndLuaInterface = csndInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
         csndInterfacesSources.insert(0, csndLuaInterface)
         csndInterfacesEnvironment.Prepend(LIBS = ['lua50'])
-
-    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+	if (getPlatform != 'darwin'):
+	    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+	else:
+	    csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
     csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
     Depends(csndInterfaces, csoundLibrary)
     libs.append(csndInterfaces)
@@ -1079,13 +1088,14 @@ else:
             -Wl,-rpath-link,. _CsoundVST.so
         '''))
     elif getPlatform() == 'darwin':
-        vstEnvironment.Append(LIBS = ['python2.3', 'dl', 'm'])
-        vstEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
+        vstEnvironment.Append(LIBS = ['dl', 'm'])
+        vstEnvironment.Append(LINKFLAGS = Split(''' -framework python '''))
+        vstEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/Python.Framework/Headers'])
         # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
         if commonEnvironment['Word64']=='1':
-            vstEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
+            vstEnvironment.Append(LIBPATH = ['/System/Library/Frameworks/Python.Framework/Versions/Current/lib/python2.3/config'])
         else:
-            vstEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
+            vstEnvironment.Append(LIBPATH = ['/System/Library/Frameworks/Python.Framework/Versions/Current/lib/python2.3/config'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         vstEnvironment['SHLIBSUFFIX'] = '.so'
