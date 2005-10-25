@@ -1,5 +1,5 @@
 /*
-* C S O U N D   
+* C S O U N D
 *
 * External language interfaces for the "C" Csound API.
 *
@@ -22,12 +22,14 @@
 %module csnd
 %feature("autodoc", "1");
 %{
-	#include <H/csound.h>
-	#include <H/cfgvar.h>
-	#include <interfaces/filebuilding.h>
+    #include <H/csound.h>
+    #include <H/cfgvar.h>
+    #include <interfaces/filebuilding.h>
 %}
 
 %apply int { size_t };
+typedef unsigned int uint32_t;
+%apply long long { uint32_t };
 
 %typemap(in) char ** {
   /* Check if is a list */
@@ -38,11 +40,11 @@
     for (i = 0; i < size; i++) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
-	$1[i] = PyString_AsString(PyList_GetItem($input,i));
+        $1[i] = PyString_AsString(PyList_GetItem($input,i));
       else {
-	PyErr_SetString(PyExc_TypeError,"list must contain strings");
-	free($1);
-	return NULL;
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        free($1);
+        return NULL;
       }
     }
     $1[i] = 0;
