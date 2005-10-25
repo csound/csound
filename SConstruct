@@ -658,7 +658,7 @@ else:
     csndInterfacesSources = Split('''
         interfaces/filebuilding.cpp
     ''')
-    if commonEnvironment['dynamicCsoundLibrary']=='1' or getPlatform()=='mingw':
+    if commonEnvironment['dynamicCsoundLibrary']=='1' or getPlatform()=='mingw' or getPlatform() == 'darwin':
         csndInterfacesEnvironment.Prepend(LIBS = ['csound'])
     else:
         csndInterfacesSources += libCsoundSources
@@ -698,14 +698,19 @@ else:
         csndLuaInterface = csndInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
         csndInterfacesSources.insert(0, csndLuaInterface)
         csndInterfacesEnvironment.Prepend(LIBS = ['lua50'])
-    if getPlatform != 'darwin':
-        csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-    else:
+    if (getPlatform() != 'darwin'):
+	csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+	csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
+        Depends(csndInterfaces, csoundLibrary)
+        libs.append(csndInterfaces)
+        zipDependencies.append(csndInterfaces)
+    else:  
         csndInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
-    csndInterfaces = csndInterfacesEnvironment.SharedLibrary('csnd', csndInterfacesSources, SHLIBPREFIX = '_')
-    Depends(csndInterfaces, csoundLibrary)
-    libs.append(csndInterfaces)
-    zipDependencies.append(csndInterfaces)
+	csndInterfacesEnvironment.Prepend(LINKFLAGS = ['-bundle'])
+        csndInterfaces = csndInterfacesEnvironment.Program('csnd', csndInterfacesSources, PROGPREFIX = '_', PROGSUFFIX = '.so')
+        Depends(csndInterfaces, csoundLibrary)
+        libs.append(csndInterfaces)
+        zipDependencies.append(csndInterfaces)
 
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
