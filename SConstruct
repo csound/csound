@@ -327,6 +327,8 @@ if not pythonFound:
     pythonFound = configure.CheckHeader("python2.3/Python.h", language = "C")
 if not pythonFound:
     pythonFound = configure.CheckHeader("python2.4/Python.h", language = "C")
+if ((not pythonFound) and getPlatform() == 'darwin'):
+	pythonFound = configure.CheckHeader("/System/Library/Frameworks/Python.framework/Headers/Python.h")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
@@ -357,7 +359,11 @@ if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHe
     print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
 else:
     print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
-if configure.CheckHeader("jni.h", language = "C++"):
+if(getPlatform() != 'darwin'):
+	javaFound = configure.CheckHeader("jni.h", language = "C++")
+else:
+	javaFound = configure.CheckHeader("/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h", language = "C++")
+if javaFound:
     commonEnvironment.Append(CCFLAGS = '-DHAVE_JNI_H')
 
 # Package contents.
@@ -654,7 +660,7 @@ else:
         jcsndJar = csndInterfacesEnvironment.Jar('csnd.jar', ['interfaces/classes'], JARCHDIR = 'interfaces/classes')
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
-
+		
     if not (luaFound and swigFound):
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
@@ -1257,17 +1263,20 @@ else:
         else:
             pyEnvironment.Append(LIBPATH = ['/usr/local/lib/python2.3/config'])
     elif getPlatform() == 'darwin':
-        pyEnvironment.Append(LIBS = ['python2.3', 'dl', 'm'])
-        pyEnvironment.Append(CPPPATH = ['/usr/include/python2.3'])
-        if commonEnvironment['Word64']=='1':
-            pyEnvironment.Append(LIBPATH = ['/usr/lib64/python2.3/config'])
-        else:
-            pyEnvironment.Append(LIBPATH = ['/usr/lib/python2.3/config'])
+		pyEnvironment.Prepend(LIBPATH =  ['/System/Library/Frameworks/Python.framework/Versions/Current/lib'])
+		pyEnvironment.Append(LIBS = ['dl', 'm'])
+		pyEnvironment.Append(LINKFLAGS= Split('''-framework python'''))
+		pyEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/Python.framework/Headers'])
+		if commonEnvironment['Word64']=='1':
+			pyEnvironment.Append(LIBPATH = ['/System/Library/Frameworks/Python.framework/Versions/Current/lib/python2.3/config'])
+		else:
+			pyEnvironment.Append(LIBPATH =  ['/System/Library/Frameworks/Python.framework/Versions/Current/lib/python2.3/config'])			
     elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
-        pyEnvironment['ENV']['PATH'] = os.environ['PATH']
-        if getPlatform() == 'cygwin':
-            pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
-        pyEnvironment.Append(LIBS = ['python23'])
+		pyEnvironment['ENV']['PATH'] = os.environ['PATH']
+		if getPlatform() == 'cygwin':
+			pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
+			pyEnvironment.Append(LIBS = ['python23'])
+			
     pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
     pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
