@@ -93,9 +93,9 @@ public:
   PUBLIC MYFLT GetScoreOffsetSeconds();
   PUBLIC void SetScoreOffsetSeconds(MYFLT time);
   PUBLIC void RewindScore();
-  PUBLIC void SetCscoreCallback(void (*cscoreCallback)());
-  PUBLIC CS_PRINTF2 void Message(const char *format, ...);
-  PUBLIC CS_PRINTF3 void MessageS(int attr, const char *format, ...);
+  PUBLIC void SetCscoreCallback(void (*cscoreCallback)(CSOUND *));
+  PUBLIC void Message(const char *format, ...);
+  PUBLIC void MessageS(int attr, const char *format, ...);
   PUBLIC void MessageV(int attr, const char *format, va_list args);
   PUBLIC void ThrowMessage(const char *format, ...);
   PUBLIC void ThrowMessageV(const char *format, va_list args);
@@ -175,12 +175,12 @@ public:
   PUBLIC static double GetRealTime(RTCLOCK *);
   PUBLIC static double GetCPUTime(RTCLOCK *);
   PUBLIC static uint32_t GetRandomSeedFromTime(void);
-  PUBLIC void SetLanguage(cslanguage_t lang_code);
-  PUBLIC char *LocalizeString(const char *s);
-  PUBLIC static int CreateGlobalVariable(const char *name, size_t nbytes);
-  PUBLIC static void *QueryGlobalVariable(const char *name);
-  PUBLIC static void *QueryGlobalVariableNoCheck(const char *name);
-  PUBLIC static int DestroyGlobalVariable(const char *name);
+  PUBLIC static void SetLanguage(cslanguage_t lang_code);
+  PUBLIC static char *LocalizeString(const char *s);
+  PUBLIC int CreateGlobalVariable(const char *name, size_t nbytes);
+  PUBLIC void *QueryGlobalVariable(const char *name);
+  PUBLIC void *QueryGlobalVariableNoCheck(const char *name);
+  PUBLIC int DestroyGlobalVariable(const char *name);
   PUBLIC static int GetSizeOfMYFLT(void);
   PUBLIC void **GetRtRecordUserData();
   PUBLIC void **GetRtPlayUserData();
@@ -203,12 +203,12 @@ public:
 						      void *min, void *max,
 						      const char *shortDesc,
 						      const char *longDesc);
-  PUBLIC int CreateConfigurationVariable(int flags,
+  PUBLIC int CreateConfigurationVariable(const char *name, void *p, int type, int flags,
 					 void *min, void *max,
 					 const char *shortDesc,
 					 const char *longDesc);
-  PUBLIC static int CopyGlobalConfigurationVariable(const char *name, void *p);
-  PUBLIC static int CopyGlobalConfigurationVariables();
+  PUBLIC int CopyGlobalConfigurationVariable(const char *name, void *p);
+  PUBLIC int CopyGlobalConfigurationVariables();
   PUBLIC static int SetGlobalConfigurationVariable(const char *name,
 						   void *value);
   PUBLIC int SetConfigurationVariable(const char *name,

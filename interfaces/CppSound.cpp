@@ -223,27 +223,25 @@ PUBLIC void CppSound::RewindScore()
   csoundRewindScore(csound);
 }
 
-PUBLIC void CppSound::SetCscoreCallback(void (*cscoreCallback)())
+PUBLIC void CppSound::SetCscoreCallback(void (*cscoreCallback)(CSOUND *))
 {
-  csoundSetCscoreCallback(cound, cscoreCallback);
+  csoundSetCscoreCallback(csound, cscoreCallback);
 }
 
-PUBLIC CS_PRINTF2 void CppSound::Message(const char *format, ...)
+PUBLIC void CppSound::Message(const char *format, ...)
 {
   va_list args;
   va_start(args, format);
-  CS_PRINTF2 returnValue = csoundThrowMessageV(csound, format, args);
+  csoundMessageV(csound, 0, format, args);
   va_end(args);
-  return returnValue;
 }
 
-PUBLIC CS_PRINTF3 void CppSound::MessageS(int attr, const char *format, ...)
+PUBLIC void CppSound::MessageS(int attr, const char *format, ...)
 {
   va_list args;
   va_start(args, format);
-  CS_PRINTF3 returnValue = csoundMessageV(csound, attr, format, args);
+  csoundMessageV(csound, attr, format, args);
   va_end(args);
-  return returnValue;
 }
 
 PUBLIC void CppSound::MessageV(int attr, const char *format, va_list args)
@@ -255,9 +253,8 @@ PUBLIC void CppSound::ThrowMessage(const char *format, ...)
 {
   va_list args;
   va_start(args, format);
-  CS_PRINTF2 returnValue = csoundThrowMessageV(csound, format, args);
+  csoundThrowMessageV(csound, format, args);
   va_end(args);
-  return returnValue;  
 }
 
 PUBLIC void CppSound::ThrowMessageV(const char *format, va_list args)
@@ -540,17 +537,17 @@ PUBLIC void CppSound::Sleep(size_t milliseconds)
 
 PUBLIC void CppSound::InitTimerStruct(RTCLOCK *rtclock)
 {
-  csoundInitTimerStruct(csound, rtclock);
+  csoundInitTimerStruct(rtclock);
 }
 
 PUBLIC double CppSound::GetRealTime(RTCLOCK *rtclock)
 {
-  return csoundGetRealTime(csound, rtclock);
+  return csoundGetRealTime(rtclock);
 }
 
 PUBLIC double CppSound::GetCPUTime(RTCLOCK *rtclock)
 {
-  return csoundGetCPUTime(csound, rtclock);
+  return csoundGetCPUTime(rtclock);
 }
 
 PUBLIC uint32_t CppSound::GetRandomSeedFromTime(void)
@@ -560,32 +557,32 @@ PUBLIC uint32_t CppSound::GetRandomSeedFromTime(void)
 
 PUBLIC void CppSound::SetLanguage(cslanguage_t lang_code)
 {
-  return csoundSetLanguage(csound, lang_code);
+  return csoundSetLanguage(lang_code);
 }
 
 PUBLIC char *CppSound::LocalizeString(const char *s)
 {
-  return csoundLocalizeString(csound, s);
+  return csoundLocalizeString(s);
 }
 
 PUBLIC int CppSound::CreateGlobalVariable(const char *name, size_t nbytes)
 {
-  return csoundCreateGlobalVariable(name, nbytes);
+  return csoundCreateGlobalVariable(csound, name, nbytes);
 }
 
 PUBLIC void *CppSound::QueryGlobalVariable(const char *name)
 {
-  return csoundQueryGlobalVariable(name);
+  return csoundQueryGlobalVariable(csound, name);
 }
 
 PUBLIC void *CppSound::QueryGlobalVariableNoCheck(const char *name)
 {
-  return csoundQueryGlobalVariableNoCheck(name);
+  return csoundQueryGlobalVariableNoCheck(csound, name);
 }
 
 PUBLIC int CppSound::DestroyGlobalVariable(const char *name)
 {
-  return csoundDestroyGlobalVariable(name);
+  return csoundDestroyGlobalVariable(csound, name);
 }
 
 PUBLIC int CppSound::GetSizeOfMYFLT(void)
@@ -650,12 +647,12 @@ PUBLIC int CppSound::Rand31(int *seedVal)
 
 PUBLIC void CppSound::SeedRandMT(CsoundRandMTState *p, const uint32_t *initKey, uint32_t keyLength)
 {
-  return csoundSeedRandMT(p, initKey, keyLength);
+  csoundSeedRandMT(p, initKey, keyLength);
 }
 
 PUBLIC uint32_t CppSound::RandMT(CsoundRandMTState *p)
 {
-  return csoundRandMt(p);
+  return csoundRandMT(p);
 }
 
 // Functions that alias the Csound "C" API functions declared in H/cfgvar.h.
@@ -669,12 +666,12 @@ PUBLIC int CppSound::CreateGlobalConfigurationVariable(const char *name,
   return csoundCreateGlobalConfigurationVariable(name, p, type, flags, min, max, shortDesc, longDesc);
 }
 
-PUBLIC int CppSound::CreateConfigurationVariable(const char *name, void *p, int flags,
+PUBLIC int CppSound::CreateConfigurationVariable(const char *name, void *p, int type, int flags,
 						 void *min, void *max,
 						 const char *shortDesc,
 						 const char *longDesc)
 {
-  return csoundCreateConfigurationVariable(csound, name, p, flags, min, max, shortDesc, longDesc);
+  return csoundCreateConfigurationVariable(csound, name, p, type, flags, min, max, shortDesc, longDesc);
 }
 
 PUBLIC int CppSound::CopyGlobalConfigurationVariable(const char *name, void *p)
@@ -723,7 +720,7 @@ PUBLIC csCfgVariable_t *CppSound::QueryConfigurationVariable(const char *name)
 
 PUBLIC csCfgVariable_t **CppSound::ListGlobalConfigurationVariables(void)
 {
-  return csoundListGlobalConfigurationVairables();
+  return csoundListGlobalConfigurationVariables();
 }
 
 PUBLIC csCfgVariable_t **CppSound::ListConfigurationVariables()
@@ -748,7 +745,7 @@ PUBLIC int CppSound::DeleteAllGlobalConfigurationVariables(void)
 
 PUBLIC const char *CppSound::CfgErrorCodeToString(int errcode)
 {
-  return csoundCfgErrorCodeToString(errorcode);
+  return csoundCfgErrorCodeToString(errcode);
 }
 
 // Additional functions defined in this class.
