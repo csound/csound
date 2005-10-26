@@ -185,7 +185,7 @@ PUBLIC MYFLT *CppSound::GetSpout()
 
 PUBLIC const char *CppSound::GetOutputFileName()
 {
-  return csoundGetOutputFilename(csound);
+  return csoundGetOutputFileName(csound);
 }
 
 PUBLIC void CppSound::SetHostImplementedAudioIO(int state, int bufSize)
