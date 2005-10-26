@@ -1,6 +1,5 @@
 2005-10-25  John ff  <jpff@codemist.co.uk>
-
-	* SConstruct: Make building interfaces optoinal
+	* SConstruct: Make building interfaces optional
 
 2005-10-05 Victor Lazzarini <victor.lazzarini@nuim.ie>
 	* Added Tcl/TK frontends (cstclsh and cswish)
@@ -15,7 +14,6 @@
 	  and csoundGetLibrarySymbol for platform (mac_classic).
 
 2005-10-13  John ff  <jpff@codemist.co.uk>
-
 	* InOut/OSCrecv.c: Many changes to allow listening on multiple
 	ports.  Uses same patterns though.
 
