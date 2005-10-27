@@ -55,7 +55,7 @@ class Csound {
     }
     int Perform(char *arg1, char *arg2, char *arg3)
     {
-      char  *argv[7];
+      char  *argv[5];
       argv[0] = "csound";
       argv[1] = arg1;
       argv[2] = arg2;
@@ -65,7 +65,7 @@ class Csound {
     }
     int Perform(char *arg1, char *arg2, char *arg3, char *arg4)
     {
-      char  *argv[7];
+      char  *argv[6];
       argv[0] = "csound";
       argv[1] = arg1;
       argv[2] = arg2;
@@ -95,7 +95,7 @@ class Csound {
       char  *argv[3];
       argv[0] = "csound";
       argv[1] = csdName;
-      argv[2] = NULL;
+      argv[2] = (char*) 0;
       return csoundCompile(csound, 2, &(argv[0]));
     }
     int Compile(char *orcName, char *scoName)
@@ -104,12 +104,12 @@ class Csound {
       argv[0] = "csound";
       argv[1] = orcName;
       argv[2] = scoName;
-      argv[3] = NULL;
+      argv[3] = (char*) 0;
       return csoundCompile(csound, 3, &(argv[0]));
     }
     int Compile(char *arg1, char *arg2, char *arg3)
     {
-      char  *argv[7];
+      char  *argv[5];
       argv[0] = "csound";
       argv[1] = arg1;
       argv[2] = arg2;
@@ -119,7 +119,7 @@ class Csound {
     }
     int Compile(char *arg1, char *arg2, char *arg3, char *arg4)
     {
-      char  *argv[7];
+      char  *argv[6];
       argv[0] = "csound";
       argv[1] = arg1;
       argv[2] = arg2;
@@ -277,7 +277,7 @@ class Csound {
     {
       va_list args;
       va_start(args, format);
-      csoundThrowMessage(csound, format, args);
+      csoundThrowMessageV(csound, format, args);
       va_end(args);
     }
     void ThrowMessageV(const char *format, va_list args)
@@ -469,7 +469,7 @@ class Csound {
     }
     void TableSet(int table, int index, MYFLT value)
     {
-      return csoundTableSet(csound, table, index, value);
+      csoundTableSet(csound, table, index, value);
     }
     MYFLT *GetTable(int tableNum, int &tableLength)
     {
