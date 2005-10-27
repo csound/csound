@@ -73,13 +73,13 @@ bool parseInstrument(const std::string &definition, std::string &preNumber, std:
       id = definition.substr(beginId, endId - beginId);
       trim(id);
       if(id.length() == 0)
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
       if(!strchr("0123456789", id[0]))
-	{
-	  name = id;
-	}
+        {
+          name = id;
+        }
     }
   else
     {
@@ -89,9 +89,9 @@ bool parseInstrument(const std::string &definition, std::string &preNumber, std:
       id = definition.substr(beginId, endId - beginId);
       trim(id);
       if(id.length() == 0)
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
       name = definition.substr(beginName, endName - beginName);
       trim(name);
     }
@@ -209,35 +209,35 @@ int CsoundFile::importFile(std::istream &stream)
   while(getline(stream, buffer))
     {
       if(buffer.find("<CsoundSynthesizer>") == 0)
-	{
-	  while(getline(stream, buffer))
-	    {
-	      if(buffer.find("</CsoundSynthesizer>") == 0)
-		{
-		  return true;
-		}
-	      else if(buffer.find("<CsOptions>") == 0)
-		{
-		  importCommand(stream);
-		}
-	      else if(buffer.find("<CsInstruments>") == 0)
-		{
-		  importOrchestra(stream);
-		}
-	      else if(buffer.find("<CsArrangement>") == 0)
-		{
-		  importArrangement(stream);
-		}
-	      else if(buffer.find("<CsScore>") == 0)
-		{
-		  importScore(stream);
-		}
-	      else if(buffer.find("<CsMidifile>") == 0)
-		{
-		  importMidifile(stream);
-		}
-	    }
-	}
+        {
+          while(getline(stream, buffer))
+            {
+              if(buffer.find("</CsoundSynthesizer>") == 0)
+                {
+                  return true;
+                }
+              else if(buffer.find("<CsOptions>") == 0)
+                {
+                  importCommand(stream);
+                }
+              else if(buffer.find("<CsInstruments>") == 0)
+                {
+                  importOrchestra(stream);
+                }
+              else if(buffer.find("<CsArrangement>") == 0)
+                {
+                  importArrangement(stream);
+                }
+              else if(buffer.find("<CsScore>") == 0)
+                {
+                  importScore(stream);
+                }
+              else if(buffer.find("<CsMidifile>") == 0)
+                {
+                  importMidifile(stream);
+                }
+            }
+        }
     }
   return false;
 }
@@ -248,9 +248,9 @@ int CsoundFile::importCommand(std::istream &stream)
   while(getline(stream, buffer))
     {
       if(buffer.find("</CsOptions") != buffer.npos)
-	{
-	  return true;
-	}
+        {
+          return true;
+        }
       command.append(buffer);
     }
   return false;
@@ -269,14 +269,14 @@ int CsoundFile::importOrchestra(std::istream &stream)
   while(getline(stream, buffer))
     {
       if(buffer.find("</CsInstruments>") == 0)
-	{
-	  return true;
-	}
+        {
+          return true;
+        }
       else
-	{
-	  orchestra.append(buffer);
-	  orchestra.append("\n");
-	}
+        {
+          orchestra.append(buffer);
+          orchestra.append("\n");
+        }
     }
   return false;
 }
@@ -295,14 +295,14 @@ int CsoundFile::importScore(std::istream &stream)
   while(getline(stream, buffer))
     {
       if(buffer.find("</CsScore>") == 0)
-	{
-	  return true;
-	}
+        {
+          return true;
+        }
       else
-	{
-	  score.append(buffer);
-	  score.append("\n");
-	}
+        {
+          score.append(buffer);
+          score.append("\n");
+        }
     }
   return false;
 }
@@ -376,20 +376,20 @@ std::string CsoundFile::getMidiFilename() const
     {
       std::string buffer = argv[i];
       if(buffer.find("F") != buffer.npos)
-	{
-	  if(buffer.find("F") == buffer.length() - 1)
-	    {
-	      buffer = argv[i + 1];
-	      deleteArgs(argc, argv);
-	      return buffer.c_str();
-	    }
-	  else
-	    {
-	      buffer = buffer.substr(buffer.find("F") + 1);
-	      deleteArgs(argc, argv);
-	      return buffer.c_str();
-	    }
-	}
+        {
+          if(buffer.find("F") == buffer.length() - 1)
+            {
+              buffer = argv[i + 1];
+              deleteArgs(argc, argv);
+              return buffer.c_str();
+            }
+          else
+            {
+              buffer = buffer.substr(buffer.find("F") + 1);
+              deleteArgs(argc, argv);
+              return buffer.c_str();
+            }
+        }
     }
   deleteArgs(argc, argv);
   return buffer.c_str();
@@ -458,9 +458,9 @@ int CsoundFile::importMidifile(std::istream &stream)
       midifile.resize(0);
       char buffer;
       while(!(stream.get(buffer).eof()))
-	{
-	  midifile.push_back(buffer);
-	}
+        {
+          midifile.push_back(buffer);
+        }
       return true;
     }
   //      Importing from a "csd" file.
@@ -468,28 +468,28 @@ int CsoundFile::importMidifile(std::istream &stream)
     {
       std::string buffer;
       while(getline(stream, buffer))
-	{
-	  if(buffer.find("</CsMidifile>") == 0)
-	    {
-	      return true;
-	    }
-	  else if(buffer.find("<Size>") == 0)
-	    {
-	      getline(stream, buffer);
-	      int size = atoi(buffer.c_str());
-	      getline(stream, buffer);
-	      if(size > 0)
-		{
-		  midifile.resize(0);
-		  char charbuffer = 0;
-		  for(int i = 0; i < size; i++)
-		    {
-		      stream.get(charbuffer);
-		      midifile.push_back(charbuffer);
-		    }
-		}
-	    }
-	}
+        {
+          if(buffer.find("</CsMidifile>") == 0)
+            {
+              return true;
+            }
+          else if(buffer.find("<Size>") == 0)
+            {
+              getline(stream, buffer);
+              int size = atoi(buffer.c_str());
+              getline(stream, buffer);
+              if(size > 0)
+                {
+                  midifile.resize(0);
+                  char charbuffer = 0;
+                  for(int i = 0; i < size; i++)
+                    {
+                      stream.get(charbuffer);
+                      midifile.push_back(charbuffer);
+                    }
+                }
+            }
+        }
     }
   return false;
 }
@@ -577,20 +577,20 @@ bool isToken(std::string text, int position, std::string token)
   if(text.size() > tokenend)
     {
       if(!isspace(text[tokenend]))
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
     }
   for(int i = position - 1; i >= 0; --i)
     {
       if(text[i] == ';')
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
       else if(text[i] == '\n')
-	{
-	  return true;
-	}
+        {
+          return true;
+        }
     }
   return true;
 }
@@ -601,9 +601,9 @@ int findToken(std::string text, std::string token, int position)
   while((foundPosition = (int) text.find(token, position)) != -1)
     {
       if(isToken(text, foundPosition, token))
-	{
-	  return foundPosition;
-	}
+        {
+          return foundPosition;
+        }
       position = foundPosition + 1;
     }
   return foundPosition;
@@ -618,14 +618,14 @@ int CsoundFile::getInstrumentCount() const
     {
       beginDefinition = findToken(orchestra, "instr", beginDefinition);
       if(beginDefinition == -1)
-	{
-	  return index;
-	}
+        {
+          return index;
+        }
       endDefinition = findToken(orchestra, "endin", beginDefinition);
       if(endDefinition == -1)
-	{
-	  return index;
-	}
+        {
+          return index;
+        }
       endDefinition += 6;
       std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
       std::string pre;
@@ -633,14 +633,14 @@ int CsoundFile::getInstrumentCount() const
       std::string name;
       std::string post;
       if(parseInstrument(definition, pre, id, name, post))
-	{
-	  index++;
-	  beginDefinition++;
-	}
+        {
+          index++;
+          beginDefinition++;
+        }
       else
-	{
-	  break;
-	}
+        {
+          break;
+        }
     }
   return index;
 }
@@ -653,14 +653,14 @@ bool CsoundFile::getInstrument(int number, std::string &definition_) const
     {
       beginDefinition = findToken(orchestra, "instr", beginDefinition);
       if(beginDefinition == -1)
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
       endDefinition = findToken(orchestra, "endin", beginDefinition);
       if(endDefinition == -1)
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
       endDefinition += 6;
       std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
       std::string pre;
@@ -668,13 +668,13 @@ bool CsoundFile::getInstrument(int number, std::string &definition_) const
       std::string name;
       std::string post;
       if(parseInstrument(definition, pre, id, name, post))
-	{
-	  if(number == atof(id.c_str()))
-	    {
-	      definition_ = definition;
-	      return true;
-	    }
-	}
+        {
+          if(number == atof(id.c_str()))
+            {
+              definition_ = definition;
+              return true;
+            }
+        }
       beginDefinition++;
     }
   return false;
@@ -725,14 +725,14 @@ bool CsoundFile::getInstrument(std::string name_, std::string &definition_) cons
     {
       beginDefinition = findToken(orchestra, "instr", beginDefinition);
       if(beginDefinition == -1)
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
       endDefinition = findToken(orchestra, "endin", beginDefinition);
       if(endDefinition == -1)
-	{
-	  return false;
-	}
+        {
+          return false;
+        }
       endDefinition += 6;
       std::string definition = orchestra.substr(beginDefinition, endDefinition - beginDefinition);
       std::string pre;
@@ -740,13 +740,13 @@ bool CsoundFile::getInstrument(std::string name_, std::string &definition_) cons
       std::string name;
       std::string post;
       if(parseInstrument(definition, pre, id, name, post))
-	{
-	  if(name_.compare(name) == 0 || id.compare(name) == 0)
-	    {
-	      definition_ = definition;
-	      return true;
-	    }
-	}
+        {
+          if(name_.compare(name) == 0 || id.compare(name) == 0)
+            {
+              definition_ = definition;
+              return true;
+            }
+        }
       beginDefinition++;
     }
   return false;
@@ -812,14 +812,14 @@ int CsoundFile::importArrangement(std::istream &stream)
   while(getline(stream, buffer))
     {
       if(buffer.find("</CsArrangement>") == 0)
-	{
-	  return true;
-	}
+        {
+          return true;
+        }
       else
-	{
-	  trim(buffer);
-	  arrangement.push_back(buffer);
-	}
+        {
+          trim(buffer);
+          arrangement.push_back(buffer);
+        }
     }
   return false;
 }
@@ -858,26 +858,26 @@ int CsoundFile::exportArrangementForPerformance(std::ostream &stream) const
       stream << "; ARRANGEMENT " << getOrcFilename().c_str() << std::endl;
       stream << getOrchestraHeader() << std::endl;
       for(int i = 0, n = arrangement.size(); i < n; ++i)
-	{
-	  stream << "massign " << (i + 1) << " , " << (i + 1) << std::endl;
-	  stream.flush();
-	}
+        {
+          stream << "massign " << (i + 1) << " , " << (i + 1) << std::endl;
+          stream.flush();
+        }
       for(int i = 0, n = arrangement.size(); i < n; ++i)
-	{
-	  std::string instrumentName = arrangement[i];
-	  std::string definition;
-	  if(getInstrument(instrumentName, definition))
-	    {
-	      std::string preNumber;
-	      std::string id;
-	      std::string postNumber;
-	      if(parseInstrument(definition, preNumber, id, instrumentName, postNumber))
-		{
-		  stream << std::endl << "instr " << (i + 1) << " ; " << instrumentName << std::endl << postNumber << std::endl;
-		  stream.flush();
-		}
-	    }
-	}
+        {
+          std::string instrumentName = arrangement[i];
+          std::string definition;
+          if(getInstrument(instrumentName, definition))
+            {
+              std::string preNumber;
+              std::string id;
+              std::string postNumber;
+              if(parseInstrument(definition, preNumber, id, instrumentName, postNumber))
+                {
+                  stream << std::endl << "instr " << (i + 1) << " ; " << instrumentName << std::endl << postNumber << std::endl;
+                  stream.flush();
+                }
+            }
+        }
     }
   else
     {
