@@ -19,9 +19,8 @@
     along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-#include "csound.h"                                    /*   SMAIN.C  */
 
-PUBLIC void scsort(CSOUND *, FILE *, FILE *);
+#include "csound.h"                                    /*   SMAIN.C  */
 
 static void msg_callback(CSOUND *csound,
                          int attr, const char *fmt, va_list args)
@@ -31,14 +30,17 @@ static void msg_callback(CSOUND *csound,
     }
 }
 
-int main(void)                           /* stdio stub for standalone scsort */
+int main(void)                          /* stdio stub for standalone scsort */
 {
     CSOUND *csound;
+    int    err;
 
     csound = csoundCreate(NULL);
     csoundSetMessageCallback(csound, msg_callback);
     csoundPreCompile(csound);
-    scsort(csound, stdin, stdout);
-    return 0;
+    err = csoundScoreSort(csound, stdin, stdout);
+    csoundDestroy(csound);
+
+    return err;
 }
 

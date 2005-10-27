@@ -254,6 +254,14 @@ class Csound {
     {
       csoundSetCscoreCallback(csound, cscoreCallback);
     }
+    int ScoreSort(FILE *inFile, FILE *outFile)
+    {
+      return csoundScoreSort(csound, inFile, outFile);
+    }
+    int ScoreExtract(FILE *inFile, FILE *outFile, FILE *extractFile)
+    {
+      return csoundScoreExtract(csound, inFile, outFile, extractFile);
+    }
     // messages & text
     void Message(const char *format, ...)
     {
