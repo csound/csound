@@ -26,7 +26,7 @@
 
 /* initialize Tcl Tk Interpreter */
 int Tclcsound_Init(Tcl_Interp* interp) {
-	
+
 if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
 return TCL_ERROR;
 }
@@ -37,20 +37,10 @@ return TCL_ERROR;
 tclcsound_initialise(interp);
 
 Tcl_PkgProvide(interp, "tclcsound", "1.0");
-return TCL_OK;	
+return TCL_OK;
 }
 
 int Tclcsound_SafeInit(Tcl_Interp* interp) {
 return Tclcsound_Init(interp);
 }
-
-
-
-
-
-
-
-
-
-
 

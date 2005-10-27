@@ -263,15 +263,15 @@ PUBLIC void CppSound::ThrowMessageV(const char *format, va_list args)
 }
 
 PUBLIC void CppSound::SetMessageCallback(void (*csoundMessageCallback)(CSOUND *,int attr,
-								       const char *format,
-								       va_list valist))
+                                                                       const char *format,
+                                                                       va_list valist))
 {
   csoundSetMessageCallback(csound, csoundMessageCallback);
 }
 
 PUBLIC void CppSound::SetThrowMessageCallback(void (*throwMessageCallback)(CSOUND *,
-									   const char *format,
-									   va_list valist))
+                                                                           const char *format,
+                                                                           va_list valist))
 {
   csoundSetThrowMessageCallback(csound, throwMessageCallback);
 }
@@ -297,15 +297,15 @@ PUBLIC void CppSound::KeyPress(char c)
 }
 
 PUBLIC void CppSound::SetInputValueCallback(void (*inputValueCalback)(CSOUND *,
-								      const char *channelName,
-								      MYFLT *value))
+                                                                      const char *channelName,
+                                                                      MYFLT *value))
 {
   csoundSetInputValueCallback(csound, inputValueCalback);
 }
 
 PUBLIC void CppSound::SetOutputValueCallback(void (*outputValueCalback)(CSOUND *,
-									const char *channelName,
-									MYFLT value))
+                                                                        const char *channelName,
+                                                                        MYFLT value))
 {
   csoundSetOutputValueCallback(csound, outputValueCalback);
 }
@@ -356,26 +356,26 @@ PUBLIC int CppSound::SetIsGraphable(int isGraphable)
 }
 
 PUBLIC void CppSound::SetMakeGraphCallback(void (*makeGraphCallback)(CSOUND *,
-								     WINDAT *windat,
-								     const char *name))
+                                                                     WINDAT *windat,
+                                                                     const char *name))
 {
   csoundSetMakeGraphCallback(csound, makeGraphCallback);
 }
 
 PUBLIC void CppSound::SetDrawGraphCallback(void (*drawGraphCallback)(CSOUND *,
-								     WINDAT *windat))
+                                                                     WINDAT *windat))
 {
   csoundSetDrawGraphCallback(csound, drawGraphCallback);
 }
 
 PUBLIC void CppSound::SetKillGraphCallback(void (*killGraphCallback)(CSOUND *,
-								     WINDAT *windat))
+                                                                     WINDAT *windat))
 {
   csoundSetKillGraphCallback(csound, killGraphCallback);
 }
 
 PUBLIC void CppSound::SetMakeXYinCallback(void (*makeXYinCallback)(CSOUND *, XYINDAT *,
-								   MYFLT x, MYFLT y))
+                                                                   MYFLT x, MYFLT y))
 {
   csoundSetMakeXYinCallback(csound, makeXYinCallback);
 }
@@ -406,11 +406,11 @@ PUBLIC void CppSound::DisposeOpcodeList(opcodeListEntry *opcodelist)
 }
 
 PUBLIC int CppSound::AppendOpcode(const char *opname,
-				  int dsblksiz, int thread,
-				  const char *outypes, const char *intypes,
-				  int (*iopadr)(CSOUND *, void *),
-				  int (*kopadr)(CSOUND *, void *),
-				  int (*aopadr)(CSOUND *, void *))
+                                  int dsblksiz, int thread,
+                                  const char *outypes, const char *intypes,
+                                  int (*iopadr)(CSOUND *, void *),
+                                  int (*kopadr)(CSOUND *, void *),
+                                  int (*aopadr)(CSOUND *, void *))
 {
   return csoundAppendOpcode(csound, opname, dsblksiz, thread, outypes, intypes, iopadr, kopadr, aopadr);
 }
@@ -436,25 +436,25 @@ PUBLIC void CppSound::SetYieldCallback(int (*yieldCallback)(CSOUND *))
 }
 
 PUBLIC void CppSound::SetPlayopenCallback(int (*playopen__)(CSOUND *,
-							    const csRtAudioParams *parm))
+                                                            const csRtAudioParams *parm))
 {
   return csoundSetPlayopenCallback(csound, playopen__);
 }
 
 PUBLIC void CppSound::SetRtplayCallback(void (*rtplay__)(CSOUND *,
-							 const MYFLT *outBuf, int nbytes))
+                                                         const MYFLT *outBuf, int nbytes))
 {
   return csoundSetRtplayCallback(csound, rtplay__);
 }
 
 PUBLIC void CppSound::SetRecopenCallback(int (*recopen_)(CSOUND *,
-							 const csRtAudioParams *parm))
+                                                         const csRtAudioParams *parm))
 {
   return csoundSetRecopenCallback(csound, recopen_);
 }
 
 PUBLIC void CppSound::SetRtrecordCallback(int (*rtrecord__)(CSOUND *,
-							    MYFLT *inBuf, int nbytes))
+                                                            MYFLT *inBuf, int nbytes))
 {
   csoundSetRtrecordCallback(csound, rtrecord__);
 }
@@ -533,7 +533,6 @@ PUBLIC void CppSound::Sleep(size_t milliseconds)
 {
   csoundSleep(milliseconds);
 }
-
 
 PUBLIC void CppSound::InitTimerStruct(RTCLOCK *rtclock)
 {
@@ -658,18 +657,18 @@ PUBLIC uint32_t CppSound::RandMT(CsoundRandMTState *p)
 // Functions that alias the Csound "C" API functions declared in H/cfgvar.h.
 
 PUBLIC int CppSound::CreateGlobalConfigurationVariable(const char *name,
-						       void *p, int type, int flags,
-						       void *min, void *max,
-						       const char *shortDesc,
-						       const char *longDesc)
+                                                       void *p, int type, int flags,
+                                                       void *min, void *max,
+                                                       const char *shortDesc,
+                                                       const char *longDesc)
 {
   return csoundCreateGlobalConfigurationVariable(name, p, type, flags, min, max, shortDesc, longDesc);
 }
 
 PUBLIC int CppSound::CreateConfigurationVariable(const char *name, void *p, int type, int flags,
-						 void *min, void *max,
-						 const char *shortDesc,
-						 const char *longDesc)
+                                                 void *min, void *max,
+                                                 const char *shortDesc,
+                                                 const char *longDesc)
 {
   return csoundCreateConfigurationVariable(csound, name, p, type, flags, min, max, shortDesc, longDesc);
 }
@@ -685,25 +684,25 @@ PUBLIC int CppSound::CopyGlobalConfigurationVariables()
 }
 
 PUBLIC int CppSound::SetGlobalConfigurationVariable(const char *name,
-						    void *value)
+                                                    void *value)
 {
   return csoundSetGlobalConfigurationVariable(name, value);
 }
 
 PUBLIC int CppSound::SetConfigurationVariable(const char *name,
-					      void *value)
+                                              void *value)
 {
   return csoundSetConfigurationVariable(csound, name, value);
 }
 
 PUBLIC int CppSound::ParseGlobalConfigurationVariable(const char *name,
-						      const char *value)
+                                                      const char *value)
 {
   return csoundParseGlobalConfigurationVariable(name, value);
 }
 
 PUBLIC int CppSound::ParseConfigurationVariable(const char *name,
-						const char *value)
+                                                const char *value)
 {
   return csoundParseConfigurationVariable(csound, name, value);
 }
@@ -750,12 +749,12 @@ PUBLIC const char *CppSound::CfgErrorCodeToString(int errcode)
 
 // Additional functions defined in this class.
 
-PUBLIC CppSound::CppSound() 
+PUBLIC CppSound::CppSound()
 {
   csound = csoundCreate(0);
 }
 
-PUBLIC CppSound::CppSound(void *hostData) 
+PUBLIC CppSound::CppSound(void *hostData)
 {
   csound = csoundCreate(hostData);
 }

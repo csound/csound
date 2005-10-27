@@ -40,7 +40,6 @@ Csound will switch from CS_RUNNING to CS_COMPILED once
 the loaded score has finished playing.
 */
 
-
 typedef struct __ctlchn {
    char *name;
    double value;
@@ -49,13 +48,13 @@ typedef struct __ctlchn {
 
 typedef struct __csdata {
     CSOUND *instance; /* csound object */
-	int result;       /* action result */
-	void *threadID;   /* processing thread ID */
-	int status;      /* perf status */
-	ctlchn *inchan;
-	ctlchn *outchan;
-	Tcl_Interp *interp;
-	
+        int result;       /* action result */
+        void *threadID;   /* processing thread ID */
+        int status;      /* perf status */
+        ctlchn *inchan;
+        ctlchn *outchan;
+        Tcl_Interp *interp;
+
 } csdata;
 
 extern int tclcsound_initialise(Tcl_Interp* interp);

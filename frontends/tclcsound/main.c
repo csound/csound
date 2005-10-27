@@ -24,47 +24,38 @@
 
 #include "tclcsound.h"
 
-
 /* initialize Tcl Tk Interpreter */
 int Tcl_ApInit(Tcl_Interp* interp) {
-	
-	int status;
-	
-	status = Tcl_Init(interp);
-	if (status != TCL_OK) {
-		return TCL_ERROR;
-	}
+
+        int status;
+
+        status = Tcl_Init(interp);
+        if (status != TCL_OK) {
+                return TCL_ERROR;
+        }
 #ifdef TCLSH
-	printf("\ncstclsh\n(c) Victor Lazzarini\n Music Technology Lab \n NUI Maynooth, 2005 \n");
+        printf("\ncstclsh\n(c) Victor Lazzarini\n Music Technology Lab \n NUI Maynooth, 2005 \n");
 #endif
 #ifdef WISH
-	/* Initialize Tk values. */
-	status = Tk_Init(interp);
-	if (status != TCL_OK) {
-		return TCL_ERROR; 
-	}
+        /* Initialize Tk values. */
+        status = Tk_Init(interp);
+        if (status != TCL_OK) {
+                return TCL_ERROR;
+        }
     printf("\ncswish\n(c) Victor Lazzarini\n Music Technology Lab \n NUI Maynooth, 2005 \n");
 #endif
 
-	return tclcsound_initialise(interp);
+        return tclcsound_initialise(interp);
 }
 
-
 int main(int argc, char *argv[])
-{	
+{
 #ifdef TCLSH
-	Tcl_Main(argc, argv, Tcl_ApInit);
+        Tcl_Main(argc, argv, Tcl_ApInit);
 #endif
-#ifdef WISH  
-	Tk_Main(argc, argv, Tcl_ApInit);
+#ifdef WISH
+        Tk_Main(argc, argv, Tcl_ApInit);
 #endif
     return 0;
 }
-
-
-
-
-
-
-
 
