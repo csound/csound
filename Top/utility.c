@@ -221,3 +221,41 @@ PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
     return (const char*) p->desc;
 }
 
+ /* ------------------------------------------------------------------------ */
+
+/**
+ * Sorts score file 'inFile' and writes the result to 'outFile'.
+ * The Csound instance should be initialised with csoundPreCompile()
+ * before calling this function, and csoundReset() should be called
+ * after sorting the score to clean up. On success, zero is returned.
+ */
+PUBLIC int csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
+{
+    int   err;
+
+    if ((err = setjmp(csound->exitjmp)) != 0) {
+      return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+    scsort(csound, inFile, outFile);
+    return 0;
+}
+
+/**
+ * Extracts from 'inFile', controlled by 'extractFile', and writes
+ * the result to 'outFile'. The Csound instance should be initialised
+ * with csoundPreCompile() before calling this function, and csoundReset()
+ * should be called after score extraction to clean up.
+ * The return value is zero on success.
+ */
+PUBLIC int csoundScoreExtract(CSOUND *csound,
+                              FILE *inFile, FILE *outFile, FILE *extractFile)
+{
+    int   err;
+
+    if ((err = setjmp(csound->exitjmp)) != 0) {
+      return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+    scxtract(csound, inFile, outFile, extractFile);
+    return 0;
+}
+

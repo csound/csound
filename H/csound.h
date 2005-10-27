@@ -546,6 +546,24 @@ extern "C" {
                                       void (*cscoreCallback)(CSOUND *));
 
   /**
+   * Sorts score file 'inFile' and writes the result to 'outFile'.
+   * The Csound instance should be initialised with csoundPreCompile()
+   * before calling this function, and csoundReset() should be called
+   * after sorting the score to clean up. On success, zero is returned.
+   */
+  PUBLIC int csoundScoreSort(CSOUND *, FILE *inFile, FILE *outFile);
+
+  /**
+   * Extracts from 'inFile', controlled by 'extractFile', and writes
+   * the result to 'outFile'. The Csound instance should be initialised
+   * with csoundPreCompile() before calling this function, and csoundReset()
+   * should be called after score extraction to clean up.
+   * The return value is zero on success.
+   */
+  PUBLIC int csoundScoreExtract(CSOUND *,
+                                FILE *inFile, FILE *outFile, FILE *extractFile);
+
+  /**
    * MESSAGES & TEXT
    */
 
