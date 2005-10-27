@@ -22,6 +22,9 @@
 #if defined(MSVC)
 #pragma warning(disable: 4786)
 #endif
+#if defined(MACOSX)
+#define gcvt(val, dig, buffer) snprintf(buffer,dig,"%f",val)
+#endif
 #include "CsoundFile.hpp"
 #include <ctime>
 #include <algorithm>
