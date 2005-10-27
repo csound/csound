@@ -100,21 +100,21 @@ public:
   PUBLIC void ThrowMessage(const char *format, ...);
   PUBLIC void ThrowMessageV(const char *format, va_list args);
   PUBLIC void SetMessageCallback(void (*csoundMessageCallback)(CSOUND *,int attr,
-							       const char *format,
-							       va_list valist));
+                                                               const char *format,
+                                                               va_list valist));
   PUBLIC void SetThrowMessageCallback(void (*throwMessageCallback)(CSOUND *,
-								   const char *format,
-								   va_list valist));
+                                                                   const char *format,
+                                                                   va_list valist));
   PUBLIC int GetMessageLevel();
   PUBLIC void SetMessageLevel(int messageLevel);
   PUBLIC void InputMessage(const char *message);
   PUBLIC void KeyPress(char c);
   PUBLIC void SetInputValueCallback(void (*inputValueCalback)(CSOUND *,
-							      const char *channelName,
-							      MYFLT *value));
+                                                              const char *channelName,
+                                                              MYFLT *value));
   PUBLIC void SetOutputValueCallback(void (*outputValueCalback)(CSOUND *,
-								const char *channelName,
-								MYFLT value));
+                                                                const char *channelName,
+                                                                MYFLT value));
   PUBLIC int ScoreEvent(char type, const MYFLT *pFields, long numFields);
   PUBLIC void SetExternalMidiInOpenCallback(int (*func)(CSOUND *, void **, const char *));
   PUBLIC void SetExternalMidiReadCallback(int (*func)(CSOUND *, void *, unsigned char *, int));
@@ -125,37 +125,37 @@ public:
   PUBLIC void SetExternalMidiErrorStringCallback(const char *(*func)(int));
   PUBLIC int SetIsGraphable(int isGraphable);
   PUBLIC void SetMakeGraphCallback(void (*makeGraphCallback)(CSOUND *,
-							     WINDAT *windat,
-							     const char *name));
+                                                             WINDAT *windat,
+                                                             const char *name));
   PUBLIC void SetDrawGraphCallback(void (*drawGraphCallback)(CSOUND *,
-							     WINDAT *windat));
+                                                             WINDAT *windat));
   PUBLIC void SetKillGraphCallback(void (*killGraphCallback)(CSOUND *,
-							     WINDAT *windat));
+                                                             WINDAT *windat));
   PUBLIC void SetMakeXYinCallback(void (*makeXYinCallback)(CSOUND *, XYINDAT *,
-							   MYFLT x, MYFLT y));
+                                                           MYFLT x, MYFLT y));
   PUBLIC void SetReadXYinCallback(void (*readXYinCallback)(CSOUND *, XYINDAT *));
   PUBLIC void SetKillXYinCallback(void (*killXYinCallback)(CSOUND *, XYINDAT *));
   PUBLIC void SetExitGraphCallback(int (*exitGraphCallback)(CSOUND *));
   PUBLIC int NewOpcodeList(opcodeListEntry **opcodelist);
   PUBLIC void DisposeOpcodeList(opcodeListEntry *opcodelist);
   PUBLIC int AppendOpcode(const char *opname,
-			  int dsblksiz, int thread,
-			  const char *outypes, const char *intypes,
-			  int (*iopadr)(CSOUND *, void *),
-			  int (*kopadr)(CSOUND *, void *),
-			  int (*aopadr)(CSOUND *, void *));
+                          int dsblksiz, int thread,
+                          const char *outypes, const char *intypes,
+                          int (*iopadr)(CSOUND *, void *),
+                          int (*kopadr)(CSOUND *, void *),
+                          int (*aopadr)(CSOUND *, void *));
   PUBLIC static int OpenLibrary(void **library, const char *libraryPath);
   PUBLIC static int CloseLibrary(void *library);
   PUBLIC static void *GetLibrarySymbol(void *library, const char *symbolName);
   PUBLIC void SetYieldCallback(int (*yieldCallback)(CSOUND *));
   PUBLIC void SetPlayopenCallback(int (*playopen__)(CSOUND *,
-						    const csRtAudioParams *parm));
+                                                    const csRtAudioParams *parm));
   PUBLIC void SetRtplayCallback(void (*rtplay__)(CSOUND *,
-						 const MYFLT *outBuf, int nbytes));
+                                                 const MYFLT *outBuf, int nbytes));
   PUBLIC void SetRecopenCallback(int (*recopen_)(CSOUND *,
-						 const csRtAudioParams *parm));
+                                                 const csRtAudioParams *parm));
   PUBLIC void SetRtrecordCallback(int (*rtrecord__)(CSOUND *,
-						    MYFLT *inBuf, int nbytes));
+                                                    MYFLT *inBuf, int nbytes));
   PUBLIC void SetRtcloseCallback(void (*rtclose__)(CSOUND *));
   PUBLIC int GetDebug();
   PUBLIC void SetDebug(int debug);
@@ -199,24 +199,24 @@ public:
   // Functions that alias the Csound "C" API functions declared in H/cfgvar.h.
 
   PUBLIC static int CreateGlobalConfigurationVariable(const char *name,
-						      void *p, int type, int flags,
-						      void *min, void *max,
-						      const char *shortDesc,
-						      const char *longDesc);
+                                                      void *p, int type, int flags,
+                                                      void *min, void *max,
+                                                      const char *shortDesc,
+                                                      const char *longDesc);
   PUBLIC int CreateConfigurationVariable(const char *name, void *p, int type, int flags,
-					 void *min, void *max,
-					 const char *shortDesc,
-					 const char *longDesc);
+                                         void *min, void *max,
+                                         const char *shortDesc,
+                                         const char *longDesc);
   PUBLIC int CopyGlobalConfigurationVariable(const char *name, void *p);
   PUBLIC int CopyGlobalConfigurationVariables();
   PUBLIC static int SetGlobalConfigurationVariable(const char *name,
-						   void *value);
+                                                   void *value);
   PUBLIC int SetConfigurationVariable(const char *name,
-				      void *value);
+                                      void *value);
   PUBLIC static int ParseGlobalConfigurationVariable(const char *name,
-						     const char *value);
+                                                     const char *value);
   PUBLIC int ParseConfigurationVariable(const char *name,
-					const char *value);
+                                        const char *value);
   PUBLIC static csCfgVariable_t *QueryGlobalConfigurationVariable(const char *name);
   PUBLIC csCfgVariable_t *QueryConfigurationVariable(const char *name);
   PUBLIC static csCfgVariable_t **ListGlobalConfigurationVariables(void);

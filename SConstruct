@@ -497,15 +497,16 @@ csoundProgramEnvironment = commonEnvironment.Copy()
 csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
 
 vstEnvironment = commonEnvironment.Copy()
+fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
 if getPlatform() != 'darwin':
-   if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags'):
-      print "Parsed fltk-config."
-else:
-   if vstEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags'):
-      print "Parsed fltk-config."
-   vstEnvironment.Append(LIBS=['fltk','fltk_images', 'fltk_png', 'z', 'fltk_jpeg'])	
+    fltkConfigFlags += ' --ldflags'
+if vstEnvironment.ParseConfig(fltkConfigFlags):
+    print "Parsed fltk-config."
+if getPlatform() == 'darwin':
+    vstEnvironment.Append(LIBS = Split('''
+        fltk fltk_images fltk_png z fltk_jpeg
+    '''))
 guiProgramEnvironment = commonEnvironment.Copy()
-
 
 if getPlatform() == 'mingw':
     if commonEnvironment['MSVC'] == '0':
@@ -1103,7 +1104,7 @@ else:
     vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
-    	vstEnvironment.Prepend(LIBS = pythonLibs)
+        vstEnvironment.Prepend(LIBS = pythonLibs)
     vstEnvironment.Prepend(LIBS = ['csound', 'sndfile'])
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
@@ -1190,7 +1191,7 @@ else:
         print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
         if(getPlatform() == 'darwin'):
            vstEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
-        csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags,'-java', '-package', 'CsoundVST'])
+        csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags, '-java', '-package', 'CsoundVST'])
         csoundVstSources.append(csoundVstJavaWrapper)
         jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
         zipDependencies.append(jcsound)
@@ -1200,7 +1201,7 @@ else:
     csoundvst =  vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
     if(getPlatform == 'darwin'):
         vstEnvironment.Prepend(LINKFLAGS='-bundle')
-    	vstEnvironment.Program('CsoundVST.so', csoundVstSources, PROGPREFIX = '_')
+        vstEnvironment.Program('CsoundVST.so', csoundVstSources, PROGPREFIX = '_')
     Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
     libs.append(csoundvst)
@@ -1352,18 +1353,25 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     csTkEnvironment = csTclEnvironment.Copy()
     csTclEnvironment.Append(CCFLAGS = ['-DTCLSH'])
     csTkEnvironment.Append(CCFLAGS = ['-DWISH'])
-    csTclEnvironment.Object('frontends/tclcsound/main_tclsh.o', 'frontends/tclcsound/main.c')
-    csTclEnvironment.Object('frontends/tclcsound/commands.o', 'frontends/tclcsound/commands.c')
-    csTcl = csTclEnvironment.Program('cstclsh', ['frontends/tclcsound/main_tclsh.o', 'frontends/tclcsound/commands.o'])
-    csTkEnvironment.Object('frontends/tclcsound/main_wish.o', 'frontends/tclcsound/main.c')
-    csTk = csTkEnvironment.Program('cswish', ['frontends/tclcsound/main_wish.o', 'frontends/tclcsound/commands.o'])
-    csTkEnvironment.Prepend(LFLAGS='-DTCL_USE_STUBS')
+    csTclEnvironment.Object('frontends/tclcsound/main_tclsh.o',
+                            'frontends/tclcsound/main.c')
+    csTclEnvironment.Object('frontends/tclcsound/commands.o',
+                            'frontends/tclcsound/commands.c')
+    csTcl = csTclEnvironment.Program('cstclsh', Split('''
+        frontends/tclcsound/main_tclsh.o frontends/tclcsound/commands.o
+    '''))
+    csTkEnvironment.Object('frontends/tclcsound/main_wish.o',
+                           'frontends/tclcsound/main.c')
+    csTk = csTkEnvironment.Program('cswish', Split('''
+        frontends/tclcsound/main_wish.o frontends/tclcsound/commands.o
+    '''))
+    csTkEnvironment.Prepend(LFLAGS = '-DTCL_USE_STUBS')
     Tclcsoundlib = csTkEnvironment.SharedLibrary('tclcsound', ['frontends/tclcsound/tclcsound.c', 'frontends/tclcsound/commands.c'], SHLIBPREFIX='')
     if getPlatform() == 'darwin':
         csTkEnvironment.Command('cswish_resources', 'cswish', "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
-    Depends(Tclcsoundlib, csoundLibrary)	
+    Depends(Tclcsoundlib, csoundLibrary)
     zipDependencies.append(csTcl)
     zipDependencies.append(csTk)
     zipDependencies.append(Tclcsoundlib)
