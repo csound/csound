@@ -662,8 +662,8 @@ else:
     csndInterfacesEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
     csndInterfacesSources = Split('''
         interfaces/filebuilding.cpp
-	interfaces/CppSound.cpp
-	interfaces/CsoundFile.cpp
+        interfaces/CppSound.cpp
+        interfaces/CsoundFile.cpp
     ''')
     if commonEnvironment['dynamicCsoundLibrary'] == '1' or getPlatform() == 'mingw' or getPlatform() == 'darwin':
         csndInterfacesEnvironment.Prepend(LIBS = ['csound'])
@@ -678,15 +678,19 @@ else:
         csndInterfacesEnvironment.Append(LINKFLAGS = ['-framework', 'JavaVM'])
         csndInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
     csndInterfacesEnvironment.Append(SWIGFLAGS = Split('''
-        -c -includeall -I. -IH -Iinterfaces
+        -c++ -includeall -I. -IH -Iinterfaces -outdir .
     '''))
-    swigflags = csndInterfacesEnvironment['SWIGFLAGS']
     for option in csndInterfacesEnvironment['CPPPATH']:
         option = '-I' + option
         csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
     for option in csndInterfacesEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
             csndInterfacesEnvironment.Append(SWIGFLAGS = [option])
+    if '-pedantic' in csndInterfacesEnvironment['CCFLAGS']:
+        csndInterfacesEnvironment['CCFLAGS'].remove('-pedantic')
+    if '-pedantic' in csndInterfacesEnvironment['CXXFLAGS']:
+        csndInterfacesEnvironment['CXXFLAGS'].remove('-pedantic')
+    swigflags = csndInterfacesEnvironment['SWIGFLAGS']
     csndPythonInterface = csndInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
     csndInterfacesSources.insert(0, csndPythonInterface)
     if javaFound and commonEnvironment['buildJavaWrapper']=='1':
