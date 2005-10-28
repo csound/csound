@@ -193,8 +193,8 @@ int CsoundVST::midiDeviceOpen(CSOUND *csound, void **userData,
 void CsoundVST::performanceThreadRoutine()
 {
   getCppSound()->stop();
-  getCppSound()->reset();
-// getCppSound()->setFLTKThreadLocking(true);
+  getCppSound()->Reset();
+// getCppSound()->SetFLTKThreadLocking(true);
   if(getIsPython())
     {
       Shell::save(Shell::getFilename());
@@ -204,8 +204,8 @@ void CsoundVST::performanceThreadRoutine()
         {  csoundSetHostData(cppSound->getCsound(), this);
 
           csound::System::inform("Python VST performance.\n");
-          getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
-          getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
+          getCppSound()->SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
+          getCppSound()->SetExternalMidiReadCallback(&CsoundVST::midiRead);
         }
       runScript();
     }
@@ -217,9 +217,9 @@ void CsoundVST::performanceThreadRoutine()
       if(getIsVst())
         {
           csound::System::inform("Classic VST performance.\n");
-          getCppSound()->preCompile();
-          getCppSound()->setExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
-          getCppSound()->setExternalMidiReadCallback(&CsoundVST::midiRead);
+          getCppSound()->PreCompile();
+          getCppSound()->SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
+          getCppSound()->SetExternalMidiReadCallback(&CsoundVST::midiRead);
           if(getCppSound()->compile())
             {
               csound::System::inform("Csound compilation failed.\n");
@@ -286,14 +286,13 @@ int CsoundVST::perform()
       else if(getIsMultiThreaded())
         {
           csound::System::inform("Multi-threaded performance.\n");
-          csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback);
-          csoundSetYieldCallback(getCppSound()->getCsound(), nonThreadYieldCallback);
+          getCppSound()->SetYieldCallback(nonThreadYieldCallback);
           result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
         }
       else
         {
           csound::System::inform("Single-threaded performance.\n");
-          csoundSetYieldCallback(getCppSound()->getCsound(), threadYieldCallback);
+          getCppSound()->SetYieldCallback(threadYieldCallback);
           performanceThreadRoutine();
         }
     }
@@ -455,10 +454,10 @@ void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
   if(getCppSound()->getIsGo())
     {
       synchronizeScore();
-      MYFLT *csoundInput = cppSound->getSpin();
-      MYFLT *csoundOutput = cppSound->getSpout();
-      size_t csoundLastFrame = cppSound->getKsmps() - 1;
-      size_t channelN = cppSound->getNchnls();
+      MYFLT *csoundInput = cppSound->GetSpin();
+      MYFLT *csoundOutput = cppSound->GetSpout();
+      size_t csoundLastFrame = cppSound->GetKsmps() - 1;
+      size_t channelN = cppSound->GetNchnls();
       size_t channelI;
       for(long hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
         {
@@ -489,10 +488,10 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, long hos
   if(getCppSound()->getIsGo())
     {
       synchronizeScore();
-      MYFLT *csoundInput = cppSound->getSpin();
-      MYFLT *csoundOutput = cppSound->getSpout();
-      size_t csoundLastFrame = cppSound->getKsmps() - 1;
-      size_t channelN = cppSound->getNchnls();
+      MYFLT *csoundInput = cppSound->GetSpin();
+      MYFLT *csoundOutput = cppSound->GetSpout();
+      size_t csoundLastFrame = cppSound->GetKsmps() - 1;
+      size_t channelN = cppSound->GetNchnls();
       size_t channelI;
       for(long hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++)
         {
@@ -532,9 +531,9 @@ void CsoundVST::synchronizeScore()
         {
           if(getCppSound()->getIsGo())
             {
-              getCppSound()->setScorePending(1);
-              getCppSound()->rewindScore();
-              getCppSound()->setScoreOffsetSeconds(vstCurrentSampleBlockStart);
+              getCppSound()->SetScorePending(1);
+              getCppSound()->RewindScore();
+              getCppSound()->SetScoreOffsetSeconds(vstCurrentSampleBlockStart);
               csound::System::inform("Score synchronized at %f...\n", vstCurrentSampleBlockStart);
             }
         }
@@ -543,7 +542,7 @@ void CsoundVST::synchronizeScore()
     {
       if(getCppSound()->getIsGo())
         {
-          getCppSound()->setScorePending(0);
+          getCppSound()->SetScorePending(0);
         }
     }
 }
