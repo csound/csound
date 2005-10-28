@@ -30,6 +30,99 @@
 #include <sys/stat.h>
 #include <csound.h>
 
+void gatherArgs(int argc, const char **argv, std::string &commandLine)
+{
+  for(int i = 0; i < argc; i++)
+    {
+      if(i == 0)
+	{
+	  commandLine = argv[i];
+	}
+      else
+	{
+	  commandLine += " ";
+	  commandLine += argv[i];
+	}
+    }
+}
+
+void scatterArgs(const std::string commandLine, int *argc, char ***argv)
+{
+  char *buffer = strdup(commandLine.c_str());
+  char *separators = " \t\n\r";
+  int argcc = 0;
+  char **argvv = (char **) calloc(sizeof(char *), 100);
+  char *token = strtok(buffer, separators);
+  while(token)
+    {
+      argvv[argcc] = strdup(token);
+      argcc++;
+      token = strtok(0, separators);
+    }
+  *argc = argcc;
+  *argv = (char **) realloc(argvv, sizeof(char *) * (argcc + 1));
+  free(buffer);
+}
+
+void deleteArgs(int argc, char **argv)
+{
+  if(!argv)
+    {
+      return;
+    }
+  for(int i = 0; i < argc; i++)
+    {
+      if(argv[i])
+	{
+	  free(argv[i]);
+	}
+    }
+  free(argv);
+}
+
+std::string &trim(std::string &value)
+{
+  size_t i = value.find_first_not_of(" \n\r\t");
+  if(i != value.npos)
+    {
+      value.erase(0, i);
+    }
+  else
+    {
+      value.erase(value.begin(), value.end());
+      return value;
+    }
+  i = value.find_last_not_of(" \n\r\t");
+  if(i != value.npos)
+    {
+      value.erase(i + 1, value.npos);
+    }
+  return value;
+}
+
+std::string &trimQuotes(std::string &value)
+{
+  size_t i = value.find_first_not_of("\"");
+  if(i != value.npos)
+    {
+      value.erase(0, i);
+    }
+  i = value.find_last_not_of("\"");
+  if(i != value.npos)
+    {
+      value.erase(i + 1, value.npos);
+    }
+  return value;
+}
+
+/**
+ *       Returns true if definition is a valid Csound instrument definition block.
+ *       Also returns the part before the instr number, the instr number,
+ *       the name (all text after the first comment on the same line as the instr number),
+ *       and the part after the instr number, all by reference.
+ */
+bool parseInstrument(const std::string &definition, std::string &preNumber, std::string &id, std::string &name, std::string &postNumber);
+
 char staticBuffer[0x1000];
 
 /**

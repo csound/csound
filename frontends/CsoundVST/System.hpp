@@ -25,12 +25,14 @@
 #ifdef SWIG
 %module CsoundVST
 %{
+#include "CppSound.hpp"
 #include <string>
 #include <vector>
 #include <cstdarg>
 #include <ctime>
   %}
 #else
+#include "CppSound.hpp"
 #include <string>
 #include <vector>
 #include <cstdarg>
