@@ -97,10 +97,6 @@
  * API function pointers and public members of the CSOUND structure.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
   /**
    * Platform-dependent definitions and declarations.
    */
@@ -110,12 +106,6 @@ extern "C" {
 #else
 #  define PUBLIC
 #endif
-
-  /**
-   * Forward declaration.
-   */
-
-  typedef struct CSOUND_ CSOUND;
 
   /**
    * Enables Python interface.
@@ -142,6 +132,10 @@ extern "C" {
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
   /**
@@ -223,6 +217,12 @@ extern "C" {
     int       mti;
     uint32_t  mt[624];
   } CsoundRandMTState;
+
+  /**
+   * Forward declarations.
+   */
+
+  typedef struct CSOUND_  CSOUND;
 
   typedef struct windat_  WINDAT;
   typedef struct xyindat_ XYINDAT;
