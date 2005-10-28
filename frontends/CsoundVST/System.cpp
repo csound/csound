@@ -520,8 +520,11 @@ namespace csound
     d[len] = 0;
     return ret;
   }
-
+#ifndef MACOSX
   char *basename(const char *path)
+#else
+  char *basename_(const char *path)
+#endif
   {
     static char bname[MAXPATHLEN];
     register const char *endp, *startp;
@@ -607,7 +610,11 @@ namespace csound
     char *dirTemp = strdup(pathname.c_str());
     directory = dirname(dirTemp);
     char *fileTemp = strdup(pathname.c_str());
+#ifndef MACOSX
     file = basename(fileTemp);
+#else
+    file = basename_(fileTemp);
+#endif
     int periodPosition = pathname.find_last_of(".");
     if(periodPosition != -1)
       {
@@ -715,7 +722,11 @@ namespace csound
     return ret;
   }
 
+#ifndef MACOSX
   char *basename(const char *path)
+#else
+  char *basename_(const char *path)
+#endif
   {
     static char bname[NAME_MAX + 1];
     register const char *endp, *startp;
@@ -824,7 +835,12 @@ namespace csound
     char *dirTemp = strdup(pathname.c_str());
     directory = dirname(dirTemp);
     char *fileTemp = strdup(pathname.c_str());
+#ifndef MACOSX
     file = basename(fileTemp);
+#else
+     file = basename_(fileTemp);
+#endif
+
     int periodPosition = pathname.find_last_of(".");
     if(periodPosition != -1)
       {
