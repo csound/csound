@@ -499,6 +499,7 @@ csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
 vstEnvironment = commonEnvironment.Copy()
 fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
 if getPlatform() != 'darwin':
+
     fltkConfigFlags += ' --ldflags'
 if vstEnvironment.ParseConfig(fltkConfigFlags):
     print "Parsed fltk-config."
@@ -1202,11 +1203,13 @@ else:
     #else:
     #    print 'CONFIGURATION DECISION: Not building Java wrappers for CsoundVST.'
     csoundvst =  vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
+
     if(getPlatform == 'darwin'):
         vstEnvironment.Prepend(LINKFLAGS='-bundle')
         vstEnvironment.Program('CsoundVST.so', csoundVstSources, PROGPREFIX = '_')
     #Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     zipDependencies.append(csoundvst)
+    libs.append('CsoundVST.py')
     libs.append(csoundvst)
     #libs.append('CsoundVST.py')
     Depends(csoundvst, csndInterfaces)
@@ -1351,7 +1354,10 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     elif getPlatform() == 'linux':
         csTclEnvironment.Append(LIBS = ['tcl', 'tk', 'dl', 'pthread'])
     elif getPlatform() == 'mingw':
-        csTclEnvironment.Append(LIBS = ['tcl', 'tk'])
+	if commonEnvironment['MSVC'] == 1:
+            csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
+	else:
+	    csTclEnvironment.Append(LIBS = ['tcl', 'tk'])
         csTclEnvironment.Append(LIBS = csoundWindowsLibraries)
     csTkEnvironment = csTclEnvironment.Copy()
     csTclEnvironment.Append(CCFLAGS = ['-DTCLSH'])
