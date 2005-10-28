@@ -23,10 +23,10 @@
 #include <boost/tokenizer.hpp>
 
 CppSound::CppSound() : Csound(),
-		       go(false),
-		       isCompiled(false),
-		       isPerforming(false),
-		       spoutSize(0)
+                       go(false),
+                       isCompiled(false),
+                       isPerforming(false),
+                       spoutSize(0)
 {
 }
 
@@ -131,7 +131,7 @@ void CppSound::stop()
 
 CSOUND *CppSound::getCsound()
 {
-  return csound; 
+  return csound;
 }
 
 int CppSound::performKsmps(bool absolute)
