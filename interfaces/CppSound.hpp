@@ -26,14 +26,14 @@
 %include "std_string.i"
 %include "std_vector.i"
 %{
-#include "Csound.hpp"
+#include "csound.hpp"
 #include "CsoundFile.hpp"
 #include <string>
 #include <vector>
   %}
 %template(MyfltVector) std::vector<MYFLT>;
 #else
-#include "Csound.hpp"
+#include "csound.hpp"
 #include "CsoundFile.hpp"
 #include <string>
 #include <vector>
@@ -54,11 +54,11 @@ class PUBLIC CppSound : public Csound, public CsoundFile
   std::string renderedSoundfile;
 public:
   PUBLIC CppSound();
-  PUBLIC virtual ~CppSound();  
+  PUBLIC virtual ~CppSound();
   PUBLIC virtual CSOUND *getCsound();
   PUBLIC virtual long getThis();
   PUBLIC virtual int compile(int argc, char **argv);
-  PUBLIC virtual int compile();  
+  PUBLIC virtual int compile();
   PUBLIC virtual size_t getSpoutSize() const;
   PUBLIC virtual int perform(int argc, char **argv);
   PUBLIC virtual int perform();
