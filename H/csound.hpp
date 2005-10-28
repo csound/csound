@@ -2,13 +2,9 @@
 #ifndef __CSOUND_HPP__
 #define __CSOUND_HPP__
 
-#if defined(__cplusplus)
-
-extern "C"
-{
 #include "csound.h"
-#include "cfgvar.h"
-}
+
+#if defined(__cplusplus)
 
 /**
  * C++ interface to the "C" Csound API.
@@ -720,7 +716,7 @@ public:
   }
 };
 
-#endif
+#endif  // __cplusplus
 
 #endif  // __CSOUND_HPP__
 
