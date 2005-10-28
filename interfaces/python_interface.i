@@ -22,14 +22,15 @@
 %module csnd
 %feature("autodoc", "1");
 %{
-    #include <H/csound.h>
-    #include <H/cfgvar.h>
+    #include <H/csound.hpp>
     #include <interfaces/filebuilding.h>
 %}
 
 %apply int { size_t };
 typedef unsigned int uint32_t;
+#ifndef MSVC
 %apply long long { uint32_t };
+#endif
 
 %typemap(in) char ** {
   /* Check if is a list */
@@ -58,6 +59,5 @@ typedef unsigned int uint32_t;
   free((char *) $1);
 }
 
-%include <csound.h>
-%include <cfgvar.h>
+%include <csound.hpp>
 %include <interfaces/filebuilding.h>
