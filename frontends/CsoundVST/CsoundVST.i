@@ -66,7 +66,8 @@
 # Create it in the main module, so that scripts for CsoundVST 
 # will also work in a standalone Python interpreter.
 import sys
-sys.modules["__main__"].csound = CppSound()
+import csnd
+sys.modules["__main__"].csound = csnd.CppSound()
 sys.modules["__main__"].csound.thisown = 0
 sys.modules["__main__"].csound.setPythonMessageCallback()
 %}
