@@ -35,14 +35,14 @@ void gatherArgs(int argc, const char **argv, std::string &commandLine)
   for(int i = 0; i < argc; i++)
     {
       if(i == 0)
-	{
-	  commandLine = argv[i];
-	}
+        {
+          commandLine = argv[i];
+        }
       else
-	{
-	  commandLine += " ";
-	  commandLine += argv[i];
-	}
+        {
+          commandLine += " ";
+          commandLine += argv[i];
+        }
     }
 }
 
@@ -73,9 +73,9 @@ void deleteArgs(int argc, char **argv)
   for(int i = 0; i < argc; i++)
     {
       if(argv[i])
-	{
-	  free(argv[i]);
-	}
+        {
+          free(argv[i]);
+        }
     }
   free(argv);
 }
@@ -929,7 +929,7 @@ int CsoundFile::exportArrangement(std::ostream &stream) const
 std::string CsoundFile::getOrchestraHeader(void) const
 {
   int instrIndex = findToken(orchestra, "instr", 0);
-  if(instrIndex == orchestra.npos)
+  if(instrIndex == (int) orchestra.npos)
     {
       return "";
     }
