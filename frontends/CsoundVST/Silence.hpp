@@ -58,8 +58,6 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #endif
 
-#include "CsoundFile.hpp"
-#include "CppSound.hpp"
 #include "Conversions.hpp"
 #include "System.hpp"
 #include "Event.hpp"
