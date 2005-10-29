@@ -77,9 +77,11 @@
  * int main(int argc, char **argv)
  * {
  *     CSOUND *csound = csoundCreate(NULL);
- *     int result = csoundPerform(csound, argc, argv);
+ *     int result = csoundCompile(csound, argc, argv);
+ *     if (!result)
+ *       result = csoundPerform(csound);
  *     csoundDestroy(csound);
- *     return result;
+ *     return (result >= 0 ? 0 : result);
  * }
  *
  * \endcode
@@ -303,30 +305,27 @@ extern "C" {
   PUBLIC void csoundSetHostData(CSOUND *, void *hostData);
 
   /**
-   * Get pointer to value of environment variable 'name'.
-   * Should be called after csoundPreCompile() or csoundCompile().
+   * Get pointer to the value of environment variable 'name', searching
+   * in this order: local environment of 'csound' (if not NULL), variables
+   * set with csoundSetGlobalEnv(), and system environment variables.
+   * If 'csound' is not NULL, should be called after csoundPreCompile()
+   * or csoundCompile().
    * Return value is NULL if the variable is not set.
    */
   PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
 
   /**
-   * Set the default value of environment variable 'name' to 'value'.
+   * Set the global value of environment variable 'name' to 'value',
+   * or delete variable if 'value' is NULL.
    * It is not safe to call this function while any Csound instances
    * are active.
    * Returns zero on success.
    */
-  PUBLIC int csoundSetDefaultEnv(const char *name, const char *value);
+  PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
 
   /**
    * PERFORMANCE
    */
-
-  /**
-   * Compiles and renders a Csound performance,
-   * as directed by the supplied command-line arguments,
-   * in one pass. Returns 0 for success.
-   */
-  PUBLIC int csoundPerform(CSOUND *, int argc, char **argv);
 
   /**
    * Compiles Csound input files (such as an orchestra and score)
@@ -341,6 +340,18 @@ extern "C" {
    * /endcode
    */
   PUBLIC int csoundCompile(CSOUND *, int argc, char **argv);
+
+  /**
+   * Senses input events and performs audio output until the end of score
+   * is reached (positive return value), an error occurs (negative return
+   * value), or performance is stopped by calling csoundStop() from another
+   * thread (zero return value).
+   * Note that csoundCompile must be called first.
+   * In the case of zero return value, csoundPerform() can be called again
+   * to continue the stopped performance. Otherwise, csoundReset() should be
+   * called to clean up after the finished or failed performance.
+   */
+  PUBLIC int csoundPerform(CSOUND *);
 
   /**
    * Senses input events, and performs one control sample worth (ksmps) of
@@ -375,8 +386,16 @@ extern "C" {
   PUBLIC int csoundPerformBuffer(CSOUND *);
 
   /**
-   * Prints information about the end of a performance.
-   * After calling csoundCleanup(), the operation of the perform
+   * Stops a csoundPerform() running in another thread. Note that it is
+   * not guaranteed that csoundPerform() has already stopped when this
+   * function returns.
+   */
+  PUBLIC void csoundStop(CSOUND *);
+
+  /**
+   * Prints information about the end of a performance, and closes audio
+   * and MIDI devices.
+   * Note: after calling csoundCleanup(), the operation of the perform
    * functions is undefined.
    */
   PUBLIC int csoundCleanup(CSOUND *);
