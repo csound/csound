@@ -536,7 +536,8 @@ static const CSOUND cenviron_ = {
         NULL,           /*  chn_db              */
         1,              /*  opcodedirWasOK      */
         0,              /*  disable_csd_options */
-        { 0, { 0U } }   /*  randState_          */
+        { 0, { 0U } },  /*  randState_          */
+        0               /*  performState        */
 };
 
   /* from threads.c */
@@ -1041,7 +1042,7 @@ static const CSOUND cenviron_ = {
     }
     do {
       if ((done = sensevents(csound))) {
-        csoundMessage(csound, "Score finished in csoundPerformKsmps()\n");
+        csoundMessage(csound, "Score finished in csoundPerformKsmps().\n");
         return done;
       }
     } while (kperf(csound));
@@ -1083,6 +1084,39 @@ static const CSOUND cenviron_ = {
       csound->sampsNeeded -= csound->nspout;
     }
     return 0;
+  }
+
+  /* perform an entire score */
+
+  PUBLIC int csoundPerform(CSOUND *csound)
+  {
+    int done;
+    int returnValue;
+
+    csound->performState = 0;
+    /* setup jmp for return after an exit() */
+    if ((returnValue = setjmp(csound->exitjmp))) {
+      csoundMessage(csound, "Early return from csoundPerform().\n");
+      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
+    do {
+      do {
+        if ((done = sensevents(csound))) {
+          csoundMessage(csound, "Score finished in csoundPerform().\n");
+          return done;
+        }
+      } while (kperf(csound));
+    } while ((unsigned char) csound->performState == (unsigned char) 0);
+    csoundMessage(csound, "csoundPerform(): stopped.\n");
+    csound->performState = 0;
+    return 0;
+  }
+
+  /* stop a csoundPerform() running in another thread */
+
+  PUBLIC void csoundStop(CSOUND *csound)
+  {
+    csound->performState = -1;
   }
 
   /*

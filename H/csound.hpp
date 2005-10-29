@@ -6,7 +6,7 @@
 %module csnd
 %{
 #include "csound.h"
-  %}
+%}
 #else
 #include "csound.h"
 #endif
@@ -43,60 +43,6 @@ public:
     return csoundGetEnv(csound, name);
   }
   // performance
-  int Perform(int argc, char **argv)
-  {
-    return csoundPerform(csound, argc, argv);
-  }
-  int Perform(char *csdName)
-  {
-    char  *argv[3];
-    argv[0] = "csound";
-    argv[1] = csdName;
-    argv[2] = (char*) 0;
-    return csoundPerform(csound, 2, &(argv[0]));
-  }
-  int Perform(char *orcName, char *scoName)
-  {
-    char  *argv[4];
-    argv[0] = "csound";
-    argv[1] = orcName;
-    argv[2] = scoName;
-    argv[3] = (char*) 0;
-    return csoundPerform(csound, 3, &(argv[0]));
-  }
-  int Perform(char *arg1, char *arg2, char *arg3)
-  {
-    char  *argv[5];
-    argv[0] = "csound";
-    argv[1] = arg1;
-    argv[2] = arg2;
-    argv[3] = arg3;
-    argv[4] = (char*) 0;
-    return csoundPerform(csound, 4, &(argv[0]));
-  }
-  int Perform(char *arg1, char *arg2, char *arg3, char *arg4)
-  {
-    char  *argv[6];
-    argv[0] = "csound";
-    argv[1] = arg1;
-    argv[2] = arg2;
-    argv[3] = arg3;
-    argv[4] = arg4;
-    argv[5] = (char*) 0;
-    return csoundPerform(csound, 5, &(argv[0]));
-  }
-  int Perform(char *arg1, char *arg2, char *arg3, char *arg4, char *arg5)
-  {
-    char  *argv[7];
-    argv[0] = "csound";
-    argv[1] = arg1;
-    argv[2] = arg2;
-    argv[3] = arg3;
-    argv[4] = arg4;
-    argv[5] = arg5;
-    argv[6] = (char*) 0;
-    return csoundPerform(csound, 6, &(argv[0]));
-  }
   int Compile(int argc, char **argv)
   {
     return csoundCompile(csound, argc, argv);
@@ -151,6 +97,88 @@ public:
     argv[6] = (char*) 0;
     return csoundCompile(csound, 6, &(argv[0]));
   }
+  int Perform()
+  {
+    return csoundPerform(csound);
+  }
+  int Perform(int argc, char **argv)
+  {
+    int retval = csoundCompile(csound, argc, argv);
+    if (!retval)
+      retval = csoundPerform(csound);
+    csoundCleanup(csound);
+    return (retval >= 0 ? 0 : retval);
+  }
+  int Perform(char *csdName)
+  {
+    char  *argv[3];
+    int   retval;
+    argv[0] = "csound";
+    argv[1] = csdName;
+    argv[2] = (char*) 0;
+    if (!(retval = csoundCompile(csound, 2, &(argv[0]))))
+      retval = csoundPerform(csound);
+    csoundCleanup(csound);
+    return (retval >= 0 ? 0 : retval);
+  }
+  int Perform(char *orcName, char *scoName)
+  {
+    char  *argv[4];
+    int   retval;
+    argv[0] = "csound";
+    argv[1] = orcName;
+    argv[2] = scoName;
+    argv[3] = (char*) 0;
+    if (!(retval = csoundCompile(csound, 3, &(argv[0]))))
+      retval = csoundPerform(csound);
+    csoundCleanup(csound);
+    return (retval >= 0 ? 0 : retval);
+  }
+  int Perform(char *arg1, char *arg2, char *arg3)
+  {
+    char  *argv[5];
+    int   retval;
+    argv[0] = "csound";
+    argv[1] = arg1;
+    argv[2] = arg2;
+    argv[3] = arg3;
+    argv[4] = (char*) 0;
+    if (!(retval = csoundCompile(csound, 4, &(argv[0]))))
+      retval = csoundPerform(csound);
+    csoundCleanup(csound);
+    return (retval >= 0 ? 0 : retval);
+  }
+  int Perform(char *arg1, char *arg2, char *arg3, char *arg4)
+  {
+    char  *argv[6];
+    int   retval;
+    argv[0] = "csound";
+    argv[1] = arg1;
+    argv[2] = arg2;
+    argv[3] = arg3;
+    argv[4] = arg4;
+    argv[5] = (char*) 0;
+    if (!(retval = csoundCompile(csound, 5, &(argv[0]))))
+      retval = csoundPerform(csound);
+    csoundCleanup(csound);
+    return (retval >= 0 ? 0 : retval);
+  }
+  int Perform(char *arg1, char *arg2, char *arg3, char *arg4, char *arg5)
+  {
+    char  *argv[7];
+    int   retval;
+    argv[0] = "csound";
+    argv[1] = arg1;
+    argv[2] = arg2;
+    argv[3] = arg3;
+    argv[4] = arg4;
+    argv[5] = arg5;
+    argv[6] = (char*) 0;
+    if (!(retval = csoundCompile(csound, 6, &(argv[0]))))
+      retval = csoundPerform(csound);
+    csoundCleanup(csound);
+    return (retval >= 0 ? 0 : retval);
+  }
   int PerformKsmps()
   {
     return csoundPerformKsmps(csound);
@@ -162,6 +190,10 @@ public:
   int PerformBuffer()
   {
     return csoundPerformBuffer(csound);
+  }
+  void Stop()
+  {
+    csoundStop(csound);
   }
   int Cleanup()
   {
@@ -568,6 +600,31 @@ public:
     min = tmp2;
     max = tmp3;
     return retval;
+  }
+  void SetChannel(const char *name, MYFLT value)
+  {
+    MYFLT *p;
+    if (!(csoundGetChannelPtr(csound, &p, name,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL)))
+      *p = value;
+  }
+  void SetChannel(const char *name, const char *value)
+  {
+    MYFLT *p;
+    if (!(csoundGetChannelPtr(csound, &p, name,
+                              CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL))) {
+      size_t maxLen = csoundGetStrVarMaxLen(csound);
+      strncpy((char*) p, value, maxLen);
+      ((char*) p)[maxLen - 1] = '\0';
+    }
+  }
+  MYFLT GetChannel(const char *name)
+  {
+    MYFLT *p;
+    if (!(csoundGetChannelPtr(csound, &p, name,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)))
+      return (*p);
+    return (MYFLT) 0;
   }
   // cfgvar.h interface
   int CreateConfigurationVariable(const char *name, void *p,
