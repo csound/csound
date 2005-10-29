@@ -22,6 +22,10 @@
 %module csnd
 %feature("autodoc", "1");
 %{
+	#include "csound.h"
+	#include "cfgvar.h"
+	#include "csound.hpp"
+	#include "CsoundFile.hpp"
 	#include "CppSound.hpp"
 %}
 
@@ -36,7 +40,7 @@
 %pragma(java) jniclasscode=%{
   static {
     try {
-   	java.lang.System.loadLibrary("_jcsound");
+   	java.lang.System.loadLibrary("_csnd");
     } catch (UnsatisfiedLinkError e) {
       	java.lang.System.err.println("_csnd native code library failed to load.\n" + e);
       	java.lang.System.exit(1);
@@ -44,4 +48,8 @@
   }
 %}
 
+%include "csound.h"
+%include "cfgvar.h"
+%include "csound.hpp"
+%include "CsoundFile.hpp"
 %include "CppSound.hpp"

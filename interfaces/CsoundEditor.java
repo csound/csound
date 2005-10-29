@@ -7,6 +7,7 @@
 package csnd;
 
 import csnd.CppSound;
+import csnd.CsoundFile;
 
 import javax.swing.JFrame;
 
@@ -73,7 +74,7 @@ public class CsoundEditor extends JFrame {
 
     public CppSound csound = new CppSound();
 
-    public Score score = new Score();
+    public CsoundFile csoundFile = null;
 
     private JButton jButton4 = null;
 
@@ -138,8 +139,8 @@ public class CsoundEditor extends JFrame {
                     fileChooser.showOpenDialog(CsoundEditor.this);
                     File file = fileChooser.getSelectedFile();
                     if (file != null) {
-                        csound.load(file.getAbsolutePath());
-                        csound.setFilename(file.getAbsolutePath());
+                        csoundFile.load(file.getAbsolutePath());
+                        csoundFile.setFilename(file.getAbsolutePath());
                         updateView();
                     }
                 }
@@ -149,22 +150,22 @@ public class CsoundEditor extends JFrame {
     }
 
     public void updateView() {
-        String command = csound.getCommand();
+        String command = csoundFile.getCommand();
         commandTextField.setText(command);
-        String orchestra = csound.getOrchestra();
+        String orchestra = csoundFile.getOrchestra();
         orchestraTextArea.setText(orchestra);
-        String score = csound.getScore();
+        String score = csoundFile.getScore();
         scoreTextArea.setText(score);
-        setTitle("[ C S O U N D ] " + csound.getFilename());
+        setTitle("[ C S O U N D ] " + csoundFile.getFilename());
     }
 
     public void updateModel() {
         String command = commandTextField.getText();
-        csound.setCommand(command);
+        csoundFile.setCommand(command);
         String orchestra = orchestraTextArea.getText();
-        csound.setOrchestra(orchestra);
+        csoundFile.setOrchestra(orchestra);
         String score = scoreTextArea.getText();
-        csound.setScore(score);
+        csoundFile.setScore(score);
     }
 
 //    public void updateScore() {
@@ -186,7 +187,7 @@ public class CsoundEditor extends JFrame {
                     File file = fileChooser.getSelectedFile();
                     if (file != null) {
                         updateModel();
-                        csound.save(file.getAbsolutePath());
+                        csoundFile.save(file.getAbsolutePath());
                     }
                 }
             });
@@ -215,7 +216,7 @@ public class CsoundEditor extends JFrame {
     class PerformanceThread extends Thread {
         public void run() {
             try {
-                csound.exportForPerformance();
+                csoundFile.exportForPerformance();
                 csound.perform();
             } catch (Exception x) {
                 x.printStackTrace();
@@ -377,6 +378,7 @@ public class CsoundEditor extends JFrame {
         } catch (Exception x) {
             x.printStackTrace();
         }
+	csoundFile = csound.getCsoundFile();
         soundfilePlayer = properties.getProperty("SoundfilePlayer",
                 soundfilePlayer);
         initialize();

@@ -48,6 +48,7 @@ int CppSound::compile(int argc, char **argv)
     }
   else
     {
+      renderedSoundfile = GetOutputFileName();
       isCompiled = true;
       go = true;
     }
@@ -88,7 +89,6 @@ int CppSound::perform(int argc, char **argv)
     {
       return result;
     }
-  renderedSoundfile = GetOutputFileName();
   for(result = 0; (result == 0) && go; )
     {
       result = PerformKsmps();
@@ -157,6 +157,11 @@ size_t CppSound::getSpoutSize() const
   return spoutSize;
 }
 
+std::string CppSound::getOutputSoundfileName() const
+{
+  return renderedSoundfile;
+}
+
 void CppSound::inputMessage(std::string istatement)
 {
   std::vector<MYFLT> pfields;
@@ -180,6 +185,11 @@ void CppSound::write(const char *text)
 long CppSound::getThis()
 {
   return (long) this;
+}
+
+CsoundFile *CppSound::getCsoundFile()
+{
+  return dynamic_cast<CsoundFile *>(this);
 }
 
 bool CppSound::getIsCompiled() const

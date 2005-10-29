@@ -675,7 +675,10 @@ else:
     csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
     csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
     csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
-    csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir interfaces'))
+    csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose'))
+    csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-module')
+    csoundInterfacesEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+    csoundInterfacesEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     if getPlatform() == 'darwin':
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-framework', 'JavaVM'])
         csoundInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
@@ -697,31 +700,31 @@ else:
     if '-pedantic' in csoundInterfacesEnvironment['CXXFLAGS']:
         csoundInterfacesEnvironment['CXXFLAGS'].remove('-pedantic')
     swigflags = csoundInterfacesEnvironment['SWIGFLAGS']
-    csoundPythonInterface = csoundInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python'])
+    csoundPythonInterface = csoundInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python', '-outdir', 'interfaces'])
     csoundInterfacesSources.insert(0, csoundPythonInterface)
     if javaFound and commonEnvironment['buildJavaWrapper']=='1':
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
-        csoundJavaInterface = csoundInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags, '-java', '-package', 'csound'])
+        csoundJavaInterface = csoundInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])
         csoundInterfacesSources.append(csoundJavaInterface)
-        jcsound = csoundInterfacesEnvironment.Java(target = 'interfaces/classes', source = 'interfaces/', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
-        zipDependencies.append(jcsound)
-        jcsoundJar = csoundInterfacesEnvironment.Jar('csound.jar', ['interfaces/classes'], JARCHDIR = 'interfaces/classes')
+        jcsnd = csoundInterfacesEnvironment.Java(target = 'interfaces/classes', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+        zipDependencies.append(jcsnd)
+        jcsndJar = csoundInterfacesEnvironment.Jar('csnd.jar', ['interfaces/manifest.mf', 'interfaces/classes'], JARCHDIR = 'interfaces/classes')
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
-    #if not (luaFound and swigFound):
-    #    print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
-    #else:
-    #    print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
-    #    csoundLuaInterface = csoundInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua'])
-    #    csoundInterfacesSources.insert(0, csoundLuaInterface)
-    #    csoundInterfacesEnvironment.Prepend(LIBS = ['lua50'])
-    if getPlatform() != 'darwin':
-        csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('csnd', csoundInterfacesSources, SHLIBPREFIX = '_')
+    if not (luaFound and swigFound):
+        print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
+        print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
+        csoundLuaInterface = csoundInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua', '-outdir', 'interfaces'])
+        csoundInterfacesSources.insert(0, csoundLuaInterface)
+        csoundInterfacesEnvironment.Prepend(LIBS = ['lua50'])
+    if getPlatform() == 'darwin':
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
         csoundInterfacesEnvironment.Prepend(LINKFLAGS = ['-bundle'])
         csoundInterfaces = csoundInterfacesEnvironment.Program('csnd', csoundInterfacesSources, PROGPREFIX = '_', PROGSUFFIX = '.so')
+    else:
+        csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('csnd', csoundInterfacesSources, SHLIBPREFIX = '_')
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
     zipDependencies.append(csoundInterfaces)
@@ -1197,11 +1200,11 @@ else:
         print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
         if(getPlatform() == 'darwin'):
            vstEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
-        csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags, '-java', '-package', 'CsoundVST'])
+        csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags, '-java', '-package', 'CsoundVST', '-outdir', 'frontends/CsoundVST'])
         csoundVstSources.append(csoundVstJavaWrapper)
-        jcsound = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = '.', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
-        zipDependencies.append(jcsound)
-        jcsoundJar = vstEnvironment.Jar('CsoundVST.jar', ['manifest.mf', 'frontends/CsoundVST/classes'], JARCHDIR = 'frontends/CsoundVST/classes')
+        vstJava = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = 'frontends/CsoundVST', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+        zipDependencies.append(vstJava)
+        vvstJar = vstEnvironment.Jar('CsoundVST.jar', ['frontends/CsoundVST/classes'], JARCHDIR = 'frontends/CsoundVST/classes')
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for CsoundVST.'
     csoundvst =  vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
