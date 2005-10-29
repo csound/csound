@@ -4,9 +4,9 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-package CsoundVST;
+package csnd;
 
-import CsoundVST.CppSound;
+import csnd.CppSound;
 
 import javax.swing.JFrame;
 
@@ -27,8 +27,8 @@ import javax.swing.JOptionPane;
 /**
  * @author mkg
  * 
- * TODO To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Style - Code Templates
+ * Rudimentary Java GUI front end for Csound,
+ * mainly to demonstrate using the Java interface to Csound 5.
  */
 public class CsoundEditor extends JFrame {
 
