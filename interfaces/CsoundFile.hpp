@@ -80,7 +80,7 @@ bool parseInstrument(const std::string &definition, std::string &preNumber, std:
  * for creating an arrangement of selected instruments in the orchestra,
  * and for programmatically building score files.
  */
-class PUBLIC CsoundFile
+class CsoundFile
 {
 protected:
   /**
