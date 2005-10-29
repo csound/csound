@@ -157,10 +157,11 @@ extern "C" {
 
   PUBLIC int csoundPerformCsd(CSOUND *csound, char *csdFilename)
   {
-    char *argv[2];
-    argv[0] = "csound";
-    argv[1] = csdFilename;
-    return csoundPerform(csound, 2, argv);
+    int retval = csoundCompileCsd(csound, csdFilename);
+    if (!retval)
+      retval = csoundPerform(csound);
+    csoundCleanup(csound);
+    return (retval >= 0 ? 0 : retval);
   }
 
 #ifdef __cplusplus

@@ -46,8 +46,6 @@ extern  void    MidiClose(CSOUND *);
 extern  void    RTclose(CSOUND *);
 extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 
-static  int     playevents(CSOUND *);
-
 typedef struct evt_cb_func {
     void    (*func)(CSOUND *, void *);
     void    *userData;
@@ -156,8 +154,6 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
       csound->MessageS(csound, attr, "%+9.2f", y);
     }
 }
-
-int musmon2(CSOUND *csound);
 
 int musmon(CSOUND *csound)
 {
@@ -306,14 +302,6 @@ int musmon(CSOUND *csound)
     return 0;                        /* we exit here to playevents later   */
 }
 
-int musmon2(CSOUND *csound)
-{
-    if (csound->musmonGlobals == NULL)
-      csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS));
-    playevents(csound);              /* play all events in the score */
-    return csoundCleanup(csound);
-}
-
 static void deactivate_all_notes(CSOUND *csound)
 {
     INSDS *ip = csound->actanchor.nxtact;
@@ -435,7 +423,8 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
       csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
     ST(ep) = &a->e[1];                  /* from 1st evlist member */
     ST(epend) = ST(ep) + a->nevents;    /*   to last              */
-    playevents(csound);                 /* play list members      */
+    while (csoundPerform(csound) == 0)  /* play list members      */
+      ;
     return OK;
 }
 
@@ -895,17 +884,6 @@ int sensevents(CSOUND *csound)
       goto retest;                            /*   & back for more */
     }
     return 2;                   /* done with entire score */
-}
-
-/* play all events in a score or an lplay list */
-
-static int playevents(CSOUND *csound)
-{
-    int retval;
-
-    while ((retval = csoundPerformBuffer(csound)) == 0);
-
-    return (retval == 2 ? 1 : 0);
 }
 
 static inline unsigned long time2kcnt(CSOUND *csound, double tval)

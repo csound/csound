@@ -105,17 +105,9 @@ int main(int argc, char **argv)
 
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, argv);
-    if (!result) {
-      if (csoundGetOutputBufferSize(csound)
-            <= (csoundGetKsmps(csound) * csoundGetNchnls(csound))) {
-        while ((result = csoundPerformKsmps(csound)) == 0)
-          ;
-      }
-      else {
-        while ((result = csoundPerformBuffer(csound)) == 0)
-          ;
-      }
-    }
+    if (!result)
+      result = csoundPerform(csound);
+
     /* delete Csound instance */
     csoundDestroy(csound);
     /* close log file */

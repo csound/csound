@@ -30,7 +30,6 @@ extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, char **);
 extern  int     init_pvsys(CSOUND *);
 extern  char    *get_sconame(CSOUND *);
-extern  int     musmon2(CSOUND *);
 extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
 
@@ -327,26 +326,5 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       openMIDIout(csound);
 
     return musmon(csound);
-}
-
-PUBLIC int csoundPerform(CSOUND *csound, int argc, char **argv)
-{
-    int     n;
-
-    if ((n = setjmp(csound->exitjmp))) {
-      csound->Message(csound, "Early return from csoundPerform().\n");
-      return (n - CSOUND_EXITJMP_SUCCESS);
-    }
-    n = csoundCompile(csound, argc, argv);
-    csound->Message(csound, "Compile returns %d\n", n);
-    if (n)
-      return n;
-    if ((n = setjmp(csound->exitjmp))) {
-      csound->Message(csound, "Early return from csoundPerform().\n");
-      return (n - CSOUND_EXITJMP_SUCCESS);
-    }
-    n = musmon2(csound);
-    csound->Message(csound, "musmon returns %d\n", n);
-    return n;
 }
 
