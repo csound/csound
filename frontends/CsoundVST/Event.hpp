@@ -27,12 +27,15 @@
 #include "Conversions.hpp"
 #include <map>
 #include <string>
+#include <vector>
 #include <iostream>
 #include <sstream>
 #include <algorithm>
 #include <utility>
+#include <boost/numeric/ublas/vector.hpp>
   %}
 %include "std_string.i"
+%include "std_vector.i"
 %template(EventVector) std::vector<csound::Event>;
 #else
 #include "Conversions.hpp"

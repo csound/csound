@@ -33,7 +33,7 @@
 #include <vector>
 %}
 %include "std_string.i"
-%template(EventVector) std::vector<csound::Event>;
+%template(MidiEventVector) std::vector<csound::MidiEvent>;
 %template(MidiByteVector) std::vector<unsigned char>;
 #else
 #include <algorithm>

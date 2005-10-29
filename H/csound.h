@@ -122,7 +122,7 @@
 #define MYFLT double
 #endif
 #endif
-%module csound
+%module csnd
 %{
 #  include "sysdep.h"
 #  include "text.h"
