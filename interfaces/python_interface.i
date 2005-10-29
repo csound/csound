@@ -20,10 +20,17 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 %module csnd
+%include "typemaps.i"
+%include "std_string.i"
+%include "std_vector.i"
 %feature("autodoc", "1");
 %{
-    #include <H/csound.hpp>
-    #include <interfaces/filebuilding.h>
+    #include "csound.h"
+    #include "cfgvar.h"
+    #include "csound.hpp"
+    #include "CsoundFile.hpp"
+    #include "CppSound.hpp"
+    #include "filebuilding.h"
 %}
 
 %apply int { size_t };
@@ -59,5 +66,9 @@ typedef unsigned int uint32_t;
   free((char *) $1);
 }
 
-%include <csound.hpp>
-%include <interfaces/filebuilding.h>
+%include "csound.h"
+%include "cfgvar.h"
+%include "csound.hpp"
+%include "CsoundFile.hpp"
+%include "CppSound.hpp"
+%include "filebuilding.h"

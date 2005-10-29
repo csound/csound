@@ -21,6 +21,14 @@
  */
 #ifndef CSND_CPPSOUND_H
 #define CSND_CPPSOUND_H
+
+#undef MYFLT
+#ifdef USE_DOUBLE
+#define MYFLT double
+#else
+#define MYFLT float
+#endif
+
 #ifdef SWIG
 %module csnd
 %include "std_string.i"
@@ -39,7 +47,7 @@
 #include <vector>
 #endif
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(SWIG)
 #define PUBLIC __declspec(dllexport)
 #else
 #define PUBLIC
