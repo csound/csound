@@ -29,6 +29,9 @@
 #if defined(mac_classic) && defined(__MWERKS__)
 #include <unix.h>
 #endif
+#if defined(SYMANTEC)
+extern off_t lseek(int, off_t, int);
+#endif
 
 /* list of environment variables used by Csound */
 
@@ -102,7 +105,7 @@ typedef struct CSFILE_ {
 
 /* Space for 16 global environment variables, */
 /* 32 bytes for name and 480 bytes for value. */
-/* Only written by csoundSetDefaultEnv().     */
+/* Only written by csoundSetGlobalEnv().      */
 
 static char globalEnvVars[8192] = { (char) 0 };
 
@@ -185,13 +188,14 @@ PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
 }
 
 /**
- * Set the default value of environment variable 'name' to 'value'.
+ * Set the global value of environment variable 'name' to 'value',
+ * or delete variable if 'value' is NULL.
  * It is not safe to call this function while any Csound instances
  * are active.
  * Returns zero on success.
  */
 
-PUBLIC int csoundSetDefaultEnv(const char *name, const char *value)
+PUBLIC int csoundSetGlobalEnv(const char *name, const char *value)
 {
     int   i;
 
@@ -337,11 +341,15 @@ int csoundInitEnv(CSOUND *csound)
       ((envVarEntry_t**) ENV_DB)[i] = (envVarEntry_t*) NULL;
     /* copy standard Csound environment variables */
     for (i = 0; envVar_list[i] != NULL; i++) {
-      retval = csoundSetEnv(csound, envVar_list[i], getenv(envVar_list[i]));
-      if (retval != CSOUND_SUCCESS)
-        return retval;
+      const char  *name = envVar_list[i];
+      const char  *value = getenv(name);
+      if (value != NULL) {
+        retval = csoundSetEnv(csound, name, value);
+        if (retval != CSOUND_SUCCESS)
+          return retval;
+      }
     }
-    /* copy any global defaults set with csoundSetDefaultEnv() */
+    /* copy any global defaults set with csoundSetGlobalEnv() */
     for (i = 0; i < 16; i++) {
       if (globalEnvVarName(i)[0] != '\0') {
         retval = csoundSetEnv(csound, globalEnvVarName(i),
