@@ -47,13 +47,7 @@
 #include <vector>
 #endif
 
-#if defined(WIN32) && !defined(SWIG)
-#define PUBLIC __declspec(dllexport)
-#else
-#define PUBLIC
-#endif
-
-class PUBLIC CppSound : public Csound, public CsoundFile
+class  CppSound : public Csound, public CsoundFile
 {
   bool go;
   bool isCompiled;
@@ -61,25 +55,27 @@ class PUBLIC CppSound : public Csound, public CsoundFile
   size_t spoutSize;
   std::string renderedSoundfile;
 public:
-  PUBLIC CppSound();
-  PUBLIC virtual ~CppSound();
-  PUBLIC virtual CSOUND *getCsound();
-  PUBLIC virtual long getThis();
-  PUBLIC virtual int compile(int argc, char **argv);
-  PUBLIC virtual int compile();
-  PUBLIC virtual size_t getSpoutSize() const;
-  PUBLIC virtual int perform(int argc, char **argv);
-  PUBLIC virtual int perform();
-  PUBLIC virtual int performKsmps(bool absolute);
-  PUBLIC virtual void cleanup();
-  PUBLIC virtual void inputMessage(std::string istatement);
-  PUBLIC virtual void write(const char *text);
-  PUBLIC virtual bool getIsCompiled() const;
-  PUBLIC virtual void setIsPerforming(bool isPerforming);
-  PUBLIC virtual bool getIsPerforming() const;
-  PUBLIC virtual bool getIsGo();
-  PUBLIC virtual void stop();
-  PUBLIC virtual void setPythonMessageCallback();
+  CppSound();
+  virtual ~CppSound();
+  virtual CSOUND *getCsound();
+  virtual long getThis();
+  virtual CsoundFile *getCsoundFile();
+  virtual int compile(int argc, char **argv);
+  virtual int compile();
+  virtual size_t getSpoutSize() const;
+  virtual std::string getOutputSoundfileName() const;
+  virtual int perform(int argc, char **argv);
+  virtual int perform();
+  virtual int performKsmps(bool absolute);
+  virtual void cleanup();
+  virtual void inputMessage(std::string istatement);
+  virtual void write(const char *text);
+  virtual bool getIsCompiled() const;
+  virtual void setIsPerforming(bool isPerforming);
+  virtual bool getIsPerforming() const;
+  virtual bool getIsGo();
+  virtual void stop();
+  virtual void setPythonMessageCallback();
 };
 
 #endif
