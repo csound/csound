@@ -8,7 +8,7 @@ csRewind : rewinds the score
 csOffset  secs : offsets score playback by secs
 csNote <p-fields> : sends in a i-statement event
 csTable <p-fields> : sends in a f-statement event
-csInChannel name : registers a csound invalue channel 
+csInChannel name : registers a csound invalue channel
 csOutChannel name : registers a csound outvalue channel and creates tcl global variable 'name'
 csInValue channel value : sets the value of a csound invalue channel
 csOutValue channel : returns the value of a csound outvalue channel
