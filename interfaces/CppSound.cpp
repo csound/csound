@@ -20,7 +20,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "CppSound.hpp"
-#include <boost/tokenizer.hpp>
+
+#include <cstdio>
+#include <cstring>
 
 CppSound::CppSound() : Csound(),
                        go(false),
@@ -158,12 +160,14 @@ size_t CppSound::getSpoutSize() const
 void CppSound::inputMessage(std::string istatement)
 {
   std::vector<MYFLT> pfields;
-  typedef boost::char_separator<char> charsep;
-  boost::tokenizer<charsep> tokens(istatement, charsep(" "));
-  boost::tokenizer<charsep>::iterator it = tokens.begin();
-  std::string opcode = *it;
-  for( ++it; it != tokens.end(); ++it) {
-    pfields.push_back(atof(it->c_str()));
+  std::string buffer = istatement;
+  char *buffer_pointer = (char *)buffer.c_str();
+  char *opcode = 0;
+  for (char *field = std::strtok(buffer_pointer, " /t/n/r"); field; buffer_pointer = 0) {
+    if (buffer_pointer) {
+      opcode = buffer_pointer;
+    }
+    pfields.push_back(atof(field));
   }
   ScoreEvent(opcode[0], &pfields.front(), pfields.size());
 }

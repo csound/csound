@@ -2,7 +2,14 @@
 #ifndef __CSOUND_HPP__
 #define __CSOUND_HPP__
 
+#ifdef SWIG
+%module csnd
+%{
 #include "csound.h"
+  %}
+#else
+#include "csound.h"
+#endif
 
 #if defined(__cplusplus)
 
@@ -609,7 +616,7 @@ public:
     csound = csoundCreate(hostData);
   }
   // destructor
-  virtual ~Csound()
+  ~Csound()
   {
     csoundDestroy(csound);
   }
