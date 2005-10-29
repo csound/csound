@@ -110,14 +110,12 @@
 
 #if defined(macintosh)
 #  define mac_classic   /* All Mac Compiles Before OSX, including Carbon */
-/* #  define mills_macintosh  DEFINE THIS to COMPILE the Mills "Perf" Version */
 #  include <stat.h>
 #  define  O_NDELAY (0)
 #  define  DIRSEP ':'
 #elif defined(SYMANTEC)
 #  include <unix.h>     /* for open() etc protos on mac */
 #  define  DIRSEP ':'
-   extern  off_t lseek(int, off_t, int);
 #else
 #  define DIRSEP '/'
 #  ifdef  LATTICE
