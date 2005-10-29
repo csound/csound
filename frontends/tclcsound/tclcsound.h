@@ -20,12 +20,10 @@
 
 */
 
-#include <stdio.h>
-#include <string.h>
 #include <csound.h>
-#include <envvar.h>
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <tcl.h>
 #include <tk.h>
 
@@ -41,20 +39,20 @@ the loaded score has finished playing.
 */
 
 typedef struct __ctlchn {
-   char *name;
-   double value;
-   struct __ctlchn *next;
+    char   *name;
+    double  value;
+    struct __ctlchn *next;
 } ctlchn;
 
 typedef struct __csdata {
-    CSOUND *instance; /* csound object */
-        int result;       /* action result */
-        void *threadID;   /* processing thread ID */
-        int status;      /* perf status */
-        ctlchn *inchan;
-        ctlchn *outchan;
-        Tcl_Interp *interp;
+    CSOUND *instance;           /* csound object */
+    int     result;             /* action result */
+    void   *threadID;           /* processing thread ID */
+    int     status;             /* perf status */
+    ctlchn *inchan;
+    ctlchn *outchan;
+    Tcl_Interp *interp;
 
 } csdata;
 
-extern int tclcsound_initialise(Tcl_Interp* interp);
+extern int tclcsound_initialise(Tcl_Interp * interp);

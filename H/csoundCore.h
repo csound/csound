@@ -28,11 +28,11 @@
 #ifndef CSOUNDCORE_H
 #define CSOUNDCORE_H
 
+#include "sysdep.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "sysdep.h"
 
 #include <stdarg.h>
 #include <setjmp.h>
@@ -201,17 +201,17 @@ extern "C" {
 /* A chain of TEXT structs. Note that this is identical with the first two
    members of struct INSTRTEXT, and is so typecast at various points in code. */
   typedef struct op {
-    struct op * nxtop;
+    struct op *nxtop;
     TEXT    t;
   } OPTXT;
 
   typedef struct fdch {
-    struct fdch * nxtchp;
+    struct fdch *nxtchp;
     void    *fd;            /* handle returned by csound->FileOpen() */
   } FDCH;
 
   typedef struct auxch {
-    struct auxch * nxtchp;
+    struct auxch *nxtchp;
     long    size;
     void    *auxp, *endp;   /* was char* */
   } AUXCH;
@@ -567,7 +567,7 @@ extern "C" {
     void (*SetHostData)(CSOUND *, void *hostData);
     CSOUND *(*Create)(void *hostData);
     int (*Compile)(CSOUND *, int argc, char **argv);
-    int (*Perform)(CSOUND *, int argc, char **argv);
+    int (*Perform)(CSOUND *);
     int (*PerformKsmps)(CSOUND *);
     int (*PerformBuffer)(CSOUND *);
     int (*Cleanup)(CSOUND *);
@@ -1055,6 +1055,7 @@ extern "C" {
     int           opcodedirWasOK;
     int           disable_csd_options;
     CsoundRandMTState randState_;
+    int           performState;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

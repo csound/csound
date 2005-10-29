@@ -1213,7 +1213,6 @@ else:
     zipDependencies.append(csoundvst)
     libs.append('CsoundVST.py')
     libs.append(csoundvst)
-    #libs.append('CsoundVST.py')
     Depends(csoundvst, csoundInterfaces)
     if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
@@ -1356,10 +1355,10 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     elif getPlatform() == 'linux':
         csTclEnvironment.Append(LIBS = ['tcl', 'tk', 'dl', 'pthread'])
     elif getPlatform() == 'mingw':
-	if commonEnvironment['MSVC'] == 1:
+        if commonEnvironment['MSVC'] == 1:
             csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
-	else:
-	    csTclEnvironment.Append(LIBS = ['tcl', 'tk'])
+        else:
+            csTclEnvironment.Append(LIBS = ['tcl', 'tk'])
         csTclEnvironment.Append(LIBS = csoundWindowsLibraries)
     csTkEnvironment = csTclEnvironment.Copy()
     csTclEnvironment.Append(CCFLAGS = ['-DTCLSH'])

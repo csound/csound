@@ -3,7 +3,7 @@ vst4cs
 
 VST HOST OPCODES FOR CSOUND
 
-Uses code from Hermann Seib's VST Host and Thomas Grill's vst~ object, 
+Uses code from Hermann Seib's VST Host and Thomas Grill's vst~ object,
 which in turn borrows from the Psycle tracker.
 VST is a trademark of Steinberg Media Technologies GmbH.
 VST Plug-In Technology by Steinberg.
@@ -27,13 +27,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 Current version: 0.1alpha
 
-Installing: Copy vst4cs.dll into your plugin opcodes directory. 
+Installing: Copy vst4cs.dll into your plugin opcodes directory.
 Copy documentation and source where it suits you.
 
 See the HTML documentation for new opcodes.
 
-
-Changes 
+Changes
 -------
 
 Add to Csound 5 CVS and SConstruct (mkg).
@@ -44,10 +43,10 @@ Change many parameters and non-in/out fields from MYFLT* to MYFLT or other type 
 
 Add virtual destructor to VSTHost class (mkg).
 
-Remove Windows-specific header files and data types 
+Remove Windows-specific header files and data types
 to enable building on Linux and OS X (mkg).
 
-Use cross-platform Csound API functions for loading shared libraries 
+Use cross-platform Csound API functions for loading shared libraries
 and getting function addresses (mkg).
 
 Use std collections throughout -- no explicit heap memory management at all (mkg).
@@ -64,7 +63,7 @@ Cleanup plugin memory allocated on the heap (by using std::vector) (mkg).
 
 Write audio only on last instance of vstplug (mkg).
 
-Move all VSTPlugin function implementations to vsthost.cpp 
+Move all VSTPlugin function implementations to vsthost.cpp
 except for some functions kept inline for speed (mkg).
 
 Make all static members of VSTPlugin non-static (mkg).
@@ -80,5 +79,4 @@ Add vstplugg opcode to collect audio from multiple vstnote or vstout instruments
 Renamed opcodes -- vstaudio for vstplug, vstmidiout for vstout, vstparamset for vstpsend, vstparamget for vstpret (mkg).
 
 Implemented (supposedly) sample-accurate timing for note on and note off (mkg).
-
 
