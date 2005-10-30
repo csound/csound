@@ -13,8 +13,6 @@ For Linux, run in the standard shell
     with standard Python and just run 'scons'.
 For MinGW, run in the MSys shell
     and use www.python.org WIN32 Python to run scons.
-For Cygwin, run in the Cygwin shell
-    and use Cygwin Python to run 'scons'.
 '''
 import time
 import glob
@@ -48,8 +46,6 @@ def today():
 def getPlatform():
     if sys.platform[:5] == 'linux':
         return 'linux'
-    elif sys.platform == 'cygwin':
-        return 'cygwin'
     elif sys.platform[:3] == 'win' and sys.platform != 'cygwin':
         return 'mingw'
     elif sys.platform[:6] == 'darwin':
