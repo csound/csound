@@ -35,10 +35,11 @@ import copy
 zipDependencies = []
 pluginLibraries = []
 executables = []
-headers = Split('''H/cfgvar.h H/cscore.h H/csdl.h H/csoundCore.h H/csound.h
-                   H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h
-                   H/pvfileio.h H/soundio.h H/sysdep.h H/text.h H/version.h csound.hpp
-		   interfaces/CsoundFile.hpp interfaces/CppSound.hpp interfaces/filebuilding.h''')
+headers = Split('''H/cfgvar.h H/cscore.h H/csdl.h H/csound.h H/csound.hpp
+                   H/csoundCore.h H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp
+                   H/pstream.h H/pvfileio.h H/soundio.h H/sysdep.h H/text.h
+                   H/version.h interfaces/CsoundFile.hpp
+                   interfaces/CppSound.hpp interfaces/filebuilding.h''')
 libs = []
 
 def today():
@@ -271,6 +272,7 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
+    commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
@@ -292,9 +294,6 @@ elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
         commonEnvironment.Append(CCFLAGS = "-mthreads")
     else:
         commonEnvironment.Append(CCFLAGS = "-DMSVC")
-
-if (getPlatform() == 'linux'):
-    commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 
 if getPlatform() == 'linux':
     path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
@@ -394,8 +393,6 @@ if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHe
     print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
 else:
     print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
-if javaFound:
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_JNI_H')
 
 # Package contents.
 
@@ -460,21 +457,18 @@ if getPlatform() == 'mingw':
     if commonEnvironment['MSVC'] == '0':
         # These are the Windows system call libraries.
         csoundWindowsLibraries = Split('''
-                                       kernel32 gdi32 wsock32 ole32 uuid winmm
-                                       ''')
+            kernel32 gdi32 wsock32 ole32 uuid winmm
+        ''')
     else:
         # These are the Windows system call libraries.
         csoundWindowsLibraries = Split('''
-                                       kernel32 gdi32 wsock32 ole32 uuid winmm
-                                       user32.lib ws2_32.lib comctl32.lib
-                                       gdi32.lib comdlg32.lib advapi32.lib
-                                       shell32.lib ole32.lib oleaut32.lib
-                                       uuid.lib odbc32.lib odbccp32.lib
-                                       kernel32.lib user32.lib gdi32.lib
-                                       winspool.lib comdlg32.lib advapi32.lib
-                                       shell32.lib ole32.lib oleaut32.lib
-                                       uuid.lib odbc32.lib odbccp32.lib
-                                       ''')
+            kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
+            comctl32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib
+            ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+            kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
+            advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
+            odbc32.lib odbccp32.lib
+        ''')
 if getPlatform() == 'mingw':
     csoundDynamicLibraryEnvironment.Append(LIBS = csoundWindowsLibraries)
     csoundDynamicLibraryEnvironment.Append(SHLINKFLAGS = ['-module'])
@@ -500,7 +494,6 @@ csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
 vstEnvironment = commonEnvironment.Copy()
 fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
 if getPlatform() != 'darwin':
-
     fltkConfigFlags += ' --ldflags'
 if vstEnvironment.ParseConfig(fltkConfigFlags):
     print "Parsed fltk-config."
@@ -671,21 +664,14 @@ else:
         csoundInterfacesEnvironment.Prepend(LIBS = ['csound'])
     else:
         csoundInterfacesSources += libCsoundSources
-    csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
-    csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-    csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
-    csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
-    csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
-    csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose'))
-    csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-module')
-    csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
-    if getPlatform() == 'darwin':
-        csoundInterfacesEnvironment.Append(LINKFLAGS = ['-framework', 'JavaVM'])
-        csoundInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
     if getPlatform() == 'mingw':
-        pythonImportLibrary = csoundInterfacesEnvironment.Command('/usr/local/lib/libpython23.a',
-        '$SYSTEMROOT/System32/python23.dll',
-        ['pexports $SYSTEMROOT/System32/python23.dll > python23.def', 'dlltool --input-def python23.def --dllname python23.dll --output-lib /usr/local/lib/libpython23.a'])
+        csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
+    elif getPlatform() == 'linux':
+        csoundInterfacesEnvironment.Prepend(LIBS = ['util'])
+    csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
+    csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('''
+        -c++ -includeall -verbose
+    '''))
     for option in csoundInterfacesEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
             csoundInterfacesEnvironment.Append(SWIGFLAGS = [option])
@@ -700,31 +686,58 @@ else:
     if '-pedantic' in csoundInterfacesEnvironment['CXXFLAGS']:
         csoundInterfacesEnvironment['CXXFLAGS'].remove('-pedantic')
     swigflags = csoundInterfacesEnvironment['SWIGFLAGS']
-    csoundPythonInterface = csoundInterfacesEnvironment.SharedObject('interfaces/python_interface.i', SWIGFLAGS = [swigflags, '-python', '-outdir', 'interfaces'])
-    csoundInterfacesSources.insert(0, csoundPythonInterface)
-    if javaFound and commonEnvironment['buildJavaWrapper']=='1':
+    if pythonFound:
+        if getPlatform() == 'mingw':
+            pythonImportLibrary = csoundInterfacesEnvironment.Command(
+                '/usr/local/lib/libpython23.a',
+                '$SYSTEMROOT/System32/python23.dll',
+                ['pexports $SYSTEMROOT/System32/python23.dll > python23.def',
+                 'dlltool --input-def python23.def --dllname python23.dll --output-lib /usr/local/lib/libpython23.a'])
+        csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
+        csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+        csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
+        csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
+        csoundPythonInterface = csoundInterfacesEnvironment.SharedObject(
+            'interfaces/python_interface.i',
+            SWIGFLAGS = [swigflags, '-python', '-outdir', 'interfaces'])
+        csoundInterfacesSources.insert(0, csoundPythonInterface)
+    if javaFound and commonEnvironment['buildJavaWrapper'] == '1':
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
-        csoundJavaInterface = csoundInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])
+        if getPlatform() == 'darwin':
+            csoundInterfacesEnvironment.Append(LINKFLAGS = ['-framework', 'JavaVM'])
+            csoundInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
+        csoundJavaInterface = csoundInterfacesEnvironment.SharedObject(
+            'interfaces/java_interface.i',
+            SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])
         csoundInterfacesSources.append(csoundJavaInterface)
-        jcsnd = csoundInterfacesEnvironment.Java(target = 'interfaces', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+        jcsnd = csoundInterfacesEnvironment.Java(
+            target = 'interfaces', source = 'interfaces',
+            JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
         zipDependencies.append(jcsnd)
-        jcsndJar = csoundInterfacesEnvironment.Jar('csnd.jar', ['interfaces/manifest.mf', 'interfaces'], JARCHDIR = 'interfaces')
+        jcsndJar = csoundInterfacesEnvironment.Jar(
+            'csnd.jar', ['interfaces/manifest.mf', 'interfaces'],
+            JARCHDIR = 'interfaces')
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
-    if not (luaFound and swigFound):
+    if not luaFound:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
         print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
-        csoundLuaInterface = csoundInterfacesEnvironment.SharedObject('interfaces/lua_interface.i', SWIGFLAGS = [swigflags, '-lua', '-outdir', 'interfaces'])
+        csoundLuaInterface = csoundInterfacesEnvironment.SharedObject(
+            'interfaces/lua_interface.i',
+            SWIGFLAGS = [swigflags, '-lua', '-outdir', 'interfaces'])
         csoundInterfacesSources.insert(0, csoundLuaInterface)
         csoundInterfacesEnvironment.Prepend(LIBS = ['lua50'])
     if getPlatform() == 'darwin':
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
         csoundInterfacesEnvironment.Prepend(LINKFLAGS = ['-bundle'])
-        csoundInterfaces = csoundInterfacesEnvironment.Program('csnd', csoundInterfacesSources, PROGPREFIX = '_', PROGSUFFIX = '.so')
+        csoundInterfaces = csoundInterfacesEnvironment.Program(
+            'csnd', csoundInterfacesSources,
+            PROGPREFIX = '_', PROGSUFFIX = '.so')
     else:
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary('csnd', csoundInterfacesSources, SHLIBPREFIX = '_')
+        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
+            'csnd', csoundInterfacesSources, SHLIBPREFIX = '_')
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
     zipDependencies.append(csoundInterfaces)
@@ -914,7 +927,7 @@ if (commonEnvironment['useCoreAudio']=='1' and getPlatform() == 'darwin'):
 else:
     print "CONFIGURATION DECISION: Not building CoreAudio plugin."
 
-if (not(commonEnvironment['useALSA']=='1' and alsaFound)):
+if not (commonEnvironment['useALSA']=='1' and alsaFound):
     print "CONFIGURATION DECISION: Not building ALSA plugin."
 else:
     print "CONFIGURATION DECISION: Building ALSA plugin."
@@ -930,7 +943,7 @@ if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
     pluginLibraries.append(winmmEnvironment.SharedLibrary('rtwinmm',
                                                           ['InOut/rtwinmm.c']))
 
-if (not(commonEnvironment['usePortAudio']=='1' and portaudioFound)):
+if not (commonEnvironment['usePortAudio']=='1' and portaudioFound):
     print "CONFIGURATION DECISION: Not building PortAudio module."
 else:
     print "CONFIGURATION DECISION: Building PortAudio module."
@@ -948,7 +961,7 @@ else:
     pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
                                                               ['InOut/rtpa.c']))
 
-if (not(commonEnvironment['useJack']=='1' and jackFound)):
+if not (commonEnvironment['useJack']=='1' and jackFound):
     print "CONFIGURATION DECISION: Not building JACK plugin."
 else:
     print "CONFIGURATION DECISION: Building JACK plugin."
