@@ -47,7 +47,7 @@
 #include <vector>
 #endif
 
-class  CppSound : public Csound, public CsoundFile
+class PUBLIC CppSound : public Csound, public CsoundFile
 {
   bool go;
   bool isCompiled;
