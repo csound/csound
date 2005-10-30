@@ -1,3 +1,4 @@
+print (_VERSION)
 Csnd_Init =loadlib("c:/utah/home/mkg/projects/csound5/_csnd.dll","Csnd_Init") 
 Csnd_Init()
 csound = csnd.CppCsound()
