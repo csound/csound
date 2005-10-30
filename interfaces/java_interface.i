@@ -20,6 +20,9 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 %module csnd
+%include "typemaps.i"
+%include "std_string.i"
+%include "std_vector.i"
 %feature("autodoc", "1");
 %{
 	#include "csound.h"
