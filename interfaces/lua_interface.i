@@ -33,10 +33,6 @@
 
 %apply int { size_t };
 
-%typemap(freearg) char ** {
-  free((char *) $1);
-}
-
 %include "csound.h"
 %include "cfgvar.h"
 %include "csound.hpp"
