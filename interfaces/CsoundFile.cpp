@@ -406,7 +406,7 @@ int CsoundFile::exportScore(std::ostream &stream) const
   return stream.good();
 }
 
-std::string CsoundFile::getFilename()
+std::string CsoundFile::getFilename() const
 {
   return filename.c_str();
 }
