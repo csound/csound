@@ -61,7 +61,7 @@ public class CsoundEditor extends JFrame {
 
     private JTextArea scoreTextArea = null;
     static {
-        System.loadLibrary("_CsoundVST");
+        System.loadLibrary("_csnd");
         fileChooser = new JFileChooser();
         fileChooser.setAcceptAllFileFilterUsed(true);
         csoundFileFilter = new CsoundFileFilter();
@@ -217,7 +217,8 @@ public class CsoundEditor extends JFrame {
         public void run() {
             try {
                 csoundFile.exportForPerformance();
-                csound.perform();
+                csound.compile();
+		csound.Perform();
             } catch (Exception x) {
                 x.printStackTrace();
             }

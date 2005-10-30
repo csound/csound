@@ -29,7 +29,6 @@
 	#include "csound.hpp"
 	#include "CsoundFile.hpp"
 	#include "CppSound.hpp"
-	#include "filebuilding.h"
 %}
 
 %apply int { size_t };
@@ -43,4 +42,3 @@
 %include "csound.hpp"
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
-%include "filebuilding.h"

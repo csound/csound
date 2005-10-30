@@ -37,7 +37,8 @@ pluginLibraries = []
 executables = []
 headers = Split('''H/cfgvar.h H/cscore.h H/csdl.h H/csoundCore.h H/csound.h
                    H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h
-                   H/pvfileio.h H/soundio.h H/sysdep.h H/text.h H/version.h''')
+                   H/pvfileio.h H/soundio.h H/sysdep.h H/text.h H/version.h csound.hpp
+		   interfaces/CsoundFile.hpp interfaces/CppSound.hpp interfaces/filebuilding.h''')
 libs = []
 
 def today():
@@ -677,8 +678,7 @@ else:
     csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
     csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose'))
     csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-module')
-    csoundInterfacesEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-    csoundInterfacesEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+    csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
     if getPlatform() == 'darwin':
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-framework', 'JavaVM'])
         csoundInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
@@ -706,9 +706,9 @@ else:
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
         csoundJavaInterface = csoundInterfacesEnvironment.SharedObject('interfaces/java_interface.i', SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])
         csoundInterfacesSources.append(csoundJavaInterface)
-        jcsnd = csoundInterfacesEnvironment.Java(target = 'interfaces/classes', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+        jcsnd = csoundInterfacesEnvironment.Java(target = 'interfaces', source = 'interfaces', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
         zipDependencies.append(jcsnd)
-        jcsndJar = csoundInterfacesEnvironment.Jar('csnd.jar', ['interfaces/manifest.mf', 'interfaces/classes'], JARCHDIR = 'interfaces/classes')
+        jcsndJar = csoundInterfacesEnvironment.Jar('csnd.jar', ['interfaces/manifest.mf', 'interfaces'], JARCHDIR = 'interfaces')
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     if not (luaFound and swigFound):
@@ -1125,7 +1125,6 @@ else:
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
             -Wl,-rpath-link,. _CsoundVST.so
@@ -1313,7 +1312,6 @@ else:
         if getPlatform() == 'cygwin':
             pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
     pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-    pyEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
     py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
     pluginLibraries.append(py)
 
