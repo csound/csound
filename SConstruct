@@ -699,7 +699,7 @@ else:
         csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
         csoundPythonInterface = csoundInterfacesEnvironment.SharedObject(
             'interfaces/python_interface.i',
-            SWIGFLAGS = [swigflags, '-python', '-outdir', 'interfaces'])
+            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
         csoundInterfacesSources.insert(0, csoundPythonInterface)
     if javaFound and commonEnvironment['buildJavaWrapper'] == '1':
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
@@ -725,7 +725,7 @@ else:
         print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
         csoundLuaInterface = csoundInterfacesEnvironment.SharedObject(
             'interfaces/lua_interface.i',
-            SWIGFLAGS = [swigflags, '-lua', '-outdir', 'interfaces'])
+            SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
         csoundInterfacesSources.insert(0, csoundLuaInterface)
         csoundInterfacesEnvironment.Prepend(LIBS = ['lua50'])
     if getPlatform() == 'darwin':
@@ -1208,17 +1208,6 @@ else:
     swigflags = vstEnvironment['SWIGFLAGS']
     csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
     csoundVstSources.insert(0, csoundVstPythonWrapper)
-    if javaFound and commonEnvironment['buildJavaWrapper']=='1':
-        print 'CONFIGURATION DECISION: Building Java wrappers for CsoundVST.'
-        if(getPlatform() == 'darwin'):
-           vstEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
-        csoundVstJavaWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/JCsoundVST.i', SWIGFLAGS = [swigflags, '-java', '-package', 'CsoundVST', '-outdir', 'frontends/CsoundVST'])
-        csoundVstSources.append(csoundVstJavaWrapper)
-        vstJava = vstEnvironment.Java(target = 'frontends/CsoundVST/classes', source = 'frontends/CsoundVST', JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
-        zipDependencies.append(vstJava)
-        vvstJar = vstEnvironment.Jar('CsoundVST.jar', ['frontends/CsoundVST/classes'], JARCHDIR = 'frontends/CsoundVST/classes')
-    else:
-        print 'CONFIGURATION DECISION: Not building Java wrappers for CsoundVST.'
     csoundvst =  vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
 
     if(getPlatform == 'darwin'):
