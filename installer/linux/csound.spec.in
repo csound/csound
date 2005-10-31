@@ -1,0 +1,17 @@
+Summary: Csound - sound synthesis language and library
+Name: csound
+Version: 5.00.0
+Release: 1
+URL: http://csound.sourceforge.net/
+License: LGPL
+Group: Applications/Multimedia
+BuildRoot: @TOPDIR@/__package
+%description
+Csound is an audio synthesis language.
+%prep
+%build
+cd @TOPDIR@/__package
+cp -aiR @TOPDIR@/__csound5/* ./
+%install
+%clean
+%files
