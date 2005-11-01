@@ -3,7 +3,9 @@ kr=4410
 ksmps=10
 nchnls=1
 
-giSinusoid	ftgen	0,	0, 8192, 10,	1
+giSinusoid      ftgen   0,      0, 8192, 10,    1
+
+pyinit
 
 pyruni {{
 import random
@@ -24,10 +26,10 @@ get_number_from_pool = GetNumberFromPool()
 
 instr 1
 
-	k1	oscil	1, 3, giSinusoid
-	
-	k2	pycall1	"get_number_from_pool", k1 + 2, p4
+        k1      oscil   1, 3, giSinusoid
 
-		printk	0.01, k2
+        k2      pycall1 "get_number_from_pool", k1 + 2, p4
+
+                printk  0.01, k2
 
 endin

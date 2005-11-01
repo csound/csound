@@ -52,12 +52,12 @@ instruments = { 2: 3, 3: 2, 4: 4, 5:11, 6:11}
 levels =      { 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
 
 for event in model.getScore():
-	print '  ', event.toString()
-	insno = math.floor(event.getInstrument())
-	velocity = event.getVelocity()
-	event.setInstrument(instruments[insno])
-	event.setVelocity(levels[insno] + velocity)
-	print '=>', event.toString()
+        print '  ', event.toString()
+        insno = math.floor(event.getInstrument())
+        velocity = event.getVelocity()
+        event.setInstrument(instruments[insno])
+        event.setVelocity(levels[insno] + velocity)
+        print '=>', event.toString()
 
 filename = csound.getFilename();
 print 'Filename:', filename
@@ -159,6 +159,6 @@ i 1 0 0 210 220 0.1
 i 100 0 [550.0+15]  95     95        0
 i 200 0  550.0      10     30
 i 210 0 [550.0+15]  0.7   0.8  20000
-i 220 0  550.0      16     10   
+i 220 0  550.0      16     10
 ''')
 csound.perform()

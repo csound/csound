@@ -3,7 +3,9 @@ kr=4410
 ksmps=10
 nchnls=1
 
-pyruni	{{
+pyinit
+
+pyruni  {{
 def f0(a, b, c, d, e, f, g, h):
     print 'f0 got', a, b, c, d, e, f, g, h
     print 'f0 returning None'
@@ -51,7 +53,7 @@ def f8(a, b, c, d, e, f, g, h):
 
 instr 1
 
-	kt	metro	1.5
+        kt      metro   1.5
 
                                  pycallt  kt, "f0", 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8
   k1                             pycall1t kt, "f1", 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8

@@ -78,7 +78,7 @@
 #include "csoundCore.h"
 #include "csmodule.h"
 
-#if defined(HAVE_LIBDL) || defined(LINUX) || defined(__CYGWIN__)
+#if defined(LINUX)
 #include <dlfcn.h>
 #elif defined(WIN32)
 #include <windows.h>
@@ -96,7 +96,7 @@ int             closedir(DIR*);
 #  endif
 #endif
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32)
 #  include <io.h>
 #  include <direct.h>
 #elif defined(__MACH__)
@@ -212,7 +212,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     /* load library */
     err = csound->OpenLibrary(&h, libraryPath);
     if (err) {
-#if defined(BETA) && (defined(LINUX) || defined(__CYGWIN__))
+#if defined(BETA) && defined(LINUX)
       csound->Warning(csound, "%s", dlerror());
 #endif
       csound->Warning(csound, Str("could not open library '%s' (%d)"),
@@ -513,7 +513,7 @@ int csoundDestroyModules(CSOUND *csound)
 
  /* ------------------------------------------------------------------------ */
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32)
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -531,11 +531,18 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif defined(LINUX) || defined(__CYGWIN__)
+#elif defined(LINUX)
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
-    *library = (void*) dlopen(libraryPath, RTLD_NOW | RTLD_LOCAL);
+    int flg = RTLD_NOW;
+    if (libraryPath != NULL) {
+      int len = (int) strlen(libraryPath);
+      /* ugly hack to fix importing modules in Python opcodes */
+      if (len >= 9 && strcmp(&(libraryPath[len - 9]), "/libpy.so") == 0)
+        flg |= RTLD_GLOBAL;
+    }
+    *library = (void*) dlopen(libraryPath, flg);
     return (*library != NULL ? 0 : -1);
 }
 

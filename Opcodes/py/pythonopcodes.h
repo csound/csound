@@ -23,8 +23,8 @@
 
 #include <Python.h>
 #include "csdl.h"
-#include "pyx.h.auto"
-#include "pycall.h.auto"
+#include "pyx.auto.h"
+#include "pycall.auto.h"
 
 typedef struct {
   OPDS h;
