@@ -132,6 +132,3 @@ csound.addScoreLine("i 100 0 -1")
 csound.exportForPerformance()
 csound.perform()
 
-
-
-

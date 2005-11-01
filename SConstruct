@@ -1,3 +1,5 @@
+# vim:syntax=python
+
 print '''
 C S O U N D 5
 
@@ -14,6 +16,7 @@ For Linux, run in the standard shell
 For MinGW, run in the MSys shell
     and use www.python.org WIN32 Python to run scons.
 '''
+
 import time
 import glob
 import os
@@ -46,7 +49,7 @@ def today():
 def getPlatform():
     if sys.platform[:5] == 'linux':
         return 'linux'
-    elif sys.platform[:3] == 'win' and sys.platform != 'cygwin':
+    elif sys.platform[:3] == 'win':
         return 'mingw'
     elif sys.platform[:6] == 'darwin':
         return 'darwin'
@@ -101,12 +104,6 @@ opts.Add('pythonVersion',
 opts.Add('buildCsoundVST',
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).',
     '0')
-opts.Add('buildJavaWrapper',
-    'Set to 1 to build Java wrapper for CsoundVST (needs CsoundVST).',
-    '1')
-opts.Add('noCygwin',
-    'Set to 1 to build with -mno-cygwin when using Cygwin',
-    '0')
 opts.Add('generateTags',
     'Set to 1 to generate TAGS',
     '0')
@@ -132,7 +129,7 @@ opts.Add('prefix',
     'Base directory for installs.  Defaults to /usr/local.',
     '/usr/local')
 opts.Add('usePortMIDI',
-    'Use portmidi library rather than internal MIDI (experimental).',
+    'Build PortMidi plugin for real time MIDI input and output.',
     '1')
 opts.Add('noDebug',
     'Build without debugging information.',
@@ -186,7 +183,10 @@ opts.Add('buildTclcsound',
     "Build Tclcsound frontend (cstclsh, cswish and tclcsound dynamic module). Requires Tcl/Tk headers and libs",
     '0')
 opts.Add('buildInterfaces',
-    "Build interface library for Python, JAVA, Lua, C++, and other languages",
+    "Build interface library for Python, JAVA, Lua, C++, and other languages.",
+    '1')
+opts.Add('buildJavaWrapper',
+    'Set to 1 to build Java wrapper for the interface library.',
     '1')
 
 # Define the common part of the build environment.
@@ -279,7 +279,7 @@ elif getPlatform() == 'darwin':
     if (commonEnvironment['useDirentFix'] == '1'):
         print 'Using OSX dirent fix'
         commonEnvironment.Append(CCFLAGS = "-DDIRENT_FIX")
-elif getPlatform() == 'mingw' or getPlatform() == 'cygwin':
+elif getPlatform() == 'mingw':
     commonEnvironment.Append(CCFLAGS = "-D_WIN32")
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
@@ -300,7 +300,7 @@ if getPlatform() == 'linux':
         tmp = '/usr/lib64/python%s/config' % commonEnvironment['pythonVersion']
     else:
         tmp = '/usr/lib/python%s/config' % commonEnvironment['pythonVersion']
-    pythonLibraryPath = [tmp]
+    pythonLibraryPath = ['/usr/local/lib', '/usr/lib', tmp]
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
 elif getPlatform() == 'darwin':
     pyBasePath = '/System/Library/Frameworks/Python.framework'
@@ -310,30 +310,24 @@ elif getPlatform() == 'darwin':
     path2 = '%s/python%s/config' % (path1, commonEnvironment['pythonVersion'])
     pythonLibraryPath = [path1, path2]
     pythonLibs = []
-elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+elif getPlatform() == 'mingw':
     pythonIncludePath = []
     pythonLinkFlags = []
     pythonLibraryPath = []
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion'].replace('.', '')]
 
-# Adding libraries and flags if using -mno-cygwin with cygwin
-
-if (commonEnvironment['noCygwin'] == '1' and getPlatform() == 'cygwin'):
-    print 'CONFIGURATION DECISION: Using -mno-cygwin.'
-    commonEnvironment.Prepend(CCFLAGS = ['-mno-cygwin'])
-    commonEnvironment.Prepend(CPPFLAGS = ['-mno-cygwin'])
-    commonEnvironment.Append(LIBS = ['m'])
-
 # Check for prerequisites.
-# We check only for headers;
-# checking for libs may fail even if they are present,
-# due to secondary dependencies.
-# Python is assumed to be present because scons requires it.
+# We check only for headers; checking for libs may fail
+# even if they are present, due to secondary dependencies.
 
 configure = commonEnvironment.Configure()
-sndfileFound = configure.CheckHeader("sndfile.h", language = "C")
 
-if not sndfileFound:
+if not configure.CheckHeader("stdio.h", language = "C"):
+    print " *** Failed to compile a simple test program. The compiler is"
+    print " *** possibly not set up correctly, or is used with invalid flags."
+    print " *** Check config.log to find out more about the error."
+    Exit(-1)
+if not configure.CheckHeader("sndfile.h", language = "C"):
     print "The sndfile library is required to build Csound 5."
     Exit(-1)
 portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
@@ -895,7 +889,7 @@ else:
     widgetsEnvironment = pluginEnvironment.Copy()
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
-    if getPlatform() == 'linux' or getPlatform() == 'cygwin':
+    if getPlatform() == 'linux':
         widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags  --ldflags')
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
@@ -933,7 +927,7 @@ else:
     pluginLibraries.append(alsaEnvironment.SharedLibrary('rtalsa',
                                                          ['InOut/rtalsa.c']))
 
-if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+if getPlatform() == 'mingw':
     winmmEnvironment = pluginEnvironment.Copy()
     winmmEnvironment.Append(LIBS = ['winmm', 'gdi32', 'kernel32'])
     pluginLibraries.append(winmmEnvironment.SharedLibrary('rtwinmm',
@@ -951,7 +945,7 @@ else:
             portaudioEnvironment.Append(LIBS = ['jack'])
         portaudioEnvironment.Append(LIBS = ['asound'])
         portaudioEnvironment.Append(LIBS = ['pthread'])
-    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+    elif getPlatform() == 'mingw':
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
         portaudioEnvironment.Append(LIBS = csoundWindowsLibraries)
     pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
@@ -975,7 +969,7 @@ else:
     oscEnvironment = pluginEnvironment.Copy()
     oscEnvironment.Append(LIBS = ['lo'])
     oscEnvironment.Append(LIBS = ['pthread'])
-    if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+    if getPlatform() == 'mingw':
         oscEnvironment.Append(LIBS = ['ws2_32'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
@@ -991,7 +985,7 @@ else:
         fluidEnvironment.Append(LIBS = ['fluidsynth'])
         pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
             ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
-    if getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+    if getPlatform() == 'mingw':
         fluidEnvironment = pluginEnvironment.Copy()
         fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++'])
         fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
@@ -1145,12 +1139,10 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         vstEnvironment['SHLIBSUFFIX'] = '.dylib'
         guiProgramEnvironment.Prepend(LINKFLAGS = ['_CsoundVST.dylib'])
-    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+    elif getPlatform() == 'mingw':
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
         vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
-        if getPlatform() == 'cygwin':
-            vstEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows'])
         vstEnvironment.Append(LIBS = ['fltk_images'])
         vstEnvironment.Append(LIBS = ['fltk'])
@@ -1214,7 +1206,7 @@ else:
     libs.append('CsoundVST.py')
     libs.append(csoundvst)
     Depends(csoundvst, csoundInterfaces)
-    if getPlatform() == 'mingw' or getPlatform() == 'cygwin':
+    if getPlatform() == 'mingw':
         guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
@@ -1305,11 +1297,9 @@ else:
         pyEnvironment.Append(LIBS = ['util', 'dl', 'm'])
     elif getPlatform() == 'darwin':
         pyEnvironment.Append(LIBS = ['dl', 'm'])
-    elif getPlatform() == 'cygwin' or getPlatform() == 'mingw':
+    elif getPlatform() == 'mingw':
         pyEnvironment['ENV']['PATH'] = os.environ['PATH']
-        if getPlatform() == 'cygwin':
-            pyEnvironment.Append(CCFLAGS = ['-D_MSC_VER'])
-    pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
     py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
     pluginLibraries.append(py)
 
@@ -1394,7 +1384,7 @@ if (commonEnvironment['buildDSSI'] == '1') and (getPlatform() == 'linux'):
 else:
     print "CONFIGURATION DECISION: Not building DSSI plugin host opcodes."
 
-if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux' and getPlatform() != 'cygwin'):
+if (commonEnvironment['generateTags']=='0') or (getPlatform() != 'darwin' and getPlatform() != 'linux'):
     print "CONFIGURATION DECISION: Not calling TAGS"
 else:
     print "CONFIGURATION DECISION: Calling TAGS"
