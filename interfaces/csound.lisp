@@ -53,7 +53,9 @@
 	:csoundGetEnv
 	:csoundSetDefaultEnv
 	:csoundPerform
+	:csoundPerformCsd
 	:csoundCompile
+	:csoundCompileCsd
 	:csoundPerformKsmps
 	:csoundPerformKsmpsAbsolute
 	:csoundPerformBuffer
@@ -449,6 +451,19 @@
 (:library "csound.dll"))
 
 
+(ffi:def-call-out csoundPerformCsd
+
+(:name "csoundPerformCsd")
+
+(:arguments (arg0 (ffi:c-pointer CSOUND))
+
+	(filename ffi:c-string))
+
+(:return-type ffi:int)
+
+(:library "_csnd.dll"))
+
+
 
 (ffi:def-call-out csoundCompile
 
@@ -463,6 +478,20 @@
 (:return-type ffi:int)
 
 (:library "csound.dll"))
+
+
+
+(ffi:def-call-out csoundCompileCsd
+
+(:name "csoundCompileCsd")
+
+(:arguments (arg0 (ffi:c-pointer CSOUND))
+
+	(argv ffi:c-string))
+
+(:return-type ffi:int)
+
+(:library "_csnd.dll"))
 
 
 
