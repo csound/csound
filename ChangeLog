@@ -1,3 +1,13 @@
+2005-11-01	Istvan Varga	<ivarga@csounds.com>
+	* Removed support for Cygwin.
+	* Fixes in Python opcodes. Also implemented a temporary hack
+	  in Top/csmodule.c to fix importing modules from Python opcodes
+	  on Linux.
+	* installer/linux/csound.spec.in:
+	* installer/linux/makespec.sh:
+	* installer/linux/mkpackage.py:
+	  preliminary tools for creating Linux packages
+
 2005-10-31	Michael Gogins	<gogins@pipeline.com>
 	* Moved external language interfaces from frontends/CsoundVST
 	into interfaces directory.
@@ -5,7 +15,7 @@
 	Wraps H/csound.h, H/cfgvar.h, H/csound.hpp, interfaces/CsoundFile.hpp,
 	interfaces/CppSound.hpp.
 	* Moved CLisp interface to interfaces directory. Wraps
-	H/csound.h (csound.lisp) and interfaces/filebuilding.h 
+	H/csound.h (csound.lisp) and interfaces/filebuilding.h
 	(filebuilding.lisp).
 	* Modified CsoundVST to work with "csnd" Python module.
 	* Removed Java interface from CsoundVST.
@@ -20,7 +30,7 @@
 	* Added Tcl/TK frontends (cstclsh and cswish)
 
 2005-10-15	Michael Gogins	<gogins@pipeline.com>
-	* Fixed SConstruct to build CsoundVST using Csound as a 
+	* Fixed SConstruct to build CsoundVST using Csound as a
 	  shared library.
 	* Added csound.lisp FFI for CLisp (experimental).
 

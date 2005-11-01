@@ -17,9 +17,6 @@ customSWIGFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
-elif sys.platform == 'cygwin':
-    platform = 'cygwin'
-    customCPPPATH.append('c:/utah/usr/Python23/include')
 elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
@@ -52,7 +49,6 @@ elif sys.platform[:3] == 'win':
     # a MinGW import library for Python. Add them here:
     customCPPPATH.append('c:/utah/opt/Python23/include')
     customCPPPATH.append('c:/utah/usr/mingw/include')
-    customLIBPATH.append('c:/projects/csound5/cygwin_import_libs')
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
