@@ -42,6 +42,41 @@
  * the saved CSD file.
  */
 
+#if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
+#  define PUBLIC        __declspec(dllexport)
+#else
+#  define PUBLIC
+#endif
+
+  /**
+   * Enables Python interface.
+   */
+
+#ifdef SWIG
+#define CS_PRINTF2
+#define CS_PRINTF3
+#ifndef __MYFLT_DEF
+#define __MYFLT_DEF
+#ifndef USE_DOUBLE
+#define MYFLT float
+#else
+#define MYFLT double
+#endif
+#endif
+%module filebuilding
+%{
+#  include "sysdep.h"
+#  include "text.h"
+#  include "csound.h"
+#  include <stdarg.h>
+%}
+#else
+#  include "sysdep.h"
+#  include "text.h"
+#  include "csound.h"
+#  include <stdarg.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
