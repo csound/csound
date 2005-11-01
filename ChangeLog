@@ -1,3 +1,17 @@
+2005-10-31	Michael Gogins	<gogins@pipeline.com>
+	* Moved external language interfaces from frontends/CsoundVST
+	into interfaces directory.
+	* Created interfaces for Python, Java, Lua (all "csnd" module).
+	Wraps H/csound.h, H/cfgvar.h, H/csound.hpp, interfaces/CsoundFile.hpp,
+	interfaces/CppSound.hpp.
+	* The Java interface in csnd.jar has a rudimentary GUI front end:
+	run with "java -jar csnd.jar".
+	* Moved CLisp interface to interfaces directory. Wraps
+	H/csound.h (csound.lisp) and interfaces/filebuilding.h 
+	(filebuilding.lisp).
+	* Modified CsoundVST to work with "csnd" Python module.
+	* Removed Java interface from CsoundVST.
+
 2005-10-25  John ff  <jpff@codemist.co.uk>
 	* SConstruct: Make building interfaces optional
 
