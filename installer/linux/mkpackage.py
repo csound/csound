@@ -3,11 +3,6 @@
 import os
 import re
 
-# Csound major version
-csoundVersion = 5
-# API major version
-csoundAPIVersion = 1
-
 CFlags = '-Wall -O3 -fno-inline-functions -march=i686 -mcpu=pentium3'
 CFlags += ' -fomit-frame-pointer -ffast-math'
 
@@ -42,6 +37,7 @@ pdDir       = '/usr/lib/pd/extra'
 
 buildOpts = ['buildUtilities=0', 'useLrint=1', 'noDebug=1']
 buildOpts += ['buildPythonOpcodes=1', 'useOSC=1', 'buildCsoundVST=0']
+buildOpts += ['buildJavaWrapper=0']
 buildOpts += ['customCCFLAGS=%s' % CFlags, 'customCXXFLAGS=%s' % CFlags]
 
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csoundCore.h']
@@ -79,9 +75,6 @@ def findFiles(pat):
 
 def cleanup():
     os.spawnvp(os.P_WAIT, './cleanup.sh', ['./cleanup.sh'])
-    os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', 'interfaces/csnd.p*'])
-    os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', 'csnd.p*'])
-    os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', 'interfaces/*_wrap.*'])
 
 def makeFrontEnd(utilName, is64bit):
     fName = '%s%s/%s%s' % (pkgDir, binDir, utilName, ['', '64'][is64bit])
@@ -135,14 +128,14 @@ for i in utils1:
 
 # build Csound
 
-buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=1',
+buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
+               'buildInterfaces=0', 'buildPDClass=0', 'csound'],
+              ['useDouble=0', 'dynamicCsoundLibrary=1', 'generateXmg=1',
                'buildInterfaces=0', 'buildPDClass=1'],
-              ['useDouble=0', 'dynamicCsoundLibrary=1', 'generateXmg=0',
-               'buildInterfaces=0', 'buildPDClass=0', 'libcsound.so'],
               ['useDouble=1', 'dynamicCsoundLibrary=0', 'generateXmg=0',
-               'buildInterfaces=1', 'buildPDClass=0'],
+               'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=1', 'dynamicCsoundLibrary=1', 'generateXmg=0',
-               'buildInterfaces=0', 'buildPDClass=0', 'libcsound.so']]
+               'buildInterfaces=1', 'buildPDClass=0']]
 
 for i in range(4):
     cleanup()
@@ -150,62 +143,73 @@ for i in range(4):
     if (os.spawnvp(os.P_WAIT, 'scons', args) != 0):
         print ' *** build failed'
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-Rf', pkgDir])
+        raise SystemExit(1)
     if i == 0:
         # single precision, static Csound library
-        pluginList = findFiles('^lib.*\.so$')
-        xmgList = findFiles('^.*\.xmg$')
         os.spawnvp(os.P_WAIT, 'strip', ['strip', 'csound'])
         installXFile('csound', binDir2)
         installFile('libcsound.a', libDir)
+    elif i == 1:
+        # single precision, dynamic Csound library
+        xmgList = findFiles('^.*\.xmg$')
+        for j in xmgList:
+            installFile(j, xmgDir)
+        os.remove('libcsound.so')
+        pluginList = findFiles('^lib[A-Za-z].*\.so$')
         for j in pluginList:
             os.spawnvp(os.P_WAIT, 'strip', ['strip', '--strip-unneeded', j])
             installXFile(j, pluginDir32)
-        for j in xmgList:
-            installFile(j, xmgDir)
+        libraryName = findFiles('^libcsound\.so\..*$')[0]
+        os.spawnvp(os.P_WAIT, 'strip', ['strip', '--strip-debug', libraryName])
+        installXFile(libraryName, libDir)
+        os.symlink(libraryName, '%s%s/libcsound.so' % (pkgDir, libDir))
         os.spawnvp(os.P_WAIT, 'strip',
                    ['strip', '--strip-unneeded', 'csoundapi~.pd_linux'])
         installFile('csoundapi~.pd_linux', pdDir)
-    elif i == 1:
-        # single precision, dynamic Csound library
-        os.spawnvp(os.P_WAIT, 'strip',
-                   ['strip', '--strip-debug', 'libcsound.so'])
-        fName = 'libcsound.so.%d.%d' % (csoundVersion, csoundAPIVersion)
-        os.rename('libcsound.so', fName)
-        installXFile(fName, libDir)
     elif i == 2:
         # double precision, static Csound library
-        pluginList = findFiles('^lib.*\.so$')
         os.spawnvp(os.P_WAIT, 'strip', ['strip', 'csound'])
         os.rename('csound', 'csound64')
         installXFile('csound64', binDir2)
-        os.rename('libcsound.a', 'libcsound64.a')
         installFile('libcsound64.a', libDir)
+    elif i == 3:
+        # double precision, dynamic Csound library
+        os.remove('libcsound64.so')
+        pluginList = findFiles('^lib[A-Za-z].*\.so$')
         for j in pluginList:
             os.spawnvp(os.P_WAIT, 'strip', ['strip', '--strip-unneeded', j])
             installXFile(j, pluginDir64)
+        libraryName = findFiles('^libcsound64\.so\..*$')[0]
+        os.spawnvp(os.P_WAIT, 'strip', ['strip', '--strip-debug', libraryName])
+        installXFile(libraryName, libDir)
+        os.symlink(libraryName, '%s%s/libcsound64.so' % (pkgDir, libDir))
         for j in utils2:
             os.spawnvp(os.P_WAIT, 'strip', ['strip', j])
             installXFile(j, binDir)
         os.spawnvp(os.P_WAIT, 'strip',
-                   ['strip', '--strip-unneeded', '_csnd.so'])
-        installFile('_csnd.so', pythonDir2)
+                   ['strip', '--strip-debug', '_csnd.so'])
+        installXFile('_csnd.so', libDir)
+        os.rename('%s%s/_csnd.so' % (pkgDir, libDir),
+                  '%s%s/lib_csnd.so' % (pkgDir, libDir))
+        os.symlink('%s/lib_csnd.so' % libDir,
+                   '%s%s/_csnd.so' % (pkgDir, pythonDir2))
+        f = open('__make_pyc.sh', 'w')
+        print >> f, '#!/bin/sh'
+        print >> f, 'if [ "${LD_LIBRARY_PATH}" == "" ] ; then'
+        print >> f, '    export LD_LIBRARY_PATH="`pwd`"'
+        print >> f, 'else'
+        print >> f, '    export LD_LIBRARY_PATH="`pwd`:${LD_LIBRARY_PATH}"'
+        print >> f, 'fi'
+        print >> f, 'python -c "import csnd"'
+        print >> f, 'python -O -c "import csnd"'
+        print >> f
+        f.close()
+        os.chmod('__make_pyc.sh', 0755)
+        os.spawnvp(os.P_WAIT, './__make_pyc.sh', ['./__make_pyc.sh'])
+        os.remove('__make_pyc.sh')
         installFile('csnd.py', pythonDir)
-        os.spawnvp(os.P_WAIT, 'python', ['python', '-c', 'import csnd'])
         installFile('csnd.pyc', pythonDir)
-        os.spawnvp(os.P_WAIT, 'python', ['python', '-O', '-c', 'import csnd'])
         installFile('csnd.pyo', pythonDir)
-    elif i == 3:
-        # double precision, dynamic Csound library
-        os.spawnvp(os.P_WAIT, 'strip',
-                   ['strip', '--strip-debug', 'libcsound.so'])
-        fName = 'libcsound64.so.%d.%d' % (csoundVersion, csoundAPIVersion)
-        os.rename('libcsound.so', fName)
-        installXFile(fName, libDir)
-
-os.symlink('libcsound.so.%d.%d' % (csoundVersion, csoundAPIVersion),
-           '%s%s/libcsound.so' % (pkgDir, libDir))
-os.symlink('libcsound64.so.%d.%d' % (csoundVersion, csoundAPIVersion),
-           '%s%s/libcsound64.so' % (pkgDir, libDir))
 
 cleanup()
 

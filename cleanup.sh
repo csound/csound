@@ -38,4 +38,15 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 "$0" remove "./frontends/CsoundVST/CsoundVST_wrap.cc"
 "$0" remove "./frontends/CsoundVST/CsoundVST_wrap.h"
 "$0" remove "./CsoundVST.py"
+"$0" remove "./interfaces/python_interface_wrap.cc"
+"$0" remove "./csnd.py"
+"$0" remove "./csnd.pyc"
+"$0" remove "./csnd.pyo"
+"$0" remove "./interfaces/csnd.py"
+"$0" remove "./interfaces/csnd.pyc"
+"$0" remove "./interfaces/csnd.pyo"
+
+rm -f "./libcsound.so"
+rm -f "./libcsound64.so"
+rm -f "./lib_csnd.so"
 

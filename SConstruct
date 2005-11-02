@@ -467,65 +467,6 @@ elif getPlatform() == 'linux':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
 csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Copy()
 
-pluginEnvironment = commonEnvironment.Copy()
-pluginEnvironment.Append(LIBS = ['sndfile'])
-
-if getPlatform() == 'darwin':
-    pluginEnvironment.Append(LINKFLAGS = Split('''
-        -framework CoreMidi -framework CoreFoundation -framework CoreAudio
-    '''))
-    if (commonEnvironment['useDirentFix'] == '1'):
-        pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
-    pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
-
-csoundProgramEnvironment = commonEnvironment.Copy()
-csoundProgramEnvironment.Append(LIBS = ['csound', 'sndfile'])
-
-vstEnvironment = commonEnvironment.Copy()
-fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
-if getPlatform() != 'darwin':
-    fltkConfigFlags += ' --ldflags'
-if vstEnvironment.ParseConfig(fltkConfigFlags):
-    print "Parsed fltk-config."
-if getPlatform() == 'darwin':
-    vstEnvironment.Append(LIBS = Split('''
-        fltk fltk_images fltk_png z fltk_jpeg
-    '''))
-guiProgramEnvironment = commonEnvironment.Copy()
-
-if getPlatform() == 'mingw':
-    if commonEnvironment['MSVC'] == '0':
-        vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-        guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
-        vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-        guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-    else:
-        csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
-    csoundProgramEnvironment.Append(LIBS = csoundWindowsLibraries)
-    vstEnvironment.Append(LIBS = csoundWindowsLibraries)
-    guiProgramEnvironment.Append(LIBS = csoundWindowsLibraries)
-else:
-    if getPlatform() == 'linux':
-        csoundProgramEnvironment.Append(LIBS = ['dl'])
-        vstEnvironment.Append(LIBS = ['dl'])
-        guiProgramEnvironment.Append(LIBS = ['dl'])
-    csoundProgramEnvironment.Append(LIBS = ['pthread', 'm'])
-    vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    if getPlatform() == 'darwin':
-        csoundProgramEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework CoreAudio -framework CoreMidi
-        '''))
-
-#############################################################################
-#
-#   DEFINE TARGETS AND SOURCES
-#
-#############################################################################
-
-makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
-zipDependencies.append(makedb)
-
 libCsoundSources = Split('''
 Engine/auxfd.c
 Engine/cfgvar.c
@@ -615,6 +556,92 @@ Top/threads.c
 Top/utility.c
 ''')
 
+csoundLibraryName = 'csound'
+if getPlatform() == 'linux' and commonEnvironment['useDouble'] != '0':
+    csoundLibraryName += '64'
+
+if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
+    print 'CONFIGURATION DECISION: Building dynamic Csound library'
+    if getPlatform() == 'linux':
+        # library version is CS_VERSION.CS_APIVERSION
+        libName = 'lib' + csoundLibraryName + '.so'
+        libName2 = libName + '.5.1'
+        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', libName])
+        os.symlink(libName2, libName)
+        tmp = csoundDynamicLibraryEnvironment['SHLINKFLAGS']
+        tmp += ['-Wl,-soname=%s' % libName2]
+        csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
+            libName2, libCsoundSources,
+            SHLINKFLAGS = tmp, SHLIBPREFIX = '', SHLIBSUFFIX = '')
+    else:
+        csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
+            csoundLibraryName, libCsoundSources)
+else:
+    print 'CONFIGURATION DECISION: Building static Csound library'
+    csoundLibrary = csoundLibraryEnvironment.Library(
+        csoundLibraryName, libCsoundSources)
+libs.append(csoundLibrary)
+zipDependencies.append(csoundLibrary)
+
+pluginEnvironment = commonEnvironment.Copy()
+pluginEnvironment.Append(LIBS = ['sndfile'])
+
+if getPlatform() == 'darwin':
+    pluginEnvironment.Append(LINKFLAGS = Split('''
+        -framework CoreMidi -framework CoreFoundation -framework CoreAudio
+    '''))
+    if (commonEnvironment['useDirentFix'] == '1'):
+        pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
+    pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
+
+csoundProgramEnvironment = commonEnvironment.Copy()
+csoundProgramEnvironment.Append(LIBS = [csoundLibraryName, 'sndfile'])
+
+vstEnvironment = commonEnvironment.Copy()
+fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
+if getPlatform() != 'darwin':
+    fltkConfigFlags += ' --ldflags'
+if vstEnvironment.ParseConfig(fltkConfigFlags):
+    print "Parsed fltk-config."
+if getPlatform() == 'darwin':
+    vstEnvironment.Append(LIBS = Split('''
+        fltk fltk_images fltk_png z fltk_jpeg
+    '''))
+guiProgramEnvironment = commonEnvironment.Copy()
+
+if getPlatform() == 'mingw':
+    if commonEnvironment['MSVC'] == '0':
+        vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+        guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
+        vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        guiProgramEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+    else:
+        csoundProgramEnvironment.Append(LINKFLAGS = ["/IMPLIB:dummy.lib"])
+    csoundProgramEnvironment.Append(LIBS = csoundWindowsLibraries)
+    vstEnvironment.Append(LIBS = csoundWindowsLibraries)
+    guiProgramEnvironment.Append(LIBS = csoundWindowsLibraries)
+else:
+    if getPlatform() == 'linux':
+        csoundProgramEnvironment.Append(LIBS = ['dl'])
+        vstEnvironment.Append(LIBS = ['dl'])
+        guiProgramEnvironment.Append(LIBS = ['dl'])
+    csoundProgramEnvironment.Append(LIBS = ['pthread', 'm'])
+    vstEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    guiProgramEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    if getPlatform() == 'darwin':
+        csoundProgramEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework CoreAudio -framework CoreMidi
+        '''))
+
+#############################################################################
+#
+#   DEFINE TARGETS AND SOURCES
+#
+#############################################################################
+
+makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
+zipDependencies.append(makedb)
+
 if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
     portMidiEnvironment = pluginEnvironment.Copy()
@@ -630,16 +657,6 @@ if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
-if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
-    print 'CONFIGURATION DECISION: Building dynamic Csound library'
-    csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary('csound',
-                                                              libCsoundSources)
-else:
-    print 'CONFIGURATION DECISION: Building static Csound library'
-    csoundLibrary = csoundLibraryEnvironment.Library('csound', libCsoundSources)
-libs.append(csoundLibrary)
-zipDependencies.append(csoundLibrary)
-
 if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironment['buildInterfaces'] == '1'):
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
 else:
@@ -651,7 +668,7 @@ else:
         interfaces/CsoundFile.cpp
     ''')
     if commonEnvironment['dynamicCsoundLibrary'] == '1' or getPlatform() == 'mingw' or getPlatform() == 'darwin':
-        csoundInterfacesEnvironment.Prepend(LIBS = ['csound'])
+        csoundInterfacesEnvironment.Prepend(LIBS = [csoundLibraryName])
     else:
         csoundInterfacesSources += libCsoundSources
     if getPlatform() == 'mingw':
@@ -725,6 +742,9 @@ else:
             'csnd', csoundInterfacesSources,
             PROGPREFIX = '_', PROGSUFFIX = '.so')
     else:
+        if getPlatform() == 'linux':
+            os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', 'lib_csnd.so'])
+            os.symlink('_csnd.so', 'lib_csnd.so')
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
             'csnd', csoundInterfacesSources, SHLIBPREFIX = '_')
@@ -1103,12 +1123,12 @@ executables.append(commonEnvironment.Program('makecsd',
 
 # Front ends.
 
+csoundProgramSources = ['frontends/csound/csound_main.c']
 if getPlatform() == 'linux':
-    executables.append(csoundProgramEnvironment.Program('csound',
-        ['frontends/csound/sched.c', 'frontends/csound/csound_main.c']))
-else:
-    executables.append(csoundProgramEnvironment.Program('csound',
-        ['frontends/csound/csound_main.c']))
+    csoundProgramSources = ['frontends/csound/sched.c'] + csoundProgramSources
+csoundProgram = csoundProgramEnvironment.Program('csound', csoundProgramSources)
+executables.append(csoundProgram)
+Depends(csoundProgram, csoundLibrary)
 
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
@@ -1123,7 +1143,7 @@ else:
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         vstEnvironment.Prepend(LIBS = pythonLibs)
-    vstEnvironment.Prepend(LIBS = ['csound', 'sndfile', '_csnd'])
+    vstEnvironment.Prepend(LIBS = [csoundLibraryName, 'sndfile', '_csnd'])
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
@@ -1306,7 +1326,7 @@ else:
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
     pdClassEnvironment = commonEnvironment.Copy()
-    pdClassEnvironment.Append(LIBS = ['csound', 'sndfile'])
+    pdClassEnvironment.Append(LIBS = [csoundLibraryName, 'sndfile'])
     if getPlatform() == 'darwin':
         pdClassEnvironment.Append(LINKFLAGS = Split('''
             -bundle -flat_namespace -undefined suppress
@@ -1330,7 +1350,7 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
 if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     print "CONFIGURATION DECISION: Building Tclcsound frontend"
     csTclEnvironment = commonEnvironment.Copy()
-    csTclEnvironment.Append(LIBS = ['csound', 'sndfile'])
+    csTclEnvironment.Append(LIBS = [csoundLibraryName, 'sndfile'])
     if getPlatform() == 'darwin':
         csTclEnvironment.Append(CCFLAGS = Split('''
             -I/Library/Frameworks/Tcl.Framework/Headers
