@@ -795,13 +795,10 @@ static const CSOUND cenviron_ = {
                              const char *devName);
   static int DummyMidiRead(CSOUND *csound, void *userData,
                            unsigned char *buf, int nbytes);
-  static int DummyMidiInClose(CSOUND *csound, void *userData);
   static int DummyMidiOutOpen(CSOUND *csound, void **userData,
                               const char *devName);
   static int DummyMidiWrite(CSOUND *csound, void *userData,
                             const unsigned char *buf, int nbytes);
-  static int DummyMidiOutClose(CSOUND *csound, void *userData);
-  static const char *DummyMidiErrorString(int errcode);
   /* random.c */
   extern void csound_init_rand(CSOUND *);
 
@@ -841,11 +838,11 @@ static const CSOUND cenviron_ = {
     p->midiGlobals->Midevtblk = (MEVENT*) NULL;
     p->midiGlobals->MidiInOpenCallback = DummyMidiInOpen;
     p->midiGlobals->MidiReadCallback = DummyMidiRead;
-    p->midiGlobals->MidiInCloseCallback = DummyMidiInClose;
+    p->midiGlobals->MidiInCloseCallback = (int (*)(CSOUND *, void *)) NULL;
     p->midiGlobals->MidiOutOpenCallback = DummyMidiOutOpen;
     p->midiGlobals->MidiWriteCallback = DummyMidiWrite;
-    p->midiGlobals->MidiOutCloseCallback = DummyMidiOutClose;
-    p->midiGlobals->MidiErrorStringCallback = DummyMidiErrorString;
+    p->midiGlobals->MidiOutCloseCallback = (int (*)(CSOUND *, void *)) NULL;
+    p->midiGlobals->MidiErrorStringCallback = (const char *(*)(int)) NULL;
     p->midiGlobals->midiInUserData = NULL;
     p->midiGlobals->midiOutUserData = NULL;
     p->midiGlobals->midiFileData = NULL;
@@ -1629,10 +1626,11 @@ static const CSOUND cenviron_ = {
     csound->rtclose_callback = rtclose__;
   }
 
-/* dummy real time MIDI functions */
+  /* dummy real time MIDI functions */
 
-static int DummyMidiInOpen(CSOUND *csound, void **userData, const char *devName)
-{
+  static int DummyMidiInOpen(CSOUND *csound, void **userData,
+                             const char *devName)
+  {
     char *s;
 
     (void) devName;
@@ -1652,24 +1650,18 @@ static int DummyMidiInOpen(CSOUND *csound, void **userData, const char *devName)
       csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module"), s);
     }
     return -1;
-}
+  }
 
-static int DummyMidiRead(CSOUND *csound,
-                         void *userData, unsigned char *buf, int nbytes)
-{
+  static int DummyMidiRead(CSOUND *csound, void *userData,
+                           unsigned char *buf, int nbytes)
+  {
     (void) csound; (void) userData; (void) buf; (void) nbytes;
     return 0;
-}
+  }
 
-static int DummyMidiInClose(CSOUND *csound, void *userData)
-{
-    (void) csound; (void) userData;
-    return 0;
-}
-
-static int DummyMidiOutOpen(CSOUND *csound,
-                            void **userData, const char *devName)
-{
+  static int DummyMidiOutOpen(CSOUND *csound, void **userData,
+                              const char *devName)
+  {
     char *s;
 
     (void) devName;
@@ -1689,41 +1681,29 @@ static int DummyMidiOutOpen(CSOUND *csound,
       csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module"), s);
     }
     return -1;
-}
+  }
 
-static int DummyMidiWrite(CSOUND *csound,
-                          void *userData, const unsigned char *buf, int nbytes)
-{
+  static int DummyMidiWrite(CSOUND *csound, void *userData,
+                            const unsigned char *buf, int nbytes)
+  {
     (void) csound; (void) userData; (void) buf;
     return nbytes;
-}
+  }
 
-static int DummyMidiOutClose(CSOUND *csound, void *userData)
-{
-    (void) csound; (void) userData;
-    return 0;
-}
+  static const char *midi_err_msg = "Unknown MIDI error";
 
-static const char *midi_err_msg = "Unknown MIDI error";
-
-static const char *DummyMidiErrorString(int errcode)
-{
-    (void) errcode;
-    return midi_err_msg;
-}
-
-/**
- * Returns pointer to a string constant storing an error massage
- * for error code 'errcode'.
- */
-const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
-{
+  /**
+   * Returns pointer to a string constant storing an error massage
+   * for error code 'errcode'.
+   */
+  const char *csoundExternalMidiErrorString(CSOUND *csound, int errcode)
+  {
     if (csound->midiGlobals->MidiErrorStringCallback == NULL)
       return midi_err_msg;
     return (csound->midiGlobals->MidiErrorStringCallback(errcode));
-}
+  }
 
-/* Set real time MIDI function pointers. */
+  /* Set real time MIDI function pointers. */
 
   PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *csound,
                   int (*func)(CSOUND *, void **, const char *))
