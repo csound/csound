@@ -599,10 +599,12 @@ static int midi_in_read(CSOUND *csound,
 
 static int midi_in_close(CSOUND *csound, void *userData)
 {
-    int retval;
+    int retval = 0;
     (void) csound;
-    retval = snd_rawmidi_close(((alsaMidiInputDevice*) userData)->dev);
-    free(userData);
+    if (userData != NULL) {
+      retval = snd_rawmidi_close(((alsaMidiInputDevice*) userData)->dev);
+      free(userData);
+    }
     return retval;
 }
 
@@ -636,10 +638,12 @@ static int midi_out_write(CSOUND *csound,
 
 static int midi_out_close(CSOUND *csound, void *userData)
 {
-    int retval;
+    int retval = 0;
     (void) csound;
-    snd_rawmidi_drain((snd_rawmidi_t*) userData);
-    retval = snd_rawmidi_close((snd_rawmidi_t*) userData);
+    if (userData != NULL) {
+      snd_rawmidi_drain((snd_rawmidi_t*) userData);
+      retval = snd_rawmidi_close((snd_rawmidi_t*) userData);
+    }
     return retval;
 }
 

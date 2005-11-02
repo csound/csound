@@ -126,6 +126,15 @@ static void portMidi_listDevices(CSOUND *csound, int output)
     }
 }
 
+static int stop_portmidi(CSOUND *csound, void *userData)
+{
+    (void) csound;
+    (void) userData;
+    Pm_Terminate();
+    Pt_Stop();
+    return 0;
+}
+
 static int start_portmidi(CSOUND *csound)
 {
     if (Pm_Initialize() != pmNoError) {
@@ -136,7 +145,7 @@ static int start_portmidi(CSOUND *csound)
       csound->ErrorMsg(csound, Str(" *** error initialising PortTime"));
       return -1;
     }
-    return 0;
+    return csound->RegisterResetCallback(csound, NULL, stop_portmidi);
 }
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
@@ -405,12 +414,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     csound->SetExternalMidiOutOpenCallback(csound, OpenMidiOutDevice_);
     csound->SetExternalMidiWriteCallback(csound, WriteMidiData_);
     csound->SetExternalMidiOutCloseCallback(csound, CloseMidiOutDevice_);
-    return 0;
-}
-
-PUBLIC int csoundModuleDestroy(CSOUND *csound)
-{
-    Pm_Terminate();
     return 0;
 }
 
