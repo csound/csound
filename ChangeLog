@@ -1,3 +1,7 @@
+2005-11-03	Istvan Varga	<ivarga@csounds.com>
+	* Changed csoundInitialize() to return a positive value if it was
+	  already called earlier.
+
 2005-11-01	Istvan Varga	<ivarga@csounds.com>
 	* Removed support for Cygwin.
 	* Fixes in Python opcodes. Also implemented a temporary hack
