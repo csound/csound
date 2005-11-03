@@ -102,9 +102,9 @@ static int Lorisgens_Ksamps = 0;
 // ---------------------------------------------------------------------------
 static void setup_globals( CSOUND * csound )
 {
-  Lorisgens_Srate = csound->esr;
-  Lorisgens_Krate = csound->ekr;
-  Lorisgens_Ksamps = csound->ksmps;
+	Lorisgens_Srate = csound->GetSr( csound );
+	Lorisgens_Krate = csound->GetKr( csound );
+	Lorisgens_Ksamps = csound->GetKsmps( csound );
   // std::cerr << "*** sample rate is " << Lorisgens_Srate << std::endl;
   // std::cerr << "*** control rate is " << Lorisgens_Krate << std::endl;
 }
@@ -232,10 +232,6 @@ static inline double radianFreq( double hz )
 //
 static void accum_samples( Oscillator & oscil, Breakpoint & bp, double * bufbegin, int nsamps )
 {
-/* #ifdef DEBUG_LORISGENS */
-/*   fprintf(stderr, "oscil amp: %f  bp.freq: %f  bp.amp: %f  bp.bw: %f\n", */
-/*        oscil.amplitude(), bp.frequency(), bp.amplitude(), bp.bandwidth()); */
-/* #endif */
   if( bp.amplitude() > 0 || oscil.amplitude() > 0 )
     {
       double radfreq = radianFreq( bp.frequency() );
@@ -258,11 +254,14 @@ static void accum_samples( Oscillator & oscil, Breakpoint & bp, double * bufbegi
             bw = 1.;
           else if ( bw < 0. )
             bw = 0.;
+
+			/*
 #ifdef DEBUG_LORISGENS
-/*          std::cerr << "initializing oscillator " << std::endl; */
-/*          std::cerr << "parameters: " << bp.frequency() << "  "; */
-/*          std::cerr << amp << "  " << bw << std::endl; */
+			std::cerr << "initializing oscillator " << std::endl;
+			std::cerr << "parameters: " << bp.frequency() << "  ";
+			std::cerr << amp << "  " << bw << std::endl;
 #endif
+			*/
 
           //    initialize frequency, amplitude, and bandwidth to
           //    their target values:
@@ -524,12 +523,6 @@ LorisReader::LorisReader( const string & fname, double fadetime, INSDS * owner, 
   for ( size_t i = 0; i < _partials.size(); ++i )
     {
       _envelopes.labelAt(i) = _partials[i].label();
-#ifdef DEBUG_LORISGENS
-/*       for(Partial_ConstIterator j = _partials[i].begin(); j != _partials[i].end(); ++j) */
-/*      { */
-/*        fprintf(stderr, "** LorisReader::LorisReader partial %i freq %f  amp %f  bw %f\n", i, j->frequency(), j->amplitude(), j->bandwidth()); */
-/*      } */
-#endif
     }
 
   //    tag these envelopes:
@@ -584,10 +577,6 @@ LorisReader::updateEnvelopePoints( double time, double fscale, double ascale, do
       bp.setAmplitude( ascale * p.amplitudeAt( time ) );
       bp.setBandwidth( bwscale * p.bandwidthAt( time ) );
       bp.setPhase( p.phaseAt( time ) );
-#ifdef DEBUG_LORISGENS
-/*        fprintf(stderr, "** updateEnvelopePoints time %f partial    %i freq %f  amp %f  bw %f\n", time, i, p.frequencyAt(time), p.amplitudeAt(time), p.bandwidthAt(time)); */
-/*        fprintf(stderr, "** updateEnvelopePoints time %f breakpoint %i freq %f  amp %f  bw %f\n", time, i, bp.frequency(), bp.amplitude(), bp.bandwidth()); */
-#endif
 
       //        update counter:
       if ( bp.amplitude() > 0. )
@@ -704,11 +693,10 @@ struct LorisPlayer
 //
 LorisPlayer::LorisPlayer( CSOUND *csound, LORISPLAY * params ) :
   reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->readerIdx) ) ),
-     dblbuffer( csound->ksmps, 0.0 )
+     dblbuffer( csound->GetKsmps(csound), 0.0 )
 {
   if ( reader != NULL ) {
     oscils.resize( reader->size() );
-    std::cerr << "** LorisPlayer contains " << oscils.size() << " oscillators" << std::endl;
   } else
     std::cerr << "** Could not find lorisplay source with index " << (int)*(params->readerIdx) << std::endl;
 }
@@ -746,28 +734,25 @@ extern "C"
 int lorisplay( CSOUND *csound, LORISPLAY * p )
 {
   LorisPlayer & player = *p->imp;
-
+	OSCILS & oscils = player.oscils;
   //    clear the buffer first!
   double * bufbegin =  &(player.dblbuffer[0]);
   clear_buffer( bufbegin, csound->ksmps );
 
   //    now accumulate samples into the buffer:
-  for( size_t i = 0; i < player.oscils.size(); ++i )
+	long numOscils = player.oscils.size();
+	for( long i = 0; i < numOscils; ++i )  
     {
       const Breakpoint & bp = player.reader->valueAt(i);
-#ifdef DEBUG_LORISGENS
-/*   fprintf(stderr, "oscil amp: %f  bp.freq: %f  bp.amp: %f  bp.bw: %f\n", */
-/*        player.oscils[i].amplitude(), bp.frequency(), bp.amplitude(), bp.bandwidth()); */
-#endif
       Breakpoint modifiedBp(  (*p->freqenv) * bp.frequency(),
                               (*p->ampenv) * bp.amplitude(),
                               (*p->bwenv) * bp.bandwidth(),
                               bp.phase() );
-      accum_samples( player.oscils[i], modifiedBp, bufbegin, csound->ksmps );
+		accum_samples( oscils[i], modifiedBp, bufbegin, p->h.insdshead->csound->GetKsmps(p->h.insdshead->csound) );
     }
 
   //    transfer samples into the result buffer:
-  convert_samples( bufbegin, p->result, csound->ksmps );
+  convert_samples( bufbegin, p->result, csound->GetKsmps(csound) );
   return OK;
 }
 
@@ -967,6 +952,7 @@ LorisMorpher::LorisMorpher( LORISMORPH * params ) :
   std::cerr << tgt_unlabeled.size() << " unlabeled target Partials." << std::endl;
 #endif
 
+	
   //    allocate and set the labels for the morphed envelopes:
   morphed_envelopes.resize( labelMap.size() + src_unlabeled.size() + tgt_unlabeled.size() );
   long envidx = 0;
@@ -1064,6 +1050,7 @@ LorisMorpher::updateEnvelopes( void )
       bp = morpher.fadeSrcBreakpoint( src_reader->valueAt( src_unlabeled[i] ), 0 );
     }
 
+	
   //    render unlabeled target Partials:
   // std::cerr << "** Crossfading " << tgt_unlabeled.size();
   // std::cerr << " unlabeled target Partials" << std::endl;
@@ -1159,6 +1146,7 @@ LINKAGE
 
   ../libtool --mode=link g++ -o lorisgens.la -rpath /usr/local/lib -module -avoid-version lorisgens.lo ../src/libloris.la -lstdc++
 
+ 
   csound --opcode-lib=.libs/lorisgens.so tryit.csd
 */
 
