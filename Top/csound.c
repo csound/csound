@@ -732,7 +732,7 @@ static const CSOUND cenviron_ = {
           break;
         default:
           csoundUnLock();
-          return (n >= 0 ? 0 : -1);
+          return n;
       }
     } while (n);
     init_done = 2;
@@ -760,7 +760,7 @@ static const CSOUND cenviron_ = {
     csInstance_t  *p;
 
     if (init_done != 1) {
-      if (csoundInitialize(NULL, NULL, 0) != 0)
+      if (csoundInitialize(NULL, NULL, 0) < 0)
         return NULL;
     }
     csound = (CSOUND*) malloc(sizeof(CSOUND));
@@ -1469,8 +1469,8 @@ static const CSOUND cenviron_ = {
   PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
                               const MYFLT *pfields, long numFields)
   {
-    EVTBLK        evt;
-    int           i;
+    EVTBLK  evt;
+    int     i;
 
     evt.strarg = NULL;
     evt.opcod = type;
