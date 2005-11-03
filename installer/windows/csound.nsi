@@ -417,7 +417,13 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\ChangeLog
   File ..\..\loris.py
   File ..\..\CsoundVST.py
-  file ..\..\CsoundVST.jar
+  File ..\..\csnd.py
+  File ..\..\csnd.jar
+  SetOutPath $INSTDIR\interfaces
+  File ..\..\interfaces\test.lisp
+  File ..\..\interfaces\test.lua
+  File ..\..\interfaces\test.py
+  File ..\..\interfaces\*.lisp
   SetOutPath $INSTDIR\lib
   File ..\..\libcsound.a
   File ..\..\libCsoundVST.a
@@ -425,6 +431,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\H\*.h
   File ..\..\frontends\CsoundVST\*.h
   File ..\..\frontends\CsoundVST\*.hpp
+  File ..\..\interfaces\*.hpp
   SetOutPath $INSTDIR\examples
   File ..\..\examples\*.csd
   File ..\..\examples\*.py
