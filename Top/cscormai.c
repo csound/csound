@@ -24,36 +24,39 @@
 #include "cscore.h"                                   /*   CSCOREMAIN.C   */
 #include "csoundCore.h"
 #include "text.h"
+#include <stdarg.h>
 
 extern void cscore(CSOUND*);
 void err_printf(char *, ...);
 
-int main(int argc, char **argv) /* cscore stub to run a user prog standalone   */
+/* cscore stub to run a user prog standalone */
+
+int main(int argc, char **argv)
 {
-    CSOUND*  cs;
-    FILE*    insco;
-    int      result;
+    CSOUND  *cs;
+    FILE    *insco;
+    int     result;
 
     /* Standalone Cscore is now a client of the Csound API */
-    result = csoundInitialize(0, NULL, 0);
-    if  (result != CSOUND_SUCCESS) {
-        err_printf("Could not initialize the Csound library.");
-        exit(-1);
+    result = csoundInitialize(NULL, NULL, 0);
+    if (result < 0) {
+      err_printf("Could not initialize the Csound library.\n");
+      return -1;
     }
     cs = csoundCreate(NULL);
-    if  (cs == NULL) {
-        err_printf("Could not instantiate Csound.");
-        exit(-1);
+    if (cs == NULL) {
+      err_printf("Could not instantiate Csound.\n");
+      return -1;
     }
 
     /* open the command line scorein file */
     if (!(--argc)) {
-        err_printf("Insufficient arguments: must provide an input filename.\n");
-        exit(-1);
+      err_printf("Insufficient arguments: must provide an input filename.\n");
+      return -1;
     }
     if (!(insco = fopen(*++argv, "r"))) {
-        err_printf("Cannot open the input score %s\n", *argv);
-        exit(-1);
+      err_printf("Cannot open the input score %s\n", *argv);
+      return -1;
     }
 
     csoundInitializeCscore(cs, insco, stdout);
@@ -61,9 +64,9 @@ int main(int argc, char **argv) /* cscore stub to run a user prog standalone   *
     return 0;
 }
 
-/*int lplay(CSOUND* cs, EVLIST *a)        /* for standalone cscore: no full Csound, so *\/
-                                        /* field lplay calls & put events to stderr  *\/
-{
+#if 0
+int lplay(CSOUND *cs, EVLIST *a) /* for standalone cscore: no full Csound, so */
+{                                /* field lplay calls & put events to stderr  */
     FILE *osave;
 
     csoundMessage(cs,
@@ -74,7 +77,8 @@ int main(int argc, char **argv) /* cscore stub to run a user prog standalone   *
     cs->oscfp = osave;
     return OK;
 }
-*/
+#endif
+
 /* This standalone cscore stub is invoked with cscore_xxx.c as follows:    */
 /*       cc -o cscore cscore_xxx.c -lcscore                                */
 /* or, if no libcscore.a was created at installation:                      */
@@ -86,8 +90,6 @@ int main(int argc, char **argv) /* cscore stub to run a user prog standalone   *
 /* The resulting executable can be run with:                               */
 /*       cscore scorin > scoreout                                          */
 
-#include <stdarg.h>
-
 void err_printf(char *fmt, ...)
 {
     va_list a;
@@ -95,3 +97,4 @@ void err_printf(char *fmt, ...)
     vfprintf(stderr, fmt, a);
     va_end(a);
 }
+
