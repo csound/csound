@@ -9,9 +9,18 @@ BuildRoot: @TOPDIR@/__package
 %description
 Csound is an audio synthesis language.
 %prep
+rm -Rf "@TOPDIR@/__package"
 %build
-cd @TOPDIR@/__package
-cp -aiR @TOPDIR@/__csound5/* ./
+mkdir -p -m 0755 "@TOPDIR@/__package"
+cd "@TOPDIR@/__package"
+cp -aiR "@TOPDIR@/__csound5"/* ./
 %install
 %clean
+rm -Rf "@TOPDIR@/__package"
+%post
+/sbin/ldconfig
+%postun
+/sbin/ldconfig
 %files
+%defattr(-, root, root, 0755)
+%docdir /usr/local/share/doc/Csound
