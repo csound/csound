@@ -722,7 +722,7 @@ else:
             JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
         zipDependencies.append(jcsnd)
         jcsndJar = csoundInterfacesEnvironment.Jar(
-            'csnd.jar', ['interfaces/manifest.mf', 'interfaces'],
+            'csnd.jar', ['interfaces/manifest.mf', 'interfaces/csnd'],
             JARCHDIR = 'interfaces')
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
