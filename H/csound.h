@@ -563,7 +563,7 @@ extern "C" {
    * This callback is retained after a csoundReset() call.
    */
   PUBLIC void csoundSetCscoreCallback(CSOUND *,
-                                      void (*cscoreCallback)(CSOUND *));
+                                      void (*cscoreCallback_)(CSOUND *));
 
   /**
    * Sorts score file 'inFile' and writes the result to 'outFile'.
@@ -614,7 +614,7 @@ extern "C" {
    * Sets a function to be called by Csound to print an informational message.
    */
   PUBLIC void csoundSetMessageCallback(CSOUND *,
-                            void (*csoundMessageCallback)(CSOUND *,
+                            void (*csoundMessageCallback_)(CSOUND *,
                                                           int attr,
                                                           const char *format,
                                                           va_list valist));
@@ -624,7 +624,7 @@ extern "C" {
    * exception.
    */
   PUBLIC void csoundSetThrowMessageCallback(CSOUND *,
-                            void (*throwMessageCallback)(CSOUND *,
+                            void (*throwMessageCallback_)(CSOUND *,
                                                          const char *format,
                                                          va_list valist));
 
@@ -668,7 +668,7 @@ extern "C" {
    * directly call this function.
    */
   PUBLIC void csoundSetInputValueCallback(CSOUND *,
-                            void (*inputValueCalback)(CSOUND *,
+                            void (*inputValueCalback_)(CSOUND *,
                                                       const char *channelName,
                                                       MYFLT *value));
 
@@ -678,7 +678,7 @@ extern "C" {
    * directly call this function.
    */
   PUBLIC void csoundSetOutputValueCallback(CSOUND *,
-                            void (*outputValueCalback)(CSOUND *,
+                            void (*outputValueCalback_)(CSOUND *,
                                                        const char *channelName,
                                                        MYFLT value));
 
@@ -733,7 +733,7 @@ extern "C" {
    * Called by external software to set Csound's MakeGraph function.
    */
   PUBLIC void csoundSetMakeGraphCallback(CSOUND *,
-                            void (*makeGraphCallback)(CSOUND *,
+                            void (*makeGraphCallback_)(CSOUND *,
                                                       WINDAT *windat,
                                                       const char *name));
 
@@ -741,40 +741,40 @@ extern "C" {
    * Called by external software to set Csound's DrawGraph function.
    */
   PUBLIC void csoundSetDrawGraphCallback(CSOUND *,
-                            void (*drawGraphCallback)(CSOUND *,
+                            void (*drawGraphCallback_)(CSOUND *,
                                                       WINDAT *windat));
 
   /**
    * Called by external software to set Csound's KillGraph function.
    */
   PUBLIC void csoundSetKillGraphCallback(CSOUND *,
-                            void (*killGraphCallback)(CSOUND *,
+                            void (*killGraphCallback_)(CSOUND *,
                                                       WINDAT *windat));
 
   /**
    * Called by external software to set Csound's MakeXYin function.
    */
   PUBLIC void csoundSetMakeXYinCallback(CSOUND *,
-                            void (*makeXYinCallback)(CSOUND *, XYINDAT *,
+                            void (*makeXYinCallback_)(CSOUND *, XYINDAT *,
                                                      MYFLT x, MYFLT y));
 
   /**
    * Called by external software to set Csound's ReadXYin function.
    */
   PUBLIC void csoundSetReadXYinCallback(CSOUND *,
-                            void (*readXYinCallback)(CSOUND *, XYINDAT *));
+                            void (*readXYinCallback_)(CSOUND *, XYINDAT *));
 
   /**
    * Called by external software to set Csound's KillXYin function.
    */
   PUBLIC void csoundSetKillXYinCallback(CSOUND *,
-                            void (*killXYinCallback)(CSOUND *, XYINDAT *));
+                            void (*killXYinCallback_)(CSOUND *, XYINDAT *));
 
   /**
    * Called by external software to set Csound's ExitGraph function.
    */
   PUBLIC void csoundSetExitGraphCallback(CSOUND *,
-                            int (*exitGraphCallback)(CSOUND *));
+                            int (*exitGraphCallback_)(CSOUND *));
 
   /**
    * OPCODES
@@ -836,7 +836,7 @@ extern "C" {
    *
    * Returns an 'OK to continue' boolean.
    */
-  PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
+  PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback_)(CSOUND *));
 
   /**
    * REAL-TIME AUDIO PLAY AND RECORD

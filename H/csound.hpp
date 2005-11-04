@@ -293,9 +293,9 @@ public:
   {
     csoundRewindScore(csound);
   }
-  void SetCscoreCallback(void (*cscoreCallback)(CSOUND *))
+  void SetCscoreCallback(void (*cscoreCallback_)(CSOUND *))
   {
-    csoundSetCscoreCallback(csound, cscoreCallback);
+    csoundSetCscoreCallback(csound, cscoreCallback_);
   }
   int ScoreSort(FILE *inFile, FILE *outFile)
   {
@@ -335,17 +335,17 @@ public:
   {
     csoundThrowMessageV(csound, format, args);
   }
-  void SetMessageCallback(void (*csoundMessageCallback)(CSOUND *, int attr,
+  void SetMessageCallback(void (*csoundMessageCallback_)(CSOUND *, int attr,
                                                         const char *format,
                                                         va_list valist))
   {
-    csoundSetMessageCallback(csound, csoundMessageCallback);
+    csoundSetMessageCallback(csound, csoundMessageCallback_);
   }
-  void SetThrowMessageCallback(void (*throwMessageCallback)(CSOUND *,
+  void SetThrowMessageCallback(void (*throwMessageCallback_)(CSOUND *,
                                                             const char *fmt,
                                                             va_list valist))
   {
-    csoundSetThrowMessageCallback(csound, throwMessageCallback);
+    csoundSetThrowMessageCallback(csound, throwMessageCallback_);
   }
   int GetMessageLevel()
   {
@@ -364,15 +364,15 @@ public:
     csoundKeyPress(csound, c);
   }
   // control and events
-  void SetInputValueCallback(void (*inputValueCalback)(CSOUND *,
+  void SetInputValueCallback(void (*inputValueCallback_)(CSOUND *,
                                                        const char *, MYFLT *))
   {
-    csoundSetInputValueCallback(csound, inputValueCalback);
+    csoundSetInputValueCallback(csound, inputValueCallback_);
   }
-  void SetOutputValueCallback(void (*outputValueCalback)(CSOUND *,
+  void SetOutputValueCallback(void (*outputValueCallback_)(CSOUND *,
                                                          const char *, MYFLT))
   {
-    csoundSetOutputValueCallback(csound, outputValueCalback);
+    csoundSetOutputValueCallback(csound, outputValueCallback_);
   }
   int ScoreEvent(char type, const MYFLT *pFields, long numFields)
   {
@@ -416,35 +416,35 @@ public:
   {
     return csoundSetIsGraphable(csound, isGraphable);
   }
-  void SetMakeGraphCallback(void (*makeGraphCallback)(CSOUND *, WINDAT *windat,
+  void SetMakeGraphCallback(void (*makeGraphCallback_)(CSOUND *, WINDAT *windat,
                                                       const char *name))
   {
-    csoundSetMakeGraphCallback(csound, makeGraphCallback);
+    csoundSetMakeGraphCallback(csound, makeGraphCallback_);
   }
-  void SetDrawGraphCallback(void (*drawGraphCallback)(CSOUND *, WINDAT *windat))
+  void SetDrawGraphCallback(void (*drawGraphCallback_)(CSOUND *, WINDAT *windat))
   {
-    csoundSetDrawGraphCallback(csound, drawGraphCallback);
+    csoundSetDrawGraphCallback(csound, drawGraphCallback_);
   }
-  void SetKillGraphCallback(void (*killGraphCallback)(CSOUND *, WINDAT *windat))
+  void SetKillGraphCallback(void (*killGraphCallback_)(CSOUND *, WINDAT *windat))
   {
-    csoundSetKillGraphCallback(csound, killGraphCallback);
+    csoundSetKillGraphCallback(csound, killGraphCallback_);
   }
-  void SetMakeXYinCallback(void (*makeXYinCallback)(CSOUND *, XYINDAT *,
+  void SetMakeXYinCallback(void (*makeXYinCallback_)(CSOUND *, XYINDAT *,
                                                     MYFLT x, MYFLT y))
   {
-    csoundSetMakeXYinCallback(csound, makeXYinCallback);
+    csoundSetMakeXYinCallback(csound, makeXYinCallback_);
   }
-  void SetReadXYinCallback(void (*readXYinCallback)(CSOUND *, XYINDAT *))
+  void SetReadXYinCallback(void (*readXYinCallback_)(CSOUND *, XYINDAT *))
   {
-    csoundSetReadXYinCallback(csound, readXYinCallback);
+    csoundSetReadXYinCallback(csound, readXYinCallback_);
   }
-  void SetKillXYinCallback(void (*killXYinCallback)(CSOUND *, XYINDAT *))
+  void SetKillXYinCallback(void (*killXYinCallback_)(CSOUND *, XYINDAT *))
   {
-    csoundSetKillXYinCallback(csound, killXYinCallback);
+    csoundSetKillXYinCallback(csound, killXYinCallback_);
   }
-  void SetExitGraphCallback(int (*exitGraphCallback)(CSOUND *))
+  void SetExitGraphCallback(int (*exitGraphCallback_)(CSOUND *))
   {
-    csoundSetExitGraphCallback(csound, exitGraphCallback);
+    csoundSetExitGraphCallback(csound, exitGraphCallback_);
   }
   // opcodes
   int NewOpcodeList(opcodeListEntry* &opcodelist)
@@ -469,9 +469,9 @@ public:
                               outypes, intypes, iopadr, kopadr, aopadr);
   }
   // miscellaneous functions
-  void SetYieldCallback(int (*yieldCallback)(CSOUND *))
+  void SetYieldCallback(int (*yieldCallback_)(CSOUND *))
   {
-    csoundSetYieldCallback(csound, yieldCallback);
+    csoundSetYieldCallback(csound, yieldCallback_);
   }
   // real-time audio play and record
   void SetPlayopenCallback(int (*playopen__)(CSOUND *,
