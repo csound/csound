@@ -13,21 +13,21 @@ pkgDir      = '../__csound5'
 # frontends
 binDir      = '/usr/local/bin'
 # the actual binaries (called by above)
-binDir2     = '/usr/local/lib/Csound/bin'
+binDir2     = '/usr/local/lib/csound/bin'
 # Csound API header files
-includeDir  = '/usr/local/include/Csound'
+includeDir  = '/usr/local/include/csound'
 # Csound API libraries
 libDir      = '/usr/local/lib'
 # private libraries for use by Csound
-libDir2     = '/usr/local/lib/Csound/lib'
+libDir2     = '/usr/local/lib/csound/lib'
 # single precision plugin libraries
-pluginDir32 = '/usr/local/lib/Csound/plugins'
+pluginDir32 = '/usr/local/lib/csound/plugins'
 # double precision plugin libraries
-pluginDir64 = '/usr/local/lib/Csound/plugins64'
+pluginDir64 = '/usr/local/lib/csound/plugins64'
 # XMG files
-xmgDir      = '/usr/local/lib/Csound/xmg'
+xmgDir      = '/usr/local/lib/csound/xmg'
 # documentation
-docDir      = '/usr/local/share/doc/Csound'
+docDir      = '/usr/local/share/doc/csound'
 # csnd.py
 pythonDir   = '/usr/lib/python'
 # _csnd.so
@@ -37,7 +37,7 @@ pdDir       = '/usr/lib/pd/extra'
 
 buildOpts = ['buildUtilities=0', 'useLrint=1', 'noDebug=1']
 buildOpts += ['buildPythonOpcodes=1', 'useOSC=1', 'buildCsoundVST=0']
-buildOpts += ['buildJavaWrapper=0']
+buildOpts += ['buildJavaWrapper=0', 'pythonVersion=2.3']
 buildOpts += ['customCCFLAGS=%s' % CFlags, 'customCXXFLAGS=%s' % CFlags]
 
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csoundCore.h']
