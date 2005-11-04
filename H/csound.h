@@ -615,9 +615,9 @@ extern "C" {
    */
   PUBLIC void csoundSetMessageCallback(CSOUND *,
                             void (*csoundMessageCallback_)(CSOUND *,
-                                                          int attr,
-                                                          const char *format,
-                                                          va_list valist));
+                                                           int attr,
+                                                           const char *format,
+                                                           va_list valist));
 
   /**
    * Sets a function for Csound to stop execution with an error message or
@@ -625,8 +625,8 @@ extern "C" {
    */
   PUBLIC void csoundSetThrowMessageCallback(CSOUND *,
                             void (*throwMessageCallback_)(CSOUND *,
-                                                         const char *format,
-                                                         va_list valist));
+                                                          const char *format,
+                                                          va_list valist));
 
   /**
    * Returns the Csound message level (from 0 to 231).
@@ -669,8 +669,8 @@ extern "C" {
    */
   PUBLIC void csoundSetInputValueCallback(CSOUND *,
                             void (*inputValueCalback_)(CSOUND *,
-                                                      const char *channelName,
-                                                      MYFLT *value));
+                                                       const char *channelName,
+                                                       MYFLT *value));
 
   /**
    * Called by external software to set a function for Csound to
@@ -679,8 +679,8 @@ extern "C" {
    */
   PUBLIC void csoundSetOutputValueCallback(CSOUND *,
                             void (*outputValueCalback_)(CSOUND *,
-                                                       const char *channelName,
-                                                       MYFLT value));
+                                                        const char *channelName,
+                                                        MYFLT value));
 
   /**
    * Send a new score event. 'type' is the score event type ('a', 'i', 'q',
@@ -734,29 +734,29 @@ extern "C" {
    */
   PUBLIC void csoundSetMakeGraphCallback(CSOUND *,
                             void (*makeGraphCallback_)(CSOUND *,
-                                                      WINDAT *windat,
-                                                      const char *name));
+                                                       WINDAT *windat,
+                                                       const char *name));
 
   /**
    * Called by external software to set Csound's DrawGraph function.
    */
   PUBLIC void csoundSetDrawGraphCallback(CSOUND *,
                             void (*drawGraphCallback_)(CSOUND *,
-                                                      WINDAT *windat));
+                                                       WINDAT *windat));
 
   /**
    * Called by external software to set Csound's KillGraph function.
    */
   PUBLIC void csoundSetKillGraphCallback(CSOUND *,
                             void (*killGraphCallback_)(CSOUND *,
-                                                      WINDAT *windat));
+                                                       WINDAT *windat));
 
   /**
    * Called by external software to set Csound's MakeXYin function.
    */
   PUBLIC void csoundSetMakeXYinCallback(CSOUND *,
                             void (*makeXYinCallback_)(CSOUND *, XYINDAT *,
-                                                     MYFLT x, MYFLT y));
+                                                      MYFLT x, MYFLT y));
 
   /**
    * Called by external software to set Csound's ReadXYin function.
@@ -833,7 +833,6 @@ extern "C" {
    * Csound, allowing it to exit gracefully. In addition, some operations
    * like utility analysis routines are not reentrant and you should use
    * this function to do any kind of updating during the operation.
-   *
    * Returns an 'OK to continue' boolean.
    */
   PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback_)(CSOUND *));
