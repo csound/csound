@@ -336,14 +336,14 @@ public:
     csoundThrowMessageV(csound, format, args);
   }
   void SetMessageCallback(void (*csoundMessageCallback_)(CSOUND *, int attr,
-                                                        const char *format,
-                                                        va_list valist))
+                                                         const char *format,
+                                                         va_list valist))
   {
     csoundSetMessageCallback(csound, csoundMessageCallback_);
   }
   void SetThrowMessageCallback(void (*throwMessageCallback_)(CSOUND *,
-                                                            const char *fmt,
-                                                            va_list valist))
+                                                             const char *fmt,
+                                                             va_list valist))
   {
     csoundSetThrowMessageCallback(csound, throwMessageCallback_);
   }
@@ -365,12 +365,12 @@ public:
   }
   // control and events
   void SetInputValueCallback(void (*inputValueCallback_)(CSOUND *,
-                                                       const char *, MYFLT *))
+                                                         const char *, MYFLT *))
   {
     csoundSetInputValueCallback(csound, inputValueCallback_);
   }
   void SetOutputValueCallback(void (*outputValueCallback_)(CSOUND *,
-                                                         const char *, MYFLT))
+                                                           const char *, MYFLT))
   {
     csoundSetOutputValueCallback(csound, outputValueCallback_);
   }
@@ -417,20 +417,22 @@ public:
     return csoundSetIsGraphable(csound, isGraphable);
   }
   void SetMakeGraphCallback(void (*makeGraphCallback_)(CSOUND *, WINDAT *windat,
-                                                      const char *name))
+                                                       const char *name))
   {
     csoundSetMakeGraphCallback(csound, makeGraphCallback_);
   }
-  void SetDrawGraphCallback(void (*drawGraphCallback_)(CSOUND *, WINDAT *windat))
+  void SetDrawGraphCallback(void (*drawGraphCallback_)(CSOUND *,
+                                                       WINDAT *windat))
   {
     csoundSetDrawGraphCallback(csound, drawGraphCallback_);
   }
-  void SetKillGraphCallback(void (*killGraphCallback_)(CSOUND *, WINDAT *windat))
+  void SetKillGraphCallback(void (*killGraphCallback_)(CSOUND *,
+                                                       WINDAT *windat))
   {
     csoundSetKillGraphCallback(csound, killGraphCallback_);
   }
   void SetMakeXYinCallback(void (*makeXYinCallback_)(CSOUND *, XYINDAT *,
-                                                    MYFLT x, MYFLT y))
+                                                     MYFLT x, MYFLT y))
   {
     csoundSetMakeXYinCallback(csound, makeXYinCallback_);
   }
