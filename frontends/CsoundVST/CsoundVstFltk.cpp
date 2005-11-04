@@ -267,7 +267,7 @@ long CsoundVstFltk::open(void *parentWindow)
       csoundVST->setIsAutoPlayback(number);
     }
   this->aboutTextBuffer->text(removeCarriageReturns(about));
-  csound::System::setMessageCallback(&CsoundVstFltk::messageCallback);
+  csound::System::setMessageCallback(CsoundVstFltk::messageCallback);
   update();
   return true;
 }
