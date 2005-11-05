@@ -415,5 +415,9 @@ static OENTRY localops[] = {
 { "clfilt", S(CLFILT),  5, "a", "akiioppo",(SUBR)clfiltset, NULL, (SUBR)clfilt },
 };
 
-LINKAGE
+int clfilt_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

@@ -258,12 +258,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
-{
-    return 0;
-}
-
-PUBLIC int csoundModuleInit(CSOUND *csound)
+int freeverb_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "freeverb",
                                 (int) sizeof(FREEVERB), 5, "aa", "aakkjo",

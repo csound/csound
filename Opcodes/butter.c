@@ -198,7 +198,7 @@ static void butter_filter(long n, MYFLT *in, MYFLT *out, MYFLT *a)
     } while (--n);
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "butterhp", S(BFIL),  5,  "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
@@ -211,5 +211,9 @@ static OENTRY localops[] = {
 { "butbr",    S(BBFIL), 5,  "a",    "akko", (SUBR)bbutset, NULL, (SUBR)bcbut  }
 };
 
-LINKAGE
+int butter_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

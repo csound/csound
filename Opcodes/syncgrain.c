@@ -1,7 +1,7 @@
-/* syncgrain.c:
-   Synchronous granular synthesis
+/*  syncgrain.c:
+    Synchronous granular synthesis
 
-   (c) Victor Lazzarini, 2004
+    (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
@@ -168,5 +168,9 @@ static OENTRY localops[] = {
                             (SUBR)syncgrain_init, NULL,(SUBR)syncgrain_process }
 };
 
-LINKAGE
+int syncgrain_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

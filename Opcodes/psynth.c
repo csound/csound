@@ -552,5 +552,9 @@ static OENTRY localops[] = {
      (SUBR) psynth3_process}
 };
 
-LINKAGE
+int psynth_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

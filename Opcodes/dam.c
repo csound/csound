@@ -141,11 +141,15 @@ static int dam(CSOUND *csound, DAM *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "dam",     S(DAM),     5,     "a",    "akiiii",(SUBR)daminit, NULL, (SUBR)dam },
 };
 
-LINKAGE
+int dam_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

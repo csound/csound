@@ -231,13 +231,16 @@ static int seqtim2(CSOUND *csound, SEQTIM2 *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "seqtime", S(SEQTIM),  3, "k",    "kkkkk", (SUBR)seqtim_set, (SUBR)seqtim   },
-
 { "seqtime2", S(SEQTIM2),3, "k",    "kkkkkk", (SUBR)seqtim2_set, (SUBR)seqtim2}
 };
 
-LINKAGE
+int seqtime_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

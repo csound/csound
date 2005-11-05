@@ -106,13 +106,17 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     return OK;
 } /* end nlfilt(p) */
 
-/* Y{n} =a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
+/* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "nlfilt",  S(NLFILT), 5, "a","akkkkk",(SUBR)nlfiltset, NULL, (SUBR)nlfilt}
 };
 
-LINKAGE
+int nlfilt_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

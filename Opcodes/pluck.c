@@ -413,11 +413,15 @@ static void error(CSOUND *csound, const char* a, const char* b)
     csound->Die(csound, Str("Error: %s, %s"), a, b);
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "wgpluck",S(WGPLUCK),5,"a","iikiiia",(SUBR)pluckPluck,NULL,(SUBR)pluckGetSamps},
+{ "wgpluck",S(WGPLUCK),5,"a","iikiiia",(SUBR)pluckPluck,NULL,(SUBR)pluckGetSamps}
 };
 
-LINKAGE
+int pluck_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

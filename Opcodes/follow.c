@@ -122,12 +122,17 @@ static int envext(CSOUND *csound, ENV *p)
     p->envelope = envelope;
     return OK;
 }
-#define S       sizeof
+
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "follow",   S(FOL),   5, "a",    "ai",   (SUBR)flwset,  NULL,  (SUBR)follow  },
-{ "follow2",  S(ENV),   5, "a",    "akk",  (SUBR)envset,  NULL,  (SUBR)envext  },
+{ "follow2",  S(ENV),   5, "a",    "akk",  (SUBR)envset,  NULL,  (SUBR)envext  }
 };
 
-LINKAGE
+int follow_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

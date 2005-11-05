@@ -2514,12 +2514,7 @@ static const OENTRY localops[] = {
             (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                       }
 };
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
-{
-    return 0;
-}
-
-PUBLIC int csoundModuleInit(CSOUND *csound)
+int oscbnk_init_(CSOUND *csound)
 {
     if (csound->AppendOpcodes(csound, &(localops[0]), -1) != 0) {
       csound->ErrorMsg(csound, Str("oscbnk: error registering opcodes"));

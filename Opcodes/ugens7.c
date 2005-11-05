@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"               /*                              UGENS7.C        */
+#include "csdl.h"               /*                      UGENS7.C        */
 #include "ugens7.h"
 #include <math.h>
 
@@ -39,8 +39,8 @@ static int fofset0(CSOUND *csound, FOFS *p, int flag)
       long   olaps;
       p->durtogo = (long)(*p->itotdur * csound->esr);
       if (!skip) { /* legato: skip all memory management */
-        if (*p->iphs == FL(0.0))                       /* if fundphs zero,  */
-          p->fundphs = MAXLEN;                    /*   trigger new FOF */
+        if (*p->iphs == FL(0.0))                /* if fundphs zero,  */
+          p->fundphs = MAXLEN;                  /*   trigger new FOF */
         else p->fundphs = (long)(*p->iphs * FMAXLEN) & PHMASK;
         if ((olaps = (long)*p->iolaps) <= 0) {
           return csound->InitError(csound, Str("illegal value for iolaps"));
@@ -51,7 +51,7 @@ static int fofset0(CSOUND *csound, FOFS *p, int flag)
         nxtovp = (OVRLAP *) p->auxch.auxp;
         do {
           ovp->nxtact = NULL;
-          ovp->nxtfree = nxtovp;              /* link the ovlap spaces */
+          ovp->nxtfree = nxtovp;                /* link the ovlap spaces */
           ovp = nxtovp++;
         } while (--olaps);
         ovp->nxtact = NULL;
@@ -574,13 +574,17 @@ static int harmon(CSOUND *csound, HARMON *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "fof",    S(FOFS),   5, "a","xxxkkkkkiiiiooo",(SUBR)fofset,NULL,(SUBR)fof   },
 { "fof2",   S(FOFS),   5, "a","xxxkkkkkiiiikko",(SUBR)fofset2,NULL,(SUBR)fof  },
-{ "harmon", S(HARMON), 5, "a",  "akkkkiii",(SUBR)harmset,NULL,  (SUBR)harmon  },
+{ "harmon", S(HARMON), 5, "a",  "akkkkiii",(SUBR)harmset,NULL,  (SUBR)harmon  }
 };
 
-LINKAGE
+int ugens7_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

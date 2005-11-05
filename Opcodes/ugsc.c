@@ -508,7 +508,7 @@ static int lp2(CSOUND *csound, LP2 *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "svfilter", S(SVF),    5, "aaa", "akko", (SUBR)svfset, NULL, (SUBR)svf     },
@@ -520,5 +520,9 @@ static OENTRY localops[] = {
 { "phaser1", S(PHASER1), 5, "a",   "akkko", (SUBR)phaser1set, NULL, (SUBR)phaser1 }
 };
 
-LINKAGE
+int ugsc_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

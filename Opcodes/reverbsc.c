@@ -290,22 +290,12 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
-{
-    return 0;
-}
-
-PUBLIC int csoundModuleInit(CSOUND *csound)
+int reverbsc_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "reverbsc",
                                 (int) sizeof(SC_REVERB), 5, "aa", "aakkjpo",
-                                (int (*)(CSOUND *, void*)) sc_reverb_init,
-                                (int (*)(CSOUND *, void*)) NULL,
-                                (int (*)(CSOUND *, void*)) sc_reverb_perf);
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+                                (int (*)(CSOUND *, void *)) sc_reverb_init,
+                                (int (*)(CSOUND *, void *)) NULL,
+                                (int (*)(CSOUND *, void *)) sc_reverb_perf);
 }
 

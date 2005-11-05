@@ -1,7 +1,7 @@
-/* pvscent.c:
-   Calculation of spectral centroid as Beauchamp
+/*  pvscent.c:
+    Calculation of spectral centroid as Beauchamp
 
-   (c) John ffitch, 2005
+    (c) John ffitch, 2005
 
     This file is part of Csound.
 
@@ -60,11 +60,15 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
    {"pvscent", S(PVSCENT), 3, "k", "f", (SUBR)pvscentset, (SUBR)pvscent, NULL}
 };
 
-LINKAGE
+int pvscent_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

@@ -255,5 +255,9 @@ static OENTRY localops[] = {
      (SUBR) ifd_process}
 };
 
-LINKAGE
+int ifd_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

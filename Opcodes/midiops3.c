@@ -463,7 +463,7 @@ static int islider32bit14(CSOUND *csound, ISLIDER32BIT14 *p)
     ISLIDER14(p, 16);
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "s16b14", 0xffff,                                                     },
@@ -589,8 +589,12 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)islider32bit14, NULL, NULL  },
+                                        (SUBR)islider32bit14, NULL, NULL  }
 };
 
-LINKAGE
+int midiops3_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

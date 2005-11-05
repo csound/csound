@@ -292,7 +292,7 @@ static int shift_right_kk(CSOUND *csound, AOP *p)
 {
     long input1 = MYFLT2LRND(*p->a);
     int  input2 = (int) MYFLT2LRND(*p->b);
-    *p->r = (MYFLT) (input1 / (1L << input2));
+    *p->r = (MYFLT) (input1 >> input2);
     return OK;
 }
 
@@ -304,7 +304,7 @@ static int shift_right_aa(CSOUND *csound, AOP *p)
     for (n = 0; n < nsmps; n++) {
       input1 = MYFLT2LRND(p->a[n]);
       input2 = (int) MYFLT2LRND(p->b[n]);
-      p->r[n] = (MYFLT) (input1 / (1L << input2));
+      p->r[n] = (MYFLT) (input1 >> input2);
     }
     return OK;
 }
@@ -317,7 +317,7 @@ static int shift_right_ak(CSOUND *csound, AOP *p)
 
     for (n = 0; n < nsmps; n++) {
       input1 = MYFLT2LRND(p->a[n]);
-      p->r[n] = (MYFLT) (input1 / (1L << input2));
+      p->r[n] = (MYFLT) (input1 >> input2);
     }
     return OK;
 }
@@ -329,7 +329,7 @@ static int shift_right_ka(CSOUND *csound, AOP *p)
 
     for (n = 0; n < nsmps; n++) {
       input2 = MYFLT2LRND(p->b[n]);
-      p->r[n] = (MYFLT) (input1 / (1L << input2));
+      p->r[n] = (MYFLT) (input1 >> input2);
     }
     return OK;
 }
@@ -561,7 +561,7 @@ static int ftmorf(CSOUND *csound, FTMORF *p)
 }
 
 /* end of ugmoss.c */
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "dconv",  S(DCONV), 5, "a", "aii",   (SUBR)dconvset, NULL, (SUBR)dconv      },
@@ -598,5 +598,9 @@ static OENTRY localops[] = {
 { "shr.aa", S(AOP), 4, "a", "aa", NULL, NULL, (SUBR) shift_right_aa }
 };
 
-LINKAGE
+int ugmoss_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

@@ -281,13 +281,17 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "wterrain", S(WAVETER), 5,  "a", "kkkkkkii",(SUBR)wtinit, NULL, (SUBR)wtPerf },
 { "scantable", S(SCANTABLE),5,"a", "kkiiiii",(SUBR)scantinit,NULL,(SUBR)scantPerf},
-{ "scanhammer",S(SCANHAMMER),1,"", "iiii", (SUBR)scanhinit, NULL, NULL    },
+{ "scanhammer",S(SCANHAMMER),1,"", "iiii", (SUBR)scanhinit, NULL, NULL    }
 };
 
-LINKAGE
+int wave_terrain_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

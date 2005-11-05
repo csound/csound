@@ -1,7 +1,6 @@
-
 /*  sndloop.c sndloop flooper pvsarp pvsvoc
 
-(c) Victor Lazzarini, 2004
+    (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
@@ -408,16 +407,18 @@ static int pvsvoc_process(CSOUND *csound, pvsvoc *p)
 
 static OENTRY localops[] = {
     {"sndloop", sizeof(sndloop), 5,
-    "ak", "akkii", (SUBR)sndloop_init, 0 ,
-    (SUBR)sndloop_process},
+     "ak", "akkii", (SUBR)sndloop_init, NULL, (SUBR)sndloop_process},
     {"flooper", sizeof(flooper), 5,
-    "a", "kkiiii", (SUBR)flooper_init, 0 ,
-    (SUBR)flooper_process},
-    {"pvsarp", sizeof(pvsarp), 3, "f", "fkkk", (SUBR)pvsarp_init,
-      (SUBR)pvsarp_process},
-    {"pvsvoc", sizeof(pvsarp), 3, "f", "ffkk", (SUBR)pvsvoc_init,
-      (SUBR)pvsvoc_process},
+     "a", "kkiiii", (SUBR)flooper_init, NULL, (SUBR)flooper_process},
+    {"pvsarp", sizeof(pvsarp), 3,
+     "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
+    {"pvsvoc", sizeof(pvsarp), 3,
+     "f", "ffkk", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process}
 };
 
-LINKAGE
+int sndloop_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 
