@@ -1226,7 +1226,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "biquad", S(BIQUAD),   5, "a", "akkkkkko",(SUBR)biquadset, NULL, (SUBR)biquad },
@@ -1244,5 +1244,9 @@ static OENTRY localops[] = {
 { "lorenz", S(LORENZ), 5, "aaa", "kkkkiiiio", (SUBR)lorenzset, NULL, (SUBR)lorenz}
 };
 
-LINKAGE
+int biquad_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

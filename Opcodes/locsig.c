@@ -175,12 +175,16 @@ static int locsend(CSOUND *csound, LOCSEND *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "locsig", S(LOCSIG),  5, "mmmm", "akkk", (SUBR)locsigset,NULL, (SUBR)locsig    },
-{ "locsend", S(LOCSEND),5, "mmmm", "",     (SUBR)locsendset, NULL, (SUBR)locsend },
+{ "locsend", S(LOCSEND),5, "mmmm", "",     (SUBR)locsendset, NULL, (SUBR)locsend }
 };
 
-LINKAGE
+int locsig_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

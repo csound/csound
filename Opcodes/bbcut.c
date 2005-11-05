@@ -508,7 +508,7 @@ static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "bbcutm",S(BBCUTMONO), 5, "a","aiiiiipop",
@@ -517,5 +517,9 @@ static OENTRY localops[] = {
                                (SUBR)BBCutStereoInit, NULL, (SUBR)BBCutStereo}
 };
 
-LINKAGE
+int bbcut_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

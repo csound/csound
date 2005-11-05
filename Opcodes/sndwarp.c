@@ -366,7 +366,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
   { "sndwarp", S(SNDWARP), 5, "mm", "xxxiiiiiii",
@@ -375,5 +375,9 @@ static OENTRY localops[] = {
     (SUBR)sndwarpstset,NULL,(SUBR)sndwarpst}
 };
 
-LINKAGE
+int sndwarp_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

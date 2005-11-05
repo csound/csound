@@ -758,7 +758,7 @@ static int mandel(CSOUND *csound,MANDEL *p)
     return OK;
 }
 
-#define S sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
   {"resonxk", S(KRESONX),    3,   "k",    "kkkooo",
@@ -841,8 +841,12 @@ static OENTRY localops[] = {
   { "maxk",   S(P_MAXIMUM), 5,      "k",    "aki",
             (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
   { "mandel",S(MANDEL),     3,      "kk",    "kkkk",
-                            (SUBR) mandel_set, (SUBR) mandel, NULL },
+                            (SUBR) mandel_set, (SUBR) mandel, NULL }
 };
 
-LINKAGE
+int gab_gab_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

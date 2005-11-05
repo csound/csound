@@ -1,7 +1,7 @@
-/* pvsbasic.c:
-   basic opcodes for transformation of streaming PV signals
+/*  pvsbasic.c:
+    basic opcodes for transformation of streaming PV signals
 
-   (c) Victor Lazzarini, 2004
+    (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
@@ -473,7 +473,7 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
    {"pvscale", S(PVSSCALE), 3,"f", "fkop", (SUBR)pvsscaleset, (SUBR)pvsscale },
@@ -485,5 +485,9 @@ static OENTRY localops[] = {
    {"pvsinit", S(PVSINI), 1, "f", "i", (SUBR) pvsinit, NULL, NULL}
 };
 
-LINKAGE
+int pvsbasic_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

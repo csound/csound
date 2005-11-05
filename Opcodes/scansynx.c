@@ -674,7 +674,7 @@ static int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "xscanu", S(PSCSNUX),5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init,
@@ -684,8 +684,12 @@ static OENTRY localops[] = {
 { "xscanmap", S(PSCSNMAPX),3, "kk", "ikko",        (SUBR)scsnmapx_init,
                                                    (SUBR)scsnmapx,NULL },
 { "xscansmap", S(PSCSNMAPX),3,"",   "kkikko",      (SUBR)scsnmapx_init,
-                                                   (SUBR)scsnsmapx,NULL },
+                                                   (SUBR)scsnsmapx,NULL }
 };
 
-LINKAGE
+int scansynx_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

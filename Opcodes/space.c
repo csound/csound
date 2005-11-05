@@ -257,7 +257,7 @@ static int spdist(CSOUND *csound, SPDIST *p)
     return OK;
 }
 
-#define S sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "space",  S(SPACE),  5, "aaaa", "aikkkk",(SUBR)spaceset, NULL, (SUBR)space },
@@ -265,5 +265,9 @@ static OENTRY localops[] = {
 { "spdist", S(SPDIST), 3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist, NULL }
 };
 
-LINKAGE
+int space_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

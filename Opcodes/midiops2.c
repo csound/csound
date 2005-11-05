@@ -558,7 +558,7 @@ static int initc21(CSOUND *csound, INITC21 *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "ctrl14", 0xffff,                                                     },
@@ -581,8 +581,12 @@ static OENTRY localops[] = {
 { "ctrl21.k", S(CTRL21), 3,  "k", "iiiikko", (SUBR)ctrl21set, (SUBR)ctrl21, NULL },
 { "initc7", S(INITC7), 1,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
 { "initc14", S(INITC14), 1,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
-{ "initc21", S(INITC21), 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
+{ "initc21", S(INITC21), 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL }
 };
 
-LINKAGE
+int midiops2_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

@@ -290,22 +290,12 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
-{
-    return 0;
-}
-
-PUBLIC int csoundModuleInit(CSOUND *csound)
+int ftconv_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "ftconv",
                                 (int) sizeof(FTCONV), 5, "mmmmmmmm", "aiiooo",
-                                (int (*)(CSOUND *, void*)) ftconv_init,
-                                (int (*)(CSOUND *, void*)) NULL,
-                                (int (*)(CSOUND *, void*)) ftconv_perf);
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+                                (int (*)(CSOUND *, void *)) ftconv_init,
+                                (int (*)(CSOUND *, void *)) NULL,
+                                (int (*)(CSOUND *, void *)) ftconv_perf);
 }
 

@@ -503,5 +503,9 @@ static OENTRY localops[] = {
                             (SUBR)iambideco, NULL, (SUBR)aambideco }
 };
 
-LINKAGE
+int ambicode_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

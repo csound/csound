@@ -826,11 +826,15 @@ babo(CSOUND *csound, void *entry)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "babo",   S(BABO), 5, "aa", "akkkiiijj",(SUBR)baboset, NULL, (SUBR)babo   }
 };
 
-LINKAGE
+int babo_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

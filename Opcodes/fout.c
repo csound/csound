@@ -950,7 +950,7 @@ static OENTRY localops[] = {
         (SUBR) i_infile,        (SUBR) NULL,        (SUBR) NULL         }
 };
 
-PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
+int fout_init_(CSOUND *csound)
 {
     FOUT_GLOBALS  *p;
 
@@ -963,12 +963,7 @@ PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
     p->file_num = -1;
     p->buf = (MYFLT*) NULL;
 
-    *ep = localops;
-    return (long) sizeof(localops);
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 

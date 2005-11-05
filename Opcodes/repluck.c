@@ -285,7 +285,7 @@ static int streson(CSOUND *csound, STRES *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "repluck", S(WGPLUCK2), 5, "a",  "ikikka",(SUBR)wgpsetin, NULL, (SUBR)wgpluck},
@@ -293,5 +293,9 @@ static OENTRY localops[] = {
 { "streson", S(STRES),    5, "a",  "aki",  (SUBR)stresonset, NULL, (SUBR)streson}
 };
 
-LINKAGE
+int repluck_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

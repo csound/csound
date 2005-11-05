@@ -873,7 +873,7 @@ static int    spat3dt (CSOUND *csound, SPAT3D *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
     { "spat3d", S(SPAT3D), 5, "aaaa", "akkkiiiiio",
@@ -884,5 +884,9 @@ static OENTRY localops[] = {
                     (SUBR) spat3dt,     NULL,   NULL            }
 };
 
-LINKAGE
+int spat3d_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

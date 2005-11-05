@@ -493,11 +493,15 @@ static int Xsynth(CSOUND *csound, CON *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "cross2",  S(CON), 5, "a", "aaiiik",(SUBR)Xsynthset, NULL, (SUBR)Xsynth}
 };
 
-LINKAGE
+int cross2_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

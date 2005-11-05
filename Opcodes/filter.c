@@ -847,7 +847,7 @@ static fcomplex RCmul(double x, fcomplex a)
     return c;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "filter2",0xffff,                                                     },
@@ -856,5 +856,9 @@ static OENTRY localops[] = {
 { "zfilter2", S(ZFILTER), 5,  "a", "akkiim", (SUBR)izfilter, NULL, (SUBR)azfilter}
 };
 
-LINKAGE
+int filter_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 
