@@ -42,12 +42,13 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
 
     csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.",
                                 p->XSTRCODE);
-    if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0)
-                                /* if file not already readin */
-      if ( (mfp = csound->ldmemfile(csound, cvfilnam)) == NULL) {
+    if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
+      /* if file not already readin */
+      if ((mfp = csound->ldmemfile(csound, cvfilnam)) == NULL) {
         csound->InitError(csound, Str("CONVOLVE cannot load %s"), cvfilnam);
         return NOTOK;
       }
+    }
     cvh = (CVSTRUCT *)mfp->beginp;
     if (cvh->magic != CVMAGIC) {
       csound->InitError(csound, Str("%s not a CONVOLVE file (magic %ld)"),
@@ -603,5 +604,9 @@ static OENTRY localops[] = {
             (SUBR) pconvset,  (SUBR) NULL,    (SUBR) pconvolve  }
 };
 
-LINKAGE
+int ugens9_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

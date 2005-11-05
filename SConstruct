@@ -765,138 +765,49 @@ else:
 
 # Plugin opcodes.
 
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ambicode',
-    ['Opcodes/ambicode.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('babo',
-    ['Opcodes/babo.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('bbcut',
-    ['Opcodes/bbcut.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('biquad',
-    ['Opcodes/biquad.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('bus',
-    ['Opcodes/bus.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('butter',
-    ['Opcodes/butter.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('clfilt',
-    ['Opcodes/clfilt.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('stdopcod', Split('''
+    Opcodes/ambicode.c      Opcodes/babo.c          Opcodes/bbcut.c
+    Opcodes/biquad.c        Opcodes/bus.c           Opcodes/butter.c
+    Opcodes/clfilt.c        Opcodes/cross2.c        Opcodes/dam.c
+    Opcodes/dcblockr.c      Opcodes/filter.c        Opcodes/flanger.c
+    Opcodes/follow.c        Opcodes/fout.c          Opcodes/freeverb.c
+    Opcodes/ftconv.c        Opcodes/ftgen.c         Opcodes/gab/gab.c
+    Opcodes/gab/vectorial.c Opcodes/grain.c         Opcodes/grain4.c
+    Opcodes/hrtferX.c       Opcodes/ifd.c           Opcodes/locsig.c
+    Opcodes/lowpassr.c      Opcodes/metro.c         Opcodes/midiops2.c
+    Opcodes/midiops3.c      Opcodes/newfils.c       Opcodes/nlfilt.c
+    Opcodes/oscbnk.c        Opcodes/partials.c      Opcodes/phisem.c
+    Opcodes/pluck.c         Opcodes/psynth.c        Opcodes/pvsbasic.c
+    Opcodes/pvscent.c       Opcodes/pvsdemix.c      Opcodes/repluck.c
+    Opcodes/reverbsc.c      Opcodes/scansyn.c       Opcodes/scansynx.c
+    Opcodes/seqtime.c       Opcodes/sndloop.c       Opcodes/sndwarp.c
+    Opcodes/space.c         Opcodes/spat3d.c        Opcodes/syncgrain.c
+    Opcodes/ugens7.c        Opcodes/ugens9.c        Opcodes/ugensa.c
+    Opcodes/uggab.c         Opcodes/ugmoss.c        Opcodes/ugnorman.c
+    Opcodes/ugsc.c          Opcodes/wave-terrain.c
+    Opcodes/stdopcod.c
+''')))
+
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
     pluginLibraries.append(pluginEnvironment.SharedLibrary('control',
         ['Opcodes/control.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('cross2',
-    ['Opcodes/cross2.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('dam',
-    ['Opcodes/dam.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('dcblockr',
-    ['Opcodes/dcblockr.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('filter',
-    ['Opcodes/filter.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('flanger',
-    ['Opcodes/flanger.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('follow',
-    ['Opcodes/follow.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('fout',
-    ['Opcodes/fout.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('freeverb',
-    ['Opcodes/freeverb.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ftconv',
-    ['Opcodes/ftconv.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest',
     ['Opcodes/ftest.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ftgen',
-    ['Opcodes/ftgen.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_gab',
-    ['Opcodes/gab/gab.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('gab_vectorial',
-    ['Opcodes/gab/vectorial.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('grain',
-    ['Opcodes/grain.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('grain4',
-    ['Opcodes/grain4.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('hrtferX',
-    ['Opcodes/hrtferX.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ifd',
-    ['Opcodes/ifd.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('locsig',
-    ['Opcodes/locsig.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('lowpassr',
-    ['Opcodes/lowpassr.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('metro',
-    ['Opcodes/metro.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops2',
-    ['Opcodes/midiops2.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('midiops3',
-    ['Opcodes/midiops3.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
     ['Opcodes/mixer.cpp']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('modal4',
     ['Opcodes/modal4.c', 'Opcodes/physutil.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('newfils',
-    ['Opcodes/newfils.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('nlfilt',
-    ['Opcodes/nlfilt.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('oscbnk',
-    ['Opcodes/oscbnk.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('partials',
-    ['Opcodes/partials.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('phisem',
-    ['Opcodes/phisem.c']))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod', Split('''
     Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
     Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
     ''')))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch',
     ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pluck',
-    ['Opcodes/pluck.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('psynth',
-    ['Opcodes/psynth.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsbasic',
-    ['Opcodes/pvsbasic.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pvscent',
-    ['Opcodes/pvscent.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pvsdemix',
-    ['Opcodes/pvsdemix.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('repluck',
-    ['Opcodes/repluck.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('reverbsc',
-    ['Opcodes/reverbsc.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',
-    ['Opcodes/scansyn.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('scansynx',
-    ['Opcodes/scansynx.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('seqtime',
-    ['Opcodes/seqtime.c']))
 sfontEnvironment = pluginEnvironment.Copy()
 if (commonEnvironment['MSVC'] == '0'):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 pluginLibraries.append(sfontEnvironment.SharedLibrary('sfont',
     ['Opcodes/sfont.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('sndloop',
-    ['Opcodes/sndloop.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('sndwarp',
-    ['Opcodes/sndwarp.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('space',
-    ['Opcodes/space.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('spat3d',
-    ['Opcodes/spat3d.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('syncgrain',
-    ['Opcodes/syncgrain.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugens7',
-    ['Opcodes/ugens7.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugens9',
-    ['Opcodes/ugens9.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugensa',
-    ['Opcodes/ugensa.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('uggab',
-    ['Opcodes/uggab.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugmoss',
-    ['Opcodes/ugmoss.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugnorman',
-    ['Opcodes/ugnorman.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ugsc',
-    ['Opcodes/ugsc.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('wave-terrain',
-    ['Opcodes/wave-terrain.c']))
 
 # Plugins with External Dependencies
 
@@ -910,7 +821,7 @@ else:
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
     if getPlatform() == 'linux':
-        widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags  --ldflags')
+        widgetsEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
         widgetsEnvironment.Append(LIBS = ['fltk'])
@@ -942,8 +853,7 @@ if not (commonEnvironment['useALSA']=='1' and alsaFound):
 else:
     print "CONFIGURATION DECISION: Building ALSA plugin."
     alsaEnvironment = pluginEnvironment.Copy()
-    alsaEnvironment.Append(LIBS = ['asound'])
-    alsaEnvironment.Append(LIBS = ['pthread'])
+    alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
     pluginLibraries.append(alsaEnvironment.SharedLibrary('rtalsa',
                                                          ['InOut/rtalsa.c']))
 
@@ -963,8 +873,7 @@ else:
         if (commonEnvironment['useJack']=='1' and jackFound):
             print "Adding Jack library for PortAudio"
             portaudioEnvironment.Append(LIBS = ['jack'])
-        portaudioEnvironment.Append(LIBS = ['asound'])
-        portaudioEnvironment.Append(LIBS = ['pthread'])
+        portaudioEnvironment.Append(LIBS = ['asound', 'pthread'])
     elif getPlatform() == 'mingw':
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
         portaudioEnvironment.Append(LIBS = csoundWindowsLibraries)

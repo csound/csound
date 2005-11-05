@@ -64,11 +64,15 @@ static int dcblockr(CSOUND *csound, DCBlocker* p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "dcblock", S(DCBlocker), 5, "a", "ao", (SUBR)dcblockrset, NULL, (SUBR)dcblockr}
 };
 
-LINKAGE
+int dcblockr_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

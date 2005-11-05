@@ -504,12 +504,16 @@ static MYFLT grand( GRAINV4 *p)
    return ((MYFLT) p->grnd * DV32768);  /* IV - Jul 11 2002 */
 } /* end grand(p) */
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "granule", S(GRAINV4), 5, "a", "xiiiiiiiiikikiiivppppo",
              (SUBR)grainsetv4, NULL, (SUBR)graingenv4}
 };
 
-LINKAGE
+int grain4_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

@@ -215,11 +215,15 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
 }
 
 /* JMC test additional UG */
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "fog",  S(FOGS), 5, "a","xxxakkkkkiiiiooo",(SUBR)fogset,NULL,(SUBR)fog},
+{ "fog",  S(FOGS), 5, "a","xxxakkkkkiiiiooo",(SUBR)fogset,NULL,(SUBR)fog}
 };
 
-LINKAGE
+int ugensa_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

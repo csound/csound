@@ -199,5 +199,9 @@ static OENTRY localops[] = {
                     (SUBR) fofilter_init, NULL, (SUBR) fofilter_process     }
 };
 
-LINKAGE
+int newfils_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

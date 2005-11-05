@@ -1499,7 +1499,7 @@ static int random3a(CSOUND *csound, RANDOM3 *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
 { "wrap",   0xffff                                                          },
@@ -1544,16 +1544,16 @@ static OENTRY localops[] = {
                                (SUBR)randomi_set, (SUBR)krandomi, (SUBR)randomi },
 { "randomh",  S(RANDOMH), 7, "s", "kkx",
                                  (SUBR)randomh_set,(SUBR)krandomh,(SUBR)randomh },
-{ "urd.i",  S(DURAND),  1, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL  },
+{ "urd.i",  S(DURAND),  1, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL    },
 { "urd.k",  S(DURAND),  2, "k", "k", (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand },
 { "urd.a",  S(DURAND),  4, "a", "k",
                               (SUBR)Cuserrnd_set, NULL, (SUBR)aDiscreteUserRand },
-{ "duserrnd.i", S(DURAND),1, "i", "i",  (SUBR)iDiscreteUserRand, NULL, NULL  },
+{ "duserrnd.i", S(DURAND),1, "i", "i",  (SUBR)iDiscreteUserRand, NULL, NULL },
 { "duserrnd.k", S(DURAND),2, "k", "k",
                                 (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand,NULL },
 { "duserrnd.a", S(DURAND),4, "a", "k",
                                 (SUBR)Cuserrnd_set,NULL,(SUBR)aDiscreteUserRand },
-{ "poscil", 0xfffe                                                      },
+{ "poscil", 0xfffe                                                          },
 { "poscil.kk", S(POSC), 7, "s", "kkio", (SUBR)posc_set,(SUBR)kposc,(SUBR)posckk },
 { "poscil.ka", S(POSC), 5, "a", "kaio", (SUBR)posc_set, NULL,  (SUBR)poscka },
 { "poscil.ak", S(POSC), 5, "a", "akio", (SUBR)posc_set, NULL,  (SUBR)poscak },
@@ -1561,10 +1561,14 @@ static OENTRY localops[] = {
 { "lposcil",  S(LPOSC), 5, "a", "kkkkio", (SUBR)lposc_set, NULL, (SUBR)lposc},
 { "poscil3",  S(POSC),  7, "s", "kkio", (SUBR)posc_set,(SUBR)kposc3,(SUBR)posc3 },
 { "lposcil3", S(LPOSC), 5, "a", "kkkkio", (SUBR)lposc_set, NULL,(SUBR)lposc3},
-{ "trigger", S(TRIG),    3,"k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL     },
-{ "sum", S(SUM),         4,"a", "y",    NULL, NULL, (SUBR)sum            },
-{ "product", S(SUM),     4,"a", "y",    NULL, NULL, (SUBR)product        },
+{ "trigger", S(TRIG),    3,"k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
+{ "sum", S(SUM),         4,"a", "y",    NULL, NULL, (SUBR)sum               },
+{ "product", S(SUM),     4,"a", "y",    NULL, NULL, (SUBR)product           }
 };
 
-LINKAGE
+int uggab_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

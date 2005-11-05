@@ -127,7 +127,7 @@ static int chaniado(CSOUND *csound, CHANI *p)
     return OK;
 } /* end chanias(p) */
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
   { "chano",  0xfffd},
@@ -138,5 +138,9 @@ static OENTRY localops[] = {
   { "chani.k", S(CHANO), 4, "a", "k", NULL, NULL,          (SUBR)chaniado}
 };
 
-LINKAGE
+int bus_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

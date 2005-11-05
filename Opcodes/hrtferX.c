@@ -493,8 +493,12 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "hrtfer",   S(HRTFER),5, "aa", "akkS", (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
+{ "hrtfer",   S(HRTFER),5, "aa", "akkS", (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk}
 };
 
-LINKAGE
+int hrtferX_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

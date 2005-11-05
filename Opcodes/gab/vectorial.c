@@ -1300,7 +1300,7 @@ static int ca(CSOUND *csound,CELLA *p)
     return OK;
 }
 
-#define S sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
   { "vtablei", S(MTABLEI),   1, "",   "iiiim", (SUBR)mtable_i,  NULL },
@@ -1339,9 +1339,12 @@ static OENTRY localops[] = {
   { "vport",S(VPORT),        3, "",  "ikio",(SUBR)vport_set,  (SUBR)vport       },
   { "vecdelay",S(VECDEL),    3, "",  "iiiiio",(SUBR)vecdly_set, (SUBR)vecdly    },
   { "vdelayk",S(KDEL),       3, "k", "kkioo",(SUBR)kdel_set,  (SUBR)kdelay      },
-  { "vcella",S(CELLA),       3, "",  "kkiiiiip",(SUBR)ca_set, (SUBR)ca          },
-
+  { "vcella",S(CELLA),       3, "",  "kkiiiiip",(SUBR)ca_set, (SUBR)ca          }
 };
 
-LINKAGE
+int gab_vectorial_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 

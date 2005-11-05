@@ -230,7 +230,7 @@ static int timeseq(CSOUND *csound, TIMEDSEQ *p)
     return OK;
 }
 
-#define S       sizeof
+#define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
   { "metro",  S(METRO),   3,      "k", "ko",    (SUBR)metro_set, (SUBR)metro   },
@@ -239,5 +239,9 @@ static OENTRY localops[] = {
   { "timedseq",S(TIMEDSEQ),    3, "k", "kiz",   (SUBR)timeseq_set, (SUBR)timeseq }
 };
 
-LINKAGE
+int metro_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+}
 
