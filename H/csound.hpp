@@ -668,7 +668,7 @@ public:
   // FIXME: should throw exception on failure ?
   Csound()
   {
-    csound = csoundCreate((void*) 0);
+    csound = csoundCreate(0);
   }
   Csound(void *hostData)
   {
