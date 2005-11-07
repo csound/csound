@@ -39,7 +39,6 @@ extern "C" {
 #include <sndfile.h>
 
 #include "csound.h"
-#include "version.h"
 
 #define OK        (0)
 #define NOTOK     (-1)
@@ -816,8 +815,12 @@ extern "C" {
                                    int type, MYFLT dflt, MYFLT min, MYFLT max);
     int (*GetControlChannelParams)(CSOUND *, const char *name,
                                    MYFLT *dflt, MYFLT *min, MYFLT *max);
+    int (*ChanIKSet)(CSOUND *, MYFLT value, int n);
+    int (*ChanOKGet)(CSOUND *, MYFLT *value, int n);
+    int (*ChanIASet)(CSOUND *, const MYFLT *value, int n);
+    int (*ChanOAGet)(CSOUND *, MYFLT *value, int n);
     SUBR dummyfn_1;
-    SUBR dummyfn_2[116];
+    SUBR dummyfn_2[112];
     /* ----------------------- public data fields ----------------------- */
     OPDS          *ids, *pds;           /* used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;
@@ -837,8 +840,6 @@ extern "C" {
     double        beatTime;             /* beat time = 60 / tempo           */
     unsigned int  rtin_dev, rtout_dev;
     char          *rtin_devs, *rtout_devs;
-    int           nchanik, nchania, nchanok, nchanoa;
-    MYFLT         *chanik, *chania, *chanok, *chanoa;
     MYFLT         *zkstart;
     MYFLT         *zastart;
     long          zklast;
@@ -895,6 +896,8 @@ extern "C" {
     int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
     /* end of callbacks */
+    int           nchanik, nchania, nchanok, nchanoa;
+    MYFLT         *chanik, *chania, *chanok, *chanoa;
     MYFLT         cpu_power_busy;
     char          *xfilename;
     /* oload.h */

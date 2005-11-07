@@ -145,6 +145,10 @@ int     loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
 int     loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
 int     loop_l_p(CSOUND *, void *), loop_le_p(CSOUND *, void *);
 int     loop_g_p(CSOUND *, void *), loop_ge_p(CSOUND *, void *);
+int     chano_opcode_perf_k(CSOUND *, void *);
+int     chano_opcode_perf_a(CSOUND *, void *);
+int     chani_opcode_perf_k(CSOUND *, void *);
+int     chani_opcode_perf_a(CSOUND *, void *);
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -426,6 +430,18 @@ OENTRY opcodlst_2[] = {
     (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
  {  "chnparams",   S(CHNPARAMS_OPCODE), 1,      "iiiiii",       "S",
     (SUBR) chnparams_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chano",       0xFFFD,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chano.k",     S(ASSIGN),           2,      "",             "kk",
+    (SUBR) NULL, (SUBR) chano_opcode_perf_k, (SUBR) NULL                },
+ {  "chano.a",     S(ASSIGN),           4,      "",             "ak",
+    (SUBR) NULL, (SUBR) NULL, (SUBR) chano_opcode_perf_a                },
+ {  "chani",       0xFFFF,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chani.k",     S(ASSIGN),           2,      "k",            "k",
+    (SUBR) NULL, (SUBR) chani_opcode_perf_k, (SUBR) NULL                },
+ {  "chani.a",     S(ASSIGN),           4,      "a",            "k",
+    (SUBR) NULL, (SUBR) NULL, (SUBR) chani_opcode_perf_a                },
  /* terminate list */
  {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
