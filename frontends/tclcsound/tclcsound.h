@@ -17,16 +17,14 @@
   License along with Csound; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
-
 */
 
-#ifndef _TCLCSOUND_H
+#ifndef TCLCSOUND_H
 #define TCLCSOUND_H
 
 #include <stdio.h>
 #include <string.h>
 #include <csound.h>
-#include <envvar.h>
 #include <string.h>
 #include <stdlib.h>
 #include <tcl.h>
@@ -43,24 +41,23 @@ Csound will switch from CS_RUNNING to CS_COMPILED once
 the loaded score has finished playing.
 */
 
-
 typedef struct __ctlchn {
-   char *name;
-   double value;
-   struct __ctlchn *next;
+    char   *name;
+    double  value;
+    struct __ctlchn *next;
 } ctlchn;
 
 typedef struct __csdata {
-    CSOUND *instance; /* csound object */
-	int result;       /* action result */
-	void *threadID;   /* processing thread ID */
-	int status;      /* perf status */
-	ctlchn *inchan;
-	ctlchn *outchan;
-	Tcl_Interp *interp;
-	
+    CSOUND *instance;           /* csound object */
+    int     result;             /* action result */
+    void   *threadID;           /* processing thread ID */
+    int     status;             /* perf status */
+    ctlchn *inchan;
+    ctlchn *outchan;
+    Tcl_Interp *interp;
 } csdata;
 
-extern int tclcsound_initialise(Tcl_Interp* interp);
+extern int tclcsound_initialise(Tcl_Interp * interp);
 
 #endif
+
