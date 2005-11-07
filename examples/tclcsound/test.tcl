@@ -48,7 +48,7 @@ csStop
 csCompile -odac -iadc -d $filename -b512 -B512
 if { $grph == 1} {
 destroy .table
-} 
+}
 }
 }
 
