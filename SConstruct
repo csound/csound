@@ -501,6 +501,7 @@ InOut/windin.c
 InOut/window.c
 InOut/winEPS.c
 OOps/aops.c
+OOps/bus.c
 OOps/cmath.c
 OOps/diskin.c
 OOps/diskin2.c
@@ -767,24 +768,24 @@ else:
 
 pluginLibraries.append(pluginEnvironment.SharedLibrary('stdopcod', Split('''
     Opcodes/ambicode.c      Opcodes/babo.c          Opcodes/bbcut.c
-    Opcodes/biquad.c        Opcodes/bus.c           Opcodes/butter.c
-    Opcodes/clfilt.c        Opcodes/cross2.c        Opcodes/dam.c
-    Opcodes/dcblockr.c      Opcodes/filter.c        Opcodes/flanger.c
-    Opcodes/follow.c        Opcodes/fout.c          Opcodes/freeverb.c
-    Opcodes/ftconv.c        Opcodes/ftgen.c         Opcodes/gab/gab.c
-    Opcodes/gab/vectorial.c Opcodes/grain.c         Opcodes/grain4.c
-    Opcodes/hrtferX.c       Opcodes/ifd.c           Opcodes/locsig.c
-    Opcodes/lowpassr.c      Opcodes/metro.c         Opcodes/midiops2.c
-    Opcodes/midiops3.c      Opcodes/newfils.c       Opcodes/nlfilt.c
-    Opcodes/oscbnk.c        Opcodes/partials.c      Opcodes/phisem.c
-    Opcodes/pluck.c         Opcodes/psynth.c        Opcodes/pvsbasic.c
-    Opcodes/pvscent.c       Opcodes/pvsdemix.c      Opcodes/repluck.c
-    Opcodes/reverbsc.c      Opcodes/scansyn.c       Opcodes/scansynx.c
-    Opcodes/seqtime.c       Opcodes/sndloop.c       Opcodes/sndwarp.c
-    Opcodes/space.c         Opcodes/spat3d.c        Opcodes/syncgrain.c
-    Opcodes/ugens7.c        Opcodes/ugens9.c        Opcodes/ugensa.c
-    Opcodes/uggab.c         Opcodes/ugmoss.c        Opcodes/ugnorman.c
-    Opcodes/ugsc.c          Opcodes/wave-terrain.c
+    Opcodes/biquad.c        Opcodes/butter.c        Opcodes/clfilt.c
+    Opcodes/cross2.c        Opcodes/dam.c           Opcodes/dcblockr.c
+    Opcodes/filter.c        Opcodes/flanger.c       Opcodes/follow.c
+    Opcodes/fout.c          Opcodes/freeverb.c      Opcodes/ftconv.c
+    Opcodes/ftgen.c         Opcodes/gab/gab.c       Opcodes/gab/vectorial.c
+    Opcodes/grain.c         Opcodes/grain4.c        Opcodes/hrtferX.c
+    Opcodes/ifd.c           Opcodes/locsig.c        Opcodes/lowpassr.c
+    Opcodes/metro.c         Opcodes/midiops2.c      Opcodes/midiops3.c
+    Opcodes/newfils.c       Opcodes/nlfilt.c        Opcodes/oscbnk.c
+    Opcodes/partials.c      Opcodes/phisem.c        Opcodes/pluck.c
+    Opcodes/psynth.c        Opcodes/pvsbasic.c      Opcodes/pvscent.c
+    Opcodes/pvsdemix.c      Opcodes/repluck.c       Opcodes/reverbsc.c
+    Opcodes/scansyn.c       Opcodes/scansynx.c      Opcodes/seqtime.c
+    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
+    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
+    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
+    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
+    Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
 ''')))
 
@@ -885,9 +886,7 @@ if not (commonEnvironment['useJack']=='1' and jackFound):
 else:
     print "CONFIGURATION DECISION: Building JACK plugin."
     jackEnvironment = pluginEnvironment.Copy()
-    jackEnvironment.Append(LIBS = ['jack'])
-    jackEnvironment.Append(LIBS = ['asound'])
-    jackEnvironment.Append(LIBS = ['pthread'])
+    jackEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
     pluginLibraries.append(jackEnvironment.SharedLibrary('rtjack',
                                                          ['InOut/rtjack.c']))
 

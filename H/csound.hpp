@@ -628,6 +628,26 @@ public:
       return (*p);
     return (MYFLT) 0;
   }
+  int ChanIKSet(MYFLT value, int n)
+  {
+    return csoundChanIKSet(csound, value, n);
+  }
+  int ChanOKGet(MYFLT &value, int n)
+  {
+    MYFLT tmp = (MYFLT) 0;
+    int   retval;
+    retval = csoundChanOKGet(csound, &tmp, n);
+    value = tmp;
+    return retval;
+  }
+  int ChanIASet(const MYFLT *value, int n)
+  {
+    return csoundChanIASet(csound, value, n);
+  }
+  int ChanOAGet(MYFLT *value, int n)
+  {
+    return csoundChanOAGet(csound, value, n);
+  }
   // cfgvar.h interface
   int CreateConfigurationVariable(const char *name, void *p,
                                   int type, int flags, void *min, void *max,

@@ -277,8 +277,12 @@ static const CSOUND cenviron_ = {
         csoundListChannels,
         csoundSetControlChannelParams,
         csoundGetControlChannelParams,
+        csoundChanIKSet,
+        csoundChanOKGet,
+        csoundChanIASet,
+        csoundChanOAGet,
         NULL,
-        { NULL, NULL, NULL, NULL, NULL, NULL,
+        { NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -326,10 +330,6 @@ static const CSOUND cenviron_ = {
         1024U,          /*  rtout_dev           */
         NULL,           /*  rtin_devs           */
         NULL,           /*  rtout_devs          */
-        0, 0,           /*  nchanik, nchania    */
-        0, 0,           /*  nchanok, nchanoa    */
-        NULL, NULL,     /*  chanik, chania      */
-        NULL, NULL,     /*  chanok, chanoa      */
         NULL,           /*  zkstart             */
         NULL,           /*  zastart             */
         0L,             /*  zklast              */
@@ -380,6 +380,10 @@ static const CSOUND cenviron_ = {
         rtrecord_dummy,
         rtclose_dummy,
         /* end of callbacks */
+        0, 0,           /*  nchanik, nchania    */
+        0, 0,           /*  nchanok, nchanoa    */
+        NULL, NULL,     /*  chanik, chania      */
+        NULL, NULL,     /*  chanok, chanoa      */
         FL(0.0),        /*  cpu_power_busy      */
         (char*) NULL,   /*  xfilename           */
         NLABELS,        /*  nlabels             */
