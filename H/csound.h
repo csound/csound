@@ -1206,12 +1206,50 @@ extern "C" {
    */
   PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p);
 
+  /**
+   * Sends a MYFLT value to the chani opcode (k-rate) at index 'n'.
+   * The bus is automatically extended if 'n' exceeds any previously used
+   * index value, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+   * CSOUND_MEMORY if there is not enough memory to extend the bus.
+   */
+  PUBLIC int csoundChanIKSet(CSOUND *, MYFLT value, int n);
+
+  /**
+   * Receives a MYFLT value from the chano opcode (k-rate) at index 'n'.
+   * The bus is automatically extended if 'n' exceeds any previously used
+   * index value, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+   * CSOUND_MEMORY if there is not enough memory to extend the bus.
+   */
+  PUBLIC int csoundChanOKGet(CSOUND *, MYFLT *value, int n);
+
+  /**
+   * Sends ksmps MYFLT values to the chani opcode (a-rate) at index 'n'.
+   * The bus is automatically extended if 'n' exceeds any previously used
+   * index value, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+   * CSOUND_MEMORY if there is not enough memory to extend the bus.
+   */
+  PUBLIC int csoundChanIASet(CSOUND *, const MYFLT *value, int n);
+
+  /**
+   * Receives ksmps MYFLT values from the chano opcode (a-rate) at index 'n'.
+   * The bus is automatically extended if 'n' exceeds any previously used
+   * index value, clearing new locations to zero.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+   * CSOUND_MEMORY if there is not enough memory to extend the bus.
+   */
+  PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
+
 #endif  /* !CSOUND_CSDL_H */
 
   /* typedefs, macros, and interface functions for configuration variables */
 #include "cfgvar.h"
   /* message attribute definitions for csoundMessageS() and csoundMessageV() */
 #include "msg_attr.h"
+  /* macro definitions for Csound release, and API version */
+#include "version.h"
 
 #ifdef __cplusplus
 }

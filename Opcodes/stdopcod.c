@@ -25,7 +25,6 @@ extern int ambicode_init_(CSOUND *);
 extern int babo_init_(CSOUND *);
 extern int bbcut_init_(CSOUND *);
 extern int biquad_init_(CSOUND *);
-extern int bus_init_(CSOUND *);
 extern int butter_init_(CSOUND *);
 extern int clfilt_init_(CSOUND *);
 extern int cross2_init_(CSOUND *);
@@ -92,7 +91,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     err |= babo_init_(csound);
     err |= bbcut_init_(csound);
     err |= biquad_init_(csound);
-    err |= bus_init_(csound);
     err |= butter_init_(csound);
     err |= clfilt_init_(csound);
     err |= cross2_init_(csound);
