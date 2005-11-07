@@ -152,11 +152,22 @@ PUBLIC void *csoundapi_new(t_symbol *s, int argc, t_atom *argv){
         post(cmdl[i]);
       }
       cmdl[i]=  (char *)strdup("-d");
-      cmdl[i+1]=  (char *)strdup("-n");
 
-      x->argnum = argc+3;
-      x->cmdl = cmdl;
-      x->result = csoundCompile(x->csound, x->argnum, cmdl);
+      if(CS_VERSION_ < 500){
+		 cmdl[i+1]=  (char *)strdup("-n");
+         x->argnum = argc+3;
+         x->cmdl = cmdl; 
+	     x->result = csoundCompile(x->csound, x->argnum, cmdl);
+		 }
+	  else {         
+		 x->argnum = argc+2;
+         x->cmdl = cmdl; 
+	     x->result = csoundPreCompile(x->csound);
+	    if(x->result == CSOUND_SUCCESS){
+		 csoundSetHostImplementedAudioIO(x->csound, 1, 0);
+		 x->result = csoundCompile(x->csound, x->argnum, cmdl);
+		 }
+	  }
 
       if(!x->result){
         x->end = 0;
@@ -324,11 +335,22 @@ PUBLIC void csoundapi_open(t_csoundapi *x, t_symbol *s,
       post(cmdl[i]);
     }
     cmdl[i]=  (char *)strdup("-d");
-    cmdl[i+1]=  (char *)strdup("-n");
-
-    x->argnum = argc+3;
-    x->cmdl = cmdl;
-    x->result = csoundCompile(x->csound, x->argnum, cmdl);
+     
+	   if(CS_VERSION_ < 500){
+		 cmdl[i+1]=  (char *)strdup("-n");
+         x->argnum = argc+3;
+         x->cmdl = cmdl; 
+	     x->result = csoundCompile(x->csound, x->argnum, cmdl);
+		 }
+	  else {         
+		 x->argnum = argc+2;
+         x->cmdl = cmdl; 
+	     x->result = csoundPreCompile(x->csound);
+	    if(x->result == CSOUND_SUCCESS){
+		 csoundSetHostImplementedAudioIO(x->csound, 1, 0);
+		 x->result = csoundCompile(x->csound, x->argnum, cmdl);
+		 }
+	  }
 
     if(!x->result){
       x->end = 0;
