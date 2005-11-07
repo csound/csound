@@ -23,7 +23,6 @@
 #
 ###################################################################
 
-
 set forever 0
 set client 0
 set clientname 0
@@ -42,11 +41,11 @@ proc ChanEval { chan } {
 global client
 if { [catch { set rtn [eval [gets  $chan]]} err] } {
 puts "Error: $err"
-} else { 
+} else {
 puts $client $rtn
 flush $client
 }
-} 
+}
 
 proc NewChan { chan host port } {
 global client clientname portno

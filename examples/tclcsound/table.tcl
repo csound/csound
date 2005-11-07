@@ -22,7 +22,6 @@
 #
 ###################################################################
 
-
 proc CosTab { ftn } {
 set size [csGetTableSize $ftn]
 set cnst [expr 6.283 /  $size]

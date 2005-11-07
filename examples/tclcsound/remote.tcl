@@ -31,6 +31,5 @@ puts $chan [list csPerform]
 flush $chan
 puts $chan [list Disconnect]
 flush $chan
-exec sleep 1 
-
+exec sleep 1
 
