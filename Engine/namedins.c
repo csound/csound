@@ -67,6 +67,18 @@ static inline unsigned char name_hash(const char *s)
     return h;
 }
 
+/* faster version that assumes non-empty string */
+
+static inline unsigned char name_hash_2(const char *s)
+{
+    unsigned char *c = (unsigned char*) &(s[0]);
+    unsigned char h = (unsigned char) 0;
+    do {
+      h = strhash_tabl_8[*c ^ h];
+    } while (*(++c) != (unsigned char) 0);
+    return h;
+}
+
 static inline int sCmp(const char *x, const char *y)
 {
     int tmp = 0;
@@ -864,7 +876,7 @@ PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
     if (name[0] == '\0')
       return NULL;
     /* calculate hash value */
-    h = name_hash(name);
+    h = name_hash_2(name);
     /* search tree */
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
     if (p == NULL)
@@ -889,7 +901,7 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
     unsigned char         h;
 
     /* calculate hash value */
-    h = name_hash(name);
+    h = name_hash_2(name);
     /* search tree */
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
     while (p->nxt != NULL && sCmp(name, (char*) (p->name)) != 0)
@@ -955,8 +967,6 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 
 #endif  /* CSGLOBALS_USE_TREE */
 
-/* TODO: this interface is not fully implemented yet */
-
 typedef struct controlChannelInfo_s {
     int     type;
     MYFLT   dflt;
@@ -997,11 +1007,19 @@ static int delete_channel_db(CSOUND *csound, void *p)
 
 static inline channelEntry_t *find_channel(CSOUND *csound, const char *name)
 {
-    if (csound->chn_db != NULL) {
-      channelEntry_t *pp = ((channelEntry_t**) csound->chn_db)[name_hash(name)];
+    if (csound->chn_db != NULL && name[0]) {
+      channelEntry_t  *pp;
+      pp = ((channelEntry_t**) csound->chn_db)[name_hash_2(name)];
       for ( ; pp != NULL; pp = pp->nxt) {
-        if (sCmp(pp->name, name) == 0)
-          return pp;
+        const char  *p1 = &(name[0]);
+        const char  *p2 = &(pp->name[0]);
+        while (1) {
+          if (*p1 != *p2)
+            break;
+          if (*p1 == (char) 0)
+            return pp;
+          p1++, p2++;
+        }
       }
     }
     return NULL;
