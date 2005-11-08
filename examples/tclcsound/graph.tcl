@@ -30,13 +30,13 @@ canvas $window.frame.mytab -height $height -width $width
 pack $window.frame.mytab
 set inc [expr $tbsize / $width]
 set mult [expr $height / -2.1]
-for {set cnt 0 } {$cnt < [expr $tbsize - $inc] } {incr cnt $inc} { 
+for {set cnt 0 } {$cnt < [expr $tbsize - $inc] } {incr cnt $inc} {
 set nxt [expr $cnt + $inc]
 set x1  [expr $cnt / $inc]
-set x2  [expr $nxt / $inc]    
+set x2  [expr $nxt / $inc]
 set y1  [expr [csGetTable 1 $cnt] * $mult - 1.1*$mult]
-set y2  [expr [csGetTable 1 $nxt] * $mult - 1.1*$mult]    
-.table.frame.mytab create line $x1 $y1 $x2 $y2 -fill blue 
+set y2  [expr [csGetTable 1 $nxt] * $mult - 1.1*$mult]
+.table.frame.mytab create line $x1 $y1 $x2 $y2 -fill blue
 
 }
 }
