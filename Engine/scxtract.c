@@ -32,7 +32,7 @@ extern void sread_init(CSOUND *csound);
 /*   extracts events from each score sect */
 /*   according to the controlling xfile   */
 
-PUBLIC int scxtract(CSOUND *csound, FILE *scin, FILE * scout, FILE *xfile)
+int scxtract(CSOUND *csound, FILE *scin, FILE * scout, FILE *xfile)
 {
     int     n;
 

@@ -31,7 +31,7 @@ extern int  sread(CSOUND *csound);
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */
 
-PUBLIC void scsort(CSOUND *csound, FILE *scin, FILE *scout)
+void scsort(CSOUND *csound, FILE *scin, FILE *scout)
 {
     int     n;
 
