@@ -361,23 +361,23 @@ if getPlatform() == 'mingw':
 # Define macros that configure and config.h used to define.
 
 headerMacroCheck = [
-    ["io.h", "-DHAVE_IO_H"],
-    ["fcntl.h", "-DHAVE_FCNTL_H"],
-    ["unistd.h", "-DHAVE_UNISTD_H"],
-    ["stdint.h", "-DHAVE_STDINT_H"],
-    ["sys/time.h", "-DHAVE_SYS_TIME_H"],
-    ["sys/types.h", "-DHAVE_SYS_TYPES_H"],
-    ["termios.h", "-DHAVE_TERMIOS_H"] ]    
-    
+    ['io.h',        '-DHAVE_IO_H'       ],
+    ['fcntl.h',     '-DHAVE_FCNTL_H'    ],
+    ['unistd.h',    '-DHAVE_UNISTD_H'   ],
+    ['stdint.h',    '-DHAVE_STDINT_H'   ],
+    ['sys/time.h',  '-DHAVE_SYS_TIME_H' ],
+    ['sys/types.h', '-DHAVE_SYS_TYPES_H'],
+    ['termios.h',   '-DHAVE_TERMIOS_H'  ]]
+
 for h in headerMacroCheck:
     if configure.CheckHeader(h[0], language = "C"):
         commonEnvironment.Append(CCFLAGS = h[1])
-        
+
 if getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
 elif configure.CheckHeader("dirent.h", language = "C"):
     commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
-    
+
 if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
     commonEnvironment["buildLoris"] = 0
     print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
@@ -941,47 +941,46 @@ if getPlatform() == 'mingw' and fltkFound:
 # Utility programs.
 
 utilPlugins = [
-	['cvanal', 'util/cvanal.c'],
-	['dnoise', 'util/dnoise.c'],
-	['envext', 'util/envext.c'],
-	['extractor', 'util/xtrc_main.c'],
-	['het_export', 'util/het_export.c'],
-	['het-import', 'util/het_import.c'],
-	['hetro', 'util/hetro.c'],
-	['lpanal', 'util/lpanal.c'],
-	['lpc_export', 'util/lpc_export.c'],
-	['lpc_import', 'util/lpc_import.c'],
-	['mixer_util', 'util/mixer.c'],
-	['pvanal', 'util/pvanal.c'],
-	['pvlook', 'util/pvlook.c'],
-	['scale', 'util/scale.c'],
-	['sndinfo', 'util/sndinfo.c']]
-	
-for i in utilPlugins:
-	pluginLibraries.append(pluginEnvironment.SharedLibrary(i[0], i[1]))
-	
-if (commonEnvironment['buildUtilities'] != '0'):
+    ['cvanal',      'util/cvanal.c'     ],
+    ['dnoise',      'util/dnoise.c'     ],
+    ['envext',      'util/envext.c'     ],
+    ['extractor',   'util/xtrct.c'      ],
+    ['het_export',  'util/het_export.c' ],
+    ['het_import',  'util/het_import.c' ],
+    ['hetro',       'util/hetro.c'      ],
+    ['lpanal',      'util/lpanal.c'     ],
+    ['lpc_export',  'util/lpc_export.c' ],
+    ['lpc_import',  'util/lpc_import.c' ],
+    ['mixer_util',  'util/mixer.c'      ],
+    ['pvanal',      'util/pvanal.c'     ],
+    ['pvlook',      'util/pvlook.c'     ],
+    ['scale',       'util/scale.c'      ],
+    ['sndinfo',     'util/sndinfo.c'    ],
+    ['srconv',      'util/srconv.c'     ]]
 
-	utils = [
-		['cvanal', 'util/cvl_main.c'],
-	    ['dnoise', 'util/dnoise_main.c'],
-	    ['envext', 'util/env_main.c'],
-	    ['extractor', 'util/xtrc_main.c'],
-	    ['het_export', 'util/hetx_main.c'],
-	    ['het_import', 'util/heti_main.c'],
-		['hetro', 'util/het_main.c'],
-    	['lpanal', 'util/lpc_main.c'],
-	    ['lpc_export', 'util/lpcx_main.c'],
-    	['lpc_import', 'util/lpci_main.c'],
-    	['mixer', 'util/mixer_main.c'],
-    	['pvanal', 'util/pvc_main.c'],
-    	['pvlook', 'util/pvl_main.c'],
-		['scale','util/scale_main.c'],
-    	['sndinfo', 'util/sndinfo_main.c'],
-    	['srconv', 'util/srconv_main.c']]
-	
-	for i in utils:
-		executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
+for i in utilPlugins:
+    pluginLibraries.append(pluginEnvironment.SharedLibrary(i[0], i[1]))
+
+if (commonEnvironment['buildUtilities'] != '0'):
+    utils = [
+        ['cvanal',      'util/cvl_main.c'     ],
+        ['dnoise',      'util/dnoise_main.c'  ],
+        ['envext',      'util/env_main.c'     ],
+        ['extractor',   'util/xtrc_main.c'    ],
+        ['het_export',  'util/hetx_main.c'    ],
+        ['het_import',  'util/heti_main.c'    ],
+        ['hetro',       'util/het_main.c'     ],
+        ['lpanal',      'util/lpc_main.c'     ],
+        ['lpc_export',  'util/lpcx_main.c'    ],
+        ['lpc_import',  'util/lpci_main.c'    ],
+        ['mixer',       'util/mixer_main.c'   ],
+        ['pvanal',      'util/pvc_main.c'     ],
+        ['pvlook',      'util/pvl_main.c'     ],
+        ['scale',       'util/scale_main.c'   ],
+        ['sndinfo',     'util/sndinfo_main.c' ],
+        ['srconv',      'util/srconv_main.c'  ]]
+    for i in utils:
+        executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
 
 executables.append(csoundProgramEnvironment.Program('scsort',
     ['util1/sortex/smain.c']))
