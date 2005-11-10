@@ -154,16 +154,16 @@ PUBLIC void *csoundapi_new(t_symbol *s, int argc, t_atom *argv)
       }
       else if (argc > 0) {
         cmdl = (char **) malloc(sizeof(char *) * (argc + 3));
-        cmdl[0] = (char *) strdup("csound");
+        cmdl[0] = "csound";
         for (i = 1; i < argc + 1; i++) {
           cmdl[i] = (char *) malloc(64);
           atom_string(&argv[i - 1], cmdl[i], 64);
           post(cmdl[i]);
         }
-        cmdl[i] = (char *) strdup("-d");
+        cmdl[i] = "-d";
 
         if (CS_VERSION_ < 500) {
-          cmdl[i + 1] = (char *) strdup("-n");
+          cmdl[i + 1] = "-n";
           x->argnum = argc + 3;
           x->cmdl = cmdl;
           x->result = csoundCompile(x->csound, x->argnum, cmdl);
@@ -358,16 +358,16 @@ PUBLIC void csoundapi_open(t_csoundapi *x, t_symbol *s, int argc, t_atom *argv)
       csoundReset(x->csound);
       x->result = 1;
       cmdl = (char **) malloc(sizeof(char *) * (argc + 3));
-      cmdl[0] = (char *) strdup("csound");
+      cmdl[0] = "csound";
       for (i = 1; i < argc + 1; i++) {
         cmdl[i] = (char *) malloc(64);
         atom_string(&argv[i - 1], cmdl[i], 64);
         post(cmdl[i]);
       }
-      cmdl[i] = (char *) strdup("-d");
+      cmdl[i] = "-d";
 
       if (CS_VERSION_ < 500) {
-        cmdl[i + 1] = (char *) strdup("-n");
+        cmdl[i + 1] = (char *) "-n";
         x->argnum = argc + 3;
         x->cmdl = cmdl;
         x->result = csoundCompile(x->csound, x->argnum, cmdl);
