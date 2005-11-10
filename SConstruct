@@ -1250,7 +1250,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     elif getPlatform() == 'linux':
         csTclEnvironment.Append(LIBS = ['tcl', 'tk', 'dl', 'pthread'])
     elif getPlatform() == 'mingw':
-        if commonEnvironment['MSVC'] == 1:
+        if commonEnvironment['MSVC'] == '1':
             csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
         else:
             csTclEnvironment.Append(LIBS = ['tcl', 'tk'])
