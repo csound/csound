@@ -70,7 +70,7 @@ public class CsoundEditor extends JFrame {
 
     public Properties properties = new Properties(System.getProperties());
 
-    private String soundfilePlayer = "C:\\Program Files\\Windows Media Player\\wmplayer.exe";
+    private String soundfilePlayer = "";
 
     public CppSound csound = new CppSound();
 
