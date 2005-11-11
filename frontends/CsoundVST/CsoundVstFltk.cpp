@@ -376,8 +376,8 @@ void CsoundVstFltk::messageCallback(CSOUND *csound, int attribute, const char *f
     {
       return;
     }
-  char buffer[0x1000];
-  vsprintf(buffer, format, valist);
+  char buffer[0x1002];
+  vsnprintf(buffer, 0x1000, format, valist);
   csoundVstFltk->messagebuffer.append(buffer);
   if (csoundVstFltk->messagebuffer.find("\n") != std::string::npos)
     {

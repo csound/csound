@@ -46,39 +46,27 @@ void gatherArgs(int argc, const char **argv, std::string &commandLine)
     }
 }
 
-void scatterArgs(const std::string commandLine, int *argc, char ***argv)
+void scatterArgs(const std::string buffer, std::vector<std::string> &args, std::vector<char *> &argv)
 {
-  char *buffer = strdup(commandLine.c_str());
-  char *separators = " \t\n\r";
-  int argcc = 0;
-  char **argvv = (char **) calloc(sizeof(char *), 100);
-  char *token = strtok(buffer, separators);
-  while(token)
-    {
-      argvv[argcc] = strdup(token);
-      argcc++;
-      token = strtok(0, separators);
-    }
-  *argc = argcc;
-  *argv = (char **) realloc(argvv, sizeof(char *) * (argcc + 1));
-  free(buffer);
-}
-
-void deleteArgs(int argc, char **argv)
-{
-  if(!argv)
-    {
+  std::string separators = " \t\n\r";
+  args.clear();
+  argv.clear();
+  size_t first = 0;
+  size_t last = 0;
+  for(;;) {
+    first = buffer.find_first_not_of(separators, last);
+    if (first == std::string::npos) {
       return;
     }
-  for(int i = 0; i < argc; i++)
-    {
-      if(argv[i])
-        {
-          free(argv[i]);
-        }
+    last = buffer.find_first_of(separators, first);
+    args.push_back(buffer.substr(first, last - first));   
+    argv.push_back(const_cast<char *>(args[args.size() - 1].c_str()));
+    if (last == std::string::npos) {
+      return;
     }
-  free(argv);
+  }
 }
+
 
 std::string &trim(std::string &value)
 {
@@ -433,58 +421,53 @@ void CsoundFile::removeCommand(void)
 
 std::string CsoundFile::getOrcFilename() const
 {
-  int argc;
-  char **argv;
   std::string buffer;
-  scatterArgs(command, &argc, &argv);
-  if(argc >= 3)
+  std::vector<std::string> args;
+  std::vector<char *> argv;
+  scatterArgs(command, args, argv);
+  if(args.size() >= 3)
     {
-      buffer = argv[argc - 2];
+      buffer = args[args.size() - 2];
     }
-  deleteArgs(argc, argv);
   return buffer.c_str();
 }
 
 std::string CsoundFile::getScoFilename() const
 {
-  int argc;
-  char **argv;
   std::string buffer;
-  scatterArgs(command, &argc, &argv);
-  if(argc >= 3)
+  std::vector<std::string> args;
+  std::vector<char *> argv;
+  scatterArgs(command, args, argv);
+  if(args.size() >= 3)
     {
-      buffer = argv[argc - 1];
+      buffer = args[args.size() - 1];
     }
-  deleteArgs(argc, argv);
   return buffer;
 }
 
 std::string CsoundFile::getMidiFilename() const
 {
-  int argc;
-  char **argv;
   std::string buffer;
-  scatterArgs(command, &argc, &argv);
-  for(int i = 1, n = argc - 2; i < n; i++)
+  std::vector<std::string> args;
+  std::vector<char *> argv;
+  scatterArgs(command, args, argv);
+  for(int i = 1, n = args.size() - 2; i < n; i++)
     {
-      std::string buffer = argv[i];
+      std::string buffer = args[i];
       if(buffer.find("F") != buffer.npos)
         {
           if(buffer.find("F") == buffer.length() - 1)
             {
-              buffer = argv[i + 1];
-              deleteArgs(argc, argv);
+              buffer = args[i + 1];
               return buffer.c_str();
             }
           else
             {
               buffer = buffer.substr(buffer.find("F") + 1);
-              deleteArgs(argc, argv);
               return buffer.c_str();
             }
         }
     }
-  deleteArgs(argc, argv);
   return buffer.c_str();
 }
 

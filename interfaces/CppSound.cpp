@@ -30,6 +30,7 @@ CppSound::CppSound() : Csound(),
                        isPerforming(false),
                        spoutSize(0)
 {
+  SetHostData((CSOUND *)0);
 }
 
 CppSound::~CppSound()
@@ -59,16 +60,15 @@ int CppSound::compile(int argc, char **argv)
 int CppSound::compile()
 {
   Message("BEGAN CppSound::compile()...\n");
-  int argc = 0;
-  char **argv = 0;
+  std::vector<std::string> args;
+  std::vector<char*> argv;
   if(getCommand().length() <= 0)
     {
       Message("No Csound command.\n");
-      return -1;
+      return 0;
     }
-  scatterArgs(getCommand(), &argc, &argv);
-  int returnValue = compile(argc, argv);
-  deleteArgs(argc, argv);
+  scatterArgs(getCommand(), args, argv);
+  int returnValue = compile(args.size(), &argv.front());
   Message("ENDED CppSound::compile.\n");
   return returnValue;
 }
@@ -106,20 +106,19 @@ int CppSound::perform(int argc, char **argv)
 int CppSound::perform()
 {
   int returnValue = 0;
-  int argc = 0;
-  char **argv = 0;
   std::string command = getCommand();
+  std::vector<std::string> args;
+  std::vector<char *> argv;
   if(command.find("-") == 0)
     {
-      const char *args[] = {"csound", getFilename().c_str(), 0};
-      returnValue = perform(2, (char **)args);
+      const char *argv[] = {"csound", getFilename().c_str(), 0};
+      returnValue = perform(2, (char **)argv);
     }
   else
     {
-      scatterArgs(getCommand(), &argc, &argv);
-      returnValue = perform(argc, argv);
+      scatterArgs(getCommand(), args, argv);
+      returnValue = perform(args.size(), &argv.front());
     }
-  deleteArgs(argc, argv);
   return returnValue;
 }
 
