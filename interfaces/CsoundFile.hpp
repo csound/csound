@@ -59,9 +59,7 @@
 
 void gatherArgs(int argc, const char **argv, std::string &commandLine);
 
-void scatterArgs(const std::string commandLine, int *argc, char ***argv);
-
-void deleteArgs(int argc, char **argv);
+void scatterArgs(const std::string commandLine, std::vector<std::string> &args, std::vector<char *> &argv);
 
 std::string &trim(std::string &value);
 
