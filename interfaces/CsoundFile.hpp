@@ -89,6 +89,8 @@ protected:
    *       CsOptions
    */
   std::string command;
+  std::vector<std::string> args;
+  std::vector<char *> argv;
   /**
    *       CsInstruments
    */
@@ -108,7 +110,7 @@ public:
   std::string libraryFilename;
   std::vector<std::string> arrangement;
   CsoundFile();
-  virtual ~CsoundFile(void){};
+  virtual ~CsoundFile(){};
   virtual std::string generateFilename();
   virtual std::string getFilename() const;
   virtual void setFilename(std::string name);
@@ -130,16 +132,16 @@ public:
   virtual int exportArrangementForPerformance(std::ostream &stream) const;
   virtual int importMidifile(std::istream &stream);
   virtual int exportMidifile(std::ostream &stream) const;
-  virtual std::string getCommand(void) const;
+  virtual std::string getCommand() const;
   virtual void setCommand(std::string commandLine);
-  virtual std::string getOrcFilename(void) const;
-  virtual std::string getScoFilename(void) const;
-  virtual std::string getMidiFilename(void) const;
-  virtual std::string getOutputSoundfileName(void) const;
-  virtual std::string getOrchestra(void) const;
+  virtual std::string getOrcFilename() const;
+  virtual std::string getScoFilename() const;
+  virtual std::string getMidiFilename() const;
+  virtual std::string getOutputSoundfileName() const;
+  virtual std::string getOrchestra() const;
   virtual void setOrchestra(std::string orchestra);
-  virtual int getInstrumentCount(void) const;
-  virtual std::string getOrchestraHeader(void) const;
+  virtual int getInstrumentCount() const;
+  virtual std::string getOrchestraHeader() const;
   virtual bool getInstrument(int number, std::string &definition) const;
   //virtual bool getInstrumentNumber(int index, std::string &definition) const;
   virtual bool getInstrument(std::string name, std::string &definition) const;
@@ -152,7 +154,7 @@ public:
   virtual void insertArrangement(int index, std::string instrument);
   virtual void removeArrangement(int index);
   virtual void setCSD(std::string xml);
-  virtual std::string getCSD(void) const;
+  virtual std::string getCSD() const;
   virtual void addScoreLine(const std::string line);
   virtual void addNote(double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9, double p10, double p11);
   virtual void addNote(double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8, double p9, double p10);
@@ -163,13 +165,13 @@ public:
   virtual void addNote(double p1, double p2, double p3, double p4, double p5);
   virtual void addNote(double p1, double p2, double p3, double p4);
   virtual void addNote(double p1, double p2, double p3);
-  virtual bool exportForPerformance(void);
-  virtual void removeAll(void);
-  virtual void removeCommand(void);
-  virtual void removeOrchestra(void);
-  virtual void removeScore(void);
-  virtual void removeArrangement(void);
-  virtual void removeMidifile(void);
+  virtual bool exportForPerformance() const;
+  virtual void removeAll();
+  virtual void removeCommand();
+  virtual void removeOrchestra();
+  virtual void removeScore();
+  virtual void removeArrangement();
+  virtual void removeMidifile();
   //virtual void getInstrumentNames(std::vector<std::string> &names) const;
   virtual bool loadOrcLibrary(const char *filename = 0);
 };

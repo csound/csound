@@ -59,10 +59,17 @@ void scatterArgs(const std::string buffer, std::vector<std::string> &args, std::
       return;
     }
     last = buffer.find_first_of(separators, first);
-    args.push_back(buffer.substr(first, last - first));   
-    argv.push_back(const_cast<char *>(args[args.size() - 1].c_str()));
     if (last == std::string::npos) {
+      args.push_back(buffer.substr(first));   
+      argv.push_back(const_cast<char *>(&args.back()[0]));
+      argv.push_back(0);
+      for (size_t i = 0; i < argv.size(); i++) {
+	printf("arg %d %s\n", (i+1), const_cast<const char *>(argv[i]));
+      }
       return;
+    } else {
+      args.push_back(buffer.substr(first, last - first));   
+      argv.push_back(const_cast<char *>(&args.back()[0]));
     }
   }
 }
@@ -414,7 +421,7 @@ void CsoundFile::setCommand(std::string value)
   command = value;
 }
 
-void CsoundFile::removeCommand(void)
+void CsoundFile::removeCommand()
 {
   command.erase(command.begin(), command.end());
 }
@@ -422,9 +429,7 @@ void CsoundFile::removeCommand(void)
 std::string CsoundFile::getOrcFilename() const
 {
   std::string buffer;
-  std::vector<std::string> args;
-  std::vector<char *> argv;
-  scatterArgs(command, args, argv);
+  scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
   if(args.size() >= 3)
     {
       buffer = args[args.size() - 2];
@@ -435,9 +440,7 @@ std::string CsoundFile::getOrcFilename() const
 std::string CsoundFile::getScoFilename() const
 {
   std::string buffer;
-  std::vector<std::string> args;
-  std::vector<char *> argv;
-  scatterArgs(command, args, argv);
+  scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
   if(args.size() >= 3)
     {
       buffer = args[args.size() - 1];
@@ -448,9 +451,7 @@ std::string CsoundFile::getScoFilename() const
 std::string CsoundFile::getMidiFilename() const
 {
   std::string buffer;
-  std::vector<std::string> args;
-  std::vector<char *> argv;
-  scatterArgs(command, args, argv);
+  scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
   for(int i = 1, n = args.size() - 2; i < n; i++)
     {
       std::string buffer = args[i];
@@ -828,7 +829,7 @@ bool CsoundFile::getInstrument(std::string name_, std::string &definition_) cons
   return false;
 }
 
-bool CsoundFile::exportForPerformance(void)
+bool CsoundFile::exportForPerformance() const
 {
   std::string orcFilename = getOrcFilename();
   if(orcFilename.length() > 0)
@@ -854,19 +855,19 @@ void CsoundFile::setCSD(const std::string xml)
   load(stringStream);
 }
 
-std::string CsoundFile::getCSD(void) const
+std::string CsoundFile::getCSD() const
 {
   std::ostringstream stringStream;
   save(stringStream);
   return stringStream.str();
 }
 
-int CsoundFile::getArrangementCount(void) const
+int CsoundFile::getArrangementCount() const
 {
   return arrangement.size();
 }
 
-void CsoundFile::removeArrangement(void)
+void CsoundFile::removeArrangement()
 {
   arrangement.erase(arrangement.begin(), arrangement.end());
 }
@@ -909,7 +910,7 @@ int CsoundFile::exportArrangement(std::ostream &stream) const
   return stream.good();
 }
 
-std::string CsoundFile::getOrchestraHeader(void) const
+std::string CsoundFile::getOrchestraHeader() const
 {
   int instrIndex = findToken(orchestra, "instr", 0);
   if(instrIndex == (int) orchestra.npos)

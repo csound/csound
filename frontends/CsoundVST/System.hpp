@@ -41,8 +41,6 @@
 
 namespace csound
 {
-  typedef void (*MessageCallbackType)(CSOUND *csound, int attribute, const char *format, va_list valist);
-
   class Logger
   {
   public:
@@ -51,6 +49,8 @@ namespace csound
     virtual void write(const char *text);
   };
 
+  typedef void (*MessageCallbackType)(CSOUND *csound, int attribute, const char *format, va_list marker);
+
   /**
    * Abstraction layer for a minimal set of system services.
    */
@@ -58,7 +58,7 @@ namespace csound
   {
     static void *userdata_;
     static int messageLevel;
-    static PUBLIC void (*messageCallback)(CSOUND *csound, int attribute, const char *format, va_list valist);
+    static void (*messageCallback)(CSOUND *csound, int attribute, const char *format, va_list valist);
   public:
     enum Level
       {
@@ -196,11 +196,11 @@ namespace csound
     /**
      *  Sets message callback.
      */
-    static void setMessageCallback(void (*messageCallback_)(CSOUND *csound, int attribute, const char *format, va_list marker));
+    static void setMessageCallback(MessageCallbackType messageCallback_);
     /**
      *  Return the message callback, or null if none.
      */
-    PUBLIC static MessageCallbackType getMessageCallback();
+    static MessageCallbackType getMessageCallback();
 #endif
     /**
      *  Execute a system command or program.
