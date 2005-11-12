@@ -264,7 +264,7 @@ namespace csound
     return messageLevel;
   }
 
-  void System::setMessageCallback(void (*messageCallback_)(CSOUND *csound, int attribute, const char *format, va_list valist))
+  void System::setMessageCallback(MessageCallbackType messageCallback_)
   {
     messageCallback = messageCallback_;
   }
