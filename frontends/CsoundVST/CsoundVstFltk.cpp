@@ -249,6 +249,7 @@ long CsoundVstFltk::open(void *parentWindow)
   this->csoundVstUi->show();
   if(csoundVST->getIsVst())
     {
+      csoundVST->getCppSound()->SetHostData(csoundVST);
 #if defined(WIN32)
       SetParent((HWND) fl_xid(this->csoundVstUi), (HWND) parentWindow);
 #endif
