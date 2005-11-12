@@ -64,7 +64,6 @@ static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
 static void rtclose_dummy(CSOUND *);
 static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
-static void csoundDefaultThrowMessageCallback(CSOUND *, const char *, va_list);
 static void defaultCsoundMakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 static void defaultCsoundReadKillXYin(CSOUND *, XYINDAT *);
 static int  defaultCsoundExitGraph(CSOUND *);
@@ -110,10 +109,7 @@ static const CSOUND cenviron_ = {
         csoundMessage,
         csoundMessageS,
         csoundMessageV,
-        csoundThrowMessage,
-        csoundThrowMessageV,
         csoundSetMessageCallback,
-        csoundSetThrowMessageCallback,
         csoundGetMessageLevel,
         csoundSetMessageLevel,
         csoundInputMessage,
@@ -362,7 +358,6 @@ static const CSOUND cenviron_ = {
         (void (*)(CSOUND*, const char*, MYFLT*)) NULL,
         (void (*)(CSOUND*, const char*, MYFLT)) NULL,
         csoundDefaultMessageCallback,
-        csoundDefaultThrowMessageCallback,
         MakeAscii,
         DrawAscii,
         KillAscii,
@@ -1310,13 +1305,6 @@ static const CSOUND cenviron_ = {
 #endif
   }
 
-  static void csoundDefaultThrowMessageCallback(CSOUND *csound,
-                                                const char *format,
-                                                va_list args)
-  {
-    csoundDefaultMessageCallback(csound, CSOUNDMSG_ERROR, format, args);
-  }
-
   PUBLIC void csoundSetMessageCallback(CSOUND *csound,
                             void (*csoundMessageCallback)(CSOUND *csound,
                                                           int attr,
@@ -1408,36 +1396,14 @@ static const CSOUND cenviron_ = {
     longjmp(csound->exitjmp, n);
   }
 
-  PUBLIC void csoundSetThrowMessageCallback(CSOUND *csound,
-                    void (*csoundThrowMessageCallback)(CSOUND *csound,
-                                                       const char *format,
-                                                       va_list args))
+  PUBLIC void csoundSetMessageLevel(CSOUND *csound, int messageLevel)
   {
-    csound->csoundThrowMessageCallback_ = csoundThrowMessageCallback;
-  }
-
-  PUBLIC void csoundThrowMessageV(CSOUND *csound,
-                                  const char *format, va_list args)
-  {
-    csound->csoundThrowMessageCallback_(csound, format, args);
-  }
-
-  PUBLIC void csoundThrowMessage(CSOUND *csound, const char *format, ...)
-  {
-    va_list args;
-    va_start(args, format);
-    csound->csoundThrowMessageCallback_(csound, format, args);
-    va_end(args);
+    csound->oparms->msglevel = messageLevel;
   }
 
   PUBLIC int csoundGetMessageLevel(CSOUND *csound)
   {
     return csound->oparms->msglevel;
-  }
-
-  PUBLIC void csoundSetMessageLevel(CSOUND *csound, int messageLevel)
-  {
-    csound->oparms->msglevel = messageLevel;
   }
 
   PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
