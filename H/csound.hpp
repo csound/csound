@@ -85,7 +85,8 @@ public:
     argv[5] = (char*) 0;
     return csoundCompile(csound, 5, &(argv[0]));
   }
-  virtual int Compile(char *arg1, char *arg2, char *arg3, char *arg4, char *arg5)
+  virtual int Compile(char *arg1, char *arg2, char *arg3,
+                      char *arg4, char *arg5)
   {
     char  *argv[7];
     argv[0] = "csound";
@@ -163,7 +164,8 @@ public:
     csoundCleanup(csound);
     return (retval >= 0 ? 0 : retval);
   }
-  virtual int Perform(char *arg1, char *arg2, char *arg3, char *arg4, char *arg5)
+  virtual int Perform(char *arg1, char *arg2, char *arg3,
+                      char *arg4, char *arg5)
   {
     char  *argv[7];
     int   retval;
@@ -324,9 +326,9 @@ public:
   {
     csoundMessageV(csound, attr, format, args);
   }
-  virtual void SetMessageCallback(void (*csoundMessageCallback_)(CSOUND *, int attr,
-                                                         const char *format,
-                                                         va_list valist))
+  virtual void SetMessageCallback(
+      void (*csoundMessageCallback_)(CSOUND *, int attr,
+                                     const char *format, va_list valist))
   {
     csoundSetMessageCallback(csound, csoundMessageCallback_);
   }
@@ -347,13 +349,13 @@ public:
     csoundKeyPress(csound, c);
   }
   // control and events
-  virtual void SetInputValueCallback(void (*inputValueCallback_)(CSOUND *,
-                                                         const char *, MYFLT *))
+  virtual void SetInputValueCallback(
+      void (*inputValueCallback_)(CSOUND *, const char *, MYFLT *))
   {
     csoundSetInputValueCallback(csound, inputValueCallback_);
   }
-  virtual void SetOutputValueCallback(void (*outputValueCallback_)(CSOUND *,
-                                                           const char *, MYFLT))
+  virtual void SetOutputValueCallback(
+      void (*outputValueCallback_)(CSOUND *, const char *, MYFLT))
   {
     csoundSetOutputValueCallback(csound, outputValueCallback_);
   }
@@ -362,35 +364,38 @@ public:
     return csoundScoreEvent(csound, type, pFields, numFields);
   }
   // MIDI
-  virtual void SetExternalMidiInOpenCallback(int (*func)(CSOUND *,
-                                                 void **, const char *))
+  virtual void SetExternalMidiInOpenCallback(
+      int (*func)(CSOUND *, void **, const char *))
   {
     csoundSetExternalMidiInOpenCallback(csound, func);
   }
-  virtual void SetExternalMidiReadCallback(int (*func)(CSOUND *, void *,
-                                               unsigned char *, int))
+  virtual void SetExternalMidiReadCallback(
+      int (*func)(CSOUND *, void *, unsigned char *, int))
   {
     csoundSetExternalMidiReadCallback(csound, func);
   }
-  virtual void SetExternalMidiInCloseCallback(int (*func)(CSOUND *, void *))
+  virtual void SetExternalMidiInCloseCallback(
+      int (*func)(CSOUND *, void *))
   {
     csoundSetExternalMidiInCloseCallback(csound, func);
   }
-  virtual void SetExternalMidiOutOpenCallback(int (*func)(CSOUND *,
-                                                  void **, const char *))
+  virtual void SetExternalMidiOutOpenCallback(
+      int (*func)(CSOUND *, void **, const char *))
   {
     csoundSetExternalMidiOutOpenCallback(csound, func);
   }
-  virtual void SetExternalMidiWriteCallback(int (*func)(CSOUND *, void *,
-                                                const unsigned char *, int))
+  virtual void SetExternalMidiWriteCallback(
+      int (*func)(CSOUND *, void *, const unsigned char *, int))
   {
     csoundSetExternalMidiWriteCallback(csound, func);
   }
-  virtual void SetExternalMidiOutCloseCallback(int (*func)(CSOUND *, void *))
+  virtual void SetExternalMidiOutCloseCallback(
+      int (*func)(CSOUND *, void *))
   {
     csoundSetExternalMidiOutCloseCallback(csound, func);
   }
-  virtual void SetExternalMidiErrorStringCallback(const char *(*func)(int))
+  virtual void SetExternalMidiErrorStringCallback(
+      const char *(*func)(int))
   {
     csoundSetExternalMidiErrorStringCallback(csound, func);
   }
@@ -399,35 +404,38 @@ public:
   {
     return csoundSetIsGraphable(csound, isGraphable);
   }
-  virtual void SetMakeGraphCallback(void (*makeGraphCallback_)(CSOUND *, WINDAT *windat,
-                                                       const char *name))
+  virtual void SetMakeGraphCallback(
+      void (*makeGraphCallback_)(CSOUND *, WINDAT *windat, const char *name))
   {
     csoundSetMakeGraphCallback(csound, makeGraphCallback_);
   }
-  virtual void SetDrawGraphCallback(void (*drawGraphCallback_)(CSOUND *,
-                                                       WINDAT *windat))
+  virtual void SetDrawGraphCallback(
+      void (*drawGraphCallback_)(CSOUND *, WINDAT *windat))
   {
     csoundSetDrawGraphCallback(csound, drawGraphCallback_);
   }
-  virtual void SetKillGraphCallback(void (*killGraphCallback_)(CSOUND *,
-                                                       WINDAT *windat))
+  virtual void SetKillGraphCallback(
+      void (*killGraphCallback_)(CSOUND *, WINDAT *windat))
   {
     csoundSetKillGraphCallback(csound, killGraphCallback_);
   }
-  virtual void SetMakeXYinCallback(void (*makeXYinCallback_)(CSOUND *, XYINDAT *,
-                                                     MYFLT x, MYFLT y))
+  virtual void SetMakeXYinCallback(
+      void (*makeXYinCallback_)(CSOUND *, XYINDAT *, MYFLT x, MYFLT y))
   {
     csoundSetMakeXYinCallback(csound, makeXYinCallback_);
   }
-  virtual void SetReadXYinCallback(void (*readXYinCallback_)(CSOUND *, XYINDAT *))
+  virtual void SetReadXYinCallback(
+      void (*readXYinCallback_)(CSOUND *, XYINDAT *))
   {
     csoundSetReadXYinCallback(csound, readXYinCallback_);
   }
-  virtual void SetKillXYinCallback(void (*killXYinCallback_)(CSOUND *, XYINDAT *))
+  virtual void SetKillXYinCallback(
+      void (*killXYinCallback_)(CSOUND *, XYINDAT *))
   {
     csoundSetKillXYinCallback(csound, killXYinCallback_);
   }
-  virtual void SetExitGraphCallback(int (*exitGraphCallback_)(CSOUND *))
+  virtual void SetExitGraphCallback(
+      int (*exitGraphCallback_)(CSOUND *))
   {
     csoundSetExitGraphCallback(csound, exitGraphCallback_);
   }
@@ -445,10 +453,10 @@ public:
     csoundDisposeOpcodeList(csound, opcodelist);
   }
   virtual int AppendOpcode(const char *opname, int dsblksiz, int thread,
-                   const char *outypes, const char *intypes,
-                   int (*iopadr)(CSOUND *, void *),
-                   int (*kopadr)(CSOUND *, void *),
-                   int (*aopadr)(CSOUND *, void *))
+                           const char *outypes, const char *intypes,
+                           int (*iopadr)(CSOUND *, void *),
+                           int (*kopadr)(CSOUND *, void *),
+                           int (*aopadr)(CSOUND *, void *))
   {
     return csoundAppendOpcode(csound, opname, dsblksiz, thread,
                               outypes, intypes, iopadr, kopadr, aopadr);
@@ -459,27 +467,28 @@ public:
     csoundSetYieldCallback(csound, yieldCallback_);
   }
   // real-time audio play and record
-  virtual void SetPlayopenCallback(int (*playopen__)(CSOUND *,
-                                             const csRtAudioParams *parm))
+  virtual void SetPlayopenCallback(
+      int (*playopen__)(CSOUND *, const csRtAudioParams *parm))
   {
     csoundSetPlayopenCallback(csound, playopen__);
   }
-  virtual void SetRtplayCallback(void (*rtplay__)(CSOUND *,
-                                          const MYFLT *outBuf, int nbytes))
+  virtual void SetRtplayCallback(
+      void (*rtplay__)(CSOUND *, const MYFLT *outBuf, int nbytes))
   {
     csoundSetRtplayCallback(csound, rtplay__);
   }
-  virtual void SetRecopenCallback(int (*recopen_)(CSOUND *,
-                                          const csRtAudioParams *parm))
+  virtual void SetRecopenCallback(
+      int (*recopen_)(CSOUND *, const csRtAudioParams *parm))
   {
     csoundSetRecopenCallback(csound, recopen_);
   }
-  virtual void SetRtrecordCallback(int (*rtrecord__)(CSOUND *,
-                                             MYFLT *inBuf, int nbytes))
+  virtual void SetRtrecordCallback(
+      int (*rtrecord__)(CSOUND *, MYFLT *inBuf, int nbytes))
   {
     csoundSetRtrecordCallback(csound, rtrecord__);
   }
-  virtual void SetRtcloseCallback(void (*rtclose__)(CSOUND *))
+  virtual void SetRtcloseCallback(
+      void (*rtclose__)(CSOUND *))
   {
     csoundSetRtcloseCallback(csound, rtclose__);
   }
@@ -536,7 +545,8 @@ public:
   {
     return csoundGetRtPlayUserData(csound);
   }
-  virtual int RegisterSenseEventCallback(void (*func)(CSOUND *, void *), void *userData)
+  virtual int RegisterSenseEventCallback(void (*func)(CSOUND *, void *),
+                                         void *userData)
   {
     return csoundRegisterSenseEventCallback(csound, func, userData);
   }
@@ -547,6 +557,10 @@ public:
   virtual char **ListUtilities()
   {
     return csoundListUtilities(csound);
+  }
+  virtual void DeleteUtilityList(char **lst)
+  {
+    csoundDeleteUtilityList(csound, lst);
   }
   virtual const char *GetUtilityDescription(const char *utilName)
   {
@@ -560,23 +574,25 @@ public:
     p = tmp;
     return retval;
   }
-  virtual int ListChannels(char** &names, int* &types)
+  virtual int ListChannels(CsoundChannelListEntry* &lst)
   {
-    char  **tmp1;
-    int   *tmp2;
-    int   retval;
-    retval = csoundListChannels(csound, &tmp1, &tmp2);
-    names = tmp1;
-    types = tmp2;
+    CsoundChannelListEntry  *tmp;
+    int                     retval;
+    retval = csoundListChannels(csound, &tmp);
+    lst = tmp;
     return retval;
   }
-  virtual int SetControlChannelParams(const char *name,
-                              int type, MYFLT dflt, MYFLT min, MYFLT max)
+  virtual void DeleteChannelList(CsoundChannelListEntry *lst)
+  {
+    csoundDeleteChannelList(csound, lst);
+  }
+  virtual int SetControlChannelParams(const char *name, int type,
+                                      MYFLT dflt, MYFLT min, MYFLT max)
   {
     return csoundSetControlChannelParams(csound, name, type, dflt, min, max);
   }
   virtual int GetControlChannelParams(const char *name,
-                              MYFLT &dflt, MYFLT &min, MYFLT &max)
+                                      MYFLT &dflt, MYFLT &min, MYFLT &max)
   {
     MYFLT tmp1 = (MYFLT) 0, tmp2 = (MYFLT) 0, tmp3 = (MYFLT) 0;
     int   retval;
@@ -633,8 +649,10 @@ public:
   }
   // cfgvar.h interface
   virtual int CreateConfigurationVariable(const char *name, void *p,
-                                  int type, int flags, void *min, void *max,
-                                  const char *shortDesc, const char *longDesc)
+                                          int type, int flags,
+                                          void *min, void *max,
+                                          const char *shortDesc,
+                                          const char *longDesc)
   {
     return csoundCreateConfigurationVariable(csound, name, p, type, flags,
                                              min, max, shortDesc, longDesc);

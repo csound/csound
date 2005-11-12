@@ -109,7 +109,10 @@ static const CSOUND cenviron_ = {
         csoundMessage,
         csoundMessageS,
         csoundMessageV,
+        csoundDeleteUtilityList,
+        csoundDeleteChannelList,
         csoundSetMessageCallback,
+        csoundDeleteCfgVarList,
         csoundGetMessageLevel,
         csoundSetMessageLevel,
         csoundInputMessage,
@@ -234,7 +237,7 @@ static const CSOUND cenviron_ = {
         csoundGetFileName,
         csoundFileClose,
         pvoc_createfile,
-        (int (*)(CSOUND*, const char*, void*, void*)) pvoc_openfile,
+        (int (*)(CSOUND *, const char *, void *, void *)) pvoc_openfile,
         pvoc_closefile,
         pvoc_putframes,
         pvoc_getframes,
@@ -355,9 +358,10 @@ static const CSOUND cenviron_ = {
     /* ------- private data (not to be used by hosts or externals) ------- */
         /* callback function pointers */
         (SUBR) NULL,    /*  first_callback_     */
-        (void (*)(CSOUND*, const char*, MYFLT*)) NULL,
-        (void (*)(CSOUND*, const char*, MYFLT)) NULL,
+        (void (*)(CSOUND *, const char *, MYFLT *)) NULL,
+        (void (*)(CSOUND *, const char *, MYFLT)) NULL,
         csoundDefaultMessageCallback,
+        (int (*)(CSOUND *)) NULL,
         MakeAscii,
         DrawAscii,
         KillAscii,
@@ -536,7 +540,13 @@ static const CSOUND cenviron_ = {
         1,              /*  opcodedirWasOK      */
         0,              /*  disable_csd_options */
         { 0, { 0U } },  /*  randState_          */
-        0               /*  performState        */
+        0,              /*  performState        */
+        1000,           /*  ugens4_rand_16      */
+        1000,           /*  ugens4_rand_15      */
+        NULL,           /*  schedule_kicked     */
+        (MYFLT*) NULL,  /*  dsputil_env         */
+        (MYFLT*) NULL,  /*  dsputil_sncTab      */
+        (MYFLT*) NULL   /*  disprep_fftcoefs    */
 };
 
   /* from threads.c */
@@ -695,23 +705,24 @@ static const CSOUND cenviron_ = {
     exit(1);
   }
 
+  static const int sigs[] = {
+#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
+    SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS,
+    SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGXCPU, SIGXFSZ,
+#elif defined(WIN32)
+    SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
+#elif defined(__EMX__)
+    SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE,
+    SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGTERM, SIGCHLD,
+#endif
+    -1
+  };
+
   static void install_signal_handler(void)
   {
-    int *x;
-    int sigs[] = {
-#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
-      SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS,
-      SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGXCPU, SIGXFSZ,
-#elif defined(WIN32)
-      SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
-#elif defined(__EMX__)
-      SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE,
-      SIGUSR1, SIGSEGV, SIGUSR2, SIGPIPE, SIGTERM, SIGCHLD,
-#endif
-      -1
-    };
-    for (x = sigs; *x > 0; x++)
-      signal(*x, signal_handler);
+    int i;
+    for (i = 0; sigs[i] >= 0; i++)
+      signal(sigs[i], signal_handler);
   }
 
   static int getTimeResolution(void);
@@ -924,7 +935,7 @@ static const CSOUND cenviron_ = {
     if (strcmp(name, "CSOUND") != 0)
       return 1;
     *iface = csoundCreate(NULL);
-    *version = csoundGetVersion();
+    *version = csoundGetAPIVersion();
     return 0;
   }
 
@@ -1909,7 +1920,6 @@ static const CSOUND cenviron_ = {
   } resetCallback_t;
 
   extern void cscoreRESET(CSOUND *);
-  extern void disprepRESET(CSOUND *);
   extern void tranRESET(CSOUND *);
   extern void memRESET(CSOUND *);
 
@@ -1938,7 +1948,6 @@ static const CSOUND cenviron_ = {
     csoundDeleteAllGlobalVariables(csound);
 
     cscoreRESET(csound);
-    disprepRESET(csound);
     tranRESET(csound);
 
     csound->oparms->odebug = 0;
