@@ -597,10 +597,13 @@ extern "C" {
     CS_PRINTF2 void (*Message)(CSOUND *, const char *fmt, ...);
     CS_PRINTF3 void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
     void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
+    void (*DeleteUtilityList)(CSOUND *, char **lst);
+    void (*DeleteChannelList)(CSOUND *, CsoundChannelListEntry *lst);
     void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,
                                               va_list valist));
+    void (*DeleteCfgVarList)(csCfgVariable_t **lst);
     int (*GetMessageLevel)(CSOUND *);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
     void (*InputMessage)(CSOUND *, const char *message__);
@@ -805,7 +808,7 @@ extern "C" {
     CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
     void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
     int (*GetChannelPtr)(CSOUND *, MYFLT **p, const char *name, int type);
-    int (*ListChannels)(CSOUND *, char ***names, int **types);
+    int (*ListChannels)(CSOUND *, CsoundChannelListEntry **lst);
     int (*SetControlChannelParams)(CSOUND *, const char *name,
                                    int type, MYFLT dflt, MYFLT min, MYFLT max);
     int (*GetControlChannelParams)(CSOUND *, const char *name,
@@ -871,6 +874,7 @@ extern "C" {
                                           const char *channelName, MYFLT value);
     void          (*csoundMessageCallback_)(CSOUND *, int attr,
                                             const char *format, va_list args);
+    int           (*csoundConfigureCallback_)(CSOUND *);
     void          (*csoundMakeGraphCallback_)(CSOUND *, WINDAT *windat,
                                                         const char *name);
     void          (*csoundDrawGraphCallback_)(CSOUND *, WINDAT *windat);
@@ -1052,6 +1056,12 @@ extern "C" {
     int           disable_csd_options;
     CsoundRandMTState randState_;
     int           performState;
+    int           ugens4_rand_16;
+    int           ugens4_rand_15;
+    void          *schedule_kicked;
+    MYFLT         *dsputil_env;
+    MYFLT         *dsputil_sncTab;
+    MYFLT         *disprep_fftcoefs;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

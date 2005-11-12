@@ -321,9 +321,10 @@ typedef union csCfgVariable_u {
   /**
    * Create an alphabetically sorted list of all global configuration variables.
    * Returns a pointer to a NULL terminated array of configuration variable
-   * pointers, or NULL if the database is empty.
-   * The caller is responsible for freeing the returned list with free(),
-   * however, the variable pointers in the list should not be freed.
+   * pointers, or NULL on error.
+   * The caller is responsible for freeing the returned list with
+   * csoundDeleteCfgVarList(), however, the variable pointers in the list
+   * should not be freed.
    */
   PUBLIC csCfgVariable_t **csoundListGlobalConfigurationVariables(void);
 
@@ -331,11 +332,19 @@ typedef union csCfgVariable_u {
    * Create an alphabetically sorted list of all configuration variables
    * of Csound instance 'csound'.
    * Returns a pointer to a NULL terminated array of configuration variable
-   * pointers, or NULL if the database is empty.
-   * The caller is responsible for freeing the returned list with free(),
-   * however, the variable pointers in the list should not be freed.
+   * pointers, or NULL on error.
+   * The caller is responsible for freeing the returned list with
+   * csoundDeleteCfgVarList(), however, the variable pointers in the list
+   * should not be freed.
    */
   PUBLIC csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound);
+
+  /**
+   * Release a configuration variable list previously returned
+   * by csoundListGlobalConfigurationVariables() or
+   * csoundListConfigurationVariables().
+   */
+  PUBLIC void csoundDeleteCfgVarList(csCfgVariable_t **lst);
 
   /**
    * Remove the global configuration variable with the specified name

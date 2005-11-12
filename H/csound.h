@@ -210,15 +210,20 @@ extern "C" {
   } RTCLOCK;
 
   typedef struct {
-    char    *opname;
-    char    *outypes;
-    char    *intypes;
+    char        *opname;
+    char        *outypes;
+    char        *intypes;
   } opcodeListEntry;
 
   typedef struct CsoundRandMTState_ {
-    int       mti;
-    uint32_t  mt[624];
+    int         mti;
+    uint32_t    mt[624];
   } CsoundRandMTState;
+
+  typedef struct CsoundChannelListEntry_ {
+    const char  *name;
+    int         type;
+  } CsoundChannelListEntry;
 
   /**
    * Forward declarations.
@@ -1067,11 +1072,17 @@ extern "C" {
 
   /**
    * Returns a NULL terminated list of registered utility names.
-   * The caller is responsible for freeing the returned array with free(),
-   * however, the names should not be freed.
+   * The caller is responsible for freeing the returned array with
+   * csoundDeleteUtilityList(), however, the names should not be
+   * changed or freed.
    * The return value may be NULL in case of an error.
    */
   PUBLIC char **csoundListUtilities(CSOUND *);
+
+  /**
+   * Releases an utility list previously returned by csoundListUtilities().
+   */
+  PUBLIC void csoundDeleteUtilityList(CSOUND *, char **lst);
 
   /**
    * Get utility description.
@@ -1115,20 +1126,22 @@ extern "C" {
                                  MYFLT **p, const char *name, int type);
 
   /**
-   * Returns a list of allocated channels, storing a pointer to an array
-   * of channel names in *names, and a pointer to an array of channel types
-   * in *types. (*types)[n] corresponds to (*names)[n], and has the same
-   * format as the 'type' parameter of csoundGetChannelPtr().
+   * Returns a list of allocated channels in *lst. A CsoundChannelListEntry
+   * structure contains the name and type of a channel, with the type having
+   * the same format as in the case of csoundGetChannelPtr().
    * The return value is the number of channels, which may be zero if there
    * are none, or CSOUND_MEMORY if there is not enough memory for allocating
-   * the lists. In the case of no channels or an error, *names and *types are
-   * set to NULL.
-   * Note: the caller is responsible for freeing the lists returned in *names
-   * and *types with free(), however, the actual channel names should not be
-   * changed or freed. Also, the name pointers may become invalid after calling
-   * csoundReset().
+   * the list. In the case of no channels or an error, *lst is set to NULL.
+   * Notes: the caller is responsible for freeing the list returned in *lst
+   * with csoundDeleteChannelList(). The name pointers may become invalid
+   * after calling csoundReset().
    */
-  PUBLIC int csoundListChannels(CSOUND *, char ***names, int **types);
+  PUBLIC int csoundListChannels(CSOUND *, CsoundChannelListEntry **lst);
+
+  /**
+   * Releases a channel list previously returned by csoundListChannels().
+   */
+  PUBLIC void csoundDeleteChannelList(CSOUND *, CsoundChannelListEntry *lst);
 
   /**
    * Sets special parameters for a control channel. The parameters are:

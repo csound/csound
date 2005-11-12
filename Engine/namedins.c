@@ -1155,35 +1155,32 @@ PUBLIC int csoundGetChannelPtr(CSOUND *csound,
 
 static int cmp_func(const void *p1, const void *p2)
 {
-    return strcmp(*((const char **) p1), *((const char **) p2));
+    return strcmp(((CsoundChannelListEntry*) p1)->name,
+                  ((CsoundChannelListEntry*) p2)->name);
 }
 
 /**
- * Returns a list of allocated channels, storing a pointer to an array
- * of channel names in *names, and a pointer to an array of channel types
- * in *types. (*types)[n] corresponds to (*names)[n], and has the same
- * format as the 'type' parameter of csoundGetChannelPtr().
+ * Returns a list of allocated channels in *lst. A CsoundChannelListEntry
+ * structure contains the name and type of a channel, with the type having
+ * the same format as in the case of csoundGetChannelPtr().
  * The return value is the number of channels, which may be zero if there
  * are none, or CSOUND_MEMORY if there is not enough memory for allocating
- * the lists. In the case of no channels or an error, *names and *types are
- * set to NULL.
- * Note: the caller is responsible for freeing the lists returned in *names
- * and *types with free(), however, the actual channel names should not be
- * changed or freed. Also, the name pointers may become invalid after calling
- * csoundReset().
+ * the list. In the case of no channels or an error, *lst is set to NULL.
+ * Notes: the caller is responsible for freeing the list returned in *lst
+ * with csoundDeleteChannelList(). The name pointers may become invalid
+ * after calling csoundReset().
  */
 
-PUBLIC int csoundListChannels(CSOUND *csound, char ***names, int **types)
+PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
 {
     channelEntry_t  *pp;
-    int             i, n;
+    size_t          i, n;
 
-    *names = (char**) NULL;
-    *types = (int*) NULL;
+    *lst = (CsoundChannelListEntry*) NULL;
     if (csound->chn_db == NULL)
       return 0;
     /* count the number of channels */
-    for (n = 0, i = 0; i < 256; i++) {
+    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) 256; i++) {
       for (pp = ((channelEntry_t**) csound->chn_db)[i];
            pp != NULL;
            pp = pp->nxt, n++)
@@ -1192,29 +1189,32 @@ PUBLIC int csoundListChannels(CSOUND *csound, char ***names, int **types)
     if (!n)
       return 0;
     /* create list, initially in unsorted order */
-    *names = (char**) malloc((size_t) n * sizeof(char*));
-    if (*names == NULL)
+    *lst = (CsoundChannelListEntry*) malloc(n * sizeof(CsoundChannelListEntry));
+    if (*lst == NULL)
       return CSOUND_MEMORY;
-    *types = (int*) malloc((size_t) n * sizeof(int));
-    if (*types == NULL) {
-      free((void*) (*names));
-      return CSOUND_MEMORY;
-    }
-    for (n = 0, i = 0; i < 256; i++) {
+    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) 256; i++) {
       for (pp = ((channelEntry_t**) csound->chn_db)[i];
            pp != NULL;
-           pp = pp->nxt, n++)
-        (*names)[n] = pp->name;
+           pp = pp->nxt, n++) {
+        (*lst)[n].name = pp->name;
+        (*lst)[n].type = pp->type;
+      }
     }
     /* sort list */
-    qsort((void*) (*names), (size_t) n, sizeof(char*), cmp_func);
-    /* hack: find out type by trying to query with bad type */
-    for (i = 0; i < n; i++) {
-      MYFLT *dummy;
-      (*types)[i] = csound->GetChannelPtr(csound, &dummy, (*names)[i], 0);
-    }
+    qsort((void*) (*lst), n, sizeof(CsoundChannelListEntry), cmp_func);
     /* return the number of channels */
-    return n;
+    return (int) n;
+}
+
+/**
+ * Releases a channel list previously returned by csoundListChannels().
+ */
+
+PUBLIC void csoundDeleteChannelList(CSOUND *csound, CsoundChannelListEntry *lst)
+{
+    (void) csound;
+    if (lst != NULL)
+      free(lst);
 }
 
 /**

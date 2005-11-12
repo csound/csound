@@ -861,37 +861,37 @@ static int compare_func(const void *p1, const void *p2)
 static csCfgVariable_t **list_db_entries(void **db)
 {
     csCfgVariable_t *pp, **lst;
-    int             i, cnt;
-    /* check for empty database */
-    if (db == NULL)
-      return (csCfgVariable_t**) NULL;
+    size_t          cnt = (size_t) 0;
+    int             i;
+
     /* count the number of entries */
-    cnt = 0;
-    for (i = 0; i < 256; i++) {
-      pp = (csCfgVariable_t*) (db[i]);
-      while (pp != NULL) {
-        cnt++;
-        pp = (csCfgVariable_t*) (pp->h.nxt);
+    if (db != NULL) {
+      for (i = 0; i < 256; i++) {
+        pp = (csCfgVariable_t*) (db[i]);
+        while (pp != NULL) {
+          cnt++;
+          pp = (csCfgVariable_t*) (pp->h.nxt);
+        }
       }
     }
-    if (cnt < 1)
-      return (csCfgVariable_t**) NULL;  /* empty database */
     /* allocate memory for list */
     lst = (csCfgVariable_t**) malloc(sizeof(csCfgVariable_t*)
-                                     * (size_t) (cnt + 1));
+                                     * (cnt + (size_t) 1));
     if (lst == NULL)
       return (csCfgVariable_t**) NULL;  /* not enough memory */
     /* create list */
-    cnt = 0;
-    for (i = 0; i < 256; i++) {
-      pp = (csCfgVariable_t*) (db[i]);
-      while (pp != NULL) {
-        lst[cnt++] = pp;
-        pp = (csCfgVariable_t*) (pp->h.nxt);
+    if (cnt) {
+      cnt = (size_t) 0;
+      for (i = 0; i < 256; i++) {
+        pp = (csCfgVariable_t*) (db[i]);
+        while (pp != NULL) {
+          lst[cnt++] = pp;
+          pp = (csCfgVariable_t*) (pp->h.nxt);
+        }
       }
+      /* sort list */
+      qsort((void*) lst, cnt, sizeof(csCfgVariable_t*), compare_func);
     }
-    /* sort list */
-    qsort((void*) lst, (size_t) cnt, sizeof(csCfgVariable_t*), compare_func);
     lst[cnt] = (csCfgVariable_t*) NULL;
     /* return pointer to list */
     return lst;
@@ -900,9 +900,10 @@ static csCfgVariable_t **list_db_entries(void **db)
 /**
  * Create an alphabetically sorted list of all global configuration variables.
  * Returns a pointer to a NULL terminated array of configuration variable
- * pointers, or NULL if the database is empty.
- * The caller is responsible for freeing the returned list with free(),
- * however, the variable pointers in the list should not be freed.
+ * pointers, or NULL on error.
+ * The caller is responsible for freeing the returned list with
+ * csoundDeleteCfgVarList(), however, the variable pointers in the list
+ * should not be freed.
  */
 
 PUBLIC csCfgVariable_t **csoundListGlobalConfigurationVariables(void)
@@ -914,14 +915,27 @@ PUBLIC csCfgVariable_t **csoundListGlobalConfigurationVariables(void)
  * Create an alphabetically sorted list of all configuration variables
  * of Csound instance 'csound'.
  * Returns a pointer to a NULL terminated array of configuration variable
- * pointers, or NULL if the database is empty.
- * The caller is responsible for freeing the returned list with free(),
- * however, the variable pointers in the list should not be freed.
+ * pointers, or NULL on error.
+ * The caller is responsible for freeing the returned list with
+ * csoundDeleteCfgVarList(), however, the variable pointers in the list
+ * should not be freed.
  */
 
 PUBLIC csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound)
 {
     return (list_db_entries(local_cfg_db));
+}
+
+/**
+ * Release a configuration variable list previously returned
+ * by csoundListGlobalConfigurationVariables() or
+ * csoundListConfigurationVariables().
+ */
+
+PUBLIC void csoundDeleteCfgVarList(csCfgVariable_t **lst)
+{
+    if (lst != NULL)
+      free(lst);
 }
 
 /* remove a configuration variable from 'db' */
