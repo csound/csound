@@ -118,8 +118,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
           csound->Message(csound, "    %s\n", lst[i]);
       }
     }
-    if (lst != NULL)
-      free(lst);
+    csound->DeleteUtilityList(csound, lst);
     n = -1;
  err_return:
     memcpy((void*) &(csound->exitjmp), (void*) saved_exitjmp, sizeof(jmp_buf));
@@ -134,8 +133,9 @@ static int cmp_func(const void *a, const void *b)
 
 /**
  * Returns a NULL terminated list of registered utility names.
- * The caller is responsible for freeing the returned array with free(),
- * however, the names should not be freed.
+ * The caller is responsible for freeing the returned array with
+ * csoundDeleteUtilityList(), however, the names should not be
+ * changed or freed.
  * The return value may be NULL in case of an error.
  */
 
@@ -163,6 +163,17 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
     qsort(lst, utilCnt, sizeof(char*), cmp_func);
     /* return with pointer to list */
     return lst;
+}
+
+/**
+ * Releases an utility list previously returned by csoundListUtilities().
+ */
+
+PUBLIC void csoundDeleteUtilityList(CSOUND *csound, char **lst)
+{
+    (void) csound;
+    if (lst != NULL)
+      free(lst);
 }
 
 /**
