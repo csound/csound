@@ -29,13 +29,9 @@
 #define YOFF    10
 #define YOFF4   40
 
-static  char    *points = NULL;
-
 void MakeAscii(CSOUND *csound, WINDAT *wdptr, const char *n)
 {
     wdptr->windid = ~((uintptr_t) 0);           /* just so it's not null */
-    if (points == NULL)
-      points = mmalloc(csound, (VER+1) * HOR);  /* alloc the 2-Dim array */
 }
 
 void KillAscii(CSOUND *csound, WINDAT *wdptr)
@@ -45,54 +41,43 @@ void KillAscii(CSOUND *csound, WINDAT *wdptr)
 
 /* display an n-pnt float array using simple ascii chars */
 
+static CS_NOINLINE void DrawAscii_(CSOUND *csound, WINDAT *wdptr, char *points)
+{
+    long    npts    = wdptr->npts;
+    MYFLT   absmax  = wdptr->absmax;
+    char    *s;
+    MYFLT   *fp = wdptr->fdata, *fplim = fp + npts;
+    int     n, vscale4, vpos, vmin = VER, vmax = 0, incr;
+    MYFLT   scalefactor;
+
+    scalefactor = YOFF4 / absmax;                   /*   get normalizing */
+    incr = (npts-1)/HOR + 1;                        /*   & sampling facs */
+    for (s = points + (YOFF * HOR), n = 0; fp < fplim; n++, fp += incr) {
+      s[n] = '_';                                   /* now write x-axis  */
+      vscale4 = (int) (*fp * scalefactor + YOFF4);
+      vpos = vscale4 >> 2;  /* and sampled pnts (with 1/4 line resolution) */
+      if ((unsigned int) vpos > (unsigned int) VER)
+        continue;
+      if (vpos < vmin)  vmin = vpos;
+      if (vpos > vmax)  vmax = vpos;
+      points[vpos * HOR + n] = "_.-'"[vscale4 & 3]; /* into dsplay array */
+    }
+    for (vpos = vmax; vpos >= vmin; vpos--) {       /* for all lines:    */
+      s = points + (vpos * HOR);
+      for (n = (HOR - 1); n >= 0 && s[n] == ' '; n--)
+        ;                                           /*  find last char & */
+      csoundMessage(csound, "%.*s\n", n + 1, s);    /*  putline to there */
+    }
+}
+
 void DrawAscii(CSOUND *csound, WINDAT *wdptr)
 {
-    long     npts    = wdptr->npts;
-    MYFLT    absmax  = wdptr->absmax;
-
     csoundMessage(csound, Str("%s\t%ld points, scalemax %5.3f\n"),
-                          wdptr->caption, npts, absmax);
-    if (absmax) {                                     /* for non-triv fn: */
-      char    *s, *t;
-      MYFLT   *fp=wdptr->fdata, *fplim=fp + npts;
-      int     n, vscale4, vpos, vmax, vmin, incr;
-      MYFLT   scalefactor, max=wdptr->max, min=wdptr->min;
-
-      for (s=points,n=(VER+1)*HOR; n; n--)            /* blank out all pts */
-        *s++ = ' ';
-      scalefactor = YOFF4 / absmax;                   /*   get normalizing */
-      incr = (npts-1)/HOR + 1;                        /*   & sampling facs */
-      for (s=points+(YOFF*HOR),n=0; fp<fplim; fp+=incr) {
-        *(s+n) = '_';                                 /* now write x-axis  */
-        vscale4 = (int)(*fp * scalefactor + YOFF4);
-        vpos = vscale4 >>2;
-        t = points+(vpos*HOR + n++);                  /* and sampled pnts  */
-        switch (vscale4 - (vpos <<2)) {
-        case 0: *t = '_';                             /*  (with 1/4 line  */
-          break;                                      /*      resolution) */
-        case 1: *t = '.';
-          break;
-        case 2: *t = '-';
-          break;
-        case 3: *t = '\'';
-          break;
-        }                                             /* into dsplay array */
-      }
-      vmax = (int)(max*YOFF/absmax) + YOFF-1;         /* for all lines     */
-      vmin = (int)(min*YOFF/absmax) + YOFF-1;
-      if (vmax > VER)         vmax = VER;             /*   from max to     */
-      if (vmin < 0)           vmin = 0;
-      for (vpos=vmax; vpos>=vmin; vpos--) {           /*   min value:      */
-        s = points+(vpos*HOR);
-        t = s + HOR - 1;
-        while (*t == ' ' && t >= s)                   /*  find last char & */
-          t--;
-        while (s <= t) {
-          int ch = *s++;
-          csoundMessage(csound, "%c", ch);            /*  putline to there */
-        }
-        csoundMessage(csound, "\n");
-      }
+                          wdptr->caption, wdptr->npts, wdptr->absmax);
+    if (wdptr->absmax) {                              /* for non-triv fn:   */
+      char    points[(VER + 1) * HOR];            /* alloc the 2-Dim array  */
+      memset(&(points[0]), ' ', ((VER + 1) * HOR));   /* blank out all pts  */
+      DrawAscii_(csound, wdptr, &(points[0]));
     }
 }
 
