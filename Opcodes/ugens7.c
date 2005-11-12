@@ -240,7 +240,9 @@ static int newpulse(CSOUND *csound,
     return(1);
 }
 
+#if 0
 static int hrngflg=0;
+#endif
 
 static int harmset(CSOUND *csound, HARMON *p)
 {
@@ -280,8 +282,10 @@ static int harmset(CSOUND *csound, HARMON *p)
     p->prvq = FL(0.0);
     p->phase1 = 0;
     p->phase2 = 0;
+#if 0
     hrngflg = 0;
- /*    p->period = -1; */
+    p->period = -1;
+#endif
     return OK;
 }
 
@@ -497,10 +501,12 @@ static int harmon(CSOUND *csound, HARMON *p)
           p->pnt32 = p->pnt2;
           p->pnt33 = p->pnt3;
         }
+#if 0
         else if (++hrngflg > 200) {
           csound->Message(csound, Str("harmon out of range...\n"));
           hrngflg = 0;
         }
+#endif
       }
       if ((phase2 += phsinc2) & 0xFFFF0000L) {
         phase2 &= 0x0000FFFFL;
@@ -534,10 +540,12 @@ static int harmon(CSOUND *csound, HARMON *p)
           p->pnt32 = p->pnt2;
           p->pnt33 = p->pnt3;
         }
+#if 0
         else if (++hrngflg > 200) {
           csound->Message(csound, Str("harmon out of range\n"));
           hrngflg = 0;
         }
+#endif
       }
       *outp++ = sum;
     } while (--nsmps);
