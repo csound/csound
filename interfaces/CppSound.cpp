@@ -49,7 +49,10 @@ int CppSound::compile(int argc, char **argv_)
     }
   else
     {
-      renderedSoundfile = GetOutputFileName();
+      const char *outfilename = GetOutputFileName();
+      if (outfilename) {
+	renderedSoundfile = outfilename;
+      }
       isCompiled = true;
       go = true;
     }

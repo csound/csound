@@ -151,14 +151,6 @@ void Synthesizer::message(const char *format, va_list args)
     (*m_message_callback)(m_message_data, format, args);
 }
 
-void Synthesizer::set_throw_message_callback(void *data,
-                                             message_callback_t callback)
-{
-  m_throw_message_data = data;
-  m_throw_message_callback = callback;
-  csoundSetThrowMessageCallback(m_csound, s_throw_message);
-}
-
 void Synthesizer::s_throw_message(CSOUND *csound, const char *format,
                                   va_list args)
 {
