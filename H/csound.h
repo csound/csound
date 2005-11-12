@@ -604,13 +604,6 @@ extern "C" {
                              int attr, const char *format, va_list args);
 
   /**
-   * Throws an informational message as a C++ exception.
-   */
-  PUBLIC void csoundThrowMessage(CSOUND *, const char *format, ...);
-
-  PUBLIC void csoundThrowMessageV(CSOUND *, const char *format, va_list args);
-
-  /**
    * Sets a function to be called by Csound to print an informational message.
    */
   PUBLIC void csoundSetMessageCallback(CSOUND *,
@@ -618,15 +611,6 @@ extern "C" {
                                                            int attr,
                                                            const char *format,
                                                            va_list valist));
-
-  /**
-   * Sets a function for Csound to stop execution with an error message or
-   * exception.
-   */
-  PUBLIC void csoundSetThrowMessageCallback(CSOUND *,
-                            void (*throwMessageCallback_)(CSOUND *,
-                                                          const char *format,
-                                                          va_list valist));
 
   /**
    * Returns the Csound message level (from 0 to 231).
