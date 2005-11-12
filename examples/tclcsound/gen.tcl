@@ -19,7 +19,7 @@
 #  02111-1307 USA
 #
 # gen.tcl: a simple script example integrating instrument
-# construction and performance. If using with standard tcl 
+# construction and performance. If using with standard tcl
 # interpreters, uncomment the relevant 'load' command line. If OPCODEDIR
 # is not set, edit and uncomment the 'csOpcodedir line'
 #
@@ -77,6 +77,4 @@ for {set i 0} { $i < 60 } { incr i } {
     csNote 1 [expr $i * 0.1] .5 [expr ($i * 10) + 500] [expr 100 + $i * 10]
 }
 csPerform
-
-
 
