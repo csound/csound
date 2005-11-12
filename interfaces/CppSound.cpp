@@ -51,7 +51,7 @@ int CppSound::compile(int argc, char **argv_)
     {
       const char *outfilename = GetOutputFileName();
       if (outfilename) {
-	renderedSoundfile = outfilename;
+        renderedSoundfile = outfilename;
       }
       isCompiled = true;
       go = true;

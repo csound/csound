@@ -202,7 +202,7 @@ void CsoundVST::performanceThreadRoutine()
       reset();
       if(getIsVst())
         {
-	  getCppSound()->SetHostData(this);
+          getCppSound()->SetHostData(this);
           csound::System::inform("Python VST performance.\n");
           getCppSound()->SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
           getCppSound()->SetExternalMidiReadCallback(&CsoundVST::midiRead);
