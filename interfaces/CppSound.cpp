@@ -37,11 +37,11 @@ CppSound::~CppSound()
 {
 }
 
-int CppSound::compile(int argc, char **argv)
+int CppSound::compile(int argc, char **argv_)
 {
-  Message("BEGAN CppSound::compile(%d, %x)...\n", argc, argv);
+  Message("BEGAN CppSound::compile(%d, %x)...\n", argc, argv_);
   go = false;
-  int returnValue = Compile(argc, argv);
+  int returnValue = Compile(argc, argv_);
   spoutSize = GetKsmps() * GetNchnls() * sizeof(MYFLT);
   if(returnValue)
     {
@@ -60,31 +60,29 @@ int CppSound::compile(int argc, char **argv)
 int CppSound::compile()
 {
   Message("BEGAN CppSound::compile()...\n");
-  std::vector<std::string> args;
-  std::vector<char*> argv;
   if(getCommand().length() <= 0)
     {
       Message("No Csound command.\n");
       return 0;
     }
-  scatterArgs(getCommand(), args, argv);
+  scatterArgs(getCommand(), const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
   int returnValue = compile(args.size(), &argv.front());
   Message("ENDED CppSound::compile.\n");
   return returnValue;
 }
 
-int CppSound::perform(int argc, char **argv)
+int CppSound::perform(int argc, char **argv_)
 {
   double beganAt = double(clock()) / double(CLOCKS_PER_SEC);
   isCompiled = false;
   go = false;
-  Message("BEGAN CppSound::perform(%d, %x)...\n", argc, argv);
+  Message("BEGAN CppSound::perform(%d, %x)...\n", argc, argv_);
   if(argc <= 0)
     {
       Message("ENDED CppSound::perform without compiling or performing.\n");
       return 0;
     }
-  int result = compile(argc, argv);
+  int result = compile(argc, argv_);
   if(result == -1)
     {
       return result;
@@ -107,16 +105,14 @@ int CppSound::perform()
 {
   int returnValue = 0;
   std::string command = getCommand();
-  std::vector<std::string> args;
-  std::vector<char *> argv;
   if(command.find("-") == 0)
     {
-      const char *argv[] = {"csound", getFilename().c_str(), 0};
-      returnValue = perform(2, (char **)argv);
+      const char *argv_[] = {"csound", getFilename().c_str(), 0};
+      returnValue = perform(2, (char **)argv_);
     }
   else
     {
-      scatterArgs(getCommand(), args, argv);
+      scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
       returnValue = perform(args.size(), &argv.front());
     }
   return returnValue;
