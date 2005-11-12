@@ -32,6 +32,7 @@ extern  int     init_pvsys(CSOUND *);
 extern  char    *get_sconame(CSOUND *);
 extern  void    print_benchmark_info(CSOUND *, const char *);
 extern  void    openMIDIout(CSOUND *);
+extern  int     read_unified_file(CSOUND *, char **, char **);
 
 extern  OENTRY  opcodlst_1[];
 extern  OENTRY  opcodlst_2[];
@@ -161,16 +162,19 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* check for CSD file */
     if (csound->orchname == NULL)
       dieu(csound, Str("no orchestra name"));
-    else if ((strcmp(csound->orchname+strlen(csound->orchname)-4, ".csd")==0 ||
-              strcmp(csound->orchname+strlen(csound->orchname)-4, ".CSD")==0) &&
-             (csound->scorename == NULL || strlen(csound->scorename) == 0)) {
-      int   read_unified_file(void*, char **, char **);
-      /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
-      csound->orcname_mode = 0;
-      csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
-      if (!read_unified_file(csound, &(csound->orchname),
-                                     &(csound->scorename))) {
-        csound->Die(csound, Str("Decode failed....stopping"));
+    else if (csound->scorename == NULL || csound->scorename[0] == (char) 0) {
+      int   tmp = (int) strlen(csound->orchname) - 4;
+      if (tmp >= 0 && csound->orchname[tmp] == '.' &&
+          (csound->orchname[tmp + 1] | (char) 0x20) == 'c' &&
+          (csound->orchname[tmp + 2] | (char) 0x20) == 's' &&
+          (csound->orchname[tmp + 3] | (char) 0x20) == 'd') {
+        /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
+        csound->orcname_mode = 0;
+        csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
+        if (!read_unified_file(csound, &(csound->orchname),
+                                       &(csound->scorename))) {
+          csound->Die(csound, Str("Decode failed....stopping"));
+        }
       }
     }
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
