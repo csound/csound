@@ -1,3 +1,10 @@
+2005-11-12	Michael Gogins	<gogins@pipeline.com>
+	* Removed csoundThrowMessage APIs as redundant with csoundMessage,
+	and not used.
+	* Removed strdup and boost from all but CsoundVST.
+	* Fixes in interfaces and frontends/CsoundVST so that CsoundVST
+	works again.
+	
 2005-11-03	Istvan Varga	<ivarga@csounds.com>
 	* Changed csoundInitialize() to return a positive value if it was
 	  already called earlier.
