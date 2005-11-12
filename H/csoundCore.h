@@ -597,15 +597,10 @@ extern "C" {
     CS_PRINTF2 void (*Message)(CSOUND *, const char *fmt, ...);
     CS_PRINTF3 void (*MessageS)(CSOUND *, int attr, const char *fmt, ...);
     void (*MessageV)(CSOUND *, int attr, const char *format, va_list args);
-    void (*ThrowMessage)(CSOUND *, const char *format, ...);
-    void (*ThrowMessageV)(CSOUND *, const char *format, va_list args);
     void (*SetMessageCallback)(CSOUND *,
                 void (*csoundMessageCallback)(CSOUND *,
                                               int attr, const char *format,
                                               va_list valist));
-    void (*SetThrowMessageCallback)(CSOUND *,
-                void (*throwMessageCallback)(CSOUND *, const char *format,
-                                                       va_list valist));
     int (*GetMessageLevel)(CSOUND *);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
     void (*InputMessage)(CSOUND *, const char *message__);
@@ -876,8 +871,6 @@ extern "C" {
                                           const char *channelName, MYFLT value);
     void          (*csoundMessageCallback_)(CSOUND *, int attr,
                                             const char *format, va_list args);
-    void          (*csoundThrowMessageCallback_)(CSOUND *, const char *format,
-                                                           va_list args);
     void          (*csoundMakeGraphCallback_)(CSOUND *, WINDAT *windat,
                                                         const char *name);
     void          (*csoundDrawGraphCallback_)(CSOUND *, WINDAT *windat);

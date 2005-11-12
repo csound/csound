@@ -58,7 +58,7 @@ namespace csound
   {
     static void *userdata_;
     static int messageLevel;
-    static void (*messageCallback)(CSOUND *csound, int attribute, const char *format, va_list valist);
+    static PUBLIC void (*messageCallback)(CSOUND *csound, int attribute, const char *format, va_list valist);
   public:
     enum Level
       {
@@ -184,7 +184,7 @@ namespace csound
     /**
      *  Prints a message.
      */
-    static void message(const char *format, va_list valist);
+    PUBLIC static void message(const char *format, va_list valist);
     /**
      *  Prints a message.
      */
@@ -200,7 +200,7 @@ namespace csound
     /**
      *  Return the message callback, or null if none.
      */
-    static MessageCallbackType getMessageCallback();
+    PUBLIC static MessageCallbackType getMessageCallback();
 #endif
     /**
      *  Execute a system command or program.
