@@ -241,14 +241,14 @@ void writeClrFromCircBuf(
 
 /* (ugens7.h) #define   SPDS (8) */    /* How many sinc lobes to go out */
 /* Static function prototypes - moved to top of file */
-static MYFLT *sncTab = NULL;    /* point to our sin(x)/x lookup table */
 
 void UDSample(
+    CSOUND  *csound,
     MYFLT   *inSnd,
     MYFLT   stindex,
     MYFLT   *outSnd,
-    long     inLen,
-    long     outLen,
+    long    inLen,
+    long    outLen,
     MYFLT   fex)
 /*  Perform the sample rate conversion:
     inSnd   is the existing sample to be converted
@@ -273,10 +273,10 @@ void UDSample(
     int     nrst;
     MYFLT   frac;
 
-    phasePerInStep = ((lex>1)? FL(1.0) : lex)* (MYFLT)SPTS;
+    phasePerInStep = (lex > 1 ? FL(1.0) : lex) * (MYFLT) SPTS;
     /* If we are upsampling, LPF is at input frq => sinc pd matches */
     /*  downsamp => lpf at output rate; input steps at some fraction */
-    in2out = (int)( ((MYFLT)SPDS) * ( (fex<1)? 1.0 : fex ) );
+    in2out = (int) ((MYFLT) SPDS * (fex < FL(1.0) ? FL(1.0) : fex));
     /* number of input points contributing to each op: depends on LPF */
     realInStep = stindex;
     stepInStep = fex;
@@ -288,19 +288,25 @@ void UDSample(
       posPhase = -negPhase;
       /* cum. sinc arguments for +ve & -ve going spans into input */
       nrst = (int)negPhase;       frac = negPhase - (MYFLT)nrst;
-      a = (sncTab[nrst]+frac*(sncTab[nrst+1]-sncTab[nrst]))*
-        (MYFLT)inSnd[nrstInStep];
+      a = (csound->dsputil_sncTab[nrst]
+           + frac * (csound->dsputil_sncTab[nrst + 1]
+                     - csound->dsputil_sncTab[nrst]))
+          * (MYFLT) inSnd[nrstInStep];
       for (j=1L; j<in2out; ++j) { /* inner FIR convolution loop */
         posPhase += phasePerInStep;
         negPhase += phasePerInStep;
         if ( (x = nrstInStep-j)>=0L )
           nrst = (int)negPhase;   frac = negPhase - (MYFLT)nrst;
-        a += (sncTab[nrst]+frac*(sncTab[nrst+1]-sncTab[nrst]))
-          * (MYFLT)inSnd[x];
+        a += (csound->dsputil_sncTab[nrst]
+              + frac * (csound->dsputil_sncTab[nrst + 1]
+                        - csound->dsputil_sncTab[nrst]))
+             * (MYFLT) inSnd[x];
         if ( (x = nrstInStep+j)<inLen )
           nrst = (int)posPhase;   frac = posPhase - (MYFLT)nrst;
-        a += (sncTab[nrst]+frac*(sncTab[nrst+1]-sncTab[nrst]))
-          * (MYFLT)inSnd[x];
+        a += (csound->dsputil_sncTab[nrst]
+              + frac * (csound->dsputil_sncTab[nrst + 1]
+                        - csound->dsputil_sncTab[nrst]))
+             * (MYFLT) inSnd[x];
       }
       outSnd[i] = (float)a;
       realInStep += stepInStep;
@@ -313,23 +319,25 @@ void UDSample(
 
 /* (ugens7.h) #define SPTS (16) */ /* How many points in each lobe */
 
-void MakeSinc(void)             /* initialise our static sinc table */
+void MakeSinc(CSOUND *csound)   /* initialise our static sinc table */
 {
     int     i;
     int     stLen = SPDS*SPTS;  /* sinc table is SPDS/2 periods of sinc */
-    MYFLT   theta   = FL(0.0);     /* theta (sinc arg) reaches pi in SPTS */
+    MYFLT   theta   = FL(0.0);  /* theta (sinc arg) reaches pi in SPTS */
     MYFLT   dtheta  = (MYFLT)(SBW*PI)/(MYFLT)SPTS;/* SBW lowers cutoff to redcali */
     MYFLT   phi     = FL(0.0);     /* phi (hamm arg) reaches pi at max ext */
     MYFLT   dphi    = PI_F/(MYFLT)(SPDS*SPTS);
 
-    if (sncTab == NULL)
-        sncTab = (MYFLT *)malloc((long)(stLen+1) * sizeof(MYFLT));
+    if (csound->dsputil_sncTab == NULL)
+      csound->dsputil_sncTab = (MYFLT*) mmalloc(csound, (stLen + 1)
+                                                        * sizeof(MYFLT));
     /* (stLen+1 to include final zero; better for interpolation etc) */
-    sncTab[0] =  FL(1.0);
+    csound->dsputil_sncTab[0] = FL(1.0);
     for (i=1; i<=stLen; ++i) { /* build table of sin x / x */
       theta += dtheta;
       phi   += dphi;
-      sncTab[i] = (MYFLT)sin(theta)/theta * (FL(0.54) + FL(0.46)*(MYFLT)cos(phi));
+      csound->dsputil_sncTab[i] = (MYFLT) sin(theta) / theta
+                                  * (FL(0.54) + FL(0.46) * (MYFLT) cos(phi));
       /* hamming window on top of sinc */
     }
 }
@@ -345,25 +353,24 @@ void MakeSinc(void)             /* initialise our static sinc table */
    successive values of magnitude vs. frequency.
 */
 
-static  MYFLT   *env = (MYFLT*) NULL;   /* Scratch buffer to hold 'envelope' */
-
 void PreWarpSpec(
+    CSOUND  *csound,
     MYFLT   *spec,      /* spectrum as magnitude,phase */
-    long     size,      /* full frame size, tho' we only use n/2+1 */
-    MYFLT warpFactor)   /* How much pitches are being multd by */
+    long    size,       /* full frame size, tho' we only use n/2+1 */
+    MYFLT   warpFactor) /* How much pitches are being multd by */
 {
     MYFLT   eps,slope;
     MYFLT   mag, lastmag, nextmag, pkOld;
-    long     pkcnt, i, j;
+    long    pkcnt, i, j;
 
-    if (env==(MYFLT *)NULL)
-        env = (MYFLT *)malloc((long)size * sizeof(MYFLT));
+    if (csound->dsputil_env == (MYFLT*) NULL)
+      csound->dsputil_env = (MYFLT*) mmalloc(csound, size * sizeof(MYFLT));
     /*!! Better hope <size> in first call is as big as it gets !! */
     eps = -FL(64.0) / size;              /* for spectral envelope estimation */
     lastmag = *spec;
     mag = spec[2*1];
     pkOld = lastmag;
-    *env = pkOld;
+    csound->dsputil_env[0] = pkOld;
     pkcnt = 1;
 
     for (i = 1; i < someof(size); i++) {  /* step thru spectrum */
@@ -378,10 +385,11 @@ void PreWarpSpec(
 
       /* look for peaks */
       if ((mag>=lastmag)&&(mag>nextmag)&&(slope>eps)) {
-        env[i] = mag;
+        csound->dsputil_env[i] = mag;
         pkcnt--;
         for (j = 1; j <= pkcnt; j++) {
-          env[i - pkcnt + j - 1] = pkOld * (FL(1.0) + slope * j);
+          csound->dsputil_env[i - pkcnt + j - 1] = pkOld
+                                                   * (FL(1.0) + slope * j);
         }
         pkOld = mag;
         pkcnt = 1;
@@ -396,18 +404,18 @@ void PreWarpSpec(
     if (pkcnt > 1) {                /* get final peak */
       mag = spec[2*(size/2)];
       slope = ((MYFLT) (mag - pkOld) / pkcnt);
-      env[size/2] = mag;
+      csound->dsputil_env[size / 2] = mag;
       pkcnt--;
       for (j = 1; j <= pkcnt; j++) {
-        env[size/2 - pkcnt + j - 1] = pkOld + slope * j;
+        csound->dsputil_env[size / 2 - pkcnt + j - 1] = pkOld + slope * j;
       }
     }
 
     for (i = 0; i < someof(size); i++) {  /* warp spectral env.*/
       j = (long)((MYFLT) i * warpFactor);
       mag = spec[2*i];
-      if ((j < someof(size)) && (env[i] != FL(0.0)))
-        spec[2*i] *= env[j]/env[i];
+      if ((j < someof(size)) && (csound->dsputil_env[i] != FL(0.0)))
+        spec[2 * i] *= csound->dsputil_env[j] / csound->dsputil_env[i];
       else
         spec[2*i] = FL(0.0);
     }

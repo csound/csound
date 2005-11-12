@@ -119,7 +119,7 @@ int pvset(CSOUND *csound, PVOC *p)
     /* NB: HANNING */
     for (i=0; i< pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
-    MakeSinc();                         /* sinctab is same for all instances */
+    MakeSinc(csound);                   /* sinctab is same for all instances */
 
     return OK;
 }
@@ -173,12 +173,12 @@ int pvoc(CSOUND *csound, PVOC *p)
 
     if (specwp > 0)
       /* RWD: THIS CAUSED MASSIVE MEMORY ERROR, BUT DOESN'T WORK ANYWAY */
-      PreWarpSpec(buf, asize, pex);
+      PreWarpSpec(csound, buf, asize, pex);
 
     Polar2Real_PVOC(csound, buf, size);
 
     if (pex != FL(1.0))
-      UDSample(buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
+      UDSample(csound, buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
                buf2, size, buf2Size, pex);
     else
       CopySamps(buf + (int) ((size - buf2Size) >> 1), buf2, buf2Size);
