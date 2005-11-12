@@ -62,10 +62,6 @@ void scatterArgs(const std::string buffer, std::vector<std::string> &args, std::
     if (last == std::string::npos) {
       args.push_back(buffer.substr(first));   
       argv.push_back(const_cast<char *>(&args.back()[0]));
-      argv.push_back(0);
-      for (size_t i = 0; i < argv.size(); i++) {
-	printf("arg %d %s\n", (i+1), const_cast<const char *>(argv[i]));
-      }
       return;
     } else {
       args.push_back(buffer.substr(first, last - first));   

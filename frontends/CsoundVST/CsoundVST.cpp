@@ -339,8 +339,8 @@ void CsoundVST::open()
       throw "No cppSound in CsoundVST::open()... check your Python environment.";
     }
   cppSound->SetHostData(this);
-  cppSound->SetMessageCallback(csound::System::message);
   csound::System::setUserdata(cppSound->getCsound());
+  cppSound->SetMessageCallback(csound::System::message);
   std::string filename_ = getFilename();
   if(filename_.length() > 0)
     {
@@ -367,7 +367,7 @@ void CsoundVST::reset()
 void CsoundVST::setProgram(long program)
 {
   csound::System::message("RECEIVED CsoundVST::setProgram(%d)...\n", program);
-  if(program < kNumPrograms)
+  if(program < kNumPrograms && program >= 0)
     {
       curProgram = program;
       setText(bank[curProgram].text);
