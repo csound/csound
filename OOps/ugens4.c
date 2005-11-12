@@ -191,8 +191,9 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
 }
 
 #define PLUKMIN 64
-static  short   rand15(void);
-static  short   rand16(void);
+
+static  short   rand15(CSOUND *);
+static  short   rand16(CSOUND *);
 
 int plukset(CSOUND *csound, PLUCK *p)
 {
@@ -216,7 +217,7 @@ int plukset(CSOUND *csound, PLUCK *p)
     ap = (MYFLT *)auxp;                         /* as MYFLT array   */
     if (*p->ifn == 0.0)
       for (n=npts; n--; )                       /* f0: fill w. rands */
-        *ap++ = (MYFLT)rand16() * DV32768;      /* IV - Jul 11 2002 */
+        *ap++ = (MYFLT) rand16(csound) * DV32768;
     else if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       fp = ftp->ftable;                         /* else from ftable  */
       phs = FL(0.0);
@@ -226,7 +227,7 @@ int plukset(CSOUND *csound, PLUCK *p)
         *ap++ = *(fp + iphs);
       }
     }
-    *ap = *(MYFLT *)auxp;                               /* last= copy of 1st */
+    *ap = *(MYFLT *)auxp;                       /* last = copy of 1st */
     p->npts = npts;
     /* tuned pitch convt */
     p->sicps = (npts * FL(256.0) + FL(128.0)) * csound->onedsr;
@@ -318,7 +319,7 @@ int pluck(CSOUND *csound, PLUCK *p)
           break;
         case 2:
           do {                  /* stretched avrging */
-            if (rand15() < p->thresh1) {
+            if (rand15(csound) < p->thresh1) {
               newval = (*fp + preval) / FL(2.0);
               preval = *fp;
               *fp++ = newval;
@@ -328,7 +329,7 @@ int pluck(CSOUND *csound, PLUCK *p)
           break;
         case 3:
           do {                  /* simple drum */
-            if (rand15() < p->thresh1)
+            if (rand15(csound) < p->thresh1)
               newval = -(*fp + preval) / FL(2.0);
             else newval = (*fp + preval) / FL(2.0);
             preval = *fp;
@@ -337,8 +338,8 @@ int pluck(CSOUND *csound, PLUCK *p)
           break;
         case 4:
           do {                  /* stretched drum */
-            if (rand15() < p->thresh2) {
-              if (rand15() < p->thresh1)
+            if (rand15(csound) < p->thresh2) {
+              if (rand15(csound) < p->thresh1)
                 newval = -(*fp + preval) / FL(2.0);
               else newval = (*fp + preval) / FL(2.0);
               preval = *fp;
@@ -367,26 +368,24 @@ int pluck(CSOUND *csound, PLUCK *p)
     return OK;
 }
 
-#define RNDMUL  15625L
-#define MASK16   0xFFFFL
-#define MASK15   0x7FFFL
+#define RNDMUL  15625
+#define MASK16  0xFFFF
+#define MASK15  0x7FFF
 
-static short rand16(void)
-{         /* quick generate a random short between -32768 and 32767 */
-    static long rand = 1000;
-    rand *= RNDMUL;
-    rand += 1L;
-    rand &= MASK16;
-    return (short)rand;
+/* quick generate a random short between -32768 and 32767 */
+
+static short rand16(CSOUND *csound)
+{
+    csound->ugens4_rand_16 = (csound->ugens4_rand_16 * RNDMUL + 1) & MASK16;
+    return (short) ((int16_t) csound->ugens4_rand_16);
 }
 
-static short rand15(void)
-{              /* quick generate a random short between 0 and 32767 */
-    static long rand = 1000;
-    rand *= RNDMUL;
-    rand += 1L;
-    rand &= MASK15;
-    return (short)rand;
+/* quick generate a random short between 0 and 32767 */
+
+static short rand15(CSOUND *csound)
+{
+    csound->ugens4_rand_15 = (csound->ugens4_rand_15 * RNDMUL + 1) & MASK15;
+    return (short) csound->ugens4_rand_15;
 }
 
 /*=========================================================================
@@ -466,7 +465,7 @@ int rndset(CSOUND *csound, RAND *p)
 int krand(CSOUND *csound, RAND *p)
 {
     if (p->new) {
-      long r = randint31(p->rand);         /* result is a 31-bit value */
+      long r = randint31(p->rand);      /* result is a 31-bit value */
       p->rand = r;
       *p->ar = *p->base +
         dv2_31 * (MYFLT)((long)((unsigned)r<<1)-BIPOLAR) * *p->xamp;

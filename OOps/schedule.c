@@ -35,8 +35,6 @@ typedef struct rsched {
   struct rsched *next;
 } RSCHED;
 
-static RSCHED *kicked = NULL;
-
 /******************************************************************************/
 /* triginstr - Ignite instrument events at k-rate from orchestra.             */
 /* August 1999 by rasmus ekman.                                               */
@@ -77,9 +75,10 @@ static void queue_event(CSOUND *csound,
 /* ********** Need to add turnoff stuff *************** */
 int schedule(CSOUND *csound, SCHED *p)
 {
-    RSCHED *rr = kicked;        /* First ensure any stragglers die */
-    RSCHED *ss = NULL;          /* really incase of reinit */
+    RSCHED *rr = (RSCHED*) csound->schedule_kicked;
+    RSCHED *ss = NULL;
     int which;
+    /* First ensure any stragglers die really in case of reinit */
     while (rr!=NULL) {
       if (rr->parent==p) {
         xturnoff(csound, rr->kicked);
@@ -87,7 +86,8 @@ int schedule(CSOUND *csound, SCHED *p)
           RSCHED *tt = rr->next;
           free(rr);
           rr = tt;
-          if (ss==NULL) kicked = rr;
+          if (ss == NULL)
+            csound->schedule_kicked = (void*) rr;
         }
       }
       else {
@@ -125,8 +125,9 @@ int schedule(CSOUND *csound, SCHED *p)
                                  dur, p->INOCOUNT - 3, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
-          rr->parent = p; rr->kicked = p->kicked; rr->next = kicked;
-          kicked = rr;
+          rr->parent = p; rr->kicked = p->kicked;
+          rr->next = (RSCHED*) csound->schedule_kicked;
+          csound->schedule_kicked = (void*) rr;
         }
       }
       else
@@ -143,14 +144,15 @@ int schedwatch(CSOUND *csound, SCHED *p)
       if (p->kicked==NULL) return OK;
       xturnoff(csound, p->kicked);
       {
-        RSCHED *rr = kicked;
+        RSCHED *rr = (RSCHED*) csound->schedule_kicked;
         RSCHED *ss = NULL;
         while (rr!=NULL) {
           if (rr->parent==p) {
             RSCHED *tt = rr->next;
             free(rr);
             rr = tt;
-            if (ss==NULL) kicked = rr;
+            if (ss == NULL)
+              csound->schedule_kicked = (void*) rr;
           }
           else {
             ss = rr; rr = rr->next;
@@ -201,8 +203,9 @@ int kschedule(CSOUND *csound, WSCHED *p)
                                  dur, p->INOCOUNT - 4, p->argums, p->midi);
         if (p->midi) {
           rr = (RSCHED*) malloc(sizeof(RSCHED));
-          rr->parent = p; rr->kicked = p->kicked; rr->next = kicked;
-          kicked = rr;
+          rr->parent = p; rr->kicked = p->kicked;
+          rr->next = (RSCHED*) csound->schedule_kicked;
+          csound->schedule_kicked = (void*) rr;
         }
       }
       else
@@ -215,14 +218,15 @@ int kschedule(CSOUND *csound, WSCHED *p)
       if (p->kicked==NULL) return OK;
       xturnoff(csound, p->kicked);
       {
-        RSCHED *rr = kicked;
+        RSCHED *rr = (RSCHED*) csound->schedule_kicked;
         RSCHED *ss = NULL;
         while (rr!=NULL) {
           if (rr->parent==p) {
             RSCHED *tt = rr->next;
             free(rr);
             rr = tt;
-            if (ss==NULL) kicked = rr;
+            if (ss == NULL)
+              csound->schedule_kicked = (void*) rr;
           }
           else {
             ss = rr; rr = rr->next;

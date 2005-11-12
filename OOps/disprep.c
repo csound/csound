@@ -34,14 +34,6 @@
 extern double hypot(double, double);
 #endif
 
-static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
-
-void disprepRESET(CSOUND *csound)
-{
-    if (fftcoefs) mfree(csound, fftcoefs);
-    fftcoefs = NULL;
-}
-
 int printv(CSOUND *csound, PRINTV *p)
 {
     int    nargs = p->INOCOUNT;
@@ -213,32 +205,35 @@ int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
     if (step_size <= 0) {
       return csound->InitError(csound, Str("illegal iprd"));
     }
-/*     if (inerrcnt) */
-/*       return; */
+ /* if (inerrcnt) */
+ /*   return; */
     hanning = (int)*p->ihann;
     p->dbout   = (int)*p->idbout;
     p->overlap = window_size - step_size;
     if (window_size != p->windsize
-        || hanning != p->hanning) {              /* if windowing has changed:  */
+        || hanning != p->hanning) {             /* if windowing has changed:  */
       long auxsiz;
       MYFLT *hWin;
-      p->windsize = window_size;                   /* set new parameter values */
+      p->windsize = window_size;                /* set new parameter values */
       p->hanning = hanning;
       p->bufp    = p->sampbuf;
       p->endp    = p->bufp + window_size;
-      p->overN    = FL(1.0)/(*p->inpts);
+      p->overN   = FL(1.0)/(*p->inpts);
       p->ncoefs  = window_size >>1;
       auxsiz = (window_size/2 + 1) * sizeof(MYFLT);  /* size for half window */
       csound->AuxAlloc(csound, (long)auxsiz, &p->auxch); /* alloc or realloc */
       hWin = (MYFLT *) p->auxch.auxp;
       FillHalfWin(hWin, window_size,
-                  FL(1.0), hanning);  /* fill with proper values */
-      if (fftcoefs == NULL)           /* room for WINDMAX*2 floats (fft size) */
-        fftcoefs = (MYFLT *) mmalloc(csound, (long)WINDMAX * 2 * sizeof(MYFLT));
+                  FL(1.0), hanning);            /* fill with proper values */
+      if (csound->disprep_fftcoefs == NULL) {
+        /* room for WINDMAX*2 floats (fft size) */
+        csound->disprep_fftcoefs = (MYFLT*) mmalloc(csound, WINDMAX * 2
+                                                            * sizeof(MYFLT));
+      }
       sprintf(strmsg, Str("instr %d, signal %s, fft (%s):"),
                       (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0],
                       p->dbout ? Str("db") : Str("mag"));
-      dispset(csound, &p->dwindow, fftcoefs, p->ncoefs, strmsg,
+      dispset(csound, &p->dwindow, csound->disprep_fftcoefs, p->ncoefs, strmsg,
                       (int) *p->iwtflg, Str("fft"));
     }
     return OK;
@@ -319,13 +314,14 @@ int kdspfft(CSOUND *csound, DSPFFT *p)
       if (bufp >= endp) {           /* when full, do fft:     */
         MYFLT *tp, *tplim;
         MYFLT *hWin = (MYFLT *) p->auxch.auxp;
-        d_fft(csound, p->sampbuf,fftcoefs,p->windsize,hWin,p->dbout);
-        tp = fftcoefs;
+        d_fft(csound, p->sampbuf, csound->disprep_fftcoefs,
+              p->windsize, hWin, p->dbout);
+        tp = csound->disprep_fftcoefs;
         tplim = tp + p->ncoefs;
         do {
-          *tp *= p->overN;          /* scale 1/N */
+          *tp *= p->overN;            /* scale 1/N */
         } while (++tp < tplim);
-        display(csound, &p->dwindow);           /* & display */
+        display(csound, &p->dwindow); /* & display */
         if (p->overlap > 0) {
           bufp = p->sampbuf;
           tp   = endp - p->overlap;
@@ -358,13 +354,14 @@ int dspfft(CSOUND *csound, DSPFFT *p)
         if (bufp >= endp) {               /* when full, do fft:     */
           MYFLT *tp, *tplim;
           MYFLT *hWin = (MYFLT *) p->auxch.auxp;
-          d_fft(csound, p->sampbuf,fftcoefs,p->windsize,hWin,p->dbout);
-          tp = fftcoefs;
+          d_fft(csound, p->sampbuf, csound->disprep_fftcoefs,
+                p->windsize, hWin, p->dbout);
+          tp = csound->disprep_fftcoefs;
           tplim = tp + p->ncoefs;
           do {
-            *tp *= p->overN;                /* scale 1/N */
+            *tp *= p->overN;              /* scale 1/N */
           } while (++tp < tplim);
-          display(csound, &p->dwindow);               /* & display */
+          display(csound, &p->dwindow);   /* & display */
           if (p->overlap > 0) {
             bufp = p->sampbuf;
             tp   = endp - p->overlap;
@@ -501,19 +498,24 @@ int tempeset(CSOUND *csound, TEMPEST *p)
 }
 
 #define NMULTS 5
-static MYFLT lenmults[NMULTS] = { FL(3.0), FL(2.0), FL(1.0), FL(0.5), FL(0.333)};
-static MYFLT lenfracs[NMULTS*2] = { FL(0.30), FL(0.3667), FL(0.45), FL(0.55),
-                                    FL(0.92), FL(1.08), FL(1.88), FL(2.12),
-                                    FL(2.85), FL(3.15) };
+
+static const MYFLT lenmults[NMULTS] = {
+    FL(3.0), FL(2.0), FL(1.0), FL(0.5), FL(0.333)
+};
+
+static const MYFLT lenfracs[NMULTS*2] = {
+    FL(0.30), FL(0.3667),   FL(0.45), FL(0.55),     FL(0.92), FL(1.08),
+    FL(1.88), FL(2.12),     FL(2.85), FL(3.15)
+};
 
 int tempest(CSOUND *csound, TEMPEST *p)
 {
-    p->yt1 = p->coef0 * *p->kin + p->coef1 * p->yt1;  /* get lo-pass of kinput */
+    p->yt1 = p->coef0 * *p->kin + p->coef1 * p->yt1; /* get lo-pass of kinput */
 
     if (p->auxch.auxp==NULL) { /* RWD fix */
       return csound->PerfError(csound, Str("tempest: not initialised"));
     }
-    if (!(--p->countdown)) {                          /* then on countdown:    */
+    if (!(--p->countdown)) {                        /* then on countdown:    */
       MYFLT *memp;
       MYFLT kin, expect, *xcur = p->xcur;           /* xcur from prv pass    */
       MYFLT lamtot = FL(0.0), weightot = FL(0.0);
@@ -535,26 +537,27 @@ int tempest(CSOUND *csound, TEMPEST *p)
         wrap = hcur - p->hbeg;
         memp = p->stmemp;
         while (hcur < hend)                   /* now lineariz & envlp hbuf */
-          *memp++ = *hcur++ * *tblp++;      /*  into st_mem buf          */
+          *memp++ = *hcur++ * *tblp++;        /*  into st_mem buf          */
         for (hcur=p->hbeg; wrap--; )
           *memp++ = *hcur++ * *tblp++;
       }
-      if (p->yt1 > p->thresh            /* if lo-pass of kinput now significant */
-          && kin > p->fwdmask) {          /*    & kin > masking due to prev kin */
+      if (p->yt1 > p->thresh        /* if lo-pass of kinput now significant */
+          && kin > p->fwdmask) {    /*    & kin > masking due to prev kin */
         MYFLT sumraw, sumsqr;
         long lambda, minlam, maxlam;
         int  terms, nn, npts = p->npts;
         MYFLT mult, crossprods, RMScross, RMStot, unilam, rd;
         MYFLT *xend = p->xend;
-        /*                MYFLT *xscale = p->xscale; */
-        MYFLT *mults, *fracs, *mulp;
+   /*   MYFLT *xscale = p->xscale;   */
+        const MYFLT *mults, *fracs;
+        MYFLT *mulp;
         short minlen, maxlen, *lenp, *endlens;
 
         for (memp=p->stmemp,nn=npts,sumsqr=FL(0.0); nn--; memp++)
           sumsqr += *memp * *memp;
         RMStot = (MYFLT)sqrt(sumsqr/npts);
-        /*        csound->Message(csound, "RMStot = %6.1f\n", RMStot);    */
-        mults = lenmults;                       /* use the static lentables  */
+   /*   csound->Message(csound, "RMStot = %6.1f\n", RMStot);   */
+        mults = lenmults;                     /* use the static lentables  */
         fracs = lenfracs;
         mulp = p->lmults;
         lenp = p->lambdas;
@@ -571,7 +574,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
               *mulp++ = mult;             /*   & their unit multipliers */
             } while (minlen <= maxlen);
         } while (--nn);
-        endlens = lenp;                         /* now for these lambda lens: */
+        endlens = lenp;                       /* now for these lambda lens: */
         for (lenp=p->lambdas,mulp=p->lmults; lenp < endlens; ) {
           lambda = *lenp++;
           mult = *mulp++;

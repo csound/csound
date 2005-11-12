@@ -42,7 +42,7 @@ void    FetchIn(float *, MYFLT *, long, MYFLT);
 void    ApplyHalfWin(MYFLT *, MYFLT *, long);
 void    addToCircBuf(MYFLT *, MYFLT *, long, long, long);
 void    writeClrFromCircBuf(MYFLT *, MYFLT *, long, long, long);
-void    UDSample(MYFLT *, MYFLT, MYFLT *, long, long, MYFLT);
-void    MakeSinc(void);
-void    PreWarpSpec(MYFLT *, long, MYFLT);
+void    UDSample(CSOUND *, MYFLT *, MYFLT, MYFLT *, long, long, MYFLT);
+void    MakeSinc(CSOUND *);
+void    PreWarpSpec(CSOUND *, MYFLT *, long, MYFLT);
 
