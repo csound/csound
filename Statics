@@ -1,22 +1,10 @@
 Engine/cfgvar.c:static  void    **global_cfg_db = NULL;
 
-InOut/winascii.c:static  char    *points = NULL;
-
 InOut/winEPS.c:static int   winPSinitialized = 0;
 InOut/winEPS.c:static int   psFileOk = 0;               /* Flag for ``psFile opened O.K.''  */
 InOut/winEPS.c:static FILE *psFile;
 InOut/winEPS.c:static char  ps_date[40];                /* Print time & date on every plot  */
 InOut/winEPS.c:static int   currentPage = 0;            /* Current page number              */
-
-OOps/disprep.c:static  MYFLT   *fftcoefs = NULL;     /* malloc for fourier coefs, mag or db */
-OOps/disprep.c:static MYFLT lenmults[NMULTS] = { FL(3.0), FL(2.0), FL(1.0), FL(0.5), FL(0.333)};
-OOps/disprep.c:static MYFLT lenfracs[NMULTS*2] = { FL(0.30), FL(0.3667), FL(0.45), FL(0.55),
-OOps/disprep.c:        mults = lenmults;                       /* use the static lentables  */
-
-OOps/dsputil.c:static MYFLT *sncTab = NULL;    /* point to our sin(x)/x lookup table */
-OOps/dsputil.c:static  MYFLT   *env = (MYFLT *)NULL;   /* Scratch buffer to hold 'envelope' */
-
-OOps/schedule.c:static RSCHED *kicked = NULL;
 
 Opcodes/fm4op.c:static int      FM_tabs_built = 0;
 Opcodes/fm4op.c:static MYFLT    FM4Op_gains[100];
@@ -24,8 +12,6 @@ Opcodes/fm4op.c:static MYFLT    FM4Op_susLevels[16];
 Opcodes/fm4op.c:static MYFLT    FM4Op_attTimes[32];
 
 Opcodes/locsig.c:static  LOCSIG  *locsigaddr;
-
-Opcodes/pitch.c:static MYFLT bicoefs[] =
 
 Opcodes/sfont.c:static SFBANK *soundFont;
 Opcodes/sfont.c:static SFBANK sfArray[MAX_SFONT];
@@ -41,8 +27,6 @@ Opcodes/singwave.c:static int step = 0;
 Opcodes/space.c:static SPACE    *spaceaddr;
 
 Opcodes/spectra.c:static MYFLT bicoefs[] =
-
-Opcodes/ugens7.c:static int hrngflg=0;
 
 SDIF/sdif.c:static char *error_string_array[] = {
 SDIF/sdif.c:    static int id;
@@ -66,11 +50,6 @@ Top/cscorfns.c:static void
 Top/csmodule.c:    static char errstr[ERR_STR_LEN];
 Top/csmodule.c:    static int err_filled = 0;
 Top/csmodule.c:    static int (*make_private_module_public) (NSModule module) = NULL;
-
-Top/dnoise_int.c:static int ok_enabled = FALSE;          /* TRUE if allow \r to mean OK button */
-Top/dnoise_int.c:    static Boolean dispFlag = FALSE;    /* to make it possible to type in
-Top/dnoise_int.c:    static Boolean forTesting = true;
-Top/dnoise_int.c:    static int  prevFormat =    POPUP_16;        /*set to default*/
 
 Top/scot.c:static char curline[MAXLINE+1]; /* current line of infile */
 Top/scot.c:static int inx,                 /* column # */
