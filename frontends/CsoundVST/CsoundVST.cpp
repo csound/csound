@@ -24,6 +24,18 @@
 #include "CsoundVstFltk.hpp"
 #include "System.hpp"
 
+static char *dupstr(const char *string)
+{
+  if (string == 0) {
+    return 0;
+  }
+  size_t len = std::strlen(string);
+  char *copy = (char *)std::malloc(len + 1);
+  std::strncpy(copy, string, len);
+  copy[len] = '\0';
+  return copy;
+}
+
 double CsoundVST::inputScale = 32767.0;
 double CsoundVST::outputScale = (1.0 / 32767.0);
 
@@ -705,7 +717,7 @@ long CsoundVST::setChunk(void* data, long byteSize, bool isPreset)
   long returnValue = 0;
   if(isPreset)
     {
-      bank[curProgram].text = strdup((const char *)data);
+      bank[curProgram].text = dupstr((const char *)data);
       setText(bank[curProgram].text);
       returnValue = byteSize;
     }
@@ -715,7 +727,7 @@ long CsoundVST::setChunk(void* data, long byteSize, bool isPreset)
       std::string inputBuffer = (const char *)data;
       std::istringstream stream(inputBuffer);
 #else
-      std::istringstream stream(strdup((const char *)data), byteSize);
+      std::istringstream stream(dupstr((const char *)data), byteSize);
 #endif
       std::string buffer;
       stream >> buffer;
