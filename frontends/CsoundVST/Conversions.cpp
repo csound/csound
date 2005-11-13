@@ -555,15 +555,20 @@ namespace csound
                 for(std::map<std::string, double>::const_iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
                 {
                         stream << it->first << " = " << it->second << "\r\n";
-//#ifdef WIN32
-//                      {
-//                              char buffer[0xff];
-//                              sprintf(buffer, "%s = %f\n", it->first.c_str(), it->second);
-//                              OutputDebugStringA(buffer);
-//                      }
-//#endif
                 }
                 return stream.str();
         }
+
+  char *Conversions::dupstr(const char *string)
+  {
+    if (string == 0) {
+      return 0;
+    }
+    size_t len = std::strlen(string);
+    char *copy = (char *)std::malloc(len + 1);
+    std::strncpy(copy, string, len);
+    copy[len] = '\0';
+    return copy;
+  }
 
 }
