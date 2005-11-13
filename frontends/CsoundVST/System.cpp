@@ -600,9 +600,9 @@ namespace csound
     directory.erase();
     file.erase();
     extension.erase();
-    char *dirTemp = strdup(pathname.c_str());
+    char *dirTemp = Conversions::dupstr(pathname.c_str());
     directory = dirname(dirTemp);
-    char *fileTemp = strdup(pathname.c_str());
+    char *fileTemp = Conversions.dupstr(pathname.c_str());
 #ifndef MACOSX
     file = basename(fileTemp);
 #else

@@ -139,6 +139,11 @@ namespace csound
      * the pitch-class set number (sum of powers of 2 by pitch-class).
      */
     static std::string pitchClassSetToName(double pitchClassSet);
+    /**
+     * Return a new copy of a "C" string allocated on the heap.
+     * The user is responsible for freeing the copy.
+     */
+    static char *dupstr(const char *string);
   };
 }
 
