@@ -61,9 +61,6 @@
 #define PHASE_INTERP 3
 #define XALL
 
-/* Window to be applied at external force */
-static MYFLT *ewin = NULL;
-
 static void unquote(char *dst, char *src)
 {
     if (src[0] == '"') {
@@ -155,38 +152,70 @@ struct scsnx_elem {
     struct scsnx_elem   *next;
 };
 
-static struct scsnx_elem *scsnx_list = NULL;
-
-/* add to list */
-static void listadd(PSCSNUX *p)
+/* remove from list */
+static int listrm(CSOUND *csound, PSCSNUX *p)
 {
-    struct scsnx_elem *i = scsnx_list;
-    while (i != NULL) {
-      if (i->id==p->id) {
-        i->p = p;               /* Reuse the space */
-        return;
+    STDOPCOD_GLOBALS  *pp = p->pp;
+    struct scsnx_elem *q = NULL;
+    struct scsnx_elem *i = (struct scsnx_elem *) pp->scsnx_list;
+
+    csound->Message(csound, "remove from scsnx_list\n");
+    while (1) {
+      if (i == NULL) {
+        /* should not call csound->Die() here */
+        csound->ErrorMsg(csound,
+                         Str("Eek ... scan synthesis id was not found"));
+        return NOTOK;
       }
+      if (i->p == p)
+        break;
+      q = i;
       i = i->next;
     }
-    i = (struct scsnx_elem *)malloc(sizeof(struct scsnx_elem));
-    i->p = p;
+    if (q != NULL)
+      q->next = i->next;
+    else
+      pp->scsnx_list = (void*) i->next;
+    csound->Free(csound, i);
+    return OK;
+}
+
+/* add to list */
+static void listadd(STDOPCOD_GLOBALS *pp, PSCSNUX *p)
+{
+    CSOUND  *csound = pp->csound;
+    struct scsnx_elem *i = (struct scsnx_elem *) pp->scsnx_list;
+
+    for ( ; i != NULL; i = i->next) {
+      if (i->id == p->id)
+        csound->Die(csound, Str("xscanu: id %d is already in use"), p->id);
+    }
+    i = (struct scsnx_elem *) csound->Malloc(csound, sizeof(struct scsnx_elem));
     i->id = p->id;
-    i->next = scsnx_list;
-    scsnx_list = i;
+    i->p = p;
+    i->next = (struct scsnx_elem *) pp->scsnx_list;
+    pp->scsnx_list = (void*) i;
+    csound->RegisterDeinitCallback(csound, p, (int (*)(CSOUND*, void*)) listrm);
 }
 
 /* Return from list according to id */
-static PSCSNUX *listget(CSOUND *csound, int id)
+static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
 {
-    struct scsnx_elem *i = scsnx_list;
+    STDOPCOD_GLOBALS  *pp;
+    struct scsnx_elem *i;
+
+    pp = (STDOPCOD_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    i = (struct scsnx_elem *) pp->scsnx_list;
     if (i == NULL) {
-      csound->Die(csound, Str("scans: No scan synthesis net specified"));
+      csound->Die(csound, Str("xscans: No scan synthesis net specified"));
     }
-    while (i->id != id) {
+    while (1) {
+      if (i->id == id)
+        break;
       i = i->next;
-      if (i == NULL) {
+      if (i == NULL)
         csound->Die(csound, Str("Eek ... scan synthesis id was not found"));
-      }
     }
     return i->p;
 }
@@ -205,9 +234,10 @@ static PSCSNUX *listget(CSOUND *csound, int id)
 static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 {
     /* Get parameter table pointers and check lengths */
-    FUNC *f;
-    int len;
-    int i;
+    STDOPCOD_GLOBALS  *pp;
+    FUNC    *f;
+    int     len;
+    int     i;
 
     /* Mass */
     if ((f = csound->FTFind(csound, p->i_m)) == NULL) {
@@ -393,35 +423,36 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 
     /* Setup display window */
     if (*p->i_disp) {
-      p->win = calloc(1, sizeof(WINDAT));
-      csound->dispset(csound, (WINDAT*)p->win, p->x1, len,
+      p->win = csound->Calloc(csound, sizeof(WINDAT));
+      csound->dispset(csound, (WINDAT*) p->win, p->x1, len,
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
+    pp = stdopcod_getGlobals(csound, &(p->pp));
+
     /* Make external force window if we haven't so far */
-    if (ewin == NULL) {
+    if (pp->ewinx == NULL) {
       MYFLT arg =  PI_F/(MYFLT)(len-1);
-      ewin = (MYFLT *)malloc(len * sizeof(MYFLT));
+      pp->ewinx = (MYFLT*) csound->Malloc(csound, len * sizeof(MYFLT));
       for (i = 0 ; i != len-1 ; i++)
-        ewin[i] = (MYFLT)sqrt(sin((double)arg*i));
-      ewin[i] = FL(0.0); /* You get NaN otherwise */
+        pp->ewinx[i] = (MYFLT)sqrt(sin((double)arg*i));
+      pp->ewinx[i] = FL(0.0); /* You get NaN otherwise */
     }
 
     /* Throw data into list or use table */
-    if (*p->i_id < FL(0.0)) {
-      MYFLT id = - *p->i_id;
-      FUNC *f  = csound->FTFind(csound, &id);
-      if (f == NULL) {
+    p->id = (int) *p->i_id;
+    if (p->id < 0) {
+      MYFLT *f;
+      int   fLen;
+      f = csound->GetTable(csound, -(p->id), &fLen);
+      if (fLen < len) {
         return csound->InitError(csound,
-                                 Str("scanux: Could not find (id) table"));
+                                 Str("xscanu: invalid id table"));
       }
-      p->out = f->ftable;
-      p->id  = (int)*p->i_id;
-
+      p->out = f;
     }
     else {
-      p->id  = (int)*p->i_id;
-      listadd(p);
+      listadd(pp, p);
     }
 
     return OK;
@@ -435,11 +466,14 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 
 static int scsnux(CSOUND *csound, PSCSNUX *p)
 {
-    int n;
-    int len    = p->len;
-    long exti  = p->exti;
-    long idx   = p->idx;
-    MYFLT rate = p->rate;
+    STDOPCOD_GLOBALS  *pp;
+    int     n;
+    int     len = p->len;
+    long    exti = p->exti;
+    long    idx = p->idx;
+    MYFLT   rate = p->rate;
+
+    pp = stdopcod_getGlobals(csound, &(p->pp));
 
     for (n = 0 ; n != csound->ksmps ; n++) {
 
@@ -454,7 +488,7 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
         for (i = 0 ; i != len ; i++) {
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
-          p->v[i] += p->ext[exti++] * ewin[i];
+          p->v[i] += p->ext[exti++] * pp->ewinx[i];
           if (exti >= len) exti = 0L;
                                 /* And push feedback */
           scsnux_hammer(csound, p, *p->k_x, *p->k_y);

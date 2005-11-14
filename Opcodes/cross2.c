@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include "ptrigtbl.h"
 #include "fhtfun.h"
 #include <math.h>

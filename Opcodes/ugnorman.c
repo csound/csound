@@ -68,17 +68,15 @@ kamp            ATSinterpread   kfreq
       1270.0, 1480.0, 1720.0, 2000.0, 2320.0, 2700.0, 3150.0, 3700.0,       \
       4400.0, 5300.0, 6400.0, 7700.0, 9500.0, 12000.0, 15500.0, 20000.0 }
 
-typedef struct {
-    ATSBUFREAD  *atsbufreadaddr;    /* must be the first structure member */
-    int         swapped_warning;
-} ATS_GLOBALS;
-
 /* static variables used for atsbufread and atsbufreadnz */
 static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound, ATSBUFREAD ***p)
 {
-    if (*p == NULL)
-      *p = (ATSBUFREAD**) csound->QueryGlobalVariableNoCheck(csound,
-                                                             "ugNorman_");
+    if (*p == NULL) {
+      STDOPCOD_GLOBALS  *pp;
+      pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,
+                                                                  "stdOp_Env");
+      *p = &(pp->atsbufreadaddr);
+    }
     return *p;
 }
 
@@ -107,10 +105,10 @@ static CS_PURE double bswap(const double *swap_me)
 static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                                         void *name_arg)
 {
-    char        opname[64];
-    ATS_GLOBALS *pp;
-    ATSSTRUCT   *atsh;
-    int         i;
+    char              opname[64];
+    STDOPCOD_GLOBALS  *pp;
+    ATSSTRUCT         *atsh;
+    int               i;
 
     strcpy(opname, csound->GetOpcodeName(p));   /* opcode name */
     for (i = 0; opname[i] != '\0'; i++)
@@ -139,7 +137,8 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                                 opname, fname);
       return -1;
     }
-    pp = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,
+                                                                "stdOp_Env");
     if (pp->swapped_warning)
       return 1;
     csound->Warning(csound,
@@ -808,7 +807,6 @@ static void FetchADDNZbands(ATSADDNZ *p, double *buf, MYFLT position)
 static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 {
     char        atsfilname[MAXNAME];
-    ATS_GLOBALS *pp;
     ATSSTRUCT   *atsh;
     int         i, type, n_partials;
 
@@ -954,7 +952,6 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     p->oscphase[24] = 0.0;
 
     /* initialise band limited noise parameters */
-    pp = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
     for (i = 0; i < 25; i++) {
       randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]));
     }
@@ -1092,7 +1089,6 @@ static void fetchSINNOIpartials(ATSSINNOI *, MYFLT);
 static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 {
     char        atsfilname[MAXNAME];
-    ATS_GLOBALS *pp;
     ATSSTRUCT   *atsh;
     int         i, memsize, nzmemsize, type;
 
@@ -1203,7 +1199,6 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     p->nzmemsize = nzmemsize;
 
     /* initialise band limited noise parameters */
-    pp = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
     for (i = 0; i < (int) *p->iptls; i++) {
       randiats_setup(csound, FL(10.0), &(p->randinoise[i]));
     }
@@ -1628,11 +1623,11 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
     ATS_DATA_LOC  *buf;
     ATS_DATA_LOC  *buf2;
 
-    *(get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp))) = p;
-
-    if (p->auxch.auxp == NULL) {  /* RWD fix */
+    if (p->atsbufreadaddrp == NULL) {   /* RWD fix */
       return csound->PerfError(csound, Str("ATSBUFREAD: not initialised"));
     }
+
+    *(p->atsbufreadaddrp) = p;
 
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
@@ -1759,7 +1754,7 @@ static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
         (MYFLT) ((atsbufreadaddr->table[i]).amp +
                  frac * ((atsbufreadaddr->table[i + 1]).amp -
                          (atsbufreadaddr->table[i]).amp));
-    /* *p->kamp = (MYFLT) (atsbufreadaddr->table[i]).amp; */
+ /* *p->kamp = (MYFLT) (atsbufreadaddr->table[i]).amp; */
     return OK;
 }
 
@@ -1854,6 +1849,8 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     /* flag set to reduce the amount of warnings sent out */
     /* for time pointer out of range */
     p->prFlg = 1;               /* true */
+
+    get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp));
 
     return OK;
 }
@@ -1968,7 +1965,10 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
 
-    atsbufreadaddr = *(get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp)));
+    if (p->atsbufreadaddrp == NULL)
+      return csound->PerfError(csound, Str("ATSCROSS: not initialised"));
+
+    atsbufreadaddr = *(p->atsbufreadaddrp);
     if (atsbufreadaddr == NULL) {
       return csound->PerfError(csound,
                                Str("ATSCROSS: you must have an "
@@ -1976,10 +1976,8 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     }
 
     buf = p->buf;
-
-    /* ftp is a poiter to the ftable */
-    if (p->auxch.auxp == NULL || (ftp = p->ftp) == NULL)
-      return csound->PerfError(csound, Str("ATSCROSS: not initialised"));
+    /* ftp is a pointer to the ftable */
+    ftp = p->ftp;
 
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
@@ -2070,14 +2068,6 @@ static OENTRY localops[] = {
 
 int ugnorman_init_(CSOUND *csound)
 {
-    ATS_GLOBALS *p;
-
-    if (csound->CreateGlobalVariable(csound, "ugNorman_", sizeof(ATS_GLOBALS))
-        != 0)
-      csound->Die(csound, Str("ugnorman.c: error allocating globals"));
-    p = (ATS_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound, "ugNorman_");
-    p->atsbufreadaddr = NULL;
-
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }

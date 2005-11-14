@@ -20,8 +20,12 @@
    of this software for any purpose. It is provided "as is" without express or
    implied warranty.
 */
+
+#include "stdopcod.h"
+
 /* Data structure for updating opcode */
-typedef struct{
+
+typedef struct {
     OPDS        h;
     MYFLT       *i_init, *i_rate, *i_v, *i_m, *i_f, *i_c, *i_d;
     MYFLT       *k_m, *k_f, *k_c, *k_d, *i_l, *i_r, *k_x, *k_y;
@@ -38,10 +42,12 @@ typedef struct{
     long        idx, len, exti;
     int         id;
     void        *win;
+    STDOPCOD_GLOBALS  *pp;
 } PSCSNUX;
 
 /* Data structure for scanning opcode */
-typedef struct{
+
+typedef struct {
     OPDS        h;
     MYFLT       *a_out;
     MYFLT       *k_amp, *k_freq, *i_trj, *i_id;
@@ -53,7 +59,7 @@ typedef struct{
     PSCSNUX     *p;
 } PSCSNSX;
 
-typedef struct{
+typedef struct {
     OPDS        h;
     MYFLT       *k_pos, *k_vel;
     MYFLT       *i_id, *k_pamp, *k_vamp, *k_which;

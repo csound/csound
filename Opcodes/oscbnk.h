@@ -24,6 +24,8 @@
 #ifndef CSOUND_OSCBNK_H
 #define CSOUND_OSCBNK_H
 
+#include "stdopcod.h"
+
 /* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
 
 #define OSCBNK_PHSMAX   0x80000000UL    /* max. phase   */
@@ -199,7 +201,7 @@ typedef struct {
     MYFLT   *ftable;            /* table data (size + 1 floats)              */
 } VCO2_TABLE;
 
-typedef struct {
+struct VCO2_TABLE_ARRAY_ {
     int     ntabl;              /* number of tables                          */
     int     base_ftnum;         /* base ftable number (-1: none)             */
 #ifdef VCO2FT_USE_TABLE
@@ -208,7 +210,7 @@ typedef struct {
     MYFLT   *nparts;            /* number of partials list                   */
 #endif
     VCO2_TABLE  *tables;        /* array of table structures                 */
-} VCO2_TABLE_ARRAY;
+};
 
 typedef struct {
     OPDS    h;

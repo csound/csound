@@ -24,7 +24,7 @@
  * header file for all of the ATScsound functions by Alex Norman
  */
 
-#include "csdl.h"
+#include "stdopcod.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -155,7 +155,7 @@ typedef struct _atsaddnz {
     int     swapped;    /* indicates if the data file is byte swapped or not */
 } ATSADDNZ;
 
-typedef struct _atsbufread {
+struct _atsbufread {
     OPDS    h;
     MYFLT   *ktimpnt, *kfmod, *ifileno, *iptls;
     MYFLT   *iptloffset, *iptlincr;     /* optional arguments */
@@ -175,7 +175,7 @@ typedef struct _atsbufread {
     double  *datastart; /* pointer to the data (past the header) */
     ATSSTRUCT atshead;
     int     swapped;    /* indicates if the data file is byte swapped or not */
-} ATSBUFREAD;
+};
 
 typedef struct _atscross {
     OPDS    h;
