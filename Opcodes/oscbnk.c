@@ -25,18 +25,10 @@
 #include "oscbnk.h"
 #include <math.h>
 
-typedef struct {
-    unsigned long     oscbnk_seed;
-    long              rnd31i_seed;
-    int               denorm_seed;
-    int               vco2_nr_table_arrays;
-    VCO2_TABLE_ARRAY  **vco2_tables;
-} OSCBNK_GLOBALS;
-
-static inline OSCBNK_GLOBALS *get_oscbnk_globals(CSOUND *csound)
+static inline STDOPCOD_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 {
-    return (OSCBNK_GLOBALS*)
-               csound->QueryGlobalVariableNoCheck(csound, "_oscbnk_globals");
+    return ((STDOPCOD_GLOBALS*)
+            csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env"));
 }
 
 /* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
@@ -63,7 +55,7 @@ static void oscbnk_seedrand(CSOUND *csound, long *seed, MYFLT seedval)
 {
     *seed = (long) ((double) seedval + 0.5);
     if (*seed < 1L) {                   /* seed from current time */
-      OSCBNK_GLOBALS  *pp = get_oscbnk_globals(csound);
+      STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
       if (pp->oscbnk_seed > 0UL)
         pp->oscbnk_seed += 23UL;
       else
@@ -101,14 +93,14 @@ static MYFLT oscbnk_rnd_bipolar(long *seed, MYFLT rpow, int rmode)
 
     /* convert to floating point */
 
-    x = ((double) *seed - (double) 0x3FFFFFFFL) / (double) 0x3FFFFFFFL;
+    x = (double) (*seed - 0x3FFFFFFFL) * (1.0 / 1073741823.015625);
 
-    if (!(rmode)) return ((MYFLT) x);   /* uniform distribution */
+    if (!(rmode)) return ((MYFLT) x);           /* uniform distribution */
 
     /* change distribution */
 
-    s = (x < 0.0 ? FL(-1.0) : FL(1.0)); /* sign                 */
-    x = fabs(x);                               /* absolute value       */
+    s = (x < 0.0 ? FL(-1.0) : FL(1.0));         /* sign                 */
+    x = fabs(x);                                /* absolute value       */
     if (rmode == 2) x = fabs(1.0 - x);
     x = pow(x, (double) rpow);
     if (rmode == 2) x = 1.0 - x;
@@ -1027,7 +1019,7 @@ static int rnd31i(CSOUND *csound, RND31 *p)
 
     /* initialise seed */
     if (p->rnd31i_seed == NULL) {
-      OSCBNK_GLOBALS  *pp = get_oscbnk_globals(csound);
+      STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
       p->rnd31i_seed = &(pp->rnd31i_seed);
     }
     if (*(p->iseed) < FL(0.5)) {    /* seed from current time       */
@@ -1049,7 +1041,7 @@ static int rnd31k(CSOUND *csound, RND31 *p)
     MYFLT rpow;
     int   rmode;
 
-    if ((p->seed < 1L) || (p->seed > 0x7FFFFFFEL)) {
+    if (!p->seed) {
       return csound->PerfError(csound, Str("rnd31: not initialised"));
     }
 
@@ -1076,7 +1068,7 @@ static int rnd31a(CSOUND *csound, RND31 *p)
     MYFLT   scl, *out, rpow;
     int     rmode, nn;
 
-    if ((p->seed < 1L) || (p->seed > 0x7FFFFFFEL)) {
+    if (!p->seed) {
       return csound->PerfError(csound, Str("rnd31: not initialised"));
     }
 
@@ -1086,10 +1078,10 @@ static int rnd31a(CSOUND *csound, RND31 *p)
     rpow = *(p->rpow);
     if ((rpow == FL(0.0)) || (rpow == FL(-1.0)) || (rpow == FL(1.0))) {
       /* IV - Jan 30 2003: optimised code for uniform distribution */
-      scl *= (FL(1.0) / (MYFLT) 0x3FFFFFFFL);
+      scl *= (MYFLT) (1.0 / 1073741823.015625);
       do {
         p->seed = oscbnk_rand31(p->seed);
-        *(out++) = scl * ((MYFLT) p->seed - (MYFLT) 0x3FFFFFFFL);
+        *(out++) = scl * (MYFLT) (p->seed - 0x3FFFFFFFL);
       } while (--nn);
       return OK;
     }
@@ -1443,8 +1435,8 @@ typedef struct {
 
 static void vco2_delete_table_array(CSOUND *csound, int w)
 {
-    OSCBNK_GLOBALS  *pp = get_oscbnk_globals(csound);
-    int             j;
+    STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
+    int               j;
 
     /* table array does not exist: nothing to do */
     if (pp->vco2_tables == (VCO2_TABLE_ARRAY**) NULL ||
@@ -1597,11 +1589,11 @@ static int vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 static int vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
                               VCO2_TABLE_PARAMS *tp)
 {
-    OSCBNK_GLOBALS  *pp = get_oscbnk_globals(csound);
-    int             i, npart, ntables;
-    double          npart_f;
-    VCO2_TABLE_ARRAY    *tables;
-    VCO2_TABLE_PARAMS   tp2;
+    STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
+    int               i, npart, ntables;
+    double            npart_f;
+    VCO2_TABLE_ARRAY  *tables;
+    VCO2_TABLE_PARAMS tp2;
 
     /* set default table parameters if not specified in tp */
     if (tp == NULL) {
@@ -1804,7 +1796,7 @@ static int vco2ftset(CSOUND *csound, VCO2FT *p)
     int     w;
 
     if (p->vco2_nr_table_arrays == NULL || p->vco2_tables == NULL) {
-      OSCBNK_GLOBALS  *pp = get_oscbnk_globals(csound);
+      STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
       p->vco2_nr_table_arrays = &(pp->vco2_nr_table_arrays);
       p->vco2_tables = &(pp->vco2_tables);
     }
@@ -1897,7 +1889,7 @@ static int vco2set(CSOUND *csound, VCO2 *p)
     MYFLT   x;
 
     if (p->vco2_nr_table_arrays == NULL || p->vco2_tables == NULL) {
-      OSCBNK_GLOBALS  *pp = get_oscbnk_globals(csound);
+      STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
       p->vco2_nr_table_arrays = &(pp->vco2_nr_table_arrays);
       p->vco2_tables = &(pp->vco2_tables);
     }
@@ -2104,7 +2096,7 @@ static int denorms(CSOUND *csound, DENORMS *p)
 
     seed = p->seedptr;
     if (seed == NULL) {
-      OSCBNK_GLOBALS  *pp = get_oscbnk_globals(csound);
+      STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
       seed = p->seedptr = &(pp->denorm_seed);
     }
     do {
@@ -2516,11 +2508,6 @@ static const OENTRY localops[] = {
 
 int oscbnk_init_(CSOUND *csound)
 {
-    if (csound->AppendOpcodes(csound, &(localops[0]), -1) != 0) {
-      csound->ErrorMsg(csound, Str("oscbnk: error registering opcodes"));
-      return -1;
-    }
-    return (csound->CreateGlobalVariable(csound, "_oscbnk_globals",
-                                                 sizeof(OSCBNK_GLOBALS)));
+    return csound->AppendOpcodes(csound, &(localops[0]), -1);
 }
 

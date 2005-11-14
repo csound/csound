@@ -11,8 +11,6 @@ Opcodes/fm4op.c:static MYFLT    FM4Op_gains[100];
 Opcodes/fm4op.c:static MYFLT    FM4Op_susLevels[16];
 Opcodes/fm4op.c:static MYFLT    FM4Op_attTimes[32];
 
-Opcodes/locsig.c:static  LOCSIG  *locsigaddr;
-
 Opcodes/sfont.c:static SFBANK *soundFont;
 Opcodes/sfont.c:static SFBANK sfArray[MAX_SFONT];
 Opcodes/sfont.c:static int currSFndx = 0;
@@ -23,8 +21,6 @@ Opcodes/sfont.c:static char *Gfname;
 Opcodes/sfont.c:static void
 
 Opcodes/singwave.c:static int step = 0;
-
-Opcodes/space.c:static SPACE    *spaceaddr;
 
 Opcodes/spectra.c:static MYFLT bicoefs[] =
 

@@ -32,11 +32,11 @@
 #include "soundio.h"
 #include <ctype.h>
 
-static int fout_open_file(FOUT_GLOBALS *pp, FILE **f,
-                                            const char *name, const char *mode)
+static int fout_open_file(STDOPCOD_GLOBALS *pp, FILE **f,
+                          const char *name, const char *mode)
 {
     CSOUND            *csound = pp->csound;
-    struct fileinTag  *p = (struct fileinTag*) pp->file_opened;
+    struct fileinTag  *p = pp->file_opened;
     void              *fd;
     int               i;
 
@@ -61,7 +61,7 @@ static int fout_open_file(FOUT_GLOBALS *pp, FILE **f,
       p = (struct fileinTag *) csound->ReAlloc(csound, pp->file_opened,
                                                        sizeof(struct fileinTag)
                                                        * pp->file_max);
-      pp->file_opened = (void*) p;
+      pp->file_opened = p;
       for (i = pp->file_num; i < pp->file_max; i++)
         memset(&(p[i]), 0, sizeof(struct fileinTag));
     }
@@ -77,8 +77,9 @@ static int fout_open_file(FOUT_GLOBALS *pp, FILE **f,
     return i;
 }
 
-static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
-                                               int write_mode, SF_INFO *sfinfo)
+static int fout_open_sndfile(STDOPCOD_GLOBALS *pp,
+                             SNDFILE **sf, const char *name,
+                             int write_mode, SF_INFO *sfinfo)
 {
     CSOUND            *csound = pp->csound;
     struct fileinTag  *p = pp->file_opened;
@@ -133,7 +134,7 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
       p = (struct fileinTag *) csound->ReAlloc(csound, pp->file_opened,
                                                        sizeof(struct fileinTag)
                                                        * pp->file_max);
-      pp->file_opened = (void*) p;
+      pp->file_opened = p;
       for (i = pp->file_num; i < pp->file_max; i++)
         memset(&(p[i]), 0, sizeof(struct fileinTag));
     }
@@ -152,11 +153,11 @@ static int fout_open_sndfile(FOUT_GLOBALS *pp, SNDFILE **sf, const char *name,
 
 static int outfile(CSOUND *csound, OUTFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     int   i, j, k;
 
     if (p->fp == NULL) {
-      FILE *fp = ((struct fileinTag*) pp->file_opened)[p->idx].raw;
+      FILE *fp = pp->file_opened[p->idx].raw;
       for (k = 0; k < csound->ksmps; k++) {
         for (j = 0; j < p->nargs; j++)
           fprintf(fp, "%g ", p->argums[j][k]);
@@ -209,7 +210,7 @@ static const int fout_format_table[50] = {
 
 static int outfile_set(CSOUND *csound, OUTFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     int     n;
     SF_INFO sfinfo;
 
@@ -236,12 +237,12 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
     else { /* file handle as argument */
       n = (int) MYFLT2LRND(*p->fname);
       if (n < 0 || n > pp->file_num ||
-          ((p->fp = ((struct fileinTag*) pp->file_opened)[n].file) == NULL &&
-           ((struct fileinTag*) pp->file_opened)[n].raw == NULL))
+          ((p->fp = pp->file_opened[n].file) == NULL &&
+           pp->file_opened[n].raw == NULL))
         csound->Die(csound, Str("fout: invalid file handle"));
       p->idx = n;
     }
-    if (((struct fileinTag*) pp->file_opened)[p->idx].do_scale)
+    if (pp->file_opened[p->idx].do_scale)
       p->scaleFac = csound->dbfs_to_float;
     else
       p->scaleFac = FL(1.0);
@@ -250,7 +251,7 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
 
 static int koutfile(CSOUND *csound, KOUTFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     int   i;
 
     for (i = 0; i < p->nargs; i++)
@@ -265,7 +266,7 @@ static int koutfile(CSOUND *csound, KOUTFILE *p)
 
 static int koutfile_set(CSOUND *csound, KOUTFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     int     n;
     SF_INFO sfinfo;
 
@@ -287,11 +288,11 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
     else { /* file handle argument */
       n = (int) MYFLT2LRND(*p->fname);
       if (n < 0 || n > pp->file_num ||
-          (p->fp = ((struct fileinTag*) pp->file_opened)[n].file) == NULL)
+          (p->fp = pp->file_opened[n].file) == NULL)
         csound->Die(csound, Str("foutk: invalid file handle"));
       p->idx = n;
     }
-    if (((struct fileinTag*) pp->file_opened)[p->idx].do_scale)
+    if (pp->file_opened[p->idx].do_scale)
       p->scaleFac = csound->dbfs_to_float;
     else
       p->scaleFac = FL(1.0);
@@ -306,7 +307,7 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
 static int fiopen(CSOUND *csound, FIOPEN *p)
 {                                       /* open a file and return its handle  */
     char    fname[FILENAME_MAX];        /* the handle is simply a stack index */
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     char    *omodes[] = {"w", "r", "wb", "rb"};
     FILE    *rfp;
     int     idx = (int) MYFLT2LRND(*p->iascii), n;
@@ -328,14 +329,14 @@ static int fiopen(CSOUND *csound, FIOPEN *p)
 
 static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     MYFLT   **args = p->argums;
     FILE    *rfil;
     int     j, n = (int) MYFLT2LRND(*p->ihandle);
 
     if (n < 0 || n > pp->file_num)
       csound->Die(csound, Str("fouti: invalid file handle"));
-    rfil = ((struct fileinTag*) pp->file_opened)[n].raw;
+    rfil = pp->file_opened[n].raw;
     if (rfil == NULL) csound->Die(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int) MYFLT2LRND(*p->iflag)) {
@@ -383,7 +384,7 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
 
 static int ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     if (p->h.insdshead->xtratim < 1)
       p->h.insdshead->xtratim = 1;
     p->counter =  csound->kcounter;
@@ -395,7 +396,7 @@ static int ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
 
 static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 {
-    FOUT_GLOBALS  *pp;
+    STDOPCOD_GLOBALS  *pp;
     MYFLT **args;
     FILE  *rfil;
     int   j, n;
@@ -403,12 +404,12 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     if (!p->h.insdshead->relesing || !p->done)
       return OK;
 
-    pp = fout_get_globals(csound, &(p->p));
+    pp = stdopcod_getGlobals(csound, &(p->p));
     args = p->argums;
     n = (int) MYFLT2LRND(*p->ihandle);
     if (n < 0 || n > pp->file_num)
       csound->Die(csound, Str("fouti: invalid file handle"));
-    rfil = ((struct fileinTag*) pp->file_opened)[n].raw;
+    rfil = pp->file_opened[n].raw;
     if (rfil == NULL)
       csound->Die(csound, Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
@@ -454,7 +455,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 
 static int infile_set(CSOUND *csound, INFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     SF_INFO sfinfo;
     int     n = 0;
 
@@ -474,10 +475,10 @@ static int infile_set(CSOUND *csound, INFILE *p)
     else { /* file handle argument */
       n = (int) MYFLT2LRND(*p->fname);
       if (n < 0 || n > pp->file_num ||
-          (p->fp = ((struct fileinTag*) pp->file_opened)[n].file) == NULL)
+          (p->fp = pp->file_opened[n].file) == NULL)
         csound->Die(csound, Str("fin: invalid file handle"));
     }
-    if (((struct fileinTag*) pp->file_opened)[n].do_scale)
+    if (pp->file_opened[n].do_scale)
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);
@@ -489,7 +490,7 @@ static int infile_set(CSOUND *csound, INFILE *p)
 
 static int infile_act(CSOUND *csound, INFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     int   i, j = 0, k = 0, n;
 
     if (p->flag) {
@@ -517,7 +518,7 @@ static int infile_act(CSOUND *csound, INFILE *p)
 
 static int kinfile_set(CSOUND *csound, KINFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     SF_INFO sfinfo;
     int     n = 0;
 
@@ -537,10 +538,10 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
     else {                      /* file handle argument */
       n = (int) MYFLT2LRND(*p->fname);
       if (n < 0 || n > pp->file_num ||
-          (p->fp = ((struct fileinTag*) pp->file_opened)[n].file) == NULL)
+          (p->fp = pp->file_opened[n].file) == NULL)
         csound->Die(csound, Str("fink: invalid file handle"));
     }
-    if (((struct fileinTag*) pp->file_opened)[n].do_scale)
+    if (pp->file_opened[n].do_scale)
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);
@@ -552,7 +553,7 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
 
 static int kinfile(CSOUND *csound, KINFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     int   i, n;
 
     if (p->flag) {
@@ -577,7 +578,7 @@ static int kinfile(CSOUND *csound, KINFILE *p)
 
 static int i_infile(CSOUND *csound, I_INFILE *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     int   j, n, nargs;
     FILE  *fp = NULL;
     MYFLT **args = p->argums;
@@ -594,8 +595,7 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
     }
     else {/* file handle argument */
       n = (int) MYFLT2LRND(*p->fname);
-      if (n < 0 || n > pp->file_num ||
-          (fp = ((struct fileinTag*) pp->file_opened)[n].raw) == NULL)
+      if (n < 0 || n > pp->file_num || (fp = pp->file_opened[n].raw) == NULL)
         csound->Die(csound, Str("fini: invalid file handle"));
     }
 
@@ -693,7 +693,7 @@ static int clear(CSOUND *csound, CLEARS *p)
 
 static int fprintf_set(CSOUND *csound, FPRINTF *p)
 {
-    FOUT_GLOBALS  *pp = fout_get_globals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
     int   n;
     char  *sarg = (char*) p->fmt;
     char  *sdest = p->txtstring;
@@ -709,8 +709,7 @@ static int fprintf_set(CSOUND *csound, FPRINTF *p)
     }
     else { /* file handle as argument */
       n = (int) MYFLT2LRND(*p->fname);
-      if (n < 0 || n > pp->file_num ||
-          (p->fp = ((struct fileinTag*) pp->file_opened)[n].raw) == NULL)
+      if (n < 0 || n > pp->file_num || (p->fp = pp->file_opened[n].raw) == NULL)
         csound->Die(csound, Str("fout: invalid file handle"));
       p->idx = n;
     }
@@ -816,7 +815,7 @@ static int fprintf_set(CSOUND *csound, FPRINTF *p)
     return OK;
 }
 
-/* perform a sprintf-style format  -- matt ingalls */
+/* perform a sprintf-style format -- matt ingalls */
 static void sprints(char *outstring, char *fmt, MYFLT **kvals, long numVals)
 {
     char strseg[8192];
@@ -952,17 +951,6 @@ static OENTRY localops[] = {
 
 int fout_init_(CSOUND *csound)
 {
-    FOUT_GLOBALS  *p;
-
-    if (csound->CreateGlobalVariable(csound, "_fout_globals",
-                                             sizeof(FOUT_GLOBALS)) != 0)
-      csound->Die(csound, Str("fout: could not create global structure"));
-    p = csound->QueryGlobalVariableNoCheck(csound, "_fout_globals");
-    p->csound = csound;
-    p->file_opened = (struct fileinTag*) NULL;
-    p->file_num = -1;
-    p->buf = (MYFLT*) NULL;
-
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
 }

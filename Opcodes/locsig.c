@@ -33,11 +33,10 @@
 #include "locsig.h"
 #include <math.h>
 
-static  LOCSIG  *locsigaddr;
-
 static int locsigset(CSOUND *csound, LOCSIG *p)
 {
-    int outcount=p->OUTOCOUNT;
+    STDOPCOD_GLOBALS  *pp;
+    int     outcount = p->OUTOCOUNT;
 
     if (outcount != 2 && outcount != 4)
       return csound->InitError(csound, Str("Wrong number of outputs in locsig; "
@@ -57,7 +56,9 @@ static int locsigset(CSOUND *csound, LOCSIG *p)
     p->prev_degree = -FL(918273645.192837465);
     p->prev_distance = -FL(918273645.192837465);
 
-    locsigaddr=p;
+    pp = (STDOPCOD_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp->locsigaddr = (void*) p;
 
     return OK;
 }
@@ -133,10 +134,13 @@ static int locsig(CSOUND *csound, LOCSIG *p)
 
 static int locsendset(CSOUND *csound, LOCSEND *p)
 {
-    LOCSIG *q;
+    STDOPCOD_GLOBALS  *pp;
+    LOCSIG  *q;
 
-    p->locsig=locsigaddr;
-    q = p->locsig;
+    pp = (STDOPCOD_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    q = (LOCSIG*) pp->locsigaddr;
+    p->locsig = q;
 
     if (p->OUTOCOUNT != q->OUTOCOUNT) {
       return csound->InitError(csound, Str("Number of outputs must be the "

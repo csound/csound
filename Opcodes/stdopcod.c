@@ -19,63 +19,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
-
-extern int ambicode_init_(CSOUND *);
-extern int babo_init_(CSOUND *);
-extern int bbcut_init_(CSOUND *);
-extern int biquad_init_(CSOUND *);
-extern int butter_init_(CSOUND *);
-extern int clfilt_init_(CSOUND *);
-extern int cross2_init_(CSOUND *);
-extern int dam_init_(CSOUND *);
-extern int dcblockr_init_(CSOUND *);
-extern int filter_init_(CSOUND *);
-extern int flanger_init_(CSOUND *);
-extern int follow_init_(CSOUND *);
-extern int fout_init_(CSOUND *);
-extern int freeverb_init_(CSOUND *);
-extern int ftconv_init_(CSOUND *);
-extern int ftgen_init_(CSOUND *);
-extern int gab_gab_init_(CSOUND *);
-extern int gab_vectorial_init_(CSOUND *);
-extern int grain4_init_(CSOUND *);
-extern int grain_init_(CSOUND *);
-extern int hrtferX_init_(CSOUND *);
-extern int ifd_init_(CSOUND *);
-extern int locsig_init_(CSOUND *);
-extern int lowpassr_init_(CSOUND *);
-extern int metro_init_(CSOUND *);
-extern int midiops2_init_(CSOUND *);
-extern int midiops3_init_(CSOUND *);
-extern int newfils_init_(CSOUND *);
-extern int nlfilt_init_(CSOUND *);
-extern int oscbnk_init_(CSOUND *);
-extern int partials_init_(CSOUND *);
-extern int phisem_init_(CSOUND *);
-extern int pluck_init_(CSOUND *);
-extern int psynth_init_(CSOUND *);
-extern int pvsbasic_init_(CSOUND *);
-extern int pvscent_init_(CSOUND *);
-extern int pvsdemix_init_(CSOUND *);
-extern int repluck_init_(CSOUND *);
-extern int reverbsc_init_(CSOUND *);
-extern int scansyn_init_(CSOUND *);
-extern int scansynx_init_(CSOUND *);
-extern int seqtime_init_(CSOUND *);
-extern int sndloop_init_(CSOUND *);
-extern int sndwarp_init_(CSOUND *);
-extern int space_init_(CSOUND *);
-extern int spat3d_init_(CSOUND *);
-extern int syncgrain_init_(CSOUND *);
-extern int ugens7_init_(CSOUND *);
-extern int ugens9_init_(CSOUND *);
-extern int ugensa_init_(CSOUND *);
-extern int uggab_init_(CSOUND *);
-extern int ugmoss_init_(CSOUND *);
-extern int ugnorman_init_(CSOUND *);
-extern int ugsc_init_(CSOUND *);
-extern int wave_terrain_init_(CSOUND *);
+#include "stdopcod.h"
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
@@ -85,7 +29,21 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
-    int     err = 0;
+    STDOPCOD_GLOBALS  *p;
+    int               err = 0;
+
+    if (csound->CreateGlobalVariable(csound, "stdOp_Env",
+                                     sizeof(STDOPCOD_GLOBALS)) != 0)
+      csound->Die(csound, Str("stdopcod.c: error allocating globals"));
+    p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,
+                                                               "stdOp_Env");
+    p->csound = csound;
+    /* fout.c */
+    p->file_opened = (struct fileinTag*) NULL;
+    p->file_num = -1;
+    p->buf = (MYFLT*) NULL;
+    /* ugnorman.c */
+    p->atsbufreadaddr = NULL;
 
     err |= ambicode_init_(csound);
     err |= babo_init_(csound);
