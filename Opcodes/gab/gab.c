@@ -196,79 +196,73 @@ static int fastab(CSOUND *csound,FASTAB *p)
     return OK;
 }
 
-static MYFLT *tb0,*tb1,*tb2,*tb3,*tb4,*tb5,*tb6,*tb7,*tb8,
-             *tb9,*tb10,*tb11,*tb12,*tb13,*tb14,*tb15;
+static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
+{
+    STDOPCOD_GLOBALS  *pp;
+    MYFLT             *ft;
+    int               len;
+    pp = stdopcod_getGlobals(csound, &(p->p));
+    ft = csound->GetTable(csound, (int) *(p->ifn), &len);
+    if (ft == NULL)
+      return csound->InitError(csound, Str("tab_init: incorrect table number"));
+    pp->tb_ptrs[ndx] = ft;
+    return OK;
+}
 
-#define tabMacro        FUNC *ftp;\
-    if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL) {\
-      return csound->InitError(csound, "tab_init: incorrect table number");\
-    }\
+static CS_NOINLINE int tab_perf(CSOUND *csound, FASTB *p)
+{
+    *p->r = (*p->tb_ptr)[(long) *p->ndx];
+    return OK;
+}
 
-static int tab0_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb0 = ftp->ftable; return OK;}
-static int tab1_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb1 = ftp->ftable; return OK;}
-static int tab2_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb2 = ftp->ftable; return OK;}
-static int tab3_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb3 = ftp->ftable; return OK;}
-static int tab4_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb4 = ftp->ftable; return OK;}
-static int tab5_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb5 = ftp->ftable; return OK;}
-static int tab6_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb6 = ftp->ftable; return OK;}
-static int tab7_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb7 = ftp->ftable; return OK;}
-static int tab8_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb8 = ftp->ftable; return OK;}
-static int tab9_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb9 = ftp->ftable; return OK;}
-static int tab10_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb10 = ftp->ftable; return OK;}
-static int tab11_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb11 = ftp->ftable; return OK;}
-static int tab12_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb12 = ftp->ftable; return OK;}
-static int tab13_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb13 = ftp->ftable; return OK;}
-static int tab14_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb14 = ftp->ftable; return OK;}
-static int tab15_init(CSOUND *csound,TB_INIT *p)
-{ tabMacro      tb15 = ftp->ftable; return OK;}
+static CS_NOINLINE int tab_i_tmp(CSOUND *csound, FASTB *p, int ndx)
+{
+    STDOPCOD_GLOBALS  *pp;
+    pp = (STDOPCOD_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    p->tb_ptr = &(pp->tb_ptrs[ndx]);
+    p->h.iopadr = (SUBR) tab_perf;
+    return tab_perf(csound, p);
+}
 
-static int tab0(CSOUND *csound,FASTB *p)
-{ *p->r = tb0[(long) *p->ndx]; return OK;}
-static int tab1(CSOUND *csound,FASTB *p)
-{ *p->r = tb1[(long) *p->ndx]; return OK;}
-static int tab2(CSOUND *csound,FASTB *p)
-{ *p->r = tb2[(long) *p->ndx]; return OK;}
-static int tab3(CSOUND *csound,FASTB *p)
-{ *p->r = tb3[(long) *p->ndx]; return OK;}
-static int tab4(CSOUND *csound,FASTB *p)
-{ *p->r = tb4[(long) *p->ndx]; return OK;}
-static int tab5(CSOUND *csound,FASTB *p)
-{ *p->r = tb5[(long) *p->ndx]; return OK;}
-static int tab6(CSOUND *csound,FASTB *p)
-{ *p->r = tb6[(long) *p->ndx]; return OK;}
-static int tab7(CSOUND *csound,FASTB *p)
-{ *p->r = tb7[(long) *p->ndx]; return OK;}
-static int tab8(CSOUND *csound,FASTB *p)
-{ *p->r = tb8[(long) *p->ndx]; return OK;}
-static int tab9(CSOUND *csound,FASTB *p)
-{ *p->r = tb9[(long) *p->ndx]; return OK;}
-static int tab10(CSOUND *csound,FASTB *p)
-{ *p->r = tb10[(long) *p->ndx]; return OK;}
-static int tab11(CSOUND *csound,FASTB *p)
-{ *p->r = tb11[(long) *p->ndx]; return OK;}
-static int tab12(CSOUND *csound,FASTB *p)
-{ *p->r = tb12[(long) *p->ndx]; return OK;}
-static int tab13(CSOUND *csound,FASTB *p)
-{ *p->r = tb13[(long) *p->ndx]; return OK;}
-static int tab14(CSOUND *csound,FASTB *p)
-{ *p->r = tb14[(long) *p->ndx]; return OK;}
-static int tab15(CSOUND *csound,FASTB *p)
-{ *p->r = tb15[(long) *p->ndx]; return OK;}
+static CS_NOINLINE int tab_k_tmp(CSOUND *csound, FASTB *p, int ndx)
+{
+    STDOPCOD_GLOBALS  *pp;
+    pp = (STDOPCOD_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    p->tb_ptr = &(pp->tb_ptrs[ndx]);
+    p->h.opadr = (SUBR) tab_perf;
+    return tab_perf(csound, p);
+}
+
+#ifdef TAB_MACRO
+#undef TAB_MACRO
+#endif
+
+#define TAB_MACRO(W,X,Y,Z)                  \
+static int W(CSOUND *csound, TB_INIT *p)    \
+{   return tab_init(csound, p, Z);  }       \
+static int X(CSOUND *csound, FASTB *p)      \
+{   return tab_i_tmp(csound, p, Z); }       \
+static int Y(CSOUND *csound, FASTB *p)      \
+{   return tab_k_tmp(csound, p, Z); }
+
+TAB_MACRO(tab0_init, tab0_i_tmp, tab0_k_tmp, 0)
+TAB_MACRO(tab1_init, tab1_i_tmp, tab1_k_tmp, 1)
+TAB_MACRO(tab2_init, tab2_i_tmp, tab2_k_tmp, 2)
+TAB_MACRO(tab3_init, tab3_i_tmp, tab3_k_tmp, 3)
+TAB_MACRO(tab4_init, tab4_i_tmp, tab4_k_tmp, 4)
+TAB_MACRO(tab5_init, tab5_i_tmp, tab5_k_tmp, 5)
+TAB_MACRO(tab6_init, tab6_i_tmp, tab6_k_tmp, 6)
+TAB_MACRO(tab7_init, tab7_i_tmp, tab7_k_tmp, 7)
+TAB_MACRO(tab8_init, tab8_i_tmp, tab8_k_tmp, 8)
+TAB_MACRO(tab9_init, tab9_i_tmp, tab9_k_tmp, 9)
+TAB_MACRO(tab10_init, tab10_i_tmp, tab10_k_tmp, 10)
+TAB_MACRO(tab11_init, tab11_i_tmp, tab11_k_tmp, 11)
+TAB_MACRO(tab12_init, tab12_i_tmp, tab12_k_tmp, 12)
+TAB_MACRO(tab13_init, tab13_i_tmp, tab13_k_tmp, 13)
+TAB_MACRO(tab14_init, tab14_i_tmp, tab14_k_tmp, 14)
+TAB_MACRO(tab15_init, tab15_i_tmp, tab15_k_tmp, 15)
 
 /************************************************************* */
 /* Opcodes from Peter Neubaeker                                */
@@ -785,39 +779,39 @@ static OENTRY localops[] = {
   { "tb13_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab13_init},
   { "tb14_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab14_init},
   { "tb15_init", S(TB_INIT), 1,   "",      "i",    (SUBR)tab15_init},
-  { "tb0.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab0,  NULL},
-  { "tb1.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab1,  NULL},
-  { "tb2.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab2,  NULL},
-  { "tb3.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab3,  NULL},
-  { "tb4.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab4,  NULL},
-  { "tb5.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab5,  NULL},
-  { "tb6.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab6,  NULL},
-  { "tb7.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab7,  NULL},
-  { "tb8.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab8,  NULL},
-  { "tb9.k",      S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab9,  NULL},
-  { "tb10.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab10, NULL},
-  { "tb11.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab11, NULL},
-  { "tb12.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab12, NULL},
-  { "tb13.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab13, NULL},
-  { "tb14.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab14, NULL},
-  { "tb15.k",     S(FASTB), 2,    "k",     "k",    NULL,   (SUBR)tab15, NULL},
+  { "tb0.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab0_k_tmp,  NULL  },
+  { "tb1.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab1_k_tmp,  NULL  },
+  { "tb2.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab2_k_tmp,  NULL  },
+  { "tb3.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab3_k_tmp,  NULL  },
+  { "tb4.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab4_k_tmp,  NULL  },
+  { "tb5.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab5_k_tmp,  NULL  },
+  { "tb6.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab6_k_tmp,  NULL  },
+  { "tb7.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab7_k_tmp,  NULL  },
+  { "tb8.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab8_k_tmp,  NULL  },
+  { "tb9.k",  S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab9_k_tmp,  NULL  },
+  { "tb10.k", S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab10_k_tmp, NULL  },
+  { "tb11.k", S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab11_k_tmp, NULL  },
+  { "tb12.k", S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab12_k_tmp, NULL  },
+  { "tb13.k", S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab13_k_tmp, NULL  },
+  { "tb14.k", S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab14_k_tmp, NULL  },
+  { "tb15.k", S(FASTB), 2,  "k",    "k",    NULL, (SUBR) tab15_k_tmp, NULL  },
   /* tbx_t (t-rate version removed here) */
-  { "tb0.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab0      },
-  { "tb1.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab1      },
-  { "tb2.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab2      },
-  { "tb3.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab3      },
-  { "tb4.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab4      },
-  { "tb5.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab5      },
-  { "tb6.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab6      },
-  { "tb7.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab7      },
-  { "tb8.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab8      },
-  { "tb9.i",      S(FASTB), 1,    "i",     "i",    (SUBR)tab9      },
-  { "tb10.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab10     },
-  { "tb11.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab11     },
-  { "tb12.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab12     },
-  { "tb13.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab13     },
-  { "tb14.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab14     },
-  { "tb15.i",     S(FASTB), 1,    "i",     "i",    (SUBR)tab15     },
+  { "tb0.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab0_i_tmp    },
+  { "tb1.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab1_i_tmp    },
+  { "tb2.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab2_i_tmp    },
+  { "tb3.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab3_i_tmp    },
+  { "tb4.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab4_i_tmp    },
+  { "tb5.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab5_i_tmp    },
+  { "tb6.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab6_i_tmp    },
+  { "tb7.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab7_i_tmp    },
+  { "tb8.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab8_i_tmp    },
+  { "tb9.i",      S(FASTB), 1,    "i",     "i",    (SUBR) tab9_i_tmp    },
+  { "tb10.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab10_i_tmp   },
+  { "tb11.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab11_i_tmp   },
+  { "tb12.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab12_i_tmp   },
+  { "tb13.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab13_i_tmp   },
+  { "tb14.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab14_i_tmp   },
+  { "tb15.i",     S(FASTB), 1,    "i",     "i",    (SUBR) tab15_i_tmp   },
   { "nlalp", S(NLALP),      5,    "a",    "akkoo",
                             (SUBR) nlalp_set, NULL, (SUBR) nlalp   },
   { "adsynt2",S(ADSYNT2),   5,    "a",  "kkiiiio",

@@ -30,50 +30,51 @@
 #include "csdl.h"
 #include "space.h"
 #include <math.h>
-static SPACE    *spaceaddr;
 
 #define RESOLUTION 100
 
 static int spaceset(CSOUND *csound, SPACE *p)
 {
+    STDOPCOD_GLOBALS  *pp;
+    FUNC              *ftp = NULL;
 
-   FUNC *ftp=NULL;
+    if (*p->ifn > 0) {
+      if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+        return NOTOK;
+      p->ftp = ftp;
+    }
 
-   if (*p->ifn > 0) {
-     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
-       return NOTOK;
-     p->ftp = ftp;
-   }
+    if (p->auxch.auxp == NULL) {
+      MYFLT *fltp;
+      csound->AuxAlloc(csound, (long) (csound->ksmps * 4)
+                               * sizeof(MYFLT), &p->auxch);
+      fltp = (MYFLT *) p->auxch.auxp;
+      p->rrev1 = fltp;   fltp += csound->ksmps;
+      p->rrev2 = fltp;   fltp += csound->ksmps;
+      p->rrev3 = fltp;   fltp += csound->ksmps;
+      p->rrev4 = fltp;   fltp += csound->ksmps;
+    }
 
-   if (p->auxch.auxp == NULL) {
-     MYFLT *fltp;
-     csound->AuxAlloc(csound, (long) (csound->ksmps * 4)
-                              * sizeof(MYFLT), &p->auxch);
-     fltp = (MYFLT *) p->auxch.auxp;
-     p->rrev1 = fltp;   fltp += csound->ksmps;
-     p->rrev2 = fltp;   fltp += csound->ksmps;
-     p->rrev3 = fltp;   fltp += csound->ksmps;
-     p->rrev4 = fltp;   fltp += csound->ksmps;
-   }
-
-   spaceaddr = p;
-   return OK;
+    pp = (STDOPCOD_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp->spaceaddr = (void*) p;
+    return OK;
 }
 
 static int space(CSOUND *csound, SPACE *p)
 {
-    MYFLT       *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
-    MYFLT distance=FL(1.0), distr, distrsq, direct;
-    MYFLT *rrev1, *rrev2, *rrev3, *rrev4;
-    MYFLT torev, localrev, globalrev;
-    MYFLT       xndx, yndx;
-    MYFLT half_pi = FL(0.5)*PI_F;
-    MYFLT sqrt2 = (MYFLT)sqrt(2.0);
-    MYFLT fabxndx, fabyndx;
-    int n;
-    FUNC        *ftp;
-    long        indx, length, halflen;
-    MYFLT       v1, v2, fract, ndx;
+    MYFLT   *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
+    MYFLT   distance=FL(1.0), distr, distrsq, direct;
+    MYFLT   *rrev1, *rrev2, *rrev3, *rrev4;
+    MYFLT   torev, localrev, globalrev;
+    MYFLT   xndx, yndx;
+    MYFLT   half_pi = FL(0.5)*PI_F;
+    MYFLT   sqrt2 = (MYFLT)sqrt(2.0);
+    MYFLT   fabxndx, fabyndx;
+    int     n;
+    FUNC    *ftp;
+    long    indx, length, halflen;
+    MYFLT   v1, v2, fract, ndx;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
       if ((ftp = p->ftp) == NULL) {
@@ -165,7 +166,11 @@ static int space(CSOUND *csound, SPACE *p)
 
 static int spsendset(CSOUND *csound, SPSEND *p)
 {
-    p->space=spaceaddr;
+    STDOPCOD_GLOBALS  *pp;
+
+    pp = (STDOPCOD_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    p->space = (SPACE*) pp->spaceaddr;
     return OK;
 }
 

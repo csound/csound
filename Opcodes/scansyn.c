@@ -34,9 +34,6 @@
 /* Either 2 (linear) or 3 (cubic) */
 #define PHASE_INTERP 3
 
-/* Window to be applied at external force */
-static MYFLT *ewin = NULL;
-
 /****************************************************************************
  *      Helper functions and macros for updater
  ***************************************************************************/
@@ -109,59 +106,72 @@ static int scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
  ******************************/
 
 struct scsn_elem {
-  int                   id;
+    int                 id;
     PSCSNU              *p;
     struct scsn_elem    *next;
 };
 
-static struct scsn_elem scsn_list = {0, NULL, NULL};
+/* remove from list */
+static int listrm(CSOUND *csound, PSCSNU *p)
+{
+    STDOPCOD_GLOBALS  *pp = p->pp;
+    struct scsn_elem *q = NULL;
+    struct scsn_elem *i = (struct scsn_elem *) pp->scsn_list;
+
+    csound->Message(csound, "remove from scsn_list\n");
+    while (1) {
+      if (i == NULL) {
+        /* should not call csound->Die() here */
+        csound->ErrorMsg(csound,
+                         Str("Eek ... scan synthesis id was not found"));
+        return NOTOK;
+      }
+      if (i->p == p)
+        break;
+      q = i;
+      i = i->next;
+    }
+    if (q != NULL)
+      q->next = i->next;
+    else
+      pp->scsn_list = (void*) i->next;
+    csound->Free(csound, i);
+    return OK;
+}
 
 /* add to list */
-static void listadd(PSCSNU *p)
+static void listadd(STDOPCOD_GLOBALS *pp, PSCSNU *p)
 {
-/*     int cnt = 0; */
-    struct scsn_elem *i = &scsn_list;
-    while(i->next != NULL) {
-      if (i->id==p->id) {
-        i->p = p;               /* Reuse the space */
-        return;
-      }
-      i = i->next;
-/*       cnt++; */
-    }
-    i->next = (struct scsn_elem *)calloc(1, sizeof(struct scsn_elem));
-    i->p = p;
-    i->id = p->id;
-    i->next->next = NULL;   /* ??? was i->next = NULL which is clearly wrong! */
-}
+    CSOUND  *csound = pp->csound;
+    struct scsn_elem *i = (struct scsn_elem *) pp->scsn_list;
 
-#ifdef never
-/* This code is not used as csound has no dealloc method */
-/* remove from list */
-static void listrm(PSCSNU *p)
-{
-    struct scsn_elem *q;
-    struct scsn_elem *i = &scsn_list;
-    csound->Message(csound, "remove from scsn_listd\n");
-    while (i->next->p != p) {
-      i = i->next;
-      if (i == NULL)
-        csound->Die(csound, Str("Eek ... scan synthesis id was not found"));
+    for ( ; i != NULL; i = i->next) {
+      if (i->id == p->id)
+        csound->Die(csound, Str("scanu: id %d is already in use"), p->id);
     }
-    q = i->next->next;
-    free(i->next);
-    i->next = q;
+    i = (struct scsn_elem *) csound->Calloc(csound, sizeof(struct scsn_elem));
+    i->id = p->id;
+    i->p = p;
+    i->next = (struct scsn_elem *) pp->scsn_list;
+    pp->scsn_list = (void*) i;
+    csound->RegisterDeinitCallback(csound, p, (int (*)(CSOUND*, void*)) listrm);
 }
-#endif
 
 /* Return from list according to id */
 static PSCSNU *listget(CSOUND *csound, int id)
 {
-    struct scsn_elem *i = &scsn_list;
-    if (i->p == NULL) {
-        csound->Die(csound, Str("scans: No scan synthesis net specified"));
+    STDOPCOD_GLOBALS  *pp;
+    struct scsn_elem  *i;
+
+    pp = (STDOPCOD_GLOBALS*)
+             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    i = (struct scsn_elem *) pp->scsn_list;
+    if (i == NULL) {
+      csound->Die(csound, Str("scans: No scan synthesis net specified"));
     }
-    while (i->id != id) {
+    while (1) {
+      if (i->id == id)
+        break;
       i = i->next;
       if (i == NULL)
         csound->Die(csound, Str("Eek ... scan synthesis id was not found"));
@@ -179,8 +189,9 @@ static PSCSNU *listget(CSOUND *csound, int id)
 static int scsnu_init(CSOUND *csound, PSCSNU *p)
 {
     /* Get parameter table pointers and check lengths */
-    FUNC *f;
-    int len;
+    STDOPCOD_GLOBALS  *pp;
+    FUNC    *f;
+    int     len;
 
     /* Mass */
     if ((f = csound->FTFind(csound, p->i_m)) == NULL) {
@@ -299,36 +310,37 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Setup display window */
     if (*p->i_disp) {
-      p->win = calloc(1, sizeof(WINDAT));
+      p->win = csound->Calloc(csound, sizeof(WINDAT));
       csound->dispset(csound, (WINDAT*)p->win, p->x1, len,
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
+    pp = stdopcod_getGlobals(csound, &(p->pp));
+
     /* Make external force window if we haven't so far */
-    if (ewin == NULL) {
+    if (pp->ewin == NULL) {
       int i;
       MYFLT arg =  PI_F/(len-1);
-      ewin = (MYFLT *)calloc(len, sizeof(MYFLT));
+      pp->ewin = (MYFLT*) csound->Calloc(csound, len * sizeof(MYFLT));
       for (i = 0 ; i != len-1 ; i++)
-        ewin[i] = (MYFLT)sqrt(sin((double)arg*i));
-      ewin[i] = FL(0.0); /* You get NaN otherwise */
+        pp->ewin[i] = (MYFLT)sqrt(sin((double)arg*i));
+      pp->ewin[i] = FL(0.0); /* You get NaN otherwise */
     }
 
     /* Throw data into list or use table */
-    if (*p->i_id < FL(0.0)) {
-      MYFLT id = - *p->i_id;
-      FUNC *f = csound->FTFind(csound, &id);
-      if (f == NULL) {
+    p->id = (int) *p->i_id;
+    if (p->id < 0) {
+      MYFLT *f;
+      int   fLen;
+      f = csound->GetTable(csound, -(p->id), &fLen);
+      if (fLen < len) {
         return csound->InitError(csound,
-                                 Str("scanu: Could not find (id) table"));
+                                 Str("scanu: invalid id table"));
       }
-      p->out = f->ftable;
-      p->id = (int)*p->i_id;
-
+      p->out = f;
     }
     else {
-      p->id = (int)*p->i_id;
-      listadd(p);
+      listadd(pp, p);
     }
     return OK;
 }
@@ -341,8 +353,11 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
 static int scsnu_play(CSOUND *csound, PSCSNU *p)
 {
-    int n;
-    int len = p->len;
+    STDOPCOD_GLOBALS  *pp;
+    int     n;
+    int     len = p->len;
+
+    pp = stdopcod_getGlobals(csound, &(p->pp));
 
     for (n = 0 ; n != csound->ksmps ; n++) {
 
@@ -358,7 +373,7 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
         for (i = 0 ; i != len ; i++) {
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
-          p->v[i] += p->ext[p->exti++] * ewin[i];
+          p->v[i] += p->ext[p->exti++] * pp->ewin[i];
           if (p->exti >= len)
             p->exti = 0;
                                 /* And push feedback */
@@ -431,39 +446,39 @@ static int scsnu_play(CSOUND *csound, PSCSNU *p)
  */
 static int scsns_init(CSOUND *csound, PSCSNS *p)
 {
+    int     i;
+    int     oscil_interp = (int) *p->interp;
+    FUNC    *t;
+
     /* Get corresponding update */
-    p->p = listget(csound, (int)*p->i_id);
+    p->p = listget(csound, (int) *p->i_id);
 
     /* Get trajectory matrix */
-    {
-      int i;
-      int oscil_interp = (int)*p->interp;
-      FUNC *t = csound->FTFind(csound, p->i_trj);
-      if (t == NULL) {
-        return csound->InitError(csound, Str("scans: Could not find "
-                                             "the ifntraj table"));
-      }
-      if (oscil_interp<1 || oscil_interp>4) oscil_interp = 4;
-      p->oscil_interp = oscil_interp;
-      p->tlen = t->flen;
-      /* Check that trajectory is within bounds */
-      for (i = 0 ; i != p->tlen ; i++)
-        if (t->ftable[i] < 0 || t->ftable[i] >= p->p->len)
-          csound->Die(csound, Str("vermp: Trajectory table includes "
-                                  "values out of range"));
-      /* Allocate memory and pad to accomodate interpolation */
-                                /* Note that the 3 here is a hack -- jpff */
-      csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(long), &p->aux_t);
-      p->t = (long*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
-      /* Fill 'er up */
-      for (i = 0 ; i != p->tlen ; i++)
-        p->t[i] = (long)t->ftable[i];
-      /* Do wraparounds */
-      for (i = 1 ; i <= (oscil_interp-1)/2 ; i++)
-        p->t[-i] = p->t[i];
-      for (i = 0 ; i <= oscil_interp/2 ; i++)
-        p->t[p->tlen+1] = p->t[i];
+    t = csound->FTFind(csound, p->i_trj);
+    if (t == NULL) {
+      return csound->InitError(csound, Str("scans: Could not find "
+                                           "the ifntraj table"));
     }
+    if (oscil_interp<1 || oscil_interp>4) oscil_interp = 4;
+    p->oscil_interp = oscil_interp;
+    p->tlen = t->flen;
+    /* Check that trajectory is within bounds */
+    for (i = 0 ; i != p->tlen ; i++)
+      if (t->ftable[i] < 0 || t->ftable[i] >= p->p->len)
+        csound->Die(csound, Str("vermp: Trajectory table includes "
+                                "values out of range"));
+    /* Allocate memory and pad to accomodate interpolation */
+                              /* Note that the 3 here is a hack -- jpff */
+    csound->AuxAlloc(csound, (p->tlen + 3 - 1)*sizeof(long), &p->aux_t);
+    p->t = (long*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
+    /* Fill 'er up */
+    for (i = 0 ; i != p->tlen ; i++)
+      p->t[i] = (long)t->ftable[i];
+    /* Do wraparounds */
+    for (i = 1 ; i <= (oscil_interp-1)/2 ; i++)
+      p->t[-i] = p->t[i];
+    for (i = 0 ; i <= oscil_interp/2 ; i++)
+      p->t[p->tlen+1] = p->t[i];
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */

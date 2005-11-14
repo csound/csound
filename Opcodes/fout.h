@@ -1,5 +1,3 @@
-#ifndef FOUT_H
-#define FOUT_H
 /*
     fout.h:
 
@@ -23,32 +21,16 @@
     02111-1307 USA
 */
 
-#include "csdl.h"
+#ifndef FOUT_H
+#define FOUT_H
 
-struct fileinTag {
-    SNDFILE     *file;          /* Used in audio cases */
-    FILE        *raw;           /* Only used if text file */
-    void        *fd;
-    char        *name;
-    char        *fullName;
-    int         do_scale;
-};
-
-typedef struct {
-    CSOUND      *csound;
-    struct fileinTag  *file_opened;
-    int         file_max;
-    int         file_num;
-    long        fout_kreset;
-    MYFLT       *buf;
-    int         buf_size;
-} FOUT_GLOBALS;
+#include "stdopcod.h"
 
 typedef struct {
     OPDS        h;
     MYFLT       *fname, *iflag, *argums[VARGMAX];
     SNDFILE     *fp;
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
     MYFLT       scaleFac;
     int         idx;
     int         flag;
@@ -59,7 +41,7 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *iflag, *argums[VARGMAX];
     SNDFILE     *fp;
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
     MYFLT       scaleFac;
     int         idx;
     int         flag;
@@ -70,7 +52,7 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     SNDFILE     *fp;
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
     MYFLT       scaleFac;
     int         idx;
     long        currpos;
@@ -82,7 +64,7 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     SNDFILE     *fp;
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
     MYFLT       scaleFac;
     int         idx;
     long        currpos;
@@ -93,7 +75,7 @@ typedef struct {
 typedef struct {
     OPDS        h;
     MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
     long        currpos;
     int         flag;
 } I_INFILE;
@@ -113,19 +95,19 @@ typedef struct {
     MYFLT       *ihandle, *fname;
     /* iascii=0 open ascii (default), iflag=1 open binary */
     MYFLT       *iascii;
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
 } FIOPEN;
 
 typedef struct {
     OPDS        h;
     MYFLT       *ihandle, *iascii, *iflag, *argums[VARGMAX];
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
 } IOUTFILE;
 
 typedef struct {
     OPDS        h;
     MYFLT       *ihandle, *iascii, *iflag, *argums[VARGMAX];
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
     long        counter;
     int         done;
 } IOUTFILE_R;
@@ -134,18 +116,10 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *fmt, *argums[VARGMAX];
     FILE        *fp;
-    FOUT_GLOBALS  *p;
+    STDOPCOD_GLOBALS  *p;
     int         idx;
-    char        txtstring[8192]; /* Place to store the string printed */
+    char        txtstring[8192];    /* Place to store the string printed */
 } FPRINTF;
 
-static inline FOUT_GLOBALS *fout_get_globals(CSOUND *csound, FOUT_GLOBALS **p)
-{
-    if (*p == NULL)
-      *p = (FOUT_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,
-                                                              "_fout_globals");
-    return *p;
-}
-
-#endif /* FOUT_H */
+#endif  /* FOUT_H */
 
