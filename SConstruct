@@ -742,6 +742,7 @@ else:
         csoundInterfaces = csoundInterfacesEnvironment.Program(
             'csnd', csoundInterfacesSources,
             PROGPREFIX = '_', PROGSUFFIX = '.so')
+        csoundInterfacesEnvironment.Command('lib_csnd.jnilib', '_csnd.so', "ln -s _csnd.so lib_csnd.jnilib")
     else:
         if getPlatform() == 'linux':
             os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', 'lib_csnd.so'])

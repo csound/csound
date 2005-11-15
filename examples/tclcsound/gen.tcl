@@ -77,4 +77,3 @@ for {set i 0} { $i < 60 } { incr i } {
     csNote 1 [expr $i * 0.1] .5 [expr ($i * 10) + 500] [expr 100 + $i * 10]
 }
 csPerform
-
