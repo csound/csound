@@ -1,3 +1,4 @@
+
 # vim:syntax=python
 
 print '''
@@ -676,7 +677,8 @@ else:
         csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
     elif getPlatform() == 'linux':
         csoundInterfacesEnvironment.Prepend(LIBS = ['util'])
-    csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
+    if commonEnvironment['MSVC'] != '1':
+        csoundInterfacesEnvironment.Prepend(LIBS = ['stdc++'])
     csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('''
         -c++ -includeall -verbose
     '''))
