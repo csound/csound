@@ -445,6 +445,7 @@ std::string CsoundFile::getScoFilename() const
 
 std::string CsoundFile::getMidiFilename() const
 {
+  
   std::string buffer;
   scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
   for(int i = 1, n = args.size() - 2; i < n; i++)
@@ -925,16 +926,17 @@ int CsoundFile::exportArrangementForPerformance(std::string filename) const
 
 int CsoundFile::exportArrangementForPerformance(std::ostream &stream) const
 {
+  int i,n;
   if(arrangement.size() > 0)
     {
       stream << "; ARRANGEMENT " << getOrcFilename().c_str() << std::endl;
       stream << getOrchestraHeader() << std::endl;
-      for(int i = 0, n = arrangement.size(); i < n; ++i)
+      for(i = 0, n = arrangement.size(); i < n; ++i)
         {
           stream << "massign " << (i + 1) << " , " << (i + 1) << std::endl;
           stream.flush();
         }
-      for(int i = 0, n = arrangement.size(); i < n; ++i)
+      for(i = 0, n = arrangement.size(); i < n; ++i)
         {
           std::string instrumentName = arrangement[i];
           std::string definition;

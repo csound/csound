@@ -166,7 +166,11 @@ void CppSound::inputMessage(std::string istatement)
   std::string buffer = istatement;
   char *buffer_pointer = (char *)buffer.c_str();
   char *opcode = 0;
+#ifndef MSVC
   for (char *field = std::strtok(buffer_pointer, " /t/n/r"); field; buffer_pointer = 0) {
+#elif
+ for (char *field = strtok(buffer_pointer, " /t/n/r"); field; buffer_pointer = 0) {
+#endif
     if (buffer_pointer) {
       opcode = buffer_pointer;
     }
@@ -233,7 +237,9 @@ static void pythonMessageCallback(CSOUND *csound, int attr, const char *format, 
     {
       lineBuffer = actualBuffer.substr(0, position);
       actualBuffer.erase(0, position + 1);
+#ifndef MSVC
       actualBuffer.clear();
+#endif
       sprintf(buffer1, "print '''%s'''", lineBuffer.c_str());
       PyRun_SimpleString(buffer1);
     }
