@@ -39,7 +39,7 @@ CppSound::~CppSound()
 
 int CppSound::compile(int argc, char **argv_)
 {
-  Message("BEGAN CppSound::compile(%d, %x)...\n", argc, argv_);
+  Message("BEGAN CppSound::compile(%d, %p)...\n", argc, argv_);
   go = false;
   int returnValue = Compile(argc, argv_);
   spoutSize = GetKsmps() * GetNchnls() * sizeof(MYFLT);
@@ -79,7 +79,7 @@ int CppSound::perform(int argc, char **argv_)
   double beganAt = double(clock()) / double(CLOCKS_PER_SEC);
   isCompiled = false;
   go = false;
-  Message("BEGAN CppSound::perform(%d, %x)...\n", argc, argv_);
+  Message("BEGAN CppSound::perform(%d, %p)...\n", argc, argv_);
   if(argc <= 0)
     {
       Message("ENDED CppSound::perform without compiling or performing.\n");
@@ -167,9 +167,9 @@ void CppSound::inputMessage(std::string istatement)
   char *buffer_pointer = (char *)buffer.c_str();
   char *opcode = 0;
 #ifndef MSVC
-  for (char *field = std::strtok(buffer_pointer, " /t/n/r"); field; buffer_pointer = 0) {
+  for (char *field = std::strtok(buffer_pointer, " \t\n\r"); field; buffer_pointer = 0) {
 #elif
- for (char *field = strtok(buffer_pointer, " /t/n/r"); field; buffer_pointer = 0) {
+ for (char *field = strtok(buffer_pointer, " \t\n\r"); field; buffer_pointer = 0) {
 #endif
     if (buffer_pointer) {
       opcode = buffer_pointer;
@@ -181,7 +181,7 @@ void CppSound::inputMessage(std::string istatement)
 
 void CppSound::write(const char *text)
 {
-  Message(text);
+  Message("%s", text);
 }
 
 long CppSound::getThis()

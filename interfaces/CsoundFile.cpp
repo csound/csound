@@ -445,7 +445,6 @@ std::string CsoundFile::getScoFilename() const
 
 std::string CsoundFile::getMidiFilename() const
 {
-  
   std::string buffer;
   scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
   for(int i = 1, n = args.size() - 2; i < n; i++)
