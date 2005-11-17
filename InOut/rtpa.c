@@ -45,6 +45,7 @@ typedef struct PA_BLOCKING_STREAM_ {
     CSOUND      *csound;
     PaStream    *paStream;
     int         mode;                   /* 1: rec, 2: play, 3: full-duplex  */
+    int         paused;                 /* VL: to allow for smooth pausing */
     int         noPaLock;
     int         inBufSamples;
     int         outBufSamples;
@@ -313,7 +314,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     if (!pabs)
       return paContinue;
 
-    if (pabs->paStream == NULL) {
+    if (pabs->paStream == NULL || pabs->paused) {
       if (pabs->mode & 2) {
         for (i = 0, n = pabs->outBufSamples; i < n; i++)
           paOutput[i] = 0.0f;
@@ -334,7 +335,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     }
 
     csound->NotifyThreadLock(pabs->clientLock);
-
+    pabs->paused = 1;
     return paContinue;
 }
 
@@ -380,6 +381,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
     int     i = 0, samples = nbytes / (int) sizeof(MYFLT);
 
     pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
+    pabs->paused = 0;
     if (pabs == NULL)
       return;
 
