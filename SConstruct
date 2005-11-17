@@ -1,4 +1,3 @@
-
 # vim:syntax=python
 
 print '''

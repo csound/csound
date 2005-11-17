@@ -28,6 +28,8 @@
 #include "soundio.h"
 #include <portaudio.h>
 
+#define NO_FULLDUPLEX_PA_LOCK   0
+
 typedef struct PaAlsaStreamInfo {
     unsigned long   size;
     PaHostApiTypeId hostApiType;
@@ -45,7 +47,6 @@ typedef struct PA_BLOCKING_STREAM_ {
     CSOUND      *csound;
     PaStream    *paStream;
     int         mode;                   /* 1: rec, 2: play, 3: full-duplex  */
-    int         paused;                 /* VL: to allow for smooth pausing */
     int         noPaLock;
     int         inBufSamples;
     int         outBufSamples;
@@ -59,6 +60,9 @@ typedef struct PA_BLOCKING_STREAM_ {
     csRtAudioParams outParm;
     PaStreamParameters inputPaParameters;
     PaStreamParameters outputPaParameters;
+#ifdef __MACH__
+    int         paused;                 /* VL: to allow for smooth pausing  */
+#endif
 } PA_BLOCKING_STREAM;
 
 static int pa_PrintErrMsg(CSOUND *csound, const char *fmt, ...)
@@ -250,7 +254,9 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
         pa_PrintErrMsg(csound, Str("inconsistent full-duplex sample rates"));
         goto err_return;
       }
-  /*  pabs->noPaLock = 1;  */
+#if NO_FULLDUPLEX_PA_LOCK
+      pabs->noPaLock = 1;
+#endif
     }
 
     pabs->paLock = csound->CreateThreadLock();
@@ -259,7 +265,9 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
     pabs->clientLock = csound->CreateThreadLock();
     if (pabs->clientLock == NULL)
       goto err_return;
+#if NO_FULLDUPLEX_PA_LOCK
     if (!pabs->noPaLock)
+#endif
       csound->WaitThreadLock(pabs->paLock, (size_t) 500);
     csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
 
@@ -305,16 +313,20 @@ static int paBlockingReadWriteStreamCallback(const void *input,
                                              PaStreamCallbackFlags statusFlags,
                                              void *userData)
 {
-    int     i, n;
+    int     i, n, err;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) userData;
-    CSOUND *csound = pabs->csound;
+    CSOUND  *csound = pabs->csound;
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
 
     if (!pabs)
       return paContinue;
 
-    if (pabs->paStream == NULL || pabs->paused) {
+    if (pabs->paStream == NULL
+#ifdef __MACH__
+        || pabs->paused
+#endif
+        ) {
       if (pabs->mode & 2) {
         for (i = 0, n = pabs->outBufSamples; i < n; i++)
           paOutput[i] = 0.0f;
@@ -322,20 +334,38 @@ static int paBlockingReadWriteStreamCallback(const void *input,
       return paContinue;
     }
 
+#if NO_FULLDUPLEX_PA_LOCK
+    err = 0;
     if (!pabs->noPaLock)
-      csound->WaitThreadLock(pabs->paLock, (size_t) 500);
+#endif
+      err = csound->WaitThreadLock(pabs->paLock, (size_t) 500);
 
+    i = 0;
     if (pabs->mode & 1) {
-      for (i = 0, n = pabs->inBufSamples; i < n; i++)
+      n = pabs->inBufSamples;
+      do {
         pabs->inputBuffer[i] = paInput[i];
+      } while (++i < n);
     }
     if (pabs->mode & 2) {
-      for (i = 0, n = pabs->outBufSamples; i < n; i++)
-        paOutput[i] = pabs->outputBuffer[i];
+      n = pabs->outBufSamples;
+      if (!err) {
+        do {
+          paOutput[i] = pabs->outputBuffer[i];
+        } while (++i < n);
+      }
+      else {
+        do {
+          paOutput[i] = 0.0f;
+        } while (++i < n);
+      }
     }
 
-    csound->NotifyThreadLock(pabs->clientLock);
+#ifdef __MACH__
     pabs->paused = 1;
+#endif
+    csound->NotifyThreadLock(pabs->clientLock);
+
     return paContinue;
 }
 
@@ -362,7 +392,9 @@ static int rtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
         pabs->currentInputIndex++;
       if (pabs->currentInputIndex >= pabs->inBufSamples) {
         if (pabs->mode == 1) {
+#if NO_FULLDUPLEX_PA_LOCK
           if (!pabs->noPaLock)
+#endif
             csound->NotifyThreadLock(pabs->paLock);
           csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
         }
@@ -381,16 +413,20 @@ static void rtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
     int     i = 0, samples = nbytes / (int) sizeof(MYFLT);
 
     pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
-    pabs->paused = 0;
     if (pabs == NULL)
       return;
+#ifdef __MACH__
+    pabs->paused = 0;
+#endif
 
     do {
       pabs->outputBuffer[pabs->currentOutputIndex++] = (float) buffer[i];
       if (pabs->outParm.nChannels == 1)
         pabs->outputBuffer[pabs->currentOutputIndex++] = (float) buffer[i];
       if (pabs->currentOutputIndex >= pabs->outBufSamples) {
+#if NO_FULLDUPLEX_PA_LOCK
         if (!pabs->noPaLock)
+#endif
           csound->NotifyThreadLock(pabs->paLock);
         csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
         pabs->currentOutputIndex = 0;
@@ -458,7 +494,9 @@ static void rtclose_(CSOUND *csound)
       int       i;
       pabs->paStream = NULL;
       for (i = 0; i < 4; i++) {
+#if NO_FULLDUPLEX_PA_LOCK
         if (!pabs->noPaLock)
+#endif
           csound->NotifyThreadLock(pabs->paLock);
         csound->NotifyThreadLock(pabs->clientLock);
         Pa_Sleep(80);
