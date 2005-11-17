@@ -73,7 +73,7 @@ close $sco
 
 csCompile $orcfile $scofile -odac -d -m0
 csTable 1 0 16384 10 1 .5 .25 .2 .17 .15 .12 .1 .05
-# for {set i 0} { $i < 60 } { incr i } {
-#     csNote 1 [expr $i * 0.1] .5 [expr ($i * 10) + 500] [expr 100 + $i * 10]
-# }
-# csPerform
+for {set i 0} { $i < 60 } { incr i } {
+     csNote 1 [expr $i * 0.1] .5 [expr ($i * 10) + 500] [expr 100 + $i * 10]
+}
+csPerform
