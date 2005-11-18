@@ -23,6 +23,7 @@ public class CSDPlayer extends javax.swing.JFrame {
     private Thread a;
     private JFileChooser choose;
     private boolean ready;
+    private String csdfile;
     private javax.swing.JButton stopButton;
     private javax.swing.JButton pauseButton;
     private javax.swing.JButton playButton;
@@ -95,7 +96,7 @@ public class CSDPlayer extends javax.swing.JFrame {
         mainPanel.add(quitButton);
 
         getContentPane().add(mainPanel, java.awt.BorderLayout.NORTH);
-
+        setTitle("CSDPlayer");
         pack();
     }
  
@@ -116,8 +117,8 @@ public class CSDPlayer extends javax.swing.JFrame {
 	if(choose.showOpenDialog(this) != choose.CANCEL_OPTION){
 	    File csd = choose.getSelectedFile();
 	    if(ready) cs.stop(); 
-	    cs = new csperf(csd.getAbsolutePath());
-	    ready = true;
+            csdfile = csd.getAbsolutePath();
+            setTitle("CSDPlayer " + csd.getName());
 	}
                   
     }
@@ -130,12 +131,15 @@ public class CSDPlayer extends javax.swing.JFrame {
     }
 
     private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {
-	if(ready){
-	    if(!cs.isOn()) {
+	if(!ready){
+         cs = new csperf(csdfile);
+         ready = true;
+	     }
+        if(!cs.isOn()) {
 		a = new Thread(cs);
 		a.start();
-	    } else cs.play();
-	}
+	} else cs.play();
+	
     }
 
     private void pauseButtonActionPerformed(java.awt.event.ActionEvent evt) {
