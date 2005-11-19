@@ -66,6 +66,26 @@ typedef unsigned int uint32_t;
   free((char *) $1);
 }
 
+%ignore Csound::SetCscoreCallback;
+%ignore Csound::MessageV;
+%ignore Csound::SetMessageCallback;
+%ignore Csound::SetInputValueCallback;
+%ignore Csound::SetOutputValueCallback;
+%ignore Csound::SetExternalMidiInOpenCallback;
+%ignore Csound::SetExternalMidiReadCallback;
+%ignore Csound::SetExternalMidiInCloseCallback;
+%ignore Csound::SetExternalMidiOutOpenCallback;
+%ignore Csound::SetExternalMidiWriteCallback;
+%ignore Csound::SetExternalMidiOutCloseCallback;
+%ignore Csound::SetExternalMidiErrorStringCallback;
+%ignore Csound::SetYieldCallback;
+%ignore Csound::SetPlayopenCallback;
+%ignore Csound::SetRtplayCallback;
+%ignore Csound::SetRecopenCallback;
+%ignore Csound::SetRtrecordCallback;
+%ignore Csound::SetRtcloseCallback;
+%ignore Csound::RegisterSenseEventCallback;
+
 %include "csound.h"
 %include "cfgvar.h"
 
