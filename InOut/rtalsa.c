@@ -260,8 +260,8 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     /* buffer size, */
     if (dev->buffer_smps == 0)
       dev->buffer_smps = 1024;
-    else if (dev->buffer_smps < 64)
-      dev->buffer_smps = 64;
+    else if (dev->buffer_smps < 16)
+      dev->buffer_smps = 16;
     {
       snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->buffer_smps;
       err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
@@ -277,8 +277,8 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     alloc_smps = dev->period_smps;
     if (dev->period_smps == 0)
       dev->period_smps = 256;
-    else if (dev->period_smps < 16)
-      dev->period_smps = 16;
+    else if (dev->period_smps < 8)
+      dev->period_smps = 8;
     else if (dev->period_smps > (dev->buffer_smps >> 1))
       dev->period_smps = (dev->buffer_smps >> 1);
     if (alloc_smps < dev->period_smps)  /* make sure that enough memory */
