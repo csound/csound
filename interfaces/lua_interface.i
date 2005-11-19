@@ -33,6 +33,8 @@
 
 %apply int { size_t };
 
+%include "exclusions.i"
+
 %include "csound.h"
 %include "cfgvar.h"
 %include "csound.hpp"
