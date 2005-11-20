@@ -1282,6 +1282,8 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     zipDependencies.append(csTcl)
     zipDependencies.append(csTk)
     zipDependencies.append(Tclcsoundlib)
+else:
+    print "CONFIGURATION DECISION: Not building Tclcsound"
 
 if (commonEnvironment['buildDSSI'] == '1') and (getPlatform() == 'linux'):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
