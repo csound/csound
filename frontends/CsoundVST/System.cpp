@@ -31,6 +31,7 @@
 #include <csound.h>
 #include "System.hpp"
 #include "CsoundFile.hpp"
+#include "Conversions.hpp"
 
 namespace csound
 {
@@ -572,12 +573,11 @@ namespace csound
     int returnValue = fork();
     if(!returnValue)
       {
-        int argc;
-        char **argv;
+	std::vector<std::string> args;
+	std::vector<char *> argv;
         std::string buffer = command;
-        scatterArgs(buffer, &argc, &argv);
-        execv(argv[0], argv);
-        deleteArgs(argc, argv);
+        scatterArgs(buffer, args, argv);
+        execv(argv[0], &argv.front());
       }
     return returnValue;
   }
