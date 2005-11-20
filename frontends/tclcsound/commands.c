@@ -676,13 +676,12 @@ int csSetTable(ClientData clientData, Tcl_Interp * interp,
     double  value;
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
-
+    resp = Tcl_GetObjResult(interp);
     if (argc >= 4) {
       Tcl_GetIntFromObj(interp, argv[1], &ftn);
       Tcl_GetIntFromObj(interp, argv[2], &ndx);
       Tcl_GetDoubleFromObj(interp, argv[3], &value);
       size = csoundTableLength(cs, ftn);
-      resp = Tcl_GetObjResult(interp);
       if (ndx >= 0 && ndx <= size) {
         csoundTableSet(cs, ftn, ndx, (MYFLT) value);
         Tcl_SetDoubleObj(resp, value);
@@ -706,12 +705,11 @@ int csGetTable(ClientData clientData, Tcl_Interp * interp,
     double  value;
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
-
+    resp = Tcl_GetObjResult(interp);
     if (argc >= 3) {
       Tcl_GetIntFromObj(interp, argv[1], &ftn);
       Tcl_GetIntFromObj(interp, argv[2], &ndx);
       size = csoundTableLength(cs, ftn);
-      resp = Tcl_GetObjResult(interp);
       if (ndx >= 0 && ndx <= size) {
         value = (double) csoundTableGet(cs, ftn, ndx);
         Tcl_SetDoubleObj(resp, value);
