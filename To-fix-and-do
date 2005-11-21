@@ -19,21 +19,4 @@ DOCUMENTATION
 
  <<
  >>
- lpsholdp
- seqtime2
- tab
- tab_i
- tabplay
- tabrec
- tabw
- tabw_i
- tb0 ... tb15
- tb0_init ... tb15_init
- timedseq
  cogoto
-pvsifd : streaming spectral analysis using the IFD
-partials : partial track analysis from a  streaming PV input
-tradsyn : additive synthesis of tracks (linear interpolation)
-sinsyn :  additive synthesis (cubic phase)
-resyn : additive synthesis (cubic phase, adapted for transformed 
-signals)
