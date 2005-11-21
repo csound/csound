@@ -5,20 +5,17 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-char *EXECUTABLES = "EXE";
-char *OPCODES32 = "OPCODES32";
-char *OPCODES64 = "OPCODES64";
-char *HEADERS = "HDR";
 char *LIBRARIES32 = "LIB32";
 char *LIBRARIES64 = "LIB64";
 
 char *prefix  = "/usr/local/";
-char *headers = "include/csound/";
+/* char *headers = "include/csound/"; */
 char *libdir32 = "lib/";
 char *opcdir32 = "csound/opcodes/";
 char *libdir64 = "lib64";
 char *opcdir64 = "csound/opcodes64/";
 
+/* Unsure that dir exists with all directories on the way. */
 void check_exists(char *dir)
 {
     char test[80];
@@ -48,6 +45,7 @@ void check_exists(char *dir)
     return;
 }
 
+/* Run an installer acording to version */
 int main(int argc, char **argv)
 {
     char *opcdir = opcdir32;
@@ -81,10 +79,10 @@ int main(int argc, char **argv)
         libdir = libdir64;
         size |= 2;
       }
-      else if (strncmp(*argv, "-headers=", 9)==0 ||
-               strncmp(*argv, "-HEADERS=", 9)==0) {
-        headers = &(*argv[9]);
-      }
+/*       else if (strncmp(*argv, "-headers=", 9)==0 || */
+/*                strncmp(*argv, "-HEADERS=", 9)==0) { */
+/*         headers = &(*argv[9]); */
+/*       } */
       argc--; argv++;
     }
     if (single == 0) single = 2;
@@ -144,15 +142,15 @@ int main(int argc, char **argv)
         system(s);
       }
     }
-    {
-      /* Install headers etc from hdr */
-      char b[100], s[120];
-      strcpy(b,prefix);
-      strcat(b,"include/csound");
-      check_exists(b);
-      sprintf(s, "cp -pv hdr/* %s", b);
-      system(s);
-    }
+/*     { */
+/*       /\* Install headers etc from hdr *\/ */
+/*       char b[100], s[120]; */
+/*       strcpy(b,prefix); */
+/*       strcat(b,"include/csound"); */
+/*       check_exists(b); */
+/*       sprintf(s, "cp -pv hdr/\* %s", b); */
+/*       system(s); */
+/*     } */
     {
       /* Install libraries from lib[fd] or lib[fd]64 */
       char b[100], s[120];

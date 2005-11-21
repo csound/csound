@@ -671,7 +671,7 @@ void out_channel_value_callback(CSOUND * csound, const char *name, MYFLT val)
 int csSetTable(ClientData clientData, Tcl_Interp * interp,
                  int argc, Tcl_Obj ** argv)
 {
-    Tcl_Obj *resp;
+    Tcl_Obj *resp =  NULL;
     int     ndx, ftn, size;
     double  value;
     csdata *p = (csdata *) clientData;
@@ -700,7 +700,7 @@ int csSetTable(ClientData clientData, Tcl_Interp * interp,
 int csGetTable(ClientData clientData, Tcl_Interp * interp,
                  int argc, Tcl_Obj ** argv)
 {
-    Tcl_Obj *resp;
+    Tcl_Obj *resp = NULL;
     int     ndx, ftn, size;
     double  value;
     csdata *p = (csdata *) clientData;
