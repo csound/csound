@@ -2,5 +2,5 @@ cp -upv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,csc
 
 cp -upv ../../li*.so ../../../CSDIST/opcd64
 
-cp -upv ../../libcsound.a ../../libustub.a ../../../CSDIST/libd64
+cp -upv ../../libcsound.a ../../../CSDIST/libd64
 
