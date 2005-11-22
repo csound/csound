@@ -1,0 +1,81 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0106 
+header_name {.h} 
+code_name {.cxx}
+Function {make_window(char* type)} {open selected
+} {
+  Fl_Window {} {
+    label {Csound5 Installer} open
+    xywh {504 89 370 325} type Double visible
+  } {
+    Fl_Text_Display {} {
+      label {Csound5 Installer for}
+      xywh {85 30 25 25} box NO_BOX labelfont 9 labelsize 20
+    }
+    Fl_Output bintype {
+      xywh {185 6 170 30} box NO_BOX labelfont 1 labelsize 20 textfont 9 textsize 20
+    }
+    Fl_Check_Button systemp {
+      label {Install in System Files}
+      callback set_system
+      xywh {265 45 25 25} down_box DOWN_BOX align 4
+    }
+    Fl_File_Input bindir {
+      label Binary
+      xywh {90 75 235 30}
+    }
+    Fl_File_Input opcdir {
+      label Opcodes
+      xywh {90 115 235 30}
+    }
+    Fl_File_Input doc {
+      label Manual
+      xywh {90 155 235 30}
+    }
+    Fl_File_Input libdir {
+      label Libraries
+      xywh {90 195 235 30}
+    }
+    Fl_Group {} {open
+      xywh {90 240 235 65}
+    } {
+      Fl_Light_Button {} {
+        label {Change profile}
+        xywh {90 245 115 40}
+      }
+      Fl_Round_Button {} {
+        label {sh/bash}
+        xywh {215 240 25 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button {} {
+        label csh
+        xywh {215 265 40 25} down_box ROUND_DOWN_BOX
+      }
+    }
+    Fl_Progress progress {
+      xywh {90 290 235 15}
+    }
+    Fl_Button {} {
+      label INSTALL
+      callback {do_install = 1;}
+      xywh {10 245 70 60} color 1 labelfont 9 labelsize 12
+    }
+  }
+} 
+
+Function {make_alert()} {open
+} {
+  Fl_Window {} {
+    label {Installer Alert} open
+    xywh {672 232 345 75} type Double color 1 labelcolor 7 visible
+  } {
+    Fl_Output err_text {
+      xywh {5 10 310 25} color 1 textcolor 7
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {end_alert = 1;}
+      xywh {5 45 50 25} color 1
+    }
+  }
+} 
