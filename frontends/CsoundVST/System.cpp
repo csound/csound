@@ -573,8 +573,8 @@ namespace csound
     int returnValue = fork();
     if(!returnValue)
       {
-	std::vector<std::string> args;
-	std::vector<char *> argv;
+        std::vector<std::string> args;
+        std::vector<char *> argv;
         std::string buffer = command;
         scatterArgs(buffer, args, argv);
         execv(argv[0], &argv.front());
