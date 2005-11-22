@@ -62,6 +62,7 @@ typedef struct PA_BLOCKING_STREAM_ {
     PaStreamParameters outputPaParameters;
 #ifdef WIN32
     int         paused;                 /* VL: to allow for smooth pausing  */
+    int         paLockTimeout;
 #endif
 } PA_BLOCKING_STREAM;
 
@@ -270,6 +271,17 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
 #endif
       csound->WaitThreadLock(pabs->paLock, (size_t) 500);
     csound->WaitThreadLock(pabs->clientLock, (size_t) 500);
+#ifdef WIN32
+    pabs->paLockTimeout =
+        (int) (1.33 * (pabs->outputPaParameters.suggestedLatency
+                         >= pabs->inputPaParameters.suggestedLatency ?
+                       pabs->outputPaParameters.suggestedLatency
+                       : pabs->inputPaParameters.suggestedLatency));
+    if (pabs->paLockTimeout < 25)
+      pabs->paLockTimeout = 25;
+    else if (pabs->paLockTimeout > 1000)
+      pabs->paLockTimeout = 1000;
+#endif
 
     err = Pa_OpenStream(&stream,
                         (pabs->mode & 1 ? &(pabs->inputPaParameters)
@@ -344,7 +356,11 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     if (!pabs->noPaLock)
 #endif
 #ifndef __MACH__
+#  ifdef WIN32
+      err = csound->WaitThreadLock(pabs->paLock, (size_t) pabs->paLockTimeout);
+#  else
       err = csound->WaitThreadLock(pabs->paLock, (size_t) 500);
+#  endif
 #else
       csound->WaitThreadLock(pabs->paLock, (size_t) 500);
     err = 0;
