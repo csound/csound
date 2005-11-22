@@ -60,7 +60,7 @@ typedef struct PA_BLOCKING_STREAM_ {
     csRtAudioParams outParm;
     PaStreamParameters inputPaParameters;
     PaStreamParameters outputPaParameters;
-#ifdef __MACH__
+#ifdef WIN32
     int         paused;                 /* VL: to allow for smooth pausing  */
 #endif
 } PA_BLOCKING_STREAM;
@@ -305,6 +305,16 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
     return -1;
 }
 
+static CS_NOINLINE void paClearOutputBuffer(PA_BLOCKING_STREAM *pabs,
+                                            float *buf)
+{
+    int   nsmps = pabs->outBufSamples;
+    int   i = 0;
+    do {
+      buf[i] = 0.0f;
+    } while (++i < nsmps);
+}
+
 static int paBlockingReadWriteStreamCallback(const void *input,
                                              void *output,
                                              unsigned long frameCount,
@@ -313,24 +323,19 @@ static int paBlockingReadWriteStreamCallback(const void *input,
                                              PaStreamCallbackFlags statusFlags,
                                              void *userData)
 {
-    int     i, n, err;
+    int     err;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) userData;
     CSOUND  *csound = pabs->csound;
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
 
-    if (!pabs)
-      return paContinue;
-
     if (pabs->paStream == NULL
-#ifdef __MACH__
+#ifdef WIN32
         || pabs->paused
 #endif
         ) {
-      if (pabs->mode & 2) {
-        for (i = 0, n = pabs->outBufSamples; i < n; i++)
-          paOutput[i] = 0.0f;
-      }
+      if (pabs->mode & 2)
+        paClearOutputBuffer(pabs, paOutput);
       return paContinue;
     }
 
@@ -338,32 +343,36 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     err = 0;
     if (!pabs->noPaLock)
 #endif
+#ifndef __MACH__
       err = csound->WaitThreadLock(pabs->paLock, (size_t) 500);
+#else
+      csound->WaitThreadLock(pabs->paLock, (size_t) 500);
+    err = 0;
+#endif
 
-    i = 0;
     if (pabs->mode & 1) {
-      n = pabs->inBufSamples;
+      int n = pabs->inBufSamples;
+      int i = 0;
       do {
         pabs->inputBuffer[i] = paInput[i];
       } while (++i < n);
     }
     if (pabs->mode & 2) {
-      n = pabs->outBufSamples;
       if (!err) {
+        int n = pabs->outBufSamples;
+        int i = 0;
         do {
           paOutput[i] = pabs->outputBuffer[i];
         } while (++i < n);
       }
       else {
-        do {
-          paOutput[i] = 0.0f;
-        } while (++i < n);
+#ifdef WIN32
+        pabs->paused = err;
+#endif
+        paClearOutputBuffer(pabs, paOutput);
       }
     }
 
-#ifdef __MACH__
-    pabs->paused = 1;
-#endif
     csound->NotifyThreadLock(pabs->clientLock);
 
     return paContinue;
@@ -415,7 +424,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
     pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
     if (pabs == NULL)
       return;
-#ifdef __MACH__
+#ifdef WIN32
     pabs->paused = 0;
 #endif
 
