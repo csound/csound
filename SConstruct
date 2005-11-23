@@ -888,7 +888,9 @@ if not (commonEnvironment['useJack']=='1' and jackFound):
 else:
     print "CONFIGURATION DECISION: Building JACK plugin."
     jackEnvironment = pluginEnvironment.Copy()
-    jackEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
+    if getPlatform() == 'linux':
+       jackEnvironment.Append(LIBS = ['asound'])
+    jackEnvironment.Append(LIBS = ['jack', 'pthread'])
     pluginLibraries.append(jackEnvironment.SharedLibrary('rtjack',
                                                          ['InOut/rtjack.c']))
 
