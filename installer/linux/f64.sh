@@ -12,4 +12,5 @@ Linux i86_64 Floats
 /usr/local/csound
 /usr/local/doc/csound
 /usr/local/lib64
+OPCODEDIR
 'EOF'
