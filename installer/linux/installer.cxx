@@ -14,13 +14,19 @@ Fl_File_Input *doc=(Fl_File_Input *)0;
 
 Fl_File_Input *libdir=(Fl_File_Input *)0;
 
+Fl_Light_Button *profile=(Fl_Light_Button *)0;
+
+Fl_Round_Button *shell=(Fl_Round_Button *)0;
+
+Fl_Round_Button *cshell=(Fl_Round_Button *)0;
+
 Fl_Progress *progress=(Fl_Progress *)0;
 
 static void cb_INSTALL(Fl_Button*, void*) {
   do_install = 1;
 }
 
-Fl_Double_Window* make_window(char *type) {
+Fl_Double_Window* make_window(char* type) {
   Fl_Double_Window* w;
   { Fl_Double_Window* o = new Fl_Double_Window(370, 325, "Csound5 Installer");
     w = o;
@@ -46,11 +52,11 @@ Fl_Double_Window* make_window(char *type) {
     doc = new Fl_File_Input(90, 155, 235, 30, "Manual");
     libdir = new Fl_File_Input(90, 195, 235, 30, "Libraries");
     { Fl_Group* o = new Fl_Group(90, 240, 235, 65);
-      new Fl_Light_Button(90, 245, 115, 40, "Change profile");
-      { Fl_Round_Button* o = new Fl_Round_Button(215, 240, 25, 25, "sh/bash");
+      profile = new Fl_Light_Button(90, 245, 115, 40, "Change profile");
+      { Fl_Round_Button* o = shell = new Fl_Round_Button(215, 240, 25, 25, "sh/bash");
         o->down_box(FL_ROUND_DOWN_BOX);
       }
-      { Fl_Round_Button* o = new Fl_Round_Button(215, 265, 40, 25, "csh");
+      { Fl_Round_Button* o = cshell = new Fl_Round_Button(215, 265, 40, 25, "csh");
         o->down_box(FL_ROUND_DOWN_BOX);
       }
       o->end();
