@@ -602,7 +602,7 @@ namespace csound
     extension.erase();
     char *dirTemp = Conversions::dupstr(pathname.c_str());
     directory = dirname(dirTemp);
-    char *fileTemp = Conversions.dupstr(pathname.c_str());
+    char *fileTemp = Conversions::dupstr(pathname.c_str());
 #ifndef MACOSX
     file = basename(fileTemp);
 #else
