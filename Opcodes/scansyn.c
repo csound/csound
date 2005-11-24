@@ -111,6 +111,7 @@ struct scsn_elem {
     struct scsn_elem    *next;
 };
 
+#if 0
 /* remove from list */
 static int listrm(CSOUND *csound, PSCSNU *p)
 {
@@ -138,6 +139,7 @@ static int listrm(CSOUND *csound, PSCSNU *p)
     csound->Free(csound, i);
     return OK;
 }
+#endif
 
 /* add to list */
 static void listadd(STDOPCOD_GLOBALS *pp, PSCSNU *p)
@@ -146,15 +148,19 @@ static void listadd(STDOPCOD_GLOBALS *pp, PSCSNU *p)
     struct scsn_elem *i = (struct scsn_elem *) pp->scsn_list;
 
     for ( ; i != NULL; i = i->next) {
-      if (i->id == p->id)
-        csound->Die(csound, Str("scanu: id %d is already in use"), p->id);
+      if (i->id == p->id) {
+        i->p = p;
+        return;
+      }
     }
     i = (struct scsn_elem *) csound->Calloc(csound, sizeof(struct scsn_elem));
     i->id = p->id;
     i->p = p;
     i->next = (struct scsn_elem *) pp->scsn_list;
     pp->scsn_list = (void*) i;
+#if 0
     csound->RegisterDeinitCallback(csound, p, (int (*)(CSOUND*, void*)) listrm);
+#endif
 }
 
 /* Return from list according to id */
