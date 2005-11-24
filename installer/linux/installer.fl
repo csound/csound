@@ -2,11 +2,11 @@
 version 1.0106 
 header_name {.h} 
 code_name {.cxx}
-Function {make_window(char* type)} {open selected
+Function {make_window(char* type)} {open
 } {
   Fl_Window {} {
     label {Csound5 Installer} open
-    xywh {504 89 370 325} type Double visible
+    xywh {504 101 370 325} type Double visible
   } {
     Fl_Text_Display {} {
       label {Csound5 Installer for}
@@ -39,16 +39,16 @@ Function {make_window(char* type)} {open selected
     Fl_Group {} {open
       xywh {90 240 235 65}
     } {
-      Fl_Light_Button {} {
+      Fl_Light_Button profile {
         label {Change profile}
         xywh {90 245 115 40}
       }
-      Fl_Round_Button {} {
+      Fl_Round_Button shell {
         label {sh/bash}
         xywh {215 240 25 25} down_box ROUND_DOWN_BOX
       }
-      Fl_Round_Button {} {
-        label csh
+      Fl_Round_Button cshell {
+        label csh selected
         xywh {215 265 40 25} down_box ROUND_DOWN_BOX
       }
     }
@@ -67,7 +67,7 @@ Function {make_alert()} {open
 } {
   Fl_Window {} {
     label {Installer Alert} open
-    xywh {672 232 345 75} type Double color 1 labelcolor 7 visible
+    xywh {672 244 345 75} type Double color 1 labelcolor 7 visible
   } {
     Fl_Output err_text {
       xywh {5 10 310 25} color 1 textcolor 7

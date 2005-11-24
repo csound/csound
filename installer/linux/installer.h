@@ -17,11 +17,14 @@ extern Fl_File_Input *doc;
 extern Fl_File_Input *libdir;
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Light_Button.H>
+extern Fl_Light_Button *profile;
 #include <FL/Fl_Round_Button.H>
+extern Fl_Round_Button *shell;
+extern Fl_Round_Button *cshell;
 #include <FL/Fl_Progress.H>
 extern Fl_Progress *progress;
 #include <FL/Fl_Button.H>
-Fl_Double_Window* make_window(char type);
+Fl_Double_Window* make_window(char* type);
 extern Fl_Output *err_text;
 #include <FL/Fl_Return_Button.H>
 Fl_Double_Window* make_alert();

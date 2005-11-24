@@ -12,4 +12,5 @@ Linux Doubles
 /usr/local/csound
 /usr/local/doc/csound
 /usr/local/lib
+OPCODEDIR64
 'EOF'
