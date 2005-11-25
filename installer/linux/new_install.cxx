@@ -46,16 +46,16 @@ void check_exists(const char *dir)
     int ans;
     struct stat buf;
     strcpy(test,dir);
-    printf("Checking %s\n", dir);
+    //    printf("Checking %s\n", dir);
     p = test;
     while ((p = strchr(p+1, '/')) != NULL) {
       *p = '\0';
       if (test[0]=='\0') break; // Should not happen
-      printf("..Checking %s\n", test);
+      //      printf("..Checking %s\n", test);
       ans = stat(test, &buf);
       if (ans!=0 || !S_ISDIR(buf.st_mode)) {
         if (ans!=0) {
-          printf("Directory %s does not exist; creating...\n", test);
+          //          printf("Directory %s does not exist; creating...\n", test);
           mkdir(test, 0766);
         }
         else {
@@ -64,7 +64,7 @@ void check_exists(const char *dir)
         }
       }
       else {
-        printf("Directory %s OK\n", test);
+        //        printf("Directory %s OK\n", test);
       }
       *p = '/';
     }
@@ -75,35 +75,47 @@ int main(void)
 {
     FILE *defs = fopen("def.ins", "r");
     Fl_Double_Window* www;
-    if (defs==0) exit(1);
+    char *p;
+    if (defs==0) {
+      err = make_alert();
+      do_alert("Definitions file is missing");
+      exit(1);
+    }
     fgets(type,256,defs);
-    *(strchr(type,'\n'))= '\0';
+    p = strchr(type,'\n');
+    if (p!=type) *p = '\0';
     fgets(bin,256,defs);
-    *(strchr(bin,'\n'))= '\0';
+    p = strchr(bin,'\n');
+    if (p!=bin) *p = '\0';
     fgets(opc,256,defs);
-    *(strchr(opc,'\n'))= '\0';
+    p = strchr(opc,'\n');
+    if (p!=opc) *p = '\0';
     fgets(doh,256,defs);
-    *(strchr(doh,'\n'))= '\0';
+    p = strchr(doh,'\n');
+    if (p!=doh) *p = '\0';
     fgets(lib,256,defs);
-    *(strchr(lib,'\n'))= '\0';
+    p = strchr(lib,'\n');
+    if (p!=lib) *p = '\0';
     fgets(envy,256,defs);
-    *(strchr(envy,'\n'))= '\0';
+    p = strchr(envy,'\n');
+    if (p!=envy) *p = '\0';
     www = make_window(type);
+    doBin->value(1); doOpc->value(1);
     www->show();
     err = make_alert();
  again:
     while (do_install==0) Fl::wait(1.0);
     // Check that install is correct
-    if (strlen(bindir->value())==0) {
+    if (doBin->value() && strlen(bindir->value())==0) {
       do_alert("No binary directory");
       goto again;
     }
-    if (strlen(opcdir->value())==0) {
+    if (doOpc->value() && strlen(opcdir->value())==0) {
       do_alert("No opcode directory");
       goto again;
     }
     //Copy binaries
-    {
+    if (doBin->value()) {
       struct dirent **namelist;
       char b[256];
       int n = scandir("./bin", &namelist, NULL, alphasort);
@@ -113,16 +125,21 @@ int main(void)
       if (b[strlen(b)-1]!='/')
         strcat(b, "/");
       check_exists(b);
+      progress->minimum(0.0f); progress->maximum((float)n);
       progress->value(0.0f);
-      for (i=0; i<n; i++) {
-        char buff[256];
-        sprintf(buff,"cp -pv ./bin/%s %s", namelist[i]->d_name,b);
-        system(buff);
-        progress->value((float)(i+1)/(float)(n));
-      }
+      Fl::wait(0.1);
+      for (i=0; i<n; i++)
+        if ((namelist[i]->d_name)[0]!='.') {
+          char buff[256];
+          sprintf(buff,"cp -pv ./bin/%s %s>/dev/null", namelist[i]->d_name,b);
+          system(buff);
+          progress->value((float)(i+1));
+          Fl::wait(0.1);
+        }
+        else progress->value((float)(i+1));
     }
     //Copy opcodes
-    {
+    if (doOpc->value()) {
       struct dirent **namelist;
       char b[256];
       int n = scandir("./opc", &namelist, NULL, alphasort);
@@ -132,15 +149,20 @@ int main(void)
       if (b[strlen(b)-1]!='/')
         strcat(b, "/");
       check_exists(b);
+      progress->minimum(0.0f); progress->maximum((float)n);
       progress->value(0.0f);
-      for (i=0; i<n; i++) {
-        char buff[256];
-        sprintf(buff,"cp -pv ./opc/%s %s", namelist[i]->d_name,b);
-        system(buff);
-        progress->value((float)(i+1)/(float)(n));
-      }
+      Fl::wait(0.1);
+      for (i=0; i<n; i++)
+        if ((namelist[i]->d_name)[0]!='.') {
+          char buff[256];
+          sprintf(buff,"cp -pv ./opc/%s %s>/dev/null", namelist[i]->d_name,b);
+          system(buff);
+          progress->value((float)(i+1));
+          Fl::wait(0.1);
+        }
+        else progress->value((float)(i+1));
     }
-    if (strlen(doc->value())!=0) {
+    if (doDoc->value() && strlen(doc->value())!=0) {
       struct dirent **namelist;
       char b[256];
       int n = scandir("./html", &namelist, NULL, alphasort);
@@ -152,17 +174,20 @@ int main(void)
         strcat(b, "/");
       check_exists(b);
       check_exists(doc->value());
+      progress->minimum(0.0f); progress->maximum((float)n);
       progress->value(0.0f);
-      for (i=0; i<n; i++) {
-        char buff[256];
-        Fl::wait(0.2);
-        sprintf(buff,"cp -pv ./html/%s %s", namelist[i]->d_name,b);
-        system(buff);
-        progress->value((float)(i+1)/(float)(n));
-        Fl::wait(0.2);
-      }
+      Fl::wait(0.1);
+      for (i=0; i<n; i++)
+        if ((namelist[i]->d_name)[0]!='.') {
+          char buff[256];
+          sprintf(buff,"cp -pv ./html/%s %s>/dev/null", namelist[i]->d_name,b);
+          system(buff);
+          progress->value((float)(i+1));
+          Fl::wait(0.1);
+        }
+        else progress->value((float)(i+1));
     }
-    if (strlen(libdir->value())!=0) {
+    if (doLib->value() && strlen(libdir->value())!=0) {
       struct dirent **namelist;
       char b[256];
       int n = scandir("./lib", &namelist, NULL, alphasort);
@@ -172,72 +197,52 @@ int main(void)
       if (b[strlen(b)-1]!='/')
         strcat(b, "/");
       check_exists(b);
+      progress->minimum(0.0f); progress->maximum((float)n);
       progress->value(0.0f);
-      for (i=0; i<n; i++) {
-        char buff[256];
-        Fl::wait(0.2);
-        sprintf(buff,"cp -pv ./lib/%s %s", namelist[i]->d_name,b);
-        system(buff);
-        progress->value((float)(i+1)/(float)(n));
-        Fl::wait(0.2);
-      }
+      Fl::wait(0.1);
+      for (i=0; i<n; i++)
+        if ((namelist[i]->d_name)[0]!='.') {
+          char buff[256];
+          Fl::wait(0.1);
+          sprintf(buff,"cp -pv ./lib/%s %s>/dev/null", namelist[i]->d_name,b);
+          system(buff);
+          progress->value((float)(i+1));
+          Fl::wait(0.1);
+        }
+        else progress->value((float)(i+1));
     }
-    if (profile->value()) {
+    if (doBin->value() && strlen(opcdir->value())!=0) {
       /* Need to setup OPCODEDIR or OPCODEDIR64 */
       /* This differs according to which shell is being used, so for
          bash/sh add to .profile "OPCODEDIRxx=yyy; export OPCODEDIRxx"
          csh/tcsh add to .cshrc "setenv OPCODEDIRxx yyyy"
-    */
-      char *myshell = getenv("SHELL");
-      Fl::wait(0.2);
-      if (cshell->value() ||
-          (!shell->value() &&
-           strstr(myshell,"csh")!=NULL)) { /* CShell and friends */
-        char buff[120];
-        char temp[32];
-        FILE *rc;
-        FILE *nw;
-        strcpy(buff, getenv("HOME"));
-        strcat(buff, "/.cshrc");
-        rc = fopen(buff, "r");
-        strcpy(temp, buff); strcat(temp, ".XXXXXX");
-        if (mkstemp(temp)== -1) exit(2);
-        nw = fopen(temp, "w");
-        while (!feof(rc)) {
-          char b[100];
-          Fl::wait(0.1);
-          fgets(b, 100, rc);
-          if (strstr(b, envy)!=0) {
-            putc('#', nw);
-          }
-          fputs(b, nw);
-        }
-        fprintf(nw, "setenv %s \n", envy, opcdir->value());
-        fclose(nw); fclose(rc); unlink(buff); link(temp, buff);
+      */
+      char buff[120];
+      char binlink[256];
+      char oplink[256];
+      FILE *rc;
+      // Make full address
+      if (bindir->value()[0]!='/') {
+        char bb[200];
+        getcwd(bb, 200);
+        sprintf(binlink, "%s/%s", bb, bindir->value());
       }
-      else {
-        char buff[120];
-        char temp[32];
-        FILE *rc;
-        FILE *nw;
-        strcpy(buff, getenv("HOME"));
-        strcat(buff, "/.profile");
-        rc = fopen(buff, "r");
-        strcpy(temp, buff); strcat(temp, ".XXXXXX");
-        if (mkstemp(temp)== -1) exit(2);
-        nw = fopen(temp, "w");
-        while (!feof(rc)) {
-          char b[100];
-          fgets(b, 100, rc);
-          if (strstr(b, envy)!=0) {
-            putc('#', nw);
-          }
-          fputs(b, nw);
-        }
-        fprintf(nw, "%s=%s; export %s\n", envy, opcdir->value(), envy);
-        fclose(nw); fclose(rc); unlink(buff); link(temp, buff);
+      else
+        strcpy(binlink, bindir->value());
+      if (opcdir->value()[0]!='/') {
+        char bb[200];
+        getcwd(bb, 200);
+        sprintf(oplink, "%s/%s", bb, opcdir->value());
       }
+      else
+        strcpy(oplink, opcdir->value());
+      sprintf(buff, "%s/cs5", binlink);
+      rc = fopen(buff, "w");
+      fprintf(rc, "#!/bin/sh\n%s=%s\n%s/csound $0\n",
+              envy, oplink, binlink);
+      fclose(rc);
+      chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IXOTH);
     }
-    err->color(FL_GREEN);
+    err->color(FL_GRAY);
     do_alert("Installation finished");
 }

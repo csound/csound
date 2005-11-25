@@ -6,7 +6,7 @@ Function {make_window(char* type)} {open
 } {
   Fl_Window {} {
     label {Csound5 Installer} open
-    xywh {504 101 370 325} type Double visible
+    xywh {504 111 370 325} type Double visible
   } {
     Fl_Text_Display {} {
       label {Csound5 Installer for}
@@ -14,6 +14,7 @@ Function {make_window(char* type)} {open
     }
     Fl_Output bintype {
       xywh {185 6 170 30} box NO_BOX labelfont 1 labelsize 20 textfont 9 textsize 20
+      code0 {bintype->value(type);}
     }
     Fl_Check_Button systemp {
       label {Install in System Files}
@@ -36,29 +37,30 @@ Function {make_window(char* type)} {open
       label Libraries
       xywh {90 195 235 30}
     }
-    Fl_Group {} {open
-      xywh {90 240 235 65}
-    } {
-      Fl_Light_Button profile {
-        label {Change profile}
-        xywh {90 245 115 40}
-      }
-      Fl_Round_Button shell {
-        label {sh/bash}
-        xywh {215 240 25 25} down_box ROUND_DOWN_BOX
-      }
-      Fl_Round_Button cshell {
-        label csh selected
-        xywh {215 265 40 25} down_box ROUND_DOWN_BOX
-      }
-    }
     Fl_Progress progress {
-      xywh {90 290 235 15}
+      xywh {150 275 210 30}
     }
     Fl_Button {} {
       label INSTALL
       callback {do_install = 1;}
       xywh {10 245 70 60} color 1 labelfont 9 labelsize 12
+    }
+    Fl_Button {} {
+      label ABORT
+      callback {exit(0);} selected
+      xywh {90 260 50 45} color 10 labelfont 9 labelsize 12
+    }
+    Fl_Check_Button doBin {
+      xywh {10 80 25 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button doOpc {
+      xywh {10 120 25 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button doDoc {
+      xywh {10 160 25 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button doLib {
+      xywh {10 200 25 25} down_box DOWN_BOX
     }
   }
 } 
@@ -67,7 +69,7 @@ Function {make_alert()} {open
 } {
   Fl_Window {} {
     label {Installer Alert} open
-    xywh {672 244 345 75} type Double color 1 labelcolor 7 visible
+    xywh {1039 271 345 75} type Double color 1 labelcolor 7 visible
   } {
     Fl_Output err_text {
       xywh {5 10 310 25} color 1 textcolor 7

@@ -14,17 +14,23 @@ Fl_File_Input *doc=(Fl_File_Input *)0;
 
 Fl_File_Input *libdir=(Fl_File_Input *)0;
 
-Fl_Light_Button *profile=(Fl_Light_Button *)0;
-
-Fl_Round_Button *shell=(Fl_Round_Button *)0;
-
-Fl_Round_Button *cshell=(Fl_Round_Button *)0;
-
 Fl_Progress *progress=(Fl_Progress *)0;
 
 static void cb_INSTALL(Fl_Button*, void*) {
   do_install = 1;
 }
+
+static void cb_ABORT(Fl_Button*, void*) {
+  exit(0);
+}
+
+Fl_Check_Button *doBin=(Fl_Check_Button *)0;
+
+Fl_Check_Button *doOpc=(Fl_Check_Button *)0;
+
+Fl_Check_Button *doDoc=(Fl_Check_Button *)0;
+
+Fl_Check_Button *doLib=(Fl_Check_Button *)0;
 
 Fl_Double_Window* make_window(char* type) {
   Fl_Double_Window* w;
@@ -41,6 +47,7 @@ Fl_Double_Window* make_window(char* type) {
       o->labelsize(20);
       o->textfont(9);
       o->textsize(20);
+      bintype->value(type);
     }
     { Fl_Check_Button* o = systemp = new Fl_Check_Button(265, 45, 25, 25, "Install in System Files");
       o->down_box(FL_DOWN_BOX);
@@ -51,22 +58,30 @@ Fl_Double_Window* make_window(char* type) {
     opcdir = new Fl_File_Input(90, 115, 235, 30, "Opcodes");
     doc = new Fl_File_Input(90, 155, 235, 30, "Manual");
     libdir = new Fl_File_Input(90, 195, 235, 30, "Libraries");
-    { Fl_Group* o = new Fl_Group(90, 240, 235, 65);
-      profile = new Fl_Light_Button(90, 245, 115, 40, "Change profile");
-      { Fl_Round_Button* o = shell = new Fl_Round_Button(215, 240, 25, 25, "sh/bash");
-        o->down_box(FL_ROUND_DOWN_BOX);
-      }
-      { Fl_Round_Button* o = cshell = new Fl_Round_Button(215, 265, 40, 25, "csh");
-        o->down_box(FL_ROUND_DOWN_BOX);
-      }
-      o->end();
-    }
-    progress = new Fl_Progress(90, 290, 235, 15);
+    progress = new Fl_Progress(150, 275, 210, 30);
     { Fl_Button* o = new Fl_Button(10, 245, 70, 60, "INSTALL");
       o->color((Fl_Color)1);
       o->labelfont(9);
       o->labelsize(12);
       o->callback((Fl_Callback*)cb_INSTALL);
+    }
+    { Fl_Button* o = new Fl_Button(90, 260, 50, 45, "ABORT");
+      o->color((Fl_Color)10);
+      o->labelfont(9);
+      o->labelsize(12);
+      o->callback((Fl_Callback*)cb_ABORT);
+    }
+    { Fl_Check_Button* o = doBin = new Fl_Check_Button(10, 80, 25, 25);
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = doOpc = new Fl_Check_Button(10, 120, 25, 25);
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = doDoc = new Fl_Check_Button(10, 160, 25, 25);
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = doLib = new Fl_Check_Button(10, 200, 25, 25);
+      o->down_box(FL_DOWN_BOX);
     }
     o->end();
   }
