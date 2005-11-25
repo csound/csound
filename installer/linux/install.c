@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -167,6 +167,15 @@ int main(int argc, char **argv)
         system(s);
       }
     }
+<<<<<<< install.c
+    /* Need to setup OPCODEDIR or OPCODEDIR64 */
+    /* This differs according to which shell is being used, so for
+       bash, sh,  add "OPCODEDIRxx=$prefix/$opcdirl export OPCODEDIRxx"
+       csh, tcsh  add "setenv OPCODEDIRxx $prefix/$opcdirl"
+    */
+    /* and check /etc/ld.so.conf. If that is not writable change users LD_PATH */
+    /* Also need to check existence of libsndfile and other necessary libraries */
+=======
     /* Need to setup OPCODEDIR or OPCODEDIR64 */
     /* This differs according to which shell is being used, so for
        bash, sh,  add to .profile "OPCODEDIRxx=$prefix/$opcdir; export OPCODEDIRxx"
@@ -225,6 +234,7 @@ int main(int argc, char **argv)
     }
     /* and check /etc/ld.so.conf. If that is not writable change users LD_PATH */
     /* Also need to check existence of libsndfile and other necessary libraries */
+>>>>>>> 1.4
 
 }
 
