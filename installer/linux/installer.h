@@ -26,4 +26,11 @@ Fl_Double_Window* make_window(char* type);
 extern Fl_Output *err_text;
 #include <FL/Fl_Return_Button.H>
 Fl_Double_Window* make_alert();
+extern Fl_Check_Button *do_asound;
+extern Fl_Check_Button *do_fluidsynth;
+extern Fl_Check_Button *do_jack;
+extern Fl_Check_Button *do_lo;
+extern Fl_Check_Button *do_portaudio;
+extern Fl_Check_Button *do_sndfile;
+Fl_Double_Window* make_libraries();
 #endif

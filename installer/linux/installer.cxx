@@ -112,3 +112,63 @@ Fl_Double_Window* make_alert() {
   }
   return w;
 }
+
+Fl_Check_Button *do_asound=(Fl_Check_Button *)0;
+
+Fl_Check_Button *do_fluidsynth=(Fl_Check_Button *)0;
+
+Fl_Check_Button *do_jack=(Fl_Check_Button *)0;
+
+Fl_Check_Button *do_lo=(Fl_Check_Button *)0;
+
+Fl_Check_Button *do_portaudio=(Fl_Check_Button *)0;
+
+Fl_Check_Button *do_sndfile=(Fl_Check_Button *)0;
+
+static void cb_install(Fl_Button*, void*) {
+  do_libinstall=1;
+lib_exit=1;
+}
+
+static void cb_cancel(Fl_Button*, void*) {
+  do_libinstall=0;
+lib_exit=1;
+}
+
+Fl_Double_Window* make_libraries() {
+  Fl_Double_Window* w;
+  { Fl_Double_Window* o = new Fl_Double_Window(255, 210);
+    w = o;
+    { Fl_Text_Display* o = new Fl_Text_Display(25, 25, 25, 25, "Optional Libraries Installation");
+      o->box(FL_NO_BOX);
+      o->labelfont(1);
+      o->align(FL_ALIGN_TOP_LEFT);
+    }
+    { Fl_Check_Button* o = do_asound = new Fl_Check_Button(25, 50, 200, 20, "libasound");
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = do_fluidsynth = new Fl_Check_Button(25, 75, 200, 20, "libfluidsynth");
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = do_jack = new Fl_Check_Button(25, 100, 200, 25, "libjack");
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = do_lo = new Fl_Check_Button(25, 125, 200, 20, "liblo");
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = do_portaudio = new Fl_Check_Button(25, 150, 200, 20, "libportaudio");
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = do_sndfile = new Fl_Check_Button(25, 175, 200, 20, "libsndfile");
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Button* o = new Fl_Button(25, 25, 55, 20, "install");
+      o->callback((Fl_Callback*)cb_install);
+    }
+    { Fl_Button* o = new Fl_Button(175, 25, 55, 20, "cancel");
+      o->callback((Fl_Callback*)cb_cancel);
+    }
+    o->end();
+  }
+  return w;
+}
