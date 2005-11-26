@@ -9,7 +9,7 @@ cp -rupv ../../../manual/html ../../../CSDIST/linux_d64/doc
 cat > ../../../CSDIST/linux_d64/def.ins <<'EOF'
 Linux i86_64 Doubles
 /usr/local/bin
-/usr/local/csound64
+/usr/local/csound64_64
 /usr/local/doc/csound
 /usr/local/lib64
 OPCODEDIR64
