@@ -8,6 +8,8 @@
 
 int do_install = 0;
 int end_alert = 0;
+int do_libinstall = 0;
+int lib_exit = 0;
 
 char type[256];
 char bin[256];
@@ -188,28 +190,64 @@ int main(void)
         else progress->value((float)(i+1));
     }
     if (doLib->value() && strlen(libdir->value())!=0) {
-      struct dirent **namelist;
       char b[256];
-      int n = scandir("./lib", &namelist, NULL, alphasort);
-      int i;
-      progress->label("libraries");
+      Fl_Double_Window *ll = make_libraries();
       strcpy(b, libdir->value());
-      if (b[strlen(b)-1]!='/')
-        strcat(b, "/");
-      check_exists(b);
-      progress->minimum(0.0f); progress->maximum((float)n);
+      // really ought to pre-mark acording to availability
+      lib_exit = 0;
+      ll->show();
+      while (lib_exit==0) Fl::wait();
+      progress->label("libraries");
+      progress->minimum(0.0f); progress->maximum(7.0);
       progress->value(0.0f);
-      Fl::wait(0.1);
-      for (i=0; i<n; i++)
-        if ((namelist[i]->d_name)[0]!='.') {
-          char buff[256];
-          Fl::wait(0.1);
-          sprintf(buff,"cp -pv ./lib/%s %s>/dev/null", namelist[i]->d_name,b);
+      if (do_libinstall) {
+        char buff[256];
+        float n = 0.0f;
+        check_exists(b);
+        sprintf(buff,"cp -pv ./lib/libcsound.a %s>/dev/null", b);
+        system(buff);
+        progress->value(n+= 1.0f);
+        if (do_asound->value()) {
+          sprintf(buff,"cp -pv ./lib/libasound.so.2 %s>/dev/null", b);
           system(buff);
-          progress->value((float)(i+1));
-          Fl::wait(0.1);
+          sprintf(buff,"ln -s %s/libasound.so.2 %s/libasound.so",b,b);
+          system(buff);
+          progress->value(n+= 1.0f);
         }
-        else progress->value((float)(i+1));
+        if (do_fluidsynth->value()) {
+          sprintf(buff,"cp -pv ./lib/libfluidsynth.so.1 %s>/dev/null", b);
+          system(buff);
+          sprintf(buff,"ln -s %s/libfluidsynth.so.1 %s/libfluidsynth.so",b,b);
+          system(buff);
+          progress->value(n+= 1.0f);
+        }
+        if (do_jack->value()) {
+          sprintf(buff,"cp -pv ./lib/libjack.so.0 %s>/dev/null", b);
+          system(buff);
+          sprintf(buff,"ln -s %s/libjacl.so.0 %s/libjack.so",b,b);
+          system(buff);
+          progress->value(n+= 1.0f);
+        }
+        if (do_lo->value()) {
+          sprintf(buff,"cp -pv ./lib/liblo.so.0 %s>/dev/null", b);
+          system(buff);
+          sprintf(buff,"ln -s %s/liblo.so.0 %s/liblo.so",b,b);
+          system(buff);
+          progress->value(n+= 1.0f);
+        }
+        if (do_portaudio->value()) {
+          sprintf(buff,"cp -pv ./lib/libportaudio.so %s>/dev/null", b);
+          system(buff);
+          progress->value(n+= 1.0f);
+        }
+        if (do_sndfile->value()) {
+          sprintf(buff,"cp -pv ./lib/libsndfile.so.1 %s>/dev/null", b);
+          system(buff);
+          sprintf(buff,"ln -s %s/libsndfile.so.1 %s/libsndfile.so",b,b);
+          system(buff);
+          progress->value(n+= 1.0f);
+        }
+      }
     }
     if (doBin->value() && strlen(opcdir->value())!=0) {
       /* Need to setup OPCODEDIR or OPCODEDIR64 */

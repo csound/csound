@@ -6,7 +6,7 @@ Function {make_window(char* type)} {open
 } {
   Fl_Window {} {
     label {Csound5 Installer} open
-    xywh {504 111 370 325} type Double visible
+    xywh {504 123 370 325} type Double visible
   } {
     Fl_Text_Display {} {
       label {Csound5 Installer for}
@@ -47,7 +47,7 @@ Function {make_window(char* type)} {open
     }
     Fl_Button {} {
       label ABORT
-      callback {exit(0);} selected
+      callback {exit(0);}
       xywh {90 260 50 45} color 10 labelfont 9 labelsize 12
     }
     Fl_Check_Button doBin {
@@ -69,7 +69,7 @@ Function {make_alert()} {open
 } {
   Fl_Window {} {
     label {Installer Alert} open
-    xywh {1039 271 345 75} type Double color 1 labelcolor 7 visible
+    xywh {678 283 345 75} type Double color 1 labelcolor 7 visible
   } {
     Fl_Output err_text {
       xywh {5 10 310 25} color 1 textcolor 7
@@ -78,6 +78,54 @@ Function {make_alert()} {open
       label OK
       callback {end_alert = 1;}
       xywh {5 45 50 25} color 1
+    }
+  }
+} 
+
+Function {make_libraries()} {open
+} {
+  Fl_Window {} {open
+    xywh {471 242 255 210} type Double visible
+  } {
+    Fl_Text_Display {} {
+      label {Optional Libraries Installation}
+      xywh {25 25 25 25} box NO_BOX labelfont 1 align 5
+    }
+    Fl_Check_Button do_asound {
+      label libasound
+      xywh {25 50 200 20} down_box DOWN_BOX
+    }
+    Fl_Check_Button do_fluidsynth {
+      label libfluidsynth
+      xywh {25 75 200 20} down_box DOWN_BOX
+    }
+    Fl_Check_Button do_jack {
+      label libjack
+      xywh {25 100 200 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button do_lo {
+      label liblo
+      xywh {25 125 200 20} down_box DOWN_BOX
+    }
+    Fl_Check_Button do_portaudio {
+      label libportaudio
+      xywh {25 150 200 20} down_box DOWN_BOX
+    }
+    Fl_Check_Button do_sndfile {
+      label libsndfile
+      xywh {25 175 200 20} down_box DOWN_BOX
+    }
+    Fl_Button {} {
+      label install
+      callback {do_libinstall=1;
+lib_exit=1;} selected
+      xywh {25 25 55 20}
+    }
+    Fl_Button {} {
+      label cancel
+      callback {do_libinstall=0;
+lib_exit=1;}
+      xywh {175 25 55 20}
     }
   }
 } 
