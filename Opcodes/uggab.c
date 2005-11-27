@@ -532,16 +532,16 @@ static int product(CSOUND *csound, SUM *p)
     return OK;
 }
 
-#if 0
 static int rsnsety(CSOUND *csound, RESONY *p)
 {
     int scale;
     int j;
     p->scale = scale = (int) *p->iscl;
-    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1) p->loop = 4; /*default value*/
+    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
+      p->loop = 4;  /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
-                      (int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
+                      (long) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
+      csound->AuxAlloc(csound, (long) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
 /*      else if (p->loop > 50) */
 /*        csound->InitError(csound, "illegal order num. (min 1, max 50)"); */
@@ -550,7 +550,8 @@ static int rsnsety(CSOUND *csound, RESONY *p)
                                        *p->iscl);
     }
     if (!(*p->istor)) {
-      for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = FL(0.0);
+      for (j = 0; j < p->loop; j++)
+        p->yt1[j] = p->yt2[j] = FL(0.0);
     }
     if (p->buffer.auxp == NULL)
       csound->AuxAlloc(csound, (long)(csound->ksmps*sizeof(MYFLT)), &p->buffer);
@@ -569,20 +570,21 @@ static int resony(CSOUND *csound, RESONY *p)
     int     flag = (int) *p->iflag;
     MYFLT   *buffer = (MYFLT*) (p->buffer.auxp);
     int     n;
-    ar = p->ar;
-    nsmps = csound->ksmps;
 
-    for (n=0; n<nsmps; n++)
+    nsmps = csound->ksmps;
+    asig = p->asig;
+
+    for (n = 0; n < nsmps; n++)
       buffer[n] = FL(0.0);
 
-    yt1= p->yt1;
-    yt2= p->yt2;
+    yt1 = p->yt1;
+    yt2 = p->yt2;
 
-    for (j=0; j<loop; j++) {
-      if (flag)                 /* linear separation in hertz */
+    for (j = 0; j < loop; j++) {
+      if (flag)                     /* linear separation in hertz */
         cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
                            * (double) csound->tpidsr);
-      else  /* logarithmic separation in octaves */
+      else                          /* logarithmic separation in octaves */
         cosf = (MYFLT) cos((cf = (double) (*p->kcf * pow(2.0, sep * j)))
                            * (double) csound->tpidsr);
       c3 = (MYFLT) exp((double) *p->kbw * (cf / *p->kcf) * csound->mtpdsr);
@@ -592,27 +594,25 @@ static int resony(CSOUND *csound, RESONY *p)
       c2sqr = c2 * c2;
       omc3 = FL(1.0) - c3;
       if (p->scale == 1)
-        c1 = omc3 * (MYFLT)sqrt(1.0 - (double)c2sqr / c3t4);
+        c1 = omc3 * (MYFLT) sqrt(1.0 - (double) c2sqr / c3t4);
       else if (p->scale == 2)
-        c1 = (MYFLT)sqrt((double)((c3p1*c3p1-c2sqr) * omc3/c3p1));
-      else c1 = FL(1.0);
-      asig = p->asig;
-      ar = p->ar;
-      nsmps = csound->ksmps;
-      for (n=0; n<csound->ksmps; n++) {
-        MYFLT temp = c1 * *asig++ + c2 * *yt1 - c3 * *yt2;
+        c1 = (MYFLT) sqrt((double) ((c3p1*c3p1-c2sqr) * omc3/c3p1));
+      else
+        c1 = FL(1.0);
+      for (n = 0; n < nsmps; n++) {
+        MYFLT temp = c1 * asig[n] + c2 * *yt1 - c3 * *yt2;
         buffer[n] += temp;
         *yt2 = *yt1;
         *yt1 = temp;
-      } while (--nsmps);
+      }
       yt1++;
       yt2++;
     }
-    for (n=0; n<csound->ksmps; n++)     /* Copy local buffer to output */
-      *ar++ = buffer[n];
+    ar = p->ar;
+    for (n = 0; n < nsmps; n++)     /* Copy local buffer to output */
+      ar[n] = buffer[n];
     return OK;
 }
-#endif
 
 static int fold_set(CSOUND *csound, FOLD *p)
 {
@@ -1561,9 +1561,10 @@ static OENTRY localops[] = {
 { "lposcil",  S(LPOSC), 5, "a", "kkkkio", (SUBR)lposc_set, NULL, (SUBR)lposc},
 { "poscil3",  S(POSC),  7, "s", "kkio", (SUBR)posc_set,(SUBR)kposc3,(SUBR)posc3 },
 { "lposcil3", S(LPOSC), 5, "a", "kkkkio", (SUBR)lposc_set, NULL,(SUBR)lposc3},
-{ "trigger", S(TRIG),    3,"k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
-{ "sum", S(SUM),         4,"a", "y",    NULL, NULL, (SUBR)sum               },
-{ "product", S(SUM),     4,"a", "y",    NULL, NULL, (SUBR)product           }
+{ "trigger",  S(TRIG),  3, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
+{ "sum",      S(SUM),   4, "a", "y",    NULL, NULL, (SUBR)sum               },
+{ "product",  S(SUM),   4, "a", "y",    NULL, NULL, (SUBR)product           },
+{ "resony",  S(RESONY), 5, "a", "akkikooo", (SUBR)rsnsety, NULL, (SUBR)resony }
 };
 
 int uggab_init_(CSOUND *csound)
