@@ -42,7 +42,7 @@
 #      define _ISOC9X_SOURCE  1
 #    endif
 #  endif
-#  ifndef DIRENT_FIX
+#  if !(defined(__MACH__) && (__GNUC__ == 3) && (__GNUC_MINOR__ < 2))
 #    define HAVE_GCC3 1
 #  endif
 #elif (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
@@ -96,15 +96,15 @@
 /* inline keyword: always available in C++, C99, and GCC 3.x and above */
 /* add any other compiler that supports 'inline' */
 
-#if !(defined(HAVE_C99) || defined(HAVE_GCC3) || defined(__cplusplus))
-#  ifdef MSVC
-#    define inline  __inline
-#  elif !defined(inline)
+#if !(defined(__cplusplus) || defined(inline))
+#  if defined(HAVE_C99) || defined(HAVE_GCC3)
 #    if defined(__GNUC__) && defined(__STRICT_ANSI__)
 #      define inline __inline__
-#    else
-#      define inline
 #    endif
+#  elif defined(MSVC)
+#    define inline  __inline
+#  else
+#    define inline
 #  endif
 #endif
 
