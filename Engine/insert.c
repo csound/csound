@@ -62,9 +62,11 @@ void set_xtratim(CSOUND *csound, INSDS *ip)
     ip->relesing = 1;
 }
 
+/* insert an instr copy into active list */
+/*      then run an init pass            */
+
 int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
-                                    /* insert an instr copy into active list */
-{                                   /*      then run an init pass            */
+{
     INSTRTXT  *tp;
     INSDS     *ip, *prvp, *nxtp;
     OPARMS    *O = csound->oparms;
@@ -115,6 +117,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     /* pop from free instance chain */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
+    ip->insno = (short) insno;
 
     /* Add an active instrument */
     tp->active++;
@@ -208,9 +211,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     return 0;
 }
 
-int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 /* insert a MIDI instr copy into active list */
-/*  then run an init pass           */
+/*  then run an init pass                    */
+
+int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 {
     INSTRTXT  *tp;
     INSDS     *ip, **ipp, *prvp, *nxtp;
@@ -251,6 +255,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     /* pop from free instance chain */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
+    ip->insno = (short) insno;
 
     if (O->odebug)
       csound->Message(csound, "Now %d active instr %d\n", tp->active, insno);
@@ -292,7 +297,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->offbet = -1.0;
     ip->offtim = -1.0;              /* set indef duration */
     ip->opcod_iobufs = NULL;        /* IV - Sep 8 2002:            */
-    ip->p1 = (MYFLT) ip->insno;     /* set these required p-fields */
+    ip->p1 = (MYFLT) insno;         /* set these required p-fields */
     ip->p2 = (MYFLT) (csound->curTime - csound->timeOffs);
     ip->p3 = FL(-1.0);
     if (tp->psetdata != NULL) {
@@ -1044,6 +1049,7 @@ INSDS *insert_event(CSOUND *csound,
     /* pop from free instance chain */
     ip = tp->act_instance;
     tp->act_instance = ip->nxtact;
+    ip->insno = (short) insno;
 
     /* Add an active instrument */
     tp->active++;
