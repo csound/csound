@@ -86,11 +86,14 @@ opts.Add('useDouble',
 opts.Add('usePortAudio',
     'Set to 1 to use PortAudio for real-time audio input and output.',
     '1')
+opts.Add('usePortMIDI',
+    'Build PortMidi plugin for real time MIDI input and output.',
+    '1')
 opts.Add('useALSA',
-    'Set to 1 to use ALSA for real-time audio input and output.',
+    'Set to 1 to use ALSA for real-time audio and MIDI input and output.',
     '1')
 opts.Add('useJack',
-    'Set to 1 if you compiled PortAudio to use Jack',
+    'Set to 1 if you compiled PortAudio to use Jack; also builds Jack plugin.',
     '1')
 opts.Add('useFLTK',
     'Set to 1 to use FLTK for graphs and widget opcodes.',
@@ -126,11 +129,11 @@ opts.Add('buildPythonOpcodes',
     'Set to 1 to build Python opcodes',
     '0')
 opts.Add('prefix',
-    'Base directory for installs.  Defaults to /usr/local.',
+    'Base directory for installs. Defaults to /usr/local.',
     '/usr/local')
-opts.Add('usePortMIDI',
-    'Build PortMidi plugin for real time MIDI input and output.',
-    '1')
+opts.Add('buildRelease',
+    'Set to 1 to build for release (implies noDebug).',
+    '0')
 opts.Add('noDebug',
     'Build without debugging information.',
     '0')
@@ -158,9 +161,6 @@ opts.Add('buildStkOpcodes',
 opts.Add('install',
     'Enables the Install targets',
     '1')
-opts.Add('useDirentFix',
-    "On OSX use the fixes for dirent.h (needed with earlier OS versions and development tools)",
-    '0')
 opts.Add('buildPDClass',
     "build csoundapi~ PD class (needs m_pd.h in the standard places)",
     '0')
@@ -233,7 +233,12 @@ if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
   else:
     flags = '-O3 -march=%s'%(cpuType)
   commonEnvironment.Prepend(CCFLAGS = Split(flags))
-elif (commonEnvironment['noDebug']=='0'):
+elif commonEnvironment['buildRelease'] != '0':
+  if commonEnvironment['MSVC'] == '0':
+    commonEnvironment.Prepend(CCFLAGS = Split('''
+      -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
+    '''))
+elif commonEnvironment['noDebug'] == '0':
   if (getPlatform() == 'darwin'):
     commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
   else:
@@ -245,7 +250,8 @@ if (commonEnvironment['useGprof']=='1'):
   commonEnvironment.Append(LINKFLAGS = ['-pg'])
 commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
-commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
+if commonEnvironment['buildRelease'] == '0':
+    commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
 if (commonEnvironment['Word64']=='1'):
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
 else:
@@ -276,9 +282,6 @@ elif getPlatform() == 'darwin':
     if (commonEnvironment['useAltivec'] == '1'):
         print 'CONFIGURATION DECISION using Altivec optmisation'
         commonEnvironment.Append(CCFLAGS = "-faltivec")
-    if (commonEnvironment['useDirentFix'] == '1'):
-        print 'Using OSX dirent fix'
-        commonEnvironment.Append(CCFLAGS = "-DDIRENT_FIX")
 elif getPlatform() == 'mingw':
     commonEnvironment.Append(CCFLAGS = "-D_WIN32")
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
@@ -339,10 +342,7 @@ jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
-if getPlatform() != 'darwin':
-   tclhfound = configure.CheckHeader("tcl.h", language = "C") and configure.CheckHeader("tk.h", language = "C")
-else:
-   tclhfound = configure.CheckHeader("tcl.h", language ="C")   
+tclhfound = configure.CheckHeader("tcl.h", language ="C")
 luaFound = configure.CheckHeader("lua.h", language = "C")
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
@@ -444,6 +444,8 @@ def buildzip(env, target, source):
 
 csoundLibraryEnvironment = commonEnvironment.Copy()
 csoundLibraryEnvironment.Append(CCFLAGS = ['-D__BUILDING_LIBCSOUND'])
+if commonEnvironment['buildRelease'] != '0':
+    csoundLibraryEnvironment.Append(CCFLAGS = ['-D_CSOUND_RELEASE_'])
 csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Copy()
 csoundDynamicLibraryEnvironment.Append(LIBS = ['sndfile'])
 if getPlatform() == 'mingw':
@@ -594,8 +596,7 @@ if getPlatform() == 'darwin':
     pluginEnvironment.Append(LINKFLAGS = Split('''
         -framework CoreMidi -framework CoreFoundation -framework CoreAudio
     '''))
-    if (commonEnvironment['useDirentFix'] == '1'):
-        pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
+    # pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
 
 csoundProgramEnvironment = commonEnvironment.Copy()
@@ -892,8 +893,9 @@ else:
     print "CONFIGURATION DECISION: Building JACK plugin."
     jackEnvironment = pluginEnvironment.Copy()
     if getPlatform() == 'linux':
-       jackEnvironment.Append(LIBS = ['asound'])
-    jackEnvironment.Append(LIBS = ['jack', 'pthread'])
+        jackEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
+    else:
+        jackEnvironment.Append(LIBS = ['jack', 'pthread'])
     pluginLibraries.append(jackEnvironment.SharedLibrary('rtjack',
                                                          ['InOut/rtjack.c']))
 
