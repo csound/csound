@@ -97,6 +97,7 @@ typedef struct widgetsGlobals_s {
 } widgetsGlobals_t;
 #endif
 
+#ifndef NO_FLTK_THREADS
 static inline void lock(CSOUND *csound)
 {
     (void) csound;
@@ -114,6 +115,17 @@ static inline void awake(CSOUND *csound)
     (void) csound;
     Fl::awake();
 }
+#else
+static inline void lock(CSOUND *csound)
+{
+    (void) csound;
+}
+
+static inline void unlock(CSOUND *csound)
+{
+    (void) csound;
+}
+#endif  // NO_FLTK_THREADS
 
 #ifndef NO_FLTK_THREADS
 extern "C" {
@@ -1466,10 +1478,8 @@ extern "C" int save_snap(CSOUND *csound, FLSAVESNAPS* p)
     return OK;
 #elif defined(NO_FLTK_THREADS)
   int   n;
-  lock(csound);
   n = fl_ask(Str("Saving could overwrite the old file.\n"
                  "Are you sure you want to save ?"));
-  unlock(csound);
   if (!n)
     return OK;
 #endif
@@ -1738,6 +1748,10 @@ static uintptr_t fltkRun(void *userdata)
 
 #endif  // NO_FLTK_THREADS
 
+#ifdef NO_FLTK_THREADS
+extern "C" int CsoundYield_FLTK(CSOUND *csound);
+#endif
+
 extern "C" int FL_run(CSOUND *csound, FLRUN *p)
 {
 #ifndef NO_FLTK_THREADS
@@ -1760,12 +1774,11 @@ extern "C" int FL_run(CSOUND *csound, FLRUN *p)
 #else   // NO_FLTK_THREADS
   int j;
 
-  lock(csound);
   for (j = 0; j < (int) fl_windows.size(); j++) {
     fl_windows[j].panel->show();
   }
-  awake(csound);
-  unlock(csound);
+  Fl::wait(0.0);
+  csound->SetYieldCallback(csound, CsoundYield_FLTK);
 #endif  // NO_FLTK_THREADS
   return OK;
 }
