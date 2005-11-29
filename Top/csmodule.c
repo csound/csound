@@ -86,13 +86,11 @@
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
-#  ifdef __MACH__
-#    ifdef DIRENT_FIX
+#  if 0 && defined(__MACH__)
 typedef void*   DIR;
 DIR             opendir(const char *);
 struct dirent   *readdir(DIR*);
 int             closedir(DIR*);
-#    endif
 #  endif
 #endif
 
@@ -123,7 +121,25 @@ static  const   char    *plugindir_envvar =   "OPCODEDIR";
 static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 
 /* default directory to load plugins from if environment variable is not set */
-static  const   char    *default_plugin_dir = ".";
+#if !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
+#  define ENABLE_OPCODEDIR_WARNINGS 1
+static const char   *default_plugin_dir = ".";
+#else
+#  define ENABLE_OPCODEDIR_WARNINGS 0
+#  if !(defined(LINUX) && (defined(__amd64__) || defined(__x86_64__)))
+#    ifndef USE_DOUBLE
+static const char   *default_plugin_dir = "/usr/local/lib/csound/plugins";
+#    else
+static const char   *default_plugin_dir = "/usr/local/lib/csound/plugins64";
+#    endif
+#  else
+#    ifndef USE_DOUBLE
+static const char   *default_plugin_dir = "/usr/local/lib64/csound/plugins";
+#    else
+static const char   *default_plugin_dir = "/usr/local/lib64/csound/plugins64";
+#    endif
+#  endif
+#endif
 
 typedef struct opcodeLibFunc_s {
     long    (*opcode_init)(CSOUND *, OENTRY **);  /* list of opcode entries  */
@@ -323,7 +339,9 @@ int csoundLoadModules(CSOUND *csound)
     dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
                                   plugindir_envvar : plugindir64_envvar));
     if (dname == NULL) {
+#if ENABLE_OPCODEDIR_WARNINGS
       csound->opcodedirWasOK = 0;
+#endif
 #ifdef USE_DOUBLE
       dname = csoundGetEnv(csound, plugindir_envvar);
       if (dname == NULL)
@@ -562,13 +580,13 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 static const char *error(int setget, const char *str, ...)
 {
     static char errstr[ERR_STR_LEN];
-    static int err_filled = 0;
-    const char *retval;
+    static int  err_filled = 0;
+    const char  *retval;
     NSLinkEditErrors ler;
-    int lerno;
-    const char *dylderrstr;
-    const char *file;
-    va_list arg;
+    int         lerno;
+    const char  *dylderrstr;
+    const char  *file;
+    va_list     arg;
     if (setget <= 0) {
       va_start(arg, str);
       strncpy(errstr, "dlsimple: ", ERR_STR_LEN);
@@ -599,7 +617,7 @@ static const char *error(int setget, const char *str, ...)
 /* dlsymIntern is used by dlsym to find the symbol */
 static void *dlsymIntern(void *handle, const char *symbol)
 {
-    NSSymbol nssym = NULL;
+    NSSymbol  nssym = (NSSymbol) 0;
     /* If the handle is -1, if is the app global context */
     if (handle == (void*) -1L) {
       /* Global context, use NSLookupAndBindSymbol */
@@ -826,6 +844,7 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 
 #endif
 
+#if ENABLE_OPCODEDIR_WARNINGS
 static const char *opcodedirWarnMsg[] = {
     "################################################################",
 #ifndef USE_DOUBLE
@@ -839,13 +858,18 @@ static const char *opcodedirWarnMsg[] = {
     "################################################################",
     NULL
 };
+#endif
 
 void print_opcodedir_warning(CSOUND *p)
 {
+#if ENABLE_OPCODEDIR_WARNINGS
     if (!p->opcodedirWasOK) {
       const char  **sp;
       for (sp = &(opcodedirWarnMsg[0]); *sp != NULL; sp++)
         p->MessageS(p, CSOUNDMSG_WARNING, "        %s\n", Str(*sp));
     }
+#else
+    (void) p;
+#endif
 }
 
