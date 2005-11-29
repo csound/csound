@@ -217,15 +217,15 @@ typedef unsigned long       uintptr_t;
 /* MYFLT2LRND: rounds to nearest integer */
 
 #ifdef USE_LRINT
-#ifndef USE_DOUBLE
-#define MYFLT2LONG(x) ((long) lrintf((float) (x)))
-#define MYFLT2LRND(x) ((long) lrintf((float) (x)))
-#else
-#define MYFLT2LONG(x) ((long) lrint((double) (x)))
-#define MYFLT2LRND(x) ((long) lrint((double) (x)))
-#endif
+#  ifndef USE_DOUBLE
+#    define MYFLT2LONG(x) ((long) lrintf((float) (x)))
+#    define MYFLT2LRND(x) ((long) lrintf((float) (x)))
+#  else
+#    define MYFLT2LONG(x) ((long) lrint((double) (x)))
+#    define MYFLT2LRND(x) ((long) lrint((double) (x)))
+#  endif
 #elif defined(MSVC)
-#ifndef USE_DOUBLE
+#  ifndef USE_DOUBLE
 static inline long MYFLT2LRND(float fval)
 {
     int result;
@@ -236,7 +236,7 @@ static inline long MYFLT2LRND(float fval)
     }
     return result;
 }
-#else
+#  else
 static inline long MYFLT2LRND(double fval)
 {
     int result;
@@ -247,22 +247,30 @@ static inline long MYFLT2LRND(double fval)
     }
     return result;
 }
-#endif
-#define MYFLT2LONG(x) MYFLT2LRND(x)
+#  endif
+#  define MYFLT2LONG(x) MYFLT2LRND(x)
 #else
-#ifndef USE_DOUBLE
-#define MYFLT2LONG(x) ((long) (x))
+#  ifndef USE_DOUBLE
+#    define MYFLT2LONG(x) ((long) (x))
+#    if defined(HAVE_GCC3) && defined(__i386__)
+#      define MYFLT2LRND(x) ((long) lrintf((float) (x)))
+#    else
 static inline long MYFLT2LRND(float fval)
 {
     return ((long) (fval + (fval < 0.0f ? -0.5f : 0.5f)));
 }
-#else
-#define MYFLT2LONG(x) ((long) (x))
+#    endif
+#  else
+#    define MYFLT2LONG(x) ((long) (x))
+#    if defined(HAVE_GCC3) && defined(__i386__)
+#      define MYFLT2LRND(x) ((long) lrint((double) (x)))
+#    else
 static inline long MYFLT2LRND(double fval)
 {
     return ((long) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
-#endif
+#    endif
+#  endif
 #endif
 
 /* inline functions and macros for clamping denormals to zero */
