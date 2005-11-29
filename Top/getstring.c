@@ -27,7 +27,7 @@
 #ifdef HAVE_DIRENT_H
 #  include <sys/types.h>
 #  include <dirent.h>
-#  if defined(__MACH__) && defined(DIRENT_FIX)
+#  if 0 && defined(__MACH__)
 typedef void* DIR;
 DIR opendir(const char *);
 struct dirent *readdir(DIR*);
