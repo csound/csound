@@ -22,7 +22,7 @@
 */
 
 #include "tclcsound.h"
-#ifdef MSVC
+#ifdef WIN32
 #include <windows.h>
 #endif
 
@@ -78,9 +78,12 @@ int csCompile(ClientData clientData, Tcl_Interp * interp,
     char    res[4];
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
-
+    int i;
+    char **cmdl = (char **) malloc(sizeof(char *)*(argc+1));
+    for(i=0;i<argc;i++) cmdl[i] =argv[i];
+    cmdl[i] = "-d";
     if (p->status == CS_READY) {
-      p->result = csoundCompile(cs, argc, argv);
+      p->result = csoundCompile(cs, argc+1, cmdl);
       if (!p->result)
         p->status = CS_COMPILED;
       else
@@ -88,6 +91,7 @@ int csCompile(ClientData clientData, Tcl_Interp * interp,
       sprintf(res, "%d", p->result);
       Tcl_SetResult(interp, res, TCL_VOLATILE);
     }
+    free(cmdl);
     return (TCL_OK);
 }
 
@@ -105,7 +109,7 @@ int csCompileList(ClientData clientData, Tcl_Interp * interp,
 
     if (argc == 2) {
       cmd = (char *) malloc(16384);
-      sprintf(cmd, "csound %s", argv[1]);
+      sprintf(cmd, "csound -d %s", argv[1]);
       Tcl_SplitList(interp, cmd, &largc, (CONST84 char ***) &largv);
       csCompile(p, interp, largc, largv);
       Tcl_Free((char *) largv);
@@ -454,7 +458,7 @@ int csOpcodedir(ClientData clientData, Tcl_Interp * interp,
                   int argc, char **argv)
 {
     if (argc >= 2) {
-#ifndef MSVC
+#ifndef WIN32
       setenv("OPCODEDIR", argv[1], 1);
 #else
       SetEnvironmentVariable("OPCODEDIR", argv[1]);
@@ -468,7 +472,7 @@ int csSetenv(ClientData clientData, Tcl_Interp * interp,
                int argc, char **argv)
 {
     if (argc >= 3) {
-#ifndef MSVC
+#ifndef WIN32
       setenv(argv[1], argv[2], 1);
 #else
       SetEnvironmentVariable(argv[1], argv[2]);

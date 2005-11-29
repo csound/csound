@@ -599,7 +599,7 @@ static const char *error(int setget, const char *str, ...)
 /* dlsymIntern is used by dlsym to find the symbol */
 static void *dlsymIntern(void *handle, const char *symbol)
 {
-    NSSymbol *nssym = NULL;
+    NSSymbol nssym = NULL;
     /* If the handle is -1, if is the app global context */
     if (handle == (void*) -1L) {
       /* Global context, use NSLookupAndBindSymbol */

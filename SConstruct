@@ -339,7 +339,10 @@ jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
-tclhfound = configure.CheckHeader("tcl.h", language = "C") and configure.CheckHeader("tk.h", language = "C")
+if getPlatform() != 'darwin':
+   tclhfound = configure.CheckHeader("tcl.h", language = "C") and configure.CheckHeader("tk.h", language = "C")
+else:
+   tclhfound = configure.CheckHeader("tcl.h", language ="C")   
 luaFound = configure.CheckHeader("lua.h", language = "C")
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
