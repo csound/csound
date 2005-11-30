@@ -98,9 +98,14 @@ opts.Add('useJack',
 opts.Add('useFLTK',
     'Set to 1 to use FLTK for graphs and widget opcodes.',
     '1')
-opts.Add('noFLTKThreads',
-    'Set to 1 to disable use of a separate thread for FLTK widgets.',
-    '0')
+if getPlatform() != 'darwin':
+    opts.Add('noFLTKThreads',
+        'Set to 1 to disable use of a separate thread for FLTK widgets.',
+        '0')
+else:
+    opts.Add('noFLTKThreads',
+        'Set to 0 to enable use of a separate thread for FLTK widgets.',
+        '1')
 opts.Add('pythonVersion',
     'Set to the Python version to be used.',
     '2.3')
