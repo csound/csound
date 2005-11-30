@@ -282,6 +282,7 @@ elif getPlatform() == 'darwin':
     if (commonEnvironment['useAltivec'] == '1'):
         print 'CONFIGURATION DECISION using Altivec optmisation'
         commonEnvironment.Append(CCFLAGS = "-faltivec")
+    commonEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
 elif getPlatform() == 'mingw':
     commonEnvironment.Append(CCFLAGS = "-D_WIN32")
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
@@ -306,7 +307,7 @@ if getPlatform() == 'linux':
     pythonLibraryPath = ['/usr/local/lib', '/usr/lib', tmp]
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion']]
 elif getPlatform() == 'darwin':
-    pyBasePath = '/System/Library/Frameworks/Python.framework'
+    pyBasePath = '/System/Library/Frameworks/Python.Framework'
     pythonIncludePath = ['%s/Headers' % pyBasePath]
     pythonLinkFlags = ['-framework', 'python']
     path1 = '%s/Versions/Current/lib' % pyBasePath
@@ -346,19 +347,15 @@ tclhfound = configure.CheckHeader("tcl.h", language ="C")
 luaFound = configure.CheckHeader("lua.h", language = "C")
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
-if getPlatform() != 'darwin': 
-   pythonFound = configure.CheckHeader("Python.h", language = "C")
-   if not pythonFound:
-      for i in pythonIncludePath:
-          tmp = '%s/Python.h' % i
-          pythonFound = pythonFound or configure.CheckHeader(tmp, language = "C")
-else:
-    pythonFound = configure.CheckHeader("/System/Library/Frameworks/Python.Framework/Headers/Python.h", language = "C")
+pythonFound = configure.CheckHeader("Python.h", language = "C")
+if not pythonFound:
+    for i in pythonIncludePath:
+        tmp = '%s/Python.h' % i
+        pythonFound = pythonFound or configure.CheckHeader(tmp, language = "C")
 if getPlatform() != 'darwin':
     javaFound = configure.CheckHeader("jni.h", language = "C++")
 else:
     javaFound = configure.CheckHeader("/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h", language = "C++")
-    commonEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
