@@ -39,7 +39,6 @@ void do_alert(char *msg)
       err->hide();
 }
 
-
 /* Unsure that dir exists with all directories on the way. */
 void check_exists(const char *dir)
 {
