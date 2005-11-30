@@ -346,11 +346,14 @@ tclhfound = configure.CheckHeader("tcl.h", language ="C")
 luaFound = configure.CheckHeader("lua.h", language = "C")
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
-pythonFound = configure.CheckHeader("Python.h", language = "C")
-if not pythonFound:
-    for i in pythonIncludePath:
-        tmp = '%s/Python.h' % i
-        pythonFound = pythonFound or configure.CheckHeader(tmp, language = "C")
+if getPlatform() != 'darwin': 
+   pythonFound = configure.CheckHeader("Python.h", language = "C")
+   if not pythonFound:
+      for i in pythonIncludePath:
+          tmp = '%s/Python.h' % i
+          pythonFound = pythonFound or configure.CheckHeader(tmp, language = "C")
+else:
+    pythonFound = configure.CheckHeader("/System/Library/Frameworks/Python.Framework/Headers/Python.h", language = "C")
 if getPlatform() != 'darwin':
     javaFound = configure.CheckHeader("jni.h", language = "C++")
 else:
