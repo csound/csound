@@ -1124,6 +1124,34 @@ struct SNAPSHOT {
   int get(vector<ADDR_SET_VALUE>& valuators);
 };
 
+//---------------
+
+static int stack_count       = 0;
+
+static int FLcontrol_iheight = 15;
+static int FLroller_iheight  = 18;
+static int FLcontrol_iwidth  = 400;
+static int FLroller_iwidth   = 150;
+static int FLvalue_iwidth    = 100;
+
+static int FLcolor           = -1;
+static int FLcolor2          = -1;
+static int FLtext_size       = 0;
+static int FLtext_color      = -1;
+static int FLtext_font       = -1;
+static int FLtext_align      = 0;
+
+static int FL_ix             = 10;
+static int FL_iy             = 10;
+
+static vector<PANELS> fl_windows; // all panels
+//static vector<void*> AddrValue;
+//        addresses of widgets that display current value of valuators
+static vector<ADDR_STACK> AddrStack; //addresses of containers
+static vector<ADDR_SET_VALUE> AddrSetValue; //addresses of valuators
+static vector<char*> allocatedStrings;
+static vector<SNAPSHOT> snapshots;
+
 static void set_butbank_value (Fl_Group *o, MYFLT value)
 {
   int childr = o->children();
@@ -1171,10 +1199,6 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators)
       int numsliders = (int) *p->inumsliders;
       fld.sldbnk = p->slider_data;
       fld.sldbnkValues = new MYFLT[numsliders];
-#ifndef MSVC
-      extern
-#endif
-        vector<char*> allocatedStrings;
       allocatedStrings.push_back((char *) fld.sldbnkValues);
       fld.exp = numsliders; // EXCEPTIONAL CASE! fld.exp contains the number
       // of sliders and not the exponential flag
@@ -1397,34 +1421,6 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
   return OK;
 }
 
-//---------------
-
-static int stack_count       = 0;
-
-static int FLcontrol_iheight = 15;
-static int FLroller_iheight  = 18;
-static int FLcontrol_iwidth  = 400;
-static int FLroller_iwidth   = 150;
-static int FLvalue_iwidth    = 100;
-
-static int FLcolor           = -1;
-static int FLcolor2          = -1;
-static int FLtext_size       = 0;
-static int FLtext_color      = -1;
-static int FLtext_font       = -1;
-static int FLtext_align      = 0;
-
-static int FL_ix             = 10;
-static int FL_iy             = 10;
-
-static vector<PANELS> fl_windows; // all panels
-//static vector<void*> AddrValue;
-//        addresses of widgets that display current value of valuators
-static vector<ADDR_STACK> AddrStack; //addresses of containers
-static vector<ADDR_SET_VALUE> AddrSetValue; //addresses of valuators
-static vector<char*> allocatedStrings;
-static vector<SNAPSHOT> snapshots;
-
 extern "C" int set_snap(CSOUND *csound, FLSETSNAP *p)
 {
   SNAPSHOT snap(AddrSetValue);
@@ -1478,8 +1474,10 @@ extern "C" int save_snap(CSOUND *csound, FLSAVESNAPS* p)
     return OK;
 #elif defined(NO_FLTK_THREADS)
   int   n;
+  lock(csound);
   n = fl_ask(Str("Saving could overwrite the old file.\n"
                  "Are you sure you want to save ?"));
+  unlock(csound);
   if (!n)
     return OK;
 #endif
@@ -1659,17 +1657,22 @@ extern "C" {
     csound->DestroyGlobalVariable(csound, "_widgets_globals");
 #endif  // NO_FLTK_THREADS
     for (j = allocatedStrings.size()-1; j >= 0; j--)  {
-      delete allocatedStrings[j];
+      delete[] allocatedStrings[j];
       allocatedStrings.pop_back();
     }
-    for (j=fl_windows.size()-1; j >= 0; j--) {  // destroy all opened panels
-      if (fl_windows[j].is_subwindow == 0)
-        delete fl_windows[j].panel;
-      fl_windows.pop_back();
+    j = fl_windows.size();
+    if (j > 0) {
+      // destroy all opened panels
+      do {
+        j--;
+        if (fl_windows[j].is_subwindow == 0)
+          delete fl_windows[j].panel;
+        fl_windows.pop_back();
+      } while (j);
+      lock(csound);
+      Fl::wait(0.0);
+      unlock(csound);
     }
-    lock(csound);
-    Fl::wait(0.0);
-    unlock(csound);
     //for (j = AddrValue.size()-1; j >=0; j--)  {
     //      AddrValue.pop_back();
     //}
@@ -1774,10 +1777,12 @@ extern "C" int FL_run(CSOUND *csound, FLRUN *p)
 #else   // NO_FLTK_THREADS
   int j;
 
+  lock(csound);
   for (j = 0; j < (int) fl_windows.size(); j++) {
     fl_windows[j].panel->show();
   }
   Fl::wait(0.0);
+  unlock(csound);
   csound->SetYieldCallback(csound, CsoundYield_FLTK);
 #endif  // NO_FLTK_THREADS
   return OK;
