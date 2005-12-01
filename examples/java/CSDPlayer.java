@@ -23,7 +23,7 @@ public class CSDPlayer extends javax.swing.JFrame {
     private Thread a;
     private JFileChooser choose;
     private boolean ready;
-    private String csdfile;
+    private String csdfile = "";
     private javax.swing.JButton stopButton;
     private javax.swing.JButton pauseButton;
     private javax.swing.JButton playButton;
@@ -105,7 +105,7 @@ public class CSDPlayer extends javax.swing.JFrame {
 	if(ready){ 
         cs.stop(); 
 	try{ 
-         while(a.isAlive());
+        while(a.isAlive());
         } catch (Exception e) {
 	    java.lang.System.exit(0); 
 	}
@@ -131,15 +131,15 @@ public class CSDPlayer extends javax.swing.JFrame {
     }
 
     private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {
-	if(!ready){
+	if(!ready && csdfile != ""){
          cs = new csperf(csdfile);
          ready = true;
-	     }
         if(!cs.isOn()) {
 		a = new Thread(cs);
 		a.start();
 	} else cs.play();
 	
+        }
     }
 
     private void pauseButtonActionPerformed(java.awt.event.ActionEvent evt) {
@@ -158,36 +158,36 @@ public class CSDPlayer extends javax.swing.JFrame {
         
     public class csperf implements Runnable {
 
-	Csound cs;
+	Csound csp;
 	boolean on;
 	boolean pause;
 	String  csd;
     
 	public csperf(String s){
-	    cs  = new Csound();
 	    csd = s;
 	    on = false;
 	    pause = false;
+		csp  = new Csound();
 	}
     
-	public void run() {       
+	public void run() {
 	    try{
-		int res = cs.Compile(csd, "-m0", "-d");
+		int res = csp.Compile(csd, "-m0", "-d");
 		if(res == 0){
 		    on = true;
 		    while(on){
-			if(!pause) cs.PerformKsmps();
-		    }
+			if(!pause) csp.PerformKsmps();		   
+                         }
 		}
-		cs.Reset();
 	    }
 	    catch (Exception e) {
 		java.lang.System.err.println("Could not Perform...\n");
 		java.lang.System.exit(1);
 	    }
+		csp.Reset();
 	}
 	public void stop() {
-	    on = false;   
+	    on = false;
 	}
 	public void pause(){
 	    if(!pause) pause = true;
