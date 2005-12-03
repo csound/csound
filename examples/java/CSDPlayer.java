@@ -52,46 +52,46 @@ public class CSDPlayer extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         playButton.setText("play");
         playButton.addActionListener(new java.awt.event.ActionListener() {
-		public void actionPerformed(java.awt.event.ActionEvent evt) {
-		    playButtonActionPerformed(evt);
-		}
-	    });
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    playButtonActionPerformed(evt);
+                }
+            });
 
         mainPanel.add(playButton);
 
         pauseButton.setText("pause");
         pauseButton.addActionListener(new java.awt.event.ActionListener() {
-		public void actionPerformed(java.awt.event.ActionEvent evt) {
-		    pauseButtonActionPerformed(evt);
-		}
-	    });
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    pauseButtonActionPerformed(evt);
+                }
+            });
 
         mainPanel.add(pauseButton);
 
         stopButton.setText("Stop");
         stopButton.addActionListener(new java.awt.event.ActionListener() {
-		public void actionPerformed(java.awt.event.ActionEvent evt) {
-		    stopButtonActionPerformed(evt);
-		}
-	    });
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    stopButtonActionPerformed(evt);
+                }
+            });
 
         mainPanel.add(stopButton);
 
         openButton.setText("open CSD");
         openButton.addActionListener(new java.awt.event.ActionListener() {
-		public void actionPerformed(java.awt.event.ActionEvent evt) {
-		    openButtonActionPerformed(evt);
-		}
-	    });
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    openButtonActionPerformed(evt);
+                }
+            });
 
         mainPanel.add(openButton);
 
         quitButton.setText("quit");
         quitButton.addActionListener(new java.awt.event.ActionListener() {
-		public void actionPerformed(java.awt.event.ActionEvent evt) {
-		    quitButtonActionPerformed(evt);
-		}
-	    });
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    quitButtonActionPerformed(evt);
+                }
+            });
 
         mainPanel.add(quitButton);
 
@@ -99,112 +99,110 @@ public class CSDPlayer extends javax.swing.JFrame {
         setTitle("CSDPlayer");
         pack();
     }
- 
 
     private void quitButtonActionPerformed(java.awt.event.ActionEvent evt) {
-	if(ready){ 
-        cs.stop(); 
-	try{ 
+        if(ready){
+        cs.stop();
+        try{
         while(a.isAlive());
         } catch (Exception e) {
-	    java.lang.System.exit(0); 
-	}
+            java.lang.System.exit(0);
         }
-	java.lang.System.exit(0);
+        }
+        java.lang.System.exit(0);
     }
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {
-	if(choose.showOpenDialog(this) != choose.CANCEL_OPTION){
-	    File csd = choose.getSelectedFile();
-	    if(ready) cs.stop(); 
+        if(choose.showOpenDialog(this) != choose.CANCEL_OPTION){
+            File csd = choose.getSelectedFile();
+            if(ready) cs.stop();
             csdfile = csd.getAbsolutePath();
             setTitle("CSDPlayer " + csd.getName());
-	}
-                  
+        }
+
     }
 
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        if(ready) { 
+        if(ready) {
             cs.stop();
             ready = false;
         }
     }
 
     private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {
-	if(!ready && csdfile != ""){
+        if(!ready && csdfile != ""){
          cs = new csperf(csdfile);
          ready = true;
         if(!cs.isOn()) {
-		a = new Thread(cs);
-		a.start();
-	} else cs.play();
-	
+                a = new Thread(cs);
+                a.start();
+        } else cs.play();
+
         }
     }
 
     private void pauseButtonActionPerformed(java.awt.event.ActionEvent evt) {
-	if(ready)
-	    cs.pause();
+        if(ready)
+            cs.pause();
     }
 
- 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
-		public void run() {
-		    new CSDPlayer().setVisible(true);
-		}
-	    });
+                public void run() {
+                    new CSDPlayer().setVisible(true);
+                }
+            });
     }
-        
+
     public class csperf implements Runnable {
 
-	Csound csp;
-	boolean on;
-	boolean pause;
-	String  csd;
-    
-	public csperf(String s){
-	    csd = s;
-	    on = false;
-	    pause = false;
-		csp  = new Csound();
-	}
-    
-	public void run() {
-	    try{
-		int res = csp.Compile(csd, "-m0", "-d");
-		if(res == 0){
-		    on = true;
-		    while(on){
-			if(!pause) csp.PerformKsmps();		   
+        Csound csp;
+        boolean on;
+        boolean pause;
+        String  csd;
+
+        public csperf(String s){
+            csd = s;
+            on = false;
+            pause = false;
+                csp  = new Csound();
+        }
+
+        public void run() {
+            try{
+                int res = csp.Compile(csd, "-m0", "-d");
+                if(res == 0){
+                    on = true;
+                    while(on){
+                        if(!pause) csp.PerformKsmps();
                          }
-		}
-	    }
-	    catch (Exception e) {
-		java.lang.System.err.println("Could not Perform...\n");
-		java.lang.System.exit(1);
-	    }
-		csp.Reset();
-	}
-	public void stop() {
-	    on = false;
-	}
-	public void pause(){
-	    if(!pause) pause = true;
-	    else pause = false;
-	}
-	public void play(){
-	    pause = false;
-	}
-	public boolean isOn(){
-	    return on;
-	}
+                }
+            }
+            catch (Exception e) {
+                java.lang.System.err.println("Could not Perform...\n");
+                java.lang.System.exit(1);
+            }
+                csp.Reset();
+        }
+        public void stop() {
+            on = false;
+        }
+        public void pause(){
+            if(!pause) pause = true;
+            else pause = false;
+        }
+        public void play(){
+            pause = false;
+        }
+        public boolean isOn(){
+            return on;
+        }
     };
 
    public static class CSDFilter extends FileFilter {
-        
+
        public boolean accept(File pathname) {
-	   String csd = pathname.getAbsolutePath();
+           String csd = pathname.getAbsolutePath();
            if (csd.endsWith(".csd")) return true;
            else return false;
         }
