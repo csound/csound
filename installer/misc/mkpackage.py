@@ -25,7 +25,7 @@ pluginDir32 = '/usr/local/lib/csound/plugins'
 # double precision plugin libraries
 pluginDir64 = '/usr/local/lib/csound/plugins64'
 # XMG files
-xmgDir      = '/usr/local/lib/csound/xmg'
+xmgDir      = '/usr/local/share/csound/xmg'
 # documentation
 docDir      = '/usr/local/share/doc/csound'
 # csnd.py
@@ -36,10 +36,14 @@ pythonDir2  = '/usr/lib/python2.4/lib-dynload'
 pdDir       = '/usr/local/lib/pd/extra'
 # tclcsound.so
 tclDir      = '/usr/local/lib/csound/tcl'
+# csnd.jar
+javaDir     = '/usr/local/lib/csound/java'
+# LISP interface
+lispDir     = '/usr/local/lib/csound/lisp'
 
 buildOpts = ['buildRelease=1', 'buildUtilities=0', 'useLrint=1', 'noDebug=1']
 buildOpts += ['buildPythonOpcodes=1', 'useOSC=1', 'buildCsoundVST=0']
-buildOpts += ['buildJavaWrapper=0', 'pythonVersion=2.4']
+buildOpts += ['buildJavaWrapper=1', 'pythonVersion=2.4']
 buildOpts += ['customCCFLAGS=%s' % CFlags, 'customCXXFLAGS=%s' % CFlags]
 
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csoundCore.h']
@@ -109,7 +113,8 @@ os.spawnvp(os.P_WAIT, 'rm', ['rm', '-Rf', pkgDir])
 
 os.makedirs(pkgDir, 0755)
 for i in [binDir, libDir, binDir2, includeDir, libDir2, pluginDir32,
-          pluginDir64, xmgDir, docDir, pythonDir, pythonDir2, pdDir, tclDir]:
+          pluginDir64, xmgDir, docDir, pythonDir, pythonDir2, pdDir, tclDir,
+          javaDir, lispDir]:
     os.makedirs('%s%s' % (pkgDir, i), 0755)
 
 # copy header files
@@ -246,6 +251,11 @@ for i in range(4):
         installFile('csnd.py', pythonDir)
         installFile('csnd.pyc', pythonDir)
         installFile('csnd.pyo', pythonDir)
+        # Java interface library
+        installFile('csnd.jar', javaDir)
+        # LISP interface
+        installFile('interfaces/csound5.lisp', lispDir)
+        installFile('interfaces/support.lisp', lispDir)
 
 cleanup()
 
