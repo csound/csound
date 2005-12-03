@@ -30,6 +30,8 @@ find . -type f -iname "*.exe"   -exec "$0" remove '{}' \;
 find . -type f -iname "*.dll"   -exec "$0" remove '{}' \;
 find . -type f -iname "*.obj"   -exec "$0" remove '{}' \;
 find . -type f -iname "*.lib"   -exec "$0" remove '{}' \;
+find "./interfaces" -type f -iname "*.java" -exec "$0" remove '{}' \;
+find "./interfaces" -type f -iname "*.class" -exec "$0" remove '{}' \;
 
 find . -type f -exec file '{}' \; | grep -G -e ':.*\<ELF\>' | cut -d ':' -f 1 | xargs -n 1 "$0" remove
 find . -type f -exec file '{}' \; | grep -G -e ':.*\<80386\>' | cut -d ':' -f 1 | xargs -n 1 "$0" remove
@@ -39,12 +41,14 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 "$0" remove "./frontends/CsoundVST/CsoundVST_wrap.h"
 "$0" remove "./CsoundVST.py"
 "$0" remove "./interfaces/python_interface_wrap.cc"
+"$0" remove "./interfaces/java_interface_wrap.cc"
 "$0" remove "./csnd.py"
 "$0" remove "./csnd.pyc"
 "$0" remove "./csnd.pyo"
 "$0" remove "./interfaces/csnd.py"
 "$0" remove "./interfaces/csnd.pyc"
 "$0" remove "./interfaces/csnd.pyo"
+"$0" remove "./csnd.jar"
 
 rm -f "./libcsound.so"
 rm -f "./libcsound64.so"
