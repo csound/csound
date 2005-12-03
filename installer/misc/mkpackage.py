@@ -200,6 +200,8 @@ for i in range(4):
         installFile('libcsound64.a', libDir)
     elif i == 3:
         # ------------ double precision, dynamic Csound library ------------
+        # re-run scons to work around bug in building Java wrapper
+        os.spawnvp(os.P_WAIT, 'scons', args)
         # plugin libraries
         os.remove('libcsound64.so')
         pluginList = findFiles('^lib[A-Za-z].*\.so$')
