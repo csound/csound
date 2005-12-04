@@ -2059,3 +2059,7 @@
        (defparameter csound-control-channel 1)
        (defparameter csoundinit-no-atexit 2)
        (defparameter csoundinit-no-signal-handler 1))
+
+(eval-when (:load-toplevel :execute) (pushnew :csound5 *features*))
+
+
