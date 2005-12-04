@@ -1,8 +1,16 @@
 # Shows how to run a regular Csound composition using a Python script.
 # Note the use of Python's triple quotes to embed literal text within the script.
+# Author: Michael Gogins
 
-import CsoundVST
+import csnd
+
+# Create an instance of Csound (actually, CppSound).
+csound = csnd.CppSound()
+# Enables CppSound to print to Python's console output.
+csound.setPythonMessageCallback()
+# Set the Csound command line.
 csound.setCommand('csound -RWdfo ./Trapped.py.wav test.orc test.sco')
+# Set the Csound orchestra.
 csound.setOrchestra('''
 ;============================================================================;
 ;============================================================================;
@@ -398,6 +406,7 @@ asig   reverb  garvb, 2.1
 garvb  =       0
        endin
 ''')
+# Set the Csound score.
 csound.setScore('''
 ;============================================================================;
 ;============================================================================;
@@ -671,6 +680,8 @@ e
 ;======================= TOTAL TIME: 283 SECONDS ============================;
 ;============================================================================;
 ''')
+# Export the Csound orchestra and score for performance.
 csound.exportForPerformance()
+# Perform the exported orchestra and score.
 csound.perform()
 
