@@ -1,174 +1,197 @@
+;; Common Foreign Function Interface (CFFI) for the Csound 5 API.
+;; You will need to add something like:
+;; (cffi:load-foreign-library "c:/utah/home/mkg/projects/csound5/_csnd.dll")
+;; Authors: Todd Ingalls and Michael Gogins
 
-(defpackage "csound5"
-            (:use #:cffi)
-            (:nicknames "cs5")
-            (:export "CS-CFG-VARIABLE-U" "CS-CFG-VARIABLE-INT-S" "S-FILEX"
-             "CS-CFG-VARIABLE-MYFLT-S" "CSOUND-" "OPCODE-LIST-ENTRY" "S-FILE"
-             "CS-RT-AUDIO-PARAMS" "CS-CFG-VARIABLE-DOUBLE-S"
-             "CS-CFG-VARIABLE-HEAD-S" "XYINDAT-" "RTCLOCK-S"
-             "CS-CFG-VARIABLE-BOOLEAN-S" "CS-CFG-VARIABLE-FLOAT-S"
-             "CSOUND-RAND-MTSTATE-" "CS-CFG-VARIABLE-STRING-S" "SBUF" "WINDAT-"
-             "CSOUND-CHANNEL-LIST-ENTRY-" "UINT32-T" "XYINDAT" "QUAD-T"
-             "CS-CFG-VARIABLE-HEAD-T" "FILE" "RTCLOCK" "U-INT32-T" "VA-LIST"
-             "CS-CFG-VARIABLE-DOUBLE-T" "CSOUND-1" "INT64-T" "INT-LEAST64-T"
-             "CS-CFG-VARIABLE-BOOLEAN-T" "CS-CFG-VARIABLE-FLOAT-T"
-             "CSOUND-CHANNEL-LIST-ENTRY" "CSOUND-RAND-MTSTATE" "GNUC-VA-LIST"
-             "CS-CFG-VARIABLE-STRING-T" "SIZE-T" "FPOS-T" "CS-CFG-VARIABLE-T"
-             "OFF-T" "CS-CFG-VARIABLE-INT-T" "CS-CFG-VARIABLE-MYFLT-T"
-             "UINTPTR-T" "WINDAT" "CSOUND-CLEANUP" "CSOUND-SET-IS-GRAPHABLE"
-             "CSOUND-STOP" "CSOUND-SET-CONFIGURATION-VARIABLE"
-             "CSOUND-JOIN-THREAD" "CSOUND-SET-RECOPEN-CALLBACK-1"
-             "CSOUND-GET-CHANNEL" "CSOUND-COMPILE-5" "CSOUND-NEW-1"
-             "CSOUND-TIMER-NEW-1-" "CSOUND-SET-RTCLOSE-CALLBACK"
-             "CSOUND-GET-SIZE-OF-MYFLT" "CSOUND-CREATE" "CSOUND-CHAN-OAGET"
-             "CSOUND-SCORE-SORT" "CSOUND-GET-INPUT-BUFFER-SIZE-1"
-             "CSOUND-APPEND-OPCODE-1" "CSOUND-DELETE-UTILITY-LIST-1"
-             "CSOUND-PERFORM" "CSOUND-DESTROY-THREAD-LOCK" "CSOUND-GET-SR"
-             "CSOUND-MESSAGE-V" "CSOUND-SET-RTCLOSE-CALLBACK-1"
-             "CSOUND-SET-DEBUG-1" "CSOUND-SCORE-EXTRACT-1"
-             "CSOUND-RAND-MT-DELETE" "CSOUND-SCORE-EVENT-1"
-             "CSOUND-PERFORM-KSMPS-1" "CSOUND-GET-CHANNEL-PTR"
-             "CSOUND-TABLE-SET" "CSOUND-RUN-UTILITY-1"
-             "CSOUND-THREAD-LOCK-UNLOCK" "CSOUND-THREAD-LOCK-LOCK-1"
-             "CSOUND-GET-OUTPUT-BUFFER" "CSOUND-LIST-CHANNELS-1"
-             "CSOUND-CHAN-OAGET-1" "CSOUND-COPY-GLOBAL-CONFIGURATION-VARIABLES"
-             "CSOUND-SET-HOST-IMPLEMENTED-AUDIO-IO-1" "CSOUND-GET-DEBUG-1"
-             "CSOUND-SET-SCORE-OFFSET-SECONDS" "CSOUND-GET-RT-RECORD-USER-DATA"
-             "CSOUND-RAND-MT-SEED-1" "CSOUND-MESSAGE-S-1"
-             "CSOUND-SET-GLOBAL-ENV"
-             "CSOUND-SET-EXTERNAL-MIDI-OUT-OPEN-CALLBACK"
-             "CSOUND-GET-APIVERSION" "CSOUND-RAND-MT-NEW-2-"
-             "CSOUND-TIMER-GET-CPUTIME" "CSOUND-SET-KILL-XYIN-CALLBACK-1"
-             "CSOUND-PERFORM-5" "CSOUND-SET-MESSAGE-CALLBACK-1"
-             "CSOUND-GET-ENV-1" "CSOUND-SET-EXTERNAL-MIDI-OUT-OPEN-CALLBACK-1"
-             "CSOUND-SET-YIELD-CALLBACK-1" "CSOUND-GET0D-BFS"
-             "CSOUND-MESSAGE-V-1" "CSOUND-SET-KILL-GRAPH-CALLBACK-1"
-             "CSOUND-GET-INPUT-BUFFER-1" "CSOUND-GET-INPUT-BUFFER-SIZE"
-             "CSOUND-GET-SCORE-TIME-1" "CSOUND-NEW-2"
-             "CSOUND-SET-RECOPEN-CALLBACK" "CSOUND-DELETE-UTILITY-LIST"
-             "CSOUND-GET-CPUTIME" "CSOUND-SET-CONTROL-CHANNEL-PARAMS-1"
-             "CSOUND-GET-HOST-DATA"
-             "CSOUND-SET-EXTERNAL-MIDI-ERROR-STRING-CALLBACK-1"
-             "CSOUND-SET-RTRECORD-CALLBACK" "CSOUND-COMPILE-1"
-             "CSOUND-CHAN-IASET-1"
-             "CSOUND-SET-EXTERNAL-MIDI-OUT-CLOSE-CALLBACK"
-             "CSOUND-DESTROY-GLOBAL-VARIABLE" "CSOUND-PERFORM-BUFFER"
-             "CSOUND-GET-SCORE-OFFSET-SECONDS-1" "CSOUND-NEW-OPCODE-LIST"
-             "CSOUND-SET-READ-XYIN-CALLBACK-1"
-             "CSOUND-SET-INPUT-VALUE-CALLBACK" "CSOUND-RAND-MT-SEED"
-             "CSOUND-SET-MESSAGE-LEVEL" "CSOUND-QUERY-GLOBAL-VARIABLE-1"
-             "CSOUND-NEW-OPCODE-LIST-1" "CSOUND-SET-MAKE-XYIN-CALLBACK"
-             "CSOUND-DESTROY-GLOBAL-VARIABLE-1"
-             "CSOUND-SET-RTRECORD-CALLBACK-1" "CSOUND-GET-RT-PLAY-USER-DATA-1"
-             "CSOUND-TIMER-NEW-1" "CSOUND-SET-KILL-XYIN-CALLBACK"
-             "CSOUND-REWIND-SCORE" "CSOUND-DISPOSE-OPCODE-LIST"
-             "CSOUND-INPUT-MESSAGE" "CSOUND-APPEND-OPCODE"
-             "CSOUND-INITIALIZE-CSCORE-1" "CSOUND-GET-CONTROL-CHANNEL-PARAMS"
-             "CSOUND-INPUT-MESSAGE-1" "CSOUND-CHAN-IKSET"
-             "CSOUND-WAIT-THREAD-LOCK" "CSOUND-SET-MESSAGE-CALLBACK"
-             "CSOUND-SET-EXTERNAL-MIDI-WRITE-CALLBACK"
-             "CSOUND-DELETE-CHANNEL-LIST-1" "CSOUND-RAND-MT-NEW-1"
-             "CSOUND-CHAN-IASET" "CSOUND-GET-CHANNEL-PTR-1"
-             "CSOUND-SET-CSCORE-CALLBACK" "CSOUND-RUN-UTILITY"
-             "CSOUND-LIST-CHANNELS" "CSOUND-GET0D-BFS-1" "CSOUND-PRE-COMPILE-1"
-             "CSOUND-QUERY-GLOBAL-VARIABLE" "CSOUND-SET-RTPLAY-CALLBACK"
-             "CSOUND-COPY-GLOBAL-CONFIGURATION-VARIABLE" "CSOUND-INITIALIZE"
-             "CSOUND-SET-MAKE-XYIN-CALLBACK-1" "CSOUND-RAND-MT-NEW-2"
-             "CSOUND-SLEEP" "CSOUND-NEW-1-" "CSOUND-PERFORM-1"
-             "CSOUND-THREAD-LOCK-NEW-1" "CSOUND-GET-OUTPUT-BUFFER-1"
-             "CSOUND-TIMER-RESET" "CSOUND-SET-MESSAGE-LEVEL-1"
-             "CSOUND-SET-OUTPUT-VALUE-CALLBACK-1" "CSOUND-PERFORM-6"
-             "CSOUND-SET-SCORE-PENDING" "CSOUND-RAND-MT" "CSOUND-GET-KR-1"
-             "CSOUND-QUERY-GLOBAL-VARIABLE-NO-CHECK-1"
-             "CSOUND-SET-INPUT-VALUE-CALLBACK-1" "CSOUND-GET-SPOUT"
-             "CSOUND-SCORE-EXTRACT" "CSOUND-GET-KSMPS" "CSOUND-COMPILE-2"
-             "CSOUND-GET-SAMPLE-FORMAT" "CSOUND-RAND-MT-RANDOM"
-             "CSOUND-SET-SCORE-PENDING-1"
-             "CSOUND-SET-HOST-IMPLEMENTED-AUDIO-IO" "CSOUND-SET-YIELD-CALLBACK"
-             "CSOUND-GET-NCHNLS-1" "CSOUND-MESSAGE-S"
-             "CSOUND-GET-SAMPLE-FORMAT-1" "CSOUND-SET-KILL-GRAPH-CALLBACK"
-             "CSOUND-SET-EXTERNAL-MIDI-READ-CALLBACK-1"
-             "CSOUND-WAIT-THREAD-LOCK-NO-TIMEOUT" "CSOUND-LOCALIZE-STRING"
-             "CSOUND-GET-VERSION" "CSOUND-GET-ENV" "CSOUND-KEY-PRESS"
-             "CSOUND-REWIND-SCORE-1"
-             "CSOUND-SET-EXTERNAL-MIDI-ERROR-STRING-CALLBACK"
-             "CSOUND-GET-NCHNLS" "CSOUND-GET-RT-RECORD-USER-DATA-1"
-             "CSOUND-SET-CHANNEL-1" "CSOUND-SET-CSCORE-CALLBACK-1"
-             "CSOUND-REGISTER-SENSE-EVENT-CALLBACK-1"
-             "CSOUND-SET-MAKE-GRAPH-CALLBACK-1"
-             "CSOUND-SET-DRAW-GRAPH-CALLBACK-1" "CSOUND-SET-PLAYOPEN-CALLBACK"
-             "CSOUND-CREATE-THREAD-LOCK" "CSOUND-GET-SPOUT-1"
-             "CSOUND-SET-EXIT-GRAPH-CALLBACK-1" "CSOUND-KEY-PRESS-1"
-             "CSOUND-THREAD-LOCK-LOCK" "CSOUND-INITIALIZE-CSCORE"
-             "CSOUND-GET-UTILITY-DESCRIPTION-1" "CSOUND-PERFORM-KSMPS"
-             "CSOUND-GET-UTILITY-DESCRIPTION" "CSOUND-GET-DEBUG"
-             "CSOUND-QUERY-CONFIGURATION-VARIABLE" "CSOUND-RAND-MT-NEW-3"
-             "CSOUND-GET-KSMPS-1" "CSOUND-PARSE-CONFIGURATION-VARIABLE"
-             "CSOUND-COMPILE" "CSOUND-PERFORM-2" "CSOUND-TABLE-LENGTH"
-             "CSOUND-GET-SCORE-OFFSET-SECONDS" "CSOUND-GET-HOST-DATA-1"
-             "CSOUND-GET-STR-VAR-MAX-LEN-1" "CSOUND-THREAD-LOCK-NEW-2"
-             "CSOUND-DESTROY" "CSOUND-IS-SCORE-PENDING-1"
-             "CSOUND-CREATE-CONFIGURATION-VARIABLE" "CSOUND-RAND-MT-NEW-3-"
-             "CSOUND-SET-EXTERNAL-MIDI-IN-CLOSE-CALLBACK" "CSOUND-COMPILE-3"
-             "CSOUND-NEW-2-" "CSOUND-GET-SCORE-TIME"
-             "CSOUND-SET-READ-XYIN-CALLBACK"
-             "CSOUND-SET-EXTERNAL-MIDI-IN-CLOSE-CALLBACK-1"
-             "CSOUND-GET-STR-VAR-MAX-LEN" "CSOUND-PERFORM-KSMPS-ABSOLUTE-1"
-             "CSOUND-GET-OUTPUT-BUFFER-SIZE-1"
-             "CSOUND-SET-EXTERNAL-MIDI-OUT-CLOSE-CALLBACK-1" "CSOUND-RESET-1"
-             "CSOUND-DELETE-CONFIGURATION-VARIABLE"
-             "CSOUND-PERFORM-KSMPS-ABSOLUTE" "CSOUND-SCORE-SORT-1"
-             "CSOUND-GET-CONTROL-CHANNEL-PARAMS-1" "CSOUND-LIST-UTILITIES-1"
-             "CSOUND-TABLE-SET-1" "CSOUND-IS-SCORE-PENDING"
-             "CSOUND-SET-CHANNEL" "CSOUND-GET-REAL-TIME" "CSOUND-GET-TABLE-1"
-             "CSOUND-RAND-MT-NEW-1-" "CSOUND-DISPOSE-OPCODE-LIST-1"
-             "CSOUND-SET-RTPLAY-CALLBACK-1" "CSOUND-NOTIFY-THREAD-LOCK"
-             "CSOUND-SET-OUTPUT-VALUE-CALLBACK"
-             "CSOUND-LIST-CONFIGURATION-VARIABLES"
-             "CSOUND-SET-DRAW-GRAPH-CALLBACK" "CSOUND-GET-OUTPUT-FILE-NAME-1"
-             "CSOUND-GET-OUTPUT-BUFFER-SIZE" "CSOUND-CLEANUP-1"
-             "CSOUND-SET-EXTERNAL-MIDI-READ-CALLBACK"
-             "CSOUND-CREATE-GLOBAL-VARIABLE" "CSOUND-STOP-1"
-             "CSOUND-SET-IS-GRAPHABLE-1"
-             "CSOUND-QUERY-GLOBAL-VARIABLE-NO-CHECK"
-             "CSOUND-SET-EXTERNAL-MIDI-IN-OPEN-CALLBACK" "CSOUND-PRE-COMPILE"
-             "CSOUND-TABLE-GET" "CSOUND-SET-SCORE-OFFSET-SECONDS-1"
-             "CSOUND-DELETE-CHANNEL-LIST" "CSOUND-RAND31"
-             "CSOUND-SET-EXTERNAL-MIDI-IN-OPEN-CALLBACK-1" "CSOUND-GET-SR-1"
-             "CSOUND-GET-SPIN" "CSOUND-GET-RT-PLAY-USER-DATA"
-             "CSOUND-SET-HOST-DATA-1" "CSOUND-PERFORM-3" "CSOUND-DELETE"
-             "CSOUND-PERFORM-BUFFER-1" "CSOUND-CREATE-GLOBAL-VARIABLE-1"
-             "CSOUND-THREAD-LOCK-DELETE"
-             "CSOUND-SET-EXTERNAL-MIDI-WRITE-CALLBACK-1" "CSOUND-COMPILE-4"
-             "CSOUND-GET-MESSAGE-LEVEL" "CSOUND-GET-TABLE"
-             "CSOUND-SET-MAKE-GRAPH-CALLBACK" "CSOUND-MESSAGE"
-             "CSOUND-SET-DEBUG" "CSOUND-THREAD-LOCK-TRY-LOCK"
-             "CSOUND-GET-SAMPLE-SIZE-1" "CSOUND-SET-PLAYOPEN-CALLBACK-1"
-             "CSOUND-OPEN-LIBRARY" "CSOUND-THREAD-LOCK-NEW-2-" "CSOUND-GET-KR"
-             "CSOUND-QUERY-INTERFACE" "CSOUND-SET-HOST-DATA"
-             "CSOUND-SCORE-EVENT" "CSOUND-CHAN-OKGET-1"
-             "CSOUND-SET-EXIT-GRAPH-CALLBACK" "CSOUND-GET-SPIN-1"
-             "CSOUND-CHAN-OKGET" "CSOUND-CHAN-IKSET-1"
-             "CSOUND-THREAD-LOCK-NEW-1-" "CSOUND-TABLE-LENGTH-1"
-             "CSOUND-TABLE-GET-1" "CSOUND-MESSAGE-1" "CSOUND-SET-LANGUAGE"
-             "CSOUND-SET-CONTROL-CHANNEL-PARAMS" "CSOUND-SEED-RAND-MT"
-             "CSOUND-GET-LIBRARY-SYMBOL" "CSOUND-GET-RANDOM-SEED-FROM-TIME"
-             "CSOUND-LIST-UTILITIES" "CSOUND-RESET"
-             "CSOUND-GET-MESSAGE-LEVEL-1" "CSOUND-TIMER-GET-REAL-TIME"
-             "CSOUND-TIMER-DELETE" "CSOUND-GET-INPUT-BUFFER"
-             "CSOUND-INIT-TIMER-STRUCT" "CSOUND-GET-OUTPUT-FILE-NAME"
-             "CSOUND-REGISTER-SENSE-EVENT-CALLBACK" "CSOUND-CREATE-THREAD"
-             "CSOUND-CLOSE-LIBRARY" "CSOUND-PERFORM-4" "CSOUND-GET-SAMPLE-SIZE"
-             "CSOUND-THREAD-LOCK" "CSOUND-TIMER" "CSOUND" "CSOUND-RAND-MT"
-             "CSOUND-CONTROL-CHANNEL-EXP" "CSOUNDINIT-NO-ATEXIT" "CS-APISUBVER"
-             "CS-APIVERSION" "CSOUND-CONTROL-CHANNEL" "CSOUND-OUTPUT-CHANNEL"
-             "CSOUND-CHANNEL-TYPE-MASK" "CSOUNDINIT-NO-SIGNAL-HANDLER"
-             "CSOUND-STRING-CHANNEL" "CSOUND-CONTROL-CHANNEL-INT"
-             "CSOUND-CONTROL-CHANNEL-LIN" "CSOUND-INPUT-CHANNEL"
-             "CSOUND-AUDIO-CHANNEL" "CSLANGUAGE-T" "CSOUND-STATUS"))
+(in-package :cl-user)
 
-(in-package "CSOUND5")
-(asdf:operate 'asdf:load-op 'verrazano-support)
+(defpackage :csound5
+  (:use :common-lisp)
+  (:export :cs-cfg-variable-u :cs-cfg-variable-int-s :s-filex
+	   :cs-cfg-variable-myflt-s :csound- :opcode-list-entry :s-file
+	   :cs-rt-audio-params :cs-cfg-variable-double-s
+	   :cs-cfg-variable-head-s :xyindat- :rtclock-s
+	   :cs-cfg-variable-boolean-s :cs-cfg-variable-float-s
+	   :csound-rand-mtstate- :cs-cfg-variable-string-s :sbuf :windat-
+	   :csound-channel-list-entry- :uint32-t :xyindat :quad-t
+	   :cs-cfg-variable-head-t :file :rtclock :u-int32-t :va-list
+	   :cs-cfg-variable-double-t :csound-1 :int64-t :int-least64-t
+	   :cs-cfg-variable-boolean-t :cs-cfg-variable-float-t
+	   :csound-channel-list-entry :csound-rand-mtstate :gnuc-va-list
+	   :cs-cfg-variable-string-t :size-t :fpos-t :cs-cfg-variable-t
+	   :off-t :cs-cfg-variable-int-t :cs-cfg-variable-myflt-t
+	   :uintptr-t :windat :csound-cleanup :csound-set-is-graphable
+	   :csound-stop :csound-set-configuration-variable
+	   :csound-join-thread :csound-set-recopen-callback-1
+	   :csound-get-channel :csound-compile-5 :csound-new-1
+	   :csound-timer-new-1- :csound-set-rtclose-callback
+	   :csound-get-size-of-myflt :csound-create :csound-chan-oaget
+	   :csound-score-sort :csound-get-input-buffer-size-1
+	   :csound-append-opcode-1 :csound-delete-utility-list-1
+	   :csound-perform :csound-destroy-thread-lock :csound-get-sr
+	   :csound-message-v :csound-set-rtclose-callback-1
+	   :csound-set-debug-1 :csound-score-extract-1
+	   :csound-rand-mt-delete :csound-score-event-1
+	   :csound-perform-ksmps-1 :csound-get-channel-ptr
+	   :csound-table-set :csound-run-utility-1
+	   :csound-thread-lock-unlock :csound-thread-lock-lock-1
+	   :csound-get-output-buffer :csound-list-channels-1
+	   :csound-chan-oaget-1 :csound-copy-global-configuration-variables
+	   :csound-set-host-implemented-audio-io-1 :csound-get-debug-1
+	   :csound-set-score-offset-seconds :csound-get-rt-record-user-data
+	   :csound-rand-mt-seed-1 :csound-message-s-1
+	   :csound-set-global-env
+	   :csound-set-external-midi-out-open-callback
+	   :csound-get-apiversion :csound-rand-mt-new-2-
+	   :csound-timer-get-cputime :csound-set-kill-xyin-callback-1
+	   :csound-perform-5 :csound-set-message-callback-1
+	   :csound-get-env-1 :csound-set-external-midi-out-open-callback-1
+	   :csound-set-yield-callback-1 :csound-get0d-bfs
+	   :csound-message-v-1 :csound-set-kill-graph-callback-1
+	   :csound-get-input-buffer-1 :csound-get-input-buffer-size
+	   :csound-get-score-time-1 :csound-new-2
+	   :csound-set-recopen-callback :csound-delete-utility-list
+	   :csound-get-cputime :csound-set-control-channel-params-1
+	   :csound-get-host-data
+	   :csound-set-external-midi-error-string-callback-1
+	   :csound-set-rtrecord-callback :csound-compile-1
+	   :csound-chan-iaset-1
+	   :csound-set-external-midi-out-close-callback
+	   :csound-destroy-global-variable :csound-perform-buffer
+	   :csound-get-score-offset-seconds-1 :csound-new-opcode-list
+	   :csound-set-read-xyin-callback-1
+	   :csound-set-input-value-callback :csound-rand-mt-seed
+	   :csound-set-message-level :csound-query-global-variable-1
+	   :csound-new-opcode-list-1 :csound-set-make-xyin-callback
+	   :csound-destroy-global-variable-1
+	   :csound-set-rtrecord-callback-1 :csound-get-rt-play-user-data-1
+	   :csound-timer-new-1 :csound-set-kill-xyin-callback
+	   :csound-rewind-score :csound-dispose-opcode-list
+	   :csound-input-message :csound-append-opcode
+	   :csound-initialize-cscore-1 :csound-get-control-channel-params
+	   :csound-input-message-1 :csound-chan-ikset
+	   :csound-wait-thread-lock :csound-set-message-callback
+	   :csound-set-external-midi-write-callback
+	   :csound-delete-channel-list-1 :csound-rand-mt-new-1
+	   :csound-chan-iaset :csound-get-channel-ptr-1
+	   :csound-set-cscore-callback :csound-run-utility
+	   :csound-list-channels :csound-get0d-bfs-1 :csound-pre-compile-1
+	   :csound-query-global-variable :csound-set-rtplay-callback
+	   :csound-copy-global-configuration-variable :csound-initialize
+	   :csound-set-make-xyin-callback-1 :csound-rand-mt-new-2
+	   :csound-sleep :csound-new-1- :csound-perform-1
+	   :csound-thread-lock-new-1 :csound-get-output-buffer-1
+	   :csound-timer-reset :csound-set-message-level-1
+	   :csound-set-output-value-callback-1 :csound-perform-6
+	   :csound-set-score-pending :csound-rand-mt :csound-get-kr-1
+	   :csound-query-global-variable-no-check-1
+	   :csound-set-input-value-callback-1 :csound-get-spout
+	   :csound-score-extract :csound-get-ksmps :csound-compile-2
+	   :csound-get-sample-format :csound-rand-mt-random
+	   :csound-set-score-pending-1
+	   :csound-set-host-implemented-audio-io :csound-set-yield-callback
+	   :csound-get-nchnls-1 :csound-message-s
+	   :csound-get-sample-format-1 :csound-set-kill-graph-callback
+	   :csound-set-external-midi-read-callback-1
+	   :csound-wait-thread-lock-no-timeout :csound-localize-string
+	   :csound-get-version :csound-get-env :csound-key-press
+	   :csound-rewind-score-1
+	   :csound-set-external-midi-error-string-callback
+	   :csound-get-nchnls :csound-get-rt-record-user-data-1
+	   :csound-set-channel-1 :csound-set-cscore-callback-1
+	   :csound-register-sense-event-callback-1
+	   :csound-set-make-graph-callback-1
+	   :csound-set-draw-graph-callback-1 :csound-set-playopen-callback
+	   :csound-create-thread-lock :csound-get-spout-1
+	   :csound-set-exit-graph-callback-1 :csound-key-press-1
+	   :csound-thread-lock-lock :csound-initialize-cscore
+	   :csound-get-utility-description-1 :csound-perform-ksmps
+	   :csound-get-utility-description :csound-get-debug
+	   :csound-query-configuration-variable :csound-rand-mt-new-3
+	   :csound-get-ksmps-1 :csound-parse-configuration-variable
+	   :csound-compile :csound-compile-csd :csound-perform-2 :csound-table-length
+	   :csound-get-score-offset-seconds :csound-get-host-data-1
+	   :csound-get-str-var-max-len-1 :csound-thread-lock-new-2
+	   :csound-destroy :csound-is-score-pending-1
+	   :csound-create-configuration-variable :csound-rand-mt-new-3-
+	   :csound-set-external-midi-in-close-callback :csound-compile-3
+	   :csound-new-2- :csound-get-score-time
+	   :csound-set-read-xyin-callback
+	   :csound-set-external-midi-in-close-callback-1
+	   :csound-get-str-var-max-len :csound-perform-ksmps-absolute-1
+	   :csound-get-output-buffer-size-1
+	   :csound-set-external-midi-out-close-callback-1 :csound-reset-1
+	   :csound-delete-configuration-variable
+	   :csound-perform-ksmps-absolute :csound-score-sort-1
+	   :csound-get-control-channel-params-1 :csound-list-utilities-1
+	   :csound-table-set-1 :csound-is-score-pending
+	   :csound-set-channel :csound-get-real-time :csound-get-table-1
+	   :csound-rand-mt-new-1- :csound-dispose-opcode-list-1
+	   :csound-set-rtplay-callback-1 :csound-notify-thread-lock
+	   :csound-set-output-value-callback
+	   :csound-list-configuration-variables
+	   :csound-set-draw-graph-callback :csound-get-output-file-name-1
+	   :csound-get-output-buffer-size :csound-cleanup-1
+	   :csound-set-external-midi-read-callback
+	   :csound-create-global-variable :csound-stop-1
+	   :csound-set-is-graphable-1
+	   :csound-query-global-variable-no-check
+	   :csound-set-external-midi-in-open-callback :csound-pre-compile
+	   :csound-table-get :csound-set-score-offset-seconds-1
+	   :csound-delete-channel-list :csound-rand31
+	   :csound-set-external-midi-in-open-callback-1 :csound-get-sr-1
+	   :csound-get-spin :csound-get-rt-play-user-data
+	   :csound-set-host-data-1 :csound-perform-3 :csound-delete
+	   :csound-perform-buffer-1 :csound-create-global-variable-1
+	   :csound-thread-lock-delete
+	   :csound-set-external-midi-write-callback-1 :csound-compile-4
+	   :csound-get-message-level :csound-get-table
+	   :csound-set-make-graph-callback :csound-message
+	   :csound-set-debug :csound-thread-lock-try-lock
+	   :csound-get-sample-size-1 :csound-set-playopen-callback-1
+	   :csound-open-library :csound-thread-lock-new-2- :csound-get-kr
+	   :csound-query-interface :csound-set-host-data
+	   :csound-score-event :csound-chan-okget-1
+	   :csound-set-exit-graph-callback :csound-get-spin-1
+	   :csound-chan-okget :csound-chan-ikset-1
+	   :csound-thread-lock-new-1- :csound-table-length-1
+	   :csound-table-get-1 :csound-message-1 :csound-set-language
+	   :csound-set-control-channel-params :csound-seed-rand-mt
+	   :csound-get-library-symbol :csound-get-random-seed-from-time
+	   :csound-list-utilities :csound-reset
+	   :csound-get-message-level-1 :csound-timer-get-real-time
+	   :csound-timer-delete :csound-get-input-buffer
+	   :csound-init-timer-struct :csound-get-output-file-name
+	   :csound-register-sense-event-callback :csound-create-thread
+	   :csound-close-library :csound-perform-4 :csound-get-sample-size
+	   :csound-thread-lock :csound-timer :csound :csound-rand-mt
+	   :csound-control-channel-exp :csoundinit-no-atexit :cs-apisubver
+	   :cs-apiversion :csound-control-channel :csound-output-channel
+	   :csound-channel-type-mask :csoundinit-no-signal-handler
+	   :csound-string-channel :csound-control-channel-int
+	   :csound-control-channel-lin :csound-input-channel
+	   :csound-audio-channel :cslanguage-t :csound-status))
+
+
+(in-package :csound5)
+
+
+;;
+;; the following two forms are taken directly from 
+;; the verrazano-support asdf system in support.lisp 
+;; they are included here so that this asdf system 
+;; is not needed
+;;
+
+(defun vtable-lookup (pobj indx coff)
+  (let ((vptr (cffi:mem-ref pobj :pointer coff)))
+    (cffi:mem-aref vptr :pointer (- indx 2))))
+
+; macro for emitting a virtual function call
+(defmacro virtual-funcall (pobj indx coff &rest body)
+  `(cffi:foreign-funcall (vtable-lookup ,pobj ,indx ,coff) ,@body))
+
+
 (cffi:define-foreign-type csound-1 () 'csound-)
 
 (cffi:defcstruct csound-)
@@ -302,9 +325,9 @@
 
 
 (progn (defun csound-pre-compile (this)
-         (verrazano-support:virtual-funcall this 2 0 :pointer this :int))
+         (virtual-funcall this 2 0 :pointer this :int))
        (defun csound-initialize-cscore (this insco outsco)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            3
            0
@@ -316,9 +339,9 @@
            outsco
            :int))
        (defun csound-get-host-data (this)
-         (verrazano-support:virtual-funcall this 4 0 :pointer this :pointer))
+         (virtual-funcall this 4 0 :pointer this :pointer))
        (defun csound-set-host-data (this host-data)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            5
            0
@@ -328,7 +351,7 @@
            host-data
            :void))
        (defun csound-get-env (this name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            6
            0
@@ -338,7 +361,7 @@
            name
            :pointer))
        (defun csound-compile (this argc argv)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            7
            0
@@ -349,8 +372,8 @@
            :pointer
            argv
            :int))
-       (defun csound-compile-1 (this csd-name)
-         (verrazano-support:virtual-funcall
+       (defun csound-compile-csd (this csd-name)
+         (virtual-funcall
            this
            8
            0
@@ -360,7 +383,7 @@
            csd-name
            :int))
        (defun csound-compile-2 (this orc-name sco-name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            9
            0
@@ -372,7 +395,7 @@
            sco-name
            :int))
        (defun csound-compile-3 (this arg1 arg2 arg3)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            10
            0
@@ -386,7 +409,7 @@
            arg3
            :int))
        (defun csound-compile-4 (this arg1 arg2 arg3 arg4)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            11
            0
@@ -402,7 +425,7 @@
            arg4
            :int))
        (defun csound-compile-5 (this arg1 arg2 arg3 arg4 arg5)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            12
            0
@@ -420,9 +443,9 @@
            arg5
            :int))
        (defun csound-perform (this)
-         (verrazano-support:virtual-funcall this 13 0 :pointer this :int))
+         (virtual-funcall this 13 0 :pointer this :int))
        (defun csound-perform-1 (this argc argv)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            14
            0
@@ -434,7 +457,7 @@
            argv
            :int))
        (defun csound-perform-2 (this csd-name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            15
            0
@@ -444,7 +467,7 @@
            csd-name
            :int))
        (defun csound-perform-3 (this orc-name sco-name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            16
            0
@@ -456,7 +479,7 @@
            sco-name
            :int))
        (defun csound-perform-4 (this arg1 arg2 arg3)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            17
            0
@@ -470,7 +493,7 @@
            arg3
            :int))
        (defun csound-perform-5 (this arg1 arg2 arg3 arg4)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            18
            0
@@ -486,7 +509,7 @@
            arg4
            :int))
        (defun csound-perform-6 (this arg1 arg2 arg3 arg4 arg5)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            19
            0
@@ -504,49 +527,49 @@
            arg5
            :int))
        (defun csound-perform-ksmps (this)
-         (verrazano-support:virtual-funcall this 20 0 :pointer this :int))
+         (virtual-funcall this 20 0 :pointer this :int))
        (defun csound-perform-ksmps-absolute (this)
-         (verrazano-support:virtual-funcall this 21 0 :pointer this :int))
+         (virtual-funcall this 21 0 :pointer this :int))
        (defun csound-perform-buffer (this)
-         (verrazano-support:virtual-funcall this 22 0 :pointer this :int))
+         (virtual-funcall this 22 0 :pointer this :int))
        (defun csound-stop (this)
-         (verrazano-support:virtual-funcall this 23 0 :pointer this :void))
+         (virtual-funcall this 23 0 :pointer this :void))
        (defun csound-cleanup (this)
-         (verrazano-support:virtual-funcall this 24 0 :pointer this :int))
+         (virtual-funcall this 24 0 :pointer this :int))
        (defun csound-reset (this)
-         (verrazano-support:virtual-funcall this 25 0 :pointer this :void))
+         (virtual-funcall this 25 0 :pointer this :void))
        (defun csound-get-sr (this)
-         (verrazano-support:virtual-funcall this 26 0 :pointer this :float))
+         (virtual-funcall this 26 0 :pointer this :float))
        (defun csound-get-kr (this)
-         (verrazano-support:virtual-funcall this 27 0 :pointer this :float))
+         (virtual-funcall this 27 0 :pointer this :float))
        (defun csound-get-ksmps (this)
-         (verrazano-support:virtual-funcall this 28 0 :pointer this :int))
+         (virtual-funcall this 28 0 :pointer this :int))
        (defun csound-get-nchnls (this)
-         (verrazano-support:virtual-funcall this 29 0 :pointer this :int))
+         (virtual-funcall this 29 0 :pointer this :int))
        (defun csound-get0d-bfs (this)
-         (verrazano-support:virtual-funcall this 30 0 :pointer this :float))
+         (virtual-funcall this 30 0 :pointer this :float))
        (defun csound-get-str-var-max-len (this)
-         (verrazano-support:virtual-funcall this 31 0 :pointer this :int))
+         (virtual-funcall this 31 0 :pointer this :int))
        (defun csound-get-sample-format (this)
-         (verrazano-support:virtual-funcall this 32 0 :pointer this :int))
+         (virtual-funcall this 32 0 :pointer this :int))
        (defun csound-get-sample-size (this)
-         (verrazano-support:virtual-funcall this 33 0 :pointer this :int))
+         (virtual-funcall this 33 0 :pointer this :int))
        (defun csound-get-input-buffer-size (this)
-         (verrazano-support:virtual-funcall this 34 0 :pointer this :long))
+         (virtual-funcall this 34 0 :pointer this :long))
        (defun csound-get-output-buffer-size (this)
-         (verrazano-support:virtual-funcall this 35 0 :pointer this :long))
+         (virtual-funcall this 35 0 :pointer this :long))
        (defun csound-get-input-buffer (this)
-         (verrazano-support:virtual-funcall this 36 0 :pointer this :pointer))
+         (virtual-funcall this 36 0 :pointer this :pointer))
        (defun csound-get-output-buffer (this)
-         (verrazano-support:virtual-funcall this 37 0 :pointer this :pointer))
+         (virtual-funcall this 37 0 :pointer this :pointer))
        (defun csound-get-spin (this)
-         (verrazano-support:virtual-funcall this 38 0 :pointer this :pointer))
+         (virtual-funcall this 38 0 :pointer this :pointer))
        (defun csound-get-spout (this)
-         (verrazano-support:virtual-funcall this 39 0 :pointer this :pointer))
+         (virtual-funcall this 39 0 :pointer this :pointer))
        (defun csound-get-output-file-name (this)
-         (verrazano-support:virtual-funcall this 40 0 :pointer this :pointer))
+         (virtual-funcall this 40 0 :pointer this :pointer))
        (defun csound-set-host-implemented-audio-io (this state buf-size)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            41
            0
@@ -558,11 +581,11 @@
            buf-size
            :void))
        (defun csound-get-score-time (this)
-         (verrazano-support:virtual-funcall this 42 0 :pointer this :float))
+         (virtual-funcall this 42 0 :pointer this :float))
        (defun csound-is-score-pending (this)
-         (verrazano-support:virtual-funcall this 43 0 :pointer this :int))
+         (virtual-funcall this 43 0 :pointer this :int))
        (defun csound-set-score-pending (this pending)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            44
            0
@@ -572,9 +595,9 @@
            pending
            :void))
        (defun csound-get-score-offset-seconds (this)
-         (verrazano-support:virtual-funcall this 45 0 :pointer this :float))
+         (virtual-funcall this 45 0 :pointer this :float))
        (defun csound-set-score-offset-seconds (this time)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            46
            0
@@ -584,9 +607,9 @@
            time
            :void))
        (defun csound-rewind-score (this)
-         (verrazano-support:virtual-funcall this 47 0 :pointer this :void))
+         (virtual-funcall this 47 0 :pointer this :void))
        (defun csound-set-cscore-callback (this cscore-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            48
            0
@@ -596,7 +619,7 @@
            cscore-callback-
            :void))
        (defun csound-score-sort (this in-file out-file)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            49
            0
@@ -608,7 +631,7 @@
            out-file
            :int))
        (defun csound-score-extract (this in-file out-file extract-file)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            50
            0
@@ -622,7 +645,7 @@
            extract-file
            :int))
        (defun csound-message (this format anonymous4637)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            51
            0
@@ -632,7 +655,7 @@
            format
            :void))
        (defun csound-message-s (this attr format anonymous4638)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            52
            0
@@ -644,7 +667,7 @@
            format
            :void))
        (defun csound-message-v (this attr format args)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            53
            0
@@ -658,7 +681,7 @@
            args
            :void))
        (defun csound-set-message-callback (this csound-message-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            54
            0
@@ -668,9 +691,9 @@
            csound-message-callback-
            :void))
        (defun csound-get-message-level (this)
-         (verrazano-support:virtual-funcall this 55 0 :pointer this :int))
+         (virtual-funcall this 55 0 :pointer this :int))
        (defun csound-set-message-level (this message-level)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            56
            0
@@ -680,7 +703,7 @@
            message-level
            :void))
        (defun csound-input-message (this message)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            57
            0
@@ -690,7 +713,7 @@
            message
            :void))
        (defun csound-key-press (this c)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            58
            0
@@ -700,7 +723,7 @@
            c
            :void))
        (defun csound-set-input-value-callback (this input-value-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            59
            0
@@ -710,7 +733,7 @@
            input-value-callback-
            :void))
        (defun csound-set-output-value-callback (this output-value-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            60
            0
@@ -720,7 +743,7 @@
            output-value-callback-
            :void))
        (defun csound-score-event (this type p-fields num-fields)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            61
            0
@@ -734,7 +757,7 @@
            num-fields
            :int))
        (defun csound-set-external-midi-in-open-callback (this func)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            62
            0
@@ -744,7 +767,7 @@
            func
            :void))
        (defun csound-set-external-midi-read-callback (this func)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            63
            0
@@ -754,7 +777,7 @@
            func
            :void))
        (defun csound-set-external-midi-in-close-callback (this func)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            64
            0
@@ -764,7 +787,7 @@
            func
            :void))
        (defun csound-set-external-midi-out-open-callback (this func)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            65
            0
@@ -774,7 +797,7 @@
            func
            :void))
        (defun csound-set-external-midi-write-callback (this func)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            66
            0
@@ -784,7 +807,7 @@
            func
            :void))
        (defun csound-set-external-midi-out-close-callback (this func)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            67
            0
@@ -794,7 +817,7 @@
            func
            :void))
        (defun csound-set-external-midi-error-string-callback (this func)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            68
            0
@@ -804,7 +827,7 @@
            func
            :void))
        (defun csound-set-is-graphable (this is-graphable)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            69
            0
@@ -814,7 +837,7 @@
            is-graphable
            :int))
        (defun csound-set-make-graph-callback (this make-graph-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            70
            0
@@ -824,7 +847,7 @@
            make-graph-callback-
            :void))
        (defun csound-set-draw-graph-callback (this draw-graph-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            71
            0
@@ -834,7 +857,7 @@
            draw-graph-callback-
            :void))
        (defun csound-set-kill-graph-callback (this kill-graph-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            72
            0
@@ -844,7 +867,7 @@
            kill-graph-callback-
            :void))
        (defun csound-set-make-xyin-callback (this make-xyin-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            73
            0
@@ -854,7 +877,7 @@
            make-xyin-callback-
            :void))
        (defun csound-set-read-xyin-callback (this read-xyin-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            74
            0
@@ -864,7 +887,7 @@
            read-xyin-callback-
            :void))
        (defun csound-set-kill-xyin-callback (this kill-xyin-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            75
            0
@@ -874,7 +897,7 @@
            kill-xyin-callback-
            :void))
        (defun csound-set-exit-graph-callback (this exit-graph-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            76
            0
@@ -884,7 +907,7 @@
            exit-graph-callback-
            :void))
        (defun csound-new-opcode-list (this opcodelist)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            77
            0
@@ -894,7 +917,7 @@
            opcodelist
            :int))
        (defun csound-dispose-opcode-list (this opcodelist)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            78
            0
@@ -905,7 +928,7 @@
            :void))
        (defun csound-append-opcode (this opname dsblksiz thread outypes intypes
                                     iopadr kopadr aopadr)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            79
            0
@@ -929,7 +952,7 @@
            aopadr
            :int))
        (defun csound-set-yield-callback (this yield-callback-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            80
            0
@@ -939,7 +962,7 @@
            yield-callback-
            :void))
        (defun csound-set-playopen-callback (this playopen--)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            81
            0
@@ -949,7 +972,7 @@
            playopen--
            :void))
        (defun csound-set-rtplay-callback (this rtplay--)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            82
            0
@@ -959,7 +982,7 @@
            rtplay--
            :void))
        (defun csound-set-recopen-callback (this recopen-)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            83
            0
@@ -969,7 +992,7 @@
            recopen-
            :void))
        (defun csound-set-rtrecord-callback (this rtrecord--)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            84
            0
@@ -979,7 +1002,7 @@
            rtrecord--
            :void))
        (defun csound-set-rtclose-callback (this rtclose--)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            85
            0
@@ -989,9 +1012,9 @@
            rtclose--
            :void))
        (defun csound-get-debug (this)
-         (verrazano-support:virtual-funcall this 86 0 :pointer this :int))
+         (virtual-funcall this 86 0 :pointer this :int))
        (defun csound-set-debug (this debug)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            87
            0
@@ -1001,7 +1024,7 @@
            debug
            :void))
        (defun csound-table-length (this table)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            88
            0
@@ -1011,7 +1034,7 @@
            table
            :int))
        (defun csound-table-get (this table index)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            89
            0
@@ -1023,7 +1046,7 @@
            index
            :float))
        (defun csound-table-set (this table index value)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            90
            0
@@ -1037,7 +1060,7 @@
            value
            :void))
        (defun csound-get-table (this table-num table-length)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            91
            0
@@ -1049,7 +1072,7 @@
            table-length
            :pointer))
        (defun csound-create-global-variable (this name nbytes)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            92
            0
@@ -1061,7 +1084,7 @@
            nbytes
            :int))
        (defun csound-query-global-variable (this name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            93
            0
@@ -1071,7 +1094,7 @@
            name
            :pointer))
        (defun csound-query-global-variable-no-check (this name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            94
            0
@@ -1081,7 +1104,7 @@
            name
            :pointer))
        (defun csound-destroy-global-variable (this name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            95
            0
@@ -1091,11 +1114,11 @@
            name
            :int))
        (defun csound-get-rt-record-user-data (this)
-         (verrazano-support:virtual-funcall this 96 0 :pointer this :pointer))
+         (virtual-funcall this 96 0 :pointer this :pointer))
        (defun csound-get-rt-play-user-data (this)
-         (verrazano-support:virtual-funcall this 97 0 :pointer this :pointer))
+         (virtual-funcall this 97 0 :pointer this :pointer))
        (defun csound-register-sense-event-callback (this func user-data)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            98
            0
@@ -1107,7 +1130,7 @@
            user-data
            :int))
        (defun csound-run-utility (this name argc argv)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            99
            0
@@ -1121,9 +1144,9 @@
            argv
            :int))
        (defun csound-list-utilities (this)
-         (verrazano-support:virtual-funcall this 100 0 :pointer this :pointer))
+         (virtual-funcall this 100 0 :pointer this :pointer))
        (defun csound-delete-utility-list (this lst)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            101
            0
@@ -1133,7 +1156,7 @@
            lst
            :void))
        (defun csound-get-utility-description (this util-name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            102
            0
@@ -1143,7 +1166,7 @@
            util-name
            :pointer))
        (defun csound-get-channel-ptr (this p name type)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            103
            0
@@ -1157,7 +1180,7 @@
            type
            :int))
        (defun csound-list-channels (this lst)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            104
            0
@@ -1167,7 +1190,7 @@
            lst
            :int))
        (defun csound-delete-channel-list (this lst)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            105
            0
@@ -1177,7 +1200,7 @@
            lst
            :void))
        (defun csound-set-control-channel-params (this name type dflt min max)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            106
            0
@@ -1195,7 +1218,7 @@
            max
            :int))
        (defun csound-get-control-channel-params (this name dflt min max)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            107
            0
@@ -1211,7 +1234,7 @@
            max
            :int))
        (defun csound-set-channel (this name value)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            108
            0
@@ -1223,7 +1246,7 @@
            value
            :void))
        (defun csound-set-channel-1 (this name value)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            109
            0
@@ -1235,7 +1258,7 @@
            value
            :void))
        (defun csound-get-channel (this name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            110
            0
@@ -1245,7 +1268,7 @@
            name
            :float))
        (defun csound-chan-ikset (this value n)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            111
            0
@@ -1257,7 +1280,7 @@
            n
            :int))
        (defun csound-chan-okget (this value n)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            112
            0
@@ -1269,7 +1292,7 @@
            n
            :int))
        (defun csound-chan-iaset (this value n)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            113
            0
@@ -1281,7 +1304,7 @@
            n
            :int))
        (defun csound-chan-oaget (this value n)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            114
            0
@@ -1301,7 +1324,7 @@
                                                     max
                                                     short-desc
                                                     long-desc)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            115
            0
@@ -1325,7 +1348,7 @@
            long-desc
            :int))
        (defun csound-copy-global-configuration-variable (this name p)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            116
            0
@@ -1337,9 +1360,9 @@
            p
            :int))
        (defun csound-copy-global-configuration-variables (this)
-         (verrazano-support:virtual-funcall this 117 0 :pointer this :int))
+         (virtual-funcall this 117 0 :pointer this :int))
        (defun csound-set-configuration-variable (this name value)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            118
            0
@@ -1351,7 +1374,7 @@
            value
            :int))
        (defun csound-parse-configuration-variable (this name value)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            119
            0
@@ -1363,7 +1386,7 @@
            value
            :int))
        (defun csound-query-configuration-variable (this name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            120
            0
@@ -1373,9 +1396,9 @@
            name
            :pointer))
        (defun csound-list-configuration-variables (this)
-         (verrazano-support:virtual-funcall this 121 0 :pointer this :pointer))
+         (virtual-funcall this 121 0 :pointer this :pointer))
        (defun csound-delete-configuration-variable (this name)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            122
            0
@@ -1400,9 +1423,9 @@
                   (csound-new-2- -pobj- host-data)
                   -pobj-)))
        (defun csound-delete (this)
-         (verrazano-support:virtual-funcall this 124 0 :pointer this :void))
+         (virtual-funcall this 124 0 :pointer this :void))
        (defun csound-thread-lock-lock (this milliseconds)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            2
            0
@@ -1412,11 +1435,11 @@
            milliseconds
            :int))
        (defun csound-thread-lock-lock-1 (this)
-         (verrazano-support:virtual-funcall this 3 0 :pointer this :void))
+         (virtual-funcall this 3 0 :pointer this :void))
        (defun csound-thread-lock-try-lock (this)
-         (verrazano-support:virtual-funcall this 4 0 :pointer this :int))
+         (virtual-funcall this 4 0 :pointer this :int))
        (defun csound-thread-lock-unlock (this)
-         (verrazano-support:virtual-funcall this 5 0 :pointer this :void))
+         (virtual-funcall this 5 0 :pointer this :void))
        (progn (cffi:defcfun ("_ZN16CsoundThreadLockC1Ev"
                              csound-thread-lock-new-1-)
                             :void
@@ -1435,11 +1458,11 @@
                   (csound-thread-lock-new-2- -pobj- locked)
                   -pobj-)))
        (defun csound-thread-lock-delete (this)
-         (verrazano-support:virtual-funcall this 7 0 :pointer this :void))
+         (virtual-funcall this 7 0 :pointer this :void))
        (defun csound-rand-mt-random (this)
-         (verrazano-support:virtual-funcall this 2 0 :pointer this uint32-t))
+         (virtual-funcall this 2 0 :pointer this uint32-t))
        (defun csound-rand-mt-seed (this seed-val)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            3
            0
@@ -1449,7 +1472,7 @@
            seed-val
            :void))
        (defun csound-rand-mt-seed-1 (this init-key key-length)
-         (verrazano-support:virtual-funcall
+         (virtual-funcall
            this
            4
            0
@@ -1485,13 +1508,13 @@
                   (csound-rand-mt-new-3- -pobj- init-key key-length)
                   -pobj-)))
        (defun csound-rand-mt-delete (this)
-         (verrazano-support:virtual-funcall this 6 0 :pointer this :void))
+         (virtual-funcall this 6 0 :pointer this :void))
        (defun csound-timer-get-real-time (this)
-         (verrazano-support:virtual-funcall this 2 0 :pointer this :double))
+         (virtual-funcall this 2 0 :pointer this :double))
        (defun csound-timer-get-cputime (this)
-         (verrazano-support:virtual-funcall this 3 0 :pointer this :double))
+         (virtual-funcall this 3 0 :pointer this :double))
        (defun csound-timer-reset (this)
-         (verrazano-support:virtual-funcall this 4 0 :pointer this :void))
+         (virtual-funcall this 4 0 :pointer this :void))
        (progn (cffi:defcfun ("_ZN11CsoundTimerC1Ev" csound-timer-new-1-)
                             :void
                             (this :pointer))
@@ -1500,7 +1523,7 @@
                   (csound-timer-new-1- -pobj-)
                   -pobj-)))
        (defun csound-timer-delete (this)
-         (verrazano-support:virtual-funcall this 6 0 :pointer this :void))
+         (virtual-funcall this 6 0 :pointer this :void))
        (cffi:defcfun ("csoundChanOAGet" csound-chan-oaget-1)
                      :int
                      (anonymous4685 :pointer)
@@ -1978,6 +2001,10 @@
                      (anonymous4784 :pointer)
                      (argc :int)
                      (argv :pointer))
+       (cffi:defcfun ("csoundCompileCsd" csound-compile-csd)
+                     :int
+                     (anonymous4784 :pointer)
+                     (csd :pointer))
        (cffi:defcfun ("csoundSetGlobalEnv" csound-set-global-env)
                      :int
                      (name :pointer)
