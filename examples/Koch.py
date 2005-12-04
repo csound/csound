@@ -3,7 +3,18 @@
 
 import os
 import os.path
-import CsoundVST
+
+# Import the Csound 5 API.
+
+import csnd
+
+# Create an instance of Csound (actually, CppSound).
+
+csound = csnd.CppSound()
+
+# Enable Csound to print to the Python console.
+
+csound.setPythonMessageCallback()
 
 # A recursive function for generating a score
 # in the form of a Koch curve.
@@ -88,6 +99,8 @@ Koch(g, 0, 240, 0, 24, 32, 3, csound)
 
 Koch(h, 0.5, 240, 0, 30, 32, 3, csound);
 
+# Set up an FluidSynth-based orchestra in Csound.
+
 csound.setOrchestra('''
 sr                      =                       44100
 ksmps                   =                       100
@@ -125,10 +138,50 @@ aleft, aright           fluidOut                giFluidsynth
                         outs                    aleft * iamplitude, aright * iamplitude
 endin
 ''')
+# Set the Csound command line.
 
-#csound.setCommand("csound -b100 -B100 -odac2 ./temp.orc ./temp.sco")
-csound.setCommand("csound -RWdfo koch.wav ./temp.orc ./temp.sco")
+#csound.setCommand("csound -b100 -B100 -odac2 /tempk.orc /tempk.sco")
+csound.setCommand("csound -RWdfo koch.wav c:/tempk.orc c:/tempkk.sco")
 csound.addScoreLine("i 100 0 -1")
+
+# Export the orchestra and generated score for performance.
+
 csound.exportForPerformance()
+
+# Perform the generated score with the embedded orchestra.
+
 csound.perform()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
