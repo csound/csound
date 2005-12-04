@@ -1,4 +1,4 @@
-;; Rudimentary demonstration of how to use the Csound API from LISP.
+;; Rudimentary demonstration of how to use the Csound 5 API from LISP.
 ;; This file assumes that Common Music and CFFI have been installed
 ;; for your LISP. You will have to change pathnames appropriately,
 ;; and change the cffi:load-foreign-library call to suit your installation.
