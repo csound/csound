@@ -1,5 +1,5 @@
 /*
-* C S O U N D   
+* C S O U N D
 *
 * External language interfaces for the "C" Csound API.
 *
@@ -19,21 +19,22 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 %module csnd
 %include "typemaps.i"
 %include "std_string.i"
 %include "std_vector.i"
 %feature("autodoc", "1");
 %{
-	#include "csound.h"
-	#include "cfgvar.h"
-	#include "csound.hpp"
-	#include "CsoundFile.hpp"
-	#include "CppSound.hpp"
+    #include "csound.h"
+    #include "cfgvar.h"
+    #include "csound.hpp"
+    #include "CsoundFile.hpp"
+    #include "CppSound.hpp"
 %}
 
 %apply int { size_t };
-
+typedef unsigned int uint32_t;
 
 %typemap(freearg) char ** {
   free((char *) $1);
@@ -43,10 +44,10 @@
 %pragma(java) jniclasscode=%{
   static {
     try {
-   	java.lang.System.loadLibrary("_csnd");
+        java.lang.System.loadLibrary("_csnd");
     } catch (UnsatisfiedLinkError e) {
-      	java.lang.System.err.println("_csnd native code library failed to load.\n" + e);
-      	java.lang.System.exit(1);
+        java.lang.System.err.println("_csnd native code library failed to load.\n" + e);
+        java.lang.System.exit(1);
     }
   }
 %}
@@ -58,3 +59,4 @@
 %include "csound.hpp"
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
+
