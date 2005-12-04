@@ -278,6 +278,10 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
+    if commonEnvironment['buildInterfaces'] != '0':
+        if commonEnvironment['buildJavaWrapper'] != '0':
+            commonEnvironment.Append(CPPPATH = '/usr/lib/java/include')
+            commonEnvironment.Append(CPPPATH = '/usr/lib/java/include/linux')
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 elif getPlatform() == 'darwin':
@@ -348,7 +352,7 @@ jackFound = configure.CheckHeader("jack/jack.h", language = "C")
 oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
-tclhfound = configure.CheckHeader("tcl.h", language ="C")
+tclhfound = configure.CheckHeader("tcl.h", language = "C")
 luaFound = configure.CheckHeader("lua.h", language = "C")
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
@@ -699,10 +703,16 @@ else:
     for option in csoundInterfacesEnvironment['CPPPATH']:
         option = '-I' + option
         csoundInterfacesEnvironment.Append(SWIGFLAGS = [option])
-    if '-pedantic' in csoundInterfacesEnvironment['CCFLAGS']:
-        csoundInterfacesEnvironment['CCFLAGS'].remove('-pedantic')
-    if '-pedantic' in csoundInterfacesEnvironment['CXXFLAGS']:
-        csoundInterfacesEnvironment['CXXFLAGS'].remove('-pedantic')
+    wrapCFlags = csoundInterfacesEnvironment['CCFLAGS']
+    wrapCXXFlags = csoundInterfacesEnvironment['CXXFLAGS']
+    if '-pedantic' in wrapCFlags:
+        wrapCFlags.remove('-pedantic')
+    if '-pedantic' in wrapCXXFlags:
+        wrapCXXFlags.remove('-pedantic')
+    if commonEnvironment['MSVC'] == '0':
+        # work around non-ANSI type punning in SWIG generated wrapper files
+        wrapCFlags.append('-fno-strict-aliasing')
+        wrapCXXFlags.append('-fno-strict-aliasing')
     swigflags = csoundInterfacesEnvironment['SWIGFLAGS']
     if pythonFound:
         if getPlatform() == 'mingw':
@@ -717,24 +727,27 @@ else:
         csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
         csoundPythonInterface = csoundInterfacesEnvironment.SharedObject(
             'interfaces/python_interface.i',
-            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
+            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'],
+            CCFLAGS = wrapCFlags, CXXFLAGS = wrapCXXFlags)
         csoundInterfacesSources.insert(0, csoundPythonInterface)
     if javaFound and commonEnvironment['buildJavaWrapper'] == '1':
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
         if getPlatform() == 'darwin':
-            csoundInterfacesEnvironment.Append(LINKFLAGS = ['-framework', 'JavaVM'])
-            csoundInterfacesEnvironment.Append(CPPPATH = ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
+            csoundInterfacesEnvironment.Append(LINKFLAGS =
+                ['-framework', 'JavaVM'])
+            csoundInterfacesEnvironment.Append(CPPPATH =
+                ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
         csoundJavaInterface = csoundInterfacesEnvironment.SharedObject(
             'interfaces/java_interface.i',
-            SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])
+            SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'],
+            CCFLAGS = wrapCFlags, CXXFLAGS = wrapCXXFlags)
         csoundInterfacesSources.append(csoundJavaInterface)
         jcsnd = csoundInterfacesEnvironment.Java(
             target = 'interfaces', source = 'interfaces',
             JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
         zipDependencies.append(jcsnd)
         jcsndJar = csoundInterfacesEnvironment.Jar(
-            'csnd.jar', ['interfaces/manifest.mf', 'interfaces/csnd'],
-            JARCHDIR = 'interfaces')
+            'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     if not luaFound:
