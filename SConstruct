@@ -748,6 +748,7 @@ else:
         zipDependencies.append(jcsnd)
         jcsndJar = csoundInterfacesEnvironment.Jar(
             'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
+	Depends(jcsndJar, jcsnd)
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     if not luaFound:
