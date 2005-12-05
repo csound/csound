@@ -10,7 +10,7 @@ import java.lang.System;
 import java.util.Properties;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
-import csnd.Csound;
+import csnd.*;
 
 /**
  *
@@ -101,57 +101,54 @@ public class CSDPlayer extends javax.swing.JFrame {
     }
 
     private void quitButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        if(ready){
-        cs.stop();
-        try{
-        while(a.isAlive());
-        } catch (Exception e) {
-            java.lang.System.exit(0);
-        }
+        if (ready) {
+            cs.stop();
+            try {
+                while (a.isAlive());
+            } catch (Exception e) {
+                java.lang.System.exit(0);
+            }
         }
         java.lang.System.exit(0);
     }
 
     private void openButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        if(choose.showOpenDialog(this) != choose.CANCEL_OPTION){
+        if (choose.showOpenDialog(this) != choose.CANCEL_OPTION) {
             File csd = choose.getSelectedFile();
-            if(ready) cs.stop();
+            if (ready) cs.stop();
             csdfile = csd.getAbsolutePath();
             setTitle("CSDPlayer " + csd.getName());
         }
-
     }
 
     private void stopButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        if(ready) {
+        if (ready) {
             cs.stop();
-            ready = false;
         }
     }
 
     private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        if(!ready && csdfile != ""){
-         cs = new csperf(csdfile);
-         ready = true;
-        if(!cs.isOn()) {
-                a = new Thread(cs);
-                a.start();
-        } else cs.play();
-
+        if (ready)
+            cs.play();
+        else if (csdfile != "") {
+            cs = new csperf(csdfile);
+            a = new Thread(cs);
+            a.start();
+            ready = true;
         }
     }
 
     private void pauseButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        if(ready)
+        if (ready)
             cs.pause();
     }
 
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                    new CSDPlayer().setVisible(true);
-                }
-            });
+            public void run() {
+                new CSDPlayer().setVisible(true);
+            }
+        });
     }
 
     public class csperf implements Runnable {
@@ -161,54 +158,59 @@ public class CSDPlayer extends javax.swing.JFrame {
         boolean pause;
         String  csd;
 
-        public csperf(String s){
+        public csperf(String s) {
             csd = s;
             on = false;
             pause = false;
-                csp  = new Csound();
+            csp = new Csound();
         }
 
         public void run() {
-            try{
+            try {
                 int res = csp.Compile(csd, "-m0", "-d");
-                if(res == 0){
+                if (res == 0) {
                     on = true;
-                    while(on){
-                        if(!pause) csp.PerformKsmps();
-                         }
+                    while (on) {
+                        while (pause)
+                            csnd.csoundSleep(40);
+                        if (csp.PerformBuffer() != 0)
+                            on = false;
+                    }
                 }
             }
             catch (Exception e) {
                 java.lang.System.err.println("Could not Perform...\n");
                 java.lang.System.exit(1);
             }
-                csp.Reset();
+            csp.Reset();
+            ready = false;
         }
         public void stop() {
             on = false;
         }
-        public void pause(){
-            if(!pause) pause = true;
-            else pause = false;
+        public void pause() {
+            pause = !pause;
         }
-        public void play(){
+        public void play() {
             pause = false;
         }
-        public boolean isOn(){
+        public boolean isOn() {
             return on;
         }
     };
 
-   public static class CSDFilter extends FileFilter {
-
-       public boolean accept(File pathname) {
-           String csd = pathname.getAbsolutePath();
-           if (csd.endsWith(".csd")) return true;
-           else return false;
+    public static class CSDFilter extends FileFilter {
+        public boolean accept(File pathname) {
+            if (pathname.isDirectory())
+                return true;
+            String csd = pathname.getAbsolutePath();
+            if (csd.length() < 5)
+                return false;
+            return csd.toLowerCase().endsWith(".csd");
         }
-       public String getDescription() {
+        public String getDescription() {
             return "Unified Csound files";
         }
-   };
+    };
+};
 
-}
