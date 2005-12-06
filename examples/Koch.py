@@ -152,36 +152,3 @@ csound.exportForPerformance()
 
 csound.perform()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
