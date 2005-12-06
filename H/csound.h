@@ -118,11 +118,14 @@
 #define CS_PRINTF3
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
-#ifndef USE_DOUBLE
-#define MYFLT float
-#else
-#define MYFLT double
 #endif
+#ifdef MYFLT
+#undef MYFLT
+#endif
+#ifndef USE_DOUBLE
+typedef float   MYFLT;
+#else
+typedef double  MYFLT;
 #endif
 %module csnd
 %{
@@ -629,7 +632,7 @@ extern "C" {
 
   /**
    * Input a NULL-terminated string (as if from a console),
-   * used for line events (requires -L command line option).
+   * used for line events.
    */
   PUBLIC void csoundInputMessage(CSOUND *, const char *message);
 
