@@ -1,5 +1,5 @@
 /*
-* C S O U N D   
+* C S O U N D
 *
 * External language interfaces for the "C" Csound API.
 *
@@ -24,11 +24,11 @@
 %include "std_vector.i"
 %feature("autodoc", "1");
 %{
-	#include "csound.h"
-	#include "cfgvar.h"
-	#include "csound.hpp"
-	#include "CsoundFile.hpp"
-	#include "CppSound.hpp"
+        #include "csound.h"
+        #include "cfgvar.h"
+        #include "csound.hpp"
+        #include "CsoundFile.hpp"
+        #include "CppSound.hpp"
 %}
 
 %apply int { size_t };
