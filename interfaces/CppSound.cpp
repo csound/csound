@@ -160,23 +160,9 @@ std::string CppSound::getOutputSoundfileName() const
   return renderedSoundfile;
 }
 
-void CppSound::inputMessage(std::string istatement)
+void CppSound::inputMessage(const char *istatement)
 {
-  std::vector<MYFLT> pfields;
-  std::string buffer = istatement;
-  char *buffer_pointer = (char *)buffer.c_str();
-  char *opcode = 0;
-#ifndef MSVC
-  for (char *field = std::strtok(buffer_pointer, " \t\n\r"); field; buffer_pointer = 0) {
-#elif
- for (char *field = strtok(buffer_pointer, " \t\n\r"); field; buffer_pointer = 0) {
-#endif
-    if (buffer_pointer) {
-      opcode = buffer_pointer;
-    }
-    pfields.push_back(atof(field));
-  }
-  ScoreEvent(opcode[0], &pfields.front(), pfields.size());
+  InputMessage(istatement);
 }
 
 void CppSound::write(const char *text)
@@ -249,3 +235,4 @@ void CppSound::setPythonMessageCallback()
 {
   SetMessageCallback(pythonMessageCallback);
 }
+
