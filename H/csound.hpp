@@ -1,3 +1,32 @@
+/*
+    csound.hpp:
+
+    Copyright (C) 2005 Istvan Varga, Michael Gogins
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+
+    As a special exception, if other files instantiate templates or
+    use macros or inline functions from this file, this file does not
+    by itself cause the resulting executable or library to be covered
+    by the GNU Lesser General Public License. This exception does not
+    however invalidate any other reasons why the library or executable
+    file might be covered by the GNU Lesser General Public License.
+*/
 
 #ifndef __CSOUND_HPP__
 #define __CSOUND_HPP__
@@ -6,12 +35,20 @@
 %module csnd
 %{
 #include "csound.h"
+#include "cs_glue.hpp"
 %}
 #else
 #include "csound.h"
+#ifdef __BUILDING_CSOUND_INTERFACES
+#include "cs_glue.hpp"
+#endif
 #endif
 
 #if defined(__cplusplus)
+
+#ifdef __BUILDING_CSOUND_INTERFACES
+#define virtual
+#endif
 
 /**
  * C++ interface to the "C" Csound API.
@@ -689,7 +726,7 @@ public:
   // FIXME: should throw exception on failure ?
   Csound()
   {
-    csound = csoundCreate((CSOUND *)0);
+    csound = csoundCreate((CSOUND*) 0);
   }
   Csound(void *hostData)
   {
@@ -701,7 +738,40 @@ public:
     csoundDestroy(csound);
   }
   // Functions for embedding.
-
+#ifdef __BUILDING_CSOUND_INTERFACES
+  void EnableMessageBuffer(int toStdOut)
+  {
+    csoundEnableMessageBuffer(csound, toStdOut);
+  }
+  const char *GetFirstMessage()
+  {
+    return csoundGetFirstMessage(csound);
+  }
+  int GetFirstMessageAttr()
+  {
+    return csoundGetFirstMessageAttr(csound);
+  }
+  void PopFirstMessage()
+  {
+    csoundPopFirstMessage(csound);
+  }
+  int GetMessageCnt()
+  {
+    return csoundGetMessageCnt(csound);
+  }
+  void DestroyMessageBuffer()
+  {
+    csoundDestroyMessageBuffer(csound);
+  }
+  void DisposeOpcodeList(opcodeListEntry **opcodelist)
+  {
+    csoundDisposeOpcodeList(csound, *opcodelist);
+  }
+  void DeleteChannelList(CsoundChannelListEntry **lst)
+  {
+    csoundDeleteChannelList(csound, *lst);
+  }
+#endif
 };
 
 // thread lock
@@ -808,6 +878,10 @@ public:
   {
   }
 };
+
+#ifdef __BUILDING_CSOUND_INTERFACES
+#undef virtual
+#endif
 
 #endif  // __cplusplus
 
