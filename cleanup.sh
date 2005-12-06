@@ -49,6 +49,7 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 "$0" remove "./interfaces/csnd.pyc"
 "$0" remove "./interfaces/csnd.pyo"
 "$0" remove "./csnd.jar"
+"$0" remove "./interfaces/csnd"
 
 rm -f "./libcsound.so"
 rm -f "./libcsound64.so"
