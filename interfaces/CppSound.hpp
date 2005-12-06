@@ -22,11 +22,13 @@
 #ifndef CSND_CPPSOUND_H
 #define CSND_CPPSOUND_H
 
-#undef MYFLT
+#ifndef __MYFLT_DEF
+#define __MYFLT_DEF
 #ifdef USE_DOUBLE
 #define MYFLT double
 #else
 #define MYFLT float
+#endif
 #endif
 
 #ifdef SWIG
@@ -68,7 +70,7 @@ public:
   virtual int perform();
   virtual int performKsmps(bool absolute);
   virtual void cleanup();
-  virtual void inputMessage(std::string istatement);
+  virtual void inputMessage(const char *istatement);
   virtual void write(const char *text);
   virtual bool getIsCompiled() const;
   virtual void setIsPerforming(bool isPerforming);
