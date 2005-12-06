@@ -153,6 +153,8 @@ buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
 
 for i in range(4):
     cleanup()
+    os.spawnvp(os.P_WAIT, 'mkdir',
+               ['mkdir', '-p', '-m', '0755', 'interfaces/csnd'])
     args = ['scons'] + buildOpts2[i] + buildOpts
     if (os.spawnvp(os.P_WAIT, 'scons', args) != 0):
         print ' *** build failed'
@@ -257,7 +259,6 @@ for i in range(4):
         installFile('csnd.jar', javaDir)
         # LISP interface
         installFile('interfaces/csound5.lisp', lispDir)
-        installFile('interfaces/support.lisp', lispDir)
 
 cleanup()
 
