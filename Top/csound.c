@@ -1417,11 +1417,6 @@ static const CSOUND cenviron_ = {
     return csound->oparms->msglevel;
   }
 
-  PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
-  {
-    writeLine(csound, message, strlen(message));
-  }
-
   PUBLIC void csoundKeyPress(CSOUND *csound, char c)
   {
     csound->inChar_ = (int) ((unsigned char) c);
