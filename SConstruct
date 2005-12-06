@@ -695,15 +695,6 @@ else:
     csoundInterfacesEnvironment.Append(SWIGFLAGS = Split('''
         -c++ -includeall -verbose
     '''))
-    for option in csoundInterfacesEnvironment['CCFLAGS']:
-        if string.find(option, '-D') == 0:
-            csoundInterfacesEnvironment.Append(SWIGFLAGS = [option])
-    for option in csoundInterfacesEnvironment['CPPFLAGS']:
-        if string.find(option, '-D') == 0:
-            csoundInterfacesEnvironment.Append(SWIGFLAGS = [option])
-    for option in csoundInterfacesEnvironment['CPPPATH']:
-        option = '-I' + option
-        csoundInterfacesEnvironment.Append(SWIGFLAGS = [option])
     csoundWrapperEnvironment = csoundInterfacesEnvironment.Copy()
     wrapCFlags = csoundWrapperEnvironment['CCFLAGS']
     wrapCXXFlags = csoundWrapperEnvironment['CXXFLAGS']
@@ -717,7 +708,16 @@ else:
     wrapCFlags.append('-D__BUILDING_CSOUND_INTERFACES')
     csoundWrapperEnvironment['CCFLAGS'] = wrapCFlags
     csoundWrapperEnvironment['CXXFLAGS'] = wrapCXXFlags
-    swigflags = csoundInterfacesEnvironment['SWIGFLAGS']
+    for option in csoundWrapperEnvironment['CCFLAGS']:
+        if string.find(option, '-D') == 0:
+            csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
+    for option in csoundWrapperEnvironment['CPPFLAGS']:
+        if string.find(option, '-D') == 0:
+            csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
+    for option in csoundWrapperEnvironment['CPPPATH']:
+        option = '-I' + option
+        csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
+    swigflags = csoundWrapperEnvironment['SWIGFLAGS']
     if pythonFound:
         if getPlatform() == 'mingw':
             pythonImportLibrary = csoundInterfacesEnvironment.Command(
