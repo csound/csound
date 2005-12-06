@@ -70,7 +70,6 @@ char    *getstrformat(int format);
 int     sfsampsize(int sf_format);
 char    *type2string(int type);
 void    rewriteheader(SNDFILE *ofd);
-void    writeLine(CSOUND *, const char *text, long size);
 int     readOptions(CSOUND *, FILE *);
 int     argdecode(CSOUND *, int, char **);
 void    remove_tmpfiles(CSOUND *);
