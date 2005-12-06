@@ -71,7 +71,7 @@ extern "C" {
    * space for 'cnt' elements if 'cnt' is greater than zero. For use with
    * csoundGetChannelPtr(), 'cnt' should be zero.
    */
-  MYFLT **CreateMYFLTArray(int cnt);
+  MYFLT **CreateMYFLTArrayPtr(int cnt);
 
   /**
    * Returns non-zero if 'p' is a valid MYFLT array.
@@ -185,9 +185,9 @@ extern "C" {
 
   /**
    * Releases a MYFLT pointer and array previously allocated by
-   * CreateMYFLTArray().
+   * CreateMYFLTArrayPtr().
    */
-  void DestroyMYFLTArray(MYFLT **p);
+  void DestroyMYFLTArrayPtr(MYFLT **p);
 
   /**
    * Creates an opcode list pointer to be used by csoundNewOpcodeList().
