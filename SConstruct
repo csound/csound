@@ -677,6 +677,7 @@ else:
     print 'CONFIGURATION DECISION: Building Csound interfaces library.'
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
     csoundInterfacesSources = Split('''
+        interfaces/cs_glue.cpp
         interfaces/filebuilding.cpp
         interfaces/CppSound.cpp
         interfaces/CsoundFile.cpp
@@ -703,8 +704,9 @@ else:
     for option in csoundInterfacesEnvironment['CPPPATH']:
         option = '-I' + option
         csoundInterfacesEnvironment.Append(SWIGFLAGS = [option])
-    wrapCFlags = csoundInterfacesEnvironment['CCFLAGS']
-    wrapCXXFlags = csoundInterfacesEnvironment['CXXFLAGS']
+    csoundWrapperEnvironment = csoundInterfacesEnvironment.Copy()
+    wrapCFlags = csoundWrapperEnvironment['CCFLAGS']
+    wrapCXXFlags = csoundWrapperEnvironment['CXXFLAGS']
     if '-pedantic' in wrapCFlags:
         wrapCFlags.remove('-pedantic')
     if '-pedantic' in wrapCXXFlags:
@@ -712,7 +714,9 @@ else:
     if commonEnvironment['MSVC'] == '0':
         # work around non-ANSI type punning in SWIG generated wrapper files
         wrapCFlags.append('-fno-strict-aliasing')
-        wrapCXXFlags.append('-fno-strict-aliasing')
+    wrapCFlags.append('-D__BUILDING_CSOUND_INTERFACES')
+    csoundWrapperEnvironment['CCFLAGS'] = wrapCFlags
+    csoundWrapperEnvironment['CXXFLAGS'] = wrapCXXFlags
     swigflags = csoundInterfacesEnvironment['SWIGFLAGS']
     if pythonFound:
         if getPlatform() == 'mingw':
@@ -721,26 +725,24 @@ else:
                 '$SYSTEMROOT/System32/python23.dll',
                 ['pexports $SYSTEMROOT/System32/python23.dll > python23.def',
                  'dlltool --input-def python23.def --dllname python23.dll --output-lib /usr/local/lib/libpython23.a'])
-        csoundInterfacesEnvironment.Append(CPPPATH = pythonIncludePath)
+        csoundWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
         csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
         csoundInterfacesEnvironment.Prepend(LIBS = pythonLibs)
-        csoundPythonInterface = csoundInterfacesEnvironment.SharedObject(
+        csoundPythonInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/python_interface.i',
-            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'],
-            CCFLAGS = wrapCFlags, CXXFLAGS = wrapCXXFlags)
+            SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
         csoundInterfacesSources.insert(0, csoundPythonInterface)
     if javaFound and commonEnvironment['buildJavaWrapper'] == '1':
         print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
         if getPlatform() == 'darwin':
             csoundInterfacesEnvironment.Append(LINKFLAGS =
                 ['-framework', 'JavaVM'])
-            csoundInterfacesEnvironment.Append(CPPPATH =
+            csoundWrapperEnvironment.Append(CPPPATH =
                 ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
-        csoundJavaInterface = csoundInterfacesEnvironment.SharedObject(
+        csoundJavaInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/java_interface.i',
-            SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'],
-            CCFLAGS = wrapCFlags, CXXFLAGS = wrapCXXFlags)
+            SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])
         csoundInterfacesSources.append(csoundJavaInterface)
         jcsnd = csoundInterfacesEnvironment.Java(
             target = 'interfaces', source = 'interfaces',
@@ -755,7 +757,7 @@ else:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
         print 'CONFIGURATION DECISION: Building Csound Lua interface library.'
-        csoundLuaInterface = csoundInterfacesEnvironment.SharedObject(
+        csoundLuaInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/lua_interface.i',
             SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
         csoundInterfacesSources.insert(0, csoundLuaInterface)
