@@ -335,7 +335,7 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
     INSDS   *p;
 
     csound->Message(csound, "insno\tinstanc\tnxtinst\tprvinst\tnxtact\t"
-                             "prvact\tnxtoff\tactflg\tofftim\n");
+                            "prvact\tnxtoff\tactflg\tofftim\n");
     for (txtp = &(csound->instxtanchor);  txtp != NULL;  txtp = txtp->nxtinstxt)
       if ((p = txtp->instance) != NULL) {
         /*
@@ -650,6 +650,7 @@ int subinstrset(CSOUND *csound, SUBINST *p)
         instance(csound, instno);
       p->ip = csound->instrtxtp[instno]->act_instance;
       csound->instrtxtp[instno]->act_instance = p->ip->nxtact;
+      p->ip->insno = (short) instno;
       p->ip->actflg++;                  /*    and mark the instr active */
       csound->instrtxtp[instno]->active++;
       p->ip->p1 = (MYFLT) instno;
