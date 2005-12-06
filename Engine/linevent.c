@@ -92,9 +92,8 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 #ifdef PIPES
     else if (O->Linename[0] == '|') {
       csound->Linepipe = _popen(&(O->Linename[1]), "r");
-      if (csound->Linepipe == NULL) {
-        FILE *xxx = csound->Linepipe;
-        csound->Linefd = fileno(xxx);
+      if (csound->Linepipe != NULL) {
+        csound->Linefd = fileno(csound->Linepipe);
       }
       else csoundDie(csound, Str("Cannot open %s"), O->Linename);
     }
@@ -147,33 +146,63 @@ void RTclose(CSOUND *csound)
     csound->lineventGlobals = NULL;
 }
 
-static int containsLF(char *cp, char *endp)/* does string segment contain LF? */
+/* does string segment contain LF? */
+
+static inline int containsLF(char *cp, char *endp)
 {
     do {
-      if (*cp++ == LF)  return(1);
+      if (*cp++ == LF)
+        return 1;
     } while (cp < endp);
-    return(0);
+    return 0;
+}
+
+static CS_NOINLINE int linevent_alloc(CSOUND *csound)
+{
+    volatile jmp_buf tmpExitJmp;
+    int         err;
+
+    csound->Linefd = -1;
+    memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+    if ((err = setjmp(csound->exitjmp)) != 0) {
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+      csound->lineventGlobals = NULL;
+      return -1;
+    }
+    csound->lineventGlobals =
+        (LINEVENT_GLOBALS*) mcalloc(csound, sizeof(LINEVENT_GLOBALS));
+    ST(Linebuf) = mcalloc(csound, LBUFSIZ);
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    ST(prve).opcod = ' ';
+    ST(Linebufend) = ST(Linebuf) + LBUFSIZ;
+    ST(Linep) = ST(Linebuf);
+    csound->RegisterSenseEventCallback(csound, sensLine, NULL);
+
+    return 0;
 }
 
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
-void writeLine(CSOUND *csound, const char *text, long size)
+PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
 {
-    if (ST(Linebuf)) {
-      if ((ST(Linep) + size) < ST(Linebufend)) {
-        memcpy(ST(Linep), text, size);
-        ST(Linep) += size;
-      }
-      else {
-        csound->Warning(csound, Str("LineBuffer Overflow - "
-                                    "Input Data has been Lost"));
-      }
+    long  size = (long) strlen(message);
+
+    if (!csound->lineventGlobals) {
+      if (linevent_alloc(csound) != 0)
+        return;
     }
-    else {
-      csound->Warning(csound, Str("Input ignored, RT Line Events "
-                                  "(-L) has not been initialised"));
+    if (!size)
+      return;
+    if ((ST(Linep) + size) >= ST(Linebufend)) {
+      csoundErrorMsg(csound, Str("LineBuffer Overflow - "
+                                 "Input Data has been Lost"));
+      return;
     }
+    memcpy(ST(Linep), message, size);
+    if (ST(Linep)[size - 1] != (char) '\n')
+      ST(Linep)[size++] = (char) '\n';
+    ST(Linep) += size;
 }
 
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
@@ -187,20 +216,25 @@ static void sensLine(CSOUND *csound, void *userData)
     MYFLT   *fp;
     char    *Linend;
 
-    while (csound->Linefd >= 0 &&
-           (
+    while (1) {
+      Linend = ST(Linep);
+      if (csound->Linefd >= 0) {
 #if defined(mills_macintosh) || defined(SYMANTEC)
-            ((n = fread((void *) ST(Linep), (size_t) 1,
-                        (size_t) (ST(Linebufend) - ST(Linep)),
-                        ST(Linecons))) > 0) ||
+        n = fread((void *) Linend, (size_t) 1,
+                  (size_t) (ST(Linebufend) - Linend), ST(Linecons));
 #else
-            ((n = read(csound->Linefd, ST(Linep),
-                       ST(Linebufend) - ST(Linep))) > 0) ||
+        n = read(csound->Linefd, Linend, ST(Linebufend) - Linend);
 #endif
-            ST(Linep) > ST(Linebuf)))
-    {
-      Linend = ST(Linep) + (n > 0 ? n : 0);
-      if (containsLF(ST(Linebuf), Linend)) {
+        Linend += (n > 0 ? n : 0);
+      }
+      if (Linend <= ST(Linebuf))
+        break;
+      if (!containsLF(ST(Linebuf), Linend)) {
+        if (Linend == ST(Linep))
+          break;
+        ST(Linep) = Linend;             /* else just accum the chars */
+      }
+      else {
         EVTBLK  e;
         char    sstrp[SSTRSIZ];
         e.strarg = NULL;
@@ -292,7 +326,6 @@ static void sensLine(CSOUND *csound, void *userData)
         }
         insert_score_event(csound, &e, csound->curTime);
       }
-      else ST(Linep) += n;                      /* else just accum the chars */
       continue;
 
  Lerr:
