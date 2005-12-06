@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * An auto-extensible system for making music on computers by means of software alone.
 * Copyright (c) 2001-2003 by Michael Gogins. All rights reserved.
@@ -24,8 +24,8 @@
 
 %module(directors="1") CsoundVST
 %{
-	#include <algorithm>
-	#include "Silence.hpp"
+        #include <algorithm>
+        #include "Silence.hpp"
 %}
 %apply int { size_t };
 
@@ -38,11 +38,11 @@
     for (i = 0; i < size; i++) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
-	$1[i] = PyString_AsString(PyList_GetItem($input,i));
+        $1[i] = PyString_AsString(PyList_GetItem($input,i));
       else {
-	PyErr_SetString(PyExc_TypeError,"list must contain strings");
-	free($1);
-	return NULL;
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        free($1);
+        return NULL;
       }
     }
     $1[i] = 0;
@@ -59,11 +59,10 @@
 %feature("director") Node;
 %include "Silence.hpp"
 
-
 %pythoncode
 %{
 # Create one global instance of CppSound for CsoundVST to grab.
-# Create it in the main module, so that scripts for CsoundVST 
+# Create it in the main module, so that scripts for CsoundVST
 # will also work in a standalone Python interpreter.
 import sys
 import csnd

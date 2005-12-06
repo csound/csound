@@ -1,5 +1,5 @@
 /*
-* C S O U N D   V S T 
+* C S O U N D   V S T
 *
 * An auto-extensible system for making music on computers by means of software alone.
 * Copyright (c) 2001-2003 by Michael Gogins. All rights reserved.
@@ -24,8 +24,8 @@
 
 %module CsoundVST
 %{
-	#include "Silence.hpp"
-	#include "CsoundVST.hpp"
+        #include "Silence.hpp"
+        #include "CsoundVST.hpp"
 %}
 %apply int { size_t };
 %include "Silence.hpp"
@@ -34,10 +34,10 @@
 %pragma(java) jniclasscode=%{
   static {
     try {
-   	java.lang.System.loadLibrary("_CsoundVST");
+        java.lang.System.loadLibrary("_CsoundVST");
     } catch (UnsatisfiedLinkError e) {
-      	java.lang.System.err.println("_CsoundVST native code library failed to load.\n" + e);
-      	java.lang.System.exit(1);
+        java.lang.System.err.println("_CsoundVST native code library failed to load.\n" + e);
+        java.lang.System.exit(1);
     }
   }
 %}
@@ -54,6 +54,5 @@
 //%rename(JCsoundVST) CsoundVST;
 //%include "Shell.hpp"
 //%include "CsoundVST.hpp"
-
 
 #endif
