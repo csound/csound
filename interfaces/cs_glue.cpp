@@ -209,7 +209,7 @@ extern "C" void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
  * csoundGetChannelPtr(), 'cnt' should be zero.
  */
 
-extern "C" MYFLT **CreateMYFLTArray(int cnt)
+extern "C" MYFLT **CreateMYFLTArrayPtr(int cnt)
 {
     void    *pp;
     MYFLT   **p;
@@ -463,10 +463,10 @@ extern "C" const char *MYFLTArrayGetString(MYFLT **p)
 
 /**
  * Releases a MYFLT pointer and array previously allocated by
- * CreateMYFLTArray().
+ * CreateMYFLTArrayPtr().
  */
 
-extern "C" void DestroyMYFLTArray(MYFLT **p)
+extern "C" void DestroyMYFLTArrayPtr(MYFLT **p)
 {
     if (p)
       free((void*) p);
@@ -600,7 +600,7 @@ extern "C" char **ArgVListInsertValue(char **argv, const char *s, int ndx)
     if (!s)
       return argv;
     if (argv) {
-      for ( ; argv[argc] != (char*) 0; argc++)
+      for ( ; argv[argc]; argc++)
         ;
     }
     if (ndx > argc)
@@ -615,7 +615,7 @@ extern "C" char **ArgVListInsertValue(char **argv, const char *s, int ndx)
     for (i = 0; i < ndx; i++)
       new_argv[i] = argv[i];
     new_argv[i] = (char*) malloc(strlen(s) + (size_t) 1);
-    if (new_argv[i] == (char*) 0) {
+    if (!new_argv[i]) {
       free((void*) new_argv);
       free((void*) argv);
       return (char**) 0;
@@ -648,7 +648,7 @@ extern "C" int ArgVListGetCnt(char **argv)
     int   argc = 0;
 
     if (argv) {
-      for ( ; argv[argc] != (char*) 0; argc++)
+      for ( ; argv[argc]; argc++)
         ;
     }
     return argc;
@@ -662,7 +662,7 @@ extern "C" void DestroyArgVList(char **argv)
 {
     if (!argv)
       return;
-    for (int i = 0; argv[i] != (char*) 0; i++)
+    for (int i = 0; argv[i]; i++)
       free((void*) argv[i]);
     free((void*) argv);
 }
