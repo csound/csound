@@ -46,6 +46,10 @@
 
 #if defined(__cplusplus)
 
+#ifdef CSOUND_NO_VIRTUAL_METHODS
+#define virtual
+#endif
+
 /**
  * C++ interface to the "C" Csound API.
  */
@@ -875,7 +879,7 @@ public:
   }
 };
 
-#ifdef __BUILDING_CSOUND_INTERFACES
+#ifdef CSOUND_NO_VIRTUAL_METHODS
 #undef virtual
 #endif
 
