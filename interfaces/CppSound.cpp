@@ -127,6 +127,7 @@ void CppSound::stop()
   isCompiled = false;
   isPerforming = false;
   go = false;
+  Stop();
 }
 
 CSOUND *CppSound::getCsound()
