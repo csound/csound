@@ -46,10 +46,6 @@
 
 #if defined(__cplusplus)
 
-#ifdef __BUILDING_CSOUND_INTERFACES
-#define virtual
-#endif
-
 /**
  * C++ interface to the "C" Csound API.
  */
