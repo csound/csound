@@ -180,31 +180,31 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-static int fastab(CSOUND *csound,FASTAB *p)
+static int fastab(CSOUND *csound, FASTAB *p)
 {
-    int nsmps = csound->ksmps;
+    int   i = 0, nsmps = csound->ksmps;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
     if (p->xmode) {
-      do *rslt++ = *(tab + (long) (*ndx++ * p->xbmul));
-      while(--nsmps);
+      do {
+        rslt[i] = tab[(long) (ndx[i] * p->xbmul)];
+      } while (++i < nsmps);
     }
     else {
-      do *rslt++ = *(tab + (long) *ndx++ );
-      while(--nsmps);
+      do {
+        rslt[i] = tab[(long) ndx[i]];
+      } while (++i < nsmps);
     }
     return OK;
 }
 
 static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
 {
-    STDOPCOD_GLOBALS  *pp;
     MYFLT             *ft;
-    int               len;
-    pp = stdopcod_getGlobals(csound, &(p->p));
-    ft = csound->GetTable(csound, (int) *(p->ifn), &len);
-    if (ft == NULL)
+    STDOPCOD_GLOBALS  *pp;
+    if (csound->GetTable(csound, &ft, (int) *(p->ifn)) < 0)
       return csound->InitError(csound, Str("tab_init: incorrect table number"));
+    pp = stdopcod_getGlobals(csound, &(p->p));
     pp->tb_ptrs[ndx] = ft;
     return OK;
 }
@@ -540,7 +540,7 @@ static int tabrec_k(CSOUND *csound,TABREC *p)
     if (*p->ktrig_start) {
       if (*p->kfn != p->old_fn) {
         int flen;
-        if ((p->table = csound->GetTable(csound, (int) *p->kfn, &flen)) == NULL)
+        if ((flen = csound->GetTable(csound, &(p->table), (int) *p->kfn)) < 0)
           return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
         p->tablen = (long) flen;
         *(p->table++) = *p->numtics;
@@ -594,7 +594,7 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
     if (*p->ktrig) {
       if (*p->kfn != p->old_fn) {
         int flen;
-        if ((p->table = csound->GetTable(csound, (int) *p->kfn, &flen)) == NULL)
+        if ((flen = csound->GetTable(csound, &(p->table), (int) *p->kfn)) < 0)
           return csound->PerfError(csound, "Invalid ftable no. %f", *p->kfn);
         p->tablen = (long) flen;
         p->currtic = 0;

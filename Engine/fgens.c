@@ -1366,8 +1366,8 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     xsr = FL(1.0);
     if ((nargs > 3) && (ff->e.p[8] > FL(0.0)))
       xsr = csound->esr / ff->e.p[8];
-    f2 = csound->GetTable(csound, (int) ff->e.p[5], &l2);
-    if (f2 == NULL) {
+    l2 = csound->GetTable(csound, &f2, (int) ff->e.p[5]);
+    if (l2 < 0) {
       return fterror(ff, Str("GEN30: source ftable not found"));
     }
     f1 = &(ftp->ftable[0]);
@@ -1444,8 +1444,8 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     if (nargs < 4) {
       return fterror(ff, Str("insufficient gen arguments"));
     }
-    f2 = csound->GetTable(csound, (int) ff->e.p[5], &l2);
-    if (f2 == NULL) {
+    l2 = csound->GetTable(csound, &f2, (int) ff->e.p[5]);
+    if (l2 < 0) {
       return fterror(ff, Str("GEN31: source ftable not found"));
     }
     f1 = &(ftp->ftable[0]);
@@ -1535,8 +1535,8 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     while (++j < ntabl) {
       p = ff->e.p[pnum[j]];                /* table number */
       i = (int) (p + (p < FL(0.0) ? FL(-0.5) : FL(0.5)));
-      f2 = csound->GetTable(csound, abs(i), &l2);
-      if (f2 == NULL) {
+      l2 = csound->GetTable(csound, &f2, abs(i));
+      if (l2 < 0) {
         fterror(ff, Str("GEN32: source ftable %d not found"), abs(i));
         mfree(csound, pnum);
         if (x != NULL) mfree(csound, x);
@@ -1629,8 +1629,8 @@ static int gen33(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int) ftp->flen;
     /* source table */
-    srcft = csound->GetTable(csound, (int) ff->e.p[5], &srclen);
-    if (srcft == NULL) {
+    srclen = csound->GetTable(csound, &srcft, (int) ff->e.p[5]);
+    if (srclen < 0) {
       return fterror(ff, Str("GEN33: source ftable not found"));
     }
     /* number of partials */
@@ -2001,7 +2001,7 @@ static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
     return csound->flist[fno];
 }
 
-PUBLIC MYFLT *csoundGetTable(CSOUND *csound, int tableNum, int *tableLength)
+PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
 {
     FUNC    *ftp;
 
@@ -2015,12 +2015,12 @@ PUBLIC MYFLT *csoundGetTable(CSOUND *csound, int tableNum, int *tableLength)
       if (ftp == NULL)
         goto err_return;
     }
-    *tableLength = (int) ftp->flen;
-    return &(ftp->ftable[0]);
+    *tablePtr = &(ftp->ftable[0]);
+    return (int) ftp->flen;
 
  err_return:
-    *tableLength = -1;
-    return NULL;
+    *tablePtr = (MYFLT*) NULL;
+    return -1;
 }
 
 /**************************************
@@ -2562,8 +2562,8 @@ static int gen53(FGDATA *ff, FUNC *ftp)
     if (dstflen < 8 || (dstflen & (dstflen - 1))) {
       return fterror(ff, Str("GEN53: invalid table length"));
     }
-    srcftp = csound->GetTable(csound, srcftno, &srcflen);
-    if (srcftp == NULL) {
+    srcflen = csound->GetTable(csound, &srcftp, srcftno);
+    if (srcflen < 0) {
       return fterror(ff, Str("GEN53: invalid source table number"));
     }
     if (mode & (~15)) {
@@ -2574,8 +2574,8 @@ static int gen53(FGDATA *ff, FUNC *ftp)
       return fterror(ff, Str("GEN53: invalid source table length"));
     }
     if (winftno) {
-      winftp = csound->GetTable(csound, winftno, &winflen);
-      if (winftp == NULL || winflen < 1 || (winflen & (winflen - 1))) {
+      winflen = csound->GetTable(csound, &winftp, winftno);
+      if (winflen <= 0 || (winflen & (winflen - 1))) {
         return fterror(ff, Str("GEN53: invalid window table"));
       }
     }

@@ -118,14 +118,11 @@
 #define CS_PRINTF3
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
-#endif
-#ifdef MYFLT
-#undef MYFLT
-#endif
 #ifndef USE_DOUBLE
-typedef float   MYFLT;
+#define MYFLT float
 #else
-typedef double  MYFLT;
+#define MYFLT double
+#endif
 #endif
 %module csnd
 %{
@@ -520,7 +517,7 @@ extern "C" {
    * Returns the current score time in seconds
    * since the beginning of performance.
    */
-  PUBLIC MYFLT csoundGetScoreTime(CSOUND *);
+  PUBLIC double csoundGetScoreTime(CSOUND *);
 
   /**
    * SCORE HANDLING
@@ -900,11 +897,12 @@ extern "C" {
   PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
 
   /**
-   * Returns pointer to a function table, and stores table length (not
-   * including the guard point) in *tableLength.
-   * If the table does not exist, NULL is returned.
+   * Stores pointer to function table 'tableNum' in *tablePtr,
+   * and returns the table length (not including the guard point).
+   * If the table does not exist, *tablePtr is set to NULL and
+   * -1 is returned.
    */
-  PUBLIC MYFLT *csoundGetTable(CSOUND *, int tableNum, int *tableLength);
+  PUBLIC int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
 
   /**
    * Creates and starts a new thread of execution.

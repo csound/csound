@@ -584,7 +584,7 @@ extern "C" {
     MYFLT *(*GetOutputBuffer)(CSOUND *);
     MYFLT *(*GetSpin)(CSOUND *);
     MYFLT *(*GetSpout)(CSOUND *);
-    MYFLT (*GetScoreTime)(CSOUND *);
+    double (*GetScoreTime)(CSOUND *);
     void (*SetMakeXYinCallback)(CSOUND *,
                                 void (*)(CSOUND *, XYINDAT *, MYFLT, MYFLT));
     void (*SetReadXYinCallback)(CSOUND *, void (*)(CSOUND *, XYINDAT *));
@@ -685,7 +685,7 @@ extern "C" {
     FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
     FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
     FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
-    MYFLT *(*GetTable)(CSOUND *, int tableNum, int *tableLength);
+    int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
     SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, SF_INFO *);
     char *(*getstrformat)(int format);
     int (*sfsampsize)(int format);

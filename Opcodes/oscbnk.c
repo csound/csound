@@ -1665,9 +1665,8 @@ static int vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
                         &(tables->tables[i].pfrac));
       /* if base ftable was specified, generate empty table ... */
       if (base_ftable > 0) {
-        int tmp;
         csound->FTAlloc(csound, base_ftable, (int) tables->tables[i].size);
-        tables->tables[i].ftable = csound->GetTable(csound, base_ftable, &tmp);
+        csound->GetTable(csound, &(tables->tables[i].ftable), base_ftable);
         base_ftable++;                /* next table number */
       }
       else    /* ... else allocate memory (cannot be accessed as a       */
@@ -2501,13 +2500,12 @@ static const OENTRY localops[] = {
     { "vdel_k",     sizeof(VDELAYK),    3,      "k",    "kkio",
             (SUBR) vdelaykset, (SUBR) vdelayk, (SUBR) NULL              },
     { "rbjeq",      sizeof(RBJEQ),      5,      "a",    "akkkko",
-            (SUBR) rbjeqset, (SUBR) NULL, (SUBR) rbjeq                  },
-    { NULL,         0,                  0,      NULL,   NULL,
-            (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                       }
+            (SUBR) rbjeqset, (SUBR) NULL, (SUBR) rbjeq                  }
 };
 
 int oscbnk_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]), -1);
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int) (sizeof(localops) / sizeof(OENTRY)));
 }
 
