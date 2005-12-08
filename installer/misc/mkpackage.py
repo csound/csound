@@ -49,7 +49,7 @@ buildOpts += ['customCCFLAGS=%s' % CFlags, 'customCXXFLAGS=%s' % CFlags]
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csoundCore.h']
 headerFiles += ['H/csound.h', 'H/cwindow.h', 'H/msg_attr.h', 'H/OpcodeBase.hpp']
 headerFiles += ['H/pstream.h', 'H/pvfileio.h', 'H/soundio.h', 'H/sysdep.h']
-headerFiles += ['H/text.h', 'H/version.h', 'H/csound.hpp']
+headerFiles += ['H/text.h', 'H/version.h', 'interfaces/csound.hpp']
 headerFiles += ['interfaces/CppSound.hpp', 'interfaces/filebuilding.h']
 headerFiles += ['interfaces/CsoundFile.hpp']
 
