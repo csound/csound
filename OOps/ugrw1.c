@@ -1281,12 +1281,14 @@ int    tablewkt(CSOUND *csound, TABLEW *p)
  * between these i time and perf time.  */
 int    tableng(CSOUND *csound, TABLENG *p)
 {
+    MYFLT   *dummy;
     int     flen;
     /* Check to see we can find the table and find its location in
-     * memory.  Returns zero if not found.  Report and error, which
+     * memory.  Returns -1 if not found.  Report and error, which
      * will cause this instrument to be de-activated.  */
 
-    if (csound->GetTable(csound, (int) *(p->xfn), &flen) == NULL) {
+    flen = csound->GetTable(csound, &dummy, (int) *(p->xfn));
+    if (flen < 0) {
       *p->kout = FL(0.0);
       return csound->PerfError(csound, Str("Table %f not found"), *(p->xfn));
     }
@@ -1302,12 +1304,14 @@ int    tableng(CSOUND *csound, TABLENG *p)
  */
 int    itableng(CSOUND *csound, TABLENG *p)
 {
+    MYFLT   *dummy;
     int     flen;
     /* Check to see we can find the table and find its location in
-     * memory.  Returns zero if not found.  Report and error, which
+     * memory.  Returns -1 if not found.  Report and error, which
      * will cause this instrument initialisation to fail.  */
 
-    if (csound->GetTable(csound, (int) *(p->xfn), &flen) == NULL) {
+    flen = csound->GetTable(csound, &dummy, (int) *(p->xfn));
+    if (flen < 0) {
       *p->kout = FL(0.0);
       return csound->InitError(csound, Str("Table %f not found"), *(p->xfn));
     }
