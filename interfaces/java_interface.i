@@ -29,6 +29,7 @@
     #include "csound.h"
     #include "cfgvar.h"
     #include "csound.hpp"
+    #include "cs_glue.hpp"
     #include "CsoundFile.hpp"
     #include "CppSound.hpp"
 %}
@@ -36,9 +37,9 @@
 %apply int { size_t };
 typedef unsigned int uint32_t;
 
-%typemap(freearg) char ** {
+/* %typemap(freearg) char ** {
   free((char *) $1);
-}
+} */
 
 // Enable the JNI class to load the required native library.
 %pragma(java) jniclasscode=%{
@@ -57,6 +58,7 @@ typedef unsigned int uint32_t;
 %include "csound.h"
 %include "cfgvar.h"
 %include "csound.hpp"
+%include "cs_glue.hpp"
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
 

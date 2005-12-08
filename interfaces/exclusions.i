@@ -54,5 +54,3 @@
 %ignore Csound::SetRtcloseCallback;
 %ignore Csound::RegisterSenseEventCallback;
 
-%ignore csoundMessageBufferCallback_1_;
-%ignore csoundMessageBufferCallback_2_;
