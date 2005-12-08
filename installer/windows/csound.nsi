@@ -460,7 +460,7 @@ Section "${PRODUCT}" SecCopyUI
   Push $INSTDIR
   Call AddToPath
 
-  Push "OPCODEDIR" 
+  Push "OPCODEDIR64" 
   Push "$INSTDIR"
   Call WriteEnvStr
   Push "RAWWAVE_PATH" 
