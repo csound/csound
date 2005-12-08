@@ -1214,9 +1214,9 @@ static const CSOUND cenviron_ = {
     csound->hostRequestedBufferSize = (bufSize > 0 ? bufSize : 0);
   }
 
-  PUBLIC MYFLT csoundGetScoreTime(CSOUND *csound)
+  PUBLIC double csoundGetScoreTime(CSOUND *csound)
   {
-    return (MYFLT) csound->curTime;
+    return csound->curTime;
   }
 
   /*
@@ -1992,9 +1992,8 @@ static const CSOUND cenviron_ = {
 
   PUBLIC int csoundTableLength(CSOUND *csound, int table)
   {
-    int tableLength;
-    csound->GetTable(csound, table, &tableLength);
-    return tableLength;
+    MYFLT *tablePtr;
+    return csound->GetTable(csound, &tablePtr, table);
   }
 
   PUBLIC MYFLT csoundTableGet(CSOUND *csound, int table, int index)

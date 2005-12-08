@@ -319,8 +319,8 @@ static int spat3d_set_opcode_params (CSOUND *csound, SPAT3D *p)
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */
       int fLen;
-      p->ftable = csound->GetTable(csound, (int) *(p->args[xift]), &fLen);
-      if (fLen < 64)
+      fLen = csound->GetTable(csound, &(p->ftable), (int) *(p->args[xift]));
+      if (fLen < 53)
         p->ftable = NULL;
     }
     if (ximdel >= 0)                                /* max. delay */
@@ -331,7 +331,7 @@ static int spat3d_set_opcode_params (CSOUND *csound, SPAT3D *p)
       p->irlen = (int) SPAT3D_ROUND (*(p->args[xirlen]) * csound->esr);
     if (xioutft >= 0) {                             /* output table */
       int fLen;
-      p->outft = csound->GetTable(csound, (int) *(p->args[xioutft]), &fLen);
+      fLen = csound->GetTable(csound, &(p->outft), (int) *(p->args[xioutft]));
       if (fLen < 1) {
         p->outft = NULL; p->outftlnth = 0;
       }

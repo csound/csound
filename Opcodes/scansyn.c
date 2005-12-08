@@ -336,14 +336,9 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Throw data into list or use table */
     p->id = (int) *p->i_id;
     if (p->id < 0) {
-      MYFLT *f;
-      int   fLen;
-      f = csound->GetTable(csound, -(p->id), &fLen);
-      if (fLen < len) {
-        return csound->InitError(csound,
-                                 Str("scanu: invalid id table"));
+      if (csound->GetTable(csound, &(p->out), -(p->id)) < len) {
+        return csound->InitError(csound, Str("scanu: invalid id table"));
       }
-      p->out = f;
     }
     else {
       listadd(pp, p);
