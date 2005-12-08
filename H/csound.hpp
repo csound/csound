@@ -35,12 +35,20 @@
 %module csnd
 %{
 #include "csound.h"
+#include "cs_glue.h"
 %}
 #else
 #include "csound.h"
+#ifdef __BUILDING_CSOUND_INTERFACES
+#include "cs_glue.h"
+#endif
 #endif
 
 #if defined(__cplusplus)
+
+#ifdef CSOUND_NO_VIRTUAL_METHODS
+#define virtual
+#endif
 
 /**
  * C++ interface to the "C" Csound API.
@@ -235,13 +243,13 @@ public:
     csoundReset(csound);
   }
   // attributes
-  virtual MYFLT GetSr()
+  virtual double GetSr()
   {
-    return csoundGetSr(csound);
+    return (double) csoundGetSr(csound);
   }
-  virtual MYFLT GetKr()
+  virtual double GetKr()
   {
-    return csoundGetKr(csound);
+    return (double) csoundGetKr(csound);
   }
   virtual int GetKsmps()
   {
@@ -251,9 +259,9 @@ public:
   {
     return csoundGetNchnls(csound);
   }
-  virtual MYFLT Get0dBFS()
+  virtual double Get0dBFS()
   {
-    return csoundGet0dBFS(csound);
+    return (double) csoundGet0dBFS(csound);
   }
   virtual int GetStrVarMaxLen()
   {
@@ -299,7 +307,7 @@ public:
   {
     csoundSetHostImplementedAudioIO(csound, state, bufSize);
   }
-  virtual MYFLT GetScoreTime()
+  virtual double GetScoreTime()
   {
     return csoundGetScoreTime(csound);
   }
@@ -312,13 +320,13 @@ public:
   {
     csoundSetScorePending(csound, pending);
   }
-  virtual MYFLT GetScoreOffsetSeconds()
+  virtual double GetScoreOffsetSeconds()
   {
-    return csoundGetScoreOffsetSeconds(csound);
+    return (double) csoundGetScoreOffsetSeconds(csound);
   }
-  virtual void SetScoreOffsetSeconds(MYFLT time)
+  virtual void SetScoreOffsetSeconds(double time)
   {
-    csoundSetScoreOffsetSeconds(csound, time);
+    csoundSetScoreOffsetSeconds(csound, (MYFLT) time);
   }
   virtual void RewindScore()
   {
@@ -534,21 +542,21 @@ public:
   {
     return csoundTableLength(csound, table);
   }
-  virtual MYFLT TableGet(int table, int index)
+  virtual double TableGet(int table, int index)
   {
-    return csoundTableGet(csound, table, index);
+    return (double) csoundTableGet(csound, table, index);
   }
-  virtual void TableSet(int table, int index, MYFLT value)
+  virtual void TableSet(int table, int index, double value)
   {
-    csoundTableSet(csound, table, index, value);
+    csoundTableSet(csound, table, index, (MYFLT) value);
   }
-  virtual MYFLT *GetTable(int tableNum, int &tableLength)
+  virtual int GetTable(MYFLT* &tablePtr, int tableNum)
   {
     MYFLT *ftable;
     int   tmp;
-    ftable = csoundGetTable(csound, tableNum, &tmp);
-    tableLength = tmp;
-    return ftable;
+    tmp = csoundGetTable(csound, &ftable, tableNum);
+    tablePtr = ftable;
+    return tmp;
   }
   virtual int CreateGlobalVariable(const char *name, size_t nbytes)
   {
@@ -616,9 +624,10 @@ public:
     csoundDeleteChannelList(csound, lst);
   }
   virtual int SetControlChannelParams(const char *name, int type,
-                                      MYFLT dflt, MYFLT min, MYFLT max)
+                                      double dflt, double min, double max)
   {
-    return csoundSetControlChannelParams(csound, name, type, dflt, min, max);
+    return csoundSetControlChannelParams(csound, name, type, (MYFLT) dflt,
+                                         (MYFLT) min, (MYFLT) max);
   }
   virtual int GetControlChannelParams(const char *name,
                                       MYFLT &dflt, MYFLT &min, MYFLT &max)
@@ -631,34 +640,39 @@ public:
     max = tmp3;
     return retval;
   }
-  virtual void SetChannel(const char *name, MYFLT value)
+  virtual void SetChannel(const char *name, double value)
   {
     MYFLT *p;
     if (!(csoundGetChannelPtr(csound, &p, name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL)))
-      *p = value;
+      *p = (MYFLT) value;
   }
   virtual void SetChannel(const char *name, const char *value)
   {
     MYFLT *p;
     if (!(csoundGetChannelPtr(csound, &p, name,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL))) {
-      size_t maxLen = csoundGetStrVarMaxLen(csound);
-      strncpy((char*) p, value, maxLen);
-      ((char*) p)[maxLen - 1] = '\0';
+      size_t maxLen = (size_t) (csoundGetStrVarMaxLen(csound) - 1);
+      size_t i = (size_t) 0;
+      while (value[i]) {
+        ((char*) p)[i] = value[i];
+        if (++i >= maxLen)
+          break;
+      }
+      ((char*) p)[i] = '\0';
     }
   }
-  virtual MYFLT GetChannel(const char *name)
+  virtual double GetChannel(const char *name)
   {
     MYFLT *p;
     if (!(csoundGetChannelPtr(csound, &p, name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)))
-      return (*p);
-    return (MYFLT) 0;
+      return (double) (*p);
+    return 0.0;
   }
-  virtual int ChanIKSet(MYFLT value, int n)
+  virtual int ChanIKSet(double value, int n)
   {
-    return csoundChanIKSet(csound, value, n);
+    return csoundChanIKSet(csound, (MYFLT) value, n);
   }
   virtual int ChanOKGet(MYFLT &value, int n)
   {
@@ -730,8 +744,142 @@ public:
     csoundDestroy(csound);
   }
   // Functions for embedding.
-
+#ifdef __BUILDING_CSOUND_INTERFACES
+  void EnableMessageBuffer(int toStdOut)
+  {
+    csoundEnableMessageBuffer(csound, toStdOut);
+  }
+  const char *GetFirstMessage()
+  {
+    return csoundGetFirstMessage(csound);
+  }
+  int GetFirstMessageAttr()
+  {
+    return csoundGetFirstMessageAttr(csound);
+  }
+  void PopFirstMessage()
+  {
+    csoundPopFirstMessage(csound);
+  }
+  int GetMessageCnt()
+  {
+    return csoundGetMessageCnt(csound);
+  }
+  void DestroyMessageBuffer()
+  {
+    csoundDestroyMessageBuffer(csound);
+  }
+#endif
 };
+
+// thread lock
+
+class CsoundThreadLock {
+protected:
+  void  *threadLock;
+public:
+  virtual int Lock(size_t milliseconds)
+  {
+    return csoundWaitThreadLock(threadLock, milliseconds);
+  }
+  virtual void Lock()
+  {
+    csoundWaitThreadLockNoTimeout(threadLock);
+  }
+  virtual int TryLock()
+  {
+    return csoundWaitThreadLock(threadLock, (size_t) 0);
+  }
+  virtual void Unlock()
+  {
+    csoundNotifyThreadLock(threadLock);
+  }
+  // constructors
+  // FIXME: should throw exception on failure ?
+  CsoundThreadLock()
+  {
+    threadLock = csoundCreateThreadLock();
+  }
+  CsoundThreadLock(int locked)
+  {
+    threadLock = csoundCreateThreadLock();
+    if (locked)
+      csoundWaitThreadLock(threadLock, (size_t) 0);
+  }
+  // destructor
+  virtual ~CsoundThreadLock()
+  {
+    csoundDestroyThreadLock(threadLock);
+  }
+};
+
+// Mersenne Twister (MT19937) pseudo-random number generator
+
+class CsoundRandMT {
+protected:
+  CsoundRandMTState   mt;
+public:
+  virtual uint32_t Random()
+  {
+    return csoundRandMT(&mt);
+  }
+  virtual void Seed(uint32_t seedVal)
+  {
+    csoundSeedRandMT(&mt, (uint32_t*) 0, seedVal);
+  }
+  virtual void Seed(const uint32_t *initKey, int keyLength)
+  {
+    csoundSeedRandMT(&mt, initKey, (uint32_t) keyLength);
+  }
+  // constructors
+  CsoundRandMT()
+  {
+    csoundSeedRandMT(&mt, (uint32_t*) 0, csoundGetRandomSeedFromTime());
+  }
+  CsoundRandMT(uint32_t seedVal)
+  {
+    csoundSeedRandMT(&mt, (uint32_t*) 0, seedVal);
+  }
+  CsoundRandMT(const uint32_t *initKey, int keyLength)
+  {
+    csoundSeedRandMT(&mt, initKey, (uint32_t) keyLength);
+  }
+  virtual ~CsoundRandMT()
+  {
+  }
+};
+
+// timer (csoundInitialize() should be called before using this)
+
+class CsoundTimer {
+protected:
+  RTCLOCK rt;
+public:
+  virtual double GetRealTime()
+  {
+    return csoundGetRealTime(&rt);
+  }
+  virtual double GetCPUTime()
+  {
+    return csoundGetCPUTime(&rt);
+  }
+  virtual void Reset()
+  {
+    csoundInitTimerStruct(&rt);
+  }
+  // constructor
+  CsoundTimer()
+  {
+    csoundInitTimerStruct(&rt);
+  }
+  virtual ~CsoundTimer()
+  {
+  }
+};
+
+#ifdef CSOUND_NO_VIRTUAL_METHODS
+#undef virtual
+#endif
 
 #endif  // __cplusplus
 

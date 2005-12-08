@@ -28,6 +28,7 @@
     #include "csound.h"
     #include "cfgvar.h"
     #include "csound.hpp"
+    #include "cs_glue.hpp"
     #include "CsoundFile.hpp"
     #include "CppSound.hpp"
     #include "filebuilding.h"
@@ -39,9 +40,9 @@ typedef unsigned int uint32_t;
 %apply long long { uint32_t };
 #endif
 
-%typemap(in) char ** {
+/* %typemap(in) char ** { */
   /* Check if is a list */
-  if (PyList_Check($input)) {
+/* if (PyList_Check($input)) {
     int size = PyList_Size($input);
     int i = 0;
     $1 = (char **) malloc((size+1)*sizeof(char *));
@@ -64,7 +65,7 @@ typedef unsigned int uint32_t;
 
 %typemap(freearg) char ** {
   free((char *) $1);
-}
+} */
 
 %include "exclusions.i"
 
@@ -81,6 +82,7 @@ typedef unsigned int uint32_t;
 %clear MYFLT &max;
 %clear MYFLT &value;
 
+%include "cs_glue.hpp"
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
 %include "filebuilding.h"

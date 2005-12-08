@@ -36,11 +36,12 @@ import copy
 zipDependencies = []
 pluginLibraries = []
 executables = []
-headers = Split('''H/cfgvar.h H/cscore.h H/csdl.h H/csound.h H/csoundCore.h
-                   H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h
-                   H/pvfileio.h H/soundio.h H/sysdep.h H/text.h H/version.h
-                   interfaces/CsoundFile.hpp interfaces/CppSound.hpp
-                   interfaces/csound.hpp interfaces/filebuilding.h''')
+headers = Split('''
+    H/cfgvar.h H/cscore.h H/csdl.h H/csound.h H/csound.hpp H/csoundCore.h
+    H/cwindow.h H/msg_attr.h H/OpcodeBase.hpp H/pstream.h H/pvfileio.h
+    H/soundio.h H/sysdep.h H/text.h H/version.h
+    interfaces/CsoundFile.hpp interfaces/CppSound.hpp interfaces/filebuilding.h
+''')
 libs = []
 
 def today():
@@ -677,6 +678,7 @@ else:
     print 'CONFIGURATION DECISION: Building Csound interfaces library.'
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
     csoundInterfacesSources = Split('''
+        interfaces/cs_glue.cpp
         interfaces/filebuilding.cpp
         interfaces/CppSound.cpp
         interfaces/CsoundFile.cpp
@@ -704,6 +706,7 @@ else:
     if commonEnvironment['MSVC'] == '0':
         # work around non-ANSI type punning in SWIG generated wrapper files
         wrapCFlags.append('-fno-strict-aliasing')
+    wrapCFlags.append('-D__BUILDING_CSOUND_INTERFACES')
     csoundWrapperEnvironment['CCFLAGS'] = wrapCFlags
     csoundWrapperEnvironment['CXXFLAGS'] = wrapCXXFlags
     for option in csoundWrapperEnvironment['CCFLAGS']:
