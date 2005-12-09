@@ -572,16 +572,20 @@ Top/threads.c
 Top/utility.c
 ''')
 
+# library version is CS_VERSION.CS_APIVERSION
+csoundLibraryVersion = '5.1'
 csoundLibraryName = 'csound'
 if getPlatform() == 'linux' and commonEnvironment['useDouble'] != '0':
     csoundLibraryName += '64'
+# flags for linking with the Csound library
+libCsoundLinkFlags = []
+libCsoundLibs = [csoundLibraryName, 'sndfile']
 
 if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
     print 'CONFIGURATION DECISION: Building dynamic Csound library'
     if getPlatform() == 'linux':
-        # library version is CS_VERSION.CS_APIVERSION
-        Libname = 'lib' + csoundLibraryName + '.so'
-        libName2 = libName + '.5.1'
+        libName = 'lib' + csoundLibraryName + '.so'
+        libName2 = libName + '.' + csoundLibraryVersion
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', libName])
         os.symlink(libName2, libName)
         tmp = csoundDynamicLibraryEnvironment['SHLINKFLAGS']
@@ -589,25 +593,42 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
         csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
             libName2, libCsoundSources,
             SHLINKFLAGS = tmp, SHLIBPREFIX = '', SHLIBSUFFIX = '')
+    elif getPlatform() == 'darwin':
+        csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy();
+        libName = 'CsoundLib'
+        csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
+            -Xlinker -compatibility_version -Xlinker 5.0.0
+        '''))
+        csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
+            -Xlinker -current_version -Xlinker 5.0.0
+        '''))
+        csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
+            -install_name /Library/Frameworks/CsoundLib.Framework/CsoundLib
+        '''))
+        csoundLibrary = csoundFrameworkEnvironment.SharedLibrary(
+            libName, libCsoundSources, SHLIBPREFIX = '', SHLIBSUFFIX = '')
+        csFrameWorkCmds = [
+            ['CsoundLib_current', 'CsoundLib',
+             "cd CsoundLib.Framework/Versions; ln -sf 5.0 Current"],
+            ['CsoundLib.Framework/Headers/csound.h', 'H/csound.h',
+             "cd CsoundLib.Framework; ln -s Versions/5.0/Headers Headers; cd ..; cp H/*.h CsoundLib.Framework/Versions/5.0/Headers"],
+            ['CsoundLib.Framework/Resources/opcodes/libstdopcod.dylib',
+             'libstdopcod.dylib',
+             "cd CsoundLib.Framework; ln -s Versions/5.0/Resources Resources; cd ..; cp *.dylib CsoundLib.Framework/Versions/5.0/Resources/Opcodes/"],
+            ['CsoundLib.Framework/Versions/5.0/CsoundLib', 'CsoundLib',
+             "cp CsoundLib CsoundLib.Framework/Versions/5.0"],
+            ['CsoundLib.Framework/CsoundLib',
+             'CsoundLib.Framework/Versions/5.0/CsoundLib',
+             "cd CsoundLib.Framework; ln -sf Versions/5.0/CsoundLib CsoundLib"],
+            ['/Library/Frameworks/CsoundLib.Framework/CsoundLib', 'CsoundLib',
+             "cp -RL CsoundLib.Framework /Library/Frameworks"]
+        ]
+        for i in csFrameWorkCmds:
+            csoundFrameworkEnvironment.Command(i[0], i[1], i[2])
+        libCsoundLinkFlags = ['-F.', '-framework', 'CsoundLib', '-lsndfile']
+        libCsoundLibs = []
     else:
-        if getPlatform() == 'darwin':
-           csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy();
-           libName = 'CsoundLib'
-           csoundFrameworkEnvironment.Append(SHLINKFLAGS=['-Xlinker', '-compatibility_version', '-Xlinker', '5.0.0'])
-           csoundFrameworkEnvironment.Append(SHLINKFLAGS=['-Xlinker','-current_version','-Xlinker', '5.0.0'])        
-           csoundFrameworkEnvironment.Append(SHLINKFLAGS = ['-install_name','/Library/Frameworks/CsoundLib.Framework/CsoundLib'])
-           csoundLibrary = csoundFrameworkEnvironment.SharedLibrary(libName, libCsoundSources, SHLIBPREFIX = '', SHLIBSUFFIX = '')
-           csoundFrameworkEnvironment.Command('CsoundLib_current', 'CsoundLib', "cd CsoundLib.Framework/Versions; ln -sf 5.0 Current") 
-           csoundFrameworkEnvironment.Command('CsoundLib.Framework/Headers/csound.h', 'H/csound.h', "cd CsoundLib.Framework; ln -s Versions/5.0/Headers Headers; cd ..; cp H/*.h CsoundLib.Framework/Versions/5.0/Headers")
-           csoundFrameworkEnvironment.Command('CsoundLib.Framework/Resources/opcodes/libstdopcod.dylib', 'libstdopcod.dylib', "cd CsoundLib.Framework; ln -s Versions/5.0/Resources Resources; cd ..;cp *.dylib CsoundLib.Framework/Versions/5.0/Resources/Opcodes/")
-           csoundFrameworkEnvironment.Command('CsoundLib.Framework/Versions/5.0/CsoundLib', 'CsoundLib', "cp CsoundLib CsoundLib.Framework/Versions/5.0")
-           csoundFrameworkEnvironment.Command('CsoundLib.Framework/CsoundLib', 'CsoundLib.Framework/Versions/5.0/CsoundLib', "cd CsoundLib.Framework; ln -sf Versions/5.0/CsoundLib  CsoundLib") 
-           csoundFrameworkEnvironment.Command('/Library/Frameworks/CsoundLib.Framework/CsoundLib', 'CsoundLib', "cp -RL CsoundLib.Framework /Library/Frameworks") 
-           
- 
-
-        else:
-           csoundlibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
+        csoundlibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
             csoundLibraryName, libCsoundSources)
 else:
     print 'CONFIGURATION DECISION: Building static Csound library'
@@ -627,11 +648,8 @@ if getPlatform() == 'darwin':
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
 
 csoundProgramEnvironment = commonEnvironment.Copy()
-if getPlatform() == 'darwin' and csoundProgramEnvironment['dynamicCsoundLibrary'] == '1': 
-  csoundProgramEnvironment.Append(LINKFLAGS = Split(''' -F. -framework CsoundLib -lsndfile'''))
-else:
-  csoundProgramEnvironment.Append(LIBS = [csoundLibraryName, 'sndfile'])
-
+csoundProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+csoundProgramEnvironment.Append(LIBS = libCsoundLibs)
 
 vstEnvironment = commonEnvironment.Copy()
 fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
@@ -704,10 +722,9 @@ else:
         interfaces/CppSound.cpp
         interfaces/CsoundFile.cpp
     ''')
-    if commonEnvironment['dynamicCsoundLibrary'] == '1' and getPlatform() == 'darwin':
-          csoundInterfacesEnvironment.Append(LINKFLAGS = Split(''' -F. -framework CsoundLib '''))
-    elif commonEnvironment['dynamicCsoundLibrary'] == '1' or getPlatform() == 'mingw': 
-        csoundInterfacesEnvironment.Prepend(LIBS = [csoundLibraryName])
+    if commonEnvironment['dynamicCsoundLibrary'] == '1' or getPlatform() == 'mingw':
+        csoundInterfacesEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+        csoundInterfacesEnvironment.Prepend(LIBS = libCsoundLibs)
     else:
         csoundInterfacesSources += libCsoundSources
     if getPlatform() == 'mingw':
@@ -1232,7 +1249,8 @@ Opcodes/stk/src/UdpSocket.cpp
                 stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
         stkEnvironment.Prepend(CPPPATH = Split('Opcodes/stk/include Opcodes/stk/src ./ ./../include'))
         stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
-        # This is the one that actually defines the opcodes. They are straight wrappers, as simple as possible.
+        # This is the one that actually defines the opcodes.
+        # They are straight wrappers, as simple as possible.
         stkSources_.append('Opcodes/stk/stkOpcodes.cpp')
         stkSources = []
         for source in stkSources_:
@@ -1266,10 +1284,8 @@ else:
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
     pdClassEnvironment = commonEnvironment.Copy()
-    if getPlatform() == 'darwin' and csoundProgramEnvironment['dynamicCsoundLibrary'] == '1': 
-      pdClassEnvironment.Append(LINKFLAGS = Split(''' -F. -framework CsoundLib -lsndfile'''))
-    else:
-      pdClassEnvironment.Append(LIBS = [csoundLibraryName, 'sndfile'])
+    pdClassEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+    pdClassEnvironment.Append(LIBS = libCsoundLibs)
     if getPlatform() == 'darwin':
         pdClassEnvironment.Append(LINKFLAGS = Split('''
             -bundle -flat_namespace -undefined suppress
@@ -1293,10 +1309,8 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
 if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     print "CONFIGURATION DECISION: Building Tclcsound frontend"
     csTclEnvironment = commonEnvironment.Copy()
-    if getPlatform() == 'darwin' and csoundProgramEnvironment['dynamicCsoundLibrary'] == '1': 
-       csTclEnvironment.Append(LINKFLAGS = Split(''' -F. -framework CsoundLib -lsndfile'''))
-    else:
-       csTclEnvironment.Append(LIBS = [csoundLibraryName, 'sndfile'])
+    csTclEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+    csTclEnvironment.Append(LIBS = libCsoundLibs)
     if getPlatform() == 'darwin':
         csTclEnvironment.Append(CCFLAGS = Split('''
             -I/Library/Frameworks/Tcl.Framework/Headers
@@ -1366,16 +1380,21 @@ else:
     zipDependencies.append(tags)
     Depends(tags, csoundLibrary)
 
-if commonEnvironment['generateXmg']=='1':
+if commonEnvironment['generateXmg'] == '1':
     print "CONFIGURATION DECISION: Calling makedb"
     if getPlatform() == 'mingw':
-        xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], 'makedb strings/all_strings American')
-        xmgs1 = commonEnvironment.Command('English.xmg', ['strings/english-strings'], 'makedb strings/english-strings English')
-        xmgs2 = commonEnvironment.Command('csound.xmg', ['strings/english-strings'], 'makedb strings/english-strings csound')
+        makedbCmd = 'makedb'
     else:
-        xmgs = commonEnvironment.Command('American.xmg', ['strings/all_strings'], './makedb strings/all_strings American')
-        xmgs1 = commonEnvironment.Command('English.xmg', ['strings/english-strings'], './makedb strings/english-strings English')
-        xmgs2 = commonEnvironment.Command('csound.xmg', ['strings/english-strings'], './makedb strings/english-strings csound')
+        makedbCmd = './makedb'
+    xmgs = commonEnvironment.Command(
+                'American.xmg', ['strings/all_strings'],
+                '%s strings/all_strings American' % makedbCmd)
+    xmgs1 = commonEnvironment.Command(
+                'English.xmg', ['strings/english-strings'],
+                '%s strings/english-strings English' % makedbCmd)
+    xmgs2 = commonEnvironment.Command(
+                'csound.xmg', ['strings/english-strings'],
+                '%s strings/english-strings csound' % makedbCmd)
     Depends(xmgs, makedb)
     zipDependencies.append(xmgs)
     Depends(xmgs1, makedb)
@@ -1413,7 +1432,7 @@ if (commonEnvironment['useDouble'] == '0'):
 else:
     PLUGIN_DIR = LIB_DIR + "/csound/plugins64"
 
-if commonEnvironment['install']=='1':
+if commonEnvironment['install'] == '1':
     installExecutables = Alias('install-executables',
         Install(BIN_DIR, executables))
 
