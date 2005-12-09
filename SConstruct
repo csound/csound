@@ -597,12 +597,17 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
            csoundFrameworkEnvironment.Append(SHLINKFLAGS=['-Xlinker','-current_version','-Xlinker', '5.0.0'])        
            csoundFrameworkEnvironment.Append(SHLINKFLAGS = ['-install_name','/Library/Frameworks/CsoundLib.Framework/CsoundLib'])
            csoundLibrary = csoundFrameworkEnvironment.SharedLibrary(libName, libCsoundSources, SHLIBPREFIX = '', SHLIBSUFFIX = '')
-           
+           csoundFrameworkEnvironment.Command('CsoundLib_headers', 'CsoundLib', "cd CsoundLib.Framework; ln -sf /Versions/5.0/Headers Headers") 
+           csoundFrameworkEnvironment.Command('CsoundLib_resources', 'CsoundLib', "cd CsoundLib.Framework; ln -sf /Versions/5.0/Resources Resources") 
+           csoundFrameworkEnvironment.Command('CsoundLib_current', 'CsoundLib', "cd CsoundLib.Framework/Versions; ln -sf Current 5.0") 
            csoundFrameworkEnvironment.Command('CsoundLib.Framework/Headers/csound.h', 'H/csound.h', "cp H/*.h CsoundLib.Framework/Headers")
            csoundFrameworkEnvironment.Command('CsoundLib.Framework/Resources/opcodes/libstdopcod.dylib', 'libstdopcod.dylib', "cp *.dylib CsoundLib.Framework/Resources/opcodes/")
            csoundFrameworkEnvironment.Command('CsoundLib.Framework/Versions/5.0/CsoundLib', 'CsoundLib', "cp CsoundLib CsoundLib.Framework/Versions/5.0")
            csoundFrameworkEnvironment.Command('CsoundLib.Framework/CsoundLib', 'CsoundLib.Framework/Versions/5.0/CsoundLib', "cd CsoundLib.Framework; ln -s Versions/5.0/CsoundLib  CsoundLib") 
            csoundFrameworkEnvironment.Command('/Library/Frameworks/CsoundLib.Framework/CsoundLib', 'CsoundLib', "cp -RL CsoundLib.Framework /Library/Frameworks") 
+           
+ 
+
         else:
            csoundlibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
             csoundLibraryName, libCsoundSources)
