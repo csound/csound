@@ -53,5 +53,5 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 
 rm -f "./libcsound.so"
 rm -f "./libcsound64.so"
-rm -f "./lib_csnd.so"
+rm -f "./_csnd.so"
 
