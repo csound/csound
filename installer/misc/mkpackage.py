@@ -233,10 +233,8 @@ for i in range(4):
         installXFile('tclcsound64.so', tclDir)
         # Python interface library
         os.spawnvp(os.P_WAIT, 'strip',
-                   ['strip', '--strip-debug', '_csnd.so'])
-        installXFile('_csnd.so', libDir)
-        os.rename('%s%s/_csnd.so' % (pkgDir, libDir),
-                  '%s%s/lib_csnd.so' % (pkgDir, libDir))
+                   ['strip', '--strip-debug', 'lib_csnd.so'])
+        installXFile('lib_csnd.so', libDir)
         os.symlink('%s/lib_csnd.so' % libDir,
                    '%s%s/_csnd.so' % (pkgDir, pythonDir2))
         f = open('__make_pyc.sh', 'w')
