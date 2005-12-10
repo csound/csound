@@ -123,20 +123,17 @@ static  const   char    *plugindir64_envvar = "OPCODEDIR64";
 /* default directory to load plugins from if environment variable is not set */
 #if !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
 #  define ENABLE_OPCODEDIR_WARNINGS 1
-static const char   *default_plugin_dir = ".";
+#  ifdef CS_DEFAULT_PLUGINDIR
+#    undef CS_DEFAULT_PLUGINDIR
+#  endif
+#  define CS_DEFAULT_PLUGINDIR      "."
 #else
 #  define ENABLE_OPCODEDIR_WARNINGS 0
-#  if !(defined(LINUX) && (defined(__amd64__) || defined(__x86_64__)))
+#  ifndef CS_DEFAULT_PLUGINDIR
 #    ifndef USE_DOUBLE
-static const char   *default_plugin_dir = "/usr/local/lib/csound/plugins";
+#      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins"
 #    else
-static const char   *default_plugin_dir = "/usr/local/lib/csound/plugins64";
-#    endif
-#  else
-#    ifndef USE_DOUBLE
-static const char   *default_plugin_dir = "/usr/local/lib64/csound/plugins";
-#    else
-static const char   *default_plugin_dir = "/usr/local/lib64/csound/plugins64";
+#      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins64"
 #    endif
 #  endif
 #endif
@@ -341,12 +338,12 @@ int csoundLoadModules(CSOUND *csound)
     if (dname == NULL) {
 #if ENABLE_OPCODEDIR_WARNINGS
       csound->opcodedirWasOK = 0;
-#endif
-#ifdef USE_DOUBLE
+#  ifdef USE_DOUBLE
       dname = csoundGetEnv(csound, plugindir_envvar);
       if (dname == NULL)
+#  endif
 #endif
-        dname = default_plugin_dir;
+        dname = CS_DEFAULT_PLUGINDIR;
     }
     dir = opendir(dname);
     if (dir == (DIR*) NULL) {
