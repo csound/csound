@@ -12,6 +12,7 @@ CFlags += ' -fomit-frame-pointer -ffast-math'
 pkgDir      = '../__csound5'
 # base directory for installation
 instPrefix  = '/usr/local'
+
 # frontends
 binDir      = instPrefix + '/bin'
 # the actual binaries (called by above)
@@ -196,7 +197,8 @@ for i in range(4):
         installXFile('--strip-debug', libraryName, libDir)
         os.symlink(libraryName, '%s%s/libcsound.so' % (pkgDir, libDir))
         # csoundapi~ for PD
-        installFile('--strip-unneeded', 'csoundapi~.pd_linux', pdDir)
+        runCmd(['strip', '--strip-unneeded', 'csoundapi~.pd_linux'])
+        installFile('csoundapi~.pd_linux', pdDir)
         # TclCsound
         installXFile('--strip-unneeded', 'cstclsh', binDir)
         installXFile('--strip-unneeded', 'cswish', binDir)
