@@ -235,12 +235,16 @@ Opcodes/py/pythonopcodes.o: Opcodes/py/pythonopcodes.c
 py.dll: Opcodes/py/pythonopcodes.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(PYLIB) $(LIBS)
 
+interfaces/java_interface_wrap.oo: interfaces/java_interface_wrap.cc
+	$(CXX) $(CFLAGS) -D__BUILDING_CSOUND_INTERFACES -Iinterfaces -c $< -o $@
+
 interfaces/python_interface_wrap.oo: interfaces/python_interface_wrap.cc
-	$(CXX) $(CFLAGS) -I$(PYINCDIR) -c $< -o $@
+	$(CXX) $(CFLAGS) -D__BUILDING_CSOUND_INTERFACES -I$(PYINCDIR) -Iinterfaces -c $< -o $@
 
 _csnd.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
-		interfaces/CsoundFile.oo				\
-		interfaces/python_interface_wrap.oo $(CSOUNDLIB)
+		interfaces/CsoundFile.oo interfaces/cs_glue.oo		\
+		interfaces/python_interface_wrap.oo			\
+		interfaces/java_interface_wrap.oo $(CSOUNDLIB)
 	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_csnd.def -lstdc++ $(PYLIB) $(LIBS)
 
 clean:
