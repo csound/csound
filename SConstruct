@@ -628,7 +628,7 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
         libCsoundLinkFlags = ['-F.', '-framework', 'CsoundLib', '-lsndfile']
         libCsoundLibs = []
     else:
-        csoundlibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
+        csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
             csoundLibraryName, libCsoundSources)
 else:
     print 'CONFIGURATION DECISION: Building static Csound library'
