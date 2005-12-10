@@ -10,41 +10,47 @@ CFlags += ' -fomit-frame-pointer -ffast-math'
 
 # package root directory
 pkgDir      = '../__csound5'
+# base directory for installation
+instPrefix  = '/usr/local'
 # frontends
-binDir      = '/usr/local/bin'
+binDir      = instPrefix + '/bin'
 # the actual binaries (called by above)
-binDir2     = '/usr/local/lib/csound/bin'
+binDir2     = instPrefix + '/lib/csound/bin'
 # Csound API header files
-includeDir  = '/usr/local/include/csound'
+includeDir  = instPrefix + '/include/csound'
 # Csound API libraries
-libDir      = '/usr/local/lib'
+libDir      = instPrefix + '/lib'
 # private libraries for use by Csound
-libDir2     = '/usr/local/lib/csound/lib'
+libDir2     = libDir + '/csound/lib'
 # single precision plugin libraries
-pluginDir32 = '/usr/local/lib/csound/plugins'
+pluginDir32 = libDir + '/csound/plugins'
 # double precision plugin libraries
-pluginDir64 = '/usr/local/lib/csound/plugins64'
+pluginDir64 = libDir + '/csound/plugins64'
 # XMG files
-xmgDir      = '/usr/local/share/csound/xmg'
+xmgDir      = instPrefix + '/share/csound/xmg'
 # documentation
-docDir      = '/usr/local/share/doc/csound'
+docDir      = instPrefix + '/share/doc/csound'
+# tclcsound.so
+tclDir      = libDir + '/csound/tcl'
+# csnd.jar
+javaDir     = libDir + '/csound/java'
+# LISP interface
+lispDir     = libDir + '/csound/lisp'
+
+# Python version to use
+pyVersion   = '2.4'
 # csnd.py
-pythonDir   = '/usr/lib/python2.4'
+pythonDir   = '/usr/lib/python' + pyVersion
 # _csnd.so
-pythonDir2  = '/usr/lib/python2.4/lib-dynload'
+pythonDir2  = pythonDir + '/lib-dynload'
 # csoundapi~.pd_linux
 pdDir       = '/usr/local/lib/pd/extra'
-# tclcsound.so
-tclDir      = '/usr/local/lib/csound/tcl'
-# csnd.jar
-javaDir     = '/usr/local/lib/csound/java'
-# LISP interface
-lispDir     = '/usr/local/lib/csound/lisp'
 
 buildOpts = ['buildRelease=1', 'buildUtilities=0', 'useLrint=1', 'noDebug=1']
 buildOpts += ['buildPythonOpcodes=1', 'useOSC=1', 'buildCsoundVST=0']
-buildOpts += ['buildJavaWrapper=1', 'pythonVersion=2.4']
+buildOpts += ['buildJavaWrapper=1', 'pythonVersion=%s' % pyVersion]
 buildOpts += ['customCCFLAGS=%s' % CFlags, 'customCXXFLAGS=%s' % CFlags]
+buildOpts += ['prefix=%s' % instPrefix]
 
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h']
 headerFiles += ['H/csound.hpp', 'H/csoundCore.h', 'H/cwindow.h']
@@ -65,13 +71,25 @@ docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound5.txt']
 
 # -----------------------------------------------------------------------------
 
-def installFile(src, dst):
-    return os.spawnvp(os.P_WAIT, 'install', ['install', '-p', '-m', '0644',
-                                             src, '%s%s' % (pkgDir, dst)])
+def runCmd(args):
+    return os.spawnvp(os.P_WAIT, args[0], args)
 
-def installXFile(src, dst):
-    return os.spawnvp(os.P_WAIT, 'install', ['install', '-p', '-m', '0755',
-                                             src, '%s%s' % (pkgDir, dst)])
+def installFile(src, dst):
+    return runCmd(['install', '-p', '-m', '0644', src, '%s%s' % (pkgDir, dst)])
+
+def installFiles(src, dst):
+    for i in src:
+        err = installFile(i, dst)
+        if err != 0:
+            return err
+    return 0
+
+def installXFile(stripMode, src, dst):
+    if stripMode != '':
+        err = runCmd(['strip', stripMode, src])
+        if err != 0:
+            return err
+    return runCmd(['install', '-p', '-m', '0755', src, '%s%s' % (pkgDir, dst)])
 
 def findFiles(pat):
     lst = []
@@ -81,7 +99,7 @@ def findFiles(pat):
     return lst
 
 def cleanup():
-    os.spawnvp(os.P_WAIT, './cleanup.sh', ['./cleanup.sh'])
+    runCmd(['./cleanup.sh'])
 
 def makeFrontEnd(utilName, is64bit):
     fName = '%s%s/%s%s' % (pkgDir, binDir, utilName, ['', '64'][is64bit])
@@ -108,7 +126,7 @@ def makeFrontEnd(utilName, is64bit):
 
 # remove old package
 
-os.spawnvp(os.P_WAIT, 'rm', ['rm', '-Rf', pkgDir])
+runCmd(['rm', '-Rf', pkgDir])
 
 # create directory tree
 
@@ -120,13 +138,11 @@ for i in [binDir, libDir, binDir2, includeDir, libDir2, pluginDir32,
 
 # copy header files
 
-for i in headerFiles:
-    installFile(i, includeDir)
+installFiles(headerFiles, includeDir)
 
 # copy documentation
 
-for i in docFiles:
-    installFile(i, docDir)
+installFiles(docFiles, docDir)
 
 # create frontends
 
@@ -136,9 +152,9 @@ for i in utils1:
 
 # copy scripts
 
-installXFile('brkpt', binDir)
-installXFile('linseg', binDir)
-installXFile('tabdes', binDir)
+installXFile('', 'brkpt', binDir)
+installXFile('', 'linseg', binDir)
+installXFile('', 'tabdes', binDir)
 installFile('nsliders.tk', tclDir)
 
 # build Csound
@@ -154,87 +170,67 @@ buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
 
 for i in range(4):
     cleanup()
-    os.spawnvp(os.P_WAIT, 'mkdir',
-               ['mkdir', '-p', '-m', '0755', 'interfaces/csnd'])
+    runCmd(['mkdir', '-p', '-m', '0755', 'interfaces/csnd'])
     args = ['scons'] + buildOpts2[i] + buildOpts
-    if (os.spawnvp(os.P_WAIT, 'scons', args) != 0):
+    if (runCmd(args) != 0):
         print ' *** build failed'
-        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-Rf', pkgDir])
+        runCmd(['rm', '-Rf', pkgDir])
+        cleanup()
         raise SystemExit(1)
     if i == 0:
         # ------------ single precision, static Csound library ------------
-        os.spawnvp(os.P_WAIT, 'strip', ['strip', 'csound'])
-        installXFile('csound', binDir2)
+        installXFile('--strip-unneeded', 'csound', binDir2)
         installFile('libcsound.a', libDir)
     elif i == 1:
         # ------------ single precision, dynamic Csound library ------------
         # string database files
         xmgList = findFiles('^.*\.xmg$')
-        for j in xmgList:
-            installFile(j, xmgDir)
+        installFiles(xmgList, xmgDir)
         # plugin libraries
         os.remove('libcsound.so')
         pluginList = findFiles('^lib[A-Za-z].*\.so$')
         for j in pluginList:
-            os.spawnvp(os.P_WAIT, 'strip', ['strip', '--strip-unneeded', j])
-            installXFile(j, pluginDir32)
+            installXFile('--strip-unneeded', j, pluginDir32)
         # Csound API library
         libraryName = findFiles('^libcsound\.so\..*$')[0]
-        os.spawnvp(os.P_WAIT, 'strip', ['strip', '--strip-debug', libraryName])
-        installXFile(libraryName, libDir)
+        installXFile('--strip-debug', libraryName, libDir)
         os.symlink(libraryName, '%s%s/libcsound.so' % (pkgDir, libDir))
         # csoundapi~ for PD
-        os.spawnvp(os.P_WAIT, 'strip',
-                   ['strip', '--strip-unneeded', 'csoundapi~.pd_linux'])
-        installFile('csoundapi~.pd_linux', pdDir)
+        installFile('--strip-unneeded', 'csoundapi~.pd_linux', pdDir)
         # TclCsound
-        os.spawnvp(os.P_WAIT, 'strip', ['strip', 'cstclsh'])
-        installXFile('cstclsh', binDir)
-        os.spawnvp(os.P_WAIT, 'strip', ['strip', 'cswish'])
-        installXFile('cswish', binDir)
-        os.spawnvp(os.P_WAIT, 'strip',
-                   ['strip', '--strip-unneeded', 'tclcsound.so'])
-        installXFile('tclcsound.so', tclDir)
+        installXFile('--strip-unneeded', 'cstclsh', binDir)
+        installXFile('--strip-unneeded', 'cswish', binDir)
+        installXFile('--strip-unneeded', 'tclcsound.so', tclDir)
     elif i == 2:
         # ------------ double precision, static Csound library ------------
-        os.spawnvp(os.P_WAIT, 'strip', ['strip', 'csound'])
         os.rename('csound', 'csound64')
-        installXFile('csound64', binDir2)
+        installXFile('--strip-unneeded', 'csound64', binDir2)
         installFile('libcsound64.a', libDir)
     elif i == 3:
         # ------------ double precision, dynamic Csound library ------------
         # re-run scons to work around bug in building Java wrapper
-        os.spawnvp(os.P_WAIT, 'scons', args)
+        runCmd(args)
         # plugin libraries
         os.remove('libcsound64.so')
         pluginList = findFiles('^lib[A-Za-z].*\.so$')
         for j in pluginList:
-            os.spawnvp(os.P_WAIT, 'strip', ['strip', '--strip-unneeded', j])
-            installXFile(j, pluginDir64)
+            installXFile('--strip-unneeded', j, pluginDir64)
         # Csound API library
         libraryName = findFiles('^libcsound64\.so\..*$')[0]
-        os.spawnvp(os.P_WAIT, 'strip', ['strip', '--strip-debug', libraryName])
-        installXFile(libraryName, libDir)
+        installXFile('--strip-debug', libraryName, libDir)
         os.symlink(libraryName, '%s%s/libcsound64.so' % (pkgDir, libDir))
         # standalone utilities
         for j in utils2:
-            os.spawnvp(os.P_WAIT, 'strip', ['strip', j])
-            installXFile(j, binDir)
+            installXFile('--strip-unneeded', j, binDir)
         # TclCsound
-        os.spawnvp(os.P_WAIT, 'strip', ['strip', 'cstclsh'])
         os.rename('cstclsh', 'cstclsh64')
-        installXFile('cstclsh64', binDir)
-        os.spawnvp(os.P_WAIT, 'strip', ['strip', 'cswish'])
+        installXFile('--strip-unneeded', 'cstclsh64', binDir)
         os.rename('cswish', 'cswish64')
-        installXFile('cswish64', binDir)
-        os.spawnvp(os.P_WAIT, 'strip',
-                   ['strip', '--strip-unneeded', 'tclcsound.so'])
+        installXFile('--strip-unneeded', 'cswish64', binDir)
         os.rename('tclcsound.so', 'tclcsound64.so')
-        installXFile('tclcsound64.so', tclDir)
+        installXFile('--strip-unneeded', 'tclcsound64.so', tclDir)
         # Python interface library
-        os.spawnvp(os.P_WAIT, 'strip',
-                   ['strip', '--strip-debug', 'lib_csnd.so'])
-        installXFile('lib_csnd.so', libDir)
+        installXFile('--strip-debug', 'lib_csnd.so', libDir)
         os.symlink('%s/lib_csnd.so' % libDir,
                    '%s%s/_csnd.so' % (pkgDir, pythonDir2))
         f = open('__make_pyc.sh', 'w')
@@ -249,11 +245,9 @@ for i in range(4):
         print >> f
         f.close()
         os.chmod('__make_pyc.sh', 0755)
-        os.spawnvp(os.P_WAIT, './__make_pyc.sh', ['./__make_pyc.sh'])
+        runCmd(['./__make_pyc.sh'])
         os.remove('__make_pyc.sh')
-        installFile('csnd.py', pythonDir)
-        installFile('csnd.pyc', pythonDir)
-        installFile('csnd.pyo', pythonDir)
+        installFiles(['csnd.py', 'csnd.pyc', 'csnd.pyo'], pythonDir)
         # Java interface library
         installFile('csnd.jar', javaDir)
         # LISP interface
