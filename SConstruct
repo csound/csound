@@ -384,12 +384,12 @@ headerMacroCheck = [
 
 for h in headerMacroCheck:
     if configure.CheckHeader(h[0], language = "C"):
-        commonEnvironment.Append(CCFLAGS = h[1])
+        commonEnvironment.Append(CPPFLAGS = [h[1]])
 
 if getPlatform() == 'darwin':
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
+    commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
 elif configure.CheckHeader("dirent.h", language = "C"):
-    commonEnvironment.Append(CCFLAGS = '-DHAVE_DIRENT_H')
+    commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
 
 if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
     commonEnvironment["buildLoris"] = 0
@@ -452,10 +452,36 @@ def buildzip(env, target, source):
     print
     print "Finished packaging '" + zipfilename + "'."
 
+# library version is CS_VERSION.CS_APIVERSION
+csoundLibraryVersion = '5.1'
+csoundLibraryName = 'csound'
+if getPlatform() == 'linux' and commonEnvironment['useDouble'] != '0':
+    csoundLibraryName += '64'
+# flags for linking with the Csound library
+libCsoundLinkFlags = []
+libCsoundLibs = [csoundLibraryName, 'sndfile']
+
 csoundLibraryEnvironment = commonEnvironment.Copy()
-csoundLibraryEnvironment.Append(CCFLAGS = ['-D__BUILDING_LIBCSOUND'])
+csoundLibraryEnvironment.Append(CPPFLAGS = ['-D__BUILDING_LIBCSOUND'])
 if commonEnvironment['buildRelease'] != '0':
-    csoundLibraryEnvironment.Append(CCFLAGS = ['-D_CSOUND_RELEASE_'])
+    csoundLibraryEnvironment.Append(CPPFLAGS = ['-D_CSOUND_RELEASE_'])
+    if getPlatform() == 'linux':
+        if commonEnvironment['Word64'] == '0':
+            tmp = '%s/lib/csound/plugins' % commonEnvironment['prefix']
+        else:
+            tmp = '%s/lib64/csound/plugins' % commonEnvironment['prefix']
+        if commonEnvironment['useDouble'] != '0':
+            tmp += '64'
+        s = '-DCS_DEFAULT_PLUGINDIR=\\"%s\\"' % tmp
+        csoundLibraryEnvironment.Append(CPPFLAGS = [s])
+    elif getPlatform() == 'darwin':
+        if commonEnvironment['dynamicCsoundLibrary'] != '0':
+            tmp = '/Library/Frameworks/CsoundLib.Framework'
+            tmp += '/Versions/%s/Resources/Opcodes' % csoundLibraryVersion
+            if commonEnvironment['useDouble'] != '0':
+                tmp += '64'
+            s = '-DCS_DEFAULT_PLUGINDIR=\\"%s\\"' % tmp
+            csoundLibraryEnvironment.Append(CPPFLAGS = [s])
 csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Copy()
 csoundDynamicLibraryEnvironment.Append(LIBS = ['sndfile'])
 if getPlatform() == 'mingw':
@@ -572,15 +598,6 @@ Top/threads.c
 Top/utility.c
 ''')
 
-# library version is CS_VERSION.CS_APIVERSION
-csoundLibraryVersion = '5.1'
-csoundLibraryName = 'csound'
-if getPlatform() == 'linux' and commonEnvironment['useDouble'] != '0':
-    csoundLibraryName += '64'
-# flags for linking with the Csound library
-libCsoundLinkFlags = []
-libCsoundLibs = [csoundLibraryName, 'sndfile']
-
 if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
     print 'CONFIGURATION DECISION: Building dynamic Csound library'
     if getPlatform() == 'linux':
@@ -624,7 +641,10 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
              "cp -RL CsoundLib.Framework /Library/Frameworks"]
         ]
         for i in csFrameWorkCmds:
-            csoundFrameworkEnvironment.Command(i[0], i[1], i[2])
+            csoundFrameworkEnvironment.Command(
+                i[0].replace('5.0', csoundLibraryVersion),
+                i[1].replace('5.0', csoundLibraryVersion),
+                i[2].replace('5.0', csoundLibraryVersion))
         libCsoundLinkFlags = ['-F.', '-framework', 'CsoundLib', '-lsndfile']
         libCsoundLibs = []
     else:
@@ -804,19 +824,23 @@ else:
         csoundInterfacesSources.insert(0, csoundLuaInterface)
         csoundInterfacesEnvironment.Prepend(LIBS = ['lua50'])
     if getPlatform() == 'darwin':
-        csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl'])
-        csoundInterfacesEnvironment.Prepend(LINKFLAGS = ['-bundle'])
-        csoundInterfaces = csoundInterfacesEnvironment.Program(
-            'csnd', csoundInterfacesSources,
-            PROGPREFIX = '_', PROGSUFFIX = '.so')
-        csoundInterfacesEnvironment.Command('lib_csnd.jnilib', '_csnd.so', "ln -s _csnd.so lib_csnd.jnilib")
+        csoundInterfacesBundleEnvironment = csoundInterfacesEnvironment.Copy()
+        csoundInterfacesBundleEnvironment.Append(LINKFLAGS = ['-Wl'])
+        csoundInterfacesBundleEnvironment.Prepend(LINKFLAGS = ['-bundle'])
+        csoundInterfacesBundle = csoundInterfacesBundleEnvironment.Program(
+            '_csnd.so', csoundInterfacesSources)
+        csoundInterfacesBundleEnvironment.Command(
+            'lib_csnd.jnilib', '_csnd.so', "ln -s _csnd.so lib_csnd.jnilib")
+        Depends(csoundInterfacesBundle, csoundLibrary)
+        libs.append(csoundInterfacesBundle)
+        zipDependencies.append(csoundInterfacesBundle)
     else:
         if getPlatform() == 'linux':
-            os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', 'lib_csnd.so'])
-            os.symlink('_csnd.so', 'lib_csnd.so')
+            os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
+            os.symlink('lib_csnd.so', '_csnd.so')
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
-            'csnd', csoundInterfacesSources, SHLIBPREFIX = '_')
+    csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
+        '_csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
     zipDependencies.append(csoundInterfaces)
