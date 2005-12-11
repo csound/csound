@@ -324,8 +324,7 @@ void CsoundChannelList::ResetVariables()
 {
     lst = (CsoundChannelListEntry*) 0;
     cnt = -1;
-    cs1 = (CSOUND*) 0;
-    cs2 = (Csound*) 0;
+    csound = (CSOUND*) 0;
 }
 
 int CsoundChannelList::GetChannelMetaData(int ndx,
@@ -335,9 +334,7 @@ int CsoundChannelList::GetChannelMetaData(int ndx,
     if (!lst || (unsigned int) ndx >= (unsigned int) cnt)
       return -1;
     name = lst[ndx].name;
-    if (cs1)
-      return csoundGetControlChannelParams(cs1, name, &dflt, &min, &max);
-    return cs2->GetControlChannelParams(name, dflt, min, max);
+    return csoundGetControlChannelParams(csound, name, &dflt, &min, &max);
 }
 
 /**
@@ -510,8 +507,7 @@ CsoundChannelList::CsoundChannelList(CSOUND *csound)
 {
     lst = (CsoundChannelListEntry*) 0;
     cnt = csoundListChannels(csound, &lst);
-    cs1 = csound;
-    cs2 = (Csound*) 0;
+    this->csound = csound;
     if (cnt < 0 || !lst)
       this->ResetVariables();
 }
@@ -520,8 +516,7 @@ CsoundChannelList::CsoundChannelList(Csound *csound)
 {
     lst = (CsoundChannelListEntry*) 0;
     cnt = csound->ListChannels(lst);
-    cs1 = (CSOUND*) 0;
-    cs2 = csound;
+    this->csound = csound->GetCsound();
     if (cnt < 0 || !lst)
       this->ResetVariables();
 }
@@ -812,5 +807,104 @@ CsoundArgVList::CsoundArgVList()
 CsoundArgVList::~CsoundArgVList()
 {
     this->destroy_argv();
+}
+
+/**
+ * Experimental class for wrapping callbacks using SWIG directors.
+ */
+
+extern "C" {
+
+  static void MessageCallback_wrapper(CSOUND *csound,
+                                      int attr, const char *fmt, va_list args)
+  {
+    CsoundCallbackWrapper *p;
+    p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
+#ifdef HAVE_C99
+    {
+      char  buf[2048];
+      int   n;
+      n = vsnprintf(&(buf[0]), (size_t) 2048, fmt, args);
+      if (n < 0) {      // for compatibility only
+        fprintf(stderr, " *** buffer overflow in message callback\n");
+        exit(-1);
+      }
+      if (n >= 2048) {
+        char  *bufp = (char*) malloc((size_t) n + (size_t) 1);
+        if (!bufp)
+          return;
+        vsprintf(bufp, fmt, args);
+        p->MessageCallback(attr, bufp);
+        free((void*) bufp);
+      }
+      p->MessageCallback(attr, &(buf[0]));
+    }
+#else
+    {
+      char  buf[16384];
+      if (vsprintf(&(buf[0]), fmt, args) >= 16384) {
+        fprintf(stderr, " *** buffer overflow in message callback\n");
+        exit(-1);
+      }
+      p->MessageCallback(attr, &(buf[0]));
+    }
+#endif
+  }
+
+  static void InputValueCallback_wrapper(CSOUND *csound,
+                                         const char *chnName, MYFLT *value)
+  {
+    CsoundCallbackWrapper *p;
+    p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
+    *value = p->InputValueCallback(chnName);
+  }
+
+  static void OutputValueCallback_wrapper(CSOUND *csound,
+                                          const char *chnName, MYFLT value)
+  {
+    CsoundCallbackWrapper *p;
+    p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
+    p->OutputValueCallback(chnName, value);
+  }
+
+  static int YieldCallback_wrapper(CSOUND *csound)
+  {
+    CsoundCallbackWrapper *p;
+    p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
+    return p->YieldCallback();
+  }
+
+}       // extern "C"
+
+void CsoundCallbackWrapper::SetMessageCallback()
+{
+    csoundSetMessageCallback(csound_, MessageCallback_wrapper);
+}
+
+void CsoundCallbackWrapper::SetInputValueCallback()
+{
+    csoundSetInputValueCallback(csound_, InputValueCallback_wrapper);
+}
+
+void CsoundCallbackWrapper::SetOutputValueCallback()
+{
+    csoundSetOutputValueCallback(csound_, OutputValueCallback_wrapper);
+}
+
+void CsoundCallbackWrapper::SetYieldCallback()
+{
+    csoundSetYieldCallback(csound_, YieldCallback_wrapper);
+}
+
+CsoundCallbackWrapper::CsoundCallbackWrapper(Csound *cs)
+{
+    csound_ = cs->GetCsound();
+    cs->SetHostData((void*) this);
+}
+
+CsoundCallbackWrapper::CsoundCallbackWrapper(CSOUND *cs)
+{
+    csound_ = cs;
+    csoundSetHostData(cs, (void*) this);
 }
 
