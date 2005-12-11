@@ -79,8 +79,7 @@ class CsoundChannelList {
  private:
     CsoundChannelListEntry  *lst;
     int                     cnt;
-    CSOUND                  *cs1;
-    Csound                  *cs2;
+    CSOUND                  *csound;
     void ResetVariables();
     int GetChannelMetaData(int ndx, MYFLT &dflt, MYFLT &min, MYFLT &max);
  public:
@@ -449,6 +448,50 @@ class CsoundArgVList {
     // --------
     CsoundArgVList();
     ~CsoundArgVList();
+};
+
+/**
+ * Experimental class for wrapping callbacks using SWIG directors.
+ */
+
+class CsoundCallbackWrapper {
+ private:
+    CSOUND  *csound_;
+ public:
+    virtual void MessageCallback(int attr, char *msg)
+    {
+    }
+    virtual MYFLT InputValueCallback(const char *chnName)
+    {
+      return (MYFLT) 0;
+    }
+    virtual void OutputValueCallback(const char *chnName, MYFLT value)
+    {
+    }
+    virtual int YieldCallback()
+    {
+      return 1;
+    }
+    void SetMessageCallback();
+    void SetInputValueCallback();
+    void SetOutputValueCallback();
+    void SetYieldCallback();
+    CSOUND *GetCsound()
+    {
+      return csound_;
+    }
+#if 0
+    static const char *CharPtrToString(const char *s)
+    {
+      return s;
+    }
+#endif
+    // --------
+    CsoundCallbackWrapper(Csound *csound);
+    CsoundCallbackWrapper(CSOUND *csound);
+    virtual ~CsoundCallbackWrapper()
+    {
+    }
 };
 
 #endif  // CSOUND_CS_GLUE_HPP
