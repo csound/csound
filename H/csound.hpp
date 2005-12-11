@@ -58,6 +58,10 @@ class Csound
 protected:
   CSOUND *csound;
 public:
+  virtual CSOUND *GetCsound()
+  {
+    return csound;
+  }
   // csound.h interface
   virtual int PreCompile()
   {
@@ -243,13 +247,13 @@ public:
     csoundReset(csound);
   }
   // attributes
-  virtual double GetSr()
+  virtual MYFLT GetSr()
   {
-    return (double) csoundGetSr(csound);
+    return csoundGetSr(csound);
   }
-  virtual double GetKr()
+  virtual MYFLT GetKr()
   {
-    return (double) csoundGetKr(csound);
+    return csoundGetKr(csound);
   }
   virtual int GetKsmps()
   {
@@ -259,9 +263,9 @@ public:
   {
     return csoundGetNchnls(csound);
   }
-  virtual double Get0dBFS()
+  virtual MYFLT Get0dBFS()
   {
-    return (double) csoundGet0dBFS(csound);
+    return csoundGet0dBFS(csound);
   }
   virtual int GetStrVarMaxLen()
   {
@@ -320,9 +324,9 @@ public:
   {
     csoundSetScorePending(csound, pending);
   }
-  virtual double GetScoreOffsetSeconds()
+  virtual MYFLT GetScoreOffsetSeconds()
   {
-    return (double) csoundGetScoreOffsetSeconds(csound);
+    return csoundGetScoreOffsetSeconds(csound);
   }
   virtual void SetScoreOffsetSeconds(double time)
   {
@@ -542,9 +546,9 @@ public:
   {
     return csoundTableLength(csound, table);
   }
-  virtual double TableGet(int table, int index)
+  virtual MYFLT TableGet(int table, int index)
   {
-    return (double) csoundTableGet(csound, table, index);
+    return csoundTableGet(csound, table, index);
   }
   virtual void TableSet(int table, int index, double value)
   {
@@ -662,13 +666,13 @@ public:
       ((char*) p)[i] = '\0';
     }
   }
-  virtual double GetChannel(const char *name)
+  virtual MYFLT GetChannel(const char *name)
   {
     MYFLT *p;
     if (!(csoundGetChannelPtr(csound, &p, name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL)))
-      return (double) (*p);
-    return 0.0;
+      return (*p);
+    return (MYFLT) 0;
   }
   virtual int ChanIKSet(double value, int n)
   {
@@ -744,10 +748,6 @@ public:
     csoundDestroy(csound);
   }
   // Functions for embedding.
-  virtual CSOUND *GetCsound()
-  {
-    return csound;
-  }
 #ifdef __BUILDING_CSOUND_INTERFACES
   void EnableMessageBuffer(int toStdOut)
   {
@@ -782,19 +782,19 @@ class CsoundThreadLock {
 protected:
   void  *threadLock;
 public:
-  virtual int Lock(size_t milliseconds)
+  int Lock(size_t milliseconds)
   {
     return csoundWaitThreadLock(threadLock, milliseconds);
   }
-  virtual void Lock()
+  void Lock()
   {
     csoundWaitThreadLockNoTimeout(threadLock);
   }
-  virtual int TryLock()
+  int TryLock()
   {
     return csoundWaitThreadLock(threadLock, (size_t) 0);
   }
-  virtual void Unlock()
+  void Unlock()
   {
     csoundNotifyThreadLock(threadLock);
   }
@@ -811,7 +811,7 @@ public:
       csoundWaitThreadLock(threadLock, (size_t) 0);
   }
   // destructor
-  virtual ~CsoundThreadLock()
+  ~CsoundThreadLock()
   {
     csoundDestroyThreadLock(threadLock);
   }
@@ -823,15 +823,15 @@ class CsoundRandMT {
 protected:
   CsoundRandMTState   mt;
 public:
-  virtual uint32_t Random()
+  uint32_t Random()
   {
     return csoundRandMT(&mt);
   }
-  virtual void Seed(uint32_t seedVal)
+  void Seed(uint32_t seedVal)
   {
     csoundSeedRandMT(&mt, (uint32_t*) 0, seedVal);
   }
-  virtual void Seed(const uint32_t *initKey, int keyLength)
+  void Seed(const uint32_t *initKey, int keyLength)
   {
     csoundSeedRandMT(&mt, initKey, (uint32_t) keyLength);
   }
@@ -848,7 +848,7 @@ public:
   {
     csoundSeedRandMT(&mt, initKey, (uint32_t) keyLength);
   }
-  virtual ~CsoundRandMT()
+  ~CsoundRandMT()
   {
   }
 };
@@ -859,15 +859,15 @@ class CsoundTimer {
 protected:
   RTCLOCK rt;
 public:
-  virtual double GetRealTime()
+  double GetRealTime()
   {
     return csoundGetRealTime(&rt);
   }
-  virtual double GetCPUTime()
+  double GetCPUTime()
   {
     return csoundGetCPUTime(&rt);
   }
-  virtual void Reset()
+  void Reset()
   {
     csoundInitTimerStruct(&rt);
   }
@@ -876,7 +876,7 @@ public:
   {
     csoundInitTimerStruct(&rt);
   }
-  virtual ~CsoundTimer()
+  ~CsoundTimer()
   {
   }
 };
