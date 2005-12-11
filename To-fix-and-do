@@ -10,8 +10,6 @@ K7.     Installer for MacOSX
 BUGS NOT FIXED
 --------------
 
-B1.     hetro and lpanal are broken
-
 B2.     Many differences between FL code on Csound and CsoundAV
 
 DOCUMENTATION
@@ -19,4 +17,4 @@ DOCUMENTATION
 
  <<
  >>
- cogoto
+
