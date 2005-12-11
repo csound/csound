@@ -82,6 +82,8 @@ typedef unsigned int uint32_t;
 %clear MYFLT &max;
 %clear MYFLT &value;
 
+%ignore CsoundCallbackWrapper;
+
 %include "cs_glue.hpp"
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
