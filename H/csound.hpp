@@ -744,6 +744,10 @@ public:
     csoundDestroy(csound);
   }
   // Functions for embedding.
+  virtual CSOUND *GetCsound()
+  {
+    return csound;
+  }
 #ifdef __BUILDING_CSOUND_INTERFACES
   void EnableMessageBuffer(int toStdOut)
   {
