@@ -820,7 +820,7 @@ extern "C" {
   {
     CsoundCallbackWrapper *p;
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
-#ifdef HAVE_C99
+#if defined(HAVE_C99) && !defined(WIN32)
     {
       char  buf[2048];
       int   n;
@@ -829,7 +829,7 @@ extern "C" {
         fprintf(stderr, " *** buffer overflow in message callback\n");
         exit(-1);
       }
-      if (n >= 2048) {
+      else if (n >= 2048) {
         char  *bufp = (char*) malloc((size_t) n + (size_t) 1);
         if (bufp) {
           vsprintf(bufp, fmt, args);
