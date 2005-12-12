@@ -655,7 +655,6 @@ else:
     csoundLibrary = csoundLibraryEnvironment.Library(
         csoundLibraryName, libCsoundSources)
 libs.append(csoundLibrary)
-zipDependencies.append(csoundLibrary)
 
 pluginEnvironment = commonEnvironment.Copy()
 pluginEnvironment.Append(LIBS = ['sndfile'])
@@ -736,17 +735,21 @@ if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironme
 else:
     print 'CONFIGURATION DECISION: Building Csound interfaces library.'
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
-    csoundInterfacesSources = Split('''
-        interfaces/cs_glue.cpp
-        interfaces/filebuilding.cpp
-        interfaces/CppSound.cpp
-        interfaces/CsoundFile.cpp
-    ''')
+    csoundInterfacesSources = []
+    for i in ['cs_glue', 'filebuilding', 'CppSound', 'CsoundFile']:
+        csoundInterfacesSources.append(
+            csoundInterfacesEnvironment.SharedObject('interfaces/%s.cpp' % i))
     if commonEnvironment['dynamicCsoundLibrary'] == '1' or getPlatform() == 'mingw':
         csoundInterfacesEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
         csoundInterfacesEnvironment.Prepend(LIBS = libCsoundLibs)
     else:
-        csoundInterfacesSources += libCsoundSources
+        for i in libCsoundSources:
+            csoundInterfacesSources.append(
+                csoundInterfacesEnvironment.SharedObject(i))
+    csoundInterfacesEnvironment.StaticLibrary('csndbase',
+                                              csoundInterfacesSources)
+    csoundInterfacesEnvironment.Prepend(LIBS = ['csndbase'])
+    csoundInterfacesSources = ['interfaces/pyMsgCb.cpp']
     if getPlatform() == 'mingw':
         csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
     elif getPlatform() == 'linux':
@@ -779,6 +782,36 @@ else:
         option = '-I' + option
         csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
     swigflags = csoundWrapperEnvironment['SWIGFLAGS']
+    if javaFound and commonEnvironment['buildJavaWrapper'] == '1':
+        print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
+        csoundJavaWrapperEnvironment = csoundInterfacesEnvironment.Copy()
+        if getPlatform() == 'darwin':
+            csoundWrapperEnvironment.Append(CPPPATH =
+                ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
+        csoundJavaWrapperSources = [csoundWrapperEnvironment.SharedObject(
+            'interfaces/java_interface.i',
+            SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
+        csoundJavaWrapperSources += ['interfaces/pyMsgCb_stub.cpp']
+        if getPlatform() == 'darwin':
+            csoundJavaWrapperEnvironment.Prepend(LINKFLAGS = ['-bundle'])
+            csoundJavaWrapperEnvironment.Append(LINKFLAGS =
+                ['-framework', 'JavaVM', '-Wl'])
+            csoundJavaWrapper = csoundJavaWrapperEnvironment.Program(
+                'lib_jcsound.jnilib', csoundJavaWrapperSources)
+        else:
+            csoundJavaWrapper = csoundJavaWrapperEnvironment.SharedLibrary(
+                '_jcsound', csoundJavaWrapperSources)
+        Depends(csoundJavaWrapper, csoundLibrary)
+        libs.append(csoundJavaWrapper)
+        jcsnd = csoundJavaWrapperEnvironment.Java(
+            target = 'interfaces', source = 'interfaces',
+            JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
+        zipDependencies.append(jcsnd)
+        jcsndJar = csoundJavaWrapperEnvironment.Jar(
+            'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
+        Depends(jcsndJar, jcsnd)
+    else:
+        print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     if pythonFound:
         if getPlatform() == 'mingw':
             pythonImportLibrary = csoundInterfacesEnvironment.Command(
@@ -794,26 +827,6 @@ else:
             'interfaces/python_interface.i',
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
         csoundInterfacesSources.insert(0, csoundPythonInterface)
-    if javaFound and commonEnvironment['buildJavaWrapper'] == '1':
-        print 'CONFIGURATION DECISION: Building Java wrappers for Csound interfaces library.'
-        if getPlatform() == 'darwin':
-            csoundInterfacesEnvironment.Append(LINKFLAGS =
-                ['-framework', 'JavaVM'])
-            csoundWrapperEnvironment.Append(CPPPATH =
-                ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
-        csoundJavaInterface = csoundWrapperEnvironment.SharedObject(
-            'interfaces/java_interface.i',
-            SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])
-        csoundInterfacesSources.append(csoundJavaInterface)
-        jcsnd = csoundInterfacesEnvironment.Java(
-            target = 'interfaces', source = 'interfaces',
-            JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
-        zipDependencies.append(jcsnd)
-        jcsndJar = csoundInterfacesEnvironment.Jar(
-            'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
-        Depends(jcsndJar, jcsnd)
-    else:
-        print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     if not luaFound:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
@@ -828,12 +841,10 @@ else:
         csoundInterfacesBundleEnvironment.Append(LINKFLAGS = ['-Wl'])
         csoundInterfacesBundleEnvironment.Prepend(LINKFLAGS = ['-bundle'])
         csoundInterfacesBundle = csoundInterfacesBundleEnvironment.Program(
-            '_csnd.so', csoundInterfacesSources)
-        csoundInterfacesBundleEnvironment.Command(
-            'lib_csnd.jnilib', '_csnd.so', "ln -s _csnd.so lib_csnd.jnilib")
+            '_csnd.so', csoundInterfacesBundleEnvironment.SharedObject(
+                            'interfaces/pyMsgCb_b', 'interfaces/pyMsgCb.cpp'))
         Depends(csoundInterfacesBundle, csoundLibrary)
         libs.append(csoundInterfacesBundle)
-        zipDependencies.append(csoundInterfacesBundle)
     else:
         if getPlatform() == 'linux':
             os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
@@ -843,7 +854,6 @@ else:
         '_csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
-    zipDependencies.append(csoundInterfaces)
 
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
@@ -1200,7 +1210,6 @@ else:
         vstEnvironment.Prepend(LINKFLAGS='-bundle')
         vstEnvironment.Program('CsoundVST.so', csoundVstSources, PROGPREFIX = '_')
     #Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
-    zipDependencies.append(csoundvst)
     libs.append('CsoundVST.py')
     libs.append(csoundvst)
     Depends(csoundvst, csoundInterfaces)
@@ -1209,7 +1218,6 @@ else:
 
     csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
     executables.append(csoundvstGui)
-    zipDependencies.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
     counterpoint = vstEnvironment.Program('counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp' ])
@@ -1327,7 +1335,6 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
         pdClassEnvironment.Append(SHLINKFLAGS = ['-module'])
         pdClassEnvironment['ENV']['PATH'] = os.environ['PATH']
     Depends(pdClass, csoundLibrary)
-    zipDependencies.append(pdClass)
     libs.append(pdClass)
 
 if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
@@ -1429,6 +1436,7 @@ else:
     print "CONFIGURATION DECISION: Not calling makedb"
 
 zipDependencies += executables
+zipDependencies += libs
 zipDependencies += pluginLibraries
 
 if (commonEnvironment['generateZip']=='0'):
