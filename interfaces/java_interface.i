@@ -21,7 +21,9 @@
 */
 
 %module(directors="1") csnd
+
 %feature("director") CsoundCallbackWrapper;
+%feature("nodirector") Csound;
 
 %include "typemaps.i"
 %include "std_string.i"
@@ -47,9 +49,9 @@ typedef unsigned int uint32_t;
 %pragma(java) jniclasscode=%{
   static {
     try {
-        java.lang.System.loadLibrary("_csnd");
+        java.lang.System.loadLibrary("_jcsound");
     } catch (UnsatisfiedLinkError e) {
-        java.lang.System.err.println("_csnd native code library failed to load.\n" + e);
+        java.lang.System.err.println("_jcsound native code library failed to load.\n" + e);
         java.lang.System.exit(1);
     }
   }
