@@ -19,7 +19,12 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-%module csnd
+
+%module(directors="1") csnd
+
+%feature("director") CsoundCallbackWrapper;
+%feature("nodirector") Csound;
+
 %include "typemaps.i"
 %include "std_string.i"
 %include "std_vector.i"
@@ -81,8 +86,6 @@ typedef unsigned int uint32_t;
 %clear MYFLT &min;
 %clear MYFLT &max;
 %clear MYFLT &value;
-
-%ignore CsoundCallbackWrapper;
 
 %include "cs_glue.hpp"
 %include "CsoundFile.hpp"
