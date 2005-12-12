@@ -809,6 +809,8 @@ CsoundArgVList::~CsoundArgVList()
     this->destroy_argv();
 }
 
+// ----------------------------------------------------------------------------
+
 /**
  * Experimental class for wrapping callbacks using SWIG directors.
  */
@@ -857,7 +859,7 @@ extern "C" {
   {
     CsoundCallbackWrapper *p;
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
-    *value = p->InputValueCallback(chnName);
+    *value = (MYFLT) p->InputValueCallback(chnName);
   }
 
   static void OutputValueCallback_wrapper(CSOUND *csound,
@@ -865,7 +867,7 @@ extern "C" {
   {
     CsoundCallbackWrapper *p;
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
-    p->OutputValueCallback(chnName, value);
+    p->OutputValueCallback(chnName, (double) value);
   }
 
   static int YieldCallback_wrapper(CSOUND *csound)

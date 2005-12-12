@@ -461,11 +461,11 @@ class CsoundCallbackWrapper {
     virtual void MessageCallback(int attr, char *msg)
     {
     }
-    virtual MYFLT InputValueCallback(const char *chnName)
+    virtual double InputValueCallback(const char *chnName)
     {
-      return (MYFLT) 0;
+      return 0.0;
     }
-    virtual void OutputValueCallback(const char *chnName, MYFLT value)
+    virtual void OutputValueCallback(const char *chnName, double value)
     {
     }
     virtual int YieldCallback()
