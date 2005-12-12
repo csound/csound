@@ -235,6 +235,8 @@ Opcodes/py/pythonopcodes.o: Opcodes/py/pythonopcodes.c
 py.dll: Opcodes/py/pythonopcodes.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(PYLIB) $(LIBS)
 
+wrappers: _csnd.dll _jcsound.dll
+
 interfaces/java_interface_wrap.oo: interfaces/java_interface_wrap.cc
 	$(CXX) $(CFLAGS) -fno-strict-aliasing -D__BUILDING_CSOUND_INTERFACES -Iinterfaces -c $< -o $@
 
@@ -243,14 +245,24 @@ interfaces/python_interface_wrap.oo: interfaces/python_interface_wrap.cc
 
 _csnd.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
 		interfaces/CsoundFile.oo interfaces/cs_glue.oo		\
-		interfaces/python_interface_wrap.oo			\
-		interfaces/java_interface_wrap.oo $(CSOUNDLIB)
+		interfaces/pyMsgCb.oo					\
+		interfaces/python_interface_wrap.oo $(CSOUNDLIB)
 	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_csnd.def -lstdc++ $(PYLIB) $(LIBS)
+
+_jcsound.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
+		interfaces/CsoundFile.oo interfaces/cs_glue.oo		\
+		interfaces/pyMsgCb_stub.oo				\
+		interfaces/java_interface_wrap.oo $(CSOUNDLIB)
+	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_jcsound.def -lstdc++ $(LIBS)
 
 clean:
 	-rm `find . -type f \( -name "*.o" -o -name "*.oo" \) -print`
 	-rm `find . -type f \( -name "*.a" -o -name "*.dll" \) -print`
 	-rm `find . -type f \( -name "*.exe" -o -name "*.xmg" \) -print`
 	-rm csound32.def csound64.def _csnd.def csnd.py csnd.pyc csnd.pyo
+	-rm _jcsound.def
 	-rm interfaces/python_interface_wrap.cc
+	-rm interfaces/python_interface_wrap.h
+	-rm interfaces/java_interface_wrap.cc
+	-rm interfaces/java_interface_wrap.h
 

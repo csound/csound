@@ -251,6 +251,7 @@ for i in range(4):
         os.remove('__make_pyc.sh')
         installFiles(['csnd.py', 'csnd.pyc', 'csnd.pyo'], pythonDir)
         # Java interface library
+        installXFile('--strip-debug', 'lib_jcsound.so', libDir)
         installFile('csnd.jar', javaDir)
         # LISP interface
         installFile('interfaces/csound5.lisp', lispDir)
