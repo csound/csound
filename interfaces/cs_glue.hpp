@@ -480,12 +480,11 @@ class CsoundCallbackWrapper {
     {
       return csound_;
     }
-#if 0
+    // for converting SWIG char* type to a Python string
     static const char *CharPtrToString(const char *s)
     {
       return s;
     }
-#endif
     // --------
     CsoundCallbackWrapper(Csound *csound);
     CsoundCallbackWrapper(CSOUND *csound);
