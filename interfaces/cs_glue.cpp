@@ -831,13 +831,14 @@ extern "C" {
       }
       if (n >= 2048) {
         char  *bufp = (char*) malloc((size_t) n + (size_t) 1);
-        if (!bufp)
-          return;
-        vsprintf(bufp, fmt, args);
-        p->MessageCallback(attr, bufp);
-        free((void*) bufp);
+        if (bufp) {
+          vsprintf(bufp, fmt, args);
+          p->MessageCallback(attr, bufp);
+          free((void*) bufp);
+        }
       }
-      p->MessageCallback(attr, &(buf[0]));
+      else
+        p->MessageCallback(attr, &(buf[0]));
     }
 #else
     {
