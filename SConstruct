@@ -746,10 +746,6 @@ else:
         for i in libCsoundSources:
             csoundInterfacesSources.append(
                 csoundInterfacesEnvironment.SharedObject(i))
-    csoundInterfacesEnvironment.StaticLibrary('csndbase',
-                                              csoundInterfacesSources)
-    csoundInterfacesEnvironment.Prepend(LIBS = ['csndbase'])
-    csoundInterfacesSources = ['interfaces/pyMsgCb.cpp']
     if getPlatform() == 'mingw':
         csoundInterfacesEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
     elif getPlatform() == 'linux':
@@ -792,6 +788,7 @@ else:
             'interfaces/java_interface.i',
             SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
         csoundJavaWrapperSources += ['interfaces/pyMsgCb_stub.cpp']
+        csoundJavaWrapperSources += csoundInterfacesSources
         if getPlatform() == 'darwin':
             csoundJavaWrapperEnvironment.Prepend(LINKFLAGS = ['-bundle'])
             csoundJavaWrapperEnvironment.Append(LINKFLAGS =
@@ -812,6 +809,8 @@ else:
         Depends(jcsndJar, jcsnd)
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
+    csoundInterfacesSources.insert(0,
+        csoundInterfacesEnvironment.SharedObject('interfaces/pyMsgCb.cpp'))
     if pythonFound:
         if getPlatform() == 'mingw':
             pythonImportLibrary = csoundInterfacesEnvironment.Command(
@@ -841,8 +840,7 @@ else:
         csoundInterfacesBundleEnvironment.Append(LINKFLAGS = ['-Wl'])
         csoundInterfacesBundleEnvironment.Prepend(LINKFLAGS = ['-bundle'])
         csoundInterfacesBundle = csoundInterfacesBundleEnvironment.Program(
-            '_csnd.so', csoundInterfacesBundleEnvironment.SharedObject(
-                            'interfaces/pyMsgCb_b', 'interfaces/pyMsgCb.cpp'))
+            '_csnd.so', csoundInterfacesSources)
         Depends(csoundInterfacesBundle, csoundLibrary)
         libs.append(csoundInterfacesBundle)
     else:
@@ -1310,8 +1308,8 @@ else:
     elif getPlatform() == 'mingw':
         pyEnvironment['ENV']['PATH'] = os.environ['PATH']
         pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-    py = pyEnvironment.SharedLibrary('py', ['Opcodes/py/pythonopcodes.c'])
-    pluginLibraries.append(py)
+    pluginLibraries.append(pyEnvironment.SharedLibrary(
+        'py', ['Opcodes/py/pythonopcodes.c']))
 
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
@@ -1323,17 +1321,21 @@ if commonEnvironment['buildPDClass']=='1' and pdhfound:
             -bundle -flat_namespace -undefined suppress
             -framework Carbon -framework ApplicationServices
         '''))
-        pdClass = pdClassEnvironment.Program('csoundapi~.pd_darwin', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
+        pdClass = pdClassEnvironment.Program(
+            'csoundapi~.pd_darwin',
+            'frontends/csoundapi_tilde/csoundapi_tilde.c')
     elif getPlatform() == 'linux':
-        pdClassEnvironment.Append(LINKFLAGS = ['-shared'])
-        pdClass = pdClassEnvironment.Program('csoundapi~.pd_linux', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
+        pdClass = pdClassEnvironment.SharedLibrary(
+            'csoundapi~.pd_linux',
+            'frontends/csoundapi_tilde/csoundapi_tilde.c',
+            SHLIBPREFIX = '', SHLIBSUFFIX = '')
     elif getPlatform() == 'mingw':
-        pdClassEnvironment.Append(LINKFLAGS = ['-shared'])
-        pdClass = pdClassEnvironment.SharedLibrary('csoundapi~', 'frontends/csoundapi_tilde/csoundapi_tilde.c', SHLIBPREFIX = '')
         pdClassEnvironment.Append(LIBS = ['pd'])
         pdClassEnvironment.Append(LIBS = csoundWindowsLibraries)
         pdClassEnvironment.Append(SHLINKFLAGS = ['-module'])
         pdClassEnvironment['ENV']['PATH'] = os.environ['PATH']
+        pdClass = pdClassEnvironment.SharedLibrary(
+            'csoundapi~', 'frontends/csoundapi_tilde/csoundapi_tilde.c')
     Depends(pdClass, csoundLibrary)
     libs.append(pdClass)
 
@@ -1360,25 +1362,18 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         else:
             csTclEnvironment.Append(LIBS = ['tcl', 'tk'])
         csTclEnvironment.Append(LIBS = csoundWindowsLibraries)
-    csTkEnvironment = csTclEnvironment.Copy()
-    csTclEnvironment.Append(CCFLAGS = ['-DTCLSH'])
-    csTkEnvironment.Append(CCFLAGS = ['-DWISH'])
-    csTclEnvironment.Object('frontends/tclcsound/main_tclsh.o',
-                            'frontends/tclcsound/main.c')
-    csTclEnvironment.Object('frontends/tclcsound/commands.o',
-                            'frontends/tclcsound/commands.c')
-    csTcl = csTclEnvironment.Program('cstclsh', Split('''
-        frontends/tclcsound/main_tclsh.o frontends/tclcsound/commands.o
-    '''))
-    csTkEnvironment.Object('frontends/tclcsound/main_wish.o',
-                           'frontends/tclcsound/main.c')
-    csTk = csTkEnvironment.Program('cswish', Split('''
-        frontends/tclcsound/main_wish.o frontends/tclcsound/commands.o
-    '''))
-    csTkEnvironment.Prepend(LFLAGS = '-DTCL_USE_STUBS')
-    Tclcsoundlib = csTkEnvironment.SharedLibrary('tclcsound', ['frontends/tclcsound/tclcsound.c', 'frontends/tclcsound/commands.c'], SHLIBPREFIX='')
+    csTcl = csTclEnvironment.Program(
+        'cstclsh',
+        ['frontends/tclcsound/main_tclsh.c', 'frontends/tclcsound/commands.c'])
+    csTk = csTclEnvironment.Program(
+        'cswish',
+        ['frontends/tclcsound/main_wish.c', 'frontends/tclcsound/commands.c'])
+    Tclcsoundlib = csTclEnvironment.SharedLibrary(
+        'tclcsound',
+        ['frontends/tclcsound/tclcsound.c', 'frontends/tclcsound/commands.c'],
+        SHLIBPREFIX = '')
     if getPlatform() == 'darwin':
-        csTkEnvironment.Command('cswish_resources', 'cswish', "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
+        csTclEnvironment.Command('cswish_resources', 'cswish', "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
     Depends(Tclcsoundlib, csoundLibrary)
