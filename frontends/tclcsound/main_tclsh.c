@@ -18,13 +18,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 
-  tclcs.c: Tcl/Tk csound-aware interpreter
+  main_tclsh.c: Tcl/Tk csound-aware interpreter
 */
 
 #include "tclcsound.h"
 
 /* initialize Tcl Tk Interpreter */
-int Tcl_ApInit(Tcl_Interp * interp)
+int Tcl_ApInit(Tcl_Interp *interp)
 {
     int     status;
 
@@ -32,31 +32,17 @@ int Tcl_ApInit(Tcl_Interp * interp)
     if (status != TCL_OK) {
       return TCL_ERROR;
     }
-#ifdef TCLSH
-    printf
-        ("cstclsh: TclCsound tcl interpreter\n(c) Victor Lazzarini\nMusic Technology Lab \nNUI Maynooth, 2005 \n");
-#endif
-#ifdef WISH
-    /* Initialize Tk values. */
-    status = Tk_Init(interp);
-    if (status != TCL_OK) {
-      return TCL_ERROR;
-    }
-    printf
-        ("cswish: TclCsound wish shell\n(c) Victor Lazzarini\nMusic Technology Lab \nNUI Maynooth, 2005 \n");
-#endif
+    printf("cstclsh: TclCsound tcl interpreter\n"
+           "(c) Victor Lazzarini\n"
+           "Music Technology Lab\n"
+           "NUI Maynooth, 2005\n");
 
     return tclcsound_initialise(interp);
 }
 
 int main(int argc, char *argv[])
 {
-#ifdef TCLSH
     Tcl_Main(argc, argv, Tcl_ApInit);
-#endif
-#ifdef WISH
-    Tk_Main(argc, argv, Tcl_ApInit);
-#endif
     return 0;
 }
 
