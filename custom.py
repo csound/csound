@@ -55,7 +55,7 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('c:/utah/opt/lua50/include')
     customLIBPATH.append('c:/utah/opt/lua50/lib/mingw3')
     ################################################################
-    # If you want to build Tcl/Tk interfaces 
+    # If you want to build Tcl/Tk interfaces
     # and Tclcsound you need Tcl/Tk.
     # Add it here:
     customCPPPATH.append('c:/utah/opt/Tcl/include')
