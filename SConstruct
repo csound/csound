@@ -627,9 +627,10 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
         csFrameWorkCmds = [
             ['CsoundLib_current', 'CsoundLib',
              "cd CsoundLib.Framework/Versions; ln -sf vers.api Current"],
-            ['CsoundLib.Framework/Versions/vers.api/Headers/csound.h', 'H/csound.h',
+            ['CsoundLib.Framework/Versions/vers.api/Headers/csound.h',
+             'H/csound.h',
              "cd CsoundLib.Framework; ln -s Versions/vers.api/Headers Headers; cd ..; cp H/*.h CsoundLib.Framework/Versions/vers.api/Headers"],
-            ['CsoundLib.Framework/Versions/vers.api/Resources/opcodes/libstdopcod.dylib',
+            ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libstdopcod.dylib',
              'libstdopcod.dylib',
              "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp lib*.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
             ['CsoundLib.Framework/Versions/vers.api/CsoundLib', 'CsoundLib',
@@ -848,10 +849,10 @@ else:
             os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
             os.symlink('lib_csnd.so', '_csnd.so')
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-    	csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
+    csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
         '_csnd', csoundInterfacesSources)
-    	Depends(csoundInterfaces, csoundLibrary)
-    	libs.append(csoundInterfaces)
+    Depends(csoundInterfaces, csoundLibrary)
+    libs.append(csoundInterfaces)
 
 if commonEnvironment['generatePdf']=='0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
