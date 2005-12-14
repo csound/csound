@@ -39,11 +39,11 @@
 /* performance thread */
 uintptr_t csThread(void *clientData)
 {
-    int     result = 0, *status;
-    csdata *p = (csdata *) clientData;
-    CSOUND *cs = p->instance;
+    int           result = 0;
+    csdata        *p = (csdata *) clientData;
+    CSOUND        *cs = p->instance;
+    volatile int  *status = &p->status;
 
-    status = &p->status;
     if (*status == CS_COMPILED) {
       *status = CS_RUNNING;
       if (csoundGetOutputBufferSize(cs)
@@ -51,15 +51,19 @@ uintptr_t csThread(void *clientData)
         while (result == 0 && *status != -1)
           if (*status != CS_PAUSED)
             result = csoundPerformKsmps(cs);
-          else
+          else {
+            csoundSleep(1);
             result = 0;
+          }
       }
       else {
         while (result == 0 && *status != -1)
           if (*status != CS_PAUSED)
             result = csoundPerformBuffer(cs);
-          else
+          else {
+            csoundSleep(1);
             result = 0;
+          }
       }
       *status = CS_COMPILED;
       p->result = result;
