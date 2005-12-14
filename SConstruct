@@ -626,25 +626,25 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
             libName, libCsoundSources, SHLIBPREFIX = '', SHLIBSUFFIX = '')
         csFrameWorkCmds = [
             ['CsoundLib_current', 'CsoundLib',
-             "cd CsoundLib.Framework/Versions; ln -sf 5.0 Current"],
-            ['CsoundLib.Framework/Headers/csound.h', 'H/csound.h',
-             "cd CsoundLib.Framework; ln -s Versions/5.0/Headers Headers; cd ..; cp H/*.h CsoundLib.Framework/Versions/5.0/Headers"],
-            ['CsoundLib.Framework/Resources/opcodes/libstdopcod.dylib',
+             "cd CsoundLib.Framework/Versions; ln -sf vers.api Current"],
+            ['CsoundLib.Framework/Versions/vers.api/Headers/csound.h', 'H/csound.h',
+             "cd CsoundLib.Framework; ln -s Versions/vers.api/Headers Headers; cd ..; cp H/*.h CsoundLib.Framework/Versions/vers.api/Headers"],
+            ['CsoundLib.Framework/Versions/vers.api/Resources/opcodes/libstdopcod.dylib',
              'libstdopcod.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/5.0/Resources Resources; cd ..; cp *.dylib CsoundLib.Framework/Versions/5.0/Resources/Opcodes/"],
-            ['CsoundLib.Framework/Versions/5.0/CsoundLib', 'CsoundLib',
-             "cp CsoundLib CsoundLib.Framework/Versions/5.0"],
+             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp *.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
+            ['CsoundLib.Framework/Versions/vers.api/CsoundLib', 'CsoundLib',
+             "cp CsoundLib CsoundLib.Framework/Versions/vers.api"],
             ['CsoundLib.Framework/CsoundLib',
-             'CsoundLib.Framework/Versions/5.0/CsoundLib',
-             "cd CsoundLib.Framework; ln -sf Versions/5.0/CsoundLib CsoundLib"],
+             'CsoundLib.Framework/Versions/vers.api/CsoundLib',
+             "cd CsoundLib.Framework; ln -sf Versions/vers.api/CsoundLib CsoundLib"],
             ['/Library/Frameworks/CsoundLib.Framework/CsoundLib', 'CsoundLib',
              "cp -RL CsoundLib.Framework /Library/Frameworks"]
         ]
         for i in csFrameWorkCmds:
             csoundFrameworkEnvironment.Command(
-                i[0].replace('5.0', csoundLibraryVersion),
-                i[1].replace('5.0', csoundLibraryVersion),
-                i[2].replace('5.0', csoundLibraryVersion))
+                i[0].replace('vers.api', csoundLibraryVersion),
+                i[1].replace('vers.api', csoundLibraryVersion),
+                i[2].replace('vers.api', csoundLibraryVersion))
         libCsoundLinkFlags = ['-F.', '-framework', 'CsoundLib', '-lsndfile']
         libCsoundLibs = []
     else:
