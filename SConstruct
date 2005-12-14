@@ -614,11 +614,11 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
         csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy();
         libName = 'CsoundLib'
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
-            -Xlinker -compatibility_version -Xlinker 5.0.0
-        '''))
+            -Xlinker -compatibility_version -Xlinker vers.api
+        '''.replace('vers.api', csoundLibraryVersion)))
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
-            -Xlinker -current_version -Xlinker 5.0.0
-        '''))
+            -Xlinker -current_version -Xlinker vers.api
+        '''.replace('vers.api', csoundLibraryVersion)))
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
             -install_name /Library/Frameworks/CsoundLib.Framework/CsoundLib
         '''))
@@ -637,8 +637,8 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
             ['CsoundLib.Framework/CsoundLib',
              'CsoundLib.Framework/Versions/vers.api/CsoundLib',
              "cd CsoundLib.Framework; ln -sf Versions/vers.api/CsoundLib CsoundLib"],
-            ['/Library/Frameworks/CsoundLib.Framework/CsoundLib', 'CsoundLib',
-             "cp -RL CsoundLib.Framework /Library/Frameworks"]
+            ['CsoundLib_install', 'CsoundLib',
+             "rm -r /Library/Frameworks/CsoundLib.Framework; cp -R CsoundLib.Framework /Library/Frameworks"]
         ]
         for i in csFrameWorkCmds:
             csoundFrameworkEnvironment.Command(
