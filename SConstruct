@@ -1359,20 +1359,18 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     elif getPlatform() == 'mingw':
         csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
         csTclEnvironment.Append(LIBS = csoundWindowsLibraries)
+        csTclEnvironment.Append(SHLINKFLAGS = ['-module'])
+    csTclCmdObj = csTclEnvironment.SharedObject(
+        'frontends/tclcsound/commands.c')
+    csTcl = csTclEnvironment.Program(
+        'cstclsh', ['frontends/tclcsound/main_tclsh.c', csTclCmdObj])
+    csTk = csTclEnvironment.Program(
+        'cswish', ['frontends/tclcsound/main_wish.c', csTclCmdObj])
     Tclcsoundlib = csTclEnvironment.SharedLibrary(
-        'tclcsound',
-        ['frontends/tclcsound/tclcsound.c', 'frontends/tclcsound/commands.c'],
+        'tclcsound', ['frontends/tclcsound/tclcsound.c', csTclCmdObj],
         SHLIBPREFIX = '')
-    csTclProgramEnvironment = csTclEnvironment.Copy()
     if getPlatform() == 'darwin':
-        csTclProgramEnvironment.Command('cswish_resources', 'cswish', "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
-    csTclProgramEnvironment.Append(LIBS=['tclcsound'])
-    csTcl = csTclProgramEnvironment.Program(
-        'cstclsh',
-        ['frontends/tclcsound/main_tclsh.c'])
-    csTk = csTclProgramEnvironment.Program(
-        'cswish',
-        ['frontends/tclcsound/main_wish.c'])
+        csTclEnvironment.Command('cswish_resources', 'cswish', "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
     Depends(Tclcsoundlib, csoundLibrary)
