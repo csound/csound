@@ -435,6 +435,12 @@ Section "${PRODUCT}" SecCopyUI
   SetOutPath $INSTDIR\examples
   File ..\..\examples\*.csd
   File ..\..\examples\*.py
+  SetOutPath $INSTDIR\examples\csoundapi_tilde
+  File ..\..\examples\csoundapi_tilde\*.*
+  SetOutPath $INSTDIR\examples\java
+  File ..\..\examples\java\*.*
+  SetOutPath $INSTDIR\examples\tclcsound
+  File ..\..\examples\tclcsound\*.*
   SetOutPath $INSTDIR\samples
   File ..\..\samples\*
   File ..\..\Opcodes\stk\rawwaves\*
@@ -525,6 +531,10 @@ Section "Uninstall"
   Delete "$INSTDIR\include\*.hpp"
   RMDir "$INSTDIR\include"
 
+  Delete "$INSTDIR\examples\csoundapi_tilde\*.*"
+  RMDir "$INSTDIR\examples\csoundapi_tilde"
+  Delete "$INSTDIR\examples\java\*.*"
+  RMDir "$INSTDIR\examples\java"
   Delete "$INSTDIR\examples\*.csd"
   Delete "$INSTDIR\examples\*.py"
   RMDir "$INSTDIR\examples"
