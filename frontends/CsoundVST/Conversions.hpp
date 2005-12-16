@@ -29,13 +29,17 @@
 #include <string>
 #include <cstdio>
 #include <map>
+#include <vector>
   %}
 %include "std_string.i"
+%include "std_vector.i"
+%template(DoubleVector) std::vector<double>;
 #else
 #include <cmath>
 #include <string>
 #include <cstdio>
 #include <map>
+#include <vector>
 #endif
 
 namespace csound
@@ -129,6 +133,10 @@ namespace csound
      * True modulus accounting for sign.
      */
     static double modulus(double a, double b);
+    /**
+     * Return the pitches for a chord name.
+     */
+    static std::vector<double> nameToPitches(std::string name);
     /**
      * Return the pitch-class set number (sum of powers of 2 by pitch-class) for
      * the jazz-style scale or chord name.
