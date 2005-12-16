@@ -171,10 +171,10 @@ public class CSDPlayer extends javax.swing.JFrame {
                 if (res == 0) {
                     on = true;
                     while (on) {
-                        while (pause)
-                            csnd.csoundSleep(40);
+                        if(!pause){
                         if (csp.PerformBuffer() != 0)
                             on = false;
+                        }
                     }
                 }
             }
