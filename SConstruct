@@ -1006,7 +1006,7 @@ else:
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
 
-# FLUIDSYNTH OPCODES
+# FLUIDSYNTH  OPCODES
 
 if not configure.CheckHeader("fluidsynth.h", language = "C"):
     print "CONFIGURATION DECISION: Not building fluid opcodes."
@@ -1022,6 +1022,11 @@ else:
         fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++'])
         fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
         fluidEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL', '-DBUILDING_DLL'])
+        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
+            ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
+    if getPlatform() == 'darwin':
+        fluidEnvironment = pluginEnvironment.Copy()
+        fluidEnvironment.Append(LIBS = ['fluidsynth'])
         pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
             ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
 
