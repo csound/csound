@@ -3,7 +3,7 @@
 ;; not the csound5/examples directory, like this:
 ;; "clisp examples/test.lisp"
 
-(load "csound.lisp")
+(load "csound5.lisp")
 (load "filebuilding.lisp")
 (setq cs (csound::csoundCreate nil))
 (filebuilding::csoundCompileCsd cs "../examples/trapped.csd")
