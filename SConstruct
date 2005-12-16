@@ -999,36 +999,27 @@ if not (commonEnvironment['useOSC'] == '1' and oscFound):
 else:
     print "CONFIGURATION DECISION: Building OSC plugin."
     oscEnvironment = pluginEnvironment.Copy()
-    oscEnvironment.Append(LIBS = ['lo'])
-    oscEnvironment.Append(LIBS = ['pthread'])
+    oscEnvironment.Append(LIBS = ['lo', 'pthread'])
     if getPlatform() == 'mingw':
         oscEnvironment.Append(LIBS = ['ws2_32'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
 
-# FLUIDSYNTH  OPCODES
+# FLUIDSYNTH OPCODES
 
 if not configure.CheckHeader("fluidsynth.h", language = "C"):
     print "CONFIGURATION DECISION: Not building fluid opcodes."
 else:
     print "CONFIGURATION DECISION: Building fluid opcodes."
-    if getPlatform() == 'linux':
-        fluidEnvironment = pluginEnvironment.Copy()
-        fluidEnvironment.Append(LIBS = ['fluidsynth'])
-        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
-            ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
+    fluidEnvironment = pluginEnvironment.Copy()
+    fluidEnvironment.Append(LIBS = ['fluidsynth'])
     if getPlatform() == 'mingw':
-        fluidEnvironment = pluginEnvironment.Copy()
-        fluidEnvironment.Append(LIBS = ['fluidsynth', 'stdc++'])
-        fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
-        fluidEnvironment.Append(CCFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL', '-DMAKEDLL', '-DBUILDING_DLL'])
-        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
-            ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
-    if getPlatform() == 'darwin':
-        fluidEnvironment = pluginEnvironment.Copy()
-        fluidEnvironment.Append(LIBS = ['fluidsynth'])
-        pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
-            ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
+        fluidEnvironment.Append(CCFLAGS = Split('''
+            -DFLUIDSYNTH_NOT_A_DLL -DMAKEDLL -DBUILDING_DLL
+        '''))
+        fluidEnvironment.Append(LIBS = ['stdc++', 'winmm', 'dsound'])
+    pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
+        ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
 
 # VST HOST OPCODES
 
