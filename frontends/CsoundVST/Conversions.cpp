@@ -66,9 +66,9 @@ namespace csound
     char *token = strtok(cpitches, separators);
     while(token)
       {
-	double pcs = pitchClassSetsForNames[token];
-	cpcs = cpcs + pcs;
-	token = strtok(0, separators);
+        double pcs = pitchClassSetsForNames[token];
+        cpcs = cpcs + pcs;
+        token = strtok(0, separators);
       }
     cpcs = std::fmod(cpcs, 4095.0);
     subfill("C",  cname, cpcs);
@@ -95,94 +95,94 @@ namespace csound
   {
     if(!initialized_)
       {
-	pitchClassSetsForNames["C" ] = std::pow(2.0,  0.0);
-	pitchClassSetsForNames["C#"] = std::pow(2.0,  1.0);
-	pitchClassSetsForNames["Db"] = std::pow(2.0,  1.0);
-	pitchClassSetsForNames["D" ] = std::pow(2.0,  2.0);
-	pitchClassSetsForNames["D#"] = std::pow(2.0,  3.0);
-	pitchClassSetsForNames["Eb"] = std::pow(2.0,  3.0);
-	pitchClassSetsForNames["E" ] = std::pow(2.0,  4.0);
-	pitchClassSetsForNames["F" ] = std::pow(2.0,  5.0);
-	pitchClassSetsForNames["F#"] = std::pow(2.0,  6.0);
-	pitchClassSetsForNames["Gb"] = std::pow(2.0,  6.0);
-	pitchClassSetsForNames["G" ] = std::pow(2.0,  7.0);
-	pitchClassSetsForNames["G#"] = std::pow(2.0,  8.0);
-	pitchClassSetsForNames["Ab"] = std::pow(2.0,  8.0);
-	pitchClassSetsForNames["A" ] = std::pow(2.0,  9.0);
-	pitchClassSetsForNames["A#"] = std::pow(2.0, 10.0);
-	pitchClassSetsForNames["Bb"] = std::pow(2.0, 10.0);
-	pitchClassSetsForNames["B" ] = std::pow(2.0, 11.0);
-	listPitchClassSets();
-	for(std::map<std::string, double>::const_iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
-	  {
-	    namesForPitchClassSets[it->second] = it->first;
-	  }
-	listPitchClassSets();
-	// Scales.
-	fill(" major",            "C     D     E  F     G     A     B");
-	fill(" minor",            "C     D  Eb    F     G  Ab    Bb  ");
-	fill(" natural minor",    "C     D  Eb    F     G  Ab    Bb  ");
-	fill(" harmonic minor",   "C     D  Eb    F     G  Ab       B");
-	fill(" chromatic",        "C  C# D  D# E  F  F# G  G# A  A# B");
-	fill(" whole tone",       "C     D     E     F#    G#    A#  ");
-	fill(" diminished",       "C     D  D#    F  F#    G# A     B");
-	fill(" pentatonic",       "C     D     E        G     A      ");
-	fill(" pentatonic major", "C     D     E        G     A      ");
-	fill(" pentatonic minor", "C        Eb    F     G        Bb  ");
-	fill(" augmented",        "C        Eb E        G  Ab    Bb  ");
-	fill(" Lydian dominant",  "C     D     E     Gb G     A  Bb  ");
-	fill(" 3 semitone",       "C        D#       F#       A      ");
-	fill(" 4 semitone",       "C           E           G#        ");
-	fill(" blues",            "C     D  Eb    F  Gb G        Bb  ");
-	fill(" bebop",            "C     D     E  F     G     A  Bb B");
-	// Major chords.
-	fill("M",                 "C           E        G            ");
-	fill("6",                 "C           E        G     A      ");
-	fill("69",                "C     D     E        G     A      ");
-	fill("69b5",              "C     D     E     Gb       A      ");
-	fill("M7",                "C           E        G           B");
-	fill("M9",                "C     D     E        G           B");
-	fill("M11",               "C     D     E  F     G           B");
-	fill("M13",               "C     D     E  F     G     A     B");
-	// Minor chords.
-	fill("m",                 "C        Eb          G            ");
-	fill("m6",                "C        Eb          G     A      ");
-	fill("m69",               "C     D  Eb          G     A      ");
-	fill("m7",                "C        Eb          G        Bb  ");
-	fill("m#7",               "C        Eb          G           B");
-	fill("m7b5",              "C        Eb       Gb          Bb  ");
-	fill("m9",                "C     D  Eb          G        Bb  ");
-	fill("m9#7",              "C     D  Eb          G           B");
-	fill("m11",               "C     D  Eb    F     G        Bb  ");
-	fill("m13",               "C     D  Eb    F     G     A  Bb  ");
-	// Augmented chords.
-	fill("+",                 "C            E         G#         ");
-	fill("7#5",               "C            E         G#     Bb  ");
-	fill("7b9#5",             "C  Db        E         G#     Bb  ");
-	fill("9#5",               "C     D      E         G#     Bb  ");
-	// Diminished chords.
-	fill("o",                 "C        Eb       Gb              ");
-	fill("o7",                "C        Eb       Gb       A      ");
-	// Suspended chords.
-	fill("6sus",              "C              F     G     A      ");
-	fill("69sus",             "C     D        F     G     A      ");
-	fill("7sus",              "C              F     G        Bb  ");
-	fill("9sus",              "C     D        F     G        Bb  ");
-	fill("M7sus",             "C              F     G           B");
-	fill("M9sus",             "C     D        F     G           B");
-	// Dominant chords.
-	fill("7",                 "C            E       G        Bb  ");
-	fill("7b5",               "C            E    Gb          Bb  ");
-	fill("7b9",               "C  Db        E       G        Bb  ");
-	fill("7b9b5",             "C  Db        E    Gb          Bb  ");
-	fill("9",                 "C            E       G        Bb  ");
-	fill("11",                "C     D      E F     G        Bb  ");
-	fill("13",                "C     D      E F     G     A  Bb  ");
-	for(std::map<std::string, double>::iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
-	  {
-	    namesForPitchClassSets[it->second] = it->first;
-	  }
-	initialized_ = true;
+        pitchClassSetsForNames["C" ] = std::pow(2.0,  0.0);
+        pitchClassSetsForNames["C#"] = std::pow(2.0,  1.0);
+        pitchClassSetsForNames["Db"] = std::pow(2.0,  1.0);
+        pitchClassSetsForNames["D" ] = std::pow(2.0,  2.0);
+        pitchClassSetsForNames["D#"] = std::pow(2.0,  3.0);
+        pitchClassSetsForNames["Eb"] = std::pow(2.0,  3.0);
+        pitchClassSetsForNames["E" ] = std::pow(2.0,  4.0);
+        pitchClassSetsForNames["F" ] = std::pow(2.0,  5.0);
+        pitchClassSetsForNames["F#"] = std::pow(2.0,  6.0);
+        pitchClassSetsForNames["Gb"] = std::pow(2.0,  6.0);
+        pitchClassSetsForNames["G" ] = std::pow(2.0,  7.0);
+        pitchClassSetsForNames["G#"] = std::pow(2.0,  8.0);
+        pitchClassSetsForNames["Ab"] = std::pow(2.0,  8.0);
+        pitchClassSetsForNames["A" ] = std::pow(2.0,  9.0);
+        pitchClassSetsForNames["A#"] = std::pow(2.0, 10.0);
+        pitchClassSetsForNames["Bb"] = std::pow(2.0, 10.0);
+        pitchClassSetsForNames["B" ] = std::pow(2.0, 11.0);
+        listPitchClassSets();
+        for(std::map<std::string, double>::const_iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
+          {
+            namesForPitchClassSets[it->second] = it->first;
+          }
+        listPitchClassSets();
+        // Scales.
+        fill(" major",            "C     D     E  F     G     A     B");
+        fill(" minor",            "C     D  Eb    F     G  Ab    Bb  ");
+        fill(" natural minor",    "C     D  Eb    F     G  Ab    Bb  ");
+        fill(" harmonic minor",   "C     D  Eb    F     G  Ab       B");
+        fill(" chromatic",        "C  C# D  D# E  F  F# G  G# A  A# B");
+        fill(" whole tone",       "C     D     E     F#    G#    A#  ");
+        fill(" diminished",       "C     D  D#    F  F#    G# A     B");
+        fill(" pentatonic",       "C     D     E        G     A      ");
+        fill(" pentatonic major", "C     D     E        G     A      ");
+        fill(" pentatonic minor", "C        Eb    F     G        Bb  ");
+        fill(" augmented",        "C        Eb E        G  Ab    Bb  ");
+        fill(" Lydian dominant",  "C     D     E     Gb G     A  Bb  ");
+        fill(" 3 semitone",       "C        D#       F#       A      ");
+        fill(" 4 semitone",       "C           E           G#        ");
+        fill(" blues",            "C     D  Eb    F  Gb G        Bb  ");
+        fill(" bebop",            "C     D     E  F     G     A  Bb B");
+        // Major chords.
+        fill("M",                 "C           E        G            ");
+        fill("6",                 "C           E        G     A      ");
+        fill("69",                "C     D     E        G     A      ");
+        fill("69b5",              "C     D     E     Gb       A      ");
+        fill("M7",                "C           E        G           B");
+        fill("M9",                "C     D     E        G           B");
+        fill("M11",               "C     D     E  F     G           B");
+        fill("M13",               "C     D     E  F     G     A     B");
+        // Minor chords.
+        fill("m",                 "C        Eb          G            ");
+        fill("m6",                "C        Eb          G     A      ");
+        fill("m69",               "C     D  Eb          G     A      ");
+        fill("m7",                "C        Eb          G        Bb  ");
+        fill("m#7",               "C        Eb          G           B");
+        fill("m7b5",              "C        Eb       Gb          Bb  ");
+        fill("m9",                "C     D  Eb          G        Bb  ");
+        fill("m9#7",              "C     D  Eb          G           B");
+        fill("m11",               "C     D  Eb    F     G        Bb  ");
+        fill("m13",               "C     D  Eb    F     G     A  Bb  ");
+        // Augmented chords.
+        fill("+",                 "C            E         G#         ");
+        fill("7#5",               "C            E         G#     Bb  ");
+        fill("7b9#5",             "C  Db        E         G#     Bb  ");
+        fill("9#5",               "C     D      E         G#     Bb  ");
+        // Diminished chords.
+        fill("o",                 "C        Eb       Gb              ");
+        fill("o7",                "C        Eb       Gb       A      ");
+        // Suspended chords.
+        fill("6sus",              "C              F     G     A      ");
+        fill("69sus",             "C     D        F     G     A      ");
+        fill("7sus",              "C              F     G        Bb  ");
+        fill("9sus",              "C     D        F     G        Bb  ");
+        fill("M7sus",             "C              F     G           B");
+        fill("M9sus",             "C     D        F     G           B");
+        // Dominant chords.
+        fill("7",                 "C            E       G        Bb  ");
+        fill("7b5",               "C            E    Gb          Bb  ");
+        fill("7b9",               "C  Db        E       G        Bb  ");
+        fill("7b9b5",             "C  Db        E    Gb          Bb  ");
+        fill("9",                 "C            E       G        Bb  ");
+        fill("11",                "C     D      E F     G        Bb  ");
+        fill("13",                "C     D      E F     G     A  Bb  ");
+        for(std::map<std::string, double>::iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
+          {
+            namesForPitchClassSets[it->second] = it->first;
+          }
+        initialized_ = true;
       }
     return initialized_;
   }
@@ -219,11 +219,11 @@ namespace csound
     double amplitude = 0;
     if(size == 4)
       {
-	amplitude = 1.0;
+        amplitude = 1.0;
       }
     else
       {
-	amplitude = pow(2.0, (size * 8) - 1) - 1;
+        amplitude = pow(2.0, (size * 8) - 1) - 1;
       }
     return amplitude;
   }
@@ -231,7 +231,7 @@ namespace csound
   {
     if(sampleSize == 4)
       {
-	return 127.0;
+        return 127.0;
       }
     return log(getMaximumAmplitude(sampleSize) * 2.0) / log(2.0) * 6.0;
   }
@@ -239,7 +239,7 @@ namespace csound
   {
     if(sampleSize == 4)
       {
-	amplitude *= floatMaximumAmplitude;
+        amplitude *= floatMaximumAmplitude;
       }
     return log(fabs(amplitude)) / log10d20;
   }
@@ -247,7 +247,7 @@ namespace csound
   {
     if(sampleSize == 4)
       {
-	return fabs(Amplitude);
+        return fabs(Amplitude);
       }
     return fabs(Amplitude) / getMaximumAmplitude(sampleSize);
   }
@@ -255,7 +255,7 @@ namespace csound
   {
     if(sampleSize == 4)
       {
-	return exp(decibels * log10d20) / floatMaximumAmplitude;
+        return exp(decibels * log10d20) / floatMaximumAmplitude;
       }
     return exp(decibels * log10d20);
   }
@@ -263,7 +263,7 @@ namespace csound
   {
     if(sampleSize == 4)
       {
-	return decibels;
+        return decibels;
       }
     return decibels / getMaximumDynamicRange() * 127.0;
   }
@@ -271,7 +271,7 @@ namespace csound
   {
     if(sampleSize == 4)
       {
-	return Gain;
+        return Gain;
       }
     return Gain * getMaximumAmplitude(sampleSize);
   }
@@ -279,7 +279,7 @@ namespace csound
   {
     if(sampleSize == 4)
       {
-	return Midi;
+        return Midi;
       }
     return (Midi / 127.0) * getMaximumDynamicRange();
   }
@@ -308,7 +308,7 @@ namespace csound
   {
     if(tonesPerOctave == 0)
       {
-	return octave;
+        return octave;
       }
     return round(octave * tonesPerOctave) / tonesPerOctave;
   }
@@ -348,7 +348,7 @@ namespace csound
   {
     if(rounded)
       {
-	return round(Octave * 12.0 - 36.0);
+        return round(Octave * 12.0 - 36.0);
       }
     return Octave * 12.0 - 36.0;
   }
@@ -384,7 +384,7 @@ namespace csound
       case '1':
       case 'T':
       case 't':
-	return true;
+        return true;
       }
     return false;
   }
@@ -392,11 +392,11 @@ namespace csound
   {
     if(value)
       {
-	return "True";
+        return "True";
       }
     else
       {
-	return "False";
+        return "False";
       }
   }
   int Conversions::stringToInt(std::string value)
@@ -431,11 +431,11 @@ namespace csound
   {
     if(pitchClassSet == 0.0)
       {
-	return pitchClassSet;
+        return pitchClassSet;
       }
     else
       {
-	return log(pitchClassSet) / log(2.0);
+        return log(pitchClassSet) / log(2.0);
       }
   }
   double Conversions::midiToPitchClassSet(double midiKey)
@@ -453,31 +453,31 @@ namespace csound
     int temporaryPitchClassSet;
     for(temporaryPitchClass = roundedPitchClass; temporaryPitchClass < divisionsPerOctave; temporaryPitchClass++)
       {
-	temporaryPitchClassSet = (int) midiToPitchClassSet(temporaryPitchClass);
-	if((roundedTargetPitchClassSet & temporaryPitchClassSet) == temporaryPitchClassSet)
-	  {
-	    upperPitchClass = temporaryPitchClass;
-	    break;
-	  }
+        temporaryPitchClassSet = (int) midiToPitchClassSet(temporaryPitchClass);
+        if((roundedTargetPitchClassSet & temporaryPitchClassSet) == temporaryPitchClassSet)
+          {
+            upperPitchClass = temporaryPitchClass;
+            break;
+          }
       }
     for(temporaryPitchClass = roundedPitchClass; temporaryPitchClass >= 0; temporaryPitchClass--)
       {
-	temporaryPitchClassSet = (int) midiToPitchClassSet(temporaryPitchClass);
-	if((roundedTargetPitchClassSet & temporaryPitchClassSet) == temporaryPitchClassSet)
-	  {
-	    lowerPitchClass = temporaryPitchClass;
-	    break;
-	  }
+        temporaryPitchClassSet = (int) midiToPitchClassSet(temporaryPitchClass);
+        if((roundedTargetPitchClassSet & temporaryPitchClassSet) == temporaryPitchClassSet)
+          {
+            lowerPitchClass = temporaryPitchClass;
+            break;
+          }
       }
     int deltaLower = abs(temporaryPitchClass - lowerPitchClass);
     int deltaUpper = abs(upperPitchClass - temporaryPitchClass);
     if(deltaLower < deltaUpper)
       {
-	return lowerPitchClass;
+        return lowerPitchClass;
       }
     else
       {
-	return upperPitchClass;
+        return upperPitchClass;
       }
   }
   double Conversions::midiToRoundedOctave(double midiKey)
@@ -489,12 +489,12 @@ namespace csound
     size_t i = value.find_first_not_of(" \n\r\t");
     if(i != value.npos)
       {
-	value.erase(0, i);
+        value.erase(0, i);
       }
     i = value.find_last_not_of(" \n\r\t");
     if(i != value.npos)
       {
-	value.erase(i + 1, value.npos);
+        value.erase(i + 1, value.npos);
       }
     return value;
   }
@@ -503,12 +503,12 @@ namespace csound
     size_t i = value.find_first_not_of("\"");
     if(i != value.npos)
       {
-	value.erase(0, i);
+        value.erase(0, i);
       }
     i = value.find_last_not_of("\"");
     if(i != value.npos)
       {
-	value.erase(i + 1, value.npos);
+        value.erase(i + 1, value.npos);
       }
     return value;
   }
@@ -516,11 +516,11 @@ namespace csound
   {
     while (a >= b)
       {
-	a -= b;
+        a -= b;
       }
     while (a < 0)
       {
-	a += b;
+        a += b;
       }
     return a;
   }
@@ -532,7 +532,7 @@ namespace csound
     for(double i = 0; i < 12.0; i = i + 1.0) {
       int powerOf2 = std::pow(2.0, i);
       if ((powerOf2 & mason) == powerOf2) {
-	pitches.push_back(i);
+        pitches.push_back(i);
       }
     }
     return pitches;
@@ -542,11 +542,11 @@ namespace csound
   {
     if(pitchClassSetsForNames.find(name) != pitchClassSetsForNames.end())
       {
-	return pitchClassSetsForNames[name];
+        return pitchClassSetsForNames[name];
       }
     else
       {
-	return -1.0;
+        return -1.0;
       }
   }
 
@@ -554,11 +554,11 @@ namespace csound
   {
     if(namesForPitchClassSets.find(pitchClassSet) != namesForPitchClassSets.end())
       {
-	return namesForPitchClassSets[pitchClassSet];
+        return namesForPitchClassSets[pitchClassSet];
       }
     else
       {
-	return "Not found.";
+        return "Not found.";
       }
   }
 
@@ -567,7 +567,7 @@ namespace csound
     std::strstream stream;
     for(std::map<std::string, double>::const_iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
       {
-	stream << it->first << " = " << it->second << "\r\n";
+        stream << it->first << " = " << it->second << "\r\n";
       }
     return stream.str();
   }
