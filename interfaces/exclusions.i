@@ -54,3 +54,6 @@
 %ignore Csound::SetRtcloseCallback;
 %ignore Csound::RegisterSenseEventCallback;
 
+%ignore CsoundPerformanceThreadMessage;
+%ignore CsPerfThread_PerformScore;
+
