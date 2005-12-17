@@ -34,6 +34,7 @@
     #include "cfgvar.h"
     #include "csound.hpp"
     #include "cs_glue.hpp"
+    #include "csPerfThread.hpp"
     #include "CsoundFile.hpp"
     #include "CppSound.hpp"
     #include "filebuilding.h"
@@ -88,6 +89,7 @@ typedef unsigned int uint32_t;
 %clear MYFLT &value;
 
 %include "cs_glue.hpp"
+%include "csPerfThread.hpp"
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
 %include "filebuilding.h"
