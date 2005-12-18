@@ -54,7 +54,7 @@ class CsoundPerformanceThread {
     int     status;
     // --------
     int  Perform();
-    void csPerfThread_constructor();
+    void csPerfThread_constructor(CSOUND *);
     void QueueMessage(CsoundPerformanceThreadMessage *);
  public:
     /**
