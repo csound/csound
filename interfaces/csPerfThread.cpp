@@ -178,7 +178,7 @@ class CsPerfThreadMsg_ScoreEvent : public CsoundPerformanceThreadMessage {
           if (pcnt > 2 && pp[2] >= (MYFLT) 0 &&
               (opcod == 'a' || opcod == 'i')) {
             pp[2] = (MYFLT) ((double) pp[2] + p2);
-            if (pp[2] < (MYFLT) 0)
+            if (pp[2] <= (MYFLT) 0)
               return 0;
           }
           p2 = 0.0;
@@ -290,14 +290,16 @@ int CsoundPerformanceThread::Perform()
         if (retval)
           goto endOfPerf;
         // if paused, wait until a new message is received, then loop back
+        if (!paused)
+          break;
         csoundWaitThreadLockNoTimeout(pauseLock);
         csoundNotifyThreadLock(pauseLock);
       }
       retval = csoundPerformKsmps(csound);
     } while (!retval);
  endOfPerf:
-    csoundCleanup(csound);
     status = retval;
+    csoundCleanup(csound);
     // delete any pending messages
     csoundWaitThreadLockNoTimeout(queueLock);
     {
@@ -344,10 +346,11 @@ extern "C" {
   }
 }
 
-void CsoundPerformanceThread::csPerfThread_constructor()
+void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound)
 {
     firstMessage = (CsoundPerformanceThreadMessage*) 0;
     lastMessage = (CsoundPerformanceThreadMessage*) 0;
+    this->csound = csound;
     queueLock = (void*) 0;
     pauseLock = (void*) 0;
     flushLock = (void*) 0;
@@ -393,14 +396,12 @@ void CsoundPerformanceThread::csPerfThread_constructor()
 
 CsoundPerformanceThread::CsoundPerformanceThread(Csound *csound)
 {
-    this->csound = csound->GetCsound();
-    csPerfThread_constructor();
+    csPerfThread_constructor(csound->GetCsound());
 }
 
 CsoundPerformanceThread::CsoundPerformanceThread(CSOUND *csound)
 {
-    this->csound = csound;
-    csPerfThread_constructor();
+    csPerfThread_constructor(csound);
 }
 
 CsoundPerformanceThread::~CsoundPerformanceThread()
