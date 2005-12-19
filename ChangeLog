@@ -1,3 +1,11 @@
+2005-12-19  John ffitch  <jpff@codemist.co.uk>
+
+	* SConstruct (else): Added -fPIC again for 64bit machines
+
+	* Opcodes/fluidOpcodes/fluidOpcodes.cpp (fluidLoadIopadr): Cast to
+	int to avoid error
+	(csoundModuleDestroy): Ditto
+
 2005-11-12	Michael Gogins	<gogins@pipeline.com>
 	* Removed csoundThrowMessage APIs as redundant with csoundMessage,
 	and not used.
