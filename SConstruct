@@ -260,6 +260,7 @@ if commonEnvironment['buildRelease'] == '0':
     commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
 if (commonEnvironment['Word64']=='1'):
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
+    commonEnvironment.Append(CCFLAGS = ['-fPIC'])
 else:
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib'])
 
