@@ -133,7 +133,7 @@ extern "C"
     fluid_engines.push_back(fluidSynth);
     csound->Message(csound,
                     "Created Fluid Engine - Number : %d.\n",
-                    fluid_engines.size() - 1);
+                    (int)(fluid_engines.size() - 1));
     *fluid->iEngineNum = (MYFLT)(fluid_engines.size() - 1);
     return OK;
   }
@@ -671,7 +671,7 @@ extern "C"
     if(!fluid_engines.empty()) {
       csound->Message(csound,
                       "Cleaning up Fluid Engines - Found: %d\n",
-                      fluid_engines.size());
+                      (int)(fluid_engines.size()));
       for(size_t i = 0; i < fluid_engines.size(); i++) {
         delete_fluid_synth(fluid_engines[i]);
         fluid_engines[i] = 0;
