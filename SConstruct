@@ -282,10 +282,10 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
     if commonEnvironment['buildInterfaces'] != '0':
         if commonEnvironment['buildJavaWrapper'] != '0':
-            if commonEnvironment['word64'] == '1':
+            if commonEnvironment['Word64'] == '1':
                 commonEnvironment.Append(CPPPATH = '/usr/lib64/java/include')
                 commonEnvironment.Append(CPPPATH = '/usr/lib64/java/include/linux')
-            else
+            else:
                 commonEnvironment.Append(CPPPATH = '/usr/lib/java/include')
                 commonEnvironment.Append(CPPPATH = '/usr/lib/java/include/linux')
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
@@ -311,6 +311,8 @@ elif getPlatform() == 'mingw':
         commonEnvironment.Append(CCFLAGS = "-DMSVC")
 
 if getPlatform() == 'linux':
+    path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
+    path2 = '/usr/local/include/python%s' % commonEnvironment['pythonVersion']
     pythonIncludePath = [path1, path2]
     pythonLinkFlags = []
     if (commonEnvironment['Word64'] == '1'):
