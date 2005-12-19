@@ -1,6 +1,7 @@
 2005-12-19  John ffitch  <jpff@codemist.co.uk>
 
 	* SConstruct (else): Added -fPIC again for 64bit machines
+	(else): Fix path for python for 64bit machines
 
 	* Opcodes/fluidOpcodes/fluidOpcodes.cpp (fluidLoadIopadr): Cast to
 	int to avoid error
