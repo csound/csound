@@ -8,6 +8,8 @@ cp -upv ../../libcsound.a ../../../CSDIST/linux_d64/lib
 
 cp -rupv ../../../manual/html ../../../CSDIST/linux_d64/doc
 
+find ../../../CSDIST/linux_d64/ -name CVS -exec rm -rf {} \;
+
 cat > ../../../CSDIST/linux_d64/def.ins <<'EOF'
 Linux i86_64 Doubles
 /usr/local/bin
