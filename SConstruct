@@ -1156,16 +1156,17 @@ else:
         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
-            -Wl,-rpath-link,. _CsoundVST.so
-        '''))
+        guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
+        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundVST.so'])
+        os.symlink('lib_CsoundVST.so', '_CsoundVST.so')
     elif getPlatform() == 'darwin':
         vstEnvironment.Append(LIBS = ['dl', 'm'])
         # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         vstEnvironment['SHLIBSUFFIX'] = '.dylib'
-        guiProgramEnvironment.Prepend(LINKFLAGS = ['_CsoundVST.dylib'])
+        guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
     elif getPlatform() == 'mingw':
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
@@ -1223,12 +1224,12 @@ else:
     swigflags = vstEnvironment['SWIGFLAGS']
     csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
     csoundVstSources.insert(0, csoundVstPythonWrapper)
-    csoundvst =  vstEnvironment.SharedLibrary('CsoundVST', csoundVstSources, SHLIBPREFIX = '_')
+    csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
 
     if(getPlatform == 'darwin'):
-        vstEnvironment.Prepend(LINKFLAGS='-bundle')
-        vstEnvironment.Program('CsoundVST.so', csoundVstSources, PROGPREFIX = '_')
-    #Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
+        vstEnvironment.Prepend(LINKFLAGS = '-bundle')
+        vstEnvironment.Program('_CsoundVST.so', csoundVstSources)
+    # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     libs.append('CsoundVST.py')
     libs.append(csoundvst)
     Depends(csoundvst, csoundInterfaces)
