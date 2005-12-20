@@ -37,6 +37,8 @@ tclDir      = libDir + '/csound/tcl'
 javaDir     = libDir + '/csound/java'
 # LISP interface
 lispDir     = libDir + '/csound/lisp'
+# STK raw wave files
+rawWaveDir  = instPrefix + '/share/csound/rawwaves'
 
 # Python version to use
 pyVersion   = '2.4'
@@ -51,6 +53,7 @@ buildOpts = ['buildRelease=1', 'buildUtilities=0', 'useLrint=1', 'noDebug=1']
 buildOpts += ['buildPythonOpcodes=1', 'useOSC=1', 'buildCsoundVST=0']
 buildOpts += ['buildJavaWrapper=1', 'pythonVersion=%s' % pyVersion]
 buildOpts += ['customCCFLAGS=%s' % CFlags, 'customCXXFLAGS=%s' % CFlags]
+buildOpts += ['buildCsoundVST=0', 'buildLoris=0', 'buildStkOpcodes=0']
 buildOpts += ['prefix=%s' % instPrefix]
 
 headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h']
@@ -109,6 +112,7 @@ def makeFrontEnd(utilName, is64bit):
     tmp += '\n'
     tmp += 'export %s="%s"\n'
     tmp += 'export CSSTRNGS="%s"\n'
+    tmp += 'export RAWWAVE_PATH="%s"\n'
     tmp += '\n'
     tmp += 'if [ "${LD_LIBRARY_PATH}" == "" ] ; then\n'
     tmp += '    export LD_LIBRARY_PATH="%s"\n'
@@ -119,7 +123,7 @@ def makeFrontEnd(utilName, is64bit):
     tmp += 'exec "%s/%s"%s "$@"\n'
     print >> f, tmp % (['OPCODEDIR', 'OPCODEDIR64'][is64bit],
                        [pluginDir32, pluginDir64][is64bit],
-                       xmgDir, libDir2, libDir2,
+                       xmgDir, rawWaveDir, libDir2, libDir2,
                        binDir2, ['csound', 'csound64'][is64bit],
                        ['', ' -U %s' % utilName][int(utilName != 'csound')])
     f.close
@@ -134,7 +138,7 @@ runCmd(['rm', '-Rf', pkgDir])
 os.makedirs(pkgDir, 0755)
 for i in [binDir, libDir, binDir2, includeDir, libDir2, pluginDir32,
           pluginDir64, xmgDir, docDir, pythonDir, pythonDir2, pdDir, tclDir,
-          javaDir, lispDir]:
+          javaDir, lispDir, rawWaveDir]:
     os.makedirs('%s%s' % (pkgDir, i), 0755)
 
 # copy header files
@@ -158,21 +162,30 @@ installXFile('', 'linseg', binDir)
 installXFile('', 'tabdes', binDir)
 installFile('nsliders.tk', tclDir)
 
+# copy STK raw wave files
+
+rawWaveFiles = []
+for fName in os.listdir('./Opcodes/stk/rawwaves'):
+    if re.match('^.*\.raw$', fName) != None:
+        rawWaveFiles += ['./Opcodes/stk/rawwaves/' + fName]
+installFiles(rawWaveFiles, rawWaveDir)
+
 # build Csound
 
 buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=0', 'dynamicCsoundLibrary=1', 'generateXmg=1',
-               'buildInterfaces=0', 'buildPDClass=1', 'buildTclcsound=1'],
+               'buildInterfaces=0', 'buildPDClass=1', 'buildTclcsound=1',
+               'buildStkOpcodes=1'],
               ['useDouble=1', 'dynamicCsoundLibrary=0', 'generateXmg=0',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=1', 'dynamicCsoundLibrary=1', 'generateXmg=0',
-               'buildInterfaces=1', 'buildPDClass=0', 'buildTclcsound=1']]
+               'buildInterfaces=1', 'buildPDClass=0', 'buildTclcsound=1',
+               'buildCsoundVST=1', 'buildLoris=1', 'buildStkOpcodes=1']]
 
 for i in range(4):
     cleanup()
-    runCmd(['mkdir', '-p', '-m', '0755', 'interfaces/csnd'])
-    args = ['scons'] + buildOpts2[i] + buildOpts
+    args = ['scons'] + buildOpts + buildOpts2[i]
     if (runCmd(args) != 0):
         print ' *** build failed'
         runCmd(['rm', '-Rf', pkgDir])
@@ -210,8 +223,7 @@ for i in range(4):
         installFile('libcsound64.a', libDir)
     elif i == 3:
         # ------------ double precision, dynamic Csound library ------------
-        # re-run scons to work around bug in building Java wrapper
-        runCmd(args)
+        installXFile('--strip-unneeded', 'CsoundVST', binDir)
         # plugin libraries
         os.remove('libcsound64.so')
         pluginList = findFiles('^lib[A-Za-z].*\.so$')
@@ -231,10 +243,16 @@ for i in range(4):
         installXFile('--strip-unneeded', 'cswish64', binDir)
         os.rename('tclcsound.so', 'tclcsound64.so')
         installXFile('--strip-unneeded', 'tclcsound64.so', tclDir)
-        # Python interface library
+        # Python interface libraries (csnd, CsoundVST, and loris)
         installXFile('--strip-debug', 'lib_csnd.so', libDir)
         os.symlink('%s/lib_csnd.so' % libDir,
                    '%s%s/_csnd.so' % (pkgDir, pythonDir2))
+        installXFile('--strip-debug', 'lib_CsoundVST.so', libDir)
+        os.symlink('%s/lib_CsoundVST.so' % libDir,
+                   '%s%s/_CsoundVST.so' % (pkgDir, pythonDir2))
+        installXFile('--strip-debug', '_loris.so', pythonDir2)
+        os.symlink('%s/_loris.so' % pythonDir2,
+                   '%s%s/libloris.so' % (pkgDir, pluginDir64))
         f = open('__make_pyc.sh', 'w')
         print >> f, '#!/bin/sh'
         print >> f, 'if [ "${LD_LIBRARY_PATH}" == "" ] ; then'
@@ -244,12 +262,18 @@ for i in range(4):
         print >> f, 'fi'
         print >> f, 'python -c "import csnd"'
         print >> f, 'python -O -c "import csnd"'
+        print >> f, 'python -c "import CsoundVST"'
+        print >> f, 'python -O -c "import CsoundVST"'
+        print >> f, 'python -c "import loris"'
+        print >> f, 'python -O -c "import loris"'
         print >> f
         f.close()
         os.chmod('__make_pyc.sh', 0755)
         runCmd(['./__make_pyc.sh'])
         os.remove('__make_pyc.sh')
-        installFiles(['csnd.py', 'csnd.pyc', 'csnd.pyo'], pythonDir)
+        installFiles(['csnd.py', 'csnd.pyc', 'csnd.pyo',
+                      'CsoundVST.py', 'CsoundVST.pyc', 'CsoundVST.pyo',
+                      'loris.py', 'loris.pyc', 'loris.pyo'], pythonDir)
         # Java interface library
         installXFile('--strip-debug', 'lib_jcsound.so', libDir)
         installFile('csnd.jar', javaDir)
