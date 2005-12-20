@@ -107,9 +107,10 @@ typedef struct {
 static int osc_send_set(CSOUND *csound, OSCSEND *p)
 {
     char port[8];
-    char *pp= port;
+    char *pp = port;
     char *hh;
     lo_address t;
+
     /* with too many args, XINCODE/XSTRCODE may not work correctly */
     if (p->INOCOUNT > 31)
       return csound->InitError(csound, Str("Too many arguments to OSCsend"));
@@ -230,7 +231,7 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
     if (p->eventQueue == NULL)
       return;
 
-    csound->WaitThreadLock(p->threadLock, 1000);
+    csound->WaitThreadLockNoTimeout(p->threadLock);
     while (p->eventQueue != NULL) {
       double  startTime;
       rtEvt_t *ep = p->eventQueue;
@@ -256,7 +257,7 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
       if (ep->e.strarg != NULL)
         free(ep->e.strarg);
       free(ep);
-      csound->WaitThreadLock(p->threadLock, 1000);
+      csound->WaitThreadLockNoTimeout(p->threadLock);
     }
     csound->NotifyThreadLock(p->threadLock);
 }
@@ -276,7 +277,7 @@ static int osc_event_handler(const char *path, const char *types,
     char        opcod = '\0';
 
     /* check for valid format */
-    if (argc < 1)
+    if ((unsigned int) (argc - 1) > (unsigned int) PMAX)
       return 1;
     switch ((int) types[0]) {
       case 'i': opcod = (char) argv[0]->i; break;
@@ -331,7 +332,7 @@ static int osc_event_handler(const char *path, const char *types,
       }
     }
     /* queue event for handling by main Csound thread */
-    csound->WaitThreadLock(p->threadLock, 1000);
+    csound->WaitThreadLockNoTimeout(p->threadLock);
     if (p->eventQueue == NULL)
       p->eventQueue = evt;
     else {
@@ -360,7 +361,7 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
       lo_server_thread_stop(p->st);
       lo_server_thread_free(p->st);
       /* delete any pending events */
-      csound->WaitThreadLock(p->threadLock, 1000);
+      csound->WaitThreadLockNoTimeout(p->threadLock);
       while (p->eventQueue != NULL) {
         rtEvt_t *nxt = p->eventQueue->nxt;
         if (p->eventQueue->e.strarg != NULL)
@@ -386,6 +387,7 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
 static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
 {
     OSC_GLOBALS *pp;
+
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (pp != NULL)
       return pp;
@@ -405,6 +407,7 @@ static int OSCrecv_init(CSOUND *csound, OSCRECV *p)
 {
     OSC_GLOBALS *pp;
     char        portName[256], *pathName;
+
     /* allocate and initialise the globals structure */
     pp = alloc_globals(csound);
     if (pp->threadLock != NULL)
@@ -464,6 +467,7 @@ static CS_NOINLINE OSC_PAT *alloc_pattern(OSCLISTEN *pp)
 static inline OSC_PAT *get_pattern(OSCLISTEN *pp)
 {
     OSC_PAT *p;
+
     if (pp->freePatterns != NULL) {
       p = pp->freePatterns;
       pp->freePatterns = p->next;
@@ -479,7 +483,7 @@ static int OSC_handler(const char *path, const char *types,
     OSCLISTEN *o;
     int       retval = 1;
 
-    pp->csound->WaitThreadLock(pp->threadLock, 1000);
+    pp->csound->WaitThreadLockNoTimeout(pp->threadLock);
     o = (OSCLISTEN*) pp->oplst;
     while (o != NULL) {
       if (strcmp(o->saved_path, path) == 0 &&
@@ -515,9 +519,11 @@ static int OSC_handler(const char *path, const char *types,
               *(m->args[i]) = (MYFLT) argv[i]->d; break;
             case 's':
               {
-                size_t  maxLen = (size_t) pp->csound->strVarMaxLen;
-                strncpy((char*) m->args[i], &(argv[i]->s), maxLen);
-                ((char*) m->args[i])[maxLen - 1] = '\0';
+                char  *src = (char*) &(argv[i]->s), *dst = (char*) m->args[i];
+                char  *endp = dst + (pp->csound->strVarMaxLen - 1);
+                while (*src != (char) '\0' && dst != endp)
+                  *(dst++) = *(src++);
+                *dst = (char) '\0';
               }
               break;
             }
@@ -565,7 +571,8 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
 static int OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
-    csound->WaitThreadLock(p->port->threadLock, 1000);
+
+    csound->WaitThreadLockNoTimeout(p->port->threadLock);
     if (p->port->oplst == (void*) p)
       p->port->oplst = p->nxt;
     else {
@@ -644,7 +651,7 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
         return csound->InitError(csound, "invalid type");
       }
     }
-    csound->WaitThreadLock(p->port->threadLock, 1000);
+    csound->WaitThreadLockNoTimeout(p->port->threadLock);
     p->nxt = p->port->oplst;
     p->port->oplst = (void*) p;
     csound->NotifyThreadLock(p->port->threadLock);
@@ -659,12 +666,13 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
 static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
+
     /* quick check for empty queue */
     if (p->patterns == NULL) {
       *p->kans = 0;
       return OK;
     }
-    csound->WaitThreadLock(p->port->threadLock, 1000);
+    csound->WaitThreadLockNoTimeout(p->port->threadLock);
     m = p->patterns;
     /* check again for thread safety */
     if (m != NULL) {
