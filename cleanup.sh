@@ -40,6 +40,8 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 "$0" remove "./frontends/CsoundVST/CsoundVST_wrap.cc"
 "$0" remove "./frontends/CsoundVST/CsoundVST_wrap.h"
 "$0" remove "./CsoundVST.py"
+"$0" remove "./CsoundVST.pyc"
+"$0" remove "./CsoundVST.pyo"
 "$0" remove "./interfaces/python_interface_wrap.cc"
 "$0" remove "./interfaces/python_interface_wrap.h"
 "$0" remove "./interfaces/java_interface_wrap.cc"
@@ -52,8 +54,13 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 "$0" remove "./interfaces/csnd.pyo"
 "$0" remove "./csnd.jar"
 "$0" remove "./interfaces/csnd"
+"$0" remove "./Opcodes/Loris/scripting/loris_wrap.cc"
+"$0" remove "./loris.py"
+"$0" remove "./loris.pyc"
+"$0" remove "./loris.pyo"
 
 rm -f "./libcsound.so"
 rm -f "./libcsound64.so"
 rm -f "./_csnd.so"
+rm -f "./_CsoundVST.so"
 
