@@ -791,9 +791,22 @@ else:
         if getPlatform() == 'darwin':
             csoundWrapperEnvironment.Append(CPPPATH =
                 ['/System/Library/Frameworks/JavaVM.Framework/Headers'])
-        csoundJavaWrapperSources = [csoundWrapperEnvironment.SharedObject(
-            'interfaces/java_interface.i',
-            SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
+        if getPlatform() == 'linux':
+            # ugly hack to work around bug that requires running scons twice
+            tmp = [csoundWrapperEnvironment['SWIG']]
+            for i in swigflags:
+                tmp += [i]
+            tmp += ['-java', '-package', 'csnd']
+            tmp += ['-o', 'interfaces/java_interface_wrap.cc']
+            tmp += ['interfaces/java_interface.i']
+            if os.spawnvp(os.P_WAIT, tmp[0], tmp) != 0:
+                Exit(-1)
+            csoundJavaWrapperSources = [csoundWrapperEnvironment.SharedObject(
+                'interfaces/java_interface_wrap.cc')]
+        else:
+            csoundJavaWrapperSources = [csoundWrapperEnvironment.SharedObject(
+                'interfaces/java_interface.i',
+                SWIGFLAGS = [swigflags, '-java', '-package', 'csnd'])]
         csoundJavaWrapperSources += ['interfaces/pyMsgCb_stub.cpp']
         csoundJavaWrapperSources += csoundInterfacesSources
         if getPlatform() == 'darwin':
@@ -810,10 +823,14 @@ else:
         jcsnd = csoundJavaWrapperEnvironment.Java(
             target = 'interfaces', source = 'interfaces',
             JAVACFLAGS = ['-source', '1.4', '-target', '1.4'])
-        zipDependencies.append(jcsnd)
+        try:
+            os.mkdir('interfaces/csnd', 0755)
+        except:
+            pass
         jcsndJar = csoundJavaWrapperEnvironment.Jar(
             'csnd.jar', ['interfaces/csnd'], JARCHDIR = 'interfaces')
         Depends(jcsndJar, jcsnd)
+        libs.append(jcsndJar)
     else:
         print 'CONFIGURATION DECISION: Not building Java wrappers for Csound interfaces library.'
     csoundInterfacesSources.insert(0,
@@ -833,6 +850,7 @@ else:
             'interfaces/python_interface.i',
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
         csoundInterfacesSources.insert(0, csoundPythonInterface)
+        libs.append('csnd.py')
     if not luaFound:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
