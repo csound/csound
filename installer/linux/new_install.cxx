@@ -91,6 +91,7 @@ void wrap(char *dest, char *src, const char *file, const char *opcd)
     char binlink[256];
     char oplink[256];
     FILE *rc;
+    //printf("wrap: dest=%s src=%s file=%s opcd=%s\n", dest, src, file, opcd);
     // Make full address
     if (bindir->value()[0]!='/') {
       char bb[200];
@@ -99,6 +100,7 @@ void wrap(char *dest, char *src, const char *file, const char *opcd)
     }
     else
       strcpy(binlink, file);
+    //printf("    : binlink=%s\n", binlink);
     if (opcdir->value()[0]!='/') {
       char bb[200];
       getcwd(bb, 200);
@@ -106,10 +108,11 @@ void wrap(char *dest, char *src, const char *file, const char *opcd)
     }
     else
       strcpy(oplink, opcd);
-    sprintf(buff, "%s/%s", binlink, dest);
+    //printf("    : oplink=%s\n", oplink);
+    sprintf(buff, "%s/%s", dest, file);
     rc = fopen(buff, "w");
-    fprintf(rc, "#!/bin/sh\n%s=%s\n%s/file $0\n",
-            envy, oplink, binlink);
+    fprintf(rc, "#!/bin/sh\n%s=%s\n%s/%s $0\n",
+            envy, oplink, binlink, file);
     fclose(rc);
     chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IXOTH);
 }
@@ -171,7 +174,7 @@ int main(void)
       if (b[strlen(b)-1]!='/')
         strcat(b, "/");
       strcpy(c, b);
-      strcat(c, "bin");
+      strcat(c, "bin/");
       check_exists(c);
       progress->minimum(0.0f); progress->maximum((float)(n+n));
       progress->value(0.0f);
@@ -179,7 +182,8 @@ int main(void)
       for (i=0; i<n; i++)
         if ((namelist[i]->d_name)[0]!='.') {
           char buff[256];
-          sprintf(buff,"cp -pv ./bin/%s %s>/dev/null", namelist[i]->d_name,c);
+          sprintf(buff,"cp -pv ./bin/%s %s >/dev/null", namelist[i]->d_name,c);
+          //printf("**** %s\n", buff);
           system(buff);
           progress->value(pr+= 1.0f);
           Fl::wait(0.1);
