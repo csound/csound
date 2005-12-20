@@ -617,7 +617,7 @@ if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
             libName2, libCsoundSources,
             SHLINKFLAGS = tmp, SHLIBPREFIX = '', SHLIBSUFFIX = '')
     elif getPlatform() == 'darwin':
-        csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy();
+        csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy()
         libName = 'CsoundLib'
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
             -Xlinker -compatibility_version -Xlinker vers.api
@@ -1252,13 +1252,22 @@ else:
         # It is assumed that you have copied all contents of the Loris distribution
         # into the csound5/Opcodes/Loris directory, e.g.
         # csound5/Opcodes/Loris/src/*, etc.
-        lorisEnvironment = vstEnvironment.Copy();
-        lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H -DDEBUG_LORISGENS -D_MSC_VER')
+        lorisEnvironment = vstEnvironment.Copy()
+        lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
+        if commonEnvironment['buildRelease'] == '0':
+            lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
+        elif commonEnvironment['MSVC'] == '0':
+            lorisEnvironment.Append(CCFLAGS = '-Os')
+        if getPlatform() == 'mingw':
+            lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
         lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
         lorisEnvironment.Append(LIBS = ['fftw3'])
-        lorisSources = glob.glob('Opcodes/Loris/src/*.C')
+        lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
+        if 'Opcodes/Loris/src/lorisgens.C' in lorisSources:
+            lorisSources.remove('Opcodes/Loris/src/lorisgens.C')
         lorisSources.append('Opcodes/Loris/scripting/loris.i')
-        # The following file has been patched for Csound 5 and you should update it from Csound 5 CVS.
+        # The following file has been patched for Csound 5
+        # and you should update it from Csound 5 CVS.
         lorisSources.append('Opcodes/Loris/lorisgens5.C')
         lorisEnvironment.Append(SWIGPATH = ['./'])
         lorisEnvironment.Prepend(SWIGFLAGS = Split('-module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.'))
