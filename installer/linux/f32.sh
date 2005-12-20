@@ -5,11 +5,12 @@ cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,csco
 strip ../../../CSDIST/linux_f32/bin/*
 
 rm ../../../CSDIST/linux_f32/opc/*
-cp -pv ../../li*.so ../../../CSDIST/linux_f32/opc
+cp -pv ../../li*.so ../../*.jar ../../_csnd.so ../../../CSDIST/linux_f32/opc
 
 cp -upv ../../libcsound.a  ../../../CSDIST/linux_f32/lib
 
 cp -rupv ../../../manual/html ../../../CSDIST/linux_f32/doc
+find ../../../CSDIST/linux_f32/ -name CVS -exec rm -rf {} \;
 
 cat > ../../../CSDIST/linux_f32/def.ins <<'EOF'
 Linux Floats

@@ -7,6 +7,7 @@ cp -upv ../../li*.so ../../../CSDIST/linux_d32/opc
 cp -upv ../../libcsound.a  ../../../CSDIST/linux_d32/lib
 
 cp -rupv ../../../manual/html ../../../CSDIST/linux_d32/doc
+find ../../../CSDIST/linux_d32/ -name CVS -exec rm -rf {} \;
 
 cat > ../../../CSDIST/linux_d32/def.ins <<'EOF'
 Linux Doubles

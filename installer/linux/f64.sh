@@ -7,6 +7,7 @@ cp -upv ../../li*.so ../../../CSDIST/linux_f64/opc
 cp -upv ../../libcsound.a  ../../../CSDIST/linux_f64/lib
 
 cp -rupv ../../../manual/html ../../../CSDIST/linux_f64/doc
+find ../../../CSDIST/linux_f64/ -name CVS -exec rm -rf {} \;
 
 cat > ../../../CSDIST/linux_f64/def.ins <<'EOF'
 Linux i86_64 Floats
