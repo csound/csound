@@ -565,7 +565,10 @@ extern "C"
     const char *path = csound->GetEnv(csound, "RAWWAVE_PATH");
     if(!path)
       {
-        csound->Message(csound, "Error: define environment variable RAWWAVE_PATH (points to rawwaves directory) to use STK opcodes.\n");
+        csound->ErrorMsg(csound,
+                         "Error: define environment variable RAWWAVE_PATH\n"
+                         "(points to rawwaves directory) to use STK opcodes.");
+        return 0;
       }
     else
       {
