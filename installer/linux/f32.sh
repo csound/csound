@@ -1,6 +1,11 @@
-cp -upv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/linux_f32/bin
+rm ../../../CSDIST/linux_f32/bin/*
 
-cp -upv ../../li*.so ../../../CSDIST/linux_f32/opc
+cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/linux_f32/bin
+
+strip ../../../CSDIST/linux_f32/bin/*
+
+rm ../../../CSDIST/linux_f32/opc/*
+cp -pv ../../li*.so ../../../CSDIST/linux_f32/opc
 
 cp -upv ../../libcsound.a  ../../../CSDIST/linux_f32/lib
 
@@ -13,4 +18,5 @@ Linux Floats
 /usr/local/doc/csound
 /usr/local/lib
 OPCODEDIR
+libcsound.a
 'EOF'

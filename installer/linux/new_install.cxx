@@ -18,7 +18,15 @@ char doh[256];
 char lib[256];
 char envy[256];
 
-#include "installer.cxx"
+# include "installer.cxx"
+
+#if defined(linux)
+# define LIBEXT "so"
+#elif defined(__MACH__)
+# define LIBEXT "dynlib"
+#elif
+#define LIBEXT "dll"
+#endif
 
 void set_system(Fl_Check_Button*, void*)
 {
@@ -72,6 +80,41 @@ void check_exists(const char *dir)
     return;
 }
 
+void wrap(char *dest, char *src, const char *file, const char *opcd)
+{
+    /* Need to setup OPCODEDIR or OPCODEDIR64 */
+    /* This differs according to which shell is being used, so for
+       bash/sh add to .profile "OPCODEDIRxx=yyy; export OPCODEDIRxx"
+       csh/tcsh add to .cshrc "setenv OPCODEDIRxx yyyy"
+    */
+    char buff[120];
+    char binlink[256];
+    char oplink[256];
+    FILE *rc;
+    // Make full address
+    if (bindir->value()[0]!='/') {
+      char bb[200];
+      getcwd(bb, 200);
+      sprintf(binlink, "%s/%s", bb, src);
+    }
+    else
+      strcpy(binlink, file);
+    if (opcdir->value()[0]!='/') {
+      char bb[200];
+      getcwd(bb, 200);
+      sprintf(oplink, "%s/%s", bb, opcd);
+    }
+    else
+      strcpy(oplink, opcd);
+    sprintf(buff, "%s/%s", binlink, dest);
+    rc = fopen(buff, "w");
+    fprintf(rc, "#!/bin/sh\n%s=%s\n%s/file $0\n",
+            envy, oplink, binlink);
+    fclose(rc);
+    chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IXOTH);
+}
+
+
 int main(void)
 {
     FILE *defs = fopen("def.ins", "r");
@@ -119,25 +162,33 @@ int main(void)
     if (doBin->value()) {
       struct dirent **namelist;
       char b[256];
+      char c[256];
       int n = scandir("./bin", &namelist, NULL, alphasort);
       int i;
+      float pr = 0;
       progress->label("binaries");
       strcpy(b, bindir->value());
       if (b[strlen(b)-1]!='/')
         strcat(b, "/");
-      check_exists(b);
-      progress->minimum(0.0f); progress->maximum((float)n);
+      strcpy(c, b);
+      strcat(c, "bin");
+      check_exists(c);
+      progress->minimum(0.0f); progress->maximum((float)(n+n));
       progress->value(0.0f);
       Fl::wait(0.1);
       for (i=0; i<n; i++)
         if ((namelist[i]->d_name)[0]!='.') {
           char buff[256];
-          sprintf(buff,"cp -pv ./bin/%s %s>/dev/null", namelist[i]->d_name,b);
+          sprintf(buff,"cp -pv ./bin/%s %s>/dev/null", namelist[i]->d_name,c);
           system(buff);
-          progress->value((float)(i+1));
+          progress->value(pr+= 1.0f);
+          Fl::wait(0.1);
+          if (strlen(opcdir->value())!=0)
+            wrap(b, c, namelist[i]->d_name, opcdir->value());
+          progress->value(pr+1.0f);
           Fl::wait(0.1);
         }
-        else progress->value((float)(i+1));
+        else progress->value(pr+= 2.0f);
     }
     //Copy opcodes
     if (doOpc->value()) {
@@ -201,84 +252,59 @@ int main(void)
       progress->value(0.0f);
       if (do_libinstall) {
         char buff[256];
+        char name[256];
+        char *p;
         float n = 0.0f;
+        fgets(name,256,defs);
+        p = strchr(name,'\n');
+        if (p!=name) *p = '\0';
         check_exists(b);
-        sprintf(buff,"cp -pv ./lib/libcsound.a %s>/dev/null", b);
+        sprintf(buff,"cp -pv ./lib/%s %s>/dev/null", name, b);
         system(buff);
         progress->value(n+= 1.0f);
         if (do_asound->value()) {
-          sprintf(buff,"cp -pv ./lib/libasound.so.2 %s>/dev/null", b);
+          sprintf(buff,"cp -pv ./lib/libasound." LIBEXT ".2 %s>/dev/null",  b);
           system(buff);
-          sprintf(buff,"ln -s %s/libasound.so.2 %s/libasound.so",b,b);
+          sprintf(buff,"ln -s %s/libasound." LIBEXT ".2 %s/libasound." LIBEXT,b,b);
           system(buff);
           progress->value(n+= 1.0f);
         }
         if (do_fluidsynth->value()) {
-          sprintf(buff,"cp -pv ./lib/libfluidsynth.so.1 %s>/dev/null", b);
+          sprintf(buff,"cp -pv ./lib/libfluidsynth." LIBEXT ".1 %s>/dev/null", b);
           system(buff);
-          sprintf(buff,"ln -s %s/libfluidsynth.so.1 %s/libfluidsynth.so",b,b);
+          sprintf(buff,"ln -s %s/libfluidsynth." LIBEXT
+                  ".1 %s/libfluidsynth." LIBEXT,b,b);
           system(buff);
           progress->value(n+= 1.0f);
         }
         if (do_jack->value()) {
-          sprintf(buff,"cp -pv ./lib/libjack.so.0 %s>/dev/null", b);
+          sprintf(buff,"cp -pv ./lib/libjack." LIBEXT ".0 %s>/dev/null", b);
           system(buff);
-          sprintf(buff,"ln -s %s/libjacl.so.0 %s/libjack.so",b,b);
+          sprintf(buff,"ln -s %s/libjacl.0 %s/libjack." LIBEXT "",b,b);
           system(buff);
           progress->value(n+= 1.0f);
         }
         if (do_lo->value()) {
-          sprintf(buff,"cp -pv ./lib/liblo.so.0 %s>/dev/null", b);
+          sprintf(buff,"cp -pv ./lib/liblo." LIBEXT ".0 %s>/dev/null", b);
           system(buff);
-          sprintf(buff,"ln -s %s/liblo.so.0 %s/liblo.so",b,b);
+          sprintf(buff,"ln -s %s/liblo." LIBEXT ".0 %s/liblo." LIBEXT "",b,b);
           system(buff);
           progress->value(n+= 1.0f);
         }
         if (do_portaudio->value()) {
-          sprintf(buff,"cp -pv ./lib/libportaudio.so %s>/dev/null", b);
+          sprintf(buff,"cp -pv ./lib/libportaudio." LIBEXT " %s>/dev/null", b);
           system(buff);
           progress->value(n+= 1.0f);
         }
         if (do_sndfile->value()) {
-          sprintf(buff,"cp -pv ./lib/libsndfile.so.1 %s>/dev/null", b);
+          sprintf(buff,"cp -pv ./lib/libsndfile." LIBEXT ".1 %s>/dev/null", b);
           system(buff);
-          sprintf(buff,"ln -s %s/libsndfile.so.1 %s/libsndfile.so",b,b);
+          sprintf(buff,"ln -s %s/libsndfile." LIBEXT
+                  ".1 %s/libsndfile." LIBEXT,b,b);
           system(buff);
           progress->value(n+= 1.0f);
         }
       }
-    }
-    if (doBin->value() && strlen(opcdir->value())!=0) {
-      /* Need to setup OPCODEDIR or OPCODEDIR64 */
-      /* This differs according to which shell is being used, so for
-         bash/sh add to .profile "OPCODEDIRxx=yyy; export OPCODEDIRxx"
-         csh/tcsh add to .cshrc "setenv OPCODEDIRxx yyyy"
-      */
-      char buff[120];
-      char binlink[256];
-      char oplink[256];
-      FILE *rc;
-      // Make full address
-      if (bindir->value()[0]!='/') {
-        char bb[200];
-        getcwd(bb, 200);
-        sprintf(binlink, "%s/%s", bb, bindir->value());
-      }
-      else
-        strcpy(binlink, bindir->value());
-      if (opcdir->value()[0]!='/') {
-        char bb[200];
-        getcwd(bb, 200);
-        sprintf(oplink, "%s/%s", bb, opcdir->value());
-      }
-      else
-        strcpy(oplink, opcdir->value());
-      sprintf(buff, "%s/cs5", binlink);
-      rc = fopen(buff, "w");
-      fprintf(rc, "#!/bin/sh\n%s=%s\n%s/csound $0\n",
-              envy, oplink, binlink);
-      fclose(rc);
-      chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IXOTH);
     }
     err->color(FL_GRAY);
     do_alert("Installation finished");
