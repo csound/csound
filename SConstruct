@@ -1156,7 +1156,6 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundVST.so'])
         os.symlink('lib_CsoundVST.so', '_CsoundVST.so')
     elif getPlatform() == 'darwin':
@@ -1165,7 +1164,6 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
         vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
         vstEnvironment['SHLIBSUFFIX'] = '.dylib'
-        guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
     elif getPlatform() == 'mingw':
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
@@ -1174,24 +1172,25 @@ else:
         vstEnvironment.Append(LIBS = ['fltk_images'])
         vstEnvironment.Append(LIBS = ['fltk'])
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
+    guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
     for option in vstEnvironment['CCFLAGS']:
-            if string.find(option, '-D') == 0:
-                vstEnvironment.Append(SWIGFLAGS = [option])
+        if string.find(option, '-D') == 0:
+            vstEnvironment.Append(SWIGFLAGS = [option])
+    for option in vstEnvironment['CPPFLAGS']:
+        if string.find(option, '-D') == 0:
+            vstEnvironment.Append(SWIGFLAGS = [option])
     for option in vstEnvironment['CPPPATH']:
         option = '-I' + option
         vstEnvironment.Append(SWIGFLAGS = [option])
-    #for option in vstEnvironment['CPPFLAGS']:
-    #        if string.find(option, '-D') == 0:
-    #                vstEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundVstSources = Split('''
     frontends/CsoundVST/AudioEffect.cpp
     frontends/CsoundVST/audioeffectx.cpp
+    frontends/CsoundVST/Cell.cpp
     frontends/CsoundVST/Composition.cpp
     frontends/CsoundVST/Conversions.cpp
     frontends/CsoundVST/Counterpoint.cpp
     frontends/CsoundVST/CounterpointNode.cpp
-    frontends/CsoundVST/Cell.cpp
     frontends/CsoundVST/CsoundVST.cpp
     frontends/CsoundVST/CsoundVstFltk.cpp
     frontends/CsoundVST/CsoundVSTMain.cpp
@@ -1210,9 +1209,9 @@ else:
     frontends/CsoundVST/ScoreNode.cpp
     frontends/CsoundVST/Sequence.cpp
     frontends/CsoundVST/Shell.cpp
+    frontends/CsoundVST/Soundfile.cpp
     frontends/CsoundVST/StrangeAttractor.cpp
     frontends/CsoundVST/System.cpp
-    frontends/CsoundVST/Soundfile.cpp
     ''')
     # These are the Windows system call libraries.
     if getPlatform() == 'mingw':
@@ -1228,15 +1227,13 @@ else:
     csoundVstSources.insert(0, csoundVstPythonWrapper)
     csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
 
-    if (getPlatform == 'darwin'):
+    if getPlatform == 'darwin':
         vstEnvironment.Prepend(LINKFLAGS = '-bundle')
         vstEnvironment.Program('_CsoundVST.so', csoundVstSources)
     # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     libs.append('CsoundVST.py')
     libs.append(csoundvst)
     Depends(csoundvst, csoundInterfaces)
-    if getPlatform() == 'mingw':
-        guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
     csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
@@ -1244,7 +1241,7 @@ else:
     Depends(csoundvstGui, csoundvst)
 
     counterpoint = vstEnvironment.Program(
-        'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp' ])
+        'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
     zipDependencies.append(counterpoint)
 
     # Build the Loris and Python opcodes here because they depend
@@ -1262,6 +1259,10 @@ else:
             lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
         if getPlatform() == 'mingw':
             lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
+        if commonEnvironment['MSVC'] == '0':
+            lorisEnvironment.Append(CCFLAGS = Split('''
+                -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
+            '''))
         lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
         lorisEnvironment.Append(LIBS = ['fftw3'])
         lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
