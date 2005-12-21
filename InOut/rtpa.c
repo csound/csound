@@ -166,7 +166,7 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
       devNum = i;
     }
     dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) devNum);
-    csound->Message(csound, Str("PortAudio: selected %s device \"%s\"\n"),
+    csound->Message(csound, Str("PortAudio: selected %s device '%s'\n"),
                             (play ? Str("output") : Str("input")),
                             dev_info->name);
     return devNum;
@@ -576,7 +576,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev,
       return -1;
 #else
       PaAlsaStreamInfo info;
-      p->Message(p, Str("PortAudio: using ALSA device \"%s\"\n"), parm->devName);
+      p->Message(p, Str("PortAudio: using ALSA device '%s'\n"), parm->devName);
       memset(&info, 0, sizeof(PaAlsaStreamInfo));
       info.deviceString = parm->devName;
       info.hostApiType = paALSA;
