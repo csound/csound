@@ -183,16 +183,16 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     info = portMidi_getDeviceInfo(devnum, 0);
     if (info->interf != NULL)
       csound->Message(csound,
-                      Str("PortMIDI: selected input device %d: \"%s\" (%s)\n"),
+                      Str("PortMIDI: selected input device %d: '%s' (%s)\n"),
                       devnum, info->name, info->interf);
     else
-      csound->Message(csound, Str("PortMIDI: selected input device %d: \"%s\"\n"),
+      csound->Message(csound, Str("PortMIDI: selected input device %d: '%s'\n"),
                               devnum, info->name);
     retval = Pm_OpenInput(&midistream,
                           (PmDeviceID) portMidi_getRealDeviceID(devnum, 0),
                           NULL, 512L, (PmTimeProcPtr) NULL, NULL);
     if (retval != pmNoError) {
-      return portMidiErrMsg(csound, Str("error opening input device %d: \"%s\""),
+      return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
                                     devnum, Pm_GetErrorText(retval));
     }
     *userData = (void*) midistream;
@@ -240,17 +240,17 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
     info = portMidi_getDeviceInfo(devnum, 1);
     if (info->interf != NULL)
       csound->Message(csound,
-                      Str("PortMIDI: selected output device %d: \"%s\" (%s)\n"),
+                      Str("PortMIDI: selected output device %d: '%s' (%s)\n"),
                       devnum, info->name, info->interf);
     else
       csound->Message(csound,
-                      Str("PortMIDI: selected output device %d: \"%s\"\n"),
+                      Str("PortMIDI: selected output device %d: '%s'\n"),
                       devnum, info->name);
     retval = Pm_OpenOutput(&midistream,
                            (PmDeviceID) portMidi_getRealDeviceID(devnum, 1),
                            NULL, 512L, (PmTimeProcPtr) NULL, NULL, 0L);
     if (retval != pmNoError) {
-      return portMidiErrMsg(csound, Str("error opening output device %d: \"%s\""),
+      return portMidiErrMsg(csound, Str("error opening output device %d: %s"),
                                     devnum, Pm_GetErrorText(retval));
     }
     *userData = (void*) midistream;
