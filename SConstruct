@@ -737,6 +737,15 @@ if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
+def fixCFlagsForSwig(env):
+    if '-pedantic' in env['CCFLAGS']:
+        env['CCFLAGS'].remove('-pedantic')
+    if '-pedantic' in env['CXXFLAGS']:
+        env['CXXFLAGS'].remove('-pedantic')
+    if commonEnvironment['MSVC'] == '0':
+        # work around non-ANSI type punning in SWIG generated wrapper files
+        env['CCFLAGS'].append('-fno-strict-aliasing')
+
 if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironment['buildInterfaces'] == '1'):
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
 else:
@@ -763,18 +772,8 @@ else:
         -c++ -includeall -verbose
     '''))
     csoundWrapperEnvironment = csoundInterfacesEnvironment.Copy()
-    wrapCFlags = csoundWrapperEnvironment['CCFLAGS']
-    wrapCXXFlags = csoundWrapperEnvironment['CXXFLAGS']
-    if '-pedantic' in wrapCFlags:
-        wrapCFlags.remove('-pedantic')
-    if '-pedantic' in wrapCXXFlags:
-        wrapCXXFlags.remove('-pedantic')
-    if commonEnvironment['MSVC'] == '0':
-        # work around non-ANSI type punning in SWIG generated wrapper files
-        wrapCFlags.append('-fno-strict-aliasing')
-    wrapCFlags.append('-D__BUILDING_CSOUND_INTERFACES')
-    csoundWrapperEnvironment['CCFLAGS'] = wrapCFlags
-    csoundWrapperEnvironment['CXXFLAGS'] = wrapCXXFlags
+    fixCFlagsForSwig(csoundWrapperEnvironment)
+    csoundWrapperEnvironment.Append(CPPFLAGS = '-D__BUILDING_CSOUND_INTERFACES')
     for option in csoundWrapperEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
             csoundWrapperEnvironment.Append(SWIGFLAGS = [option])
@@ -1222,11 +1221,14 @@ else:
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
     swigflags = vstEnvironment['SWIGFLAGS']
-    csoundVstPythonWrapper = vstEnvironment.SharedObject('frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
+    vstWrapperEnvironment = vstEnvironment.Copy()
+    fixCFlagsForSwig(vstWrapperEnvironment)
+    csoundVstPythonWrapper = vstWrapperEnvironment.SharedObject(
+        'frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
     csoundVstSources.insert(0, csoundVstPythonWrapper)
     csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
 
-    if(getPlatform == 'darwin'):
+    if (getPlatform == 'darwin'):
         vstEnvironment.Prepend(LINKFLAGS = '-bundle')
         vstEnvironment.Program('_CsoundVST.so', csoundVstSources)
     # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
@@ -1236,11 +1238,13 @@ else:
     if getPlatform() == 'mingw':
         guiProgramEnvironment.Append(LIBS = ['CsoundVST'])
 
-    csoundvstGui = guiProgramEnvironment.Program('CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
+    csoundvstGui = guiProgramEnvironment.Program(
+        'CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
     executables.append(csoundvstGui)
     Depends(csoundvstGui, csoundvst)
 
-    counterpoint = vstEnvironment.Program('counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp' ])
+    counterpoint = vstEnvironment.Program(
+        'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp' ])
     zipDependencies.append(counterpoint)
 
     # Build the Loris and Python opcodes here because they depend
@@ -1249,15 +1253,13 @@ else:
     if commonEnvironment['buildLoris']=='1':
         # For Loris, we build only the loris Python extension module and
         # the Csound opcodes (modified for Csound 5).
-        # It is assumed that you have copied all contents of the Loris distribution
-        # into the csound5/Opcodes/Loris directory, e.g.
+        # It is assumed that you have copied all contents of the Loris
+        # distribution into the csound5/Opcodes/Loris directory, e.g.
         # csound5/Opcodes/Loris/src/*, etc.
         lorisEnvironment = vstEnvironment.Copy()
         lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
         if commonEnvironment['buildRelease'] == '0':
             lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
-        elif commonEnvironment['MSVC'] == '0':
-            lorisEnvironment.Append(CCFLAGS = '-Os')
         if getPlatform() == 'mingw':
             lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
         lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
@@ -1265,63 +1267,69 @@ else:
         lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
         if 'Opcodes/Loris/src/lorisgens.C' in lorisSources:
             lorisSources.remove('Opcodes/Loris/src/lorisgens.C')
-        lorisSources.append('Opcodes/Loris/scripting/loris.i')
+        lorisWrapperEnvironment = lorisEnvironment.Copy()
+        fixCFlagsForSwig(lorisWrapperEnvironment)
+        lorisWrapperEnvironment.Append(SWIGPATH = ['./'])
+        lorisWrapperEnvironment.Prepend(SWIGFLAGS = Split('''
+            -module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.
+        '''))
+        lorisPythonWrapper = lorisWrapperEnvironment.SharedObject(
+            'Opcodes/Loris/scripting/loris.i')
+        lorisSources.append(lorisPythonWrapper)
         # The following file has been patched for Csound 5
         # and you should update it from Csound 5 CVS.
         lorisSources.append('Opcodes/Loris/lorisgens5.C')
-        lorisEnvironment.Append(SWIGPATH = ['./'])
-        lorisEnvironment.Prepend(SWIGFLAGS = Split('-module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.'))
-        loris = lorisEnvironment.SharedLibrary('loris', lorisSources, SHLIBPREFIX = '_')
+        loris = lorisEnvironment.SharedLibrary(
+            'loris', lorisSources, SHLIBPREFIX = '_')
         Depends(loris, csoundvst)
         pluginLibraries.append(loris)
         libs.append(loris)
         libs.append('loris.py')
 
-    if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
-        print 'CONFIGURATION DECISION: Not building STK opcodes.'
-    else:
-        print 'CONFIGURATION DECISION: Building STK opcodes.'
-        # For the STK opcodes, the STK distribution include, src, and rawwaves directories should be copied thusly:
-        # csound5/Opcodes/stk/include
-        # csound5/Opcodes/stk/src
-        # csound5/Opcodes/stk/rawwaves
-        # Then, the following sources (and any other future I/O or OS dependent sources) should be ignored:
-        removeSources = Split('''
-Opcodes/stk/src/InetWvIn.cpp
-Opcodes/stk/src/InetWvOut.cpp
-Opcodes/stk/src/Mutex.cpp
-Opcodes/stk/src/RtAudio.cpp
-Opcodes/stk/src/RtMidi.cpp
-Opcodes/stk/src/RtDuplex.cpp
-Opcodes/stk/src/RtWvIn.cpp
-Opcodes/stk/src/RtWvOut.cpp
-Opcodes/stk/src/Socket.cpp
-Opcodes/stk/src/TcpClient.cpp
-Opcodes/stk/src/TcpServer.cpp
-Opcodes/stk/src/Thread.cpp
-Opcodes/stk/src/UdpSocket.cpp
-''')
-        stkEnvironment = vstEnvironment.Copy()
-        if getPlatform() == 'mingw':
-                stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__ -D__LITTLE_ENDIAN__')
-        elif getPlatform() == 'linux':
-                stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__ -D__LITTLE_ENDIAN__')
-        elif getPlatform() == 'darwin':
-                stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
-        stkEnvironment.Prepend(CPPPATH = Split('Opcodes/stk/include Opcodes/stk/src ./ ./../include'))
-        stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
-        # This is the one that actually defines the opcodes.
-        # They are straight wrappers, as simple as possible.
-        stkSources_.append('Opcodes/stk/stkOpcodes.cpp')
-        stkSources = []
-        for source in stkSources_:
-                stkSources.append(source.replace('\\', '/'))
-        for removeMe in removeSources:
-            stkSources.remove(removeMe)
-        stk = stkEnvironment.SharedLibrary('stk', stkSources)
-        Depends(stk, csoundLibrary)
-        pluginLibraries.append(stk)
-        libs.append(stk)
+if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
+    print 'CONFIGURATION DECISION: Not building STK opcodes.'
+else:
+    print 'CONFIGURATION DECISION: Building STK opcodes.'
+    # For the STK opcodes, the STK distribution include, src, and rawwaves
+    # directories should be copied thusly:
+    #   csound5/Opcodes/stk/include
+    #   csound5/Opcodes/stk/src
+    #   csound5/Opcodes/stk/rawwaves
+    # Then, the following sources (and any other future I/O or OS dependent
+    # sources) should be ignored:
+    removeSources = Split('''
+        Opcodes/stk/src/InetWvIn.cpp    Opcodes/stk/src/InetWvOut.cpp
+        Opcodes/stk/src/Mutex.cpp       Opcodes/stk/src/RtAudio.cpp
+        Opcodes/stk/src/RtMidi.cpp      Opcodes/stk/src/RtDuplex.cpp
+        Opcodes/stk/src/RtWvIn.cpp      Opcodes/stk/src/RtWvOut.cpp
+        Opcodes/stk/src/Socket.cpp      Opcodes/stk/src/TcpClient.cpp
+        Opcodes/stk/src/TcpServer.cpp   Opcodes/stk/src/Thread.cpp
+        Opcodes/stk/src/UdpSocket.cpp
+    ''')
+    stkEnvironment = pluginEnvironment.Copy()
+    if getPlatform() == 'mingw':
+        stkEnvironment.Append(CCFLAGS = '-D__OS_WINDOWS__ -D__LITTLE_ENDIAN__')
+    elif getPlatform() == 'linux':
+        # N.B. these assumptions about endianness may be incorrect
+        stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__ -D__LITTLE_ENDIAN__')
+    elif getPlatform() == 'darwin':
+        stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
+    if commonEnvironment['MSVC'] == '0':
+        stkEnvironment.Append(LIBS = ['stdc++'])
+    stkEnvironment.Prepend(CPPPATH = Split('''
+        Opcodes/stk/include Opcodes/stk/src ./ ./../include
+    '''))
+    stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
+    # This is the one that actually defines the opcodes.
+    # They are straight wrappers, as simple as possible.
+    stkSources_.append('Opcodes/stk/stkOpcodes.cpp')
+    stkSources = []
+    for source in stkSources_:
+        stkSources.append(source.replace('\\', '/'))
+    for removeMe in removeSources:
+        stkSources.remove(removeMe)
+    stk = stkEnvironment.SharedLibrary('stk', stkSources)
+    pluginLibraries.append(stk)
 
 if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
     print "CONFIGURATION DECISION: Not building Python opcodes."
