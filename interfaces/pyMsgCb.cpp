@@ -27,25 +27,38 @@ extern "C"
   int PyRun_SimpleString(const char *string);
 }
 
-static void pythonMessageCallback(CSOUND *csound, int attr, const char *format, va_list valist)
+static void pythonMessageCallback(CSOUND *csound,
+                                  int attr, const char *format, va_list valist)
 {
-  static char buffer[0x1000];
-  static char buffer1[0x1000];
-  vsprintf(buffer, format, valist);
-  static std::string actualBuffer;
-  static std::string lineBuffer;
-  actualBuffer.append(buffer);
-  size_t position = 0;
-  while((position = actualBuffer.find("\n")) != std::string::npos)
+  char          buffer[8192];
+  static std::string  lineBuffer = "print '''";     // FIXME
+  unsigned int  i, len;
+#ifdef HAVE_C99
+  len = (unsigned int) vsnprintf(&(buffer[0]), (size_t) 8192, format, valist);
+  if (len >= 8192U)
     {
-      lineBuffer = actualBuffer.substr(0, position);
-      actualBuffer.erase(0, position + 1);
-#ifndef MSVC
-      actualBuffer.clear();
-#endif
-      sprintf(buffer1, "print '''%s'''", lineBuffer.c_str());
-      PyRun_SimpleString(buffer1);
+      PyRun_SimpleString("print '''Error: message buffer overflow'''");
+      return;
     }
+#else
+  len = (unsigned int) vsprintf(&(buffer[0]), format, valist);
+  if (len >= 8192U)
+    {
+      PyRun_SimpleString("print '''Error: message buffer overflow'''");
+      exit(-1);
+    }
+#endif
+  for (i = 0; i < len; i++) {
+    if (buffer[i] == '\n') {
+      lineBuffer += "'''";
+      PyRun_SimpleString(lineBuffer.c_str());
+      lineBuffer = "print '''";
+      continue;
+    }
+    if (buffer[i] == '\'' || buffer[i] == '\\')
+      lineBuffer += '\\';
+    lineBuffer += buffer[i];
+  }
 }
 
 void CppSound::setPythonMessageCallback()
