@@ -305,8 +305,7 @@ namespace csound
 
   void System::closeLibrary(void *library)
   {
-    void *returnValue = 0;
-    returnValue = (void *)csoundCloseLibrary(library);
+    csoundCloseLibrary(library);
   }
 
 #if defined(WIN32)
@@ -522,7 +521,7 @@ namespace csound
     while (startp > path && *(startp - 1) != '/')
       startp--;
 
-    if (endp - startp + 2 > sizeof(bname)) {
+    if ((int) (endp - startp) + 2 > (int) sizeof(bname)) {
       //errno = ENAMETOOLONG;
       return(NULL);
     }
@@ -560,7 +559,7 @@ namespace csound
       } while (endp > path && *endp == '/');
     }
 
-    if (endp - path + 2 > sizeof(bname)) {
+    if ((int) (endp - path) + 2 > (int) sizeof(bname)) {
       //errno = ENAMETOOLONG;
       return(NULL);
     }
@@ -577,7 +576,7 @@ namespace csound
         std::vector<char *> argv;
         std::string buffer = command;
         scatterArgs(buffer, args, argv);
-        execv(argv[0], &argv.front());
+        execvp(argv[0], &argv.front());
       }
     return returnValue;
   }
@@ -651,6 +650,8 @@ namespace csound
     pthread_mutex_t *pthread_mutex = new pthread_mutex_t;
     if(pthread_mutex_init(pthread_mutex, 0) == 0)
       {
+        // for consistency with Win32 version
+        pthread_mutex_trylock(pthread_mutex);
         return pthread_mutex;
       }
     else
@@ -662,21 +663,21 @@ namespace csound
   void System::waitThreadLock(void *lock, size_t milliseconds)
   {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
-    int returnValue = pthread_mutex_lock(pthread_mutex);
+    /* int returnValue = */ pthread_mutex_lock(pthread_mutex);
   }
 
   void System::notifyThreadLock(void *lock)
   {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
-    int returnValue = pthread_mutex_unlock(pthread_mutex);
+    /* int returnValue = */ pthread_mutex_unlock(pthread_mutex);
   }
 
   void System::destroyThreadLock(void *lock)
   {
     pthread_mutex_t *pthread_mutex = (pthread_mutex_t *)lock;
-    int returnValue = pthread_mutex_destroy(pthread_mutex);
+    /* int returnValue = */ pthread_mutex_destroy(pthread_mutex);
     delete pthread_mutex;
-    pthread_mutex = 0;
+    /* pthread_mutex = 0; */
   }
 
   void System::sleep(double milliseconds)
