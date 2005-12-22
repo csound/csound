@@ -285,7 +285,7 @@ void CsoundVstFltk::idle()
   if (oneWaiter == this)
     {
       Fl::lock();
-      Fl::wait(0);
+      Fl::wait(0.0);
       Fl::unlock();
     }
   // If the VST host has indicated
