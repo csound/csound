@@ -176,7 +176,7 @@ buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=0', 'dynamicCsoundLibrary=1', 'generateXmg=1',
                'buildInterfaces=0', 'buildPDClass=1', 'buildTclcsound=1',
-               'buildStkOpcodes=1'],
+               'buildLoris=1', 'buildStkOpcodes=1'],
               ['useDouble=1', 'dynamicCsoundLibrary=0', 'generateXmg=0',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=1', 'dynamicCsoundLibrary=1', 'generateXmg=0',
@@ -251,8 +251,6 @@ for i in range(4):
         os.symlink('%s/lib_CsoundVST.so' % libDir,
                    '%s%s/_CsoundVST.so' % (pkgDir, pythonDir2))
         installXFile('--strip-debug', '_loris.so', pythonDir2)
-        os.symlink('%s/_loris.so' % pythonDir2,
-                   '%s%s/libloris.so' % (pkgDir, pluginDir64))
         f = open('__make_pyc.sh', 'w')
         print >> f, '#!/bin/sh'
         print >> f, 'if [ "${LD_LIBRARY_PATH}" == "" ] ; then'
