@@ -15,6 +15,7 @@ extern Fl_File_Input *bindir;
 extern Fl_File_Input *opcdir;
 extern Fl_File_Input *doc;
 extern Fl_File_Input *libdir;
+extern Fl_File_Input *hdrdir;
 #include <FL/Fl_Progress.H>
 extern Fl_Progress *progress;
 #include <FL/Fl_Button.H>
@@ -22,6 +23,7 @@ extern Fl_Check_Button *doBin;
 extern Fl_Check_Button *doOpc;
 extern Fl_Check_Button *doDoc;
 extern Fl_Check_Button *doLib;
+extern Fl_Check_Button *doHdr;
 Fl_Double_Window* make_window(char* type);
 extern Fl_Output *err_text;
 #include <FL/Fl_Return_Button.H>

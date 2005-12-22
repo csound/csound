@@ -1,5 +1,4 @@
-#!/bin/tcsh
-setenv DIR linux_f32
+DIR=linux_f32
 
 rm ../../../CSDIST/$DIR/bin/*
 
@@ -17,9 +16,11 @@ cp -upv ../../H/cfgvar.h ../../H/cscore.h ../../H/csdl.h ../../H/csound.h ../../
 cp -rupv ../../../manual/html ../../../CSDIST/$DIR/doc
 find ../../../CSDIST/$DIR/ -name CVS -exec rm -rf {} \;
 
+cp -upv installer ../../../CSDIST/$DIR
 cat > ../../../CSDIST/$DIR/def.ins <<'EOF'
 Linux Floats
 /usr/local/bin
+/usr/local/include
 /usr/local/csound
 /usr/local/doc/csound
 /usr/local/lib
