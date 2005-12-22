@@ -245,13 +245,13 @@ interfaces/python_interface_wrap.oo: interfaces/python_interface_wrap.cc
 
 _csnd.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
 		interfaces/CsoundFile.oo interfaces/cs_glue.oo		\
-		interfaces/pyMsgCb.oo					\
+		interfaces/csPerfThread.oo interfaces/pyMsgCb.oo	\
 		interfaces/python_interface_wrap.oo $(CSOUNDLIB)
 	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_csnd.def -lstdc++ $(PYLIB) $(LIBS)
 
 _jcsound.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
 		interfaces/CsoundFile.oo interfaces/cs_glue.oo		\
-		interfaces/pyMsgCb_stub.oo				\
+		interfaces/csPerfThread.oo interfaces/pyMsgCb_stub.oo	\
 		interfaces/java_interface_wrap.oo $(CSOUNDLIB)
 	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_jcsound.def -lstdc++ $(LIBS)
 
