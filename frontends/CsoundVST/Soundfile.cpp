@@ -70,8 +70,9 @@ namespace csound
                         sndfile = sf_open(filename.c_str(), SFM_RDWR, &sf_info);
                         if (!sndfile) {
                                 error();
+                                return -1;
                         }
-                        return (int) sndfile;
+                        return 0;
                 }
         int Soundfile::create(std::string filename, int framesPerSecond, int channelsPerFrame, int format)
                 {
@@ -82,8 +83,9 @@ namespace csound
                         sndfile = sf_open(filename.c_str(), SFM_RDWR, &sf_info);
                         if (!sndfile) {
                                 error();
+                                return -1;
                         }
-                        return (int) sndfile;
+                        return 0;
                 }
         int Soundfile::seek(int frames, int whence)
                 {
@@ -130,7 +132,7 @@ namespace csound
                 }
     void Soundfile::updateHeader()
         {
-            int status = sf_command(sndfile, SFC_UPDATE_HEADER_NOW, 0, 0);
+            /* int status = */ sf_command(sndfile, SFC_UPDATE_HEADER_NOW, 0, 0);
         }
     int Soundfile::close()
         {
