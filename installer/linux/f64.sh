@@ -1,5 +1,4 @@
-#!/bin/tcsh
-setenv DIR linux_f64
+DIR=linux_f64
 
 cp -upv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/$DIR/bin
 
@@ -14,9 +13,11 @@ cp -upv ../../H/cfgvar.h ../../H/cscore.h ../../H/csdl.h ../../H/csound.h ../../
 cp -rupv ../../../manual/html ../../../CSDIST/$DIR/doc
 find ../../../CSDIST/$DIR/ -name CVS -exec rm -rf {} \;
 
+cp -upv installer ../../../CSDIST/$DIR
 cat > ../../../CSDIST/$DIR/def.ins <<'EOF'
 Linux i86_64 Floats
 /usr/local/bin
+/usr/local/include
 /usr/local/csound_64
 /usr/local/doc/csound
 /usr/local/lib64

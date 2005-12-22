@@ -14,6 +14,8 @@ Fl_File_Input *doc=(Fl_File_Input *)0;
 
 Fl_File_Input *libdir=(Fl_File_Input *)0;
 
+Fl_File_Input *hdrdir=(Fl_File_Input *)0;
+
 Fl_Progress *progress=(Fl_Progress *)0;
 
 static void cb_INSTALL(Fl_Button*, void*) {
@@ -32,9 +34,11 @@ Fl_Check_Button *doDoc=(Fl_Check_Button *)0;
 
 Fl_Check_Button *doLib=(Fl_Check_Button *)0;
 
+Fl_Check_Button *doHdr=(Fl_Check_Button *)0;
+
 Fl_Double_Window* make_window(char* type) {
   Fl_Double_Window* w;
-  { Fl_Double_Window* o = new Fl_Double_Window(370, 325, "Csound5 Installer");
+  { Fl_Double_Window* o = new Fl_Double_Window(370, 360, "Csound5 Installer");
     w = o;
     { Fl_Text_Display* o = new Fl_Text_Display(85, 30, 25, 25, "Csound5 Installer for");
       o->box(FL_NO_BOX);
@@ -58,14 +62,15 @@ Fl_Double_Window* make_window(char* type) {
     opcdir = new Fl_File_Input(90, 115, 235, 30, "Opcodes");
     doc = new Fl_File_Input(90, 155, 235, 30, "Manual");
     libdir = new Fl_File_Input(90, 195, 235, 30, "Libraries");
-    progress = new Fl_Progress(150, 275, 210, 30);
-    { Fl_Button* o = new Fl_Button(10, 245, 70, 60, "INSTALL");
+    hdrdir = new Fl_File_Input(90, 235, 235, 30, "Headers");
+    progress = new Fl_Progress(150, 315, 210, 30);
+    { Fl_Button* o = new Fl_Button(10, 285, 70, 60, "INSTALL");
       o->color((Fl_Color)1);
       o->labelfont(9);
       o->labelsize(12);
       o->callback((Fl_Callback*)cb_INSTALL);
     }
-    { Fl_Button* o = new Fl_Button(90, 260, 50, 45, "ABORT");
+    { Fl_Button* o = new Fl_Button(90, 300, 50, 45, "ABORT");
       o->color((Fl_Color)10);
       o->labelfont(9);
       o->labelsize(12);
@@ -81,6 +86,9 @@ Fl_Double_Window* make_window(char* type) {
       o->down_box(FL_DOWN_BOX);
     }
     { Fl_Check_Button* o = doLib = new Fl_Check_Button(10, 200, 25, 25);
+      o->down_box(FL_DOWN_BOX);
+    }
+    { Fl_Check_Button* o = doHdr = new Fl_Check_Button(10, 235, 25, 25);
       o->down_box(FL_DOWN_BOX);
     }
     o->end();
