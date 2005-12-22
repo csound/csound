@@ -3,6 +3,7 @@ import CsoundVST
 from wxPython.wx import *
 # Csound MUST run in its own thread.
 import threading
+import traceback
 
 # Create a panel to hold widgets that will control a Csound performance.
 class ControlPanel(wxPanel):
@@ -21,6 +22,8 @@ class ControlPanel(wxPanel):
             self.slider1.SetTickFreq(5, 1)
             # Bind the slider to its event handler.
             EVT_SLIDER(self, self.ID_SLIDER1, self.OnSlider1Move)
+            # Set up a 'close' event handler to cleanly shut down Csound.
+            EVT_CLOSE(parent, self.OnClose) 
             # Default pitch.
             self.pitch = 60
             # Create the Csound thread and start it.
@@ -30,8 +33,9 @@ class ControlPanel(wxPanel):
         # Initialize Csound and start performing, in a separate thread.
         # Csound will play notes sent in from wxWindows.
         def csoundThreadRoutine(self):
-            # Embed an orchestra in this script.
+            # Enable Csound to print its messages to the Python console.
             csound.setPythonMessageCallback()
+            # Embed an orchestra in this script.
             csound.setOrchestra('''
             sr=44100
             ksmps=128
@@ -44,8 +48,9 @@ class ControlPanel(wxPanel):
                 print ioctave
                 ; Convert octave to frequency.
                 ihertz = cpsoct(ioctave)
+                p3 = p3 + 0.05
             a1  oscili  ampdb(p5), ihertz, 1
-                kenv linseg 0, p3/2, 1, p3/2, 0
+                kenv linseg 0, 0.05, 1, p3, 0
                 a1 = kenv * a1
                 outs    a1,a1
                 endin
@@ -58,15 +63,18 @@ class ControlPanel(wxPanel):
             ''')
             # Real-time audio output.
             # It is not necessary to enable line events.
-            csound.setCommand('''csound -h -m128 -d -odac -B512 -b256 temp.orc temp.sco''')
+            csound.setCommand('''csound -h -m128 -d -odac -B512 -b400 temp.orc temp.sco''')
             # Export the orc and sco.
             csound.exportForPerformance()
             # Start the performance.
             csound.compile()
             # Perform in blocks of ksmps
             # (Csound will yield implicitly to wxWindows).
-            while True:
-                csound.PerformKsmps()
+            self.keepPerforming = True
+            while self.keepPerforming:
+                if csound.PerformKsmps():
+                    print 'Performance finished.'
+                    return
 
         # Handle the button click -- send a note to Csound
         # with the pitch set by the slider.
@@ -79,6 +87,20 @@ class ControlPanel(wxPanel):
         def OnSlider1Move(self, event):
             print "You moved the slider to %d" % event.GetInt()
             self.pitch = event.GetInt()
+
+        # Handle the window close event -- stop performance and
+        # wait for Csound to exit, then destroy main window.
+        def OnClose(self, event):
+            try:
+                print "You closed the window."
+                csound.Stop()
+                csound.Cleanup()
+                self.keepPerforming = False
+                self.csoundThread.join()
+                print 'Csound thread has finished.'
+                self.GetParent().Destroy()
+            except:
+                print traceback.print_exc()
 
 # Create a wx application.
 application = wxPySimpleApp()
