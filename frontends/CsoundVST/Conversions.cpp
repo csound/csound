@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "Conversions.hpp"
-#include <strstream>
+#include <sstream>
 
 #ifdef WIN32
 extern "C"
@@ -363,19 +363,19 @@ namespace csound
   }
   int Conversions::swapInt(int Source)
   {
-    int returnValue;
-    returnValue = ((Source & 0x000000ff) << 24);
-    returnValue +=((Source & 0x0000ff00) << 8);
-    returnValue +=((Source & 0x00ff0000) >> 8);
-    returnValue +=((Source & 0xff000000) >> 24);
-    return returnValue;
+    unsigned int returnValue;
+    returnValue = (((unsigned int) Source & 0x000000ffu) << 24);
+    returnValue +=(((unsigned int) Source & 0x0000ff00u) << 8);
+    returnValue +=(((unsigned int) Source & 0x00ff0000u) >> 8);
+    returnValue +=(((unsigned int) Source & 0xff000000u) >> 24);
+    return (int) returnValue;
   }
   short Conversions::swapShort(short Source)
   {
     int returnValue;
-    returnValue |=((Source & 0x00ff) << 8);
-    returnValue = ((Source & 0xff00) >> 8);
-    return(short) returnValue;
+    returnValue = (((int) Source & 0x00ff) << 8);
+    returnValue +=(((int) Source & 0xff00) >> 8);
+    return (short) returnValue;
   }
   bool Conversions::stringToBool(std::string value)
   {
@@ -565,7 +565,7 @@ namespace csound
 
   std::string Conversions::listPitchClassSets()
   {
-    std::strstream stream;
+    std::stringstream stream;
     for(std::map<std::string, double>::const_iterator it = pitchClassSetsForNames.begin(); it != pitchClassSetsForNames.end(); ++it)
       {
         stream << it->first << " = " << it->second << "\r\n";
