@@ -119,7 +119,6 @@ void wrap(char *dest, char *src, const char *file, const char *opcd)
     chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IXOTH);
 }
 
-
 int main(void)
 {
     FILE *defs = fopen("def.ins", "r");
