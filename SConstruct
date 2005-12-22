@@ -1244,48 +1244,66 @@ else:
         'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
     zipDependencies.append(counterpoint)
 
-    # Build the Loris and Python opcodes here because they depend
-    # on the same things as CsoundVST.
+# Build the Loris and Python opcodes here
 
-    if commonEnvironment['buildLoris']=='1':
-        # For Loris, we build only the loris Python extension module and
-        # the Csound opcodes (modified for Csound 5).
-        # It is assumed that you have copied all contents of the Loris
-        # distribution into the csound5/Opcodes/Loris directory, e.g.
-        # csound5/Opcodes/Loris/src/*, etc.
-        lorisEnvironment = vstEnvironment.Copy()
-        lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
-        if commonEnvironment['buildRelease'] == '0':
-            lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
-        if getPlatform() == 'mingw':
-            lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
-        if commonEnvironment['MSVC'] == '0':
-            lorisEnvironment.Append(CCFLAGS = Split('''
-                -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
-            '''))
-        lorisEnvironment.Append(CPPPATH = Split('Opcodes/Loris Opcodes/Loris/src ./'))
-        lorisEnvironment.Append(LIBS = ['fftw3'])
-        lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
-        if 'Opcodes/Loris/src/lorisgens.C' in lorisSources:
-            lorisSources.remove('Opcodes/Loris/src/lorisgens.C')
-        lorisWrapperEnvironment = lorisEnvironment.Copy()
-        fixCFlagsForSwig(lorisWrapperEnvironment)
-        lorisWrapperEnvironment.Append(SWIGPATH = ['./'])
-        lorisWrapperEnvironment.Prepend(SWIGFLAGS = Split('''
-            -module loris -c++ -python -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.
+if commonEnvironment['buildLoris'] == '1':
+    # For Loris, we build only the loris Python extension module and
+    # the Csound opcodes (modified for Csound 5).
+    # It is assumed that you have copied all contents of the Loris
+    # distribution into the csound5/Opcodes/Loris directory, e.g.
+    # csound5/Opcodes/Loris/src/*, etc.
+    lorisEnvironment = pluginEnvironment.Copy()
+    lorisEnvironment.Append(CCFLAGS = '-DHAVE_FFTW3_H')
+    if commonEnvironment['buildRelease'] == '0':
+        lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
+    if getPlatform() == 'mingw':
+        lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
+    if commonEnvironment['MSVC'] == '0':
+        lorisEnvironment.Append(CCFLAGS = Split('''
+            -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
         '''))
-        lorisPythonWrapper = lorisWrapperEnvironment.SharedObject(
-            'Opcodes/Loris/scripting/loris.i')
-        lorisSources.append(lorisPythonWrapper)
-        # The following file has been patched for Csound 5
-        # and you should update it from Csound 5 CVS.
-        lorisSources.append('Opcodes/Loris/lorisgens5.C')
-        loris = lorisEnvironment.SharedLibrary(
-            'loris', lorisSources, SHLIBPREFIX = '_')
-        Depends(loris, csoundvst)
-        pluginLibraries.append(loris)
-        libs.append(loris)
-        libs.append('loris.py')
+    lorisEnvironment.Append(CPPPATH = Split('''
+        Opcodes/Loris Opcodes/Loris/src ./
+    '''))
+    lorisSources = glob.glob('Opcodes/Loris/src/*.[Cc]')
+    if 'Opcodes/Loris/src/lorisgens.C' in lorisSources:
+        lorisSources.remove('Opcodes/Loris/src/lorisgens.C')
+    lorisLibrarySources = []
+    for i in lorisSources:
+        lorisLibrarySources += lorisEnvironment.SharedObject(i)
+    lorisLibrary = lorisEnvironment.StaticLibrary(
+        'lorisbase', lorisLibrarySources)
+    lorisEnvironment.Prepend(LIBS = ['lorisbase', 'fftw3', 'stdc++'])
+    # The following file has been patched for Csound 5
+    # and you should update it from Csound 5 CVS.
+    lorisOpcodes = lorisEnvironment.SharedLibrary(
+        'loris', ['Opcodes/Loris/lorisgens5.C'])
+    Depends(lorisOpcodes, lorisLibrary)
+    pluginLibraries.append(lorisOpcodes)
+    lorisPythonEnvironment = lorisEnvironment.Copy()
+    fixCFlagsForSwig(lorisPythonEnvironment)
+    lorisPythonEnvironment.Append(CPPPATH = pythonIncludePath)
+    lorisPythonEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+    lorisPythonEnvironment.Append(LIBPATH = pythonLibraryPath)
+    if getPlatform() != 'darwin':
+        lorisPythonEnvironment.Prepend(LIBS = pythonLibs)
+    lorisPythonEnvironment.Append(SWIGPATH = ['./'])
+    lorisPythonEnvironment.Prepend(SWIGFLAGS = Split('''
+        -module loris -c++ -includeall -verbose -outdir . -python
+        -DHAVE_FFTW3_H -I./Opcodes/Loris/src -I.
+    '''))
+    lorisPythonWrapper = lorisPythonEnvironment.SharedObject(
+        'Opcodes/Loris/scripting/loris.i')
+    if getPlatform() != 'darwin':
+        lorisPythonModule = lorisPythonEnvironment.SharedLibrary(
+            '_loris', [lorisPythonWrapper], SHLIBPREFIX = '')
+    else:
+        lorisPythonEnvironment.Prepend(LINKFLAGS = '-bundle')
+        lorisPythonModule = lorisPythonEnvironment.Program(
+            '_loris.so', [lorisPythonWrapper])
+    Depends(lorisPythonModule, lorisLibrary)
+    libs.append(lorisPythonModule)
+    libs.append('loris.py')
 
 if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
     print 'CONFIGURATION DECISION: Not building STK opcodes.'
@@ -1315,21 +1333,26 @@ else:
         stkEnvironment.Append(CCFLAGS = '-D__OS_LINUX__ -D__LITTLE_ENDIAN__')
     elif getPlatform() == 'darwin':
         stkEnvironment.Append(CCFLAGS = '-D__OS_MACOSX__ -D__BIG_ENDIAN__')
-    if commonEnvironment['MSVC'] == '0':
-        stkEnvironment.Append(LIBS = ['stdc++'])
     stkEnvironment.Prepend(CPPPATH = Split('''
         Opcodes/stk/include Opcodes/stk/src ./ ./../include
     '''))
     stkSources_ = glob.glob('Opcodes/stk/src/*.cpp')
-    # This is the one that actually defines the opcodes.
-    # They are straight wrappers, as simple as possible.
-    stkSources_.append('Opcodes/stk/stkOpcodes.cpp')
     stkSources = []
     for source in stkSources_:
         stkSources.append(source.replace('\\', '/'))
     for removeMe in removeSources:
         stkSources.remove(removeMe)
-    stk = stkEnvironment.SharedLibrary('stk', stkSources)
+    stkLibrarySources = []
+    for i in stkSources:
+        stkLibrarySources += stkEnvironment.SharedObject(i)
+    stkLibrary = stkEnvironment.StaticLibrary('stk_base', stkLibrarySources)
+    stkEnvironment.Prepend(LIBS = ['stk_base'])
+    if commonEnvironment['MSVC'] == '0':
+        stkEnvironment.Append(LIBS = ['stdc++'])
+    # This is the one that actually defines the opcodes.
+    # They are straight wrappers, as simple as possible.
+    stk = stkEnvironment.SharedLibrary('stk', ['Opcodes/stk/stkOpcodes.cpp'])
+    Depends(stk, stkLibrary)
     pluginLibraries.append(stk)
 
 if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
