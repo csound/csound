@@ -576,6 +576,7 @@ namespace csound
         std::vector<char *> argv;
         std::string buffer = command;
         scatterArgs(buffer, args, argv);
+        argv.push_back((char*) 0);      // argv[] should be null-terminated
         execvp(argv[0], &argv.front());
       }
     return returnValue;
