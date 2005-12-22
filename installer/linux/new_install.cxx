@@ -13,6 +13,7 @@ int lib_exit = 0;
 
 char type[256];
 char bin[256];
+char hdr[256];
 char opc[256];
 char doh[256];
 char lib[256];
@@ -31,6 +32,7 @@ char envy[256];
 void set_system(Fl_Check_Button*, void*)
 {
     bindir->value(bin);
+    hdrdir->value(hdr);
     opcdir->value(opc);
     doc->value(doh);
     libdir->value(lib);
@@ -134,6 +136,9 @@ int main(void)
     fgets(bin,256,defs);
     p = strchr(bin,'\n');
     if (p!=bin) *p = '\0';
+    fgets(hdr,256,defs);
+    p = strchr(hdr,'\n');
+    if (p!=hdr) *p = '\0';
     fgets(opc,256,defs);
     p = strchr(opc,'\n');
     if (p!=opc) *p = '\0';
@@ -193,6 +198,30 @@ int main(void)
           Fl::wait(0.1);
         }
         else progress->value(pr+= 2.0f);
+    }
+    //Copy headers
+    if (doHdr->value()) {
+      struct dirent **namelist;
+      char b[256];
+      int n = scandir("./hdr", &namelist, NULL, alphasort);
+      int i;
+      progress->label("headers");
+      strcpy(b, hdrdir->value());
+      if (b[strlen(b)-1]!='/')
+        strcat(b, "/");
+      check_exists(b);
+      progress->minimum(0.0f); progress->maximum((float)n);
+      progress->value(0.0f);
+      Fl::wait(0.1);
+      for (i=0; i<n; i++)
+        if ((namelist[i]->d_name)[0]!='.') {
+          char buff[256];
+          sprintf(buff,"cp -pv ./hdr/%s %s>/dev/null", namelist[i]->d_name,b);
+          system(buff);
+          progress->value((float)(i+1));
+          Fl::wait(0.1);
+        }
+        else progress->value((float)(i+1));
     }
     //Copy opcodes
     if (doOpc->value()) {
