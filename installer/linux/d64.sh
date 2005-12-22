@@ -1,16 +1,21 @@
-cp -upv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/linux_d64/bin
+#!/bin/tcsh
+setenv DIR linux_d64
 
-strip ../../../CSDIST/linux_d64/bin/*
+cp -upv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/$DIR/bin
 
-cp -upv ../../li*.so ../../../CSDIST/linux_d64/opc
+strip ../../../CSDIST/$DIR/bin/*
 
-cp -upv ../../libcsound.a ../../../CSDIST/linux_d64/lib
+cp -upv ../../li*.so ../../../CSDIST/$DIR/opc
 
-cp -rupv ../../../manual/html ../../../CSDIST/linux_d64/doc
+cp -upv ../../libcsound.a ../../../CSDIST/$DIR/lib
 
-find ../../../CSDIST/linux_d64/ -name CVS -exec rm -rf {} \;
+cp -upv ../../H/cfgvar.h ../../H/cscore.h ../../H/csdl.h ../../H/csound.h ../../H/csound.hpp ../../H/csoundCore.h ../../H/cwindow.h ../../H/msg_attr.h ../../H/OpcodeBase.hpp ../../H/pstream.h ../../H/pvfileio.h ../../H/soundio.h ../../H/sysdep.h ../../H/text.h ../../H/version.h ../../interfaces/CsoundFile.hpp ../../interfaces/CppSound.hpp ../../interfaces/filebuilding.h ../../../CSDIST/$DIR/hdr
 
-cat > ../../../CSDIST/linux_d64/def.ins <<'EOF'
+cp -rupv ../../../manual/html ../../../CSDIST/$DIR/doc
+
+find ../../../CSDIST/$DIR/ -name CVS -exec rm -rf {} \;
+
+cat > ../../../CSDIST/$DIR/def.ins <<'EOF'
 Linux i86_64 Doubles
 /usr/local/bin
 /usr/local/csound64_64

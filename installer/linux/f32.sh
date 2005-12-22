@@ -1,18 +1,23 @@
-rm ../../../CSDIST/linux_f32/bin/*
+#!/bin/tcsh
+setenv DIR linux_f32
 
-cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/linux_f32/bin
+rm ../../../CSDIST/$DIR/bin/*
 
-strip ../../../CSDIST/linux_f32/bin/*
+cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/$DIR/bin
 
-rm ../../../CSDIST/linux_f32/opc/*
-cp -pv ../../li*.so ../../*.jar ../../_csnd.so ../../../CSDIST/linux_f32/opc
+strip ../../../CSDIST/$DIR/bin/*
 
-cp -upv ../../libcsound.a  ../../../CSDIST/linux_f32/lib
+rm ../../../CSDIST/$DIR/opc/*
+cp -pv ../../li*.so ../../*.jar ../../_csnd.so ../../../CSDIST/$DIR/opc
 
-cp -rupv ../../../manual/html ../../../CSDIST/linux_f32/doc
-find ../../../CSDIST/linux_f32/ -name CVS -exec rm -rf {} \;
+cp -upv ../../libcsound.a  ../../../CSDIST/$DIR/lib
 
-cat > ../../../CSDIST/linux_f32/def.ins <<'EOF'
+cp -upv ../../H/cfgvar.h ../../H/cscore.h ../../H/csdl.h ../../H/csound.h ../../H/csound.hpp ../../H/csoundCore.h ../../H/cwindow.h ../../H/msg_attr.h ../../H/OpcodeBase.hpp ../../H/pstream.h ../../H/pvfileio.h ../../H/soundio.h ../../H/sysdep.h ../../H/text.h ../../H/version.h ../../interfaces/CsoundFile.hpp ../../interfaces/CppSound.hpp ../../interfaces/filebuilding.h ../../../CSDIST/$DIR/hdr
+
+cp -rupv ../../../manual/html ../../../CSDIST/$DIR/doc
+find ../../../CSDIST/$DIR/ -name CVS -exec rm -rf {} \;
+
+cat > ../../../CSDIST/$DIR/def.ins <<'EOF'
 Linux Floats
 /usr/local/bin
 /usr/local/csound
