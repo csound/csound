@@ -43,7 +43,7 @@ namespace csound
     // with the global, or enclosing, transformation of coordinate system.
     ublas::matrix<double> compositeCoordinates = ublas::prod(getLocalCoordinates(), globalCoordinates);
     // Make a bookmark for the current end of the score.
-    size_t beginAt = score.size();
+    //    size_t beginAt = score.size();
     // Descend into each of the child nodes.
     // Keep track of each child's relative time and
     // place the child nodes in strict temporal sequence.

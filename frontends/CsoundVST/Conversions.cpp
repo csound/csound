@@ -528,12 +528,13 @@ namespace csound
   std::vector<double> Conversions::nameToPitches(std::string name)
   {
     std::vector<double> pitches;
+    int powerOf2 = 1;
     int mason = int(nameToPitchClassSet(name));
     for(double i = 0; i < 12.0; i = i + 1.0) {
-      int powerOf2 = std::pow(2.0, i);
       if ((powerOf2 & mason) == powerOf2) {
         pitches.push_back(i);
       }
+      powerOf2 = powerOf2 + powerOf2;
     }
     return pitches;
   }

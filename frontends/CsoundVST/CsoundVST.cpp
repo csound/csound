@@ -87,7 +87,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   for(size_t i = 0; i < bank.size(); i++)
     {
       char buffer[0x24];
-      sprintf(buffer, "Program%d", i + 1);
+      sprintf(buffer, "Program%d", (int)(i + 1));
       bank[i].name = buffer;
     }
 }
