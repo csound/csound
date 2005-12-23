@@ -57,12 +57,12 @@ int midibset(CSOUND *,MIDIKMB *);
 int massign(CSOUND *csound, MASSIGN *p)
 {
     short chnl = (short) (*p->chnl - FL(0.5));
-    long  instno;
+    long  instno = 0L;
 
-    if (*(p->insno) < FL(0.5))
-      return m_chinsno(csound, chnl, (short) 0);
-    if ((instno = strarg2insno(csound, p->insno, p->XSTRCODE)) < 1)
-      return NOTOK;
+    if (p->XSTRCODE || *(p->insno) >= FL(0.5)) {
+      if ((instno = strarg2insno(csound, p->insno, p->XSTRCODE)) <= 0L)
+        return NOTOK;
+    }
     return m_chinsno(csound, chnl, (short) instno);
 }
 
