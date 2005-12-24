@@ -233,11 +233,23 @@ int main(void)
       if (b[strlen(b)-1]!='/')
         strcat(b, "/");
       check_exists(b);
+      {
+        char c[256];
+        sprintf(c, "%s/frontends", b);
+        check_exists(c);
+      }
       progress->minimum(0.0f); progress->maximum((float)n);
       progress->value(0.0f);
       Fl::wait(0.1);
       for (i=0; i<n; i++)
-        if ((namelist[i]->d_name)[0]!='.') {
+        if (strcmp(namelist[i]->d_name, "frontends")==0) {
+          char buff[256];
+          sprintf(buff,"cp -prv ./opc/frontends %s>/dev/null", b);
+          system(buff);
+          progress->value((float)(i+1));
+          Fl::wait(0.1);
+        }
+        else if ((namelist[i]->d_name)[0]!='.') {
           char buff[256];
           sprintf(buff,"cp -pv ./opc/%s %s>/dev/null", namelist[i]->d_name,b);
           system(buff);
