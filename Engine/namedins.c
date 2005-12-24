@@ -111,14 +111,13 @@ long named_instr_find(CSOUND *csound, char *s)
 
     if (!csound->instrumentNames) return 0L;  /* no named instruments defined */
     /* now find instrument */
-    if (!(inm = ((INSTRNAME**) csound->instrumentNames)[h])) return 0L;
-    if (!inm->prv) return (long) inm->instno;
-    /* multiple entries for hash value, need to search */
-    while (inm && sCmp(inm->name, s)) inm = inm->prv;
-    if (!inm)
-      return 0L;        /* not found */
-    else
-      return (long) inm->instno;
+    inm = ((INSTRNAME**) csound->instrumentNames)[h];
+    while (inm) {
+      if (!sCmp(inm->name, s))
+        return (long) inm->instno;
+      inm = inm->prv;
+    }
+    return 0L;  /* not found */
 }
 
 /* allocate entry for named instrument ip with name s (s must not be freed */
