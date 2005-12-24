@@ -89,6 +89,7 @@ int     csoundLoadExternals(CSOUND *);
 SNDMEMFILE  *csoundLoadSoundFile(CSOUND *, const char *name, SF_INFO *sfinfo);
 int     PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
 void    print_opcodedir_warning(CSOUND *);
+int     check_rtaudio_name(char *fName, char **devName, int isOutput);
 
 /**
  * Register a function to be called at note deactivation.
