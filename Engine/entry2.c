@@ -43,7 +43,8 @@
 
 int     inh(CSOUND *, void *), ino(CSOUND *, void *);
 int     in16(CSOUND *, void *), in32(CSOUND *, void *);
-int     inall(CSOUND *, void *), inz(CSOUND *, void *);
+int     inz(CSOUND *, void *);
+int     inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
 int     outh(CSOUND *, void *), outo(CSOUND *, void *);
 int     outx(CSOUND *, void *), outX(CSOUND *, void *);
 int     outch(CSOUND *, void *), outall(CSOUND *, void *);
@@ -205,7 +206,9 @@ OENTRY opcodlst_2[] = {
 { "inx",    S(INALL),   4,      "aaaaaaaaaaaaaaaa","",  NULL,   NULL,   in16 },
 { "in32",   S(INALL),   4,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                                         "",     NULL,   NULL,   in32 },
-{ "inch",   S(INALL),   4,      "a",    "k",    NULL,   NULL,   inall   },
+{ "inch",   S(INCH),    4,      "a",    "k",    NULL,   NULL,   inch_opcode },
+{ "_in",    S(INALL),   4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+                                        "",     NULL,   NULL,   inall_opcode },
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the charcters out followed by a s, q, h, o or x are in this group
      ***BEWARE***

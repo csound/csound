@@ -154,14 +154,15 @@ KA(divka,/)
 
 int modka(CSOUND *csound, AOP *p)
 {
-    int n;
-    MYFLT       *r, a, *b;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r, a, *b;
+    int     nsmps = csound->ksmps;
+
     r = p->r;
     a = *p->a;
     b = p->b;
     for (n=0; n<nsmps; n++)
-      r[n] = MOD(a,b[n]);
+      r[n] = MOD(a, b[n]);
     return OK;
 }
 
@@ -184,9 +185,10 @@ AK(divak,/)
 
 int modak(CSOUND *csound, AOP *p)
 {
-    int n;
-    MYFLT       *r, *a, b;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r, *a, b;
+    int     nsmps = csound->ksmps;
+
     r = p->r;
     a = p->a;
     b = *p->b;
@@ -214,9 +216,10 @@ AA(divaa,/)
 
 int modaa(CSOUND *csound, AOP *p)
 {
-    int n;
-    MYFLT       *r, *a, *b;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r, *a, *b;
+    int     nsmps = csound->ksmps;
+
     r = p->r;
     a = p->a;
     b = p->b;
@@ -233,9 +236,10 @@ int divzkk(CSOUND *csound, DIVZ *p)
 
 int divzka(CSOUND *csound, DIVZ *p)
 {
-    int         n;
-    MYFLT       *r, a, *b, def;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r, a, *b, def;
+    int     nsmps = csound->ksmps;
+
     r = p->r;
     a = *p->a;
     b = p->b;
@@ -247,9 +251,10 @@ int divzka(CSOUND *csound, DIVZ *p)
 
 int divzak(CSOUND *csound, DIVZ *p)
 {
-    int         n;
-    MYFLT       *r, *a, b, def;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r, *a, b, def;
+    int     nsmps = csound->ksmps;
+
     r = p->r;
     a = p->a;
     b = *p->b;
@@ -265,9 +270,10 @@ int divzak(CSOUND *csound, DIVZ *p)
 
 int divzaa(CSOUND *csound, DIVZ *p)
 {
-    int n;
-    MYFLT       *r, *a, *b, def;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r, *a, *b, def;
+    int     nsmps = csound->ksmps;
+
     r = p->r;
     a = p->a;
     b = p->b;
@@ -288,7 +294,7 @@ int conval(CSOUND *csound, CONVAL *p)
 
 int aconval(CSOUND *csound, CONVAL *p)
 {
-    MYFLT       *r, *s;
+    MYFLT   *r, *s;
 
     r = p->r;
     if (*p->cond)
@@ -456,9 +462,10 @@ LIBA(log10a,log10)
 
 int atan2aa(CSOUND *csound, AOP *p)
 {
-    int n;
-    MYFLT       *r, *a, *b;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r, *a, *b;
+    int     nsmps = csound->ksmps;
+
     r = p->r;
     a = p->a;
     b = p->b;
@@ -481,9 +488,10 @@ int ampdb(CSOUND *csound, EVAL *p)
 
 int aampdb(CSOUND *csound, EVAL *p)
 {
-    int   n;
-    MYFLT *r = p->r, *a = p->a;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r = p->r, *a = p->a;
+    int     nsmps = csound->ksmps;
+
     for (n=0;n<nsmps;n++)
       r[n] = (MYFLT) exp((double)a[n] * LOG10D20);
     return OK;
@@ -503,9 +511,10 @@ int ampdbfs(CSOUND *csound, EVAL *p)
 
 int aampdbfs(CSOUND *csound, EVAL *p)
 {
-    int n;
-    MYFLT       *r, *a;
-    int nsmps = csound->ksmps;
+    int     n;
+    MYFLT   *r, *a;
+    int     nsmps = csound->ksmps;
+
     r = p->r;
     a = p->a;
     for (n=0;n<nsmps;n++)
@@ -515,7 +524,7 @@ int aampdbfs(CSOUND *csound, EVAL *p)
 
 int ftlen(CSOUND *csound, EVAL *p)
 {
-    FUNC        *ftp;
+    FUNC    *ftp;
 
     if ((ftp = csound->FTnp2Find(csound, p->a)) != NULL)
       *p->r = (MYFLT)ftp->flen;
@@ -526,9 +535,9 @@ int ftlen(CSOUND *csound, EVAL *p)
 
 int ftchnls(CSOUND *csound, EVAL *p)
 {
-    FUNC *ftp;
+    FUNC    *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound,p->a)) != NULL)
+    if ((ftp = csound->FTnp2Find(csound, p->a)) != NULL)
       *p->r = (MYFLT)ftp->nchanls;
     else
       *p->r = -FL(1.0);      /* Return something */
@@ -538,20 +547,19 @@ int ftchnls(CSOUND *csound, EVAL *p)
 int ftlptim(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
-    if ((ftp = csound->FTnp2Find(csound,p->a)) == NULL) return OK;
+    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) return OK;
     if (ftp->loopmode1)
       *p->r = ftp->begin1 * csound->onedsr;
     else {
       *p->r = FL(0.0);
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound,Str("WARNING: non-looping sample\n"));
+      csound->Warning(csound, Str("non-looping sample"));
     }
     return OK;
 }
 
 int numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****/
 {
-    FUNC        *ftp;
+    FUNC    *ftp;
     if ((ftp = csound->FTFind(csound, p->a)) != NULL)
       *p->r = (MYFLT) ftp->soundend;
     else
@@ -561,7 +569,7 @@ int numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****/
 
 int ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado ****/
 {
-    FUNC        *ftp;
+    FUNC    *ftp;
     if ((ftp = csound->FTFind(csound, p->a)) != NULL)
       *p->r = ftp->gen01args.sample_rate;
     else
@@ -602,9 +610,10 @@ int cpsoct(CSOUND *csound, EVAL *p)
 
 int acpsoct(CSOUND *csound, EVAL *p)
 {
-    MYFLT       *r, *a;
-    long        loct;
-    int         n,nsmps = csound->ksmps;
+    MYFLT   *r, *a;
+    long    loct;
+    int     n, nsmps = csound->ksmps;
+
     a = p->a;
     r = p->r;
     for (n=0; n<nsmps; n++) {
@@ -698,7 +707,7 @@ int cpstun_i(CSOUND *csound, CPSTUNI *p)
     int grade;
     int numgrades;
     int basekeymidi;
-    MYFLT basefreq, factor,interval;
+    MYFLT basefreq, factor, interval;
     if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
       return csound->PerfError(csound, Str("cpstun: invalid table"));
     }
@@ -732,7 +741,7 @@ int cpstun(CSOUND *csound, CPSTUN *p)
       int grade;
       int numgrades;
       int basekeymidi;
-      MYFLT basefreq, factor,interval;
+      MYFLT basefreq, factor, interval;
       if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
         return csound->PerfError(csound, Str("cpstun: invalid table"));
       }
@@ -886,8 +895,8 @@ int logbasetwoa(CSOUND *csound, EVAL *p)
 
 int ilogbasetwo(CSOUND *csound, EVAL *p)
 {
-    logbasetwo_set(csound,p);
-    logbasetwo(csound,p);
+    logbasetwo_set(csound, p);
+    logbasetwo(csound, p);
     return OK;
 }
 
@@ -906,7 +915,7 @@ int ins(CSOUND *csound, INS *p)
     sp = csound->spin;
     ar1 = p->ar1;
     ar2 = p->ar2;
-    for (n=0, k=0; n<nsmps; n++,k+=2) {
+    for (n=0, k=0; n<nsmps; n++, k+=2) {
       ar1[n] = sp[k];
       ar2[n] = sp[k+1];
     }
@@ -924,7 +933,7 @@ int inq(CSOUND *csound, INQ *p)
     ar2 = p->ar2;
     ar3 = p->ar3;
     ar4 = p->ar4;
-    for (n=0, k=0; n<nsmps; n++,k+=4) {
+    for (n=0, k=0; n<nsmps; n++, k+=4) {
       ar1[n] = sp[k];
       ar2[n] = sp[k+1];
       ar3[n] = sp[k+2];
@@ -946,7 +955,7 @@ int inh(CSOUND *csound, INH *p)
     ar4 = p->ar4;
     ar5 = p->ar5;
     ar6 = p->ar6;
-    for (n=0, k=0; n<nsmps; n++,k+=6) {
+    for (n=0, k=0; n<nsmps; n++, k+=6) {
       ar1[n] = sp[k];
       ar2[n] = sp[k+1];
       ar3[n] = sp[k+2];
@@ -972,7 +981,7 @@ int ino(CSOUND *csound, INO *p)
     ar6 = p->ar6;
     ar7 = p->ar7;
     ar8 = p->ar8;
-    for (n=0, k=0; n<nsmps; n++,k+=8) {
+    for (n=0, k=0; n<nsmps; n++, k+=8) {
       ar1[n] = sp[k];
       ar2[n] = sp[k+1];
       ar3[n] = sp[k+2];
@@ -994,8 +1003,8 @@ static int inn(CSOUND *csound, INALL *p, int n)
 
     sp = csound->spin;
     ara = p->ar;
-    for (m=0; m<nsmps; m++) {
-      for (i=0; i<n; i++)
+    for (m = 0; m < nsmps; m++) {
+      for (i = 0; i < n; i++)
         *ara[i] = *sp++;
     }
     return OK;
@@ -1003,30 +1012,49 @@ static int inn(CSOUND *csound, INALL *p, int n)
 
 int in16(CSOUND *csound, INALL *p)
 {
-    inn(csound, p, 16);
-    return OK;
+    return inn(csound, p, 16);
 }
 
 int in32(CSOUND *csound, INALL *p)
 {
-    inn(csound, p, 32);
-    return OK;
+    return inn(csound, p, 32);
 }
 
-int inall(CSOUND *csound, INCH *p)
+int inch_opcode(CSOUND *csound, INCH *p)
 {
-/*      int nch = (int) p->INOCOUNT; */
-/*      inn(csound, p, (nch>csound->nchnls ? csound->nchnls : nch)); */
-    int ch = (int)(*p->ch+FL(0.5));
-    int n;
-    int nsmps = csound->ksmps;
-    MYFLT *sp = csound->spin+ch-1;
+    int   ch = (int) (*p->ch + FL(0.5));
+    int   n;
+    int   nsmps = csound->ksmps;
+    MYFLT *sp = csound->spin + (ch - 1);
     MYFLT *ain = p->ar;
-    if (ch>csound->nchnls) return NOTOK;
-    for (n=0; n<nsmps; n++) {
+
+    if (ch > csound->nchnls)
+      return NOTOK;
+    for (n = 0; n < nsmps; n++) {
       ain[n] = *sp;
       sp += csound->nchnls;
     }
+    return OK;
+}
+
+int inall_opcode(CSOUND *csound, INALL *p)
+{
+    int   n = (int) p->OUTOCOUNT;
+    int   m;
+    int   i, j = 0, k = 0;
+
+    m = (n < csound->nchnls ? n : csound->nchnls);
+    do {
+      i = 0;
+      do {
+        p->ar[i][j] = csound->spin[k + i];
+      } while (++i < m);
+      for ( ; i < n; i++)
+        p->ar[i][j] = FL(0.0);
+      j++;
+      k += csound->nchnls;
+    } while (j < csound->ksmps);
+
     return OK;
 }
 
@@ -1054,7 +1082,7 @@ int outs(CSOUND *csound, OUTS *p)
     ap2 = p->asig2;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
@@ -1062,7 +1090,7 @@ int outs(CSOUND *csound, OUTS *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
@@ -1082,7 +1110,7 @@ int outq(CSOUND *csound, OUTQ *p)
     ap4 = p->asig4;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
@@ -1092,7 +1120,7 @@ int outq(CSOUND *csound, OUTQ *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
@@ -1111,7 +1139,7 @@ int outs1(CSOUND *csound, OUTM *p)
     ap1 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m]   = ap1[n];
         sp[m+1] = FL(0.0);
@@ -1119,7 +1147,7 @@ int outs1(CSOUND *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m]   += ap1[n];
       }
@@ -1135,7 +1163,7 @@ int outs2(CSOUND *csound, OUTM *p)
     ap2 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m]   = FL(0.0);
         sp[m+1] = ap2[n];
@@ -1143,7 +1171,7 @@ int outs2(CSOUND *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;                    /* Amazingly this compiles better!!! */
+      int n, m;                   /* Amazingly this compiles better!!! */
       for (n=0, m=1; n<nsmps; n++, m+=2) {
         sp[m] += ap2[n];
       }
@@ -1159,14 +1187,14 @@ int outs12(CSOUND *csound, OUTM *p)
     ap = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m] = sp[m+1] = ap[n];
       }
       csound->spoutactive = 1;
     }
     else {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=2) {
         sp[m]   += ap[n];
         sp[m+1] += ap[n];
@@ -1183,7 +1211,7 @@ int outq1(CSOUND *csound, OUTM *p)
     ap1 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = ap1[n];
         sp[m+1] = FL(0.0);
@@ -1193,7 +1221,7 @@ int outq1(CSOUND *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   += ap1[n];
       }
@@ -1209,7 +1237,7 @@ int outq2(CSOUND *csound, OUTM *p)
     ap2 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = ap2[n];
@@ -1219,7 +1247,7 @@ int outq2(CSOUND *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;
+      int n, m;
       for (n=0, m=1; n<nsmps; n++, m+=4) {
         sp[m]   += ap2[n];
       }
@@ -1235,7 +1263,7 @@ int outq3(CSOUND *csound, OUTM *p)
     ap3 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = FL(0.0);
@@ -1245,7 +1273,7 @@ int outq3(CSOUND *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;
+      int n, m;
       for (n=0, m=2; n<nsmps; n++, m+=4) {
         sp[m]   += ap3[n];
       }
@@ -1261,7 +1289,7 @@ int outq4(CSOUND *csound, OUTM *p)
     ap4 = p->asig;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=4) {
         sp[m]   = FL(0.0);
         sp[m+1] = FL(0.0);
@@ -1271,7 +1299,7 @@ int outq4(CSOUND *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;
+      int n, m;
       for (n=0, m=3; n<nsmps; n++, m+=4) {
         sp[m]   += ap4[n];
       }
@@ -1292,7 +1320,7 @@ int outh(CSOUND *csound, OUTH *p)
     ap6 = p->asig6;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=6) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
@@ -1304,7 +1332,7 @@ int outh(CSOUND *csound, OUTH *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=6) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
@@ -1332,7 +1360,7 @@ int outo(CSOUND *csound, OUTO *p)
     ap8 = p->asig8;
     sp = csound->spout;
     if (!csound->spoutactive) {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=8) {
         sp[m]   = ap1[n];
         sp[m+1] = ap2[n];
@@ -1346,7 +1374,7 @@ int outo(CSOUND *csound, OUTO *p)
       csound->spoutactive = 1;
     }
     else {
-      int n,m;
+      int n, m;
       for (n=0, m=0; n<nsmps; n++, m+=8) {
         sp[m]   += ap1[n];
         sp[m+1] += ap2[n];
@@ -1361,56 +1389,51 @@ int outo(CSOUND *csound, OUTO *p)
     return OK;
 }
 
-static void outn(CSOUND *csound, int n, OUTX *p)
+static int outn(CSOUND *csound, int n, OUTX *p)
 {
-    MYFLT *sp, *ap[64];
-    int   nsmps = csound->ksmps;
-    int   i;
+    int   i, j = 0, k = 0;
 
-    for (i=0; i<n; i++) ap[i] = p->asig[i];
-    sp = csound->spout;
     if (!csound->spoutactive) {
       do {
-        for (i=0; i<n; i++) {
-          *sp = *ap[i]++;       sp++;
+        i = 0;
+        do {
+          csound->spout[k + i] = p->asig[i][j];
+        } while (++i < n);
+        for ( ; i < csound->nchnls; i++) {
+          csound->spout[k + i] = FL(0.0);
         }
-        for (i=n+1; i < csound->nchnls; i++) {
-          *sp = FL(0.0); sp++;
-        }
-      }
-      while (--nsmps);
+        j++;
+        k += csound->nchnls;
+      } while (j < csound->ksmps);
       csound->spoutactive = 1;
     }
     else {
       do {
-        for (i=0; i<n; i++) {
-          *sp += *ap[i]++;      sp++;
-        }
-        for (i=n+1; i < csound->nchnls; i++) {
-          sp++;
-        }
-      }
-      while (--nsmps);
+        i = 0;
+        do {
+          csound->spout[k + i] += p->asig[i][j];
+        } while (++i < n);
+        j++;
+        k += csound->nchnls;
+      } while (j < csound->ksmps);
     }
+    return OK;
 }
 
 int outx(CSOUND *csound, OUTX *p)
 {
-    outn(csound, 16, p);
-    return OK;
+    return outn(csound, 16, p);
 }
 
 int outX(CSOUND *csound, OUTX *p)
 {
-    outn(csound, 32, p);
-    return OK;
+    return outn(csound, 32, p);
 }
 
 int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
 {
     int nch = (int) p->INOCOUNT;
-    outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
-    return OK;
+    return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
 }
 
 int outch(CSOUND *csound, OUTCH *p)
@@ -1422,28 +1445,27 @@ int outch(CSOUND *csound, OUTCH *p)
     int         count = (int) p->INOCOUNT;
     MYFLT       **args = p->args;
 
-    for (j=0; j<count; j +=2) {
+    for (j = 0; j < count; j += 2) {
       nsmps = csound->ksmps;
-      ch = (int)(*args[j]+FL(0.5));
-      apn = args[j+1];
-      if (ch>csound->nchnls) continue;
+      ch = (int) (*args[j] + FL(0.5));
+      apn = args[j + 1];
+      if (ch > csound->nchnls) continue;
       if (!csound->spoutactive) {
         sp = csound->spout;
         do {
-          for (i=1; i<=csound->nchnls; i++) {
-            *sp = ((i==ch) ? *apn++ : FL(0.0));
+          for (i = 1; i <= csound->nchnls; i++) {
+            *sp = ((i == ch) ? *apn++ : FL(0.0));
             sp++;
           }
         } while (--nsmps);
         csound->spoutactive = 1;
       }
       else {
-        sp = csound->spout + ch-1;
+        sp = csound->spout + (ch - 1);
         do {
           *sp += *apn++;
           sp += csound->nchnls;
-        }
-        while (--nsmps);
+        } while (--nsmps);
       }
     }
     return OK;

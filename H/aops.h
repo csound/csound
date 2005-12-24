@@ -88,7 +88,7 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar[VARGMAX];
+        MYFLT   *ar[40];    /* array size should be consistent with entry2.c */
 } INALL;
 
 typedef struct {
