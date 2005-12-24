@@ -51,6 +51,8 @@ typedef struct {
 #  define _popen popen
 #  define _pclose pclose
 # endif
+extern  FILE *  _popen(const char *, const char *);
+extern  int     _pclose(FILE *);
 #endif
 
 static  void    sndwrterr(CSOUND *, int, int);
@@ -214,6 +216,47 @@ static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
     return inbufsize;
 }
 
+/* Checks if the specified file name is a real-time audio device. */
+/* Returns the device number (defaults to 1024) if it is, and -1 otherwise. */
+/* If a device name is specified, and 'devName' is not NULL, a pointer to it */
+/* is stored in *devName. */
+
+int check_rtaudio_name(char *fName, char **devName, int isOutput)
+{
+    char  *s;
+
+    if (devName != NULL)
+      *devName = (char*) NULL;
+    if (fName == NULL)
+      return -1;
+    s = fName;
+    if ((isOutput && strncmp(fName, "dac", 3) == 0) ||
+        (!isOutput && strncmp(fName, "adc", 3) == 0))
+      s += 3;
+    else if (strncmp(fName, "devaudio", 8) == 0)
+      s += 8;
+    else
+      return -1;
+    if (*s == (char) '\0')
+      return 1024;
+    if (*s == (char) ':') {
+      if (devName != NULL)
+        *devName = &(s[1]);
+      return 1024;
+    }
+    else {
+      int devNum = 0;
+      while (*s >= (char) '0' && *s <= (char) '9') {
+        devNum = devNum * 10 + ((int) *s - (int) '0');
+        if (devNum >= 1024)
+          break;
+        if (*(++s) == (char) '\0')
+          return devNum;
+      }
+    }
+    return -1;
+}
+
 void sfopenin(CSOUND *csound)           /* init for continuous soundin */
 {
     OPARMS  *O = csound->oparms;
@@ -227,46 +270,36 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     sfname = O->infilename;
     if (sfname == NULL || sfname[0] == '\0')
       csound->Die(csound, Str("error: no input file name"));
-    csound->rtin_dev = 1024;
-    csound->rtin_devs = NULL;
 
     if (strcmp(sfname, "stdin") == 0) {
       ST(pipdevin) = 1;
     }
 #ifdef PIPES
     else if (sfname[0] == '|') {
-      FILE *_popen(const char *, const char *);
       ST(pin) = _popen(sfname + 1, "r");
       isfd = fileno(ST(pin));
       ST(pipdevin) = 1;
     }
 #endif
-    else if (!strncmp(sfname, "devaudio", 8) || !strncmp(sfname, "adc", 3)) {
+    else {
       csRtAudioParams   parm;
-      /* get device name/number */
-      if (!strncmp(sfname, "devaudio", 8) && sfname[8] != '\0') {
-        if (sfname[8] == ':')   csound->rtin_devs = &(sfname[9]);
-        else                    sscanf(sfname + 8, "%u", &(csound->rtin_dev));
+      /* check for real time audio input, and get device name/number */
+      parm.devNum = check_rtaudio_name(sfname, &(parm.devName), 0);
+      if (parm.devNum >= 0) {
+        /* set device parameters */
+        parm.bufSamp_SW = (int) O->inbufsamps / (int) csound->nchnls;
+        parm.bufSamp_HW = O->oMaxLag;
+        parm.nChannels = csound->nchnls;
+        parm.sampleFormat = O->informat;
+        parm.sampleRate = (float) csound->esr;
+        /* open devaudio for input */
+        if (csound->recopen_callback(csound, &parm) != 0)
+          csoundDie(csound, Str("Failed to initialise real time audio input"));
+        /*  & redirect audio gets  */
+        csound->audrecv = csound->rtrecord_callback;
+        ST(pipdevin) = 2;       /* no backward seeks !     */
+        goto inset;             /* no header processing    */
       }
-      else if (!strncmp(sfname, "adc", 3) && sfname[3] != '\0') {
-        if (sfname[3] == ':')   csound->rtin_devs = &(sfname[4]);
-        else                    sscanf(sfname + 3, "%u", &(csound->rtin_dev));
-      }
-      /* set device parameters (should get these from CSOUND...) */
-      parm.devName = csound->rtin_devs;
-      parm.devNum = csound->rtin_dev;
-      parm.bufSamp_SW = (int) O->inbufsamps / (int) csound->nchnls;
-      parm.bufSamp_HW = O->oMaxLag;
-      parm.nChannels = csound->nchnls;
-      parm.sampleFormat = O->informat;
-      parm.sampleRate = (float) csound->esr;
-      /* open devaudio for input */
-      if (csound->recopen_callback(csound, &parm) != 0)
-        csoundDie(csound, Str("Failed to initialise real time audio input"));
-      /*  & redirect audio gets  */
-      csound->audrecv = csound->rtrecord_callback;
-      ST(pipdevin) = 2;         /* no backward seeks !     */
-      goto inset;               /* no header processing    */
     }
     /* open file */
     memset(&sfinfo, 0, sizeof(SF_INFO));
@@ -342,14 +375,12 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       else O->outfilename = "test";
     }
     ST(sfoutname) = fName = O->outfilename;
-    csound->rtout_dev = 1024;
-    csound->rtout_devs = NULL;
+
     if (strcmp(fName, "stdout") == 0) {
       ST(pipdevout) = 1;
     }
 #ifdef PIPES
     else if (fName[0] == '|') {
-      FILE *_popen(const char *, const char *);
       ST(pout) = _popen(fName+1, "w");
       osfd = fileno(ST(pout));
       ST(pipdevout) = 1;
@@ -361,39 +392,32 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       }
     }
 #endif
-    else if (!strncmp(fName, "devaudio", 8) || !strncmp(fName, "dac", 3)) {
+    else {
       csRtAudioParams   parm;
-      /* get device number/name */
-      if (!strncmp(fName, "devaudio", 8) && fName[8] != '\0') {
-        if (fName[8] == ':')    csound->rtout_devs = &(fName[9]);
-        else                    sscanf(fName + 8, "%u", &(csound->rtout_dev));
+      /* check for real time audio output, and get device name/number */
+      parm.devNum = check_rtaudio_name(fName, &(parm.devName), 1);
+      if (parm.devNum >= 0) {
+        /* set device parameters */
+        parm.bufSamp_SW = (int) O->outbufsamps / (int) csound->nchnls;
+        parm.bufSamp_HW = O->oMaxLag;
+        parm.nChannels = csound->nchnls;
+        parm.sampleFormat = O->outformat;
+        parm.sampleRate = (float) csound->esr;
+        csound->spoutran = spoutsf;
+        /* open devaudio for output */
+        if (csound->playopen_callback(csound, &parm) != 0)
+          csoundDie(csound, Str("Failed to initialise real time audio output"));
+        /*  & redirect audio puts  */
+        csound->audtran = csound->rtplay_callback;
+        ST(outbufrem) = parm.bufSamp_SW * parm.nChannels;
+        ST(pipdevout) = 2;      /* no backward seeks !   */
+        goto outset;            /* no header needed      */
       }
-      else if (!strncmp(fName, "dac", 3) && fName[3] != '\0') {
-        if (fName[3] == ':')    csound->rtout_devs = &(fName[4]);
-        else                    sscanf(fName + 3, "%u", &(csound->rtout_dev));
+      else if (strcmp(fName, "null") == 0) {
+        ST(outfile) = NULL;
+        csound->audtran = writesf;
+        goto outset;
       }
-      /* set device parameters (should get these from CSOUND...) */
-      parm.devName = csound->rtout_devs;
-      parm.devNum = csound->rtout_dev;
-      parm.bufSamp_SW = (int) O->outbufsamps / (int) csound->nchnls;
-      parm.bufSamp_HW = O->oMaxLag;
-      parm.nChannels = csound->nchnls;
-      parm.sampleFormat = O->outformat;
-      parm.sampleRate = (float) csound->esr;
-      csound->spoutran = spoutsf;
-      /* open devaudio for output */
-      if (csound->playopen_callback(csound, &parm) != 0)
-        csoundDie(csound, Str("Failed to initialise real time audio output"));
-      /*  & redirect audio puts  */
-      csound->audtran = csound->rtplay_callback;
-      ST(outbufrem) = parm.bufSamp_SW * parm.nChannels;
-      ST(pipdevout) = 2;                        /* no backward seeks !   */
-      goto outset;                              /* no header needed      */
-    }
-    else if (strcmp(fName, "null") == 0) {
-      ST(outfile) = NULL;
-      csound->audtran = writesf;
-      goto outset;
     }
     /* set format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
@@ -479,7 +503,6 @@ void sfclosein(CSOUND *csound)
         sf_close(ST(infile));
 #ifdef PIPES
       if (ST(pin) != NULL) {
-        int _pclose(FILE*);
         _pclose(ST(pin));
         ST(pin) = NULL;
       }
@@ -516,7 +539,6 @@ void sfcloseout(CSOUND *csound)
     }
 #ifdef PIPES
     if (ST(pout) != NULL) {
-      int _pclose(FILE*);
       _pclose(ST(pout));
       ST(pout) = NULL;
     }
