@@ -45,7 +45,7 @@
    version 4.21, declares modf, and does so differently from
    the math header.
 
-   double modf(double, double *);  /* not included in math.h * /
+   double modf(double, double *);   // not included in math.h
 
    The difference is in the throw() specification. Including
    cmath here seems to suppress the compiler errors that
@@ -76,38 +76,13 @@
 using namespace Loris;
 using namespace std;
 
-#ifdef WIN32
-#define PUBLIC __declspec(dllexport)
-#define DIR_SEP '\\'
-#else
-#define PUBLIC
-#define DIR_SEP '/'
-#endif
-
 typedef std::vector< Partial > PARTIALS;
 typedef std::vector< Oscillator > OSCILS;
 
 //      debugging flag
 // #define DEBUG_LORISGENS
 
-//      globals:
-static double Lorisgens_Srate = 0;
-static double Lorisgens_Krate = 0;
-static int Lorisgens_Ksamps = 0;
-
 #pragma mark -- static helpers --
-
-// ---------------------------------------------------------------------------
-//      setup_globals
-// ---------------------------------------------------------------------------
-static void setup_globals( CSOUND * csound )
-{
-        Lorisgens_Srate = csound->GetSr( csound );
-        Lorisgens_Krate = csound->GetKr( csound );
-        Lorisgens_Ksamps = csound->GetKsmps( csound );
-  // std::cerr << "*** sample rate is " << Lorisgens_Srate << std::endl;
-  // std::cerr << "*** control rate is " << Lorisgens_Krate << std::endl;
-}
 
 // ---------------------------------------------------------------------------
 //      import_partials
@@ -218,11 +193,9 @@ static void apply_fadetime( PARTIALS & part, double fadetime )
 // ---------------------------------------------------------------------------
 //      Compute radian frequency (used by Loris::Oscillator) from frequency in Hz.
 //
-static inline double radianFreq( double hz )
+static inline double radianFreq( CSOUND *csound, double hz )
 {
-  //    only need to compute this once ever
-  static const double TwoPiOverSR = TWOPI / Lorisgens_Srate;
-  return hz * TwoPiOverSR;
+  return hz * (double) csound->tpidsr;
 }
 
 // ---------------------------------------------------------------------------
@@ -230,11 +203,13 @@ static inline double radianFreq( double hz )
 // ---------------------------------------------------------------------------
 //      helper
 //
-static void accum_samples( Oscillator & oscil, Breakpoint & bp, double * bufbegin, int nsamps )
+static void accum_samples( CSOUND * csound,
+                           Oscillator & oscil, Breakpoint & bp,
+                           double * bufbegin )
 {
   if( bp.amplitude() > 0 || oscil.amplitude() > 0 )
     {
-      double radfreq = radianFreq( bp.frequency() );
+      double radfreq = radianFreq( csound, bp.frequency() );
       double amp = bp.amplitude();
       double bw = bp.bandwidth();
 
@@ -250,18 +225,18 @@ static void accum_samples( Oscillator & oscil, Breakpoint & bp, double * bufbegi
           if ( radfreq > PI )   //      don't alias
             amp = 0.;
 
-          if ( bw > 1. )                //      clamp bandwidth
+          if ( bw > 1. )        //      clamp bandwidth
             bw = 1.;
           else if ( bw < 0. )
             bw = 0.;
 
-                        /*
 #ifdef DEBUG_LORISGENS
-                        std::cerr << "initializing oscillator " << std::endl;
-                        std::cerr << "parameters: " << bp.frequency() << "  ";
-                        std::cerr << amp << "  " << bw << std::endl;
+        /*
+          std::cerr << "initializing oscillator " << std::endl;
+          std::cerr << "parameters: " << bp.frequency() << "  ";
+          std::cerr << amp << "  " << bw << std::endl;
+        */
 #endif
-                        */
 
           //    initialize frequency, amplitude, and bandwidth to
           //    their target values:
@@ -270,15 +245,16 @@ static void accum_samples( Oscillator & oscil, Breakpoint & bp, double * bufbegi
             oscil.setAmplitude( amp );
             oscil.setBandwidth( bw );
           */
-          oscil.resetEnvelopes( bp, Lorisgens_Srate );
+          oscil.resetEnvelopes( bp, (double) csound->esr );
 
           //    roll back the phase:
-          oscil.resetPhase( bp.phase() - ( radfreq * nsamps ) );
+          oscil.resetPhase( bp.phase() - ( radfreq * (double) csound->ksmps ) );
         }
 
       //        accumulate samples into buffer:
       // oscil.generateSamples( bufbegin, bufbegin + nsamps, radfreq, amp, bw );
-      oscil.oscillate( bufbegin, bufbegin + nsamps, bp, Lorisgens_Srate );
+      oscil.oscillate( bufbegin, bufbegin + csound->ksmps,
+                       bp, (double) csound->esr );
     }
 }
 
@@ -297,11 +273,13 @@ static inline void clear_buffer( double * buf, int nsamps )
 // ---------------------------------------------------------------------------
 //      helper
 //
-static inline void convert_samples( const double * src, MYFLT * tgt, int nn )
+static inline void convert_samples( CSOUND * csound,
+                                    const double * src, MYFLT * tgt )
 {
-  for(int i = 0; i < nn; i++)
+  double  scaleFac = (double) csound->e0dbfs;
+  for(int i = 0; i < csound->ksmps; i++)
     {
-      tgt[i] = src[i] * FL(32767.);
+      tgt[i] = (MYFLT) (src[i] * scaleFac);
     }
 }
 
@@ -355,7 +333,7 @@ class EnvelopeReader
 EnvelopeReader::TagMap &
 EnvelopeReader::Tags( void )
 {
-  static TagMap readers;
+  static TagMap readers;        // FIXME: should remove statics
   return readers;
 }
 
@@ -602,8 +580,6 @@ int lorisread_cleanup(CSOUND *, void * p);
 extern "C"
 int lorisread_setup( CSOUND *csound, LORISREAD * params )
 {
-  if (!Lorisgens_Srate)
-    setup_globals( csound );
 #ifdef DEBUG_LORISGENS
   std::cerr << "** Setting up lorisread (owner " << params->h.insdshead << ")" << std::endl;
 #endif
@@ -611,24 +587,16 @@ int lorisread_setup( CSOUND *csound, LORISREAD * params )
   std::string sdiffilname;
 
   //    determine the name of the SDIF file to use:
-  //    this code adapted from ugens8.c pvset()
-  //if ( *params->ifilnam == SSTRCOD )
   {
+    char  *tmp;
     //  use strg name, if given:
-    //sdiffilname = unquote(params->strarg);
-    sdiffilname = (char *)params->ifilnam;
+    tmp = csound->strarg2name(
+        csound, (char*) 0, (void*) params->ifilnam, "loris.sdif.",
+        (int) csound->GetInputArgSMask( (void*) params )
+    );
+    sdiffilname = tmp;
+    csound->Free( csound, (void*) tmp );
   }
-  /* unclear what this does, not described in pvoc docs
-     else if ((long)*p->ifilnam <= strsmax && strsets != NULL && strsets[(long)*p->ifilnam])
-     strcpy(sdiffilname, strsets[(long)*p->ifilnam]);
-  */
-  //else
-  //{
-  //    //      else use loris.filnum
-  //    char tmp[32];
-  //    sprintf(tmp,"loris.%d", (int)*params->ifilnam);
-  //    sdiffilname = tmp;
-  //}
 
   //    construct the implementation object:
   params->imp = new LorisReader( sdiffilname, *params->fadetime, params->h.insdshead, int(*params->readerIdx) );
@@ -693,7 +661,7 @@ struct LorisPlayer
 //
 LorisPlayer::LorisPlayer( CSOUND *csound, LORISPLAY * params ) :
   reader( EnvelopeReader::Find( params->h.insdshead, (int)*(params->readerIdx) ) ),
-     dblbuffer( csound->GetKsmps(csound), 0.0 )
+     dblbuffer( csound->ksmps, 0.0 )
 {
   if ( reader != NULL ) {
     oscils.resize( reader->size() );
@@ -714,8 +682,6 @@ int lorisplay_cleanup(CSOUND *, void * p);
 extern "C"
 int lorisplay_setup( CSOUND *csound, LORISPLAY * p )
 {
-  if (!Lorisgens_Srate)
-    setup_globals( csound );
 #ifdef DEBUG_LORISGENS
   std::cerr << "** Setting up lorisplay (owner " << p->h.insdshead << ")" << std::endl;
 #endif
@@ -748,11 +714,11 @@ int lorisplay( CSOUND *csound, LORISPLAY * p )
                               (*p->ampenv) * bp.amplitude(),
                               (*p->bwenv) * bp.bandwidth(),
                               bp.phase() );
-                accum_samples( oscils[i], modifiedBp, bufbegin, p->h.insdshead->csound->GetKsmps(p->h.insdshead->csound) );
+                accum_samples( csound, oscils[i], modifiedBp, bufbegin );
     }
 
   //    transfer samples into the result buffer:
-  convert_samples( bufbegin, p->result, csound->GetKsmps(csound) );
+  convert_samples( csound, bufbegin, p->result );
   return OK;
 }
 
@@ -999,7 +965,6 @@ LorisMorpher::updateEnvelopes( void )
   LabelMap::iterator it;
   for( it = labelMap.begin(); it != labelMap.end(); ++it, ++envidx )
     {
-      long label = it->first;
       std::pair<long, long> & indices = it->second;
       Breakpoint & bp = morphed_envelopes.valueAt(envidx);
 
@@ -1077,8 +1042,6 @@ int lorismorph_cleanup(CSOUND *csound, void * p);
 extern "C"
 int lorismorph_setup( CSOUND *csound, LORISMORPH * p )
 {
-  if (!Lorisgens_Srate)
-    setup_globals( csound );
 #ifdef DEBUG_LORISGENS
   std::cerr << "** Setting up lorismorph (owner " << p->h.insdshead << ")" << std::endl;
 #endif
@@ -1128,7 +1091,7 @@ extern "C"
 {
   static OENTRY localops[] =
     {
-      {"lorisread",  sizeof(LORISREAD),  3, "",  "kSikkko", (SUBR) lorisread_setup,  (SUBR) lorisread,  0 },
+      {"lorisread",  sizeof(LORISREAD),  3, "",  "kTikkko", (SUBR) lorisread_setup,  (SUBR) lorisread,  0 },
       {"lorisplay",  sizeof(LORISPLAY),  5, "a", "ikkk",    (SUBR) lorisplay_setup,  0,                 (SUBR) lorisplay },
       {"lorismorph", sizeof(LORISMORPH), 3, "",  "iiikkk",  (SUBR) lorismorph_setup, (SUBR) lorismorph, 0 }
     };
