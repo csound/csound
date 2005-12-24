@@ -6,6 +6,13 @@ strip ../../../CSDIST/$DIR/bin/*
 
 cp -upv ../../li*.so ../../../CSDIST/$DIR/opc
 
+mv ../../../CSDIST/$DIR/opc/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends
+ln ../../../CSDIST/$DIR/opc/frontends/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends/_csnd.so 
+mv ../../../CSDIST/$DIR/opc/lib_jcsound.so ../../../CSDIST/$DIR/opc/frontends
+cp -puv ../../*.jar ../../../CSDIST/$DIR/opc/frontends
+cp -puv ../../csnd.py ../../../CSDIST/$DIR/opc/frontends
+mv ../../../CSDIST/$DIR/opc/libcsound.so  ../../../CSDIST/$DIR/lib
+
 cp -upv ../../libcsound.a ../../../CSDIST/$DIR/lib
 
 cp -upv ../../H/cfgvar.h ../../H/cscore.h ../../H/csdl.h ../../H/csound.h ../../H/csound.hpp ../../H/csoundCore.h ../../H/cwindow.h ../../H/msg_attr.h ../../H/OpcodeBase.hpp ../../H/pstream.h ../../H/pvfileio.h ../../H/soundio.h ../../H/sysdep.h ../../H/text.h ../../H/version.h ../../interfaces/CsoundFile.hpp ../../interfaces/CppSound.hpp ../../interfaces/filebuilding.h ../../../CSDIST/$DIR/hdr

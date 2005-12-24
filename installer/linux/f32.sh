@@ -7,7 +7,14 @@ cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,csco
 strip ../../../CSDIST/$DIR/bin/*
 
 rm ../../../CSDIST/$DIR/opc/*
-cp -pv ../../li*.so ../../*.jar ../../_csnd.so ../../../CSDIST/$DIR/opc
+cp -puv ../../li*.so ../../../CSDIST/$DIR/opc
+
+mv ../../../CSDIST/$DIR/opc/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends
+ln ../../../CSDIST/$DIR/opc/frontends/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends/_csnd.so 
+mv ../../../CSDIST/$DIR/opc/lib_jcsound.so ../../../CSDIST/$DIR/opc/frontends
+cp -puv ../../*.jar ../../../CSDIST/$DIR/opc/frontends
+cp -puv ../../csnd.py ../../../CSDIST/$DIR/opc/frontends
+mv ../../../CSDIST/$DIR/opc/libcsound.so  ../../../CSDIST/$DIR/lib
 
 cp -upv ../../libcsound.a  ../../../CSDIST/$DIR/lib
 
