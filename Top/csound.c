@@ -325,10 +325,10 @@ static const CSOUND cenviron_ = {
         0.0,            /*  curBeat             */
         0.0,            /*  curBeat_inc         */
         0.0,            /*  beatTime            */
-        1024U,          /*  rtin_dev            */
-        1024U,          /*  rtout_dev           */
-        NULL,           /*  rtin_devs           */
-        NULL,           /*  rtout_devs          */
+        0,              /*  dummy_01            */
+        0,              /*  dummy_02            */
+        NULL,           /*  dummy_03            */
+        NULL,           /*  stdOp_Env           */
         NULL,           /*  zkstart             */
         NULL,           /*  zastart             */
         0L,             /*  zklast              */

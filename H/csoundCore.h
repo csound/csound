@@ -836,8 +836,9 @@ extern "C" {
     double        curTime, curTime_inc; /* cur. time in secs, inc. per kprd */
     double        curBeat, curBeat_inc; /* cur. time in beats, inc per kprd */
     double        beatTime;             /* beat time = 60 / tempo           */
-    unsigned int  rtin_dev, rtout_dev;
-    char          *rtin_devs, *rtout_devs;
+    int           dummy_01, dummy_02;
+    void          *dummy_03;            /* unused */
+    void          *stdOp_Env;           /* reserved for std opcode library  */
     MYFLT         *zkstart;
     MYFLT         *zastart;
     long          zklast;

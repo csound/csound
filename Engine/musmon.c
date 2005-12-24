@@ -230,12 +230,8 @@ int musmon(CSOUND *csound)
       /* else keep the user values */
       /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
       /* are usable */
-      if ((O->infilename != NULL &&
-           (strncmp(O->infilename, "adc", 3) == 0 ||
-            strncmp(O->infilename, "devaudio", 8) == 0)) ||
-          (O->outfilename != NULL &&
-           (strncmp(O->outfilename, "dac", 3) == 0 ||
-            strncmp(O->outfilename, "devaudio", 8) == 0))) {
+      if (check_rtaudio_name(O->infilename, NULL, 0) >= 0 ||
+          check_rtaudio_name(O->outfilename, NULL, 1) >= 0) {
         O->oMaxLag = ((O->oMaxLag + O->outbufsamps - 1) / O->outbufsamps)
                      * O->outbufsamps;
         if (O->oMaxLag <= O->outbufsamps && O->outbufsamps > 1)
