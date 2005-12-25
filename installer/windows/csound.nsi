@@ -1,7 +1,7 @@
 ;NSIS Modern Csound5 Install Script
 
 !define PRODUCT "Csound"
-!define VERSION "5beta"
+!define VERSION "5rc1"
 !define PROGRAM "csound"
 
 !include "MUI.nsh"
@@ -425,8 +425,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\interfaces\test.py
   File ..\..\interfaces\*.lisp
   SetOutPath $INSTDIR\lib
-  File ..\..\libcsound.a
-  File ..\..\libCsoundVST.a
+  File ..\..\*.a
   SetOutPath $INSTDIR\include
   File ..\..\H\*.h
   File ..\..\frontends\CsoundVST\*.h
@@ -444,6 +443,53 @@ Section "${PRODUCT}" SecCopyUI
   SetOutPath $INSTDIR\samples
   File ..\..\samples\*
   File ..\..\Opcodes\stk\rawwaves\*
+
+  ; frontends
+  ; binDir      = instPrefix + '/bin'
+  SetOutPath $INSTDIR\bin
+  ;; the actual binaries (called by above)
+  ;; binDir2     = instPrefix + '/lib/csound/bin'
+  ; Csound API header files
+  ; includeDir  = instPrefix + '/include/csound'
+  SetOutPath $INSTDIR\include\csound
+  SetOutPath $INSTDIR\include\csoundvst
+  ; Csound API libraries
+  ; libDir      = instPrefix + '/lib'
+  SetOutPath $INSTDIR\lib
+  ;; private libraries for use by Csound
+  ;; libDir2     = libDir + '/csound/lib'
+  ;; single precision plugin libraries
+  ;; pluginDir32 = libDir + '/csound/plugins'
+  ; double precision plugin libraries
+  ; pluginDir64 = libDir + '/csound/plugins64'
+  SetOutPath $INSTDIR\lib\csound\plugins64
+  ; XMG files
+  ; xmgDir      = instPrefix + '/share/csound/xmg'
+  SetOutPath $INSTDIR\share\csound\xmg
+  ; documentation
+  ; docDir      = instPrefix + '/share/doc/csound'
+  SetOutPath $INSTDIR\share\doc
+  ; tclcsound.so
+  ; tclDir      = libDir + '/csound/tcl'
+  SetOutPath $INSTDIR\lib\csound\tcl
+  ; csnd.jar
+  ; javaDir     = libDir + '/csound/java'
+  SetOutPath $INSTDIR\lib\csound\java
+  ; LISP interface
+  ; lispDir     = libDir + '/csound/lisp'
+  SetOutPath $INSTDIR\lib\csound\lisp
+  ; STK raw wave files
+  ; rawWaveDir  = instPrefix + '/share/csound/rawwaves'
+  SetOutPath $INSTDIR\share\csound\rawwaves
+
+  ; Python version to use
+  ; pyVersion   = '2.4'
+  ; csnd.py
+  ; pythonDir   = '/usr/lib/python' + pyVersion
+  ; _csnd.so
+  ; pythonDir2  = pythonDir + '/lib-dynload'
+  ; csoundapi~.pd_linux
+  ; pdDir       = '/usr/local/lib/pd/extra'
 
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
