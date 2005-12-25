@@ -849,8 +849,8 @@ else:
         csoundPythonInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/python_interface.i',
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
-	if getPlatform() == 'mingw':
-		Depends(csoundPythonInterface, pythonImportLibrary)
+        if getPlatform() == 'mingw':
+            Depends(csoundPythonInterface, pythonImportLibrary)
         csoundInterfacesSources.insert(0, csoundPythonInterface)
         libs.append('csnd.py')
     if not luaFound:
@@ -1028,7 +1028,7 @@ else:
     oscEnvironment.Append(LIBS = ['lo', 'pthread'])
     if getPlatform() == 'mingw':
         oscEnvironment.Append(LIBS = csoundWindowsLibraries)
-	oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
+        oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
 
@@ -1041,12 +1041,10 @@ else:
     fluidEnvironment = pluginEnvironment.Copy()
     fluidEnvironment.Append(LIBS = ['fluidsynth'])
     if getPlatform() == 'mingw':
-        fluidEnvironment.Append(CCFLAGS = Split('''
-            -DFLUIDSYNTH_NOT_A_DLL -DMAKEDLL -DBUILDING_DLL
-        '''))
-        fluidEnvironment.Append(LIBS = ['stdc++', 'winmm', 'dsound'])
+        fluidEnvironment.Append(CPPFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL'])
+        fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
     pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
-        ['Opcodes/fluidOpcodes/fluidOpcodes.cpp']))
+        ['Opcodes/fluidOpcodes/fluidOpcodes.c']))
 
 # VST HOST OPCODES
 
@@ -1307,7 +1305,7 @@ if commonEnvironment['buildLoris'] == '1':
             '_loris.so', [lorisPythonWrapper])
     Depends(lorisPythonModule, lorisLibrary)
     if getPlatform() == 'mingw':
-	Depends(lorisPythonModule, pythonImportLibrary)
+        Depends(lorisPythonModule, pythonImportLibrary)
     libs.append(lorisPythonModule)
     libs.append('loris.py')
 
@@ -1381,7 +1379,7 @@ else:
         'py', ['Opcodes/py/pythonopcodes.c'])
     pluginLibraries.append(pythonOpcodes)
     if getPlatform() == 'mingw':
-	Depends(pythonOpcodes, pythonImportLibrary)
+        Depends(pythonOpcodes, pythonImportLibrary)
 
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
