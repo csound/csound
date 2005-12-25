@@ -109,9 +109,9 @@ else:
         '1')
 opts.Add('pythonVersion',
     'Set to the Python version to be used.',
-    '2.3')
+    '2.4')
 opts.Add('buildCsoundVST',
-    'Set to 1 to build CsoundVST (needs FLTK, boost, Python 2.3, SWIG).',
+    'Set to 1 to build CsoundVST (needs FLTK, boost, Python, SWIG).',
     '0')
 opts.Add('generateTags',
     'Set to 1 to generate TAGS',
@@ -418,7 +418,7 @@ def buildzip(env, target, source):
     extensions = extensions + ".sf2 .SF2 .csd .aif .aiff .jar .smf .mid"
     extensions = string.split(extensions)
 
-    specificFiles = "SConstruct _CsoundVST.* _loris.* loris.py lorisgens.C lorisgens.h morphdemo.py trymorph.csd CsoundCOM.dll msvcp70.dll libsndfile.dll portaudio.dll.0.0.19 msvcr70.dll csound csound.exe CsoundVST CsoundVST.exe CsoundVST.* soundfonts.dll libpython23.a "
+    specificFiles = "SConstruct _CsoundVST.* _loris.* loris.py lorisgens.C lorisgens.h morphdemo.py trymorph.csd CsoundCOM.dll msvcp70.dll libsndfile.dll portaudio.dll.0.0.19 msvcr70.dll csound csound.exe CsoundVST CsoundVST.exe CsoundVST.* soundfonts.dll lib"+pythonLibs+".a "
     specificFiles = specificFiles + "README Doxyfile ChangeLog COPYING INSTALL MANIFEST COPYRIGHT AUTHORS TODO all_strings french-strings english-strings"
     specificFiles = string.split(specificFiles)
 
@@ -494,7 +494,8 @@ if getPlatform() == 'mingw':
     if commonEnvironment['MSVC'] == '0':
         # These are the Windows system call libraries.
         csoundWindowsLibraries = Split('''
-            kernel32 gdi32 wsock32 ole32 uuid winmm
+            kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm
+            kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm
         ''')
     else:
         # These are the Windows system call libraries.
@@ -837,10 +838,10 @@ else:
     if pythonFound:
         if getPlatform() == 'mingw':
             pythonImportLibrary = csoundInterfacesEnvironment.Command(
-                '/usr/local/lib/libpython23.a',
-                '$SYSTEMROOT/System32/python23.dll',
-                ['pexports $SYSTEMROOT/System32/python23.dll > python23.def',
-                 'dlltool --input-def python23.def --dllname python23.dll --output-lib /usr/local/lib/libpython23.a'])
+                '/usr/local/lib/lib%s.a' % (pythonLibs[0]),
+                '$SYSTEMROOT/System32/%s.dll' % (pythonLibs[0]),
+                ['pexports $SYSTEMROOT/System32/%s.dll > %s.def' % (pythonLibs[0], pythonLibs[0]),
+                 'dlltool --input-def %s.def --dllname %s.dll --output-lib /usr/local/lib/lib%s.a' % (pythonLibs[0], pythonLibs[0], pythonLibs[0])])
         csoundWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
         csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
@@ -848,6 +849,8 @@ else:
         csoundPythonInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/python_interface.i',
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
+	if getPlatform() == 'mingw':
+		Depends(csoundPythonInterface, pythonImportLibrary)
         csoundInterfacesSources.insert(0, csoundPythonInterface)
         libs.append('csnd.py')
     if not luaFound:
@@ -1024,7 +1027,8 @@ else:
     oscEnvironment = pluginEnvironment.Copy()
     oscEnvironment.Append(LIBS = ['lo', 'pthread'])
     if getPlatform() == 'mingw':
-        oscEnvironment.Append(LIBS = ['ws2_32'])
+        oscEnvironment.Append(LIBS = csoundWindowsLibraries)
+	oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
 
@@ -1302,6 +1306,8 @@ if commonEnvironment['buildLoris'] == '1':
         lorisPythonModule = lorisPythonEnvironment.Program(
             '_loris.so', [lorisPythonWrapper])
     Depends(lorisPythonModule, lorisLibrary)
+    if getPlatform() == 'mingw':
+	Depends(lorisPythonModule, pythonImportLibrary)
     libs.append(lorisPythonModule)
     libs.append('loris.py')
 
@@ -1371,8 +1377,11 @@ else:
     elif getPlatform() == 'mingw':
         pyEnvironment['ENV']['PATH'] = os.environ['PATH']
         pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-    pluginLibraries.append(pyEnvironment.SharedLibrary(
-        'py', ['Opcodes/py/pythonopcodes.c']))
+    pythonOpcodes = pyEnvironment.SharedLibrary(
+        'py', ['Opcodes/py/pythonopcodes.c'])
+    pluginLibraries.append(pythonOpcodes)
+    if getPlatform() == 'mingw':
+	Depends(pythonOpcodes, pythonImportLibrary)
 
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
