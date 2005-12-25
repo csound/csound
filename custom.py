@@ -49,7 +49,7 @@ elif sys.platform[:3] == 'win':
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
-    customCPPPATH.append('c:/utah/opt/Python23/include')
+    customCPPPATH.append('c:/utah/opt/Python24/include')
     customCPPPATH.append('c:/utah/usr/mingw/include')
     ################################################################
     # If you want to build Lua interfaces you need Lua.
