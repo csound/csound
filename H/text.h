@@ -135,7 +135,8 @@ typedef enum {
  */
 /* char *csoundLocalizeString(const char *s); */
 
-void init_getstring(int argc, char **argv);
+void init_getstring(void);
+void csound_free_string_database(void);
 
 #endif  /* __BUILDING_LIBCSOUND */
 

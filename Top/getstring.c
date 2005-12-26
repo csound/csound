@@ -250,7 +250,7 @@ static  l10ndb_t    getstr_db = { CSLANGUAGE_DEFAULT, { NULL } };
 
 /* Set default language and free all memory used by string database. */
 
-static  void    free_string_database(void)
+void csound_free_string_database(void)
 {
     int         i;
     lclstr_t    *p, *q;
@@ -471,7 +471,7 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
     if (getstr_db.lang_code == lang_code)
       return;
 
-    free_string_database();
+    csound_free_string_database();
     /* set language code */
     getstr_db.lang_code = lang_code;
     if (lang_code == CSLANGUAGE_DEFAULT)
@@ -535,13 +535,10 @@ static LanguageSpec_t lang_list[] = {
     { NULL, -1 },
 };
 
-void init_getstring(int argc, char **argv)
+void init_getstring(void)
 {
     const char  *s;
     int         n;
-
-    (void) argc;
-    (void) argv;
 
     s = csoundGetEnv(NULL, "CS_LANG");
     if (s == NULL)
