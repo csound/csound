@@ -210,8 +210,7 @@ static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
     STDOPCOD_GLOBALS  *pp;
     struct scsnx_elem *i;
 
-    pp = (STDOPCOD_GLOBALS*)
-             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     i = (struct scsnx_elem *) pp->scsnx_list;
     if (i == NULL) {
       csound->Die(csound, Str("xscans: No scan synthesis net specified"));
@@ -434,7 +433,7 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
-    pp = stdopcod_getGlobals(csound, &(p->pp));
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
 
     /* Make external force window if we haven't so far */
     if (pp->ewinx == NULL) {
@@ -474,7 +473,7 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
     long    idx = p->idx;
     MYFLT   rate = p->rate;
 
-    pp = stdopcod_getGlobals(csound, &(p->pp));
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
 
     for (n = 0 ; n != csound->ksmps ; n++) {
 

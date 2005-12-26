@@ -56,8 +56,7 @@ static int locsigset(CSOUND *csound, LOCSIG *p)
     p->prev_degree = -FL(918273645.192837465);
     p->prev_distance = -FL(918273645.192837465);
 
-    pp = (STDOPCOD_GLOBALS*)
-             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     pp->locsigaddr = (void*) p;
 
     return OK;
@@ -137,8 +136,7 @@ static int locsendset(CSOUND *csound, LOCSEND *p)
     STDOPCOD_GLOBALS  *pp;
     LOCSIG  *q;
 
-    pp = (STDOPCOD_GLOBALS*)
-             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     q = (LOCSIG*) pp->locsigaddr;
     p->locsig = q;
 

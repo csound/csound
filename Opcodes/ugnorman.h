@@ -185,7 +185,6 @@ typedef struct _atscross {
     /* optional arguments */
     MYFLT   *iptloffset, *iptlincr, *igatefun;
 
-    ATSBUFREAD  **atsbufreadaddrp;
     /* pointer to table with wave to synthesize sound */
     FUNC    *ftp, *AmpGateFunc;
     AUXCH   auxch;
@@ -242,13 +241,11 @@ typedef struct _atssinnoi {
 typedef struct _atspartialtap {
     OPDS    h;
     MYFLT   *kfreq, *kamp, *iparnum;    /* out: freq, amp, in: partialnumber */
-    ATSBUFREAD  **atsbufreadaddrp;
 } ATSPARTIALTAP;
 
 typedef struct _atsinterpread {
     OPDS    h;
     MYFLT   *kamp, *kfreq;              /* output amp, input: frequency */
-    ATSBUFREAD  **atsbufreadaddrp;
     int     overflowflag;
 } ATSINTERPREAD;
 

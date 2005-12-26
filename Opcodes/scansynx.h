@@ -42,7 +42,6 @@ typedef struct {
     long        idx, len, exti;
     int         id;
     void        *win;
-    STDOPCOD_GLOBALS  *pp;
 } PSCSNUX;
 
 /* Data structure for scanning opcode */
