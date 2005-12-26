@@ -576,7 +576,7 @@ static const CSOUND cenviron_ = {
     init_done = -1;     /* prevent the creation of any new instances */
     if (instance_list == NULL) {
       csoundUnLock();
-      return;
+      goto delete_str_db;
     }
     csoundUnLock();
     csoundSleep(250);
@@ -586,6 +586,8 @@ static const CSOUND cenviron_ = {
         break;
       csoundDestroy(p->csound);
     }
+ delete_str_db:
+    csound_free_string_database();
   }
 
 #if !defined(LINUX) && !defined(SGI) && !defined(__BEOS__) && !defined(__MACH__)
@@ -731,6 +733,8 @@ static const CSOUND cenviron_ = {
   {
     int     n;
 
+    (void) argc;
+    (void) argv;
     do {
       csoundLock();
       n = init_done;
@@ -747,10 +751,7 @@ static const CSOUND cenviron_ = {
     } while (n);
     init_done = 2;
     csoundUnLock();
-    if (argc == NULL || argv == NULL || *argc <= 0 || *argv == NULL)
-      init_getstring(0, (char**) NULL);
-    else
-      init_getstring(*argc, *argv);
+    init_getstring();
     if (getTimeResolution() != 0) {
       csoundLock(); init_done = -1; csoundUnLock();
       return -1;
