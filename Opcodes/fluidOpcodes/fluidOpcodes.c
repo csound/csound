@@ -94,6 +94,7 @@
 
 #include "csdl.h"
 #include "fluidOpcodes.h"
+#include "csGblMtx.h"
 
 typedef struct {
     fluid_synth_t   **fluid_engines;
@@ -151,18 +152,28 @@ static int fluidEngine_Alloc(CSOUND *csound, fluid_synth_t *p)
 
 static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
 {
-    fluid_synth_t     *fluidSynth;
+    fluid_synth_t     *fluidSynth = NULL;
     fluid_settings_t  *fluidSettings;
     int               ndx;
 
+    csound_global_mutex_lock();
     fluidSettings = new_fluid_settings();
-    fluid_settings_setnum(fluidSettings,
-                          "synth.sample-rate", (double) csound->esr);
-    fluid_settings_setint(fluidSettings,
-                          "synth.polyphony", 4096);
-    fluid_settings_setint(fluidSettings,
-                          "synth.midi-channels", 256);
-    fluidSynth = new_fluid_synth(fluidSettings);
+    if (fluidSettings != NULL) {
+      fluid_settings_setnum(fluidSettings,
+                            "synth.sample-rate", (double) csound->esr);
+      fluid_settings_setint(fluidSettings,
+                            "synth.polyphony", 4096);
+      fluid_settings_setint(fluidSettings,
+                            "synth.midi-channels", 256);
+      fluidSynth = new_fluid_synth(fluidSettings);
+    }
+    csound_global_mutex_unlock();
+
+    if (fluidSynth == NULL) {
+      if (fluidSettings != NULL)
+        delete_fluid_settings(fluidSettings);
+      return csound->InitError(csound, "error allocating fluid engine");
+    }
 
     csound->Message(csound, "Allocated fluidsynth with sampling rate = %f.\n",
                             (double) csound->esr);
@@ -295,10 +306,10 @@ static int fluidCC_K_Kopadr(CSOUND *csound, FLUID_CC *p)
 static int fluidNoteTurnoff(CSOUND *csound, FLUID_NOTE *p)
 {
     (void) csound;
-    if (p->initDone) {
+    if (p->initDone > 0)
       fluid_synth_noteoff(p->fluidEngine, p->iChn, p->iKey);
-      p->initDone = 0;
-    }
+    p->initDone = 0;
+
     return OK;
 }
 
@@ -331,8 +342,10 @@ static int fluidNoteIopadr(CSOUND *csound, FLUID_NOTE *p)
 static int fluidNoteKopadr(CSOUND *csound, FLUID_NOTE *p)
 {
     if (p->h.insdshead->relesing) {
-      if (p->initDone)
+      if (p->initDone > 0) {
         fluidNoteTurnoff(csound, p);
+        p->initDone = -1;
+      }
     }
     return OK;
 }
@@ -372,21 +385,20 @@ static int fluidOutAopadr(CSOUND *csound, FLUIDOUT *p)
 
 static int fluidAllOutIopadr(CSOUND *csound, FLUIDALLOUT *p)
 {
-    fluidSynthGlobals *pp = fluid_getGlobals(csound);
-
-    p->fluidEngines = pp->fluid_engines;
-    p->cnt = (int) pp->cnt;
-
+    p->fluidGlobals = (void *) fluid_getGlobals(csound);
     return OK;
 }
 
 static int fluidAllOutAopadr(CSOUND *csound, FLUIDALLOUT *p)
 {
+    fluid_synth_t **fluid_engines;
     float   leftSample, rightSample;
-    int     i = 0, j;
+    int     i = 0, j, cnt;
 
-    if (p->cnt <= 0)
+    cnt = (int) ((fluidSynthGlobals *) p->fluidGlobals)->cnt;
+    if (cnt <= 0)
       return OK;
+    fluid_engines = ((fluidSynthGlobals *) p->fluidGlobals)->fluid_engines;
     do {
       p->aLeftOut[i] = FL(0.0);
       p->aRightOut[i] = FL(0.0);
@@ -394,11 +406,11 @@ static int fluidAllOutAopadr(CSOUND *csound, FLUIDALLOUT *p)
       do {
         leftSample = 0.0f;
         rightSample = 0.0f;
-        fluid_synth_write_float(p->fluidEngines[j], 1,
+        fluid_synth_write_float(fluid_engines[j], 1,
                                 &leftSample, 0, 1, &rightSample, 0, 1);
         p->aLeftOut[i] += (MYFLT) leftSample /* * csound->e0dbfs */;
         p->aRightOut[i] += (MYFLT) rightSample /* * csound->e0dbfs */;
-      } while (++j < p->cnt);
+      } while (++j < cnt);
     } while (++i < csound->ksmps);
 
     return OK;
@@ -566,5 +578,10 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
     }
 
     return 0;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
