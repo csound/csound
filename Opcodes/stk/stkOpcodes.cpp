@@ -65,6 +65,8 @@
 
 #include <OpcodeBase.hpp>
 
+#include "csGblMtx.h"
+
 std::map<CSOUND *, std::vector<Instrmnt *> > stkInstances;
 
 template<typename T>
@@ -572,7 +574,9 @@ extern "C"
       }
     else
       {
+        csound_global_mutex_lock();
         Stk::setRawwavePath(path);
+        csound_global_mutex_unlock();
       }
     int status = 0;
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
