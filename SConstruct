@@ -158,9 +158,14 @@ opts.Add('useGprof',
 opts.Add('Word64',
     'Build for 64bit computer',
     '0')
-opts.Add('dynamicCsoundLibrary',
-    'Build dynamic Csound library instead of libcsound.a',
-    '0')
+if getPlatform() == 'mingw':
+    opts.Add('dynamicCsoundLibrary',
+        'Set to 0 to build static Csound library instead of csound.dll',
+        '1')
+else:
+    opts.Add('dynamicCsoundLibrary',
+        'Build dynamic Csound library instead of libcsound.a',
+        '0')
 opts.Add('buildStkOpcodes',
     "Build opcodes encapsulating Perry Cook's Synthesis Toolkit in C++ instruments and effects",
     '0')
