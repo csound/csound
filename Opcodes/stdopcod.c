@@ -32,11 +32,11 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     STDOPCOD_GLOBALS  *p;
     int               err = 0;
 
-    if (csound->CreateGlobalVariable(csound, "stdOp_Env",
-                                     sizeof(STDOPCOD_GLOBALS)) != 0)
-      csound->Die(csound, Str("stdopcod.c: error allocating globals"));
-    p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,
-                                                               "stdOp_Env");
+    if (csound->stdOp_Env != NULL)
+      csound->Die(csound, Str("stdopcod.c: error: globals already allocated"));
+    csound->stdOp_Env = csound->Calloc(csound, sizeof(STDOPCOD_GLOBALS));
+
+    p = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     p->csound = csound;
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;

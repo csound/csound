@@ -70,16 +70,6 @@ typedef struct STDOPCOD_GLOBALS_ {
     void        *scsnx_list;
 } STDOPCOD_GLOBALS;
 
-static inline STDOPCOD_GLOBALS *stdopcod_getGlobals(CSOUND *csound,
-                                                    STDOPCOD_GLOBALS **p)
-{
-    if (*p == NULL) {
-      *p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,
-                                                                  "stdOp_Env");
-    }
-    return *p;
-}
-
 extern int ambicode_init_(CSOUND *);
 extern int babo_init_(CSOUND *);
 extern int bbcut_init_(CSOUND *);

@@ -30,7 +30,6 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *iflag, *argums[VARGMAX];
     SNDFILE     *fp;
-    STDOPCOD_GLOBALS  *p;
     MYFLT       scaleFac;
     int         idx;
     int         flag;
@@ -41,7 +40,6 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *iflag, *argums[VARGMAX];
     SNDFILE     *fp;
-    STDOPCOD_GLOBALS  *p;
     MYFLT       scaleFac;
     int         idx;
     int         flag;
@@ -52,7 +50,6 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     SNDFILE     *fp;
-    STDOPCOD_GLOBALS  *p;
     MYFLT       scaleFac;
     int         idx;
     long        currpos;
@@ -64,7 +61,6 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     SNDFILE     *fp;
-    STDOPCOD_GLOBALS  *p;
     MYFLT       scaleFac;
     int         idx;
     long        currpos;
@@ -75,7 +71,6 @@ typedef struct {
 typedef struct {
     OPDS        h;
     MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
-    STDOPCOD_GLOBALS  *p;
     long        currpos;
     int         flag;
 } I_INFILE;
@@ -95,19 +90,16 @@ typedef struct {
     MYFLT       *ihandle, *fname;
     /* iascii=0 open ascii (default), iflag=1 open binary */
     MYFLT       *iascii;
-    STDOPCOD_GLOBALS  *p;
 } FIOPEN;
 
 typedef struct {
     OPDS        h;
     MYFLT       *ihandle, *iascii, *iflag, *argums[VARGMAX];
-    STDOPCOD_GLOBALS  *p;
 } IOUTFILE;
 
 typedef struct {
     OPDS        h;
     MYFLT       *ihandle, *iascii, *iflag, *argums[VARGMAX];
-    STDOPCOD_GLOBALS  *p;
     long        counter;
     int         done;
 } IOUTFILE_R;
@@ -116,7 +108,6 @@ typedef struct {
     OPDS        h;
     MYFLT       *fname, *fmt, *argums[VARGMAX];
     FILE        *fp;
-    STDOPCOD_GLOBALS  *p;
     int         idx;
     char        txtstring[8192];    /* Place to store the string printed */
 } FPRINTF;

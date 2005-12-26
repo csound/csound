@@ -204,7 +204,7 @@ static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
     STDOPCOD_GLOBALS  *pp;
     if (csound->GetTable(csound, &ft, (int) *(p->ifn)) < 0)
       return csound->InitError(csound, Str("tab_init: incorrect table number"));
-    pp = stdopcod_getGlobals(csound, &(p->p));
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     pp->tb_ptrs[ndx] = ft;
     return OK;
 }
@@ -218,8 +218,7 @@ static CS_NOINLINE int tab_perf(CSOUND *csound, FASTB *p)
 static CS_NOINLINE int tab_i_tmp(CSOUND *csound, FASTB *p, int ndx)
 {
     STDOPCOD_GLOBALS  *pp;
-    pp = (STDOPCOD_GLOBALS*)
-             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     p->tb_ptr = &(pp->tb_ptrs[ndx]);
     p->h.iopadr = (SUBR) tab_perf;
     return tab_perf(csound, p);
@@ -228,8 +227,7 @@ static CS_NOINLINE int tab_i_tmp(CSOUND *csound, FASTB *p, int ndx)
 static CS_NOINLINE int tab_k_tmp(CSOUND *csound, FASTB *p, int ndx)
 {
     STDOPCOD_GLOBALS  *pp;
-    pp = (STDOPCOD_GLOBALS*)
-             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     p->tb_ptr = &(pp->tb_ptrs[ndx]);
     p->h.opadr = (SUBR) tab_perf;
     return tab_perf(csound, p);
