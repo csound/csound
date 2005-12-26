@@ -25,6 +25,7 @@
 #endif
 
 #include "csoundCore.h"
+#include "csGblMtx.h"
 
 #if defined(WIN32)
 
@@ -106,24 +107,6 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
 PUBLIC void csoundSleep(size_t milliseconds)
 {
     Sleep((DWORD) milliseconds);
-}
-
-/* internal functions for csound.c */
-
-static  HANDLE  cs_mutex = (HANDLE) 0;
-
-void csoundLock(void)
-{
-    if (cs_mutex == (HANDLE) 0)
-      cs_mutex = CreateEvent(0, 0, 0, 0);
-    else
-      WaitForSingleObject(cs_mutex, 10000);
-}
-
-void csoundUnLock(void)
-{
-    if (cs_mutex != (HANDLE) 0)
-      SetEvent(cs_mutex);
 }
 
 #elif defined(LINUX) || defined(__MACH__)
@@ -238,20 +221,6 @@ PUBLIC void csoundSleep(size_t milliseconds)
       ;
 }
 
-/* internal functions for csound.c */
-
-static  pthread_mutex_t cs_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-void csoundLock(void)
-{
-    pthread_mutex_lock(&cs_mutex);
-}
-
-void csoundUnLock(void)
-{
-    pthread_mutex_unlock(&cs_mutex);
-}
-
 #else
 
 static CS_NOINLINE void notImplementedWarning_(const char *name)
@@ -304,15 +273,17 @@ PUBLIC void csoundSleep(size_t milliseconds)
     notImplementedWarning_("csoundSleep");
 }
 
+#endif
+
 /* internal functions for csound.c */
 
 void csoundLock(void)
 {
+    csound_global_mutex_lock();
 }
 
 void csoundUnLock(void)
 {
+    csound_global_mutex_unlock();
 }
-
-#endif
 
