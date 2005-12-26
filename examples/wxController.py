@@ -23,7 +23,7 @@ class ControlPanel(wxPanel):
             # Bind the slider to its event handler.
             EVT_SLIDER(self, self.ID_SLIDER1, self.OnSlider1Move)
             # Set up a 'close' event handler to cleanly shut down Csound.
-            EVT_CLOSE(parent, self.OnClose) 
+            EVT_CLOSE(parent, self.OnClose)
             # Default pitch.
             self.pitch = 60
             # Create an instance of CppSound.
@@ -74,6 +74,8 @@ class ControlPanel(wxPanel):
             # (Csound will yield implicitly to wxWindows).
             self.keepPerforming = True
             while self.keepPerforming:
+                # for i in range(10000):
+                #     pass
                 if self.csound.PerformKsmps():
                     print 'Performance finished.'
                     return
@@ -96,9 +98,10 @@ class ControlPanel(wxPanel):
             try:
                 print "You closed the window."
                 self.csound.Stop()
-                self.csound.Cleanup()
                 self.keepPerforming = False
                 self.csoundThread.join()
+                self.csound.Cleanup()
+                self.csound.Reset()
                 print 'Csound thread has finished.'
                 self.GetParent().Destroy()
             except:
