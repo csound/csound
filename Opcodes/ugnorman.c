@@ -69,15 +69,9 @@ kamp            ATSinterpread   kfreq
       4400.0, 5300.0, 6400.0, 7700.0, 9500.0, 12000.0, 15500.0, 20000.0 }
 
 /* static variables used for atsbufread and atsbufreadnz */
-static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound, ATSBUFREAD ***p)
+static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound)
 {
-    if (*p == NULL) {
-      STDOPCOD_GLOBALS  *pp;
-      pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,
-                                                                  "stdOp_Env");
-      *p = &(pp->atsbufreadaddr);
-    }
-    return *p;
+    return &(((STDOPCOD_GLOBALS*) csound->stdOp_Env)->atsbufreadaddr);
 }
 
 /* byte swaps a double */
@@ -137,8 +131,7 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                                 opname, fname);
       return -1;
     }
-    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariableNoCheck(csound,
-                                                                "stdOp_Env");
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     if (pp->swapped_warning)
       return 1;
     csound->Warning(csound,
@@ -1533,7 +1526,7 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
         20000;
     p->table[(int) *p->iptls + 1].amp = p->utable[(int) *p->iptls + 1].amp = 0;
 
-    *(get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp))) = p;
+    *(get_atsbufreadaddrp(csound)) = p;
 
     return OK;
 }
@@ -1667,7 +1660,7 @@ static int atspartialtapset(CSOUND *csound, ATSPARTIALTAP *p)
 {
     ATSBUFREAD  *atsbufreadaddr;
 
-    atsbufreadaddr = *(get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp)));
+    atsbufreadaddr = *(get_atsbufreadaddrp(csound));
     if (atsbufreadaddr == NULL) {
       return csound->InitError(csound,
                                Str("ATSPARTIALTAP: you must have an "
@@ -1689,7 +1682,7 @@ static int atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
 {
     ATSBUFREAD  *atsbufreadaddr;
 
-    atsbufreadaddr = *(get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp)));
+    atsbufreadaddr = *(get_atsbufreadaddrp(csound));
     if (atsbufreadaddr == NULL) {
       return csound->PerfError(csound,
                                Str("ATSPARTIALTAP: you must have an "
@@ -1704,7 +1697,7 @@ static int atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
 
 static int atsinterpreadset(CSOUND *csound, ATSINTERPREAD *p)
 {
-    if (*(get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp))) == NULL)
+    if (*(get_atsbufreadaddrp(csound)) == NULL)
       return csound->InitError(csound,
                                Str("ATSINTERPREAD: you must have an "
                                    "atsbufread before an atsinterpread"));
@@ -1719,7 +1712,7 @@ static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
     MYFLT       frac;
 
     /* make sure we have data to read from */
-    atsbufreadaddr = *(get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp)));
+    atsbufreadaddr = *(get_atsbufreadaddrp(csound));
     if (atsbufreadaddr == NULL) {
       return csound->PerfError(csound,
                                Str("ATSINTERPREAD: you must have an "
@@ -1850,8 +1843,6 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     /* for time pointer out of range */
     p->prFlg = 1;               /* true */
 
-    get_atsbufreadaddrp(csound, &(p->atsbufreadaddrp));
-
     return OK;
 }
 
@@ -1965,10 +1956,7 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     int     numpartials = (int) *p->iptls;
     ATS_DATA_LOC *buf;
 
-    if (p->atsbufreadaddrp == NULL)
-      return csound->PerfError(csound, Str("ATSCROSS: not initialised"));
-
-    atsbufreadaddr = *(p->atsbufreadaddrp);
+    atsbufreadaddr = *(get_atsbufreadaddrp(csound));
     if (atsbufreadaddr == NULL) {
       return csound->PerfError(csound,
                                Str("ATSCROSS: you must have an "

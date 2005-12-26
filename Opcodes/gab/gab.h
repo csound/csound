@@ -51,7 +51,6 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *ifn;
-    STDOPCOD_GLOBALS  *p;
 } TB_INIT;
 
 /*  ************************************************************ */

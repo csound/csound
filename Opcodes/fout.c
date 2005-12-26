@@ -153,7 +153,7 @@ static int fout_open_sndfile(STDOPCOD_GLOBALS *pp,
 
 static int outfile(CSOUND *csound, OUTFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int   i, j, k;
 
     if (p->fp == NULL) {
@@ -210,7 +210,7 @@ static const int fout_format_table[50] = {
 
 static int outfile_set(CSOUND *csound, OUTFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int     n;
     SF_INFO sfinfo;
 
@@ -251,7 +251,7 @@ static int outfile_set(CSOUND *csound, OUTFILE *p)
 
 static int koutfile(CSOUND *csound, KOUTFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int   i;
 
     for (i = 0; i < p->nargs; i++)
@@ -266,7 +266,7 @@ static int koutfile(CSOUND *csound, KOUTFILE *p)
 
 static int koutfile_set(CSOUND *csound, KOUTFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int     n;
     SF_INFO sfinfo;
 
@@ -307,7 +307,7 @@ static int koutfile_set(CSOUND *csound, KOUTFILE *p)
 static int fiopen(CSOUND *csound, FIOPEN *p)
 {                                       /* open a file and return its handle  */
     char    fname[FILENAME_MAX];        /* the handle is simply a stack index */
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     char    *omodes[] = {"w", "r", "wb", "rb"};
     FILE    *rfp;
     int     idx = (int) MYFLT2LRND(*p->iascii), n;
@@ -329,7 +329,7 @@ static int fiopen(CSOUND *csound, FIOPEN *p)
 
 static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     MYFLT   **args = p->argums;
     FILE    *rfil;
     int     j, n = (int) MYFLT2LRND(*p->ihandle);
@@ -384,7 +384,7 @@ static int ioutfile_set(CSOUND *csound, IOUTFILE *p)
 
 static int ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     if (p->h.insdshead->xtratim < 1)
       p->h.insdshead->xtratim = 1;
     p->counter =  csound->kcounter;
@@ -404,7 +404,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     if (!p->h.insdshead->relesing || !p->done)
       return OK;
 
-    pp = stdopcod_getGlobals(csound, &(p->p));
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     args = p->argums;
     n = (int) MYFLT2LRND(*p->ihandle);
     if (n < 0 || n > pp->file_num)
@@ -455,7 +455,7 @@ static int ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 
 static int infile_set(CSOUND *csound, INFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     SF_INFO sfinfo;
     int     n = 0;
 
@@ -490,7 +490,7 @@ static int infile_set(CSOUND *csound, INFILE *p)
 
 static int infile_act(CSOUND *csound, INFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int   i, j = 0, k = 0, n;
 
     if (p->flag) {
@@ -518,7 +518,7 @@ static int infile_act(CSOUND *csound, INFILE *p)
 
 static int kinfile_set(CSOUND *csound, KINFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     SF_INFO sfinfo;
     int     n = 0;
 
@@ -553,7 +553,7 @@ static int kinfile_set(CSOUND *csound, KINFILE *p)
 
 static int kinfile(CSOUND *csound, KINFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int   i, n;
 
     if (p->flag) {
@@ -578,7 +578,7 @@ static int kinfile(CSOUND *csound, KINFILE *p)
 
 static int i_infile(CSOUND *csound, I_INFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int   j, n, nargs;
     FILE  *fp = NULL;
     MYFLT **args = p->argums;
@@ -693,7 +693,7 @@ static int clear(CSOUND *csound, CLEARS *p)
 
 static int fprintf_set(CSOUND *csound, FPRINTF *p)
 {
-    STDOPCOD_GLOBALS  *pp = stdopcod_getGlobals(csound, &(p->p));
+    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int   n;
     char  *sarg = (char*) p->fmt;
     char  *sdest = p->txtstring;

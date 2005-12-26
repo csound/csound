@@ -55,8 +55,7 @@ static int spaceset(CSOUND *csound, SPACE *p)
       p->rrev4 = fltp;   fltp += csound->ksmps;
     }
 
-    pp = (STDOPCOD_GLOBALS*)
-             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     pp->spaceaddr = (void*) p;
     return OK;
 }
@@ -168,8 +167,7 @@ static int spsendset(CSOUND *csound, SPSEND *p)
 {
     STDOPCOD_GLOBALS  *pp;
 
-    pp = (STDOPCOD_GLOBALS*)
-             csound->QueryGlobalVariableNoCheck(csound, "stdOp_Env");
+    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     p->space = (SPACE*) pp->spaceaddr;
     return OK;
 }
