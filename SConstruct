@@ -402,12 +402,6 @@ if getPlatform() == 'darwin':
 elif configure.CheckHeader("dirent.h", language = "C"):
     commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
 
-if not (configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
-    commonEnvironment["buildLoris"] = 0
-    print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
-else:
-    print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
-
 # Package contents.
 
 zipfilename = "csound5-" + getPlatform() + "-" + str(today()) + ".zip"
@@ -1048,6 +1042,9 @@ else:
     if getPlatform() == 'mingw':
         fluidEnvironment.Append(CPPFLAGS = ['-DFLUIDSYNTH_NOT_A_DLL'])
         fluidEnvironment.Append(LIBS = ['winmm', 'dsound'])
+        fluidEnvironment.Append(LIBS = csoundWindowsLibraries)
+    elif getPlatform() == 'linux' or getPlatform() == 'darwin':
+        fluidEnvironment.Append(LIBS = ['pthread'])
     pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
         ['Opcodes/fluidOpcodes/fluidOpcodes.c']))
 
@@ -1056,11 +1053,9 @@ else:
 if getPlatform() == 'mingw' and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['fltk'])
-    if (commonEnvironment['MSVC'] == '0'):
+    if commonEnvironment['MSVC'] == '0':
         vst4Environment.Append(LIBS = ['stdc++'])
-        if (getPlatform() == 'mingw'):
-            vst4Environment.Append(LIBS = csoundWindowsLibraries)
-    else:
+    if getPlatform() == 'mingw':
         vst4Environment.Append(LIBS = csoundWindowsLibraries)
     vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
     zipDependencies.append(vst4Environment.SharedLibrary('vst4cs', Split('''
@@ -1253,7 +1248,10 @@ else:
 
 # Build the Loris and Python opcodes here
 
-if commonEnvironment['buildLoris'] == '1':
+if not (commonEnvironment['buildLoris'] == '1' and configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
+    print "CONFIGURATION DECISION: Not building Loris Python extension and Csound opcodes."
+else:
+    print "CONFIGURATION DECISION: Building Loris Python extension and Csound opcodes."
     # For Loris, we build only the loris Python extension module and
     # the Csound opcodes (modified for Csound 5).
     # It is assumed that you have copied all contents of the Loris
@@ -1358,6 +1356,10 @@ else:
     stkEnvironment.Prepend(LIBS = ['stk_base'])
     if commonEnvironment['MSVC'] == '0':
         stkEnvironment.Append(LIBS = ['stdc++'])
+    if getPlatform() == 'mingw':
+        stkEnvironment.Append(LIBS = csoundWindowsLibraries)
+    elif getPlatform() == 'linux' or getPlatform() == 'darwin':
+        stkEnvironment.Append(LIBS = ['pthread'])
     # This is the one that actually defines the opcodes.
     # They are straight wrappers, as simple as possible.
     stk = stkEnvironment.SharedLibrary('stk', ['Opcodes/stk/stkOpcodes.cpp'])
