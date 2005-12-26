@@ -86,8 +86,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *aLeftOut, *aRightOut;
-    fluid_synth_t **fluidEngines;
-    int     cnt;
+    void    *fluidGlobals;
 } FLUIDALLOUT;
 
 typedef struct {
