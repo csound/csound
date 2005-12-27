@@ -906,12 +906,11 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('stdopcod', Split('''
     Opcodes/partials.c      Opcodes/phisem.c        Opcodes/pluck.c
     Opcodes/psynth.c        Opcodes/pvsbasic.c      Opcodes/pvscent.c
     Opcodes/pvsdemix.c      Opcodes/repluck.c       Opcodes/reverbsc.c
-    Opcodes/scansyn.c       Opcodes/scansynx.c      Opcodes/seqtime.c
-    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
-    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
-    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
-    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c
+    Opcodes/seqtime.c       Opcodes/sndloop.c       Opcodes/sndwarp.c
+    Opcodes/space.c         Opcodes/spat3d.c        Opcodes/syncgrain.c
+    Opcodes/ugens7.c        Opcodes/ugens9.c        Opcodes/ugensa.c
+    Opcodes/uggab.c         Opcodes/ugmoss.c        Opcodes/ugnorman.c
+    Opcodes/ugsc.c          Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
 ''')))
 
@@ -930,6 +929,8 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod', Split('''
     ''')))
 pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch',
     ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c']))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',
+    ['Opcodes/scansyn.c', 'Opcodes/scansynx.c']))
 sfontEnvironment = pluginEnvironment.Copy()
 if (commonEnvironment['MSVC'] == '0'):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])

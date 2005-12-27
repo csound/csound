@@ -115,7 +115,7 @@ struct scsn_elem {
 /* remove from list */
 static int listrm(CSOUND *csound, PSCSNU *p)
 {
-    STDOPCOD_GLOBALS  *pp = p->pp;
+    SCANSYN_GLOBALS  *pp = p->pp;
     struct scsn_elem *q = NULL;
     struct scsn_elem *i = (struct scsn_elem *) pp->scsn_list;
 
@@ -142,7 +142,7 @@ static int listrm(CSOUND *csound, PSCSNU *p)
 #endif
 
 /* add to list */
-static void listadd(STDOPCOD_GLOBALS *pp, PSCSNU *p)
+static void listadd(SCANSYN_GLOBALS *pp, PSCSNU *p)
 {
     CSOUND  *csound = pp->csound;
     struct scsn_elem *i = (struct scsn_elem *) pp->scsn_list;
@@ -166,10 +166,10 @@ static void listadd(STDOPCOD_GLOBALS *pp, PSCSNU *p)
 /* Return from list according to id */
 static PSCSNU *listget(CSOUND *csound, int id)
 {
-    STDOPCOD_GLOBALS  *pp;
+    SCANSYN_GLOBALS  *pp;
     struct scsn_elem  *i;
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = scansyn_getGlobals(csound);
     i = (struct scsn_elem *) pp->scsn_list;
     if (i == NULL) {
       csound->Die(csound, Str("scans: No scan synthesis net specified"));
@@ -194,7 +194,7 @@ static PSCSNU *listget(CSOUND *csound, int id)
 static int scsnu_init(CSOUND *csound, PSCSNU *p)
 {
     /* Get parameter table pointers and check lengths */
-    STDOPCOD_GLOBALS  *pp;
+    SCANSYN_GLOBALS *pp;
     FUNC    *f;
     int     len;
 
@@ -320,7 +320,8 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = scansyn_getGlobals(csound);
+    p->pp = pp;
 
     /* Make external force window if we haven't so far */
     if (pp->ewin == NULL) {
@@ -353,11 +354,13 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
 static int scsnu_play(CSOUND *csound, PSCSNU *p)
 {
-    STDOPCOD_GLOBALS  *pp;
+    SCANSYN_GLOBALS *pp;
     int     n;
     int     len = p->len;
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = p->pp;
+    if (pp == NULL)
+      return csound->PerfError(csound, Str("scanu: not initialised"));
 
     for (n = 0 ; n != csound->ksmps ; n++) {
 
@@ -500,7 +503,7 @@ static int scsns_play(CSOUND *csound, PSCSNS *p)
       for (i = 0 ; i != csound->ksmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
-/*        MYFLT x = phs - (int)phs; */
+/*      MYFLT x = phs - (int)phs; */
         p->a_out[i] = *p->k_amp * (pinterp(phs, t));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
@@ -574,9 +577,30 @@ static OENTRY localops[] = {
 { "scans", S(PSCSNS),5, "a","kkiio", (SUBR)scsns_init, NULL, (SUBR)scsns_play}
 };
 
-int scansyn_init_(CSOUND *csound)
+static int scansyn_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int) (sizeof(localops) / sizeof(OENTRY)));
+}
+
+PUBLIC int csoundModuleCreate(CSOUND *csound)
+{
+    (void) csound;
+    return 0;
+}
+
+PUBLIC int csoundModuleInit(CSOUND *csound)
+{
+    int   err = 0;
+
+    err |= scansyn_init_(csound);
+    err |= scansynx_init_(csound);
+
+    return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
