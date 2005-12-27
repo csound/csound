@@ -30,9 +30,6 @@
 #include "pitch.h"
 #include "uggab.h"
 
-extern void DOWNset(DOWNDAT *, long);
-extern void SPECset(SPECDAT *, long);
-
 #define STARTING  1
 #define PLAYING   2
 #define LOGTWO    (0.693147)
@@ -45,9 +42,9 @@ static const MYFLT bicoefs[] = {
 
 #define rand_31(x) (x->Rand31(&(x->randSeed1)) - 1)
 
-int pitchset(CSOUND *csound, PITCH *p)     /* pitch - uses specta technology */
+int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
 {
-    MYFLT       b;              /* For RMS */
+    MYFLT   b;                          /* For RMS */
     int     n, nocts, nfreqs, ncoefs;
     MYFLT   Q, *fltp;
     OCTDAT  *octp;
@@ -77,15 +74,15 @@ int pitchset(CSOUND *csound, PITCH *p)     /* pitch - uses specta technology */
     if (nfreqs > MAXFRQS) return csound->InitError(csound, Str("illegal ifrqs"));
 
     if (nocts != dwnp->nocts
-        || nfreqs != p->nfreqs  /* if anything has changed */
-        || Q != p->curq ) {                /*     make new tables */
+        || nfreqs != p->nfreqs          /* if anything has changed */
+        || Q != p->curq ) {             /*     make new tables */
       double      basfrq, curfrq, frqmlt, Qfactor;
       double      theta, a, windamp, onedws, pidws;
       MYFLT       *sinp, *cosp;
       int         k, sumk, windsiz, halfsiz, *wsizp, *woffp;
       long        auxsiz, bufsiz;
       long        majr, minr, totsamps;
-      double      hicps,locps,oct;  /*   must alloc anew */
+      double      hicps,locps,oct;      /*   must alloc anew */
 
       p->nfreqs = nfreqs;
       p->curq = Q;
@@ -138,14 +135,14 @@ int pitchset(CSOUND *csound, PITCH *p)     /* pitch - uses specta technology */
       minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
       majr = windsiz - minr;                /*      & calc totsamps reqd     */
       totsamps = (majr*nocts) + (minr<<nocts) - minr;
-      DOWNset(dwnp, totsamps);              /* auxalloc in DOWNDAT struct */
+      DOWNset(csound, dwnp, totsamps);      /* auxalloc in DOWNDAT struct */
       fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
       for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
         bufsiz = majr + minr;
         octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
         octp->endp = fltp;  minr *= 2;
       }
-      SPECset(specp, (long)ncoefs);         /* prep the spec dspace */
+      SPECset(csound, specp, (long)ncoefs); /* prep the spec dspace */
       specp->downsrcp = dwnp;               /*  & record its source */
     }
     for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &  */
@@ -161,7 +158,7 @@ int pitchset(CSOUND *csound, PITCH *p)     /* pitch - uses specta technology */
     p->scountdown = p->timcount;             /* prime the spect countdown */
                                              /* Start specptrk */
     if ((npts = specp->npts) != p->winpts) {        /* if size has changed */
-      SPECset(&p->wfund, (long)npts);               /*   realloc for wfund */
+      SPECset(csound, &p->wfund, (long)npts);       /*   realloc for wfund */
       p->wfund.downsrcp = specp->downsrcp;
       p->fundp = (MYFLT *) p->wfund.auxch.auxp;
       p->winpts = npts;
@@ -196,7 +193,7 @@ int pitchset(CSOUND *csound, PITCH *p)     /* pitch - uses specta technology */
       p->rolloff = 1;
     }
     lobin = (long)(specp->downsrcp->looct * fnfreqs);
-    oct0p = p->fundp - lobin;                   /* virtual loc of oct 0 */
+    oct0p = p->fundp - lobin;           /* virtual loc of oct 0 */
 
     flop = oct0p + (int)(*p->ilo * fnfreqs);
     fhip = oct0p + (int)(*p->ihi * fnfreqs);
@@ -204,21 +201,21 @@ int pitchset(CSOUND *csound, PITCH *p)     /* pitch - uses specta technology */
     fendp = fundp + specp->npts;
     if (flop < fundp) flop = fundp;
     if (fhip > fendp) fhip = fendp;
-    if (flop >= fhip) {         /* chk hi-lo range valid */
+    if (flop >= fhip) {                 /* chk hi-lo range valid */
       return csound->InitError(csound, Str("illegal lo-hi values"));
     }
     for (fp = fundp; fp < flop; )
-      *fp++ = FL(0.0);   /* clear unused lo and hi range */
+      *fp++ = FL(0.0);                  /* clear unused lo and hi range */
     for (fp = fhip; fp < fendp; )
       *fp++ = FL(0.0);
 
-    dbthresh = *p->idbthresh;                     /* thresholds: */
+    dbthresh = *p->idbthresh;           /* thresholds: */
     ampthresh = (MYFLT)exp((double)dbthresh * LOG10D20);
-    p->threshon = ampthresh;              /* mag */
+    p->threshon = ampthresh;            /* mag */
     p->threshoff = ampthresh * FL(0.5);
     p->threshon *= weightsum;
     p->threshoff *= weightsum;
-    p->oct0p = oct0p;                 /* virtual loc of oct 0 */
+    p->oct0p = oct0p;                   /* virtual loc of oct 0 */
     p->confact = *p->iconf;
     p->flop = flop;
     p->fhip = fhip;
@@ -275,7 +272,7 @@ int pitch(CSOUND *csound, PITCH *p)
       } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
     } while (--nsmps);
     p->prvq = q;
-    kvar = (MYFLT) sqrt((double)q); /* End of spectrun part */
+    kvar = (MYFLT) sqrt((double)q);       /* End of spectrun part */
 
     specp = &p->wsig;
     if ((--p->scountdown)) goto nxt;      /* if not yet time for new spec  */
@@ -290,7 +287,7 @@ int pitch(CSOUND *csound, PITCH *p)
       int    len, *lenp, *offp, nfreqs;
       MYFLT    *begp, *curp, *endp, *linbufp;
       int      len2;
-      octp--;                              /* for each oct (low to high)   */
+      octp--;                             /* for each oct (low to high)   */
       begp = octp->begp;
       curp = octp->curp;
       endp = octp->endp;
@@ -383,13 +380,13 @@ int pitch(CSOUND *csound, PITCH *p)
         }
       if (!p->playing) {
         if (fmax > p->threshon)         /* not playing & threshon? */
-          p->playing = STARTING;      /*   prepare to turn on    */
+          p->playing = STARTING;        /*   prepare to turn on    */
         else goto output;
       }
       else {
         if (fmax < p->threshoff) {      /* playing & threshoff ? */
           if (p->playing == PLAYING)
-            p->kvalsav = p->kval;   /*   save val & turn off */
+            p->kvalsav = p->kval;       /*   save val & turn off */
           p->kval = FL(0.0);
           p->kavl = FL(0.0);
           p->kinc = FL(0.0);
@@ -398,7 +395,7 @@ int pitch(CSOUND *csound, PITCH *p)
           goto output;
         }
       }
-      a = fmaxp>flop ? *(fmaxp-1) : FL(0.0);     /* calc a refined bin no */
+      a = fmaxp>flop ? *(fmaxp-1) : FL(0.0);    /* calc a refined bin no */
       b = fmax;
       c = fmaxp<fhip-1 ? *(fmaxp+1) : FL(0.0);
       if (b < FL(2.0) * (a + c))
@@ -407,40 +404,40 @@ int pitch(CSOUND *csound, PITCH *p)
       if (denom != FL(0.0))
         delta = FL(0.5) * (c - a) / denom;
       else delta = FL(0.0);
-      realbin = (fmaxp - p->oct0p) + delta;    /* get modified bin number  */
-      kval = realbin / specp->nfreqs;        /*     & cvt to true decoct */
+      realbin = (fmaxp - p->oct0p) + delta;     /* get modified bin number  */
+      kval = realbin / specp->nfreqs;           /*     & cvt to true decoct */
 
-      if (p->playing == STARTING) {            /* STARTING mode:           */
+      if (p->playing == STARTING) {             /* STARTING mode:           */
         if ((absdiff = kval - p->kvalsav) < FL(0.0))
           absdiff = -absdiff;
         confirms = (int)(absdiff * p->confact); /* get interval dependency  */
         if (p->jmpcount < confirms) {
-          p->jmpcount += 1;                /* if not enough confirms,  */
-          goto output;                     /*    must wait some more   */
+          p->jmpcount += 1;               /* if not enough confirms,  */
+          goto output;                    /*    must wait some more   */
         } else {
-          p->playing = PLAYING;            /* else switch on playing   */
+          p->playing = PLAYING;           /* else switch on playing   */
           p->jmpcount = 0;
-          p->kval = kval;                  /*    but suppress interp   */
+          p->kval = kval;                 /*    but suppress interp   */
           p->kinc = FL(0.0);
         }
-      } else {                                 /* PLAYING mode:            */
+      } else {                                  /* PLAYING mode:            */
         if ((absdiff = kval - p->kval) < FL(0.0))
           absdiff = -absdiff;
         confirms = (int)(absdiff * p->confact); /* get interval dependency  */
         if (p->jmpcount < confirms) {
-          p->jmpcount += 1;                /* if not enough confirms,  */
-          p->kinc = FL(0.0);                 /*    must wait some more   */
+          p->jmpcount += 1;               /* if not enough confirms,  */
+          p->kinc = FL(0.0);              /*    must wait some more   */
         } else {
-          p->jmpcount = 0;                 /* else OK to jump interval */
+          p->jmpcount = 0;                /* else OK to jump interval */
           p->kval = kval;
         }
       }
-      fmax += delta * (c - a) / FL(4.0);  /* get modified amp */
+      fmax += delta * (c - a) * FL(0.25); /* get modified amp */
       p->kavl = fmax;
     }
 output:
     *p->koct = p->kval;                   /* output true decoct & amp */
-    *p->kamp = p->kavl;
+    *p->kamp = p->kavl * FL(4.0);
     return OK;
 }
 

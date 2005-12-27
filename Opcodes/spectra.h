@@ -20,10 +20,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
+                        /*                              SPECTRA.H       */
 #ifndef __SPECTRA_H
 #define __SPECTRA_H
-                /*                                      SPECTRA.H       */
 
 #define MAXFRQS 120
 
@@ -40,7 +39,7 @@ typedef struct {
         AUXCH   auxch1, auxch2;
 } SPECTRUM;
 
-#ifdef never
+#if 0
 typedef struct {
         OPDS    h;
         SPECDAT *wsig;
@@ -128,4 +127,8 @@ typedef struct {
         AUXCH   auxch;
 } SPECFILT;
 
+extern void DOWNset(CSOUND *, DOWNDAT *, long);
+extern void SPECset(CSOUND *, SPECDAT *, long);
+
 #endif
+
