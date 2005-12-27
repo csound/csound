@@ -1,10 +1,14 @@
 DIR=linux_f64
 
-cp -upv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/$DIR/bin
+rm ../../../CSDIST/$DIR/bin/*
+
+cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,cscore,csound,cvanal,dnoise,mixer,envext,extract,extractor,pvanal,pvlook,het_export,het_import,hetro,scale,scot,scsort,sdif2ad,srconv,tabdes,cstclsh,cswish} ../../../CSDIST/$DIR/bin
 
 strip ../../../CSDIST/$DIR/bin/*
 
-cp -upv ../../li*.so ../../../CSDIST/$DIR/opc
+rm ../../../CSDIST/$DIR/opc/*
+rm ../../../CSDIST/$DIR/opc/frontends/*
+cp -puv ../../li*.so ../../../CSDIST/$DIR/opc
 
 mv ../../../CSDIST/$DIR/opc/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends
 ln ../../../CSDIST/$DIR/opc/frontends/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends/_csnd.so 
