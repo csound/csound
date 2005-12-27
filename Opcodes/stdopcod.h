@@ -62,12 +62,6 @@ typedef struct STDOPCOD_GLOBALS_ {
     void        *spaceaddr;
     /* gab/gab.c */
     MYFLT       *tb_ptrs[16];
-    /* scansyn.c */
-    MYFLT       *ewin;
-    void        *scsn_list;
-    /* scansynx.c */
-    MYFLT       *ewinx;
-    void        *scsnx_list;
 } STDOPCOD_GLOBALS;
 
 extern int ambicode_init_(CSOUND *);
@@ -109,8 +103,6 @@ extern int pvscent_init_(CSOUND *);
 extern int pvsdemix_init_(CSOUND *);
 extern int repluck_init_(CSOUND *);
 extern int reverbsc_init_(CSOUND *);
-extern int scansyn_init_(CSOUND *);
-extern int scansynx_init_(CSOUND *);
 extern int seqtime_init_(CSOUND *);
 extern int sndloop_init_(CSOUND *);
 extern int sndwarp_init_(CSOUND *);

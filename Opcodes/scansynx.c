@@ -49,7 +49,7 @@
 /*               Made interpolation selectable April 2000 */
 
 #include "csdl.h"
-#include "scansynx.h"
+#include "scansyn.h"
 #include <math.h>
 #include "cwindow.h"
 
@@ -156,7 +156,7 @@ struct scsnx_elem {
 /* remove from list */
 static int listrm(CSOUND *csound, PSCSNUX *p)
 {
-    STDOPCOD_GLOBALS  *pp = p->pp;
+    SCANSYN_GLOBALS   *pp = p->pp;
     struct scsnx_elem *q = NULL;
     struct scsnx_elem *i = (struct scsnx_elem *) pp->scsnx_list;
 
@@ -183,7 +183,7 @@ static int listrm(CSOUND *csound, PSCSNUX *p)
 #endif
 
 /* add to list */
-static void listadd(STDOPCOD_GLOBALS *pp, PSCSNUX *p)
+static void listadd(SCANSYN_GLOBALS *pp, PSCSNUX *p)
 {
     CSOUND  *csound = pp->csound;
     struct scsnx_elem *i = (struct scsnx_elem *) pp->scsnx_list;
@@ -207,10 +207,10 @@ static void listadd(STDOPCOD_GLOBALS *pp, PSCSNUX *p)
 /* Return from list according to id */
 static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
 {
-    STDOPCOD_GLOBALS  *pp;
+    SCANSYN_GLOBALS   *pp;
     struct scsnx_elem *i;
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = scansyn_getGlobals(csound);
     i = (struct scsnx_elem *) pp->scsnx_list;
     if (i == NULL) {
       csound->Die(csound, Str("xscans: No scan synthesis net specified"));
@@ -239,7 +239,7 @@ static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
 static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 {
     /* Get parameter table pointers and check lengths */
-    STDOPCOD_GLOBALS  *pp;
+    SCANSYN_GLOBALS *pp;
     FUNC    *f;
     int     len;
     int     i;
@@ -433,7 +433,8 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = scansyn_getGlobals(csound);
+    p->pp = pp;
 
     /* Make external force window if we haven't so far */
     if (pp->ewinx == NULL) {
@@ -466,14 +467,16 @@ static int scsnux_init(CSOUND *csound, PSCSNUX *p)
 
 static int scsnux(CSOUND *csound, PSCSNUX *p)
 {
-    STDOPCOD_GLOBALS  *pp;
+    SCANSYN_GLOBALS *pp;
     int     n;
     int     len = p->len;
     long    exti = p->exti;
     long    idx = p->idx;
     MYFLT   rate = p->rate;
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = p->pp;
+    if (pp == NULL)
+      return csound->PerfError(csound, Str("xscanu: not initialised"));
 
     for (n = 0 ; n != csound->ksmps ; n++) {
 
