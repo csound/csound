@@ -84,8 +84,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     err |= pvsdemix_init_(csound);
     err |= repluck_init_(csound);
     err |= reverbsc_init_(csound);
-    err |= scansyn_init_(csound);
-    err |= scansynx_init_(csound);
     err |= seqtime_init_(csound);
     err |= sndloop_init_(csound);
     err |= sndwarp_init_(csound);
