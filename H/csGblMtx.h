@@ -24,8 +24,8 @@
 #ifndef CSOUND_CSGBLMTX_H
 #define CSOUND_CSGBLMTX_H
 
-#if defined(__linux) || defined(__linux__) ||   \
-    defined(__unix) || defined(__unix__) || defined(__MACOSX__)
+#if defined(__linux) || defined(__linux__) || defined(__unix) ||    \
+    defined(__unix__) || defined(__MACOSX__) || defined(__APPLE__)
 
 #include <pthread.h>
 
