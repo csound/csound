@@ -7,6 +7,7 @@ cp -pv ../../{linseg,lpanal,brkpt,lpc_export,lpc_import,cs,makecsd,csb64enc,csco
 strip ../../../CSDIST/$DIR/bin/*
 
 rm ../../../CSDIST/$DIR/opc/*
+rm ../../../CSDIST/$DIR/opc/frontends/*
 cp -puv ../../li*.so ../../../CSDIST/$DIR/opc
 
 mv ../../../CSDIST/$DIR/opc/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends
