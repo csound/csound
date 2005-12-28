@@ -218,7 +218,10 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     void  *fd;
 
     mytmpnam(csound, ST(orcname));            /* Generate orchestra name */
-    if ((p=strchr(ST(orcname), '.')) != NULL) *p='\0'; /* with extention */
+#ifndef __MACH__
+    if ((p = strchr(ST(orcname), '.')) != NULL)
+      *p = '\0';                              /* with extention */
+#endif
     strcat(ST(orcname), ".orc");
     fd = csoundFileOpen(csound, &orcf, CSFILE_STD, ST(orcname), "w", NULL);
 #ifdef _DEBUG
@@ -247,7 +250,10 @@ static int createScore(CSOUND *csound, FILE *unf)
     void  *fd;
 
     mytmpnam(csound, ST(sconame));            /* Generate score name */
-    if ((p=strchr(ST(sconame), '.')) != NULL) *p='\0'; /* with extention */
+#ifndef __MACH__
+    if ((p = strchr(ST(sconame), '.')) != NULL)
+      *p = '\0';                              /* with extention */
+#endif
     strcat(ST(sconame), ".sco");
     fd = csoundFileOpen(csound, &scof, CSFILE_STD, ST(sconame), "w", NULL);
 #ifdef _DEBUG
@@ -277,10 +283,13 @@ static int createMIDI(CSOUND *csound, FILE *unf)
     FILE  *midf;
     void  *fd;
 
-    if (mytmpnam(csound, ST(midname))==NULL) { /* Generate MIDI file name */
+    if (mytmpnam(csound, ST(midname)) == NULL) {  /* Generate MIDI file name */
       csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
     }
-    if ((p=strchr(ST(midname), '.')) != NULL) *p='\0'; /* with extention */
+#ifndef __MACH__
+    if ((p = strchr(ST(midname), '.')) != NULL)
+      *p = '\0';                                  /* with extention */
+#endif
     strcat(ST(midname), ".mid");
     fd = csoundFileOpen(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL);
     if (fd == NULL) {
@@ -288,10 +297,10 @@ static int createMIDI(CSOUND *csound, FILE *unf)
                         ST(midname));
     }
     my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf);
-    if (sscanf(ST(buffer), Str("Size = %d"), &size)==0) {
+    if (sscanf(ST(buffer), Str("Size = %d"), &size) == 0) {
       csoundDie(csound, Str("Error in reading MIDI subfile -- no size read"));
     }
-    for (; size > 0; size--) {
+    for ( ; size > 0; size--) {
       c = getc(unf);
       putc(c, midf);
     }
@@ -363,10 +372,13 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
     FILE  *midf;
     void  *fd;
 
-    if (mytmpnam(csound, ST(midname))==NULL) { /* Generate MIDI file name */
+    if (mytmpnam(csound, ST(midname)) == NULL) {  /* Generate MIDI file name */
       csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
     }
-    if ((p=strchr(ST(midname), '.')) != NULL) *p='\0'; /* with extention */
+#ifndef __MACH__
+    if ((p = strchr(ST(midname), '.')) != NULL)
+      *p = '\0';                                  /* with extention */
+#endif
     strcat(ST(midname), ".mid");
     fd = csoundFileOpen(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL);
     if (fd == NULL) {
