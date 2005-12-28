@@ -1543,13 +1543,14 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       else if (incnt < nreqd) {         /*  or set defaults: */
         do {
           switch (types[incnt]) {
-          case 'k':             /* Will this work?  Doubtful code.... */
+          case 'O':             /* Will this work?  Doubtful code.... */
           case 'o': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "0");
             break;
           case 'p': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "1");
             break;
           case 'q': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "10");
             break;
+          case 'V':
           case 'v': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, ".5");
             break;
           case 'h': ST(nxtarglist)->arg[incnt++] = strsav_string(csound, "127");
