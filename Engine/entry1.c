@@ -21,284 +21,7 @@
     02111-1307 USA
 */
 
-#include "csoundCore.h"         /*                      ENTRY.C         */
-#include "insert.h"
-#include "aops.h"
-#include "midiops.h"
-#include "ugens1.h"
-#include "ugens2.h"
-#include "ugens3.h"
-#include "ugens4.h"
-#include "ugens5.h"
-#include "ugens6.h"
-#include "dsputil.h"
-#include "ugens8.h"
-#include "cwindow.h"
-#include "windin.h"
-#include "disprep.h"
-#include "soundio.h"
-#include "dumpf.h"
-#include "cmath.h"
-#include "pvread.h"
-#include "pvinterp.h"
-#include "vpvoc.h"
-#include "diskin.h"
-#include "diskin2.h"
-#include "oload.h"
-#include "midiout.h"
-#include "pvadd.h"
-#include "sndinfUG.h"
-#include "ugrw1.h"
-#include "ugrw2.h"
-
-#define S(x)    sizeof(x)
-
-int     ihold(CSOUND *, void *), turnoff(CSOUND *, void *);
-int     assign(CSOUND *, void *), rassign(CSOUND *, void *);
-int     aassign(CSOUND *, void *);
-int     init(CSOUND *, void *), ainit(CSOUND *, void *);
-int     gt(CSOUND *, void *), ge(CSOUND *, void *);
-int     lt(CSOUND *, void *), le(CSOUND *, void *);
-int     eq(CSOUND *, void *), ne(CSOUND *, void *);
-int     and(CSOUND *, void *), or(CSOUND *, void *);
-int     conval(CSOUND *, void *), aconval(CSOUND *, void *);
-int     addkk(CSOUND *, void *), subkk(CSOUND *, void *);
-int     mulkk(CSOUND *, void *), divkk(CSOUND *, void *);
-int     modkk(CSOUND *, void *);
-int     addka(CSOUND *, void *), subka(CSOUND *, void *);
-int     mulka(CSOUND *, void *), divka(CSOUND *, void *);
-int     modka(CSOUND *, void *);
-int     addak(CSOUND *, void *), subak(CSOUND *, void *);
-int     mulak(CSOUND *, void *), divak(CSOUND *, void *);
-int     modak(CSOUND *, void *);
-int     addaa(CSOUND *, void *), subaa(CSOUND *, void *);
-int     mulaa(CSOUND *, void *), divaa(CSOUND *, void *);
-int     modaa(CSOUND *, void *);
-int     divzkk(CSOUND *, void *), divzka(CSOUND *, void *);
-int     divzak(CSOUND *, void *), divzaa(CSOUND *, void *);
-int     int1(CSOUND *, void *), int1a(CSOUND *, void *);
-int     frac1(CSOUND *, void *), frac1a(CSOUND *, void *);
-int     int1_round(CSOUND *, void *), int1a_round(CSOUND *, void *);
-int     int1_floor(CSOUND *, void *), int1a_floor(CSOUND *, void *);
-int     int1_ceil(CSOUND *, void *), int1a_ceil(CSOUND *, void *);
-int     rnd1(CSOUND *, void *), birnd1(CSOUND *, void *);
-int     abs1(CSOUND *, void *), exp01(CSOUND *, void *);
-int     log01(CSOUND *, void *), sqrt1(CSOUND *, void *);
-int     sin1(CSOUND *, void *), cos1(CSOUND *, void *);
-int     tan1(CSOUND *, void *), asin1(CSOUND *, void *);
-int     acos1(CSOUND *, void *), atan1(CSOUND *, void *);
-int     sinh1(CSOUND *, void *), cosh1(CSOUND *, void *);
-int     tanh1(CSOUND *, void *), log101(CSOUND *, void *);
-int     atan21(CSOUND *, void *), atan2aa(CSOUND *, void *);
-int     absa(CSOUND *, void *), expa(CSOUND *, void *);
-int     loga(CSOUND *, void *), sqrta(CSOUND *, void *);
-int     sina(CSOUND *, void *), cosa(CSOUND *, void *);
-int     tana(CSOUND *, void *), asina(CSOUND *, void *);
-int     acosa(CSOUND *, void *), atana(CSOUND *, void *);
-int     sinha(CSOUND *, void *), cosha(CSOUND *, void *);
-int     tanha(CSOUND *, void *), log10a(CSOUND *, void *);
-int     dbamp(CSOUND *, void *), ampdb(CSOUND *, void *);
-int     aampdb(CSOUND *, void *), dbfsamp(CSOUND *, void *);
-int     ampdbfs(CSOUND *, void *), aampdbfs(CSOUND *, void *);
-int     ftlen(CSOUND *, void *), ftlptim(CSOUND *, void *);
-int     ftchnls(CSOUND *, void *), rtclock(CSOUND *, void *);
-int     cpsoct(CSOUND *, void *), octpch(CSOUND *, void *);
-int     cpspch(CSOUND *, void *), pchoct(CSOUND *, void *);
-int     octcps(CSOUND *, void *), acpsoct(CSOUND *, void *);
-int     massign(CSOUND *, void *), ctrlinit(CSOUND *, void *);
-int     notnum(CSOUND *, void *), veloc(CSOUND *, void *);
-int     pchmidi(CSOUND *, void *), pchmidib(CSOUND *, void *);
-int     octmidi(CSOUND *, void *), octmidib(CSOUND *, void *);
-int     pchmidib_i(CSOUND *, void *), octmidib_i(CSOUND *, void *);
-int     icpsmidib_i(CSOUND *, void *), cpsmidi(CSOUND *, void *);
-int     icpsmidib(CSOUND *, void *), kcpsmidib(CSOUND *, void *);
-int     kmbset(CSOUND *, void *), midibset(CSOUND *, void *);
-int     ipchmidib(CSOUND *, void *), ioctmidib(CSOUND *, void *);
-int     kpchmidib(CSOUND *, void *), koctmidib(CSOUND *, void *);
-int     msclset(CSOUND *, void *), ampmidi(CSOUND *, void *);
-int     aftset(CSOUND *, void *), aftouch(CSOUND *, void *);
-int     chpress(CSOUND *, void *), ipchbend(CSOUND *, void *);
-int     kbndset(CSOUND *, void *), kpchbend(CSOUND *, void *);
-int     imidictl(CSOUND *, void *), mctlset(CSOUND *, void *);
-int     midictl(CSOUND *, void *), imidiaft(CSOUND *, void *);
-int     maftset(CSOUND *, void *), midiaft(CSOUND *, void *);
-int     midiout(CSOUND *, void *), turnon(CSOUND *, void *);
-int     kmapset(CSOUND *, void *), polyaft(CSOUND *, void *);
-int     ichanctl(CSOUND *, void *), chctlset(CSOUND *, void *);
-int     chanctl(CSOUND *, void *), linset(CSOUND *, void *);
-int     kline(CSOUND *, void *), aline(CSOUND *, void *);
-int     expset(CSOUND *, void *), kexpon(CSOUND *, void *);
-int     expon(CSOUND *, void *), lsgset(CSOUND *, void *);
-int     klnseg(CSOUND *, void *), linseg(CSOUND *, void *);
-int     madsrset(CSOUND *, void *), adsrset(CSOUND *, void *);
-int     xdsrset(CSOUND *, void *), mxdsrset(CSOUND *, void *);
-int     expseg2(CSOUND *, void *), xsgset(CSOUND *, void *);
-int     kxpseg(CSOUND *, void *), expseg(CSOUND *, void *);
-int     xsgset2(CSOUND *, void *), lsgrset(CSOUND *, void *);
-int     klnsegr(CSOUND *, void *), linsegr(CSOUND *, void *);
-int     xsgrset(CSOUND *, void *), kxpsegr(CSOUND *, void *);
-int     expsegr(CSOUND *, void *), lnnset(CSOUND *, void *);
-int     klinen(CSOUND *, void *), linen(CSOUND *, void *);
-int     lnrset(CSOUND *, void *), klinenr(CSOUND *, void *);
-int     linenr(CSOUND *, void *), evxset(CSOUND *, void *);
-int     knvlpx(CSOUND *, void *), envlpx(CSOUND *, void *);
-int     evrset(CSOUND *, void *), knvlpxr(CSOUND *, void *);
-int     envlpxr(CSOUND *, void *), phsset(CSOUND *, void *);
-int     kphsor(CSOUND *, void *), phsor(CSOUND *, void *);
-int     itablew1(CSOUND *, void *), itablegpw1(CSOUND *, void *);
-int     itablemix1(CSOUND *, void *), itablecopy1(CSOUND *, void *);
-int     itable(CSOUND *, void *), itabli(CSOUND *, void *);
-int     itabl3(CSOUND *, void *), tabl3(CSOUND *, void *);
-int     ktabl3(CSOUND *, void *), tblset(CSOUND *, void *);
-int     ktable(CSOUND *, void *), ktabli(CSOUND *, void *);
-int     tabli(CSOUND *, void *), tablefn(CSOUND *, void *);
-int     tblsetkt(CSOUND *, void *), ktablekt(CSOUND *, void *);
-int     tablekt(CSOUND *, void *), ktablikt(CSOUND *, void *);
-int     tablikt(CSOUND *, void *), ko1set(CSOUND *, void *);
-int     kosc1(CSOUND *, void *), kosc1i(CSOUND *, void *);
-int     oscnset(CSOUND *, void *), osciln(CSOUND *, void *);
-int     oscset(CSOUND *, void *), koscil(CSOUND *, void *);
-int     osckk(CSOUND *, void *), oscka(CSOUND *, void *);
-int     oscak(CSOUND *, void *), oscaa(CSOUND *, void *);
-int     koscli(CSOUND *, void *), osckki(CSOUND *, void *);
-int     osckai(CSOUND *, void *), oscaki(CSOUND *, void *);
-int     oscaai(CSOUND *, void *), foscset(CSOUND *, void *);
-int     foscil(CSOUND *, void *), foscili(CSOUND *, void *);
-int     losset(CSOUND *, void *), loscil(CSOUND *, void *);
-int     loscil3(CSOUND *, void *), koscl3(CSOUND *, void *);
-int     osckk3(CSOUND *, void *), oscka3(CSOUND *, void *);
-int     oscak3(CSOUND *, void *), oscaa3(CSOUND *, void *);
-int     adset(CSOUND *, void *), adsyn(CSOUND *, void *);
-int     pvset(CSOUND *, void *), pvoc(CSOUND *, void *);
-int     pvaddset(CSOUND *, void *), pvadd(CSOUND *, void *);
-int     bzzset(CSOUND *, void *), buzz(CSOUND *, void *);
-int     gbzset(CSOUND *, void *), gbuzz(CSOUND *, void *);
-int     plukset(CSOUND *, void *), pluck(CSOUND *, void *);
-int     rndset(CSOUND *, void *), krand(CSOUND *, void *);
-int     arand(CSOUND *, void *), rhset(CSOUND *, void *);
-int     krandh(CSOUND *, void *), randh(CSOUND *, void *);
-int     riset(CSOUND *, void *), krandi(CSOUND *, void *);
-int     randi(CSOUND *, void *), rndset2(CSOUND *, void *);
-int     krand2(CSOUND *, void *), arand2(CSOUND *, void *);
-int     rhset2(CSOUND *, void *), krandh2(CSOUND *, void *);
-int     randh2(CSOUND *, void *), riset2(CSOUND *, void *);
-int     krandi2(CSOUND *, void *), randi2(CSOUND *, void *);
-int     porset(CSOUND *, void *), port(CSOUND *, void *);
-int     tonset(CSOUND *, void *), tone(CSOUND *, void *);
-int     atone(CSOUND *, void *), rsnset(CSOUND *, void *);
-int     reson(CSOUND *, void *), areson(CSOUND *, void *);
-int     resonx(CSOUND *, void *), aresonx(CSOUND *, void *);
-int     rsnsetx(CSOUND *, void *), tonex(CSOUND *, void *);
-int     atonex(CSOUND *, void *), tonsetx(CSOUND *, void *);
-int     lprdset(CSOUND *, void *), lpread(CSOUND *, void *);
-int     lprsnset(CSOUND *, void *), lpreson(CSOUND *, void *);
-int     lpfrsnset(CSOUND *, void *), lpfreson(CSOUND *, void *);
-int     lpslotset(CSOUND *, void *), lpitpset(CSOUND *, void *);
-int     lpinterpol(CSOUND *, void *);
-int     rmsset(CSOUND *, void *), rms(CSOUND *, void *);
-int     gainset(CSOUND *, void *), gain(CSOUND *, void *);
-int     sndinset(CSOUND *, void *), soundin(CSOUND *, void *);
-int     sndo1set(CSOUND *, void *), soundout(CSOUND *, void *);
-int     soundouts(CSOUND *, void *);
-int     in(CSOUND *, void *), ins(CSOUND *, void *);
-int     inq(CSOUND *, void *), inh(CSOUND *, void *);
-int     ino(CSOUND *, void *), in16(CSOUND *, void *);
-int     in32(CSOUND *, void *), inall(CSOUND *, void *);
-int     out(CSOUND *, void *), outs(CSOUND *, void *);
-int     outs1(CSOUND *, void *), outs2(CSOUND *, void *);
-int     outall(CSOUND *, void *), outq(CSOUND *, void *);
-int     outq1(CSOUND *, void *), outq2(CSOUND *, void *);
-int     outq3(CSOUND *, void *), outq4(CSOUND *, void *);
-int     igoto(CSOUND *, void *), kgoto(CSOUND *, void *);
-int     icgoto(CSOUND *, void *), kcgoto(CSOUND *, void *);
-int     timset(CSOUND *, void *), timout(CSOUND *, void *);
-int     reinit(CSOUND *, void *), rigoto(CSOUND *, void *);
-int     rireturn(CSOUND *, void *), tigoto(CSOUND *, void *);
-int     tival(CSOUND *, void *), printv(CSOUND *, void *);
-int     dspset(CSOUND *, void *), kdsplay(CSOUND *, void *);
-int     dsplay(CSOUND *, void *), fftset(CSOUND *, void *);
-int     kdspfft(CSOUND *, void *), dspfft(CSOUND *, void *);
-int     xyinset(CSOUND *, void *), xyin(CSOUND *, void *);
-int     tempeset(CSOUND *, void *), tempest(CSOUND *, void *);
-int     tempset(CSOUND *, void *), tempo(CSOUND *, void *);
-int     old_kdmpset(CSOUND *, void *), old_kdmp2set(CSOUND *, void *);
-int     old_kdmp3set(CSOUND *, void *), old_kdmp4set(CSOUND *, void *);
-int     kdmpset(CSOUND *, void *), kdmp2set(CSOUND *, void *);
-int     kdmp3set(CSOUND *, void *), kdmp4set(CSOUND *, void *);
-int     kdump(CSOUND *, void *), kdump2(CSOUND *, void *);
-int     kdump3(CSOUND *, void *), kdump4(CSOUND *, void *);
-int     krdset(CSOUND *, void *), krd2set(CSOUND *, void *);
-int     krd3set(CSOUND *, void *), krd4set(CSOUND *, void *);
-int     kread(CSOUND *, void *), kread2(CSOUND *, void *);
-int     kread3(CSOUND *, void *), kread4(CSOUND *, void *);
-int     ipow(CSOUND *, void *), apow(CSOUND *, void *);
-int     alinear(CSOUND *, void *), iklinear(CSOUND *, void *);
-int     atrian(CSOUND *, void *), iktrian(CSOUND *, void *);
-int     aexp(CSOUND *, void *), ikexp(CSOUND *, void *);
-int     abiexp(CSOUND *, void *), ikbiexp(CSOUND *, void *);
-int     agaus(CSOUND *, void *), ikgaus(CSOUND *, void *);
-int     acauchy(CSOUND *, void *), ikcauchy(CSOUND *, void *);
-int     apcauchy(CSOUND *, void *), ikpcauchy(CSOUND *, void *);
-int     abeta(CSOUND *, void *), ikbeta(CSOUND *, void *);
-int     aweib(CSOUND *, void *), ikweib(CSOUND *, void *);
-int     apoiss(CSOUND *, void *), ikpoiss(CSOUND *, void *);
-int     seedrand(CSOUND *, void *);
-int     tblesegset(CSOUND *, void *), ktableseg(CSOUND *, void *);
-int     ktablexseg(CSOUND *, void *);
-int     vpvset(CSOUND *, void *), vpvoc(CSOUND *, void *);
-int     pvreadset(CSOUND *, void *), pvread(CSOUND *, void *);
-int     pvcrossset(CSOUND *, void *), pvcross(CSOUND *, void *);
-int     pvbufreadset(CSOUND *, void *), pvbufread(CSOUND *, void *);
-int     pvinterpset(CSOUND *, void *), pvinterp(CSOUND *, void *);
-int     auniform(CSOUND *, void *), ikuniform(CSOUND *, void *);
-int     newsndinset(CSOUND *, void *), soundinew(CSOUND *, void *);
-int     iout_on(CSOUND *, void *), iout_off(CSOUND *, void *);
-int     out_controller(CSOUND *, void *), iout_on_dur_set(CSOUND *, void *);
-int     iout_on_dur(CSOUND *, void *), iout_on_dur2(CSOUND *, void *);
-int     moscil_set(CSOUND *, void *), moscil(CSOUND *, void *);
-int     kvar_out_on_set(CSOUND *, void *), kvar_out_on_set1(CSOUND *, void *);
-int     kvar_out_on(CSOUND *, void *), out_controller14(CSOUND *, void *);
-int     out_pitch_bend(CSOUND *, void *), out_aftertouch(CSOUND *, void *);
-int     out_poly_aftertouch(CSOUND*, void*), out_progchange(CSOUND*, void*);
-int     release_set(CSOUND *, void *), release(CSOUND *, void *);
-int     xtratim(CSOUND *, void *);
-int     mclock_set(CSOUND *, void *), mclock(CSOUND *, void *);
-int     mrtmsg(CSOUND *, void *);
-int     cabasaset(CSOUND *, void *), cabasa(CSOUND *, void *);
-int     sekereset(CSOUND *, void *), sandset(CSOUND *, void *);
-int     stixset(CSOUND *, void *), crunchset(CSOUND *, void *);
-int     guiroset(CSOUND *, void *), guiro(CSOUND *, void *);
-int     sekere(CSOUND *, void *);
-int     tambourset(CSOUND *, void *), tambourine(CSOUND *, void *);
-int     bambooset(CSOUND *, void *), bamboo(CSOUND *, void *);
-int     wuterset(CSOUND *, void *), wuter(CSOUND *, void *);
-int     sleighset(CSOUND *, void *), sleighbells(CSOUND *, void *);
-int     trig_set(CSOUND *, void *), trig(CSOUND *, void *);
-int     numsamp(CSOUND *, void *), ftsr(CSOUND *, void *);
-int     kon2_set(CSOUND *, void *), kon2(CSOUND *, void *);
-int     nrpn(CSOUND *, void *);
-int     mdelay(CSOUND *, void *), mdelay_set(CSOUND *, void *);
-#if defined(TCLTK)
-int     cntrl_set(CSOUND *, void *);
-int     control(CSOUND *, void *), ocontrol(CSOUND *, void *);
-int     button_set(CSOUND *, void *), button(CSOUND *, void *);
-int     check_set(CSOUND *, void *), check(CSOUND *, void *);
-#endif
-int     sum(CSOUND *, void *), product(CSOUND *, void *);
-int     macset(CSOUND *, void *);
-int     mac(CSOUND *, void *), maca(CSOUND *, void *);
-int     nestedapset(CSOUND *, void *), nestedap(CSOUND *, void *);
-int     lorenzset(CSOUND *, void *), lorenz(CSOUND *, void *);
-int     filelen(CSOUND *, void *), filenchnls(CSOUND *, void *);
-int     filesr(CSOUND *, void *), filepeak(CSOUND *, void *);
-int     ilogbasetwo(CSOUND *, void *), logbasetwo_set(CSOUND *, void *);
-int     powoftwo(CSOUND *, void *), powoftwoa(CSOUND *, void *);
-int     logbasetwo(CSOUND *, void *), logbasetwoa(CSOUND *, void *);
-int     lp2_set(CSOUND *, void *), lp2(CSOUND *, void *);
-int     phaser2set(CSOUND *, void *), phaser2(CSOUND *, void *);
-int     phaser1set(CSOUND *, void *), phaser1(CSOUND *, void *);
-int     balnset(CSOUND *, void *), balance(CSOUND *, void *);
-int     prealloc(CSOUND *, void *);
+#include "entry1.h"             /*                      ENTRY1.C        */
 
 /* thread vals, where isub=1, ksub=2, asub=4:
                 0 =     1  OR   2  (B out only)
@@ -327,12 +50,14 @@ int     prealloc(CSOUND *, void *);
                 M       begins an indef list of args (any count/rate i,k,a)
                 N       begins an indef list of args (any count/rate i,k,a,S)
                 n       begins an indef list of iargs (nargs odd)
-                o       optional, defaulting to 0
-                p       "            "          1
-                q       "            "         10
-                v       "            "          .5
-                j       "            "         -1
-                h       "            "        127
+                o       optional i-rate, defaulting to  0
+                p              "             "          1
+                q              "             "         10
+                v              "             "          .5
+                j              "             "         -1
+                h              "             "        127
+                O       optional k-rate, defaulting to  0
+                V              "             "          .5
                 y       begins indef list of aargs (any count)
                 z       begins indef list of kargs (any count)
                 Z       begins alternating kakaka...list (any count)    */
@@ -826,7 +551,252 @@ OENTRY opcodlst_1[] = {
 { "limit.k",  S(LIMIT), 3, "k",     "xkk",  (SUBR)limitset, (SUBR)klimit, NULL },
 { "limit.a",  S(LIMIT), 5, "a",     "xkk",  (SUBR)limitset, NULL,  (SUBR)limit },
 { "prealloc", S(AOP),   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  },
-/* terminate list */
-{ NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
+/* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
+{ "inh",    S(INQ),     4,      "aaaaaa","",    NULL,   NULL,   inh     },
+{ "ino",    S(INQ),     4,      "aaaaaaaa","",  NULL,   NULL,   ino     },
+{ "inx",    S(INALL),   4,      "aaaaaaaaaaaaaaaa","",  NULL,   NULL,   in16 },
+{ "in32",   S(INALL),   4,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                        "",     NULL,   NULL,   in32 },
+{ "inch",   S(INCH),    4,      "a",    "k",    NULL,   NULL,   inch_opcode },
+{ "_in",    S(INALL),   4,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+                                        "",     NULL,   NULL,   inall_opcode },
+  /* Note that there is code in rdorch.c that assumes that opcodes starting
+     with the charcters out followed by a s, q, h, o or x are in this group
+     ***BEWARE***
+   */
+{ "outh",   S(OUTH),    4,      "",     "aaaaaa",NULL,  NULL,   outh    },
+{ "outo",   S(OUTO),    4,      "",     "aaaaaaaa",NULL,NULL,   outo    },
+{ "outx",   S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaa",NULL,NULL, outx },
+{ "out32",  S(OUTX),    4,      "",     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                                NULL,   NULL,   outX    },
+{ "outch",  S(OUTCH),   4,      "",     "Z",    NULL,   NULL,   outch   },
+{ "outc",   S(OUTX),    4,      "",     "y",    NULL,   NULL,   outall  },
+{ "cpsxpch", S(XENH),   1,      "i",    "iiii", cpsxpch, NULL,  NULL    },
+{ "cps2pch", S(XENH),   1,      "i",    "ii",   cps2pch, NULL,  NULL    },
+{ "cpstun", S(CPSTUN),  2,      "k",    "kkk",   NULL,   cpstun         },
+{ "cpstuni",S(CPSTUNI), 1,      "i",    "ii",   cpstun_i,               },
+{ "cpstmid", S(CPSTABLE), 1, "i", "i",    (SUBR)cpstmid                    },
+{ "adsr", S(LINSEG),     7,     "s",    "iiiio",adsrset,klnseg, linseg     },
+{ "madsr", S(LINSEG),    7,     "s",    "iiiioj", madsrset,klnsegr, linsegr },
+{ "xadsr", S(EXXPSEG),   7,     "s",    "iiiio", xdsrset, kxpseg, expseg    },
+{ "mxadsr", S(EXPSEG),   7,     "s",    "iiiioj", mxdsrset, kxpsegr, expsegr },
+{ "schedule", S(SCHED),  1,     "",     "Tiim", schedule, schedwatch, NULL },
+{ "schedwhen", S(WSCHED),3,     "",     "kkkkm",ifschedule, kschedule, NULL },
+{ "schedkwhen", S(TRIGINSTR), 3,"",     "kkkUkz",triginset, ktriginstr, NULL },
+{ "schedkwhennamed", S(TRIGINSTR), 3,"", "kkkUkz",triginset, ktriginstr, NULL },
+{ "trigseq", S(TRIGSEQ), 3,     "",     "kkkkkz", trigseq_set, trigseq, NULL },
+{ "event", S(LINEVENT),  2,     "",     "SUz",  NULL, eventOpcode, NULL   },
+{ "event_i", S(LINEVENT),1,     "",     "STm",  eventOpcodeI, NULL, NULL  },
+{ "lfo", S(LFO),         7,     "s",    "kko",  lfoset,   lfok,   lfoa    },
+{ "vbap4",  S(VBAP_FOUR), 5, "aaaa","aioo", vbap_FOUR_init, NULL, vbap_FOUR },
+{ "vbap8",  S(VBAP_EIGHT), 5, "aaaaaaaa","aioo", vbap_EIGHT_init, NULL, vbap_EIGHT },
+{ "vbap16", S(VBAP_SIXTEEN), 5, "aaaaaaaaaaaaaaaa","aioo", vbap_SIXTEEN_init, NULL, vbap_SIXTEEN },
+{ "vbapz",  S(VBAP_ZAK), 5,     "",    "iiaioo", vbap_zak_init, NULL, vbap_zak },
+{ "vbaplsinit",  S(VBAP_LS_INIT), 1, "","iioooooooooooooooooooooooooooooooo", vbap_ls_init},
+{ "vbap4move",  S(VBAP_FOUR_MOVING), 5, "aaaa","aiiim", vbap_FOUR_moving_init, NULL, vbap_FOUR_moving },
+{ "vbap8move",  S(VBAP_EIGHT_MOVING), 5, "aaaaaaaa","aiiim", vbap_EIGHT_moving_init, NULL, vbap_EIGHT_moving },
+{ "vbap16move",  S(VBAP_SIXTEEN_MOVING), 5, "aaaaaaaaaaaaaaaa","aiiim", vbap_SIXTEEN_moving_init, NULL, vbap_SIXTEEN_moving },
+{ "vbapzmove",  S(VBAP_ZAK_MOVING), 5, "","iiaiiim", vbap_zak_moving_init, NULL, vbap_zak_moving },
+{ "oscils",   S(OSCILS), 5,     "a", "iiio",     (SUBR)oscils_set, NULL, (SUBR)oscils       },
+{ "lphasor",  S(LPHASOR),5,     "a", "xooooooo" ,(SUBR)lphasor_set, NULL, (SUBR)lphasor     },
+{ "tablexkt", S(TABLEXKT),5,    "a", "xkkiooo",  (SUBR)tablexkt_set, NULL, (SUBR)tablexkt   },
+{ "reverb2",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR)reverbx    },
+{ "nreverb",  S(NREV2),  5,     "a",    "akkoojoj", (SUBR)reverbx_set,NULL,(SUBR) reverbx    },
+{ "=.f",      S(FASSIGN), 2,    "f",   "f",      NULL, fassign, NULL    },
+{ "init.f",   S(FASSIGN), 2,    "f",   "f",      fassign, NULL, NULL    },
+{ "pvsanal",  S(PVSANAL), 5,    "f",   "aiiiioo",  pvsanalset, NULL, pvsanal  },
+{ "pvsynth",  S(PVSYNTH), 5,    "a",   "fo",     pvsynthset, NULL, pvsynth  },
+{ "pvsadsyn", S(PVADS),   7,    "a",   "fikopo", pvadsynset, pvadsyn, pvadsyn },
+{ "pvscross", S(PVSCROSS),3,    "f",   "ffkk",   pvscrosset, pvscross, NULL },
+{ "pvsfread", S(PVSFREAD),3,    "f",   "kTo",    pvsfreadset, pvsfread, NULL  },
+{ "pvsmaska", S(PVSMASKA),3,    "f",   "fik",    pvsmaskaset, pvsmaska, NULL  },
+{ "pvsftw",   S(PVSFTW),  3,    "k",   "fio",    pvsftwset, pvsftw, NULL  },
+{ "pvsftr",   S(PVSFTR),  3,    "",    "fio",    pvsftrset, pvsftr, NULL  },
+{ "pvsinfo",  S(PVSINFO), 1,    "iiii","f",      pvsinfo, NULL, NULL    },
+{ "octave",   0xffff                                                    },
+{ "semitone", 0xffff                                                    },
+{ "cent",     0xffff                                                    },
+{ "octave.i", S(EVAL),    1,    "i",    "i",     powoftwo               },
+{ "octave.k", S(EVAL),    2,    "k",    "k",     NULL,  powoftwo        },
+{ "octave.a", S(EVAL),    4,    "a",    "a",     NULL, NULL, powoftwoa  },
+{ "semitone.i",S(EVAL),   1,    "i",    "i",     semitone               },
+{ "semitone.k",S(EVAL),   2,    "k",    "k",     NULL,  semitone        },
+{ "semitone.a",S(EVAL),   4,    "a",    "a",     NULL, NULL, asemitone  },
+{ "cent.i",   S(EVAL),    1,    "i",    "i",     cent                   },
+{ "cent.k",   S(EVAL),    2,    "k",    "k",     NULL,  cent            },
+{ "cent.a",   S(EVAL),    4,    "a",    "a",     NULL, NULL, acent      },
+{ "db",       0xffff                                                    },
+{ "db.i",     S(EVAL),    1,    "i",    "i",     db                     },
+{ "db.k",     S(EVAL),    2,    "k",    "k",     NULL, db               },
+{ "db.a",     S(EVAL),    4,    "a",    "a",     NULL, NULL, dba        },
+{ "midichn",  S(MIDICHN), 1,    "i",    "",      midichn, NULL, NULL    },
+{ "pgmassign",S(PGMASSIGN), 1,  "",     "iTo",   pgmassign, NULL, NULL  },
+{ "midiin",   S(MIDIIN),  2,    "kkkk", "",      NULL, midiin, NULL     },
+{ "miditempo", S(MIDITEMPO), 3, "k",    "",
+                (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
+{ "midinoteoff", S(MIDINOTEON),3,"",    "xx",   midinoteoff, midinoteoff, },
+{ "midinoteonkey", S(MIDINOTEON),3, "", "xx",   midinoteonkey, midinoteonkey },
+{ "midinoteoncps", S(MIDINOTEON), 3, "", "xx",  midinoteoncps,midinoteoncps },
+{ "midinoteonoct", S(MIDINOTEON), 3, "", "xx",  midinoteonoct,midinoteonoct },
+{ "midinoteonpch", S(MIDINOTEON), 3, "", "xx",  midinoteonpch, midinoteonpch },
+{ "midipolyaftertouch", S(MIDIPOLYAFTERTOUCH),
+                   3,   "", "xxoh", midipolyaftertouch, midipolyaftertouch},
+{ "midicontrolchange", S(MIDICONTROLCHANGE),
+                   3, "", "xxoh",midicontrolchange, midicontrolchange    },
+{ "midiprogramchange", S(MIDIPROGRAMCHANGE),
+                   3, "", "x", midiprogramchange, midiprogramchange      },
+{ "midichannelaftertouch", S(MIDICHANNELAFTERTOUCH),
+                   3, "", "xoh",midichannelaftertouch, midichannelaftertouch },
+{ "midipitchbend", S(MIDIPITCHBEND),3, "", "xoh", midipitchbend, midipitchbend },
+{ "mididefault", S(MIDIDEFAULT), 3, "", "xx",   mididefault, mididefault },
+{ "invalue", S(INVAL),     3,   "k",    "T", invalset, kinval, NULL      },
+{ "outvalue", S(OUTVAL), 3,     "",     "Tk", outvalset, koutval, NULL   },
+/* IV - Oct 20 2002 */
+{ "subinstr", S(SUBINST), 5, "mmmmmmmm", "Tm",  subinstrset, NULL, subinstr },
+{ "subinstrinit", S(SUBINST), 1, "",    "Tm",   subinstrset, NULL, NULL  },
+{ "nstrnum", S(NSTRNUM), 1,     "i",    "T",    nstrnumset, NULL, NULL   },
+{ "turnoff2",S(TURNOFF2),2,     "",     "kkk",  NULL, turnoff2, NULL     },
+{ "cngoto", S(CGOTO),   3,      "",     "Bl",   ingoto, kngoto, NULL     },
+{ "cogoto", S(CGOTO),   3,      "",     "Bl",   iingoto, kingoto, NULL   },
+/* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
+/* and setksmps */
+{ ".userOpcode", S(UOPCODE), 7, "", "", useropcdset, useropcd, useropcd },
+/* IV - Sep 10 2002: removed perf time routines of xin and xout */
+{ "xin", S(XIN),   1, "XXXXXXXXXXXXXXXXXXXXXXXX", "", xinset, NULL, NULL },
+{ "xout", S(XOUT),    1,        "",     "M",    xoutset, NULL, NULL      },
+{ "setksmps", S(SETKSMPS), 1,   "",     "i",    setksmpsset, NULL, NULL  },
+{ "tempoval", S(GTEMPO), 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
+{ "downsamp",S(DOWNSAMP),3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
+{ "upsamp", S(UPSAMP),  4,  "a", "k",    NULL,   NULL,   (SUBR)upsamp        },
+/* IV - Sep 5 2002 */
+{ "interp", S(INTERP),  5,  "a", "koo",  (SUBR)interpset,NULL, (SUBR)interp  },
+{ "a.k",    S(INTERP),  5,  "a", "k",    (SUBR)a_k_set,NULL,   (SUBR)interp  },
+{ "integ", S(INDIFF), 7, "s", "xo", (SUBR)indfset,(SUBR)kntegrate,(SUBR)integrate},
+{ "diff",   S(INDIFF),  7,  "s", "xo",   (SUBR)indfset,(SUBR)kdiff, (SUBR)diff },
+{ "samphold",S(SAMPHOLD),7, "s", "xxoo", (SUBR)samphset,(SUBR)ksmphold,(SUBR)samphold},
+{ "delay",  S(DELAY),   5,  "a", "aio",  (SUBR)delset, NULL,   (SUBR)delay   },
+{ "delayr", S(DELAYR),  5,  "XX","io",   (SUBR)delrset,NULL,   (SUBR)delayr  },
+{ "delayw", S(DELAYW),  5,  "",  "a",    (SUBR)delwset,NULL,   (SUBR)delayw  },
+{ "delay1", S(DELAY1),  5,  "a", "ao",   (SUBR)del1set,NULL,   (SUBR)delay1  },
+{ "deltap", S(DELTAP),  5,  "a", "ko",   (SUBR)tapset, NULL,   (SUBR)deltap  },
+{ "deltapi",S(DELTAP),  5,  "a", "xo",   (SUBR)tapset, NULL,   (SUBR)deltapi },
+{ "deltapn",S(DELTAP),  5,  "a", "xo",   (SUBR)tapset, NULL,   (SUBR)deltapn },
+{ "deltap3",S(DELTAP),  5,  "a", "xo",   (SUBR)tapset, NULL,   (SUBR)deltap3 },
+{ "reverb", S(REVERB),  5,  "a", "ako",  (SUBR)rvbset, NULL,   (SUBR)reverb  },
+{ "vdelay",   S(VDEL),  5,  "a", "axio", (SUBR)vdelset, NULL,  (SUBR)vdelay  },
+{ "vdelay3",  S(VDEL),  5,  "a", "axio", (SUBR)vdelset, NULL,  (SUBR)vdelay3 },
+{ "vdelayxwq",S(VDELXQ),5,  "aaaa", "aaaaaiio", (SUBR)vdelxqset, NULL, (SUBR)vdelayxwq},
+{ "vdelayxws",S(VDELXS),5,  "aa", "aaaiio", (SUBR)vdelxsset, NULL, (SUBR)vdelayxws},
+{ "vdelayxw", S(VDELX), 5,  "a",  "aaiio", (SUBR)vdelxset, NULL, (SUBR)vdelayxw},
+{ "vdelayxq", S(VDELXQ),5,  "aaaa", "aaaaaiio", (SUBR)vdelxqset, NULL, (SUBR)vdelayxq},
+{ "vdelayxs", S(VDELXS),5,  "aa", "aaaiio", (SUBR)vdelxsset, NULL, (SUBR)vdelayxs},
+{ "vdelayx",  S(VDELX), 5,  "a",  "aaiio", (SUBR)vdelxset, NULL, (SUBR)vdelayx},
+{ "deltapx",  S(DELTAPX),5, "a",  "aio",  (SUBR)tapxset, NULL,  (SUBR)deltapx },
+{ "deltapxw", S(DELTAPX),5,  "",  "aaio", (SUBR)tapxset, NULL, (SUBR)deltapxw },
+{ "multitap", S(MDEL),  5,   "a", "am",   (SUBR)multitap_set,NULL,(SUBR)multitap_play},
+{ "comb",   S(COMB),    5,  "a",  "akioo", (SUBR)cmbset,NULL,   (SUBR)comb    },
+{ "alpass", S(COMB),    5,  "a",  "akioo", (SUBR)cmbset,NULL,   (SUBR)alpass  },
+ {  "strset",   S(STRSET_OP),   1,  "",     "iS",
+    (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
+ {  "strget",   S(STRGET_OP),   1,  "S",    "i",
+    (SUBR) strget_init, (SUBR) NULL, (SUBR) NULL                        },
+ {  "strcpy",   S(STRCPY_OP),   1,  "S",    "S",
+    (SUBR) strcpy_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strcpyk",  S(STRCPY_OP),   3,  "S",    "S",
+    (SUBR) strcpy_opcode_init, (SUBR) strcpy_opcode_perf, (SUBR) NULL   },
+ {  "strcat",   S(STRCAT_OP),   1,  "S",    "SS",
+    (SUBR) strcat_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strcatk",  S(STRCAT_OP),   3,  "S",    "SS",
+    (SUBR) strcat_opcode_init, (SUBR) strcat_opcode_perf, (SUBR) NULL   },
+ {  "strcmp",   S(STRCAT_OP),   1,  "i",    "SS",
+    (SUBR) strcpy_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strcmpk",  S(STRCAT_OP),   3,  "k",    "SS",
+    (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             },
+ {  "sprintf",  S(SPRINTF_OP),  1,  "S",    "STN",
+    (SUBR) sprintf_opcode_init, (SUBR) NULL, (SUBR) NULL                },
+ {  "sprintfk", S(SPRINTF_OP),  3,  "S",    "SUN",
+    (SUBR) sprintf_opcode_init, (SUBR) sprintf_opcode_perf, (SUBR) NULL },
+ {  "printf_i", S(PRINTF_OP),   1,  "",     "SiTN",
+    (SUBR) printf_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "printf",   S(PRINTF_OP),   3,  "",     "SkUN",
+    (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, (SUBR) NULL    },
+ {  "puts",     S(PUTS_OP),     3,  "",     "Sko",
+    (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
+ {  "strtod",   S(STRSET_OP),   1,  "i",    "T",
+    (SUBR) strtod_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strtodk",  S(STRSET_OP),   3,  "k",    "U",
+    (SUBR) strtod_opcode_init, (SUBR) strtod_opcode_perf, (SUBR) NULL   },
+ {  "strtol",   S(STRSET_OP),   1,  "i",    "T",
+    (SUBR) strtol_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+ {  "strtolk",  S(STRSET_OP),   3,  "k",    "U",
+    (SUBR) strtol_opcode_init, (SUBR) strtol_opcode_perf, (SUBR) NULL   },
+ { "loop_lt",   0xfffb                                                  },
+ { "loop_le",   0xfffb                                                  },
+ { "loop_gt",   0xfffb                                                  },
+ { "loop_ge",   0xfffb                                                  },
+ { "loop_lt.i", S(LOOP_OPS),  1,  "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
+ { "loop_le.i", S(LOOP_OPS),  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
+ { "loop_gt.i", S(LOOP_OPS),  1,  "", "iiil", (SUBR) loop_g_i, NULL, NULL   },
+ { "loop_ge.i", S(LOOP_OPS),  1,  "", "iiil", (SUBR) loop_ge_i, NULL, NULL  },
+ { "loop_lt.k", S(LOOP_OPS),  2,  "", "kkkl", NULL, (SUBR) loop_l_p, NULL   },
+ { "loop_le.k", S(LOOP_OPS),  2,  "", "kkkl", NULL, (SUBR) loop_le_p, NULL  },
+ { "loop_gt.k", S(LOOP_OPS),  2,  "", "kkkl", NULL, (SUBR) loop_g_p, NULL   },
+ { "loop_ge.k", S(LOOP_OPS),  2,  "", "kkkl", NULL, (SUBR) loop_ge_p, NULL  },
+ {  "chnget",      0xFFFF,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chnget.i",    S(CHNGET),           1,      "i",            "S",
+    (SUBR) chnget_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnget.k",    S(CHNGET),           3,      "k",            "S",
+    (SUBR) chnget_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+ {  "chnget.a",    S(CHNGET),           5,      "a",            "S",
+    (SUBR) chnget_opcode_init_a, (SUBR) NULL, (SUBR) notinit_opcode_stub },
+ {  "chnget.S",    S(CHNGET),           1,      "S",            "S",
+    (SUBR) chnget_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnset",      0xFFFB,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chnset.i",    S(CHNGET),           1,      "",             "iS",
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnset.r",    S(CHNGET),           1,      "",             "iS",
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnset.c",    S(CHNGET),           1,      "",             "iS",
+    (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnset.k",    S(CHNGET),           3,      "",             "kS",
+    (SUBR) chnset_opcode_init_k, (SUBR) notinit_opcode_stub, (SUBR) NULL },
+ {  "chnset.a",    S(CHNGET),           5,      "",             "aS",
+    (SUBR) chnset_opcode_init_a, (SUBR) NULL, (SUBR) notinit_opcode_stub },
+ {  "chnset.S",    S(CHNGET),           1,      "",             "SS",
+    (SUBR) chnset_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+ {  "chn_k",       S(CHN_OPCODE_K),     1,      "",             "Sioooo",
+    (SUBR) chn_k_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+ {  "chn_a",       S(CHN_OPCODE),       1,      "",             "Si",
+    (SUBR) chn_a_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+ {  "chn_S",       S(CHN_OPCODE),       1,      "",             "Si",
+    (SUBR) chn_S_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
+ {  "chnexport",   0xFFFF,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chnexport.i", S(CHNEXPORT_OPCODE), 1,      "i",            "Sioooo",
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chnexport.k", S(CHNEXPORT_OPCODE), 1,      "k",            "Sioooo",
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chnexport.a", S(CHNEXPORT_OPCODE), 1,      "a",            "Si",
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chnexport.S", S(CHNEXPORT_OPCODE), 1,      "S",            "Si",
+    (SUBR) chnexport_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chnparams",   S(CHNPARAMS_OPCODE), 1,      "iiiiii",       "S",
+    (SUBR) chnparams_opcode_init, (SUBR) NULL, (SUBR) NULL              },
+ {  "chano",       0xFFFD,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chano.k",     S(ASSIGN),           2,      "",             "kk",
+    (SUBR) NULL, (SUBR) chano_opcode_perf_k, (SUBR) NULL                },
+ {  "chano.a",     S(ASSIGN),           4,      "",             "ak",
+    (SUBR) NULL, (SUBR) NULL, (SUBR) chano_opcode_perf_a                },
+ {  "chani",       0xFFFF,              0,      NULL,           NULL,
+    (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                               },
+ {  "chani.k",     S(ASSIGN),           2,      "k",            "k",
+    (SUBR) NULL, (SUBR) chani_opcode_perf_k, (SUBR) NULL                },
+ {  "chani.a",     S(ASSIGN),           4,      "a",            "k",
+    (SUBR) NULL, (SUBR) NULL, (SUBR) chani_opcode_perf_a                },
+ /* terminate list */
+ {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
 
