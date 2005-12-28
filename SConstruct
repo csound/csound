@@ -518,7 +518,6 @@ libCsoundSources = Split('''
 Engine/auxfd.c
 Engine/cfgvar.c
 Engine/entry1.c
-Engine/entry2.c
 Engine/envvar.c
 Engine/express.c
 Engine/extract.c
@@ -1172,8 +1171,7 @@ else:
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
         vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
         guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows'])
-        vstEnvironment.Append(LIBS = ['fltk_images'])
-        vstEnvironment.Append(LIBS = ['fltk'])
+        vstEnvironment.Append(LIBS = ['fltk_images', 'fltk'])
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
     guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
     for option in vstEnvironment['CCFLAGS']:
@@ -1458,7 +1456,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
 else:
     print "CONFIGURATION DECISION: Not building Tclcsound"
 
-if (commonEnvironment['buildDSSI'] == '1') and (getPlatform() == 'linux'):
+if (commonEnvironment['buildDSSI'] == '1' and getPlatform() == 'linux'):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
     dssiEnvironment = pluginEnvironment.Copy()
     dssiEnvironment.Append(LIBS = ['dl'])

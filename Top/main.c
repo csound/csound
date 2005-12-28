@@ -35,12 +35,11 @@ extern  void    openMIDIout(CSOUND *);
 extern  int     read_unified_file(CSOUND *, char **, char **);
 
 extern  OENTRY  opcodlst_1[];
-extern  OENTRY  opcodlst_2[];
 
 static void create_opcodlst(CSOUND *csound)
 {
     OENTRY  *saved_opcodlst = csound->opcodlst;
-    int     old_cnt = 0, err = 0;
+    int     old_cnt = 0, err;
 
     if (saved_opcodlst != NULL) {
       csound->opcodlst = NULL;
@@ -49,9 +48,7 @@ static void create_opcodlst(CSOUND *csound)
       csound->oplstend = NULL;
     }
     /* Basic Entry1 stuff */
-    err |= csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
-    /* Add entry2 */
-    err |= csoundAppendOpcodes(csound, &(opcodlst_2[0]), -1);
+    err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
     /* Add opcodes registered by host application */
     if (old_cnt)
       err |= csoundAppendOpcodes(csound, saved_opcodlst, old_cnt);
