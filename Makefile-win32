@@ -102,14 +102,16 @@ stdopcod.dll:	Opcodes/ambicode.o Opcodes/babo.o Opcodes/bbcut.o	\
 		Opcodes/nlfilt.o Opcodes/oscbnk.o Opcodes/partials.o	\
 		Opcodes/phisem.o Opcodes/pluck.o Opcodes/psynth.o	\
 		Opcodes/pvsbasic.o Opcodes/pvscent.o Opcodes/pvsdemix.o	\
-		Opcodes/repluck.o Opcodes/reverbsc.o Opcodes/scansyn.o	\
-		Opcodes/scansynx.o Opcodes/seqtime.o Opcodes/sndloop.o	\
-		Opcodes/sndwarp.o Opcodes/space.o Opcodes/spat3d.o	\
-		Opcodes/syncgrain.o Opcodes/ugens7.o Opcodes/ugens9.o	\
-		Opcodes/ugensa.o Opcodes/uggab.o Opcodes/ugmoss.o	\
-		Opcodes/ugnorman.o Opcodes/ugsc.o			\
+		Opcodes/repluck.o Opcodes/reverbsc.o Opcodes/seqtime.o	\
+		Opcodes/sndloop.o Opcodes/sndwarp.o Opcodes/space.o	\
+		Opcodes/spat3d.o Opcodes/syncgrain.o Opcodes/ugens7.o	\
+		Opcodes/ugens9.o Opcodes/ugensa.o Opcodes/uggab.o	\
+		Opcodes/ugmoss.o Opcodes/ugnorman.o Opcodes/ugsc.o	\
 		Opcodes/wave-terrain.o					\
 		Opcodes/stdopcod.o
+	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
+
+scansyn.dll: Opcodes/scansyn.o Opcodes/scansynx.o
 	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
 
 pitch.dll: Opcodes/pitch.o Opcodes/pitch0.o Opcodes/spectra.o
