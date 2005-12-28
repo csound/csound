@@ -219,7 +219,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       char *p;
       FILE *scof;
       mytmpnam(csound, sconame);              /* Generate score name */
-      if ((p=strchr(sconame, '.')) != NULL) *p='\0'; /* with extention */
+#ifndef __MACH__
+      if ((p = strchr(sconame, '.')) != NULL)
+        *p = '\0';                            /* with extention */
+#endif
       strcat(sconame, ".sco");
       scof = fopen(sconame, "w");
       fprintf(scof, "f0 42000\n");
