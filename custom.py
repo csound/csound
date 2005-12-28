@@ -17,8 +17,9 @@ customSWIGFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
-    customCPPPATH.append('/usr/lib/jvm/java-1.5.0/include')
-    customCPPPATH.append('/usr/lib/jvm/java-1.5.0/include/linux')
+    # customCPPPATH.append('/usr/lib/jvm/java-1.5.0/include')
+    # customCPPPATH.append('/usr/lib/jvm/java-1.5.0/include/linux')
+    # customCCFLAGS.append('-DHAVE_LIBSNDFILE_1_0_13')
 elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
