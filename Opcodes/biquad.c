@@ -1235,7 +1235,7 @@ static OENTRY localops[] = {
 { "rezzy", S(REZZY),     5, "a", "axxoo", (SUBR)rezzyset, NULL, (SUBR)rezzy },
 { "bqrez", S(REZZY),     5, "a", "axxoo", (SUBR)bqrezset, NULL, (SUBR)bqrez },
 { "distort1", S(DISTORT), 4,"a", "akkkko",  NULL,   NULL,   (SUBR)distort   },
-{ "vco", S(VCO),         5, "a", "xxikppovoo",(SUBR)vcoset, NULL, (SUBR)vco },
+{ "vco", S(VCO),         5, "a", "xxiVppovoo",(SUBR)vcoset, NULL, (SUBR)vco },
 { "tbvcf", S(TBVCF),     5, "a", "axxkkp",  (SUBR)tbvcfset, NULL, (SUBR)tbvcf   },
 { "planet", S(PLANET),5,"aaa","kkkiiiiiiioo", (SUBR)planetset, NULL, (SUBR)planet},
 { "pareq", S(PAREQ),     5, "a", "akkkoo",(SUBR)pareqset, NULL, (SUBR)pareq },
