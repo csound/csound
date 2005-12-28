@@ -2197,15 +2197,13 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     }
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
-    /* FIXME: no looping possible yet */
-#ifdef BETA
+#ifdef HAVE_LIBSNDFILE_1_0_13
     {
-      /* should use SFC_GET_INSTRUMENT eventually */
       SF_INSTRUMENT lpd;
       int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
       if (ans) {
         double natcps, gainfac;
-#ifdef never
+#if 0
         fprintf(stderr,
                 "Base Note : %u\tDetune    : %u\n"
                 "Low  Note : %u\tHigh Note : %u\n"
@@ -2219,48 +2217,51 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
                 lpd.velocity_lo, lpd.velocity_hi, lpd.gain, lpd.loop_count,
                 lpd.loops [0].mode, lpd.loops [0].start, lpd.loops [0].end,
                 lpd.loops [0].count, lpd.loops [1].mode, lpd.loops [1].start,
-                lpd.loops [1].end, lpd.loops [1].count) ;
+                lpd.loops [1].end, lpd.loops [1].count);
 #endif
-        natcps = pow((double)2.0, lpd.basenote / 12.0 + 3.0) * ONEPT;
+        natcps = pow(2.0, (double) ((int) lpd.basenote - 69) / 12.0) * 440.0;
         /* As far as I can tell this gainfac value is never used! */
-        gainfac = exp((double)lpd.gain * LOG10D20);
-/*         if (lpd.basenote==0) lpd.basenote=ftp->cvtbas; */
+        gainfac = exp((double) lpd.gain * LOG10D20);
+     /* if (lpd.basenote == 0)
+          lpd.basenote = ftp->cvtbas; */
         ftp->cpscvt = ftp->cvtbas / natcps;
-        ftp->loopmode1 = (lpd.loops[0].mode==SF_LOOP_NONE ? 0 :
-                          lpd.loops[0].mode==SF_LOOP_FORWARD ? 1 :
-                          2);
-        ftp->loopmode2 = (lpd.loops[1].mode==SF_LOOP_NONE ? 0 :
-                          lpd.loops[1].mode==SF_LOOP_FORWARD ? 1 :
-                          2);
-        ftp->begin1 = lpd.loops[0].start; ftp->begin2 = lpd.loops[1].start;
-        if (ftp->loopmode1) /* Greg Sullivan */
+        ftp->loopmode1 = (lpd.loops[0].mode == SF_LOOP_NONE ?
+                          0 : (lpd.loops[0].mode == SF_LOOP_FORWARD ? 1 : 2));
+        ftp->loopmode2 = (lpd.loops[1].mode == SF_LOOP_NONE ?
+                          0 : (lpd.loops[1].mode == SF_LOOP_FORWARD ? 1 : 2));
+        ftp->begin1 = lpd.loops[0].start;
+        ftp->begin2 = lpd.loops[1].start;
+        if (ftp->loopmode1)             /* Greg Sullivan */
           ftp->end1 = lpd.loops[0].end;
         else
-          ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
+          ftp->end1 = ftp->flenfrms;    /* Greg Sullivan */
         ftp->end2 = lpd.loops[1].end;
         if (ftp->end1 > ff->flen || ftp->end2 > ff->flen) {
           long maxend;
-          csound->Warning(csound, Str("GEN1: input file truncated by ftable size"));
+          csound->Warning(csound,
+                          Str("GEN1: input file truncated by ftable size"));
           if ((maxend = ftp->end1) < ftp->end2)
             maxend = ftp->end2;
-          csound->Message(csound,Str("\tlooping endpoint %ld exceeds ftsize %ld\n"),
-                          maxend,ff->flen);
+          csound->Message(csound,
+                          Str("\tlooping endpoint %ld exceeds ftsize %ld\n"),
+                          maxend, ff->flen);
           needsiz(csound, ff, maxend);
           truncmsg = 1;
         }
       }
       else {
-        ftp->cpscvt = FL(0.0);      /* else no looping possible   */
+        ftp->cpscvt = FL(0.0);          /* else no looping possible   */
         ftp->loopmode1 = 0;
         ftp->loopmode2 = 0;
-        ftp->end1 = ftp->flenfrms; /* Greg Sullivan */        }
+        ftp->end1 = ftp->flenfrms;      /* Greg Sullivan */
+      }
     }
 #else
     ftp->cpscvt = FL(0.0);
     ftp->loopmode1 = 0;
     ftp->loopmode2 = 0;
-    ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
-#endif
+    ftp->end1 = ftp->flenfrms;          /* Greg Sullivan */
+#endif      /* HAVE_LIBSNDFILE_1_0_13 */
     /* read sound with opt gain */
     if ((inlocs = getsndin(csound, fd, ftp->ftable, ff->flen + 1, p)) < 0) {
       return fterror(ff, Str("GEN1 read error"));
