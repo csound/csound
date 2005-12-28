@@ -1,3 +1,8 @@
+2005-12-28  jpff  <jpff@codemist.co.uk>
+
+	* Engine/fgens.c (gen01raw): Restore looping stuff, which requires
+	libsndfile 1.0.13pre3 or later, so protected by BETA still
+
 2005-12-19  John ffitch  <jpff@codemist.co.uk>
 
 	* SConstruct (else): Added -fPIC again for 64bit machines
