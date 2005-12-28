@@ -2198,34 +2198,46 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     /* FIXME: no looping possible yet */
-#ifdef EXPERIMENTAL
+#ifdef BETA
     {
       /* should use SFC_GET_INSTRUMENT eventually */
-      SF_LOOP_INFO lpd;
-      int ans = sf_command(fd, SFC_GET_LOOP_INFO, &lpd, sizeof(SF_LOOP_INFO));
+      SF_INSTRUMENT lpd;
+      int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
       if (ans) {
-#ifdef BETA
+        double natcps, gainfac;
+#ifdef never
         fprintf(stderr,
-                "Loop info: time_sig_num=%d time_sig_den=%d loop_mode=%d\n",
-                lpd.time_sig_num, lpd.time_sig_den, lpd.loop_mode);
-        fprintf(stderr, "         : num_beats=%d root_key=%d ans=%d\n",
-                lpd.num_beats, lpd.root_key, ans);
+                "Base Note : %u\tDetune    : %u\n"
+                "Low  Note : %u\tHigh Note : %u\n"
+                "Low  Vel. : %u\tHigh Vel. : %u\n"
+                "Gain      : %d\tCount     : %d\n"
+                "mode      : %d\n"
+                "start     : %d\tend       : %d\tcount  :%d\n"
+                "mode      : %d\n"
+                "start     : %d\tend       : %d\tcount  :%d\n\n",
+                lpd.basenote, 0, lpd.key_lo, lpd.key_hi,
+                lpd.velocity_lo, lpd.velocity_hi, lpd.gain, lpd.loop_count,
+                lpd.loops [0].mode, lpd.loops [0].start, lpd.loops [0].end,
+                lpd.loops [0].count, lpd.loops [1].mode, lpd.loops [1].start,
+                lpd.loops [1].end, lpd.loops [1].count) ;
 #endif
-/*         adp->natcps = (float)(pow((double)2.0, (lpd.basenote + lpd.detune/100.) / 12.0 + 3.0) * ONEPT); */
-/*         adp->gainfac = (float)exp((double)(natshort(instr.gain)) * LOG10D20); */
-        ftp->cpscvt = csound->esr * lpd.basenote / (LOFACT * p->sr);
-        ftp->loopmode1 = (lpd.sustain_mode==SF_LOOP_NONE ? 0 :
-                          lpd.sustain_mode==SF_LOOP_FORWARD ? 1 :
+        natcps = pow((double)2.0, lpd.basenote / 12.0 + 3.0) * ONEPT;
+        /* As far as I can tell this gainfac value is never used! */
+        gainfac = exp((double)lpd.gain * LOG10D20);
+/*         if (lpd.basenote==0) lpd.basenote=ftp->cvtbas; */
+        ftp->cpscvt = ftp->cvtbas / natcps;
+        ftp->loopmode1 = (lpd.loops[0].mode==SF_LOOP_NONE ? 0 :
+                          lpd.loops[0].mode==SF_LOOP_FORWARD ? 1 :
                           2);
-        ftp->loopmode2 = (lpd.release_mode==SF_LOOP_NONE ? 0 :
-                          lpd.release_mode==SF_LOOP_FORWARD ? 1 :
+        ftp->loopmode2 = (lpd.loops[1].mode==SF_LOOP_NONE ? 0 :
+                          lpd.loops[1].mode==SF_LOOP_FORWARD ? 1 :
                           2);
-        ftp->begin1 = lpd.sustain_start; ftp->begin2 = lpd.release_start;
+        ftp->begin1 = lpd.loops[0].start; ftp->begin2 = lpd.loops[1].start;
         if (ftp->loopmode1) /* Greg Sullivan */
-          ftp->end1 = lpd.sustain_end;
+          ftp->end1 = lpd.loops[0].end;
         else
           ftp->end1 = ftp->flenfrms;  /* Greg Sullivan */
-        ftp->end2 = lpd.release_end;
+        ftp->end2 = lpd.loops[1].end;
         if (ftp->end1 > ff->flen || ftp->end2 > ff->flen) {
           long maxend;
           csound->Warning(csound, Str("GEN1: input file truncated by ftable size"));
