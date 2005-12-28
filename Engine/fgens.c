@@ -2203,7 +2203,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
       if (ans) {
         double natcps, gainfac;
-#if 0
+#if BETA
         fprintf(stderr,
                 "Base Note : %u\tDetune    : %u\n"
                 "Low  Note : %u\tHigh Note : %u\n"
@@ -2225,10 +2225,12 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
      /* if (lpd.basenote == 0)
           lpd.basenote = ftp->cvtbas; */
         ftp->cpscvt = ftp->cvtbas / natcps;
-        ftp->loopmode1 = (lpd.loops[0].mode == SF_LOOP_NONE ?
-                          0 : (lpd.loops[0].mode == SF_LOOP_FORWARD ? 1 : 2));
-        ftp->loopmode2 = (lpd.loops[1].mode == SF_LOOP_NONE ?
-                          0 : (lpd.loops[1].mode == SF_LOOP_FORWARD ? 1 : 2));
+        ftp->loopmode1 = (lpd.loops[0].mode == SF_LOOP_NONE ? 0 :
+                          (lpd.loops[0].mode == SF_LOOP_FORWARD ? 1
+                           : 2));
+        ftp->loopmode2 = (lpd.loops[1].mode == SF_LOOP_NONE ? 0 :
+                          (lpd.loops[1].mode == SF_LOOP_FORWARD ? 1 :
+                           2));
         ftp->begin1 = lpd.loops[0].start;
         ftp->begin2 = lpd.loops[1].start;
         if (ftp->loopmode1)             /* Greg Sullivan */
