@@ -23,7 +23,7 @@ PYINCDIR = D:/MinGW/Python/include
 PYLIB = python23.dll
 
 PLUGINS =	ftest.dll mixer.dll modal4.dll physmod.dll pitch.dll	\
-		sfont.dll stdopcod.dll					\
+		scansyn.dll sfont.dll stdopcod.dll			\
 		cvanal.dll dnoise.dll envext.dll extractor.dll		\
 		het_export.dll het_import.dll hetro.dll lpanal.dll	\
 		lpc_export.dll lpc_import.dll mixer_util.dll pvanal.dll	\
