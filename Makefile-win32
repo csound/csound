@@ -38,33 +38,33 @@ UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe mixer.exe	\
 all: $(CSOUNDLIB) $(PROGRAM) $(PLUGINS) $(UTILS)
 
 CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
-		Engine/entry2.o Engine/envvar.o Engine/express.o	\
-		Engine/extract.o Engine/fgens.o Engine/insert.o		\
-		Engine/linevent.o Engine/memalloc.o Engine/memfiles.o	\
-		Engine/musmon.o Engine/namedins.o Engine/otran.o	\
-		Engine/rdorch.o Engine/rdscor.o Engine/scsort.o		\
-		Engine/scxtract.o Engine/sort.o Engine/sread.o		\
-		Engine/swrite.o Engine/twarp.o				\
-		InOut/libsnd.o InOut/libsnd_u.o InOut/midifile.o	\
-		InOut/midirecv.o InOut/midisend.o InOut/winascii.o	\
-		InOut/windin.o InOut/window.o InOut/winEPS.o		\
-		OOps/aops.o OOps/bus.o OOps/cmath.o OOps/diskin.o	\
-		OOps/diskin2.o OOps/disprep.o OOps/dsputil.o		\
-		OOps/dumpf.o OOps/fftlib.o OOps/goto_ops.o		\
-		OOps/midiinterop.o OOps/midiops.o OOps/midiout.o	\
-		OOps/mxfft.o OOps/oscils.o OOps/pstream.o OOps/pvadd.o	\
-		OOps/pvfileio.o OOps/pvinterp.o OOps/pvocext.o		\
-		OOps/pvread.o OOps/pvsanal.o OOps/random.o		\
-		OOps/schedule.o OOps/sndinfUG.o OOps/str_ops.o		\
-		OOps/ugens1.o OOps/ugens2.o OOps/ugens3.o OOps/ugens4.o	\
-		OOps/ugens5.o OOps/ugens6.o OOps/ugens8.o OOps/ugrw1.o	\
-		OOps/ugrw2.o OOps/vbap.o OOps/vbap_eight.o		\
-		OOps/vbap_four.o OOps/vbap_sixteen.o OOps/vbap_zak.o	\
-		OOps/vdelay.o OOps/vpvoc.o				\
-		Top/argdecode.o Top/cscore_internal.o Top/cscorfns.o	\
-		Top/csmodule.o Top/csound.o Top/getstring.o Top/main.o	\
-		Top/new_opts.o Top/one_file.o Top/opcode.o Top/scot.o	\
-		Top/threads.o Top/utility.o
+		Engine/envvar.o Engine/express.o Engine/extract.o	\
+		Engine/fgens.o Engine/insert.o Engine/linevent.o	\
+		Engine/memalloc.o Engine/memfiles.o Engine/musmon.o	\
+		Engine/namedins.o Engine/otran.o Engine/rdorch.o	\
+		Engine/rdscor.o Engine/scsort.o Engine/scxtract.o	\
+		Engine/sort.o Engine/sread.o Engine/swrite.o		\
+		Engine/twarp.o InOut/libsnd.o InOut/libsnd_u.o		\
+		InOut/midifile.o InOut/midirecv.o InOut/midisend.o	\
+		InOut/winascii.o InOut/windin.o InOut/window.o		\
+		InOut/winEPS.o OOps/aops.o OOps/bus.o OOps/cmath.o	\
+		OOps/diskin2.o OOps/diskin.o OOps/disprep.o		\
+		OOps/dsputil.o OOps/dumpf.o OOps/fftlib.o		\
+		OOps/goto_ops.o OOps/midiinterop.o OOps/midiops.o	\
+		OOps/midiout.o OOps/mxfft.o OOps/oscils.o		\
+		OOps/pstream.o OOps/pvadd.o OOps/pvfileio.o		\
+		OOps/pvinterp.o OOps/pvocext.o OOps/pvread.o		\
+		OOps/pvsanal.o OOps/random.o OOps/schedule.o		\
+		OOps/sndinfUG.o OOps/str_ops.o OOps/ugens1.o		\
+		OOps/ugens2.o OOps/ugens3.o OOps/ugens4.o OOps/ugens5.o	\
+		OOps/ugens6.o OOps/ugens8.o OOps/ugrw1.o OOps/ugrw2.o	\
+		OOps/vbap_eight.o OOps/vbap_four.o OOps/vbap.o		\
+		OOps/vbap_sixteen.o OOps/vbap_zak.o OOps/vdelay.o	\
+		OOps/vpvoc.o Top/argdecode.o Top/cscore_internal.o	\
+		Top/cscorfns.o Top/csmodule.o Top/csound.o		\
+		Top/getstring.o Top/main.o Top/new_opts.o		\
+		Top/one_file.o Top/opcode.o Top/scot.o Top/threads.o	\
+		Top/utility.o
 
 $(CSOUNDLIB): $(CSOUNDLIB_OBJ)
 	$(CXX) -O2 -shared -Wl,--output-def,$(subst .dll,.def,$(CSOUNDLIB)) -o $@ $^ $(LDFLAGS) $(LIBS)
