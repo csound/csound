@@ -64,10 +64,12 @@ typedef struct {
         long    left, max;
 } MDEL;
 
+#if 0
+
 #define Combs   6
 #define Alpas   5
 
-typedef struct  {
+typedef struct {
         OPDS    h;
         MYFLT   *out, *in, *time, *hdif, *istor;
         MYFLT   *cbuf_cur[Combs], *abuf_cur[Alpas];
@@ -79,9 +81,8 @@ typedef struct  {
 } STVB;
 
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
-#define Combs   6
-#define Alpas   5
-typedef struct  {
+
+typedef struct {
         OPDS    h;
         MYFLT   *out, *in, *time, *hdif, *istor;
         MYFLT   *cbuf_cur[Combs], *abuf_cur[Alpas];
@@ -92,13 +93,15 @@ typedef struct  {
         MYFLT   prev_time, prev_hdif;
 } NREV;
 
+#endif
+
 /*
  * Based on nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998.
  * Changes made to allow user-defined comb and alpas constant in a ftable.
  * Sept 2000, by rasmus ekman.
  * Memory allocation fixed April 2001 by JPff
  */
-typedef struct  {
+typedef struct {
         OPDS    h;
         MYFLT   *out, *in, *time, *hdif, *istor;
         MYFLT   *inumCombs, *ifnCombs, *inumAlpas, *ifnAlpas;
@@ -107,30 +110,32 @@ typedef struct  {
         MYFLT   **cbuf_cur, **abuf_cur;
         MYFLT   **pcbuf_cur, **pabuf_cur;
         MYFLT   *c_time, *c_gain, *a_time, *a_gain;
-        MYFLT   *c_orggains, *a_orggains;
-        MYFLT   *z, *g;    /* [Combs] */
+        const MYFLT *c_orggains, *a_orggains;
+        MYFLT   *z, *g;        /* [Combs] */
         AUXCH   temp;
         AUXCH   caux, aaux;
         AUXCH   caux2, aaux2;  /* Used to hold space for all dynamized arrays */
         MYFLT   prev_time, prev_hdif;
 } NREV2;
 
-int vdelset(CSOUND*,VDEL *p);
-int vdelay(CSOUND*,VDEL *p);
-int vdelay3(CSOUND*,VDEL *p);
-int vdelxset(CSOUND*,VDELX *p);
-int vdelxsset(CSOUND*,VDELXS *p);
-int vdelxqset(CSOUND*,VDELXQ *p);
-int vdelayx(CSOUND*,VDELX *p);
-int vdelayxw(CSOUND*,VDELX *p);
-int vdelayxs(CSOUND*,VDELXS *p);
-int vdelayxws(CSOUND*,VDELXS *p);
-int vdelayxq(CSOUND*,VDELXQ *p);
-int vdelayxwq(CSOUND*,VDELXQ *p);
-int multitap_set(CSOUND*,MDEL *p);
-int multitap_play(CSOUND*,MDEL *p);
-int nreverb_set(CSOUND*,NREV *p);
-int nreverb(CSOUND*,NREV *p);
-int reverbx_set(CSOUND*,NREV2 *p);
-int reverbx(CSOUND*,NREV2 *p);
+int vdelset(CSOUND *, VDEL *p);
+int vdelay(CSOUND *, VDEL *p);
+int vdelay3(CSOUND *, VDEL *p);
+int vdelxset(CSOUND *, VDELX *p);
+int vdelxsset(CSOUND *, VDELXS *p);
+int vdelxqset(CSOUND *, VDELXQ *p);
+int vdelayx(CSOUND *, VDELX *p);
+int vdelayxw(CSOUND *, VDELX *p);
+int vdelayxs(CSOUND *, VDELXS *p);
+int vdelayxws(CSOUND *, VDELXS *p);
+int vdelayxq(CSOUND *, VDELXQ *p);
+int vdelayxwq(CSOUND *, VDELXQ *p);
+int multitap_set(CSOUND *, MDEL *p);
+int multitap_play(CSOUND *, MDEL *p);
+#if 0
+int nreverb_set(CSOUND *, NREV *p);
+int nreverb(CSOUND *, NREV *p);
+#endif
+int reverbx_set(CSOUND *, NREV2 *p);
+int reverbx(CSOUND *, NREV2 *p);
 
