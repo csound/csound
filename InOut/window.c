@@ -133,7 +133,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
 int dispexit(CSOUND *csound)
 {
     if (csound->oparms->postscript)
-      PS_ExitGraph();   /* Write trailer to PostScript file  */
+      PS_ExitGraph(csound);     /* Write trailer to PostScript file  */
     /* prompt for exit from last active window */
     return csound->csoundExitGraphCallback_(csound);
 }

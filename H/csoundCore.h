@@ -30,15 +30,15 @@
 
 #include "sysdep.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdarg.h>
 #include <setjmp.h>
 #include <sndfile.h>
 
 #include "csound.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define OK        (0)
 #define NOTOK     (-1)
@@ -1063,6 +1063,7 @@ extern "C" {
     MYFLT         *dsputil_env;
     MYFLT         *dsputil_sncTab;
     MYFLT         *disprep_fftcoefs;
+    void          *winEPS_globals;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
