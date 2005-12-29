@@ -30,7 +30,6 @@
 
 #include <math.h>
 #include "vdelay.h"
-#include "revsets.h"
 
 #define ESR     (csound->esr/FL(1000.0))
 
@@ -57,18 +56,18 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
     long  nn, maxd, indx;
-    MYFLT *out = p->sr;  /* assign object data to local variables   */
+    MYFLT *out = p->sr;     /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
-    if (buf==NULL) {            /* RWD fix */
+    if (buf==NULL) {        /* RWD fix */
       return csound->PerfError(csound, Str("vdelay: not initialised"));
     }
     maxd = (unsigned long) (1+*p->imaxd * ESR);
     indx = p->left;
 
-    if (XINARG2)    {    /*      if delay is a-rate      */
+    if (XINARG2) {          /*      if delay is a-rate      */
       for (nn=0; nn<csound->ksmps; nn++) {
         MYFLT  fv1, fv2;
         long   v1, v2;
@@ -152,7 +151,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     nn = csound->ksmps;
     indx = p->left;
 
-    if (XINARG2)    {    /*      if delay is a-rate      */
+    if (XINARG2) {              /*      if delay is a-rate      */
       for (nn=0; nn<csound->ksmps; nn++) {
         MYFLT  fv1;
         long   v0, v1, v2, v3;
@@ -282,7 +281,6 @@ int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
         buf1[i] = FL(0.0);
         buf2[i] = FL(0.0);
       }
-      /* memset(buf1,0,n*sizeof(MYFLT)); memset(buf2,0,n*sizeof(MYFLT)); */
 
       p->left = 0;
       p->interp_size = 4 * (int) (FL(0.5) + FL(0.25) * *(p->iquality));
@@ -801,7 +799,8 @@ int multitap_play(CSOUND *csound, MDEL *p)
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
 
 #define LOG001  (-6.9078)       /* log(.001) */
-int smallprime[] = {
+
+static const int smallprime[] = {
   2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
   67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137,
   139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211,
@@ -846,31 +845,60 @@ int smallprime[] = {
 static int prime(int val)
 {
     int i, last;
-    if (val<3572) {
-      i = 0;
-      while (1) {
-        if (smallprime[i]==val) { return 1;}
-        if (smallprime[i]>val) { return 0;}
-        i++;
-      }
+    if (val < 3572) {
+      for (i = 0; smallprime[i] < val; i++)
+        ;
+      return (smallprime[i] == val ? 1 : 0);
     }
-    last = (int)sqrt((double)val);
-    for (i=0; smallprime[i]<(last<3572?last:3572); i++) {
-      if ( (val % smallprime[i]) == 0 ) { return 0;}
+    last = (int) sqrt((double) val);
+    for (i = 0; smallprime[i] < (last < 3572 ? last : 3572); i++) {
+      if ((val % smallprime[i]) == 0)
+        return 0;
     }
-    for ( i = 3573; i <= last; i+=2 ) {
-      if ( (val % i) == 0 ) { return 0;}
+    for (i = 3573; i <= last; i += 2) {
+      if ((val % i) == 0)
+        return 0;
     }
     return 1;
 }
 
-#ifdef OLD_CODE
-MYFLT ngc_time[Combs] = {FL(1433.0), FL(1601.0), FL(1867.0),
-                         FL(2053.0), FL(2251.0), FL(2399.0)};
-MYFLT ngc_gain[Combs] = {FL(0.822), FL(0.802), FL(0.773),
-                         FL(0.753), FL(0.753), FL(0.753)};
-MYFLT nga_time[Alpas] = {FL(347.0), FL(113.0), FL(37.0), FL(59.0), FL(43.0)};
-MYFLT nga_gain = FL(0.7);
+#if 0
+
+/*      reverb2 for Csound coded by Paris Smaragdis             */
+/*      Berklee College of Music Csound development team        */
+/*      Copyright (c) December 1994.  All rights reserved       */
+
+static const MYFLT gc_time[Combs] = {
+    FL(1237.0), FL(1381.0), FL(1607.0), FL(1777.0), FL(1949.0), FL(2063.0)
+};
+
+static const MYFLT gc_gain[Combs] = {
+    FL(0.822), FL(0.802), FL(0.773), FL(0.753), FL(0.753), FL(0.753)
+};
+
+static const MYFLT ga_time[Alpas] = {
+    FL(307.0), FL(97.0), FL(71.0), FL(53.0), FL(37.0)
+};
+
+static const MYFLT ga_gain[Alpas] = {
+    FL(0.7), FL(0.7), FL(0.7), FL(0.7), FL(0.7)
+};
+
+/* ---------------------------------------- */
+
+static const MYFLT ngc_time[Combs] = {
+    FL(1433.0), FL(1601.0), FL(1867.0), FL(2053.0), FL(2251.0), FL(2399.0)
+};
+
+static const MYFLT ngc_gain[Combs] = {
+    FL(0.822), FL(0.802), FL(0.773), FL(0.753), FL(0.753), FL(0.753)
+};
+
+static const MYFLT nga_time[Alpas] = {
+    FL(347.0), FL(113.0), FL(37.0), FL(59.0), FL(43.0)
+};
+
+static const MYFLT nga_gain = FL(0.7);
 
 int nreverb_set(CSOUND *csound, NREV *p)    /* 6-comb/lowpass,
                                                5-allpass reverberator */
@@ -894,7 +922,7 @@ int nreverb_set(CSOUND *csound, NREV *p)    /* 6-comb/lowpass,
       for (i = 0; i < Combs; i++) {
         /* derive new primes to make delay times */
         /* work with orch. sampling-rate */
-        c_time = (int)(ngc_time[i] * srscale);
+        c_time = (int) (ngc_time[i] * srscale);
         if (c_time % 2 == 0)  c_time += 1;
         while (!prime(c_time))  c_time += 2;
         p->c_time[i] = (MYFLT)c_time;
@@ -913,7 +941,7 @@ int nreverb_set(CSOUND *csound, NREV *p)    /* 6-comb/lowpass,
           *(p->cbuf_cur[i] + n) = FL(0.0);
       }
       for (i = 0; i < Alpas; i++) {
-        a_time = (int)(nga_time[i] * srscale);
+        a_time = (int) (nga_time[i] * srscale);
         if (a_time % 2 == 0)  a_time += 1;
         while (!prime(a_time))  a_time += 2;
         p->a_time[i] = (MYFLT)a_time;
@@ -950,15 +978,15 @@ int nreverb(CSOUND *csound, NREV *p)
         csound->Message(csound, Str("Warning: High frequency diffusion>1\n"));
         hdif = FL(1.0);
       }
-      if (hdif < FL(0.0))       {
+      if (hdif < FL(0.0)) {
         csound->Message(csound, Str("Warning: High frequency diffusion<0\n"));
         hdif = FL(0.0);
       }
-      if (time <= FL(0.0))       {
+      if (time <= FL(0.0)) {
         csound->Message(csound, Str("Non positive reverb time\n"));
         time = FL(0.001);
       }
-      for (i = 0; i < Combs; i++)   {
+      for (i = 0; i < Combs; i++) {
         p->c_gain[i] = (MYFLT) exp((double) (LOG001 * (p->c_time[i]
                                                        * csound->onedsr)
                                              / (ngc_gain[i] * time)));
@@ -976,7 +1004,7 @@ int nreverb(CSOUND *csound, NREV *p)
       p->prev_hdif = hdif;
     }
 
-    for (i = 0; i < Combs; i++)       {
+    for (i = 0; i < Combs; i++) {
       buf = p->cbuf_cur[i];
       end = (MYFLT *)p->caux[i].endp;
       gain = p->c_gain[i];
@@ -995,7 +1023,7 @@ int nreverb(CSOUND *csound, NREV *p)
       p->cbuf_cur[i] = buf;
     }
 
-    for (i = 0; i < Alpas; i++)       {
+    for (i = 0; i < Alpas; i++) {
       in = (MYFLT *)p->temp.auxp;
       out = p->out;
       n = csound->ksmps;
@@ -1034,32 +1062,45 @@ int nreverb(CSOUND *csound, NREV *p)
  * Used to be defined in single-purpose header revsets.h.
  * Get rid of this right here so we can use them as times in the code.
  */
+
 #define orgCombs 6
 #define orgAlpas 5
-MYFLT cc_time[orgCombs] = {FL(0.055887056) /*1433.0/25641.0*/,
-                           FL(0.062439062) /*1601.0/25641.0*/,
-                           FL(0.072813073) /*1867.0/25641.0*/,
-                           FL(0.080067080) /*2053.0/25641.0*/,
-                           FL(0.087789088) /*2251.0/25641.0*/,
-                           FL(0.093561094) /*2399.0/25641.0*/};
-MYFLT cc_gain[orgCombs] = {FL(0.822), FL(0.802), FL(0.773),
-                           FL(0.753), FL(0.753), FL(0.753)};
-MYFLT ca_time[orgAlpas] = {FL(0.013533014) /*347.0/25641.0*/,
-                           FL(0.0044070044) /*113.0/25641.0*/,
-                           FL(0.0014430014) /*37.0/25641.0*/,
-                           FL(0.0023010023) /*59.0/25641.0*/,
-                           FL(0.0016770017) /*43.0/25641.0*/};
-MYFLT ca_gain[orgAlpas] = {FL(0.7), FL(0.7), FL(0.7), FL(0.7), FL(0.7)};
+
+static const MYFLT cc_time[orgCombs] = {
+    FL(0.055887056)     /* 1433.0 / 25641.0 */,
+    FL(0.062439062)     /* 1601.0 / 25641.0 */,
+    FL(0.072813073)     /* 1867.0 / 25641.0 */,
+    FL(0.080067080)     /* 2053.0 / 25641.0 */,
+    FL(0.087789088)     /* 2251.0 / 25641.0 */,
+    FL(0.093561094)     /* 2399.0 / 25641.0 */
+};
+
+static const MYFLT cc_gain[orgCombs] = {
+    FL(0.822), FL(0.802), FL(0.773), FL(0.753), FL(0.753), FL(0.753)
+};
+
+static const MYFLT ca_time[orgAlpas] = {
+    FL(0.013533014)     /*  347.0 / 25641.0 */,
+    FL(0.0044070044)    /*  113.0 / 25641.0 */,
+    FL(0.0014430014)    /*   37.0 / 25641.0 */,
+    FL(0.0023010023)    /*   59.0 / 25641.0 */,
+    FL(0.0016770017)    /*   43.0 / 25641.0 */
+};
+
+static const MYFLT ca_gain[orgAlpas] = {
+    FL(0.7), FL(0.7), FL(0.7), FL(0.7), FL(0.7)
+};
 
 int reverbx_set(CSOUND *csound, NREV2 *p)
 {
-    long i, n;
+    long  i, n;
     MYFLT *temp;
-    MYFLT *c_orgtime, *a_orgtime;    /* Temp holder of old or user constants. */
-    int c_time, a_time;
-    int cmbAllocSize, alpAllocSize;
+    /* Temp holder of old or user constants. */
+    const MYFLT *c_orgtime, *a_orgtime;
+    int   c_time, a_time;
+    int   cmbAllocSize, alpAllocSize;
 
-    if (*p->hdif > 1.0f || *p->hdif < FL(0.0))
+    if (*p->hdif > FL(1.0) || *p->hdif < FL(0.0))
       csound->Die(csound, Str("High frequency diffusion not in (0, 1)\n"));
 
     /* Init comb constants and allocate dynamised work space */
@@ -1069,9 +1110,9 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
       c_orgtime = cc_time;
       p->c_orggains = cc_gain;
     }
-    else {   /* User provided constants */
+    else {                          /* User provided constants */
       FUNC *ftCombs;
-      p->numCombs = (int)*p->inumCombs;
+      p->numCombs = (int) *p->inumCombs;
       /* Get user-defined set of comb constants from table */
       if ((ftCombs = csound->FTFind(csound, p->ifnCombs)) == NULL)
         return NOTOK;
@@ -1086,14 +1127,14 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
     /* Alloc a single block and get arrays of comb pointers from that */
     cmbAllocSize = p->numCombs * sizeof(MYFLT);
     csound->AuxAlloc(csound,
-                     4 * cmbAllocSize + 2 * (p->numCombs+1)*sizeof(MYFLT*),
+                     4 * cmbAllocSize + 2 * (p->numCombs + 1) * sizeof(MYFLT*),
                      &p->caux2);
-    p->c_time = (MYFLT*)p->caux2.auxp;
-    p->c_gain = (MYFLT*)((char*)p->caux2.auxp + 1 * cmbAllocSize);
-    p->z = (MYFLT*)((char*)p->caux2.auxp + 2 * cmbAllocSize);
-    p->g = (MYFLT*)((char*)p->caux2.auxp + 3 * cmbAllocSize);
-    p->cbuf_cur = (MYFLT**)((char*)p->caux2.auxp + 4 * cmbAllocSize);
-    p->pcbuf_cur = p->cbuf_cur + (p->numCombs+1);
+    p->c_time = (MYFLT*) p->caux2.auxp;
+    p->c_gain = (MYFLT*) ((char*) p->caux2.auxp + 1 * cmbAllocSize);
+    p->z = (MYFLT*) ((char*) p->caux2.auxp + 2 * cmbAllocSize);
+    p->g = (MYFLT*) ((char*) p->caux2.auxp + 3 * cmbAllocSize);
+    p->cbuf_cur = (MYFLT**) ((char*) p->caux2.auxp + 4 * cmbAllocSize);
+    p->pcbuf_cur = p->cbuf_cur + (p->numCombs + 1);
 
     /* ...and allpass constants and allocs */
     if (*p->inumAlpas < FL(1.0)) {
@@ -1104,7 +1145,7 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
     }
     else {    /* Have user-defined set of alpas constants */
       FUNC *ftAlpas;
-      p->numAlpas = (int)*p->inumAlpas;
+      p->numAlpas = (int) *p->inumAlpas;
       if ((ftAlpas = csound->FTFind(csound, p->ifnAlpas)) == NULL)
         return NOTOK;
       if (ftAlpas->flen < p->numAlpas * 2) {
@@ -1118,40 +1159,38 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
     /* Dynamic alloc of alpass space */
     alpAllocSize = p->numAlpas * sizeof(MYFLT);
     csound->AuxAlloc(csound,
-                     2 * alpAllocSize + 2 * (p->numAlpas +1) * sizeof(MYFLT*),
+                     2 * alpAllocSize + 2 * (p->numAlpas + 1) * sizeof(MYFLT*),
                      &p->aaux2);
-    p->a_time = (MYFLT*)p->aaux2.auxp;
-    p->a_gain = (MYFLT*)((char*)p->aaux2.auxp + 1 * alpAllocSize);
-    p->abuf_cur = (MYFLT**)((char*)p->aaux2.auxp + 2 * alpAllocSize);
-    p->pabuf_cur = (MYFLT**)((char*)p->aaux2.auxp + 2 * alpAllocSize +
-                             (p->numAlpas +1) * sizeof(MYFLT*));
+    p->a_time = (MYFLT*) p->aaux2.auxp;
+    p->a_gain = (MYFLT*) ((char*) p->aaux2.auxp + 1 * alpAllocSize);
+    p->abuf_cur = (MYFLT**) ((char*) p->aaux2.auxp + 2 * alpAllocSize);
+    p->pabuf_cur = (MYFLT**) ((char*) p->aaux2.auxp + 2 * alpAllocSize
+                              + (p->numAlpas + 1) * sizeof(MYFLT*));
 
     /* Init variables */
-    if (*p->istor == 0.0f || p->temp.auxp == NULL) {
+    if (*p->istor == FL(0.0) || p->temp.auxp == NULL) {
       csound->AuxAlloc(csound, csound->ksmps * sizeof(MYFLT), &p->temp);
-      temp = (MYFLT *)p->temp.auxp;
+      temp = (MYFLT*) p->temp.auxp;
       for (n = 0; n < csound->ksmps; n++)
-        *temp++ = 0.0f;
+        *temp++ = FL(0.0);
 
       n = 0;
       for (i = 0; i < p->numCombs; i++) {
         MYFLT ftime = c_orgtime[i];
         /* Use directly as num samples if negative */
         if (ftime < FL(0.0))
-          c_time = (int)-ftime;
+          c_time = (int) -ftime;
         else {
-                /* convert from to seconds to samples, and make prime */
-          c_time = (int)(ftime * csound->esr);
-                /* Mangle sample number to primes. */
-          if (c_time % 2 == 0)  c_time += 1;
-          while (!prime(c_time))  c_time += 2;
+          /* convert from to seconds to samples, and make prime */
+          c_time = (int) (ftime * csound->esr);
+          /* Mangle sample number to primes. */
+          if (c_time % 2 == 0)
+            c_time += 1;
+          while (!prime(c_time))
+            c_time += 2;
         }
-        p->c_time[i] = (MYFLT)c_time;
+        p->c_time[i] = (MYFLT) c_time;
         n += c_time;
-#if _DEBUG
-        /*err_printf("reverbx B: p->c_time[%d] %f\n",
-                i, p->c_time[i]); */
-#endif
         p->c_gain[i] = (MYFLT) exp((double) (LOG001 * (p->c_time[i]
                                                        * csound->onedsr)
                                              / (p->c_orggains[i] * *p->time)));
@@ -1161,24 +1200,26 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
       }
       csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->caux);
       for (i = 0; i < n; i++) {
-        ((MYFLT*)(p->caux.auxp))[i] = FL(0.0);
+        ((MYFLT*) p->caux.auxp)[i] = FL(0.0);
       }
       p->pcbuf_cur[0] = p->cbuf_cur[0] = (MYFLT*)p->caux.auxp;
       for (i = 0; i < p->numCombs; i++) {
-        p->pcbuf_cur[i+1] = p->cbuf_cur[i+1] =
-          p->cbuf_cur[i] + (int)p->c_time[i];
+        p->pcbuf_cur[i + 1] = p->cbuf_cur[i + 1] =
+          p->cbuf_cur[i] + (int) p->c_time[i];
         p->c_time[i] *= csound->onedsr; /* Scale to save division in reverbx */
       }
       n = 0;
       for (i = 0; i < p->numAlpas; i++) {
         MYFLT ftime = a_orgtime[i];
         if (ftime < FL(0.0))
-          a_time = (int)-ftime;
+          a_time = (int) -ftime;
         else {
           /* convert seconds to samples and make prime */
-          a_time = (int)(ftime * csound->esr);
-          if (a_time % 2 == 0)  a_time += 1;
-          while(!prime( a_time))  a_time += 2;
+          a_time = (int) (ftime * csound->esr);
+          if (a_time % 2 == 0)
+            a_time += 1;
+          while (!prime(a_time))
+            a_time += 2;
         }
         p->a_time[i] = (MYFLT) a_time;
         p->a_gain[i] = (MYFLT) exp((double) (LOG001 * (p->a_time[i]
@@ -1188,35 +1229,36 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
       }
       csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aaux);
       for (i = 0; i < n; i++) {
-        ((MYFLT*)(p->aaux.auxp))[i] = FL(0.0);
+        ((MYFLT*) p->aaux.auxp)[i] = FL(0.0);
       }
-      p->pabuf_cur[0] = p->abuf_cur[0] = (MYFLT*)p->aaux.auxp;
+      p->pabuf_cur[0] = p->abuf_cur[0] = (MYFLT*) p->aaux.auxp;
       for (i = 0; i < p->numAlpas; i++) {
-        p->pabuf_cur[i+1] = p->abuf_cur[i+1] =
-          p->abuf_cur[i] + (int)p->a_time[i];
+        p->pabuf_cur[i + 1] = p->abuf_cur[i + 1] =
+          p->abuf_cur[i] + (int) p->a_time[i];
         p->a_time[i] *= csound->onedsr; /* Scale to save division in reverbx */
       }
     }
 
     p->prev_time = *p->time;
     p->prev_hdif = *p->hdif;
+
     return OK;
 }
 
 int reverbx(CSOUND *csound, NREV2 *p)
 {
-    long       i, n = csound->ksmps;
-    MYFLT      *in, *out = p->out, *buf, *end;
-    MYFLT      gain, z;
-    MYFLT      hdif = *p->hdif;
-    MYFLT      time = *p->time;
-    int numCombs = p->numCombs;
-    int numAlpas = p->numAlpas;
+    long    i, n = csound->ksmps;
+    MYFLT   *in, *out = p->out, *buf, *end;
+    MYFLT   gain, z;
+    MYFLT   hdif = *p->hdif;
+    MYFLT   time = *p->time;
+    int     numCombs = p->numCombs;
+    int     numAlpas = p->numAlpas;
 
-    if (p->temp.auxp==NULL) {
+    if (p->temp.auxp == NULL) {
       return csound->PerfError(csound, Str("reverbx: not initialised"));
     }
-    buf = (MYFLT*)(p->temp.auxp);
+    buf = (MYFLT*) p->temp.auxp;
     in = p->in;
     do {
       *buf++ = *in++;
@@ -1227,25 +1269,25 @@ int reverbx(CSOUND *csound, NREV2 *p)
         csound->Message(csound, Str("Warning: High frequency diffusion>1\n"));
         hdif = FL(1.0);
       }
-      if (hdif < FL(0.0))       {
+      if (hdif < FL(0.0)) {
         csound->Message(csound, Str("Warning: High frequency diffusion<0\n"));
         hdif = FL(0.0);
       }
-      if (time <= FL(0.0))       {
+      if (time <= FL(0.0)) {
         csound->Message(csound, Str("Non positive reverb time\n"));
         time = FL(0.001);
       }
-      for (i = 0; i < numCombs; i++)   {
-        p->c_gain[i] = (MYFLT)exp((double)(LOG001 * p->c_time[i] /
-                                           (p->c_orggains[i] * time)));
+      for (i = 0; i < numCombs; i++) {
+        p->c_gain[i] = (MYFLT)exp((double) (LOG001 * p->c_time[i] /
+                                            (p->c_orggains[i] * time)));
         p->g[i] = hdif;
         p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
         p->z[i] = FL(0.0);
       }
 
       for (i = 0; i < numAlpas; i++)
-        p->a_gain[i] = (MYFLT)exp((double)(LOG001 * p->a_time[i] /
-                                           (p->a_orggains[i] * time)));
+        p->a_gain[i] = (MYFLT)exp((double) (LOG001 * p->a_time[i] /
+                                            (p->a_orggains[i] * time)));
 
       p->prev_time = time;
       p->prev_hdif = hdif;
@@ -1253,9 +1295,9 @@ int reverbx(CSOUND *csound, NREV2 *p)
 
     for (i = 0; i < numCombs; i++) {
       buf = p->pcbuf_cur[i];
-      end = p->cbuf_cur[i+1];
+      end = p->cbuf_cur[i + 1];
       gain = p->c_gain[i];
-      in = (MYFLT*)(p->temp.auxp);
+      in = (MYFLT*) p->temp.auxp;
       out = p->out;
       n = csound->ksmps;
       do {
@@ -1265,22 +1307,22 @@ int reverbx(CSOUND *csound, NREV2 *p)
         *buf *= gain;
         *buf += *in++;
         if (++buf >= end)
-          buf = (MYFLT *)p->cbuf_cur[i];
+          buf = (MYFLT*) p->cbuf_cur[i];
       } while (--n);
       p->pcbuf_cur[i] = buf;
     }
 
     for (i = 0; i < numAlpas; i++) {
-      in = (MYFLT *)p->temp.auxp;
+      in = (MYFLT*) p->temp.auxp;
       out = p->out;
       n = csound->ksmps;
       do {
         *in++ = *out++;
       } while (--n);
       buf = p->pabuf_cur[i];
-      end = p->abuf_cur[i+1];
+      end = p->abuf_cur[i + 1];
       gain = p->a_gain[i];
-      in = (MYFLT *)p->temp.auxp;
+      in = (MYFLT*) p->temp.auxp;
       out = p->out;
       n = csound->ksmps;
       do {
@@ -1288,10 +1330,11 @@ int reverbx(CSOUND *csound, NREV2 *p)
         *buf = gain * z + *in++;
         *out++ = z - gain * *buf;
         if (++buf >= end)
-          buf = (MYFLT *)p->abuf_cur[i];
+          buf = (MYFLT*) p->abuf_cur[i];
       } while (--n);
       p->pabuf_cur[i] = buf;
     }
+
     return OK;
 }
 
