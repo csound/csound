@@ -29,5 +29,5 @@
 void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name);
   /* Make one plot per page      */
 void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr);
-int  PS_ExitGraph(void);                       /* Write PS trailer            */
+int  PS_ExitGraph(CSOUND *csound);      /* Write PS trailer             */
 
