@@ -263,7 +263,6 @@ commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 if commonEnvironment['buildRelease'] == '0':
     commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
-    commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE_1_0_13'])
 if (commonEnvironment['Word64']=='1'):
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
     commonEnvironment.Append(CCFLAGS = ['-fPIC'])
@@ -346,7 +345,21 @@ elif getPlatform() == 'mingw':
 # We check only for headers; checking for libs may fail
 # even if they are present, due to secondary dependencies.
 
-configure = commonEnvironment.Configure()
+def CheckSndFile1013(context):
+    context.Message('Checking for libsndfile version 1.0.13 or later... ')
+    result = context.TryCompile('''
+        #include <sndfile.h>
+        int foobar(SF_INSTRUMENT *p)
+        {
+          return (int) p->loop_count;
+        }
+    ''', '.c')
+    context.Result(result)
+    return result
+
+configure = commonEnvironment.Configure(custom_tests = {
+    'CheckSndFile1013' : CheckSndFile1013
+})
 
 if not configure.CheckHeader("stdio.h", language = "C"):
     print " *** Failed to compile a simple test program. The compiler is"
@@ -469,6 +482,8 @@ libCsoundLibs = [csoundLibraryName, 'sndfile']
 
 csoundLibraryEnvironment = commonEnvironment.Copy()
 csoundLibraryEnvironment.Append(CPPFLAGS = ['-D__BUILDING_LIBCSOUND'])
+if configure.CheckSndFile1013():
+    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE_1_0_13'])
 if commonEnvironment['buildRelease'] != '0':
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-D_CSOUND_RELEASE_'])
     if getPlatform() == 'linux':
