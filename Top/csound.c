@@ -546,7 +546,8 @@ static const CSOUND cenviron_ = {
         NULL,           /*  schedule_kicked     */
         (MYFLT*) NULL,  /*  dsputil_env         */
         (MYFLT*) NULL,  /*  dsputil_sncTab      */
-        (MYFLT*) NULL   /*  disprep_fftcoefs    */
+        (MYFLT*) NULL,  /*  disprep_fftcoefs    */
+        NULL            /*  winEPS_globals      */
 };
 
   /* from threads.c */
