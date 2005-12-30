@@ -33,75 +33,83 @@
 #include "csdl.h"
 #include "nlfilt.h"
 
-#define MAX_DELAY       (1024)
+#define MAX_DELAY   (1024)
+#define MAXAMP      (FL(64000.0))
+
 static int nlfiltset(CSOUND *csound, NLFILT *p)
 {
     int   i;
     MYFLT *fp;
 
-    if (p->delay.auxp == NULL) { /* get newspace    */
-      csound->AuxAlloc(csound, MAX_DELAY*sizeof(MYFLT),&p->delay);
+    if (p->delay.auxp == NULL) {        /* get newspace    */
+      csound->AuxAlloc(csound, MAX_DELAY * sizeof(MYFLT), &p->delay);
     }
-    fp = (MYFLT*)p->delay.auxp;
-    for (i=0; i<MAX_DELAY; i++)
-      fp[i] = FL(0.0);  /* Clear delays */
+    fp = (MYFLT*) p->delay.auxp;
+    for (i = 0; i < MAX_DELAY; i++)
+      fp[i] = FL(0.0);                  /* Clear delays */
     p->point = 0;
     return OK;
 } /* end nlfset(p) */
 
-#define MAXAMP (FL(64000.0))
 static int nlfilt(CSOUND *csound, NLFILT *p)
 {
-    MYFLT       *ar;
-    int         n,nsmps=csound->ksmps;
-    int         point = p->point;
-    int         nm1 = point;
-    int         nm2 = point -1;
-    int         nmL;
-    MYFLT       ynm1, ynm2, ynmL;
-    MYFLT       a = *p->a, b = *p->b, d = *p->d, C = *p->C;
-    MYFLT       *in = p->in;
-    MYFLT       *fp = (MYFLT*)p->delay.auxp;
-    MYFLT       L = *p->L;
+    MYFLT   *ar;
+    int     n, nsmps;
+    int     point = p->point;
+    int     nm1 = point;
+    int     nm2 = point - 1;
+    int     nmL;
+    MYFLT   ynm1, ynm2, ynmL;
+    MYFLT   a = *p->a, b = *p->b, d = *p->d, C = *p->C;
+    MYFLT   *in = p->in;
+    MYFLT   *fp = (MYFLT*) p->delay.auxp;
+    MYFLT   L = *p->L;
+    MYFLT   maxamp, dvmaxamp, maxampd2;
 
-    if (fp==NULL) {             /* RWD fix */
+    if (fp == NULL) {                   /* RWD fix */
       return csound->PerfError(csound, Str("nlfilt: not initialised"));
     }
     ar   = p->ar;
-                                /* L is k-rate so need to check */
-    if (L < FL(1.0)) L = FL(1.0);
+                                        /* L is k-rate so need to check */
+    if (L < FL(1.0))
+      L = FL(1.0);
     else if (L >= MAX_DELAY) {
-      L = (MYFLT)MAX_DELAY;
+      L = (MYFLT) MAX_DELAY;
     }
-    nmL = point - (int)(L)-1;
-    if (nm1<0) nm1 += MAX_DELAY; /* Deal with the wrapping */
-    if (nm2<0) nm2 += MAX_DELAY;
-    if (nmL<0) nmL += MAX_DELAY;
-    ynm1 = fp[nm1];     /* Pick up running values */
+    nmL = point - (int) (L) - 1;
+    if (nm1 < 0) nm1 += MAX_DELAY;      /* Deal with the wrapping */
+    if (nm2 < 0) nm2 += MAX_DELAY;
+    if (nmL < 0) nmL += MAX_DELAY;
+    ynm1 = fp[nm1];                     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
-    for (n=0;n<nsmps;n++) {
+    nsmps = csound->ksmps;
+    maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
+    dvmaxamp = FL(1.0) / maxamp;
+    maxampd2 = maxamp * FL(0.5);
+    n = 0;
+    do {
       MYFLT yn;
       MYFLT out;
-      yn = a*ynm1 + b*ynm2 + d*ynmL*ynmL - C;
-      if (in != NULL) {
-        yn += in[n]/csound->e0dbfs;   /* Must work in (-1,1) amplitudes  */
-      }
-      out = yn*csound->e0dbfs;          /* Write output */
-      if (out >= csound->e0dbfs)       out =  csound->e0dbfs*FL(0.999);
-      else if (out <= -csound->e0dbfs) out = -csound->e0dbfs*FL(0.999);
+      yn = a * ynm1 + b * ynm2 + d * ynmL * ynmL - C;
+      yn += in[n] * dvmaxamp;           /* Must work in small amplitudes  */
+      out = yn * maxampd2;              /* Write output */
+      if (out > maxamp)
+        out = maxampd2;
+      else if (out < -maxamp)
+        out = -maxampd2;
       ar[n] = out;
       if (++point == MAX_DELAY) {
         point = 0;
       }
-      fp[point] = yn; /* and delay line */
-      if (++nmL==MAX_DELAY) {
+      fp[point] = yn;                   /* and delay line */
+      if (++nmL == MAX_DELAY) {
         nmL = 0;
       }
-      ynm2 = ynm1;              /* Shuffle along */
+      ynm2 = ynm1;                      /* Shuffle along */
       ynm1 = yn;
       ynmL = fp[nmL];
-    }
+    } while (++n < nsmps);
     p->point = point;
     return OK;
 } /* end nlfilt(p) */
@@ -111,7 +119,7 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "nlfilt",  S(NLFILT), 5, "a","akkkkk",(SUBR)nlfiltset, NULL, (SUBR)nlfilt}
+{ "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt }
 };
 
 int nlfilt_init_(CSOUND *csound)
