@@ -65,71 +65,77 @@ static inline void unlock(CSOUND *csound)
 //   Fl::awake();
 // }
 
-static Fl_Window *form = NULL;
-static Fl_Choice *choice;
-static Fl_Button *end;
+static  Fl_Window   *form = (Fl_Window *) 0;
+static  Fl_Choice   *choice = (Fl_Choice *) 0;
+static  Fl_Button   *end = (Fl_Button *) 0;
 
 static Fl_Menu_Item menu[] = {
-  {NULL,        0, 0, (void*)NULL}, //0
-  {NULL,        0, 0, (void*)NULL}, //1
-  {NULL,        0, 0, (void*)NULL}, //2
-  {NULL,        0, 0, (void*)NULL}, //3
-  {NULL,        0, 0, (void*)NULL}, //4
-  {NULL,        0, 0, (void*)NULL}, //5
-  {NULL,        0, 0, (void*)NULL}, //6
-  {NULL,        0, 0, (void*)NULL}, //7
-  {NULL,        0, 0, (void*)NULL}, //8
-  {NULL,        0, 0, (void*)NULL}, //9
-  {NULL,        0, 0, (void*)NULL}, //10
-  {NULL,        0, 0, (void*)NULL}, //11
-  {NULL,        0, 0, (void*)NULL}, //12
-  {NULL,        0, 0, (void*)NULL}, //13
-  {NULL,        0, 0, (void*)NULL}, //14
-  {NULL,        0, 0, (void*)NULL}, //15
-  {NULL,        0, 0, (void*)NULL}, //16
-  {NULL,        0, 0, (void*)NULL}, //17
-  {NULL,        0, 0, (void*)NULL}, //18
-  {NULL,        0, 0, (void*)NULL}, //19
-  {NULL,        0, 0, (void*)NULL}, //20
-  {NULL,        0, 0, (void*)NULL}, //21
-  {NULL,        0, 0, (void*)NULL}, //22
-  {NULL,        0, 0, (void*)NULL}, //23
-  {NULL,        0, 0, (void*)NULL}, //24
-  {NULL,        0, 0, (void*)NULL}, //25
-  {NULL,        0, 0, (void*)NULL}, //26
-  {NULL,        0, 0, (void*)NULL}, //27
-  {NULL,        0, 0, (void*)NULL}, //28
-  {NULL,        0, 0, (void*)NULL}, //29
-// -------------------------------------
-  {NULL, 0, 0, (void*) NULL}
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  0
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  1
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  2
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  3
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  4
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  5
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  6
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  7
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  8
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, //  9
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 10
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 11
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 12
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 13
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 14
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 15
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 16
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 17
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 18
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 19
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 20
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 21
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 22
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 23
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 24
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 25
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 26
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 27
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 28
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }, // 29
+// -----------------------------------------------------------------
+  { (char*) 0, 0, (Fl_Callback*) 0, (void*) 0, 0, 0, 0, 0, 0 }
 };
 
-class graph_box: public Fl_Window {
+class graph_box : public Fl_Window {
   void draw();
 public:
   int curr;
   int last;
-  graph_box(int x,int y,int w,int h,const char *l=0)
-    : Fl_Window(x,y,w,h,l) {}
+  graph_box(int x, int y, int w, int h, const char *l = 0)
+    : Fl_Window(x, y, w, h, l)
+  {
+    curr = last = -1;
+  }
   void add_graph(WINDAT *wdptr);
-}*graph;
+};
+
+static  graph_box   *graph = (graph_box *) 0;
 
 void graph_box::draw()
 {
   Fl_Window::draw();
-  fl_color(0,0,0);
+  fl_color(0, 0, 0);
   fl_line_style(FL_SOLID);
-  fl_rect(0,0,w(),h());
-  if (curr>=0) {
-    WINDAT      *win   = (WINDAT*)menu[curr].user_data_;
-    if (win==NULL) return;
+  fl_rect(0, 0, w(), h());
+  if (curr >= 0) {
+    WINDAT      *win   = (WINDAT*) menu[curr].user_data_;
+    if (!win)
+      return;
     MYFLT       *fdata = win->fdata;
     long        npts   = win->npts;
     char        *msg   = win->caption;
     short       win_x, win_y,        win_h;     /* window rect */
     short       gra_x, gra_y, gra_w, gra_h;     /* graph rect is inset */
     short       y_axis;
-    int         lsegs,pts_pls;
+    int         lsegs, pts_pls;
     int         pol;
     char        string[80];
 
@@ -162,16 +168,16 @@ void graph_box::draw()
     }
     fl_begin_line();
     {       /* take scale factors out of for-loop for faster run-time */
-      MYFLT x_scale = gra_w / (MYFLT)(lsegs-1);
+      MYFLT x_scale = gra_w / (MYFLT) (lsegs - 1);
       MYFLT y_scale = gra_h / win->oabsmax; /* unipolar default */
-      MYFLT  f,ma,mi,*fdptr = fdata;
-      int c,i = 0, j = lsegs;
+      MYFLT f, ma, mi, *fdptr = fdata;
+      int   c, i = 0, j = lsegs;
 
-      if (pol == (short)BIPOL)
+      if (pol == (short) BIPOL)
         y_scale /= 2.0;             /* max data scales to h/2 */
       /* put x-y pairs into a point list for XDraw */
       while (j--) {
-        int x = gra_x + (short)((MYFLT)i++ * x_scale);
+        int x = gra_x + (short) ((MYFLT) i++ * x_scale);
         int y;
         if (pts_pls == 1)
           f = *fdptr++;
@@ -185,8 +191,8 @@ void graph_box::draw()
           else if (ma > -mi)      f = ma;
           else f = mi;
         }
-        y = y_axis - (short)(f * y_scale);
-        fl_vertex(x,y);
+        y = y_axis - (short) (f * y_scale);
+        fl_vertex(x, y);
       }
     }
     fl_end_line();
@@ -199,7 +205,7 @@ void graph_box::draw()
       fl_line_style(FL_DOT);
       fl_line(win_x+w()/2, win_y, win_x+w()/2, win_y+win_h);
     }
-    sprintf(string,"%s  %ld points, max %5.3f",msg,npts,win->oabsmax);
+    sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->oabsmax);
     form->label(string);
   }
   fl_line_style(FL_SOLID);
@@ -207,16 +213,16 @@ void graph_box::draw()
 
 void add_graph(WINDAT *wdptr)
 {
-  WINDAT *n = (WINDAT*)malloc(sizeof(WINDAT));
-  int m;
+  WINDAT *n = (WINDAT*) malloc(sizeof(WINDAT));
+  int    m;
   WINDAT *old;
-  int replacing = 0;
+  int    replacing = 0;
 
   memcpy(n, wdptr, sizeof(WINDAT));
-  n->fdata = (MYFLT*)malloc(n->npts*sizeof(MYFLT));
-  memcpy(n->fdata, wdptr->fdata, n->npts*sizeof(MYFLT));
-  for (m=0; m<NUMOFWINDOWS; m++) { // If text the same use slot
-    if (menu[m].text!=NULL && strcmp(wdptr->caption, menu[m].text)==0) {
+  n->fdata = (MYFLT*) malloc(n->npts * sizeof(MYFLT));
+  memcpy(n->fdata, wdptr->fdata, n->npts * sizeof(MYFLT));
+  for (m = 0; m < NUMOFWINDOWS; m++) {  // If text the same use slot
+    if (menu[m].text != NULL && strcmp(wdptr->caption, menu[m].text) == 0) {
       replacing = 1;
       goto replace;
     }
@@ -224,47 +230,47 @@ void add_graph(WINDAT *wdptr)
   // Use a new slot, cycling round
   graph->last++;
   m = graph->last;
-  if (m>=NUMOFWINDOWS) m = graph->last = 0;
+  if (m >= NUMOFWINDOWS)
+    m = graph->last = 0;
  replace:
   old = (WINDAT*)menu[m].user_data_;
   if (old) {
-    free((void*)(old->fdata));
-    free((void*)old);
+    free((void*) old->fdata);
+    free((void*) old);
   }
   menu[m].user_data_ = n;
-  if (replacing==0) {
-    if (menu[m].text!=NULL) free((void*)menu[m].text);
-    menu[m].text = (const char*)malloc(strlen(n->caption)+1);
-    strcpy((char *)menu[m].text, n->caption);
+  if (replacing == 0) {
+    if (menu[m].text != NULL)
+      free((void*) menu[m].text);
+    menu[m].text = (const char*) malloc(strlen(n->caption) + 1);
+    strcpy((char*) menu[m].text, n->caption);
   }
   graph->curr = m;
   choice->value(m);
   graph->redraw();
 }
 
-void do_redraw(Fl_Widget*,void*)
+void do_redraw(Fl_Widget *, void *)
 {
-  graph->curr=choice->value();
+  graph->curr = choice->value();
   graph->redraw();
 }
 
 void makeWindow(char *name)
 {
-  if (form==NULL) {
-    form = new Fl_Window(WIDTH,HEIGHT, name);
-    choice = new Fl_Choice(140,0,140,20,"Choose Graph");
-    choice->menu(menu);
-    choice->value(0);
-    choice->callback((Fl_Callback*)do_redraw);
-    graph=new graph_box(BDR,30+BDR,WIDTH-2*BDR,HEIGHT-30-2*BDR);
-    graph->curr = -1;
-    graph->last = -1;
-    graph->end();
-    end = new Fl_Button(WIDTH-30, 0, 25,15, "Quit");
-    end->hide();
-    form->resizable(graph);
-    form->end();
-  }
+  if (form)
+    return;
+  form = new Fl_Window(WIDTH, HEIGHT, name);
+  choice = new Fl_Choice(140, 0, 140, 20, "Choose Graph");
+  choice->menu(menu);
+  choice->value(0);
+  choice->callback((Fl_Callback*) do_redraw);
+  graph = new graph_box(BDR, 30 + BDR, WIDTH - 2 * BDR, HEIGHT - 30 - 2 * BDR);
+  graph->end();
+  end = new Fl_Button(WIDTH - 30, 0, 25, 15, "Quit");
+  end->hide();
+  form->resizable(graph);
+  form->end();
 }
 
 extern "C" {
@@ -273,9 +279,10 @@ extern "C" {
   int  CsoundYield_FLTK(CSOUND *);
   void kill_graph(uintptr_t);
   int  myFLwait(void);
-  void MakeXYin_FLTK(CSOUND *csound, XYINDAT*, MYFLT, MYFLT);
+  void MakeXYin_FLTK(CSOUND *csound, XYINDAT *, MYFLT, MYFLT);
   void ReadXYin_FLTK(CSOUND *csound, XYINDAT *wdptr);
   void KillXYin_FLTK(CSOUND *csound, XYINDAT *x);
+  int  ExitGraph_FLTK(CSOUND *csound);
 
   void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
   {
@@ -307,33 +314,63 @@ extern "C" {
 
   void kill_graph(uintptr_t m)
   {
-    WINDAT *n;
-    int    i;
-    for (i = 0; i < NUMOFWINDOWS; i++) {
-      n = (WINDAT*) menu[i].user_data_;
+    for (int i = 0; i < NUMOFWINDOWS; i++) {
+      WINDAT *n = (WINDAT*) menu[i].user_data_;
       if (n != NULL && n->windid == m) {
         free(n->fdata);
         free(n);
-        menu[i].user_data_ = NULL;
-        menu[i].text = "(deleted)";
+        free((void*) menu[i].text);
+        menu[i].user_data_ = (void*) 0;
+        menu[i].text = (char*) 0;
         return;
       }
     }
   }
 
 #if 0
-  int myFLwait()
+  static int myFLwait()
   {
-    if (form==NULL) return 1;
+    if (!form)
+      return 1;
     end->show();
-    while (end->value()==0 /* && kcnt */) {
+    while (end->value() == 0 /* && kcnt */) {
       lock((CSOUND*) 0);
       Fl::wait(0.5);
       unlock((CSOUND*) 0);
     }
     return 1;
   }
+
+  /* print click-Exit message in most recently active window */
+
+  int ExitGraph_FLTK(CSOUND *csound)
+  {
+    const char *env = csound->GetEnv(csound, "CSNOSTOP");
+    if (env == NULL || strcmp(env, "yes") == 0)
+      myFLwait();
+    return 0;
+  }
+
 #endif
+
+  int ExitGraph_FLTK(CSOUND *csound)
+  {
+    if (form) {
+      delete form;
+      lock(csound);
+      Fl::wait(0.0);
+      unlock(csound);
+    }
+    form = (Fl_Window *) 0;
+    choice = (Fl_Choice *) 0;
+    end = (Fl_Button *) 0;
+    for (int i = 0; i < NUMOFWINDOWS; i++) {
+      WINDAT *n = (WINDAT*) menu[i].user_data_;
+      if (n)
+        kill_graph((uintptr_t) ((void*) n));
+    }
+    return 0;
+  }
 
 #define GUTTERH 20           /* space for text at top & bottom */
 #define BORDERW 10           /* inset from L & R edge */
@@ -341,7 +378,7 @@ extern "C" {
   void MakeXYin_FLTK(CSOUND *csound, XYINDAT *w, MYFLT x, MYFLT y)
   {
     if (w->windid == (uintptr_t) 0) {
-      Fl_Window *xyin = new Fl_Window(WIDTH,WIDTH, "XY input");
+      Fl_Window *xyin = new Fl_Window(WIDTH, WIDTH, "XY input");
       short   win_x, win_y;
       short   gra_x, gra_y, gra_w, gra_h;
 
@@ -355,17 +392,17 @@ extern "C" {
       /* set new width and height so we leave a 20% border around the plot */
       gra_w = xyin->w() - 2*BORDERW;      gra_h = xyin->h() - 2*GUTTERH;
       gra_x = win_x + BORDERW;            gra_y = win_y + GUTTERH;
-      w->m_x = gra_x + (int)(x * (MYFLT)gra_w);
-      w->m_y = gra_y + (int)(y * (MYFLT)gra_h);
+      w->m_x = gra_x + (int) (x * (MYFLT) gra_w);
+      w->m_y = gra_y + (int) (y * (MYFLT) gra_h);
       w->down = 0;
 
       lock(csound);
       Fl::wait(0.0);
       xyin->make_current();
-      fl_color(0,0,0);
+      fl_color(0, 0, 0);
       fl_line_style(FL_DOT);
-      fl_line(gra_x,w->m_y,(gra_x+gra_w),w->m_y);
-      fl_line(w->m_x,gra_y, w->m_x,(gra_y+gra_h));
+      fl_line(gra_x, w->m_y, (gra_x + gra_w), w->m_y);
+      fl_line(w->m_x, gra_y, w->m_x, (gra_y + gra_h));
       unlock(csound);
       w->windid = (uintptr_t) xyin;
     }
@@ -409,21 +446,21 @@ extern "C" {
       fl_line(gra_x, wdptr->m_y, (gra_x + gra_w), wdptr->m_y);
       fl_line(wdptr->m_x, gra_y, wdptr->m_x, (gra_y + gra_h));
       // Draw new
-      fl_color(0,0,0);
+      fl_color(0, 0, 0);
       fl_line_style(FL_SOLID);
       fl_line(gra_x, m_y, (gra_x + gra_w), m_y);
       fl_line(m_x, gra_y, m_x, (gra_y + gra_h));
       unlock(csound);
       wdptr->m_x = m_x;       wdptr->m_y = m_y;
-      wdptr->x = ((MYFLT)m_x-gra_x)/(MYFLT)gra_w;
-      wdptr->y = ((MYFLT)m_y-gra_y)/(MYFLT)gra_h;
+      wdptr->x = ((MYFLT) m_x - gra_x) / (MYFLT) gra_w;
+      wdptr->y = ((MYFLT) m_y - gra_y) / (MYFLT) gra_h;
     }
   }
 
   void KillXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
-    Fl_Window *x = (Fl_Window*) wdptr->windid;
-    x->~Fl_Window();
+    delete ((Fl_Window*) wdptr->windid);
+    wdptr->windid = (uintptr_t) 0;
   }
 }
 
