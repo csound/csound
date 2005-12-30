@@ -40,6 +40,7 @@ extern void kill_graph(uintptr_t);
 extern void MakeXYin_FLTK(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 extern void ReadXYin_FLTK(CSOUND *, XYINDAT *);
 extern void KillXYin_FLTK(CSOUND *, XYINDAT *);
+extern int  ExitGraph_FLTK(CSOUND *csound);
 
 static void MakeGraph_FLTK(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
@@ -50,20 +51,6 @@ static void KillGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
 {
     kill_graph(wdptr->windid);
 }
-
-/* print click-Exit message in most recently active window */
-
-#if 0
-extern int myFLwait(void);
-
-static int ExitGraph_FLTK(CSOUND *csound)
-{
-    const char *env = csound->GetEnv(csound, "CSNOSTOP");
-    if (env == NULL || strcmp(env, "yes") == 0)
-      myFLwait();
-    return 0;
-}
-#endif
 
 void set_display_callbacks(CSOUND *csound)
 {
@@ -83,7 +70,7 @@ void set_display_callbacks(CSOUND *csound)
     csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
     csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
     csound->SetKillGraphCallback(csound, KillGraph_FLTK);
- /* csound->SetExitGraphCallback(csound, ExitGraph_FLTK); */
+    csound->SetExitGraphCallback(csound, ExitGraph_FLTK);
     csound->SetMakeXYinCallback(csound, MakeXYin_FLTK);
     csound->SetReadXYinCallback(csound, ReadXYin_FLTK);
     csound->SetKillXYinCallback(csound, KillXYin_FLTK);
