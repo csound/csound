@@ -160,10 +160,6 @@ static int alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *data,
       MF(maxEvents) = (MF(maxEvents) + 64) & (~63);
       tmp = (midiEvent_t*) mrealloc(csound, MF(eventList),
                                     sizeof(midiEvent_t) * MF(maxEvents));
-      if (tmp == NULL) {
-        csound->Message(csound, Str(" *** memory allocation failure\n"));
-        return -1;
-      }
       MF(eventList) = tmp;
       tmp = &(MF(eventList)[MF(nEvents)]);
       memset(tmp, 0, sizeof(midiEvent_t) * (MF(maxEvents) - MF(nEvents)));
@@ -191,10 +187,6 @@ static int alloc_tempo(CSOUND *csound, unsigned long kcnt, double tempoVal)
       MF(maxTempo) = (MF(maxTempo) + 64) & (~63);
       tmp = (tempoEvent_t*) mrealloc(csound, MF(tempoList),
                                      sizeof(tempoEvent_t) * MF(maxTempo));
-      if (tmp == NULL) {
-        csound->Message(csound, Str(" *** memory allocation failure\n"));
-        return -1;
-      }
       MF(tempoList) = tmp;
       tmp = &(MF(tempoList)[MF(nTempo)]);
       memset(tmp, 0, sizeof(tempoEvent_t) * (MF(maxTempo) - MF(nTempo)));
@@ -409,34 +401,72 @@ static int readTrack(CSOUND *csound, FILE *f)
     return 0;
 }
 
-/* compare functions for qsort() */
+/**
+ * Sorts an array of midiEvent_t structures using merge sort algorithm
+ * so that the order of events at the same time is preserved.
+ * 'p' is the array to be sorted, and 'cnt' is the number of elements
+ * (should be > 1). 'tmp' is temporary space of the same length as 'p'.
+ */
 
-static int eventTimeCompareFunc(const void *p1, const void *p2)
+static CS_NOINLINE void midiEvent_sort(midiEvent_t *p, midiEvent_t *tmp,
+                                       size_t cnt)
 {
-    if (((midiEvent_t*) p1)->kcnt == ((midiEvent_t*) p2)->kcnt) {
-      if ((uintptr_t) p1 > (uintptr_t) p2)
-        return 1;
-      else if ((uintptr_t) p1 < (uintptr_t) p2)
-        return -1;
-      return 0;
-    }
-    if (((midiEvent_t*) p1)->kcnt > ((midiEvent_t*) p2)->kcnt)
-      return 1;
-    return -1;
+    size_t  p1, p2, dstp;
+    size_t  n = cnt >> 1;
+
+    if (n > (size_t) 1)
+      midiEvent_sort(p, tmp, n);
+    if (cnt > (size_t) 2)
+      midiEvent_sort(&(p[n]), tmp, cnt - n);
+    dstp = (size_t) 0;
+    p1 = (size_t) 0;
+    p2 = n;
+    do {
+      size_t  srcp;
+      if (p2 >= cnt || (p1 < n && p[p1].kcnt <= p[p2].kcnt))
+        srcp = p1++;
+      else
+        srcp = p2++;
+      tmp[dstp] = p[srcp];
+    } while (++dstp < cnt);
+    /* copy result back to original array */
+    do {
+      *p = *tmp;
+    } while (--cnt);
 }
 
-static int tempoTimeCompareFunc(const void *p1, const void *p2)
+/**
+ * Sorts an array of tempoEvent_t structures using merge sort algorithm
+ * so that the order of events at the same time is preserved.
+ * 'p' is the array to be sorted, and 'cnt' is the number of elements
+ * (should be > 1). 'tmp' is temporary space of the same length as 'p'.
+ */
+
+static CS_NOINLINE void tempoEvent_sort(tempoEvent_t *p, tempoEvent_t *tmp,
+                                        size_t cnt)
 {
-    if (((tempoEvent_t*) p1)->kcnt == ((tempoEvent_t*) p2)->kcnt) {
-      if ((uintptr_t) p1 > (uintptr_t) p2)
-        return 1;
-      else if ((uintptr_t) p1 < (uintptr_t) p2)
-        return -1;
-      return 0;
-    }
-    if (((tempoEvent_t*) p1)->kcnt > ((tempoEvent_t*) p2)->kcnt)
-      return 1;
-    return -1;
+    size_t  p1, p2, dstp;
+    size_t  n = cnt >> 1;
+
+    if (n > (size_t) 1)
+      tempoEvent_sort(p, tmp, n);
+    if (cnt > (size_t) 2)
+      tempoEvent_sort(&(p[n]), tmp, cnt - n);
+    dstp = (size_t) 0;
+    p1 = (size_t) 0;
+    p2 = n;
+    do {
+      size_t  srcp;
+      if (p2 >= cnt || (p1 < n && p[p1].kcnt <= p[p2].kcnt))
+        srcp = p1++;
+      else
+        srcp = p2++;
+      tmp[dstp] = p[srcp];
+    } while (++dstp < cnt);
+    /* copy result back to original array */
+    do {
+      *p = *tmp;
+    } while (--cnt);
 }
 
 /* sort event lists by time and convert tick times to Csound k-periods */
@@ -448,13 +478,20 @@ static void sortEventLists(CSOUND *csound)
     int           i, j;
 
     /* sort events by time in ascending order */
-    if (MF(nEvents) > 1) {
-      qsort(MF(eventList), MF(nEvents), sizeof(midiEvent_t),
-            eventTimeCompareFunc);
-    }
-    if (MF(nTempo) > 1) {
-      qsort(MF(tempoList), MF(nTempo), sizeof(tempoEvent_t),
-            tempoTimeCompareFunc);
+    if (MF(nEvents) > 1 || MF(nTempo) > 1) {
+      void    *tmp;
+      size_t  nbytes;
+      nbytes = (size_t) MF(nEvents) * sizeof(midiEvent_t);
+      if (((size_t) MF(nTempo) * sizeof(tempoEvent_t)) > nbytes)
+        nbytes = (size_t) MF(nTempo) * sizeof(tempoEvent_t);
+      tmp = csound->Malloc(csound, nbytes);
+      if (MF(nEvents) > 1)
+        midiEvent_sort(MF(eventList), (midiEvent_t *) tmp,
+                       (size_t) MF(nEvents));
+      if (MF(nTempo) > 1)
+        tempoEvent_sort(MF(tempoList), (tempoEvent_t *) tmp,
+                        (size_t) MF(nTempo));
+      csound->Free(csound, tmp);
     }
     if (MF(timeCode) > 0.0) {
       /* tick values are in fractions of a beat */
@@ -597,10 +634,6 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     }
     /* allocate structure */
     MIDIFILE = (void*) mcalloc(csound, sizeof(midiFile_t));
-    if (MIDIFILE == NULL) {
-      csound->Message(csound, Str(" *** memory allocation failure\n"));
-      goto err_return;
-    }
     /* calculate ticks per second or beat based on time code */
     if (timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0)) {
       csound->Message(csound, Str(" *** invalid time code: %d\n"), timeCode);
