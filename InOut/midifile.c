@@ -430,9 +430,7 @@ static CS_NOINLINE void midiEvent_sort(midiEvent_t *p, midiEvent_t *tmp,
       tmp[dstp] = p[srcp];
     } while (++dstp < cnt);
     /* copy result back to original array */
-    do {
-      *p = *tmp;
-    } while (--cnt);
+    memcpy(p, tmp, cnt * sizeof(midiEvent_t));
 }
 
 /**
@@ -464,9 +462,7 @@ static CS_NOINLINE void tempoEvent_sort(tempoEvent_t *p, tempoEvent_t *tmp,
       tmp[dstp] = p[srcp];
     } while (++dstp < cnt);
     /* copy result back to original array */
-    do {
-      *p = *tmp;
-    } while (--cnt);
+    memcpy(p, tmp, cnt * sizeof(tempoEvent_t));
 }
 
 /* sort event lists by time and convert tick times to Csound k-periods */
@@ -643,10 +639,14 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
       MF(timeCode) = (double) timeCode;
     else {
       switch (timeCode & 0xFF00) {
-        case 0xE800: MF(timeCode) = -24.0; break;
-        case 0xE700: MF(timeCode) = -25.0; break;
-        case 0xE300: MF(timeCode) = -30.0; break;
-        case 0xE200: MF(timeCode) = -29.96; break;
+        case 0xE800:
+        case 0xE700:
+        case 0xE200:
+          MF(timeCode) = (double) ((timeCode >> 8) - 256);
+          break;
+        case 0xE300:
+          MF(timeCode) = -29.97;
+          break;
         default:
           csound->Message(csound,
                           Str(" *** invalid time code: %d\n"), timeCode);
@@ -767,7 +767,7 @@ int csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int nBytes)
 
 int csoundMIDIFileClose(CSOUND *csound)
 {
-    /* nothing to do: all_free() will free any allocated memory */
+    /* nothing to do: memRESET() will free any allocated memory */
     MIDIFILE = (void*) NULL;
     return 0;
 }
