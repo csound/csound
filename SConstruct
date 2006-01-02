@@ -199,6 +199,9 @@ opts.Add('buildInterfaces',
 opts.Add('buildJavaWrapper',
     'Set to 1 to build Java wrapper for the interface library.',
     '0')
+opts.Add('buildOSXGUI',
+    'On OSX, set to 1 to build the basic GUI frontend',
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -1471,6 +1474,15 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     zipDependencies.append(Tclcsoundlib)
 else:
     print "CONFIGURATION DECISION: Not building Tclcsound"
+
+if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
+   print "CONFIGURATION DECISION: building OSX GUI frontend"
+   csOSXGUIEnvironment = commonEnvironment.Copy()
+   OSXGUI = csOSXGUIEnvironment.Command('''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
+     'frontends/OSX/main.c', "cd frontends/OSX; xcodebuild -activebuildstyle")
+   Depends(OSXGUI, csoundLibrary)
+else:
+   print "CONFIGURATION DECISION: not building OSX GUI frontend"
 
 if (commonEnvironment['buildDSSI'] == '1' and getPlatform() == 'linux'):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."

@@ -14,14 +14,6 @@
 			refType = 4;
 			sourceTree = "<group>";
 		};
-		0249A66BFF388E3F11CA2CEA = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			name = "libstdc++.a";
-			path = "/usr/lib/libstdc++.a";
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
 //020
 //021
 //022
@@ -164,7 +156,6 @@
 				20286C33FDCF999611CA2CEA,
 				4A9504CAFFE6A41611CA0CBA,
 				4A9504C8FFE6A3BC11CA0CBA,
-				0249A66BFF388E3F11CA2CEA,
 			);
 			isa = PBXGroup;
 			name = "External Frameworks and Libraries";
@@ -225,6 +216,8 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				HEADER_SEARCH_PATHS = /Library/Frameworks/CsoundLib.Framework/Headers;
+				PREBINDING = NO;
 				ZERO_LINK = NO;
 			};
 			isa = PBXBuildStyle;
@@ -375,7 +368,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D0C4E920486CD37000505A6,
-				8D0C4E930486CD37000505A6,
 				57563C87095C20640065C253,
 			);
 			isa = PBXFrameworksBuildPhase;
@@ -383,12 +375,6 @@
 		};
 		8D0C4E920486CD37000505A6 = {
 			fileRef = 20286C33FDCF999611CA2CEA;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		8D0C4E930486CD37000505A6 = {
-			fileRef = 0249A66BFF388E3F11CA2CEA;
 			isa = PBXBuildFile;
 			settings = {
 			};
