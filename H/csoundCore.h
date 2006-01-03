@@ -124,20 +124,19 @@ extern "C" {
     int     sfread, sfwrite, sfheader, filetyp;
     int     inbufsamps, outbufsamps;
     int     informat, outformat;
-    int     insampsiz, sfsampsize;
+    int     sfsampsize;
     int     displays, graphsoff, postscript, msglevel;
     int     Beatmode, cmdTempo, oMaxLag;
     int     usingcscore, Linein;
     int     RTevents, Midiin, FMidiin;
-    int     ringbell, termifend, stdoutfd;
+    int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
     long    sr_override, kr_override;
-    long    instxtcount, optxtsize;
-    long    poolcount, gblfixed, gblacount, gblscount;
     char    *infilename, *outfilename, *playscore;
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
+    char    *FMidioutname;
   } OPARMS;
 
   typedef struct arglst {
@@ -506,6 +505,7 @@ extern "C" {
     void    *midiInUserData;
     void    *midiOutUserData;
     void    *midiFileData;
+    void    *midiOutFileData;
     int     rawControllerMode;
     char    muteTrackList[256];
     unsigned char mbuf[MBUFSIZ];
@@ -1064,6 +1064,9 @@ extern "C" {
     MYFLT         *dsputil_sncTab;
     MYFLT         *disprep_fftcoefs;
     void          *winEPS_globals;
+    OPARMS        oparms_;
+    long          instxtcount, optxtsize;
+    long          poolcount, gblfixed, gblacount, gblscount;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

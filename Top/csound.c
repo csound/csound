@@ -69,7 +69,7 @@ static void defaultCsoundReadKillXYin(CSOUND *, XYINDAT *);
 static int  defaultCsoundExitGraph(CSOUND *);
 static int  defaultCsoundYield(CSOUND *);
 
-void    close_all_files(CSOUND *);
+extern void close_all_files(CSOUND *);
 
 static const CSOUND cenviron_ = {
     /* ----------------- interface functions (320 total) ----------------- */
@@ -547,7 +547,27 @@ static const CSOUND cenviron_ = {
         (MYFLT*) NULL,  /*  dsputil_env         */
         (MYFLT*) NULL,  /*  dsputil_sncTab      */
         (MYFLT*) NULL,  /*  disprep_fftcoefs    */
-        NULL            /*  winEPS_globals      */
+        NULL,           /*  winEPS_globals      */
+        {               /*  oparms_             */
+          0,            /*    odebug            */
+          0, 1, 1, 0,   /*    sfread, ...       */
+          0, 0, 0, 0,   /*    inbufsamps, ...   */
+          0,            /*    sfsampsize        */
+          1, 0, 0, 135, /*    displays, ...     */
+          0, 0, 0,      /*    Beatmode, ...     */
+          0, 0,         /*    usingcscore, ...  */
+          0, 0, 0,      /*    RTevents, ...     */
+          0, 0,         /*    ringbell, ...     */
+          0, 0, 0,      /*    rewrt_hdr, ...    */
+          0,            /*    expr_opt          */
+          0L, 0L,       /*    sr_override, ...  */
+          (char*) NULL, (char*) NULL, (char*) NULL,
+          (char*) NULL, (char*) NULL, (char*) NULL,
+          (char*) NULL, (char*) NULL
+        },
+        0L, 0L,         /*  instxtcount, optxtsize  */
+        0L, 0L,         /*  poolcount, gblfixed     */
+        0L, 0L          /*  gblacount, gblscount    */
 };
 
   /* from threads.c */
@@ -779,16 +799,10 @@ static const CSOUND cenviron_ = {
     if (csound == NULL)
       return NULL;
     memcpy(csound, &cenviron_, sizeof(CSOUND));
-    csound->oparms = (OPARMS*) malloc(sizeof(OPARMS));
-    if (csound->oparms == NULL) {
-      free(csound);
-      return NULL;
-    }
-    memset(csound->oparms, 0, sizeof(OPARMS));
+    csound->oparms = &(csound->oparms_);
     csound->hostdata = hostdata;
     p = (csInstance_t*) malloc(sizeof(csInstance_t));
     if (p == NULL) {
-      free(csound->oparms);
       free(csound);
       return NULL;
     }
@@ -858,6 +872,7 @@ static const CSOUND cenviron_ = {
     p->midiGlobals->midiInUserData = NULL;
     p->midiGlobals->midiOutUserData = NULL;
     p->midiGlobals->midiFileData = NULL;
+    p->midiGlobals->midiOutFileData = NULL;
     p->midiGlobals->bufp = &(p->midiGlobals->mbuf[0]);
     p->midiGlobals->endatp = p->midiGlobals->bufp;
     csoundCreateGlobalVariable(p, "_RTMIDI", (size_t) max_len);
@@ -960,7 +975,6 @@ static const CSOUND cenviron_ = {
     csoundUnLock();
     free(p);
     csoundReset(csound);
-    free(csound->oparms);
     free(csound);
   }
 
@@ -1021,7 +1035,7 @@ static const CSOUND cenviron_ = {
         csound->LongJmp(csound, 1);
     }
     /* for one kcnt: */
-    if (csound->oparms->sfread)         /*   if audio_infile open  */
+    if (csound->oparms_.sfread)         /*   if audio_infile open  */
       csound->spinrecv(csound);         /*      fill the spin buf  */
     csound->spoutactive = 0;            /*   make spout inactive   */
     ip = csound->actanchor.nxtact;
@@ -1084,7 +1098,7 @@ static const CSOUND cenviron_ = {
       csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    csound->sampsNeeded += csound->oparms->outbufsamps;
+    csound->sampsNeeded += csound->oparms_.outbufsamps;
     while (csound->sampsNeeded > 0) {
       do {
         if ((done = sensevents(csound)))
@@ -1165,23 +1179,23 @@ static const CSOUND cenviron_ = {
   PUBLIC int csoundGetSampleFormat(CSOUND *csound)
   {
     /* should we assume input is same as output ? */
-    return csound->oparms->outformat;
+    return csound->oparms_.outformat;
   }
 
   PUBLIC int csoundGetSampleSize(CSOUND *csound)
   {
     /* should we assume input is same as output ? */
-    return csound->oparms->sfsampsize;
+    return csound->oparms_.sfsampsize;
   }
 
   PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
   {
-    return csound->oparms->inbufsamps;
+    return csound->oparms_.inbufsamps;
   }
 
   PUBLIC long csoundGetOutputBufferSize(CSOUND *csound)
   {
-    return csound->oparms->outbufsamps;
+    return csound->oparms_.outbufsamps;
   }
 
   PUBLIC MYFLT *csoundGetSpin(CSOUND *csound)
@@ -1196,7 +1210,7 @@ static const CSOUND cenviron_ = {
 
   PUBLIC const char *csoundGetOutputFileName(CSOUND *csound)
   {
-    return (const char*) csound->oparms->outfilename;
+    return (const char*) csound->oparms_.outfilename;
   }
 
   /**
@@ -1361,7 +1375,7 @@ static const CSOUND cenviron_ = {
   void csoundWarning(CSOUND *csound, const char *msg, ...)
   {
     va_list args;
-    if (!(csound->oparms->msglevel & WARNMSG))
+    if (!(csound->oparms_.msglevel & WARNMSG))
       return;
     csoundMessageS(csound, CSOUNDMSG_WARNING, Str("WARNING: "));
     va_start(args, msg);
@@ -1373,7 +1387,7 @@ static const CSOUND cenviron_ = {
   void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
   {
     va_list args;
-    if (!(csound->oparms->odebug))
+    if (!(csound->oparms_.odebug))
       return;
     va_start(args, msg);
     csound->csoundMessageCallback_(csound, 0, msg, args);
@@ -1411,12 +1425,12 @@ static const CSOUND cenviron_ = {
 
   PUBLIC void csoundSetMessageLevel(CSOUND *csound, int messageLevel)
   {
-    csound->oparms->msglevel = messageLevel;
+    csound->oparms_.msglevel = messageLevel;
   }
 
   PUBLIC int csoundGetMessageLevel(CSOUND *csound)
   {
-    return csound->oparms->msglevel;
+    return csound->oparms_.msglevel;
   }
 
   PUBLIC void csoundKeyPress(CSOUND *csound, char c)
@@ -1947,7 +1961,7 @@ static const CSOUND cenviron_ = {
     cscoreRESET(csound);
     tranRESET(csound);
 
-    csound->oparms->odebug = 0;
+    csound->oparms_.odebug = 0;
     /* RWD 9:2000 not terribly vital, but good to do this somewhere... */
     pvsys_release(csound);
     close_all_files(csound);
@@ -1964,7 +1978,7 @@ static const CSOUND cenviron_ = {
     memcpy(csound, &cenviron_, sizeof(CSOUND));
     length = (uintptr_t) &(csound->ids) - (uintptr_t) csound;
     memcpy((void*) csound, (void*) saved_env, (size_t) length);
-    csound->oparms = saved_env->oparms;
+    csound->oparms = &(csound->oparms_);
     csound->hostdata = saved_env->hostdata;
     p1 = (void*) &(csound->first_callback_);
     p2 = (void*) &(csound->last_callback_);
@@ -1973,23 +1987,18 @@ static const CSOUND cenviron_ = {
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
     free(saved_env);
-    memset(csound->oparms, 0, sizeof(OPARMS));
-    csound->oparms->sfwrite  = 1;
-    csound->oparms->sfheader = 1;
-    csound->oparms->displays = 1;
-    csound->oparms->msglevel = 135;
 
     memRESET(csound);       /* this one should be called last */
   }
 
   PUBLIC int csoundGetDebug(CSOUND *csound)
   {
-    return csound->oparms->odebug;
+    return csound->oparms_.odebug;
   }
 
   PUBLIC void csoundSetDebug(CSOUND *csound, int debug)
   {
-    csound->oparms->odebug = debug;
+    csound->oparms_.odebug = debug;
   }
 
   PUBLIC int csoundTableLength(CSOUND *csound, int table)

@@ -615,12 +615,13 @@ void otran(CSOUND *csound)
       instxtcount += 1;
       optxtcount += ip->optxtcount;
     }
-    O->instxtcount = instxtcount;
-    O->optxtsize = instxtcount * sizeof(INSTRTXT) + optxtcount * sizeof(OPTXT);
-    O->poolcount = ST(poolcount);
-    O->gblfixed = ST(gblnxtkcnt) + ST(gblnxtpcnt) * (int) Pfloats;
-    O->gblacount = ST(gblnxtacnt);
-    O->gblscount = ST(gblnxtscnt);
+    csound->instxtcount = instxtcount;
+    csound->optxtsize = instxtcount * sizeof(INSTRTXT)
+                        + optxtcount * sizeof(OPTXT);
+    csound->poolcount = ST(poolcount);
+    csound->gblfixed = ST(gblnxtkcnt) + ST(gblnxtpcnt) * (int) Pfloats;
+    csound->gblacount = ST(gblnxtacnt);
+    csound->gblscount = ST(gblnxtscnt);
     /* clean up */
     delete_local_namepool(csound);
     delete_global_namepool(csound);
@@ -1156,7 +1157,7 @@ void oload(CSOUND *p)
       outoffp = ttp->outoffs;           /* use unexpanded ndxes */
       inoffp = ttp->inoffs;             /* to find sr.. assigns */
       if (outoffp->count == 1 && inoffp->count == 1) {
-        int rindex = (int) outoffp->indx[0] - (int) O->poolcount;
+        int rindex = (int) outoffp->indx[0] - (int) p->poolcount;
         if (rindex > 0 && rindex <= 5) {
           MYFLT conval = p->pool[inoffp->indx[0] - 1];
           switch (rindex) {
@@ -1190,19 +1191,19 @@ void oload(CSOUND *p)
                        / (int) sizeof(MYFLT);
     p->strVarMaxLen = p->strVarSamples * (int) sizeof(MYFLT);
     /* calculate total size of global pool */
-    combinedsize = O->poolcount                 /* floating point constants */
-                   + O->gblfixed                /* k-rate / spectral        */
-                   + O->gblacount * p->ksmps            /* a-rate variables */
-                   + O->gblscount * p->strVarSamples;   /* string variables */
+    combinedsize = p->poolcount                 /* floating point constants */
+                   + p->gblfixed                /* k-rate / spectral        */
+                   + p->gblacount * p->ksmps            /* a-rate variables */
+                   + p->gblscount * p->strVarSamples;   /* string variables */
     gblscbeg = combinedsize + 1;                /* string constants         */
     combinedsize += create_strconst_ndx_list(p, &strConstIndexList, gblscbeg);
 
     combinedspc = (MYFLT*) mcalloc(p, combinedsize * sizeof(MYFLT));
     /* copy pool into combined space */
-    memcpy(combinedspc, p->pool, O->poolcount * sizeof(MYFLT));
+    memcpy(combinedspc, p->pool, p->poolcount * sizeof(MYFLT));
     mfree(p, (void*) p->pool);
     p->pool = combinedspc;
-    gblspace = p->pool + O->poolcount;
+    gblspace = p->pool + p->poolcount;
     gblspace[0] = p->esr;           /*   & enter        */
     gblspace[1] = p->ekr;           /*   rsvd word      */
     gblspace[2] = (MYFLT) p->ksmps; /*   curr vals      */
@@ -1212,8 +1213,8 @@ void oload(CSOUND *p)
     /* string constants: unquote, convert escape sequences, and copy to pool */
     convert_strconst_pool(p, (MYFLT*) p->gbloffbas + (long) gblscbeg);
 
-    gblabeg = O->poolcount + O->gblfixed + 1;
-    gblsbeg = gblabeg + O->gblacount;
+    gblabeg = p->poolcount + p->gblfixed + 1;
+    gblsbeg = gblabeg + p->gblacount;
     ip = &(p->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
       optxt = (OPTXT *) ip;                     /*   (and set localen)        */

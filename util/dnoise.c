@@ -289,8 +289,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
                 csound->Message(csound, Str("-o cannot be stdin\n"));
                 return -1;
               }
-              if (strcmp(O->outfilename, "stdout") == 0)
-                O->stdoutfd = 1;
               break;
             case 'i':
               FIND("no noisefilename");
@@ -489,7 +487,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         csound->Free(csound, name);
       }
       else
-        outfd = sf_open_fd(O->stdoutfd, SFM_WRITE, &sfinfo, 1);
+        outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
         csound->Message(csound, Str("cannot open %s."), O->outfilename);
         return -1;
@@ -1136,39 +1134,47 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     return 0;
 }
 
+static const char *usage_txt[] = {
+    "usage: dnoise [flags] input_file",
+    "",
+    "flags:",
+    "i = noise reference soundfile",
+    "o = output file",
+    "N = # of bandpass filters (1024)",
+    "w = filter overlap factor: {0,1,(2),3} DON'T USE -w AND -M",
+    "M = analysis window length (N-1 unless -w is specified)",
+    "L = synthesis window length (M)",
+    "D = decimation factor (M/8)",
+    "b = begin time in noise reference soundfile (0)",
+    "B = starting sample in noise reference soundfile (0)",
+    "e = end time in noise reference soundfile (end)",
+    "E = final sample in noise reference soundfile (end)",
+    "t = threshold above noise reference in dB (30)",
+    "S = sharpness of noise-gate turnoff (1) (1 to 5)",
+    "n = number of FFT frames to average over (5)",
+    "m = minimum gain of noise-gate when off in dB (-40)",
+    "V : verbose - print status info",
+    "A : AIFF format output",
+    "W : WAV format output",
+    "J : IRCAM format output",
+    NULL
+};
+
 static int dnoise_usage(CSOUND *csound, int exitcode)
 {
-    csound->Message(csound,
-            "usage: dnoise [flags] input_file\n"
-            "\nflags:\n"
-            "i = noise reference soundfile\n"
-            "o = output file\n"
-            "N = # of bandpass filters (1024)\n"
-            "w = filter overlap factor: {0,1,(2),3} DON'T USE -w AND -M\n"
-            "M = analysis window length (N-1 unless -w is specified)\n"
-            "L = synthesis window length (M) \n"
-            "D = decimation factor (M/8)\n"
-            "b = begin time in noise reference soundfile (0)\n"
-            "B = starting sample in noise reference soundfile (0)\n"
-            "e = end time in noise reference soundfile (end)\n"
-            "E = final sample in noise reference soundfile (end)\n"
-            "t = threshold above noise reference in dB (30)\n"
-            "S = sharpness of noise-gate turnoff (1) (1 to 5)\n"
-            "n = number of FFT frames to average over (5)\n"
-            "m = minimum gain of noise-gate when off in dB (-40)\n"
-            "V: verbose - print status info\n"
-            "A : AIFF format output\n"
-            "W : WAV format output\n"
-            "J : IRCAM format output\n"
-            );
+    const char  **sp;
+
+    for (sp = &(usage_txt[0]); *sp != NULL; sp++)
+      csound->Message(csound, "%s\n", Str(*sp));
 
     return exitcode;
 }
 
-static void sndwrterr(CSOUND *csound, SNDFILE *outfd,
-                      int nret, int nput)
-                                /* report soundfile write(osfd) error      */
-{                               /*    called after chk of write() bytecnt  */
+/* report soundfile write(osfd) error      */
+/*    called after chk of write() bytecnt  */
+
+static void sndwrterr(CSOUND *csound, SNDFILE *outfd, int nret, int nput)
+{
     csound->Message(csound, Str("soundfile write returned sample count of %d, "
                                 "not %d\n"), nret, nput);
     csound->Message(csound, Str("(disk may be full...\n"
