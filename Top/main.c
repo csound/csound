@@ -241,8 +241,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (!O->outformat)                      /* if no audioformat yet  */
       O->outformat = AE_SHORT;              /*  default to short_ints */
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
-    O->informat = O->outformat;     /* informat defaults; */
-    O->insampsiz = O->sfsampsize;   /* resettable by readinheader */
+    O->informat = O->outformat;             /* informat default */
     csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
     if (csound->scorename != NULL)
       csound->Message(csound, Str("scorename: %s\n"), csound->scorename);
