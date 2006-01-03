@@ -139,6 +139,7 @@ static const char *longUsageList[] = {
   "--cscore\t\tuse Cscore processing of scorefile",
   "",
   "--midifile=FNAME\tread MIDIfile event stream from file",
+  "--midioutfile=FNAME\twrite MIDI output to file FNAME",
   "--midi-device=FNAME\tread MIDI realtime events from device",
   "--terminate-on-midi\tterminate the performance when miditrack is done",
   "",
@@ -372,6 +373,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       else
         set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);
       O->FMidiin = 1;                   /***************/
+      return 1;
+    }
+    else if (!(strncmp (s, "midioutfile=", 12))) {
+      s += 12;
+      if (*s == '\0') dieu(csound, Str("no midi output file name"));
+      O->FMidioutname = s;
       return 1;
     }
     /* -g */
