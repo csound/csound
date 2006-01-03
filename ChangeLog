@@ -1,3 +1,9 @@
+2006-01-03	Istvan Varga	<ivarga@csounds.com>
+	* added new optional argument to massign (defaults to 1), which,
+	  if zero, skips resetting of MIDI controllers
+	* fixed bugs in pan opcode
+	* added support for named instruments to turnon opcode
+
 2005-12-28  jpff  <jpff@codemist.co.uk>
 
 	* Engine/fgens.c (gen01raw): Restore looping stuff, which requires
