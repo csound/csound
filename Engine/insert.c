@@ -530,7 +530,8 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
             && ip->offtim < 0.0         /*      but indef,   */
             && ip->p1 == p1) {
           if (csound->oparms->odebug)
-            csound->Message(csound, "turning off inf copy of instr %d\n",insno);
+            csound->Message(csound, "turning off inf copy of instr %d\n",
+                                    insno);
           xturnoff(csound, ip);
           return;                       /*      turn it off  */
         }
@@ -717,7 +718,6 @@ int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
 
 int useropcdset(CSOUND *csound, UOPCODE *p)
 {
-    OPARMS  *O = csound->oparms;
     OPDS    *saved_ids = csound->ids;
     INSDS   *saved_curip = csound->curip, *parent_ip = csound->curip, *lcurip;
     INSTRTXT  *tp;
@@ -753,10 +753,10 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     if (p->l_ksmps != g_ksmps) {
       csound->ksmps = p->l_ksmps;
       p->ksmps_scale = g_ksmps / (int) csound->ksmps;
-      csound->pool[O->poolcount + 2] = (MYFLT) p->l_ksmps;
+      csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
       p->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) p->l_ksmps;
-      p->l_ekr = csound->ekr =
-          csound->pool[O->poolcount + 1] = csound->esr / (MYFLT) p->l_ksmps;
+      p->l_ekr = csound->ekr = csound->pool[csound->poolcount + 1] =
+          csound->esr / (MYFLT) p->l_ksmps;
       p->l_onedkr = csound->onedkr = FL(1.0) / p->l_ekr;
       p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
       csound->kcounter *= p->ksmps_scale;
@@ -838,8 +838,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->curip = saved_curip;
     if (csound->ksmps != g_ksmps) {
       csound->ksmps = g_ksmps;
-      csound->pool[O->poolcount + 2] = (MYFLT) g_ksmps;
-      csound->ekr = csound->pool[O->poolcount + 1] = g_ekr;
+      csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
+      csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
       csound->onedkr = g_onedkr;
       csound->onedksmps = g_onedksmps;
       csound->kicvt = g_kicvt;
@@ -939,7 +939,6 @@ int xoutset(CSOUND *csound, XOUT *p)
 
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
-    OPARMS        *O = csound->oparms;
     OPCOD_IOBUFS  *buf;
     UOPCODE       *pp;
     int           l_ksmps, n;
@@ -958,10 +957,10 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     pp->ksmps_scale *= n;
     p->h.insdshead->xtratim *= n;
     pp->l_ksmps = csound->ksmps = l_ksmps;
-    csound->pool[O->poolcount + 2] = (MYFLT) csound->ksmps;
+    csound->pool[csound->poolcount + 2] = (MYFLT) csound->ksmps;
     pp->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
-    pp->l_ekr = csound->ekr =
-        csound->pool[O->poolcount + 1] = csound->esr / (MYFLT) csound->ksmps;
+    pp->l_ekr = csound->ekr = csound->pool[csound->poolcount + 1] =
+        csound->esr / (MYFLT) csound->ksmps;
     pp->l_onedkr = csound->onedkr = FL(1.0) / csound->ekr;
     pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
     csound->kcounter *= pp->ksmps_scale;
@@ -1145,20 +1144,23 @@ INSDS *insert_event(CSOUND *csound,
     return ip;
 }
 
+/* unlink expired notes from activ chain */
+/*      and mark them inactive           */
+/*    close any files in each fdchain    */
+
 /* IV - Feb 05 2005: changed to double */
 
 void beatexpire(CSOUND *csound, double beat)
-                                /* unlink expired notes from activ chain */
-{                               /*      and mark them inactive          */
-    INSDS  *ip;                 /*    close any files in each fdchain   */
+{
+    INSDS  *ip;
  strt:
     if ((ip = csound->frstoff) != NULL && ip->offbet <= beat) {
       do {
         if (!ip->relesing && ip->xtratim) {
-          /* IV - Nov 30 2002: allow extra time for finite length (p3 > 0) */
-          /* score notes */
+          /* IV - Nov 30 2002: */
+          /*   allow extra time for finite length (p3 > 0) score notes */
           set_xtratim(csound, ip);      /* enter release stage */
-          csound->frstoff = ip->nxtoff;         /* update turnoff list */
+          csound->frstoff = ip->nxtoff; /* update turnoff list */
           schedofftim(csound, ip);
           goto strt;                    /* and start again */
         }
@@ -1174,21 +1176,24 @@ void beatexpire(CSOUND *csound, double beat)
     }
 }
 
+/* unlink expired notes from activ chain */
+/*      and mark them inactive           */
+/*    close any files in each fdchain    */
+
 /* IV - Feb 05 2005: changed to double */
 
 void timexpire(CSOUND *csound, double time)
-                                /* unlink expired notes from activ chain */
-{                               /*      and mark them inactive           */
-    INSDS  *ip;                 /*    close any files in each fdchain    */
+{
+    INSDS  *ip;
 
  strt:
     if ((ip = csound->frstoff) != NULL && ip->offtim <= time) {
       do {
         if (!ip->relesing && ip->xtratim) {
-          /* IV - Nov 30 2002: allow extra time for finite length (p3 > 0) */
-          /* score notes */
+          /* IV - Nov 30 2002: */
+          /*   allow extra time for finite length (p3 > 0) score notes */
           set_xtratim(csound, ip);      /* enter release stage */
-          csound->frstoff = ip->nxtoff;         /* update turnoff list */
+          csound->frstoff = ip->nxtoff; /* update turnoff list */
           schedofftim(csound, ip);
           goto strt;                    /* and start again */
         }
@@ -1256,7 +1261,6 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
 int useropcd1(CSOUND *csound, UOPCODE *p)
 {
-    OPARMS  *O = csound->oparms;
     OPDS    *saved_pds = csound->pds;
     int     g_ksmps, ofs = 0, n;
     MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
@@ -1273,8 +1277,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     g_kcounter = csound->kcounter;
     /* set local ksmps and related values */
     csound->ksmps = p->l_ksmps;
-    csound->pool[O->poolcount + 2] = (MYFLT) p->l_ksmps;
-    csound->ekr = csound->pool[O->poolcount + 1] = p->l_ekr;
+    csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
+    csound->ekr = csound->pool[csound->poolcount + 1] = p->l_ekr;
     csound->onedkr = p->l_onedkr;
     csound->onedksmps = p->l_onedksmps;
     csound->kicvt = p->l_kicvt;
@@ -1340,8 +1344,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
     /* restore globals */
     csound->ksmps = g_ksmps;
-    csound->pool[O->poolcount + 2] = (MYFLT) g_ksmps;
-    csound->ekr = csound->pool[O->poolcount + 1] = g_ekr;
+    csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
+    csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
     csound->onedkr = g_onedkr;
     csound->onedksmps = g_onedksmps;
     csound->kicvt = g_kicvt;

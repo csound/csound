@@ -36,7 +36,7 @@ typedef struct {
     MYFLT         *outbufp;             /* MYFLT pntr                   */
     unsigned int  inbufrem;
     unsigned int  outbufrem;            /* in monosamps                 */
-                                        /* (see openin,iotranset)       */
+                                        /* (see openin, iotranset)      */
     unsigned int  inbufsiz,  outbufsiz; /* alloc in sfopenin/out        */
     int           isfopen;              /* (real set in sfopenin)       */
     int           osfopen;              /* (real set in sfopenout)      */
@@ -79,9 +79,9 @@ static void alloc_globals(CSOUND *csound)
 
 static void spoutsf(CSOUND *csound)
 {
-    int           n, chn = 0, spoutrem = csound->nspout;
-    MYFLT         *sp = csound->spout;
-    MYFLT         absamp;
+    int     n, chn = 0, spoutrem = csound->nspout;
+    MYFLT   *sp = csound->spout;
+    MYFLT   absamp;
 
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
@@ -117,7 +117,7 @@ static void spoutsf(CSOUND *csound)
         csound->audtran(csound, ST(outbuf), ST(outbufsiz)); /* Flush buffer */
         ST(outbufp) = (MYFLT*) ST(outbuf);
       }
-      ST(outbufrem) = csound->oparms->outbufsamps;
+      ST(outbufrem) = csound->oparms_.outbufsamps;
       if (spoutrem) goto nchk;
     }
 }
@@ -126,9 +126,9 @@ static void spoutsf(CSOUND *csound)
 
 static void spoutsf_noscale(CSOUND *csound)
 {
-    int           n, chn = 0, spoutrem = csound->nspout;
-    MYFLT         *sp = csound->spout;
-    MYFLT         absamp;
+    int     n, chn = 0, spoutrem = csound->nspout;
+    MYFLT   *sp = csound->spout;
+    MYFLT   absamp;
 
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
@@ -156,7 +156,7 @@ static void spoutsf_noscale(CSOUND *csound)
         csound->audtran(csound, ST(outbuf), ST(outbufsiz)); /* Flush buffer */
         ST(outbufp) = (MYFLT*) ST(outbuf);
       }
-      ST(outbufrem) = csound->oparms->outbufsamps;
+      ST(outbufrem) = csound->oparms_.outbufsamps;
       if (spoutrem) goto nchk;
     }
 }
@@ -349,14 +349,13 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     }
 
  inset:
-    O->insampsiz = (int) sfsampsize(FORMAT2SF(O->informat));
     /* calc inbufsize reqd */
     ST(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
     ST(inbuf) = (MYFLT*) mcalloc(csound, ST(inbufsiz)); /* alloc inbuf space */
-    csound->Message(csound, Str("reading %d-byte blks of %s from %s (%s)\n"),
-                            O->inbufsamps * O->insampsiz,
-                            getstrformat(O->informat), sfname,
-                            type2string(fileType));
+    csound->Message(csound,
+                    Str("reading %d-byte blks of %s from %s (%s)\n"),
+                    O->inbufsamps * (int) sfsampsize(FORMAT2SF(O->informat)),
+                    getstrformat(O->informat), sfname, type2string(fileType));
     ST(isfopen) = 1;
 }
 
@@ -369,10 +368,14 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
 
     alloc_globals(csound);
     if (O->outfilename == NULL) {
-      if (O->filetyp == TYP_WAV) O->outfilename = "test.wav";
-      else if (O->filetyp == TYP_AIFF) O->outfilename = "test.aif";
-      else if (O->filetyp == TYP_AU) O->outfilename = "test.au";
-      else O->outfilename = "test";
+      if (O->filetyp == TYP_WAV)
+        O->outfilename = "test.wav";
+      else if (O->filetyp == TYP_AIFF)
+        O->outfilename = "test.aif";
+      else if (O->filetyp == TYP_AU)
+        O->outfilename = "test.au";
+      else
+        O->outfilename = "test";
     }
     ST(sfoutname) = fName = O->outfilename;
 
@@ -385,9 +388,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       osfd = fileno(ST(pout));
       ST(pipdevout) = 1;
       if (O->filetyp == TYP_AIFF || O->filetyp == TYP_WAV) {
-        csound->Message(csound,
-                        Str("Output file type changed to IRCAM "
-                            "for use in pipe\n"));
+        csound->Message(csound, Str("Output file type changed to IRCAM "
+                                    "for use in pipe\n"));
         O->filetyp = TYP_IRCAM;
       }
     }
@@ -475,7 +477,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* calc outbuf size & alloc bufspace */
     ST(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     ST(outbufp) = ST(outbuf) = mmalloc(csound, ST(outbufsiz));
-    csound->Message(csound,Str("writing %d-byte blks of %s to %s"),
+    csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), ST(sfoutname));
     if (ST(pipdevout) == 2)

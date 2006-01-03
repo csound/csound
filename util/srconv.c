@@ -468,7 +468,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         csound->Free(csound, name);
       }
       else
-        outfd = sf_open_fd(O->stdoutfd, SFM_WRITE, &sfinfo, 1);
+        outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
         sprintf(err_msg, Str("cannot open %s."), O->outfilename);
         goto err_rtn_msg;
