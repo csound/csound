@@ -1476,13 +1476,15 @@ else:
     print "CONFIGURATION DECISION: Not building Tclcsound"
 
 if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
-   print "CONFIGURATION DECISION: building OSX GUI frontend"
-   csOSXGUIEnvironment = commonEnvironment.Copy()
-   OSXGUI = csOSXGUIEnvironment.Command('''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
-     'frontends/OSX/main.c', "cd frontends/OSX; xcodebuild -activebuildstyle")
-   Depends(OSXGUI, csoundLibrary)
+    print "CONFIGURATION DECISION: building OSX GUI frontend"
+    csOSXGUIEnvironment = commonEnvironment.Copy()
+    OSXGUI = csOSXGUIEnvironment.Command(
+        '''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
+        'frontends/OSX/main.c',
+        "cd frontends/OSX; xcodebuild -activebuildstyle")
+    Depends(OSXGUI, csoundLibrary)
 else:
-   print "CONFIGURATION DECISION: not building OSX GUI frontend"
+    print "CONFIGURATION DECISION: not building OSX GUI frontend"
 
 if (commonEnvironment['buildDSSI'] == '1' and getPlatform() == 'linux'):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
