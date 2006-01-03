@@ -119,7 +119,7 @@
 		};
 		20286C2AFDCF999611CA2CEA = {
 			children = (
-				32DBCF6D0370B57F00C91783,
+				57EC5328096AE249002E6319,
 				20286C2BFDCF999611CA2CEA,
 			);
 			isa = PBXGroup;
@@ -176,24 +176,6 @@
 //202
 //203
 //204
-//320
-//321
-//322
-//323
-//324
-		32DBCF6D0370B57F00C91783 = {
-			fileEncoding = 4;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			path = "Csound 5_Prefix.pch";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-//320
-//321
-//322
-//323
-//324
 //4A0
 //4A1
 //4A2
@@ -289,6 +271,20 @@
 			settings = {
 			};
 		};
+		57EC5328096AE249002E6319 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			path = Csound5_prefix.pch;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		57EC5329096AE249002E6319 = {
+			fileRef = 57EC5328096AE249002E6319;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 //570
 //571
 //572
@@ -310,7 +306,7 @@
 			buildSettings = {
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "Csound 5_Prefix.pch";
+				GCC_PREFIX_HEADER = Csound5_Prefix.pch;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = "Csound 5";
@@ -332,6 +328,7 @@
 				8D0C4E8E0486CD37000505A6,
 				5704A2B4095C6B55000AD11E,
 				57B70C5A096ADB6500763D6D,
+				57EC5329096AE249002E6319,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
