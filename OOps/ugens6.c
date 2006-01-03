@@ -984,67 +984,59 @@ int reverb(CSOUND *csound, REVERB *p)
 
 int panset(CSOUND *csound, PAN *p)
 {
-    FUNC *ftp;
+    FUNC  *ftp;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
-    if (*p->imode)
-      p->xmul = (MYFLT)ftp->flen;
-    else        p->xmul = FL(1.0);
-    if (*p->ioffset)
-      p->xoff = ftp->flen >> 1;
-    else        p->xoff = 0;
+    p->xmul = (*p->imode == FL(0.0) ? FL(1.0) : (MYFLT) ftp->flen);
+    p->xoff = (*p->ioffset == FL(0.0) ? (MYFLT) ftp->flen * FL(0.5) : FL(0.0));
+
     return OK;
 }
 
 int pan(CSOUND *csound, PAN *p)
 {
-    MYFLT       *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
-    long        xndx, yndx, flen;
-    int n, nsmps = csound->ksmps;
-    FUNC        *ftp;
+    MYFLT   flend2, xndx_f, yndx_f, xt, yt, ch1, ch2, ch3, ch4;
+    long    xndx, yndx, flen;
+    int     n, nsmps = csound->ksmps;
+    FUNC    *ftp;
 
     ftp = p->ftp;
-    if (ftp==NULL) {        /* RWD fix */
+    if (ftp == NULL) {          /* RWD fix */
       return csound->PerfError(csound, Str("pan: not initialised"));
     }
+    xndx_f = (*p->kx * p->xmul) - p->xoff;
+    yndx_f = (*p->ky * p->xmul) - p->xoff;
     flen = ftp->flen;
-    xndx = (long)(*p->kx * p->xmul) - p->xoff;
-    yndx = (long)(*p->ky * p->xmul) - p->xoff;
-    if (xndx < 0L || xndx > flen || yndx < 0L || yndx > flen) {
-      long xt, yt, off = flen >>1;
-      xt = xndx - off;
-      yt = yndx - off;
-      if (xt*xt > yt*yt) {
-        if (xt < 0) xt = -xt;
-        yndx = yt * off / xt + off;
-      }
-      else {
-        if (yt < 0) yt = -yt;
-        xndx = xt * off / yt + off;
-      }
-      if (xndx < 0)             xndx = 0;
-      else if (xndx > flen)     xndx = flen;
-      if (yndx < 0)             yndx = 0;
-      else if (yndx > flen)     yndx = flen;
+    flend2 = (MYFLT) flen * FL(0.5);
+    xt = (MYFLT) fabs(xndx_f);
+    yt = (MYFLT) fabs(yndx_f);
+    if (xt > flend2 || yt > flend2) {
+      if (xt > yt)
+        yndx_f *= (flend2 / xt);
+      else
+        xndx_f *= (flend2 / yt);
     }
-    ch2 = *(ftp->ftable + xndx) * *(ftp->ftable + yndx);
-    ch4 = *(ftp->ftable + xndx) * *(ftp->ftable + flen - yndx);
-    ch1 = *(ftp->ftable + flen - xndx) * *(ftp->ftable + yndx);
-    ch3 = *(ftp->ftable + flen - xndx) * *(ftp->ftable + flen - yndx);
-    r1 = p->r1;
-    r2 = p->r2;
-    r3 = p->r3;
-    r4 = p->r4;
-    sigp = p->asig;
-    for (n=0; n<nsmps; n++) {
-      MYFLT sig = sigp[n];
-      r1[n] = sig * ch1;
-      r2[n] = sig * ch2;
-      r3[n] = sig * ch3;
-      r4[n] = sig * ch4;
-    }
+    xndx_f += flend2;
+    yndx_f += flend2;
+    xndx = MYFLT2LRND(xndx_f);
+    yndx = MYFLT2LRND(yndx_f);
+    xndx = (xndx >= 0L ? (xndx < flen ? xndx : flen) : 0L);
+    yndx = (yndx >= 0L ? (yndx < flen ? yndx : flen) : 0L);
+    ch1 = ftp->ftable[flen - xndx] * ftp->ftable[yndx];
+    ch2 = ftp->ftable[xndx]        * ftp->ftable[yndx];
+    ch3 = ftp->ftable[flen - xndx] * ftp->ftable[flen - yndx];
+    ch4 = ftp->ftable[xndx]        * ftp->ftable[flen - yndx];
+    n = 0;
+    do {
+      MYFLT sig = p->asig[n];
+      p->r1[n] = sig * ch1;
+      p->r2[n] = sig * ch2;
+      p->r3[n] = sig * ch3;
+      p->r4[n] = sig * ch4;
+    } while (++n < nsmps);
+
     return OK;
 }
 
