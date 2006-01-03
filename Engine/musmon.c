@@ -430,16 +430,24 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 int turnon(CSOUND *csound, TURNON *p)
 {
     EVTBLK  evt;
+    int     isNamedInstr;
 
     evt.strarg = NULL;
     evt.opcod = 'i';
     evt.pcnt = 3;
-    evt.p[1] = *p->insno;
+    isNamedInstr = (int) csound->GetInputArgSMask(p);
+    if (isNamedInstr) {
+      long  insno = csound->strarg2insno(csound, p->insno, isNamedInstr);
+      if (insno <= 0L)
+        return NOTOK;
+      evt.p[1] = (MYFLT) insno;
+    }
+    else
+      evt.p[1] = *p->insno;
     evt.p[2] = *p->itime;
     evt.p[3] = FL(-1.0);
 
-    return (insert_score_event(csound, &evt, csound->curTime) == 0 ?
-            OK : NOTOK);
+    return insert_score_event(csound, &evt, csound->curTime);
 }
 
 /* Print current amplitude values, and update section amps. */
