@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Csound 5</string>
 	<key>CFBundleHelpBookFolder</key>
-	<string>Csound Help</string>
+	<string>CsoundHelp</string>
 	<key>CFBundleHelpBookName</key>
 	<string>Csound Help</string>
 	<key>CFBundleIconFile</key>
