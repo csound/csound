@@ -138,7 +138,7 @@
 		};
 		20286C2CFDCF999611CA2CEA = {
 			children = (
-				57004560096307DC00F7CE38,
+				57B70C1E096AB46B00763D6D,
 				8D0C4E960486CD37000505A6,
 				5704A2B3095C6B55000AD11E,
 				0867D6AAFE840B52C02AAC07,
@@ -249,19 +249,6 @@
 //572
 //573
 //574
-		57004560096307DC00F7CE38 = {
-			isa = PBXFileReference;
-			lastKnownFileType = folder;
-			path = "Csound Help";
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		57004D62096307E800F7CE38 = {
-			fileRef = 57004560096307DC00F7CE38;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		5704A2B3095C6B55000AD11E = {
 			isa = PBXFileReference;
 			lastKnownFileType = image.icns;
@@ -285,6 +272,19 @@
 		};
 		57563C87095C20640065C253 = {
 			fileRef = 57563C86095C20640065C253;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		57B70C1E096AB46B00763D6D = {
+			isa = PBXFileReference;
+			lastKnownFileType = folder;
+			path = "Csound Help";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		57B70C23096AB46B00763D6D = {
+			fileRef = 57B70C1E096AB46B00763D6D;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -331,7 +331,7 @@
 				8D0C4E8D0486CD37000505A6,
 				8D0C4E8E0486CD37000505A6,
 				5704A2B4095C6B55000AD11E,
-				57004D62096307E800F7CE38,
+				57B70C23096AB46B00763D6D,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
