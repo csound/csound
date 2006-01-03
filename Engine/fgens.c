@@ -2203,8 +2203,8 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
       if (ans) {
         double natcps, gainfac;
-#if BETA
-        fprintf(stderr,
+#ifdef BETA
+        csound->Message(csound,
                 "Base Note : %u\tDetune    : %u\n"
                 "Low  Note : %u\tHigh Note : %u\n"
                 "Low  Vel. : %u\tHigh Vel. : %u\n"
@@ -2213,11 +2213,11 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
                 "start     : %d\tend       : %d\tcount  :%d\n"
                 "mode      : %d\n"
                 "start     : %d\tend       : %d\tcount  :%d\n\n",
-                lpd.basenote, 0, lpd.key_lo, lpd.key_hi,
+                lpd.basenote, 0U, lpd.key_lo, lpd.key_hi,
                 lpd.velocity_lo, lpd.velocity_hi, lpd.gain, lpd.loop_count,
-                lpd.loops [0].mode, lpd.loops [0].start, lpd.loops [0].end,
-                lpd.loops [0].count, lpd.loops [1].mode, lpd.loops [1].start,
-                lpd.loops [1].end, lpd.loops [1].count);
+                lpd.loops[0].mode, lpd.loops[0].start, lpd.loops[0].end,
+                lpd.loops[0].count, lpd.loops[1].mode, lpd.loops[1].start,
+                lpd.loops[1].end, lpd.loops[1].count);
 #endif
         natcps = pow(2.0, (double) ((int) lpd.basenote - 69) / 12.0) * 440.0;
         /* As far as I can tell this gainfac value is never used! */
@@ -2226,8 +2226,8 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
           lpd.basenote = ftp->cvtbas; */
         ftp->cpscvt = ftp->cvtbas / natcps;
         ftp->loopmode1 = (lpd.loops[0].mode == SF_LOOP_NONE ? 0 :
-                          (lpd.loops[0].mode == SF_LOOP_FORWARD ? 1
-                           : 2));
+                          (lpd.loops[0].mode == SF_LOOP_FORWARD ? 1 :
+                           2));
         ftp->loopmode2 = (lpd.loops[1].mode == SF_LOOP_NONE ? 0 :
                           (lpd.loops[1].mode == SF_LOOP_FORWARD ? 1 :
                            2));
