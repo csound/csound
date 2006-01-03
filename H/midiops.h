@@ -21,10 +21,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
+                                /*                      MIDIOPS.H       */
 #ifndef MIDIOPS_H
 #define MIDIOPS_H
-/*                                                 MIDIOPS.H   */
 
 #define NOTEOFF_TYPE  0x80
 #define NOTEON_TYPE   0x90
@@ -53,86 +52,86 @@
 #define TVA_RLS         135
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *chnl, *insno;
+    OPDS    h;
+    MYFLT   *chnl, *insno, *iresetctls;
 } MASSIGN;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *chnl, *ctrls[64];
+    OPDS    h;
+    MYFLT   *chnl, *ctrls[64];
 } CTLINIT;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *r, *imax, *ifn;
+    OPDS    h;
+    MYFLT   *r, *imax, *ifn;
 } MIDIAMP;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *r, *ictlno, *ilo, *ihi;
-    long   ctlno;
-    MYFLT  scale, lo;
+    OPDS    h;
+    MYFLT   *r, *ictlno, *ilo, *ihi;
+    long    ctlno;
+    MYFLT   scale, lo;
 } MIDICTL;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *r, *ichano, *ictlno, *ilo, *ihi;
-    long   chano, ctlno;
-    MYFLT  scale, lo;
+    OPDS    h;
+    MYFLT   *r, *ichano, *ictlno, *ilo, *ihi;
+    long    chano, ctlno;
+    MYFLT   scale, lo;
 } CHANCTL;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *r, *iscal;
-    MYFLT  scale, prvbend, prvout;
+    OPDS    h;
+    MYFLT   *r, *iscal;
+    MYFLT   scale, prvbend, prvout;
 } MIDIKMB;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *r, *ilo, *ihi;
+    OPDS    h;
+    MYFLT   *r, *ilo, *ihi;
 } MIDIMAP;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *r, *ilo, *ihi;
-    MYFLT  scale, lo;
+    OPDS    h;
+    MYFLT   *r, *ilo, *ihi;
+    MYFLT   scale, lo;
 } MIDIKMAP;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *olap;
+    OPDS    h;
+    MYFLT   *olap;
 } MIDIOLAP;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *r;
+    OPDS    h;
+    MYFLT   *r;
 } MIDIAGE;
 
 typedef struct {
-    OPDS   h;
-    MYFLT *r, *tablenum;
+    OPDS    h;
+    MYFLT   *r, *tablenum;
     /* *numgrades, *interval, *basefreq, *basekeymidi; */
 } CPSTABLE;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *ans;
+    OPDS    h;
+    MYFLT   *ans;
 } GTEMPO;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *ichn;
+    OPDS    h;
+    MYFLT   *ichn;
 } MIDICHN;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *ipgm, *inst, *ichn;
+    OPDS    h;
+    MYFLT   *ipgm, *inst, *ichn;
 } PGMASSIGN;
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *status, *chan, *data1, *data2;
-    int    local_buf_index;         /* IV - Nov 30 2002 */
+    OPDS    h;
+    MYFLT   *status, *chan, *data1, *data2;
+    int     local_buf_index;        /* IV - Nov 30 2002 */
 } MIDIIN;
 
 #endif

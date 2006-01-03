@@ -32,7 +32,7 @@
 /* aops.c, table for CPSOCTL */
 extern  MYFLT   cpsocfrc[];
 
-extern int m_chinsno(CSOUND *csound, short chan, short insno);
+extern int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls);
 
 #define MIDI_VALUE(m,field) ((m != (MCHNBLK *) NULL) ? m->field : FL(0.0))
 
@@ -49,21 +49,21 @@ extern int m_chinsno(CSOUND *csound, short chan, short insno);
 
 #define MGLOB(x) (((CSOUND*) csound)->midiGlobals->x)
 
-/* Now in glob extern INSTRTXT **instrtxtp;  gab-A3 (added) */
-int midibset(CSOUND *,MIDIKMB *);
+int midibset(CSOUND *, MIDIKMB *);
 
 /* IV - Oct 31 2002: modified to allow named instruments */
 
 int massign(CSOUND *csound, MASSIGN *p)
 {
-    short chnl = (short) (*p->chnl - FL(0.5));
+    int   chnl = (int) (*p->chnl - FL(0.5));
     long  instno = 0L;
 
     if (p->XSTRCODE || *(p->insno) >= FL(0.5)) {
       if ((instno = strarg2insno(csound, p->insno, p->XSTRCODE)) <= 0L)
         return NOTOK;
     }
-    return m_chinsno(csound, chnl, (short) instno);
+    return m_chinsno(csound,
+                     chnl, (int) instno, (*p->iresetctls == FL(0.0) ? 0 : 1));
 }
 
 int ctrlinit(CSOUND *csound, CTLINIT *p)
@@ -106,7 +106,7 @@ int cpstmid(CSOUND *csound, CPSTABLE *p)
     int grade;
     int numgrades;
     int basekeymidi;
-    MYFLT basefreq, factor,interval;
+    MYFLT basefreq, factor, interval;
 
     if ((ftp = csound->FTFind(csound, p->tablenum)) == NULL) {
       csound->InitError(csound, Str("cpstabm: invalid modulator table"));
@@ -165,8 +165,8 @@ int pchmidib(CSOUND *csound, MIDIKMB *p)
 
 int pchmidib_i(CSOUND *csound, MIDIKMB *p)
 {
-    midibset(csound,p);
-    pchmidib(csound,p);
+    midibset(csound, p);
+    pchmidib(csound, p);
     return OK;
 }
 
@@ -187,8 +187,8 @@ int octmidib(CSOUND *csound, MIDIKMB *p)
 
 int octmidib_i(CSOUND *csound, MIDIKMB *p)
 {
-  midibset(csound,p);
-  octmidib(csound,p);
+  midibset(csound, p);
+  octmidib(csound, p);
   return OK;
 }
 
@@ -218,8 +218,8 @@ int icpsmidib(CSOUND *csound, MIDIKMB *p)
 
 int icpsmidib_i(CSOUND *csound, MIDIKMB *p)
 {
-    midibset(csound,p);
-    icpsmidib(csound,p);
+    midibset(csound, p);
+    icpsmidib(csound, p);
     return OK;
 }
 
@@ -316,7 +316,7 @@ int mctlset(CSOUND *csound, MIDICTL *p)
 int midictl(CSOUND *csound, MIDICTL *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    *p->r = MIDI_VALUE(lcurip->m_chnbp,ctl_val[p->ctlno]) * p->scale + p->lo;
+    *p->r = MIDI_VALUE(lcurip->m_chnbp, ctl_val[p->ctlno]) * p->scale + p->lo;
     return OK;
 }
 
@@ -346,7 +346,7 @@ int maftset(CSOUND *csound, MIDICTL *p)
 int midiaft(CSOUND *csound, MIDICTL *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    *p->r = MIDI_VALUE(lcurip->m_chnbp,polyaft[p->ctlno]) * p->scale + p->lo;
+    *p->r = MIDI_VALUE(lcurip->m_chnbp, polyaft[p->ctlno]) * p->scale + p->lo;
     return OK;
 }
 
@@ -355,15 +355,7 @@ int midiaft(CSOUND *csound, MIDICTL *p)
 
 int midichn(CSOUND *csound, MIDICHN *p)
 {
-    int nn;
-
-    if (p->h.insdshead->m_chnbp == (MCHNBLK*) NULL)
-      *(p->ichn) = FL(0.0);
-    else {
-      nn = 0;
-      while (nn < 16 && csound->m_chnbp[nn] != p->h.insdshead->m_chnbp) nn++;
-      *(p->ichn) = (nn < 16 ? (MYFLT) (nn + 1) : FL(0.0));
-    }
+    *(p->ichn) = (MYFLT) (csound->GetMidiChannelNumber(p) + 1);
     return OK;
 }
 
