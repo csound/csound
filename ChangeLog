@@ -1,3 +1,9 @@
+2006-01-04	Istvan Varga	<ivarga@csounds.com>
+	* changed default output file type to AIFF on MacOS X
+	* added support for writing MIDI output to a file
+	  (--midioutfile=FNAME); not really useful, so may be removed later
+	* various fixes related to creating temporary files
+
 2006-01-03	Istvan Varga	<ivarga@csounds.com>
 	* added new optional argument to massign (defaults to 1), which,
 	  if zero, skips resetting of MIDI controllers

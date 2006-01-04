@@ -308,8 +308,11 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     print_benchmark_info(csound, Str("end of score sort"));
 
     /* open MIDI output (moved here from argdecode) */
-    if ((O->Midioutname != NULL && O->Midioutname[0] != '\0') ||
-        (O->FMidioutname != NULL && O->FMidioutname[0] != '\0'))
+    if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
+      O->Midioutname = NULL;
+    if (O->FMidioutname != NULL && O->FMidioutname[0] == (char) '\0')
+      O->FMidioutname = NULL;
+    if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
 
     return musmon(csound);
