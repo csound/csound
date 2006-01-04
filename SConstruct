@@ -853,13 +853,12 @@ else:
     csoundInterfacesSources.insert(0,
         csoundInterfacesEnvironment.SharedObject('interfaces/pyMsgCb.cpp'))
     if pythonFound:
-        if getPlatform() == 'mingw':
-	    if pythonLibs[0] < 'python24':
-                pythonImportLibrary = csoundInterfacesEnvironment.Command(
-                    '/usr/local/lib/lib%s.a' % (pythonLibs[0]),
-                    '/WINDOWS/system32/%s.dll' % (pythonLibs[0]),
-                    ['pexports /WINDOWS/system32/%s.dll > %s.def' % (pythonLibs[0], pythonLibs[0]),
-                    'dlltool --input-def %s.def --dllname %s.dll --output-lib /usr/local/lib/lib%s.a' % (pythonLibs[0], '/WINDOWS/system32/%s' % (pythonLibs[0]), pythonLibs[0])])
+        if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
+            pythonImportLibrary = csoundInterfacesEnvironment.Command(
+                '/usr/local/lib/lib%s.a' % (pythonLibs[0]),
+                '/WINDOWS/system32/%s.dll' % (pythonLibs[0]),
+                ['pexports /WINDOWS/system32/%s.dll > %s.def' % (pythonLibs[0], pythonLibs[0]),
+                'dlltool --input-def %s.def --dllname %s.dll --output-lib /usr/local/lib/lib%s.a' % (pythonLibs[0], '/WINDOWS/system32/%s' % (pythonLibs[0]), pythonLibs[0])])
         csoundWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
         csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
@@ -867,9 +866,8 @@ else:
         csoundPythonInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/python_interface.i',
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
-        if getPlatform() == 'mingw':
-	    if pythonLibs[0] < 'python24':
-                Depends(csoundPythonInterface, pythonImportLibrary)
+        if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
+            Depends(csoundPythonInterface, pythonImportLibrary)
         csoundInterfacesSources.insert(0, csoundPythonInterface)
         libs.append('csnd.py')
     if not luaFound:
@@ -1327,9 +1325,8 @@ else:
         lorisPythonModule = lorisPythonEnvironment.Program(
             '_loris.so', [lorisPythonWrapper])
     Depends(lorisPythonModule, lorisLibrary)
-    if getPlatform() == 'mingw':
-        if pythonLibs[0] < 'python24':
-            Depends(lorisPythonModule, pythonImportLibrary)
+    if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
+        Depends(lorisPythonModule, pythonImportLibrary)
     libs.append(lorisPythonModule)
     libs.append('loris.py')
 
@@ -1406,9 +1403,8 @@ else:
     pythonOpcodes = pyEnvironment.SharedLibrary(
         'py', ['Opcodes/py/pythonopcodes.c'])
     pluginLibraries.append(pythonOpcodes)
-    if getPlatform() == 'mingw':
-        if pythonLibs[0] < 'python24':
-            Depends(pythonOpcodes, pythonImportLibrary)
+    if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
+        Depends(pythonOpcodes, pythonImportLibrary)
 
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
