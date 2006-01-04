@@ -66,8 +66,11 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
       buf = csound->Malloc(csound, nBytes);
     }
     {
-#if defined(LINUX) || defined(__MACH__) || defined(WIN32)
+#if defined(LINUX) || defined(__MACH__)
       struct stat tmp;
+      do {
+#elif defined(WIN32)
+      struct _stat tmp;
       do {
 #endif
 #ifndef WIN32
