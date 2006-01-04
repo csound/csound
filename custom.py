@@ -28,29 +28,36 @@ elif sys.platform == 'darwin':
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    customLIBPATH.append('c:/utah/usr/mingw/lib')
     customCPPPATH.append('c:/utah/usr/msys/1.0/local/include')
     customLIBPATH.append('c:/utah/usr/msys/1.0/local/lib')
+    customCPPPATH.append('c:/utah/usr/mingw/include')
+    customLIBPATH.append('c:/utah/usr/mingw/lib')
     # If libsndfile is not in a standard location add it here:
-    #customCPPPATH.append('C:/utah/usr/libsndfile-1.0.11/src')
-    #customLIBPATH.append('C:/utah/usr/libsndfile-1.0.11')
+    customCPPPATH.append('C:/utah/opt/libsndfile-1.0.13pre4/src')
+    customLIBPATH.append('C:/utah/opt/libsndfile-1.0.13pre4/src/.libs')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
     # (of course you must build it first):
-    # customCPPPATH.append('C:/projects/portaudio/pa_common')
-    # customLIBPATH.append('C:/projects/portaudio/lib')
+    customCPPPATH.append('C:/utah/home/mkg/projects/portaudio/pa_common')
+    customLIBPATH.append('C:/utah/home/mkg/projects/portaudio/lib')
+    ################################################################
+    # If you want PortMidi for real-time midi,
+    # if it is not in a standard location add it here
+    # (of course you must build it first):
+    customCPPPATH.append('C:/utah/opt/portmidi/pa_common')
+    customLIBPATH.append('C:/utah/opt/portmidi')
     ################################################################
     # If you want FLTK widgets or if you want to build CsoundVST,
     # you need FLTK. If it is not in a standard location,
     # add it here (of course you must build it first):
-    # customCPPPATH.append('C:/utah/opt/fltk-1.1.6')
-    # customLIBPATH.append('C:/utah/opt/fltk-1.1.6/lib')
+    customCPPPATH.append('C:/utah/opt/fltk-1.1.6')
+    customLIBPATH.append('C:/utah/opt/fltk-1.1.6/lib')
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
     customCPPPATH.append('c:/utah/opt/Python24/include')
-    customCPPPATH.append('c:/utah/usr/mingw/include')
+    customLIBPATH.append('c:/WINDOWS/system32')
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
@@ -71,8 +78,8 @@ elif sys.platform[:3] == 'win':
     # If you want to build the FluidSynth opcodes
     # you need FluidSynth. If it is not a standard location,
     # add it here (you do NOT need to build it first):
-    #customLIBPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32')
-    #customCPPPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32/include')
+    customLIBPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32')
+    customCPPPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32/include')
     ################################################################
     # If you want to build the Java wrapper for CsoundVST
     # you need Java. If it is not in a standard location,
@@ -86,6 +93,13 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('c:/utah/opt/pd-0.38-4-devel-2/src')
     customLIBPATH.append('c:/utah/opt/pd-0.38-4-devel-2/bin')
     platform = 'mingw'
+    ################################################################
+    # If you want to build the Loris opcodes,
+    # then copy Loris to csound5/Opcodes/Loris. Loris also
+    # requires FFTW, if it is not in a standard location,
+    # add it here (you do need to build it first):
+    customCPPPATH.append('c:/utah/opt/fftw-3.0.1/api')
+    customLIBPATH.append('c:/utah/opt/fftw-3.0.1/.libs')
 else:
     platform = 'unsupported platform'
 
