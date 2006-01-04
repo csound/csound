@@ -580,6 +580,8 @@ int sensMidi(CSOUND *csound)
     return 2;                           /* else it's note_on/off */
 }
 
+extern void csoundCloseMidiOutFile(CSOUND *);
+
 void MidiClose(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
@@ -597,12 +599,16 @@ void MidiClose(CSOUND *csound)
       if (retval != 0)
         csoundErrorMsg(csound, Str("Error closing MIDI out device: %d (%s)"),
                        retval, csoundExternalMidiErrorString(csound, retval));
-      p->MIDIoutDONE = 0;
     }
+    p->MIDIoutDONE = 0;
     p->midiOutUserData = NULL;
     if (p->midiFileData != NULL) {
       csoundMIDIFileClose(csound);
       p->midiFileData = NULL;
+    }
+    if (p->midiOutFileData != NULL) {
+      csoundCloseMidiOutFile(csound);
+      p->midiOutFileData = NULL;
     }
 }
 

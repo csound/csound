@@ -25,13 +25,82 @@
 #include "csoundCore.h"                                 /*    MIDISEND.C    */
 #include "midioops.h"
 
+typedef struct midiOutFile_s {
+    FILE            *f;
+    void            *fd;
+    unsigned long   prv_tick;
+    size_t          nBytes;
+    unsigned char   prv_status;
+} midiOutFile_t;
+
 static const unsigned char midiMsgBytes[32] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 0, 1
 };
 
+/* header for type 0 (1 track) MIDI file with 1/3 ms time resolution */
+
+static const unsigned char midiOutFile_header[22] = {
+    0x4D, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06,
+    0x00, 0x00, 0x00, 0x01, 0xE7, 0x78, 0x4D, 0x54,
+    0x72, 0x6B, 0x00, 0x00, 0x00, 0x00
+};
+
+/* write a single event to MIDI out file */
+
+static CS_NOINLINE void
+    csoundWriteMidiOutFile(CSOUND *csound,
+                           unsigned char st, unsigned char d1, unsigned char d2)
+{
+    unsigned char   buf[8];
+    double          s;
+    midiOutFile_t   *p = (midiOutFile_t *) csound->midiGlobals->midiOutFileData;
+    unsigned long   t, prv;
+    int             ndx = 0;
+
+    s = csound->curTime;
+    if (csound->ids == NULL && csound->pds != NULL)
+      s -= csound->curTime_inc;
+    s *= 3000.0;
+#ifdef HAVE_C99
+    t = (unsigned long) lrint(s);
+#else
+    t = (unsigned long) ((long) (s + 0.5));
+#endif
+    t = ((long) t >= 0L ? t : 0UL);
+    prv = p->prv_tick;
+    p->prv_tick = t;
+    t -= prv;
+    if (t > 0x0000007FUL) {
+      if (t > 0x00003FFFUL) {
+        if (t > 0x001FFFFFUL) {
+          buf[ndx++] = ((unsigned char) (t >> 21) & (unsigned char) 0x7F)
+                       | (unsigned char) 0x80;
+        }
+        buf[ndx++] = ((unsigned char) (t >> 14) & (unsigned char) 0x7F)
+                     | (unsigned char) 0x80;
+      }
+      buf[ndx++] = ((unsigned char) (t >> 7) & (unsigned char) 0x7F)
+                   | (unsigned char) 0x80;
+    }
+    buf[ndx++] = (unsigned char) t & (unsigned char) 0x7F;
+    if (st != p->prv_status) {
+      buf[ndx++] = st;
+      if ((st ^ (unsigned char) 0x80) < (unsigned char) 0x70)
+        p->prv_status = st;
+    }
+    if (midiMsgBytes[st >> 3] > (unsigned char) 1) {
+      buf[ndx++] = d1;
+      if (midiMsgBytes[st >> 3] > (unsigned char) 2)
+        buf[ndx++] = d2;
+    }
+    fwrite(&(buf[0]), (size_t) 1, (size_t) ndx, p->f);
+    p->nBytes += (size_t) ndx;
+}
+
 void send_midi_message(CSOUND *csound, int status, int data1, int data2)
 {
+    MGLOBAL       *p = csound->midiGlobals;
     unsigned char buf[4];
     unsigned char nbytes;
 
@@ -41,9 +110,11 @@ void send_midi_message(CSOUND *csound, int status, int data1, int data2)
     buf[2] = (unsigned char) data2;
     if (!nbytes)
       return;
-    csound->midiGlobals->MidiWriteCallback(csound,
-                                           csound->midiGlobals->midiOutUserData,
-                                           &(buf[0]), (int) nbytes);
+    if (csound->oparms_.Midioutname != NULL)
+      p->MidiWriteCallback(csound, p->midiOutUserData, &(buf[0]), (int) nbytes);
+    if (p->midiOutFileData != NULL)
+      csoundWriteMidiOutFile(csound, (unsigned char) status,
+                             (unsigned char) data1, (unsigned char) data2);
 }
 
 void note_on(CSOUND *csound, int chan, int num, int vel)
@@ -83,22 +154,61 @@ void poly_after_touch(CSOUND *csound, int chan, int note_num, int value)
 
 void openMIDIout(CSOUND *csound)
 {
-    MGLOBAL *p = csound->midiGlobals;
-    int     retval;
+    MGLOBAL       *p = csound->midiGlobals;
+    midiOutFile_t *fp;
+    OPARMS        *O = &(csound->oparms_);
+    int           retval;
 
-    if (p->MIDIoutDONE)
-      return;
-    if (p->MidiOutOpenCallback == NULL)
-      csoundDie(csound, Str(" *** no callback for opening MIDI output"));
-    if (p->MidiWriteCallback == NULL)
-      csoundDie(csound, Str(" *** no callback for writing MIDI data"));
-
-    p->MIDIoutDONE = 1;
-    retval = p->MidiOutOpenCallback(csound, &(p->midiOutUserData),
-                                            csound->oparms->Midioutname);
-    if (retval != 0) {
-      csoundDie(csound, Str(" *** error opening MIDI out device: %d (%s)"),
-                        retval, csoundExternalMidiErrorString(csound, retval));
+    /* open MIDI out device */
+    if (O->Midioutname != NULL && !p->MIDIoutDONE) {
+      if (p->MidiOutOpenCallback == NULL)
+        csoundDie(csound, Str(" *** no callback for opening MIDI output"));
+      if (p->MidiWriteCallback == NULL)
+        csoundDie(csound, Str(" *** no callback for writing MIDI data"));
+      p->MIDIoutDONE = 1;
+      retval = p->MidiOutOpenCallback(csound, &(p->midiOutUserData),
+                                              O->Midioutname);
+      if (retval != 0) {
+        csoundDie(csound,
+                  Str(" *** error opening MIDI out device: %d (%s)"),
+                  retval, csoundExternalMidiErrorString(csound, retval));
+      }
     }
+    /* open MIDI out file */
+    if (O->FMidioutname == NULL || p->midiOutFileData != NULL)
+      return;
+    fp = (midiOutFile_t *) csound->Calloc(csound, sizeof(midiOutFile_t));
+    fp->fd = csound->FileOpen(csound, &(fp->f), CSFILE_STD,
+                              O->FMidioutname, "wb", NULL);
+    if (fp->fd == NULL) {
+      csoundDie(csound, Str(" *** error opening MIDI out file '%s'"),
+                        O->FMidioutname);
+    }
+    csound->midiGlobals->midiOutFileData = (void*) fp;
+    /* write header */
+    fwrite(&(midiOutFile_header[0]), (size_t) 1, (size_t) 22, fp->f);
+}
+
+void csoundCloseMidiOutFile(CSOUND *csound)
+{
+    midiOutFile_t   *p = (midiOutFile_t *) csound->midiGlobals->midiOutFileData;
+
+    /* write end of track meta-event */
+    csoundWriteMidiOutFile(csound, (unsigned char) 0xFF,
+                           (unsigned char) 0x2F, (unsigned char) 0x00);
+    /* the above function call actually only writes the 0xFF byte */
+    fputc((int) 0x2F, p->f);
+    fputc((int) 0x00, p->f);
+    p->nBytes += (size_t) 2;
+    /* update header for track length */
+    fseek(p->f, 18L, SEEK_SET);
+    fputc((int) (p->nBytes >> 24) & 0xFF, p->f);
+    fputc((int) (p->nBytes >> 16) & 0xFF, p->f);
+    fputc((int) (p->nBytes >> 8) & 0xFF, p->f);
+    fputc((int) p->nBytes & 0xFF, p->f);
+    /* close file and clean up */
+    csound->midiGlobals->midiOutFileData = NULL;
+    csound->FileClose(csound, p->fd);
+    csound->Free(csound, p);
 }
 
