@@ -80,7 +80,7 @@ int     insert_score_event(CSOUND *, EVTBLK *, double);
 MEMFIL  *ldmemfile(CSOUND *, const char *);
 void    rlsmemfiles(CSOUND *);
 int     delete_memfile(CSOUND *, const char *);
-char    *mytmpnam(CSOUND *, char *);
+char    *csoundTmpFileName(CSOUND *, char *, const char *);
 void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
 int     getsndin(CSOUND *, void *, MYFLT *, int, void *);
 void    *sndgetset(CSOUND *, void *);
