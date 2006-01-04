@@ -208,28 +208,14 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         }
       }
       else
+#ifndef __MACH__
         O->filetyp = TYP_WAV;   /* default to WAV if even SFOUTYP is unset */
+#else
+        O->filetyp = TYP_AIFF;  /* ... or AIFF on the Mac */
+#endif
     }
     /* everything other than a raw sound file has a header */
     O->sfheader = (O->filetyp == TYP_RAW ? 0 : 1);
-
-    if (csound->scorename == NULL || strlen(csound->scorename) == 0) {
-      /* No scorename yet */
-      char *sconame = get_sconame(csound);
-      char *p;
-      FILE *scof;
-      mytmpnam(csound, sconame);              /* Generate score name */
-#ifndef __MACH__
-      if ((p = strchr(sconame, '.')) != NULL)
-        *p = '\0';                            /* with extention */
-#endif
-      strcat(sconame, ".sco");
-      scof = fopen(sconame, "w");
-      fprintf(scof, "f0 42000\n");
-      fclose(scof);
-      csound->scorename = sconame;
-      add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
-    }
     if (O->Linein || O->Midiin || O->FMidiin)
       O->RTevents = 1;
     if (!O->sfheader)
@@ -242,6 +228,21 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       O->outformat = AE_SHORT;              /*  default to short_ints */
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
     O->informat = O->outformat;             /* informat default */
+
+    if (csound->scorename == NULL || strlen(csound->scorename) == 0) {
+      /* No scorename yet */
+      char *sconame = get_sconame(csound);
+      FILE *scof;
+      if (O->RTevents)
+        csound->Message(csound, Str("realtime performance using dummy "
+                                    "numeric scorefile\n"));
+      csoundTmpFileName(csound, sconame, ".sco");   /* Generate score name */
+      scof = fopen(sconame, "w");
+      fprintf(scof, "f0 42000\n");
+      fclose(scof);
+      csound->scorename = sconame;
+      add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
+    }
     csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
     if (csound->scorename != NULL)
       csound->Message(csound, Str("scorename: %s\n"), csound->scorename);
@@ -259,23 +260,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (!csoundYield(csound))
       return -1;
     /* IV - Oct 31 2002: now we can read and sort the score */
-    if (csound->scorename == NULL || csound->scorename[0] == '\0') {
-      if (O->RTevents) {
-        csound->Message(csound, Str("realtime performance using dummy "
-                                    "numeric scorefile\n"));
-        goto perf;
-      }
-      else {
-        if (csound->keep_tmp) {
-          csound->scorename = "score.srt";
-        }
-        else {
-          char *scnm = csound->Calloc(csound, (size_t) 256);
-          csound->scorename = mytmpnam(csound, scnm);
-          add_tmpfile(csound, csound->scorename);       /* IV - Feb 03 2005 */
-        }
-      }
-    }
     if ((n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
         (!strcmp(csound->scorename + (n - 4), ".srt") ||
          !strcmp(csound->scorename + (n - 4), ".xtr"))) {
@@ -287,8 +271,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         playscore = sortedscore = "score.srt";
       }
       else {
-        char *nme = csound->Calloc(csound, (size_t) 256);
-        playscore = sortedscore = mytmpnam(csound, nme);
+        playscore = sortedscore = csoundTmpFileName(csound, NULL, ".srt");
         add_tmpfile(csound, playscore);         /* IV - Feb 03 2005 */
       }
       if (!(scorin = fopen(csound->scorename, "rb")))   /* else sort it   */
@@ -323,9 +306,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     strcpy(O->playscore, playscore);
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of score sort"));
- perf:
+
     /* open MIDI output (moved here from argdecode) */
-    if (O->Midioutname != NULL && O->Midioutname[0] != '\0')
+    if ((O->Midioutname != NULL && O->Midioutname[0] != '\0') ||
+        (O->FMidioutname != NULL && O->FMidioutname[0] != '\0'))
       openMIDIout(csound);
 
     return musmon(csound);

@@ -24,17 +24,21 @@
 #include "csoundCore.h"
 #include <ctype.h>
 #include <errno.h>
+#if defined(LINUX) || defined(__MACH__) || defined(WIN32)
+#  include <sys/types.h>
+#  include <sys/stat.h>
+#endif
 
 #define CSD_MAX_LINE_LEN    4096
 
 #ifdef WIN32
-#undef L_tmpnam
-#define L_tmpnam (200)
+#  undef L_tmpnam
+#  define L_tmpnam (200)
 #endif
 
 #ifndef TRUE
-#define TRUE (1)
-#define FALSE (0)
+#  define TRUE  (1)
+#  define FALSE (0)
 #endif
 
 typedef struct namelst {
@@ -53,23 +57,65 @@ typedef struct {
 
 #define ST(x)   (((ONE_FILE_GLOBALS*) csound->oneFileGlobals)->x)
 
-#ifdef WIN32
-char *mytmpnam(CSOUND *csound, char *a)
+CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
 {
-    char *dir = (char*) csoundGetEnv(csound, "SFDIR");
-    if (dir == NULL)
-      dir = (char*) csoundGetEnv(csound, "HOME");
-    dir = _tempnam(dir, "cs");
-    strcpy(a, dir);
-    free(dir);
-    return a;
-}
-#else
-char *mytmpnam(CSOUND *csound, char *a)
-{
-    return tmpnam(a);
-}
+    if (buf == NULL) {
+      size_t  nBytes = (size_t) (L_tmpnam);
+      if (ext != NULL && ext[0] != (char) 0)
+        nBytes += strlen(ext);
+      buf = csound->Malloc(csound, nBytes);
+    }
+    {
+#if defined(LINUX) || defined(__MACH__) || defined(WIN32)
+      struct stat tmp;
+      do {
 #endif
+#ifndef WIN32
+        if (tmpnam(buf) == NULL)
+          csound->Die(csound, Str(" *** cannot create temporary file"));
+#else
+        {
+          char  *s = (char*) csoundGetEnv(csound, "SFDIR");
+          if (s == NULL)
+            s = (char*) csoundGetEnv(csound, "HOME");
+          s = _tempnam(s, "cs");
+          if (s == NULL)
+            csound->Die(csound, Str(" *** cannot create temporary file"));
+          strcpy(buf, s);
+          free(s);
+        }
+#endif
+        if (ext != NULL && ext[0] != (char) 0) {
+#ifndef __MACH__
+          char  *p;
+          /* remove original extension (does not work on OS X */
+          /* and may be a bad idea) */
+          if ((p = strrchr(buf, '.')) != NULL)
+            *p = '\0';
+#endif
+          strcat(buf, ext);
+        }
+#ifdef __MACH__
+        /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
+        /* (suggested by Matt Ingalls) */
+        if (strncmp(buf, "/var/tmp/", 9) == 0) {
+          int i = 3;
+          do {
+            i++;
+            buf[i - 4] = buf[i];
+          } while (buf[i] != (char) 0);
+        }
+#endif
+#if defined(LINUX) || defined(__MACH__)
+        /* if the file already exists, try again */
+      } while (stat(buf, &tmp) == 0);
+#elif defined(WIN32)
+      } while (_stat(buf, &tmp) == 0);
+#endif
+    }
+
+    return buf;
+}
 
 static void alloc_globals(CSOUND *csound)
 {
@@ -217,12 +263,8 @@ static int createOrchestra(CSOUND *csound, FILE *unf)
     FILE  *orcf;
     void  *fd;
 
-    mytmpnam(csound, ST(orcname));            /* Generate orchestra name */
-#ifndef __MACH__
-    if ((p = strchr(ST(orcname), '.')) != NULL)
-      *p = '\0';                              /* with extention */
-#endif
-    strcat(ST(orcname), ".orc");
+    /* Generate orchestra name */
+    csoundTmpFileName(csound, ST(orcname), ".orc");
     fd = csoundFileOpen(csound, &orcf, CSFILE_STD, ST(orcname), "w", NULL);
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(orcname), orcf);
@@ -249,12 +291,8 @@ static int createScore(CSOUND *csound, FILE *unf)
     FILE  *scof;
     void  *fd;
 
-    mytmpnam(csound, ST(sconame));            /* Generate score name */
-#ifndef __MACH__
-    if ((p = strchr(ST(sconame), '.')) != NULL)
-      *p = '\0';                              /* with extention */
-#endif
-    strcat(ST(sconame), ".sco");
+    /* Generate score name */
+    csoundTmpFileName(csound, ST(sconame), ".sco");
     fd = csoundFileOpen(csound, &scof, CSFILE_STD, ST(sconame), "w", NULL);
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), ST(sconame), scof);
@@ -283,14 +321,8 @@ static int createMIDI(CSOUND *csound, FILE *unf)
     FILE  *midf;
     void  *fd;
 
-    if (mytmpnam(csound, ST(midname)) == NULL) {  /* Generate MIDI file name */
-      csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
-    }
-#ifndef __MACH__
-    if ((p = strchr(ST(midname), '.')) != NULL)
-      *p = '\0';                                  /* with extention */
-#endif
-    strcat(ST(midname), ".mid");
+    /* Generate MIDI file name */
+    csoundTmpFileName(csound, ST(midname), ".mid");
     fd = csoundFileOpen(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL);
     if (fd == NULL) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
@@ -372,14 +404,8 @@ static int createMIDI2(CSOUND *csound, FILE *unf)
     FILE  *midf;
     void  *fd;
 
-    if (mytmpnam(csound, ST(midname)) == NULL) {  /* Generate MIDI file name */
-      csoundDie(csound, Str("Cannot create temporary file for MIDI subfile"));
-    }
-#ifndef __MACH__
-    if ((p = strchr(ST(midname), '.')) != NULL)
-      *p = '\0';                                  /* with extention */
-#endif
-    strcat(ST(midname), ".mid");
+    /* Generate MIDI file name */
+    csoundTmpFileName(csound, ST(midname), ".mid");
     fd = csoundFileOpen(csound, &midf, CSFILE_STD, ST(midname), "wb", NULL);
     if (fd == NULL) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
