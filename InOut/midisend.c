@@ -40,17 +40,22 @@ static const unsigned char midiMsgBytes[32] = {
 
 /* header for type 0 (1 track) MIDI file with 1/3 ms time resolution */
 
-static const unsigned char midiOutFile_header[22] = {
-    0x4D, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06,
-    0x00, 0x00, 0x00, 0x01, 0xE7, 0x78, 0x4D, 0x54,
-    0x72, 0x6B, 0x00, 0x00, 0x00, 0x00
+static const unsigned char midiOutFile_header[25] = {
+    0x4D, 0x54, 0x68, 0x64,     /* "MThd"                       */
+    0x00, 0x00, 0x00, 0x06,     /* header length                */
+    0x00, 0x00,                 /* file type                    */
+    0x00, 0x01,                 /* number of tracks             */
+    0xE7, 0x78,                 /* tick time (1/25 sec / 120)   */
+    0x4D, 0x54, 0x72, 0x6B,     /* "MTrk"                       */
+    0x00, 0x00, 0x00, 0x00,     /* track length (updated later) */
+    /* -------------------------------------------------------- */
+    0xFF, 0x2F, 0x00            /* end of track                 */
 };
 
 /* write a single event to MIDI out file */
 
 static CS_NOINLINE void
-    csoundWriteMidiOutFile(CSOUND *csound,
-                           unsigned char st, unsigned char d1, unsigned char d2)
+    csoundWriteMidiOutFile(CSOUND *csound, const unsigned char *evt, int nbytes)
 {
     unsigned char   buf[8];
     double          s;
@@ -84,18 +89,19 @@ static CS_NOINLINE void
                    | (unsigned char) 0x80;
     }
     buf[ndx++] = (unsigned char) t & (unsigned char) 0x7F;
-    if (st != p->prv_status) {
-      buf[ndx++] = st;
-      if ((st ^ (unsigned char) 0x80) < (unsigned char) 0x70)
-        p->prv_status = st;
+    {
+      unsigned char st = *evt;
+      if (st != p->prv_status) {
+        buf[ndx++] = st;
+        p->prv_status = (st < (unsigned char) 0xF0 ? st : (unsigned char) 0);
+      }
     }
-    if (midiMsgBytes[st >> 3] > (unsigned char) 1) {
-      buf[ndx++] = d1;
-      if (midiMsgBytes[st >> 3] > (unsigned char) 2)
-        buf[ndx++] = d2;
-    }
-    fwrite(&(buf[0]), (size_t) 1, (size_t) ndx, p->f);
+    if (--nbytes)
+      buf[ndx++] = *(++evt);
+    if (--nbytes)
+      buf[ndx++] = *(++evt);
     p->nBytes += (size_t) ndx;
+    fwrite(&(buf[0]), (size_t) 1, (size_t) ndx, p->f);
 }
 
 void send_midi_message(CSOUND *csound, int status, int data1, int data2)
@@ -113,8 +119,7 @@ void send_midi_message(CSOUND *csound, int status, int data1, int data2)
     if (csound->oparms_.Midioutname != NULL)
       p->MidiWriteCallback(csound, p->midiOutUserData, &(buf[0]), (int) nbytes);
     if (p->midiOutFileData != NULL)
-      csoundWriteMidiOutFile(csound, (unsigned char) status,
-                             (unsigned char) data1, (unsigned char) data2);
+      csoundWriteMidiOutFile(csound, &(buf[0]), (int) nbytes);
 }
 
 void note_on(CSOUND *csound, int chan, int num, int vel)
@@ -184,7 +189,7 @@ void openMIDIout(CSOUND *csound)
       csoundDie(csound, Str(" *** error opening MIDI out file '%s'"),
                         O->FMidioutname);
     }
-    csound->midiGlobals->midiOutFileData = (void*) fp;
+    p->midiOutFileData = (void *) fp;
     /* write header */
     fwrite(&(midiOutFile_header[0]), (size_t) 1, (size_t) 22, fp->f);
 }
@@ -194,12 +199,7 @@ void csoundCloseMidiOutFile(CSOUND *csound)
     midiOutFile_t   *p = (midiOutFile_t *) csound->midiGlobals->midiOutFileData;
 
     /* write end of track meta-event */
-    csoundWriteMidiOutFile(csound, (unsigned char) 0xFF,
-                           (unsigned char) 0x2F, (unsigned char) 0x00);
-    /* the above function call actually only writes the 0xFF byte */
-    fputc((int) 0x2F, p->f);
-    fputc((int) 0x00, p->f);
-    p->nBytes += (size_t) 2;
+    csoundWriteMidiOutFile(csound, &(midiOutFile_header[22]), 3);
     /* update header for track length */
     fseek(p->f, 18L, SEEK_SET);
     fputc((int) (p->nBytes >> 24) & 0xFF, p->f);
