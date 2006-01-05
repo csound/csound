@@ -1,0 +1,1 @@
+-d -m135 -H0 -s -W -o dac -+rtaudio=pa -b 128 -B 2048 --expression-opt
