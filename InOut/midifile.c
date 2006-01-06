@@ -168,9 +168,7 @@ static int alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *data,
     tmp = &(MF(eventList)[MF(nEvents)]);
     MF(nEvents)++;
     tmp->kcnt = kcnt;
-#ifdef never
-    tmp->data = data;   /* not used yet */
-#endif
+ /* tmp->data = data; */        /* not used yet */
     tmp->st = (unsigned char) st;
     tmp->d1 = (unsigned char) d1;
     tmp->d2 = (unsigned char) d2;
