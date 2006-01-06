@@ -704,6 +704,7 @@ public:
     return csoundCreateConfigurationVariable(csound, name, p, type, flags,
                                              min, max, shortDesc, longDesc);
   }
+#if 0
   virtual int CopyGlobalConfigurationVariable(const char *name, void *p)
   {
     return csoundCopyGlobalConfigurationVariable(csound, name, p);
@@ -712,6 +713,7 @@ public:
   {
     return csoundCopyGlobalConfigurationVariables(csound);
   }
+#endif
   virtual int SetConfigurationVariable(const char *name, void *value)
   {
     return csoundSetConfigurationVariable(csound, name, value);

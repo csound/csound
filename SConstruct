@@ -617,7 +617,6 @@ Top/main.c
 Top/new_opts.c
 Top/one_file.c
 Top/opcode.c
-Top/scot.c
 Top/threads.c
 Top/utility.c
 ''')
@@ -1144,7 +1143,7 @@ executables.append(commonEnvironment.Program('makecsd',
 #executables.append(csoundProgramEnvironment.Program('pv_import',
 #    ['util2/exports/pv_import.c']))
 #executables.append(csoundProgramEnvironment.Program('scot',
-#    ['util1/scot/scot_main.c']))
+#    ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
 #executables.append(csoundProgramEnvironment.Program('sdif2ad',
 #    ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 

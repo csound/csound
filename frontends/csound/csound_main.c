@@ -114,7 +114,9 @@ int main(int argc, char **argv)
     if (logFile != NULL)
       fclose(logFile);
     /* remove global configuration variables, if there are any */
+#if 0
     csoundDeleteAllGlobalConfigurationVariables();
+#endif
 
     return (result >= 0 ? 0 : result);
 }

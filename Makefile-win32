@@ -63,8 +63,7 @@ CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		OOps/vpvoc.o Top/argdecode.o Top/cscore_internal.o	\
 		Top/cscorfns.o Top/csmodule.o Top/csound.o		\
 		Top/getstring.o Top/main.o Top/new_opts.o		\
-		Top/one_file.o Top/opcode.o Top/scot.o Top/threads.o	\
-		Top/utility.o
+		Top/one_file.o Top/opcode.o Top/threads.o Top/utility.o
 
 $(CSOUNDLIB): $(CSOUNDLIB_OBJ)
 	$(CXX) -O2 -shared -Wl,--output-def,$(subst .dll,.def,$(CSOUNDLIB)) -o $@ $^ $(LDFLAGS) $(LIBS)
