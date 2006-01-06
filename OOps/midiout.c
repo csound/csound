@@ -392,19 +392,21 @@ int out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
 
 int out_pitch_bend(CSOUND *csound, OUT_PB *p)
 {
-    if (!(p->h.insdshead->prvinstance)) {
+    if (p->h.insdshead->prvinstance) {
       /* if prev instance already allocated in the same MIDI chan */
-      int value;
+      return OK;
+    }
+    else {
+      int   value;
       MYFLT min = *p->min;
-      if (p->h.insdshead->prvinstance != NULL)
-        return OK; /* if prev instance already allocated in the same MIDI chn */
-      value = (int)((*p->value - min) * 16383. / (*p->max - min));
-      value = value < 16384  ?  value : 16383;
-      value = value > -1     ?  value : 0;
+
+      value = (int) ((*p->value - min) * 16383.0 / (*p->max - min));
+      value = (value < 16384  ?  value : 16383);
+      value = (value > -1     ?  value : 0);
       if (value != p->last_value) {
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
-        pitch_bend(csound, (int) *p->chn-1, msb, lsb);
+        pitch_bend(csound, (int) *p->chn - 1, lsb, msb);
         p->last_value = value;
       }
     }

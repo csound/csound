@@ -443,57 +443,60 @@ static int fluidControl_kontrol(CSOUND *csound, FLUIDCONTROL *p)
         midiStatus != p->priorMidiStatus) {
       fluid_synth_t *fluidEngine = p->fluidEngine;
       int           printMsgs = ((csound->oparms->msglevel & 7) == 7 ? 1 : 0);
+
       switch (midiStatus) {
       case (int) 0x80:
+ noteOff:
         fluid_synth_noteoff(fluidEngine, midiChannel, midiData1);
         if (printMsgs)
-          csound->Message(csound, "Note off:   s:%3d c:%3d k:%3d\n",
-                          midiStatus, midiChannel, midiData1);
+          csound->Message(csound, "Note off:       c:%3d k:%3d\n",
+                                  midiChannel, midiData1);
         break;
       case (int) 0x90:
-        if (midiData2)
-          fluid_synth_noteon(fluidEngine, midiChannel, midiData1, midiData2);
-        else
-          fluid_synth_noteoff(fluidEngine, midiChannel, midiData1);
+        if (!midiData2)
+          goto noteOff;
+        fluid_synth_noteon(fluidEngine, midiChannel, midiData1, midiData2);
         if (printMsgs)
-          csound->Message(csound, "Note on:    s:%3d c:%3d k:%3d v:%3d\n",
-                          midiStatus, midiChannel, midiData1, midiData2);
+          csound->Message(csound, "Note on:        c:%3d k:%3d v:%3d\n",
+                                  midiChannel, midiData1, midiData2);
         break;
       case (int) 0xA0:
         if (printMsgs)
           csound->Message(csound, "Key pressure (not handled): "
-                                  "s:%3d c:%3d k:%3d v:%3d\n",
-                          midiStatus, midiChannel, midiData1, midiData2);
+                                  "c:%3d k:%3d v:%3d\n",
+                                  midiChannel, midiData1, midiData2);
         break;
       case (int) 0xB0:
         fluid_synth_cc(fluidEngine, midiChannel, midiData1, midiData2);
         if (printMsgs)
-          csound->Message(csound, "Control change: s:%3d c:%3d c:%3d v:%3d\n",
-                          midiStatus, midiChannel, midiData1, midiData2);
+          csound->Message(csound, "Control change: c:%3d c:%3d v:%3d\n",
+                                  midiChannel, midiData1, midiData2);
         break;
       case (int) 0xC0:
         fluid_synth_program_change(fluidEngine, midiChannel, midiData1);
         if (printMsgs)
-          csound->Message(csound, "Program change: s:%3d c:%3d p:%3d\n",
-                          midiStatus, midiChannel, midiData1);
+          csound->Message(csound, "Program change: c:%3d p:%3d\n",
+                                  midiChannel, midiData1);
         break;
       case (int) 0xD0:
         if (printMsgs)
-          csound->Message(csound, "After touch (not handled): "
-                                  "s:%3d c:%3d k:%3d v:%3d\n",
-                          midiStatus, midiChannel, midiData1, midiData2);
+          csound->Message(csound, "After touch (not handled): c:%3d v:%3d\n",
+                                  midiChannel, midiData1);
         break;
       case (int) 0xE0:
-        fluid_synth_pitch_bend(fluidEngine, midiChannel, midiData1);
-        if (printMsgs)
-          csound->Message(csound, "Pitch bend: s:%d c:%d b:%d\n",
-                          midiStatus, midiChannel, midiData1);
+        {
+          int pbVal = midiData1 + (midiData2 << 7);
+          fluid_synth_pitch_bend(fluidEngine, midiChannel, pbVal);
+          if (printMsgs)
+            csound->Message(csound, "Pitch bend:     c:%d b:%d\n",
+                                    midiChannel, pbVal);
+        }
         break;
       case (int) 0xF0:
         if (printMsgs)
           csound->Message(csound, "System exclusive (not handled): "
-                                  "c:%3d k:%3d v1:%3d v2:%3d\n",
-                          midiStatus, midiChannel, midiData1, midiData2);
+                                  "c:%3d v1:%3d v2:%3d\n",
+                                  midiChannel, midiData1, midiData2);
         break;
       }
       p->priorMidiStatus = midiStatus;
