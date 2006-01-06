@@ -238,10 +238,11 @@ static void linocts(DOWNDAT *dwnp, MYFLT *bufp)
     }
 }
 
-static MYFLT bicoefs[] =
-    { -FL(0.2674054), FL(0.7491305), FL(0.7160484), FL(0.0496285), FL(0.7160484),
-      FL(0.0505247), FL(0.3514850), FL(0.5257536), FL(0.3505025), FL(0.5257536),
-      FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)};
+static const MYFLT bicoefs[] = {
+   -FL(0.2674054), FL(0.7491305), FL(0.7160484), FL(0.0496285), FL(0.7160484),
+    FL(0.0505247), FL(0.3514850), FL(0.5257536), FL(0.3505025), FL(0.5257536),
+    FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)
+};
 
 int spectrum(CSOUND *csound, SPECTRUM *p)
 {
@@ -257,8 +258,9 @@ int spectrum(CSOUND *csound, SPECTRUM *p)
       octp = downp->octdata;                /*   align onto top octave     */
       nocts = downp->nocts;
       do {                                  /*   then for each oct:        */
-        MYFLT *coefp,*ytp,*curp;
-        int   nfilt;
+        const MYFLT *coefp;
+        MYFLT       *ytp, *curp;
+        int         nfilt;
         curp = octp->curp;
         *curp++ = SIG;                      /*  write samp to cur buf  */
         if (curp >= octp->endp)
