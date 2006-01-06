@@ -39,7 +39,9 @@ extern const unsigned char strhash_tabl_8[256];
 
 /* the global database */
 
+#if 0
 static  void    **global_cfg_db = NULL;
+#endif
 
 /* list of error messages */
 
@@ -273,6 +275,7 @@ static int cfg_alloc_structure(csCfgVariable_t **ptr,
  *            had unknown bits set
  */
 
+#if 0
 PUBLIC
 int csoundCreateGlobalConfigurationVariable(const char *name,
                                             void *p, int type, int flags,
@@ -309,6 +312,7 @@ int csoundCreateGlobalConfigurationVariable(const char *name,
     /* report success */
     return CSOUNDCFG_SUCCESS;
 }
+#endif
 
 /**
  * This function is similar to csoundCreateGlobalConfigurationVariable(),
@@ -358,6 +362,7 @@ PUBLIC int
 
 /* returns non-zero if x and y are equal within maxerr error */
 
+#if 0
 static int compare_floats(double x, double y, double maxerr)
 {
     /* trivial case */
@@ -378,11 +383,13 @@ static int compare_floats(double x, double y, double maxerr)
       return 1;
     return 0;
 }
+#endif
 
 /* Test if two existing configuration variables are compatible, that is, */
 /* they have the same type, flags, descriptions, and limit values. */
 /* Return value is non-zero if the two variables are compatible. */
 
+#if 0
 static int are_cfgvars_compatible(csCfgVariable_t *p1, csCfgVariable_t *p2)
 {
     if (p1->h.type != p2->h.type || p1->h.flags != p2->h.flags)
@@ -436,6 +443,7 @@ static int are_cfgvars_compatible(csCfgVariable_t *p1, csCfgVariable_t *p2)
     }
     return 1;
 }
+#endif
 
 /**
  * Copy a global configuration variable to a Csound instance.
@@ -443,6 +451,7 @@ static int are_cfgvars_compatible(csCfgVariable_t *p1, csCfgVariable_t *p2)
  * future releases of the Csound library.
  */
 
+#if 0
 PUBLIC int csoundCopyGlobalConfigurationVariable(CSOUND *csound,
                                                  const char *name,
                                                  void *p)
@@ -525,6 +534,7 @@ PUBLIC int csoundCopyGlobalConfigurationVariable(CSOUND *csound,
     /* report success */
     return CSOUNDCFG_SUCCESS;
 }
+#endif
 
 /**
  * Copy all global configuration variables to the specified Csound instance.
@@ -532,6 +542,7 @@ PUBLIC int csoundCopyGlobalConfigurationVariable(CSOUND *csound,
  * future releases of the Csound library.
  */
 
+#if 0
 PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound)
 {
     csCfgVariable_t *pp, *lp;
@@ -595,6 +606,7 @@ PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound)
     }
     return retval;
 }
+#endif
 
 /* set configuration variable to value (with error checking) */
 
@@ -671,6 +683,7 @@ static int set_cfgvariable_value(csCfgVariable_t *pp, void *value)
  *            the specified value was invalid in some way
  */
 
+#if 0
 PUBLIC int csoundSetGlobalConfigurationVariable(const char *name, void *value)
 {
     csCfgVariable_t *pp;
@@ -681,6 +694,7 @@ PUBLIC int csoundSetGlobalConfigurationVariable(const char *name, void *value)
       return CSOUNDCFG_INVALID_NAME;    /* not found */
     return (set_cfgvariable_value(pp, value));
 }
+#endif
 
 /**
  * Set the value of a configuration variable of Csound instance 'csound'.
@@ -768,6 +782,7 @@ static int parse_cfg_variable(csCfgVariable_t *pp, const char *value)
  *            the specified value was invalid in some way
  */
 
+#if 0
 PUBLIC int
   csoundParseGlobalConfigurationVariable(const char *name, const char *value)
 {
@@ -779,6 +794,7 @@ PUBLIC int
       return CSOUNDCFG_INVALID_NAME;    /* not found */
     return (parse_cfg_variable(pp, value));
 }
+#endif
 
 /**
  * Set the value of a configuration variable of Csound instance 'csound',
@@ -830,11 +846,13 @@ static csCfgVariable_t *find_cfg_variable(void **db, const char *name)
  * The return value may be NULL if the variable is not found in the database.
  */
 
+#if 0
 PUBLIC csCfgVariable_t
   *csoundQueryGlobalConfigurationVariable(const char *name)
 {
     return find_cfg_variable(global_cfg_db, name);
 }
+#endif
 
 /**
  * Return pointer to the configuration variable of Csound instace 'csound'
@@ -906,10 +924,12 @@ static csCfgVariable_t **list_db_entries(void **db)
  * should not be freed.
  */
 
+#if 0
 PUBLIC csCfgVariable_t **csoundListGlobalConfigurationVariables(void)
 {
     return (list_db_entries(global_cfg_db));
 }
+#endif
 
 /**
  * Create an alphabetically sorted list of all configuration variables
@@ -975,10 +995,12 @@ static int remove_entry_from_db(void **db, const char *name)
  * CSOUNDCFG_INVALID_NAME if the variable was not found.
  */
 
+#if 0
 PUBLIC int csoundDeleteGlobalConfigurationVariable(const char *name)
 {
     return (remove_entry_from_db(global_cfg_db, name));
 }
+#endif
 
 /**
  * Remove the configuration variable of Csound instance 'csound' with the
@@ -1020,6 +1042,7 @@ static int destroy_entire_db(void **db)
  * Return value is CSOUNDCFG_SUCCESS in case of success.
  */
 
+#if 0
 PUBLIC int csoundDeleteAllGlobalConfigurationVariables(void)
 {
     int retval;
@@ -1027,6 +1050,7 @@ PUBLIC int csoundDeleteAllGlobalConfigurationVariables(void)
     global_cfg_db = NULL;
     return retval;
 }
+#endif
 
 /**
  * Remove all configuration variables of Csound instance 'csound'

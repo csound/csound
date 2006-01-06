@@ -204,12 +204,14 @@ typedef union csCfgVariable_u {
    *            an invalid variable type was specified, or the flags value
    *            had unknown bits set
    */
+#if 0
   PUBLIC int
     csoundCreateGlobalConfigurationVariable(const char *name,
                                             void *p, int type, int flags,
                                             void *min, void *max,
                                             const char *shortDesc,
                                             const char *longDesc);
+#endif
 
   /**
    * This function is similar to csoundCreateGlobalConfigurationVariable(),
@@ -231,15 +233,19 @@ typedef union csCfgVariable_u {
    * This function is experimental and may be subject to changes in
    * future releases of the Csound library.
    */
+#if 0
   PUBLIC int csoundCopyGlobalConfigurationVariable(CSOUND *csound,
                                                    const char *name, void *p);
+#endif
 
   /**
    * Copy all global configuration variables to the specified Csound instance.
    * This function is experimental and may be subject to changes in
    * future releases of the Csound library.
    */
+#if 0
   PUBLIC int csoundCopyGlobalConfigurationVariables(CSOUND *csound);
+#endif
 
   /**
    * Set the value of a global configuration variable; should be called by the
@@ -260,8 +266,10 @@ typedef union csCfgVariable_u {
    *   CSOUNDCFG_STRING_LENGTH
    *            the specified value was invalid in some way
    */
+#if 0
   PUBLIC int csoundSetGlobalConfigurationVariable(const char *name,
                                                   void *value);
+#endif
 
   /**
    * Set the value of a configuration variable of Csound instance 'csound'.
@@ -290,8 +298,10 @@ typedef union csCfgVariable_u {
    *   CSOUNDCFG_STRING_LENGTH
    *            the specified value was invalid in some way
    */
+#if 0
   PUBLIC int csoundParseGlobalConfigurationVariable(const char *name,
                                                     const char *value);
+#endif
 
   /**
    * Set the value of a configuration variable of Csound instance 'csound',
@@ -307,8 +317,10 @@ typedef union csCfgVariable_u {
    * name.
    * The return value may be NULL if the variable is not found in the database.
    */
+#if 0
   PUBLIC csCfgVariable_t
     *csoundQueryGlobalConfigurationVariable(const char *name);
+#endif
 
   /**
    * Return pointer to the configuration variable of Csound instace 'csound'
@@ -326,7 +338,9 @@ typedef union csCfgVariable_u {
    * csoundDeleteCfgVarList(), however, the variable pointers in the list
    * should not be freed.
    */
+#if 0
   PUBLIC csCfgVariable_t **csoundListGlobalConfigurationVariables(void);
+#endif
 
   /**
    * Create an alphabetically sorted list of all configuration variables
@@ -353,7 +367,9 @@ typedef union csCfgVariable_u {
    * Return value is CSOUNDCFG_SUCCESS in case of success, or
    * CSOUNDCFG_INVALID_NAME if the variable was not found.
    */
+#if 0
   PUBLIC int csoundDeleteGlobalConfigurationVariable(const char *name);
+#endif
 
   /**
    * Remove the configuration variable of Csound instance 'csound' with the
@@ -371,7 +387,9 @@ typedef union csCfgVariable_u {
    * Csound library or plugins.
    * Return value is CSOUNDCFG_SUCCESS in case of success.
    */
+#if 0
   PUBLIC int csoundDeleteAllGlobalConfigurationVariables(void);
+#endif
 
   /**
    * Returns pointer to an error string constant for the specified
