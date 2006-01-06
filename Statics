@@ -1,5 +1,3 @@
-Engine/cfgvar.c:static  void    **global_cfg_db = NULL;
-
 Opcodes/fm4op.c:static int      FM_tabs_built = 0;
 Opcodes/fm4op.c:static MYFLT    FM4Op_gains[100];
 Opcodes/fm4op.c:static MYFLT    FM4Op_susLevels[16];
@@ -13,10 +11,6 @@ Opcodes/sfont.c:static SHORT *sampleBase[MAX_SFPRESET];
 Opcodes/sfont.c:static MYFLT pitches[128];
 Opcodes/sfont.c:static char *Gfname;
 Opcodes/sfont.c:static void
-
-Opcodes/singwave.c:static int step = 0;
-
-Opcodes/spectra.c:static MYFLT bicoefs[] =
 
 SDIF/sdif.c:static char *error_string_array[] = {
 SDIF/sdif.c:    static int id;
@@ -40,12 +34,4 @@ Top/cscorfns.c:static void
 Top/csmodule.c:    static char errstr[ERR_STR_LEN];
 Top/csmodule.c:    static int err_filled = 0;
 Top/csmodule.c:    static int (*make_private_module_public) (NSModule module) = NULL;
-
-Top/scot.c:static char curline[MAXLINE+1]; /* current line of infile */
-Top/scot.c:static int inx,                 /* column # */
-Top/scot.c:static FILE *infile,*outfile;
-Top/scot.c:static char *infilename;
-Top/scot.c:static int naturals[PITCHCLASSES]={0,2,4,5,7,9,11};
-Top/scot.c:static Macro *gmac;             /* global macro list */
-Top/scot.c:    static Rat durdiv={4L,1L};
 
