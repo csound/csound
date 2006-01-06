@@ -287,7 +287,6 @@ static void voicprint(CSOUND *csound, VOICF *p)
 }
 #endif
 
-static int step = 0;
 static void make_FormSwep(FormSwep *p)
 {
     p->poleCoeffs[0] = p->poleCoeffs[1] = FL(0.0);
@@ -349,7 +348,6 @@ int voicformset(CSOUND *csound, VOICF *p)
     p->basef = *p->frequency;
     SingWave_setFreq(csound, &p->voiced, p->basef);
 /*  voicprint(csound, p); */
-    step = 1;
     return OK;
 }
 
