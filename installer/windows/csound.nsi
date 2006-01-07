@@ -530,7 +530,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$MUI_TEMP\Overview.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
-  Delete "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\CsoundAPI.pdf"
+  Delete "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" 
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
   
   ;Delete empty start menu parent diretories
