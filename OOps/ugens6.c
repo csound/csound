@@ -292,7 +292,7 @@ int delwset(CSOUND *csound, DELAYW *p)
 static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
 {
     DELAYR  *d = (DELAYR*) csound->first_delayr;
-    int     n = (int) (*ndx + (*ndx < FL(0.0) ? FL(-0.5) : FL(0.5)));
+    int     n = (int) MYFLT2LRND(*ndx);
 
     if (d == NULL) {
       csound->InitError(csound, Str("deltap: associated delayr not found"));
