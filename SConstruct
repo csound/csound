@@ -1135,6 +1135,8 @@ executables.append(commonEnvironment.Program('csb64enc',
     ['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
 executables.append(commonEnvironment.Program('makecsd',
     ['util1/csd_util/base64.c', 'util1/csd_util/makecsd.c']))
+executables.append(commonEnvironment.Program('scot',
+    ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
 
 #executables.append(csoundProgramEnvironment.Program('cscore',
 #    ['util1/cscore/cscore_main.c']))
@@ -1142,8 +1144,6 @@ executables.append(commonEnvironment.Program('makecsd',
 #    ['util2/exports/pv_export.c']))
 #executables.append(csoundProgramEnvironment.Program('pv_import',
 #    ['util2/exports/pv_import.c']))
-#executables.append(csoundProgramEnvironment.Program('scot',
-#    ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
 #executables.append(csoundProgramEnvironment.Program('sdif2ad',
 #    ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
