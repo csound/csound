@@ -1,13 +1,11 @@
-BUILDING CSOUND 5
-Michael Gogins
-18 October 2005
+BUILDING CSOUND 5 Michael Gogins 18 October 2005
 
 The main build system for Csound 5 uses SCons. Its use is briefly described here. Csound has become a complex project and can involve many dependencies. Unless you are a Csound developer or need to develop Csound plugins, you should try to use one of the precompiled distributions from http://sourceforge.net/projects/csound.
 
 All Csound 5 builds require the following:
 
-1. On Linux, install gcc; on Windows, install MinGW with MSYS, or install MSVC; on OS X, install the latest XCode development system.
-2. Install Python from http://www.python.org. Note that on Windows, if you have installed both MinGW and MSVC, it is best to use batch files to set up a separate environment for each compiler that does not refer to any header, library, DLL, or executable of the other compiler.
+1. On Linux, install gcc; on Windows, install MSYS then update it then install MingW then update it, or install MSVC; on OS X, install the latest XCode development system.
+2. Install Python from http://www.python.org. Note that on Windows, if you have installed both MinGW and MSVC, it is best to use batch files to set up a separate environment for each compiler that does not refer to any header, library, DLL, or executable of the other compiler. On Windows, with Python 2.4 and later, Csound will link directly with the Python DLL. Earlier versions of the Python DLL will require a MinGW import library that the Csound build system should create.
 3. Install SCons from http://www.scons.org.
 4. For building a minimal version of Csound 5 (API library compiled as DLL, plugin libraries, and command line frontend) on Windows with MinGW/MSYS, you may alternatively edit and use Makefile-win32, eliminating the dependencies on Python and SCons.
 5. Install libdsndfile from http://www.mega-nerd.com/libsndfile.
@@ -23,7 +21,9 @@ Optional configurations can include the following. In most cases it is best to i
 10. The fluid opcodes require the Fluidsynth library from http://savannah.nongnu.org/download/fluid.
 11. The STK opcodes require STK source code from http://ccrma.stanford.edu/software/stk, copied into csound5/Opcodes/stk.
 12. The Loris opcodes require Loris source code from http://sourceforge.net/projects/loris, copied into csound5/Opcodes/Loris.
-13. The OSC opcodes require the latest version of the liblo library from http://plugin.org.uk/liblo/.
+13. The OSC opcodes require the latest version of the liblo library from http://plugin.org.uk/liblo/. On Windows with MSYS/MinGW, the following build script works:
+
+
 
 Execute "scons -h" to discover the current configuration options.
 
@@ -31,6 +31,9 @@ Modify custom.py as required for your installation (usually required on Windows,
 
 Execute "scons" with the options you desire.
 
-14. To install on Linux, execute "scons install" or "./install.sh". To install on Windows, use the NSIS installer from http://nsis.sourceforge.net and run csound5/installer/windows/csound.nsi.
-15. Set the environment variable OPCODEDIR to the directory where plugin libraries are installed; in the case of a double precision build, OPCODEDIR64 should be set instead.
+To install on Linux, execute "scons install" or "./install.sh". 
+
+To create a Windows installer, use the NSIS installer from http://nsis.sourceforge.net and run csound5/installer/windows/csound.nsi.
+
+Set the environment variable OPCODEDIR to the directory where plugin libraries are installed; in the case of a double precision build, OPCODEDIR64 should be set instead. The NSIS installer performs this step.
 

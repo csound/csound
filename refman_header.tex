@@ -90,15 +90,17 @@ The Csound Application Programming Interface (API) reference is contained in the
 
 \begin{itemize}
 
-\item \emph{The Csound C API.} Include \texttt{csound.h} (page \pageref{csound_8h}) and link with \texttt{libcsound.a}.
+\item \emph{The basic Csound C API.} Include \texttt{csound.h} (page \pageref{csound_8h}) and link with \texttt{libcsound.a}.
 
-\item \emph{The CsoundVST C API}. Include \texttt{csoundvst\_api.h} (page \pageref{csoundvst__api_8h}) and link with \verb|libCsoundVST.a|.
+\item \emph{The basic Csound C++ API.} Include \texttt{csound.hpp} (page \pageref{csound_8hpp}) and link with \texttt{libcsound.a}.
 
-\item \emph{The CsoundVST C++ API.} Include \texttt{CsoundVST.hpp} (page \pageref{CsoundVST_8hpp}) and link with \verb|libCsoundVST.a|. The \texttt{CsoundVST} class (\ref{classCsoundVST}) contains an instance of the \texttt{CppSound} class (\ref{classCppSound}), which provides a C++ wrapper for the C API as well as the CsoundFile class (\ref{classCsoundFile}) for loading, saving, and editing Csound orchestra and score files, and a basic graphical user interface for editing Csound files and running Csound. 
+\item \emph{The CsoundVST C++ API.} Include \texttt{CsoundVST.hpp} (page \pageref{CsoundVST_8hpp}) and link with \verb|libCsoundVST.a|. The \texttt{CsoundVST} class (\ref{classCsoundVST}) contains an instance of the \texttt{CppSound} class (\ref{classCppSound}), which adds to the Csound C++ API a CsoundFile class (\ref{classCsoundFile}) for loading, saving, and editing Csound orchestra and score files, and a basic graphical user interface for editing Csound files and running Csound. This also provides a class hierarchy for doing algorithmic composition using Michael Gogins' concept of music graphs (also known as Silence).
 
-The C++ API also provides a class hierarchy for doing algorithmic composition using Michael Gogins' concept of music graphs.
+\item \emph{The Csound Python API.} Import the \texttt{csnd} Python extension module. This provides a complete Python wrapper for \texttt{csound.hpp} (page \pageref{csound_8hpp}), \texttt{CppSound} (\ref{classCppSound}), and \texttt{CsoundFile} (\ref{classCsoundFile}). The Python API provides a complete Python wrapper for the entire Csound C++ API, and the Csound C++ API reference also serves as a reference to the Python API.
 
-\item \emph{The CsoundVST Python API.} Import the \texttt{CsoundVST} Python extension module. Because the Python API provides a complete Python wrapper for the entire C++ API, the C++ API reference also serves as a reference to the Python API.
+\item \emph{The CsoundVST Python API.} Import the \texttt{CsoundVST} Python extension module. The Python API provides a complete Python wrapper for the entire CsoundVST C++ API, including Silence, and the CsoundVST C++ API reference also serves as a reference to the Python API.
+
+\item \emph{An experimental LISP API.} 
 
 \end{itemize}
 
