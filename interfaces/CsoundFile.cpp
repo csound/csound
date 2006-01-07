@@ -1017,7 +1017,7 @@ bool CsoundFile::loadOrcLibrary(const char *filename)
       return true;
     }
   return false;
-};
+}
 
 std::string CsoundFile::generateFilename()
 {
