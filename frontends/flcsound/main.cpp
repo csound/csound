@@ -37,13 +37,11 @@
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/Fl_Box.H>
+#include "csound.h"
 #include "curve.hpp"
 #include "synthesizer.hpp"
 #include "canvas.hpp"
 #include "plots.hpp"
-#if defined HAVE_CONFIG_H
-#  include "csound/config.h"
-#endif
 #if defined HAVE_XCREATEBITMAPFROMDATA
 #  include "flcsound.xbm"
 #endif
@@ -464,7 +462,7 @@ void Main::about(Fl_Widget *w)
              "It was built without multithreading support.\n"
 #endif
              "Select a CSD file and run with it.",
-             PACKAGE_STRING,
+             CS_PACKAGE_STRING,
              Synthesizer::get_version().c_str());
 }
 
