@@ -1,5 +1,5 @@
 CSOUND AND CSOUND VST
-Version 5.0beta
+Version 5.0rc2
 
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
@@ -25,13 +25,13 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 INSTALLATION
 
-See the Csound documentation at csounds.com for more information,
-or go to http://sourceforge.net/projects/csound.
+See the Csound documentation in the doc directory,
+or go to http://csounds.com or http://sourceforge.net/projects/csound.
 
 HELP
 
-This version of Csound is programmable in Python, and scores can be
-generated in Python. See the Csound documentation for more information.
+This version of Csound is programmable in Python, Java, and LISP, and scores can be
+generated in these languages. See the Csound documentation for more information.
 
 CONTRIBUTORS
 

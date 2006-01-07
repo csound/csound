@@ -1,7 +1,7 @@
 ;NSIS Modern Csound5 Install Script
 
 !define PRODUCT "Csound"
-!define VERSION "5rc1"
+!define VERSION "5rc2"
 !define PROGRAM "csound"
 
 !include "MUI.nsh"
@@ -378,7 +378,7 @@ FunctionEnd
 ;Pages
 
   !insertmacro MUI_PAGE_WELCOME
-  !insertmacro MUI_PAGE_LICENSE "..\..\readme-csound5.txt"
+  !insertmacro MUI_PAGE_LICENSE ..\..\readme-csound5.txt
   !insertmacro MUI_PAGE_DIRECTORY
   
   ;Start Menu Folder Page Configuration
@@ -407,89 +407,51 @@ FunctionEnd
 
 Section "${PRODUCT}" SecCopyUI
 
-  SetOutPath "$INSTDIR"
+  SetOutPath $INSTDIR
+  File ..\..\etc\.csoundrc
+  File ..\..\readme-csound5.txt
   
+  SetOutPath $INSTDIR\bin
+  File ..\..\csound.dll
+  File ..\..\_*.dll
+  File ..\..\tclcsound.dll
+  File ..\..\csoundapi~.dll
   File ..\..\windows_dlls\libsndfile-1.dll
-  File ..\..\*.exe
-  File ..\..\*.dll
-  File ..\..\*.xmg
-  File ..\..\*.txt
-  File ..\..\ChangeLog
-  File ..\..\loris.py
-  File ..\..\CsoundVST.py
+  File ..\..\..\portaudio\lib\portaudio.dll.0.0.19
+  File C:\utah\opt\portmidi\pm_win\*.dll
   File ..\..\csnd.py
-  File ..\..\csnd.jar
-  SetOutPath $INSTDIR\interfaces
-  File ..\..\interfaces\test.lisp
-  File ..\..\interfaces\test.lua
-  File ..\..\interfaces\test.py
-  File ..\..\interfaces\*.lisp
-  SetOutPath $INSTDIR\lib
-  File ..\..\*.a
+  File ..\..\CsoundVST.py
+  File ..\..\loris.py
+  File ..\..\*.exe
+  
+  SetOutPath $INSTDIR\doc
+  File ..\..\*.txt
+  File /nonfatal ..\..\*.pdf
+  File ..\..\ChangeLog
+  File ..\..\COPYING
+  File ..\..\INSTALL
+  File /r ..\..\..\manual\html\*
+  
+  SetOutPath $INSTDIR\examples
+  File /r /x *.wav ..\..\examples*.*
+  
   SetOutPath $INSTDIR\include
   File ..\..\H\*.h
   File ..\..\frontends\CsoundVST\*.h
   File ..\..\frontends\CsoundVST\*.hpp
   File ..\..\interfaces\*.hpp
-  SetOutPath $INSTDIR\examples
-  File ..\..\examples\*.csd
-  File ..\..\examples\*.py
-  SetOutPath $INSTDIR\examples\csoundapi_tilde
-  File ..\..\examples\csoundapi_tilde\*.*
-  SetOutPath $INSTDIR\examples\java
-  File ..\..\examples\java\*.*
-  SetOutPath $INSTDIR\examples\tclcsound
-  File ..\..\examples\tclcsound\*.*
+  
+  SetOutPath $INSTDIR\interfaces\java
+  File ..\..\csnd.jar
+  
+  SetOutPath $INSTDIR\interfaces\lisp
+  File ..\..\interfaces\*.lisp
+  
+  SetOutPath $INSTDIR\plugins64
+  File /x csound.dll /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pmidi.dll /x pm_midi.dll ..\..\*.dll 
+ 
   SetOutPath $INSTDIR\samples
-  File ..\..\samples\*
-  File ..\..\Opcodes\stk\rawwaves\*
-
-  ; frontends
-  ; binDir      = instPrefix + '/bin'
-  SetOutPath $INSTDIR\bin
-  ;; the actual binaries (called by above)
-  ;; binDir2     = instPrefix + '/lib/csound/bin'
-  ; Csound API header files
-  ; includeDir  = instPrefix + '/include/csound'
-  SetOutPath $INSTDIR\include\csound
-  SetOutPath $INSTDIR\include\csoundvst
-  ; Csound API libraries
-  ; libDir      = instPrefix + '/lib'
-  SetOutPath $INSTDIR\lib
-  ;; private libraries for use by Csound
-  ;; libDir2     = libDir + '/csound/lib'
-  ;; single precision plugin libraries
-  ;; pluginDir32 = libDir + '/csound/plugins'
-  ; double precision plugin libraries
-  ; pluginDir64 = libDir + '/csound/plugins64'
-  SetOutPath $INSTDIR\lib\csound\plugins64
-  ; XMG files
-  ; xmgDir      = instPrefix + '/share/csound/xmg'
-  SetOutPath $INSTDIR\share\csound\xmg
-  ; documentation
-  ; docDir      = instPrefix + '/share/doc/csound'
-  SetOutPath $INSTDIR\share\doc
-  ; tclcsound.so
-  ; tclDir      = libDir + '/csound/tcl'
-  SetOutPath $INSTDIR\lib\csound\tcl
-  ; csnd.jar
-  ; javaDir     = libDir + '/csound/java'
-  SetOutPath $INSTDIR\lib\csound\java
-  ; LISP interface
-  ; lispDir     = libDir + '/csound/lisp'
-  SetOutPath $INSTDIR\lib\csound\lisp
-  ; STK raw wave files
-  ; rawWaveDir  = instPrefix + '/share/csound/rawwaves'
-  SetOutPath $INSTDIR\share\csound\rawwaves
-
-  ; Python version to use
-  ; pyVersion   = '2.4'
-  ; csnd.py
-  ; pythonDir   = '/usr/lib/python' + pyVersion
-  ; _csnd.so
-  ; pythonDir2  = pythonDir + '/lib-dynload'
-  ; csoundapi~.pd_linux
-  ; pdDir       = '/usr/local/lib/pd/extra'
+  File /r ..\..\samples\*
 
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
@@ -505,22 +467,22 @@ Section "${PRODUCT}" SecCopyUI
   StrCmp $0 "" 0 skipAssoc
 	WriteRegStr HKCR "${PRODUCT}File" "" "CSound Unified File"
 	WriteRegStr HKCR "${PRODUCT}File\shell" "" "open"
-	WriteRegStr HKCR "${PRODUCT}File\DefaultIcon" "" $INSTDIR\${PROGRAM}.exe,0
+	WriteRegStr HKCR "${PRODUCT}File\DefaultIcon" "" $INSTDIR\bin\${PROGRAM}.exe,0
   skipAssoc:
-  WriteRegStr HKCR "${PRODUCT}File\shell\open\command" "" '$INSTDIR\${PROGRAM}.exe "%1"'
+  WriteRegStr HKCR "${PRODUCT}File\shell\open\command" "" '$INSTDIR\bin${PROGRAM}.exe "%1"'
 
-  Push $INSTDIR
+  Push $INSTDIR\bin
   Call AddToPath
 
   Push "OPCODEDIR64" 
-  Push "$INSTDIR"
+  Push $INSTDIR\plugins64
   Call WriteEnvStr
   Push "RAWWAVE_PATH" 
   Push "$INSTDIR\samples"
   Call WriteEnvStr
   ReadEnvStr $1 "PYTHONPATH"
   Push "PYTHONPATH"
-  Push "$1;$INSTDIR"
+  Push "$1;$INSTDIR\bin"
   Call WriteEnvStr
   Push "SFOUTYP"
   Push "WAV"
@@ -533,10 +495,12 @@ Section "${PRODUCT}" SecCopyUI
     
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\${PROGRAM}.exe"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\CsoundVST.exe"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\bin\${PROGRAM}.exe"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVST.exe"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\license.txt"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\CsoundAPI.pdf"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5.txt"
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
@@ -558,43 +522,15 @@ SectionEnd
 
 Section "Uninstall"
 
-  Delete "$INSTDIR\*.exe"
-  Delete "$INSTDIR\*.dll"
-  Delete "$INSTDIR\*.xmg"
-  Delete "$INSTDIR\csound-*.pdf"
-  Delete "$INSTDIR\*.htm*"
-  Delete "$INSTDIR\*.txt"
-  Delete "$INSTDIR\ChangeLog"
-  Delete "$INSTDIR\loris.py"
-  Delete "$INSTDIR\CsoundVST.py"
-  Delete "$INSTDIR\*.jar"
-
-  Delete "$INSTDIR\lib\libcsound.a"
-  Delete "$INSTDIR\lib\libCsoundVST.a"
-  RMDir "$INSTDIR\lib"
-
-  Delete "$INSTDIR\include\*.h"
-  Delete "$INSTDIR\include\*.hpp"
-  RMDir "$INSTDIR\include"
-
-  Delete "$INSTDIR\examples\csoundapi_tilde\*.*"
-  RMDir "$INSTDIR\examples\csoundapi_tilde"
-  Delete "$INSTDIR\examples\java\*.*"
-  RMDir "$INSTDIR\examples\java"
-  Delete "$INSTDIR\examples\*.csd"
-  Delete "$INSTDIR\examples\*.py"
-  RMDir "$INSTDIR\examples"
-
-  Delete "$INSTDIR\samples\*"
-  RMDir "$INSTDIR\samples"
-
-  RMDir "$INSTDIR"
+  RMDir /r $INSTDIR
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     
   Delete "$SMPROGRAMS\$MUI_TEMP\${PRODUCT}.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Overview.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
+  Delete "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\CsoundAPI.pdf"
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
   
   ;Delete empty start menu parent diretories
@@ -612,7 +548,7 @@ Section "Uninstall"
   Push $INSTDIR
   Call un.RemoveFromPath
 
-  Push "OPCODEDIR"
+  Push "OPCODEDIR64"
   Call un.DeleteEnvStr 
   Push "RAWWAVE_PATH"
   Call un.DeleteEnvStr 

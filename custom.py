@@ -100,6 +100,17 @@ elif sys.platform[:3] == 'win':
     # add it here (you do need to build it first):
     customCPPPATH.append('c:/utah/opt/fftw-3.0.1/api')
     customLIBPATH.append('c:/utah/opt/fftw-3.0.1/.libs')
+    ################################################################
+    # If you want to build the OSC opcodes,
+    # if it is not in a standard location,
+    # add it here (you do need to build it first):
+    customCPPPATH.append('c:/utah/home/mkg/projects/liblo')
+    customLIBPATH.append('c:/utah/home/mkg/projects/liblo/src/.libs')
+    # For OSC on Windows you will also need a Windows pthread library,
+    # if it is not in a standard location,
+    # add it here (you do need to build it first):
+    customCPPPATH.append('c:/utah/opt/pthreads')
+    customLIBPATH.append('c:/utah/opt/pthreads')
 else:
     platform = 'unsupported platform'
 
