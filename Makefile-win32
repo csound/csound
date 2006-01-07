@@ -33,7 +33,7 @@ PLUGINS =	ftest.dll mixer.dll modal4.dll physmod.dll pitch.dll	\
 UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe mixer.exe	\
 		pvanal.exe scale.exe sndinfo.exe srconv.exe		\
 		extractor.exe scsort.exe extract.exe csb64enc.exe	\
-		makecsd.exe cs.exe
+		makecsd.exe cs.exe scot.exe
 
 all: $(CSOUNDLIB) $(PROGRAM) $(PLUGINS) $(UTILS)
 
@@ -229,6 +229,9 @@ makecsd.exe: util1/csd_util/base64.o util1/csd_util/makecsd.o
 
 cs.exe: util1/csd_util/cs.o
 	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+
+scot.exe: util1/scot/scot.o util1/scot/scot_main.o
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
 
 Opcodes/py/pythonopcodes.o: Opcodes/py/pythonopcodes.c
 	$(CC) $(CFLAGS) -I$(PYINCDIR) -c $< -o $@
