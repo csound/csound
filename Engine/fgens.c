@@ -1534,7 +1534,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
 
     while (++j < ntabl) {
       p = ff->e.p[pnum[j]];                /* table number */
-      i = (int) (p + (p < FL(0.0) ? FL(-0.5) : FL(0.5)));
+      i = (int) MYFLT2LRND(p);
       l2 = csound->GetTable(csound, &f2, abs(i));
       if (l2 < 0) {
         fterror(ff, Str("GEN32: source ftable %d not found"), abs(i));
@@ -1660,7 +1660,7 @@ static int gen33(FGDATA *ff, FUNC *ftp)
       /* amplitude */
       amp = scl * *(srcft++);
       /* partial number */
-      pnum = (int) (fmode * *srcft + (*srcft < FL(0.0) ? FL(-0.5) : FL(0.5)));
+      pnum = (int) MYFLT2LRND(fmode * *srcft);
       srcft++;
       if (pnum < (-maxp) || pnum > maxp) {
         srcft++; continue;      /* skip partial with too high frequency */
@@ -2204,20 +2204,22 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       if (ans) {
         double natcps, gainfac;
 #ifdef BETA
-        csound->Message(csound,
-                "Base Note : %u\tDetune    : %u\n"
-                "Low  Note : %u\tHigh Note : %u\n"
-                "Low  Vel. : %u\tHigh Vel. : %u\n"
-                "Gain      : %d\tCount     : %d\n"
-                "mode      : %d\n"
-                "start     : %d\tend       : %d\tcount  :%d\n"
-                "mode      : %d\n"
-                "start     : %d\tend       : %d\tcount  :%d\n\n",
-                lpd.basenote, 0U, lpd.key_lo, lpd.key_hi,
-                lpd.velocity_lo, lpd.velocity_hi, lpd.gain, lpd.loop_count,
-                lpd.loops[0].mode, lpd.loops[0].start, lpd.loops[0].end,
-                lpd.loops[0].count, lpd.loops[1].mode, lpd.loops[1].start,
-                lpd.loops[1].end, lpd.loops[1].count);
+        if ((csound->oparms_.msglevel & 7) == 7) {
+          csound->Message(csound,
+                  "Base Note : %u\tDetune    : %u\n"
+                  "Low  Note : %u\tHigh Note : %u\n"
+                  "Low  Vel. : %u\tHigh Vel. : %u\n"
+                  "Gain      : %d\tCount     : %d\n"
+                  "mode      : %d\n"
+                  "start     : %d\tend       : %d\tcount  :%d\n"
+                  "mode      : %d\n"
+                  "start     : %d\tend       : %d\tcount  :%d\n\n",
+                  lpd.basenote, 0U, lpd.key_lo, lpd.key_hi,
+                  lpd.velocity_lo, lpd.velocity_hi, lpd.gain, lpd.loop_count,
+                  lpd.loops[0].mode, lpd.loops[0].start, lpd.loops[0].end,
+                  lpd.loops[0].count, lpd.loops[1].mode, lpd.loops[1].start,
+                  lpd.loops[1].end, lpd.loops[1].count);
+        }
 #endif
         natcps = pow(2.0, (double) ((int) lpd.basenote - 69) / 12.0) * 440.0;
         /* As far as I can tell this gainfac value is never used! */
