@@ -231,15 +231,13 @@ static int readEvent(CSOUND *csound, FILE *f, int *tlen,
         csound->Message(csound, Str(" *** invalid MIDI file data\n"));
         return -1;
       }
-      if (st >= 0xF0) {
-        csound->Message(csound, Str(" *** cannot repeat system messages\n"));
-        return -1;
-      }
     }
-    /* save status byte for repeat */
-    *saved_st = st;
     c = msgDataBytes(st);
     if (c >= 0) {
+      if (c > 0) {
+        /* save status byte for repeat */
+        *saved_st = st;
+      }
       while (cnt < c) {
         /* read data byte(s) */
         d = getCh(csound, f, tlen);
