@@ -45,10 +45,6 @@
 
 #define SPAT3D_XYZ2DIST(x,y,z)  ((MYFLT) sqrt ((double) ((x) * (x) + (y) * (y) + (z) * (z))))
 
-/* round to nearest integer */
-
-#define SPAT3D_ROUND(x)         ((x) + ((x) < FL(0.0) ? FL(-0.5) : FL(0.5)))
-
 /* limit a number to a specified range */
 
 #define SPAT3D_LIMIT(x, a, b)   ((x) > (b) ? (b) : ((x) < (a) ? (a) : (x)))
