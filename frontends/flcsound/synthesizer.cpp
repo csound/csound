@@ -22,7 +22,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <csound/csound.h>
+#include "csound.h"
+#include "cwindow.h"
 #include "curve.hpp"
 #include "synthesizer.hpp"
 
@@ -46,7 +47,7 @@ namespace {
 
   // This namespace is used to hide WINDAT from the synthesizer header.
 
-  extern "C" void make_a_graph(CSOUND *csound, WINDAT *windat, char *name)
+  extern "C" void make_a_graph(CSOUND *csound, WINDAT *windat, const char *name)
   {
   }
 
@@ -97,14 +98,13 @@ Synthesizer::Synthesizer()
     m_yield_callback(0),
     m_message_data(0),
     m_message_callback(0),
-    m_throw_message_data(0),
-    m_throw_message_callback(0),
     m_draw_graph_data(0),
     m_draw_graph_callback(0)
 {
 #if defined SINGLE_INSTANCE_CSOUND
   s_synth = this;
 #endif
+  csoundPreCompile(m_csound);
 }
 
 Synthesizer::~Synthesizer()
@@ -138,9 +138,11 @@ void Synthesizer::set_message_callback(void * data,
   csoundSetMessageCallback(m_csound, s_message);
 }
 
-void Synthesizer::s_message(CSOUND *csound, const char *format, va_list args)
+void Synthesizer::s_message(CSOUND *csound,
+                            int attr, const char *format, va_list args)
 {
   Synthesizer *synth = get_synth_instance(csound);
+  (void) attr;
   if (synth)
     synth->message(format, args);
 }
@@ -149,20 +151,6 @@ void Synthesizer::message(const char *format, va_list args)
 {
   if (m_message_callback)
     (*m_message_callback)(m_message_data, format, args);
-}
-
-void Synthesizer::s_throw_message(CSOUND *csound, const char *format,
-                                  va_list args)
-{
-  Synthesizer *synth = get_synth_instance(csound);
-  if (synth)
-    synth->throw_message(format, args);
-}
-
-void Synthesizer::throw_message(const char *format, va_list args)
-{
-  if (m_throw_message_callback)
-    (*m_throw_message_callback)(m_throw_message_data, format, args);
 }
 
 void Synthesizer::set_draw_graph_callback(void *data,
@@ -192,7 +180,9 @@ void Synthesizer::draw_graph(Curve *curve)
 
 int Synthesizer::perform(int argc, char **argv)
 {
-  int rc = csoundPerform(m_csound, argc, argv);
+  int rc = csoundCompile(m_csound, argc, argv);
+  if (rc == 0)
+    rc = csoundPerform(m_csound);
   csoundCleanup(m_csound);
   csoundReset(m_csound);
   return rc;
@@ -211,7 +201,7 @@ int Synthesizer::perform(std::vector<std::string> args)
   argv[argc] = 0;
   int rc = perform(argc, argv);
   for (size_t i = 0; i < argc; i++)
-    delete argv[i];
+    delete[] argv[i];
   return rc;
 }
 
