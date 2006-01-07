@@ -1698,8 +1698,7 @@ static int vco2init(CSOUND *csound, VCO2INIT *p)
     FUNC    *ftp;
 
     /* check waveform number */
-    waveforms = (int) (*(p->iwaveforms)
-                       + (*(p->iwaveforms) < FL(0.0) ? FL(-0.5) : FL(0.5)));
+    waveforms = (int) MYFLT2LRND(*(p->iwaveforms));
     if (waveforms < -1000000 || waveforms > 31) {
       return csound->InitError(csound,
                                Str("vco2init: invalid waveform number: %f"),
@@ -1798,7 +1797,7 @@ static int vco2ftset(CSOUND *csound, VCO2FT *p)
       p->vco2_nr_table_arrays = &(pp->vco2_nr_table_arrays);
       p->vco2_tables = &(pp->vco2_tables);
     }
-    w = (int) (*(p->iwave) + (*(p->iwave) < FL(0.0) ? FL(-0.5) : FL(0.5)));
+    w = (int) MYFLT2LRND(*(p->iwave));
     if (w > 4) w = 0x7FFFFFFF;
     if (w < 0) w = 4 - w;
     if (w >= *(p->vco2_nr_table_arrays) || (*(p->vco2_tables))[w] == NULL
