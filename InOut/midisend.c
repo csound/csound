@@ -63,6 +63,8 @@ static CS_NOINLINE void
     unsigned long   t, prv;
     int             ndx = 0;
 
+    if (nbytes < 2)
+      return;
     s = csound->curTime;
     if (csound->ids == NULL && csound->pds != NULL)
       s -= csound->curTime_inc;
@@ -93,13 +95,12 @@ static CS_NOINLINE void
       unsigned char st = *evt;
       if (st != p->prv_status) {
         buf[ndx++] = st;
-        p->prv_status = (st < (unsigned char) 0xF0 ? st : (unsigned char) 0);
+        p->prv_status = st;
       }
     }
-    if (--nbytes)
-      buf[ndx++] = *(++evt);
-    if (--nbytes)
-      buf[ndx++] = *(++evt);
+    buf[ndx++] = evt[1];
+    if (nbytes > 2)
+      buf[ndx++] = evt[2];
     p->nBytes += (size_t) ndx;
     fwrite(&(buf[0]), (size_t) 1, (size_t) ndx, p->f);
 }
