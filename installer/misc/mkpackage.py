@@ -69,7 +69,7 @@ utils1 = ['csound', 'cvanal', 'dnoise', 'envext', 'extractor',
           'lpc_export', 'lpc_import', 'mixer', 'pvanal',
           'pvlook', 'scale', 'sndinfo', 'srconv']
 
-utils2 = ['scsort', 'extract', 'cs', 'csb64enc', 'makecsd']
+utils2 = ['scsort', 'extract', 'cs', 'csb64enc', 'makecsd', 'scot']
 
 docFiles = ['COPYING', 'ChangeLog', 'INSTALL', 'readme-csound5.txt']
 
