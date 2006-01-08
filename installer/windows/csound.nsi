@@ -413,7 +413,10 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\bin
   File ..\..\csound.dll
-  File ..\..\_*.dll
+  File ..\..\_csnd.dll
+  File ..\..\_jcsound.dll
+  File ..\..\_CsoundVST.dll
+  File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
   File ..\..\windows_dlls\libsndfile-1.dll
@@ -423,6 +426,11 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\CsoundVST.py
   File ..\..\loris.py
   File ..\..\*.exe
+  File ..\..\csound.def
+  File ..\..\_csnd.def
+  File ..\..\_jcsound.def
+  File ..\..\frontends\CsoundVST\_CsoundVST.def
+  File ..\..\_loris.def
   
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
@@ -430,10 +438,25 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\ChangeLog
   File ..\..\COPYING
   File ..\..\INSTALL
+  File ..\..\LICENSE.PortMidi
+  File ..\..\LICENSE.FLTK
+  File ..\..\LICENSE.PortAudio
   File /r ..\..\..\manual\html\*
   
   SetOutPath $INSTDIR\examples
-  File /r /x *.wav ..\..\examples*.*
+  File /x *.wav /x *.orc /x *.sco ..\..\examples\*.*
+  SetOutPath $INSTDIR\examples\csoundapi_tilde
+  File /x *.wav /x *.orc /x *.sco ..\..\examples\csoundapi_tilde\*.*
+  SetOutPath $INSTDIR\examples\java
+  File /x *.wav /x *.orc /x *.sco ..\..\examples\java\*.*
+  SetOutPath $INSTDIR\examples\python_demo
+  File /x *.wav /x *.orc /x *.pyc /x *.sco ..\..\examples\python_demo\*.*
+  SetOutPath $INSTDIR\examples\tclcsound
+  File /x *.wav /x *.orc /x *.sco ..\..\examples\tclcsound\*.*
+  SetOutPath $INSTDIR\examples\gab
+  File /x *.wav /x *.orc /x *.sco ..\..\Opcodes\gab\examples\*.*
+  SetOutPath $INSTDIR\examples\py
+  File /x *.wav  ..\..\Opcodes\py\examples\*.*
   
   SetOutPath $INSTDIR\include
   File ..\..\H\*.h
@@ -448,7 +471,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\interfaces\*.lisp
   
   SetOutPath $INSTDIR\plugins64
-  File /x csound.dll /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pmidi.dll /x pm_midi.dll ..\..\*.dll 
+  File /x csound.dll /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll 
  
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
@@ -497,10 +520,10 @@ Section "${PRODUCT}" SecCopyUI
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\bin\${PROGRAM}.exe"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVST.exe"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5.txt"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\CsoundAPI.pdf"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5.txt"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe"
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
