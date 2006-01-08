@@ -390,8 +390,8 @@ FunctionEnd
   
   !insertmacro MUI_PAGE_INSTFILES
 
-  !define MUI_FINISHPAGE_SHOWREADME readme-csound5.txt
-  !define MUI_FINISHPAGE_SHOWREADME_CHECKED
+  ;!define MUI_FINISHPAGE_SHOWREADME readme-csound5.txt
+  ;!define MUI_FINISHPAGE_SHOWREADME_CHECKED
   !insertmacro MUI_PAGE_FINISH
 
   !insertmacro MUI_UNPAGE_CONFIRM
@@ -434,13 +434,14 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
-  File /nonfatal ..\..\*.pdf
+  File ..\..\*.pdf
   File ..\..\ChangeLog
   File ..\..\COPYING
   File ..\..\INSTALL
   File ..\..\LICENSE.PortMidi
   File ..\..\LICENSE.FLTK
   File ..\..\LICENSE.PortAudio
+  SetOutPath $INSTDIR\doc\manual
   File /r ..\..\..\manual\html\*
   
   SetOutPath $INSTDIR\examples
