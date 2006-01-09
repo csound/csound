@@ -31,8 +31,6 @@
 #include "vsthost.h"
 #include "fxbank.h"
 
-const static MYFLT SCALING_FACTOR = FL(32767.0);
-
 extern "C"
 {
         std::vector<VSTPlugin *> vstPlugins;
@@ -56,11 +54,7 @@ extern "C"
            plugin->Log("=============================================================\n");
                 }
                 char vstplugname[0x100];
-                if (*p->iplugin == SSTRCOD) {
-                        strcpy(vstplugname, (char *)p->iplugin);
-                }
-                else
-           plugin->Log("Invalid plugin name.\n");
+                strcpy(vstplugname, (char *)p->iplugin);
 #if WIN32
                 path_convert (vstplugname);
 #endif
@@ -100,15 +94,15 @@ extern "C"
                 //plugin->Debug("vstaudio: plugin %x.\n", plugin);
         if(!p->h.insdshead->nxtact) {
             for(i = 0; i < p->framesPerBlock; i++) {
-                plugin->inputs_[0][i] = p->ain1[i] / SCALING_FACTOR;
-                plugin->inputs_[1][i] = p->ain2[i] / SCALING_FACTOR;
+                plugin->inputs_[0][i] = p->ain1[i] * csound->dbfs_to_float;
+                plugin->inputs_[1][i] = p->ain2[i] * csound->dbfs_to_float;
                 plugin->outputs_[0][i] = FL(0.0);
                 plugin->outputs_[1][i] = FL(0.0);
             }
             plugin->process(&plugin->inputs.front(), &plugin->outputs.front(), p->framesPerBlock);
             for(i = 0; i < p->framesPerBlock; i++) {
-                p->aout1[i] = plugin->outputs_[0][i] * SCALING_FACTOR;
-                p->aout2[i] = plugin->outputs_[1][i] * SCALING_FACTOR;
+                p->aout1[i] = plugin->outputs_[0][i] * csound->e0dbfs;
+                p->aout2[i] = plugin->outputs_[1][i] * csound->e0dbfs;
             }
         } else {
             for(i = 0; i < p->framesPerBlock; i++) {
@@ -126,15 +120,15 @@ extern "C"
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 //plugin->Debug("vstaudio: plugin %x.\n", plugin);
         for(i = 0; i < p->framesPerBlock; i++) {
-            plugin->inputs_[0][i] = p->ain1[i] / SCALING_FACTOR;
-            plugin->inputs_[1][i] = p->ain2[i] / SCALING_FACTOR;
+            plugin->inputs_[0][i] = p->ain1[i] * csound->dbfs_to_float;
+            plugin->inputs_[1][i] = p->ain2[i] * csound->dbfs_to_float;
             plugin->outputs_[0][i] = FL(0.0);
             plugin->outputs_[1][i] = FL(0.0);
         }
         plugin->process(&plugin->inputs.front(), &plugin->outputs.front(), p->framesPerBlock);
         for(i = 0; i < p->framesPerBlock; i++) {
-            p->aout1[i] = plugin->outputs_[0][i] * SCALING_FACTOR;
-            p->aout2[i] = plugin->outputs_[1][i] * SCALING_FACTOR;
+            p->aout1[i] = plugin->outputs_[0][i] * csound->e0dbfs;
+            p->aout2[i] = plugin->outputs_[1][i] * csound->e0dbfs;
         }
                 return OK;
         }
@@ -276,11 +270,9 @@ extern "C"
                 VSTBANKLOAD *p = (VSTBANKLOAD *)data;
                 VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
                 void *dummyPointer = 0;
-                char bankname[64];
-                if (*p->ibank == SSTRCOD) {
-                        strcpy(bankname, (char *)p->ibank);          /*   use that         */
-                }
-                CFxBank fxBank(bankname);            /* load the bank                     */
+                char bankname[128];
+                strcpy(bankname, (char *)p->ibank); /*   use that       */
+                CFxBank fxBank(bankname);           /* load the bank    */
                 plugin->Dispatch(effBeginLoadBank,
             0, 0, (VstPatchChunkInfo*) fxBank.GetChunk(), 0);
                 if (plugin->Dispatch(effBeginLoadBank,
@@ -331,12 +323,12 @@ extern "C"
         return OK;
     }
 
-        int vstprogset(CSOUND *csound, void *data)
-        {
-                VSTPROGSET *p = (VSTPROGSET *)data;
-                VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-                plugin->SetCurrentProgram(int(*p->iprogram));
-                return OK;
+    int vstprogset(CSOUND *csound, void *data)
+    {
+        VSTPROGSET *p = (VSTPROGSET *)data;
+        VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
+        plugin->SetCurrentProgram(int(*p->iprogram));
+        return OK;
     }
 
     int vstedit_init(CSOUND *csound, void *data)
@@ -398,15 +390,15 @@ extern "C" {
 
     static OENTRY localops[] = {
         {"vstinit",     sizeof(VSTINIT),     1, "i",  "So",    &vstinit,          0,            0               },
-                {"vstinfo",     sizeof(VSTINFO),     1, "",   "i",     &vstinfo,          0,            0       },
-                {"vstaudio",    sizeof(VSTAUDIO),    5, "mm", "iaa",   &vstaudio_init,    0,        &vstaudio   },
-                {"vstaudiog",   sizeof(VSTAUDIO),    5, "mm", "iaa",   &vstaudio_init,    0,        &vstaudiog  },
-                {"vstnote",     sizeof(VSTNOTE),     3, "",   "ikkkk", &vstnote_init,     &vstnote,     0       },
-                {"vstmidiout",  sizeof(VSTMIDIOUT),  3, "",   "ikkkk", &vstmidiout_init,  &vstmidiout,  0       },
-                {"vstparamget", sizeof(VSTPARAMGET), 3, "k",  "ik",    &vstparamget_init, &vstparamget, 0       },
-                {"vstparamset", sizeof(VSTPARAMSET), 3, "",   "ikk",   &vstparamset_init, &vstparamset, 0       },
+        {"vstinfo",     sizeof(VSTINFO),     1, "",   "i",     &vstinfo,          0,            0       },
+        {"vstaudio",    sizeof(VSTAUDIO),    5, "mm", "iaa",   &vstaudio_init,    0,        &vstaudio   },
+        {"vstaudiog",   sizeof(VSTAUDIO),    5, "mm", "iaa",   &vstaudio_init,    0,        &vstaudiog  },
+        {"vstnote",     sizeof(VSTNOTE),     3, "",   "ikkkk", &vstnote_init,     &vstnote,     0       },
+        {"vstmidiout",  sizeof(VSTMIDIOUT),  3, "",   "ikkkk", &vstmidiout_init,  &vstmidiout,  0       },
+        {"vstparamget", sizeof(VSTPARAMGET), 3, "k",  "ik",    &vstparamget_init, &vstparamget, 0       },
+        {"vstparamset", sizeof(VSTPARAMSET), 3, "",   "ikk",   &vstparamset_init, &vstparamset, 0       },
         {"vstbankload", sizeof(VSTBANKLOAD), 1, "" ,  "iS",    &vstbankload,      0,            0               },
-        {"vstprogset",  sizeof(VSTPROGSET),  1, "" ,  "iS",    &vstprogset,       0,            0               },
+        {"vstprogset",  sizeof(VSTPROGSET),  1, "" ,  "ii",    &vstprogset,       0,            0               },
         {"vstedit",     sizeof(VSTEDIT),     1, "" ,  "ik",    &vstedit_init,     0,            0               },
         { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
     };
