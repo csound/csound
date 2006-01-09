@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Copyright (c) 2003 by Michael Gogins
 # Shows how to render an ordinary MIDI sequence
 # using a SoundFont
@@ -17,29 +19,41 @@ ksmps = 100
 nchnls = 2
 0dbfs = 1
 
+gSfont                  =                       "c:/MusicProgrammingBook/examples/63.3mg The Sound Site Album Bank V1.0.SF2"
+
+giFluid                 fluidEngine
+giSFont                 fluidLoad               gSfont, giFluid, 1
+
+ichn                    =                       1
+lp01:
+ibank                   =                       (ichn != 10 ? 0 : 128)
+ipreset                 =                       (ichn != 10 ? (ichn - 1) * 8 : 0)
+                        fluidProgramSelect      giFluid, ichn - 1, giSFont, ibank, ipreset
+                        loop_le                 ichn, 1, 16, lp01
+
+                        event_i                 "i", 90, 0, -1
+
 instr 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 ; FluidSynth General MIDI
 ; INITIALIZATION
 ; Channel, bank, and program determine the preset, that is, the actual sound.
 ichannel                =                       p1
-                        if                      ichannel != 10 igoto nonpercussion
-iprogram                =                       128
-                        igoto                   resume
-                        nonpercussion:
-iprogram                =                       ichannel * 8
-                        resume:
 ikey                    =                       p4
 ivelocity               =                       p5
-ijunk6                  =                       p6
-ijunk7                  =                       p7
+ijunk11                 =                       p11
 ; AUDIO
-istatus                 =                       144
-                        print                   iprogram, istatus, ichannel, ikey, ivelocity
-aleft, aright           fluid                   "c:/MusicProgrammingBook/examples/63.3mg The Sound Site Album Bank V1.0.SF2", iprogram, istatus, ichannel, ikey, ivelocity, 1
-                        outs                    aleft, aright
+                        print                   ichannel, ikey, ivelocity
+                        fluidNote               giFluid, ichannel - 1, ikey, ivelocity
+endin
+
+instr 90
+aL, aR                  fluidOut                giFluid
+                        outs                    aL, aR
 endin
 
 ''')
 
-csound.setCommand("csound --opcode-lib=c:/cvs/CVSROOT/csound/bin/Soundfonts.dll -RWdfo ./town.wav ./temp.orc ./temp.sco")
+csound.setScore(score.getCsoundScore())
+csound.setCommand("csound -RWdfo ./town.wav ./temp.orc ./temp.sco")
+csound.exportForPerformance()
 model.perform()
 

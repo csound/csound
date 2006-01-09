@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Copyright (C) 2002, 2003 by Michael Gogins. All rights reserved.
 # Tutorial showing how to generate a score using a Koch curve.
 
@@ -127,8 +129,7 @@ ikey                    =                       p4
 ivelocity               =                       p5
 ijunk                   =                       p6
 ijunk                   =                       p7
-istatus                 =                       144
-                        fluidControl            giFluidsynth, istatus, ichannel, ikey, ivelocity
+                        fluidNote               giFluidsynth, ichannel, ikey, ivelocity
 endin
 
 instr 100 ; Fluidsynth output
@@ -141,7 +142,8 @@ endin
 # Set the Csound command line.
 
 #csound.setCommand("csound -b100 -B100 -odac2 /tempk.orc /tempk.sco")
-csound.setCommand("csound -RWdfo koch.wav c:/tempk.orc c:/tempkk.sco")
+#csound.setCommand("csound -RWdfo koch.wav c:/tempk.orc c:/tempkk.sco")
+csound.setCommand("csound -RWdfo koch.wav ./tempk.orc ./tempkk.sco")
 csound.addScoreLine("i 100 0 -1")
 
 # Export the orchestra and generated score for performance.
