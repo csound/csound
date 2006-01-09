@@ -2221,18 +2221,20 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
                   lpd.loops[1].end, lpd.loops[1].count);
         }
 #endif
-        natcps = pow(2.0, (double) ((int) lpd.basenote - 69) / 12.0) * 440.0;
+        natcps = pow(2.0,
+                     ((double)((int)lpd.basenote-69)+
+                      (double)lpd.detune*0.01)/ 12.0)*440.0;
         /* As far as I can tell this gainfac value is never used! */
         gainfac = exp((double) lpd.gain * LOG10D20);
      /* if (lpd.basenote == 0)
           lpd.basenote = ftp->cvtbas; */
         ftp->cpscvt = ftp->cvtbas / natcps;
         ftp->loopmode1 = (lpd.loops[0].mode == SF_LOOP_NONE ? 0 :
-                          (lpd.loops[0].mode == SF_LOOP_FORWARD ? 1 :
-                           2));
+                          lpd.loops[0].mode == SF_LOOP_FORWARD ? 1 :
+                          2);
         ftp->loopmode2 = (lpd.loops[1].mode == SF_LOOP_NONE ? 0 :
-                          (lpd.loops[1].mode == SF_LOOP_FORWARD ? 1 :
-                           2));
+                          lpd.loops[1].mode == SF_LOOP_FORWARD ? 1 :
+                          2);
         ftp->begin1 = lpd.loops[0].start;
         ftp->begin2 = lpd.loops[1].start;
         if (ftp->loopmode1)             /* Greg Sullivan */
