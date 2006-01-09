@@ -291,11 +291,15 @@ if getPlatform() == 'linux':
     if commonEnvironment['buildInterfaces'] != '0':
         if commonEnvironment['buildJavaWrapper'] != '0':
             if commonEnvironment['Word64'] == '1':
-                commonEnvironment.Append(CPPPATH = '/usr/lib64/java/include')
-                commonEnvironment.Append(CPPPATH = '/usr/lib64/java/include/linux')
+                commonEnvironment.Append(CPPPATH = Split('''
+                    /usr/lib64/jvm/java-1.5.0/include
+                    /usr/lib64/jvm/java-1.5.0/include/linux
+                    /usr/lib64/java/include /usr/lib64/java/include/linux
+                '''))
             else:
-                commonEnvironment.Append(CPPPATH = '/usr/lib/java/include')
-                commonEnvironment.Append(CPPPATH = '/usr/lib/java/include/linux')
+                commonEnvironment.Append(CPPPATH = Split('''
+                    /usr/lib/java/include /usr/lib/java/include/linux
+                '''))
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 elif getPlatform() == 'darwin':
