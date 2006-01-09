@@ -113,11 +113,10 @@ int main(int argc, char **argv)
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
-    /* remove global configuration variables, if there are any */
 #if 0
+    /* remove global configuration variables, if there are any */
     csoundDeleteAllGlobalConfigurationVariables();
 #endif
-
     return (result >= 0 ? 0 : result);
 }
 

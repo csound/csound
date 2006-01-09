@@ -14,7 +14,7 @@ mv ../../../CSDIST/$DIR/opc/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends
 ln ../../../CSDIST/$DIR/opc/frontends/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends/_csnd.so 
 mv ../../../CSDIST/$DIR/opc/lib_jcsound.so ../../../CSDIST/$DIR/opc/frontends
 cp -puv ../../*.jar ../../../CSDIST/$DIR/opc/frontends
-vcp -puv ../../csnd.py ../../../CSDIST/$DIR/opc/frontends
+cp -puv ../../csnd.py ../../../CSDIST/$DIR/opc/frontends
 rm ../../../CSDIST/$DIR/opc/libcsound64.so
 
 cp -upv ../../libcsound64.so.5.1  ../../../CSDIST/$DIR/lib
