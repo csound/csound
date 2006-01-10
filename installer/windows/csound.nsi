@@ -461,6 +461,7 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\include
   File ..\..\H\*.h
+  File ..\..\H\*.hpp
   File ..\..\frontends\CsoundVST\*.h
   File ..\..\frontends\CsoundVST\*.hpp
   File ..\..\interfaces\*.hpp
@@ -476,6 +477,7 @@ Section "${PRODUCT}" SecCopyUI
  
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
+  File /r ..\..\Opcodes\stk\rawwaves\*.raw
 
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
@@ -498,6 +500,9 @@ Section "${PRODUCT}" SecCopyUI
   Push $INSTDIR\bin
   Call AddToPath
 
+  Push "CSOUNDRC" 
+  Push $INSTDIR\.csoundrc
+  Call WriteEnvStr
   Push "OPCODEDIR64" 
   Push $INSTDIR\plugins64
   Call WriteEnvStr
@@ -572,6 +577,8 @@ Section "Uninstall"
   Push $INSTDIR
   Call un.RemoveFromPath
 
+  Push "CSOUNDRC"
+  Call un.DeleteEnvStr 
   Push "OPCODEDIR64"
   Call un.DeleteEnvStr 
   Push "RAWWAVE_PATH"
