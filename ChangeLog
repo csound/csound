@@ -1,3 +1,10 @@
+2006-01-04	Michael Gogins	<gogins@pipeline.com>
+	* Updated Windows installer script to be compatible with 
+	Istvan Varga's zip file layout; also includes vst4cs, csoundapi~,
+	FluidSynth opcodes, CsoundVST, tclcsound, Loris opcodes, STK C++
+	opcodes. Also includes manual and API reference. Now uses
+	Python 2.4.
+	
 2006-01-04	Istvan Varga	<ivarga@csounds.com>
 	* changed default output file type to AIFF on MacOS X
 	* added support for writing MIDI output to a file
