@@ -421,6 +421,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\csoundapi~.dll
   File ..\..\windows_dlls\libsndfile-1.dll
   File ..\..\..\portaudio\lib\portaudio.dll.0.0.19
+  File C:\utah\usr\mingw\bin\mingwm10.dll
   File C:\utah\opt\portmidi\pm_win\*.dll
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
