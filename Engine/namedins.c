@@ -1069,17 +1069,16 @@ CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
     /* check for valid parameters and calculate hash value */
     if ((type & (~51)) || !(type & 3) || !(type & 48))
       return CSOUND_ERROR;
-    if (name == NULL || name[0] == '\0')
-      return CSOUND_ERROR;
     s = name;
     if (!isalpha((unsigned char) *s))
       return CSOUND_ERROR;
-    h = strhash_tabl_8[(unsigned char) *(s++)];
-    for ( ; *s != (char) 0; s++) {
-      if (!isalnum((unsigned char) *s) && *s != '_')
-        return CSOUND_ERROR;
-      h = strhash_tabl_8[(unsigned char) *s ^ h];
-    }
+    h = (unsigned char) 0;
+    do {
+      h = strhash_tabl_8[(unsigned char) *(s++) ^ h];
+    } while (isalnum((unsigned char) *s) ||
+             *s == (char) '_' || *s == (char) '.');
+    if (*s != (char) 0)
+      return CSOUND_ERROR;
     /* create new empty database on first call */
     if (csound->chn_db == NULL) {
       if (csound->RegisterResetCallback(csound, NULL, delete_channel_db) != 0)
