@@ -89,7 +89,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, char *buf, const char *ext)
         }
 #endif
         if (ext != NULL && ext[0] != (char) 0) {
-#ifndef __MACH__
+#if !defined(LINUX) && !defined(__MACH__) && !defined(WIN32)
           char  *p;
           /* remove original extension (does not work on OS X */
           /* and may be a bad idea) */
