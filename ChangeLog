@@ -1,10 +1,17 @@
+2006-01-11	Istvan Varga	<ivarga@csounds.com>
+	* fixed temporary file bug on Windows (do not try to remove extension)
+	* new opcodes:
+	    chnmix    asig, Schn    (mixes to audio output channel)
+	    chnclear  Schn          (clears audio output channel at perf time)
+	* allow dot in channel names (but not as first character)
+
 2006-01-04	Michael Gogins	<gogins@pipeline.com>
-	* Updated Windows installer script to be compatible with 
+	* Updated Windows installer script to be compatible with
 	Istvan Varga's zip file layout; also includes vst4cs, csoundapi~,
 	FluidSynth opcodes, CsoundVST, tclcsound, Loris opcodes, STK C++
 	opcodes. Also includes manual and API reference. Now uses
 	Python 2.4.
-	
+
 2006-01-04	Istvan Varga	<ivarga@csounds.com>
 	* changed default output file type to AIFF on MacOS X
 	* added support for writing MIDI output to a file
