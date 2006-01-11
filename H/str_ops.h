@@ -181,6 +181,10 @@ typedef struct {
     (SUBR) chnset_opcode_init_a, (SUBR) notinit_opcode_stub, (SUBR) NULL },
  {  "chnset.S",    S(CHNGET),           1,      "",             "SS",
     (SUBR) chnset_opcode_init_S, (SUBR) NULL, (SUBR) NULL               },
+ {  "chnmix",      S(CHNGET),           5,      "",             "aS",
+    (SUBR) chnmix_opcode_init, (SUBR) NULL, (SUBR) notinit_opcode_stub  },
+ {  "chnclear",    S(CHN_OPCODE),       5,      "",             "S",
+    (SUBR) chnclear_opcode_init, (SUBR) NULL, (SUBR) notinit_opcode_stub },
  {  "chn_k",       S(CHN_OPCODE_K),     1,      "",             "Sioooo",
     (SUBR) chn_k_opcode_init, (SUBR) NULL, (SUBR) NULL                  },
  {  "chn_a",       S(CHN_OPCODE),       1,      "",             "Si",
@@ -230,6 +234,8 @@ int chnset_opcode_init_i(CSOUND *, void *);
 int chnset_opcode_init_k(CSOUND *, void *);
 int chnset_opcode_init_a(CSOUND *, void *);
 int chnset_opcode_init_S(CSOUND *, void *);
+int chnmix_opcode_init(CSOUND *, void *);
+int chnclear_opcode_init(CSOUND *, void *);
 int chn_k_opcode_init(CSOUND *, void *);
 int chn_a_opcode_init(CSOUND *, void *);
 int chn_S_opcode_init(CSOUND *, void *);
