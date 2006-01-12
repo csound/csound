@@ -1,6 +1,8 @@
 Library names are of the form libXXX.so, libXXX.dl or libXXX.dyn
 depending on platform.
 
+*** means in manual
+
 OPCODE -> LIBRARY
 
 "ATSadd"		:ugnorman:     
@@ -13,10 +15,10 @@ OPCODE -> LIBRARY
 "ATSread"		:ugnorman:     
 "ATSreadnz"		:ugnorman:     
 "ATSsinnoi"		:ugnorman:     
-"OSCinit"		:OSC: 
-"OSClisten"		:OSC: 
-"OSCrecv"		:OSC: 
-"OSCsend"		:OSC: 
+"OSCinit"		:OSC:           ***
+"OSClisten"		:OSC:           ***
+"OSCrecv"		:OSC:           *** 
+"OSCsend"		:OSC:		*** 
 "STKBandedWG"		:stk/stkOpcodes:
 "STKBeeThree"		:stk/stkOpcodes:
 "STKBlowBotl"		:stk/stkOpcodes:
@@ -44,186 +46,178 @@ OPCODE -> LIBRARY
 "STKVoicForm"		:stk/stkOpcodes:
 "STKWhistle"		:stk/stkOpcodes:
 "STKWurley"		:stk/stkOpcodes:
-"active"		:spectra: 
-"adsynt"		:spectra: 
+"active"		:spectra: 		***
+"adsynt"		:spectra: 		***
 "and"		        :ugmoss: 
-"babo"		        :babo: 
-"bamboo"		:phisem: 
-"bbcutm"		:bbcut: 
-"bbcuts"		:bbcut: 
-"bformdec"		:ambicode:   
-"bformenc"		:ambicode:   
-"biquad"		:biquad: 
-"biquada"		:biquad: 
-"bqrez" 		:biquad: 
-"butbp" 		:butter: 
-"butbr" 		:butter: 
-"buthp" 		:butter: 
-"butlp"		        :butter: 
-"butterbp"		:butter: 
-"butterbr"		:butter: 
-"butterhp"		:butter: 
-"butterlp"		:butter: 
-"button"		:control: 
-"cabasa"		:phisem: 
-"checkbox"		:control: 
-"clear"		        :fout:     
-"clfilt"		:clfilt: 
-"clip"		        :spectra: 
-"clockoff"		:spectra: 
-"clockon"		:spectra: 
-"control"		:control: 
-"cpuprc"		:spectra: 
-"cross2"		:cross2: 
-"crunch"		:phisem: 
-"ctrl14"		:midiops2: 
-"ctrl21"		:midiops2: 
-"ctrl7"		        :midiops2: 
-"cuserrnd"		:uggab: 
-"dam"		        :dam: 
-"dcblock"		:dcblockr: 
-"dconv"		        :ugmoss: 
-"distort1"		:biquad: 
-"dripwater"		:phisem: 
-"dssiaudio"		:dssi4cs/src/dssi4cs:    
-"dssictls"		:dssi4cs/src/dssi4cs:    
-"dssievent"		:dssi4cs/src/dssi4cs:    
-"dssiinit"		:dssi4cs/src/dssi4cs:    
-"dssilist"		:dssi4cs/src/dssi4cs:    
+"babo"		        :babo:			***
+"bamboo"		:phisem:		***
+"bbcutm"		:bbcut: 		***
+"bbcuts"		:bbcut: 		***
+"bformdec"		:ambicode:    		***
+"bformenc"		:ambicode:    		***
+"biquad"		:biquad:  		***
+"biquada"		:biquad:  		***
+"bqrez" 		:biquad:  		***
+"butbp" 		:butter: 		*** 
+"butbr" 		:butter: 		*** 
+"buthp" 		:butter:  		***
+"butlp"		        :butter: 		*** 
+"butterbp"		:butter: 		*** 
+"butterbr"		:butter: 		*** 
+"butterhp"		:butter: 		*** 
+"butterlp"		:butter: 		*** 
+"button"		:control:  		***
+"cabasa"		:phisem:  		***
+"checkbox"		:control:   		***
+"clear"		        :fout:       		***
+"clfilt"		:clfilt:        	***
+"clip"		        :spectra:       	***
+"clockoff"		:spectra:       	*** 
+"clockon"		:spectra:       	*** 
+"control"		:control:       	*** 
+"cpuprc"		:spectra:       	*** 
+"cross2"		:cross2:       		*** 
+"crunch"		:phisem:       		*** 
+"ctrl14"		:midiops2:      	*** 
+"ctrl21"		:midiops2:      	*** 
+"ctrl7"		        :midiops2:      	*** 
+"cuserrnd"		:uggab: 		***
+"dam"		        :dam:                   ***
+"dcblock"		:dcblockr: 		***
+"dconv"		        :ugmoss: 		***
+"distort1"		:biquad: 		***
+"dripwater"		:phisem: 		***
+"dssiaudio"		:dssi4cs/src/dssi4cs:	***
+"dssictls"		:dssi4cs/src/dssi4cs:	***
+"dssievent"		:dssi4cs/src/dssi4cs:   
+"dssilist"		:dssi4cs/src/dssi4cs:	***
 "dssinote"		:dssi4cs/src/dssi4cs:    
 "dssisynth"		:dssi4cs/src/dssi4cs:    
-"duserrnd"		:uggab: 
-"exitnow"		:gab/gab:   
-"filter2"		:filter: 
-"fin"		        :fout:     
-"fini"		        :fout:     
-"fink"		        :fout:     
-"fiopen"		:fout:     
-"flanger"		:flanger: 
-"flashtxt"		:control: 
-"fluidAllOut"		:fluidOpcodes/fluidOpcodes:   
-"fluidCCi"		:fluidOpcodes/fluidOpcodes: 
-"fluidCCk"		:fluidOpcodes/fluidOpcodes:  
-"fluidControl"		:fluidOpcodes/fluidOpcodes:   
-"fluidEngine"		:fluidOpcodes/fluidOpcodes:  
-"fluidLoad"		:fluidOpcodes/fluidOpcodes:
-"fluidNote"		:fluidOpcodes/fluidOpcodes:  
-"fluidOut"		:fluidOpcodes/fluidOpcodes:   
-"fluidProgramSelect"	:fluidOpcodes/fluidOpcodes:   
-"fmb3"		        :physmod: 
-"fmbell"		:physmod: 
-"fmmetal"		:physmod: 
-"fmpercfl"		:physmod: 
-"fmrhode"		:physmod: 
-"fmvoice"		:physmod: 
-"fmwurlie"		:physmod: 
-"fof"		        :ugens7: 
-"fof2"		        :ugens7: 
-"fog"		        :ugensa: 
-"fold"		        :uggab: 
-"follow"		:follow: 
-"follow2"		:follow: 
-"fout"		        :fout:     
-"fouti"		        :fout:     
-"foutir"		:fout:     
-"foutk"		        :fout:     
-"fprintks"		:fout:     
-"fprints"		:fout:     
-"ftfree"		:ftgen:   
-"ftgen"		        :ftgen:   
-"ftgentmp"		:ftgen:   
-"ftload"		:ftgen:   
-"ftloadk"		:ftgen:   
-"ftmorf"		:ugmoss: 
-"ftsave"		:ftgen:   
-"ftsavek"		:ftgen:   
-"gogobel"		:modal4: 
-"grain"		        :grain: 
-"granule"		:grain4: 
-"guiro"		        :phisem: 
-"harmon"		:ugens7: 
-"hilbert"		:ugsc: 
-"hrtfer"		:hrtferX: 
-"hsboscil"		:spectra: 
-"initc14"		:midiops2: 
-"initc21"		:midiops2: 
-"initc7"		:midiops2: 
-"jitter"		:uggab: 
-"jitter2"		:uggab: 
-"jspline"		:uggab: 
-"lineto"		:uggab: 
-"locsend"		:locsig: 
-"locsig"		:locsig: 
-"loopseg"		:uggab: 
-"loopsegp"		:uggab: 
-"lorenz"		:biquad: 
-"lorismorph"		:Loris/csound/lorisgens5:      
-"lorismorph"		:Loris/lorisgens5:      
-"lorismorph"		:Loris/src/lorisgens:		
-"lorisplay"		:Loris/csound/lorisgens5:      
-"lorisplay"		:Loris/lorisgens5:      
-"lorisplay"		:Loris/src/lorisgens:		
-"lorisread"		:Loris/csound/lorisgens5:      
-"lorisread"		:Loris/lorisgens5:      
-"lorisread"		:Loris/src/lorisgens:		
-"lowpass2"		:ugsc: 
-"lowres"		:lowpassr: 
-"lowresx"		:lowpassr: 
-"lpf18"		        :spectra: 
-"lposcil"		:uggab: 
-"lposcil3"		:uggab: 
-"lpshold"		:uggab: 
-"lpsholdp"		:uggab: 
-"mac"		        :spectra: 
-"maca"		        :spectra: 
-"mandol"		:physmod: 
-"marimba"		:modal4: 
-"maxalloc"		:spectra: 
-"metro"		        :metro:   
-"midic14"		:midiops2: 
-"midic21"		:midiops2: 
-"midic7"		:midiops2: 
-"mirror"		:uggab: 
-"moog"		        :physmod: 
-"moogvcf"		:biquad: 
-"mpulse"		:spectra: 
-"multitap"		:vdelay: 
-"mute"		        :spectra: 
-"nestedap"		:biquad: 
-"nlfilt"		:nlfilt: 
-"noise"		        :spectra: 
-"not"		        :ugmoss: 
-"nreverb"		:vdelay: 
-"ntrpol"		:uggab: 
-"or"		        :ugmoss: 
+"duserrnd"		:uggab: 		***
+"exitnow"		:gab/gab:   		***
+"filter2"		:filter: 		***
+"fin"		        :fout:     		***
+"fini"		        :fout:     		***
+"fink"		        :fout:     		***
+"fiopen"		:fout:     		***
+"flanger"		:flanger: 		***
+"flashtxt"		:control: 		***
+"fluidAllOut"		:fluidOpcodes/fluidOpcodes:   		***
+"fluidCCi"		:fluidOpcodes/fluidOpcodes: 		***
+"fluidCCk"		:fluidOpcodes/fluidOpcodes:  		***
+"fluidControl"		:fluidOpcodes/fluidOpcodes:   		***
+"fluidEngine"		:fluidOpcodes/fluidOpcodes:  		***
+"fluidLoad"		:fluidOpcodes/fluidOpcodes:		***
+"fluidNote"		:fluidOpcodes/fluidOpcodes:  		***
+"fluidOut"		:fluidOpcodes/fluidOpcodes:   		***
+"fluidProgramSelect"	:fluidOpcodes/fluidOpcodes:   		***
+"fmb3"		        :physmod: 		***
+"fmbell"		:physmod: 		***
+"fmmetal"		:physmod: 		***
+"fmpercfl"		:physmod: 		***
+"fmrhode"		:physmod: 		***
+"fmvoice"		:physmod: 		***
+"fmwurlie"		:physmod: 		***
+"fof"		        :ugens7: 		***
+"fof2"		        :ugens7: 		***
+"fog"		        :ugensa: 		***
+"fold"		        :uggab: 		***
+"follow"		:follow: 		***
+"follow2"		:follow: 		***
+"fout"		        :fout:     		***
+"fouti"		        :fout:     		***
+"foutir"		:fout:     		***
+"foutk"		        :fout:     		***
+"fprintks"		:fout:     		***
+"fprints"		:fout:     		***
+"ftfree"		:ftgen:   		***
+"ftgen"		        :ftgen:   		***
+"ftgentmp"		:ftgen:   		***
+"ftload"		:ftgen:   		***
+"ftloadk"		:ftgen:   		***
+"ftmorf"		:ugmoss: 		***
+"ftsave"		:ftgen:   		***
+"ftsavek"		:ftgen:   		***
+"gogobel"		:modal4: 		***
+"grain"		        :grain: 		***
+"granule"		:grain4: 		***
+"guiro"		        :phisem: 		***
+"harmon"		:ugens7: 		***
+"hilbert"		:ugsc:                  ***
+"hrtfer"		:hrtferX: 		***
+"hsboscil"		:spectra: 		***
+"initc14"		:midiops2: 		***
+"initc21"		:midiops2: 		***
+"initc7"		:midiops2: 		***
+"jitter"		:uggab: 		***
+"jitter2"		:uggab: 		***
+"jspline"		:uggab: 		***
+"lineto"		:uggab: 		***
+"locsend"		:locsig: 		***
+"locsig"		:locsig: 		***
+"loopseg"		:uggab: 		***
+"loopsegp"		:uggab: 		***
+"lorenz"		:biquad: 		***
+"lorismorph"		:Loris/src/lorisgens:	***
+"lorisplay"		:Loris/src/lorisgens:	***
+"lorisread"		:Loris/src/lorisgens:	***
+"lowpass2"		:ugsc:                  ***
+"lowres"		:lowpassr: 		***
+"lowresx"		:lowpassr: 		***
+"lpf18"		        :spectra: 		***
+"lposcil"		:uggab: 		***
+"lposcil3"		:uggab: 		***
+"lpshold"		:uggab: 		***
+"lpsholdp"		:uggab: 		***
+"mac"		        :spectra: 		***
+"maca"		        :spectra: 		***
+"mandol"		:physmod: 		***
+"marimba"		:modal4: 		***
+"maxalloc"		:spectra: 		***
+"metro"		        :metro:   		***
+"midic14"		:midiops2: 		***
+"midic21"		:midiops2: 		***
+"midic7"		:midiops2: 		***
+"mirror"		:uggab: 		***
+"moog"		        :physmod: 		***
+"moogvcf"		:biquad: 		***
+"mpulse"		:spectra: 		***
+"multitap"		:vdelay: 		***
+"mute"		        :spectra: 		***
+"nestedap"		:biquad: 		***
+"nlfilt"		:nlfilt: 		***
+"noise"		        :spectra: 		***
+"not"		        :ugmoss: 		***
+"nreverb"		:vdelay: 		***
+"ntrpol"		:uggab: 		***
+"or"		        :ugmoss: 		***
 "oscilv"		:spectra: 
-"p"		        :spectra: 
+"p"		        :spectra: 		***
 "pareq"		        :biquad: 
-"partials"		:partials:    
-"phaser1"		:ugsc: 
-"phaser2"		:ugsc: 
-"phasorbnk"		:spectra: 
-"pinkish"		:spectra: 
-"pitch"		        :spectra: 
-"pitchamdf"		:spectra: 
-"planet"		:biquad: 
-"poscil"		:uggab: 
-"poscil3"		:uggab: 
-"product"		:uggab: 
-"pvsblur"		:pvsbasic:   
-"pvscale"		:pvsbasic:   
-"pvscent"		:pvscent:   
-"pvsdemix"		:pvsdemix:
-"pvsfilter"		:pvsbasic:   
-"pvshift"		:pvsbasic:   
-"pvsifd"		:ifd:    
-"pvsinit"		:pvsbasic:   
-"pvsmix"		:pvsbasic:   
-"pvstencil"		:pvsbasic:   
-"pyassign"		:py/pythonopcodes: 
+"partials"		:partials:    		***
+"phaser1"		:ugsc:                  ***
+"phaser2"		:ugsc:                  ***
+"phasorbnk"		:spectra: 		***
+"pinkish"		:spectra: 		***
+"pitch"		        :spectra: 		***
+"pitchamdf"		:spectra: 		***
+"planet"		:biquad: 		***
+"poscil"		:uggab: 		***
+"poscil3"		:uggab: 		***
+"product"		:uggab: 		***
+"pvsblur"		:pvsbasic:   		***
+"pvscale"		:pvsbasic:   		***
+"pvscent"		:pvscent:   		***
+"pvsdemix"		:pvsdemix:		***
+"pvsfilter"		:pvsbasic:   		***
+"pvshift"		:pvsbasic:   		***
+"pvsifd"		:ifd:    		***
+"pvsinit"		:pvsbasic:   		***
+"pvsmix"		:pvsbasic:   		***
+"pvstencil"		:pvsbasic:   		***
+"pyassign"		:py/pythonopcodes: 	***
 "pyassigni"		:py/pythonopcodes: 
 "pyassignt"		:py/pythonopcodes: 
-"pycall"		:py/pythonopcodes: 
 "pycall1"		:py/pythonopcodes: 
 "pycall1i"		:py/pythonopcodes: 
 "pycall1t"		:py/pythonopcodes: 
@@ -308,79 +302,78 @@ OPCODE -> LIBRARY
 "random"		:uggab: 
 "randomh"		:uggab: 
 "randomi"		:uggab: 
-"readclock"		:spectra: 
-"repluck"		:repluck: 
-"resonr"		:ugsc: 
-"resony"		:uggab: 
-"resonz"		:ugsc: 
-"resyn"		        :psynth:    
+"readclock"		:spectra: 		***
+"repluck"		:repluck: 		***
+"resonr"		:ugsc:                  ***
+"resony"		:uggab: 		***
+"resonz"		:ugsc:                  ***
+"resyn"		        :psynth:    		***
 "reverb2"		:vdelay: 
-"rezzy"		        :biquad: 
-"rspline"		:uggab: 
-"s16b14"		:midiops3: 
-"s32b14"		:midiops3: 
-"sandpaper"		:phisem: 
-"scanhammer"		:wave-terrain: 
-"scans"		        :scansyn: 
-"scantable"		:wave-terrain: 
-"scanu"		        :scansyn: 
-"sekere"		:phisem: 
-"sense"		        :spectra: 
-"sensekey"		:spectra: 
-"seqtime"		:seqtime: 
-"seqtime2"		:seqtime: 
-"setctrl"		:control: 
-"sfilist"		:sfont: 
-"sfinstr"		:sfont: 
-"sfinstr3"		:sfont: 
+"rezzy"		        :biquad: 		***
+"rspline"		:uggab: 		***
+"s16b14"		:midiops3: 		***
+"s32b14"		:midiops3: 		***
+"sandpaper"		:phisem: 		***
+"scanhammer"		:wave-terrain: 		***
+"scans"		        :scansyn: 		***
+"scantable"		:wave-terrain: 		***
+"scanu"		        :scansyn: 		***
+"sekere"		:phisem: 		***
+"sense"		        :spectra: 		***
+"sensekey"		:spectra: 		***
+"seqtime"		:seqtime: 		***
+"seqtime2"		:seqtime: 		***
+"setctrl"		:control: 		***
+"sfilist"		:sfont: 		***
+"sfinstr"		:sfont: 		***
+"sfinstr3"		:sfont: 		***
 "sfinstr3m"		:sfont: 
-"sfinstr3m"		:sfont: 		:
-"sfinstrm"		:sfont: 
-"sfload"		:sfont: 
-"sfpassign"		:sfont: 
-"sfplay"		:sfont: 
-"sfplay3"		:sfont: 
-"sfplay3m"		:sfont: 
-"sfplaym"		:sfont: 
-"sfplist"		:sfont: 
-"sfpreset"		:sfont: 
-"shaker"		:physmod: 
-"shl"		        :ugmoss: 
-"sinsyn"		:psynth:    
-"sleighbells"		:phisem: 
-"slider16"		:midiops3: 
-"slider16f"		:midiops3: 
-"slider32"		:midiops3: 
-"slider32f"		:midiops3: 
-"slider64"		:midiops3: 
-"slider64f"		:midiops3: 
-"slider8"		:midiops3: 
-"slider8f"		:midiops3: 
-"sndwarp"		:sndwarp:   
-"sndwarpst"		:sndwarp:   
-"space"		        :space: 
-"spat3d"		:spat3d:     
-"spat3di"		:spat3d:     
-"spat3dt"		:spat3d:     
-"spdist"		:space: 
-"specaddm"		:spectra: 
-"specdiff"		:spectra: 
-"specdisp"		:spectra: 
-"specfilt"		:spectra: 
-"spechist"		:spectra: 
-"specptrk"		:spectra: 
-"specscal"		:spectra: 
-"specsum"		:spectra: 
-"spectrum"		:spectra: 
-"splitrig"		:metro:   
-"spsend"		:space: 
-"stix"		        :phisem: 
-"streson"		:repluck: 
-"sum"		        :uggab: 
-"svfilter"		:ugsc: 
-"tab_i"                 :gab/gab:   
+"sfinstrm"		:sfont: 		***
+"sfload"		:sfont: 		***
+"sfpassign"		:sfont: 		***
+"sfplay"		:sfont: 		***
+"sfplay3"		:sfont: 		***
+"sfplay3m"		:sfont: 		***
+"sfplaym"		:sfont: 		***
+"sfplist"		:sfont: 		***
+"sfpreset"		:sfont: 		***
+"shaker"		:physmod: 		***
+"shl"		        :ugmoss:                ***
+"sinsyn"		:psynth:    		***
+"sleighbells"		:phisem: 		***
+"slider16"		:midiops3: 		***
+"slider16f"		:midiops3: 		***
+"slider32"		:midiops3: 		***
+"slider32f"		:midiops3: 		***
+"slider64"		:midiops3: 		***
+"slider64f"		:midiops3: 		***
+"slider8"		:midiops3: 		***
+"slider8f"		:midiops3: 		***
+"sndwarp"		:sndwarp:   		***
+"sndwarpst"		:sndwarp:   		***
+"space"		        :space: 		***
+"spat3d"		:spat3d:     		***
+"spat3di"		:spat3d:     		***
+"spat3dt"		:spat3d:     		***
+"spdist"		:space: 		***
+"specaddm"		:spectra: 		***
+"specdiff"		:spectra: 		***
+"specdisp"		:spectra: 		***
+"specfilt"		:spectra: 		***
+"spechist"		:spectra: 		***
+"specptrk"		:spectra: 		***
+"specscal"		:spectra: 		***
+"specsum"		:spectra: 		***
+"spectrum"		:spectra: 		***
+"splitrig"		:metro:   		***
+"spsend"		:space: 		***
+"stix"		        :phisem: 		***
+"streson"		:repluck: 		***
+"sum"		        :uggab: 		***
+"svfilter"		:ugsc:                  ***
+"tab_i"                 :gab/gab:   		***
 "tabw_i"		:gab/gab:   
-"tambourine"		:phisem: 
+"tambourine"		:phisem: 		***
 "tb0"                   :gab/gab:   
 "tb0_init"		:gab/gab:   
 "tb1"                   :gab/gab:   
@@ -413,84 +406,84 @@ OPCODE -> LIBRARY
 "tb8_init"		:gab/gab:   
 "tb9"                   :gab/gab:   
 "tb9_init"		:gab/gab:   
-"tbvcf"		        :biquad: 
-"timedseq"		:metro:   
-"tlineto"		:uggab: 
-"tradsyn"		:psynth:    
-"transeg"		:spectra: 
-"trigger"		:uggab: 
-"urd"		        :uggab: 
-"vadd"                  :gab/vectorial:   
-"vaddv"                 :gab/vectorial:   
-"valpass"		:ugmoss: 
-"vcella"		:gab/vectorial:   
-"vco"		        :biquad: 
-"vcomb"		        :ugmoss: 
-"vcopy"                 :gab/vectorial:   
-"vcopy_i"		:gab/vectorial:   
-"vdelay"		:vdelay: 
-"vdelay3"		:vdelay: 
-"vdelayk"		:gab/vectorial:   
-"vdelayx"		:vdelay: 
-"vdelayxq"		:vdelay: 
-"vdelayxs"		:vdelay: 
-"vdelayxw"		:vdelay: 
-"vdelayxwq"		:vdelay: 
-"vdelayxws"		:vdelay: 
-"vdivv"                 :gab/vectorial:   
-"vecdelay"		:gab/vectorial:   
-"vexp"                  :gab/vectorial:   
-"vexpseg"		:gab/vectorial:   
-"vexpv"                 :gab/vectorial:   
-"vibes"		        :modal4: 
-"vibr"		        :uggab: 
-"vibrato"		:uggab: 
-"vincr"		        :fout:     
-"vlimit"		:gab/vectorial:   
-"vlinseg"		:gab/vectorial:   
-"vlowres"		:lowpassr: 
-"vmap"                  :gab/vectorial:   
-"vmirror"		:gab/vectorial:   
-"vmult"                 :gab/vectorial:   
-"vmultv"		:gab/vectorial:   
-"voice"		        :physmod: 
-"vport"                 :gab/vectorial:   
-"vpow"                  :gab/vectorial:   
-"vpowv"                 :gab/vectorial:   
-"vrandh"		:gab/vectorial:   
-"vrandi"		:gab/vectorial:   
-"vsubv"                 :gab/vectorial:   
-"vtaba"                 :gab/vectorial:   
-"vtabi"                 :gab/vectorial:   
-"vtabk"                 :gab/vectorial:   
-"vtablea"		:gab/vectorial:   
-"vtablei"		:gab/vectorial:   
-"vtablek"		:gab/vectorial:   
-"vtablewa"		:gab/vectorial:   
-"vtablewi"		:gab/vectorial:   
-"vtablewk"		:gab/vectorial:   
-"vtabwa"		:gab/vectorial:   
-"vtabwi"		:gab/vectorial:   
-"vtabwk"		:gab/vectorial:   
-"vwrap"		        :gab/vectorial:   
-"waveset"		:spectra: 
-"wgbow"		        :physmod: 
-"wgbowedbar"		:physmod: 
-"wgbrass"		:physmod: 
-"wgclar"		:physmod: 
-"wgflute"		:physmod: 
-"wgpluck"		:pluck: 
-"wgpluck2"		:repluck: 
-"wguide1"		:flanger: 
-"wguide2"		:flanger: 
-"wrap"		        :uggab: 
-"wterrain"		:wave-terrain: 
-"xor"		        :ugmoss: 
-"xscanmap"		:scansynx: 
-"xscans"		:scansynx: 
-"xscansmap"		:scansynx: 
-"xscanu"		:scansynx: 
-"zfilter2"		:filter: 
+"tbvcf"		        :biquad: 		***
+"timedseq"		:metro:   		***
+"tlineto"		:uggab: 		***
+"tradsyn"		:psynth:    		***
+"transeg"		:spectra: 		***
+"trigger"		:uggab: 		***
+"urd"		        :uggab: 		***
+"vadd"                  :gab/vectorial:   	***
+"vaddv"                 :gab/vectorial:   	***
+"valpass"		:ugmoss: 		***
+"vcella"		:gab/vectorial:   	***
+"vco"		        :biquad: 		***
+"vcomb"		        :ugmoss: 		***
+"vcopy"                 :gab/vectorial:   	***
+"vcopy_i"		:gab/vectorial:   	***
+"vdelay"		:vdelay: 		***
+"vdelay3"		:vdelay: 		***
+"vdelayk"		:gab/vectorial:   	***
+"vdelayx"		:vdelay: 		***
+"vdelayxq"		:vdelay: 		***
+"vdelayxs"		:vdelay: 		***
+"vdelayxw"		:vdelay: 		***
+"vdelayxwq"		:vdelay: 		***
+"vdelayxws"		:vdelay: 		***
+"vdivv"                 :gab/vectorial:   	***
+"vecdelay"		:gab/vectorial:   	***
+"vexp"                  :gab/vectorial:   	***
+"vexpseg"		:gab/vectorial:   	***
+"vexpv"                 :gab/vectorial:   	***
+"vibes"		        :modal4: 		***
+"vibr"		        :uggab: 		***
+"vibrato"		:uggab: 		***
+"vincr"		        :fout:     		***
+"vlimit"		:gab/vectorial:   	***
+"vlinseg"		:gab/vectorial:   	***
+"vlowres"		:lowpassr: 		***
+"vmap"                  :gab/vectorial:   	***
+"vmirror"		:gab/vectorial:   	***
+"vmult"                 :gab/vectorial:   	***
+"vmultv"		:gab/vectorial:   	***
+"voice"		        :physmod: 		***
+"vport"                 :gab/vectorial:   	***
+"vpow"                  :gab/vectorial:   	***
+"vpowv"                 :gab/vectorial:   	***
+"vrandh"		:gab/vectorial:   	***
+"vrandi"		:gab/vectorial:   	***
+"vsubv"                 :gab/vectorial:   	***
+"vtaba"                 :gab/vectorial:   	***
+"vtabi"                 :gab/vectorial:   	***
+"vtabk"                 :gab/vectorial:   	***
+"vtablea"		:gab/vectorial:   	***
+"vtablei"		:gab/vectorial:   	***
+"vtablek"		:gab/vectorial:   	***
+"vtablewa"		:gab/vectorial:   	***
+"vtablewi"		:gab/vectorial:   	***
+"vtablewk"		:gab/vectorial:   	***
+"vtabwa"		:gab/vectorial:   	***
+"vtabwi"		:gab/vectorial:   	***
+"vtabwk"		:gab/vectorial:   	***
+"vwrap"		        :gab/vectorial:   	***
+"waveset"		:spectra: 		***
+"wgbow"		        :physmod: 		***
+"wgbowedbar"		:physmod: 		***
+"wgbrass"		:physmod: 		***
+"wgclar"		:physmod: 		***
+"wgflute"		:physmod: 		***
+"wgpluck"		:pluck: 		***
+"wgpluck2"		:repluck: 		***
+"wguide1"		:flanger: 		***
+"wguide2"		:flanger: 		***
+"wrap"		        :uggab: 		***
+"wterrain"		:wave-terrain: 		***
+"xor"		        :ugmoss:                ***
+"xscanmap"		:scansynx: 		***
+"xscans"		:scansynx: 		***
+"xscansmap"		:scansynx: 		***
+"xscanu"		:scansynx: 		***
+"zfilter2"		:filter: 		***
 
 ------------------------------------------------------------------------
 LIBRARY -> OPCODE
@@ -990,31 +983,31 @@ wave-terrain: 	 		"wterrain"
 Opcodes in base system
 ----------------------
 
-chani
-chano
-chn_S
-chn_a
-chn_k
+chani		***
+chano		***
+chn_S		***
+chn_a		***
+chn_k		***
 chnclear
 chnexport
 chnget
 chnmix
 chnparams
 chnset
-printf
-printf_i
+printf		***
+printf_i	***
 puts
 sprintf
 sprintfk
-strcat
+strcat		***
 strcatk
-strcmp
+strcmp		***
 strcmpk
-strcpy
+strcpy		***
 strcpyk
-strget
-strset
-strtod
+strget		***
+strset		***
+strtod		***
 strtodk
 strtol
 strtolk
@@ -1031,381 +1024,546 @@ loop_lt
 >
 >=
 _in
-a
-abs
-add
-adsr
-adsyn
-aftouch
-alpass
-ampdb
-ampdbfs
-ampmidi
-areson
-aresonk
-atone
-atonek
-atonex
-balance
-betarand
-bexprnd
-birnd
+a               ***
+abs		***
+add		***
+adsr		***
+adsyn		***
+aftouch		***
+alpass		***
+ampdb		***
+ampdbfs		***
+ampmidi		***
+areson		***
+aresonk		***
+atone		***
+atonek		***
+atonex		***
+balance		***
+betarand	***
+bexprnd		***
+birnd		***
 buzz
-cauchy
-ceil
-cent
-cggoto
-chanctrl
-cigoto
-ckgoto
-cngoto
+cauchy		***
+ceil		***
+cent		***
+cggoto		***
+chanctrl	***
+cigoto		***
+ckgoto		***
+cngoto		***
 cogoto
-comb
-cos
-cosh
-cosinv
-cps2pch
-cpsmidi
-cpsmidib
-cpsoct
-cpspch
-cpstmid
-cpstun
-cpstuni
-cpsxpch
-ctrlinit
-db
-dbamp
-dbfsamp
-delay
-delay1
-delayr
-delayw
-deltap
-deltap3
-deltapi
-deltapn
-deltapx
-deltapxw
-diff
-diskin
-diskin2
-dispfft
-display
-div
+comb		***
+cos		***
+cosh		***
+cosinv		***
+cps2pch		***
+cpsmidi		***
+cpsmidib	***
+cpsoct		***
+cpspch		***
+cpstmid		***
+cpstun		***
+cpstuni		***
+cpsxpch		***
+ctrlinit	***
+db		***
+dbamp		***
+dbfsamp		***
+delay		***
+delay1		***
+delayr		***
+delayw		***
+deltap		***
+deltap3		***
+deltapi		***
+deltapn		***
+deltapx		***
+deltapxw	***
+diff		***
+diskin		***
+diskin2		***
+dispfft		***
+display		***
+div		***
 divz
-downsamp
-dumpk
-dumpk2
-dumpk3
-dumpk4
-endin
-endop
-envlpx
-envlpxr
-event
-event_i
-exp
-expon
-exprand
-expseg
-expsega
-expsegr
-filelen
-filenchnls
-filepeak
-filesr
-floor
-foscil
-foscili
-frac
-ftchnls
-ftlen
-ftlptim
-ftsr
-gain
-gauss
-gbuzz
-goto
-i
-igoto
-ihold
-in
-in32
-inch
-inh
-init
-ino
-inq
-ins
-instr
-int
-integ
-interp
-invalue
-inx
-inz
-k
-kgoto
-ktableseg
-lfo
-limit
-line
-linen
-linenr
-linrand
-linseg
-linsegr
-log
-log10
-logbtwo
-loscil
-loscil3
-lpfreson
-lphasor
-lpinterp
-lpread
-lpreson
-lpslot
-madsr
-massign
-mclock
-mdelay
-midichannelaftertouch
-midichn
-midicontrolchange
-midictrl
-mididefault
-midiin
-midinoteoff
-midinoteoncps
-midinoteonkey
-midinoteonoct
-midinoteonpch
-midion
-midion2
-midiout
-midipitchbend
-midipolyaftertouch
-midiprogramchange
-miditempo
-mod
-moscil
-mrtmsg
+downsamp	***
+dumpk		***
+dumpk2		***
+dumpk3		***
+dumpk4		***
+endin		***
+endop		***
+envlpx		***
+envlpxr		***
+event		***
+event_i		***
+exp		***
+expon		***
+exprand		***
+expseg		***
+expsega		***
+expsegr		***
+filelen		***
+filenchnls	***
+filepeak	***
+filesr		***
+floor		***
+foscil		***
+foscili		***
+frac		***
+ftchnls		***
+ftlen		***
+ftlptim		***
+ftsr		***
+gain		***
+gauss		***
+gbuzz		***
+goto		***
+i		***
+igoto		***
+ihold		***
+in              ***
+in32		***
+inch		***
+inh		***
+init		***
+ino		***
+inq		***
+ins		***
+instr		***
+int		***
+integ		***
+interp		***
+invalue		***
+inx		***
+inz		***
+k               ***
+kgoto		***
+ktableseg	***
+lfo		***
+limit		***
+line		***
+linen		***
+linenr		***
+linrand		***
+linseg		***
+linsegr		***
+log		***
+log10		***
+logbtwo		***
+loscil		***
+loscil3		***
+lpfreson	***
+lphasor		***
+lpinterp	***
+lpread		***
+lpreson		***
+lpslot		***
+madsr		***
+massign		***
+mclock		***
+mdelay		***
+midichannelaftertouch	***
+midichn		***
+midicontrolchange	***
+midictrl	***
+mididefault	***
+midiin		***
+midinoteoff	***
+midinoteoncps	***
+midinoteonkey	***
+midinoteonoct	***
+midinoteonpch	***
+midion		***
+midion2		***
+midiout		***
+midipitchbend	***
+midipolyaftertouch	***
+midiprogramchange	***
+miditempo	***
+mod		***
+moscil		***
+mrtmsg		***
 mul
 multitap
 mxadsr
 noteoff
-noteon
-noteondur
-noteondur2
-notnum
+noteon		***
+noteondur	***
+noteondur2	***
+notnum		***
 nreverb
-nrpn
-nsamp
-nstrnum
+nrpn		***
+nsamp		***
+nstrnum		***
 ntrpol
-octave
-octcps
-octmidi
-octmidib
-octpch
+octave		***
+octcps		***
+octmidi		***
+octmidib	***
+octpch		***
 opcode
 oscil
-oscil1
-oscil1i
-oscil3
-oscili
-osciln
-oscils
-oscilx
-out
-out32
-outc
-outch
-outh
-outiat
-outic
-outic14
-outipat
-outipb
-outipc
-outkat
-outkc
-outkc14
-outkpat
-outkpb
-outkpc
-outo
-outq
-outq1
-outq2
-outq3
-outq4
-outs
-outs1
-outs2
-outvalue
-outx
-outz
-pan
-pcauchy
-pchbend
-pchmidi
+oscil1		***
+oscil1i		***
+oscil3		***
+oscili		***
+osciln		***
+oscils		***
+oscilx		***
+out		***
+out32		***
+outc		***
+outch		***
+outh		***
+outiat		***
+outic		***
+outic14		***
+outipat		***
+outipb		***
+outipc		***
+outkat		***
+outkc		***
+outkc14		***
+outkpat		***
+outkpb		***
+outkpc		***
+outo		***
+outq		***
+outq1		***
+outq2		***
+outq3		***
+outq4		***
+outs		***
+outs1		***
+outs2		***
+outvalue	***
+outx		***
+outz		***
+pan		***
+pcauchy		***
+pchbend		***
+pchmidi		***
 pchmidib
-pchoct
-peak
-pgmassign
+pchoct		***
+peak		***
+pgmassign	***
 phasor
 pluck
-poisson
-polyaft
-port
-portk
-pow
-powoftwo
-prealloc
-print
-printk
-printk2
-printks
-prints
-pset
-pvadd
-pvbufread
-pvcross
-pvinterp
-pvoc
-pvread
+poisson		***
+polyaft		***
+port		***
+portk		***
+pow		***
+powoftwo	***
+prealloc	***
+print		***
+printk		***
+printk2		***
+printks		***
+prints		***
+pset		***
+pvadd		***
+pvbufread	***
+pvcross		***
+pvinterp	***
+pvoc		***
+pvread		***
 pvsadsyn
-pvsanal
-pvscross
-pvsfread
-pvsftr
-pvsftw
-pvsinfo
-pvsmaska
-pvsynth
-rand
-randh
-randi
-readk
-readk2
-readk3
-readk4
-reinit
-release
-reson
-resonk
-resonx
-reverb
-reverb2
-rigoto
-rireturn
-rms
-rnd
-round
-rtclock
-samphold
-schedkwhen
-schedkwhennamed
-schedule
-schedwhen
-seed
-semitone
-setksmps
-sin
-sinh
-sininv
-soundin
-soundout
-soundouts
-sqrt
+pvsanal		***
+pvscross	***
+pvsfread	***
+pvsftr		***
+pvsftw		***
+pvsinfo		***
+pvsmaska	***
+pvsynth		***
+rand		***
+randh		***
+randi		***
+readk		***
+readk2		***
+readk3		***
+readk4		***
+reinit		***
+release		***
+reson		***
+resonk		***
+resonx		***
+reverb		***
+reverb2		***
+rigoto		***
+rireturn	***
+rms		***
+rnd		***
+round		***
+rtclock		***
+samphold	***
+schedkwhen	***
+schedkwhennamed	***
+schedule	***
+schedwhen	***
+seed		***
+semitone	***
+setksmps	***
+sin		***
+sinh		***
+sininv		***
+soundin		***
+soundout	***
+soundouts	***
+sqrt		***
 sub
-subinstr
-subinstrinit
-table
-table3
-tablecopy
-tablegpw
-tablei
-tableicopy
-tableigpw
-tableikt
-tableimix
-tableiw
-tablekt
-tablemix
-tableng
-tablera
-tableseg
-tablew
-tablewa
-tablewkt
-tablexkt
-tablexseg
-tan
-tanh
-taninv
-taninv2
-tempest
-tempo
-tempoval
-tigoto
-timeinstk
-timeinsts
-timek
-times
-timout
-tival
-tone
-tonek
-tonex
-trigseq
-trirand
-turnoff
-turnoff2
-turnon
-unirand
-upsamp
-vbap16
-vbap16move
-vbap4
-vbap4move
-vbap8
-vbap8move
-vbaplsinit
-vbapz
-vbapzmove
-vdelay
-vdelay3
+subinstr	***
+subinstrinit	***
+table		***
+table3		***
+tablecopy	***
+tablegpw	***
+tablei		***
+tableicopy	***
+tableigpw	***
+tableikt	***
+tableimix	***
+tableiw		***
+tablekt		***
+tablemix	***
+tableng		***
+tablera		***
+tableseg	***
+tablew		***
+tablewa		***
+tablewkt	***
+tablexkt	***
+tablexseg	***
+tan		***
+tanh		***
+taninv		***
+taninv2		***
+tempest		***
+tempo		***
+tempoval	***
+tigoto		***
+timeinstk	***
+timeinsts	***
+timek		***
+times		***
+timout		***
+tival		***
+tone		***
+tonek		***
+tonex		***
+trigseq		***
+trirand		***
+turnoff		***
+turnoff2	***
+turnon		***
+unirand		***
+upsamp		***
+vbap16		***
+vbap16move	***
+vbap4		***
+vbap4move	***
+vbap8		***
+vbap8move	***
+vbaplsinit	***
+vbapz		***
+vbapzmove	***
 vdelayx
 vdelayxq
 vdelayxs
 vdelayxw
 vdelayxwq
 vdelayxws
-veloc
-vpvoc
-weibull
-xadsr
-xin
-xout
-xtratim
-xyin
-zacl
-zakinit
-zamod
-zar
-zarg
-zaw
-zawm
-zir
-ziw
-ziwm
-zkcl
-zkmod
-zkr
-zkw
-zkwm
-||
+veloc		***
+vpvoc		***
+weibull		***
+xadsr		***
+xin		***
+xout		***
+xtratim		***
+xyin		***
+zacl		***
+zakinit		***
+zamod		***
+zar		***
+zarg		***
+zaw		***
+zawm		***
+zir		***
+ziw		***
+ziwm		***
+zkcl		***
+zkmod		***
+zkr		***
+zkw		***
+zkwm		***
+
+========================================================================
+Documemtation exists for
+
+FLbox 
+FLbutBank 
+FLbutton 
+FLcolor 
+FLcolor2 
+FLcount 
+FLgetsnap 
+FLgroup 
+FLgroupEnd 
+FLgroupEnd 
+FLhide 
+FLjoy 
+FLkeyb 
+FLknob 
+FLlabel 
+FLloadsnap 
+FLpack 
+FLpackEnd 
+FLpackEnd 
+FLpanel 
+FLpanelEnd 
+FLpanel_end 
+FLprintk 
+FLprintk2 
+FLroller 
+FLrun 
+FLsavesnap 
+FLscroll 
+FLscrollEnd 
+FLscroll_end 
+FLsetAlign 
+FLsetBox 
+FLsetColor 
+FLsetColor2 
+FLsetFont 
+FLsetPosition 
+FLsetSize 
+FLsetText 
+FLsetTextColor 
+FLsetTextSize 
+FLsetTextType 
+FLsetVal 
+FLsetVal_i 
+FLsetsnap 
+FLshow 
+FLslidBnk 
+FLslider 
+FLtabs 
+FLtabsEnd 
+FLtabs_end 
+FLtext 
+FLupdate 
+FLvalue 
+MixerClear 
+MixerGetLevel 
+MixerReceive 
+MixerSend 
+MixerSetLevel 
+^ 
+
+adsynt2 
+changed 
+chnparams 
+chnset 
+clock 
+convle 
+convolve 
+delayk 
+denorm 
+dssiactivate 
+dssiinit 	
+flooper 
+fofilter 
+freeverb 
+ftconv 
+grain2 
+grain3 
+ictrl14 
+ictrl21 
+ictrl7 
+imidic14 
+imidic21 
+imidic7 
+ink 
+instimek 
+instimes 
+ioff 
+ion 
+iondur 
+iondur2 
+ioutat 
+ioutc 
+ioutc14 
+ioutpat 
+ioutpb 
+ioutpc 
+is16b14 
+is32b14 
+islider16 
+islider32 
+islider64 
+islider8 
+itablecopy 
+itablegpw 
+itablemix 
+itablew 
+k 
+kon 
+koutat 
+koutc 
+koutc14 
+koutpat 
+koutpb 
+koutpc 
+loop 
+mandel 
+max_k 
+moscil 
+nchnls 
+oscbnk 
+oscilikt 
+osciliktp 
+oscilikts 
+outk 
+pconvolve 
+peakk 
+pluck 
+puts 
+pvsarp 
+pvsvoc 
+pycall Opcodes 
+pyeval Opcodes 
+pyexec Opcodes 
+pyinit Opcodes 
+pyrun Opcodes 
+random 
+randomh 
+randomi 
+rbjeq 
+resonxk 
+reverbsc 
+rnd31 
+sndloop 
+sr 
+statevar 
+strtodk 
+strtolk 
+syncgrain 
+tabrec 
+tb 
+vco2 
+vco2ft 
+vco2ift 
+vco2init 
+vdelay3 
+vstaudio, vstaudiog 
+vstbankload 
+vstedit 
+vstinfo 
+vstinit 
+vstmidiout 
+vstnote 
+vstparamset,vstparamget 
+vstprogset 
