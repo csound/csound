@@ -288,18 +288,6 @@ if getPlatform() == 'linux':
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CPPPATH = '/usr/include')
     commonEnvironment.Append(CPPPATH = '/usr/X11R6/include')
-    if commonEnvironment['buildInterfaces'] != '0':
-        if commonEnvironment['buildJavaWrapper'] != '0':
-            if commonEnvironment['Word64'] == '1':
-                commonEnvironment.Append(CPPPATH = Split('''
-                    /usr/lib64/jvm/java-1.5.0/include
-                    /usr/lib64/jvm/java-1.5.0/include/linux
-                    /usr/lib64/java/include /usr/lib64/java/include/linux
-                '''))
-            else:
-                commonEnvironment.Append(CPPPATH = Split('''
-                    /usr/lib/java/include /usr/lib/java/include/linux
-                '''))
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(LINKFLAGS = ['-Wl,-Bdynamic'])
 elif getPlatform() == 'darwin':
@@ -394,10 +382,26 @@ if not pythonFound:
     for i in pythonIncludePath:
         tmp = '%s/Python.h' % i
         pythonFound = pythonFound or configure.CheckHeader(tmp, language = "C")
-if getPlatform() != 'darwin':
-    javaFound = configure.CheckHeader("jni.h", language = "C++")
+if getPlatform() == 'darwin':
+    tmp = "/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h"
+    javaFound = configure.CheckHeader(tmp, language = "C++")
 else:
-    javaFound = configure.CheckHeader("/System/Library/Frameworks/JavaVM.Framework/Headers/jni.h", language = "C++")
+    javaFound = configure.CheckHeader("jni.h", language = "C++")
+if getPlatform() == 'linux' and not javaFound:
+    if commonEnvironment['buildInterfaces'] != '0':
+        if commonEnvironment['buildJavaWrapper'] != '0':
+            baseDir = '/usr/lib'
+            if commonEnvironment['Word64'] == '1':
+                baseDir += '64'
+            for i in ['java', 'jvm/java', 'jvm/java-1.5.0']:
+                javaIncludePath = '%s/%s/include' % (baseDir, i)
+                tmp = '%s/linux/jni_md.h' % javaIncludePath
+                if configure.CheckHeader(tmp, language = "C++"):
+                    javaFound = 1
+                    break
+    if javaFound:
+        commonEnvironment.Append(CPPPATH = [javaIncludePath])
+        commonEnvironment.Append(CPPPATH = [javaIncludePath + '/linux'])
 
 if getPlatform() == 'mingw':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
