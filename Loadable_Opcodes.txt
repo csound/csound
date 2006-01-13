@@ -1,981 +1,956 @@
-Library names are of the form libXXX.so, libXXX.dl or libXXX.dyn
+Library names are of the form libXXX.so, XXX.dll or libXXX.dylib
 depending on platform.
 
 *** means in manual
 
 OPCODE -> LIBRARY
 
-"ATSadd"		:ugnorman:     
-"ATSaddnz"		:ugnorman:     
-"ATSbufread"		:ugnorman:     
-"ATScross"		:ugnorman:     
-"ATSinfo"		:ugnorman:     
-"ATSinterpread"		:ugnorman:     
-"ATSpartialtap"		:ugnorman:     
-"ATSread"		:ugnorman:     
-"ATSreadnz"		:ugnorman:     
-"ATSsinnoi"		:ugnorman:     
-"OSCinit"		:OSC:           ***
-"OSClisten"		:OSC:           ***
-"OSCrecv"		:OSC:           *** 
-"OSCsend"		:OSC:		*** 
-"STKBandedWG"		:stk/stkOpcodes:
-"STKBeeThree"		:stk/stkOpcodes:
-"STKBlowBotl"		:stk/stkOpcodes:
-"STKBlowHole"		:stk/stkOpcodes:
-"STKBowed"		:stk/stkOpcodes:
-"STKBrass"		:stk/stkOpcodes:
-"STKClarinet"		:stk/stkOpcodes:
-"STKDrummer"		:stk/stkOpcodes:
-"STKFMVoices"		:stk/stkOpcodes:
-"STKFlute"		:stk/stkOpcodes:
-"STKHevyMetl"		:stk/stkOpcodes:
-"STKMandolin"		:stk/stkOpcodes:
-"STKModalBar"		:stk/stkOpcodes:
-"STKMoog"		:stk/stkOpcodes:
-"STKPercFlut"		:stk/stkOpcodes:
-"STKPlucked"		:stk/stkOpcodes:
-"STKResonate"		:stk/stkOpcodes:
-"STKRhodey"		:stk/stkOpcodes:
-"STKSaxofony"		:stk/stkOpcodes:
-"STKShakers"		:stk/stkOpcodes:
-"STKSimple"		:stk/stkOpcodes:
-"STKSitar"		:stk/stkOpcodes:
-"STKStifKarp"		:stk/stkOpcodes:
-"STKTubeBell"		:stk/stkOpcodes:
-"STKVoicForm"		:stk/stkOpcodes:
-"STKWhistle"		:stk/stkOpcodes:
-"STKWurley"		:stk/stkOpcodes:
-"active"		:spectra: 		***
-"adsynt"		:spectra: 		***
-"and"		        :ugmoss: 
-"babo"		        :babo:			***
-"bamboo"		:phisem:		***
-"bbcutm"		:bbcut: 		***
-"bbcuts"		:bbcut: 		***
-"bformdec"		:ambicode:    		***
-"bformenc"		:ambicode:    		***
-"biquad"		:biquad:  		***
-"biquada"		:biquad:  		***
-"bqrez" 		:biquad:  		***
-"butbp" 		:butter: 		*** 
-"butbr" 		:butter: 		*** 
-"buthp" 		:butter:  		***
-"butlp"		        :butter: 		*** 
-"butterbp"		:butter: 		*** 
-"butterbr"		:butter: 		*** 
-"butterhp"		:butter: 		*** 
-"butterlp"		:butter: 		*** 
-"button"		:control:  		***
-"cabasa"		:phisem:  		***
-"checkbox"		:control:   		***
-"clear"		        :fout:       		***
-"clfilt"		:clfilt:        	***
-"clip"		        :spectra:       	***
-"clockoff"		:spectra:       	*** 
-"clockon"		:spectra:       	*** 
-"control"		:control:       	*** 
-"cpuprc"		:spectra:       	*** 
-"cross2"		:cross2:       		*** 
-"crunch"		:phisem:       		*** 
-"ctrl14"		:midiops2:      	*** 
-"ctrl21"		:midiops2:      	*** 
-"ctrl7"		        :midiops2:      	*** 
-"cuserrnd"		:uggab: 		***
-"dam"		        :dam:                   ***
-"dcblock"		:dcblockr: 		***
-"dconv"		        :ugmoss: 		***
-"distort1"		:biquad: 		***
-"dripwater"		:phisem: 		***
-"dssiaudio"		:dssi4cs/src/dssi4cs:	***
-"dssictls"		:dssi4cs/src/dssi4cs:	***
-"dssievent"		:dssi4cs/src/dssi4cs:   
-"dssilist"		:dssi4cs/src/dssi4cs:	***
-"dssinote"		:dssi4cs/src/dssi4cs:    
-"dssisynth"		:dssi4cs/src/dssi4cs:    
-"duserrnd"		:uggab: 		***
-"exitnow"		:gab/gab:   		***
-"filter2"		:filter: 		***
-"fin"		        :fout:     		***
-"fini"		        :fout:     		***
-"fink"		        :fout:     		***
-"fiopen"		:fout:     		***
-"flanger"		:flanger: 		***
-"flashtxt"		:control: 		***
-"fluidAllOut"		:fluidOpcodes/fluidOpcodes:   		***
-"fluidCCi"		:fluidOpcodes/fluidOpcodes: 		***
-"fluidCCk"		:fluidOpcodes/fluidOpcodes:  		***
-"fluidControl"		:fluidOpcodes/fluidOpcodes:   		***
-"fluidEngine"		:fluidOpcodes/fluidOpcodes:  		***
-"fluidLoad"		:fluidOpcodes/fluidOpcodes:		***
-"fluidNote"		:fluidOpcodes/fluidOpcodes:  		***
-"fluidOut"		:fluidOpcodes/fluidOpcodes:   		***
-"fluidProgramSelect"	:fluidOpcodes/fluidOpcodes:   		***
-"fmb3"		        :physmod: 		***
-"fmbell"		:physmod: 		***
-"fmmetal"		:physmod: 		***
-"fmpercfl"		:physmod: 		***
-"fmrhode"		:physmod: 		***
-"fmvoice"		:physmod: 		***
-"fmwurlie"		:physmod: 		***
-"fof"		        :ugens7: 		***
-"fof2"		        :ugens7: 		***
-"fog"		        :ugensa: 		***
-"fold"		        :uggab: 		***
-"follow"		:follow: 		***
-"follow2"		:follow: 		***
-"fout"		        :fout:     		***
-"fouti"		        :fout:     		***
-"foutir"		:fout:     		***
-"foutk"		        :fout:     		***
-"fprintks"		:fout:     		***
-"fprints"		:fout:     		***
-"ftfree"		:ftgen:   		***
-"ftgen"		        :ftgen:   		***
-"ftgentmp"		:ftgen:   		***
-"ftload"		:ftgen:   		***
-"ftloadk"		:ftgen:   		***
-"ftmorf"		:ugmoss: 		***
-"ftsave"		:ftgen:   		***
-"ftsavek"		:ftgen:   		***
-"gogobel"		:modal4: 		***
-"grain"		        :grain: 		***
-"granule"		:grain4: 		***
-"guiro"		        :phisem: 		***
-"harmon"		:ugens7: 		***
-"hilbert"		:ugsc:                  ***
-"hrtfer"		:hrtferX: 		***
-"hsboscil"		:spectra: 		***
-"initc14"		:midiops2: 		***
-"initc21"		:midiops2: 		***
-"initc7"		:midiops2: 		***
-"jitter"		:uggab: 		***
-"jitter2"		:uggab: 		***
-"jspline"		:uggab: 		***
-"lineto"		:uggab: 		***
-"locsend"		:locsig: 		***
-"locsig"		:locsig: 		***
-"loopseg"		:uggab: 		***
-"loopsegp"		:uggab: 		***
-"lorenz"		:biquad: 		***
-"lorismorph"		:Loris/src/lorisgens:	***
-"lorisplay"		:Loris/src/lorisgens:	***
-"lorisread"		:Loris/src/lorisgens:	***
-"lowpass2"		:ugsc:                  ***
-"lowres"		:lowpassr: 		***
-"lowresx"		:lowpassr: 		***
-"lpf18"		        :spectra: 		***
-"lposcil"		:uggab: 		***
-"lposcil3"		:uggab: 		***
-"lpshold"		:uggab: 		***
-"lpsholdp"		:uggab: 		***
-"mac"		        :spectra: 		***
-"maca"		        :spectra: 		***
-"mandol"		:physmod: 		***
-"marimba"		:modal4: 		***
-"maxalloc"		:spectra: 		***
-"metro"		        :metro:   		***
-"midic14"		:midiops2: 		***
-"midic21"		:midiops2: 		***
-"midic7"		:midiops2: 		***
-"mirror"		:uggab: 		***
-"moog"		        :physmod: 		***
-"moogvcf"		:biquad: 		***
-"mpulse"		:spectra: 		***
-"multitap"		:vdelay: 		***
-"mute"		        :spectra: 		***
-"nestedap"		:biquad: 		***
-"nlfilt"		:nlfilt: 		***
-"noise"		        :spectra: 		***
-"not"		        :ugmoss: 		***
-"nreverb"		:vdelay: 		***
-"ntrpol"		:uggab: 		***
-"or"		        :ugmoss: 		***
-"oscilv"		:spectra: 
-"p"		        :spectra: 		***
-"pareq"		        :biquad: 
-"partials"		:partials:    		***
-"phaser1"		:ugsc:                  ***
-"phaser2"		:ugsc:                  ***
-"phasorbnk"		:spectra: 		***
-"pinkish"		:spectra: 		***
-"pitch"		        :spectra: 		***
-"pitchamdf"		:spectra: 		***
-"planet"		:biquad: 		***
-"poscil"		:uggab: 		***
-"poscil3"		:uggab: 		***
-"product"		:uggab: 		***
-"pvsblur"		:pvsbasic:   		***
-"pvscale"		:pvsbasic:   		***
-"pvscent"		:pvscent:   		***
-"pvsdemix"		:pvsdemix:		***
-"pvsfilter"		:pvsbasic:   		***
-"pvshift"		:pvsbasic:   		***
-"pvsifd"		:ifd:    		***
-"pvsinit"		:pvsbasic:   		***
-"pvsmix"		:pvsbasic:   		***
-"pvstencil"		:pvsbasic:   		***
-"pyassign"		:py/pythonopcodes: 	***
-"pyassigni"		:py/pythonopcodes:  	***
-"pyassignt"		:py/pythonopcodes:  	***
-"pycall1"		:py/pythonopcodes: 	*** 
-"pycall1i"		:py/pythonopcodes: 	*** 
-"pycall1t"		:py/pythonopcodes:  	***
-"pycall2"		:py/pythonopcodes:   	***
-"pycall2i"		:py/pythonopcodes:   	***
-"pycall2t"		:py/pythonopcodes:   	***
-"pycall3"		:py/pythonopcodes:   	***
-"pycall3i"		:py/pythonopcodes:   	***
-"pycall3t"		:py/pythonopcodes:   	***
-"pycall4"		:py/pythonopcodes:   	***
-"pycall4i"		:py/pythonopcodes:   	***
-"pycall4t"		:py/pythonopcodes:   	***
-"pycall5"		:py/pythonopcodes:   	***
-"pycall5i"		:py/pythonopcodes:   	***
-"pycall5t"		:py/pythonopcodes:   	***
-"pycall6"		:py/pythonopcodes:   	***
-"pycall6i"		:py/pythonopcodes:   	***
-"pycall6t"		:py/pythonopcodes:   	***
-"pycall7"		:py/pythonopcodes:   	***
-"pycall7i"		:py/pythonopcodes:   	***
-"pycall7t"		:py/pythonopcodes:   	***
-"pycall8"		:py/pythonopcodes:   	***
-"pycall8i"		:py/pythonopcodes:   	***
-"pycall8t"		:py/pythonopcodes:   	***
-"pycalli"		:py/pythonopcodes:   	***
-"pycalln"		:py/pythonopcodes:   	***
-"pycallni"		:py/pythonopcodes:   	***
-"pycallnt"		:py/pythonopcodes:   	***
-"pycallt"		:py/pythonopcodes:   	***
-"pyeval"		:py/pythonopcodes:  	*** 
-"pyevali"		:py/pythonopcodes:   	***
-"pyevalt"		:py/pythonopcodes:   	***
-"pyexec"		:py/pythonopcodes:   	***
-"pyexeci"		:py/pythonopcodes:   	***
-"pyexect"		:py/pythonopcodes:   	***
-"pyinit"		:py/pythonopcodes: 
-"pylassign"		:py/pythonopcodes:  	*** 
-"pylassigni"		:py/pythonopcodes:   	***
-"pylassignt"		:py/pythonopcodes:   	***
-"pylcall"		:py/pythonopcodes:   	***
-"pylcall1"		:py/pythonopcodes:   	***
-"pylcall1i"		:py/pythonopcodes:   	***
-"pylcall1t"		:py/pythonopcodes:  	*** 
-"pylcall2"		:py/pythonopcodes:   	***
-"pylcall2i"		:py/pythonopcodes:   	***
-"pylcall2t"		:py/pythonopcodes:   	***
-"pylcall3"		:py/pythonopcodes:   	***
-"pylcall3i"		:py/pythonopcodes:   	***
-"pylcall3t"		:py/pythonopcodes:   	***
-"pylcall4"		:py/pythonopcodes:   	***
-"pylcall4i"		:py/pythonopcodes:   	***
-"pylcall4t"		:py/pythonopcodes:   	***
-"pylcall5"		:py/pythonopcodes:   	***
-"pylcall5i"		:py/pythonopcodes:   	***
-"pylcall5t"		:py/pythonopcodes:   	***
-"pylcall6"		:py/pythonopcodes:   	***
-"pylcall6i"		:py/pythonopcodes:   	***
-"pylcall6t"		:py/pythonopcodes:   	***
-"pylcall7"		:py/pythonopcodes:   	***
-"pylcall7i"		:py/pythonopcodes:   	***
-"pylcall7t"		:py/pythonopcodes:   	***
-"pylcall8"		:py/pythonopcodes:   	***
-"pylcall8i"		:py/pythonopcodes:   	***
-"pylcall8t"		:py/pythonopcodes:   	***
-"pylcalli"		:py/pythonopcodes:   	***
-"pylcalln"		:py/pythonopcodes:   	***
-"pylcallni"		:py/pythonopcodes:   	***
-"pylcallnt"		:py/pythonopcodes:   	***
-"pylcallt"		:py/pythonopcodes:   	***
-"pyleval"		:py/pythonopcodes:   	***
-"pylevali"		:py/pythonopcodes:   	***
-"pylevalt"		:py/pythonopcodes:   	***
-"pylexec"		:py/pythonopcodes:   	***
-"pylexeci"		:py/pythonopcodes:   	***
-"pylexect"		:py/pythonopcodes:   	***
-"pylrun"		:py/pythonopcodes:   	***
-"pylruni"		:py/pythonopcodes:   	***
-"pylrunt"		:py/pythonopcodes:   	***
-"pyrun"                 :py/pythonopcodes:   	***
-"pyruni"		:py/pythonopcodes:   	***
-"pyrunt"		:py/pythonopcodes:   	***
-"random"		:uggab: 
-"randomh"		:uggab: 
-"randomi"		:uggab: 
-"readclock"		:spectra: 		***
-"repluck"		:repluck: 		***
-"resonr"		:ugsc:                  ***
-"resony"		:uggab: 		***
-"resonz"		:ugsc:                  ***
-"resyn"		        :psynth:    		***
-"reverb2"		:vdelay: 
-"rezzy"		        :biquad: 		***
-"rspline"		:uggab: 		***
-"s16b14"		:midiops3: 		***
-"s32b14"		:midiops3: 		***
-"sandpaper"		:phisem: 		***
-"scanhammer"		:wave-terrain: 		***
-"scans"		        :scansyn: 		***
-"scantable"		:wave-terrain: 		***
-"scanu"		        :scansyn: 		***
-"sekere"		:phisem: 		***
-"sense"		        :spectra: 		***
-"sensekey"		:spectra: 		***
-"seqtime"		:seqtime: 		***
-"seqtime2"		:seqtime: 		***
-"setctrl"		:control: 		***
-"sfilist"		:sfont: 		***
-"sfinstr"		:sfont: 		***
-"sfinstr3"		:sfont: 		***
-"sfinstr3m"		:sfont: 
-"sfinstrm"		:sfont: 		***
-"sfload"		:sfont: 		***
-"sfpassign"		:sfont: 		***
-"sfplay"		:sfont: 		***
-"sfplay3"		:sfont: 		***
-"sfplay3m"		:sfont: 		***
-"sfplaym"		:sfont: 		***
-"sfplist"		:sfont: 		***
-"sfpreset"		:sfont: 		***
-"shaker"		:physmod: 		***
-"shl"		        :ugmoss:                ***
-"sinsyn"		:psynth:    		***
-"sleighbells"		:phisem: 		***
-"slider16"		:midiops3: 		***
-"slider16f"		:midiops3: 		***
-"slider32"		:midiops3: 		***
-"slider32f"		:midiops3: 		***
-"slider64"		:midiops3: 		***
-"slider64f"		:midiops3: 		***
-"slider8"		:midiops3: 		***
-"slider8f"		:midiops3: 		***
-"sndwarp"		:sndwarp:   		***
-"sndwarpst"		:sndwarp:   		***
-"space"		        :space: 		***
-"spat3d"		:spat3d:     		***
-"spat3di"		:spat3d:     		***
-"spat3dt"		:spat3d:     		***
-"spdist"		:space: 		***
-"specaddm"		:spectra: 		***
-"specdiff"		:spectra: 		***
-"specdisp"		:spectra: 		***
-"specfilt"		:spectra: 		***
-"spechist"		:spectra: 		***
-"specptrk"		:spectra: 		***
-"specscal"		:spectra: 		***
-"specsum"		:spectra: 		***
-"spectrum"		:spectra: 		***
-"splitrig"		:metro:   		***
-"spsend"		:space: 		***
-"stix"		        :phisem: 		***
-"streson"		:repluck: 		***
-"sum"		        :uggab: 		***
-"svfilter"		:ugsc:                  ***
-"tab_i"                 :gab/gab:   		***
-"tabw_i"		:gab/gab:   
-"tambourine"		:phisem: 		***
-"tb0"                   :gab/gab:  	  	***   
-"tb0_init"		:gab/gab:     	  	***
-"tb1"                   :gab/gab:     	  	***
-"tb10"                  :gab/gab:     	  	***
-"tb10_init"		:gab/gab:     	  	***
-"tb11"                  :gab/gab:     	  	***
-"tb11_init"		:gab/gab:     	  	***
-"tb12"                  :gab/gab:               ***
-"tb12_init"		:gab/gab:               ***
-"tb13"                  :gab/gab:               ***
-"tb13_init"		:gab/gab:               ***
-"tb14"                  :gab/gab:               ***
-"tb14_init"		:gab/gab:               ***
-"tb15"                  :gab/gab:               ***
-"tb15_init"		:gab/gab:               ***
-"tb1_init"		:gab/gab:               ***
-"tb2"                   :gab/gab:               ***
-"tb2_init"		:gab/gab:               ***
-"tb3"                   :gab/gab:               ***
-"tb3_init"		:gab/gab:               ***
-"tb4"                   :gab/gab:               ***
-"tb4_init"		:gab/gab:               ***
-"tb5"                   :gab/gab:               ***
-"tb5_init"		:gab/gab:               ***
-"tb6"                   :gab/gab:               ***
-"tb6_init"		:gab/gab:               ***
-"tb7"                   :gab/gab:               ***
-"tb7_init"		:gab/gab:               ***
-"tb8"                   :gab/gab:               ***
-"tb8_init"		:gab/gab:               ***
-"tb9"                   :gab/gab:               ***
-"tb9_init"		:gab/gab:               ***
-"tbvcf"		        :biquad: 		***
-"timedseq"		:metro:   		***
-"tlineto"		:uggab: 		***
-"tradsyn"		:psynth:    		***
-"transeg"		:spectra: 		***
-"trigger"		:uggab: 		***
-"urd"		        :uggab: 		***
-"vadd"                  :gab/vectorial:   	***
-"vaddv"                 :gab/vectorial:   	***
-"valpass"		:ugmoss: 		***
-"vcella"		:gab/vectorial:   	***
-"vco"		        :biquad: 		***
-"vcomb"		        :ugmoss: 		***
-"vcopy"                 :gab/vectorial:   	***
-"vcopy_i"		:gab/vectorial:   	***
-"vdelay"		:vdelay: 		***
-"vdelay3"		:vdelay: 		***
-"vdelayk"		:gab/vectorial:   	***
-"vdelayx"		:vdelay: 		***
-"vdelayxq"		:vdelay: 		***
-"vdelayxs"		:vdelay: 		***
-"vdelayxw"		:vdelay: 		***
-"vdelayxwq"		:vdelay: 		***
-"vdelayxws"		:vdelay: 		***
-"vdivv"                 :gab/vectorial:   	***
-"vecdelay"		:gab/vectorial:   	***
-"vexp"                  :gab/vectorial:   	***
-"vexpseg"		:gab/vectorial:   	***
-"vexpv"                 :gab/vectorial:   	***
-"vibes"		        :modal4: 		***
-"vibr"		        :uggab: 		***
-"vibrato"		:uggab: 		***
-"vincr"		        :fout:     		***
-"vlimit"		:gab/vectorial:   	***
-"vlinseg"		:gab/vectorial:   	***
-"vlowres"		:lowpassr: 		***
-"vmap"                  :gab/vectorial:   	***
-"vmirror"		:gab/vectorial:   	***
-"vmult"                 :gab/vectorial:   	***
-"vmultv"		:gab/vectorial:   	***
-"voice"		        :physmod: 		***
-"vport"                 :gab/vectorial:   	***
-"vpow"                  :gab/vectorial:   	***
-"vpowv"                 :gab/vectorial:   	***
-"vrandh"		:gab/vectorial:   	***
-"vrandi"		:gab/vectorial:   	***
-"vsubv"                 :gab/vectorial:   	***
-"vtaba"                 :gab/vectorial:   	***
-"vtabi"                 :gab/vectorial:   	***
-"vtabk"                 :gab/vectorial:   	***
-"vtablea"		:gab/vectorial:   	***
-"vtablei"		:gab/vectorial:   	***
-"vtablek"		:gab/vectorial:   	***
-"vtablewa"		:gab/vectorial:   	***
-"vtablewi"		:gab/vectorial:   	***
-"vtablewk"		:gab/vectorial:   	***
-"vtabwa"		:gab/vectorial:   	***
-"vtabwi"		:gab/vectorial:   	***
-"vtabwk"		:gab/vectorial:   	***
-"vwrap"		        :gab/vectorial:   	***
-"waveset"		:spectra: 		***
-"wgbow"		        :physmod: 		***
-"wgbowedbar"		:physmod: 		***
-"wgbrass"		:physmod: 		***
-"wgclar"		:physmod: 		***
-"wgflute"		:physmod: 		***
-"wgpluck"		:pluck: 		***
-"wgpluck2"		:repluck: 		***
-"wguide1"		:flanger: 		***
-"wguide2"		:flanger: 		***
-"wrap"		        :uggab: 		***
-"wterrain"		:wave-terrain: 		***
-"xor"		        :ugmoss:                ***
-"xscanmap"		:scansynx: 		***
-"xscans"		:scansynx: 		***
-"xscansmap"		:scansynx: 		***
-"xscanu"		:scansynx: 		***
-"zfilter2"		:filter: 		***
+"active"                        :pitch:                         ***
+"adsynt"                        :pitch:                         ***
+"and"                           :stdopcod:                      n.a. (&)
+"ATSaddnz"                      :stdopcod:                      (note 1)
+"ATSadd"                        :stdopcod:                      (note 1)
+"ATSbufread"                    :stdopcod:                      (note 1)
+"ATScross"                      :stdopcod:                      (note 1)
+"ATSinfo"                       :stdopcod:                      (note 1)
+"ATSinterpread"                 :stdopcod:                      (note 1)
+"ATSpartialtap"                 :stdopcod:                      (note 1)
+"ATSreadnz"                     :stdopcod:                      (note 1)
+"ATSread"                       :stdopcod:                      (note 1)
+"ATSsinnoi"                     :stdopcod:                      (note 1)
+"babo"                          :stdopcod:                      ***
+"bamboo"                        :stdopcod:                      ***
+"bbcutm"                        :stdopcod:                      ***
+"bbcuts"                        :stdopcod:                      ***
+"bformdec"                      :stdopcod:                      ***
+"bformenc"                      :stdopcod:                      ***
+"biquada"                       :stdopcod:                      ***
+"biquad"                        :stdopcod:                      ***
+"bqrez"                         :stdopcod:                      ***
+"butbp"                         :stdopcod:                      ***
+"butbr"                         :stdopcod:                      ***
+"buthp"                         :stdopcod:                      ***
+"butlp"                         :stdopcod:                      ***
+"butterbp"                      :stdopcod:                      ***
+"butterbr"                      :stdopcod:                      ***
+"butterhp"                      :stdopcod:                      ***
+"butterlp"                      :stdopcod:                      ***
+"button"                        :control:                       ***
+"cabasa"                        :stdopcod:                      ***
+"checkbox"                      :control:                       ***
+"clear"                         :stdopcod:                      ***
+"clfilt"                        :stdopcod:                      ***
+"clip"                          :pitch:                         ***
+"clockoff"                      :pitch:                         ***
+"clockon"                       :pitch:                         ***
+"control"                       :control:                       ***
+"cpuprc"                        :pitch:                         ***
+"cross2"                        :stdopcod:                      ***
+"crunch"                        :stdopcod:                      ***
+"ctrl14"                        :stdopcod:                      ***
+"ctrl21"                        :stdopcod:                      ***
+"ctrl7"                         :stdopcod:                      ***
+"cuserrnd"                      :stdopcod:                      ***
+"dam"                           :stdopcod:                      ***
+"dcblock"                       :stdopcod:                      ***
+"dconv"                         :stdopcod:                      ***
+"distort1"                      :stdopcod:                      ***
+"dripwater"                     :stdopcod:                      ***
+"dssiaudio"                     :dssi4cs:                       ***
+"dssictls"                      :dssi4cs:                       ***
+"dssievent"                     :dssi4cs:                       (unimplemented)
+"dssilist"                      :dssi4cs:                       ***
+"dssinote"                      :dssi4cs:                       (unimplemented)
+"dssisynth"                     :dssi4cs:                       (unimplemented)
+"duserrnd"                      :stdopcod:                      ***
+"exitnow"                       :stdopcod:                      ***
+"filter2"                       :stdopcod:                      ***
+"fini"                          :stdopcod:                      ***
+"fink"                          :stdopcod:                      ***
+"fin"                           :stdopcod:                      ***
+"fiopen"                        :stdopcod:                      ***
+"flanger"                       :stdopcod:                      ***
+"flashtxt"                      :control:                       ***
+"fluidAllOut"                   :fluidOpcodes:                  ***
+"fluidCCi"                      :fluidOpcodes:                  ***
+"fluidCCk"                      :fluidOpcodes:                  ***
+"fluidControl"                  :fluidOpcodes:                  ***
+"fluidEngine"                   :fluidOpcodes:                  ***
+"fluidLoad"                     :fluidOpcodes:                  ***
+"fluidNote"                     :fluidOpcodes:                  ***
+"fluidOut"                      :fluidOpcodes:                  ***
+"fluidProgramSelect"            :fluidOpcodes:                  ***
+"fmb3"                          :physmod:                       ***
+"fmbell"                        :physmod:                       ***
+"fmmetal"                       :physmod:                       ***
+"fmpercfl"                      :physmod:                       ***
+"fmrhode"                       :physmod:                       ***
+"fmvoice"                       :physmod:                       ***
+"fmwurlie"                      :physmod:                       ***
+"fof2"                          :stdopcod:                      ***
+"fof"                           :stdopcod:                      ***
+"fog"                           :stdopcod:                      ***
+"fold"                          :stdopcod:                      ***
+"follow2"                       :stdopcod:                      ***
+"follow"                        :stdopcod:                      ***
+"foutir"                        :stdopcod:                      ***
+"fouti"                         :stdopcod:                      ***
+"foutk"                         :stdopcod:                      ***
+"fout"                          :stdopcod:                      ***
+"fprintks"                      :stdopcod:                      ***
+"fprints"                       :stdopcod:                      ***
+"ftfree"                        :stdopcod:                      ***
+"ftgen"                         :stdopcod:                      ***
+"ftgentmp"                      :stdopcod:                      ***
+"ftloadk"                       :stdopcod:                      ***
+"ftload"                        :stdopcod:                      ***
+"ftmorf"                        :stdopcod:                      ***
+"ftsavek"                       :stdopcod:                      ***
+"ftsave"                        :stdopcod:                      ***
+"gogobel"                       :modal4:                        ***
+"grain"                         :stdopcod:                      ***
+"granule"                       :stdopcod:                      ***
+"guiro"                         :stdopcod:                      ***
+"harmon"                        :stdopcod:                      ***
+"hilbert"                       :stdopcod:                      ***
+"hrtfer"                        :stdopcod:                      ***
+"hsboscil"                      :pitch:                         ***
+"initc14"                       :stdopcod:                      ***
+"initc21"                       :stdopcod:                      ***
+"initc7"                        :stdopcod:                      ***
+"jitter2"                       :stdopcod:                      ***
+"jitter"                        :stdopcod:                      ***
+"jspline"                       :stdopcod:                      ***
+"lineto"                        :stdopcod:                      ***
+"locsend"                       :stdopcod:                      ***
+"locsig"                        :stdopcod:                      ***
+"loopsegp"                      :stdopcod:                      ***
+"loopseg"                       :stdopcod:                      ***
+"lorenz"                        :stdopcod:                      ***
+"lorismorph"                    :loris:                         ***
+"lorisplay"                     :loris:                         ***
+"lorisread"                     :loris:                         ***
+"lowpass2"                      :stdopcod:                      ***
+"lowres"                        :stdopcod:                      ***
+"lowresx"                       :stdopcod:                      ***
+"lpf18"                         :pitch:                         ***
+"lposcil3"                      :stdopcod:                      ***
+"lposcil"                       :stdopcod:                      ***
+"lpsholdp"                      :stdopcod:                      ***
+"lpshold"                       :stdopcod:                      ***
+"maca"                          :pitch:                         ***
+"mac"                           :pitch:                         ***
+"mandol"                        :physmod:                       ***
+"marimba"                       :modal4:                        ***
+"maxalloc"                      :pitch:                         ***
+"metro"                         :stdopcod:                      ***
+"midic14"                       :stdopcod:                      ***
+"midic21"                       :stdopcod:                      ***
+"midic7"                        :stdopcod:                      ***
+"mirror"                        :stdopcod:                      ***
+"moog"                          :physmod:                       ***
+"moogvcf"                       :stdopcod:                      ***
+"mpulse"                        :pitch:                         ***
+"mute"                          :pitch:                         ***
+"nestedap"                      :stdopcod:                      ***
+"nlfilt"                        :stdopcod:                      ***
+"noise"                         :pitch:                         ***
+"not"                           :stdopcod:                      n.a. (~)
+"ntrpol"                        :stdopcod:                      ***
+"or"                            :stdopcod:                      n.a. (|)
+"oscilv"                        :pitch:                         (beta only)
+"OSCinit"                       :osc:                           ***
+"OSClisten"                     :osc:                           ***
+"OSCrecv"                       :osc:                           ***
+"OSCsend"                       :osc:                           ***
+"pareq"                         :stdopcod:                      ***
+"partials"                      :stdopcod:                      ***
+"phaser1"                       :stdopcod:                      ***
+"phaser2"                       :stdopcod:                      ***
+"phasorbnk"                     :pitch:                         ***
+"pinkish"                       :pitch:                         ***
+"pitchamdf"                     :pitch:                         ***
+"pitch"                         :pitch:                         ***
+"planet"                        :stdopcod:                      ***
+"poscil3"                       :stdopcod:                      ***
+"poscil"                        :stdopcod:                      ***
+"p"                             :pitch:                         ***
+"product"                       :stdopcod:                      ***
+"pvsblur"                       :stdopcod:                      ***
+"pvscale"                       :stdopcod:                      ***
+"pvscent"                       :stdopcod:                      ***
+"pvsdemix"                      :stdopcod:                      ***
+"pvsfilter"                     :stdopcod:                      ***
+"pvshift"                       :stdopcod:                      ***
+"pvsifd"                        :stdopcod:                      ***
+"pvsinit"                       :stdopcod:                      ***
+"pvsmix"                        :stdopcod:                      ***
+"pvstencil"                     :stdopcod:                      ***
+"pyassigni"                     :py:                            ***
+"pyassign"                      :py:                            ***
+"pyassignt"                     :py:                            ***
+"pycall1i"                      :py:                            ***
+"pycall1"                       :py:                            ***
+"pycall1t"                      :py:                            ***
+"pycall2i"                      :py:                            ***
+"pycall2"                       :py:                            ***
+"pycall2t"                      :py:                            ***
+"pycall3i"                      :py:                            ***
+"pycall3"                       :py:                            ***
+"pycall3t"                      :py:                            ***
+"pycall4i"                      :py:                            ***
+"pycall4"                       :py:                            ***
+"pycall4t"                      :py:                            ***
+"pycall5i"                      :py:                            ***
+"pycall5"                       :py:                            ***
+"pycall5t"                      :py:                            ***
+"pycall6i"                      :py:                            ***
+"pycall6"                       :py:                            ***
+"pycall6t"                      :py:                            ***
+"pycall7i"                      :py:                            ***
+"pycall7"                       :py:                            ***
+"pycall7t"                      :py:                            ***
+"pycall8i"                      :py:                            ***
+"pycall8"                       :py:                            ***
+"pycall8t"                      :py:                            ***
+"pycalli"                       :py:                            ***
+"pycallni"                      :py:                            ***
+"pycalln"                       :py:                            ***
+"pycallnt"                      :py:                            ***
+"pycallt"                       :py:                            ***
+"pyevali"                       :py:                            ***
+"pyeval"                        :py:                            ***
+"pyevalt"                       :py:                            ***
+"pyexeci"                       :py:                            ***
+"pyexec"                        :py:                            ***
+"pyexect"                       :py:                            ***
+"pyinit"                        :py:                            ***
+"pylassigni"                    :py:                            ***
+"pylassign"                     :py:                            ***
+"pylassignt"                    :py:                            ***
+"pylcall1i"                     :py:                            ***
+"pylcall1"                      :py:                            ***
+"pylcall1t"                     :py:                            ***
+"pylcall2i"                     :py:                            ***
+"pylcall2"                      :py:                            ***
+"pylcall2t"                     :py:                            ***
+"pylcall3i"                     :py:                            ***
+"pylcall3"                      :py:                            ***
+"pylcall3t"                     :py:                            ***
+"pylcall4i"                     :py:                            ***
+"pylcall4"                      :py:                            ***
+"pylcall4t"                     :py:                            ***
+"pylcall5i"                     :py:                            ***
+"pylcall5"                      :py:                            ***
+"pylcall5t"                     :py:                            ***
+"pylcall6i"                     :py:                            ***
+"pylcall6"                      :py:                            ***
+"pylcall6t"                     :py:                            ***
+"pylcall7i"                     :py:                            ***
+"pylcall7"                      :py:                            ***
+"pylcall7t"                     :py:                            ***
+"pylcall8i"                     :py:                            ***
+"pylcall8"                      :py:                            ***
+"pylcall8t"                     :py:                            ***
+"pylcalli"                      :py:                            ***
+"pylcallni"                     :py:                            ***
+"pylcalln"                      :py:                            ***
+"pylcallnt"                     :py:                            ***
+"pylcall"                       :py:                            ***
+"pylcallt"                      :py:                            ***
+"pylevali"                      :py:                            ***
+"pyleval"                       :py:                            ***
+"pylevalt"                      :py:                            ***
+"pylexeci"                      :py:                            ***
+"pylexec"                       :py:                            ***
+"pylexect"                      :py:                            ***
+"pylruni"                       :py:                            ***
+"pylrun"                        :py:                            ***
+"pylrunt"                       :py:                            ***
+"pyruni"                        :py:                            ***
+"pyrun"                         :py:                            ***
+"pyrunt"                        :py:                            ***
+"randomh"                       :stdopcod:                      ***
+"randomi"                       :stdopcod:                      ***
+"random"                        :stdopcod:                      ***
+"readclock"                     :pitch:                         ***
+"repluck"                       :stdopcod:                      ***
+"resonr"                        :stdopcod:                      ***
+"resony"                        :stdopcod:                      ***
+"resonz"                        :stdopcod:                      ***
+"resyn"                         :stdopcod:                      ***
+"rezzy"                         :stdopcod:                      ***
+"rspline"                       :stdopcod:                      ***
+"s16b14"                        :stdopcod:                      ***
+"s32b14"                        :stdopcod:                      ***
+"sandpaper"                     :stdopcod:                      ***
+"scanhammer"                    :stdopcod:                      ***
+"scans"                         :scansyn:                       ***
+"scantable"                     :stdopcod:                      ***
+"scanu"                         :scansyn:                       ***
+"sekere"                        :stdopcod:                      ***
+"sensekey"                      :pitch:                         ***
+"sense"                         :pitch:                         ***
+"seqtime2"                      :stdopcod:                      ***
+"seqtime"                       :stdopcod:                      ***
+"setctrl"                       :control:                       ***
+"sfilist"                       :sfont:                         ***
+"sfinstr3m"                     :sfont:                         ***
+"sfinstr3"                      :sfont:                         ***
+"sfinstrm"                      :sfont:                         ***
+"sfinstr"                       :sfont:                         ***
+"sfload"                        :sfont:                         ***
+"sfpassign"                     :sfont:                         ***
+"sfplay3m"                      :sfont:                         ***
+"sfplay3"                       :sfont:                         ***
+"sfplaym"                       :sfont:                         ***
+"sfplay"                        :sfont:                         ***
+"sfplist"                       :sfont:                         ***
+"sfpreset"                      :sfont:                         ***
+"shaker"                        :physmod:                       ***
+"shl"                           :stdopcod:                      n.a. (<<)
+"sinsyn"                        :stdopcod:                      ***
+"sleighbells"                   :stdopcod:                      ***
+"slider16f"                     :stdopcod:                      ***
+"slider16"                      :stdopcod:                      ***
+"slider32f"                     :stdopcod:                      ***
+"slider32"                      :stdopcod:                      ***
+"slider64f"                     :stdopcod:                      ***
+"slider64"                      :stdopcod:                      ***
+"slider8f"                      :stdopcod:                      ***
+"slider8"                       :stdopcod:                      ***
+"sndwarp"                       :stdopcod:                      ***
+"sndwarpst"                     :stdopcod:                      ***
+"space"                         :stdopcod:                      ***
+"spat3di"                       :stdopcod:                      ***
+"spat3d"                        :stdopcod:                      ***
+"spat3dt"                       :stdopcod:                      ***
+"spdist"                        :stdopcod:                      ***
+"specaddm"                      :pitch:                         ***
+"specdiff"                      :pitch:                         ***
+"specdisp"                      :pitch:                         ***
+"specfilt"                      :pitch:                         ***
+"spechist"                      :pitch:                         ***
+"specptrk"                      :pitch:                         ***
+"specscal"                      :pitch:                         ***
+"specsum"                       :pitch:                         ***
+"spectrum"                      :pitch:                         ***
+"splitrig"                      :stdopcod:                      ***
+"spsend"                        :stdopcod:                      ***
+"stix"                          :stdopcod:                      ***
+"STKBandedWG"                   :stk:                           (note 2)
+"STKBeeThree"                   :stk:                           (note 2)
+"STKBlowBotl"                   :stk:                           (note 2)
+"STKBlowHole"                   :stk:                           (note 2)
+"STKBowed"                      :stk:                           (note 2)
+"STKBrass"                      :stk:                           (note 2)
+"STKClarinet"                   :stk:                           (note 2)
+"STKDrummer"                    :stk:                           (note 2)
+"STKFlute"                      :stk:                           (note 2)
+"STKFMVoices"                   :stk:                           (note 2)
+"STKHevyMetl"                   :stk:                           (note 2)
+"STKMandolin"                   :stk:                           (note 2)
+"STKModalBar"                   :stk:                           (note 2)
+"STKMoog"                       :stk:                           (note 2)
+"STKPercFlut"                   :stk:                           (note 2)
+"STKPlucked"                    :stk:                           (note 2)
+"STKResonate"                   :stk:                           (note 2)
+"STKRhodey"                     :stk:                           (note 2)
+"STKSaxofony"                   :stk:                           (note 2)
+"STKShakers"                    :stk:                           (note 2)
+"STKSimple"                     :stk:                           (note 2)
+"STKSitar"                      :stk:                           (note 2)
+"STKStifKarp"                   :stk:                           (note 2)
+"STKTubeBell"                   :stk:                           (note 2)
+"STKVoicForm"                   :stk:                           (note 2)
+"STKWhistle"                    :stk:                           (note 2)
+"STKWurley"                     :stk:                           (note 2)
+"streson"                       :stdopcod:                      ***
+"sum"                           :stdopcod:                      ***
+"svfilter"                      :stdopcod:                      ***
+"tab_i"                         :stdopcod:                      ***
+"tabw_i"                        :stdopcod:                      ***
+"tambourine"                    :stdopcod:                      ***
+"tb0_init"                      :stdopcod:                      ***
+"tb0"                           :stdopcod:                      ***
+"tb10_init"                     :stdopcod:                      ***
+"tb10"                          :stdopcod:                      ***
+"tb11_init"                     :stdopcod:                      ***
+"tb11"                          :stdopcod:                      ***
+"tb12_init"                     :stdopcod:                      ***
+"tb12"                          :stdopcod:                      ***
+"tb13_init"                     :stdopcod:                      ***
+"tb13"                          :stdopcod:                      ***
+"tb14_init"                     :stdopcod:                      ***
+"tb14"                          :stdopcod:                      ***
+"tb15_init"                     :stdopcod:                      ***
+"tb15"                          :stdopcod:                      ***
+"tb1_init"                      :stdopcod:                      ***
+"tb1"                           :stdopcod:                      ***
+"tb2_init"                      :stdopcod:                      ***
+"tb2"                           :stdopcod:                      ***
+"tb3_init"                      :stdopcod:                      ***
+"tb3"                           :stdopcod:                      ***
+"tb4_init"                      :stdopcod:                      ***
+"tb4"                           :stdopcod:                      ***
+"tb5_init"                      :stdopcod:                      ***
+"tb5"                           :stdopcod:                      ***
+"tb6_init"                      :stdopcod:                      ***
+"tb6"                           :stdopcod:                      ***
+"tb7_init"                      :stdopcod:                      ***
+"tb7"                           :stdopcod:                      ***
+"tb8_init"                      :stdopcod:                      ***
+"tb8"                           :stdopcod:                      ***
+"tb9_init"                      :stdopcod:                      ***
+"tb9"                           :stdopcod:                      ***
+"tbvcf"                         :stdopcod:                      ***
+"timedseq"                      :stdopcod:                      ***
+"tlineto"                       :stdopcod:                      ***
+"tradsyn"                       :stdopcod:                      ***
+"transeg"                       :pitch:                         ***
+"trigger"                       :stdopcod:                      ***
+"urd"                           :stdopcod:                      ***
+"vadd"                          :stdopcod:                      ***
+"vaddv"                         :stdopcod:                      ***
+"valpass"                       :stdopcod:                      ***
+"vcella"                        :stdopcod:                      ***
+"vcomb"                         :stdopcod:                      ***
+"vcopy_i"                       :stdopcod:                      ***
+"vcopy"                         :stdopcod:                      ***
+"vco"                           :stdopcod:                      ***
+"vdelayk"                       :stdopcod:                      ***
+"vdivv"                         :stdopcod:                      ***
+"vecdelay"                      :stdopcod:                      ***
+"vexpseg"                       :stdopcod:                      ***
+"vexp"                          :stdopcod:                      ***
+"vexpv"                         :stdopcod:                      ***
+"vibes"                         :modal4:                        ***
+"vibrato"                       :stdopcod:                      ***
+"vibr"                          :stdopcod:                      ***
+"vincr"                         :stdopcod:                      ***
+"vlimit"                        :stdopcod:                      ***
+"vlinseg"                       :stdopcod:                      ***
+"vlowres"                       :stdopcod:                      ***
+"vmap"                          :stdopcod:                      ***
+"vmirror"                       :stdopcod:                      ***
+"vmult"                         :stdopcod:                      ***
+"vmultv"                        :stdopcod:                      ***
+"voice"                         :physmod:                       ***
+"vport"                         :stdopcod:                      ***
+"vpow"                          :stdopcod:                      ***
+"vpowv"                         :stdopcod:                      ***
+"vrandh"                        :stdopcod:                      ***
+"vrandi"                        :stdopcod:                      ***
+"vsubv"                         :stdopcod:                      ***
+"vtaba"                         :stdopcod:                      ***
+"vtabi"                         :stdopcod:                      ***
+"vtabk"                         :stdopcod:                      ***
+"vtablea"                       :stdopcod:                      ***
+"vtablei"                       :stdopcod:                      ***
+"vtablek"                       :stdopcod:                      ***
+"vtablewa"                      :stdopcod:                      ***
+"vtablewi"                      :stdopcod:                      ***
+"vtablewk"                      :stdopcod:                      ***
+"vtabwa"                        :stdopcod:                      ***
+"vtabwi"                        :stdopcod:                      ***
+"vtabwk"                        :stdopcod:                      ***
+"vwrap"                         :stdopcod:                      ***
+"waveset"                       :pitch:                         ***
+"wgbowedbar"                    :physmod:                       ***
+"wgbow"                         :physmod:                       ***
+"wgbrass"                       :physmod:                       ***
+"wgclar"                        :physmod:                       ***
+"wgflute"                       :physmod:                       ***
+"wgpluck2"                      :stdopcod:                      ***
+"wgpluck"                       :stdopcod:                      ***
+"wguide1"                       :stdopcod:                      ***
+"wguide2"                       :stdopcod:                      ***
+"wrap"                          :stdopcod:                      ***
+"wterrain"                      :stdopcod:                      ***
+"xor"                           :stdopcod:                      n.a. (#)
+"xscanmap"                      :scansyn:                       ***
+"xscansmap"                     :scansyn:                       ***
+"xscans"                        :scansyn:                       ***
+"xscanu"                        :scansyn:                       ***
+"zfilter2"                      :stdopcod:                      ***
+
+note 1: http://sourceforge.net/projects/atsa/
+note 2: http://ccrma.stanford.edu/software/stk/
 
 ------------------------------------------------------------------------
 LIBRARY -> OPCODE
 
-Loris/csound/lorisgens5:      	"lorismorph"		
-Loris/csound/lorisgens5:      	"lorisplay"		
-Loris/csound/lorisgens5:      	"lorisread"		
-Loris/lorisgens5:      		"lorismorph"		
-Loris/lorisgens5:      		"lorisplay"		
-Loris/lorisgens5:      		"lorisread"		
-Loris/src/lorisgens:		"lorismorph"		
-Loris/src/lorisgens:		"lorisplay"		
-Loris/src/lorisgens:		"lorisread"		
-OSC: 		  	 	"OSCinit"	
-OSC: 		  	 	"OSClisten"		
-OSC:  	 			"OSCrecv"		
-OSC:  	 			"OSCsend"		
-ambicode: 	   		"bformdec"		
-ambicode: 	   		"bformenc"		
-babo: 	  			"babo"		        
-bbcut: 	  			"bbcutm"		
-bbcut: 	  			"bbcuts"		
-biquad:   			"biquad"		
-biquad:   			"biquada"		
-biquad:  			"bqrez" 		
-biquad:  			"distort1"		
-biquad: 	 		"lorenz"		
-biquad: 	 		"moogvcf"		
-biquad: 	 		"nestedap"		
-biquad: 	 		"pareq"		        
-biquad:  			"planet"		
-biquad:  			"rezzy"		        
-biquad:  			"tbvcf"		        
-biquad: 	 		"vco"		        
-butter: 		 	"butbp" 		
-butter: 	 		"butbr" 		
-butter:  			"buthp" 		
-butter:  			"butlp"		        
-butter:  			"butterbp"		
-butter:  			"butterbr"		
-butter:  			"butterhp"		
-butter:  			"butterlp"		
-clfilt:  			"clfilt"		
-control:  			"button"		
-control:  			"checkbox"		
-control:  			"control"		
-control:  			"flashtxt"		
-control:  			"setctrl"		
-cross2:  			"cross2"		
-dam: 	  			"dam"		        
-dcblockr: 	 		"dcblock"		
-dssi4cs/src/dssi4cs:    	"dssiaudio"		
-dssi4cs/src/dssi4cs:    	"dssictls"		
-dssi4cs/src/dssi4cs:    	"dssievent"		
-dssi4cs/src/dssi4cs:    	"dssiinit"		
-dssi4cs/src/dssi4cs:    	"dssilist"		
-dssi4cs/src/dssi4cs:    	"dssinote"		
-dssi4cs/src/dssi4cs:    	"dssisynth"		
-filter:  			"filter2"		
-filter: 	 		"zfilter2"		
-flanger:  			"flanger"		
-flanger: 	 		"wguide1"		
-flanger: 	 		"wguide2"		
-fluidOpcodes/fluidOpcodes:	"fluidLoad"		
-fluidOpcodes/fluidOpcodes:	"fluidCCi"		
-fluidOpcodes/fluidOpcodes:	"fluidCCk"		
-fluidOpcodes/fluidOpcodes:	"fluidEngine"		
-fluidOpcodes/fluidOpcodes:	"fluidNote"		
-fluidOpcodes/fluidOpcodes:	"fluidAllOut"		
-fluidOpcodes/fluidOpcodes:	"fluidControl"		
-fluidOpcodes/fluidOpcodes:	"fluidOut"		
-fluidOpcodes/fluidOpcodes:	"fluidProgramSelect"	
-follow:  			"follow"		
-follow:  			"follow2"		
-fout:      			"clear"		        
-fout:      			"fin"		        
-fout:      			"fini"		        
-fout:      			"fink"		        
-fout:      			"fiopen"		
-fout:      			"fout"		        
-fout:     	 		"fouti"		        
-fout:  	 	    		"foutir"		
-fout:   	   		"foutk"		        
-fout:     	 		"fprintks"		
-fout:    	  		"fprints"		
-fout:    	  		"vincr"		        
-ftgen:    			"ftfree"		
-ftgen:    			"ftgen"		        
-ftgen:    			"ftgentmp"		
-ftgen:     			"ftload"		
-ftgen:  	  		"ftloadk"		
-ftgen:  	  		"ftsave"		
-ftgen:  	  		"ftsavek"		
-gab/gab:  	  		"exitnow"		
-gab/gab:   	 		"tab_i"                 
-gab/gab:   	 		"tabw_i"		
-gab/gab:   	 		"tb0"                   
-gab/gab:  	  		"tb0_init"		
-gab/gab:   	 		"tb1"                   
-gab/gab:   	 		"tb10"                  
-gab/gab:   	 		"tb10_init"		
-gab/gab:   	 		"tb11"                  
-gab/gab:   	 		"tb11_init"		
-gab/gab:   	 		"tb12"                  
-gab/gab:   	 		"tb12_init"		
-gab/gab:    			"tb13"                  
-gab/gab:    			"tb13_init"		
-gab/gab:    			"tb14"                  
-gab/gab:    			"tb14_init"		
-gab/gab:    			"tb15"                  
-gab/gab:    			"tb15_init"		
-gab/gab:    			"tb1_init"		
-gab/gab:    			"tb2"                   
-gab/gab:    			"tb2_init"		
-gab/gab:   	 		"tb3"                   
-gab/gab:   	 		"tb3_init"		
-gab/gab:   	 		"tb4"                   
-gab/gab:    			"tb4_init"		
-gab/gab:    			"tb5"                   
-gab/gab:    			"tb5_init"		
-gab/gab:    			"tb6"                   
-gab/gab:    			"tb6_init"		
-gab/gab:     			"tb7"                   
-gab/gab:    			"tb7_init"		
-gab/gab:    			"tb8"                   
-gab/gab:   	 		"tb8_init"		
-gab/gab:   	 		"tb9"                   
-gab/gab:   	 		"tb9_init"		
-gab/vectorial:   		"vadd"                  
-gab/vectorial:   		"vaddv"                 
-gab/vectorial:   		"vcella"		
-gab/vectorial:   		"vcopy"                 
-gab/vectorial:   		"vcopy_i"		
-gab/vectorial:   		"vdelayk"		
-gab/vectorial:   		"vdivv"                 
-gab/vectorial:   		"vecdelay"		
-gab/vectorial:   		"vexp"                  
-gab/vectorial:   		"vexpseg"		
-gab/vectorial:   		"vexpv"                 
-gab/vectorial:   		"vlimit"		
-gab/vectorial:   		"vlinseg"		
-gab/vectorial:   		"vmap"                  
-gab/vectorial:   		"vmirror"		
-gab/vectorial:   		"vmult"                 
-gab/vectorial:   		"vmultv"		
-gab/vectorial:   		"vport"                 
-gab/vectorial:   		"vpow"                  
-gab/vectorial:   		"vpowv"                 
-gab/vectorial:   		"vrandh"		
-gab/vectorial:   		"vrandi"		
-gab/vectorial:   		"vtaba"                 
-gab/vectorial:   		"vtabi"                 
-gab/vectorial:   		"vtabk"                 
-gab/vectorial:   		"vtablea"		
-gab/vectorial:   		"vtablei"		
-gab/vectorial:   		"vtablek"		
-gab/vectorial:   		"vtablewa"		
-gab/vectorial:   		"vtablewi"		
-gab/vectorial:   		"vtablewk"		
-gab/vectorial:   		"vtabwa"		
-gab/vectorial:   		"vtabwi"		
-gab/vectorial:   		"vtabwk"		
-gab/vectorial:   		"vwrap"		        
-gab/vectorial:   		gab/vectorial:   "vsubv"                 
-grain4:                         "granule"		
-grain: 	  	 		"grain"		        
-hrtferX:  			"hrtfer"		
-ifd:      			"pvsifd"		
-locsig:  			"locsend"		
-locsig:  			"locsig"		
-lowpassr:  			"lowres"		
-lowpassr:  			"lowresx"		
-lowpassr:  			"vlowres"		
-metro:    			"metro"		        
-metro:    			"splitrig"		
-metro:    			"timedseq"		
-midiops2:  			"ctrl14"		
-midiops2:  			"ctrl21"		
-midiops2:  			"ctrl7"		        
-midiops2:  			"initc14"		
-midiops2:  			"initc21"		
-midiops2:  			"initc7"		
-midiops2:  			"midic14"		
-midiops2:  			"midic21"		
-midiops2:  			"midic7"		
-midiops3:  			"s16b14"		
-midiops3:  			"s32b14"		
-midiops3:  			"slider16"		
-midiops3:  			"slider16f"		
-midiops3:  			"slider32"		
-midiops3:  			"slider32f"		
-midiops3:  			"slider64"		
-midiops3:  			"slider64f"		
-midiops3:  			"slider8"		
-midiops3:  			"slider8f"		
-modal4:  			"gogobel"		
-modal4:  			"marimba"		
-modal4: 	 		"vibes"		        
-nlfilt:  			"nlfilt"		
-partials:     			"partials"		
-phisem:  			"bamboo"		
-phisem:  			"cabasa"		
-phisem:  			"crunch"		
-phisem:  	 		"dripwater"		
-phisem: 	 		"guiro"		        
-phisem: 	 		"sandpaper"		
-phisem: 	 		"sekere"		
-phisem: 	 		"sleighbells"		
-phisem: 	 		"stix"		        
-phisem: 	 		"tambourine"		
-physmod:  			"fmb3"		        
-physmod:  			"fmbell"		
-physmod:  			"fmmetal"		
-physmod:  			"fmpercfl"		
-physmod:  			"fmrhode"		
-physmod:  			"fmvoice"		
-physmod:  			"fmwurlie"		
-physmod:  			"mandol"		
-physmod:  			"moog"		        
-physmod:  			"shaker"		
-physmod: 	 		"voice"		        
-physmod: 	 		"wgbow"		        
-physmod: 	 		"wgbowedbar"		
-physmod: 	 		"wgbrass"		
-physmod: 	 		"wgclar"		
-physmod: 	 		"wgflute"		
-pluck: 	  			"wgpluck"		
-psynth:     			"resyn"		        
-psynth:     			"sinsyn"		
-psynth:      			"tradsyn"		
-pvsbasic:    			"pvsblur"		
-pvsbasic:   	 		"pvscale"		
-pvsbasic:   	 		"pvsfilter"		
-pvsbasic:   	 		"pvshift"		
-pvsbasic:   	 		"pvsinit"		
-pvsbasic:   	 		"pvsmix"		
-pvsbasic:   	 		"pvstencil"		
-pvscent:   	 		"pvscent"		
-pvsdemix:	 		"pvsdemix"		
-py/pythonopcodes: 		"pyassign"		
-py/pythonopcodes: 		"pyassigni"		
-py/pythonopcodes: 		"pyassignt"		
-py/pythonopcodes: 		"pycall"		
-py/pythonopcodes: 		"pycall1"		
-py/pythonopcodes: 		"pycall1i"		
-py/pythonopcodes: 		"pycall1t"		
-py/pythonopcodes: 		"pycall2"		
-py/pythonopcodes: 		"pycall2i"		
-py/pythonopcodes: 		"pycall2t"		
-py/pythonopcodes: 		"pycall3"		
-py/pythonopcodes: 		"pycall3i"		
-py/pythonopcodes: 		"pycall3t"		
-py/pythonopcodes: 		"pycall4"		
-py/pythonopcodes: 		"pycall4i"		
-py/pythonopcodes: 		"pycall4t"		
-py/pythonopcodes: 		"pycall5"		
-py/pythonopcodes: 		"pycall5i"		
-py/pythonopcodes: 		"pycall5t"		
-py/pythonopcodes: 		"pycall6"		
-py/pythonopcodes: 		"pycall6i"		
-py/pythonopcodes: 		"pycall6t"		
-py/pythonopcodes: 		"pycall7"		
-py/pythonopcodes: 		"pycall7i"		
-py/pythonopcodes: 		"pycall7t"		
-py/pythonopcodes: 		"pycall8"		
-py/pythonopcodes: 		"pycall8i"		
-py/pythonopcodes: 		"pycall8t"		
-py/pythonopcodes: 		"pycalli"		
-py/pythonopcodes: 		"pycalln"		
-py/pythonopcodes: 		"pycallni"		
-py/pythonopcodes: 		"pycallnt"		
-py/pythonopcodes: 		"pycallt"		
-py/pythonopcodes: 		"pyeval"		
-py/pythonopcodes: 		"pyevali"		
-py/pythonopcodes: 		"pyevalt"		
-py/pythonopcodes: 		"pyexec"		
-py/pythonopcodes: 		"pyexeci"		
-py/pythonopcodes: 		"pyexect"		
-py/pythonopcodes: 		"pyinit"		
-py/pythonopcodes: 		"pylassign"		
-py/pythonopcodes: 		"pylassigni"		
-py/pythonopcodes: 		"pylassignt"		
-py/pythonopcodes: 		"pylcall"		
-py/pythonopcodes: 		"pylcall1"		
-py/pythonopcodes: 		"pylcall1i"		
-py/pythonopcodes: 		"pylcall1t"		
-py/pythonopcodes: 		"pylcall2"		
-py/pythonopcodes: 		"pylcall2i"		
-py/pythonopcodes: 		"pylcall2t"		
-py/pythonopcodes: 		"pylcall3"		
-py/pythonopcodes: 		"pylcall3i"		
-py/pythonopcodes: 		"pylcall3t"		
-py/pythonopcodes: 		"pylcall4"		
-py/pythonopcodes: 		"pylcall4i"		
-py/pythonopcodes: 		"pylcall4t"		
-py/pythonopcodes: 		"pylcall5"		
-py/pythonopcodes: 		"pylcall5i"		
-py/pythonopcodes: 		"pylcall5t"		
-py/pythonopcodes: 		"pylcall6"		
-py/pythonopcodes: 		"pylcall6i"		
-py/pythonopcodes: 		"pylcall6t"		
-py/pythonopcodes: 		"pylcall7"		
-py/pythonopcodes: 		"pylcall7i"		
-py/pythonopcodes: 		"pylcall7t"		
-py/pythonopcodes: 		"pylcall8"		
-py/pythonopcodes: 		"pylcall8i"		
-py/pythonopcodes: 		"pylcall8t"		
-py/pythonopcodes: 		"pylcalli"		
-py/pythonopcodes: 		"pylcalln"		
-py/pythonopcodes: 		"pylcallni"		
-py/pythonopcodes: 		"pylcallnt"		
-py/pythonopcodes: 		"pylcallt"		
-py/pythonopcodes: 		"pyleval"		
-py/pythonopcodes: 		"pylevali"		
-py/pythonopcodes: 		"pylevalt"		
-py/pythonopcodes: 		"pylexec"		
-py/pythonopcodes: 		"pylexeci"		
-py/pythonopcodes: 		"pylexect"		
-py/pythonopcodes: 		"pylrun"		
-py/pythonopcodes: 		"pylruni"		
-py/pythonopcodes: 		"pylrunt"		
-py/pythonopcodes: 		"pyrun"                 
-py/pythonopcodes: 		"pyruni"		
-py/pythonopcodes: 		"pyrunt"		
-repluck:  			"repluck"		
-repluck:  			"streson"		
-repluck:   			"wgpluck2"		
-scansyn: 	 		"scans"		        
-scansyn: 	 		"scanu"		        
-scansynx: 	 		"xscanmap"		
-scansynx: 	 		"xscans"		
-scansynx: 	 		"xscansmap"		
-scansynx: 	 		"xscanu"		
-seqtime: 	 		"seqtime"		
-seqtime: 	 		"seqtime2"		
-sfont: 	  			"sfilist"		
-sfont: 	  			"sfinstr"		
-sfont: 	  			"sfinstr3"		
-sfont: 	  			"sfinstr3m"		
-sfont: 	  			"sfinstrm"		
-sfont: 	  			"sfload"		
-sfont: 	  			"sfpassign"		
-sfont: 	  			"sfplay"		
-sfont: 	  			"sfplay3"		
-sfont: 	  			"sfplay3m"		
-sfont: 	  			"sfplaym"		
-sfont: 	  			"sfplist"		
-sfont: 	  			"sfpreset"		
-sfont: 				"sfinstr3m"		
-sndwarp:   	 		"sndwarp"		
-sndwarp:   	 		"sndwarpst"		
-space: 	  			"space"		        
-space: 	  			"spdist"		
-space: 	  			"spsend"		
-spat3d:      			"spat3d"		
-spat3d:      			"spat3di"		
-spat3d:     	 		"spat3dt"		
-spectra: 	 		"active"		
-spectra: 	 		"adsynt"		
-spectra: 	 		"clip"		        
-spectra: 	 		"clockoff"		
-spectra: 	 		"clockon"		
-spectra: 	 		"cpuprc"		
-spectra:  			"hsboscil"		
-spectra:  			"lpf18"		        
-spectra:  			"mac"		        
-spectra: 	 		"maca"		        
-spectra: 	 		"maxalloc"		
-spectra: 	 		"mpulse"		
-spectra: 	 		"mute"		        
-spectra: 	 		"noise"		        
-spectra: 	 		"oscilv"		
-spectra: 	 		"p"		        
-spectra: 	 		"phasorbnk"		
-spectra: 	 		"pinkish"		
-spectra: 	 		"pitch"		        
-spectra: 	 		"pitchamdf"		
-spectra: 	 		"readclock"		
-spectra: 	 		"sense"		        
-spectra: 	 		"sensekey"		
-spectra: 	 		"specaddm"		
-spectra: 	 		"specdiff"		
-spectra: 	  		"specdisp"		
-spectra: 	 		"specfilt"		
-spectra: 	 		"spechist"		
-spectra: 	 		"specptrk"		
-spectra: 	 		"specscal"		
-spectra: 	 		"specsum"		
-spectra: 	 		"spectrum"		
-spectra: 	 		"transeg"		
-spectra: 	 		"waveset"		
-stk/stkOpcodes:	 		"STKBandedWG"		
-stk/stkOpcodes:	 		"STKBeeThree"		
-stk/stkOpcodes:	 		"STKBlowBotl"		
-stk/stkOpcodes:	 		"STKBlowHole"		
-stk/stkOpcodes:	 		"STKBowed"		
-stk/stkOpcodes:	 		"STKBrass"		
-stk/stkOpcodes:	 		"STKClarinet"		
-stk/stkOpcodes:	 		"STKDrummer"		
-stk/stkOpcodes:	 		"STKFMVoices"		
-stk/stkOpcodes: 			"STKFlute"		
-stk/stkOpcodes:	 		"STKHevyMetl"		
-stk/stkOpcodes:	 		"STKMandolin"		
-stk/stkOpcodes:	 		"STKModalBar"		
-stk/stkOpcodes:	 		"STKMoog"		
-stk/stkOpcodes:	 		"STKPercFlut"		
-stk/stkOpcodes:	 		"STKPlucked"		
-stk/stkOpcodes:	 		"STKResonate"		
-stk/stkOpcodes:	 		"STKRhodey"		
-stk/stkOpcodes:	 		"STKSaxofony"		
-stk/stkOpcodes:	 		"STKShakers"		
-stk/stkOpcodes:	 		"STKSimple"		
-stk/stkOpcodes:	 		"STKSitar"		
-stk/stkOpcodes:	 		"STKStifKarp"		
-stk/stkOpcodes:	 		"STKTubeBell"		
-stk/stkOpcodes:	 		"STKVoicForm"		
-stk/stkOpcodes:	 		"STKWhistle"		
-stk/stkOpcodes:	  		"STKWurley"		
-ugens7: 	 		"fof"		        
-ugens7: 	 		"fof2"		        
-ugens7: 	 		"harmon"		
-ugensa: 	 		"fog"		        
-uggab: 	  			"cuserrnd"		
-uggab: 	 	 		"duserrnd"		
-uggab: 	  			"fold"		        
-uggab: 	  			"jitter"		
-uggab: 	  			"jitter2"		
-uggab: 	  			"jspline"		
-uggab: 	  			"lineto"		
-uggab: 	  			"loopseg"		
-uggab: 	  			"loopsegp"		
-uggab: 	  			"lposcil"		
-uggab: 	   			"lposcil3"		
-uggab: 	  			"lpshold"		
-uggab: 	  			"lpsholdp"		
-uggab: 	  			"mirror"		
-uggab: 	  			"ntrpol"		
-uggab: 	  			"poscil"		
-uggab: 	  			"poscil3"		
-uggab: 	  			"product"		
-uggab: 	  			"random"		
-uggab: 	  			"randomh"		
-uggab: 	  			"randomi"		
-uggab: 	  			"resony"		
-uggab: 	  			"rspline"		
-uggab: 	  			"sum"		        
-uggab: 	  			"tlineto"		
-uggab: 	  			"trigger"		
-uggab: 	  			"urd"		        
-uggab: 	  			"vibr"		        
-uggab: 	  			"vibrato"		
-uggab: 	  			"wrap"		        
-ugmoss:  			"and"		        
-ugmoss:  			"dconv"		        
-ugmoss:  			"ftmorf"		
-ugmoss:   			"not"		        
-ugmoss:  			"or"		        
-ugmoss:  			"shl"		        
-ugmoss:  			"valpass"		
-ugmoss:  			"vcomb"		        
-ugmoss: 	 		"xor"		        
-ugnorman:  	    		"ATSadd"		
-ugnorman:   	   		"ATSaddnz"		
-ugnorman:   	   		"ATSbufread"		
-ugnorman:    	  		"ATScross"		
-ugnorman:    	  		"ATSinfo"		
-ugnorman:    	  		"ATSinterpread"		
-ugnorman:     	 		"ATSpartialtap"		
-ugnorman:     	 		"ATSread"		
-ugnorman:     	 		"ATSreadnz"		
-ugnorman:      			"ATSsinnoi"		
-ugsc: 	  			"hilbert"		
-ugsc: 	  			"lowpass2"		
-ugsc: 	  			"phaser1"		
-ugsc: 	  			"phaser2"		
-ugsc: 	  			"resonr"		
-ugsc: 	  			"resonz"		
-ugsc: 	  			"svfilter"		
-vdelay:  			"multitap"		
-vdelay:  			"nreverb"		
-vdelay:  			"reverb2"		
-vdelay:  			"vdelay"		
-vdelay:  			"vdelay3"		
-vdelay:  			"vdelayx"		
-vdelay: 	 		"vdelayxq"		
-vdelay: 	 		"vdelayxs"		
-vdelay:  			"vdelayxw"		
-vdelay: 	 		"vdelayxwq"		
-vdelay: 	 		"vdelayxws"		
-wave-terrain: 	 		"scanhammer"		
-wave-terrain: 	 		"scantable"		
-wave-terrain: 	 		"wterrain"		
+control:                        "button"
+control:                        "checkbox"
+control:                        "control"
+control:                        "flashtxt"
+control:                        "setctrl"
+dssi4cs:                        "dssiaudio"
+dssi4cs:                        "dssictls"
+dssi4cs:                        "dssievent"
+dssi4cs:                        "dssiinit"
+dssi4cs:                        "dssilist"
+dssi4cs:                        "dssinote"
+dssi4cs:                        "dssisynth"
+fluidOpcodes:                   "fluidAllOut"
+fluidOpcodes:                   "fluidCCi"
+fluidOpcodes:                   "fluidCCk"
+fluidOpcodes:                   "fluidControl"
+fluidOpcodes:                   "fluidEngine"
+fluidOpcodes:                   "fluidLoad"
+fluidOpcodes:                   "fluidNote"
+fluidOpcodes:                   "fluidOut"
+fluidOpcodes:                   "fluidProgramSelect"
+loris:                          "lorismorph"
+loris:                          "lorisplay"
+loris:                          "lorisread"
+modal4:                         "gogobel"
+modal4:                         "marimba"
+modal4:                         "vibes"
+osc:                            "OSCinit"
+osc:                            "OSClisten"
+osc:                            "OSCrecv"
+osc:                            "OSCsend"
+physmod:                        "fmb3"
+physmod:                        "fmbell"
+physmod:                        "fmmetal"
+physmod:                        "fmpercfl"
+physmod:                        "fmrhode"
+physmod:                        "fmvoice"
+physmod:                        "fmwurlie"
+physmod:                        "mandol"
+physmod:                        "moog"
+physmod:                        "shaker"
+physmod:                        "voice"
+physmod:                        "wgbow"
+physmod:                        "wgbowedbar"
+physmod:                        "wgbrass"
+physmod:                        "wgclar"
+physmod:                        "wgflute"
+pitch:                          "active"
+pitch:                          "adsynt"
+pitch:                          "clip"
+pitch:                          "clockoff"
+pitch:                          "clockon"
+pitch:                          "cpuprc"
+pitch:                          "hsboscil"
+pitch:                          "lpf18"
+pitch:                          "mac"
+pitch:                          "maca"
+pitch:                          "maxalloc"
+pitch:                          "mpulse"
+pitch:                          "mute"
+pitch:                          "noise"
+pitch:                          "oscilv"
+pitch:                          "p"
+pitch:                          "phasorbnk"
+pitch:                          "pinkish"
+pitch:                          "pitch"
+pitch:                          "pitchamdf"
+pitch:                          "readclock"
+pitch:                          "sense"
+pitch:                          "sensekey"
+pitch:                          "specaddm"
+pitch:                          "specdiff"
+pitch:                          "specdisp"
+pitch:                          "specfilt"
+pitch:                          "spechist"
+pitch:                          "specptrk"
+pitch:                          "specscal"
+pitch:                          "specsum"
+pitch:                          "spectrum"
+pitch:                          "transeg"
+pitch:                          "waveset"
+py:                             "pyassign"
+py:                             "pyassigni"
+py:                             "pyassignt"
+py:                             "pycall"
+py:                             "pycall1"
+py:                             "pycall1i"
+py:                             "pycall1t"
+py:                             "pycall2"
+py:                             "pycall2i"
+py:                             "pycall2t"
+py:                             "pycall3"
+py:                             "pycall3i"
+py:                             "pycall3t"
+py:                             "pycall4"
+py:                             "pycall4i"
+py:                             "pycall4t"
+py:                             "pycall5"
+py:                             "pycall5i"
+py:                             "pycall5t"
+py:                             "pycall6"
+py:                             "pycall6i"
+py:                             "pycall6t"
+py:                             "pycall7"
+py:                             "pycall7i"
+py:                             "pycall7t"
+py:                             "pycall8"
+py:                             "pycall8i"
+py:                             "pycall8t"
+py:                             "pycalli"
+py:                             "pycalln"
+py:                             "pycallni"
+py:                             "pycallnt"
+py:                             "pycallt"
+py:                             "pyeval"
+py:                             "pyevali"
+py:                             "pyevalt"
+py:                             "pyexec"
+py:                             "pyexeci"
+py:                             "pyexect"
+py:                             "pyinit"
+py:                             "pylassign"
+py:                             "pylassigni"
+py:                             "pylassignt"
+py:                             "pylcall"
+py:                             "pylcall1"
+py:                             "pylcall1i"
+py:                             "pylcall1t"
+py:                             "pylcall2"
+py:                             "pylcall2i"
+py:                             "pylcall2t"
+py:                             "pylcall3"
+py:                             "pylcall3i"
+py:                             "pylcall3t"
+py:                             "pylcall4"
+py:                             "pylcall4i"
+py:                             "pylcall4t"
+py:                             "pylcall5"
+py:                             "pylcall5i"
+py:                             "pylcall5t"
+py:                             "pylcall6"
+py:                             "pylcall6i"
+py:                             "pylcall6t"
+py:                             "pylcall7"
+py:                             "pylcall7i"
+py:                             "pylcall7t"
+py:                             "pylcall8"
+py:                             "pylcall8i"
+py:                             "pylcall8t"
+py:                             "pylcalli"
+py:                             "pylcalln"
+py:                             "pylcallni"
+py:                             "pylcallnt"
+py:                             "pylcallt"
+py:                             "pyleval"
+py:                             "pylevali"
+py:                             "pylevalt"
+py:                             "pylexec"
+py:                             "pylexeci"
+py:                             "pylexect"
+py:                             "pylrun"
+py:                             "pylruni"
+py:                             "pylrunt"
+py:                             "pyrun"
+py:                             "pyruni"
+py:                             "pyrunt"
+scansyn:                        "scans"
+scansyn:                        "scanu"
+scansyn:                        "xscanmap"
+scansyn:                        "xscans"
+scansyn:                        "xscansmap"
+scansyn:                        "xscanu"
+sfont:                          "sfilist"
+sfont:                          "sfinstr"
+sfont:                          "sfinstr3"
+sfont:                          "sfinstr3m"
+sfont:                          "sfinstr3m"
+sfont:                          "sfinstrm"
+sfont:                          "sfload"
+sfont:                          "sfpassign"
+sfont:                          "sfplay"
+sfont:                          "sfplay3"
+sfont:                          "sfplay3m"
+sfont:                          "sfplaym"
+sfont:                          "sfplist"
+sfont:                          "sfpreset"
+stdopcod:                       "and"
+stdopcod:                       "ATSadd"
+stdopcod:                       "ATSaddnz"
+stdopcod:                       "ATSbufread"
+stdopcod:                       "ATScross"
+stdopcod:                       "ATSinfo"
+stdopcod:                       "ATSinterpread"
+stdopcod:                       "ATSpartialtap"
+stdopcod:                       "ATSread"
+stdopcod:                       "ATSreadnz"
+stdopcod:                       "ATSsinnoi"
+stdopcod:                       "babo"
+stdopcod:                       "bamboo"
+stdopcod:                       "bbcutm"
+stdopcod:                       "bbcuts"
+stdopcod:                       "bformdec"
+stdopcod:                       "bformenc"
+stdopcod:                       "biquad"
+stdopcod:                       "biquada"
+stdopcod:                       "bqrez"
+stdopcod:                       "butbp"
+stdopcod:                       "butbr"
+stdopcod:                       "buthp"
+stdopcod:                       "butlp"
+stdopcod:                       "butterbp"
+stdopcod:                       "butterbr"
+stdopcod:                       "butterhp"
+stdopcod:                       "butterlp"
+stdopcod:                       "cabasa"
+stdopcod:                       "clear"
+stdopcod:                       "clfilt"
+stdopcod:                       "cross2"
+stdopcod:                       "crunch"
+stdopcod:                       "ctrl14"
+stdopcod:                       "ctrl21"
+stdopcod:                       "ctrl7"
+stdopcod:                       "cuserrnd"
+stdopcod:                       "dam"
+stdopcod:                       "dcblock"
+stdopcod:                       "dconv"
+stdopcod:                       "distort1"
+stdopcod:                       "dripwater"
+stdopcod:                       "duserrnd"
+stdopcod:                       "exitnow"
+stdopcod:                       "filter2"
+stdopcod:                       "fin"
+stdopcod:                       "fini"
+stdopcod:                       "fink"
+stdopcod:                       "fiopen"
+stdopcod:                       "flanger"
+stdopcod:                       "fof"
+stdopcod:                       "fof2"
+stdopcod:                       "fog"
+stdopcod:                       "fold"
+stdopcod:                       "follow"
+stdopcod:                       "follow2"
+stdopcod:                       "fout"
+stdopcod:                       "fouti"
+stdopcod:                       "foutir"
+stdopcod:                       "foutk"
+stdopcod:                       "fprintks"
+stdopcod:                       "fprints"
+stdopcod:                       "ftfree"
+stdopcod:                       "ftgen"
+stdopcod:                       "ftgentmp"
+stdopcod:                       "ftload"
+stdopcod:                       "ftloadk"
+stdopcod:                       "ftmorf"
+stdopcod:                       "ftsave"
+stdopcod:                       "ftsavek"
+stdopcod:                       "grain"
+stdopcod:                       "granule"
+stdopcod:                       "guiro"
+stdopcod:                       "harmon"
+stdopcod:                       "hilbert"
+stdopcod:                       "hrtfer"
+stdopcod:                       "initc14"
+stdopcod:                       "initc21"
+stdopcod:                       "initc7"
+stdopcod:                       "jitter"
+stdopcod:                       "jitter2"
+stdopcod:                       "jspline"
+stdopcod:                       "lineto"
+stdopcod:                       "locsend"
+stdopcod:                       "locsig"
+stdopcod:                       "loopseg"
+stdopcod:                       "loopsegp"
+stdopcod:                       "lorenz"
+stdopcod:                       "lowpass2"
+stdopcod:                       "lowres"
+stdopcod:                       "lowresx"
+stdopcod:                       "lposcil"
+stdopcod:                       "lposcil3"
+stdopcod:                       "lpshold"
+stdopcod:                       "lpsholdp"
+stdopcod:                       "metro"
+stdopcod:                       "midic14"
+stdopcod:                       "midic21"
+stdopcod:                       "midic7"
+stdopcod:                       "mirror"
+stdopcod:                       "moogvcf"
+stdopcod:                       "nestedap"
+stdopcod:                       "nlfilt"
+stdopcod:                       "not"
+stdopcod:                       "ntrpol"
+stdopcod:                       "or"
+stdopcod:                       "pareq"
+stdopcod:                       "partials"
+stdopcod:                       "phaser1"
+stdopcod:                       "phaser2"
+stdopcod:                       "planet"
+stdopcod:                       "poscil"
+stdopcod:                       "poscil3"
+stdopcod:                       "product"
+stdopcod:                       "pvsblur"
+stdopcod:                       "pvscale"
+stdopcod:                       "pvscent"
+stdopcod:                       "pvsdemix"
+stdopcod:                       "pvsfilter"
+stdopcod:                       "pvshift"
+stdopcod:                       "pvsifd"
+stdopcod:                       "pvsinit"
+stdopcod:                       "pvsmix"
+stdopcod:                       "pvstencil"
+stdopcod:                       "random"
+stdopcod:                       "randomh"
+stdopcod:                       "randomi"
+stdopcod:                       "repluck"
+stdopcod:                       "resonr"
+stdopcod:                       "resony"
+stdopcod:                       "resonz"
+stdopcod:                       "resyn"
+stdopcod:                       "rezzy"
+stdopcod:                       "rspline"
+stdopcod:                       "s16b14"
+stdopcod:                       "s32b14"
+stdopcod:                       "sandpaper"
+stdopcod:                       "scanhammer"
+stdopcod:                       "scantable"
+stdopcod:                       "sekere"
+stdopcod:                       "seqtime"
+stdopcod:                       "seqtime2"
+stdopcod:                       "shl"
+stdopcod:                       "sinsyn"
+stdopcod:                       "sleighbells"
+stdopcod:                       "slider16"
+stdopcod:                       "slider16f"
+stdopcod:                       "slider32"
+stdopcod:                       "slider32f"
+stdopcod:                       "slider64"
+stdopcod:                       "slider64f"
+stdopcod:                       "slider8"
+stdopcod:                       "slider8f"
+stdopcod:                       "sndwarp"
+stdopcod:                       "sndwarpst"
+stdopcod:                       "space"
+stdopcod:                       "spat3d"
+stdopcod:                       "spat3di"
+stdopcod:                       "spat3dt"
+stdopcod:                       "spdist"
+stdopcod:                       "splitrig"
+stdopcod:                       "spsend"
+stdopcod:                       "stix"
+stdopcod:                       "streson"
+stdopcod:                       "sum"
+stdopcod:                       "svfilter"
+stdopcod:                       "tab_i"
+stdopcod:                       "tabw_i"
+stdopcod:                       "tambourine"
+stdopcod:                       "tb0"
+stdopcod:                       "tb0_init"
+stdopcod:                       "tb1"
+stdopcod:                       "tb10"
+stdopcod:                       "tb10_init"
+stdopcod:                       "tb11"
+stdopcod:                       "tb11_init"
+stdopcod:                       "tb12"
+stdopcod:                       "tb12_init"
+stdopcod:                       "tb13"
+stdopcod:                       "tb13_init"
+stdopcod:                       "tb14"
+stdopcod:                       "tb14_init"
+stdopcod:                       "tb15"
+stdopcod:                       "tb15_init"
+stdopcod:                       "tb1_init"
+stdopcod:                       "tb2"
+stdopcod:                       "tb2_init"
+stdopcod:                       "tb3"
+stdopcod:                       "tb3_init"
+stdopcod:                       "tb4"
+stdopcod:                       "tb4_init"
+stdopcod:                       "tb5"
+stdopcod:                       "tb5_init"
+stdopcod:                       "tb6"
+stdopcod:                       "tb6_init"
+stdopcod:                       "tb7"
+stdopcod:                       "tb7_init"
+stdopcod:                       "tb8"
+stdopcod:                       "tb8_init"
+stdopcod:                       "tb9"
+stdopcod:                       "tb9_init"
+stdopcod:                       "tbvcf"
+stdopcod:                       "timedseq"
+stdopcod:                       "tlineto"
+stdopcod:                       "tradsyn"
+stdopcod:                       "trigger"
+stdopcod:                       "urd"
+stdopcod:                       "vadd"
+stdopcod:                       "vaddv"
+stdopcod:                       "valpass"
+stdopcod:                       "vcella"
+stdopcod:                       "vco"
+stdopcod:                       "vcomb"
+stdopcod:                       "vcopy"
+stdopcod:                       "vcopy_i"
+stdopcod:                       "vdelayk"
+stdopcod:                       "vdivv"
+stdopcod:                       "vecdelay"
+stdopcod:                       "vexp"
+stdopcod:                       "vexpseg"
+stdopcod:                       "vexpv"
+stdopcod:                       "vibr"
+stdopcod:                       "vibrato"
+stdopcod:                       "vincr"
+stdopcod:                       "vlimit"
+stdopcod:                       "vlinseg"
+stdopcod:                       "vlowres"
+stdopcod:                       "vmap"
+stdopcod:                       "vmirror"
+stdopcod:                       "vmult"
+stdopcod:                       "vmultv"
+stdopcod:                       "vport"
+stdopcod:                       "vpow"
+stdopcod:                       "vpowv"
+stdopcod:                       "vrandh"
+stdopcod:                       "vrandi"
+stdopcod:                       "vsubv"
+stdopcod:                       "vtaba"
+stdopcod:                       "vtabi"
+stdopcod:                       "vtabk"
+stdopcod:                       "vtablea"
+stdopcod:                       "vtablei"
+stdopcod:                       "vtablek"
+stdopcod:                       "vtablewa"
+stdopcod:                       "vtablewi"
+stdopcod:                       "vtablewk"
+stdopcod:                       "vtabwa"
+stdopcod:                       "vtabwi"
+stdopcod:                       "vtabwk"
+stdopcod:                       "vwrap"
+stdopcod:                       "wgpluck"
+stdopcod:                       "wgpluck2"
+stdopcod:                       "wguide1"
+stdopcod:                       "wguide2"
+stdopcod:                       "wrap"
+stdopcod:                       "wterrain"
+stdopcod:                       "xor"
+stdopcod:                       "zfilter2"
+stk:                            "STKBandedWG"
+stk:                            "STKBeeThree"
+stk:                            "STKBlowBotl"
+stk:                            "STKBlowHole"
+stk:                            "STKBowed"
+stk:                            "STKBrass"
+stk:                            "STKClarinet"
+stk:                            "STKDrummer"
+stk:                            "STKFlute"
+stk:                            "STKFMVoices"
+stk:                            "STKHevyMetl"
+stk:                            "STKMandolin"
+stk:                            "STKModalBar"
+stk:                            "STKMoog"
+stk:                            "STKPercFlut"
+stk:                            "STKPlucked"
+stk:                            "STKResonate"
+stk:                            "STKRhodey"
+stk:                            "STKSaxofony"
+stk:                            "STKShakers"
+stk:                            "STKSimple"
+stk:                            "STKSitar"
+stk:                            "STKStifKarp"
+stk:                            "STKTubeBell"
+stk:                            "STKVoicForm"
+stk:                            "STKWhistle"
+stk:                            "STKWurley"
 
 *end*
 
@@ -983,577 +958,577 @@ wave-terrain: 	 		"wterrain"
 Opcodes in base system
 ----------------------
 
-chani		***
-chano		***
-chn_S		***
-chn_a		***
-chn_k		***
-chnclear
-chnexport
-chnget
-chnmix
-chnparams
-chnset
-printf		***
-printf_i	***
-puts
-sprintf
-sprintfk
-strcat		***
-strcatk
-strcmp		***
-strcmpk
-strcpy		***
-strcpyk
-strget		***
-strset		***
-strtod		***
-strtodk
-strtol
-strtolk
-loop_ge
-loop_gt
-loop_le
-loop_lt
-a               ***
-abs		***
-add		***
-adsr		***
-adsyn		***
-aftouch		***
-alpass		***
-ampdb		***
-ampdbfs		***
-ampmidi		***
-areson		***
-aresonk		***
-atone		***
-atonek		***
-atonex		***
-balance		***
-betarand	***
-bexprnd		***
-birnd		***
-buzz
-cauchy		***
-ceil		***
-cent		***
-cggoto		***
-chanctrl	***
-cigoto		***
-ckgoto		***
-cngoto		***
-cogoto
-comb		***
-cos		***
-cosh		***
-cosinv		***
-cps2pch		***
-cpsmidi		***
-cpsmidib	***
-cpsoct		***
-cpspch		***
-cpstmid		***
-cpstun		***
-cpstuni		***
-cpsxpch		***
-ctrlinit	***
-db		***
-dbamp		***
-dbfsamp		***
-delay		***
-delay1		***
-delayr		***
-delayw		***
-deltap		***
-deltap3		***
-deltapi		***
-deltapn		***
-deltapx		***
-deltapxw	***
-diff		***
-diskin		***
-diskin2		***
-dispfft		***
-display		***
-div		***
-divz
-downsamp	***
-dumpk		***
-dumpk2		***
-dumpk3		***
-dumpk4		***
-endin		***
-endop		***
-envlpx		***
-envlpxr		***
-event		***
-event_i		***
-exp		***
-expon		***
-exprand		***
-expseg		***
-expsega		***
-expsegr		***
-filelen		***
-filenchnls	***
-filepeak	***
-filesr		***
-floor		***
-foscil		***
-foscili		***
-frac		***
-ftchnls		***
-ftlen		***
-ftlptim		***
-ftsr		***
-gain		***
-gauss		***
-gbuzz		***
-goto		***
-i		***
-igoto		***
-ihold		***
-in              ***
-in32		***
-inch		***
-inh		***
-init		***
-ino		***
-inq		***
-ins		***
-instr		***
-int		***
-integ		***
-interp		***
-invalue		***
-inx		***
-inz		***
-k               ***
-kgoto		***
-ktableseg	***
-lfo		***
-limit		***
-line		***
-linen		***
-linenr		***
-linrand		***
-linseg		***
-linsegr		***
-log		***
-log10		***
-logbtwo		***
-loscil		***
-loscil3		***
-lpfreson	***
-lphasor		***
-lpinterp	***
-lpread		***
-lpreson		***
-lpslot		***
-madsr		***
-massign		***
-mclock		***
-mdelay		***
-midichannelaftertouch	***
-midichn		***
-midicontrolchange	***
-midictrl	***
-mididefault	***
-midiin		***
-midinoteoff	***
-midinoteoncps	***
-midinoteonkey	***
-midinoteonoct	***
-midinoteonpch	***
-midion		***
-midion2		***
-midiout		***
-midipitchbend	***
-midipolyaftertouch	***
-midiprogramchange	***
-miditempo	***
-mod		***
-moscil		***
-mrtmsg		***
-multitap
-mxadsr
-noteoff
-noteon		***
-noteondur	***
-noteondur2	***
-notnum		***
-nreverb
-nrpn		***
-nsamp		***
-nstrnum		***
-ntrpol
-octave		***
-octcps		***
-octmidi		***
-octmidib	***
-octpch		***
-opcode
-oscil
-oscil1		***
-oscil1i		***
-oscil3		***
-oscili		***
-osciln		***
-oscils		***
-oscilx		***
-out		***
-out32		***
-outc		***
-outch		***
-outh		***
-outiat		***
-outic		***
-outic14		***
-outipat		***
-outipb		***
-outipc		***
-outkat		***
-outkc		***
-outkc14		***
-outkpat		***
-outkpb		***
-outkpc		***
-outo		***
-outq		***
-outq1		***
-outq2		***
-outq3		***
-outq4		***
-outs		***
-outs1		***
-outs2		***
-outvalue	***
-outx		***
-outz		***
-pan		***
-pcauchy		***
-pchbend		***
-pchmidi		***
-pchmidib
-pchoct		***
-peak		***
-pgmassign	***
-phasor		***
-pluck		***
-poisson		***
-polyaft		***
-port		***
-portk		***
-pow		***
-powoftwo	***
-prealloc	***
-print		***
-printk		***
-printk2		***
-printks		***
-prints		***
-pset		***
-pvadd		***
-pvbufread	***
-pvcross		***
-pvinterp	***
-pvoc		***
-pvread		***
-pvsadsyn
-pvsanal		***
-pvscross	***
-pvsfread	***
-pvsftr		***
-pvsftw		***
-pvsinfo		***
-pvsmaska	***
-pvsynth		***
-rand		***
-randh		***
-randi		***
-readk		***
-readk2		***
-readk3		***
-readk4		***
-reinit		***
-release		***
-reson		***
-resonk		***
-resonx		***
-reverb		***
-reverb2		***
-rigoto		***
-rireturn	***
-rms		***
-rnd		***
-round		***
-rtclock		***
-samphold	***
-schedkwhen	***
-schedkwhennamed	***
-schedule	***
-schedwhen	***
-seed		***
-semitone	***
-setksmps	***
-sin		***
-sinh		***
-sininv		***
-soundin		***
-soundout	***
-soundouts	***
-sqrt		***
-sub
-subinstr	***
-subinstrinit	***
-table		***
-table3		***
-tablecopy	***
-tablegpw	***
-tablei		***
-tableicopy	***
-tableigpw	***
-tableikt	***
-tableimix	***
-tableiw		***
-tablekt		***
-tablemix	***
-tableng		***
-tablera		***
-tableseg	***
-tablew		***
-tablewa		***
-tablewkt	***
-tablexkt	***
-tablexseg	***
-tan		***
-tanh		***
-taninv		***
-taninv2		***
-tempest		***
-tempo		***
-tempoval	***
-tigoto		***
-timeinstk	***
-timeinsts	***
-timek		***
-times		***
-timout		***
-tival		***
-tone		***
-tonek		***
-tonex		***
-trigseq		***
-trirand		***
-turnoff		***
-turnoff2	***
-turnon		***
-unirand		***
-upsamp		***
-vbap16		***
-vbap16move	***
-vbap4		***
-vbap4move	***
-vbap8		***
-vbap8move	***
-vbaplsinit	***
-vbapz		***
-vbapzmove	***
-vdelayx
-vdelayxq
-vdelayxs
-vdelayxw
-vdelayxwq
-vdelayxws
-veloc		***
-vpvoc		***
-weibull		***
-xadsr		***
-xin		***
-xout		***
-xtratim		***
-xyin		***
-zacl		***
-zakinit		***
-zamod		***
-zar		***
-zarg		***
-zaw		***
-zawm		***
-zir		***
-ziw		***
-ziwm		***
-zkcl		***
-zkmod		***
-zkr		***
-zkw		***
-zkwm		***
+a                               ***
+abs                             ***
+add                             n.a. (+)
+adsr                            ***
+adsyn                           ***
+aftouch                         ***
+alpass                          ***
+ampdb                           ***
+ampdbfs                         ***
+ampmidi                         ***
+areson                          ***
+aresonk                         ***
+atone                           ***
+atonek                          ***
+atonex                          ***
+balance                         ***
+betarand                        ***
+bexprnd                         ***
+birnd                           ***
+buzz                            ***
+cauchy                          ***
+ceil                            ***
+cent                            ***
+cggoto                          ***
+chanctrl                        ***
+chani                           ***
+chano                           ***
+chn_a                           ***
+chnclear                        ***
+chnexport                       ***
+chnget                          ***
+chn_k                           ***
+chnmix                          ***
+chnparams                       ***
+chn_S                           ***
+chnset                          ***
+cigoto                          ***
+ckgoto                          ***
+cngoto                          ***
+cogoto                          n.a. (ithen?)
+comb                            ***
+cos                             ***
+cosh                            ***
+cosinv                          ***
+cps2pch                         ***
+cpsmidi                         ***
+cpsmidib                        ***
+cpsoct                          ***
+cpspch                          ***
+cpstmid                         ***
+cpstun                          ***
+cpstuni                         ***
+cpsxpch                         ***
+ctrlinit                        ***
+db                              ***
+dbamp                           ***
+dbfsamp                         ***
+delay                           ***
+delay1                          ***
+delayr                          ***
+delayw                          ***
+deltap                          ***
+deltap3                         ***
+deltapi                         ***
+deltapn                         ***
+deltapx                         ***
+deltapxw                        ***
+diff                            ***
+diskin                          ***
+diskin2                         ***
+dispfft                         ***
+display                         ***
+div                             n.a. (/)
+divz                            ***
+downsamp                        ***
+dumpk                           ***
+dumpk2                          ***
+dumpk3                          ***
+dumpk4                          ***
+endin                           ***
+endop                           ***
+envlpx                          ***
+envlpxr                         ***
+event                           ***
+event_i                         ***
+exp                             ***
+expon                           ***
+exprand                         ***
+expseg                          ***
+expsega                         ***
+expsegr                         ***
+filelen                         ***
+filenchnls                      ***
+filepeak                        ***
+filesr                          ***
+floor                           ***
+foscil                          ***
+foscili                         ***
+frac                            ***
+ftchnls                         ***
+ftlen                           ***
+ftlptim                         ***
+ftsr                            ***
+gain                            ***
+gauss                           ***
+gbuzz                           ***
+goto                            ***
+i                               ***
+igoto                           ***
+ihold                           ***
+_in
+in                              ***
+in32                            ***
+inch                            ***
+inh                             ***
+init                            ***
+ino                             ***
+inq                             ***
+ins                             ***
+instr                           ***
+int                             ***
+integ                           ***
+interp                          ***
+invalue                         ***
+inx                             ***
+inz                             ***
+k                               ***
+kgoto                           ***
+ktableseg                       ***
+lfo                             ***
+limit                           ***
+line                            ***
+linen                           ***
+linenr                          ***
+linrand                         ***
+linseg                          ***
+linsegr                         ***
+log                             ***
+log10                           ***
+logbtwo                         ***
+loop_ge                         ***
+loop_gt                         ***
+loop_le                         ***
+loop_lt                         ***
+loscil                          ***
+loscil3                         ***
+lpfreson                        ***
+lphasor                         ***
+lpinterp                        ***
+lpread                          ***
+lpreson                         ***
+lpslot                          ***
+madsr                           ***
+massign                         ***
+mclock                          ***
+mdelay                          ***
+midichannelaftertouch           ***
+midichn                         ***
+midicontrolchange               ***
+midictrl                        ***
+mididefault                     ***
+midiin                          ***
+midinoteoff                     ***
+midinoteoncps                   ***
+midinoteonkey                   ***
+midinoteonoct                   ***
+midinoteonpch                   ***
+midion                          ***
+midion2                         ***
+midiout                         ***
+midipitchbend                   ***
+midipolyaftertouch              ***
+midiprogramchange               ***
+miditempo                       ***
+mod                             n.a. (%)
+moscil                          ***
+mrtmsg                          ***
+multitap                        ***
+mxadsr                          ***
+noteoff                         ***
+noteon                          ***
+noteondur                       ***
+noteondur2                      ***
+notnum                          ***
+nreverb                         ***
+nrpn                            ***
+nsamp                           ***
+nstrnum                         ***
+ntrpol                          ***
+octave                          ***
+octcps                          ***
+octmidi                         ***
+octmidib                        ***
+octpch                          ***
+opcode                          ***
+oscil                           ***
+oscil1                          ***
+oscil1i                         ***
+oscil3                          ***
+oscili                          ***
+osciln                          ***
+oscils                          ***
+oscilx                          ***
+out                             ***
+out32                           ***
+outc                            ***
+outch                           ***
+outh                            ***
+outiat                          ***
+outic                           ***
+outic14                         ***
+outipat                         ***
+outipb                          ***
+outipc                          ***
+outkat                          ***
+outkc                           ***
+outkc14                         ***
+outkpat                         ***
+outkpb                          ***
+outkpc                          ***
+outo                            ***
+outq                            ***
+outq1                           ***
+outq2                           ***
+outq3                           ***
+outq4                           ***
+outs                            ***
+outs1                           ***
+outs2                           ***
+outvalue                        ***
+outx                            ***
+outz                            ***
+pan                             ***
+pcauchy                         ***
+pchbend                         ***
+pchmidi                         ***
+pchmidib                        ***
+pchoct                          ***
+peak                            ***
+pgmassign                       ***
+phasor                          ***
+pluck                           ***
+poisson                         ***
+polyaft                         ***
+port                            ***
+portk                           ***
+pow                             ***
+powoftwo                        ***
+prealloc                        ***
+print                           ***
+printf                          ***
+printf_i                        ***
+printk                          ***
+printk2                         ***
+printks                         ***
+prints                          ***
+pset                            ***
+puts                            ***
+pvadd                           ***
+pvbufread                       ***
+pvcross                         ***
+pvinterp                        ***
+pvoc                            ***
+pvread                          ***
+pvsadsyn                        ***
+pvsanal                         ***
+pvscross                        ***
+pvsfread                        ***
+pvsftr                          ***
+pvsftw                          ***
+pvsinfo                         ***
+pvsmaska                        ***
+pvsynth                         ***
+rand                            ***
+randh                           ***
+randi                           ***
+readk                           ***
+readk2                          ***
+readk3                          ***
+readk4                          ***
+reinit                          ***
+release                         ***
+reson                           ***
+resonk                          ***
+resonx                          ***
+reverb                          ***
+reverb2                         ***
+rigoto                          ***
+rireturn                        ***
+rms                             ***
+rnd                             ***
+round                           ***
+rtclock                         ***
+samphold                        ***
+schedkwhen                      ***
+schedkwhennamed                 ***
+schedule                        ***
+schedwhen                       ***
+seed                            ***
+semitone                        ***
+setksmps                        ***
+sin                             ***
+sinh                            ***
+sininv                          ***
+soundin                         ***
+soundout                        ***
+soundouts                       ***
+sprintf                         ***
+sprintfk                        ***
+sqrt                            ***
+strcat                          ***
+strcatk                         ***
+strcmp                          ***
+strcmpk                         ***
+strcpy                          ***
+strcpyk                         ***
+strget                          ***
+strset                          ***
+strtod                          ***
+strtodk                         ***
+strtol                          ***
+strtolk                         ***
+sub                             n.a. (-)
+subinstr                        ***
+subinstrinit                    ***
+table                           ***
+table3                          ***
+tablecopy                       ***
+tablegpw                        ***
+tablei                          ***
+tableicopy                      ***
+tableigpw                       ***
+tableikt                        ***
+tableimix                       ***
+tableiw                         ***
+tablekt                         ***
+tablemix                        ***
+tableng                         ***
+tablera                         ***
+tableseg                        ***
+tablew                          ***
+tablewa                         ***
+tablewkt                        ***
+tablexkt                        ***
+tablexseg                       ***
+tan                             ***
+tanh                            ***
+taninv                          ***
+taninv2                         ***
+tempest                         ***
+tempo                           ***
+tempoval                        ***
+tigoto                          ***
+timeinstk                       ***
+timeinsts                       ***
+timek                           ***
+times                           ***
+timout                          ***
+tival                           ***
+tone                            ***
+tonek                           ***
+tonex                           ***
+trigseq                         ***
+trirand                         ***
+turnoff                         ***
+turnoff2                        ***
+turnon                          ***
+unirand                         ***
+upsamp                          ***
+vbap16                          ***
+vbap16move                      ***
+vbap4                           ***
+vbap4move                       ***
+vbap8                           ***
+vbap8move                       ***
+vbaplsinit                      ***
+vbapz                           ***
+vbapzmove                       ***
+vdelayx                         ***
+vdelayxq                        ***
+vdelayxs                        ***
+vdelayxw                        ***
+vdelayxwq                       ***
+vdelayxws                       ***
+veloc                           ***
+vpvoc                           ***
+weibull                         ***
+xadsr                           ***
+xin                             ***
+xout                            ***
+xtratim                         ***
+xyin                            ***
+zacl                            ***
+zakinit                         ***
+zamod                           ***
+zar                             ***
+zarg                            ***
+zaw                             ***
+zawm                            ***
+zir                             ***
+ziw                             ***
+ziwm                            ***
+zkcl                            ***
+zkmod                           ***
+zkr                             ***
+zkw                             ***
+zkwm                            ***
 
 ========================================================================
 Documemtation exists for
 
-FLbox 
-FLbutBank 
-FLbutton 
-FLcolor 
-FLcolor2 
-FLcount 
-FLgetsnap 
-FLgroup 
-FLgroupEnd 
-FLgroupEnd 
-FLhide 
-FLjoy 
-FLkeyb 
-FLknob 
-FLlabel 
-FLloadsnap 
-FLpack 
-FLpackEnd 
-FLpackEnd 
-FLpanel 
-FLpanelEnd 
-FLpanel_end 
-FLprintk 
-FLprintk2 
-FLroller 
-FLrun 
-FLsavesnap 
-FLscroll 
-FLscrollEnd 
-FLscroll_end 
-FLsetAlign 
-FLsetBox 
-FLsetColor 
-FLsetColor2 
-FLsetFont 
-FLsetPosition 
-FLsetSize 
-FLsetText 
-FLsetTextColor 
-FLsetTextSize 
-FLsetTextType 
-FLsetVal 
-FLsetVal_i 
-FLsetsnap 
-FLshow 
-FLslidBnk 
-FLslider 
-FLtabs 
-FLtabsEnd 
-FLtabs_end 
-FLtext 
-FLupdate 
-FLvalue 
-MixerClear 
-MixerGetLevel 
-MixerReceive 
-MixerSend 
-MixerSetLevel 
-^ 
+adsynt2
+changed
+chnparams
+chnset
+clock
+convle
+convolve
+delayk
+denorm
+dssiactivate
+dssiinit
+FLbox
+FLbutBank
+FLbutton
+FLcolor
+FLcolor2
+FLcount
+FLgetsnap
+FLgroup
+FLgroupEnd
+FLgroupEnd
+FLhide
+FLjoy
+FLkeyb
+FLknob
+FLlabel
+FLloadsnap
+flooper
+FLpack
+FLpackEnd
+FLpackEnd
+FLpanel
+FLpanel_end
+FLpanelEnd
+FLprintk
+FLprintk2
+FLroller
+FLrun
+FLsavesnap
+FLscroll
+FLscroll_end
+FLscrollEnd
+FLsetAlign
+FLsetBox
+FLsetColor
+FLsetColor2
+FLsetFont
+FLsetPosition
+FLsetSize
+FLsetsnap
+FLsetText
+FLsetTextColor
+FLsetTextSize
+FLsetTextType
+FLsetVal
+FLsetVal_i
+FLshow
+FLslidBnk
+FLslider
+FLtabs
+FLtabs_end
+FLtabsEnd
+FLtext
+FLupdate
+FLvalue
+fofilter
+freeverb
+ftconv
+grain2
+grain3
+ictrl14
+ictrl21
+ictrl7
+imidic14
+imidic21
+imidic7
+ink
+instimek
+instimes
+ioff
+ion
+iondur
+iondur2
+ioutat
+ioutc
+ioutc14
+ioutpat
+ioutpb
+ioutpc
+is16b14
+is32b14
+islider16
+islider32
+islider64
+islider8
+itablecopy
+itablegpw
+itablemix
+itablew
+k
+kon
+koutat
+koutc
+koutc14
+koutpat
+koutpb
+koutpc
+loop
+mandel
+max_k
+MixerClear
+MixerGetLevel
+MixerReceive
+MixerSend
+MixerSetLevel
+moscil
+nchnls
+oscbnk
+oscilikt
+osciliktp
+oscilikts
+outk
+pconvolve
+peakk
+pluck
+puts
+pvsarp
+pvsvoc
+pycall Opcodes
+pyeval Opcodes
+pyexec Opcodes
+pyinit Opcodes
+pyrun Opcodes
+random
+randomh
+randomi
+rbjeq
+resonxk
+reverbsc
+rnd31
+sndloop
+sr
+statevar
+strtodk
+strtolk
+syncgrain
+tabrec
+tb
+vco2
+vco2ft
+vco2ift
+vco2init
+vdelay3
+vstaudio, vstaudiog
+vstbankload
+vstedit
+vstinfo
+vstinit
+vstmidiout
+vstnote
+vstparamset, vstparamget
+vstprogset
 
-adsynt2 
-changed 
-chnparams 
-chnset 
-clock 
-convle 
-convolve 
-delayk 
-denorm 
-dssiactivate 
-dssiinit 	
-flooper 
-fofilter 
-freeverb 
-ftconv 
-grain2 
-grain3 
-ictrl14 
-ictrl21 
-ictrl7 
-imidic14 
-imidic21 
-imidic7 
-ink 
-instimek 
-instimes 
-ioff 
-ion 
-iondur 
-iondur2 
-ioutat 
-ioutc 
-ioutc14 
-ioutpat 
-ioutpb 
-ioutpc 
-is16b14 
-is32b14 
-islider16 
-islider32 
-islider64 
-islider8 
-itablecopy 
-itablegpw 
-itablemix 
-itablew 
-k 
-kon 
-koutat 
-koutc 
-koutc14 
-koutpat 
-koutpb 
-koutpc 
-loop 
-mandel 
-max_k 
-moscil 
-nchnls 
-oscbnk 
-oscilikt 
-osciliktp 
-oscilikts 
-outk 
-pconvolve 
-peakk 
-pluck 
-puts 
-pvsarp 
-pvsvoc 
-pycall Opcodes 
-pyeval Opcodes 
-pyexec Opcodes 
-pyinit Opcodes 
-pyrun Opcodes 
-random 
-randomh 
-randomi 
-rbjeq 
-resonxk 
-reverbsc 
-rnd31 
-sndloop 
-sr 
-statevar 
-strtodk 
-strtolk 
-syncgrain 
-tabrec 
-tb 
-vco2 
-vco2ft 
-vco2ift 
-vco2init 
-vdelay3 
-vstaudio, vstaudiog 
-vstbankload 
-vstedit 
-vstinfo 
-vstinit 
-vstmidiout 
-vstnote 
-vstparamset,vstparamget 
-vstprogset 
