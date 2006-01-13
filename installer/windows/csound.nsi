@@ -438,7 +438,6 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\*.pdf
   File ..\..\ChangeLog
   File ..\..\COPYING
-  File ..\..\INSTALL
   File ..\..\LICENSE.PortMidi
   File ..\..\LICENSE.FLTK
   File ..\..\LICENSE.PortAudio
