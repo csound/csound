@@ -216,89 +216,89 @@ OPCODE -> LIBRARY
 "pvsmix"		:pvsbasic:   		***
 "pvstencil"		:pvsbasic:   		***
 "pyassign"		:py/pythonopcodes: 	***
-"pyassigni"		:py/pythonopcodes: 
-"pyassignt"		:py/pythonopcodes: 
-"pycall1"		:py/pythonopcodes: 
-"pycall1i"		:py/pythonopcodes: 
-"pycall1t"		:py/pythonopcodes: 
-"pycall2"		:py/pythonopcodes: 
-"pycall2i"		:py/pythonopcodes: 
-"pycall2t"		:py/pythonopcodes: 
-"pycall3"		:py/pythonopcodes: 
-"pycall3i"		:py/pythonopcodes: 
-"pycall3t"		:py/pythonopcodes: 
-"pycall4"		:py/pythonopcodes: 
-"pycall4i"		:py/pythonopcodes: 
-"pycall4t"		:py/pythonopcodes: 
-"pycall5"		:py/pythonopcodes: 
-"pycall5i"		:py/pythonopcodes: 
-"pycall5t"		:py/pythonopcodes: 
-"pycall6"		:py/pythonopcodes: 
-"pycall6i"		:py/pythonopcodes: 
-"pycall6t"		:py/pythonopcodes: 
-"pycall7"		:py/pythonopcodes: 
-"pycall7i"		:py/pythonopcodes: 
-"pycall7t"		:py/pythonopcodes: 
-"pycall8"		:py/pythonopcodes: 
-"pycall8i"		:py/pythonopcodes: 
-"pycall8t"		:py/pythonopcodes: 
-"pycalli"		:py/pythonopcodes: 
-"pycalln"		:py/pythonopcodes: 
-"pycallni"		:py/pythonopcodes: 
-"pycallnt"		:py/pythonopcodes: 
-"pycallt"		:py/pythonopcodes: 
-"pyeval"		:py/pythonopcodes: 
-"pyevali"		:py/pythonopcodes: 
-"pyevalt"		:py/pythonopcodes: 
-"pyexec"		:py/pythonopcodes: 
-"pyexeci"		:py/pythonopcodes: 
-"pyexect"		:py/pythonopcodes: 
+"pyassigni"		:py/pythonopcodes:  	***
+"pyassignt"		:py/pythonopcodes:  	***
+"pycall1"		:py/pythonopcodes: 	*** 
+"pycall1i"		:py/pythonopcodes: 	*** 
+"pycall1t"		:py/pythonopcodes:  	***
+"pycall2"		:py/pythonopcodes:   	***
+"pycall2i"		:py/pythonopcodes:   	***
+"pycall2t"		:py/pythonopcodes:   	***
+"pycall3"		:py/pythonopcodes:   	***
+"pycall3i"		:py/pythonopcodes:   	***
+"pycall3t"		:py/pythonopcodes:   	***
+"pycall4"		:py/pythonopcodes:   	***
+"pycall4i"		:py/pythonopcodes:   	***
+"pycall4t"		:py/pythonopcodes:   	***
+"pycall5"		:py/pythonopcodes:   	***
+"pycall5i"		:py/pythonopcodes:   	***
+"pycall5t"		:py/pythonopcodes:   	***
+"pycall6"		:py/pythonopcodes:   	***
+"pycall6i"		:py/pythonopcodes:   	***
+"pycall6t"		:py/pythonopcodes:   	***
+"pycall7"		:py/pythonopcodes:   	***
+"pycall7i"		:py/pythonopcodes:   	***
+"pycall7t"		:py/pythonopcodes:   	***
+"pycall8"		:py/pythonopcodes:   	***
+"pycall8i"		:py/pythonopcodes:   	***
+"pycall8t"		:py/pythonopcodes:   	***
+"pycalli"		:py/pythonopcodes:   	***
+"pycalln"		:py/pythonopcodes:   	***
+"pycallni"		:py/pythonopcodes:   	***
+"pycallnt"		:py/pythonopcodes:   	***
+"pycallt"		:py/pythonopcodes:   	***
+"pyeval"		:py/pythonopcodes:  	*** 
+"pyevali"		:py/pythonopcodes:   	***
+"pyevalt"		:py/pythonopcodes:   	***
+"pyexec"		:py/pythonopcodes:   	***
+"pyexeci"		:py/pythonopcodes:   	***
+"pyexect"		:py/pythonopcodes:   	***
 "pyinit"		:py/pythonopcodes: 
-"pylassign"		:py/pythonopcodes: 
-"pylassigni"		:py/pythonopcodes: 
-"pylassignt"		:py/pythonopcodes: 
-"pylcall"		:py/pythonopcodes: 
-"pylcall1"		:py/pythonopcodes: 
-"pylcall1i"		:py/pythonopcodes: 
-"pylcall1t"		:py/pythonopcodes: 
-"pylcall2"		:py/pythonopcodes: 
-"pylcall2i"		:py/pythonopcodes: 
-"pylcall2t"		:py/pythonopcodes: 
-"pylcall3"		:py/pythonopcodes: 
-"pylcall3i"		:py/pythonopcodes: 
-"pylcall3t"		:py/pythonopcodes: 
-"pylcall4"		:py/pythonopcodes: 
-"pylcall4i"		:py/pythonopcodes: 
-"pylcall4t"		:py/pythonopcodes: 
-"pylcall5"		:py/pythonopcodes: 
-"pylcall5i"		:py/pythonopcodes: 
-"pylcall5t"		:py/pythonopcodes: 
-"pylcall6"		:py/pythonopcodes: 
-"pylcall6i"		:py/pythonopcodes: 
-"pylcall6t"		:py/pythonopcodes: 
-"pylcall7"		:py/pythonopcodes: 
-"pylcall7i"		:py/pythonopcodes: 
-"pylcall7t"		:py/pythonopcodes: 
-"pylcall8"		:py/pythonopcodes: 
-"pylcall8i"		:py/pythonopcodes: 
-"pylcall8t"		:py/pythonopcodes: 
-"pylcalli"		:py/pythonopcodes: 
-"pylcalln"		:py/pythonopcodes: 
-"pylcallni"		:py/pythonopcodes: 
-"pylcallnt"		:py/pythonopcodes: 
-"pylcallt"		:py/pythonopcodes: 
-"pyleval"		:py/pythonopcodes: 
-"pylevali"		:py/pythonopcodes: 
-"pylevalt"		:py/pythonopcodes: 
-"pylexec"		:py/pythonopcodes: 
-"pylexeci"		:py/pythonopcodes: 
-"pylexect"		:py/pythonopcodes: 
-"pylrun"		:py/pythonopcodes: 
-"pylruni"		:py/pythonopcodes: 
-"pylrunt"		:py/pythonopcodes: 
-"pyrun"                 :py/pythonopcodes: 
-"pyruni"		:py/pythonopcodes: 
-"pyrunt"		:py/pythonopcodes: 
+"pylassign"		:py/pythonopcodes:  	*** 
+"pylassigni"		:py/pythonopcodes:   	***
+"pylassignt"		:py/pythonopcodes:   	***
+"pylcall"		:py/pythonopcodes:   	***
+"pylcall1"		:py/pythonopcodes:   	***
+"pylcall1i"		:py/pythonopcodes:   	***
+"pylcall1t"		:py/pythonopcodes:  	*** 
+"pylcall2"		:py/pythonopcodes:   	***
+"pylcall2i"		:py/pythonopcodes:   	***
+"pylcall2t"		:py/pythonopcodes:   	***
+"pylcall3"		:py/pythonopcodes:   	***
+"pylcall3i"		:py/pythonopcodes:   	***
+"pylcall3t"		:py/pythonopcodes:   	***
+"pylcall4"		:py/pythonopcodes:   	***
+"pylcall4i"		:py/pythonopcodes:   	***
+"pylcall4t"		:py/pythonopcodes:   	***
+"pylcall5"		:py/pythonopcodes:   	***
+"pylcall5i"		:py/pythonopcodes:   	***
+"pylcall5t"		:py/pythonopcodes:   	***
+"pylcall6"		:py/pythonopcodes:   	***
+"pylcall6i"		:py/pythonopcodes:   	***
+"pylcall6t"		:py/pythonopcodes:   	***
+"pylcall7"		:py/pythonopcodes:   	***
+"pylcall7i"		:py/pythonopcodes:   	***
+"pylcall7t"		:py/pythonopcodes:   	***
+"pylcall8"		:py/pythonopcodes:   	***
+"pylcall8i"		:py/pythonopcodes:   	***
+"pylcall8t"		:py/pythonopcodes:   	***
+"pylcalli"		:py/pythonopcodes:   	***
+"pylcalln"		:py/pythonopcodes:   	***
+"pylcallni"		:py/pythonopcodes:   	***
+"pylcallnt"		:py/pythonopcodes:   	***
+"pylcallt"		:py/pythonopcodes:   	***
+"pyleval"		:py/pythonopcodes:   	***
+"pylevali"		:py/pythonopcodes:   	***
+"pylevalt"		:py/pythonopcodes:   	***
+"pylexec"		:py/pythonopcodes:   	***
+"pylexeci"		:py/pythonopcodes:   	***
+"pylexect"		:py/pythonopcodes:   	***
+"pylrun"		:py/pythonopcodes:   	***
+"pylruni"		:py/pythonopcodes:   	***
+"pylrunt"		:py/pythonopcodes:   	***
+"pyrun"                 :py/pythonopcodes:   	***
+"pyruni"		:py/pythonopcodes:   	***
+"pyrunt"		:py/pythonopcodes:   	***
 "random"		:uggab: 
 "randomh"		:uggab: 
 "randomi"		:uggab: 
@@ -374,38 +374,38 @@ OPCODE -> LIBRARY
 "tab_i"                 :gab/gab:   		***
 "tabw_i"		:gab/gab:   
 "tambourine"		:phisem: 		***
-"tb0"                   :gab/gab:   
-"tb0_init"		:gab/gab:   
-"tb1"                   :gab/gab:   
-"tb10"                  :gab/gab:   
-"tb10_init"		:gab/gab:   
-"tb11"                  :gab/gab:   
-"tb11_init"		:gab/gab:   
-"tb12"                  :gab/gab:   
-"tb12_init"		:gab/gab:   
-"tb13"                  :gab/gab:   
-"tb13_init"		:gab/gab:   
-"tb14"                  :gab/gab:   
-"tb14_init"		:gab/gab:   
-"tb15"                  :gab/gab:   
-"tb15_init"		:gab/gab:   
-"tb1_init"		:gab/gab:   
-"tb2"                   :gab/gab:   
-"tb2_init"		:gab/gab:   
-"tb3"                   :gab/gab:   
-"tb3_init"		:gab/gab:   
-"tb4"                   :gab/gab:   
-"tb4_init"		:gab/gab:   
-"tb5"                   :gab/gab:   
-"tb5_init"		:gab/gab:   
-"tb6"                   :gab/gab:   
-"tb6_init"		:gab/gab:   
-"tb7"                   :gab/gab:   
-"tb7_init"		:gab/gab:   
-"tb8"                   :gab/gab:   
-"tb8_init"		:gab/gab:   
-"tb9"                   :gab/gab:   
-"tb9_init"		:gab/gab:   
+"tb0"                   :gab/gab:  	  	***   
+"tb0_init"		:gab/gab:     	  	***
+"tb1"                   :gab/gab:     	  	***
+"tb10"                  :gab/gab:     	  	***
+"tb10_init"		:gab/gab:     	  	***
+"tb11"                  :gab/gab:     	  	***
+"tb11_init"		:gab/gab:     	  	***
+"tb12"                  :gab/gab:               ***
+"tb12_init"		:gab/gab:               ***
+"tb13"                  :gab/gab:               ***
+"tb13_init"		:gab/gab:               ***
+"tb14"                  :gab/gab:               ***
+"tb14_init"		:gab/gab:               ***
+"tb15"                  :gab/gab:               ***
+"tb15_init"		:gab/gab:               ***
+"tb1_init"		:gab/gab:               ***
+"tb2"                   :gab/gab:               ***
+"tb2_init"		:gab/gab:               ***
+"tb3"                   :gab/gab:               ***
+"tb3_init"		:gab/gab:               ***
+"tb4"                   :gab/gab:               ***
+"tb4_init"		:gab/gab:               ***
+"tb5"                   :gab/gab:               ***
+"tb5_init"		:gab/gab:               ***
+"tb6"                   :gab/gab:               ***
+"tb6_init"		:gab/gab:               ***
+"tb7"                   :gab/gab:               ***
+"tb7_init"		:gab/gab:               ***
+"tb8"                   :gab/gab:               ***
+"tb8_init"		:gab/gab:               ***
+"tb9"                   :gab/gab:               ***
+"tb9_init"		:gab/gab:               ***
 "tbvcf"		        :biquad: 		***
 "timedseq"		:metro:   		***
 "tlineto"		:uggab: 		***
@@ -1015,15 +1015,6 @@ loop_ge
 loop_gt
 loop_le
 loop_lt
-!=
-&&
-<
-<=
-=
-==
->
->=
-_in
 a               ***
 abs		***
 add		***
@@ -1185,7 +1176,6 @@ miditempo	***
 mod		***
 moscil		***
 mrtmsg		***
-mul
 multitap
 mxadsr
 noteoff
@@ -1249,8 +1239,8 @@ pchmidib
 pchoct		***
 peak		***
 pgmassign	***
-phasor
-pluck
+phasor		***
+pluck		***
 poisson		***
 polyaft		***
 port		***
