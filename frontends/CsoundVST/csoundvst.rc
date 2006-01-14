@@ -1,3 +1,2 @@
-resource name     - 101
-resource type     - ICON
-resource location - frontends/CsoundVST/csound.ico
+#include <windows.h>
+csoundvst ICON frontends/CsoundVST/csound.ico
