@@ -556,8 +556,10 @@ Section "Uninstall"
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     
   Delete "$SMPROGRAMS\$MUI_TEMP\${PRODUCT}.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\CsoundVST.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Overview.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\API Reference.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
   Delete "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" 
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
