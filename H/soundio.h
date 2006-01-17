@@ -85,6 +85,9 @@
 #define TYP_XI    (SF_FORMAT_XI >> 16)
 #define TYP_HTK   (SF_FORMAT_HTK >> 16)
 #define TYP_SDS   (SF_FORMAT_SDS >> 16)
+#define TYP_AVR   (SF_FORMAT_AVR >> 16)
+#define TYP_WAVEX (SF_FORMAT_WAVEX >> 16)
+#define TYP_SD2   (SF_FORMAT_SD2 >> 16)
 
 #define FORMAT2SF(x) ((int) (x))
 #define SF2FORMAT(x) ((int) (x) & 0xFFFF)
