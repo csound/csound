@@ -126,6 +126,7 @@ static const char *longUsageList[] = {
   "--au\t\t\tSet AU format",
   "--wave\t\t\tSet WAV format",
   "--ircam\t\t\tSet IRCAM format",
+  "--oformat=xxx\t\tSet other formats",
   "--noheader\t\tRaw format",
   "--nopeaks\t\tDo not write peak information",
   "",
@@ -656,6 +657,35 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         strcat(csound->dl_opcodes_oplibs, s);
       }
       return 1;
+    }
+    else if (!(strncmp(s, "oformat=", 8))) {
+      char *t = s+8;
+      typedef struct {
+        char *format;
+        int   type;
+      } FORMATS;
+      FORMATS form[] = { 
+        { "WAV" , TYP_WAV},      { "AIFF" , TYP_AIFF},
+        { "AU" , TYP_AU},        { "RAW" , TYP_RAW},
+        { "PAF" , TYP_PAF},      { "SVX" , TYP_SVX},
+        { "NIST" , TYP_NIST},    { "VOC" , TYP_VOC},
+        { "IRCAM" , TYP_IRCAM},  { "W64" , TYP_W64},
+        { "MAT4" , TYP_MAT4},    { "MAT5" , TYP_MAT5},
+        { "PVF" , TYP_PVF},      { "XI" , TYP_XI},
+        { "HTK" , TYP_HTK},      { "SDS" , TYP_SDS},
+        { "AVR" , TYP_AVR},      { "WAVEX" , TYP_WAVEX},
+        { "SD2" , TYP_SD2},      { NULL , -1}};
+      FORMATS *ff = form;
+      while (ff->type>=0) {
+        if (strcmp(ff->format, t)==0) {
+          O->sfheader = 1;
+          O->filetyp = ff->type;
+          return 1;
+        }
+        ff++;
+      }
+      csoundMessage(csound, Str("unknown output format: '--%s'\n"), s);
+      return 0;
     }
     else if (!(strcmp(s, "help"))) {
       longusage(csound);
