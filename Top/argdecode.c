@@ -120,13 +120,13 @@ static const char *shortUsageList[] = {
 };
 
 static const char *longUsageList[] = {
-  "--precision={alaw,ulaw,schar,uchar,float,short,long,24bit,rescale}",
+  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit,rescale}",
   "\t\t\tSet sound type",
   "--aiff\t\t\tSet AIFF format",
   "--au\t\t\tSet AU format",
   "--wave\t\t\tSet WAV format",
   "--ircam\t\t\tSet IRCAM format",
-  "--format=xxx\t\tSet other formats",
+  "--oformat=FILETYPE\tSet output file type (wav, aiff, au, raw, etc.)",
   "--noheader\t\tRaw format",
   "--nopeaks\t\tDo not write peak information",
   "",
@@ -273,16 +273,37 @@ void set_output_format(OPARMS *O, char c)
 }
 
 typedef struct  {
-  char *longformat;
-  char shortformat;
+    char    *longformat;
+    char    shortformat;
 } SAMPLE_FORMAT_ENTRY;
 
-static
-SAMPLE_FORMAT_ENTRY sample_format_map[] = {
-  {"alaw", 'a'},  {"schar", 'c'},{"uchar", '8'},
-  {"float", 'f'},
-  {"short", 's'}, {"ulaw", 'u'}, {"24bit", '3'},
-  {0, 0}
+static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
+  { "alaw",   'a' },  { "schar",  'c' },  { "uchar",  '8' },
+  { "float",  'f' },
+  { "short",  's' },  { "ulaw",   'u' },  { "24bit",  '3' },
+  { NULL, '\0' }
+};
+
+typedef struct {
+    char    *format;
+    int     type;
+} SOUNDFILE_TYPE_ENTRY;
+
+static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
+    { "wav",    TYP_WAV   },  { "aiff",   TYP_AIFF  },
+    { "au",     TYP_AU    },  { "raw",    TYP_RAW   },
+    { "paf",    TYP_PAF   },  { "svx",    TYP_SVX   },
+    { "nist",   TYP_NIST  },  { "voc",    TYP_VOC   },
+    { "ircam",  TYP_IRCAM },  { "w64",    TYP_W64   },
+    { "mat4",   TYP_MAT4  },  { "mat5",   TYP_MAT5  },
+    { "pvf",    TYP_PVF   },  { "xi",     TYP_XI    },
+    { "htk",    TYP_HTK   },  { "sds",    TYP_SDS   },
+    { "avr",    TYP_AVR   },  { "wavex",  TYP_WAVEX },
+    { "sd2",    TYP_SD2   },
+#ifdef HAVE_LIBSNDFILE_1_0_13
+    { "flac",   TYP_FLAC  },  { "caf",    TYP_CAF   },
+#endif
+    { NULL , -1 }
 };
 
 static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
@@ -292,44 +313,36 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     if (O->odebug)
       csound->Message(csound, "decode_long %s\n", s);
     if (!(strncmp(s, "omacro:", 7))) {
-      NAMES *nn = (NAMES*)mmalloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->omacros;
       csound->omacros = nn;
       return 1;
     }
     else if (!(strncmp(s, "smacro:", 7))) {
-      NAMES *nn = (NAMES*)mmalloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->smacros;
       csound->smacros = nn;
       return 1;
     }
-    else if (!(strncmp(s, "precision=", 10))) {
-      SAMPLE_FORMAT_ENTRY *sfe = sample_format_map;
-      char c = '\0';
+    else if (!(strncmp(s, "format=", 7))) {
+      const SAMPLE_FORMAT_ENTRY *sfe;
       s += 7;
-      while (sfe->longformat != 0) {
+      for (sfe = &(sample_format_map[0]); sfe->longformat != NULL; sfe++) {
         if (strcmp(s, sfe->longformat) == 0) {
-          c = sfe->shortformat;
-          break;
+          set_output_format(O, sfe->shortformat);
+          return 1;
         }
-        ++sfe;
-      }
-      if (c != '\0') {
-        set_output_format(O, c);
-        return 1;
       }
     }
     /* -A */
     else if (!(strcmp (s, "aiff"))) {
-      O->sfheader = 1;
-      O->filetyp = TYP_AIFF;            /* AIFF output request*/
+      O->filetyp = TYP_AIFF;            /* AIFF output request */
       return 1;
     }
     else if (!(strcmp (s, "au"))) {
-      O->sfheader = 1;
-      O->filetyp = TYP_AU;              /* AU output request*/
+      O->filetyp = TYP_AU;              /* AU output request */
       return 1;
     }
     else if (!(strncmp (s, "iobufsamps=", 11))) {
@@ -365,7 +378,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 9;
       if (*s == '\0') dieu(csound, Str("no midifile name"));
       O->FMidiname = s;                 /* Midifile name */
-      if (!strcmp(O->FMidiname,"stdin")) {
+      if (!strcmp(O->FMidiname, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #if defined(WIN32) || defined(mac_classic)
         csoundDie(csound, Str("-F: stdin not supported on this platform"));
@@ -394,8 +407,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     /* -h */
     else if (!(strcmp (s, "noheader"))) {
-      O->sfheader = 0;                  /* skip sfheader  */
-      O->filetyp = TYP_RAW;
+      O->filetyp = TYP_RAW;             /* RAW output request */
       return 1;
     }
     else if (!(strncmp (s, "heartbeat=", 10))) {
@@ -416,9 +428,9 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 6;
       if (*s == '\0') dieu(csound, Str("no infilename"));
       O->infilename = s;                /* soundin name */
-      if (strcmp(O->infilename,"stdout") == 0)
+      if (strcmp(O->infilename, "stdout") == 0)
         csoundDie(csound, Str("input cannot be stdout"));
-      if (strcmp(O->infilename,"stdin") == 0) {
+      if (strcmp(O->infilename, "stdin") == 0) {
         set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
 #if defined(WIN32) || defined(mac_classic)
         csoundDie(csound, Str("stdin audio not supported"));
@@ -441,7 +453,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       -J create an IRCAM format output soundfile
      */
     else if (!(strcmp (s, "ircam"))) {
-      O->sfheader = 1;
       O->filetyp = TYP_IRCAM;           /* IRCAM output request */
       return 1;
     }
@@ -466,7 +477,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 9;
       if (*s=='\0') dieu(csound, Str("no Linein score device_name"));
       O->Linename = s;
-      if (!strcmp(O->Linename,"stdin")) {
+      if (!strcmp(O->Linename, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
 #if defined(mac_classic)
         csoundDie(csound, Str("-L: stdin not supported on this platform"));
@@ -494,7 +505,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 12;
       if (*s=='\0') dieu(csound, Str("no midi device_name"));
       O->Midiname = s;
-      if (!strcmp(O->Midiname,"stdin")) {
+      if (!strcmp(O->Midiname, "stdin")) {
         set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #if defined(WIN32) || defined(mac_classic)
         csoundDie(csound, Str("-M: stdin not supported on this platform"));
@@ -519,9 +530,9 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 7;
       if (*s == '\0') dieu(csound, Str("no outfilename"));
       O->outfilename = s;               /* soundout name */
-      if (strcmp(O->outfilename,"stdin") == 0)
+      if (strcmp(O->outfilename, "stdin") == 0)
         dieu(csound, Str("-o cannot be stdin"));
-      if (strcmp(O->outfilename,"stdout") == 0) {
+      if (strcmp(O->outfilename, "stdout") == 0) {
         set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32) || defined(mac_classic)
         csoundDie(csound, Str("stdout audio not supported"));
@@ -606,18 +617,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp(s, "wave"))) {
-      O->sfheader = 1;
       O->filetyp = TYP_WAV;             /* WAV output request */
-      return 1;
-    }
-    else if (!(strcmp(s, "wave64"))) {
-      O->sfheader = 1;
-      O->filetyp = TYP_W64;             /* WAVE 64 output request */
-      return 1;
-    }
-    else if (!(strcmp(s, "voc"))) {
-      O->sfheader = 1;
-      O->filetyp = TYP_VOC;             /* VOC output request */
       return 1;
     }
     else if (!(strncmp (s, "list-opcodes", 12))) {
@@ -658,34 +658,16 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       }
       return 1;
     }
-    else if (!(strncmp(s, "format=", 7))) {
-      char *t = s+8;
-      typedef struct {
-        char *format;
-        int   type;
-      } FORMATS;
-      FORMATS form[] = { 
-        { "WAV", TYP_WAV},      { "AIFF", TYP_AIFF},
-        { "AU", TYP_AU},        { "RAW", TYP_RAW},
-        { "PAF", TYP_PAF},      { "SVX", TYP_SVX},
-        { "NIST", TYP_NIST},    { "VOC", TYP_VOC},
-        { "IRCAM", TYP_IRCAM},  { "W64", TYP_W64},
-        { "MAT4", TYP_MAT4},    { "MAT5", TYP_MAT5},
-        { "PVF", TYP_PVF},      { "XI", TYP_XI},
-        { "HTK", TYP_HTK},      { "SDS", TYP_SDS},
-        { "AVR", TYP_AVR},      { "WAVEX", TYP_WAVEX},
-        { "SD2", TYP_SD2},      { "FLAC", TYP_FLAC},
-        { "CAF", TYP_CAF},      { NULL, -1}};
-      FORMATS *ff = form;
-      while (ff->type>=0) {
-        if (strcmp(ff->format, t)==0) {
-          O->sfheader = 1;
+    else if (!(strncmp(s, "oformat=", 8))) {
+      const SOUNDFILE_TYPE_ENTRY  *ff;
+      s += 8;
+      for (ff = &(file_type_map[0]); ff->format != NULL; ff++) {
+        if (strcmp(ff->format, s) == 0) {
           O->filetyp = ff->type;
           return 1;
         }
-        ff++;
       }
-      csoundMessage(csound, Str("unknown output format: '--%s'\n"), s);
+      csoundErrorMsg(csound, Str("unknown output format: '%s'"), s);
       return 0;
     }
     else if (!(strcmp(s, "help"))) {
@@ -693,7 +675,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->LongJmp(csound, 0);
     }
 
-    csoundMessage(csound, Str("unknown long option: '--%s'\n"), s);
+    csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }
 
@@ -748,9 +730,9 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           FIND(Str("no infilename"));
           O->infilename = s;            /* soundin name */
           s += (int) strlen(s);
-          if (strcmp(O->infilename,"stdout") == 0)
+          if (strcmp(O->infilename, "stdout") == 0)
             csoundDie(csound, Str("input cannot be stdout"));
-          if (strcmp(O->infilename,"stdin") == 0) {
+          if (strcmp(O->infilename, "stdin") == 0) {
             set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
 #if defined(WIN32) || defined(mac_classic)
             csoundDie(csound, Str("stdin audio not supported"));
@@ -764,9 +746,9 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           FIND(Str("no outfilename"));
           O->outfilename = s;           /* soundout name */
           s += (int) strlen(s);
-          if (strcmp(O->outfilename,"stdin") == 0)
+          if (strcmp(O->outfilename, "stdin") == 0)
             dieu(csound, Str("-o cannot be stdin"));
-          if (strcmp(O->outfilename,"stdout") == 0) {
+          if (strcmp(O->outfilename, "stdout") == 0) {
             set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32) || defined(mac_classic)
             csoundDie(csound, Str("stdout audio not supported"));
@@ -778,32 +760,28 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'b':
           FIND(Str("no iobufsamps"));
-          sscanf(s,"%d%n", &(O->outbufsamps), &n);
+          sscanf(s, "%d%n", &(O->outbufsamps), &n);
           /* defaults in musmon.c */
           O->inbufsamps = O->outbufsamps;
           s += n;
           break;
         case 'B':
           FIND(Str("no hardware bufsamps"));
-          sscanf(s,"%d%n", &(O->oMaxLag), &n);
+          sscanf(s, "%d%n", &(O->oMaxLag), &n);
           /* defaults in rtaudio.c */
           s += n;
           break;
         case 'A':
-          O->sfheader = 1;
           O->filetyp = TYP_AIFF;        /* AIFF output request*/
           break;
         case 'J':
-          O->sfheader = 1;
           O->filetyp = TYP_IRCAM;       /* IRCAM output request */
           break;
         case 'W':
-          O->sfheader = 1;
           O->filetyp = TYP_WAV;         /* WAV output request */
           break;
         case 'h':
-          O->sfheader = 0;              /* skip sfheader  */
-          O->filetyp = TYP_RAW;
+          O->filetyp = TYP_RAW;         /* RAW output request */
           break;
         case 'c':
         case 'a':
@@ -817,7 +795,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'r':
           FIND(Str("no sample rate"));
-          sscanf(s,"%ld", &(O->sr_override));
+          sscanf(s, "%ld", &(O->sr_override));
           while (*++s);
           break;
         case 'j':
@@ -826,7 +804,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'k':
           FIND(Str("no control rate"));
-          sscanf(s,"%ld", &(O->kr_override));
+          sscanf(s, "%ld", &(O->kr_override));
           while (*++s);
           break;
         case 'v':
@@ -834,7 +812,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'm':
           FIND(Str("no message level"));
-          sscanf(s,"%d%n", &(O->msglevel), &n);
+          sscanf(s, "%d%n", &(O->msglevel), &n);
           s += n;
           break;
         case 'd':
@@ -855,7 +833,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           FIND(Str("no tempo value"));
           {
             int val;
-            sscanf(s,"%d%n",&val, &n);  /* use this tempo .. */
+            sscanf(s, "%d%n",&val, &n); /* use this tempo .. */
             s += n;
             if (val < 0) dieu(csound, Str("illegal tempo"));
             else if (val == 0) {
@@ -870,7 +848,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           FIND(Str("no Linein score device_name"));
           O->Linename = s;              /* Linein device name */
           s += (int) strlen(s);
-          if (!strcmp(O->Linename,"stdin")) {
+          if (!strcmp(O->Linename, "stdin")) {
             set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
 #if defined(mac_classic)
             csoundDie(csound, Str("-L: stdin not supported on this platform"));
@@ -884,7 +862,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           FIND(Str("no midi device_name"));
           O->Midiname = s;              /* Midi device name */
           s += (int) strlen(s);
-          if (!strcmp(O->Midiname,"stdin")) {
+          if (!strcmp(O->Midiname, "stdin")) {
             set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #if defined(WIN32) || defined(mac_classic)
             csoundDie(csound, Str("-M: stdin not supported on this platform"));
@@ -898,7 +876,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           FIND(Str("no midifile name"));
           O->FMidiname = s;             /* Midifile name */
           s += (int) strlen(s);
-          if (!strcmp(O->FMidiname,"stdin")) {
+          if (!strcmp(O->FMidiname, "stdin")) {
             set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #if defined(WIN32) || defined(mac_classic)
             csoundDie(csound, Str("-F: stdin not supported on this platform"));
