@@ -120,13 +120,13 @@ static const char *shortUsageList[] = {
 };
 
 static const char *longUsageList[] = {
-  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit,rescale}",
+  "--precision={alaw,ulaw,schar,uchar,float,short,long,24bit,rescale}",
   "\t\t\tSet sound type",
   "--aiff\t\t\tSet AIFF format",
   "--au\t\t\tSet AU format",
   "--wave\t\t\tSet WAV format",
   "--ircam\t\t\tSet IRCAM format",
-  "--oformat=xxx\t\tSet other formats",
+  "--format=xxx\t\tSet other formats",
   "--noheader\t\tRaw format",
   "--nopeaks\t\tDo not write peak information",
   "",
@@ -305,7 +305,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->smacros = nn;
       return 1;
     }
-    else if (!(strncmp(s, "format=", 7))) {
+    else if (!(strncmp(s, "precision=", 10))) {
       SAMPLE_FORMAT_ENTRY *sfe = sample_format_map;
       char c = '\0';
       s += 7;
@@ -658,24 +658,24 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       }
       return 1;
     }
-    else if (!(strncmp(s, "oformat=", 8))) {
+    else if (!(strncmp(s, "format=", 7))) {
       char *t = s+8;
       typedef struct {
         char *format;
         int   type;
       } FORMATS;
       FORMATS form[] = { 
-        { "WAV" , TYP_WAV},      { "AIFF" , TYP_AIFF},
-        { "AU" , TYP_AU},        { "RAW" , TYP_RAW},
-        { "PAF" , TYP_PAF},      { "SVX" , TYP_SVX},
-        { "NIST" , TYP_NIST},    { "VOC" , TYP_VOC},
-        { "IRCAM" , TYP_IRCAM},  { "W64" , TYP_W64},
-        { "MAT4" , TYP_MAT4},    { "MAT5" , TYP_MAT5},
-        { "PVF" , TYP_PVF},      { "XI" , TYP_XI},
-        { "HTK" , TYP_HTK},      { "SDS" , TYP_SDS},
-        { "AVR" , TYP_AVR},      { "WAVEX" , TYP_WAVEX},
-        { "SD2" , TYP_SD2},      { "FLAC", TYP_FLAC},
-        { "CAF" , TYP_CAF},      {NULL , -1}};
+        { "WAV", TYP_WAV},      { "AIFF", TYP_AIFF},
+        { "AU", TYP_AU},        { "RAW", TYP_RAW},
+        { "PAF", TYP_PAF},      { "SVX", TYP_SVX},
+        { "NIST", TYP_NIST},    { "VOC", TYP_VOC},
+        { "IRCAM", TYP_IRCAM},  { "W64", TYP_W64},
+        { "MAT4", TYP_MAT4},    { "MAT5", TYP_MAT5},
+        { "PVF", TYP_PVF},      { "XI", TYP_XI},
+        { "HTK", TYP_HTK},      { "SDS", TYP_SDS},
+        { "AVR", TYP_AVR},      { "WAVEX", TYP_WAVEX},
+        { "SD2", TYP_SD2},      { "FLAC", TYP_FLAC},
+        { "CAF", TYP_CAF},      { NULL, -1}};
       FORMATS *ff = form;
       while (ff->type>=0) {
         if (strcmp(ff->format, t)==0) {
