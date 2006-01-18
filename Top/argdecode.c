@@ -674,7 +674,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         { "PVF" , TYP_PVF},      { "XI" , TYP_XI},
         { "HTK" , TYP_HTK},      { "SDS" , TYP_SDS},
         { "AVR" , TYP_AVR},      { "WAVEX" , TYP_WAVEX},
-        { "SD2" , TYP_SD2},      { NULL , -1}};
+        { "SD2" , TYP_SD2},      { "FLAC", TYP_FLAC},
+        { "CAF" , TYP_CAF},      {NULL , -1}};
       FORMATS *ff = form;
       while (ff->type>=0) {
         if (strcmp(ff->format, t)==0) {
