@@ -120,13 +120,13 @@ static const char *shortUsageList[] = {
 };
 
 static const char *longUsageList[] = {
-  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit,rescale}",
-  "\t\t\tSet sound type",
+  "--format={wav,aiff,au,raw,ircam,w64,wavex,sd2,flac}",
+  "--format={alaw,ulaw,schar,uchar,float,short,long,24bit}",
+  "\t\t\tSet output file format",
   "--aiff\t\t\tSet AIFF format",
   "--au\t\t\tSet AU format",
   "--wave\t\t\tSet WAV format",
   "--ircam\t\t\tSet IRCAM format",
-  "--oformat=FILETYPE\tSet output file type (wav, aiff, au, raw, etc.)",
   "--noheader\t\tRaw format",
   "--nopeaks\t\tDo not write peak information",
   "",
@@ -279,7 +279,7 @@ typedef struct  {
 
 static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
   { "alaw",   'a' },  { "schar",  'c' },  { "uchar",  '8' },
-  { "float",  'f' },
+  { "float",  'f' },  { "long",   'l' },
   { "short",  's' },  { "ulaw",   'u' },  { "24bit",  '3' },
   { NULL, '\0' }
 };
@@ -327,14 +327,32 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp(s, "format=", 7))) {
-      const SAMPLE_FORMAT_ENTRY *sfe;
+      const SAMPLE_FORMAT_ENTRY   *sfe;
+      const SOUNDFILE_TYPE_ENTRY  *ff;
       s += 7;
-      for (sfe = &(sample_format_map[0]); sfe->longformat != NULL; sfe++) {
-        if (strcmp(s, sfe->longformat) == 0) {
-          set_output_format(O, sfe->shortformat);
-          return 1;
+      do {
+        char  *t;
+        t = strchr(s, ':');
+        if (t != NULL)
+          *(t++) = '\0';
+        for (ff = &(file_type_map[0]); ff->format != NULL; ff++) {
+          if (strcmp(ff->format, s) == 0) {
+            O->filetyp = ff->type;
+            goto nxtToken;
+          }
         }
-      }
+        for (sfe = &(sample_format_map[0]); sfe->longformat != NULL; sfe++) {
+          if (strcmp(s, sfe->longformat) == 0) {
+            set_output_format(O, sfe->shortformat);
+            goto nxtToken;
+          }
+        }
+        csoundErrorMsg(csound, Str("unknown output format: '%s'"), s);
+        return 0;
+ nxtToken:
+        s = t;
+      } while (s != NULL);
+      return 1;
     }
     /* -A */
     else if (!(strcmp (s, "aiff"))) {
@@ -658,18 +676,6 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       }
       return 1;
     }
-    else if (!(strncmp(s, "oformat=", 8))) {
-      const SOUNDFILE_TYPE_ENTRY  *ff;
-      s += 8;
-      for (ff = &(file_type_map[0]); ff->format != NULL; ff++) {
-        if (strcmp(ff->format, s) == 0) {
-          O->filetyp = ff->type;
-          return 1;
-        }
-      }
-      csoundErrorMsg(csound, Str("unknown output format: '%s'"), s);
-      return 0;
-    }
     else if (!(strcmp(s, "help"))) {
       longusage(csound);
       csound->LongJmp(csound, 0);
@@ -833,7 +839,7 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           FIND(Str("no tempo value"));
           {
             int val;
-            sscanf(s, "%d%n",&val, &n); /* use this tempo .. */
+            sscanf(s, "%d%n", &val, &n); /* use this tempo .. */
             s += n;
             if (val < 0) dieu(csound, Str("illegal tempo"));
             else if (val == 0) {
