@@ -138,7 +138,6 @@
 		};
 		20286C2CFDCF999611CA2CEA = {
 			children = (
-				57B70C55096ADB6500763D6D,
 				8D0C4E960486CD37000505A6,
 				5704A2B3095C6B55000AD11E,
 				0867D6AAFE840B52C02AAC07,
@@ -258,19 +257,6 @@
 			settings = {
 			};
 		};
-		57B70C55096ADB6500763D6D = {
-			isa = PBXFileReference;
-			lastKnownFileType = folder;
-			path = CsoundHelp;
-			refType = 4;
-			sourceTree = "<group>";
-		};
-		57B70C5A096ADB6500763D6D = {
-			fileRef = 57B70C55096ADB6500763D6D;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		57EC5328096AE249002E6319 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -327,7 +313,6 @@
 				8D0C4E8D0486CD37000505A6,
 				8D0C4E8E0486CD37000505A6,
 				5704A2B4095C6B55000AD11E,
-				57B70C5A096ADB6500763D6D,
 				57EC5329096AE249002E6319,
 			);
 			isa = PBXResourcesBuildPhase;
