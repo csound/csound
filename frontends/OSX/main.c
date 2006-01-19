@@ -1,4 +1,3 @@
-<<<<<<< main.c
 /*
   Copyright (C) 2005 Victor Lazzarini
 
