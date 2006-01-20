@@ -420,7 +420,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
   File ..\..\windows_dlls\libsndfile-1.dll
-  File ..\..\..\portaudio\lib\portaudio.dll.0.0.19
+  File C:\utah\opt\Lazzarini\portaudio.dll
   File C:\utah\usr\mingw\bin\mingwm10.dll
   File C:\utah\opt\portmidi\pm_win\*.dll
   File ..\..\csnd.py
