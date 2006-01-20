@@ -38,7 +38,7 @@ elif sys.platform[:3] == 'win':
     # If it is not in a standard location add it here
     # (of course you must build it first):
     customCPPPATH.append('C:/utah/home/mkg/projects/portaudio/pa_common')
-    customLIBPATH.append('C:/utah/home/mkg/projects/portaudio/lib')
+    customLIBPATH.append('C:/utah/opt/lazzarini')
     ################################################################
     # If you want PortMidi for real-time midi,
     # if it is not in a standard location add it here
