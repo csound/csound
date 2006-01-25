@@ -120,7 +120,6 @@
 #elif defined(SYMANTEC)
 #  include <unix.h>     /* for open() etc protos on mac */
 #  define  DIRSEP ':'
-   extern  off_t lseek(int, off_t, int);
 #else
 #  define DIRSEP '/'
 #  ifdef  LATTICE
@@ -164,13 +163,12 @@
 
 /* standard integer types */
 
-#ifdef USE_GUSI2
+#if defined(USE_GUSI2)
 /* When compiling with GUSI on MacOS 9 (for Python),  */
 /* all of the other integer types are already defined */
 typedef int64_t             int_least64_t;
 typedef uint64_t            uint_least64_t;
-#else
-#if defined(HAVE_STDINT_H) || defined(HAVE_C99)
+#elif defined(HAVE_STDINT_H) || defined(HAVE_C99)
 #  include <stdint.h>
 #else
 typedef signed char         int8_t;
@@ -179,21 +177,20 @@ typedef short               int16_t;
 typedef unsigned short      uint16_t;
 typedef int                 int32_t;
 typedef unsigned int        uint32_t;
-#    if defined(__GNUC__) || !defined(WIN32)
+#  if defined(__GNUC__) || !defined(WIN32)
 typedef long long           int64_t;
 typedef unsigned long long  uint64_t;
 typedef long long           int_least64_t;
 typedef unsigned long long  uint_least64_t;
-#    else
+#  else
 typedef __int64             int64_t;
 typedef unsigned __int64    uint64_t;
 typedef __int64             int_least64_t;
 typedef unsigned __int64    uint_least64_t;
-#    endif
+#  endif
 typedef long                intptr_t;
 typedef unsigned long       uintptr_t;
-#endif
-#endif /* USE_GUSI2 */
+#endif      /* !(USE_GUSI2 || HAVE_STDINT_H || HAVE_C99) */
 
 /* function attributes */
 
@@ -274,7 +271,7 @@ static inline long MYFLT2LRND(float fval)
 #    endif
 #  else
 #    define MYFLT2LONG(x) ((long) (x))
-#    if defined(HAVE_GCC3) && defined(__i386__)
+#    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
 #      define MYFLT2LRND(x) ((long) lrint((double) (x)))
 #    else
 static inline long MYFLT2LRND(double fval)
