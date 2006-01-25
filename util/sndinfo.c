@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"                                   /*  SNDINFO.C  */
+#include "std_util.h"                               /*  SNDINFO.C  */
 #include <sndfile.h>
 #include "soundio.h"
 
@@ -91,7 +91,7 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int sndinfo_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "sndinfo", sndinfo);
     if (!retval) {
@@ -99,10 +99,5 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                     "Prints information about sound files");
     }
     return retval;
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));
 }
 

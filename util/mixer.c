@@ -32,7 +32,7 @@
  *     Needs to take much more care
  */
 
-#include "csdl.h"
+#include "std_util.h"
 #include "soundio.h"
 #include <ctype.h>
 
@@ -658,7 +658,7 @@ static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int mixer_init_(CSOUND *csound)
 {
     char    buf[128];
     int     retval = csound->AddUtility(csound, "mixer", mixer_main);
@@ -668,10 +668,5 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
       retval = csound->SetUtilityDescription(csound, "mixer", buf);
     }
     return retval;
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

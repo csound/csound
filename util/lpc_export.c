@@ -27,7 +27,7 @@
 /* John ffitch 1995 Jun 25                                           */
 /* ***************************************************************** */
 
-#include "csdl.h"
+#include "std_util.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -92,7 +92,7 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int lpc_export_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "lpc_export", lpc_export);
     if (!retval) {

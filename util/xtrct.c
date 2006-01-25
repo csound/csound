@@ -31,7 +31,7 @@
  *     Needs to take much more care
  */
 
-#include "csdl.h"
+#include "std_util.h"
 #include "soundio.h"
 #include <ctype.h>
 #include <sndfile.h>
@@ -363,7 +363,7 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int xtrct_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "extractor", xtrct);
     if (!retval) {

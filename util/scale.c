@@ -28,7 +28,7 @@
 *   and a certain amount of lifting from Csound itself  *
 \*******************************************************/
 
-#include "csdl.h"
+#include "std_util.h"
 #include "soundio.h"
 #include <ctype.h>
 
@@ -109,7 +109,7 @@ typedef struct scalepoint {
   struct scalepoint *next;
 } scalepoint;
 
-static scalepoint stattab = {0.0, 0.0, 0.0, 0, 0, NULL};
+static const scalepoint stattab = { 0.0, 0.0, 0.0, 0, 0, NULL };
 
 typedef struct {
   double     ff;
@@ -501,17 +501,12 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc, SNDFILE *infile)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int scale_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "scale", scale);
     if (retval)
       return retval;
     return csound->SetUtilityDescription(csound, "scale",
                                          "Reports and/or adjusts maximum gain");
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

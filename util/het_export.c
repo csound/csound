@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 /* John ffitch 1995 Jun 19                                           */
 /* ***************************************************************** */
 
-#include "csdl.h"
+#include "std_util.h"
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -73,7 +73,7 @@ static int het_export(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int het_export_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "het_export", het_export);
     if (!retval) {

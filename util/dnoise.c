@@ -73,7 +73,7 @@
         higher sample rate than 16KHz might indicate a higher N.
 */
 
-#include "csdl.h"
+#include "std_util.h"
 #include "soundio.h"
 #include <math.h>
 #include <ctype.h>
@@ -1239,7 +1239,7 @@ static void hamming(MYFLT *win, int winLen, int even)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int dnoise_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "dnoise", dnoise);
     if (!retval) {
@@ -1247,10 +1247,5 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                              "Removes noise from a sound file");
     }
     return retval;
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
