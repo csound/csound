@@ -25,6 +25,7 @@
 /* Realtime MIDI using Portmidi library */
 
 #include "csdl.h"                               /*      PMIDI.C         */
+#include "csGblMtx.h"
 #include "midiops.h"
 #include "oload.h"
 #include <portmidi.h>
@@ -126,23 +127,41 @@ static void portMidi_listDevices(CSOUND *csound, int output)
     }
 }
 
+/* reference count for PortMidi initialisation */
+
+static unsigned long portmidi_init_cnt = 0UL;
+
 static int stop_portmidi(CSOUND *csound, void *userData)
 {
     (void) csound;
     (void) userData;
-    Pm_Terminate();
-    Pt_Stop();
+    csound_global_mutex_lock();
+    if (portmidi_init_cnt) {
+      if (--portmidi_init_cnt == 0UL) {
+        Pm_Terminate();
+        Pt_Stop();
+      }
+    }
+    csound_global_mutex_unlock();
     return 0;
 }
 
 static int start_portmidi(CSOUND *csound)
 {
-    if (Pm_Initialize() != pmNoError) {
-      csound->ErrorMsg(csound, Str(" *** error initialising PortMIDI"));
-      return -1;
+    const char  *errMsg = NULL;
+
+    csound_global_mutex_lock();
+    if (!portmidi_init_cnt) {
+      if (Pm_Initialize() != pmNoError)
+        errMsg = " *** error initialising PortMIDI";
+      else if (Pt_Start(1, NULL, NULL) != ptNoError)
+        errMsg = " *** error initialising PortTime";
     }
-    if (Pt_Start(1, NULL, NULL) != ptNoError) {
-      csound->ErrorMsg(csound, Str(" *** error initialising PortTime"));
+    if (errMsg == NULL)
+      portmidi_init_cnt++;
+    csound_global_mutex_unlock();
+    if (errMsg != NULL) {
+      csound->ErrorMsg(csound, Str(errMsg));
       return -1;
     }
     return csound->RegisterResetCallback(csound, NULL, stop_portmidi);
