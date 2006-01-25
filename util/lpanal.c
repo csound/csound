@@ -22,7 +22,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"                                       /*  LPANAL.C    */
+#include "std_util.h"                                   /*  LPANAL.C    */
 #include "soundio.h"
 #include "lpc.h"
 #include "cwindow.h"
@@ -1167,7 +1167,7 @@ static void ptable(CSOUND *csound,
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int lpanal_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "lpanal", lpanal);
     if (!retval) {

@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include "csdl.h"                                       /*  HETRO.C   */
+#include "std_util.h"                                   /*  HETRO.C   */
 #include "soundio.h"
 #include <math.h>
 
@@ -812,7 +812,7 @@ static int is_sdiffile(char *name)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int hetro_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "hetro", hetro);
     if (!retval) {

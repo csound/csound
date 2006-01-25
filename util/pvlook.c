@@ -25,7 +25,7 @@
 /* PVLOOK.C by Richard Karpen 1993 */
 /*******************************************************************/
 
-#include "csdl.h"
+#include "std_util.h"
 
 #define PVSHORT 2       /* for .format .. 16 bit linear data */
 #define PVMYFLT 4       /* for .format .. 32 bit float data */
@@ -212,7 +212,7 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int pvlook_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "pvlook", pvlook);
     if (!retval) {

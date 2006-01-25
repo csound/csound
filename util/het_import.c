@@ -27,7 +27,7 @@
 /* John ffitch 1995 Jul 14                                           */
 /* ***************************************************************** */
 
-#include "csdl.h"
+#include "std_util.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -98,7 +98,7 @@ static int het_import(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int het_import_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "het_import", het_import);
     if (!retval) {

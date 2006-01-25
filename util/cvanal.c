@@ -30,7 +30,7 @@
 /*  Greg Sullivan                                                       */
 /************************************************************************/
 
-#include "csdl.h"
+#include "std_util.h"
 #include "soundio.h"
 #include "convolve.h"
 
@@ -233,7 +233,7 @@ static int CVAlloc(
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int cvanal_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "cvanal", cvanal);
     if (!retval) {
@@ -241,10 +241,5 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                              "Soundfile analysis for convolve");
     }
     return retval;
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

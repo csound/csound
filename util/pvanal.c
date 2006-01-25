@@ -34,7 +34,7 @@
 /************************************************************************/
 /************************************************************************/
 
-#include "csdl.h"
+#include "std_util.h"
 #include "cwindow.h"
 #include "soundio.h"
 #include "pvfileio.h"
@@ -332,7 +332,7 @@ static int quit(CSOUND *csound, char *msg)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int pvanal_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "pvanal", pvanal);
     if (!retval) {

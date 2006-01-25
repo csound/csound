@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "csdl.h"
+#include "std_util.h"
 #include "lpc.h"
 
 void lpc_import_usage(CSOUND *csound)
@@ -88,7 +88,7 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int lpc_import_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "lpc_import", lpc_import);
     if (!retval) {
