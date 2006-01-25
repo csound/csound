@@ -110,6 +110,8 @@
 
 #if defined(macintosh)
 #  define mac_classic   /* All Mac Compiles Before OSX, including Carbon */
+   /* define mills_macintosh in your prefix file
+      to compile the Mills "Perf" version */
 #  ifndef  USE_GUSI2
 #    include <stat.h>
 #  endif
@@ -118,6 +120,7 @@
 #elif defined(SYMANTEC)
 #  include <unix.h>     /* for open() etc protos on mac */
 #  define  DIRSEP ':'
+   extern  off_t lseek(int, off_t, int);
 #else
 #  define DIRSEP '/'
 #  ifdef  LATTICE
@@ -161,15 +164,15 @@
 
 /* standard integer types */
 
-#if defined(HAVE_STDINT_H) || defined(HAVE_C99)
-#  include <stdint.h>
-#else
-#  ifdef USE_GUSI2
+#ifdef USE_GUSI2
 /* When compiling with GUSI on MacOS 9 (for Python),  */
 /* all of the other integer types are already defined */
 typedef int64_t             int_least64_t;
 typedef uint64_t            uint_least64_t;
-#  else
+#else
+#if defined(HAVE_STDINT_H) || defined(HAVE_C99)
+#  include <stdint.h>
+#else
 typedef signed char         int8_t;
 typedef unsigned char       uint8_t;
 typedef short               int16_t;
@@ -189,8 +192,8 @@ typedef unsigned __int64    uint_least64_t;
 #    endif
 typedef long                intptr_t;
 typedef unsigned long       uintptr_t;
-#  endif    /* USE_GUSI2 */
 #endif
+#endif /* USE_GUSI2 */
 
 /* function attributes */
 
