@@ -59,10 +59,6 @@ static  void    usage(CSOUND *);
 static  void    ptable(CSOUND *, MYFLT, MYFLT, MYFLT, int);
 static  MYFLT   getpch(CSOUND *, MYFLT *);
 
-#ifdef mills_macintosh
-#include "MacTransport.h"
-#endif
-
 /* Search for an argument and report of not found */
 #define FIND(MSG)   if (*s == '\0')  \
                       if (!(--argc) || (((s = *++argv)!=0) && *s == '-'))  \
