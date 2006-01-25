@@ -43,7 +43,7 @@
  *    MODIFIED:  John ffitch December 2000; changes to Csound context
  */
 
-#include "csdl.h"
+#include "std_util.h"
 #include "soundio.h"
 #include <math.h>
 #include <ctype.h>
@@ -803,7 +803,7 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int srconv_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "srconv", srconv);
     if (!retval) {
@@ -811,10 +811,5 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                              "Sample rate conversion");
     }
     return retval;
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

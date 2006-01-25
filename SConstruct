@@ -233,16 +233,16 @@ print "SCons tools on this platform: ", commonEnvironment['TOOLS']
 print
 
 commonEnvironment.Prepend(CPPPATH = ['.', './H'])
-if (commonEnvironment['useLrint'] != '0'):
+if commonEnvironment['useLrint'] != '0':
   commonEnvironment.Prepend(CCFLAGS = ['-DUSE_LRINT'])
-if (commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0'):
-  if (commonEnvironment['gcc4opt'] != '0'):
+if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
+  if commonEnvironment['gcc4opt'] != '0':
     commonEnvironment.Prepend(CCFLAGS = ['-ftree-vectorize'])
     cpuType = commonEnvironment['gcc4opt']
   else:
     cpuType = commonEnvironment['gcc3opt']
   commonEnvironment.Prepend(CCFLAGS = ['-fomit-frame-pointer', '-ffast-math'])
-  if (getPlatform() == 'darwin'):
+  if getPlatform() == 'darwin':
     flags = '-O3 -mcpu=%s -mtune=%s'%(cpuType, cpuType)
   else:
     flags = '-O3 -march=%s'%(cpuType)
@@ -253,26 +253,26 @@ elif commonEnvironment['buildRelease'] != '0':
       -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
     '''))
 elif commonEnvironment['noDebug'] == '0':
-  if (getPlatform() == 'darwin'):
+  if getPlatform() == 'darwin':
     commonEnvironment.Prepend(CCFLAGS = ['-g', '-O2'])
   else:
     commonEnvironment.Prepend(CCFLAGS = ['-g', '-gstabs', '-O2'])
 else:
   commonEnvironment.Prepend(CCFLAGS = ['-O2'])
-if (commonEnvironment['useGprof']=='1'):
+if commonEnvironment['useGprof'] == '1':
   commonEnvironment.Append(CCFLAGS = ['-pg'])
   commonEnvironment.Append(LINKFLAGS = ['-pg'])
 commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
 if commonEnvironment['buildRelease'] == '0':
     commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
-if (commonEnvironment['Word64']=='1'):
+if commonEnvironment['Word64'] == '1':
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
     commonEnvironment.Append(CCFLAGS = ['-fPIC'])
 else:
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib'])
 
-if (commonEnvironment['useDouble']=='0'):
+if commonEnvironment['useDouble'] == '0':
     print 'CONFIGURATION DECISION: Using single-precision floating point for audio samples.'
 else:
     print 'CONFIGURATION DECISION: Using double-precision floating point for audio samples.'
@@ -294,7 +294,7 @@ elif getPlatform() == 'darwin':
     commonEnvironment.Append(CCFLAGS = "-DMACOSX")
     commonEnvironment.Append(CPPPATH = '/usr/local/include')
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
-    if (commonEnvironment['useAltivec'] == '1'):
+    if commonEnvironment['useAltivec'] == '1':
         print 'CONFIGURATION DECISION using Altivec optmisation'
         commonEnvironment.Append(CCFLAGS = "-faltivec")
     commonEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
@@ -315,7 +315,7 @@ if getPlatform() == 'linux':
     path2 = '/usr/local/include/python%s' % commonEnvironment['pythonVersion']
     pythonIncludePath = [path1, path2]
     pythonLinkFlags = []
-    if (commonEnvironment['Word64'] == '1'):
+    if commonEnvironment['Word64'] == '1':
         tmp = '/usr/lib64/python%s/config' % commonEnvironment['pythonVersion']
         pythonLibraryPath = ['/usr/local/lib64', '/usr/lib64', tmp]
     else:
@@ -517,14 +517,13 @@ if commonEnvironment['buildRelease'] != '0':
 csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Copy()
 csoundDynamicLibraryEnvironment.Append(LIBS = ['sndfile'])
 if getPlatform() == 'mingw':
+    # These are the Windows system call libraries.
     if commonEnvironment['MSVC'] == '0':
-        # These are the Windows system call libraries.
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm
             kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm
         ''')
     else:
-        # These are the Windows system call libraries.
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
             comctl32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib
@@ -629,7 +628,7 @@ Top/threads.c
 Top/utility.c
 ''')
 
-if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
+if commonEnvironment['dynamicCsoundLibrary'] == '1':
     print 'CONFIGURATION DECISION: Building dynamic Csound library'
     if getPlatform() == 'linux':
         libName = 'lib' + csoundLibraryName + '.so'
@@ -747,7 +746,7 @@ else:
 makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
 zipDependencies.append(makedb)
 
-if (commonEnvironment['usePortMIDI']=='1' and portmidiFound):
+if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
     print 'CONFIGURATION DECISION: Building with PortMIDI.'
     portMidiEnvironment = pluginEnvironment.Copy()
     portMidiEnvironment.Append(LIBS = ['portmidi'])
@@ -1094,26 +1093,15 @@ if getPlatform() == 'mingw' and fltkFound:
 
 # Utility programs.
 
-utilPlugins = [
-    ['cvanal',      'util/cvanal.c'     ],
-    ['dnoise',      'util/dnoise.c'     ],
-    ['envext',      'util/envext.c'     ],
-    ['extractor',   'util/xtrct.c'      ],
-    ['het_export',  'util/het_export.c' ],
-    ['het_import',  'util/het_import.c' ],
-    ['hetro',       'util/hetro.c'      ],
-    ['lpanal',      'util/lpanal.c'     ],
-    ['lpc_export',  'util/lpc_export.c' ],
-    ['lpc_import',  'util/lpc_import.c' ],
-    ['mixer_util',  'util/mixer.c'      ],
-    ['pvanal',      'util/pvanal.c'     ],
-    ['pvlook',      'util/pvlook.c'     ],
-    ['scale',       'util/scale.c'      ],
-    ['sndinfo',     'util/sndinfo.c'    ],
-    ['srconv',      'util/srconv.c'     ]]
-
-for i in utilPlugins:
-    pluginLibraries.append(pluginEnvironment.SharedLibrary(i[0], i[1]))
+pluginLibraries.append(pluginEnvironment.SharedLibrary('stdutil', Split('''
+    util/cvanal.c       util/dnoise.c       util/envext.c
+    util/xtrct.c        util/het_export.c   util/het_import.c
+    util/hetro.c        util/lpanal.c       util/lpc_export.c
+    util/lpc_import.c   util/mixer.c        util/pvanal.c
+    util/pvlook.c       util/scale.c        util/sndinfo.c
+    util/srconv.c
+    util/std_util.c
+''')))
 
 if (commonEnvironment['buildUtilities'] != '0'):
     utils = [
@@ -1567,7 +1555,7 @@ if (commonEnvironment['Word64'] == '1'):
 else:
     LIB_DIR = PREFIX + "/lib"
 
-if (commonEnvironment['useDouble'] == '0'):
+if commonEnvironment['useDouble'] == '0':
     PLUGIN_DIR = LIB_DIR + "/csound/plugins"
 else:
     PLUGIN_DIR = LIB_DIR + "/csound/plugins64"
@@ -1587,7 +1575,7 @@ if commonEnvironment['install'] == '1':
 
     Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders])
 
-if (getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1'):
+if getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1':
     print "CONFIGURATION DECISION: Adding resource fork for csound"
     commonEnvironment.Command('resources', 'csound', "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
 

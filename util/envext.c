@@ -27,7 +27,7 @@
 *   mainly lifted from scale and Csound itself          *
 \*******************************************************/
 
-#include "csdl.h"
+#include "std_util.h"
 #include "soundio.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -169,7 +169,7 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p, double window)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+int envext_init_(CSOUND *csound)
 {
     int retval = csound->AddUtility(csound, "envext", envext);
     if (!retval) {
