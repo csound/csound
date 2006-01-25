@@ -361,10 +361,6 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     p = (SNDMEMFILE*)
             csound->Malloc(csound, sizeof(SNDMEMFILE)
                                    + (size_t) sfinfo->frames * sizeof(float));
-    if (p == NULL) {
-      csound->FileClose(csound, fd);
-      return NULL;
-    }
     /* set parameters */
     p->name = (char*) csound->Malloc(csound, strlen(fileName) + 1);
     strcpy(p->name, fileName);
@@ -376,12 +372,36 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     p->nChannels = sfinfo->channels;
     p->sampleFormat = SF2FORMAT(sfinfo->format);
     p->fileType = SF2TYPE(sfinfo->format);
-    p->loopMode = 0;    /* FIXME: not implemented yet */
+    /* set defaults for sampler information */
+    p->loopMode = 0;
     p->startOffs = 0.0;
     p->loopStart = 0.0;
     p->loopEnd = 0.0;
     p->baseFreq = 1.0;
     p->scaleFac = 1.0;
+#ifdef HAVE_LIBSNDFILE_1_0_13
+    /* sampler information requires libsndfile version 1.0.13 or later */
+    {
+      SF_INSTRUMENT lpd;
+      if (sf_command(sf, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT))
+          != 0) {
+        if (lpd.loop_count > 0 && lpd.loops[0].mode != SF_LOOP_NONE) {
+          /* set loop mode and loop points */
+          p->loopMode = (lpd.loops[0].mode == SF_LOOP_FORWARD ?
+                         2 : (lpd.loops[0].mode == SF_LOOP_BACKWARD ? 3 : 4));
+          p->loopStart = (double) lpd.loops[0].start;
+          p->loopEnd = (double) lpd.loops[0].end;
+        }
+        else {
+          /* loop mode: off */
+          p->loopMode = 1;
+        }
+        p->baseFreq = pow(2.0, (double) (((int) lpd.basenote - 69) * 100
+                                         + (int) lpd.detune) / 1200.0) * 440.0;
+        p->scaleFac = pow(10.0, (double) lpd.gain * 0.05);
+      }
+    }
+#endif      /* HAVE_LIBSNDFILE_1_0_13 */
     p->nxt = ((SNDMEMFILE**) csound->sndmemfiles)[(int) h];
     if ((size_t) sf_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
         != p->nFrames) {
