@@ -107,8 +107,8 @@ static void *wd_thread_routine(void *dummy)
       t1 = (uint32_t) clock();
       p = (double) ((int32_t) (t1 - t0)) * (100.0 / (double) CLOCKS_PER_SEC);
       if ((p / (double) secs) > (double) cpuMax) {
-        kill(0, SIGTERM); csoundSleep(1500);
-        kill(0, SIGKILL); csoundSleep(1500);
+        kill(getpid(), SIGTERM); csoundSleep(1500);
+        kill(getpid(), SIGKILL); csoundSleep(1500);
         exit(-1);
       }
     }
