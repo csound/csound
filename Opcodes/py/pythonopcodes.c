@@ -20,6 +20,9 @@
 
 #include <Python.h>
 #include "csdl.h"
+#ifdef mac_classic
+#  include <macglue.h>
+#endif
 #include "pythonopcodes.h"
 #include "pythonhelper.h"
 
@@ -154,7 +157,11 @@ static int pyinit(CSOUND *csound, PYINIT *p)
     (void) csound;
     (void) p;
     if (!pythonInitialized) {
+#ifdef mac_classic
+      PyMac_Initialize();
+#else
       Py_Initialize();
+#endif
       pythonInitialized = 1;
     }
     return OK;
