@@ -2221,9 +2221,8 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
                   lpd.loops[1].end, lpd.loops[1].count);
         }
 #endif
-        natcps = pow(2.0,
-                     ((double)((int)lpd.basenote-69)+
-                      (double)lpd.detune*0.01)/ 12.0)*440.0;
+        natcps = pow(2.0, ((double) ((int) lpd.basenote - 69)
+                           + (double) lpd.detune * 0.01) / 12.0) * 440.0;
         /* As far as I can tell this gainfac value is never used! */
         gainfac = exp((double) lpd.gain * LOG10D20);
      /* if (lpd.basenote == 0)
