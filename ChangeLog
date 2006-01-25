@@ -1,3 +1,9 @@
+2006-01-25	Istvan Varga	<ivarga@csounds.com>
+		Anthony Kozar	<anthonykozar@sbcglobal.net>
+	* Opcodes/mixer.cpp: "OpcodeBase.hpp", not <OpcodeBase.hpp>
+	* Opcodes/py/pythonopcodes.c: Added support for MacOS 9 Python quirks.
+	* H/sysdep.h: MacOS 9 changes so that Python stuff will compile.
+
 2006-01-11	Istvan Varga	<ivarga@csounds.com>
 	* fixed temporary file bug on Windows (do not try to remove extension)
 	* new opcodes:
