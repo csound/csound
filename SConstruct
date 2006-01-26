@@ -540,6 +540,39 @@ elif getPlatform() == 'linux':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
 csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Copy()
 
+buildOSXFramework = False
+if getPlatform() == 'darwin':
+    if commonEnvironment['dynamicCsoundLibrary'] == '1':
+        buildOSXFramework = True
+        csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy()
+
+def MacOSX_InstallHeader(headerName):
+    if not buildOSXFramework:
+        return
+    baseName = headerName[(headerName.rfind('/') + 1):]
+    targetName = 'CsoundLib.Framework/Versions/%s' % csoundLibraryVersion
+    targetName += '/Headers/%s' % baseName
+    cmd = 'cd CsoundLib.Framework; '
+    cmd += 'ln -sf Versions/%s/Headers Headers; ' % csoundLibraryVersion
+    cmd += 'cd ..; '
+    cmd += 'cp -f %s %s' % (headerName, targetName)
+    csoundFrameworkEnvironment.Command(targetName, headerName, cmd)
+
+def MacOSX_InstallPlugin(pluginName):
+    if not buildOSXFramework:
+        return
+    pluginDir = 'CsoundLib.Framework/Versions/' + csoundLibraryVersion
+    pluginDir += '/Resources/Opcodes'
+    if commonEnvironment['useDouble'] != '0':
+        pluginDir += '64'
+    fileName = 'lib' + pluginName + '.dylib'
+    cmd = 'cd CsoundLib.Framework; '
+    cmd += 'ln -sf Versions/' + csoundLibraryVersion + '/Resources Resources; '
+    cmd += 'cd ..; '
+    cmd += 'cp -f %s %s/' % (fileName, pluginDir)
+    csoundFrameworkEnvironment.Command('%s/%s' % (pluginDir, fileName),
+                                       fileName, cmd)
+
 libCsoundSources = Split('''
 Engine/auxfd.c
 Engine/cfgvar.c
@@ -641,66 +674,44 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             libName2, libCsoundSources,
             SHLINKFLAGS = tmp, SHLIBPREFIX = '', SHLIBSUFFIX = '')
     elif getPlatform() == 'darwin':
-    	csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy()
         libName = 'CsoundLib'
+        if commonEnvironment['useDouble'] != '0':
+            libName += '64'
+        libVersion = csoundLibraryVersion
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
-            -Xlinker -compatibility_version -Xlinker vers.api
-        '''.replace('vers.api', csoundLibraryVersion)))
+            -Xlinker -compatibility_version -Xlinker %s
+        ''' % libVersion))
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
-            -Xlinker -current_version -Xlinker vers.api
-        '''.replace('vers.api', csoundLibraryVersion)))
+            -Xlinker -current_version -Xlinker %s
+        ''' % libVersion))
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
-            -install_name /Library/Frameworks/CsoundLib.Framework/CsoundLib
-        '''))
+            -install_name /Library/Frameworks/CsoundLib.Framework/%s
+        ''' % libName))
         csoundLibrary = csoundFrameworkEnvironment.SharedLibrary(
             libName, libCsoundSources, SHLIBPREFIX = '', SHLIBSUFFIX = '')
-        csFrameWorkCmds = [
-            ['CsoundLib_current', 'CsoundLib',
-             "cd CsoundLib.Framework/Versions; ln -sf vers.api Current"],
-            ['CsoundLib.Framework/Versions/vers.api/Headers/csound.h',
-             'H/csound.h',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Headers Headers; cd ..; cp H/*.h CsoundLib.Framework/Versions/vers.api/Headers"],
-            ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libstdopcod.dylib',
-             'libstdopcod.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libstdopcod.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
- 	    ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libcontrol.dylib',
-             'libcontrol.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libcontrol.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
- 	    ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libftest.dylib',
-             'libftest.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libftest.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
-	    ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libmixer.dylib',
-             'libmixer.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libmixer.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
-	    ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libmodal4.dylib',
-             'libmodal4.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libmodal4.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
-	    ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libphysmod.dylib',
-             'libphysmod.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libphysmod.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
-	    ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libscansyn.dylib',
-             'libscansyn.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libscansyn.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"], 
-	    ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libpitch.dylib',
-             'libpitch.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libpitch.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"],
-	    ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libsfont.dylib',
-             'libsfont.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libsfont.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"], 
-            ['CsoundLib.Framework/Versions/vers.api/CsoundLib', 'CsoundLib',
-             "cp CsoundLib CsoundLib.Framework/Versions/vers.api"],
-            ['CsoundLib.Framework/CsoundLib',
-             'CsoundLib.Framework/Versions/vers.api/CsoundLib',
-             "cd CsoundLib.Framework; ln -sf Versions/vers.api/CsoundLib CsoundLib"],
-            ['CsoundLib_install', 'CsoundLib',
-             "rm -r /Library/Frameworks/CsoundLib.Framework; cp -R CsoundLib.Framework /Library/Frameworks"]
-        ]
-        for i in csFrameWorkCmds:
-            csoundFrameworkEnvironment.Command(
-                i[0].replace('vers.api', csoundLibraryVersion),
-                i[1].replace('vers.api', csoundLibraryVersion),
-                i[2].replace('vers.api', csoundLibraryVersion))
-        libCsoundLinkFlags = ['-F.', '-framework', 'CsoundLib', '-lsndfile']
+        csoundFrameworkEnvironment.Command(
+            'CsoundLib_current',
+            libName,
+            'cd CsoundLib.Framework/Versions; ln -sf %s Current' % libVersion)
+        csoundFrameworkEnvironment.Command(
+            'CsoundLib.Framework/Versions/%s/%s' % (libVersion, libName),
+            libName,
+            'cp -f %s CsoundLib.Framework/Versions/%s/' % (libName, libVersion))
+        csoundFrameworkEnvironment.Command(
+            'CsoundLib.Framework/%s' % libName,
+            'CsoundLib.Framework/Versions/%s/%s' % (libVersion, libName),
+            'cd CsoundLib.Framework; ln -sf Versions/%s/%s %s' % (libVersion, libName, libName))
+        csoundFrameworkEnvironment.Command(
+            'CsoundLib_install',
+            libName,
+            'rm -r /Library/Frameworks/CsoundLib.Framework; cp -R CsoundLib.Framework /Library/Frameworks')
+        for i in headers:
+            MacOSX_InstallHeader(i)
+        for i in Split('''
+            control ftest mixer modal4 physmod pitch scansyn sfont stdopcod
+        '''):
+            MacOSX_InstallPlugin(i)
+        libCsoundLinkFlags = ['-F.', '-framework', libName, '-lsndfile']
         libCsoundLibs = []
     else:
         csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
@@ -1015,35 +1026,21 @@ else:
         '''))
     pluginLibraries.append(widgetsEnvironment.SharedLibrary('widgets',
         ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp']))
-    if (commonEnvironment['dynamicCsoundLibrary'] == '1' and getPlatform() == 'darwin'):
-         csdFmkCmd = ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libwidgets.dylib',
-             'libwidgets.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libwidgets.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"]
-         csoundFrameworkEnvironment.Command(
-                csdFmkCmd[0].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[1].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[2].replace('vers.api', csoundLibraryVersion))
+    MacOSX_InstallPlugin('widgets')
 
 # REAL TIME AUDIO
 
-if (commonEnvironment['useCoreAudio']=='1' and getPlatform() == 'darwin'):
+if commonEnvironment['useCoreAudio'] == '1' and getPlatform() == 'darwin':
     print "CONFIGURATION DECISION: Building CoreAudio plugin."
     coreaudioEnvironment = pluginEnvironment.Copy()
     coreaudioEnvironment.Append(CCFLAGS = ['-I/system/library/Frameworks/CoreAudio.framework/Headers'])
     pluginLibraries.append(coreaudioEnvironment.SharedLibrary('rtcoreaudio',
                                                         ['InOut/rtcoreaudio.c']))
-    if (commonEnvironment['dynamicCsoundLibrary'] == '1'):
-         csdFmkCmd = ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/librtcoreaudio.dylib',
-             'librtcoreaudio.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp librtcoreaudio.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"]
-         csoundFrameworkEnvironment.Command(
-                csdFmkCmd[0].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[1].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[2].replace('vers.api', csoundLibraryVersion))
+    MacOSX_InstallPlugin('rtcoreaudio')
 else:
     print "CONFIGURATION DECISION: Not building CoreAudio plugin."
 
-if not (commonEnvironment['useALSA']=='1' and alsaFound):
+if not (commonEnvironment['useALSA'] == '1' and alsaFound):
     print "CONFIGURATION DECISION: Not building ALSA plugin."
 else:
     print "CONFIGURATION DECISION: Building ALSA plugin."
@@ -1058,7 +1055,7 @@ if getPlatform() == 'mingw':
     pluginLibraries.append(winmmEnvironment.SharedLibrary('rtwinmm',
                                                           ['InOut/rtwinmm.c']))
 
-if not (commonEnvironment['usePortAudio']=='1' and portaudioFound):
+if not (commonEnvironment['usePortAudio'] == '1' and portaudioFound):
     print "CONFIGURATION DECISION: Not building PortAudio module."
 else:
     print "CONFIGURATION DECISION: Building PortAudio module."
@@ -1074,15 +1071,9 @@ else:
         portaudioEnvironment.Append(LIBS = csoundWindowsLibraries)
     pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
                                                               ['InOut/rtpa.c']))
-    if (commonEnvironment['dynamicCsoundLibrary'] == '1' and getPlatform() == 'darwin'):
-         csdFmkCmd = ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/librtpa.dylib',
-             'librtpa.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp librtpa.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"]
-         csoundFrameworkEnvironment.Command(
-                csdFmkCmd[0].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[1].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[2].replace('vers.api', csoundLibraryVersion))
-if not (commonEnvironment['useJack']=='1' and jackFound):
+    MacOSX_InstallPlugin('rtpa')
+
+if not (commonEnvironment['useJack'] == '1' and jackFound):
     print "CONFIGURATION DECISION: Not building JACK plugin."
 else:
     print "CONFIGURATION DECISION: Building JACK plugin."
@@ -1093,14 +1084,7 @@ else:
         jackEnvironment.Append(LIBS = ['jack', 'pthread'])
     pluginLibraries.append(jackEnvironment.SharedLibrary('rtjack',
                                                          ['InOut/rtjack.c']))
-    if (commonEnvironment['dynamicCsoundLibrary'] == '1' and getPlatform() == 'darwin'):
-         csdFmkCmd = ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/librtjack.dylib',
-             'librtjack.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp librtjack.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"]
-         csoundFrameworkEnvironment.Command(
-                csdFmkCmd[0].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[1].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[2].replace('vers.api', csoundLibraryVersion))
+    MacOSX_InstallPlugin('rtjack')
 
 if not (commonEnvironment['useOSC'] == '1' and oscFound):
     print "CONFIGURATION DECISION: Not building OSC plugin."
@@ -1113,14 +1097,7 @@ else:
         oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
     pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
                                                         ['Opcodes/OSC.c']))
-    if (commonEnvironment['dynamicCsoundLibrary'] == '1' and getPlatform() == 'darwin'):
-         csdFmkCmd = ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libosc.dylib',
-             'libosc.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libosc.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"]
-         csoundFrameworkEnvironment.Command(
-                csdFmkCmd[0].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[1].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[2].replace('vers.api', csoundLibraryVersion))
+    MacOSX_InstallPlugin('osc')
 
 # FLUIDSYNTH OPCODES
 
@@ -1138,14 +1115,7 @@ else:
         fluidEnvironment.Append(LIBS = ['pthread'])
     pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
         ['Opcodes/fluidOpcodes/fluidOpcodes.c']))
-    if (commonEnvironment['dynamicCsoundLibrary'] == '1' and getPlatform() == 'darwin'):
-         csdFmkCmd = ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libfluidOpcodes.dylib',
-             'libfluidOpcodes.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libfluidOpcodes.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"]
-         csoundFrameworkEnvironment.Command(
-                csdFmkCmd[0].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[1].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[2].replace('vers.api', csoundLibraryVersion))
+    MacOSX_InstallPlugin('fluidOpcodes')
 
 # VST HOST OPCODES
 
@@ -1173,14 +1143,7 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('stdutil', Split('''
     util/srconv.c
     util/std_util.c
 ''')))
-if (commonEnvironment['dynamicCsoundLibrary'] == '1' and getPlatform() == 'darwin'):
-         csdFmkCmd = ['CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/libstdutil.dylib',
-             'libstdutil.dylib',
-             "cd CsoundLib.Framework; ln -s Versions/vers.api/Resources Resources; cd ..; cp libstdutil.dylib CsoundLib.Framework/Versions/vers.api/Resources/Opcodes/"]
-         csoundFrameworkEnvironment.Command(
-                csdFmkCmd[0].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[1].replace('vers.api', csoundLibraryVersion),
-                csdFmkCmd[2].replace('vers.api', csoundLibraryVersion))
+MacOSX_InstallPlugin('stdutil')
 
 if (commonEnvironment['buildUtilities'] != '0'):
     utils = [
