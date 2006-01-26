@@ -4,7 +4,7 @@
   <object name="rootObject" class="NSCustomObject" id="1">
     <string name="customClass">NSApplication</string>
   </object>
-  <array count="28" name="allObjects">
+  <array count="30" name="allObjects">
     <object class="IBCarbonMenu" id="29">
       <string name="title">main</string>
       <array count="3" name="items">
@@ -80,12 +80,12 @@
       <string name="name">_NSMainMenu</string>
     </object>
     <object class="IBCarbonWindow" id="166">
-      <string name="windowRect">54 26 447 726 </string>
+      <string name="windowRect">170 361 563 1061 </string>
       <string name="title">Csound 5 Console</string>
       <object name="rootControl" class="IBCarbonRootControl" id="167">
         <string name="bounds">0 0 393 700 </string>
         <string name="viewFrame">0 0 700 393 </string>
-        <array count="9" name="subviews">
+        <array count="11" name="subviews">
           <object class="IBCarbonBevelButton" id="202">
             <string name="bounds">57 20 99 64 </string>
             <string name="viewFrame">20 57 44 42 </string>
@@ -149,8 +149,8 @@
             <string name="title">working directory</string>
           </object>
           <object class="IBCarbonTextView" id="222">
-            <string name="bounds">123 20 269 680 </string>
-            <string name="viewFrame">20 123 660 146 </string>
+            <string name="bounds">129 20 269 680 </string>
+            <string name="viewFrame">20 129 660 140 </string>
             <ostype name="controlSignature">Outx</ostype>
             <int name="controlID">130</int>
             <string name="helpTagText">Csound performance messages</string>
@@ -172,6 +172,20 @@
             <string name="title">compile</string>
             <ostype name="command">Comp</ostype>
             <string name="helpTagText">Compile Csound code ready for performance</string>
+          </object>
+          <object class="IBCarbonCheckBox" id="248">
+            <string name="bounds">107 20 121 196 </string>
+            <string name="viewFrame">20 107 176 14 </string>
+            <string name="title"> performance messages</string>
+            <ostype name="command">Mess</ostype>
+            <int name="initialState">1</int>
+          </object>
+          <object class="IBCarbonButton" id="249">
+            <string name="bounds">56 610 76 680 </string>
+            <string name="viewFrame">610 56 70 20 </string>
+            <string name="title">reset</string>
+            <ostype name="command">Rset</ostype>
+            <string name="helpTagText">resets csound (closing files etc)</string>
           </object>
         </array>
       </object>
@@ -231,8 +245,10 @@
     <reference idRef="245"/>
     <reference idRef="246"/>
     <reference idRef="247"/>
+    <reference idRef="248"/>
+    <reference idRef="249"/>
   </array>
-  <array count="28" name="allParents">
+  <array count="30" name="allParents">
     <reference idRef="1"/>
     <reference idRef="1"/>
     <reference idRef="166"/>
@@ -261,6 +277,8 @@
     <reference idRef="247"/>
     <reference idRef="245"/>
     <reference idRef="29"/>
+    <reference idRef="167"/>
+    <reference idRef="167"/>
   </array>
   <dictionary count="7" name="nameTable">
     <string>Files Owner</string>
@@ -278,5 +296,5 @@
     <string>aboutwindow</string>
     <reference idRef="208"/>
   </dictionary>
-  <unsigned_int name="nextObjectID">248</unsigned_int>
+  <unsigned_int name="nextObjectID">250</unsigned_int>
 </object>
