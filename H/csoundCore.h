@@ -149,55 +149,61 @@ extern "C" {
     int     indx[1];
   } ARGOFFS;
 
-  /** Storage for parsed orchestra code, for each opcode in an INSTRTXT. */
+  /**
+   * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
+   */
   typedef struct text {
-    int     linenum;        /**Line num in orch file (currently buggy!)  */
-    int     opnum;          /**Opcode index in opcodlst[] */
-    char    *opcod;         /**Pointer to opcode name in global pool */
-    ARGLST  *inlist;        /**Input args (pointer to item in name list) */
+    int     linenum;        /* Line num in orch file (currently buggy!)  */
+    int     opnum;          /* Opcode index in opcodlst[] */
+    char    *opcod;         /* Pointer to opcode name in global pool */
+    ARGLST  *inlist;        /* Input args (pointer to item in name list) */
     ARGLST  *outlist;
-    ARGOFFS *inoffs;        /**Input args (index into list of values) */
+    ARGOFFS *inoffs;        /* Input args (index into list of values) */
     ARGOFFS *outoffs;
-    int     xincod;         /**Rate switch for multi-rate opcode functions */
-    int     xoutcod;        /**output rate switch (IV - Sep 1 2002) */
-    int     xincod_str;     /**Type switch for string arguments */
+    int     xincod;         /* Rate switch for multi-rate opcode functions */
+    int     xoutcod;        /* output rate switch (IV - Sep 1 2002) */
+    int     xincod_str;     /* Type switch for string arguments */
     int     xoutcod_str;
-    char    intype;         /**Type of first input argument (g,k,a,w etc) */
-    char    pftype;         /**Type of output argument (k,a etc) */
+    char    intype;         /* Type of first input argument (g,k,a,w etc) */
+    char    pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 
-  /**This struct is filled out by otran() at orch parse time.
-     It is used as a template for instrument events. */
+  /**
+   * This struct is filled out by otran() at orch parse time.
+   * It is used as a template for instrument events.
+   */
   typedef struct instr {
-    struct op * nxtop;              /**Linked list of instr opcodes */
-    TEXT    t;                      /**Text of instrument (same in nxtop) */
-    int     pmax, vmax, pextrab;    /**Arg count, size of data for all
+    struct op * nxtop;              /* Linked list of instr opcodes */
+    TEXT    t;                      /* Text of instrument (same in nxtop) */
+    int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                        opcodes in instr */
-    int     mdepends;               /**Opcode type (i/k/a) */
-    int     lclkcnt, lcldcnt;       /**Storage reqs for this instr */
+    int     mdepends;               /* Opcode type (i/k/a) */
+    int     lclkcnt, lcldcnt;       /* Storage reqs for this instr */
     int     lclwcnt, lclacnt;
     int     lclpcnt, lclscnt;
     int     lclfixed, optxtcount;
     short   muted;
     long    localen;
-    long    opdstot;                /**Total size of opds structs in instr */
-    long    *inslist;               /**Only used in parsing (?) */
-    MYFLT   *psetdata;              /**Used for pset opcode */
-    struct insds * instance;        /**Chain of allocated instances of
+    long    opdstot;                /* Total size of opds structs in instr */
+    long    *inslist;               /* Only used in parsing (?) */
+    MYFLT   *psetdata;              /* Used for pset opcode */
+    struct insds * instance;        /* Chain of allocated instances of
                                        this instrument */
-    struct insds * lst_instance;    /**last allocated instance */
-    struct insds * act_instance;    /**Chain of free (inactive) instances */
-                                    /**(pointer to next one is INSDS.nxtact) */
-    struct instr * nxtinstxt;       /**Next instrument in orch (num order) */
-    int     active;                 /**To count activations for control */
+    struct insds * lst_instance;    /* last allocated instance */
+    struct insds * act_instance;    /* Chain of free (inactive) instances */
+                                    /* (pointer to next one is INSDS.nxtact) */
+    struct instr * nxtinstxt;       /* Next instrument in orch (num order) */
+    int     active;                 /* To count activations for control */
     int     maxalloc;
-    MYFLT   cpuload;                /**% load this instrumemnt makes */
-    struct opcodinfo *opcode_info;  /*IV - Nov 10 2002 */
-    char    *insname;               /**instrument name */
+    MYFLT   cpuload;                /* % load this instrumemnt makes */
+    struct opcodinfo *opcode_info;  /* IV - Nov 10 2002 */
+    char    *insname;               /* instrument name */
   } INSTRTXT;
 
-/**A chain of TEXT structs. Note that this is identical with the first two
-   members of struct INSTRTEXT, and is so typecast at various points in code. */
+  /**
+   * A chain of TEXT structs. Note that this is identical with the first two
+   * members of struct INSTRTEXT, and is so typecast at various points in code.
+   */
   typedef struct op {
     struct op *nxtop;
     TEXT    t;
@@ -205,7 +211,7 @@ extern "C" {
 
   typedef struct fdch {
     struct fdch *nxtchp;
-    void    *fd;            /**handle returned by csound->FileOpen() */
+    void    *fd;            /** handle returned by csound->FileOpen() */
   } FDCH;
 
   typedef struct auxch {
@@ -225,72 +231,74 @@ extern "C" {
 
   typedef struct {
     DPEXCL  dpexcl[8];
-    int     exclset[75];    /**for keys 25-99 */
+    int     exclset[75];    /** for keys 25-99 */
   } DPARM;
 
   typedef struct dklst {
     struct dklst *nxtlst;
     long    pgmno;
-    MYFLT   keylst[1];      /**cnt + keynos */
+    MYFLT   keylst[1];      /** cnt + keynos */
   } DKLST;
 
   typedef struct mchnblk {
-    short   pgmno;          /**most recently received program change */
-    short   insno;          /**instrument number assigned to this channel */
+    short   pgmno;          /** most recently received program change */
+    short   insno;          /** instrument number assigned to this channel */
     short   RegParNo;
     short   mono;
     MONPCH  *monobas;
     MONPCH  *monocur;
-    struct insds *kinsptr[128]; /**list of active notes (NULL: not active) */
-    MYFLT   polyaft[128];   /**polyphonic pressure indexed by note number */
-    MYFLT   ctl_val[136];   /**... with GS vib_rate, stored in c128-c135 */
-    short   pgm2ins[128];   /**program change to instr number (<=0: ignore) */
-    MYFLT   aftouch;        /**channel pressure (0-127) */
-    MYFLT   pchbend;        /**pitch bend (-1 to 1) */
-    MYFLT   pbensens;       /**pitch bend sensitivity in semitones */
-    MYFLT   dummy_;         /**unused */
-    short   ksuscnt;        /**number of held (sustaining) notes */
-    short   sustaining;     /**current state of sustain pedal (0: off) */
+    struct insds *kinsptr[128]; /** list of active notes (NULL: not active) */
+    MYFLT   polyaft[128];   /** polyphonic pressure indexed by note number */
+    MYFLT   ctl_val[136];   /** ... with GS vib_rate, stored in c128-c135 */
+    short   pgm2ins[128];   /** program change to instr number (<=0: ignore) */
+    MYFLT   aftouch;        /** channel pressure (0-127) */
+    MYFLT   pchbend;        /** pitch bend (-1 to 1) */
+    MYFLT   pbensens;       /** pitch bend sensitivity in semitones */
+    MYFLT   dummy_;         /** unused */
+    short   ksuscnt;        /** number of held (sustaining) notes */
+    short   sustaining;     /** current state of sustain pedal (0: off) */
     int     dpmsb;
     int     dplsb;
     int     datenabl;
-    DKLST   *klists;        /**chain of dpgm keylists */
-    DPARM   *dparms;        /**drumset params         */
+    DKLST   *klists;        /** chain of dpgm keylists */
+    DPARM   *dparms;        /** drumset params         */
   } MCHNBLK;
 
-  /**This struct holds the info for a concrete instrument event
-     instance in performance. */
+  /**
+   * This struct holds the info for a concrete instrument event
+   * instance in performance.
+   */
   typedef struct insds {
-    struct opds * nxti;     /**Chain of init-time opcodes */
-    struct opds * nxtp;     /**Chain of performance-time opcodes */
-    struct insds * nxtinstance; /**Next allocated instance */
-    struct insds * prvinstance; /**Previous allocated instance */
-    struct insds * nxtact;  /**Next in list of active instruments */
-    struct insds * prvact;  /**Previous in list of active instruments */
-    struct insds * nxtoff;  /**Next instrument to terminate */
-    FDCH    *fdchp;         /**Chain of files used by opcodes in this instr */
-    AUXCH   *auxchp;        /**Extra memory used by opcodes in this instr */
-    int     xtratim;        /**Extra release time requested with
+    struct opds * nxti;     /* Chain of init-time opcodes */
+    struct opds * nxtp;     /* Chain of performance-time opcodes */
+    struct insds * nxtinstance; /* Next allocated instance */
+    struct insds * prvinstance; /* Previous allocated instance */
+    struct insds * nxtact;  /* Next in list of active instruments */
+    struct insds * prvact;  /* Previous in list of active instruments */
+    struct insds * nxtoff;  /* Next instrument to terminate */
+    FDCH    *fdchp;         /* Chain of files used by opcodes in this instr */
+    AUXCH   *auxchp;        /* Extra memory used by opcodes in this instr */
+    int     xtratim;        /* Extra release time requested with
                                xtratim opcode */
-    MCHNBLK *m_chnbp;       /**MIDI note info block if event started
+    MCHNBLK *m_chnbp;       /* MIDI note info block if event started
                                from MIDI */
-    struct insds * nxtolap; /**ptr to next overlapping MIDI voice */
-    short   insno;          /**Instrument number */
-    short   m_sust;         /**non-zero for sustaining MIDI note */
-    unsigned char m_pitch;  /**MIDI pitch, for simple access */
-    unsigned char m_veloc;  /**...ditto velocity */
-    char    relesing;       /**Flag to indicate we are releasing,
+    struct insds * nxtolap; /* ptr to next overlapping MIDI voice */
+    short   insno;          /* Instrument number */
+    short   m_sust;         /* non-zero for sustaining MIDI note */
+    unsigned char m_pitch;  /* MIDI pitch, for simple access */
+    unsigned char m_veloc;  /* ...ditto velocity */
+    char    relesing;       /* Flag to indicate we are releasing,
                                test with release opcode */
-    char    actflg;         /**Set if instr instance is active (perfing) */
-    double  offbet;         /**Time to turn off event, in score beats */
-    double  offtim;         /**Time to turn off event, in seconds (negative on
+    char    actflg;         /* Set if instr instance is active (perfing) */
+    double  offbet;         /* Time to turn off event, in score beats */
+    double  offtim;         /* Time to turn off event, in seconds (negative on
                                indef/tie) */
-    void    *pylocal;       /**Python namespace for just this instance. */
-    CSOUND  *csound;        /**ptr to Csound engine and API for externals */
-    void    *opcod_iobufs;  /**user defined opcode I/O buffers */
+    void    *pylocal;       /* Python namespace for just this instance. */
+    CSOUND  *csound;        /* ptr to Csound engine and API for externals */
+    void    *opcod_iobufs;  /* user defined opcode I/O buffers */
     void    *opcod_deact, *subins_deact;
-    void    *nxtd;          /**opcodes to be run at note deactivation */
-    MYFLT   p0;             /**Copy of required p-field values for
+    void    *nxtd;          /* opcodes to be run at note deactivation */
+    MYFLT   p0;             /* Copy of required p-field values for
                                quick access */
     MYFLT   p1;
     MYFLT   p2;
@@ -299,15 +307,17 @@ extern "C" {
 
   typedef int (*SUBR)(CSOUND *, void *);
 
-  /**This struct holds the info for one opcode in a concrete
-     instrument instance in performance. */
+  /**
+   * This struct holds the info for one opcode in a concrete
+   * instrument instance in performance.
+   */
   typedef struct opds {
-    struct opds * nxti;     /**Next opcode in init-time chain */
-    struct opds * nxtp;     /**Next opcode in perf-time chain */
-    SUBR    iopadr;         /**Initialization (i-time) function pointer */
-    SUBR    opadr;          /**Perf-time (k- or a-rate) function pointer */
-    OPTXT   *optext;        /**Orch file template part for this opcode */
-    INSDS   *insdshead;     /**Owner instrument instance data structure */
+    struct opds * nxti;     /** Next opcode in init-time chain */
+    struct opds * nxtp;     /** Next opcode in perf-time chain */
+    SUBR    iopadr;         /** Initialization (i-time) function pointer */
+    SUBR    opadr;          /** Perf-time (k- or a-rate) function pointer */
+    OPTXT   *optext;        /** Orch file template part for this opcode */
+    INSDS   *insdshead;     /** Owner instrument instance data structure */
   } OPDS;
 
   typedef struct oentry {
@@ -319,8 +329,8 @@ extern "C" {
     int     (*iopadr)(CSOUND *, void *p);
     int     (*kopadr)(CSOUND *, void *p);
     int     (*aopadr)(CSOUND *, void *p);
-    void    *useropinfo;    /**user opcode parameters */
-    int     prvnum;         /*IV - Oct 31 2002 */
+    void    *useropinfo;    /* user opcode parameters */
+    int     prvnum;         /* IV - Oct 31 2002 */
   } OENTRY;
 
   typedef struct lblblk {
@@ -348,14 +358,16 @@ extern "C" {
     AUXCH   auxch;
   } SPECDAT;
 
-  /**This struct holds the data for one score event. */
+  /**
+   * This struct holds the data for one score event.
+   */
   typedef struct event {
-    char    *strarg;        /**Original argument list string of event */
-    char    opcod;          /**Event type */
-    short   pcnt;           /**Number of p-fields */
-    MYFLT   p2orig;         /**Event start time */
-    MYFLT   p3orig;         /**Length */
-    MYFLT   p[PMAX+1];      /**All p-fields for this event */
+    char    *strarg;        /** Original argument list string of event */
+    char    opcod;          /** Event type */
+    short   pcnt;           /** Number of p-fields */
+    MYFLT   p2orig;         /** Event start time */
+    MYFLT   p3orig;         /** Length */
+    MYFLT   p[PMAX + 1];    /** All p-fields for this event */
   } EVTBLK;
 
   typedef struct {
@@ -387,9 +399,9 @@ extern "C" {
     MYFLT   cvtbas, cpscvt;
     short   loopmode1;
     short   loopmode2;
-    long    begin1, end1;       /**all these in ..  */
+    long    begin1, end1;       /** all these in ..  */
     long    begin2, end2;
-    long    soundend, flenfrms; /**.. sample frames */
+    long    soundend, flenfrms; /** .. sample frames */
     long    nchanls;
     long    fno;
     GEN01ARGS gen01args;
@@ -411,7 +423,7 @@ extern "C" {
   typedef int (*GEN)(FGDATA *, FUNC *);
 
   typedef struct MEMFIL {
-    char    filename[256];      /**Made larger RWD */
+    char    filename[256];      /* Made larger RWD */
     char    *beginp;
     char    *endp;
     long    length;
@@ -431,26 +443,26 @@ extern "C" {
   } MEVENT;
 
   typedef struct SNDMEMFILE_ {
-    char            *name;          /**file ID (short name)         */
+    char            *name;          /** file ID (short name)          */
     struct SNDMEMFILE_ *nxt;
-    char            *fullName;      /**full path filename           */
-    size_t          nFrames;        /**file length in sample frames */
-    double          sampleRate;     /**sample rate in Hz            */
-    int             nChannels;      /**number of channels           */
-    int             sampleFormat;   /**AE_SHORT, AE_FLOAT, etc.     */
-    int             fileType;       /**TYP_WAV, TYP_AIFF, etc.      */
-    int             loopMode;       /**loop mode:                   */
-                                    /**  0: no loop information     */
-                                    /**  1: off                     */
-                                    /**  2: forward                 */
-                                    /**  3: backward                */
-                                    /**  4: bidirectional           */
-    double          startOffs;      /**playback start offset frames */
-    double          loopStart;      /**loop start (sample frames)   */
-    double          loopEnd;        /**loop end (sample frames)     */
-    double          baseFreq;       /**base frequency (in Hz)       */
-    double          scaleFac;       /**amplitude scale factor       */
-    float           data[1];        /**interleaved sample data      */
+    char            *fullName;      /** full path filename            */
+    size_t          nFrames;        /** file length in sample frames  */
+    double          sampleRate;     /** sample rate in Hz             */
+    int             nChannels;      /** number of channels            */
+    int             sampleFormat;   /** AE_SHORT, AE_FLOAT, etc.      */
+    int             fileType;       /** TYP_WAV, TYP_AIFF, etc.       */
+    int             loopMode;       /** loop mode:                    */
+                                    /**   0: no loop information      */
+                                    /**   1: off                      */
+                                    /**   2: forward                  */
+                                    /**   3: backward                 */
+                                    /**   4: bidirectional            */
+    double          startOffs;      /** playback start offset frames  */
+    double          loopStart;      /** loop start (sample frames)    */
+    double          loopEnd;        /** loop end (sample frames)      */
+    double          baseFreq;       /** base frequency (in Hz)        */
+    double          scaleFac;       /** amplitude scale factor        */
+    float           data[1];        /** interleaved sample data       */
   } SNDMEMFILE;
 
   typedef struct pvx_memfile_ {
@@ -478,16 +490,16 @@ extern "C" {
 #define PSET    6
 #define SETEND  7
 
-#define TOKMAX  50L     /**Should be 50 but bust */
+#define TOKMAX  50L     /* Should be 50 but bust */
 
-/**max number of input/output args for user defined opcodes */
+/* max number of input/output args for user defined opcodes */
 #define OPCODENUMOUTS   24
 
 #define MBUFSIZ         (4096)
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
-  /**MIDI globals */
+  /* MIDI globals */
 
   typedef struct midiglobals {
     MEVENT  *Midevtblk;
@@ -525,7 +537,7 @@ extern "C" {
     MYFLT   prvtempo;
   } TEMPO;
 
-  typedef struct opcodinfo {              
+  typedef struct opcodinfo {
     long    instno;
     char    *name, *intypes, *outtypes;
     short   inchns, outchns, perf_incnt, perf_outcnt;
@@ -537,7 +549,7 @@ extern "C" {
   typedef struct polish {
     char    opcod[12];
     int     incount;
-    char    *arg[4];     /**Was [4][12] */
+    char    *arg[4];     /* Was [4][12] */
   } POLISH;
 
   typedef struct token {
@@ -559,7 +571,7 @@ extern "C" {
 #endif  /* __BUILDING_LIBCSOUND */
 
   /**
-   * Contains all function pointers, data, and data pointers required 
+   * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
    */
   struct CSOUND_ {
@@ -824,7 +836,7 @@ extern "C" {
     SUBR dummyfn_1;
     SUBR dummyfn_2[112];
     /* ----------------------- public data fields ----------------------- */
-    OPDS          *ids, *pds;           /**used by init and perf loops */
+    OPDS          *ids, *pds;           /** used by init and perf loops */
     int           ksmps, global_ksmps, nchnls, spoutactive;
     long          kcounter, global_kcounter;
     int           reinitflag;
@@ -836,13 +848,13 @@ extern "C" {
     MYFLT         onedkr;
     MYFLT         kicvt;
     MYFLT         e0dbfs, dbfs_to_float;
-    double        timeOffs, beatOffs;   /**start time of current section    */
-    double        curTime, curTime_inc; /**cur. time in secs, inc. per kprd */
-    double        curBeat, curBeat_inc; /**cur. time in beats, inc per kprd */
-    double        beatTime;             /**beat time = 60 / tempo           */
+    double        timeOffs, beatOffs;   /** start time of current section    */
+    double        curTime, curTime_inc; /** cur. time in secs, inc. per kprd */
+    double        curBeat, curBeat_inc; /** cur. time in beats, inc per kprd */
+    double        beatTime;             /** beat time = 60 / tempo           */
     int           dummy_01, dummy_02;
-    void          *dummy_03;            /**unused */
-    void          *stdOp_Env;           /**reserved for std opcode library  */
+    void          *dummy_03;            /** unused */
+    void          *stdOp_Env;           /** reserved for std opcode library  */
     MYFLT         *zkstart;
     MYFLT         *zastart;
     long          zklast;
@@ -859,12 +871,12 @@ extern "C" {
     void          *rtPlay_userdata;
     char          *orchname, *scorename;
     int           holdrand;
-    int           strVarMaxLen;     /**maximum length of string variables + 1 */
+    int           strVarMaxLen;     /** max. length of string variables + 1  */
     int           maxinsno;
     int           strsmax;
     char          **strsets;
     INSTRTXT      **instrtxtp;
-    MCHNBLK       *m_chnbp[64];     /**reserve space for up to 4 MIDI devices */
+    MCHNBLK       *m_chnbp[64];   /** reserve space for up to 4 MIDI devices */
     RTCLOCK       *csRtClock;
     CsoundRandMTState *csRandState;
     int           randSeed1;
@@ -936,7 +948,7 @@ extern "C" {
     long          rngcnt[MAXCHNLS];
     short         rngflg, multichan;
     void          *evtFuncChain;
-    EVTNODE       *OrcTrigEvts;             /**List of events to be started */
+    EVTNODE       *OrcTrigEvts;             /* List of events to be started */
     EVTNODE       *freeEvtNodes;
     int           csoundIsScorePending_;
     int           advanceCnt;
@@ -989,8 +1001,8 @@ extern "C" {
     TOKEN         **revp, **pushp, **argp, **endlist;
     char          *assign_outarg;
     int           argcnt_offs, opcode_is_assign, assign_type;
-    int           strVarSamples;    /**number of MYFLT locations for string */
-    MYFLT         *gbloffbas;       /**was static in oload.c */
+    int           strVarSamples;    /* number of MYFLT locations for string */
+    MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *otranGlobals;
     void          *rdorchGlobals;
     void          *sreadGlobals;
@@ -1031,7 +1043,7 @@ extern "C" {
     void          *tbladr;              /* vpvoc.c */
     int           enableHostImplementedAudioIO;
     int           hostRequestedBufferSize;
-    /**engineState is sum of:
+    /* engineState is sum of:
      *   1: csoundPreCompile was called
      *   2: csoundCompile was called
      *   4: csoundRunUtility was called
@@ -1041,7 +1053,7 @@ extern "C" {
     int           engineState;
     int           stdin_assign_flg;
     int           stdout_assign_flg;
-    int           orcname_mode;         /**0: normal, 1: ignore, 2: fail */
+    int           orcname_mode;         /* 0: normal, 1: ignore, 2: fail */
     void          *csmodule_db;
     char          *dl_opcodes_oplibs;
     char          *SF_csd_licence;
