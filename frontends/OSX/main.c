@@ -39,7 +39,7 @@ typedef struct _globals {
     EventLoopTimerRef *timer;
     MenuBarHandle mbar;
     int     manopen;
-	int     mess;
+    int     mess;
 } globals;
 
 void DrawTxt(char *str, WindowRef theWindow)
@@ -77,8 +77,10 @@ void MessageCallback(CSOUND *cs, int attr, const char *format, va_list valist)
 
     str = (char *) malloc(strlen(format) + 1024);
     vsprintf(str, format, valist);
-    if(g->mess) DrawTxt(str, *(g->mainwindow));
-	else fprintf(stderr,"%s", str);
+    if (g->mess)
+      DrawTxt(str, *(g->mainwindow));
+    else
+      fprintf(stderr, "%s", str);
     free(str);
 }
 
@@ -215,15 +217,17 @@ OSStatus MainWindowHandler(EventHandlerCallRef inHandlerCallRef,
     if (commandStruct.commandID == 'Main') {
       ShowWindow(*(g->mainwindow));
     }
-   if (commandStruct.commandID == 'Mess') {
-      if(g->mess) g->mess=0;
-	  else g->mess=1;
+    if (commandStruct.commandID == 'Mess') {
+      if (g->mess)
+        g->mess = 0;
+      else
+        g->mess = 1;
     }
-   if (commandStruct.commandID == 'Rset') {
-      if(g->on){
-	   csoundReset(g->cs);
-	   g->on=0;
-	   }
+    if (commandStruct.commandID == 'Rset') {
+      if (g->on) {
+        csoundReset(g->cs);
+        g->on = 0;
+      }
     }
 
     if (commandStruct.commandID == 'Comp') {
@@ -307,14 +311,14 @@ OSStatus MainWindowHandler(EventHandlerCallRef inHandlerCallRef,
 pascal void Process(EventLoopTimerRef theTimer, void *userData)
 {
     globals *g = (globals *) userData;
-	int res = 0;
+    int     res = 0;
 
     if (!g->pause && g->on)
       res = csoundPerformBuffer(g->cs);
-	if (res != 0) {
-	csoundReset(g->cs);
-	g->on = 0;
-	}
+    if (res != 0) {
+      csoundReset(g->cs);
+      g->on = 0;
+    }
 }
 
 void TimerInit(globals *g)
@@ -377,7 +381,7 @@ int main(int argc, char *argv[])
     g.timer = &timer;
     g.mainwindow = &window;
     g.manopen = 0;
-	g.mess=1;
+    g.mess = 1;
 
     err = CreateNibReference(CFSTR("main"), &nibRef);
     require_noerr(err, CantGetNibRef);
