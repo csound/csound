@@ -99,7 +99,7 @@
  * API function pointers and public members of the CSOUND structure.
  */
 
-  /**
+  /*
    * Platform-dependent definitions and declarations.
    */
 
@@ -187,7 +187,7 @@ extern "C" {
 #define CSOUND_CONTROL_CHANNEL_LIN  2
 #define CSOUND_CONTROL_CHANNEL_EXP  3
 
-  /**
+  /*
    * TYPE DEFINITIONS
    */
 
@@ -225,7 +225,7 @@ extern "C" {
     int         type;
   } CsoundChannelListEntry;
 
-  /**
+  /*
    * Forward declarations.
    */
 
@@ -236,7 +236,7 @@ extern "C" {
 
 #ifndef CSOUND_CSDL_H
 
-  /**
+  /*
    * INSTANTIATION
    */
 
@@ -329,7 +329,7 @@ extern "C" {
    */
   PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
 
-  /**
+  /*
    * PERFORMANCE
    */
 
@@ -413,7 +413,7 @@ extern "C" {
    */
   PUBLIC void csoundReset(CSOUND *);
 
-  /**
+  /*
    * ATTRIBUTES
    */
 
@@ -519,7 +519,7 @@ extern "C" {
    */
   PUBLIC double csoundGetScoreTime(CSOUND *);
 
-  /**
+  /*
    * SCORE HANDLING
    */
 
@@ -588,7 +588,7 @@ extern "C" {
   PUBLIC int csoundScoreExtract(CSOUND *,
                                 FILE *inFile, FILE *outFile, FILE *extractFile);
 
-  /**
+  /*
    * MESSAGES & TEXT
    */
 
@@ -639,7 +639,7 @@ extern "C" {
    */
   PUBLIC void csoundKeyPress(CSOUND *, char c);
 
-  /**
+  /*
    * CONTROL AND EVENTS
    */
 
@@ -681,7 +681,7 @@ extern "C" {
   PUBLIC int csoundScoreEvent(CSOUND *,
                               char type, const MYFLT *pFields, long numFields);
 
-  /**
+  /*
    * MIDI
    */
 
@@ -708,7 +708,7 @@ extern "C" {
   PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
                     const char *(*func)(int));
 
-  /**
+  /*
    * FUNCTION TABLE DISPLAY
    */
 
@@ -765,7 +765,7 @@ extern "C" {
   PUBLIC void csoundSetExitGraphCallback(CSOUND *,
                             int (*exitGraphCallback_)(CSOUND *));
 
-  /**
+  /*
    * OPCODES
    */
 
@@ -796,7 +796,7 @@ extern "C" {
                                 int (*kopadr)(CSOUND *, void *),
                                 int (*aopadr)(CSOUND *, void *));
 
-  /**
+  /*
    * MISCELLANEOUS FUNCTIONS
    */
 
