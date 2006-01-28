@@ -6,7 +6,7 @@ if [ "$#" != "1" ] ; then
     exit 1 ;
 fi
 
-PKGDIR="../__csound5_src/csound-${1}"
+PKGDIR="../__csound5_src/Csound${1}"
 rm -Rf "../__csound5_src"
 mkdir -p -m 0755 "../__csound5_src"
 mkdir -p -m 0755 "${PKGDIR}"
@@ -34,10 +34,10 @@ find . -type f -iname "*.sh" -exec chmod 755 "{}" \;
 find strings -type f -exec chmod 644 "{}" \;
 
 cd ..
-tar -c -v --group=0 --owner=0 -f "csound-${1}.tar" "csound-${1}"
-chmod 644 "csound-${1}.tar"
-gzip -9 "csound-${1}.tar"
-zip -9 -r -X -o "csound-${1}.zip" "csound-${1}"
+tar -c -v --group=0 --owner=0 -f "Csound${1}.tar" "Csound${1}"
+chmod 644 "Csound${1}.tar"
+gzip -9 "Csound${1}.tar"
+zip -9 -r -X -o "Csound${1}.zip" "Csound${1}"
 
 cd "${SAVED_PWD}"
 
