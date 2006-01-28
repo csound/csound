@@ -419,7 +419,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  File C:\utah\opt\C:\utah\opt\libsndfile-1.0.13\src\.libs
+  File C:\utah\opt\libsndfile-1.0.13\src\.libs\libsndfile-1.dll
   File C:\utah\opt\Lazzarini\portaudio.dll
   File C:\utah\usr\mingw\bin\mingwm10.dll
   File C:\utah\opt\portmidi\pm_win\*.dll
