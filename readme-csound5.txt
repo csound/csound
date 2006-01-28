@@ -1,5 +1,5 @@
 CSOUND AND CSOUND VST
-Version 5.0rc2
+Version 5.00
 
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
