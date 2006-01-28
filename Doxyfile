@@ -186,7 +186,7 @@ ALIASES                =
 # For instance, some of the names that are used will be different. The list 
 # of all members will be omitted, etc.
 
-OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_FOR_C  = YES
 
 # Set the OPTIMIZE_OUTPUT_JAVA tag to YES if your project consists of Java sources 
 # only. Doxygen will then generate output that is more tailored for Java. 
@@ -433,50 +433,26 @@ INPUT                  =
 # *.h++ *.idl *.odl *.cs *.php *.php3 *.inc *.m *.mm
 
 FILE_PATTERNS          = \
-csound.h \
-cs.h \
-csoundCore.h \
-csdl.h \
-csoundvst_api.h \
 *.hpp \
-AiffData.h \
-AiffFile.h \
-Analyzer.h \
-AssociateBandwidth.h \
-Breakpoint.h \
-BreakpointEnvelope.h \
-BreakpointUtils.h \
-Channelizer.h \
-Dilator.h \
-Distiller.h \
-Endian.h \
-Envelope.h \
-Exception.h \
-Filter.h \
-FourierTransform.h \
-FrequencyReference.h \
-ImportLemur.h \
-KaiserWindow.h \
-Marker.h \
-Morpher.h \
-NoiseGenerator.h \
-Notifier.h \
-Oscillator.h \
-Partial.h \
-PartialBuilder.h \
-PartialList.h \
-PartialPtrs.h \
-PartialUtils.h \
-ReassignedSpectrum.h \
-Resampler.h \
-SdifFile.h \
-Sieve.h \
-SpcFile.h \
-SpectralPeakSelector.h \
-SpectralPeaks.h \
-Synthesizer.h \
-loris.h\
-lorisException_pi.h
+H/cfgvar.h \
+H/cscore.h \
+H/csdl.h \
+H/csmodule.h  \   
+H/csound.h \
+H/csound.hpp \
+H/csoundCore.h \
+H/cwindow.h \
+H/fftlib.h \
+H/msg_attr.h \
+H/OpcodeBase.hpp \
+H/pstream.h \
+H/pvfileio.h \
+H/soundio.h \
+H/sysdep.h \
+H/text.h \
+H/version.h \
+interfaces\*.h \
+interfaces\*.hpp 
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
@@ -488,7 +464,8 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = 
+EXCLUDE                = \
+
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or directories 
 # that are symbolic links (a Unix filesystem feature) are excluded from the input.
