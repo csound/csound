@@ -1,7 +1,7 @@
 ;NSIS Modern Csound5 Install Script
 
-!define PRODUCT "Csound"
-!define VERSION "5rc2"
+!define PRODUCT "Csound5.00-windows"
+!define VERSION ""
 !define PROGRAM "csound"
 
 !include "MUI.nsh"
@@ -419,7 +419,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  File ..\..\windows_dlls\libsndfile-1.dll
+  File C:\utah\opt\C:\utah\opt\libsndfile-1.0.13\src\.libs
   File C:\utah\opt\Lazzarini\portaudio.dll
   File C:\utah\usr\mingw\bin\mingwm10.dll
   File C:\utah\opt\portmidi\pm_win\*.dll
