@@ -1,4 +1,4 @@
-/**
+/*
  * FLUID SYNTH OPCODES
  *
  * Adapts Fluidsynth to use global engines, soundFonts, and outputs
