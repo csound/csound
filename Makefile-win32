@@ -20,14 +20,10 @@ CFLAGS += -DPIC
 LDFLAGS = -L.
 LIBS = D:/MinGW/bin/libsndfile-1.dll -lgdi32 -luser32 -lkernel32 -lm
 PYINCDIR = D:/MinGW/Python/include
-PYLIB = python23.dll
+PYLIB = python24.dll
 
 PLUGINS =	ftest.dll mixer.dll modal4.dll physmod.dll pitch.dll	\
-		scansyn.dll sfont.dll stdopcod.dll			\
-		cvanal.dll dnoise.dll envext.dll extractor.dll		\
-		het_export.dll het_import.dll hetro.dll lpanal.dll	\
-		lpc_export.dll lpc_import.dll mixer_util.dll pvanal.dll	\
-		pvlook.dll scale.dll sndinfo.dll srconv.dll		\
+		scansyn.dll sfont.dll stdopcod.dll stdutil.dll		\
 		widgets.dll rtpa.dll rtwinmm.dll pmidi.dll
 
 UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe mixer.exe	\
@@ -131,53 +127,13 @@ rtwinmm.dll: InOut/rtwinmm.o
 pmidi.dll: InOut/pmidi.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lportmidi -lporttime -lwinmm $(LIBS)
 
-cvanal.dll: util/cvanal.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-dnoise.dll: util/dnoise.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-envext.dll: util/envext.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-extractor.dll: util/xtrct.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-het_export.dll: util/het_export.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-het_import.dll: util/het_import.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-hetro.dll: util/hetro.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-lpanal.dll: util/lpanal.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-mixer_util.dll: util/mixer.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-lpc_export.dll: util/lpc_export.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-lpc_import.dll: util/lpc_import.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-pvanal.dll: util/pvanal.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-pvlook.dll: util/pvlook.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-scale.dll: util/scale.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-sndinfo.dll: util/sndinfo.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
-
-srconv.dll: util/srconv.o
-	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
+stdutil.dll:	util/cvanal.o util/dnoise.o util/envext.o util/xtrct.o	\
+		util/het_export.o util/het_import.o util/hetro.o	\
+		util/lpanal.o util/lpc_export.o util/lpc_import.o	\
+		util/mixer.o util/pvanal.o util/pvlook.o util/scale.o	\
+		util/sndinfo.o util/srconv.o				\
+		util/std_util.o
+	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
 
 %.dll: Opcodes/%.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
