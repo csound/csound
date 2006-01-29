@@ -43,9 +43,9 @@ rawWaveDir  = instPrefix + '/share/csound/rawwaves'
 # Python version to use
 pyVersion   = '2.4'
 # csnd.py
-pythonDir   = '/usr/lib/python' + pyVersion
+pythonDir   = '/usr/lib/python' + pyVersion + '/site-packages'
 # _csnd.so
-pythonDir2  = pythonDir + '/lib-dynload'
+pythonDir2  = pythonDir
 # csoundapi~.pd_linux
 pdDir       = '/usr/local/lib/pd/extra'
 
@@ -139,7 +139,10 @@ os.makedirs(pkgDir, 0755)
 for i in [binDir, libDir, binDir2, includeDir, libDir2, pluginDir32,
           pluginDir64, xmgDir, docDir, pythonDir, pythonDir2, pdDir, tclDir,
           javaDir, lispDir, rawWaveDir]:
-    os.makedirs('%s%s' % (pkgDir, i), 0755)
+    try:
+        os.makedirs('%s%s' % (pkgDir, i), 0755)
+    except:
+        pass
 
 # copy header files
 
