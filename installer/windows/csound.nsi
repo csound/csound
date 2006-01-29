@@ -1,7 +1,7 @@
 ;NSIS Modern Csound5 Install Script
 
 !define PRODUCT "Csound"
-!define VERSION "windows"
+!define VERSION "win32"
 !define PROGRAM "Csound5.00"
 
 !include "MUI.nsh"
