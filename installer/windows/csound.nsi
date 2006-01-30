@@ -410,6 +410,7 @@ Section "${PRODUCT}" SecCopyUI
   SetOutPath $INSTDIR
   File ..\..\etc\.csoundrc
   File ..\..\readme-csound5.txt
+  File ..\..\INSTALL
   
   SetOutPath $INSTDIR\bin
   File ..\..\csound.dll
