@@ -195,13 +195,20 @@ extern "C" {
    * Real-time audio parameters structure
    */
   typedef struct {
-    char    *devName;       /* device name (NULL/empty: default)          */
-    int     devNum;         /* device number (0-1023), 1024: default      */
-    int     bufSamp_SW;     /* buffer fragment size (-b) in sample frames */
-    int     bufSamp_HW;     /* total buffer size (-B) in sample frames    */
-    int     nChannels;      /* number of channels                         */
-    int     sampleFormat;   /* sample format (AE_SHORT etc.)              */
-    float   sampleRate;     /* sample rate in Hz                          */
+    /** device name (NULL/empty: default) */
+    char    *devName;
+    /** device number (0-1023), 1024: default */
+    int     devNum;
+    /** buffer fragment size (-b) in sample frames */
+    int     bufSamp_SW;
+    /** total buffer size (-B) in sample frames */
+    int     bufSamp_HW;
+    /** number of channels */
+    int     nChannels;
+    /** sample format (AE_SHORT etc.) */
+    int     sampleFormat;
+    /** sample rate in Hz */
+    float   sampleRate;
   } csRtAudioParams;
 
   typedef struct RTCLOCK_S {
@@ -685,28 +692,49 @@ extern "C" {
    * MIDI
    */
 
-  /* Set real time MIDI callback function pointers. */
-
+  /**
+   * Sets callback for opening real time MIDI input.
+   */
   PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
-                    int (*func)(CSOUND *, void **, const char *));
+            int (*func)(CSOUND *, void **userData, const char *devName));
 
+  /**
+   * Sets callback for reading from real time MIDI input.
+   */
   PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
-                    int (*func)(CSOUND *, void *, unsigned char *, int));
+            int (*func)(CSOUND *, void *userData,
+                                  unsigned char *buf, int nBytes));
 
+  /**
+   * Sets callback for closing real time MIDI input.
+   */
   PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
-                    int (*func)(CSOUND *, void *));
+            int (*func)(CSOUND *, void *userData));
 
+  /**
+   * Sets callback for opening real time MIDI output.
+   */
   PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
-                    int (*func)(CSOUND *, void **, const char *));
+            int (*func)(CSOUND *, void **userData, const char *devName));
 
+  /**
+   * Sets callback for writing to real time MIDI output.
+   */
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-                    int (*func)(CSOUND *, void *, const unsigned char *, int));
+            int (*func)(CSOUND *, void *userData,
+                                  const unsigned char *buf, int nBytes));
 
+  /**
+   * Sets callback for closing real time MIDI output.
+   */
   PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *,
-                    int (*func)(CSOUND *, void *));
+            int (*func)(CSOUND *, void *userData));
 
+  /**
+   * Sets callback for converting MIDI error codes to strings.
+   */
   PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
-                    const char *(*func)(int));
+            const char *(*func)(int));
 
   /*
    * FUNCTION TABLE DISPLAY
@@ -826,7 +854,7 @@ extern "C" {
    */
   PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback_)(CSOUND *));
 
-  /**
+  /*
    * REAL-TIME AUDIO PLAY AND RECORD
    */
 
