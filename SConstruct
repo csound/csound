@@ -540,10 +540,10 @@ elif getPlatform() == 'linux':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
 csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Copy()
 
-buildOSXFramework = False
+buildOSXFramework = 0
 if getPlatform() == 'darwin':
     if commonEnvironment['dynamicCsoundLibrary'] == '1':
-        buildOSXFramework = True
+        buildOSXFramework = 1
         csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy()
 
 def MacOSX_InstallHeader(headerName):
