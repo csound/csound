@@ -1,7 +1,7 @@
 Summary: Csound - sound synthesis language and library
 Name: csound
-Version: 5.00.0
-Release: 5
+Version: 5.00.1
+Release: 1
 URL: http://csound.sourceforge.net/
 License: LGPL
 Group: Applications/Multimedia
@@ -13,6 +13,7 @@ Csound is a sound and music synthesis system, providing facilities for compositi
 Authors:
 --------
     Allan Lee
+    Barry Vercoe
     Bill Gardner
     Bill Verplank
     Dan Ellis
