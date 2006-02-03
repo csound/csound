@@ -1,3 +1,10 @@
+2006-02-03	Istvan Varga	<ivarga@csounds.com>
+	* Engine/rdorch.c:
+	  fixed crash on extra ) in expressions
+	* Engine/rdorch.c:
+	  fixed crash on missing whitespace between if/elseif and (
+	  this needs more testing
+
 2006-01-25	Istvan Varga	<ivarga@csounds.com>
 		Anthony Kozar	<anthonykozar@sbcglobal.net>
 	* Opcodes/mixer.cpp: "OpcodeBase.hpp", not <OpcodeBase.hpp>
