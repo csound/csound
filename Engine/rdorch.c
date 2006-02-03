@@ -795,9 +795,43 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
                                                + 200 * sizeof(char*));
 }
 
+static void extend_collectbuf(CSOUND *csound, char **cp, int grpcnt)
+{
+    char  *nn;
+    int   i;
+
+    i = (int) ST(lenmax);
+    ST(lenmax) += LENMAX;
+    nn = mrealloc(csound, ST(collectbuf), ST(lenmax));
+    (*cp) += (nn - ST(collectbuf));     /* Adjust pointer */
+    for ( ; i < (int) ST(lenmax); i++)
+      nn[i] = (char) 0;
+    /* Need to correct grp vector */
+    for (i = 0; i < grpcnt; i++)
+      ST(group)[i] += (nn - ST(collectbuf));
+    ST(collectbuf) = nn;
+}
+
+static void extend_group(CSOUND *csound)
+{
+    long  i, j;
+
+    i = ST(grpmax);
+    j = i + (long) GRPMAX;
+    ST(grpmax) = (j++);
+    ST(group) = (char **) mrealloc(csound, ST(group), j * sizeof(char *));
+    ST(grpsav) = (char **) mrealloc(csound, ST(grpsav), j * sizeof(char *));
+    while (++i < j) {
+      ST(group)[i] = (char *) NULL;
+      ST(grpsav)[i] = (char *) NULL;
+    }
+}
+
+/* split next orch line into atomic groups, count */
+/*  labels this line, and set opgrpno where found */
+
 static int splitline(CSOUND *csound)
-{                          /* split next orch line into atomic groups, count */
-                           /*  labels this line, and set opgrpno where found */
+{
     int     grpcnt, prvif, prvelsif, logical, condassgn, parens;
     int     c, collecting;
     char    *cp, *lp, *grpp = NULL;
@@ -811,98 +845,20 @@ static int splitline(CSOUND *csound)
     ST(linlabels) = ST(opgrpno) = 0;
     grpcnt = prvif = prvelsif = logical = condassgn = parens = collecting = 0;
     cp = ST(collectbuf);
-    while ((c = *lp++) != '\n') {         /* for all chars this line:  */
-      if (cp - ST(collectbuf) >= ST(lenmax)) {
-        char  *nn;
-        int   i;
-        ST(lenmax) += LENMAX;
-        nn = mrealloc(csound, ST(collectbuf), ST(lenmax));
-        cp += (nn - ST(collectbuf));      /* Adjust pointer */
-        /* Need to correct grp vector */
-        for (i = 0; i < grpcnt; i++)
-          ST(group)[i] += (nn - ST(collectbuf));
-        ST(collectbuf) = nn;
-      }
-      if (c == '"') {                     /* quoted string: */
-        if (grpcnt >= ST(grpmax)) {
-          ST(grpmax) += GRPMAX;
-          ST(group) = (char**) mrealloc(csound, ST(group), (ST(grpmax) + 1)
-                                                           * sizeof(char*));
-          ST(grpsav) = (char**) mrealloc(csound, ST(grpsav), (ST(grpmax) + 1)
-                                                             * sizeof(char*));
-        }
-        grpp = ST(group)[grpcnt++] = cp;
-        *cp++ = c;                        /*  cpy to nxt quote */
-        while ((*cp++ = c = *lp++) != '"' && c != '\n');
-        if (c == '\n')
-          synterrp(csound, lp - 1, Str("unmatched quotes"));
-        collecting = 1;                   /*   & resume chking */
-        continue;
-      }
-      if (c == '{' && *lp == '{') {       /* multiline quoted string:    */
-        if (grpcnt >= ST(grpmax)) {
-          ST(grpmax) += GRPMAX;
-          ST(group) = (char **) mrealloc(csound, ST(group), (ST(grpmax) + 1)
-                                                            * sizeof(char*));
-          ST(grpsav) = (char **) mrealloc(csound, ST(grpsav), (ST(grpmax) + 1)
-                                                              * sizeof(char*));
-        }
-        grpp = ST(group)[grpcnt++] = cp;
-        c = '"';                          /*  cpy to nxt quote */
-        do {
-          *cp++ = c;
-          if (cp - ST(collectbuf) >= ST(lenmax)) {
-            char  *nn;
-            int   i;
-            ST(lenmax) += LENMAX;
-            nn = mrealloc(csound, ST(collectbuf), ST(lenmax));
-            cp += (nn - ST(collectbuf));  /* Adjust pointer */
-            /* Need to correct grp vector */
-            for (i = 0; i < grpcnt; i++)
-              ST(group)[i] += (nn - ST(collectbuf));
-            ST(collectbuf) = nn;
-          }
-          c = *(++lp);
-          if (c == '\n')
-            ++ST(curline);
-        } while (!(c == '}' && lp[1] == '}'));
-        lp += 2;
-        *cp++ = '"';
-        collecting = 1;                   /*   & resume chking */
-        continue;
-      }
-      if (c == ';') {
-        while ((c = *lp++) != '\n');    /* comments:  gobble */
-        break;                          /*    & exit linloop */
-      }
-      if (c == '/' && *lp == '*') { /* C Style comments */
-        char *ll, *eol;
-        ll= strstr(lp++, "*/");
-      nxtl:
-        eol = strchr(lp, '\n');
-        if (eol!=NULL && eol<ll) {
-          lp = ST(linadr)[++ST(curline)];
-          ll= strstr(lp, "*/");
-          goto nxtl;
-        }
-        if (ll == NULL) {
-          synterrp(csound, lp - 2, Str("Unmatched comment"));
-          lp = eol+1; break;
-        }
-        lp = ll+2;
-        continue;
-      }
-      if (c == ' ' || c == '\t') {          /* spaces, tabs:      */
-        if (!ST(opgrpno) && collecting) {   /*  those before args */
-          *cp++ = '\0';                     /*  can be delimitrs  */
+    while ((c = *lp++) != '\n') {       /* for all chars this line:   */
+      if (cp - ST(collectbuf) >= ST(lenmax))
+        extend_collectbuf(csound, &cp, grpcnt);
+      if (c == ' ' || c == '\t' || c == '(') {  /* spaces, tabs, (:   */
+        if (!ST(opgrpno) && collecting) {       /*  those before args */
+          *cp++ = '\0';                         /*  can be delimiters */
           collecting = 0;
-          if (strcmp(grpp, "if") == 0) {    /* of if opcod */
-            strcpy(grpp, "cggoto");         /* (replace) */
+          if (strcmp(grpp, "if") == 0) {        /* of if opcod, */
+            strcpy(grpp, "cggoto");             /* (replace) */
             cp = grpp + 7;
             prvif++;
           }
-          else if (strcmp(grpp, "elseif") == 0) {       /* of elseif opcod */
-            if (!ST(iflabels)) {    /* check to see we had an 'if' before  */
+          else if (strcmp(grpp, "elseif") == 0) {       /* of elseif opcod, */
+            if (!ST(iflabels)) {    /* check to see we had an 'if' before   */
               synterr(csound, Str("invalid 'elseif' statement.  "
                                   "must have a corresponding 'if'"));
               goto nxtlin;
@@ -946,18 +902,69 @@ static int splitline(CSOUND *csound)
               return(grpcnt);
             }
           }
-          if (isopcod(csound, grpp))        /*   or maybe others */
+          if (isopcod(csound, grpp))        /* ...or maybe others */
             ST(opgrpno) = grpcnt;
         }
-        continue;                           /* now discard blanks*/
+        if (c == ' ' || c == '\t')
+          continue;                         /* now discard blanks */
       }
-      if (c == ':' && collecting && grpcnt == ST(linlabels)+1) {
+      else if (c == ';') {
+        while ((c = *lp++) != '\n');        /* comments:  gobble */
+        break;                              /*    & exit linloop */
+      }
+      else if (c == '/' && *lp == '*') {    /* C Style comments */
+        char *ll, *eol;
+        ll = strstr(lp++, "*/");
+      nxtl:
+        eol = strchr(lp, '\n');
+        if (eol != NULL && eol < ll) {
+          lp = ST(linadr)[++ST(curline)];
+          ll = strstr(lp, "*/");
+          goto nxtl;
+        }
+        if (ll == NULL) {
+          synterrp(csound, lp - 2, Str("Unmatched comment"));
+          lp = eol + 1; break;
+        }
+        lp = ll + 2;
+        continue;
+      }
+      else if (c == '"') {                  /* quoted string: */
+        if (grpcnt >= ST(grpmax))
+          extend_group(csound);
+        grpp = ST(group)[grpcnt++] = cp;
+        *cp++ = c;                          /*  cpy to nxt quote */
+        while ((*cp++ = c = *lp++) != '"' && c != '\n');
+        if (c == '\n')
+          synterrp(csound, lp - 1, Str("unmatched quotes"));
+        collecting = 1;                     /*   & resume chking */
+        continue;
+      }
+      else if (c == '{' && *lp == '{') {    /* multiline quoted string:   */
+        if (grpcnt >= ST(grpmax))
+          extend_group(csound);
+        grpp = ST(group)[grpcnt++] = cp;
+        c = '"';                            /*  cpy to nxt quote */
+        do {
+          *cp++ = c;
+          if (cp - ST(collectbuf) >= ST(lenmax))
+            extend_collectbuf(csound, &cp, grpcnt);
+          c = *(++lp);
+          if (c == '\n')
+            ++ST(curline);
+        } while (!(c == '}' && lp[1] == '}'));
+        lp += 2;
+        *cp++ = '"';
+        collecting = 1;                     /*   & resume chking */
+        continue;
+      }
+      else if (c == ':' && collecting && grpcnt == ST(linlabels)+1) {
         ST(linlabels)++;                    /* colon in 1st grps */
         *cp++ = '\0';                       /*  is also delimitr */
         collecting = 0;                     /*  (do not copy it) */
         continue;
       }
-      if (c == '=' && !ST(opgrpno)) {       /* assign befor args */
+      else if (c == '=' && !ST(opgrpno)) {  /* assign befor args */
         if (collecting)                     /* can be a delimitr */
           *cp++ = '\0';
         grpp = ST(group)[grpcnt++] = cp;    /* is itslf an opcod */
@@ -968,7 +975,7 @@ static int splitline(CSOUND *csound)
         collecting = 0;                     /* & self-delimiting */
         continue;
       }
-      if (c == ',') {                       /* comma:            */
+      else if (c == ',') {                  /* comma:            */
         if (!collecting)
           synterrp(csound, lp - 1, Str("misplaced comma"));
         if (parens) {
@@ -1053,11 +1060,8 @@ static int splitline(CSOUND *csound)
         }
       }
       if (!collecting++) {              /* remainder are     */
-        if (grpcnt >= ST(grpmax)) {     /* collectable chars */
-          ST(grpmax) += GRPMAX;
-          ST(group) = (char**)  mcalloc(csound, (ST(grpmax)+1) * sizeof(char*));
-          ST(grpsav) = (char**) mcalloc(csound, (ST(grpmax)+1) * sizeof(char*));
-        }
+        if (grpcnt >= ST(grpmax))       /* collectable chars */
+          extend_group(csound);
         grpp = ST(group)[grpcnt++] = cp;
       }
       if (*lp == c && (c == '<' || c == '>')) {         /* <<, >> */
@@ -1081,8 +1085,13 @@ static int splitline(CSOUND *csound)
         ;
       else if (c == '(')
         parens++;                       /* and monitor function */
-      else if (c == ')')
+      else if (c == ')') {
+        if (!parens) {
+          synterrp(csound, lp - 1, Str("unbalanced parens"));
+          continue;
+        }
         --parens;
+      }
       else if (c == '?' && logical)
         condassgn++;
       else if (c == ':' && condassgn)
@@ -1130,7 +1139,7 @@ static int splitline(CSOUND *csound)
           grpp = ST(group)[grpcnt++] = cp;
           strcpy(grpp, ST(iflabels)->end);
           cp += strlen(ST(iflabels)->end);
-          ST(curline)--; /* roll back one and parse this line again */
+          ST(curline)--;        /* roll back one and parse this line again */
           ST(repeatingElseLine) = 1;
         }
       }
@@ -1139,7 +1148,7 @@ static int splitline(CSOUND *csound)
                 strchr(" \t\r\n", grpp[5]) != NULL)) {
         /* replace 'endif' with the synthesized label */
         struct iflabel *prv;
-        if (!ST(iflabels)) { /* check to see we had an 'if' before  */
+        if (!ST(iflabels)) {    /* check to see we had an 'if' before  */
           synterr(csound, Str("invalid 'endif' statement.  "
                               "must have a corresponding 'if'"));
           goto nxtlin;
@@ -1150,7 +1159,7 @@ static int splitline(CSOUND *csound)
           strcpy(grpp, ST(iflabels)->els);
           cp = grpp + strlen(ST(iflabels)->els);
           ST(iflabels)->els[0] = '\0';
-          ST(curline)--; /* roll back one and parse this line again */
+          ST(curline)--;        /* roll back one and parse this line again */
         }
         else {
           prv = ST(iflabels)->prv;
@@ -1178,7 +1187,8 @@ static int splitline(CSOUND *csound)
     }
     ST(linopnum) = ST(opnum);                     /* else save full line ops */
     ST(linopcod) = ST(opcod);
-    if (csound->oparms->odebug) printgroups(csound, grpcnt);
+    if (csound->oparms->odebug)
+      printgroups(csound, grpcnt);
     return grpcnt;
 }
 
