@@ -27,14 +27,16 @@ print __doc__
 import gc
 import sys
 import time
-# Change enableCsound to True if you have installed CsoundVST.
-# Importing CsoundVST automatically creates a csound object.
+# Change enableCsound to True if you have installed Csound.
 enableCsound = True
 keepPlaying = True
 if enableCsound:
-    import CsoundVST
+    import csnd
+    csound = csnd.CppSound()
+    csound.setPythonMessageCallback()
 from visual import *
 import random
+import threading
 scene.title = "VOICE-LEADING ORBIFOLD: click ball=play, drag right button=spin, drag middle button=zoom, close window to stop"
 scene.fullscreen = 0
 scene.width = 800
@@ -91,7 +93,7 @@ def setColor(ball):
             ball.color = color.hsv_to_rgb((hue, saturation, value))
 voices = 3
 modulus = 12
-octaves = 2
+octaves = 1
 layers = (modulus - 1) * voices * octaves
 trichordCount = 0
 for layer in xrange(0, layers + 1):
@@ -134,12 +136,12 @@ for trichord in trichords.values():
 if enableCsound:
     def csoundThreadRoutine():
         csound.load('c:/utah/home/mkg/projects/csound5/examples/CsoundVST.csd')
-        csound.setCommand('csound -d -m0 -b400 -B1200 -odac2 temp.orc temp.sco')
+        csound.setCommand('csound -d -m0 -b1200 -B2400 -odac temp.orc temp.sco')
         csound.exportForPerformance()
         gc.disable()
         csound.compile()
         while keepPlaying:
-            csound.performKsmps()
+            csound.performKsmps(True)
     csoundThread = threading.Thread(None, csoundThreadRoutine)
     csoundThread.start()
 pickedBall = None
