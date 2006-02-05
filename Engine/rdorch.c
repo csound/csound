@@ -986,7 +986,7 @@ static int splitline(CSOUND *csound)
         collecting = logical = condassgn = 0;
         continue;
       }
-      if (prvif && collecting) {            /* for prev "if":    */
+      if (prvif && collecting && !parens) { /* for prev "if":    */
         if (strncmp(lp-1,"goto",4) == 0) {  /* if found "goto"   */
           *cp++ = '\0';                     /*      delimit cond */
           lp += 3;                          /*      & step over  */
