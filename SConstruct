@@ -491,6 +491,19 @@ if getPlatform() == 'linux' and commonEnvironment['useDouble'] != '0':
 libCsoundLinkFlags = []
 libCsoundLibs = [csoundLibraryName, 'sndfile']
 
+buildOSXFramework = 0
+if getPlatform() == 'darwin':
+    if commonEnvironment['dynamicCsoundLibrary'] != '0':
+        buildOSXFramework = 1
+        CsoundLib_OSX = 'CsoundLib'
+        # comment the next two lines out to disable building a separate
+        # framework (CsoundLib64) for double precision
+        if commonEnvironment['useDouble'] != '0':
+            CsoundLib_OSX += '64'
+        OSXFrameworkBaseDir = '%s.Framework' % CsoundLib_OSX
+        tmp = OSXFrameworkBaseDir + '/Versions/%s'
+        OSXFrameworkCurrentVersion = tmp % csoundLibraryVersion
+
 csoundLibraryEnvironment = commonEnvironment.Copy()
 csoundLibraryEnvironment.Append(CPPFLAGS = ['-D__BUILDING_LIBCSOUND'])
 if configure.CheckSndFile1013():
@@ -506,14 +519,13 @@ if commonEnvironment['buildRelease'] != '0':
             tmp += '64'
         s = '-DCS_DEFAULT_PLUGINDIR=\\"%s\\"' % tmp
         csoundLibraryEnvironment.Append(CPPFLAGS = [s])
-    elif getPlatform() == 'darwin':
-        if commonEnvironment['dynamicCsoundLibrary'] != '0':
-            tmp = '/Library/Frameworks/CsoundLib.Framework'
-            tmp += '/Versions/%s/Resources/Opcodes' % csoundLibraryVersion
-            if commonEnvironment['useDouble'] != '0':
-                tmp += '64'
-            s = '-DCS_DEFAULT_PLUGINDIR=\\"%s\\"' % tmp
-            csoundLibraryEnvironment.Append(CPPFLAGS = [s])
+    elif buildOSXFramework != 0:
+        tmp = '/Library/Frameworks/%s' % OSXFrameworkCurrentVersion
+        tmp += '/Resources/Opcodes'
+        if commonEnvironment['useDouble'] != '0':
+            tmp += '64'
+        s = '-DCS_DEFAULT_PLUGINDIR=\\"%s\\"' % tmp
+        csoundLibraryEnvironment.Append(CPPFLAGS = [s])
 csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Copy()
 csoundDynamicLibraryEnvironment.Append(LIBS = ['sndfile'])
 if getPlatform() == 'mingw':
@@ -540,38 +552,55 @@ elif getPlatform() == 'linux':
     csoundDynamicLibraryEnvironment.Append(LIBS = ['dl', 'm', 'pthread'])
 csoundInterfacesEnvironment = csoundDynamicLibraryEnvironment.Copy()
 
-buildOSXFramework = 0
-if getPlatform() == 'darwin':
-    if commonEnvironment['dynamicCsoundLibrary'] == '1':
-        buildOSXFramework = 1
-        csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy()
+if buildOSXFramework:
+    csoundFrameworkEnvironment = csoundDynamicLibraryEnvironment.Copy()
+    # create directory structure for the framework
+    tmp = [OSXFrameworkBaseDir]
+    tmp += ['%s/Versions' % OSXFrameworkBaseDir]
+    tmp += [OSXFrameworkCurrentVersion]
+    tmp += ['%s/Headers' % OSXFrameworkCurrentVersion]
+    tmp += ['%s/Resources' % OSXFrameworkCurrentVersion]
+    if commonEnvironment['useDouble'] == '0':
+        tmp += ['%s/Resources/Opcodes' % OSXFrameworkCurrentVersion]
+    else:
+        tmp += ['%s/Resources/Opcodes64' % OSXFrameworkCurrentVersion]
+    for i in tmp:
+        try:
+            os.mkdir(i, 0755)
+        except:
+            pass
+    # set up symbolic links
+    tmp = [['/Versions/Current', csoundLibraryVersion]]
+    tmp += [['/' + CsoundLib_OSX, 'Versions/Current/' + CsoundLib_OSX]]
+    tmp += [['/Headers', 'Versions/Current/Headers']]
+    tmp += [['/Resources', 'Versions/Current/Resources']]
+    for i in tmp:
+        try:
+            os.remove('%s/%s' % (OSXFrameworkBaseDir, i[0]))
+        except:
+            pass
+        os.symlink(i[1], '%s/%s' % (OSXFrameworkBaseDir, i[0]))
 
 def MacOSX_InstallHeader(headerName):
     if not buildOSXFramework:
         return
     baseName = headerName[(headerName.rfind('/') + 1):]
-    targetName = 'CsoundLib.Framework/Versions/%s' % csoundLibraryVersion
-    targetName += '/Headers/%s' % baseName
-    cmd = 'cd CsoundLib.Framework; '
-    cmd += 'ln -sf Versions/%s/Headers Headers; ' % csoundLibraryVersion
-    cmd += 'cd ..; '
-    cmd += 'cp -f %s %s' % (headerName, targetName)
+    targetName = '%s/Headers/%s' % (OSXFrameworkCurrentVersion, baseName)
+    cmd = 'cp -f %s %s' % (headerName, targetName)
     csoundFrameworkEnvironment.Command(targetName, headerName, cmd)
 
-def MacOSX_InstallPlugin(pluginName):
-    if not buildOSXFramework:
-        return
-    pluginDir = 'CsoundLib.Framework/Versions/' + csoundLibraryVersion
-    pluginDir += '/Resources/Opcodes'
-    if commonEnvironment['useDouble'] != '0':
-        pluginDir += '64'
-    fileName = 'lib' + pluginName + '.dylib'
-    cmd = 'cd CsoundLib.Framework; '
-    cmd += 'ln -sf Versions/' + csoundLibraryVersion + '/Resources Resources; '
-    cmd += 'cd ..; '
-    cmd += 'cp -f %s %s/' % (fileName, pluginDir)
-    csoundFrameworkEnvironment.Command('%s/%s' % (pluginDir, fileName),
-                                       fileName, cmd)
+def makePlugin(env, pluginName, srcs):
+    pluginLib = env.SharedLibrary(pluginName, srcs)
+    pluginLibraries.append(pluginLib)
+    if buildOSXFramework:
+        pluginDir = '%s/Resources/Opcodes' % OSXFrameworkCurrentVersion
+        if commonEnvironment['useDouble'] != '0':
+            pluginDir += '64'
+        fileName = 'lib' + pluginName + '.dylib'
+        cmd = 'cp -f %s %s/' % (fileName, pluginDir)
+        csoundFrameworkEnvironment.Command('%s/%s' % (pluginDir, fileName),
+                                           fileName, cmd)
+    return pluginLib
 
 libCsoundSources = Split('''
 Engine/auxfd.c
@@ -674,9 +703,7 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             libName2, libCsoundSources,
             SHLINKFLAGS = tmp, SHLIBPREFIX = '', SHLIBSUFFIX = '')
     elif getPlatform() == 'darwin':
-        libName = 'CsoundLib'
-        if commonEnvironment['useDouble'] != '0':
-            libName += '64'
+        libName = CsoundLib_OSX
         libVersion = csoundLibraryVersion
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
             -Xlinker -compatibility_version -Xlinker %s
@@ -685,32 +712,20 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             -Xlinker -current_version -Xlinker %s
         ''' % libVersion))
         csoundFrameworkEnvironment.Append(SHLINKFLAGS = Split('''
-            -install_name /Library/Frameworks/CsoundLib.Framework/%s
-        ''' % libName))
+            -install_name /Library/Frameworks/%s/%s
+        ''' % (OSXFrameworkCurrentVersion, libName)))
         csoundLibrary = csoundFrameworkEnvironment.SharedLibrary(
             libName, libCsoundSources, SHLIBPREFIX = '', SHLIBSUFFIX = '')
         csoundFrameworkEnvironment.Command(
-            'CsoundLib_current',
+            '%s/%s' % (OSXFrameworkCurrentVersion, libName),
             libName,
-            'cd CsoundLib.Framework/Versions; ln -sf %s Current' % libVersion)
-        csoundFrameworkEnvironment.Command(
-            'CsoundLib.Framework/Versions/%s/%s' % (libVersion, libName),
-            libName,
-            'cp -f %s CsoundLib.Framework/Versions/%s/' % (libName, libVersion))
-        csoundFrameworkEnvironment.Command(
-            'CsoundLib.Framework/%s' % libName,
-            'CsoundLib.Framework/Versions/%s/%s' % (libVersion, libName),
-            'cd CsoundLib.Framework; ln -sf Versions/%s/%s %s' % (libVersion, libName, libName))
+            'cp -f %s %s/' % (libName, OSXFrameworkCurrentVersion))
         csoundFrameworkEnvironment.Command(
             'CsoundLib_install',
             libName,
-            'rm -r /Library/Frameworks/CsoundLib.Framework; cp -R CsoundLib.Framework /Library/Frameworks')
+            'rm -r /Library/Frameworks/%s; cp -R %s /Library/Frameworks/' % (OSXFrameworkBaseDir, OSXFrameworkBaseDir))
         for i in headers:
             MacOSX_InstallHeader(i)
-        for i in Split('''
-            control ftest mixer modal4 physmod pitch scansyn sfont stdopcod
-        '''):
-            MacOSX_InstallPlugin(i)
         libCsoundLinkFlags = ['-F.', '-framework', libName, '-lsndfile']
         libCsoundLibs = []
     else:
@@ -791,8 +806,7 @@ if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
         portMidiEnvironment.Append(LIBS = ['winmm'])
     if getPlatform() == 'linux' and alsaFound:
         portMidiEnvironment.Append(LIBS = ['asound'])
-    pluginLibraries.append(portMidiEnvironment.SharedLibrary('pmidi',
-                                                             ['InOut/pmidi.c']))
+    makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
 else:
     print 'CONFIGURATION DECISION: Not building with PortMIDI.'
 
@@ -954,7 +968,7 @@ else:
 
 # Plugin opcodes.
 
-pluginLibraries.append(pluginEnvironment.SharedLibrary('stdopcod', Split('''
+makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/ambicode.c      Opcodes/babo.c          Opcodes/bbcut.c
     Opcodes/biquad.c        Opcodes/butter.c        Opcodes/clfilt.c
     Opcodes/cross2.c        Opcodes/dam.c           Opcodes/dcblockr.c
@@ -974,30 +988,26 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('stdopcod', Split('''
     Opcodes/uggab.c         Opcodes/ugmoss.c        Opcodes/ugnorman.c
     Opcodes/ugsc.c          Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
-''')))
+'''))
 
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
-    pluginLibraries.append(pluginEnvironment.SharedLibrary('control',
-        ['Opcodes/control.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('ftest',
-    ['Opcodes/ftest.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('mixer',
-    ['Opcodes/mixer.cpp']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('modal4',
-    ['Opcodes/modal4.c', 'Opcodes/physutil.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('physmod', Split('''
+    makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
+makePlugin(pluginEnvironment, 'ftest', ['Opcodes/ftest.c'])
+makePlugin(pluginEnvironment, 'mixer', ['Opcodes/mixer.cpp'])
+makePlugin(pluginEnvironment, 'modal4',
+           ['Opcodes/modal4.c', 'Opcodes/physutil.c'])
+makePlugin(pluginEnvironment, 'physmod', Split('''
     Opcodes/physmod.c Opcodes/physutil.c Opcodes/mandolin.c Opcodes/singwave.c
     Opcodes/fm4op.c Opcodes/moog1.c Opcodes/shaker.c Opcodes/bowedbar.c
-    ''')))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('pitch',
-    ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c']))
-pluginLibraries.append(pluginEnvironment.SharedLibrary('scansyn',
-    ['Opcodes/scansyn.c', 'Opcodes/scansynx.c']))
+'''))
+makePlugin(pluginEnvironment, 'pitch',
+           ['Opcodes/pitch.c', 'Opcodes/pitch0.c', 'Opcodes/spectra.c'])
+makePlugin(pluginEnvironment, 'scansyn',
+           ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
 sfontEnvironment = pluginEnvironment.Copy()
 if (commonEnvironment['MSVC'] == '0'):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
-pluginLibraries.append(sfontEnvironment.SharedLibrary('sfont',
-    ['Opcodes/sfont.c']))
+makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 
 # Plugins with External Dependencies
 
@@ -1024,9 +1034,8 @@ else:
             -framework Carbon -framework CoreAudio -framework CoreMidi
             -framework ApplicationServices
         '''))
-    pluginLibraries.append(widgetsEnvironment.SharedLibrary('widgets',
-        ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp']))
-    MacOSX_InstallPlugin('widgets')
+    makePlugin(widgetsEnvironment, 'widgets',
+               ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp'])
 
 # REAL TIME AUDIO
 
@@ -1034,9 +1043,7 @@ if commonEnvironment['useCoreAudio'] == '1' and getPlatform() == 'darwin':
     print "CONFIGURATION DECISION: Building CoreAudio plugin."
     coreaudioEnvironment = pluginEnvironment.Copy()
     coreaudioEnvironment.Append(CCFLAGS = ['-I/system/library/Frameworks/CoreAudio.framework/Headers'])
-    pluginLibraries.append(coreaudioEnvironment.SharedLibrary('rtcoreaudio',
-                                                        ['InOut/rtcoreaudio.c']))
-    MacOSX_InstallPlugin('rtcoreaudio')
+    makePlugin(coreaudioEnvironment, 'rtcoreaudio', ['InOut/rtcoreaudio.c'])
 else:
     print "CONFIGURATION DECISION: Not building CoreAudio plugin."
 
@@ -1046,14 +1053,12 @@ else:
     print "CONFIGURATION DECISION: Building ALSA plugin."
     alsaEnvironment = pluginEnvironment.Copy()
     alsaEnvironment.Append(LIBS = ['asound', 'pthread'])
-    pluginLibraries.append(alsaEnvironment.SharedLibrary('rtalsa',
-                                                         ['InOut/rtalsa.c']))
+    makePlugin(alsaEnvironment, 'rtalsa', ['InOut/rtalsa.c'])
 
 if getPlatform() == 'mingw':
     winmmEnvironment = pluginEnvironment.Copy()
     winmmEnvironment.Append(LIBS = ['winmm', 'gdi32', 'kernel32'])
-    pluginLibraries.append(winmmEnvironment.SharedLibrary('rtwinmm',
-                                                          ['InOut/rtwinmm.c']))
+    makePlugin(winmmEnvironment, 'rtwinmm', ['InOut/rtwinmm.c'])
 
 if not (commonEnvironment['usePortAudio'] == '1' and portaudioFound):
     print "CONFIGURATION DECISION: Not building PortAudio module."
@@ -1069,9 +1074,7 @@ else:
     elif getPlatform() == 'mingw':
         portaudioEnvironment.Append(LIBS = ['winmm', 'dsound'])
         portaudioEnvironment.Append(LIBS = csoundWindowsLibraries)
-    pluginLibraries.append(portaudioEnvironment.SharedLibrary('rtpa',
-                                                              ['InOut/rtpa.c']))
-    MacOSX_InstallPlugin('rtpa')
+    makePlugin(portaudioEnvironment, 'rtpa', ['InOut/rtpa.c'])
 
 if not (commonEnvironment['useJack'] == '1' and jackFound):
     print "CONFIGURATION DECISION: Not building JACK plugin."
@@ -1082,9 +1085,7 @@ else:
         jackEnvironment.Append(LIBS = ['jack', 'asound', 'pthread'])
     else:
         jackEnvironment.Append(LIBS = ['jack', 'pthread'])
-    pluginLibraries.append(jackEnvironment.SharedLibrary('rtjack',
-                                                         ['InOut/rtjack.c']))
-    MacOSX_InstallPlugin('rtjack')
+    makePlugin(jackEnvironment, 'rtjack', ['InOut/rtjack.c'])
 
 if not (commonEnvironment['useOSC'] == '1' and oscFound):
     print "CONFIGURATION DECISION: Not building OSC plugin."
@@ -1095,9 +1096,7 @@ else:
     if getPlatform() == 'mingw':
         oscEnvironment.Append(LIBS = csoundWindowsLibraries)
         oscEnvironment.Append(SHLINKFLAGS = ['-Wl,--enable-stdcall-fixup'])
-    pluginLibraries.append(oscEnvironment.SharedLibrary('osc',
-                                                        ['Opcodes/OSC.c']))
-    MacOSX_InstallPlugin('osc')
+    makePlugin(oscEnvironment, 'osc', ['Opcodes/OSC.c'])
 
 # FLUIDSYNTH OPCODES
 
@@ -1113,9 +1112,8 @@ else:
         fluidEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'linux' or getPlatform() == 'darwin':
         fluidEnvironment.Append(LIBS = ['pthread'])
-    pluginLibraries.append(fluidEnvironment.SharedLibrary('fluidOpcodes',
-        ['Opcodes/fluidOpcodes/fluidOpcodes.c']))
-    MacOSX_InstallPlugin('fluidOpcodes')
+    makePlugin(fluidEnvironment, 'fluidOpcodes',
+               ['Opcodes/fluidOpcodes/fluidOpcodes.c'])
 
 # VST HOST OPCODES
 
@@ -1127,14 +1125,14 @@ if getPlatform() == 'mingw' and fltkFound:
     if getPlatform() == 'mingw':
         vst4Environment.Append(LIBS = csoundWindowsLibraries)
     vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
-    zipDependencies.append(vst4Environment.SharedLibrary('vst4cs', Split('''
+    makePlugin(vst4Environment, 'vst4cs', Split('''
         Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
         Opcodes/vst4cs/src/vsthost.cpp
-    ''')))
+    '''))
 
 # Utility programs.
 
-pluginLibraries.append(pluginEnvironment.SharedLibrary('stdutil', Split('''
+makePlugin(pluginEnvironment, 'stdutil', Split('''
     util/cvanal.c       util/dnoise.c       util/envext.c
     util/xtrct.c        util/het_export.c   util/het_import.c
     util/hetro.c        util/lpanal.c       util/lpc_export.c
@@ -1142,8 +1140,7 @@ pluginLibraries.append(pluginEnvironment.SharedLibrary('stdutil', Split('''
     util/pvlook.c       util/scale.c        util/sndinfo.c
     util/srconv.c
     util/std_util.c
-''')))
-MacOSX_InstallPlugin('stdutil')
+'''))
 
 if (commonEnvironment['buildUtilities'] != '0'):
     utils = [
@@ -1339,10 +1336,9 @@ else:
     lorisEnvironment.Prepend(LIBS = ['lorisbase', 'fftw3', 'stdc++'])
     # The following file has been patched for Csound 5
     # and you should update it from Csound 5 CVS.
-    lorisOpcodes = lorisEnvironment.SharedLibrary(
-        'loris', ['Opcodes/Loris/lorisgens5.C'])
+    lorisOpcodes = makePlugin(lorisEnvironment, 'loris',
+                              ['Opcodes/Loris/lorisgens5.C'])
     Depends(lorisOpcodes, lorisLibrary)
-    pluginLibraries.append(lorisOpcodes)
     lorisPythonEnvironment = lorisEnvironment.Copy()
     fixCFlagsForSwig(lorisPythonEnvironment)
     lorisPythonEnvironment.Append(CPPPATH = pythonIncludePath)
@@ -1420,9 +1416,8 @@ else:
         stkEnvironment.Append(LIBS = ['pthread'])
     # This is the one that actually defines the opcodes.
     # They are straight wrappers, as simple as possible.
-    stk = stkEnvironment.SharedLibrary('stk', ['Opcodes/stk/stkOpcodes.cpp'])
+    stk = makePlugin(stkEnvironment, 'stk', ['Opcodes/stk/stkOpcodes.cpp'])
     Depends(stk, stkLibrary)
-    pluginLibraries.append(stk)
 
 if not (pythonFound and commonEnvironment['buildPythonOpcodes'] != '0'):
     print "CONFIGURATION DECISION: Not building Python opcodes."
@@ -1440,9 +1435,8 @@ else:
     elif getPlatform() == 'mingw':
         pyEnvironment['ENV']['PATH'] = os.environ['PATH']
         pyEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-    pythonOpcodes = pyEnvironment.SharedLibrary(
-        'py', ['Opcodes/py/pythonopcodes.c'])
-    pluginLibraries.append(pythonOpcodes)
+    pythonOpcodes = makePlugin(pyEnvironment, 'py',
+                               ['Opcodes/py/pythonopcodes.c'])
     if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
         Depends(pythonOpcodes, pythonImportLibrary)
 
@@ -1530,8 +1524,8 @@ if (commonEnvironment['buildDSSI'] == '1' and getPlatform() == 'linux'):
     print "CONFIGURATION DECISION: Building DSSI plugin host opcodes."
     dssiEnvironment = pluginEnvironment.Copy()
     dssiEnvironment.Append(LIBS = ['dl'])
-    pluginLibraries.append(dssiEnvironment.SharedLibrary('dssi4cs',
-        ['Opcodes/dssi4cs/src/load.c', 'Opcodes/dssi4cs/src/dssi4cs.c']))
+    makePlugin(dssiEnvironment, 'dssi4cs',
+               ['Opcodes/dssi4cs/src/load.c', 'Opcodes/dssi4cs/src/dssi4cs.c'])
 else:
     print "CONFIGURATION DECISION: Not building DSSI plugin host opcodes."
 
