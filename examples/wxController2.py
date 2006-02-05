@@ -63,7 +63,7 @@ class ControlPanel(wxPanel):
             ''')
             # Real-time audio output.
             # It is not necessary to enable line events.
-            self.csound.setCommand('''csound -h -m128 -d -odac -B512 -b400 temp.orc temp.sco''')
+            self.csound.setCommand('''csound -h -m128 -d -odac7 -B512 -b400 temp.orc temp.sco''')
             # Export the orc and sco.
             self.csound.exportForPerformance()
             # Start the performance.
