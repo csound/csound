@@ -68,7 +68,8 @@ typedef struct in_stack {
 typedef struct iflabel {            /* for if/else/endif */
     char    els[256];
     char    end[256];
-    int     ithen;        /* "is an i-rate only" boolean */
+    /* is the conditional valid at i-time ? 0: no, 1: yes, -1: unknown */
+    int     ithen;
     struct  iflabel *prv;
 } IFLABEL;
 
@@ -885,7 +886,7 @@ static int splitline(CSOUND *csound)
             }
             else {
               /* first add a 'goto endif' for the previous if */
-              if (ST(iflabels)->ithen)
+              if (ST(iflabels)->ithen > 0)
                 strcpy(grpp, "goto");
               else
                 strcpy(grpp, "kgoto");
@@ -1026,8 +1027,8 @@ static int splitline(CSOUND *csound)
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, ST(iflabels)->els);
-          /* set ithen flag */
-          ST(iflabels)->ithen = 0;
+          /* set ithen flag to unknown (getoptxt() will update it later) */
+          ST(iflabels)->ithen = -1;
           continue;
         }
         else if (strncmp(lp - 1, "ithen", 5) == 0) {
@@ -1129,7 +1130,7 @@ static int splitline(CSOUND *csound)
           ST(repeatingElseLine) = 0;
         }
         else {                              /* add the goto statement */
-          if (ST(iflabels)->ithen)
+          if (ST(iflabels)->ithen > 0)
             strcpy(grpp, "goto");
           else
             strcpy(grpp, "kgoto");
@@ -1286,9 +1287,21 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       return(tp);
     }
     while (ST(xprtstno) >= 0) {             /* for each arg (last 1st):  */
-      if (!ST(polcnt))
+      if (!ST(polcnt)) {
         /* if not midst of expressn: tst nxtarg */
         ST(polcnt) = express(csound, ST(group)[ST(xprtstno)--]);
+        /* IV - Feb 06 2006: if there is an if/then with an unknown rate: */
+        if (ST(polcnt) > 0 && ST(iflabels) != NULL && ST(iflabels)->ithen < 0) {
+          char  tmp;
+          /* check the output type of the expression (FIXME: is this safe ?) */
+          /* if it is an i-rate conditional, set ithen flag for else/elseif */
+          tmp = argtyp(csound, csound->tokenlist[0]->str);
+          if (tmp == (char) 'b')
+            ST(iflabels)->ithen = 1;
+          else
+            ST(iflabels)->ithen = 0;
+        }
+      }
       if (ST(polcnt) < 0) {
         /* polish but arg only: redo ptr & contin */
         ST(group)[ST(xprtstno)+1] = strsav_string(csound, csound->tokenstring);
