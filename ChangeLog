@@ -1,3 +1,12 @@
+2006-02-06	Istvan Varga	<ivarga@csounds.com>
+	* Engine/entry1.c:
+	  cogoto requires an i-rate conditional
+	* Engine/musmon.c:
+	  fixed hang on very short note before end of score or section
+	* Engine/rdorch.c:
+	  added hacks to fix the problem of the else branch of an if/then/else
+	  always being executed at i-time
+
 2006-02-03	Istvan Varga	<ivarga@csounds.com>
 	* Engine/rdorch.c:
 	  fixed crash on extra ) in expressions
