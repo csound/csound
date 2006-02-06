@@ -657,7 +657,7 @@ OENTRY opcodlst_1[] = {
 { "nstrnum", S(NSTRNUM), 1,     "i",    "T",    nstrnumset, NULL, NULL   },
 { "turnoff2",S(TURNOFF2),2,     "",     "kkk",  NULL, turnoff2, NULL     },
 { "cngoto", S(CGOTO),   3,      "",     "Bl",   ingoto, kngoto, NULL     },
-{ "cogoto", S(CGOTO),   3,      "",     "Bl",   iingoto, kingoto, NULL   },
+{ "cogoto", S(CGOTO),   3,      "",     "bl",   iingoto, kingoto, NULL   },
 /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
 /* and setksmps */
 { ".userOpcode", S(UOPCODE), 7, "", "", useropcdset, useropcd, useropcd },
