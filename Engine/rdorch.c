@@ -33,7 +33,7 @@
 #endif
 
 #define LINMAX    1000
-#define LENMAX    8192L
+#define LENMAX    4096L
 #define GRPMAX    VARGMAX
 #define LBLMAX    100
 
@@ -802,8 +802,8 @@ static void extend_collectbuf(CSOUND *csound, char **cp, int grpcnt)
     int   i;
 
     i = (int) ST(lenmax);
-    ST(lenmax) += LENMAX;
-    nn = mrealloc(csound, ST(collectbuf), ST(lenmax));
+    ST(lenmax) <<= 1;
+    nn = mrealloc(csound, ST(collectbuf), ST(lenmax) + 16);
     (*cp) += (nn - ST(collectbuf));     /* Adjust pointer */
     for ( ; i < (int) ST(lenmax); i++)
       nn[i] = (char) 0;
@@ -838,7 +838,7 @@ static int splitline(CSOUND *csound)
     char    *cp, *lp, *grpp = NULL;
 
     if (ST(collectbuf) == NULL)
-      ST(collectbuf) = mcalloc(csound, ST(lenmax));
+      ST(collectbuf) = mcalloc(csound, ST(lenmax) + 16);
  nxtlin:
     if ((lp = ST(linadr)[++ST(curline)]) == NULL)   /* point at next line   */
       return 0;
@@ -849,17 +849,18 @@ static int splitline(CSOUND *csound)
     while ((c = *lp++) != '\n') {       /* for all chars this line:   */
       if (cp - ST(collectbuf) >= ST(lenmax))
         extend_collectbuf(csound, &cp, grpcnt);
-      if (c == ' ' || c == '\t' || c == '(') {  /* spaces, tabs, (:   */
-        if (!ST(opgrpno) && collecting) {       /*  those before args */
-          *cp++ = '\0';                         /*  can be delimiters */
+      if (c == ' ' || c == '\t' || c == '(') {      /* spaces, tabs, (:   */
+        if (!ST(opgrpno) && collecting) {           /*  those before args */
+          *cp++ = '\0';                             /*  can be delimiters */
           collecting = 0;
-          if (strcmp(grpp, "if") == 0) {        /* of if opcod, */
-            strcpy(grpp, "cggoto");             /* (replace) */
+          if (strcmp(grpp, "if") == 0) {            /*  of if opcod, */
+            strcpy(grpp, "cggoto");                 /*  (replace) */
             cp = grpp + 7;
             prvif++;
           }
-          else if (strcmp(grpp, "elseif") == 0) {       /* of elseif opcod, */
-            if (!ST(iflabels)) {    /* check to see we had an 'if' before   */
+          else if (strcmp(grpp, "elseif") == 0) {   /*  of elseif opcod, ... */
+            /* check to see we had an 'if' before */
+            if (!ST(iflabels)) {
               synterr(csound, Str("invalid 'elseif' statement.  "
                                   "must have a corresponding 'if'"));
               goto nxtlin;
@@ -892,18 +893,17 @@ static int splitline(CSOUND *csound)
                 strcpy(grpp, "kgoto");
               if (isopcod(csound, grpp))
                 ST(opgrpno) = grpcnt;
-              cp = grpp + 5;
-              grpp = ST(group)[grpcnt++] = cp;
+              ST(group)[grpcnt] = strchr(grpp, '\0') + 1;
+              grpp = ST(group)[grpcnt++];
               strcpy(grpp, ST(iflabels)->end);
-              cp += strlen(ST(iflabels)->end);
-              ST(curline)--; /* roll back one and parse this line again */
+              ST(curline)--;    /* roll back one and parse this line again */
               ST(repeatingElseifLine)++;
               ST(linopnum) = ST(opnum);     /* else save full line ops */
               ST(linopcod) = ST(opcod);
-              return(grpcnt);
+              return grpcnt;
             }
           }
-          if (isopcod(csound, grpp))        /* ...or maybe others */
+          if (isopcod(csound, grpp))                /*  ... or maybe others */
             ST(opgrpno) = grpcnt;
         }
         if (c == ' ' || c == '\t')
@@ -983,7 +983,7 @@ static int splitline(CSOUND *csound)
           synterrp(csound, lp - 2, Str("unbalanced parens"));
           parens = 0;
         }
-        *cp++ = '\0';                       /*  terminate strng  */
+        *cp++ = '\0';                       /*  terminate string */
         collecting = logical = condassgn = 0;
         continue;
       }
@@ -1027,6 +1027,7 @@ static int splitline(CSOUND *csound)
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, ST(iflabels)->els);
+          cp = strchr(grpp, '\0');
           /* set ithen flag to unknown (getoptxt() will update it later) */
           ST(iflabels)->ithen = -1;
           continue;
@@ -1055,63 +1056,106 @@ static int splitline(CSOUND *csound)
           }
           /* we set the 'goto' label to the 'else' label */
           strcpy(grpp, ST(iflabels)->els);
+          cp = strchr(grpp, '\0');
           /* set ithen flag */
           ST(iflabels)->ithen = 1;
           continue;
         }
       }
-      if (!collecting++) {              /* remainder are     */
-        if (grpcnt >= ST(grpmax))       /* collectable chars */
+      if (!collecting++) {                  /* remainder are     */
+        if (grpcnt >= ST(grpmax))           /* collectable chars */
           extend_group(csound);
         grpp = ST(group)[grpcnt++] = cp;
       }
-      if (*lp == c && (c == '<' || c == '>')) {         /* <<, >> */
-        lp++; *cp++ = c;
-      }
-      else if ((prvif || parens) && *lp == c && (c == '&' || c == '|')) {
-        logical++; lp++; *cp++ = c;                     /* &&, || */
-      }
-      else if ((prvif || parens) &&
-               (c == '!' || c == '<' || c == '=' || c == '>')) {
-        logical++;                                      /* ==, !=, <=, >= */
-      }
-      else if (isalnum(c) ||            /* establish validity */
-               c == '+' || c == '-' ||
-               c == '*' || c == '/' ||
-               c == '%' || c == '^' ||
-               c == '&' || c == '|' || c == '#' ||      /* Bit operations */
-               c == '\254' || c == '~' ||
-               c == '.' || c == '_'
-              )         /* allow uppercases and underscore in variables */
-        ;
-      else if (c == '(')
-        parens++;                       /* and monitor function */
-      else if (c == ')') {
+      *cp++ = c;                            /* collect the char  */
+      /* establish validity: allow letters, digits, and underscore */
+      /* in label, variable, and opcode names */
+      if (isalnum(c) || c == '_')
+        continue;
+      /* other characters are valid only after an opcode */
+      if (!ST(opgrpno))
+        goto char_err;
+      switch (c) {
+      case '<':
+      case '>':
+        if (*lp == c) {
+          lp++; *cp++ = c;                  /* <<, >> */
+        }
+        else if (prvif || parens)           /* <, <=, >=, > */
+          logical++;
+        else
+          goto char_err;
+        break;
+      case '&':
+      case '|':
+        if (*lp == c) {                     /* &&, ||, &, | */
+          if (!prvif && !parens)
+            goto char_err;
+          logical++; lp++; *cp++ = c;
+        }
+        break;
+      case '!':
+      case '=':
+        if (!prvif && !parens)              /* ==, !=, <=, >= */
+          goto char_err;
+        logical++;
+        break;
+      case '+':                             /* arithmetic and bitwise ops */
+      case '-':
+      case '*':
+      case '/':
+      case '%':
+      case '^':
+      case '#':                             /* XOR */
+      case '\254':                          /* NOT (same as ~) */
+      case '~':
+      case '.':
+        break;
+      case '\302':
+        if (*lp == '\254')                  /* NOT operator in UTF-8 format */
+          *(cp - 1) = *lp++;
+        else
+          goto char_err;
+        break;
+      case '(':
+        parens++;                           /* and monitor function */
+        break;
+      case ')':
         if (!parens) {
           synterrp(csound, lp - 1, Str("unbalanced parens"));
-          continue;
+          cp--;
         }
-        --parens;
-      }
-      else if (c == '?' && logical)
+        else
+          --parens;
+        break;
+      case '?':
+        if (!logical)
+          goto char_err;
         condassgn++;
-      else if (c == ':' && condassgn)
-        ;
-      else {
+        break;
+      case ':':
+        if (!condassgn)
+          goto char_err;
+        break;
+      default:
+        goto char_err;
+      }
+      continue;                             /* loop back for next character */
+ char_err:
+      {
         char err_msg[64];
         sprintf(err_msg, Str("illegal character %c"), c);
         synterrp(csound, lp - 1, err_msg);
+        cp--;
       }
-      *cp++ = c;                        /* then collect the char   */
-    }                                   /*  and loop for next      */
-    if (grpp && grpcnt <= 1) {
+    }
+    *cp = '\0';                             /* terminate last group */
+    if (grpp && grpcnt == (ST(linlabels) + 1)) {
       /* convert an 'else' statement into 2 lines
          goto <endiflabel>
          <elselabel>
          to do this, we parse the current twice */
-      if (strncmp(grpp, "else", 4) == 0 &&
-          ((int) ((char*) cp - (char*) grpp) == 4 ||
-           strchr(" \t\r\n", grpp[4]) != NULL)) {
+      if (strcmp(grpp, "else") == 0) {
         if (!ST(iflabels)) {    /* 'else': check to see we had an 'if' before */
           synterr(csound, Str("invalid 'else' statement.  "
                               "must have a corresponding 'if'"));
@@ -1125,7 +1169,6 @@ static int splitline(CSOUND *csound)
           }
           ST(linlabels)++;
           strcpy(grpp, ST(iflabels)->els);
-          cp = grpp + strlen(ST(iflabels)->els);
           ST(iflabels)->els[0] = '\0';
           ST(repeatingElseLine) = 0;
         }
@@ -1134,19 +1177,19 @@ static int splitline(CSOUND *csound)
             strcpy(grpp, "goto");
           else
             strcpy(grpp, "kgoto");
+          ST(linlabels) = 0;                /* ignore any labels this time */
+          ST(group)[0] = grpp;
+          grpcnt = 1;
           if (isopcod(csound, grpp))
             ST(opgrpno) = grpcnt;
-          cp = grpp + 5;
-          grpp = ST(group)[grpcnt++] = cp;
+          ST(group)[grpcnt] = strchr(grpp, '\0') + 1;
+          grpp = ST(group)[grpcnt++];
           strcpy(grpp, ST(iflabels)->end);
-          cp += strlen(ST(iflabels)->end);
           ST(curline)--;        /* roll back one and parse this line again */
           ST(repeatingElseLine) = 1;
         }
       }
-      else if (strncmp(grpp, "endif", 5) == 0 &&
-               ((int) ((char*) cp - (char*) grpp) == 5 ||
-                strchr(" \t\r\n", grpp[5]) != NULL)) {
+      else if (strcmp(grpp, "endif") == 0) {
         /* replace 'endif' with the synthesized label */
         struct iflabel *prv;
         if (!ST(iflabels)) {    /* check to see we had an 'if' before  */
@@ -1158,7 +1201,6 @@ static int splitline(CSOUND *csound)
           /* we had no 'else' statement, so we need to insert the elselabel */
           ST(linlabels)++;
           strcpy(grpp, ST(iflabels)->els);
-          cp = grpp + strlen(ST(iflabels)->els);
           ST(iflabels)->els[0] = '\0';
           ST(curline)--;        /* roll back one and parse this line again */
         }
@@ -1166,7 +1208,6 @@ static int splitline(CSOUND *csound)
           prv = ST(iflabels)->prv;
           ST(linlabels)++;
           strcpy(grpp, ST(iflabels)->end);
-          cp = grpp + strlen(ST(iflabels)->end);
           mfree(csound, ST(iflabels));
           ST(iflabels) = prv;
         }
@@ -1174,11 +1215,9 @@ static int splitline(CSOUND *csound)
     }
     if (!grpcnt)                        /* if line was trivial,    */
       goto nxtlin;                      /*      try another        */
-    if (collecting) {                   /* if still collecting,    */
-      *cp = '\0';                       /*      terminate          */
-      if (!ST(opgrpno))                 /*      & chk for opcod    */
-        if (isopcod(csound, grpp))
-          ST(opgrpno) = grpcnt;
+    if (collecting && !ST(opgrpno)) {   /* if still collecting,    */
+      if (isopcod(csound, grpp))        /*      chk for opcod      */
+        ST(opgrpno) = grpcnt;
     }
     if (parens)                                   /* check balanced parens   */
       synterrp(csound, lp - 1, Str("unbalanced parens"));
