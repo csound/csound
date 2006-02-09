@@ -1,3 +1,9 @@
+2006-02-09	Istvan Varga	<ivarga@csounds.com>
+	* Engine/rdorch.c:
+	  splitline(): made checking for invalid characters stricter
+	  fixed labels before else/endif
+	  allow bitwise NOT operator in UTF-8 format
+
 2006-02-06	Istvan Varga	<ivarga@csounds.com>
 	* Engine/entry1.c:
 	  cogoto requires an i-rate conditional
@@ -5,7 +11,10 @@
 	  fixed hang on very short note before end of score or section
 	* Engine/rdorch.c:
 	  added hacks to fix the problem of the else branch of an if/then/else
-	  always being executed at i-time
+	  always being executed at i-time.
+	  Fixed crash on 'then' or 'goto' in variable names in conditional
+	  expression for if/elseif (still does not work if there are no
+	  parentheses around the conditional expression).
 
 2006-02-03	Istvan Varga	<ivarga@csounds.com>
 	* Engine/rdorch.c:
