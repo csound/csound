@@ -1,3 +1,6 @@
+2006-02-13	Istvan Varga	<ivarga@csounds.com>
+	* OOps/ugrw1.c: fixed bugs in i-rate ZAK opcodes
+
 2006-02-09	Istvan Varga	<ivarga@csounds.com>
 	* Engine/rdorch.c:
 	  splitline(): made checking for invalid characters stricter
