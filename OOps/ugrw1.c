@@ -972,7 +972,7 @@ int ptblchkw(CSOUND *csound, TABLEW *p)
  */
 int tblsetw(CSOUND *csound, TABLEW *p)
 {
-    return itblchkw(csound,p);
+    return itblchkw(csound, p);
 }
 
 /* tblsetwkt()
@@ -984,7 +984,7 @@ int tblsetw(CSOUND *csound, TABLEW *p)
  * Call the ptblchkw() function to do the work.  */
 int tblsetwkt(CSOUND *csound, TABLEW *p)
 {
-    return ptblchkw(csound,p);
+    return ptblchkw(csound, p);
 }
 
 /* itablew()
@@ -996,9 +996,8 @@ int tblsetwkt(CSOUND *csound, TABLEW *p)
  * instance and calls ktablew() once to write to the table.  */
 int itablew(CSOUND *csound, TABLEW *p)
 {
-/*   printf("tableiw: p->xsig, p->xndx = %f, %f\n", *p->xsig, *p->xndx); */
-    if (itblchkw(csound,p)==OK)
-      return ktablew(csound,p);
+    if (itblchkw(csound, p) == OK)
+      return ktablew(csound, p);
     return NOTOK;
 }
 
@@ -1020,7 +1019,7 @@ int ktablew(CSOUND *csound, TABLEW   *p)
     long        indx, length;
     MYFLT       ndx;            /*  for calculating index of read.  */
     MYFLT       *ptab;          /* Where we will write */
-/*     printf("tablew: p->xsig, p->xndx = %f, %f\n", *p->xsig, *p->xndx); */
+
     /*-----------------------------------*/
     /* Assume that TABLEW has been set up correctly.  */
 
@@ -1099,7 +1098,6 @@ int tablew(CSOUND *csound, TABLEW *p)
     int         nsmps = csound->ksmps;
     MYFLT       ndx, xbmul, offset;
                                 /*-----------------------------------*/
-/*     printf("atablew: p->xsig, p->xndx = %f, %f\n", *p->xsig, *p->xndx); */
     /* Assume that TABLEW has been set up correctly. */
 
     ftp    = p->ftp;
@@ -1258,13 +1256,15 @@ int ftkrchkw(CSOUND *csound, TABLEW *p)
 
 int    ktablewkt(CSOUND *csound, TABLEW *p)
 {
-    if (ftkrchkw(csound,p)==OK) return ktablew(csound,p);
+    if (ftkrchkw(csound, p) == OK)
+      return ktablew(csound, p);
     return NOTOK;
 }
 
 int    tablewkt(CSOUND *csound, TABLEW *p)
 {
-    if (ftkrchkw(csound,p)==OK) return tablew(csound,p);
+    if (ftkrchkw(csound, p) == OK)
+      return tablew(csound, p);
     return NOTOK;
 }
 
@@ -1520,7 +1520,7 @@ int tablemix(CSOUND *csound, TABLEMIX *p)
      * The other parameters do not need checking - and the remaining
      * proceedures are common to the init time version, so call a
      * function to do the rest.  */
-    domix(csound,p);
+    domix(csound, p);
     return OK;
 }
 
@@ -1582,7 +1582,7 @@ int itablemix(CSOUND *csound, TABLEMIX *p)
                                *p->s2ft);
     }
     p->ps2ft = (int)*p->s2ft;
-    domix(csound,p);
+    domix(csound, p);
     return OK;
 }
 
@@ -1789,7 +1789,7 @@ int tablecopy(CSOUND *csound, TABLECOPY *p)
     }
     /* OK both tables present and the funcx pointers are pointing to
      * their data structures.    */
-    docopy(csound,p);
+    docopy(csound, p);
     return OK;
 }
 
@@ -1830,7 +1830,7 @@ int itablecopy(CSOUND *csound, TABLECOPY *p)
     }
     /* OK both tables present and the funcx pointers are pointing to
      * their data structures.    */
-    docopy(csound,p);
+    docopy(csound, p);
     return OK;
 }
 
@@ -2148,7 +2148,7 @@ int tablewa(CSOUND *csound, TABLEWA *p)
  */
 int zakinit(CSOUND *csound, ZAKINIT *p)
 {
-    long        length;
+    long    length;
 
     /* Check to see this is the first time zakinit() has been called.
      * Global variables will be zero if it has not been called.     */
@@ -2166,16 +2166,16 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated. */
 
-    length = (long)((*p->isizek + 1) * sizeof(MYFLT));
-    csound->zkstart = (MYFLT*) mcalloc(csound, length);
     csound->zklast = (long) *p->isizek;
+    length = (csound->zklast + 1L) * sizeof(MYFLT);
+    csound->zkstart = (MYFLT*) mcalloc(csound, length);
     /* Likewise, allocate memory for za space, but do it in arrays of
      * length ksmps.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated.       */
-    length = (long)((*p->isizea + 1) * sizeof(MYFLT) * csound->ksmps);
-    csound->zastart = (MYFLT*) mcalloc(csound, length);
     csound->zalast = (long) *p->isizea;
+    length = (csound->zalast + 1L) * sizeof(MYFLT) * csound->ksmps;
+    csound->zastart = (MYFLT*) mcalloc(csound, length);
     return OK;
 }
 
@@ -2188,12 +2188,12 @@ int zakinit(CSOUND *csound, ZAKINIT *p)
  */
 int zkset(CSOUND *csound, ZKR *p)
 {
-    if  (csound->zkstart == NULL) {
+    (void) p;
+    if (csound->zkstart == NULL) {
       return csound->InitError(csound, Str("No zk space: "
                                            "zakinit has not been called yet."));
     }
-    else
-      return OK;
+    return OK;
 }
 
 /*-----------------------------------*/
@@ -2203,26 +2203,25 @@ int zkset(CSOUND *csound, ZKR *p)
 /* zkr reads from zk space at k rate. */
 int zkr(CSOUND *csound, ZKR *p)
 {
-    MYFLT       *readloc;
-    long indx;
+    long    indx;
 
     /* Check to see this index is within the limits of zk space. */
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
       *p->rslt = FL(0.0);
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound,
-                        Str("WARNING: zkr index > isizek. Returning 0.\n"));
+      if (csound->oparms_.msglevel & WARNMSG)
+        csound->Warning(csound, Str("zkr index > isizek. Returning 0."));
     }
     else if (indx < 0) {
       *p->rslt = FL(0.0);
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound, Str("WARNING: zkr index < 0. Returning 0.\n"));
+      if (csound->oparms_.msglevel & WARNMSG)
+        csound->Warning(csound, Str("zkr index < 0. Returning 0."));
     }
     else {
-        /* Now read from the zk space and write to the destination. */
-        readloc = csound->zkstart + indx;
-        *p->rslt = *readloc;
+      MYFLT *readloc;
+      /* Now read from the zk space and write to the destination. */
+      readloc = csound->zkstart + indx;
+      *p->rslt = *readloc;
     }
     return OK;
 }
@@ -2237,28 +2236,27 @@ int zkr(CSOUND *csound, ZKR *p)
 int zir(CSOUND *csound, ZKR *p)
 {
     /* See zkr() for more comments.  */
-    MYFLT       *readloc;
-    long indx;
+    long    indx;
 
-    if (zkset(csound,p) == 0) return OK;
+    if (zkset(csound, p) != OK)
+      return NOTOK;
     /* Check to see this index is within the limits of zk space. */
-
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound,
-                        Str("WARNING: zir index > isizek. Returning 0.\n"));
+      if (csound->oparms_.msglevel & WARNMSG)
+        csound->Warning(csound, Str("zir index > isizek. Returning 0."));
       *p->rslt = FL(0.0);
     }
     else if (indx < 0) {
-      if (csound->oparms->msglevel & WARNMSG)
-        csound->Message(csound, Str("WARNING: zir index < 0. Returning 0.\n"));
+      if (csound->oparms_.msglevel & WARNMSG)
+        csound->Warning(csound, Str("zir index < 0. Returning 0."));
       *p->rslt = FL(0.0);
     }
     else {
-        /* Now read from the zk space. */
-        readloc = csound->zkstart + indx;
-        *p->rslt = *readloc;
+      MYFLT *readloc;
+      /* Now read from the zk space. */
+      readloc = csound->zkstart + indx;
+      *p->rslt = *readloc;
     }
     return OK;
 }
@@ -2268,8 +2266,7 @@ int zir(CSOUND *csound, ZKR *p)
 /* Now the i and k rate WRITE code.  zkw writes to zk space at k rate. */
 int zkw(CSOUND *csound, ZKW *p)
 {
-    MYFLT       *writeloc;
-    long indx;
+    long    indx;
 
     /* Check to see this index is within the limits of zk space. */
     indx = (long) *p->ndx;
@@ -2280,6 +2277,7 @@ int zkw(CSOUND *csound, ZKW *p)
       return csound->PerfError(csound, Str("zkw index < 0. Not writing."));
     }
     else {
+      MYFLT *writeloc;
       /* Now write to the appropriate location in zk space.  */
       writeloc = csound->zkstart + indx;
       *writeloc = *p->sig;
@@ -2295,21 +2293,22 @@ int zkw(CSOUND *csound, ZKW *p)
  * same code as zkw() except that errors go to csoundInitError().  */
 int ziw(CSOUND *csound, ZKW *p)
 {
-    MYFLT       *writeloc;
-    long indx;
+    long    indx;
 
-    if (zkset(csound,(ZKR*)p) == 0) return NOTOK;
+    if (zkset(csound, (ZKR*) p) != OK)
+      return NOTOK;
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
-      return csound->PerfError(csound, Str("zkw index > isizek. Not writing."));
+      return csound->InitError(csound, Str("ziw index > isizek. Not writing."));
     }
     else if (indx < 0) {
-      return csound->PerfError(csound, Str("zkw index < 0. Not writing."));
+      return csound->InitError(csound, Str("ziw index < 0. Not writing."));
     }
     else {
-        /* Now write to the appropriate location in zk space. */
-        writeloc = csound->zkstart + indx;
-        *writeloc = *p->sig;
+      MYFLT *writeloc;
+      /* Now write to the appropriate location in zk space. */
+      writeloc = csound->zkstart + indx;
+      *writeloc = *p->sig;
     }
     return OK;
 }
@@ -2321,8 +2320,7 @@ int ziw(CSOUND *csound, ZKW *p)
 /* zkwm writes to zk space at k rate. */
 int zkwm(CSOUND *csound, ZKWM *p)
 {
-    MYFLT       *writeloc;
-    long indx;
+    long    indx;
 
     /* Check to see this index is within the limits of zk space.   */
     indx = (long) *p->ndx;
@@ -2334,15 +2332,16 @@ int zkwm(CSOUND *csound, ZKWM *p)
       return csound->PerfError(csound, Str("zkwm index < 0. Not writing."));
     }
     else {
-        /* Now write to the appropriate location in zk space.  */
-        writeloc = csound->zkstart + indx;
-        /* If mix parameter is 0, then overwrite the data in the
-         * zk space variable, otherwise read the old value, and write
-         * the sum of it and the input sig.    */
-        if (*p->mix == 0)
-          *writeloc = *p->sig;
-        else
-          *writeloc += *p->sig;
+      MYFLT *writeloc;
+      /* Now write to the appropriate location in zk space.  */
+      writeloc = csound->zkstart + indx;
+      /* If mix parameter is 0, then overwrite the data in the
+       * zk space variable, otherwise read the old value, and write
+       * the sum of it and the input sig.    */
+      if (*p->mix == 0)
+        *writeloc = *p->sig;
+      else
+        *writeloc += *p->sig;
     }
     return OK;
 }
@@ -2356,10 +2355,10 @@ int zkwm(CSOUND *csound, ZKWM *p)
  */
 int ziwm(CSOUND *csound, ZKWM *p)
 {
-    MYFLT       *writeloc;
-    long indx;
+    long    indx;
 
-    if (zkset(csound,(ZKR*)p) == 0) return OK;
+    if (zkset(csound, (ZKR*) p) != OK)
+      return NOTOK;
     indx = (long) *p->ndx;
     if (indx > csound->zklast) {
       return csound->InitError(csound,
@@ -2369,6 +2368,7 @@ int ziwm(CSOUND *csound, ZKWM *p)
       return csound->InitError(csound, Str("ziwm index < 0. Not writing."));
     }
     else {
+      MYFLT *writeloc;
       writeloc = csound->zkstart + indx;
       if (*p->mix == 0)
         *writeloc = *p->sig;
@@ -2768,13 +2768,6 @@ int instimset(CSOUND *csound, RDTIME *p)
     return OK;
 }
 
-/*  void instimset1(RDTIME *p) */
-/*  { */
-/*      printf(Str("Deprecated opcode instime[ks].  Use timeinst[ks]\n")); */
-/*      p->instartk = csound->kcounter; */
-/*      *p->rslt = FL(0.0); */
-/*  } */
-
 /* instimek()
  *
  * Read difference between the global variable kcounter and the starting
@@ -2816,9 +2809,11 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
      */
-    if (*p->space < FL(0.0))       p->pspace = 0L;
-    else if (*p->space > FL(120.0))p->pspace = 120L;
-    else                           p->pspace = (long)*p->space;
+    p->pspace = (long) *p->space;
+    if (p->pspace < 0L)
+      p->pspace = 0L;
+    else if (p->pspace > 120L)
+      p->pspace = 120L;
 
     /* Set the initime variable - how many seconds in absolute time
      * when this instance of the instrument was initialised.     */
@@ -2840,21 +2835,20 @@ int printk(CSOUND *csound, PRINTK *p)
 {
     MYFLT       timel;          /* Time in seconds since initialised */
     long        cycles;         /* What print cycle */
-    long        spcount;        /* How many spaces to print */
 
     /*-----------------------------------*/
 
-    /* Initialise variables.   */
+    /* Initialise variables.    */
 
     timel =     ((MYFLT) csound->kcounter * csound->onedkr) - p->initime;
 
     /* Divide the current elapsed time by the cycle time and round down to
      * an integer.
      */
-    cycles = (long)(timel / p->ctime);
+    cycles =    (long) (timel / p->ctime);
 
     /* Now test if the cycle number we arein is higher than the one in which
-     * we last printed. If so, update cysofar and print.     */
+     * we last printed. If so, update cysofar and print.    */
     if (p->cysofar < cycles) {
       p->cysofar = cycles;
       /* Do the print cycle.
@@ -2865,15 +2859,12 @@ int printk(CSOUND *csound, PRINTK *p)
                                (int) p->h.insdshead->p1);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
                                csound->curTime);
-      /* Print spaces and then the value we want to read.      */
-      spcount = p->pspace;
-      while (spcount > 0) {
-        int   n = (spcount < 256 ? spcount : 255);
-        char  s[256];
-        memset(s, ' ', n);
-        s[n] = '\0';
+      /* Print spaces and then the value we want to read.   */
+      if (p->pspace > 0L) {
+        char  s[128];   /* p->pspace is limited to 120 in printkset() above */
+        memset(s, ' ', (size_t) p->pspace);
+        s[p->pspace] = '\0';
         csound->MessageS(csound, CSOUNDMSG_ORCH, s);
-        spcount -= n;
       }
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
     }
@@ -3141,7 +3132,7 @@ int printks(CSOUND *csound, PRINTKS *p)
 
     /* Now test if the cycle number we are in is higher than the one in which
      * we last printed.  If so, update cysofar and print.     */
-    if (p->cysofar < cycles)  {
+    if (p->cysofar < cycles) {
       p->cysofar = cycles;
       /* Do the print cycle. */
       sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
@@ -3159,7 +3150,7 @@ int printsset(CSOUND *csound, PRINTS *p)
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
-    printksset(csound,&pk);
+    printksset(csound, &pk);
     sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
@@ -3172,11 +3163,11 @@ int printsset(CSOUND *csound, PRINTS *p)
 /* peakk()
  *
  * Write the absolute value of the input argument to the output if the former
- is higher. */
+ * is higher. */
 int peakk(CSOUND *csound, PEAK *p)
 {
-    if (*p->kpeakout < (MYFLT)fabs(*p->xsigin)) {
-      *p->kpeakout = (MYFLT)fabs(*p->xsigin);
+    if (*p->kpeakout < (MYFLT) fabs(*p->xsigin)) {
+      *p->kpeakout = (MYFLT) fabs(*p->xsigin);
     }
     return OK;
 }
@@ -3186,26 +3177,20 @@ int peakk(CSOUND *csound, PEAK *p)
  * Similar to peakk, but looks at an a rate input variable. */
 int peaka(CSOUND *csound, PEAK *p)
 {
-    int         loop;
-    int change = 0;
-    MYFLT       peak;
-    MYFLT       *asigin;
+    int     loop;
+    MYFLT   *peak;
+    MYFLT   *asigin;
 
     loop = csound->ksmps;
     asigin = p->xsigin;
-    peak = *p->kpeakout;
+    peak = p->kpeakout;
 
     do {
-      if (peak < (MYFLT)fabs(*asigin++)) {
-        peak = (MYFLT)fabs(*--asigin);
-        asigin++;
-        change = 1;
-      }
+      if (*peak < (MYFLT) fabs(*asigin))
+        *peak = (MYFLT) fabs(*asigin);
+      asigin++;
     } while (--loop);
 
-    if (change) {
-      *p->kpeakout = peak;
-    }
     return OK;
 }
 
@@ -3216,9 +3201,11 @@ int peaka(CSOUND *csound, PEAK *p)
 
 int printk2set(CSOUND *csound, PRINTK2 *p)
 {
-    if (*p->space < 0)        p->pspace = 0;
-    else if (*p->space > 120) p->pspace = 120;
-    else                      p->pspace = (int)*p->space;
+    p->pspace = (int) *p->space;
+    if (p->pspace < 0)
+      p->pspace = 0;
+    else if (p->pspace > 120)
+      p->pspace = 120;
     p->oldvalue = FL(-1.12123e35);  /* hack to force printing first value */
     return OK;
 }
@@ -3229,18 +3216,15 @@ int printk2set(CSOUND *csound, PRINTK2 *p)
 int printk2(CSOUND *csound, PRINTK2 *p)
 {
     MYFLT   value = *p->val;
-    int     spcount;
+
     if (p->oldvalue != value) {
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
                                                (int) p->h.insdshead->p1);
-      spcount = p->pspace;
-      while (spcount > 0) {
-        int   n = (spcount < 256 ? spcount : 255);
-        char  s[256];
-        memset(s, ' ', n);
-        s[n] = '\0';
+      if (p->pspace > 0) {
+        char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
+        memset(s, ' ', (size_t) p->pspace);
+        s[p->pspace] = '\0';
         csound->MessageS(csound, CSOUNDMSG_ORCH, s);
-        spcount -= n;
       }
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->oldvalue = value;
@@ -3251,25 +3235,24 @@ int printk2(CSOUND *csound, PRINTK2 *p)
 /* inz writes to za space at a rate as many channels as can. */
 int inz(CSOUND *csound, IOZ *p)
 {
-    MYFLT       *readloc, *writeloc;
-    long indx, i;
-    int nsmps = csound->ksmps;
+    long    indx, i;
+    int     nsmps;
 
-    readloc = csound->spin;
     /* Check to see this index is within the limits of za space.     */
     indx = (long) *p->ndx;
-    if (indx > csound->zalast) {
+    if ((indx + csound->nchnls) >= csound->zalast) {
       return csound->PerfError(csound, Str("inz index > isizea. Not writing."));
     }
     else if (indx < 0) {
       return csound->PerfError(csound, Str("inz index < 0. Not writing."));
     }
     else {
+      MYFLT *writeloc;
       /* Now write to the array in za space pointed to by indx.    */
       writeloc = csound->zastart + (indx * csound->ksmps);
-      for (i=0; i<csound->nchnls; i++)
-        for (nsmps=0; nsmps<csound->ksmps; nsmps++)
-          *writeloc++ = csound->spin[i*csound->ksmps+nsmps];
+      for (i = 0; i < csound->nchnls; i++)
+        for (nsmps = 0; nsmps < csound->ksmps; nsmps++)
+          *writeloc++ = csound->spin[i * csound->ksmps + nsmps];
     }
     return OK;
 }
@@ -3277,35 +3260,33 @@ int inz(CSOUND *csound, IOZ *p)
 /* outz reads from za space at a rate to output. */
 int outz(CSOUND *csound, IOZ *p)
 {
-    MYFLT       *readloc, *writeloc;
-    long indx;
-    int i;
-    int nsmps = csound->ksmps;
-
-    /*-----------------------------------*/
-
-    writeloc = csound->spout;
+    long    indx;
+    int     i;
+    int     nsmps;
 
     /* Check to see this index is within the limits of za space.    */
     indx = (long) *p->ndx;
-    if (indx > csound->zalast) {
+    if ((indx + csound->nchnls) >= csound->zalast) {
       return csound->PerfError(csound, Str("outz index > isizea. No output"));
     }
     else if (indx < 0) {
       return csound->PerfError(csound, Str("outz index < 0. No output."));
     }
-    /* Now read from the array in za space and write to the output. */
-    readloc = csound->zastart + (indx * csound->ksmps);
-    if (!csound->spoutactive) {
-      for (i=0; i<csound->nchnls; i++)
-        for (nsmps=0; nsmps<csound->ksmps; nsmps++)
-          csound->spout[i*csound->ksmps+nsmps] = *readloc++;
-      csound->spoutactive = 1;
-    }
     else {
-      for (i=0; i<csound->nchnls; i++)
-        for (nsmps=0; nsmps<csound->ksmps; nsmps++)
-          csound->spout[i*csound->ksmps+nsmps] += *readloc++;
+      MYFLT *readloc;
+      /* Now read from the array in za space and write to the output. */
+      readloc = csound->zastart + (indx * csound->ksmps);
+      if (!csound->spoutactive) {
+        for (i = 0; i < csound->nchnls; i++)
+          for (nsmps = 0; nsmps < csound->ksmps; nsmps++)
+            csound->spout[i * csound->ksmps + nsmps] = *readloc++;
+        csound->spoutactive = 1;
+      }
+      else {
+        for (i = 0; i < csound->nchnls; i++)
+          for (nsmps = 0; nsmps < csound->ksmps; nsmps++)
+            csound->spout[i * csound->ksmps + nsmps] += *readloc++;
+      }
     }
     return OK;
 }
