@@ -44,6 +44,8 @@ elif sys.platform[:3] == 'win':
     # if it is not in a standard location add it here
     # (of course you must build it first):
     customCPPPATH.append('C:/utah/opt/portmidi/pm_common')
+    customCPPPATH.append('C:/utah/opt/portmidi/pm_win')
+    customCPPPATH.append('C:/utah/opt/portmidi/porttime')
     customLIBPATH.append('C:/utah/opt/portmidi')
     ################################################################
     # If you want FLTK widgets or if you want to build CsoundVST,
