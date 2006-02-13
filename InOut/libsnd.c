@@ -588,11 +588,12 @@ static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
     OPARMS  *O = csound->oparms;
     int     i, n, nsmps, bufpos;
 
-    nsmps = csound->ksmps * csound->nchnls;
+    nsmps = csound->nspin;
     bufpos = (int) O->inbufsamps - (int) ST(inbufrem);
-    for (i = 0; i < nsmps; i++) {
+    i = 0;
+    do {
       if ((int) ST(inbufrem) < 1) {
-        ST(inbufrem) = (unsigned) 0;
+        ST(inbufrem) = 0U;
         do {
           n = ((int) O->inbufsamps - (int) ST(inbufrem)) * (int) sizeof(MYFLT);
           n = csound->audrecv(csound, ST(inbuf) + (int) ST(inbufrem), n);
@@ -602,7 +603,7 @@ static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
       }
       csound->spin[i] = ST(inbuf)[bufpos++] * scaleFac;
       ST(inbufrem)--;
-    }
+    } while (++i < nsmps);
 }
 
 static void sndfilein(CSOUND *csound)
