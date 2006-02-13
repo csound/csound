@@ -424,6 +424,7 @@ Section "${PRODUCT}" SecCopyUI
   File C:\utah\opt\Lazzarini\portaudio.dll
   File C:\utah\usr\mingw\bin\mingwm10.dll
   File C:\utah\opt\portmidi\pm_win\*.dll
+  File ..\..\pmidi.dll
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
   File ..\..\loris.py
