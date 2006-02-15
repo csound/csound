@@ -1,3 +1,12 @@
+2006-02-15	Istvan Varga	<ivarga@csounds.com>
+	* InOut/widgets.h:
+	  moved file from H/
+	* InOut/widgets.cpp:
+	  bug fixes in FLsetVal and FLsetVal_i
+	  allow buttons and button banks in FLsetVal
+	  fixed handle output of FLbutBank (not sure if this is safe)
+	  implemented cursor size parameter for FLknob
+
 2006-02-13	Istvan Varga	<ivarga@csounds.com>
 	* OOps/ugrw1.c: fixed bugs in i-rate ZAK opcodes
 
