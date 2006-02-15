@@ -28,245 +28,252 @@
 extern "C" {
 #endif
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *kout, *ihandle, *name, *imin, *imax, *iexp;
-    MYFLT *itype, *idisp, *iwidth, *iheight, *ix, *iy;
-    MYFLT min, base, *table;
-    long tablen;
+    MYFLT   *kout, *ihandle, *name, *imin, *imax, *iexp;
+    MYFLT   *itype, *idisp, *iwidth, *iheight, *ix, *iy;
+    MYFLT   min, base, *table;
+    long    tablen;
 } FLSLIDER;
 
 #define MAXSLIDERBANK 128
 
 typedef struct {
-    MYFLT min, max, *out;
-    MYFLT base, *table;
-    long tablen;
-    int exp;
+    MYFLT   min, max, *out;
+    MYFLT   base, *table;
+    long    tablen;
+    int     exp;
 } SLDBK_ELEMENT;
 
-  /*----------- */
-typedef struct  {
-    OPDS        h;
-    MYFLT  *names, *inumsliders, *ioutable, *iwidth, *iheight;
-    MYFLT  *ix, *iy, *itypetable, *iexptable, *ioutablestart_ndx, *iminmaxtable;
+// ---------------------------------------------------------------------
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *names, *inumsliders, *ioutable, *iwidth, *iheight;
+    MYFLT   *ix, *iy, *itypetable, *iexptable, *ioutablestart_ndx;
+    MYFLT   *iminmaxtable;
     SLDBK_ELEMENT slider_data[MAXSLIDERBANK];
 } FLSLIDERBANK;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *kout, *args[PMAX+1];
+    MYFLT   *kout, *args[PMAX+1];
 } FLKEYB;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *kvalue, *ihandle;
+    MYFLT   *kvalue, *ihandle;
 } FLBUTTONCALL;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *koutx, *kouty, *ihandle1, *ihandle2;
-    MYFLT *name, *iminx, *imaxx, *iminy, *imaxy;
-    MYFLT *iexpx, *iexpy, *idispx, *idispy, *iwidth, *iheight, *ix, *iy;
-    MYFLT basex, basey, *tablex, *tabley;
-    long tablenx, tableny;
+    MYFLT   *koutx, *kouty, *ihandle1, *ihandle2;
+    MYFLT   *name, *iminx, *imaxx, *iminy, *imaxy;
+    MYFLT   *iexpx, *iexpy, *idispx, *idispy, *iwidth, *iheight, *ix, *iy;
+    MYFLT   basex, basey, *tablex, *tabley;
+    long    tablenx, tableny;
 } FLJOYSTICK;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *kout, *ihandle, *name, *imin, *imax, *istep, *iexp;
-    MYFLT *itype, *idisp, *iwidth, *iheight, *ix, *iy;
-    MYFLT min, base, *table;
-    long tablen;
+    MYFLT   *kout, *ihandle, *name, *imin, *imax, *istep, *iexp;
+    MYFLT   *itype, *idisp, *iwidth, *iheight, *ix, *iy;
+    MYFLT   min, base, *table;
+    long    tablen;
 
 } FLROLLER;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *kout, *ihandle, *name, *imin, *imax, *iexp, *itype;
-    MYFLT *idisp, *iwidth, *ix, *iy;
-    MYFLT min, base, *table;
-    long tablen;
+    MYFLT   *kout, *ihandle, *name, *imin, *imax, *iexp, *itype;
+    MYFLT   *idisp, *iwidth, *ix, *iy, *icursorsize;
+    MYFLT   min, base, *table;
+    long    tablen;
 } FLKNOB;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *kout, *ihandle, *name, *imin, *imax, *istep, *itype;
-    MYFLT *iwidth, *iheight, *ix, *iy;
+    MYFLT   *kout, *ihandle, *name, *imin, *imax, *istep, *itype;
+    MYFLT   *iwidth, *iheight, *ix, *iy;
 } FLTEXT;
-/*---------------*/
-typedef struct  {
+
+// ---------------------------------------------------------------------
+
+typedef struct {
     OPDS    h;
-    MYFLT *red1,*green1,*blue1,*red2,*green2,*blue2;
+    MYFLT   *red1, *green1, *blue1, *red2, *green2, *blue2;
 } FLWIDGCOL;
 
-typedef struct  {
-    OPDS        h;
-    MYFLT *red,*green,*blue;
+typedef struct {
+    OPDS    h;
+    MYFLT   *red, *green, *blue;
 } FLWIDGCOL2;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *size, *font, *align, *red, *green,*blue;
+    MYFLT   *size, *font, *align, *red, *green, *blue;
 } FLWIDGLABEL;
-      /*----*/
-typedef struct  {
+
+// ---------------------------------------------------------------------
+
+typedef struct {
     OPDS    h;
-    MYFLT *ivalue, *ihandle;
+    MYFLT   *ivalue, *ihandle;
 } FL_SET_WIDGET_VALUE_I;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *ktrig, *kvalue, *ihandle;
-    MYFLT log_base, min, max;
-    void *WidgAddress, *opcode;
-    int exp;
+    MYFLT   *ktrig, *kvalue, *ihandle;
+    int     handle;
+    int     widgetType;
+    MYFLT   log_base;
 } FL_SET_WIDGET_VALUE;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *red,*green,*blue, *ihandle;
+    MYFLT   *red, *green, *blue, *ihandle;
 } FL_SET_COLOR;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *ivalue, *ihandle;
+    MYFLT   *ivalue, *ihandle;
 } FL_SET_TEXTSIZE;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *itype, *ihandle;
+    MYFLT   *itype, *ihandle;
 } FL_SET_FONT;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *itext, *ihandle;
+    MYFLT   *itext, *ihandle;
 } FL_SET_TEXT;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *itype, *ihandle;
+    MYFLT   *itype, *ihandle;
 } FL_TALIGN;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *iwidth, *iheight, *ihandle;
+    MYFLT   *iwidth, *iheight, *ihandle;
 } FL_SET_SIZE;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *ix, *iy,  *ihandle;
+    MYFLT   *ix, *iy,  *ihandle;
 } FL_SET_POSITION;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *ihandle;
+    MYFLT   *ihandle;
 } FL_WIDHIDE;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *ihandle;
+    MYFLT   *ihandle;
 } FL_WIDSHOW;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *itype, *ihandle;
+    MYFLT   *itype, *ihandle;
 } FL_SETBOX;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *ihandle, *itext, *itype, *ifont, *isize;
-    MYFLT *iwidth, *iheight, *ix, *iy;
+    MYFLT   *ihandle, *itext, *itype, *ifont, *isize;
+    MYFLT   *iwidth, *iheight, *ix, *iy;
 } FL_BOX;
 
-/*---------------*/
-typedef struct  {
+// ---------------------------------------------------------------------
+
+typedef struct {
     OPDS    h;
-    MYFLT *ihandle, *name, *iwidth, *iheight, *ix, *iy;
+    MYFLT   *ihandle, *name, *iwidth, *iheight, *ix, *iy;
 } FLVALUE;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
 } FLRUN;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT  *name, *iwidth, *iheight, *ix, *iy, *border;
+    MYFLT   *name, *iwidth, *iheight, *ix, *iy, *border;
 } FLPANEL;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT  *inum_snap, *inum_val, *index, *ifn;
+    MYFLT   *inum_snap, *inum_val, *index, *ifn;
 } FLSETSNAP;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT  *inum_el, *index;
+    MYFLT   *inum_el, *index;
 } FLGETSNAP;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *filename;
+    MYFLT   *filename;
 } FLSAVESNAPS;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT *filename;
+    MYFLT   *filename;
 } FLLOADSNAPS;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
 } FLPANELEND;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT  *iwidth, *iheight, *ix, *iy;
+    MYFLT   *iwidth, *iheight, *ix, *iy;
 } FLSCROLL;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
 } FLSCROLLEND;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT  *iwidth, *iheight, *ix, *iy;
+    MYFLT   *iwidth, *iheight, *ix, *iy;
 } FLTABS;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
 } FLTABSEND;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT  *name, *iwidth, *iheight, *ix, *iy, *border;
+    MYFLT   *name, *iwidth, *iheight, *ix, *iy, *border;
 } FLGROUP;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
 } FLGROUPEND;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT  *iwidth, *iheight, *ix, *iy;
+    MYFLT   *iwidth, *iheight, *ix, *iy;
 } FLPACK;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
 } FLPACKEND;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
-    MYFLT   *kout, *ihandle, *name, *ion,    *ioff,   *itype;
+    MYFLT   *kout, *ihandle, *name, *ion, *ioff, *itype;
     MYFLT   *iwidth, *iheight, *ix, *iy, *args[PMAX];
 } FLBUTTON;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
     MYFLT   *kout, *ihandle;    /*  outs */
     MYFLT   *itype, *inumx, *inumy, *iwidth, *iheight, *ix, *iy, *args[PMAX];
 } FLBUTTONBANK;
 
-typedef struct  {
+typedef struct {
     OPDS    h;
     MYFLT   *kout, *ihandle, *name, *imin, *imax, *istep1, *istep2, *itype;
     MYFLT   *iwidth, *iheight, *ix, *iy, *args[PMAX];
@@ -283,7 +290,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *val, *idisp;
     MYFLT   oldvalue;
-  /*int   pspace; */
+ /* int     pspace; */
 } FLPRINTK2;
 
 #ifdef __cplusplus
@@ -299,7 +306,7 @@ private:
   int ix, iy, drag;
   int spinning;
 
-  int ballstacks,ballslices;
+  int ballstacks, ballslices;
   float ballsize;
 
   float curquat[4];
@@ -311,19 +318,19 @@ private:
 
   static FL_EXPORT void repeat_callback(void *);
   FL_EXPORT void increment_cb();
-  FL_EXPORT void vertex_by_matrix(float &x,float &y,float &z);
+  FL_EXPORT void vertex_by_matrix(float &x, float &y, float &z);
 
-  FL_EXPORT void transform_ball_vertex(float &x,float &y,float &z);
-  FL_EXPORT void rotate(float &x,float &y,float &z,
-        float rotx=0.0,float roty=0.0,float  rotz=0.0);
-  FL_EXPORT void draw_solid_ball(float radius,int slices,int stacks);
-  FL_EXPORT void draw_wire_ball(float radius,int slices,int stacks);
+  FL_EXPORT void transform_ball_vertex(float &x, float &y, float &z);
+  FL_EXPORT void rotate(float &x, float &y, float &z,
+                        float rotx=0.0f, float roty=0.0f, float rotz=0.0f);
+  FL_EXPORT void draw_solid_ball(float radius, int slices, int stacks);
+  FL_EXPORT void draw_wire_ball(float radius, int slices, int stacks);
 public:
     FL_EXPORT void draw();
     FL_EXPORT void handle_drag(double v=0.0);
     FL_EXPORT void handle_release();
     FL_EXPORT int handle(int);
-    FL_EXPORT Fl_Ball(int x,int y,int w,int h, const char *l = 0);
+    FL_EXPORT Fl_Ball(int x, int y, int w, int h, const char *l = 0);
 
   void soft(char x) {soft_ = x;}
   char soft() const {return soft_;}
@@ -331,8 +338,8 @@ public:
   float ballscale() const {return ballsize;}
   void ballscale(float s) { ballsize=s;}
 
-  void rotateball(float rotx=0.0,float roty=0.0,float rotz=0.0);
-  void getrot(float &rotx,float &roty,float &rotz);
+  void rotateball(float rotx=0.0f, float roty=0.0f, float rotz=0.0f);
+  void getrot(float &rotx, float &roty, float &rotz);
 
   void stacks(int s) { ballstacks=s; }
   int stacks() const { return ballstacks; }
@@ -349,24 +356,33 @@ public:
 
 class Fl_Knob : public Fl_Valuator {
  public:
-    enum Fl_Knobtype {DOTLIN=0,DOTLOG_1,DOTLOG_2,DOTLOG_3,LINELIN,LINELOG_1,LINELOG_2,LINELOG_3};
+    enum Fl_Knobtype {
+      DOTLIN=0,
+      DOTLOG_1,
+      DOTLOG_2,
+      DOTLOG_3,
+      LINELIN,
+      LINELOG_1,
+      LINELOG_2,
+      LINELOG_3
+    };
  private:
     int _type;
     float _percent;
     int _scaleticks;
-    short a1,a2;
+    short a1, a2;
  public:
-    Fl_Knob(int xx,int yy,int ww,int hh,const char *l=0);
+    Fl_Knob(int xx, int yy, int ww, int hh, const char *l=0);
     ~Fl_Knob();
  private:
     void draw();
-    int handle(int  event);
+    int handle(int event);
  public:
     void type(int ty);
  private:
-    void shadow(const int offs,const uchar r,uchar g,uchar b);
-    void draw_scale(const int ox,const int oy,const int side);
-    void draw_cursor(const int ox,const int oy,const int side);
+    void shadow(const int offs, const uchar r, uchar g, uchar b);
+    void draw_scale(const int ox, const int oy, const int side);
+    void draw_cursor(const int ox, const int oy, const int side);
  public:
     void cursor(const int pc);
     void scaleticks(const int tck);
@@ -377,7 +393,7 @@ class Fl_Knob : public Fl_Valuator {
 class Fl_Spin : public Fl_Valuator {
  private:
     int ix, iy, drag, indrag;
-    int delta,deltadir;
+    int delta, deltadir;
     char soft_;
     uchar mouseobj;
     static FL_EXPORT void repeat_callback(void *);
@@ -386,7 +402,7 @@ class Fl_Spin : public Fl_Valuator {
  public:
     FL_EXPORT void draw();
     FL_EXPORT int handle(int);
-    FL_EXPORT Fl_Spin(int x,int y,int w,int h, const char *l = 0);
+    FL_EXPORT Fl_Spin(int x, int y, int w, int h, const char *l = 0);
 
     void soft(char x) {soft_ = x;}
     char soft() const {return soft_;}
@@ -398,13 +414,14 @@ class Fl_Spin : public Fl_Valuator {
 
 class Fl_Value_Input_Spin : public Fl_Valuator {
  private:
-    int ix, iy, drag, indrag,sldrag;
-    int delta,deltadir;
+    int ix, iy, drag, indrag, sldrag;
+    int delta, deltadir;
     char soft_;
     uchar mouseobj;
     int butsize;
-    static FL_EXPORT void input_cb(Fl_Widget*,void*);
-    virtual FL_EXPORT void value_damage(); /* cause damage() due to value() changing */
+    static FL_EXPORT void input_cb(Fl_Widget*, void*);
+    // cause damage() due to value() changing
+    virtual FL_EXPORT void value_damage();
     static FL_EXPORT void repeat_callback(void *);
     FL_EXPORT void increment_cb();
 
@@ -412,8 +429,9 @@ class Fl_Value_Input_Spin : public Fl_Valuator {
     Fl_Input input;
     FL_EXPORT void draw();
     FL_EXPORT int handle(int);
-    FL_EXPORT void resize(int,int,int,int);
-    FL_EXPORT Fl_Value_Input_Spin(int x,int y,int w,int h, const char *l = 0);
+    FL_EXPORT void resize(int, int, int, int);
+    FL_EXPORT Fl_Value_Input_Spin(int x, int y, int w, int h,
+                                  const char *l = 0);
 
     void soft(char x) {soft_ = x;}
     char soft() const {return soft_;}
@@ -439,15 +457,17 @@ class Fl_Value_Slider_Input : public Fl_Value_Slider {
     char soft_;
     int txtboxsize;
 
-    static FL_EXPORT void input_cb(Fl_Widget*,void*);
-    virtual FL_EXPORT void value_damage(); /* cause damage() due to value() changing */
+    static FL_EXPORT void input_cb(Fl_Widget*, void*);
+    // cause damage() due to value() changing
+    virtual FL_EXPORT void value_damage();
 
  public:
     Fl_Input input;
     FL_EXPORT void draw();
     FL_EXPORT int handle(int);
-    FL_EXPORT void resize(int,int,int,int);
-    FL_EXPORT Fl_Value_Slider_Input(int x,int y,int w,int h, const char *l = 0);
+    FL_EXPORT void resize(int, int, int, int);
+    FL_EXPORT Fl_Value_Slider_Input(int x, int y, int w, int h,
+                                    const char *l = 0);
 
     void soft(char x) {soft_ = x;}
     char soft() const {return soft_;}
