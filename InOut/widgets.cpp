@@ -1156,18 +1156,19 @@ static void set_butbank_value(Fl_Group *o, MYFLT value)
 {
   int       childr = o->children();
   Fl_Button *b;
-  MYFLT     label;
-  int       j;
+  int       ival = (int) value, j, label;
 
+  if (ival < 0 || ival >= childr || (MYFLT) ival != value)
+    return;
   for (j = 0; j < childr; j++) {
     b = (Fl_Button *) o->child(j);
-    b->value(0);        // deactivate all buttons
-  }
-  for (j = 0; j < childr; j++) {
-    b = (Fl_Button *) o->child(j);
-    label = atof(b->label());
-    if (label == value)
+    label = atoi(b->label());
+    if (label == ival) {
       b->value(1);
+      b->do_callback();
+    }
+    else
+      b->value(0);
   }
 }
 
@@ -3332,7 +3333,7 @@ extern "C" int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
 {
   char *Name = "/0";
   int type = (int) *p->itype;
-  if (type > 9 ) {      // ignored when getting snapshots
+  if (type > 9) {       // ignored when getting snapshots
     csound->Warning(csound,
                     "FLbutton \"%s\" ignoring snapshot capture retrieve",
                     Name);
@@ -3341,25 +3342,27 @@ extern "C" int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
   Fl_Group* o = new Fl_Group((int)*p->ix, (int)*p->iy,
                              (int)*p->inumx * 10, (int)*p->inumy*10);
   int z = 0;
-  for (int j =0; j<*p->inumx; j++) {
-    for (int k=0; k< *p->inumy; k++) {
-      int x = (int) *p->ix + j*10, y = (int) *p->iy + k*10;
+  for (int j = 0; j < *p->inumx; j++) {
+    for (int k = 0; k < *p->inumy; k++) {
+      int       x = (int) *p->ix + j*10, y = (int) *p->iy + k*10;
       Fl_Button *w;
-      char    *btName=  new char[30];
+      char      *btName = new char[30];
       allocatedStrings.push_back(btName);
       sprintf(btName, "%d", z);
-      z++;
       switch (type) {
-      case 1: w= new Fl_Button(x, y, 10, 10, btName); break;
-      case 2: w= new Fl_Light_Button(x, y, 10, 10, btName); break;
-      case 3: w= new Fl_Check_Button(x, y, 10, 10, btName); break;
-      case 4: w= new Fl_Round_Button(x, y, 10, 10, btName); break;
+      case 1: w = new Fl_Button(x, y, 10, 10, btName); break;
+      case 2: w = new Fl_Light_Button(x, y, 10, 10, btName); break;
+      case 3: w = new Fl_Check_Button(x, y, 10, 10, btName); break;
+      case 4: w = new Fl_Round_Button(x, y, 10, 10, btName); break;
       default: return csound->InitError(csound, "FLbuttonBank: "
                                                 "invalid button type");
       }
       widget_attributes(csound, w);
       w->type(FL_RADIO_BUTTON);
-      w->callback((Fl_Callback*)fl_callbackButtonBank,(void *) p);
+      w->callback((Fl_Callback*) fl_callbackButtonBank, (void *) p);
+      if (!z)
+        w->value(1);
+      z++;
     }
   }
   o->resizable(o);
@@ -3370,6 +3373,7 @@ extern "C" int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
   o->end();
 
   AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
+  *p->kout = FL(0.0);
   *p->ihandle = AddrSetValue.size()-1;
   return OK;
 }
