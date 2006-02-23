@@ -732,7 +732,7 @@ extern  int     sensMidi(CSOUND *);
 
 int sensevents(CSOUND *csound)
 {
-    CSOUND  *p = csound;
+    CSOUND *p = csound;
     EVTBLK  *e;
     OPARMS  *O = csound->oparms;
     int     retval, sensType;
@@ -774,6 +774,11 @@ int sensevents(CSOUND *csound)
           case 'e':                     /* end of score, */
           case 'l':                     /* lplay list,   */
           case 's':                     /* or section:   */
+            if (p->frstoff != NULL) {         /* if still have notes with   */
+              p->nxtim = p->frstoff->offtim;  /*  finite length, wait until */
+              p->nxtbt = p->frstoff->offbet;  /*  all are turned off        */
+              break;
+            }
             /* end of: 1: section, 2: score, 3: lplay list */
             retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
             goto scode;
@@ -810,11 +815,7 @@ int sensevents(CSOUND *csound)
         case 'e':
         case 'l':
         case 's':
-          if (p->frstoff == NULL)
-            continue;
-          p->nxtim = p->frstoff->offtim;      /* if still have notes with   */
-          p->nxtbt = p->frstoff->offbet;      /*  finite length, wait until */
-          break;                              /*  all are turned off        */
+          continue;
         default:
           p->Message(p, Str("error in score.  illegal opcode %c (ASCII %d)\n"),
                         e->opcod, e->opcod);
