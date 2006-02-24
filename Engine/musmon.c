@@ -745,6 +745,7 @@ int sensevents(CSOUND *csound)
     /* if turnoffs pending, remove any expired instrs */
     if (p->frstoff != NULL) {
       double  tval;
+      /* the following comparisons must match those in schedofftim() */
       if (O->Beatmode) {
         tval = p->curBeat + (0.51 * p->curBeat_inc);
         if (p->frstoff->offbet <= tval) beatexpire(p, tval);
