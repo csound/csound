@@ -33,6 +33,8 @@
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
 static  void    schedofftim(CSOUND *, INSDS *);
+        void    beatexpire(CSOUND *, double);
+        void    timexpire(CSOUND *, double);
 static  void    instance(CSOUND *, int);
 
 int init0(CSOUND *csound)
@@ -53,7 +55,7 @@ int init0(CSOUND *csound)
     return csound->inerrcnt;                        /*   return errcnt      */
 }
 
-void set_xtratim(CSOUND *csound, INSDS *ip)
+static void set_xtratim(CSOUND *csound, INSDS *ip)
 {
     if (ip->relesing)
       return;
@@ -357,15 +359,27 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
     INSDS *prvp, *nxtp;         /* called by insert() & midioff + xtratim */
 
     if ((nxtp = csound->frstoff) == NULL ||
-        nxtp->offtim > ip->offtim)          /*   set into       */
-      csound->frstoff = ip;                         /*   firstoff chain */
+        nxtp->offtim > ip->offtim) {            /*   set into       */
+      csound->frstoff = ip;                     /*   firstoff chain */
+      ip->nxtoff = nxtp;
+      /* IV - Feb 24 2006: check if this note already needs to be turned off */
+      /* the following comparisons must match those in sensevents() */
+      if (csound->oparms_.Beatmode) {
+        double  tval = csound->curBeat + (0.51 * csound->curBeat_inc);
+        if (ip->offbet <= tval) beatexpire(csound, tval);
+      }
+      else {
+        double  tval = csound->curTime + (0.51 * csound->curTime_inc);
+        if (ip->offtim <= tval) timexpire(csound, tval);
+      }
+    }
     else {
       while ((prvp = nxtp)
              && (nxtp = nxtp->nxtoff) != NULL
              && ip->offtim >= nxtp->offtim);
       prvp->nxtoff = ip;
+      ip->nxtoff = nxtp;
     }
-    ip->nxtoff = nxtp;
 }
 
 /* csound.c */
@@ -978,7 +992,7 @@ int nstrnumset(CSOUND *csound, NSTRNUM *p)
 }
 
 /* IV - Nov 16 2002: moved insert_event() here to have access to some static */
-/* variables defined in this file */
+/* functions defined in this file */
 
 INSDS *insert_event(CSOUND *csound,
                     MYFLT instr,
@@ -1124,7 +1138,10 @@ INSDS *insert_event(CSOUND *csound,
       ip->offtim = p2 + (double) ip->p3;
       p2 = ((p2 - csound->curTime) / csound->beatTime) + csound->curBeat;
       ip->offbet = p2 + ((double) ip->p3 / csound->beatTime);
-      schedofftim(csound, ip);  /*       put in turnoff list */
+      schedofftim(csound, ip);  /*      put in turnoff list */
+      if (!ip->actflg) {
+        ip = NULL; goto endsched;
+      }
     }
     else {
       ip->offbet = -1.0;
