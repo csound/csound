@@ -1,8 +1,26 @@
+2006-02-24	Istvan Varga	<ivarga@csounds.com>
+	* InOut/rtjack.c:
+	  Use thread locks instead of calling usleep() in a loop to
+	  implement blocking I/O; the -+jack_sleep_time option is now
+	  deprecated and ignored.
+	  Allow non power of two values for -B.
+	  Setting -b to the same value as the JACK buffer size is no
+	  longer required.
+	* Engine/insert.c:
+	* Engine/musmon.c:
+	  Alternate fix to problems on very short (less than 1/2 control
+	  period) notes; the previous fix introduced a new bug that
+	  resulted in early termination of the score in some cases.
+	* H/version.h:
+	* installer/misc/csound.spec.in:
+	  Updated version number from 5.00.1 to 5.01.0 to reflect the
+	  addition of new opcodes.
+
 2006-02-24  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
 	* Opcodes/psynth.c
-	 new track processing opcodes (also added manual
-	 pages):trscale,trshift,trsplit,trmix,trfilter,trcross,
-	 trhighest,trlowest,binit.
+	 new track processing opcodes (also added manual pages):
+	   trscale, trshift, trsplit, trmix, trfilter, trcross,
+	   trhighest, trlowest, binit.
 
 2006-02-15	Istvan Varga	<ivarga@csounds.com>
 	* InOut/widgets.h:
