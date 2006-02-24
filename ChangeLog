@@ -1,3 +1,9 @@
+2006-02-24  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+	* Opcodes/psynth.c
+	 new track processing opcodes (also added manual
+	 pages):trscale,trshift,trsplit,trmix,trfilter,trcross,
+	 trhighest,trlowest,binit.
+
 2006-02-15	Istvan Varga	<ivarga@csounds.com>
 	* InOut/widgets.h:
 	  moved file from H/
