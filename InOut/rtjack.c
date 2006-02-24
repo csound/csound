@@ -1,7 +1,7 @@
 /*
     rtjack.c:
 
-    Copyright (C) 2005 Istvan Varga
+    Copyright (C) 2005, 2006 Istvan Varga
 
     This file is part of Csound.
 
@@ -25,415 +25,794 @@
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
 #include <stdint.h>
+#include <pthread.h>
 #include "csdl.h"
 #include "soundio.h"
-
 #ifdef LINUX
 #include <sched.h>
 #endif
 
-typedef struct {
-    int                 active;         /* 0: unused, 1: active, 2: running */
-    csRtAudioParams     parm;           /* parameters (sample rate etc.)    */
-    int                 (*SampleConvFunc)(int, int, int, int, void*, void*);
-    void                **ringbuffers;  /* nChannels array of ring buffers  */
-    int                 rb_readpos;     /* ring buffer read position        */
-    int                 rb_writepos;    /* ring buffer write position       */
-    int                 sleep_time;     /* sleep time in microseconds       */
-    jack_port_t         **jackPorts;    /* nChannels array of JACK ports    */
-    int                 frames_ahead;   /* difference between ring buffer   */
-} JackStreamParams_t;                   /*   write and read position        */
+#define MAX_NAME_LEN    32      /* for client and port name */
 
-typedef struct {
-    void                *csound;        /* Csound instance pointer          */
-    jack_client_t       *client;        /* JACK client pointer              */
-    int                 active;         /* non-zero: running                */
-    JackStreamParams_t  r;              /* input (record) stream            */
-    JackStreamParams_t  p;              /* output (playback) stream         */
-} CsoundJackClient_t;
+typedef struct RtJackBuffer_ {
+    pthread_mutex_t csndLock;               /* signaled by process callback */
+    pthread_mutex_t jackLock;               /* signaled by audio thread     */
+    jack_default_audio_sample_t **inBufs;   /* 'nChannels' capture buffers  */
+    jack_default_audio_sample_t **outBufs;  /* 'nChannels' playback buffers */
+} RtJackBuffer;
 
-/* sample conversion routines */
+typedef struct RtJackGlobals_ {
+    CSOUND  *csound;                    /* Csound instance pointer          */
+    int     jackState;                  /* 0: OK, 1: sr changed, 2: quit    */
+    char    clientName[MAX_NAME_LEN + 1];       /* client name              */
+    char    inputPortName[MAX_NAME_LEN + 1];    /* input port name prefix   */
+    char    outputPortName[MAX_NAME_LEN + 1];   /* output port name prefix  */
+    int     sleepTime;                  /* sleep time in us (deprecated)    */
+    char    *inDevName;                 /* device name for -i adc           */
+    char    *outDevName;                /* device name for -o dac           */
+    int     sampleRate;                 /* sample rate in Hz                */
+    int     nChannels;                  /* number of channels               */
+    int     bufSize;                    /* buffer size in sample frames     */
+    int     nBuffers;                   /* number of buffers (>= 2)         */
+    int     inputEnabled;               /* non-zero if capture (adc) is on  */
+    int     outputEnabled;              /* non-zero if playback (dac) is on */
+    int     csndBufCnt;                 /* current buffer in Csound thread  */
+    int     csndBufPos;                 /* buffer position in Csound thread */
+    int     jackBufCnt;                 /* current buffer in JACK callback  */
+    int     jackBufPos;                 /* buffer position in JACK callback */
+    jack_client_t   *client;            /* JACK client pointer              */
+    jack_port_t     **inPorts;          /* 'nChannels' ports for capture    */
+    jack_default_audio_sample_t **inPortBufs;
+    jack_port_t     **outPorts;         /* 'nChannels' ports for playback   */
+    jack_default_audio_sample_t **outPortBufs;
+    RtJackBuffer    **bufs;             /* 'nBuffers' I/O buffers           */
+    int     xrunFlag;                   /* non-zero if an xrun has occured  */
+} RtJackGlobals;
 
-static int float_to_float_r(int nSmps, int nChannels, int bufSize, int ofs,
-                            float **inBufs, float *outBuf);
-static int float_to_double_r(int nSmps, int nChannels, int bufSize, int ofs,
-                             float **inBufs, double *outBuf);
-static int double_to_float_r(int nSmps, int nChannels, int bufSize, int ofs,
-                             double **inBufs, float *outBuf);
-static int double_to_double_r(int nSmps, int nChannels, int bufSize, int ofs,
-                              double **inBufs, double *outBuf);
+/* print error message, close connection, and terminate performance */
 
-static int float_to_float_p(int nSmps, int nChannels, int bufSize, int ofs,
-                            float *inBuf, float **outBufs);
-static int float_to_double_p(int nSmps, int nChannels, int bufSize, int ofs,
-                             float *inBuf, double **outBufs);
-static int double_to_float_p(int nSmps, int nChannels, int bufSize, int ofs,
-                             double *inBuf, float **outBufs);
-static int double_to_double_p(int nSmps, int nChannels, int bufSize, int ofs,
-                              double *inBuf, double **outBufs);
+static CS_NORETURN void rtJack_Error(CSOUND *, int errCode, const char *msg);
+
+static int processCallback(jack_nframes_t nframes, void *arg);
 
 /* callback functions */
 
-static int bufSizeCallback(jack_nframes_t nframes, void *arg)
-{
-    CsoundJackClient_t  *client;
-    CSOUND              *p;
-
-    client = (CsoundJackClient_t*) arg;
-    p = (CSOUND*) (client->csound);
-    if ((client->r.parm.bufSamp_SW > 0 &&
-         client->r.parm.bufSamp_SW != (int) nframes) ||
-        (client->p.parm.bufSamp_SW > 0 &&
-         client->p.parm.bufSamp_SW != (int) nframes)) {
-      p->Message(p, " *** error: JACK buffer size does not match "
-                    "Csound period size\n");
-      return -1;
-    }
-    return 0;
-}
-
 static int sampleRateCallback(jack_nframes_t nframes, void *arg)
 {
-    CsoundJackClient_t  *client;
-    CSOUND              *p;
+    RtJackGlobals *p = (RtJackGlobals*) arg;
 
-    client = (CsoundJackClient_t*) arg;
-    p = (CSOUND*) (client->csound);
-    if (((int) (client->r.parm.sampleRate + 0.5f) > 0 &&
-         (int) (client->r.parm.sampleRate + 0.5f) != (int) nframes) ||
-        ((int) (client->r.parm.sampleRate + 0.5f) > 0 &&
-         (int) (client->r.parm.sampleRate + 0.5f) != (int) nframes)) {
-      p->Message(p, " *** error: JACK sample rate does not match "
-                    "Csound sample rate\n");
-      return -1;
-    }
+    if (p->sampleRate != (int) nframes)
+      p->jackState = 1;
     return 0;
 }
 
+static int bufferSizeCallback(jack_nframes_t nframes, void *arg)
+{
+    RtJackGlobals *p = (RtJackGlobals*) arg;
+
+    (void) nframes;
+    /* invalidate output port buffer pointer cache */
+    if (p->outPortBufs != NULL)
+      p->outPortBufs[0] = (jack_default_audio_sample_t*) NULL;
+    return 0;
+}
+
+#ifdef LINUX
 static void freeWheelCallback(int starting, void *arg)
 {
-    CsoundJackClient_t  *client;
-    CSOUND              *p;
+    RtJackGlobals *p;
 
-    client = (CsoundJackClient_t*) arg;
-    p = (CSOUND*) (client->csound);
-#ifdef LINUX
+    p = (RtJackGlobals*) arg;
     if (starting) {
       if (sched_getscheduler(0) != SCHED_OTHER) {
         struct sched_param sp;
-        p->Message(p, " *** WARNING: disabling --sched in freewheel mode\n");
+        p->csound->Message(p->csound, " *** WARNING: "
+                                      "disabling --sched in freewheel mode\n");
         memset(&sp, 0, sizeof(struct sched_param));
         sp.sched_priority = 0;
         sched_setscheduler(0, SCHED_OTHER, &sp);
       }
     }
+}
 #endif
+
+static int xrunCallback(void *arg)
+{
+    RtJackGlobals *p = (RtJackGlobals*) arg;
+
+    p->xrunFlag = 1;
+    return 0;
 }
 
-#define GETVAR(x)   (csound->QueryGlobalVariable(csound, x))
-
-static void closeJackStream(CsoundJackClient_t *client, int playback)
+static void shutDownCallback(void *arg)
 {
-    JackStreamParams_t  *pp;
-    int                 i;
+    RtJackGlobals *p = (RtJackGlobals*) arg;
 
-    if (playback)
-      pp = &(client->p);
-    else
-      pp = &(client->r);
-    /* unregister and free all ports */
-    if (pp->jackPorts != NULL) {
-      for (i = 0; i < pp->parm.nChannels; i++) {
-        if (pp->jackPorts[i] != NULL)
-          jack_port_unregister(client->client, pp->jackPorts[i]);
+    p->jackState = 2;
+    if (p->bufs != NULL) {
+      int   i;
+      for (i = 0; i < p->nBuffers; i++) {
+        if (p->bufs[i] != NULL &&
+            (p->bufs[i]->inBufs != NULL || p->bufs[i]->outBufs != NULL))
+          pthread_mutex_unlock(&(p->bufs[i]->csndLock));
       }
-      free(pp->jackPorts);
     }
-    /* free ring buffers */
-    if (pp->ringbuffers != NULL) {
-      for (i = 0; i < pp->parm.nChannels; i++) {
-        if (pp->ringbuffers[i] != NULL)
-          free(pp->ringbuffers[i]);
-      }
-      free(pp->ringbuffers);
-    }
-    /* reset structure */
-    memset(pp, 0, sizeof(JackStreamParams_t));
-    pp->ringbuffers = NULL;
-    pp->jackPorts = NULL;
 }
 
-static int openJackStream(CsoundJackClient_t *client,
-                          const csRtAudioParams *parm, int playback)
+static inline size_t rtJack_AlignData(size_t ofs)
 {
-    JackStreamParams_t  *pp;
-    CSOUND              *p, *csound;
-    int                 i, j;
-    char                buf[128], buf1[128];
+    return ((ofs + (size_t) 15) & (~((size_t) 15)));
+}
 
-    p = csound = (CSOUND*) (client->csound);
-    if (playback)
-      pp = &(client->p);
-    else
-      pp = &(client->r);
-    memcpy(&(pp->parm), parm, sizeof(csRtAudioParams));
-    pp->ringbuffers = NULL;
-    pp->sleep_time = *((int*) GETVAR("::JACK::sleepTime"));
-    pp->jackPorts = NULL;
-    /* select sample conversion function */
-    if (playback) {
-      if (sizeof(jack_default_audio_sample_t) == sizeof(float)) {
-        if (p->GetSizeOfMYFLT() == (int) sizeof(float))
-          pp->SampleConvFunc =
-            (int (*)(int, int, int, int, void*, void*)) float_to_float_p;
-        else
-          pp->SampleConvFunc =
-            (int (*)(int, int, int, int, void*, void*)) double_to_float_p;
+/* allocate ring buffers */
+
+static void rtJack_AllocateBuffers(RtJackGlobals *p)
+{
+    void    *ptr;
+    size_t  i, j, m, nBytes, nBytesPerBuf, ofs1, ofs2, ofs3;
+
+    m = (size_t) ((p->inputEnabled ? 1 : 0) + (p->outputEnabled ? 1 : 0));
+    if (!m)
+      return;
+    /* calculate the number of bytes to allocate */
+    ofs1 = rtJack_AlignData(sizeof(RtJackBuffer*) * (size_t) p->nBuffers);
+    ofs2 = rtJack_AlignData(sizeof(RtJackBuffer));
+    ofs3 = rtJack_AlignData(sizeof(jack_default_audio_sample_t*)
+                            * (size_t) p->nChannels * m);
+    nBytesPerBuf = ofs2 + ofs3;
+    nBytesPerBuf += rtJack_AlignData(sizeof(jack_default_audio_sample_t)
+                                     * (size_t) p->nChannels
+                                     * (size_t) p->bufSize
+                                     * m);
+    nBytes = ofs1 + (nBytesPerBuf * (size_t) p->nBuffers);
+    /* allocate memory */
+    ptr = (RtJackBuffer**) malloc(nBytes);
+    if (ptr == NULL)
+      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+    p->bufs = (RtJackBuffer**) ptr;
+    memset((void*) ptr, 0, nBytes);
+    /* set pointer to each buffer */
+    ptr = (void*) ((char*) ptr + (long) ofs1);
+    for (i = (size_t) 0; i < (size_t) p->nBuffers; i++) {
+      p->bufs[i] = ptr;
+      ptr = (void*) ((char*) ptr + (long) nBytesPerBuf);
+    }
+    for (i = (size_t) 0; i < (size_t) p->nBuffers; i++) {
+      /* create lock for signaling when the process callback is done */
+      /* with the buffer */
+      if (pthread_mutex_init(&(p->bufs[i]->csndLock),
+                             (pthread_mutexattr_t*) NULL) != 0)
+        rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+      /* create lock for signaling when the Csound thread is done */
+      /* with the buffer */
+      if (pthread_mutex_init(&(p->bufs[i]->jackLock),
+                             (pthread_mutexattr_t*) NULL) != 0) {
+        pthread_mutex_unlock(&(p->bufs[i]->csndLock));
+        pthread_mutex_destroy(&(p->bufs[i]->csndLock));
+        rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
       }
-      else {
-        if (p->GetSizeOfMYFLT() == (int) sizeof(float))
-          pp->SampleConvFunc =
-            (int (*)(int, int, int, int, void*, void*)) float_to_double_p;
-        else
-          pp->SampleConvFunc =
-            (int (*)(int, int, int, int, void*, void*)) double_to_double_p;
+      ptr = (void*) p->bufs[i];
+      ptr = (void*) ((char*) ptr + (long) ofs2);
+      /* set pointers to input/output buffers */
+      if (p->inputEnabled) {
+        p->bufs[i]->inBufs = (jack_default_audio_sample_t**) ptr;
+        ptr = (void*) &(p->bufs[i]->inBufs[p->nChannels]);
       }
-    }
-    else {
-      if (sizeof(jack_default_audio_sample_t) == sizeof(float)) {
-        if (p->GetSizeOfMYFLT() == (int) sizeof(float))
-          pp->SampleConvFunc =
-            (int (*)(int, int, int, int, void*, void*)) float_to_float_r;
-        else
-          pp->SampleConvFunc =
-            (int (*)(int, int, int, int, void*, void*)) float_to_double_r;
-      }
-      else {
-        if (p->GetSizeOfMYFLT() == (int) sizeof(float))
-          pp->SampleConvFunc =
-            (int (*)(int, int, int, int, void*, void*)) double_to_float_r;
-        else
-          pp->SampleConvFunc =
-            (int (*)(int, int, int, int, void*, void*)) double_to_double_r;
-      }
-    }
-    /* check buffer sizes */
-    if (pp->parm.bufSamp_HW < 64 || pp->parm.bufSamp_HW > 65536) {
-      p->Message(p, " *** openJackStream(): invalid buffer size %d\n",
-                    pp->parm.bufSamp_HW);
-      return CSOUND_ERROR;
-    }
-    if (pp->parm.bufSamp_HW & (pp->parm.bufSamp_HW - 1)) {
-      p->Message(p, " *** openJackStream(): invalid buffer size %d: "
-                    "must be power of two\n", pp->parm.bufSamp_HW);
-      return CSOUND_ERROR;
-    }
-    if (pp->parm.bufSamp_SW < 64 || pp->parm.bufSamp_SW > 65536) {
-      p->Message(p, " *** openJackStream(): invalid period size %d\n",
-                    pp->parm.bufSamp_SW);
-      return CSOUND_ERROR;
-    }
-    if (pp->parm.bufSamp_SW & (pp->parm.bufSamp_SW - 1)) {
-      p->Message(p, " *** openJackStream(): invalid period size %d: "
-                    "must be power of two\n", pp->parm.bufSamp_SW);
-      return CSOUND_ERROR;
-    }
-    if (pp->parm.bufSamp_SW >= pp->parm.bufSamp_HW) {
-      p->Message(p, " *** openJackStream(): period size must be less than "
-                    "buffer size\n");
-      return CSOUND_ERROR;
-    }
-    if (pp->parm.bufSamp_SW != (int) jack_get_buffer_size(client->client)) {
-      if (jack_set_buffer_size(client->client,
-                               (jack_nframes_t) pp->parm.bufSamp_SW) != 0) {
-        p->Message(p,
-                   " *** openJackStream(): error setting JACK buffer size\n");
-        return CSOUND_ERROR;
-      }
-      if (pp->parm.bufSamp_SW != (int) jack_get_buffer_size(client->client)) {
-        p->Message(p, " *** openJackStream(): period size %d does not match "
-                      "JACK buffer size %d\n", pp->parm.bufSamp_SW,
-                      (int) jack_get_buffer_size(client->client));
-        return CSOUND_ERROR;
+      if (p->outputEnabled)
+        p->bufs[i]->outBufs = (jack_default_audio_sample_t**) ptr;
+      ptr = (void*) p->bufs[i];
+      ptr = (void*) ((char*) ptr + (long) (ofs2 + ofs3));
+      for (j = (size_t) 0; j < (size_t) p->nChannels; j++) {
+        if (p->inputEnabled) {
+          p->bufs[i]->inBufs[j] = (jack_default_audio_sample_t*) ptr;
+          ptr = (void*) &(p->bufs[i]->inBufs[j][p->bufSize]);
+        }
+        if (p->outputEnabled) {
+          p->bufs[i]->outBufs[j] = (jack_default_audio_sample_t*) ptr;
+          ptr = (void*) &(p->bufs[i]->outBufs[j][p->bufSize]);
+        }
       }
     }
-    if (!playback && (((pp->parm.bufSamp_SW / p->ksmps) * p->ksmps)
-                      != pp->parm.bufSamp_SW)) {
-      p->Message(p, " *** openJackStream(): period size %d is not an integer "
-                    "multiple of ksmps (%d)\n",
-                    pp->parm.bufSamp_SW, p->ksmps);
-      return CSOUND_ERROR;
+}
+
+/* register JACK ports */
+
+static void rtJack_RegisterPorts(RtJackGlobals *p)
+{
+    char          portName[MAX_NAME_LEN + 4];
+    unsigned long flags = 0UL;
+    int           i;
+
+    if (!(p->inputEnabled && p->outputEnabled))
+      flags = (unsigned long) JackPortIsTerminal;
+    if (p->inputEnabled) {
+      /* register input ports */
+      for (i = 0; i < p->nChannels; i++) {
+        sprintf(&(portName[0]), "%s%d", &(p->inputPortName[0]), i + 1);
+        p->inPorts[i] = jack_port_register(p->client, &(portName[0]),
+                                           JACK_DEFAULT_AUDIO_TYPE,
+                                           flags | JackPortIsInput, 0UL);
+        if (p->inPorts[i] == NULL)
+          rtJack_Error(p->csound, -1, "error registering input ports");
+      }
     }
-    /* check sample rate */
-    if (pp->parm.sampleRate < 1000.0f || pp->parm.sampleRate > 768000.0f) {
-      p->Message(p, " *** openJackStream(): invalid sample rate %f\n",
-                    (double) pp->parm.sampleRate);
-      return CSOUND_ERROR;
+    if (p->outputEnabled) {
+      /* register output ports */
+      for (i = 0; i < p->nChannels; i++) {
+        sprintf(&(portName[0]), "%s%d", &(p->outputPortName[0]), i + 1);
+        p->outPorts[i] = jack_port_register(p->client, &(portName[0]),
+                                            JACK_DEFAULT_AUDIO_TYPE,
+                                            flags | JackPortIsOutput, 0UL);
+        if (p->outPorts[i] == NULL)
+          rtJack_Error(p->csound, -1, "error registering output ports");
+      }
     }
-    if (pp->parm.sampleRate != (float) ((int) (pp->parm.sampleRate + 0.5f))) {
-      p->Message(p, " *** openJackStream(): invalid sample rate %f: "
-                    "must be integer\n", (double) pp->parm.sampleRate);
-      return CSOUND_ERROR;
+}
+
+/* connect to JACK server, set up ports and ring buffers, */
+/* activate client, and connect ports if requested */
+
+static void openJackStreams(RtJackGlobals *p)
+{
+    char    buf[256];
+    int     i, j, k;
+
+    /* connect to JACK server */
+    p->client = jack_client_new(&(p->clientName[0]));
+    if (p->client == NULL)
+      rtJack_Error(p->csound, -1, "could not connect to JACK server");
+
+    /* check consistency of parameters */
+    if (p->nChannels < 1 || p->nChannels > 255)
+      rtJack_Error(p->csound, -1, "invalid number of channels");
+    if (p->sampleRate < 1000 || p->sampleRate > 768000)
+      rtJack_Error(p->csound, -1, "invalid sample rate");
+    if (p->sampleRate != (int) jack_get_sample_rate(p->client)) {
+      sprintf(&(buf[0]), "sample rate %d does not match "
+                         "JACK sample rate %d",
+                         p->sampleRate, (int) jack_get_sample_rate(p->client));
+      rtJack_Error(p->csound, -1, &(buf[0]));
     }
-    if ((int) (pp->parm.sampleRate + 0.5f)
-        != (int) jack_get_sample_rate(client->client)) {
-      p->Message(p, " *** openJackStream(): sample rate %d does not match "
-                    "JACK sample rate %d\n", (int) (pp->parm.sampleRate + 0.5f),
-                    (int) jack_get_sample_rate(client->client));
-      return CSOUND_ERROR;
+    if (p->bufSize < 8 || p->bufSize > 32768)
+      rtJack_Error(p->csound, -1, "invalid period size (-b)");
+    if (p->nBuffers < 2)
+      p->nBuffers = 2;
+    if ((unsigned int) (p->nBuffers * p->bufSize) > (unsigned int) 65536)
+      rtJack_Error(p->csound, -1, "invalid buffer size (-B)");
+    if (((p->nBuffers - 1) * p->bufSize)
+        < (int) jack_get_buffer_size(p->client))
+      rtJack_Error(p->csound, -1, "buffer size (-B) is too small");
+
+    /* register ports */
+    rtJack_RegisterPorts(p);
+
+    /* allocate ring buffers if not done yet */
+    if (p->bufs == NULL)
+      rtJack_AllocateBuffers(p);
+
+    /* initialise ring buffers */
+    p->csndBufCnt = 0;
+    p->csndBufPos = 0;
+    p->jackBufCnt = 0;
+    p->jackBufPos = 0;
+    for (i = 0; i < p->nBuffers; i++) {
+      pthread_mutex_trylock(&(p->bufs[i]->csndLock));
+      pthread_mutex_unlock(&(p->bufs[i]->jackLock));
+      for (j = 0; j < p->nChannels; j++) {
+        if (p->inputEnabled) {
+          for (k = 0; k < p->bufSize; k++)
+            p->bufs[i]->inBufs[j][k] = (jack_default_audio_sample_t) 0;
+        }
+        if (p->outputEnabled) {
+          for (k = 0; k < p->bufSize; k++)
+            p->bufs[i]->outBufs[j][k] = (jack_default_audio_sample_t) 0;
+        }
+      }
     }
+
+    /* output port buffer pointer cache is invalid initially */
+    if (p->outputEnabled)
+      p->outPortBufs[0] = (jack_default_audio_sample_t*) NULL;
+
     /* register callback functions */
-    if (jack_set_buffer_size_callback(client->client,
-                                      (JackBufferSizeCallback) bufSizeCallback,
-                                      (void*) client) != 0) {
-      p->Message(p, " *** openJackStream(): error setting buffer size "
-                    "callback function\n");
-      return CSOUND_ERROR;
+    if (jack_set_sample_rate_callback(p->client, sampleRateCallback, (void*) p)
+        != 0)
+      rtJack_Error(p->csound, -1, "error setting sample rate callback");
+    if (jack_set_buffer_size_callback(p->client, bufferSizeCallback, (void*) p)
+        != 0)
+      rtJack_Error(p->csound, -1, "error setting buffer size callback");
+#ifdef LINUX
+    if (jack_set_freewheel_callback(p->client, freeWheelCallback, (void*) p)
+        != 0)
+      rtJack_Error(p->csound, -1, "error setting freewheel callback");
+#endif
+    if (jack_set_xrun_callback(p->client, xrunCallback, (void*) p) != 0)
+      rtJack_Error(p->csound, -1, "error setting xrun callback");
+    jack_on_shutdown(p->client, shutDownCallback, (void*) p);
+    if (jack_set_process_callback(p->client, processCallback, (void*) p) != 0)
+      rtJack_Error(p->csound, -1, "error setting process callback");
+
+    /* activate client */
+    if (jack_activate(p->client) != 0)
+      rtJack_Error(p->csound, -1, "error activating JACK client");
+
+    /* connect ports if requested */
+    if (p->inputEnabled && p->inDevName != NULL) {
+      char  *sp = strchr(p->inDevName, '\0');
+      for (i = 0; i < p->nChannels; i++) {
+        sprintf(sp, "%d", i + 1);
+        if (jack_connect(p->client, p->inDevName,
+                                    jack_port_name(p->inPorts[i])) != 0)
+          rtJack_Error(p->csound, -1, "error connecting input ports");
+      }
+      *sp = (char) 0;
     }
-    if (jack_set_sample_rate_callback(client->client, (JackSampleRateCallback)
-                                                        sampleRateCallback,
-                                                      (void*) client) != 0) {
-      p->Message(p, " *** openJackStream(): error setting sample rate "
-                    "callback function\n");
-      return CSOUND_ERROR;
+    if (p->outputEnabled && p->outDevName != NULL) {
+      char  *sp = strchr(p->outDevName, '\0');
+      for (i = 0; i < p->nChannels; i++) {
+        sprintf(sp, "%d", i + 1);
+        if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
+                                    p->outDevName) != 0)
+          rtJack_Error(p->csound, -1, "error connecting output ports");
+      }
+      *sp = (char) 0;
     }
-    if (jack_set_freewheel_callback(client->client,
-                                    (JackFreewheelCallback) freeWheelCallback,
-                                    (void*) client) != 0) {
-      p->Message(p, " *** openJackStream(): error setting freewheel "
-                    "callback function\n");
-      return CSOUND_ERROR;
+
+    /* stream is now active */
+    p->jackState = 0;
+}
+
+/* make a copy of the device name specified for -i adc or -o dac, */
+/* allocating extra space for a channel number suffix */
+
+static char *rtJack_CopyDeviceName(CSOUND *csound, const csRtAudioParams *p)
+{
+    char    *s;
+    size_t  nBytes;
+
+    if (p->devNum != 1024)
+      rtJack_Error(csound, -1, "must specify a device name, not a number");
+    if (p->devName == NULL || p->devName[0] == (char) 0)
+      return NULL;
+    /* NOTE: this assumes max. 999 channels (the current limit is 255) */
+    nBytes = strlen(p->devName) + 4;
+    if (nBytes > (size_t) jack_port_name_size())
+      rtJack_Error(csound, -1, "device name is too long");
+    s = (char*) malloc(nBytes);
+    if (s == NULL)
+      rtJack_Error(csound, CSOUND_MEMORY, "memory allocation failure");
+    strcpy(s, p->devName);
+
+    return s;
+}
+
+static void rtJack_CopyDevParams(RtJackGlobals *p, const csRtAudioParams *parm)
+{
+    p->sampleRate = (int) parm->sampleRate;
+    if ((float) p->sampleRate != parm->sampleRate)
+      rtJack_Error(p->csound, -1, "sample rate must be an integer");
+    p->nChannels = parm->nChannels;
+    p->bufSize = parm->bufSamp_SW;
+    p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
+}
+
+/* open for audio input */
+
+static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
+{
+    RtJackGlobals *p;
+
+    p = (RtJackGlobals*) csound->QueryGlobalVariable(csound, "_rtjackGlobals");
+    if (p == NULL)
+      return -1;
+    csound->rtRecord_userdata = (void*) p;
+    p->inDevName = rtJack_CopyDeviceName(csound, parm);
+    rtJack_CopyDevParams(p, parm);
+    p->inputEnabled = 1;
+    /* allocate pointers to input ports */
+    p->inPorts = (jack_port_t**)
+        calloc((size_t) p->nChannels, sizeof(jack_port_t*));
+    if (p->inPorts == NULL)
+      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+    /* allocate pointers to input port buffers */
+    p->inPortBufs = (jack_default_audio_sample_t**)
+        calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
+    if (p->inPortBufs == NULL)
+      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+
+    return 0;
+}
+
+/* open for audio output */
+
+static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
+{
+    RtJackGlobals *p;
+
+    p = (RtJackGlobals*) csound->QueryGlobalVariable(csound, "_rtjackGlobals");
+    if (p == NULL)
+      return -1;
+    csound->rtPlay_userdata = (void*) p;
+    p->outDevName = rtJack_CopyDeviceName(csound, parm);
+    if (p->inputEnabled) {
+      /* full duplex audio I/O: check consistency of parameters */
+      if (p->nChannels != parm->nChannels || p->bufSize != parm->bufSamp_SW)
+        rtJack_Error(csound, -1,
+                     "input and output parameters are not consistent");
+      if (((parm->bufSamp_SW / csound->ksmps) * csound->ksmps)
+          != parm->bufSamp_SW)
+        rtJack_Error(csound, -1,
+                     "period size (-b) must be an integer multiple of ksmps");
     }
-    /* allocate ring buffers */
-    pp->ringbuffers = (void**) malloc(sizeof(void*) * pp->parm.nChannels);
-    if (pp->ringbuffers == NULL) {
-      sprintf(buf, " *** openJackStream(): memory allocation failure\n");
-      goto err_return;
+    rtJack_CopyDevParams(p, parm);
+    p->outputEnabled = 1;
+    /* allocate pointers to output ports */
+    p->outPorts = (jack_port_t**)
+        calloc((size_t) p->nChannels, sizeof(jack_port_t*));
+    if (p->outPorts == NULL)
+      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+    /* allocate pointers to output port buffers */
+    p->outPortBufs = (jack_default_audio_sample_t**)
+        calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
+    if (p->outPortBufs == NULL)
+      rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
+    /* activate client to start playback */
+    openJackStreams(p);
+
+    return 0;
+}
+
+/* the process callback is called by the JACK client thread, */
+/* and copies data to the input and from the output ring buffers */
+
+static int processCallback(jack_nframes_t nframes, void *arg)
+{
+    RtJackGlobals *p;
+    int           i, j, k, l;
+
+    p = (RtJackGlobals*) arg;
+    /* get pointers to port buffers */
+    if (p->inputEnabled) {
+      for (i = 0; i < p->nChannels; i++)
+        p->inPortBufs[i] = (jack_default_audio_sample_t*)
+                                jack_port_get_buffer(p->inPorts[i], nframes);
     }
-    for (i = 0; i < pp->parm.nChannels; i++)
-      pp->ringbuffers[i] = NULL;
+    if (p->outputEnabled && p->outPortBufs[0] == NULL) {
+      for (i = 0; i < p->nChannels; i++)
+        p->outPortBufs[i] = (jack_default_audio_sample_t*)
+                                jack_port_get_buffer(p->outPorts[i], nframes);
+    }
     i = 0;
     do {
-      pp->ringbuffers[i] = (void*) malloc(sizeof(jack_default_audio_sample_t)
-                                          * pp->parm.bufSamp_HW);
-      if (pp->ringbuffers[i] == NULL) {
-        sprintf(buf, " *** openJackStream(): memory allocation failure\n");
-        goto err_return;
-      }
-      for (j = 0; j < pp->parm.bufSamp_HW; j++)
-        ((jack_default_audio_sample_t**) pp->ringbuffers)[i][j] =
-          (jack_default_audio_sample_t) 0;
-    } while (++i < pp->parm.nChannels);
-    pp->rb_readpos = 0;
-    pp->rb_writepos = pp->parm.bufSamp_HW >> 1;
-    pp->frames_ahead = pp->parm.bufSamp_HW >> 1;
-    /* register ports */
-    pp->jackPorts = (jack_port_t**) malloc(sizeof(jack_port_t*)
-                                           * pp->parm.nChannels);
-    if (pp->jackPorts == NULL) {
-      sprintf(buf, " *** openJackStream(): memory allocation failure\n");
-      goto err_return;
-    }
-    for (i = 0; i < pp->parm.nChannels; i++)
-      pp->jackPorts[i] = NULL;
-    for (i = 0; i < pp->parm.nChannels; i++) {
-      if (playback) {
-        sprintf(buf1, "%s%d", (char*) GETVAR("::JACK::outputPortName"), i + 1);
-        pp->jackPorts[i] = jack_port_register(client->client, &(buf1[0]),
-                                              JACK_DEFAULT_AUDIO_TYPE,
-                                              JackPortIsOutput, 0UL);
-        if (pp->jackPorts[i] == (jack_port_t*) NULL) {
-          sprintf(buf, " *** openJackStream(): error registering port %s\n",
-                       &(buf1[0]));
-          goto err_return;
+      /* if starting new buffer: */
+      if (p->jackBufPos == 0) {
+        /* check for xrun: */
+        if (pthread_mutex_trylock(&(p->bufs[p->jackBufCnt]->jackLock)) != 0) {
+          p->xrunFlag = 1;
+          /* yes, discard input and fill output with zero samples */
+          if (p->outputEnabled) {
+            for (j = 0; j < p->nChannels; j++)
+              for (k = i; k < (int) nframes; k++)
+                p->outPortBufs[j][k] = (jack_default_audio_sample_t) 0;
+            return 0;
+          }
         }
       }
-      else {
-        sprintf(buf1, "%s%d", (char*) GETVAR("::JACK::inputPortName"), i + 1);
-        pp->jackPorts[i] = jack_port_register(client->client, &(buf1[0]),
-                                              JACK_DEFAULT_AUDIO_TYPE,
-                                              JackPortIsInput, 0UL);
-        if (pp->jackPorts[i] == (jack_port_t*) NULL) {
-          sprintf(buf, " *** openJackStream(): error registering port %s\n",
-                       &(buf1[0]));
-          goto err_return;
+      /* copy audio data on each channel */
+      k = (int) nframes - i;
+      l = p->bufSize - p->jackBufPos;
+      l = (l < k ? l : k);      /* number of frames to copy */
+      for (j = 0; j < p->nChannels; j++) {
+        if (p->inputEnabled) {
+          jack_default_audio_sample_t   *srcp, *dstp;
+          srcp = &(p->inPortBufs[j][i]);
+          dstp = &(p->bufs[p->jackBufCnt]->inBufs[j][p->jackBufPos]);
+          for (k = 0; k < l; k++)
+            dstp[k] = srcp[k];
+        }
+        if (p->outputEnabled) {
+          jack_default_audio_sample_t   *srcp, *dstp;
+          srcp = &(p->bufs[p->jackBufCnt]->outBufs[j][p->jackBufPos]);
+          dstp = &(p->outPortBufs[j][i]);
+          for (k = 0; k < l; k++)
+            dstp[k] = srcp[k];
         }
       }
-    }
-    /* mark stream as active and report success */
-    pp->active = 1;
-    return CSOUND_SUCCESS;
+      p->jackBufPos += l;
+      i += l;
+      /* if done with a buffer, notify Csound thread and advance to next one */
+      if (p->jackBufPos >= p->bufSize) {
+        p->jackBufPos = 0;
+        pthread_mutex_unlock(&(p->bufs[p->jackBufCnt]->csndLock));
+        if (++(p->jackBufCnt) >= p->nBuffers)
+          p->jackBufCnt = 0;
+      }
+    } while (i < (int) nframes);
+    return 0;
+}
 
- err_return:
-    closeJackStream(client, playback);
-    p->Message(p, &(buf[0]));
-    return CSOUND_ERROR;
+static CS_NOINLINE CS_NORETURN void rtJack_Abort(CSOUND *csound, int err)
+{
+    switch (err) {
+    case 1:
+      rtJack_Error(csound, -1, "JACK sample rate changed");
+      break;
+    default:
+      rtJack_Error(csound, -1, "no connection to JACK server");
+    }
+}
+
+static CS_NOINLINE void rtJack_Restart(RtJackGlobals *p)
+{
+    CSOUND  *csound = p->csound;
+
+    csound->ErrorMsg(csound, Str(" *** rtjack: connection to JACK "
+                                 "server was lost, reconnecting..."));
+    p->jackState = -1;
+    jack_client_close(p->client);
+    openJackStreams(p);
+}
+
+/* get samples from ADC */
+
+static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
+{
+    RtJackGlobals *p;
+    int           i, j, k, nframes, bufpos, bufcnt;
+
+    p = (RtJackGlobals*) csound->rtPlay_userdata;
+    if (p->jackState != 0) {
+      if (p->jackState < 0)
+        openJackStreams(p);     /* open audio input */
+      else if (p->jackState == 2)
+        rtJack_Restart(p);
+      else
+        rtJack_Abort(csound, p->jackState);
+    }
+    nframes = bytes_ / (p->nChannels * (int) sizeof(MYFLT));
+    bufpos = p->csndBufPos;
+    bufcnt = p->csndBufCnt;
+    for (i = j = 0; i < nframes; i++) {
+      if (bufpos == 0) {
+        /* wait until there is enough data in ring buffer */
+        pthread_mutex_lock(&(p->bufs[bufcnt]->csndLock));
+      }
+      /* copy audio data */
+      for (k = 0; k < p->nChannels; k++)
+        inbuf_[j++] = (MYFLT) p->bufs[bufcnt]->inBufs[k][i];
+      if (++bufpos >= p->bufSize) {
+        bufpos = 0;
+        /* notify JACK callback that this buffer has been consumed */
+        if (!p->outputEnabled)
+          pthread_mutex_unlock(&(p->bufs[bufcnt]->jackLock));
+        /* advance to next buffer */
+        if (++bufcnt >= p->nBuffers)
+          bufcnt = 0;
+      }
+    }
+    if (!p->outputEnabled) {
+      p->csndBufPos = bufpos;
+      p->csndBufCnt = bufcnt;
+    }
+    if (p->xrunFlag) {
+      p->xrunFlag = 0;
+      if (p->csound->oparms->msglevel & 4)
+        p->csound->Warning(p->csound, Str("rtjack: xrun in real time audio"));
+    }
+
+    return bytes_;
+}
+
+/* put samples to DAC */
+
+static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
+{
+    RtJackGlobals *p;
+    int           i, j, k, nframes;
+
+    p = (RtJackGlobals*) csound->rtPlay_userdata;
+    if (p == NULL)
+      return;
+    if (p->jackState != 0) {
+      if (p->jackState == 2)
+        rtJack_Restart(p);
+      else
+        rtJack_Abort(csound, p->jackState);
+      return;
+    }
+    nframes = bytes_ / (p->nChannels * (int) sizeof(MYFLT));
+    for (i = j = 0; i < nframes; i++) {
+      if (p->csndBufPos == 0) {
+        /* wait until there is enough free space in ring buffer */
+        if (!p->inputEnabled)
+          pthread_mutex_lock(&(p->bufs[p->csndBufCnt]->csndLock));
+      }
+      /* copy audio data */
+      for (k = 0; k < p->nChannels; k++)
+        p->bufs[p->csndBufCnt]->outBufs[k][i] =
+            (jack_default_audio_sample_t) outbuf_[j++];
+      if (++(p->csndBufPos) >= p->bufSize) {
+        p->csndBufPos = 0;
+        /* notify JACK callback that this buffer is now filled */
+        pthread_mutex_unlock(&(p->bufs[p->csndBufCnt]->jackLock));
+        /* advance to next buffer */
+        if (++(p->csndBufCnt) >= p->nBuffers)
+          p->csndBufCnt = 0;
+      }
+    }
+    if (p->xrunFlag) {
+      p->xrunFlag = 0;
+      if (p->csound->oparms->msglevel & 4)
+        p->csound->Warning(p->csound, Str("rtjack: xrun in real time audio"));
+    }
+}
+
+/* release ring buffers */
+
+static void rtJack_DeleteBuffers(RtJackGlobals *p)
+{
+    RtJackBuffer  **bufs;
+    size_t        i;
+
+    if (p->bufs == (RtJackBuffer**) NULL)
+      return;
+    bufs = p->bufs;
+    p->bufs = (RtJackBuffer**) NULL;
+    for (i = (size_t) 0; i < (size_t) p->nBuffers; i++) {
+      if (bufs[i]->inBufs == (jack_default_audio_sample_t**) NULL &&
+          bufs[i]->outBufs == (jack_default_audio_sample_t**) NULL)
+        continue;
+      pthread_mutex_unlock(&(bufs[i]->csndLock));
+      pthread_mutex_destroy(&(bufs[i]->csndLock));
+      pthread_mutex_unlock(&(bufs[i]->jackLock));
+      pthread_mutex_destroy(&(bufs[i]->jackLock));
+    }
+    free((void*) bufs);
+}
+
+/* close the I/O device entirely  */
+/* called only when both complete */
+
+static CS_NOINLINE void rtclose_(CSOUND *csound)
+{
+    RtJackGlobals p;
+    RtJackGlobals *pp;
+    int           i;
+
+    pp = (RtJackGlobals*) csound->QueryGlobalVariable(csound, "_rtjackGlobals");
+    if (pp == NULL)
+      return;
+    csound->rtRecord_userdata = NULL;
+    csound->rtPlay_userdata = NULL;
+    memcpy(&p, pp, sizeof(RtJackGlobals));
+    /* free globals */
+    csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
+    if (p.client != (jack_client_t*) NULL) {
+      /* deactivate client */
+      if (p.jackState != 2) {
+        if (p.jackState == 0)
+          csound->Sleep((size_t)
+                        ((int) ((double) (p.bufSize * p.nBuffers)
+                                * 1000.0 / (double) p.sampleRate + 0.999)));
+        jack_deactivate(p.client);
+      }
+      csound->Sleep((size_t) 50);
+      /* unregister and free all ports */
+      if (p.inPorts != NULL) {
+        for (i = 0; i < p.nChannels; i++) {
+          if (p.inPorts[i] != NULL && p.jackState != 2)
+            jack_port_unregister(p.client, p.inPorts[i]);
+        }
+      }
+      if (p.outPorts != NULL) {
+        for (i = 0; i < p.nChannels; i++) {
+          if (p.outPorts[i] != NULL && p.jackState != 2)
+            jack_port_unregister(p.client, p.outPorts[i]);
+        }
+      }
+      /* close connection */
+      if (p.jackState != 2)
+        jack_client_close(p.client);
+    }
+    /* free copy of input and output device name */
+    if (p.inDevName != NULL)
+      free(p.inDevName);
+    if (p.outDevName != NULL)
+      free(p.outDevName);
+    /* free ports and port buffer pointers */
+    if (p.inPorts != NULL)
+      free(p.inPorts);
+    if (p.inPortBufs != NULL)
+      free(p.inPortBufs);
+    if (p.outPorts != NULL)
+      free(p.outPorts);
+    if (p.outPortBufs != NULL)
+      free(p.outPortBufs);
+    /* free ring buffers */
+    rtJack_DeleteBuffers(&p);
+}
+
+/* print error message, close connection, and terminate performance */
+
+static CS_NORETURN void rtJack_Error(CSOUND *csound,
+                                     int errCode, const char *msg)
+{
+    csound->ErrorMsg(csound, Str(" *** rtjack: %s"), Str(msg));
+    rtclose_(csound);
+    csound->LongJmp(csound, errCode);
 }
 
 /* module interface functions */
 
-int csoundModuleCreate(CSOUND *csound)
+PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
-    CSOUND  *p = csound;
-    void    *ptr;
-    int     i, j;
+    RtJackGlobals   *p;
+    int             i, j;
 
-    p->Message(csound, "JACK real-time audio module for Csound "
-                       "by Istvan Varga\n");
+    /* allocate and initialise globals */
+    csound->Message(csound, "JACK real-time audio module for Csound "
+                            "by Istvan Varga\n");
+    if (csound->CreateGlobalVariable(csound, "_rtjackGlobals",
+                                     sizeof(RtJackGlobals)) != 0) {
+      csound->ErrorMsg(csound, Str(" *** rtjack: error allocating globals"));
+      return -1;
+    }
+    p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                            "_rtjackGlobals");
+    p->csound = csound;
+    p->jackState = -1;
+    strcpy(&(p->clientName[0]), "csound5");
+    strcpy(&(p->inputPortName[0]), "input");
+    strcpy(&(p->outputPortName[0]), "output");
+    p->sleepTime = 1000;        /* this is not actually used */
+    p->inDevName = (char*) NULL;
+    p->outDevName = (char*) NULL;
+    p->client = (jack_client_t*) NULL;
+    p->inPorts = (jack_port_t**) NULL;
+    p->inPortBufs = (jack_default_audio_sample_t**) NULL;
+    p->outPorts = (jack_port_t**) NULL;
+    p->outPortBufs = (jack_default_audio_sample_t**) NULL;
+    p->bufs = (RtJackBuffer**) NULL;
     /* register options: */
     /*   client name */
     i = jack_client_name_size();
-    if (i > 33) i = 33;
-    p->CreateGlobalVariable(csound, "::JACK::clientName", (size_t) i);
-    ptr = GETVAR("::JACK::clientName");
-    strcpy((char*) ptr, "csound5");
-    p->CreateConfigurationVariable(csound, "jack_client", ptr,
-                                   CSOUNDCFG_STRING, 0, NULL, &i,
-                                   "JACK client name (default: csound5)", NULL);
+    if (i > (MAX_NAME_LEN + 1))
+      i = (MAX_NAME_LEN + 1);
+    csound->CreateConfigurationVariable(
+        csound, "jack_client", (void*) &(p->clientName[0]),
+        CSOUNDCFG_STRING, 0, NULL, &i,
+        "JACK client name (default: csound5)", NULL);
     /*   input port name */
-    i = jack_port_name_size();
-    if (i > 33) i = 33;
-    p->CreateGlobalVariable(csound, "::JACK::inputPortName", (size_t) i);
-    ptr = GETVAR("::JACK::inputPortName");
-    strcpy((char*) ptr, "input");
-    p->CreateConfigurationVariable(csound, "jack_inportname", ptr,
-                                   CSOUNDCFG_STRING, 0, NULL, &i,
-                                   "JACK input port name prefix "
-                                   "(default: input)", NULL);
+    i = jack_port_name_size() - 3;
+    if (i > (MAX_NAME_LEN + 1))
+      i = (MAX_NAME_LEN + 1);
+    csound->CreateConfigurationVariable(
+        csound, "jack_inportname", (void*) &(p->inputPortName[0]),
+        CSOUNDCFG_STRING, 0, NULL, &i,
+        "JACK input port name prefix (default: input)", NULL);
     /*   output port name */
-    i = jack_port_name_size();
-    if (i > 33) i = 33;
-    p->CreateGlobalVariable(csound, "::JACK::outputPortName", (size_t) i);
-    ptr = GETVAR("::JACK::outputPortName");
-    strcpy((char*) ptr, "output");
-    p->CreateConfigurationVariable(csound, "jack_outportname", ptr,
-                                   CSOUNDCFG_STRING, 0, NULL, &i,
-                                   "JACK output port name prefix "
-                                   "(default: output)", NULL);
+    i = jack_port_name_size() - 3;
+    if (i > (MAX_NAME_LEN + 1))
+      i = (MAX_NAME_LEN + 1);
+    csound->CreateConfigurationVariable(
+        csound, "jack_outportname", (void*) &(p->outputPortName[0]),
+        CSOUNDCFG_STRING, 0, NULL, &i,
+        "JACK output port name prefix (default: output)", NULL);
     /* sleep time */
     i = 250; j = 25000;         /* min/max value */
-    p->CreateGlobalVariable(csound, "::JACK::sleepTime", sizeof(int));
-    ptr = GETVAR("::JACK::sleepTime");
-    *((int*) ptr) = 1000;
-    p->CreateConfigurationVariable(csound, "jack_sleep_time", ptr,
-                                   CSOUNDCFG_INTEGER, 0, &i, &j,
-                                   "JACK sleep time in microseconds "
-                                   "(default: 1000)", NULL);
+    csound->CreateConfigurationVariable(
+        csound, "jack_sleep_time", (void*) &(p->sleepTime),
+        CSOUNDCFG_INTEGER, 0, &i, &j,
+        "Deprecated", NULL);
     /* done */
     return 0;
 }
 
-static int playopen_(CSOUND *, const csRtAudioParams *);
-static int recopen_(CSOUND *, const csRtAudioParams *);
-static void rtplay_(CSOUND *, const MYFLT *, int);
-static int rtrecord_(CSOUND *, MYFLT *, int);
-static void rtclose_(CSOUND *);
-
-int csoundModuleInit(CSOUND *csound)
+PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
 
-    drv = (char*) GETVAR("_RTAUDIO");
+    drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
       return 0;
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
@@ -450,446 +829,8 @@ int csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-/* connect to JACK server, if not done so already */
-/* returns client pointer on success, or NULL in case of an error */
-
-static CsoundJackClient_t *jackConnectServer(CSOUND *csound)
+PUBLIC int csoundModuleInfo(void)
 {
-    CSOUND              *p = csound;
-    CsoundJackClient_t  *client;
-
-    /* already connected ? */
-    client = (CsoundJackClient_t*) GETVAR("::JACK::client");
-    if (client != NULL)
-      return client;
-    /* no, connect to JACK server now */
-    p->CreateGlobalVariable(csound, "::JACK::client",
-                            sizeof(CsoundJackClient_t));
-    client = (CsoundJackClient_t*) GETVAR("::JACK::client");
-    if (client == NULL) {
-      p->Message(csound, " *** JACK: jackConnectServer(): "
-                         "memory allocation failure\n");
-      return NULL;
-    }
-    client->csound = csound;
-    client->active = 0;
-    client->r.ringbuffers = NULL;
-    client->r.jackPorts = NULL;
-    client->p.ringbuffers = NULL;
-    client->p.jackPorts = NULL;
-    client->client = jack_client_new((char*) GETVAR("::JACK::clientName"));
-    if (client->client == NULL) {
-      p->Message(csound, " *** JACK: jackConnectServer(): "
-                         "could not connect to JACK server\n");
-      p->DestroyGlobalVariable(csound, "::JACK::client");
-      return NULL;
-    }
-    /* successfully connected */
-    return client;
-}
-
-/* open for audio input */
-
-static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
-{
-    CsoundJackClient_t  *client;
-
-    /* do we have a connection to the JACK server ? */
-    client = jackConnectServer(csound);
-    if (client == NULL)
-      return -1;    /* no */
-    /* open stream */
-    if (openJackStream(client, parm, 0) != CSOUND_SUCCESS) {
-      closeJackStream(client, 0);
-      closeJackStream(client, 1);
-      jack_client_close(client->client);
-      csound->DestroyGlobalVariable(csound, "::JACK::client");
-      return -1;
-    }
-    csound->rtRecord_userdata = &(client->r);
-    return 0;
-}
-
-/* open for audio output */
-
-static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
-{
-    CsoundJackClient_t  *client;
-
-    /* do we have a connection to the JACK server ? */
-    client = jackConnectServer(csound);
-    if (client == NULL)
-      return -1;    /* no */
-    /* open stream */
-    if (openJackStream(client, parm, 1) != CSOUND_SUCCESS) {
-      closeJackStream(client, 0);
-      closeJackStream(client, 1);
-      jack_client_close(client->client);
-      csound->DestroyGlobalVariable(csound, "::JACK::client");
-      return -1;
-    }
-    csound->rtPlay_userdata = &(client->p);
-    return 0;
-}
-
-static int processCallback(jack_nframes_t nframes, void *arg)
-{
-    CsoundJackClient_t  *client;
-    CSOUND              *p;
-    jack_default_audio_sample_t *bufp, *bufp2;
-    int                 i, j, k = 0;
-
-    client = (CsoundJackClient_t*) arg;
-    p = (CSOUND*) (client->csound);
-    if (!client->active)
-      return -1;
-    if (client->r.active == 2 &&                          /* capture active */
-        client->r.frames_ahead                            /* and no xrun */
-          <= (client->r.parm.bufSamp_HW - client->r.parm.bufSamp_SW)) {
-      for (i = 0; i < client->r.parm.nChannels; i++) {
-        bufp = (jack_default_audio_sample_t*)
-                 jack_port_get_buffer(client->r.jackPorts[i],
-                                      (jack_nframes_t)
-                                        client->r.parm.bufSamp_SW);
-        bufp2 = (jack_default_audio_sample_t*) (client->r.ringbuffers[i]);
-        k = client->r.rb_writepos;
-        for (j = 0; j < client->r.parm.bufSamp_SW; j++) {
-          bufp2[k] = bufp[j];
-          k = (k + 1) & (client->r.parm.bufSamp_HW - 1);
-        }
-      }
-      client->r.rb_writepos = k;
-      client->r.frames_ahead += client->r.parm.bufSamp_SW;
-    }
-    if (client->p.active == 2) {            /* playback active, and no xrun */
-      if (client->p.frames_ahead >= client->p.parm.bufSamp_SW) {
-        for (i = 0; i < client->p.parm.nChannels; i++) {
-          bufp = (jack_default_audio_sample_t*) (client->p.ringbuffers[i]);
-          bufp2 = (jack_default_audio_sample_t*)
-                    jack_port_get_buffer(client->p.jackPorts[i],
-                                         (jack_nframes_t)
-                                           client->p.parm.bufSamp_SW);
-          k = client->p.rb_readpos;
-          for (j = 0; j < client->p.parm.bufSamp_SW; j++) {
-            bufp2[j] = bufp[k];
-            k = (k + 1) & (client->p.parm.bufSamp_HW - 1);
-          }
-        }
-        client->p.rb_readpos = k;
-        client->p.frames_ahead -= client->p.parm.bufSamp_SW;
-      }
-      else {                                /* xrun: fill with zero samples */
-        for (i = 0; i < client->p.parm.nChannels; i++) {
-          bufp2 = (jack_default_audio_sample_t*)
-                    jack_port_get_buffer(client->p.jackPorts[i],
-                                         (jack_nframes_t)
-                                           client->p.parm.bufSamp_SW);
-          for (j = 0; j < client->p.parm.bufSamp_SW; j++) {
-            bufp2[j] = (jack_default_audio_sample_t) 0;
-          }
-        }
-      }
-    }
-    return 0;
-}
-
-static int jackClientActivate(CSOUND *csound)
-{
-    CsoundJackClient_t  *client;
-    CSOUND              *p = csound;
-    int                 i;
-    char                buf1[128], buf2[256];
-
-    client = (CsoundJackClient_t*) GETVAR("::JACK::client");
-    if (client == NULL)
-      return -1;
-    if (client->p.active == 0 && client->r.active == 0)
-      goto err_return;
-    if (client->active)
-      return 0;
-    /* register process callback function */
-    if (jack_set_process_callback(client->client,
-                                  (JackProcessCallback) processCallback,
-                                  (void*) client) != 0) {
-      p->Message(p, " *** jackClientActivate(): "
-                    "error registering process callback function\n");
-      goto err_return;
-    }
-    /* activate */
-    if (jack_activate(client->client) != 0) {
-      p->Message(p, " *** jackClientActivate(): "
-                    "error activating JACK client\n");
-      goto err_return;
-    }
-    /* connect ports if requested */
-    if (client->r.parm.devName != NULL && client->r.parm.devName[0] != '\0') {
-      if ((int) strlen(client->r.parm.devName) > 64) {
-        p->Message(p, " *** jackClientActivate(): "
-                      "input device name is too long\n");
-        goto err_return;
-      }
-      for (i = 1; i <= client->r.parm.nChannels; i++) {
-        sprintf(buf1, "%s%d", client->r.parm.devName, i);
-        sprintf(buf2, "%s:%s%d", (char*) GETVAR("::JACK::clientName"),
-                                 (char*) GETVAR("::JACK::inputPortName"), i);
-        if (jack_connect(client->client, &(buf1[0]), &(buf2[0])) != 0) {
-          p->Message(p, " *** jackClientActivate(): cannot connect %s to %s\n",
-                        &(buf1[0]), &(buf2[0]));
-          goto err_return;
-        }
-      }
-    }
-    if (client->p.parm.devName != NULL && client->p.parm.devName[0] != '\0') {
-      if ((int) strlen(client->p.parm.devName) > 64) {
-        p->Message(p, " *** jackClientActivate(): "
-                      "output device name is too long\n");
-        goto err_return;
-      }
-      for (i = 1; i <= client->p.parm.nChannels; i++) {
-        sprintf(buf1, "%s:%s%d", (char*) GETVAR("::JACK::clientName"),
-                                 (char*) GETVAR("::JACK::outputPortName"), i);
-        sprintf(buf2, "%s%d", client->p.parm.devName, i);
-        if (jack_connect(client->client, &(buf1[0]), &(buf2[0])) != 0) {
-          p->Message(p, " *** jackClientActivate(): cannot connect %s to %s\n",
-                        &(buf1[0]), &(buf2[0]));
-          goto err_return;
-        }
-      }
-    }
-    /* now active */
-    if (client->r.active)
-      client->r.active = 2;
-    if (client->p.active)
-      client->p.active = 2;
-    client->active = 1;
-
-    return 0;
-
- err_return:
-    closeJackStream(client, 0);
-    closeJackStream(client, 1);
-    jack_client_close(client->client);
-    p->DestroyGlobalVariable(csound, "::JACK::client");
-    p->rtRecord_userdata = NULL;
-    p->rtPlay_userdata = NULL;
-    return -1;
-}
-
-/* get samples from ADC */
-
-static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
-{
-    JackStreamParams_t  *pp;
-    volatile int        *frames_ahead;
-    int                 nframes;
-
-    pp = (JackStreamParams_t*) csound->rtRecord_userdata;
-    if (pp == NULL || pp->active == 0) {
-      csound->Message(csound, " *** real time audio input stopped\n");
-      memset(inbuf_, 0, (size_t) bytes_);
-      usleep(100000);
-      return bytes_;
-    }
-    if (pp->active == 1) {
-      if (jackClientActivate(csound) != 0) {
-        memset(inbuf_, 0, (size_t) bytes_);
-        usleep(100000);
-        return bytes_;
-      }
-    }
-    /* wait until there is enough data in ring buffer */
-    frames_ahead = &(pp->frames_ahead);
-    while (*frames_ahead < pp->parm.bufSamp_SW)
-      usleep(pp->sleep_time);
-    /* copy from ring buffer */
-    nframes = bytes_ / (pp->parm.nChannels * (int) (csound->GetSizeOfMYFLT()));
-    pp->rb_readpos =
-      pp->SampleConvFunc(nframes, pp->parm.nChannels,
-                         pp->parm.bufSamp_HW, pp->rb_readpos,
-                         (void*) pp->ringbuffers, (void*) inbuf_);
-    (*frames_ahead) -= nframes;
-
-    return bytes_;
-}
-
-/* put samples to DAC */
-
-static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
-{
-    JackStreamParams_t  *pp;
-    volatile int        *frames_ahead;
-    int                 nframes;
-
-    pp = (JackStreamParams_t*) csound->rtPlay_userdata;
-    if (pp == NULL || pp->active == 0) {
-      csound->Message(csound, " *** real time audio output stopped\n");
-      usleep(100000);
-      return;
-    }
-    if (pp->active == 1) {
-      if (jackClientActivate(csound) != 0) {
-        usleep(100000);
-        return;
-      }
-    }
-    /* wait until there is enough free space in ring buffer */
-    frames_ahead = &(pp->frames_ahead);
-    while (*frames_ahead > (pp->parm.bufSamp_HW - pp->parm.bufSamp_SW))
-      usleep(pp->sleep_time);
-    /* copy to ring buffer */
-    nframes = bytes_ / (pp->parm.nChannels * (int) (csound->GetSizeOfMYFLT()));
-    pp->rb_writepos =
-      pp->SampleConvFunc(nframes, pp->parm.nChannels,
-                         pp->parm.bufSamp_HW, pp->rb_writepos,
-                         (void*) outbuf_, (void*) pp->ringbuffers);
-    (*frames_ahead) += nframes;
-}
-
-/* close the I/O device entirely  */
-/* called only when both complete */
-
-static void rtclose_(CSOUND *csound)
-{
-    CsoundJackClient_t  *client;
-
-    client = (CsoundJackClient_t*) GETVAR("::JACK::client");
-    if (client == NULL)
-      return;       /* already closed */
-    closeJackStream(client, 0);
-    closeJackStream(client, 1);
-    jack_client_close(client->client);
-    csound->DestroyGlobalVariable(csound, "::JACK::client");
-    csound->rtRecord_userdata = NULL;
-    csound->rtPlay_userdata = NULL;
-}
-
-/* sample conversion routines */
-
-static int float_to_float_r(int nSmps, int nChannels, int bufSize, int ofs,
-                            float **inBufs, float *outBuf)
-{
-    int i, j, c;
-
-    i = c = 0;
-    j = ofs;
-    while (nSmps) {
-      outBuf[i++] = inBufs[c++][j];
-      if (c >= nChannels) {
-        c = 0; j = (j + 1) & (bufSize - 1); nSmps--;
-      }
-    }
-    return j;
-}
-
-static int float_to_double_r(int nSmps, int nChannels, int bufSize, int ofs,
-                             float **inBufs, double *outBuf)
-{
-    int i, j, c;
-
-    i = c = 0;
-    j = ofs;
-    while (nSmps) {
-      outBuf[i++] = (double) inBufs[c++][j];
-      if (c >= nChannels) {
-        c = 0; j = (j + 1) & (bufSize - 1); nSmps--;
-      }
-    }
-    return j;
-}
-
-static int double_to_float_r(int nSmps, int nChannels, int bufSize, int ofs,
-                             double **inBufs, float *outBuf)
-{
-    int i, j, c;
-
-    i = c = 0;
-    j = ofs;
-    while (nSmps) {
-      outBuf[i++] = (float) inBufs[c++][j];
-      if (c >= nChannels) {
-        c = 0; j = (j + 1) & (bufSize - 1); nSmps--;
-      }
-    }
-    return j;
-}
-
-static int double_to_double_r(int nSmps, int nChannels, int bufSize, int ofs,
-                              double **inBufs, double *outBuf)
-{
-    int i, j, c;
-
-    i = c = 0;
-    j = ofs;
-    while (nSmps) {
-      outBuf[i++] = inBufs[c++][j];
-      if (c >= nChannels) {
-        c = 0; j = (j + 1) & (bufSize - 1); nSmps--;
-      }
-    }
-    return j;
-}
-
-static int float_to_float_p(int nSmps, int nChannels, int bufSize, int ofs,
-                            float *inBuf, float **outBufs)
-{
-    int i, j, c;
-
-    i = c = 0;
-    j = ofs;
-    while (nSmps) {
-      outBufs[c++][j] = inBuf[i++];
-      if (c >= nChannels) {
-        c = 0; j = (j + 1) & (bufSize - 1); nSmps--;
-      }
-    }
-    return j;
-}
-
-static int float_to_double_p(int nSmps, int nChannels, int bufSize, int ofs,
-                             float *inBuf, double **outBufs)
-{
-    int i, j, c;
-
-    i = c = 0;
-    j = ofs;
-    while (nSmps) {
-      outBufs[c++][j] = (double) inBuf[i++];
-      if (c >= nChannels) {
-        c = 0; j = (j + 1) & (bufSize - 1); nSmps--;
-      }
-    }
-    return j;
-}
-
-static int double_to_float_p(int nSmps, int nChannels, int bufSize, int ofs,
-                             double *inBuf, float **outBufs)
-{
-    int i, j, c;
-
-    i = c = 0;
-    j = ofs;
-    while (nSmps) {
-      outBufs[c++][j] = (float) inBuf[i++];
-      if (c >= nChannels) {
-        c = 0; j = (j + 1) & (bufSize - 1); nSmps--;
-      }
-    }
-    return j;
-}
-
-static int double_to_double_p(int nSmps, int nChannels, int bufSize, int ofs,
-                              double *inBuf, double **outBufs)
-{
-    int i, j, c;
-
-    i = c = 0;
-    j = ofs;
-    while (nSmps) {
-      outBufs[c++][j] = inBuf[i++];
-      if (c >= nChannels) {
-        c = 0; j = (j + 1) & (bufSize - 1); nSmps--;
-      }
-    }
-    return j;
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 
