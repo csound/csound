@@ -1,3 +1,7 @@
+2006-02-25      Michael Gogins  <gogins@pipeline.com>
+	* Updated SConstruct, custom.py, and Windows
+	  installer to build and install PortMidi.
+
 2006-02-24	Istvan Varga	<ivarga@csounds.com>
 	* InOut/rtjack.c:
 	  Use thread locks instead of calling usleep() in a loop to
@@ -16,11 +20,11 @@
 	  Updated version number from 5.00.1 to 5.01.0 to reflect the
 	  addition of new opcodes.
 
-2006-02-24  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+2006-02-24      Victor Lazzarini <Victor.Lazzarini@nuim.ie>
 	* Opcodes/psynth.c
-	 new track processing opcodes (also added manual pages):
-	   trscale, trshift, trsplit, trmix, trfilter, trcross,
-	   trhighest, trlowest, binit.
+	  new track processing opcodes (also added manual pages):
+	  trscale, trshift, trsplit, trmix, trfilter, trcross,
+	  trhighest, trlowest, binit.
 
 2006-02-15	Istvan Varga	<ivarga@csounds.com>
 	* InOut/widgets.h:
