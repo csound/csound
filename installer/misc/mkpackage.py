@@ -49,6 +49,10 @@ pythonDir2  = pythonDir
 # csoundapi~.pd_linux
 pdDir       = '/usr/local/lib/pd/extra'
 
+# uncomment this to install VIM syntax files
+# vimDir    = '/usr/share/vim/current'
+vimDir      = ''
+
 buildOpts = ['buildRelease=1', 'buildUtilities=0', 'useLrint=1', 'noDebug=1']
 buildOpts += ['buildPythonOpcodes=1', 'useOSC=1', 'buildCsoundVST=0']
 buildOpts += ['buildJavaWrapper=1', 'pythonVersion=%s' % pyVersion]
@@ -172,6 +176,14 @@ for fName in os.listdir('./Opcodes/stk/rawwaves'):
     if re.match('^.*\.raw$', fName) != None:
         rawWaveFiles += ['./Opcodes/stk/rawwaves/' + fName]
 installFiles(rawWaveFiles, rawWaveDir)
+
+# copy VIM files if enabled
+
+if vimDir != '':
+    installXFile('', 'installer/misc/vim/cshelp', binDir)
+    installFile('installer/misc/vim/csound.vim', '%s/%s' % (vimDir, 'plugin'))
+    for i in ['csound_csd.vim', 'csound_orc.vim', 'csound_sco.vim']:
+        installFile('installer/misc/vim/%s' % i, '%s/%s' % (vimDir, 'syntax'))
 
 # build Csound
 
