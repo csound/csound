@@ -180,6 +180,11 @@ installFiles(rawWaveFiles, rawWaveDir)
 # copy VIM files if enabled
 
 if vimDir != '':
+    for i in ['%s/%s' % (vimDir, 'plugin'), '%s/%s' % (vimDir, 'syntax')]:
+        try:
+            os.makedirs('%s%s' % (pkgDir, i), 0755)
+        except:
+            pass
     installXFile('', 'installer/misc/vim/cshelp', binDir)
     installFile('installer/misc/vim/csound.vim', '%s/%s' % (vimDir, 'plugin'))
     for i in ['csound_csd.vim', 'csound_orc.vim', 'csound_sco.vim']:
