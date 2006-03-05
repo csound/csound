@@ -1,5 +1,5 @@
-/*  syncgrain.c:
-    Synchronous granular synthesis
+/*
+    syncgrain.c: Synchronous granular synthesis
 
     (c) Victor Lazzarini, 2004
 
@@ -19,7 +19,6 @@
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
-
 */
 
 #include "csdl.h"
@@ -27,59 +26,49 @@
 
 static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
-    p->efunc = csound->FTFind(p->h.insdshead->csound,p->ifn2);
-    if (p->efunc==NULL) {
-      csound->InitError(csound, "function table not found\n");
+    p->efunc = csound->FTFind(csound, p->ifn2);
+    if (p->efunc == NULL)
       return NOTOK;
-    }
 
-    p->sfunc = csound->FTnp2Find(p->h.insdshead->csound,p->ifn1);
-    if (p->sfunc==NULL) {
-      csound->InitError(csound, "function table not found\n");
+    p->sfunc = csound->FTnp2Find(csound, p->ifn1);
+    if (p->sfunc == NULL)
       return NOTOK;
-    }
 
-   p->olaps = (int) *p->ols;
+    p->olaps = (int) *p->ols;
 
-   if (p->olaps < 1) p->olaps = 1;
+    if (p->olaps < 1)
+      p->olaps = 1;
 
-   if (p->index.auxp==NULL)
-     csound->AuxAlloc(csound, p->olaps*sizeof(float),&p->index);
-   if (p->envindex.auxp==NULL)
-     csound->AuxAlloc(csound, p->olaps*sizeof(float),&p->envindex);
-   if (p->streamon.auxp==NULL)
-     csound->AuxAlloc(csound, p->olaps*sizeof(int),&p->streamon);
+    csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->index);
+    csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->envindex);
+    csound->AuxAlloc(csound, p->olaps * sizeof(int), &p->streamon);
 
-   p->count = 0xFFFFFFFF;    /* sampling period counter */
-   p->numstreams = 0;  /* curr num of streams */
-   p->firststream = 0; /* streams index (first stream)  */
-   p->datasize =  p->sfunc->flen;
-   p->envtablesize = p->efunc->flen; /* size of envtable */
+    p->count = 0xFFFFFFFF;              /* sampling period counter */
+    p->numstreams = 0;                  /* curr num of streams */
+    p->firststream = 0;                 /* streams index (first stream)  */
+    p->datasize =  p->sfunc->flen;
+    p->envtablesize = p->efunc->flen;   /* size of envtable */
 
-   memset(p->streamon.auxp,0,sizeof(int)*p->olaps);
-   memset(p->index.auxp,0,sizeof(float)*p->olaps);
-   memset(p->streamon.auxp,0,sizeof(float)*p->olaps);
+    p->start = 0.0f;
+    p->frac = 0.0f;
 
-   p->start = 0.0f;
-   p->frac = 0.0f;
-
-   return OK;
+    return OK;
 }
 
 static int syncgrain_process(CSOUND *csound, syncgrain *p)
 {
-    MYFLT sig, pitch, amp, grsize, envincr, period, fperiod, prate;
-    MYFLT *output = p->output;
-    MYFLT *datap = p->sfunc->ftable;
-    MYFLT *ftable = p->efunc->ftable;
-    int *streamon = (int *)p->streamon.auxp;
-    float start = p->start, frac = p->frac;
-    float *index = (float *) p->index.auxp;
-    float *envindex = (float *) p->envindex.auxp;
-    int vecpos, vecsize=csound->ksmps, firststream = p->firststream;
-    int numstreams = p->numstreams, olaps = p->olaps;
-    int count = p->count, i,j, newstream;
-    int datasize = p->datasize, envtablesize = p->envtablesize;
+    MYFLT   sig, pitch, amp, grsize, envincr, period, fperiod, prate;
+    MYFLT   *output = p->output;
+    MYFLT   *datap = p->sfunc->ftable;
+    MYFLT   *ftable = p->efunc->ftable;
+    int     *streamon = (int *) p->streamon.auxp;
+    float   start = p->start, frac = p->frac;
+    float   *index = (float *) p->index.auxp;
+    float   *envindex = (float *) p->envindex.auxp;
+    int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
+    int     numstreams = p->numstreams, olaps = p->olaps;
+    int     count = p->count, i,j, newstream;
+    int     datasize = p->datasize, envtablesize = p->envtablesize;
 
     pitch  = *p->pitch;
     fperiod = csound->esr/(*p->fr);
