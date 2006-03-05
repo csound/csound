@@ -113,7 +113,7 @@ void wrap(char *dest, char *src, const char *file, const char *opcd)
     //printf("    : oplink=%s\n", oplink);
     sprintf(buff, "%s/%s", dest, file);
     rc = fopen(buff, "w");
-    fprintf(rc, "#!/bin/sh\n%s=%s\n%s/%s $0\n",
+    fprintf(rc, "#!/bin/sh\n%s=%s\n%s/%s $@\n",
             envy, oplink, binlink, file);
     fclose(rc);
     chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IXOTH);
