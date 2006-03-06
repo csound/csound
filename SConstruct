@@ -1010,6 +1010,7 @@ if (commonEnvironment['MSVC'] == '0'):
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 
 # Plugins with External Dependencies
+makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
 
 # FLTK widgets
 
