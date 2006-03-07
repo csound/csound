@@ -1693,7 +1693,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
                 long outyp_m =                  /* ??? */
                   ST(typemask_tabl)[(unsigned char) argtyp(csound,
                                                        tp->outlist->arg[0])];
-                if (outyp_m & (ARGTYP_a | ARGTYP_d | ARGTYP_w)) break;
+                if (outyp_m & (ARGTYP_a | ARGTYP_w)) break;
               }
               else
                 break;
@@ -1758,7 +1758,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         if (tfound == 'S' && n < 31)
           tp->xoutcod_str |= (1 << n);
         csound->DebugMsg(csound, "treqd %c, tfound %c", treqd, tfound);
-        if (tfound_m & (ARGTYP_d | ARGTYP_w))
+        if (tfound_m & ARGTYP_w)
           if (ST(lgprevdef)) {
             synterr(csound, Str("output name previously used, "
                                 "type '%c' must be uniquely defined"), tfound);
@@ -1786,7 +1786,6 @@ static void intyperr(CSOUND *csound, int n, char tfound, char expect)
     char    t[10];
 
     switch (tfound) {
-    case 'd':
     case 'w':
     case 'f':
     case 'a':
@@ -1852,7 +1851,7 @@ char argtyp(CSOUND *csound, char *s)
         strcmp(s,"0dbfs") == 0 ||
         strcmp(s,"ksmps") == 0 || strcmp(s,"nchnls") == 0)
       return('r');                              /* rsvd */
-    if (c == 'd' || c == 'w') /* N.B. d,w NOT YET #TYPE OR GLOBAL */
+    if (c == 'w')               /* N.B. w NOT YET #TYPE OR GLOBAL */
       return(c);
     if (c == '#')
       c = *(++s);
