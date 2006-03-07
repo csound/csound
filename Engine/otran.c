@@ -68,7 +68,7 @@ extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 #define ST(x)   (((OTRAN_GLOBALS*) ((CSOUND*) csound)->otranGlobals)->x)
 
 #define KTYPE   1
-#define DTYPE   2
+/* #define DTYPE   2 */
 #define WTYPE   3
 #define ATYPE   4
 #define PTYPE   5
@@ -966,7 +966,7 @@ static NAME *lclnamset(CSOUND *csound, char *s)
     ST(lclNames)[h] = p;
     if (*s == '#')  s++;
     switch (*s) {                               /*   and its type-count */
-      case 'd': p->type = DTYPE; p->count = ST(lclnxtdcnt)++; break;
+/*       case 'd': p->type = DTYPE; p->count = ST(lclnxtdcnt)++; break; */
       case 'w': p->type = WTYPE; p->count = ST(lclnxtwcnt)++; break;
       case 'a': p->type = ATYPE; p->count = ST(lclnxtacnt)++; break;
       case 'f': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
@@ -1003,7 +1003,7 @@ static int lcloffndx(CSOUND *csound, char *s)
     NAME    *np = lclnamset(csound, s);         /* rebuild the table    */
     switch (np->type) {                         /* use cnts to calc ndx */
       case KTYPE: return np->count;
-      case DTYPE: return (ST(lclkcnt) + np->count * Dfloats);
+/*       case DTYPE: return (ST(lclkcnt) + np->count * Dfloats); */
       case WTYPE: return (ST(lclkcnt) + ST(lcldcnt) * Dfloats
                                       + np->count * Wfloats);
       case ATYPE: return (ST(lclfixed) + np->count);
