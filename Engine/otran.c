@@ -38,9 +38,9 @@ typedef struct {
     NAME      *gblNames[256], *lclNames[256];   /* for 8 bit hash */
     ARGLST    *nullist;
     ARGOFFS   *nulloffs;
-    int       lclkcnt, lcldcnt, lclwcnt, lclfixed;
+    int       lclkcnt, lclwcnt, lclfixed;
     int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt;
-    int       lclnxtkcnt, /*lclnxtdcnt,*/ lclnxtwcnt, lclnxtacnt, lclnxtscnt;
+    int       lclnxtkcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt;
     int       gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt;
     int       gblfixed, gblkcount, gblacount, gblscount;
     int       *nxtargoffp, *argofflim, lclpmax;
@@ -68,13 +68,11 @@ extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 #define ST(x)   (((OTRAN_GLOBALS*) ((CSOUND*) csound)->otranGlobals)->x)
 
 #define KTYPE   1
-/* #define DTYPE   2 */
-#define WTYPE   3
-#define ATYPE   4
-#define PTYPE   5
-#define STYPE   6
+#define WTYPE   2
+#define ATYPE   3
+#define PTYPE   4
+#define STYPE   5
 /* NOTE: these assume that sizeof(MYFLT) is either 4 or 8 */
-#define Dfloats (((int) sizeof(DOWNDAT) + 7) / (int) sizeof(MYFLT))
 #define Wfloats (((int) sizeof(SPECDAT) + 7) / (int) sizeof(MYFLT))
 #define Pfloats (((int) sizeof(PVSDAT) + 7) / (int) sizeof(MYFLT))
 
@@ -392,7 +390,7 @@ void otran(CSOUND *csound)
               putop(csound, &ip->t);
             }
             delete_local_namepool(csound);          /* clear lcl namlist */
-/*             ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;    /\*   for rebuilding  *\/ */
+            ST(lclnxtkcnt) = 0;                     /*   for rebuilding  */
             ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
             ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
             opdstot = 0;
@@ -407,11 +405,11 @@ void otran(CSOUND *csound)
             bp->nxtop = NULL;   /* terminate the optxt chain */
             if (O->odebug) {
               putop(csound, &bp->t);
-              csound->Message(csound, "pmax %ld, kcnt %d, dcnt %d, "
+              csound->Message(csound, "pmax %ld, kcnt %d, "
                                       "wcnt %d, acnt %d, pcnt %d, scnt %d\n",
-                              pmax, ST(lclnxtkcnt), 0/*ST(lclnxtdcnt)*/,
-                              ST(lclnxtwcnt), ST(lclnxtacnt),
-                              ST(lclnxtpcnt), ST(lclnxtscnt));
+                                      pmax, ST(lclnxtkcnt),
+                                      ST(lclnxtwcnt), ST(lclnxtacnt),
+                                      ST(lclnxtpcnt), ST(lclnxtscnt));
             }
             ip->pmax = (int)pmax;
             ip->pextrab = ((n = pmax-3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
@@ -420,19 +418,17 @@ void otran(CSOUND *csound)
             ip->lclkcnt = ST(lclnxtkcnt);
             /* align to 8 bytes for "spectral" types */
             if ((int) sizeof(MYFLT) < 8 &&
-                (/*ST(lclnxtdcnt) +*/ ST(lclnxtwcnt) + ST(lclnxtpcnt)) > 0)
+                (ST(lclnxtwcnt) + ST(lclnxtpcnt)) > 0)
               ip->lclkcnt = (ip->lclkcnt + 1) & (~1);
-/*             ip->lcldcnt = ST(lclnxtdcnt); */
             ip->lclwcnt = ST(lclnxtwcnt);
             ip->lclacnt = ST(lclnxtacnt);
             ip->lclpcnt = ST(lclnxtpcnt);
             ip->lclscnt = ST(lclnxtscnt);
-            ip->lclfixed = ST(lclnxtkcnt) /*+ ST(lclnxtdcnt) * Dfloats*/
-                                          + ST(lclnxtwcnt) * Wfloats
+            ip->lclfixed = ST(lclnxtkcnt) + ST(lclnxtwcnt) * Wfloats
                                           + ST(lclnxtpcnt) * Pfloats;
-            ip->opdstot = opdstot;              /* store total opds reqd */
-            ip->muted = 1;      /* Allow to play */
-            n = -1;             /* No longer in an instrument */
+            ip->opdstot = opdstot;      /* store total opds reqd */
+            ip->muted = 1;              /* Allow to play */
+            n = -1;                     /* No longer in an instrument */
             break;
         default:
             bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
@@ -648,14 +644,13 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
     larg = (LBLARG *)mmalloc(csound, (csound->ngotos) * sizeof(LBLARG));
     largp = larg;
     ST(lclkcnt) = tp->lclkcnt;
-    ST(lcldcnt) = tp->lcldcnt;
     ST(lclwcnt) = tp->lclwcnt;
     ST(lclfixed) = tp->lclfixed;
     ST(lclpcnt) = tp->lclpcnt;
     ST(lclscnt) = tp->lclscnt;
     ST(lclacnt) = tp->lclacnt;
     delete_local_namepool(csound);              /* clear lcl namlist */
-/*     ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;        /\*   for rebuilding  *\/ */
+    ST(lclnxtkcnt) = 0;                         /*   for rebuilding  */
     ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
     ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
     ST(lclpmax) = tp->pmax;                     /* set pmax for plgndx */
@@ -966,7 +961,6 @@ static NAME *lclnamset(CSOUND *csound, char *s)
     ST(lclNames)[h] = p;
     if (*s == '#')  s++;
     switch (*s) {                               /*   and its type-count */
-/*       case 'd': p->type = DTYPE; p->count = ST(lclnxtdcnt)++; break; */
       case 'w': p->type = WTYPE; p->count = ST(lclnxtwcnt)++; break;
       case 'a': p->type = ATYPE; p->count = ST(lclnxtacnt)++; break;
       case 'f': p->type = PTYPE; p->count = ST(lclnxtpcnt)++; break;
@@ -1003,12 +997,9 @@ static int lcloffndx(CSOUND *csound, char *s)
     NAME    *np = lclnamset(csound, s);         /* rebuild the table    */
     switch (np->type) {                         /* use cnts to calc ndx */
       case KTYPE: return np->count;
-/*       case DTYPE: return (ST(lclkcnt) + np->count * Dfloats); */
-      case WTYPE: return (ST(lclkcnt) + ST(lcldcnt) * Dfloats
-                                      + np->count * Wfloats);
+      case WTYPE: return (ST(lclkcnt) + np->count * Wfloats);
       case ATYPE: return (ST(lclfixed) + np->count);
-      case PTYPE: return (ST(lclkcnt) + ST(lcldcnt) * Dfloats
-                                      + ST(lclwcnt) * Wfloats
+      case PTYPE: return (ST(lclkcnt) + ST(lclwcnt) * Wfloats
                                       + np->count * (int) Pfloats);
       case STYPE: return (ST(lclfixed) + ST(lclacnt) + np->count);
       default:    csoundDie(csound, Str("unknown nametype"));
