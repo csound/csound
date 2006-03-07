@@ -27,7 +27,7 @@
 /* macros and tables for checking variable types (included from rdorch.c) */
 /* written by Istvan Varga, Nov 2002 */
 
-/* list of available Csound signal types (currently, there are 13) */
+/* list of available Csound signal types (currently, there are 12) */
 
 #define ARGTYP_a        0x00000001L     /* a-rate */
 #define ARGTYP_k        0x00000002L     /* k-rate */
@@ -35,13 +35,12 @@
 #define ARGTYP_p        0x00000008L     /* p-field (i-rate) */
 #define ARGTYP_c        0x00000010L     /* constant (i-rate) */
 #define ARGTYP_r        0x00000020L     /* reserved symbol (i-rate) */
-#define ARGTYP_S        0x00000040L     /* string constant */
-#define ARGTYP_d        0x00000080L     /* spectral #1 (?) */
-#define ARGTYP_w        0x00000100L     /* spectral #2 (?) */
-#define ARGTYP_f        0x00000200L     /* spectral #3 (?) */
-#define ARGTYP_B        0x00000400L     /* boolean #1 */
-#define ARGTYP_b        0x00000800L     /* boolean #2 */
-#define ARGTYP_l        0x00001000L     /* label */
+#define ARGTYP_S        0x00000040L     /* string constant or variable */
+#define ARGTYP_w        0x00000080L     /* spectral (?) */
+#define ARGTYP_f        0x00000100L     /* streaming PVOC */
+#define ARGTYP_B        0x00000200L     /* boolean (k-rate) */
+#define ARGTYP_b        0x00000400L     /* boolean (i-rate) */
+#define ARGTYP_l        0x00000800L     /* label */
 
 /* some common type combinations to save typing */
 
@@ -53,12 +52,12 @@
 
 /* basic types */
 
-static const long typetabl1[27] = {
+static const long typetabl1[25] = {
     'a',    ARGTYP_a,       'k',    ARGTYP_k,       'i',    ARGTYP_i,
     'p',    ARGTYP_p,       'c',    ARGTYP_c,       'r',    ARGTYP_r,
-    'S',    ARGTYP_S,       'd',    ARGTYP_d,       'w',    ARGTYP_w,
-    'f',    ARGTYP_f,       'B',    ARGTYP_B,       'b',    ARGTYP_b,
-    'l',    ARGTYP_l,       0L
+    'S',    ARGTYP_S,       'w',    ARGTYP_w,       'f',    ARGTYP_f,
+    'B',    ARGTYP_B,       'b',    ARGTYP_b,       'l',    ARGTYP_l,
+    0L
 };
 
 /* the following input and output types are available additionally */

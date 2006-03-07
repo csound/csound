@@ -178,7 +178,7 @@ extern "C" {
     int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                        opcodes in instr */
     int     mdepends;               /* Opcode type (i/k/a) */
-    int     lclkcnt, lcldcnt;       /* Storage reqs for this instr */
+    int     lclkcnt, dummy01;       /* Storage reqs for this instr */
     int     lclwcnt, lclacnt;
     int     lclpcnt, lclscnt;
     int     lclfixed, optxtcount;
