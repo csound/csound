@@ -1093,7 +1093,7 @@ int phsbnkset(CSOUND *csound, PHSORBNK *p)
     int    count;
     double  *curphs;
 
-    count = (int)(*p->icnt + 0.5);
+    count = (int)(*p->icnt + FL(0.5));
     if (count < 2)
       count = 2;
 
@@ -1253,7 +1253,7 @@ int pinkish(CSOUND *csound, PINKISH *p)
       c0 = p->b0; c1 = p->b1; c2 = p->b2;
       c3 = p->b3; c4 = p->b4; c5 = p->b5; c6 = p->b6;
       do {
-        nxtin = *ain++;
+        nxtin = (double)*ain++;
         c0 = c0 * 0.99886 + nxtin * 0.0555179;
         c1 = c1 * 0.99332 + nxtin * 0.0750759;
         c2 = c2 * 0.96900 + nxtin * 0.1538520;
@@ -1273,7 +1273,7 @@ int pinkish(CSOUND *csound, PINKISH *p)
       c0 = p->b0; c1 = p->b1; c2 = p->b2;
 
       do {      /* Paul Kellet's "economy" pink filter */
-        nxtin = *ain++;
+        nxtin = (double)*ain++;
         c0 = c0 * 0.99765 + nxtin * 0.0990460;
         c1 = c1 * 0.96300 + nxtin * 0.2965164;
         c2 = c2 * 0.57000 + nxtin * 1.0526913;
