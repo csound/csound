@@ -1,3 +1,7 @@
+2006-03-07  jpff  <jpff@codemist.co.uk>
+
+	* Engine/otran.c: Removed DTYPE and lclnxtdcnt as not used
+
 2006-02-25      Michael Gogins  <gogins@pipeline.com>
 	* Updated SConstruct, custom.py, and Windows
 	  installer to build and install PortMidi.

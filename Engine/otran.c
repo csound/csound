@@ -40,7 +40,7 @@ typedef struct {
     ARGOFFS   *nulloffs;
     int       lclkcnt, lcldcnt, lclwcnt, lclfixed;
     int       lclpcnt, lclscnt, lclacnt, lclnxtpcnt;
-    int       lclnxtkcnt, lclnxtdcnt, lclnxtwcnt, lclnxtacnt, lclnxtscnt;
+    int       lclnxtkcnt, /*lclnxtdcnt,*/ lclnxtwcnt, lclnxtacnt, lclnxtscnt;
     int       gblnxtkcnt, gblnxtpcnt, gblnxtacnt, gblnxtscnt;
     int       gblfixed, gblkcount, gblacount, gblscount;
     int       *nxtargoffp, *argofflim, lclpmax;
@@ -392,7 +392,7 @@ void otran(CSOUND *csound)
               putop(csound, &ip->t);
             }
             delete_local_namepool(csound);          /* clear lcl namlist */
-            ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;    /*   for rebuilding  */
+/*             ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;    /\*   for rebuilding  *\/ */
             ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
             ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
             opdstot = 0;
@@ -409,9 +409,9 @@ void otran(CSOUND *csound)
               putop(csound, &bp->t);
               csound->Message(csound, "pmax %ld, kcnt %d, dcnt %d, "
                                       "wcnt %d, acnt %d, pcnt %d, scnt %d\n",
-                                      pmax, ST(lclnxtkcnt), ST(lclnxtdcnt),
-                                      ST(lclnxtwcnt), ST(lclnxtacnt),
-                                      ST(lclnxtpcnt), ST(lclnxtscnt));
+                              pmax, ST(lclnxtkcnt), 0/*ST(lclnxtdcnt)*/,
+                              ST(lclnxtwcnt), ST(lclnxtacnt),
+                              ST(lclnxtpcnt), ST(lclnxtscnt));
             }
             ip->pmax = (int)pmax;
             ip->pextrab = ((n = pmax-3L) > 0 ? (int) n * sizeof(MYFLT) : 0);
@@ -420,14 +420,14 @@ void otran(CSOUND *csound)
             ip->lclkcnt = ST(lclnxtkcnt);
             /* align to 8 bytes for "spectral" types */
             if ((int) sizeof(MYFLT) < 8 &&
-                (ST(lclnxtdcnt) + ST(lclnxtwcnt) + ST(lclnxtpcnt)) > 0)
+                (/*ST(lclnxtdcnt) +*/ ST(lclnxtwcnt) + ST(lclnxtpcnt)) > 0)
               ip->lclkcnt = (ip->lclkcnt + 1) & (~1);
-            ip->lcldcnt = ST(lclnxtdcnt);
+/*             ip->lcldcnt = ST(lclnxtdcnt); */
             ip->lclwcnt = ST(lclnxtwcnt);
             ip->lclacnt = ST(lclnxtacnt);
             ip->lclpcnt = ST(lclnxtpcnt);
             ip->lclscnt = ST(lclnxtscnt);
-            ip->lclfixed = ST(lclnxtkcnt) + ST(lclnxtdcnt) * Dfloats
+            ip->lclfixed = ST(lclnxtkcnt) /*+ ST(lclnxtdcnt) * Dfloats*/
                                           + ST(lclnxtwcnt) * Wfloats
                                           + ST(lclnxtpcnt) * Pfloats;
             ip->opdstot = opdstot;              /* store total opds reqd */
@@ -655,7 +655,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
     ST(lclscnt) = tp->lclscnt;
     ST(lclacnt) = tp->lclacnt;
     delete_local_namepool(csound);              /* clear lcl namlist */
-    ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;        /*   for rebuilding  */
+/*     ST(lclnxtkcnt) = ST(lclnxtdcnt) = 0;        /\*   for rebuilding  *\/ */
     ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
     ST(lclnxtpcnt) = ST(lclnxtscnt) = 0;
     ST(lclpmax) = tp->pmax;                     /* set pmax for plgndx */
