@@ -3,7 +3,7 @@
 import os
 import re
 
-CFlags = '-Wall -O3 -fno-inline-functions -march=i686 -mtune=pentium3'
+CFlags = '-Wall -O3 -fno-inline-functions -march=i686'
 CFlags += ' -fomit-frame-pointer -ffast-math'
 
 # CFlags = '-O0'
