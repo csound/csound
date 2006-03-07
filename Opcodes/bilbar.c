@@ -76,6 +76,11 @@ static int bar_run(CSOUND *csound, BAR* p)
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
     int bcL = (int)(*p->kbcL+FL(0.5));    /*  boundary condition pair */
     int bcR = (int)(*p->kbcR+FL(0.5));    /*  1: clamped, 2: pivoting, 3: free */
+    double SINNW = sin(TWOPI*xofreq*step/csound->esr);
+    double COSNW = cos(TWOPI*xofreq*step/csound->esr);
+    double SIN1W = sin(TWOPI*xofreq/csound->esr);
+    double COS1W = cos(TWOPI*xofreq/csound->esr);
+
     if ((bcL|bcR)&(~3))
       return csound->PerfError(csound, "Ends but be clamped, piviting or free");
 
@@ -129,9 +134,19 @@ static int bar_run(CSOUND *csound, BAR* p)
       }
 
       /*  readouts */
-
-/*       xo = (1.0/3.0) + 0.5*sin(TWOPI*xofreq*(step+1)/csound->esr); */
-      xo = 0.5 + 0.5*sin(TWOPI*xofreq*(step+1)/csound->esr);
+      
+      /*       xo = (1.0/3.0) + 0.5*sin(TWOPI*xofreq*(step+1)/csound->esr); */
+      /* sin((N+1)w) = sin(Nw)cos(w) + cos(Nw)sin(w) */
+      /* cos((N+1)w) = cos(Nw)cos(w) - sin(Nw)sin(w) */
+      /* so can calculate sin on next line by iteration at less cost */
+      /* But is xofreq were to change could be difficult! */
+      /*      xo = 0.5 + 0.5*sin(TWOPI*xofreq*(step+1)/csound->esr);*/
+      {
+        double xx = SINNW*COS1W + COSNW*SIN1W;
+        double yy = COSNW*COS1W - SINNW*SIN1W;
+        SINNW = xx; COSNW = yy;
+      }
+      xo = 0.5+0.5*SINNW;
       xoint = (int)(xo*N)+2;
       xofrac = xo*N-(int)(xo*N);
 
