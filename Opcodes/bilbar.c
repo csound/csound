@@ -27,9 +27,10 @@ typedef struct {
     int         step;
     double      s0, s1, s2, t0, t1;
     int         bcL, bcR, N;
+    AUXCH       w_aux;
 } BAR;
 
-int bar_init(CSOUND *csound, BAR *p)
+static int bar_init(CSOUND *csound, BAR *p)
 {
     double K = *p->iK;          /* 3.0  stiffness parameter, dimensionless */
     double T30 = *p->iT30;      /* 5.0; 30 db decay time (s) */
@@ -47,7 +48,7 @@ int bar_init(CSOUND *csound, BAR *p)
     p->t0 = (-1.0+2.0*b*dt/(dx*dx)+sig*dt*0.5)/(1+sig*dt*0.5);
     p->t1 = (-b*dt)/(dx*dx*(1.0+sig*dt*0.5));
 
-/*     csound->Message(csound,"Scheme: %f %f %f ; %f %f\n", 
+/*     csound->Message(csound,"Scheme: %f %f %f ; %f %f\n",
                        p->s0, p->s1, p->s2, p->t0, p->t1); */
 
       /* %%%%%%%%%%%%%%%%%%% create event strike profiles */
@@ -55,19 +56,22 @@ int bar_init(CSOUND *csound, BAR *p)
     p->eventindex = (int)(*p->eventlist[0].time*csound->esr);
 
     /* %%%%%%%%%%%%%%%%%%%%% create grid functions */
-    
-    p->w = (double*)calloc(N+5,sizeof(double)); 
-    p->w1 = (double*)calloc(N+5,sizeof(double)); 
-    p->w2 = (double*)calloc(N+5,sizeof(double)); 
+
+    csound->AuxAlloc(csound, 3L * (long) ((N + 5) * sizeof(double)),
+                             &(p->w_aux));
+    p->w = (double*) p->w_aux.auxp;
+    p->w1 = &(p->w[N + 5]);
+    p->w2 = &(p->w1[N + 5]);
 
     p->step = 0;
     p->bcL = (int)*p->ibcL;    /*  boundary condition pair */
     p->bcR = (int)*p->ibcR;    /*  1: clamped, 2: pivoting, 3: free */
     p->N = N;
+
     return OK;
 }
 
-int bar_run(CSOUND *csound, BAR* p)
+static int bar_run(CSOUND *csound, BAR* p)
 {
     double xofreq = *p->kscan; /* 0.23; */
     double xo, xofrac;
@@ -82,17 +86,17 @@ int bar_run(CSOUND *csound, BAR* p)
       /* Fix ends */
       if (bcL==3) {
         w1[1] = 2.0*w1[2]-w1[3];
-        w1[0] = 3.0*w1[1]-3*w1[2]+w1[3]; 
+        w1[0] = 3.0*w1[1]-3*w1[2]+w1[3];
       }
       else if (bcL==1) {
         w1[2] = 0.0;
-        w1[3] = 0.0; 
+        w1[3] = 0.0;
       }
       else if (bcL==2) {
         w1[2] = 0.0;
-        w1[1] = -w1[3]; 
+        w1[1] = -w1[3];
       }
-      
+
       if (bcR==3) {
         w1[N+3] = 2.0*w1[N+2]-w1[N+1];
         w[N+4] = 3.0*w1[N+3]-3.0*w1[N+2]+w1[N+1];
@@ -134,7 +138,7 @@ int bar_run(CSOUND *csound, BAR* p)
         }
         p->eventindex = *p->eventlist[++p->eventnum].time*csound->esr;
       }
-      
+
       /*  readouts */
 
 /*       xo = (1.0/3.0) + 0.5*sin(TWOPI*xofreq*(step+1)/csound->esr); */
@@ -163,25 +167,5 @@ static OENTRY localops[] = {
 { "barmodel",  S(BAR), 5, "a", "iiiikiz", (SUBR)bar_init, NULL, (SUBR)bar_run }
 };
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
-{
-    return 0;
-}
-
-PUBLIC int csoundModuleInit(CSOUND *csound)
-{
-    OENTRY  *ep = (OENTRY*) &(localops[0]);
-    int     err = 0;
-
-    while (ep->opname != NULL) {
-      err |= csound->AppendOpcode(csound,
-                                  ep->opname, ep->dsblksiz, ep->thread,
-                                  ep->outypes, ep->intypes,
-                                  (int (*)(CSOUND *, void*)) ep->iopadr,
-                                  (int (*)(CSOUND *, void*)) ep->kopadr,
-                                  (int (*)(CSOUND *, void*)) ep->aopadr);
-      ep++;
-    }
-    return err;
-}
+LINKAGE
 
