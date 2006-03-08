@@ -1008,9 +1008,9 @@ sfontEnvironment = pluginEnvironment.Copy()
 if (commonEnvironment['MSVC'] == '0'):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
+makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
 
 # Plugins with External Dependencies
-makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
 
 # FLTK widgets
 

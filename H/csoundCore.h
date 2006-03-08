@@ -1010,7 +1010,7 @@ extern "C" {
     int           keep_tmp;
     int           dither_output;
     OENTRY        *opcodlst;
-    void          *opcode_list;
+    int           *opcode_list;
     OENTRY        *oplstend;
     int           maxopcno;
     long          nrecs;
@@ -1172,6 +1172,8 @@ extern "C" {
     OPARMS        oparms_;
     long          instxtcount, optxtsize;
     long          poolcount, gblfixed, gblacount, gblscount;
+    /* database for deferred loading of opcode plugin libraries */
+    void          *pluginOpcodeFiles, *pluginOpcodeDB;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
