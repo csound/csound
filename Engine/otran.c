@@ -236,7 +236,6 @@ void otran(CSOUND *csound)
     csound->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + csound->maxinsno)
                                                       * sizeof(INSTRTXT*));
     csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
-    opcode_list_create(csound);         /* IV - Oct 31 2002 */
 
     strconstndx(csound, "\"\"");
 
@@ -373,12 +372,13 @@ void otran(CSOUND *csound)
               /* create a fake opcode so we can call it as such */
               opc = csound->opcodlst + find_opcode(csound, ".userOpcode");
               memcpy(&tmpEntry, opc, sizeof(OENTRY));
+              tmpEntry.opname = name;
               csound->AppendOpcodes(csound, &tmpEntry, 1);
-              newopc = (OENTRY*) csound->oplstend - 1;
-              newopnum = (long) ((OENTRY*) newopc - (OENTRY*) csound->opcodlst);
-              newopc->opname = name;
+              if (!newopnum)
+                newopnum = (long) ((OENTRY*) csound->oplstend
+                                   - (OENTRY*) csound->opcodlst) - 1L;
+              newopc = &(csound->opcodlst[newopnum]);
               newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-              opcode_list_add_entry(csound, newopnum, 1);
               ip->insname = name; ip->opcode_info = inm; /* IV - Nov 10 2002 */
               /* check in/out types and copy to the opcode's */
               newopc->outypes = mmalloc(csound, strlen(alp->arg[1]) + 1);

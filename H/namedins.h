@@ -117,14 +117,6 @@ char *strarg2name(CSOUND *, char *, void *, const char *, int);
 /* ----------------------------------------------------------------------- */
 /* the following functions are for efficient management of the opcode list */
 
-/* create new opcode list from opcodlst[] */
-
-void opcode_list_create(CSOUND *);
-
-/* add new entry to opcode list, with optional check for redefined opcodes */
-
-void opcode_list_add_entry(CSOUND *, int, int);
-
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
 

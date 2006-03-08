@@ -351,6 +351,10 @@ int csoundLoadModules(CSOUND *csound)
                                dname, strerror(errno));
       return CSOUND_ERROR;
     }
+    /* load database for deferred plugin loading */
+    n = csoundLoadOpcodeDB(csound, dname);
+    if (n != 0)
+      return n;
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
       fname = &(f->d_name[0]);
@@ -380,6 +384,8 @@ int csoundLoadModules(CSOUND *csound)
                                 fname);
         continue;
       }
+      if (csoundCheckOpcodePluginFile(csound, fname) != 0)
+        continue;               /* skip file if marked for deferred loading */
       sprintf(buf, "%s%c%s", dname, DIRSEP, fname);
       n = csoundLoadExternal(csound, buf);
       if (n == CSOUND_ERROR)
@@ -444,6 +450,49 @@ int csoundLoadExternals(CSOUND *csound)
 }
 
 /**
+ * Initialise a single module.
+ * Return value is CSOUND_SUCCESS if there was no error.
+ */
+static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
+{
+    int     i;
+
+    if (m->PreInitFunc != NULL) {
+      if (m->fn.p.InitFunc != NULL) {
+        i = m->fn.p.InitFunc(csound);
+        if (i != 0) {
+          print_module_error(csound, "Error starting module '%s'",
+                                     &(m->name[0]), m, i);
+          return CSOUND_ERROR;
+        }
+      }
+    }
+    else {
+      /* deal with fgens if there are any */
+      if (m->fn.o.fgen_init != NULL) {
+        NGFENS  *names = m->fn.o.fgen_init(csound);
+        for (i = 0; names[i].name != NULL; i++)
+          allocgen(csound, names[i].name, names[i].fn);
+      }
+      if (m->fn.o.opcode_init != NULL) {
+        OENTRY  *opcodlst_n;
+        long    length;
+        /* load opcodes */
+        if ((length = m->fn.o.opcode_init(csound, &opcodlst_n)) < 0L)
+          return CSOUND_ERROR;
+        else {
+          length /= (long) sizeof(OENTRY);
+          if (length) {
+            if (csound->AppendOpcodes(csound, opcodlst_n, (int) length) != 0)
+              return CSOUND_ERROR;
+          }
+        }
+      }
+    }
+    return CSOUND_SUCCESS;
+}
+
+/**
  * Call initialisation functions of all loaded modules that have a
  * csoundModuleInit symbol, for Csound instance 'csound'.
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
@@ -456,41 +505,37 @@ int csoundInitModules(CSOUND *csound)
 
     /* call init functions */
     for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
-      if (m->PreInitFunc != NULL) {
-        if (m->fn.p.InitFunc != NULL) {
-          i = m->fn.p.InitFunc(csound);
-          if (i != 0) {
-            print_module_error(csound, "Error starting module '%s'",
-                                       &(m->name[0]), m, i);
-            retval = CSOUND_ERROR;
-          }
-        }
-      }
-      else {
-        /* deal with fgens if there are any */
-        if (m->fn.o.fgen_init != NULL) {
-          NGFENS  *names = m->fn.o.fgen_init(csound);
-          for (i = 0; names[i].name != NULL; i++)
-            allocgen(csound, names[i].name, names[i].fn);
-        }
-        if (m->fn.o.opcode_init != NULL) {
-          OENTRY  *opcodlst_n;
-          long    length;
-          /* load opcodes */
-          if ((length = m->fn.o.opcode_init(csound, &opcodlst_n)) < 0L)
-            retval = CSOUND_ERROR;
-          else {
-            length /= (long) sizeof(OENTRY);
-            if (length) {
-              if (csound->AppendOpcodes(csound, opcodlst_n, (int) length) != 0)
-                retval = CSOUND_ERROR;
-            }
-          }
-        }
-      }
+      i = csoundInitModule(csound, m);
+      if (i != CSOUND_SUCCESS && i < retval)
+        retval = i;
     }
     /* return with error code */
     return retval;
+}
+
+/* load a plugin library and also initialise it */
+/* called on deferred loading of opcode plugins */
+
+int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
+{
+    volatile jmp_buf  tmpExitJmp;
+    volatile int      err;
+
+    err = csoundLoadExternal(csound, fname);
+    if (err != 0)
+      return err;
+    memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+    if ((err = setjmp(csound->exitjmp)) != 0) {
+      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+      return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
+              CSOUND_MEMORY : CSOUND_INITIALIZATION);
+    }
+    /* NOTE: this depends on csound->csmodule_db being the most recently */
+    /* loaded plugin library */
+    err = csoundInitModule(csound, (csoundModule_t*) csound->csmodule_db);
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+
+    return err;
 }
 
 /**
