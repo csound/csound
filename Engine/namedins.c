@@ -34,6 +34,26 @@ typedef struct namedInstr {
     struct namedInstr   *prv;
 } INSTRNAME;
 
+typedef struct CsoundOpcodePluginFile_s {
+    /* file name (base name only) */
+    char                        *fname;
+    /* pointer to next link in chain */
+    struct CsoundOpcodePluginFile_s *nxt;
+    /* file name (full path) */
+    char                        *fullName;
+    /* is this file already loaded ? (0: no, 1: yes, -1: does not exist) */
+    int                         isLoaded;
+} CsoundOpcodePluginFile_t;
+
+typedef struct CsoundPluginOpcode_s {
+    /* opcode name */
+    char                        *opname;
+    /* pointer to next link in chain */
+    struct CsoundPluginOpcode_s *nxt;
+    /* associated plugin library */
+    CsoundOpcodePluginFile_t    *fp;
+} CsoundPluginOpcode_t;
+
 /* do not touch this ! */
 
 const unsigned char strhash_tabl_8[256] = {
@@ -368,48 +388,27 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
 /* ----------------------------------------------------------------------- */
 /* the following functions are for efficient management of the opcode list */
 
-/* create new opcode list from opcodlst[] */
-
-void opcode_list_create(CSOUND *csound)
+static CS_NOINLINE int loadPluginOpcode(CSOUND *csound,
+                                        CsoundOpcodePluginFile_t *fp,
+                                        const char *opname, unsigned char h)
 {
-    int     n = csound->oplstend - csound->opcodlst;
+    int     n;
 
-    if (csound->opcode_list) {
-      csound->Die(csound,
-                  Str("internal error: opcode list has already been created"));
-      return;
+    if (fp->isLoaded != 0)
+      return 0;
+    n = csoundLoadAndInitModule(csound, fp->fullName);
+    if (n != 0) {
+      fp->isLoaded = -1;
+      if (n != CSOUND_ERROR)
+        csound->LongJmp(csound, (n == CSOUND_MEMORY ? n : CSOUND_ERROR));
+      return 0;
     }
-    csound->opcode_list = (void*) mcalloc(csound, sizeof(int) * 256);
-    /* add all entries, except #0 which is unused */
-    while (--n)
-      opcode_list_add_entry(csound, n, 0);
-}
+    fp->isLoaded = 1;
+    n = ((int*) csound->opcode_list)[h];
+    while (n && sCmp(csound->opcodlst[n].opname, opname))
+      n = csound->opcodlst[n].prvnum;
 
-/* add new entry to opcode list, with optional check for redefined opcodes */
-
-void opcode_list_add_entry(CSOUND *csound, int opnum, int check_redefine)
-{
-    /* calculate hash value for opcode name */
-    unsigned char h = name_hash(csound->opcodlst[opnum].opname);
-    /* link entry into chain */
-    if (check_redefine) {
-      int   *n = (int*) csound->opcode_list + h;
-      /* check if an opcode with the same name is already defined */
-      while (*n && sCmp(csound->opcodlst[*n].opname,
-                        csound->opcodlst[opnum].opname)) {
-        n = &(csound->opcodlst[*n].prvnum);
-      }
-      if (!*n) goto newopc;
-      /* redefine */
-      csound->opcodlst[opnum].prvnum = csound->opcodlst[*n].prvnum;
-      *n = opnum;
-    }
-    else {
-newopc:
-      /* new opcode */
-      csound->opcodlst[opnum].prvnum = ((int*) csound->opcode_list)[h];
-      ((int*) csound->opcode_list)[h] = opnum;
-    }
+    return n;
 }
 
 /* find opcode with the specified name in opcode list */
@@ -418,12 +417,26 @@ newopc:
 int find_opcode(CSOUND *csound, char *opname)
 {
     int           n;
-    unsigned char h = name_hash(opname);    /* calculate hash value */
+    unsigned char h;
 
+    if (opname[0] == (char) 0)
+      return 0;
+    /* calculate hash value */
+    h = name_hash_2(opname);
     /* now find entry in opcode chain */
     n = ((int*) csound->opcode_list)[h];
     while (n && sCmp(csound->opcodlst[n].opname, opname))
       n = csound->opcodlst[n].prvnum;
+    if (!n && csound->pluginOpcodeDB != NULL) {
+      CsoundPluginOpcode_t  *p;
+      /* not found, check for deferred plugin loading */
+      p = ((CsoundPluginOpcode_t**) csound->pluginOpcodeDB)[h];
+      while (p) {
+        if (!sCmp(p->opname, opname))
+          return loadPluginOpcode(csound, p->fp, opname, h);
+        p = p->nxt;
+      }
+    }
 
     return n;
 }
@@ -1312,6 +1325,339 @@ PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
     (*min) = pp->info->min;
     (*max) = pp->info->max;
     return pp->info->type;
+}
+
+ /* ------------------------------------------------------------------------ */
+
+/**
+ * The following functions implement deferred loading of opcode plugins.
+ */
+
+/* returns non-zero if 'fname' (not full path) */
+/* is marked for deferred loading */
+
+int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
+{
+#if !(defined(LINUX) || defined(__unix__) || defined(__MACH__))
+    char                        buf[512];
+    size_t                      i;
+#endif
+    CsoundOpcodePluginFile_t    **pp, *p;
+    const char                  *s;
+    unsigned char               h;
+
+    if (fname == NULL || fname[0] == (char) 0)
+      return 0;
+#if !(defined(LINUX) || defined(__unix__) || defined(__MACH__))
+    /* on some platforms, file names are case insensitive */
+    i = (size_t) 0;
+    do {
+      if (isupper(fname[i]))
+        buf[i] = (char) tolower(fname[i]);
+      else
+        buf[i] = fname[i];
+      if (++i >= (size_t) 512)
+        return 0;
+    } while (fname[i] != (char) 0);
+    buf[i] = (char) 0;
+    s = &(buf[0]);
+#else
+    s = fname;
+#endif
+    pp = (CsoundOpcodePluginFile_t**) csound->pluginOpcodeFiles;
+    h = name_hash_2(s);
+    p = (CsoundOpcodePluginFile_t*) NULL;
+    if (pp) {
+      p = pp[h];
+      while (p) {
+        if (!sCmp(p->fname, s))
+          break;
+        p = p->nxt;
+      }
+    }
+    if (!p)
+      return 0;
+    /* file exists, but is not loaded yet */
+    p->isLoaded = 0;
+    return 1;
+}
+
+static CS_NOINLINE int csoundLoadOpcodeDB_AddFile(CSOUND *csound,
+                                                  CsoundOpcodePluginFile_t *fp)
+{
+    CsoundOpcodePluginFile_t    **pp, *p;
+    unsigned char               h;
+
+    pp = (CsoundOpcodePluginFile_t**) csound->pluginOpcodeFiles;
+    h = name_hash_2(fp->fname);
+    p = pp[h];
+    while (p) {
+      /* check for a name conflict */
+      if (!sCmp(p->fname, fp->fname))
+        return -1;
+      p = p->nxt;
+    }
+    fp->nxt = pp[h];
+    fp->isLoaded = -1;
+    pp[h] = fp;
+    return 0;
+}
+
+static CS_NOINLINE int csoundLoadOpcodeDB_AddOpcode(CSOUND *csound,
+                                                    CsoundPluginOpcode_t *op)
+{
+    CsoundPluginOpcode_t    **pp, *p;
+    unsigned char           h;
+
+    pp = (CsoundPluginOpcode_t**) csound->pluginOpcodeDB;
+    h = name_hash_2(op->opname);
+    p = pp[h];
+    while (p) {
+      /* check for a name conflict */
+      if (!sCmp(p->opname, op->opname))
+        return -1;
+      p = p->nxt;
+    }
+    op->nxt = pp[h];
+    pp[h] = op;
+    return 0;
+}
+
+void csoundDestroyOpcodeDB(CSOUND *csound)
+{
+    void    *p;
+
+    p = csound->pluginOpcodeFiles;
+    csound->pluginOpcodeFiles = NULL;
+    csound->pluginOpcodeDB = NULL;
+    csound->Free(csound, p);
+}
+
+/* load opcodes.dir from the specified directory, and set up database */
+
+int csoundLoadOpcodeDB(CSOUND *csound, const char *dname)
+{
+    char    err_msg[256];
+    char    *s, *sp, *fileData = (char*) NULL;
+    void    *fd = (void*) NULL;
+    FILE    *fp = (FILE*) NULL;
+    size_t  i, n, fileLen, fileCnt, opcodeCnt, byteCnt;
+    void    *p, *p1, *p2;
+    CsoundOpcodePluginFile_t  *currentFile;
+
+    /* check file name */
+    if (dname == NULL || dname[0] == (char) 0)
+      return 0;
+    n = strlen(dname);
+    s = (char*) csound->Malloc(csound, n + (size_t) 13);
+    strcpy(s, dname);
+    if (s[n - 1] != (char) DIRSEP) {
+      s[n] = (char) DIRSEP;
+      s[n + 1] = (char) 0;
+    }
+    strcat(s, "opcodes.dir");
+    /* open and load file */
+    fd = csound->FileOpen(csound, &fp, CSFILE_STD, s, "rb", NULL);
+    csound->Free(csound, s);
+    if (fd == NULL)
+      return 0;
+    if (fseek(fp, 0L, SEEK_END) != 0) {
+      sprintf(&(err_msg[0]), "seek error");
+      goto err_return;
+    }
+    fileLen = (size_t) ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
+    if (fileLen == (size_t) 0) {
+      csound->FileClose(csound, fd);
+      return 0;
+    }
+    fileData = (char*) csound->Malloc(csound, fileLen + (size_t) 1);
+    n = fread(fileData, (size_t) 1, fileLen, fp);
+    csound->FileClose(csound, fd);
+    fd = NULL;
+    if (n != fileLen) {
+      sprintf(&(err_msg[0]), "read error");
+      goto err_return;
+    }
+    fileData[fileLen] = (char) '\n';
+    /* check syntax, and count the number of files and opcodes */
+    fileCnt = (size_t) 0;
+    opcodeCnt = (size_t) 0;
+    byteCnt = (size_t) 0;
+    n = fileLen;
+    for (i = (size_t) 0; i <= fileLen; i++) {
+      if (fileData[i] == (char) ' ' || fileData[i] == (char) '\t' ||
+          fileData[i] == (char) '\r' || fileData[i] == (char) '\n') {
+        if (n >= fileLen)
+          continue;
+        fileData[i] = (char) 0;
+        if (fileData[i - 1] != ':') {
+          if (!fileCnt) {
+            sprintf(&(err_msg[0]), "syntax error");
+            goto err_return;
+          }
+          opcodeCnt++;
+        }
+#if !(defined(LINUX) || defined(__unix__) || defined(__MACH__))
+        else {
+          size_t  j;
+          /* on some platforms, file names are case insensitive */
+          for (j = n; j < (i - 1); j++) {
+            if (isupper(fileData[j]))
+              fileData[j] = (char) tolower(fileData[j]);
+          }
+        }
+#endif
+        n = fileLen;
+        continue;
+      }
+      if (n >= fileLen)
+        n = i;
+      if (!(isalnum(fileData[i]) || fileData[i] == (char) '.' ||
+            fileData[i] == (char) '-' || fileData[i] == (char) '_')) {
+        if (fileData[i] == (char) ':' && i != n && i < fileLen &&
+            (fileData[i + 1] == (char) ' ' || fileData[i + 1] == (char) '\t' ||
+             fileData[i + 1] == (char) '\r' || fileData[i + 1] == (char) '\n'))
+          fileCnt++;
+        else {
+          sprintf(&(err_msg[0]), "syntax error");
+          goto err_return;
+        }
+      }
+      else
+        byteCnt++;
+    }
+    /* calculate the number of bytes to allocate */
+    byteCnt += ((size_t) 256 * sizeof(CsoundOpcodePluginFile_t*));
+    byteCnt += ((size_t) 256 * sizeof(CsoundPluginOpcode_t*));
+    byteCnt += (fileCnt * sizeof(CsoundOpcodePluginFile_t));
+    byteCnt = (byteCnt + (size_t) 15) & (~((size_t) 15));
+    byteCnt += (opcodeCnt * sizeof(CsoundPluginOpcode_t));
+    byteCnt += (fileCnt * (strlen(dname)
+#if defined(WIN32)
+                + (size_t) 6        /* "\\NAME.dll\0" */
+#elif defined(__MACH__)
+                + (size_t) 11       /* "/libNAME.dylib\0" */
+#else
+                + (size_t) 8        /* "/libNAME.so\0" */
+#endif
+                ));
+    byteCnt += opcodeCnt;
+    /* allocate and set up database */
+    p = csound->Calloc(csound, byteCnt);
+    csound->pluginOpcodeFiles = p;
+    n = (size_t) 256 * sizeof(CsoundOpcodePluginFile_t*);
+    csound->pluginOpcodeDB = (void*) &(((char*) p)[n]);
+    n += ((size_t) 256 * sizeof(CsoundPluginOpcode_t*));
+    p1 = (void*) &(((char*) p)[n]);
+    n += (fileCnt * sizeof(CsoundOpcodePluginFile_t));
+    n = (n + (size_t) 15) & (~((size_t) 15));
+    p2 = (void*) &(((char*) p)[n]);
+    n += (opcodeCnt * sizeof(CsoundPluginOpcode_t));
+    sp = &(((char*) p)[n]);
+    currentFile = (CsoundOpcodePluginFile_t*) NULL;
+    i = (size_t) 0;
+    while (i < fileLen) {
+      if (fileData[i] == (char) ' ' || fileData[i] == (char) '\t' ||
+          fileData[i] == (char) '\r' || fileData[i] == (char) '\n') {
+        i++;
+        continue;
+      }
+      s = &(fileData[i]);
+      n = strlen(s);
+      i += (n + (size_t) 1);
+      if (s[n - 1] != (char) ':') {
+        /* add opcode entry */
+        CsoundPluginOpcode_t  *op_;
+        op_ = (CsoundPluginOpcode_t*) p2;
+        p2 = (void*) ((char*) p2 + (long) sizeof(CsoundPluginOpcode_t));
+        strcpy(sp, s);
+        op_->opname = sp;
+        sp += ((long) strlen(s) + 1L);
+        op_->fp = currentFile;
+        if (csoundLoadOpcodeDB_AddOpcode(csound, op_) != 0) {
+          sprintf(&(err_msg[0]), "duplicate opcode name");
+          goto err_return;
+        }
+      }
+      else {
+        /* add file entry */
+        CsoundOpcodePluginFile_t  *fp_;
+        fp_ = (CsoundOpcodePluginFile_t*) p1;
+        p1 = (void*) ((char*) p1 + (long) sizeof(CsoundOpcodePluginFile_t));
+        s[n - 1] = (char) 0;
+        strcpy(sp, dname);
+        n = strlen(dname);
+        if (sp[n - 1] == (char) DIRSEP)
+          n--;
+        fp_->fullName = sp;
+        sp = (char*) fp_->fullName + (long) n;
+#if defined(WIN32)
+        sprintf(sp, "\\%s.dll", s);
+#elif defined(__MACH__)
+        sprintf(sp, "/lib%s.dylib", s);
+#else
+        sprintf(sp, "%clib%s.so", DIRSEP, s);
+#endif
+        fp_->fname = &(sp[1]);
+        sp = (char*) strchr(fp_->fname, '\0') + 1L;
+        if (csoundLoadOpcodeDB_AddFile(csound, fp_) != 0) {
+          sprintf(&(err_msg[0]), "duplicate file name");
+          goto err_return;
+        }
+        currentFile = fp_;
+      }
+      if ((size_t) ((char*) sp - (char*) p) > byteCnt)
+        csound->Die(csound, Str(" *** internal error while "
+                                "loading opcode database file"));
+    }
+    /* clean up */
+    csound->Free(csound, fileData);
+    /* plugin opcode database has been successfully loaded */
+    return 0;
+
+ err_return:
+    if (fileData)
+      csound->Free(csound, fileData);
+    if (fd)
+      csound->FileClose(csound, fd);
+    csoundDestroyOpcodeDB(csound);
+    csound->ErrorMsg(csound, Str(" *** error loading opcode database file: "),
+                             Str(&(err_msg[0])));
+    return -1;
+}
+
+/* load all pending opcode plugin libraries */
+/* called when listing opcodes (-z) */
+
+int csoundLoadAllPluginOpcodes(CSOUND *csound)
+{
+    CsoundOpcodePluginFile_t    *p;
+    int                         i, err;
+
+    if (csound->pluginOpcodeFiles == NULL)
+      return CSOUND_SUCCESS;
+
+    err = CSOUND_SUCCESS;
+    for (i = 0; i < 256; i++) {
+      p = ((CsoundOpcodePluginFile_t**) csound->pluginOpcodeFiles)[i];
+      while (p) {
+        if (!p->isLoaded) {
+          int   retval;
+          retval = csoundLoadAndInitModule(csound, p->fullName);
+          p->isLoaded = (retval == 0 ? 1 : -1);
+          if (retval != 0 && retval != CSOUND_ERROR) {
+            /* record serious errors */
+            if (retval < err)
+              err = retval;
+          }
+        }
+        p = p->nxt;
+      }
+    }
+    csoundDestroyOpcodeDB(csound);
+    /* report any errors */
+    return (err == 0 || err == CSOUND_MEMORY ? err : CSOUND_ERROR);
 }
 
 #ifdef __cplusplus

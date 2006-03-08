@@ -61,12 +61,16 @@ static int opcode_cmp_func(const void *a, const void *b)
 PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
 {
     void    *lst;
-    OENTRY  *ep = (OENTRY*) csound->opcodlst;
+    OENTRY  *ep;
     char    *s;
     size_t  nBytes = (size_t) 0;
     int     i, cnt = 0;
 
     (*lstp) = NULL;
+    i = csoundLoadAllPluginOpcodes(csound);
+    if (i != 0)
+      return i;
+    ep = (OENTRY*) csound->opcodlst;
     if (ep == NULL)
       return -1;
     /* count the number of opcodes, and bytes to allocate */

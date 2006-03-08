@@ -134,7 +134,7 @@ static int bar_run(CSOUND *csound, BAR* p)
       }
 
       /*  readouts */
-      
+
       /*       xo = (1.0/3.0) + 0.5*sin(TWOPI*xofreq*(step+1)/csound->esr); */
       /* sin((N+1)w) = sin(Nw)cos(w) + cos(Nw)sin(w) */
       /* cos((N+1)w) = cos(Nw)cos(w) - sin(Nw)sin(w) */
