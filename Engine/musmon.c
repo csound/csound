@@ -248,7 +248,7 @@ int musmon(CSOUND *csound)
     if (!csound->enableHostImplementedAudioIO) {
       if (O->sfread)
         sfopenin(csound);
-      if (O->sfwrite)
+      if (O->sfwrite && !csound->initonly)
         sfopenout(csound);
       else
         sfnopenout(csound);
@@ -274,7 +274,8 @@ int musmon(CSOUND *csound)
       csound->cscoreCallback_(csound);
       fclose(csound->oscfp); csound->oscfp = NULL;
       fclose(csound->scfp); csound->scfp = NULL;
-      if (ST(lplayed)) return 0;
+      if (ST(lplayed))
+        return 0;
 
       if (!(csound->scfp = fopen("cscore.out", "r"))) /*  rd from cscore.out */
         csoundDie(csound, Str("cannot reopen cscore.out"));
@@ -290,12 +291,14 @@ int musmon(CSOUND *csound)
       csound->Message(csound, Str("playing from cscore.srt\n"));
       O->usingcscore = 0;
     }
+
     csound->Message(csound, Str("SECTION %d:\n"), ++ST(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csound->SetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
-                                     /* since we are running in components */
-    return 0;                        /* we exit here to playevents later   */
+
+    /* since we are running in components, we exit here to playevents later */
+    return 0;
 }
 
 static void deactivate_all_notes(CSOUND *csound)
