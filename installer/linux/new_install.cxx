@@ -116,7 +116,7 @@ void wrap(char *dest, char *src, const char *file, const char *opcd)
     fprintf(rc, "#!/bin/sh\n%s=%s\n%s/%s $@\n",
             envy, oplink, binlink, file);
     fclose(rc);
-    chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IXOTH);
+    chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IRGRP|S_IXOTH|S_IROTH);
 }
 
 int main(void)

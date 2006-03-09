@@ -3,12 +3,10 @@
 #include "csdl.h"
 #include <math.h>
 
-/* %% bar sound synthesis script */
+/* %% bar sound synthesis translated from Mathlab and much changed */
 
-/* %%%%%%%%%%%%%%%%% some input parameters */
-
-/*  Note: each row of eventlist contains: time of strike (s), position of strike */
-/*  along bar (0 - 1), normalized strike velocity, and spatial width of strike.  */
+/*  Note: position of strike along bar (0 - 1), normalized strike
+    velocity, and spatial width of strike.  */ 
 
 typedef struct {
     OPDS        h;
@@ -29,14 +27,14 @@ static int bar_init(CSOUND *csound, BAR *p)
     if (*p->iK>=FL(0.0)) {
       double K = *p->iK;          /* 3.0  stiffness parameter, dimensionless */
       double T30 = *p->iT30;      /* 5.0; 30 db decay time (s) */
-      double b = *p->ib; /* 0.001 high-frequency loss parameter (keep this small) */
-/* %%%%%%%%%%%%%%%%%% derived parameters */
+      double b = *p->ib; /* 0.001 high-frequency loss parameter (keep small) */
+      /* %%%%%%%%%%%%%%%%%% derived parameters */
       double dt = 1.0/csound->esr;
       double sig = (2.0/dt)*(pow(10.0,3.0*dt/T30)-1.0);
       double dxmin = sqrt(dt*(b+sqrt(b*b+4*K*K)));
       int N = (int) (1.0/dxmin);
       double dx = 1.0/N;
-/* %%%%%%%%%%%%%%%%%%% scheme coefficients */
+      /* %%%%%%%%%%%%%%%%%%% scheme coefficients */
       p->s0 = (2.0-6.0*K*K*dt*dt/(dx*dx*dx*dx)-2.0*b*dt/(dx*dx))/(1.0+sig*dt*0.5);
       p->s1 = (4.0*K*K*dt*dt/(dx*dx*dx*dx)+b*dt/(dx*dx))/(1.0+sig*dt*0.5);
       p->s2 = -K*K*dt*dt/((dx*dx*dx*dx)*(1.0+sig*dt*0.5));
@@ -66,7 +64,7 @@ static int bar_init(CSOUND *csound, BAR *p)
 
 static int bar_run(CSOUND *csound, BAR* p)
 {
-    double xofreq = *p->kscan; /* 0.23; */
+    double xofreq = TWOPI* (*p->kscan)/csound->esr; /* 0.23; */
     double xo, xofrac;
     int xoint;
     int step = p->step;
@@ -76,13 +74,14 @@ static int bar_run(CSOUND *csound, BAR* p)
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
     int bcL = (int)(*p->kbcL+FL(0.5));    /*  boundary condition pair */
     int bcR = (int)(*p->kbcR+FL(0.5));    /*  1: clamped, 2: pivoting, 3: free */
-    double SINNW = sin(TWOPI*xofreq*step/csound->esr);
-    double COSNW = cos(TWOPI*xofreq*step/csound->esr);
-    double SIN1W = sin(TWOPI*xofreq/csound->esr);
-    double COS1W = cos(TWOPI*xofreq/csound->esr);
+    double SINNW = sin(xofreq*step);
+    double COSNW = cos(xofreq*step);
+    double SIN1W = sin(xofreq);
+    double COS1W = cos(xofreq);
 
     if ((bcL|bcR)&(~3))
-      return csound->PerfError(csound, "Ends but be clamped, piviting or free");
+      return csound->PerfError(csound,
+                               "Ends but be clamped(1), pivoting(2) or free(3)");
 
     for (n=0; n<csound->ksmps; n++) {
       /* Fix ends */
@@ -150,7 +149,8 @@ static int bar_run(CSOUND *csound, BAR* p)
       xoint = (int)(xo*N)+2;
       xofrac = xo*N-(int)(xo*N);
 
-/*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ", xo, xoint, xofrac, w[xoint], w[xoint+1]); */
+/*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ", 
+                         xo, xoint, xofrac, w[xoint], w[xoint+1]); */
       p->ar[n] = (csound->e0dbfs)*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
       {
