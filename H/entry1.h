@@ -51,7 +51,6 @@
 #include "ugrw1.h"
 #include "ugrw2.h"
 #include "schedule.h"
-#include "vbap.h"
 #include "vdelay.h"
 #include "pstream.h"
 #include "oscils.h"
@@ -323,19 +322,6 @@ int     eventOpcode(CSOUND *, void *), eventOpcodeI(CSOUND *, void *);
 int     lfoset(CSOUND *, void *);
 int     lfok(CSOUND *, void *), lfoa(CSOUND *, void *);
 int     mute_inst(CSOUND *, void *);
-int     vbap_FOUR_init(CSOUND *, void *), vbap_FOUR(CSOUND *, void *);
-int     vbap_EIGHT_init(CSOUND *, void *), vbap_EIGHT(CSOUND *, void *);
-int     vbap_SIXTEEN_init(CSOUND *, void *), vbap_SIXTEEN(CSOUND *, void *);
-int     vbap_zak_init(CSOUND *, void *), vbap_zak(CSOUND *, void *);
-int     vbap_ls_init(CSOUND *, void *);
-int     vbap_FOUR_moving_init(CSOUND *, void *);
-int     vbap_FOUR_moving(CSOUND *, void *);
-int     vbap_EIGHT_moving_init(CSOUND *, void *);
-int     vbap_EIGHT_moving(CSOUND *, void *);
-int     vbap_SIXTEEN_moving_init(CSOUND *, void *);
-int     vbap_SIXTEEN_moving(CSOUND *, void *);
-int     vbap_zak_moving_init(CSOUND *, void *);
-int     vbap_zak_moving(CSOUND *, void *);
 int     pvsanalset(CSOUND *, void *), pvsanal(CSOUND *, void *);
 int     pvsynthset(CSOUND *, void *), pvsynth(CSOUND *, void *);
 int     pvadsynset(CSOUND *, void *), pvadsyn(CSOUND *, void *);

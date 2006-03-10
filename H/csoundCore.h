@@ -1016,7 +1016,7 @@ extern "C" {
     long          nrecs;
     FILE*         Linepipe;
     int           Linefd;
-    MYFLT         *ls_table;
+    MYFLT         *dummy_04;
     FILE*         scfp;
     FILE*         oscfp;
     MYFLT         maxamp[MAXCHNLS];

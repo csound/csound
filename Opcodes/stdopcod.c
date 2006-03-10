@@ -46,7 +46,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     p->atsbufreadaddr = NULL;
 
     err |= ambicode_init_(csound);
-    err |= babo_init_(csound);
     err |= bbcut_init_(csound);
     err |= biquad_init_(csound);
     err |= butter_init_(csound);
@@ -63,9 +62,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     err |= ftgen_init_(csound);
     err |= gab_gab_init_(csound);
     err |= gab_vectorial_init_(csound);
-    err |= grain4_init_(csound);
     err |= grain_init_(csound);
-    err |= hrtferX_init_(csound);
     err |= ifd_init_(csound);
     err |= locsig_init_(csound);
     err |= lowpassr_init_(csound);
@@ -76,7 +73,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     err |= nlfilt_init_(csound);
     err |= oscbnk_init_(csound);
     err |= partials_init_(csound);
-    err |= phisem_init_(csound);
     err |= pluck_init_(csound);
     err |= psynth_init_(csound);
     err |= pvsbasic_init_(csound);

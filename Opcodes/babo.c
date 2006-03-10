@@ -832,9 +832,5 @@ static OENTRY localops[] = {
 { "babo",   S(BABO), 5, "aa", "akkkiiijj",(SUBR)baboset, NULL, (SUBR)babo   }
 };
 
-int babo_init_(CSOUND *csound)
-{
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE
 
