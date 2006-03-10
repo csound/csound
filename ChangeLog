@@ -1,3 +1,8 @@
+2006-03-10      Michael Gogins  <gogins@pipeline.com>
+        * CSD style command lines in CsoundVST are now translated 
+	  to orc/sco style before performance in order to save having to edit 
+	  the command line after loading some CSD files.
+
 2006-03-08	Istvan Varga	<ivarga@csounds.com>
 	* Made it possible to load opcode plugins only when the opcode is
 	  actually used.
