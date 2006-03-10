@@ -511,9 +511,5 @@ static OENTRY localops[] = {
              (SUBR)grainsetv4, NULL, (SUBR)graingenv4}
 };
 
-int grain4_init_(CSOUND *csound)
-{
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE
 

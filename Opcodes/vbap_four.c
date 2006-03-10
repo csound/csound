@@ -1,5 +1,5 @@
 /*
-    vbap_sixteen.c:
+    vbap_four.c:
 
     Copyright (C) 2000 Ville Pulkki
 
@@ -21,30 +21,30 @@
     02111-1307 USA
 */
 
-/* vbap_sixteen.c
+/* vbap_four.c
 
-functions specific to sixteen loudspeaker VBAP
+functions specific to four loudspeaker VBAP
 
 Ville Pulkki
 */
 
-#include "csoundCore.h"
+#include "csdl.h"
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p);
+int vbap_FOUR_moving_control(CSOUND *, VBAP_FOUR_MOVING *);
 
-int vbap_SIXTEEN(CSOUND *csound, VBAP_SIXTEEN   *p) /* during note performance:   */
+int vbap_FOUR(CSOUND *csound, VBAP_FOUR *p) /* during note performance: */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
 
-    vbap_SIXTEEN_control(csound,p);
-    for (i=0; i< (SIXTEEN); i++) {
+    vbap_FOUR_control(csound,p);
+    for (i=0; i<(FOUR); i++) {
       p->beg_gains[i] = p->end_gains[i];
       p->end_gains[i] = p->updated_gains[i];
     }
@@ -52,7 +52,7 @@ int vbap_SIXTEEN(CSOUND *csound, VBAP_SIXTEEN   *p) /* during note performance: 
     /* write audio to result audio streams weighted
        with gain factors*/
     invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
-    for (j=0; j<SIXTEEN; j++) {
+    for (j=0; j<FOUR; j++) {
       inptr      = p->audio;
       outptr     = p->out_array[j];
       ogain      = p->beg_gains[j];
@@ -60,7 +60,7 @@ int vbap_SIXTEEN(CSOUND *csound, VBAP_SIXTEEN   *p) /* during note performance: 
       gainsubstr = ngain - ogain;
       if (ngain != FL(0.0) || ogain != FL(0.0)) {
         if (ngain != ogain) {
-          for (i = 0 /* p->counter */; i < csound->ksmps /* + p->counter */; i++) {
+          for (i = 0; i < csound->ksmps; i++) {
             *outptr++ = *inptr++ *
               (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
           }
@@ -75,19 +75,18 @@ int vbap_SIXTEEN(CSOUND *csound, VBAP_SIXTEEN   *p) /* during note performance: 
       else {
         for (i=0; i<csound->ksmps; ++i)
           *outptr++ = FL(0.0);
-    }
+      }
     }
     return OK;
 }
 
-int vbap_SIXTEEN_control(CSOUND *csound, VBAP_SIXTEEN   *p)
+int vbap_FOUR_control(CSOUND *csound, VBAP_FOUR *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
     ANG_VEC atmp;
     long i,j, spreaddirnum;
-
-    MYFLT tmp_gains[SIXTEEN],sum=FL(0.0);
+    MYFLT tmp_gains[FOUR],sum=FL(0.0);
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
       csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
@@ -103,7 +102,7 @@ int vbap_SIXTEEN_control(CSOUND *csound, VBAP_SIXTEEN   *p)
     p->ang_dir.length = FL(1.0);
     angle_to_cart(p->ang_dir, &(p->cart_dir));
     calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
-                  p->updated_gains, SIXTEEN, p->cart_dir);
+                  p->updated_gains, FOUR, p->cart_dir);
 
     /* Calculated gain factors of a spreaded virtual source*/
     if (*p->spread > FL(0.0)) {
@@ -138,8 +137,8 @@ int vbap_SIXTEEN_control(CSOUND *csound, VBAP_SIXTEEN   *p)
           new_spread_dir(&spreaddir[i], p->cart_dir,
                          spreadbase[i],*p->azi,*p->spread);
           calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
-                        tmp_gains, SIXTEEN, spreaddir[i]);
-          for (j=0;j<SIXTEEN;j++) {
+                        tmp_gains, FOUR, spreaddir[i]);
+          for (j=0;j<FOUR;j++) {
             p->updated_gains[j] += tmp_gains[j];
           }
         }
@@ -162,42 +161,44 @@ int vbap_SIXTEEN_control(CSOUND *csound, VBAP_SIXTEEN   *p)
 
         for (i=0;i<spreaddirnum;i++) {
           calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
-                        tmp_gains, SIXTEEN, spreaddir[i]);
-          for (j=0;j<SIXTEEN;j++) {
+                        tmp_gains, FOUR, spreaddir[i]);
+          for (j=0;j<FOUR;j++) {
             p->updated_gains[j] += tmp_gains[j];
           }
         }
       }
     }
     if (*p->spread > FL(70.0))
-      for (i=0;i<SIXTEEN ;i++) {
+      for (i=0;i<FOUR ;i++) {
         p->updated_gains[i] +=(*p->spread - FL(70.0))/FL(30.0) *
           (*p->spread - FL(70.0))/FL(30.0)*FL(20.0);
       }
 
     /*normalization*/
-    for (i=0;i<SIXTEEN;i++) {
+    for (i=0;i<FOUR;i++) {
       sum=sum+(p->updated_gains[i]*p->updated_gains[i]);
     }
 
-    sum = (MYFLT)sqrt((double)sum);
-    for (i=0;i<SIXTEEN;i++) {
+    sum=(MYFLT)sqrt((double)sum);
+    for (i=0;i<FOUR;i++) {
       p->updated_gains[i] /= sum;
     }
     return OK;
 }
 
-int vbap_SIXTEEN_init(CSOUND *csound, VBAP_SIXTEEN   *p)
+int vbap_FOUR_init(CSOUND *csound, VBAP_FOUR *p)
 {                               /* Initializations before run time*/
-    int i,j;
-    MYFLT *ptr;
-    LS_SET *ls_set_ptr;
-    p->dim       = (int) csound->ls_table[0];   /*reading in loudspeaker info */
-    p->ls_am     = (int) csound->ls_table[1];
-    p->ls_set_am = (int) csound->ls_table[2];
-    ptr = &(csound->ls_table[3]);
+    int     i, j;
+    MYFLT   *ls_table, *ptr;
+    LS_SET  *ls_set_ptr;
+
+    ls_table = get_ls_table(csound);
+    p->dim       = (int) ls_table[0];   /* reading in loudspeaker info */
+    p->ls_am     = (int) ls_table[1];
+    p->ls_set_am = (int) ls_table[2];
+    ptr = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
-    if (p->aux.auxp==NULL) {
+    if (p->aux.auxp == NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
@@ -226,31 +227,31 @@ int vbap_SIXTEEN_init(CSOUND *csound, VBAP_SIXTEEN   *p)
     p->spread_base.x  = p->cart_dir.y;
     p->spread_base.y  = p->cart_dir.z;
     p->spread_base.z  = -p->cart_dir.x;
-    vbap_SIXTEEN_control(csound,p);
-    for (i = 0; i<SIXTEEN; i++) {
+    vbap_FOUR_control(csound,p);
+    for (i=0;i<FOUR;i++) {
       p->beg_gains[i] = p->updated_gains[i];
       p->end_gains[i] = p->updated_gains[i];
     }
     return OK;
 }
 
-int vbap_SIXTEEN_moving(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p) /* during note performance: */
+int vbap_FOUR_moving(CSOUND *csound, VBAP_FOUR_MOVING *p) /* during note performance:   */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
     int i,j;
 
-    vbap_SIXTEEN_moving_control(csound,p);
-    for (i=0;i< (SIXTEEN); i++) {
-      p->beg_gains[i]=p->end_gains[i];
-      p->end_gains[i]=p->updated_gains[i];
+    vbap_FOUR_moving_control(csound,p);
+    for (i=0;i< (FOUR); i++) {
+      p->beg_gains[i] = p->end_gains[i];
+      p->end_gains[i] = p->updated_gains[i];
     }
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
     invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
-    for (j=0; j<SIXTEEN ;j++) {
+    for (j=0; j<FOUR ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
       ogain  = p->beg_gains[j];
@@ -275,7 +276,7 @@ int vbap_SIXTEEN_moving(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p) /* during note
     return OK;
 }
 
-int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
+int vbap_FOUR_moving_control(CSOUND *csound, VBAP_FOUR_MOVING *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
@@ -283,7 +284,7 @@ int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
     long i,j, spreaddirnum;
     CART_VEC tmp1, tmp2, tmp3;
     MYFLT coeff, angle;
-    MYFLT tmp_gains[SIXTEEN],sum=FL(0.0);
+    MYFLT tmp_gains[FOUR],sum=FL(0.0);
     if (p->dim == 2 && fabs(p->ang_dir.ele) > 0.0) {
       csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
@@ -311,8 +312,8 @@ int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
         }
       }
       if ((p->fld[abs(p->next_fld)]==NULL))
-        csound->Die(csound, Str("Missing fields in vbap16move\n"));
-      if (*p->field_am >= 0.0 && p->dim == 2) /* point-to-point */
+        csound->Die(csound, Str("Missing fields in vbap4move\n"));
+      if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
           csound->Message(csound,Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
@@ -330,8 +331,8 @@ int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
         tmp3.y = (FL(1.0)-coeff) * tmp1.y + coeff * tmp2.y;
         tmp3.z = (FL(1.0)-coeff) * tmp1.z + coeff * tmp2.z;
         coeff = (MYFLT)sqrt((double)(tmp3.x * tmp3.x +
-                                      tmp3.y * tmp3.y +
-                                      tmp3.z * tmp3.z));
+                                     tmp3.y * tmp3.y +
+                                     tmp3.z * tmp3.z));
         tmp3.x /= coeff; tmp3.y /= coeff; tmp3.z /= coeff;
         cart_to_angle(tmp3,&(p->ang_dir));
       }
@@ -378,7 +379,7 @@ int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
     }
     angle_to_cart(p->ang_dir, &(p->cart_dir));
     calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
-                  p->updated_gains, SIXTEEN, p->cart_dir);
+                  p->updated_gains, FOUR, p->cart_dir);
     if (*p->spread > FL(0.0)) {
       if (p->dim == 3) {
         spreaddirnum=16;
@@ -412,8 +413,8 @@ int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
           new_spread_dir(&spreaddir[i], p->cart_dir,
                          spreadbase[i],p->ang_dir.azi,*p->spread);
           calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
-                        tmp_gains, SIXTEEN, spreaddir[i]);
-          for (j=0;j<SIXTEEN;j++) {
+                        tmp_gains, FOUR, spreaddir[i]);
+          for (j=0;j<FOUR;j++) {
             p->updated_gains[j] += tmp_gains[j];
           }
         }
@@ -436,40 +437,42 @@ int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
 
         for (i=0;i<spreaddirnum;i++) {
           calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
-                        tmp_gains, SIXTEEN, spreaddir[i]);
-          for (j=0;j<SIXTEEN;j++) {
+                        tmp_gains, FOUR, spreaddir[i]);
+          for (j=0;j<FOUR;j++) {
             p->updated_gains[j] += tmp_gains[j];
           }
         }
       }
     }
     if (*p->spread > FL(70.0))
-      for (i=0;i<SIXTEEN ;i++) {
+      for (i=0;i<FOUR ;i++) {
         p->updated_gains[i] +=(*p->spread - FL(70.0))/FL(30.0) *
           (*p->spread - FL(70.0))/FL(30.0)*FL(10.0);
       }
     /*normalization*/
-    for (i=0;i<SIXTEEN;i++) {
+    for (i=0;i<FOUR;i++) {
       sum=sum+(p->updated_gains[i]*p->updated_gains[i]);
     }
 
-    sum= (MYFLT)sqrt((double)sum);
-    for (i=0;i<SIXTEEN;i++) {
+    sum=(MYFLT)sqrt((double)sum);
+    for (i=0;i<FOUR;i++) {
       p->updated_gains[i] /= sum;
     }
     return OK;
 }
 
-int vbap_SIXTEEN_moving_init(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
+int vbap_FOUR_moving_init(CSOUND *csound, VBAP_FOUR_MOVING *p)
 {
-    int i,j;
-    MYFLT *ptr;
-    LS_SET *ls_set_ptr;
-    /*reading in loudspeaker info */
-    p->dim       = (int) csound->ls_table[0];
-    p->ls_am     = (int) csound->ls_table[1];
-    p->ls_set_am = (int) csound->ls_table[2];
-    ptr = &(csound->ls_table[3]);
+    int     i, j;
+    MYFLT   *ls_table, *ptr;
+    LS_SET  *ls_set_ptr;
+
+    ls_table = get_ls_table(csound);
+    /* reading in loudspeaker info */
+    p->dim       = (int) ls_table[0];
+    p->ls_am     = (int) ls_table[1];
+    p->ls_set_am = (int) ls_table[2];
+    ptr = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp == NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));
@@ -492,7 +495,7 @@ int vbap_SIXTEEN_moving_init(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
     p->ele_vel = FL(1.0);    /* functions specific to movement */
     if (fabs(*p->field_am) < (2+ (p->dim - 2)*2)) {
       csound->Die(csound,
-                  Str("Have to have at least %d directions in vbap16move"),
+                  Str("Have to have at least %d directions in vbap4move"),
                   2 + (p->dim - 2) * 2);
     }
     if (p->dim == 2)
@@ -501,16 +504,15 @@ int vbap_SIXTEEN_moving_init(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
     else if (p->dim == 3)
       p->point_change_interval =
         (int)(csound->ekr * *p->dur /((fabs(*p->field_am)/2.0) - 1.0 ));
-      else
-        csound->Die(csound, Str("Wrong dimension"));
+    else
+      csound->Die(csound, Str("Wrong dimension"));
     p->point_change_counter = 0;
     p->curr_fld = 0;
     p->next_fld = 1;
     p->ang_dir.azi = *p->fld[0];
     if (p->dim == 3) {
       p->ang_dir.ele = *p->fld[1];
-    }
-    else {
+    } else {
       p->ang_dir.ele = FL(0.0);
     }
     if (p->dim == 3) {
@@ -521,8 +523,8 @@ int vbap_SIXTEEN_moving_init(CSOUND *csound, VBAP_SIXTEEN_MOVING   *p)
     p->spread_base.x  = p->cart_dir.y;
     p->spread_base.y  = p->cart_dir.z;
     p->spread_base.z  = -p->cart_dir.x;
-    vbap_SIXTEEN_moving_control(csound,p);
-    for (i= 0; i<SIXTEEN; i++) {
+    vbap_FOUR_moving_control(csound,p);
+    for (i = 0; i<FOUR; i++) {
       p->beg_gains[i] = p->updated_gains[i];
       p->end_gains[i] = p->updated_gains[i];
     }

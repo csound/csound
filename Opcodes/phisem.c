@@ -1246,9 +1246,5 @@ static OENTRY localops[] = {
                                        (SUBR)sleighset, NULL, (SUBR)sleighbells }
 };
 
-int phisem_init_(CSOUND *csound)
-{
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE
 

@@ -65,7 +65,6 @@ typedef struct STDOPCOD_GLOBALS_ {
 } STDOPCOD_GLOBALS;
 
 extern int ambicode_init_(CSOUND *);
-extern int babo_init_(CSOUND *);
 extern int bbcut_init_(CSOUND *);
 extern int biquad_init_(CSOUND *);
 extern int butter_init_(CSOUND *);
@@ -82,9 +81,7 @@ extern int ftconv_init_(CSOUND *);
 extern int ftgen_init_(CSOUND *);
 extern int gab_gab_init_(CSOUND *);
 extern int gab_vectorial_init_(CSOUND *);
-extern int grain4_init_(CSOUND *);
 extern int grain_init_(CSOUND *);
-extern int hrtferX_init_(CSOUND *);
 extern int ifd_init_(CSOUND *);
 extern int locsig_init_(CSOUND *);
 extern int lowpassr_init_(CSOUND *);
@@ -95,7 +92,6 @@ extern int newfils_init_(CSOUND *);
 extern int nlfilt_init_(CSOUND *);
 extern int oscbnk_init_(CSOUND *);
 extern int partials_init_(CSOUND *);
-extern int phisem_init_(CSOUND *);
 extern int pluck_init_(CSOUND *);
 extern int psynth_init_(CSOUND *);
 extern int pvsbasic_init_(CSOUND *);
