@@ -227,7 +227,7 @@ void CsoundVST::performanceThreadRoutine()
       std::string command = cppSound->getCommand();
       std::string vstcommand;
       bool updateCommand = false;
-      if (command.find("-") == 0) {
+      if (command.find("-") == 0 || command.length() == 0) {
 	updateCommand = true;
 	vstcommand = "csound ";
       }
@@ -292,7 +292,9 @@ extern "C"
 
 static int threadYieldCallback(CSOUND *csound)
 {
+  Fl::lock();
   Fl::wait(0.0);
+  Fl::unlock();
   return 1;
 }
 
@@ -309,13 +311,13 @@ int CsoundVST::perform()
       if(getIsVst())
         {
           csound::System::inform("VST performance.\n");
-          getCppSound()->SetYieldCallback(nonThreadYieldCallback);
+          getCppSound()->SetYieldCallback(threadYieldCallback);
           performanceThreadRoutine();
         }
       else if(getIsMultiThreaded())
         {
           csound::System::inform("Multi-threaded performance.\n");
-          getCppSound()->SetYieldCallback(nonThreadYieldCallback);
+          getCppSound()->SetYieldCallback(threadYieldCallback);
           result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
         }
       else
