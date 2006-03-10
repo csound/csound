@@ -5,6 +5,8 @@ _csnd:
 _CsoundVST:
 _jcsound:
 
+babo:
+	babo
 barmodel:
 	barmodel
 control:
@@ -15,6 +17,10 @@ dssi4cs:
 fluidOpcodes:
 	fluidEngine fluidLoad fluidProgramSelect fluidCCi fluidCCk fluidNote
 	fluidOut fluidAllOut fluidControl
+grain4:
+	granule
+hrtferX:
+	hrtfer
 loris:
 	lorisread lorisplay lorismorph
 mixer:
@@ -23,6 +29,9 @@ modal4:
 	marimba vibes gogobel
 osc:
 	OSCsend OSCrecv OSCinit OSClisten
+phisem:
+	cabasa crunch sekere sandpaper stix guiro tambourine bamboo dripwater
+	sleighbells
 physmod:
 	wgclar wgflute wgbow wgbrass mandol voice fmbell fmrhode fmwurlie
 	fmmetal fmb3 fmvoice fmpercfl moog shaker wgbowedbar
@@ -55,4 +64,7 @@ stk:
 	STKModalBar STKMoog STKPercFlut STKPlucked STKResonate STKRhodey
 	STKSaxofony STKShakers STKSimple STKSitar STKStifKarp STKTubeBell
 	STKVoicForm STKWhistle STKWurley
+vbap:
+	vbap4 vbap8 vbap16 vbapz vbaplsinit vbap4move vbap8move vbap16move
+	vbapzmove
 

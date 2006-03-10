@@ -669,11 +669,6 @@ OOps/ugens6.c
 OOps/ugens8.c
 OOps/ugrw1.c
 OOps/ugrw2.c
-OOps/vbap.c
-OOps/vbap_eight.c
-OOps/vbap_four.c
-OOps/vbap_sixteen.c
-OOps/vbap_zak.c
 OOps/vdelay.c
 OOps/vpvoc.c
 Top/argdecode.c
@@ -969,24 +964,23 @@ else:
 # Plugin opcodes.
 
 makePlugin(pluginEnvironment, 'stdopcod', Split('''
-    Opcodes/ambicode.c      Opcodes/babo.c          Opcodes/bbcut.c
-    Opcodes/biquad.c        Opcodes/butter.c        Opcodes/clfilt.c
-    Opcodes/cross2.c        Opcodes/dam.c           Opcodes/dcblockr.c
-    Opcodes/filter.c        Opcodes/flanger.c       Opcodes/follow.c
-    Opcodes/fout.c          Opcodes/freeverb.c      Opcodes/ftconv.c
-    Opcodes/ftgen.c         Opcodes/gab/gab.c       Opcodes/gab/vectorial.c
-    Opcodes/grain.c         Opcodes/grain4.c        Opcodes/hrtferX.c
+    Opcodes/ambicode.c      Opcodes/bbcut.c         Opcodes/biquad.c
+    Opcodes/butter.c        Opcodes/clfilt.c        Opcodes/cross2.c
+    Opcodes/dam.c           Opcodes/dcblockr.c      Opcodes/filter.c
+    Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
+    Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
+    Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
     Opcodes/ifd.c           Opcodes/locsig.c        Opcodes/lowpassr.c
     Opcodes/metro.c         Opcodes/midiops2.c      Opcodes/midiops3.c
     Opcodes/newfils.c       Opcodes/nlfilt.c        Opcodes/oscbnk.c
-    Opcodes/partials.c      Opcodes/phisem.c        Opcodes/pluck.c
-    Opcodes/psynth.c        Opcodes/pvsbasic.c      Opcodes/pvscent.c
-    Opcodes/pvsdemix.c      Opcodes/repluck.c       Opcodes/reverbsc.c
-    Opcodes/seqtime.c       Opcodes/sndloop.c       Opcodes/sndwarp.c
-    Opcodes/space.c         Opcodes/spat3d.c        Opcodes/syncgrain.c
-    Opcodes/ugens7.c        Opcodes/ugens9.c        Opcodes/ugensa.c
-    Opcodes/uggab.c         Opcodes/ugmoss.c        Opcodes/ugnorman.c
-    Opcodes/ugsc.c          Opcodes/wave-terrain.c
+    Opcodes/partials.c      Opcodes/pluck.c         Opcodes/psynth.c
+    Opcodes/pvsbasic.c      Opcodes/pvscent.c       Opcodes/pvsdemix.c
+    Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
+    Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
+    Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
+    Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
+    Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
+    Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
 '''))
 
@@ -1008,7 +1002,14 @@ sfontEnvironment = pluginEnvironment.Copy()
 if (commonEnvironment['MSVC'] == '0'):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
+makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
 makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
+makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
+makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
+makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
+makePlugin(pluginEnvironment, 'vbap',
+           ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
+            'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
 
 # Plugins with External Dependencies
 

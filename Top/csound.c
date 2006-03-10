@@ -397,7 +397,7 @@ static const CSOUND cenviron_ = {
         0,              /*  nrecs               */
         NULL,           /*  Linepipe            */
         0,              /*  Linefd              */
-        NULL,           /*  ls_table            */
+        NULL,           /*  dummy_04            */
         NULL,           /*  scfp                */
         NULL,           /*  oscfp               */
         { FL(0.0) },    /*  maxamp              */
