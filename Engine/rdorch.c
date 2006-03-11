@@ -1271,6 +1271,11 @@ TEXT *getoptxt(CSOUND *csound, int *init)
         mfree(csound, ST(collectbuf));  ST(collectbuf) = NULL;
         mfree(csound, ST(group));       ST(group) = NULL;
         mfree(csound, ST(grpsav));      ST(grpsav) = NULL;
+        mfree(csound, csound->tokens);      csound->tokens = NULL;
+        mfree(csound, csound->tokenlist);   csound->tokenlist = NULL;
+        mfree(csound, csound->tokenstring); csound->tokenstring = NULL;
+        mfree(csound, csound->polish);      csound->polish = NULL;
+        csound->token = NULL;
         return (TEXT*) NULL;                    /*    (else we're done)   */
       }
       for (nn=0; nn<ST(grpcnt); nn++)           /*    save the group pntrs */
