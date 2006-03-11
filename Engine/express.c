@@ -30,7 +30,6 @@
 #define BITCLR  0x16
 #define BITFLP  0x15
 
-#define LENTOT  200L            /* This one is OK */
 #define POLMAX  30L             /* This one is OK */
 #define XERROR(CAUSE)   { strncpy(xprmsg,CAUSE,128);  goto error; }
 
@@ -41,6 +40,31 @@ static  void    putokens(CSOUND*), putoklist(CSOUND*);
 static  int     nontermin(int);
 
 #define copystring(s) strsav_string(csound, s)
+
+static CS_NOINLINE char *extend_tokenstring(CSOUND *csound, size_t len)
+{
+    size_t  newLen;
+    char    *tt;
+    TOKEN   *ttt;
+
+    newLen = (size_t) csound->toklen;
+    do {
+      newLen = ((newLen + (newLen >> 2)) | (size_t) 127) + (size_t) 1;
+    } while (newLen <= len);
+    tt = (char*) mrealloc(csound, csound->tokenstring, newLen + (size_t) 128);
+    /* Adjust all previous tokens */
+    if (csound->token) {
+      for (ttt = csound->tokens; ttt <= csound->token; ttt++)
+        ttt->str += (tt - csound->tokenstring);
+    }
+    csound->tokenstring = tt;               /* Reset string and length */
+    csound->toklen = (long) newLen;
+    csound->stringend = csound->tokenstring + csound->toklen;
+    if (newLen != (size_t) 128)
+      csound->Message(csound, Str("Token length extended to %ld\n"),
+                              csound->toklen);
+    return &(csound->tokenstring[len]);
+}
 
 int express(CSOUND *csound, char *s)
 {
@@ -58,24 +82,13 @@ int express(CSOUND *csound, char *s)
       csound->tokenlist = (TOKEN**) mmalloc(csound, TOKMAX * sizeof(TOKEN*));
       csound->polish    = (POLISH*) mmalloc(csound, POLMAX * sizeof(POLISH));
       csound->polmax    = POLMAX;
-      csound->tokenstring = mmalloc(csound, LENTOT);
-      csound->stringend = csound->tokenstring + LENTOT;
-      csound->toklen    = LENTOT;
+      csound->tokenstring = NULL;
+      csound->stringend = NULL;
+      csound->toklen    = 0L;
     }
     sorig = s;
-    if (csound->tokenstring + strlen(s) >= csound->stringend) {
-      char *tt;
-      TOKEN *ttt;
-      long n = csound->toklen + LENTOT + strlen(s);
-      tt = (char*) mrealloc(csound, csound->tokenstring, n);
-      /* Adjust all previous tokens */
-      for (ttt = csound->tokens; ttt <= csound->token; ttt++)
-        ttt->str += (tt - csound->tokenstring);
-      csound->tokenstring = tt;               /* Reset string and length */
-      csound->stringend = csound->tokenstring + (csound->toklen = n);
-      csound->Message(csound,
-                      Str("Token length extended to %ld\n"), csound->toklen);
-    }
+    if (strlen(s) >= (size_t) csound->toklen)
+      extend_tokenstring(csound, strlen(s));
 
     csound->token = csound->tokens;
     csound->token->str = t = csound->tokenstring;
@@ -125,7 +138,7 @@ int express(CSOUND *csound, char *s)
           *t++ = *s++;                /*      copy entire token    */
       *t++ = '\0';                    /* terminate this token      */
       if (t >= csound->stringend) {        /* Extend token length as required */
-        XERROR(Str("token storage LENTOT exceeded"));
+        t = extend_tokenstring(csound, (size_t) (t - csound->tokenstring));
       }
       if ((csound->tokend - csound->token) <= 4) {
         /* Extend token array and friends */
