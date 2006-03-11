@@ -589,17 +589,19 @@ def MacOSX_InstallHeader(headerName):
     cmd = 'cp -f %s %s' % (headerName, targetName)
     csoundFrameworkEnvironment.Command(targetName, headerName, cmd)
 
-def makePlugin(env, pluginName, srcs):
-    pluginLib = env.SharedLibrary(pluginName, srcs)
-    pluginLibraries.append(pluginLib)
+def MacOSX_InstallPlugin(fileName):
     if buildOSXFramework:
         pluginDir = '%s/Resources/Opcodes' % OSXFrameworkCurrentVersion
         if commonEnvironment['useDouble'] != '0':
             pluginDir += '64'
-        fileName = 'lib' + pluginName + '.dylib'
         cmd = 'cp -f %s %s/' % (fileName, pluginDir)
         csoundFrameworkEnvironment.Command('%s/%s' % (pluginDir, fileName),
                                            fileName, cmd)
+
+def makePlugin(env, pluginName, srcs):
+    pluginLib = env.SharedLibrary(pluginName, srcs)
+    pluginLibraries.append(pluginLib)
+    MacOSX_InstallPlugin('lib' + pluginName + '.dylib')
     return pluginLib
 
 libCsoundSources = Split('''
@@ -983,6 +985,9 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
 '''))
+
+pluginLibraries.append('opcodes.dir')
+MacOSX_InstallPlugin('opcodes.dir')
 
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
