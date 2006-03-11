@@ -22,8 +22,10 @@ LIBS = D:/MinGW/bin/libsndfile-1.dll -lgdi32 -luser32 -lkernel32 -lm
 PYINCDIR = D:/MinGW/Python/include
 PYLIB = python24.dll
 
-PLUGINS =	ftest.dll mixer.dll modal4.dll physmod.dll pitch.dll	\
-		scansyn.dll sfont.dll stdopcod.dll stdutil.dll		\
+PLUGINS =	babo.dll barmodel.dll ftest.dll grain4.dll hrtferX.dll	\
+		minmax.dll mixer.dll modal4.dll phisem.dll physmod.dll	\
+		pitch.dll scansyn.dll sfont.dll vbap.dll		\
+		stdopcod.dll stdutil.dll				\
 		widgets.dll rtpa.dll rtwinmm.dll pmidi.dll
 
 UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe mixer.exe	\
@@ -106,10 +108,17 @@ stdopcod.dll:	Opcodes/ambicode.o Opcodes/babo.o Opcodes/bbcut.o	\
 		Opcodes/stdopcod.o
 	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
 
+barmodel.dll: Opcodes/bilbar.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
+
+pitch.dll: Opcodes/pitch.o Opcodes/pitch0.o Opcodes/spectra.o
+	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
+
 scansyn.dll: Opcodes/scansyn.o Opcodes/scansynx.o
 	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
 
-pitch.dll: Opcodes/pitch.o Opcodes/pitch0.o Opcodes/spectra.o
+vbap.dll:	Opcodes/vbap.o Opcodes/vbap_eight.o Opcodes/vbap_four.o	\
+		Opcodes/vbap_sixteen.o Opcodes/vbap_zak.o
 	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
 
 mixer.dll: Opcodes/mixer.oo
