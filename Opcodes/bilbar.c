@@ -1,4 +1,25 @@
-/* Copyright 2006: Stefan Bilbao and John ffitch */
+/*
+   bilbar.c:
+
+   Copyright (C) 2006 by Stefan Bilbao and John ffitch
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
 
 #include "csdl.h"
 #include <math.h>
@@ -25,9 +46,9 @@ typedef struct {
 static int bar_init(CSOUND *csound, BAR *p)
 {
     if (*p->iK>=FL(0.0)) {
-      double K = *p->iK;          /* 3.0  stiffness parameter, dimensionless */
-      double T30 = *p->iT30;      /* 5.0; 30 db decay time (s) */
-      double b = *p->ib; /* 0.001 high-frequency loss parameter (keep small) */
+      double K = *p->iK;          /* ~=3.0  stiffness parameter, dimensionless */
+      double T30 = *p->iT30;      /* ~=5.0; 30 db decay time (s) */
+      double b = *p->ib; /* ~=0.001 high-frequency loss parameter (keep small) */
       /* %%%%%%%%%%%%%%%%%% derived parameters */
       double dt = 1.0/csound->esr;
       double sig = (2.0/dt)*(pow(10.0,3.0*dt/T30)-1.0);
@@ -64,7 +85,7 @@ static int bar_init(CSOUND *csound, BAR *p)
 
 static int bar_run(CSOUND *csound, BAR* p)
 {
-    double xofreq = TWOPI* (*p->kscan)/csound->esr; /* 0.23; */
+    double xofreq = TWOPI* (*p->kscan)/csound->esr; /* kspan ~=0.23; */
     double xo, xofrac;
     int xoint;
     int step = p->step;
@@ -74,9 +95,9 @@ static int bar_run(CSOUND *csound, BAR* p)
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
     int bcL = (int)(*p->kbcL+FL(0.5));    /*  boundary condition pair */
     int bcR = (int)(*p->kbcR+FL(0.5));    /*  1: clamped, 2: pivoting, 3: free */
-    double SINNW = sin(xofreq*step);
-    double COSNW = cos(xofreq*step);
-    double SIN1W = sin(xofreq);
+    double SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
+    double COSNW = cos(xofreq*step); /* formula rather than many calls    */
+    double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
     double COS1W = cos(xofreq);
 
     if ((bcL|bcR)&(~3))

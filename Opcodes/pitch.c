@@ -174,7 +174,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     dstp = p->pdist;
     fnfreqs = (MYFLT)specp->nfreqs;
     for (nn = 1; nn <= ptlmax; nn++)
-      *dstp++ = (int) ((log((double) nn) / LOGTWO) * fnfreqs + 0.5);
+      *dstp++ = (int) ((log((double) nn) / LOGTWO) * (double)fnfreqs + 0.5);
     if ((rolloff = *p->irolloff) == 0. || rolloff == 1. || nptls == 1) {
       p->rolloff = 0;
       weightsum = (MYFLT)nptls;
@@ -720,9 +720,9 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
 
     ampscl = mtab[(int)((1.0 / (MYFLT)octcnt) * mtablen)];
     amp = mtab[(int)((octoffs / (MYFLT)octcnt) * mtablen)];
-    if ((amp - p->prevamp) > (ampscl * 0.5))
+    if ((amp - p->prevamp) > (ampscl * FL(0.5)))
       octshift = 1;
-    else if ((amp - p->prevamp) < (-(ampscl * 0.5)))
+    else if ((amp - p->prevamp) < (-(ampscl * FL(0.5))))
       octshift = -1;
     else
       octshift = 0;
@@ -777,12 +777,12 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
 
     downs = *p->idowns;
     if (downs < (-1.9)) {
-      upsamp = (int)((downs * (-1.0)) + 0.5);
+      upsamp = (int)((-downs) + FL(0.5));
       downsamp = 0;
       srate = csound->esr * (float)upsamp;
     }
     else {
-      downsamp = (int)(downs+0.5);
+      downsamp = (int)(downs+FL(0.5));
       if (downsamp < 1)
         downsamp = 1;
       srate = csound->esr / (float)downsamp;
@@ -828,7 +828,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (*p->irmsmedi < 1)
         p->rmsmedisize = 0;
     else
-        p->rmsmedisize = (int)(*p->irmsmedi+0.5)*2+1;
+        p->rmsmedisize = (int)(*p->irmsmedi+FL(0.5))*2+1;
     p->rmsmediptr = 0;
 
     if (p->medisize) {
@@ -844,7 +844,7 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (*p->imedi < 1)
       p->medisize = 0;
     else
-      p->medisize = (int)(*p->imedi+0.5)*2+1;
+      p->medisize = (int)(*p->imedi+FL(0.5))*2+1;
     p->mediptr = 0;
 
     if (p->medisize) {
