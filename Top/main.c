@@ -24,7 +24,7 @@
 #include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
-#include <ctype.h>              /* For isdigit */
+#include "namedins.h"
 
 extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, char **);
@@ -251,6 +251,9 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     /* IV - Oct 31 2002: moved orchestra compilation here, so that named */
     /* instrument numbers are known at the score read/sort stage */
     csoundLoadExternals(csound);    /* load plugin opcodes */
+    if (!csound->isGraphable_ &&
+        !(!O->displays || O->graphsoff || O->postscript))
+      find_opcode(csound, "FLrun"); /* load FLTK for displays */
     /* IV - Jan 31 2005: initialise external modules */
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);

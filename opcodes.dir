@@ -70,4 +70,16 @@ stk:
 vbap:
 	vbap4 vbap8 vbap16 vbapz vbaplsinit vbap4move vbap8move vbap16move
 	vbapzmove
+vst4cs:
+	vstinit vstinfo vstaudio vstaudiog vstnote vstmidiout vstparamget
+	vstparamset vstbankload vstprogset vstedit
+widgets:
+	FLslider FLslidBnk FLknob FLroller FLtext FLjoy FLcount FLbutton
+	FLbutBank FLkeyb FLcolor FLcolor2 FLlabel FLsetVal_i FLsetVali FLsetVal
+	FLsetColor FLsetColor2 FLsetTextSize FLsetTextColor FLsetFont
+	FLsetTextType FLsetText FLsetSize FLsetPosition FLhide FLshow FLsetBox
+	FLsetAlign FLbox FLvalue FLpanel FLpanelEnd FLpanel_end FLscroll
+	FLscrollEnd FLscroll_end FLpack FLpackEnd FLpack_end FLtabs FLtabsEnd
+	FLtabs_end FLgroup FLgroupEnd FLgroup_end FLsetsnap FLgetsnap
+	FLsavesnap FLloadsnap FLrun FLupdate FLprintk FLprintk2
 
