@@ -259,15 +259,18 @@ for i in libList:
 # copy plugin libraries
 
 print ' === Installing plugins ==='
+if not useDouble:
+    pluginDir = pluginDir32
+else:
+    pluginDir = pluginDir64
+err = installFile('opcodes.dir', pluginDir)
+installErrors = installErrors or err
 pluginList = findFiles('.', 'lib[A-Za-z].*\\.so')
 for i in ['libcsound.so', 'libcsound64.so']:
     if i in pluginList:
         pluginList.remove(i)
 for i in pluginList:
-    if useDouble == 0:
-        err = installXFile('--strip-unneeded', i, pluginDir32)
-    else:
-        err = installXFile('--strip-unneeded', i, pluginDir64)
+    err = installXFile('--strip-unneeded', i, pluginDir)
     installErrors = installErrors or err
 
 # copy header files
@@ -425,7 +428,7 @@ else:
     print 'Csound installation has been successfully completed.'
     print 'Before running Csound, make sure that the following environment'
     print 'variables are set:'
-    if useDouble == 0:
+    if not useDouble:
         print '  OPCODEDIR=%s' % pluginDir32
     else:
         print '  OPCODEDIR64=%s' % pluginDir64

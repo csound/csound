@@ -222,6 +222,7 @@ for i in range(4):
         installFiles(xmgList, xmgDir)
         # plugin libraries
         os.remove('libcsound.so')
+        installFile('opcodes.dir', pluginDir32)
         pluginList = findFiles('^lib[A-Za-z].*\.so$')
         for j in pluginList:
             installXFile('--strip-unneeded', j, pluginDir32)
@@ -246,6 +247,7 @@ for i in range(4):
         installXFile('--strip-unneeded', 'CsoundVST', binDir)
         # plugin libraries
         os.remove('libcsound64.so')
+        installFile('opcodes.dir', pluginDir64)
         pluginList = findFiles('^lib[A-Za-z].*\.so$')
         for j in pluginList:
             installXFile('--strip-unneeded', j, pluginDir64)
