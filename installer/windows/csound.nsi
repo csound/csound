@@ -474,7 +474,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\interfaces\*.lisp
   
   SetOutPath $INSTDIR\plugins64
-  File /x csound.dll /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll 
+  File /x csound.dll /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll ..\..\opcodes.dir
  
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*

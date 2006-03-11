@@ -8,7 +8,7 @@ strip ../../../CSDIST/$DIR/bin/*
 
 rm ../../../CSDIST/$DIR/opc/*
 rm ../../../CSDIST/$DIR/opc/frontends/*
-cp -puv ../../li*.so ../../../CSDIST/$DIR/opc
+cp -puv ../../li*.so ../../opcodes.dir ../../../CSDIST/$DIR/opc
 
 mv ../../../CSDIST/$DIR/opc/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends
 ln ../../../CSDIST/$DIR/opc/frontends/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends/_csnd.so 
