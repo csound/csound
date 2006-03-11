@@ -390,7 +390,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
 
 static CS_NOINLINE int loadPluginOpcode(CSOUND *csound,
                                         CsoundOpcodePluginFile_t *fp,
-                                        const char *opname, unsigned char h)
+                                        const char *opname, int h)
 {
     int     n;
 
@@ -416,29 +416,33 @@ static CS_NOINLINE int loadPluginOpcode(CSOUND *csound,
 
 int find_opcode(CSOUND *csound, char *opname)
 {
-    int           n;
-    unsigned char h;
+    int     h, n;
 
-    if (opname[0] == (char) 0)
+    if (opname[0] == (char) 0 ||
+        (opname[0] >= (char) '0' && opname[0] <= (char) '9'))
       return 0;
+
     /* calculate hash value */
-    h = name_hash_2(opname);
+    h = (int) name_hash_2(opname);
     /* now find entry in opcode chain */
     n = ((int*) csound->opcode_list)[h];
-    while (n && sCmp(csound->opcodlst[n].opname, opname))
+    while (n) {
+      if (!sCmp(opname, csound->opcodlst[n].opname))
+        return n;
       n = csound->opcodlst[n].prvnum;
-    if (!n && csound->pluginOpcodeDB != NULL) {
+    }
+    if (csound->pluginOpcodeDB != NULL) {
       CsoundPluginOpcode_t  *p;
       /* not found, check for deferred plugin loading */
       p = ((CsoundPluginOpcode_t**) csound->pluginOpcodeDB)[h];
       while (p) {
-        if (!sCmp(p->opname, opname))
+        if (!sCmp(opname, p->opname))
           return loadPluginOpcode(csound, p->fp, opname, h);
         p = p->nxt;
       }
     }
 
-    return n;
+    return 0;
 }
 
 /* ----------------------------------------------------------------------- */
