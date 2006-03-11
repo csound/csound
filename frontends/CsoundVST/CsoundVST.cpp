@@ -228,17 +228,17 @@ void CsoundVST::performanceThreadRoutine()
       std::string vstcommand;
       bool updateCommand = false;
       if (command.find("-") == 0 || command.length() == 0) {
-	updateCommand = true;
-	vstcommand = "csound ";
+        updateCommand = true;
+        vstcommand = "csound ";
       }
       vstcommand.append(command);
       if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
-	updateCommand = true;
-	vstcommand.append(" temp.orc temp.sco");
+        updateCommand = true;
+        vstcommand.append(" temp.orc temp.sco");
       }
       if (updateCommand) {
-	cppSound->setCommand(vstcommand);
-	editor->update();
+        cppSound->setCommand(vstcommand);
+        editor->update();
       }
       cppSound->exportForPerformance();
       csound::System::inform("Saved as: '%s' and '%s'.\n", cppSound->getOrcFilename().c_str(), cppSound->getScoFilename().c_str());
