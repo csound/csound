@@ -101,7 +101,7 @@ void wrap(char *dest, char *src, const char *file, const char *opcd)
       sprintf(binlink, "%s/%s", bb, src);
     }
     else
-      strcpy(binlink, file);
+      strcpy(binlink, src);
     //printf("    : binlink=%s\n", binlink);
     if (opcdir->value()[0]!='/') {
       char bb[200];
@@ -353,3 +353,4 @@ int main(void)
     err->color(FL_GRAY);
     do_alert("Installation finished");
 }
+
