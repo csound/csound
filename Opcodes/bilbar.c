@@ -95,25 +95,24 @@ static int bar_init(CSOUND *csound, BAR *p)
 
 static int bar_run(CSOUND *csound, BAR *p)
 {
-    double  xofreq = TWOPI * (*p->kscan) / csound->esr;  /* kspan ~=0.23; */
-    double  xo, xofrac;
-    int     xoint;
-    int     step = p->step;
-    int     first = p->first;
-    int     n, N = p->N, rr;
-    double  *w = p->w, *w1 = p->w1, *w2 = p->w2;
-    double  s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
-    int     bcL = (int) (*p->kbcL + FL(0.5));  /*  boundary condition pair */
-    int     bcR = (int) (*p->kbcR + FL(0.5));  /*  1: clamped, 2: pivoting,
-                                                   3: free */
-    double  SINNW = sin(xofreq * step);  /* these are to calculate sin/cos by */
-    double  COSNW = cos(xofreq * step);  /* formula rather than many calls    */
-    double  SIN1W = sin(xofreq);  /* Wins in ksmps>4 */
-    double  COS1W = cos(xofreq);
+    double xofreq = TWOPI* (*p->kscan)/csound->esr; /* kspan ~=0.23; */
+    double xo, xofrac;
+    int xoint;
+    int step = p->step;
+    int first = p->first;
+    int n, N = p->N, rr;
+    double *w = p->w, *w1 = p->w1, *w2 = p->w2;
+    double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
+    int bcL = (int)(*p->kbcL+FL(0.5));    /*  boundary condition pair */
+    int bcR = (int)(*p->kbcR+FL(0.5));    /*  1: clamped, 2: pivoting, 3: free */
+    double SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
+    double COSNW = cos(xofreq*step); /* formula rather than many calls    */
+    double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
+    double COS1W = cos(xofreq);
 
-    if ((bcL | bcR) & (~3))
-      return csound->PerfError(csound, "Ends but be clamped(1), "
-                                       "pivoting(2) or free(3)");
+    if ((bcL|bcR)&(~3) && (bcL|bcR)!=0)
+      return csound->PerfError(csound,
+                               "Ends but be clamped(1), pivoting(2) or free(3)");
 
     for (n = 0; n < csound->ksmps; n++) {
       /* Fix ends */
