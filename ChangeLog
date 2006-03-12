@@ -1,3 +1,7 @@
+2006-03-12  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/bilbar.c (bar_run): Corrected boundary condition
+
 2006-03-11	Istvan Varga	<ivarga@csounds.com>
 	* Engine/express.c:
 	  fixes in extending tokenstring buffer

@@ -52,32 +52,25 @@ static int bar_init(CSOUND *csound, BAR *p)
                                    (keep small) */
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
-      double  dt = 1.0 / csound->esr;
-      double  sig = (2.0 / dt) * (pow(10.0, 3.0 * dt / T30) - 1.0);
-      double  dxmin = sqrt(dt * (b + sqrt(b * b + 4 * K * K)));
-      int     N = (int) (1.0 / dxmin);
-      double  dx = 1.0 / N;
+      double  dt = 1.0/csound->esr;
+      double  sig = (2.0/dt)*(pow(10.0,3.0*dt/T30)-1.0);
+      double  dxmin = sqrt(dt*(b+sqrt(b*b+4*K*K)));
+      int     N = (int) (1.0/dxmin);
+      double  dx = 1.0/N;
 
       /* %%%%%%%%%%%%%%%%%%% scheme coefficients */
-      p->s0 =
-          (2.0 - 6.0 * K * K * dt * dt / (dx * dx * dx * dx) -
-           2.0 * b * dt / (dx * dx)) / (1.0 + sig * dt * 0.5);
-      p->s1 =
-          (4.0 * K * K * dt * dt / (dx * dx * dx * dx) +
-           b * dt / (dx * dx)) / (1.0 + sig * dt * 0.5);
-      p->s2 = -K * K * dt * dt / ((dx * dx * dx * dx) * (1.0 + sig * dt * 0.5));
-      p->t0 =
-          (-1.0 + 2.0 * b * dt / (dx * dx) + sig * dt * 0.5) / (1 +
-                                                                sig * dt * 0.5);
-      p->t1 = (-b * dt) / (dx * dx * (1.0 + sig * dt * 0.5));
+      p->s0 = (2.0-6.0*K*K*dt*dt/(dx*dx*dx*dx)-2.0*b*dt/(dx*dx))/(1.0+sig*dt*0.5);
+      p->s1 = (4.0*K*K*dt*dt/(dx*dx*dx*dx)+b*dt/(dx*dx))/(1.0+sig*dt*0.5);
+      p->s2 = -K*K*dt*dt/((dx*dx*dx*dx)*(1.0+sig*dt*0.5));
+      p->t0 = (-1.0+2.0*b*dt/(dx*dx)+sig*dt*0.5)/(1.0+sig*dt*0.5);
+      p->t1 = (-b*dt)/(dx*dx*(1.0+sig*dt*0.5));
 
 /*     csound->Message(csound,"Scheme: %f %f %f ; %f %f\n",
                        p->s0, p->s1, p->s2, p->t0, p->t1); */
 
       /* %%%%%%%%%%%%%%%%%%%%% create grid functions */
 
-      csound->AuxAlloc(csound, 3L * (long) ((N + 5) * sizeof(double)),
-                       &(p->w_aux));
+      csound->AuxAlloc(csound, 3L*(long)((N+5)*sizeof(double)), &(p->w_aux));
       p->w = (double *) p->w_aux.auxp;
       p->w1 = &(p->w[N + 5]);
       p->w2 = &(p->w1[N + 5]);
@@ -117,8 +110,8 @@ static int bar_run(CSOUND *csound, BAR *p)
     for (n = 0; n < csound->ksmps; n++) {
       /* Fix ends */
       if (bcL == 3) {
-        w1[1] = 2.0 * w1[2] - w1[3];
-        w1[0] = 3.0 * w1[1] - 3 * w1[2] + w1[3];
+        w1[1] = 2.0*w1[2]-w1[3];
+        w1[0] = 3.0*w1[1]-3.0*w1[2]+w1[3];
       }
       else if (bcL == 1) {
         w1[2] = 0.0;
@@ -130,36 +123,31 @@ static int bar_run(CSOUND *csound, BAR *p)
       }
 
       if (bcR == 3) {
-        w1[N + 3] = 2.0 * w1[N + 2] - w1[N + 1];
-        w[N + 4] = 3.0 * w1[N + 3] - 3.0 * w1[N + 2] + w1[N + 1];
-      }
+        w1[N+3] = 2.0*w1[N+2]-w1[N+1];
+        w1[N+4] = 3.0*w1[N+3]-3.0*w1[N+2]+w1[N+1];
+   }
       else if (bcR == 1) {
-        w1[N + 1] = 0.0;
-        w1[N + 1] = 0.0;
+        w1[N+1] = 0.0;
+        w1[N+1] = 0.0;
       }
       else if (bcR == 2) {
-        w1[N + 2] = 0.0;
-        w1[N + 3] = -w1[N + 1];
+        w1[N+2] = 0.0;
+        w1[N+3] = -w1[N+1];
       }
 
       /* Iterate model */
       for (rr = 0; rr < N; rr++) {
-        w[rr + 2] =
-            s0 * w1[rr + 2] + s1 * (w1[rr + 3] + w1[rr + 1]) +
-            s2 * (w1[rr + 4] + w1[rr]) + t0 * w2[rr + 2] +
-            t1 * (w2[rr + 3] + w2[rr + 1]);
+        w[rr+2] = s0*w1[rr+2] + s1*(w1[rr+3]+w1[rr+1]) + s2*(w1[rr+4]+w1[rr]) +
+                  t0*w2[rr+2] + t1*(w2[rr+3]+w2[rr+1]);
       }
       /*  strike inputs */
 
       if (first == 0) {
         p->first = first = 1;
         for (rr = 0; rr < N; rr++) {
-          if (fabs(rr / (double) N - *p->ipos) <= *p->iwid) {
-/*             csound->Message(csound, "w[%d] = %f -> ", rr+2, w[rr+2]); */
-            w[rr + 2] += (1.0 / csound->esr) * (*p->ivel) * 0.5 *
-                (1.0 +
-                 cos(PI * fabs(rr / (double) N - (*p->ipos)) / (*p->iwid)));
-/*            csound->Message(csound, " %f\n", w[rr+2]); */
+          if (fabs(rr/(double)N - *p->ipos) <= *p->iwid) {
+            w[rr+2] += (1.0/csound->esr)*(*p->ivel)*0.5*
+                (1.0+cos(PI*fabs(rr/(double)N-(*p->ipos))/(*p->iwid)));
           }
         }
       }
@@ -173,21 +161,19 @@ static int bar_run(CSOUND *csound, BAR *p)
       /* But is xofreq were to change could be difficult! */
       /*      xo = 0.5 + 0.5*sin(TWOPI*xofreq*(step+1)/csound->esr); */
       {
-        double  xx = SINNW * COS1W + COSNW * SIN1W;
-        double  yy = COSNW * COS1W - SINNW * SIN1W;
+        double  xx = SINNW*COS1W + COSNW*SIN1W;
+        double  yy = COSNW*COS1W - SINNW*SIN1W;
 
         SINNW = xx;
         COSNW = yy;
       }
-      xo = 0.5 + 0.5 * SINNW;
-      xoint = (int) (xo * N) + 2;
-      xofrac = xo * N - (int) (xo * N);
+      xo = 0.5 + 0.5*SINNW;
+      xoint = (int) (xo*N) + 2;
+      xofrac = xo*N - (int)(xo*N);
 
 /*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ",
                          xo, xoint, xofrac, w[xoint], w[xoint+1]); */
-      p->ar[n] =
-          (csound->e0dbfs) * ((1.0 - xofrac) * w[xoint] +
-                              xofrac * w[xoint + 1]);
+      p->ar[n] = (csound->e0dbfs)*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
       {
         double *ww = w2;
