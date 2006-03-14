@@ -1,4 +1,4 @@
-33/**
+/**
  * S C O R E   G E N E R A T O R   V S T 
  *
  * A VST plugin for writing score generators in Python.
@@ -40,10 +40,9 @@ ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
   AudioEffectX(audioMaster, kNumPrograms, 0),
   model(&model_),
   vstSr(0),
+  vstPriorSampleBlockStart(0),
   vstCurrentSampleBlockStart(0),
   vstCurrentSampleBlockEnd(0),
-  vstCurrentSamplePosition(0),
-  vstPriorSamplePosition(0),
   ScoreGeneratorVstFltk(0)
 {
   setNumInputs(kNumInputs);             // stereo in
@@ -100,32 +99,61 @@ void ScoreGeneratorVst::closeView()
   editor->close();
 }
 
-
-int ScoreGeneratorVst::generate()
+int ScoreGeneratorVst::runScript(std::string script_)
 {
+  log("BEGAN ScoreGeneratorVst::runScript()...\n");
   int result = 0;
+  try
+    {
+      char *script__ = const_cast<char *>(script_.c_str());
+      log("==============================================================================================================\n");
+      result = PyRun_SimpleString(script__);
+      if(result)
+	{
+	  PyErr_Print();
+	}
+    }
+  catch(...)
+    {
+      log("Unidentified exception in ScoreGeneratorVst::runScript().\n");
+    }
+  log("==============================================================================================================\n");
+  log("PyRun_SimpleString returned %d.\n", result);
+  log("ENDED ScoreGeneratorVst::runScript().\n");
   return result;
 }
 
-void ScoreGeneratorVst::open()
+
+PyObject *ScoreGeneratorVst::scoregen_addEvent(PyObject *self, PyObject *args)
 {
-      int result = 0;
-      Shell::open();
-  std::string filename_ = getFilename();
+  double time = 0.;
+  double duration = 0.;
+  double status = 0.;
+  double channel = 0.;
+  double key = 0.;
+  double velocity = 0.;
+
+    if (!PyArg_ParseTuple(args, "dddddd", &time, &duration, &status, &channel, &key, &velocity))
+        return NULL;
+    events = addEvent
+    return Py_BuildValue("i", events);
 }
 
-void ScoreGeneratorVst::reset()
+
+void ScoreGeneratorVst::open()
 {
-  vstSr = 0;
-  vstCurrentSampleBlockStart = 0;
-  vstCurrentSampleBlockEnd = 0;
-  vstCurrentSamplePosition = 0;
-  vstPriorSamplePosition = 0;
+  int result = 0;
+  Shell::open();
+  // Create scoregen module.
+  // Create scoregen.addEvent.
+  // Create scoregen.write (using log).
+  
+  std::string filename_ = getFilename();
 }
 
 void ScoreGeneratorVst::setProgram(long program)
 {
-  csound::System::message("RECEIVED ScoreGeneratorVst::setProgram(%d)...\n", program);
+  log("RECEIVED ScoreGeneratorVst::setProgram(%d)...\n", program);
   if(program < kNumPrograms && program >= 0)
     {
       curProgram = program;
@@ -135,40 +163,79 @@ void ScoreGeneratorVst::setProgram(long program)
 
 void ScoreGeneratorVst::suspend()
 {
-  csound::System::message("RECEIVED ScoreGeneratorVst::suspend()...\n");
-  stop();
+  log("RECEIVED ScoreGeneratorVst::suspend()...\n");
 }
 
 void ScoreGeneratorVst::resume()
 {
-  csound::System::message("RECEIVED ScoreGeneratorVst::resume()...\n");
-  perform();
+  log("RECEIVED ScoreGeneratorVst::resume()...\n");
   wantEvents(true);
 }
 
 long ScoreGeneratorVst::processEvents(VstEvents *vstEvents)
 {
-     return 0;
+  return 0;
 }
 
-void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long hostFrameN)
+void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long frames)
 {
+  synchronizeScore();
+  sendEvents(frames);
 }
 
-void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, long hostFrameN)
+void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, long frames)
 {
+  synchronizeScore();
+  sendEvents(frames);
+}
+
+void ScoreGeneratorVst::reset()
+{
+  vstSr = updateSampleRate();
+  vstPriorSampleBlockStart = 0;
+  vstCurrentSampleBlockStart = 0;
+  vstCurrentSampleBlockEnd = 0;
+  vstMidiEventsIterator = vstMidiEvents.begin();
+  vstEvents.numEvents = 0;
 }
 
 void ScoreGeneratorVst::synchronizeScore()
 {
-  vstPriorSamplePosition = vstCurrentSamplePosition;
+  vstPriorSampleBlockStart = vstCurrentSampleBlockStart;
   VstTimeInfo *vstTimeInfo = getTimeInfo(kVstTransportPlaying);
   if ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying)
     {
-      vstSr = double(vstTimeInfo->sampleRate);
-      vstCurrentSamplePosition = (int) vstTimeInfo->samplePos;
-      vstCurrentSampleBlockStart = vstTimeInfo->samplePos / vstSr;
+      vstCurrentSampleBlockStart = vstTimeInfo->samplePos;
     }
+  if (vstPriorSampleBlockStart > vstCurrentSampleBlockStart) {
+    vstMidiEventsIterator = vstMidiEvents.begin();
+    vstEvents.numEvents = 0;
+  }
+}
+
+void ScoreGeneratorVst::sendEvents(long frames)
+{
+  if (frames == 0) {
+    return;
+  }
+  vstMidiEventsBuffer.clear();
+  vstCurrentSampleBlockEnd = vstCurrentSampleBlockStart + frames;
+  for(;;) {
+    if (vstMidiEventsIterator == vstMidiEvents.end()) {
+      return;
+    }
+    const VstMidiEvent &currentVstMidiEvent = *vstMidiEventsIterator;
+    if (currentVstMidiEvent.deltaFrames < vstCurrentSampleBlockStart || currentVstMidiEvent.deltaFrames >= vstCurrentSampleBlockEnd) {
+      return;
+    }
+    VstMidiEvent outputEvent = currentVstMidiEvent;
+    outputEvent.deltaFrames = currentVstMidiEvent.deltaFrames - vstCurrentSampleBlockStart;
+    vstMidiEventsBuffer.push_back(outputEvent);
+    ++vstMidiEventsIterator;
+  }
+  vstEvents.events = &vstMidiEventsBuffer.front();
+  vstEvents.numEvents = vstMidiEventsBuffer.size();
+  sendVstEventsToHost(&vstEvents);
 }
 
 bool ScoreGeneratorVst::getInputProperties(long index, VstPinProperties* properties)
@@ -265,7 +332,7 @@ long ScoreGeneratorVst::canDo(char* text)
 
 bool ScoreGeneratorVst::keysRequired()
 {
-  csound::System::message("RECEIVED ScoreGeneratorVst::keysRequired...\n");
+  log("RECEIVED ScoreGeneratorVst::keysRequired...\n");
   return 1;
 }
 
@@ -276,7 +343,7 @@ long ScoreGeneratorVst::getProgram()
 
 bool ScoreGeneratorVst::copyProgram(long destination)
 {
-  csound::System::message("RECEIVED ScoreGeneratorVst::copyProgram(%d)...\n", destination);
+  log("RECEIVED ScoreGeneratorVst::copyProgram(%d)...\n", destination);
   if(destination < kNumPrograms)
     {
       bank[destination] = bank[curProgram];
@@ -287,7 +354,7 @@ bool ScoreGeneratorVst::copyProgram(long destination)
 
 long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
 {
-  csound::System::message("BEGAN ScoreGeneratorVst::getChunk(%d)...\n", (int) isPreset);
+  log("BEGAN ScoreGeneratorVst::getChunk(%d)...\n", (int) isPreset);
   ((ScoreGeneratorVstFltk *)getEditor())->updateModel();
   long returnValue = 0;
   static std::string bankBuffer;
@@ -317,13 +384,13 @@ long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
       *data = (void *)bankBuffer.c_str();
       returnValue = bankBuffer.size();
     }
-  csound::System::message("ENDED ScoreGeneratorVst::getChunk, returned %d...\n", returnValue);
+  log("ENDED ScoreGeneratorVst::getChunk, returned %d...\n", returnValue);
   return returnValue;
 }
 
 long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
 {
-  csound::System::message("RECEIVED ScoreGeneratorVst::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
+  log("RECEIVED ScoreGeneratorVst::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
   long returnValue = 0;
   if(isPreset)
     {
@@ -370,10 +437,10 @@ long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
 
 std::string ScoreGeneratorVst::getText()
 {
-  csound::System::message("BEGAN ScoreGeneratorVst::getText...");
+  log("BEGAN ScoreGeneratorVst::getText...");
   std::string buffer;
   buffer = getScript();
-  csound::System::message("ENDED ScoreGeneratorVst::getText.");
+  log("ENDED ScoreGeneratorVst::getText.");
   return buffer;
 }
 
@@ -389,8 +456,8 @@ void ScoreGeneratorVst::openFile(std::string filename_)
   setFilename(filename_);
   bank[getProgram()].text = getText();
   editor->update();
-  csound::System::message("Opened file: '%s'.\n",
-                          filename.c_str());
+  log("Opened file: '%s'.\n",
+      filename.c_str());
   std::string drive, base, file, extension;
   csound::System::parsePathname(filename_, drive, base, file, extension);
   chdir(base.c_str());
@@ -398,33 +465,83 @@ void ScoreGeneratorVst::openFile(std::string filename_)
 
 int ScoreGeneratorVst::generate()
 {
-    alive = false;
-    clearEvents();
-    Shell::run();
-    vstMidiEventsIterator = vstMidiEvents.begin();
-    vstEvents.events = &vstMidiEvents.front();
-    vstEvents.numEvents = 0;
-    alive = true;
+  clearEvents();
+  Shell::run();
+  sortEvents();
+  alive = true;
 }
 
 void ScoreGeneratorVst::clearEvents()
 {
+  alive = false;
+  vstEvents.numEvents = 0;
+  vstMidiEvents.clear();
+  reset();
 }
 
+/**
+ * The user calls this function to append events to the generated score. 
+ * The events are sorted before performance. 
+ * During performance, the stored events are sent to the host 
+ * at a time relative to the beginning of the track or part.
+ * If the event is a note on event and duration is greater than 0,
+ * a matching note off event is also created.
+ */
 void ScoreGeneratorVst::addEvent(double start, double duration, double status, double channel, double data1, double data2)
 {
+  midiopcode = char(status) & char(0xf0);
+  midichannel = char(channel) & char(0xf);
+  midistatus = midiopcode | midichannel;
+  char detune = 0;
+  // Round down.
+  if (midiopcode == 0x90) {
+    midikey = char(data1 + 0.5) & char(0xf0);
+    detune = char((data1 - double(midikey)) / 100.);
+  }
+  midivelocity = char(data2) & char(0xf0);
+  VstMidiEvent noteon;
+  vstMidiEvent.type      = kVstMidiType;
+  noteon.byteSize        = 24;
+  noteon.deltaFrames     = long(vstSr * start);
+  noteon.flags           = 0;
+  noteon.noteLength      = long(vstSr * duration);
+  noteon.noteOffset      = 0;
+  noteon.midiData[0]     = midistatus;
+  noteon.midiData[1]     = midikey;
+  noteon.midiData[2]     = midivelocity;
+  noteon.midiData[3]     = 0;
+  noteon.detune          = detune;
+  vstMidiEvents.push_back(noteon);
+//   if (duration > 0) {
+//     double stop = start + duration;
+//     VstMidiEvent noteoff = noteon;
+//     noteoff.deltaFrames = long(vstSr * stop);
+//     noteoff.midiData[0] = midistatus - char(0x10);
+//     noteoff.midiData[2] = char(0);
+//     vstMidiEvents.push_back(noteoff);
+//   }
 }
 
-extern "C"
+/**
+ * First, sorts stored events by time;
+ * second, translates absolute times to delta times.
+ */
+void ScoreGeneratorVst::sortEvents()
 {
-#if __GNUC__ && (WIN32||BEOS)
-  extern "C" __declspec(dllexport) ScoreGeneratorVst *CreateScoreGeneratorVst();
-#else
-  ScoreGeneratorVst *CreateScoreGeneratorVst();
-#endif
-  PUBLIC ScoreGeneratorVst *CreateScoreGeneratorVst()
-  {
-    return new ScoreGeneratorVst;
+  std::sort(vstMidiEvents.begin(), vstMidiEvents.end(), MidiSort());
+  for (size_t i = 1, n = vstMidiEvents.size(); i < n; i++) {
+    vstMidiEvents[i].deltaFrames = vstMidiEvents[i].deltaFrames - vstMidiEvents
   }
-};
+}
+
+/**
+ * This is the only other function that is exposed in Python. It enables Python to write to the messages browser
+ * instead of the console stdout.
+ */
+void ScoreGeneratorVst::log(char *message)
+{
+  if (scoreGeneratorVstFltk) {
+    scoreGeneratorVstFltk->log(message);
+  }
+}
 
