@@ -1,3 +1,7 @@
+2006-03-13	Anthony Kozar	<anthonykozar@sbcglobal.net>
+	* Top/main.c:  Made TYP_AIFF the default for MacOS 9.
+	* Engine/entry1.c:  Removed duplicate OENTRYs.
+
 2006-03-12  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/bilbar.c (bar_run): Corrected boundary condition
