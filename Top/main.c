@@ -208,7 +208,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         }
       }
       else
-#ifndef __MACH__
+#if !defined(__MACH__) && !defined(mac_classic)
         O->filetyp = TYP_WAV;   /* default to WAV if even SFOUTYP is unset */
 #else
         O->filetyp = TYP_AIFF;  /* ... or AIFF on the Mac */
