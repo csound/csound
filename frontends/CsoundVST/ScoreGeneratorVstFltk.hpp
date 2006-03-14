@@ -65,7 +65,6 @@ public:
   ScoreGeneratorVst *scoreGeneratorVst;
   int useCount;
   static std::string aboutText;
-  static Fl_Preferences preferences;
   typedef enum {
     kEditorWidth = 610,
     kEditorHeight = 430,
@@ -86,9 +85,9 @@ public:
   std::string messagebuffer;
   ScoreGeneratorVstFltk(AudioEffect *audioEffect);
   virtual ~ScoreGeneratorVstFltk(void);
-  static void messageCallback(CSOUND *csound, int attribute, const char *format, va_list valist);
   virtual void updateCaption();
   virtual void updateModel();
+  virtual void log(char *message);
   //    AEffEditor overrides.
   virtual long getRect(ERect **rect);
   virtual long open(void *windowHandle);

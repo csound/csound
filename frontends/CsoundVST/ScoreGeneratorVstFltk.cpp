@@ -89,8 +89,6 @@ WaitCursor::~WaitCursor()
 
 #endif
 
-Fl_Preferences ScoreGeneratorVstFltk::preferences(Fl_Preferences::USER, "gogins@pipeline.com", "scoreGeneratorVst");
-
 ScoreGeneratorVstFltk::ScoreGeneratorVstFltk(AudioEffect *audioEffect) :
   scoreGeneratorVstUi(0),
   scoreGeneratorVst((scoreGeneratorVst *)audioEffect),
@@ -114,15 +112,8 @@ ScoreGeneratorVstFltk::~ScoreGeneratorVstFltk(void)
 void ScoreGeneratorVstFltk::updateCaption()
 {
   std::string caption;
-  caption = "[ C S O U N D   V S T ] ";
-  if(scoreGeneratorVst->getIsPython())
-    {
-      caption.append(scoreGeneratorVst->Shell::getFilename());
-    }
-  else if(!scoreGeneratorVst->getIsVst())
-    {
-      caption.append(scoreGeneratorVst->getCppSound()->CsoundFile::getFilename());
-    }
+  caption = "[ S C O R E   G E N E R A T O R   V S T ] ";
+  caption.append(scoreGeneratorVst->Shell::getFilename());
   Fl::lock();
   scoreGeneratorVstUi->label(caption.c_str());
   Fl::unlock();
@@ -133,9 +124,9 @@ void ScoreGeneratorVstFltk::updateModel()
   if(scoreGeneratorVstUi)
     {
       Fl::lock();
-      csound::System::message("BEGAN ScoreGeneratorVstFltk::updateModel...\n");
+      log("BEGAN ScoreGeneratorVstFltk::updateModel...\n");
       scoreGeneratorVst->setScript(scriptTextBuffer->text());
-      csound::System::message("ENDED ScoreGeneratorVstFltk::updateModel.\n");
+      log("ENDED ScoreGeneratorVstFltk::updateModel.\n");
       Fl::unlock();
     }
 }
@@ -218,11 +209,11 @@ void ScoreGeneratorVstFltk::update()
     {
       updateCaption();
       Fl::lock();
-      csound::System::message("BEGAN ScoreGeneratorVstFltk::update...\n");
+      log("BEGAN ScoreGeneratorVstFltk::update...\n");
       std::string buffer;
       buffer = scoreGeneratorVst->getScript();
       this->scriptTextBuffer->text(removeCarriageReturns(buffer));
-      csound::System::message("ENDED ScoreGeneratorVstFltk::update.\n");
+      log("ENDED ScoreGeneratorVstFltk::update.\n");
       Fl::unlock();
     }
 }
@@ -232,83 +223,70 @@ void ScoreGeneratorVstFltk::postUpdate()
   updateFlag = 1;
 }
 
-void ScoreGeneratorVstFltk::messageCallback(CSOUND *csound, int attribute, const char *format, va_list valist)
+void ScoreGeneratorVstFltk::log(char *message)
 {
   if(!csound)
     {
       return;
     }
-  scoreGeneratorVst *scoreGeneratorVst = (scoreGeneratorVst *)csoundGetHostData(csound);
+  ScoreGeneratorVst *scoreGeneratorVst = (scoreGeneratorVst *)csoundGetHostData(csound);
   if(!scoreGeneratorVst)
     {
       return;
     }
-  ScoreGeneratorVstFltk *ScoreGeneratorVstFltk = (ScoreGeneratorVstFltk *)scoreGeneratorVst->getEditor();
-  if(!ScoreGeneratorVstFltk)
+  ScoreGeneratorVstFltk *scoreGeneratorVstFltk = (ScoreGeneratorVstFltk *)scoreGeneratorVst->getEditor();
+  if(!scoreGeneratorVstFltk)
     {
       return;
     }
-  if(!ScoreGeneratorVstFltk->scoreGeneratorVstUi)
+  if(!scoreGeneratorVstFltk->scoreGeneratorVstUi)
     {
       return;
     }
-  if(!ScoreGeneratorVstFltk->runtimeMessagesBrowser)
+  if(!scoreGeneratorVstFltk->runtimeMessagesBrowser)
     {
       return;
     }
-  char buffer[0x1002];
-  vsnprintf(buffer, 0x1000, format, valist);
-  ScoreGeneratorVstFltk->messagebuffer.append(buffer);
-  if (ScoreGeneratorVstFltk->messagebuffer.find("\n") != std::string::npos)
+  scoreGeneratorVstFltk->messagebuffer.append(message);
+  if (scoreGeneratorVstFltk->messagebuffer.find("\n") != std::string::npos)
     {
       typedef boost::char_separator<char> charsep;
-      boost::tokenizer<charsep> tokens(ScoreGeneratorVstFltk->messagebuffer, charsep("\n"));
+      boost::tokenizer<charsep> tokens(scoreGeneratorVstFltk->messagebuffer, charsep("\n"));
       for(boost::tokenizer<charsep>::iterator it = tokens.begin(); it != tokens.end(); ++it)
         {
-          if(ScoreGeneratorVstFltk->scoreGeneratorVst->getIsVst())
-            {
-              ScoreGeneratorVstFltk->messages.push_back(*it);
-            }
-          else
-            {
-              Fl::lock();
-              Fl::flush();
-              ScoreGeneratorVstFltk->runtimeMessagesBrowser->add(it->c_str());
-              ScoreGeneratorVstFltk->runtimeMessagesBrowser->bottomline(ScoreGeneratorVstFltk->runtimeMessagesBrowser->size());
-              Fl::unlock();
-            }
+	  scoreGeneratorVstFltk->messages.push_back(*it);
         }
-      ScoreGeneratorVstFltk->messagebuffer.clear();
+      scoreGeneratorVstFltk->messagebuffer.clear();
     }
 }
 
 void ScoreGeneratorVstFltk::onNew(Fl_Button*, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
-  csound::System::message("BEGAN ScoreGeneratorVstFltk::onNew...\n");
-  scoreGeneratorVst->clear();
+  log("BEGAN ScoreGeneratorVstFltk::onNew...\n");
+  scoreGeneratorVst->clearEvents();
   update();
-  csound::System::message("ENDED ScoreGeneratorVstFltk::onNew.\n");
+  log("ENDED ScoreGeneratorVstFltk::onNew.\n");
 }
 
 void ScoreGeneratorVstFltk::onNewVersion(Fl_Button*, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
-  csound::System::message("BEGAN ScoreGeneratorVstFltk::onNewVersion...\n");
+  log("BEGAN ScoreGeneratorVstFltk::onNewVersion...\n");
   std::string filename_;
   scoreGeneratorVst->save(scoreGeneratorVst->getFilename());
-  csound::System::message("Saved old version: '%s'\n", scoreGeneratorVst->getFilename().c_str());
+  log("Saved old version: '%s'\n", scoreGeneratorVst->getFilename().c_str());
   filename_ = scoreGeneratorVst->generateFilename();
   scoreGeneratorVst->save(filename_);
   scoreGeneratorVst->setFilename(filename_);
-  csound::System::message("Saved new version: '%s'\n", scoreGeneratorVst->getFilename().c_str());
+  log("Saved new version: '%s'\n", scoreGeneratorVst->getFilename().c_str());
   updateCaption();
-  csound::System::message("ENDED ScoreGeneratorVstFltk::onNewVersion.\n");
+  log("ENDED ScoreGeneratorVstFltk::onNewVersion.\n");
 }
 
 
 void ScoreGeneratorVstFltk::onOpen(Fl_Button*, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
   runtimeMessagesBrowser->clear();
-  csound::System::message("BEGAN ScoreGeneratorVstFltk::onOpen...\n");
+  log("BEGAN ScoreGeneratorVstFltk::onOpen...\n");
   char *filename_ = 0;
   std::string oldFilename = scoreGeneratorVst->getFilename();
   if(oldFilename.length() <= 0)
@@ -320,21 +298,21 @@ void ScoreGeneratorVstFltk::onOpen(Fl_Button*, ScoreGeneratorVstFltk* ScoreGener
     {
       scoreGeneratorVst->openFile(filename_);
     }
-  csound::System::message("ENDED ScoreGeneratorVstFltk::onOpen.\n");
+  log("ENDED ScoreGeneratorVstFltk::onOpen.\n");
 }
 
 void ScoreGeneratorVstFltk::onSave(Fl_Button*, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
-  csound::System::message("BEGAN ScoreGeneratorVstFltk::onSave...\n");
+  log("BEGAN ScoreGeneratorVstFltk::onSave...\n");
   updateModel();
   scoreGeneratorVst->Shell::save(scoreGeneratorVst->getFilename());
-  csound::System::message("Saved file as: '%s'.\n", scoreGeneratorVst->getFilename().c_str());
-  csound::System::message("ENDED ScoreGeneratorVstFltk::onSave.\n");
+  log("Saved file as: '%s'.\n", scoreGeneratorVst->getFilename().c_str());
+  log("ENDED ScoreGeneratorVstFltk::onSave.\n");
 }
 
 void ScoreGeneratorVstFltk::onSaveAs(Fl_Button*, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
-  csound::System::message("BEGAN ScoreGeneratorVstFltk::onSaveAs...\n");
+  log("BEGAN ScoreGeneratorVstFltk::onSaveAs...\n");
   updateModel();
   char *filename_ = 0;
   std::string oldFilename = scoreGeneratorVst->getFilename();
@@ -347,23 +325,23 @@ void ScoreGeneratorVstFltk::onSaveAs(Fl_Button*, ScoreGeneratorVstFltk* ScoreGen
     {
       WaitCursor wait;
       runtimeMessagesBrowser->clear();
-      csound::System::message("BEGAN ScoreGeneratorVstFltk::onSaveAs...\n");
+      log("BEGAN ScoreGeneratorVstFltk::onSaveAs...\n");
       scoreGeneratorVst->save(filename_);
       scoreGeneratorVst->setFilename(filename_);
-      csound::System::message("Saved file as: '%s'.\n", scoreGeneratorVst->getFilename().c_str());
+      log("Saved file as: '%s'.\n", scoreGeneratorVst->getFilename().c_str());
       update();
     }
-  csound::System::message("ENDED ScoreGeneratorVstFltk::onSaveAs.\n");
+  log("ENDED ScoreGeneratorVstFltk::onSaveAs.\n");
 }
 
 void ScoreGeneratorVstFltk::onGenerate(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
   runtimeMessagesBrowser->clear();
-  csound::System::message("BEGAN ScoreGeneratorVstFltk::onPerform...\n");
+  log("BEGAN ScoreGeneratorVstFltk::onPerform...\n");
   updateModel();
   mainTabs->value(runtimeMessagesGroup);
   scoreGeneratorVst->perform();
-  csound::System::message("ENDED ScoreGeneratorVstFltk::onPerform.\n");
+  log("ENDED ScoreGeneratorVstFltk::onPerform.\n");
 }
 
 
