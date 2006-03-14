@@ -47,11 +47,16 @@
 
 class ScoreGeneratorVstFltk;
 
-class Preset
+strict Preset
 {
-public:
   std::string name;
   std::string text;
+};
+
+struct MidiSort{
+     bool operator()(VstMidiEvent &first, VstMidiEvent &second){
+          return first.deltaFrames < second.deltaFrames;
+     }
 };
 
 class ScoreGeneratorVst :
@@ -73,14 +78,17 @@ protected:
     };
   VstEvents vstEvents;
   std::vector<VstMidiEvent> vstMidiEvents;
+  std::vector<VstMidiEvent> vstMidiEventBuffer;
   std::vector<VstMidiEvent>::iterator vstMidiEventIterator;
   float vstSr;
-  float vstCurrentSampleBlockStart;
-  float vstCurrentSampleBlockEnd;
-  float vstCurrentSamplePosition;
-  float vstPriorSamplePosition;
+  long vstCurrentSampleBlockStart;
+  long vstCurrentSampleBlockEnd;
+  long vstPriorSampleBlockStart;
   char alive;
-  ScoreGeneratorVstFltk *ScoreGeneratorVstFltk;
+  ScoreGeneratorVstFltk *scoreGeneratorVstFltk;
+  PyObject *scoregen;
+  PyObject *ScoreGenException;
+  PyObject *ScoreGen;
 public:
   std::vector<Preset> bank;
   // AudioEffectX overrides.
@@ -110,6 +118,7 @@ public:
 
   // Shell overrides.
   virtual void open();
+  virtual int runScript(std::string script_);
   // Peculiar to ScoreGeneratorVst.
   ScoreGeneratorVst();
   virtual std::string getText();
@@ -122,16 +131,10 @@ public:
   virtual int generate();
   virtual void clearEvents();
   virtual void addEvent(double start, double duration, double status, double channel, double data1, double data2);
+  virtual void sortEvents();
+  virtual void sendEvents(long frames);
+  virtual void log(char *message);
 };
-
-#if !defined(SWIGJAVA)
-
-extern "C"
-{
-  PUBLIC ScoreGeneratorVst *CreateScoreGeneratorVst();
-};
-
-#endif
 
 #endif
 
