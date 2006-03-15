@@ -1,11 +1,7 @@
 KNOWN AREAS OF INCOMPLETENESS
 -----------------------------
 
-K1.	There is no looping structures for aiff (or wav) files
-
 K2.	Parser
-
-K7.     Installer for MacOSX
 
 BUGS NOT FIXED
 --------------
@@ -16,3 +12,4 @@ DOCUMENTATION
 -------------
 
  cogoto
+
