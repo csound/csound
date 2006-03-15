@@ -1,7 +1,6 @@
 #ifndef SCOREGENERATOR_H
 #define SCOREGENERATOR_H
 
-#include <Python.h>
 #ifdef SWIG
 %module scoregen
 %include "std_vector.i"
@@ -11,6 +10,7 @@
 %}
 %template(VstMidiEventVector) std::vector<VstMidiEvent>;
 #else
+#include <Python.h>
 #include <vector>
 #include "audioeffectx.h"
 #endif

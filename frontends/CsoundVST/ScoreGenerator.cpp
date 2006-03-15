@@ -23,6 +23,8 @@ size_t ScoreGenerator::event(double time, double duration, double status, double
 {
   if (scoreGeneratorVst) {
     return scoreGeneratorVst->event(time, duration, status, channel, key, velocity);
+  } else {
+    return 0;
   }
 }
 
@@ -32,5 +34,3 @@ void ScoreGenerator::write(char *message)
     scoreGeneratorVst->log(message);
   }
 }
-
-#endif

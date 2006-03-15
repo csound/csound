@@ -38,12 +38,11 @@ static char *dupstr(const char *string)
 
 ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
   AudioEffectX(audioMaster, kNumPrograms, 0),
-  model(&model_),
   vstSr(0),
   vstPriorSampleBlockStart(0),
   vstCurrentSampleBlockStart(0),
   vstCurrentSampleBlockEnd(0),
-  ScoreGeneratorVstFltk(0)
+  scoreGeneratorVstFltk(0)
 {
   setNumInputs(kNumInputs);             // stereo in
   setNumOutputs(kNumOutputs);           // stereo out
@@ -52,8 +51,8 @@ ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
   canProcessReplacing();        // supports both accumulating and replacing output
   wantEvents();
   open();
-  ScoreGeneratorVstFltk = new ScoreGeneratorVstFltk(this);
-  setEditor(ScoreGeneratorVstFltk);
+  scoreGeneratorVstFltk = new ScoreGeneratorVstFltk(this);
+  setEditor(scoreGeneratorVstFltk);
   programsAreChunks(true);
   curProgram = 0;
   bank.resize(kNumPrograms);
@@ -89,9 +88,9 @@ AEffEditor* ScoreGeneratorVst::getEditor()
 void ScoreGeneratorVst::openView(bool doRun)
 {
   editor->open(0);
-  if(doRun) {
-    run();
-  }
+//   if(doRun) {
+//     run();
+//   }
 }
 
 void ScoreGeneratorVst::closeView()
@@ -99,25 +98,9 @@ void ScoreGeneratorVst::closeView()
   editor->close();
 }
 
-PyObject *ScoreGeneratorVst::scoregen_addEvent(PyObject *self, PyObject *args)
-{
-  double time = 0.;
-  double duration = 0.;
-  double status = 0.;
-  double channel = 0.;
-  double key = 0.;
-  double velocity = 0.;
-
-    if (!PyArg_ParseTuple(args, "dddddd", &time, &duration, &status, &channel, &key, &velocity))
-        return NULL;
-    events = addEvent
-    return Py_BuildValue("i", events);
-}
-
-
 void ScoreGeneratorVst::setProgram(long program)
 {
-  log("RECEIVED ScoreGeneratorVst::setProgram(%d)...\n", program);
+  logf("RECEIVED ScoreGeneratorVst::setProgram(%d)...\n", program);
   if(program < kNumPrograms && program >= 0)
     {
       curProgram = program;
@@ -201,7 +184,7 @@ void ScoreGeneratorVst::sendEvents(long frames)
     vstMidiEventsBuffer.push_back(outputEvent);
     ++vstMidiEventsIterator;
   }
-  vstEvents.events = &vstMidiEventsBuffer.front();
+  vstEvents.events[0] = (VstEvent *)&vstMidiEventsBuffer.front();
   vstEvents.numEvents = vstMidiEventsBuffer.size();
   sendVstEventsToHost(&vstEvents);
 }
@@ -311,7 +294,7 @@ long ScoreGeneratorVst::getProgram()
 
 bool ScoreGeneratorVst::copyProgram(long destination)
 {
-  log("RECEIVED ScoreGeneratorVst::copyProgram(%d)...\n", destination);
+  logf("RECEIVED ScoreGeneratorVst::copyProgram(%d)...\n", destination);
   if(destination < kNumPrograms)
     {
       bank[destination] = bank[curProgram];
@@ -322,7 +305,7 @@ bool ScoreGeneratorVst::copyProgram(long destination)
 
 long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
 {
-  log("BEGAN ScoreGeneratorVst::getChunk(%d)...\n", (int) isPreset);
+  logf("BEGAN ScoreGeneratorVst::getChunk(%d)...\n", (int) isPreset);
   ((ScoreGeneratorVstFltk *)getEditor())->updateModel();
   long returnValue = 0;
   static std::string bankBuffer;
@@ -352,13 +335,13 @@ long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
       *data = (void *)bankBuffer.c_str();
       returnValue = bankBuffer.size();
     }
-  log("ENDED ScoreGeneratorVst::getChunk, returned %d...\n", returnValue);
+  logf("ENDED ScoreGeneratorVst::getChunk, returned %d...\n", returnValue);
   return returnValue;
 }
 
 long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
 {
-  log("RECEIVED ScoreGeneratorVst::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
+  logf("RECEIVED ScoreGeneratorVst::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
   long returnValue = 0;
   if(isPreset)
     {
@@ -424,7 +407,7 @@ void ScoreGeneratorVst::openFile(std::string filename_)
   setFilename(filename_);
   bank[getProgram()].text = getText();
   editor->update();
-  log("Opened file: '%s'.\n",
+  logf("Opened file: '%s'.\n",
       filename.c_str());
   std::string drive, base, file, extension;
   csound::System::parsePathname(filename_, drive, base, file, extension);
@@ -457,17 +440,16 @@ void ScoreGeneratorVst::open()
     {
       PyErr_Print();
     }
-  PyObject *score = PyObject_GetAttrString(mainModule, "score");
+  score = PyObject_GetAttrString(mainModule, "score");
+  Py_INCREF(score);
   PyObject *pyThis = PyCObject_FromVoidPtr(this, 0);
-  PyObject *result = PyObject_CallMethod(score, char "setScoreGeneratorVst", char "O", pyThis) 
+  PyObject *pyResult = PyObject_CallMethod(score,  "setScoreGeneratorVst",  "O", pyThis);
   result = runScript("sys.stdout = sys.stderr = score\n");
   if(result)
     {
       PyErr_Print();
     }
-}
-
-std::string filename_ = getFilename();
+  std::string filename_ = getFilename();
 }
 
 int ScoreGeneratorVst::runScript(std::string script_)
@@ -489,7 +471,7 @@ int ScoreGeneratorVst::runScript(std::string script_)
       log("Unidentified exception in ScoreGeneratorVst::runScript().\n");
     }
   log("==============================================================================================================\n");
-  log("PyRun_SimpleString returned %d.\n", result);
+  logf("PyRun_SimpleString returned %d.\n", result);
   log("ENDED ScoreGeneratorVst::runScript().\n");
   return result;
 }
@@ -556,5 +538,15 @@ void ScoreGeneratorVst::log(char *message)
   if (scoreGeneratorVstFltk) {
     scoreGeneratorVstFltk->log(message);
   }
+}
+
+void ScoreGeneratorVst::logf(char *format,...)
+{
+  char buffer[0x100];
+  va_list marker;
+  va_start(marker, format);
+  vsprintf(buffer, format, marker);
+  log(buffer);
+  va_end(marker);
 }
 

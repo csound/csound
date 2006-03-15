@@ -22,16 +22,6 @@
 #ifndef __SCOREGENERATORVST_H
 #define __SCOREGENERATORVST_H
 
-#ifdef SWIG
-
-%module ScoreGeneratorVst
-%{
-#include "MusicModel.hpp"
-#include "Shell.hpp"
-#include <list>
-%}
-
-#else
 // Hack to compile all this GNU stuff on Windows.
 #ifdef _MSC_VER
 #include <windows.h>
@@ -39,15 +29,13 @@
 #endif
 
 #include "audioeffectx.h"
-#include "MusicModel.hpp"
 #include "Shell.hpp"
 #include <list>
-
-#endif
+#include <vector>
 
 class ScoreGeneratorVstFltk;
 
-strict Preset
+struct Preset
 {
   std::string name;
   std::string text;
@@ -78,17 +66,15 @@ protected:
     };
   VstEvents vstEvents;
   std::vector<VstMidiEvent> vstMidiEvents;
-  std::vector<VstMidiEvent> vstMidiEventBuffer;
-  std::vector<VstMidiEvent>::iterator vstMidiEventIterator;
+  std::vector<VstMidiEvent> vstMidiEventsBuffer;
+  std::vector<VstMidiEvent>::iterator vstMidiEventsIterator;
   float vstSr;
   long vstCurrentSampleBlockStart;
   long vstCurrentSampleBlockEnd;
   long vstPriorSampleBlockStart;
   char alive;
   ScoreGeneratorVstFltk *scoreGeneratorVstFltk;
-  PyObject *scoregen;
-  PyObject *ScoreGenException;
-  PyObject *ScoreGen;
+  PyObject *score;
 public:
   std::vector<Preset> bank;
   // AudioEffectX overrides.
@@ -171,6 +157,7 @@ public:
    * Newlines are not automatically added, but must be embedded in the message string.
    */
   virtual void log(char *message);
+  virtual void logf(char *format,...);
 };
 
 #endif
