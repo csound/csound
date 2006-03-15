@@ -1,5 +1,5 @@
 /**
- * S C O R E   G E N E R A T O R   V S T 
+ * S C O R E   G E N E R A T O R   V S T
  *
  * A VST plugin for writing score generators in Python.
  *
@@ -129,8 +129,8 @@ public:
    */
   virtual void sortEvents();
   /**
-   * Send all events occurring within 
-   * the current block of sample frames, 
+   * Send all events occurring within
+   * the current block of sample frames,
    * relative to the start of the track or part,
    * to the host.
    */
@@ -148,7 +148,7 @@ public:
    */
   virtual int runScript(std::string script_);
   /**
-   * Python function to add an event to the stored event array. 
+   * Python function to add an event to the stored event array.
    * If the event is a "note on", a matching "note off" event is created and stored as well.
    */
   virtual size_t event(double start, double duration, double status, double channel, double data1, double data2);
