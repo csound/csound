@@ -99,31 +99,6 @@ void ScoreGeneratorVst::closeView()
   editor->close();
 }
 
-int ScoreGeneratorVst::runScript(std::string script_)
-{
-  log("BEGAN ScoreGeneratorVst::runScript()...\n");
-  int result = 0;
-  try
-    {
-      char *script__ = const_cast<char *>(script_.c_str());
-      log("==============================================================================================================\n");
-      result = PyRun_SimpleString(script__);
-      if(result)
-	{
-	  PyErr_Print();
-	}
-    }
-  catch(...)
-    {
-      log("Unidentified exception in ScoreGeneratorVst::runScript().\n");
-    }
-  log("==============================================================================================================\n");
-  log("PyRun_SimpleString returned %d.\n", result);
-  log("ENDED ScoreGeneratorVst::runScript().\n");
-  return result;
-}
-
-
 PyObject *ScoreGeneratorVst::scoregen_addEvent(PyObject *self, PyObject *args)
 {
   double time = 0.;
@@ -139,17 +114,6 @@ PyObject *ScoreGeneratorVst::scoregen_addEvent(PyObject *self, PyObject *args)
     return Py_BuildValue("i", events);
 }
 
-
-void ScoreGeneratorVst::open()
-{
-  int result = 0;
-  Shell::open();
-  // Create scoregen module.
-  // Create scoregen.addEvent.
-  // Create scoregen.write (using log).
-  
-  std::string filename_ = getFilename();
-}
 
 void ScoreGeneratorVst::setProgram(long program)
 {
@@ -179,14 +143,18 @@ long ScoreGeneratorVst::processEvents(VstEvents *vstEvents)
 
 void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long frames)
 {
-  synchronizeScore();
-  sendEvents(frames);
+  if (alive) {
+    synchronizeScore();
+    sendEvents(frames);
+  }
 }
 
 void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, long frames)
 {
-  synchronizeScore();
-  sendEvents(frames);
+  if (alive) {
+    synchronizeScore();
+    sendEvents(frames);
+  }
 }
 
 void ScoreGeneratorVst::reset()
@@ -463,6 +431,69 @@ void ScoreGeneratorVst::openFile(std::string filename_)
   chdir(base.c_str());
 }
 
+static PyMethodDef scoregenMethods[] = {
+    {NULL, NULL, 0, NULL}        /* Sentinel */
+};
+
+void ScoreGeneratorVst::open()
+{
+  int result = 0;
+  Shell::open();
+  char *argv[] = {"",""};
+  PySys_SetArgv(1, argv);
+  PyObject *mainModule = PyImport_ImportModule("__main__");
+  result = runScript("import sys\n");
+  if(result)
+    {
+      PyErr_Print();
+    }
+  result = runScript("import scoregen\n");
+  if(result)
+    {
+      PyErr_Print();
+    }
+  result = runScript("score = scoregen.ScoreGenerator()\n");
+  if(result)
+    {
+      PyErr_Print();
+    }
+  PyObject *score = PyObject_GetAttrString(mainModule, "score");
+  PyObject *pyThis = PyCObject_FromVoidPtr(this, 0);
+  PyObject *result = PyObject_CallMethod(score, char "setScoreGeneratorVst", char "O", pyThis) 
+  result = runScript("sys.stdout = sys.stderr = score\n");
+  if(result)
+    {
+      PyErr_Print();
+    }
+}
+
+std::string filename_ = getFilename();
+}
+
+int ScoreGeneratorVst::runScript(std::string script_)
+{
+  log("BEGAN ScoreGeneratorVst::runScript()...\n");
+  int result = 0;
+  try
+    {
+      char *script__ = const_cast<char *>(script_.c_str());
+      log("==============================================================================================================\n");
+      result = PyRun_SimpleString(script__);
+      if(result)
+	{
+	  PyErr_Print();
+	}
+    }
+  catch(...)
+    {
+      log("Unidentified exception in ScoreGeneratorVst::runScript().\n");
+    }
+  log("==============================================================================================================\n");
+  log("PyRun_SimpleString returned %d.\n", result);
+  log("ENDED ScoreGeneratorVst::runScript().\n");
+  return result;
+}
+
 int ScoreGeneratorVst::generate()
 {
   clearEvents();
@@ -479,15 +510,12 @@ void ScoreGeneratorVst::clearEvents()
   reset();
 }
 
-/**
- * The user calls this function to append events to the generated score. 
- * The events are sorted before performance. 
- * During performance, the stored events are sent to the host 
- * at a time relative to the beginning of the track or part.
- * If the event is a note on event and duration is greater than 0,
- * a matching note off event is also created.
- */
-void ScoreGeneratorVst::addEvent(double start, double duration, double status, double channel, double data1, double data2)
+void ScoreGeneratorVst::sortEvents()
+{
+  std::sort(vstMidiEvents.begin(), vstMidiEvents.end(), MidiSort());
+}
+
+void ScoreGeneratorVst::event(double start, double duration, double status, double channel, double data1, double data2)
 {
   midiopcode = char(status) & char(0xf0);
   midichannel = char(channel) & char(0xf);
@@ -520,24 +548,9 @@ void ScoreGeneratorVst::addEvent(double start, double duration, double status, d
 //     noteoff.midiData[2] = char(0);
 //     vstMidiEvents.push_back(noteoff);
 //   }
+  return vstMidiEvents.size();
 }
 
-/**
- * First, sorts stored events by time;
- * second, translates absolute times to delta times.
- */
-void ScoreGeneratorVst::sortEvents()
-{
-  std::sort(vstMidiEvents.begin(), vstMidiEvents.end(), MidiSort());
-  for (size_t i = 1, n = vstMidiEvents.size(); i < n; i++) {
-    vstMidiEvents[i].deltaFrames = vstMidiEvents[i].deltaFrames - vstMidiEvents
-  }
-}
-
-/**
- * This is the only other function that is exposed in Python. It enables Python to write to the messages browser
- * instead of the console stdout.
- */
 void ScoreGeneratorVst::log(char *message)
 {
   if (scoreGeneratorVstFltk) {
