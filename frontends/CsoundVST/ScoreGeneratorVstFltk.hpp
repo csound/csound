@@ -22,7 +22,7 @@
 #ifndef CSOUNDVSTFLTK_H
 #define CSOUNDVSTFLTK_H
 
-class CsoundVstFltk;
+class ScoreGeneratorVst;
 
 #include <AEffEditor.hpp>
 #include <FL/Fl_Help_View.H>
@@ -39,8 +39,8 @@ class CsoundVstFltk;
 #include <FL/Fl_Group.H>
 #include <list>
 #undef KeyPress
-#include "CsoundVST.hpp"
-#include "CsoundVstUi.h"
+#include "ScoreGeneratorVst.hpp"
+#include "ScoreGeneratorVstUi.h"
 
 #if defined(WIN32)
 
@@ -56,7 +56,7 @@ public:
   virtual ~WaitCursor();
 };
 
-class CsoundVstFltk :
+class ScoreGeneratorVstFltk :
   public AEffEditor
 {
 public:
