@@ -322,7 +322,7 @@ installErrors = installErrors or err
 
 # copy STK raw wave files
 
-if 'libstk.so' in fileList:
+if '%s/libstk.so' % pluginDir in fileList:
     print ' === Installing STK raw wave files ==='
     rawWaveFiles = []
     for fName in os.listdir('./Opcodes/stk/rawwaves'):
@@ -433,7 +433,7 @@ else:
     else:
         print '  OPCODEDIR64=%s' % pluginDir64
     print '  CSSTRNGS=%s' % xmgDir
-    if 'libstk.so' in fileList:
+    if '%s/libstk.so' % pluginDir in fileList:
         print '  RAWWAVE_PATH=%s' % rawWaveDir
     print 'Csound can be uninstalled by running %s/uninstall-csound5' % binDir
 
