@@ -1,5 +1,5 @@
 /**
- * S C O R E   G E N E R A T O R   V S T 
+ * S C O R E   G E N E R A T O R   V S T
  *
  * A VST plugin for writing score generators in Python.
  *
@@ -63,7 +63,6 @@ ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
       bank[i].name = buffer;
     }
 }
-
 
 ScoreGeneratorVst::~ScoreGeneratorVst()
 {
@@ -462,9 +461,9 @@ int ScoreGeneratorVst::runScript(std::string script_)
       log("==============================================================================================================\n");
       result = PyRun_SimpleString(script__);
       if(result)
-	{
-	  PyErr_Print();
-	}
+        {
+          PyErr_Print();
+        }
     }
   catch(...)
     {

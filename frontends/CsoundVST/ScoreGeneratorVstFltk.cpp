@@ -1,5 +1,5 @@
 /**
- * S C O R E   G E N E R A T O R   V S T 
+ * S C O R E   G E N E R A T O R   V S T
  *
  * A VST plugin for writing score generators in Python.
  *
@@ -254,7 +254,7 @@ void ScoreGeneratorVstFltk::log(char *message)
       boost::tokenizer<charsep> tokens(scoreGeneratorVstFltk->messagebuffer, charsep("\n"));
       for(boost::tokenizer<charsep>::iterator it = tokens.begin(); it != tokens.end(); ++it)
         {
-	  scoreGeneratorVstFltk->messages.push_back(*it);
+          scoreGeneratorVstFltk->messages.push_back(*it);
         }
       scoreGeneratorVstFltk->messagebuffer.clear();
     }
@@ -281,7 +281,6 @@ void ScoreGeneratorVstFltk::onNewVersion(Fl_Button*, ScoreGeneratorVstFltk* Scor
   updateCaption();
   log("ENDED ScoreGeneratorVstFltk::onNewVersion.\n");
 }
-
 
 void ScoreGeneratorVstFltk::onOpen(Fl_Button*, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
@@ -343,7 +342,6 @@ void ScoreGeneratorVstFltk::onGenerate(Fl_Button* fl_button, ScoreGeneratorVstFl
   scoreGeneratorVst->perform();
   log("ENDED ScoreGeneratorVstFltk::onPerform.\n");
 }
-
 
 void onNew(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
