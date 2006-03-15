@@ -116,9 +116,6 @@ public:
   virtual void process(float **inputs, float **outputs, long sampleFrames);
   virtual void processReplacing(float **inputs, float **outputs, long sampleFrames);
 
-  // Shell overrides.
-  virtual void open();
-  virtual int runScript(std::string script_);
   // Peculiar to ScoreGeneratorVst.
   ScoreGeneratorVst();
   virtual std::string getText();
@@ -128,11 +125,51 @@ public:
   virtual void openFile(std::string filename);
   virtual void openView(bool doRun = true);
   virtual void closeView();
+  // Score generator functions.
+  /**
+   * Clear the event array;
+   * execute the stored Python script, which may generate events
+   * and add them to the event array;
+   * sort the event array;
+   * mark this plugin as live.
+   */
   virtual int generate();
+  /**
+   * Remove all stored events from the event array.
+   */
   virtual void clearEvents();
-  virtual void addEvent(double start, double duration, double status, double channel, double data1, double data2);
+  /**
+   * Sort the stored events by time.
+   */
   virtual void sortEvents();
+  /**
+   * Send all events occurring within 
+   * the current block of sample frames, 
+   * relative to the start of the track or part,
+   * to the host.
+   */
   virtual void sendEvents(long frames);
+  // Shell overrides.
+  /**
+   * Initialize the embedded Python interpreter,
+   * create a ScoreGenerator proxy, bind it to this.
+   */
+  virtual void open();
+  /**
+   * Run a Python script using the embedded interpreter.
+   * The script will have access to the 'score' proxy object for this,
+   * with event and log functions, also std::vector<VstMidiEvent> functions.
+   */
+  virtual int runScript(std::string script_);
+  /**
+   * Python function to add an event to the stored event array. 
+   * If the event is a "note on", a matching "note off" event is created and stored as well.
+   */
+  virtual size_t event(double start, double duration, double status, double channel, double data1, double data2);
+  /**
+   * Python function to print a message to the log window.
+   * Newlines are not automatically added, but must be embedded in the message string.
+   */
   virtual void log(char *message);
 };
 
