@@ -67,7 +67,7 @@ void check_exists(const char *dir)
       if (ans!=0 || !S_ISDIR(buf.st_mode)) {
         if (ans!=0) {
           //          printf("Directory %s does not exist; creating...\n", test);
-          mkdir(test, 0766);
+          mkdir(test, 0755);
         }
         else {
           do_alert("Trouble with file; stopping");
@@ -113,7 +113,7 @@ void wrap(char *dest, char *src, const char *file, const char *opcd)
     //printf("    : oplink=%s\n", oplink);
     sprintf(buff, "%s/%s", dest, file);
     rc = fopen(buff, "w");
-    fprintf(rc, "#!/bin/sh\n%s=%s\n%s/%s $@\n",
+    fprintf(rc, "#!/bin/sh\nexport %s=\"%s\"\nexec \"%s%s\" \"$@\"\n",
             envy, oplink, binlink, file);
     fclose(rc);
     chmod(buff,S_IEXEC|S_IREAD|S_IWRITE|S_IXGRP|S_IRGRP|S_IXOTH|S_IROTH);
