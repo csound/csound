@@ -56,11 +56,9 @@ CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		OOps/sndinfUG.o OOps/str_ops.o OOps/ugens1.o		\
 		OOps/ugens2.o OOps/ugens3.o OOps/ugens4.o OOps/ugens5.o	\
 		OOps/ugens6.o OOps/ugens8.o OOps/ugrw1.o OOps/ugrw2.o	\
-		OOps/vbap_eight.o OOps/vbap_four.o OOps/vbap.o		\
-		OOps/vbap_sixteen.o OOps/vbap_zak.o OOps/vdelay.o	\
-		OOps/vpvoc.o Top/argdecode.o Top/cscore_internal.o	\
-		Top/cscorfns.o Top/csmodule.o Top/csound.o		\
-		Top/getstring.o Top/main.o Top/new_opts.o		\
+		OOps/vdelay.o OOps/vpvoc.o Top/argdecode.o		\
+		Top/cscore_internal.o Top/cscorfns.o Top/csmodule.o	\
+		Top/csound.o Top/getstring.o Top/main.o Top/new_opts.o	\
 		Top/one_file.o Top/opcode.o Top/threads.o Top/utility.o
 
 $(CSOUNDLIB): $(CSOUNDLIB_OBJ)
@@ -86,25 +84,23 @@ physmod.dll: Opcodes/physmod.o Opcodes/physutil.o Opcodes/mandolin.o	\
 	     Opcodes/shaker.o Opcodes/bowedbar.o
 	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
 
-stdopcod.dll:	Opcodes/ambicode.o Opcodes/babo.o Opcodes/bbcut.o	\
-		Opcodes/biquad.o Opcodes/butter.o Opcodes/clfilt.o	\
-		Opcodes/cross2.o Opcodes/dam.o Opcodes/dcblockr.o	\
-		Opcodes/filter.o Opcodes/flanger.o Opcodes/follow.o	\
-		Opcodes/fout.o Opcodes/freeverb.o Opcodes/ftconv.o	\
-		Opcodes/ftgen.o Opcodes/gab/gab.o			\
-		Opcodes/gab/vectorial.o Opcodes/grain.o			\
-		Opcodes/grain4.o Opcodes/hrtferX.o Opcodes/ifd.o	\
-		Opcodes/locsig.o Opcodes/lowpassr.o Opcodes/metro.o	\
-		Opcodes/midiops2.o Opcodes/midiops3.o Opcodes/newfils.o	\
-		Opcodes/nlfilt.o Opcodes/oscbnk.o Opcodes/partials.o	\
-		Opcodes/phisem.o Opcodes/pluck.o Opcodes/psynth.o	\
-		Opcodes/pvsbasic.o Opcodes/pvscent.o Opcodes/pvsdemix.o	\
-		Opcodes/repluck.o Opcodes/reverbsc.o Opcodes/seqtime.o	\
-		Opcodes/sndloop.o Opcodes/sndwarp.o Opcodes/space.o	\
-		Opcodes/spat3d.o Opcodes/syncgrain.o Opcodes/ugens7.o	\
-		Opcodes/ugens9.o Opcodes/ugensa.o Opcodes/uggab.o	\
-		Opcodes/ugmoss.o Opcodes/ugnorman.o Opcodes/ugsc.o	\
-		Opcodes/wave-terrain.o					\
+stdopcod.dll:	Opcodes/ambicode.o Opcodes/bbcut.o Opcodes/biquad.o	\
+		Opcodes/butter.o Opcodes/clfilt.o Opcodes/cross2.o	\
+		Opcodes/dam.o Opcodes/dcblockr.o Opcodes/filter.o	\
+		Opcodes/flanger.o Opcodes/follow.o Opcodes/fout.o	\
+		Opcodes/freeverb.o Opcodes/ftconv.o Opcodes/ftgen.o	\
+		Opcodes/gab/gab.o Opcodes/gab/vectorial.o		\
+		Opcodes/grain.o Opcodes/ifd.o Opcodes/locsig.o		\
+		Opcodes/lowpassr.o Opcodes/metro.o Opcodes/midiops2.o	\
+		Opcodes/midiops3.o Opcodes/newfils.o Opcodes/nlfilt.o	\
+		Opcodes/oscbnk.o Opcodes/partials.o Opcodes/pluck.o	\
+		Opcodes/psynth.o Opcodes/pvsbasic.o Opcodes/pvscent.o	\
+		Opcodes/pvsdemix.o Opcodes/repluck.o Opcodes/reverbsc.o	\
+		Opcodes/seqtime.o Opcodes/sndloop.o Opcodes/sndwarp.o	\
+		Opcodes/space.o Opcodes/spat3d.o Opcodes/syncgrain.o	\
+		Opcodes/ugens7.o Opcodes/ugens9.o Opcodes/ugensa.o	\
+		Opcodes/uggab.o Opcodes/ugmoss.o Opcodes/ugnorman.o	\
+		Opcodes/ugsc.o Opcodes/wave-terrain.o			\
 		Opcodes/stdopcod.o
 	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
 
