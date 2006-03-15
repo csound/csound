@@ -1,5 +1,5 @@
 /**
- * S C O R E   G E N E R A T O R   V S T 
+ * S C O R E   G E N E R A T O R   V S T
  *
  * A VST plugin for writing score generators in Python.
  *
