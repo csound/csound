@@ -18,12 +18,14 @@ OPCODE -> LIBRARY
 "ATSreadnz"                     :stdopcod:                      (note 1)
 "ATSread"                       :stdopcod:                      (note 1)
 "ATSsinnoi"                     :stdopcod:                      (note 1)
-"babo"                          :stdopcod:                      ***
-"bamboo"                        :stdopcod:                      ***
+"babo"                          :babo:                          ***
+"bamboo"                        :phisem:                        ***
+"barmodel"                      :barmodel:                      ***
 "bbcutm"                        :stdopcod:                      ***
 "bbcuts"                        :stdopcod:                      ***
 "bformdec"                      :stdopcod:                      ***
 "bformenc"                      :stdopcod:                      ***
+"binit"                         :stdopcod:                      ***
 "biquada"                       :stdopcod:                      ***
 "biquad"                        :stdopcod:                      ***
 "bqrez"                         :stdopcod:                      ***
@@ -36,7 +38,7 @@ OPCODE -> LIBRARY
 "butterhp"                      :stdopcod:                      ***
 "butterlp"                      :stdopcod:                      ***
 "button"                        :control:                       ***
-"cabasa"                        :stdopcod:                      ***
+"cabasa"                        :phisem:                        ***
 "checkbox"                      :control:                       ***
 "clear"                         :stdopcod:                      ***
 "clfilt"                        :stdopcod:                      ***
@@ -46,7 +48,7 @@ OPCODE -> LIBRARY
 "control"                       :control:                       ***
 "cpuprc"                        :pitch:                         ***
 "cross2"                        :stdopcod:                      ***
-"crunch"                        :stdopcod:                      ***
+"crunch"                        :phisem:                        ***
 "ctrl14"                        :stdopcod:                      ***
 "ctrl21"                        :stdopcod:                      ***
 "ctrl7"                         :stdopcod:                      ***
@@ -55,7 +57,7 @@ OPCODE -> LIBRARY
 "dcblock"                       :stdopcod:                      ***
 "dconv"                         :stdopcod:                      ***
 "distort1"                      :stdopcod:                      ***
-"dripwater"                     :stdopcod:                      ***
+"dripwater"                     :phisem:                        ***
 "dssiaudio"                     :dssi4cs:                       ***
 "dssictls"                      :dssi4cs:                       ***
 "dssievent"                     :dssi4cs:                       (unimplemented)
@@ -109,11 +111,11 @@ OPCODE -> LIBRARY
 "ftsave"                        :stdopcod:                      ***
 "gogobel"                       :modal4:                        ***
 "grain"                         :stdopcod:                      ***
-"granule"                       :stdopcod:                      ***
-"guiro"                         :stdopcod:                      ***
+"granule"                       :grain4:                        ***
+"guiro"                         :phisem:                        ***
 "harmon"                        :stdopcod:                      ***
 "hilbert"                       :stdopcod:                      ***
-"hrtfer"                        :stdopcod:                      ***
+"hrtfer"                        :hrtferX:                       ***
 "hsboscil"                      :pitch:                         ***
 "initc14"                       :stdopcod:                      ***
 "initc21"                       :stdopcod:                      ***
@@ -142,11 +144,19 @@ OPCODE -> LIBRARY
 "mac"                           :pitch:                         ***
 "mandol"                        :physmod:                       ***
 "marimba"                       :modal4:                        ***
+"maxabsaccum"                   :minmax:                        ***
+"maxabs"                        :minmax:                        ***
+"maxaccum"                      :minmax:                        ***
 "maxalloc"                      :pitch:                         ***
+"max"                           :minmax:                        ***
 "metro"                         :stdopcod:                      ***
 "midic14"                       :stdopcod:                      ***
 "midic21"                       :stdopcod:                      ***
 "midic7"                        :stdopcod:                      ***
+"minabsaccum"                   :minmax:                        ***
+"minabs"                        :minmax:                        ***
+"minaccum"                      :minmax:                        ***
+"min"                           :minmax:                        ***
 "mirror"                        :stdopcod:                      ***
 "moog"                          :physmod:                       ***
 "moogvcf"                       :stdopcod:                      ***
@@ -283,12 +293,12 @@ OPCODE -> LIBRARY
 "rspline"                       :stdopcod:                      ***
 "s16b14"                        :stdopcod:                      ***
 "s32b14"                        :stdopcod:                      ***
-"sandpaper"                     :stdopcod:                      ***
+"sandpaper"                     :phisem:                        ***
 "scanhammer"                    :stdopcod:                      ***
 "scans"                         :scansyn:                       ***
 "scantable"                     :stdopcod:                      ***
 "scanu"                         :scansyn:                       ***
-"sekere"                        :stdopcod:                      ***
+"sekere"                        :phisem:                        ***
 "sensekey"                      :pitch:                         ***
 "sense"                         :pitch:                         ***
 "seqtime2"                      :stdopcod:                      ***
@@ -310,7 +320,7 @@ OPCODE -> LIBRARY
 "shaker"                        :physmod:                       ***
 "shl"                           :stdopcod:                      n.a. (<<)
 "sinsyn"                        :stdopcod:                      ***
-"sleighbells"                   :stdopcod:                      ***
+"sleighbells"                   :phisem:                        ***
 "slider16f"                     :stdopcod:                      ***
 "slider16"                      :stdopcod:                      ***
 "slider32f"                     :stdopcod:                      ***
@@ -337,7 +347,7 @@ OPCODE -> LIBRARY
 "spectrum"                      :pitch:                         ***
 "splitrig"                      :stdopcod:                      ***
 "spsend"                        :stdopcod:                      ***
-"stix"                          :stdopcod:                      ***
+"stix"                          :phisem:                        ***
 "STKBandedWG"                   :stk:                           (note 2)
 "STKBeeThree"                   :stk:                           (note 2)
 "STKBlowBotl"                   :stk:                           (note 2)
@@ -370,7 +380,7 @@ OPCODE -> LIBRARY
 "svfilter"                      :stdopcod:                      ***
 "tab_i"                         :stdopcod:                      ***
 "tabw_i"                        :stdopcod:                      ***
-"tambourine"                    :stdopcod:                      ***
+"tambourine"                    :phisem:                        ***
 "tb0_init"                      :stdopcod:                      ***
 "tb0"                           :stdopcod:                      ***
 "tb10_init"                     :stdopcod:                      ***
@@ -408,11 +418,28 @@ OPCODE -> LIBRARY
 "tlineto"                       :stdopcod:                      ***
 "tradsyn"                       :stdopcod:                      ***
 "transeg"                       :pitch:                         ***
+"trcross"                       :stdopcod:                      ***
+"trfilter"                      :stdopcod:                      ***
+"trhighest"                     :stdopcod:                      ***
 "trigger"                       :stdopcod:                      ***
+"trlowest"                      :stdopcod:                      ***
+"trmix"                         :stdopcod:                      ***
+"trscale"                       :stdopcod:                      ***
+"trshift"                       :stdopcod:                      ***
+"trsplit"                       :stdopcod:                      ***
 "urd"                           :stdopcod:                      ***
 "vadd"                          :stdopcod:                      ***
 "vaddv"                         :stdopcod:                      ***
 "valpass"                       :stdopcod:                      ***
+"vbap16move"                    :vbap:                          ***
+"vbap16"                        :vbap:                          ***
+"vbap4move"                     :vbap:                          ***
+"vbap4"                         :vbap:                          ***
+"vbap8move"                     :vbap:                          ***
+"vbap8"                         :vbap:                          ***
+"vbaplsinit"                    :vbap:                          ***
+"vbapzmove"                     :vbap:                          ***
+"vbapz"                         :vbap:                          ***
 "vcella"                        :stdopcod:                      ***
 "vcomb"                         :stdopcod:                      ***
 "vcopy_i"                       :stdopcod:                      ***
@@ -480,6 +507,8 @@ note 2: http://ccrma.stanford.edu/software/stk/
 ------------------------------------------------------------------------
 LIBRARY -> OPCODE
 
+babo:                           "babo"
+barmodel:                       "barmodel"
 control:                        "button"
 control:                        "checkbox"
 control:                        "control"
@@ -501,9 +530,19 @@ fluidOpcodes:                   "fluidLoad"
 fluidOpcodes:                   "fluidNote"
 fluidOpcodes:                   "fluidOut"
 fluidOpcodes:                   "fluidProgramSelect"
+grain4:                         "granule"
+hrtferX:                        "hrtfer"
 loris:                          "lorismorph"
 loris:                          "lorisplay"
 loris:                          "lorisread"
+minmax:                         "max"
+minmax:                         "maxabs"
+minmax:                         "maxabsaccum"
+minmax:                         "maxaccum"
+minmax:                         "min"
+minmax:                         "minabs"
+minmax:                         "minabsaccum"
+minmax:                         "minaccum"
 modal4:                         "gogobel"
 modal4:                         "marimba"
 modal4:                         "vibes"
@@ -511,6 +550,16 @@ osc:                            "OSCinit"
 osc:                            "OSClisten"
 osc:                            "OSCrecv"
 osc:                            "OSCsend"
+phisem:                         "bamboo"
+phisem:                         "cabasa"
+phisem:                         "crunch"
+phisem:                         "dripwater"
+phisem:                         "guiro"
+phisem:                         "sandpaper"
+phisem:                         "sekere"
+phisem:                         "sleighbells"
+phisem:                         "stix"
+phisem:                         "tambourine"
 physmod:                        "fmb3"
 physmod:                        "fmbell"
 physmod:                        "fmmetal"
@@ -677,12 +726,11 @@ stdopcod:                       "ATSpartialtap"
 stdopcod:                       "ATSread"
 stdopcod:                       "ATSreadnz"
 stdopcod:                       "ATSsinnoi"
-stdopcod:                       "babo"
-stdopcod:                       "bamboo"
 stdopcod:                       "bbcutm"
 stdopcod:                       "bbcuts"
 stdopcod:                       "bformdec"
 stdopcod:                       "bformenc"
+stdopcod:                       "binit"
 stdopcod:                       "biquad"
 stdopcod:                       "biquada"
 stdopcod:                       "bqrez"
@@ -694,11 +742,9 @@ stdopcod:                       "butterbp"
 stdopcod:                       "butterbr"
 stdopcod:                       "butterhp"
 stdopcod:                       "butterlp"
-stdopcod:                       "cabasa"
 stdopcod:                       "clear"
 stdopcod:                       "clfilt"
 stdopcod:                       "cross2"
-stdopcod:                       "crunch"
 stdopcod:                       "ctrl14"
 stdopcod:                       "ctrl21"
 stdopcod:                       "ctrl7"
@@ -707,7 +753,6 @@ stdopcod:                       "dam"
 stdopcod:                       "dcblock"
 stdopcod:                       "dconv"
 stdopcod:                       "distort1"
-stdopcod:                       "dripwater"
 stdopcod:                       "duserrnd"
 stdopcod:                       "exitnow"
 stdopcod:                       "filter2"
@@ -737,11 +782,8 @@ stdopcod:                       "ftmorf"
 stdopcod:                       "ftsave"
 stdopcod:                       "ftsavek"
 stdopcod:                       "grain"
-stdopcod:                       "granule"
-stdopcod:                       "guiro"
 stdopcod:                       "harmon"
 stdopcod:                       "hilbert"
-stdopcod:                       "hrtfer"
 stdopcod:                       "initc14"
 stdopcod:                       "initc21"
 stdopcod:                       "initc7"
@@ -802,15 +844,12 @@ stdopcod:                       "rezzy"
 stdopcod:                       "rspline"
 stdopcod:                       "s16b14"
 stdopcod:                       "s32b14"
-stdopcod:                       "sandpaper"
 stdopcod:                       "scanhammer"
 stdopcod:                       "scantable"
-stdopcod:                       "sekere"
 stdopcod:                       "seqtime"
 stdopcod:                       "seqtime2"
 stdopcod:                       "shl"
 stdopcod:                       "sinsyn"
-stdopcod:                       "sleighbells"
 stdopcod:                       "slider16"
 stdopcod:                       "slider16f"
 stdopcod:                       "slider32"
@@ -828,13 +867,11 @@ stdopcod:                       "spat3dt"
 stdopcod:                       "spdist"
 stdopcod:                       "splitrig"
 stdopcod:                       "spsend"
-stdopcod:                       "stix"
 stdopcod:                       "streson"
 stdopcod:                       "sum"
 stdopcod:                       "svfilter"
 stdopcod:                       "tab_i"
 stdopcod:                       "tabw_i"
-stdopcod:                       "tambourine"
 stdopcod:                       "tb0"
 stdopcod:                       "tb0_init"
 stdopcod:                       "tb1"
@@ -871,7 +908,15 @@ stdopcod:                       "tbvcf"
 stdopcod:                       "timedseq"
 stdopcod:                       "tlineto"
 stdopcod:                       "tradsyn"
+stdopcod:                       "trcross"
+stdopcod:                       "trfilter"
+stdopcod:                       "trhighest"
 stdopcod:                       "trigger"
+stdopcod:                       "trlowest"
+stdopcod:                       "trmix"
+stdopcod:                       "trscale"
+stdopcod:                       "trshift"
+stdopcod:                       "trsplit"
 stdopcod:                       "urd"
 stdopcod:                       "vadd"
 stdopcod:                       "vaddv"
@@ -951,6 +996,15 @@ stk:                            "STKTubeBell"
 stk:                            "STKVoicForm"
 stk:                            "STKWhistle"
 stk:                            "STKWurley"
+vbap:                           "vbap16"
+vbap:                           "vbap16move"
+vbap:                           "vbap4"
+vbap:                           "vbap4move"
+vbap:                           "vbap8"
+vbap:                           "vbap8move"
+vbap:                           "vbaplsinit"
+vbap:                           "vbapz"
+vbap:                           "vbapzmove"
 
 *end*
 
@@ -1327,15 +1381,6 @@ turnoff2                        ***
 turnon                          ***
 unirand                         ***
 upsamp                          ***
-vbap16                          ***
-vbap16move                      ***
-vbap4                           ***
-vbap4move                       ***
-vbap8                           ***
-vbap8move                       ***
-vbaplsinit                      ***
-vbapz                           ***
-vbapzmove                       ***
 vdelayx                         ***
 vdelayxq                        ***
 vdelayxs                        ***
