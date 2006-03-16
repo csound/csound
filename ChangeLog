@@ -1,3 +1,8 @@
+2006-03-16	Istvan Varga	<ivarga@csounds.com>
+	* Updated version number to 5.01.1 beta.
+	* Opcodes/sftype.h: check for MacOS 9 or PowerPC, and define
+	  WORDS_BIGENDIAN on those platforms.
+
 2006-03-13	Anthony Kozar	<anthonykozar@sbcglobal.net>
 	* Top/main.c:  Made TYP_AIFF the default for MacOS 9.
 	* Engine/entry1.c:  Removed duplicate OENTRYs.
