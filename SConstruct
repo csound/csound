@@ -1523,7 +1523,7 @@ if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
     OSXGUI = csOSXGUIEnvironment.Command(
         '''frontends/OSX/build/Csound 5.app/Contents/MacOS/Csound 5''',
         'frontends/OSX/main.c',
-        "cd frontends/OSX; xcodebuild -activebuildstyle")
+        "cd frontends/OSX; xcodebuild -buildstyle Deployment")
     Depends(OSXGUI, csoundLibrary)
 else:
     print "CONFIGURATION DECISION: not building OSX GUI frontend"
