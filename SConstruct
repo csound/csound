@@ -264,8 +264,8 @@ if commonEnvironment['useGprof'] == '1':
   commonEnvironment.Append(LINKFLAGS = ['-pg'])
 commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
-# if commonEnvironment['buildRelease'] == '0':
-#     commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
+if commonEnvironment['buildRelease'] == '0':
+    commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
 if commonEnvironment['Word64'] == '1':
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
     commonEnvironment.Append(CCFLAGS = ['-fPIC'])

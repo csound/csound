@@ -2,7 +2,7 @@
 
 !define PRODUCT "Csound"
 !define VERSION "win32"
-!define PROGRAM "Csound5.01"
+!define PROGRAM "Csound5.01.1"
 
 !include "MUI.nsh"
 
