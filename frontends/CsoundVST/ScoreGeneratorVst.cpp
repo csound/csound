@@ -478,7 +478,7 @@ int ScoreGeneratorVst::runScript(std::string script_)
 int ScoreGeneratorVst::generate()
 {
   clearEvents();
-  Shell::run();
+  Shell::runScript();
   sortEvents();
   alive = true;
 }
@@ -496,18 +496,21 @@ void ScoreGeneratorVst::sortEvents()
   std::sort(vstMidiEvents.begin(), vstMidiEvents.end(), MidiSort());
 }
 
-void ScoreGeneratorVst::event(double start, double duration, double status, double channel, double data1, double data2)
+size_t ScoreGeneratorVst::event(double start, double duration, double status, double channel, double data1, double data2)
 {
-  midiopcode = char(status) & char(0xf0);
-  midichannel = char(channel) & char(0xf);
-  midistatus = midiopcode | midichannel;
+  char midiopcode = char(status) & char(0xf0);
+  char midichannel = char(channel) & char(0xf);
+  char midistatus = midiopcode | midichannel;
   char detune = 0;
+  char midikey = 0;
   // Round down.
   if (midiopcode == 0x90) {
     midikey = char(data1 + 0.5) & char(0xf0);
     detune = char((data1 - double(midikey)) / 100.);
+  } else {
+    midikey = char(data1) & char(0xf0);
   }
-  midivelocity = char(data2) & char(0xf0);
+  char midivelocity = char(data2) & char(0xf0);
   VstMidiEvent noteon;
   vstMidiEvent.type      = kVstMidiType;
   noteon.byteSize        = 24;
