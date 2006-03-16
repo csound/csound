@@ -55,6 +55,8 @@ typedef struct __csdata {
     ctlchn *inchan;
     ctlchn *outchan;
     Tcl_Interp *interp;
+    char *mbuf;                /* message buffer */
+    char mess[50];             /* message recipient name */
 } csdata;
 
 extern int tclcsound_initialise(Tcl_Interp * interp);

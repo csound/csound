@@ -83,7 +83,7 @@ int csCompile(ClientData clientData, Tcl_Interp * interp,
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
     int i;
-    char **cmdl = (char **) malloc(sizeof(char *)*(argc+1));
+    char **cmdl = (char **) Tcl_Alloc(sizeof(char *)*(argc+1));
     for(i=0;i<argc;i++) cmdl[i] =argv[i];
     cmdl[i] = "-d";
     if (p->status == CS_READY) {
@@ -95,7 +95,7 @@ int csCompile(ClientData clientData, Tcl_Interp * interp,
       sprintf(res, "%d", p->result);
       Tcl_SetResult(interp, res, TCL_VOLATILE);
     }
-    free(cmdl);
+    Tcl_Free((char *)cmdl);
     return (TCL_OK);
 }
 
@@ -112,12 +112,12 @@ int csCompileList(ClientData clientData, Tcl_Interp * interp,
     csdata *p = (csdata *) clientData;
 
     if (argc == 2) {
-      cmd = (char *) malloc(16384);
+      cmd = (char *) Tcl_Alloc(16384);
       sprintf(cmd, "csound -d %s", argv[1]);
       Tcl_SplitList(interp, cmd, &largc, (CONST84 char ***) &largv);
       csCompile(p, interp, largc, largv);
       Tcl_Free((char *) largv);
-      free(cmd);
+      Tcl_Free(cmd);
     }
     return (TCL_OK);
 }
@@ -540,15 +540,15 @@ void FreeChannels(csdata * p)
     while (chan != NULL) {
       tmp = chan;
       chan = chan->next;
-      free(tmp->name);
-      free(tmp);
+      Tcl_Free(tmp->name);
+      Tcl_Free((char *)tmp);
     }
     chan = p->outchan;
     while (chan != NULL) {
       tmp = chan;
       chan = chan->next;
-      free(tmp->name);
-      free(tmp);
+      Tcl_Free(tmp->name);
+      Tcl_Free((char *)tmp);
     }
 }
 
@@ -564,11 +564,11 @@ int csInChannel(ClientData clientData, Tcl_Interp * interp,
 
     if (argc >= 2) {
       if (FindChannel(p, argv[1]) != IN_CHAN) {
-        newch = (ctlchn *) malloc(sizeof(ctlchn));
+        newch = (ctlchn *) Tcl_Alloc(sizeof(ctlchn));
         tmp = p->inchan;
         p->inchan = newch;
         p->inchan->next = tmp;
-        p->inchan->name = (char *) malloc(strlen(argv[1]));
+        p->inchan->name = (char *) Tcl_Alloc(strlen(argv[1]));
         strcpy(p->inchan->name, argv[1]);
         p->inchan->value = 0.0;
         Tcl_SetResult(interp, argv[1], TCL_VOLATILE);
@@ -591,11 +591,11 @@ int csOutChannel(ClientData clientData, Tcl_Interp * interp,
 
     if (argc >= 2) {
       if (FindChannel(p, argv[1]) != OUT_CHAN) {
-        newch = (ctlchn *) malloc(sizeof(ctlchn));
+        newch = (ctlchn *) Tcl_Alloc(sizeof(ctlchn));
         tmp = p->outchan;
         p->outchan = newch;
         p->outchan->next = tmp;
-        p->outchan->name = (char *)malloc(strlen(argv[1]));
+        p->outchan->name = (char *)Tcl_Alloc(strlen(argv[1]));
         strcpy(p->outchan->name, argv[1]);
         p->outchan->value = 0.0;
         Tcl_LinkVar(interp, p->outchan->name, (char *) &p->outchan->value,
@@ -785,7 +785,8 @@ void QuitCsTcl(ClientData clientData)
     }
     FreeChannels(p);
     csoundDestroy(cs);
-    free(clientData);
+    Tcl_Free(p->mbuf);
+    Tcl_Free((char *)clientData);
     printf("Ta-ra, me duck!!\n");
 }
 
@@ -892,12 +893,31 @@ csGetStringChannel(ClientData clientData, Tcl_Interp * interp,
     }
     return (TCL_OK);
 }
+void csMessCallback(CSOUND *csound,int attr,const char *format,va_list valist){
+    csdata *p = (csdata *) csoundGetHostData(csound);
+    vsprintf(p->mbuf, format, valist);
+    Tcl_SetVar(p->interp,p->mess,p->mbuf, 0);
+}
+
+int csMessageOutput(ClientData clientData, Tcl_Interp * interp,
+               int argc, char **argv)
+{
+  if(argc > 1){
+        csdata  *p = (csdata *) clientData;
+	strcpy(p->mess,argv[1]);
+	Tcl_SetVar(interp,p->mess, "", 0);
+	csoundSetMessageCallback(p->instance, csMessCallback);
+        Tcl_SetResult(interp, p->mess, TCL_VOLATILE);
+  }
+  else Tcl_SetResult(interp,"no variable name given", TCL_VOLATILE);
+        return (TCL_OK);
+}
 
 /* initialize Tcl Tk commands */
 
 int tclcsound_initialise(Tcl_Interp * interp)
 {
-    csdata *pdata = (csdata *) malloc(sizeof(csdata));
+    csdata *pdata = (csdata *) Tcl_Alloc(sizeof(csdata));
 
     csoundInitialize(NULL, NULL, 0);
     pdata->instance = csoundCreate(pdata);
@@ -906,6 +926,7 @@ int tclcsound_initialise(Tcl_Interp * interp)
     pdata->inchan = NULL;
     pdata->outchan = NULL;
     pdata->interp = interp;
+    pdata->mbuf = Tcl_Alloc(16384);
     csoundSetInputValueCallback(pdata->instance, in_channel_value_callback);
     csoundSetOutputValueCallback(pdata->instance, out_channel_value_callback);
 
@@ -979,6 +1000,9 @@ int tclcsound_initialise(Tcl_Interp * interp)
                       NULL);
     Tcl_CreateCommand(interp, "csSetStringChannel",
                       (Tcl_CmdProc *) csSetStringChannel, (ClientData) pdata,
+                      NULL);
+    Tcl_CreateCommand(interp, "csMessageOutput",
+                      (Tcl_CmdProc *) csMessageOutput, (ClientData) pdata,
                       NULL);
     Tcl_CreateExitHandler(QuitCsTcl, (ClientData) pdata);
 
