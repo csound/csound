@@ -42,7 +42,8 @@ ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
   vstPriorSampleBlockStart(0),
   vstCurrentSampleBlockStart(0),
   vstCurrentSampleBlockEnd(0),
-  scoreGeneratorVstFltk(0)
+  scoreGeneratorVstFltk(0),
+  alive(false)
 {
   setNumInputs(kNumInputs);             // stereo in
   setNumOutputs(kNumOutputs);           // stereo out
@@ -99,7 +100,7 @@ void ScoreGeneratorVst::closeView()
 
 void ScoreGeneratorVst::setProgram(long program)
 {
-  logf("RECEIVED ScoreGeneratorVst::setProgram(%d)...\n", program);
+  logv("RECEIVED ScoreGeneratorVst::setProgram(%d)...\n", program);
   if(program < kNumPrograms && program >= 0)
     {
       curProgram = program;
@@ -293,7 +294,7 @@ long ScoreGeneratorVst::getProgram()
 
 bool ScoreGeneratorVst::copyProgram(long destination)
 {
-  logf("RECEIVED ScoreGeneratorVst::copyProgram(%d)...\n", destination);
+  logv("RECEIVED ScoreGeneratorVst::copyProgram(%d)...\n", destination);
   if(destination < kNumPrograms)
     {
       bank[destination] = bank[curProgram];
@@ -304,7 +305,7 @@ bool ScoreGeneratorVst::copyProgram(long destination)
 
 long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
 {
-  logf("BEGAN ScoreGeneratorVst::getChunk(%d)...\n", (int) isPreset);
+  logv("BEGAN ScoreGeneratorVst::getChunk(%d)...\n", (int) isPreset);
   ((ScoreGeneratorVstFltk *)getEditor())->updateModel();
   long returnValue = 0;
   static std::string bankBuffer;
@@ -334,13 +335,13 @@ long ScoreGeneratorVst::getChunk(void** data, bool isPreset)
       *data = (void *)bankBuffer.c_str();
       returnValue = bankBuffer.size();
     }
-  logf("ENDED ScoreGeneratorVst::getChunk, returned %d...\n", returnValue);
+  logv("ENDED ScoreGeneratorVst::getChunk, returned %d...\n", returnValue);
   return returnValue;
 }
 
 long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
 {
-  logf("RECEIVED ScoreGeneratorVst::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
+  logv("RECEIVED ScoreGeneratorVst::setChunk(%d, %d)...\n", byteSize, (int) isPreset);
   long returnValue = 0;
   if(isPreset)
     {
@@ -406,7 +407,7 @@ void ScoreGeneratorVst::openFile(std::string filename_)
   setFilename(filename_);
   bank[getProgram()].text = getText();
   editor->update();
-  logf("Opened file: '%s'.\n",
+  logv("Opened file: '%s'.\n",
       filename.c_str());
   std::string drive, base, file, extension;
   csound::System::parsePathname(filename_, drive, base, file, extension);
@@ -470,7 +471,7 @@ int ScoreGeneratorVst::runScript(std::string script_)
       log("Unidentified exception in ScoreGeneratorVst::runScript().\n");
     }
   log("==============================================================================================================\n");
-  logf("PyRun_SimpleString returned %d.\n", result);
+  logv("PyRun_SimpleString returned %d.\n", result);
   log("ENDED ScoreGeneratorVst::runScript().\n");
   return result;
 }
@@ -491,9 +492,16 @@ void ScoreGeneratorVst::clearEvents()
   reset();
 }
 
+struct MidiSort{
+     bool operator()(const VstMidiEvent &first, const VstMidiEvent &second){
+          return first.deltaFrames < second.deltaFrames;
+     }
+};
+
 void ScoreGeneratorVst::sortEvents()
 {
-  std::sort(vstMidiEvents.begin(), vstMidiEvents.end(), MidiSort());
+  MidiSort midiSort;
+  std::sort(vstMidiEvents.begin(), vstMidiEvents.end(), midiSort);
 }
 
 size_t ScoreGeneratorVst::event(double start, double duration, double status, double channel, double data1, double data2)
@@ -504,7 +512,7 @@ size_t ScoreGeneratorVst::event(double start, double duration, double status, do
   char detune = 0;
   char midikey = 0;
   // Round down.
-  if (midiopcode == 0x90) {
+  if (midiopcode == char(0x90)) {
     midikey = char(data1 + 0.5) & char(0xf0);
     detune = char((data1 - double(midikey)) / 100.);
   } else {
@@ -512,7 +520,7 @@ size_t ScoreGeneratorVst::event(double start, double duration, double status, do
   }
   char midivelocity = char(data2) & char(0xf0);
   VstMidiEvent noteon;
-  vstMidiEvent.type      = kVstMidiType;
+  noteon.type            = kVstMidiType;
   noteon.byteSize        = 24;
   noteon.deltaFrames     = long(vstSr * start);
   noteon.flags           = 0;
@@ -542,7 +550,7 @@ void ScoreGeneratorVst::log(char *message)
   }
 }
 
-void ScoreGeneratorVst::logf(char *format,...)
+void ScoreGeneratorVst::logv(char *format,...)
 {
   char buffer[0x100];
   va_list marker;

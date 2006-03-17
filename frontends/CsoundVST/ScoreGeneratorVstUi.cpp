@@ -28,7 +28,7 @@ Fl_Button *saveAsButton=(Fl_Button *)0;
 
 Fl_Button *generateButton=(Fl_Button *)0;
 
-Fl_Double_Window* make_window(ScoreGeneratorVst *scoreGeneratorVst) {
+Fl_Double_Window* make_window(ScoreGeneratorVstFltk *scoreGeneratorVstFltk) {
   Fl_Double_Window* w;
   { Fl_Double_Window* o = new Fl_Double_Window(609, 431, "ScoreGeneratorVST");
     w = o;
