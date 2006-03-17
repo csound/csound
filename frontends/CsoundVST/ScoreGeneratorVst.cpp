@@ -52,6 +52,7 @@ ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
   canProcessReplacing();        // supports both accumulating and replacing output
   wantEvents();
   open();
+  isSynth(true);
   scoreGeneratorVstFltk = new ScoreGeneratorVstFltk(this);
   setEditor(scoreGeneratorVstFltk);
   programsAreChunks(true);
