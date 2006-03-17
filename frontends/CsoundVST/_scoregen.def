@@ -1,0 +1,4 @@
+LIBRARY _scoregen.dll
+EXPORTS
+	main=main_plugin; 
+	init_scoregen;

@@ -88,6 +88,7 @@ public:
   virtual void updateCaption();
   virtual void updateModel();
   virtual void log(char *message);
+  virtual void logv(char *message,...);
   //    AEffEditor overrides.
   virtual long getRect(ERect **rect);
   virtual long open(void *windowHandle);

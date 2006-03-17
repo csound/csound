@@ -91,7 +91,7 @@ WaitCursor::~WaitCursor()
 
 ScoreGeneratorVstFltk::ScoreGeneratorVstFltk(AudioEffect *audioEffect) :
   scoreGeneratorVstUi(0),
-  scoreGeneratorVst((scoreGeneratorVst *)audioEffect),
+  scoreGeneratorVst((ScoreGeneratorVst *)audioEffect),
   useCount(0)
 {
   if (oneWaiter == 0)
@@ -149,7 +149,6 @@ long ScoreGeneratorVstFltk::open(void *parentWindow)
   this->mainTabs = ::mainTabs;
   this->runtimeMessagesGroup = ::runtimeMessagesGroup;
   this->runtimeMessagesBrowser = ::runtimeMessagesBrowser;
-  this->settingsEditSoundfileInput = ::settingsEditSoundfileInput;
   this->scriptTextEdit = ::scriptTextEdit;
   this->scriptTextEdit->buffer(this->scriptTextBuffer);
   this->aboutTextDisplay = ::aboutTextDisplay;
@@ -225,11 +224,6 @@ void ScoreGeneratorVstFltk::postUpdate()
 
 void ScoreGeneratorVstFltk::log(char *message)
 {
-  if(!csound)
-    {
-      return;
-    }
-  ScoreGeneratorVst *scoreGeneratorVst = (scoreGeneratorVst *)csoundGetHostData(csound);
   if(!scoreGeneratorVst)
     {
       return;
@@ -260,6 +254,16 @@ void ScoreGeneratorVstFltk::log(char *message)
     }
 }
 
+void ScoreGeneratorVstFltk::logv(char *format,...)
+{
+  char buffer[0x100];
+  va_list marker;
+  va_start(marker, format);
+  vsprintf(buffer, format, marker);
+  log(buffer);
+  va_end(marker);
+}
+
 void ScoreGeneratorVstFltk::onNew(Fl_Button*, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
   log("BEGAN ScoreGeneratorVstFltk::onNew...\n");
@@ -273,11 +277,11 @@ void ScoreGeneratorVstFltk::onNewVersion(Fl_Button*, ScoreGeneratorVstFltk* Scor
   log("BEGAN ScoreGeneratorVstFltk::onNewVersion...\n");
   std::string filename_;
   scoreGeneratorVst->save(scoreGeneratorVst->getFilename());
-  log("Saved old version: '%s'\n", scoreGeneratorVst->getFilename().c_str());
+  logv("Saved old version: '%s'\n", scoreGeneratorVst->getFilename().c_str());
   filename_ = scoreGeneratorVst->generateFilename();
   scoreGeneratorVst->save(filename_);
   scoreGeneratorVst->setFilename(filename_);
-  log("Saved new version: '%s'\n", scoreGeneratorVst->getFilename().c_str());
+  logv("Saved new version: '%s'\n", scoreGeneratorVst->getFilename().c_str());
   updateCaption();
   log("ENDED ScoreGeneratorVstFltk::onNewVersion.\n");
 }
@@ -305,7 +309,7 @@ void ScoreGeneratorVstFltk::onSave(Fl_Button*, ScoreGeneratorVstFltk* ScoreGener
   log("BEGAN ScoreGeneratorVstFltk::onSave...\n");
   updateModel();
   scoreGeneratorVst->Shell::save(scoreGeneratorVst->getFilename());
-  log("Saved file as: '%s'.\n", scoreGeneratorVst->getFilename().c_str());
+  logv("Saved file as: '%s'.\n", scoreGeneratorVst->getFilename().c_str());
   log("ENDED ScoreGeneratorVstFltk::onSave.\n");
 }
 
@@ -327,7 +331,7 @@ void ScoreGeneratorVstFltk::onSaveAs(Fl_Button*, ScoreGeneratorVstFltk* ScoreGen
       log("BEGAN ScoreGeneratorVstFltk::onSaveAs...\n");
       scoreGeneratorVst->save(filename_);
       scoreGeneratorVst->setFilename(filename_);
-      log("Saved file as: '%s'.\n", scoreGeneratorVst->getFilename().c_str());
+      logv("Saved file as: '%s'.\n", scoreGeneratorVst->getFilename().c_str());
       update();
     }
   log("ENDED ScoreGeneratorVstFltk::onSaveAs.\n");
@@ -336,11 +340,11 @@ void ScoreGeneratorVstFltk::onSaveAs(Fl_Button*, ScoreGeneratorVstFltk* ScoreGen
 void ScoreGeneratorVstFltk::onGenerate(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
   runtimeMessagesBrowser->clear();
-  log("BEGAN ScoreGeneratorVstFltk::onPerform...\n");
+  log("BEGAN ScoreGeneratorVstFltk::onGenerate...\n");
   updateModel();
   mainTabs->value(runtimeMessagesGroup);
-  scoreGeneratorVst->perform();
-  log("ENDED ScoreGeneratorVstFltk::onPerform.\n");
+  scoreGeneratorVst->generate();
+  log("ENDED ScoreGeneratorVstFltk::onGenerate.\n");
 }
 
 void onNew(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
@@ -371,15 +375,5 @@ void onSaveAs(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk
 void onGenerate(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
 {
   ScoreGeneratorVstFltk->onGenerate(fl_button, ScoreGeneratorVstFltk);
-}
-
-void onStop(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
-{
-  ScoreGeneratorVstFltk->onStop(fl_button, ScoreGeneratorVstFltk);
-}
-
-void onEdit(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFltk)
-{
-  ScoreGeneratorVstFltk->onEdit(fl_button, ScoreGeneratorVstFltk);
 }
 
