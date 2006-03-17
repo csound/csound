@@ -2,7 +2,7 @@
 version 1.0107 
 header_name {.h} 
 code_name {.cpp}
-Function {make_window(ScoreGeneratorVst *scoreGeneratorVst)} {open
+Function {make_window(ScoreGeneratorVstFltk *scoreGeneratorVstFltk)} {open selected
 } {
   Fl_Window {} {
     label ScoreGeneratorVST
@@ -71,7 +71,7 @@ Function {make_window(ScoreGeneratorVst *scoreGeneratorVst)} {open
     Fl_Button generateButton {
       label {&Generate}
       user_data scoreGeneratorVstFltk user_data_type {ScoreGeneratorVstFltk*}
-      callback onGenerate selected
+      callback onGenerate
       tooltip {Perform the current orchestra and score} xywh {505 4 100 26} box THIN_UP_BOX down_box THIN_DOWN_BOX shortcut 0x40070 color 50 selection_color 46 labelfont 1 labelsize 12 align 16
     }
   }

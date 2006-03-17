@@ -30,5 +30,5 @@ extern void onSaveAs(Fl_Button*, ScoreGeneratorVstFltk*);
 extern Fl_Button *saveAsButton;
 extern void onGenerate(Fl_Button*, ScoreGeneratorVstFltk*);
 extern Fl_Button *generateButton;
-Fl_Double_Window* make_window(ScoreGeneratorVst *scoreGeneratorVst);
+Fl_Double_Window* make_window(ScoreGeneratorVstFltk *scoreGeneratorVstFltk);
 #endif

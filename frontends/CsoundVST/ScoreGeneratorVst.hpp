@@ -32,19 +32,13 @@
 #include "Shell.hpp"
 #include <list>
 #include <vector>
+#include <Python.h>
 
 class ScoreGeneratorVstFltk;
-
 struct Preset
 {
   std::string name;
   std::string text;
-};
-
-struct MidiSort{
-     bool operator()(VstMidiEvent &first, VstMidiEvent &second){
-          return first.deltaFrames < second.deltaFrames;
-     }
 };
 
 class ScoreGeneratorVst :
@@ -157,7 +151,7 @@ public:
    * Newlines are not automatically added, but must be embedded in the message string.
    */
   virtual void log(char *message);
-  virtual void logf(char *format,...);
+  virtual void logv(char *format,...);
 };
 
 #endif
