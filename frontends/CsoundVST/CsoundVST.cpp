@@ -311,7 +311,7 @@ int CsoundVST::perform()
       if(getIsVst())
         {
           csound::System::inform("VST performance.\n");
-          getCppSound()->SetYieldCallback(threadYieldCallback);
+          getCppSound()->SetYieldCallback(nonThreadYieldCallback);
           performanceThreadRoutine();
         }
       else if(getIsMultiThreaded())
