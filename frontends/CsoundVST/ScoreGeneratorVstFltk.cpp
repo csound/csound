@@ -114,20 +114,20 @@ void ScoreGeneratorVstFltk::updateCaption()
   std::string caption;
   caption = "[ S C O R E   G E N E R A T O R   V S T ] ";
   caption.append(scoreGeneratorVst->Shell::getFilename());
-  Fl::lock();
+  //Fl::lock();
   scoreGeneratorVstUi->label(caption.c_str());
-  Fl::unlock();
+  //Fl::unlock();
 }
 
 void ScoreGeneratorVstFltk::updateModel()
 {
   if(scoreGeneratorVstUi)
     {
-      Fl::lock();
+      //Fl::lock();
       log("BEGAN ScoreGeneratorVstFltk::updateModel...\n");
       scoreGeneratorVst->setScript(scriptTextBuffer->text());
       log("ENDED ScoreGeneratorVstFltk::updateModel.\n");
-      Fl::unlock();
+      //Fl::unlock();
     }
 }
 
@@ -142,11 +142,13 @@ long ScoreGeneratorVstFltk::open(void *parentWindow)
 {
   if (oneWaiter == this)
     {
-      Fl::lock();
+      //Fl::lock();
     }
   systemWindow = parentWindow;
   this->scoreGeneratorVstUi = make_window(this);
   this->mainTabs = ::mainTabs;
+  this->aboutTextBuffer = new Fl_Text_Buffer();
+  this->scriptTextBuffer = new Fl_Text_Buffer();
   this->runtimeMessagesGroup = ::runtimeMessagesGroup;
   this->runtimeMessagesBrowser = ::runtimeMessagesBrowser;
   this->scriptTextEdit = ::scriptTextEdit;
@@ -158,6 +160,10 @@ long ScoreGeneratorVstFltk::open(void *parentWindow)
   this->scoreGeneratorVstUi->show();
   this->aboutTextBuffer->text(removeCarriageReturns(about));
   update();
+#if defined(WIN32)
+  SetParent((HWND) fl_xid(this->scoreGeneratorVstUi), (HWND) parentWindow);
+#endif
+  this->scoreGeneratorVstUi->position(0, 0);
   return true;
 }
 
@@ -172,9 +178,9 @@ void ScoreGeneratorVstFltk::idle()
   // Only one instance of ScoreGeneratorVstFltk may call Fl::wait().
   if (oneWaiter == this)
     {
-      Fl::lock();
+      //Fl::lock();
       Fl::wait(0.0);
-      Fl::unlock();
+      //Fl::unlock();
     }
   // If the VST host has indicated
   // it needs the GUI updated, do it.
@@ -189,11 +195,11 @@ void ScoreGeneratorVstFltk::idle()
         {
           while(!messages.empty())
             {
-              Fl::lock();
+              //Fl::lock();
               Fl::flush();
               this->runtimeMessagesBrowser->add(messages.front().c_str());
               this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
-              Fl::unlock();
+              //Fl::unlock();
               messages.pop_front();
             }
         }
@@ -207,13 +213,13 @@ void ScoreGeneratorVstFltk::update()
   if(scoreGeneratorVstUi)
     {
       updateCaption();
-      Fl::lock();
+      //Fl::lock();
       log("BEGAN ScoreGeneratorVstFltk::update...\n");
       std::string buffer;
       buffer = scoreGeneratorVst->getScript();
       this->scriptTextBuffer->text(removeCarriageReturns(buffer));
       log("ENDED ScoreGeneratorVstFltk::update.\n");
-      Fl::unlock();
+      //Fl::unlock();
     }
 }
 

@@ -89,9 +89,9 @@ AEffEditor* ScoreGeneratorVst::getEditor()
 void ScoreGeneratorVst::openView(bool doRun)
 {
   editor->open(0);
-//   if(doRun) {
-//     run();
-//   }
+  if(doRun) {
+    csound::Shell::runScript();
+  }
 }
 
 void ScoreGeneratorVst::closeView()
@@ -242,7 +242,7 @@ bool ScoreGeneratorVst::getProductString(char* text)
 
 long ScoreGeneratorVst::canDo(char* text)
 {
-  csound::System::inform("RECEIVED ScoreGeneratorVst::canDo('%s')...\n", text);
+  logv("RECEIVED ScoreGeneratorVst::canDo('%s')...\n", text);
   if(strcmp(text, "receiveVstTimeInfo") == 0)
     {
       return 1;
@@ -480,7 +480,7 @@ int ScoreGeneratorVst::runScript(std::string script_)
 int ScoreGeneratorVst::generate()
 {
   clearEvents();
-  Shell::runScript();
+  csound::Shell::runScript();
   sortEvents();
   alive = true;
 }
@@ -546,6 +546,7 @@ size_t ScoreGeneratorVst::event(double start, double duration, double status, do
 
 void ScoreGeneratorVst::log(char *message)
 {
+  std::cerr << message;
   if (scoreGeneratorVstFltk) {
     scoreGeneratorVstFltk->log(message);
   }
