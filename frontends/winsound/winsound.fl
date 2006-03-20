@@ -1,0 +1,423 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0106 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include <FL/Fl_Double_Window.H>} {public
+} 
+
+decl {\#include <FL/Fl_File_Chooser.H>} {} 
+
+decl {int do_exit;} {public
+} 
+
+decl {int do_perf;} {public
+} 
+
+decl {int do_load;} {public
+} 
+
+decl {Fl_Double_Window *ew;} {public
+} 
+
+decl {Fl_Double_Window *xw;} {public
+} 
+
+decl {Fl_Double_Window *uw;} {public
+} 
+
+decl {\#include <FL/Fl_Pixmap.H>} {} 
+
+decl {\#include "winsound.xpm"} {} 
+
+Function {make_mainwindow()} {open
+} {
+  Fl_Window {} {
+    label WinSound open
+    xywh {847 431 465 535} type Double visible
+  } {
+    Fl_File_Input orchname {
+      label {Orchestra           }
+      callback {do_load = 1;}
+      tooltip {File for csd or orchestra file} xywh {130 15 270 30} labeltype EMBOSSED_LABEL
+    }
+    Fl_File_Input scorename {
+      label {Score           }
+      tooltip {File for csd or orchestra file} xywh {130 65 270 30} labeltype EMBOSSED_LABEL
+    }
+    Fl_File_Input output {
+      label {Output File           }
+      tooltip {File for csd or orchestra file} xywh {130 120 270 30} labeltype EMBOSSED_LABEL
+    }
+    Fl_Check_Button DAC {
+      label DAC
+      callback {if (DAC->value()) output->value("dac");} selected
+      xywh {405 120 55 30} down_box DOWN_BOX labeltype EMBOSSED_LABEL
+    }
+    Fl_Group {} {
+      label Format open
+      xywh {40 180 110 155} box BORDER_BOX align 5
+    } {
+      Fl_Round_Button wav {
+        label WAV
+        callback {wav->value(1);
+aiff->value(0);
+ircam->value(0);
+raw->value(0);}
+        xywh {65 195 25 25} down_box ROUND_DOWN_BOX
+        code0 {wav->value(1);}
+      }
+      Fl_Round_Button aiff {
+        label AIFF
+        callback {wav->value(0);
+aiff->value(1);
+ircam->value(0);
+raw->value(0);}
+        xywh {65 230 25 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button ircam {
+        label IRCAM
+        callback {wav->value(0);
+aiff->value(0);
+ircam->value(1);
+raw->value(0);}
+        xywh {65 265 25 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button raw {
+        label Raw
+        callback {wav->value(0);
+aiff->value(0);
+ircam->value(0);
+raw->value(1);}
+        xywh {65 300 25 25} down_box ROUND_DOWN_BOX
+      }
+    }
+    Fl_Group {} {
+      label Size open
+      xywh {175 180 105 185} box BORDER_BOX align 5
+    } {
+      Fl_Round_Button size_8 {
+        label 8bit
+        callback {size_8->value(1);
+size_16->value(0);
+size_24->value(0);
+size_32->value(0);
+size_f->value(0);}
+        xywh {205 200 25 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button size_16 {
+        label 16bit
+        callback {size_8->value(0);
+size_16->value(1);
+size_24->value(0);
+size_32->value(0);
+size_f->value(0);}
+        xywh {205 235 25 25} down_box ROUND_DOWN_BOX
+        code0 {size_16->value(1);}
+      }
+      Fl_Round_Button size_24 {
+        label 24bit
+        callback {size_8->value(0);
+size_16->value(0);
+size_24->value(1);
+size_32->value(0);
+size_f->value(0);}
+        xywh {205 270 25 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button size_32 {
+        label 32bit
+        callback {size_8->value(0);
+size_16->value(0);
+size_24->value(0);
+size_32->value(1);
+size_f->value(0);}
+        xywh {205 305 25 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button size_f {
+        label floats
+        callback {size_8->value(0);
+size_16->value(0);
+size_24->value(0);
+size_32->value(0);
+size_f->value(1);}
+        xywh {205 335 25 25} down_box ROUND_DOWN_BOX
+      }
+    }
+    Fl_Check_Button peak_chunks {
+      label {Peak Chunks}
+      xywh {40 350 110 25} down_box DOWN_BOX
+    }
+    Fl_Button {} {
+      label Render
+      callback {do_perf = 1;}
+      xywh {45 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 3
+    }
+    Fl_Button {} {
+      label Env
+      callback {ew->show();}
+      xywh {140 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 133
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {do_exit = 1;}
+      xywh {235 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 1
+    }
+    Fl_Button {} {
+      label Utilities
+      callback {uw->show();}
+      xywh {335 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 143
+    }
+    Fl_Button {} {
+      label Extra
+      callback {xw->show();}
+      xywh {335 355 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 231
+    }
+    Fl_Button {} {
+      label Help
+      xywh {335 295 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 251
+    }
+    Fl_Button {} {
+      label New
+      callback {do_load = 1;}
+      xywh {335 235 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 7
+    }
+    Fl_Output {} {
+      label {output:}
+      xywh {140 475 275 35} box NO_BOX color 49 labelfont 9 labelsize 18 align 20
+      code0 {o->value("Csound5 Launcher");}
+    }
+    Fl_Button {} {
+      label {?}
+      callback {orchname->value(fl_file_chooser("Orc/Csd", "*.{orc,csd}", NULL));
+do_load = 1;}
+      xywh {100 20 25 25}
+    }
+    Fl_Button {} {
+      label {?}
+      callback {scorename->value(fl_file_chooser("Score", "*.sco", NULL));}
+      xywh {100 70 25 25}
+    }
+    Fl_Button {} {
+      label {?}
+      callback {output->value(fl_file_chooser("Output", "*.{wav,aif,raw,irc}", NULL));}
+      xywh {100 125 25 25}
+    }
+    Fl_Button icon {
+      xywh {65 460 65 65} box NO_BOX deactivate
+      code0 {Fl_Pixmap *pixmap = new Fl_Pixmap(winsound_xpm);}
+      code1 {icon->image(pixmap);}
+    }
+  }
+} 
+
+Function {make_utils()} {open
+} {
+  Fl_Window {} {
+    label Utilities open
+    xywh {438 907 215 300} type Double visible
+  } {
+    Fl_Round_Button util_het {
+      label {Hetrodyne Analysis}
+      xywh {25 5 150 25} down_box ROUND_DOWN_BOX
+    }
+    Fl_Round_Button util_lpc {
+      label {LPC Analysis}
+      xywh {25 32 150 25} down_box ROUND_DOWN_BOX
+    }
+    Fl_Round_Button util_pvc {
+      label {Phase Vocoding Analysis}
+      xywh {25 60 150 25} down_box ROUND_DOWN_BOX
+    }
+    Fl_Round_Button util_cvl {
+      label {Convolution Analysis}
+      xywh {25 87 150 25} down_box ROUND_DOWN_BOX
+    }
+    Fl_Round_Button util_info {
+      label {Sound File Info}
+      xywh {25 115 150 25} down_box ROUND_DOWN_BOX
+      code0 {util_info->value(1);}
+    }
+    Fl_Round_Button util_pinfo {
+      label {Phase Vocoder File Info}
+      xywh {25 142 150 25} down_box ROUND_DOWN_BOX
+    }
+    Fl_Round_Button util_denoise {
+      label {De Noiser}
+      xywh {25 170 150 25} down_box ROUND_DOWN_BOX
+    }
+    Fl_Round_Button util_opc {
+      label {List Opcodes}
+      xywh {25 197 150 20} down_box ROUND_DOWN_BOX
+    }
+    Fl_Round_Button util_opv {
+      label {Opcode Details}
+      xywh {25 220 150 25} down_box ROUND_DOWN_BOX
+    }
+    Fl_Button {} {
+      label OK
+      callback {// Do the thing
+uw->hide();}
+      xywh {25 260 60 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {uw->hide();}
+      xywh {130 260 55 25} color 1
+    }
+  }
+} 
+
+Function {make_extras()} {open
+} {
+  Fl_Window {} {
+    label {Additional Arguments} open
+    xywh {1016 791 400 340} type Double visible
+  } {
+    Fl_Check_Button mI {
+      label {I time only (-I)}
+      xywh {15 25 25 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button mn {
+      label {No sound to disk (-n)}
+      xywh {15 58 25 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button mv {
+      label {Verbose (-v)}
+      xywh {15 91 25 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button mR {
+      label {Rewrite Header (-R)}
+      xywh {15 124 25 25} down_box DOWN_BOX
+    }
+    Fl_Value_Input mH {
+      label {Heartbeat (-H)}
+      xywh {15 157 30 25} align 8
+    }
+    Fl_Check_Button mN {
+      label {Notify (-N)}
+      xywh {15 190 25 25} down_box DOWN_BOX
+    }
+    Fl_Value_Input mr {
+      label {SRate override (-r)}
+      xywh {335 25 40 25}
+      code0 {mr->value(-1);}
+    }
+    Fl_Value_Input mk {
+      label {KRate override (-k)}
+      xywh {335 56 40 25}
+      code0 {mk->value(-1);}
+    }
+    Fl_Value_Input mm {
+      label {Message level (-m)}
+      xywh {335 87 40 25}
+      code0 {mm->value(7);}
+    }
+    Fl_Value_Input mt {
+      label {Beats (-t)}
+      xywh {335 118 40 25}
+      code0 {mt->value(-1);}
+    }
+    Fl_Value_Input mB {
+      label {Samples/Hardware (-B)}
+      xywh {335 149 40 25}
+      code0 {mB->value(1024);}
+    }
+    Fl_Value_Input mb {
+      label {Samples/Hardware (-b)}
+      xywh {335 180 40 25}
+      code0 {mb->value(512);}
+    }
+    Fl_File_Input mM {
+      label {MIDI File input (-M)}
+      xywh {20 240 160 25} align 5
+    }
+    Fl_File_Input mi {
+      label {Sound Input (-i)}
+      xywh {210 240 160 30} align 5
+    }
+    Fl_Check_Button mSave {
+      label {Keep Sorted Score}
+      xywh {20 275 25 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button mK {
+      label {Dither Output}
+      xywh {215 280 25 25} down_box DOWN_BOX
+    }
+    Fl_Button {} {
+      label OK
+      callback {// Transfer!!!
+xw->hide();}
+      xywh {65 305 75 30} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {xw->hide();}
+      xywh {265 305 75 30} color 1
+    }
+    Fl_Button {} {
+      label {?}
+      callback {mM->value(fl_file_chooser("MIDI", "*.mid", NULL));}
+      xywh {160 220 20 20}
+    }
+    Fl_Button {} {
+      label {?}
+      callback {mi->value(fl_file_chooser("Input", "*.{wav,aif}", NULL));}
+      xywh {350 220 20 20}
+    }
+  }
+} 
+
+Function {make_environ()} {open
+} {
+  Fl_Window {} {
+    label Settings open
+    xywh {1070 111 325 230} type Double visible
+  } {
+    Fl_File_Input op {
+      label OPCODEDIR
+      xywh {95 15 185 25}
+    }
+    Fl_File_Input ss {
+      label SSDIR
+      xywh {95 60 185 25}
+    }
+    Fl_File_Input sf {
+      label SFDIR
+      xywh {95 105 185 25}
+    }
+    Fl_File_Input sa {
+      label SADIR
+      xywh {95 145 185 25}
+    }
+    Fl_Button {} {
+      label OK
+      callback {// Transfer vales!!
+ew->hide();}
+      xywh {50 185 75 30} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {ew->hide();}
+      xywh {205 185 75 30} color 1
+    }
+    Fl_Button {} {
+      label O
+      callback {op->value(fl_dir_chooser("OPCODEDIR", NULL));}
+      xywh {290 15 25 25} color 222
+    }
+    Fl_Button {} {
+      label S
+      callback {ss->value(fl_dir_chooser("SSDIR", NULL));}
+      xywh {290 60 25 25} color 222
+    }
+    Fl_Button {} {
+      label F
+      callback {sf->value(fl_dir_chooser("SFDIR", NULL));}
+      xywh {290 110 25 25} color 222
+    }
+    Fl_Button {} {
+      label A
+      callback {sa->value(fl_dir_chooser("SADIR", NULL));}
+      xywh {290 145 25 25} color 222
+    }
+  }
+} 
