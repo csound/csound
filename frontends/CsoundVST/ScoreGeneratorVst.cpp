@@ -39,25 +39,26 @@ static char *dupstr(const char *string)
 ScoreGeneratorVst::ScoreGeneratorVst(audioMasterCallback audioMaster) :
   AudioEffectX(audioMaster, kNumPrograms, 0),
   vstSr(0),
-  vstPriorSampleBlockStart(0),
-  vstCurrentSampleBlockStart(0),
-  vstCurrentSampleBlockEnd(0),
+  vstCurrentBlockStart(0),
+  vstPriorBlockStart(0),
   scoreGeneratorVstFltk(0),
+  vstEventsPointer(0),
   alive(false)
 {
   setNumInputs(kNumInputs);             // stereo in
   setNumOutputs(kNumOutputs);           // stereo out
   setUniqueID('sGsT');  // identify
-  canMono();                            // makes sense to feed both inputs with the same signal
-  canProcessReplacing();        // supports both accumulating and replacing output
+  canMono(true);                            // makes sense to feed both inputs with the same signal
+  canProcessReplacing(true);        // supports both accumulating and replacing output
   wantEvents();
   open();
-  isSynth(true);
+  isSynth(false);
   scoreGeneratorVstFltk = new ScoreGeneratorVstFltk(this);
   setEditor(scoreGeneratorVstFltk);
   programsAreChunks(true);
   curProgram = 0;
   bank.resize(kNumPrograms);
+  vstEventsPointer = (VstEvents *) calloc(100000, sizeof(VstEvents *));
   for(size_t i = 0; i < bank.size(); i++)
     {
       char buffer[0x24];
@@ -122,72 +123,65 @@ void ScoreGeneratorVst::resume()
 
 long ScoreGeneratorVst::processEvents(VstEvents *vstEvents)
 {
-  return 0;
+  return 1;
 }
 
 void ScoreGeneratorVst::process(float **hostInput, float **hostOutput, long frames)
 {
+  synchronizeScore(frames);
   if (alive) {
-    synchronizeScore();
     sendEvents(frames);
   }
 }
 
 void ScoreGeneratorVst::processReplacing(float **hostInput, float **hostOutput, long frames)
 {
+  synchronizeScore(frames);
   if (alive) {
-    synchronizeScore();
     sendEvents(frames);
   }
 }
 
 void ScoreGeneratorVst::reset()
 {
+  alive = false;
   vstSr = updateSampleRate();
-  vstPriorSampleBlockStart = 0;
-  vstCurrentSampleBlockStart = 0;
-  vstCurrentSampleBlockEnd = 0;
-  vstMidiEventsIterator = vstMidiEvents.begin();
-  vstEvents.numEvents = 0;
+  logv("Reset: %f frames/second.\n");
+  vstCurrentBlockStart = 0.;
+  vstPriorBlockStart = 0.;
+  vstEventsPointer->numEvents = 0;
+  currentEventIndex = 0;
 }
 
-void ScoreGeneratorVst::synchronizeScore()
+bool ScoreGeneratorVst::synchronizeScore(long frames)
 {
-  vstPriorSampleBlockStart = vstCurrentSampleBlockStart;
-  VstTimeInfo *vstTimeInfo = getTimeInfo(kVstTransportPlaying);
-  if ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying)
-    {
-      vstCurrentSampleBlockStart = vstTimeInfo->samplePos;
-    }
-  if (vstPriorSampleBlockStart > vstCurrentSampleBlockStart) {
-    vstMidiEventsIterator = vstMidiEvents.begin();
-    vstEvents.numEvents = 0;
+  VstTimeInfo *vstTimeInfo = getTimeInfo(0xff);
+  vstSr = vstTimeInfo->sampleRate;
+  vstPriorBlockStart = vstCurrentBlockStart;
+  vstCurrentBlockStart = vstTimeInfo->samplePos / vstSr;
+  bool transportActive = ((vstTimeInfo->flags & kVstTransportPlaying) == kVstTransportPlaying);
+  if (transportActive && (vstPriorBlockStart > vstCurrentBlockStart)) {
+    currentEventIndex = 0;
+    vstEventsPointer->numEvents = 0;
+    vstStartOffset = vstCurrentBlockStart;
+    logv("Synchronized score at %f seconds:\n", vstCurrentBlockStart);
+    logv("  Start time offset               %f\n", vstStartOffset);
+    logv("  Offset time                     %f\n", vstCurrentBlockStart - vstStartOffset);
+    logv("  Sample frames this block        %d\n", frames);
+    logv("  VstTimeInfo.samplePos           %f\n", vstTimeInfo->samplePos);
+    logv("  VstTimeInfo.sampleRate          %f\n", vstSr);
+    logv("  VstTimeInfo.nanoSeconds         %f\n", vstTimeInfo->nanoSeconds);
+    logv("  VstTimeInfo.ppqPos              %f\n", vstTimeInfo->ppqPos);
+    logv("  VstTimeInfo.tempo               %f\n", vstTimeInfo->tempo);
+    logv("  VstTimeInfo.cycleStartPos       %f\n", vstTimeInfo->cycleStartPos);
+    logv("  VstTimeInfo.timeSigNumerator    %d\n", vstTimeInfo->timeSigNumerator);
+    logv("  VstTimeInfo.timeSigDenominator  %d\n", vstTimeInfo->timeSigDenominator);
+    logv("  VstTimeInfo.smpteOffset         %d\n", vstTimeInfo->smpteOffset);
+    logv("  VstTimeInfo.smpteFrameRate      %d\n", vstTimeInfo->smpteFrameRate);
+    logv("  VstTimeInfo.samplesToNextClock  %d\n", vstTimeInfo->samplesToNextClock);
+    logv("  VstTimeInfo.flags               %d\n", vstTimeInfo->flags);
   }
-}
-
-void ScoreGeneratorVst::sendEvents(long frames)
-{
-  if (frames == 0) {
-    return;
-  }
-  vstMidiEventsBuffer.clear();
-  vstCurrentSampleBlockEnd = vstCurrentSampleBlockStart + frames;
-  for(;;) {
-    if (vstMidiEventsIterator == vstMidiEvents.end()) {
-      return;
-    }
-    const VstMidiEvent &currentVstMidiEvent = *vstMidiEventsIterator;
-    if (currentVstMidiEvent.deltaFrames < vstCurrentSampleBlockStart || currentVstMidiEvent.deltaFrames >= vstCurrentSampleBlockEnd) {
-      return;
-    }
-    VstMidiEvent outputEvent = currentVstMidiEvent;
-    outputEvent.deltaFrames = currentVstMidiEvent.deltaFrames - vstCurrentSampleBlockStart;
-    vstMidiEventsBuffer.push_back(outputEvent);
-    ++vstMidiEventsIterator;
-  }
-  vstEvents.events[0] = (VstEvent *)&vstMidiEventsBuffer.front();
-  vstEvents.numEvents = vstMidiEventsBuffer.size();
-  sendVstEventsToHost(&vstEvents);
+  return transportActive;
 }
 
 bool ScoreGeneratorVst::getInputProperties(long index, VstPinProperties* properties)
@@ -210,6 +204,11 @@ bool ScoreGeneratorVst::getOutputProperties(long index, VstPinProperties* proper
       return true;
     }
   return false;
+}
+
+VstPlugCategory ScoreGeneratorVst::getPlugCategory()
+{
+  return kPlugCategEffect;
 }
 
 bool ScoreGeneratorVst::getProgramNameIndexed(long category, long index, char* text)
@@ -249,23 +248,27 @@ long ScoreGeneratorVst::canDo(char* text)
     }
   if(strcmp(text, "receiveVstEvents") == 0)
     {
-      return 0;
+      return 1;
     }
   if(strcmp(text, "receiveVstMidiEvents") == 0)
     {
-      return 0;
+      return 1;
     }
-  if(strcmp(text, "sendVstMidiEvents") == 0)
+  if(strcmp(text, "sendVstEvents") == 0)
+    {
+      return 1;
+    }
+  if(strcmp(text, "sendVstMidiEvent") == 0)
     {
       return 1;
     }
   if(strcmp(text, "plugAsChannelInsert") == 0)
     {
-      return 1;
+      return -1;
     }
   if(strcmp(text, "plugAsSend") == 0)
     {
-      return 1;
+      return -1;
     }
   if(strcmp(text, "sizeWindow") == 0)
     {
@@ -273,13 +276,13 @@ long ScoreGeneratorVst::canDo(char* text)
     }
   if(strcmp(text, "asyncProcessing") == 0)
     {
-      return 0;
+      return -1;
     }
   if(strcmp(text, "2in2out") == 0)
     {
       return 1;
     }
-  return 0;
+  return -1;
 }
 
 bool ScoreGeneratorVst::keysRequired()
@@ -389,10 +392,10 @@ long ScoreGeneratorVst::setChunk(void* data, long byteSize, bool isPreset)
 
 std::string ScoreGeneratorVst::getText()
 {
-  log("BEGAN ScoreGeneratorVst::getText...");
+  log("BEGAN ScoreGeneratorVst::getText...\n");
   std::string buffer;
   buffer = getScript();
-  log("ENDED ScoreGeneratorVst::getText.");
+  log("ENDED ScoreGeneratorVst::getText.\n");
   return buffer;
 }
 
@@ -479,69 +482,126 @@ int ScoreGeneratorVst::runScript(std::string script_)
 
 int ScoreGeneratorVst::generate()
 {
+  alive = false;
+  log("BEGAN ScoreGeneratorVst::generate()...\n");
   clearEvents();
   csound::Shell::runScript();
   sortEvents();
+  reset();
+  log("ENDED ScoreGeneratorVst::generate().\n");
   alive = true;
 }
 
 void ScoreGeneratorVst::clearEvents()
 {
-  alive = false;
-  vstEvents.numEvents = 0;
-  vstMidiEvents.clear();
-  reset();
+  vstEventsPointer->numEvents = 0;
+  scoreGeneratorEvents.clear();
 }
 
 struct MidiSort{
-     bool operator()(const VstMidiEvent &first, const VstMidiEvent &second){
-          return first.deltaFrames < second.deltaFrames;
+     bool operator()(const ScoreGeneratorEvent &first, const ScoreGeneratorEvent &second){
+          return first.start < second.start;
      }
 };
 
 void ScoreGeneratorVst::sortEvents()
 {
   MidiSort midiSort;
-  std::sort(vstMidiEvents.begin(), vstMidiEvents.end(), midiSort);
+  std::sort(scoreGeneratorEvents.begin(), scoreGeneratorEvents.end(), midiSort);
 }
 
 size_t ScoreGeneratorVst::event(double start, double duration, double status, double channel, double data1, double data2)
 {
-  char midiopcode = char(status) & char(0xf0);
-  char midichannel = char(channel) & char(0xf);
-  char midistatus = midiopcode | midichannel;
+  int midiopcode = (int) status;
+  int midichannel = (int) channel;
+  int midistatus = midiopcode + midichannel;
+  int midikey = 0;
   char detune = 0;
-  char midikey = 0;
   // Round down.
-  if (midiopcode == char(0x90)) {
-    midikey = char(data1 + 0.5) & char(0xf0);
-    detune = char((data1 - double(midikey)) / 100.);
+  if (midiopcode == 144) {
+    midikey = (int) (data1 + 0.5);
+    detune = 0; // int((data1 - double(midikey)) / 100.);
   } else {
-    midikey = char(data1) & char(0xf0);
+    midikey = (int) data1;
   }
-  char midivelocity = char(data2) & char(0xf0);
-  VstMidiEvent noteon;
-  noteon.type            = kVstMidiType;
-  noteon.byteSize        = 24;
-  noteon.deltaFrames     = long(vstSr * start);
-  noteon.flags           = 0;
-  noteon.noteLength      = long(vstSr * duration);
-  noteon.noteOffset      = 0;
-  noteon.midiData[0]     = midistatus;
-  noteon.midiData[1]     = midikey;
-  noteon.midiData[2]     = midivelocity;
-  noteon.midiData[3]     = 0;
-  noteon.detune          = detune;
-  vstMidiEvents.push_back(noteon);
-//   if (duration > 0) {
-//     double stop = start + duration;
-//     VstMidiEvent noteoff = noteon;
-//     noteoff.deltaFrames = long(vstSr * stop);
-//     noteoff.midiData[0] = midistatus - char(0x10);
-//     noteoff.midiData[2] = char(0);
-//     vstMidiEvents.push_back(noteoff);
-//   }
-  return vstMidiEvents.size();
+  int midivelocity = (int) data2;
+  ScoreGeneratorEvent event;
+  event.start = start;
+  event.duration = duration;
+  event.vstMidiEvent.type            = kVstMidiType;
+  event.vstMidiEvent.byteSize        = 24;
+  event.vstMidiEvent.deltaFrames     = 0;
+  event.vstMidiEvent.flags           = 0;
+  event.vstMidiEvent.noteLength      = 0;
+  event.vstMidiEvent.noteOffset      = 0;
+  event.vstMidiEvent.midiData[0]     = midistatus;
+  event.vstMidiEvent.midiData[1]     = midikey;
+  event.vstMidiEvent.midiData[2]     = midivelocity;
+  event.vstMidiEvent.midiData[3]     = 0;
+  event.vstMidiEvent.detune          = detune;
+  event.vstMidiEvent.noteOffVelocity = 0;
+  scoreGeneratorEvents.push_back(event);
+  if (duration > 0) {
+    ScoreGeneratorEvent noteoff = event;
+    noteoff.start = start + duration;
+    noteoff.vstMidiEvent.midiData[0] = midistatus - 16;
+    noteoff.vstMidiEvent.midiData[2] = 0;
+    scoreGeneratorEvents.push_back(noteoff);
+  }
+  logv("Adding event: time %f, duration %f, opcode %f, channel %f, key %f, velocity %f\n", 
+       start, 
+       duration, 
+       status, 
+       channel, 
+       data1, 
+       data2);
+  logv("   MIDI data: time %f, duration %f, status %d, key %d, velocity %d, detune %d\n", 
+       event.start, 
+       event.duration,
+       (unsigned char) event.vstMidiEvent.midiData[0], 
+       (unsigned char) event.vstMidiEvent.midiData[1], 
+       (unsigned char) event.vstMidiEvent.midiData[2], 
+       (unsigned char) event.vstMidiEvent.detune);
+  return scoreGeneratorEvents.size();
+}
+
+void ScoreGeneratorVst::sendEvents(long frames)
+{
+  if (frames == 0) {
+    return;
+  }
+  vstMidiEventsBuffer.clear();
+  double vstCurrentBlockEnd = vstCurrentBlockStart + (vstSr * double(frames));
+  for (size_t i = 0; currentEventIndex < scoreGeneratorEvents.size(); i++, currentEventIndex++) {
+    const ScoreGeneratorEvent &event = scoreGeneratorEvents[currentEventIndex];
+    if (event.start > vstCurrentBlockStart) {
+      break;
+    }
+    if (event.start <= vstCurrentBlockEnd) {
+      VstMidiEvent vstMidiEvent = event.vstMidiEvent;
+      double delta = event.start - vstCurrentBlockStart;
+      if (delta < 0.) {
+	delta = 0.;
+      }
+      vstMidiEvent.deltaFrames = (long) (delta * vstSr);
+      vstMidiEvent.noteLength = 0; // (long) (event.duration * vstSr);
+      vstMidiEventsBuffer.push_back(vstMidiEvent);
+      vstEventsPointer->events[i] = (VstEvent *)&vstMidiEventsBuffer[i];
+      VstMidiEvent *vstMidiEventPointer = (VstMidiEvent *) vstEventsPointer->events[i];
+      logv("Scheduled event: delta %d, length %d, status %d, key %d, velocity %d, detune %d\n", 
+	   vstMidiEventPointer->deltaFrames, 
+	   vstMidiEventPointer->noteLength, 
+	   (unsigned char) vstMidiEventPointer->midiData[0], 
+	   (unsigned char) vstMidiEventPointer->midiData[1], 
+	   (unsigned char) vstMidiEventPointer->midiData[2], 
+	   (unsigned char) vstMidiEventPointer->detune);
+    }
+  }
+  vstEventsPointer->numEvents = vstMidiEventsBuffer.size();
+  if (vstEventsPointer->numEvents > 0) {
+    bool result = sendVstEventsToHost(vstEventsPointer);
+    logv("sendVstEventsToHost(%d events) returned %d\n", vstEventsPointer->numEvents, result);
+  }
 }
 
 void ScoreGeneratorVst::log(char *message)
