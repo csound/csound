@@ -41,6 +41,13 @@ struct Preset
   std::string text;
 };
 
+struct ScoreGeneratorEvent
+{
+  double start;
+  double duration;
+  VstMidiEvent vstMidiEvent;
+};
+
 class ScoreGeneratorVst :
   public AudioEffectX,
   public csound::Shell
@@ -58,14 +65,14 @@ protected:
     {
       kNumPrograms = 10,
     };
-  VstEvents vstEvents;
-  std::vector<VstMidiEvent> vstMidiEvents;
+  std::vector<ScoreGeneratorEvent> scoreGeneratorEvents;
   std::vector<VstMidiEvent> vstMidiEventsBuffer;
-  std::vector<VstMidiEvent>::iterator vstMidiEventsIterator;
-  float vstSr;
-  long vstCurrentSampleBlockStart;
-  long vstCurrentSampleBlockEnd;
-  long vstPriorSampleBlockStart;
+  VstEvents *vstEventsPointer;
+  int currentEventIndex;
+  double vstSr;
+  double vstCurrentBlockStart;
+  double vstPriorBlockStart;
+  double vstStartOffset;
   char alive;
   ScoreGeneratorVstFltk *scoreGeneratorVstFltk;
   PyObject *score;
@@ -78,6 +85,7 @@ public:
   virtual bool getEffectName(char* name);
   virtual bool getVendorString(char* name);
   virtual bool getProductString(char* name);
+  virtual VstPlugCategory getPlugCategory();
   virtual long canDo(char* text);
   virtual bool getInputProperties(long index, VstPinProperties* properties);
   virtual bool getOutputProperties(long index, VstPinProperties* properties);
@@ -100,7 +108,7 @@ public:
   ScoreGeneratorVst();
   virtual std::string getText();
   virtual void setText(const std::string text);
-  virtual void synchronizeScore();
+  virtual bool synchronizeScore(long blockSize);
   virtual void reset();
   virtual void openFile(std::string filename);
   virtual void openView(bool doRun = true);
