@@ -5,12 +5,13 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 extern int do_exit;
-extern int do_perf;
+extern int do_perf, do_util;
 extern int do_load;
 extern Fl_Double_Window *ew;
 extern Fl_Double_Window *xw;
 extern Fl_Double_Window *uw;
 #include "csound.h"
+extern void cs_util_sndinfo(void);
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_File_Input.H>
 extern Fl_File_Input *orchname;
@@ -67,4 +68,7 @@ extern Fl_File_Input *ss;
 extern Fl_File_Input *sf;
 extern Fl_File_Input *sa;
 Fl_Double_Window* make_environ();
+extern Fl_File_Input *sndinfo_file;
+#include <FL/Fl_Return_Button.H>
+Fl_Double_Window* make_info();
 #endif
