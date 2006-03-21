@@ -5,7 +5,7 @@ nchnls = 1
 
 instr 1
   aq barmodel 1, 1, p4, 0.001, 0.23, 5, p5, p6, p7
-        out aq
+     out      aq
 endin
 
 </CsInstruments>
