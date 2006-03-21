@@ -1,7 +1,7 @@
 /*
     namedins.c:
 
-    Copyright (C) 2002, 2005 Istvan Varga
+    Copyright (C) 2002, 2005, 2006 Istvan Varga
 
     This file is part of Csound.
 
@@ -20,8 +20,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
-/* namedins.c -- written by Istvan Varga, Oct 2002, Jan 2005 */
 
 #include "csoundCore.h"
 #include "namedins.h"
@@ -1060,7 +1058,7 @@ static CS_NOINLINE channelEntry_t *alloc_channel(CSOUND *csound, MYFLT **p,
         nbytes += (int) sizeof(MYFLT);
         break;
       case CSOUND_AUDIO_CHANNEL:
-        nbytes += ((int) sizeof(MYFLT) * csound->ksmps);
+        nbytes += ((int) sizeof(MYFLT) * csound->global_ksmps);
         break;
       case CSOUND_STRING_CHANNEL:
         nbytes += ((int) sizeof(MYFLT) * csound->strVarSamples);
