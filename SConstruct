@@ -43,6 +43,7 @@ headers = Split('''
     interfaces/CsoundFile.hpp interfaces/CppSound.hpp interfaces/filebuilding.h
 ''')
 libs = []
+pythonModules = []
 
 def today():
     return time.strftime("%Y-%m-%d", time.localtime())
@@ -109,7 +110,7 @@ else:
         '1')
 opts.Add('pythonVersion',
     'Set to the Python version to be used.',
-    '2.4')
+    '%d.%d' % (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255))
 opts.Add('buildCsoundVST',
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python, SWIG).',
     '0')
@@ -194,7 +195,7 @@ opts.Add('buildTclcsound',
     "Build Tclcsound frontend (cstclsh, cswish and tclcsound dynamic module). Requires Tcl/Tk headers and libs",
     '0')
 opts.Add('buildWinsound',
-    "Build Winsond frontend. Requires FLTK headers and libs",
+    "Build Winsound frontend. Requires FLTK headers and libs",
     '0')
 opts.Add('buildInterfaces',
     "Build interface library for Python, JAVA, Lua, C++, and other languages.",
@@ -267,8 +268,8 @@ if commonEnvironment['useGprof'] == '1':
   commonEnvironment.Append(LINKFLAGS = ['-pg'])
 commonEnvironment.Prepend(CXXFLAGS = ['-fexceptions'])
 commonEnvironment.Prepend(LIBPATH = ['.', '#.'])
-# if commonEnvironment['buildRelease'] == '0':
-#     commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
+if commonEnvironment['buildRelease'] == '0':
+    commonEnvironment.Prepend(CPPFLAGS = ['-DBETA'])
 if commonEnvironment['Word64'] == '1':
     commonEnvironment.Prepend(LIBPATH = ['.', '#.', '/usr/local/lib64'])
     commonEnvironment.Append(CCFLAGS = ['-fPIC'])
@@ -488,8 +489,10 @@ def buildzip(env, target, source):
 # library version is CS_VERSION.CS_APIVERSION
 csoundLibraryVersion = '5.1'
 csoundLibraryName = 'csound'
-if getPlatform() == 'linux' and commonEnvironment['useDouble'] != '0':
+if commonEnvironment['useDouble'] != '0':
     csoundLibraryName += '64'
+elif getPlatform() == 'mingw':
+    csoundLibraryName += '32'
 # flags for linking with the Csound library
 libCsoundLinkFlags = []
 libCsoundLibs = [csoundLibraryName, 'sndfile']
@@ -728,6 +731,10 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             MacOSX_InstallHeader(i)
         libCsoundLinkFlags = ['-F.', '-framework', libName, '-lsndfile']
         libCsoundLibs = []
+    elif getPlatform() == 'mingw':
+        csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
+            csoundLibraryName, libCsoundSources,
+            SHLIBSUFFIX = '.dll.%s' % csoundLibraryVersion)
     else:
         csoundLibrary = csoundDynamicLibraryEnvironment.SharedLibrary(
             csoundLibraryName, libCsoundSources)
@@ -924,7 +931,7 @@ else:
         if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
             Depends(csoundPythonInterface, pythonImportLibrary)
         csoundInterfacesSources.insert(0, csoundPythonInterface)
-        libs.append('csnd.py')
+        pythonModules.append('csnd.py')
     if not luaFound:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
@@ -944,7 +951,7 @@ else:
         csoundInterfacesBundle = csoundInterfacesBundleEnvironment.Program(
             '_csnd.so', csoundInterfacesSources)
         Depends(csoundInterfacesBundle, csoundLibrary)
-        libs.append(csoundInterfacesBundle)
+        pythonModules.append(csoundInterfacesBundle)
     else:
         if getPlatform() == 'linux':
             os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
@@ -1299,7 +1306,7 @@ else:
         vstEnvironment.Prepend(LINKFLAGS = '-bundle')
         vstEnvironment.Program('_CsoundVST.so', csoundVstSources)
     # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
-    libs.append('CsoundVST.py')
+    pythonModules.append('CsoundVST.py')
     libs.append(csoundvst)
     Depends(csoundvst, csoundInterfaces)
 
@@ -1374,8 +1381,8 @@ else:
     Depends(lorisPythonModule, lorisLibrary)
     if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
         Depends(lorisPythonModule, pythonImportLibrary)
-    libs.append(lorisPythonModule)
-    libs.append('loris.py')
+    pythonModules.append(lorisPythonModule)
+    pythonModules.append('loris.py')
 
 if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
     print 'CONFIGURATION DECISION: Not building STK opcodes.'
@@ -1514,15 +1521,15 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
     Depends(Tclcsoundlib, csoundLibrary)
-    zipDependencies.append(csTcl)
-    zipDependencies.append(csTk)
-    zipDependencies.append(Tclcsoundlib)
+    executables.append(csTcl)
+    executables.append(csTk)
+    libs.append(Tclcsoundlib)
 else:
     print "CONFIGURATION DECISION: Not building Tclcsound"
 
 if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     print "CONFIGURATION DECISION: Building Winsound frontend"
-    headers += glob.glob('frontends/winsound/*.hpp')
+    # headers += glob.glob('frontends/winsound/*.hpp')
     csWinEnvironment = commonEnvironment.Copy()
     csWinEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csWinEnvironment.Append(LIBS = libCsoundLibs)
@@ -1533,7 +1540,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
         csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'mingw':
         csWinEnvironment.Append(LIBS = ['fltk'])
-        if (commonEnvironment['MSVC'] == '0'):
+        if commonEnvironment['MSVC'] == '0':
             csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
         csWinEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
@@ -1542,10 +1549,12 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
             -framework Carbon -framework CoreAudio -framework CoreMidi
             -framework ApplicationServices
         '''))
-    csWinEnvironment.Program('wins5',
-        ['frontends/winsound/main.cxx', 'frontends/winsound/winsound.cxx'])
+    executables.append(
+        csWinEnvironment.Program('winsound',
+            ['frontends/winsound/main.cxx',
+             'frontends/winsound/winsound.cxx']))
 else:
-    print "CONFIGURATION DECISION: Not building Wincsound"
+    print "CONFIGURATION DECISION: Not building Winsound"
 
 if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
     print "CONFIGURATION DECISION: building OSX GUI frontend"
@@ -1608,6 +1617,7 @@ else:
 zipDependencies += executables
 zipDependencies += libs
 zipDependencies += pluginLibraries
+zipDependencies += pythonModules
 
 if (commonEnvironment['generateZip']=='0'):
     print 'CONFIGURATION DECISION: Not compiling zip file for release.'
@@ -1626,8 +1636,15 @@ INCLUDE_DIR = PREFIX + "/include/csound"
 
 if (commonEnvironment['Word64'] == '1'):
     LIB_DIR = PREFIX + "/lib64"
+    PYTHON_DIR = '%s/lib64' % sys.prefix
 else:
     LIB_DIR = PREFIX + "/lib"
+    PYTHON_DIR = '%s/lib' % sys.prefix
+PYTHON_DIR += '/python%s/site-packages' % commonEnvironment['pythonVersion']
+
+for i in sys.path:
+    if i[:sys.prefix.__len__()] == sys.prefix and i[-13:] == 'site-packages':
+        PYTHON_DIR = i
 
 if commonEnvironment['useDouble'] == '0':
     PLUGIN_DIR = LIB_DIR + "/csound/plugins"
@@ -1637,17 +1654,15 @@ else:
 if commonEnvironment['install'] == '1':
     installExecutables = Alias('install-executables',
         Install(BIN_DIR, executables))
-
     installOpcodes = Alias('install-opcodes',
         Install(PLUGIN_DIR, pluginLibraries))
-
     installHeaders = Alias('install-headers',
         Install(INCLUDE_DIR, headers))
-
     installLibs = Alias('install-libs',
         Install(LIB_DIR, libs))
-
-    Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders])
+    installPythonModules = Alias('install-py',
+        Install(PYTHON_DIR, pythonModules))
+    Alias('install', [installExecutables, installOpcodes, installLibs, installHeaders, installPythonModules])
 
 if getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1':
     print "CONFIGURATION DECISION: Adding resource fork for csound"
