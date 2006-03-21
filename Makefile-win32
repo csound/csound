@@ -7,11 +7,11 @@ CFLAGS = -Wall -O3 -fno-inline-functions
 ifeq ($(strip $(USEDOUBLE)),yes)
 CFLAGS += -march=i586 -mtune=pentium3 -fomit-frame-pointer -ffast-math
 CFLAGS += -DUSE_DOUBLE -DUSE_LRINT
-CSOUNDLIB = csound64.dll
+CSOUNDLIB = csound64.dll.5.1
 PROGRAM = csound.exe
 else
 CFLAGS += -march=pentium3 -fomit-frame-pointer -ffast-math
-CSOUNDLIB = csound32.dll
+CSOUNDLIB = csound32.dll.5.1
 PROGRAM = csound32.exe
 endif
 CFLAGS += -I. -IH -DWIN32 -DPIPES -DHAVE_STDINT_H -DHAVE_DIRENT_H
@@ -62,7 +62,7 @@ CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		Top/one_file.o Top/opcode.o Top/threads.o Top/utility.o
 
 $(CSOUNDLIB): $(CSOUNDLIB_OBJ)
-	$(CXX) -O2 -shared -Wl,--output-def,$(subst .dll,.def,$(CSOUNDLIB)) -o $@ $^ $(LDFLAGS) $(LIBS)
+	$(CXX) -O2 -shared -Wl,--output-def,$(subst .dll.5.1,.def,$(CSOUNDLIB)) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 Opcodes/%.o: Opcodes/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -225,7 +225,7 @@ clean:
 	-rm `find . -type f \( -name "*.a" -o -name "*.dll" \) -print`
 	-rm `find . -type f \( -name "*.exe" -o -name "*.xmg" \) -print`
 	-rm csound32.def csound64.def _csnd.def csnd.py csnd.pyc csnd.pyo
-	-rm _jcsound.def
+	-rm _jcsound.def $(CSOUNDLIB)
 	-rm interfaces/python_interface_wrap.cc
 	-rm interfaces/python_interface_wrap.h
 	-rm interfaces/java_interface_wrap.cc
