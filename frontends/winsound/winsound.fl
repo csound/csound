@@ -35,29 +35,32 @@ decl {\#include "csound.h"} {public
 decl {void cs_util_sndinfo(void);} {public
 } 
 
+decl {void cs_util_opc(int full)} {selected public
+} 
+
 Function {make_mainwindow()} {open
 } {
   Fl_Window {} {
     label WinSound open
-    xywh {558 244 465 535} type Double visible
+    xywh {558 254 465 535} type Double visible
   } {
     Fl_File_Input orchname {
       label {Orchestra           }
       callback {do_load = 1;}
-      tooltip {File for csd or orchestra file} xywh {130 15 270 30} labeltype EMBOSSED_LABEL
+      tooltip {File for csd or orchestra file} xywh {130 15 310 30} labeltype EMBOSSED_LABEL
     }
     Fl_File_Input scorename {
       label {Score           }
-      tooltip {File for csd or orchestra file} xywh {130 65 270 30} labeltype EMBOSSED_LABEL
+      tooltip {File for csd or orchestra file} xywh {130 65 310 30} labeltype EMBOSSED_LABEL
     }
     Fl_File_Input output {
       label {Output File           }
-      tooltip {File for csd or orchestra file} xywh {130 120 270 30} labeltype EMBOSSED_LABEL
+      tooltip {File for csd or orchestra file} xywh {130 120 310 30} labeltype EMBOSSED_LABEL
     }
     Fl_Check_Button DAC {
       label DAC
       callback {if (DAC->value()) output->value("dac");}
-      xywh {405 120 55 30} down_box DOWN_BOX labeltype EMBOSSED_LABEL
+      xywh {385 150 55 30} down_box DOWN_BOX labeltype EMBOSSED_LABEL
     }
     Fl_Group {} {
       label Format open
@@ -219,43 +222,115 @@ Function {make_utils()} {open
 } {
   Fl_Window {} {
     label Utilities open
-    xywh {602 235 215 300} type Double visible
+    xywh {1120 367 215 300} type Double visible
   } {
     Fl_Round_Button util_het {
       label {Hetrodyne Analysis}
-      xywh {25 5 150 25} down_box ROUND_DOWN_BOX
+      callback {util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);}
+      xywh {25 5 150 25} down_box ROUND_DOWN_BOX deactivate
     }
     Fl_Round_Button util_lpc {
       label {LPC Analysis}
-      xywh {25 32 150 25} down_box ROUND_DOWN_BOX
+      callback {util_het->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);}
+      xywh {25 32 150 25} down_box ROUND_DOWN_BOX deactivate
     }
     Fl_Round_Button util_pvc {
       label {Phase Vocoding Analysis}
-      xywh {25 60 150 25} down_box ROUND_DOWN_BOX
+      callback {util_het->value(0);
+util_lpc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);}
+      xywh {25 60 185 25} down_box ROUND_DOWN_BOX deactivate
     }
     Fl_Round_Button util_cvl {
       label {Convolution Analysis}
-      xywh {25 87 150 25} down_box ROUND_DOWN_BOX
+      callback {util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);}
+      xywh {25 87 155 25} down_box ROUND_DOWN_BOX deactivate
     }
     Fl_Round_Button util_info {
       label {Sound File Info}
+      callback {util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);}
       xywh {25 115 150 25} down_box ROUND_DOWN_BOX
       code0 {util_info->value(1);}
     }
     Fl_Round_Button util_pinfo {
       label {Phase Vocoder File Info}
-      xywh {25 142 150 25} down_box ROUND_DOWN_BOX
+      callback {util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);}
+      xywh {25 142 180 23} down_box ROUND_DOWN_BOX deactivate
     }
-    Fl_Round_Button util_denoise {
+    Fl_Round_Button util_dnoise {
       label {De Noiser}
-      xywh {25 170 150 25} down_box ROUND_DOWN_BOX
+      callback {util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_opc->value(0);
+util_opv->value(0);}
+      xywh {25 170 150 25} down_box ROUND_DOWN_BOX deactivate
     }
     Fl_Round_Button util_opc {
       label {List Opcodes}
+      callback {util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opv->value(0);}
       xywh {25 197 150 20} down_box ROUND_DOWN_BOX
     }
     Fl_Round_Button util_opv {
       label {Opcode Details}
+      callback {util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);}
       xywh {25 220 150 25} down_box ROUND_DOWN_BOX
     }
     Fl_Button {} {
@@ -263,7 +338,9 @@ Function {make_utils()} {open
       callback {// Do the thing
 uw->hide();
 do_util = 0;
-if (util_info->value()) cs_util_sndinfo();}
+if (util_info->value()) cs_util_sndinfo();
+else if (util_opc->value()) cs_util_opc(0);
+else if (util_opv->value()) cs_util_opc(1);}
       xywh {25 260 60 25} color 3
     }
     Fl_Button {} {
@@ -278,7 +355,7 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {516 116 400 350} type Double visible
+    xywh {516 126 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
@@ -378,7 +455,7 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {450 50 325 230} type Double visible
+    xywh {450 60 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
@@ -442,7 +519,7 @@ Function {make_info()} {open
 } {
   Fl_Window {} {
     label Sndinfo open
-    xywh {314 540 260 80} type Double visible
+    xywh {314 550 260 80} type Double visible
   } {
     Fl_File_Input sndinfo_file {
       xywh {0 0 260 30}
@@ -460,7 +537,7 @@ Function {make_info()} {open
     }
     Fl_Button {} {
       label Browse
-      callback {sndinfo_file->value(fl_file_chooser("SndInfo", "*.{wav,aif,raw,irc}", NULL));} selected
+      callback {sndinfo_file->value(fl_file_chooser("SndInfo", "*.{wav,aif,raw,irc}", NULL));}
       xywh {205 40 50 25}
     }
   }

@@ -12,6 +12,7 @@ extern Fl_Double_Window *xw;
 extern Fl_Double_Window *uw;
 #include "csound.h"
 extern void cs_util_sndinfo(void);
+extern void cs_util_opc(int full);
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_File_Input.H>
 extern Fl_File_Input *orchname;
@@ -41,7 +42,7 @@ extern Fl_Round_Button *util_pvc;
 extern Fl_Round_Button *util_cvl;
 extern Fl_Round_Button *util_info;
 extern Fl_Round_Button *util_pinfo;
-extern Fl_Round_Button *util_denoise;
+extern Fl_Round_Button *util_dnoise;
 extern Fl_Round_Button *util_opc;
 extern Fl_Round_Button *util_opv;
 Fl_Double_Window* make_utils();
