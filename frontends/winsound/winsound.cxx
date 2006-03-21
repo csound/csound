@@ -113,7 +113,7 @@ size_32->value(0);
 size_f->value(1);
 }
 
-Fl_Check_Button *peak_chunks=(Fl_Check_Button *)0;
+Fl_Check_Button *mK=(Fl_Check_Button *)0;
 
 static void cb_Render(Fl_Button*, void*) {
   do_perf = 1;
@@ -224,7 +224,7 @@ Fl_Double_Window* make_mainwindow() {
       }
       o->end();
     }
-    { Fl_Check_Button* o = peak_chunks = new Fl_Check_Button(40, 350, 110, 25, "Peak Chunks");
+    { Fl_Check_Button* o = mK = new Fl_Check_Button(40, 350, 110, 25, "Peak Chunks");
       o->down_box(FL_DOWN_BOX);
     }
     { Fl_Button* o = new Fl_Button(45, 415, 80, 35, "Render");
@@ -358,6 +358,7 @@ Fl_Double_Window* make_utils() {
     { Fl_Button* o = new Fl_Button(25, 260, 60, 25, "OK");
       o->color((Fl_Color)3);
       o->callback((Fl_Callback*)cb_OK);
+      o->deactivate();
     }
     { Fl_Button* o = new Fl_Button(130, 260, 55, 25, "Cancel");
       o->color((Fl_Color)1);
@@ -398,7 +399,7 @@ Fl_File_Input *mi=(Fl_File_Input *)0;
 
 Fl_Check_Button *mSave=(Fl_Check_Button *)0;
 
-Fl_Check_Button *mK=(Fl_Check_Button *)0;
+Fl_Check_Button *mZ=(Fl_Check_Button *)0;
 
 static void cb_OK1(Fl_Button*, void*) {
   // Transfer!!!
@@ -419,7 +420,7 @@ static void cb_4(Fl_Button*, void*) {
 
 Fl_Double_Window* make_extras() {
   Fl_Double_Window* w;
-  { Fl_Double_Window* o = new Fl_Double_Window(400, 340, "Additional Arguments");
+  { Fl_Double_Window* o = new Fl_Double_Window(400, 350, "Additional Arguments");
     w = o;
     { Fl_Check_Button* o = mI = new Fl_Check_Button(15, 25, 25, 25, "I time only (-I)");
       o->down_box(FL_DOWN_BOX);
@@ -466,7 +467,7 @@ Fl_Double_Window* make_extras() {
     { Fl_Check_Button* o = mSave = new Fl_Check_Button(20, 275, 25, 25, "Keep Sorted Score");
       o->down_box(FL_DOWN_BOX);
     }
-    { Fl_Check_Button* o = mK = new Fl_Check_Button(215, 280, 25, 25, "Dither Output");
+    { Fl_Check_Button* o = mZ = new Fl_Check_Button(215, 280, 25, 25, "Dither Output");
       o->down_box(FL_DOWN_BOX);
     }
     { Fl_Button* o = new Fl_Button(65, 305, 75, 30, "OK");
@@ -498,6 +499,10 @@ Fl_File_Input *sa=(Fl_File_Input *)0;
 
 static void cb_OK2(Fl_Button*, void*) {
   // Transfer vales!!
+csoundSetGlobalEnv("OPCODEDIR",(char*) op->value());
+csoundSetGlobalEnv("SSDIR", (char*) ss->value());
+csoundSetGlobalEnv("SFDIR", (char*) sf->value());
+csoundSetGlobalEnv("SADIR", (char*) sa->value());
 ew->hide();
 }
 
@@ -525,10 +530,18 @@ Fl_Double_Window* make_environ() {
   Fl_Double_Window* w;
   { Fl_Double_Window* o = new Fl_Double_Window(325, 230, "Settings");
     w = o;
-    op = new Fl_File_Input(95, 15, 185, 25, "OPCODEDIR");
-    ss = new Fl_File_Input(95, 60, 185, 25, "SSDIR");
-    sf = new Fl_File_Input(95, 105, 185, 25, "SFDIR");
-    sa = new Fl_File_Input(95, 145, 185, 25, "SADIR");
+    { Fl_File_Input* o = op = new Fl_File_Input(95, 15, 185, 25, "OPCODEDIR");
+      op->value(getenv("OPCODEDIR"));
+    }
+    { Fl_File_Input* o = ss = new Fl_File_Input(95, 60, 185, 25, "SSDIR");
+      ss->value(getenv("SSDIR"));
+    }
+    { Fl_File_Input* o = sf = new Fl_File_Input(95, 105, 185, 25, "SFDIR");
+      sf->value(getenv("SFDIR"));
+    }
+    { Fl_File_Input* o = sa = new Fl_File_Input(95, 145, 185, 25, "SADIR");
+      sa->value(getenv("SADIR"));
+    }
     { Fl_Button* o = new Fl_Button(50, 185, 75, 30, "OK");
       o->color((Fl_Color)3);
       o->callback((Fl_Callback*)cb_OK2);
@@ -545,7 +558,7 @@ Fl_Double_Window* make_environ() {
       o->color((Fl_Color)222);
       o->callback((Fl_Callback*)cb_S);
     }
-    { Fl_Button* o = new Fl_Button(290, 110, 25, 25, "F");
+    { Fl_Button* o = new Fl_Button(290, 105, 25, 25, "F");
       o->color((Fl_Color)222);
       o->callback((Fl_Callback*)cb_F);
     }
