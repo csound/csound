@@ -1,3 +1,14 @@
+2006-03-21	Istvan Varga	<ivarga@csounds.com>
+	* SConstruct, Makefile-win32:
+	  renamed Csound library to csound{32,64}.dll.5.1 on Windows
+	* SConstruct:
+	  attempts to fix install target (still needs a lot of work)
+	* Engine/namedins.c, OOps/bus.c:
+	  fixed a-rate channel allocation in user defined opcode with
+	  local ksmps
+	* Engine/linevent.c:
+	  various minor fixes and code improvements
+
 2006-03-16	Istvan Varga	<ivarga@csounds.com>
 	* Updated version number to 5.01.1 beta.
 	* Opcodes/sftype.h: check for MacOS 9 or PowerPC, and define
