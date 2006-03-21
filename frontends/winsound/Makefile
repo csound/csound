@@ -1,4 +1,4 @@
-LIBS = -I ../../H -lfltk -L /usr/X11R6/lib -lX11 ../../libcsound.a -lsndfile -lpthread
+LIBS = -I ../../H -lfltk -L /usr/X11R6/lib -lX11 ../../libcsound64.a -lsndfile -lpthread
 CXX = c++
 
 wins5:	main.cxx winsound.cxx winsound.h
