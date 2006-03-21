@@ -3,13 +3,14 @@
 #include "winsound.h"
 #include <FL/Fl_File_Chooser.H>
 int do_exit;
-int do_perf;
+int do_perf, do_util;
 int do_load;
 Fl_Double_Window *ew;
 Fl_Double_Window *xw;
 Fl_Double_Window *uw;
 #include <FL/Fl_Pixmap.H>
 #include "winsound.xpm"
+void cs_util_sndinfo(void);
 
 Fl_File_Input *orchname=(Fl_File_Input *)0;
 
@@ -317,6 +318,8 @@ Fl_Round_Button *util_opv=(Fl_Round_Button *)0;
 static void cb_OK(Fl_Button*, void*) {
   // Do the thing
 uw->hide();
+do_util = 0;
+if (util_info->value()) cs_util_sndinfo();
 }
 
 static void cb_Cancel1(Fl_Button*, void*) {
@@ -358,7 +361,6 @@ Fl_Double_Window* make_utils() {
     { Fl_Button* o = new Fl_Button(25, 260, 60, 25, "OK");
       o->color((Fl_Color)3);
       o->callback((Fl_Callback*)cb_OK);
-      o->deactivate();
     }
     { Fl_Button* o = new Fl_Button(130, 260, 55, 25, "Cancel");
       o->color((Fl_Color)1);
@@ -565,6 +567,43 @@ Fl_Double_Window* make_environ() {
     { Fl_Button* o = new Fl_Button(290, 145, 25, 25, "A");
       o->color((Fl_Color)222);
       o->callback((Fl_Callback*)cb_A);
+    }
+    o->end();
+  }
+  return w;
+}
+
+Fl_File_Input *sndinfo_file=(Fl_File_Input *)0;
+
+static void cb_OK3(Fl_Return_Button*, void*) {
+  do_util = 1;
+}
+
+static void cb_Cancel4(Fl_Button*, void*) {
+  do_util = -1;
+}
+
+static void cb_Browse(Fl_Button*, void*) {
+  sndinfo_file->value(fl_file_chooser("SndInfo", "*.{wav,aif,raw,irc}", NULL));
+}
+
+Fl_Double_Window* make_info() {
+  Fl_Double_Window* w;
+  { Fl_Double_Window* o = new Fl_Double_Window(260, 80, "Sndinfo");
+    w = o;
+    { Fl_File_Input* o = sndinfo_file = new Fl_File_Input(0, 0, 260, 30);
+      sndinfo_file->value(output->value());
+    }
+    { Fl_Return_Button* o = new Fl_Return_Button(10, 40, 55, 25, "OK");
+      o->color((Fl_Color)3);
+      o->callback((Fl_Callback*)cb_OK3);
+    }
+    { Fl_Button* o = new Fl_Button(105, 40, 50, 25, "Cancel");
+      o->color((Fl_Color)1);
+      o->callback((Fl_Callback*)cb_Cancel4);
+    }
+    { Fl_Button* o = new Fl_Button(205, 40, 50, 25, "Browse");
+      o->callback((Fl_Callback*)cb_Browse);
     }
     o->end();
   }
