@@ -69,7 +69,8 @@ protected:
   std::vector<VstMidiEvent> vstMidiEventsBuffer;
   VstEvents *vstEventsPointer;
   int currentEventIndex;
-  double vstSr;
+  double vstFramesPerSecond;
+  double vstSecondsPerFrame;
   double vstCurrentBlockStart;
   double vstPriorBlockStart;
   double vstStartOffset;
