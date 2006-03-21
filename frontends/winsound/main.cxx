@@ -5,13 +5,15 @@ extern Fl_Double_Window *ew, *xw, *uw;
 CSOUND *csound;
 int cs_compile_run(void);
 
-int main(void)
+int main(int argc, char **argv)
 {
     Fl_Double_Window* mw = make_mainwindow();
     ew = make_environ();
     uw = make_utils();
     xw = make_extras();
+    csoundInitialize(&argc, &argv, CSOUNDINIT_NO_SIGNAL_HANDLER);
     csound = csoundCreate(NULL);
+    csoundPreCompile(csound);
     mw->show();
     do_exit = 0;
     while (!do_exit) {
@@ -23,7 +25,7 @@ int main(void)
 
 int cs_compile_run(void)
 {
-    int res;
+    int res=0;
 
     if (do_load) {
       int argc = 1;
@@ -101,7 +103,7 @@ int cs_compile_run(void)
       res = csoundCompile(csound, nxt-1, argv);
     }
     else 
-      res = csoundScoreRewind(csound);
+      csoundRewindScore(csound);
 
     if (res==0) csoundPerform(csound);
     csoundCleanup(csound);
