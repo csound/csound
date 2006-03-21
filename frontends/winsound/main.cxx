@@ -109,3 +109,19 @@ int cs_compile_run(void)
     if (res==0) csoundPerform(csound);
     csoundCleanup(csound);
 }
+
+void cs_util_sndinfo(void)
+{
+    Fl_Double_Window *siw = make_info();
+    char *argv[2];
+    siw->show();
+    while (do_util==0) Fl::wait();
+    siw->hide();
+    if (do_util>0) {
+      argv[0] = "sndinfo";
+      argv[1] = (char *)sndinfo_file->value();
+      csoundPreCompile(csound);
+      csoundRunUtility(csound, "sndinfo", 2, argv);
+      csoundReset(csound);
+    }
+}

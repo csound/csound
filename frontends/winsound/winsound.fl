@@ -10,7 +10,7 @@ decl {\#include <FL/Fl_File_Chooser.H>} {}
 decl {int do_exit;} {public
 } 
 
-decl {int do_perf;} {public
+decl {int do_perf, do_util;} {public
 } 
 
 decl {int do_load;} {public
@@ -29,7 +29,10 @@ decl {\#include <FL/Fl_Pixmap.H>} {}
 
 decl {\#include "winsound.xpm"} {} 
 
-decl {\#include "csound.h"} {selected public
+decl {\#include "csound.h"} {public
+} 
+
+decl {void cs_util_sndinfo(void);} {public
 } 
 
 Function {make_mainwindow()} {open
@@ -216,7 +219,7 @@ Function {make_utils()} {open
 } {
   Fl_Window {} {
     label Utilities open
-    xywh {433 391 215 300} type Double visible
+    xywh {602 235 215 300} type Double visible
   } {
     Fl_Round_Button util_het {
       label {Hetrodyne Analysis}
@@ -258,8 +261,10 @@ Function {make_utils()} {open
     Fl_Button {} {
       label OK
       callback {// Do the thing
-uw->hide();}
-      xywh {25 260 60 25} color 3 deactivate
+uw->hide();
+do_util = 0;
+if (util_info->value()) cs_util_sndinfo();}
+      xywh {25 260 60 25} color 3
     }
     Fl_Button {} {
       label Cancel
@@ -429,6 +434,34 @@ ew->hide();}
       label A
       callback {sa->value(fl_dir_chooser("SADIR", NULL));}
       xywh {290 145 25 25} color 222
+    }
+  }
+} 
+
+Function {make_info()} {open
+} {
+  Fl_Window {} {
+    label Sndinfo open
+    xywh {314 540 260 80} type Double visible
+  } {
+    Fl_File_Input sndinfo_file {
+      xywh {0 0 260 30}
+      code0 {sndinfo_file->value(output->value());}
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {do_util = 1;}
+      xywh {10 40 55 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {do_util = -1;}
+      xywh {105 40 50 25} color 1
+    }
+    Fl_Button {} {
+      label Browse
+      callback {sndinfo_file->value(fl_file_chooser("SndInfo", "*.{wav,aif,raw,irc}", NULL));} selected
+      xywh {205 40 50 25}
     }
   }
 } 
