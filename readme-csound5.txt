@@ -30,8 +30,9 @@ or go to http://csounds.com or http://sourceforge.net/projects/csound.
 
 HELP
 
-This version of Csound is programmable in Python, Java, and LISP, and scores can be
-generated in these languages. See the Csound documentation for more information.
+This version of Csound is programmable in Python, Java, and LISP, and scores
+can be generated in these languages. See the Csound documentation for more
+information.
 
 CONTRIBUTORS
 
@@ -64,7 +65,7 @@ Perry Cook
 Peter Neubäcker
 Peter Nix
 Rasmus Ekman
-esRichard Dobson
+Richard Dobson
 Richard Karpen
 Rob Shaw
 Robin Whittle
