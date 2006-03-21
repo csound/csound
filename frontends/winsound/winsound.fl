@@ -29,11 +29,14 @@ decl {\#include <FL/Fl_Pixmap.H>} {}
 
 decl {\#include "winsound.xpm"} {} 
 
+decl {\#include "csound.h"} {selected public
+} 
+
 Function {make_mainwindow()} {open
 } {
   Fl_Window {} {
     label WinSound open
-    xywh {847 431 465 535} type Double visible
+    xywh {558 244 465 535} type Double visible
   } {
     Fl_File_Input orchname {
       label {Orchestra           }
@@ -50,7 +53,7 @@ Function {make_mainwindow()} {open
     }
     Fl_Check_Button DAC {
       label DAC
-      callback {if (DAC->value()) output->value("dac");} selected
+      callback {if (DAC->value()) output->value("dac");}
       xywh {405 120 55 30} down_box DOWN_BOX labeltype EMBOSSED_LABEL
     }
     Fl_Group {} {
@@ -142,7 +145,7 @@ size_f->value(1);}
         xywh {205 335 25 25} down_box ROUND_DOWN_BOX
       }
     }
-    Fl_Check_Button peak_chunks {
+    Fl_Check_Button mK {
       label {Peak Chunks}
       xywh {40 350 110 25} down_box DOWN_BOX
     }
@@ -213,7 +216,7 @@ Function {make_utils()} {open
 } {
   Fl_Window {} {
     label Utilities open
-    xywh {438 907 215 300} type Double visible
+    xywh {433 391 215 300} type Double visible
   } {
     Fl_Round_Button util_het {
       label {Hetrodyne Analysis}
@@ -256,7 +259,7 @@ Function {make_utils()} {open
       label OK
       callback {// Do the thing
 uw->hide();}
-      xywh {25 260 60 25} color 3
+      xywh {25 260 60 25} color 3 deactivate
     }
     Fl_Button {} {
       label Cancel
@@ -270,7 +273,7 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {1016 791 400 340} type Double visible
+    xywh {516 116 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
@@ -338,7 +341,7 @@ Function {make_extras()} {open
       label {Keep Sorted Score}
       xywh {20 275 25 25} down_box DOWN_BOX
     }
-    Fl_Check_Button mK {
+    Fl_Check_Button mZ {
       label {Dither Output}
       xywh {215 280 25 25} down_box DOWN_BOX
     }
@@ -370,27 +373,35 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {1070 111 325 230} type Double visible
+    xywh {450 50 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
       xywh {95 15 185 25}
+      code0 {op->value(getenv("OPCODEDIR"));}
     }
     Fl_File_Input ss {
       label SSDIR
       xywh {95 60 185 25}
+      code0 {ss->value(getenv("SSDIR"));}
     }
     Fl_File_Input sf {
       label SFDIR
       xywh {95 105 185 25}
+      code0 {sf->value(getenv("SFDIR"));}
     }
     Fl_File_Input sa {
       label SADIR
       xywh {95 145 185 25}
+      code0 {sa->value(getenv("SADIR"));}
     }
     Fl_Button {} {
       label OK
       callback {// Transfer vales!!
+csoundSetGlobalEnv("OPCODEDIR",(char*) op->value());
+csoundSetGlobalEnv("SSDIR", (char*) ss->value());
+csoundSetGlobalEnv("SFDIR", (char*) sf->value());
+csoundSetGlobalEnv("SADIR", (char*) sa->value());
 ew->hide();}
       xywh {50 185 75 30} color 3
     }
@@ -412,7 +423,7 @@ ew->hide();}
     Fl_Button {} {
       label F
       callback {sf->value(fl_dir_chooser("SFDIR", NULL));}
-      xywh {290 110 25 25} color 222
+      xywh {290 105 25 25} color 222
     }
     Fl_Button {} {
       label A

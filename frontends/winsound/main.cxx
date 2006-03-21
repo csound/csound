@@ -95,6 +95,7 @@ int cs_compile_run(void)
         argv[nxt++] = b7;
       }
       if (mN->value()) argv[nxt++] = "-N";
+      if (mZ->value()) argv[nxt++] = "-Z";
 
       for (n=1; n<nxt; n++)
         printf("arg %d: %s\n", n, argv[n]);
