@@ -10,6 +10,7 @@ extern int do_load;
 extern Fl_Double_Window *ew;
 extern Fl_Double_Window *xw;
 extern Fl_Double_Window *uw;
+#include "csound.h"
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_File_Input.H>
 extern Fl_File_Input *orchname;
@@ -28,7 +29,7 @@ extern Fl_Round_Button *size_16;
 extern Fl_Round_Button *size_24;
 extern Fl_Round_Button *size_32;
 extern Fl_Round_Button *size_f;
-extern Fl_Check_Button *peak_chunks;
+extern Fl_Check_Button *mK;
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Output.H>
 extern Fl_Button *icon;
@@ -59,7 +60,7 @@ extern Fl_Value_Input *mb;
 extern Fl_File_Input *mM;
 extern Fl_File_Input *mi;
 extern Fl_Check_Button *mSave;
-extern Fl_Check_Button *mK;
+extern Fl_Check_Button *mZ;
 Fl_Double_Window* make_extras();
 extern Fl_File_Input *op;
 extern Fl_File_Input *ss;
