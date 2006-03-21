@@ -11,6 +11,7 @@ Fl_Double_Window *uw;
 #include <FL/Fl_Pixmap.H>
 #include "winsound.xpm"
 void cs_util_sndinfo(void);
+void cs_util_opc(int full);
 
 Fl_File_Input *orchname=(Fl_File_Input *)0;
 
@@ -159,20 +160,20 @@ Fl_Double_Window* make_mainwindow() {
   Fl_Double_Window* w;
   { Fl_Double_Window* o = new Fl_Double_Window(465, 535, "WinSound");
     w = o;
-    { Fl_File_Input* o = orchname = new Fl_File_Input(130, 15, 270, 30, "Orchestra           ");
+    { Fl_File_Input* o = orchname = new Fl_File_Input(130, 15, 310, 30, "Orchestra           ");
       o->tooltip("File for csd or orchestra file");
       o->labeltype(FL_EMBOSSED_LABEL);
       o->callback((Fl_Callback*)cb_orchname);
     }
-    { Fl_File_Input* o = scorename = new Fl_File_Input(130, 65, 270, 30, "Score           ");
+    { Fl_File_Input* o = scorename = new Fl_File_Input(130, 65, 310, 30, "Score           ");
       o->tooltip("File for csd or orchestra file");
       o->labeltype(FL_EMBOSSED_LABEL);
     }
-    { Fl_File_Input* o = output = new Fl_File_Input(130, 120, 270, 30, "Output File           ");
+    { Fl_File_Input* o = output = new Fl_File_Input(130, 120, 310, 30, "Output File           ");
       o->tooltip("File for csd or orchestra file");
       o->labeltype(FL_EMBOSSED_LABEL);
     }
-    { Fl_Check_Button* o = DAC = new Fl_Check_Button(405, 120, 55, 30, "DAC");
+    { Fl_Check_Button* o = DAC = new Fl_Check_Button(385, 150, 55, 30, "DAC");
       o->down_box(FL_DOWN_BOX);
       o->labeltype(FL_EMBOSSED_LABEL);
       o->callback((Fl_Callback*)cb_DAC);
@@ -299,27 +300,128 @@ Fl_Double_Window* make_mainwindow() {
 
 Fl_Round_Button *util_het=(Fl_Round_Button *)0;
 
+static void cb_util_het(Fl_Round_Button*, void*) {
+  util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);
+}
+
 Fl_Round_Button *util_lpc=(Fl_Round_Button *)0;
+
+static void cb_util_lpc(Fl_Round_Button*, void*) {
+  util_het->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);
+}
 
 Fl_Round_Button *util_pvc=(Fl_Round_Button *)0;
 
+static void cb_util_pvc(Fl_Round_Button*, void*) {
+  util_het->value(0);
+util_lpc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);
+}
+
 Fl_Round_Button *util_cvl=(Fl_Round_Button *)0;
+
+static void cb_util_cvl(Fl_Round_Button*, void*) {
+  util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);
+}
 
 Fl_Round_Button *util_info=(Fl_Round_Button *)0;
 
+static void cb_util_info(Fl_Round_Button*, void*) {
+  util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);
+}
+
 Fl_Round_Button *util_pinfo=(Fl_Round_Button *)0;
 
-Fl_Round_Button *util_denoise=(Fl_Round_Button *)0;
+static void cb_util_pinfo(Fl_Round_Button*, void*) {
+  util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+util_opv->value(0);
+}
+
+Fl_Round_Button *util_dnoise=(Fl_Round_Button *)0;
+
+static void cb_util_dnoise(Fl_Round_Button*, void*) {
+  util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_opc->value(0);
+util_opv->value(0);
+}
 
 Fl_Round_Button *util_opc=(Fl_Round_Button *)0;
 
+static void cb_util_opc(Fl_Round_Button*, void*) {
+  util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opv->value(0);
+}
+
 Fl_Round_Button *util_opv=(Fl_Round_Button *)0;
+
+static void cb_util_opv(Fl_Round_Button*, void*) {
+  util_het->value(0);
+util_lpc->value(0);
+util_pvc->value(0);
+util_cvl->value(0);
+util_info->value(0);
+util_pinfo->value(0);
+util_dnoise->value(0);
+util_opc->value(0);
+}
 
 static void cb_OK(Fl_Button*, void*) {
   // Do the thing
 uw->hide();
 do_util = 0;
 if (util_info->value()) cs_util_sndinfo();
+else if (util_opc->value()) cs_util_opc(0);
+else if (util_opv->value()) cs_util_opc(1);
 }
 
 static void cb_Cancel1(Fl_Button*, void*) {
@@ -332,31 +434,46 @@ Fl_Double_Window* make_utils() {
     w = o;
     { Fl_Round_Button* o = util_het = new Fl_Round_Button(25, 5, 150, 25, "Hetrodyne Analysis");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_het);
+      o->deactivate();
     }
     { Fl_Round_Button* o = util_lpc = new Fl_Round_Button(25, 32, 150, 25, "LPC Analysis");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_lpc);
+      o->deactivate();
     }
-    { Fl_Round_Button* o = util_pvc = new Fl_Round_Button(25, 60, 150, 25, "Phase Vocoding Analysis");
+    { Fl_Round_Button* o = util_pvc = new Fl_Round_Button(25, 60, 185, 25, "Phase Vocoding Analysis");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_pvc);
+      o->deactivate();
     }
-    { Fl_Round_Button* o = util_cvl = new Fl_Round_Button(25, 87, 150, 25, "Convolution Analysis");
+    { Fl_Round_Button* o = util_cvl = new Fl_Round_Button(25, 87, 155, 25, "Convolution Analysis");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_cvl);
+      o->deactivate();
     }
     { Fl_Round_Button* o = util_info = new Fl_Round_Button(25, 115, 150, 25, "Sound File Info");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_info);
       util_info->value(1);
     }
-    { Fl_Round_Button* o = util_pinfo = new Fl_Round_Button(25, 142, 150, 25, "Phase Vocoder File Info");
+    { Fl_Round_Button* o = util_pinfo = new Fl_Round_Button(25, 142, 180, 23, "Phase Vocoder File Info");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_pinfo);
+      o->deactivate();
     }
-    { Fl_Round_Button* o = util_denoise = new Fl_Round_Button(25, 170, 150, 25, "De Noiser");
+    { Fl_Round_Button* o = util_dnoise = new Fl_Round_Button(25, 170, 150, 25, "De Noiser");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_dnoise);
+      o->deactivate();
     }
     { Fl_Round_Button* o = util_opc = new Fl_Round_Button(25, 197, 150, 20, "List Opcodes");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_opc);
     }
     { Fl_Round_Button* o = util_opv = new Fl_Round_Button(25, 220, 150, 25, "Opcode Details");
       o->down_box(FL_ROUND_DOWN_BOX);
+      o->callback((Fl_Callback*)cb_util_opv);
     }
     { Fl_Button* o = new Fl_Button(25, 260, 60, 25, "OK");
       o->color((Fl_Color)3);

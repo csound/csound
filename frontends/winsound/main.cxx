@@ -28,7 +28,6 @@ int cs_compile_run(void)
     int res=0;
 
     if (do_load) {
-      int argc = 1;
       char *argv[100];
       char b1[6], b2[6], b3[6], b4[6], b5[6], b6[6], b7[6];
       int nxt=1;
@@ -124,4 +123,19 @@ void cs_util_sndinfo(void)
       csoundRunUtility(csound, "sndinfo", 2, argv);
       csoundReset(csound);
     }
+}
+
+extern "C" {
+  void list_opcodes(CSOUND *csound, int level);
+  int csoundLoadExternals(CSOUND *csound);
+  int csoundInitModules(CSOUND *csound);
+}
+
+void cs_util_opc(int full)
+{
+    csoundPreCompile(csound);
+    csoundLoadExternals(csound);
+    if (csoundInitModules(csound) == 0)
+      list_opcodes(csound, full);
+    csoundReset(csound);
 }
