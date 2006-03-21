@@ -184,13 +184,13 @@ int chano_opcode_perf_k(CSOUND *csound, ASSIGN *p)
 
 int chani_opcode_perf_a(CSOUND *csound, ASSIGN *p)
 {
-    int     n = (int) MYFLT2LRND(*(p->a)) * csound->ksmps;
+    int     n = (int) MYFLT2LRND(*(p->a)) * csound->global_ksmps;
 
     if ((unsigned int) n >= (unsigned int) csound->nchania) {
       if (n < 0)
         return csound->PerfError(csound, Str("chani: invalid index"));
       if (chan_realloc(csound, &(csound->chania),
-                       &(csound->nchania), n + csound->ksmps) != 0)
+                       &(csound->nchania), n + csound->global_ksmps) != 0)
         return csound->PerfError(csound,
                                  Str("chani: memory allocation failure"));
     }
@@ -200,13 +200,13 @@ int chani_opcode_perf_a(CSOUND *csound, ASSIGN *p)
 
 int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
 {
-    int     n = (int) MYFLT2LRND(*(p->a)) * csound->ksmps;
+    int     n = (int) MYFLT2LRND(*(p->a)) * csound->global_ksmps;
 
     if ((unsigned int) n >= (unsigned int) csound->nchanoa) {
       if (n < 0)
         return csound->PerfError(csound, Str("chano: invalid index"));
       if (chan_realloc(csound, &(csound->chanoa),
-                       &(csound->nchanoa), n + csound->ksmps) != 0)
+                       &(csound->nchanoa), n + csound->global_ksmps) != 0)
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
     }
