@@ -193,6 +193,9 @@ opts.Add('buildUtilities',
 opts.Add('buildTclcsound',
     "Build Tclcsound frontend (cstclsh, cswish and tclcsound dynamic module). Requires Tcl/Tk headers and libs",
     '0')
+opts.Add('buildWinsound',
+    "Build Winsond frontend. Requires FLTK headers and libs",
+    '0')
 opts.Add('buildInterfaces',
     "Build interface library for Python, JAVA, Lua, C++, and other languages.",
     '1')
@@ -1516,6 +1519,33 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
     zipDependencies.append(Tclcsoundlib)
 else:
     print "CONFIGURATION DECISION: Not building Tclcsound"
+
+if commonEnvironment['buildWinsound'] == '1' and fltkFound:
+    print "CONFIGURATION DECISION: Building Winsound frontend"
+    headers += glob.glob('frontends/winsound/*.hpp')
+    csWinEnvironment = commonEnvironment.Copy()
+    csWinEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+    csWinEnvironment.Append(LIBS = libCsoundLibs)
+    if (commonEnvironment['noFLTKThreads'] == '1'):
+        csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
+    if getPlatform() == 'linux':
+        csWinEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+        csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    elif getPlatform() == 'mingw':
+        csWinEnvironment.Append(LIBS = ['fltk'])
+        if (commonEnvironment['MSVC'] == '0'):
+            csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+        csWinEnvironment.Append(LIBS = csoundWindowsLibraries)
+    elif getPlatform() == 'darwin':
+        csWinEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
+        csWinEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework CoreAudio -framework CoreMidi
+            -framework ApplicationServices
+        '''))
+    csWinEnvironment.Program('wins5',
+        ['frontends/winsound/main.cxx', 'frontends/winsound/winsound.cxx'])
+else:
+    print "CONFIGURATION DECISION: Not building Wincsound"
 
 if (getPlatform() == 'darwin' and commonEnvironment['buildOSXGUI'] == '1'):
     print "CONFIGURATION DECISION: building OSX GUI frontend"
