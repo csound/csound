@@ -46,10 +46,11 @@
 #define LF        '\n'
 
 typedef struct {
-    char    *Linebuf, *Linep, *Linebufend;
+    char    *Linep, *Linebufend;
     FILE    *Linecons;
     int     stdmode;
     EVTBLK  prve;
+    char    Linebuf[LBUFSIZ];
 } LINEVENT_GLOBALS;
 
 static void sensLine(CSOUND *csound, void *userData);
@@ -62,7 +63,6 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     csound->lineventGlobals = (LINEVENT_GLOBALS*)
                                csound->Calloc(csound, sizeof(LINEVENT_GLOBALS));
     ST(prve).opcod = ' ';
-    ST(Linebuf) = mcalloc(csound, LBUFSIZ);
     ST(Linebufend) = ST(Linebuf) + LBUFSIZ;
     ST(Linep) = ST(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
@@ -140,8 +140,6 @@ void RTclose(CSOUND *csound)
   #endif
     }
 #endif      /* !(mills_macintosh || SYMANTEC) */
-    if (ST(Linebuf) != NULL)
-      mfree(csound, ST(Linebuf));
     csound->Free(csound, csound->lineventGlobals);
     csound->lineventGlobals = NULL;
 }
@@ -150,10 +148,10 @@ void RTclose(CSOUND *csound)
 
 static inline int containsLF(char *cp, char *endp)
 {
-    do {
+    while (cp < endp) {
       if (*cp++ == LF)
         return 1;
-    } while (cp < endp);
+    }
     return 0;
 }
 
@@ -171,7 +169,6 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound)
     }
     csound->lineventGlobals =
         (LINEVENT_GLOBALS*) mcalloc(csound, sizeof(LINEVENT_GLOBALS));
-    ST(Linebuf) = mcalloc(csound, LBUFSIZ);
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     ST(prve).opcod = ' ';
     ST(Linebufend) = ST(Linebuf) + LBUFSIZ;
@@ -210,11 +207,8 @@ PUBLIC void csoundInputMessage(CSOUND *csound, const char *message)
 
 static void sensLine(CSOUND *csound, void *userData)
 {
-    int     c;
-    char    *cp;
-    int     n, pcnt;
-    MYFLT   *fp;
-    char    *Linend;
+    char    *cp, *Linestart, *Linend;
+    int     c, n, pcnt;
 
     while (1) {
       Linend = ST(Linep);
@@ -229,22 +223,17 @@ static void sensLine(CSOUND *csound, void *userData)
       }
       if (Linend <= ST(Linebuf))
         break;
-      if (!containsLF(ST(Linebuf), Linend)) {
-        if (Linend == ST(Linep))
-          break;
-        ST(Linep) = Linend;             /* else just accum the chars */
-      }
-      else {
+      Linestart = ST(Linebuf);
+      cp = Linestart;
+      while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
         char    sstrp[SSTRSIZ];
         e.strarg = NULL;
-        cp = ST(Linebuf);
-        while ((c = *cp++) == ' ' || c == '\t') /* skip initial white space */
-          ;
+        c = *cp;
+        while (c == ' ' || c == '\t')   /* skip initial white space */
+          c = *(++cp);
         if (c == LF) {                  /* if null line, bugout     */
-          ST(Linep) = ST(Linebuf);
-          while (cp < Linend)
-            *ST(Linep)++ = *cp++;
+          Linestart = (++cp);
           continue;
         }
         switch (c) {                    /* look for legal opcode    */
@@ -256,89 +245,104 @@ static void sensLine(CSOUND *csound, void *userData)
           e.opcod = c;
           break;
         default:
-          csound->Message(csound, Str("unknown opcode %c\n"), c);
+          csound->ErrorMsg(csound, Str("unknown opcode %c"), c);
           goto Lerr;
         }                                       /* for params that follow:  */
-        for (fp = &(e.p[1]), pcnt = 1; c != LF && pcnt <= PMAX; pcnt++) {
-          char *newcp, *s;
-          while ((c = *cp++) == ' ' || c == '\t') /* skip white space */
-            ;
-          if (c == LF) break;
+        pcnt = 0;
+        do {
+          char  *newcp;
+          do {                                  /* skip white space */
+            c = *(++cp);
+          } while (c == ' ' || c == '\t');
+          if (c == LF)
+            break;
+          pcnt++;
           if (c == '"') {                       /* if find character string */
             if (pcnt != 5 && (pcnt > 1 || e.opcod != 'i')) {
               /* (must be p5) */
-              csound->Message(csound, Str("misplaced string\n"));
+              csound->ErrorMsg(csound, Str("misplaced string"));
               goto Lerr;
             }
-            e.strarg = s = &(sstrp[0]);
-            s[0] = '\0';
-            while ((c = *cp++) != '"') {
+            n = 0;
+            while ((c = *(++cp)) != '"') {
               if (c == LF) {
-                csound->Message(csound, Str("unmatched quotes\n"));
-                cp--;
+                csound->ErrorMsg(csound, Str("unmatched quotes"));
                 goto Lerr;
               }
-              *s++ = c;                         /*   sav in private strbuf */
+              sstrp[n++] = c;                   /*   save in private strbuf */
+              if (n >= SSTRSIZ) {
+                csound->ErrorMsg(csound, Str("string p-field is too long"));
+                goto Lerr;
+              }
             }
-            *s = '\0';
-            *fp++ = SSTRCOD;                    /*   & store coded float   */
+            sstrp[n] = '\0';
+            e.strarg = &(sstrp[0]);
+            e.p[pcnt] = SSTRCOD;                /*   & store coded float   */
             continue;
           }
           if (!(isdigit(c) || c == '+' || c == '-' || c == '.'))
             goto Lerr;
           if (c == '.' &&                       /*  if lone dot,       */
-              ((n = *cp) == ' ' || n == '\t' || n == LF)) {
+              ((n = cp[1]) == ' ' || n == '\t' || n == LF)) {
             if (e.opcod != 'i' ||
                 ST(prve).opcod != 'i' || pcnt > ST(prve).pcnt) {
-              csound->Message(csound, Str("dot carry has no reference\n"));
+              csound->ErrorMsg(csound, Str("dot carry has no reference"));
               goto Lerr;
             }                                   /*        pfld carry   */
-            *fp++ = ST(prve).p[pcnt];
+            e.p[pcnt] = ST(prve).p[pcnt];
+            if (e.p[pcnt] == SSTRCOD) {
+              csound->ErrorMsg(csound, Str("cannot carry string p-field"));
+              goto Lerr;
+            }
             continue;
           }
-          *fp++ = (MYFLT) strtod(cp - 1, &newcp);
-          cp = newcp;
-        }
-        pcnt--;
-        /* do carries for instr data */
-        if (e.opcod == 'i') {
-          /* FIXME: this could be done faster */
-          memcpy(&ST(prve), &e, sizeof(EVTBLK));
-          /* FIXME: how to carry string args ? */
-          ST(prve).strarg = NULL;
-        }
+          e.p[pcnt] = (MYFLT) strtod(cp, &newcp);
+          cp = newcp - 1;
+        } while (pcnt < PMAX);
         if (pcnt < 3 && e.opcod != 'e') {       /* check sufficient pfields */
-          csound->Message(csound, Str("too few pfields\n"));
+          csound->ErrorMsg(csound, Str("too few pfields"));
+          goto Lerr;
+        }
+        if (pcnt > 1 && e.p[2] < FL(0.0)) {
+          csound->ErrorMsg(csound, Str("-L with negative p2 illegal"));
           goto Lerr;
         }
         e.pcnt = pcnt;                          /*   &  record pfld count    */
+        if (e.opcod == 'i') {                   /* do carries for instr data */
+          memcpy((void*) &ST(prve), (void*) &e,
+                 (size_t) ((char*) &(e.p[pcnt + 1]) - (char*) &e));
+          /* FIXME: how to carry string args ? */
+          ST(prve).strarg = NULL;
+        }
         if (pcnt >= PMAX && c != LF) {
-          csound->Message(csound, Str("too many pfields\n"));
-          while (*cp++ != LF)                   /* flush any excess data     */
+          csound->ErrorMsg(csound, Str("too many pfields"));
+          while (*(++cp) != LF)                 /* flush any excess data     */
             ;
         }
-        ST(Linep) = ST(Linebuf);
-        while (cp < Linend)                     /* copy remaining data to    */
-          *ST(Linep)++ = *cp++;                 /*     beginning of Linebuf  */
-        if (e.p[2] < FL(0.0)) {
-          csound->Message(csound, Str("-L with negative p2 illegal\n"));
-          goto Lerr;
-        }
+        Linestart = (++cp);
         insert_score_event(csound, &e, csound->curTime);
-      }
-      continue;
-
+        continue;
  Lerr:
-      n = cp - ST(Linebuf) - 1;                 /* error position */
-      while (*cp++ != LF);                      /* go on to LF    */
-      *(cp - 1) = '\0';                         /*  & insert NULL */
-      csound->Message(csound, Str("illegal RT scoreline:\n%s\n"), ST(Linebuf));
-      while (n--)
-        csound->Message(csound, " ");
-      csound->Message(csound, "^\n");           /* mark the error */
-      ST(Linep) = ST(Linebuf);
-      while (cp < Linend)
-        *ST(Linep)++ = *cp++;                   /* mov rem data forward */
+        n = cp - Linestart;                     /* error position */
+        while (*cp != LF)
+          cp++;                                 /* go on to LF    */
+        *cp = '\0';                             /*  & insert NULL */
+        csound->ErrorMsg(csound, Str("illegal RT scoreline:\n%s\n%*s"),
+                                 Linestart, n + 1, "^");  /* mark the error */
+        Linestart = (++cp);
+      }
+      if (Linestart != &(ST(Linebuf)[0])) {
+        int len = (int) (Linend - Linestart);
+        /* move any remaining characters to the beginning of the buffer */
+        for (n = 0; n < len; n++)
+          ST(Linebuf)[n] = Linestart[n];
+        n = (int) (Linestart - &(ST(Linebuf)[0]));
+        ST(Linep) -= n;
+        Linend -= n;
+      }
+      if (Linend == ST(Linep))      /* return if no more data is available  */
+        break;
+      ST(Linep) = Linend;                       /* accum the chars          */
     }
 }
 
