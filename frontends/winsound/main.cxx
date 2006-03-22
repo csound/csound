@@ -81,9 +81,9 @@ int cs_compile_run(void)
         sprintf(b6, "-t%d", (int)mt->value());
         argv[nxt++] = b6;
       }
-      if (mSave->value()) 
+      if (mSave->value())
         argv[nxt++] = "-t0";
-      
+
       if (strlen(mM->value())>0) {
         argv[nxt++] = "-M";
         argv[nxt++] = (char *)mM->value();
@@ -102,11 +102,13 @@ int cs_compile_run(void)
       csoundReset(csound);
       res = csoundCompile(csound, nxt-1, argv);
     }
-    else 
+    else
       csoundRewindScore(csound);
 
-    if (res==0) csoundPerform(csound);
-    csoundCleanup(csound);
+    if (res == 0)
+      res = csoundPerform(csound);
+    // csoundCleanup(csound);
+    return res;
 }
 
 void cs_util_sndinfo(void)
@@ -125,17 +127,29 @@ void cs_util_sndinfo(void)
     }
 }
 
+#if 0
 extern "C" {
   void list_opcodes(CSOUND *csound, int level);
   int csoundLoadExternals(CSOUND *csound);
   int csoundInitModules(CSOUND *csound);
 }
+#endif
+
+static const char *listOpcodesArgV0[3] = { "csound", "-z", (char*) 0 };
+static const char *listOpcodesArgV1[3] = { "csound", "-z1", (char*) 0 };
 
 void cs_util_opc(int full)
 {
+#if 0
     csoundPreCompile(csound);
     csoundLoadExternals(csound);
     if (csoundInitModules(csound) == 0)
       list_opcodes(csound, full);
     csoundReset(csound);
+#endif
+    csoundPreCompile(csound);
+    csoundCompile(csound, 2, (full ? (char**) &(listOpcodesArgV1[0])
+                                     : (char**) &(listOpcodesArgV0[0])));
+    csoundReset(csound);
 }
+
