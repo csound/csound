@@ -1,7 +1,7 @@
 /*
     cs_glue.cpp:
 
-    Copyright (C) 2005 Istvan Varga
+    Copyright (C) 2005, 2006 Istvan Varga
 
     This file is part of Csound.
 
@@ -35,6 +35,7 @@ extern "C" {
   };
 
   struct csMsgBuffer {
+    void        *threadLock;
     csMsgStruct *firstMsg;
     csMsgStruct *lastMsg;
     int         msgCnt;
@@ -70,6 +71,7 @@ extern "C" {
     if (!toStdOut)
       nBytes += (size_t) 16384;
     pp = (csMsgBuffer*) malloc(nBytes);
+    pp->threadLock = csoundCreateThreadLock();
     pp->firstMsg = (csMsgStruct*) 0;
     pp->lastMsg = (csMsgStruct*) 0;
     pp->msgCnt = 0;
@@ -93,9 +95,15 @@ extern "C" {
   const char *csoundGetFirstMessage(CSOUND *csound)
   {
     csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
-    if (pp && pp->firstMsg)
-      return &(pp->firstMsg->s[0]);
-    return (char*) 0;
+    char        *msg = (char*) 0;
+
+    if (pp && pp->msgCnt) {
+      csoundWaitThreadLockNoTimeout(pp->threadLock);
+      if (pp->firstMsg)
+        msg = &(pp->firstMsg->s[0]);
+      csoundNotifyThreadLock(pp->threadLock);
+    }
+    return msg;
   }
 
   /**
@@ -106,9 +114,15 @@ extern "C" {
   int csoundGetFirstMessageAttr(CSOUND *csound)
   {
     csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
-    if (pp && pp->firstMsg)
-      return pp->firstMsg->attr;
-    return 0;
+    int         attr = 0;
+
+    if (pp && pp->msgCnt) {
+      csoundWaitThreadLockNoTimeout(pp->threadLock);
+      if (pp->firstMsg)
+        attr = pp->firstMsg->attr;
+      csoundNotifyThreadLock(pp->threadLock);
+    }
+    return attr;
   }
 
   /**
@@ -118,13 +132,20 @@ extern "C" {
   void csoundPopFirstMessage(CSOUND *csound)
   {
     csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
-    if (pp && pp->firstMsg) {
-      csMsgStruct *tmp = pp->firstMsg;
-      pp->firstMsg = tmp->nxt;
-      pp->msgCnt--;
-      if (!pp->firstMsg)
-        pp->lastMsg = (csMsgStruct*) 0;
-      free((void*) tmp);
+
+    if (pp) {
+      csMsgStruct *tmp;
+      csoundWaitThreadLockNoTimeout(pp->threadLock);
+      tmp = pp->firstMsg;
+      if (tmp) {
+        pp->firstMsg = tmp->nxt;
+        pp->msgCnt--;
+        if (!pp->firstMsg)
+          pp->lastMsg = (csMsgStruct*) 0;
+      }
+      csoundNotifyThreadLock(pp->threadLock);
+      if (tmp)
+        free((void*) tmp);
     }
   }
 
@@ -135,9 +156,14 @@ extern "C" {
   int csoundGetMessageCnt(CSOUND *csound)
   {
     csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
-    if (pp)
-      return pp->msgCnt;
-    return 0;
+    int         cnt = 0;
+
+    if (pp) {
+      csoundWaitThreadLockNoTimeout(pp->threadLock);
+      cnt = pp->msgCnt;
+      csoundNotifyThreadLock(pp->threadLock);
+    }
+    return cnt;
   }
 
   /**
@@ -147,17 +173,14 @@ extern "C" {
   void csoundDestroyMessageBuffer(CSOUND *csound)
   {
     csMsgBuffer *pp = (csMsgBuffer*) csoundGetHostData(csound);
+
     if (!pp)
       return;
-    while (pp->firstMsg) {
-      csMsgStruct *tmp = pp->firstMsg;
-      pp->firstMsg = tmp->nxt;
-      pp->msgCnt--;
-      if (!pp->firstMsg)
-        pp->lastMsg = (csMsgStruct*) 0;
-      free((void*) tmp);
-    }
+    while (csoundGetMessageCnt(csound) > 0)
+      csoundPopFirstMessage(csound);
     csoundSetHostData(csound, (void*) 0);
+    csoundNotifyThreadLock(pp->threadLock);
+    csoundDestroyThreadLock(pp->threadLock);
     free((void*) pp);
   }
 
@@ -168,8 +191,10 @@ extern "C" {
     csMsgStruct *p;
     int         len;
 
+    csoundWaitThreadLockNoTimeout(pp->threadLock);
     len = vsprintf(pp->buf, fmt, args);         // FIXME: this can overflow
     if ((unsigned int) len >= (unsigned int) 16384) {
+      csoundNotifyThreadLock(pp->threadLock);
       fprintf(stderr, "csound: internal error: message buffer overflow\n");
       exit(-1);
     }
@@ -183,6 +208,7 @@ extern "C" {
       pp->lastMsg->nxt = p;
     pp->lastMsg = p;
     pp->msgCnt++;
+    csoundNotifyThreadLock(pp->threadLock);
   }
 
   static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
@@ -205,12 +231,14 @@ extern "C" {
     p->nxt = (csMsgStruct*) 0;
     p->attr = attr;
     vsprintf(&(p->s[0]), fmt, args);
+    csoundWaitThreadLockNoTimeout(pp->threadLock);
     if (pp->firstMsg == (csMsgStruct*) 0)
       pp->firstMsg = p;
     else
       pp->lastMsg->nxt = p;
     pp->lastMsg = p;
     pp->msgCnt++;
+    csoundNotifyThreadLock(pp->threadLock);
   }
 
 }       // extern "C"
@@ -899,6 +927,34 @@ void CsoundCallbackWrapper::SetYieldCallback()
     csoundSetYieldCallback(csound_, YieldCallback_wrapper);
 }
 
+void CsoundCallbackWrapper::SetMidiInputCallback(CsoundArgVList *argv)
+{
+    csoundSetExternalMidiInOpenCallback(csound_, midiInOpenCallback);
+    csoundSetExternalMidiReadCallback(csound_, midiInReadCallback);
+    csoundSetExternalMidiInCloseCallback(csound_, midiInCloseCallback);
+    if (argv != (CsoundArgVList*) 0) {
+      argv->Append("-+rtmidi=null");
+      argv->Append("-M0");
+    }
+    csoundMessage(csound_,
+                  "rtmidi: CsoundCallbackWrapper::MidiInputCallback() "
+                  "enabled\n");
+}
+
+void CsoundCallbackWrapper::SetMidiOutputCallback(CsoundArgVList *argv)
+{
+    csoundSetExternalMidiOutOpenCallback(csound_, midiOutOpenCallback);
+    csoundSetExternalMidiWriteCallback(csound_, midiOutWriteCallback);
+    csoundSetExternalMidiOutCloseCallback(csound_, midiOutCloseCallback);
+    if (argv != (CsoundArgVList*) 0) {
+      argv->Append("-+rtmidi=null");
+      argv->Append("-Q0");
+    }
+    csoundMessage(csound_,
+                  "rtmidi: CsoundCallbackWrapper::MidiOutputCallback() "
+                  "enabled\n");
+}
+
 CsoundCallbackWrapper::CsoundCallbackWrapper(Csound *cs)
 {
     csound_ = cs->GetCsound();
@@ -909,5 +965,582 @@ CsoundCallbackWrapper::CsoundCallbackWrapper(CSOUND *cs)
 {
     csound_ = cs;
     csoundSetHostData(cs, (void*) this);
+}
+
+int CsoundCallbackWrapper::midiInOpenCallback(CSOUND *csound, void **userData,
+                                              const char *devName)
+{
+    (void) devName;
+    (*userData) = csoundGetHostData(csound);
+    return 0;
+}
+
+int CsoundCallbackWrapper::midiInReadCallback(CSOUND *csound, void *userData,
+                                              unsigned char *buf, int nBytes)
+{
+    CsoundMidiInputBuffer   buf_(buf, nBytes);
+    int                     bytesRead;
+
+    (void) csound;
+    ((CsoundCallbackWrapper*) userData)->MidiInputCallback(&buf_);
+    bytesRead = buf_.bufBytes;
+    return bytesRead;
+}
+
+int CsoundCallbackWrapper::midiInCloseCallback(CSOUND *csound, void *userData)
+{
+    (void) csound;
+    (void) userData;
+    return 0;
+}
+
+int CsoundCallbackWrapper::midiOutOpenCallback(CSOUND *csound, void **userData,
+                                               const char *devName)
+{
+    (void) devName;
+    (*userData) = csoundGetHostData(csound);
+    return 0;
+}
+
+int CsoundCallbackWrapper::midiOutWriteCallback(CSOUND *csound, void *userData,
+                                                const unsigned char *buf,
+                                                int nBytes)
+{
+    CsoundMidiOutputBuffer  buf_((unsigned char*) buf, nBytes);
+    int                     bytesWritten;
+
+    (void) csound;
+    buf_.bufBytes = nBytes;
+    ((CsoundCallbackWrapper*) userData)->MidiOutputCallback(&buf_);
+    bytesWritten = nBytes - buf_.bufBytes;
+    return bytesWritten;
+}
+
+int CsoundCallbackWrapper::midiOutCloseCallback(CSOUND *csound, void *userData)
+{
+    (void) csound;
+    (void) userData;
+    return 0;
+}
+
+// ----------------------------------------------------------------------------
+
+static const unsigned char midiMessageByteCnt[32] = {
+    0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,
+    3, 3, 3, 3,  3, 3, 3, 3,  2, 2, 2, 2,  3, 3, 0, 1
+};
+
+CsoundMidiInputBuffer::CsoundMidiInputBuffer(unsigned char *buf, int bufSize)
+{
+    this->buf = buf;
+    threadLock = csoundCreateThreadLock();
+    bufReadPos = 0;
+    bufWritePos = 0;
+    bufBytes = 0;
+    this->bufSize = bufSize;
+}
+
+CsoundMidiInputBuffer::~CsoundMidiInputBuffer()
+{
+    buf = (unsigned char*) 0;
+    csoundDestroyThreadLock(threadLock);
+    threadLock = (void*) 0;
+}
+
+/**
+ * Sends a MIDI message, 'msg' is calculated as follows:
+ *   STATUS + DATA1 * 256 + DATA2 * 65536
+ */
+
+void CsoundMidiInputBuffer::SendMessage(int msg)
+{
+    int   nBytes = (int) midiMessageByteCnt[(msg & (int) 0xF8) >> 3];
+
+    if (!nBytes)
+      return;
+    csoundWaitThreadLockNoTimeout(threadLock);
+    if ((bufBytes + nBytes) <= bufSize) {
+      buf[bufWritePos] = (unsigned char) msg & (unsigned char) 0xFF;
+      bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
+      bufBytes++;
+      if (nBytes > 1) {
+        buf[bufWritePos] = (unsigned char) (msg >> 8) & (unsigned char) 0x7F;
+        bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
+        bufBytes++;
+        if (nBytes > 2) {
+          buf[bufWritePos] = (unsigned char) (msg >> 16)
+                             & (unsigned char) 0x7F;
+          bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
+          bufBytes++;
+        }
+      }
+    }
+    csoundNotifyThreadLock(threadLock);
+}
+
+/**
+ * Sends a MIDI message; 'channel' should be in the range 1 to 16,
+ * and data1 and data2 should be in the range 0 to 127.
+ */
+
+void CsoundMidiInputBuffer::SendMessage(int status, int channel,
+                                        int data1, int data2)
+{
+    int   nBytes = (int) midiMessageByteCnt[(status & (int) 0xF8) >> 3];
+
+    if (!nBytes)
+      return;
+    csoundWaitThreadLockNoTimeout(threadLock);
+    if ((bufBytes + nBytes) <= bufSize) {
+      unsigned char st = (unsigned char) status & (unsigned char) 0xFF;
+      if (nBytes > 1) {
+        st = (st & (unsigned char) 0xF0)
+             + ((unsigned char) (status + channel - 1) & (unsigned char) 0x0F);
+      }
+      buf[bufWritePos] = st;
+      bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
+      bufBytes++;
+      if (nBytes > 1) {
+        buf[bufWritePos] = (unsigned char) data1 & (unsigned char) 0x7F;
+        bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
+        bufBytes++;
+        if (nBytes > 2) {
+          buf[bufWritePos] = (unsigned char) data2 & (unsigned char) 0x7F;
+          bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
+          bufBytes++;
+        }
+      }
+    }
+    csoundNotifyThreadLock(threadLock);
+}
+
+/**
+ * Sends a note-on message on 'channel' (1 to 16) for 'key' (0 to 127)
+ * with 'velocity' (0 to 127).
+ */
+
+void CsoundMidiInputBuffer::SendNoteOn(int channel, int key, int velocity)
+{
+    SendMessage((int) 0x90, channel, key, velocity);
+}
+
+/**
+ * Sends a note-off message on 'channel' (1 to 16) for 'key' (0 to 127)
+ * with 'velocity' (0 to 127).
+ */
+
+void CsoundMidiInputBuffer::SendNoteOff(int channel, int key, int velocity)
+{
+    SendMessage((int) 0x80, channel, key, velocity);
+}
+
+/**
+ * Sends a note-off message on 'channel' (1 to 16) for 'key',
+ * using a 0x90 status with zero velocity.
+ */
+
+void CsoundMidiInputBuffer::SendNoteOff(int channel, int key)
+{
+    SendMessage((int) 0x90, channel, key, 0);
+}
+
+/**
+ * Sets polyphonic pressure on 'channel' (1 to 16) to 'value' (0 to 127)
+ * for 'key' (0 to 127).
+ */
+
+void CsoundMidiInputBuffer::SendPolyphonicPressure(int channel, int key,
+                                                   int value)
+{
+    SendMessage((int) 0xA0, channel, key, value);
+}
+
+/**
+ * Sets controller 'ctl' (0 to 127) to 'value' (0 to 127)
+ * on 'channel' (1 to 16).
+ */
+
+void CsoundMidiInputBuffer::SendControlChange(int channel, int ctl, int value)
+{
+    SendMessage((int) 0xB0, channel, ctl, value);
+}
+
+/**
+ * Sends program change to 'pgm' (1 to 128) on 'channel' (1 to 16).
+ */
+
+void CsoundMidiInputBuffer::SendProgramChange(int channel, int pgm)
+{
+    SendMessage((int) 0xC0, channel, pgm - 1, 0);
+}
+
+/**
+ * Sets channel pressure to 'value' (0 to 127) on 'channel' (1 to 16).
+ */
+
+void CsoundMidiInputBuffer::SendChannelPressure(int channel, int value)
+{
+    SendMessage((int) 0xD0, channel, value, 0);
+}
+
+/**
+ * Sets pitch bend to 'value' (-8192 to 8191) on 'channel' (1 to 16).
+ */
+
+void CsoundMidiInputBuffer::SendPitchBend(int channel, int value)
+{
+    SendMessage((int) 0xE0, channel,
+                (value + 8192) & (int) 0x7F,
+                ((value + 8192) >> 7) & (int) 0x7F);
+}
+
+/**
+ * Copies at most 'nBytes' bytes of MIDI data from the buffer to 'buf'.
+ * Returns the number of bytes copied.
+ */
+
+int CsoundMidiInputBuffer::GetMidiData(unsigned char *buf, int nBytes)
+{
+    int   i;
+
+    if (!bufBytes)
+      return 0;
+    csoundWaitThreadLockNoTimeout(threadLock);
+    for (i = 0; i < nBytes && bufBytes > 0; i++) {
+      buf[i] = this->buf[bufReadPos];
+      bufReadPos = (bufReadPos < (bufSize - 1) ? bufReadPos + 1 : 0);
+      bufBytes--;
+    }
+    csoundNotifyThreadLock(threadLock);
+    return i;
+}
+
+// ----------------------------------------------------------------------------
+
+/**
+ * The following class allows sending MIDI input messages to a Csound
+ * instance.
+ */
+
+CsoundMidiInputStream::CsoundMidiInputStream(CSOUND *csound)
+    : CsoundMidiInputBuffer(&(buf_[0]), 4096)
+{
+    this->csound = csound;
+}
+
+CsoundMidiInputStream::CsoundMidiInputStream(Csound *csound)
+    : CsoundMidiInputBuffer(&(buf_[0]), 4096)
+{
+    this->csound = csound->GetCsound();
+}
+
+int CsoundMidiInputStream::midiInOpenCallback(CSOUND *csound, void **userData,
+                                              const char *devName)
+{
+    (void) devName;
+    (*userData) = *((void**) csoundQueryGlobalVariable(csound,
+                                                       "__csnd_MidiInObject"));
+    return 0;
+}
+
+int CsoundMidiInputStream::midiInReadCallback(CSOUND *csound, void *userData,
+                                              unsigned char *buf, int nBytes)
+{
+    (void) csound;
+    return ((CsoundMidiInputStream*) userData)->GetMidiData(buf, nBytes);
+}
+
+int CsoundMidiInputStream::midiInCloseCallback(CSOUND *csound, void *userData)
+{
+    (void) csound;
+    (void) userData;
+    return 0;
+}
+
+/**
+ * Enables MIDI input for the associated Csound instance.
+ * Should be called between csoundPreCompile() and csoundCompile().
+ * If 'argv' is not NULL, the command line arguments required for
+ * MIDI input are appended.
+ */
+
+void CsoundMidiInputStream::EnableMidiInput(CsoundArgVList *argv)
+{
+    int     err;
+
+    err = csoundCreateGlobalVariable(csound, "__csnd_MidiInObject",
+                                             sizeof(void*));
+    *((void**) csoundQueryGlobalVariable(csound, "__csnd_MidiInObject")) =
+        (void*) this;
+    csoundSetExternalMidiInOpenCallback(csound, midiInOpenCallback);
+    csoundSetExternalMidiReadCallback(csound, midiInReadCallback);
+    csoundSetExternalMidiInCloseCallback(csound, midiInCloseCallback);
+    if (argv != (CsoundArgVList*) 0) {
+      argv->Append("-+rtmidi=null");
+      argv->Append("-M0");
+    }
+    csoundMessage(csound, "rtmidi: CsoundMidiInputStream enabled\n");
+}
+
+// ----------------------------------------------------------------------------
+
+CsoundMidiOutputBuffer::CsoundMidiOutputBuffer(unsigned char *buf, int bufSize)
+{
+    this->buf = buf;
+    threadLock = csoundCreateThreadLock();
+    bufReadPos = 0;
+    bufWritePos = 0;
+    bufBytes = 0;
+    this->bufSize = bufSize;
+}
+
+CsoundMidiOutputBuffer::~CsoundMidiOutputBuffer()
+{
+    buf = (unsigned char*) 0;
+    csoundDestroyThreadLock(threadLock);
+    threadLock = (void*) 0;
+}
+
+/**
+ * Pops and returns the first message from the buffer, in the following
+ * format:
+ *   STATUS + DATA1 * 256 + DATA2 * 65536
+ * where STATUS also includes the channel number (0 to 15), if any.
+ * The return value is zero if there are no messages.
+ */
+
+int CsoundMidiOutputBuffer::PopMessage()
+{
+    int     msg = 0;
+
+    if (bufBytes) {
+      csoundWaitThreadLockNoTimeout(threadLock);
+      if (bufBytes > 0) {
+        int             nBytes;
+        unsigned char   st;
+
+        st = buf[bufReadPos] & (unsigned char) 0xFF;
+        nBytes = (int) midiMessageByteCnt[(st & (unsigned char) 0xF8) >> 3];
+        if (nBytes > 0 && bufBytes >= nBytes) {
+          bufReadPos = (bufReadPos < (bufSize - 1) ? bufReadPos + 1 : 0);
+          bufBytes--;
+          msg = (int) st;
+          if (nBytes > 1) {
+            msg += ((int) (buf[bufReadPos] & (unsigned char) 0x7F) << 8);
+            bufReadPos = (bufReadPos < (bufSize - 1) ? bufReadPos + 1 : 0);
+            bufBytes--;
+            if (nBytes > 2) {
+              msg += ((int) (buf[bufReadPos] & (unsigned char) 0x7F) << 16);
+              bufReadPos = (bufReadPos < (bufSize - 1) ? bufReadPos + 1 : 0);
+              bufBytes--;
+            }
+          }
+        }
+        else {
+          // invalid MIDI data, discard the rest of the buffer
+          bufReadPos = bufWritePos;
+          bufBytes = 0;
+        }
+      }
+      csoundNotifyThreadLock(threadLock);
+    }
+    return msg;
+}
+
+/**
+ * Returns the status byte for the first message in the buffer, not
+ * including the channel number in the case of channel messages.
+ * The return value is zero if there are no messages.
+ */
+
+int CsoundMidiOutputBuffer::GetStatus()
+{
+    unsigned char   st = (unsigned char) 0;
+
+    if (bufBytes) {
+      csoundWaitThreadLockNoTimeout(threadLock);
+      if (bufBytes > 0) {
+        int   nBytes;
+        st = buf[bufReadPos] & (unsigned char) 0xFF;
+        nBytes = (int) midiMessageByteCnt[(st & (unsigned char) 0xF8) >> 3];
+        if (nBytes <= 0 || bufBytes < nBytes)
+          st = (unsigned char) 0;       // invalid MIDI data
+        if (nBytes > 1)
+          st &= (unsigned char) 0xF0;   // channel msg: remove channel number
+      }
+      csoundNotifyThreadLock(threadLock);
+    }
+    return (int) st;
+}
+
+/**
+ * Returns the channel number (1 to 16) for the first message in the
+ * buffer.  The return value is zero if there are no messages, or the
+ * first message is not a channel message.
+ */
+
+int CsoundMidiOutputBuffer::GetChannel()
+{
+    unsigned char   st = (unsigned char) 0;
+
+    if (bufBytes) {
+      csoundWaitThreadLockNoTimeout(threadLock);
+      if (bufBytes > 0) {
+        int   nBytes;
+        st = buf[bufReadPos] & (unsigned char) 0xFF;
+        nBytes = (int) midiMessageByteCnt[(st & (unsigned char) 0xF8) >> 3];
+        if (nBytes < 2 || bufBytes < nBytes)
+          st = (unsigned char) 0;       // invalid MIDI data, or system message
+        else
+          st = (st & (unsigned char) 0x0F) + (unsigned char) 1;
+      }
+      csoundNotifyThreadLock(threadLock);
+    }
+    return (int) st;
+}
+
+/**
+ * Returns the first data byte (0 to 127) for the first message in the
+ * buffer.  The return value is zero if there are no messages, or the
+ * first message does not have any data bytes.
+ */
+
+int CsoundMidiOutputBuffer::GetData1()
+{
+    unsigned char   st, d1 = (unsigned char) 0;
+
+    if (bufBytes) {
+      csoundWaitThreadLockNoTimeout(threadLock);
+      if (bufBytes > 0) {
+        int   nBytes;
+        st = buf[bufReadPos] & (unsigned char) 0xFF;
+        nBytes = (int) midiMessageByteCnt[(st & (unsigned char) 0xF8) >> 3];
+        if (nBytes >= 2 && bufBytes >= nBytes) {
+          int   pos = bufReadPos;
+          pos = (pos < (bufSize - 1) ? pos + 1 : 0);
+          d1 = buf[pos] & (unsigned char) 0x7F;
+        }
+      }
+      csoundNotifyThreadLock(threadLock);
+    }
+    return (int) d1;
+}
+
+/**
+ * Returns the second data byte (0 to 127) for the first message in the
+ * buffer.  The return value is zero if there are no messages, or the
+ * first message has less than two data bytes.
+ */
+
+int CsoundMidiOutputBuffer::GetData2()
+{
+    unsigned char   st, d2 = (unsigned char) 0;
+
+    if (bufBytes) {
+      csoundWaitThreadLockNoTimeout(threadLock);
+      if (bufBytes > 0) {
+        int   nBytes;
+        st = buf[bufReadPos] & (unsigned char) 0xFF;
+        nBytes = (int) midiMessageByteCnt[(st & (unsigned char) 0xF8) >> 3];
+        if (nBytes >= 3 && bufBytes >= nBytes) {
+          int   pos = bufReadPos;
+          pos = (pos < (bufSize - 1) ? pos + 1 : 0);
+          pos = (pos < (bufSize - 1) ? pos + 1 : 0);
+          d2 = buf[pos] & (unsigned char) 0x7F;
+        }
+      }
+      csoundNotifyThreadLock(threadLock);
+    }
+    return (int) d2;
+}
+
+/**
+ * Copies at most 'nBytes' bytes of MIDI data to the buffer from 'buf'.
+ * Returns the number of bytes copied.
+ */
+
+int CsoundMidiOutputBuffer::SendMidiData(const unsigned char *buf, int nBytes)
+{
+    int   i;
+
+    csoundWaitThreadLockNoTimeout(threadLock);
+    for (i = 0; i < nBytes && bufBytes < bufSize; i++) {
+      this->buf[bufWritePos] = buf[i];
+      bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
+      bufBytes++;
+    }
+    csoundNotifyThreadLock(threadLock);
+    return i;
+}
+
+// ----------------------------------------------------------------------------
+
+/**
+ * The following class allows receiving MIDI output messages
+ * from a Csound instance.
+ */
+
+CsoundMidiOutputStream::CsoundMidiOutputStream(CSOUND *csound)
+    : CsoundMidiOutputBuffer(&(buf_[0]), 4096)
+{
+    this->csound = csound;
+}
+
+CsoundMidiOutputStream::CsoundMidiOutputStream(Csound *csound)
+    : CsoundMidiOutputBuffer(&(buf_[0]), 4096)
+{
+    this->csound = csound->GetCsound();
+}
+
+int CsoundMidiOutputStream::midiOutOpenCallback(CSOUND *csound,
+                                                void **userData,
+                                                const char *devName)
+{
+    (void) devName;
+    (*userData) = *((void**) csoundQueryGlobalVariable(csound,
+                                                       "__csnd_MidiOutObject"));
+    return 0;
+}
+
+int CsoundMidiOutputStream::midiOutWriteCallback(CSOUND *csound,
+                                                 void *userData,
+                                                 const unsigned char *buf,
+                                                 int nBytes)
+{
+    (void) csound;
+    return ((CsoundMidiOutputStream*) userData)->SendMidiData(buf, nBytes);
+}
+
+int CsoundMidiOutputStream::midiOutCloseCallback(CSOUND *csound,
+                                                 void *userData)
+{
+    (void) csound;
+    (void) userData;
+    return 0;
+}
+
+/**
+ * Enables MIDI output for the associated Csound instance.
+ * Should be called between csoundPreCompile() and csoundCompile().
+ * If 'argv' is not NULL, the command line arguments required for
+ * MIDI output are appended.
+ */
+
+void CsoundMidiOutputStream::EnableMidiOutput(CsoundArgVList *argv)
+{
+    int     err;
+
+    err = csoundCreateGlobalVariable(csound, "__csnd_MidiOutObject",
+                                             sizeof(void*));
+    *((void**) csoundQueryGlobalVariable(csound, "__csnd_MidiOutObject")) =
+        (void*) this;
+    csoundSetExternalMidiOutOpenCallback(csound, midiOutOpenCallback);
+    csoundSetExternalMidiWriteCallback(csound, midiOutWriteCallback);
+    csoundSetExternalMidiOutCloseCallback(csound, midiOutCloseCallback);
+    if (argv != (CsoundArgVList*) 0) {
+      argv->Append("-+rtmidi=null");
+      argv->Append("-Q0");
+    }
+    csoundMessage(csound, "rtmidi: CsoundMidiOutputStream enabled\n");
 }
 
