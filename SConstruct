@@ -1549,10 +1549,16 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
             -framework Carbon -framework CoreAudio -framework CoreMidi
             -framework ApplicationServices
         '''))
-    executables.append(
-        csWinEnvironment.Program('winsound',
-            ['frontends/winsound/main.cxx',
-             'frontends/winsound/winsound.cxx']))
+    winsoundFL = 'frontends/winsound/winsound.fl'
+    winsoundSrc = 'frontends/winsound/winsound.cxx'
+    winsoundHdr = 'frontends/winsound/winsound.h'
+    csWinEnvironment.Command(
+        winsoundSrc, winsoundFL,
+        'fluid -c -o %s -h %s %s' % (winsoundSrc, winsoundHdr, winsoundFL))
+    winsoundMain = csWinEnvironment.Object('frontends/winsound/main.cxx')
+    Depends(winsoundMain, winsoundSrc)
+    executables.append(csWinEnvironment.Program(
+        'winsound', [winsoundMain, winsoundSrc]))
 else:
     print "CONFIGURATION DECISION: Not building Winsound"
 
