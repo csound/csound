@@ -32,6 +32,7 @@
 #include "Shell.hpp"
 #include <list>
 #include <vector>
+#include <map>
 #include <Python.h>
 
 class ScoreGeneratorVstFltk;
@@ -65,15 +66,19 @@ protected:
     {
       kNumPrograms = 10,
     };
-  std::vector<ScoreGeneratorEvent> scoreGeneratorEvents;
+  std::multimap<int, ScoreGeneratorEvent> scoreGeneratorEvents;
   std::vector<VstMidiEvent> vstMidiEventsBuffer;
   VstEvents *vstEventsPointer;
   int currentEventIndex;
   double vstFramesPerSecond;
   double vstSecondsPerFrame;
   double vstCurrentBlockStart;
+  double vstCurrentBlockStartFrame;
   double vstPriorBlockStart;
   double vstStartOffset;
+  double vstOutputLatency;
+  double vstInputLatency;
+  double vstInputLatencySeconds;
   char alive;
   ScoreGeneratorVstFltk *scoreGeneratorVstFltk;
   PyObject *score;
@@ -127,10 +132,6 @@ public:
    * Remove all stored events from the event array.
    */
   virtual void clearEvents();
-  /**
-   * Sort the stored events by time.
-   */
-  virtual void sortEvents();
   /**
    * Send all events occurring within
    * the current block of sample frames,
