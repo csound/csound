@@ -69,14 +69,10 @@ protected:
   std::multimap<int, ScoreGeneratorEvent> scoreGeneratorEvents;
   std::vector<VstMidiEvent> vstMidiEventsBuffer;
   VstEvents *vstEventsPointer;
-  int currentEventIndex;
   double vstFramesPerSecond;
   double vstSecondsPerFrame;
-  double vstCurrentBlockStart;
+  double vstCurrentBlockStart;  
   double vstCurrentBlockStartFrame;
-  double vstPriorBlockStart;
-  double vstStartOffset;
-  double vstOutputLatency;
   double vstInputLatency;
   double vstInputLatencySeconds;
   char alive;
