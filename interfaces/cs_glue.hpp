@@ -1,7 +1,7 @@
 /*
     cs_glue.hpp:
 
-    Copyright (C) 2005 Istvan Varga
+    Copyright (C) 2005, 2006 Istvan Varga
 
     This file is part of Csound.
 
@@ -454,6 +454,9 @@ class CsoundArgVList {
  * Experimental class for wrapping callbacks using SWIG directors.
  */
 
+class CsoundMidiInputBuffer;
+class CsoundMidiOutputBuffer;
+
 class CsoundCallbackWrapper {
  private:
     CSOUND  *csound_;
@@ -472,10 +475,20 @@ class CsoundCallbackWrapper {
     {
       return 1;
     }
+    virtual void MidiInputCallback(CsoundMidiInputBuffer *p)
+    {
+      (void) p;
+    }
+    virtual void MidiOutputCallback(CsoundMidiOutputBuffer *p)
+    {
+      (void) p;
+    }
     void SetMessageCallback();
     void SetInputValueCallback();
     void SetOutputValueCallback();
     void SetYieldCallback();
+    void SetMidiInputCallback(CsoundArgVList *argv);
+    void SetMidiOutputCallback(CsoundArgVList *argv);
     CSOUND *GetCsound()
     {
       return csound_;
@@ -491,6 +504,196 @@ class CsoundCallbackWrapper {
     virtual ~CsoundCallbackWrapper()
     {
     }
+ private:
+    static int midiInOpenCallback(CSOUND *, void **, const char *);
+    static int midiInReadCallback(CSOUND *, void *, unsigned char *, int);
+    static int midiInCloseCallback(CSOUND *, void *);
+    static int midiOutOpenCallback(CSOUND *, void **, const char *);
+    static int midiOutWriteCallback(CSOUND *, void *,
+                                    const unsigned char *, int);
+    static int midiOutCloseCallback(CSOUND *, void *);
+};
+
+// ---------------------------- MIDI INPUT ----------------------------
+
+class CsoundMidiInputBuffer {
+ private:
+    unsigned char   *buf;
+    void            *threadLock;
+    int             bufReadPos;
+    int             bufWritePos;
+    int             bufBytes;
+    int             bufSize;
+ public:
+    CsoundMidiInputBuffer(unsigned char *buf, int bufSize);
+    ~CsoundMidiInputBuffer();
+    /**
+     * Sends a MIDI message, 'msg' is calculated as follows:
+     *   STATUS + DATA1 * 256 + DATA2 * 65536
+     */
+    void SendMessage(int msg);
+    /**
+     * Sends a MIDI message; 'channel' should be in the range 1 to 16,
+     * and data1 and data2 should be in the range 0 to 127.
+     */
+    void SendMessage(int status, int channel, int data1, int data2);
+    /**
+     * Sends a note-on message on 'channel' (1 to 16) for 'key' (0 to 127)
+     * with 'velocity' (0 to 127).
+     */
+    void SendNoteOn(int channel, int key, int velocity);
+    /**
+     * Sends a note-off message on 'channel' (1 to 16) for 'key' (0 to 127)
+     * with 'velocity' (0 to 127).
+     */
+    void SendNoteOff(int channel, int key, int velocity);
+    /**
+     * Sends a note-off message on 'channel' (1 to 16) for 'key',
+     * using a 0x90 status with zero velocity.
+     */
+    void SendNoteOff(int channel, int key);
+    /**
+     * Sets polyphonic pressure on 'channel' (1 to 16) to 'value' (0 to 127)
+     * for 'key' (0 to 127).
+     */
+    void SendPolyphonicPressure(int channel, int key, int value);
+    /**
+     * Sets controller 'ctl' (0 to 127) to 'value' (0 to 127)
+     * on 'channel' (1 to 16).
+     */
+    void SendControlChange(int channel, int ctl, int value);
+    /**
+     * Sends program change to 'pgm' (1 to 128) on 'channel' (1 to 16).
+     */
+    void SendProgramChange(int channel, int pgm);
+    /**
+     * Sets channel pressure to 'value' (0 to 127) on 'channel' (1 to 16).
+     */
+    void SendChannelPressure(int channel, int value);
+    /**
+     * Sets pitch bend to 'value' (-8192 to 8191) on 'channel' (1 to 16).
+     */
+    void SendPitchBend(int channel, int value);
+    // -----------------------------------------------------------------
+    friend class CsoundCallbackWrapper;
+ protected:
+    /**
+     * Copies at most 'nBytes' bytes of MIDI data from the buffer to 'buf'.
+     * Returns the number of bytes copied.
+     */
+    int GetMidiData(unsigned char *buf, int nBytes);
+};
+
+/**
+ * The following class allows sending MIDI input messages to a Csound
+ * instance.
+ */
+
+class CsoundMidiInputStream : public CsoundMidiInputBuffer {
+ private:
+    unsigned char   buf_[4096];
+    CSOUND          *csound;
+ public:
+    CsoundMidiInputStream(CSOUND *csound);
+    CsoundMidiInputStream(Csound *csound);
+    ~CsoundMidiInputStream()
+    {
+    }
+    /**
+     * Enables MIDI input for the associated Csound instance.
+     * Should be called between csoundPreCompile() and csoundCompile().
+     * If 'argv' is not NULL, the command line arguments required for
+     * MIDI input are appended.
+     */
+    void EnableMidiInput(CsoundArgVList *argv);
+ private:
+    static int midiInOpenCallback(CSOUND *, void **, const char *);
+    static int midiInReadCallback(CSOUND *, void *, unsigned char *, int);
+    static int midiInCloseCallback(CSOUND *, void *);
+};
+
+// ---------------------------- MIDI OUTPUT ---------------------------
+
+class CsoundMidiOutputBuffer {
+ private:
+    unsigned char   *buf;
+    void            *threadLock;
+    int             bufReadPos;
+    int             bufWritePos;
+    int             bufBytes;
+    int             bufSize;
+ public:
+    CsoundMidiOutputBuffer(unsigned char *buf, int bufSize);
+    ~CsoundMidiOutputBuffer();
+    /**
+     * Pops and returns the first message from the buffer, in the following
+     * format:
+     *   STATUS + DATA1 * 256 + DATA2 * 65536
+     * where STATUS also includes the channel number (0 to 15), if any.
+     * The return value is zero if there are no messages.
+     */
+    int PopMessage();
+    /**
+     * Returns the status byte for the first message in the buffer, not
+     * including the channel number in the case of channel messages.
+     * The return value is zero if there are no messages.
+     */
+    int GetStatus();
+    /**
+     * Returns the channel number (1 to 16) for the first message in the
+     * buffer.  The return value is zero if there are no messages, or the
+     * first message is not a channel message.
+     */
+    int GetChannel();
+    /**
+     * Returns the first data byte (0 to 127) for the first message in the
+     * buffer.  The return value is zero if there are no messages, or the
+     * first message does not have any data bytes.
+     */
+    int GetData1();
+    /**
+     * Returns the second data byte (0 to 127) for the first message in the
+     * buffer.  The return value is zero if there are no messages, or the
+     * first message has less than two data bytes.
+     */
+    int GetData2();
+    // -----------------------------------------------------------------
+    friend class CsoundCallbackWrapper;
+ protected:
+    /**
+     * Copies at most 'nBytes' bytes of MIDI data to the buffer from 'buf'.
+     * Returns the number of bytes copied.
+     */
+    int SendMidiData(const unsigned char *buf, int nBytes);
+};
+
+/**
+ * The following class allows receiving MIDI output messages
+ * from a Csound instance.
+ */
+
+class CsoundMidiOutputStream : public CsoundMidiOutputBuffer {
+ private:
+    unsigned char   buf_[4096];
+    CSOUND          *csound;
+ public:
+    CsoundMidiOutputStream(CSOUND *csound);
+    CsoundMidiOutputStream(Csound *csound);
+    ~CsoundMidiOutputStream()
+    {
+    }
+    /**
+     * Enables MIDI output for the associated Csound instance.
+     * Should be called between csoundPreCompile() and csoundCompile().
+     * If 'argv' is not NULL, the command line arguments required for
+     * MIDI output are appended.
+     */
+    void EnableMidiOutput(CsoundArgVList *argv);
+ private:
+    static int midiOutOpenCallback(CSOUND *, void **, const char *);
+    static int midiOutWriteCallback(CSOUND *, void *,
+                                    const unsigned char *, int);
+    static int midiOutCloseCallback(CSOUND *, void *);
 };
 
 #endif  // CSOUND_CS_GLUE_HPP
