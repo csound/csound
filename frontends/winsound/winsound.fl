@@ -7,6 +7,9 @@ decl {\#include <FL/Fl_Double_Window.H>} {public
 
 decl {\#include <FL/Fl_File_Chooser.H>} {} 
 
+decl {\#include <FL/Fl_Text_Display.H>} {public
+} 
+
 decl {int do_exit;} {public
 } 
 
@@ -25,6 +28,12 @@ decl {Fl_Double_Window *xw;} {public
 decl {Fl_Double_Window *uw;} {public
 } 
 
+decl {Fl_Double_Window *textw;} {public
+} 
+
+decl {Fl_Text_Buffer *text_buffer;} {public
+} 
+
 decl {\#include <FL/Fl_Pixmap.H>} {} 
 
 decl {\#include "winsound.xpm"} {} 
@@ -35,14 +44,14 @@ decl {\#include "csound.h"} {public
 decl {void cs_util_sndinfo(void);} {public
 } 
 
-decl {void cs_util_opc(int full)} {selected public
+decl {void cs_util_opc(int full)} {public
 } 
 
 Function {make_mainwindow()} {open
 } {
   Fl_Window {} {
     label WinSound open
-    xywh {558 254 465 535} type Double visible
+    xywh {558 244 465 535} type Double visible
   } {
     Fl_File_Input orchname {
       label {Orchestra           }
@@ -51,20 +60,21 @@ Function {make_mainwindow()} {open
     }
     Fl_File_Input scorename {
       label {Score           }
-      tooltip {File for csd or orchestra file} xywh {130 65 310 30} labeltype EMBOSSED_LABEL
+      tooltip {File for score} xywh {130 65 310 30} labeltype EMBOSSED_LABEL
     }
     Fl_File_Input output {
       label {Output File           }
-      tooltip {File for csd or orchestra file} xywh {130 120 310 30} labeltype EMBOSSED_LABEL
+      callback {DAC->value(0);}
+      tooltip {File for output, or dac or devaudio} xywh {130 120 310 30} labeltype EMBOSSED_LABEL
     }
     Fl_Check_Button DAC {
       label DAC
       callback {if (DAC->value()) output->value("dac");}
-      xywh {385 150 55 30} down_box DOWN_BOX labeltype EMBOSSED_LABEL
+      tooltip {Set for immediate sound} xywh {385 150 55 30} down_box DOWN_BOX labeltype EMBOSSED_LABEL
     }
     Fl_Group {} {
       label Format open
-      xywh {40 180 110 155} box BORDER_BOX align 5
+      tooltip {Set format of output file} xywh {40 180 110 155} box BORDER_BOX align 5
     } {
       Fl_Round_Button wav {
         label WAV
@@ -102,7 +112,7 @@ raw->value(1);}
     }
     Fl_Group {} {
       label Size open
-      xywh {175 180 105 185} box BORDER_BOX align 5
+      tooltip {Set sample size} xywh {175 180 105 185} box BORDER_BOX align 5
     } {
       Fl_Round_Button size_8 {
         label 8bit
@@ -153,41 +163,41 @@ size_f->value(1);}
     }
     Fl_Check_Button mK {
       label {Peak Chunks}
-      xywh {40 350 110 25} down_box DOWN_BOX
+      tooltip {Include peak chunks in WAV output} xywh {40 350 110 25} down_box DOWN_BOX
     }
     Fl_Button {} {
       label Render
       callback {do_perf = 1;}
-      xywh {45 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 3
+      tooltip {Render the piece} xywh {45 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 3
     }
     Fl_Button {} {
       label Env
       callback {ew->show();}
-      xywh {140 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 133
+      tooltip {Set up environment variables} xywh {140 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 133 hotspot
     }
     Fl_Button {} {
       label Cancel
       callback {do_exit = 1;}
-      xywh {235 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 1
+      tooltip {Exit winsound5} xywh {235 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 1
     }
     Fl_Button {} {
       label Utilities
       callback {uw->show();}
-      xywh {335 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 143
+      tooltip {Dialog for utility programs} xywh {335 415 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 143
     }
     Fl_Button {} {
       label Extra
       callback {xw->show();}
-      xywh {335 355 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 231
+      tooltip {Additional command options} xywh {335 355 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 231
     }
     Fl_Button {} {
       label Help
-      xywh {335 295 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 251
+      tooltip {Call Help} xywh {335 295 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 251 deactivate
     }
     Fl_Button {} {
       label New
       callback {do_load = 1;}
-      xywh {335 235 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 7
+      tooltip {Forse recompilation} xywh {335 235 80 35} box ENGRAVED_BOX down_box EMBOSSED_BOX color 7
     }
     Fl_Output {} {
       label {output:}
@@ -222,7 +232,7 @@ Function {make_utils()} {open
 } {
   Fl_Window {} {
     label Utilities open
-    xywh {1120 367 215 300} type Double visible
+    xywh {808 391 215 300} type Double visible
   } {
     Fl_Round_Button util_het {
       label {Hetrodyne Analysis}
@@ -355,7 +365,7 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {516 126 400 350} type Double visible
+    xywh {516 150 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
@@ -455,7 +465,7 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {450 60 325 230} type Double visible
+    xywh {450 84 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
@@ -519,7 +529,7 @@ Function {make_info()} {open
 } {
   Fl_Window {} {
     label Sndinfo open
-    xywh {314 550 260 80} type Double visible
+    xywh {314 574 260 80} type Double visible
   } {
     Fl_File_Input sndinfo_file {
       xywh {0 0 260 30}
@@ -539,6 +549,67 @@ Function {make_info()} {open
       label Browse
       callback {sndinfo_file->value(fl_file_chooser("SndInfo", "*.{wav,aif,raw,irc}", NULL));}
       xywh {205 40 50 25}
+    }
+  }
+} 
+
+Function {make_anal()} {open
+} {
+  Fl_Window analw {open
+    xywh {382 279 365 100} type Double visible
+  } {
+    Fl_File_Input analin {
+      label Input
+      xywh {40 10 290 25}
+    }
+    Fl_File_Input analout {
+      label Output
+      xywh {40 35 290 25}
+    }
+    Fl_Return_Button {} {
+      label OK
+      xywh {20 65 50 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {analw->hide();}
+      xywh {310 65 50 25} color 1
+    }
+    Fl_Button {} {
+      label {?}
+      xywh {330 10 25 25} color 5
+    }
+    Fl_Button {} {
+      label {?}
+      xywh {330 35 25 25} color 5
+    }
+  }
+} 
+
+Function {make_textwindow()} {open
+} {
+  Fl_Window {} {open
+    xywh {176 48 725 570} type Double visible
+  } {
+    Fl_Text_Display text {
+      label {Winsound5 Output}
+      xywh {25 25 665 500}
+      code0 {text_buffer = new Fl_Text_Buffer(1024);}
+      code1 {text->buffer(text_buffer);}
+    }
+    Fl_Button {} {
+      label Hide
+      callback {textw->hide();}
+      xywh {25 535 45 25}
+    }
+    Fl_Button {} {
+      label Clear
+      callback {text_buffer->remove(0, text_buffer->length());}
+      xywh {90 535 45 25}
+    }
+    Fl_Button {} {
+      label Save selected
+      xywh {155 535 45 25} deactivate
     }
   }
 } 
