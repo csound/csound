@@ -1,9 +1,28 @@
+/* Copyright 2006 John ffitch -- ALL RIGHTS RESERVED
+   This code is NOT released under LGPL or any similar licence
+ */
 #include "csound.h"
 #include "winsound.h"
+#include <stdarg.h>
 extern int do_exit;
-extern Fl_Double_Window *ew, *xw, *uw;
+extern Fl_Double_Window *ew, *xw, *uw, *textw;
 CSOUND *csound;
 int cs_compile_run(void);
+
+void mytextOutput(CSOUND *csound, int attr, const char *format, va_list valist)
+{
+    char b[2048];
+    vsprintf(b, format, valist);
+    text->insert(b);
+    text->show_insert_position();
+    Fl::wait(0);
+}
+
+int yieldCallback(CSOUND *csound)
+{
+    Fl::wait(0);
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -11,9 +30,12 @@ int main(int argc, char **argv)
     ew = make_environ();
     uw = make_utils();
     xw = make_extras();
+    textw = make_textwindow();
     csoundInitialize(&argc, &argv, CSOUNDINIT_NO_SIGNAL_HANDLER);
     csound = csoundCreate(NULL);
     csoundPreCompile(csound);
+    csoundSetMessageCallback(csound, mytextOutput);
+    csoundSetYieldCallback(csound, yieldCallback);
     mw->show();
     do_exit = 0;
     while (!do_exit) {
@@ -21,21 +43,23 @@ int main(int argc, char **argv)
       while (!do_exit && !do_perf) Fl::wait();
       if (do_perf) cs_compile_run();
     }
+    csoundCleanup(csound);
 }
 
 int cs_compile_run(void)
 {
     int res=0;
-
+    textw->show();
     if (do_load) {
       char *argv[100];
-      char b1[6], b2[6], b3[6], b4[6], b5[6], b6[6], b7[6];
+      char b1[12], b2[12], b3[12], b4[12], b5[12], b6[12], b7[12];
       int nxt=1;
       int n;
 
       argv[0] = "winsound5";
       argv[nxt++] = (char *)orchname->value();
-      if (strstr(argv[nxt-1], ".csd")==NULL) argv[nxt++] = (char *)scorename->value();
+      if (strstr(argv[nxt-1], ".csd")==NULL)
+        argv[nxt++] = (char *)scorename->value();
       if (strlen(output->value())!=0) {
         argv[nxt++] = "-o";
         argv[nxt++] = (char *)output->value();
@@ -55,7 +79,7 @@ int cs_compile_run(void)
         argv[nxt++] = b1;
       }
       if (mB->value()>0) {
-        sprintf(b2, "-B%d", (int)mb->value());
+        sprintf(b2, "-B%d", (int)mB->value());
         argv[nxt++] = b2;
       }
       if (size_8->value()) argv[nxt++] = "-c";
@@ -96,8 +120,8 @@ int cs_compile_run(void)
       if (mN->value()) argv[nxt++] = "-N";
       if (mZ->value()) argv[nxt++] = "-Z";
 
-      for (n=1; n<nxt; n++)
-        printf("arg %d: %s\n", n, argv[n]);
+//       for (n=1; n<nxt; n++)
+//         printf("arg %d: %s\n", n, argv[n]);
 
       csoundReset(csound);
       res = csoundCompile(csound, nxt-1, argv);
@@ -105,10 +129,11 @@ int cs_compile_run(void)
     else
       csoundRewindScore(csound);
 
-    if (res == 0)
-      res = csoundPerform(csound);
-    // csoundCleanup(csound);
-    return res;
+    while (res==0 && do_perf) {
+      if (do_exit) return 0;
+      res = csoundPerformKsmps(csound);
+    }
+    csoundCleanup(csound);
 }
 
 void cs_util_sndinfo(void)
@@ -127,29 +152,25 @@ void cs_util_sndinfo(void)
     }
 }
 
-#if 0
-extern "C" {
-  void list_opcodes(CSOUND *csound, int level);
-  int csoundLoadExternals(CSOUND *csound);
-  int csoundInitModules(CSOUND *csound);
-}
-#endif
-
-static const char *listOpcodesArgV0[3] = { "csound", "-z", (char*) 0 };
-static const char *listOpcodesArgV1[3] = { "csound", "-z1", (char*) 0 };
+// extern "C" {
+//   void list_opcodes(CSOUND *csound, int level);
+//   int csoundLoadExternals(CSOUND *csound);
+//   int csoundInitModules(CSOUND *csound);
+// }
 
 void cs_util_opc(int full)
 {
-#if 0
-    csoundPreCompile(csound);
-    csoundLoadExternals(csound);
-    if (csoundInitModules(csound) == 0)
-      list_opcodes(csound, full);
-    csoundReset(csound);
-#endif
-    csoundPreCompile(csound);
-    csoundCompile(csound, 2, (full ? (char**) &(listOpcodesArgV1[0])
-                                     : (char**) &(listOpcodesArgV0[0])));
-    csoundReset(csound);
+    char *argv[2];
+    argv[0] = "csound";
+    if (full) argv[1] = "z1";
+    else argv[1] = "z0";
+    csoundCompile(csound, 2, argv);
+    csoundCleanup(csound);
+
+//     csoundPreCompile(csound);
+//     csoundLoadExternals(csound);
+//     if (csoundInitModules(csound) == 0)
+//       list_opcodes(csound, full);
+//     csoundReset(csound);
 }
 
