@@ -1,5 +1,7 @@
 /* Copyright 2006 John ffitch -- ALL RIGHTS RESERVED
    This code is NOT released under LGPL or any similar licence
+   A licence is hereby granted to anyone to use, copy, or modify
+   this code for any purpose whatsoever.
  */
 #include "csound.h"
 #include "winsound.h"
