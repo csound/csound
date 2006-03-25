@@ -3,6 +3,11 @@
 	  Opcodes/pitch.c, Opcodes/pitch.h, Opcodes/spectra.c, Top/csound.c:
 	  fixes in sensekey opcode
 
+2006-03-22	Michael Gogins	<gogins@pipeline.com>
+	* Added ScoreGeneratorVST, a VST plugin for generating scores in VST 
+	hosts using Python.
+	* Updated Windows installer for new targets, including Winsound.
+
 2006-03-22	Istvan Varga	<ivarga@csounds.com>
 	* interfaces/cs_glue.cpp:
 	* interfaces/cs_glue.hpp:
