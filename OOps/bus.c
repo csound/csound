@@ -214,3 +214,124 @@ int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+/* ********************************************************************** */
+/* *************** SENSING ********************************************** */
+/* ********************************************************************** */
+
+#if defined(__unix) || defined(__unix__) || defined(__MACH__)
+#  ifdef HAVE_SYS_TIME_H
+#    include <sys/time.h>
+#  endif
+#  ifdef HAVE_SYS_TYPES_H
+#    include <sys/types.h>
+#  endif
+#  ifdef HAVE_TERMIOS_H
+#    include <termios.h>
+#  endif
+
+int sensekey_init(CSOUND *csound, KSENSE *p)
+{
+    if (csound->inChar_ < 0) {
+#  if defined(WIN32)
+      setvbuf(stdin, NULL, _IONBF, 0);  /* Does not seem to work */
+#  elif defined(HAVE_TERMIOS_H)
+      struct termios  tty;
+      tcgetattr(0, &tty);
+      tty.c_lflag &= (~ICANON);
+      tcsetattr(0, TCSANOW, &tty);
+#  endif
+    }
+    return OK;
+}
+
+int sensekey_perf(CSOUND *csound, KSENSE *p)
+{
+    fd_set          rfds;
+    struct timeval  tv;
+    int             retval;
+
+    if (csound->inChar_ < 0) {
+      /* Watch stdin (fd 0) to see when it has input. */
+      FD_ZERO(&rfds);
+      FD_SET(0, &rfds);
+      /* No waiting */
+      tv.tv_sec = 0;
+      tv.tv_usec = 0;
+
+      retval = select(1, &rfds, NULL, NULL, &tv);
+
+      if (retval) {
+        char  ch;
+        read(0, &ch, 1);
+        *p->ans = (MYFLT) ch;
+     /* FD_ISSET(0, &rfds) will be true. */
+      }
+      else
+        *p->ans = FL(-1.0);
+    }
+    else {
+      if (csound->inChar_) {
+        *p->ans = (MYFLT) csound->inChar_;
+        csound->inChar_ = 0;
+      }
+      else
+        *p->ans = FL(-1.0);
+    }
+
+    return OK;
+}
+
+#else       /* __unix || __unix__ || __MACH__ */
+
+int sensekey_init(CSOUND *csound, KSENSE *p)
+{
+    (void) csound;
+    (void) p;
+    return OK;
+}
+
+#  ifdef WIN32
+#    include <conio.h>
+
+int sensekey_perf(CSOUND *csound, KSENSE *p)
+{
+    if (csound->inChar_ < 0) {
+      if (_kbhit())
+        *p->ans = (MYFLT) _getch();
+      else
+        *p->ans = FL(-1.0);
+    }
+    else {
+      if (csound->inChar_) {
+        *p->ans = (MYFLT) csound->inChar_;
+        csound->inChar_ = 0;
+      }
+      else
+        *p->ans = FL(-1.0);
+    }
+
+    return OK;
+}
+
+#  else     /* WIN32 */
+
+int sensekey_perf(CSOUND *csound, KSENSE *p)
+{
+    if (csound->inChar_ < 0) {
+      *p->ans = (MYFLT) getchar();
+    }
+    else {
+      if (csound->inChar_) {
+        *p->ans = (MYFLT) csound->inChar_;
+        csound->inChar_ = 0;
+      }
+      else
+        *p->ans = FL(-1.0);
+    }
+
+    return OK;
+}
+
+#  endif    /* !WIN32 */
+#endif      /* !(__unix || __unix__ || __MACH__) */
+

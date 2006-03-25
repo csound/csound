@@ -788,6 +788,10 @@ OENTRY opcodlst_1[] = {
     (SUBR) NULL, (SUBR) chani_opcode_perf_k, (SUBR) NULL                },
  {  "chani.a",     S(ASSIGN),           4,      "a",            "k",
     (SUBR) NULL, (SUBR) NULL, (SUBR) chani_opcode_perf_a                },
+ {  "sense",       S(KSENSE),           3,      "k",            "",
+    (SUBR) sensekey_init, (SUBR) sensekey_perf, (SUBR) NULL             },
+ {  "sensekey",    S(KSENSE),           3,      "k",            "",
+    (SUBR) sensekey_init, (SUBR) sensekey_perf, (SUBR) NULL             },
  /* terminate list */
  {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };

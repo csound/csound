@@ -1,3 +1,8 @@
+2006-03-25	Istvan Varga	<ivarga@csounds.com>
+	* Engine/entry1.c, H/aops.h, H/entry1.h, OOps/bus.c, opcodes.dir,
+	  Opcodes/pitch.c, Opcodes/pitch.h, Opcodes/spectra.c, Top/csound.c:
+	  fixes in sensekey opcode
+
 2006-03-22	Istvan Varga	<ivarga@csounds.com>
 	* interfaces/cs_glue.cpp:
 	* interfaces/cs_glue.hpp:

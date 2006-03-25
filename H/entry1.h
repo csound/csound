@@ -374,4 +374,6 @@ int     chano_opcode_perf_k(CSOUND *, void *);
 int     chano_opcode_perf_a(CSOUND *, void *);
 int     chani_opcode_perf_k(CSOUND *, void *);
 int     chani_opcode_perf_a(CSOUND *, void *);
+int     sensekey_init(CSOUND *, void *);
+int     sensekey_perf(CSOUND *, void *);
 
