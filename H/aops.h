@@ -21,142 +21,147 @@
     02111-1307 USA
 */
 
-/*                                                                              AOPS.H          */
+/*                                                      AOPS.H          */
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *r, *a;
+    OPDS    h;
+    MYFLT   *r, *a;
 } ASSIGN;
 
 typedef struct {
-        OPDS    h;
-        int     *rbool;
-        MYFLT   *a, *b;
+    OPDS    h;
+    int     *rbool;
+    MYFLT   *a, *b;
 } RELAT;
 
 typedef struct {
-        OPDS    h;
-        int     *rbool, *ibool, *jbool;
+    OPDS    h;
+    int     *rbool, *ibool, *jbool;
 } LOGCL;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *r;
-        int     *cond;
-        MYFLT   *a, *b;
+    OPDS    h;
+    MYFLT   *r;
+    int     *cond;
+    MYFLT   *a, *b;
 } CONVAL;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *r, *a, *b;
+    OPDS    h;
+    MYFLT   *r, *a, *b;
 } AOP;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *r, *a, *b, *def;
+    OPDS    h;
+    MYFLT   *r, *a, *b, *def;
 } DIVZ;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *r, *a;
+    OPDS    h;
+    MYFLT   *r, *a;
 } EVAL;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ar;
+    OPDS    h;
+    MYFLT   *ar;
 } INM;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ar1, *ar2;
+    OPDS    h;
+    MYFLT   *ar1, *ar2;
 } INS;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ar1, *ar2, *ar3, *ar4;
+    OPDS    h;
+    MYFLT   *ar1, *ar2, *ar3, *ar4;
 } INQ;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
+    OPDS    h;
+    MYFLT   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
 } INH;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
+    OPDS    h;
+    MYFLT   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
 } INO;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ar[40];    /* array size should be consistent with entry2.c */
+    OPDS    h;
+    MYFLT   *ar[40];    /* array size should be consistent with entry2.c */
 } INALL;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ar;
-        MYFLT   *ch;
+    OPDS    h;
+    MYFLT   *ar;
+    MYFLT   *ch;
 } INCH;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *asig;
+    OPDS    h;
+    MYFLT   *asig;
 } OUTM;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *asig1, *asig2;
+    OPDS    h;
+    MYFLT   *asig1, *asig2;
 } OUTS;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *asig1, *asig2, *asig3, *asig4;
+    OPDS    h;
+    MYFLT   *asig1, *asig2, *asig3, *asig4;
 } OUTQ;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6;
+    OPDS    h;
+    MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6;
 } OUTH;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6, *asig7, *asig8;
+    OPDS    h;
+    MYFLT   *asig1, *asig2, *asig3, *asig4, *asig5, *asig6, *asig7, *asig8;
 } OUTO;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *asig[VARGMAX];
+    OPDS    h;
+    MYFLT   *asig[VARGMAX];
 } OUTX;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *args[VARGMAX];
+    OPDS    h;
+    MYFLT   *args[VARGMAX];
 } OUTCH;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *r, *pc, *et, *cy, *ref;
+    OPDS    h;
+    MYFLT   *r, *pc, *et, *cy, *ref;
 } XENH;
 
 typedef struct {
-        OPDS   h;
-        MYFLT *r, *ktrig, *kinput, *tablenum;
-        MYFLT old_r;
+    OPDS    h;
+    MYFLT   *r, *ktrig, *kinput, *tablenum;
+    MYFLT   old_r;
 } CPSTUN;
 
 typedef struct {
-        OPDS   h;
-        MYFLT *r, *input, *tablenum;
+    OPDS    h;
+    MYFLT   *r, *input, *tablenum;
 } CPSTUNI;
 
 typedef struct {
-  OPDS  h;
-  MYFLT *value, *valID;
-  char channelName[128];
+    OPDS    h;
+    MYFLT   *value, *valID;
+    char    channelName[128];
 } INVAL;
 
 typedef struct {
-  OPDS  h;
-  MYFLT *valID, *value;
-  char channelName[128];
+    OPDS    h;
+    MYFLT   *valID, *value;
+    char    channelName[128];
 } OUTVAL;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ans;
+} KSENSE;
 
