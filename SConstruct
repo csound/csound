@@ -1302,6 +1302,28 @@ else:
     csoundVstSources.insert(0, csoundVstPythonWrapper)
     csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
 
+    scoregenSources = Split('''
+    frontends/CsoundVST/AudioEffect.cpp
+    frontends/CsoundVST/audioeffectx.cpp
+    frontends/CsoundVST/Shell.cpp
+    frontends/CsoundVST/System.cpp
+    frontends/CsoundVST/ScoreGenerator.cpp     
+    frontends/CsoundVST/ScoreGeneratorVst.cpp  
+    frontends/CsoundVST/ScoreGeneratorVstUi.cpp	
+    frontends/CsoundVST/ScoreGeneratorVstFltk.cpp
+    frontends/CsoundVST/ScoreGeneratorVstMain.cpp
+    ''')
+    if getPlatform() == 'mingw':
+        scoregenSources.append('frontends/CsoundVST/_scoregen.def')
+    vstWrapperEnvironment2 = vstEnvironment.Copy()
+    fixCFlagsForSwig(vstWrapperEnvironment2)
+    scoregenPythonWrapper = vstWrapperEnvironment2.SharedObject(
+        'frontends/CsoundVST/ScoreGeneratorVST.i', SWIGFLAGS = [swigflags, '-python'])
+    scoregenSources.insert(0, scoregenPythonWrapper)
+    scoregen = vstEnvironment.SharedLibrary('_scoregen', scoregenSources)
+    libs.append('scoregen.py')
+    libs.append(scoregen)
+
     if getPlatform == 'darwin':
         vstEnvironment.Prepend(LINKFLAGS = '-bundle')
         vstEnvironment.Program('_CsoundVST.so', csoundVstSources)

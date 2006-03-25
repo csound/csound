@@ -1,8 +1,11 @@
 ;NSIS Modern Csound5 Install Script
 
 !define PRODUCT "Csound"
-!define VERSION "win32"
-!define PROGRAM "Csound5.02"
+; "-d" for double-precision audio samples,
+; "-f" for single-precision audio samples.
+!define VERSION "win32-d"
+; !define VERSION "win32-f"
+!!define PROGRAM "Csound5.01"
 
 !include "MUI.nsh"
 
@@ -413,10 +416,14 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\INSTALL
   
   SetOutPath $INSTDIR\bin
-  File ..\..\csound.dll
+  ; "csound64" for double-precision audio samples;
+  ; "csound32" for single-precision audio samples.
+  File ..\..\csound64.dll.5.1
+  ; File ..\..\csound32.dll.5.1
   File ..\..\_csnd.dll
   File ..\..\_jcsound.dll
   File ..\..\_CsoundVST.dll
+  File ..\..\_scoregen.dll
   File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
@@ -426,6 +433,7 @@ Section "${PRODUCT}" SecCopyUI
   File C:\utah\opt\portmidi\pm_win\*.dll
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
+  File ..\..\scoregen.py
   File ..\..\loris.py
   File ..\..\*.exe
   File ..\..\csound.def
