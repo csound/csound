@@ -496,7 +496,7 @@ static const CSOUND cenviron_ = {
         1,              /*  enableMsgAttr       */
         0,              /*  sampsNeeded         */
         FL(0.0),        /*  csoundScoreOffsetSeconds_   */
-        0,              /*  inChar_             */
+        -1,             /*  inChar_             */
         0,              /*  isGraphable_        */
         0,              /*  delayr_stack_depth  */
         NULL,           /*  first_delayr        */

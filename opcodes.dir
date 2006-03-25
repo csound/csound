@@ -41,9 +41,9 @@ physmod:
 pitch:
 	spectrum specaddm specdiff specscal spechist specfilt specptrk specsum
 	specdisp pitch maca mac clockon clockoff readclock pitchamdf hsboscil
-	phasorbnk adsynt mpulse sense sensekey lpf18 waveset pinkish noise
-	transeg clip cpuprc maxalloc active active.i active.k p.i p.k mute
-	oscilv oscilv.kk oscilv.ka oscilv.ak oscilv.aa
+	phasorbnk adsynt mpulse lpf18 waveset pinkish noise transeg clip cpuprc
+	maxalloc active active.i active.k p.i p.k mute oscilv oscilv.kk
+	oscilv.ka oscilv.ak oscilv.aa
 py:
 	pyinit pyrun pyruni pylrun pylruni pyrunt pylrunt pyexec pyexeci
 	pylexec pylexeci pyexect pylexect pycall pycall1 pycall2 pycall3
