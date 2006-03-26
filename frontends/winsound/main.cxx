@@ -1,4 +1,4 @@
-/* Copyright 2006 John ffitch -- ALL RIGHTS RESERVED
+/* Copyright 2006 John ffitch
    This code is NOT released under LGPL or any similar licence
    A licence is hereby granted to anyone to use, copy, or modify
    this code for any purpose whatsoever.
