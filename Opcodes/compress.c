@@ -213,7 +213,7 @@ int distort(CSOUND *csound, DIST *p)
       dist = FL(0.001);
     dnew = rms / dist;                           /* & compress factor    */
     dcur = p->prvd;
-    dinc = (dnew - dcur) / csound->ksmps; /* was *dvensmps and not known */
+    dinc = (dnew - dcur) / (MYFLT)csound->ksmps; /* was *dvensmps */
     asig = p->asig;
     ar = p->ar;
     nsmps = csound->ksmps;
