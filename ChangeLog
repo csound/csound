@@ -1,3 +1,8 @@
+2006-03-28  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/compress.c: New code for distort and compress/expander
+	from Barry Vercoe
+
 2006-03-25	Istvan Varga	<ivarga@csounds.com>
 	* Engine/entry1.c, H/aops.h, H/entry1.h, OOps/bus.c, opcodes.dir,
 	  Opcodes/pitch.c, Opcodes/pitch.h, Opcodes/spectra.c, Top/csound.c:

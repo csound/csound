@@ -1019,6 +1019,7 @@ if (commonEnvironment['MSVC'] == '0'):
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
 makePlugin(pluginEnvironment, 'barmodel', ['Opcodes/bilbar.c'])
+makePlugin(pluginEnvironment, 'compress', ['Opcodes/compress.c'])
 makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
 makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
@@ -1551,7 +1552,7 @@ else:
 
 if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     print "CONFIGURATION DECISION: Building Winsound frontend"
-    # headers += glob.glob('frontends/winsound/*.hpp')
+    headers += glob.glob('frontends/winsound/*.h')
     csWinEnvironment = commonEnvironment.Copy()
     csWinEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csWinEnvironment.Append(LIBS = libCsoundLibs)
