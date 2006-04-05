@@ -40,70 +40,72 @@
 #include <fluidsynth.h>
 
 typedef struct {
-    OPDS    h;
-    /* OUTPUTS */
-    MYFLT   *iEngineNum;
+  OPDS    h;
+  /* OUTPUTS */
+  MYFLT   *iEngineNum;
+  MYFLT *iReverbEnabled;
+  MYFLT *iChorusEnabled;
 } FLUIDENGINE;
 
 typedef struct {
-    OPDS    h;
-    /* OUTPUTS */
-    MYFLT   *iInstrumentNumber;
-    /* INPUTS */
-    MYFLT   *filename, *iEngineNum, *iListPresets;
+  OPDS    h;
+  /* OUTPUTS */
+  MYFLT   *iInstrumentNumber;
+  /* INPUTS */
+  MYFLT   *filename, *iEngineNum, *iListPresets;
 } FLUIDLOAD;
 
 typedef struct {
-    OPDS    h;
-    /* INPUTS */
-    MYFLT   *iEngineNumber, *iChannelNumber, *iInstrumentNumber, *iBankNumber;
-    MYFLT   *iPresetNumber;
+  OPDS    h;
+  /* INPUTS */
+  MYFLT   *iEngineNumber, *iChannelNumber, *iInstrumentNumber, *iBankNumber;
+  MYFLT   *iPresetNumber;
 } FLUID_PROGRAM_SELECT;
 
 typedef struct {
-    OPDS    h;
-    /* INPUTS */
-    MYFLT   *iEngineNumber, *iChannelNumber, *iControllerNumber, *kVal;
-    int     priorMidiValue;
-    fluid_synth_t *fluidEngine;
+  OPDS    h;
+  /* INPUTS */
+  MYFLT   *iEngineNumber, *iChannelNumber, *iControllerNumber, *kVal;
+  int     priorMidiValue;
+  fluid_synth_t *fluidEngine;
 } FLUID_CC;
 
 typedef struct {
-    OPDS    h;
-    /* INPUTS */
-    MYFLT   *iEngineNumber, *iChannelNumber, *iMidiKeyNumber, *iVelocity;
-    int     initDone, iChn, iKey;
-    fluid_synth_t *fluidEngine;
+  OPDS    h;
+  /* INPUTS */
+  MYFLT   *iEngineNumber, *iChannelNumber, *iMidiKeyNumber, *iVelocity;
+  int     initDone, iChn, iKey;
+  fluid_synth_t *fluidEngine;
 } FLUID_NOTE;
 
 typedef struct {
-    OPDS    h;
-    MYFLT   *aLeftOut, *aRightOut;
-    MYFLT   *iEngineNum;
-    fluid_synth_t *fluidEngine;
+  OPDS    h;
+  MYFLT   *aLeftOut, *aRightOut;
+  MYFLT   *iEngineNum;
+  fluid_synth_t *fluidEngine;
 } FLUIDOUT;
 
 typedef struct {
-    OPDS    h;
-    MYFLT   *aLeftOut, *aRightOut;
-    void    *fluidGlobals;
+  OPDS    h;
+  MYFLT   *aLeftOut, *aRightOut;
+  void    *fluidGlobals;
 } FLUIDALLOUT;
 
 typedef struct {
-    OPDS    h;
-    /* Inputs. */
-    MYFLT   *iFluidEngine;
-    MYFLT   *kMidiStatus;
-    MYFLT   *kMidiChannel;
-    MYFLT   *kMidiData1;
-    MYFLT   *kMidiData2;
-    /* No outputs. */
-    /* Internal state. */
-    int     priorMidiStatus;
-    int     priorMidiChannel;
-    int     priorMidiData1;
-    int     priorMidiData2;
-    fluid_synth_t *fluidEngine;
+  OPDS    h;
+  /* Inputs. */
+  MYFLT   *iFluidEngine;
+  MYFLT   *kMidiStatus;
+  MYFLT   *kMidiChannel;
+  MYFLT   *kMidiData1;
+  MYFLT   *kMidiData2;
+  /* No outputs. */
+  /* Internal state. */
+  int     priorMidiStatus;
+  int     priorMidiChannel;
+  int     priorMidiData1;
+  int     priorMidiData2;
+  fluid_synth_t *fluidEngine;
 } FLUIDCONTROL;
 
 #endif
