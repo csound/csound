@@ -1,3 +1,7 @@
+2006-03-224-04	Michael Gogins	<gogins@pipeline.com>
+	* Changed FluidSynth opcodes slightly, with fluidEngine iChorusOn, iReverbOn pfields, defaulting to "on"; this can reduce noise in low frequencies in SoundFont rendering.
+	* Updated Windows FluidSynth opcodes to use latest FluidSynth sources.
+
 2006-03-28  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/compress.c: New code for distort and compress/expander
