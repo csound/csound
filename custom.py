@@ -80,8 +80,10 @@ elif sys.platform[:3] == 'win':
     # If you want to build the FluidSynth opcodes
     # you need FluidSynth. If it is not a standard location,
     # add it here (you do NOT need to build it first):
-    customLIBPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32')
-    customCPPPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32/include')
+    #customLIBPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32')
+    #customCPPPATH.append('c:/utah/opt/fluidsynth-1.0.3-win32/include')
+    customLIBPATH.append('C:/utah/home/mkg/projects/fluid/fluidsynth/src')
+    customCPPPATH.append('C:/utah/home/mkg/projects/fluid/fluidsynth/include')
     ################################################################
     # If you want to build the Java wrapper for CsoundVST
     # you need Java. If it is not in a standard location,
