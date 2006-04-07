@@ -70,7 +70,7 @@ public:
     kEditorWidth = 610,
     kEditorHeight = 430,
     xPad = 4,
-    yPad = 4,
+    yPad = 4
   } AEffEditorSize;
   Fl_Pack *mainPack;
   Fl_Tabs *mainTabs;

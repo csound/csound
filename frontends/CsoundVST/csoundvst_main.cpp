@@ -42,7 +42,7 @@ int main(int argc, char **argv)
   std::fprintf(stderr, "CreateCsoundVST_ = 0x%x\n", CreateCsoundVST_);
 #endif
   CsoundVST *csoundVST = CreateCsoundVST();
-  std::fprintf(stderr, "csoundVST = 0x%x\n", csoundVST);
+  std::fprintf(stderr, "csoundVST = %p\n", (void*) csoundVST);
   AEffEditor *editor = csoundVST->getEditor();
   editor->open(0);
   if(argc == 2) {
