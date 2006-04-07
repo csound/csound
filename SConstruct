@@ -1259,9 +1259,11 @@ else:
         option = '-I' + option
         vstEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =', commonEnvironment['ENV']['PATH']
-    csoundVstSources = Split('''
-    frontends/CsoundVST/AudioEffect.cpp
-    frontends/CsoundVST/audioeffectx.cpp
+    csoundVstBaseSources = []
+    for i in ['AudioEffect', 'audioeffectx', 'Shell', 'System']:
+        csoundVstBaseSources += vstEnvironment.SharedObject(
+            'frontends/CsoundVST/%s.cpp' % i)
+    csoundVstSources = csoundVstBaseSources + Split('''
     frontends/CsoundVST/Cell.cpp
     frontends/CsoundVST/Composition.cpp
     frontends/CsoundVST/Conversions.cpp
@@ -1284,10 +1286,8 @@ else:
     frontends/CsoundVST/Score.cpp
     frontends/CsoundVST/ScoreNode.cpp
     frontends/CsoundVST/Sequence.cpp
-    frontends/CsoundVST/Shell.cpp
     frontends/CsoundVST/Soundfile.cpp
     frontends/CsoundVST/StrangeAttractor.cpp
-    frontends/CsoundVST/System.cpp
     ''')
     # These are the Windows system call libraries.
     if getPlatform() == 'mingw':
@@ -1303,11 +1303,7 @@ else:
     csoundVstSources.insert(0, csoundVstPythonWrapper)
     csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
 
-    scoregenSources = Split('''
-    frontends/CsoundVST/AudioEffect.cpp
-    frontends/CsoundVST/audioeffectx.cpp
-    frontends/CsoundVST/Shell.cpp
-    frontends/CsoundVST/System.cpp
+    scoregenSources = csoundVstBaseSources + Split('''
     frontends/CsoundVST/ScoreGenerator.cpp
     frontends/CsoundVST/ScoreGeneratorVst.cpp
     frontends/CsoundVST/ScoreGeneratorVstUi.cpp
