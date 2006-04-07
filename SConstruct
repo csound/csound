@@ -1308,9 +1308,9 @@ else:
     frontends/CsoundVST/audioeffectx.cpp
     frontends/CsoundVST/Shell.cpp
     frontends/CsoundVST/System.cpp
-    frontends/CsoundVST/ScoreGenerator.cpp     
-    frontends/CsoundVST/ScoreGeneratorVst.cpp  
-    frontends/CsoundVST/ScoreGeneratorVstUi.cpp	
+    frontends/CsoundVST/ScoreGenerator.cpp
+    frontends/CsoundVST/ScoreGeneratorVst.cpp
+    frontends/CsoundVST/ScoreGeneratorVstUi.cpp
     frontends/CsoundVST/ScoreGeneratorVstFltk.cpp
     frontends/CsoundVST/ScoreGeneratorVstMain.cpp
     ''')
@@ -1319,15 +1319,20 @@ else:
     vstWrapperEnvironment2 = vstEnvironment.Copy()
     fixCFlagsForSwig(vstWrapperEnvironment2)
     scoregenPythonWrapper = vstWrapperEnvironment2.SharedObject(
-        'frontends/CsoundVST/ScoreGeneratorVST.i', SWIGFLAGS = [swigflags, '-python'])
+        'frontends/CsoundVST/ScoreGeneratorVST.i',
+        SWIGFLAGS = [swigflags, '-python'])
     scoregenSources.insert(0, scoregenPythonWrapper)
-    scoregen = vstEnvironment.SharedLibrary('_scoregen', scoregenSources)
-    libs.append('scoregen.py')
-    libs.append(scoregen)
-
     if getPlatform == 'darwin':
         vstEnvironment.Prepend(LINKFLAGS = '-bundle')
-        vstEnvironment.Program('_CsoundVST.so', csoundVstSources)
+        pythonModules.append(
+            vstEnvironment.Program('_CsoundVST.so', csoundVstSources))
+        scoregen = vstEnvironment.Program('_scoregen.so', scoregenSources)
+    else:
+        scoregen = vstEnvironment.SharedLibrary('_scoregen', scoregenSources,
+                                                SHLIBPREFIX = '')
+    pythonModules.append('scoregen.py')
+    pythonModules.append(scoregen)
+
     # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     pythonModules.append('CsoundVST.py')
     libs.append(csoundvst)
@@ -1552,12 +1557,14 @@ else:
 
 if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     print "CONFIGURATION DECISION: Building Winsound frontend"
-    headers += glob.glob('frontends/winsound/*.h')
+    # should these be installed ?
+    # headers += glob.glob('frontends/winsound/*.h')
     csWinEnvironment = commonEnvironment.Copy()
     csWinEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     csWinEnvironment.Append(LIBS = libCsoundLibs)
-    if (commonEnvironment['noFLTKThreads'] == '1'):
-        csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
+    # not used
+    # if (commonEnvironment['noFLTKThreads'] == '1'):
+    #     csWinEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])
     if getPlatform() == 'linux':
         csWinEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
         csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
