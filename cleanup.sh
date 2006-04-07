@@ -58,6 +58,11 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 "$0" remove "./loris.py"
 "$0" remove "./loris.pyc"
 "$0" remove "./loris.pyo"
+"$0" remove "./frontends/winsound/winsound.cxx"
+"$0" remove "./frontends/winsound/winsound.h"
+"$0" remove "./frontends/CsoundVST/ScoreGeneratorVST_wrap.cc"
+"$0" remove "./frontends/CsoundVST/ScoreGeneratorVST_wrap.h"
+"$0" remove "./scoregen.py"
 
 rm -f "./libcsound.so"
 rm -f "./libcsound64.so"
