@@ -71,7 +71,7 @@ protected:
   VstEvents *vstEventsPointer;
   double vstFramesPerSecond;
   double vstSecondsPerFrame;
-  double vstCurrentBlockStart;  
+  double vstCurrentBlockStart;
   double vstCurrentBlockStartFrame;
   double vstInputLatency;
   double vstInputLatencySeconds;
