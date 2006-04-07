@@ -8,7 +8,7 @@ To build from sources in the csound5 module in Csound CVS
 at SourceForge, follow the instructions in
 The Canonical Csound Reference Manual.
 It is available online at http://csounds.com/manual,
-in the Windows installer Csound5.01-win32.exe from SourceForge,
+in the Windows installer Csound5.02_win32d.exe from SourceForge,
 or by building from sources in the manual module in Csound CVS.
 The installation instructions are available online at
 http://csounds.com/manual/html/buildingCsound.html
