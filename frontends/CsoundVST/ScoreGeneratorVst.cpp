@@ -515,20 +515,20 @@ size_t ScoreGeneratorVst::event(double start, double duration, double status, do
     int offframe = noteoff.start * vstFramesPerSecond;
     scoreGeneratorEvents.insert(std::make_pair(offframe, noteoff));
   }
-  logv("Adding noteon: frame %d, time %f, duration %f, opcode %f, channel %f, key %f, velocity %f\n", 
+  logv("Adding noteon: frame %d, time %f, duration %f, opcode %f, channel %f, key %f, velocity %f\n",
        onframe,
-       start, 
-       duration, 
-       status, 
-       channel, 
-       data1, 
+       start,
+       duration,
+       status,
+       channel,
+       data1,
        data2);
-  if (debug) logv("    MIDI data: frame %d, time %f, duration %f, status %d, key %d, velocity %d, detune %d\n", 
-       onframe, 
+  if (debug) logv("    MIDI data: frame %d, time %f, duration %f, status %d, key %d, velocity %d, detune %d\n",
+       onframe,
        noteon.duration,
-       (unsigned char) noteon.vstMidiEvent.midiData[0], 
-       (unsigned char) noteon.vstMidiEvent.midiData[1], 
-       (unsigned char) noteon.vstMidiEvent.midiData[2], 
+       (unsigned char) noteon.vstMidiEvent.midiData[0],
+       (unsigned char) noteon.vstMidiEvent.midiData[1],
+       (unsigned char) noteon.vstMidiEvent.midiData[2],
        (unsigned char) noteon.vstMidiEvent.detune);
   return scoreGeneratorEvents.size();
 }
@@ -555,19 +555,19 @@ void ScoreGeneratorVst::sendEvents(long frames)
     int currentFrame = int(vstCurrentBlockStartFrame) + int(frame) - int(vstInputLatency);
     double currentTime = (vstCurrentBlockStart + (double(frame) * vstSecondsPerFrame)) - vstInputLatencySeconds;
     vstEventsPointer->numEvents = 0;
-    std::pair< std::multimap<int, ScoreGeneratorEvent>::const_iterator, std::multimap<int, ScoreGeneratorEvent>::const_iterator > pair = scoreGeneratorEvents.equal_range(currentFrame);  	 
+    std::pair< std::multimap<int, ScoreGeneratorEvent>::const_iterator, std::multimap<int, ScoreGeneratorEvent>::const_iterator > pair = scoreGeneratorEvents.equal_range(currentFrame);
     for( ; pair.first != pair.second; ++pair.first) {
       const VstMidiEvent *vstMidiEventPointer = &(*pair.first).second.vstMidiEvent;
       vstEventsPointer->events[vstEventsPointer->numEvents++] = (VstEvent *)vstMidiEventPointer;
-      if (debug) logv("Scheduled event: frame %d, , time %f, delta %d, length %d, status %d, key %d, velocity %d, detune %d\n", 
-		      currentFrame,
-		      currentTime,
-		      vstMidiEventPointer->deltaFrames, 
-		      vstMidiEventPointer->noteLength, 
-		      (unsigned char) vstMidiEventPointer->midiData[0], 
-		      (unsigned char) vstMidiEventPointer->midiData[1], 
-		      (unsigned char) vstMidiEventPointer->midiData[2], 
-		      (unsigned char) vstMidiEventPointer->detune);
+      if (debug) logv("Scheduled event: frame %d, , time %f, delta %d, length %d, status %d, key %d, velocity %d, detune %d\n",
+                      currentFrame,
+                      currentTime,
+                      vstMidiEventPointer->deltaFrames,
+                      vstMidiEventPointer->noteLength,
+                      (unsigned char) vstMidiEventPointer->midiData[0],
+                      (unsigned char) vstMidiEventPointer->midiData[1],
+                      (unsigned char) vstMidiEventPointer->midiData[2],
+                      (unsigned char) vstMidiEventPointer->detune);
     }
     if (vstEventsPointer->numEvents > 0) {
       bool result = sendVstEventsToHost(vstEventsPointer);
