@@ -791,9 +791,9 @@ void QuitCsTcl(ClientData clientData)
 }
 
 /* bus channels */
-int
-csSetControlChannel(ClientData clientData, Tcl_Interp * interp,
-                      int argc, Tcl_Obj ** argv)
+
+int csSetControlChannel(ClientData clientData, Tcl_Interp * interp,
+                        int argc, Tcl_Obj ** argv)
 {
     Tcl_Obj *resp;
     csdata *p = (csdata *) clientData;
@@ -820,9 +820,8 @@ csSetControlChannel(ClientData clientData, Tcl_Interp * interp,
     return (TCL_OK);
 }
 
-int
-csGetControlChannel(ClientData clientData, Tcl_Interp * interp,
-                      int argc, Tcl_Obj ** argv)
+int csGetControlChannel(ClientData clientData, Tcl_Interp * interp,
+                        int argc, Tcl_Obj ** argv)
 {
     Tcl_Obj *resp;
     csdata *p = (csdata *) clientData;
@@ -844,9 +843,8 @@ csGetControlChannel(ClientData clientData, Tcl_Interp * interp,
     return (TCL_OK);
 }
 
-int
-csSetStringChannel(ClientData clientData, Tcl_Interp * interp,
-                     int argc, char **argv)
+int csSetStringChannel(ClientData clientData, Tcl_Interp * interp,
+                       int argc, char **argv)
 {
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
@@ -875,9 +873,8 @@ csSetStringChannel(ClientData clientData, Tcl_Interp * interp,
     return (TCL_OK);
 }
 
-int
-csGetStringChannel(ClientData clientData, Tcl_Interp * interp,
-                     int argc, char **argv)
+int csGetStringChannel(ClientData clientData, Tcl_Interp * interp,
+                       int argc, char **argv)
 {
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
@@ -893,24 +890,31 @@ csGetStringChannel(ClientData clientData, Tcl_Interp * interp,
     }
     return (TCL_OK);
 }
-void csMessCallback(CSOUND *csound,int attr,const char *format,va_list valist){
+
+void csMessCallback(CSOUND *csound,
+                    int attr, const char *format, va_list valist)
+{
     csdata *p = (csdata *) csoundGetHostData(csound);
+
     vsprintf(p->mbuf, format, valist);
-    Tcl_SetVar(p->interp,p->mess,p->mbuf, 0);
+    Tcl_SetVar(p->interp, p->mess, p->mbuf, 0);
 }
 
 int csMessageOutput(ClientData clientData, Tcl_Interp * interp,
-               int argc, char **argv)
+                    int argc, char **argv)
 {
-  if(argc > 1){
-        csdata  *p = (csdata *) clientData;
-	strcpy(p->mess,argv[1]);
-	Tcl_SetVar(interp,p->mess, "", 0);
-	csoundSetMessageCallback(p->instance, csMessCallback);
-        Tcl_SetResult(interp, p->mess, TCL_VOLATILE);
-  }
-  else Tcl_SetResult(interp,"no variable name given", TCL_VOLATILE);
-        return (TCL_OK);
+    if (argc > 1) {
+      csdata  *p = (csdata *) clientData;
+
+      strcpy(p->mess, argv[1]);
+      Tcl_SetVar(interp, p->mess, "", 0);
+      csoundSetMessageCallback(p->instance, csMessCallback);
+      Tcl_SetResult(interp, p->mess, TCL_VOLATILE);
+    }
+    else
+      Tcl_SetResult(interp, "no variable name given", TCL_VOLATILE);
+
+    return (TCL_OK);
 }
 
 /* initialize Tcl Tk commands */
