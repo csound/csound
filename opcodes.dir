@@ -9,6 +9,8 @@ babo:
 	babo
 barmodel:
 	barmodel
+compress:
+	compress distort
 control:
 	control setctrl button checkbox flashtxt
 dssi4cs:
