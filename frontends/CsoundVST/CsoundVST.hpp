@@ -61,15 +61,15 @@ class CsoundVST :
 protected:
   enum
     {
-      kNumInputs = 2,
+      kNumInputs = 2
     };
   enum
     {
-      kNumOutputs = 2,
+      kNumOutputs = 2
     };
   enum
     {
-      kNumPrograms = 10,
+      kNumPrograms = 10
     };
   static double inputScale;
   static double outputScale;
@@ -156,7 +156,7 @@ public:
 extern "C"
 {
   PUBLIC CsoundVST *CreateCsoundVST();
-};
+}
 
 #endif
 
