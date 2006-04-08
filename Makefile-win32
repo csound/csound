@@ -8,11 +8,15 @@ ifeq ($(strip $(USEDOUBLE)),yes)
 CFLAGS += -march=i586 -mtune=pentium3 -fomit-frame-pointer -ffast-math
 CFLAGS += -DUSE_DOUBLE -DUSE_LRINT
 CSOUNDLIB = csound64.dll.5.1
+CSLIB_LNK = -lcsound64
 PROGRAM = csound.exe
+WINSOUND = winsound.exe
 else
 CFLAGS += -march=pentium3 -fomit-frame-pointer -ffast-math
 CSOUNDLIB = csound32.dll.5.1
+CSLIB_LNK = -lcsound32
 PROGRAM = csound32.exe
+WINSOUND = winsound32.exe
 endif
 CFLAGS += -I. -IH -DWIN32 -DPIPES -DHAVE_STDINT_H -DHAVE_DIRENT_H
 CFLAGS += -DHAVE_UNISTD_H -DHAVE_FCNTL_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H
@@ -22,9 +26,9 @@ LIBS = D:/MinGW/bin/libsndfile-1.dll -lgdi32 -luser32 -lkernel32 -lm
 PYINCDIR = D:/MinGW/Python/include
 PYLIB = python24.dll
 
-PLUGINS =	babo.dll barmodel.dll ftest.dll grain4.dll hrtferX.dll	\
-		minmax.dll mixer.dll modal4.dll phisem.dll physmod.dll	\
-		pitch.dll scansyn.dll sfont.dll vbap.dll		\
+PLUGINS =	babo.dll barmodel.dll compress.dll ftest.dll grain4.dll	\
+		hrtferX.dll minmax.dll mixer.dll modal4.dll phisem.dll	\
+		physmod.dll pitch.dll scansyn.dll sfont.dll vbap.dll	\
 		stdopcod.dll stdutil.dll				\
 		widgets.dll rtpa.dll rtwinmm.dll pmidi.dll
 
@@ -33,7 +37,7 @@ UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe mixer.exe	\
 		extractor.exe scsort.exe extract.exe csb64enc.exe	\
 		makecsd.exe cs.exe scot.exe
 
-all: $(CSOUNDLIB) $(PROGRAM) $(PLUGINS) $(UTILS)
+all: $(CSOUNDLIB) $(PROGRAM) $(WINSOUND) $(PLUGINS) $(UTILS)
 
 CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		Engine/envvar.o Engine/express.o Engine/extract.o	\
@@ -62,7 +66,7 @@ CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		Top/one_file.o Top/opcode.o Top/threads.o Top/utility.o
 
 $(CSOUNDLIB): $(CSOUNDLIB_OBJ)
-	$(CXX) -O2 -shared -Wl,--output-def,$(subst .dll.5.1,.def,$(CSOUNDLIB)) -o $@ $^ $(LDFLAGS) $(LIBS)
+	$(CXX) -O2 -shared -Wl,--output-def,$(subst .dll.5.1,.def,$(CSOUNDLIB)) -Wl,--out-implib,lib$(subst .dll.5.1,.a,$(CSOUNDLIB)) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 Opcodes/%.o: Opcodes/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -144,55 +148,68 @@ stdutil.dll:	util/cvanal.o util/dnoise.o util/envext.o util/xtrct.o	\
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(LIBS)
 
 $(PROGRAM): frontends/csound/csound_main.o $(CSOUNDLIB)
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 cvanal.exe: util/cvl_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 dnoise.exe: util/dnoise_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 hetro.exe: util/het_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 lpanal.exe: util/lpc_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 mixer.exe: util/mixer_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 pvanal.exe: util/pvl_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 scale.exe: util/scale_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 sndinfo.exe: util/sndinfo_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 srconv.exe: util/srconv_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 extractor.exe: util/xtrc_main.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 scsort.exe: util1/sortex/smain.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 extract.exe: util1/sortex/xmain.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 csb64enc.exe: util1/csd_util/base64.o util1/csd_util/csb64enc.o
-	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 makecsd.exe: util1/csd_util/base64.o util1/csd_util/makecsd.o
-	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 cs.exe: util1/csd_util/cs.o
-	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $< $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
 
 scot.exe: util1/scot/scot.o util1/scot/scot_main.o
-	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSOUNDLIB) $(LIBS)
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSLIB_LNK) $(LIBS)
+
+frontends/winsound/winsound.cxx: frontends/winsound/winsound.fl
+	fluid -c -o $@ -h frontends/winsound/winsound.h $<
+
+frontends/winsound/winsound.oo: frontends/winsound/winsound.cxx
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+frontends/winsound/main.oo:	frontends/winsound/main.cxx		\
+				frontends/winsound/winsound.cxx
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+$(WINSOUND): frontends/winsound/winsound.oo frontends/winsound/main.oo
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSLIB_LNK) -lfltk -lstdc++ -lole32 -luuid -lwsock32 $(LIBS)
 
 Opcodes/py/pythonopcodes.o: Opcodes/py/pythonopcodes.c
 	$(CC) $(CFLAGS) -I$(PYINCDIR) -c $< -o $@
@@ -211,14 +228,14 @@ interfaces/python_interface_wrap.oo: interfaces/python_interface_wrap.cc
 _csnd.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
 		interfaces/CsoundFile.oo interfaces/cs_glue.oo		\
 		interfaces/csPerfThread.oo interfaces/pyMsgCb.oo	\
-		interfaces/python_interface_wrap.oo $(CSOUNDLIB)
-	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_csnd.def -lstdc++ $(PYLIB) $(LIBS)
+		interfaces/python_interface_wrap.oo
+	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_csnd.def $(CSLIB_LNK) -lstdc++ $(PYLIB) $(LIBS)
 
 _jcsound.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
 		interfaces/CsoundFile.oo interfaces/cs_glue.oo		\
 		interfaces/csPerfThread.oo interfaces/pyMsgCb_stub.oo	\
-		interfaces/java_interface_wrap.oo $(CSOUNDLIB)
-	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_jcsound.def -lstdc++ $(LIBS)
+		interfaces/java_interface_wrap.oo
+	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_jcsound.def $(CSLIB_LNK) -lstdc++ $(LIBS)
 
 clean:
 	-rm `find . -type f \( -name "*.o" -o -name "*.oo" \) -print`
