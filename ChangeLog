@@ -1,5 +1,18 @@
-2006-03-224-04	Michael Gogins	<gogins@pipeline.com>
-	* Changed FluidSynth opcodes slightly, with fluidEngine iChorusOn, iReverbOn pfields, defaulting to "on"; this can reduce noise in low frequencies in SoundFont rendering.
+2006-04-08	Istvan Varga	<ivarga@csounds.com>
+	* OOps/sndinfUG.c:
+	  restored filepeak opcode
+
+2006-04-07	Istvan Varga	<ivarga@csounds.com>
+	* H/version.h:
+	  updated version number to 5.02.0 to reflect addition of new opcodes
+	* Opcodes/compress.c:
+	  fixed a few minor errors
+
+2006-04-04	Michael Gogins	<gogins@pipeline.com>
+	* Changed FluidSynth opcodes slightly, with
+	    fluidEngine iChorusOn, iReverbOn
+	  pfields, defaulting to "on"; this can reduce noise in low frequencies
+	  in SoundFont rendering.
 	* Updated Windows FluidSynth opcodes to use latest FluidSynth sources.
 
 2006-03-28  jpff  <jpff@codemist.co.uk>
@@ -13,8 +26,8 @@
 	  fixes in sensekey opcode
 
 2006-03-22	Michael Gogins	<gogins@pipeline.com>
-	* Added ScoreGeneratorVST, a VST plugin for generating scores in VST 
-	hosts using Python.
+	* Added ScoreGeneratorVST, a VST plugin for generating scores in VST
+	  hosts using Python.
 	* Updated Windows installer for new targets, including Winsound.
 
 2006-03-22	Istvan Varga	<ivarga@csounds.com>
