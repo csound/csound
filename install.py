@@ -18,7 +18,7 @@ headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h',
                'interfaces/CppSound.hpp', 'interfaces/filebuilding.h',
                'interfaces/CsoundFile.hpp']
 
-exeFiles1 = ['csound', 'CsoundVST', 'cstclsh', 'cswish',
+exeFiles1 = ['csound', 'CsoundVST', 'winsound', 'cstclsh', 'cswish',
              'cvanal', 'dnoise', 'envext', 'extractor',
              'het_export', 'het_import', 'hetro', 'lpanal',
              'lpc_export', 'lpc_import', 'mixer', 'pvanal',
@@ -285,7 +285,9 @@ print ' === Installing language interfaces ==='
 wrapperList = [['csnd\\.py', '0', pythonDir],
                ['loris\\.py', '0', pythonDir],
                ['CsoundVST\\.py', '0', pythonDir],
+               ['scoregen\\.py', '0', pythonDir],
                ['_loris\\.so', '1', pythonDir2],
+               ['_scoregen\\.so', '1', pythonDir2],
                ['csnd\\.jar', '0', javaDir],
                ['interfaces/csound5\\.lisp', '0', lispDir]]
 for i in wrapperList:
