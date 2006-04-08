@@ -144,39 +144,58 @@ int filesr(CSOUND *csound, SNDINFO *p)
 
 int filepeak(CSOUND *csound, SNDINFOPEAK *p)
 {
-    csound->Die(csound, Str("filepeak is not implemented"));
-    return NOTOK;
-#if 0
-    int channel = (int)(*p->channel + FL(0.5));
-    char    *sfname, *s, soundiname[512];
+    int     channel = (int) (*p->channel + FL(0.5));
+    char    *sfname, soundiname[512];
+    void    *fd;
     SNDFILE *sf;
+    double  peakVal = -1.0;
+    int     fmt, typ;
     SF_INFO sfinfo;
 
-    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
-                                p->XSTRCODE);
+    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.", p->XSTRCODE);
     sfname = soundiname;
-    if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
-      if (!csound->oparms->infilename)  /* commandline inputfile */
+    if (strcmp(sfname, "-i") == 0) {        /* get info on the -i    */
+      sfname = csound->oparms->infilename;  /* commandline inputfile */
+      if (sfname == NULL)
         csound->Die(csound, Str("no infile specified in the commandline"));
-      sfname = csound->oparms->infilename;
     }
-    s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
-    if (s == NULL) {                        /* open with full dir paths */
+    memset(&sfinfo, 0, sizeof(SF_INFO));    /* open with full dir paths */
+    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
+                                  "SFDIR;SSDIR");
+    if (fd == NULL) {
       /* RWD 5:2001 better to exit in this situation ! */
       csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
-    sfname = s;                             /* & record fullpath filnam */
-    sndfile = sf_open(sfname, SFM_READ, &sfinfo);
-    if (channel>sfinfo->channels)
-      csound->Die(csound,
-                  Str("Input channel for peak exceeds number "
-                      "of channels in file"));
-    peaks = (double*)mmalloc(sizeof(double)*sfinfo->channels);
-    sf_command (sndfile, SFC_CALC_MAX_ALL_CHANNELS, peaks, sizeof(peaks));
-    *p->r1 = peaks[channel];
-    mfree(peaks);
+    if (channel <= 0) {
+      if (sf_command(sf, SFC_CALC_NORM_SIGNAL_MAX, &peakVal, sizeof(double))
+          != 0)
+        peakVal = -1.0;
+    }
+    else {
+      double  *peaks;
+      size_t  nBytes;
+      if (channel > sfinfo.channels)
+        csound->Die(csound, Str("Input channel for peak exceeds number "
+                                "of channels in file"));
+      nBytes = sizeof(double) * sfinfo.channels;
+      peaks = (double*) csound->Malloc(csound, nBytes);
+      if (sf_command(sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, nBytes) == 0)
+        peakVal = peaks[channel - 1];
+      csound->Free(csound, peaks);
+    }
+    if (peakVal < 0.0)
+      csound->Die(csound, Str("filepeak: error getting peak value"));
+    /* scale output consistently with soundin opcode (see diskin2.c) */
+    fmt = sfinfo.format & SF_FORMAT_SUBMASK;
+    typ = sfinfo.format & SF_FORMAT_TYPEMASK;
+    if ((fmt != SF_FORMAT_FLOAT && fmt != SF_FORMAT_DOUBLE) ||
+        (typ == SF_FORMAT_WAV || typ == SF_FORMAT_W64 || typ == SF_FORMAT_AIFF))
+      *p->r1 = (MYFLT) (peakVal * (double) csound->e0dbfs);
+    else
+      *p->r1 = (MYFLT) peakVal;
+    csound->FileClose(csound, fd);
+
     return OK;
-#endif
 }
 
 /* RWD 8:2001 support analysis files in filelen opcode  */
