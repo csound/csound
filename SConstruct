@@ -1260,13 +1260,12 @@ else:
         vstEnvironment.Append(SWIGFLAGS = [option])
     print 'PATH =', commonEnvironment['ENV']['PATH']
     csoundVstBaseSources = []
-    for i in ['AudioEffect', 'audioeffectx', 'Shell', 'System']:
+    for i in ['AudioEffect', 'audioeffectx', 'Conversions', 'Shell', 'System']:
         csoundVstBaseSources += vstEnvironment.SharedObject(
             'frontends/CsoundVST/%s.cpp' % i)
     csoundVstSources = csoundVstBaseSources + Split('''
     frontends/CsoundVST/Cell.cpp
     frontends/CsoundVST/Composition.cpp
-    frontends/CsoundVST/Conversions.cpp
     frontends/CsoundVST/Counterpoint.cpp
     frontends/CsoundVST/CounterpointNode.cpp
     frontends/CsoundVST/CsoundVST.cpp
