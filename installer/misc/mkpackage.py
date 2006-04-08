@@ -3,7 +3,7 @@
 import os
 import re
 
-CFlags = '-Wall -O3 -fno-inline-functions -march=i686'
+CFlags = '-Wall -O3 -fno-inline-functions -march=i686 -mtune=pentium3'
 CFlags += ' -fomit-frame-pointer -ffast-math'
 
 # CFlags = '-O0'
@@ -68,7 +68,8 @@ headerFiles += ['H/version.h']
 headerFiles += ['interfaces/CppSound.hpp', 'interfaces/filebuilding.h']
 headerFiles += ['interfaces/CsoundFile.hpp']
 
-utils1 = ['csound', 'cvanal', 'dnoise', 'envext', 'extractor',
+utils1 = ['csound', 'winsound', 'cstclsh', 'cswish',
+          'cvanal', 'dnoise', 'envext', 'extractor',
           'het_export', 'het_import', 'hetro', 'lpanal',
           'lpc_export', 'lpc_import', 'mixer', 'pvanal',
           'pvlook', 'scale', 'sndinfo', 'srconv']
@@ -110,7 +111,14 @@ def cleanup():
     runCmd(['./cleanup.sh'])
 
 def makeFrontEnd(utilName, is64bit):
-    fName = '%s%s/%s%s' % (pkgDir, binDir, utilName, ['', '64'][is64bit])
+    precisionSuffix = ''
+    if is64bit != 0 and utilName != 'CsoundVST':
+        precisionSuffix = '64'
+    fName = '%s%s/%s%s' % (pkgDir, binDir, utilName, precisionSuffix)
+    if utilName in ['csound', 'CsoundVST', 'winsound', 'cstclsh', 'cswish']:
+        cmd = '"%s/%s%s"' % (binDir2, utilName, precisionSuffix)
+    else:
+        cmd = '"%s/csound%s" -U %s' % (binDir2, precisionSuffix, utilName)
     f = open(fName, 'w')
     tmp =  '#!/bin/sh\n'
     tmp += '\n'
@@ -124,12 +132,10 @@ def makeFrontEnd(utilName, is64bit):
     tmp += '    export LD_LIBRARY_PATH="%s:${LD_LIBRARY_PATH}"\n'
     tmp += 'fi\n'
     tmp += '\n'
-    tmp += 'exec "%s/%s"%s "$@"\n'
+    tmp += 'exec %s "$@"\n'
     print >> f, tmp % (['OPCODEDIR', 'OPCODEDIR64'][is64bit],
                        [pluginDir32, pluginDir64][is64bit],
-                       xmgDir, rawWaveDir, libDir2, libDir2,
-                       binDir2, ['csound', 'csound64'][is64bit],
-                       ['', ' -U %s' % utilName][int(utilName != 'csound')])
+                       xmgDir, rawWaveDir, libDir2, libDir2, cmd)
     f.close
     os.chmod(fName, 0755)
 
@@ -161,6 +167,7 @@ installFiles(docFiles, docDir)
 for i in utils1:
     makeFrontEnd(i, 0)
     makeFrontEnd(i, 1)
+makeFrontEnd('CsoundVST', 1)
 
 # copy scripts
 
@@ -196,12 +203,13 @@ buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=0', 'dynamicCsoundLibrary=1', 'generateXmg=1',
                'buildInterfaces=0', 'buildPDClass=1', 'buildTclcsound=1',
-               'buildLoris=1', 'buildStkOpcodes=1'],
+               'buildLoris=1', 'buildStkOpcodes=1', 'buildWinsound=1'],
               ['useDouble=1', 'dynamicCsoundLibrary=0', 'generateXmg=0',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=1', 'dynamicCsoundLibrary=1', 'generateXmg=0',
                'buildInterfaces=1', 'buildPDClass=0', 'buildTclcsound=1',
-               'buildCsoundVST=1', 'buildLoris=1', 'buildStkOpcodes=1']]
+               'buildCsoundVST=1', 'buildLoris=1', 'buildStkOpcodes=1',
+               'buildWinsound=1']]
 
 for i in range(4):
     cleanup()
@@ -233,9 +241,10 @@ for i in range(4):
         # csoundapi~ for PD
         runCmd(['strip', '--strip-unneeded', 'csoundapi~.pd_linux'])
         installFile('csoundapi~.pd_linux', pdDir)
+        # executables
+        for j in ['winsound', 'cstclsh', 'cswish']:
+            installXFile('--strip-unneeded', j, binDir2)
         # TclCsound
-        installXFile('--strip-unneeded', 'cstclsh', binDir)
-        installXFile('--strip-unneeded', 'cswish', binDir)
         installXFile('--strip-unneeded', 'tclcsound.so', tclDir)
     elif i == 2:
         # ------------ double precision, static Csound library ------------
@@ -244,7 +253,6 @@ for i in range(4):
         installFile('libcsound64.a', libDir)
     elif i == 3:
         # ------------ double precision, dynamic Csound library ------------
-        installXFile('--strip-unneeded', 'CsoundVST', binDir)
         # plugin libraries
         os.remove('libcsound64.so')
         installFile('opcodes.dir', pluginDir64)
@@ -258,11 +266,12 @@ for i in range(4):
         # standalone utilities
         for j in utils2:
             installXFile('--strip-unneeded', j, binDir)
+        # executables
+        installXFile('--strip-unneeded', 'CsoundVST', binDir2)
+        for j in ['winsound', 'cstclsh', 'cswish']:
+            os.rename(j, j + '64')
+            installXFile('--strip-unneeded', j + '64', binDir2)
         # TclCsound
-        os.rename('cstclsh', 'cstclsh64')
-        installXFile('--strip-unneeded', 'cstclsh64', binDir)
-        os.rename('cswish', 'cswish64')
-        installXFile('--strip-unneeded', 'cswish64', binDir)
         os.rename('tclcsound.so', 'tclcsound64.so')
         installXFile('--strip-unneeded', 'tclcsound64.so', tclDir)
         # Python interface libraries (csnd, CsoundVST, and loris)
@@ -273,6 +282,7 @@ for i in range(4):
         os.symlink('%s/lib_CsoundVST.so' % libDir,
                    '%s%s/_CsoundVST.so' % (pkgDir, pythonDir2))
         installXFile('--strip-debug', '_loris.so', pythonDir2)
+        installXFile('--strip-debug', '_scoregen.so', pythonDir2)
         f = open('__make_pyc.sh', 'w')
         print >> f, '#!/bin/sh'
         print >> f, 'if [ "${LD_LIBRARY_PATH}" == "" ] ; then'
@@ -286,6 +296,8 @@ for i in range(4):
         print >> f, 'python -O -c "import CsoundVST"'
         print >> f, 'python -c "import loris"'
         print >> f, 'python -O -c "import loris"'
+        print >> f, 'python -c "import scoregen"'
+        print >> f, 'python -O -c "import scoregen"'
         print >> f
         f.close()
         os.chmod('__make_pyc.sh', 0755)
@@ -293,7 +305,9 @@ for i in range(4):
         os.remove('__make_pyc.sh')
         installFiles(['csnd.py', 'csnd.pyc', 'csnd.pyo',
                       'CsoundVST.py', 'CsoundVST.pyc', 'CsoundVST.pyo',
-                      'loris.py', 'loris.pyc', 'loris.pyo'], pythonDir)
+                      'loris.py', 'loris.pyc', 'loris.pyo',
+                      'scoregen.py', 'scoregen.pyc', 'scoregen.pyo'],
+                     pythonDir)
         # Java interface library
         installXFile('--strip-debug', 'lib_jcsound.so', libDir)
         installFile('csnd.jar', javaDir)
