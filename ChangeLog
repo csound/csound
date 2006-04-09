@@ -1,3 +1,31 @@
+2006-04-09	Istvan Varga	<ivarga@csounds.com>
+	* Engine/envvar.c:
+	  csoundFileOpen(): check for files with .sd2 extension, and use
+	  sf_open() in this case if sf_open_fd() fails
+	* InOut/FL_graph.cpp:
+	  wait for the window to be closed by the user at end of performance
+	* InOut/libsnd.c:
+	  fixes in enabling peak chunks and dithering
+	* InOut/libsnd_u.c:
+	  type2string(): added SD2 to file types
+	* InOut/rtpa.c:
+	  print warning if the buffer size (-b) is not an integer multiple
+	  of ksmps in full-duplex mode
+	* InOut/window.c:
+	  moved deferred loading of widgets plugin from main.c to make graphs
+	  work in utilities
+	* Opcodes/compress.c:
+	  made rms levels relative to 0dBFS in distort opcode
+	* H/csoundCore.h, Top/csound.c:
+	  added dispinit() function pointer to CSOUND structure,
+	  for use by utilities
+	* H/version.h:
+	  updated API version to 1.01 to reflect change to CSOUND structure
+	* util/pvanal.c:
+	  implemented graph displays (limited to 30 frames at this time)
+	* util/sndinfo.c:
+	  clear SF_INFO structure before calling sf_open()
+
 2006-04-08	Istvan Varga	<ivarga@csounds.com>
 	* OOps/sndinfUG.c:
 	  restored filepeak opcode
