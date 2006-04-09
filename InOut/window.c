@@ -24,7 +24,8 @@
 #include "csoundCore.h"                         /*      WINDOW.C        */
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
-                                                /*  dpwe 16may90        */
+#include "namedins.h"                           /*  dpwe 16may90        */
+
 extern void MakeAscii(CSOUND *, WINDAT *, const char *);
 extern void DrawAscii(CSOUND *, WINDAT *);
 extern void KillAscii(CSOUND *, WINDAT *);
@@ -72,11 +73,19 @@ static void RdXYDummy(CSOUND *csound, XYINDAT *wdptr)
     IGN(wdptr);
 }
 
-void dispinit(CSOUND *csound) /* called once on initialisation of program to */
-{                             /*  choose between teletype or bitmap graphics */
+/* called once on initialisation of program to */
+/*  choose between teletype or bitmap graphics */
+
+void dispinit(CSOUND *csound)
+{
     OPARMS  *O = csound->oparms;
-    if (O->displays && csound->isGraphable_ && !(O->graphsoff || O->postscript))
-      return;           /* provided by window driver: is this session able? */
+
+    if (O->displays && !(O->graphsoff || O->postscript)) {
+      if (!csound->isGraphable_)
+        find_opcode(csound, "FLrun");       /* load FLTK for displays */
+      if (csound->isGraphable_)
+        return;         /* provided by window driver: is this session able? */
+    }
     if (!O->displays) {
       csound->Message(csound, Str("displays suppressed\n"));
       csound->csoundMakeGraphCallback_ = DummyFn1;
