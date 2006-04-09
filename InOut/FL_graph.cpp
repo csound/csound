@@ -327,35 +327,21 @@ extern "C" {
     }
   }
 
-#if 0
-  static int myFLwait()
-  {
-    if (!form)
-      return 1;
-    end->show();
-    while (end->value() == 0 /* && kcnt */) {
-      lock((CSOUND*) 0);
-      Fl::wait(0.5);
-      unlock((CSOUND*) 0);
-    }
-    return 1;
-  }
-
-  /* print click-Exit message in most recently active window */
-
-  int ExitGraph_FLTK(CSOUND *csound)
-  {
-    const char *env = csound->GetEnv(csound, "CSNOSTOP");
-    if (env == NULL || strcmp(env, "yes") == 0)
-      myFLwait();
-    return 0;
-  }
-
-#endif
-
   int ExitGraph_FLTK(CSOUND *csound)
   {
     if (form) {
+      if (form->shown()) {
+        const char *env = csound->GetEnv(csound, "CSNOSTOP");
+        if (env == NULL || strcmp(env, "yes") != 0) {
+          /* print click-Exit message in most recently active window */
+          end->show();
+          while (end->value() == 0 && form->shown() /* && kcnt */) {
+            lock(csound);
+            Fl::wait(0.04);
+            unlock(csound);
+          }
+        }
+      }
       delete form;
       lock(csound);
       Fl::wait(0.0);
