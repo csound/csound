@@ -24,6 +24,10 @@
 #ifndef CSOUND_FFTLIB_H
 #define CSOUND_FFTLIB_H
 
+#if !defined(__BUILDING_LIBCSOUND)
+#  error "Csound plugins and host applications should not include fftlib.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
