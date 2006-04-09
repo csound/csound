@@ -36,7 +36,8 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
     while (--argc) {
       infilnam = *++argv;
       if (strncmp(infilnam, "-j", 2) == 0) {    /* Skip -j option */
-        if (infilnam[2] != '\0') ++argv, --argc;
+        if (infilnam[2] == '\0' && argc > 1)
+          ++argv, --argc;
         continue;
       }
       fname = csound->FindInputFile(csound, infilnam, "SFDIR;SSDIR");
@@ -45,6 +46,7 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
         retval = -1;
         continue;
       }
+      memset(&sf_info, 0, sizeof(SF_INFO));
       hndl = sf_open(fname, SFM_READ, &sf_info);
       if (hndl == NULL) {
         csound->Message(csound, Str("%s: Not a sound file\n"), fname);
