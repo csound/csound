@@ -426,7 +426,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_scoregen.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  File C:\utah\opt\libsndfile-1.0.13\src\.libs\libsndfile-1.dll
+  File C:\utah\opt\libsndfile-1.0.15\src\.libs\libsndfile-1.dll
   File C:\utah\opt\Lazzarini\portaudio.dll
   File C:\utah\usr\mingw\bin\mingwm10.dll
   File C:\utah\opt\portmidi\pm_win\*.dll
@@ -434,7 +434,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\CsoundVST.py
   File ..\..\scoregen.py
   File ..\..\*.exe
-  File ..\..\csound.def
+  File ..\..\csound32.def
   File ..\..\_csnd.def
   File ..\..\_jcsound.def
   File ..\..\frontends\CsoundVST\_CsoundVST.def
