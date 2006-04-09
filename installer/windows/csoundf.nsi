@@ -3,8 +3,8 @@
 !define PRODUCT "Csound"
 ; "-d" for double-precision audio samples,
 ; "-f" for single-precision audio samples.
-!define VERSION "win32-d"
-; !define VERSION "win32-f"
+;!define VERSION "win32-d"
+!define VERSION "win32-f"
 !define PROGRAM "Csound5.02"
 
 !include "MUI.nsh"
@@ -418,8 +418,8 @@ Section "${PRODUCT}" SecCopyUI
   SetOutPath $INSTDIR\bin
   ; "csound64" for double-precision audio samples;
   ; "csound32" for single-precision audio samples.
-  File ..\..\csound64.dll.5.1
-  ; File ..\..\csound32.dll.5.1
+  ; File ..\..\csound64.dll.5.1
+  File ..\..\csound32.dll.5.1
   File ..\..\_csnd.dll
   File ..\..\_jcsound.dll
   File ..\..\_CsoundVST.dll
@@ -481,8 +481,8 @@ Section "${PRODUCT}" SecCopyUI
   SetOutPath $INSTDIR\interfaces\lisp
   File ..\..\interfaces\*.lisp
   
-  SetOutPath $INSTDIR\plugins64
-  File /x csound.dll /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll ..\..\opcodes.dir
+  SetOutPath $INSTDIR\plugins
+  File /x csound*.dll* /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll ..\..\opcodes.dir
  
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
@@ -512,8 +512,8 @@ Section "${PRODUCT}" SecCopyUI
   Push "CSOUNDRC" 
   Push $INSTDIR\.csoundrc
   Call WriteEnvStr
-  Push "OPCODEDIR64" 
-  Push $INSTDIR\plugins64
+  Push "OPCODEDIR" 
+  Push $INSTDIR\plugins
   Call WriteEnvStr
   Push "RAWWAVE_PATH" 
   Push "$INSTDIR\samples"
@@ -590,7 +590,7 @@ Section "Uninstall"
 
   Push "CSOUNDRC"
   Call un.DeleteEnvStr 
-  Push "OPCODEDIR64"
+  Push "OPCODEDIR"
   Call un.DeleteEnvStr 
   Push "RAWWAVE_PATH"
   Call un.DeleteEnvStr 
