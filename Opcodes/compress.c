@@ -40,7 +40,7 @@ typedef struct {        /* this now added from 07/01 */
     OPDS    h;
     MYFLT   *ar, *asig, *kdist, *ifn, *ihp, *istor;
     double  c1, c2;
-    MYFLT   prvq, prvd;
+    MYFLT   prvq, prvd, min_rms;
     MYFLT   midphs, maxphs, begval, endval;
     FUNC    *ftp;
 } DIST;
@@ -191,14 +191,15 @@ static int distset(CSOUND *csound, DIST *p)
     p->ftp = ftp;
     p->maxphs = (MYFLT) ftp->flen;                      /* set ftable params */
     p->midphs = p->maxphs * FL(0.5);
-    p->begval = *ftp->ftable;
-    p->endval = *(ftp->ftable + ftp->flen);
+    p->begval = ftp->ftable[0];
+    p->endval = ftp->ftable[ftp->flen];
     b = 2.0 - cos((double) (*p->ihp * csound->tpidsr)); /*  and rms coefs */
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
+    p->min_rms = csound->e0dbfs * DV32768;
     if (!*p->istor) {
       p->prvq = FL(0.0);
-      p->prvd = FL(1000.0);
+      p->prvd = FL(1000.0) * p->min_rms;
     }
 
     return OK;
@@ -218,8 +219,9 @@ static int distort(CSOUND *csound, DIST *p)
       asig++;
     } while (--nsmps);
     p->prvq = q;
-    if ((rms = (MYFLT) sqrt((double) q)) < FL(1.0)) /* get running rms      */
-      rms = FL(1.0);
+    rms = (MYFLT) sqrt((double) q);                 /* get running rms      */
+    if (rms < p->min_rms)
+      rms = p->min_rms;
     if ((dist = *p->kdist) < FL(0.001))
       dist = FL(0.001);
     dnew = rms / dist;                              /* & compress factor    */
