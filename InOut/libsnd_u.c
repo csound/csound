@@ -131,8 +131,8 @@ void *sndgetset(CSOUND *csound, void *p_)
     if (sfinfo.samplerate < 1)
       sfinfo.samplerate = (int) ((double) DFLT_SR + 0.5);
     /* open with full dir paths */
-    p->fd = csound->FileOpen(csound, &(p->sinfd), CSFILE_SND_R, sfname, &sfinfo,
-                                     "SFDIR;SSDIR");
+    p->fd = csound->FileOpen(csound, &(p->sinfd), CSFILE_SND_R,
+                                     sfname, &sfinfo, "SFDIR;SSDIR");
     if (p->fd == NULL) {
       csound->ErrorMsg(csound, Str("soundin cannot open %s"), sfname);
       goto err_return;
@@ -332,6 +332,7 @@ char *type2string(int x)
 #ifdef SF_FORMAT_SDS
       case TYP_SDS:   return "SDS";
 #endif
+      case TYP_SD2:   return "SD2";
       default:        return Str("unknown");
     }
 }
