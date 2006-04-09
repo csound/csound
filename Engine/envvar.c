@@ -884,14 +884,35 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int type,
         memset(&sfinfo, 0, sizeof(SF_INFO));
         p->sf = sf_open_fd(tmp_fd, SFM_READ, &sfinfo, 0);
         if (p->sf == (SNDFILE*) NULL) {
-          /* open failed: maybe raw file ? rewind and try again */
+          int   extPos;
+          /* open failed: */
+          extPos = (nbytes - (int) sizeof(CSFILE)) - 4;
+          /* check for .sd2 file first */
+          if (extPos > 0 &&
+              p->fullName[extPos] == (char) '.' &&
+              (p->fullName[extPos + 1] | (char) 0x20) == (char) 's' &&
+              (p->fullName[extPos + 2] | (char) 0x20) == (char) 'd' &&
+              p->fullName[extPos + 3] == (char) '2') {
+            memset(&sfinfo, 0, sizeof(SF_INFO));
+            p->sf = sf_open(&(p->fullName[0]), SFM_READ, &sfinfo);
+            if (p->sf != (SNDFILE*) NULL) {
+              /* if successfully opened as .sd2, */
+              /* the integer file descriptor is no longer needed */
+              close(tmp_fd);
+              p->fd = tmp_fd = -1;
+              goto doneSFOpen;
+            }
+          }
+          /* maybe raw file ? rewind and try again */
           if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0)
             p->sf = sf_open_fd(tmp_fd, SFM_READ, (SF_INFO*) param, 0);
           if (p->sf == (SNDFILE*) NULL)
             goto err_return;
         }
-        else
+        else {
+ doneSFOpen:
           memcpy((SF_INFO*) param, &sfinfo, sizeof(SF_INFO));
+        }
         *((SNDFILE**) fd) = p->sf;
         break;
       case CSFILE_SND_W:                        /* sound file write */
