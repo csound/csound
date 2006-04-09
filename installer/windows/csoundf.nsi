@@ -483,7 +483,6 @@ Section "${PRODUCT}" SecCopyUI
  
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
-  File /r ..\..\Opcodes\stk\rawwaves\*.raw
 
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT}" "" $INSTDIR
