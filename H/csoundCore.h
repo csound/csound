@@ -913,7 +913,8 @@ extern "C" {
     int (*ChanOKGet)(CSOUND *, MYFLT *value, int n);
     int (*ChanIASet)(CSOUND *, const MYFLT *value, int n);
     int (*ChanOAGet)(CSOUND *, MYFLT *value, int n);
-    SUBR dummyfn_1;
+    void (*dispinit)(CSOUND *);
+ /* SUBR dummyfn_1; */
     SUBR dummyfn_2[112];
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
