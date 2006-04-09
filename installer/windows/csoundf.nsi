@@ -424,7 +424,6 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_jcsound.dll
   File ..\..\_CsoundVST.dll
   File ..\..\_scoregen.dll
-  File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
   File C:\utah\opt\libsndfile-1.0.13\src\.libs\libsndfile-1.dll
@@ -434,13 +433,11 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
   File ..\..\scoregen.py
-  File ..\..\loris.py
   File ..\..\*.exe
   File ..\..\csound.def
   File ..\..\_csnd.def
   File ..\..\_jcsound.def
   File ..\..\frontends\CsoundVST\_CsoundVST.def
-  File ..\..\_loris.def
   
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
