@@ -443,10 +443,17 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* IV - Feb 22 2005: clip integer formats */
     if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
       sf_command(ST(outfile), SFC_SET_CLIPPING, NULL, SF_TRUE);
-    if (csound->peakchunks)
-      sf_command(ST(outfile), SFC_SET_ADD_PEAK_CHUNK, NULL, SF_TRUE);
-    if (csound->dither_output)          /* This may not be written yet!! */
-      sf_command(ST(outfile), SFC_SET_DITHER_ON_WRITE, NULL, SF_TRUE);
+    sf_command(ST(outfile), SFC_SET_ADD_PEAK_CHUNK,
+               NULL, (csound->peakchunks ? SF_TRUE : SF_FALSE));
+    if (csound->dither_output) {        /* This may not be written yet!! */
+      SF_DITHER_INFO  ditherInfo;
+      memset(&ditherInfo, 0, sizeof(SF_DITHER_INFO));
+      ditherInfo.type = SFD_TRIANGULAR_PDF | SFD_DEFAULT_LEVEL;
+      ditherInfo.level = 1.0;
+      ditherInfo.name = (char*) NULL;
+      sf_command(ST(outfile), SFC_SET_DITHER_ON_WRITE,
+                 &ditherInfo, sizeof(SF_DITHER_INFO));
+    }
     if (!(O->outformat == AE_FLOAT || O->outformat == AE_DOUBLE) ||
         (O->filetyp == TYP_WAV || O->filetyp == TYP_AIFF ||
          O->filetyp == TYP_W64))
