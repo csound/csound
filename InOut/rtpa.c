@@ -255,6 +255,12 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
         pa_PrintErrMsg(csound, Str("inconsistent full-duplex sample rates"));
         goto err_return;
       }
+      if (((pabs->inParm.bufSamp_SW / csound->ksmps) * csound->ksmps)
+          != pabs->inParm.bufSamp_SW)
+        csound->MessageS(csound,
+                         CSOUNDMSG_WARNING,
+                         Str("WARNING: buffer size should be an integer "
+                             "multiple of ksmps in full-duplex mode\n"));
 #if NO_FULLDUPLEX_PA_LOCK
       pabs->noPaLock = 1;
 #endif
