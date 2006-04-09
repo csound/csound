@@ -280,7 +280,8 @@ static const CSOUND cenviron_ = {
         csoundChanOKGet,
         csoundChanIASet,
         csoundChanOAGet,
-        NULL,
+        dispinit,
+     /* NULL, */
         { NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
