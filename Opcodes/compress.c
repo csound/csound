@@ -1,7 +1,7 @@
 /*
     compress.c:
 
-    Copyright (C) 2006 by Barry Vercoe
+    Copyright (C) 2006 by Barry Vercoe; adapted by John ffitch
 
     This file is part of Csound.
 
@@ -24,16 +24,16 @@
 #include "csdl.h"
 
 typedef struct {
-    OPDS    h;
-    MYFLT   *ar, *aasig, *acsig, *kthresh, *kloknee, *khiknee;
-    MYFLT   *kratio, *katt, *krls, *ilook;
-    /* -------------------------------- */
-    MYFLT   thresh, loknee, hiknee, ratio, curatt, currls;
-    MYFLT   envthrsh, envlo, kneespan, kneemul, kneecoef, ratcoef;
-    double  cenv, c1, c2, d1, d2, ampmul;
-    MYFLT   *abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
-    long    newenv;
-    AUXCH   auxch;
+	OPDS	h;
+	MYFLT	*ar, *aasig, *acsig, *kthresh, *kloknee, *khiknee;
+        MYFLT   *kratio, *katt, *krls, *ilook;
+
+	MYFLT	thresh, loknee, hiknee, ratio, curatt, currls;
+	MYFLT	envthrsh, envlo, kneespan, kneemul, kneecoef, ratcoef;
+	double	cenv, c1, c2, d1, d2, ampmul;
+	MYFLT	*abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
+	long	newenv;
+	AUXCH	auxch;
 } CMPRS;
 
 typedef struct {        /* this now added from 07/01 */
@@ -74,8 +74,9 @@ static int compset(CSOUND *csound, CMPRS *p)
 
 static int compress(CSOUND *csound, CMPRS *p)
 {
-    MYFLT   *ar, *ainp, *cinp;
-    long    nsmps = csound->ksmps;
+    MYFLT	*ar, *ainp, *cinp;
+    long	nsmps = csound->ksmps;
+    int         n;
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
@@ -119,16 +120,16 @@ static int compress(CSOUND *csound, CMPRS *p)
     ar = p->ar;
     ainp = p->aasig;
     cinp = p->acsig;
-    do {                            /* now for each sample of both inputs:  */
-      MYFLT   asig, lsig;
-      double  csig;
-      asig = *p->aptr;                      /* get signals from delay line  */
+    for (n=0; n<nsmps; n++) {		/* now for each sample of both inputs:	*/
+      MYFLT asig, lsig;
+      double csig;
+      asig = *p->aptr;			/* get signals from delay line	*/
       csig = *p->cptr;
-      *p->aptr = *ainp++;                   /*   & replace with incoming    */
-      if ((lsig = *cinp++) < FL(0.0))
-        lsig = -lsig;                       /*   made abs for control       */
+      *p->aptr = ainp[n];		/*   & replace with incoming	*/
+      if ((lsig = cinp[n]) < FL(0.0))
+        lsig = -lsig;			/*   made abs for control	*/
       *p->cptr = lsig;
-      if (p->cptr == p->lmaxp) {            /* if prev ctrl was old lamax   */
+      if (p->cptr == p->lmaxp) {	/* if prev ctrl was old lamax	*/
         MYFLT *lap, newmax = FL(0.0);
         for (lap = p->cptr + 1; lap < p->clim; lap++)
           if (*lap >= newmax) {
@@ -141,43 +142,42 @@ static int compress(CSOUND *csound, CMPRS *p)
             p->lmaxp = lap;
           }
         p->lmax = newmax;
-      }
-      else if (lsig >= p->lmax) {           /* else keep lkahd max & adrs   */
-        p->lmax = lsig;                     /*   on arrival                 */
+      }	    
+      else if (lsig >= p->lmax) {	/* else keep lkahd max & adrs	*/
+        p->lmax = lsig;			/*   on arrival			*/
         p->lmaxp = p->cptr;
       }
-      if (csig > p->cenv)                   /* follow a rising csig env     */
+      if (csig > p->cenv)		/* follow a rising csig env	*/
         p->cenv = p->c1 * csig + p->c2 * p->cenv;
-      else if (p->cenv > p->lmax)           /* else if env above lookahead  */
-        p->cenv = p->d1 * csig + p->d2 * p->cenv;       /* apply release */
+      else if (p->cenv > p->lmax)	/* else if env above lookahead	*/
+        p->cenv = p->d1 * csig + p->d2 * p->cenv;    /*  apply release	*/
       else goto lvlchk;
       p->newenv = 1;
 
     lvlchk:
-      if (p->cenv > p->envlo) {             /* if env exceeds loknee amp    */
-        if (p->newenv) {                    /*   calc dbenv & ampmul        */
+      if (p->cenv > p->envlo) {		/* if env exceeds loknee amp	*/
+        if (p->newenv) {		/*   calc dbenv & ampmul	*/
           double dbenv, excess;
           p->newenv = 0;
           dbenv = log(p->cenv + 0.001) / LOG10D20;      /* for softknee */
           if ((excess = dbenv - p->loknee) < p->kneespan)
             p->ampmul = exp(p->kneecoef * excess * excess);
           else {
-            excess -= p->kneespan;                      /* or ratio line */
+            excess -= p->kneespan;	/* or ratio line */
             p->ampmul = p->kneemul * exp(p->ratcoef * excess);
           }
         }
-        asig *= (MYFLT)p->ampmul;           /* and compress the asig */
+        asig *= (MYFLT)p->ampmul;	/* and compress the asig */
       }
       else if (p->cenv < p->envthrsh)
-        asig = FL(0.0);                     /* else maybe noise gate */
-      *ar++ = asig;
+        asig = FL(0.0);			/* else maybe noise gate */
+      ar[n] = asig;
       if (++p->aptr >= p->cbuf) {
         p->aptr = p->abuf;
         p->cptr = p->cbuf;
       }
       else p->cptr++;
-    } while (--nsmps);
-
+    }
     return OK;
 }
 
@@ -186,10 +186,9 @@ static int distset(CSOUND *csound, DIST *p)
     double  b;
     FUNC    *ftp;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
-      return NOTOK;
+    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL) return NOTOK;
     p->ftp = ftp;
-    p->maxphs = (MYFLT) ftp->flen;                      /* set ftable params */
+    p->maxphs = (MYFLT)ftp->flen;       /* set ftable params    */
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
@@ -211,47 +210,42 @@ static int distort(CSOUND *csound, DIST *p)
     MYFLT   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
     long    nsmps = csound->ksmps;
+    int     n;
 
     asig = p->asig;
     q = p->prvq;
-    do {
-      q = p->c1 * *asig * *asig + p->c2 * q;
-      asig++;
-    } while (--nsmps);
+    for (n=0; n<nsmps; n++) {
+      q = p->c1 * asig[n] * asig[n] + p->c2 * q;
+    }
     p->prvq = q;
     rms = (MYFLT) sqrt((double) q);                 /* get running rms      */
     if (rms < p->min_rms)
       rms = p->min_rms;
     if ((dist = *p->kdist) < FL(0.001))
       dist = FL(0.001);
-    dnew = rms / dist;                              /* & compress factor    */
+    dnew = rms / dist;                  /* & compress factor    */
     dcur = p->prvd;
-#if 0
-    dinc = (dnew - dcur) / (MYFLT) csound->ksmps;   /* was *dvensmps */
-#else
     dinc = (dnew - dcur) * csound->onedksmps;
-#endif
     asig = p->asig;
     ar = p->ar;
-    nsmps = csound->ksmps;
-    do {
+    for (n=0; n<nsmps; n++) {
       MYFLT sig, phs, val;
-      sig = *asig++ / dcur;                         /* compress the sample  */
-      phs = p->midphs * (FL(1.0) + sig);            /* as index into table  */
+      sig = asig[n] / dcur;             /* compress the sample  */
+      phs = p->midphs * (FL(1.0) + sig); /* as index into table  */
       if (phs <= FL(0.0))
         val = p->begval;
-      else if (phs >= p->maxphs)                    /* check sticky bits    */
+      else if (phs >= p->maxphs)        /* check sticky bits    */
         val = p->endval;
       else {
-        long  iphs = (long) phs;
-        MYFLT frac = phs - (MYFLT) iphs;            /* waveshape the samp   */
+        long  iphs = (long)phs;
+        MYFLT frac = phs - (MYFLT)iphs; /* waveshape the samp   */
         MYFLT *fp = ftp->ftable + iphs;
         val = *fp++;
         val += (*fp - val) * frac;
       }
-      *ar++ = val * dcur;                           /* and restor the amp   */
+      ar[n] = val * dcur;               /* and restor the amp   */
       dcur += dinc;
-    } while (--nsmps);
+    }
     p->prvd = dcur;
 
     return OK;
