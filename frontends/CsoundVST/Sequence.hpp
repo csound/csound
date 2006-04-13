@@ -48,7 +48,7 @@ namespace csound
      * The notes produced by the second child node are shifted forward in time by that duration,
      * and so on, to create a strict temporal sequence of child nodes.
      */
-    virtual ublas::matrix<double> Sequence::traverse(const ublas::matrix<double> &globalCoordinates, Score &score);
+    virtual ublas::matrix<double> traverse(const ublas::matrix<double> &globalCoordinates, Score &score);
   };
 }
 #endif
