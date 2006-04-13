@@ -75,7 +75,7 @@ namespace csound
                                     size_t beginAt,
                                     size_t endAt,
                                     const ublas::matrix<double> &coordinates);
-    virtual ublas::matrix<double> Node::createTransform();
+    virtual ublas::matrix<double> createTransform();
     virtual void clear();
     virtual double &element(size_t row, size_t column);
     virtual void setElement(size_t row, size_t column, double value);
