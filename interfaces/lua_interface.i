@@ -27,16 +27,22 @@
         #include "csound.h"
         #include "cfgvar.h"
         #include "csound.hpp"
+        #include "cs_glue.hpp"
+        #include "csPerfThread.hpp"
         #include "CsoundFile.hpp"
         #include "CppSound.hpp"
 %}
 
 %apply int { size_t };
+typedef unsigned int uint32_t;
 
 %include "exclusions.i"
 
 %include "csound.h"
 %include "cfgvar.h"
 %include "csound.hpp"
+%include "cs_glue.hpp"
+%include "csPerfThread.hpp"
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
+
