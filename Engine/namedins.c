@@ -478,26 +478,38 @@ void strsav_create(CSOUND *csound)
 
 char *strsav_string(CSOUND *csound, char *s)
 {
-    STRSAV        *ssp;
+    STRSAV        *ssp, *prv;
     int           n;
     unsigned char h = name_hash(s);     /* calculate hash value */
 
     /* now find entry in database */
     ssp = STRSAV_STR_[h];
+    prv = NULL;
     while (ssp) {
-      if (!sCmp(ssp->s, s)) return (ssp->s);    /* already defined */
-      ssp = ssp->nxt;
+      if (!sCmp(ssp->s, s)) {
+        if (prv != NULL) {
+          /* move to the beginning of the chain, so that */
+          /* frequently searched strings are found faster */
+          prv->nxt = ssp->nxt;
+          ssp->nxt = STRSAV_STR_[h];
+          STRSAV_STR_[h] = ssp;
+        }
+        return (ssp->s);                /* already defined */
+      }
+      prv = ssp;
+      ssp = prv->nxt;
     }
     /* not found, so need to allocate a new entry */
-    n = (int) sizeof(STRSAV) + (int) strlen(s); /* number of bytes */
-    n = (n + 7) & (~7);           /* round up for 8 byte alignment */
+    n = (int) sizeof(struct strsav_t *) + (int) strlen(s) + 1;  /* n bytes */
+    n = ((n + (int) sizeof(struct strsav_t *) - 1)  /* round up for alignment */
+         / (int) sizeof(struct strsav_t *)) * (int) sizeof(struct strsav_t *);
     if ((STRSAV_SPACE_->splim + n) > STRSPACE) {
       STRSAV_SPACE  *sp;
       /* not enough space, allocate new buffer */
       if (n > STRSPACE) {
         /* this should not happen */
-        csound->Message(csound,
-                        "internal error: strsav: string length > STRSPACE\n");
+        csound->ErrorMsg(csound,
+                         "internal error: strsav: string length > STRSPACE");
         return NULL;
       }
       sp = (STRSAV_SPACE*) mcalloc(csound, sizeof(STRSAV_SPACE));
