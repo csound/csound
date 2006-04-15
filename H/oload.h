@@ -24,7 +24,7 @@
 #ifndef CSOUND_OLOAD_H
 #define CSOUND_OLOAD_H
 
-#define NCONSTS 400    /* gbl */                /*      OLOAD.H         */
+#define NCONSTS 256    /* gbl */                /*      OLOAD.H         */
 #define NLABELS 5      /* lcl */
 #define NGOTOS  40
 
