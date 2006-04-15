@@ -1,3 +1,9 @@
+2006-04-15	Istvan Varga	<ivarga@csounds.com>
+	* Engine/namedins.c, Engine/otran.c:
+	  optimizations in orchestra parser
+	* interfaces/lua_interface.i:
+	  wrap cs_glue.hpp and csPerfThread.hpp
+
 2006-04-09	Istvan Varga	<ivarga@csounds.com>
 	* Engine/envvar.c:
 	  csoundFileOpen(): check for files with .sd2 extension, and use
