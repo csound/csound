@@ -47,11 +47,12 @@ typedef struct {
     char      **strpool;
     long      poolcount, strpool_cnt, argoffsize;
     int       nconsts;
+    int       *constTbl;
 } OTRAN_GLOBALS;
 
 static  int     gexist(CSOUND *, char *), gbloffndx(CSOUND *, char *);
 static  int     lcloffndx(CSOUND *, char *);
-static  int     constndx(CSOUND *, char *);
+static  int     constndx(CSOUND *, const char *);
 static  int     strconstndx(CSOUND *, const char *);
 static  void    insprep(CSOUND *, INSTRTXT *);
 static  void    lgbuild(CSOUND *, char *);
@@ -249,22 +250,23 @@ void otran(CSOUND *csound)
     gblnamset(csound, "$ksmps");
 
     rdorchfile(csound);         /* go read orch file    */
-    if (csound->pool == NULL) {
-      csound->pool = (MYFLT *) mmalloc(csound, NCONSTS * sizeof(MYFLT));
-      csound->pool[0] = FL(0.0);
-      ST(poolcount) = 1;
-      ST(nconsts) = NCONSTS;
-    }
+
+    csound->pool = (MYFLT*) mmalloc(csound, NCONSTS * sizeof(MYFLT));
+    ST(poolcount) = 0;
+    ST(nconsts) = NCONSTS;
+    ST(constTbl) = (int*) mcalloc(csound, (256 + NCONSTS) * sizeof(int));
+    constndx(csound, "0");
+
     while ((tp = getoptxt(csound, &init)) != NULL) {
         /* then for each opcode: */
-        unsigned int threads=0;
+        unsigned int threads = 0;
         int opnum = tp->opnum;
         switch (opnum) {
         case INSTR:
         case OPCODE:            /* IV - Sep 8 2002 */
-            ip = (INSTRTXT *) mcalloc(csound, (long)sizeof(INSTRTXT));
+            ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
             prvinstxt = prvinstxt->nxtinstxt = ip;
-            txtcpy((char *)&ip->t,(char *)tp);
+            txtcpy((char*) &ip->t, (char*) tp);
             prvbp = (OPTXT *) ip;               /* begin an optxt chain */
             alp = ip->t.inlist;
 /* <---- IV - Oct 16 2002: rewritten this code ---- */
@@ -432,7 +434,7 @@ void otran(CSOUND *csound)
             break;
         default:
             bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
-            txtcpy((char *)&bp->t,(char *)tp);
+            txtcpy((char *)&bp->t, (char *)tp);
             prvbp = prvbp->nxtop = bp;  /* link into optxt chain */
             threads |= csound->opcodlst[opnum].thread;
             opdstot += csound->opcodlst[opnum].dsblksiz;  /* sum opds's */
@@ -457,16 +459,16 @@ void otran(CSOUND *csound)
                   && strcmp(bp->t.opcod,"=.r")==0) {  /*  (assume const)  */
                 MYFLT constval = csound->pool[constndx(csound,
                                                        bp->t.inlist->arg[0])];
-                if (strcmp(s,"sr") == 0)
+                if (strcmp(s, "sr") == 0)
                   csound->tran_sr = constval;         /* modify otran defaults*/
-                else if (strcmp(s,"kr") == 0)
+                else if (strcmp(s, "kr") == 0)
                   csound->tran_kr = constval;
-                else if (strcmp(s,"ksmps") == 0)
+                else if (strcmp(s, "ksmps") == 0)
                   csound->tran_ksmps = constval;
-                else if (strcmp(s,"nchnls") == 0)
-                  csound->tran_nchnls = (int)constval;
+                else if (strcmp(s, "nchnls") == 0)
+                  csound->tran_nchnls = (int) constval;
                 /* we have set this as reserved in rdorch.c */
-                else if (strcmp(s,"0dbfs") == 0)
+                else if (strcmp(s, "0dbfs") == 0)
                   csound->tran_0dbfs = constval;
               }
             }
@@ -621,6 +623,8 @@ void otran(CSOUND *csound)
     /* clean up */
     delete_local_namepool(csound);
     delete_global_namepool(csound);
+    mfree(csound, ST(constTbl));
+    ST(constTbl) = NULL;
 }
 
 /* prep an instr template for efficient allocs  */
@@ -689,7 +693,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
         ndxp = outoffs->indx;
         while (n--) {
           *ndxp++ = indx = plgndx(csound, *argp++);
-          if (O->odebug) csound->Message(csound, "\t%d",indx);
+          if (O->odebug) csound->Message(csound, "\t%d", indx);
         }
       }
       if ((inlist = ttp->inlist) == ST(nullist) || !inlist->count)
@@ -724,7 +728,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
           else {
             char *s = *argp;
             indx = plgndx(csound, s);
-            if (O->odebug) csound->Message(csound, "\t%d",indx);
+            if (O->odebug) csound->Message(csound, "\t%d", indx);
             *ndxp = indx;
           }
         }
@@ -814,62 +818,91 @@ static int strconstndx(CSOUND *csound, const char *s)
     return cnt;
 }
 
-static int constndx(CSOUND *csound, char *s)
-{                                   /* get storage ndx of float const value */
-    MYFLT   newval;                 /* builds value pool on 1st occurrence  */
-    long    n;                      /* final poolcount used in plgndx above */
-    MYFLT   *fp;                    /* pool may be moved w. ndx still valid */
-    char    *str = s;
+static inline unsigned int MYFLT_hash(const MYFLT *x)
+{
+    const unsigned char *c = (const unsigned char*) x;
+    unsigned int        h = 0U;
+    size_t              i;
+
+    for (i = (size_t) 0; i < sizeof(MYFLT); i++)
+      h = (unsigned int) strhash_tabl_8[(unsigned int) c[i] ^ h];
+
+    return h;
+}
+
+/* get storage ndx of float const value */
+/* builds value pool on 1st occurrence  */
+/* final poolcount used in plgndx above */
+/* pool may be moved w. ndx still valid */
+
+static int constndx(CSOUND *csound, const char *s)
+{
+    MYFLT   newval;
+    int     h, n, prv;
 
 #ifdef USE_DOUBLE
-    if (sscanf(s,"%lf",&newval) != 1) goto flerror;
+    if (sscanf(s, "%lf", &newval) != 1)
 #else
-    if (sscanf(s,"%f",&newval) != 1) goto flerror;
+    if (sscanf(s, "%f", &newval) != 1)
 #endif
-    /* It is tempting to assume that if this loop is removed then we
-     * would not share constants.  However this breaks something else
-     * as this function is used to retrieve constants as well....
-     * I (JPff) have not understood this yet.
-     */
-    for (fp = csound->pool, n = ST(poolcount); n--; fp++) {
-                                                    /* now search constpool */
-      if (newval == *fp)                            /* if val is there      */
-        return (fp - csound->pool);                 /*    return w. index   */
+    {
+      synterr(csound, Str("numeric syntax '%s'"), s);
+      return 0;
     }
-    if (++ST(poolcount) > ST(nconsts)) {
-      int indx = fp - csound->pool;
-      ST(nconsts) += NCONSTS;
+    /* calculate hash value (0 to 255) */
+    h = (int) MYFLT_hash(&newval);
+    n = ST(constTbl)[h];                        /* now search constpool */
+    prv = 0;
+    while (n) {
+      if (csound->pool[n - 256] == newval) {    /* if val is there      */
+        if (prv) {
+          /* move to the beginning of the chain, so that */
+          /* frequently searched values are found faster */
+          ST(constTbl)[prv] = ST(constTbl)[n];
+          ST(constTbl)[n] = ST(constTbl)[h];
+          ST(constTbl)[h] = n;
+        }
+        return (n - 256);                       /*    return w. index   */
+      }
+      prv = n;
+      n = ST(constTbl)[prv];
+    }
+    n = ST(poolcount)++;
+    if (n >= ST(nconsts)) {
+      ST(nconsts) = ((ST(nconsts) + (ST(nconsts) >> 3)) | (NCONSTS - 1)) + 1;
       if (csound->oparms->msglevel)
         csound->Message(csound, Str("extending Floating pool to %d\n"),
                                 ST(nconsts));
-      csound->pool = (MYFLT*) mrealloc(csound, csound->pool,
-                                               ST(nconsts) * sizeof(MYFLT));
-      fp = csound->pool + indx;
+      csound->pool = (MYFLT*) mrealloc(csound, csound->pool, ST(nconsts)
+                                                             * sizeof(MYFLT));
+      ST(constTbl) = (int*) mrealloc(csound, ST(constTbl), (256 + ST(nconsts))
+                                                           * sizeof(int));
     }
-    *fp = newval;                                   /* else enter newval    */
-/*  csound->Message(csound, "Constant %d: %f\n", fp - csound->pool, newval); */
-    return (fp - csound->pool);                     /*   and return new ndx */
+    csound->pool[n] = newval;                   /* else enter newval    */
+    ST(constTbl)[n + 256] = ST(constTbl)[h];    /*   link into chain    */
+    ST(constTbl)[h] = n + 256;
 
- flerror:
-    synterr(csound, Str("numeric syntax '%s'"), str);
-    return(0);
+    return n;                                   /*   and return new ndx */
 }
 
 void putop(CSOUND *csound, TEXT *tp)
 {
     int n, nn;
 
-    if ((n = tp->outlist->count)!=0) {
+    if ((n = tp->outlist->count) != 0) {
       nn = 0;
-      while (n--) csound->Message(csound,"%s\t", tp->outlist->arg[nn++]);
+      while (n--)
+        csound->Message(csound, "%s\t", tp->outlist->arg[nn++]);
     }
-    else csound->Message(csound,"\t");
-    csound->Message(csound,"%s\t", tp->opcod);
-    if ((n = tp->inlist->count)!=0) {
+    else
+      csound->Message(csound, "\t");
+    csound->Message(csound, "%s\t", tp->opcod);
+    if ((n = tp->inlist->count) != 0) {
       nn = 0;
-      while (n--) csound->Message(csound,"%s\t",tp->inlist->arg[nn++]);
+      while (n--)
+        csound->Message(csound, "%s\t", tp->inlist->arg[nn++]);
     }
-    csound->Message(csound,"\n");
+    csound->Message(csound, "\n");
 }
 
 static inline unsigned char name_hash(const char *s)
