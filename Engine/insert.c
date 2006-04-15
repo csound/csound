@@ -739,6 +739,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     OPCODINFO *inm;
     OPCOD_IOBUFS  *buf;
     int     g_ksmps;
+    long    g_kcounter;
     MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt;
 
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
@@ -759,6 +760,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       p->l_ksmps = i;
     }
     /* save old globals */
+    g_kcounter = csound->kcounter;
     g_ekr = csound->ekr;
     g_onedkr = csound->onedkr;
     g_onedksmps = csound->onedksmps;
@@ -828,7 +830,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
         parent_ip = ((OPCOD_IOBUFS*) parent_ip->opcod_iobufs)->parent_ip;
       }
     }
-    else memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
+    else
+      memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
 
     /* do init pass for this instr */
     csound->curip = lcurip;
@@ -838,10 +841,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       csound->ids = csound->ids->nxti;
     }
     /* copy length related parameters back to caller instr */
-    if (csound->ksmps == g_ksmps)
-      saved_curip->xtratim = lcurip->xtratim;
-    else
-      saved_curip->xtratim = lcurip->xtratim / p->ksmps_scale;
     saved_curip->relesing = lcurip->relesing;
     saved_curip->offbet = lcurip->offbet;
     saved_curip->offtim = lcurip->offtim;
@@ -852,17 +851,21 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->curip = saved_curip;
     if (csound->ksmps != g_ksmps) {
       csound->ksmps = g_ksmps;
+      saved_curip->xtratim = lcurip->xtratim / p->ksmps_scale;
       csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
+      csound->kcounter = g_kcounter;
       csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
       csound->onedkr = g_onedkr;
       csound->onedksmps = g_onedksmps;
       csound->kicvt = g_kicvt;
-      csound->kcounter = csound->kcounter / p->ksmps_scale;
       /* IV - Sep 17 2002: also select perf routine */
       p->h.opadr = (SUBR) useropcd1;
     }
-    else
+    else {
+      saved_curip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
+    }
+
     return OK;
 }
 
