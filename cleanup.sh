@@ -46,6 +46,7 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 "$0" remove "./interfaces/python_interface_wrap.h"
 "$0" remove "./interfaces/java_interface_wrap.cc"
 "$0" remove "./interfaces/java_interface_wrap.h"
+"$0" remove "./interfaces/lua_interface_wrap.cc"
 "$0" remove "./csnd.py"
 "$0" remove "./csnd.pyc"
 "$0" remove "./csnd.pyo"
