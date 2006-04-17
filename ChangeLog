@@ -1,5 +1,7 @@
 2006-04-17  John ffitch  <jpff@codemist.co.uk>
 
+	* Opcodes/bilbar.c: Added prepared piano string model
+
 	* H/entry1.h:
 	* Engine/entry1.c: Added remove opcode.  Probably should be an API
 	function rather than opcode
