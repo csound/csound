@@ -191,11 +191,358 @@ static int bar_run(CSOUND *csound, BAR *p)
     return OK;
 }
 
+/* Prepared Piano string */
+
+typedef struct {
+  double pos;                   /* position along string of rattle */
+  double massden;               /* mass density ratio (rattle/string) */
+  double freq;                  /* fundamental freq. of rattle */
+  double length;                /* vertical length of rattle */
+} RATTLE;
+
+typedef struct {
+  double pos;                   /* position along string of rubber */
+  double massden;               /* mass density ratio (rubber/string) */
+  double freq;                  /* fundamental freq. of rubber */
+  double loss;                  /* loss parameter of rubber */
+} RUBBER;
+
+typedef struct {
+    OPDS   h;
+    MYFLT *ar;
+    MYFLT *ar1;
+    MYFLT *ifreq;
+    MYFLT *iNS;     /* number of strings */
+    MYFLT *iD;      /* detune parameter (multiple strings) in cents!!! */
+    MYFLT *K;       /* stiffness parameter, dimensionless...set around 1 
+                       for low notes, set closer to 100 in high register */
+    MYFLT *iT30;    /* 30 db decay time (s) */
+    MYFLT *ib;      /* high-frequency loss parameter (keep this small) */
+    MYFLT *kbcl,*kbcr; /* Boundary conditions */
+    MYFLT *ham_massden, *ham_freq, *ham_initial;
+    MYFLT *ipos;
+    MYFLT *vel;
+    MYFLT *scanfreq, *scanspread;
+    MYFLT *rattle_tab, *rubber_tab;
+
+    MYFLT *w, *w1, *w2;
+    MYFLT *rat, *rat1, *rat2;
+    MYFLT *rub, *rub1, *rub2;
+    MYFLT *s0, *s1, s2, t0, t1;
+    MYFLT *hammer_force;
+    int    stereo;
+    int    NS, N, init, step;
+    int    rattle_num, rubber_num;
+    int    hammer_index, hammer_on, hammer_contact;
+    MYFLT  ham, ham1, ham2;
+    AUXCH  auxch;
+    RATTLE *rattle;
+    RUBBER *rubber;
+} CSPP;
+
+int init_pp(CSOUND *csound, CSPP *p)
+{
+    if (*p->K >= FL(0.0)) {
+      double K = *p->K; /* stiffness parameter, dimensionless */
+      double f0 = *p->ifreq;      /* fundamental freq. (Hz) */
+      double T30 = *p->iT30;      /* 30 db decay time (s) */
+      double b = *p->ib;          /* high-frequency loss parameter (keep small) */
+      int NS = p->NS = (int)*p->iNS;       /* number of strings */
+      double D = *p->iD;  /* detune parameter (multiple strings) in cents */
+                          /* I.e., a total of D cents diff between highest */
+                          /* and lowest string in set */
+                          /* initialize prepared objects and hammer */
+                          /* derived parameters */
+      double dt = csound->onedsr;
+      double sig = (2.0/dt)*(pow(10,3.0*dt/T30)-1.0);
+
+      int N, n;
+      double *c, dx, dxmin = 0.0; /* for stability */
+      FUNC  *ftp;
+
+      csound->AuxAlloc(csound, NS*sizeof(double), &p->auxch);
+      c = (double *)p->auxch.auxp;
+
+      if (*p->rattle_tab==FL(0.0) ||
+          (ftp=csound->FTFind(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
+      else {
+        p->rattle_num = (int)(*ftp->ftable);
+        p->rattle = (RATTLE*)(&((MYFLT*)ftp->ftable)[1]);
+      }
+      if (*p->rubber_tab==FL(0.0) ||
+          (ftp=csound->FTFind(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
+      else {
+        p->rubber_num = (int)(*ftp->ftable);
+        p->rubber = (RUBBER*)(&((MYFLT*)ftp->ftable)[1]);
+      }
+
+      for (n=0; n<NS; n++) {
+        double detune_spread = (D*n/(NS-1.0) - D*0.5)/1200.0;
+        c[n] = 2.0*f0*pow(2.0, detune_spread);
+      }
+    
+      for (n=0; n<NS; n++) {
+        double y = c[n]*c[n]*dt*dt+2.0*b*dt;
+        double x = sqrt(y+sqrt(y*y+16.0*K*K*dt*dt))/sqrt(2);
+        if (x>dxmin) dxmin = x;
+      }
+      N = p->N = (int)(1.0/dxmin);
+      dx = 1.0/(double)N;
+
+      csound->AuxAlloc(csound,
+                       3*((1+(N+5))*NS+p->rattle_num+p->rubber_num)*sizeof(MYFLT),
+                       &p->auxch);
+      p->s0 = (MYFLT*)p->auxch.auxp;
+      p->s1 = &p->s0[NS];
+      p->hammer_force = &p->s1[NS];
+
+      for (n=0; n<NS; n++) {
+        p->s0[n] = (2.0-6.0*K*K*dt*dt*N*N*N*N-2.0*b*dt*N*N-
+                    2.0*c[n]*c[n]*dt*dt*N*N)/(1.0+sig*dt/2.0);
+        p->s1[n] = (4*K*K*dt*dt*N*N*N*N+b*dt*N*N+
+                    c[n]*c[n]*dt*dt*N*N)/(1.0+sig*dt/2.0);
+      }
+      p->s2 = -K*K*dt*dt*N*N*N*N/(1.0+sig*dt/2.0);
+      p->t0 = (-1.0+2.0*b*dt*N*N+sig*dt/2.0)/(1.0+sig*dt/2.0);
+      p->t1 = (-b*dt)*N*N/(1.0+sig*dt/2.0);
+    
+      /* note, each of these is an array, of size N+5 by NS...i.e., need a
+         separate N+5 element array per string. */
+      p->w = &p->hammer_force[NS];
+      p->w1 = &p->w[(N+5)*NS];
+      p->w2 = &p->w1[(N+5)*NS];
+      p->rat = &p->w2[(N+5)*NS];
+      p->rat1 = &p->rat[p->rattle_num];
+      p->rat2 = &p->rat1[p->rattle_num];
+      p->rub = &p->rat2[p->rattle_num];
+      p->rub1 = &p->rub[p->rubber_num];
+      p->rub2 = &p->rub1[p->rubber_num];
+      p->ham = 0; p->ham1 = 0; p->ham2 = 0; /*only one hammer */
+      p->step = 0;
+    }
+    p->init = 1;                /* So we start the hammer */
+    if (p->OUTOCOUNT==1) p->stereo = 0;
+    else p->stereo = 1;
+    return OK;
+}
+
+int play_pp(CSOUND *csound, CSPP *p)
+{
+    MYFLT *ar = p->ar;
+    MYFLT *ar1 = p->ar1;
+    int NS = p->NS;
+    int N = p->N;
+    int step = p->step;
+    int n, t, nsmps = csound->ksmps;
+    double dt = csound->onedsr;
+    MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2, 
+          *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2, 
+          *rat = p->rat, *rat1 = p->rat1, *rat2 = p->rat2;
+    MYFLT *s0 = p->s0, *s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
+    double SINNW = 0;              /* these are to calculate sin/cos by */
+    double COSNW = 0;              /* formula rather than many calls    */
+    double SIN1W = 0;              /* Wins in ksmps>4 */
+    double COS1W = 0;
+    double SINNW2 = 0;
+    double COSNW2 = 0;
+    double SIN1W2 = 0;
+    double COS1W2 = 0;
+
+    if (p->stereo) {
+      double f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/csound->esr;
+      double f2 = (*p->scanfreq + FL(0.5)* *p->scanspread)/csound->esr;
+      SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
+      COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
+      SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
+      COS1W = cos(f1*TWOPI);
+      SINNW2 = sin(f2*TWOPI*step);
+      COSNW2 = cos(f2*TWOPI*step);
+      SIN1W2 = sin(f2*TWOPI);
+      COS1W2 = cos(f2*TWOPI);
+    }
+    else {
+      double f1 = *p->scanfreq/csound->esr;
+      SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
+      COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
+      SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
+      COS1W = cos(f1*TWOPI);
+    }
+
+    if (p->init) {
+      p->hammer_on = 1;          /*  turns on hammer updating */
+      p->hammer_contact = 0;     /* hammer not in contact with string yet */
+      p->hammer_index = 2+(int)(*p->ipos*N);   /* find location of hammer strike */
+      p->ham2 = *p->ham_initial; 
+      p->ham1 = *p->ham_initial+dt*(*p->vel);    /* initialize hammer */
+      p->init = 0;
+    }
+
+    for (t=0; t<nsmps; t++) {
+      int qq;
+      for (n=0; n<NS; n++) p->hammer_force[n] = 0.0;
+      /* set boundary conditions on last state w1 */
+      if ((int)*p->kbcl==1) {
+        for (n=0; n<NS; n++)
+          w1[n+NS*2] = w1[n+NS*3] = 0.0; 
+      }
+      else if ((int)*p->kbcl==2) {
+        for (qq=0; qq<NS; qq++) {
+          w1[qq+NS*2] = 0.0;  w1[qq+NS*1] = -w1[qq+NS*3];
+        }
+      }
+      if ((int)*p->kbcr==1) {
+        for (n=0; n<NS; n++)
+          w1[n+NS*(N+2)] = w1[n+NS*(N+1)] = 0.0; 
+      }
+      else if ((int)*p->kbcr==2) {
+        for (n=0; n<NS; n++) {
+          w1[n+NS*(N+2)] = 0.0;  w1[n+NS*(N+3)] = -w1[n+NS*(N+1)];
+        }
+      }
+      
+      /* perform update, for each of the NS strings */
+      for (n=0; n<N; n++) 
+        for (qq=0; qq<NS; qq++) {
+          w[(n+2)*NS+qq] = 
+            s0[qq]*w1[(n+2)*NS+qq]+
+            s1[qq]*(w1[(n+3)*NS+qq]+w1[(n+1)*NS+qq])+
+            s2*(w1[(n+4)*NS+qq]+w1[n*NS+qq])+
+            t0*w2[(n+2)*NS+qq]+
+            t1*(w2[(n+3)*NS+qq]+w2[(n+1)*NS+qq]);
+        }
+
+      if (p->rattle_num)
+        /* do this only if at least one rattle is specified */
+        for (qq=0; qq<p->rattle_num; qq++) {
+          int rattle_index = (int)(2+p->rattle[qq].pos*N);
+          for (n=0; n<NS; n++) {
+            MYFLT pos, force, temp;
+            /* calc. pos. diff between center of rattle and string */
+            pos = w1[rattle_index*NS+n]-rat1[qq];
+            temp = fabs(pos)-p->rattle[qq].length*0.5;
+            /* calc force (nonzero only when in contact) */
+            force = 0.5*(temp+fabs(temp))*(pos>0?1.0:-1.0);
+            if (force!=0.0) {
+              w[rattle_index*NS+n] += -dt*dt*(TWOPI*p->rattle[qq].freq)*
+                (TWOPI*p->rattle[qq].freq)*p->rattle[qq].massden*force;
+            }
+            rat[qq] = 2*rat1[qq]-rat2[qq]+(TWOPI*p->rattle[qq].freq)*
+              (TWOPI*p->rattle[qq].freq)*dt*dt*force-dt*dt*9.8;
+            rat2[qq] = rat1[qq];
+            rat1[qq] = rat[qq];
+          }
+        }
+      if (p->rubber_num) {
+        /* do this only if at least one rubber is specified */
+        for (qq=0; qq<p->rubber_num; qq++) {
+          int rubber_index = (int)(2+p->rubber[0].pos*N);
+          MYFLT force = 0.0;
+          for (n=0; n<NS; n++) {
+            MYFLT pos;
+            /* calc. pos. diff between rubber and string */
+            pos = w1[rubber_index*NS+n]-rub1[qq]; 
+            /* calc force (nonzero only when in contact) */
+            force += 0.5*(pos-abs(pos));
+          }
+          for (n=0; n<NS; n++) {
+            w[rubber_index*NS+n] += -dt*dt*(TWOPI*p->rubber[qq].freq)*
+              (TWOPI*p->rubber[qq].freq)*p->rubber[qq].massden*force;
+            rub[qq] = 2*rub1[qq]/(1+p->rubber[qq].loss*dt/2)-
+              (1-p->rubber[qq].loss*dt/2)*rub2[qq]/(1+p->rubber[qq].loss*dt/2)+
+              (TWOPI*p->rubber[qq].freq)*(TWOPI*p->rubber[qq].freq)*
+              dt*dt*(-rub1[qq]+force)/(1+p->rubber[qq].loss*dt/2);
+            rub2[qq] = rub1[qq];
+            rub1[qq] = rub[qq];
+          }
+        }
+      }
+      if (p->hammer_on) {
+        MYFLT min_pos = 100;
+        MYFLT hammer_force_sum = 0.0;
+
+        /* do this while a strike is occurring */
+        for (qq=0; qq<NS; qq++) { /* Over each string */
+          MYFLT pos = w1[p->hammer_index*NS+qq]-p->ham1;
+          if (pos>0.0) pos = 0.0;
+          if (pos<min_pos) min_pos = pos;
+          if (min_pos<0.0) p->hammer_contact = 1;
+          p->hammer_force[qq] = -pos*pos*pos;
+          hammer_force_sum += p->hammer_force[qq];
+        }
+        //if (min_pos<0.0) p->hammer_contact = 1;
+        if (p->hammer_contact && min_pos>=0.0) {
+          /* if hammer has been in contact, but now no longer is, turn off */
+          /* hammer updating */
+          p->hammer_on = p->hammer_contact=0;
+        }
+        p->ham = 2.0*p->ham1-p->ham2-dt*dt*hammer_force_sum*
+          (TWOPI*(*p->ham_freq))*(TWOPI*(*p->ham_freq));
+        p->ham2 = p->ham1; 
+        p->ham1 = p->ham;
+          for (qq=0; qq<NS; qq++)
+            w[p->hammer_index*NS+qq] += dt*dt*(*p->ham_massden)*
+              (TWOPI*(*p->ham_freq))*(TWOPI*(*p->ham_freq))*p->hammer_force[qq];
+      }
+      {
+#define       xoamp  FL(0.3333)
+#define       xoctr  FL(0.3333)
+        int xoint;
+        MYFLT xofrac, xo;
+        MYFLT out = 0.0;
+        double  xx = SINNW*COS1W + COSNW*SIN1W;
+        double  yy = COSNW*COS1W - SINNW*SIN1W;
+
+        SINNW = xx;
+        COSNW = yy;
+        xo = xoctr + xoamp*SINNW;
+        /*        xo = xoctr+xoamp*(MYFLT)sin(TWOPI*(*p->scanfreq)*n*dt); */
+        xoint = (int)(xo*N)+2;
+        xofrac = xo*N - xoint + FL(2.0);
+        for (qq=0; qq<NS; qq++) {
+          out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
+        }
+        ar[t] = FL(200.0)*out*csound->e0dbfs;
+        if (p->stereo) {
+          /* Need to deal with stereo version here */
+          xx = SINNW2*COS1W2 + COSNW2*SIN1W2;
+          yy = COSNW2*COS1W2 - SINNW2*SIN1W2;
+          xo = xoctr + xoamp*SINNW2;
+          /*        xo = xoctr+xoamp*(MYFLT)sin(TWOPI*(*p->scanfreq)*n*dt); */
+          xoint = (int)(xo*N)+2;
+          xofrac = xo*N - xoint + FL(2.0);
+          for (qq=0; qq<NS; qq++) {
+            out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
+          }
+          ar1[t] = FL(200.0)*out*csound->e0dbfs;
+          SINNW2 = xx;
+          COSNW2 = yy;
+        }
+        step++;
+      }
+      {
+        int i;
+        void *w3 = w2;
+        w2 = w1;
+        w1 = w;
+        w = w3;
+        for (i=0; i<NS; i++)  /* Need to finish bndry conditions */
+          w[NS+i] = w[i+NS*(N+3)] = FL(0.0);
+      }
+    } /* End of main loop */
+    p->w = w; p->w1 = w1; p->w2 = w2;
+    p->rub = rub; p->rub1 = rub1; p->rub2 = rub2; 
+    p->rat = rat; p->rat1 = rat1; p->rat2 = rat2;
+    p->step = step;
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
     {"barmodel", S(BAR), 5, "a", "kkiikiiii", (SUBR) bar_init, NULL,
-     (SUBR) bar_run}
+     (SUBR) bar_run},
+    { "prepiano", S(CSPP), 5, "mm", "iiiiiikkiiiiiiioo",
+     (SUBR)init_pp, NULL, (SUBR)play_pp }
 };
 
 LINKAGE
