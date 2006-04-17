@@ -1,3 +1,13 @@
+2006-04-17  John ffitch  <jpff@codemist.co.uk>
+
+	* H/entry1.h:
+	* Engine/entry1.c: Added remove opcode.  Probably should be an API
+	function rather than opcode
+
+	* Engine/insert.c (delete_instr): New code to delete non-active
+	instruments.  Still needs to be checked as it may leave structures
+	dangling.
+
 2006-04-15	Istvan Varga	<ivarga@csounds.com>
 	* Engine/namedins.c, Engine/otran.c:
 	  optimizations in orchestra parser

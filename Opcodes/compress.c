@@ -24,16 +24,16 @@
 #include "csdl.h"
 
 typedef struct {
-	OPDS	h;
-	MYFLT	*ar, *aasig, *acsig, *kthresh, *kloknee, *khiknee;
+        OPDS    h;
+        MYFLT   *ar, *aasig, *acsig, *kthresh, *kloknee, *khiknee;
         MYFLT   *kratio, *katt, *krls, *ilook;
 
-	MYFLT	thresh, loknee, hiknee, ratio, curatt, currls;
-	MYFLT	envthrsh, envlo, kneespan, kneemul, kneecoef, ratcoef;
-	double	cenv, c1, c2, d1, d2, ampmul;
-	MYFLT	*abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
-	long	newenv;
-	AUXCH	auxch;
+        MYFLT   thresh, loknee, hiknee, ratio, curatt, currls;
+        MYFLT   envthrsh, envlo, kneespan, kneemul, kneecoef, ratcoef;
+        double  cenv, c1, c2, d1, d2, ampmul;
+        MYFLT   *abuf, *cbuf, *aptr, *cptr, *clim, lmax, *lmaxp;
+        long    newenv;
+        AUXCH   auxch;
 } CMPRS;
 
 typedef struct {        /* this now added from 07/01 */
@@ -74,8 +74,8 @@ static int compset(CSOUND *csound, CMPRS *p)
 
 static int compress(CSOUND *csound, CMPRS *p)
 {
-    MYFLT	*ar, *ainp, *cinp;
-    long	nsmps = csound->ksmps;
+    MYFLT       *ar, *ainp, *cinp;
+    long        nsmps = csound->ksmps;
     int         n;
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
@@ -92,13 +92,13 @@ static int compress(CSOUND *csound, CMPRS *p)
       p->envlo = (MYFLT) exp(p->loknee * LOG10D20);
       if ((p->kneespan = p->hiknee - p->loknee) < FL(0.0))
         p->kneespan = FL(0.0);
-      if ((ratio = p->ratio) < FL(0.01))        /* expand max is 100 */
+      if ((ratio = p->ratio) < FL(0.01))         /* expand max is 100 */
         ratio = FL(0.01);
       K = (MYFLT) LOG10D20 * (FL(1.0) - ratio) / ratio;
-      p->ratcoef = K;                           /* rat down per db */
+      p->ratcoef = K;                            /* rat down per db */
       if (p->kneespan > FL(0.0)) {
-        p->kneecoef = K * FL(0.5) / p->kneespan;  /* y = x - (K/2span)x*x */
-        p->kneemul = exp(p->kneecoef * p->kneespan * p->kneespan);
+        p->kneecoef = K*FL(0.5) / p->kneespan; /* y = x - (K/2span)x*x */
+        p->kneemul = (MYFLT)exp(p->kneecoef * p->kneespan * p->kneespan);
       }
       else
         p->kneemul = FL(1.0);
@@ -120,57 +120,57 @@ static int compress(CSOUND *csound, CMPRS *p)
     ar = p->ar;
     ainp = p->aasig;
     cinp = p->acsig;
-    for (n=0; n<nsmps; n++) {		/* now for each sample of both inputs:	*/
+    for (n=0; n<nsmps; n++) {   /* now for each sample of both inputs:  */
       MYFLT asig, lsig;
       double csig;
-      asig = *p->aptr;			/* get signals from delay line	*/
+      asig = *p->aptr;                  /* get signals from delay line  */
       csig = *p->cptr;
-      *p->aptr = ainp[n];		/*   & replace with incoming	*/
+      *p->aptr = ainp[n];               /*   & replace with incoming    */
       if ((lsig = cinp[n]) < FL(0.0))
-        lsig = -lsig;			/*   made abs for control	*/
+        lsig = -lsig;                   /*   made abs for control       */
       *p->cptr = lsig;
-      if (p->cptr == p->lmaxp) {	/* if prev ctrl was old lamax	*/
+      if (p->cptr == p->lmaxp) {        /* if prev ctrl was old lamax   */
         MYFLT *lap, newmax = FL(0.0);
         for (lap = p->cptr + 1; lap < p->clim; lap++)
           if (*lap >= newmax) {
-            newmax = *lap;                  /*   find next highest abs      */
+            newmax = *lap;              /*   find next highest abs      */
             p->lmaxp = lap;
           }
         for (lap = p->cbuf; lap <= p->cptr; lap++)
           if (*lap >= newmax) {
-            newmax = *lap;                  /*   in lkahd circular cbuf     */
+            newmax = *lap;              /*   in lkahd circular cbuf     */
             p->lmaxp = lap;
           }
         p->lmax = newmax;
-      }	    
-      else if (lsig >= p->lmax) {	/* else keep lkahd max & adrs	*/
-        p->lmax = lsig;			/*   on arrival			*/
+      }     
+      else if (lsig >= p->lmax) {       /* else keep lkahd max & adrs   */
+        p->lmax = lsig;                 /*   on arrival                 */
         p->lmaxp = p->cptr;
       }
-      if (csig > p->cenv)		/* follow a rising csig env	*/
+      if (csig > p->cenv)               /* follow a rising csig env     */
         p->cenv = p->c1 * csig + p->c2 * p->cenv;
-      else if (p->cenv > p->lmax)	/* else if env above lookahead	*/
-        p->cenv = p->d1 * csig + p->d2 * p->cenv;    /*  apply release	*/
+      else if (p->cenv > p->lmax)       /* else if env above lookahead  */
+        p->cenv = p->d1 * csig + p->d2 * p->cenv;    /*  apply release  */
       else goto lvlchk;
       p->newenv = 1;
 
     lvlchk:
-      if (p->cenv > p->envlo) {		/* if env exceeds loknee amp	*/
-        if (p->newenv) {		/*   calc dbenv & ampmul	*/
+      if (p->cenv > p->envlo) {         /* if env exceeds loknee amp    */
+        if (p->newenv) {                /*   calc dbenv & ampmul        */
           double dbenv, excess;
           p->newenv = 0;
           dbenv = log(p->cenv + 0.001) / LOG10D20;      /* for softknee */
           if ((excess = dbenv - p->loknee) < p->kneespan)
             p->ampmul = exp(p->kneecoef * excess * excess);
           else {
-            excess -= p->kneespan;	/* or ratio line */
+            excess -= p->kneespan;      /* or ratio line */
             p->ampmul = p->kneemul * exp(p->ratcoef * excess);
           }
         }
-        asig *= (MYFLT)p->ampmul;	/* and compress the asig */
+        asig *= (MYFLT)p->ampmul;       /* and compress the asig */
       }
       else if (p->cenv < p->envthrsh)
-        asig = FL(0.0);			/* else maybe noise gate */
+        asig = FL(0.0);                 /* else maybe noise gate */
       ar[n] = asig;
       if (++p->aptr >= p->cbuf) {
         p->aptr = p->abuf;
@@ -218,7 +218,7 @@ static int distort(CSOUND *csound, DIST *p)
       q = p->c1 * asig[n] * asig[n] + p->c2 * q;
     }
     p->prvq = q;
-    rms = (MYFLT) sqrt((double) q);                 /* get running rms      */
+    rms = (MYFLT) sqrt((double) q);    /* get running rms      */
     if (rms < p->min_rms)
       rms = p->min_rms;
     if ((dist = *p->kdist) < FL(0.001))
