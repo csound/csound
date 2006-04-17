@@ -1635,3 +1635,44 @@ int prealloc(CSOUND *csound, AOP *p)
     return OK;
 }
 
+#ifdef BETA
+#include "olpc.h"
+int delete_instr(CSOUND *csound, DELETEIN *p)
+{
+    int n = (int)(*p->insno + FL(0.5));
+    INSTRTXT* ip = csound->instrtxtp[n];
+    INSDS *active = ip->instance;
+    INSTRTXT  *txtp;
+
+    csound->instrtxtp[n] = NULL;
+    if (ip==NULL) return OK;    /* Opcode does not exist so noop */
+    if (active) {
+      do {
+        INSDS *nxt = active->nxtinstance;
+        if (active->actflg) /* Can only remove non-active instruments */
+          return csound->InitError(csound, "Instrument %d is stilll active", n);
+        if (active->opcod_iobufs && active->insno > csound->maxinsno)
+           mfree(csound, active->opcod_iobufs);          /* IV - Nov 10 2002 */
+        if (active->fdchp != NULL)
+          fdchclose(csound, active);
+        if (active->auxchp != NULL)
+          auxchfree(csound, active);
+        mfree(csound, (char *)active);
+        active = nxt;
+      } while (active != NULL);
+    }
+    for (txtp = &(csound->instxtanchor); txtp != NULL;  txtp = txtp->nxtinstxt)
+      if (txtp->nxtinstxt == ip) {
+        OPTXT *t = ip->nxtop;
+        txtp->nxtinstxt = ip->nxtinstxt;
+        while (t) {
+          OPTXT *s = t->nxtop;
+          mfree(csound, t);
+          t = s;
+        }
+        mfree(csound,ip);
+        return OK;
+      }
+    return NOTOK;
+}
+#endif
