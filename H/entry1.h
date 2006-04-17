@@ -58,6 +58,9 @@
 #include "midiinterop.h"
 #include "linevent.h"
 #include "str_ops.h"
+#ifdef BETA
+#include "olpc.h"
+#endif
 
 #define S(x)    sizeof(x)
 
