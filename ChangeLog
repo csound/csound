@@ -1,4 +1,9 @@
-2006-04-17  John ffitch  <jpff@codemist.co.uk>
+2006-04-19	Michael gogins	<gogins@pipeline.com>
+
+	* Updated Lua to version 5.1 (current version),
+	changed lua_example.lua to use Class:method calls.
+	
+2006-04-17	John ffitch	<jpff@codemist.co.uk>
 
 	* Opcodes/bilbar.c: Added prepared piano string model
 
