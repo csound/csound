@@ -941,7 +941,7 @@ else:
             SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
         csoundInterfacesSources.insert(0, csoundLuaInterface)
         if getPlatform() == 'mingw':
-            csoundInterfacesEnvironment.Prepend(LIBS = ['lua50'])
+            csoundInterfacesEnvironment.Prepend(LIBS = ['lua51'])
         else:
             csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
     if getPlatform() == 'darwin':
