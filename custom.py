@@ -63,8 +63,8 @@ elif sys.platform[:3] == 'win':
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
-    customCPPPATH.append('c:/utah/opt/lua50/include')
-    customLIBPATH.append('c:/utah/opt/lua50/lib/mingw3')
+    customCPPPATH.append('c:/utah/opt/lua-5.1/src')
+    customLIBPATH.append('C:/utah/opt/lua-5.1/src')
     ################################################################
     # If you want to build Tcl/Tk interfaces
     # and Tclcsound you need Tcl/Tk.
