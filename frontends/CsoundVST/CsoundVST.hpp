@@ -46,7 +46,7 @@
 
 #endif
 
-class SILENCE_PUBLIC CsoundVstFltk;
+class CsoundVstFltk;
 
 class Preset
 {
@@ -55,7 +55,7 @@ public:
   std::string text;
 };
 
-class CsoundVST :
+class SILENCE_PUBLIC CsoundVST :
   public AudioEffectX,
   public csound::Shell
 {
