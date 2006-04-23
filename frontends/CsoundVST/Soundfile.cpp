@@ -245,31 +245,23 @@ namespace csound
     boost::numeric::ublas::matrix<double> grainBuffer(frameCount, channelCount);
     for(size_t frameI = 0; frameI < frameCount; frameI++)
       {
-	if(frameCount > 0)
-	  {
-	    if (channelCount == 2) {
-	      grainOutput(frameI, 0) = leftGain * signal;
-	      grainOutput(frameI, 1) = rightGain * signal;
-	    } else if (channelCount == 1) {
-	      grainOutput(frameI, 0) = signal;
-	    } else {
-	      for(size_t channelI = 0; channelI < channelCount; channelI++) {
-		grainOutput(frameI, channelI) = signal;
-	      }
-	    }	
-	    sineSignal = sineCoefficient * sineSignal1 - sineSignal2;
-	    sineSignal2 = sineSignal1;
-	    sineSignal1 = sineSignal;
-	    cosineSignal = cosineCoefficient * cosineSignal1 - cosineSignal2;
-	    cosineSignal2 = cosineSignal1;
-	    cosineSignal1 = cosineSignal;
-	    signal = (sineSignal * (cosineSignal - 1.0)) * gain;
-	    sampleCount--;
+	if (channelCount == 2) {
+	  grainOutput(frameI, 0) = leftGain * signal;
+	  grainOutput(frameI, 1) = rightGain * signal;
+	} else if (channelCount == 1) {
+	  grainOutput(frameI, 0) = signal;
+	} else {
+	  for(size_t channelI = 0; channelI < channelCount; channelI++) {
+	    grainOutput(frameI, channelI) = signal;
 	  }
-	else
-	  {
-	    signal = 0;
-	  }
+	}	
+	sineSignal = sineCoefficient * sineSignal1 - sineSignal2;
+	sineSignal2 = sineSignal1;
+	sineSignal1 = sineSignal;
+	cosineSignal = cosineCoefficient * cosineSignal1 - cosineSignal2;
+	cosineSignal2 = cosineSignal1;
+	cosineSignal1 = cosineSignal;
+	signal = (sineSignal * (cosineSignal - 1.0)) * gain;
       }
     seekSeconds(centerTime - (duration / 2.0));
     int sampleCount = frameCount * channelCount;
