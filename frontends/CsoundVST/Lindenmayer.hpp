@@ -22,6 +22,7 @@
 #ifndef LINDENMAYER_TO_SOUND_H
 #define LINDENMAYER_TO_SOUND_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %include "std_string.i"
@@ -74,7 +75,7 @@ namespace csound
         * <li>]     = Pop the current state of the turtle from the stack.</li>
         * </ul>
         */
-        class Lindenmayer :
+        class SILENCE_PUBLIC Lindenmayer :
                 public ScoreNode
         {
         protected:

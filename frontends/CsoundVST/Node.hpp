@@ -22,6 +22,7 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -46,7 +47,7 @@ namespace csound
    * Nodes can transform silence::Events produced by child nodes.
    * Nodes can produce silence::Events.
    */
-  class Node
+  class SILENCE_PUBLIC Node
   {
   protected:
     ublas::matrix<double> localCoordinates;

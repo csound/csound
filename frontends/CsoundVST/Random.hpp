@@ -25,6 +25,7 @@
 #pragma warning (disable:4786)
 #endif
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -54,7 +55,7 @@ namespace csound
    * for each of eventCount samples,
    * which will be transformed by the newly sampled local coordinates.
    */
-  class Random :
+  class SILENCE_PUBLIC Random :
     public Node
   {
   protected:

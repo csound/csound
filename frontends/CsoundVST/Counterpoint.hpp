@@ -49,6 +49,7 @@
  * See the "main" function for examples, or fux.lisp (which ties fux.c into CMN/CM).
  */
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -72,7 +73,7 @@
 using namespace boost::numeric;
 #endif
 
-class Counterpoint
+class SILENCE_PUBLIC Counterpoint
 {
 public:
   boost::variate_generator<boost::mt19937, boost::uniform_real<> > *uniform_real_generator;

@@ -22,6 +22,7 @@
 #ifndef MUSICMODEL_H
 #define MUSICMODEL_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -51,7 +52,7 @@ namespace csound
    * with the coordinate system of its parent to derive a new local coordinate system,
    * which is applied to all child events.
    */
-  class MusicModel :
+  class SILENCE_PUBLIC MusicModel :
     public Composition,
     public Node
   {

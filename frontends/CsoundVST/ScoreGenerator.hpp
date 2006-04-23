@@ -22,6 +22,7 @@
 #ifndef SCOREGENERATOR_H
 #define SCOREGENERATOR_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module scoregen
 %include "std_vector.i"
@@ -42,7 +43,7 @@ class ScoreGeneratorVst;
  * Python proxy for ScoreGeneratorVst,
  * to be wrapped with SWIG.
  */
-class ScoreGenerator : public std::vector<VstMidiEvent>
+class SILENCE_PUBLIC ScoreGenerator : public std::vector<VstMidiEvent>
 {
 protected:
   ScoreGeneratorVst *scoreGeneratorVst;

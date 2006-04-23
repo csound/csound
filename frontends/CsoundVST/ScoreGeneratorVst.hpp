@@ -36,20 +36,21 @@
 #include <Python.h>
 
 class ScoreGeneratorVstFltk;
-struct Preset
+
+struct SILENCE_PUBLIC Preset
 {
   std::string name;
   std::string text;
 };
 
-struct ScoreGeneratorEvent
+struct SILENCE_PUBLIC ScoreGeneratorEvent
 {
   double start;
   double duration;
   VstMidiEvent vstMidiEvent;
 };
 
-class ScoreGeneratorVst :
+class SILENCE_PUBLIC ScoreGeneratorVst :
   public AudioEffectX,
   public csound::Shell
 {

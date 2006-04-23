@@ -22,6 +22,7 @@
 #ifndef SEQUENCE_H
 #define SEQUENCE_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -37,7 +38,7 @@ namespace csound
   /**
    * Node that creates a temporal sequence of child nodes.
    */
-  class Sequence :
+  class SILENCE_PUBLIC Sequence :
     public Node
   {
   public:
