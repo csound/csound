@@ -224,26 +224,28 @@ namespace csound
 
   void Soundfile::cosineGrain(double centerTime, double duration, double sineFrequency, double gain, double sinePhase, double pan)
   {
+    int framesPerSecond = getFramesPerSecond();
     double leftGain = Conversions::leftPan(pan);
     double rightGain = Conversions::rightPan(pan);
-    sineAngularFrequency = Conversions::getAngularFrequency (sineFrequency);
-    sineCoefficient = 2.0 * std::cos (sineAngularFrequency);
-    sineSignal2 = std::sin (sinePhase + sineAngularFrequency);
-    sineSignal1 = std::sin (sinePhase + 2.0 * sineAngularFrequency);
+    double sineAngularFrequency = Conversions::get2PI() * sineFrequency / double(framesPerSecond);
+    double sineCoefficient = 2.0 * std::cos (sineAngularFrequency);
+    double sineSignal2 = std::sin (sinePhase + sineAngularFrequency);
+    double sineSignal1 = std::sin (sinePhase + 2.0 * sineAngularFrequency);
     double cosineFrequency = 1.0 / duration;
-    sampleCount = (int) Conversions::round (duration * getFramesPerSecond());
-    cosineAngularFrequency = Conversions::getAngularFrequency (cosineFrequency);
-    cosineCoefficient = 2.0 * std::cos (cosineAngularFrequency);
-    cosineSignal2 = std::cos (cosineAngularFrequency);
-    cosineSignal1 = std::cos (2.0 * cosineAngularFrequency);			
+    size_t frameCount = (size_t) Conversions::round (duration * getFramesPerSecond());
+    double cosineAngularFrequency =  Conversions::get2PI() * cosineFrequency / double(framesPerSecond);
+    double cosineCoefficient = 2.0 * std::cos (cosineAngularFrequency);
+    double cosineSignal2 = std::cos (cosineAngularFrequency);
+    double cosineSignal1 = std::cos (2.0 * cosineAngularFrequency);			
     double signal = 0.0;
-    size_t frameCount = getFramesPerSecond() * duration;
+    double sineSignal = 0.0;
+    double cosineSignal = 0.0;
     size_t channelCount = getChannelsPerFrame();
     boost::numeric::ublas::matrix<double> grainOutput(frameCount, channelCount);
     boost::numeric::ublas::matrix<double> grainBuffer(frameCount, channelCount);
     for(size_t frameI = 0; frameI < frameCount; frameI++)
       {
-	if(sampleCount > 0)
+	if(frameCount > 0)
 	  {
 	    if (channelCount == 2) {
 	      grainOutput(frameI, 0) = leftGain * signal;
