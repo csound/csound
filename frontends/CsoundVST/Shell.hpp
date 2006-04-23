@@ -22,6 +22,7 @@
 #ifndef SHELL_H
 #define SHELL_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %include "std_string.i"

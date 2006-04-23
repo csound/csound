@@ -22,6 +22,7 @@
 #ifndef RESCALE_H
 #define RESCALE_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -39,7 +40,7 @@ namespace csound
         * No, some, or all dimensions may be rescaled to fit the minimum alone,
         * the range alone, or both the minimum and the range.
         */
-        class Rescale :
+        class SILENCE_PUBLIC Rescale :
                 public ScoreNode
         {
                 static bool initialized;

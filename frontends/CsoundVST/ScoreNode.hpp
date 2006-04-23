@@ -22,6 +22,7 @@
 #ifndef SCORENODE_H
 #define SCORENODE_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -40,7 +41,7 @@ namespace csound
         * Node class that produces events from the contained score,
         * which can be built up programmatically or imported from a standard MIDI file.
         */
-        class ScoreNode :
+        class SILENCE_PUBLIC ScoreNode :
                 public Node
         {
         protected:

@@ -21,6 +21,7 @@
  */
 #ifndef SCORE_H
 #define SCORE_H
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -47,7 +48,7 @@ namespace csound
    * The implementation is a std::vector of Events.
    * The elements of the vector are value objects, not references.
    */
-  class Score :
+  class SILENCE_PUBLIC Score :
     public std::vector<csound::Event>
   {
   protected:

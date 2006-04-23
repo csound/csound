@@ -22,6 +22,7 @@
 #ifndef CROSSPLATFORM_H
 #define CROSSPLATFORM_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -41,7 +42,7 @@
 
 namespace csound
 {
-  class Logger
+  class SILENCE_PUBLIC Logger
   {
   public:
     Logger();
@@ -54,7 +55,7 @@ namespace csound
   /**
    * Abstraction layer for a minimal set of system services.
    */
-  class System
+  class SILENCE_PUBLIC System
   {
     static void *userdata_;
     static int messageLevel;
@@ -236,7 +237,7 @@ namespace csound
   /**
    * Encapsulates a thread monitor, such as a Windows event handle.
    */
-  class ThreadLock
+  class SILENCE_PUBLIC ThreadLock
   {
     void *lock;
   public:

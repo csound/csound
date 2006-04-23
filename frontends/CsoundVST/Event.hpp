@@ -21,6 +21,7 @@
  */
 #ifndef EVENT_H
 #define EVENT_H
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -70,7 +71,7 @@ namespace csound
    * but they are always real-time score statements at time 0, suitable
    * for use with Csound's -L or line event option.
    */
-  class Event :
+  class SILENCE_PUBLIC Event :
     public ublas::vector<double>
   {
   public:

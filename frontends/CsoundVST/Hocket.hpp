@@ -22,6 +22,7 @@
 #ifndef HOCKET_H
 #define HOCKET_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -37,7 +38,7 @@ namespace csound
         /**
         * Simplifies constructing complex hocketted scores.
         */
-        class Hocket :
+        class SILENCE_PUBLIC Hocket :
                 public ScoreNode
         {
         public:

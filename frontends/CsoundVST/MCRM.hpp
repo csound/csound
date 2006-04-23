@@ -21,6 +21,7 @@
 */
 #ifndef SILENCEMCRM_H
 #define SILENCEMCRM_H
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %include "std_string.i"
@@ -35,7 +36,7 @@
 
 namespace csound
 {
-        class MCRM :
+        class SILENCE_PUBLIC MCRM :
                 public ScoreNode
         {
                 // Hutchinson operator.

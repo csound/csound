@@ -37,7 +37,7 @@
 * It is also expected that doxygen will be used to generate documentation
 * from comments in the framework header files.
 */
-
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %feature("autodoc", "1");

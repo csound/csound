@@ -22,6 +22,7 @@
 #ifndef COMPOSITION_H
 #define COMPOSITION_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -40,7 +41,7 @@ namespace csound
    * Contains a Score object for collecting generated Events such as notes and control messages,
    * and an Orchestra object for rendering the generated scores.
    */
-  class Composition
+  class SILENCE_PUBLIC Composition
   {
   protected:
     Score score;
