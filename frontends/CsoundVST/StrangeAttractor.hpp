@@ -22,6 +22,7 @@
 #ifndef STRANGEATTRACTOR_H
 #define STRANGEATTRACTOR_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -53,7 +54,7 @@ namespace csound
         * as the order of iteration, or as a dimension of the attractor.
         * See Julien C. Sprott's book "Strange Attractors".
         */
-        class StrangeAttractor :
+        class SILENCE_PUBLIC StrangeAttractor :
                 public ScoreNode
         {
         protected:

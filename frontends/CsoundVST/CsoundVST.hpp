@@ -22,6 +22,7 @@
 #ifndef __CSOUNDVST_H
 #define __CSOUNDVST_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 
 %module CsoundVST
@@ -45,7 +46,7 @@
 
 #endif
 
-class CsoundVstFltk;
+class SILENCE_PUBLIC CsoundVstFltk;
 
 class Preset
 {

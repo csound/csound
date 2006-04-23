@@ -22,6 +22,7 @@
 #ifndef IMAGETOSCORE_H
 #define IMAGETOSCORE_H
 
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -40,7 +41,7 @@ namespace csound
         * Translates images in various RGB formats to scores.
         * Hue is mapped to instrument, value is mapped to loudness.
         */
-        class ImageToScore : public ScoreNode
+        class SILENCE_PUBLIC ImageToScore : public ScoreNode
         {
         protected:
                 std::string imageFilename;

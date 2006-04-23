@@ -21,6 +21,7 @@
 */
 #ifndef EXCEPTION_H
 #define EXCEPTION_H
+#include "Platform.hpp"
 #ifdef SWIG
 %module CsoundVST
 %{
@@ -35,7 +36,7 @@ namespace csound
         /**
         * Base class for C++ exceptions in the Silence system.
         */
-        class Exception
+        class SILENCE_PUBLIC Exception
         {
                 std::string message;
         public:
