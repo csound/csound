@@ -39,7 +39,7 @@ namespace csound
         * Provide a shell in which Python scripts
         * can be loaded, saved, and executed.
         */
-        class SILENCE_EXPORT Shell
+        class SILENCE_PUBLIC Shell
         {
         protected:
                 std::string filename;
