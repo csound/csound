@@ -429,8 +429,9 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\csoundapi~.dll
   File C:\utah\opt\libsndfile-1.0.15\src\.libs\libsndfile-1.dll
   File C:\utah\opt\Lazzarini\portaudio.dll
-  File C:\utah\usr\mingw\bin\mingwm10.dll
   File C:\utah\opt\portmidi\pm_win\*.dll
+  File C:\utah\opt\LuaJIT-1.1.0\src\luajit.exe
+  File C:\utah\opt\LuaJIT-1.1.0\src\lua51.dll
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
   File ..\..\scoregen.py
