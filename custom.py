@@ -26,19 +26,17 @@ elif sys.platform == 'darwin':
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    customCPPPATH.append('c:/utah/usr/msys/1.0/local/include')
-    customLIBPATH.append('c:/utah/usr/msys/1.0/local/lib')
-    customCPPPATH.append('c:/utah/usr/mingw/include')
-    customLIBPATH.append('c:/utah/usr/mingw/lib')
+    customCPPPATH.append('c:/utah/msys/1.0/local/include')
+    customLIBPATH.append('c:/utah/msys/1.0/local/lib')
     # If libsndfile is not in a standard location add it here:
-    customCPPPATH.append('C:/utah/opt/libsndfile-1.0.15/src')
-    customLIBPATH.append('C:/utah/opt/libsndfile-1.0.15/src/.libs')
+    #customCPPPATH.append('C:/utah/opt/libsndfile-1.0.15/src')
+    #customLIBPATH.append('C:/utah/opt/libsndfile-1.0.15/src/.libs')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
     # (of course you must build it first):
     customCPPPATH.append('C:/utah/home/mkg/projects/portaudio/pa_common')
-    customLIBPATH.append('C:/utah/opt/lazzarini')
+    customLIBPATH.append('C:/utah/home/mkg/projects/portaudio/lib')
     ################################################################
     # If you want PortMidi for real-time midi,
     # if it is not in a standard location add it here
@@ -53,13 +51,13 @@ elif sys.platform[:3] == 'win':
     # If you want FLTK widgets or if you want to build CsoundVST,
     # you need FLTK. If it is not in a standard location,
     # add it here (of course you must build it first):
-    customCPPPATH.append('C:/utah/opt/fltk-1.1.7')
-    customLIBPATH.append('C:/utah/opt/fltk-1.1.7/lib')
+    #customCPPPATH.append('C:/utah/opt/fltk-1.1.7')
+    #customLIBPATH.append('C:/utah/opt/fltk-1.1.7/lib')
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
     customCPPPATH.append('c:/utah/opt/Python24/include')
-    customLIBPATH.append('c:/WINDOWS/system32')
+    #customLIBPATH.append('c:/WINDOWS/system32')
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
@@ -108,13 +106,13 @@ elif sys.platform[:3] == 'win':
     # If you want to build the OSC opcodes,
     # if it is not in a standard location,
     # add it here (you do need to build it first):
-    customCPPPATH.append('c:/utah/home/mkg/projects/liblo')
-    customLIBPATH.append('c:/utah/home/mkg/projects/liblo/src/.libs')
+    #customCPPPATH.append('c:/utah/home/mkg/projects/liblo')
+    #customLIBPATH.append('c:/utah/home/mkg/projects/liblo/src/.libs')
     # For OSC on Windows you will also need a Windows pthread library,
     # if it is not in a standard location,
     # add it here (you do need to build it first):
-    customCPPPATH.append('c:/utah/opt/pthreads')
-    customLIBPATH.append('c:/utah/opt/pthreads')
+    #customCPPPATH.append('c:/utah/opt/pthreads')
+    #customLIBPATH.append('c:/utah/opt/pthreads')
 else:
     platform = 'unsupported platform'
 
