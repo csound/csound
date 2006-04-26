@@ -1,0 +1,279 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0107 
+do_not_include_H_from_C 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include "CsoundGUI.hpp"} {} 
+
+class CsoundGlobalSettingsPanel {open selected
+} {
+  decl {CsoundGUIMain *p;} {}
+  decl {CsoundGlobalSettings *g_cfg;} {}
+  Function {CsoundGlobalSettingsPanel(CsoundGUIMain *p)} {open
+  } {
+    code {{
+  this->p = p;
+  g_cfg = &(p->currentGlobalSettings);
+}} {}
+    Fl_Window window {
+      label {Csound GUI options} open
+      xywh {528 49 390 450} type Double visible
+    } {
+      Fl_Input textEditorInput {
+        label {Text editor}
+        callback {CsoundGUIMain::stripString(g_cfg->textEditorProgram, o->value());}
+        xywh {10 10 245 25} align 8
+        code0 {o->value(g_cfg->textEditorProgram.c_str());}
+      }
+      Fl_Button textEditorButton {
+        label {...}
+        callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(g_cfg->textEditorProgram.c_str(), 0, Fl_File_Chooser::SINGLE, "Select external text editor");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->currentGlobalSettings.textEditorProgram, fdlg->value());
+  delete fdlg;
+  textEditorInput->value(g_cfg->textEditorProgram.c_str());
+}}
+        tooltip {Browse external text editor program} xywh {355 10 25 25}
+      }
+      Fl_Input soundEditorInput {
+        label {Sound editor}
+        callback {CsoundGUIMain::stripString(g_cfg->soundEditorProgram, o->value());}
+        xywh {10 45 245 25} align 8
+        code0 {o->value(g_cfg->soundEditorProgram.c_str());}
+      }
+      Fl_Button soundEditorButton {
+        label {...}
+        callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(g_cfg->soundEditorProgram.c_str(), 0, Fl_File_Chooser::SINGLE, "Select external sound editor");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->currentGlobalSettings.soundEditorProgram, fdlg->value());
+  delete fdlg;
+  soundEditorInput->value(g_cfg->soundEditorProgram.c_str());
+}}
+        tooltip {Browse external sound editor program} xywh {355 45 25 25}
+      }
+      Fl_Check_Button {} {
+        label {Edit output sound file after performance}
+        callback {g_cfg->editSoundFileAfterPerformance = (o->value() == 0 ? false : true);}
+        tooltip {Automatically open output file with the external sound editor after the end of performance} xywh {10 80 25 25} down_box DOWN_BOX
+        code0 {o->value(g_cfg->editSoundFileAfterPerformance ? 1 : 0);}
+      }
+      Fl_Group {} {
+        label {Csound performance settings} open
+        xywh {10 130 370 310} box ENGRAVED_FRAME align 5
+      } {
+        Fl_Button {} {
+          label Configure
+          callback {{
+  window->deactivate();
+  p->openPerformanceSettingsPanel();
+  window->activate();
+}}
+          tooltip {Set Csound options} xywh {20 140 80 25}
+        }
+        Fl_Check_Button {} {
+          label {Force settings}
+          callback {g_cfg->forcePerformanceSettings = (o->value() == 0 ? false : true);}
+          tooltip {Override <CsOptions> and .csoundrc when possible} xywh {205 140 25 25} down_box DOWN_BOX
+          code0 {o->value(g_cfg->forcePerformanceSettings ? 1 : 0);}
+        }
+        Fl_Scroll {} {open
+          xywh {20 175 350 255} box DOWN_BOX
+        } {
+          Fl_Group {} {open
+            xywh {20 175 325 360}
+          } {
+            Fl_Input {} {
+              label 1
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings1_Name, o->value());}
+              xywh {50 185 145 25}
+              code0 {o->value(g_cfg->performanceSettings1_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_1.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 185 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_1.dat", p->currentPerformanceSettings);}
+              xywh {275 185 60 25}
+            }
+            Fl_Input {} {
+              label 2
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings2_Name, o->value());}
+              xywh {50 220 145 25}
+              code0 {o->value(g_cfg->performanceSettings2_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_2.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 220 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_2.dat", p->currentPerformanceSettings);}
+              xywh {275 220 60 25}
+            }
+            Fl_Input {} {
+              label 3
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings3_Name, o->value());}
+              xywh {50 255 145 25}
+              code0 {o->value(g_cfg->performanceSettings3_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_3.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 255 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_3.dat", p->currentPerformanceSettings);}
+              xywh {275 255 60 25}
+            }
+            Fl_Input {} {
+              label 4
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings4_Name, o->value());}
+              xywh {50 290 145 25}
+              code0 {o->value(g_cfg->performanceSettings4_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_4.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 290 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_4.dat", p->currentPerformanceSettings);}
+              xywh {275 290 60 25}
+            }
+            Fl_Input {} {
+              label 5
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings5_Name, o->value());}
+              xywh {50 325 145 25}
+              code0 {o->value(g_cfg->performanceSettings5_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_5.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 325 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_5.dat", p->currentPerformanceSettings);}
+              xywh {275 325 60 25}
+            }
+            Fl_Input {} {
+              label 6
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings6_Name, o->value());}
+              xywh {50 360 145 25}
+              code0 {o->value(g_cfg->performanceSettings6_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_6.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 360 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_6.dat", p->currentPerformanceSettings);}
+              xywh {275 360 60 25}
+            }
+            Fl_Input {} {
+              label 7
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings7_Name, o->value());}
+              xywh {50 395 145 25}
+              code0 {o->value(g_cfg->performanceSettings7_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_7.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 395 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_7.dat", p->currentPerformanceSettings);}
+              xywh {275 395 60 25}
+            }
+            Fl_Input {} {
+              label 8
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings8_Name, o->value());}
+              xywh {50 430 145 25}
+              code0 {o->value(g_cfg->performanceSettings8_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_8.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 430 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_8.dat", p->currentPerformanceSettings);}
+              xywh {275 430 60 25}
+            }
+            Fl_Input {} {
+              label 9
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings9_Name, o->value());}
+              xywh {50 465 145 25}
+              code0 {o->value(g_cfg->performanceSettings9_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_9.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 465 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_9.dat", p->currentPerformanceSettings);}
+              xywh {275 465 60 25}
+            }
+            Fl_Input {} {
+              label 10
+              callback {CsoundGUIMain::stripString(g_cfg->performanceSettings10_Name, o->value());}
+              xywh {50 500 145 25}
+              code0 {o->value(g_cfg->performanceSettings10_Name.c_str());}
+            }
+            Fl_Button {} {
+              label Load
+              callback {readCsound5GUIConfigFile("p_cfg_10.dat", p->currentPerformanceSettings);
+p->updateGUIValues();}
+              xywh {205 500 60 25}
+            }
+            Fl_Button {} {
+              label Save
+              callback {writeCsound5GUIConfigFile("p_cfg_10.dat", p->currentPerformanceSettings);}
+              xywh {275 500 60 25}
+            }
+          }
+        }
+      }
+    }
+  }
+  Function {~CsoundGlobalSettingsPanel()} {open
+  } {
+    code {{
+  if (window) {
+    delete window;
+    window = (Fl_Double_Window*) 0;
+  }
+}} {}
+  }
+} 

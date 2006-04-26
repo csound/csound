@@ -1,0 +1,718 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0107 
+do_not_include_H_from_C 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include "CsoundGUI.hpp"} {} 
+
+class CsoundPerformanceSettingsPanel {open selected
+} {
+  decl {CsoundPerformanceSettings *p;} {}
+  decl {int status;} {public
+  }
+  Function {CsoundPerformanceSettingsPanel(CsoundPerformanceSettings *p)} {open
+  } {
+    code {this->p = p;
+status = 0;
+window = (Fl_Double_Window*) 0;} {}
+    Fl_Window window {
+      label {Csound performance settings}
+      callback {status = 1;} open
+      xywh {591 206 390 450} type Double
+      code0 {window = o;} visible
+    } {
+      Fl_Tabs {} {open
+        xywh {0 0 390 405}
+      } {
+        Fl_Group {} {
+          label General open
+          xywh {0 25 390 380}
+        } {
+          Fl_Input orcNameInput {
+            label {Orchestra/CSD}
+            callback {{
+  CsoundGUIMain::stripString(p->orcName, o->value());
+  if (CsoundGUIMain::isCSDFile(p->orcName)) {
+    scoNameInput->deactivate();
+    scoNameButton->deactivate();
+    scoNameInput->value("");
+  }
+  else {
+    scoNameInput->activate();
+    scoNameButton->activate();
+    scoNameInput->value(p->scoName.c_str());
+  }
+}}
+            xywh {10 35 230 25} align 8
+            code0 {o->value(p->orcName.c_str());}
+          }
+          Fl_Button orcNameButton {
+            label {...}
+            callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->orcName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select orchestra or CSD file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->orcName, fdlg->value());
+  delete fdlg;
+  orcNameInput->value(p->orcName.c_str());
+  if (CsoundGUIMain::isCSDFile(p->orcName)) {
+    scoNameInput->deactivate();
+    scoNameButton->deactivate();
+    scoNameInput->value("");
+  }
+  else {
+    scoNameInput->activate();
+    scoNameButton->activate();
+    scoNameInput->value(p->scoName.c_str());
+  }
+}}
+            tooltip {Browse orchestra or CSD file} xywh {355 35 25 25}
+          }
+          Fl_Input scoNameInput {
+            label {Score file}
+            callback {CsoundGUIMain::stripString(p->scoName, o->value());}
+            xywh {10 70 230 25} align 8
+            code0 {if (CsoundGUIMain::isCSDFile(p->orcName)) { o->deactivate(); o->value(""); } else { o->activate(); o->value(p->scoName.c_str()); }}
+          }
+          Fl_Button scoNameButton {
+            label {...}
+            callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->scoName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select score file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->scoName, fdlg->value());
+  delete fdlg;
+  scoNameInput->value(p->scoName.c_str());
+}}
+            tooltip {Browse score file} xywh {355 70 25 25}
+          }
+          Fl_Input lineInputDeviceInput {
+            label {Line input}
+            callback {CsoundGUIMain::stripString(p->lineInput, o->value());}
+            tooltip {Line input device (stdin for standard input)} xywh {10 105 230 25} align 8
+            code0 {o->value(p->lineInput.c_str());}
+          }
+          Fl_Button lineInputDeviceButton {
+            label {...}
+            callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->lineInput.c_str(), 0, Fl_File_Chooser::SINGLE, "Select line input device file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->lineInput, fdlg->value());
+  delete fdlg;
+  lineInputDeviceInput->value(p->lineInput.c_str());
+}}
+            tooltip {Browse line input device file} xywh {355 105 25 25}
+          }
+          Fl_Input pluginLibsInput {
+            label {Plugin libraries}
+            callback {CsoundGUIMain::stripString(p->pluginLibs, o->value());}
+            tooltip {Comma separated list of additional plugins to load} xywh {10 140 230 25} align 8
+            code0 {o->value(p->pluginLibs.c_str());}
+          }
+          Fl_Button pluginLibsButton {
+            label {...}
+            callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser("", 0, Fl_File_Chooser::SINGLE, "Select a plugin library");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value()) {
+    if (CsoundGUIMain::isEmptyString(p->pluginLibs))
+      CsoundGUIMain::stripString(p->pluginLibs, fdlg->value());
+    else {
+      std::string tmp;
+      CsoundGUIMain::stripString(tmp, fdlg->value());
+      CsoundGUIMain::stripString(p->pluginLibs, p->pluginLibs.c_str());
+      p->pluginLibs += ',';
+      p->pluginLibs += tmp;
+    }
+  }
+  delete fdlg;
+  pluginLibsInput->value(p->pluginLibs.c_str());
+}}
+            tooltip {Browse plugin library} xywh {355 140 25 25}
+          }
+          Fl_Group {} {open
+            xywh {10 175 370 220} box ENGRAVED_FRAME
+          } {
+            Fl_Choice {} {
+              label {Display mode}
+              callback {p->displayMode = o->value() & 3;} open
+              xywh {20 185 75 25} down_box BORDER_BOX align 8
+              code0 {o->add("None|Full|ASCII|PostScript");}
+              code1 {o->value(p->displayMode);}
+            } {}
+            Fl_Value_Input {} {
+              label {Message level}
+              callback {p->messageLevel = (int) (o->value() + 0.5) & 231;}
+              xywh {205 185 60 25} align 8 maximum 231 step 1
+              code0 {o->value((double) p->messageLevel);}
+            }
+            Fl_Choice {} {
+              label Heartbeat
+              callback {p->heartBeatMode = o->value() & 7;} open
+              xywh {20 220 75 25} down_box BORDER_BOX align 8
+              code0 {o->add("None|Bar|Dot|Time|Bell");}
+              code1 {o->value(p->heartBeatMode);}
+            } {}
+            Fl_Check_Button {} {
+              label {Verbose messages}
+              callback {p->verbose = (o->value() == 0 ? false : true);}
+              xywh {205 220 25 25} down_box DOWN_BOX
+              code0 {o->value(p->verbose ? 1 : 0);}
+            }
+            Fl_Value_Input sampleRateInput {
+              label {Sample rate}
+              callback {{
+  p->sampleRateOverride = o->value();
+  if (p->sampleRateOverride <= 0.0) {
+    p->controlRateOverride = -1.0;
+    controlRateInput->value(p->controlRateOverride);
+  }
+  else if (p->controlRateOverride <= 0.0) {
+    p->controlRateOverride = p->sampleRateOverride;
+    controlRateInput->value(p->controlRateOverride);
+  }
+}}
+              tooltip {Sample rate override (<= 0: none)} xywh {20 255 75 25} align 8 when 4 minimum -1 maximum 1e+06
+              code0 {o->value(p->sampleRateOverride);}
+            }
+            Fl_Value_Input controlRateInput {
+              label {Control rate}
+              callback {{
+  p->controlRateOverride = o->value();
+  if (p->controlRateOverride <= 0.0) {
+    p->sampleRateOverride = -1.0;
+    sampleRateInput->value(p->sampleRateOverride);
+  }
+  else if (p->sampleRateOverride <= 0.0) {
+    p->sampleRateOverride = p->controlRateOverride;
+    sampleRateInput->value(p->sampleRateOverride);
+  }
+}}
+              tooltip {Control rate override (<= 0: none)} xywh {205 255 75 25} align 8 when 4 minimum -1 maximum 1e+06
+              code0 {o->value(p->controlRateOverride);}
+            }
+            Fl_Value_Input {} {
+              label {Score offset}
+              callback {{
+  p->scoreOffsetSeconds = o->value();
+  if (p->scoreOffsetSeconds < 0.0)
+    p->scoreOffsetSeconds = 0.0;
+}}
+              tooltip {Score offset in seconds} xywh {20 290 75 25} align 8 maximum 10000
+              code0 {o->value(p->scoreOffsetSeconds);}
+            }
+            Fl_Value_Input {} {
+              label {Initial tempo}
+              callback {p->beatModeTempo = o->value();}
+              tooltip {If greater than zero, enable beat mode with this initial tempo (EXPERIMENTAL)} xywh {205 290 75 25} align 8 minimum -1 maximum 10000
+              code0 {o->value(p->beatModeTempo);}
+            }
+            Fl_Value_Input {} {
+              label {String length}
+              callback {p->maxStrLen = (int) (o->value() + 0.5);}
+              tooltip {Maximum length of string variables} xywh {20 325 75 25} align 8 minimum 9 maximum 9999 step 1
+              code0 {o->value((double) p->maxStrLen);}
+            }
+            Fl_Check_Button {} {
+              label {Optimize expressions}
+              callback {p->enableExpressionOpt = (o->value() == 0 ? false : true);}
+              tooltip {Enable experimental optimization of orchestra expressions} xywh {205 325 25 25} down_box DOWN_BOX
+              code0 {o->value(p->enableExpressionOpt ? 1 : 0);}
+            }
+            Fl_Check_Button {} {
+              label {Skip CsOptions}
+              callback {p->ignoreCSDOptions = (o->value() == 0 ? false : true);}
+              tooltip {Ignore command line flags specified in CSD files} xywh {20 360 25 25} down_box DOWN_BOX
+              code0 {o->value(p->ignoreCSDOptions ? 1 : 0);}
+            }
+            Fl_Check_Button {} {
+              label {I-time only}
+              callback {p->iTimeOnly = (o->value() == 0 ? false : true);}
+              tooltip {Init time only performace (no audio output)} xywh {155 360 25 25} down_box DOWN_BOX
+              code0 {o->value(p->iTimeOnly ? 1 : 0);}
+            }
+            Fl_Check_Button {} {
+              label {Defer GEN01}
+              callback {p->deferGEN1 = (o->value() == 0 ? false : true);}
+              tooltip {Defer GEN01 sound file loads} xywh {260 360 25 25} down_box DOWN_BOX
+              code0 {o->value(p->deferGEN1 ? 1 : 0);}
+            }
+          }
+        }
+        Fl_Group {} {
+          label {Sound I/O} open
+          xywh {0 25 390 380} hide
+        } {
+          Fl_Input inputFileBox {
+            label {Input file}
+            callback {CsoundGUIMain::stripString(p->inputFileName, o->value());}
+            xywh {10 35 260 25} align 8
+            code0 {o->value(p->inputFileName.c_str());}
+          }
+          Fl_Button {} {
+            label {...}
+            callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->inputFileName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input sound file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->inputFileName, fdlg->value());
+  delete fdlg;
+  inputFileBox->value(p->inputFileName.c_str());
+}}
+            tooltip {Browse input sound file} xywh {355 35 25 25}
+          }
+          Fl_Input outputFileBox {
+            label {Output file}
+            callback {CsoundGUIMain::stripString(p->outputFileName, o->value());}
+            xywh {10 70 260 25} align 8
+            code0 {o->value(p->outputFileName.c_str());}
+          }
+          Fl_Button {} {
+            label {...}
+            callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->outputFileName.c_str(), 0, Fl_File_Chooser::CREATE, "Select output sound file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->outputFileName, fdlg->value());
+  delete fdlg;
+  outputFileBox->value(p->outputFileName.c_str());
+}}
+            tooltip {Browse output sound file} xywh {355 70 25 25}
+          }
+          Fl_Choice {} {
+            label {File type}
+            callback {p->soundFileType = p->indexToFileType(o->value());} open
+            xywh {10 115 80 25} down_box BORDER_BOX align 8
+            code0 {for (int i = 0; p->indexToFileType(i) != (char*) 0; i++) o->add(p->indexToFileType(i));}
+            code1 {o->value(p->fileTypeToIndex(p->soundFileType.c_str()));}
+          } {}
+          Fl_Choice {} {
+            label {Sample format}
+            callback {p->soundSampleFormat = p->indexToSampleFormat(o->value());} open
+            xywh {175 115 80 25} down_box BORDER_BOX align 8
+            code0 {for (int i = 0; p->indexToSampleFormat(i) != (char*) 0; i++) o->add(p->indexToSampleFormat(i));}
+            code1 {o->value(p->sampleFormatToIndex(p->soundSampleFormat.c_str()));}
+          } {}
+          Fl_Check_Button {} {
+            label {Peak chunks}
+            callback {p->enablePeakChunks = (o->value() == 0 ? false : true);}
+            xywh {10 150 25 25} down_box DOWN_BOX
+            code0 {o->value(p->enablePeakChunks ? 1 : 0);}
+          }
+          Fl_Check_Button {} {
+            label {Enable dither}
+            callback {p->enableDither = (o->value() == 0 ? false : true);}
+            xywh {135 150 25 25} down_box DOWN_BOX
+            code0 {o->value(p->enableDither ? 1 : 0);}
+          }
+          Fl_Check_Button {} {
+            label {Rewrite header}
+            callback {p->rewriteHeader = (o->value() == 0 ? false : true);}
+            xywh {260 150 25 25} down_box DOWN_BOX
+            code0 {o->value(p->rewriteHeader ? 1 : 0);}
+          }
+          Fl_Group {} {
+            label {Sound file tags} open
+            xywh {10 205 370 190} box ENGRAVED_FRAME align 5
+          } {
+            Fl_Input {} {
+              label Artist
+              callback {CsoundGUIMain::stripString(p->sndidArtist, o->value());}
+              xywh {20 215 290 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(p->sndidArtist.c_str());}
+            }
+            Fl_Input {} {
+              label Comment
+              callback {CsoundGUIMain::stripString(p->sndidComment, o->value());}
+              xywh {20 245 290 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(p->sndidComment.c_str());}
+            }
+            Fl_Input {} {
+              label Copyright
+              callback {CsoundGUIMain::stripString(p->sndidCopyright, o->value());}
+              xywh {20 275 290 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(p->sndidCopyright.c_str());}
+            }
+            Fl_Input {} {
+              label Date
+              callback {CsoundGUIMain::stripString(p->sndidDate, o->value());}
+              xywh {20 305 290 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(p->sndidDate.c_str());}
+            }
+            Fl_Input {} {
+              label Software
+              callback {CsoundGUIMain::stripString(p->sndidSoftware, o->value());}
+              xywh {20 335 290 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(p->sndidSoftware.c_str());}
+            }
+            Fl_Input {} {
+              label Title
+              callback {CsoundGUIMain::stripString(p->sndidTitle, o->value());}
+              xywh {20 365 290 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(p->sndidTitle.c_str());}
+            }
+          }
+        }
+        Fl_Group {} {
+          label {Real time audio} open
+          xywh {0 25 390 380} hide
+        } {
+          Fl_Input_Choice {} {
+            label {Real time audio module}
+            callback {CsoundGUIMain::stripString(p->rtAudioModule, o->value());}
+            xywh {10 40 200 25} align 8
+            code0 {o->add("PortAudio"); o->add("pa_cb"); o->add("pa_bl"); o->add("MME"); o->add("ALSA"); o->add("JACK"); o->add("CoreAudio"); o->add("null");}
+            code1 {o->value(p->rtAudioModule.c_str());}
+          } {}
+          Fl_Choice {} {
+            label {Buffer size in sample frames}
+            callback {{
+  p->bufFrames_SW = (1 << ((int) o->value() + 3));
+  if (p->bufFrames_SW < 16)
+    numBuffersInput->deactivate();
+  else
+    numBuffersInput->activate();
+}} open
+            xywh {10 80 80 25} down_box BORDER_BOX align 8
+            code0 {o->add("default|16|32|64|128|256|512|1024|2048|4096|8192|16384");}
+            code1 {o->value((int) (std::log((double) p->bufFrames_SW) / std::log(2.0) + 0.5) - 3);}
+          } {}
+          Fl_Spinner numBuffersInput {
+            label {Number of buffers}
+            callback {p->nBuffers = (int) (o->value() + 0.5);}
+            xywh {10 115 80 25} align 8
+            code0 {o->range(2.0, 64.0);}
+            code1 {o->step(1.0);}
+            code2 {o->value((double) p->nBuffers);}
+            code3 {if (p->bufFrames_SW < 16) o->deactivate();}
+          }
+          Fl_Check_Button {} {
+            label {Perform in a separate thread}
+            callback {p->useThreads = (o->value() == 0 ? false : true);}
+            xywh {10 155 25 25} down_box DOWN_BOX
+            code0 {o->value(p->useThreads ? 1 : 0);}
+          }
+          Fl_Group {} {
+            label {JACK settings (Linux and MacOS X only)} open
+            xywh {10 205 370 115} box ENGRAVED_FRAME align 5
+          } {
+            Fl_Input {} {
+              label {Client name}
+              callback {CsoundGUIMain::stripString(p->jackClientName, o->value());}
+              xywh {20 215 190 25} align 8
+              code0 {o->value(p->jackClientName.c_str());}
+            }
+            Fl_Input {} {
+              label {Input port name prefix}
+              callback {CsoundGUIMain::stripString(p->jackInPortName, o->value());}
+              xywh {20 250 190 25} align 8
+              code0 {o->value(p->jackInPortName.c_str());}
+            }
+            Fl_Input {} {
+              label {Output port name prefix}
+              callback {CsoundGUIMain::stripString(p->jackOutPortName, o->value());}
+              xywh {20 285 190 25} align 8
+              code0 {o->value(p->jackOutPortName.c_str());}
+            }
+          }
+        }
+        Fl_Group {} {
+          label MIDI open
+          xywh {0 25 390 380} hide
+        } {
+          Fl_Group {} {
+            label {MIDI file I/O} open
+            xywh {10 55 370 150} box ENGRAVED_FRAME align 5
+          } {
+            Fl_Input midiInFileNameInput {
+              label {Input file}
+              callback {CsoundGUIMain::stripString(p->midiInFileName, o->value());}
+              xywh {20 65 225 25} align 8
+              code0 {o->value(p->midiInFileName.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->midiInFileName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select MIDI input file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->midiInFileName, fdlg->value());
+  delete fdlg;
+  midiInFileNameInput->value(p->midiInFileName.c_str());
+}}
+              tooltip {Browse MIDI input file} xywh {345 65 25 25}
+            }
+            Fl_Input {} {
+              label {Mute track pattern}
+              callback {CsoundGUIMain::stripString(p->midiFileMuteTracks, o->value());}
+              tooltip {MIDI file tracks to be muted, defined by a pattern of 0 (not muted) and 1 (muted) characters} xywh {20 100 225 25} align 8
+              code0 {o->value(p->midiFileMuteTracks.c_str());}
+            }
+            Fl_Check_Button {} {
+              label {Terminate performance on end of MIDI input file}
+              callback {p->terminateOnMidi = (o->value() == 0 ? false : true);}
+              xywh {20 135 25 25} down_box DOWN_BOX
+              code0 {o->value(p->terminateOnMidi ? 1 : 0);}
+            }
+            Fl_Input midiOutFileNameInput {
+              label {Output file}
+              callback {CsoundGUIMain::stripString(p->midiOutFileName, o->value());}
+              xywh {20 170 225 25} align 8
+              code0 {o->value(p->midiOutFileName.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->midiOutFileName.c_str(), 0, Fl_File_Chooser::CREATE, "Select MIDI output file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->midiOutFileName, fdlg->value());
+  delete fdlg;
+  midiOutFileNameInput->value(p->midiOutFileName.c_str());
+}}
+              tooltip {Browse MIDI output file} xywh {345 170 25 25}
+            }
+          }
+          Fl_Group {} {
+            label {Real time MIDI} open
+            xywh {10 230 370 115} box ENGRAVED_FRAME align 5
+          } {
+            Fl_Input_Choice {} {
+              label {Real time MIDI module}
+              callback {CsoundGUIMain::stripString(p->rtMidiModule, o->value());}
+              xywh {20 240 200 25} align 8
+              code0 {o->add("PortMidi"); o->add("MME"); o->add("ALSA"); o->add("null");}
+              code1 {o->value(p->rtMidiModule.c_str());}
+            } {}
+            Fl_Input {} {
+              label {Input device}
+              callback {CsoundGUIMain::stripString(p->midiInDevName, o->value());}
+              xywh {20 275 200 25} align 8
+              code0 {o->value(p->midiInDevName.c_str());}
+            }
+            Fl_Input {} {
+              label {Output device}
+              callback {CsoundGUIMain::stripString(p->midiOutDevName, o->value());}
+              xywh {20 310 200 25} align 8
+              code0 {o->value(p->midiOutDevName.c_str());}
+            }
+          }
+          Fl_Check_Button {} {
+            label {Raw controller mode}
+            callback {p->rawControllerMode = (o->value() == 0 ? false : true);}
+            xywh {10 362 25 25} down_box DOWN_BOX
+            code0 {o->value(p->rawControllerMode ? 1 : 0);}
+          }
+        }
+        Fl_Group {} {
+          label Environment open
+          xywh {0 25 390 380} hide
+        } {
+          Fl_Group {} {
+            label {Environment variables} open
+            xywh {10 50 370 150} box ENGRAVED_FRAME align 5
+          } {
+            Fl_Input sadirBox {
+              label SADIR
+              callback {CsoundGUIMain::stripString(p->sadirPath, o->value());}
+              xywh {20 60 260 25} align 8
+              code0 {o->value(p->sadirPath.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->sadirPath.c_str(), 0, Fl_File_Chooser::DIRECTORY, "Select directory for analysis files");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->sadirPath, fdlg->value());
+  delete fdlg;
+  sadirBox->value(p->sadirPath.c_str());
+}}
+              xywh {345 60 25 25}
+            }
+            Fl_Input ssdirBox {
+              label SSDIR
+              callback {CsoundGUIMain::stripString(p->ssdirPath, o->value());}
+              xywh {20 95 260 25} align 8
+              code0 {o->value(p->ssdirPath.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->ssdirPath.c_str(), 0, Fl_File_Chooser::DIRECTORY, "Select directory for sound file input");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->ssdirPath, fdlg->value());
+  delete fdlg;
+  ssdirBox->value(p->ssdirPath.c_str());
+}}
+              xywh {345 95 25 25}
+            }
+            Fl_Input sfdirBox {
+              label SFDIR
+              callback {CsoundGUIMain::stripString(p->sfdirPath, o->value());}
+              xywh {20 130 260 25} align 8
+              code0 {o->value(p->sfdirPath.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->sfdirPath.c_str(), 0, Fl_File_Chooser::DIRECTORY, "Select directory for sound file output");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->sfdirPath, fdlg->value());
+  delete fdlg;
+  sfdirBox->value(p->sfdirPath.c_str());
+}}
+              xywh {345 130 25 25}
+            }
+            Fl_Input incdirBox {
+              label INCDIR
+              callback {CsoundGUIMain::stripString(p->incdirPath, o->value());}
+              xywh {20 165 260 25} align 8
+              code0 {o->value(p->incdirPath.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(p->incdirPath.c_str(), 0, Fl_File_Chooser::DIRECTORY, "Select directory for include files");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(p->incdirPath, fdlg->value());
+  delete fdlg;
+  incdirBox->value(p->incdirPath.c_str());
+}}
+              xywh {345 165 25 25}
+            }
+          }
+          Fl_Scroll {} {
+            label strset open
+            xywh {10 225 370 170} box DOWN_BOX align 5
+            code0 {o->type(Fl_Scroll::VERTICAL_ALWAYS);}
+          } {
+            Fl_Group {} {open
+              xywh {10 225 345 360}
+            } {
+              Fl_Input {} {
+                label 1
+                callback {CsoundGUIMain::stripString(p->strsets[0], o->value());}
+                xywh {35 235 310 25}
+                code0 {o->value(p->strsets[0].c_str());}
+              }
+              Fl_Input {} {
+                label 2
+                callback {CsoundGUIMain::stripString(p->strsets[1], o->value());}
+                xywh {35 270 310 25}
+                code0 {o->value(p->strsets[1].c_str());}
+              }
+              Fl_Input {} {
+                label 3
+                callback {CsoundGUIMain::stripString(p->strsets[2], o->value());}
+                xywh {35 305 310 25}
+                code0 {o->value(p->strsets[2].c_str());}
+              }
+              Fl_Input {} {
+                label 4
+                callback {CsoundGUIMain::stripString(p->strsets[3], o->value());}
+                xywh {35 340 310 25}
+                code0 {o->value(p->strsets[3].c_str());}
+              }
+              Fl_Input {} {
+                label 5
+                callback {CsoundGUIMain::stripString(p->strsets[4], o->value());}
+                xywh {35 375 310 25}
+                code0 {o->value(p->strsets[4].c_str());}
+              }
+              Fl_Input {} {
+                label 6
+                callback {CsoundGUIMain::stripString(p->strsets[5], o->value());}
+                xywh {35 410 310 25}
+                code0 {o->value(p->strsets[5].c_str());}
+              }
+              Fl_Input {} {
+                label 7
+                callback {CsoundGUIMain::stripString(p->strsets[6], o->value());}
+                xywh {35 445 310 25}
+                code0 {o->value(p->strsets[6].c_str());}
+              }
+              Fl_Input {} {
+                label 8
+                callback {CsoundGUIMain::stripString(p->strsets[7], o->value());}
+                xywh {35 480 310 25}
+                code0 {o->value(p->strsets[7].c_str());}
+              }
+              Fl_Input {} {
+                label 9
+                callback {CsoundGUIMain::stripString(p->strsets[8], o->value());}
+                xywh {35 515 310 25}
+                code0 {o->value(p->strsets[8].c_str());}
+              }
+              Fl_Input {} {
+                label 10
+                callback {CsoundGUIMain::stripString(p->strsets[9], o->value());}
+                xywh {35 550 310 25}
+                code0 {o->value(p->strsets[9].c_str());}
+              }
+            }
+          }
+        }
+      }
+      Fl_Button {} {
+        label OK
+        callback {status = 1;}
+        xywh {250 415 60 25}
+      }
+      Fl_Button {} {
+        label Cancel
+        callback {status = -1;}
+        xywh {320 415 60 25}
+      }
+    }
+  }
+  Function {~CsoundPerformanceSettingsPanel()} {open
+  } {
+    code {{
+  if (window) {
+    delete window;
+    window = (Fl_Double_Window*) 0;
+  }
+}} {}
+  }
+} 
