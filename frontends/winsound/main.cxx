@@ -20,6 +20,11 @@ void mytextOutput(CSOUND *csound, int attr, const char *format, va_list valist)
     Fl::wait(0);
 }
 
+void mytextNull(CSOUND *csound, int attr, const char *format, va_list valist)
+{
+    // Quieten messages for a while
+}
+
 int yieldCallback(CSOUND *csound)
 {
     Fl::wait(0);
@@ -35,6 +40,7 @@ int main(int argc, char **argv)
     textw = make_textwindow();
     csoundInitialize(&argc, &argv, CSOUNDINIT_NO_SIGNAL_HANDLER);
     csound = csoundCreate(NULL);
+    csoundSetMessageCallback(csound, mytextNull);
     csoundPreCompile(csound);
     csoundSetMessageCallback(csound, mytextOutput);
     csoundSetYieldCallback(csound, yieldCallback);
@@ -145,6 +151,7 @@ void cs_util_sndinfo(void)
     siw->show();
     while (do_util==0) Fl::wait();
     siw->hide();
+    textw->show();
     if (do_util>0) {
       argv[0] = "sndinfo";
       argv[1] = (char *)sndinfo_file->value();
@@ -166,6 +173,7 @@ void cs_util_opc(int full)
     argv[0] = "csound";
     if (full) argv[1] = "z1";
     else argv[1] = "z0";
+    textw->show();
     csoundCompile(csound, 2, argv);
     csoundCleanup(csound);
 
@@ -174,5 +182,41 @@ void cs_util_opc(int full)
 //     if (csoundInitModules(csound) == 0)
 //       list_opcodes(csound, full);
 //     csoundReset(csound);
+}
+
+void cs_util_het(void)
+{
+    textw->show();
+    csoundMessage(csound, "***Hetro analysis not yet written***\n");
+}
+
+void cs_util_lpc(void)
+{
+    textw->show();
+    csoundMessage(csound, "***LPC analysis not yet written***\n");
+}
+
+void cs_util_pvc(void)
+{
+    textw->show();
+    csoundMessage(csound, "***PVOC analysis not yet written***\n");
+}
+
+void cs_util_cvl(void)
+{
+    textw->show();
+    csoundMessage(csound, "***Convolution analysis not yet written***\n");
+}
+
+void cs_util_pinfo(void)
+{
+    textw->show();
+    csoundMessage(csound, "***PVOV info not yet written***\n");
+}
+
+void cs_util_dnoise(void)
+{
+    textw->show();
+    csoundMessage(csound, "***DNoise not yet written***\n");
 }
 
