@@ -151,8 +151,8 @@ void cs_util_sndinfo(void)
     siw->show();
     while (do_util==0) Fl::wait();
     siw->hide();
-    textw->show();
     if (do_util>0) {
+      textw->show();
       argv[0] = "sndinfo";
       argv[1] = (char *)sndinfo_file->value();
       csoundPreCompile(csound);
@@ -186,14 +186,132 @@ void cs_util_opc(int full)
 
 void cs_util_het(void)
 {
-    textw->show();
-    csoundMessage(csound, "***Hetro analysis not yet written***\n");
+    Fl_Double_Window *hw = make_hetanal();
+    char *argv[100];
+    char buffer[1024];
+    char *b = buffer;
+    int nxt = 1;
+    hw->show();
+    while (do_util==0) Fl::wait();
+    if (do_util>0) {
+      textw->show();
+      hw->hide();
+      argv[0] = "hetro";
+      if (het_s->value()!=0) {
+        sprintf(b, "-s%d", (int)(het_s->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_b->value()!=0) {
+        sprintf(b, "-b%d", (int)(het_b->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_d->value()!=0) {
+        sprintf(b, "-d%d", (int)(het_b->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_f->value()!=100) {
+        sprintf(b, "-f%d", (int)(het_f->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_h->value()!=10) {
+        sprintf(b, "-h%d", (int)(het_h->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_M->value()!=32767) {
+        sprintf(b, "-M%d", (int)(het_M->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_n->value()!=256) {
+        sprintf(b, "-n%d", (int)(het_n->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_I->value()!=0) {
+        sprintf(b, "-I%d", (int)(het_I->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_m->value()!=64) {
+        sprintf(b, "-m%d", (int)(het_m->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (het_c1->value()) argv[nxt++] = "-c1";
+      else if (het_c2->value()) argv[nxt++] = "-c2";
+      else if (het_c3->value()) argv[nxt++] = "-c3";
+      else if (het_c4->value()) argv[nxt++] = "-c4";
+      argv[nxt++] = (char *)het_analin->value();
+      argv[nxt++] = (char *)het_analout->value();
+      csoundPreCompile(csound);
+      csoundRunUtility(csound, "hetro", nxt, argv);
+      csoundReset(csound);
+    }
 }
 
 void cs_util_lpc(void)
 {
-    textw->show();
-    csoundMessage(csound, "***LPC analysis not yet written***\n");
+    Fl_Double_Window *hw = make_lpcanal();
+    char *argv[100];
+    char buffer[1024];
+    char *b = buffer;
+    int nxt = 1;
+    hw->show();
+    while (do_util==0) Fl::wait();
+    if (do_util>0) {
+      textw->show();
+      hw->hide();
+      argv[0] = "lpanal";
+      if (lpc_s->value()!=0) {
+        sprintf(b, "-s%d", (int)(lpc_s->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (lpc_b->value()!=0) {
+        sprintf(b, "-b%d", (int)(lpc_b->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (lpc_d->value()!=0) {
+        sprintf(b, "-d%d", (int)(lpc_b->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (lpc_p->value()!=34) {
+        sprintf(b, "-p%d", (int)(lpc_p->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (lpc_h->value()!=200) {
+        sprintf(b, "-h%d", (int)(lpc_h->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (lpc_P->value()!=70) {
+        sprintf(b, "-P%d", (int)(lpc_P->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (lpc_Q->value()!=200) {
+        sprintf(b, "-Q%d", (int)(lpc_Q->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (lpc_c1->value()) argv[nxt++] = "-c1";
+      else if (lpc_c2->value()) argv[nxt++] = "-c2";
+      else if (lpc_c3->value()) argv[nxt++] = "-c3";
+      else if (lpc_c4->value()) argv[nxt++] = "-c4";
+      argv[nxt++] = (char *)lpc_analin->value();
+      argv[nxt++] = (char *)lpc_analout->value();
+      csoundPreCompile(csound);
+      csoundRunUtility(csound, "lpanal", nxt, argv);
+      csoundReset(csound);
+    }
 }
 
 void cs_util_pvc(void)
