@@ -44,14 +44,14 @@ decl {\#include "csound.h"} {public
 decl {void cs_util_sndinfo(void);} {public
 } 
 
-decl {void cs_util_opc(int full), cs_util_het(void), cs_util_lpc(void),cs_util_dnoise(void),cs_util_pinfo(void), cs_util_cvl(void), cs_util_pvc(void)} {selected public
+decl {void cs_util_opc(int full), cs_util_het(void), cs_util_lpc(void),cs_util_dnoise(void),cs_util_pinfo(void), cs_util_cvl(void), cs_util_pvc(void)} {public
 } 
 
 Function {make_mainwindow()} {open
 } {
   Fl_Window {} {
     label WinSound open
-    xywh {558 244 465 535} type Double visible
+    xywh {558 268 465 535} type Double visible
   } {
     Fl_File_Input orchname {
       label {Orchestra           }
@@ -232,7 +232,7 @@ Function {make_utils()} {open
 } {
   Fl_Window {} {
     label Utilities open
-    xywh {808 415 215 300} type Double visible
+    xywh {808 439 215 300} type Double visible
   } {
     Fl_Round_Button util_het {
       label {Hetrodyne Analysis}
@@ -244,7 +244,7 @@ util_pinfo->value(0);
 util_dnoise->value(0);
 util_opc->value(0);
 util_opv->value(0);}
-      xywh {25 5 150 25} down_box ROUND_DOWN_BOX deactivate
+      xywh {25 5 150 25} down_box ROUND_DOWN_BOX
     }
     Fl_Round_Button util_lpc {
       label {LPC Analysis}
@@ -256,7 +256,7 @@ util_pinfo->value(0);
 util_dnoise->value(0);
 util_opc->value(0);
 util_opv->value(0);}
-      xywh {25 32 150 25} down_box ROUND_DOWN_BOX deactivate
+      xywh {25 32 150 25} down_box ROUND_DOWN_BOX
     }
     Fl_Round_Button util_pvc {
       label {Phase Vocoding Analysis}
@@ -351,6 +351,7 @@ do_util = 0;
 if (util_info->value()) cs_util_sndinfo();
 else if (util_opc->value()) cs_util_opc(0);
 else if (util_opv->value()) cs_util_opc(1);
+else if (util_het->value()) cs_util_het();
 else if (util_lpc->value()) cs_util_lpc();
 else if (util_pvc->value()) cs_util_pvc();
 else if (util_cvl->value()) cs_util_cvl();
@@ -370,7 +371,7 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {516 174 400 350} type Double visible
+    xywh {516 198 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
@@ -470,7 +471,7 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {450 108 325 230} type Double visible
+    xywh {450 132 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
@@ -534,7 +535,7 @@ Function {make_info()} {open
 } {
   Fl_Window {} {
     label Sndinfo open
-    xywh {314 598 260 80} type Double visible
+    xywh {314 622 260 80} type Double visible
   } {
     Fl_File_Input sndinfo_file {
       xywh {0 0 260 30}
@@ -561,7 +562,7 @@ Function {make_info()} {open
 Function {make_anal()} {open
 } {
   Fl_Window analw {open
-    xywh {382 303 365 100} type Double visible
+    xywh {382 327 365 100} type Double visible
   } {
     Fl_File_Input analin {
       label Input
@@ -594,7 +595,7 @@ Function {make_anal()} {open
 Function {make_textwindow()} {open
 } {
   Fl_Window {} {open
-    xywh {176 72 725 570} type Double visible
+    xywh {176 96 725 570} type Double visible
   } {
     Fl_Text_Display text {
       label {Winsound5 Output}
@@ -615,6 +616,256 @@ Function {make_textwindow()} {open
     Fl_Button {} {
       label Save
       xywh {155 535 45 25} deactivate
+    }
+  }
+} 
+
+Function {make_hetanal()} {open
+} {
+  Fl_Window {} {
+    callback {do_util = 0;} open
+    xywh {389 492 360 380} type Double visible
+  } {
+    Fl_File_Input het_analin {
+      label Input
+      xywh {40 10 290 25}
+    }
+    Fl_File_Input het_analout {
+      label Output
+      xywh {40 35 290 25}
+      code0 {o->value("test.ads");}
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {do_util = 1;}
+      xywh {10 330 50 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {analw->hide();
+do_util = -1;}
+      xywh {290 325 50 25} color 1
+    }
+    Fl_Button {} {
+      label {?}
+      callback {het_analin->value(fl_file_chooser("HETRO", "*.wav", NULL));}
+      xywh {330 10 25 25} color 5
+    }
+    Fl_Button {} {
+      label {?}
+      callback {het_analout->value(fl_file_chooser("Output", "*.ads", NULL));}
+      xywh {330 35 25 25} color 5
+    }
+    Fl_Group {} {open
+      xywh {205 80 140 105} box THIN_DOWN_FRAME
+    } {
+      Fl_Round_Button het_ac {
+        label {All Channels}
+        callback {het_c1->value(0);
+het_c2->value(0);
+het_c3->value(0);
+het_c4->value(0);}
+        xywh {205 80 140 25} down_box ROUND_DOWN_BOX
+        code0 {o->value(1);}
+      }
+      Fl_Round_Button het_c1 {
+        label {Channel 1}
+        callback {het_ac->value(0);
+het_c2->value(0);
+het_c3->value(0);
+het_c4->value(0);}
+        xywh {205 100 140 25} down_box ROUND_DOWN_BOX
+        code0 {o->value(0);}
+      }
+      Fl_Round_Button het_c2 {
+        label {Channel 2}
+        callback {het_ac->value(0);
+het_c1->value(0);
+het_c3->value(0);
+het_c4->value(0);}
+        xywh {205 120 140 25} down_box ROUND_DOWN_BOX
+        code0 {o->value(0);}
+      }
+      Fl_Round_Button het_c3 {
+        label {Channel 3}
+        callback {het_ac->value(0);
+het_c1->value(0);
+het_c2->value(0);
+het_c4->value(0);}
+        xywh {205 140 140 25} down_box ROUND_DOWN_BOX
+        code0 {o->value(0);}
+      }
+      Fl_Round_Button het_c4 {
+        label {Channel 4}
+        callback {het_ac->value(0);
+het_c1->value(0);
+het_c2->value(0);
+het_c3->value(0);}
+        xywh {205 155 140 30} down_box ROUND_DOWN_BOX
+        code0 {o->value(0);}
+      }
+    }
+    Fl_Value_Input het_s {
+      label {Sample rate (-s)}
+      xywh {30 75 55 25} align 8
+      code0 {o->value(0);}
+    }
+    Fl_Value_Input het_b {
+      label {Begin time (-b)}
+      xywh {30 115 55 25} align 8
+      code0 {o->value(0);}
+    }
+    Fl_Value_Input het_d {
+      label {Duration (-d)}
+      xywh {30 155 55 25} align 8
+      code0 {o->value(0);}
+    }
+    Fl_Value_Input het_f {
+      label {Fundamental (-f)}
+      xywh {30 195 55 25} align 8
+      code0 {o->value(100);}
+    }
+    Fl_Value_Input het_h {
+      label {Harmonic (-h)}
+      xywh {30 240 55 25} align 8
+      code0 {o->value(0);}
+    }
+    Fl_Value_Input het_M {
+      label {Maxumum (-M)}
+      xywh {30 280 70 25} align 8
+      code0 {o->value(32767);}
+    }
+    Fl_Value_Input het_n {
+      label {Number (-n)}
+      xywh {205 195 40 25} align 8
+      code0 {o->value(256);}
+    }
+    Fl_Value_Input het_I {
+      label {Filter (-I)}
+      xywh {205 240 40 25} align 8
+      code0 {o->value(0);}
+    }
+    Fl_Value_Input het_m {
+      label {Minimum (-m)}
+      xywh {205 280 40 25} align 8
+      code0 {o->value(64);}
+    }
+  }
+} 
+
+Function {make_lpcanal()} {open
+} {
+  Fl_Window {} {
+    callback {do_util = 0;} open
+    xywh {848 779 410 320} type Double visible
+  } {
+    Fl_File_Input lpc_analin {
+      label Input
+      xywh {40 10 330 25}
+    }
+    Fl_File_Input lpc_analout {
+      label Output
+      xywh {40 35 330 25}
+      code0 {o->value("test.lpc");}
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {do_util = 1;}
+      xywh {10 280 50 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {analw->hide();
+do_util = -1;}
+      xywh {340 275 50 25} color 1
+    }
+    Fl_Button {} {
+      label {?}
+      callback {lpc_analin->value(fl_file_chooser("LPC", "*.wav", NULL));}
+      xywh {370 10 25 25} color 5
+    }
+    Fl_Button {} {
+      label {?}
+      callback {lpc_analout->value(fl_file_chooser("LPCout", "*.lpc", NULL));}
+      xywh {370 35 25 25} color 5
+    }
+    Fl_Group {} {open
+      xywh {230 80 165 85} box THIN_DOWN_FRAME
+    } {
+      Fl_Round_Button lpc_c1 {
+        label {Channel 1}
+        callback {lpc_c2->value(0);
+lpc_c3->value(0);
+lpc_c4->value(0);}
+        xywh {245 80 145 20} down_box ROUND_DOWN_BOX
+        code0 {o->value(0);}
+      }
+      Fl_Round_Button lpc_c2 {
+        label {Channel 2}
+        callback {lpc_c1->value(0);
+lpc_c3->value(0);
+lpc_c4->value(0);}
+        xywh {245 100 125 20} down_box ROUND_DOWN_BOX
+        code0 {o->value(0);}
+      }
+      Fl_Round_Button lpc_c3 {
+        label {Channel 3}
+        callback {lpc_c1->value(0);
+lpc_c2->value(0);
+lpc_c4->value(0);}
+        xywh {245 120 125 25} down_box ROUND_DOWN_BOX
+        code0 {o->value(0);}
+      }
+      Fl_Round_Button lpc_c4 {
+        label {Channel 4}
+        callback {lpc_c1->value(0);
+lpc_c2->value(0);
+lpc_c3->value(0);}
+        xywh {245 140 90 25} down_box ROUND_DOWN_BOX
+        code0 {o->value(0);}
+      }
+    }
+    Fl_Value_Input lpc_s {
+      label {Sample rate (-s)}
+      xywh {30 75 55 25} align 8
+      code0 {o->value(0);}
+    }
+    Fl_Value_Input lpc_b {
+      label {Begin time (-b)}
+      xywh {30 115 55 25} align 8
+      code0 {o->value(0);}
+    }
+    Fl_Value_Input lpc_d {
+      label {Duration (-d)}
+      xywh {30 155 55 25} align 8
+      code0 {o->value(0);}
+    }
+    Fl_Value_Input lpc_p {
+      label {Number of Poles (-p)}
+      xywh {30 195 55 25} align 8
+      code0 {o->value(34);}
+    }
+    Fl_Value_Input lpc_h {
+      label {Hopsize (-h)}
+      xywh {230 195 55 25} align 8
+      code0 {o->value(200);}
+    }
+    Fl_Value_Input lpc_P {
+      label {Low Pitch (-P)}
+      xywh {30 240 60 25} align 8
+      code0 {o->value(70);}
+    }
+    Fl_Value_Input lpc_Q {
+      label {High Pitch (-Q)} selected
+      xywh {230 240 55 25} align 8
+      code0 {o->value(200);}
+    }
+    Fl_Check_Button het_g {
+      label Graphics
+      xywh {230 165 95 20} down_box DOWN_BOX
+    }
+    Fl_Check_Button {} {
+      xywh {50 25 25 25} down_box DOWN_BOX
     }
   }
 } 
