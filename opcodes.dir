@@ -8,7 +8,7 @@ _jcsound:
 babo:
 	babo
 barmodel:
-	barmodel
+	barmodel prepiano
 compress:
 	compress distort
 control:
