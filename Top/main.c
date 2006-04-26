@@ -45,6 +45,7 @@ static void create_opcodlst(CSOUND *csound)
       if (csound->oplstend != NULL)
         old_cnt = (int) ((OENTRY*) csound->oplstend - (OENTRY*) saved_opcodlst);
       csound->oplstend = NULL;
+      memset(csound->opcode_list, 0, sizeof(int) * 256);
     }
     /* Basic Entry1 stuff */
     err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
