@@ -89,6 +89,7 @@ public:
   Fl_Check_Button* settingsCsoundPerformanceModeClassic;
   Fl_Check_Button* settingsCsoundPerformanceModePython;
   Fl_Check_Button* autoPlayCheckButton;
+  Fl_Check_Button* performWithoutExportCheckButton;
   Fl_Text_Buffer *aboutTextBuffer;
   Fl_Text_Display *aboutTextDisplay;
   Fl_Group *orchestraGroup;

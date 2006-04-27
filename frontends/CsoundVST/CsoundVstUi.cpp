@@ -2730,7 +2730,7 @@ static Fl_RGB_Image image_angel(idata_angel, 145, 136, 3, 0);
 
 Fl_Check_Button *autoPlayCheckButton=(Fl_Check_Button *)0;
 
-Fl_Check_Button *performWithoutExportCheckBox=(Fl_Check_Button *)0;
+Fl_Check_Button *performWithoutExportCheckButton=(Fl_Check_Button *)0;
 
 Fl_Input *settingsEditSoundfileInput=(Fl_Input *)0;
 
@@ -2780,6 +2780,7 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
   Fl_Double_Window* w;
   { Fl_Double_Window* o = new Fl_Double_Window(609, 431, "CsoundVST");
     w = o;
+    o->box(FL_PLASTIC_THIN_UP_BOX);
     o->color((Fl_Color)48);
     o->labelsize(12);
     o->user_data((void*)(csoundVstFltk));
@@ -2869,14 +2870,16 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
           { Fl_Check_Button* o = autoPlayCheckButton = new Fl_Check_Button(19, 162, 205, 18, "Auto edit after performance");
             o->tooltip("Enables the automatic opening of the output soundfile after performance");
             o->down_box(FL_THIN_DOWN_BOX);
+            o->selection_color(FL_INACTIVE_COLOR);
             o->labelsize(12);
             o->callback((Fl_Callback*)onAutoPlayCheckButton, (void*)(csoundVstFltk));
             o->when(FL_WHEN_CHANGED);
           }
-          { Fl_Check_Button* o = performWithoutExportCheckBox = new Fl_Check_Button(19, 180, 206, 15, "Perform without export");
+          { Fl_Check_Button* o = performWithoutExportCheckButton = new Fl_Check_Button(19, 180, 206, 15, "Perform without export");
             o->tooltip("Perform the classic Csound command line without exporting .orc or .sco (for p\
 erforming existing files).");
             o->down_box(FL_THIN_DOWN_BOX);
+            o->selection_color((Fl_Color)24);
             o->labelsize(12);
             o->callback((Fl_Callback*)onPerformWithoutExportCheckButton, (void*)(csoundVstFltk));
             o->when(FL_WHEN_CHANGED);
@@ -2892,7 +2895,7 @@ erforming existing files).");
           }
           o->end();
         }
-        { Fl_Input* o = commandInput = new Fl_Input(15, 224, 580, 190, "Classic Csound command line");
+        { Fl_Input* o = commandInput = new Fl_Input(15, 221, 580, 194, "Classic Csound command line");
           o->tooltip("Csound command line");
           o->type(4);
           o->box(FL_THIN_DOWN_BOX);

@@ -6,7 +6,7 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
 } {
   Fl_Window {} {
     label CsoundVST
-    user_data csoundVstFltk user_data_type {CsoundVstFltk*} open selected
+    user_data csoundVstFltk user_data_type {CsoundVstFltk*} open
     xywh {72 130 609 431} type Double box PLASTIC_THIN_UP_BOX color 48 labelsize 12 align 48 resizable
     code0 {\#include "CsoundVstFltk.hpp"} visible
   } {
@@ -71,10 +71,10 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
             callback onAutoPlayCheckButton
             tooltip {Enables the automatic opening of the output soundfile after performance} xywh {19 162 205 18} down_box THIN_DOWN_BOX selection_color 8 labelsize 12 when 1
           }
-          Fl_Check_Button performWithoutExportCheckBox {
+          Fl_Check_Button performWithoutExportCheckButton {
             label {Perform without export}
             user_data csoundVstFltk user_data_type {CsoundVstFltk*}
-            callback onPerformWithoutExportCheckButton
+            callback onPerformWithoutExportCheckButton selected
             tooltip {Perform the classic Csound command line without exporting .orc or .sco (for performing existing files).} xywh {19 180 206 15} down_box THIN_DOWN_BOX selection_color 24 labelsize 12 when 1
           }
           Fl_Input settingsEditSoundfileInput {
