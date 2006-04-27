@@ -295,6 +295,8 @@ long CsoundVstFltk::open(void *parentWindow)
       csoundVST->setIsPython(number);
       preferences.get("IsAutoPlayback", number, 1);
       csoundVST->setIsAutoPlayback(number);
+      preferences.get("IsPerformWithoutExport", number, 0);
+      csoundVST->setIsPerformWithoutExport(number);
     }
   this->aboutTextBuffer->text(removeCarriageReturns(about));
   csound::System::setMessageCallback(CsoundVstFltk::messageCallback);
@@ -702,12 +704,18 @@ void CsoundVstFltk::onSettingsApply(Fl_Button* fl_button, CsoundVstFltk* csoundV
   preferences.set("IsSynth", csoundVST->getIsSynth());
   preferences.set("IsPython", csoundVST->getIsPython());
   preferences.set("IsAutoPlayback", csoundVST->getIsAutoPlayback());
+  preferences.set("IsPerformWithoutExport", csoundVST->getIsPerformWithoutExport());
   csound::System::message("ENDED CsoundVstFltk::onSettingsApply.\n");
 }
 
 void CsoundVstFltk::onAutoPlayCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk)
 {
   csoundVST->setIsAutoPlayback(button->value());
+}
+
+void CsoundVstFltk::onPerformWithoutExportCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk)
+{
+  csoundVST->setIsPerformWithoutExport(button->value());
 }
 
 void onNew(Fl_Button* fl_button, CsoundVstFltk* csoundVstFltk)
@@ -783,5 +791,10 @@ void onSettingsApply(Fl_Button* fl_button, CsoundVstFltk* csoundVstFltk)
 void onAutoPlayCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk)
 {
   csoundVstFltk->onAutoPlayCheckButton(button, csoundVstFltk);
+}
+
+void onPerformWithoutExportCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk)
+{
+  csoundVstFltk->onPerformWithoutExportCheckButton(button, csoundVstFltk);
 }
 
