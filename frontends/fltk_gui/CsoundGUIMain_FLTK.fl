@@ -11,19 +11,38 @@ class CsoundGUIMain {open selected
   }
   decl {CsoundPerformanceSettings currentPerformanceSettings;} {public
   }
-  decl {CsoundGUIConsole consoleWindow;} {}
+  decl {CsoundUtilitySettings currentUtilitySettings;} {public
+  }
+  decl {CsoundGUIConsole consoleWindow;} {public
+  }
   decl {CSOUND *csound;} {}
   decl {CsoundPerformance *csPerf;} {}
   decl {int prvTime;} {}
   decl {bool performing;} {}
   decl {bool paused;} {}
+  decl {CsoundUtilitiesWindow *utilWin;} {}
+  decl {CsoundUtility *utility_listOpcodes;} {public
+  }
+  decl {CsoundUtility *utility_cvanal;} {public
+  }
+  decl {CsoundUtility *utility_pvanal;} {public
+  }
+  decl {bool haveActiveUtilities;} {public
+  }
   Function {CsoundGUIMain()} {open
   } {
-    code {csound = (CSOUND*) 0;
-csPerf = (CsoundPerformance*) 0;
-prvTime = -1;
-performing = false;
-paused = true;} {}
+    code {{
+  csound = (CSOUND*) 0;
+  csPerf = (CsoundPerformance*) 0;
+  prvTime = -1;
+  performing = false;
+  paused = true;
+  utilWin = (CsoundUtilitiesWindow*) 0;
+  utility_listOpcodes = (CsoundUtility*) 0;
+  utility_cvanal = (CsoundUtility*) 0;
+  utility_pvanal = (CsoundUtility*) 0;
+  haveActiveUtilities = false;
+}} {}
     Fl_Window window {
       label {Csound 5} open
       xywh {411 231 360 285} type Double visible
@@ -201,6 +220,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
         }
         Fl_Button {} {
           label Utilities
+          callback {openUtilitiesWindow();}
           xywh {255 175 85 25}
         }
         Fl_Button {} {
@@ -257,4 +277,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
   }
   decl {void openGlobalSettingsPanel();} {public
   }
+  decl {static int yieldCallback(CSOUND *);} {}
+  decl {void openUtilitiesWindow();} {}
+  decl {void checkUtilities();} {}
 } 

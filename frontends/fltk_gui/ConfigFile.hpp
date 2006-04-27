@@ -22,6 +22,7 @@
 
 #include "CsoundGlobalSettings.hpp"
 #include "CsoundPerformanceSettings.hpp"
+#include "CsoundUtility.hpp"
 
 int writeCsound5GUIConfigFile(const char *fileName,
                               CsoundGlobalSettings& cfg);
@@ -29,11 +30,17 @@ int writeCsound5GUIConfigFile(const char *fileName,
 int writeCsound5GUIConfigFile(const char *fileName,
                               CsoundPerformanceSettings& cfg);
 
+int writeCsound5GUIConfigFile(const char *fileName,
+                              CsoundUtilitySettings& cfg);
+
 int readCsound5GUIConfigFile(const char *fileName,
                              CsoundGlobalSettings& cfg);
 
 int readCsound5GUIConfigFile(const char *fileName,
                              CsoundPerformanceSettings& cfg);
+
+int readCsound5GUIConfigFile(const char *fileName,
+                             CsoundUtilitySettings& cfg);
 
 #endif  // CONFIGFILE_HPP
 
