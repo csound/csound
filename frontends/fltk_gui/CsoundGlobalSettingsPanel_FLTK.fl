@@ -87,7 +87,7 @@ class CsoundGlobalSettingsPanel {open selected
           code0 {o->value(g_cfg->forcePerformanceSettings ? 1 : 0);}
         }
         Fl_Scroll {} {open
-          xywh {20 175 350 255} box DOWN_BOX
+          xywh {20 175 350 255} type VERTICAL_ALWAYS box DOWN_BOX
         } {
           Fl_Group {} {open
             xywh {20 175 325 360}
@@ -101,8 +101,9 @@ class CsoundGlobalSettingsPanel {open selected
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_1.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 185 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 185 60 25}
             }
             Fl_Button {} {
               label Save
@@ -118,8 +119,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_2.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 220 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 220 60 25}
             }
             Fl_Button {} {
               label Save
@@ -135,8 +137,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_3.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 255 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 255 60 25}
             }
             Fl_Button {} {
               label Save
@@ -152,8 +155,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_4.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 290 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 290 60 25}
             }
             Fl_Button {} {
               label Save
@@ -169,8 +173,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_5.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 325 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 325 60 25}
             }
             Fl_Button {} {
               label Save
@@ -186,8 +191,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_6.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 360 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 360 60 25}
             }
             Fl_Button {} {
               label Save
@@ -203,8 +209,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_7.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 395 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 395 60 25}
             }
             Fl_Button {} {
               label Save
@@ -220,8 +227,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_8.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 430 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 430 60 25}
             }
             Fl_Button {} {
               label Save
@@ -237,8 +245,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_9.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 465 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 465 60 25}
             }
             Fl_Button {} {
               label Save
@@ -254,8 +263,9 @@ p->updateGUIValues();}
             Fl_Button {} {
               label Load
               callback {readCsound5GUIConfigFile("p_cfg_10.dat", p->currentPerformanceSettings);
-p->updateGUIValues();}
-              xywh {205 500 60 25}
+p->updateGUIValues();
+writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+              xywh {207 500 60 25}
             }
             Fl_Button {} {
               label Save
