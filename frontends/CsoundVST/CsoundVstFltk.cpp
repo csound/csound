@@ -267,6 +267,7 @@ long CsoundVstFltk::open(void *parentWindow)
   this->scoreGroup = ::scoreGroup;
   this->scriptGroup = ::scriptGroup;
   this->autoPlayCheckButton = ::autoPlayCheckButton;
+  this->performWithoutExportCheckButton = ::performWithoutExportCheckButton;
   //    Read user preferences.
   char buffer[0x500];
   int number = 0;

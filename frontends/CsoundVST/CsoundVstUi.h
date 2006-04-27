@@ -23,7 +23,7 @@ extern Fl_Check_Button *settingsCsoundPerformanceModePython;
 extern void onAutoPlayCheckButton(Fl_Check_Button*, CsoundVstFltk*);
 extern Fl_Check_Button *autoPlayCheckButton;
 extern void onPerformWithoutExportCheckButton(Fl_Check_Button*, CsoundVstFltk*);
-extern Fl_Check_Button *performWithoutExportCheckBox;
+extern Fl_Check_Button *performWithoutExportCheckButton;
 #include <FL/Fl_Input.H>
 extern Fl_Input *settingsEditSoundfileInput;
 extern Fl_Input *commandInput;

@@ -57,7 +57,8 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   vstCurrentSamplePosition(0),
   vstPriorSamplePosition(0),
   csoundVstFltk(0),
-  isAutoPlayback(false)
+  isAutoPlayback(false),
+  isPerformWithoutExport(false)
 {
   setNumInputs(kNumInputs);             // stereo in
   setNumOutputs(kNumOutputs);           // stereo out
@@ -223,24 +224,40 @@ void CsoundVST::performanceThreadRoutine()
     }
   else
     {
-      // Translate csd-style command lines to orc/sco style.
-      std::string command = cppSound->getCommand();
-      std::string vstcommand;
-      bool updateCommand = false;
-      if (command.find("-") == 0 || command.length() == 0) {
-        updateCommand = true;
-        vstcommand = "csound ";
-      }
-      vstcommand.append(command);
-      if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
-        updateCommand = true;
-        vstcommand.append(" temp.orc temp.sco");
-      }
-      if (updateCommand) {
-        cppSound->setCommand(vstcommand);
-        editor->update();
-      }
-      cppSound->exportForPerformance();
+      if (!getIsPerformWithoutExport()) {
+	// Translate csd-style command lines to orc/sco style.
+	std::string command = cppSound->getCommand();
+	std::string vstcommand;
+	bool updateCommand = false;
+	if (command.find("-") == 0 || command.length() == 0) {
+	  updateCommand = true;
+	  vstcommand = "csound ";
+	}
+	vstcommand.append(command);
+	if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
+	  updateCommand = true;
+	  vstcommand.append(" temp.orc temp.sco");
+	}
+	if (updateCommand) {
+	  cppSound->setCommand(vstcommand);
+	  editor->update();
+	}
+	cppSound->exportForPerformance();
+      } else {
+ 	// Translate csd-style command lines to orc/sco style.
+	std::string command = cppSound->getCommand();
+	std::string vstcommand;
+	bool updateCommand = false;
+	if (command.find("-") == 0 || command.length() == 0) {
+	  updateCommand = true;
+	  vstcommand = "csound ";
+	}
+	vstcommand.append(command);
+	if (updateCommand) {
+	  cppSound->setCommand(vstcommand);
+	  editor->update();
+	}
+     }
       csound::System::inform("Saved as: '%s' and '%s'.\n", cppSound->getOrcFilename().c_str(), cppSound->getScoFilename().c_str());
       reset();
       if(getIsVst())
@@ -849,6 +866,16 @@ bool CsoundVST::getIsAutoPlayback() const
 void CsoundVST::setIsAutoPlayback(bool isAutoPlayback)
 {
   this->isAutoPlayback = isAutoPlayback;
+}
+
+bool CsoundVST::getIsPerformWithoutExport() const
+{
+  return isPerformWithoutExport;
+}
+
+void CsoundVST::setIsPerformWithoutExport(bool isPerformWithoutExport)
+{
+  this->isPerformWithoutExport = isPerformWithoutExport;
 }
 
 extern "C"
