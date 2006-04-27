@@ -1,0 +1,305 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0107 
+do_not_include_H_from_C 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include "CsoundGUI.hpp"} {} 
+
+class CsoundUtilitiesWindow {open selected
+} {
+  decl {CsoundGUIMain *p;} {}
+  decl {CsoundUtilitySettings *u_cfg;} {}
+  Function {CsoundUtilitiesWindow(CsoundGUIMain *p)} {open
+  } {
+    code {{
+  this->p = p;
+  this->u_cfg = &(p->currentUtilitySettings);
+}} {}
+    Fl_Window window {
+      label Utilities open
+      xywh {376 334 450 390} type Double visible
+    } {
+      Fl_Tabs {} {open
+        xywh {0 0 450 390}
+      } {
+        Fl_Group {} {
+          label Convolve open
+          xywh {0 25 450 365}
+        } {
+          Fl_Group {} {open
+            xywh {10 35 430 310} box ENGRAVED_FRAME
+          } {
+            Fl_Input cvanalInputFileInput {
+              label {Input file}
+              callback {CsoundGUIMain::stripString(u_cfg->cvanal_inputFile, o->value());}
+              xywh {20 45 305 25} align 8
+              code0 {o->value(u_cfg->cvanal_inputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->cvanal_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for convolve analysis");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->cvanal_inputFile, fdlg->value());
+  delete fdlg;
+  cvanalInputFileInput->value(u_cfg->cvanal_inputFile.c_str());
+}}
+              tooltip {Browse input file for convolve analysis} xywh {405 45 25 25}
+            }
+            Fl_Input cvanalOutputFileInput {
+              label {Output file}
+              callback {CsoundGUIMain::stripString(u_cfg->cvanal_outputFile, o->value());}
+              xywh {20 80 305 25} align 8
+              code0 {o->value(u_cfg->cvanal_outputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->cvanal_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for convolve analysis");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->cvanal_outputFile, fdlg->value());
+  delete fdlg;
+  cvanalOutputFileInput->value(u_cfg->cvanal_outputFile.c_str());
+}}
+              tooltip {Browse output file for convolve analysis} xywh {405 80 25 25}
+            }
+            Fl_Spinner {} {
+              label {Channel number (0: all)}
+              callback {u_cfg->cvanal_channel = (int) (o->value() + 0.5);}
+              xywh {20 115 60 25} align 8
+              code0 {o->range(0.0, 8.0);}
+              code1 {o->step(1.0);}
+              code2 {o->value((double) u_cfg->cvanal_channel);}
+            }
+            Fl_Value_Input {} {
+              label {Begin time in seconds}
+              callback {u_cfg->cvanal_beginTime = o->value();}
+              xywh {20 150 60 25} align 8 maximum 10000
+              code0 {o->value(u_cfg->cvanal_beginTime);}
+            }
+            Fl_Value_Input {} {
+              label {Duration in seconds (<= 0: until end of input file)}
+              callback {u_cfg->cvanal_duration = o->value();}
+              xywh {20 185 60 25} align 8 minimum -1 maximum 10000
+              code0 {o->value(u_cfg->cvanal_duration);}
+            }
+          }
+          Fl_Button cvanalButton {
+            label Start
+            callback {if (p->utility_cvanal) {
+  p->utility_cvanal->Join();
+  delete p->utility_cvanal;
+  p->utility_cvanal = (CsoundUtility*) 0;
+  o->label("Start");
+}
+else {
+  p->utility_cvanal = CreateUtility_Cvanal(&(p->consoleWindow), p->currentUtilitySettings);
+  if (p->utility_cvanal)
+    o->label("Stop");
+}}
+            xywh {365 355 75 25}
+            code0 {if (!p->utility_cvanal) o->label("Start");}
+            code1 {if (p->utility_cvanal) o->label("Stop");}
+          }
+        }
+        Fl_Group {} {
+          label PVOC open
+          xywh {0 25 450 365} hide
+        } {
+          Fl_Group {} {open
+            xywh {10 35 430 310} box ENGRAVED_FRAME
+          } {
+            Fl_Input pvanalInputFileInput {
+              label {Input file}
+              callback {CsoundGUIMain::stripString(u_cfg->pvanal_inputFile, o->value());}
+              xywh {20 45 305 25} align 8
+              code0 {o->value(u_cfg->pvanal_inputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->pvanal_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for PVOC analysis");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->pvanal_inputFile, fdlg->value());
+  delete fdlg;
+  pvanalInputFileInput->value(u_cfg->pvanal_inputFile.c_str());
+}}
+              tooltip {Browse input file for PVOC analysis} xywh {405 45 25 25}
+            }
+            Fl_Input pvanalOutputFileInput {
+              label {Output file}
+              callback {CsoundGUIMain::stripString(u_cfg->pvanal_outputFile, o->value());}
+              xywh {20 80 305 25} align 8
+              code0 {o->value(u_cfg->pvanal_outputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->pvanal_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for PVOC analysis");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->pvanal_outputFile, fdlg->value());
+  delete fdlg;
+  pvanalOutputFileInput->value(u_cfg->pvanal_outputFile.c_str());
+}}
+              tooltip {Browse output file for PVOC analysis} xywh {405 80 25 25}
+            }
+            Fl_Spinner {} {
+              label {Channel number (0: all)}
+              callback {u_cfg->pvanal_channel = (int) (o->value() + 0.5);}
+              xywh {20 115 60 25} align 8
+              code0 {o->range(0.0, 8.0);}
+              code1 {o->step(1.0);}
+              code2 {o->value((double) u_cfg->pvanal_channel);}
+            }
+            Fl_Value_Input {} {
+              label {Begin time in seconds}
+              callback {u_cfg->pvanal_beginTime = o->value();}
+              xywh {20 150 60 25} align 8 maximum 10000
+              code0 {o->value(u_cfg->pvanal_beginTime);}
+            }
+            Fl_Value_Input {} {
+              label {Duration in seconds (<= 0: until end of input file)}
+              callback {u_cfg->pvanal_duration = o->value();}
+              xywh {20 185 60 25} align 8 minimum -1 maximum 10000
+              code0 {o->value(u_cfg->pvanal_duration);}
+            }
+            Fl_Choice {} {
+              label {Frame size}
+              callback {u_cfg->pvanal_frameSize = (1 << ((int) (o->value() + 0.5) + 8));} open
+              xywh {20 220 80 25} down_box BORDER_BOX align 8
+              code0 {o->add("256|512|1024|2048|4096|8192");}
+              code1 {o->value((int) (std::log((double) u_cfg->pvanal_frameSize) / std::log(2.0) + 0.5) - 8);}
+            } {}
+            Fl_Choice {} {
+              label Overlaps
+              callback {{
+  u_cfg->pvanal_overlap = (o->value() > 0 ? (1 << (int) (o->value() + 0.5)) : 0);
+  if (u_cfg->pvanal_overlap > 1) {
+    pvanalHopSizeInput->deactivate();
+    pvanalHopSizeInput->value((int) (std::log((double) (u_cfg->pvanal_frameSize / u_cfg->pvanal_overlap)) / std::log(2.0) + 0.5) - 4);
+  }
+  else {
+    pvanalHopSizeInput->value((int) (std::log((double) u_cfg->pvanal_hopSize) / std::log(2.0) + 0.5) - 4);
+    pvanalHopSizeInput->activate();
+  }
+}} open
+              xywh {235 220 80 25} down_box BORDER_BOX align 8
+              code0 {o->add("Use hop size|2|4|8|16");}
+              code1 {o->value(u_cfg->pvanal_overlap > 1 ? (int) (std::log((double) u_cfg->pvanal_frameSize) / std::log(2.0) + 0.5) : 0);}
+            } {}
+            Fl_Choice {} {
+              label {Window type}
+              callback {u_cfg->pvanal_windowType = o->value();} open
+              xywh {20 255 80 25} down_box BORDER_BOX align 8
+              code0 {o->add("Hamming|von Hann|Kaiser");}
+              code1 {o->value(u_cfg->pvanal_windowType);}
+            } {}
+            Fl_Choice pvanalHopSizeInput {
+              label {Hop size}
+              callback {{
+  u_cfg->pvanal_hopSize = (1 << ((int) (o->value() + 0.5) + 4));
+  if (u_cfg->pvanal_hopSize >= u_cfg->pvanal_frameSize) {
+    u_cfg->pvanal_hopSize = u_cfg->pvanal_frameSize >> 1;
+    o->value((int) (std::log((double) u_cfg->pvanal_hopSize) / std::log(2.0) + 0.5) - 4);
+  }
+}} open
+              xywh {235 255 80 25} down_box BORDER_BOX align 8
+              code0 {o->add("16|32|64|128|256|512|1024|2048|4096");}
+              code1 {if (u_cfg->pvanal_overlap < 2) o->value((int) (std::log((double) u_cfg->pvanal_hopSize) / std::log(2.0) + 0.5) - 4);}
+              code2 {if (u_cfg->pvanal_overlap >= 2) { o->deactivate(); o->value((int) (std::log((double) (u_cfg->pvanal_frameSize / u_cfg->pvanal_overlap)) / std::log(2.0) + 0.5) - 4); }}
+            } {}
+          }
+          Fl_Button pvanalButton {
+            label Start
+            callback {if (p->utility_pvanal) {
+  p->utility_pvanal->Join();
+  delete p->utility_pvanal;
+  p->utility_pvanal = (CsoundUtility*) 0;
+  o->label("Start");
+}
+else {
+  p->utility_pvanal = CreateUtility_Pvanal(&(p->consoleWindow), p->currentUtilitySettings);
+  if (p->utility_pvanal)
+    o->label("Stop");
+}}
+            xywh {365 355 75 25}
+            code0 {if (!p->utility_pvanal) o->label("Start");}
+            code1 {if (p->utility_pvanal) o->label("Stop");}
+          }
+        }
+        Fl_Group {} {
+          label {List opcodes} open
+          xywh {0 25 450 365} hide
+        } {
+          Fl_Group {} {open
+            xywh {10 35 430 310} box ENGRAVED_FRAME
+          } {
+            Fl_Check_Button {} {
+              label {Print detailed opcode information}
+              callback {u_cfg->listOpcodes_printDetails = (o->value() == 0 ? false : true);}
+              xywh {20 45 25 25} down_box DOWN_BOX
+              code0 {o->value(u_cfg->listOpcodes_printDetails ? 1 : 0);}
+            }
+          }
+          Fl_Button listOpcodesButton {
+            label Start
+            callback {if (p->utility_listOpcodes) {
+  p->utility_listOpcodes->Join();
+  delete p->utility_listOpcodes;
+  p->utility_listOpcodes = (CsoundUtility*) 0;
+  o->label("Start");
+}
+else {
+  p->utility_listOpcodes = CreateUtility_ListOpcodes(&(p->consoleWindow), p->currentUtilitySettings);
+  if (p->utility_listOpcodes)
+    o->label("Stop");
+}}
+            xywh {365 355 75 25}
+            code0 {if (!p->utility_listOpcodes) o->label("Start");}
+            code1 {if (p->utility_listOpcodes) o->label("Stop");}
+          }
+        }
+      }
+    }
+  }
+  Function {~CsoundUtilitiesWindow()} {open
+  } {
+    code {{
+  if (p->utility_listOpcodes) {
+    p->utility_listOpcodes->Join();
+    delete p->utility_listOpcodes;
+    p->utility_listOpcodes = (CsoundUtility*) 0;
+  }
+  if (p->utility_cvanal) {
+    p->utility_cvanal->Join();
+    delete p->utility_cvanal;
+    p->utility_cvanal = (CsoundUtility*) 0;
+  }
+  if (p->utility_pvanal) {
+    p->utility_pvanal->Join();
+    delete p->utility_pvanal;
+    p->utility_pvanal = (CsoundUtility*) 0;
+  }
+  if (window) {
+    delete window;
+    window = (Fl_Double_Window*) 0;
+  }
+}} {}
+  }
+} 

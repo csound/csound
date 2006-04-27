@@ -274,6 +274,62 @@ static void getFullPathFileName(const char *fileName, std::string& fullName)
     fullName += fileName;
 }
 
+int writeCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
+{
+    std::string fullName;
+    FILE        *f;
+    int         err = 0;
+
+    getFullPathFileName(fileName, fullName);
+    if (std::remove(fullName.c_str()) != 0) {
+      if (errno != ENOENT)
+        return -1;
+    }
+    f = std::fopen(fullName.c_str(), "wb");
+    if (f == NULL)
+      return -1;
+    if ((int) std::fwrite((const void*) &(hdrMagic[0]), 1, 16, f) != 16)
+      err = -1;
+
+    err |= writeInt_(f, 20001);
+    err |= writeBool(f, &(cfg.listOpcodes_printDetails));
+
+    err |= writeInt_(f, 20101);
+    err |= writeString(f, cfg.cvanal_inputFile);
+    err |= writeInt_(f, 20102);
+    err |= writeString(f, cfg.cvanal_outputFile);
+    err |= writeInt_(f, 20103);
+    err |= writeInt(f, &(cfg.cvanal_channel));
+    err |= writeInt_(f, 20104);
+    err |= writeDouble(f, &(cfg.cvanal_beginTime));
+    err |= writeInt_(f, 20105);
+    err |= writeDouble(f, &(cfg.cvanal_duration));
+
+    err |= writeInt_(f, 20201);
+    err |= writeString(f, cfg.pvanal_inputFile);
+    err |= writeInt_(f, 20202);
+    err |= writeString(f, cfg.pvanal_outputFile);
+    err |= writeInt_(f, 20203);
+    err |= writeInt(f, &(cfg.pvanal_channel));
+    err |= writeInt_(f, 20204);
+    err |= writeDouble(f, &(cfg.pvanal_beginTime));
+    err |= writeInt_(f, 20205);
+    err |= writeDouble(f, &(cfg.pvanal_duration));
+    err |= writeInt_(f, 20206);
+    err |= writeInt(f, &(cfg.pvanal_frameSize));
+    err |= writeInt_(f, 20207);
+    err |= writeInt(f, &(cfg.pvanal_overlap));
+    err |= writeInt_(f, 20208);
+    err |= writeInt(f, &(cfg.pvanal_hopSize));
+    err |= writeInt_(f, 20209);
+    err |= writeInt(f, &(cfg.pvanal_windowType));
+
+    err |= writeInt_(f, 0);
+    std::fclose(f);
+
+    return err;
+}
+
 int writeCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
 {
     std::string fullName;
@@ -407,12 +463,109 @@ int writeCsound5GUIConfigFile(const char *fileName,
     return err;
 }
 
+int readCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
+{
+    std::string fullName;
+    FILE        *f;
+    int         n;
+    CsoundUtilitySettings   *tmp = (CsoundUtilitySettings*) 0;
+
+    getFullPathFileName(fileName, fullName);
+    f = std::fopen(fullName.c_str(), "rb");
+    if (f == NULL)
+      return -1;
+    for (int i = 0; i < 16; i++) {
+      int   c = std::fgetc(f);
+      if (c < 0 || (unsigned char) c != hdrMagic[i])
+        goto err_return;
+    }
+    tmp = new CsoundUtilitySettings();
+    while (readInt_(f, &n) == 0) {
+      switch (n) {
+      case 0:
+        if (readInt_(f, &n) == 0)
+          goto err_return;
+        cfg = *tmp;
+        delete tmp;
+        return 0;
+      case 20001:
+        if (readBool(f, &(tmp->listOpcodes_printDetails)) != 0)
+          goto err_return;
+        break;
+      case 20101:
+        if (readString(f, tmp->cvanal_inputFile) != 0)
+          goto err_return;
+        break;
+      case 20102:
+        if (readString(f, tmp->cvanal_outputFile) != 0)
+          goto err_return;
+        break;
+      case 20103:
+        if (readInt(f, &(tmp->cvanal_channel)) != 0)
+          goto err_return;
+        break;
+      case 20104:
+        if (readDouble(f, &(tmp->cvanal_beginTime)) != 0)
+          goto err_return;
+        break;
+      case 20105:
+        if (readDouble(f, &(tmp->cvanal_duration)) != 0)
+          goto err_return;
+        break;
+      case 20201:
+        if (readString(f, tmp->pvanal_inputFile) != 0)
+          goto err_return;
+        break;
+      case 20202:
+        if (readString(f, tmp->pvanal_outputFile) != 0)
+          goto err_return;
+        break;
+      case 20203:
+        if (readInt(f, &(tmp->pvanal_channel)) != 0)
+          goto err_return;
+        break;
+      case 20204:
+        if (readDouble(f, &(tmp->pvanal_beginTime)) != 0)
+          goto err_return;
+        break;
+      case 20205:
+        if (readDouble(f, &(tmp->pvanal_duration)) != 0)
+          goto err_return;
+        break;
+      case 20206:
+        if (readInt(f, &(tmp->pvanal_frameSize)) != 0)
+          goto err_return;
+        break;
+      case 20207:
+        if (readInt(f, &(tmp->pvanal_overlap)) != 0)
+          goto err_return;
+        break;
+      case 20208:
+        if (readInt(f, &(tmp->pvanal_hopSize)) != 0)
+          goto err_return;
+        break;
+      case 20209:
+        if (readInt(f, &(tmp->pvanal_windowType)) != 0)
+          goto err_return;
+        break;
+      default:
+        goto err_return;
+      }
+    }
+
+ err_return:
+    std::fclose(f);
+    if (tmp)
+      delete tmp;
+    return -1;
+}
+
 int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
 {
     std::string fullName;
     FILE        *f;
     int         n;
-    CsoundGlobalSettings   *tmp = (CsoundGlobalSettings*) 0;
+    CsoundGlobalSettings    *tmp = (CsoundGlobalSettings*) 0;
 
     getFullPathFileName(fileName, fullName);
     f = std::fopen(fullName.c_str(), "rb");

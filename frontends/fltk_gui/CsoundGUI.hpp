@@ -55,6 +55,8 @@ struct Csound_Message {
 
 #include "CsoundGUIConsole_FLTK.hpp"
 #include "ConfigFile.hpp"
+#include "CsoundUtility.hpp"
+#include "CsoundUtilitiesWindow_FLTK.hpp"
 #include "CsoundGUIMain_FLTK.hpp"
 
 #endif  // CSOUNDGUI_HPP

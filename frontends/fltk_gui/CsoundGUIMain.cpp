@@ -303,6 +303,7 @@ void CsoundGUIMain::run()
 {
     readCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
     readCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
+    readCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
 
     updateGUIValues();
 
@@ -346,6 +347,8 @@ void CsoundGUIMain::run()
         Fl::wait(0.02);
         setTimeDisplay(-1.0);
       }
+      if (haveActiveUtilities)
+        checkUtilities();
     } while (window->shown());
 
     performing = false;
@@ -357,6 +360,12 @@ void CsoundGUIMain::run()
     paused = true;
     csoundDestroy(csound);
     csound = (CSOUND*) 0;
+    if (utilWin) {
+      delete utilWin;
+      utilWin = (CsoundUtilitiesWindow*) 0;
+      writeCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
+    }
+    haveActiveUtilities = false;
 }
 
 void CsoundGUIMain::startPerformance()
@@ -371,6 +380,7 @@ void CsoundGUIMain::startPerformance()
     csoundSetHostData(csound, (void*) &consoleWindow);
     csoundSetMessageCallback(csound,
                              &CsoundGUIConsole::messageCallback_Thread);
+    csoundSetYieldCallback(csound, &CsoundGUIMain::yieldCallback);
     if (csoundPreCompile(csound) != 0) {
       csoundReset(csound);
       return;
@@ -526,6 +536,60 @@ CsoundGUIMain::~CsoundGUIMain()
       delete window;
       window = (Fl_Double_Window*) 0;
       Fl::wait(0.0);
+    }
+}
+
+int CsoundGUIMain::yieldCallback(CSOUND *csound)
+{
+    (void) csound;
+    return 1;
+}
+
+void CsoundGUIMain::checkUtilities()
+{
+    if (utilWin) {
+      if (!utilWin->window->shown()) {
+        delete utilWin;
+        utilWin = (CsoundUtilitiesWindow*) 0;
+        haveActiveUtilities = false;
+        writeCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
+      }
+    }
+    if (utility_listOpcodes && utility_listOpcodes->GetStatus() != 0) {
+      utility_listOpcodes->Join();
+      delete utility_listOpcodes;
+      utility_listOpcodes = (CsoundUtility*) 0;
+      if (utilWin)
+        utilWin->listOpcodesButton->label("Start");
+    }
+    if (utility_cvanal && utility_cvanal->GetStatus() != 0) {
+      utility_cvanal->Join();
+      delete utility_cvanal;
+      utility_cvanal = (CsoundUtility*) 0;
+      if (utilWin)
+        utilWin->cvanalButton->label("Start");
+    }
+    if (utility_pvanal && utility_pvanal->GetStatus() != 0) {
+      utility_pvanal->Join();
+      delete utility_pvanal;
+      utility_pvanal = (CsoundUtility*) 0;
+      if (utilWin)
+        utilWin->pvanalButton->label("Start");
+    }
+    if (!utilWin &&
+        !utility_listOpcodes && !utility_cvanal && !utility_pvanal)
+      haveActiveUtilities = false;
+}
+
+void CsoundGUIMain::openUtilitiesWindow()
+{
+    checkUtilities();
+    if (utilWin)
+      return;
+    utilWin = new CsoundUtilitiesWindow(this);
+    if (utilWin) {
+      haveActiveUtilities = true;
+      utilWin->window->show();
     }
 }
 
