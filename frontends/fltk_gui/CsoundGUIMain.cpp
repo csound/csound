@@ -320,9 +320,9 @@ void CsoundGUIMain::run()
     do {
       if (performing && csPerf != (CsoundPerformance*) 0) {
         int   status;
-        Fl::unlock();
+        // Fl::unlock();
         status = csPerf->Perform();
-        Fl::lock();
+        // Fl::lock();
         setTimeDisplay(csPerf->GetScoreTime());
         if (status != 0) {
           performing = false;
