@@ -353,6 +353,7 @@ void CsoundVstFltk::update()
       this->settingsCsoundPerformanceModeClassic->value(!csoundVST->getIsPython());
       this->settingsCsoundPerformanceModePython->value(csoundVST->getIsPython());
       this->autoPlayCheckButton->value(csoundVST->getIsAutoPlayback());
+      this->performWithoutExportCheckButton->value(csoundVST->getIsPerformWithoutExport());
       if(csoundVST->getIsPython())
         {
           onSettingsCsoundPerformanceModePython(settingsCsoundPerformanceModePython, this);
