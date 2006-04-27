@@ -393,7 +393,8 @@ void CsoundGUIMain::startPerformance()
     }
     {
       std::vector<std::string>  args;
-      currentPerformanceSettings.buildCommandLine(args, false);
+      currentPerformanceSettings.buildCommandLine(
+          args, currentGlobalSettings.forcePerformanceSettings);
       if (csPerf->Compile(args) != 0) {
         delete csPerf;
         csPerf = (CsoundPerformance*) 0;
