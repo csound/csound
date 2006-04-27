@@ -213,7 +213,7 @@ extern "C" {
 
     opname = csound->GetOpcodeName(p);
     csound->Die(csound, Str("%s: widget opcodes are not allowed "
-                            "if performing in a separate thread"));
+                            "if performing in a separate thread"), opname);
     return NOTOK;
   }
 
