@@ -53,6 +53,9 @@ decl {extern Fl_Preferences app;} {public
 decl {extern Fl_Preferences prof;} {public
 } 
 
+decl {extern Fl_Preferences prof_h;} {public
+} 
+
 decl {void cs_util_sndinfo(void);} {public
 } 
 
@@ -63,7 +66,7 @@ Function {make_mainwindow()} {open
 } {
   Fl_Window {} {
     label WinSound open
-    xywh {627 289 465 535} type Double visible
+    xywh {558 244 465 535} type Double visible
   } {
     Fl_File_Input orchname {
       label {Orchestra           }
@@ -258,7 +261,7 @@ Function {make_utils()} {open
 } {
   Fl_Window {} {
     label Utilities open
-    xywh {808 449 215 300} type Double visible
+    xywh {808 473 215 300} type Double visible
   } {
     Fl_Round_Button util_het {
       label {Hetrodyne Analysis}
@@ -397,7 +400,7 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {516 208 400 350} type Double visible
+    xywh {516 232 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
@@ -507,7 +510,7 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {450 142 325 230} type Double visible
+    xywh {450 166 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
@@ -528,7 +531,7 @@ Function {make_environ()} {open
       code1 {sf->value(t);}
     }
     Fl_File_Input sa {
-      label SADIR selected
+      label SADIR
       xywh {95 145 185 25}
       code0 {char *t; prof.get("envop",t, getenv("SADIR"));}
       code1 {sa->value(t);}
@@ -575,7 +578,7 @@ Function {make_info()} {open
 } {
   Fl_Window {} {
     label Sndinfo open
-    xywh {314 632 260 80} type Double visible
+    xywh {314 656 260 80} type Double visible
   } {
     Fl_File_Input sndinfo_file {
       xywh {0 0 260 30}
@@ -602,7 +605,7 @@ Function {make_info()} {open
 Function {make_anal()} {open
 } {
   Fl_Window analw {open
-    xywh {382 337 365 100} type Double visible
+    xywh {382 361 365 100} type Double visible
   } {
     Fl_File_Input analin {
       label Input
@@ -635,7 +638,7 @@ Function {make_anal()} {open
 Function {make_textwindow()} {open
 } {
   Fl_Window {} {open
-    xywh {639 514 725 570} type Double resizable visible
+    xywh {294 209 725 570} type Double resizable visible
   } {
     Fl_Text_Display text {
       label {Winsound5 Output}
@@ -670,7 +673,7 @@ Function {make_saver()} {open
 } {
   Fl_Window {} {
     label {Save As} open
-    xywh {622 230 395 80} type Double visible
+    xywh {622 254 395 80} type Double visible
   } {
     Fl_File_Input savefile {
       label {Save as}
@@ -696,17 +699,21 @@ Function {make_saver()} {open
 Function {make_hetanal()} {open
 } {
   Fl_Window {} {
+    label {Hetrodyne Analysis}
     callback {do_util = 0;} open
-    xywh {540 452 360 380} type Double visible
+    xywh {540 399 360 380} type Double
+    code0 {int ct; prof_h.get("c",ct,0); 
+het_ac->value(ct==0);het_c1->value(ct==1);het_c2->value(ct==2);het_c3->value(ct==3);het_c4->value(ct==4);} visible
   } {
     Fl_File_Input het_analin {
       label Input
       xywh {50 5 280 30}
+      code0 {char *t; prof_h.get("input", t, ""); o->value(t);}
     }
     Fl_File_Input het_analout {
       label Output
       xywh {50 35 280 30}
-      code0 {o->value("test.ads");}
+      code0 {char *t; prof_h.get("output", t, "test.ads"); o->value(t);}
     }
     Fl_Return_Button {} {
       label OK
@@ -738,8 +745,7 @@ do_util = -1;}
 het_c2->value(0);
 het_c3->value(0);
 het_c4->value(0);}
-        xywh {220 80 140 25} down_box ROUND_DOWN_BOX
-        code0 {o->value(1);}
+        xywh {220 80 110 25} down_box ROUND_DOWN_BOX
       }
       Fl_Round_Button het_c1 {
         label {Channel 1}
@@ -747,8 +753,7 @@ het_c4->value(0);}
 het_c2->value(0);
 het_c3->value(0);
 het_c4->value(0);}
-        xywh {220 100 140 25} down_box ROUND_DOWN_BOX
-        code0 {o->value(0);}
+        xywh {220 100 110 25} down_box ROUND_DOWN_BOX
       }
       Fl_Round_Button het_c2 {
         label {Channel 2}
@@ -756,8 +761,7 @@ het_c4->value(0);}
 het_c1->value(0);
 het_c3->value(0);
 het_c4->value(0);}
-        xywh {220 120 140 25} down_box ROUND_DOWN_BOX
-        code0 {o->value(0);}
+        xywh {220 120 110 25} down_box ROUND_DOWN_BOX
       }
       Fl_Round_Button het_c3 {
         label {Channel 3}
@@ -765,8 +769,7 @@ het_c4->value(0);}
 het_c1->value(0);
 het_c2->value(0);
 het_c4->value(0);}
-        xywh {220 140 140 25} down_box ROUND_DOWN_BOX
-        code0 {o->value(0);}
+        xywh {220 140 110 25} down_box ROUND_DOWN_BOX
       }
       Fl_Round_Button het_c4 {
         label {Channel 4}
@@ -774,54 +777,53 @@ het_c4->value(0);}
 het_c1->value(0);
 het_c2->value(0);
 het_c3->value(0);}
-        xywh {220 155 140 30} down_box ROUND_DOWN_BOX
-        code0 {o->value(0);}
+        xywh {220 155 110 30} down_box ROUND_DOWN_BOX
       }
     }
     Fl_Value_Input het_s {
       label {Sample rate (-s)}
       xywh {30 75 55 25} align 8
-      code0 {o->value(0);}
+      code0 {int t; prof_h.get("s",t,0); o->value(t);}
     }
     Fl_Value_Input het_b {
       label {Begin time (-b)}
       xywh {30 115 55 25} align 8
-      code0 {o->value(0);}
+      code0 {int t; prof_h.get("b",t,0); o->value(t);}
     }
     Fl_Value_Input het_d {
       label {Duration (-d)}
       xywh {30 155 55 25} align 8
-      code0 {o->value(0);}
+      code0 {int t; prof_h.get("d",t,0); o->value(t);}
     }
     Fl_Value_Input het_f {
       label {Fundamental (-f)}
       xywh {30 195 55 25} align 8
-      code0 {o->value(100);}
+      code0 {int t; prof_h.get("f",t,100); o->value(t);}
     }
     Fl_Value_Input het_h {
       label {Harmonic (-h)}
       xywh {30 240 55 25} align 8
-      code0 {o->value(0);}
+      code0 {int t; prof_h.get("h",t,0); o->value(t);}
     }
     Fl_Value_Input het_M {
       label {Maxumum (-M)}
       xywh {30 280 70 25} align 8
-      code0 {o->value(32767);}
+      code0 {int t; prof_h.get("M",t,32767); o->value(t);}
     }
     Fl_Value_Input het_n {
       label {Number (-n)}
       xywh {205 195 40 25} align 8
-      code0 {o->value(256);}
+      code0 {int t; prof_h.get("s",t,256); o->value(t);}
     }
     Fl_Value_Input het_I {
       label {Filter (-I)}
       xywh {205 240 40 25} align 8
-      code0 {o->value(0);}
+      code0 {int t; prof_h.get("I",t,0); o->value(t);}
     }
     Fl_Value_Input het_m {
       label {Minimum (-m)}
       xywh {205 280 40 25} align 8
-      code0 {o->value(64);}
+      code0 {int t; prof_h.get("m",t,64); o->value(t);}
     }
   }
 } 
@@ -829,8 +831,9 @@ het_c3->value(0);}
 Function {make_lpcanal()} {open
 } {
   Fl_Window {} {
-    callback {do_util = 0;} open
-    xywh {848 789 410 320} type Double visible
+    label {LPC Analysis}
+    callback {do_util = 0;} open selected
+    xywh {613 459 410 320} type Double visible
   } {
     Fl_File_Input lpc_analin {
       label Input
