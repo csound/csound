@@ -6,10 +6,11 @@
 #include "csound.h"
 #include "winsound.h"
 #include <stdarg.h>
+#include <FL/Fl_Preferences.H>
 extern int do_exit;
 extern Fl_Double_Window *ew, *xw, *uw, *textw;
 CSOUND *csound;
-int cs_compile_run(void);
+void cs_compile_run(void);
 
 void mytextOutput(CSOUND *csound, int attr, const char *format, va_list valist)
 {
@@ -31,9 +32,12 @@ int yieldCallback(CSOUND *csound)
     return 0;
 }
 
+Fl_Preferences app(Fl_Preferences::USER, "csounds.com", "winsound");
+Fl_Preferences prof(app, "winsound");
 int main(int argc, char **argv)
 {
     Fl_Double_Window* mw = make_mainwindow();
+
     ew = make_environ();
     uw = make_utils();
     xw = make_extras();
@@ -54,7 +58,7 @@ int main(int argc, char **argv)
     csoundCleanup(csound);
 }
 
-int cs_compile_run(void)
+void cs_compile_run(void)
 {
     int res=0;
     textw->show();
@@ -62,8 +66,37 @@ int cs_compile_run(void)
       char *argv[100];
       char b1[12], b2[12], b3[12], b4[12], b5[12], b6[12], b7[12];
       int nxt=1;
-      int n;
 
+      /* Remember profile */
+      prof.set("orchestra", orchname->value());
+      prof.set("score", scorename->value());
+      prof.set("output", output->value());
+      prof.set("W",wav->value());
+      prof.set("A",aiff->value());
+      prof.set("J",ircam->value());
+      prof.set("h",raw->value());
+      prof.set("I",mI->value());
+      prof.set("F",mi->value());
+      prof.set("n",mn->value());
+      prof.set("b",mb->value());
+      prof.set("B",mB->value());
+      prof.set("c",size_8->value());
+      prof.set("s",size_16->value());
+      prof.set("l",size_32->value());
+      prof.set("f",size_f->value());
+      prof.set("3",size_24->value());
+      prof.set("r",mr->value());
+      prof.set("k",mk->value());
+      prof.set("K",mK->value());
+      prof.set("v",mv->value());
+      prof.set("m",mm->value());
+      prof.set("t",mt->value());
+      prof.set("t0",mSave->value());
+      prof.set("M",mM->value());
+      prof.set("R",mR->value());
+      prof.set("H",mH->value());
+      prof.set("N",mN->value());
+      prof.set("Z",mZ->value());
       argv[0] = "winsound5";
       argv[nxt++] = (char *)orchname->value();
       if (strstr(argv[nxt-1], ".csd")==NULL)
@@ -138,7 +171,7 @@ int cs_compile_run(void)
       csoundRewindScore(csound);
 
     while (res==0 && do_perf) {
-      if (do_exit) return 0;
+      if (do_exit) return;
       res = csoundPerformKsmps(csound);
     }
     csoundCleanup(csound);
@@ -161,18 +194,12 @@ void cs_util_sndinfo(void)
     }
 }
 
-// extern "C" {
-//   void list_opcodes(CSOUND *csound, int level);
-//   int csoundLoadExternals(CSOUND *csound);
-//   int csoundInitModules(CSOUND *csound);
-// }
-
 void cs_util_opc(int full)
 {
     char *argv[2];
     argv[0] = "csound";
-    if (full) argv[1] = "z1";
-    else argv[1] = "z0";
+    if (full) argv[1] = "-z1";
+    else argv[1] = "-z0";
     textw->show();
     csoundCompile(csound, 2, argv);
     csoundCleanup(csound);
@@ -338,3 +365,19 @@ void cs_util_dnoise(void)
     csoundMessage(csound, "***DNoise not yet written***\n");
 }
 
+void savetext(Fl_Text_Buffer *b, int type)
+{
+  Fl_Double_Window *hw = make_saver();
+  do_util = 0;
+  hw->show();
+  while (do_util==0) Fl::wait();
+  hw->hide();
+  if (do_util>0) {
+    if (type==0) b->outputfile(savefile->value(), 0, b->length());
+    else {
+      int start,end;
+      b->selection_position(&start, &end); 
+      b->outputfile(savefile->value(), start, end);
+    }    
+  }
+}
