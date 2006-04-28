@@ -74,6 +74,7 @@ Function {make_mainwindow()} {open
       tooltip {File for csd or orchestra file} xywh {130 15 310 30} labeltype EMBOSSED_LABEL
       code0 {char *t; prof.get((const char*)"orchestra",t,"");}
       code1 {o->value(t); free(t);}
+      code1 {do_load=1;}
     }
     Fl_File_Input scorename {
       label {Score           }
@@ -531,7 +532,7 @@ Function {make_environ()} {open
       code1 {sf->value(t);}
     }
     Fl_File_Input sa {
-      label SADIR
+      label SADIR selected
       xywh {95 145 185 25}
       code0 {char *t; prof.get("envop",t, getenv("SADIR"));}
       code1 {sa->value(t);}
@@ -645,6 +646,7 @@ Function {make_textwindow()} {open
       xywh {25 25 665 500} resizable
       code0 {text_buffer = new Fl_Text_Buffer(1024);}
       code1 {text->buffer(text_buffer);}
+      code2 {text->textfont(FL_COURIER);}
     }
     Fl_Button {} {
       label Hide
