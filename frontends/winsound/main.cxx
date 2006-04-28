@@ -49,6 +49,7 @@ int main(int argc, char **argv)
     csoundSetMessageCallback(csound, mytextOutput);
     csoundSetYieldCallback(csound, yieldCallback);
     mw->show();
+    do_load = 0;
     do_exit = 0;
     while (!do_exit) {
       do_perf = 0;
@@ -62,6 +63,7 @@ void cs_compile_run(void)
 {
     int res=0;
     textw->show();
+    Fl::wait(0);
     if (do_load) {
       char *argv[100];
       char b1[12], b2[12], b3[12], b4[12], b5[12], b6[12], b7[12];
@@ -165,11 +167,13 @@ void cs_compile_run(void)
 //         printf("arg %d: %s\n", n, argv[n]);
 
       csoundReset(csound);
+      //      csoundSetYieldCallback(csound, yieldCallback);
       res = csoundCompile(csound, nxt-1, argv);
     }
     else
       csoundRewindScore(csound);
-
+    Fl::wait(0);
+    fprintf(stderr, "Starting call\n");
     while (res==0 && do_perf) {
       if (do_exit) return;
       res = csoundPerformKsmps(csound);
