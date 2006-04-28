@@ -487,6 +487,7 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
           goto err_return;
         cfg = *tmp;
         delete tmp;
+        std::fclose(f);
         return 0;
       case 20001:
         if (readBool(f, &(tmp->listOpcodes_printDetails)) != 0)
@@ -584,6 +585,7 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
           goto err_return;
         cfg = *tmp;
         delete tmp;
+        std::fclose(f);
         return 0;
       case 10001:
         if (readString(f, tmp->textEditorProgram) != 0)
@@ -678,6 +680,7 @@ int readCsound5GUIConfigFile(const char *fileName,
           goto err_return;
         cfg = *tmp;
         delete tmp;
+        std::fclose(f);
         return 0;
       case 1:
         if (readString(f, tmp->orcName) != 0)

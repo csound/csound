@@ -13,21 +13,19 @@ class CsoundGUIMain {open selected
   }
   decl {CsoundUtilitySettings currentUtilitySettings;} {public
   }
-  decl {CsoundGUIConsole consoleWindow;} {public
-  }
+  decl {CsoundGUIConsole consoleWindow;} {}
   decl {CSOUND *csound;} {}
   decl {CsoundPerformance *csPerf;} {}
   decl {int prvTime;} {}
   decl {bool performing;} {}
   decl {bool paused;} {}
-  decl {CsoundUtilitiesWindow *utilWin;} {}
-  decl {CsoundUtility *utility_listOpcodes;} {public
-  }
-  decl {CsoundUtility *utility_cvanal;} {public
-  }
-  decl {CsoundUtility *utility_pvanal;} {public
-  }
-  decl {bool haveActiveUtilities;} {public
+  decl {CsoundGlobalSettingsPanel *globalSettingsWindow;} {}
+  decl {CsoundPerformanceSettingsPanel *performanceSettingsWindow;} {}
+  decl {CsoundUtilitiesWindow *utilitiesWindow;} {}
+  decl {CsoundUtility *utility_listOpcodes;} {}
+  decl {CsoundUtility *utility_cvanal;} {}
+  decl {CsoundUtility *utility_pvanal;} {}
+  decl {int utilityState;} {public
   }
   Function {CsoundGUIMain()} {open
   } {
@@ -37,11 +35,13 @@ class CsoundGUIMain {open selected
   prvTime = -1;
   performing = false;
   paused = true;
-  utilWin = (CsoundUtilitiesWindow*) 0;
+  globalSettingsWindow = (CsoundGlobalSettingsPanel*) 0;
+  performanceSettingsWindow = (CsoundPerformanceSettingsPanel*) 0;
+  utilitiesWindow = (CsoundUtilitiesWindow*) 0;
   utility_listOpcodes = (CsoundUtility*) 0;
   utility_cvanal = (CsoundUtility*) 0;
   utility_pvanal = (CsoundUtility*) 0;
-  haveActiveUtilities = false;
+  utilityState = 0;
 }} {}
     Fl_Window window {
       label {Csound 5} open
@@ -151,8 +151,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
         Fl_Button rewindButton {
           label {@|<}
           callback {if (performing && csPerf != (CsoundPerformance*) 0) {
-  if (currentPerformanceSettings.scoreOffsetSeconds < csPerf->GetScoreTime())
-    csPerf->Rewind();
+  csPerf->Rewind();
 }}
           tooltip Rewind xywh {20 205 40 25}
         }
@@ -181,18 +180,15 @@ updateGUIState_controls();}
           label {@square}
           callback {if (performing && csPerf != (CsoundPerformance *) 0) {
   performing = false;
-  paused = true;
-  csPerf->Stop();
-  delete csPerf;
-  csPerf = (CsoundPerformance *) 0;
   updateGUIState_controls();
-  setTimeDisplay(-1.0);
 }}
           tooltip Stop xywh {185 205 40 25}
         }
         Fl_Value_Input scoreOffsetInput {
           label Offset
           callback {currentPerformanceSettings.scoreOffsetSeconds = o->value();
+if (performing && csPerf != (CsoundPerformance*) 0)
+  csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, false);
 writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
           tooltip {Score offset in seconds} xywh {20 240 70 25} align 8 maximum 10000
           code0 {o->value(currentPerformanceSettings.scoreOffsetSeconds);}
@@ -201,7 +197,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
           label Apply
           callback {if (performing && csPerf != (CsoundPerformance*) 0) {
   if (currentPerformanceSettings.scoreOffsetSeconds >= 0.0)
-    csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds);
+    csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, true);
 }}
           tooltip {Set the current score position to the specified offset} xywh {165 240 60 25}
         }
@@ -211,11 +207,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
       } {
         Fl_Button {} {
           label Options
-          callback {{
-  window->deactivate();
-  openGlobalSettingsPanel();
-  window->activate();
-}}
+          callback {openGlobalSettingsWindow();}
           xywh {255 140 85 25}
         }
         Fl_Button {} {
@@ -273,11 +265,27 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
   }
   decl {void editSoundFile(const char *);} {public
   }
-  decl {void openPerformanceSettingsPanel();} {public
-  }
-  decl {void openGlobalSettingsPanel();} {public
-  }
   decl {static int yieldCallback(CSOUND *);} {}
-  decl {void openUtilitiesWindow();} {}
   decl {void checkUtilities();} {}
+  decl {void openGlobalSettingsWindow();} {public
+  }
+  decl {void closeGlobalSettingsWindow();} {}
+  decl {void openPerformanceSettingsWindow();} {public
+  }
+  decl {void closePerformanceSettingsWindow();} {}
+  decl {void openUtilitiesWindow();} {public
+  }
+  decl {void closeUtilitiesWindow();} {}
+  decl {void startListOpcodes();} {public
+  }
+  decl {void stopListOpcodes();} {public
+  }
+  decl {void startCvanal();} {public
+  }
+  decl {void stopCvanal();} {public
+  }
+  decl {void startPvanal();} {public
+  }
+  decl {void stopPvanal();} {public
+  }
 } 
