@@ -211,6 +211,7 @@ void cs_util_opc(int full)
 //     csoundReset(csound);
 }
 
+Fl_Preferences prof_h(app, "adsyn");
 void cs_util_het(void)
 {
     Fl_Double_Window *hw = make_hetanal();
@@ -218,6 +219,21 @@ void cs_util_het(void)
     char buffer[1024];
     char *b = buffer;
     int nxt = 1;
+    prof_h.set("s",het_s->value());
+    prof_h.set("b",het_b->value());
+    prof_h.set("d",het_d->value());
+    prof_h.set("f",het_f->value());
+    prof_h.set("h",het_h->value());
+    prof_h.set("M",het_M->value());
+    prof_h.set("n",het_n->value());
+    prof_h.set("I",het_I->value());
+    prof_h.set("m",het_m->value());
+    prof_h.set("input",het_analin->value());
+    prof_h.set("output",het_analout->value());
+    prof_h.set("c", het_c1->value()?1:
+                    het_c2->value()?2:
+                    het_c3->value()?3:
+                    het_c4->value()?4:0);
     hw->show();
     while (do_util==0) Fl::wait();
     if (do_util>0) {
@@ -235,7 +251,7 @@ void cs_util_het(void)
         b += strlen(b)+1;
       }
       if (het_d->value()!=0) {
-        sprintf(b, "-d%d", (int)(het_b->value()));
+        sprintf(b, "-d%d", (int)(het_d->value()));
         argv[nxt++] = b;
         b += strlen(b)+1;
       }
