@@ -35,14 +35,13 @@ class CsoundPerformance_NoThread : public CsoundPerformance {
     void Pause();
     void Stop();
     void Rewind();
-    void SetScoreOffsetSeconds(double);
+    void SetScoreOffsetSeconds(double, bool);
     void AdvanceScoreTime(double);
     double GetScoreTime();
 };
 
 class CsoundPerformance_Thread : public CsoundPerformance {
  private:
-    double  scoreOffset;
     CsoundPerformanceThread *pt;
  public:
     CsoundPerformance_Thread(CSOUND *);
@@ -54,7 +53,7 @@ class CsoundPerformance_Thread : public CsoundPerformance {
     void Pause();
     void Stop();
     void Rewind();
-    void SetScoreOffsetSeconds(double);
+    void SetScoreOffsetSeconds(double, bool);
     void AdvanceScoreTime(double);
     double GetScoreTime();
 };
@@ -79,7 +78,9 @@ CsoundPerformance::CsoundPerformance(CSOUND *csound)
 {
     this->csound = csound;
     status = -1;
-    paused = 0;
+    paused = false;
+    usingThreads_ = true;
+    scoreOffset = 0.0;
     scoreTime = 0.0;
 }
 
@@ -87,7 +88,9 @@ CsoundPerformance::CsoundPerformance(Csound *csound)
 {
     this->csound = csound->GetCsound();
     status = -1;
-    paused = 0;
+    paused = false;
+    usingThreads_ = true;
+    scoreOffset = 0.0;
     scoreTime = 0.0;
 }
 
@@ -107,6 +110,10 @@ int CsoundPerformance::Compile(std::vector<std::string>& argList)
     retval = csoundCompile(csound, (int) argList.size(), &(argv.front()));
     status = retval;
     argv.clear();
+    if (retval == 0) {
+      scoreOffset = (double) csoundGetScoreOffsetSeconds(csound);
+      scoreTime = scoreOffset;
+    }
 
     return retval;
 }
@@ -116,12 +123,14 @@ int CsoundPerformance::Compile(std::vector<std::string>& argList)
 CsoundPerformance_NoThread::CsoundPerformance_NoThread(CSOUND *csound)
     : CsoundPerformance(csound)
 {
+    usingThreads_ = false;
     kcnt = 0;
 }
 
 CsoundPerformance_NoThread::CsoundPerformance_NoThread(Csound *csound)
     : CsoundPerformance(csound)
 {
+    usingThreads_ = false;
     kcnt = 0;
 }
 
@@ -179,19 +188,26 @@ void CsoundPerformance_NoThread::Stop()
 
 void CsoundPerformance_NoThread::Rewind()
 {
-    scoreTime = csoundGetScoreOffsetSeconds(csound);
-    csoundRewindScore(csound);
+    if (GetScoreTime() > scoreOffset) {
+      scoreTime = scoreOffset;
+      csoundSetScoreOffsetSeconds(csound, (MYFLT) scoreOffset);
+    }
 }
 
-void CsoundPerformance_NoThread::SetScoreOffsetSeconds(double scoreOffset)
+void CsoundPerformance_NoThread::SetScoreOffsetSeconds(double scoreOffset,
+                                                       bool applyNow)
 {
-    scoreTime = scoreOffset;
-    csoundSetScoreOffsetSeconds(csound, (MYFLT) scoreOffset);
+    this->scoreOffset = scoreOffset;
+    if (applyNow) {
+      scoreTime = scoreOffset;
+      csoundSetScoreOffsetSeconds(csound, (MYFLT) scoreOffset);
+    }
 }
 
 void CsoundPerformance_NoThread::AdvanceScoreTime(double timeVal)
 {
-    SetScoreOffsetSeconds(GetScoreTime() + timeVal);
+    scoreTime = GetScoreTime() + timeVal;
+    csoundSetScoreOffsetSeconds(csound, (MYFLT) scoreTime);
 }
 
 double CsoundPerformance_NoThread::GetScoreTime()
@@ -286,14 +302,12 @@ extern "C" {
 CsoundPerformance_Thread::CsoundPerformance_Thread(CSOUND *csound)
     : CsoundPerformance(csound)
 {
-    scoreOffset = 0.0;
     pt = (CsoundPerformanceThread*) 0;
 }
 
 CsoundPerformance_Thread::CsoundPerformance_Thread(Csound *csound)
     : CsoundPerformance(csound)
 {
-    scoreOffset = 0.0;
     pt = (CsoundPerformanceThread*) 0;
 }
 
@@ -326,7 +340,6 @@ int CsoundPerformance_Thread::Compile(std::vector<std::string>& argList)
     }
     retval = CsoundPerformance::Compile(argList);
     if (retval == 0) {
-      scoreOffset = (double) csoundGetScoreOffsetSeconds(csound);
       pt = new CsoundPerformanceThread(csound);
       pt->Play();
     }
@@ -371,15 +384,20 @@ void CsoundPerformance_Thread::Stop()
 
 void CsoundPerformance_Thread::Rewind()
 {
-    scoreTime = scoreOffset;
-    pt->SetScoreOffsetSeconds(scoreOffset);
+    if (GetScoreTime() > scoreOffset) {
+      scoreTime = scoreOffset;
+      pt->SetScoreOffsetSeconds(scoreOffset);
+    }
 }
 
-void CsoundPerformance_Thread::SetScoreOffsetSeconds(double scoreOffset)
+void CsoundPerformance_Thread::SetScoreOffsetSeconds(double scoreOffset,
+                                                     bool applyNow)
 {
     this->scoreOffset = scoreOffset;
-    scoreTime = scoreOffset;
-    pt->SetScoreOffsetSeconds(scoreOffset);
+    if (applyNow) {
+      scoreTime = scoreOffset;
+      pt->SetScoreOffsetSeconds(scoreOffset);
+    }
 }
 
 void CsoundPerformance_Thread::AdvanceScoreTime(double timeVal)

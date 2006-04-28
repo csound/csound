@@ -30,6 +30,8 @@ class CsoundPerformance {
     CSOUND  *csound;
     int     status;
     bool    paused;
+    bool    usingThreads_;
+    double  scoreOffset;
     double  scoreTime;
  public:
     CsoundPerformance(CSOUND *);
@@ -41,9 +43,13 @@ class CsoundPerformance {
     virtual void Pause() = 0;
     virtual void Stop() = 0;
     virtual void Rewind() = 0;
-    virtual void SetScoreOffsetSeconds(double) = 0;
+    virtual void SetScoreOffsetSeconds(double, bool) = 0;
     virtual void AdvanceScoreTime(double) = 0;
     virtual double GetScoreTime() = 0;
+    bool UsingThreads()
+    {
+      return usingThreads_;
+    }
 };
 
 CsoundPerformance *CreateCsoundPerformance(CSOUND *csound, bool enableThreads);

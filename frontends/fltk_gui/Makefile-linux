@@ -1,0 +1,10 @@
+
+PROGRAM = csound5gui
+CXX = g++
+CXXFLAGS = -Wall -W -ansi -pedantic -g -O -I. -I../../H -I../../interfaces
+LIBS = -lfltk -L../.. -L/usr/X11R6/lib -lX11 -lcsound -lstdc++
+
+# -----------------------------------------------------------------------------
+
+include Makefile.base
+
