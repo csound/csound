@@ -59,5 +59,12 @@ struct Csound_Message {
 #include "CsoundUtilitiesWindow_FLTK.hpp"
 #include "CsoundGUIMain_FLTK.hpp"
 
+#define CSOUND5GUI_GCFGWIN_OPEN         1
+#define CSOUND5GUI_PCFGWIN_OPEN         2
+#define CSOUND5GUI_UTILWIN_OPEN         4
+#define CSOUND5GUI_LISTOPCODES_RUNNING  256
+#define CSOUND5GUI_CVANAL_RUNNING       512
+#define CSOUND5GUI_PVANAL_RUNNING       1024
+
 #endif  // CSOUNDGUI_HPP
 

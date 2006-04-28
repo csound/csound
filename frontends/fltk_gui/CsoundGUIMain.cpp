@@ -292,8 +292,11 @@ void CsoundGUIMain::updateGUIValues()
     scoreNameInput->value(currentPerformanceSettings.scoName.c_str());
     outfileNameInput->value(currentPerformanceSettings.outputFileName.c_str());
     scoreOffsetInput->value(currentPerformanceSettings.scoreOffsetSeconds);
-    if (performing && csPerf != (CsoundPerformance*) 0)
+    if (performing && csPerf != (CsoundPerformance*) 0) {
+      csPerf->SetScoreOffsetSeconds(
+          currentPerformanceSettings.scoreOffsetSeconds, false);
       setTimeDisplay(csPerf->GetScoreTime());
+    }
     else
       setTimeDisplay(-1.0);
     updateGUIState();
@@ -318,36 +321,52 @@ void CsoundGUIMain::run()
     consoleWindow.window->show();
 
     do {
-      if (performing && csPerf != (CsoundPerformance*) 0) {
-        int   status;
-        // Fl::unlock();
-        status = csPerf->Perform();
-        // Fl::lock();
-        setTimeDisplay(csPerf->GetScoreTime());
-        if (status != 0) {
-          performing = false;
-          csoundSetMessageCallback(csound,
-                                   &CsoundGUIConsole::messageCallback_Thread);
-          if (currentGlobalSettings.editSoundFileAfterPerformance &&
-              status > 0)
-            editSoundFile(csoundGetOutputFileName(csound));
+      if (csPerf != (CsoundPerformance*) 0) {
+        if (!performing) {
+          bool  usingThreads;
+          usingThreads = csPerf->UsingThreads();
+          paused = true;
+          csPerf->Stop();
           delete csPerf;
           csPerf = (CsoundPerformance*) 0;
           updateGUIState();
-        }
-        else if (!currentPerformanceSettings.useThreads) {
-          consoleWindow.updateDisplay(true);
-          Fl::wait(0.0);
+          if (!usingThreads) {
+            consoleWindow.updateDisplay(true);
+            Fl::wait(0.0);
+          }
         }
         else {
-          Fl::wait(0.02);
+          int   status;
+          // Fl::unlock();
+          status = csPerf->Perform();
+          // Fl::lock();
+          setTimeDisplay(csPerf->GetScoreTime());
+          if (status != 0) {
+            performing = false;
+            paused = true;
+            csoundSetMessageCallback(csound,
+                                     &CsoundGUIConsole::messageCallback_Thread);
+            if (currentGlobalSettings.editSoundFileAfterPerformance &&
+                status > 0)
+              editSoundFile(csoundGetOutputFileName(csound));
+            delete csPerf;
+            csPerf = (CsoundPerformance*) 0;
+            updateGUIState();
+          }
+          else if (!csPerf->UsingThreads()) {
+            consoleWindow.updateDisplay(true);
+            Fl::wait(0.0);
+          }
+          else {
+            Fl::wait(0.02);
+          }
         }
       }
       if (!performing) {
         Fl::wait(0.02);
         setTimeDisplay(-1.0);
       }
-      if (haveActiveUtilities)
+      if (utilityState != 0)
         checkUtilities();
     } while (window->shown());
 
@@ -360,12 +379,10 @@ void CsoundGUIMain::run()
     paused = true;
     csoundDestroy(csound);
     csound = (CSOUND*) 0;
-    if (utilWin) {
-      delete utilWin;
-      utilWin = (CsoundUtilitiesWindow*) 0;
-      writeCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
-    }
-    haveActiveUtilities = false;
+    closePerformanceSettingsWindow();
+    closeGlobalSettingsWindow();
+    closeUtilitiesWindow();
+    utilityState = 0;
 }
 
 void CsoundGUIMain::startPerformance()
@@ -401,7 +418,7 @@ void CsoundGUIMain::startPerformance()
         return;
       }
     }
-    if (!currentPerformanceSettings.useThreads) {
+    if (!csPerf->UsingThreads()) {
       csoundSetMessageCallback(csound,
                                &CsoundGUIConsole::messageCallback_NoThread);
       consoleWindow.flushMessages();
@@ -457,62 +474,6 @@ void CsoundGUIMain::editSoundFile(const char *fileName_)
     runCmd(cmd);
 }
 
-void CsoundGUIMain::openGlobalSettingsPanel()
-{
-    CsoundGlobalSettingsPanel   *p;
-
-    if (csPerf != (CsoundPerformance*) 0) {
-      csPerf->Stop();
-      delete csPerf;
-      csPerf = (CsoundPerformance*) 0;
-    }
-    performing = false;
-    paused = true;
-    updateGUIValues();
-    Fl::wait(0.0);
-
-    p = new CsoundGlobalSettingsPanel(this);
-    p->window->set_modal();
-    p->window->show();
-    do {
-      Fl::wait(0.02);
-    } while (p->window->shown());
-    delete p;
-    writeCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
-}
-
-void CsoundGUIMain::openPerformanceSettingsPanel()
-{
-    CsoundPerformanceSettingsPanel  *p;
-    CsoundPerformanceSettings       *tmp;
-
-    if (csPerf != (CsoundPerformance*) 0) {
-      csPerf->Stop();
-      delete csPerf;
-      csPerf = (CsoundPerformance*) 0;
-    }
-    performing = false;
-    paused = true;
-    updateGUIValues();
-    Fl::wait(0.0);
-
-    tmp = new CsoundPerformanceSettings;
-    *tmp = currentPerformanceSettings;
-    p = new CsoundPerformanceSettingsPanel(tmp);
-    p->window->set_modal();
-    p->window->show();
-    do {
-      Fl::wait(0.02);
-    } while (p->status == 0);
-    if (p->status > 0) {
-      currentPerformanceSettings = *tmp;
-      writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
-      updateGUIValues();
-    }
-    delete p;
-    delete tmp;
-}
-
 CsoundGUIMain::~CsoundGUIMain()
 {
     performing = false;
@@ -546,51 +507,192 @@ int CsoundGUIMain::yieldCallback(CSOUND *csound)
     return 1;
 }
 
-void CsoundGUIMain::checkUtilities()
+// ----------------------------------------------------------------------------
+
+void CsoundGUIMain::startListOpcodes()
 {
-    if (utilWin) {
-      if (!utilWin->window->shown()) {
-        delete utilWin;
-        utilWin = (CsoundUtilitiesWindow*) 0;
-        haveActiveUtilities = false;
-        writeCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
-      }
+    checkUtilities();
+    if (utility_listOpcodes)
+      return;
+    utility_listOpcodes = CreateUtility_ListOpcodes(&consoleWindow,
+                                                    currentUtilitySettings);
+    if (utility_listOpcodes) {
+      utilityState |= CSOUND5GUI_LISTOPCODES_RUNNING;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->listOpcodesButton->label("Stop");
     }
-    if (utility_listOpcodes && utility_listOpcodes->GetStatus() != 0) {
-      utility_listOpcodes->Join();
+}
+
+void CsoundGUIMain::stopListOpcodes()
+{
+    if (utility_listOpcodes) {
+      utility_listOpcodes->Stop();
       delete utility_listOpcodes;
       utility_listOpcodes = (CsoundUtility*) 0;
-      if (utilWin)
-        utilWin->listOpcodesButton->label("Start");
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->listOpcodesButton->label("Start");
     }
-    if (utility_cvanal && utility_cvanal->GetStatus() != 0) {
-      utility_cvanal->Join();
+    utilityState &= (~CSOUND5GUI_LISTOPCODES_RUNNING);
+}
+
+void CsoundGUIMain::startCvanal()
+{
+    checkUtilities();
+    if (utility_cvanal)
+      return;
+    utility_cvanal = CreateUtility_Cvanal(&consoleWindow,
+                                          currentUtilitySettings);
+    if (utility_cvanal) {
+      utilityState |= CSOUND5GUI_CVANAL_RUNNING;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->cvanalButton->label("Stop");
+    }
+}
+
+void CsoundGUIMain::stopCvanal()
+{
+    if (utility_cvanal) {
+      utility_cvanal->Stop();
       delete utility_cvanal;
       utility_cvanal = (CsoundUtility*) 0;
-      if (utilWin)
-        utilWin->cvanalButton->label("Start");
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->cvanalButton->label("Start");
     }
-    if (utility_pvanal && utility_pvanal->GetStatus() != 0) {
-      utility_pvanal->Join();
+    utilityState &= (~CSOUND5GUI_CVANAL_RUNNING);
+}
+
+void CsoundGUIMain::startPvanal()
+{
+    checkUtilities();
+    if (utility_pvanal)
+      return;
+    utility_pvanal = CreateUtility_Pvanal(&consoleWindow,
+                                          currentUtilitySettings);
+    if (utility_pvanal) {
+      utilityState |= CSOUND5GUI_PVANAL_RUNNING;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->pvanalButton->label("Stop");
+    }
+}
+
+void CsoundGUIMain::stopPvanal()
+{
+    if (utility_pvanal) {
+      utility_pvanal->Stop();
       delete utility_pvanal;
       utility_pvanal = (CsoundUtility*) 0;
-      if (utilWin)
-        utilWin->pvanalButton->label("Start");
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->pvanalButton->label("Start");
     }
-    if (!utilWin &&
-        !utility_listOpcodes && !utility_cvanal && !utility_pvanal)
-      haveActiveUtilities = false;
+    utilityState &= (~CSOUND5GUI_PVANAL_RUNNING);
+}
+
+// ----------------------------------------------------------------------------
+
+void CsoundGUIMain::openPerformanceSettingsWindow()
+{
+    if (!performanceSettingsWindow) {
+      // performing = false;
+      // paused = true;
+      // updateGUIValues();
+      // Fl::wait(0.0);
+      performanceSettingsWindow =
+          new CsoundPerformanceSettingsPanel(currentPerformanceSettings);
+      if (performanceSettingsWindow) {
+        utilityState |= CSOUND5GUI_PCFGWIN_OPEN;
+        performanceSettingsWindow->window->show();
+      }
+    }
+}
+
+void CsoundGUIMain::closePerformanceSettingsWindow()
+{
+    if (performanceSettingsWindow) {
+      if (performanceSettingsWindow->status > 0)
+        currentPerformanceSettings =
+            performanceSettingsWindow->performanceSettings;
+      delete performanceSettingsWindow;
+      performanceSettingsWindow = (CsoundPerformanceSettingsPanel*) 0;
+      updateGUIValues();
+      writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
+    }
+    utilityState &= (~CSOUND5GUI_PCFGWIN_OPEN);
+}
+
+void CsoundGUIMain::openGlobalSettingsWindow()
+{
+    if (!globalSettingsWindow) {
+      // performing = false;
+      // paused = true;
+      // updateGUIValues();
+      // Fl::wait(0.0);
+      globalSettingsWindow = new CsoundGlobalSettingsPanel(this);
+      if (globalSettingsWindow) {
+        utilityState |= CSOUND5GUI_GCFGWIN_OPEN;
+        globalSettingsWindow->window->show();
+      }
+    }
+}
+
+void CsoundGUIMain::closeGlobalSettingsWindow()
+{
+    if (globalSettingsWindow) {
+      delete globalSettingsWindow;
+      globalSettingsWindow = (CsoundGlobalSettingsPanel*) 0;
+      updateGUIValues();
+      writeCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
+    }
+    utilityState &= (~CSOUND5GUI_GCFGWIN_OPEN);
 }
 
 void CsoundGUIMain::openUtilitiesWindow()
 {
-    checkUtilities();
-    if (utilWin)
-      return;
-    utilWin = new CsoundUtilitiesWindow(this);
-    if (utilWin) {
-      haveActiveUtilities = true;
-      utilWin->window->show();
+    if (!utilitiesWindow) {
+      // performing = false;
+      // paused = true;
+      // updateGUIValues();
+      // Fl::wait(0.0);
+      utilitiesWindow = new CsoundUtilitiesWindow(this);
+      if (utilitiesWindow) {
+        utilityState |= CSOUND5GUI_UTILWIN_OPEN;
+        utilitiesWindow->window->show();
+      }
     }
+}
+
+void CsoundGUIMain::closeUtilitiesWindow()
+{
+    stopListOpcodes();
+    stopCvanal();
+    stopPvanal();
+    if (utilitiesWindow) {
+      delete utilitiesWindow;
+      utilitiesWindow = (CsoundUtilitiesWindow*) 0;
+      writeCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
+    }
+    utilityState &= (~CSOUND5GUI_UTILWIN_OPEN);
+}
+
+// ----------------------------------------------------------------------------
+
+void CsoundGUIMain::checkUtilities()
+{
+    if (globalSettingsWindow &&
+        !globalSettingsWindow->window->shown())
+      closeGlobalSettingsWindow();
+    if (performanceSettingsWindow &&
+        (performanceSettingsWindow->status != 0 ||
+         !performanceSettingsWindow->window->shown()))
+      closePerformanceSettingsWindow();
+    if (utilitiesWindow &&
+        !utilitiesWindow->window->shown())
+      closeUtilitiesWindow();
+
+    if (utility_listOpcodes && utility_listOpcodes->GetStatus() != 0)
+      stopListOpcodes();
+    if (utility_cvanal && utility_cvanal->GetStatus() != 0)
+      stopCvanal();
+    if (utility_pvanal && utility_pvanal->GetStatus() != 0)
+      stopPvanal();
 }
 

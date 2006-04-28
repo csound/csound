@@ -38,7 +38,7 @@ class CsoundUtility {
  public:
     CsoundUtility(CsoundGUIConsole *, std::vector<std::string>&);
     virtual ~CsoundUtility();
-    int Join();
+    int Stop();
     int GetStatus()
     {
       return status;

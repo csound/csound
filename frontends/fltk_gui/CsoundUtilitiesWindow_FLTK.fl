@@ -94,20 +94,13 @@ class CsoundUtilitiesWindow {open selected
           }
           Fl_Button cvanalButton {
             label Start
-            callback {if (p->utility_cvanal) {
-  p->utility_cvanal->Join();
-  delete p->utility_cvanal;
-  p->utility_cvanal = (CsoundUtility*) 0;
-  o->label("Start");
-}
-else {
-  p->utility_cvanal = CreateUtility_Cvanal(&(p->consoleWindow), p->currentUtilitySettings);
-  if (p->utility_cvanal)
-    o->label("Stop");
-}}
+            callback {if (p->utilityState & CSOUND5GUI_CVANAL_RUNNING)
+  p->stopCvanal();
+else
+  p->startCvanal();}
             xywh {365 355 75 25}
-            code0 {if (!p->utility_cvanal) o->label("Start");}
-            code1 {if (p->utility_cvanal) o->label("Stop");}
+            code0 {if (!(p->utilityState & CSOUND5GUI_CVANAL_RUNNING)) o->label("Start");}
+            code1 {if (p->utilityState & CSOUND5GUI_CVANAL_RUNNING) o->label("Stop");}
           }
         }
         Fl_Group {} {
@@ -227,20 +220,13 @@ else {
           }
           Fl_Button pvanalButton {
             label Start
-            callback {if (p->utility_pvanal) {
-  p->utility_pvanal->Join();
-  delete p->utility_pvanal;
-  p->utility_pvanal = (CsoundUtility*) 0;
-  o->label("Start");
-}
-else {
-  p->utility_pvanal = CreateUtility_Pvanal(&(p->consoleWindow), p->currentUtilitySettings);
-  if (p->utility_pvanal)
-    o->label("Stop");
-}}
+            callback {if (p->utilityState & CSOUND5GUI_PVANAL_RUNNING)
+  p->stopPvanal();
+else
+  p->startPvanal();}
             xywh {365 355 75 25}
-            code0 {if (!p->utility_pvanal) o->label("Start");}
-            code1 {if (p->utility_pvanal) o->label("Stop");}
+            code0 {if (!(p->utilityState & CSOUND5GUI_PVANAL_RUNNING)) o->label("Start");}
+            code1 {if (p->utilityState & CSOUND5GUI_PVANAL_RUNNING) o->label("Stop");}
           }
         }
         Fl_Group {} {
@@ -259,20 +245,13 @@ else {
           }
           Fl_Button listOpcodesButton {
             label Start
-            callback {if (p->utility_listOpcodes) {
-  p->utility_listOpcodes->Join();
-  delete p->utility_listOpcodes;
-  p->utility_listOpcodes = (CsoundUtility*) 0;
-  o->label("Start");
-}
-else {
-  p->utility_listOpcodes = CreateUtility_ListOpcodes(&(p->consoleWindow), p->currentUtilitySettings);
-  if (p->utility_listOpcodes)
-    o->label("Stop");
-}}
+            callback {if (p->utilityState & CSOUND5GUI_LISTOPCODES_RUNNING)
+  p->stopListOpcodes();
+else
+  p->startListOpcodes();}
             xywh {365 355 75 25}
-            code0 {if (!p->utility_listOpcodes) o->label("Start");}
-            code1 {if (p->utility_listOpcodes) o->label("Stop");}
+            code0 {if (!(p->utilityState & CSOUND5GUI_LISTOPCODES_RUNNING)) o->label("Start");}
+            code1 {if (p->utilityState & CSOUND5GUI_LISTOPCODES_RUNNING) o->label("Stop");}
           }
         }
       }
@@ -281,21 +260,6 @@ else {
   Function {~CsoundUtilitiesWindow()} {open
   } {
     code {{
-  if (p->utility_listOpcodes) {
-    p->utility_listOpcodes->Join();
-    delete p->utility_listOpcodes;
-    p->utility_listOpcodes = (CsoundUtility*) 0;
-  }
-  if (p->utility_cvanal) {
-    p->utility_cvanal->Join();
-    delete p->utility_cvanal;
-    p->utility_cvanal = (CsoundUtility*) 0;
-  }
-  if (p->utility_pvanal) {
-    p->utility_pvanal->Join();
-    delete p->utility_pvanal;
-    p->utility_pvanal = (CsoundUtility*) 0;
-  }
   if (window) {
     delete window;
     window = (Fl_Double_Window*) 0;

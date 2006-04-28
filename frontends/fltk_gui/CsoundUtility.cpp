@@ -84,7 +84,7 @@ int CsoundListOpcodesUtility::runUtility_(int argc, char **argv)
     return csoundCompile(csound, argc, argv);
 }
 
-int CsoundUtility::Join()
+int CsoundUtility::Stop()
 {
     if (status == 0)
       status = 1;
@@ -111,7 +111,7 @@ CsoundUtility::CsoundUtility(CsoundGUIConsole *consoleWindow,
 
 CsoundUtility::~CsoundUtility()
 {
-    this->Join();
+    this->Stop();
     utilityThread = (void*) 0;
     args.clear();
 }
