@@ -36,9 +36,21 @@ decl {Fl_Text_Buffer *text_buffer;} {public
 
 decl {\#include <FL/Fl_Pixmap.H>} {} 
 
+decl {\#include <FL/Fl_Preferences.H>} {public
+} 
+
 decl {\#include "winsound.xpm"} {} 
 
 decl {\#include "csound.h"} {public
+} 
+
+decl {void savetext(Fl_Text_Buffer*,int);} {public
+} 
+
+decl {extern Fl_Preferences app;} {public
+} 
+
+decl {extern Fl_Preferences prof;} {public
 } 
 
 decl {void cs_util_sndinfo(void);} {public
@@ -51,21 +63,27 @@ Function {make_mainwindow()} {open
 } {
   Fl_Window {} {
     label WinSound open
-    xywh {558 268 465 535} type Double visible
+    xywh {627 289 465 535} type Double visible
   } {
     Fl_File_Input orchname {
       label {Orchestra           }
       callback {do_load = 1;}
       tooltip {File for csd or orchestra file} xywh {130 15 310 30} labeltype EMBOSSED_LABEL
+      code0 {char *t; prof.get((const char*)"orchestra",t,"");}
+      code1 {o->value(t); free(t);}
     }
     Fl_File_Input scorename {
       label {Score           }
       tooltip {File for score} xywh {130 65 310 30} labeltype EMBOSSED_LABEL
+      code0 {char *t; prof.get("score",t,"");}
+      code1 {o->value(t); free(t);}
     }
     Fl_File_Input output {
       label {Output File           }
       callback {DAC->value(0);}
       tooltip {File for output, or dac or devaudio} xywh {130 120 310 30} labeltype EMBOSSED_LABEL
+      code0 {char *t; prof.get("output",t,"");}
+      code1 {o->value(t); free(t);}
     }
     Fl_Check_Button DAC {
       label DAC
@@ -83,7 +101,7 @@ aiff->value(0);
 ircam->value(0);
 raw->value(0);}
         xywh {65 195 25 25} down_box ROUND_DOWN_BOX
-        code0 {wav->value(1);}
+        code0 {int t; prof.get("W",t, 1);wav->value(t);}
       }
       Fl_Round_Button aiff {
         label AIFF
@@ -92,6 +110,7 @@ aiff->value(1);
 ircam->value(0);
 raw->value(0);}
         xywh {65 230 25 25} down_box ROUND_DOWN_BOX
+        code0 {int t; prof.get("A",t, 1);aiff->value(t);}
       }
       Fl_Round_Button ircam {
         label IRCAM
@@ -100,6 +119,7 @@ aiff->value(0);
 ircam->value(1);
 raw->value(0);}
         xywh {65 265 25 25} down_box ROUND_DOWN_BOX
+        code0 {int t; prof.get("J",t, 1);ircam->value(t);}
       }
       Fl_Round_Button raw {
         label Raw
@@ -108,6 +128,7 @@ aiff->value(0);
 ircam->value(0);
 raw->value(1);}
         xywh {65 300 25 25} down_box ROUND_DOWN_BOX
+        code0 {int t; prof.get("h",t,0); o->value(t);}
       }
     }
     Fl_Group {} {
@@ -122,6 +143,7 @@ size_24->value(0);
 size_32->value(0);
 size_f->value(0);}
         xywh {205 200 25 25} down_box ROUND_DOWN_BOX
+        code0 {int t; prof.get("c",t,0);o->value(t);}
       }
       Fl_Round_Button size_16 {
         label 16bit
@@ -131,7 +153,7 @@ size_24->value(0);
 size_32->value(0);
 size_f->value(0);}
         xywh {205 235 25 25} down_box ROUND_DOWN_BOX
-        code0 {size_16->value(1);}
+        code0 {int t; prof.get("s",t,1);o->value(t);}
       }
       Fl_Round_Button size_24 {
         label 24bit
@@ -141,6 +163,7 @@ size_24->value(1);
 size_32->value(0);
 size_f->value(0);}
         xywh {205 270 25 25} down_box ROUND_DOWN_BOX
+        code0 {int t; prof.get("3",t,0);o->value(t);}
       }
       Fl_Round_Button size_32 {
         label 32bit
@@ -150,6 +173,7 @@ size_24->value(0);
 size_32->value(1);
 size_f->value(0);}
         xywh {205 305 25 25} down_box ROUND_DOWN_BOX
+        code0 {int t; prof.get("l",t,0);o->value(t);}
       }
       Fl_Round_Button size_f {
         label floats
@@ -159,11 +183,13 @@ size_24->value(0);
 size_32->value(0);
 size_f->value(1);}
         xywh {205 335 25 25} down_box ROUND_DOWN_BOX
+        code0 {int t; prof.get("f",t,0);o->value(t);}
       }
     }
     Fl_Check_Button mK {
       label {Peak Chunks}
       tooltip {Include peak chunks in WAV output} xywh {40 350 110 25} down_box DOWN_BOX
+      code0 {int t; prof.get("K",t,1);o->value(t);}
     }
     Fl_Button {} {
       label Render
@@ -232,7 +258,7 @@ Function {make_utils()} {open
 } {
   Fl_Window {} {
     label Utilities open
-    xywh {808 439 215 300} type Double visible
+    xywh {808 449 215 300} type Double visible
   } {
     Fl_Round_Button util_het {
       label {Hetrodyne Analysis}
@@ -371,77 +397,87 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {516 198 400 350} type Double visible
+    xywh {516 208 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
       xywh {15 25 25 25} down_box DOWN_BOX
+      code0 {int t; prof.get("I",t,0);o->value(t);}
     }
     Fl_Check_Button mn {
       label {No sound to disk (-n)}
       xywh {15 58 25 25} down_box DOWN_BOX
+      code0 {int t; prof.get("n",t,0);o->value(t);}
     }
     Fl_Check_Button mv {
       label {Verbose (-v)}
       xywh {15 91 25 25} down_box DOWN_BOX
+      code0 {int t; prof.get("v",t,0);o->value(t);}
     }
     Fl_Check_Button mR {
       label {Rewrite Header (-R)}
       xywh {15 124 25 25} down_box DOWN_BOX
+      code0 {int t; prof.get("R",t,0);o->value(t);}
     }
     Fl_Value_Input mH {
       label {Heartbeat (-H)}
       xywh {15 157 30 25} align 8
+      code0 {int t; prof.get("H",t,0);o->value(t);}
     }
     Fl_Check_Button mN {
       label {Notify (-N)}
       xywh {15 190 25 25} down_box DOWN_BOX
+      code0 {int t; prof.get("N",t,0);o->value(t);}
     }
     Fl_Value_Input mr {
       label {SRate override (-r)}
       xywh {335 25 40 25}
-      code0 {mr->value(-1);}
+      code0 {int t; prof.get("r",t,-1);o->value(t);}
     }
     Fl_Value_Input mk {
       label {KRate override (-k)}
       xywh {335 56 40 25}
-      code0 {mk->value(-1);}
+      code0 {int t; prof.get("k",t,-1);o->value(t);}
     }
     Fl_Value_Input mm {
       label {Message level (-m)}
       xywh {335 87 40 25}
-      code0 {mm->value(7);}
+      code0 {int t; prof.get("m",t,7);o->value(t);}
     }
     Fl_Value_Input mt {
       label {Beats (-t)}
       xywh {335 118 40 25}
-      code0 {mt->value(-1);}
+      code0 {int t; prof.get("t",t,-1);o->value(t);}
     }
     Fl_Value_Input mB {
       label {Samples/Hardware (-B)}
       xywh {335 149 40 25}
-      code0 {mB->value(1024);}
+      code0 {int t; prof.get("B",t,1024);o->value(t);}
     }
     Fl_Value_Input mb {
       label {Samples/Hardware (-b)}
       xywh {335 180 40 25}
-      code0 {mb->value(512);}
+      code0 {int t; prof.get("b",t,512);o->value(t);}
     }
     Fl_File_Input mM {
       label {MIDI File input (-M)}
       xywh {20 240 160 25} align 5
+      code0 {char *t; prof.get("M",t,""); o->value(t); free(t);}
     }
     Fl_File_Input mi {
       label {Sound Input (-i)}
       xywh {210 240 160 30} align 5
+      code0 {char *t; prof.get("i",t,""); o->value(t); free(t);}
     }
     Fl_Check_Button mSave {
       label {Keep Sorted Score}
       xywh {20 275 25 25} down_box DOWN_BOX
+      code0 {int t; prof.get("t0",t,0);o->value(t);}
     }
     Fl_Check_Button mZ {
       label {Dither Output}
       xywh {215 280 25 25} down_box DOWN_BOX
+      code0 {int t; prof.get("Z",t,0);o->value(t);}
     }
     Fl_Button {} {
       label OK
@@ -471,27 +507,31 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {450 132 325 230} type Double visible
+    xywh {450 142 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
       xywh {95 15 185 25}
-      code0 {op->value(getenv("OPCODEDIR"));}
+      code0 {char *t; prof.get("envop",t, getenv("OPCODEDIR"));}
+      code1 {op->value(t);}
     }
     Fl_File_Input ss {
       label SSDIR
       xywh {95 60 185 25}
-      code0 {ss->value(getenv("SSDIR"));}
+      code0 {char *t; prof.get("envss",t, getenv("SSDIR"));}
+      code1 {ss->value(t);}
     }
     Fl_File_Input sf {
       label SFDIR
       xywh {95 105 185 25}
-      code0 {sf->value(getenv("SFDIR"));}
+      code0 {char *t; prof.get("envsf",t, getenv("SFDIR"));}
+      code1 {sf->value(t);}
     }
     Fl_File_Input sa {
-      label SADIR
+      label SADIR selected
       xywh {95 145 185 25}
-      code0 {sa->value(getenv("SADIR"));}
+      code0 {char *t; prof.get("envop",t, getenv("SADIR"));}
+      code1 {sa->value(t);}
     }
     Fl_Button {} {
       label OK
@@ -535,7 +575,7 @@ Function {make_info()} {open
 } {
   Fl_Window {} {
     label Sndinfo open
-    xywh {314 622 260 80} type Double visible
+    xywh {314 632 260 80} type Double visible
   } {
     Fl_File_Input sndinfo_file {
       xywh {0 0 260 30}
@@ -562,7 +602,7 @@ Function {make_info()} {open
 Function {make_anal()} {open
 } {
   Fl_Window analw {open
-    xywh {382 327 365 100} type Double visible
+    xywh {382 337 365 100} type Double visible
   } {
     Fl_File_Input analin {
       label Input
@@ -595,11 +635,11 @@ Function {make_anal()} {open
 Function {make_textwindow()} {open
 } {
   Fl_Window {} {open
-    xywh {176 96 725 570} type Double visible
+    xywh {639 514 725 570} type Double resizable visible
   } {
     Fl_Text_Display text {
       label {Winsound5 Output}
-      xywh {25 25 665 500}
+      xywh {25 25 665 500} resizable
       code0 {text_buffer = new Fl_Text_Buffer(1024);}
       code1 {text->buffer(text_buffer);}
     }
@@ -614,8 +654,41 @@ Function {make_textwindow()} {open
       xywh {90 535 45 25}
     }
     Fl_Button {} {
-      label Save
-      xywh {155 535 45 25} deactivate
+      label {Save All}
+      callback {savetext(text->buffer(),0);}
+      xywh {155 535 65 25}
+    }
+    Fl_Button {} {
+      label {Save Selection}
+      callback {savetext(text->buffer(),1);}
+      xywh {240 535 104 25}
+    }
+  }
+} 
+
+Function {make_saver()} {open
+} {
+  Fl_Window {} {
+    label {Save As} open
+    xywh {622 230 395 80} type Double visible
+  } {
+    Fl_File_Input savefile {
+      label {Save as}
+      xywh {60 5 285 30}
+    }
+    Fl_Button {} {
+      label {?}
+      xywh {345 5 30 30} color 5
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {do_util = 1;}
+      xywh {20 44 50 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {do_util = -1;}
+      xywh {325 47 50 25} color 1
     }
   }
 } 
@@ -624,15 +697,15 @@ Function {make_hetanal()} {open
 } {
   Fl_Window {} {
     callback {do_util = 0;} open
-    xywh {389 492 360 380} type Double visible
+    xywh {540 452 360 380} type Double visible
   } {
     Fl_File_Input het_analin {
       label Input
-      xywh {40 10 290 25}
+      xywh {50 5 280 30}
     }
     Fl_File_Input het_analout {
       label Output
-      xywh {40 35 290 25}
+      xywh {50 35 280 30}
       code0 {o->value("test.ads");}
     }
     Fl_Return_Button {} {
@@ -649,12 +722,12 @@ do_util = -1;}
     Fl_Button {} {
       label {?}
       callback {het_analin->value(fl_file_chooser("HETRO", "*.wav", NULL));}
-      xywh {330 10 25 25} color 5
+      xywh {330 5 25 30} color 5
     }
     Fl_Button {} {
       label {?}
       callback {het_analout->value(fl_file_chooser("Output", "*.ads", NULL));}
-      xywh {330 35 25 25} color 5
+      xywh {330 35 25 30} color 5
     }
     Fl_Group {} {open
       xywh {205 80 140 105} box THIN_DOWN_FRAME
@@ -665,7 +738,7 @@ do_util = -1;}
 het_c2->value(0);
 het_c3->value(0);
 het_c4->value(0);}
-        xywh {205 80 140 25} down_box ROUND_DOWN_BOX
+        xywh {220 80 140 25} down_box ROUND_DOWN_BOX
         code0 {o->value(1);}
       }
       Fl_Round_Button het_c1 {
@@ -674,7 +747,7 @@ het_c4->value(0);}
 het_c2->value(0);
 het_c3->value(0);
 het_c4->value(0);}
-        xywh {205 100 140 25} down_box ROUND_DOWN_BOX
+        xywh {220 100 140 25} down_box ROUND_DOWN_BOX
         code0 {o->value(0);}
       }
       Fl_Round_Button het_c2 {
@@ -683,7 +756,7 @@ het_c4->value(0);}
 het_c1->value(0);
 het_c3->value(0);
 het_c4->value(0);}
-        xywh {205 120 140 25} down_box ROUND_DOWN_BOX
+        xywh {220 120 140 25} down_box ROUND_DOWN_BOX
         code0 {o->value(0);}
       }
       Fl_Round_Button het_c3 {
@@ -692,7 +765,7 @@ het_c4->value(0);}
 het_c1->value(0);
 het_c2->value(0);
 het_c4->value(0);}
-        xywh {205 140 140 25} down_box ROUND_DOWN_BOX
+        xywh {220 140 140 25} down_box ROUND_DOWN_BOX
         code0 {o->value(0);}
       }
       Fl_Round_Button het_c4 {
@@ -701,7 +774,7 @@ het_c4->value(0);}
 het_c1->value(0);
 het_c2->value(0);
 het_c3->value(0);}
-        xywh {205 155 140 30} down_box ROUND_DOWN_BOX
+        xywh {220 155 140 30} down_box ROUND_DOWN_BOX
         code0 {o->value(0);}
       }
     }
@@ -757,15 +830,15 @@ Function {make_lpcanal()} {open
 } {
   Fl_Window {} {
     callback {do_util = 0;} open
-    xywh {848 779 410 320} type Double visible
+    xywh {848 789 410 320} type Double visible
   } {
     Fl_File_Input lpc_analin {
       label Input
-      xywh {40 10 330 25}
+      xywh {50 10 320 30}
     }
     Fl_File_Input lpc_analout {
       label Output
-      xywh {40 35 330 25}
+      xywh {50 40 320 30}
       code0 {o->value("test.lpc");}
     }
     Fl_Return_Button {} {
@@ -782,15 +855,15 @@ do_util = -1;}
     Fl_Button {} {
       label {?}
       callback {lpc_analin->value(fl_file_chooser("LPC", "*.wav", NULL));}
-      xywh {370 10 25 25} color 5
+      xywh {370 10 30 30} color 5
     }
     Fl_Button {} {
       label {?}
       callback {lpc_analout->value(fl_file_chooser("LPCout", "*.lpc", NULL));}
-      xywh {370 35 25 25} color 5
+      xywh {370 40 30 30} color 5
     }
     Fl_Group {} {open
-      xywh {230 80 165 85} box THIN_DOWN_FRAME
+      xywh {230 80 170 85} box THIN_DOWN_FRAME
     } {
       Fl_Round_Button lpc_c1 {
         label {Channel 1}
@@ -856,16 +929,13 @@ lpc_c3->value(0);}
       code0 {o->value(70);}
     }
     Fl_Value_Input lpc_Q {
-      label {High Pitch (-Q)} selected
+      label {High Pitch (-Q)}
       xywh {230 240 55 25} align 8
       code0 {o->value(200);}
     }
     Fl_Check_Button het_g {
       label Graphics
       xywh {230 165 95 20} down_box DOWN_BOX
-    }
-    Fl_Check_Button {} {
-      xywh {50 25 25 25} down_box DOWN_BOX
     }
   }
 } 
