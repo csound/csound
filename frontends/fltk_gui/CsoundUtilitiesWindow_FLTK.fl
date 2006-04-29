@@ -24,7 +24,7 @@ class CsoundUtilitiesWindow {open selected
       } {
         Fl_Group {} {
           label Convolve open
-          xywh {0 25 450 365}
+          tooltip {Sound file analysis for convolve} xywh {0 25 450 365} labelsize 12
         } {
           Fl_Group {} {open
             xywh {10 35 430 310} box ENGRAVED_FRAME
@@ -105,7 +105,7 @@ else
         }
         Fl_Group {} {
           label PVOC open
-          xywh {0 25 450 365} hide
+          tooltip {Sound file analysis for PVOC} xywh {0 25 450 365} labelsize 12 hide
         } {
           Fl_Group {} {open
             xywh {10 35 430 310} box ENGRAVED_FRAME
@@ -230,8 +230,98 @@ else
           }
         }
         Fl_Group {} {
+          label Adsyn open
+          tooltip {Sound file analysis for adsyn} xywh {0 25 450 365} labelsize 12 hide
+        } {
+          Fl_Group {} {open
+            xywh {10 35 430 310} box ENGRAVED_FRAME
+          } {}
+          Fl_Button hetroButton {
+            label Start
+            callback {if (p->utilityState & CSOUND5GUI_HETRO_RUNNING)
+  p->stopHetro();
+else
+  p->startHetro();}
+            xywh {365 355 75 25}
+            code0 {if (!(p->utilityState & CSOUND5GUI_HETRO_RUNNING)) o->label("Start");}
+            code1 {if (p->utilityState & CSOUND5GUI_HETRO_RUNNING) o->label("Stop");}
+          }
+        }
+        Fl_Group {} {
+          label LPC open
+          tooltip {Linear predictive analysis} xywh {0 25 450 365} labelsize 12 hide
+        } {
+          Fl_Group {} {open
+            xywh {10 35 430 310} box ENGRAVED_FRAME
+          } {}
+          Fl_Button lpanalButton {
+            label Start
+            callback {if (p->utilityState & CSOUND5GUI_LPANAL_RUNNING)
+  p->stopLpanal();
+else
+  p->startLpanal();}
+            xywh {365 355 75 25}
+            code0 {if (!(p->utilityState & CSOUND5GUI_LPANAL_RUNNING)) o->label("Start");}
+            code1 {if (p->utilityState & CSOUND5GUI_LPANAL_RUNNING) o->label("Stop");}
+          }
+        }
+        Fl_Group {} {
+          label Srconv open
+          tooltip {Sample rate conversion} xywh {0 25 450 365} labelsize 12 hide
+        } {
+          Fl_Group {} {open
+            xywh {10 35 430 310} box ENGRAVED_FRAME
+          } {}
+          Fl_Button srconvButton {
+            label Start
+            callback {if (p->utilityState & CSOUND5GUI_SRCONV_RUNNING)
+  p->stopSrconv();
+else
+  p->startSrconv();}
+            xywh {365 355 75 25}
+            code0 {if (!(p->utilityState & CSOUND5GUI_SRCONV_RUNNING)) o->label("Start");}
+            code1 {if (p->utilityState & CSOUND5GUI_SRCONV_RUNNING) o->label("Stop");}
+          }
+        }
+        Fl_Group {} {
+          label Dnoise open
+          tooltip {Noise reduction} xywh {0 25 450 365} labelsize 12 hide
+        } {
+          Fl_Group {} {open
+            xywh {10 35 430 310} box ENGRAVED_FRAME
+          } {}
+          Fl_Button dnoiseButton {
+            label Start
+            callback {if (p->utilityState & CSOUND5GUI_DNOISE_RUNNING)
+  p->stopDnoise();
+else
+  p->startDnoise();}
+            xywh {365 355 75 25}
+            code0 {if (!(p->utilityState & CSOUND5GUI_DNOISE_RUNNING)) o->label("Start");}
+            code1 {if (p->utilityState & CSOUND5GUI_DNOISE_RUNNING) o->label("Stop");}
+          }
+        }
+        Fl_Group {} {
+          label Sndinfo open
+          tooltip {Print information about a sound file} xywh {0 25 450 365} labelsize 12 hide
+        } {
+          Fl_Group {} {open
+            xywh {10 35 430 310} box ENGRAVED_FRAME
+          } {}
+          Fl_Button sndinfoButton {
+            label Start
+            callback {if (p->utilityState & CSOUND5GUI_SNDINFO_RUNNING)
+  p->stopSndinfo();
+else
+  p->startSndinfo();}
+            xywh {365 355 75 25}
+            code0 {if (!(p->utilityState & CSOUND5GUI_SNDINFO_RUNNING)) o->label("Start");}
+            code1 {if (p->utilityState & CSOUND5GUI_SNDINFO_RUNNING) o->label("Stop");}
+          }
+        }
+        Fl_Group {} {
           label {List opcodes} open
-          xywh {0 25 450 365} hide
+          tooltip {List opcodes in this version of Csound} xywh {0 25 450 365} labelsize 12 hide
         } {
           Fl_Group {} {open
             xywh {10 35 430 310} box ENGRAVED_FRAME

@@ -22,9 +22,15 @@ class CsoundGUIMain {open selected
   decl {CsoundGlobalSettingsPanel *globalSettingsWindow;} {}
   decl {CsoundPerformanceSettingsPanel *performanceSettingsWindow;} {}
   decl {CsoundUtilitiesWindow *utilitiesWindow;} {}
+  decl {CsoundAboutWindow *aboutWindow;} {}
   decl {CsoundUtility *utility_listOpcodes;} {}
   decl {CsoundUtility *utility_cvanal;} {}
   decl {CsoundUtility *utility_pvanal;} {}
+  decl {CsoundUtility *utility_hetro;} {}
+  decl {CsoundUtility *utility_lpanal;} {}
+  decl {CsoundUtility *utility_sndinfo;} {}
+  decl {CsoundUtility *utility_srconv;} {}
+  decl {CsoundUtility *utility_dnoise;} {}
   decl {int utilityState;} {public
   }
   Function {CsoundGUIMain()} {open
@@ -38,9 +44,15 @@ class CsoundGUIMain {open selected
   globalSettingsWindow = (CsoundGlobalSettingsPanel*) 0;
   performanceSettingsWindow = (CsoundPerformanceSettingsPanel*) 0;
   utilitiesWindow = (CsoundUtilitiesWindow*) 0;
+  aboutWindow = (CsoundAboutWindow*) 0;
   utility_listOpcodes = (CsoundUtility*) 0;
   utility_cvanal = (CsoundUtility*) 0;
   utility_pvanal = (CsoundUtility*) 0;
+  utility_hetro = (CsoundUtility*) 0;
+  utility_lpanal = (CsoundUtility*) 0;
+  utility_sndinfo = (CsoundUtility*) 0;
+  utility_srconv = (CsoundUtility*) 0;
+  utility_dnoise = (CsoundUtility*) 0;
   utilityState = 0;
 }} {}
     Fl_Window window {
@@ -205,26 +217,37 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
       Fl_Group {} {open
         xywh {245 135 105 140} box ENGRAVED_FRAME
       } {
-        Fl_Button {} {
+        Fl_Menu_Button {} {
           label Options
-          callback {openGlobalSettingsWindow();}
-          xywh {255 140 85 25}
-        }
+          callback {if (o->value() == 0)
+  openGlobalSettingsWindow();
+else if (o->value() == 1)
+  openPerformanceSettingsWindow();} open
+          xywh {255 140 85 25} align 20
+          code0 {o->add("General...|Csound...");}
+          code1 {o->value(0);}
+        } {}
         Fl_Button {} {
-          label Utilities
+          label {Utilities...}
           callback {openUtilitiesWindow();}
-          xywh {255 175 85 25}
+          xywh {255 175 85 25} align 20
         }
-        Fl_Button {} {
-          label About
-          tooltip {Print copyright information} xywh {255 210 85 25}
-        }
+        Fl_Menu_Button {} {
+          label Help
+          callback {if (o->value() == 0)
+  runHelpBrowser();
+else
+  openAboutWindow();} open
+          xywh {255 210 85 25} align 20
+          code0 {o->add("Manual|About");}
+          code1 {o->value(0);}
+        } {}
         Fl_Button {} {
           label Messages
           callback {if (!consoleWindow.window->shown())
   consoleWindow.Clear();
   consoleWindow.window->show();}
-          tooltip {Show Csound console messages} xywh {255 245 85 25}
+          tooltip {Show Csound console messages} xywh {255 245 85 25} align 20
         }
       }
     }
@@ -265,6 +288,8 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
   }
   decl {void editSoundFile(const char *);} {public
   }
+  decl {void runHelpBrowser();} {public
+  }
   decl {static int yieldCallback(CSOUND *);} {}
   decl {void checkUtilities();} {}
   decl {void openGlobalSettingsWindow();} {public
@@ -276,6 +301,9 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
   decl {void openUtilitiesWindow();} {public
   }
   decl {void closeUtilitiesWindow();} {}
+  decl {void openAboutWindow();} {public
+  }
+  decl {void closeAboutWindow();} {}
   decl {void startListOpcodes();} {public
   }
   decl {void stopListOpcodes();} {public
@@ -287,5 +315,25 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
   decl {void startPvanal();} {public
   }
   decl {void stopPvanal();} {public
+  }
+  decl {void startHetro();} {public
+  }
+  decl {void stopHetro();} {public
+  }
+  decl {void startLpanal();} {public
+  }
+  decl {void stopLpanal();} {public
+  }
+  decl {void startSndinfo();} {public
+  }
+  decl {void stopSndinfo();} {public
+  }
+  decl {void startSrconv();} {public
+  }
+  decl {void stopSrconv();} {public
+  }
+  decl {void startDnoise();} {public
+  }
+  decl {void stopDnoise();} {public
   }
 } 

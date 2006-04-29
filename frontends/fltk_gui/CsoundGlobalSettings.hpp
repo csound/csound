@@ -27,6 +27,7 @@ class CsoundGlobalSettings {
  public:
     std::string textEditorProgram;
     std::string soundEditorProgram;
+    std::string helpBrowserProgram;
     std::string performanceSettings1_Name;
     std::string performanceSettings2_Name;
     std::string performanceSettings3_Name;

@@ -350,6 +350,12 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
     err |= writeString(f, cfg.textEditorProgram);
     err |= writeInt_(f, 10002);
     err |= writeString(f, cfg.soundEditorProgram);
+    err |= writeInt_(f, 10003);
+    err |= writeBool(f, &(cfg.forcePerformanceSettings));
+    err |= writeInt_(f, 10004);
+    err |= writeBool(f, &(cfg.editSoundFileAfterPerformance));
+    err |= writeInt_(f, 10005);
+    err |= writeString(f, cfg.helpBrowserProgram);
     err |= writeInt_(f, 10101);
     err |= writeString(f, cfg.performanceSettings1_Name);
     err |= writeInt_(f, 10102);
@@ -370,10 +376,6 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
     err |= writeString(f, cfg.performanceSettings9_Name);
     err |= writeInt_(f, 10110);
     err |= writeString(f, cfg.performanceSettings10_Name);
-    err |= writeInt_(f, 10003);
-    err |= writeBool(f, &(cfg.forcePerformanceSettings));
-    err |= writeInt_(f, 10004);
-    err |= writeBool(f, &(cfg.editSoundFileAfterPerformance));
     err |= writeInt_(f, 0);
     std::fclose(f);
 
@@ -595,6 +597,18 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
         if (readString(f, tmp->soundEditorProgram) != 0)
           goto err_return;
         break;
+      case 10003:
+        if (readBool(f, &(tmp->forcePerformanceSettings)) != 0)
+          goto err_return;
+        break;
+      case 10004:
+        if (readBool(f, &(tmp->editSoundFileAfterPerformance)) != 0)
+          goto err_return;
+        break;
+      case 10005:
+        if (readString(f, tmp->helpBrowserProgram) != 0)
+          goto err_return;
+        break;
       case 10101:
         if (readString(f, tmp->performanceSettings1_Name) != 0)
           goto err_return;
@@ -633,14 +647,6 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundGlobalSettings& cfg)
         break;
       case 10110:
         if (readString(f, tmp->performanceSettings10_Name) != 0)
-          goto err_return;
-        break;
-      case 10003:
-        if (readBool(f, &(tmp->forcePerformanceSettings)) != 0)
-          goto err_return;
-        break;
-      case 10004:
-        if (readBool(f, &(tmp->editSoundFileAfterPerformance)) != 0)
           goto err_return;
         break;
       default:

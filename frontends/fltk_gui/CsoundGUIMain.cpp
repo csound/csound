@@ -382,6 +382,7 @@ void CsoundGUIMain::run()
     closePerformanceSettingsWindow();
     closeGlobalSettingsWindow();
     closeUtilitiesWindow();
+    closeAboutWindow();
     utilityState = 0;
 }
 
@@ -472,6 +473,12 @@ void CsoundGUIMain::editSoundFile(const char *fileName_)
     cmd += fileName;
     cmd += '"';
     runCmd(cmd);
+}
+
+void CsoundGUIMain::runHelpBrowser()
+{
+    if (!isEmptyString(currentGlobalSettings.helpBrowserProgram))
+      runCmd(currentGlobalSettings.helpBrowserProgram);
 }
 
 CsoundGUIMain::~CsoundGUIMain()
@@ -587,6 +594,136 @@ void CsoundGUIMain::stopPvanal()
     utilityState &= (~CSOUND5GUI_PVANAL_RUNNING);
 }
 
+void CsoundGUIMain::startHetro()
+{
+    checkUtilities();
+    if (utility_hetro)
+      return;
+    utility_hetro = CreateUtility_Hetro(&consoleWindow,
+                                        currentUtilitySettings);
+    if (utility_hetro) {
+      utilityState |= CSOUND5GUI_HETRO_RUNNING;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->hetroButton->label("Stop");
+    }
+}
+
+void CsoundGUIMain::stopHetro()
+{
+    if (utility_hetro) {
+      utility_hetro->Stop();
+      delete utility_hetro;
+      utility_hetro = (CsoundUtility*) 0;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->hetroButton->label("Start");
+    }
+    utilityState &= (~CSOUND5GUI_HETRO_RUNNING);
+}
+
+void CsoundGUIMain::startLpanal()
+{
+    checkUtilities();
+    if (utility_lpanal)
+      return;
+    utility_lpanal = CreateUtility_Lpanal(&consoleWindow,
+                                          currentUtilitySettings);
+    if (utility_lpanal) {
+      utilityState |= CSOUND5GUI_LPANAL_RUNNING;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->lpanalButton->label("Stop");
+    }
+}
+
+void CsoundGUIMain::stopLpanal()
+{
+    if (utility_lpanal) {
+      utility_lpanal->Stop();
+      delete utility_lpanal;
+      utility_lpanal = (CsoundUtility*) 0;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->lpanalButton->label("Start");
+    }
+    utilityState &= (~CSOUND5GUI_LPANAL_RUNNING);
+}
+
+void CsoundGUIMain::startSndinfo()
+{
+    checkUtilities();
+    if (utility_sndinfo)
+      return;
+    utility_sndinfo = CreateUtility_Sndinfo(&consoleWindow,
+                                            currentUtilitySettings);
+    if (utility_sndinfo) {
+      utilityState |= CSOUND5GUI_SNDINFO_RUNNING;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->sndinfoButton->label("Stop");
+    }
+}
+
+void CsoundGUIMain::stopSndinfo()
+{
+    if (utility_sndinfo) {
+      utility_sndinfo->Stop();
+      delete utility_sndinfo;
+      utility_sndinfo = (CsoundUtility*) 0;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->sndinfoButton->label("Start");
+    }
+    utilityState &= (~CSOUND5GUI_SNDINFO_RUNNING);
+}
+
+void CsoundGUIMain::startSrconv()
+{
+    checkUtilities();
+    if (utility_srconv)
+      return;
+    utility_srconv = CreateUtility_Srconv(&consoleWindow,
+                                          currentUtilitySettings);
+    if (utility_srconv) {
+      utilityState |= CSOUND5GUI_SRCONV_RUNNING;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->srconvButton->label("Stop");
+    }
+}
+
+void CsoundGUIMain::stopSrconv()
+{
+    if (utility_srconv) {
+      utility_srconv->Stop();
+      delete utility_srconv;
+      utility_srconv = (CsoundUtility*) 0;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->srconvButton->label("Start");
+    }
+    utilityState &= (~CSOUND5GUI_SRCONV_RUNNING);
+}
+
+void CsoundGUIMain::startDnoise()
+{
+    checkUtilities();
+    if (utility_dnoise)
+      return;
+    utility_dnoise = CreateUtility_Dnoise(&consoleWindow,
+                                          currentUtilitySettings);
+    if (utility_dnoise) {
+      utilityState |= CSOUND5GUI_DNOISE_RUNNING;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->dnoiseButton->label("Stop");
+    }
+}
+
+void CsoundGUIMain::stopDnoise()
+{
+    if (utility_dnoise) {
+      utility_dnoise->Stop();
+      delete utility_dnoise;
+      utility_dnoise = (CsoundUtility*) 0;
+      if (utilitiesWindow && utilitiesWindow->window->shown())
+        utilitiesWindow->dnoiseButton->label("Start");
+    }
+    utilityState &= (~CSOUND5GUI_DNOISE_RUNNING);
+}
+
 // ----------------------------------------------------------------------------
 
 void CsoundGUIMain::openPerformanceSettingsWindow()
@@ -665,12 +802,41 @@ void CsoundGUIMain::closeUtilitiesWindow()
     stopListOpcodes();
     stopCvanal();
     stopPvanal();
+    stopHetro();
+    stopLpanal();
+    stopSndinfo();
+    stopSrconv();
+    stopDnoise();
     if (utilitiesWindow) {
       delete utilitiesWindow;
       utilitiesWindow = (CsoundUtilitiesWindow*) 0;
       writeCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
     }
     utilityState &= (~CSOUND5GUI_UTILWIN_OPEN);
+}
+
+void CsoundGUIMain::openAboutWindow()
+{
+    if (!aboutWindow) {
+      // performing = false;
+      // paused = true;
+      // updateGUIValues();
+      // Fl::wait(0.0);
+      aboutWindow = new CsoundAboutWindow();
+      if (aboutWindow) {
+        utilityState |= CSOUND5GUI_ABOUTWIN_OPEN;
+        aboutWindow->window->show();
+      }
+    }
+}
+
+void CsoundGUIMain::closeAboutWindow()
+{
+    if (aboutWindow) {
+      delete aboutWindow;
+      aboutWindow = (CsoundAboutWindow*) 0;
+    }
+    utilityState &= (~CSOUND5GUI_ABOUTWIN_OPEN);
 }
 
 // ----------------------------------------------------------------------------
@@ -684,15 +850,32 @@ void CsoundGUIMain::checkUtilities()
         (performanceSettingsWindow->status != 0 ||
          !performanceSettingsWindow->window->shown()))
       closePerformanceSettingsWindow();
-    if (utilitiesWindow &&
-        !utilitiesWindow->window->shown())
+    if (utilitiesWindow && !utilitiesWindow->window->shown())
       closeUtilitiesWindow();
+    if (aboutWindow && !aboutWindow->window->shown())
+      closeAboutWindow();
 
-    if (utility_listOpcodes && utility_listOpcodes->GetStatus() != 0)
-      stopListOpcodes();
-    if (utility_cvanal && utility_cvanal->GetStatus() != 0)
-      stopCvanal();
-    if (utility_pvanal && utility_pvanal->GetStatus() != 0)
-      stopPvanal();
+    if ((utilityState
+         & (CSOUND5GUI_LISTOPCODES_RUNNING | CSOUND5GUI_CVANAL_RUNNING |
+            CSOUND5GUI_PVANAL_RUNNING | CSOUND5GUI_HETRO_RUNNING |
+            CSOUND5GUI_LPANAL_RUNNING | CSOUND5GUI_SNDINFO_RUNNING |
+            CSOUND5GUI_SRCONV_RUNNING | CSOUND5GUI_DNOISE_RUNNING)) != 0) {
+      if (utility_listOpcodes && utility_listOpcodes->GetStatus() != 0)
+        stopListOpcodes();
+      if (utility_cvanal && utility_cvanal->GetStatus() != 0)
+        stopCvanal();
+      if (utility_pvanal && utility_pvanal->GetStatus() != 0)
+        stopPvanal();
+      if (utility_hetro && utility_hetro->GetStatus() != 0)
+        stopHetro();
+      if (utility_lpanal && utility_lpanal->GetStatus() != 0)
+        stopLpanal();
+      if (utility_sndinfo && utility_sndinfo->GetStatus() != 0)
+        stopSndinfo();
+      if (utility_srconv && utility_srconv->GetStatus() != 0)
+        stopSrconv();
+      if (utility_dnoise && utility_dnoise->GetStatus() != 0)
+        stopDnoise();
+    }
 }
 
