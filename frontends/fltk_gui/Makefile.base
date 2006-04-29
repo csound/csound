@@ -1,5 +1,6 @@
 
-FLUID_FL =	CsoundGUIConsole_FLTK.fl		\
+FLUID_FL =	CsoundAboutWindow_FLTK.fl		\
+		CsoundGUIConsole_FLTK.fl		\
 		CsoundGUIMain_FLTK.fl			\
 		CsoundGlobalSettingsPanel_FLTK.fl	\
 		CsoundPerformanceSettingsPanel_FLTK.fl	\

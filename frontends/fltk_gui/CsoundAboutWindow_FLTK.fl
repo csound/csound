@@ -1,0 +1,37 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0107 
+do_not_include_H_from_C 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include "CsoundGUI.hpp"} {} 
+
+class CsoundAboutWindow {open selected
+} {
+  decl {Fl_Text_Buffer *buf;} {}
+  Function {CsoundAboutWindow()} {open
+  } {
+    code {buf = new Fl_Text_Buffer();} {}
+    Fl_Window window {
+      label {Csound copyright information} open
+      xywh {227 242 450 300} type Double resizable visible
+    } {
+      Fl_Text_Display textDisplay {
+        xywh {10 10 430 280}
+        code0 {o->buffer(buf);}
+      }
+    }
+  }
+  Function {~CsoundAboutWindow()} {open
+  } {
+    code {{
+  if (window) {
+    delete window;
+    window = (Fl_Double_Window*) 0;
+  }
+  if (buf) {
+    delete buf;
+    buf = (Fl_Text_Buffer*) 0;
+  }
+}} {}
+  }
+} 
