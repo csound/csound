@@ -33,14 +33,7 @@
 #include <X11/Xlib.h>
 #endif
 
-extern uintptr_t  MakeWindow_FLTK(char *);
-extern void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr);
-extern int  CsoundYield_FLTK(CSOUND *csound);
-extern void kill_graph(uintptr_t);
-extern void MakeXYin_FLTK(CSOUND *, XYINDAT *, MYFLT, MYFLT);
-extern void ReadXYin_FLTK(CSOUND *, XYINDAT *);
-extern void KillXYin_FLTK(CSOUND *, XYINDAT *);
-extern int  ExitGraph_FLTK(CSOUND *csound);
+#include "winFLTK.h"
 
 static void MakeGraph_FLTK(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
@@ -54,11 +47,15 @@ static void KillGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
 
 void set_display_callbacks(CSOUND *csound)
 {
-#ifdef LINUX
-    Display *dpy = XOpenDisplay(NULL);
-    if (dpy == NULL)
+    if (getFLTKFlags(csound) & 2)
       return;
-    XCloseDisplay(dpy);
+#ifdef LINUX
+    {
+      Display *dpy = XOpenDisplay(NULL);
+      if (dpy == NULL)
+        return;
+      XCloseDisplay(dpy);
+    }
 #endif
     if (csound->SetIsGraphable(csound, 1) != 0)
       return;
@@ -66,6 +63,7 @@ void set_display_callbacks(CSOUND *csound)
       return;
     if (csound->oparms->graphsoff || csound->oparms->postscript)
       return;
+    *((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags")) |= 64;
     csound->SetYieldCallback(csound, CsoundYield_FLTK);
     csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
     csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
