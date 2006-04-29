@@ -68,7 +68,8 @@ void cs_compile_run(void)
       char *argv[100];
       char b1[12], b2[12], b3[12], b4[12], b5[12], b6[12], b7[12];
       int nxt=1;
-
+      int itmp;
+      char *stmp;
       /* Remember profile */
       prof.set("orchestra", orchname->value());
       prof.set("score", scorename->value());
@@ -79,26 +80,12 @@ void cs_compile_run(void)
       prof.set("h",raw->value());
       prof.set("I",mI->value());
       prof.set("F",mi->value());
-      prof.set("n",mn->value());
-      prof.set("b",mb->value());
-      prof.set("B",mB->value());
       prof.set("c",size_8->value());
       prof.set("s",size_16->value());
       prof.set("l",size_32->value());
       prof.set("f",size_f->value());
       prof.set("3",size_24->value());
-      prof.set("r",mr->value());
-      prof.set("k",mk->value());
       prof.set("K",mK->value());
-      prof.set("v",mv->value());
-      prof.set("m",mm->value());
-      prof.set("t",mt->value());
-      prof.set("t0",mSave->value());
-      prof.set("M",mM->value());
-      prof.set("R",mR->value());
-      prof.set("H",mH->value());
-      prof.set("N",mN->value());
-      prof.set("Z",mZ->value());
       argv[0] = "winsound5";
       argv[nxt++] = (char *)orchname->value();
       if (strstr(argv[nxt-1], ".csd")==NULL)
@@ -111,18 +98,19 @@ void cs_compile_run(void)
       else if (aiff->value()) argv[nxt++] = "-A";
       else if (ircam->value()) argv[nxt++] = "-J";
       else if (raw->value()) argv[nxt++] = "-h";
-      if (mI->value()) argv[nxt++] = "-I";
-      if (mn->value()) argv[nxt++] = "-n";
-      if (strlen(mi->value())!=0) {
+      prof.get("I",itmp, 0); if (itmp) argv[nxt++] = "-I";
+      prof.get("n",itmp, 0); if (itmp) argv[nxt++] = "-n";
+      prof.get("F", stmp, ""); if (strlen(stmp)!=0) {
         argv[nxt++] = "-F";
         argv[nxt++] = (char *)mi->value();
       }
-      if (mb->value()>0) {
-        sprintf(b1, "-b%d", (int)mb->value());
+      free(stmp);
+      prof.get("b",itmp,512); if (itmp!=512) {
+        sprintf(b1, "-b%d", itmp);
         argv[nxt++] = b1;
       }
-      if (mB->value()>0) {
-        sprintf(b2, "-B%d", (int)mB->value());
+      prof.get("B",itmp,1024); if (itmp!=1024) {
+        sprintf(b2, "-B%d", itmp);
         argv[nxt++] = b2;
       }
       if (size_8->value()) argv[nxt++] = "-c";
@@ -130,50 +118,55 @@ void cs_compile_run(void)
       else if (size_32->value()) argv[nxt++] = "-l";
       else if (size_f->value()) argv[nxt++] = "-f";
       else if (size_24->value()) argv[nxt++] = "-3";
-      if (mr->value()>0) {
-        sprintf(b3, "-r%d", (int)mr->value());
+      prof.get("r", itmp, -1);if (itmp>=0) {
+        sprintf(b3, "-r%d", itmp);
         argv[nxt++] = b3;
       }
-      if (mk->value()>0) {
-        sprintf(b4, "-k%d",(int)mk->value());
+      prof.get("k",itmp, -1);if (itmp>=0) {
+        sprintf(b4, "-k%d",itmp);
         argv[nxt++] = b4;
       }
       if (mK->value()==0) argv[nxt++] = "-K";
-      if (mv->value())  argv[nxt++] = "-v";
-      if (mm->value()>0) {
-        sprintf(b5, "-m%d", (int)mm->value());
-        argv[nxt++] = b5;
-      }
-      if (mt->value()>0) {
-        sprintf(b6, "-t%d", (int)mt->value());
+      prof.get("v",itmp,0); if (itmp) argv[nxt++] = "-v";
+      prof.get("m",itmp,7);
+      sprintf(b5, "-m%d", itmp);
+      argv[nxt++] = b5;
+      prof.get("t",itmp,-1); if (itmp>=0) {
+        sprintf(b6, "-t%d", itmp);
         argv[nxt++] = b6;
       }
-      if (mSave->value())
+      prof.get("t0",itmp, 0); if (itmp)
         argv[nxt++] = "-t0";
 
-      if (strlen(mM->value())>0) {
+      prof.get("M", stmp, ""); if (strlen(stmp)>0) {
         argv[nxt++] = "-M";
-        argv[nxt++] = (char *)mM->value();
+        argv[nxt++] = stmp;
       }
-      if (mR->value()) argv[nxt++] = "-R";
-      if (mH->value()>0) {
-        sprintf(b7, "-H%d", (int)mH->value());
+      free(stmp);
+      prof.get("R",itmp,0); if (itmp) argv[nxt++] = "-R";
+      prof.get("H",itmp,0); if (itmp>0) {
+        sprintf(b7, "-H%d", itmp);
         argv[nxt++] = b7;
       }
-      if (mN->value()) argv[nxt++] = "-N";
-      if (mZ->value()) argv[nxt++] = "-Z";
-
+      prof.get("N", itmp, 0); if (itmp) argv[nxt++] = "-N";
+      prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = "-Z";
+      argv[nxt++] = "-d";       // for the moment
 //       for (n=1; n<nxt; n++)
 //         printf("arg %d: %s\n", n, argv[n]);
 
       csoundReset(csound);
       //      csoundSetYieldCallback(csound, yieldCallback);
-      res = csoundCompile(csound, nxt-1, argv);
+      { int n;
+      for (n=0; n<nxt; n++) printf("%d: %s\n", n, argv[n]);
+      }
+      res = csoundCompile(csound, nxt, argv);
     }
-    else
+    //    else
       csoundRewindScore(csound);
     Fl::wait(0);
     fprintf(stderr, "Starting call\n");
+    res = 0;
+    csoundSetYieldCallback(csound, yieldCallback);
     while (res==0 && do_perf) {
       if (do_exit) return;
       res = csoundPerformKsmps(csound);
