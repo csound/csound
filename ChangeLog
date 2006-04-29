@@ -1,8 +1,31 @@
+2006-04-29	Istvan Varga	<ivarga@csounds.com>
+	* Made it possible to control the behavior of the FLTK plugin
+	  from the host application. This can be done with the following
+	  code between calling csoundPreCompile() and csoundCompile():
+	    CSOUND *csound;
+	    ...
+	    csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
+	    *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = flags;
+	  where 'flags' can be the sum of any of the following values:
+	    1: disable widget opcodes
+	    2: disable FLTK graphs
+	    4: disable the use of a separate thread for widget opcodes
+	    8: disable the use of Fl::lock() and Fl::unlock()
+	   16: disable the use of Fl::awake()
+	  additionally, after calling csoundCompile(), the same variable
+	  can be checked to find out if graphs or widget opcodes are used:
+	   32: FLrun opcode was called
+	   64: callbacks for FLTK graphs are set
+	* Top/main.c:
+	  fixed crash on registering opcodes from the host application
+	* frontends/fltk_gui:
+	  new GUI frontend that uses the Csound 5 API and FLTK
+
 2006-04-19	Michael gogins	<gogins@pipeline.com>
 
 	* Updated Lua to version 5.1 (current version),
 	changed lua_example.lua to use Class:method calls.
-	
+
 2006-04-17	John ffitch	<jpff@codemist.co.uk>
 
 	* Opcodes/bilbar.c: Added prepared piano string model
