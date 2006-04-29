@@ -73,6 +73,7 @@
 using namespace std;
 
 #include "csdl.h"
+#include "winFLTK.h"
 
 #define CSOUND_WIDGETS_CPP 1
 #include "widgets.h"
@@ -96,36 +97,6 @@ typedef struct widgetsGlobals_s {
     void        *threadHandle;
 } widgetsGlobals_t;
 #endif
-
-#ifndef NO_FLTK_THREADS
-static inline void lock(CSOUND *csound)
-{
-    (void) csound;
-    Fl::lock();
-}
-
-static inline void unlock(CSOUND *csound)
-{
-    (void) csound;
-    Fl::unlock();
-}
-
-static inline void awake(CSOUND *csound)
-{
-    (void) csound;
-    Fl::awake();
-}
-#else
-static inline void lock(CSOUND *csound)
-{
-    (void) csound;
-}
-
-static inline void unlock(CSOUND *csound)
-{
-    (void) csound;
-}
-#endif  // NO_FLTK_THREADS
 
 #ifndef NO_FLTK_THREADS
 extern "C" {
@@ -195,57 +166,61 @@ extern "C" {
   void ButtonSched(CSOUND *csound, MYFLT *args[], int numargs)
   { /* based on code by rasmus */
 #ifndef NO_FLTK_THREADS
-    widgetsGlobals_t  *p;
-    rtEvt_t           *evt;
-    int               i;
+    if (!(getFLTKFlags(csound) & 4)) {
+      widgetsGlobals_t  *p;
+      rtEvt_t           *evt;
+      int               i;
 
-    /* this is still not fully thread safe... */
-    /* hope that no global variable is created just while this fn is called */
-    p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
-                                                        "_widgets_globals");
-    if (p == NULL)
-      return;
-    /* Create the new event */
-    evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
-    evt->nxt = NULL;
-    evt->evt.strarg = NULL;
-    evt->evt.opcod = (char) *args[0];
-    if (evt->evt.opcod == '\0')
-      evt->evt.opcod = 'i';
-    evt->evt.pcnt = numargs - 1;
-    evt->evt.p[1] = evt->evt.p[2] = evt->evt.p[3] = FL(0.0);
-    for (i = 1; i < numargs; i++)
-      evt->evt.p[i] = *args[i];
-    if (evt->evt.p[2] < FL(0.0))
-      evt->evt.p[2] = FL(0.0);
-    /* queue event for insertion by main Csound thread */
-    csound->WaitThreadLock(p->threadLock, 1000);
-    if (p->eventQueue == NULL)
-      p->eventQueue = evt;
-    else {
-      rtEvt_t *ep = p->eventQueue;
-      while (ep->nxt != NULL)
-        ep = ep->nxt;
-      ep->nxt = evt;
+      /* this is still not fully thread safe... */
+      /* hope that no global variable is created just while this fn is called */
+      p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                          "_widgets_globals");
+      if (p == NULL)
+        return;
+      /* Create the new event */
+      evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
+      evt->nxt = NULL;
+      evt->evt.strarg = NULL;
+      evt->evt.opcod = (char) *args[0];
+      if (evt->evt.opcod == '\0')
+        evt->evt.opcod = 'i';
+      evt->evt.pcnt = numargs - 1;
+      evt->evt.p[1] = evt->evt.p[2] = evt->evt.p[3] = FL(0.0);
+      for (i = 1; i < numargs; i++)
+        evt->evt.p[i] = *args[i];
+      if (evt->evt.p[2] < FL(0.0))
+        evt->evt.p[2] = FL(0.0);
+      /* queue event for insertion by main Csound thread */
+      csound->WaitThreadLock(p->threadLock, 1000);
+      if (p->eventQueue == NULL)
+        p->eventQueue = evt;
+      else {
+        rtEvt_t *ep = p->eventQueue;
+        while (ep->nxt != NULL)
+          ep = ep->nxt;
+        ep->nxt = evt;
+      }
+      csound->NotifyThreadLock(p->threadLock);
     }
-    csound->NotifyThreadLock(p->threadLock);
-#else   // NO_FLTK_THREADS
-    EVTBLK  e;
-    int     i;
-
-    /* Create the new event */
-    e.strarg = NULL;
-    e.opcod = (char) *args[0];
-    if (e.opcod == '\0')
-      e.opcod = 'i';
-    e.pcnt = numargs - 1;
-    e.p[1] = e.p[2] = e.p[3] = FL(0.0);
-    for (i = 1; i < numargs; i++)
-      e.p[i] = *args[i];
-    if (e.p[2] < FL(0.0))
-      e.p[2] = FL(0.0);
-    csound->insert_score_event(csound, &e, csound->curTime);
+    else
 #endif  // NO_FLTK_THREADS
+    {
+      EVTBLK  e;
+      int     i;
+
+      /* Create the new event */
+      e.strarg = NULL;
+      e.opcod = (char) *args[0];
+      if (e.opcod == '\0')
+        e.opcod = 'i';
+      e.pcnt = numargs - 1;
+      e.p[1] = e.p[2] = e.p[3] = FL(0.0);
+      for (i = 1; i < numargs; i++)
+        e.p[i] = *args[i];
+      if (e.p[2] < FL(0.0))
+        e.p[2] = FL(0.0);
+      csound->insert_score_event(csound, &e, csound->curTime);
+    }
   }
 }
 
@@ -1474,14 +1449,19 @@ extern "C" int save_snap(CSOUND *csound, FLSAVESNAPS* p)
                       MB_SYSTEMMODAL | MB_ICONWARNING | MB_OKCANCEL);
   if (id != IDOK)
     return OK;
-#elif defined(NO_FLTK_THREADS)
-  int   n;
-  lock(csound);
-  n = fl_ask(Str("Saving could overwrite the old file.\n"
-                 "Are you sure you want to save ?"));
-  unlock(csound);
-  if (!n)
-    return OK;
+#else
+#  if !defined(NO_FLTK_THREADS)
+  if (getFLTKFlags(csound) & 4)
+#  endif
+  {
+    int   n;
+    Fl_lock(csound);
+    n = fl_ask(Str("Saving could overwrite the old file.\n"
+                   "Are you sure you want to save ?"));
+    Fl_unlock(csound);
+    if (!n)
+      return OK;
+  }
 #endif
   csound->strarg2name(csound, s, p->filename, "snap.", p->XSTRCODE);
   s2 = csound->FindOutputFile(csound, s, "SNAPDIR");
@@ -1630,33 +1610,35 @@ extern "C" {
   {
     int   j;
 #ifndef NO_FLTK_THREADS
-    widgetsGlobals_t *p;
+    if (!(getFLTKFlags(csound) & 4)) {
+      widgetsGlobals_t *p;
 
-    p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
-                                                        "_widgets_globals");
-    if (p == NULL)
-      return 0;
-    /* if window(s) still open: */
-    if (!p->exit_now) {
-      /* notify GUI thread... */
-      p->end_of_perf = -1;
-      lock(csound);
-      awake(csound);
-      unlock(csound);
-      /* ...and wait for it to close */
-      csound->JoinThread(p->threadHandle);
-      p->threadHandle = NULL;
+      p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                          "_widgets_globals");
+      if (p == NULL)
+        return 0;
+      /* if window(s) still open: */
+      if (!p->exit_now) {
+        /* notify GUI thread... */
+        p->end_of_perf = -1;
+        Fl_lock(csound);
+        Fl_awake(csound);
+        Fl_unlock(csound);
+        /* ...and wait for it to close */
+        csound->JoinThread(p->threadHandle);
+        p->threadHandle = NULL;
+      }
+      /* clean up */
+      csound->WaitThreadLock(p->threadLock, 1000);
+      while (p->eventQueue != NULL) {
+        rtEvt_t *nxt = p->eventQueue->nxt;
+        free(p->eventQueue);
+        p->eventQueue = nxt;
+      }
+      csound->NotifyThreadLock(p->threadLock);
+      csound->DestroyThreadLock(p->threadLock);
+      csound->DestroyGlobalVariable(csound, "_widgets_globals");
     }
-    /* clean up */
-    csound->WaitThreadLock(p->threadLock, 1000);
-    while (p->eventQueue != NULL) {
-      rtEvt_t *nxt = p->eventQueue->nxt;
-      free(p->eventQueue);
-      p->eventQueue = nxt;
-    }
-    csound->NotifyThreadLock(p->threadLock);
-    csound->DestroyThreadLock(p->threadLock);
-    csound->DestroyGlobalVariable(csound, "_widgets_globals");
 #endif  // NO_FLTK_THREADS
     for (j = allocatedStrings.size()-1; j >= 0; j--)  {
       delete[] allocatedStrings[j];
@@ -1671,9 +1653,9 @@ extern "C" {
           delete fl_windows[j].panel;
         fl_windows.pop_back();
       } while (j);
-      lock(csound);
+      Fl_lock(csound);
       Fl::wait(0.0);
-      unlock(csound);
+      Fl_unlock(csound);
     }
     //for (j = AddrValue.size()-1; j >=0; j--)  {
     //      AddrValue.pop_back();
@@ -1731,17 +1713,17 @@ static uintptr_t fltkRun(void *userdata)
   }
 #endif
 
-  lock(csound);
+  Fl_lock(csound);
   for (j = 0; j < (int) fl_windows.size(); j++) {
     fl_windows[j].panel->show();
   }
-  awake(csound);
-  unlock(csound);
+  Fl_awake(csound);
+  Fl_unlock(csound);
   do {
-    lock(csound);
+    Fl_lock(csound);
     Fl::wait(0.04);
     j = (Fl::first_window() != (Fl_Window*) 0);
-    unlock(csound);
+    Fl_unlock(csound);
   } while (j && !p->end_of_perf);
   csound->Message(csound, "end of widget thread\n");
   // IV - Jun 07 2005: exit if all windows are closed
@@ -1753,52 +1735,55 @@ static uintptr_t fltkRun(void *userdata)
 
 #endif  // NO_FLTK_THREADS
 
-#ifdef NO_FLTK_THREADS
 extern "C" int CsoundYield_FLTK(CSOUND *csound);
-#endif
 
 extern "C" int FL_run(CSOUND *csound, FLRUN *p)
 {
+  *((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags")) |= 32;
 #ifndef NO_FLTK_THREADS
-  widgetsGlobals_t  *pp;
+  if (!(getFLTKFlags(csound) & 4)) {
+    widgetsGlobals_t  *pp;
 
-  if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
-    return csound->InitError(csound, Str("FLrun was already called"));
-  if (csound->CreateGlobalVariable(csound, "_widgets_globals",
-                                           sizeof(widgetsGlobals_t)) != 0)
-    csound->Die(csound, Str("FL_run: memory allocation failure"));
-  pp = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
-                                                       "_widgets_globals");
-  /* create thread lock */
-  pp->threadLock = csound->CreateThreadLock();
-  /* register callback function to be called by sensevents() */
-  csound->RegisterSenseEventCallback(csound,
-                                     (void (*)(CSOUND *, void *)) evt_callback,
-                                     (void*) pp);
-  pp->threadHandle = csound->CreateThread(fltkRun, (void*) csound);
-#else   // NO_FLTK_THREADS
-  int j;
-
-  lock(csound);
-  for (j = 0; j < (int) fl_windows.size(); j++) {
-    fl_windows[j].panel->show();
+    if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
+      return csound->InitError(csound, Str("FLrun was already called"));
+    if (csound->CreateGlobalVariable(csound, "_widgets_globals",
+                                             sizeof(widgetsGlobals_t)) != 0)
+      csound->Die(csound, Str("FL_run: memory allocation failure"));
+    pp = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                         "_widgets_globals");
+    /* create thread lock */
+    pp->threadLock = csound->CreateThreadLock();
+    /* register callback function to be called by sensevents() */
+    csound->RegisterSenseEventCallback(csound, (void (*)(CSOUND *, void *))
+                                                   evt_callback,
+                                               (void*) pp);
+    pp->threadHandle = csound->CreateThread(fltkRun, (void*) csound);
   }
-  Fl::wait(0.0);
-  unlock(csound);
-  csound->SetYieldCallback(csound, CsoundYield_FLTK);
+  else
 #endif  // NO_FLTK_THREADS
+  {
+    int j;
+
+    Fl_lock(csound);
+    for (j = 0; j < (int) fl_windows.size(); j++) {
+      fl_windows[j].panel->show();
+    }
+    Fl::wait(0.0);
+    Fl_unlock(csound);
+    csound->SetYieldCallback(csound, CsoundYield_FLTK);
+  }
   return OK;
 }
 
 extern "C" int fl_update(CSOUND *csound, FLRUN *p)
 {
-  lock(csound);
+  Fl_lock(csound);
   for (int j=0; j< (int) AddrSetValue.size()-1; j++) {
     ADDR_SET_VALUE v = AddrSetValue[j];
     Fl_Valuator *o = (Fl_Valuator *) v.WidgAddress;
     o->do_callback(o, v.opcode);
   }
-  unlock(csound);
+  Fl_unlock(csound);
   return OK;
 }
 
@@ -2368,11 +2353,13 @@ static int fl_getWidgetTypeFromOpcodeName(CSOUND *csound, void *p)
     return -1;
 }
 
-static void fl_setWidgetValue_(ADDR_SET_VALUE &v, int widgetType,
+static void fl_setWidgetValue_(CSOUND *csound,
+                               ADDR_SET_VALUE &v, int widgetType,
                                MYFLT val, MYFLT log_base)
 {
     Fl_Widget   *o = (Fl_Widget *) v.WidgAddress;
     void        *p = v.opcode;
+    bool        fltkLockingIsEnabled;
 
     if ((!widgetType || widgetType > 2) &&
         (v.exponential == LIN_ || v.exponential == EXP_)) {
@@ -2383,9 +2370,9 @@ static void fl_setWidgetValue_(ADDR_SET_VALUE &v, int widgetType,
       if (v.exponential == EXP_)
         val = (MYFLT) (log(val / v.min) / log_base);
     }
-#ifndef NO_FLTK_THREADS
-    Fl::lock();
-#endif
+    fltkLockingIsEnabled = ((getFLTKFlags(csound) & 8) == 0);
+    if (fltkLockingIsEnabled)
+      Fl_lock(csound);
     switch (widgetType) {
     case 0:                                     // valuator
       ((Fl_Valuator *) o)->value(val);
@@ -2414,15 +2401,13 @@ static void fl_setWidgetValue_(ADDR_SET_VALUE &v, int widgetType,
       }
       break;
     default:                                    // invalid
-#ifndef NO_FLTK_THREADS
-      Fl::unlock();
-#endif
+      if (fltkLockingIsEnabled)
+        Fl_unlock(csound);
       return;
     }
     o->do_callback(o, p);
-#ifndef NO_FLTK_THREADS
-    Fl::unlock();
-#endif
+    if (fltkLockingIsEnabled)
+      Fl_unlock(csound);
 }
 
 extern "C" int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
@@ -2446,7 +2431,7 @@ extern "C" int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
                                 "not implemented yet; exp=%d", v.exponential);
       }
     }
-    fl_setWidgetValue_(v, widgetType, *(p->ivalue), log_base);
+    fl_setWidgetValue_(csound, v, widgetType, *(p->ivalue), log_base);
     return OK;
 }
 
@@ -2482,7 +2467,7 @@ extern "C" int fl_setWidgetValue_set(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
 extern "C" int fl_setWidgetValue(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
 {
     if (*p->ktrig != FL(0.0))
-      fl_setWidgetValue_(AddrSetValue[p->handle], p->widgetType,
+      fl_setWidgetValue_(csound, AddrSetValue[p->handle], p->widgetType,
                          *(p->kvalue), p->log_base);
     return OK;
 }
@@ -2664,21 +2649,21 @@ extern "C" int fl_setPosition(CSOUND *csound, FL_SET_POSITION *p)
 
 extern "C" int fl_hide(CSOUND *csound, FL_WIDHIDE *p)
 {
-  lock(csound);
+  Fl_lock(csound);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   o->hide();
-  unlock(csound);
+  Fl_unlock(csound);
   return OK;
 }
 
 extern "C" int fl_show(CSOUND *csound, FL_WIDSHOW *p)
 {
-  lock(csound);
+  Fl_lock(csound);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   o->show();
-  unlock(csound);
+  Fl_unlock(csound);
   return OK;
 }
 
@@ -3548,6 +3533,16 @@ extern "C" int FLprintk2(CSOUND *csound, FLPRINTK2 *p)
   return OK;
 }
 
+extern "C" int dummyWidgetOpcode(CSOUND *csound, void *p)
+{
+    const char  *opname;
+
+    opname = csound->GetOpcodeName(p);
+    csound->Die(csound, Str("%s: widget opcodes have been disabled by "
+                            "the host application"), opname);
+    return NOTOK;
+}
+
 extern "C" {
 
 #define S(x)    sizeof(x)
@@ -3669,22 +3664,43 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-extern "C" void set_display_callbacks(CSOUND *csound);
-
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     const OENTRY  *ep = &(localops[0]);
     int           n = (int) sizeof(localops) / (int) sizeof(OENTRY);
 
+    if (csound->QueryGlobalVariable(csound, "FLTK_Flags") == (void*) 0) {
+      if (csound->CreateGlobalVariable(csound, "FLTK_Flags", sizeof(int)) != 0)
+        csound->Die(csound, Str("widgets.cpp: error allocating FLTK flags"));
+#ifdef __MACH__
+      *((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags")) = 28;
+#endif
+    }
     set_display_callbacks(csound);
-    for ( ; n; ep++, n--) {
-      if (csound->AppendOpcode(csound, ep->opname,
-                               (int) ep->dsblksiz, (int) ep->thread,
-                               ep->outypes, ep->intypes,
-                               ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
-        csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
-                                 ep->opname);
-        return -1;
+    if (getFLTKFlags(csound) & 1) {
+      for ( ; n; ep++, n--) {
+        if (csound->AppendOpcode(
+                csound, ep->opname, (int) ep->dsblksiz, (int) ep->thread,
+                ep->outypes, ep->intypes,
+                (((int) ep->thread & 1) ? dummyWidgetOpcode : (SUBR) 0),
+                (((int) ep->thread & 2) ? dummyWidgetOpcode : (SUBR) 0),
+                (((int) ep->thread & 4) ? dummyWidgetOpcode : (SUBR) 0)) != 0) {
+          csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
+                                   ep->opname);
+          return -1;
+        }
+      }
+    }
+    else {
+      for ( ; n; ep++, n--) {
+        if (csound->AppendOpcode(csound, ep->opname,
+                                 (int) ep->dsblksiz, (int) ep->thread,
+                                 ep->outypes, ep->intypes,
+                                 ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
+          csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
+                                   ep->opname);
+          return -1;
+        }
       }
     }
     return 0;

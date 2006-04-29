@@ -32,6 +32,7 @@
 #endif
 #include "csdl.h"
 #include "cwindow.h"
+#include "winFLTK.h"
 
 #define NUMOFWINDOWS (30)
 #define XINIT    10      /* set default window location */
@@ -42,28 +43,6 @@
 #define BORDERW  10      /* inset from L & R edge */
 #define TXHGHT   14      /* baseline offset for text */
 #define MAXLSEGS 4096    /* X can only deal with so many linesegs .. */
-
-static inline void lock(CSOUND *csound)
-{
-    (void) csound;
-#ifndef NO_FLTK_THREADS
-    Fl::lock();
-#endif
-}
-
-static inline void unlock(CSOUND *csound)
-{
-    (void) csound;
-#ifndef NO_FLTK_THREADS
-    Fl::unlock();
-#endif
-}
-
-// static inline void awake(CSOUND *csound)
-// {
-//   (void) csound;
-//   Fl::awake();
-// }
 
 static  Fl_Window   *form = (Fl_Window *) 0;
 static  Fl_Choice   *choice = (Fl_Choice *) 0;
@@ -274,15 +253,6 @@ void makeWindow(char *name)
 }
 
 extern "C" {
-  void DrawGraph_FLTK(CSOUND *csound, WINDAT *);
-  uintptr_t MakeWindow_FLTK(char *);
-  int  CsoundYield_FLTK(CSOUND *);
-  void kill_graph(uintptr_t);
-  int  myFLwait(void);
-  void MakeXYin_FLTK(CSOUND *csound, XYINDAT *, MYFLT, MYFLT);
-  void ReadXYin_FLTK(CSOUND *csound, XYINDAT *wdptr);
-  void KillXYin_FLTK(CSOUND *csound, XYINDAT *x);
-  int  ExitGraph_FLTK(CSOUND *csound);
 
   void DrawGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
   {
@@ -306,9 +276,9 @@ extern "C" {
     if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
       return 1;
 #endif
-    lock(csound);
+    Fl_lock(csound);
     Fl::wait(0.0);
-    unlock(csound);
+    Fl_unlock(csound);
     return 1;
   }
 
@@ -336,16 +306,16 @@ extern "C" {
           /* print click-Exit message in most recently active window */
           end->show();
           while (end->value() == 0 && form->shown() /* && kcnt */) {
-            lock(csound);
+            Fl_lock(csound);
             Fl::wait(0.04);
-            unlock(csound);
+            Fl_unlock(csound);
           }
         }
       }
       delete form;
-      lock(csound);
+      Fl_lock(csound);
       Fl::wait(0.0);
-      unlock(csound);
+      Fl_unlock(csound);
     }
     form = (Fl_Window *) 0;
     choice = (Fl_Choice *) 0;
@@ -370,10 +340,10 @@ extern "C" {
 
       win_x = 0;  win_y = 0;           /* window pixels addressed relative */
 
-      lock(csound);
+      Fl_lock(csound);
       xyin->show();
       Fl::wait(0.0);
-      unlock(csound);
+      Fl_unlock(csound);
 
       /* set new width and height so we leave a 20% border around the plot */
       gra_w = xyin->w() - 2*BORDERW;      gra_h = xyin->h() - 2*GUTTERH;
@@ -382,14 +352,14 @@ extern "C" {
       w->m_y = gra_y + (int) (y * (MYFLT) gra_h);
       w->down = 0;
 
-      lock(csound);
+      Fl_lock(csound);
       Fl::wait(0.0);
       xyin->make_current();
       fl_color(0, 0, 0);
       fl_line_style(FL_DOT);
       fl_line(gra_x, w->m_y, (gra_x + gra_w), w->m_y);
       fl_line(w->m_x, gra_y, w->m_x, (gra_y + gra_h));
-      unlock(csound);
+      Fl_unlock(csound);
       w->windid = (uintptr_t) xyin;
     }
   }
@@ -401,12 +371,12 @@ extern "C" {
     short     m_x, m_y;
     Fl_Window *xwin = (Fl_Window*) wdptr->windid;
 
-    lock(csound);
+    Fl_lock(csound);
     Fl::wait(0.0);
     m_x = Fl::event_x();
     m_y = Fl::event_y();
     wdptr->down = (short) (Fl::event_button1() ? 1 : 0);
-    unlock(csound);
+    Fl_unlock(csound);
 
     if (!wdptr->down)
       return;
@@ -424,7 +394,7 @@ extern "C" {
     else if (m_y > gra_y+gra_h) m_y = gra_y+gra_h;
 
     if (m_x != wdptr->m_x || m_y != wdptr->m_y) { /* only redo if changed */
-      lock(csound);
+      Fl_lock(csound);
       xwin->make_current();
       /* undraw old crosshairs */
       fl_color(FL_BACKGROUND_COLOR);
@@ -436,7 +406,7 @@ extern "C" {
       fl_line_style(FL_SOLID);
       fl_line(gra_x, m_y, (gra_x + gra_w), m_y);
       fl_line(m_x, gra_y, m_x, (gra_y + gra_h));
-      unlock(csound);
+      Fl_unlock(csound);
       wdptr->m_x = m_x;       wdptr->m_y = m_y;
       wdptr->x = ((MYFLT) m_x - gra_x) / (MYFLT) gra_w;
       wdptr->y = ((MYFLT) m_y - gra_y) / (MYFLT) gra_h;
