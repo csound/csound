@@ -94,6 +94,16 @@ CsoundUtility *CreateUtility_Cvanal(CsoundGUIConsole *,
                                     CsoundUtilitySettings&);
 CsoundUtility *CreateUtility_Pvanal(CsoundGUIConsole *,
                                     CsoundUtilitySettings&);
+CsoundUtility *CreateUtility_Hetro(CsoundGUIConsole *,
+                                   CsoundUtilitySettings&);
+CsoundUtility *CreateUtility_Lpanal(CsoundGUIConsole *,
+                                    CsoundUtilitySettings&);
+CsoundUtility *CreateUtility_Sndinfo(CsoundGUIConsole *,
+                                     CsoundUtilitySettings&);
+CsoundUtility *CreateUtility_Srconv(CsoundGUIConsole *,
+                                    CsoundUtilitySettings&);
+CsoundUtility *CreateUtility_Dnoise(CsoundGUIConsole *,
+                                    CsoundUtilitySettings&);
 
 #endif  // CSOUNDUTILITY_HPP
 

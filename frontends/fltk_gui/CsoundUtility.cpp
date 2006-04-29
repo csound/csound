@@ -252,3 +252,43 @@ CsoundUtility *CreateUtility_Pvanal(CsoundGUIConsole *consoleWindow,
     return (new CsoundUtility(consoleWindow, args));
 }
 
+CsoundUtility *CreateUtility_Hetro(CsoundGUIConsole *consoleWindow,
+                                   CsoundUtilitySettings& parm)
+{
+    (void) consoleWindow;
+    (void) parm;
+    return (CsoundUtility*) 0;
+}
+
+CsoundUtility *CreateUtility_Lpanal(CsoundGUIConsole *consoleWindow,
+                                    CsoundUtilitySettings& parm)
+{
+    (void) consoleWindow;
+    (void) parm;
+    return (CsoundUtility*) 0;
+}
+
+CsoundUtility *CreateUtility_Sndinfo(CsoundGUIConsole *consoleWindow,
+                                     CsoundUtilitySettings& parm)
+{
+    (void) consoleWindow;
+    (void) parm;
+    return (CsoundUtility*) 0;
+}
+
+CsoundUtility *CreateUtility_Srconv(CsoundGUIConsole *consoleWindow,
+                                    CsoundUtilitySettings& parm)
+{
+    (void) consoleWindow;
+    (void) parm;
+    return (CsoundUtility*) 0;
+}
+
+CsoundUtility *CreateUtility_Dnoise(CsoundGUIConsole *consoleWindow,
+                                    CsoundUtilitySettings& parm)
+{
+    (void) consoleWindow;
+    (void) parm;
+    return (CsoundUtility*) 0;
+}
+

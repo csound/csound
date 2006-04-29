@@ -24,9 +24,13 @@ CsoundGlobalSettings::CsoundGlobalSettings()
 #ifndef WIN32
     textEditorProgram = "xterm -e vim";
     soundEditorProgram = "audacity";
+    helpBrowserProgram =
+        "firefox /usr/local/share/doc/csound/manual/index.html";
 #else
     textEditorProgram = "notepad";
     soundEditorProgram = "sndrec32";
+    helpBrowserProgram =
+        "iexplore \"C:\\Program Files\\Csound\\doc\\manual\\index.html\"";
 #endif
     performanceSettings1_Name = "";
     performanceSettings2_Name = "";

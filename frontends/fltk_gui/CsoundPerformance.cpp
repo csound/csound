@@ -142,6 +142,8 @@ int CsoundPerformance_NoThread::Compile(std::vector<std::string>& argList)
 {
     int     retval;
 
+    csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
+    *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) |= 28;
     retval = CsoundPerformance::Compile(argList);
     if (retval == 0) {
       kcnt = (int) ((double) csoundGetKr(csound) / 50.0 + 0.5);
@@ -221,84 +223,6 @@ double CsoundPerformance_NoThread::GetScoreTime()
 
 // ----------------------------------------------------------------------------
 
-extern "C" {
-
-  static int dummyWidgetOpcode(CSOUND *csound, void *p)
-  {
-    const char  *opname;
-
-    opname = csound->GetOpcodeName(p);
-    csound->Die(csound, Str("%s: widget opcodes are not allowed "
-                            "if performing in a separate thread"), opname);
-    return NOTOK;
-  }
-
-  struct DUMMY_WIDGET_OPCODE {
-    OPDS    h;
-    MYFLT   *dummyOut[4];
-    MYFLT   *dummyIn[VARGMAX];
-  };
-
-  static const char *dummyOpcodes[][3] = {
-    { "FLslider",       "ki",   "Tiijjjjjjj"    },
-    { "FLslidBnk",      "",     "Tiooooooooo"   },
-    { "FLknob",         "ki",   "Tiijjjjjjo"    },
-    { "FLroller",       "ki",   "Tiijjjjjjjj"   },
-    { "FLtext",         "ki",   "Tiijjjjjj"     },
-    { "FLjoy",          "kkii", "Tiiiijjjjjjjj" },
-    { "FLcount",        "ki",   "Tiiiiiiiiiz"   },
-    { "FLbutton",       "ki",   "Tiiiiiiiz"     },
-    { "FLbutBank",      "ki",   "iiiiiiiz"      },
-    { "FLkeyb",         "k",    "z"             },
-    { "FLcolor",        "",     "jjjjjj"        },
-    { "FLcolor2",       "",     "jjj"           },
-    { "FLlabel",        "",     "ojojjj"        },
-    { "FLsetVal_i",     "",     "ii"            },
-    { "FLsetVali",      "",     "ii"            },
-    { "FLsetVal",       "",     "kki"           },
-    { "FLsetColor",     "",     "iiii"          },
-    { "FLsetColor2",    "",     "iiii"          },
-    { "FLsetTextSize",  "",     "ii"            },
-    { "FLsetTextColor", "",     "iiii"          },
-    { "FLsetFont",      "",     "ii"            },
-    { "FLsetTextType",  "",     "ii"            },
-    { "FLsetText",      "",     "Ti"            },
-    { "FLsetSize",      "",     "iii"           },
-    { "FLsetPosition",  "",     "iii"           },
-    { "FLhide",         "",     "i"             },
-    { "FLshow",         "",     "i"             },
-    { "FLsetBox",       "",     "ii"            },
-    { "FLsetAlign",     "",     "ii"            },
-    { "FLbox",          "i",    "Tiiiiiii"      },
-    { "FLvalue",        "i",    "Tjjjj"         },
-    { "FLpanel",        "",     "Tjjooo"        },
-    { "FLpanelEnd",     "",     ""              },
-    { "FLpanel_end",    "",     ""              },
-    { "FLscroll",       "",     "iiii"          },
-    { "FLscrollEnd",    "",     ""              },
-    { "FLscroll_end",   "",     ""              },
-    { "FLpack",         "",     "iiii"          },
-    { "FLpackEnd",      "",     ""              },
-    { "FLpack_end",     "",     ""              },
-    { "FLtabs",         "",     "iiii"          },
-    { "FLtabsEnd",      "",     ""              },
-    { "FLtabs_end",     "",     ""              },
-    { "FLgroup",        "",     "Tiiiij"        },
-    { "FLgroupEnd",     "",     ""              },
-    { "FLgroup_end",    "",     ""              },
-    { "FLsetsnap",      "ii",   "io"            },
-    { "FLgetsnap",      "i",    "i"             },
-    { "FLsavesnap",     "",     "T"             },
-    { "FLloadsnap",     "",     "T"             },
-    { "FLrun",          "",     ""              },
-    { "FLupdate",       "",     ""              },
-    { "FLprintk",       "",     "iki"           },
-    { "FLprintk2",      "",     "ki"            },
-    { (char*) 0, (char*) 0, (char*) 0 }
-  };
-
-}
-
 CsoundPerformance_Thread::CsoundPerformance_Thread(CSOUND *csound)
     : CsoundPerformance(csound)
 {
@@ -323,21 +247,8 @@ int CsoundPerformance_Thread::Compile(std::vector<std::string>& argList)
 
     // disable FLTK graphs and widget opcodes
     csoundSetIsGraphable(csound, 1);
-    if (csoundGetVersion() >= 5020) {
-      for (int i = 0; dummyOpcodes[i][0] != (char*) 0; i++) {
-        if (csoundAppendOpcode(csound, dummyOpcodes[i][0],
-                               (int) sizeof(DUMMY_WIDGET_OPCODE), 1,
-                               dummyOpcodes[i][1], dummyOpcodes[i][2],
-                               &dummyWidgetOpcode,
-                               (int (*)(CSOUND *, void *)) 0,
-                               (int (*)(CSOUND *, void *)) 0) != 0) {
-          csoundMessageS(csound, CSOUNDMSG_ERROR,
-                         Str("error registering opcode '%s'\n"),
-                         dummyOpcodes[i][0]);
-          return -1;
-        }
-      }
-    }
+    csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
+    *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 3;
     retval = CsoundPerformance::Compile(argList);
     if (retval == 0) {
       pt = new CsoundPerformanceThread(csound);
