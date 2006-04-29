@@ -856,10 +856,10 @@ void CsoundGUIMain::checkUtilities()
       closeAboutWindow();
 
     if ((utilityState
-         & (CSOUND5GUI_LISTOPCODES_RUNNING | CSOUND5GUI_CVANAL_RUNNING |
-            CSOUND5GUI_PVANAL_RUNNING | CSOUND5GUI_HETRO_RUNNING |
-            CSOUND5GUI_LPANAL_RUNNING | CSOUND5GUI_SNDINFO_RUNNING |
-            CSOUND5GUI_SRCONV_RUNNING | CSOUND5GUI_DNOISE_RUNNING)) != 0) {
+         & (CSOUND5GUI_LISTOPCODES_RUNNING | CSOUND5GUI_CVANAL_RUNNING
+            | CSOUND5GUI_PVANAL_RUNNING | CSOUND5GUI_HETRO_RUNNING
+            | CSOUND5GUI_LPANAL_RUNNING | CSOUND5GUI_SNDINFO_RUNNING
+            | CSOUND5GUI_SRCONV_RUNNING | CSOUND5GUI_DNOISE_RUNNING)) != 0) {
       if (utility_listOpcodes && utility_listOpcodes->GetStatus() != 0)
         stopListOpcodes();
       if (utility_cvanal && utility_cvanal->GetStatus() != 0)

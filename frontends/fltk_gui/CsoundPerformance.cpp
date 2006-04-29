@@ -143,7 +143,7 @@ int CsoundPerformance_NoThread::Compile(std::vector<std::string>& argList)
     int     retval;
 
     csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
-    *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) |= 28;
+    *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 28;
     retval = CsoundPerformance::Compile(argList);
     if (retval == 0) {
       kcnt = (int) ((double) csoundGetKr(csound) / 50.0 + 0.5);
