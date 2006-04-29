@@ -114,7 +114,7 @@ aiff->value(1);
 ircam->value(0);
 raw->value(0);}
         xywh {65 230 25 25} down_box ROUND_DOWN_BOX
-        code0 {int t; prof.get("A",t, 1);aiff->value(t);}
+        code0 {int t; prof.get("A",t, 0);aiff->value(t);}
       }
       Fl_Round_Button ircam {
         label IRCAM
@@ -123,7 +123,7 @@ aiff->value(0);
 ircam->value(1);
 raw->value(0);}
         xywh {65 265 25 25} down_box ROUND_DOWN_BOX
-        code0 {int t; prof.get("J",t, 1);ircam->value(t);}
+        code0 {int t; prof.get("J",t, 0);ircam->value(t);}
       }
       Fl_Round_Button raw {
         label Raw
@@ -486,7 +486,14 @@ Function {make_extras()} {open
     Fl_Button {} {
       label OK
       callback {// Transfer!!!
-xw->hide();}
+xw->hide();prof.set("t0",mSave->value());
+prof.set("Z",mZ->value());prof.set("I",mI->value());prof.set("n",mn->value());
+prof.set("v",mv->value());prof.set("R",mR->value());prof.set("H",mH->value());
+prof.set("N",mN->value());prof.set("r",mr->value());prof.set("k",mk->value());
+prof.set("m",mm->value());prof.set("t",mt->value());prof.set("B",mB->value());
+prof.set("b",mb->value());prof.set("M",mM->value());prof.set("i",mi->value());
+
+}
       xywh {65 305 75 30} color 3
     }
     Fl_Button {} {
