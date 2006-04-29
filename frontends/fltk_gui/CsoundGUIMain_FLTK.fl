@@ -236,7 +236,7 @@ else if (o->value() == 1)
           label Help
           callback {if (o->value() == 0)
   runHelpBrowser();
-else
+else if (o->value() == 1)
   openAboutWindow();} open
           xywh {255 210 85 25} align 20
           code0 {o->add("Manual|About");}
