@@ -393,7 +393,7 @@ CsoundUtility *CreateUtility_Srconv(CsoundGUIConsole *consoleWindow,
       return (CsoundUtility*) 0;
     args.push_back("srconv");
     if (parm.srconv_pitchRatio > 0.0)
-      cmdLine_addDoubleOpt(args, "-P", 1.0 / parm.srconv_pitchRatio);
+      cmdLine_addDoubleOpt(args, "-P", parm.srconv_pitchRatio);
     else if (parm.srconv_sampleRate > 0.0)
       cmdLine_addDoubleOpt(args, "-r", parm.srconv_sampleRate);
     else
