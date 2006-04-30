@@ -529,10 +529,14 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     }
 
     if (Rout < Rin) {
+#if 0
       sum = (MYFLT) window[0];
       for (i = L-1; i <= WinLen; i += L)
         sum += (MYFLT) window[i];
       sum = FL(2.0) / sum;
+#else
+      sum = Rout / (Rin * (MYFLT) window[0]);
+#endif
     }
     else
       sum = FL(1.0) / (MYFLT) window[0];
@@ -575,6 +579,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     and then readjusted when read detects the end of input. */
 
     while (n < nMax) {
+
       time = n * invRin;
 
       /* case 1:  (Rin / Rout) * 120 = integer  */
@@ -610,6 +615,8 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           n++;
           m++;
           if ((Chans * (m + wLen + 1)) >= mMax) {
+            if (!csound->CheckEvents(csound))
+              csound->LongJmp(csound, 1);
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
@@ -666,6 +673,8 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           n++;
           m++;
           if ((Chans * (m + wLen + 1)) >= mMax) {
+            if (!csound->CheckEvents(csound))
+              csound->LongJmp(csound, 1);
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
