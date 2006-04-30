@@ -29,7 +29,7 @@ void mytextNull(CSOUND *csound, int attr, const char *format, va_list valist)
 int yieldCallback(CSOUND *csound)
 {
     Fl::wait(0);
-    return 0;
+    return 1;
 }
 
 Fl_Preferences app(Fl_Preferences::USER, "csounds.com", "winsound");
@@ -86,7 +86,7 @@ void cs_compile_run(void)
       prof.set("f",size_f->value());
       prof.set("3",size_24->value());
       prof.set("K",mK->value());
-      argv[0] = "winsound5";
+      argv[0] = "csound5";
       argv[nxt++] = (char *)orchname->value();
       if (strstr(argv[nxt-1], ".csd")==NULL)
         argv[nxt++] = (char *)scorename->value();
@@ -151,17 +151,15 @@ void cs_compile_run(void)
       prof.get("N", itmp, 0); if (itmp) argv[nxt++] = "-N";
       prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = "-Z";
       argv[nxt++] = "-d";       // for the moment
-//       for (n=1; n<nxt; n++)
-//         printf("arg %d: %s\n", n, argv[n]);
-
       csoundReset(csound);
-      //      csoundSetYieldCallback(csound, yieldCallback);
-      { int n;
-      for (n=0; n<nxt; n++) printf("%d: %s\n", n, argv[n]);
-      }
+//       {
+//         int n;
+//         printf("nxt=%d\n", nxt);
+//         for (n=0; n<nxt; n++) printf("%d: \"%s\"\n", n, argv[n]);
+//       }
       res = csoundCompile(csound, nxt, argv);
     }
-    //    else
+    else
       csoundRewindScore(csound);
     Fl::wait(0);
     fprintf(stderr, "Starting call\n");
