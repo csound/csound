@@ -10,6 +10,7 @@ FLUID_SRCS = $(subst .fl,.cpp,$(FLUID_FL))
 FLUID_HDRS = $(subst .fl,.hpp,$(FLUID_FL))
 
 SRCS =	ConfigFile.cpp			\
+	CsoundCopyrightInfo.cpp		\
 	CsoundGUIConsole.cpp		\
 	CsoundGUIMain.cpp		\
 	CsoundGlobalSettings.cpp	\
