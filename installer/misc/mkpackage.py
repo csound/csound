@@ -161,6 +161,7 @@ installFiles(headerFiles, includeDir)
 # copy documentation
 
 installFiles(docFiles, docDir)
+installFile('frontends/tclcsound/command_summary.txt', tclDir)
 
 # create frontends
 
