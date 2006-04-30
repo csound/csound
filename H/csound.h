@@ -954,9 +954,7 @@ extern "C" {
   PUBLIC void *csoundCreateThreadLock(void);
 
   /**
-   * Waits on the indicated monitor object for the indicated period
-   * (the timeout is not implemented on some platforms, so any non-zero
-   * value may possibly request infinite wait time).
+   * Waits on the indicated monitor object for the indicated period.
    * The function returns either when the monitor object is notified,
    * or when the period has elapsed, whichever is sooner; in the first case,
    * zero is returned.

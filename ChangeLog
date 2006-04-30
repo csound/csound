@@ -1,3 +1,6 @@
+2006-04-30	Istvan Varga	<ivarga@csounds.com>
+	* Attempt to fix thread locks on MacOS X.
+
 2006-04-29	Istvan Varga	<ivarga@csounds.com>
 	* Made it possible to control the behavior of the FLTK plugin
 	  from the host application. This can be done with the following
