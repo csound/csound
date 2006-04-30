@@ -74,7 +74,7 @@ Function {make_mainwindow()} {open
       tooltip {File for csd or orchestra file} xywh {130 15 310 30} labeltype EMBOSSED_LABEL
       code0 {char *t; prof.get((const char*)"orchestra",t,"");}
       code1 {o->value(t); free(t);}
-      code1 {do_load=1;}
+      code2 {do_load=1;}
     }
     Fl_File_Input scorename {
       label {Score           }
