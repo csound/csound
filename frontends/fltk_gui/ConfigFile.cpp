@@ -324,6 +324,78 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
     err |= writeInt_(f, 20209);
     err |= writeInt(f, &(cfg.pvanal_windowType));
 
+    err |= writeInt_(f, 20301);
+    err |= writeString(f, cfg.hetro_inputFile);
+    err |= writeInt_(f, 20302);
+    err |= writeString(f, cfg.hetro_outputFile);
+    err |= writeInt_(f, 20303);
+    err |= writeInt(f, &(cfg.hetro_channel));
+    err |= writeInt_(f, 20304);
+    err |= writeDouble(f, &(cfg.hetro_beginTime));
+    err |= writeInt_(f, 20305);
+    err |= writeDouble(f, &(cfg.hetro_duration));
+    err |= writeInt_(f, 20306);
+    err |= writeDouble(f, &(cfg.hetro_startFreq));
+    err |= writeInt_(f, 20307);
+    err |= writeInt(f, &(cfg.hetro_partials));
+    err |= writeInt_(f, 20308);
+    err |= writeDouble(f, &(cfg.hetro_maxAmp));
+    err |= writeInt_(f, 20309);
+    err |= writeDouble(f, &(cfg.hetro_minAmp));
+    err |= writeInt_(f, 20310);
+    err |= writeInt(f, &(cfg.hetro_breakPoints));
+    err |= writeInt_(f, 20311);
+    err |= writeDouble(f, &(cfg.hetro_cutoffFreq));
+
+    err |= writeInt_(f, 20401);
+    err |= writeString(f, cfg.lpanal_inputFile);
+    err |= writeInt_(f, 20402);
+    err |= writeString(f, cfg.lpanal_outputFile);
+    err |= writeInt_(f, 20403);
+    err |= writeInt(f, &(cfg.lpanal_channel));
+    err |= writeInt_(f, 20404);
+    err |= writeDouble(f, &(cfg.lpanal_beginTime));
+    err |= writeInt_(f, 20405);
+    err |= writeDouble(f, &(cfg.lpanal_duration));
+    err |= writeInt_(f, 20406);
+    err |= writeBool(f, &(cfg.lpanal_altMode));
+    err |= writeInt_(f, 20407);
+    err |= writeInt(f, &(cfg.lpanal_poles));
+    err |= writeInt_(f, 20408);
+    err |= writeInt(f, &(cfg.lpanal_hopSize));
+    err |= writeInt_(f, 20409);
+    err |= writeString(f, cfg.lpanal_comment);
+    err |= writeInt_(f, 20410);
+    err |= writeDouble(f, &(cfg.lpanal_minFreq));
+    err |= writeInt_(f, 20411);
+    err |= writeDouble(f, &(cfg.lpanal_maxFreq));
+    err |= writeInt_(f, 20412);
+    err |= writeInt(f, &(cfg.lpanal_verbosity));
+
+    err |= writeInt_(f, 20501);
+    err |= writeString(f, cfg.sndinfo_inputFile);
+
+    err |= writeInt_(f, 20601);
+    err |= writeString(f, cfg.srconv_inputFile);
+    err |= writeInt_(f, 20602);
+    err |= writeString(f, cfg.srconv_outputFile);
+    err |= writeInt_(f, 20603);
+    err |= writeDouble(f, &(cfg.srconv_pitchRatio));
+    err |= writeInt_(f, 20604);
+    err |= writeDouble(f, &(cfg.srconv_sampleRate));
+    err |= writeInt_(f, 20605);
+    err |= writeInt(f, &(cfg.srconv_quality));
+    err |= writeInt_(f, 20606);
+    err |= writeInt(f, &(cfg.srconv_fileType));
+    err |= writeInt_(f, 20607);
+    err |= writeInt(f, &(cfg.srconv_sampleFormat));
+    err |= writeInt_(f, 20608);
+    err |= writeBool(f, &(cfg.srconv_peakChunks));
+    err |= writeInt_(f, 20609);
+    err |= writeBool(f, &(cfg.srconv_rewriteHeader));
+    err |= writeInt_(f, 20610);
+    err |= writeInt(f, &(cfg.srconv_heartBeat));
+
     err |= writeInt_(f, 0);
     std::fclose(f);
 
@@ -549,6 +621,142 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
         break;
       case 20209:
         if (readInt(f, &(tmp->pvanal_windowType)) != 0)
+          goto err_return;
+        break;
+      case 20301:
+        if (readString(f, tmp->hetro_inputFile) != 0)
+          goto err_return;
+        break;
+      case 20302:
+        if (readString(f, tmp->hetro_outputFile) != 0)
+          goto err_return;
+        break;
+      case 20303:
+        if (readInt(f, &(tmp->hetro_channel)) != 0)
+          goto err_return;
+        break;
+      case 20304:
+        if (readDouble(f, &(tmp->hetro_beginTime)) != 0)
+          goto err_return;
+        break;
+      case 20305:
+        if (readDouble(f, &(tmp->hetro_duration)) != 0)
+          goto err_return;
+        break;
+      case 20306:
+        if (readDouble(f, &(tmp->hetro_startFreq)) != 0)
+          goto err_return;
+        break;
+      case 20307:
+        if (readInt(f, &(tmp->hetro_partials)) != 0)
+          goto err_return;
+        break;
+      case 20308:
+        if (readDouble(f, &(tmp->hetro_maxAmp)) != 0)
+          goto err_return;
+        break;
+      case 20309:
+        if (readDouble(f, &(tmp->hetro_minAmp)) != 0)
+          goto err_return;
+        break;
+      case 20310:
+        if (readInt(f, &(tmp->hetro_breakPoints)) != 0)
+          goto err_return;
+        break;
+      case 20311:
+        if (readDouble(f, &(tmp->hetro_cutoffFreq)) != 0)
+          goto err_return;
+        break;
+      case 20401:
+        if (readString(f, tmp->lpanal_inputFile) != 0)
+          goto err_return;
+        break;
+      case 20402:
+        if (readString(f, tmp->lpanal_outputFile) != 0)
+          goto err_return;
+        break;
+      case 20403:
+        if (readInt(f, &(tmp->lpanal_channel)) != 0)
+          goto err_return;
+        break;
+      case 20404:
+        if (readDouble(f, &(tmp->lpanal_beginTime)) != 0)
+          goto err_return;
+        break;
+      case 20405:
+        if (readDouble(f, &(tmp->lpanal_duration)) != 0)
+          goto err_return;
+        break;
+      case 20406:
+        if (readBool(f, &(tmp->lpanal_altMode)) != 0)
+          goto err_return;
+        break;
+      case 20407:
+        if (readInt(f, &(tmp->lpanal_poles)) != 0)
+          goto err_return;
+        break;
+      case 20408:
+        if (readInt(f, &(tmp->lpanal_hopSize)) != 0)
+          goto err_return;
+        break;
+      case 20409:
+        if (readString(f, tmp->lpanal_comment) != 0)
+          goto err_return;
+        break;
+      case 20410:
+        if (readDouble(f, &(tmp->lpanal_minFreq)) != 0)
+          goto err_return;
+        break;
+      case 20411:
+        if (readDouble(f, &(tmp->lpanal_maxFreq)) != 0)
+          goto err_return;
+        break;
+      case 20412:
+        if (readInt(f, &(tmp->lpanal_verbosity)) != 0)
+          goto err_return;
+        break;
+      case 20501:
+        if (readString(f, tmp->sndinfo_inputFile) != 0)
+          goto err_return;
+        break;
+      case 20601:
+        if (readString(f, tmp->srconv_inputFile) != 0)
+          goto err_return;
+        break;
+      case 20602:
+        if (readString(f, tmp->srconv_outputFile) != 0)
+          goto err_return;
+        break;
+      case 20603:
+        if (readDouble(f, &(tmp->srconv_pitchRatio)) != 0)
+          goto err_return;
+        break;
+      case 20604:
+        if (readDouble(f, &(tmp->srconv_sampleRate)) != 0)
+          goto err_return;
+        break;
+      case 20605:
+        if (readInt(f, &(tmp->srconv_quality)) != 0)
+          goto err_return;
+        break;
+      case 20606:
+        if (readInt(f, &(tmp->srconv_fileType)) != 0)
+          goto err_return;
+        break;
+      case 20607:
+        if (readInt(f, &(tmp->srconv_sampleFormat)) != 0)
+          goto err_return;
+        break;
+      case 20608:
+        if (readBool(f, &(tmp->srconv_peakChunks)) != 0)
+          goto err_return;
+        break;
+      case 20609:
+        if (readBool(f, &(tmp->srconv_rewriteHeader)) != 0)
+          goto err_return;
+        break;
+      case 20610:
+        if (readInt(f, &(tmp->srconv_heartBeat)) != 0)
           goto err_return;
         break;
       default:
