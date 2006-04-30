@@ -162,7 +162,6 @@ void cs_compile_run(void)
     else
       csoundRewindScore(csound);
     Fl::wait(0);
-    fprintf(stderr, "Starting call\n");
     res = 0;
     csoundSetYieldCallback(csound, yieldCallback);
     while (res==0 && do_perf) {
