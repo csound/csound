@@ -111,6 +111,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #elif defined(LINUX) || defined(__MACH__)
 
+#include <errno.h>
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
@@ -138,6 +139,8 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     return (uintptr_t) threadRoutineReturnValue;
 }
 
+#ifdef LINUX
+
 PUBLIC void *csoundCreateThreadLock(void)
 {
     pthread_mutex_t *pthread_mutex;
@@ -151,8 +154,6 @@ PUBLIC void *csoundCreateThreadLock(void)
     }
     return (void*) pthread_mutex;
 }
-
-#if defined(LINUX)
 
 PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
@@ -178,19 +179,6 @@ PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
     }
 }
 
-#else
-
-PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
-{
-    /* TODO: implement timeout for other platforms */
-    if (!milliseconds)
-      return pthread_mutex_trylock((pthread_mutex_t*) lock);
-    else
-      return pthread_mutex_lock((pthread_mutex_t*) lock);
-}
-
-#endif  /* LINUX */
-
 PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
 {
     pthread_mutex_lock((pthread_mutex_t*) lock);
@@ -206,6 +194,107 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
     pthread_mutex_destroy((pthread_mutex_t*) lock);
     free(lock);
 }
+
+#else   /* LINUX */
+
+typedef struct CsoundThreadLock_s {
+    pthread_mutex_t m;
+    pthread_cond_t  c;
+    unsigned char   s;
+} CsoundThreadLock_t;
+
+PUBLIC void *csoundCreateThreadLock(void)
+{
+    CsoundThreadLock_t  *p;
+
+    p = (CsoundThreadLock_t*) malloc(sizeof(CsoundThreadLock_t));
+    if (p == NULL)
+      return NULL;
+    memset(p, 0, sizeof(CsoundThreadLock_t));
+    if (pthread_mutex_init(&(p->m), (pthread_mutexattr_t*) NULL) != 0) {
+      free((void*) p);
+      return NULL;
+    }
+    if (pthread_cond_init(&(p->c), (pthread_condattr_t*) NULL) != 0) {
+      pthread_mutex_destroy(&(p->m));
+      free((void*) p);
+      return NULL;
+    }
+    p->s = (unsigned char) 1;
+
+    return (void*) p;
+}
+
+PUBLIC int csoundWaitThreadLock(void *threadLock, size_t milliseconds)
+{
+    CsoundThreadLock_t  *p;
+    int                 retval = 0;
+
+    p = (CsoundThreadLock_t*) threadLock;
+    pthread_mutex_lock(&(p->m));
+    if (!p->s) {
+      if (milliseconds) {
+        struct timeval  tv;
+        struct timespec ts;
+        register size_t n, s;
+        gettimeofday(&tv, NULL);
+        s = milliseconds / (size_t) 1000;
+        n = milliseconds - (s * (size_t) 1000);
+        s += (size_t) tv.tv_sec;
+        n = (size_t) (((int) n * 1000 + (int) tv.tv_usec) * 1000);
+        ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
+        ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
+        do {
+          retval = pthread_cond_timedwait(&(p->c), &(p->m), &ts);
+        } while (!p->s && !retval);
+      }
+      else
+        retval = ETIMEDOUT;
+    }
+    p->s = (unsigned char) 0;
+    pthread_mutex_unlock(&(p->m));
+
+    return retval;
+}
+
+PUBLIC void csoundWaitThreadLockNoTimeout(void *threadLock)
+{
+    CsoundThreadLock_t  *p;
+
+    p = (CsoundThreadLock_t*) threadLock;
+    pthread_mutex_lock(&(p->m));
+    while (!p->s) {
+      pthread_cond_wait(&(p->c), &(p->m));
+    }
+    p->s = (unsigned char) 0;
+    pthread_mutex_unlock(&(p->m));
+}
+
+PUBLIC void csoundNotifyThreadLock(void *threadLock)
+{
+    CsoundThreadLock_t  *p;
+
+    p = (CsoundThreadLock_t*) threadLock;
+    pthread_mutex_lock(&(p->m));
+    p->s = (unsigned char) 1;
+    pthread_cond_signal(&(p->c));
+    pthread_mutex_unlock(&(p->m));
+}
+
+PUBLIC void csoundDestroyThreadLock(void *threadLock)
+{
+    CsoundThreadLock_t  *p;
+
+    if (threadLock == NULL)
+      return;
+    csoundNotifyThreadLock(threadLock);
+    p = (CsoundThreadLock_t*) threadLock;
+    pthread_cond_destroy(&(p->c));
+    pthread_mutex_destroy(&(p->m));
+    free(threadLock);
+}
+
+#endif  /* !LINUX */
 
 PUBLIC void csoundSleep(size_t milliseconds)
 {
