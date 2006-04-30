@@ -1,5 +1,10 @@
 2006-04-30	Istvan Varga	<ivarga@csounds.com>
 	* Attempt to fix thread locks on MacOS X.
+	* util/srconv.c:
+	  fixed output amplitude when downsampling
+	  allow utility to be stopped by yield callback
+	* install.py, installer/misc/mkpackage.py:
+	  install TclCsound command documentation
 
 2006-04-29	Istvan Varga	<ivarga@csounds.com>
 	* Made it possible to control the behavior of the FLTK plugin
