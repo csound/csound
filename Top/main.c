@@ -69,7 +69,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     int     n;
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
-    if (csound->engineState != 1) {
+    if (csound->engineState != CS_STATE_PRE) {
       if ((n = csoundPreCompile(csound)) != CSOUND_SUCCESS)
         return n;
     }
@@ -83,7 +83,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     dbfs_init(csound, DFLT_DBFS);
     csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
     csoundInitTimerStruct(csound->csRtClock);
-    csound->engineState |= 10;
+    csound->engineState |= CS_STATE_COMP | CS_STATE_CLN;
 
 #ifndef USE_DOUBLE
 #ifdef BETA

@@ -850,7 +850,7 @@ static const CSOUND cenviron_ = {
     /* copy system environment variables */
     i = csoundInitEnv(p);
     if (i != CSOUND_SUCCESS) {
-      p->engineState |= 16;
+      p->engineState |= CS_STATE_JMP;
       return i;
     }
     csound_init_rand(p);
@@ -945,7 +945,7 @@ static const CSOUND cenviron_ = {
         CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
         "Ignore <CsOptions> in CSD files (default: no)", NULL);
     p->opcode_list = (int*) mcalloc(p, sizeof(int) * 256);
-    p->engineState |= 1;
+    p->engineState |= CS_STATE_PRE;
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     return csoundLoadModules(p);
@@ -1262,7 +1262,7 @@ static const CSOUND cenviron_ = {
     if (offset < FL(0.0))
       return;
     /* if csoundCompile() was not called yet, just store the offset */
-    if (!(csound->engineState & 2))
+    if (!(csound->engineState & CS_STATE_COMP))
       return;
     /* otherwise seek to the requested time now */
     aTime = (double) offset - csound->curTime;
@@ -1423,7 +1423,7 @@ static const CSOUND cenviron_ = {
     n = (retval < 0 ? n + retval : n - retval) & (CSOUND_EXITJMP_SUCCESS - 1);
     if (!n)
       n = CSOUND_EXITJMP_SUCCESS;
-    csound->engineState |= 16;
+    csound->engineState |= CS_STATE_JMP;
     longjmp(csound->exitjmp, n);
   }
 
@@ -2149,8 +2149,8 @@ static const CSOUND cenviron_ = {
 #else
     timeResolutionSeconds = 1.0;
 #endif
-    fprintf(stderr, "time resolution is %.3f ns\n",
-                    1.0e9 * timeResolutionSeconds);
+/*     fprintf(stderr, "time resolution is %.3f ns\n", */
+/*                     1.0e9 * timeResolutionSeconds); */
     return 0;
   }
 

@@ -344,10 +344,10 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     }
 
     /* check if we have already cleaned up */
-    if (!(csound->engineState & 8))
+    if (!(csound->engineState & CS_STATE_CLN))
       return 0;
     /* will not clean up more than once */
-    csound->engineState &= ~8;
+    csound->engineState &= ~(CS_STATE_CLN);
 
     deactivate_all_notes(csound);
     if (csound->instrtxtp &&
