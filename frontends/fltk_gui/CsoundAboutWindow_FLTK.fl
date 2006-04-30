@@ -15,10 +15,10 @@ class CsoundAboutWindow {open selected
     code {buf = new Fl_Text_Buffer();} {}
     Fl_Window window {
       label {Csound copyright information} open
-      xywh {227 242 480 360} type Double visible
+      xywh {227 242 480 340} type Double visible
     } {
       Fl_Text_Display textDisplay {
-        xywh {10 10 460 340} textfont 4 textsize 12
+        xywh {10 10 460 320} textfont 4 textsize 12
         code0 {o->buffer(buf);}
       }
     }
