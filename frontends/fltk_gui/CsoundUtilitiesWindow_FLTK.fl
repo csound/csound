@@ -487,7 +487,7 @@ else {
   srconvSampleRateInput->deactivate();
   srconvSampleRateInput->value(-1.0);
 }}
-              tooltip {Ratio of the new and original sample rate (if <= 0, set output sample rate instead)} xywh {20 115 60 25} align 8 when 4 minimum -1 maximum 100
+              tooltip {Ratio of the original and new sample rate, a lower value means higher output sample rate (if <= 0, use output sample rate as set below instead)} xywh {20 115 60 25} align 8 when 4 minimum -1 maximum 100
               code0 {o->value(u_cfg->srconv_pitchRatio);}
             }
             Fl_Value_Input srconvSampleRateInput {
@@ -501,6 +501,47 @@ if (u_cfg->srconv_sampleRate <= 0.0) {
               code0 {if (u_cfg->srconv_pitchRatio <= 0.0) o->value(u_cfg->srconv_sampleRate);}
               code1 {if (u_cfg->srconv_pitchRatio > 0.0) { o->deactivate(); o->value(-1.0); }}
             }
+            Fl_Spinner {} {
+              label Quality
+              callback {u_cfg->srconv_quality = (int) (o->value() + 0.5);}
+              xywh {20 185 60 25} align 8
+              code0 {o->range(1.0, 8.0);}
+              code1 {o->step(1.0);}
+              code2 {o->value((double) u_cfg->srconv_quality);}
+            }
+            Fl_Check_Button {} {
+              label {Enable peak chunks}
+              callback {u_cfg->srconv_peakChunks = (o->value() == 0 ? false : true);}
+              xywh {235 185 25 25} down_box DOWN_BOX
+              code0 {o->value(u_cfg->srconv_peakChunks ? 1 : 0);}
+            }
+            Fl_Choice {} {
+              label {File type}
+              callback {u_cfg->srconv_fileType = o->value();} open
+              tooltip {Type of output file} xywh {20 220 80 25} down_box BORDER_BOX align 8
+              code0 {o->add("RAW|WAV|AIFF|IRCAM");}
+              code1 {o->value(u_cfg->srconv_fileType);}
+            } {}
+            Fl_Check_Button {} {
+              label {Rewrite header}
+              callback {u_cfg->srconv_rewriteHeader = (o->value() == 0 ? false : true);}
+              xywh {235 220 25 25} down_box DOWN_BOX
+              code0 {o->value(u_cfg->srconv_rewriteHeader ? 1 : 0);}
+            }
+            Fl_Choice {} {
+              label {Sample format}
+              callback {u_cfg->srconv_sampleFormat = o->value();} open
+              tooltip {Sample format of output file} xywh {20 255 80 25} down_box BORDER_BOX align 8
+              code0 {o->add("uchar|short|long|float");}
+              code1 {o->value(u_cfg->srconv_sampleFormat);}
+            } {}
+            Fl_Choice {} {
+              label Heartbeat
+              callback {u_cfg->srconv_heartBeat = o->value();} open
+              xywh {235 255 80 25} down_box BORDER_BOX align 8
+              code0 {o->add("None|Bar|Dot|Time|Bell");}
+              code1 {o->value(u_cfg->srconv_heartBeat);}
+            } {}
           }
           Fl_Button srconvButton {
             label Start
