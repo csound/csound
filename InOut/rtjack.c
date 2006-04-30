@@ -25,7 +25,9 @@
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
 #include <stdint.h>
+#ifdef LINUX
 #include <pthread.h>
+#endif
 #include "csdl.h"
 #include "soundio.h"
 #ifdef LINUX
@@ -35,8 +37,13 @@
 #define MAX_NAME_LEN    32      /* for client and port name */
 
 typedef struct RtJackBuffer_ {
+#ifdef LINUX
     pthread_mutex_t csndLock;               /* signaled by process callback */
     pthread_mutex_t jackLock;               /* signaled by audio thread     */
+#else
+    void    *csndLock;                      /* signaled by process callback */
+    void    *jackLock;                      /* signaled by audio thread     */
+#endif
     jack_default_audio_sample_t **inBufs;   /* 'nChannels' capture buffers  */
     jack_default_audio_sample_t **outBufs;  /* 'nChannels' playback buffers */
 } RtJackBuffer;
@@ -68,6 +75,71 @@ typedef struct RtJackGlobals_ {
     RtJackBuffer    **bufs;             /* 'nBuffers' I/O buffers           */
     int     xrunFlag;                   /* non-zero if an xrun has occured  */
 } RtJackGlobals;
+
+#ifdef LINUX
+
+static inline int rtJack_CreateLock(CSOUND *csound, pthread_mutex_t *p)
+{
+    (void) csound;
+    return (pthread_mutex_init(p, (pthread_mutexattr_t*) NULL));
+}
+
+static inline void rtJack_Lock(CSOUND *csound, pthread_mutex_t *p)
+{
+    (void) csound;
+    pthread_mutex_lock(p);
+}
+
+static inline int rtJack_TryLock(CSOUND *csound, pthread_mutex_t *p)
+{
+    (void) csound;
+    return (pthread_mutex_trylock(p));
+}
+
+static inline void rtJack_Unlock(CSOUND *csound, pthread_mutex_t *p)
+{
+    (void) csound;
+    pthread_mutex_unlock(p);
+}
+
+static inline void rtJack_DestroyLock(CSOUND *csound, pthread_mutex_t *p)
+{
+    (void) csound;
+    pthread_mutex_unlock(p);
+    pthread_mutex_destroy(p);
+}
+
+#else   /* LINUX */
+
+static inline int rtJack_CreateLock(CSOUND *csound, void **p)
+{
+    *p = csound->CreateThreadLock();
+    return (*p != NULL ? 0 : -1);
+}
+
+static inline void rtJack_Lock(CSOUND *csound, void **p)
+{
+    csound->WaitThreadLockNoTimeout(*p);
+}
+
+static inline int rtJack_TryLock(CSOUND *csound, void **p)
+{
+    return (csound->WaitThreadLock(*p, (size_t) 0));
+}
+
+static inline void rtJack_Unlock(CSOUND *csound, void **p)
+{
+    csound->NotifyThreadLock(*p);
+}
+
+static inline void rtJack_DestroyLock(CSOUND *csound, void **p)
+{
+    csound->NotifyThreadLock(*p);
+    csound->DestroyThreadLock(*p);
+    *p = NULL;
+}
+
+#endif  /* !LINUX */
 
 /* print error message, close connection, and terminate performance */
 
@@ -134,7 +206,7 @@ static void shutDownCallback(void *arg)
       for (i = 0; i < p->nBuffers; i++) {
         if (p->bufs[i] != NULL &&
             (p->bufs[i]->inBufs != NULL || p->bufs[i]->outBufs != NULL))
-          pthread_mutex_unlock(&(p->bufs[i]->csndLock));
+          rtJack_Unlock(p->csound, &(p->bufs[i]->csndLock));
       }
     }
 }
@@ -180,15 +252,12 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
     for (i = (size_t) 0; i < (size_t) p->nBuffers; i++) {
       /* create lock for signaling when the process callback is done */
       /* with the buffer */
-      if (pthread_mutex_init(&(p->bufs[i]->csndLock),
-                             (pthread_mutexattr_t*) NULL) != 0)
+      if (rtJack_CreateLock(p->csound, &(p->bufs[i]->csndLock)) != 0)
         rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
       /* create lock for signaling when the Csound thread is done */
       /* with the buffer */
-      if (pthread_mutex_init(&(p->bufs[i]->jackLock),
-                             (pthread_mutexattr_t*) NULL) != 0) {
-        pthread_mutex_unlock(&(p->bufs[i]->csndLock));
-        pthread_mutex_destroy(&(p->bufs[i]->csndLock));
+      if (rtJack_CreateLock(p->csound, &(p->bufs[i]->jackLock)) != 0) {
+        rtJack_DestroyLock(p->csound, &(p->bufs[i]->csndLock));
         rtJack_Error(p->csound, CSOUND_MEMORY, "memory allocation failure");
       }
       ptr = (void*) p->bufs[i];
@@ -296,8 +365,8 @@ static void openJackStreams(RtJackGlobals *p)
     p->jackBufCnt = 0;
     p->jackBufPos = 0;
     for (i = 0; i < p->nBuffers; i++) {
-      pthread_mutex_trylock(&(p->bufs[i]->csndLock));
-      pthread_mutex_unlock(&(p->bufs[i]->jackLock));
+      rtJack_TryLock(p->csound, &(p->bufs[i]->csndLock));
+      rtJack_Unlock(p->csound, &(p->bufs[i]->jackLock));
       for (j = 0; j < p->nChannels; j++) {
         if (p->inputEnabled) {
           for (k = 0; k < p->bufSize; k++)
@@ -487,7 +556,8 @@ static int processCallback(jack_nframes_t nframes, void *arg)
       /* if starting new buffer: */
       if (p->jackBufPos == 0) {
         /* check for xrun: */
-        if (pthread_mutex_trylock(&(p->bufs[p->jackBufCnt]->jackLock)) != 0) {
+        if (rtJack_TryLock(p->csound, &(p->bufs[p->jackBufCnt]->jackLock))
+            != 0) {
           p->xrunFlag = 1;
           /* yes, discard input and fill output with zero samples */
           if (p->outputEnabled) {
@@ -523,7 +593,7 @@ static int processCallback(jack_nframes_t nframes, void *arg)
       /* if done with a buffer, notify Csound thread and advance to next one */
       if (p->jackBufPos >= p->bufSize) {
         p->jackBufPos = 0;
-        pthread_mutex_unlock(&(p->bufs[p->jackBufCnt]->csndLock));
+        rtJack_Unlock(p->csound, &(p->bufs[p->jackBufCnt]->csndLock));
         if (++(p->jackBufCnt) >= p->nBuffers)
           p->jackBufCnt = 0;
       }
@@ -575,7 +645,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     for (i = j = 0; i < nframes; i++) {
       if (bufpos == 0) {
         /* wait until there is enough data in ring buffer */
-        pthread_mutex_lock(&(p->bufs[bufcnt]->csndLock));
+        rtJack_Lock(csound, &(p->bufs[bufcnt]->csndLock));
       }
       /* copy audio data */
       for (k = 0; k < p->nChannels; k++)
@@ -584,7 +654,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
         bufpos = 0;
         /* notify JACK callback that this buffer has been consumed */
         if (!p->outputEnabled)
-          pthread_mutex_unlock(&(p->bufs[bufcnt]->jackLock));
+          rtJack_Unlock(csound, &(p->bufs[bufcnt]->jackLock));
         /* advance to next buffer */
         if (++bufcnt >= p->nBuffers)
           bufcnt = 0;
@@ -596,8 +666,8 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     }
     if (p->xrunFlag) {
       p->xrunFlag = 0;
-      if (p->csound->oparms->msglevel & 4)
-        p->csound->Warning(p->csound, Str("rtjack: xrun in real time audio"));
+      if (csound->oparms->msglevel & 4)
+        csound->Warning(csound, Str("rtjack: xrun in real time audio"));
     }
 
     return bytes_;
@@ -625,7 +695,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
       if (p->csndBufPos == 0) {
         /* wait until there is enough free space in ring buffer */
         if (!p->inputEnabled)
-          pthread_mutex_lock(&(p->bufs[p->csndBufCnt]->csndLock));
+          rtJack_Lock(csound, &(p->bufs[p->csndBufCnt]->csndLock));
       }
       /* copy audio data */
       for (k = 0; k < p->nChannels; k++)
@@ -634,7 +704,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
       if (++(p->csndBufPos) >= p->bufSize) {
         p->csndBufPos = 0;
         /* notify JACK callback that this buffer is now filled */
-        pthread_mutex_unlock(&(p->bufs[p->csndBufCnt]->jackLock));
+        rtJack_Unlock(csound, &(p->bufs[p->csndBufCnt]->jackLock));
         /* advance to next buffer */
         if (++(p->csndBufCnt) >= p->nBuffers)
           p->csndBufCnt = 0;
@@ -642,8 +712,8 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
     }
     if (p->xrunFlag) {
       p->xrunFlag = 0;
-      if (p->csound->oparms->msglevel & 4)
-        p->csound->Warning(p->csound, Str("rtjack: xrun in real time audio"));
+      if (csound->oparms->msglevel & 4)
+        csound->Warning(csound, Str("rtjack: xrun in real time audio"));
     }
 }
 
@@ -662,10 +732,8 @@ static void rtJack_DeleteBuffers(RtJackGlobals *p)
       if (bufs[i]->inBufs == (jack_default_audio_sample_t**) NULL &&
           bufs[i]->outBufs == (jack_default_audio_sample_t**) NULL)
         continue;
-      pthread_mutex_unlock(&(bufs[i]->csndLock));
-      pthread_mutex_destroy(&(bufs[i]->csndLock));
-      pthread_mutex_unlock(&(bufs[i]->jackLock));
-      pthread_mutex_destroy(&(bufs[i]->jackLock));
+      rtJack_DestroyLock(p->csound, &(bufs[i]->csndLock));
+      rtJack_DestroyLock(p->csound, &(bufs[i]->jackLock));
     }
     free((void*) bufs);
 }
