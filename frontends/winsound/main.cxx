@@ -291,6 +291,7 @@ void cs_util_het(void)
     }
 }
 
+Fl_Preferences prof_l(app, "lpc");
 void cs_util_lpc(void)
 {
     Fl_Double_Window *hw = make_lpcanal();
@@ -298,6 +299,19 @@ void cs_util_lpc(void)
     char buffer[1024];
     char *b = buffer;
     int nxt = 1;
+    prof_l.set("s",lpc_s->value());
+    prof_l.set("b",lpc_b->value());
+    prof_l.set("d",lpc_d->value());
+    prof_l.set("p",lpc_p->value());
+    prof_l.set("h",lpc_h->value());
+    prof_l.set("P",lpc_P->value());
+    prof_l.set("Q",lpc_Q->value());
+    prof_l.set("input",lpc_analin->value());
+    prof_l.set("output",lpc_analout->value());
+    prof_l.set("c", lpc_c1->value()?1:
+                    lpc_c2->value()?2:
+                    lpc_c3->value()?3:
+                    lpc_c4->value()?4:0);
     hw->show();
     while (do_util==0) Fl::wait();
     if (do_util>0) {
@@ -351,10 +365,75 @@ void cs_util_lpc(void)
     }
 }
 
+Fl_Preferences prof_p(app, "pvoc");
 void cs_util_pvc(void)
 {
-    textw->show();
-    csoundMessage(csound, "***PVOC analysis not yet written***\n");
+    Fl_Double_Window *hw = make_pvanal();
+    char *argv[100];
+    char buffer[1024];
+    char *b = buffer;
+    int nxt = 1;
+    prof_p.set("s",pvc_s->value());
+    prof_p.set("b",pvc_b->value());
+    prof_p.set("d",pvc_d->value());
+    prof_p.set("w",pvc_w->value());
+    prof_p.set("h",pvc_h->value());
+    prof_p.set("H",pvc_H->value());
+    prof_p.set("K",pvc_K->value());
+    prof_p.set("V",pvc_V->value());
+    prof_p.set("input",pvc_analin->value());
+    prof_p.set("output",pvc_analout->value());
+    prof_p.set("c", pvc_c1->value()?1:
+                    pvc_c2->value()?2:
+                    pvc_c3->value()?3:
+                    pvc_c4->value()?4:0);
+    hw->show();
+    while (do_util==0) Fl::wait();
+    if (do_util>0) {
+      textw->show();
+      hw->hide();
+      argv[0] = "pvanal";
+      if (pvc_s->value()!=0) {
+        sprintf(b, "-s%d", (int)(pvc_s->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (pvc_b->value()!=0) {
+        sprintf(b, "-b%d", (int)(pvc_b->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (pvc_d->value()!=0) {
+        sprintf(b, "-d%d", (int)(pvc_b->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (pvc_w->value()!=0) {
+        sprintf(b, "-w%d", (int)(pvc_w->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (pvc_h->value()!=0) {
+        sprintf(b, "-h%d", (int)(pvc_h->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (pvc_K->value()!=0) {
+        argv[nxt++] = "-K";
+      }
+      if (pvc_H->value()!=0) {
+        argv[nxt++] = "H";
+      }
+      if (pvc_c1->value()) argv[nxt++] = "-c1";
+      else if (pvc_c2->value()) argv[nxt++] = "-c2";
+      else if (pvc_c3->value()) argv[nxt++] = "-c3";
+      else if (pvc_c4->value()) argv[nxt++] = "-c4";
+      argv[nxt++] = (char *)pvc_analin->value();
+      argv[nxt++] = (char *)pvc_analout->value();
+      csoundPreCompile(csound);
+      csoundRunUtility(csound, "pvanal", nxt, argv);
+      csoundReset(csound);
+    }
 }
 
 void cs_util_cvl(void)

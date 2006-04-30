@@ -650,6 +650,12 @@ extern "C" {
 
 #endif  /* __BUILDING_LIBCSOUND */
 
+#define CS_STATE_PRE   (1)
+#define CS_STATE_COMP  (2)
+#define CS_STATE_UTIL  (4)
+#define CS_STATE_CLN   (8)
+#define CS_STATE_JMP   (16)
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1134,11 +1140,11 @@ extern "C" {
     int           enableHostImplementedAudioIO;
     int           hostRequestedBufferSize;
     /* engineState is sum of:
-     *   1: csoundPreCompile was called
-     *   2: csoundCompile was called
-     *   4: csoundRunUtility was called
-     *   8: csoundCleanup needs to be called
-     *  16: csoundLongJmp was called
+     *   1: csoundPreCompile was called      (CS_STATE_PRE)
+     *   2: csoundCompile was called         (CS_STATE_COMP)
+     *   4: csoundRunUtility was called      (CS_STATE_UTIL)
+     *   8: csoundCleanup needs to be called (CS_STATE_CLN)
+     *  16: csoundLongJmp was called         (CS_STATE_JMP)
      */
     int           engineState;
     int           stdin_assign_flg;
