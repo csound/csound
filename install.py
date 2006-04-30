@@ -319,6 +319,9 @@ installErrors = installErrors or err
 print ' === Installing Tcl/Tk modules and scripts ==='
 if findFiles('.', 'tclcsound\\.so').__len__() > 0:
     err = installXFile('--strip-unneeded', 'tclcsound.so', tclDir)
+    installErrors = installErrors or err
+    err = installFile('frontends/tclcsound/command_summary.txt', tclDir)
+    installErrors = installErrors or err
 err = installFile('nsliders.tk', tclDir)
 installErrors = installErrors or err
 
