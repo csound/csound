@@ -235,7 +235,106 @@ else
         } {
           Fl_Group {} {open
             xywh {10 35 430 310} box ENGRAVED_FRAME
-          } {}
+          } {
+            Fl_Input hetroInputFileInput {
+              label {Input file}
+              callback {CsoundGUIMain::stripString(u_cfg->hetro_inputFile, o->value());}
+              xywh {20 45 305 25} align 8
+              code0 {o->value(u_cfg->hetro_inputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->hetro_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for hetrodyne analysis");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->hetro_inputFile, fdlg->value());
+  delete fdlg;
+  hetroInputFileInput->value(u_cfg->hetro_inputFile.c_str());
+}}
+              tooltip {Browse input file for hetrodyne analysis} xywh {405 45 25 25}
+            }
+            Fl_Input hetroOutputFileInput {
+              label {Output file}
+              callback {CsoundGUIMain::stripString(u_cfg->hetro_outputFile, o->value());}
+              xywh {20 80 305 25} align 8
+              code0 {o->value(u_cfg->hetro_outputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->hetro_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for hetrodyne analysis");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->hetro_outputFile, fdlg->value());
+  delete fdlg;
+  hetroOutputFileInput->value(u_cfg->hetro_outputFile.c_str());
+}}
+              tooltip {Browse output file for hetrodyne analysis} xywh {405 80 25 25}
+            }
+            Fl_Spinner {} {
+              label {Channel number}
+              callback {u_cfg->hetro_channel = (int) (o->value() + 0.5);}
+              xywh {20 115 60 25} align 8
+              code0 {o->range(1.0, 8.0);}
+              code1 {o->step(1.0);}
+              code2 {o->value((double) u_cfg->hetro_channel);}
+            }
+            Fl_Value_Input {} {
+              label {Begin time in seconds}
+              callback {u_cfg->hetro_beginTime = o->value();}
+              xywh {20 150 60 25} align 8 maximum 10000
+              code0 {o->value(u_cfg->hetro_beginTime);}
+            }
+            Fl_Value_Input {} {
+              label {Duration in seconds (<= 0: until end of input file)}
+              callback {u_cfg->hetro_duration = o->value();}
+              xywh {20 185 60 25} align 8 minimum -1 maximum 10000
+              code0 {o->value(u_cfg->hetro_duration);}
+            }
+            Fl_Value_Input {} {
+              label {Starting frequency}
+              callback {u_cfg->hetro_startFreq = o->value();}
+              tooltip {Estimated starting frequency of the fundamental} xywh {20 220 60 25} align 8 minimum 10 maximum 1000
+              code0 {o->value(u_cfg->hetro_startFreq);}
+            }
+            Fl_Value_Input {} {
+              label {Number of partials}
+              callback {u_cfg->hetro_partials = (int) (o->value() + 0.5);}
+              tooltip {Number of harmonic partials sought in the audio file} xywh {235 220 60 25} align 8 minimum 1 maximum 1000 step 1
+              code0 {o->value((double) u_cfg->hetro_partials);}
+            }
+            Fl_Value_Input {} {
+              label Breakpoints
+              callback {u_cfg->hetro_breakPoints = (int) (o->value() + 0.5);}
+              tooltip {Initial number of analysis breakpoints in each amplitude and frequency track} xywh {20 255 60 25} align 8 minimum 10 maximum 10000 step 1
+              code0 {o->value((double) u_cfg->hetro_breakPoints);}
+            }
+            Fl_Value_Input {} {
+              label {Amplitude threshold}
+              callback {u_cfg->hetro_minAmp = o->value();}
+              xywh {235 255 60 25} align 8 minimum -1 maximum 1e+06
+              code0 {o->value(u_cfg->hetro_minAmp);}
+            }
+            Fl_Value_Input {} {
+              label {Cutoff frequency}
+              callback {u_cfg->hetro_cutoffFreq = o->value();}
+              tooltip {If > 0, use a 3rd order Butterworth low-pass filter with this cutoff frequency (in Hz)} xywh {20 290 60 25} align 8 minimum -1 maximum 20000
+              code0 {o->value(u_cfg->hetro_cutoffFreq);}
+            }
+            Fl_Value_Input {} {
+              label {Maximum amplitude}
+              callback {u_cfg->hetro_maxAmp = o->value();}
+              xywh {235 290 60 25} align 8 minimum -1 maximum 1e+06
+              code0 {o->value(u_cfg->hetro_maxAmp);}
+            }
+          }
           Fl_Button hetroButton {
             label Start
             callback {if (p->utilityState & CSOUND5GUI_HETRO_RUNNING)
@@ -253,7 +352,70 @@ else
         } {
           Fl_Group {} {open
             xywh {10 35 430 310} box ENGRAVED_FRAME
-          } {}
+          } {
+            Fl_Input lpanalInputFileInput {
+              label {Input file}
+              callback {CsoundGUIMain::stripString(u_cfg->lpanal_inputFile, o->value());}
+              xywh {20 45 305 25} align 8
+              code0 {o->value(u_cfg->lpanal_inputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->lpanal_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for LPC analysis");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->lpanal_inputFile, fdlg->value());
+  delete fdlg;
+  lpanalInputFileInput->value(u_cfg->lpanal_inputFile.c_str());
+}}
+              tooltip {Browse input file for LPC analysis} xywh {405 45 25 25}
+            }
+            Fl_Input lpanalOutputFileInput {
+              label {Output file}
+              callback {CsoundGUIMain::stripString(u_cfg->lpanal_outputFile, o->value());}
+              xywh {20 80 305 25} align 8
+              code0 {o->value(u_cfg->lpanal_outputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->lpanal_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for LPC analysis");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->lpanal_outputFile, fdlg->value());
+  delete fdlg;
+  lpanalOutputFileInput->value(u_cfg->lpanal_outputFile.c_str());
+}}
+              tooltip {Browse output file for LPC analysis} xywh {405 80 25 25}
+            }
+            Fl_Spinner {} {
+              label {Channel number}
+              callback {u_cfg->lpanal_channel = (int) (o->value() + 0.5);}
+              xywh {20 115 60 25} align 8
+              code0 {o->range(1.0, 8.0);}
+              code1 {o->step(1.0);}
+              code2 {o->value((double) u_cfg->lpanal_channel);}
+            }
+            Fl_Value_Input {} {
+              label {Begin time in seconds}
+              callback {u_cfg->lpanal_beginTime = o->value();}
+              xywh {20 150 60 25} align 8 maximum 10000
+              code0 {o->value(u_cfg->lpanal_beginTime);}
+            }
+            Fl_Value_Input {} {
+              label {Duration in seconds (<= 0: until end of input file)}
+              callback {u_cfg->lpanal_duration = o->value();}
+              xywh {20 185 60 25} align 8 minimum -1 maximum 10000
+              code0 {o->value(u_cfg->lpanal_duration);}
+            }
+          }
           Fl_Button lpanalButton {
             label Start
             callback {if (p->utilityState & CSOUND5GUI_LPANAL_RUNNING)
@@ -271,7 +433,75 @@ else
         } {
           Fl_Group {} {open
             xywh {10 35 430 310} box ENGRAVED_FRAME
-          } {}
+          } {
+            Fl_Input srconvInputFileInput {
+              label {Input file}
+              callback {CsoundGUIMain::stripString(u_cfg->srconv_inputFile, o->value());}
+              xywh {20 45 305 25} align 8
+              code0 {o->value(u_cfg->srconv_inputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->srconv_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for sample rate conversion");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->srconv_inputFile, fdlg->value());
+  delete fdlg;
+  srconvInputFileInput->value(u_cfg->srconv_inputFile.c_str());
+}}
+              tooltip {Browse input file for sample rate conversion} xywh {405 45 25 25}
+            }
+            Fl_Input srconvOutputFileInput {
+              label {Output file}
+              callback {CsoundGUIMain::stripString(u_cfg->srconv_outputFile, o->value());}
+              xywh {20 80 305 25} align 8
+              code0 {o->value(u_cfg->srconv_outputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->srconv_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for sample rate conversion");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->srconv_outputFile, fdlg->value());
+  delete fdlg;
+  srconvOutputFileInput->value(u_cfg->srconv_outputFile.c_str());
+}}
+              tooltip {Browse output file for sample rate conversion} xywh {405 80 25 25}
+            }
+            Fl_Value_Input {} {
+              label {Pitch transposition ratio}
+              callback {u_cfg->srconv_pitchRatio = o->value();
+if (u_cfg->srconv_pitchRatio <= 0.0) {
+  srconvSampleRateInput->value(u_cfg->srconv_sampleRate);
+  srconvSampleRateInput->activate();
+}
+else {
+  srconvSampleRateInput->deactivate();
+  srconvSampleRateInput->value(-1.0);
+}}
+              tooltip {Ratio of the new and original sample rate (if <= 0, set output sample rate instead)} xywh {20 115 60 25} align 8 when 4 minimum -1 maximum 100
+              code0 {o->value(u_cfg->srconv_pitchRatio);}
+            }
+            Fl_Value_Input srconvSampleRateInput {
+              label {Output sample rate (Hz)}
+              callback {u_cfg->srconv_sampleRate = o->value();
+if (u_cfg->srconv_sampleRate <= 0.0) {
+  u_cfg->srconv_sampleRate = 44100.0;
+  o->value(u_cfg->srconv_sampleRate);
+}}
+              xywh {20 150 60 25} align 8 when 4 minimum -1 maximum 1e+06
+              code0 {if (u_cfg->srconv_pitchRatio <= 0.0) o->value(u_cfg->srconv_sampleRate);}
+              code1 {if (u_cfg->srconv_pitchRatio > 0.0) { o->deactivate(); o->value(-1.0); }}
+            }
+          }
           Fl_Button srconvButton {
             label Start
             callback {if (p->utilityState & CSOUND5GUI_SRCONV_RUNNING)
@@ -307,7 +537,29 @@ else
         } {
           Fl_Group {} {open
             xywh {10 35 430 310} box ENGRAVED_FRAME
-          } {}
+          } {
+            Fl_Input sndinfoInputFileInput {
+              label {Input file}
+              callback {CsoundGUIMain::stripString(u_cfg->sndinfo_inputFile, o->value());}
+              xywh {20 45 305 25} align 8
+              code0 {o->value(u_cfg->sndinfo_inputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->sndinfo_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select sound file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->sndinfo_inputFile, fdlg->value());
+  delete fdlg;
+  sndinfoInputFileInput->value(u_cfg->sndinfo_inputFile.c_str());
+}}
+              tooltip {Browse sound file} xywh {405 45 25 25}
+            }
+          }
           Fl_Button sndinfoButton {
             label Start
             callback {if (p->utilityState & CSOUND5GUI_SNDINFO_RUNNING)
