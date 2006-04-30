@@ -2149,8 +2149,10 @@ static const CSOUND cenviron_ = {
 #else
     timeResolutionSeconds = 1.0;
 #endif
-/*     fprintf(stderr, "time resolution is %.3f ns\n", */
-/*                     1.0e9 * timeResolutionSeconds); */
+#ifdef BETA
+    fprintf(stderr, "time resolution is %.3f ns\n",
+                    1.0e9 * timeResolutionSeconds);
+#endif
     return 0;
   }
 
