@@ -84,6 +84,50 @@ class CsoundUtilitySettings {
     int         pvanal_hopSize;
     int         pvanal_windowType;      // 0: Hamming, 1: von Hann, 2: Kaiser
     // -----------------------------------------------------------------
+    // hetro
+    std::string hetro_inputFile;
+    std::string hetro_outputFile;
+    int         hetro_channel;
+    double      hetro_beginTime;
+    double      hetro_duration;
+    double      hetro_startFreq;
+    int         hetro_partials;
+    double      hetro_maxAmp;
+    double      hetro_minAmp;
+    int         hetro_breakPoints;
+    double      hetro_cutoffFreq;
+    // -----------------------------------------------------------------
+    // lpanal
+    std::string lpanal_inputFile;
+    std::string lpanal_outputFile;
+    int         lpanal_channel;
+    double      lpanal_beginTime;
+    double      lpanal_duration;
+    bool        lpanal_altMode;
+    int         lpanal_poles;
+    int         lpanal_hopSize;
+    std::string lpanal_comment;
+    double      lpanal_minFreq;
+    double      lpanal_maxFreq;
+    int         lpanal_verbosity;   // 0: normal, 1: verbose, 2: debug
+    // -----------------------------------------------------------------
+    // sndinfo
+    std::string sndinfo_inputFile;
+    // -----------------------------------------------------------------
+    // srconv
+    std::string srconv_inputFile;
+    std::string srconv_outputFile;
+    double      srconv_pitchRatio;
+    double      srconv_sampleRate;
+    int         srconv_quality;         // 1 to 8
+    int         srconv_fileType;        // 0: RAW, 1: WAV, 2: AIFF, 3: IRCAM
+    int         srconv_sampleFormat;    // 0: U8, 1: S16, 2: S32, 3: F32
+    bool        srconv_peakChunks;
+    bool        srconv_rewriteHeader;
+    int         srconv_heartBeat;
+    // -----------------------------------------------------------------
+    // dnoise
+    // -----------------------------------------------------------------
     CsoundUtilitySettings();
     ~CsoundUtilitySettings();
 };
