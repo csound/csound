@@ -648,13 +648,13 @@ extern "C" {
 #include "cwindow.h"
 #include "envvar.h"
 
-#endif  /* __BUILDING_LIBCSOUND */
+#define CS_STATE_PRE    (1)
+#define CS_STATE_COMP   (2)
+#define CS_STATE_UTIL   (4)
+#define CS_STATE_CLN    (8)
+#define CS_STATE_JMP    (16)
 
-#define CS_STATE_PRE   (1)
-#define CS_STATE_COMP  (2)
-#define CS_STATE_UTIL  (4)
-#define CS_STATE_CLN   (8)
-#define CS_STATE_JMP   (16)
+#endif  /* __BUILDING_LIBCSOUND */
 
   /**
    * Contains all function pointers, data, and data pointers required
@@ -1140,11 +1140,11 @@ extern "C" {
     int           enableHostImplementedAudioIO;
     int           hostRequestedBufferSize;
     /* engineState is sum of:
-     *   1: csoundPreCompile was called      (CS_STATE_PRE)
-     *   2: csoundCompile was called         (CS_STATE_COMP)
-     *   4: csoundRunUtility was called      (CS_STATE_UTIL)
-     *   8: csoundCleanup needs to be called (CS_STATE_CLN)
-     *  16: csoundLongJmp was called         (CS_STATE_JMP)
+     *   1 (CS_STATE_PRE):  csoundPreCompile was called
+     *   2 (CS_STATE_COMP): csoundCompile was called
+     *   4 (CS_STATE_UTIL): csoundRunUtility was called
+     *   8 (CS_STATE_CLN):  csoundCleanup needs to be called
+     *  16 (CS_STATE_JMP):  csoundLongJmp was called
      */
     int           engineState;
     int           stdin_assign_flg;
