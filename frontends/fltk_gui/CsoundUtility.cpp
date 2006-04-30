@@ -149,6 +149,44 @@ CsoundUtilitySettings::CsoundUtilitySettings()
     pvanal_overlap = 0;
     pvanal_hopSize = 128;
     pvanal_windowType = 1;
+    // -----------------------------------------------------------------
+    hetro_inputFile = "";
+    hetro_outputFile = "";
+    hetro_channel = 1;
+    hetro_beginTime = 0.0;
+    hetro_duration = -1.0;
+    hetro_startFreq = 100.0;
+    hetro_partials = 10;
+    hetro_maxAmp = 32767.0;
+    hetro_minAmp = 64.0;
+    hetro_breakPoints = 256;
+    hetro_cutoffFreq = -1.0;
+    // -----------------------------------------------------------------
+    lpanal_inputFile = "";
+    lpanal_outputFile = "";
+    lpanal_channel = 1;
+    lpanal_beginTime = 0.0;
+    lpanal_duration = -1.0;
+    lpanal_altMode = false;
+    lpanal_poles = 34;
+    lpanal_hopSize = 200;
+    lpanal_comment = "";
+    lpanal_minFreq = 70.0;
+    lpanal_maxFreq = 200.0;
+    lpanal_verbosity = 0;
+    // -----------------------------------------------------------------
+    sndinfo_inputFile = "";
+    // -----------------------------------------------------------------
+    srconv_inputFile = "";
+    srconv_outputFile = "";
+    srconv_pitchRatio = 1.0;
+    srconv_sampleRate = 44100.0;
+    srconv_quality = 4;
+    srconv_fileType = 1;
+    srconv_sampleFormat = 1;
+    srconv_peakChunks = true;
+    srconv_rewriteHeader = false;
+    srconv_heartBeat = 0;
 }
 
 CsoundUtilitySettings::~CsoundUtilitySettings()
@@ -255,33 +293,153 @@ CsoundUtility *CreateUtility_Pvanal(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Hetro(CsoundGUIConsole *consoleWindow,
                                    CsoundUtilitySettings& parm)
 {
-    (void) consoleWindow;
-    (void) parm;
-    return (CsoundUtility*) 0;
+    std::vector<std::string>  args;
+    std::string               arg;
+
+    if (CsoundGUIMain::isEmptyString(parm.hetro_inputFile) ||
+        CsoundGUIMain::isEmptyString(parm.hetro_outputFile))
+      return (CsoundUtility*) 0;
+    args.push_back("hetro");
+    if (parm.hetro_channel > 0)
+      cmdLine_addIntegerOpt(args, "-c", parm.hetro_channel);
+    if (parm.hetro_beginTime > 0.0)
+      cmdLine_addDoubleOpt(args, "-b", parm.hetro_beginTime);
+    if (parm.hetro_duration > 0.0)
+      cmdLine_addDoubleOpt(args, "-d", parm.hetro_duration);
+    if (parm.hetro_startFreq > 0.0)
+      cmdLine_addDoubleOpt(args, "-f", parm.hetro_startFreq);
+    if (parm.hetro_partials > 0)
+      cmdLine_addIntegerOpt(args, "-h", parm.hetro_partials);
+    if (parm.hetro_maxAmp > 0.0)
+      cmdLine_addDoubleOpt(args, "-M", parm.hetro_maxAmp);
+    if (parm.hetro_minAmp > 0.0)
+      cmdLine_addDoubleOpt(args, "-m", parm.hetro_minAmp);
+    if (parm.hetro_breakPoints > 0)
+      cmdLine_addIntegerOpt(args, "-n", parm.hetro_breakPoints);
+    if (parm.hetro_cutoffFreq > 0.0)
+      cmdLine_addDoubleOpt(args, "-l", parm.hetro_cutoffFreq);
+    CsoundGUIMain::stripString(arg, parm.hetro_inputFile.c_str());
+    args.push_back(arg);
+    CsoundGUIMain::stripString(arg, parm.hetro_outputFile.c_str());
+    args.push_back(arg);
+
+    return (new CsoundUtility(consoleWindow, args));
 }
 
 CsoundUtility *CreateUtility_Lpanal(CsoundGUIConsole *consoleWindow,
                                     CsoundUtilitySettings& parm)
 {
-    (void) consoleWindow;
-    (void) parm;
-    return (CsoundUtility*) 0;
+    std::vector<std::string>  args;
+    std::string               arg;
+
+    if (CsoundGUIMain::isEmptyString(parm.lpanal_inputFile) ||
+        CsoundGUIMain::isEmptyString(parm.lpanal_outputFile))
+      return (CsoundUtility*) 0;
+    args.push_back("lpanal");
+    if (parm.lpanal_channel > 0)
+      cmdLine_addIntegerOpt(args, "-c", parm.lpanal_channel);
+    if (parm.lpanal_beginTime > 0.0)
+      cmdLine_addDoubleOpt(args, "-b", parm.lpanal_beginTime);
+    if (parm.lpanal_duration > 0.0)
+      cmdLine_addDoubleOpt(args, "-d", parm.lpanal_duration);
+    if (parm.lpanal_altMode)
+      args.push_back("-a");
+    if (parm.lpanal_poles > 0)
+      cmdLine_addIntegerOpt(args, "-p", parm.lpanal_poles);
+    if (parm.lpanal_hopSize > 0)
+      cmdLine_addIntegerOpt(args, "-h", parm.lpanal_hopSize);
+    if (!CsoundGUIMain::isEmptyString(parm.lpanal_comment)) {
+      arg = "-C";
+      arg += parm.lpanal_comment;
+      args.push_back(arg);
+    }
+    if (parm.lpanal_minFreq > 0.0)
+      cmdLine_addDoubleOpt(args, "-P", parm.lpanal_minFreq);
+    if (parm.lpanal_maxFreq > 0.0)
+      cmdLine_addDoubleOpt(args, "-Q", parm.lpanal_maxFreq);
+    if (parm.lpanal_verbosity > 0)
+      cmdLine_addIntegerOpt(args, "-v", parm.lpanal_verbosity);
+    CsoundGUIMain::stripString(arg, parm.lpanal_inputFile.c_str());
+    args.push_back(arg);
+    CsoundGUIMain::stripString(arg, parm.lpanal_outputFile.c_str());
+    args.push_back(arg);
+
+    return (new CsoundUtility(consoleWindow, args));
 }
 
 CsoundUtility *CreateUtility_Sndinfo(CsoundGUIConsole *consoleWindow,
                                      CsoundUtilitySettings& parm)
 {
-    (void) consoleWindow;
-    (void) parm;
-    return (CsoundUtility*) 0;
+    std::vector<std::string>  args;
+    std::string               arg;
+
+    if (CsoundGUIMain::isEmptyString(parm.sndinfo_inputFile))
+      return (CsoundUtility*) 0;
+    args.push_back("sndinfo");
+    CsoundGUIMain::stripString(arg, parm.sndinfo_inputFile.c_str());
+    args.push_back(arg);
+
+    return (new CsoundUtility(consoleWindow, args));
 }
 
 CsoundUtility *CreateUtility_Srconv(CsoundGUIConsole *consoleWindow,
                                     CsoundUtilitySettings& parm)
 {
-    (void) consoleWindow;
-    (void) parm;
-    return (CsoundUtility*) 0;
+    std::vector<std::string>  args;
+    std::string               arg;
+
+    if (CsoundGUIMain::isEmptyString(parm.srconv_inputFile) ||
+        CsoundGUIMain::isEmptyString(parm.srconv_outputFile))
+      return (CsoundUtility*) 0;
+    args.push_back("srconv");
+    if (parm.srconv_pitchRatio > 0.0)
+      cmdLine_addDoubleOpt(args, "-P", 1.0 / parm.srconv_pitchRatio);
+    else if (parm.srconv_sampleRate > 0.0)
+      cmdLine_addDoubleOpt(args, "-r", parm.srconv_sampleRate);
+    else
+      args.push_back("-P1.0");
+    if (parm.srconv_quality > 0)
+      cmdLine_addIntegerOpt(args, "-Q", parm.srconv_quality);
+    switch (parm.srconv_fileType) {
+    case 0:
+      args.push_back("-h");
+      break;
+    case 2:
+      args.push_back("-A");
+      break;
+    case 3:
+      args.push_back("-J");
+      break;
+    default:
+      args.push_back("-W");
+      break;
+    }
+    switch (parm.srconv_sampleFormat) {
+    case 0:
+      args.push_back("-8");
+      break;
+    case 2:
+      args.push_back("-l");
+      break;
+    case 3:
+      args.push_back("-f");
+      break;
+    default:
+      args.push_back("-s");
+      break;
+    }
+    if (!parm.srconv_peakChunks)
+      args.push_back("-K");
+    if (parm.srconv_rewriteHeader)
+      args.push_back("-R");
+    cmdLine_addIntegerOpt(args, "-H", parm.srconv_heartBeat);
+    args.push_back("-o");
+    CsoundGUIMain::stripString(arg, parm.srconv_outputFile.c_str());
+    args.push_back(arg);
+    CsoundGUIMain::stripString(arg, parm.srconv_inputFile.c_str());
+    args.push_back(arg);
+
+    return (new CsoundUtility(consoleWindow, args));
 }
 
 CsoundUtility *CreateUtility_Dnoise(CsoundGUIConsole *consoleWindow,
