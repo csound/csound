@@ -5,6 +5,8 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
+decl {\#include "CsoundCopyrightInfo.hpp"} {} 
+
 class CsoundAboutWindow {open selected
 } {
   decl {Fl_Text_Buffer *buf;} {}
@@ -13,13 +15,19 @@ class CsoundAboutWindow {open selected
     code {buf = new Fl_Text_Buffer();} {}
     Fl_Window window {
       label {Csound copyright information} open
-      xywh {227 242 450 300} type Double resizable visible
+      xywh {227 242 480 360} type Double visible
     } {
       Fl_Text_Display textDisplay {
-        xywh {10 10 430 280}
+        xywh {10 10 460 340} textfont 4 textsize 12
         code0 {o->buffer(buf);}
       }
     }
+    code {{
+  for (int i = 0; csoundCopyrightInfo[i]; i++) {
+    textDisplay->insert_position(buf->length());
+    textDisplay->insert(csoundCopyrightInfo[i]);
+  }
+}} {}
   }
   Function {~CsoundAboutWindow()} {open
   } {
