@@ -155,7 +155,7 @@ static const char *longUsageList[] = {
   "--nosound\t\tno sound onto disk or device",
   "--tempo=N\t\tuse uninterpreted beats of the score, initially at tempo N",
   "--i-only\t\tI-time only orch run",
-  "--control-rate=N\torchestra krate overrid",
+  "--control-rate=N\torchestra krate override",
   "--sample-rate=N\t\torchestra srate override",
   "--score-in=FNAME\tread Line-oriented realtime score events from device",
   "--messagelevel=N\ttty message level, sum of:",
@@ -299,9 +299,11 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { "pvf",    TYP_PVF   },  { "xi",     TYP_XI    },
     { "htk",    TYP_HTK   },  { "sds",    TYP_SDS   },
     { "avr",    TYP_AVR   },  { "wavex",  TYP_WAVEX },
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1011
     { "sd2",    TYP_SD2   },
-#ifdef HAVE_LIBSNDFILE_1_0_13
+#  if HAVE_LIBSNDFILE >= 1013
     { "flac",   TYP_FLAC  },  { "caf",    TYP_CAF   },
+#  endif
 #endif
     { NULL , -1 }
 };

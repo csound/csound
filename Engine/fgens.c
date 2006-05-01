@@ -2197,7 +2197,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     }
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
-#ifdef HAVE_LIBSNDFILE_1_0_13
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
     {
       SF_INSTRUMENT lpd;
       int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
@@ -2266,7 +2266,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->loopmode1 = 0;
     ftp->loopmode2 = 0;
     ftp->end1 = ftp->flenfrms;          /* Greg Sullivan */
-#endif      /* HAVE_LIBSNDFILE_1_0_13 */
+#endif      /* HAVE_LIBSNDFILE >= 1013 */
     /* read sound with opt gain */
     if ((inlocs = getsndin(csound, fd, ftp->ftable, ff->flen + 1, p)) < 0) {
       return fterror(ff, Str("GEN1 read error"));

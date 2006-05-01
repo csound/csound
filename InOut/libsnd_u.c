@@ -332,7 +332,13 @@ char *type2string(int x)
 #ifdef SF_FORMAT_SDS
       case TYP_SDS:   return "SDS";
 #endif
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1011
       case TYP_SD2:   return "SD2";
+#  if HAVE_LIBSNDFILE >= 1013
+      case TYP_FLAC:  return "FLAC";
+      case TYP_CAF:   return "CAF";
+#  endif
+#endif
       default:        return Str("unknown");
     }
 }
