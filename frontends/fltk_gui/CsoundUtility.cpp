@@ -372,7 +372,7 @@ CsoundUtility *CreateUtility_Lpanal(CsoundGUIConsole *consoleWindow,
       arg += parm.lpanal_comment;
       args.push_back(arg);
     }
-    if (parm.lpanal_minFreq > 0.0)
+    if (parm.lpanal_minFreq >= 0.0)
       cmdLine_addDoubleOpt(args, "-P", parm.lpanal_minFreq);
     if (parm.lpanal_maxFreq > 0.0)
       cmdLine_addDoubleOpt(args, "-Q", parm.lpanal_maxFreq);
