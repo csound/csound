@@ -187,6 +187,25 @@ CsoundUtilitySettings::CsoundUtilitySettings()
     srconv_peakChunks = true;
     srconv_rewriteHeader = false;
     srconv_heartBeat = 0;
+    // -----------------------------------------------------------------
+    dnoise_inputFile = "";
+    dnoise_outputFile = "";
+    dnoise_noiseFile = "";
+    dnoise_beginTime = 0.0;
+    dnoise_endTime = -1.0;
+    dnoise_fftSize = 4;         // for an FFT size of 1024
+    dnoise_overlap = 2;
+    dnoise_synLen = 0;
+    dnoise_decFact = 0;
+    dnoise_threshold = 30.0;
+    dnoise_sharpness = 1;
+    dnoise_numFFT = 5;
+    dnoise_minGain = -40.0;
+    dnoise_fileType = 1;
+    dnoise_sampleFormat = 1;
+    dnoise_heartBeat = 0;
+    dnoise_rewriteHeader = false;
+    dnoise_verbose = false;
 }
 
 CsoundUtilitySettings::~CsoundUtilitySettings()
@@ -445,8 +464,76 @@ CsoundUtility *CreateUtility_Srconv(CsoundGUIConsole *consoleWindow,
 CsoundUtility *CreateUtility_Dnoise(CsoundGUIConsole *consoleWindow,
                                     CsoundUtilitySettings& parm)
 {
-    (void) consoleWindow;
-    (void) parm;
-    return (CsoundUtility*) 0;
+    std::vector<std::string>  args;
+    std::string               arg;
+
+    if (CsoundGUIMain::isEmptyString(parm.dnoise_inputFile) ||
+        CsoundGUIMain::isEmptyString(parm.dnoise_outputFile) ||
+        CsoundGUIMain::isEmptyString(parm.dnoise_noiseFile))
+      return (CsoundUtility*) 0;
+    args.push_back("dnoise");
+    if (parm.dnoise_beginTime > 0.0)
+      cmdLine_addDoubleOpt(args, "-b", parm.dnoise_beginTime);
+    if (parm.dnoise_endTime > 0.0)
+      cmdLine_addDoubleOpt(args, "-e", parm.dnoise_endTime);
+    if (parm.dnoise_fftSize >= 0)
+      cmdLine_addIntegerOpt(args, "-N", (1 << (parm.dnoise_fftSize + 6)));
+    if (parm.dnoise_overlap >= 0)
+      cmdLine_addIntegerOpt(args, "-M", (1 << ((parm.dnoise_fftSize
+                                                - parm.dnoise_overlap) + 8)));
+    if (parm.dnoise_synLen > 0)
+      cmdLine_addIntegerOpt(args, "-L", (1 << (parm.dnoise_synLen + 5)));
+    if (parm.dnoise_decFact > 0)
+      cmdLine_addIntegerOpt(args, "-D", (1 << (parm.dnoise_decFact + 2)));
+    cmdLine_addDoubleOpt(args, "-t", parm.dnoise_threshold);
+    if (parm.dnoise_sharpness > 0)
+      cmdLine_addIntegerOpt(args, "-S", parm.dnoise_sharpness);
+    if (parm.dnoise_numFFT > 0)
+      cmdLine_addIntegerOpt(args, "-n", parm.dnoise_numFFT);
+    cmdLine_addDoubleOpt(args, "-m", parm.dnoise_minGain);
+    switch (parm.dnoise_fileType) {
+    case 0:
+      args.push_back("-h");
+      break;
+    case 2:
+      args.push_back("-A");
+      break;
+    case 3:
+      args.push_back("-J");
+      break;
+    default:
+      args.push_back("-W");
+      break;
+    }
+    switch (parm.dnoise_sampleFormat) {
+    case 0:
+      args.push_back("-8");
+      break;
+    case 2:
+      args.push_back("-l");
+      break;
+    case 3:
+      args.push_back("-f");
+      break;
+    default:
+      args.push_back("-s");
+      break;
+    }
+    if (parm.dnoise_heartBeat >= 0)
+      cmdLine_addIntegerOpt(args, "-H", parm.dnoise_heartBeat);
+    if (parm.dnoise_rewriteHeader)
+      args.push_back("-R");
+    if (parm.dnoise_verbose)
+      args.push_back("-V");
+    args.push_back("-i");
+    CsoundGUIMain::stripString(arg, parm.dnoise_noiseFile.c_str());
+    args.push_back(arg);
+    args.push_back("-o");
+    CsoundGUIMain::stripString(arg, parm.dnoise_outputFile.c_str());
+    args.push_back(arg);
+    CsoundGUIMain::stripString(arg, parm.dnoise_inputFile.c_str());
+    args.push_back(arg);
+
+    return (new CsoundUtility(consoleWindow, args));
 }
 
