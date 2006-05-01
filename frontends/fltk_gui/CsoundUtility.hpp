@@ -127,6 +127,29 @@ class CsoundUtilitySettings {
     int         srconv_heartBeat;
     // -----------------------------------------------------------------
     // dnoise
+    std::string dnoise_inputFile;
+    std::string dnoise_outputFile;
+    std::string dnoise_noiseFile;
+    double      dnoise_beginTime;
+    double      dnoise_endTime;
+    int         dnoise_fftSize;         // log2(FFT size) - 6
+    // dnoise_overlap controls the analysis window length:
+    //   0: 4 * FFT size
+    //   1: 2 * FFT size
+    //   2: 1 * FFT size
+    //   3: FFT size / 2
+    int         dnoise_overlap;
+    int         dnoise_synLen;          // log2(synthesis window length) - 5
+    int         dnoise_decFact;         // log2(decimation factor) - 2
+    double      dnoise_threshold;
+    int         dnoise_sharpness;       // 1 to 5
+    int         dnoise_numFFT;          // number of FFT frames to average
+    double      dnoise_minGain;
+    int         dnoise_fileType;        // 0: RAW, 1: WAV, 2: AIFF, 3: IRCAM
+    int         dnoise_sampleFormat;    // 0: U8, 1: S16, 2: S32, 3: F32
+    int         dnoise_heartBeat;
+    bool        dnoise_rewriteHeader;
+    bool        dnoise_verbose;
     // -----------------------------------------------------------------
     CsoundUtilitySettings();
     ~CsoundUtilitySettings();
