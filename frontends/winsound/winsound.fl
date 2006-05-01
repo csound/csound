@@ -53,7 +53,7 @@ decl {extern Fl_Preferences app;} {public
 decl {extern Fl_Preferences prof;} {public
 } 
 
-decl {extern Fl_Preferences prof_h,prof_l,prof_p;} {public
+decl {extern Fl_Preferences prof_h,prof_l,prof_p,prof_c;} {public
 } 
 
 decl {void cs_util_sndinfo(void);} {public
@@ -309,8 +309,8 @@ util_info->value(0);
 util_pinfo->value(0);
 util_dnoise->value(0);
 util_opc->value(0);
-util_opv->value(0);}
-      xywh {25 87 155 25} down_box ROUND_DOWN_BOX deactivate
+util_opv->value(0);} selected
+      xywh {25 87 155 25} down_box ROUND_DOWN_BOX
     }
     Fl_Round_Button util_info {
       label {Sound File Info}
@@ -401,7 +401,7 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {516 304 400 350} type Double visible
+    xywh {516 328 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
@@ -516,7 +516,7 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {450 238 325 230} type Double visible
+    xywh {450 262 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
@@ -611,7 +611,7 @@ Function {make_info()} {open
 Function {make_anal()} {open
 } {
   Fl_Window analw {open
-    xywh {382 433 365 100} type Double visible
+    xywh {382 457 365 100} type Double visible
   } {
     Fl_File_Input analin {
       label Input
@@ -680,7 +680,7 @@ Function {make_saver()} {open
 } {
   Fl_Window {} {
     label {Save As} open
-    xywh {622 326 395 80} type Double visible
+    xywh {622 350 395 80} type Double visible
   } {
     Fl_File_Input savefile {
       label {Save as}
@@ -729,8 +729,7 @@ het_ac->value(ct==0);het_c1->value(ct==1);het_c2->value(ct==2);het_c3->value(ct=
     }
     Fl_Button {} {
       label Cancel
-      callback {analw->hide();
-do_util = -1;}
+      callback {do_util = -1;}
       xywh {290 325 50 25} color 1
     }
     Fl_Button {} {
@@ -861,8 +860,7 @@ lpc_c1->value(ct==1);lpc_c2->value(ct==2);lpc_c3->value(ct==3);lpc_c4->value(ct=
     }
     Fl_Button {} {
       label Cancel
-      callback {analw->hide();
-do_util = -1;}
+      callback {do_util = -1;}
       xywh {340 275 50 25} color 1
     }
     Fl_Button {} {
@@ -958,7 +956,7 @@ Function {make_pvanal()} {open
   Fl_Window {} {
     label {Phase Vocoding Analysis}
     callback {do_util = 0;} open
-    xywh {454 390 450 310} type Double
+    xywh {454 414 450 310} type Double
     code0 {int ct; prof_p.get("c",ct,1); 
 pvc_c1->value(ct==1);pvc_c2->value(ct==2);pvc_c3->value(ct==3);pvc_c4->value(ct==4);} visible
   } {
@@ -979,8 +977,7 @@ pvc_c1->value(ct==1);pvc_c2->value(ct==2);pvc_c3->value(ct==3);pvc_c4->value(ct=
     }
     Fl_Button {} {
       label Cancel
-      callback {analw->hide();
-do_util = -1;}
+      callback {do_util = -1;}
       xywh {349 280 50 25} color 1
     }
     Fl_Button {} {
@@ -1079,10 +1076,111 @@ pvc_V->value(0);}
       Fl_Round_Button pvc_V {
         label {von Hann}
         callback {pvc_K->value(0);
-pvc_H->value(0);} selected
+pvc_H->value(0);}
         xywh {40 240 85 35} down_box ROUND_DOWN_BOX
         code0 {int t;prof_p.get("V",t,1);o->value(t);}
       }
+    }
+  }
+} 
+
+Function {make_cvlanal()} {open
+} {
+  Fl_Window {} {
+    label {Convolution Analysis}
+    callback {do_util = 0;} open
+    xywh {484 293 360 245} type Double
+    code0 {int ct; prof_c.get("c",ct,0); 
+cvl_ac->value(ct==0);cvl_c1->value(ct==1);cvl_c2->value(ct==2);cvl_c3->value(ct==3);cvl_c4->value(ct==4);} visible
+  } {
+    Fl_File_Input cvl_analin {
+      label Input
+      xywh {50 5 280 30}
+      code0 {char *t; prof_c.get("input", t, ""); o->value(t);free(t);}
+    }
+    Fl_File_Input cvl_analout {
+      label Output
+      xywh {50 35 280 30}
+      code0 {char *t; prof_c.get("output", t, "test.cv"); o->value(t);free(t);}
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {do_util = 1;}
+      xywh {10 205 50 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {do_util = -1;}
+      xywh {295 205 50 25} color 1
+    }
+    Fl_Button {} {
+      label {?}
+      callback {cvl_analin->value(fl_file_chooser("CONVOLVE", "*.wav", NULL));}
+      xywh {330 5 25 30} color 5
+    }
+    Fl_Button {} {
+      label {?}
+      callback {cvl_analout->value(fl_file_chooser("Output", "*.cv", NULL));}
+      xywh {330 35 25 30} color 5
+    }
+    Fl_Group {} {open
+      xywh {205 80 140 105} box THIN_DOWN_FRAME
+    } {
+      Fl_Round_Button cvl_ac {
+        label {All Channels}
+        callback {cvl_c1->value(0);
+cvl_c2->value(0);
+cvl_c3->value(0);
+cvl_c4->value(0);}
+        xywh {220 80 110 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button cvl_c1 {
+        label {Channel 1}
+        callback {cvl_ac->value(0);
+cvl_c2->value(0);
+cvl_c3->value(0);
+cvl_c4->value(0);}
+        xywh {220 100 110 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button cvl_c2 {
+        label {Channel 2}
+        callback {cvl_ac->value(0);
+cvl_c1->value(0);
+cvl_c3->value(0);
+cvl_c4->value(0);}
+        xywh {220 120 110 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button cvl_c3 {
+        label {Channel 3}
+        callback {cvl_ac->value(0);
+cvl_c1->value(0);
+cvl_c2->value(0);
+cvl_c4->value(0);}
+        xywh {220 140 110 25} down_box ROUND_DOWN_BOX
+      }
+      Fl_Round_Button cvl_c4 {
+        label {Channel 4}
+        callback {cvl_ac->value(0);
+cvl_c1->value(0);
+cvl_c2->value(0);
+cvl_c3->value(0);}
+        xywh {220 155 110 30} down_box ROUND_DOWN_BOX
+      }
+    }
+    Fl_Value_Input cvl_s {
+      label {Sample rate (-s)}
+      xywh {30 75 55 25} align 8
+      code0 {int t; prof_c.get("s",t,0); o->value(t);}
+    }
+    Fl_Value_Input cvl_b {
+      label {Begin time (-b)}
+      xywh {30 115 55 25} align 8
+      code0 {int t; prof_c.get("b",t,0); o->value(t);}
+    }
+    Fl_Value_Input cvl_d {
+      label {Duration (-d)}
+      xywh {30 155 55 25} align 8
+      code0 {int t; prof_c.get("d",t,0); o->value(t);}
     }
   }
 } 
