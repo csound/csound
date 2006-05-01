@@ -53,7 +53,7 @@ decl {extern Fl_Preferences app;} {public
 decl {extern Fl_Preferences prof;} {public
 } 
 
-decl {extern Fl_Preferences prof_h,prof_l,prof_p,prof_c;} {public
+decl {extern Fl_Preferences prof_h,prof_l,prof_p,prof_c,prof_k,prof_n;} {public
 } 
 
 decl {void cs_util_sndinfo(void);} {public
@@ -309,7 +309,7 @@ util_info->value(0);
 util_pinfo->value(0);
 util_dnoise->value(0);
 util_opc->value(0);
-util_opv->value(0);} selected
+util_opv->value(0);}
       xywh {25 87 155 25} down_box ROUND_DOWN_BOX
     }
     Fl_Round_Button util_info {
@@ -335,7 +335,7 @@ util_info->value(0);
 util_dnoise->value(0);
 util_opc->value(0);
 util_opv->value(0);}
-      xywh {25 142 180 23} down_box ROUND_DOWN_BOX deactivate
+      xywh {25 142 180 23} down_box ROUND_DOWN_BOX
     }
     Fl_Round_Button util_dnoise {
       label {De Noiser}
@@ -347,7 +347,7 @@ util_info->value(0);
 util_pinfo->value(0);
 util_opc->value(0);
 util_opv->value(0);}
-      xywh {25 170 150 25} down_box ROUND_DOWN_BOX deactivate
+      xywh {25 170 150 25} down_box ROUND_DOWN_BOX
     }
     Fl_Round_Button util_opc {
       label {List Opcodes}
@@ -401,7 +401,7 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {516 328 400 350} type Double visible
+    xywh {516 376 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
@@ -516,7 +516,7 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {450 262 325 230} type Double visible
+    xywh {450 310 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
@@ -611,7 +611,7 @@ Function {make_info()} {open
 Function {make_anal()} {open
 } {
   Fl_Window analw {open
-    xywh {382 457 365 100} type Double visible
+    xywh {382 505 365 100} type Double visible
   } {
     Fl_File_Input analin {
       label Input
@@ -680,7 +680,7 @@ Function {make_saver()} {open
 } {
   Fl_Window {} {
     label {Save As} open
-    xywh {622 350 395 80} type Double visible
+    xywh {622 398 395 80} type Double visible
   } {
     Fl_File_Input savefile {
       label {Save as}
@@ -956,7 +956,7 @@ Function {make_pvanal()} {open
   Fl_Window {} {
     label {Phase Vocoding Analysis}
     callback {do_util = 0;} open
-    xywh {454 414 450 310} type Double
+    xywh {454 462 450 310} type Double
     code0 {int ct; prof_p.get("c",ct,1); 
 pvc_c1->value(ct==1);pvc_c2->value(ct==2);pvc_c3->value(ct==3);pvc_c4->value(ct==4);} visible
   } {
@@ -1089,7 +1089,7 @@ Function {make_cvlanal()} {open
   Fl_Window {} {
     label {Convolution Analysis}
     callback {do_util = 0;} open
-    xywh {484 293 360 245} type Double
+    xywh {484 341 360 245} type Double
     code0 {int ct; prof_c.get("c",ct,0); 
 cvl_ac->value(ct==0);cvl_c1->value(ct==1);cvl_c2->value(ct==2);cvl_c3->value(ct==3);cvl_c4->value(ct==4);} visible
   } {
@@ -1181,6 +1181,180 @@ cvl_c3->value(0);}
       label {Duration (-d)}
       xywh {30 155 55 25} align 8
       code0 {int t; prof_c.get("d",t,0); o->value(t);}
+    }
+  }
+} 
+
+Function {make_pvlook()} {open
+} {
+  Fl_Window {} {
+    label {Phase Vocoder Decoder}
+    callback {do_util = 0;} open
+    xywh {477 292 410 225} type Double visible
+  } {
+    Fl_File_Input plk_analin {
+      label Input
+      xywh {50 10 320 30}
+      code0 {char *t; prof_k.get("input", t, ""); o->value(t);free(t);}
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {do_util = 1;}
+      xywh {35 185 50 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {do_util = -1;}
+      xywh {335 185 50 25} color 1
+    }
+    Fl_Button {} {
+      label {?}
+      callback {plk_analin->value(fl_file_chooser("PV", "*.pv", NULL));}
+      xywh {370 10 30 30} color 5
+    }
+    Fl_Value_Input plk_bb {
+      label {Begin Bin (-bb)}
+      xywh {30 75 55 25} align 8
+      code0 {int t; prof_k.get("bb",t,0); o->value(t);}
+    }
+    Fl_Value_Input plk_bf {
+      label {Begin frame (-bf)}
+      xywh {30 115 55 25} align 8
+      code0 {int t; prof_k.get("bf",t,0); o->value(t);}
+    }
+    Fl_Value_Input plk_eb {
+      label {End Bin (-eb)}
+      xywh {220 75 55 25} align 8
+      code0 {int t; prof_k.get("eb",t,0); o->value(t);}
+    }
+    Fl_Value_Input plk_ef {
+      label {End Frame (-ef)}
+      xywh {220 115 55 25} align 8
+      code0 {int t; prof_k.get("ef",t,0); o->value(t);}
+    }
+    Fl_Check_Button plk_i {
+      label {Integer output}
+      xywh {100 155 115 20} down_box DOWN_BOX
+      code0 {int t; prof_k.get("i",t,0); o->value(t);}
+    }
+  }
+} 
+
+Function {make_dnoise()} {open
+} {
+  Fl_Window {} {
+    label Dnoiser
+    callback {do_util = 0;} open selected
+    xywh {513 97 455 430} type Double visible
+  } {
+    Fl_File_Input dns_analin {
+      label Input
+      xywh {50 5 360 30}
+      code0 {char *t; prof_n.get("input", t, ""); o->value(t);free(t);}
+    }
+    Fl_File_Input dns_analout {
+      label Output
+      xywh {50 35 360 30}
+      code0 {char *t; prof_n.get("output", t, "test.wav"); o->value(t);free(t);}
+    }
+    Fl_File_Input dns_noise {
+      label Noise
+      xywh {50 65 360 30}
+      code0 {char *t; prof_n.get("noise", t, "noise.wav"); o->value(t);free(t);}
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {do_util = 1;}
+      xywh {35 395 50 25} color 3
+    }
+    Fl_Button {} {
+      label Cancel
+      callback {do_util = -1;}
+      xywh {380 395 50 25} color 1
+    }
+    Fl_Button {} {
+      label {?}
+      callback {dns_analin->value(fl_file_chooser("DNOISER", "*.wav", NULL));}
+      xywh {410 5 25 30} color 5
+    }
+    Fl_Button {} {
+      label {?}
+      callback {dns_analout->value(fl_file_chooser("Output", "*.wav", NULL));}
+      xywh {410 35 25 30} color 5
+    }
+    Fl_Button {} {
+      label {?}
+      callback {dns_analout->value(fl_file_chooser("Noise", "*.wav", NULL));}
+      xywh {410 65 25 30} color 5
+    }
+    Fl_Value_Input dns_t {
+      label {Threshold (t)}
+      xywh {35 115 55 25} align 8
+      code0 {int t; prof_n.get("t",t,30); o->value(t);}
+    }
+    Fl_Value_Input dns_b {
+      label {Begin time (-b)}
+      xywh {35 155 55 25} align 8
+      code0 {int t; prof_n.get("b",t,0); o->value(t);}
+    }
+    Fl_Value_Input dns_e {
+      label {End time (-e)}
+      xywh {35 195 55 25} align 8
+      code0 {int t; prof_n.get("e",t,0); o->value(t);}
+    }
+    Fl_Value_Input dns_B {
+      label {Begin sample (-B)}
+      xywh {35 235 55 25} align 8
+      code0 {int t; prof_n.get("B",t,0); o->value(t);}
+    }
+    Fl_Value_Input dns_E {
+      label {End sample (-E)}
+      xywh {35 275 55 25} align 8
+      code0 {int t; prof_n.get("E",t,0); o->value(t);}
+    }
+    Fl_Value_Input dns_N {
+      label {\# of filters (-N)}
+      xywh {35 315 55 25} align 8
+      code0 {int t; prof_n.get("M",t,1024); o->value(t);}
+    }
+    Fl_Value_Input dns_S {
+      label {Sharpness (-S)}
+      xywh {210 115 55 25} align 8
+      code0 {int t; prof_n.get("S",t,1); o->value(t);}
+    }
+    Fl_Value_Input dns_w {
+      label {Filter overlap (-w)}
+      xywh {210 155 55 25} align 8
+      code0 {int t; prof_n.get("w",t,2); o->value(t);}
+    }
+    Fl_Value_Input dns_M {
+      label {Anal window size(-M)}
+      xywh {210 195 55 25} align 8
+      code0 {int t; prof_n.get("N",t,1024);prof_n.get("M",t,t-1); o->value(t);}
+    }
+    Fl_Value_Input dns_L {
+      label {Synth window size (-L)}
+      xywh {210 235 55 25} align 8
+      code0 {int t; prof_n.get("L",t,(int)dns_M->value()); o->value(t);}
+    }
+    Fl_Value_Input dns_n {
+      label {Frames to average over (-n)}
+      xywh {210 275 55 25} align 8
+      code0 {int t; prof_n.get("n",t,5); o->value(t);}
+    }
+    Fl_Value_Input dns_m {
+      label {Min gain of noise-gate (-m)}
+      xywh {210 315 55 25} align 8
+      code0 {int t; prof_n.get("m",t,-40); o->value(t);}
+    }
+    Fl_Value_Input dns_D {
+      label {Decimation factor (-D)}
+      xywh {210 355 55 25} align 8
+      code0 {int t; prof_n.get("D",t,0); o->value(t);}
+    }
+    Fl_Check_Button dns_V {
+      label {Verbose (-V)}
+      xywh {35 350 125 30} down_box DOWN_BOX
     }
   }
 } 

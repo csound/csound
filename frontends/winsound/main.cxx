@@ -214,24 +214,24 @@ void cs_util_het(void)
     char buffer[1024];
     char *b = buffer;
     int nxt = 1;
-    prof_h.set("s",het_s->value());
-    prof_h.set("b",het_b->value());
-    prof_h.set("d",het_d->value());
-    prof_h.set("f",het_f->value());
-    prof_h.set("h",het_h->value());
-    prof_h.set("M",het_M->value());
-    prof_h.set("n",het_n->value());
-    prof_h.set("I",het_I->value());
-    prof_h.set("m",het_m->value());
-    prof_h.set("input",het_analin->value());
-    prof_h.set("output",het_analout->value());
-    prof_h.set("c", het_c1->value()?1:
-                    het_c2->value()?2:
-                    het_c3->value()?3:
-                    het_c4->value()?4:0);
     hw->show();
     while (do_util==0) Fl::wait();
     if (do_util>0) {
+      prof_h.set("s",het_s->value());
+      prof_h.set("b",het_b->value());
+      prof_h.set("d",het_d->value());
+      prof_h.set("f",het_f->value());
+      prof_h.set("h",het_h->value());
+      prof_h.set("M",het_M->value());
+      prof_h.set("n",het_n->value());
+      prof_h.set("I",het_I->value());
+      prof_h.set("m",het_m->value());
+      prof_h.set("input",het_analin->value());
+      prof_h.set("output",het_analout->value());
+      prof_h.set("c", het_c1->value()?1:
+                 het_c2->value()?2:
+                 het_c3->value()?3:
+                 het_c4->value()?4:0);
       textw->show();
       hw->hide();
       argv[0] = "hetro";
@@ -302,22 +302,22 @@ void cs_util_lpc(void)
     char buffer[1024];
     char *b = buffer;
     int nxt = 1;
-    prof_l.set("s",lpc_s->value());
-    prof_l.set("b",lpc_b->value());
-    prof_l.set("d",lpc_d->value());
-    prof_l.set("p",lpc_p->value());
-    prof_l.set("h",lpc_h->value());
-    prof_l.set("P",lpc_P->value());
-    prof_l.set("Q",lpc_Q->value());
-    prof_l.set("input",lpc_analin->value());
-    prof_l.set("output",lpc_analout->value());
-    prof_l.set("c", lpc_c1->value()?1:
-                    lpc_c2->value()?2:
-                    lpc_c3->value()?3:
-                    lpc_c4->value()?4:0);
     hw->show();
     while (do_util==0) Fl::wait();
     if (do_util>0) {
+      prof_l.set("s",lpc_s->value());
+      prof_l.set("b",lpc_b->value());
+      prof_l.set("d",lpc_d->value());
+      prof_l.set("p",lpc_p->value());
+      prof_l.set("h",lpc_h->value());
+      prof_l.set("P",lpc_P->value());
+      prof_l.set("Q",lpc_Q->value());
+      prof_l.set("input",lpc_analin->value());
+      prof_l.set("output",lpc_analout->value());
+      prof_l.set("c", lpc_c1->value()?1:
+                 lpc_c2->value()?2:
+                 lpc_c3->value()?3:
+                 lpc_c4->value()?4:0);
       textw->show();
       hw->hide();
       argv[0] = "lpanal";
@@ -378,23 +378,23 @@ void cs_util_pvc(void)
     char buffer[1024];
     char *b = buffer;
     int nxt = 1;
-    prof_p.set("s",pvc_s->value());
-    prof_p.set("b",pvc_b->value());
-    prof_p.set("d",pvc_d->value());
-    prof_p.set("w",pvc_w->value());
-    prof_p.set("h",pvc_h->value());
-    prof_p.set("H",pvc_H->value());
-    prof_p.set("K",pvc_K->value());
-    prof_p.set("V",pvc_V->value());
-    prof_p.set("input",pvc_analin->value());
-    prof_p.set("output",pvc_analout->value());
-    prof_p.set("c", pvc_c1->value()?1:
-                    pvc_c2->value()?2:
-                    pvc_c3->value()?3:
-                    pvc_c4->value()?4:0);
     hw->show();
     while (do_util==0) Fl::wait();
     if (do_util>0) {
+      prof_p.set("s",pvc_s->value());
+      prof_p.set("b",pvc_b->value());
+      prof_p.set("d",pvc_d->value());
+      prof_p.set("w",pvc_w->value());
+      prof_p.set("h",pvc_h->value());
+      prof_p.set("H",pvc_H->value());
+      prof_p.set("K",pvc_K->value());
+      prof_p.set("V",pvc_V->value());
+      prof_p.set("input",pvc_analin->value());
+      prof_p.set("output",pvc_analout->value());
+      prof_p.set("c", pvc_c1->value()?1:
+                 pvc_c2->value()?2:
+                 pvc_c3->value()?3:
+                 pvc_c4->value()?4:0);
       textw->show();
       hw->hide();
       argv[0] = "pvanal";
@@ -451,18 +451,18 @@ void cs_util_cvl(void)
     char buffer[1024];
     char *b = buffer;
     int nxt = 1;
-    prof_c.set("s",cvl_s->value());
-    prof_c.set("b",cvl_b->value());
-    prof_c.set("d",cvl_d->value());
-    prof_c.set("input",cvl_analin->value());
-    prof_c.set("output",cvl_analout->value());
-    prof_c.set("c", cvl_c1->value()?1:
-                    cvl_c2->value()?2:
-                    cvl_c3->value()?3:
-                    cvl_c4->value()?4:0);
     hw->show();
     while (do_util==0) Fl::wait();
     if (do_util>0) {
+      prof_c.set("s",cvl_s->value());
+      prof_c.set("b",cvl_b->value());
+      prof_c.set("d",cvl_d->value());
+      prof_c.set("input",cvl_analin->value());
+      prof_c.set("output",cvl_analout->value());
+      prof_c.set("c", cvl_c1->value()?1:
+                 cvl_c2->value()?2:
+                 cvl_c3->value()?3:
+                 cvl_c4->value()?4:0);
       textw->show();
       hw->hide();
       argv[0] = "cvanal";
@@ -495,16 +495,153 @@ void cs_util_cvl(void)
     delete hw;
 }
 
+Fl_Preferences prof_k(app, "pvlook");
 void cs_util_pinfo(void)
 {
-    textw->show();
-    csoundMessage(csound, "***PVOV info not yet written***\n");
+    Fl_Double_Window *hw = make_pvlook();
+    char *argv[100];
+    char buffer[1024];
+    char *b = buffer;
+    int nxt = 1;
+    hw->show();
+    while (do_util==0) Fl::wait();
+    if (do_util>0) {
+      prof_k.set("bb",plk_bb->value());
+      prof_k.set("eb",plk_eb->value());
+      prof_k.set("bf",plk_bf->value());
+      prof_k.set("ef",plk_ef->value());
+      prof_k.set("input",plk_analin->value());
+      prof_k.set("i", plk_i->value());
+      textw->show();
+      hw->hide();
+      argv[0] = "pvlook";
+      if (plk_bb->value()!=0) {
+        sprintf(b, "-bb%d", (int)(plk_bb->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (plk_eb->value()!=0) {
+        sprintf(b, "-eb%d", (int)(plk_eb->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (plk_bf->value()!=0) {
+        sprintf(b, "-bf%d", (int)(plk_bf->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (plk_ef->value()!=0) {
+        sprintf(b, "-ef%d", (int)(plk_ef->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (plk_i->value()) argv[nxt++] = "-i";
+      argv[nxt++] = (char *)plk_analin->value();
+      csoundPreCompile(csound);
+      csoundRunUtility(csound, "pvlook", nxt, argv);
+      csoundReset(csound);
+    }
+    else hw->hide();
+    delete hw;
 }
 
+
+Fl_Preferences prof_n(app, "cvanal");
 void cs_util_dnoise(void)
 {
-    textw->show();
-    csoundMessage(csound, "***DNoise not yet written***\n");
+    Fl_Double_Window *hw = make_dnoise();
+    char *argv[100];
+    char buffer[1024];
+    char *b = buffer;
+    int nxt = 1;
+    hw->show();
+    while (do_util==0) Fl::wait();
+    if (do_util>0) {
+      prof_n.set("t", dns_t->value());
+      prof_n.set("S", dns_S->value());
+      prof_n.set("m", dns_m->value());
+      prof_n.set("n", dns_n->value());
+      prof_n.set("b", dns_b->value());
+      prof_n.set("e", dns_e->value());
+      prof_n.set("N", dns_N->value());
+      prof_n.set("M", dns_M->value());
+      prof_n.set("L", dns_L->value());
+      prof_n.set("w", dns_w->value());
+      prof_n.set("D", dns_D->value());
+      prof_n.set("V", dns_V->value());
+      prof_n.set("input",dns_analin->value());
+      prof_n.set("output",dns_analout->value());
+      prof_n.set("noise",dns_noise->value());
+      textw->show();
+      hw->hide();
+      argv[0] = "dnoise";
+      if (dns_t->value()!=30) {
+        sprintf(b, "-t%d", (int)(dns_t->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_S->value()!=0) {
+        sprintf(b, "-S%d", (int)(dns_S->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_m->value()!=0) {
+        sprintf(b, "-m%d", (int)(dns_m->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_n->value()!=5) {
+        sprintf(b, "-n%d", (int)(dns_n->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_b->value()!=0) {
+        sprintf(b, "-b%d", (int)(dns_b->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_e->value()!=0) {
+        sprintf(b, "-e%d", (int)(dns_e->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_w->value()>=0) {
+        sprintf(b, "-w%d", (int)(dns_w->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      else if (dns_M->value()!=0) {
+        sprintf(b, "-M%d", (int)(dns_M->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_N->value()!=0) {
+        sprintf(b, "-N%d", (int)(dns_N->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_L->value()!=0) {
+        sprintf(b, "-L%d", (int)(dns_L->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_D->value()!=0) {
+        sprintf(b, "-D%d", (int)(dns_D->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (dns_V->value()) {
+        argv[nxt++] = "-V";
+      }
+      argv[nxt++] = "-o"; argv[nxt++] = (char *)dns_analout->value();
+      argv[nxt++] = "-i"; argv[nxt++] = (char *)dns_noise->value();
+      argv[nxt++] = (char *)dns_analin->value();
+      csoundPreCompile(csound);
+      csoundRunUtility(csound, "dnoise", nxt, argv);
+      csoundReset(csound);
+    }
+    else hw->hide();
+    delete hw;
 }
 
 void savetext(Fl_Text_Buffer *b, int type)
@@ -522,4 +659,6 @@ void savetext(Fl_Text_Buffer *b, int type)
       b->outputfile(savefile->value(), start, end);
     }    
   }
+  delete hw;
 }
+
