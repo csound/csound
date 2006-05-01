@@ -396,6 +396,43 @@ int writeCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
     err |= writeInt_(f, 20610);
     err |= writeInt(f, &(cfg.srconv_heartBeat));
 
+    err |= writeInt_(f, 20701);
+    err |= writeString(f, cfg.dnoise_inputFile);
+    err |= writeInt_(f, 20702);
+    err |= writeString(f, cfg.dnoise_outputFile);
+    err |= writeInt_(f, 20703);
+    err |= writeString(f, cfg.dnoise_noiseFile);
+    err |= writeInt_(f, 20704);
+    err |= writeDouble(f, &(cfg.dnoise_beginTime));
+    err |= writeInt_(f, 20705);
+    err |= writeDouble(f, &(cfg.dnoise_endTime));
+    err |= writeInt_(f, 20706);
+    err |= writeInt(f, &(cfg.dnoise_fftSize));
+    err |= writeInt_(f, 20707);
+    err |= writeInt(f, &(cfg.dnoise_overlap));
+    err |= writeInt_(f, 20708);
+    err |= writeInt(f, &(cfg.dnoise_synLen));
+    err |= writeInt_(f, 20709);
+    err |= writeInt(f, &(cfg.dnoise_decFact));
+    err |= writeInt_(f, 20710);
+    err |= writeDouble(f, &(cfg.dnoise_threshold));
+    err |= writeInt_(f, 20711);
+    err |= writeInt(f, &(cfg.dnoise_sharpness));
+    err |= writeInt_(f, 20712);
+    err |= writeInt(f, &(cfg.dnoise_numFFT));
+    err |= writeInt_(f, 20713);
+    err |= writeDouble(f, &(cfg.dnoise_minGain));
+    err |= writeInt_(f, 20714);
+    err |= writeInt(f, &(cfg.dnoise_fileType));
+    err |= writeInt_(f, 20715);
+    err |= writeInt(f, &(cfg.dnoise_sampleFormat));
+    err |= writeInt_(f, 20716);
+    err |= writeInt(f, &(cfg.dnoise_heartBeat));
+    err |= writeInt_(f, 20717);
+    err |= writeBool(f, &(cfg.dnoise_rewriteHeader));
+    err |= writeInt_(f, 20718);
+    err |= writeBool(f, &(cfg.dnoise_verbose));
+
     err |= writeInt_(f, 0);
     std::fclose(f);
 
@@ -757,6 +794,78 @@ int readCsound5GUIConfigFile(const char *fileName, CsoundUtilitySettings& cfg)
         break;
       case 20610:
         if (readInt(f, &(tmp->srconv_heartBeat)) != 0)
+          goto err_return;
+        break;
+      case 20701:
+        if (readString(f, tmp->dnoise_inputFile) != 0)
+          goto err_return;
+        break;
+      case 20702:
+        if (readString(f, tmp->dnoise_outputFile) != 0)
+          goto err_return;
+        break;
+      case 20703:
+        if (readString(f, tmp->dnoise_noiseFile) != 0)
+          goto err_return;
+        break;
+      case 20704:
+        if (readDouble(f, &(tmp->dnoise_beginTime)) != 0)
+          goto err_return;
+        break;
+      case 20705:
+        if (readDouble(f, &(tmp->dnoise_endTime)) != 0)
+          goto err_return;
+        break;
+      case 20706:
+        if (readInt(f, &(tmp->dnoise_fftSize)) != 0)
+          goto err_return;
+        break;
+      case 20707:
+        if (readInt(f, &(tmp->dnoise_overlap)) != 0)
+          goto err_return;
+        break;
+      case 20708:
+        if (readInt(f, &(tmp->dnoise_synLen)) != 0)
+          goto err_return;
+        break;
+      case 20709:
+        if (readInt(f, &(tmp->dnoise_decFact)) != 0)
+          goto err_return;
+        break;
+      case 20710:
+        if (readDouble(f, &(tmp->dnoise_threshold)) != 0)
+          goto err_return;
+        break;
+      case 20711:
+        if (readInt(f, &(tmp->dnoise_sharpness)) != 0)
+          goto err_return;
+        break;
+      case 20712:
+        if (readInt(f, &(tmp->dnoise_numFFT)) != 0)
+          goto err_return;
+        break;
+      case 20713:
+        if (readDouble(f, &(tmp->dnoise_minGain)) != 0)
+          goto err_return;
+        break;
+      case 20714:
+        if (readInt(f, &(tmp->dnoise_fileType)) != 0)
+          goto err_return;
+        break;
+      case 20715:
+        if (readInt(f, &(tmp->dnoise_sampleFormat)) != 0)
+          goto err_return;
+        break;
+      case 20716:
+        if (readInt(f, &(tmp->dnoise_heartBeat)) != 0)
+          goto err_return;
+        break;
+      case 20717:
+        if (readBool(f, &(tmp->dnoise_rewriteHeader)) != 0)
+          goto err_return;
+        break;
+      case 20718:
+        if (readBool(f, &(tmp->dnoise_verbose)) != 0)
           goto err_return;
         break;
       default:
