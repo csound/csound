@@ -109,6 +109,9 @@ opts.Add('pythonVersion',
 opts.Add('buildCsoundVST',
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python, SWIG).',
     '0')
+opts.Add('buildCsound5GUI',
+    'Build FLTK GUI frontend (requires FLTK 1.1.7 or later).',
+    '1')
 opts.Add('generateTags',
     'Set to 1 to generate TAGS',
     '0')
@@ -339,20 +342,37 @@ elif getPlatform() == 'mingw':
 # We check only for headers; checking for libs may fail
 # even if they are present, due to secondary dependencies.
 
+libsndfileTests = [
+    'int foobar(void)\n{\nreturn (int) SF_FORMAT_SD2;\n}',
+    'int foobar(SF_INSTRUMENT *p)\n{\nreturn (int) p->loop_count;\n}',
+    'int foobar(void)\n{\nreturn (int) SFC_GET_SIGNAL_MAX;\n}'
+]
+
+def CheckSndFile1011(context):
+    context.Message('Checking for libsndfile version 1.0.11 or later... ')
+    testProgram = '\n#include <sndfile.h>\n\n' + libsndfileTests[0] + '\n\n'
+    result = context.TryCompile(testProgram, '.c')
+    context.Result(result)
+    return result
+
 def CheckSndFile1013(context):
     context.Message('Checking for libsndfile version 1.0.13 or later... ')
-    result = context.TryCompile('''
-        #include <sndfile.h>
-        int foobar(SF_INSTRUMENT *p)
-        {
-          return (int) p->loop_count;
-        }
-    ''', '.c')
+    testProgram = '\n#include <sndfile.h>\n\n' + libsndfileTests[1] + '\n\n'
+    result = context.TryCompile(testProgram, '.c')
+    context.Result(result)
+    return result
+
+def CheckSndFile1016(context):
+    context.Message('Checking for libsndfile version 1.0.16 or later... ')
+    testProgram = '\n#include <sndfile.h>\n\n' + libsndfileTests[2] + '\n\n'
+    result = context.TryCompile(testProgram, '.c')
     context.Result(result)
     return result
 
 configure = commonEnvironment.Configure(custom_tests = {
-    'CheckSndFile1013' : CheckSndFile1013
+    'CheckSndFile1011' : CheckSndFile1011,
+    'CheckSndFile1013' : CheckSndFile1013,
+    'CheckSndFile1016' : CheckSndFile1016
 })
 
 if not configure.CheckHeader("stdio.h", language = "C"):
@@ -366,6 +386,10 @@ if not configure.CheckHeader("sndfile.h", language = "C"):
 portaudioFound = configure.CheckHeader("portaudio.h", language = "C")
 portmidiFound = configure.CheckHeader("portmidi.h", language = "C")
 fltkFound = configure.CheckHeader("FL/Fl.H", language = "C++")
+if fltkFound:
+    fltk117Found = configure.CheckHeader("FL/Fl_Spinner.H", language = "C++")
+else:
+    fltk117Found = 0
 boostFound = configure.CheckHeader("boost/any.hpp", language = "C++")
 alsaFound = configure.CheckHeader("alsa/asoundlib.h", language = "C")
 jackFound = configure.CheckHeader("jack/jack.h", language = "C")
@@ -507,8 +531,14 @@ if getPlatform() == 'darwin':
 
 csoundLibraryEnvironment = commonEnvironment.Copy()
 csoundLibraryEnvironment.Append(CPPFLAGS = ['-D__BUILDING_LIBCSOUND'])
-if configure.CheckSndFile1013():
-    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE_1_0_13'])
+if configure.CheckSndFile1016():
+    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1016'])
+elif configure.CheckSndFile1013():
+    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1013'])
+elif configure.CheckSndFile1011():
+    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1011'])
+else:
+    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1000'])
 if commonEnvironment['buildRelease'] != '0':
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-D_CSOUND_RELEASE_'])
     if getPlatform() == 'linux':
@@ -1041,6 +1071,8 @@ else:
         widgetsEnvironment.Append(LIBS = ['fltk'])
         if (commonEnvironment['MSVC'] == '0'):
             widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            widgetsEnvironment.Prepend(
+                LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
         widgetsEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
         widgetsEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
@@ -1208,6 +1240,76 @@ csoundProgram = csoundProgramEnvironment.Program('csound', csoundProgramSources)
 executables.append(csoundProgram)
 Depends(csoundProgram, csoundLibrary)
 
+def fluidTarget(env, dirName, baseName, objFiles):
+    flFile = dirName + '/' + baseName + '.fl'
+    cppFile = dirName + '/' + baseName + '.cpp'
+    hppFile = dirName + '/' + baseName + '.hpp'
+    env.Command(cppFile, flFile,
+                'fluid -c -o %s -h %s %s' % (cppFile, hppFile, flFile))
+    for i in objFiles:
+        Depends(i, cppFile)
+    return cppFile
+
+if not (commonEnvironment['buildCsound5GUI'] != '0' and fltk117Found):
+    print 'CONFIGURATION DECISION: Not building FLTK GUI frontend.'
+else:
+    print 'CONFIGURATION DECISION: Building FLTK GUI frontend.'
+    csound5GUIEnvironment = csoundProgramEnvironment.Copy()
+    csound5GUIEnvironment.Append(CPPPATH = ['./interfaces'])
+    if getPlatform() == 'linux':
+        csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+        csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    elif getPlatform() == 'mingw':
+        csound5GUIEnvironment.Append(LIBS = ['fltk'])
+        if (commonEnvironment['MSVC'] == '0'):
+            csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
+                -mwindows -Wl,--enable-runtime-pseudo-reloc
+            '''))
+        csound5GUIEnvironment.Append(LIBS = csoundWindowsLibraries)
+    elif getPlatform() == 'darwin':
+        csound5GUIEnvironment.Append(LIBS = Split('''
+            fltk stdc++ supc++ pthread m
+        '''))
+        csound5GUIEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework ApplicationServices
+        '''))
+    csound5GUISources = Split('''
+        frontends/fltk_gui/ConfigFile.cpp
+        frontends/fltk_gui/CsoundCopyrightInfo.cpp
+        frontends/fltk_gui/CsoundGlobalSettings.cpp
+        frontends/fltk_gui/CsoundGUIConsole.cpp
+        frontends/fltk_gui/CsoundGUIMain.cpp
+        frontends/fltk_gui/CsoundPerformance.cpp
+        frontends/fltk_gui/CsoundPerformanceSettings.cpp
+        frontends/fltk_gui/CsoundUtility.cpp
+        frontends/fltk_gui/main.cpp
+    ''')
+    csound5GUIFluidSources = Split('''
+        CsoundAboutWindow_FLTK
+        CsoundGlobalSettingsPanel_FLTK
+        CsoundGUIConsole_FLTK
+        CsoundGUIMain_FLTK
+        CsoundPerformanceSettingsPanel_FLTK
+        CsoundUtilitiesWindow_FLTK
+    ''')
+    csound5GUIObjectFiles = []
+    csound5GUIFluidObjectFiles = []
+    for i in csound5GUISources:
+        csound5GUIObjectFiles += csound5GUIEnvironment.Object(i)
+    csound5GUIObjectFiles += csound5GUIEnvironment.Object(
+        'frontends/fltk_gui/csPerfThread', 'interfaces/csPerfThread.cpp')
+    for i in csound5GUIFluidSources:
+        csound5GUIFluidObjectFiles += csound5GUIEnvironment.Object(
+            fluidTarget(csound5GUIEnvironment, 'frontends/fltk_gui', i,
+                        csound5GUIObjectFiles))
+    csound5GUIObjectFiles += csound5GUIFluidObjectFiles
+    csound5GUIEnvironment.Program('csound5gui', csound5GUIObjectFiles)
+    if getPlatform() == 'darwin':
+        csound5GUIEnvironment.Command(
+            'csound5GUIResources', 'csound5gui',
+            "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
+
 if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
     print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
 else:
@@ -1240,7 +1342,11 @@ else:
         vstEnvironment['ENV']['PATH'] = os.environ['PATH']
         vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
         vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
-        guiProgramEnvironment.Prepend(LINKFLAGS = ['-mwindows'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
+            -mwindows -Wl,--enable-runtime-pseudo-reloc
+        '''))
+        vstEnvironment.Prepend(
+            LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
         vstEnvironment.Append(LIBS = ['fltk_images', 'fltk'])
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
     guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
@@ -1562,6 +1668,9 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
         csWinEnvironment.Append(LIBS = ['fltk'])
         if commonEnvironment['MSVC'] == '0':
             csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            csWinEnvironment.Prepend(LINKFLAGS = Split('''
+                -mwindows -Wl,--enable-runtime-pseudo-reloc
+            '''))
         csWinEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
         csWinEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
