@@ -186,6 +186,7 @@ void cs_util_sndinfo(void)
       csoundRunUtility(csound, "sndinfo", 2, argv);
       csoundReset(csound);
     }
+    delete siw;
 }
 
 void cs_util_opc(int full)
@@ -289,6 +290,8 @@ void cs_util_het(void)
       csoundRunUtility(csound, "hetro", nxt, argv);
       csoundReset(csound);
     }
+    else hw->hide();
+    delete hw;
 }
 
 Fl_Preferences prof_l(app, "lpc");
@@ -363,6 +366,8 @@ void cs_util_lpc(void)
       csoundRunUtility(csound, "lpanal", nxt, argv);
       csoundReset(csound);
     }
+    else hw->hide();
+    delete hw;
 }
 
 Fl_Preferences prof_p(app, "pvoc");
@@ -434,12 +439,60 @@ void cs_util_pvc(void)
       csoundRunUtility(csound, "pvanal", nxt, argv);
       csoundReset(csound);
     }
+    else hw->hide();
+    delete hw;
 }
 
+Fl_Preferences prof_c(app, "cvanal");
 void cs_util_cvl(void)
 {
-    textw->show();
-    csoundMessage(csound, "***Convolution analysis not yet written***\n");
+    Fl_Double_Window *hw = make_cvlanal();
+    char *argv[100];
+    char buffer[1024];
+    char *b = buffer;
+    int nxt = 1;
+    prof_c.set("s",cvl_s->value());
+    prof_c.set("b",cvl_b->value());
+    prof_c.set("d",cvl_d->value());
+    prof_c.set("input",cvl_analin->value());
+    prof_c.set("output",cvl_analout->value());
+    prof_c.set("c", cvl_c1->value()?1:
+                    cvl_c2->value()?2:
+                    cvl_c3->value()?3:
+                    cvl_c4->value()?4:0);
+    hw->show();
+    while (do_util==0) Fl::wait();
+    if (do_util>0) {
+      textw->show();
+      hw->hide();
+      argv[0] = "cvanal";
+      if (cvl_s->value()!=0) {
+        sprintf(b, "-s%d", (int)(cvl_s->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (cvl_b->value()!=0) {
+        sprintf(b, "-b%d", (int)(cvl_b->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (cvl_d->value()!=0) {
+        sprintf(b, "-d%d", (int)(cvl_d->value()));
+        argv[nxt++] = b;
+        b += strlen(b)+1;
+      }
+      if (cvl_c1->value()) argv[nxt++] = "-c1";
+      else if (cvl_c2->value()) argv[nxt++] = "-c2";
+      else if (cvl_c3->value()) argv[nxt++] = "-c3";
+      else if (cvl_c4->value()) argv[nxt++] = "-c4";
+      argv[nxt++] = (char *)cvl_analin->value();
+      argv[nxt++] = (char *)cvl_analout->value();
+      csoundPreCompile(csound);
+      csoundRunUtility(csound, "cvanal", nxt, argv);
+      csoundReset(csound);
+    }
+    else hw->hide();
+    delete hw;
 }
 
 void cs_util_pinfo(void)
