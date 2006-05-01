@@ -87,10 +87,12 @@
 #define TYP_SDS   (SF_FORMAT_SDS >> 16)
 #define TYP_AVR   (SF_FORMAT_AVR >> 16)
 #define TYP_WAVEX (SF_FORMAT_WAVEX >> 16)
-#define TYP_SD2   (SF_FORMAT_SD2 >> 16)
-#ifdef HAVE_LIBSNDFILE_1_0_13
-# define TYP_FLAC (SF_FORMAT_FLAC >> 16)
-# define TYP_CAF  (SF_FORMAT_CAF >> 16)
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1011
+#  define TYP_SD2     (SF_FORMAT_SD2 >> 16)
+#  if HAVE_LIBSNDFILE >= 1013
+#    define TYP_FLAC  (SF_FORMAT_FLAC >> 16)
+#    define TYP_CAF   (SF_FORMAT_CAF >> 16)
+#  endif
 #endif
 
 #define FORMAT2SF(x) ((int) (x))

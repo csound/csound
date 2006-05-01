@@ -379,7 +379,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     p->loopEnd = 0.0;
     p->baseFreq = 1.0;
     p->scaleFac = 1.0;
-#ifdef HAVE_LIBSNDFILE_1_0_13
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
     /* sampler information requires libsndfile version 1.0.13 or later */
     {
       SF_INSTRUMENT lpd;
@@ -401,7 +401,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
         p->scaleFac = pow(10.0, (double) lpd.gain * 0.05);
       }
     }
-#endif      /* HAVE_LIBSNDFILE_1_0_13 */
+#endif      /* HAVE_LIBSNDFILE >= 1013 */
     p->nxt = ((SNDMEMFILE**) csound->sndmemfiles)[(int) h];
     if ((size_t) sf_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
         != p->nFrames) {
