@@ -17,7 +17,7 @@ class CsoundUtilitiesWindow {open selected
 }} {}
     Fl_Window window {
       label Utilities open
-      xywh {376 334 450 390} type Double visible
+      xywh {267 66 450 390} type Double visible
     } {
       Fl_Tabs {} {open
         xywh {0 0 450 390}
@@ -356,7 +356,7 @@ else
             Fl_Input lpanalInputFileInput {
               label {Input file}
               callback {CsoundGUIMain::stripString(u_cfg->lpanal_inputFile, o->value());}
-              xywh {20 45 305 25} align 8
+              xywh {20 45 310 20} labelsize 12 align 8 textsize 12
               code0 {o->value(u_cfg->lpanal_inputFile.c_str());}
             }
             Fl_Button {} {
@@ -372,12 +372,12 @@ else
   delete fdlg;
   lpanalInputFileInput->value(u_cfg->lpanal_inputFile.c_str());
 }}
-              tooltip {Browse input file for LPC analysis} xywh {405 45 25 25}
+              tooltip {Browse input file for LPC analysis} xywh {410 45 20 20}
             }
             Fl_Input lpanalOutputFileInput {
               label {Output file}
               callback {CsoundGUIMain::stripString(u_cfg->lpanal_outputFile, o->value());}
-              xywh {20 80 305 25} align 8
+              xywh {20 75 310 20} labelsize 12 align 8 textsize 12
               code0 {o->value(u_cfg->lpanal_outputFile.c_str());}
             }
             Fl_Button {} {
@@ -393,12 +393,12 @@ else
   delete fdlg;
   lpanalOutputFileInput->value(u_cfg->lpanal_outputFile.c_str());
 }}
-              tooltip {Browse output file for LPC analysis} xywh {405 80 25 25}
+              tooltip {Browse output file for LPC analysis} xywh {410 75 20 20}
             }
             Fl_Spinner {} {
               label {Channel number}
               callback {u_cfg->lpanal_channel = (int) (o->value() + 0.5);}
-              xywh {20 115 60 25} align 8
+              xywh {20 105 60 20} labelsize 12 align 8 textsize 12
               code0 {o->range(1.0, 8.0);}
               code1 {o->step(1.0);}
               code2 {o->value((double) u_cfg->lpanal_channel);}
@@ -406,14 +406,57 @@ else
             Fl_Value_Input {} {
               label {Begin time in seconds}
               callback {u_cfg->lpanal_beginTime = o->value();}
-              xywh {20 150 60 25} align 8 maximum 10000
+              xywh {20 135 60 20} labelsize 12 align 8 maximum 10000 textsize 12
               code0 {o->value(u_cfg->lpanal_beginTime);}
             }
             Fl_Value_Input {} {
               label {Duration in seconds (<= 0: until end of input file)}
               callback {u_cfg->lpanal_duration = o->value();}
-              xywh {20 185 60 25} align 8 minimum -1 maximum 10000
+              xywh {20 165 60 20} labelsize 12 align 8 minimum -1 maximum 10000 textsize 12
               code0 {o->value(u_cfg->lpanal_duration);}
+            }
+            Fl_Value_Input {} {
+              label {Number of poles}
+              callback {u_cfg->lpanal_poles = (int) (o->value() + 0.5);}
+              xywh {20 195 60 20} labelsize 12 align 8 minimum 5 maximum 50 step 1 textsize 12
+              code0 {o->value((double) u_cfg->lpanal_poles);}
+            }
+            Fl_Value_Input {} {
+              label {Hop size}
+              callback {u_cfg->lpanal_hopSize = (int) (o->value() + 0.5);}
+              tooltip {Hop size (in samples) between frames of analysis} xywh {235 195 60 20} labelsize 12 align 8 minimum 25 maximum 500 step 1 textsize 12
+              code0 {o->value((double) u_cfg->lpanal_hopSize);}
+            }
+            Fl_Value_Input {} {
+              label {Minimum frequency}
+              callback {u_cfg->lpanal_minFreq = o->value();}
+              tooltip {Lowest frequency (in Hz) of pitch tracking. 0 means no pitch tracking} xywh {20 225 60 20} labelsize 12 align 8 maximum 500 textsize 12
+              code0 {o->value(u_cfg->lpanal_minFreq);}
+            }
+            Fl_Choice {} {
+              label Verbosity
+              callback {u_cfg->lpanal_verbosity = o->value();} open
+              xywh {235 225 75 20} down_box BORDER_BOX labelsize 12 align 8 textsize 12
+              code0 {o->add("Normal|Verbose|Debug");}
+              code1 {o->value(u_cfg->lpanal_verbosity);}
+            } {}
+            Fl_Value_Input {} {
+              label {Maximum frequency}
+              callback {u_cfg->lpanal_maxFreq = o->value();}
+              tooltip {Highest frequency (in Hz) of pitch tracking. The narrower the pitch range, the more accurate the pitch estimate} xywh {20 255 60 20} labelsize 12 align 8 minimum 10 maximum 1500 textsize 12
+              code0 {o->value(u_cfg->lpanal_maxFreq);}
+            }
+            Fl_Check_Button {} {
+              label {Alternate storage}
+              callback {u_cfg->lpanal_altMode = (o->value() == 0 ? false : true);}
+              tooltip {Write a file with filter poles values rather than the usual filter coefficient files} xywh {235 255 20 20} down_box DOWN_BOX labelsize 12
+              code0 {o->value(u_cfg->lpanal_altMode ? 1 : 0);}
+            }
+            Fl_Input {} {
+              label Comment
+              callback {CsoundGUIMain::stripString(u_cfg->lpanal_comment, o->value());}
+              xywh {20 285 340 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(u_cfg->lpanal_comment.c_str());}
             }
           }
           Fl_Button lpanalButton {
@@ -560,7 +603,172 @@ else
         } {
           Fl_Group {} {open
             xywh {10 35 430 310} box ENGRAVED_FRAME
-          } {}
+          } {
+            Fl_Input dnoiseInputFileInput {
+              label {Input file}
+              callback {CsoundGUIMain::stripString(u_cfg->dnoise_inputFile, o->value());}
+              xywh {20 45 310 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(u_cfg->dnoise_inputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->dnoise_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for noise reduction");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->dnoise_inputFile, fdlg->value());
+  delete fdlg;
+  dnoiseInputFileInput->value(u_cfg->dnoise_inputFile.c_str());
+}}
+              tooltip {Browse input file for noise reduction} xywh {410 45 20 20}
+            }
+            Fl_Input dnoiseOutputFileInput {
+              label {Output file}
+              callback {CsoundGUIMain::stripString(u_cfg->dnoise_outputFile, o->value());}
+              xywh {20 75 310 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(u_cfg->dnoise_outputFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->dnoise_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for noise reduction");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->dnoise_outputFile, fdlg->value());
+  delete fdlg;
+  dnoiseOutputFileInput->value(u_cfg->dnoise_outputFile.c_str());
+}}
+              tooltip {Browse output file for noise reduction} xywh {410 75 20 20}
+            }
+            Fl_Input dnoiseNoiseFileInput {
+              label {Noise file}
+              callback {CsoundGUIMain::stripString(u_cfg->dnoise_noiseFile, o->value());}
+              tooltip {Noise reference sound file} xywh {20 105 310 20} labelsize 12 align 8 textsize 12
+              code0 {o->value(u_cfg->dnoise_noiseFile.c_str());}
+            }
+            Fl_Button {} {
+              label {...}
+              callback {{
+  Fl_File_Chooser *fdlg;
+  fdlg = new Fl_File_Chooser(u_cfg->dnoise_noiseFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select noise reference file");
+  fdlg->show();
+  while (fdlg->visible())
+    Fl::wait(0.02);
+  if (fdlg->value())
+    CsoundGUIMain::stripString(u_cfg->dnoise_noiseFile, fdlg->value());
+  delete fdlg;
+  dnoiseNoiseFileInput->value(u_cfg->dnoise_noiseFile.c_str());
+}}
+              tooltip {Browse noise reference file} xywh {410 105 20 20}
+            }
+            Fl_Choice {} {
+              label {FFT size}
+              callback {u_cfg->dnoise_fftSize = o->value();} open
+              xywh {20 135 75 20} down_box BORDER_BOX labelsize 12 align 8 textsize 12
+              code0 {o->add("64|128|256|512|1024|2048|4096|8192");}
+              code1 {o->value(u_cfg->dnoise_fftSize);}
+            } {}
+            Fl_Choice {} {
+              label {Synthesis w. length}
+              callback {u_cfg->dnoise_synLen = o->value();} open
+              tooltip {Synthesis window length} xywh {235 135 75 20} down_box BORDER_BOX labelsize 12 align 8 textsize 12
+              code0 {o->add("Default|64|128|256|512|1024|2048|4096|8192|16384|32768");}
+              code1 {o->value(u_cfg->dnoise_synLen);}
+            } {}
+            Fl_Choice {} {
+              label {Analysis window size}
+              callback {u_cfg->dnoise_overlap = o->value();} open
+              xywh {20 165 75 20} down_box BORDER_BOX labelsize 12 align 8 textsize 12
+              code0 {o->add("4 * FFT size|2 * FFT size|1 * FFT size|0.5 * FFT size");}
+              code1 {o->value(u_cfg->dnoise_overlap);}
+            } {}
+            Fl_Choice {} {
+              label {Decimation factor}
+              callback {u_cfg->dnoise_decFact = o->value();} open
+              xywh {235 165 75 20} down_box BORDER_BOX labelsize 12 align 8 textsize 12
+              code0 {o->add("Default|8|16|32|64|128|256|512|1024|2048|4096");}
+              code1 {o->value(u_cfg->dnoise_decFact);}
+            } {}
+            Fl_Value_Input {} {
+              label {Begin time}
+              callback {u_cfg->dnoise_beginTime = o->value();}
+              tooltip {Begin time in noise reference file} xywh {20 195 60 20} labelsize 12 align 8 maximum 100000 textsize 12
+              code0 {o->value(u_cfg->dnoise_beginTime);}
+            }
+            Fl_Spinner {} {
+              label {FFT frames to average}
+              callback {u_cfg->dnoise_numFFT = (int) (o->value() + 0.5);}
+              tooltip {Number of FFT frames to average over} xywh {235 195 60 20} labelsize 12 align 8 textsize 12
+              code0 {o->range(1.0, 20.0);}
+              code1 {o->step(1.0);}
+              code2 {o->value((double) u_cfg->dnoise_numFFT);}
+            }
+            Fl_Value_Input {} {
+              label {End time}
+              callback {u_cfg->dnoise_endTime = o->value();}
+              tooltip {End time in noise reference file (if <= 0, read until the end of the file)} xywh {20 225 60 20} labelsize 12 align 8 minimum -1 maximum 100000 textsize 12
+              code0 {o->value(u_cfg->dnoise_endTime);}
+            }
+            Fl_Value_Input {} {
+              label {Threshold (dB)}
+              callback {u_cfg->dnoise_threshold = o->value();}
+              tooltip {Threshold above noise reference in dB} xywh {235 225 60 20} labelsize 12 align 8 minimum -12 maximum 90 step 0.1 textsize 12
+              code0 {o->value(u_cfg->dnoise_threshold);}
+            }
+            Fl_Spinner {} {
+              label {Noise gate sharpness}
+              callback {u_cfg->dnoise_sharpness = (int) (o->value() + 0.5);}
+              tooltip {Sharpness of noise-gate turnoff} xywh {20 255 60 20} labelsize 12 align 8 textsize 12
+              code0 {o->range(1.0, 5.0);}
+              code1 {o->step(1.0);}
+              code2 {o->value((double) u_cfg->dnoise_sharpness);}
+            }
+            Fl_Value_Input {} {
+              label {Minimum gain (dB)}
+              callback {u_cfg->dnoise_minGain = o->value();}
+              tooltip {Minimum gain of noise-gate when off in dB} xywh {235 255 60 20} labelsize 12 align 8 minimum -96 maximum -6 step 0.1 textsize 12
+              code0 {o->value(u_cfg->dnoise_minGain);}
+            }
+            Fl_Choice {} {
+              label {File type}
+              callback {u_cfg->dnoise_fileType = o->value();} open
+              tooltip {Type of output file} xywh {20 285 75 20} down_box BORDER_BOX labelsize 12 align 8 textsize 12
+              code0 {o->add("RAW|WAV|AIFF|IRCAM");}
+              code1 {o->value(u_cfg->dnoise_fileType);}
+            } {}
+            Fl_Choice {} {
+              label Heartbeat
+              callback {u_cfg->dnoise_heartBeat = o->value();} open
+              xywh {235 285 75 20} down_box BORDER_BOX labelsize 12 align 8 textsize 12
+              code0 {o->add("None|Bar|Dot|Time|Bell");}
+              code1 {o->value(u_cfg->dnoise_heartBeat);}
+            } {}
+            Fl_Choice {} {
+              label {Sample format}
+              callback {u_cfg->dnoise_sampleFormat = o->value();} open
+              tooltip {Sample format of output file} xywh {20 315 75 20} down_box BORDER_BOX labelsize 12 align 8 textsize 12
+              code0 {o->add("uchar|short|long|float");}
+              code1 {o->value(u_cfg->dnoise_sampleFormat);}
+            } {}
+            Fl_Check_Button {} {
+              label {Rewrite header}
+              callback {u_cfg->dnoise_rewriteHeader = (o->value() == 0 ? false : true);}
+              xywh {210 315 20 20} down_box DOWN_BOX labelsize 12
+              code0 {o->value(u_cfg->dnoise_rewriteHeader ? 1 : 0);}
+            }
+            Fl_Check_Button {} {
+              label Verbose
+              callback {u_cfg->dnoise_verbose = (o->value() == 0 ? false : true);}
+              xywh {345 315 20 20} down_box DOWN_BOX labelsize 12
+              code0 {o->value(u_cfg->dnoise_verbose ? 1 : 0);}
+            }
+          }
           Fl_Button dnoiseButton {
             label Start
             callback {if (p->utilityState & CSOUND5GUI_DNOISE_RUNNING)
