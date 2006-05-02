@@ -52,14 +52,7 @@ class CsoundPerformanceSettingsPanel {open selected
           Fl_Button orcNameButton {
             label {...}
             callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.orcName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select orchestra or CSD file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.orcName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.orcName, "Select orchestra or CSD file", CSOUND5GUI_FILETYPE_ORC_CSD, false);
   orcNameInput->value(performanceSettings.orcName.c_str());
   if (CsoundGUIMain::isCSDFile(performanceSettings.orcName)) {
     scoNameInput->deactivate();
@@ -83,14 +76,7 @@ class CsoundPerformanceSettingsPanel {open selected
           Fl_Button scoNameButton {
             label {...}
             callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.scoName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select score file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.scoName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.scoName, "Select score file", CSOUND5GUI_FILETYPE_SCORE, false);
   scoNameInput->value(performanceSettings.scoName.c_str());
 }}
             tooltip {Browse score file} xywh {355 70 25 25}
@@ -105,14 +91,7 @@ class CsoundPerformanceSettingsPanel {open selected
           Fl_Button lineInputDeviceButton {
             label {...}
             callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.lineInput.c_str(), 0, Fl_File_Chooser::SINGLE, "Select line input device file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.lineInput, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.lineInput, "Select line input device file", CSOUND5GUI_FILETYPE_ALL, false);
   lineInputDeviceInput->value(performanceSettings.lineInput.c_str());
 }}
             tooltip {Browse line input device file} xywh {355 105 25 25}
@@ -126,23 +105,17 @@ class CsoundPerformanceSettingsPanel {open selected
           Fl_Button pluginLibsButton {
             label {...}
             callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser("", 0, Fl_File_Chooser::SINGLE, "Select a plugin library");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value()) {
+  std::string tmp;
+  tmp = "";
+  if (CsoundGUIMain::browseFile(tmp, "Select a plugin library", CSOUND5GUI_FILETYPE_ALL, false)) {
     if (CsoundGUIMain::isEmptyString(performanceSettings.pluginLibs))
-      CsoundGUIMain::stripString(performanceSettings.pluginLibs, fdlg->value());
+      performanceSettings.pluginLibs = tmp;
     else {
-      std::string tmp;
-      CsoundGUIMain::stripString(tmp, fdlg->value());
-      CsoundGUIMain::stripString(performanceSettings.pluginLibs, performanceSettings.pluginLibs.c_str());
+      CsoundGUIMain::stripString(performanceSettings.pluginLibs, (char*) 0);
       performanceSettings.pluginLibs += ',';
       performanceSettings.pluginLibs += tmp;
     }
   }
-  delete fdlg;
   pluginLibsInput->value(performanceSettings.pluginLibs.c_str());
 }}
             tooltip {Browse plugin library} xywh {355 140 25 25}
@@ -269,14 +242,7 @@ class CsoundPerformanceSettingsPanel {open selected
           Fl_Button {} {
             label {...}
             callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.inputFileName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input sound file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.inputFileName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.inputFileName, "Select input sound file", CSOUND5GUI_FILETYPE_AUDIO, false);
   inputFileBox->value(performanceSettings.inputFileName.c_str());
 }}
             tooltip {Browse input sound file} xywh {355 35 25 25}
@@ -290,14 +256,7 @@ class CsoundPerformanceSettingsPanel {open selected
           Fl_Button {} {
             label {...}
             callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.outputFileName.c_str(), 0, Fl_File_Chooser::CREATE, "Select output sound file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.outputFileName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.outputFileName, "Select output sound file", CSOUND5GUI_FILETYPE_AUDIO, true);
   outputFileBox->value(performanceSettings.outputFileName.c_str());
 }}
             tooltip {Browse output sound file} xywh {355 70 25 25}
@@ -456,14 +415,7 @@ class CsoundPerformanceSettingsPanel {open selected
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.midiInFileName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select MIDI input file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.midiInFileName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.midiInFileName, "Select MIDI input file", CSOUND5GUI_FILETYPE_MIDI, false);
   midiInFileNameInput->value(performanceSettings.midiInFileName.c_str());
 }}
               tooltip {Browse MIDI input file} xywh {345 65 25 25}
@@ -489,14 +441,7 @@ class CsoundPerformanceSettingsPanel {open selected
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.midiOutFileName.c_str(), 0, Fl_File_Chooser::CREATE, "Select MIDI output file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.midiOutFileName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.midiOutFileName, "Select MIDI output file", CSOUND5GUI_FILETYPE_MIDI, true);
   midiOutFileNameInput->value(performanceSettings.midiOutFileName.c_str());
 }}
               tooltip {Browse MIDI output file} xywh {345 170 25 25}
@@ -550,14 +495,7 @@ class CsoundPerformanceSettingsPanel {open selected
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.sadirPath.c_str(), 0, Fl_File_Chooser::DIRECTORY, "Select directory for analysis files");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.sadirPath, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.sadirPath, "Select directory for analysis files", CSOUND5GUI_FILETYPE_DIRECTORY, false);
   sadirBox->value(performanceSettings.sadirPath.c_str());
 }}
               xywh {345 60 25 25}
@@ -571,14 +509,7 @@ class CsoundPerformanceSettingsPanel {open selected
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.ssdirPath.c_str(), 0, Fl_File_Chooser::DIRECTORY, "Select directory for sound file input");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.ssdirPath, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.ssdirPath, "Select directory for sound file input", CSOUND5GUI_FILETYPE_DIRECTORY, false);
   ssdirBox->value(performanceSettings.ssdirPath.c_str());
 }}
               xywh {345 95 25 25}
@@ -592,14 +523,7 @@ class CsoundPerformanceSettingsPanel {open selected
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.sfdirPath.c_str(), 0, Fl_File_Chooser::DIRECTORY, "Select directory for sound file output");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.sfdirPath, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.sfdirPath, "Select directory for sound file output", CSOUND5GUI_FILETYPE_DIRECTORY, false);
   sfdirBox->value(performanceSettings.sfdirPath.c_str());
 }}
               xywh {345 130 25 25}
@@ -613,14 +537,7 @@ class CsoundPerformanceSettingsPanel {open selected
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(performanceSettings.incdirPath.c_str(), 0, Fl_File_Chooser::DIRECTORY, "Select directory for include files");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(performanceSettings.incdirPath, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(performanceSettings.incdirPath, "Select directory for include files", CSOUND5GUI_FILETYPE_DIRECTORY, false);
   incdirBox->value(performanceSettings.incdirPath.c_str());
 }}
               xywh {345 165 25 25}

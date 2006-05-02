@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundGUIMain {open
+class CsoundGUIMain {open selected
 } {
   decl {CsoundGlobalSettings currentGlobalSettings;} {public
   }
@@ -65,25 +65,16 @@ class CsoundGUIMain {open
         Fl_Input orcNameInput {
           label {Orchestra/CSD}
           callback {stripString(currentPerformanceSettings.orcName, o->value());
-updateGUIState_orcName();
-writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
+updateGUIState_orcName();}
           xywh {55 20 125 25} align 8
           code0 {o->value(currentPerformanceSettings.orcName.c_str());}
         }
         Fl_Button orcNameButton {
           label {...}
           callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(currentPerformanceSettings.orcName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select orchestra or CSD file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    stripString(currentPerformanceSettings.orcName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(currentPerformanceSettings.orcName, "Select orchestra or CSD file", CSOUND5GUI_FILETYPE_ORC_CSD, false);
   orcNameInput->value(currentPerformanceSettings.orcName.c_str());
   updateGUIState_orcName();
-  writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
 }}
           tooltip {Browse orchestra or CSD file} xywh {20 20 25 25}
         }
@@ -95,25 +86,16 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
         Fl_Input scoreNameInput {
           label {Score file}
           callback {stripString(currentPerformanceSettings.scoName, o->value());
-updateGUIState_scoName();
-writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
+updateGUIState_scoName();}
           xywh {55 55 125 25} align 8
           code0 {o->value(currentPerformanceSettings.scoName.c_str());}
         }
         Fl_Button scoreNameButton {
           label {...}
           callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(currentPerformanceSettings.scoName.c_str(), 0, Fl_File_Chooser::SINGLE, "Select score file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    stripString(currentPerformanceSettings.scoName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(currentPerformanceSettings.scoName, "Select score file", CSOUND5GUI_FILETYPE_SCORE, false);
   scoreNameInput->value(currentPerformanceSettings.scoName.c_str());
   updateGUIState_scoName();
-  writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
 }}
           tooltip {Browse score file} xywh {20 55 25 25}
         }
@@ -125,25 +107,16 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
         Fl_Input outfileNameInput {
           label {Output file}
           callback {currentPerformanceSettings.outputFileName = o->value();
-updateGUIState_outFile();
-writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
+updateGUIState_outFile();}
           xywh {55 90 125 25} align 8
           code0 {o->value(currentPerformanceSettings.outputFileName.c_str());}
         }
         Fl_Button outfileNameButton {
           label {...}
           callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(currentPerformanceSettings.outputFileName.c_str(), 0, Fl_File_Chooser::CREATE, "Select output sound file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    stripString(currentPerformanceSettings.outputFileName, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(currentPerformanceSettings.outputFileName, "Select output sound file", CSOUND5GUI_FILETYPE_AUDIO, true);
   outfileNameInput->value(currentPerformanceSettings.outputFileName.c_str());
   updateGUIState_outFile();
-  writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
 }}
           tooltip {Browse sound output file} xywh {20 90 25 25}
         }
@@ -156,7 +129,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
       Fl_Group {} {open
         xywh {10 135 225 140} box THIN_UP_FRAME
       } {
-        Fl_Output scoreTimeDisplay {selected
+        Fl_Output scoreTimeDisplay {
           tooltip {The current score time (hh:mm:ss)} xywh {20 145 205 50} color 56 textfont 5 textsize 24 textcolor 129
           code0 {o->value("  --:--:--.-");}
         }
@@ -196,15 +169,6 @@ updateGUIState_controls();}
 }}
           tooltip Stop xywh {175 204 50 25}
         }
-        Fl_Value_Input scoreOffsetInput {
-          label Seconds
-          callback {currentPerformanceSettings.scoreOffsetSeconds = o->value();
-if (performing && csPerf != (CsoundPerformance*) 0)
-  csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, false);
-writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
-          tooltip {Score offset in seconds} xywh {83 240 81 25} align 8 maximum 10000
-          code0 {o->value(currentPerformanceSettings.scoreOffsetSeconds);}
-        }
         Fl_Button applyScoreOffsetButton {
           label Goto
           callback {if (performing && csPerf != (CsoundPerformance*) 0) {
@@ -212,6 +176,14 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
     csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, true);
 }}
           tooltip {Set the current score position to the specified offset} xywh {20 240 50 25}
+        }
+        Fl_Value_Input scoreOffsetInput {
+          label Seconds
+          callback {currentPerformanceSettings.scoreOffsetSeconds = o->value();
+if (performing && csPerf != (CsoundPerformance*) 0)
+  csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, false);}
+          tooltip {Score offset in seconds} xywh {83 240 81 25} align 8 maximum 10000
+          code0 {o->value(currentPerformanceSettings.scoreOffsetSeconds);}
         }
       }
       Fl_Group {} {open
@@ -265,6 +237,8 @@ else if (o->value() == 1)
   decl {static bool isCSDFile(std::string&);} {public
   }
   decl {static bool isRtAudioDevice(std::string&, bool);} {public
+  }
+  decl {static bool browseFile(std::string&, const char *, int, bool);} {public
   }
   decl {void updateGUIState_orcName();} {public
   }
