@@ -18,6 +18,7 @@
 */
 
 #include "CsoundGUI.hpp"
+#include <FL/Fl_File_Chooser.H>
 
 #ifndef WIN32
 #  include <sys/types.h>
@@ -28,7 +29,7 @@
 
 void CsoundGUIMain::setTimeDisplay(double timeVal)
 {
-    char    buf[12];
+    char    buf[13];
     int     timeVal_i;
 
     timeVal_i = (timeVal < 0.0 ? -1 : (int) (timeVal * 10.0));
@@ -36,36 +37,37 @@ void CsoundGUIMain::setTimeDisplay(double timeVal)
       return;
     prvTime = timeVal_i;
     buf[0] = ' ';
-    buf[3] = ':';
-    buf[6] = ':';
-    buf[9] = '.';
-    buf[11] = '\0';
+    buf[1] = ' ';
+    buf[4] = ':';
+    buf[7] = ':';
+    buf[10] = '.';
+    buf[12] = '\0';
     if (timeVal_i < 0) {
-      buf[1] = '-';
       buf[2] = '-';
-      buf[4] = '-';
+      buf[3] = '-';
       buf[5] = '-';
-      buf[7] = '-';
+      buf[6] = '-';
       buf[8] = '-';
-      buf[10] = '-';
+      buf[9] = '-';
+      buf[11] = '-';
     }
     else {
-      buf[10] = (char) (timeVal_i % 10) + '0';
+      buf[11] = (char) (timeVal_i % 10) + '0';
       timeVal_i /= 10;
-      buf[8] = (char) (timeVal_i % 10) + '0';
+      buf[9] = (char) (timeVal_i % 10) + '0';
       timeVal_i /= 10;
-      buf[7] = (char) (timeVal_i % 6) + '0';
+      buf[8] = (char) (timeVal_i % 6) + '0';
       timeVal_i /= 6;
-      buf[5] = (char) (timeVal_i % 10) + '0';
+      buf[6] = (char) (timeVal_i % 10) + '0';
       timeVal_i /= 10;
-      buf[4] = (char) (timeVal_i % 6) + '0';
+      buf[5] = (char) (timeVal_i % 6) + '0';
       timeVal_i /= 6;
+      buf[3] = (char) (timeVal_i % 10) + '0';
+      timeVal_i /= 10;
       buf[2] = (char) (timeVal_i % 10) + '0';
       timeVal_i /= 10;
-      buf[1] = (char) (timeVal_i % 10) + '0';
-      timeVal_i /= 10;
       if (timeVal_i)
-        buf[0] = (char) (timeVal_i % 10) + '0';
+        buf[1] = (char) (timeVal_i % 10) + '0';
     }
     scoreTimeDisplay->value(&(buf[0]));
 }
@@ -152,7 +154,9 @@ void CsoundGUIMain::stripString(std::string& dst, const char *src)
     std::string tmp;
 
     tmp = "";
-    if (src != (char*) 0 && src[0] != '\0') {
+    if (!src)
+      src = dst.c_str();
+    if (src[0] != '\0') {
       int   i, len, pos0, pos1;
       len = (int) std::strlen(src);
       for (pos0 = 0; pos0 < len; pos0++) {
@@ -216,6 +220,48 @@ bool CsoundGUIMain::isRtAudioDevice(std::string& fileName, bool isOutput)
       } while (*(++s) != '\0');
     }
     return true;
+}
+
+static const char *fileNameFilters[] = {
+    (char*) 0,
+    "Csound orchestra and CSD files (*.{csd,orc})",
+    "Csound score files (*.sco)",
+    "Sound files (*.{aif,aiff,au,flac,pcm,raw,sd2,sf,snd,wav})",
+    "MIDI files (*.{mid,smf})",
+    "Convolve files (*.{con,cv})",
+    "PVOC files (*.{pv,pvx})"
+};
+
+bool CsoundGUIMain::browseFile(std::string& fileName, const char *title,
+                               int fileType, bool isOutput)
+{
+    Fl_File_Chooser *fdlg;
+    int             type_;
+    bool            retval = false;
+
+    if (fileType == CSOUND5GUI_FILETYPE_DIRECTORY)
+      type_ = Fl_File_Chooser::DIRECTORY;
+    else if (isOutput)
+      type_ = Fl_File_Chooser::CREATE;
+    else
+      type_ = Fl_File_Chooser::SINGLE;
+    if (fileType < 0 ||
+        fileType >= ((int) sizeof(fileNameFilters) / (int) sizeof(char*)))
+      fileType = 0;
+    fdlg = new Fl_File_Chooser(fileName.c_str(), fileNameFilters[fileType],
+                               type_, title);
+    fdlg->show();
+    do {
+      Fl::wait(0.02);
+    } while (fdlg->shown());
+    if (fdlg->value() != (char*) 0) {
+      CsoundGUIMain::stripString(fileName, fdlg->value());
+      retval = true;
+    }
+    delete fdlg;
+    Fl::wait(0.0);
+
+    return retval;
 }
 
 void CsoundGUIMain::updateGUIState_orcName()
@@ -370,6 +416,8 @@ void CsoundGUIMain::run()
         checkUtilities();
     } while (window->shown());
 
+    Fl::wait(0.0);
+    writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
     performing = false;
     if (csPerf) {
       csPerf->Stop();
@@ -384,6 +432,7 @@ void CsoundGUIMain::run()
     closeUtilitiesWindow();
     closeAboutWindow();
     utilityState = 0;
+    Fl::wait(0.0);
 }
 
 void CsoundGUIMain::startPerformance()

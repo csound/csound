@@ -38,14 +38,7 @@ class CsoundUtilitiesWindow {open selected
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->cvanal_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for convolve analysis");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->cvanal_inputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->cvanal_inputFile, "Select input file for convolve analysis", CSOUND5GUI_FILETYPE_AUDIO, false);
   cvanalInputFileInput->value(u_cfg->cvanal_inputFile.c_str());
 }}
               tooltip {Browse input file for convolve analysis} xywh {405 45 25 25}
@@ -59,14 +52,7 @@ class CsoundUtilitiesWindow {open selected
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->cvanal_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for convolve analysis");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->cvanal_outputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->cvanal_outputFile, "Select output file for convolve analysis", CSOUND5GUI_FILETYPE_CONVOLVE, true);
   cvanalOutputFileInput->value(u_cfg->cvanal_outputFile.c_str());
 }}
               tooltip {Browse output file for convolve analysis} xywh {405 80 25 25}
@@ -119,14 +105,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->pvanal_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for PVOC analysis");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->pvanal_inputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->pvanal_inputFile, "Select input file for PVOC analysis", CSOUND5GUI_FILETYPE_AUDIO, false);
   pvanalInputFileInput->value(u_cfg->pvanal_inputFile.c_str());
 }}
               tooltip {Browse input file for PVOC analysis} xywh {405 45 25 25}
@@ -140,14 +119,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->pvanal_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for PVOC analysis");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->pvanal_outputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->pvanal_outputFile, "Select output file for PVOC analysis", CSOUND5GUI_FILETYPE_PVOC, true);
   pvanalOutputFileInput->value(u_cfg->pvanal_outputFile.c_str());
 }}
               tooltip {Browse output file for PVOC analysis} xywh {405 80 25 25}
@@ -245,14 +217,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->hetro_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for hetrodyne analysis");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->hetro_inputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->hetro_inputFile, "Select input file for hetrodyne analysis", CSOUND5GUI_FILETYPE_AUDIO, false);
   hetroInputFileInput->value(u_cfg->hetro_inputFile.c_str());
 }}
               tooltip {Browse input file for hetrodyne analysis} xywh {405 45 25 25}
@@ -266,14 +231,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->hetro_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for hetrodyne analysis");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->hetro_outputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->hetro_outputFile, "Select output file for hetrodyne analysis", CSOUND5GUI_FILETYPE_HETRO, true);
   hetroOutputFileInput->value(u_cfg->hetro_outputFile.c_str());
 }}
               tooltip {Browse output file for hetrodyne analysis} xywh {405 80 25 25}
@@ -362,14 +320,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->lpanal_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for LPC analysis");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->lpanal_inputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->lpanal_inputFile, "Select input file for LPC analysis", CSOUND5GUI_FILETYPE_AUDIO, false);
   lpanalInputFileInput->value(u_cfg->lpanal_inputFile.c_str());
 }}
               tooltip {Browse input file for LPC analysis} xywh {410 45 20 20}
@@ -383,14 +334,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->lpanal_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for LPC analysis");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->lpanal_outputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->lpanal_outputFile, "Select output file for LPC analysis", CSOUND5GUI_FILETYPE_LPC, true);
   lpanalOutputFileInput->value(u_cfg->lpanal_outputFile.c_str());
 }}
               tooltip {Browse output file for LPC analysis} xywh {410 75 20 20}
@@ -486,14 +430,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->srconv_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for sample rate conversion");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->srconv_inputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->srconv_inputFile, "Select input file for sample rate conversion", CSOUND5GUI_FILETYPE_AUDIO, false);
   srconvInputFileInput->value(u_cfg->srconv_inputFile.c_str());
 }}
               tooltip {Browse input file for sample rate conversion} xywh {405 45 25 25}
@@ -507,14 +444,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->srconv_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for sample rate conversion");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->srconv_outputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->srconv_outputFile, "Select output file for sample rate conversion", CSOUND5GUI_FILETYPE_AUDIO, true);
   srconvOutputFileInput->value(u_cfg->srconv_outputFile.c_str());
 }}
               tooltip {Browse output file for sample rate conversion} xywh {405 80 25 25}
@@ -613,14 +543,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->dnoise_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select input file for noise reduction");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->dnoise_inputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->dnoise_inputFile, "Select input file for noise reduction", CSOUND5GUI_FILETYPE_AUDIO, false);
   dnoiseInputFileInput->value(u_cfg->dnoise_inputFile.c_str());
 }}
               tooltip {Browse input file for noise reduction} xywh {410 45 20 20}
@@ -634,14 +557,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->dnoise_outputFile.c_str(), 0, Fl_File_Chooser::CREATE, "Select output file for noise reduction");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->dnoise_outputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->dnoise_outputFile, "Select output file for noise reduction", CSOUND5GUI_FILETYPE_AUDIO, true);
   dnoiseOutputFileInput->value(u_cfg->dnoise_outputFile.c_str());
 }}
               tooltip {Browse output file for noise reduction} xywh {410 75 20 20}
@@ -655,14 +571,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->dnoise_noiseFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select noise reference file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->dnoise_noiseFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->dnoise_noiseFile, "Select noise reference file", CSOUND5GUI_FILETYPE_AUDIO, false);
   dnoiseNoiseFileInput->value(u_cfg->dnoise_noiseFile.c_str());
 }}
               tooltip {Browse noise reference file} xywh {410 105 20 20}
@@ -796,14 +705,7 @@ else
             Fl_Button {} {
               label {...}
               callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(u_cfg->sndinfo_inputFile.c_str(), 0, Fl_File_Chooser::SINGLE, "Select sound file");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(u_cfg->sndinfo_inputFile, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(u_cfg->sndinfo_inputFile, "Select sound file", CSOUND5GUI_FILETYPE_AUDIO, false);
   sndinfoInputFileInput->value(u_cfg->sndinfo_inputFile.c_str());
 }}
               tooltip {Browse sound file} xywh {405 45 25 25}

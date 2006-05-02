@@ -36,7 +36,6 @@
 #include <cmath>
 
 #include <FL/Fl_Text_Buffer.H>
-#include <FL/Fl_File_Chooser.H>
 
 #include "CsoundPerformanceSettings.hpp"
 #include "CsoundGlobalSettings.hpp"
@@ -72,6 +71,17 @@ struct Csound_Message {
 #define CSOUND5GUI_SNDINFO_RUNNING      8192
 #define CSOUND5GUI_SRCONV_RUNNING       16384
 #define CSOUND5GUI_DNOISE_RUNNING       32768
+
+#define CSOUND5GUI_FILETYPE_ALL         0
+#define CSOUND5GUI_FILETYPE_ORC_CSD     1
+#define CSOUND5GUI_FILETYPE_SCORE       2
+#define CSOUND5GUI_FILETYPE_AUDIO       3
+#define CSOUND5GUI_FILETYPE_MIDI        4
+#define CSOUND5GUI_FILETYPE_CONVOLVE    5
+#define CSOUND5GUI_FILETYPE_PVOC        6
+#define CSOUND5GUI_FILETYPE_HETRO       7
+#define CSOUND5GUI_FILETYPE_LPC         8
+#define CSOUND5GUI_FILETYPE_DIRECTORY   1024
 
 #endif  // CSOUNDGUI_HPP
 
