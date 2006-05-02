@@ -3668,15 +3668,23 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     const OENTRY  *ep = &(localops[0]);
     int           n = (int) sizeof(localops) / (int) sizeof(OENTRY);
+    int           initFlags = 0;
 
     if (csound->QueryGlobalVariable(csound, "FLTK_Flags") == (void*) 0) {
       if (csound->CreateGlobalVariable(csound, "FLTK_Flags", sizeof(int)) != 0)
         csound->Die(csound, Str("widgets.cpp: error allocating FLTK flags"));
-#ifdef __MACH__
-      *((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags")) = 28;
-#endif
+      initFlags = 1;
     }
+#ifdef __MACH__
     set_display_callbacks(csound);
+#else
+    if (set_display_callbacks(csound))
+#endif
+    {
+      if (initFlags)
+        *((int*) csound->QueryGlobalVariableNoCheck(csound,
+                                                    "FLTK_Flags")) |= 28;
+    }
     if (getFLTKFlags(csound) & 1) {
       for ( ; n; ep++, n--) {
         if (csound->AppendOpcode(

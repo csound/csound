@@ -95,7 +95,7 @@ extern  uintptr_t MakeWindow_FLTK(char *);
 extern  void      MakeXYin_FLTK(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 extern  int       myFLwait(void);
 extern  void      ReadXYin_FLTK(CSOUND *, XYINDAT *);
-extern  void      set_display_callbacks(CSOUND *);
+extern  int       set_display_callbacks(CSOUND *);
 
 #ifdef __cplusplus
 }       /* extern "C" */

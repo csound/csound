@@ -45,24 +45,24 @@ static void KillGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
     kill_graph(wdptr->windid);
 }
 
-void set_display_callbacks(CSOUND *csound)
+int set_display_callbacks(CSOUND *csound)
 {
+    if (!csound->oparms->displays)
+      return 0;
+    if (csound->oparms->graphsoff || csound->oparms->postscript)
+      return 0;
     if (getFLTKFlags(csound) & 2)
-      return;
+      return 0;
 #ifdef LINUX
     {
       Display *dpy = XOpenDisplay(NULL);
       if (dpy == NULL)
-        return;
+        return 0;
       XCloseDisplay(dpy);
     }
 #endif
     if (csound->SetIsGraphable(csound, 1) != 0)
-      return;
-    if (!csound->oparms->displays)
-      return;
-    if (csound->oparms->graphsoff || csound->oparms->postscript)
-      return;
+      return 0;
     *((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags")) |= 64;
     csound->SetYieldCallback(csound, CsoundYield_FLTK);
     csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
@@ -72,5 +72,7 @@ void set_display_callbacks(CSOUND *csound)
     csound->SetMakeXYinCallback(csound, MakeXYin_FLTK);
     csound->SetReadXYinCallback(csound, ReadXYin_FLTK);
     csound->SetKillXYinCallback(csound, KillXYin_FLTK);
+
+    return 1;
 }
 
