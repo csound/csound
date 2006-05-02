@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundGlobalSettingsPanel {open selected
+class CsoundGlobalSettingsPanel {open
 } {
   decl {CsoundGUIMain *p;} {}
   decl {CsoundGlobalSettings *g_cfg;} {}
@@ -16,7 +16,7 @@ class CsoundGlobalSettingsPanel {open selected
   g_cfg = &(p->currentGlobalSettings);
 }} {}
     Fl_Window window {
-      label {Csound GUI options} open
+      label {Csound GUI options} open selected
       xywh {528 49 390 460} type Double visible
     } {
       Fl_Input textEditorInput {
@@ -90,7 +90,7 @@ class CsoundGlobalSettingsPanel {open selected
       }
       Fl_Group {} {
         label {Csound performance settings} open
-        xywh {10 145 370 305} box ENGRAVED_FRAME labelsize 12 align 5
+        xywh {10 130 370 320} box THIN_UP_FRAME labelsize 12 align 21
       } {
         Fl_Button {} {
           label Configure
