@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundGlobalSettingsPanel {open
+class CsoundGlobalSettingsPanel {open selected
 } {
   decl {CsoundGUIMain *p;} {}
   decl {CsoundGlobalSettings *g_cfg;} {}
@@ -16,7 +16,7 @@ class CsoundGlobalSettingsPanel {open
   g_cfg = &(p->currentGlobalSettings);
 }} {}
     Fl_Window window {
-      label {Csound GUI options} open selected
+      label {Csound GUI options} open
       xywh {528 49 390 460} type Double visible
     } {
       Fl_Input textEditorInput {
@@ -28,14 +28,7 @@ class CsoundGlobalSettingsPanel {open
       Fl_Button textEditorButton {
         label {...}
         callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(g_cfg->textEditorProgram.c_str(), 0, Fl_File_Chooser::SINGLE, "Select external text editor");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(p->currentGlobalSettings.textEditorProgram, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(g_cfg->textEditorProgram, "Select external text editor", CSOUND5GUI_FILETYPE_ALL, false);
   textEditorInput->value(g_cfg->textEditorProgram.c_str());
 }}
         tooltip {Browse external text editor program} xywh {360 10 20 20}
@@ -49,14 +42,7 @@ class CsoundGlobalSettingsPanel {open
       Fl_Button soundEditorButton {
         label {...}
         callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(g_cfg->soundEditorProgram.c_str(), 0, Fl_File_Chooser::SINGLE, "Select external sound editor");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(p->currentGlobalSettings.soundEditorProgram, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(g_cfg->soundEditorProgram, "Select external sound editor", CSOUND5GUI_FILETYPE_ALL, false);
   soundEditorInput->value(g_cfg->soundEditorProgram.c_str());
 }}
         tooltip {Browse external sound editor program} xywh {360 40 20 20}
@@ -70,14 +56,7 @@ class CsoundGlobalSettingsPanel {open
       Fl_Button helpBrowserButton {
         label {...}
         callback {{
-  Fl_File_Chooser *fdlg;
-  fdlg = new Fl_File_Chooser(g_cfg->helpBrowserProgram.c_str(), 0, Fl_File_Chooser::SINGLE, "Select program for viewing the Csound manual");
-  fdlg->show();
-  while (fdlg->visible())
-    Fl::wait(0.02);
-  if (fdlg->value())
-    CsoundGUIMain::stripString(p->currentGlobalSettings.helpBrowserProgram, fdlg->value());
-  delete fdlg;
+  CsoundGUIMain::browseFile(g_cfg->helpBrowserProgram, "Select program for viewing the Csound manual", CSOUND5GUI_FILETYPE_ALL, false);
   helpBrowserInput->value(g_cfg->helpBrowserProgram.c_str());
 }}
         tooltip {Browse program for viewing the Csound manual} xywh {360 70 20 20}
@@ -111,7 +90,6 @@ class CsoundGlobalSettingsPanel {open
   p->currentPerformanceSettings = *tmp;
   delete tmp;
   p->updateGUIValues();
-  writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);
 }}
           tooltip {Reset Csound options to the defaults} xywh {300 155 70 20} labelsize 12
         }
@@ -127,8 +105,7 @@ class CsoundGlobalSettingsPanel {open
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_1.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 190 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -145,8 +122,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_2.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 215 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -163,8 +139,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_3.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 240 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -181,8 +156,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_4.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 265 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -199,8 +173,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_5.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 290 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -217,8 +190,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_6.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 315 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -235,8 +207,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_7.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 340 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -253,8 +224,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_8.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 365 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -271,8 +241,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_9.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 390 50 20} labelsize 12
           }
           Fl_Button {} {
@@ -289,8 +258,7 @@ writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
           Fl_Button {} {
             label Load
             callback {readCsound5GUIConfigFile("p_cfg_10.dat", p->currentPerformanceSettings);
-p->updateGUIValues();
-writeCsound5GUIConfigFile("p_cfg.dat", p->currentPerformanceSettings);}
+p->updateGUIValues();}
             xywh {255 415 50 20} labelsize 12
           }
           Fl_Button {} {
