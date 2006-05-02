@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundGUIMain {open selected
+class CsoundGUIMain {open
 } {
   decl {CsoundGlobalSettings currentGlobalSettings;} {public
   }
@@ -60,7 +60,7 @@ class CsoundGUIMain {open selected
       xywh {411 231 360 285} type Double visible
     } {
       Fl_Group {} {open
-        xywh {10 10 340 115} box ENGRAVED_FRAME
+        xywh {10 10 340 115} box THIN_UP_FRAME
       } {
         Fl_Input orcNameInput {
           label {Orchestra/CSD}
@@ -154,18 +154,18 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
         }
       }
       Fl_Group {} {open
-        xywh {10 135 225 140} box ENGRAVED_FRAME
+        xywh {10 135 225 140} box THIN_UP_FRAME
       } {
-        Fl_Output scoreTimeDisplay {
-          tooltip {The current score time (hh:mm:ss)} xywh {30 145 185 50} color 56 textfont 5 textsize 24 textcolor 129
-          code0 {o->value(" --:--:--.-");}
+        Fl_Output scoreTimeDisplay {selected
+          tooltip {The current score time (hh:mm:ss)} xywh {20 145 205 50} color 56 textfont 5 textsize 24 textcolor 129
+          code0 {o->value("  --:--:--.-");}
         }
         Fl_Button rewindButton {
           label {@|<}
           callback {if (performing && csPerf != (CsoundPerformance*) 0) {
   csPerf->Rewind();
 }}
-          tooltip Rewind xywh {20 205 40 25}
+          tooltip Rewind xywh {20 204 50 25}
         }
         Fl_Button playButton {
           label {@>}
@@ -180,13 +180,13 @@ else {
   csPerf->Pause();
 }
 updateGUIState_controls();}
-          tooltip {Play/Pause} xywh {65 205 40 25}
+          tooltip {Play/Pause} xywh {71 204 50 25}
         }
         Fl_Button fastForwardButton {
           label {@>>}
           callback {if (performing && csPerf != (CsoundPerformance*) 0)
   csPerf->AdvanceScoreTime(10.0);}
-          tooltip {Fast forward 10 seconds} xywh {110 205 40 25}
+          tooltip {Fast forward 10 seconds} xywh {123 204 50 25}
         }
         Fl_Button stopButton {
           label {@square}
@@ -194,28 +194,28 @@ updateGUIState_controls();}
   performing = false;
   updateGUIState_controls();
 }}
-          tooltip Stop xywh {185 205 40 25}
+          tooltip Stop xywh {175 204 50 25}
         }
         Fl_Value_Input scoreOffsetInput {
-          label Offset
+          label Seconds
           callback {currentPerformanceSettings.scoreOffsetSeconds = o->value();
 if (performing && csPerf != (CsoundPerformance*) 0)
   csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, false);
 writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
-          tooltip {Score offset in seconds} xywh {20 240 70 25} align 8 maximum 10000
+          tooltip {Score offset in seconds} xywh {83 240 81 25} align 8 maximum 10000
           code0 {o->value(currentPerformanceSettings.scoreOffsetSeconds);}
         }
         Fl_Button applyScoreOffsetButton {
-          label Apply
+          label Goto
           callback {if (performing && csPerf != (CsoundPerformance*) 0) {
   if (currentPerformanceSettings.scoreOffsetSeconds >= 0.0)
     csPerf->SetScoreOffsetSeconds(currentPerformanceSettings.scoreOffsetSeconds, true);
 }}
-          tooltip {Set the current score position to the specified offset} xywh {165 240 60 25}
+          tooltip {Set the current score position to the specified offset} xywh {20 240 50 25}
         }
       }
       Fl_Group {} {open
-        xywh {245 135 105 140} box ENGRAVED_FRAME
+        xywh {245 135 105 140} box THIN_UP_FRAME
       } {
         Fl_Menu_Button {} {
           label Options
@@ -223,14 +223,21 @@ writeCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);}
   openGlobalSettingsWindow();
 else if (o->value() == 1)
   openPerformanceSettingsWindow();} open
-          xywh {255 140 85 25} align 20
+          xywh {255 145 85 25} align 20
           code0 {o->add("General...|Csound...");}
           code1 {o->value(0);}
         } {}
         Fl_Button {} {
           label {Utilities...}
           callback {openUtilitiesWindow();}
-          xywh {255 175 85 25} align 20
+          xywh {255 176 85 25} align 20
+        }
+        Fl_Button {} {
+          label Messages
+          callback {if (!consoleWindow.window->shown())
+  consoleWindow.Clear();
+  consoleWindow.window->show();}
+          tooltip {Show Csound console messages} xywh {255 207 85 25} align 20
         }
         Fl_Menu_Button {} {
           label Help
@@ -238,17 +245,10 @@ else if (o->value() == 1)
   runHelpBrowser();
 else if (o->value() == 1)
   openAboutWindow();} open
-          xywh {255 210 85 25} align 20
+          xywh {255 238 85 25} align 20
           code0 {o->add("Manual|About");}
           code1 {o->value(0);}
         } {}
-        Fl_Button {} {
-          label Messages
-          callback {if (!consoleWindow.window->shown())
-  consoleWindow.Clear();
-  consoleWindow.window->show();}
-          tooltip {Show Csound console messages} xywh {255 245 85 25} align 20
-        }
       }
     }
   }
