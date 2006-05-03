@@ -31,18 +31,25 @@
 
 /**
  * FLTK flags is the sum of any of the following values:
- *   1 (input):  disable widget opcodes
+ *   1 (input):  disable widget opcodes by setting up dummy opcodes instead
  *   2 (input):  disable FLTK graphs
  *   4 (input):  disable the use of a separate thread for widget opcodes
  *   8 (input):  disable the use of Fl::lock() and Fl::unlock()
  *  16 (input):  disable the use of Fl::awake()
  *  32 (output): widget opcodes are used
  *  64 (output): FLTK graphs are used
+ * 128 (input):  disable widget opcodes by not registering any opcodes
+ * 256 (input):  disable the use of Fl::wait() (implies no widget thread)
  */
 
 static inline int getFLTKFlags(CSOUND *csound)
 {
     return (*((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags")));
+}
+
+static inline int *getFLTKFlagsPtr(CSOUND *csound)
+{
+    return ((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags"));
 }
 
 #ifdef __cplusplus
@@ -80,6 +87,30 @@ static inline void Fl_awake(CSOUND *csound)
 #endif
 }
 
+static inline void Fl_wait(CSOUND *csound, double seconds)
+{
+    if (!(getFLTKFlags(csound) & 256))
+      Fl::wait(seconds);
+}
+
+static inline void Fl_wait_locked(CSOUND *csound, double seconds)
+{
+    int     fltkFlags;
+
+    fltkFlags = getFLTKFlags(csound);
+    if (!(fltkFlags & 256)) {
+#ifndef NO_FLTK_THREADS
+      if (!(fltkFlags & 8))
+        Fl::lock();
+#endif
+      Fl::wait(seconds);
+#ifndef NO_FLTK_THREADS
+      if (!(fltkFlags & 8))
+        Fl::unlock();
+#endif
+    }
+}
+
 #endif  /* __cplusplus */
 
 #ifdef __cplusplus
@@ -95,7 +126,8 @@ extern  uintptr_t MakeWindow_FLTK(char *);
 extern  void      MakeXYin_FLTK(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 extern  int       myFLwait(void);
 extern  void      ReadXYin_FLTK(CSOUND *, XYINDAT *);
-extern  int       set_display_callbacks(CSOUND *);
+
+extern const OENTRY widgetOpcodes_[];
 
 #ifdef __cplusplus
 }       /* extern "C" */
