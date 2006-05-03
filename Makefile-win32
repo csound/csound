@@ -11,12 +11,14 @@ CSOUNDLIB = csound64.dll.5.1
 CSLIB_LNK = -lcsound64
 PROGRAM = csound.exe
 WINSOUND = winsound.exe
+CSOUND5GUI = csound5gui.exe
 else
 CFLAGS += -march=pentium3 -fomit-frame-pointer -ffast-math
 CSOUNDLIB = csound32.dll.5.1
 CSLIB_LNK = -lcsound32
 PROGRAM = csound32.exe
 WINSOUND = winsound32.exe
+CSOUND5GUI = csound5gui32.exe
 endif
 CFLAGS += -I. -IH -DWIN32 -DPIPES -DHAVE_STDINT_H -DHAVE_DIRENT_H
 CFLAGS += -DHAVE_UNISTD_H -DHAVE_FCNTL_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H
@@ -25,11 +27,15 @@ LDFLAGS = -L.
 LIBS = D:/MinGW/bin/libsndfile-1.dll -lgdi32 -luser32 -lkernel32 -lm
 PYINCDIR = D:/MinGW/Python/include
 PYLIB = python24.dll
+FLTK_LIBS = -Wl,--enable-runtime-pseudo-reloc D:/MinGW/lib/fltk.dll -lstdc++
+FLTK_LIBS += -lole32 -luuid -lwsock32
+OSC_LIBS = D:/MinGW/lib/liblo.dll -lws2_32 D:/MinGW/lib/pthreadGC2.dll
+FLUID_LIBS = D:/MinGW/lib/fluidsynth.dll -lwinmm -ldsound
 
-PLUGINS =	babo.dll barmodel.dll compress.dll ftest.dll grain4.dll	\
-		hrtferX.dll minmax.dll mixer.dll modal4.dll phisem.dll	\
-		physmod.dll pitch.dll scansyn.dll sfont.dll vbap.dll	\
-		stdopcod.dll stdutil.dll				\
+PLUGINS =	babo.dll barmodel.dll compress.dll fluidOpcodes.dll	\
+		ftest.dll grain4.dll hrtferX.dll minmax.dll mixer.dll	\
+		modal4.dll osc.dll phisem.dll physmod.dll pitch.dll	\
+		scansyn.dll sfont.dll vbap.dll stdopcod.dll stdutil.dll	\
 		widgets.dll rtpa.dll rtwinmm.dll pmidi.dll
 
 UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe mixer.exe	\
@@ -37,7 +43,7 @@ UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe mixer.exe	\
 		extractor.exe scsort.exe extract.exe csb64enc.exe	\
 		makecsd.exe cs.exe scot.exe
 
-all: $(CSOUNDLIB) $(PROGRAM) $(WINSOUND) $(PLUGINS) $(UTILS)
+all: $(CSOUNDLIB) $(PROGRAM) $(WINSOUND) $(CSOUND5GUI) $(PLUGINS) $(UTILS)
 
 CSOUNDLIB_OBJ =	Engine/auxfd.o Engine/cfgvar.o Engine/entry1.o		\
 		Engine/envvar.o Engine/express.o Engine/extract.o	\
@@ -125,7 +131,7 @@ mixer.dll: Opcodes/mixer.oo
 	$(CXX) -O2 -shared -o $@ $< $(LDFLAGS) -lstdc++ -lole32 -luuid -lwsock32 $(LIBS)
 
 widgets.dll: InOut/FL_graph.oo InOut/winFLTK.o InOut/widgets.oo
-	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -lfltk -lstdc++ -lole32 -luuid -lwsock32 $(LIBS)
+	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) $(FLTK_LIBS) $(LIBS)
 
 rtpa.dll: InOut/rtpa.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) D:/MinGW/lib/portaudio.dll -lwinmm -ldsound -lole32 $(LIBS)
@@ -135,6 +141,12 @@ rtwinmm.dll: InOut/rtwinmm.o
 
 pmidi.dll: InOut/pmidi.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) -lportmidi -lporttime -lwinmm $(LIBS)
+
+fluidOpcodes.dll: Opcodes/fluidOpcodes/fluidOpcodes.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(FLUID_LIBS) $(LIBS)
+
+osc.dll: Opcodes/OSC.o
+	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(OSC_LIBS) $(LIBS)
 
 stdutil.dll:	util/cvanal.o util/dnoise.o util/envext.o util/xtrct.o	\
 		util/het_export.o util/het_import.o util/hetro.o	\
@@ -209,7 +221,7 @@ frontends/winsound/main.oo:	frontends/winsound/main.cxx		\
 	$(CXX) $(CFLAGS) -c $< -o $@
 
 $(WINSOUND): frontends/winsound/winsound.oo frontends/winsound/main.oo
-	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(CSLIB_LNK) -lfltk -lstdc++ -lole32 -luuid -lwsock32 $(LIBS)
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(FLTK_LIBS) $(CSLIB_LNK) $(LIBS)
 
 Opcodes/py/pythonopcodes.o: Opcodes/py/pythonopcodes.c
 	$(CC) $(CFLAGS) -I$(PYINCDIR) -c $< -o $@
@@ -237,6 +249,27 @@ _jcsound.dll:	interfaces/filebuilding.oo interfaces/CppSound.oo	\
 		interfaces/java_interface_wrap.oo
 	$(CXX) -O2 -shared -o $@ $^ $(LDFLAGS) -Wl,--add-stdcall-alias -Wl,--output-def,_jcsound.def $(CSLIB_LNK) -lstdc++ $(LIBS)
 
+$(CSOUND5GUI):	frontends/fltk_gui/ConfigFile.oo			\
+		frontends/fltk_gui/CsoundAboutWindow_FLTK.oo		\
+		frontends/fltk_gui/CsoundCopyrightInfo.oo		\
+		frontends/fltk_gui/CsoundGlobalSettings.oo		\
+		frontends/fltk_gui/CsoundGlobalSettingsPanel_FLTK.oo	\
+		frontends/fltk_gui/CsoundGUIConsole.oo			\
+		frontends/fltk_gui/CsoundGUIConsole_FLTK.oo		\
+		frontends/fltk_gui/CsoundGUIMain.oo			\
+		frontends/fltk_gui/CsoundGUIMain_FLTK.oo		\
+		frontends/fltk_gui/CsoundPerformance.oo			\
+		frontends/fltk_gui/CsoundPerformanceSettings.oo		\
+		frontends/fltk_gui/CsoundPerformanceSettingsPanel_FLTK.oo   \
+		frontends/fltk_gui/CsoundUtilitiesWindow_FLTK.oo	\
+		frontends/fltk_gui/CsoundUtility.oo			\
+		frontends/fltk_gui/main.oo				\
+		interfaces/csPerfThread.oo
+	$(CXX) -O2 -o $@ $^ $(LDFLAGS) $(FLTK_LIBS) $(CSLIB_LNK) $(LIBS)
+
+frontends/fltk_gui/%_FLTK.cpp: frontends/fltk_gui/%_FLTK.fl
+	fluid -c -o $@ -h frontends/fltk_gui/$*_FLTK.hpp $<
+
 clean:
 	-rm `find . -type f \( -name "*.o" -o -name "*.oo" \) -print`
 	-rm `find . -type f \( -name "*.a" -o -name "*.dll" \) -print`
@@ -247,4 +280,6 @@ clean:
 	-rm interfaces/python_interface_wrap.h
 	-rm interfaces/java_interface_wrap.cc
 	-rm interfaces/java_interface_wrap.h
+	-rm frontends/fltk_gui/*_FLTK.cpp frontends/fltk_gui/*_FLTK.hpp
+	-rm frontends/winsound/winsound.cxx frontends/winsound/winsound.h
 
