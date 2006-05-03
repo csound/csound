@@ -95,6 +95,7 @@ typedef struct widgetsGlobals_s {
     int         exit_now;       /* set by GUI when all windows are closed   */
     int         end_of_perf;    /* set by main thread at end of performance */
     void        *threadHandle;
+    int         fltkFlags;
 } widgetsGlobals_t;
 #endif
 
@@ -166,17 +167,15 @@ extern "C" {
   void ButtonSched(CSOUND *csound, MYFLT *args[], int numargs)
   { /* based on code by rasmus */
 #ifndef NO_FLTK_THREADS
-    if (!(getFLTKFlags(csound) & 4)) {
-      widgetsGlobals_t  *p;
-      rtEvt_t           *evt;
-      int               i;
+    widgetsGlobals_t  *p;
+    /* this is still not fully thread safe... */
+    /* hope that no global variable is created just while this fn is called */
+    p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                        "_widgets_globals");
+    if (p != NULL) {
+      rtEvt_t   *evt;
+      int       i;
 
-      /* this is still not fully thread safe... */
-      /* hope that no global variable is created just while this fn is called */
-      p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
-                                                          "_widgets_globals");
-      if (p == NULL)
-        return;
       /* Create the new event */
       evt = (rtEvt_t*) malloc(sizeof(rtEvt_t));
       evt->nxt = NULL;
@@ -1398,7 +1397,9 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
   return OK;
 }
 
-extern "C" int set_snap(CSOUND *csound, FLSETSNAP *p)
+extern "C" {
+
+static int set_snap(CSOUND *csound, FLSETSNAP *p)
 {
   SNAPSHOT snap(AddrSetValue);
   int numfields = snap.fields.size();
@@ -1424,7 +1425,7 @@ extern "C" int set_snap(CSOUND *csound, FLSETSNAP *p)
   return OK;
 }
 
-extern "C" int get_snap(CSOUND *csound, FLGETSNAP *p)
+static int get_snap(CSOUND *csound, FLGETSNAP *p)
 {
   int index = (int) *p->index;
   if (!snapshots.empty()) {
@@ -1436,9 +1437,13 @@ extern "C" int get_snap(CSOUND *csound, FLGETSNAP *p)
   return OK;
 }
 
+}       // extern "C"
+
 #include <FL/fl_ask.H>
 
-extern "C" int save_snap(CSOUND *csound, FLSAVESNAPS* p)
+extern "C" {
+
+static int save_snap(CSOUND *csound, FLSAVESNAPS *p)
 {
   char    s[MAXNAME], *s2;
   string  filename;
@@ -1451,7 +1456,7 @@ extern "C" int save_snap(CSOUND *csound, FLSAVESNAPS* p)
     return OK;
 #else
 #  if !defined(NO_FLTK_THREADS)
-  if (getFLTKFlags(csound) & 4)
+  if (!((getFLTKFlags(csound) & 260) ^ 4))
 #  endif
   {
     int   n;
@@ -1502,7 +1507,7 @@ extern "C" int save_snap(CSOUND *csound, FLSAVESNAPS* p)
   return OK;
 }
 
-extern "C" int load_snap(CSOUND *csound, FLLOADSNAPS* p)
+static int load_snap(CSOUND *csound, FLLOADSNAPS* p)
 {
   char     s[MAXNAME], *s2;
   string   filename;
@@ -1596,7 +1601,9 @@ extern "C" int load_snap(CSOUND *csound, FLLOADSNAPS* p)
   return OK;
 }
 
-//-----------
+}       // extern "C"
+
+// -----------
 
 static char *GetString(CSOUND *csound, MYFLT *pname, int is_string)
 {
@@ -1610,23 +1617,25 @@ extern "C" {
   {
     int   j;
 #ifndef NO_FLTK_THREADS
-    if (!(getFLTKFlags(csound) & 4)) {
+    if ((getFLTKFlags(csound) & 260) ^ 4) {
       widgetsGlobals_t *p;
 
       p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                           "_widgets_globals");
       if (p == NULL)
         return 0;
-      /* if window(s) still open: */
-      if (!p->exit_now) {
-        /* notify GUI thread... */
-        p->end_of_perf = -1;
-        Fl_lock(csound);
-        Fl_awake(csound);
-        Fl_unlock(csound);
-        /* ...and wait for it to close */
-        csound->JoinThread(p->threadHandle);
-        p->threadHandle = NULL;
+      if (!(getFLTKFlags(csound) & 256)) {
+        /* if window(s) still open: */
+        if (!p->exit_now) {
+          /* notify GUI thread... */
+          p->end_of_perf = -1;
+          Fl_lock(csound);
+          Fl_awake(csound);
+          Fl_unlock(csound);
+          /* ...and wait for it to close */
+          csound->JoinThread(p->threadHandle);
+          p->threadHandle = NULL;
+        }
       }
       /* clean up */
       csound->WaitThreadLock(p->threadLock, 1000);
@@ -1653,9 +1662,7 @@ extern "C" {
           delete fl_windows[j].panel;
         fl_windows.pop_back();
       } while (j);
-      Fl_lock(csound);
-      Fl::wait(0.0);
-      Fl_unlock(csound);
+      Fl_wait_locked(csound, 0.0);
     }
     //for (j = AddrValue.size()-1; j >=0; j--)  {
     //      AddrValue.pop_back();
@@ -1713,17 +1720,22 @@ static uintptr_t fltkRun(void *userdata)
   }
 #endif
 
-  Fl_lock(csound);
+  if (!(p->fltkFlags & 8))
+    Fl::lock();
   for (j = 0; j < (int) fl_windows.size(); j++) {
     fl_windows[j].panel->show();
   }
-  Fl_awake(csound);
-  Fl_unlock(csound);
+  if (!(p->fltkFlags & 16))
+    Fl::awake();
+  if (!(p->fltkFlags & 8))
+    Fl::unlock();
   do {
-    Fl_lock(csound);
-    Fl::wait(0.04);
+    if (!(p->fltkFlags & 8))
+      Fl::lock();
+    Fl::wait(0.02);
     j = (Fl::first_window() != (Fl_Window*) 0);
-    Fl_unlock(csound);
+    if (!(p->fltkFlags & 8))
+      Fl::unlock();
   } while (j && !p->end_of_perf);
   csound->Message(csound, "end of widget thread\n");
   // IV - Jun 07 2005: exit if all windows are closed
@@ -1739,9 +1751,12 @@ extern "C" int CsoundYield_FLTK(CSOUND *csound);
 
 extern "C" int FL_run(CSOUND *csound, FLRUN *p)
 {
-  *((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags")) |= 32;
+  int     *fltkFlags;
+
+  fltkFlags = getFLTKFlagsPtr(csound);
+  (*fltkFlags) |= 32;
 #ifndef NO_FLTK_THREADS
-  if (!(getFLTKFlags(csound) & 4)) {
+  if (((*fltkFlags) & 260) ^ 4) {
     widgetsGlobals_t  *pp;
 
     if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
@@ -1751,15 +1766,18 @@ extern "C" int FL_run(CSOUND *csound, FLRUN *p)
       csound->Die(csound, Str("FL_run: memory allocation failure"));
     pp = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                          "_widgets_globals");
+    pp->fltkFlags = *fltkFlags;
     /* create thread lock */
     pp->threadLock = csound->CreateThreadLock();
     /* register callback function to be called by sensevents() */
     csound->RegisterSenseEventCallback(csound, (void (*)(CSOUND *, void *))
                                                    evt_callback,
                                                (void*) pp);
-    pp->threadHandle = csound->CreateThread(fltkRun, (void*) csound);
+    if (!((*fltkFlags) & 256)) {
+      pp->threadHandle = csound->CreateThread(fltkRun, (void*) csound);
+      return OK;
+    }
   }
-  else
 #endif  // NO_FLTK_THREADS
   {
     int j;
@@ -1768,9 +1786,10 @@ extern "C" int FL_run(CSOUND *csound, FLRUN *p)
     for (j = 0; j < (int) fl_windows.size(); j++) {
       fl_windows[j].panel->show();
     }
-    Fl::wait(0.0);
+    Fl_wait(csound, 0.0);
     Fl_unlock(csound);
-    csound->SetYieldCallback(csound, CsoundYield_FLTK);
+    if (!((*fltkFlags) & 256))
+      csound->SetYieldCallback(csound, CsoundYield_FLTK);
   }
   return OK;
 }
@@ -2088,7 +2107,9 @@ static void widget_attributes(CSOUND *csound, Fl_Widget *o)
 
 //-----------
 
-extern "C" int FLkeyb(CSOUND *csound, FLKEYB *p)
+extern "C" {
+
+static int FLkeyb(CSOUND *csound, FLKEYB *p)
 {
   (void) csound;
   (void) p;
@@ -2097,10 +2118,11 @@ extern "C" int FLkeyb(CSOUND *csound, FLKEYB *p)
 
 //-----------
 
-extern "C" int StartPanel(CSOUND *csound, FLPANEL *p)
+static int StartPanel(CSOUND *csound, FLPANEL *p)
 {
   char *panelName = GetString(csound, p->name, p->XSTRCODE);
 
+  *(getFLTKFlagsPtr(csound)) |= 32;
   int x = (int) *p->ix, y = (int) *p->iy,
     width = (int) *p->iwidth, height = (int) *p->iheight;
   if (width <0) width = 400; //default
@@ -2134,7 +2156,7 @@ extern "C" int StartPanel(CSOUND *csound, FLPANEL *p)
   return OK;
 }
 
-extern "C" int EndPanel(CSOUND *csound, FLPANELEND *p)
+static int EndPanel(CSOUND *csound, FLPANELEND *p)
 {
   stack_count--;
   ADDR_STACK adrstk = AddrStack.back();
@@ -2150,7 +2172,7 @@ extern "C" int EndPanel(CSOUND *csound, FLPANELEND *p)
 }
 
 //-----------
-extern "C" int StartScroll(CSOUND *csound, FLSCROLL *p)
+static int StartScroll(CSOUND *csound, FLSCROLL *p)
 {
   Fl_Scroll *o = new Fl_Scroll ((int) *p->ix, (int) *p->iy,
                                 (int) *p->iwidth, (int) *p->iheight);
@@ -2160,7 +2182,7 @@ extern "C" int StartScroll(CSOUND *csound, FLSCROLL *p)
   return OK;
 }
 
-extern "C" int EndScroll(CSOUND *csound, FLSCROLLEND *p)
+static int EndScroll(CSOUND *csound, FLSCROLLEND *p)
 {
   stack_count--;
   ADDR_STACK adrstk = AddrStack.back();
@@ -2178,7 +2200,7 @@ extern "C" int EndScroll(CSOUND *csound, FLSCROLLEND *p)
 }
 
 //-----------
-extern "C" int StartTabs(CSOUND *csound, FLTABS *p)
+static int StartTabs(CSOUND *csound, FLTABS *p)
 {
   Fl_Tabs *o = new Fl_Tabs ((int) *p->ix, (int) *p->iy,
                             (int) *p->iwidth, (int) *p->iheight);
@@ -2189,7 +2211,7 @@ extern "C" int StartTabs(CSOUND *csound, FLTABS *p)
   return OK;
 }
 
-extern "C" int EndTabs(CSOUND *csound, FLTABSEND *p)
+static int EndTabs(CSOUND *csound, FLTABSEND *p)
 {
   stack_count--;
   ADDR_STACK adrstk = AddrStack.back();
@@ -2207,7 +2229,7 @@ extern "C" int EndTabs(CSOUND *csound, FLTABSEND *p)
 }
 
 //-----------
-extern "C" int StartGroup(CSOUND *csound, FLGROUP *p)
+static int StartGroup(CSOUND *csound, FLGROUP *p)
 {
   char *Name = GetString(csound, p->name, p->XSTRCODE);
   Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
@@ -2233,7 +2255,7 @@ extern "C" int StartGroup(CSOUND *csound, FLGROUP *p)
   return OK;
 }
 
-extern "C" int EndGroup(CSOUND *csound, FLGROUPEND *p)
+static int EndGroup(CSOUND *csound, FLGROUPEND *p)
 {
   stack_count--;
   ADDR_STACK adrstk = AddrStack.back();
@@ -2251,7 +2273,7 @@ extern "C" int EndGroup(CSOUND *csound, FLGROUPEND *p)
 
 //-----------
 
-extern "C" int StartPack(CSOUND *csound, FLSCROLL *p)
+static int StartPack(CSOUND *csound, FLSCROLL *p)
 {
   Fl_Pack *o = new Fl_Pack ((int) *p->ix, (int) *p->iy,
                             (int) *p->iwidth, (int) *p->iheight);
@@ -2265,7 +2287,7 @@ extern "C" int StartPack(CSOUND *csound, FLSCROLL *p)
   return OK;
 }
 
-extern "C" int EndPack(CSOUND *csound, FLSCROLLEND *p)
+static int EndPack(CSOUND *csound, FLSCROLLEND *p)
 {
   stack_count--;
   ADDR_STACK adrstk = AddrStack.back();
@@ -2283,7 +2305,7 @@ extern "C" int EndPack(CSOUND *csound, FLSCROLLEND *p)
 
 //-----------
 
-extern "C" int fl_widget_color(CSOUND *csound, FLWIDGCOL *p)
+static int fl_widget_color(CSOUND *csound, FLWIDGCOL *p)
 {
   if (*p->red1 < 0) { // reset colors to default
     FLcolor = (int) *p->red1; //when called without arguments
@@ -2300,7 +2322,7 @@ extern "C" int fl_widget_color(CSOUND *csound, FLWIDGCOL *p)
   return OK;
 }
 
-extern "C" int fl_widget_color2(CSOUND *csound, FLWIDGCOL2 *p)
+static int fl_widget_color2(CSOUND *csound, FLWIDGCOL2 *p)
 {
   if (*p->red < 0) { // reset colors to default
     FLcolor2 =(int) *p->red;
@@ -2313,7 +2335,7 @@ extern "C" int fl_widget_color2(CSOUND *csound, FLWIDGCOL2 *p)
   return OK;
 }
 
-extern "C" int fl_widget_label(CSOUND *csound, FLWIDGLABEL *p)
+static int fl_widget_label(CSOUND *csound, FLWIDGLABEL *p)
 {
   if (*p->size <= 0) { // reset settings to default
     FLtext_size = 0; //when called without arguments
@@ -2334,7 +2356,10 @@ extern "C" int fl_widget_label(CSOUND *csound, FLWIDGLABEL *p)
   }
   return OK;
 }
-//-----------
+
+}       // extern "C"
+
+// -----------
 
 static int fl_getWidgetTypeFromOpcodeName(CSOUND *csound, void *p)
 {
@@ -2410,7 +2435,9 @@ static void fl_setWidgetValue_(CSOUND *csound,
       Fl_unlock(csound);
 }
 
-extern "C" int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
+extern "C" {
+
+static int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
 {
     MYFLT           log_base = FL(1.0);
     ADDR_SET_VALUE  &v = AddrSetValue[(int) *p->ihandle];
@@ -2435,7 +2462,7 @@ extern "C" int fl_setWidgetValuei(CSOUND *csound, FL_SET_WIDGET_VALUE_I *p)
     return OK;
 }
 
-extern "C" int fl_setWidgetValue_set(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
+static int fl_setWidgetValue_set(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
 {
     p->handle = (int) *(p->ihandle);
 
@@ -2464,7 +2491,7 @@ extern "C" int fl_setWidgetValue_set(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
     return OK;
 }
 
-extern "C" int fl_setWidgetValue(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
+static int fl_setWidgetValue(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
 {
     if (*p->ktrig != FL(0.0))
       fl_setWidgetValue_(csound, AddrSetValue[p->handle], p->widgetType,
@@ -2475,7 +2502,7 @@ extern "C" int fl_setWidgetValue(CSOUND *csound, FL_SET_WIDGET_VALUE *p)
 //-----------
 //-----------
 
-extern "C" int fl_setColor1(CSOUND *csound, FL_SET_COLOR *p)
+static int fl_setColor1(CSOUND *csound, FL_SET_COLOR *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2486,7 +2513,7 @@ extern "C" int fl_setColor1(CSOUND *csound, FL_SET_COLOR *p)
   return OK;
 }
 
-extern "C" int fl_setColor2(CSOUND *csound, FL_SET_COLOR *p)
+static int fl_setColor2(CSOUND *csound, FL_SET_COLOR *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2495,7 +2522,7 @@ extern "C" int fl_setColor2(CSOUND *csound, FL_SET_COLOR *p)
   return OK;
 }
 
-extern "C" int fl_setTextColor(CSOUND *csound, FL_SET_COLOR *p)
+static int fl_setTextColor(CSOUND *csound, FL_SET_COLOR *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2504,7 +2531,7 @@ extern "C" int fl_setTextColor(CSOUND *csound, FL_SET_COLOR *p)
   return OK;
 }
 
-extern "C" int fl_setTextSize(CSOUND *csound, FL_SET_TEXTSIZE *p)
+static int fl_setTextSize(CSOUND *csound, FL_SET_TEXTSIZE *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2512,7 +2539,7 @@ extern "C" int fl_setTextSize(CSOUND *csound, FL_SET_TEXTSIZE *p)
   return OK;
 }
 
-extern "C" int fl_setFont(CSOUND *csound, FL_SET_FONT *p)
+static int fl_setFont(CSOUND *csound, FL_SET_FONT *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2540,7 +2567,7 @@ extern "C" int fl_setFont(CSOUND *csound, FL_SET_FONT *p)
   return OK;
 }
 
-extern "C" int fl_setTextType(CSOUND *csound, FL_SET_FONT *p)
+static int fl_setTextType(CSOUND *csound, FL_SET_FONT *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2564,7 +2591,7 @@ extern "C" int fl_setTextType(CSOUND *csound, FL_SET_FONT *p)
   return OK;
 }
 
-extern "C" int fl_box(CSOUND *csound, FL_BOX *p)
+static int fl_box(CSOUND *csound, FL_BOX *p)
 {
   char *text = GetString(csound, p->itext, p->XSTRCODE);
   Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
@@ -2622,7 +2649,7 @@ extern "C" int fl_box(CSOUND *csound, FL_BOX *p)
   return OK;
 }
 
-extern "C" int fl_setText(CSOUND *csound, FL_SET_TEXT *p)
+static int fl_setText(CSOUND *csound, FL_SET_TEXT *p)
 {
   char *text = GetString(csound, p->itext, p->XSTRCODE);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
@@ -2631,7 +2658,7 @@ extern "C" int fl_setText(CSOUND *csound, FL_SET_TEXT *p)
   return OK;
 }
 
-extern "C" int fl_setSize(CSOUND *csound, FL_SET_SIZE *p)
+static int fl_setSize(CSOUND *csound, FL_SET_SIZE *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2639,7 +2666,7 @@ extern "C" int fl_setSize(CSOUND *csound, FL_SET_SIZE *p)
   return OK;
 }
 
-extern "C" int fl_setPosition(CSOUND *csound, FL_SET_POSITION *p)
+static int fl_setPosition(CSOUND *csound, FL_SET_POSITION *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2647,7 +2674,7 @@ extern "C" int fl_setPosition(CSOUND *csound, FL_SET_POSITION *p)
   return OK;
 }
 
-extern "C" int fl_hide(CSOUND *csound, FL_WIDHIDE *p)
+static int fl_hide(CSOUND *csound, FL_WIDHIDE *p)
 {
   Fl_lock(csound);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
@@ -2657,7 +2684,7 @@ extern "C" int fl_hide(CSOUND *csound, FL_WIDHIDE *p)
   return OK;
 }
 
-extern "C" int fl_show(CSOUND *csound, FL_WIDSHOW *p)
+static int fl_show(CSOUND *csound, FL_WIDSHOW *p)
 {
   Fl_lock(csound);
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
@@ -2667,7 +2694,7 @@ extern "C" int fl_show(CSOUND *csound, FL_WIDSHOW *p)
   return OK;
 }
 
-extern "C" int fl_setBox(CSOUND *csound, FL_SETBOX *p)
+static int fl_setBox(CSOUND *csound, FL_SETBOX *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2698,7 +2725,7 @@ extern "C" int fl_setBox(CSOUND *csound, FL_SETBOX *p)
   return OK;
 }
 
-extern "C" int fl_align(CSOUND *csound, FL_TALIGN *p)
+static int fl_align(CSOUND *csound, FL_TALIGN *p)
 {
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
@@ -2722,7 +2749,7 @@ extern "C" int fl_align(CSOUND *csound, FL_TALIGN *p)
 //-----------
 //-----------
 
-extern "C" int fl_value(CSOUND *csound, FLVALUE *p)
+static int fl_value(CSOUND *csound, FLVALUE *p)
 {
   char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix, iy, iwidth, iheight;
@@ -2749,7 +2776,7 @@ extern "C" int fl_value(CSOUND *csound, FLVALUE *p)
 
 //-----------
 
-extern "C" int fl_slider(CSOUND *csound, FLSLIDER *p)
+static int fl_slider(CSOUND *csound, FLSLIDER *p)
 {
   char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight,itype, iexp;
@@ -2842,7 +2869,7 @@ extern "C" int fl_slider(CSOUND *csound, FLSLIDER *p)
   return OK;
 }
 
-extern "C" int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
+static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
 {
   char s[MAXNAME];
   if (p->XSTRCODE)
@@ -3023,7 +3050,7 @@ extern "C" int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
   return OK;
 }
 
-extern "C" int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
+static int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
 {
   char *Name = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight, iexpx, iexpy;
@@ -3124,7 +3151,7 @@ extern "C" int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
   return OK;
 }
 
-extern "C" int fl_knob(CSOUND *csound, FLKNOB *p)
+static int fl_knob(CSOUND *csound, FLKNOB *p)
 {
   char    *controlName = GetString(csound, p->name, p->XSTRCODE);
   int     ix, iy, iwidth, itype, iexp;
@@ -3217,7 +3244,7 @@ extern "C" int fl_knob(CSOUND *csound, FLKNOB *p)
   return OK;
 }
 
-extern "C" int fl_text(CSOUND *csound, FLTEXT *p)
+static int fl_text(CSOUND *csound, FLTEXT *p)
 {
   char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth,iheight,itype;
@@ -3271,7 +3298,7 @@ extern "C" int fl_text(CSOUND *csound, FLTEXT *p)
   return OK;
 }
 
-extern "C" int fl_button(CSOUND *csound, FLBUTTON *p)
+static int fl_button(CSOUND *csound, FLBUTTON *p)
 {
   char *Name = GetString(csound, p->name, p->XSTRCODE);
   int type = (int) *p->itype;
@@ -3314,7 +3341,7 @@ extern "C" int fl_button(CSOUND *csound, FLBUTTON *p)
   return OK;
 }
 
-extern "C" int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
+static int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
 {
   char *Name = "/0";
   int type = (int) *p->itype;
@@ -3363,7 +3390,7 @@ extern "C" int fl_button_bank(CSOUND *csound, FLBUTTONBANK *p)
   return OK;
 }
 
-extern "C" int fl_counter(CSOUND *csound, FLCOUNTER *p)
+static int fl_counter(CSOUND *csound, FLCOUNTER *p)
 {
   char *controlName = GetString(csound, p->name, p->XSTRCODE);
   //      int ix,iy,iwidth,iheight,itype;
@@ -3400,7 +3427,7 @@ extern "C" int fl_counter(CSOUND *csound, FLCOUNTER *p)
   return OK;
 }
 
-extern "C" int fl_roller(CSOUND *csound, FLROLLER *p)
+static int fl_roller(CSOUND *csound, FLROLLER *p)
 {
   char *controlName = GetString(csound, p->name, p->XSTRCODE);
   int ix,iy,iwidth, iheight,itype, iexp ;
@@ -3486,7 +3513,7 @@ extern "C" int fl_roller(CSOUND *csound, FLROLLER *p)
   return OK;
 }
 
-extern "C" int FLprintkset(CSOUND *csound, FLPRINTK *p)
+static int FLprintkset(CSOUND *csound, FLPRINTK *p)
 {
   if (*p->ptime < FL(1.0) / csound->global_ekr)
     p->ctime = FL(1.0) / csound->global_ekr;
@@ -3497,7 +3524,7 @@ extern "C" int FLprintkset(CSOUND *csound, FLPRINTK *p)
   return OK;
 }
 
-extern "C" int FLprintk(CSOUND *csound, FLPRINTK *p)
+static int FLprintk(CSOUND *csound, FLPRINTK *p)
 {
   MYFLT   timel;
   long    cycles;
@@ -3514,13 +3541,13 @@ extern "C" int FLprintk(CSOUND *csound, FLPRINTK *p)
   return OK;
 }
 
-extern "C" int FLprintk2set(CSOUND *csound, FLPRINTK2 *p)   // IV - Aug 27 2002
+static int FLprintk2set(CSOUND *csound, FLPRINTK2 *p)   // IV - Aug 27 2002
 {
   p->oldvalue = FL(-1.12123e35);        // hack to force printing first value
   return OK;
 }
 
-extern "C" int FLprintk2(CSOUND *csound, FLPRINTK2 *p)
+static int FLprintk2(CSOUND *csound, FLPRINTK2 *p)
 {
   MYFLT   value = *p->val;
   if (p->oldvalue != value) {
@@ -3533,21 +3560,9 @@ extern "C" int FLprintk2(CSOUND *csound, FLPRINTK2 *p)
   return OK;
 }
 
-extern "C" int dummyWidgetOpcode(CSOUND *csound, void *p)
-{
-    const char  *opname;
-
-    opname = csound->GetOpcodeName(p);
-    csound->Die(csound, Str("%s: widget opcodes have been disabled by "
-                            "the host application"), opname);
-    return NOTOK;
-}
-
-extern "C" {
-
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+const OENTRY widgetOpcodes_[] = {
     { "FLslider",       S(FLSLIDER),            1,  "ki",   "Tiijjjjjjj",
         (SUBR) fl_slider,               (SUBR) NULL,              (SUBR) NULL },
     { "FLslidBnk",      S(FLSLIDERBANK),        1,  "",     "Tiooooooooo",
@@ -3655,69 +3670,10 @@ static OENTRY localops[] = {
     { "FLprintk",       S(FLPRINTK),            3,  "",     "iki",
         (SUBR) FLprintkset,             (SUBR) FLprintk,          (SUBR) NULL },
     { "FLprintk2",      S(FLPRINTK2),           3,  "",     "ki",
-        (SUBR) FLprintk2set,            (SUBR) FLprintk2,         (SUBR) NULL }
+        (SUBR) FLprintk2set,            (SUBR) FLprintk2,         (SUBR) NULL },
+    { NULL,             0,                      0,  NULL,   NULL,
+        (SUBR) NULL,                    (SUBR) NULL,              (SUBR) NULL }
 };
-
-PUBLIC int csoundModuleCreate(CSOUND *csound)
-{
-    (void) csound;
-    return 0;
-}
-
-PUBLIC int csoundModuleInit(CSOUND *csound)
-{
-    const OENTRY  *ep = &(localops[0]);
-    int           n = (int) sizeof(localops) / (int) sizeof(OENTRY);
-    int           initFlags = 0;
-
-    if (csound->QueryGlobalVariable(csound, "FLTK_Flags") == (void*) 0) {
-      if (csound->CreateGlobalVariable(csound, "FLTK_Flags", sizeof(int)) != 0)
-        csound->Die(csound, Str("widgets.cpp: error allocating FLTK flags"));
-      initFlags = 1;
-    }
-#ifdef __MACH__
-    set_display_callbacks(csound);
-#else
-    if (set_display_callbacks(csound))
-#endif
-    {
-      if (initFlags)
-        *((int*) csound->QueryGlobalVariableNoCheck(csound,
-                                                    "FLTK_Flags")) |= 28;
-    }
-    if (getFLTKFlags(csound) & 1) {
-      for ( ; n; ep++, n--) {
-        if (csound->AppendOpcode(
-                csound, ep->opname, (int) ep->dsblksiz, (int) ep->thread,
-                ep->outypes, ep->intypes,
-                (((int) ep->thread & 1) ? dummyWidgetOpcode : (SUBR) 0),
-                (((int) ep->thread & 2) ? dummyWidgetOpcode : (SUBR) 0),
-                (((int) ep->thread & 4) ? dummyWidgetOpcode : (SUBR) 0)) != 0) {
-          csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
-                                   ep->opname);
-          return -1;
-        }
-      }
-    }
-    else {
-      for ( ; n; ep++, n--) {
-        if (csound->AppendOpcode(csound, ep->opname,
-                                 (int) ep->dsblksiz, (int) ep->thread,
-                                 ep->outypes, ep->intypes,
-                                 ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
-          csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
-                                   ep->opname);
-          return -1;
-        }
-      }
-    }
-    return 0;
-}
-
-PUBLIC int csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
-}
 
 }       // extern "C"
 

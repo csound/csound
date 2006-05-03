@@ -45,34 +45,98 @@ static void KillGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
     kill_graph(wdptr->windid);
 }
 
-int set_display_callbacks(CSOUND *csound)
+static int dummyWidgetOpcode(CSOUND *csound, void *p)
 {
-    if (!csound->oparms->displays)
-      return 0;
-    if (csound->oparms->graphsoff || csound->oparms->postscript)
-      return 0;
-    if (getFLTKFlags(csound) & 2)
-      return 0;
-#ifdef LINUX
-    {
-      Display *dpy = XOpenDisplay(NULL);
-      if (dpy == NULL)
-        return 0;
-      XCloseDisplay(dpy);
-    }
-#endif
-    if (csound->SetIsGraphable(csound, 1) != 0)
-      return 0;
-    *((int*) csound->QueryGlobalVariableNoCheck(csound, "FLTK_Flags")) |= 64;
-    csound->SetYieldCallback(csound, CsoundYield_FLTK);
-    csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
-    csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
-    csound->SetKillGraphCallback(csound, KillGraph_FLTK);
-    csound->SetExitGraphCallback(csound, ExitGraph_FLTK);
-    csound->SetMakeXYinCallback(csound, MakeXYin_FLTK);
-    csound->SetReadXYinCallback(csound, ReadXYin_FLTK);
-    csound->SetKillXYinCallback(csound, KillXYin_FLTK);
+    const char  *opname;
 
-    return 1;
+    opname = csound->GetOpcodeName(p);
+    csound->Die(csound, Str("%s: widget opcodes have been disabled by "
+                            "the host application"), opname);
+    return NOTOK;
+}
+
+PUBLIC int csoundModuleCreate(CSOUND *csound)
+{
+    (void) csound;
+    return 0;
+}
+
+PUBLIC int csoundModuleInit(CSOUND *csound)
+{
+    const OENTRY  *ep = &(widgetOpcodes_[0]);
+    int           initFlags = 0;
+    int           *fltkFlags;
+    int           enableDisplays = 0;
+
+    if (csound->QueryGlobalVariable(csound, "FLTK_Flags") == (void*) 0) {
+      if (csound->CreateGlobalVariable(csound, "FLTK_Flags", sizeof(int)) != 0)
+        csound->Die(csound, Str("widgets.cpp: error allocating FLTK flags"));
+      initFlags = 1;
+    }
+    fltkFlags = getFLTKFlagsPtr(csound);
+    if (csound->oparms->displays &&
+        ((*fltkFlags) & 2) == 0 &&
+        !(csound->oparms->graphsoff || csound->oparms->postscript)) {
+#ifdef LINUX
+      Display *dpy = XOpenDisplay(NULL);
+      if (dpy != NULL) {
+        XCloseDisplay(dpy);
+#endif
+        if (csound->SetIsGraphable(csound, 1) == 0) {
+          enableDisplays = 1;
+          (*fltkFlags) |= 64;
+          if (!((*fltkFlags) & 256))
+            csound->SetYieldCallback(csound, CsoundYield_FLTK);
+          csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
+          csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
+          csound->SetKillGraphCallback(csound, KillGraph_FLTK);
+          csound->SetExitGraphCallback(csound, ExitGraph_FLTK);
+          csound->SetMakeXYinCallback(csound, MakeXYin_FLTK);
+          csound->SetReadXYinCallback(csound, ReadXYin_FLTK);
+          csound->SetKillXYinCallback(csound, KillXYin_FLTK);
+        }
+#ifdef LINUX
+      }
+#endif
+    }
+    if (initFlags) {
+#ifndef __MACH__
+      if (enableDisplays)
+#endif
+        (*fltkFlags) |= 28;
+    }
+    if (!((*fltkFlags) & 129)) {
+      for ( ; ep->opname != NULL; ep++) {
+        if (csound->AppendOpcode(csound, ep->opname,
+                                 (int) ep->dsblksiz, (int) ep->thread,
+                                 ep->outypes, ep->intypes,
+                                 ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
+          csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
+                                   ep->opname);
+          return -1;
+        }
+      }
+    }
+    else if (!((*fltkFlags) & 128)) {
+      for ( ; ep->opname != NULL; ep++) {
+        if (csound->AppendOpcode(
+                csound, ep->opname, (int) ep->dsblksiz, (int) ep->thread,
+                ep->outypes, ep->intypes,
+                (((int) ep->thread & 1) ? dummyWidgetOpcode : (SUBR) 0),
+                (((int) ep->thread & 2) ? dummyWidgetOpcode : (SUBR) 0),
+                (((int) ep->thread & 4) ? dummyWidgetOpcode : (SUBR) 0)) != 0) {
+          csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
+                                   ep->opname);
+          return -1;
+        }
+      }
+    }
+
+    return 0;
+}
+
+PUBLIC int csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
 }
 

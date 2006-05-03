@@ -1,3 +1,8 @@
+2006-05-03	Istvan Varga	<ivarga@csounds.com>
+	* InOut/FL_graph.cpp, InOut/widgets.cpp:
+	* InOut/winFLTK.c, InOut/winFLTK.h:
+	  added more FLTK flags (see winFLTK.h)
+
 2006-05-02	Istvan Varga	<ivarga@csounds.com>
 	* InOut/widgets.cpp, InOut/winFLTK.c, InOut/winFLTK.h:
 	  disable threads by default if graphs are used
