@@ -276,9 +276,7 @@ extern "C" {
     if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
       return 1;
 #endif
-    Fl_lock(csound);
-    Fl::wait(0.0);
-    Fl_unlock(csound);
+    Fl_wait_locked(csound, 0.0);
     return 1;
   }
 
@@ -300,22 +298,18 @@ extern "C" {
   int ExitGraph_FLTK(CSOUND *csound)
   {
     if (form) {
-      if (form->shown()) {
+      if (form->shown() && !(getFLTKFlags(csound) & 256)) {
         const char *env = csound->GetEnv(csound, "CSNOSTOP");
         if (env == NULL || strcmp(env, "yes") != 0) {
           /* print click-Exit message in most recently active window */
           end->show();
           while (end->value() == 0 && form->shown() /* && kcnt */) {
-            Fl_lock(csound);
-            Fl::wait(0.04);
-            Fl_unlock(csound);
+            Fl_wait_locked(csound, 0.03);
           }
         }
       }
       delete form;
-      Fl_lock(csound);
-      Fl::wait(0.0);
-      Fl_unlock(csound);
+      Fl_wait_locked(csound, 0.0);
     }
     form = (Fl_Window *) 0;
     choice = (Fl_Choice *) 0;
@@ -342,7 +336,7 @@ extern "C" {
 
       Fl_lock(csound);
       xyin->show();
-      Fl::wait(0.0);
+      Fl_wait(csound, 0.0);
       Fl_unlock(csound);
 
       /* set new width and height so we leave a 20% border around the plot */
@@ -353,7 +347,7 @@ extern "C" {
       w->down = 0;
 
       Fl_lock(csound);
-      Fl::wait(0.0);
+      Fl_wait(csound, 0.0);
       xyin->make_current();
       fl_color(0, 0, 0);
       fl_line_style(FL_DOT);
@@ -372,7 +366,7 @@ extern "C" {
     Fl_Window *xwin = (Fl_Window*) wdptr->windid;
 
     Fl_lock(csound);
-    Fl::wait(0.0);
+    Fl_wait(csound, 0.0);
     m_x = Fl::event_x();
     m_y = Fl::event_y();
     wdptr->down = (short) (Fl::event_button1() ? 1 : 0);
