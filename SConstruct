@@ -104,7 +104,7 @@ opts.Add('noFLTKThreads',
     'Set to 1 to disable use of a separate thread for FLTK widgets.',
     '0')
 opts.Add('pythonVersion',
-    'Set to the Python version to be used.',
+    'Set to the Python version to be',  
     '%d.%d' % (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255))
 opts.Add('buildCsoundVST',
     'Set to 1 to build CsoundVST (needs FLTK, boost, Python, SWIG).',
@@ -1678,6 +1678,13 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
             -framework Carbon -framework CoreAudio -framework CoreMidi
             -framework ApplicationServices
         '''))
+ 	csWinEnvironment.Command(
+            'appbundle', 'winsound',
+            "cp $SOURCE frontends/winsound/Winsound.app/Contents/MacOS")
+        csWinEnvironment.Command(
+            'winsGUIResources', 'frontends/winsound/Winsound.app/Contents/MacOS/winsound',
+            "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
+       
     winsoundFL = 'frontends/winsound/winsound.fl'
     winsoundSrc = 'frontends/winsound/winsound.cxx'
     winsoundHdr = 'frontends/winsound/winsound.h'
@@ -1688,6 +1695,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
     Depends(winsoundMain, winsoundSrc)
     executables.append(csWinEnvironment.Program(
         'winsound', [winsoundMain, winsoundSrc]))
+
 else:
     print "CONFIGURATION DECISION: Not building Winsound"
 
