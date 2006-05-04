@@ -32,8 +32,17 @@
 #endif
 
 #include "csdl.h"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/select.h>
+#include <termios.h>
+#include <errno.h>
 #include <alsa/asoundlib.h>
+
 #include "soundio.h"
 
 typedef struct devparams_ {
@@ -64,6 +73,13 @@ typedef struct alsaMidiInputDevice_ {
     int            bufpos, nbytes, datreq;
     unsigned char  prvStatus, dat1, dat2;
 } alsaMidiInputDevice;
+
+typedef struct midiDevFile_ {
+    unsigned char  buf[BUF_SIZE];
+    int            fd;
+    int            bufpos, nbytes, datreq;
+    unsigned char  prvStatus, dat1, dat2;
+} midiDevFile;
 
 static const unsigned char dataBytes[16] = {
     0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 2, 0
@@ -647,6 +663,200 @@ static int midi_out_close(CSOUND *csound, void *userData)
     return retval;
 }
 
+/* The following functions include code from Csound 4.23 (mididevice.c), */
+/* written by John ffitch, David Ratajczak, and others. */
+
+static int midi_in_open_file(CSOUND *csound, void **userData,
+                             const char *devName)
+{
+    midiDevFile *dev;
+    const char  *s = "stdin";
+
+    (*userData) = NULL;
+    dev = (midiDevFile*) csound->Calloc(csound, sizeof(midiDevFile));
+    if (devName != NULL && devName[0] != '\0')
+      s = devName;
+    if (strcmp(s, "stdin") == 0) {
+      if (fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | O_NDELAY) < 0) {
+        csound->ErrorMsg(csound, Str("-M stdin fcntl failed"));
+        return -1;
+      }
+      dev->fd = 0;
+    }
+    else {
+      /* open MIDI device, & set nodelay on reads */
+      if ((dev->fd = open(s, O_RDONLY | O_NDELAY, 0)) < 0) {
+        csound->ErrorMsg(csound, Str("cannot open %s"), s);
+        return -1;
+      }
+    }
+    if (isatty(dev->fd)) {
+      struct termios  tty;
+      memset(&tty, 0, sizeof(struct termios));
+      if (tcgetattr(dev->fd, &tty) < 0) {
+        if (dev->fd > 2)
+          close(dev->fd);
+        csound->ErrorMsg(csound,
+                         Str("MIDI receive: cannot get termios info."));
+        return -1;
+      }
+      cfmakeraw(&tty);
+      if (cfsetispeed(&tty, EXTB) < 0) {
+        if (dev->fd > 2)
+          close(dev->fd);
+        csound->ErrorMsg(csound,
+                         Str("MIDI receive: cannot set input baud rate."));
+        return -1;
+      }
+      if (tcsetattr(dev->fd, TCSANOW, &tty) < 0) {
+        if (dev->fd > 2)
+          close(dev->fd);
+        csound->ErrorMsg(csound, Str("MIDI receive: cannot set termios."));
+        return -1;
+      }
+    }
+    csound->Message(csound, Str("Opened MIDI input device file '%s'\n"), s);
+    (*userData) = (void*) dev;
+
+    return 0;
+}
+
+static int midi_in_read_file(CSOUND *csound, void *userData,
+                             unsigned char *buf, int nbytes)
+{
+    midiDevFile   *dev = (midiDevFile*) userData;
+    int           bufpos = 0;
+    unsigned char c;
+
+    while ((nbytes - bufpos) >= 3) {
+      if (dev->bufpos >= dev->nbytes) { /* read from device */
+        /* For select() call, from David Ratajczak */
+        fd_set    rfds;
+        struct timeval tv;
+        int       n;
+
+        dev->bufpos = 0;
+        dev->nbytes = 0;
+
+        /********  NEW STUFF **********/    /* from David Ratajczak */
+        /* Use select() to make truly */
+        /* non-blocking call to midi  */
+        /******************************/
+
+        /* Watch rtfd to see when it has input. */
+        FD_ZERO(&rfds);
+        FD_SET(dev->fd, &rfds);
+        /* return immediately */
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+
+        n = select(dev->fd + 1, &rfds, NULL, NULL, &tv);
+        /* Don't rely on the value of tv now! */
+
+        if (n) {
+          if (n < 0)
+            csound->ErrorMsg(csound, Str("sensMIDI: retval errno %d"), errno);
+          else
+            n = read(dev->fd, &(dev->buf[0]), BUF_SIZE);
+        }
+        if (n > 0)
+          dev->nbytes = n;
+        else
+          break;                        /* until there is no more data left */
+      }
+      c = dev->buf[dev->bufpos++];
+      if (c >= (unsigned char) 0xF8) {          /* real time message */
+        buf[bufpos++] = c;
+        continue;
+      }
+      if (c == (unsigned char) 0xF7)            /* end of system exclusive */
+        c = dev->prvStatus;
+      if (c < (unsigned char) 0x80) {           /* data byte */
+        if (dev->datreq <= 0)
+          continue;
+        if (dev->datreq == (int) dataBytes[(int) dev->prvStatus >> 4])
+          dev->dat1 = c;
+        else
+          dev->dat2 = c;
+        if (--(dev->datreq) != 0)
+          continue;
+        dev->datreq = dataBytes[(int) dev->prvStatus >> 4];
+        buf[bufpos] = dev->prvStatus;
+        buf[bufpos + 1] = dev->dat1;
+        buf[bufpos + 2] = dev->dat2;
+        bufpos += (dev->datreq + 1);
+        continue;
+      }
+      else if (c < (unsigned char) 0xF0) {      /* channel message */
+        dev->prvStatus = c;
+        dev->datreq = dataBytes[(int) c >> 4];
+        continue;
+      }
+      if (c < (unsigned char) 0xF4)             /* ignore system messages */
+        dev->datreq = -1;
+    }
+    return bufpos;
+}
+
+static int midi_in_close_file(CSOUND *csound, void *userData)
+{
+    int     retval = 0;
+
+    if (userData != NULL) {
+      int   fd = ((midiDevFile*) userData)->fd;
+      if (fd > 2)
+        retval = close(fd);
+      csound->Free(csound, userData);
+    }
+    return retval;
+}
+
+static int midi_out_open_file(CSOUND *csound, void **userData,
+                              const char *devName)
+{
+    int     fd = 1;     /* stdout */
+
+    (*userData) = NULL;
+    if (devName != NULL && devName[0] != '\0' &&
+        strcmp(devName, "stdout") != 0) {
+      fd = open(devName, O_WRONLY);
+      if (fd < 0) {
+        csound->ErrorMsg(csound,
+                         Str("Error opening MIDI output device file '%s'"),
+                         devName);
+        return -1;
+      }
+      csound->Message(csound, Str("Opened MIDI output device file '%s'\n"),
+                              devName);
+    }
+    (*userData) = (void*) ((uintptr_t) fd);
+
+    return 0;
+}
+
+static int midi_out_write_file(CSOUND *csound, void *userData,
+                               const unsigned char *buf, int nbytes)
+{
+    int     retval;
+
+    (void) csound;
+    retval = (int) write((int) ((uintptr_t) userData), buf, (size_t) nbytes);
+    return retval;
+}
+
+static int midi_out_close_file(CSOUND *csound, void *userData)
+{
+    int     retval = 0;
+
+    (void) csound;
+    if (userData != NULL) {
+      int   fd = (int) ((uintptr_t) userData);
+      if (fd > 2)
+        retval = close(fd);
+    }
+    return retval;
+}
+
 /* module interface functions */
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
@@ -657,19 +867,20 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-static CS_NOINLINE int check_name(const char *s)
-{
-    if (s != NULL &&
-        (s[0] | (char) 0x20) == 'a' && (s[1] | (char) 0x20) == 'l' &&
-        (s[2] | (char) 0x20) == 's' && (s[3] | (char) 0x20) == 'a' &&
-        s[4] == '\0')
-      return 1;
-    return 0;
-}
-
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
-    if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTAUDIO"))) {
+    char    *s;
+    int     i;
+    char    buf[9];
+
+    s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
+    i = 0;
+    if (s != NULL) {
+      while (*s != (char) 0 && i < 8)
+        buf[i++] = *(s++) | (char) 0x20;
+    }
+    buf[i] = (char) 0;
+    if (strcmp(&(buf[0]), "alsa") == 0) {
       csound->Message(csound, "rtaudio: ALSA module enabled\n");
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
@@ -677,7 +888,14 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetRtrecordCallback(csound, rtrecord_);
       csound->SetRtcloseCallback(csound, rtclose_);
     }
-    if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTMIDI"))) {
+    s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
+    i = 0;
+    if (s != NULL) {
+      while (*s != (char) 0 && i < 8)
+        buf[i++] = *(s++) | (char) 0x20;
+    }
+    buf[i] = (char) 0;
+    if (strcmp(&(buf[0]), "alsa") == 0) {
       csound->Message(csound, "rtmidi: ALSA module enabled\n");
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
@@ -686,6 +904,16 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetExternalMidiWriteCallback(csound, midi_out_write);
       csound->SetExternalMidiOutCloseCallback(csound, midi_out_close);
     }
+    else if (strcmp(&(buf[0]), "devfile") == 0) {
+      csound->Message(csound, "rtmidi: devfile module enabled\n");
+      csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
+      csound->SetExternalMidiReadCallback(csound, midi_in_read_file);
+      csound->SetExternalMidiInCloseCallback(csound, midi_in_close_file);
+      csound->SetExternalMidiOutOpenCallback(csound, midi_out_open_file);
+      csound->SetExternalMidiWriteCallback(csound, midi_out_write_file);
+      csound->SetExternalMidiOutCloseCallback(csound, midi_out_close_file);
+    }
+
     return 0;
 }
 

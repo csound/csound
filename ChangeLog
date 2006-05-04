@@ -1,3 +1,8 @@
+2006-05-04	Istvan Varga	<ivarga@csounds.com>
+	* InOut/rtalsa.c:
+	  added new "devfile" MIDI driver that uses device files in /dev,
+	  based on code from Csound 4.23 mididevice.c
+
 2006-05-03	Istvan Varga	<ivarga@csounds.com>
 	* InOut/FL_graph.cpp, InOut/widgets.cpp:
 	* InOut/winFLTK.c, InOut/winFLTK.h:
