@@ -30,7 +30,7 @@ CsoundGlobalSettings::CsoundGlobalSettings()
     textEditorProgram = "notepad";
     soundEditorProgram = "sndrec32";
     helpBrowserProgram =
-        "iexplore \"C:\\Program Files\\Csound\\doc\\manual\\index.html\"";
+        "explorer \"C:\\Program Files\\Csound\\doc\\manual\\index.html\"";
 #endif
     performanceSettings1_Name = "";
     performanceSettings2_Name = "";
