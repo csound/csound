@@ -773,12 +773,16 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
 
     /* skip over nMin samples */
     while (nMin > (long) ibuflen) {
+      if (!csound->CheckEvents(csound))
+        csound->LongJmp(csound, 1);
       nread = csound->getsndin(csound, fp, ibuf1, ibuflen, pn);
       if (nread < ibuflen) {
         ERR("dnoise: begin time is greater than EOF of noise file!");
       }
       nMin -= (long) ibuflen;
     }
+    if (!csound->CheckEvents(csound))
+      csound->LongJmp(csound, 1);
     i = (int) nMin;
     nread = csound->getsndin(csound, fp, ibuf1, i, pn);
     if (nread < i) {
@@ -787,6 +791,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     k = 0;
     lj = Beg;  /* single channel only */
     while (lj < End) {
+      if (!csound->CheckEvents(csound))
+        csound->LongJmp(csound, 1);
       lj += (long) N;
       nread = csound->getsndin(csound, fp, fbuf, N, pn);
       if (nread < N)
@@ -826,7 +832,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     /* zero ibuf1 to start */
     f = ibuf1;
     for (i = 0; i < ibuflen; i++, f++)
-        *f = FL(0.0);
+      *f = FL(0.0);
+    if (!csound->CheckEvents(csound))
+      csound->LongJmp(csound, 1);
     /* fill ibuf2 to start */
     nread = csound->getsndin(csound, inf, ibuf2, ibuflen, p);
 /*     nread = read(inf, ibuf2, ibuflen*sizeof(MYFLT)); */
@@ -874,6 +882,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     /*                         always begin writing to ob1 */
 
         if (ibs >= ibuflen) {    /* done reading from ib1 */
+          if (!csound->CheckEvents(csound))
+            csound->LongJmp(csound, 1);
           /* swap buffers */
           ib0 = ib1;
           ib1 = ib2;
