@@ -146,6 +146,10 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     types = inm->outtypes; otypes = opc->outypes;
     if (!strcmp(types, "0")) types++;   /* no output args */
     while (*types) {
+      if (i >= OPCODENUMOUTS) {
+        synterr(csound, "too many output args for opcode %s", inm->name);
+        err++; break;
+      }
       switch (*types) {
       case 'a':
         a_outcnt++; *otypes++ = *types;
@@ -162,10 +166,6 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         synterr(csound, "invalid output type for opcode %s", inm->name); err++;
       }
       i++; types++;
-      if (i >= OPCODENUMOUTS) {
-        synterr(csound, "too many output args for opcode %s", inm->name);
-        err++; break;
-      }
     }
     *otypes = '\0';
     inm->outchns = strlen(opc->outypes);    /* total number of output chnls */
