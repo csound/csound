@@ -138,7 +138,7 @@ updateGUIState_outFile();}
           callback {if (performing && csPerf != (CsoundPerformance*) 0) {
   csPerf->Rewind();
 }}
-          tooltip Rewind xywh {20 204 50 25}
+          tooltip {Rewind to the beginning of the score} xywh {20 204 50 25}
         }
         Fl_Button playButton {
           label {@>}

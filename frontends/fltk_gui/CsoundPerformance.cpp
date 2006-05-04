@@ -190,10 +190,15 @@ void CsoundPerformance_NoThread::Stop()
 
 void CsoundPerformance_NoThread::Rewind()
 {
+#if 0
     if (GetScoreTime() > scoreOffset) {
       scoreTime = scoreOffset;
       csoundSetScoreOffsetSeconds(csound, (MYFLT) scoreOffset);
     }
+#else
+    scoreTime = (MYFLT) 0;
+    csoundSetScoreOffsetSeconds(csound, (MYFLT) 0);
+#endif
 }
 
 void CsoundPerformance_NoThread::SetScoreOffsetSeconds(double scoreOffset,
@@ -295,10 +300,15 @@ void CsoundPerformance_Thread::Stop()
 
 void CsoundPerformance_Thread::Rewind()
 {
+#if 0
     if (GetScoreTime() > scoreOffset) {
       scoreTime = scoreOffset;
       pt->SetScoreOffsetSeconds(scoreOffset);
     }
+#else
+    scoreTime = (MYFLT) 0;
+    pt->SetScoreOffsetSeconds(0.0);
+#endif
 }
 
 void CsoundPerformance_Thread::SetScoreOffsetSeconds(double scoreOffset,
