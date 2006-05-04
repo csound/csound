@@ -20,11 +20,11 @@
 #include "CsoundGUI.hpp"
 
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-#ifndef WIN32
-#  include <sys/types.h>
-#  include <sys/stat.h>
-#else
+#ifdef WIN32
+#  include <direct.h>
 #  include <windows.h>
 #endif
 
@@ -246,7 +246,28 @@ static void getFullPathFileName(const char *fileName, std::string& fullName)
     dirName += ".csound";
     mkdir(dirName.c_str(), 0700);
 #else
-    {
+    CsoundGUIMain::stripString(dirName, std::getenv("USERPROFILE"));
+    if ((int) dirName.size() != 0) {
+      struct _stat tmp;
+      std::memset(&tmp, 0, sizeof(struct _stat));
+      if (dirName[dirName.size() - 1] != '\\')
+        dirName += '\\';
+      dirName += "Application Data";
+      if (_stat(dirName.c_str(), &tmp) != 0 ||
+          !(tmp.st_mode & _S_IFDIR))
+        dirName = "";
+    }
+    if ((int) dirName.size() == 0) {
+      CsoundGUIMain::stripString(dirName, std::getenv("HOME"));
+      if ((int) dirName.size() != 0) {
+        struct _stat tmp;
+        std::memset(&tmp, 0, sizeof(struct _stat));
+        if (_stat(dirName.c_str(), &tmp) != 0 ||
+            !(tmp.st_mode & _S_IFDIR))
+          dirName = "";
+      }
+    }
+    if ((int) dirName.size() == 0) {
       char  buf[512];
       int   len;
       len = (int) GetModuleFileName((HMODULE) 0, &(buf[0]), (DWORD) 512);
@@ -264,6 +285,10 @@ static void getFullPathFileName(const char *fileName, std::string& fullName)
       else
         dirName = ".";
     }
+    if (dirName[dirName.size() - 1] != '\\')
+      dirName += '\\';
+    dirName += ".csound";
+    _mkdir(dirName.c_str());
 #endif
     fullName = dirName;
 #ifndef WIN32
