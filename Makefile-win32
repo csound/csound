@@ -270,6 +270,18 @@ $(CSOUND5GUI):	frontends/fltk_gui/ConfigFile.oo			\
 frontends/fltk_gui/%_FLTK.cpp: frontends/fltk_gui/%_FLTK.fl
 	fluid -c -o $@ -h frontends/fltk_gui/$*_FLTK.hpp $<
 
+frontends/fltk_gui/CsoundPerformance.oo:				\
+		frontends/fltk_gui/CsoundPerformance.cpp
+	$(CXX) $(CFLAGS) -Iinterfaces -c $< -o $@
+
+frontends/fltk_gui/ConfigFile.cpp:					\
+		frontends/fltk_gui/CsoundAboutWindow_FLTK.cpp		\
+		frontends/fltk_gui/CsoundGlobalSettingsPanel_FLTK.cpp	\
+		frontends/fltk_gui/CsoundGUIConsole_FLTK.cpp		\
+		frontends/fltk_gui/CsoundGUIMain_FLTK.cpp		\
+		frontends/fltk_gui/CsoundPerformanceSettingsPanel_FLTK.cpp  \
+		frontends/fltk_gui/CsoundUtilitiesWindow_FLTK.cpp
+
 clean:
 	-rm `find . -type f \( -name "*.o" -o -name "*.oo" \) -print`
 	-rm `find . -type f \( -name "*.a" -o -name "*.dll" \) -print`
