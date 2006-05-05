@@ -73,6 +73,7 @@ CsoundPerformanceSettings::CsoundPerformanceSettings()
     rtMidiModule = "";
     scoreOffsetSeconds = 0.0;
     useThreads = true;
+    scriptFileName = "";
 }
 
 CsoundPerformanceSettings::~CsoundPerformanceSettings()

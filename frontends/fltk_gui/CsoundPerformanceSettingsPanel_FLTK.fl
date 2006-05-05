@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundPerformanceSettingsPanel {open selected
+class CsoundPerformanceSettingsPanel {open
 } {
   decl {CsoundPerformanceSettings performanceSettings;} {public
   }
@@ -21,14 +21,14 @@ class CsoundPerformanceSettingsPanel {open selected
     Fl_Window window {
       label {Csound performance settings}
       callback {status = 1;} open
-      xywh {591 206 390 450} type Double
+      xywh {331 173 390 450} type Double
       code0 {window = o;} visible
     } {
       Fl_Tabs {} {open
         xywh {0 0 390 405}
       } {
         Fl_Group {} {
-          label General open
+          label General open selected
           xywh {0 25 390 380}
         } {
           Fl_Input orcNameInput {
@@ -121,7 +121,7 @@ class CsoundPerformanceSettingsPanel {open selected
             tooltip {Browse plugin library} xywh {355 140 25 25}
           }
           Fl_Group {} {open
-            xywh {10 175 370 220} box ENGRAVED_FRAME
+            xywh {10 175 370 220} box THIN_DOWN_FRAME
           } {
             Fl_Choice {} {
               label {Display mode}
@@ -162,7 +162,7 @@ class CsoundPerformanceSettingsPanel {open selected
     controlRateInput->value(performanceSettings.controlRateOverride);
   }
 }}
-              tooltip {Sample rate override (<= 0: none)} xywh {20 255 75 25} align 8 when 4 minimum -1 maximum 1e+06
+              tooltip {Sample rate override (<= 0: none)} xywh {20 255 75 25} align 8 when 4 minimum -1 maximum 1e+006
               code0 {o->value(performanceSettings.sampleRateOverride);}
             }
             Fl_Value_Input controlRateInput {
@@ -178,7 +178,7 @@ class CsoundPerformanceSettingsPanel {open selected
     sampleRateInput->value(performanceSettings.sampleRateOverride);
   }
 }}
-              tooltip {Control rate override (<= 0: none)} xywh {205 255 75 25} align 8 when 4 minimum -1 maximum 1e+06
+              tooltip {Control rate override (<= 0: none)} xywh {205 255 75 25} align 8 when 4 minimum -1 maximum 1e+006
               code0 {o->value(performanceSettings.controlRateOverride);}
             }
             Fl_Value_Input {} {
@@ -294,8 +294,8 @@ class CsoundPerformanceSettingsPanel {open selected
             code0 {o->value(performanceSettings.rewriteHeader ? 1 : 0);}
           }
           Fl_Group {} {
-            label {Sound file tags} open
-            xywh {10 205 370 190} box ENGRAVED_FRAME align 5
+            label {Soundfile tags} open
+            xywh {10 205 370 190} box THIN_DOWN_FRAME align 5
           } {
             Fl_Input {} {
               label Artist
@@ -376,7 +376,7 @@ class CsoundPerformanceSettingsPanel {open selected
           }
           Fl_Group {} {
             label {JACK settings (Linux and MacOS X only)} open
-            xywh {10 205 370 115} box ENGRAVED_FRAME align 5
+            xywh {10 205 370 115} box THIN_DOWN_FRAME align 5
           } {
             Fl_Input {} {
               label {Client name}
@@ -404,7 +404,7 @@ class CsoundPerformanceSettingsPanel {open selected
         } {
           Fl_Group {} {
             label {MIDI file I/O} open
-            xywh {10 55 370 150} box ENGRAVED_FRAME align 5
+            xywh {10 55 370 150} box THIN_DOWN_FRAME align 5
           } {
             Fl_Input midiInFileNameInput {
               label {Input file}
@@ -449,7 +449,7 @@ class CsoundPerformanceSettingsPanel {open selected
           }
           Fl_Group {} {
             label {Real time MIDI} open
-            xywh {10 230 370 115} box ENGRAVED_FRAME align 5
+            xywh {10 230 370 115} box THIN_DOWN_FRAME align 5
           } {
             Fl_Input_Choice {} {
               label {Real time MIDI module}
@@ -484,7 +484,7 @@ class CsoundPerformanceSettingsPanel {open selected
         } {
           Fl_Group {} {
             label {Environment variables} open
-            xywh {10 50 370 150} box ENGRAVED_FRAME align 5
+            xywh {10 50 370 150} box THIN_DOWN_FRAME align 5
           } {
             Fl_Input sadirBox {
               label SADIR
@@ -545,7 +545,7 @@ class CsoundPerformanceSettingsPanel {open selected
           }
           Fl_Scroll {} {
             label strset open
-            xywh {10 225 370 170} box DOWN_BOX align 5
+            xywh {10 225 370 170} box THIN_DOWN_BOX align 5
             code0 {o->type(Fl_Scroll::VERTICAL_ALWAYS);}
           } {
             Fl_Group {} {open
