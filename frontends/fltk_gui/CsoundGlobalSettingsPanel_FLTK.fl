@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundGlobalSettingsPanel {open selected
+class CsoundGlobalSettingsPanel {open
 } {
   decl {CsoundGUIMain *p;} {}
   decl {CsoundGlobalSettings *g_cfg;} {}
@@ -68,8 +68,8 @@ class CsoundGlobalSettingsPanel {open selected
         code0 {o->value(g_cfg->editSoundFileAfterPerformance ? 1 : 0);}
       }
       Fl_Group {} {
-        label {Csound performance settings} open
-        xywh {10 130 370 320} box THIN_UP_FRAME labelsize 12 align 21
+        label {Csound performance settings} open selected
+        xywh {10 145 370 305} box THIN_DOWN_FRAME labelsize 12 align 5
       } {
         Fl_Button {} {
           label Configure
