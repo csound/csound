@@ -20,6 +20,8 @@
 #include "CsoundGUI.hpp"
 #include <FL/Fl_File_Chooser.H>
 
+extern bool enablePython(void *, CSOUND **csound);
+
 #ifndef WIN32
 #  include <sys/types.h>
 #  include <unistd.h>
@@ -229,7 +231,8 @@ static const char *fileNameFilters[] = {
     "Sound files (*.{aif,aiff,au,flac,pcm,raw,sd2,sf,snd,wav})",
     "MIDI files (*.{mid,smf})",
     "Convolve files (*.{con,cv})",
-    "PVOC files (*.{pv,pvx})"
+    "PVOC files (*.{pv,pvx})",
+    "Python files (*.py)"
 };
 
 bool CsoundGUIMain::browseFile(std::string& fileName, const char *title,
@@ -293,6 +296,14 @@ void CsoundGUIMain::updateGUIState_scoName()
       editScoreButton->activate();
 }
 
+void CsoundGUIMain::updateGUIState_scriptFile()
+{
+    if ((int) currentPerformanceSettings.scriptFileName.size() == 0)
+      editScriptfileButton->deactivate();
+    else
+      editScriptfileButton->activate();
+}
+
 void CsoundGUIMain::updateGUIState_outFile()
 {
     if ((int) currentPerformanceSettings.outputFileName.size() == 0 ||
@@ -329,6 +340,7 @@ void CsoundGUIMain::updateGUIState()
     updateGUIState_orcName();
     updateGUIState_scoName();
     updateGUIState_outFile();
+    updateGUIState_scriptFile();
     updateGUIState_controls();
 }
 
@@ -336,6 +348,7 @@ void CsoundGUIMain::updateGUIValues()
 {
     orcNameInput->value(currentPerformanceSettings.orcName.c_str());
     scoreNameInput->value(currentPerformanceSettings.scoName.c_str());
+    scriptFileNameInput->value(currentPerformanceSettings.scriptFileName.c_str());
     outfileNameInput->value(currentPerformanceSettings.outputFileName.c_str());
     scoreOffsetInput->value(currentPerformanceSettings.scoreOffsetSeconds);
     if (performing && csPerf != (CsoundPerformance*) 0) {
@@ -353,6 +366,7 @@ void CsoundGUIMain::run()
     readCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
     readCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
     readCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
+    void *pythonLibrary = 0;
 
     updateGUIValues();
 
@@ -362,9 +376,15 @@ void CsoundGUIMain::run()
     csoundSetMessageCallback(csound,
                              &CsoundGUIConsole::messageCallback_Thread);
 
+    int result = csoundOpenLibrary(&pythonLibrary, "python24");
+    if (result) {
+      csoundMessage(csound, "Python not found, disabling scripting. Check your PATH or Python installation.\n");
+    } else {
+      enablePython(pythonLibrary, &csound);
+    }
     updateGUIState();
-    window->show();
     consoleWindow.window->show();
+    window->show();
 
     do {
       if (csPerf != (CsoundPerformance*) 0) {
@@ -502,6 +522,20 @@ void CsoundGUIMain::editScoreFile()
     stripString(cmd, currentGlobalSettings.textEditorProgram.c_str());
     cmd += " \"";
     cmd += currentPerformanceSettings.scoName;
+    cmd += '"';
+    runCmd(cmd);
+}
+
+void CsoundGUIMain::editScriptFile()
+{
+    std::string cmd;
+
+    if (isEmptyString(currentPerformanceSettings.scriptFileName) ||
+        isEmptyString(currentGlobalSettings.textEditorProgram))
+      return;
+    stripString(cmd, currentGlobalSettings.textEditorProgram.c_str());
+    cmd += " \"";
+    cmd += currentPerformanceSettings.scriptFileName;
     cmd += '"';
     runCmd(cmd);
 }

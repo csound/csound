@@ -593,6 +593,7 @@ int writeCsound5GUIConfigFile(const char *fileName,
     err |= writeInt_(f, 48); err |= writeString(f, cfg.rtMidiModule);
     err |= writeInt_(f, 49); err |= writeDouble(f, &(cfg.scoreOffsetSeconds));
     err |= writeInt_(f, 50); err |= writeBool(f, &(cfg.useThreads));
+    err |= writeInt_(f, 51); err |= writeString(f, cfg.scriptFileName);
     err |= writeInt_(f, 0);
     std::fclose(f);
 
@@ -1268,6 +1269,10 @@ int readCsound5GUIConfigFile(const char *fileName,
         break;
       case 50:
         if (readBool(f, &(tmp->useThreads)) != 0)
+          goto err_return;
+        break;
+      case 51:
+        if (readString(f, tmp->scriptFileName) != 0)
           goto err_return;
         break;
       default:
