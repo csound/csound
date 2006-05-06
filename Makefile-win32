@@ -261,6 +261,7 @@ $(CSOUND5GUI):	frontends/fltk_gui/ConfigFile.oo			\
 		frontends/fltk_gui/CsoundPerformance.oo			\
 		frontends/fltk_gui/CsoundPerformanceSettings.oo		\
 		frontends/fltk_gui/CsoundPerformanceSettingsPanel_FLTK.oo   \
+		frontends/fltk_gui/CsoundPython.oo			\
 		frontends/fltk_gui/CsoundUtilitiesWindow_FLTK.oo	\
 		frontends/fltk_gui/CsoundUtility.oo			\
 		frontends/fltk_gui/main.oo				\
@@ -272,6 +273,9 @@ frontends/fltk_gui/%_FLTK.cpp: frontends/fltk_gui/%_FLTK.fl
 
 frontends/fltk_gui/CsoundPerformance.oo:				\
 		frontends/fltk_gui/CsoundPerformance.cpp
+	$(CXX) $(CFLAGS) -Iinterfaces -c $< -o $@
+
+frontends/fltk_gui/CsoundPython.oo: frontends/fltk_gui/CsoundPython.cpp
 	$(CXX) $(CFLAGS) -Iinterfaces -c $< -o $@
 
 frontends/fltk_gui/ConfigFile.cpp:					\
