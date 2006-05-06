@@ -207,7 +207,7 @@ void CsoundVST::performanceThreadRoutine()
 {
   getCppSound()->stop();
   getCppSound()->Reset();
-// getCppSound()->SetFLTKThreadLocking(true);
+  // getCppSound()->SetFLTKThreadLocking(true);
   if(getIsPython())
     {
       Shell::save(Shell::getFilename());
@@ -240,7 +240,6 @@ void CsoundVST::performanceThreadRoutine()
 	  cppSound->setCommand(vstcommand);
 	  editor->update();
 	}
-	cppSound->exportForPerformance();
       } else {
  	// Translate csd-style command lines to orc/sco style.
 	std::string command = cppSound->getCommand();
@@ -256,6 +255,7 @@ void CsoundVST::performanceThreadRoutine()
 	  editor->update();
 	}
       }
+      cppSound->exportForPerformance();
       csound::System::inform("Saved as: '%s' and '%s'.\n", cppSound->getOrcFilename().c_str(), cppSound->getScoFilename().c_str());
       reset();
       if(getIsVst())
@@ -392,7 +392,7 @@ void CsoundVST::open()
     {
       cppSound->setFilename(filename_);
     }
-// cppSound->setFLTKThreadLocking(false);
+  // cppSound->setFLTKThreadLocking(false);
 }
 
 void CsoundVST::reset()
@@ -469,27 +469,27 @@ int CsoundVST::midiRead(CSOUND *csound, void *userData,
                             (int) midiData[cnt + 1],
                             (int) midiData[cnt + 2]);
     switch ((int) midiData[cnt] & 0xF0) {
-      case 0x80:    /* note off */
-      case 0x90:    /* note on */
-      case 0xA0:    /* polyphonic pressure */
-      case 0xB0:    /* control change */
-      case 0xE0:    /* pitch bend */
-        cnt += 3;
-        break;
-      case 0xC0:    /* program change */
-      case 0xD0:    /* channel pressure */
-        cnt += 2;
-        break;
-      case 0xF0:
-        switch ((int) midiData[cnt]) {
-          case 0xF8:    /* timing clock */
-          case 0xFA:    /* start */
-          case 0xFB:    /* continue */
-          case 0xFC:    /* stop */
-          case 0xFF:    /* reset */
-            cnt++;
-        }
-        break;      /* ignore any other message */
+    case 0x80:    /* note off */
+    case 0x90:    /* note on */
+    case 0xA0:    /* polyphonic pressure */
+    case 0xB0:    /* control change */
+    case 0xE0:    /* pitch bend */
+      cnt += 3;
+      break;
+    case 0xC0:    /* program change */
+    case 0xD0:    /* channel pressure */
+      cnt += 2;
+      break;
+    case 0xF0:
+      switch ((int) midiData[cnt]) {
+      case 0xF8:    /* timing clock */
+      case 0xFA:    /* start */
+      case 0xFB:    /* continue */
+      case 0xFC:    /* stop */
+      case 0xFF:    /* reset */
+	cnt++;
+      }
+      break;      /* ignore any other message */
     }
   }
   return cnt;
