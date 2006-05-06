@@ -146,8 +146,6 @@ public:
   virtual void setIsMultiThreaded(bool isMultiThreaded);
   virtual bool getIsAutoPlayback() const;
   virtual void setIsAutoPlayback(bool autoPlay);
-  virtual void setIsPerformWithoutExport(bool performWithoutExport);
-  virtual bool getIsPerformWithoutExport() const;
   static int midiDeviceOpen(CSOUND *csound, void **userData,
                             const char *devName);
 
