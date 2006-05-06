@@ -63,6 +63,8 @@ scansyn:
 sfont:
 	sfload sfpreset sfplay sfplaym sfplist sfilist sfpassign sfinstrm
 	sfinstr sfplay3 sfplay3m sfinstr3 sfinstr3m
+stackops:
+	pop push stack
 stk:
 	STKBandedWG STKBeeThree STKBlowBotl STKBlowHole STKBowed STKBrass
 	STKClarinet STKDrummer STKFlute STKFMVoices STKHevyMetl STKMandolin
