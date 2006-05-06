@@ -232,6 +232,8 @@ static const char *fileNameFilters[] = {
     "MIDI files (*.{mid,smf})",
     "Convolve files (*.{con,cv})",
     "PVOC files (*.{pv,pvx})",
+    (char*) 0,
+    (char*) 0,
     "Python files (*.py)"
 };
 
@@ -363,10 +365,12 @@ void CsoundGUIMain::updateGUIValues()
 
 void CsoundGUIMain::run()
 {
+    void    *pythonLibrary = (void*) 0;
+    int     result;
+
     readCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
     readCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
     readCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
-    void *pythonLibrary = 0;
 
     updateGUIValues();
 
@@ -376,10 +380,21 @@ void CsoundGUIMain::run()
     csoundSetMessageCallback(csound,
                              &CsoundGUIConsole::messageCallback_Thread);
 
-    int result = csoundOpenLibrary(&pythonLibrary, "python24");
-    if (result) {
-      csoundMessage(csound, "Python not found, disabling scripting. Check your PATH or Python installation.\n");
-    } else {
+#ifdef WIN32
+    result = csoundOpenLibrary(&pythonLibrary, "python24.dll");
+#elif defined(__MACH__)
+    result = csoundOpenLibrary(&pythonLibrary,
+                               "/System/Library/Frameworks/Python.Framework/"
+                               "Versions/Current/lib/libpython2.4.dylib");
+#else
+    result = csoundOpenLibrary(&pythonLibrary, "libpython2.4.so");
+#endif
+    if (result != CSOUND_SUCCESS) {
+      csoundMessageS(csound, CSOUNDMSG_WARNING,
+                             "Python not found, disabling scripting. "
+                             "Check your PATH or Python installation.\n");
+    }
+    else {
       enablePython(pythonLibrary, &csound);
     }
     updateGUIState();
