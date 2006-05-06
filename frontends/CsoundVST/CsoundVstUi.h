@@ -22,11 +22,11 @@ extern void onSettingsCsoundPerformanceModePython(Fl_Check_Button*, CsoundVstFlt
 extern Fl_Check_Button *settingsCsoundPerformanceModePython;
 extern void onAutoPlayCheckButton(Fl_Check_Button*, CsoundVstFltk*);
 extern Fl_Check_Button *autoPlayCheckButton;
-extern void onPerformWithoutExportCheckButton(Fl_Check_Button*, CsoundVstFltk*);
-extern Fl_Check_Button *performWithoutExportCheckButton;
 #include <FL/Fl_Input.H>
 extern Fl_Input *settingsEditSoundfileInput;
 extern Fl_Input *commandInput;
+#include <FL/Fl_Browser.H>
+extern Fl_Browser *runtimeMessagesBrowser;
 extern Fl_Group *orchestraGroup;
 #include <FL/Fl_Text_Editor.H>
 extern Fl_Text_Editor *orchestraTextEdit;
@@ -34,9 +34,6 @@ extern Fl_Group *scoreGroup;
 extern Fl_Text_Editor *scoreTextEdit;
 extern Fl_Group *scriptGroup;
 extern Fl_Text_Editor *scriptTextEdit;
-extern Fl_Group *runtimeMessagesGroup;
-#include <FL/Fl_Browser.H>
-extern Fl_Browser *runtimeMessagesBrowser;
 extern Fl_Group *aboutGroup;
 #include <FL/Fl_Text_Display.H>
 extern Fl_Text_Display *aboutTextDisplay;

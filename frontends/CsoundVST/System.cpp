@@ -93,7 +93,7 @@ namespace csound
       }
   }
 
-  int System::messageLevel = ERROR_LEVEL | WARNING_LEVEL | INFORMATION_LEVEL | DEBUGGING_LEVEL;
+  int System::messageLevel = ERROR_LEVEL | WARNING_LEVEL | INFORMATION_LEVEL;
 
   void * System::userdata_ = 0;
 

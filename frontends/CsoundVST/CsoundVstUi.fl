@@ -18,73 +18,69 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
         xywh {4 65 601 360} box THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 resizable
       } {
         Fl_Group settingsVstPluginModeGroup {
-          label {VST plugin mode} open
-          tooltip {Select VST plugin mode} xywh {15 78 215 59} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 21
+          label {VST } open
+          tooltip {Select VST plugin mode} xywh {14 78 201 29} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 20
         } {
           Fl_Check_Button settingsVstPluginModeEffect {
             label Effect
             user_data csoundVstFltk user_data_type {CsoundVstFltk*}
             callback onSettingsVstPluginMode
-            tooltip {Plugin is a VST effect} xywh {20 95 85 21} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
+            tooltip {Plugin is a VST effect} xywh {152 85 60 15} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
           }
           Fl_Check_Button settingsVstPluginModeInstrument {
             label Instrument
             user_data csoundVstFltk user_data_type {CsoundVstFltk*}
             callback onSettingsVstInstrumentMode
-            tooltip {Plugin is a VST instrument} xywh {20 113 85 20} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
+            tooltip {Plugin is a VST instrument} xywh {66 85 83 15} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
           }
         }
         Fl_Group settingsCsoundPerformanceMode {
-          label {Csound performance mode} open
-          tooltip {Select Csound performance and control mode} xywh {240 78 215 59} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 21
+          label Mode open
+          tooltip {Select Csound performance and control mode} xywh {14 113 201 29} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 20
         } {
           Fl_Check_Button settingsCsoundPerformanceModeClassic {
             label Classic
             user_data csoundVstFltk user_data_type {CsoundVstFltk*}
             callback onSettingsCsoundPerformanceModeClassic
-            tooltip {Csound runs csd file or orc and sco files} xywh {245 95 85 21} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
+            tooltip {Csound runs csd file or orc and sco files} xywh {66 120 69 15} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
           }
           Fl_Check_Button settingsCsoundPerformanceModePython {
             label Python
             user_data csoundVstFltk user_data_type {CsoundVstFltk*}
             callback onSettingsCsoundPerformanceModePython
-            tooltip {Csound is run by Python script} xywh {245 115 85 15} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
+            tooltip {Csound is run by Python script} xywh {152 120 60 15} type Radio down_box THIN_DOWN_BOX selection_color 42 labelsize 12 when 1
           }
         }
         Fl_Group {} {open
           xywh {455 77 140 124} align 0
         } {
           Fl_Group {} {
-            image {C:/utah/home/mkg/projects/csoundd/frontends/CsoundVST/angel.PNG} xywh {465 77 130 122} box THIN_DOWN_BOX labelsize 12 align 80
+            image {C:/utah/home/mkg/projects/csoundd/frontends/CsoundVST/angel.PNG} xywh {465 77 130 123} box THIN_DOWN_BOX labelsize 12 align 80
           } {}
           Fl_Group {} {open
             xywh {455 79 10 117} align 16 resizable
           } {}
         }
-        Fl_Group {} {
-          label Miscellaneous open
-          xywh {15 145 440 54} box THIN_DOWN_BOX labelsize 12 align 21
+        Fl_Group {} {open
+          xywh {223 78 232 63} box THIN_DOWN_BOX labelsize 12 align 21
         } {
           Fl_Check_Button autoPlayCheckButton {
             label {Auto edit after performance}
             user_data csoundVstFltk user_data_type {CsoundVstFltk*}
             callback onAutoPlayCheckButton
-            tooltip {Enables the automatic opening of the output soundfile after performance} xywh {19 162 205 18} down_box THIN_DOWN_BOX selection_color 8 labelsize 12 when 1
-          }
-          Fl_Check_Button performWithoutExportCheckButton {
-            label {Perform without export}
-            user_data csoundVstFltk user_data_type {CsoundVstFltk*}
-            callback onPerformWithoutExportCheckButton selected
-            tooltip {Perform the classic Csound command line without exporting .orc or .sco (for performing existing files).} xywh {19 180 206 15} down_box THIN_DOWN_BOX selection_color 24 labelsize 12 when 1
+            tooltip {Enables the automatic opening of the output soundfile after performance} xywh {227 121 177 20} down_box THIN_DOWN_BOX selection_color 8 labelsize 12 when 1
           }
           Fl_Input settingsEditSoundfileInput {
             label {Edit soundfiles with}
-            tooltip {Program to be used for editing soundfiles} xywh {245 168 200 20} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 5 textfont 4 textsize 11
+            tooltip {Program to be used for editing soundfiles} xywh {228 99 222 21} box THIN_DOWN_BOX selection_color 46 labelsize 12 align 5 textfont 4 textsize 11
           }
         }
         Fl_Input commandInput {
           label {Classic Csound command line}
-          tooltip {Csound command line} xywh {15 221 580 194} type Multiline box THIN_DOWN_BOX selection_color 46 labelsize 12 align 5 textfont 4 textsize 11 resizable
+          tooltip {Csound command line} xywh {14 162 441 37} type Multiline box THIN_DOWN_BOX selection_color 46 labelsize 12 align 5 textfont 4 textsize 11 resizable
+        }
+        Fl_Browser runtimeMessagesBrowser {selected
+          xywh {14 210 580 205} box THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11
         }
       }
       Fl_Group orchestraGroup {
@@ -109,14 +105,6 @@ Function {make_window(CsoundVstFltk *csoundVstFltk)} {open
       } {
         Fl_Text_Editor scriptTextEdit {
           xywh {9 70 591 350} box THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11 resizable
-        }
-      }
-      Fl_Group runtimeMessagesGroup {
-        label Messages open
-        xywh {4 65 601 360} box THIN_UP_BOX color 50 selection_color 47 labelfont 1 labelsize 12 hide
-      } {
-        Fl_Browser runtimeMessagesBrowser {
-          xywh {9 70 591 350} box THIN_DOWN_BOX labelsize 12 textfont 4 textsize 11
         }
       }
       Fl_Group aboutGroup {

@@ -2730,11 +2730,11 @@ static Fl_RGB_Image image_angel(idata_angel, 145, 136, 3, 0);
 
 Fl_Check_Button *autoPlayCheckButton=(Fl_Check_Button *)0;
 
-Fl_Check_Button *performWithoutExportCheckButton=(Fl_Check_Button *)0;
-
 Fl_Input *settingsEditSoundfileInput=(Fl_Input *)0;
 
 Fl_Input *commandInput=(Fl_Input *)0;
+
+Fl_Browser *runtimeMessagesBrowser=(Fl_Browser *)0;
 
 Fl_Group *orchestraGroup=(Fl_Group *)0;
 
@@ -2747,10 +2747,6 @@ Fl_Text_Editor *scoreTextEdit=(Fl_Text_Editor *)0;
 Fl_Group *scriptGroup=(Fl_Group *)0;
 
 Fl_Text_Editor *scriptTextEdit=(Fl_Text_Editor *)0;
-
-Fl_Group *runtimeMessagesGroup=(Fl_Group *)0;
-
-Fl_Browser *runtimeMessagesBrowser=(Fl_Browser *)0;
 
 Fl_Group *aboutGroup=(Fl_Group *)0;
 
@@ -2795,13 +2791,13 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
         o->selection_color(FL_DARK1);
         o->labelfont(1);
         o->labelsize(12);
-        { Fl_Group* o = settingsVstPluginModeGroup = new Fl_Group(15, 78, 215, 59, "VST plugin mode");
+        { Fl_Group* o = settingsVstPluginModeGroup = new Fl_Group(14, 78, 201, 29, "VST ");
           o->tooltip("Select VST plugin mode");
           o->box(FL_THIN_DOWN_BOX);
           o->selection_color((Fl_Color)46);
           o->labelsize(12);
-          o->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
-          { Fl_Check_Button* o = settingsVstPluginModeEffect = new Fl_Check_Button(20, 95, 85, 21, "Effect");
+          o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+          { Fl_Check_Button* o = settingsVstPluginModeEffect = new Fl_Check_Button(152, 85, 60, 15, "Effect");
             o->tooltip("Plugin is a VST effect");
             o->type(102);
             o->down_box(FL_THIN_DOWN_BOX);
@@ -2810,7 +2806,7 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
             o->callback((Fl_Callback*)onSettingsVstPluginMode, (void*)(csoundVstFltk));
             o->when(FL_WHEN_CHANGED);
           }
-          { Fl_Check_Button* o = settingsVstPluginModeInstrument = new Fl_Check_Button(20, 113, 85, 20, "Instrument");
+          { Fl_Check_Button* o = settingsVstPluginModeInstrument = new Fl_Check_Button(66, 85, 83, 15, "Instrument");
             o->tooltip("Plugin is a VST instrument");
             o->type(102);
             o->down_box(FL_THIN_DOWN_BOX);
@@ -2821,13 +2817,13 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
           }
           o->end();
         }
-        { Fl_Group* o = settingsCsoundPerformanceMode = new Fl_Group(240, 78, 215, 59, "Csound performance mode");
+        { Fl_Group* o = settingsCsoundPerformanceMode = new Fl_Group(14, 113, 201, 29, "Mode");
           o->tooltip("Select Csound performance and control mode");
           o->box(FL_THIN_DOWN_BOX);
           o->selection_color((Fl_Color)46);
           o->labelsize(12);
-          o->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
-          { Fl_Check_Button* o = settingsCsoundPerformanceModeClassic = new Fl_Check_Button(245, 95, 85, 21, "Classic");
+          o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
+          { Fl_Check_Button* o = settingsCsoundPerformanceModeClassic = new Fl_Check_Button(66, 120, 69, 15, "Classic");
             o->tooltip("Csound runs csd file or orc and sco files");
             o->type(102);
             o->down_box(FL_THIN_DOWN_BOX);
@@ -2836,7 +2832,7 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
             o->callback((Fl_Callback*)onSettingsCsoundPerformanceModeClassic, (void*)(csoundVstFltk));
             o->when(FL_WHEN_CHANGED);
           }
-          { Fl_Check_Button* o = settingsCsoundPerformanceModePython = new Fl_Check_Button(245, 115, 85, 15, "Python");
+          { Fl_Check_Button* o = settingsCsoundPerformanceModePython = new Fl_Check_Button(152, 120, 60, 15, "Python");
             o->tooltip("Csound is run by Python script");
             o->type(102);
             o->down_box(FL_THIN_DOWN_BOX);
@@ -2849,7 +2845,7 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
         }
         { Fl_Group* o = new Fl_Group(455, 77, 140, 124);
           o->align(FL_ALIGN_CENTER);
-          { Fl_Group* o = new Fl_Group(465, 77, 130, 122);
+          { Fl_Group* o = new Fl_Group(465, 77, 130, 123);
             o->box(FL_THIN_DOWN_BOX);
             o->image(image_angel);
             o->labelsize(12);
@@ -2863,11 +2859,11 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
           }
           o->end();
         }
-        { Fl_Group* o = new Fl_Group(15, 145, 440, 54, "Miscellaneous");
+        { Fl_Group* o = new Fl_Group(223, 78, 232, 63);
           o->box(FL_THIN_DOWN_BOX);
           o->labelsize(12);
           o->align(FL_ALIGN_TOP_LEFT|FL_ALIGN_INSIDE);
-          { Fl_Check_Button* o = autoPlayCheckButton = new Fl_Check_Button(19, 162, 205, 18, "Auto edit after performance");
+          { Fl_Check_Button* o = autoPlayCheckButton = new Fl_Check_Button(227, 121, 177, 20, "Auto edit after performance");
             o->tooltip("Enables the automatic opening of the output soundfile after performance");
             o->down_box(FL_THIN_DOWN_BOX);
             o->selection_color(FL_INACTIVE_COLOR);
@@ -2875,16 +2871,7 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
             o->callback((Fl_Callback*)onAutoPlayCheckButton, (void*)(csoundVstFltk));
             o->when(FL_WHEN_CHANGED);
           }
-          { Fl_Check_Button* o = performWithoutExportCheckButton = new Fl_Check_Button(19, 180, 206, 15, "Perform without export");
-            o->tooltip("Perform the classic Csound command line without exporting .orc or .sco (for p\
-erforming existing files).");
-            o->down_box(FL_THIN_DOWN_BOX);
-            o->selection_color((Fl_Color)24);
-            o->labelsize(12);
-            o->callback((Fl_Callback*)onPerformWithoutExportCheckButton, (void*)(csoundVstFltk));
-            o->when(FL_WHEN_CHANGED);
-          }
-          { Fl_Input* o = settingsEditSoundfileInput = new Fl_Input(245, 168, 200, 20, "Edit soundfiles with");
+          { Fl_Input* o = settingsEditSoundfileInput = new Fl_Input(228, 99, 222, 21, "Edit soundfiles with");
             o->tooltip("Program to be used for editing soundfiles");
             o->box(FL_THIN_DOWN_BOX);
             o->selection_color((Fl_Color)46);
@@ -2895,7 +2882,7 @@ erforming existing files).");
           }
           o->end();
         }
-        { Fl_Input* o = commandInput = new Fl_Input(15, 221, 580, 194, "Classic Csound command line");
+        { Fl_Input* o = commandInput = new Fl_Input(14, 162, 441, 37, "Classic Csound command line");
           o->tooltip("Csound command line");
           o->type(4);
           o->box(FL_THIN_DOWN_BOX);
@@ -2904,6 +2891,12 @@ erforming existing files).");
           o->textfont(4);
           o->textsize(11);
           o->align(FL_ALIGN_TOP_LEFT);
+        }
+        { Fl_Browser* o = runtimeMessagesBrowser = new Fl_Browser(14, 210, 580, 205);
+          o->box(FL_THIN_DOWN_BOX);
+          o->labelsize(12);
+          o->textfont(4);
+          o->textsize(11);
           Fl_Group::current()->resizable(o);
         }
         o->end();
@@ -2952,21 +2945,6 @@ erforming existing files).");
           o->textfont(4);
           o->textsize(11);
           Fl_Group::current()->resizable(o);
-        }
-        o->end();
-      }
-      { Fl_Group* o = runtimeMessagesGroup = new Fl_Group(4, 65, 601, 360, "Messages");
-        o->box(FL_THIN_UP_BOX);
-        o->color(FL_LIGHT1);
-        o->selection_color(FL_DARK1);
-        o->labelfont(1);
-        o->labelsize(12);
-        o->hide();
-        { Fl_Browser* o = runtimeMessagesBrowser = new Fl_Browser(9, 70, 591, 350);
-          o->box(FL_THIN_DOWN_BOX);
-          o->labelsize(12);
-          o->textfont(4);
-          o->textsize(11);
         }
         o->end();
       }
