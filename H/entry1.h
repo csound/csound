@@ -58,9 +58,6 @@
 #include "midiinterop.h"
 #include "linevent.h"
 #include "str_ops.h"
-#ifdef BETA
-#include "olpc.h"
-#endif
 
 #define S(x)    sizeof(x)
 
@@ -379,4 +376,7 @@ int     chani_opcode_perf_k(CSOUND *, void *);
 int     chani_opcode_perf_a(CSOUND *, void *);
 int     sensekey_init(CSOUND *, void *);
 int     sensekey_perf(CSOUND *, void *);
+#ifdef BETA
+int     delete_instr(CSOUND *, void *);
+#endif
 
