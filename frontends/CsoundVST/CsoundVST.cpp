@@ -794,7 +794,7 @@ long CsoundVST::setChunk(void* data, long byteSize, bool isPreset)
 
 std::string CsoundVST::getText()
 {
-  csound::System::message("BEGAN CsoundVST::getText...");
+  csound::System::debug("BEGAN CsoundVST::getText...\n");
   std::string buffer;
   if(getIsPython())
     {
@@ -804,7 +804,7 @@ std::string CsoundVST::getText()
     {
       buffer = getCppSound()->getCSD();
     }
-  csound::System::message("ENDED CsoundVST::getText.");
+  csound::System::debug("ENDED CsoundVST::getText.\n");
   return buffer;
 }
 
@@ -864,16 +864,6 @@ bool CsoundVST::getIsAutoPlayback() const
 void CsoundVST::setIsAutoPlayback(bool isAutoPlayback)
 {
   this->isAutoPlayback = isAutoPlayback;
-}
-
-bool CsoundVST::getIsPerformWithoutExport() const
-{
-  return isPerformWithoutExport;
-}
-
-void CsoundVST::setIsPerformWithoutExport(bool isPerformWithoutExport)
-{
-  this->isPerformWithoutExport = isPerformWithoutExport;
 }
 
 extern "C"
