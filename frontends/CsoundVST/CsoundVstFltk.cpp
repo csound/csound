@@ -220,12 +220,12 @@ void CsoundVstFltk::updateModel()
   if(csoundVstUi)
     {
       fltklock();
-      csound::System::message("BEGAN CsoundVstFltk::updateModel...\n");
+      csound::System::debug("BEGAN CsoundVstFltk::updateModel...\n");
       csoundVST->getCppSound()->setCommand(commandInput->value());
       csoundVST->getCppSound()->setOrchestra(orchestraTextBuffer->text());
       csoundVST->getCppSound()->setScore(scoreTextBuffer->text());
       csoundVST->setScript(scriptTextBuffer->text());
-      csound::System::message("ENDED CsoundVstFltk::updateModel.\n");
+      csound::System::debug("ENDED CsoundVstFltk::updateModel.\n");
       fltkunlock();
     }
 }
@@ -244,7 +244,6 @@ long CsoundVstFltk::open(void *parentWindow)
   this->csoundVstUi = make_window(this);
   this->mainTabs = ::mainTabs;
   this->commandInput = ::commandInput;
-  this->runtimeMessagesGroup = ::runtimeMessagesGroup;
   this->runtimeMessagesBrowser = ::runtimeMessagesBrowser;
   this->orchestraTextBuffer = new Fl_Text_Buffer();
   this->scoreTextBuffer = new Fl_Text_Buffer();
@@ -267,7 +266,6 @@ long CsoundVstFltk::open(void *parentWindow)
   this->scoreGroup = ::scoreGroup;
   this->scriptGroup = ::scriptGroup;
   this->autoPlayCheckButton = ::autoPlayCheckButton;
-  this->performWithoutExportCheckButton = ::performWithoutExportCheckButton;
   //    Read user preferences.
   char buffer[0x500];
   int number = 0;
@@ -347,14 +345,13 @@ void CsoundVstFltk::update()
     {
       updateCaption();
       fltklock();
-      csound::System::message("BEGAN CsoundVstFltk::update...\n");
+      csound::System::debug("BEGAN CsoundVstFltk::update...\n");
       std::string buffer;
       this->settingsVstPluginModeEffect->value(!csoundVST->getIsSynth());
       this->settingsVstPluginModeInstrument->value(csoundVST->getIsSynth());
       this->settingsCsoundPerformanceModeClassic->value(!csoundVST->getIsPython());
       this->settingsCsoundPerformanceModePython->value(csoundVST->getIsPython());
       this->autoPlayCheckButton->value(csoundVST->getIsAutoPlayback());
-      this->performWithoutExportCheckButton->value(csoundVST->getIsPerformWithoutExport());
       if(csoundVST->getIsPython())
         {
           onSettingsCsoundPerformanceModePython(settingsCsoundPerformanceModePython, this);
@@ -371,7 +368,7 @@ void CsoundVstFltk::update()
       this->scoreTextBuffer->text(removeCarriageReturns(buffer));
       buffer = csoundVST->getScript();
       this->scriptTextBuffer->text(removeCarriageReturns(buffer));
-      csound::System::message("ENDED CsoundVstFltk::update.\n");
+      csound::System::debug("ENDED CsoundVstFltk::update.\n");
       fltkunlock();
     }
 }
@@ -433,7 +430,7 @@ void CsoundVstFltk::messageCallback(CSOUND *csound, int attribute, const char *f
 
 void CsoundVstFltk::onNew(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onNew...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onNew...\n");
   if(csoundVST->getIsPython())
     {
       csoundVST->clear();
@@ -443,12 +440,12 @@ void CsoundVstFltk::onNew(Fl_Button*, CsoundVstFltk* csoundVstFltk)
       csoundVST->getCppSound()->removeAll();
     }
   update();
-  csound::System::message("ENDED CsoundVstFltk::onNew.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onNew.\n");
 }
 
 void CsoundVstFltk::onNewVersion(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onNewVersion...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onNewVersion...\n");
   std::string filename_;
   if(csoundVST->getIsPython())
     {
@@ -470,13 +467,13 @@ void CsoundVstFltk::onNewVersion(Fl_Button*, CsoundVstFltk* csoundVstFltk)
       csound::System::message("Saved new version: '%s'\n", csoundVST->getCppSound()->getFilename().c_str());
     }
   updateCaption();
-  csound::System::message("ENDED CsoundVstFltk::onNewVersion.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onNewVersion.\n");
 }
 
 void CsoundVstFltk::onImport(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 {
   runtimeMessagesBrowser->clear();
-  csound::System::message("BEGAN CsoundVstFltk::onImport...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onImport...\n");
   char *filename_ = 0;
   if(csoundVST->getIsPython())
     {
@@ -514,13 +511,13 @@ void CsoundVstFltk::onImport(Fl_Button*, CsoundVstFltk* csoundVstFltk)
       csoundVST->bank[csoundVST->getProgram()].text = csoundVST->getText();
       update();
     }
-  csound::System::message("ENDED CsoundVstFltk::onImport.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onImport.\n");
 }
 
 void CsoundVstFltk::onOpen(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 {
   runtimeMessagesBrowser->clear();
-  csound::System::message("BEGAN CsoundVstFltk::onOpen...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onOpen...\n");
   char *filename_ = 0;
   if(csoundVST->getIsPython())
     {
@@ -544,12 +541,12 @@ void CsoundVstFltk::onOpen(Fl_Button*, CsoundVstFltk* csoundVstFltk)
     {
       csoundVST->openFile(filename_);
     }
-  csound::System::message("ENDED CsoundVstFltk::onOpen.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onOpen.\n");
 }
 
 void CsoundVstFltk::onSave(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onSave...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onSave...\n");
   updateModel();
   if(csoundVST->getIsPython())
     {
@@ -561,12 +558,12 @@ void CsoundVstFltk::onSave(Fl_Button*, CsoundVstFltk* csoundVstFltk)
       csoundVST->getCppSound()->save(csoundVST->getCppSound()->getFilename());
       csound::System::message("Saved file as: '%s'.\n", csoundVST->getCppSound()->getFilename().c_str());
     }
-  csound::System::message("ENDED CsoundVstFltk::onSave.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onSave.\n");
 }
 
 void CsoundVstFltk::onSaveAs(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onSaveAs...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onSaveAs...\n");
   updateModel();
   char *filename_ = 0;
   if(csoundVST->getIsPython())
@@ -591,7 +588,7 @@ void CsoundVstFltk::onSaveAs(Fl_Button*, CsoundVstFltk* csoundVstFltk)
     {
       WaitCursor wait;
       runtimeMessagesBrowser->clear();
-      csound::System::message("BEGAN CsoundVstFltk::onSaveAs...\n");
+      csound::System::debug("BEGAN CsoundVstFltk::onSaveAs...\n");
       if(csoundVST->getIsPython())
         {
           csoundVST->save(filename_);
@@ -607,33 +604,32 @@ void CsoundVstFltk::onSaveAs(Fl_Button*, CsoundVstFltk* csoundVstFltk)
         }
       update();
     }
-  csound::System::message("ENDED CsoundVstFltk::onSaveAs.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onSaveAs.\n");
 }
 
 void CsoundVstFltk::onPerform(Fl_Button* fl_button, CsoundVstFltk* csoundVstFltk)
 {
   runtimeMessagesBrowser->clear();
-  csound::System::message("BEGAN CsoundVstFltk::onPerform...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onPerform...\n");
   updateModel();
-  mainTabs->value(runtimeMessagesGroup);
   csoundVST->perform();
-  csound::System::message("ENDED CsoundVstFltk::onPerform.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onPerform.\n");
 }
 
 void CsoundVstFltk::onStop(Fl_Button*, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onStop...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onStop...\n");
   if(csoundVST->getIsPython())
     {
       csoundVST->stop();
     }
   csoundVST->getCppSound()->stop();
-  csound::System::message("ENDED CsoundVstFltk::onStop.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onStop.\n");
 }
 
 void CsoundVstFltk::onEdit(Fl_Button*, CsoundVstFltk*)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onEdit...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onEdit...\n");
   csoundVST->getCppSound()->stop();
   updateModel();
   char buffer[0x500];
@@ -645,44 +641,44 @@ void CsoundVstFltk::onEdit(Fl_Button*, CsoundVstFltk*)
   command.append(soundfileName);
   csound::System::message("Executing command: '%s'\n", command.c_str());
   csound::System::execute(command.c_str());
-  csound::System::message("ENDED CsoundVstFltk::onEdit.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onEdit.\n");
 }
 
 void CsoundVstFltk::onSettingsVstPluginMode(Fl_Check_Button* fl_button, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onSettingsVstPluginMode...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onSettingsVstPluginMode...\n");
   csoundVST->setIsSynth(false);
-  csound::System::message("ENDED CsoundVstFltk::onSettingsVstPluginMode.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onSettingsVstPluginMode.\n");
 }
 
 void CsoundVstFltk::onSettingsVstInstrumentMode(Fl_Check_Button* fl_button, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onSettingsVstInstrumentMode...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onSettingsVstInstrumentMode...\n");
   csoundVST->setIsSynth(true);
-  csound::System::message("ENDED CsoundVstFltk::onSettingsVstInstrumentMode.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onSettingsVstInstrumentMode.\n");
 }
 
 void CsoundVstFltk::onSettingsCsoundPerformanceModeClassic(Fl_Check_Button* fl_button, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onSettingsCsoundPerformanceModeClassic...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onSettingsCsoundPerformanceModeClassic...\n");
   mainTabs->hide();
   csoundVST->clear();
   csoundVST->setIsPython(false);
   mainTabs->remove(orchestraGroup);
   mainTabs->remove(scoreGroup);
   mainTabs->remove(scriptGroup);
-  mainTabs->insert(*orchestraGroup, mainTabs->children() - 2);
-  mainTabs->insert(*scoreGroup, mainTabs->children() - 2);
+  mainTabs->insert(*orchestraGroup, mainTabs->children() - 1);
+  mainTabs->insert(*scoreGroup, mainTabs->children() - 1);
   mainTabs->show();
   orchestraGroup->size(settingsGroup->w(), settingsGroup->h());
   scoreGroup->size(settingsGroup->w(), settingsGroup->h());
-  this->commandInput->show();
-  csound::System::message("ENDED CsoundVstFltk::onSettingsCsoundPerformanceModeClassic.\n");
+  this->commandInput->readonly(false);
+  csound::System::debug("ENDED CsoundVstFltk::onSettingsCsoundPerformanceModeClassic.\n");
 }
 
 void CsoundVstFltk::onSettingsCsoundPerformanceModePython(Fl_Check_Button* fl_button, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onSettingsCsoundPerformanceModePython...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onSettingsCsoundPerformanceModePython...\n");
   mainTabs->hide();
   if(csoundVST->getCppSound())
     {
@@ -692,22 +688,23 @@ void CsoundVstFltk::onSettingsCsoundPerformanceModePython(Fl_Check_Button* fl_bu
   mainTabs->remove(orchestraGroup);
   mainTabs->remove(scoreGroup);
   mainTabs->remove(scriptGroup);
-  mainTabs->insert(*scriptGroup, mainTabs->children() - 2);
+  mainTabs->insert(*scriptGroup, mainTabs->children() - 1);
   mainTabs->show();
   scriptGroup->size(settingsGroup->w(), settingsGroup->h());
-  this->commandInput->hide();
-  csound::System::message("ENDED CsoundVstFltk::onSettingsCsoundPerformanceModePython.\n");
+  this->commandInput->value("");
+  this->commandInput->readonly(true);
+  csound::System::debug("ENDED CsoundVstFltk::onSettingsCsoundPerformanceModePython.\n");
 }
 
 void CsoundVstFltk::onSettingsApply(Fl_Button* fl_button, CsoundVstFltk* csoundVstFltk)
 {
-  csound::System::message("BEGAN CsoundVstFltk::onSettingsApply...\n");
+  csound::System::debug("BEGAN CsoundVstFltk::onSettingsApply...\n");
   preferences.set("SoundfileOpen", this->settingsEditSoundfileInput->value());
   preferences.set("IsSynth", csoundVST->getIsSynth());
   preferences.set("IsPython", csoundVST->getIsPython());
   preferences.set("IsAutoPlayback", csoundVST->getIsAutoPlayback());
   preferences.set("IsPerformWithoutExport", csoundVST->getIsPerformWithoutExport());
-  csound::System::message("ENDED CsoundVstFltk::onSettingsApply.\n");
+  csound::System::debug("ENDED CsoundVstFltk::onSettingsApply.\n");
 }
 
 void CsoundVstFltk::onAutoPlayCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk)
