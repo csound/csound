@@ -135,16 +135,16 @@ updateGUIState_scriptFile();}
         Fl_Button scriptfileNameButton {
           label {...}
           callback {{
-  CsoundGUIMain::browseFile(currentPerformanceSettings.scriptFileName, "Select Python script file", CSOUND5GUI_FILETYPE_AUDIO, true);
-  outfileNameInput->value(currentPerformanceSettings.scriptFileName.c_str());
+  CsoundGUIMain::browseFile(currentPerformanceSettings.scriptFileName, "Select Python script file", CSOUND5GUI_FILETYPE_PYTHON, false);
+  scriptFileNameInput->value(currentPerformanceSettings.scriptFileName.c_str());
   updateGUIState_scriptFile();
 }} selected
-          tooltip {Browse sound output file} xywh {20 126 25 25}
+          tooltip {Browse Python script file} xywh {20 126 25 25}
         }
         Fl_Button editScriptfileButton {
           label Edit
           callback {editScriptFile();}
-          tooltip {Open output sound file with external editor} xywh {290 126 50 25}
+          tooltip {Open Python script file with external editor} xywh {290 126 50 25}
         }
       }
       Fl_Group {} {open
