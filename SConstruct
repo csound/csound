@@ -1284,6 +1284,7 @@ else:
         frontends/fltk_gui/CsoundPerformanceSettings.cpp
         frontends/fltk_gui/CsoundUtility.cpp
         frontends/fltk_gui/main.cpp
+	frontends/fltk_gui/CsoundPython.cpp
     ''')
     csound5GUIFluidSources = Split('''
         CsoundAboutWindow_FLTK
