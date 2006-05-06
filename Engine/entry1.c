@@ -64,8 +64,9 @@
 
 /* outarg types include:
                 m       multiple out aargs
-                z               multiple out kargs
-                X       multiple args (any rate)        IV - Sep 1 2002
+                z       multiple out kargs
+                X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
+                N       multiple args (a, k, i, or S-rate)
    (these types must agree with rdorch.c)                               */
 
 /* If dsblksize is 0xffff then translate on output arg
@@ -793,8 +794,8 @@ OENTRY opcodlst_1[] = {
  {  "sensekey",    S(KSENSE),           3,      "k",            "",
     (SUBR) sensekey_init, (SUBR) sensekey_perf, (SUBR) NULL             },
 #ifdef BETA
- { "remove",       S(DELETEIN),         1,      "",             "i",
-     (SUBR) delete_instr, NULL, NULL},
+ {  "remove",      S(DELETEIN),         1,      "",             "i",
+    (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
 #endif
  /* terminate list */
  {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
