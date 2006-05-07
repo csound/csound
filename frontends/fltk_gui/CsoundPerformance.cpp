@@ -250,10 +250,10 @@ int CsoundPerformance_Thread::Compile(std::vector<std::string>& argList)
 {
     int     retval;
 
-    // disable FLTK graphs and widget opcodes
+    // disable FLTK graphs, but allow for (experimental) use of widget opcodes
     csoundSetIsGraphable(csound, 1);
     csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
-    *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 3;
+    *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 274;
     retval = CsoundPerformance::Compile(argList);
     if (retval == 0) {
       pt = new CsoundPerformanceThread(csound);
