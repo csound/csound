@@ -19,12 +19,11 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef CSOUNDVST_SOUNDFILE_H
-#define CSOUNDVST_SOUNDFILE_H
+#ifndef CSOUND_SOUNDFILE_H
+#define CSOUND_SOUNDFILE_H
 
-#include "Platform.hpp"
 #ifdef SWIG
-%module CsoundVST
+%module csnd
 %{
 #include <sndfile.h>
 #include <iostream>
@@ -80,7 +79,7 @@ namespace csound
    * See http://www.mega-nerd.com/libsndfile for more information
    * on the underlying libsndfile library.
    */
-  class SILENCE_PUBLIC Soundfile
+  class Soundfile
   {
     SNDFILE *sndfile;
     SF_INFO sf_info;
@@ -176,20 +175,6 @@ namespace csound
      * Make the soundfile be so many seconds of silence.
      */
     virtual void blank(double duration);
-    /**
-     * Mix a Gaussian chirp into the soundfile. If the soundfile is stereo, the grain will be panned.
-     * The algorithm uses an efficient difference equation.
-     */
-    virtual void jonesParksGrain(double centerTime, double duration, double beginningFrequency, 
-				 double centerFrequency, double centerAmplitude, double centerPhase, double pan);
-    /**
-     * Mix a cosine grain into the soundfile. If the soundfile is stereo, the grain will be panned.
-     * The algorithm uses an efficient difference equation. Cosine grains can be overlapped 
-     * at the half-amplitude point without introducing artifacts, if the correct phase difference
-     * is used.
-     */
-    virtual void cosineGrain(double centerTime, double duration, double sineFrequency, double gain, 
-			     double sinePhase, double pan);
   };
 }
 #endif
