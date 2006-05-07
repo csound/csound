@@ -35,7 +35,8 @@ FLUID_LIBS = D:/MinGW/lib/fluidsynth.dll -lwinmm -ldsound
 PLUGINS =	babo.dll barmodel.dll compress.dll fluidOpcodes.dll	\
 		ftest.dll grain4.dll hrtferX.dll minmax.dll mixer.dll	\
 		modal4.dll osc.dll phisem.dll physmod.dll pitch.dll	\
-		scansyn.dll sfont.dll vbap.dll stdopcod.dll stdutil.dll	\
+		scansyn.dll sfont.dll vbap.dll stackops.dll		\
+		stdopcod.dll stdutil.dll				\
 		widgets.dll rtpa.dll rtwinmm.dll pmidi.dll
 
 UTILS =		cvanal.exe dnoise.exe hetro.exe lpanal.exe mixer.exe	\
