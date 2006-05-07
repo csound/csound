@@ -398,9 +398,6 @@ void CsoundGUIMain::run()
 {
     void    *pythonLibrary = (void*) 0;
     int     result = CSOUND_ERROR;
-#ifdef WIN32
-    UINT    savedErrorMode;
-#endif
 
     readCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
     readCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
@@ -416,14 +413,13 @@ void CsoundGUIMain::run()
 
 #ifdef WIN32
     // avoid pop-up window about missing DLL file
-    savedErrorMode = GetErrorMode();
-    SetErrorMode(savedErrorMode | (UINT) SEM_NOOPENFILEERRORBOX);
+    SetErrorMode((UINT) SEM_NOOPENFILEERRORBOX);
 #endif
     for (const char **sp = &(pythonLibraryPathList[0]); *sp != (char*) 0; sp++)
       if ((result = csoundOpenLibrary(&pythonLibrary, *sp)) == CSOUND_SUCCESS)
         break;
 #ifdef WIN32
-    SetErrorMode(savedErrorMode);
+    SetErrorMode((UINT) 0);
 #endif
     if (result != CSOUND_SUCCESS) {
       csoundMessageS(csound, CSOUNDMSG_WARNING,
