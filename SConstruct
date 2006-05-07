@@ -857,7 +857,7 @@ else:
     print 'CONFIGURATION DECISION: Building Csound interfaces library.'
     csoundInterfacesEnvironment.Append(CPPPATH = ['interfaces'])
     csoundInterfacesSources = []
-    for i in Split('CppSound CsoundFile csPerfThread cs_glue filebuilding'):
+    for i in Split('CppSound CsoundFile SoundFile csPerfThread cs_glue filebuilding'):
         csoundInterfacesSources.append(
             csoundInterfacesEnvironment.SharedObject('interfaces/%s.cpp' % i))
     if commonEnvironment['dynamicCsoundLibrary'] == '1' or getPlatform() == 'mingw':

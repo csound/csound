@@ -20,12 +20,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 #include "Soundfile.hpp"
-#include "Conversions.hpp"
+#include <csound.h>
 #include <complex>
-#include <boost/numeric/ublas/matrix.hpp>
 
 namespace csound
 {
+#ifndef PI
+#define PI      (3.14159265358979323846)
+#endif
+#ifndef TWOPI
+#define TWOPI   (6.28318530717958647692)
+#endif
+  
   Soundfile::Soundfile()
   {
     initialize();
@@ -167,105 +173,4 @@ namespace csound
     seekSeconds(0.0);
   }
 
-  void Soundfile::jonesParksGrain(double centerTime_, 
-				  double duration, 
-				  double beginningFrequency, 
-				  double centerFrequency, 
-				  double centerAmplitude, 
-				  double centerPhase, 
-				  double pan)
-  {
-    double leftGain = Conversions::leftPan(pan);
-    double rightGain = Conversions::rightPan(pan);
-    double centerTime = - (duration / 2.0);
-    int samplingRate = getFramesPerSecond();
-    double samplingInterval = 1.0 / double(samplingRate);
-    size_t frameCount = size_t(2.0 * duration / samplingInterval);
-    double gaussianWidth = std::exp(1.0) / std::pow(duration / 4.0, 2.0);
-    double endingFrequency = centerFrequency + (centerFrequency - beginningFrequency);
-    double chirpRate = (endingFrequency - beginningFrequency) / duration;
-    double omega = Conversions::TWO_PI_ * centerFrequency;
-    std::complex<double> c0(log(centerAmplitude) - (gaussianWidth * std::pow(centerTime, 2.0)), 
-			    (centerPhase - (chirpRate / 2.0) * centerTime) - (omega * centerTime)); 
-    std::complex<double> c1(-2.0 * gaussianWidth * samplingInterval * centerTime, 
-			    - (samplingInterval * (chirpRate * centerTime + omega)));
-    std::complex<double> c2 = (-std::complex<double>(gaussianWidth, chirpRate / 2.0)) * std::pow(samplingInterval, 2.0);
-    std::complex<double> exp_2_c2 = std::exp(2.0 * c2);
-    std::complex<double> h0 = std::exp(c1 + c2);
-    std::complex<double> h1(0.0, 0.0);
-    std::complex<double> f0 = std::exp(c0);
-    std::complex<double> f1(0.0, 0.0);
-    size_t channelCount = getChannelsPerFrame();
-    boost::numeric::ublas::matrix<double> grainOutput(frameCount, channelCount);
-    boost::numeric::ublas::matrix<double> grainBuffer(frameCount, channelCount);
-    for(size_t frameI = 0; frameI < frameCount; frameI++)
-      {
-	double sample = f0.real();
-	//std::cout << sample << std::endl;
-	if (channelCount == 2) {
-	  grainOutput(frameI, 0) = leftGain * sample;
-	  grainOutput(frameI, 1) = rightGain * sample;
-	} else if (channelCount == 1) {
-	  grainOutput(frameI, 0) = sample;
-	} else {
-	  for(size_t channelI = 0; channelI < channelCount; channelI++) {
-	    grainOutput(frameI, channelI) = sample;
-	  }
-	}	
-	h1 = h0 * exp_2_c2;
-	h0 = h1;
-	f1 = h1 * f0;
-	f0 = f1;
-      }
-    seekSeconds(centerTime_ - (duration / 2.0));
-    int sampleCount = frameCount * channelCount;
-    mixFrames(&grainOutput(0, 0), sampleCount, &grainBuffer(0, 0));
-  }
-
-  void Soundfile::cosineGrain(double centerTime, double duration, double sineFrequency, double gain, double sinePhase, double pan)
-  {
-    int framesPerSecond = getFramesPerSecond();
-    double leftGain = Conversions::leftPan(pan);
-    double rightGain = Conversions::rightPan(pan);
-    double sineAngularFrequency = Conversions::get2PI() * sineFrequency / double(framesPerSecond);
-    double sineCoefficient = 2.0 * std::cos (sineAngularFrequency);
-    double sineSignal2 = std::sin (sinePhase + sineAngularFrequency);
-    double sineSignal1 = std::sin (sinePhase + 2.0 * sineAngularFrequency);
-    double cosineFrequency = 1.0 / duration;
-    size_t frameCount = (size_t) Conversions::round (duration * getFramesPerSecond());
-    double cosineAngularFrequency =  Conversions::get2PI() * cosineFrequency / double(framesPerSecond);
-    double cosineCoefficient = 2.0 * std::cos (cosineAngularFrequency);
-    double cosineSignal2 = std::cos (cosineAngularFrequency);
-    double cosineSignal1 = std::cos (2.0 * cosineAngularFrequency);			
-    double signal = 0.0;
-    double sineSignal = 0.0;
-    double cosineSignal = 0.0;
-    size_t channelCount = getChannelsPerFrame();
-    boost::numeric::ublas::matrix<double> grainOutput(frameCount, channelCount);
-    boost::numeric::ublas::matrix<double> grainBuffer(frameCount, channelCount);
-    for(size_t frameI = 0; frameI < frameCount; frameI++)
-      {
-	if (channelCount == 2) {
-	  grainOutput(frameI, 0) = leftGain * signal;
-	  grainOutput(frameI, 1) = rightGain * signal;
-	} else if (channelCount == 1) {
-	  grainOutput(frameI, 0) = signal;
-	} else {
-	  for(size_t channelI = 0; channelI < channelCount; channelI++) {
-	    grainOutput(frameI, channelI) = signal;
-	  }
-	}	
-	sineSignal = sineCoefficient * sineSignal1 - sineSignal2;
-	sineSignal2 = sineSignal1;
-	sineSignal1 = sineSignal;
-	cosineSignal = cosineCoefficient * cosineSignal1 - cosineSignal2;
-	cosineSignal2 = cosineSignal1;
-	cosineSignal1 = cosineSignal;
-	signal = (sineSignal * (cosineSignal - 1.0)) * gain;
-      }
-    seekSeconds(centerTime - (duration / 2.0));
-    int sampleCount = frameCount * channelCount;
-    mixFrames(&grainOutput(0, 0), sampleCount, &grainBuffer(0, 0));
-  }
-  
 }
