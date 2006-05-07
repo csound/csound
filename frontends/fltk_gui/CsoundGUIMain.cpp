@@ -27,6 +27,8 @@ extern bool enablePython(void *, CSOUND **csound);
 #  include <unistd.h>
 #else
 #  include <process.h>
+#  define WIN32_LEAN_AND_MEAN 1
+#  include <windows.h>
 #endif
 
 void CsoundGUIMain::setTimeDisplay(double timeVal)
@@ -363,10 +365,42 @@ void CsoundGUIMain::updateGUIValues()
     updateGUIState();
 }
 
+static const char *pythonLibraryPathList[] = {
+#ifdef WIN32
+    "python24.dll",
+    "python23.dll",
+#elif defined(__MACH__)
+    // hope that one of these will work
+    "/System/Library/Frameworks/Python.Framework/Versions/Current/Python",
+    "/System/Library/Frameworks/Python.framework/Versions/Current/Python",
+    "/System/Library/Frameworks/Python.Framework/Versions/2.4/Python",
+    "/System/Library/Frameworks/Python.framework/Versions/2.4/Python",
+    "/System/Library/Frameworks/Python.Framework/Versions/2.3/Python",
+    "/System/Library/Frameworks/Python.framework/Versions/2.3/Python",
+    "/usr/lib/libpython2.4.dylib",
+    "/usr/lib/libpython2.3.dylib",
+    "/Library/Frameworks/Python.Framework/Versions/Current/Python",
+    "/Library/Frameworks/Python.framework/Versions/Current/Python",
+    "/Library/Frameworks/Python.Framework/Versions/2.4/Python",
+    "/Library/Frameworks/Python.framework/Versions/2.4/Python",
+    "/Library/Frameworks/Python.Framework/Versions/2.3/Python",
+    "/Library/Frameworks/Python.framework/Versions/2.3/Python",
+    "/usr/local/lib/libpython2.4.dylib",
+    "/usr/local/lib/libpython2.3.dylib",
+#else
+    "libpython2.4.so",
+    "libpython2.3.so",
+#endif
+    (char*) 0
+};
+
 void CsoundGUIMain::run()
 {
     void    *pythonLibrary = (void*) 0;
-    int     result;
+    int     result = CSOUND_ERROR;
+#ifdef WIN32
+    UINT    savedErrorMode;
+#endif
 
     readCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
     readCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
@@ -381,13 +415,15 @@ void CsoundGUIMain::run()
                              &CsoundGUIConsole::messageCallback_Thread);
 
 #ifdef WIN32
-    result = csoundOpenLibrary(&pythonLibrary, "python24.dll");
-#elif defined(__MACH__)
-    result = csoundOpenLibrary(&pythonLibrary,
-                               "/System/Library/Frameworks/Python.Framework/"
-                               "Versions/Current/lib/libpython2.4.dylib");
-#else
-    result = csoundOpenLibrary(&pythonLibrary, "libpython2.4.so");
+    // avoid pop-up window about missing DLL file
+    savedErrorMode = GetErrorMode();
+    SetErrorMode(savedErrorMode | (UINT) SEM_NOOPENFILEERRORBOX);
+#endif
+    for (const char **sp = &(pythonLibraryPathList[0]); *sp != (char*) 0; sp++)
+      if ((result = csoundOpenLibrary(&pythonLibrary, *sp)) == CSOUND_SUCCESS)
+        break;
+#ifdef WIN32
+    SetErrorMode(savedErrorMode);
 #endif
     if (result != CSOUND_SUCCESS) {
       csoundMessageS(csound, CSOUNDMSG_WARNING,
