@@ -1177,278 +1177,6 @@ if getPlatform() == 'mingw' and fltkFound:
         Opcodes/vst4cs/src/vsthost.cpp
     '''))
 
-# Utility programs.
-
-makePlugin(pluginEnvironment, 'stdutil', Split('''
-    util/cvanal.c       util/dnoise.c       util/envext.c
-    util/xtrct.c        util/het_export.c   util/het_import.c
-    util/hetro.c        util/lpanal.c       util/lpc_export.c
-    util/lpc_import.c   util/mixer.c        util/pvanal.c
-    util/pvlook.c       util/scale.c        util/sndinfo.c
-    util/srconv.c
-    util/std_util.c
-'''))
-
-if (commonEnvironment['buildUtilities'] != '0'):
-    utils = [
-        ['cvanal',      'util/cvl_main.c'     ],
-        ['dnoise',      'util/dnoise_main.c'  ],
-        ['envext',      'util/env_main.c'     ],
-        ['extractor',   'util/xtrc_main.c'    ],
-        ['het_export',  'util/hetx_main.c'    ],
-        ['het_import',  'util/heti_main.c'    ],
-        ['hetro',       'util/het_main.c'     ],
-        ['lpanal',      'util/lpc_main.c'     ],
-        ['lpc_export',  'util/lpcx_main.c'    ],
-        ['lpc_import',  'util/lpci_main.c'    ],
-        ['mixer',       'util/mixer_main.c'   ],
-        ['pvanal',      'util/pvc_main.c'     ],
-        ['pvlook',      'util/pvl_main.c'     ],
-        ['scale',       'util/scale_main.c'   ],
-        ['sndinfo',     'util/sndinfo_main.c' ],
-        ['srconv',      'util/srconv_main.c'  ]]
-    for i in utils:
-        executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
-
-executables.append(csoundProgramEnvironment.Program('scsort',
-    ['util1/sortex/smain.c']))
-executables.append(csoundProgramEnvironment.Program('extract',
-    ['util1/sortex/xmain.c']))
-executables.append(commonEnvironment.Program('cs',
-    ['util1/csd_util/cs.c']))
-executables.append(commonEnvironment.Program('csb64enc',
-    ['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
-executables.append(commonEnvironment.Program('makecsd',
-    ['util1/csd_util/base64.c', 'util1/csd_util/makecsd.c']))
-executables.append(commonEnvironment.Program('scot',
-    ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
-
-#executables.append(csoundProgramEnvironment.Program('cscore',
-#    ['util1/cscore/cscore_main.c']))
-#executables.append(csoundProgramEnvironment.Program('pv_export',
-#    ['util2/exports/pv_export.c']))
-#executables.append(csoundProgramEnvironment.Program('pv_import',
-#    ['util2/exports/pv_import.c']))
-#executables.append(csoundProgramEnvironment.Program('sdif2ad',
-#    ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
-
-# Front ends.
-
-csoundProgramSources = ['frontends/csound/csound_main.c']
-if getPlatform() == 'linux':
-    csoundProgramSources = ['frontends/csound/sched.c'] + csoundProgramSources
-csoundProgram = csoundProgramEnvironment.Program('csound', csoundProgramSources)
-executables.append(csoundProgram)
-Depends(csoundProgram, csoundLibrary)
-
-def fluidTarget(env, dirName, baseName, objFiles):
-    flFile = dirName + '/' + baseName + '.fl'
-    cppFile = dirName + '/' + baseName + '.cpp'
-    hppFile = dirName + '/' + baseName + '.hpp'
-    env.Command(cppFile, flFile,
-                'fluid -c -o %s -h %s %s' % (cppFile, hppFile, flFile))
-    for i in objFiles:
-        Depends(i, cppFile)
-    return cppFile
-
-if not (commonEnvironment['buildCsound5GUI'] != '0' and fltk117Found):
-    print 'CONFIGURATION DECISION: Not building FLTK GUI frontend.'
-else:
-    print 'CONFIGURATION DECISION: Building FLTK GUI frontend.'
-    csound5GUIEnvironment = csoundProgramEnvironment.Copy()
-    csound5GUIEnvironment.Append(CPPPATH = ['./interfaces'])
-    if getPlatform() == 'linux':
-        csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
-        csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
-    elif getPlatform() == 'mingw':
-        csound5GUIEnvironment.Append(LIBS = ['fltk'])
-        if (commonEnvironment['MSVC'] == '0'):
-            csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
-            csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
-                -mwindows -Wl,--enable-runtime-pseudo-reloc
-            '''))
-        csound5GUIEnvironment.Append(LIBS = csoundWindowsLibraries)
-    elif getPlatform() == 'darwin':
-        csound5GUIEnvironment.Append(LIBS = Split('''
-            fltk stdc++ supc++ pthread m
-        '''))
-        csound5GUIEnvironment.Append(LINKFLAGS = Split('''
-            -framework Carbon -framework ApplicationServices
-        '''))
-    csound5GUISources = Split('''
-        frontends/fltk_gui/ConfigFile.cpp
-        frontends/fltk_gui/CsoundCopyrightInfo.cpp
-        frontends/fltk_gui/CsoundGlobalSettings.cpp
-        frontends/fltk_gui/CsoundGUIConsole.cpp
-        frontends/fltk_gui/CsoundGUIMain.cpp
-        frontends/fltk_gui/CsoundPerformance.cpp
-        frontends/fltk_gui/CsoundPerformanceSettings.cpp
-        frontends/fltk_gui/CsoundPython.cpp
-        frontends/fltk_gui/CsoundUtility.cpp
-        frontends/fltk_gui/main.cpp
-    ''')
-    csound5GUIFluidSources = Split('''
-        CsoundAboutWindow_FLTK
-        CsoundGlobalSettingsPanel_FLTK
-        CsoundGUIConsole_FLTK
-        CsoundGUIMain_FLTK
-        CsoundPerformanceSettingsPanel_FLTK
-        CsoundUtilitiesWindow_FLTK
-    ''')
-    csound5GUIObjectFiles = []
-    csound5GUIFluidObjectFiles = []
-    for i in csound5GUISources:
-        csound5GUIObjectFiles += csound5GUIEnvironment.Object(i)
-    csound5GUIObjectFiles += csound5GUIEnvironment.Object(
-        'frontends/fltk_gui/csPerfThread', 'interfaces/csPerfThread.cpp')
-    for i in csound5GUIFluidSources:
-        csound5GUIFluidObjectFiles += csound5GUIEnvironment.Object(
-            fluidTarget(csound5GUIEnvironment, 'frontends/fltk_gui', i,
-                        csound5GUIObjectFiles))
-    csound5GUIObjectFiles += csound5GUIFluidObjectFiles
-    csound5GUIEnvironment.Program('csound5gui', csound5GUIObjectFiles)
-    if getPlatform() == 'darwin':
-        appDir = 'frontends/fltk_gui/Csound5GUI.app/Contents/MacOS'
-        csound5GUIEnvironment.Command(
-            '%s/csound5gui' % appDir, 'csound5gui',
-            "cp -af $SOURCE %s/" % appDir)
-        csound5GUIEnvironment.Command(
-            'csound5GUIResources', '%s/csound5gui' % appDir,
-            "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
-
-if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
-    print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
-else:
-    print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
-    headers += glob.glob('frontends/CsoundVST/*.h')
-    headers += glob.glob('frontends/CsoundVST/*.hpp')
-    vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
-    guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
-    vstEnvironment.Append(CPPPATH = pythonIncludePath)
-    vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
-    vstEnvironment.Append(LIBPATH = pythonLibraryPath)
-    if getPlatform() != 'darwin':
-        vstEnvironment.Prepend(LIBS = pythonLibs)
-    vstEnvironment.Prepend(LIBS = [csoundLibraryName, 'sndfile', '_csnd'])
-    vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
-    if getPlatform() == 'linux':
-        vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
-        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
-        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundVST.so'])
-        os.symlink('lib_CsoundVST.so', '_CsoundVST.so')
-    elif getPlatform() == 'darwin':
-        vstEnvironment.Append(LIBS = ['dl', 'm'])
-        # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
-        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
-        vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
-        vstEnvironment['SHLIBSUFFIX'] = '.dylib'
-    elif getPlatform() == 'mingw':
-        vstEnvironment['ENV']['PATH'] = os.environ['PATH']
-        vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
-        vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
-        guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
-            -mwindows -Wl,--enable-runtime-pseudo-reloc
-        '''))
-        vstEnvironment.Prepend(
-            LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
-        vstEnvironment.Append(LIBS = ['fltk_images', 'fltk'])
-        guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-    guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
-    for option in vstEnvironment['CCFLAGS']:
-        if string.find(option, '-D') == 0:
-            vstEnvironment.Append(SWIGFLAGS = [option])
-    for option in vstEnvironment['CPPFLAGS']:
-        if string.find(option, '-D') == 0:
-            vstEnvironment.Append(SWIGFLAGS = [option])
-    for option in vstEnvironment['CPPPATH']:
-        option = '-I' + option
-        vstEnvironment.Append(SWIGFLAGS = [option])
-    print 'PATH =', commonEnvironment['ENV']['PATH']
-    csoundVstBaseSources = []
-    for i in ['AudioEffect', 'audioeffectx', 'Conversions', 'Shell', 'System']:
-        csoundVstBaseSources += vstEnvironment.SharedObject(
-            'frontends/CsoundVST/%s.cpp' % i)
-    csoundVstSources = csoundVstBaseSources + Split('''
-    frontends/CsoundVST/Cell.cpp
-    frontends/CsoundVST/Composition.cpp
-    frontends/CsoundVST/Counterpoint.cpp
-    frontends/CsoundVST/CounterpointNode.cpp
-    frontends/CsoundVST/CsoundVST.cpp
-    frontends/CsoundVST/CsoundVstFltk.cpp
-    frontends/CsoundVST/CsoundVSTMain.cpp
-    frontends/CsoundVST/CsoundVstUi.cpp
-    frontends/CsoundVST/Event.cpp
-    frontends/CsoundVST/Hocket.cpp
-    frontends/CsoundVST/ImageToScore.cpp
-    frontends/CsoundVST/Lindenmayer.cpp
-    frontends/CsoundVST/MCRM.cpp
-    frontends/CsoundVST/Midifile.cpp
-    frontends/CsoundVST/MusicModel.cpp
-    frontends/CsoundVST/Node.cpp
-    frontends/CsoundVST/Random.cpp
-    frontends/CsoundVST/Rescale.cpp
-    frontends/CsoundVST/Score.cpp
-    frontends/CsoundVST/ScoreNode.cpp
-    frontends/CsoundVST/Sequence.cpp
-    frontends/CsoundVST/Soundfile.cpp
-    frontends/CsoundVST/StrangeAttractor.cpp
-    ''')
-    # These are the Windows system call libraries.
-    if getPlatform() == 'mingw':
-        vstEnvironment.Append(LIBS = csoundWindowsLibraries)
-        vstEnvironment.Append(SHLINKFLAGS = ['-module'])
-        vstEnvironment['ENV']['PATH'] = os.environ['PATH']
-        csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
-    swigflags = vstEnvironment['SWIGFLAGS']
-    vstWrapperEnvironment = vstEnvironment.Copy()
-    fixCFlagsForSwig(vstWrapperEnvironment)
-    csoundVstPythonWrapper = vstWrapperEnvironment.SharedObject(
-        'frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
-    csoundVstSources.insert(0, csoundVstPythonWrapper)
-    csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
-
-    scoregenSources = csoundVstBaseSources + Split('''
-    frontends/CsoundVST/ScoreGenerator.cpp
-    frontends/CsoundVST/ScoreGeneratorVst.cpp
-    frontends/CsoundVST/ScoreGeneratorVstUi.cpp
-    frontends/CsoundVST/ScoreGeneratorVstFltk.cpp
-    frontends/CsoundVST/ScoreGeneratorVstMain.cpp
-    ''')
-    if getPlatform() == 'mingw':
-        scoregenSources.append('frontends/CsoundVST/_scoregen.def')
-    vstWrapperEnvironment2 = vstEnvironment.Copy()
-    fixCFlagsForSwig(vstWrapperEnvironment2)
-    scoregenPythonWrapper = vstWrapperEnvironment2.SharedObject(
-        'frontends/CsoundVST/ScoreGeneratorVST.i',
-        SWIGFLAGS = [swigflags, '-python'])
-    scoregenSources.insert(0, scoregenPythonWrapper)
-    if getPlatform == 'darwin':
-        vstEnvironment.Prepend(LINKFLAGS = '-bundle')
-        pythonModules.append(
-            vstEnvironment.Program('_CsoundVST.so', csoundVstSources))
-        scoregen = vstEnvironment.Program('_scoregen.so', scoregenSources)
-    else:
-        scoregen = vstEnvironment.SharedLibrary('_scoregen', scoregenSources,
-                                                SHLIBPREFIX = '')
-    pythonModules.append('scoregen.py')
-    pythonModules.append(scoregen)
-
-    # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
-    pythonModules.append('CsoundVST.py')
-    libs.append(csoundvst)
-    Depends(csoundvst, csoundInterfaces)
-
-    csoundvstGui = guiProgramEnvironment.Program(
-        'CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
-    executables.append(csoundvstGui)
-    Depends(csoundvstGui, csoundvst)
-
-    counterpoint = vstEnvironment.Program(
-        'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
-    zipDependencies.append(counterpoint)
-
 # Build the Loris and Python opcodes here
 
 if not (commonEnvironment['buildLoris'] == '1' and configure.CheckHeader("Opcodes/Loris/src/loris.h") and configure.CheckHeader("fftw3.h")):
@@ -1588,6 +1316,288 @@ else:
     if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
         Depends(pythonOpcodes, pythonImportLibrary)
 
+# Utility programs.
+
+makePlugin(pluginEnvironment, 'stdutil', Split('''
+    util/cvanal.c       util/dnoise.c       util/envext.c
+    util/xtrct.c        util/het_export.c   util/het_import.c
+    util/hetro.c        util/lpanal.c       util/lpc_export.c
+    util/lpc_import.c   util/mixer.c        util/pvanal.c
+    util/pvlook.c       util/scale.c        util/sndinfo.c
+    util/srconv.c
+    util/std_util.c
+'''))
+
+if (commonEnvironment['buildUtilities'] != '0'):
+    utils = [
+        ['cvanal',      'util/cvl_main.c'     ],
+        ['dnoise',      'util/dnoise_main.c'  ],
+        ['envext',      'util/env_main.c'     ],
+        ['extractor',   'util/xtrc_main.c'    ],
+        ['het_export',  'util/hetx_main.c'    ],
+        ['het_import',  'util/heti_main.c'    ],
+        ['hetro',       'util/het_main.c'     ],
+        ['lpanal',      'util/lpc_main.c'     ],
+        ['lpc_export',  'util/lpcx_main.c'    ],
+        ['lpc_import',  'util/lpci_main.c'    ],
+        ['mixer',       'util/mixer_main.c'   ],
+        ['pvanal',      'util/pvc_main.c'     ],
+        ['pvlook',      'util/pvl_main.c'     ],
+        ['scale',       'util/scale_main.c'   ],
+        ['sndinfo',     'util/sndinfo_main.c' ],
+        ['srconv',      'util/srconv_main.c'  ]]
+    for i in utils:
+        executables.append(csoundProgramEnvironment.Program(i[0], i[1]))
+
+executables.append(csoundProgramEnvironment.Program('scsort',
+    ['util1/sortex/smain.c']))
+executables.append(csoundProgramEnvironment.Program('extract',
+    ['util1/sortex/xmain.c']))
+executables.append(commonEnvironment.Program('cs',
+    ['util1/csd_util/cs.c']))
+executables.append(commonEnvironment.Program('csb64enc',
+    ['util1/csd_util/base64.c', 'util1/csd_util/csb64enc.c']))
+executables.append(commonEnvironment.Program('makecsd',
+    ['util1/csd_util/base64.c', 'util1/csd_util/makecsd.c']))
+executables.append(commonEnvironment.Program('scot',
+    ['util1/scot/scot_main.c', 'util1/scot/scot.c']))
+
+#executables.append(csoundProgramEnvironment.Program('cscore',
+#    ['util1/cscore/cscore_main.c']))
+#executables.append(csoundProgramEnvironment.Program('pv_export',
+#    ['util2/exports/pv_export.c']))
+#executables.append(csoundProgramEnvironment.Program('pv_import',
+#    ['util2/exports/pv_import.c']))
+#executables.append(csoundProgramEnvironment.Program('sdif2ad',
+#    ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
+
+# Front ends.
+
+def addOSXResourceFork(env, baseName, dirName):
+    if getPlatform() == 'darwin':
+        if dirName != '':
+            fileName = dirName + '/' + baseName
+        else:
+            fileName = baseName
+        env.Command(('%s/resources' % fileName).replace('/', '_'), fileName,
+                    "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
+
+csoundProgramSources = ['frontends/csound/csound_main.c']
+if getPlatform() == 'linux':
+    csoundProgramSources = ['frontends/csound/sched.c'] + csoundProgramSources
+csoundProgram = csoundProgramEnvironment.Program('csound', csoundProgramSources)
+executables.append(csoundProgram)
+Depends(csoundProgram, csoundLibrary)
+
+def fluidTarget(env, dirName, baseName, objFiles):
+    flFile = dirName + '/' + baseName + '.fl'
+    cppFile = dirName + '/' + baseName + '.cpp'
+    hppFile = dirName + '/' + baseName + '.hpp'
+    env.Command(cppFile, flFile,
+                'fluid -c -o %s -h %s %s' % (cppFile, hppFile, flFile))
+    for i in objFiles:
+        Depends(i, cppFile)
+    return cppFile
+
+if not (commonEnvironment['buildCsound5GUI'] != '0' and fltk117Found):
+    print 'CONFIGURATION DECISION: Not building FLTK GUI frontend.'
+else:
+    print 'CONFIGURATION DECISION: Building FLTK GUI frontend.'
+    csound5GUIEnvironment = csoundProgramEnvironment.Copy()
+    csound5GUIEnvironment.Append(CPPPATH = ['./interfaces'])
+    if getPlatform() == 'linux':
+        csound5GUIEnvironment.ParseConfig('fltk-config --use-images --cflags --cxxflags --ldflags')
+        csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
+    elif getPlatform() == 'mingw':
+        csound5GUIEnvironment.Append(LIBS = ['fltk'])
+        if (commonEnvironment['MSVC'] == '0'):
+            csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
+            csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
+                -mwindows -Wl,--enable-runtime-pseudo-reloc
+            '''))
+        csound5GUIEnvironment.Append(LIBS = csoundWindowsLibraries)
+    elif getPlatform() == 'darwin':
+        csound5GUIEnvironment.Append(LIBS = Split('''
+            fltk stdc++ supc++ pthread m
+        '''))
+        csound5GUIEnvironment.Append(LINKFLAGS = Split('''
+            -framework Carbon -framework ApplicationServices
+        '''))
+    csound5GUISources = Split('''
+        frontends/fltk_gui/ConfigFile.cpp
+        frontends/fltk_gui/CsoundCopyrightInfo.cpp
+        frontends/fltk_gui/CsoundGlobalSettings.cpp
+        frontends/fltk_gui/CsoundGUIConsole.cpp
+        frontends/fltk_gui/CsoundGUIMain.cpp
+        frontends/fltk_gui/CsoundPerformance.cpp
+        frontends/fltk_gui/CsoundPerformanceSettings.cpp
+        frontends/fltk_gui/CsoundPython.cpp
+        frontends/fltk_gui/CsoundUtility.cpp
+        frontends/fltk_gui/main.cpp
+    ''')
+    csound5GUIFluidSources = Split('''
+        CsoundAboutWindow_FLTK
+        CsoundGlobalSettingsPanel_FLTK
+        CsoundGUIConsole_FLTK
+        CsoundGUIMain_FLTK
+        CsoundPerformanceSettingsPanel_FLTK
+        CsoundUtilitiesWindow_FLTK
+    ''')
+    csound5GUIObjectFiles = []
+    csound5GUIFluidObjectFiles = []
+    for i in csound5GUISources:
+        csound5GUIObjectFiles += csound5GUIEnvironment.Object(i)
+    csound5GUIObjectFiles += csound5GUIEnvironment.Object(
+        'frontends/fltk_gui/csPerfThread', 'interfaces/csPerfThread.cpp')
+    for i in csound5GUIFluidSources:
+        csound5GUIFluidObjectFiles += csound5GUIEnvironment.Object(
+            fluidTarget(csound5GUIEnvironment, 'frontends/fltk_gui', i,
+                        csound5GUIObjectFiles))
+    csound5GUIObjectFiles += csound5GUIFluidObjectFiles
+    csound5GUI = csound5GUIEnvironment.Program('csound5gui',
+                                               csound5GUIObjectFiles)
+    Depends(csound5GUI, csoundLibrary)
+    executables.append(csound5GUI)
+    if getPlatform() == 'darwin':
+        appDir = 'frontends/fltk_gui/Csound5GUI.app/Contents/MacOS'
+        addOSXResourceFork(csound5GUIEnvironment, 'csound5gui', '')
+        csound5GUIEnvironment.Command(
+            '%s/csound5gui' % appDir, 'csound5gui', "cp $SOURCE %s/" % appDir)
+        addOSXResourceFork(csound5GUIEnvironment, 'csound5gui', appDir)
+
+if not ((commonEnvironment['buildCsoundVST'] == '1') and boostFound and fltkFound):
+    print 'CONFIGURATION DECISION: Not building CsoundVST plugin and standalone.'
+else:
+    print 'CONFIGURATION DECISION: Building CsoundVST plugin and standalone.'
+    headers += glob.glob('frontends/CsoundVST/*.h')
+    headers += glob.glob('frontends/CsoundVST/*.hpp')
+    vstEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
+    guiProgramEnvironment.Append(CPPPATH = ['frontends/CsoundVST', 'interfaces'])
+    vstEnvironment.Append(CPPPATH = pythonIncludePath)
+    vstEnvironment.Append(LINKFLAGS = pythonLinkFlags)
+    vstEnvironment.Append(LIBPATH = pythonLibraryPath)
+    if getPlatform() != 'darwin':
+        vstEnvironment.Prepend(LIBS = pythonLibs)
+    vstEnvironment.Prepend(LIBS = [csoundLibraryName, 'sndfile', '_csnd'])
+    vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
+    if getPlatform() == 'linux':
+        vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
+        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        vstEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = ['-Wl,-rpath-link,.'])
+        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_CsoundVST.so'])
+        os.symlink('lib_CsoundVST.so', '_CsoundVST.so')
+    elif getPlatform() == 'darwin':
+        vstEnvironment.Append(LIBS = ['dl', 'm'])
+        # vstEnvironment.Append(CXXFLAGS = ['-fabi-version=0']) # if gcc3.2-3
+        vstEnvironment.Append(SHLINKFLAGS = '--no-export-all-symbols')
+        vstEnvironment.Append(SHLINKFLAGS = '--add-stdcall-alias')
+        vstEnvironment['SHLIBSUFFIX'] = '.dylib'
+    elif getPlatform() == 'mingw':
+        vstEnvironment['ENV']['PATH'] = os.environ['PATH']
+        vstEnvironment.Append(SHLINKFLAGS = '-Wl,--add-stdcall-alias')
+        vstEnvironment.Append(CCFLAGS = ['-DNDEBUG'])
+        guiProgramEnvironment.Prepend(LINKFLAGS = Split('''
+            -mwindows -Wl,--enable-runtime-pseudo-reloc
+        '''))
+        vstEnvironment.Prepend(
+            LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
+        vstEnvironment.Append(LIBS = ['fltk_images', 'fltk'])
+        guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
+    guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
+    for option in vstEnvironment['CCFLAGS']:
+        if string.find(option, '-D') == 0:
+            vstEnvironment.Append(SWIGFLAGS = [option])
+    for option in vstEnvironment['CPPFLAGS']:
+        if string.find(option, '-D') == 0:
+            vstEnvironment.Append(SWIGFLAGS = [option])
+    for option in vstEnvironment['CPPPATH']:
+        option = '-I' + option
+        vstEnvironment.Append(SWIGFLAGS = [option])
+    print 'PATH =', commonEnvironment['ENV']['PATH']
+    csoundVstBaseSources = []
+    for i in ['AudioEffect', 'audioeffectx', 'Conversions', 'Shell', 'System']:
+        csoundVstBaseSources += vstEnvironment.SharedObject(
+            'frontends/CsoundVST/%s.cpp' % i)
+    csoundVstSources = csoundVstBaseSources + Split('''
+    frontends/CsoundVST/Cell.cpp
+    frontends/CsoundVST/Composition.cpp
+    frontends/CsoundVST/Counterpoint.cpp
+    frontends/CsoundVST/CounterpointNode.cpp
+    frontends/CsoundVST/CsoundVST.cpp
+    frontends/CsoundVST/CsoundVstFltk.cpp
+    frontends/CsoundVST/CsoundVSTMain.cpp
+    frontends/CsoundVST/CsoundVstUi.cpp
+    frontends/CsoundVST/Event.cpp
+    frontends/CsoundVST/Hocket.cpp
+    frontends/CsoundVST/ImageToScore.cpp
+    frontends/CsoundVST/Lindenmayer.cpp
+    frontends/CsoundVST/MCRM.cpp
+    frontends/CsoundVST/Midifile.cpp
+    frontends/CsoundVST/MusicModel.cpp
+    frontends/CsoundVST/Node.cpp
+    frontends/CsoundVST/Random.cpp
+    frontends/CsoundVST/Rescale.cpp
+    frontends/CsoundVST/Score.cpp
+    frontends/CsoundVST/ScoreNode.cpp
+    frontends/CsoundVST/Sequence.cpp
+    frontends/CsoundVST/Soundfile.cpp
+    frontends/CsoundVST/StrangeAttractor.cpp
+    ''')
+    # These are the Windows system call libraries.
+    if getPlatform() == 'mingw':
+        vstEnvironment.Append(LIBS = csoundWindowsLibraries)
+        vstEnvironment.Append(SHLINKFLAGS = ['-module'])
+        vstEnvironment['ENV']['PATH'] = os.environ['PATH']
+        csoundVstSources.append('frontends/CsoundVST/_CsoundVST.def')
+    swigflags = vstEnvironment['SWIGFLAGS']
+    vstWrapperEnvironment = vstEnvironment.Copy()
+    fixCFlagsForSwig(vstWrapperEnvironment)
+    csoundVstPythonWrapper = vstWrapperEnvironment.SharedObject(
+        'frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
+    csoundVstSources.insert(0, csoundVstPythonWrapper)
+    csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
+
+    scoregenSources = csoundVstBaseSources + Split('''
+    frontends/CsoundVST/ScoreGenerator.cpp
+    frontends/CsoundVST/ScoreGeneratorVst.cpp
+    frontends/CsoundVST/ScoreGeneratorVstUi.cpp
+    frontends/CsoundVST/ScoreGeneratorVstFltk.cpp
+    frontends/CsoundVST/ScoreGeneratorVstMain.cpp
+    ''')
+    if getPlatform() == 'mingw':
+        scoregenSources.append('frontends/CsoundVST/_scoregen.def')
+    vstWrapperEnvironment2 = vstEnvironment.Copy()
+    fixCFlagsForSwig(vstWrapperEnvironment2)
+    scoregenPythonWrapper = vstWrapperEnvironment2.SharedObject(
+        'frontends/CsoundVST/ScoreGeneratorVST.i',
+        SWIGFLAGS = [swigflags, '-python'])
+    scoregenSources.insert(0, scoregenPythonWrapper)
+    if getPlatform == 'darwin':
+        vstEnvironment.Prepend(LINKFLAGS = '-bundle')
+        pythonModules.append(
+            vstEnvironment.Program('_CsoundVST.so', csoundVstSources))
+        scoregen = vstEnvironment.Program('_scoregen.so', scoregenSources)
+    else:
+        scoregen = vstEnvironment.SharedLibrary('_scoregen', scoregenSources,
+                                                SHLIBPREFIX = '')
+    pythonModules.append('scoregen.py')
+    pythonModules.append(scoregen)
+
+    # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
+    pythonModules.append('CsoundVST.py')
+    libs.append(csoundvst)
+    Depends(csoundvst, csoundInterfaces)
+
+    csoundvstGui = guiProgramEnvironment.Program(
+        'CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
+    executables.append(csoundvstGui)
+    Depends(csoundvstGui, csoundvst)
+
+    counterpoint = vstEnvironment.Program(
+        'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
+    zipDependencies.append(counterpoint)
+
 if commonEnvironment['buildPDClass']=='1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
     pdClassEnvironment = commonEnvironment.Copy()
@@ -1684,14 +1694,11 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
             -framework Carbon -framework CoreAudio -framework CoreMidi
             -framework ApplicationServices
         '''))
+        appDir = 'frontends/winsound/Winsound.app/Contents/MacOS'
+        addOSXResourceFork(csWinEnvironment, 'winsound', '')
         csWinEnvironment.Command(
-            'frontends/winsound/Winsound.app/Contents/MacOS/winsound',
-            'winsound',
-            "cp $SOURCE frontends/winsound/Winsound.app/Contents/MacOS")
-        csWinEnvironment.Command(
-            'winsGUIResources',
-            'frontends/winsound/Winsound.app/Contents/MacOS/winsound',
-            "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
+            '%s/winsound' % appDir, 'winsound', "cp $SOURCE %s/" % appDir)
+        addOSXResourceFork(csWinEnvironment, 'winsound', appDir)
     winsoundFL = 'frontends/winsound/winsound.fl'
     winsoundSrc = 'frontends/winsound/winsound.cxx'
     winsoundHdr = 'frontends/winsound/winsound.h'
@@ -1700,8 +1707,10 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
         'fluid -c -o %s -h %s %s' % (winsoundSrc, winsoundHdr, winsoundFL))
     winsoundMain = csWinEnvironment.Object('frontends/winsound/main.cxx')
     Depends(winsoundMain, winsoundSrc)
-    executables.append(csWinEnvironment.Program(
-        'winsound', [winsoundMain, winsoundSrc]))
+    winsound5 = csWinEnvironment.Program(
+        'winsound', [winsoundMain, winsoundSrc])
+    Depends(winsound5, csoundLibrary)
+    executables.append(winsound5)
 else:
     print "CONFIGURATION DECISION: Not building Winsound"
 
@@ -1768,7 +1777,7 @@ zipDependencies += libs
 zipDependencies += pluginLibraries
 zipDependencies += pythonModules
 
-if (commonEnvironment['generateZip']=='0'):
+if commonEnvironment['generateZip'] == '0':
     print 'CONFIGURATION DECISION: Not compiling zip file for release.'
 else:
     print 'CONFIGURATION DECISION: Compiling zip file for release.'
@@ -1815,5 +1824,5 @@ if commonEnvironment['install'] == '1':
 
 if getPlatform() == 'darwin' and commonEnvironment['useFLTK'] == '1':
     print "CONFIGURATION DECISION: Adding resource fork for csound"
-    commonEnvironment.Command('resources', 'csound', "/Developer/Tools/Rez -i APPL -o $SOURCE cs5.r")
+    addOSXResourceFork(commonEnvironment, 'csound', '')
 
