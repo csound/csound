@@ -31,6 +31,7 @@
         #include "csPerfThread.hpp"
         #include "CsoundFile.hpp"
         #include "CppSound.hpp"
+	#include "Soundfile.hpp"
 %}
 
 %apply int { size_t };
@@ -45,4 +46,5 @@ typedef unsigned int uint32_t;
 %include "csPerfThread.hpp"
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
+%include "Soundfile.hpp"
 

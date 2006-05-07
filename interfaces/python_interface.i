@@ -38,6 +38,7 @@
     #include "CsoundFile.hpp"
     #include "CppSound.hpp"
     #include "filebuilding.h"
+    #include "Soundfile.hpp"
 %}
 
 %apply int { size_t };
@@ -93,4 +94,5 @@ typedef unsigned int uint32_t;
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
 %include "filebuilding.h"
+%include "Soundfile.hpp"
 
