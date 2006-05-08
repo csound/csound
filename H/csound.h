@@ -948,6 +948,20 @@ extern "C" {
   PUBLIC uintptr_t csoundJoinThread(void *thread);
 
   /**
+   * Runs an external command with the arguments specified in 'argv'.
+   * argv[0] is the name of the program to execute (if not a full path
+   * file name, it is searched in the directories defined by the PATH
+   * environment variable). The list of arguments should be terminated
+   * by a NULL pointer.
+   * If 'noWait' is zero, the function waits until the external program
+   * finishes, otherwise it returns immediately. In the first case, a
+   * non-negative return value is the exit status of the command (0 to
+   * 255), otherwise it is the PID of the newly created process.
+   * On error, a negative value is returned.
+   */
+  PUBLIC long csoundRunCommand(const char * const *argv, int noWait);
+
+  /**
    * Creates and returns a monitor object, or NULL if not successful.
    * The object is initially in signaled (notified) state.
    */
@@ -979,6 +993,51 @@ extern "C" {
    * Destroys the indicated monitor object.
    */
   PUBLIC void csoundDestroyThreadLock(void *lock);
+
+  /**
+   * Creates and returns a mutex object, or NULL if not successful.
+   * Mutexes can be faster than the more general purpose monitor objects
+   * returned by csoundCreateThreadLock() on some platforms, and can also
+   * be recursive, but the result of unlocking a mutex that is owned by
+   * another thread or is not locked is undefined.
+   * If 'isRecursive' is non-zero, the mutex can be re-locked multiple
+   * times by the same thread, requiring an equal number of unlock calls;
+   * otherwise, attempting to re-lock the mutex results in undefined
+   * behavior.
+   * Note: the handles returned by csoundCreateThreadLock() and
+   * csoundCreateMutex() are not compatible.
+   */
+  PUBLIC void *csoundCreateMutex(int isRecursive);
+
+  /**
+   * Acquires the indicated mutex object; if it is already in use by
+   * another thread, the function waits until the mutex is released by
+   * the other thread.
+   */
+  PUBLIC void csoundLockMutex(void *mutex_);
+
+  /**
+   * Acquires the indicated mutex object and returns zero, unless it is
+   * already in use by another thread, in which case a non-zero value is
+   * returned immediately, rather than waiting until the mutex becomes
+   * available.
+   * Note: this function may be unimplemented on Windows.
+   */
+  PUBLIC int csoundLockMutexNoWait(void *mutex_);
+
+  /**
+   * Releases the indicated mutex object, which should be owned by
+   * the current thread, otherwise the operation of this function is
+   * undefined. A recursive mutex needs to be unlocked as many times
+   * as it was locked previously.
+   */
+  PUBLIC void csoundUnlockMutex(void *mutex_);
+
+  /**
+   * Destroys the indicated mutex object. Destroying a mutex that
+   * is currently owned by a thread results in undefined behavior.
+   */
+  PUBLIC void csoundDestroyMutex(void *mutex_);
 
   /**
    * Waits for at least the specified number of milliseconds,

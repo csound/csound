@@ -32,6 +32,8 @@
 #include <windows.h>
 #include <process.h>
 
+/* #undef NO_WIN9X_COMPATIBILITY */
+
 typedef struct {
     uintptr_t   (*func)(void *);
     void        *userdata;
@@ -109,12 +111,125 @@ PUBLIC void csoundSleep(size_t milliseconds)
     Sleep((DWORD) milliseconds);
 }
 
+/**
+ * Creates and returns a mutex object, or NULL if not successful.
+ * Mutexes can be faster than the more general purpose monitor objects
+ * returned by csoundCreateThreadLock() on some platforms, and can also
+ * be recursive, but the result of unlocking a mutex that is owned by
+ * another thread or is not locked is undefined.
+ * If 'isRecursive' is non-zero, the mutex can be re-locked multiple
+ * times by the same thread, requiring an equal number of unlock calls;
+ * otherwise, attempting to re-lock the mutex results in undefined
+ * behavior.
+ * Note: the handles returned by csoundCreateThreadLock() and
+ * csoundCreateMutex() are not compatible.
+ */
+
+PUBLIC void *csoundCreateMutex(int isRecursive)
+{
+    CRITICAL_SECTION  *cs;
+
+    (void) isRecursive;
+    cs = (CRITICAL_SECTION*) malloc(sizeof(CRITICAL_SECTION));
+    if (cs != NULL)
+      InitializeCriticalSection((LPCRITICAL_SECTION) cs);
+    return (void*) cs;
+}
+
+/**
+ * Acquires the indicated mutex object; if it is already in use by
+ * another thread, the function waits until the mutex is released by
+ * the other thread.
+ */
+
+PUBLIC void csoundLockMutex(void *mutex_)
+{
+    EnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+}
+
+/**
+ * Acquires the indicated mutex object and returns zero, unless it is
+ * already in use by another thread, in which case a non-zero value is
+ * returned immediately, rather than waiting until the mutex becomes
+ * available.
+ * Note: this function may be unimplemented on Windows.
+ */
+
+PUBLIC int csoundLockMutexNoWait(void *mutex_)
+{
+#ifdef NO_WIN9X_COMPATIBILITY
+    BOOL    retval;
+    /* FIXME: may need to define _WIN32_WINNT before including windows.h */
+    retval = TryEnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+    return (retval == FALSE ? 1 : 0);
+#else
+    /* stub for compatibility with Windows 9x */
+    EnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+    return 0;
+#endif
+}
+
+/**
+ * Releases the indicated mutex object, which should be owned by
+ * the current thread, otherwise the operation of this function is
+ * undefined. A recursive mutex needs to be unlocked as many times
+ * as it was locked previously.
+ */
+
+PUBLIC void csoundUnlockMutex(void *mutex_)
+{
+    LeaveCriticalSection((LPCRITICAL_SECTION) mutex_);
+}
+
+/**
+ * Destroys the indicated mutex object. Destroying a mutex that
+ * is currently owned by a thread results in undefined behavior.
+ */
+
+PUBLIC void csoundDestroyMutex(void *mutex_)
+{
+    if (mutex_ != NULL) {
+      DeleteCriticalSection((LPCRITICAL_SECTION) mutex_);
+      free(mutex_);
+    }
+}
+
+/**
+ * Runs an external command with the arguments specified in 'argv'.
+ * argv[0] is the name of the program to execute (if not a full path
+ * file name, it is searched in the directories defined by the PATH
+ * environment variable). The list of arguments should be terminated
+ * by a NULL pointer.
+ * If 'noWait' is zero, the function waits until the external program
+ * finishes, otherwise it returns immediately. In the first case, a
+ * non-negative return value is the exit status of the command (0 to
+ * 255), otherwise it is the PID of the newly created process.
+ * On error, a negative value is returned.
+ */
+
+PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
+{
+    long    retval;
+
+    if (argv == NULL || argv[0] == NULL)
+      return -1L;
+    retval = (long) _spawnvp((noWait ? (int) _P_NOWAIT : (int) _P_WAIT),
+                             argv[0], argv);
+    if (!noWait && retval >= 0L)
+      retval &= 255L;
+    return retval;
+}
+
+ /* ------------------------------------------------------------------------ */
+
 #elif defined(LINUX) || defined(__MACH__)
 
 #include <errno.h>
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
@@ -310,6 +425,138 @@ PUBLIC void csoundSleep(size_t milliseconds)
       ;
 }
 
+/**
+ * Creates and returns a mutex object, or NULL if not successful.
+ * Mutexes can be faster than the more general purpose monitor objects
+ * returned by csoundCreateThreadLock() on some platforms, and can also
+ * be recursive, but the result of unlocking a mutex that is owned by
+ * another thread or is not locked is undefined.
+ * If 'isRecursive' is non-zero, the mutex can be re-locked multiple
+ * times by the same thread, requiring an equal number of unlock calls;
+ * otherwise, attempting to re-lock the mutex results in undefined
+ * behavior.
+ * Note: the handles returned by csoundCreateThreadLock() and
+ * csoundCreateMutex() are not compatible.
+ */
+
+PUBLIC void *csoundCreateMutex(int isRecursive)
+{
+    pthread_mutex_t     *mutex_ = (pthread_mutex_t*) NULL;
+    pthread_mutexattr_t attr;
+
+    if (pthread_mutexattr_init(&attr) == 0) {
+      if (pthread_mutexattr_settype(&attr, (isRecursive ?
+                                            (int) PTHREAD_MUTEX_RECURSIVE
+                                            : (int) PTHREAD_MUTEX_DEFAULT))
+          == 0) {
+        mutex_ = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
+        if (mutex_ != NULL) {
+          if (pthread_mutex_init(mutex_, &attr) != 0) {
+            free((void*) mutex_);
+            mutex_ = (pthread_mutex_t*) NULL;
+          }
+        }
+      }
+      pthread_mutexattr_destroy(&attr);
+    }
+    return (void*) mutex_;
+}
+
+/**
+ * Acquires the indicated mutex object; if it is already in use by
+ * another thread, the function waits until the mutex is released by
+ * the other thread.
+ */
+
+PUBLIC void csoundLockMutex(void *mutex_)
+{
+    pthread_mutex_lock((pthread_mutex_t*) mutex_);
+}
+
+/**
+ * Acquires the indicated mutex object and returns zero, unless it is
+ * already in use by another thread, in which case a non-zero value is
+ * returned immediately, rather than waiting until the mutex becomes
+ * available.
+ * Note: this function may be unimplemented on Windows.
+ */
+
+PUBLIC int csoundLockMutexNoWait(void *mutex_)
+{
+    return pthread_mutex_trylock((pthread_mutex_t*) mutex_);
+}
+
+/**
+ * Releases the indicated mutex object, which should be owned by
+ * the current thread, otherwise the operation of this function is
+ * undefined. A recursive mutex needs to be unlocked as many times
+ * as it was locked previously.
+ */
+
+PUBLIC void csoundUnlockMutex(void *mutex_)
+{
+    pthread_mutex_unlock((pthread_mutex_t*) mutex_);
+}
+
+/**
+ * Destroys the indicated mutex object. Destroying a mutex that
+ * is currently owned by a thread results in undefined behavior.
+ */
+
+PUBLIC void csoundDestroyMutex(void *mutex_)
+{
+    if (mutex_ != NULL) {
+      pthread_mutex_destroy((pthread_mutex_t*) mutex_);
+      free(mutex_);
+    }
+}
+
+/**
+ * Runs an external command with the arguments specified in 'argv'.
+ * argv[0] is the name of the program to execute (if not a full path
+ * file name, it is searched in the directories defined by the PATH
+ * environment variable). The list of arguments should be terminated
+ * by a NULL pointer.
+ * If 'noWait' is zero, the function waits until the external program
+ * finishes, otherwise it returns immediately. In the first case, a
+ * non-negative return value is the exit status of the command (0 to
+ * 255), otherwise it is the PID of the newly created process.
+ * On error, a negative value is returned.
+ */
+
+PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
+{
+    long    retval;
+
+    if (argv == NULL || argv[0] == NULL)
+      return -1L;
+    retval = (long) fork();
+    if (retval == 0L) {
+      /* child process */
+      if (execvp(argv[0], (char**) argv) != 0)
+        exit(-1);
+      /* this is not actually reached */
+      exit(0);
+    }
+    else if (retval > 0L && noWait == 0) {
+      int   status = 0;
+      while (waitpid((pid_t) retval, &status, 0) != (pid_t) ECHILD) {
+        if (WIFEXITED(status) != 0) {
+          retval = (long) (WEXITSTATUS(status)) & 255L;
+          return retval;
+        }
+        if (WIFSIGNALED(status) != 0) {
+          retval = 255L;
+          return retval;
+        }
+      }
+      retval = 255L;
+    }
+    return retval;
+}
+
+ /* ------------------------------------------------------------------------ */
+
 #else
 
 static CS_NOINLINE void notImplementedWarning_(const char *name)
@@ -360,6 +607,39 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
 PUBLIC void csoundSleep(size_t milliseconds)
 {
     notImplementedWarning_("csoundSleep");
+}
+
+PUBLIC void *csoundCreateMutex(int isRecursive)
+{
+    notImplementedWarning_("csoundCreateMutex");
+    return NULL;
+}
+
+PUBLIC void csoundLockMutex(void *mutex_)
+{
+    notImplementedWarning_("csoundLockMutex");
+}
+
+PUBLIC int csoundLockMutexNoWait(void *mutex_)
+{
+    notImplementedWarning_("csoundLockMutexNoWait");
+    return 0;
+}
+
+PUBLIC void csoundUnlockMutex(void *mutex_)
+{
+    notImplementedWarning_("csoundUnlockMutex");
+}
+
+PUBLIC void csoundDestroyMutex(void *mutex_)
+{
+    notImplementedWarning_("csoundDestroyMutex");
+}
+
+PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
+{
+    notImplementedWarning_("csoundRunCommand");
+    return -1L;
 }
 
 #endif

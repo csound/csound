@@ -1,3 +1,8 @@
+2006-05-08	Istvan Varga	<ivarga@csounds.com>
+	* New API functions:
+	  csoundCreateMutex, csoundLockMutex, csoundLockMutexNoWait,
+	  csoundUnlockMutex, csoundDestroyMutex, csoundRunCommand
+
 2006-05-04	Istvan Varga	<ivarga@csounds.com>
 	* InOut/rtalsa.c:
 	  added new "devfile" MIDI driver that uses device files in /dev,
