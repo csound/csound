@@ -111,7 +111,7 @@ extern "C" {
 #ifndef PI
 #define PI      (3.14159265358979323846)
 #endif
-#define TWOPI   (6.28318530717958647692)
+#define TWOPI   (6.28318530717958647693)
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
 
@@ -426,7 +426,7 @@ extern "C" {
     short   loopmode2;
     long    begin1, end1;
     long    begin2, end2;
-    MYFLT   fmaxamps[AIFF_MAXCHAN+1];
+    MYFLT   fmaxamps[AIFF_MAXCHAN + 1];
   } AIFFDAT;
 
   typedef struct {
@@ -493,11 +493,6 @@ extern "C" {
     long    length;
     struct MEMFIL *next;
   } MEMFIL;
-
-  typedef union {
-    unsigned long dwData;
-    unsigned char bData[4];
-  } MIDIMESSAGE;
 
   typedef struct {
     short   type;
@@ -578,6 +573,11 @@ extern "C" {
 #define MBUFSIZ         (4096)
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
+
+  typedef union {
+    unsigned long dwData;
+    unsigned char bData[4];
+  } MIDIMESSAGE;
 
   /* MIDI globals */
 
@@ -920,8 +920,14 @@ extern "C" {
     int (*ChanIASet)(CSOUND *, const MYFLT *value, int n);
     int (*ChanOAGet)(CSOUND *, MYFLT *value, int n);
     void (*dispinit)(CSOUND *);
+    void *(*Create_Mutex)(int isRecursive);
+    int (*LockMutexNoWait)(void *mutex_);
+    void (*LockMutex)(void *mutex_);
+    void (*UnlockMutex)(void *mutex_);
+    void (*DestroyMutex)(void *mutex_);
+    long (*RunCommand)(const char * const *argv, int noWait);
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[112];
+    SUBR dummyfn_2[106];
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     OPDS          *ids, *pds;

@@ -778,7 +778,7 @@ public:
 #endif
 };
 
-// thread lock
+// thread locks
 
 class CsoundThreadLock {
 protected:
@@ -816,6 +816,40 @@ public:
   ~CsoundThreadLock()
   {
     csoundDestroyThreadLock(threadLock);
+  }
+};
+
+class CsoundMutex {
+protected:
+  void  *mutex_;
+public:
+  void Lock()
+  {
+    csoundLockMutex(mutex_);
+  }
+  // FIXME: this may be unimplemented on Windows
+  int TryLock()
+  {
+    return csoundLockMutexNoWait(mutex_);
+  }
+  void Unlock()
+  {
+    csoundUnlockMutex(mutex_);
+  }
+  // constructors
+  // FIXME: should throw exception on failure ?
+  CsoundMutex()
+  {
+    mutex_ = csoundCreateMutex(1);
+  }
+  CsoundMutex(int isRecursive)
+  {
+    mutex_ = csoundCreateMutex(isRecursive);
+  }
+  // destructor
+  ~CsoundMutex()
+  {
+    csoundDestroyMutex(mutex_);
   }
 };
 
