@@ -46,7 +46,7 @@ class CsoundPerformanceThread {
     volatile CsoundPerformanceThreadMessage *firstMessage;
     CsoundPerformanceThreadMessage *lastMessage;
     CSOUND  *csound;
-    void    *queueLock;
+    void    *queueLock;         // this is actually a mutex
     void    *pauseLock;
     void    *flushLock;
     void    *perfThread;

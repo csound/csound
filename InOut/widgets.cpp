@@ -91,7 +91,7 @@ typedef struct rtEvt_s {
 #ifndef NO_FLTK_THREADS
 typedef struct widgetsGlobals_s {
     rtEvt_t     *eventQueue;
-    void        *threadLock;
+    void        *mutex_;
     int         exit_now;       /* set by GUI when all windows are closed   */
     int         end_of_perf;    /* set by main thread at end of performance */
     void        *threadHandle;
@@ -106,16 +106,16 @@ extern "C" {
   {
     /* flush any pending real time events */
     if (p->eventQueue != NULL) {
-      csound->WaitThreadLock(p->threadLock, 1000);
+      csound->LockMutex(p->mutex_);
       while (p->eventQueue != NULL) {
         rtEvt_t *ep = p->eventQueue;
         p->eventQueue = ep->nxt;
-        csound->NotifyThreadLock(p->threadLock);
+        csound->UnlockMutex(p->mutex_);
         csound->insert_score_event(csound, &(ep->evt), csound->curTime);
         free(ep);
-        csound->WaitThreadLock(p->threadLock, 1000);
+        csound->LockMutex(p->mutex_);
       }
-      csound->NotifyThreadLock(p->threadLock);
+      csound->UnlockMutex(p->mutex_);
     }
     /* if all windows have been closed, terminate performance */
     if (p->exit_now) {
@@ -190,7 +190,7 @@ extern "C" {
       if (evt->evt.p[2] < FL(0.0))
         evt->evt.p[2] = FL(0.0);
       /* queue event for insertion by main Csound thread */
-      csound->WaitThreadLock(p->threadLock, 1000);
+      csound->LockMutex(p->mutex_);
       if (p->eventQueue == NULL)
         p->eventQueue = evt;
       else {
@@ -199,7 +199,7 @@ extern "C" {
           ep = ep->nxt;
         ep->nxt = evt;
       }
-      csound->NotifyThreadLock(p->threadLock);
+      csound->UnlockMutex(p->mutex_);
     }
     else
 #endif  // NO_FLTK_THREADS
@@ -1638,14 +1638,14 @@ extern "C" {
         }
       }
       /* clean up */
-      csound->WaitThreadLock(p->threadLock, 1000);
+      csound->LockMutex(p->mutex_);
       while (p->eventQueue != NULL) {
         rtEvt_t *nxt = p->eventQueue->nxt;
         free(p->eventQueue);
         p->eventQueue = nxt;
       }
-      csound->NotifyThreadLock(p->threadLock);
-      csound->DestroyThreadLock(p->threadLock);
+      csound->UnlockMutex(p->mutex_);
+      csound->DestroyMutex(p->mutex_);
       csound->DestroyGlobalVariable(csound, "_widgets_globals");
     }
 #endif  // NO_FLTK_THREADS
@@ -1768,7 +1768,7 @@ extern "C" int FL_run(CSOUND *csound, FLRUN *p)
                                                          "_widgets_globals");
     pp->fltkFlags = *fltkFlags;
     /* create thread lock */
-    pp->threadLock = csound->CreateThreadLock();
+    pp->mutex_ = csound->Create_Mutex(0);
     /* register callback function to be called by sensevents() */
     csound->RegisterSenseEventCallback(csound, (void (*)(CSOUND *, void *))
                                                    evt_callback,

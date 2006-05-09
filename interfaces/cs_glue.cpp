@@ -35,7 +35,7 @@ extern "C" {
   };
 
   struct csMsgBuffer {
-    void        *threadLock;
+    void        *mutex_;
     csMsgStruct *firstMsg;
     csMsgStruct *lastMsg;
     int         msgCnt;
@@ -71,7 +71,7 @@ extern "C" {
     if (!toStdOut)
       nBytes += (size_t) 16384;
     pp = (csMsgBuffer*) malloc(nBytes);
-    pp->threadLock = csoundCreateThreadLock();
+    pp->mutex_ = csoundCreateMutex(0);
     pp->firstMsg = (csMsgStruct*) 0;
     pp->lastMsg = (csMsgStruct*) 0;
     pp->msgCnt = 0;
@@ -98,10 +98,10 @@ extern "C" {
     char        *msg = (char*) 0;
 
     if (pp && pp->msgCnt) {
-      csoundWaitThreadLockNoTimeout(pp->threadLock);
+      csoundLockMutex(pp->mutex_);
       if (pp->firstMsg)
         msg = &(pp->firstMsg->s[0]);
-      csoundNotifyThreadLock(pp->threadLock);
+      csoundUnlockMutex(pp->mutex_);
     }
     return msg;
   }
@@ -117,10 +117,10 @@ extern "C" {
     int         attr = 0;
 
     if (pp && pp->msgCnt) {
-      csoundWaitThreadLockNoTimeout(pp->threadLock);
+      csoundLockMutex(pp->mutex_);
       if (pp->firstMsg)
         attr = pp->firstMsg->attr;
-      csoundNotifyThreadLock(pp->threadLock);
+      csoundUnlockMutex(pp->mutex_);
     }
     return attr;
   }
@@ -135,7 +135,7 @@ extern "C" {
 
     if (pp) {
       csMsgStruct *tmp;
-      csoundWaitThreadLockNoTimeout(pp->threadLock);
+      csoundLockMutex(pp->mutex_);
       tmp = pp->firstMsg;
       if (tmp) {
         pp->firstMsg = tmp->nxt;
@@ -143,7 +143,7 @@ extern "C" {
         if (!pp->firstMsg)
           pp->lastMsg = (csMsgStruct*) 0;
       }
-      csoundNotifyThreadLock(pp->threadLock);
+      csoundUnlockMutex(pp->mutex_);
       if (tmp)
         free((void*) tmp);
     }
@@ -159,9 +159,9 @@ extern "C" {
     int         cnt = 0;
 
     if (pp) {
-      csoundWaitThreadLockNoTimeout(pp->threadLock);
+      csoundLockMutex(pp->mutex_);
       cnt = pp->msgCnt;
-      csoundNotifyThreadLock(pp->threadLock);
+      csoundUnlockMutex(pp->mutex_);
     }
     return cnt;
   }
@@ -179,8 +179,7 @@ extern "C" {
     while (csoundGetMessageCnt(csound) > 0)
       csoundPopFirstMessage(csound);
     csoundSetHostData(csound, (void*) 0);
-    csoundNotifyThreadLock(pp->threadLock);
-    csoundDestroyThreadLock(pp->threadLock);
+    csoundDestroyMutex(pp->mutex_);
     free((void*) pp);
   }
 
@@ -191,10 +190,10 @@ extern "C" {
     csMsgStruct *p;
     int         len;
 
-    csoundWaitThreadLockNoTimeout(pp->threadLock);
+    csoundLockMutex(pp->mutex_);
     len = vsprintf(pp->buf, fmt, args);         // FIXME: this can overflow
     if ((unsigned int) len >= (unsigned int) 16384) {
-      csoundNotifyThreadLock(pp->threadLock);
+      csoundUnlockMutex(pp->mutex_);
       fprintf(stderr, "csound: internal error: message buffer overflow\n");
       exit(-1);
     }
@@ -208,7 +207,7 @@ extern "C" {
       pp->lastMsg->nxt = p;
     pp->lastMsg = p;
     pp->msgCnt++;
-    csoundNotifyThreadLock(pp->threadLock);
+    csoundUnlockMutex(pp->mutex_);
   }
 
   static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
@@ -231,14 +230,14 @@ extern "C" {
     p->nxt = (csMsgStruct*) 0;
     p->attr = attr;
     vsprintf(&(p->s[0]), fmt, args);
-    csoundWaitThreadLockNoTimeout(pp->threadLock);
+    csoundLockMutex(pp->mutex_);
     if (pp->firstMsg == (csMsgStruct*) 0)
       pp->firstMsg = p;
     else
       pp->lastMsg->nxt = p;
     pp->lastMsg = p;
     pp->msgCnt++;
-    csoundNotifyThreadLock(pp->threadLock);
+    csoundUnlockMutex(pp->mutex_);
   }
 
 }       // extern "C"
@@ -1033,7 +1032,7 @@ static const unsigned char midiMessageByteCnt[32] = {
 CsoundMidiInputBuffer::CsoundMidiInputBuffer(unsigned char *buf, int bufSize)
 {
     this->buf = buf;
-    threadLock = csoundCreateThreadLock();
+    mutex_ = csoundCreateMutex(0);
     bufReadPos = 0;
     bufWritePos = 0;
     bufBytes = 0;
@@ -1043,8 +1042,8 @@ CsoundMidiInputBuffer::CsoundMidiInputBuffer(unsigned char *buf, int bufSize)
 CsoundMidiInputBuffer::~CsoundMidiInputBuffer()
 {
     buf = (unsigned char*) 0;
-    csoundDestroyThreadLock(threadLock);
-    threadLock = (void*) 0;
+    csoundDestroyMutex(mutex_);
+    mutex_ = (void*) 0;
 }
 
 /**
@@ -1058,7 +1057,7 @@ void CsoundMidiInputBuffer::SendMessage(int msg)
 
     if (!nBytes)
       return;
-    csoundWaitThreadLockNoTimeout(threadLock);
+    csoundLockMutex(mutex_);
     if ((bufBytes + nBytes) <= bufSize) {
       buf[bufWritePos] = (unsigned char) msg & (unsigned char) 0xFF;
       bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
@@ -1075,7 +1074,7 @@ void CsoundMidiInputBuffer::SendMessage(int msg)
         }
       }
     }
-    csoundNotifyThreadLock(threadLock);
+    csoundUnlockMutex(mutex_);
 }
 
 /**
@@ -1090,7 +1089,7 @@ void CsoundMidiInputBuffer::SendMessage(int status, int channel,
 
     if (!nBytes)
       return;
-    csoundWaitThreadLockNoTimeout(threadLock);
+    csoundLockMutex(mutex_);
     if ((bufBytes + nBytes) <= bufSize) {
       unsigned char st = (unsigned char) status & (unsigned char) 0xFF;
       if (nBytes > 1) {
@@ -1111,7 +1110,7 @@ void CsoundMidiInputBuffer::SendMessage(int status, int channel,
         }
       }
     }
-    csoundNotifyThreadLock(threadLock);
+    csoundUnlockMutex(mutex_);
 }
 
 /**
@@ -1205,13 +1204,13 @@ int CsoundMidiInputBuffer::GetMidiData(unsigned char *buf, int nBytes)
 
     if (!bufBytes)
       return 0;
-    csoundWaitThreadLockNoTimeout(threadLock);
+    csoundLockMutex(mutex_);
     for (i = 0; i < nBytes && bufBytes > 0; i++) {
       buf[i] = this->buf[bufReadPos];
       bufReadPos = (bufReadPos < (bufSize - 1) ? bufReadPos + 1 : 0);
       bufBytes--;
     }
-    csoundNotifyThreadLock(threadLock);
+    csoundUnlockMutex(mutex_);
     return i;
 }
 
@@ -1287,7 +1286,7 @@ void CsoundMidiInputStream::EnableMidiInput(CsoundArgVList *argv)
 CsoundMidiOutputBuffer::CsoundMidiOutputBuffer(unsigned char *buf, int bufSize)
 {
     this->buf = buf;
-    threadLock = csoundCreateThreadLock();
+    mutex_ = csoundCreateMutex(0);
     bufReadPos = 0;
     bufWritePos = 0;
     bufBytes = 0;
@@ -1297,8 +1296,8 @@ CsoundMidiOutputBuffer::CsoundMidiOutputBuffer(unsigned char *buf, int bufSize)
 CsoundMidiOutputBuffer::~CsoundMidiOutputBuffer()
 {
     buf = (unsigned char*) 0;
-    csoundDestroyThreadLock(threadLock);
-    threadLock = (void*) 0;
+    csoundDestroyMutex(mutex_);
+    mutex_ = (void*) 0;
 }
 
 /**
@@ -1314,7 +1313,7 @@ int CsoundMidiOutputBuffer::PopMessage()
     int     msg = 0;
 
     if (bufBytes) {
-      csoundWaitThreadLockNoTimeout(threadLock);
+      csoundLockMutex(mutex_);
       if (bufBytes > 0) {
         int             nBytes;
         unsigned char   st;
@@ -1342,7 +1341,7 @@ int CsoundMidiOutputBuffer::PopMessage()
           bufBytes = 0;
         }
       }
-      csoundNotifyThreadLock(threadLock);
+      csoundUnlockMutex(mutex_);
     }
     return msg;
 }
@@ -1358,7 +1357,7 @@ int CsoundMidiOutputBuffer::GetStatus()
     unsigned char   st = (unsigned char) 0;
 
     if (bufBytes) {
-      csoundWaitThreadLockNoTimeout(threadLock);
+      csoundLockMutex(mutex_);
       if (bufBytes > 0) {
         int   nBytes;
         st = buf[bufReadPos] & (unsigned char) 0xFF;
@@ -1368,7 +1367,7 @@ int CsoundMidiOutputBuffer::GetStatus()
         if (nBytes > 1)
           st &= (unsigned char) 0xF0;   // channel msg: remove channel number
       }
-      csoundNotifyThreadLock(threadLock);
+      csoundUnlockMutex(mutex_);
     }
     return (int) st;
 }
@@ -1384,7 +1383,7 @@ int CsoundMidiOutputBuffer::GetChannel()
     unsigned char   st = (unsigned char) 0;
 
     if (bufBytes) {
-      csoundWaitThreadLockNoTimeout(threadLock);
+      csoundLockMutex(mutex_);
       if (bufBytes > 0) {
         int   nBytes;
         st = buf[bufReadPos] & (unsigned char) 0xFF;
@@ -1394,7 +1393,7 @@ int CsoundMidiOutputBuffer::GetChannel()
         else
           st = (st & (unsigned char) 0x0F) + (unsigned char) 1;
       }
-      csoundNotifyThreadLock(threadLock);
+      csoundUnlockMutex(mutex_);
     }
     return (int) st;
 }
@@ -1410,7 +1409,7 @@ int CsoundMidiOutputBuffer::GetData1()
     unsigned char   st, d1 = (unsigned char) 0;
 
     if (bufBytes) {
-      csoundWaitThreadLockNoTimeout(threadLock);
+      csoundLockMutex(mutex_);
       if (bufBytes > 0) {
         int   nBytes;
         st = buf[bufReadPos] & (unsigned char) 0xFF;
@@ -1421,7 +1420,7 @@ int CsoundMidiOutputBuffer::GetData1()
           d1 = buf[pos] & (unsigned char) 0x7F;
         }
       }
-      csoundNotifyThreadLock(threadLock);
+      csoundUnlockMutex(mutex_);
     }
     return (int) d1;
 }
@@ -1437,7 +1436,7 @@ int CsoundMidiOutputBuffer::GetData2()
     unsigned char   st, d2 = (unsigned char) 0;
 
     if (bufBytes) {
-      csoundWaitThreadLockNoTimeout(threadLock);
+      csoundLockMutex(mutex_);
       if (bufBytes > 0) {
         int   nBytes;
         st = buf[bufReadPos] & (unsigned char) 0xFF;
@@ -1449,7 +1448,7 @@ int CsoundMidiOutputBuffer::GetData2()
           d2 = buf[pos] & (unsigned char) 0x7F;
         }
       }
-      csoundNotifyThreadLock(threadLock);
+      csoundUnlockMutex(mutex_);
     }
     return (int) d2;
 }
@@ -1463,13 +1462,13 @@ int CsoundMidiOutputBuffer::SendMidiData(const unsigned char *buf, int nBytes)
 {
     int   i;
 
-    csoundWaitThreadLockNoTimeout(threadLock);
+    csoundLockMutex(mutex_);
     for (i = 0; i < nBytes && bufBytes < bufSize; i++) {
       this->buf[bufWritePos] = buf[i];
       bufWritePos = (bufWritePos < (bufSize - 1) ? bufWritePos + 1 : 0);
       bufBytes++;
     }
-    csoundNotifyThreadLock(threadLock);
+    csoundUnlockMutex(mutex_);
     return i;
 }
 

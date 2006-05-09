@@ -11,13 +11,13 @@ class CsoundGUIConsole {open selected
   decl {Fl_Text_Buffer *styleBuf;} {}
   decl {Csound_Message *firstMsg;} {}
   decl {Csound_Message *lastMsg;} {}
-  decl {CsoundThreadLock threadLock;} {}
+  decl {CsoundMutex mutex_;} {}
   decl {CsoundThreadLock msgNotifyLock;} {}
   decl {CsoundThreadLock clearLock;} {}
   decl {CsoundThreadLock quitLock;} {}
   decl {static const Fl_Text_Display::Style_Table_Entry styleTable[18];} {}
   decl {void *consoleThread;} {}
-  Function {CsoundGUIConsole()} {open
+  Function {CsoundGUIConsole() : mutex_(0)} {open
   } {
     code {{
   firstMsg = (Csound_Message*) 0;
@@ -31,7 +31,7 @@ class CsoundGUIConsole {open selected
 }} {}
     Fl_Window window {
       label {Csound console messages} open
-      xywh {500 150 585 286} type Double resizable
+      xywh {500 150 585 320} type Double resizable
       code0 {window = (Fl_Double_Window*) o;} visible
     } {
       Fl_Text_Display textDisplay {
@@ -55,7 +55,6 @@ class CsoundGUIConsole {open selected
   buf = (Fl_Text_Buffer*) 0;
   delete styleBuf;
   styleBuf = (Fl_Text_Buffer*) 0;
-  threadLock.Unlock();
   msgNotifyLock.Unlock();
   clearLock.Unlock();
   quitLock.Unlock();
