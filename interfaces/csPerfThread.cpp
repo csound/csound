@@ -266,7 +266,7 @@ int CsoundPerformanceThread::Perform()
     int retval = 0;
     do {
       while (firstMessage) {
-        csoundWaitThreadLockNoTimeout(queueLock);
+        csoundLockMutex(queueLock);
         do {
           CsoundPerformanceThreadMessage *msg;
           // get oldest message
@@ -285,7 +285,7 @@ int CsoundPerformanceThread::Perform()
           csoundWaitThreadLock(pauseLock, (size_t) 0);
         // mark queue as empty
         csoundNotifyThreadLock(flushLock);
-        csoundNotifyThreadLock(queueLock);
+        csoundUnlockMutex(queueLock);
         // if error or end of score, return now
         if (retval)
           goto endOfPerf;
@@ -301,7 +301,7 @@ int CsoundPerformanceThread::Perform()
     status = retval;
     csoundCleanup(csound);
     // delete any pending messages
-    csoundWaitThreadLockNoTimeout(queueLock);
+    csoundLockMutex(queueLock);
     {
       CsoundPerformanceThreadMessage *msg;
       msg = (CsoundPerformanceThreadMessage*) firstMessage;
@@ -314,7 +314,7 @@ int CsoundPerformanceThread::Perform()
       }
     }
     csoundNotifyThreadLock(flushLock);
-    csoundNotifyThreadLock(queueLock);
+    csoundUnlockMutex(queueLock);
     return retval;
 }
 
@@ -357,7 +357,7 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound)
     perfThread = (void*) 0;
     paused = 1;
     status = CSOUND_MEMORY;
-    queueLock = csoundCreateThreadLock();
+    queueLock = csoundCreateMutex(0);
     if (!queueLock)
       return;
     pauseLock = csoundCreateThreadLock();
@@ -424,7 +424,7 @@ void CsoundPerformanceThread::QueueMessage(CsoundPerformanceThreadMessage *msg)
       delete msg;
       return;
     }
-    csoundWaitThreadLockNoTimeout(queueLock);
+    csoundLockMutex(queueLock);
     // link message into FIFO
     if (!lastMessage)
       firstMessage = msg;
@@ -435,7 +435,7 @@ void CsoundPerformanceThread::QueueMessage(CsoundPerformanceThreadMessage *msg)
     csoundWaitThreadLock(flushLock, (size_t) 0);
     // wake up from pause
     csoundNotifyThreadLock(pauseLock);
-    csoundNotifyThreadLock(queueLock);
+    csoundUnlockMutex(queueLock);
 }
 
 /**
@@ -536,8 +536,7 @@ int CsoundPerformanceThread::Join()
     }
     // delete all thread locks
     if (queueLock) {
-      csoundNotifyThreadLock(queueLock);
-      csoundDestroyThreadLock(queueLock);
+      csoundDestroyMutex(queueLock);
       queueLock = (void*) 0;
     }
     if (pauseLock) {

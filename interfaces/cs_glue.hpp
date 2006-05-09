@@ -519,7 +519,7 @@ class CsoundCallbackWrapper {
 class CsoundMidiInputBuffer {
  private:
     unsigned char   *buf;
-    void            *threadLock;
+    void            *mutex_;
     int             bufReadPos;
     int             bufWritePos;
     int             bufBytes;
@@ -617,7 +617,7 @@ class CsoundMidiInputStream : public CsoundMidiInputBuffer {
 class CsoundMidiOutputBuffer {
  private:
     unsigned char   *buf;
-    void            *threadLock;
+    void            *mutex_;
     int             bufReadPos;
     int             bufWritePos;
     int             bufBytes;

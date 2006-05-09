@@ -63,7 +63,7 @@ typedef struct osc_pat {
 typedef struct {
     lo_server_thread thread;
     CSOUND  *csound;
-    void    *threadLock;
+    void    *mutex_;
     void    *oplst;             /* list of opcodes listening on this port */
 } OSC_PORT;
 
@@ -76,7 +76,7 @@ typedef struct {
     OSC_PORT  *ports;
     /* for OSCrecv */
     rtEvt_t *eventQueue;
-    void    *threadLock;
+    void    *mutex_;
     lo_server_thread  st;
     double  baseTime;
     int     absp2mode;
@@ -231,12 +231,12 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
     if (p->eventQueue == NULL)
       return;
 
-    csound->WaitThreadLockNoTimeout(p->threadLock);
+    csound->LockMutex(p->mutex_);
     while (p->eventQueue != NULL) {
       double  startTime;
       rtEvt_t *ep = p->eventQueue;
       p->eventQueue = ep->nxt;
-      csound->NotifyThreadLock(p->threadLock);
+      csound->UnlockMutex(p->mutex_);
       startTime = (p->absp2mode ? p->baseTime : csound->curTime);
       startTime += (double) ep->e.p[2];
       ep->e.p[2] = FL(0.0);
@@ -257,9 +257,9 @@ static void event_sense_callback(CSOUND *csound, OSC_GLOBALS *p)
       if (ep->e.strarg != NULL)
         free(ep->e.strarg);
       free(ep);
-      csound->WaitThreadLockNoTimeout(p->threadLock);
+      csound->LockMutex(p->mutex_);
     }
-    csound->NotifyThreadLock(p->threadLock);
+    csound->UnlockMutex(p->mutex_);
 }
 
 /* callback function for OSC thread */
@@ -332,7 +332,7 @@ static int osc_event_handler(const char *path, const char *types,
       }
     }
     /* queue event for handling by main Csound thread */
-    csound->WaitThreadLockNoTimeout(p->threadLock);
+    csound->LockMutex(p->mutex_);
     if (p->eventQueue == NULL)
       p->eventQueue = evt;
     else {
@@ -341,7 +341,7 @@ static int osc_event_handler(const char *path, const char *types,
         ep = ep->nxt;
       ep->nxt = evt;
     }
-    csound->NotifyThreadLock(p->threadLock);
+    csound->UnlockMutex(p->mutex_);
     return 0;
 }
 
@@ -356,12 +356,12 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
 {
     int i;
 
-    if (p->threadLock != NULL) {
+    if (p->mutex_ != NULL) {
       /* stop and destroy OSC thread */
       lo_server_thread_stop(p->st);
       lo_server_thread_free(p->st);
       /* delete any pending events */
-      csound->WaitThreadLockNoTimeout(p->threadLock);
+      csound->LockMutex(p->mutex_);
       while (p->eventQueue != NULL) {
         rtEvt_t *nxt = p->eventQueue->nxt;
         if (p->eventQueue->e.strarg != NULL)
@@ -369,14 +369,13 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
         free(p->eventQueue);
         p->eventQueue = nxt;
       }
-      csound->NotifyThreadLock(p->threadLock);
-      csound->DestroyThreadLock(p->threadLock);
+      csound->UnlockMutex(p->mutex_);
+      csound->DestroyMutex(p->mutex_);
     }
     for (i = 0; i < p->nPorts; i++) {
       lo_server_thread_stop(p->ports[i].thread);
       lo_server_thread_free(p->ports[i].thread);
-      csound->NotifyThreadLock(p->ports[i].threadLock);
-      csound->DestroyThreadLock(p->ports[i].threadLock);
+      csound->DestroyMutex(p->ports[i].mutex_);
     }
     csound->DestroyGlobalVariable(csound, "_OSC_globals");
     return OK;
@@ -410,10 +409,10 @@ static int OSCrecv_init(CSOUND *csound, OSCRECV *p)
 
     /* allocate and initialise the globals structure */
     pp = alloc_globals(csound);
-    if (pp->threadLock != NULL)
+    if (pp->mutex_ != NULL)
       return csound->InitError(csound, Str("OSCrecv is already running"));
     pp->eventQueue = NULL;
-    pp->threadLock = csound->CreateThreadLock();
+    pp->mutex_ = csound->Create_Mutex(0);
     pp->baseTime = 0.0;
     pp->absp2mode = (*(p->i_absp2) == FL(0.0) ? 0 : 1);
     /* create OSC thread */
@@ -483,7 +482,7 @@ static int OSC_handler(const char *path, const char *types,
     OSCLISTEN *o;
     int       retval = 1;
 
-    pp->csound->WaitThreadLockNoTimeout(pp->threadLock);
+    pp->csound->LockMutex(pp->mutex_);
     o = (OSCLISTEN*) pp->oplst;
     while (o != NULL) {
       if (strcmp(o->saved_path, path) == 0 &&
@@ -534,7 +533,7 @@ static int OSC_handler(const char *path, const char *types,
       }
       o = (OSCLISTEN*) o->nxt;
     }
-    pp->csound->NotifyThreadLock(pp->threadLock);
+    pp->csound->UnlockMutex(pp->mutex_);
     return retval;
 }
 
@@ -556,7 +555,7 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     ports = (OSC_PORT*) csound->ReAlloc(csound, pp->ports,
                                         sizeof(OSC_PORT) * (n + 1));
     ports[n].csound = csound;
-    ports[n].threadLock = csound->CreateThreadLock();
+    ports[n].mutex_ = csound->Create_Mutex(0);
     ports[n].oplst = NULL;
     sprintf(buff, "%d", (int) *(p->port));
     ports[n].thread = lo_server_thread_new(buff, OSC_error);
@@ -572,7 +571,7 @@ static int OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
 
-    csound->WaitThreadLockNoTimeout(p->port->threadLock);
+    csound->LockMutex(p->port->mutex_);
     if (p->port->oplst == (void*) p)
       p->port->oplst = p->nxt;
     else {
@@ -581,7 +580,7 @@ static int OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
         ;
       o->nxt = p->nxt;
     }
-    csound->NotifyThreadLock(p->port->threadLock);
+    csound->UnlockMutex(p->port->mutex_);
     lo_server_thread_del_method(p->port->thread, p->saved_path, p->saved_types);
     csound->Free(csound, p->saved_path);
     p->saved_path = NULL;
@@ -651,10 +650,10 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
         return csound->InitError(csound, "invalid type");
       }
     }
-    csound->WaitThreadLockNoTimeout(p->port->threadLock);
+    csound->LockMutex(p->port->mutex_);
     p->nxt = p->port->oplst;
     p->port->oplst = (void*) p;
-    csound->NotifyThreadLock(p->port->threadLock);
+    csound->UnlockMutex(p->port->mutex_);
     x = lo_server_thread_add_method(p->port->thread,
                                     p->saved_path, p->saved_types,
                                     OSC_handler, p->port);
@@ -672,7 +671,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
       *p->kans = 0;
       return OK;
     }
-    csound->WaitThreadLockNoTimeout(p->port->threadLock);
+    csound->LockMutex(p->port->mutex_);
     m = p->patterns;
     /* check again for thread safety */
     if (m != NULL) {
@@ -693,7 +692,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
     }
     else
       *p->kans = 0;
-    csound->NotifyThreadLock(p->port->threadLock);
+    csound->UnlockMutex(p->port->mutex_);
     return OK;
 }
 
