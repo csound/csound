@@ -95,7 +95,7 @@ void CsoundGUIConsole::messageCallback_NoThread(CSOUND *csound,
     if (!msg)
       return;
     p = (CsoundGUIConsole*) csoundGetHostData(csound);
-    p->threadLock.Lock();
+    p->mutex_.Lock();
     if (p->firstMsg != (Csound_Message*) 0) {
       p->lastMsg->nxt = msg;
       p->lastMsg = msg;
@@ -104,7 +104,7 @@ void CsoundGUIConsole::messageCallback_NoThread(CSOUND *csound,
       p->firstMsg = msg;
       p->lastMsg = msg;
     }
-    p->threadLock.Unlock();
+    p->mutex_.Unlock();
 }
 
 void CsoundGUIConsole::messageCallback_Thread(CSOUND *csound,
@@ -118,7 +118,7 @@ void CsoundGUIConsole::messageCallback_Thread(CSOUND *csound,
     if (!msg)
       return;
     p = (CsoundGUIConsole*) csoundGetHostData(csound);
-    p->threadLock.Lock();
+    p->mutex_.Lock();
     if (p->firstMsg != (Csound_Message*) 0) {
       p->lastMsg->nxt = msg;
       p->lastMsg = msg;
@@ -127,7 +127,7 @@ void CsoundGUIConsole::messageCallback_Thread(CSOUND *csound,
       p->firstMsg = msg;
       p->lastMsg = msg;
     }
-    p->threadLock.Unlock();
+    p->mutex_.Unlock();
     p->msgNotifyLock.Unlock();
 }
 
@@ -136,14 +136,14 @@ void CsoundGUIConsole::Clear()
     Csound_Message *msg;
 
     do {
-      threadLock.Lock();
+      mutex_.Lock();
       msg = firstMsg;
       if (msg != (Csound_Message*) 0) {
         firstMsg = msg->nxt;
         if (firstMsg == (Csound_Message*) 0)
           lastMsg = (Csound_Message*) 0;
       }
-      threadLock.Unlock();
+      mutex_.Unlock();
       if (msg != (Csound_Message*) 0)
         free((void*) msg);
     } while (msg != (Csound_Message*) 0);
@@ -169,14 +169,14 @@ void CsoundGUIConsole::updateDisplay(bool isMainThread)
 
     while (1) {
       Csound_Message *msg;
-      threadLock.Lock();
+      mutex_.Lock();
       msg = firstMsg;
       if (msg != (Csound_Message*) 0) {
         firstMsg = msg->nxt;
         if (firstMsg == (Csound_Message*) 0)
           lastMsg = (Csound_Message*) 0;
       }
-      threadLock.Unlock();
+      mutex_.Unlock();
       if (!msg)
         break;
       switch (msg->attr & CSOUNDMSG_TYPE_MASK) {
