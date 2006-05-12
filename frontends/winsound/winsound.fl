@@ -47,6 +47,9 @@ decl {\#include "csound.h"} {public
 decl {void savetext(Fl_Text_Buffer*,int);} {public
 } 
 
+decl {char *getopcodedir(void);} {selected public
+} 
+
 decl {extern Fl_Preferences app;} {public
 } 
 
@@ -401,7 +404,7 @@ Function {make_extras()} {open
 } {
   Fl_Window {} {
     label {Additional Arguments} open
-    xywh {516 376 400 350} type Double visible
+    xywh {516 388 400 350} type Double visible
   } {
     Fl_Check_Button mI {
       label {I time only (-I)}
@@ -516,12 +519,12 @@ Function {make_environ()} {open
 } {
   Fl_Window {} {
     label Settings open
-    xywh {450 310 325 230} type Double visible
+    xywh {450 322 325 230} type Double visible
   } {
     Fl_File_Input op {
       label OPCODEDIR
       xywh {95 15 185 25}
-      code0 {char *t; prof.get("envop",t, getenv("OPCODEDIR"));}
+      code0 {char *t; prof.get("envop",t, getopcodedir());}
       code1 {op->value(t);}
     }
     Fl_File_Input ss {
@@ -611,7 +614,7 @@ Function {make_info()} {open
 Function {make_anal()} {open
 } {
   Fl_Window analw {open
-    xywh {382 505 365 100} type Double visible
+    xywh {382 517 365 100} type Double visible
   } {
     Fl_File_Input analin {
       label Input
@@ -680,7 +683,7 @@ Function {make_saver()} {open
 } {
   Fl_Window {} {
     label {Save As} open
-    xywh {622 398 395 80} type Double visible
+    xywh {622 410 395 80} type Double visible
   } {
     Fl_File_Input savefile {
       label {Save as}
@@ -956,7 +959,7 @@ Function {make_pvanal()} {open
   Fl_Window {} {
     label {Phase Vocoding Analysis}
     callback {do_util = 0;} open
-    xywh {454 462 450 310} type Double
+    xywh {454 469 450 310} type Double
     code0 {int ct; prof_p.get("c",ct,1); 
 pvc_c1->value(ct==1);pvc_c2->value(ct==2);pvc_c3->value(ct==3);pvc_c4->value(ct==4);} visible
   } {
@@ -1089,7 +1092,7 @@ Function {make_cvlanal()} {open
   Fl_Window {} {
     label {Convolution Analysis}
     callback {do_util = 0;} open
-    xywh {484 341 360 245} type Double
+    xywh {484 353 360 245} type Double
     code0 {int ct; prof_c.get("c",ct,0); 
 cvl_ac->value(ct==0);cvl_c1->value(ct==1);cvl_c2->value(ct==2);cvl_c3->value(ct==3);cvl_c4->value(ct==4);} visible
   } {
@@ -1190,7 +1193,7 @@ Function {make_pvlook()} {open
   Fl_Window {} {
     label {Phase Vocoder Decoder}
     callback {do_util = 0;} open
-    xywh {477 292 410 225} type Double visible
+    xywh {477 304 410 225} type Double visible
   } {
     Fl_File_Input plk_analin {
       label Input
@@ -1244,8 +1247,8 @@ Function {make_dnoise()} {open
 } {
   Fl_Window {} {
     label Dnoiser
-    callback {do_util = 0;} open selected
-    xywh {513 97 455 430} type Double visible
+    callback {do_util = 0;} open
+    xywh {513 109 455 430} type Double visible
   } {
     Fl_File_Input dns_analin {
       label Input
