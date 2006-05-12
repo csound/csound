@@ -86,7 +86,7 @@ int main(int argc, char **argv)
         fname = argv[i + 1];
     }
     if (fname != NULL) {
-      if ((logFile = fopen(fname, "a")) == NULL) {
+      if ((logFile = fopen(fname, "w")) == NULL) {
         fprintf(stderr, "Error opening log file '%s': %s\n",
                         fname, strerror(errno));
         return -1;
