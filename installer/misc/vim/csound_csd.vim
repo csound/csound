@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:     Csound unified file (CSD)
 " Maintainer:   Istvan Varga
-" Last change:  Mar 15 2006
+" Last change:  May 9 2006
 
 syn	clear
 
@@ -43,133 +43,134 @@ syn	match	Identifier	"</[[:alnum:]]\+>" contains=CSDTag
 
 syn	keyword	Statement	a i k p db in abs cos dam exp fin fof fog _in
 syn	keyword	Statement	inh ino inq ins int inx inz lfo log mac max min
-syn	keyword	Statement	out pan pow rms rnd sin sum tab tan tb0 tb1 tb2
-syn	keyword	Statement	tb3 tb4 tb5 tb6 tb7 tb8 tb9 urd vco xin zar zaw
-syn	keyword	Statement	zir ziw zkr zkw adsr babo buzz ceil cent clip
-syn	keyword	Statement	comb cosh diff divz fini fink fmb3 fof2 fold
-syn	keyword	Statement	fout frac ftsr gain goto in32 inch init line
-syn	keyword	Statement	maca maxk moog mute nrpn outc outh outo outq
-syn	keyword	Statement	outs outx outz peak port pset puts pvoc rand
-syn	keyword	Statement	seed sinh sqrt stix tabw tanh tb10 tb11 tb12
-syn	keyword	Statement	tb13 tb14 tb15 tone vadd vco2 vexp vibr vmap
-syn	keyword	Statement	vpow wrap xout xyin zacl zarg zawm ziwm zkcl
-syn	keyword	Statement	zkwm adsyn ampdb atone binit birnd bqrez butbp
-syn	keyword	Statement	butbr buthp butlp chani chano chn_a chn_k chn_S
-syn	keyword	Statement	clear ctrl7 dbamp dconv delay dumpk endin endop
-syn	keyword	Statement	event expon FLbox FLjoy floor FLrun fouti foutk
-syn	keyword	Statement	ftgen ftlen gauss gbuzz grain guiro igoto ihold
-syn	keyword	Statement	instr integ kgoto limit linen log10 lpf18 madsr
-syn	keyword	Statement	max_k metro nlalp noise nsamp oscil out32 outch
-syn	keyword	Statement	outic outkc outq1 outq2 outq3 outq4 outs1 outs2
-syn	keyword	Statement	pareq pitch pluck portk print pvadd pyrun randh
-syn	keyword	Statement	randi rbjeq readk reson resyn rezzy rnd31 round
-syn	keyword	Statement	scans scanu sense space tab_i table tbvcf tempo
-syn	keyword	Statement	timek times tival tonek tonex trmix vaddv vbap4
-syn	keyword	Statement	vbap8 vbapz vcomb vcopy vdivv veloc vexpv vibes
-syn	keyword	Statement	vincr vmult voice vport vpowv vpvoc vsubv vtaba
-syn	keyword	Statement	vtabi vtabk vwrap wgbow xadsr zamod zkmod
-syn	keyword	Statement	active adsynt alpass areson atonek atonex
-syn	keyword	Statement	ATSadd bamboo bbcutm bbcuts biquad button
-syn	keyword	Statement	cabasa cauchy cggoto chnget chnmix chnset
-syn	keyword	Statement	cigoto ckgoto clfilt cngoto cogoto convle
-syn	keyword	Statement	cosinv cpsoct cpspch cpstun cpuprc cross2
-syn	keyword	Statement	crunch ctrl14 ctrl21 delay1 delayk delayr
-syn	keyword	Statement	delayw deltap denorm diskin dumpk2 dumpk3
-syn	keyword	Statement	dumpk4 envlpx expseg filesr fiopen FLhide
-syn	keyword	Statement	FLkeyb FLknob FLpack FLshow FLtabs FLtext
-syn	keyword	Statement	fmbell follow foscil foutir ftconv ftfree
-syn	keyword	Statement	ftload ftmorf ftsave grain2 grain3 harmon
-syn	keyword	Statement	hrtfer initc7 interp jitter linenr lineto
-syn	keyword	Statement	linseg locsig lorenz loscil lowres lpread
-syn	keyword	Statement	lpslot mandel mandol maxabs mclock mdelay
-syn	keyword	Statement	midic7 midiin midion minabs mirror moscil
-syn	keyword	Statement	mpulse mrtmsg mxadsr nlfilt noteon notnum
-syn	keyword	Statement	ntrpol octave octcps octpch opcode oscbnk
-syn	keyword	Statement	oscil1 oscil3 oscili osciln oscils oscilv
-syn	keyword	Statement	oscilx outiat outipb outipc outkat outkpb
-syn	keyword	Statement	outkpc pchoct phasor planet poscil printf
-syn	keyword	Statement	printk prints pvread pvsarp pvsftr pvsftw
-syn	keyword	Statement	pvsifd pvsmix pvsvoc pycall pyeval pyexec
-syn	keyword	Statement	pyinit pylrun pyruni pyrunt random readk2
-syn	keyword	Statement	readk3 readk4 reinit resonk resonr resonx
-syn	keyword	Statement	resony resonz reverb rigoto s16b14 s32b14
-syn	keyword	Statement	sekere sfload sfplay shaker sininv sinsyn
-syn	keyword	Statement	spat3d spdist spsend strcat strcmp strcpy
-syn	keyword	Statement	strget strset strtod strtol table3 tablei
-syn	keyword	Statement	tablew tabrec tabw_i taninv tigoto timout
-syn	keyword	Statement	turnon upsamp vbap16 vcella vco2ft vdelay
-syn	keyword	Statement	vdel_k vlimit vmultv vrandh vrandi vtabwa
-syn	keyword	Statement	vtabwi vtabwk wgclar xscans xscanu adsynt2
-syn	keyword	Statement	aftouch ampdbfs ampmidi aresonk ATSinfo ATSread
-syn	keyword	Statement	balance bexprnd biquada changed clockon control
-syn	keyword	Statement	cps2pch cpsmidi cpstmid cpstuni cpsxpch dbfsamp
-syn	keyword	Statement	dcblock deltap3 deltapi deltapn deltapx diskin2
-syn	keyword	Statement	dispfft display envlpxr event_i exitnow exprand
-syn	keyword	Statement	expsega expsegr filelen filter2 flanger FLcolor
-syn	keyword	Statement	FLcount FLgroup FLlabel flooper FLpanel FLvalue
-syn	keyword	Statement	fmmetal fmrhode fmvoice follow2 foscili fprints
-syn	keyword	Statement	ftchnls ftloadk ftlptim ftsavek gogobel granule
-syn	keyword	Statement	hilbert initc14 initc21 invalue jitter2 jspline
-syn	keyword	Statement	linrand linsegr locsend logbtwo loop_ge loop_gt
-syn	keyword	Statement	loop_le loop_lt loopseg loscil3 lowresx lphasor
-syn	keyword	Statement	lposcil lpreson lpshold marimba massign midic14
-syn	keyword	Statement	midic21 midichn midion2 midiout moogvcf noteoff
-syn	keyword	Statement	nreverb nstrnum octmidi oscil1i OSCinit OSCrecv
-syn	keyword	Statement	OSCsend outic14 outipat outkc14 outkpat pcauchy
-syn	keyword	Statement	pchbend pchmidi phaser1 phaser2 pinkish poisson
-syn	keyword	Statement	polyaft poscil3 printk2 printks product pvcross
-syn	keyword	Statement	pvsanal pvsblur pvscale pvscent pvshift pvsinfo
-syn	keyword	Statement	pvsinit pvsynth pycall1 pycall2 pycall3 pycall4
-syn	keyword	Statement	pycall5 pycall6 pycall7 pycall8 pycalli pycalln
-syn	keyword	Statement	pycallt pyevali pyevalt pyexeci pyexect pylcall
-syn	keyword	Statement	pyleval pylexec pylruni pylrunt randomh randomi
-syn	keyword	Statement	release repluck resonxk reverb2 rspline rtclock
-syn	keyword	Statement	seqtime setctrl sfilist sfinstr sfplay3 sfplaym
-syn	keyword	Statement	sfplist slider8 sndloop sndwarp soundin spat3di
-syn	keyword	Statement	spat3dt specsum sprintf STKMoog strcatk strcmpk
-syn	keyword	Statement	strcpyk streson strtodk strtolk tableiw tablekt
-syn	keyword	Statement	tableng tablera tablewa tabplay taninv2 tempest
-syn	keyword	Statement	tlineto tradsyn transeg trcross trigger trigseq
-syn	keyword	Statement	trirand trscale trshift trsplit turnoff unirand
-syn	keyword	Statement	valpass vco2ift vcopy_i vdelay3 vdelayk vdelayx
-syn	keyword	Statement	vexpseg vibrato vlinseg vlowres vmirror vtablea
-syn	keyword	Statement	vtablei vtablek waveset weibull wgbrass wgflute
-syn	keyword	Statement	wgpluck wguide1 wguide2 xtratim zakinit
-syn	keyword	Statement	ATSaddnz ATScross barmodel betarand bformdec
-syn	keyword	Statement	bformenc butterbp butterbr butterhp butterlp
-syn	keyword	Statement	chanctrl checkbox chnclear clockoff convolve
-syn	keyword	Statement	cpsmidib ctrlinit cuserrnd deltapxw distort1
-syn	keyword	Statement	downsamp dssictls dssiinit dssilist duserrnd
-syn	keyword	Statement	filepeak flashtxt FLbutton FLcolor2 FLprintk
-syn	keyword	Statement	FLroller FLscroll FLsetBox FLsetVal FLslider
-syn	keyword	Statement	fluidCCi fluidCCk fluidOut FLupdate fmpercfl
-syn	keyword	Statement	fmwurlie fofilter fprintks freeverb ftgentmp
-syn	keyword	Statement	hsboscil loopsegp lowpass2 lpfreson lpinterp
-syn	keyword	Statement	lposcil3 lpsholdp maxaccum maxalloc midictrl
-syn	keyword	Statement	minaccum multitap nestedap octmidib oscilikt
-syn	keyword	Statement	outvalue partials pchmidib powoftwo prealloc
-syn	keyword	Statement	printf_i pvinterp pvsadsyn pvscross pvsdemix
-syn	keyword	Statement	pvsfread pvsmaska pyassign pycall1i pycall1t
-syn	keyword	Statement	pycall2i pycall2t pycall3i pycall3t pycall4i
-syn	keyword	Statement	pycall4t pycall5i pycall5t pycall6i pycall6t
-syn	keyword	Statement	pycall7i pycall7t pycall8i pycall8t pycallni
-syn	keyword	Statement	pylcall1 pylcall2 pylcall3 pylcall4 pylcall5
-syn	keyword	Statement	pylcall6 pylcall7 pylcall8 pylcalli pylcalln
-syn	keyword	Statement	pylcallt pylevali pylevalt pylexeci pylexect
-syn	keyword	Statement	reverbsc rireturn samphold schedule semitone
-syn	keyword	Statement	sensekey seqtime2 setksmps sfinstr3 sfinstrm
-syn	keyword	Statement	sfplay3m sfpreset slider16 slider32 slider64
-syn	keyword	Statement	slider8f soundout specaddm specdiff specdisp
-syn	keyword	Statement	specfilt spechist specptrk specscal spectrum
-syn	keyword	Statement	splitrig sprintfk statevar STKBowed STKBrass
-syn	keyword	Statement	STKFlute STKSitar subinstr svfilter tablegpw
-syn	keyword	Statement	tableikt tablemix tableseg tablewkt tablexkt
-syn	keyword	Statement	tb0_init tb1_init tb2_init tb3_init tb4_init
-syn	keyword	Statement	tb5_init tb6_init tb7_init tb8_init tb9_init
-syn	keyword	Statement	tempoval timedseq trfilter trlowest turnoff2
-syn	keyword	Statement	vco2init vdelayxq vdelayxs vdelayxw vecdelay
-syn	keyword	Statement	vtablewa vtablewi vtablewk wgpluck2 wterrain
-syn	keyword	Statement	xscanmap zfilter2 ATSreadnz ATSsinnoi chnexport
+syn	keyword	Statement	out pan pop pow rms rnd sin sum tab tan tb0 tb1
+syn	keyword	Statement	tb2 tb3 tb4 tb5 tb6 tb7 tb8 tb9 urd vco xin zar
+syn	keyword	Statement	zaw zir ziw zkr zkw adsr babo buzz ceil cent
+syn	keyword	Statement	clip comb cosh diff divz fini fink fmb3 fof2
+syn	keyword	Statement	fold fout frac ftsr gain goto in32 inch init
+syn	keyword	Statement	line maca maxk moog mute nrpn outc outh outo
+syn	keyword	Statement	outq outs outx outz peak port pset push puts
+syn	keyword	Statement	pvoc rand seed sinh sqrt stix tabw tanh tb10
+syn	keyword	Statement	tb11 tb12 tb13 tb14 tb15 tone vadd vco2 vexp
+syn	keyword	Statement	vibr vmap vpow wrap xout xyin zacl zarg zawm
+syn	keyword	Statement	ziwm zkcl zkwm adsyn ampdb atone binit birnd
+syn	keyword	Statement	bqrez butbp butbr buthp butlp chani chano chn_a
+syn	keyword	Statement	chn_k chn_S clear ctrl7 dbamp dconv delay dumpk
+syn	keyword	Statement	endin endop event expon FLbox FLjoy floor FLrun
+syn	keyword	Statement	fouti foutk ftgen ftlen gauss gbuzz grain guiro
+syn	keyword	Statement	igoto ihold instr integ kgoto limit linen log10
+syn	keyword	Statement	lpf18 madsr max_k metro nlalp noise nsamp oscil
+syn	keyword	Statement	out32 outch outic outkc outq1 outq2 outq3 outq4
+syn	keyword	Statement	outs1 outs2 pareq pitch pluck portk print pvadd
+syn	keyword	Statement	pyrun randh randi rbjeq readk reson resyn rezzy
+syn	keyword	Statement	rnd31 round scans scanu sense space stack tab_i
+syn	keyword	Statement	table tbvcf tempo timek times tival tonek tonex
+syn	keyword	Statement	trmix vaddv vbap4 vbap8 vbapz vcomb vcopy vdivv
+syn	keyword	Statement	veloc vexpv vibes vincr vmult voice vport vpowv
+syn	keyword	Statement	vpvoc vsubv vtaba vtabi vtabk vwrap wgbow xadsr
+syn	keyword	Statement	zamod zkmod active adsynt alpass areson atonek
+syn	keyword	Statement	atonex ATSadd bamboo bbcutm bbcuts biquad
+syn	keyword	Statement	button cabasa cauchy cggoto chnget chnmix
+syn	keyword	Statement	chnset cigoto ckgoto clfilt cngoto cogoto
+syn	keyword	Statement	convle cosinv cpsoct cpspch cpstun cpuprc
+syn	keyword	Statement	cross2 crunch ctrl14 ctrl21 delay1 delayk
+syn	keyword	Statement	delayr delayw deltap denorm diskin dumpk2
+syn	keyword	Statement	dumpk3 dumpk4 envlpx expseg filesr fiopen
+syn	keyword	Statement	FLhide FLkeyb FLknob FLpack FLshow FLtabs
+syn	keyword	Statement	FLtext fmbell follow foscil foutir ftconv
+syn	keyword	Statement	ftfree ftload ftmorf ftsave grain2 grain3
+syn	keyword	Statement	harmon hrtfer initc7 interp jitter linenr
+syn	keyword	Statement	lineto linseg locsig lorenz loscil lowres
+syn	keyword	Statement	lpread lpslot mandel mandol maxabs mclock
+syn	keyword	Statement	mdelay midic7 midiin midion minabs mirror
+syn	keyword	Statement	moscil mpulse mrtmsg mxadsr nlfilt noteon
+syn	keyword	Statement	notnum ntrpol octave octcps octpch opcode
+syn	keyword	Statement	oscbnk oscil1 oscil3 oscili osciln oscils
+syn	keyword	Statement	oscilv oscilx outiat outipb outipc outkat
+syn	keyword	Statement	outkpb outkpc pchoct phasor planet poscil
+syn	keyword	Statement	printf printk prints pvread pvsarp pvsftr
+syn	keyword	Statement	pvsftw pvsifd pvsmix pvsvoc pycall pyeval
+syn	keyword	Statement	pyexec pyinit pylrun pyruni pyrunt random
+syn	keyword	Statement	readk2 readk3 readk4 reinit remove resonk
+syn	keyword	Statement	resonr resonx resony resonz reverb rigoto
+syn	keyword	Statement	s16b14 s32b14 sekere sfload sfplay shaker
+syn	keyword	Statement	sininv sinsyn spat3d spdist spsend strcat
+syn	keyword	Statement	strcmp strcpy strget strset strtod strtol
+syn	keyword	Statement	table3 tablei tablew tabrec tabw_i taninv
+syn	keyword	Statement	tigoto timout turnon upsamp vbap16 vcella
+syn	keyword	Statement	vco2ft vdelay vdel_k vlimit vmultv vrandh
+syn	keyword	Statement	vrandi vtabwa vtabwi vtabwk wgclar xscans
+syn	keyword	Statement	xscanu adsynt2 aftouch ampdbfs ampmidi aresonk
+syn	keyword	Statement	ATSinfo ATSread balance bexprnd biquada changed
+syn	keyword	Statement	clockon control cps2pch cpsmidi cpstmid cpstuni
+syn	keyword	Statement	cpsxpch dbfsamp dcblock deltap3 deltapi deltapn
+syn	keyword	Statement	deltapx diskin2 dispfft display distort envlpxr
+syn	keyword	Statement	event_i exitnow exprand expsega expsegr filelen
+syn	keyword	Statement	filter2 flanger FLcolor FLcount FLgroup FLlabel
+syn	keyword	Statement	flooper FLpanel FLvalue fmmetal fmrhode fmvoice
+syn	keyword	Statement	follow2 foscili fprints ftchnls ftloadk ftlptim
+syn	keyword	Statement	ftsavek gogobel granule hilbert initc14 initc21
+syn	keyword	Statement	invalue jitter2 jspline linrand linsegr locsend
+syn	keyword	Statement	logbtwo loop_ge loop_gt loop_le loop_lt loopseg
+syn	keyword	Statement	loscil3 lowresx lphasor lposcil lpreson lpshold
+syn	keyword	Statement	marimba massign midic14 midic21 midichn midion2
+syn	keyword	Statement	midiout moogvcf noteoff nreverb nstrnum octmidi
+syn	keyword	Statement	oscil1i OSCinit OSCrecv OSCsend outic14 outipat
+syn	keyword	Statement	outkc14 outkpat pcauchy pchbend pchmidi phaser1
+syn	keyword	Statement	phaser2 pinkish poisson polyaft poscil3 printk2
+syn	keyword	Statement	printks product pvcross pvsanal pvsblur pvscale
+syn	keyword	Statement	pvscent pvshift pvsinfo pvsinit pvsynth pycall1
+syn	keyword	Statement	pycall2 pycall3 pycall4 pycall5 pycall6 pycall7
+syn	keyword	Statement	pycall8 pycalli pycalln pycallt pyevali pyevalt
+syn	keyword	Statement	pyexeci pyexect pylcall pyleval pylexec pylruni
+syn	keyword	Statement	pylrunt randomh randomi release repluck resonxk
+syn	keyword	Statement	reverb2 rspline rtclock seqtime setctrl sfilist
+syn	keyword	Statement	sfinstr sfplay3 sfplaym sfplist slider8 sndloop
+syn	keyword	Statement	sndwarp soundin spat3di spat3dt specsum sprintf
+syn	keyword	Statement	STKMoog strcatk strcmpk strcpyk streson strtodk
+syn	keyword	Statement	strtolk tableiw tablekt tableng tablera tablewa
+syn	keyword	Statement	tabplay taninv2 tempest tlineto tradsyn transeg
+syn	keyword	Statement	trcross trigger trigseq trirand trscale trshift
+syn	keyword	Statement	trsplit turnoff unirand valpass vco2ift vcopy_i
+syn	keyword	Statement	vdelay3 vdelayk vdelayx vexpseg vibrato vlinseg
+syn	keyword	Statement	vlowres vmirror vtablea vtablei vtablek waveset
+syn	keyword	Statement	weibull wgbrass wgflute wgpluck wguide1 wguide2
+syn	keyword	Statement	xtratim zakinit ATSaddnz ATScross barmodel
+syn	keyword	Statement	betarand bformdec bformenc butterbp butterbr
+syn	keyword	Statement	butterhp butterlp chanctrl checkbox chnclear
+syn	keyword	Statement	clockoff compress convolve cpsmidib ctrlinit
+syn	keyword	Statement	cuserrnd deltapxw distort1 downsamp dssictls
+syn	keyword	Statement	dssiinit dssilist duserrnd filepeak flashtxt
+syn	keyword	Statement	FLbutton FLcolor2 FLprintk FLroller FLscroll
+syn	keyword	Statement	FLsetBox FLsetVal FLslider fluidCCi fluidCCk
+syn	keyword	Statement	fluidOut FLupdate fmpercfl fmwurlie fofilter
+syn	keyword	Statement	fprintks freeverb ftgentmp hsboscil loopsegp
+syn	keyword	Statement	lowpass2 lpfreson lpinterp lposcil3 lpsholdp
+syn	keyword	Statement	maxaccum maxalloc midictrl minaccum multitap
+syn	keyword	Statement	nestedap octmidib oscilikt outvalue partials
+syn	keyword	Statement	pchmidib powoftwo prealloc prepiano printf_i
+syn	keyword	Statement	pvinterp pvsadsyn pvscross pvsdemix pvsfread
+syn	keyword	Statement	pvsmaska pyassign pycall1i pycall1t pycall2i
+syn	keyword	Statement	pycall2t pycall3i pycall3t pycall4i pycall4t
+syn	keyword	Statement	pycall5i pycall5t pycall6i pycall6t pycall7i
+syn	keyword	Statement	pycall7t pycall8i pycall8t pycallni pylcall1
+syn	keyword	Statement	pylcall2 pylcall3 pylcall4 pylcall5 pylcall6
+syn	keyword	Statement	pylcall7 pylcall8 pylcalli pylcalln pylcallt
+syn	keyword	Statement	pylevali pylevalt pylexeci pylexect reverbsc
+syn	keyword	Statement	rireturn samphold schedule semitone sensekey
+syn	keyword	Statement	seqtime2 setksmps sfinstr3 sfinstrm sfplay3m
+syn	keyword	Statement	sfpreset slider16 slider32 slider64 slider8f
+syn	keyword	Statement	soundout specaddm specdiff specdisp specfilt
+syn	keyword	Statement	spechist specptrk specscal spectrum splitrig
+syn	keyword	Statement	sprintfk statevar STKBowed STKBrass STKFlute
+syn	keyword	Statement	STKSitar subinstr svfilter tablegpw tableikt
+syn	keyword	Statement	tablemix tableseg tablewkt tablexkt tb0_init
+syn	keyword	Statement	tb1_init tb2_init tb3_init tb4_init tb5_init
+syn	keyword	Statement	tb6_init tb7_init tb8_init tb9_init tempoval
+syn	keyword	Statement	timedseq trfilter trlowest turnoff2 vco2init
+syn	keyword	Statement	vdelayxq vdelayxs vdelayxw vecdelay vtablewa
+syn	keyword	Statement	vtablewi vtablewk wgpluck2 wterrain xscanmap
+syn	keyword	Statement	zfilter2 ATSreadnz ATSsinnoi chnexport
 syn	keyword	Statement	chnparams dripwater dssiaudio FLbutBank
 syn	keyword	Statement	FLgetsnap FLpackEnd FLprintk2 FLsetFont
 syn	keyword	Statement	FLsetSize FLsetsnap FLsetText FLsetVali
