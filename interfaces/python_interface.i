@@ -20,10 +20,13 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifndef MACOSX
 %module(directors="1") csnd
-
 %feature("director") CsoundCallbackWrapper;
 %feature("nodirector") Csound;
+#else /* fix for OSX */
+%module csnd
+#endif
 
 %include "typemaps.i"
 %include "std_string.i"
