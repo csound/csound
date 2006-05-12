@@ -32,12 +32,31 @@ int yieldCallback(CSOUND *csound)
     return 1;
 }
 
+#ifdef WIN32
+static char* thisprogram;
+#endif
+char *getopcodedir(void)
+{
+#ifdef WIN32
+    // Ideally this should default to the installation directory at 
+    // least on windows
+    char *name = strrchr(thisprogram, '\\');
+    if (name) {
+      *name = '\0';
+      return name;
+    }
+#endif
+    return getenv("OPCODEDIR");
+}
+
 Fl_Preferences app(Fl_Preferences::USER, "csounds.com", "winsound");
 Fl_Preferences prof(app, "winsound");
 int main(int argc, char **argv)
 {
     Fl_Double_Window* mw = make_mainwindow();
-
+#ifdef WIN32
+    thisprogram = strdup(argv[0]);
+#endif
     ew = make_environ();
     uw = make_utils();
     xw = make_extras();
@@ -151,6 +170,14 @@ void cs_compile_run(void)
       prof.get("N", itmp, 0); if (itmp) argv[nxt++] = "-N";
       prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = "-Z";
       argv[nxt++] = "-d";       // for the moment
+#if defined(WIN32)
+      argv[nxt++] = "-+rtaudio=mme";
+#elif defined(LINUX)
+      argv[nxt++] = "-+rtaudio=alsa";
+#elif defined(OSX)
+      argv[nxt++] = "-+rtaudio=CoreAudio";
+#else
+#endif
       csoundReset(csound);
 //       {
 //         int n;
