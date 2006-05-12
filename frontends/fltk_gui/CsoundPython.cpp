@@ -181,15 +181,15 @@ bool enablePython(void *pythonLibrary, CSOUND **csound_)
       return false;
     }
     else {
-      csoundDestroy(csound);
       csound = cppSound->getCsound();
       csoundSetHostData(csound, csoundGetHostData(*csound_));
       csoundSetMessageCallback(csound,
                                &CsoundGUIConsole::messageCallback_Thread);
-    }
+    csoundDestroy(*csound_);
     csoundMessage(csound, "Python scripting has been enabled.\n");
     *csound_ = csound;
 
     return true;
+    }
 }
 
