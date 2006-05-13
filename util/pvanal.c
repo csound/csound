@@ -318,17 +318,17 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
 
 static const char *pvanal_usage_txt[] = {
     "Usage: pvanal [options...] inputSoundfile outputFFTfile.pvx",
-    "Options:",
-    "    -c <channel>",
-    "    -b <beginTime>",
-    "    -d <duration>",
-    "    -n <frameSize>",
-    "    -w <windowOverlap> | -h <hopSize>",
-    "    -g | -G <latch>",
-    "    -v | -V <txtFile>",
-    "    -H: use Hamming window instead of the default (Hanning)",
-    "    -K: use Kaiser window",
-    "    -B <beta>: parameter for Kaiser window",
+    "Options:\n",
+    "    -c <channel>\n",
+    "    -b <beginTime>\n",
+    "    -d <duration>\n",
+    "    -n <frameSize>\n",
+    "    -w <windowOverlap> | -h <hopSize>\n",
+    "    -g | -G <latch>\n",
+    "    -v | -V <txtFile>\n",
+    "    -H: use Hamming window instead of the default (Hanning)\n",
+    "    -K: use Kaiser window\n",
+    "    -B <beta>: parameter for Kaiser window\n",
     NULL
 };
 
