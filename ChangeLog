@@ -12,6 +12,10 @@
 	  csoundCreateMutex, csoundLockMutex, csoundLockMutexNoWait,
 	  csoundUnlockMutex, csoundDestroyMutex, csoundRunCommand
 
+2006-05-06	Istvan Varga	<ivarga@csounds.com>
+	* Opcodes/stackops.c:
+	  new opcodes: stack, push, pop
+
 2006-05-04	Istvan Varga	<ivarga@csounds.com>
 	* InOut/rtalsa.c:
 	  added new "devfile" MIDI driver that uses device files in /dev,
