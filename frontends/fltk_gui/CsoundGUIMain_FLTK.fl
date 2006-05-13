@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundGUIMain {open
+class CsoundGUIMain {open selected
 } {
   decl {CsoundGlobalSettings currentGlobalSettings;} {public
   }
@@ -33,6 +33,7 @@ class CsoundGUIMain {open
   decl {CsoundUtility *utility_dnoise;} {}
   decl {int utilityState;} {public
   }
+  decl {void *pythonLibrary;} {}
   Function {CsoundGUIMain()} {open
   } {
     code {{
@@ -54,10 +55,11 @@ class CsoundGUIMain {open
   utility_srconv = (CsoundUtility*) 0;
   utility_dnoise = (CsoundUtility*) 0;
   utilityState = 0;
+  pythonLibrary = (void*) 0;
 }} {}
     Fl_Window window {
       label {Csound 5} open
-      xywh {131 150 359 325} type Double visible
+      xywh {131 150 360 325} type Double visible
     } {
       Fl_Group {} {open
         xywh {10 10 340 155} box THIN_UP_FRAME
@@ -106,7 +108,7 @@ updateGUIState_scoName();}
         }
         Fl_Input outfileNameInput {
           label {Output file}
-          callback {currentPerformanceSettings.outputFileName = o->value();
+          callback {stripString(currentPerformanceSettings.outputFileName, o->value());
 updateGUIState_outFile();}
           xywh {55 90 125 25} align 8
           code0 {o->value(currentPerformanceSettings.outputFileName.c_str());}
@@ -127,7 +129,7 @@ updateGUIState_outFile();}
         }
         Fl_Input scriptFileNameInput {
           label {Python file}
-          callback {currentPerformanceSettings.scriptFileName = o->value();
+          callback {stripString(currentPerformanceSettings.scriptFileName, o->value());
 updateGUIState_scriptFile();}
           xywh {55 126 125 25} align 8
           code0 {o->value(currentPerformanceSettings.scriptFileName.c_str());}
@@ -138,7 +140,7 @@ updateGUIState_scriptFile();}
   CsoundGUIMain::browseFile(currentPerformanceSettings.scriptFileName, "Select Python script file", CSOUND5GUI_FILETYPE_PYTHON, false);
   scriptFileNameInput->value(currentPerformanceSettings.scriptFileName.c_str());
   updateGUIState_scriptFile();
-}} selected
+}}
           tooltip {Browse Python script file} xywh {20 126 25 25}
         }
         Fl_Button editScriptfileButton {
@@ -275,7 +277,7 @@ else if (o->value() == 1)
   }
   decl {void updateGUIValues();} {public
   }
-  decl {void run();} {public
+  decl {void run(bool);} {public
   }
   decl {void startPerformance();} {public
   }
@@ -335,4 +337,8 @@ else if (o->value() == 1)
   }
   decl {void stopDnoise();} {public
   }
+  decl {bool enablePython();} {}
+  decl {void disablePython();} {}
+  decl {static int runScriptFile(const char *);} {}
+  decl {static int runScript(const char *);} {}
 } 

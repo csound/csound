@@ -19,13 +19,22 @@
 
 #include "CsoundGUI.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
     CsoundGUIMain   *mainWin;
+    bool            enablePython = false;
 
+    if (csoundGetSizeOfMYFLT() == (int) sizeof(double))
+      enablePython = true;
+    for (int i = 1; i < argc; i++) {
+      if (std::strcmp(argv[i], "-python") == 0)
+        enablePython = true;
+      else if (std::strcmp(argv[i], "-nopython") == 0)
+        enablePython = false;
+    }
     Fl::lock();
     mainWin = new CsoundGUIMain;
-    mainWin->run();
+    mainWin->run(enablePython);
     delete mainWin;
     Fl::wait(0.0);
 
