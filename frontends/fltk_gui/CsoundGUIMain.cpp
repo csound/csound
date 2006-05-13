@@ -20,8 +20,6 @@
 #include "CsoundGUI.hpp"
 #include <FL/Fl_File_Chooser.H>
 
-extern bool enablePython(void *, CSOUND **csound);
-
 #ifndef WIN32
 #  include <sys/types.h>
 #  include <unistd.h>
@@ -302,7 +300,8 @@ void CsoundGUIMain::updateGUIState_scoName()
 
 void CsoundGUIMain::updateGUIState_scriptFile()
 {
-    if ((int) currentPerformanceSettings.scriptFileName.size() == 0)
+    if ((int) currentPerformanceSettings.scriptFileName.size() == 0 ||
+        pythonLibrary == (void*) 0)
       editScriptfileButton->deactivate();
     else
       editScriptfileButton->activate();
@@ -352,7 +351,17 @@ void CsoundGUIMain::updateGUIValues()
 {
     orcNameInput->value(currentPerformanceSettings.orcName.c_str());
     scoreNameInput->value(currentPerformanceSettings.scoName.c_str());
-    scriptFileNameInput->value(currentPerformanceSettings.scriptFileName.c_str());
+    if (pythonLibrary) {
+      scriptFileNameInput->activate();
+      scriptfileNameButton->activate();
+      scriptFileNameInput->value(
+          currentPerformanceSettings.scriptFileName.c_str());
+    }
+    else {
+      scriptFileNameInput->deactivate();
+      scriptfileNameButton->deactivate();
+      scriptFileNameInput->value("");
+    }
     outfileNameInput->value(currentPerformanceSettings.outputFileName.c_str());
     scoreOffsetInput->value(currentPerformanceSettings.scoreOffsetSeconds);
     if (performing && csPerf != (CsoundPerformance*) 0) {
@@ -365,71 +374,23 @@ void CsoundGUIMain::updateGUIValues()
     updateGUIState();
 }
 
-static const char *pythonLibraryPathList[] = {
-#ifdef WIN32
-    "python24.dll",
-    "python23.dll",
-#elif defined(__MACH__)
-    // hope that one of these will work
-    "/System/Library/Frameworks/Python.Framework/Versions/Current/Python",
-    "/System/Library/Frameworks/Python.framework/Versions/Current/Python",
-    "/System/Library/Frameworks/Python.Framework/Versions/2.4/Python",
-    "/System/Library/Frameworks/Python.framework/Versions/2.4/Python",
-    "/System/Library/Frameworks/Python.Framework/Versions/2.3/Python",
-    "/System/Library/Frameworks/Python.framework/Versions/2.3/Python",
-    "/usr/lib/libpython2.4.dylib",
-    "/usr/lib/libpython2.3.dylib",
-    "/Library/Frameworks/Python.Framework/Versions/Current/Python",
-    "/Library/Frameworks/Python.framework/Versions/Current/Python",
-    "/Library/Frameworks/Python.Framework/Versions/2.4/Python",
-    "/Library/Frameworks/Python.framework/Versions/2.4/Python",
-    "/Library/Frameworks/Python.Framework/Versions/2.3/Python",
-    "/Library/Frameworks/Python.framework/Versions/2.3/Python",
-    "/usr/local/lib/libpython2.4.dylib",
-    "/usr/local/lib/libpython2.3.dylib",
-#else
-    "libpython2.4.so",
-    "libpython2.3.so",
-#endif
-    (char*) 0
-};
-
-void CsoundGUIMain::run()
+void CsoundGUIMain::run(bool enablePython_)
 {
-    void    *pythonLibrary = (void*) 0;
-    int     result = CSOUND_ERROR;
-
     readCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
     readCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
     readCsound5GUIConfigFile("u_cfg.dat", currentUtilitySettings);
-
-    updateGUIValues();
 
     csound = csoundCreate((void*) &consoleWindow);
     if (!csound)
       return;
     csoundSetMessageCallback(csound,
                              &CsoundGUIConsole::messageCallback_Thread);
+    if (enablePython_)
+      enablePython();
+    else
+      csoundMessage(csound, "Python scripting is disabled.\n");
 
-#ifdef WIN32
-    // avoid pop-up window about missing DLL file
-    SetErrorMode((UINT) SEM_NOOPENFILEERRORBOX);
-#endif
-    for (const char **sp = &(pythonLibraryPathList[0]); *sp != (char*) 0; sp++)
-      if ((result = csoundOpenLibrary(&pythonLibrary, *sp)) == CSOUND_SUCCESS)
-        break;
-#ifdef WIN32
-    SetErrorMode((UINT) 0);
-#endif
-    if (result != CSOUND_SUCCESS) {
-      csoundMessageS(csound, CSOUNDMSG_WARNING,
-                             "Python not found, disabling scripting. "
-                             "Check your PATH or Python installation.\n");
-    }
-    else {
-      enablePython(pythonLibrary, &csound);
-    }
-    updateGUIState();
+    updateGUIValues();
     consoleWindow.window->show();
     window->show();
 
@@ -492,7 +453,10 @@ void CsoundGUIMain::run()
       csPerf = (CsoundPerformance*) 0;
     }
     paused = true;
-    csoundDestroy(csound);
+    if (!pythonLibrary)
+      csoundDestroy(csound);
+    else
+      disablePython();
     csound = (CSOUND*) 0;
     closePerformanceSettingsWindow();
     closeGlobalSettingsWindow();
