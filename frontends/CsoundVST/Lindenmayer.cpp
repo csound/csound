@@ -151,7 +151,7 @@ namespace csound
                                                 a = Conversions::stringToDouble(action.substr(1));
                                         }
                                         double step;
-                                        for (int i = 1; i < Event::HOMOGENEITY; i++)
+                                        for (int i = 0; i < Event::HOMOGENEITY; i++)
                                         {
                                                 step = turtle[i] + (turtleStep[i] * a * turtleOrientation[i]);
                                                 turtle[i] = step;
@@ -278,9 +278,9 @@ namespace csound
         {
                 switch(dimension)
                 {
+                case 'i': return Event::INSTRUMENT;
                 case 't': return Event::TIME;
                 case 'd': return Event::DURATION;
-                case 'i': return Event::INSTRUMENT;
                 case 'k': return Event::KEY;
                 case 'v': return Event::VELOCITY;
                 case 'p': return Event::PHASE;
