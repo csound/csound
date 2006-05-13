@@ -24,6 +24,8 @@ int main(int argc, char **argv)
     CsoundGUIMain   *mainWin;
     bool            enablePython = false;
 
+    if (csoundInitialize(&argc, &argv, 0) < 0)
+      return -1;
     if (csoundGetSizeOfMYFLT() == (int) sizeof(double))
       enablePython = true;
     for (int i = 1; i < argc; i++) {
