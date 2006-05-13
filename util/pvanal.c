@@ -328,6 +328,7 @@ static const char *pvanal_usage_txt[] = {
     "    -v | -V <txtFile>",
     "    -H: use Hamming window instead of the default (Hanning)",
     "    -K: use Kaiser window",
+    "    -B <beta>: parameter for Kaiser window",
     NULL
 };
 
