@@ -120,14 +120,15 @@ static  int     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
                                         const char *fname,
                                         long srate, long chans, long fftsize,
                                         long overlap, long winsize,
-                                        pv_wtype wintype, int verbose);
+                                        pv_wtype wintype, int verbose,
+                                        double beta);
 static  long    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
                                         long samps, int frametype);
 static  void    chan_split(CSOUND*, const MYFLT *inbuf, MYFLT **chbuf,
                                     long insize, long chans);
 static  int     init(CSOUND *csound,
                      PVX **pvx, long srate, long fftsize, long winsize,
-                     long overlap, pv_wtype wintype);
+                     long overlap, pv_wtype wintype, double beta);
 /* from elsewhere in Csound! But special form for CARL code*/
 static  void    hamming(MYFLT *win, int winLen, int even);
 static  double  besseli(double x);
@@ -166,6 +167,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
     int     verbose = 0;
+    double  beta = 6.8;
 
     csound->oparms->displays = 0;
     if (!(--argc))
@@ -206,6 +208,10 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
             break;
           case 'K':
             WindowType = PVOC_KAISER;
+            break;
+          case 'B':
+            FIND(Str("no beta given"));
+            sscanf(s, "%lf", &beta);
             break;
           case 'n':  FIND(Str("no framesize"));
             sscanf(s, "%ld", &frameSize);
@@ -300,7 +306,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     if (pvxanal(csound, p, infd, outfilnam, p->sr,
                         ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
-                        WindowType, verbose) != 0) {
+                        WindowType, verbose, beta) != 0) {
       csound->Message(csound, Str("error generating pvocex file.\n"));
       return -1;
     }
@@ -406,7 +412,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int frame)
 
 static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    long srate, long chans, long fftsize, long overlap,
-                   long winsize, pv_wtype wintype, int verbose)
+                   long winsize, pv_wtype wintype, int verbose, double beta)
 {
     int         i, k, pvfile = -1, rc = 0;
     pv_stype    stype = STYPE_16;
@@ -443,7 +449,7 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
     /* TODO: save some memory and create analysis window once! */
 
     for (i=0; i < chans;i++)
-      rc += init(csound, &pvx[i], srate, fftsize, winsize, overlap, wintype);
+      rc += init(csound, &pvx[i], srate, fftsize, winsize, overlap, wintype, beta);
 
     if (rc)
       goto error;
@@ -547,7 +553,7 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
 
 static int init(CSOUND *csound,
                 PVX **pvx, long srate, long fftsize, long winsize,
-                long overlap, pv_wtype wintype)
+                long overlap, pv_wtype wintype, double beta)
 {
     int i;
     long N,N2,M,Mf,D;
@@ -571,7 +577,7 @@ static int init(CSOUND *csound,
     thispvx->ibuflen    = 0;        /* length of input buffer */
 
     thispvx->nI   = 0;              /* current input (analysis) sample */
-    thispvx->beta = FL(6.8);        /* parameter for Kaiser window */
+    thispvx->beta = beta;           /* parameter for Kaiser window */
     thispvx->Mf   = 0;              /* flag for even M */
     thispvx->K  = 0;
     thispvx->vH = 0;
