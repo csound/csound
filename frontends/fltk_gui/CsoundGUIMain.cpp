@@ -20,15 +20,6 @@
 #include "CsoundGUI.hpp"
 #include <FL/Fl_File_Chooser.H>
 
-#ifndef WIN32
-#  include <sys/types.h>
-#  include <unistd.h>
-#else
-#  include <process.h>
-#  define WIN32_LEAN_AND_MEAN 1
-#  include <windows.h>
-#endif
-
 void CsoundGUIMain::setTimeDisplay(double timeVal)
 {
     char    buf[13];
@@ -82,31 +73,26 @@ int CsoundGUIMain::runCmd(std::string& cmdLine)
     int         nTokens = 0;
     int         mode = 0;   // 0: white space, 1: collecting, 2: quoted string
     int         len;
-    int         err;
 
     curToken = "";
     len = (int) cmdLine.size();
     for (int i = 0; i < len; i++) {
       char  c;
       c = cmdLine[i];
-      if ((c == ' ' || c == '\t' || c == '\r' || c == '\n') && mode == 1) {
-        mode = 0;
-        args.push_back(curToken);
-        argv.push_back(const_cast<char *>(args[nTokens].c_str()));
-        nTokens++;
-        curToken = "";
-      }
-      else if (c == '"') {
-        if (mode == 2) {
+      if ((c == ' ' || c == '\t' || c == '\r' || c == '\n') && mode != 2) {
+        if (mode != 0) {
           mode = 0;
           args.push_back(curToken);
           argv.push_back(const_cast<char *>(args[nTokens].c_str()));
           nTokens++;
           curToken = "";
         }
-        else {
+      }
+      else if (c == '"') {
+        if (mode == 2)
+          mode = 1;
+        else
           mode = 2;
-        }
       }
       else {
         if (mode == 0)
@@ -122,18 +108,8 @@ int CsoundGUIMain::runCmd(std::string& cmdLine)
     if (!nTokens)
       return 0;
     argv.push_back((char*) 0);
-#ifndef WIN32
-    err = (int) fork();
-    if (err < 0)
+    if (csoundRunCommand(&(argv.front()), 1) < 0L)
       return -1;
-    if (err == 0) {
-      std::exit(execvp(argv[0], &(argv.front())));
-    }
-#else
-    err = (int) _spawnvp(_P_NOWAIT, argv[0], &(argv.front()));
-    if (err < 0)
-      return -1;
-#endif
 
     return 0;
 }
