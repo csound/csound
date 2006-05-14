@@ -611,6 +611,7 @@ void CsoundVstFltk::onPerform(Fl_Button* fl_button, CsoundVstFltk* csoundVstFltk
   runtimeMessagesBrowser->clear();
   csound::System::debug("BEGAN CsoundVstFltk::onPerform...\n");
   updateModel();
+  mainTabs->value(settingsGroup);
   csoundVST->perform();
   csound::System::debug("ENDED CsoundVstFltk::onPerform.\n");
 }
