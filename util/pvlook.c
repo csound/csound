@@ -2,6 +2,7 @@
     pvlook.c:
 
     Copyright (C) 1993 Richard Karpen
+                  2006 John ffitch
 
     This file is part of Csound.
 
@@ -26,46 +27,23 @@
 /*******************************************************************/
 
 #include "std_util.h"
-
-#define PVSHORT 2       /* for .format .. 16 bit linear data */
-#define PVMYFLT 4       /* for .format .. 32 bit float data */
-
-#define PVDFLTBYTS 4
-
-#define PVMAGIC 517730  /* look at it upside-down, esp on a 7-seg display */
-
-#define PVDFLTBYTS 4
-
-typedef struct pvstruct
-{
-    long        magic;                  /* magic number to identify */
-    long        headBsize;              /* byte offset from start to data */
-    long        dataBsize;              /* number of bytes of data */
-    long        dataFormat;             /* (int) format specifier */
-    float       samplingRate;           /* of original sample */
-    long        channels;               /* (int) mono/stereo etc */
-    long        frameSize;              /* size of FFT frames (2^n) */
-    long        frameIncr;              /* # new samples each frame */
-    long        frameBsize;             /* bytes in each file frame */
-    long        frameFormat;            /* (int) how words are org'd in frms */
-    float       minFreq;                /* freq in Hz of lowest bin (exists) */
-    float       maxFreq;                /* freq in Hz of highest (or next) */
-    long        freqFormat;             /* (int) flag for log/lin frq */
-    char        info[PVDFLTBYTS];       /* extendable byte area */
-} PVSTRUCT;
+#include "pvfileio.h"
+#include <limits.h>
 
 static int pvlook(CSOUND *csound, int argc, char *argv[])
 {
     int     i, j, k;
-    FILE    *fp, *outfd = stdout;
-    float   *pvdataF, *pvdataA;
-    PVSTRUCT *phdr;
+    int     fp;
+    FILE    *outfd = stdout;
+    float   *frame;
     int     numframes, framesize;
-    int     l, FuncSize, num=0;
-    long    m;
-    int     firstBin, lastBin, numBins, lastFrame;
+    int     l, FuncSize;
+    unsigned int     firstBin, lastBin, numBins, lastFrame;
     int     printInts=1;
     int     firstFrame = 1;
+    int     nchnls;
+    PVOCDATA data;
+    WAVEFORMATEX fmt;
 
     if (argc < 2) {
       csound->Message(csound,
@@ -86,41 +64,22 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
       csound->Message(csound,
               " -ef X  end at anaysis frame X [defaults to last]\n");
       csound->Message(csound,
-              " -i X  prints values as integers [defaults to "
+              " -i  prints values as integers [defaults to "
               "floating point]\n");
       return -1;
     }
 
-    phdr =  (PVSTRUCT*) csound->Malloc(csound,  sizeof(PVSTRUCT));
-    pvdataF = (float*) csound->Malloc(csound, sizeof(float));
-    pvdataA = (float*) csound->Malloc(csound, sizeof(float));
-
-    if ((fp = fopen(argv[argc - 1], "rb")) == NULL) {
+    if ((fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt)) < 0) {
       csound->Message(csound, "pvlook: Unable to open '%s'\n Does it exist?",
                               argv[argc - 1]);
-      csound->Free(csound, pvdataF);
-      csound->Free(csound, pvdataA);
-      csound->Free(csound, phdr);
       return -1;
     }
 
-    rewind(fp);
-    fread(phdr, 1, sizeof(PVSTRUCT), fp);
-
-    if (phdr->magic != PVMAGIC) {
-      csound->Message(csound, "'%s' is not a pvoc file\n", argv[argc-1]);
-      fclose(fp);
-      csound->Free(csound, pvdataF);
-      csound->Free(csound, pvdataA);
-      csound->Free(csound, phdr);
-      return -1;
-    }
-
-    framesize = phdr->frameSize + 2;
-    numframes = ((phdr->dataBsize / 4) / framesize);
-    firstBin = 1;
-    lastBin = (framesize / 2);
-    lastFrame = numframes;
+    nchnls = fmt.nChannels;
+    firstFrame = firstBin = 1;
+    lastFrame = UINT_MAX;
+    lastBin = data.nAnalysisBins;
+    frame = (float*)csound->Malloc(csound, 2*data.nAnalysisBins*sizeof(float));
 
     for (i = 1; i < argc; i++) {
       if (!strcmp(argv[i], "-bb"))  firstBin = atoi(argv[++i]);
@@ -134,79 +93,95 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
     for (l = 2; l < numframes; l *= 2);
     FuncSize = l + 1;
 
-    fprintf(outfd, "; Bins in Analysis: %d\n", framesize/2);
-    fprintf(outfd, "; First Bin Shown: %d\n", firstBin);
-    fprintf(outfd, "; Number of Bins Shown: %d\n", numBins);
-    fprintf(outfd, "; Frames in Analysis: %ld\n",
-                   ((phdr->dataBsize/4) / framesize));
-    fprintf(outfd, "; First Frame Shown: %d\n", firstFrame);
-    fprintf(outfd, "; Number of Data Frames Shown: %d\n", numframes);
+    csound->Message(csound, "; Channels\t%d\n", nchnls);
+    csound->Message(csound, "; Word Format\t%s\n",
+                    data.wWordFormat==PVOC_IEEE_FLOAT?"float":"double");
+    csound->Message(csound, "; Frame Type\t%s\n",
+                    data.wAnalFormat==PVOC_AMP_FREQ?"Amplitude/Frequency":
+                    data.wAnalFormat==PVOC_AMP_PHASE?"Amplitude/Phase":"Complex");
+    csound->Message(csound, "; Source format\t%s\n",
+                    data.wSourceFormat==STYPE_16?"16bit":
+                    data.wSourceFormat==STYPE_24?"24bit":
+                    data.wSourceFormat==STYPE_32?"32bit":
+                    "float");
+    csound->Message(csound, "; Window Type\t%s",
+                    data.wWindowType==PVOC_DEFAULT?"Default":
+                    data.wWindowType==PVOC_HAMMING?"Hamming":
+                    data.wWindowType==PVOC_HANN?"vonHann":
+                    data.wWindowType==PVOC_KAISER?"Kaiser":
+                    data.wWindowType==PVOC_RECT?"Rectangular":
+                    "Custom");
+    if (data.wWindowType==PVOC_KAISER)
+      csound->Message(csound, "(%f)",data.fWindowParam);
+    csound->Message(csound, "\n; FFT Size\t%d\n",data.nAnalysisBins);
+    csound->Message(csound, "; Window length\t%d\n",data.dwWinlen);
+    csound->Message(csound, "; Overlap\t%d\n",data.dwOverlap);
+    csound->Message(csound, "; Frame align\t%d\n",data.dwFrameAlign);
+    csound->Message(csound, "; Analysis Rate\t%f\n",data.fAnalysisRate);
 
-    csound->Message(csound, "; Bins in Analysis: %d\n", framesize/2);
+    framesize = data.nAnalysisBins * 2 *sizeof(float);
+
+/*     csound->Message(csound, "; Bins in Analysis: %d\n", data.nAnalysisBins); */
     csound->Message(csound, "; First Bin Shown: %d\n", firstBin);
     csound->Message(csound, "; Number of Bins Shown: %d\n", numBins);
-    csound->Message(csound, "; Frames in Analysis: %ld\n",
-                            ((phdr->dataBsize / 4) / framesize));
-    csound->Message(csound, "; First Frame Shown: %d\n", firstFrame);
-    csound->Message(csound, "; Number of Data Frames Shown: %d\n", numframes);
-    rewind(fp);
+/*     csound->Message(csound, "; Frames in Analysis: %ld\n", */
+/*                             ((phdr->dataBsize / 4) / framesize)); */
+/*     csound->Message(csound, "; First Frame Shown: %d\n", firstFrame); */
+/*     csound->Message(csound, "; Number of Data Frames Shown: %d\n", numframes); */
     if (printInts != 0) {
-      for (k = 0; k < numBins * 2; k += 2) {
-        j=((firstBin*2)-1) + k;
-        fprintf(outfd, "\nBin %d Freqs.", firstBin + k / 2);
-        csound->Message(csound, "\nBin %d Freqs.", firstBin + k / 2);
-        for (i = firstFrame-1; i < lastFrame; i++) {
-          m = 56 + ((j + (i * framesize)) * 4);
-          fseek(fp, m, SEEK_SET);
-          num += fread(pvdataF, sizeof(float), 1, fp);
-          fprintf(outfd, "%.3f ", *pvdataF);
+      for (k = 0; k<numBins; k++) {
+        csound->Message(csound, "\nBin %d Freqs.", firstBin + k);
+        for (j=1; j<firstFrame; j++)
+          csound->PVOC_GetFrames(csound,fp,frame,1); /* Skip */
+        for (j=firstFrame; j<=lastFrame; j++) {
+          if (csound->PVOC_GetFrames(csound,fp,frame,1)<0) break;
+          csound->Message(csound, "%.3f ", frame[(firstBin + k)*2]);
         }
-        fprintf(outfd, "\n");
-        j = ((firstBin * 2) - 2) + k;
-        fprintf(outfd, "\nBin %d Amps. ", firstBin + k / 2);
-        csound->Message(csound, "\nBin %d Amps. ", firstBin + k / 2);
-        for (i = firstFrame-1; i < lastFrame; i++) {
-          m =  56 + ((j + (i * framesize)) * 4);
-          fseek(fp, m, SEEK_SET);
-          num += fread(pvdataA, sizeof(float), 1, fp);
-          fprintf(outfd, "%.3f ", *pvdataA);
+        csound->Message(csound, "\n");
+        csound->PVOC_CloseFile(csound, fp);
+        fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt);
+        for (j=1; j<firstFrame; j++)
+          csound->PVOC_GetFrames(csound,fp,frame,1); /* Skip */
+        csound->Message(csound, "\nBin %d Amps. ", firstBin + k);
+        for (j=firstFrame; j<=lastFrame; j++) {
+          if (csound->PVOC_GetFrames(csound,fp,frame,1)!=1) break;
+          csound->Message(csound, "%.3f ", frame[1+(firstBin + k)*2]);
         }
-        fprintf(outfd, "\n");
+        csound->Message(csound, "\n");
+        csound->PVOC_CloseFile(csound, fp);
+        fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt);
       }
     }
     else {
-      for (k = 0; k < numBins * 2; k += 2) {
-        j = ((firstBin * 2) - 1) + k;
-        fprintf(outfd, "\nBin %d Freqs.", firstBin + k / 2);
-        csound->Message(csound, "\nBin %d Freqs.", firstBin + k / 2);
-        for (i = firstFrame - 1; i < lastFrame; i++) {
-          m = 56 + ((j + (i * framesize)) * 4);
-          fseek(fp, m, SEEK_SET);
-          num += fread(pvdataF, sizeof(float), 1, fp);
-          fprintf(outfd, "%d ", (int) *pvdataF);
+      for (k = 0; k<numBins; k++) {
+        fprintf(outfd, "\nBin %d Freqs.", firstBin+k);
+        csound->Message(csound, "\nBin %d Freqs.", firstBin + k);
+        for (j=1; j<firstFrame; j++)
+          csound->PVOC_GetFrames(csound,fp,frame,1); /* Skip */
+        for (j=firstFrame; j<=lastFrame; j++) {
+          if (csound->PVOC_GetFrames(csound,fp,frame,1)!=1) break;
+          csound->Message(csound, "%d ", (int)frame[(firstBin + k)*2]);
         }
-        fprintf(outfd, "\n");
-
-        j = ((firstBin * 2) - 2) + k;
-        fprintf(outfd, "\nBin %d Amps. ", firstBin + k / 2);
-        csound->Message(csound, "\nBin %d Amps. ", firstBin + k / 2);
-        for (i = firstFrame-1; i < lastFrame; i++) {
-          m =  56 + ((j + (i * framesize)) * 4);
-          fseek(fp, m, SEEK_SET);
-          num += fread(pvdataA, sizeof(float), 1, fp);
-          fprintf(outfd, "%d ", (short) *pvdataA);
+        csound->Message(csound, "\n");
+        csound->PVOC_CloseFile(csound, fp);
+        fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt);
+        csound->Message(csound, "\nBin %d Amps. ", firstBin + k);
+        for (j=1; j<firstFrame; j++)
+          csound->PVOC_GetFrames(csound,fp,frame,1); /* Skip */
+        for (j=firstFrame; j<=lastFrame; j++) {
+          if (csound->PVOC_GetFrames(csound,fp,frame,1)!=1) break;
+          csound->Message(csound, "%d ", (int)frame[1+(firstBin + k)*2]);
         }
-        fprintf(outfd, "\n");
+        csound->Message(csound, "\n");
+        csound->PVOC_CloseFile(csound, fp);
+        fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt);
       }
     }
-
-    fclose(fp);
+    
+    csound->PVOC_CloseFile(csound,fp);
     if (outfd != stdout)
       fclose(outfd);
-    csound->Free(csound, pvdataF);
-    csound->Free(csound, pvdataA);
-    csound->Free(csound, phdr);
-
+    
     return 0;
 }
 
