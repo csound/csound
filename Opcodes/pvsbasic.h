@@ -23,6 +23,26 @@
 */
 
 /*
+   PVSMOOTH:
+  fsig  pvsmooth  fsigin, kcfa, kcff
+
+  Smooths the spectral functions of a pvs signal.
+
+  fsigin: input signal
+  kcfa:  cutoff frequency amount of LP filter applied to amplitudes
+         (0 - 1)
+  kcff: cutoff frequency amount of LP filter applied to frequencies
+         (0 - 1)
+
+   PVSFREEZE:
+   fsig pvsfreeze fsigin, kfreeza, freezf   
+   
+   Freeze a spectral frame.
+
+   fsigin: input
+   kfreeza: amplitude freezing (1=on, 0=off)
+   kfreezf: frequency freezing (1=on, 0=off)
+
    PVSMIX:
    fsig  pvsmix  fsigin1, fsigin2
 
@@ -110,6 +130,24 @@ typedef struct _pvsini {
         PVSDAT  *fout;
         MYFLT   *framesize;
 } PVSINI;
+
+typedef struct _pvsfreez {
+        OPDS    h;
+        PVSDAT  *fout;
+        PVSDAT  *fin;
+        MYFLT   *kfra,*kfrf;
+        AUXCH  freez;
+        unsigned long   lastframe;
+} PVSFREEZE;
+
+typedef struct _pvsmooth {
+        OPDS    h;
+        PVSDAT  *fout;
+        PVSDAT  *fin;
+        MYFLT   *kfra,*kfrf;
+        AUXCH   del;
+        unsigned long   lastframe;
+} PVSMOOTH;
 
 typedef struct _pvsmix {
         OPDS    h;
