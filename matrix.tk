@@ -1,3 +1,5 @@
+#!/usr/bin/wish
+
 # Utility to create scanned synthesis matrices
 # John ffitch 2000 Jun 3
 
@@ -33,7 +35,7 @@ proc mkEdge {first second} {
     lappend connect [list $first $second]
 }
 
-##########  LEFT BUTTON CREATION 
+##########  LEFT BUTTON CREATION
 # Create node with left button
 bind .c <Button-1> {mkNode %x %y}
 
@@ -101,10 +103,10 @@ bind .c <B2-Motion> {
         set firstNode ""
         .c delete $newLine
         set newLine ""
-    } 
+    }
 }
 
-bind .c <ButtonRelease-2> { 
+bind .c <ButtonRelease-2> {
                                 # Delete any dangling rubber line
     if {$newLine != ""} {
         .c delete $newLine

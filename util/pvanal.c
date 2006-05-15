@@ -61,8 +61,6 @@ typedef struct pvocex_ch {
                 D,              /* decimation factor (default will be M/8) */
                 I,              /* interpolation factor (default will be I=D)*/
                 W ,             /* filter overlap factor (determines M, L) */
-                K,              /* set kaiser window*/
-                H,              /* set vonHann window */
                 analWinLen,     /* half-length of analysis window */
                 synWinLen;      /* half-length of synthesis window */
 
@@ -76,8 +74,7 @@ typedef struct pvocex_ch {
 /***************************** 6:2:91  OLD CODE **************
                                                 long    origsize;
 *******************************NEW CODE **********************/
-                MYFLT   beta,   /* parameter for Kaiser window */
-                real,           /* real part of analysis data */
+        MYFLT   real,           /* real part of analysis data */
                 imag,           /* imaginary part of analysis data */
                 mag,            /* magnitude of analysis data */
                 phase,          /* phase of analysis data */
@@ -106,7 +103,6 @@ typedef struct pvocex_ch {
                 Nchans;         /* no of chans */
 
         /* my vars */
-        int vH;                 /* von Hann window */
 /*      pvocmode m_mode; */
         long  bin_index;     /* index into oldOutPhase to do fast norm_phase */
         float *synWindow_base;
@@ -326,7 +322,7 @@ static const char *pvanal_usage_txt[] = {
     "    -w <windowOverlap> | -h <hopSize>",
     "    -g | -G <latch>",
     "    -v | -V <txtFile>",
-    "    -H: use Hamming window instead of the default (Hanning)",
+    "    -H: use Hamming window instead of the default (von Hann)",
     "    -K: use Kaiser window",
     "    -B <beta>: parameter for Kaiser window",
     NULL
@@ -449,8 +445,9 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
 
     /* TODO: save some memory and create analysis window once! */
 
-    for (i=0; i < chans;i++)
-      rc += init(csound, &pvx[i], srate, fftsize, winsize, overlap, wintype, beta);
+    for (i = 0; i < chans; i++)
+      rc += init(csound,
+                 &pvx[i], srate, fftsize, winsize, overlap, wintype, beta);
 
     if (rc)
       goto error;
@@ -556,15 +553,15 @@ static int init(CSOUND *csound,
                 PVX **pvx, long srate, long fftsize, long winsize,
                 long overlap, pv_wtype wintype, double beta)
 {
-    int i;
-    long N,N2,M,Mf,D;
-    MYFLT sum;
-    PVX *thispvx;
+    int     i;
+    long    N, N2, M, Mf, D;
+    MYFLT   sum;
+    PVX     *thispvx;
 
     if (pvx == NULL)
       return 1;
 
-    thispvx  = (PVX *) csound->Malloc(csound, sizeof(PVX));
+    thispvx  = (PVX *) csound->Calloc(csound, sizeof(PVX));
     /* init all vars, as for a constructor */
     thispvx->input      =  NULL;
     thispvx->anal       =  NULL;
@@ -578,27 +575,12 @@ static int init(CSOUND *csound,
     thispvx->ibuflen    = 0;        /* length of input buffer */
 
     thispvx->nI   = 0;              /* current input (analysis) sample */
-    thispvx->beta = beta;           /* parameter for Kaiser window */
     thispvx->Mf   = 0;              /* flag for even M */
-    thispvx->K  = 0;
-    thispvx->vH = 0;
     N = fftsize;
     M = winsize;
     D = overlap;
 
-    switch(wintype) {
-    case PVOC_HANN:
-      thispvx->H = 1;
-      break;
-    case PVOC_KAISER:
-      thispvx->K = 1;
-      break;
-    default:
-      /* for now, anything else just sets Hamming window! */
-      break;
-    }
-
-    if (N <=0)
+    if (N <= 0)
       return 1;
     if (D < 0)
       return 1;
@@ -644,13 +626,18 @@ static int init(CSOUND *csound,
     thispvx->analWindow =
       thispvx->analWindow_base + (thispvx->analWinLen = thispvx->M/2);
 
-    if (thispvx->K)
-      kaiser(thispvx->analWindow_base,M+Mf,thispvx->beta); /* ??? or just M?*/
-    else if (thispvx->vH)
-      vonhann(thispvx->analWindow,thispvx->analWinLen,Mf);
-
-    else
-      hamming(thispvx->analWindow,thispvx->analWinLen,Mf);
+    switch (wintype) {
+    case PVOC_HAMMING:
+      hamming(thispvx->analWindow, thispvx->analWinLen, Mf);
+      break;
+    case PVOC_KAISER:
+      kaiser(thispvx->analWindow_base, M + Mf, beta);   /* ??? or just M? */
+      break;
+    default:
+      /* for now, anything else just sets von Hann window! */
+      vonhann(thispvx->analWindow, thispvx->analWinLen, Mf);
+      break;
+    }
 
     for (i = 1; i <= thispvx->analWinLen; i++)
       *(thispvx->analWindow - i) = *(thispvx->analWindow + i - Mf);
@@ -726,16 +713,15 @@ static long generate_frame(CSOUND *csound, PVX *pvx,
                                            MYFLT *fbuf, float *outanal,
                                            long samps, int frametype)
 {
-    /*sblen = decfac = D */
-    /*static int sblen = 0; */
-    int got, tocp,i,j,k;
-    long N = pvx->N;
-    MYFLT *fp,*oi,*i0,*i1,real,imag,*anal,angleDif;
-    double rratio,phase;
-    float *ofp;           /* RWD MUST be 32bit */
+    int     got, tocp, i, j, k;
+    long    N = pvx->N;
+    MYFLT   *fp, *oi, *i0, *i1, real, imag, *anal, angleDif;
+    double  rratio, phase;
+    float   *ofp;           /* RWD MUST be 32bit */
+
     anal = pvx->anal;
 
-    got = samps;         /*always assume */
+    got = samps;            /* always assume */
     if (got < pvx->Dd)
       pvx->Dd = got;
 
