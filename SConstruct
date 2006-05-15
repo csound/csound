@@ -1418,7 +1418,7 @@ else:
         csound5GUIEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
         csound5GUIEnvironment.Append(LIBS = Split('''
-            fltk stdc++ supc++ pthread m
+            fltk stdc++ pthread m
         '''))
         csound5GUIEnvironment.Append(LINKFLAGS = Split('''
             -framework Carbon -framework ApplicationServices
