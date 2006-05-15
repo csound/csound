@@ -308,7 +308,6 @@ proc endHelp {} {
     destroy .hlp
 }
 
-
 button .help -text Help -command doHelp
 label .label -text "File Name:"
 entry .entry -width 20 -relief sunken -bd 2 -textvariable outname

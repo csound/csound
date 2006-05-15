@@ -214,7 +214,7 @@ typedef struct {
     MYFLT *ifreq;
     MYFLT *iNS;     /* number of strings */
     MYFLT *iD;      /* detune parameter (multiple strings) in cents!!! */
-    MYFLT *K;       /* stiffness parameter, dimensionless...set around 1 
+    MYFLT *K;       /* stiffness parameter, dimensionless...set around 1
                        for low notes, set closer to 100 in high register */
     MYFLT *iT30;    /* 30 db decay time (s) */
     MYFLT *ib;      /* high-frequency loss parameter (keep this small) */
@@ -280,7 +280,7 @@ int init_pp(CSOUND *csound, CSPP *p)
         double detune_spread = (D*n/(NS-1.0) - D*0.5)/1200.0;
         c[n] = 2.0*f0*pow(2.0, detune_spread);
       }
-    
+
       for (n=0; n<NS; n++) {
         double y = c[n]*c[n]*dt*dt+2.0*b*dt;
         double x = sqrt(y+sqrt(y*y+16.0*K*K*dt*dt))/sqrt(2);
@@ -305,7 +305,7 @@ int init_pp(CSOUND *csound, CSPP *p)
       p->s2 = -K*K*dt*dt*N*N*N*N/(1.0+sig*dt/2.0);
       p->t0 = (-1.0+2.0*b*dt*N*N+sig*dt/2.0)/(1.0+sig*dt/2.0);
       p->t1 = (-b*dt)*N*N/(1.0+sig*dt/2.0);
-    
+
       /* note, each of these is an array, of size N+5 by NS...i.e., need a
          separate N+5 element array per string. */
       p->w = &p->hammer_force[NS];
@@ -335,8 +335,8 @@ int play_pp(CSOUND *csound, CSPP *p)
     int step = p->step;
     int n, t, nsmps = csound->ksmps;
     double dt = csound->onedsr;
-    MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2, 
-          *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2, 
+    MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
+          *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2,
           *rat = p->rat, *rat1 = p->rat1, *rat2 = p->rat2;
     MYFLT *s0 = p->s0, *s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
     double SINNW = 0;              /* these are to calculate sin/cos by */
@@ -372,7 +372,7 @@ int play_pp(CSOUND *csound, CSPP *p)
       p->hammer_on = 1;          /*  turns on hammer updating */
       p->hammer_contact = 0;     /* hammer not in contact with string yet */
       p->hammer_index = 2+(int)(*p->ipos*N);   /* find location of hammer strike */
-      p->ham2 = *p->ham_initial; 
+      p->ham2 = *p->ham_initial;
       p->ham1 = *p->ham_initial+dt*(*p->vel);    /* initialize hammer */
       p->init = 0;
     }
@@ -383,7 +383,7 @@ int play_pp(CSOUND *csound, CSPP *p)
       /* set boundary conditions on last state w1 */
       if ((int)*p->kbcl==1) {
         for (n=0; n<NS; n++)
-          w1[n+NS*2] = w1[n+NS*3] = 0.0; 
+          w1[n+NS*2] = w1[n+NS*3] = 0.0;
       }
       else if ((int)*p->kbcl==2) {
         for (qq=0; qq<NS; qq++) {
@@ -392,18 +392,18 @@ int play_pp(CSOUND *csound, CSPP *p)
       }
       if ((int)*p->kbcr==1) {
         for (n=0; n<NS; n++)
-          w1[n+NS*(N+2)] = w1[n+NS*(N+1)] = 0.0; 
+          w1[n+NS*(N+2)] = w1[n+NS*(N+1)] = 0.0;
       }
       else if ((int)*p->kbcr==2) {
         for (n=0; n<NS; n++) {
           w1[n+NS*(N+2)] = 0.0;  w1[n+NS*(N+3)] = -w1[n+NS*(N+1)];
         }
       }
-      
+
       /* perform update, for each of the NS strings */
-      for (n=0; n<N; n++) 
+      for (n=0; n<N; n++)
         for (qq=0; qq<NS; qq++) {
-          w[(n+2)*NS+qq] = 
+          w[(n+2)*NS+qq] =
             s0[qq]*w1[(n+2)*NS+qq]+
             s1[qq]*(w1[(n+3)*NS+qq]+w1[(n+1)*NS+qq])+
             s2*(w1[(n+4)*NS+qq]+w1[n*NS+qq])+
@@ -440,7 +440,7 @@ int play_pp(CSOUND *csound, CSPP *p)
           for (n=0; n<NS; n++) {
             MYFLT pos;
             /* calc. pos. diff between rubber and string */
-            pos = w1[rubber_index*NS+n]-rub1[qq]; 
+            pos = w1[rubber_index*NS+n]-rub1[qq];
             /* calc force (nonzero only when in contact) */
             force += 0.5*(pos-abs(pos));
           }
@@ -477,7 +477,7 @@ int play_pp(CSOUND *csound, CSPP *p)
         }
         p->ham = 2.0*p->ham1-p->ham2-dt*dt*hammer_force_sum*
           (TWOPI*(*p->ham_freq))*(TWOPI*(*p->ham_freq));
-        p->ham2 = p->ham1; 
+        p->ham2 = p->ham1;
         p->ham1 = p->ham;
           for (qq=0; qq<NS; qq++)
             w[p->hammer_index*NS+qq] += dt*dt*(*p->ham_massden)*
@@ -530,7 +530,7 @@ int play_pp(CSOUND *csound, CSPP *p)
       }
     } /* End of main loop */
     p->w = w; p->w1 = w1; p->w2 = w2;
-    p->rub = rub; p->rub1 = rub1; p->rub2 = rub2; 
+    p->rub = rub; p->rub1 = rub1; p->rub2 = rub2;
     p->rat = rat; p->rat1 = rat1; p->rat2 = rat2;
     p->step = step;
     return OK;

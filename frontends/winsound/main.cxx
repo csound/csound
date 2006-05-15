@@ -38,7 +38,7 @@ static char* thisprogram;
 char *getopcodedir(void)
 {
 #ifdef WIN32
-    // Ideally this should default to the installation directory at 
+    // Ideally this should default to the installation directory at
     // least on windows
     char *name = strrchr(thisprogram, '\\');
     if (name) {
@@ -572,7 +572,6 @@ void cs_util_pinfo(void)
     delete hw;
 }
 
-
 Fl_Preferences prof_n(app, "cvanal");
 void cs_util_dnoise(void)
 {
@@ -682,9 +681,9 @@ void savetext(Fl_Text_Buffer *b, int type)
     if (type==0) b->outputfile(savefile->value(), 0, b->length());
     else {
       int start,end;
-      b->selection_position(&start, &end); 
+      b->selection_position(&start, &end);
       b->outputfile(savefile->value(), start, end);
-    }    
+    }
   }
   delete hw;
 }

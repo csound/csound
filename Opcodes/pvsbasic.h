@@ -1,7 +1,8 @@
-/* pvsbasic.h:
-   basic opcodes for transformation of streaming PV signals
+/*
+    pvsbasic.h:
+    basic opcodes for transformation of streaming PV signals
 
-   (c) Victor Lazzarini, 2004
+    (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
@@ -19,24 +20,23 @@
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
-
 */
 
 /*
    PVSMOOTH:
-  fsig  pvsmooth  fsigin, kcfa, kcff
+   fsig  pvsmooth  fsigin, kcfa, kcff
 
-  Smooths the spectral functions of a pvs signal.
+   Smooths the spectral functions of a pvs signal.
 
-  fsigin: input signal
-  kcfa:  cutoff frequency amount of LP filter applied to amplitudes
-         (0 - 1)
-  kcff: cutoff frequency amount of LP filter applied to frequencies
-         (0 - 1)
+   fsigin: input signal
+   kcfa:  cutoff frequency amount of LP filter applied to amplitudes
+          (0 - 1)
+   kcff: cutoff frequency amount of LP filter applied to frequencies
+          (0 - 1)
 
    PVSFREEZE:
-   fsig pvsfreeze fsigin, kfreeza, freezf   
-   
+   fsig pvsfreeze fsigin, kfreeza, freezf
+
    Freeze a spectral frame.
 
    fsigin: input
@@ -126,108 +126,108 @@
 #include "pstream.h"
 
 typedef struct _pvsini {
-        OPDS    h;
-        PVSDAT  *fout;
-        MYFLT   *framesize;
+    OPDS    h;
+    PVSDAT  *fout;
+    MYFLT   *framesize;
 } PVSINI;
 
 typedef struct _pvsfreez {
-        OPDS    h;
-        PVSDAT  *fout;
-        PVSDAT  *fin;
-        MYFLT   *kfra,*kfrf;
-        AUXCH  freez;
-        unsigned long   lastframe;
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+    MYFLT   *kfra, *kfrf;
+    AUXCH   freez;
+    unsigned long lastframe;
 } PVSFREEZE;
 
 typedef struct _pvsmooth {
-        OPDS    h;
-        PVSDAT  *fout;
-        PVSDAT  *fin;
-        MYFLT   *kfra,*kfrf;
-        AUXCH   del;
-        unsigned long   lastframe;
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+    MYFLT   *kfra, *kfrf;
+    AUXCH   del;
+    unsigned long lastframe;
 } PVSMOOTH;
 
 typedef struct _pvsmix {
-        OPDS    h;
-        PVSDAT  *fout;
-        PVSDAT  *fa;
-        PVSDAT  *fb;
-        unsigned long   lastframe;
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fa;
+    PVSDAT  *fb;
+    unsigned long lastframe;
 } PVSMIX;
 
-static int pvsmixset(CSOUND *,PVSMIX *p);
-static int pvsmix(CSOUND *,PVSMIX *p);
+static int pvsmixset(CSOUND *, PVSMIX *p);
+static int pvsmix(CSOUND *, PVSMIX *p);
 
 typedef struct _pvsfilter {
-        OPDS h;
-        PVSDAT  *fout;
-        PVSDAT  *fin;
-        PVSDAT  *fil;
-        MYFLT   *kdepth;
-        MYFLT   *gain;
-        unsigned long   lastframe;
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+    PVSDAT  *fil;
+    MYFLT   *kdepth;
+    MYFLT   *gain;
+    unsigned long lastframe;
 } PVSFILTER;
 
-static int pvsfilterset(CSOUND *,PVSFILTER *p);
-static int pvsfilter(CSOUND *,PVSFILTER *p);
+static int pvsfilterset(CSOUND *, PVSFILTER *p);
+static int pvsfilter(CSOUND *, PVSFILTER *p);
 
 typedef struct _pvscale {
-        OPDS h;
-        PVSDAT  *fout;
-        PVSDAT  *fin;
-        MYFLT   *kscal;
-        MYFLT   *keepform;
-        MYFLT   *gain;
-        unsigned long   lastframe;
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+    MYFLT   *kscal;
+    MYFLT   *keepform;
+    MYFLT   *gain;
+    unsigned long lastframe;
 } PVSSCALE;
 
-static int pvsscaleset(CSOUND *,PVSSCALE *p);
-static int pvsscale(CSOUND *,PVSSCALE *p);
+static int pvsscaleset(CSOUND *, PVSSCALE *p);
+static int pvsscale(CSOUND *, PVSSCALE *p);
 
 typedef struct _pvshift {
-        OPDS h;
-        PVSDAT  *fout;
-        PVSDAT  *fin;
-        MYFLT   *kshift;
-        MYFLT   *lowest;
-        MYFLT   *keepform;
-        MYFLT   *gain;
-        unsigned long   lastframe;
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+    MYFLT   *kshift;
+    MYFLT   *lowest;
+    MYFLT   *keepform;
+    MYFLT   *gain;
+    unsigned long lastframe;
 } PVSSHIFT;
 
-static int pvsshiftset(CSOUND *,PVSSHIFT *p);
-static int pvsshift(CSOUND *,PVSSHIFT *p);
+static int pvsshiftset(CSOUND *, PVSSHIFT *p);
+static int pvsshift(CSOUND *, PVSSHIFT *p);
 
 typedef struct _pvsblur {
-        OPDS h;
-        PVSDAT  *fout;
-        PVSDAT  *fin;
-        MYFLT   *kdel;
-        MYFLT   *maxdel;
-        AUXCH   delframes;
-        MYFLT   frpsec;
-        long    count;
-        unsigned long   lastframe;
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+    MYFLT   *kdel;
+    MYFLT   *maxdel;
+    AUXCH   delframes;
+    MYFLT   frpsec;
+    long    count;
+    unsigned long lastframe;
 } PVSBLUR;
 
-static int pvsblurset(CSOUND *,PVSBLUR *p);
-static int pvsblur(CSOUND *,PVSBLUR *p);
+static int pvsblurset(CSOUND *, PVSBLUR *p);
+static int pvsblur(CSOUND *, PVSBLUR *p);
 
 typedef struct _pvstencil {
-        OPDS    h;
-        PVSDAT  *fout;
-        PVSDAT  *fin;
-        MYFLT   *kgain;
-        MYFLT   *klevel;
-        MYFLT   *ifn;
-        FUNC    *func;
-        unsigned long   lastframe;
+    OPDS    h;
+    PVSDAT  *fout;
+    PVSDAT  *fin;
+    MYFLT   *kgain;
+    MYFLT   *klevel;
+    MYFLT   *ifn;
+    FUNC    *func;
+    unsigned long lastframe;
 } PVSTENCIL;
 
-static int pvstencilset(CSOUND *,PVSTENCIL *p);
-static int pvstencil(CSOUND *,PVSTENCIL *p);
+static int pvstencilset(CSOUND *, PVSTENCIL *p);
+static int pvstencil(CSOUND *, PVSTENCIL *p);
 
 #endif
 
