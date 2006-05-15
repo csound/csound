@@ -439,13 +439,59 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
     return OK;
 }
 
+ /* ------------------------------------------------------------------------ */
+
+typedef struct MONITOR_OPCODE_ {
+    OPDS    h;
+    MYFLT   *ar[24];
+} MONITOR_OPCODE;
+
+static int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
+{
+    int     i, j;
+
+    if (csound->spoutactive) {
+      int   k = 0;
+      i = 0;
+      do {
+        j = 0;
+        do {
+          p->ar[j][i] = csound->spout[k++];
+        } while (++j < csound->nchnls);
+      } while (++i < csound->ksmps);
+    }
+    else {
+      j = 0;
+      do {
+        i = 0;
+        do {
+          p->ar[j][i] = FL(0.0);
+        } while (++i < csound->ksmps);
+      } while (++j < csound->nchnls);
+    }
+    return OK;
+}
+
+static int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
+{
+    if (csound->GetOutputArgCnt(p) != csound->nchnls)
+      return csound->InitError(csound, Str("number of arguments != nchnls"));
+    p->h.opadr = (SUBR) monitor_opcode_perf;
+    return OK;
+}
+
+ /* ------------------------------------------------------------------------ */
+
 static OENTRY localops[] = {
   { "stack",  sizeof(STACK_OPCODE), 1,  "",                                "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
   { "push",   sizeof(PUSH_OPCODE),  3,  "",                                "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
   { "pop",    sizeof(POP_OPCODE),   3,  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
-      (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL }
+      (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
+  /* ----------------------------------------------------------------------- */
+  { "monitor",  sizeof(MONITOR_OPCODE), 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
+    (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL }
 };
 
 LINKAGE

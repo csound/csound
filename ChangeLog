@@ -1,3 +1,7 @@
+2006-05-15	Istvan Varga	<ivarga@csounds.com>
+	* Opcodes/stackops.c:
+	  added new opcode: monitor
+
 2006-05-14  jpff  <jpff@codemist.co.uk>
 
 	* util/pvlook.c (pvlook): Rewritten for .pvx format
