@@ -6,6 +6,8 @@
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>csound5gui</string>
+	<key>CFBundleIconFile</key>
+	<string>wins.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.csounds.csound5gui</string>
 	<key>CFBundleInfoDictionaryVersion</key>
