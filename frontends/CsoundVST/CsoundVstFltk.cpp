@@ -786,4 +786,3 @@ void onAutoPlayCheckButton(Fl_Check_Button* button, CsoundVstFltk* csoundVstFltk
   csoundVstFltk->onAutoPlayCheckButton(button, csoundVstFltk);
 }
 
-

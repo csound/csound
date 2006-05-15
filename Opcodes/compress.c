@@ -142,7 +142,7 @@ static int compress(CSOUND *csound, CMPRS *p)
             p->lmaxp = lap;
           }
         p->lmax = newmax;
-      }     
+      }
       else if (lsig >= p->lmax) {       /* else keep lkahd max & adrs   */
         p->lmax = lsig;                 /*   on arrival                 */
         p->lmaxp = p->cptr;
