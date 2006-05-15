@@ -363,7 +363,6 @@ static int pvsys_createFileHandle(CSOUND *csound)
 static void prepare_pvfmt(WAVEFORMATEX *pfmt, unsigned long chans,
                           unsigned long srate, pv_stype stype)
 {
-
     pfmt->wFormatTag      = WAVE_FORMAT_EXTENSIBLE;
     pfmt->nChannels       = (uint16_t) chans;
     pfmt->nSamplesPerSec  = srate;
@@ -384,10 +383,10 @@ static void prepare_pvfmt(WAVEFORMATEX *pfmt, unsigned long chans,
       default:
         break;
     }
-    pfmt->nAvgBytesPerSec   = pfmt->nBlockAlign * srate;
+    pfmt->nAvgBytesPerSec = pfmt->nBlockAlign * srate;
     /* if we have extended WindowParam fields, or something,
        will need to adjust this */
-    pfmt->cbSize            = 62;
+    pfmt->cbSize          = 62;
 }
 
 /* lots of different ways of doing this!
@@ -459,10 +458,14 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
 
     p->pvdata.wWordFormat     = PVOC_IEEE_FLOAT;
     p->pvdata.wAnalFormat     = (uint16_t) format;
+#if 0
     if (stype == STYPE_IEEE_FLOAT)
       p->pvdata.wSourceFormat = WAVE_FORMAT_IEEE_FLOAT;
     else
       p->pvdata.wSourceFormat = WAVE_FORMAT_PCM;
+#else
+    p->pvdata.wSourceFormat   = (uint16_t) stype;
+#endif
     p->pvdata.wWindowType     = wtype;
     p->pvdata.nAnalysisBins   = (N >> 1) + 1;
     if (dwWinlen == 0)

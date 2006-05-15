@@ -93,7 +93,7 @@ typedef enum pvoc_sampletype {
 typedef struct pvoc_data {   /* 32 bytes */
     uint16_t    wWordFormat;    /* pvoc_wordformat                           */
     uint16_t    wAnalFormat;    /* pvoc_frametype                            */
-    uint16_t    wSourceFormat;  /* WAVE_FORMAT_PCM or WAVE_FORMAT_IEEE_FLOAT */
+    uint16_t    wSourceFormat;  /* STYPE_16, STYPE_24, etc.                  */
     uint16_t    wWindowType;    /* pvoc_windowtype                           */
     uint32_t    nAnalysisBins;  /* implicit FFT size = (nAnalysisBins-1) * 2 */
     uint32_t    dwWinlen;       /* analysis winlen, in samples               */
