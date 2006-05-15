@@ -325,6 +325,8 @@ if findFiles('.', 'tclcsound\\.so').__len__() > 0:
     installErrors = installErrors or err
 err = installFile('nsliders.tk', tclDir)
 installErrors = installErrors or err
+err = installXFile('', 'matrix.tk', binDir)
+installErrors = installErrors or err
 
 # copy STK raw wave files
 
