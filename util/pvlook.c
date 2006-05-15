@@ -56,7 +56,7 @@ static CS_NOINLINE CS_PRINTF2 void pvlook_print(PVLOOK *p, const char *fmt, ...)
       p->linePos += len;
     else
       p->linePos = (len - (int) (tmp - s)) - 1;
-    if (p->linePos >= 72) {
+    if (p->linePos >= 70) {
       p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "\n");
       p->linePos = 0;
     }
@@ -161,11 +161,14 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
                  data.wAnalFormat == PVOC_AMP_FREQ ? "Amplitude/Frequency" :
                  data.wAnalFormat == PVOC_AMP_PHASE ? "Amplitude/Phase" :
                                                       "Complex");
-    pvlook_print(&p, "; Source format\t%s\n",
-                 data.wSourceFormat == STYPE_16 ? "16bit" :
-                 data.wSourceFormat == STYPE_24 ? "24bit" :
-                 data.wSourceFormat == STYPE_32 ? "32bit" :
-                 "float");
+    switch (data.wSourceFormat) {
+    case 1:     /* WAVE_FORMAT_PCM */
+      pvlook_print(&p, "; Source format\t%dbit\n", (int) fmt.wBitsPerSample);
+      break;
+    default:
+      pvlook_print(&p, "; Source format\tfloat\n");
+      break;
+    }
     pvlook_print(&p, "; Window Type\t%s",
                  data.wWindowType == PVOC_DEFAULT ? "Default" :
                  data.wWindowType == PVOC_HAMMING ? "Hamming" :
@@ -195,12 +198,13 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
         csound->PVOC_GetFrames(csound, fp, frames, 1);  /* Skip */
       csound->PVOC_GetFrames(csound, fp, frames, numframes);
       for (k = (firstBin - 1); k < (int) lastBin; k++) {
-        pvlook_print(&p, "\nBin %d Freqs.", k + 1);
+        pvlook_print(&p, "\nBin %d Freqs.\n", k + 1);
         for (j = 0; j < numframes; j++) {
           pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2 + 1]);
         }
-        pvlook_print(&p, "\n");
-        pvlook_print(&p, "\nBin %d Amps.", k + 1);
+        if (p.linePos != 0)
+          pvlook_print(&p, "\n");
+        pvlook_print(&p, "\nBin %d Amps.\n", k + 1);
         for (j = 0; j < numframes; j++) {
           if (!p.printInts)
             pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]);
@@ -208,10 +212,12 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
             pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]
                                   * (float) csound->e0dbfs);
         }
-        pvlook_print(&p, "\n");
+        if (p.linePos != 0)
+          pvlook_print(&p, "\n");
       }
       csound->Free(csound, frames);
     }
+    pvlook_print(&p, "\n");
 
     csound->PVOC_CloseFile(csound, fp);
     if (outfd != stdout)
