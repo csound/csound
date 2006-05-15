@@ -116,7 +116,7 @@ def makeFrontEnd(utilName, is64bit):
         precisionSuffix = '64'
     fName = '%s%s/%s%s' % (pkgDir, binDir, utilName, precisionSuffix)
     if utilName in ['csound', 'csound5gui', 'CsoundVST', 'winsound',
-                    'cstclsh', 'cswish']:
+                    'cstclsh', 'cswish', 'pvlook']:
         cmd = '"%s/%s%s"' % (binDir2, utilName, precisionSuffix)
     else:
         cmd = '"%s/csound%s" -U %s' % (binDir2, precisionSuffix, utilName)
@@ -177,6 +177,7 @@ installXFile('', 'brkpt', binDir)
 installXFile('', 'linseg', binDir)
 installXFile('', 'tabdes', binDir)
 installFile('nsliders.tk', tclDir)
+installXFile('', 'matrix.tk', binDir)
 
 # copy STK raw wave files
 
@@ -206,13 +207,13 @@ buildOpts2 = [['useDouble=0', 'dynamicCsoundLibrary=0', 'generateXmg=0',
               ['useDouble=0', 'dynamicCsoundLibrary=1', 'generateXmg=1',
                'buildInterfaces=0', 'buildPDClass=1', 'buildTclcsound=1',
                'buildLoris=1', 'buildStkOpcodes=1', 'buildWinsound=1',
-               'buildCsound5GUI=1'],
+               'buildCsound5GUI=1', 'buildUtilities=1'],
               ['useDouble=1', 'dynamicCsoundLibrary=0', 'generateXmg=0',
                'buildInterfaces=0', 'buildPDClass=0', 'csound'],
               ['useDouble=1', 'dynamicCsoundLibrary=1', 'generateXmg=0',
                'buildInterfaces=1', 'buildPDClass=0', 'buildTclcsound=1',
                'buildCsoundVST=1', 'buildLoris=1', 'buildStkOpcodes=1',
-               'buildWinsound=1', 'buildCsound5GUI=1']]
+               'buildWinsound=1', 'buildCsound5GUI=1', 'buildUtilities=1']]
 
 for i in range(4):
     cleanup()
@@ -245,7 +246,7 @@ for i in range(4):
         runCmd(['strip', '--strip-unneeded', 'csoundapi~.pd_linux'])
         installFile('csoundapi~.pd_linux', pdDir)
         # executables
-        for j in ['csound5gui', 'winsound', 'cstclsh', 'cswish']:
+        for j in ['csound5gui', 'winsound', 'cstclsh', 'cswish', 'pvlook']:
             installXFile('--strip-unneeded', j, binDir2)
         # TclCsound
         installXFile('--strip-unneeded', 'tclcsound.so', tclDir)
@@ -271,7 +272,7 @@ for i in range(4):
             installXFile('--strip-unneeded', j, binDir)
         # executables
         installXFile('--strip-unneeded', 'CsoundVST', binDir2)
-        for j in ['csound5gui', 'winsound', 'cstclsh', 'cswish']:
+        for j in ['csound5gui', 'winsound', 'cstclsh', 'cswish', 'pvlook']:
             os.rename(j, j + '64')
             installXFile('--strip-unneeded', j + '64', binDir2)
         # TclCsound
