@@ -458,14 +458,10 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
 
     p->pvdata.wWordFormat     = PVOC_IEEE_FLOAT;
     p->pvdata.wAnalFormat     = (uint16_t) format;
-#if 0
     if (stype == STYPE_IEEE_FLOAT)
       p->pvdata.wSourceFormat = WAVE_FORMAT_IEEE_FLOAT;
     else
       p->pvdata.wSourceFormat = WAVE_FORMAT_PCM;
-#else
-    p->pvdata.wSourceFormat   = (uint16_t) stype;
-#endif
     p->pvdata.wWindowType     = wtype;
     p->pvdata.nAnalysisBins   = (N >> 1) + 1;
     if (dwWinlen == 0)
