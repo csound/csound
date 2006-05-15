@@ -196,12 +196,12 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
       csound->PVOC_GetFrames(csound, fp, frames, numframes);
       for (k = (firstBin - 1); k < (int) lastBin; k++) {
         pvlook_print(&p, "\nBin %d Freqs.", k + 1);
-        for (j = (firstFrame - 1); j < (int) lastFrame; j++) {
+        for (j = 0; j < numframes; j++) {
           pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2 + 1]);
         }
         pvlook_print(&p, "\n");
         pvlook_print(&p, "\nBin %d Amps.", k + 1);
-        for (j = (firstFrame - 1); j < (int) lastFrame; j++) {
+        for (j = 0; j < numframes; j++) {
           if (!p.printInts)
             pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]);
           else
