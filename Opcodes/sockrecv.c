@@ -115,7 +115,7 @@ int init_srecv(CSOUND *csound, SOCKRECV* p)
     p->server_addr.sin_port = htons((int)*p->port);
 
  again:
-    if (connect(p->sock, (struct sockaddr *)&p->server_addr, 
+    if (connect(p->sock, (struct sockaddr *)&p->server_addr,
                 sizeof(p->server_addr)) < 0) {
       if (errno == ECONNREFUSED) goto again;
       return csound->InitError(csound,"connect failed");
@@ -134,8 +134,6 @@ int send_srecv(CSOUND *csound, SOCKRECV* p)
     }
     return OK;
 }
-
-
 
 #define S(x)    sizeof(x)
 

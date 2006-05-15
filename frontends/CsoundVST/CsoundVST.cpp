@@ -229,31 +229,31 @@ void CsoundVST::performanceThreadRoutine()
       std::string vstcommand;
       bool updateCommand = false;
       if (command.find("-") == 0 || command.length() == 0) {
-	updateCommand = true;
-	vstcommand = "csound ";
-	vstcommand.append(command);
-	if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
-	  updateCommand = true;
-	  vstcommand.append(" temp.orc temp.sco");
-	}
-	if (updateCommand) {
-	  cppSound->setCommand(vstcommand);
-	  editor->update();
-	}
+        updateCommand = true;
+        vstcommand = "csound ";
+        vstcommand.append(command);
+        if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
+          updateCommand = true;
+          vstcommand.append(" temp.orc temp.sco");
+        }
+        if (updateCommand) {
+          cppSound->setCommand(vstcommand);
+          editor->update();
+        }
       } else {
- 	// Translate csd-style command lines to orc/sco style.
-	std::string command = cppSound->getCommand();
-	std::string vstcommand;
-	bool updateCommand = false;
-	if (command.find("-") == 0 || command.length() == 0) {
-	  updateCommand = true;
-	  vstcommand = "csound ";
-	}
-	vstcommand.append(command);
-	if (updateCommand) {
-	  cppSound->setCommand(vstcommand);
-	  editor->update();
-	}
+        // Translate csd-style command lines to orc/sco style.
+        std::string command = cppSound->getCommand();
+        std::string vstcommand;
+        bool updateCommand = false;
+        if (command.find("-") == 0 || command.length() == 0) {
+          updateCommand = true;
+          vstcommand = "csound ";
+        }
+        vstcommand.append(command);
+        if (updateCommand) {
+          cppSound->setCommand(vstcommand);
+          editor->update();
+        }
       }
       cppSound->exportForPerformance();
       csound::System::inform("Saved as: '%s' and '%s'.\n", cppSound->getOrcFilename().c_str(), cppSound->getScoFilename().c_str());
@@ -487,7 +487,7 @@ int CsoundVST::midiRead(CSOUND *csound, void *userData,
       case 0xFB:    /* continue */
       case 0xFC:    /* stop */
       case 0xFF:    /* reset */
-	cnt++;
+        cnt++;
       }
       break;      /* ignore any other message */
     }

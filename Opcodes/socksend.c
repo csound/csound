@@ -139,8 +139,6 @@ int send_ssend(CSOUND *csound, SOCKSEND* p)
     return OK;
 }
 
-
-
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {

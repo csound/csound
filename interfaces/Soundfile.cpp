@@ -31,7 +31,7 @@ namespace csound
 #ifndef TWOPI
 #define TWOPI   (6.28318530717958647692)
 #endif
-  
+
   Soundfile::Soundfile()
   {
     initialize();
@@ -149,7 +149,7 @@ namespace csound
     if (sndfile) {
       status = sf_close(sndfile);
       if (status) {
-	std::cerr << sf_error_number(status) << std::endl;
+        std::cerr << sf_error_number(status) << std::endl;
       }
     }
     initialize();
@@ -160,7 +160,7 @@ namespace csound
     std::cerr << sf_strerror(sndfile) << std::endl;
   }
 
-  void Soundfile::blank(double duration) 
+  void Soundfile::blank(double duration)
   {
     seekSeconds(0.0);
     std::vector<double> frame;
