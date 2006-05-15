@@ -29,49 +29,98 @@
 #include "std_util.h"
 #include "pvfileio.h"
 #include <limits.h>
+#include <stdarg.h>
+
+typedef struct PVLOOK_ {
+    CSOUND  *csound;
+    FILE    *outfd;
+    int     linePos;
+    int     printInts;
+} PVLOOK;
+
+static CS_NOINLINE CS_PRINTF2 void pvlook_print(PVLOOK *p, const char *fmt, ...)
+{
+    char    buf[1024];  /* hopefully this is enough... */
+    va_list args;
+    char    *s, *tmp;
+    int     len;
+
+    s = &(buf[0]);
+    va_start(args, fmt);
+    len = (int) vsprintf(s, fmt, args);
+    va_end(args);
+ /* fprintf(p->outfd, "%s", s); */
+    p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "%s", s);
+    tmp = strrchr(s, '\n');
+    if (tmp == NULL)
+      p->linePos += len;
+    else
+      p->linePos = (len - (int) (tmp - s)) - 1;
+    if (p->linePos >= 72) {
+      p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "\n");
+      p->linePos = 0;
+    }
+}
+
+static CS_NOINLINE void pvlook_printvalue(PVLOOK *p, float x)
+{
+    if (!p->printInts)
+      pvlook_print(p, " %.3f", x);
+    else {
+      int   n = (int) (x < 0.0f ? x - 0.5f : x + 0.5f);
+      pvlook_print(p, " %d", n);
+    }
+}
+
+static const char *pvlook_usage_txt[] = {
+    "pvlook is a program which reads a Csound pvanal's pvoc.n ",
+    "file and outputs frequency and magnitude trajectories for each ",
+    "of the analysis bins.",
+    "",
+    "usage: pvlook [-bb X] [-eb X] [-bf X] [-ef X] [-i X]  file > output",
+    "",
+    " -bb X  begin at anaysis bin X. Numbered from 1 [defaults to 1]",
+    " -eb X  end at anaysis bin X [defaults to highest]",
+    " -bf X  begin at anaysis frame X. Numbered from 1 [defaults to 1]",
+    " -ef X  end at anaysis frame X [defaults to last]",
+    " -i     prints values as integers [defaults to floating point]",
+    "",
+    NULL
+};
 
 static int pvlook(CSOUND *csound, int argc, char *argv[])
 {
     int     i, j, k;
     int     fp;
     FILE    *outfd = stdout;
-    float   *frame;
+    float   *frames;
     int     numframes, framesize;
-    int     l, FuncSize;
     unsigned int     firstBin, lastBin, numBins, lastFrame;
-    int     printInts=1;
     int     firstFrame = 1;
     int     nchnls;
     PVOCDATA data;
     WAVEFORMATEX fmt;
+    PVLOOK  p;
+
+    p.csound = csound;
+    p.outfd = outfd;
+    p.linePos = 0;
+    p.printInts = 0;
+
+    {
+      int   tmp = 0;
+      csound->SetConfigurationVariable(csound, "msg_color", (void*) &tmp);
+    }
 
     if (argc < 2) {
-      csound->Message(csound,
-               "pvlook is a program which reads a Csound pvanal's pvoc.n "
-               "file and outputs frequency and magnitude trajectories for each "
-               "of the analysis bins.\n");
-      csound->Message(csound,
-              "usage: pvlook [-bb X] [-eb X] [-bf X] [-ef X] [-i X]  "
-              "file > output\n");
-      csound->Message(csound,
-              " -bb X  begin at anaysis bin X. Numbered from 1 "
-              "[defaults to 1]\n");
-      csound->Message(csound,
-              " -eb X  end at anaysis bin X [defaults to highest]\n");
-      csound->Message(csound,
-              " -bf X  begin at anaysis frame X. Numbered from 1 "
-              "[defaults to 1]\n");
-      csound->Message(csound,
-              " -ef X  end at anaysis frame X [defaults to last]\n");
-      csound->Message(csound,
-              " -i  prints values as integers [defaults to "
-              "floating point]\n");
+      for (i = 0; pvlook_usage_txt[i] != NULL; i++)
+        csound->Message(csound, "%s\n", Str(pvlook_usage_txt[i]));
       return -1;
     }
 
     if ((fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt)) < 0) {
-      csound->Message(csound, "pvlook: Unable to open '%s'\n Does it exist?",
-                              argv[argc - 1]);
+      csound->ErrorMsg(csound, "pvlook: Unable to open '%s'\n Does it exist?",
+                               argv[argc - 1]);
       return -1;
     }
 
@@ -79,109 +128,95 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
     firstFrame = firstBin = 1;
     lastFrame = UINT_MAX;
     lastBin = data.nAnalysisBins;
-    frame = (float*)csound->Malloc(csound, 2*data.nAnalysisBins*sizeof(float));
 
     for (i = 1; i < argc; i++) {
-      if (!strcmp(argv[i], "-bb"))  firstBin = atoi(argv[++i]);
-      if (!strcmp(argv[i], "-eb"))  lastBin = atoi(argv[++i]);
-      if (!strcmp(argv[i], "-bf"))  firstFrame = atoi(argv[++i]);
-      if (!strcmp(argv[i], "-ef"))  lastFrame = atoi(argv[++i]);
-      if (!strcmp(argv[i], "-i"))   printInts = 0;
+      if (!strcmp(argv[i], "-bb"))
+        firstBin = atoi(argv[++i]);
+      if (!strcmp(argv[i], "-eb"))
+        lastBin = atoi(argv[++i]);
+      if (!strcmp(argv[i], "-bf"))
+        firstFrame = atoi(argv[++i]);
+      if (!strcmp(argv[i], "-ef"))
+        lastFrame = atoi(argv[++i]);
+      if (!strcmp(argv[i], "-i"))
+        p.printInts = 1;
     }
-    numframes = (lastFrame - firstFrame) + 1;
+    if (firstBin < 1U)
+      firstBin = 1U;
+    if (lastBin > (unsigned int) data.nAnalysisBins)
+      lastBin = (unsigned int) data.nAnalysisBins;
     numBins = (lastBin - firstBin) + 1;
-    for (l = 2; l < numframes; l *= 2);
-    FuncSize = l + 1;
+    if (firstFrame < 1)
+      firstFrame = 1;
+    numframes = (int) csound->PVOC_FrameCount(csound, fp);
+    if (lastFrame > (unsigned int) numframes)
+      lastFrame = (unsigned int) numframes;
+    numframes = (lastFrame - firstFrame) + 1;
 
-    csound->Message(csound, "; Channels\t%d\n", nchnls);
-    csound->Message(csound, "; Word Format\t%s\n",
-                    data.wWordFormat==PVOC_IEEE_FLOAT?"float":"double");
-    csound->Message(csound, "; Frame Type\t%s\n",
-                    data.wAnalFormat==PVOC_AMP_FREQ?"Amplitude/Frequency":
-                    data.wAnalFormat==PVOC_AMP_PHASE?"Amplitude/Phase":"Complex");
-    csound->Message(csound, "; Source format\t%s\n",
-                    data.wSourceFormat==STYPE_16?"16bit":
-                    data.wSourceFormat==STYPE_24?"24bit":
-                    data.wSourceFormat==STYPE_32?"32bit":
-                    "float");
-    csound->Message(csound, "; Window Type\t%s",
-                    data.wWindowType==PVOC_DEFAULT?"Default":
-                    data.wWindowType==PVOC_HAMMING?"Hamming":
-                    data.wWindowType==PVOC_HANN?"vonHann":
-                    data.wWindowType==PVOC_KAISER?"Kaiser":
-                    data.wWindowType==PVOC_RECT?"Rectangular":
-                    "Custom");
-    if (data.wWindowType==PVOC_KAISER)
-      csound->Message(csound, "(%f)",data.fWindowParam);
-    csound->Message(csound, "\n; FFT Size\t%d\n",data.nAnalysisBins);
-    csound->Message(csound, "; Window length\t%d\n",data.dwWinlen);
-    csound->Message(csound, "; Overlap\t%d\n",data.dwOverlap);
-    csound->Message(csound, "; Frame align\t%d\n",data.dwFrameAlign);
-    csound->Message(csound, "; Analysis Rate\t%f\n",data.fAnalysisRate);
+    pvlook_print(&p, "; File name\t%s\n", argv[argc - 1]);
+    pvlook_print(&p, "; Channels\t%d\n", nchnls);
+    pvlook_print(&p, "; Word Format\t%s\n",
+                 data.wWordFormat == PVOC_IEEE_FLOAT ? "float" : "double");
+    pvlook_print(&p, "; Frame Type\t%s\n",
+                 data.wAnalFormat == PVOC_AMP_FREQ ? "Amplitude/Frequency" :
+                 data.wAnalFormat == PVOC_AMP_PHASE ? "Amplitude/Phase" :
+                                                      "Complex");
+    pvlook_print(&p, "; Source format\t%s\n",
+                 data.wSourceFormat == STYPE_16 ? "16bit" :
+                 data.wSourceFormat == STYPE_24 ? "24bit" :
+                 data.wSourceFormat == STYPE_32 ? "32bit" :
+                 "float");
+    pvlook_print(&p, "; Window Type\t%s",
+                 data.wWindowType == PVOC_DEFAULT ? "Default" :
+                 data.wWindowType == PVOC_HAMMING ? "Hamming" :
+                 data.wWindowType == PVOC_HANN ? "vonHann" :
+                 data.wWindowType == PVOC_KAISER ? "Kaiser" :
+                 data.wWindowType == PVOC_RECT ? "Rectangular" :
+                 "Custom");
+    if (data.wWindowType == PVOC_KAISER)
+      pvlook_print(&p, "(%f)", data.fWindowParam);
+    pvlook_print(&p, "\n; FFT Size\t%d\n", (int) (data.nAnalysisBins - 1) * 2);
+    pvlook_print(&p, "; Window length\t%d\n", (int) data.dwWinlen);
+    pvlook_print(&p, "; Overlap\t%d\n", (int) data.dwOverlap);
+    pvlook_print(&p, "; Frame align\t%d\n", (int) data.dwFrameAlign);
+    pvlook_print(&p, "; Analysis Rate\t%f\n", data.fAnalysisRate);
 
-    framesize = data.nAnalysisBins * 2 *sizeof(float);
-
-/*     csound->Message(csound, "; Bins in Analysis: %d\n", data.nAnalysisBins); */
-    csound->Message(csound, "; First Bin Shown: %d\n", firstBin);
-    csound->Message(csound, "; Number of Bins Shown: %d\n", numBins);
-/*     csound->Message(csound, "; Frames in Analysis: %ld\n", */
-/*                             ((phdr->dataBsize / 4) / framesize)); */
-/*     csound->Message(csound, "; First Frame Shown: %d\n", firstFrame); */
-/*     csound->Message(csound, "; Number of Data Frames Shown: %d\n", numframes); */
-    if (printInts != 0) {
-      for (k = 0; k<numBins; k++) {
-        csound->Message(csound, "\nBin %d Freqs.", firstBin + k);
-        for (j=1; j<firstFrame; j++)
-          csound->PVOC_GetFrames(csound,fp,frame,1); /* Skip */
-        for (j=firstFrame; j<=lastFrame; j++) {
-          if (csound->PVOC_GetFrames(csound,fp,frame,1)<0) break;
-          csound->Message(csound, "%.3f ", frame[(firstBin + k)*2]);
+    if (numBins > 0U && numframes > 0) {
+/*    pvlook_print(&p, "; Bins in Analysis: %d\n", (int) data.nAnalysisBins); */
+      pvlook_print(&p, "; First Bin Shown: %d\n", (int) firstBin);
+      pvlook_print(&p, "; Number of Bins Shown: %d\n", (int) numBins);
+/*    pvlook_print(&p, "; Frames in Analysis: %ld\n",
+                   (long) csound->PVOC_FrameCount(csound, fp)); */
+      pvlook_print(&p, "; First Frame Shown: %d\n", (int) firstFrame);
+      pvlook_print(&p, "; Number of Data Frames Shown: %d\n", (int) numframes);
+      framesize = data.nAnalysisBins * 2 * sizeof(float);
+      frames = (float*) csound->Malloc(csound, framesize * numframes);
+      for (j = 1; j < firstFrame; j++)
+        csound->PVOC_GetFrames(csound, fp, frames, 1);  /* Skip */
+      csound->PVOC_GetFrames(csound, fp, frames, numframes);
+      for (k = (firstBin - 1); k < (int) lastBin; k++) {
+        pvlook_print(&p, "\nBin %d Freqs.", k + 1);
+        for (j = (firstFrame - 1); j < (int) lastFrame; j++) {
+          pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2 + 1]);
         }
-        csound->Message(csound, "\n");
-        csound->PVOC_CloseFile(csound, fp);
-        fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt);
-        for (j=1; j<firstFrame; j++)
-          csound->PVOC_GetFrames(csound,fp,frame,1); /* Skip */
-        csound->Message(csound, "\nBin %d Amps. ", firstBin + k);
-        for (j=firstFrame; j<=lastFrame; j++) {
-          if (csound->PVOC_GetFrames(csound,fp,frame,1)!=1) break;
-          csound->Message(csound, "%.3f ", frame[1+(firstBin + k)*2]);
+        pvlook_print(&p, "\n");
+        pvlook_print(&p, "\nBin %d Amps.", k + 1);
+        for (j = (firstFrame - 1); j < (int) lastFrame; j++) {
+          if (!p.printInts)
+            pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]);
+          else
+            pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]
+                                  * (float) csound->e0dbfs);
         }
-        csound->Message(csound, "\n");
-        csound->PVOC_CloseFile(csound, fp);
-        fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt);
+        pvlook_print(&p, "\n");
       }
+      csound->Free(csound, frames);
     }
-    else {
-      for (k = 0; k<numBins; k++) {
-        fprintf(outfd, "\nBin %d Freqs.", firstBin+k);
-        csound->Message(csound, "\nBin %d Freqs.", firstBin + k);
-        for (j=1; j<firstFrame; j++)
-          csound->PVOC_GetFrames(csound,fp,frame,1); /* Skip */
-        for (j=firstFrame; j<=lastFrame; j++) {
-          if (csound->PVOC_GetFrames(csound,fp,frame,1)!=1) break;
-          csound->Message(csound, "%d ", (int)frame[(firstBin + k)*2]);
-        }
-        csound->Message(csound, "\n");
-        csound->PVOC_CloseFile(csound, fp);
-        fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt);
-        csound->Message(csound, "\nBin %d Amps. ", firstBin + k);
-        for (j=1; j<firstFrame; j++)
-          csound->PVOC_GetFrames(csound,fp,frame,1); /* Skip */
-        for (j=firstFrame; j<=lastFrame; j++) {
-          if (csound->PVOC_GetFrames(csound,fp,frame,1)!=1) break;
-          csound->Message(csound, "%d ", (int)frame[1+(firstBin + k)*2]);
-        }
-        csound->Message(csound, "\n");
-        csound->PVOC_CloseFile(csound, fp);
-        fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt);
-      }
-    }
-    
-    csound->PVOC_CloseFile(csound,fp);
+
+    csound->PVOC_CloseFile(csound, fp);
     if (outfd != stdout)
       fclose(outfd);
-    
+
     return 0;
 }
 
