@@ -35,7 +35,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
     float *bframe;
     long N = (long) *p->framesize;
 
-    if (p->fout->frame.auxp==NULL)
+    if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = N;
@@ -51,11 +51,124 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
     return OK;
 }
 
+static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p){
+
+  long N = p->fin->N;
+
+   if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+   if (p->freez.auxp==NULL && p->freez.size < sizeof(float) *(N+2))
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->freez);
+
+    p->fout->N =  N;
+    p->fout->overlap = p->fin->overlap;
+    p->fout->winsize = p->fin->winsize;
+    p->fout->wintype = p->fin->wintype;
+    p->fout->format = p->fin->format;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+
+    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
+      return
+        csound->InitError(csound, Str(
+                      "pvsfreeze: signal format must be amp-phase or amp-freq.\n"));
+    return OK;
+}
+
+static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
+{
+    int i;
+    long framesize;
+    MYFLT freeza,freezf; 
+    float *fout,*fin, *freez;
+    freeza = *p->kfra;
+    freezf = *p->kfrf;
+    fout = (float *) p->fout->frame.auxp;
+    fin = (float *) p->fin->frame.auxp;
+    freez = (float *) p->freez.auxp;
+
+    framesize = p->fin->N + 2;
+
+    if (p->lastframe < p->fin->framecount) {
+     
+      for (i=0;i < framesize;i+=2) {
+	if(freeza<1) 
+           freez[i] = fin[i];
+        if(freezf<1) 
+           freez[i+1] = fin[i+1];
+        fout[i] = freez[i];
+        fout[i+1] = freez[i+1];
+      }
+      p->fout->framecount = p->lastframe = p->fin->framecount;
+    }
+    return OK;
+}
+
+static int pvsmoothset(CSOUND *csound, PVSMOOTH *p){
+
+  long N = p->fin->N;
+
+   if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
+      csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
+   if (p->del.auxp==NULL && p->del.size < sizeof(float) *(N+2))
+     csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->del);
+
+    p->fout->N =  N;
+    p->fout->overlap = p->fin->overlap;
+    p->fout->winsize = p->fin->winsize;
+    p->fout->wintype = p->fin->wintype;
+    p->fout->format = p->fin->format;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+
+    if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE))
+      return
+        csound->InitError(csound, Str(
+                      "pvsmooth: signal format must be amp-phase or amp-freq.\n"));
+    return OK;
+}
+
+static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
+{
+    int i;
+    long framesize;
+    MYFLT ffa,ffr; 
+    float *fout,*fin, *del;
+    ffa = *p->kfra;
+    ffr = *p->kfrf;
+    fout = (float *) p->fout->frame.auxp;
+    fin = (float *) p->fin->frame.auxp;
+    del = (float *) p->del.auxp;
+
+    framesize = p->fin->N + 2;
+
+    if (p->lastframe < p->fin->framecount) {
+      double costh1, costh2, coef1, coef2;
+      ffa = ffa < 0 ? FL(0.0) : (ffa > 1 ? FL(1.0) : ffa);
+      ffr = ffr < 0 ? FL(0.0) : (ffr > 1 ? FL(1.0) : ffr);
+      costh1 = 2.- cos(PI*ffa);
+      costh2 = 2. - cos(PI*ffr);
+      coef1 = sqrt(costh1*costh1 - 1.) - costh1;
+      coef2 =sqrt(costh2*costh2 - 1.) - costh2;
+
+      for (i=0;i < framesize;i+=2) {
+	// amp smoothing
+	fout[i] = (float) (fin[i]*(1+coef1) - del[i]*coef1);    
+        // freq smoothing
+        fout[i+1] = (float) (fin[i+1]*(1+coef2) - del[i+1]*coef1);
+        del[i] = fout[i];
+        del[i+1] = fout[i+1];
+      }
+      p->fout->framecount = p->lastframe = p->fin->framecount;
+    }
+    return OK;
+}
+
 static int pvsmixset(CSOUND *csound, PVSMIX *p)
 {
     long N = p->fa->N;
 
-    if (p->fout->frame.auxp==NULL)
+    if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->fa->overlap;
@@ -112,7 +225,7 @@ static int pvsfilterset(CSOUND *csound, PVSFILTER *p)
 {
     long N = p->fin->N;
 
-    if (p->fout->frame.auxp==NULL)
+    if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
@@ -162,7 +275,7 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 {
     long N = p->fin->N;
 
-    if (p->fout->frame.auxp==NULL)
+    if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
@@ -227,7 +340,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
 {
     long N = p->fin->N;
 
-    if (p->fout->frame.auxp==NULL)
+    if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);     /* RWD MUST be 32bit */
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
@@ -309,7 +422,7 @@ static int pvsblurset(CSOUND *csound, PVSBLUR *p)
 
     delayframes = (int)(*p->maxdel*p->frpsec);
 
-    if (p->fout->frame.auxp==NULL)
+    if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
 
     if (p->delframes.auxp==NULL)
@@ -396,7 +509,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
     long chans = N/2+1;
     MYFLT *ftable;
 
-    if (p->fout->frame.auxp==NULL)
+    if (p->fout->frame.auxp==NULL && p->fout->frame.size < sizeof(float) * (N+2))
       csound->AuxAlloc(csound, (N+2)*sizeof(float),&p->fout->frame);
 
     p->fout->N =  N;
@@ -482,7 +595,9 @@ static OENTRY localops[] = {
    {"pvsfilter", S(PVSFILTER), 3, "f", "ffkp", (SUBR)pvsfilterset,(SUBR)pvsfilter},
    {"pvsblur", S(PVSBLUR), 3, "f", "fki", (SUBR)pvsblurset, (SUBR)pvsblur, NULL},
    {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR)pvstencilset, (SUBR)pvstencil},
-   {"pvsinit", S(PVSINI), 1, "f", "i", (SUBR) pvsinit, NULL, NULL}
+   {"pvsinit", S(PVSINI), 1, "f", "i", (SUBR) pvsinit, NULL, NULL},
+   {"pvsfreeze", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset, (SUBR) pvsfreezeprocess, NULL},
+   {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset, (SUBR) pvsmoothprocess, NULL}
 };
 
 int pvsbasic_init_(CSOUND *csound)
