@@ -651,8 +651,8 @@ OENTRY opcodlst_1[] = {
 /* and setksmps */
 { ".userOpcode", S(UOPCODE), 7, "", "", useropcdset, useropcd, useropcd },
 /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-{ "xin", S(XIN),   1, 
-    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", "", 
+{ "xin", S(XIN),   1,
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", "",
     xinset, NULL, NULL },
 { "xout", S(XOUT),    1,        "",     "M",    xoutset, NULL, NULL      },
 { "setksmps", S(SETKSMPS), 1,   "",     "i",    setksmpsset, NULL, NULL  },
