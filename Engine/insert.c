@@ -384,7 +384,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
 
 /* csound.c */
 extern  int     csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip);
-        int     useropcd(CSOUND *, UOPCODE*);
+        int     useropcd(CSOUND *, UOPCODE *);
 
 static void deact(CSOUND *csound, INSDS *ip)
 {                               /* unlink single instr from activ chain */
@@ -728,7 +728,15 @@ int subinstrset(CSOUND *csound, SUBINST *p)
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
 /* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
 
-int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
+static int useropcd1(CSOUND *, UOPCODE *);
+static int useropcd2(CSOUND *, UOPCODE *);
+
+static CS_NOINLINE void userop_deprecated_warning(void *p)
+{
+    CSOUND  *csound;
+    csound = ((OPDS*) p)->insdshead->csound;
+    csound->Warning(csound, Str("%s is deprecated"), csound->GetOpcodeName(p));
+}
 
 int useropcdset(CSOUND *csound, UOPCODE *p)
 {
@@ -741,6 +749,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     int     g_ksmps;
     long    g_kcounter;
     MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt;
+
+    csound->Warning(csound, Str("%s is deprecated"), "\"opcode\"");
 
     g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
     p->ksmps_scale = 1;
@@ -886,6 +896,8 @@ int xinset(CSOUND *csound, XIN *p)
     short       *ndx_list;
     MYFLT       **tmp, **bufs;
 
+    userop_deprecated_warning(p);
+
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     inm = buf->opcode_info;
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
@@ -921,6 +933,8 @@ int xoutset(CSOUND *csound, XOUT *p)
     OPCODINFO   *inm;
     short       *ndx_list;
     MYFLT       **tmp, **bufs;
+
+    userop_deprecated_warning(p);
 
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     inm = buf->opcode_info;
@@ -959,6 +973,8 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
     OPCOD_IOBUFS  *buf;
     UOPCODE       *pp;
     int           l_ksmps, n;
+
+    userop_deprecated_warning(p);
 
     buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
     l_ksmps = (int) *(p->i_ksmps);
@@ -1279,7 +1295,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
 /* IV - Sep 17 2002 -- case 1: local ksmps is used */
 
-int useropcd1(CSOUND *csound, UOPCODE *p)
+static int useropcd1(CSOUND *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = csound->pds;
     int     g_ksmps, ofs = 0, n;
@@ -1379,7 +1395,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
 /* IV - Sep 17 2002 -- case 2: simplified routine for no local ksmps */
 
-int useropcd2(CSOUND *csound, UOPCODE *p)
+static int useropcd2(CSOUND *csound, UOPCODE *p)
 {
     OPDS    *saved_pds = csound->pds;
     int     n;
