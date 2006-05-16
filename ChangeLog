@@ -1,3 +1,6 @@
+2006-05-16	Istvan Varga	<ivarga@csounds.com>
+	* Removed user defined opcodes.
+
 2006-05-16  jpff  <jpff@codemist.co.uk>
 
 	* Engine/entry1.c: Change args of xin to match OPCODENUMOUTS

@@ -567,9 +567,6 @@ extern "C" {
 
 #define TOKMAX  50L     /* Should be 50 but bust */
 
-/* max number of input/output args for user defined opcodes */
-#define OPCODENUMOUTS   64
-
 #define MBUFSIZ         (4096)
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
@@ -616,15 +613,6 @@ extern "C" {
     MYFLT   *ktempo, *istartempo;
     MYFLT   prvtempo;
   } TEMPO;
-
-  typedef struct opcodinfo {
-    long    instno;
-    char    *name, *intypes, *outtypes;
-    short   inchns, outchns, perf_incnt, perf_outcnt;
-    short   *in_ndx_list, *out_ndx_list;
-    INSTRTXT *ip;
-    struct opcodinfo *prv;
-  } OPCODINFO;
 
   typedef struct polish {
     char    opcod[12];
@@ -1061,7 +1049,7 @@ extern "C" {
     MYFLT         tran_sr, tran_kr, tran_ksmps;
     MYFLT         tran_0dbfs;
     int           tran_nchnls;
-    OPCODINFO     *opcodeInfo;
+    void          *dummy_05;
     void          *instrumentNames;
     void          *strsav_str;
     void          *strsav_space;
