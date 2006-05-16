@@ -1,3 +1,9 @@
+2006-05-15	Anthony Kozar	<anthonykozar@sbcglobal.net>
+	* Top/cscormai.c:  Fixed #includes.
+	* interfaces/CsoundFile.cpp:  isspace() is in <cctype> and supposed
+	  to be in std namespace
+	* H/csoundCore.h:  Increased OPCODENUMOUTS to 64 as requested.
+
 2006-05-15	Istvan Varga	<ivarga@csounds.com>
 	* Opcodes/stackops.c:
 	  added new opcode: monitor

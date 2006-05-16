@@ -22,7 +22,7 @@
 */
 
 #include "cscore.h"                                   /*   CSCOREMAIN.C   */
-#include "csoundCore.h"
+#include "csound.h"
 #include "text.h"
 #include <stdarg.h>
 

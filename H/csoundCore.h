@@ -568,7 +568,7 @@ extern "C" {
 #define TOKMAX  50L     /* Should be 50 but bust */
 
 /* max number of input/output args for user defined opcodes */
-#define OPCODENUMOUTS   24
+#define OPCODENUMOUTS   64
 
 #define MBUFSIZ         (4096)
 #define MIDIINBUFMAX    (1024)
