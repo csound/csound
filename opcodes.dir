@@ -32,6 +32,8 @@ mixer:
 	MixerSetLevel MixerGetLevel MixerSend MixerReceive MixerClear
 modal4:
 	marimba vibes gogobel
+monitor:
+	monitor
 osc:
 	OSCsend OSCrecv OSCinit OSClisten
 phisem:
@@ -63,8 +65,6 @@ scansyn:
 sfont:
 	sfload sfpreset sfplay sfplaym sfplist sfilist sfpassign sfinstrm
 	sfinstr sfplay3 sfplay3m sfinstr3 sfinstr3m
-stackops:
-	monitor pop push stack
 stk:
 	STKBandedWG STKBeeThree STKBlowBotl STKBlowHole STKBowed STKBrass
 	STKClarinet STKDrummer STKFlute STKFMVoices STKHevyMetl STKMandolin
