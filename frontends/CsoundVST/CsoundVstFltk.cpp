@@ -33,7 +33,7 @@
 #include <boost/tokenizer.hpp>
 
 static std::string about = "CSOUND AND CSOUND VST\n"
-"Version 5.0beta\n"
+"Version 5.02\n"
 "\n"
 "A user-programmable and user-extensible sound processing language \n"
 "and software synthesizer. \n"
@@ -179,9 +179,32 @@ WaitCursor::~WaitCursor()
 Fl_Preferences CsoundVstFltk::preferences(Fl_Preferences::USER, "gogins@pipeline.com", "CsoundVST");
 
 CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
-  csoundVstUi(0),
   csoundVST((CsoundVST *)audioEffect),
-  useCount(0)
+  windowHandle (0),
+  csoundVstUi (0),
+  useCount (0),
+  mainPack (0),
+  mainTabs (0),
+  commandInput (0),
+  runtimeMessagesGroup (0),
+  runtimeMessagesBrowser (0),
+  orchestraTextEdit (0),
+  orchestraTextBuffer (0),
+  scoreTextEdit (0),
+  scoreTextBuffer (0),
+  scriptTextEdit (0),
+  scriptTextBuffer (0),
+  settingsEditSoundfileInput (0),
+  settingsVstPluginModeEffect (0),
+  settingsVstPluginModeInstrument (0),
+  settingsCsoundPerformanceModeClassic (0),
+  settingsCsoundPerformanceModePython (0),
+  autoPlayCheckButton (0),
+  aboutTextBuffer (0),
+  aboutTextDisplay (0),
+  orchestraGroup (0),
+  scoreGroup (0),
+  scriptGroup (0)
 {
   if (oneWaiter == 0)
     {
