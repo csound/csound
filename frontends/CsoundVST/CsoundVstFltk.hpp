@@ -60,18 +60,18 @@ class CsoundVstFltk :
   public AEffEditor
 {
 public:
-  void *windowHandle;
-  Fl_Window *csoundVstUi;
-  CsoundVST *csoundVST;
-  int useCount;
-  static std::string aboutText;
-  static Fl_Preferences preferences;
   typedef enum {
     kEditorWidth = 610,
     kEditorHeight = 430,
     xPad = 4,
     yPad = 4
   } AEffEditorSize;
+  static std::string aboutText;
+  static Fl_Preferences preferences;
+  void *windowHandle;
+  Fl_Window *csoundVstUi;
+  CsoundVST *csoundVST;
+  int useCount;
   Fl_Pack *mainPack;
   Fl_Tabs *mainTabs;
   Fl_Input *commandInput;
@@ -97,9 +97,9 @@ public:
   std::list<std::string> messages;
   std::string helpFilename;
   std::string messagebuffer;
+  static void messageCallback(CSOUND *csound, int attribute, const char *format, va_list valist);
   CsoundVstFltk(AudioEffect *audioEffect);
   virtual ~CsoundVstFltk(void);
-  static void messageCallback(CSOUND *csound, int attribute, const char *format, va_list valist);
   virtual void updateCaption();
   virtual void updateModel();
   //    AEffEditor overrides.
