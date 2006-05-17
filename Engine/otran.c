@@ -100,6 +100,113 @@ void tranRESET(CSOUND *csound)
     csound->otranGlobals = NULL;
 }
 
+/* IV - Oct 12 2002: new function to parse arguments of opcode definitions */
+
+static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
+{
+    OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
+    char    *types, *otypes;
+    int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
+    short   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
+
+    /* count the number of arguments, and check types */
+    i = i_incnt = a_incnt = k_incnt = i_outcnt = a_outcnt = k_outcnt = err = 0;
+    types = inm->intypes; otypes = opc->intypes;
+    if (!strcmp(types, "0")) types++;   /* no input args */
+    while (*types) {
+      switch (*types) {
+      case 'a':
+        a_incnt++; *otypes++ = *types;
+        break;
+      case 'K':
+        i_incnt++;              /* also updated at i-time */
+      case 'k':
+        k_incnt++; *otypes++ = 'k';
+        break;
+      case 'i':
+      case 'o':
+      case 'p':
+      case 'j':
+        i_incnt++; *otypes++ = *types;
+        break;
+      default:
+        synterr(csound, "invalid input type for opcode %s", inm->name); err++;
+      }
+      i++; types++;
+      if (i > OPCODENUMOUTS) {
+        synterr(csound, "too many input args for opcode %s", inm->name);
+        err++; break;
+      }
+    }
+    *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
+    inm->inchns = strlen(opc->intypes) - 1; /* total number of input chnls */
+    inm->perf_incnt = a_incnt + k_incnt;
+    /* same for outputs */
+    i = 0;
+    types = inm->outtypes; otypes = opc->outypes;
+    if (!strcmp(types, "0")) types++;   /* no output args */
+    while (*types) {
+      if (i >= OPCODENUMOUTS) {
+        synterr(csound, "too many output args for opcode %s", inm->name);
+        err++; break;
+      }
+      switch (*types) {
+      case 'a':
+        a_outcnt++; *otypes++ = *types;
+        break;
+      case 'K':
+        i_outcnt++;             /* also updated at i-time */
+      case 'k':
+        k_outcnt++; *otypes++ = 'k';
+        break;
+      case 'i':
+        i_outcnt++; *otypes++ = *types;
+        break;
+      default:
+        synterr(csound, "invalid output type for opcode %s", inm->name); err++;
+      }
+      i++; types++;
+    }
+    *otypes = '\0';
+    inm->outchns = strlen(opc->outypes);    /* total number of output chnls */
+    inm->perf_outcnt = a_outcnt + k_outcnt;
+    /* now build index lists for the various types of arguments */
+    i = i_incnt + inm->perf_incnt + i_outcnt + inm->perf_outcnt;
+    i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
+                                                   sizeof(short) * (i + 6));
+    a_inlist = i_inlist + i_incnt + 1;
+    k_inlist = a_inlist + a_incnt + 1;
+    i = 0; types = inm->intypes;
+    while (*types) {
+      switch (*types++) {
+        case 'a': *a_inlist++ = i; break;
+        case 'k': *k_inlist++ = i; break;
+        case 'K': *k_inlist++ = i;      /* also updated at i-time */
+        case 'i':
+        case 'o':
+        case 'p':
+        case 'j': *i_inlist++ = i;
+      }
+      i++;
+    }
+    *i_inlist = *a_inlist = *k_inlist = -1;     /* put delimiters */
+    i_outlist = inm->out_ndx_list = k_inlist + 1;
+    a_outlist = i_outlist + i_outcnt + 1;
+    k_outlist = a_outlist + a_outcnt + 1;
+    i = 0; types = inm->outtypes;
+    while (*types) {
+      switch (*types++) {
+        case 'a': *a_outlist++ = i; break;
+        case 'k': *k_outlist++ = i; break;
+        case 'K': *k_outlist++ = i;     /* also updated at i-time */
+        case 'i': *i_outlist++ = i;
+      }
+      i++;
+    }
+    *i_outlist = *a_outlist = *k_outlist = -1;  /* put delimiters */
+    return err;
+}
+
 static int pnum(char *s)        /* check a char string for pnum format  */
                                 /*   and return the pnum ( >= 0 )       */
 {                               /* else return -1                       */
@@ -129,6 +236,7 @@ void otran(CSOUND *csound)
     }
     csound->instrtxtp = (INSTRTXT **) mcalloc(csound, (1 + csound->maxinsno)
                                                       * sizeof(INSTRTXT*));
+    csound->opcodeInfo = NULL;          /* IV - Oct 20 2002 */
 
     strconstndx(csound, "\"\"");
 
@@ -155,6 +263,7 @@ void otran(CSOUND *csound)
         int opnum = tp->opnum;
         switch (opnum) {
         case INSTR:
+        case OPCODE:            /* IV - Sep 8 2002 */
             ip = (INSTRTXT *) mcalloc(csound, sizeof(INSTRTXT));
             prvinstxt = prvinstxt->nxtinstxt = ip;
             txtcpy((char*) &ip->t, (char*) tp);
@@ -218,6 +327,70 @@ void otran(CSOUND *csound)
               if (err) continue;
               if (n) putop(csound, &ip->t);     /* print, except i0 */
             }
+            else {                  /* opcode definition with string name */
+              OENTRY    tmpEntry, *opc, *newopc;
+              long      newopnum;
+              OPCODINFO *inm;
+              char      *name = alp->arg[0];
+
+              /* some error checking */
+              if (!alp->count || (strlen(name) <= 0)) {
+                  synterr(csound, Str("No opcode name"));
+                  continue;
+                }
+              /* IV - Oct 31 2002 */
+              if (!check_instr_name(name)) {
+                synterr(csound, Str("invalid name for opcode"));
+                continue;
+              }
+              if (ip->t.inlist->count != 3) {
+                synterr(csound, Str("opcode declaration error "
+                                    "(usage: opcode name, outtypes, intypes) "
+                                    "-- opcode %s"), name);
+                continue;
+              }
+
+              /* IV - Oct 31 2002: check if opcode is already defined */
+              newopnum = find_opcode(csound, name);
+              if (newopnum) {
+                /* IV - Oct 31 2002: redefine old opcode if possible */
+                if (newopnum < SETEND || !strcmp(name, "subinstr")) {
+                  synterr(csound, Str("cannot redefine %s"), name);
+                  continue;
+                }
+                csound->Message(csound,
+                                Str("WARNING: redefined opcode: %s\n"), name);
+              }
+              /* IV - Oct 31 2002 */
+              /* store the name in a linked list (note: must use mcalloc) */
+              inm = (OPCODINFO *) mcalloc(csound, sizeof(OPCODINFO));
+              inm->name = name;
+              inm->intypes = alp->arg[2];
+              inm->outtypes = alp->arg[1];
+              inm->ip = ip;
+              inm->prv = csound->opcodeInfo;
+              csound->opcodeInfo = inm;
+              /* IV - Oct 31 2002: */
+              /* create a fake opcode so we can call it as such */
+              opc = csound->opcodlst + find_opcode(csound, ".userOpcode");
+              memcpy(&tmpEntry, opc, sizeof(OENTRY));
+              tmpEntry.opname = name;
+              csound->AppendOpcodes(csound, &tmpEntry, 1);
+              if (!newopnum)
+                newopnum = (long) ((OENTRY*) csound->oplstend
+                                   - (OENTRY*) csound->opcodlst) - 1L;
+              newopc = &(csound->opcodlst[newopnum]);
+              newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
+              ip->insname = name; ip->opcode_info = inm; /* IV - Nov 10 2002 */
+              /* check in/out types and copy to the opcode's */
+              newopc->outypes = mmalloc(csound, strlen(alp->arg[1]) + 1);
+                /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
+              newopc->intypes = mmalloc(csound, strlen(alp->arg[2]) + 2);
+              if (parse_opcode_args(csound, newopc)) continue;
+              n = -2;
+/* ---- IV - Oct 16 2002: end of new code ----> */
+              putop(csound, &ip->t);
+            }
             delete_local_namepool(csound);          /* clear lcl namlist */
             ST(lclnxtkcnt) = 0;                     /*   for rebuilding  */
             ST(lclnxtwcnt) = ST(lclnxtacnt) = 0;
@@ -227,6 +400,7 @@ void otran(CSOUND *csound)
             pmax = 3L;                              /* set minimum pflds */
             break;
         case ENDIN:
+        case ENDOP:             /* IV - Sep 8 2002 */
             bp = (OPTXT *) mcalloc(csound, (long)sizeof(OPTXT));
             txtcpy((char *)&bp->t, (char *)tp);
             prvbp->nxtop = bp;
@@ -306,6 +480,27 @@ void otran(CSOUND *csound)
       synterr(csound, Str("Missing endin"));
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound);         /* IV - Oct 31 2002 */
+    if (csound->opcodeInfo) {
+      int num = csound->maxinsno;       /* store after any other instruments */
+      OPCODINFO *inm = csound->opcodeInfo;
+      /* IV - Oct 31 2002: now add user defined opcodes */
+      while (inm) {
+        /* we may need to expand the instrument array */
+        if (++num > csound->maxopcno) {
+          int i;
+          i = (csound->maxopcno > 0 ? csound->maxopcno : csound->maxinsno);
+          csound->maxopcno = i + MAXINSNO;
+          csound->instrtxtp = (INSTRTXT**)
+            mrealloc(csound, csound->instrtxtp, (1 + csound->maxopcno)
+                                                * sizeof(INSTRTXT*));
+          /* Array expected to be nulled so.... */
+          while (++i <= csound->maxopcno) csound->instrtxtp[i] = NULL;
+        }
+        inm->instno = num;
+        csound->instrtxtp[num] = inm->ip;
+        inm = inm->prv;
+      }
+    }
     /* Deal with defaults and consistency */
     if (csound->tran_ksmps == FL(-1.0)) {
       if (csound->tran_sr == FL(-1.0)) csound->tran_sr = DFLT_SR;
@@ -382,8 +577,8 @@ void otran(CSOUND *csound)
       while ((optxt = optxt->nxtop) != NULL) {      /* for each op in instr  */
         TEXT *ttp = &optxt->t;
         optxtcount += 1;
-        if (ttp->opnum == ENDIN)                    /*    (until ENDIN)      */
-          break;
+        if (ttp->opnum == ENDIN                     /*    (until ENDIN)      */
+            || ttp->opnum == ENDOP) break;  /* (IV - Oct 26 2002: or ENDOP) */
         if ((count = ttp->inlist->count)!=0)
           sumcount += count +1;                     /* count the non-nullist */
         if ((count = ttp->outlist->count)!=0)       /* slots in all arglists */
@@ -467,7 +662,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
     optxt = (OPTXT *)tp;
     while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
       TEXT *ttp = &optxt->t;
-      if ((opnum = ttp->opnum) == ENDIN)        /*  (until ENDIN)  */
+      if ((opnum = ttp->opnum) == ENDIN         /*  (until ENDIN)  */
+          || opnum == ENDOP)            /* (IV - Oct 31 2002: or ENDOP) */
         break;
       if (opnum == LABEL) {
         if (lblsp - labels >= csound->nlabels) {
@@ -1070,7 +1266,7 @@ void oload(CSOUND *p)
         long    posndx;
         int     *ndxp;
         int     opnum = ttp->opnum;
-        if (opnum == ENDIN) break;
+        if (opnum == ENDIN || opnum == ENDOP) break;    /* IV - Sep 8 2002 */
         if (opnum == LABEL) continue;
         aoffp = ttp->outoffs;           /* ------- OUTARGS -------- */
         n = aoffp->count;
