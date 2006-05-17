@@ -53,6 +53,7 @@ typedef struct {
 #define SUBINSTNUMOUTS  8
 
 typedef struct {
+    OPCODINFO *opcode_info;
     void    *uopcode_struct;
     INSDS   *parent_ip;
     MYFLT   *iobufp_ptrs[4];            /* expandable IV - Oct 26 2002 */
@@ -65,6 +66,32 @@ typedef struct {                        /* IV - Oct 16 2002 */
     AUXCH   saved_spout;
     OPCOD_IOBUFS    buf;
 } SUBINST;
+
+typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
+    OPDS    h;
+    MYFLT   *ar[(OPCODENUMOUTS << 1) + 1];
+    INSDS   *ip, *parent_ip;
+    OPCOD_IOBUFS  *buf;
+    int     l_ksmps, ksmps_scale;
+    MYFLT   l_ekr, l_onedkr, l_onedksmps, l_kicvt;
+} UOPCODE;
+
+/* IV - Sep 8 2002: added opcodes: xin, xout, and setksmps */
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[OPCODENUMOUTS];
+} XIN;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[OPCODENUMOUTS];       /* IV - Oct 24 2002 */
+} XOUT;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *i_ksmps;
+} SETKSMPS;
 
 typedef struct {                        /* IV - Oct 20 2002 */
     OPDS    h;

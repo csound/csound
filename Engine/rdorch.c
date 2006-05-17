@@ -114,6 +114,8 @@ typedef struct {
     short   grpcnt, nxtest /* = 1 */;
     short   xprtstno, polcnt;
     short   instrblk, instrcnt;
+    short   opcodblk;               /* IV - Sep 8 2002 */
+    short   opcodflg;               /* 1: xin, 2: xout, 4: setksmps */
     TEXT    optext;                 /* struct to be passed back to caller */
 } RDORCH_GLOBALS;
 
@@ -1249,6 +1251,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       ST(xprtstno) = 0;
       ST(polcnt)   = 0;
       ST(instrblk) = 0;
+      ST(opcodblk) = 0;     /* IV - Sep 8 2002 */
       ST(instrcnt) = 0;
       *init    = 0;
       memset(&ST(optext), 0, sizeof(TEXT));
@@ -1317,7 +1320,9 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       ST(instrcnt) = ST(instrblk) = 1;
       return(tp);
     }                                             /* then at 1st real INSTR, */
-    if (ST(instrcnt) == 1 && ST(instrblk) && ST(opnum) == INSTR) {
+                                                  /*               or OPCODE, */
+    if (ST(instrcnt) == 1 && ST(instrblk) &&
+        (ST(opnum) == INSTR || ST(opnum) == OPCODE)) {
       tp->opnum = ENDIN;                          /*  send an endin to */
       tp->opcod = strsav_string(csound, "endin"); /*  term instr 0 blk */
       tp->outlist = tp->inlist = ST(nullist);
@@ -1458,6 +1463,17 @@ TEXT *getoptxt(CSOUND *csound, int *init)
     }
     tp->opnum = ST(linopnum);                         /* now use identified   */
     tp->opcod = strsav_string(csound, ST(linopcod));  /*   full line opcode   */
+    /* IV - Oct 24 2002: check for invalid use of setksmps */
+    if (strcmp(ST(linopcod), "setksmps") == 0) {
+      if (!ST(opcodblk))
+        synterr(csound,
+                Str("setksmps is allowed only in user defined opcodes"));
+      else if ((int) ST(opcodflg) & 4)
+        synterr(csound,
+                Str("multiple uses of setksmps in the same opcode definition"));
+      else
+        ST(opcodflg) |= (short) 4;
+    }
     if (strncmp(ST(linopcod),"out",3) == 0 && /* but take case of MIDI ops */
         (ST(linopcod)[3] == '\0' || ST(linopcod)[3] == 's' ||
          ST(linopcod)[3] == 'q'  || ST(linopcod)[3] == 'h' ||
@@ -1505,8 +1521,28 @@ TEXT *getoptxt(CSOUND *csound, int *init)
 
  spctst:
     tp->xincod_str = tp->xincod = 0;
-    if (tp->opnum == INSTR) {           /* IV - Sep 8 2002: for opcod INSTR  */
-      if (ST(instrblk))
+    if (tp->opnum == OPCODE) {  /* IV - Sep 8 2002: added OPCODE and ENDOP */
+      if (ST(opcodblk))
+        synterr(csound, Str("opcode blks cannot be nested (missing 'endop'?)"));
+      else if (ST(instrblk))
+        synterr(csound, Str("opcode not allowed in instr block"));
+      else ST(instrblk) = ST(opcodblk) = 1;
+      ST(opcodflg) = 0;
+      resetouts(csound);                        /* reset #out counts */
+      lblclear(csound);                         /* restart labelist  */
+    }
+    else if (tp->opnum == ENDOP) {      /* IV - Sep 8 2002:     ENDOP:  */
+      lblchk(csound);                   /* chk missed labels */
+      if (!ST(instrblk))
+        synterr(csound, Str("unmatched endop"));
+      else if (!ST(opcodblk))
+        synterr(csound, Str("endop not allowed in instr block"));
+      else ST(instrblk) = ST(opcodblk) = 0;
+    }
+    else if (tp->opnum == INSTR) {      /* IV - Sep 8 2002: for opcod INSTR  */
+      if (ST(opcodblk))     /* IV - Sep 8 2002 */
+        synterr(csound, Str("instr not allowed in opcode block"));
+      else if (ST(instrblk))
         synterr(csound,
                 Str("instr blocks cannot be nested (missing 'endin'?)"));
       else ST(instrblk) = 1;
@@ -1515,7 +1551,9 @@ TEXT *getoptxt(CSOUND *csound, int *init)
     }
     else if (tp->opnum == ENDIN) {              /* ENDIN:       */
       lblchk(csound);                           /* chk missed labels */
-      if (!ST(instrblk))
+      if (ST(opcodblk))
+        synterr(csound, Str("endin not allowed in opcode blk"));
+      else if (!ST(instrblk))
         synterr(csound, Str("unmatched endin"));
       else ST(instrblk) = 0;
     }
@@ -1523,11 +1561,41 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       OENTRY    *ep = csound->opcodlst + tp->opnum;
       int       n, nreqd;
       char      tfound = '\0', treqd, *types = NULL;
+      char      xtypes[OPCODENUMOUTS + 1];      /* IV - Oct 24 2002 */
 
       if (!ST(instrblk))
         synterr(csound, Str("misplaced opcode"));
+      /* IV - Oct 24 2002: moved argument parsing for xout here */
       n = incnt;
       nreqd = -1;
+      if (!strcmp(ep->opname, "xout")) {
+        if (!ST(opcodblk))
+          synterr(csound, Str("xout is allowed only in user defined opcodes"));
+        else if ((int) ST(opcodflg) & 2)
+          synterr(csound,
+                  Str("multiple uses of xout in the same opcode definition"));
+        else {
+          /* IV - Oct 24 2002: opcodeInfo always points to the most recently */
+          /* defined user opcode (or named instrument) structure; in this */
+          /* case, it is the current opcode definition (not very elegant, */
+          /* but works) */
+          char *c = csound->opcodeInfo->outtypes;
+          int i = 0;
+          ST(opcodflg) |= (short) 2;
+          nreqd = csound->opcodeInfo->outchns;
+          while (c[i]) {
+            switch (c[i]) {
+              case 'a':
+              case 'k':
+              case 'i': xtypes[i] = c[i]; break;
+              case 'K': xtypes[i] = 'k';
+            }
+            i++;
+          }
+          xtypes[i] = '\0';
+          types = &xtypes[0];
+        }
+      }
       if (nreqd < 0)    /* for other opcodes */
         nreqd = strlen(types = ep->intypes);
       if (n > nreqd) {                  /* IV - Oct 24 2002: end of new code */
@@ -1644,8 +1712,37 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       csound->DebugMsg(csound, "xincod = %d", tp->xincod);
       /* IV - Sep 1 2002: added 'X' type, and xoutcod */
       tp->xoutcod_str = tp->xoutcod = 0;
+      /* IV - Oct 24 2002: moved argument parsing for xin here */
       n = outcnt;
       nreqd = -1;
+      if (!strcmp(ep->opname, "xin")) {
+        if (!ST(opcodblk))
+          synterr(csound, Str("xin is allowed only in user defined opcodes"));
+        else if ((int) ST(opcodflg) & 1)
+          synterr(csound,
+                  Str("multiple uses of xin in the same opcode definition"));
+        else {
+          /* IV - Oct 24 2002: opcodeInfo always points to the most recently */
+          /* defined user opcode (or named instrument) structure; in this */
+          /* case, it is the current opcode definition (not very elegant, */
+          /* but works) */
+          char *c = csound->opcodeInfo->intypes;
+          int i = 0;
+          ST(opcodflg) |= (short) 1;
+          nreqd = csound->opcodeInfo->inchns;
+          while (c[i]) {
+            switch (c[i]) {
+              case 'a': xtypes[i] = c[i]; break;
+              case 'k':
+              case 'K': xtypes[i] = 'k'; break;
+              default:  xtypes[i] = 'i';
+            }
+            i++;
+          }
+          xtypes[i] = '\0';
+          types = &xtypes[0];
+        }
+      }
       if (nreqd < 0)    /* for other opcodes */
         nreqd = strlen(types = ep->outypes);
       if ((n != nreqd) &&               /* IV - Oct 24 2002: end of new code */
