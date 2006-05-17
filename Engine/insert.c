@@ -384,6 +384,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
 
 /* csound.c */
 extern  int     csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip);
+        int     useropcd(CSOUND *, UOPCODE*);
 
 static void deact(CSOUND *csound, INSDS *ip)
 {                               /* unlink single instr from activ chain */
@@ -396,6 +397,14 @@ static void deact(CSOUND *csound, INSDS *ip)
     csound->cpu_power_busy -= csound->instrtxtp[ip->insno]->cpuload;
     /* IV - Sep 8 2002: free subinstr instances */
     /* that would otherwise result in a memory leak */
+    if (ip->opcod_deact) {
+      UOPCODE *p = (UOPCODE*) ip->opcod_deact;          /* IV - Oct 26 2002 */
+      deact(csound, p->ip);     /* deactivate */
+      p->ip = NULL;
+      /* IV - Oct 26 2002: set perf routine to "not initialised" */
+      p->h.opadr = (SUBR) useropcd;
+      ip->opcod_deact = NULL;
+    }
     if (ip->subins_deact) {
       deact(csound, ((SUBINST*) ip->subins_deact)->ip); /* IV - Oct 24 2002 */
       ((SUBINST*) ip->subins_deact)->ip = NULL;
@@ -563,12 +572,17 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = csound->ids->insdshead;
     if (ip->opcod_iobufs) {
+      OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
       /* find top level instrument instance */
       do {
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
-      sprintf(buf, Str("INIT ERROR in instr %d (subinstr %d): "),
-                   ip->insno, csound->ids->insdshead->insno);
+      if (op)
+        sprintf(buf, Str("INIT ERROR in instr %d (opcode %s): "),
+                     ip->insno, op->name);
+      else
+        sprintf(buf, Str("INIT ERROR in instr %d (subinstr %d): "),
+                     ip->insno, csound->ids->insdshead->insno);
     }
     else
       sprintf(buf, Str("INIT ERROR in instr %d: "), ip->insno);
@@ -596,12 +610,17 @@ int csoundPerfError(CSOUND *csound, const char *s, ...)
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     ip = csound->pds->insdshead;
     if (ip->opcod_iobufs) {
+      OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
       /* find top level instrument instance */
       do {
         ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
       } while (ip->opcod_iobufs);
-      sprintf(buf, Str("PERF ERROR in instr %d (subinstr %d): "),
-                   ip->insno, csound->pds->insdshead->insno);
+      if (op)
+        sprintf(buf, Str("PERF ERROR in instr %d (opcode %s): "),
+                     ip->insno, op->name);
+      else
+        sprintf(buf, Str("PERF ERROR in instr %d (subinstr %d): "),
+                     ip->insno, csound->pds->insdshead->insno);
     }
     else
       sprintf(buf, Str("PERF ERROR in instr %d: "), ip->insno);
@@ -703,6 +722,265 @@ int subinstrset(CSOUND *csound, SUBINST *p)
     /* restore globals */
     csound->ids = saved_ids;
     csound->curip = saved_curip;
+    return OK;
+}
+
+/* IV - Sep 8 2002: new functions for user defined opcodes (based */
+/* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
+
+int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
+
+int useropcdset(CSOUND *csound, UOPCODE *p)
+{
+    OPDS    *saved_ids = csound->ids;
+    INSDS   *saved_curip = csound->curip, *parent_ip = csound->curip, *lcurip;
+    INSTRTXT  *tp;
+    int     instno, i, n, pcnt;
+    OPCODINFO *inm;
+    OPCOD_IOBUFS  *buf;
+    int     g_ksmps;
+    long    g_kcounter;
+    MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt;
+
+    g_ksmps = p->l_ksmps = csound->ksmps;       /* default ksmps */
+    p->ksmps_scale = 1;
+    /* look up the 'fake' instr number, and opcode name */
+    inm = (OPCODINFO*) csound->opcodlst[p->h.optext->t.opnum].useropinfo;
+    instno = inm->instno;
+    tp = csound->instrtxtp[instno];
+    /* set local ksmps if defined by user */
+    n = p->OUTOCOUNT + p->INOCOUNT - 1;
+    if (*(p->ar[n]) != FL(0.0)) {
+      i = (int) *(p->ar[n]);
+      if (i < 1 || i > csound->ksmps ||
+          ((csound->ksmps / i) * i) != csound->ksmps) {
+        return csoundInitError(csound, Str("%s: invalid local ksmps value: %d"),
+                                       inm->name, i);
+      }
+      p->l_ksmps = i;
+    }
+    /* save old globals */
+    g_kcounter = csound->kcounter;
+    g_ekr = csound->ekr;
+    g_onedkr = csound->onedkr;
+    g_onedksmps = csound->onedksmps;
+    g_kicvt = csound->kicvt;
+    /* set up local variables depending on ksmps, also change globals */
+    if (p->l_ksmps != g_ksmps) {
+      csound->ksmps = p->l_ksmps;
+      p->ksmps_scale = g_ksmps / (int) csound->ksmps;
+      csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
+      p->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) p->l_ksmps;
+      p->l_ekr = csound->ekr = csound->pool[csound->poolcount + 1] =
+          csound->esr / (MYFLT) p->l_ksmps;
+      p->l_onedkr = csound->onedkr = FL(1.0) / p->l_ekr;
+      p->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / p->l_ekr;
+      csound->kcounter *= p->ksmps_scale;
+    }
+
+    if (!p->ip) {
+      /* search for already allocated, but not active instance */
+      /* if none was found, allocate a new instance */
+      if (!tp->act_instance)
+        instance(csound, instno);
+      lcurip = tp->act_instance;            /* use free intance, and  */
+      tp->act_instance = lcurip->nxtact;    /* remove from chain      */
+      lcurip->actflg++;                     /*    and mark the instr active */
+      tp->active++;
+      /* link into deact chain */
+      lcurip->opcod_deact = parent_ip->opcod_deact;
+      lcurip->subins_deact = NULL;
+      parent_ip->opcod_deact = (void*) p;
+      p->ip = lcurip;
+      /* IV - Nov 10 2002: set up pointers to I/O buffers */
+      buf = p->buf = (OPCOD_IOBUFS*) lcurip->opcod_iobufs;
+      buf->opcode_info = inm;
+      /* initialise perf time address lists */
+      buf->iobufp_ptrs[0] = buf->iobufp_ptrs[1] = NULL;
+      buf->iobufp_ptrs[2] = buf->iobufp_ptrs[3] = NULL;
+      /* store parameters of input and output channels, and parent ip */
+      buf->uopcode_struct = (void*) p;
+      buf->parent_ip = p->parent_ip = parent_ip;
+    }
+
+    /* copy parameters from the caller instrument into our subinstrument */
+    lcurip = p->ip;
+    lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
+    lcurip->m_pitch = parent_ip->m_pitch;
+    lcurip->m_veloc = parent_ip->m_veloc;
+    lcurip->xtratim = parent_ip->xtratim * p->ksmps_scale;
+    lcurip->m_sust = 0;
+    lcurip->relesing = parent_ip->relesing;
+    lcurip->offbet = parent_ip->offbet;
+    lcurip->offtim = parent_ip->offtim;
+    lcurip->nxtolap = NULL;
+    /* copy all p-fields, including p1 (will this work ?) */
+    if (tp->pmax > 3) {         /* requested number of p-fields */
+      n = tp->pmax; pcnt = 0;
+      while (pcnt < n) {
+        if ((i = csound->instrtxtp[parent_ip->insno]->pmax) > pcnt) {
+          if (i > n) i = n;
+          /* copy next block of p-fields */
+          memcpy(&(lcurip->p1) + pcnt, &(parent_ip->p1) + pcnt,
+                 (size_t) ((i - pcnt) * sizeof(MYFLT)));
+          pcnt = i;
+        }
+        /* top level instr reached */
+        if (parent_ip->opcod_iobufs == NULL) break;
+        parent_ip = ((OPCOD_IOBUFS*) parent_ip->opcod_iobufs)->parent_ip;
+      }
+    }
+    else
+      memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(MYFLT));
+
+    /* do init pass for this instr */
+    csound->curip = lcurip;
+    csound->ids = (OPDS *) (lcurip->nxti);
+    while (csound->ids != NULL) {
+      (*csound->ids->iopadr)(csound, csound->ids);
+      csound->ids = csound->ids->nxti;
+    }
+    /* copy length related parameters back to caller instr */
+    saved_curip->relesing = lcurip->relesing;
+    saved_curip->offbet = lcurip->offbet;
+    saved_curip->offtim = lcurip->offtim;
+    saved_curip->p3 = lcurip->p3;
+
+    /* restore globals */
+    csound->ids = saved_ids;
+    csound->curip = saved_curip;
+    if (csound->ksmps != g_ksmps) {
+      csound->ksmps = g_ksmps;
+      saved_curip->xtratim = lcurip->xtratim / p->ksmps_scale;
+      csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
+      csound->kcounter = g_kcounter;
+      csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
+      csound->onedkr = g_onedkr;
+      csound->onedksmps = g_onedksmps;
+      csound->kicvt = g_kicvt;
+      /* IV - Sep 17 2002: also select perf routine */
+      p->h.opadr = (SUBR) useropcd1;
+    }
+    else {
+      saved_curip->xtratim = lcurip->xtratim;
+      p->h.opadr = (SUBR) useropcd2;
+    }
+
+    return OK;
+}
+
+/* IV - Sep 17 2002: dummy user opcode function for not initialised case */
+
+int useropcd(CSOUND *csound, UOPCODE *p)
+{
+    return csoundPerfError(csound, Str("%s: not initialised"),
+                                   p->h.optext->t.opcod);
+}
+
+/* IV - Sep 1 2002: new opcodes: xin, xout */
+
+int xinset(CSOUND *csound, XIN *p)
+{
+    OPCOD_IOBUFS  *buf;
+    OPCODINFO   *inm;
+    short       *ndx_list;
+    MYFLT       **tmp, **bufs;
+
+    buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
+    inm = buf->opcode_info;
+    bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
+    /* copy i-time variables */
+    ndx_list = inm->in_ndx_list - 1;
+    while (*++ndx_list >= 0)
+      *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
+
+    /* find a-rate variables and add to list of perf-time buf ptrs ... */
+    tmp = buf->iobufp_ptrs;
+    if (*tmp || *(tmp + 1))
+      return OK;
+
+    while (*++ndx_list >= 0) {
+      *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
+      *(tmp++) = *(p->args + *ndx_list);/* "to" address */
+    }
+    *(tmp++) = NULL;            /* put delimiter */
+    /* ... same for k-rate */
+    while (*++ndx_list >= 0) {
+      *(tmp++) = *(bufs + *ndx_list);   /* "from" address */
+      *(tmp++) = *(p->args + *ndx_list);/* "to" address */
+    }
+    *(tmp++) = NULL;            /* put delimiter */
+    /* fix for case when xout is omitted */
+    *(tmp++) = NULL; *tmp = NULL;
+    return OK;
+}
+
+int xoutset(CSOUND *csound, XOUT *p)
+{
+    OPCOD_IOBUFS  *buf;
+    OPCODINFO   *inm;
+    short       *ndx_list;
+    MYFLT       **tmp, **bufs;
+
+    buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
+    inm = buf->opcode_info;
+    bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
+    /* copy i-time variables */
+    ndx_list = inm->out_ndx_list - 1;
+    while (*++ndx_list >= 0)
+      *(*(bufs + *ndx_list)) = *(*(p->args + *ndx_list));
+
+    /* skip input pointers, including the two delimiter NULLs */
+    tmp = buf->iobufp_ptrs;
+    if (*tmp || *(tmp + 1)) tmp += (inm->perf_incnt << 1);
+    tmp += 2;
+    if (*tmp || *(tmp + 1))
+      return OK;
+
+    /* find a-rate variables and add to list of perf-time buf ptrs ... */
+    while (*++ndx_list >= 0) {
+      *(tmp++) = *(p->args + *ndx_list);/* "from" address */
+      *(tmp++) = *(bufs + *ndx_list);   /* "to" address */
+    }
+    *(tmp++) = NULL;            /* put delimiter */
+    /* ... same for k-rate */
+    while (*++ndx_list >= 0) {
+      *(tmp++) = *(p->args + *ndx_list);/* "from" address */
+      *(tmp++) = *(bufs + *ndx_list);   /* "to" address */
+    }
+    *tmp = NULL;                /* put delimiter */
+    return OK;
+}
+
+/* IV - Sep 8 2002: new opcode: setksmps */
+
+int setksmpsset(CSOUND *csound, SETKSMPS *p)
+{
+    OPCOD_IOBUFS  *buf;
+    UOPCODE       *pp;
+    int           l_ksmps, n;
+
+    buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
+    l_ksmps = (int) *(p->i_ksmps);
+    if (!l_ksmps) return OK;       /* zero: do not change */
+    if (l_ksmps < 1 || l_ksmps > csound->ksmps
+        || ((csound->ksmps / l_ksmps) * l_ksmps != csound->ksmps)) {
+      return csoundInitError(csound, Str("setksmps: invalid ksmps value: %d"),
+                                     l_ksmps);
+    }
+    /* set up global variables according to the new ksmps value */
+    pp = (UOPCODE*) buf->uopcode_struct;
+    n = csound->ksmps / l_ksmps;
+    pp->ksmps_scale *= n;
+    p->h.insdshead->xtratim *= n;
+    pp->l_ksmps = csound->ksmps = l_ksmps;
+    csound->pool[csound->poolcount + 2] = (MYFLT) csound->ksmps;
+    pp->l_onedksmps = csound->onedksmps = FL(1.0) / (MYFLT) csound->ksmps;
+    pp->l_ekr = csound->ekr = csound->pool[csound->poolcount + 1] =
+        csound->esr / (MYFLT) csound->ksmps;
+    pp->l_onedkr = csound->onedkr = FL(1.0) / csound->ekr;
+    pp->l_kicvt = csound->kicvt = (MYFLT) FMAXLEN / csound->ekr;
+    csound->kcounter *= pp->ksmps_scale;
     return OK;
 }
 
@@ -999,6 +1277,173 @@ int subinstr(CSOUND *csound, SUBINST *p)
     return OK;
 }
 
+/* IV - Sep 17 2002 -- case 1: local ksmps is used */
+
+int useropcd1(CSOUND *csound, UOPCODE *p)
+{
+    OPDS    *saved_pds = csound->pds;
+    int     g_ksmps, ofs = 0, n;
+    MYFLT   g_ekr, g_onedkr, g_onedksmps, g_kicvt, **tmp, *ptr1, *ptr2;
+    long    g_kcounter;
+
+    /* update release flag */
+    p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
+    /* save old globals */
+    g_ksmps = csound->ksmps;
+    g_ekr = csound->ekr;
+    g_onedkr = csound->onedkr;
+    g_onedksmps = csound->onedksmps;
+    g_kicvt = csound->kicvt;
+    g_kcounter = csound->kcounter;
+    /* set local ksmps and related values */
+    csound->ksmps = p->l_ksmps;
+    csound->pool[csound->poolcount + 2] = (MYFLT) p->l_ksmps;
+    csound->ekr = csound->pool[csound->poolcount + 1] = p->l_ekr;
+    csound->onedkr = p->l_onedkr;
+    csound->onedksmps = p->l_onedksmps;
+    csound->kicvt = p->l_kicvt;
+    csound->kcounter = csound->kcounter * p->ksmps_scale;
+
+    if (csound->ksmps == 1) {           /* special case for local kr == sr */
+      do {
+        /* copy inputs */
+        tmp = p->buf->iobufp_ptrs;
+        while (*tmp) {                  /* a-rate */
+          ptr1 = *(tmp++) + ofs; *(*(tmp++)) = *ptr1;
+        }
+        while (*(++tmp)) {              /* k-rate */
+          ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+        }
+        /*  run each opcode  */
+        csound->pds = (OPDS *) (p->ip);
+        while ((csound->pds = csound->pds->nxtp)) {
+          (*csound->pds->opadr)(csound, csound->pds);
+        }
+        /* copy outputs */
+        while (*(++tmp)) {              /* a-rate */
+          ptr1 = *tmp; (*(++tmp))[ofs] = *ptr1;
+        }
+        ++(csound->kcounter);
+      } while (++ofs < g_ksmps);
+    }
+    else {                              /* generic case for local kr != sr */
+      do {
+        /* copy inputs */
+        tmp = p->buf->iobufp_ptrs;
+        while (*tmp) {                  /* a-rate */
+          ptr1 = *(tmp++) + ofs; ptr2 = *(tmp++);
+          n = csound->ksmps;
+          do {
+            *(ptr2++) = *(ptr1++);
+          } while (--n);
+        }
+        while (*(++tmp)) {              /* k-rate */
+          ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+        }
+        /*  run each opcode  */
+        csound->pds = (OPDS *) (p->ip);
+        while ((csound->pds = csound->pds->nxtp)) {
+          (*csound->pds->opadr)(csound, csound->pds);
+        }
+        /* copy outputs */
+        while (*(++tmp)) {              /* a-rate */
+          ptr1 = *tmp; ptr2 = *(++tmp) + ofs;
+          n = csound->ksmps;
+          do {
+            *(ptr2++) = *(ptr1++);
+          } while (--n);
+        }
+        ++(csound->kcounter);
+      } while ((ofs += csound->ksmps) < g_ksmps);
+    }
+    /* k-rate outputs are copied only in the last sub-kperiod, */
+    /* so we do it now */
+    while (*(++tmp)) {                  /* k-rate */
+      ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+    }
+
+    /* restore globals */
+    csound->ksmps = g_ksmps;
+    csound->pool[csound->poolcount + 2] = (MYFLT) g_ksmps;
+    csound->ekr = csound->pool[csound->poolcount + 1] = g_ekr;
+    csound->onedkr = g_onedkr;
+    csound->onedksmps = g_onedksmps;
+    csound->kicvt = g_kicvt;
+    csound->kcounter = g_kcounter;
+    csound->pds = saved_pds;
+    /* check if instrument was deactivated (e.g. by perferror) */
+    if (!p->ip)                                         /* loop to last opds */
+      while (csound->pds->nxtp) csound->pds = csound->pds->nxtp;
+    return OK;
+}
+
+/* IV - Sep 17 2002 -- case 2: simplified routine for no local ksmps */
+
+int useropcd2(CSOUND *csound, UOPCODE *p)
+{
+    OPDS    *saved_pds = csound->pds;
+    int     n;
+    MYFLT   **tmp, *ptr1, *ptr2;
+
+    if (!(csound->pds = (OPDS*) (p->ip->nxtp))) goto endop; /* no perf code */
+    /* IV - Nov 16 2002: update release flag */
+    p->ip->relesing = p->parent_ip->relesing;
+
+    tmp = p->buf->iobufp_ptrs;
+    if (csound->ksmps != 1) {           /* generic case for kr != sr */
+      /* copy inputs */
+      while (*tmp) {                    /* a-rate */
+        ptr1 = *(tmp++); ptr2 = *(tmp++);
+        n = csound->ksmps;
+        do {
+          *(ptr2++) = *(ptr1++);
+        } while (--n);
+      }
+      while (*(++tmp)) {                /* k-rate */
+        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+      }
+      /*  run each opcode  */
+      do {
+        (*csound->pds->opadr)(csound, csound->pds);
+      } while ((csound->pds = csound->pds->nxtp));
+      /* copy outputs */
+      while (*(++tmp)) {                /* a-rate */
+        ptr1 = *tmp; ptr2 = *(++tmp);
+        n = csound->ksmps;
+        do {
+          *(ptr2++) = *(ptr1++);
+        } while (--n);
+      }
+    }
+    else {                      /* special case for kr == sr */
+      /* copy inputs */
+      while (*tmp) {                    /* a-rate */
+        ptr1 = *(tmp++); *(*(tmp++)) = *ptr1;
+      }
+      while (*(++tmp)) {                /* k-rate */
+        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+      }
+      /*  run each opcode  */
+      do {
+        (*csound->pds->opadr)(csound, csound->pds);
+      } while ((csound->pds = csound->pds->nxtp));
+      /* copy outputs */
+      while (*(++tmp)) {                /* a-rate */
+        ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+      }
+    }
+    while (*(++tmp)) {                  /* k-rate */
+      ptr1 = *tmp; *(*(++tmp)) = *ptr1;
+    }
+ endop:
+    /* restore globals */
+    csound->pds = saved_pds;
+    /* check if instrument was deactivated (e.g. by perferror) */
+    if (!p->ip)                                         /* loop to last opds */
+      while (csound->pds->nxtp) csound->pds = csound->pds->nxtp;
+    return OK;
+}
+
 static void instance(CSOUND *csound, int insno)
 {                               /* create instance of an instr template */
     INSTRTXT *tp;               /*   allocates and sets up all pntrs    */
@@ -1055,6 +1500,14 @@ static void instance(CSOUND *csound, int insno)
     ip->nxtact = tp->act_instance;
     tp->act_instance = ip;
     ip->insno = insno;
+    /* IV - Nov 10 2002 */
+    if (insno > csound->maxinsno) {
+      int pcnt;
+      pcnt = (int) tp->opcode_info->perf_incnt;
+      pcnt += (int) tp->opcode_info->perf_outcnt;
+      pcnt = sizeof(OPCOD_IOBUFS) + sizeof(MYFLT*) * (pcnt << 1);
+      ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
+    }
     lcloffbas = &ip->p0;
     lclbas = (MYFLT *)((char *)ip + pextent);       /* split local space */
     nxtopds = (char *)lclbas + tp->localen;
@@ -1067,7 +1520,8 @@ static void instance(CSOUND *csound, int insno)
     prvids = prvpds = (OPDS *)ip;
     while ((optxt = optxt->nxtop) != NULL) {        /* for each op in instr */
       TEXT *ttp = &optxt->t;
-      if ((opnum = ttp->opnum) == ENDIN)            /*  (until ENDIN)  */
+      if ((opnum = ttp->opnum) == ENDIN             /*  (until ENDIN)  */
+          || opnum == ENDOP)                        /*  (or ENDOP)     */
         break;
       if (opnum == PSET) {
         ip->p1 = (MYFLT)insno; continue;
