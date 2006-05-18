@@ -2891,13 +2891,13 @@ Fl_Double_Window* make_window(CsoundVstFltk *csoundVstFltk) {
           o->textfont(4);
           o->textsize(11);
           o->align(FL_ALIGN_TOP_LEFT);
-          Fl_Group::current()->resizable(o);
         }
         { Fl_Browser* o = runtimeMessagesBrowser = new Fl_Browser(14, 210, 580, 205);
           o->box(FL_THIN_DOWN_BOX);
           o->labelsize(12);
           o->textfont(4);
           o->textsize(11);
+          Fl_Group::current()->resizable(o);
         }
         o->end();
         Fl_Group::current()->resizable(o);
