@@ -1,9 +1,9 @@
-2006-05-17  John ffitch  <jpff@codemist.co.uk>
-
-	* Restored UDO code
-
-2006-05-16	Istvan Varga	<ivarga@csounds.com>
-	* Removed user defined opcodes.
+2006-05-20	Istvan Varga	<ivarga@csounds.com>
+	* Opcodes/stackops.c: added new stack opcodes (stack, push, pop,
+	  push_f, pop_f); also moved monitor opcode here.
+	* Reworked user defined opcodes to allow for up to 256 input/output
+	  arguments.
+	* Opcodes/bilbar.c: removed use of C++ style comments.
 
 2006-05-16  jpff  <jpff@codemist.co.uk>
 
