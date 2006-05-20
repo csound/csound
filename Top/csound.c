@@ -575,7 +575,9 @@ static const CSOUND cenviron_ = {
         0L, 0L,         /*  poolcount, gblfixed     */
         0L, 0L,         /*  gblacount, gblscount    */
         NULL,           /*  pluginOpcodeFiles       */
-        NULL            /*  pluginOpcodeDB          */
+        NULL,           /*  pluginOpcodeDB          */
+        (LBLBLK**) NULL, /* lopds                   */
+        NULL            /*  larg                    */
 };
 
   /* from threads.c */
