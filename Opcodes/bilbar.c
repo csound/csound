@@ -469,7 +469,7 @@ int play_pp(CSOUND *csound, CSPP *p)
           p->hammer_force[qq] = -pos*pos*pos;
           hammer_force_sum += p->hammer_force[qq];
         }
-        //if (min_pos<0.0) p->hammer_contact = 1;
+     /* if (min_pos<0.0) p->hammer_contact = 1; */
         if (p->hammer_contact && min_pos>=0.0) {
           /* if hammer has been in contact, but now no longer is, turn off */
           /* hammer updating */
