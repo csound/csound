@@ -1561,7 +1561,7 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       OENTRY    *ep = csound->opcodlst + tp->opnum;
       int       n, nreqd;
       char      tfound = '\0', treqd, *types = NULL;
-      char      xtypes[OPCODENUMOUTS + 1];      /* IV - Oct 24 2002 */
+      char      xtypes[OPCODENUMOUTS_MAX + 1];  /* IV - Oct 24 2002 */
 
       if (!ST(instrblk))
         synterr(csound, Str("misplaced opcode"));
@@ -1583,6 +1583,19 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           int i = 0;
           ST(opcodflg) |= (short) 2;
           nreqd = csound->opcodeInfo->outchns;
+          /* replace opcode if needed */
+          if (nreqd > OPCODENUMOUTS_LOW) {
+            if (nreqd > OPCODENUMOUTS_HIGH)
+              isopcod(csound, ".xout256");
+            else
+              isopcod(csound, ".xout64");
+            ST(linopcod) = ST(opcod);
+            ST(linopnum) = ST(opnum);
+            tp->opcod = strsav_string(csound, ST(linopcod));
+            tp->opnum = ST(linopnum);
+            ep = csound->opcodlst + tp->opnum;
+            csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
+          }
           while (c[i]) {
             switch (c[i]) {
               case 'a':
@@ -1730,6 +1743,19 @@ TEXT *getoptxt(CSOUND *csound, int *init)
           int i = 0;
           ST(opcodflg) |= (short) 1;
           nreqd = csound->opcodeInfo->inchns;
+          /* replace opcode if needed */
+          if (nreqd > OPCODENUMOUTS_LOW) {
+            if (nreqd > OPCODENUMOUTS_HIGH)
+              isopcod(csound, ".xin256");
+            else
+              isopcod(csound, ".xin64");
+            ST(linopcod) = ST(opcod);
+            ST(linopnum) = ST(opnum);
+            tp->opcod = strsav_string(csound, ST(linopcod));
+            tp->opnum = ST(linopnum);
+            ep = csound->opcodlst + tp->opnum;
+            csound->DebugMsg(csound, Str("modified opcod: %s"), ST(opcod));
+          }
           while (c[i]) {
             switch (c[i]) {
               case 'a': xtypes[i] = c[i]; break;
