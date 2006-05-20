@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"         /*                      OTRAN.C         */
 #include "oload.h"
+#include "insert.h"
 #include <math.h>
 #include "pstream.h"
 #include "namedins.h"           /* IV - Oct 31 2002 */
@@ -112,7 +113,9 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     /* count the number of arguments, and check types */
     i = i_incnt = a_incnt = k_incnt = i_outcnt = a_outcnt = k_outcnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
-    if (!strcmp(types, "0")) types++;   /* no input args */
+    opc->dsblksiz = (unsigned short) sizeof(UOPCODE);
+    if (!strcmp(types, "0"))
+      types++;                  /* no input args */
     while (*types) {
       switch (*types) {
       case 'a':
@@ -130,25 +133,28 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i_incnt++; *otypes++ = *types;
         break;
       default:
-        synterr(csound, "invalid input type for opcode %s", inm->name); err++;
+        synterr(csound, "invalid input type for opcode %s", inm->name);
+        err++; i--;
       }
       i++; types++;
-      if (i > OPCODENUMOUTS) {
+      if (i > OPCODENUMOUTS_MAX) {
         synterr(csound, "too many input args for opcode %s", inm->name);
-        err++; break;
+        csound->LongJmp(csound, 1);
       }
     }
     *otypes++ = 'o'; *otypes = '\0';    /* optional arg for local ksmps */
-    inm->inchns = strlen(opc->intypes) - 1; /* total number of input chnls */
+    inm->inchns = i;                    /* total number of input chnls */
     inm->perf_incnt = a_incnt + k_incnt;
+    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
     /* same for outputs */
     i = 0;
     types = inm->outtypes; otypes = opc->outypes;
-    if (!strcmp(types, "0")) types++;   /* no output args */
+    if (!strcmp(types, "0"))
+      types++;                  /* no output args */
     while (*types) {
-      if (i >= OPCODENUMOUTS) {
+      if (i >= OPCODENUMOUTS_MAX) {
         synterr(csound, "too many output args for opcode %s", inm->name);
-        err++; break;
+        csound->LongJmp(csound, 1);
       }
       switch (*types) {
       case 'a':
@@ -163,13 +169,17 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i_outcnt++; *otypes++ = *types;
         break;
       default:
-        synterr(csound, "invalid output type for opcode %s", inm->name); err++;
+        synterr(csound, "invalid output type for opcode %s", inm->name);
+        err++; i--;
       }
       i++; types++;
     }
     *otypes = '\0';
-    inm->outchns = strlen(opc->outypes);    /* total number of output chnls */
+    inm->outchns = i;                   /* total number of output chnls */
     inm->perf_outcnt = a_outcnt + k_outcnt;
+    opc->dsblksiz += (unsigned short) (sizeof(MYFLT*) * i);
+    opc->dsblksiz = ((opc->dsblksiz + (unsigned short) 15)
+                     & (~((unsigned short) 15)));   /* align (needed ?) */
     /* now build index lists for the various types of arguments */
     i = i_incnt + inm->perf_incnt + i_outcnt + inm->perf_outcnt;
     i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
@@ -229,7 +239,7 @@ void otran(CSOUND *csound)
     ARGLST      *alp;
     char        *s;
     long        pmax = -1, nn;
-    long        n, opdstot=0, count, sumcount, instxtcount, optxtcount;
+    long        n, opdstot = 0, count, sumcount, instxtcount, optxtcount;
 
     if (csound->otranGlobals == NULL) {
       csound->otranGlobals = csound->Calloc(csound, sizeof(OTRAN_GLOBALS));
@@ -383,10 +393,12 @@ void otran(CSOUND *csound)
               newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
               ip->insname = name; ip->opcode_info = inm; /* IV - Nov 10 2002 */
               /* check in/out types and copy to the opcode's */
-              newopc->outypes = mmalloc(csound, strlen(alp->arg[1]) + 1);
-                /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-              newopc->intypes = mmalloc(csound, strlen(alp->arg[2]) + 2);
-              if (parse_opcode_args(csound, newopc)) continue;
+              /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
+              newopc->outypes = mmalloc(csound, strlen(alp->arg[1]) + 1
+                                                + strlen(alp->arg[2]) + 2);
+              newopc->intypes = &(newopc->outypes[strlen(alp->arg[1]) + 1]);
+              if (parse_opcode_args(csound, newopc) != 0)
+                continue;
               n = -2;
 /* ---- IV - Oct 16 2002: end of new code ----> */
               putop(csound, &ip->t);
@@ -1390,6 +1402,10 @@ void oload(CSOUND *p)
     }
     p->cyclesRemaining = 0;
     memset(&(p->evt), 0, sizeof(EVTBLK));
+
+    /* pre-allocate temporary label space for instance() */
+    p->lopds = (LBLBLK**) mmalloc(p, sizeof(LBLBLK*) * p->nlabels);
+    p->larg = (LARGNO*) mmalloc(p, sizeof(LARGNO) * p->ngotos);
 
     /* run instr 0 inits */
     if (init0(p) != 0)

@@ -1444,34 +1444,32 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     return OK;
 }
 
+/* create instance of an instr template */
+/*   allocates and sets up all pntrs    */
+
 static void instance(CSOUND *csound, int insno)
-{                               /* create instance of an instr template */
-    INSTRTXT *tp;               /*   allocates and sets up all pntrs    */
+{
+    INSTRTXT  *tp;
     INSDS   *ip;
     OPTXT   *optxt;
     OPDS    *opds, *prvids, *prvpds;
-    OENTRY  *ep;
-    LBLBLK  **lopds, **lopdsp;
-    LARGNO  *larg, *largp;
-    int     n, pextent, opnum, reqd;
+    const OENTRY  *ep;
+    LBLBLK  **lopdsp;
+    LARGNO  *largp;
+    int     n, cnt, pextent, opnum;
     char    *nxtopds, *opdslim;
-    MYFLT   **argpp, *fltp, *lclbas, *lcloffbas;
-    ARGOFFS *aoffp;
-    int     indx;
+    MYFLT   **argpp, *lclbas, *lcloffbas;
     int     *ndxp;
     MCHNBLK *chp = NULL;
-    OPARMS  *O = csound->oparms;
+    int     odebug = csound->oparms->odebug;
 
-    lopds = (LBLBLK**)mmalloc(csound, sizeof(LBLBLK*)*csound->nlabels);
-    lopdsp = lopds;
-    larg = (LARGNO*)mmalloc(csound, sizeof(LARGNO)*csound->ngotos);
-    largp = larg;
-    lopdsp = lopds;
+    lopdsp = csound->lopds;
+    largp = (LARGNO*) csound->larg;
     tp = csound->instrtxtp[insno];
     if (tp->mdepends & 06) {                /* if need midi chan, chk ok */
       MCHNBLK **chpp = csound->m_chnbp;
       for (n = MAXCHAN; n--; ) {
-        if ((chp = *chpp++) !=((MCHNBLK*)NULL))     {
+        if ((chp = *chpp++) != ((MCHNBLK*) NULL)) {
           if (!chp->insno) {
             chp->insno = insno;
             csound->Message(csound, Str("instr %d seeking midi chnl data, "
@@ -1512,7 +1510,7 @@ static void instance(CSOUND *csound, int insno)
     lclbas = (MYFLT *)((char *)ip + pextent);       /* split local space */
     nxtopds = (char *)lclbas + tp->localen;
     opdslim = nxtopds + tp->opdstot;
-    if (O->odebug)
+    if (odebug)
       csound->Message(csound,
                       Str("instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
                       insno, ip, lclbas, nxtopds);
@@ -1524,12 +1522,13 @@ static void instance(CSOUND *csound, int insno)
           || opnum == ENDOP)                        /*  (or ENDOP)     */
         break;
       if (opnum == PSET) {
-        ip->p1 = (MYFLT)insno; continue;
+        ip->p1 = (MYFLT) insno;
+        continue;
       }
       ep = &(csound->opcodlst[opnum]);              /* for all ops:     */
       opds = (OPDS *) nxtopds;                      /*   take reqd opds */
       nxtopds += ep->dsblksiz;
-      if (O->odebug)
+      if (odebug)
         csound->Message(csound, Str("op %d (%s) allocated at %p\n"),
                                 opnum, ep->opname, opds);
       opds->optext = optxt;                         /* set common headata */
@@ -1541,7 +1540,7 @@ static void instance(CSOUND *csound, int insno)
         *lopdsp++ = lblbp;                          /*    log the lbl bp */
         continue;                                   /*    for later refs */
       }
-      if ((ep->thread & 07)==0) {                   /* thread 1 OR 2:  */
+      if ((ep->thread & 07) == 0) {                 /* thread 1 OR 2:  */
         if (ttp->pftype == 'b') {
           prvids = prvids->nxti = opds;
           opds->iopadr = ep->iopadr;
@@ -1552,63 +1551,70 @@ static void instance(CSOUND *csound, int insno)
         }
         goto args;
       }
-      if ((ep->thread & 01)!=0) {                   /* thread 1:        */
+      if ((ep->thread & 01) != 0) {                 /* thread 1:        */
         prvids = prvids->nxti = opds;               /* link into ichain */
         opds->iopadr = ep->iopadr;                  /*   & set exec adr */
         if (opds->iopadr == NULL)
           csoundDie(csound, Str("null iopadr"));
       }
-      if ((n = ep->thread & 06)!=0) {               /* thread 2 OR 4:   */
+      if ((n = ep->thread & 06) != 0) {             /* thread 2 OR 4:   */
         prvpds = prvpds->nxtp = opds;               /* link into pchain */
         if (!(n & 04) ||
             (ttp->pftype == 'k' && ep->kopadr != NULL))
           opds->opadr = ep->kopadr;                 /*      krate or    */
         else opds->opadr = ep->aopadr;              /*      arate       */
-        if (O->odebug)
+        if (odebug)
           csound->Message(csound, "opadr = %p\n", (void*) opds->opadr);
         if (opds->opadr == NULL)
           csoundDie(csound, Str("null opadr"));
       }
     args:
-      argpp = (MYFLT **)((char *)opds + sizeof(OPDS));
-      if (O->odebug)
+      if (ep->useropinfo == NULL)
+        argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
+      else          /* user defined opcodes are a special case */
+        argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
+      if (odebug)
         csound->Message(csound, "argptrs:");
-      aoffp = ttp->outoffs;                     /* for outarg codes: */
-      reqd = strlen(ep->outypes);
-      for (n=aoffp->count, ndxp=aoffp->indx; n--; reqd--) {
-        if ((indx = *ndxp++) > 0)               /* cvt index to lcl/gbl adr */
+      ndxp = ttp->outoffs->indx;                /* for outarg codes: */
+      cnt = ttp->outoffs->count;
+      for (n = 0; n < cnt; n++) {
+        MYFLT *fltp;
+        int   indx = ndxp[n];
+        if (indx > 0)                           /* cvt index to lcl/gbl adr */
           fltp = csound->gbloffbas + indx;
         else
           fltp = lcloffbas + (-indx);
-        if (O->odebug)
+        if (odebug)
           csound->Message(csound, "\t%p", (void*) fltp);
-        *argpp++ = fltp;
+        argpp[n] = fltp;
       }
-      while (reqd--) {                          /* if more outypes, pad */
-        if (O->odebug)
+      for ( ; ep->outypes[n] != (char) 0; n++) {  /* if more outypes, pad */
+        if (odebug)
           csound->Message(csound, "\tPADOUT");
-        *argpp++ = NULL;
+        argpp[n] = NULL;
       }
-      aoffp = ttp->inoffs;                      /* for inarg codes: */
-      for (n=aoffp->count, ndxp=aoffp->indx; n--; ) {
-        if ((indx = *ndxp++) < LABELIM) {
-          if (O->odebug)
-            csound->Message(csound, "\t***lbl");
-          largp->lblno = indx - LABELOFS;       /* if label ref, defer */
-          largp->argpp = argpp++;
+      argpp += n;
+      ndxp = ttp->inoffs->indx;                 /* for inarg codes: */
+      cnt = ttp->inoffs->count;
+      for (n = 0; n < cnt; n++) {
+        int   indx = ndxp[n];
+        if (indx > 0)                           /* cvt ndx to lcl/gbl */
+          argpp[n] = csound->gbloffbas + indx;
+        else if (indx >= LABELIM)
+          argpp[n] = lcloffbas + (-indx);
+        else {                                  /* if label ref, defer */
+          largp->lblno = indx - LABELOFS;
+          largp->argpp = &(argpp[n]);
           largp++;
         }
-        else {
-          if (indx > 0)                         /* else cvt ndx to lcl/gbl */
-            fltp = csound->gbloffbas + indx;
+        if (odebug) {
+          if (indx >= LABELIM)
+            csound->Message(csound, "\t%p", (void*) argpp[n]);
           else
-            fltp = lcloffbas + (-indx);
-          if (O->odebug)
-            csound->Message(csound, "\t%p", (void*) fltp);
-          *argpp++ = fltp;
+            csound->Message(csound, "\t***lbl");
         }
       }
-      if (O->odebug)
+      if (odebug)
         csound->Message(csound, "\n");
     }
     if (nxtopds != opdslim) {
@@ -1617,8 +1623,10 @@ static void instance(CSOUND *csound, int insno)
       if (nxtopds > opdslim)
         csoundDie(csound, Str("inconsistent opds total"));
     }
-    while (--largp >= larg)
-      *largp->argpp = (MYFLT *) lopds[largp->lblno]; /* now label refs */
+    while (largp > (LARGNO*) csound->larg) {            /* now label refs */
+      largp--;
+      *largp->argpp = (MYFLT*) csound->lopds[largp->lblno];
+    }
 }
 
 int prealloc(CSOUND *csound, AOP *p)

@@ -69,24 +69,56 @@ typedef struct {                        /* IV - Oct 16 2002 */
 
 typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     OPDS    h;
-    MYFLT   *ar[(OPCODENUMOUTS << 1) + 1];
     INSDS   *ip, *parent_ip;
     OPCOD_IOBUFS  *buf;
     int     l_ksmps, ksmps_scale;
     MYFLT   l_ekr, l_onedkr, l_onedksmps, l_kicvt;
+    /* special case: the argument list is stored at the end of the */
+    /* opcode data structure */
+    MYFLT   *ar[1];
 } UOPCODE;
 
 /* IV - Sep 8 2002: added opcodes: xin, xout, and setksmps */
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS];
+    MYFLT   *args[1];
 } XIN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS];       /* IV - Oct 24 2002 */
+    MYFLT   *args[OPCODENUMOUTS_LOW];
+} XIN_LOW;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[OPCODENUMOUTS_HIGH];
+} XIN_HIGH;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[OPCODENUMOUTS_MAX];
+} XIN_MAX;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[1];
 } XOUT;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[OPCODENUMOUTS_LOW];
+} XOUT_LOW;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[OPCODENUMOUTS_HIGH];
+} XOUT_HIGH;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[OPCODENUMOUTS_MAX];
+} XOUT_MAX;
 
 typedef struct {
     OPDS    h;

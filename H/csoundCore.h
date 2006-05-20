@@ -568,7 +568,9 @@ extern "C" {
 #define TOKMAX  50L     /* Should be 50 but bust */
 
 /* max number of input/output args for user defined opcodes */
-#define OPCODENUMOUTS   64
+#define OPCODENUMOUTS_LOW   16
+#define OPCODENUMOUTS_HIGH  64
+#define OPCODENUMOUTS_MAX   256
 
 #define MBUFSIZ         (4096)
 #define MIDIINBUFMAX    (1024)
@@ -1187,6 +1189,8 @@ extern "C" {
     long          poolcount, gblfixed, gblacount, gblscount;
     /* database for deferred loading of opcode plugin libraries */
     void          *pluginOpcodeFiles, *pluginOpcodeDB;
+    LBLBLK        **lopds;
+    void          *larg;        /* this is actually LARGNO* */
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
