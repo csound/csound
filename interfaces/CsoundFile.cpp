@@ -646,14 +646,10 @@ void CsoundFile::addNote(double p1, double p2, double p3)
 
 bool isToken(std::string text, int position, std::string token)
 {
-#ifdef __MWERKS__
-  using std::isspace;
-#endif
-
   size_t tokenend = position + token.size();
   if(text.size() > tokenend)
     {
-      if(!isspace(text[tokenend]))
+      if(!std::isspace(text[tokenend]))
         {
           return false;
         }
