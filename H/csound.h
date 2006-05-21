@@ -942,6 +942,12 @@ extern "C" {
                                   void *userdata);
 
   /**
+   * Returns the ID of the currently executing thread,
+   * or NULL for failure.
+   */
+  PUBLIC void *csoundGetCurrentThreadId();
+
+  /**
    * Waits until the indicated thread's routine has finished.
    * Returns the value returned by the thread routine.
    */

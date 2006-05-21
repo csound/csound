@@ -71,6 +71,11 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
     return h;
 }
 
+PUBLIC void *csoundGetCurrentThreadId()
+{
+  return GetCurrentThreadId();
+}
+
 PUBLIC uintptr_t csoundJoinThread(void *thread)
 {
     DWORD   retval = (DWORD) 0;
@@ -240,6 +245,11 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
       return (void*) pthread;
     }
     return NULL;
+}
+
+PUBLIC void *csoundGetCurrentThreadId()
+{
+  return (void *)pthread_self();
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
@@ -569,6 +579,12 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 {
     notImplementedWarning_("csoundCreateThread");
     return NULL;
+}
+
+PUBLIC void *csoundGetCurrentThreadId()
+{
+    notImplementedWarning_("csoundGetCurrentThreadId");
+    return 0;
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
