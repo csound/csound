@@ -108,40 +108,6 @@ static std::string about = "CSOUND AND CSOUND VST\n"
 "Victor Lazzarini\n"
 "Ville Pulkki\n";
 
-static CsoundVstFltk *oneWaiter = 0;
-
-void CsoundVstFltk::fltklock()
-{
-  if (oneWaiter == this) {
-    Fl::lock();
-  }
-}
-
-void CsoundVstFltk::fltkunlock()
-{
-  if (oneWaiter == this) {
-    Fl::unlock();
-  }
-}
-
-void CsoundVstFltk::fltkflush()
-{
-  if (oneWaiter == this) {
-    Fl::lock();
-    Fl::flush();
-    Fl::unlock();
-  }
-}
-
-void CsoundVstFltk::fltkwait()
-{
-  if (oneWaiter == this) {
-    Fl::lock();
-    Fl::wait(0.0);
-    Fl::unlock();
-  }
-}
-
 static const char *removeCarriageReturns(std::string &buffer)
 {
   size_t position = 0;
@@ -206,19 +172,11 @@ CsoundVstFltk::CsoundVstFltk(AudioEffect *audioEffect) :
   scoreGroup (0),
   scriptGroup (0)
 {
-  if (oneWaiter == 0)
-    {
-      oneWaiter = this;
-    }
   csoundVST->setEditor(this);
 }
 
 CsoundVstFltk::~CsoundVstFltk(void)
 {
-  if (oneWaiter == this)
-    {
-      oneWaiter = 0;
-    }
 }
 
 void CsoundVstFltk::updateCaption()
@@ -233,23 +191,23 @@ void CsoundVstFltk::updateCaption()
     {
       caption.append(csoundVST->getCppSound()->CsoundFile::getFilename());
     }
-  fltklock();
+  csoundVST->fltklock();
   csoundVstUi->label(caption.c_str());
-  fltkunlock();
+  csoundVST->fltkunlock();
 }
 
 void CsoundVstFltk::updateModel()
 {
   if(csoundVstUi)
     {
-      fltklock();
+      csoundVST->fltklock();
       csound::System::debug("BEGAN CsoundVstFltk::updateModel...\n");
       csoundVST->getCppSound()->setCommand(commandInput->value());
       csoundVST->getCppSound()->setOrchestra(orchestraTextBuffer->text());
       csoundVST->getCppSound()->setScore(scoreTextBuffer->text());
       csoundVST->setScript(scriptTextBuffer->text());
       csound::System::debug("ENDED CsoundVstFltk::updateModel.\n");
-      fltkunlock();
+      csoundVST->fltkunlock();
     }
 }
 
@@ -262,7 +220,7 @@ long CsoundVstFltk::getRect(ERect **erect)
 
 long CsoundVstFltk::open(void *parentWindow)
 {
-  fltklock();
+  csoundVST->fltklock();
   systemWindow = parentWindow;
   this->csoundVstUi = make_window(this);
   this->mainTabs = ::mainTabs;
@@ -321,6 +279,7 @@ long CsoundVstFltk::open(void *parentWindow)
     }
   this->aboutTextBuffer->text(removeCarriageReturns(about));
   csound::System::setMessageCallback(CsoundVstFltk::messageCallback);
+  csoundVST->fltkunlock();
   update();
   return true;
 }
@@ -334,7 +293,7 @@ void CsoundVstFltk::idle()
 {
   // Process events for the FLTK GUI.
   // Only one instance of CsoundVstFltk may call Fl::wait().
-  fltkwait();
+  csoundVST->fltkwait();
   // If the VST host has indicated
   // it needs the GUI updated, do it.
   if(updateFlag)
@@ -348,11 +307,11 @@ void CsoundVstFltk::idle()
         {
           while(!messages.empty())
             {
-              fltklock();
-              fltkflush();
+              csoundVST->fltklock();
+              csoundVST->fltkflush();
               this->runtimeMessagesBrowser->add(messages.front().c_str());
               this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
-              fltkunlock();
+              csoundVST->fltkunlock();
               messages.pop_front();
             }
         }
@@ -366,7 +325,7 @@ void CsoundVstFltk::update()
   if(csoundVstUi)
     {
       updateCaption();
-      fltklock();
+      csoundVST->fltklock();
       csound::System::debug("BEGAN CsoundVstFltk::update...\n");
       std::string buffer;
       this->settingsVstPluginModeEffect->value(!csoundVST->getIsSynth());
@@ -391,7 +350,7 @@ void CsoundVstFltk::update()
       buffer = csoundVST->getScript();
       this->scriptTextBuffer->text(removeCarriageReturns(buffer));
       csound::System::debug("ENDED CsoundVstFltk::update.\n");
-      fltkunlock();
+      csoundVST->fltkunlock();
     }
 }
 
@@ -439,11 +398,11 @@ void CsoundVstFltk::messageCallback(CSOUND *csound, int attribute, const char *f
             }
           else
             {
-              csoundVstFltk->fltklock();
-              csoundVstFltk->fltkflush();
+              csoundVstFltk->csoundVST->fltklock();
+              csoundVstFltk->csoundVST->fltkflush();
               csoundVstFltk->runtimeMessagesBrowser->add(it->c_str());
               csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
-              csoundVstFltk->fltkunlock();
+              csoundVstFltk->csoundVST->fltkunlock();
             }
         }
       csoundVstFltk->messagebuffer.clear();
