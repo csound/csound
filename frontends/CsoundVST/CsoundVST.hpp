@@ -74,6 +74,10 @@ protected:
     };
   static double inputScale;
   static double outputScale;
+  /**
+   * The thread that calls Fl::wait().
+   */
+  static void *fltkWaitThreadId;
   CppSound cppSound_;
   CppSound *cppSound;
   bool isSynth;
@@ -81,7 +85,6 @@ protected:
   bool isPython;
   bool isMultiThreaded;
   bool isAutoPlayback;
-  bool isPerformWithoutExport;
   size_t csoundFrameI;
   size_t csoundLastFrame;
   size_t channelI;
@@ -146,6 +149,10 @@ public:
   virtual void setIsMultiThreaded(bool isMultiThreaded);
   virtual bool getIsAutoPlayback() const;
   virtual void setIsAutoPlayback(bool autoPlay);
+  virtual void fltklock();
+  virtual void fltkunlock();
+  virtual void fltkflush();
+  virtual void fltkwait();
   static int midiDeviceOpen(CSOUND *csound, void **userData,
                             const char *devName);
 

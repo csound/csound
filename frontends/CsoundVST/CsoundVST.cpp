@@ -38,6 +38,7 @@ static char *dupstr(const char *string)
 
 double CsoundVST::inputScale = 32767.0;
 double CsoundVST::outputScale = (1.0 / 32767.0);
+void *CsoundVST::fltkWaitThreadId = 0;
 
 CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   AudioEffectX(audioMaster, kNumPrograms, 0),
@@ -46,6 +47,7 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   isVst(true),
   isPython(false),
   isMultiThreaded(true),
+  isAutoPlayback(false),
   csoundFrameI(0),
   csoundLastFrame(0),
   channelI(0),
@@ -56,10 +58,13 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   vstCurrentSampleBlockEnd(0),
   vstCurrentSamplePosition(0),
   vstPriorSamplePosition(0),
-  csoundVstFltk(0),
-  isAutoPlayback(false),
-  isPerformWithoutExport(false)
+  csoundVstFltk(0)
 {
+  if (fltkWaitThreadId == 0)
+    {
+      Fl::lock();
+      fltkWaitThreadId == csoundGetCurrentThreadId();
+    }
   setNumInputs(kNumInputs);             // stereo in
   setNumOutputs(kNumOutputs);           // stereo out
   setUniqueID('cVsT');  // identify
@@ -99,6 +104,8 @@ CsoundVST::CsoundVST() :
   isSynth(true),
   isVst(false),
   isPython(false),
+  isMultiThreaded(true),
+  isAutoPlayback(true),
   csoundFrameI(0),
   csoundLastFrame(0),
   channelI(0),
@@ -109,9 +116,13 @@ CsoundVST::CsoundVST() :
   vstCurrentSampleBlockEnd(0),
   vstCurrentSamplePosition(0),
   vstPriorSamplePosition(0),
-  csoundVstFltk(0),
-  isAutoPlayback(true)
+  csoundVstFltk(0)
 {
+  if (fltkWaitThreadId == 0)
+    {
+      Fl::lock();
+      fltkWaitThreadId == csoundGetCurrentThreadId();
+    }
   setNumInputs(2);              // stereo in
   setNumOutputs(2);             // stereo out
   setUniqueID('cVsT');  // identify
@@ -207,7 +218,6 @@ void CsoundVST::performanceThreadRoutine()
 {
   getCppSound()->stop();
   getCppSound()->Reset();
-  // getCppSound()->SetFLTKThreadLocking(true);
   if(getIsPython())
     {
       Shell::save(Shell::getFilename());
@@ -220,6 +230,7 @@ void CsoundVST::performanceThreadRoutine()
           getCppSound()->SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
           getCppSound()->SetExternalMidiReadCallback(&CsoundVST::midiRead);
         }
+      fltkflush();
       runScript();
     }
   else
@@ -307,9 +318,10 @@ extern "C"
 
 static int threadYieldCallback(CSOUND *csound)
 {
-  Fl::lock();
-  Fl::wait(0.0);
-  Fl::unlock();
+  CsoundVST *csoundVst_ = (CsoundVST *) csoundGetHostData(csound);
+  if (csoundVst_) {
+    csoundVst_->fltkwait();
+  }
   return 1;
 }
 
@@ -334,11 +346,12 @@ int CsoundVST::perform()
           csound::System::inform("Multi-threaded performance.\n");
           getCppSound()->SetYieldCallback(threadYieldCallback);
           result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
+	  csound::System::inform("Created Csound performance thread.\n");
         }
       else
         {
           csound::System::inform("Single-threaded performance.\n");
-          getCppSound()->SetYieldCallback(threadYieldCallback);
+          getCppSound()->SetYieldCallback(nonThreadYieldCallback);
           performanceThreadRoutine();
         }
     }
@@ -865,6 +878,39 @@ void CsoundVST::setIsAutoPlayback(bool isAutoPlayback)
 {
   this->isAutoPlayback = isAutoPlayback;
 }
+
+void CsoundVST::fltklock()
+{
+  if (fltkWaitThreadId != csoundGetCurrentThreadId()) {
+    Fl::lock();
+  }
+}
+
+void CsoundVST::fltkunlock()
+{
+  if (fltkWaitThreadId != csoundGetCurrentThreadId()) {
+    Fl::awake();
+    Fl::unlock();
+  } else {
+    Fl::awake();
+  }
+}
+
+void CsoundVST::fltkflush()
+{
+  fltklock();
+  Fl::flush();
+  fltkunlock();
+}
+
+void CsoundVST::fltkwait()
+{
+  if (fltkWaitThreadId == csoundGetCurrentThreadId()) {
+    Fl::wait();
+  }
+}
+
+
 
 extern "C"
 {
