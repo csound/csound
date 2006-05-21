@@ -126,10 +126,6 @@ public:
   void onSettingsCsoundPerformanceModePython(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
   void onSettingsApply(Fl_Button*, CsoundVstFltk* csoundVstFltk);
   void onAutoPlayCheckButton(Fl_Check_Button*, CsoundVstFltk* csoundVstFltk);
-  void fltklock();
-  void fltkunlock();
-  void fltkflush();
-  void fltkwait();
 };
 
 #endif
