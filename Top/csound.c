@@ -287,8 +287,9 @@ static const CSOUND cenviron_ = {
         csoundUnlockMutex,
         csoundDestroyMutex,
         csoundRunCommand,
-     /* NULL, */
-        { NULL, NULL, NULL, NULL, NULL, NULL,
+        csoundGetCurrentThreadId,
+        NULL,
+        { NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
