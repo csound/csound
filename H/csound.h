@@ -945,7 +945,7 @@ extern "C" {
    * Returns the ID of the currently executing thread,
    * or NULL for failure.
    */
-  PUBLIC void *csoundGetCurrentThreadId();
+  PUBLIC void *csoundGetCurrentThreadId(void);
 
   /**
    * Waits until the indicated thread's routine has finished.

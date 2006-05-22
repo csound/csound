@@ -71,9 +71,9 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
     return h;
 }
 
-PUBLIC void *csoundGetCurrentThreadId()
+PUBLIC void *csoundGetCurrentThreadId(void)
 {
-  return GetCurrentThreadId();
+    return (void*) GetCurrentThreadId();
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
@@ -247,9 +247,9 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
     return NULL;
 }
 
-PUBLIC void *csoundGetCurrentThreadId()
+PUBLIC void *csoundGetCurrentThreadId(void)
 {
-  return (void *)pthread_self();
+    return (void*) pthread_self();
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
@@ -581,10 +581,10 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
     return NULL;
 }
 
-PUBLIC void *csoundGetCurrentThreadId()
+PUBLIC void *csoundGetCurrentThreadId(void)
 {
     notImplementedWarning_("csoundGetCurrentThreadId");
-    return 0;
+    return NULL;
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
