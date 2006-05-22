@@ -1,3 +1,12 @@
+2006-05-22	Istvan Varga	<ivarga@csounds.com>
+	* OOps/midiops.c:
+	  massign(): interpret channel number <= 0 as all channels
+	* H/csoundCore.h, Top/csound.c:
+	  added new function GetCurrentThreadID() to CSOUND structure
+
+2006-05-21	Michael Gogins	<gogins@pipeline.com>
+	* New API function: csoundGetCurrentThreadId()
+
 2006-05-20	Istvan Varga	<ivarga@csounds.com>
 	* Opcodes/stackops.c: added new stack opcodes (stack, push, pop,
 	  push_f, pop_f); also moved monitor opcode here.
