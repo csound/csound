@@ -789,6 +789,7 @@ void CsoundArgVList::Insert(int ndx, const char *s)
     strcpy(new_argv[i], s);
     while (++i < new_cnt)
       new_argv[i] = ArgV_[i - 1];
+    new_argv[i] = (char*) 0;
     if (ArgV_)
       free((void*) ArgV_);
     ArgV_ = new_argv;
