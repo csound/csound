@@ -40,6 +40,14 @@ typedef struct {
   struct sockaddr_in server_addr;
 } SOCKRECV;
 
+typedef struct {
+    OPDS    h;
+    MYFLT  *asigl, *asigr, *ipaddress, *port;
+    AUXCH  aux;
+  int sock, frag;
+  struct sockaddr_in server_addr;
+} SOCKRECVS;
+
 #define MTU (1456)
 
 /* UDP version */
@@ -66,10 +74,10 @@ int init_recv(CSOUND *csound, SOCKRECV *p)
 
 int send_recv(CSOUND *csound, SOCKRECV* p)
 {
-    const struct sockaddr from;
+    struct sockaddr from;
     char *a = (void *)p->asig;
     int n = sizeof(MYFLT)*csound->ksmps;
-    int clilen;
+    socklen_t clilen;
     if (p->frag) {
       while (n>MTU) {
         clilen = sizeof(from);
@@ -86,6 +94,84 @@ int send_recv(CSOUND *csound, SOCKRECV* p)
       csound->PerfError(csound, "sendto failed");
       return NOTOK;
     }
+    return OK;
+}
+
+/* UDP version 2 channel */
+int init_recvS(CSOUND *csound, SOCKRECVS *p)
+{
+    int n = MTU;
+    MYFLT* buf;
+
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (p->sock < 0) {
+      csound->InitError(csound, "creating socket");
+      return NOTOK;
+    }
+    /* create server address: where we want to send to and clear it out */
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+    p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    p->server_addr.sin_port = htons((int)*p->port);      /* the port */
+    /* associate the socket with the address and port */
+    if (bind(p->sock, (struct sockaddr *)&p->server_addr,
+             sizeof(p->server_addr)) < 0)
+      return csound->InitError(csound, "bind failed");
+    p->frag = (sizeof(MYFLT)*csound->ksmps>MTU); /* fragment packets? */
+
+    /* create a buffer to store the received interleaved audio data*/
+    if (p->aux.auxp == NULL || (long) (n * sizeof(MYFLT)) > p->aux.size)
+        /* allocate space for the buffer */
+        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
+    else {
+        buf = (MYFLT *)p->aux.auxp;  /* make sure buffer is empty */
+        do {
+	    *buf++ = FL(0.0);
+        } while (--n);
+    }
+
+    return OK;
+}
+
+int send_recvS(CSOUND *csound, SOCKRECVS* p)
+{
+    struct sockaddr from;
+    MYFLT *asigl = p->asigl;
+    MYFLT *asigr = p->asigr;
+    MYFLT *buf = (MYFLT *)p->aux.auxp;
+    int i, j;
+    int n = ((sizeof(MYFLT)*csound->ksmps)*2);
+    int m = (csound->ksmps*2);
+    int mtu_in_samples = MTU/sizeof(MYFLT);
+    socklen_t clilen = sizeof(from);
+     
+    if (p->frag) {
+	while (n>MTU) {
+	    if (recvfrom(p->sock, buf, MTU, 0, &from, &clilen) < 0) {
+		csound->PerfError(csound, "sendto failed");
+		return NOTOK;
+	    }
+	    
+	    for(i=0, j=0; i<mtu_in_samples; i+=2,j++)
+	    {
+		asigl[j] = buf[i];
+		asigr[j] = buf[i+1];
+	    }
+	    n -= MTU;
+	    buf += MTU;
+	}
+    }
+    if (recvfrom(p->sock, buf, n, 0, &from, &clilen) < 0) {
+	csound->PerfError(csound, "sendto failed");
+	return NOTOK;
+    }
+
+    for(i=0, j=0; i<m; i+=2,j++)
+    {
+	asigl[j] = buf[i];
+	asigr[j] = buf[i+1];
+    }
+
     return OK;
 }
 
@@ -139,6 +225,7 @@ int send_srecv(CSOUND *csound, SOCKRECV* p)
 
 static OENTRY localops[] = {
   { "sockrecv", S(SOCKRECV), 5, "a", "Si", (SUBR)init_recv, NULL, (SUBR)send_recv},
+  { "sockrecvs", S(SOCKRECVS), 5, "aa", "Si", (SUBR)init_recvS, NULL, (SUBR)send_recvS},
   { "strecv", S(SOCKRECV), 5, "a", "Si", (SUBR)init_srecv, NULL, (SUBR)send_srecv}
 };
 
