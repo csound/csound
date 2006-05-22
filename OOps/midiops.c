@@ -55,15 +55,25 @@ int midibset(CSOUND *, MIDIKMB *);
 
 int massign(CSOUND *csound, MASSIGN *p)
 {
-    int   chnl = (int) (*p->chnl - FL(0.5));
+    int   chnl = (int) (*p->chnl + FL(0.5));
     long  instno = 0L;
+    int   resetCtls;
+    int   retval = OK;
 
     if (p->XSTRCODE || *(p->insno) >= FL(0.5)) {
       if ((instno = strarg2insno(csound, p->insno, p->XSTRCODE)) <= 0L)
         return NOTOK;
     }
-    return m_chinsno(csound,
-                     chnl, (int) instno, (*p->iresetctls == FL(0.0) ? 0 : 1));
+    resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
+    if (--chnl >= 0)
+      retval = m_chinsno(csound, chnl, (int) instno, resetCtls);
+    else {
+      for (chnl = 0; chnl < 16; chnl++) {
+        if (m_chinsno(csound, chnl, (int) instno, resetCtls) != OK)
+          retval = NOTOK;
+      }
+    }
+    return retval;
 }
 
 int ctrlinit(CSOUND *csound, CTLINIT *p)
