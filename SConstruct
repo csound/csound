@@ -130,9 +130,14 @@ opts.Add('buildLoris',
 opts.Add('useOSC',
     'Set to 1 if you want OSC support',
     '0')
-opts.Add('useUDP',
-    'Set to 1 if you want UDP support',
-    '1')
+if getPlatform() != 'mingw':
+    opts.Add('useUDP',
+        'Set to 0 if you do not want UDP support',
+        '1')
+else:
+    opts.Add('useUDP',
+        'Set to 1 if you want UDP support',
+        '0')
 opts.Add('buildPythonOpcodes',
     'Set to 1 to build Python opcodes',
     '0')
@@ -152,7 +157,7 @@ opts.Add('gcc4opt',
     'Enable gcc 4.0 or later optimizations for the specified CPU architecture (e.g. pentium3); implies noDebug.',
     '0')
 opts.Add('useLrint',
-    'U5B5Bse lrint() and lrintf() for converting floating point values to integers.',
+    'Use lrint() and lrintf() for converting floating point values to integers.',
     '0')
 opts.Add('useGprof',
     'Build with profiling information (-pg).',
@@ -1052,6 +1057,7 @@ makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
 makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
 makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
+makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
 makePlugin(pluginEnvironment, 'vbap',
            ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
             'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
@@ -1148,16 +1154,17 @@ else:
     makePlugin(oscEnvironment, 'osc', ['Opcodes/OSC.c'])
 
 # UDP opcodes
-if not (commonEnvironment['useUDP'] == '1'):
-    print "CONFIGURATION DECISION: Not building UDP plugin."
+
+if commonEnvironment['useUDP'] == '0':
+    print "CONFIGURATION DECISION: Not building UDP plugins."
 else:
-    print "CONFIGURATION DECISION: Building UDP plugin."
+    print "CONFIGURATION DECISION: Building UDP plugins."
     udpEnvironment = pluginEnvironment.Copy()
     udpEnvironment.Append(LIBS = ['pthread'])
+    makePlugin(udpEnvironment, 'udprecv', ['Opcodes/sockrecv.c'])
     makePlugin(udpEnvironment, 'udpsend', ['Opcodes/socksend.c'])
-    makePlugin(udpEnvironment, 'udprcv', ['Opcodes/sockrecv.c'])
-# end udp opcodes
 
+# end udp opcodes
 
 # FLUIDSYNTH OPCODES
 
