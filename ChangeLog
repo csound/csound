@@ -1,3 +1,6 @@
+2006-05-23	Istvan Varga	<ivarga@csounds.com>
+	* Opcodes/ugnorman.c: fixed "not initialised" bug in ATSbufread
+
 2006-05-22	Istvan Varga	<ivarga@csounds.com>
 	* OOps/midiops.c:
 	  massign(): interpret channel number <= 0 as all channels

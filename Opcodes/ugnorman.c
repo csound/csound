@@ -1472,13 +1472,13 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
 
     /* we need room for 2 * (1 table + 2 for 20 and 20,000 hz) */
     /* (one sorted one unsorted) */
-    memsize = 2 * (int) (*p->iptls + 2);
+    memsize = 2 * ((int) *(p->iptls) + 2);
 
     csound->AuxAlloc(csound, memsize * (long) sizeof(ATS_DATA_LOC), &p->auxch);
 
     fltp = (ATS_DATA_LOC *) p->auxch.auxp;
     p->table = fltp;
-    p->utable = fltp + (int) (*p->iptls + 2);
+    p->utable = fltp + ((int) *(p->iptls) + 2);
 
     /* check to see if partial is valid */
     if ((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
@@ -1616,11 +1616,11 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
     ATS_DATA_LOC  *buf;
     ATS_DATA_LOC  *buf2;
 
-    if (p->atsbufreadaddrp == NULL) {   /* RWD fix */
+    if (p->table == NULL) {     /* RWD fix */
       return csound->PerfError(csound, Str("ATSBUFREAD: not initialised"));
     }
 
-    *(p->atsbufreadaddrp) = p;
+    *(get_atsbufreadaddrp(csound)) = p;
 
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
