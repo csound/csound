@@ -30,7 +30,7 @@
 
 namespace csound
 {
-        Lindenmayer::Lindenmayer() : angle(1)
+        Lindenmayer::Lindenmayer() : angle(1.0)
         {
         }
 
@@ -113,7 +113,7 @@ namespace csound
         {
                 turtle = csound::Event();
                 turtleStep = csound::Event();
-                for(int i = 0; i < Event::HOMOGENEITY; i++)
+                for(size_t i = 0; i < Event::HOMOGENEITY; i++)
                 {
                         turtleStep[i] = 1.0;
                 }
@@ -169,7 +169,17 @@ namespace csound
                                         }
                                         double a = angle * n;
                                         ublas::matrix<double> rotation = createRotation (d1, d2, a);
+					std::cerr << "Rotation for " << a << ":" << std::endl;
+					for (int i = 0; i < rotation.size1(); i++)
+					  {
+					    for (int j = 0; j < rotation.size2(); j++ )
+					      {
+						std::cerr << rotation(i,j) << ",";
+					      }
+					    std::cerr << std::endl;
+					  }
                                         turtleOrientation = ublas::prod(rotation, turtleOrientation);
+					std::cerr << "Orientation: " << turtleOrientation.toString().c_str() << std::endl;
                                 }
                                 break;
                         case 'T':
