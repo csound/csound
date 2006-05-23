@@ -35,8 +35,9 @@ int inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
     OPDS        h;
-    MYFLT       *asig, *ipaddress, *port;
-    int sock, conn, frag;
+    MYFLT       *asig, *ipaddress, *port, *buffersize;
+    int sock, conn, frag, wp;
+    AUXCH aux;
     struct sockaddr_in server_addr;
 } SOCKSEND;
 
@@ -49,12 +50,15 @@ typedef struct {
 } SOCKSENDS;
 
 #define MTU (1456)
+#define MAX_SAMPLES_PER_PACKET (346)
 
 /* UDP version */
 int init_send(CSOUND *csound, SOCKSEND *p)
 {
-    p->sock = socket(PF_INET, SOCK_DGRAM, 0);
+    int buffersize = (*p->buffersize);
+    MYFLT *buf;
 
+    p->sock = socket(PF_INET, SOCK_DGRAM, 0);    
     if (p->sock < 0) {
       csound->InitError(csound, "creating socket");
       return NOTOK;
@@ -66,25 +70,70 @@ int init_send(CSOUND *csound, SOCKSEND *p)
               &p->server_addr.sin_addr);    /* the server IP address */
     p->server_addr.sin_port = htons((int)*p->port);      /* the port */
     p->frag = (sizeof(MYFLT)*csound->ksmps>MTU); /* fragment packets? */
+    p->wp=0;
+    /* create a buffer to store */
+    if(buffersize > csound->ksmps){
+	if(buffersize > MAX_SAMPLES_PER_PACKET)
+	    buffersize=MAX_SAMPLES_PER_PACKET;
+	if (p->aux.auxp == NULL || (long) (buffersize * sizeof(MYFLT)) > p->aux.size)
+	    /* allocate space for the buffer */
+	    csound->AuxAlloc(csound, buffersize * sizeof(MYFLT), &p->aux);
+	else {
+	    buf = (MYFLT *)p->aux.auxp;  /* make sure buffer is empty */
+	    do {
+		*buf++ = FL(0.0);
+	    } while (--buffersize);
+	}
+    }
     return OK;
 }
 
 int send_send(CSOUND *csound, SOCKSEND* p)
 {
     const struct sockaddr *to = (const struct sockaddr *)(&p->server_addr);
-    int n = sizeof(MYFLT)*csound->ksmps;
+    int i, n = sizeof(MYFLT)*csound->ksmps;
+    int ksmps = csound->ksmps;
+    int	m = sizeof(MYFLT) * (*p->buffersize);
+    MYFLT *asig = p->asig;
+
     if (p->frag) {
       while (n>MTU) {
-        if (sendto(p->sock, p->asig, MTU, 0, to, sizeof(p->server_addr)) < 0) {
+        if (sendto(p->sock, asig, MTU, 0, to, sizeof(p->server_addr)) < 0) {
           csound->PerfError(csound, "sendto failed");
           return NOTOK;
         }
         n -= MTU;
       }
     }
-    if (sendto(p->sock, p->asig, n, 0, to, sizeof(p->server_addr)) < 0) {
-      csound->PerfError(csound, "sendto failed");
-      return NOTOK;
+    else{
+	// uses the buffer if it's size is greater than ksmps
+	if(*p->buffersize > ksmps){
+	    int wp=p->wp;
+	    MYFLT *buf = (MYFLT *) p->aux.auxp;
+
+	    // send a packet if the buffer is full
+	    if(wp+ksmps >= *p->buffersize){
+		if (sendto(p->sock, buf, wp*sizeof(MYFLT), 0, to, sizeof(p->server_addr)) < 0) {
+		    csound->PerfError(csound, "sendto failed");
+		    return NOTOK;
+		}
+		p->wp=0;
+		wp=0;
+	    }
+	    for(i=0; i<ksmps; i++){
+		buf[wp]=asig[i];
+		wp+=1;
+	    }
+	    p->wp=wp;
+	    
+	}
+	// if not just write ksmps samples to the packet
+	else{
+	    if (sendto(p->sock, asig, n, 0, to, sizeof(p->server_addr)) < 0) {
+		csound->PerfError(csound, "sendto failed");
+		return NOTOK;
+	    }
+	}
     }
     return OK;
 }
@@ -224,7 +273,7 @@ int send_ssend(CSOUND *csound, SOCKSEND* p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "socksend", S(SOCKSEND), 5, "", "aSi", (SUBR)init_send, NULL, (SUBR)send_send},
+  { "socksend", S(SOCKSEND), 5, "", "aSii", (SUBR)init_send, NULL, (SUBR)send_send},
   { "socksends", S(SOCKSENDS), 5, "", "aaSi", (SUBR)init_sendS, NULL, (SUBR)send_sendS},
   { "stsend", S(SOCKSEND), 5, "", "aSi", (SUBR)init_ssend, NULL, (SUBR)send_ssend}
 };
