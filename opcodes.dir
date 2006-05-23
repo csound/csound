@@ -71,6 +71,10 @@ stk:
 	STKModalBar STKMoog STKPercFlut STKPlucked STKResonate STKRhodey
 	STKSaxofony STKShakers STKSimple STKSitar STKStifKarp STKTubeBell
 	STKVoicForm STKWhistle STKWurley
+udprecv:
+	sockrecv sockrecvs strecv
+udpsend:
+	socksend socksends stsend
 vbap:
 	vbap4 vbap8 vbap16 vbapz vbaplsinit vbap4move vbap8move vbap16move
 	vbapzmove
