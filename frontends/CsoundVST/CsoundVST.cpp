@@ -19,10 +19,10 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#include <Python.h>
 #include "CsoundVST.hpp"
 #include "CsoundVstFltk.hpp"
 #include "System.hpp"
+#include "Shell.hpp"
 
 static char *dupstr(const char *string)
 {
@@ -370,28 +370,28 @@ void CsoundVST::open()
       int result = 0;
       Shell::open();
       char *argv[] = {"",""};
-      PySys_SetArgv(1, argv);
-      PyObject *mainModule = PyImport_ImportModule("__main__");
+      csound::PySys_SetArgv_(1, argv);
+      csound::PyObject_ *mainModule = csound::PyImport_ImportModule_("__main__");
       result = runScript("import sys\n");
       if(result)
         {
-          PyErr_Print();
+	  csound::PyErr_Print_();
         }
       result = runScript("import CsoundVST\n");
       if(result)
         {
-          PyErr_Print();
+	  csound::PyErr_Print_();
         }
-      PyObject *pyCsound = PyObject_GetAttrString(mainModule, "csound");
+      csound::PyObject_ *pyCsound = csound::PyObject_GetAttrString_(mainModule, "csound");
       // No doubt SWIG or the Python API could do this directly,
       // but damned if I could figure out how, and this works.
       result = runScript("sys.stdout = sys.stderr = csound\n");
       if(result)
         {
-          PyErr_Print();
+	  csound::PyErr_Print_();
         }
-      PyObject* pyCppSound = PyObject_CallMethod(pyCsound, "getThis", "");
-      cppSound = (CppSound *) PyLong_AsLong(pyCppSound);
+      csound::PyObject_* pyCppSound = csound::PyObject_CallMethod_(pyCsound, "getThis", "");
+      cppSound = (CppSound *) csound::PyLong_AsLong_(pyCppSound);
     }
   if(!cppSound)
     {
@@ -909,8 +909,6 @@ void CsoundVST::fltkwait()
     Fl::wait();
   }
 }
-
-
 
 extern "C"
 {
