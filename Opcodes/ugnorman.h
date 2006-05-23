@@ -159,7 +159,6 @@ struct _atsbufread {
     OPDS    h;
     MYFLT   *ktimpnt, *kfmod, *ifileno, *iptls;
     MYFLT   *iptloffset, *iptlincr;     /* optional arguments */
-    struct _atsbufread  **atsbufreadaddrp;
     MEMFIL  *mfp;
     int     maxFr, prFlg;
     /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
