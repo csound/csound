@@ -244,7 +244,7 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
     char            clientNameBuf[MAX_NAME_LEN + 2];
     char            *prvPortName = (char*) NULL, *curPortName = (char*) NULL;
     unsigned long   portFlags;
-    int             i, chn, len, nPorts, retval = -1;
+    int             i, nChn, maxChn, len, nPorts, retval = -1;
 
     portFlags = (isOutput ? (unsigned long) JackPortIsInput
                             : (unsigned long) JackPortIsOutput);
@@ -270,10 +270,10 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
     qsort((void*) portNames, (size_t) nPorts, sizeof(char*), portname_cmp_func);
     sprintf(&(clientNameBuf[0]), "%s:", clientName);
     len = strlen(&(clientNameBuf[0]));
-    strcpy(prvPortName, "");
-    chn = 0;
+    prvPortName[0] = (char) 0;
+    maxChn = nChn = 0;
     for (i = 0; portNames[i] != NULL; i++) {
-      int     n;
+      int     n, chn_;
       /* skip ports owned by this client */
       if (strncmp(portNames[i], &(clientNameBuf[0]), (size_t) len) == 0)
         goto nextPortName;
@@ -286,27 +286,33 @@ static CS_NOINLINE int rtJack_ListPorts(CSOUND *csound,
       n++;
       if (n < 2 || n == (int) strlen(portNames[i]))
         goto nextPortName;
+      chn_ = (int) atoi(&(portNames[i][n]));
+      if (chn_ == 0)
+        goto nextPortName;
       strncpy(curPortName, portNames[i], (size_t) n);
       curPortName[n] = (char) 0;
-      if (strcmp(curPortName, prvPortName) == 0) {
-        if (++chn != (int) atoi(&(portNames[i][n])))
-          goto clearPortName;
+      if (strcmp(curPortName, prvPortName) != 0) {
+        if (nChn == maxChn)
+          rtJack_PrintPortName(csound, prvPortName, nChn);
+        strcpy(prvPortName, curPortName);
+        nChn = 1;
+        maxChn = chn_;
       }
       else {
-        rtJack_PrintPortName(csound, prvPortName, chn);
-        chn = 1;
-        if (chn != (int) atoi(&(portNames[i][n])))
-          goto clearPortName;
-        strcpy(prvPortName, curPortName);
+        nChn++;
+        if (chn_ > maxChn)
+          maxChn = chn_;
       }
       continue;
  nextPortName:
-      rtJack_PrintPortName(csound, prvPortName, chn);
- clearPortName:
-      strcpy(prvPortName, "");
-      chn = 0;
+      if (nChn == maxChn)
+        rtJack_PrintPortName(csound, prvPortName, nChn);
+      prvPortName[0] = (char) 0;
+      maxChn = nChn = 0;
     }
-    rtJack_PrintPortName(csound, prvPortName, chn);
+    if (nChn == maxChn)
+      rtJack_PrintPortName(csound, prvPortName, nChn);
+
  err_return:
     if (portNames != (char**) NULL)
       free((void*) portNames);
