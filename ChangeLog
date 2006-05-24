@@ -1,3 +1,8 @@
+2006-05-24	Istvan Varga	<ivarga@csounds.com>
+	* InOut/rtalsa.c: changed default device from "default" to "plughw"
+	* InOut/rtjack.c: list available device names for -i adc or -o dac
+	  if an invalid device is specified
+
 2006-05-23	Istvan Varga	<ivarga@csounds.com>
 	* Opcodes/ugnorman.c: fixed "not initialised" bug in ATSbufread
 
