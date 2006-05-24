@@ -34,10 +34,9 @@
 extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
-    OPDS    h;
-    MYFLT   *asig, *ipaddress, *port, *buffersize;
-    int     sock, conn, frag, wp;
-    AUXCH   aux;
+    OPDS   h;
+    MYFLT  *asig, *ipaddress, *port;
+    int    sock, conn;
     struct sockaddr_in server_addr;
 } SOCKSEND;
 
@@ -45,20 +44,22 @@ typedef struct {
     OPDS    h;
     MYFLT   *asigl, *asigr, *ipaddress, *port;
     AUXCH   aux;
-    int     sock, conn, frag;
+    int     sock, conn;
     struct sockaddr_in server_addr;
 } SOCKSENDS;
 
 #define MTU (1456)
-#define MAX_SAMPLES_PER_PACKET (346)
 
 /* UDP version */
-static int init_send(CSOUND *csound, SOCKSEND *p)
+int init_send(CSOUND *csound, SOCKSEND *p)
 {
-    int     buffersize = (*p->buffersize);
-    MYFLT   *buf;
-
+    if((sizeof(MYFLT)*csound->ksmps) > MTU)
+    {
+	csound->InitError(csound, "The ksmps must be smaller than 346 samples to fit in a udp-packet.");
+	return NOTOK;
+    }
     p->sock = socket(PF_INET, SOCK_DGRAM, 0);
+
     if (p->sock < 0) {
       csound->InitError(csound, "creating socket");
       return NOTOK;
@@ -66,80 +67,23 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-    inet_aton((const char *) p->ipaddress,
+    inet_aton((const char*)p->ipaddress,
               &p->server_addr.sin_addr);    /* the server IP address */
-    p->server_addr.sin_port = htons((int) *p->port);  /* the port */
-    p->frag = (sizeof(MYFLT) * csound->ksmps > MTU);  /* fragment packets? */
-    p->wp = 0;
-    /* create a buffer to store */
-    if (buffersize > csound->ksmps) {
-      if (buffersize > MAX_SAMPLES_PER_PACKET)
-        buffersize = MAX_SAMPLES_PER_PACKET;
-      if (p->aux.auxp == NULL ||
-          (long) (buffersize * sizeof(MYFLT)) > p->aux.size)
-        /* allocate space for the buffer */
-        csound->AuxAlloc(csound, buffersize * sizeof(MYFLT), &p->aux);
-      else {
-        buf = (MYFLT *) p->aux.auxp;  /* make sure buffer is empty */
-        do {
-          *buf++ = FL(0.0);
-        } while (--buffersize);
-      }
-    }
+    p->server_addr.sin_port = htons((int)*p->port);      /* the port */
     return OK;
 }
 
-static int send_send(CSOUND *csound, SOCKSEND *p)
+int send_send(CSOUND *csound, SOCKSEND* p)
 {
-    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-    int     i, n = sizeof(MYFLT) * csound->ksmps;
-    int     ksmps = csound->ksmps;
- /* int     m = sizeof(MYFLT) * (*p->buffersize); */
-    MYFLT   *asig = p->asig;
-
-    if (p->frag) {
-      while (n > MTU) {
-        if (sendto(p->sock, asig, MTU, 0, to, sizeof(p->server_addr)) < 0) {
-          csound->PerfError(csound, "sendto failed");
-          return NOTOK;
-        }
-        n -= MTU;
-      }
-    }
-    else {
-      /* uses the buffer if it's size is greater than ksmps */
-      if (*p->buffersize > ksmps) {
-        int     wp = p->wp;
-        MYFLT  *buf = (MYFLT *) p->aux.auxp;
-
-        /* send a packet if the buffer is full */
-        if (wp + ksmps >= *p->buffersize) {
-          if (sendto
-              (p->sock, buf, wp * sizeof(MYFLT), 0, to,
-               sizeof(p->server_addr)) < 0) {
-            csound->PerfError(csound, "sendto failed");
-            return NOTOK;
-          }
-          p->wp = 0;
-          wp = 0;
-        }
-        for (i = 0; i < ksmps; i++) {
-          buf[wp] = asig[i];
-          wp += 1;
-        }
-        p->wp = wp;
-
-      }
-      else {
-        /* if not just write ksmps samples to the packet */
-        if (sendto(p->sock, asig, n, 0, to, sizeof(p->server_addr)) < 0) {
-          csound->PerfError(csound, "sendto failed");
-          return NOTOK;
-        }
-      }
+    const struct sockaddr *to = (const struct sockaddr *)(&p->server_addr);
+    int n = sizeof(MYFLT)*csound->ksmps;
+    if (sendto(p->sock, p->asig, n, 0, to, sizeof(p->server_addr)) < 0) {
+      csound->PerfError(csound, "sendto failed");
+      return NOTOK;
     }
     return OK;
 }
+
 
 /* UDP version 2 channels */
 static int init_sendS(CSOUND *csound, SOCKSENDS *p)
@@ -147,6 +91,11 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     int     n = MTU;
     MYFLT   *buf;
 
+    if((sizeof(MYFLT)*csound->ksmps) > MTU)
+    {
+	csound->InitError(csound, "The ksmps must be smaller than 346 samples to fit in a udp-packet.");
+	return NOTOK;
+    }
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (p->sock < 0) {
       csound->InitError(csound, "creating socket");
@@ -158,7 +107,6 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     inet_aton((const char *) p->ipaddress,
               &p->server_addr.sin_addr);    /* the server IP address */
     p->server_addr.sin_port = htons((int) *p->port);  /* the port */
-    p->frag = (sizeof(MYFLT) * csound->ksmps > MTU);  /* fragment packets? */
 
     /* create a buffer to store the received interleaved audio data */
     if (p->aux.auxp == NULL || (long) (n * sizeof(MYFLT)) > p->aux.size)
@@ -182,24 +130,6 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     int     i, j;
     int     n = ((sizeof(MYFLT) * csound->ksmps) * 2);
     int     m = (csound->ksmps * 2);
-    int     mtu_in_samples = (MTU / sizeof(MYFLT));
-
-    if (p->frag) {
-      while (n > MTU) {
-        /* store the samples of the channels interleaved in the packet */
-        /* (left, right) */
-        for (i = 0, j = 0; i < mtu_in_samples; i += 2, j++) {
-          out[i] = asigl[j];
-          out[i + 1] = asigr[j];
-        }
-        if (sendto(p->sock, out, MTU, 0, to, sizeof(p->server_addr)) < 0) {
-          csound->PerfError(csound, "sendto failed");
-          return NOTOK;
-        }
-        n -= MTU;
-        m -= mtu_in_samples;
-      }
-    }
 
     /* store the samples of the channels interleaved in the packet */
     /* (left, right) */
@@ -278,7 +208,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "socksend", S(SOCKSEND), 5, "", "aSii", (SUBR) init_send, NULL,
+  { "socksend", S(SOCKSEND), 5, "", "aSi", (SUBR) init_send, NULL,
     (SUBR) send_send },
   { "socksends", S(SOCKSENDS), 5, "", "aaSi", (SUBR) init_sendS, NULL,
     (SUBR) send_sendS },
