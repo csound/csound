@@ -34,9 +34,9 @@
 extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *asig, *ipaddress, *port;
-    int    sock, conn;
+    OPDS    h;
+    MYFLT   *asig, *ipaddress, *port;
+    int     sock, conn;
     struct sockaddr_in server_addr;
 } SOCKSEND;
 
@@ -51,12 +51,12 @@ typedef struct {
 #define MTU (1456)
 
 /* UDP version */
-int init_send(CSOUND *csound, SOCKSEND *p)
+static int init_send(CSOUND *csound, SOCKSEND *p)
 {
-    if((sizeof(MYFLT)*csound->ksmps) > MTU)
-    {
-	csound->InitError(csound, "The ksmps must be smaller than 346 samples to fit in a udp-packet.");
-	return NOTOK;
+    if ((sizeof(MYFLT) * csound->ksmps) > MTU) {
+      csound->InitError(csound, "The ksmps must be smaller than 346 samples "
+                                "to fit in a udp-packet.");
+      return NOTOK;
     }
     p->sock = socket(PF_INET, SOCK_DGRAM, 0);
 
@@ -67,16 +67,17 @@ int init_send(CSOUND *csound, SOCKSEND *p)
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-    inet_aton((const char*)p->ipaddress,
+    inet_aton((const char *) p->ipaddress,
               &p->server_addr.sin_addr);    /* the server IP address */
-    p->server_addr.sin_port = htons((int)*p->port);      /* the port */
+    p->server_addr.sin_port = htons((int) *p->port);  /* the port */
     return OK;
 }
 
-int send_send(CSOUND *csound, SOCKSEND* p)
+static int send_send(CSOUND *csound, SOCKSEND *p)
 {
-    const struct sockaddr *to = (const struct sockaddr *)(&p->server_addr);
-    int n = sizeof(MYFLT)*csound->ksmps;
+    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+    int     n = sizeof(MYFLT) * csound->ksmps;
+
     if (sendto(p->sock, p->asig, n, 0, to, sizeof(p->server_addr)) < 0) {
       csound->PerfError(csound, "sendto failed");
       return NOTOK;
@@ -84,17 +85,16 @@ int send_send(CSOUND *csound, SOCKSEND* p)
     return OK;
 }
 
-
 /* UDP version 2 channels */
 static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
     int     n = MTU;
     MYFLT   *buf;
 
-    if((sizeof(MYFLT)*csound->ksmps) > MTU)
-    {
-	csound->InitError(csound, "The ksmps must be smaller than 346 samples to fit in a udp-packet.");
-	return NOTOK;
+    if ((sizeof(MYFLT) * csound->ksmps) > MTU) {
+      csound->InitError(csound, "The ksmps must be smaller than 346 samples "
+                                "to fit in a udp-packet.");
+      return NOTOK;
     }
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (p->sock < 0) {
