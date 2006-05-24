@@ -44,9 +44,10 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asigl, *asigr, *ipaddress, *port;
-    AUXCH   aux;
+    MYFLT   *asigl, *asigr, *ipaddress, *port, *buffersize, *threshold;
+    AUXCH   aux, tmp;
     int     sock;
+    int wp, rp, state_full, state_empty, samples_wrote;
     struct sockaddr_in server_addr;
 } SOCKRECVS;
 
@@ -119,8 +120,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 static int send_recv(CSOUND *csound, SOCKRECV *p)
 {
     struct sockaddr from;
-    int     i;
- /* int     n = sizeof(MYFLT) * csound->ksmps; */
+    int i;
     ssize_t numbytes;
     socklen_t clilen = sizeof(from);
     int     ksmps = csound->ksmps;
@@ -134,9 +134,9 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 
     /* get the data from the socket and store it in a tmp buffer */
     numbytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen);
-    if (numbytes < 0) {
-      csound->PerfError(csound, "sendto failed");
-      return NOTOK;
+    if(numbytes < 0) {
+	csound->PerfError(csound, "sendto failed");
+	return NOTOK;
     }
 
     /* read from the jitterbuffer if it is not empty */
@@ -194,8 +194,14 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 /* UDP version 2 channel */
 static int init_recvS(CSOUND *csound, SOCKRECVS *p)
 {
-    int     n = MTU;
     MYFLT   *buf;
+    // initialise the buffer
+    int buffersize = *p->buffersize;
+    int ksmpsbytes = sizeof(MYFLT)*csound->ksmps * 2;
+    p->state_full=0; 
+    p->state_empty=0;
+    p->wp=0;
+    p->rp=0;
 
     if ((sizeof(MYFLT) * csound->ksmps) > MTU) {
       csound->InitError(csound, "The ksmps must be smaller than 346 samples "
@@ -217,15 +223,28 @@ static int init_recvS(CSOUND *csound, SOCKRECVS *p)
              sizeof(p->server_addr)) < 0)
       return csound->InitError(csound, "bind failed");
 
-    /* create a buffer to store the received interleaved audio data */
-    if (p->aux.auxp == NULL || (long) (n * sizeof(MYFLT)) > p->aux.size)
-      /* allocate space for the buffer */
-      csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
+    /* create the jitterbuffer */
+    if(*p->buffersize>MAX_SAMPLES_PER_PACKET)
+	*p->buffersize=MAX_SAMPLES_PER_PACKET;
+    if (p->aux.auxp == NULL || (long) (buffersize * sizeof(MYFLT)) > p->aux.size)
+        /* allocate space for the buffer */
+        csound->AuxAlloc(csound, buffersize * sizeof(MYFLT), &p->aux);
     else {
-      buf = (MYFLT *) p->aux.auxp;  /* make sure buffer is empty */
+        buf = (MYFLT *)p->aux.auxp;  /* make sure buffer is empty */
+        do {
+	    *buf++ = FL(0.0);
+        } while (--buffersize);
+    }
+
+    /* create a buffer to store the received interleaved audio data */
+    if (p->tmp.auxp == NULL || (long) (ksmpsbytes) > p->tmp.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, ksmpsbytes , &p->tmp);
+    else {
+      buf = (MYFLT *) p->tmp.auxp;  /* make sure buffer is empty */
       do {
         *buf++ = FL(0.0);
-      } while (--n);
+      } while (--ksmpsbytes);
     }
 
     return OK;
@@ -234,24 +253,83 @@ static int init_recvS(CSOUND *csound, SOCKRECVS *p)
 static int send_recvS(CSOUND *csound, SOCKRECVS *p)
 {
     struct sockaddr from;
+    socklen_t clilen = sizeof(from);
+    ssize_t numbytes;
     MYFLT   *asigl = p->asigl;
     MYFLT   *asigr = p->asigr;
     MYFLT   *buf = (MYFLT *) p->aux.auxp;
-    int     i, j;
-    int     n = ((sizeof(MYFLT) * csound->ksmps) * 2);
-    int     m = (csound->ksmps * 2);
-    socklen_t clilen = sizeof(from);
+    MYFLT *tmp = (MYFLT *) p->tmp.auxp;
+    int  i;
+    int  n = ((sizeof(MYFLT) * csound->ksmps) * 2);
+    int  ksmps = (csound->ksmps);
+    int wp = p->wp;
+    int rp = p->rp;
+    int buffersize = (*p->buffersize);
+    int threshold = (*p->threshold);
 
-    if (recvfrom(p->sock, buf, n, 0, &from, &clilen) < 0) {
-      csound->PerfError(csound, "sendto failed");
-      return NOTOK;
+    // get the data from the socket and store it in a tmp buffer
+    numbytes = recvfrom(p->sock, tmp, n, 0, &from, &clilen);
+    if(numbytes < 0) {
+	csound->PerfError(csound, "sendto failed");
+	return NOTOK;
     }
 
-    for (i = 0, j = 0; i < m; i += 2, j++) {
-      asigl[j] = buf[i];
-      asigr[j] = buf[i + 1];
+    // read from the jitterbuffer if it is not empty
+    if(p->state_empty)
+    {
+        for(i=0; i<ksmps; i++)
+        {
+            // indicate that the buffer is empty
+            if(wp==rp){
+                p->state_empty=0;
+		break;
+	    }
+            else
+            {
+		asigl[i]=buf[rp];
+		rp=(rp!= buffersize-1 ? rp+1 : 0);
+		asigr[i]=buf[rp];
+		rp=(rp!= buffersize-1 ? rp+1 : 0);
+            }
+	}
+	p->rp=rp;
     }
 
+    // write the data in the jitterbuffer
+    for(i=0; i<ksmps*2; i++)
+    {
+        buf[wp]=tmp[i];
+        wp = (wp!=buffersize-1 ? wp+1 : 0);
+        // indicate that there is an bufferoverflow
+        if(wp==rp)
+            p->state_full=1;
+    }
+    // if there was a bufferoverflow.
+    if(p->state_full)
+    {
+        p->wp=wp;
+        // set the read-pointer upper_treshhold elements behind the write-pointer
+        rp=wp;
+        for(i=0; i<threshold; i++)
+            rp = (rp!=0 ? rp-1 : buffersize-1);
+	p->rp=rp;
+        p->state_full=0;
+        p->state_empty=1;
+        return NOTOK;
+    }
+    // fill the buffer up to the threshold first
+    if(!p->state_empty)
+    {
+	// Enable for Debug purpose:
+	// csound->Message(csound, Str("Init-Jitterbuffer: Fill up to the threshold.\n"));
+        p->samples_wrote += ksmps*2;
+        if(p->samples_wrote >= threshold)
+        {
+            p->state_empty=1;
+            p->samples_wrote=0;
+        }
+    }
+    p->wp=wp;
     return OK;
 }
 
@@ -308,7 +386,7 @@ static int send_srecv(CSOUND *csound, SOCKRECV *p)
 static OENTRY localops[] = {
   { "sockrecv", S(SOCKRECV), 5, "a", "Siii", (SUBR) init_recv, NULL,
     (SUBR) send_recv },
-  { "sockrecvs", S(SOCKRECVS), 5, "aa", "Si", (SUBR) init_recvS, NULL,
+  { "sockrecvs", S(SOCKRECVS), 5, "aa", "Siii", (SUBR) init_recvS, NULL,
     (SUBR) send_recvS },
   { "strecv", S(SOCKRECV), 5, "a", "Si", (SUBR) init_srecv, NULL,
     (SUBR) send_srecv }
