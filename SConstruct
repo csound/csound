@@ -1500,7 +1500,9 @@ else:
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         vstEnvironment.Prepend(LIBS = pythonLibs)
-    vstEnvironment.Prepend(LIBS = [csoundLibraryName, 'sndfile', '_csnd'])
+        vstEnvironment.Prepend(LIBS = [csoundLibraryname, 'sndfile', '_csnd'])
+    else:
+        vstEnvironment.Prepend(LIBS = ['sndfile', '_csnd'])
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
@@ -1597,7 +1599,9 @@ else:
         SWIGFLAGS = [swigflags, '-python'])
     scoregenSources.insert(0, scoregenPythonWrapper)
     if getPlatform() == 'darwin':
-        vstEnvironment.Prepend(LINKFLAGS = ['-bundle','-framework', 'CsoundLib'])
+        vstEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+        vstEnvironment.Append(LIBS = libCsoundLibs)
+        vstEnvironment.Prepend(LINKFLAGS = ['-bundle'])
         csoundvst = pythonModules.append(
             vstEnvironment.Program('_CsoundVST.so', csoundVstSources))
         scoregen = vstEnvironment.Program('_scoregen.so', scoregenSources)
@@ -1613,11 +1617,14 @@ else:
     pythonModules.append('CsoundVST.py')
     
     Depends(csoundvst, csoundInterfaces)
-
-    csoundvstGui = guiProgramEnvironment.Program(
+    if getPlatform() == 'darwin':
+        guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+        guiProgramEnvironment.Append(LIBS = libCsoundLibs)
+    else:
+        csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
-    executables.append(csoundvstGui)
-    Depends(csoundvstGui, csoundvst)
+        executables.append(csoundvstGui)
+        Depends(csoundvstGui, csoundvst)
 
     counterpoint = vstEnvironment.Program(
         'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
