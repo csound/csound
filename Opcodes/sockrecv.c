@@ -372,11 +372,11 @@ static int init_srecv(CSOUND *csound, SOCKRECV *p)
 
 static int send_srecv(CSOUND *csound, SOCKRECV *p)
 {
-    int     n = sizeof(MYFLT) * csound->ksmps;
+    int   n = sizeof(MYFLT) * csound->ksmps;
 
     if (n != read(p->sock, p->asig, n)) {
       csound->Message(csound, "Expected %d got %d\n",
-                      sizeof(MYFLT) * csound->ksmps, n);
+                      (int)(sizeof(MYFLT) * csound->ksmps), n);
       csound->PerfError(csound, "read from socket failed");
       return NOTOK;
     }
