@@ -307,7 +307,6 @@ elif getPlatform() == 'darwin':
     if commonEnvironment['useAltivec'] == '1':
         print 'CONFIGURATION DECISION using Altivec optmisation'
         commonEnvironment.Append(CCFLAGS = "-faltivec")
-    commonEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
 elif getPlatform() == 'mingw':
     commonEnvironment.Append(CCFLAGS = "-D_WIN32")
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
@@ -1031,6 +1030,8 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
 
 pluginLibraries.append('opcodes.dir')
 MacOSX_InstallPlugin('opcodes.dir')
+if getPlatform() == 'darwin':
+   pluginEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
 
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
@@ -1525,7 +1526,7 @@ else:
             LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
         vstEnvironment.Append(LIBS = ['fltk_images', 'fltk'])
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-    guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
+     # guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
     for option in vstEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
             vstEnvironment.Append(SWIGFLAGS = [option])
@@ -1577,7 +1578,8 @@ else:
     csoundVstPythonWrapper = vstWrapperEnvironment.SharedObject(
         'frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
     csoundVstSources.insert(0, csoundVstPythonWrapper)
-    csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
+    if getPlatform() != 'darwin':
+      csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
 
     scoregenSources = csoundVstBaseSources + Split('''
     frontends/CsoundVST/ScoreGenerator.cpp
@@ -1594,20 +1596,22 @@ else:
         'frontends/CsoundVST/ScoreGeneratorVST.i',
         SWIGFLAGS = [swigflags, '-python'])
     scoregenSources.insert(0, scoregenPythonWrapper)
-    if getPlatform == 'darwin':
-        vstEnvironment.Prepend(LINKFLAGS = '-bundle')
-        pythonModules.append(
+    if getPlatform() == 'darwin':
+        vstEnvironment.Prepend(LINKFLAGS = ['-bundle','-framework', 'CsoundLib'])
+        csoundvst = pythonModules.append(
             vstEnvironment.Program('_CsoundVST.so', csoundVstSources))
         scoregen = vstEnvironment.Program('_scoregen.so', scoregenSources)
+        Depends(csoundvst, csoundLibrary)
     else:
         scoregen = vstEnvironment.SharedLibrary('_scoregen', scoregenSources,
                                                 SHLIBPREFIX = '')
+        libs.append(csoundvst)
     pythonModules.append('scoregen.py')
     pythonModules.append(scoregen)
 
     # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     pythonModules.append('CsoundVST.py')
-    libs.append(csoundvst)
+    
     Depends(csoundvst, csoundInterfaces)
 
     csoundvstGui = guiProgramEnvironment.Program(
