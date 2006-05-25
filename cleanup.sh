@@ -64,6 +64,8 @@ find . -type f -exec file '{}' \; | grep -G -e ':.*\<PE\>' | cut -d ':' -f 1 | x
 "$0" remove "./frontends/CsoundVST/ScoreGeneratorVST_wrap.cc"
 "$0" remove "./frontends/CsoundVST/ScoreGeneratorVST_wrap.h"
 "$0" remove "./scoregen.py"
+"$0" remove "./scoregen.pyc"
+"$0" remove "./scoregen.pyo"
 "$0" remove "./frontends/fltk_gui/CsoundAboutWindow_FLTK.cpp"
 "$0" remove "./frontends/fltk_gui/CsoundAboutWindow_FLTK.hpp"
 "$0" remove "./frontends/fltk_gui/CsoundGlobalSettingsPanel_FLTK.cpp"
