@@ -43,15 +43,17 @@ installErrors = 0
 useDouble = 0
 md5List = ''
 md5Name = 'csound5-%s.md5sums' % time.strftime("%Y-%m-%d", time.localtime())
+word64Suffix = ''
 
 def printUsage():
-    print 'Usage: ./install.py [options...]'
-    print 'Allowed options are:'
-    print '    --prefix=DIR    base directory (default: /usr/local)'
-    print '    --instdir=DIR   installation root directory (default: /)'
-    print '    --vimdir=DIR    directory for VIM syntax files (default: none)'
-    print '    --help          print this message'
-    print ''
+    print "Usage: ./install.py [options...]"
+    print "Allowed options are:"
+    print "    --prefix=DIR    base directory (default: /usr/local)"
+    print "    --instdir=DIR   installation root directory (default: /)"
+    print "    --vimdir=DIR    VIM runtime directory (default: none)"
+    print "    --word64        install libraries to 'lib64' instead of 'lib'"
+    print "    --help          print this message"
+    print ""
 
 # parse command line options
 
@@ -66,6 +68,8 @@ if sys.argv.__len__() > 1:
             instDir = sys.argv[i][10:]
         elif sys.argv[i][:9] == '--vimdir=':
             vimDir = sys.argv[i][9:]
+        elif sys.argv[i] == '--word64':
+            word64Suffix = '64'
         else:
             printUsage()
             print 'Error: unknown option: %s' % sys.argv[i]
@@ -93,7 +97,7 @@ binDir      = concatPath([prefix, '/bin'])
 # Csound API header files
 includeDir  = concatPath([prefix, '/include/csound'])
 # Csound API libraries
-libDir      = concatPath([prefix, '/lib'])
+libDir      = concatPath([prefix, '/lib' + word64Suffix])
 # single precision plugin libraries
 pluginDir32 = concatPath([libDir, '/csound/plugins'])
 # double precision plugin libraries
@@ -112,7 +116,7 @@ lispDir     = concatPath([libDir, '/csound/lisp'])
 rawWaveDir  = concatPath([prefix, '/share/csound/rawwaves'])
 
 # csnd.py
-pythonDir   = '/usr/lib/python' + pyVersion + '/site-packages'
+pythonDir   = '/usr/lib%s/python%s/site-packages' % (word64Suffix, pyVersion)
 # _csnd.so
 pythonDir2  = pythonDir
 
@@ -212,10 +216,25 @@ if findFiles('.', 'libcsound64\\.so\\..+').__len__() > 0:
 makeDir(concatPath([binDir]))
 installedBinaries = findFiles(concatPath([instDir, binDir]), '.+')
 if ('csound' in installedBinaries) or ('csound64' in installedBinaries):
-    print ' *** Error: an already existing installation of Csound was found'
-    print ' *** Try removing it first, and then run this script again'
-    print ''
-    raise SystemExit(1)
+    if 'uninstall-csound5' in installedBinaries:
+        print ' *** WARNING: found an already existing installation of Csound'
+        tmp = ''
+        while (tmp != 'yes\n') and (tmp != 'no\n'):
+            sys.__stderr__.write(
+                ' *** Uninstall it ? Type \'yes\', or \'no\' to quit: ')
+            tmp = sys.__stdin__.readline()
+        if tmp != 'yes\n':
+            print ' *** Csound installation has been aborted'
+            print ''
+            raise SystemExit(1)
+        print ' --- Removing old Csound installation...'
+        runCmd([concatPath([instDir, binDir, 'uninstall-csound5'])])
+        print ''
+    else:
+        print ' *** Error: an already existing installation of Csound was found'
+        print ' *** Try removing it first, and then run this script again'
+        print ''
+        raise SystemExit(1)
 
 # copy binaries
 
@@ -340,14 +359,14 @@ if '%s/libstk.so' % pluginDir in fileList:
     installErrors = installErrors or err
 
 # copy PD object
-pdDir = '/usr/local/lib/pd/extra'
+pdDir = '/usr/local/lib' + word64Suffix + '/pd/extra'
 try:
     os.stat('%s/README.txt' % pdDir)
 except:
     try:
         os.stat('%s/hilbert~.pd' % pdDir)
     except:
-        pdDir = '/usr/lib/pd/extra'
+        pdDir = '/usr/lib' + word64Suffix + '/pd/extra'
         try:
             os.stat('%s/README.txt' % pdDir)
         except:
