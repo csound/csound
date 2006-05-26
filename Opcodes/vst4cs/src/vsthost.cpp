@@ -26,8 +26,8 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
-#include "AEffEditor.hpp"
-#include "aeffectx.h"
+//ma++ #include "AEffEditor.hpp"
+//ma++ #include "aeffectx.h"
 #include "vsthost.h"
 
 #ifdef MSVC
@@ -329,13 +329,34 @@ bool VSTPlugin::DescribeValue(int parameter,char* value)
 int VSTPlugin::Instantiate(const char *libraryName_)
 {
     Debug("VSTPlugin::Instance.\n");
+#ifdef __MACH__
+		CFStringRef vstBundlePath = CFStringCreateWithCString( kCFAllocatorDefault, libraryName_, kCFStringEncodingMacRoman );
+		CFURLRef vstBundleURL = CFURLCreateWithFileSystemPath(
+								kCFAllocatorDefault, 
+								vstBundlePath,
+								kCFURLPOSIXPathStyle,
+								true );
+								
+		CFBundleRef vstBundle =  CFBundleCreate( kCFAllocatorDefault, vstBundleURL );
+		CFRelease( vstBundlePath );
+		CFRelease( vstBundleURL );
+		
+		if ( vstBundle == NULL )
+#else
         if (csound->OpenLibrary(&libraryHandle, libraryName_) != 0)
+#endif
         {
                 Log("WARNING! '%s' was not found or is invalid.\n", libraryName_);
                 return VSTINSTANCE_ERR_NO_VALID_FILE;
         }
-        Debug("Loaded plugin library '%s'.\n" , libraryName_);
+		Debug("Loaded plugin library '%s'.\n" , libraryName_);
+		
+#ifdef __MACH__
+		short bundleRes = CFBundleOpenBundleResourceMap( vstBundle );
+		PVSTMAIN main = (PVSTMAIN)CFBundleGetFunctionPointerForName( vstBundle, CFSTR("main_macho") );
+#else
         PVSTMAIN main = (PVSTMAIN)csound->GetLibrarySymbol(libraryHandle,"main");
+#endif
         if(!main)
         {
             Log("Failed to find 'main' function.\n");
