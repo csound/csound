@@ -1474,15 +1474,6 @@ int outch(CSOUND *csound, OUTCH *p)
 /* k-rate i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
 
-int invalset(CSOUND *csound, INVAL *p)
-{
-    if (p->XSTRCODE)
-      strcpy(p->channelName, (char*) p->valID);
-    else
-      sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
-    return OK;
-}
-
 int kinval(CSOUND *csound, INVAL *p)
 {
     if (csound->InputValueCallback_)
@@ -1492,14 +1483,21 @@ int kinval(CSOUND *csound, INVAL *p)
     return OK;
 }
 
-int outvalset(CSOUND *csound, OUTVAL *p)
+int invalset(CSOUND *csound, INVAL *p)
 {
     if (p->XSTRCODE)
       strcpy(p->channelName, (char*) p->valID);
     else
       sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
+    
+    
+    /* grab input now for use during i-pass */
+     kinval(csound, p);
+        
     return OK;
 }
+
+
 
 int koutval(CSOUND *csound, OUTVAL *p)
 {
@@ -1507,4 +1505,20 @@ int koutval(CSOUND *csound, OUTVAL *p)
       csound->OutputValueCallback_(csound, p->channelName, *(p->value));
     return OK;
 }
+
+int outvalset(CSOUND *csound, OUTVAL *p)
+{
+    if (p->XSTRCODE)
+      strcpy(p->channelName, (char*) p->valID);
+    else
+      sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
+    
+    
+    /* send output now for use during i-pass */
+    koutval(csound, p);
+        
+    return OK;
+}
+
+
 
