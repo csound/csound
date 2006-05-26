@@ -1489,15 +1489,12 @@ int invalset(CSOUND *csound, INVAL *p)
       strcpy(p->channelName, (char*) p->valID);
     else
       sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
-    
-    
+
     /* grab input now for use during i-pass */
-     kinval(csound, p);
-        
+    kinval(csound, p);
+
     return OK;
 }
-
-
 
 int koutval(CSOUND *csound, OUTVAL *p)
 {
@@ -1512,13 +1509,10 @@ int outvalset(CSOUND *csound, OUTVAL *p)
       strcpy(p->channelName, (char*) p->valID);
     else
       sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
-    
-    
+
     /* send output now for use during i-pass */
     koutval(csound, p);
-        
+
     return OK;
 }
-
-
 
