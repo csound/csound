@@ -1,3 +1,15 @@
+2006-05-26	ma++ ingalls	<matt@sonomatics.com>
+	* frontends/CsoundVST/AEffect.h: 
+			commented out 2 PRAGMAS causing compile error on mac
+	* Opcodes/vst4cs/vsthost.c: 
+			added plug-in loading for MACH-O mac.
+			commented out #includes that caused compile error on mac
+	* Opcodes/vst4cs/vsthost.h: 
+			commented out #includes that caused compile error on mac
+	* Opcodes/vst4cs/fxbank.h:  
+			commented out #includes that caused compile error on mac
+	* OOps/aops.c: added i-rate support to invalue/outvalue
+	
 2006-05-24	Istvan Varga	<ivarga@csounds.com>
 	* InOut/rtalsa.c: changed default device from "default" to "plughw"
 	* InOut/rtjack.c: list available device names for -i adc or -o dac
