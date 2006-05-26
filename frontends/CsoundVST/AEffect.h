@@ -25,9 +25,10 @@
         #pragma options align=mac68k
 #endif
 #else
-#if PRAGMA_ALIGN_SUPPORTED || __MWERKS__
-        #pragma options align=mac68k
-#endif
+// -- this is causing a compile error, so i am commenting it out - ma++ 2006/5/26
+// #if PRAGMA_ALIGN_SUPPORTED || __MWERKS__
+//        #pragma options align=mac68k
+//#endif
 #endif
 #if defined __BORLANDC__
         #pragma -a8
@@ -183,9 +184,11 @@ enum
         #pragma options align=reset
 #endif
 #else
-#if PRAGMA_ALIGN_SUPPORTED || __MWERKS__
-        #pragma options align=reset
-#elif defined(WIN32) || defined(__FLAT__)
+// -- this is causing a compile error, so i am commenting it out - ma++ 2006/5/26
+//#if PRAGMA_ALIGN_SUPPORTED || __MWERKS__
+//        #pragma options align=reset
+//#el
+#if defined(WIN32) || defined(__FLAT__)
         #pragma pack(pop)
 #elif defined __BORLANDC__
         #pragma -a-
