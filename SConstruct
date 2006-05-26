@@ -785,6 +785,7 @@ if getPlatform() == 'darwin':
     '''))
     # pluginEnvironment.Append(LINKFLAGS = ['-dynamiclib'])
     pluginEnvironment['SHLIBSUFFIX'] = '.dylib'
+    pluginEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
 
 csoundProgramEnvironment = commonEnvironment.Copy()
 csoundProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
@@ -832,22 +833,13 @@ else:
 #
 #############################################################################
 
-makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
-zipDependencies.append(makedb)
-
-if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
-    print 'CONFIGURATION DECISION: Building with PortMIDI.'
-    portMidiEnvironment = pluginEnvironment.Copy()
-    portMidiEnvironment.Append(LIBS = ['portmidi'])
-    if getPlatform() != 'darwin':
-        portMidiEnvironment.Append(LIBS = ['porttime'])
-    if getPlatform() == 'mingw':
-        portMidiEnvironment.Append(LIBS = ['winmm'])
-    if getPlatform() == 'linux' and alsaFound:
-        portMidiEnvironment.Append(LIBS = ['asound'])
-    makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
-else:
-    print 'CONFIGURATION DECISION: Not building with PortMIDI.'
+if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
+    pythonImportLibrary = csoundInterfacesEnvironment.Command(
+        '/usr/local/lib/lib%s.a' % (pythonLibs[0]),
+        '/WINDOWS/system32/%s.dll' % (pythonLibs[0]),
+        ['pexports /WINDOWS/system32/%s.dll > %s.def' % (pythonLibs[0],
+                                                         pythonLibs[0]),
+         'dlltool --input-def %s.def --dllname %s.dll --output-lib /usr/local/lib/lib%s.a' % (pythonLibs[0], '/WINDOWS/system32/%s' % (pythonLibs[0]), pythonLibs[0])])
 
 def fixCFlagsForSwig(env):
     if '-pedantic' in env['CCFLAGS']:
@@ -857,6 +849,18 @@ def fixCFlagsForSwig(env):
     if commonEnvironment['MSVC'] == '0':
         # work around non-ANSI type punning in SWIG generated wrapper files
         env['CCFLAGS'].append('-fno-strict-aliasing')
+
+def makePythonModule(env, targetName, srcs):
+    if getPlatform() == 'darwin':
+        env.Prepend(LINKFLAGS = ['-bundle'])
+        pyModule_ = env.Program('_%s.so' % targetName, srcs)
+    else:
+        pyModule_ = env.SharedLibrary('_%s' % targetName, srcs)
+        if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
+            Depends(pyModule_, pythonImportLibrary)
+    pythonModules.append(pyModule_)
+    pythonModules.append('%s.py' % targetName)
+    return pyModule_
 
 if not ((pythonFound or luaFound or javaFound) and swigFound and commonEnvironment['buildInterfaces'] == '1'):
     print 'CONFIGURATION DECISION: Not building Csound interfaces library.'
@@ -947,12 +951,6 @@ else:
     csoundInterfacesSources.insert(0,
         csoundInterfacesEnvironment.SharedObject('interfaces/pyMsgCb.cpp'))
     if pythonFound:
-        if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
-            pythonImportLibrary = csoundInterfacesEnvironment.Command(
-                '/usr/local/lib/lib%s.a' % (pythonLibs[0]),
-                '/WINDOWS/system32/%s.dll' % (pythonLibs[0]),
-                ['pexports /WINDOWS/system32/%s.dll > %s.def' % (pythonLibs[0], pythonLibs[0]),
-                'dlltool --input-def %s.def --dllname %s.dll --output-lib /usr/local/lib/lib%s.a' % (pythonLibs[0], '/WINDOWS/system32/%s' % (pythonLibs[0]), pythonLibs[0])])
         csoundWrapperEnvironment.Append(CPPPATH = pythonIncludePath)
         csoundInterfacesEnvironment.Append(LINKFLAGS = pythonLinkFlags)
         csoundInterfacesEnvironment.Prepend(LIBPATH = pythonLibraryPath)
@@ -962,8 +960,9 @@ else:
             SWIGFLAGS = [swigflags, '-python', '-outdir', '.'])
         if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
             Depends(csoundPythonInterface, pythonImportLibrary)
-        csoundInterfacesSources.insert(0, csoundPythonInterface)
-        pythonModules.append('csnd.py')
+        if getPlatform() != 'darwin':
+            csoundInterfacesSources.insert(0, csoundPythonInterface)
+            pythonModules.append('csnd.py')
     if not luaFound:
         print 'CONFIGURATION DECISION: Not building Csound Lua interface library.'
     else:
@@ -971,30 +970,36 @@ else:
         csoundLuaInterface = csoundWrapperEnvironment.SharedObject(
             'interfaces/lua_interface.i',
             SWIGFLAGS = [swigflags, '-lua', '-outdir', '.'])
-        csoundInterfacesSources.insert(0, csoundLuaInterface)
-        if getPlatform() == 'mingw':
-            csoundInterfacesEnvironment.Prepend(LIBS = ['lua51'])
-        else:
-            csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
-    if getPlatform() == 'darwin':
-        csoundInterfacesBundleEnvironment = csoundInterfacesEnvironment.Copy()
-        csoundInterfacesBundleEnvironment.Append(LINKFLAGS = ['-Wl'])
-        csoundInterfacesBundleEnvironment.Prepend(LINKFLAGS = ['-bundle'])
-        csoundInterfacesBundle = csoundInterfacesBundleEnvironment.Program(
-            '_csnd.so', csoundInterfacesSources)
-        Depends(csoundInterfacesBundle, csoundLibrary)
-        pythonModules.append(csoundInterfacesBundle)
-    else:
-        if getPlatform() == 'linux':
-            os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
-            os.symlink('lib_csnd.so', '_csnd.so')
+        if getPlatform() != 'darwin':
+            csoundInterfacesSources.insert(0, csoundLuaInterface)
+            if getPlatform() == 'mingw':
+                csoundInterfacesEnvironment.Prepend(LIBS = ['lua51'])
+            else:
+                csoundInterfacesEnvironment.Prepend(LIBS = ['lua'])
+    if getPlatform() == 'linux':
+        os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
+        os.symlink('lib_csnd.so', '_csnd.so')
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
     csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
         '_csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
     libs.append(csoundInterfaces)
+    if getPlatform() == 'darwin' and (pythonFound or luaFound):
+        csoundInterfacesBundleEnvironment = csoundInterfacesEnvironment.Copy()
+        csoundInterfacesBundleSources = []
+        if pythonFound:
+            csoundInterfacesBundleSources += csoundPythonInterface
+        if luaFound:
+            csoundInterfacesBundleSources += csoundLuaInterface
+            csoundInterfacesBundleEnvironment.Prepend(LIBS = ['lua'])
+        csoundInterfacesBundleEnvironment.Prepend(LIBS = ['_csnd'])
+        csoundInterfacesBundle = makePythonModule(
+            csoundInterfacesBundleEnvironment,
+            'csnd', csoundInterfacesBundleSources)
+        Depends(csoundInterfacesBundle, csoundInterfaces)
+        Depends(csoundInterfacesBundle, csoundLibrary)
 
-if commonEnvironment['generatePdf']=='0':
+if commonEnvironment['generatePdf'] == '0':
     print 'CONFIGURATION DECISION: Not generating PDF documentation.'
 else:
     print 'CONFIGURATION DECISION: Generating PDF documentation.'
@@ -1030,8 +1035,6 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
 
 pluginLibraries.append('opcodes.dir')
 MacOSX_InstallPlugin('opcodes.dir')
-if getPlatform() == 'darwin':
-   pluginEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
 
 if getPlatform() == 'linux' or getPlatform() == 'darwin':
     makePlugin(pluginEnvironment, 'control', ['Opcodes/control.c'])
@@ -1143,6 +1146,20 @@ else:
         jackEnvironment.Append(LIBS = ['jack', 'pthread'])
     makePlugin(jackEnvironment, 'rtjack', ['InOut/rtjack.c'])
 
+if commonEnvironment['usePortMIDI'] == '1' and portmidiFound:
+    print 'CONFIGURATION DECISION: Building with PortMIDI.'
+    portMidiEnvironment = pluginEnvironment.Copy()
+    portMidiEnvironment.Append(LIBS = ['portmidi'])
+    if getPlatform() != 'darwin':
+        portMidiEnvironment.Append(LIBS = ['porttime'])
+    if getPlatform() == 'mingw':
+        portMidiEnvironment.Append(LIBS = ['winmm'])
+    if getPlatform() == 'linux' and alsaFound:
+        portMidiEnvironment.Append(LIBS = ['asound'])
+    makePlugin(portMidiEnvironment, 'pmidi', ['InOut/pmidi.c'])
+else:
+    print 'CONFIGURATION DECISION: Not building with PortMIDI.'
+
 if not (commonEnvironment['useOSC'] == '1' and oscFound):
     print "CONFIGURATION DECISION: Not building OSC plugin."
 else:
@@ -1251,18 +1268,10 @@ else:
     '''))
     lorisPythonWrapper = lorisPythonEnvironment.SharedObject(
         'Opcodes/Loris/scripting/loris.i')
-    if getPlatform() != 'darwin':
-        lorisPythonModule = lorisPythonEnvironment.SharedLibrary(
-            '_loris', [lorisPythonWrapper], SHLIBPREFIX = '')
-    else:
-        lorisPythonEnvironment.Prepend(LINKFLAGS = '-bundle')
-        lorisPythonModule = lorisPythonEnvironment.Program(
-            '_loris.so', [lorisPythonWrapper])
+    lorisPythonEnvironment['SHLIBPREFIX'] = ''
+    lorisPythonModule = makePythonModule(lorisPythonEnvironment,
+                                         'loris', lorisPythonWrapper)
     Depends(lorisPythonModule, lorisLibrary)
-    if getPlatform() == 'mingw' and pythonLibs[0] < 'python24':
-        Depends(lorisPythonModule, pythonImportLibrary)
-    pythonModules.append(lorisPythonModule)
-    pythonModules.append('loris.py')
 
 if not (commonEnvironment['buildStkOpcodes'] == '1' and stkFound):
     print 'CONFIGURATION DECISION: Not building STK opcodes.'
@@ -1393,6 +1402,9 @@ executables.append(commonEnvironment.Program('scot',
 #executables.append(csoundProgramEnvironment.Program('sdif2ad',
 #    ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
+makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
+zipDependencies.append(makedb)
+
 # Front ends.
 
 def addOSXResourceFork(env, baseName, dirName):
@@ -1500,9 +1512,9 @@ else:
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         vstEnvironment.Prepend(LIBS = pythonLibs)
-        vstEnvironment.Prepend(LIBS = [csoundLibraryName, 'sndfile', '_csnd'])
-    else:
-        vstEnvironment.Prepend(LIBS = ['sndfile', '_csnd'])
+    vstEnvironment.Prepend(LIBS = ['_csnd'])
+    vstEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+    vstEnvironment.Append(LIBS = libCsoundLibs)
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
     if getPlatform() == 'linux':
         vstEnvironment.Append(LIBS = ['util', 'dl', 'm'])
@@ -1528,7 +1540,6 @@ else:
             LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
         vstEnvironment.Append(LIBS = ['fltk_images', 'fltk'])
         guiProgramEnvironment.Append(LINKFLAGS = '-mwindows')
-     # guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST'])
     for option in vstEnvironment['CCFLAGS']:
         if string.find(option, '-D') == 0:
             vstEnvironment.Append(SWIGFLAGS = [option])
@@ -1579,9 +1590,20 @@ else:
     fixCFlagsForSwig(vstWrapperEnvironment)
     csoundVstPythonWrapper = vstWrapperEnvironment.SharedObject(
         'frontends/CsoundVST/CsoundVST.i', SWIGFLAGS = [swigflags, '-python'])
-    csoundVstSources.insert(0, csoundVstPythonWrapper)
     if getPlatform() != 'darwin':
-      csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
+        csoundVstSources.insert(0, csoundVstPythonWrapper)
+        pythonModules.append('CsoundVST.py')
+    csoundvst =  vstEnvironment.SharedLibrary('_CsoundVST', csoundVstSources)
+    libs.append(csoundvst)
+    # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
+    Depends(csoundvst, csoundInterfaces)
+    Depends(csoundvst, csoundLibrary)
+    if getPlatform() == 'darwin':
+        vstPythonEnvironment = vstEnvironment.Copy()
+        vstPythonEnvironment.Prepend(LIBS = ['_CsoundVST'])
+        csoundvstPythonModule = makePythonModule(
+            vstPythonEnvironment, 'CsoundVST', csoundVstPythonWrapper)
+        Depends(csoundvstPythonModule, csoundvst)
 
     scoregenSources = csoundVstBaseSources + Split('''
     frontends/CsoundVST/ScoreGenerator.cpp
@@ -1592,45 +1614,32 @@ else:
     ''')
     if getPlatform() == 'mingw':
         scoregenSources.append('frontends/CsoundVST/_scoregen.def')
-    vstWrapperEnvironment2 = vstEnvironment.Copy()
-    fixCFlagsForSwig(vstWrapperEnvironment2)
-    scoregenPythonWrapper = vstWrapperEnvironment2.SharedObject(
+    scoregenWrapperEnvironment = vstEnvironment.Copy()
+    fixCFlagsForSwig(scoregenWrapperEnvironment)
+    scoregenPythonWrapper = scoregenWrapperEnvironment.SharedObject(
         'frontends/CsoundVST/ScoreGeneratorVST.i',
         SWIGFLAGS = [swigflags, '-python'])
     scoregenSources.insert(0, scoregenPythonWrapper)
-    if getPlatform() == 'darwin':
-        vstEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-        vstEnvironment.Append(LIBS = libCsoundLibs)
-        vstEnvironment.Prepend(LINKFLAGS = ['-bundle'])
-        csoundvst = pythonModules.append(
-            vstEnvironment.Program('_CsoundVST.so', csoundVstSources))
-        scoregen = vstEnvironment.Program('_scoregen.so', scoregenSources)
-        Depends(csoundvst, csoundLibrary)
-    else:
-        scoregen = vstEnvironment.SharedLibrary('_scoregen', scoregenSources,
-                                                SHLIBPREFIX = '')
-        libs.append(csoundvst)
-    pythonModules.append('scoregen.py')
-    pythonModules.append(scoregen)
+    scoregenEnvironment = vstEnvironment.Copy()
+    scoregenEnvironment['SHLIBPREFIX'] = ''
+    scoregen = makePythonModule(
+        scoregenEnvironment, 'scoregen', scoregenSources)
+    Depends(scoregen, csoundInterfaces)
+    Depends(scoregen, csoundLibrary)
 
-    # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
-    pythonModules.append('CsoundVST.py')
-
-    Depends(csoundvst, csoundInterfaces)
-    if getPlatform() == 'darwin':
-        guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
-        guiProgramEnvironment.Append(LIBS = libCsoundLibs)
-    else:
-        csoundvstGui = guiProgramEnvironment.Program(
+    guiProgramEnvironment.Prepend(LIBS = ['_CsoundVST', '_csnd'])
+    guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
+    guiProgramEnvironment.Append(LIBS = libCsoundLibs)
+    csoundvstGui = guiProgramEnvironment.Program(
         'CsoundVST', ['frontends/CsoundVST/csoundvst_main.cpp'])
-        executables.append(csoundvstGui)
-        Depends(csoundvstGui, csoundvst)
+    executables.append(csoundvstGui)
+    Depends(csoundvstGui, csoundvst)
 
     counterpoint = vstEnvironment.Program(
         'counterpoint', ['frontends/CsoundVST/CounterpointMain.cpp'])
     zipDependencies.append(counterpoint)
 
-if commonEnvironment['buildPDClass']=='1' and pdhfound:
+if commonEnvironment['buildPDClass'] == '1' and pdhfound:
     print "CONFIGURATION DECISION: Building PD csoundapi~ class"
     pdClassEnvironment = commonEnvironment.Copy()
     pdClassEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
