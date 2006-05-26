@@ -27,7 +27,7 @@
 #define FXBANK_H
 
 //#include "vstfxstore.h"
-#include "audioeffectx.h"               /* VST header files                  */
+//ma++ #include "audioeffectx.h"               /* VST header files                  */
 
 #if !defined(VST_2_1_EXTENSIONS)
 struct VstFileSelect;
