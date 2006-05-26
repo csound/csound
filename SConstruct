@@ -1500,7 +1500,7 @@ else:
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         vstEnvironment.Prepend(LIBS = pythonLibs)
-        vstEnvironment.Prepend(LIBS = [csoundLibraryname, 'sndfile', '_csnd'])
+        vstEnvironment.Prepend(LIBS = [csoundLibraryName, 'sndfile', '_csnd'])
     else:
         vstEnvironment.Prepend(LIBS = ['sndfile', '_csnd'])
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
@@ -1615,7 +1615,7 @@ else:
 
     # Depends(csoundvst, 'frontends/CsoundVST/CsoundVST_wrap.cc')
     pythonModules.append('CsoundVST.py')
-    
+
     Depends(csoundvst, csoundInterfaces)
     if getPlatform() == 'darwin':
         guiProgramEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
