@@ -274,15 +274,6 @@ void CsoundGUIMain::updateGUIState_scoName()
       editScoreButton->activate();
 }
 
-void CsoundGUIMain::updateGUIState_scriptFile()
-{
-    if ((int) currentPerformanceSettings.scriptFileName.size() == 0 ||
-        pythonLibrary == (void*) 0)
-      editScriptfileButton->deactivate();
-    else
-      editScriptfileButton->activate();
-}
-
 void CsoundGUIMain::updateGUIState_outFile()
 {
     if ((int) currentPerformanceSettings.outputFileName.size() == 0 ||
@@ -319,7 +310,6 @@ void CsoundGUIMain::updateGUIState()
     updateGUIState_orcName();
     updateGUIState_scoName();
     updateGUIState_outFile();
-    updateGUIState_scriptFile();
     updateGUIState_controls();
 }
 
@@ -327,22 +317,11 @@ void CsoundGUIMain::updateGUIValues()
 {
     orcNameInput->value(currentPerformanceSettings.orcName.c_str());
     scoreNameInput->value(currentPerformanceSettings.scoName.c_str());
-    if (pythonLibrary) {
-      scriptFileNameInput->activate();
-      scriptfileNameButton->activate();
-      scriptFileNameInput->value(
-          currentPerformanceSettings.scriptFileName.c_str());
-    }
-    else {
-      scriptFileNameInput->deactivate();
-      scriptfileNameButton->deactivate();
-      scriptFileNameInput->value("");
-    }
     outfileNameInput->value(currentPerformanceSettings.outputFileName.c_str());
     scoreOffsetInput->value(currentPerformanceSettings.scoreOffsetSeconds);
     if (performing && csPerf != (CsoundPerformance*) 0) {
       csPerf->SetScoreOffsetSeconds(
-          currentPerformanceSettings.scoreOffsetSeconds, false);
+				    currentPerformanceSettings.scoreOffsetSeconds, false);
       setTimeDisplay(csPerf->GetScoreTime());
     }
     else
@@ -361,11 +340,6 @@ void CsoundGUIMain::run(bool enablePython_)
       return;
     csoundSetMessageCallback(csound,
                              &CsoundGUIConsole::messageCallback_Thread);
-    if (enablePython_)
-      enablePython();
-    else
-      csoundMessage(csound, "Python scripting is disabled.\n");
-
     updateGUIValues();
     consoleWindow.window->show();
     window->show();
@@ -373,8 +347,7 @@ void CsoundGUIMain::run(bool enablePython_)
     do {
       if (csPerf != (CsoundPerformance*) 0) {
         if (!performing) {
-          bool  usingThreads;
-          usingThreads = csPerf->UsingThreads();
+          bool usingThreads = csPerf->UsingThreads();
           paused = true;
           csPerf->Stop();
           delete csPerf;
@@ -386,9 +359,8 @@ void CsoundGUIMain::run(bool enablePython_)
           }
         }
         else {
-          int   status;
           // Fl::unlock();
-          status = csPerf->Perform();
+          int status = csPerf->Perform();
           // Fl::lock();
           setTimeDisplay(csPerf->GetScoreTime());
           if (status != 0) {
@@ -429,10 +401,7 @@ void CsoundGUIMain::run(bool enablePython_)
       csPerf = (CsoundPerformance*) 0;
     }
     paused = true;
-    if (!pythonLibrary)
-      csoundDestroy(csound);
-    else
-      disablePython();
+    csoundDestroy(csound);
     csound = (CSOUND*) 0;
     closePerformanceSettingsWindow();
     closeGlobalSettingsWindow();
@@ -509,20 +478,6 @@ void CsoundGUIMain::editScoreFile()
     stripString(cmd, currentGlobalSettings.textEditorProgram.c_str());
     cmd += " \"";
     cmd += currentPerformanceSettings.scoName;
-    cmd += '"';
-    runCmd(cmd);
-}
-
-void CsoundGUIMain::editScriptFile()
-{
-    std::string cmd;
-
-    if (isEmptyString(currentPerformanceSettings.scriptFileName) ||
-        isEmptyString(currentGlobalSettings.textEditorProgram))
-      return;
-    stripString(cmd, currentGlobalSettings.textEditorProgram.c_str());
-    cmd += " \"";
-    cmd += currentPerformanceSettings.scriptFileName;
     cmd += '"';
     runCmd(cmd);
 }
