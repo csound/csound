@@ -24,6 +24,7 @@
 
 #include "csdl.h"
 
+extern int atsa_init_(CSOUND *);
 extern int cvanal_init_(CSOUND *);
 extern int dnoise_init_(CSOUND *);
 extern int envext_init_(CSOUND *);

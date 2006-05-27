@@ -1,3 +1,6 @@
+2006-05-27	Istvan Varga	<ivarga@csounds.com>
+	* Added ATS analysis utility.
+
 2006-05-26	ma++ ingalls	<matt@sonomatics.com>
 	* frontends/CsoundVST/AEffect.h:
 	  commented out 2 PRAGMAS causing compile error on mac

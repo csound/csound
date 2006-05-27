@@ -1350,12 +1350,12 @@ else:
 # Utility programs.
 
 makePlugin(pluginEnvironment, 'stdutil', Split('''
-    util/cvanal.c       util/dnoise.c       util/envext.c
-    util/xtrct.c        util/het_export.c   util/het_import.c
-    util/hetro.c        util/lpanal.c       util/lpc_export.c
-    util/lpc_import.c   util/mixer.c        util/pvanal.c
-    util/pvlook.c       util/scale.c        util/sndinfo.c
-    util/srconv.c
+    util/atsa.c         util/cvanal.c       util/dnoise.c
+    util/envext.c       util/xtrct.c        util/het_export.c
+    util/het_import.c   util/hetro.c        util/lpanal.c
+    util/lpc_export.c   util/lpc_import.c   util/mixer.c
+    util/pvanal.c       util/pvlook.c       util/scale.c
+    util/sndinfo.c      util/srconv.c
     util/std_util.c
 '''))
 
