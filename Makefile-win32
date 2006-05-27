@@ -149,11 +149,11 @@ fluidOpcodes.dll: Opcodes/fluidOpcodes/fluidOpcodes.o
 osc.dll: Opcodes/OSC.o
 	$(CC) -O2 -shared -o $@ $< $(LDFLAGS) $(OSC_LIBS) $(LIBS)
 
-stdutil.dll:	util/cvanal.o util/dnoise.o util/envext.o util/xtrct.o	\
-		util/het_export.o util/het_import.o util/hetro.o	\
-		util/lpanal.o util/lpc_export.o util/lpc_import.o	\
-		util/mixer.o util/pvanal.o util/pvlook.o util/scale.o	\
-		util/sndinfo.o util/srconv.o				\
+stdutil.dll:	util/atsa.o util/cvanal.o util/dnoise.o util/envext.o	\
+		util/xtrct.o util/het_export.o util/het_import.o	\
+		util/hetro.o util/lpanal.o util/lpc_export.o		\
+		util/lpc_import.o util/mixer.o util/pvanal.o		\
+		util/pvlook.o util/scale.o util/sndinfo.o util/srconv.o	\
 		util/std_util.o
 	$(CC) -O2 -shared -o $@ $^ $(LDFLAGS) $(LIBS)
 

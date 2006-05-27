@@ -27,6 +27,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     int   err = 0;
 
+    err |= atsa_init_(csound);
     err |= cvanal_init_(csound);
     err |= dnoise_init_(csound);
     err |= envext_init_(csound);
