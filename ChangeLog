@@ -1,3 +1,8 @@
+2006-05-28	ma++ ingalls	<matt@sonomatics.com>
+	* frontends/CsoundX:  added to cvs
+	* aops.c, entry1.c, entry1.h, csound.h
+		added hack to invalue/outvalue to support strings
+	
 2006-05-27	Istvan Varga	<ivarga@csounds.com>
 	* Added ATS analysis utility.
 
