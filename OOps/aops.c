@@ -1496,10 +1496,46 @@ int invalset(CSOUND *csound, INVAL *p)
     return OK;
 }
 
+int kinval_S(CSOUND *csound, INVAL *p)
+{
+    if (csound->InputValueCallback_) {
+    	// a hack to support strings -- start with a "$" to tell host we are expecting a string
+		char text[2048];
+		sprintf(text, "$%s", p->channelName);
+		csound->InputValueCallback_(csound, text, p->value);
+    } 
+    else
+      *(p->value) = FL(0.0);
+  
+    return OK;
+}
+
+int invalset_S(CSOUND *csound, INVAL *p)
+{
+    if (p->XSTRCODE)
+      strcpy(p->channelName, (char*) p->valID);
+    else
+      sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
+
+    /* grab input now for use during i-pass */
+    kinval_S(csound, p);
+
+    return OK;
+}
+
 int koutval(CSOUND *csound, OUTVAL *p)
 {
-    if (csound->OutputValueCallback_)
-      csound->OutputValueCallback_(csound, p->channelName, *(p->value));
+    if (csound->OutputValueCallback_) {
+		if (p->XSTRCODE & 2) {
+			// a hack to support strings
+			char text[2048];
+			sprintf(text, "%s::%s", p->channelName, (char *)p->value);
+			csound->OutputValueCallback_(csound, text, -987654321);
+		}
+		else
+			csound->OutputValueCallback_(csound, p->channelName, *(p->value));
+	}
+	
     return OK;
 }
 
