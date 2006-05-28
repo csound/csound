@@ -358,6 +358,7 @@ int     midichannelaftertouch(CSOUND *, void *);
 int     midipitchbend(CSOUND *, void *);
 int     mididefault(CSOUND *, void *);
 int     invalset(CSOUND *, void *), kinval(CSOUND *, void *);
+int     invalset_S(CSOUND *, void *), kinval_S(CSOUND *, void *);
 int     outvalset(CSOUND *, void *), koutval(CSOUND *, void *);
 int     subinstrset(CSOUND *, void *), subinstr(CSOUND *, void *);
 int     useropcdset(CSOUND *, void *), useropcd(CSOUND *, void *);

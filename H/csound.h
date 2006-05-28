@@ -661,7 +661,9 @@ extern "C" {
   /**
    * Called by external software to set a function for Csound to
    * fetch input control values.  The 'invalue' opcodes will
-   * directly call this function.
+   * directly call this function. If 'channelName' starts with a
+   * '$', then the 'invalue' is expecting a C string, to be copied
+   * to 'value'.
    */
   PUBLIC void csoundSetInputValueCallback(CSOUND *,
                             void (*inputValueCalback_)(CSOUND *,
@@ -671,7 +673,9 @@ extern "C" {
   /**
    * Called by external software to set a function for Csound to
    * send output control values.  The 'outvalue' opcodes will
-   * directly call this function.
+   * directly call this function.  If value == -987654321, then
+   * the outvalue opcode is sending a string appended to channelName
+   * separated by 2 colons, such as "channelName::stringOutput"
    */
   PUBLIC void csoundSetOutputValueCallback(CSOUND *,
                             void (*outputValueCalback_)(CSOUND *,
