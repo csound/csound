@@ -258,9 +258,8 @@ static void sensLine(CSOUND *csound, void *userData)
             break;
           pcnt++;
           if (c == '"') {                       /* if find character string */
-            if (pcnt != 5 && (pcnt > 1 || e.opcod != 'i')) {
-              /* (must be p5) */
-              csound->ErrorMsg(csound, Str("misplaced string"));
+            if (e.strarg != NULL) {
+              csound->ErrorMsg(csound, Str("multiple string p-fields"));
               goto Lerr;
             }
             n = 0;
