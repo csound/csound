@@ -1540,6 +1540,7 @@ int kinval_S(CSOUND *csound, INVAL *p)
       /* a hack to support strings: */
       /* start with a "$" to tell host we are expecting a string */
       sprintf(text, "$%s", p->channelName);
+      ((char*) p->value)[sizeof(MYFLT)] = (char) 0;
       csound->InputValueCallback_(csound, text, p->value);
     }
     else
