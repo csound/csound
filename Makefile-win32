@@ -79,7 +79,7 @@ Opcodes/%.o: Opcodes/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.c
-	$(CC) -D__BUILDING_LIBCSOUND $(CFLAGS) -c $< -o $@
+	$(CC) -D__BUILDING_LIBCSOUND -DHAVE_LIBSNDFILE=1016 $(CFLAGS) -c $< -o $@
 
 %.oo: %.cpp
 	$(CXX) $(CFLAGS) -c $< -o $@
