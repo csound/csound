@@ -28,7 +28,7 @@
 
 int foscset(CSOUND *csound, FOSC *p)
 {
-    FUNC   *ftp;
+    FUNC    *ftp;
 
     if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       p->ftp = ftp;
@@ -44,15 +44,15 @@ int foscset(CSOUND *csound, FOSC *p)
 
 int foscil(CSOUND *csound, FOSC *p)
 {
-    FUNC   *ftp;
-    MYFLT  *ar, *ampp, *modp, cps, amp;
-    MYFLT  xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
-    long   mphs, cphs, minc, cinc, lobits;
-    int    n;
+    FUNC    *ftp;
+    MYFLT   *ar, *ampp, *modp, cps, amp;
+    MYFLT   xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
+    long    mphs, cphs, minc, cinc, lobits;
+    int     n;
 
     ar = p->rslt;
     ftp = p->ftp;
-    if (ftp==NULL) {
+    if (ftp == NULL) {
       return csound->PerfError(csound, Str("foscil: not initialised"));
     }
     ftab = ftp->ftable;
@@ -106,6 +106,7 @@ int foscil(CSOUND *csound, FOSC *p)
     }
     p->mphs = mphs;
     p->cphs = cphs;
+
     return OK;
 }
 
@@ -119,7 +120,7 @@ int foscili(CSOUND *csound, FOSC *p)
 
     ar = p->rslt;
     ftp = p->ftp;
-    if (ftp==NULL) {        /* RWD fix */
+    if (ftp == NULL) {        /* RWD fix */
       return csound->PerfError(csound, Str("foscili: not initialised"));
     }
     lobits = ftp->lobits;
@@ -182,59 +183,72 @@ int foscili(CSOUND *csound, FOSC *p)
     }
     p->mphs = mphs;
     p->cphs = cphs;
+
     return OK;
 }
 
 int losset(CSOUND *csound, LOSC *p)
 {
-    FUNC   *ftp;
+    FUNC    *ftp;
 
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
+      long  maxphs = ((long) ftp->flenfrms << LOBITS) + ((long) LOFACT - 1);
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = ftp->cvtbas / *p->ibas;
       else if ((p->cpscvt = ftp->cpscvt) == FL(0.0)) {
         p->cpscvt = FL(261.62561); /* Middle C */
         if (csound->oparms->msglevel & WARNMSG)
-          csound->Message(csound, Str("WARNING: no legal base frequency\n"));
-        /* goto lerr1; */
+          csound->Warning(csound, Str("no legal base frequency"));
       }
-      if ((p->mod1 = (short)*p->imod1) < 0) {
+      if ((p->mod1 = (short) *p->imod1) < 0) {
         if ((p->mod1 = ftp->loopmode1) == 0) {
           if (csound->oparms->msglevel & WARNMSG)
-            csound->Message(csound, Str(
-                   "WARNING: locscil: sustain defers to non-looping source\n"));
+            csound->Warning(csound, Str("locscil: sustain defers to "
+                                        "non-looping source"));
         }
-        p->beg1 = ftp->begin1;
-        p->end1 = ftp->end1;
+        p->beg1 = ftp->begin1 << LOBITS;
+        p->end1 = ftp->end1 << LOBITS;
       }
+      else if (p->mod1 < 0 || p->mod1 > 3)
+        goto lerr2;
       else {
-        p->beg1 = (long)*p->ibeg1;
-        p->end1 = (long)*p->iend1;
-        if (p->mod1 < 0    || p->mod1 > 3
-            || p->beg1 < 0 || p->end1 > ftp->flenfrms
-            || p->beg1 >= p->end1)
+        p->beg1 = (long) (*p->ibeg1 * (MYFLT) LOFACT);
+        p->end1 = (long) (*p->iend1 * (MYFLT) LOFACT);
+        if (!p->beg1 && !p->end1) {
+          /* default to looping the whole sample */
+          p->end1 = (p->mod1 ? maxphs : ((long) ftp->flenfrms << LOBITS));
+        }
+        else if (p->beg1 < 0 || p->end1 > maxphs || p->beg1 >= p->end1)
           goto lerr2;
       }
-      if ((p->mod2 = (short)*p->imod2) < 0) {
+      if ((p->mod2 = (short) *p->imod2) < 0) {
         p->mod2 = ftp->loopmode2;
-        p->beg2 = ftp->begin2;
-        p->end2 = ftp->end2;
+        p->beg2 = ftp->begin2 << LOBITS;
+        p->end2 = ftp->end2 << LOBITS;
       }
       else {
-        p->beg2 = (long)*p->ibeg2;
-        p->end2 = (long)*p->iend2;
-        if (p->mod2 < 0    || p->mod2 > 3
-            || p->beg2 < 0 || p->end2 > ftp->flenfrms
-            || p->beg2 >= p->end2)
+        p->beg2 = (long) (*p->ibeg2 * (MYFLT) LOFACT);
+        p->end2 = (long) (*p->iend2 * (MYFLT) LOFACT);
+        if (p->mod2 < 0 || p->mod2 > 3 ||
+            p->beg2 < 0 || p->end2 > maxphs || p->beg2 >= p->end2)
           goto lerr3;
       }
+      p->beg1 = (p->beg1 >= 0L ? p->beg1 : 0L);
+      p->end1 = (p->end1 < maxphs ? p->end1 : maxphs);
+      if (p->beg1 >= p->end1) {
+        p->mod1 = 0;
+        p->beg1 = 0L;
+        p->end1 = maxphs;
+      }
+      p->beg2 = (p->beg2 >= 0L ? p->beg2 : 0L);
+      p->end2 = (p->end2 < maxphs ? p->end2 : maxphs);
+      if (p->beg2 >= p->end2) {
+        p->mod2 = 0;
+        p->beg2 = 0L;
+      }
       if (!p->mod2 && !p->end2)       /* if no release looping */
-        p->end2 = ftp->soundend;      /*   set a reading limit */
-      p->beg1 <<= LOBITS;
-      p->end1 <<= LOBITS;
-      p->beg2 <<= LOBITS;
-      p->end2 <<= LOBITS;
+        p->end2 = maxphs;             /*   set a reading limit */
       p->lphs = 0;
       p->seg1 = 1;
       if ((p->curmod = p->mod1))
@@ -254,7 +268,7 @@ int losset(CSOUND *csound, LOSC *p)
       }
       return OK;
     }
-    return OK;
+    return NOTOK;
 
  lerr2:
     return csound->InitError(csound, Str("illegal sustain loop data"));
@@ -262,13 +276,89 @@ int losset(CSOUND *csound, LOSC *p)
     return csound->InitError(csound, Str("illegal release loop data"));
 }
 
+static inline void loscil_linear_interp_mono(MYFLT *ar,
+                                             MYFLT *ftbl, long phs, long flen)
+{
+    MYFLT   fract, tmp;
+    int     x;
+
+    fract = (MYFLT) ((int) phs & LOMASK) * LOSCAL;
+    x = (int) (phs >> LOBITS);
+    tmp = ftbl[x];
+    x = (x < (int) flen ? (x + 1) : (int) flen);
+    *ar = tmp + ((ftbl[x] - tmp) * fract);
+}
+
+static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
+                                               MYFLT *ftbl, long phs, long flen)
+{
+    MYFLT   fract, tmpL, tmpR;
+    int     x;
+
+    fract = (MYFLT) ((int) phs & LOMASK) * LOSCAL;
+    x = (int) (phs >> LOBITS) << 1;
+    tmpL = ftbl[x];
+    tmpR = ftbl[x + 1];
+    x = (x < ((int) flen - 1) ? (x + 2) : ((int) flen - 1));
+    *arL = tmpL + ((ftbl[x] - tmpL) * fract);
+    *arR = tmpR + ((ftbl[x + 1] - tmpR) * fract);
+}
+
+static inline void loscil_cubic_interp_mono(MYFLT *ar,
+                                            MYFLT *ftbl, long phs, long flen)
+{
+    MYFLT   fract, tmp, a0, a1, a2, a3;
+    int     x;
+
+    fract = (MYFLT) ((int) phs & LOMASK) * LOSCAL;
+    a3 = fract * fract; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
+    a2 = fract; a2 += FL(1.0); a0 = (a2 *= FL(0.5)); a0 -= FL(1.0);
+    a1 = FL(3.0) * a3; a2 -= a1; a0 -= a3; a1 -= fract;
+    a0 *= fract; a1 *= fract; a2 *= fract; a3 *= fract; a1 += FL(1.0);
+    x = (int) (phs >> LOBITS) - 1;
+    tmp = ftbl[(x >= 0 ? x : 0)] * a0;
+    tmp += ftbl[++x] * a1;
+    x++;
+    tmp += ftbl[(x < (int) flen ? x : (int) flen)] * a2;
+    x++;
+    tmp += ftbl[(x < (int) flen ? x : (int) flen)] * a3;
+    *ar = tmp;
+}
+
+static CS_NOINLINE void
+    loscil_cubic_interp_stereo(MYFLT *arL, MYFLT *arR,
+                               MYFLT *ftbl, long phs, long flen)
+{
+    MYFLT   fract, tmpL, tmpR, a0, a1, a2, a3;
+    int     x;
+
+    fract = (MYFLT) ((int) phs & LOMASK) * LOSCAL;
+    a3 = fract * fract; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
+    a2 = fract; a2 += FL(1.0); a0 = (a2 *= FL(0.5)); a0 -= FL(1.0);
+    a1 = FL(3.0) * a3; a2 -= a1; a0 -= a3; a1 -= fract;
+    a0 *= fract; a1 *= fract; a2 *= fract; a3 *= fract; a1 += FL(1.0);
+    x = ((int) (phs >> LOBITS) << 1) - 2;
+    tmpL = ftbl[(x >= 0 ? x : 0)] * a0;
+    tmpR = ftbl[(x >= 0 ? (x + 1) : 1)] * a0;
+    x += 2;
+    tmpL += ftbl[x] * a1;
+    tmpR += ftbl[x + 1] * a1;
+    x = (x < ((int) flen - 1) ? (x + 2) : ((int) flen - 1));
+    tmpL += ftbl[x] * a2;
+    tmpR += ftbl[x + 1] * a2;
+    x = (x < ((int) flen - 1) ? (x + 2) : ((int) flen - 1));
+    tmpL += ftbl[x] * a3;
+    tmpR += ftbl[x + 1] * a3;
+    *arL = tmpL;
+    *arR = tmpR;
+}
+
 int loscil(CSOUND *csound, LOSC *p)
 {
-    FUNC   *ftp;
-    MYFLT  *ar1, *ftbl, *ftab, *xamp;
-    long   phs, inc, beg, end;
-    int    nsmps = csound->ksmps, aamp;
-    MYFLT  fract, v1, v2, *ar2;
+    FUNC    *ftp;
+    MYFLT   *ar1, *ar2, *ftbl, *xamp;
+    long    phs, inc, beg, end;
+    int     nsmps = csound->ksmps, aamp;
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -293,25 +383,22 @@ int loscil(CSOUND *csound, LOSC *p)
       goto phsck2;
     }
  phschk:
-    if (phs >= end && p->curmod!=3) goto put0;
-    switch(p->curmod) {
+    if (phs >= end && p->curmod != 3)
+      goto put0;
+    switch (p->curmod) {
     case 0:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;         /* NO LOOPING  */
-        ftab = ftbl + (phs >> LOBITS);
-        v1 = *ftab++;
-        *ar1++ = (v1 + (*ftab - v1) * fract) * *xamp;
+      do {                                      /* NO LOOPING  */
+        loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end)
           goto nxtseg;
       } while (--nsmps);
       break;
     case 1:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;        /* NORMAL LOOPING */
-        ftab = ftbl + (phs >> LOBITS);
-        v1 = *ftab++;
-        *ar1++ = (v1 + (*ftab - v1) * fract) * *xamp;
+      do {                                      /* NORMAL LOOPING */
+        loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg;
@@ -321,11 +408,9 @@ int loscil(CSOUND *csound, LOSC *p)
       break;
     case 2:
     case2:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;       /* BIDIR FORW, EVEN */
-        ftab = ftbl + (phs >> LOBITS);
-        v1 = *ftab++;
-        *ar1++ = (v1 + (*ftab - v1) * fract) * *xamp;
+      do {                                      /* BIDIR FORW, EVEN */
+        loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg;
@@ -338,11 +423,9 @@ int loscil(CSOUND *csound, LOSC *p)
       break;
     case 3:
     case3:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;      /* BIDIR BACK, EVEN */
-        ftab = ftbl + (phs >> LOBITS);
-        v1 = *ftab++;
-        *ar1++ = (v1 + (*ftab - v1) * fract) * *xamp;
+      do {                                      /* BIDIR BACK, EVEN */
+        loscil_linear_interp_mono(ar1, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs -= inc) < beg) {
           phs += (beg - phs) * 2;
@@ -381,29 +464,24 @@ int loscil(CSOUND *csound, LOSC *p)
     return OK;
 
  phsck2:
-    if (phs >= end && p->curmod != 3) goto put0s;        /* for STEREO:  */
-    switch(p->curmod) {
+    if (phs >= end && p->curmod != 3)
+      goto put0s;                               /* for STEREO:  */
+    switch (p->curmod) {
     case 0:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;         /* NO LOOPING  */
-        ftab = ftbl + ((phs >> LOBITS) << 1);
-        v1 = *ftab++;
-        v2 = *ftab++;
-        *ar1++ = (v1 + (*ftab++ - v1) * fract) * *xamp;
-        *ar2++ = (v2 + (*ftab   - v2) * fract) * *xamp;
+      do {                                      /* NO LOOPING  */
+        loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
+        *ar2++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end)
           goto nxtseg2;
       } while (--nsmps);
       break;
     case 1:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;        /* NORMAL LOOPING */
-        ftab = ftbl + ((phs >> LOBITS) << 1);
-        v1 = *ftab++;
-        v2 = *ftab++;
-        *ar1++ = (v1 + (*ftab++ - v1) * fract) * *xamp;
-        *ar2++ = (v2 + (*ftab   - v2) * fract) * *xamp;
+      do {                                      /* NORMAL LOOPING */
+        loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
+        *ar2++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg2;
@@ -413,13 +491,10 @@ int loscil(CSOUND *csound, LOSC *p)
       break;
     case 2:
     case2s:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;       /* BIDIR FORW, EVEN */
-        ftab = ftbl + ((phs >> LOBITS) << 1);
-        v1 = *ftab++;
-        v2 = *ftab++;
-        *ar1++ = (v1 + (*ftab++ - v1) * fract) * *xamp;
-        *ar2++ = (v2 + (*ftab   - v2) * fract) * *xamp;
+      do {                                      /* BIDIR FORW, EVEN */
+        loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
+        *ar2++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg2;
@@ -432,13 +507,10 @@ int loscil(CSOUND *csound, LOSC *p)
       break;
     case 3:
     case3s:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;      /* BIDIR BACK, EVEN */
-        ftab = ftbl + ((phs >> LOBITS) << 1);
-        v1 = *ftab++;
-        v2 = *ftab++;
-        *ar1++ = (v1 + (*ftab++ - v1) * fract) * *xamp;
-        *ar2++ = (v2 + (*ftab   - v2) * fract) * *xamp;
+      do {                                      /* BIDIR BACK, EVEN */
+        loscil_linear_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
+        *ar2++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs -= inc) < beg) {
           phs += (beg - phs) * 2;
@@ -475,18 +547,16 @@ int loscil(CSOUND *csound, LOSC *p)
       *ar1++ = FL(0.0);
       *ar2++ = FL(0.0);
     } while (--nsmps);
+
     return OK;
 }
 
 int loscil3(CSOUND *csound, LOSC *p)
 {
-    FUNC   *ftp;
-    MYFLT  *ar1, *ftbl, *xamp;
-    long   phs, inc, beg, end;
-    int    nsmps = csound->ksmps, aamp;
-    MYFLT  fract, *ar2;
-    int     x0;
-    MYFLT   y0, y1, ym1, y2;
+    FUNC    *ftp;
+    MYFLT   *ar1, *ar2, *ftbl, *xamp;
+    long    phs, inc, beg, end;
+    int     nsmps = csound->ksmps, aamp;
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -511,55 +581,22 @@ int loscil3(CSOUND *csound, LOSC *p)
       goto phsck2;
     }
  phschk:
-    if (phs >= end && p->curmod != 3) goto put0;
-    switch(p->curmod) {
+    if (phs >= end && p->curmod != 3)
+      goto put0;
+    switch (p->curmod) {
     case 0:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;         /* NO LOOPING  */
-        x0 = (phs >> LOBITS);
-        x0--;
-        if (x0<0) {
-          ym1 = ftbl[ftp->flen-2]; x0 = 0;
-        }
-        else ym1 = ftbl[x0++];
-        y0 = ftbl[x0++];
-        y1 = ftbl[x0++];
-        if (x0>ftp->flen) y2 = ftbl[1]; else y2 = ftbl[x0];
-        {
-          MYFLT frsq = fract*fract;
-          MYFLT frcu = frsq*ym1;
-          MYFLT t1 = y2 + y0+y0+y0;
-          *ar1++ = *xamp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-        }
+      do {                                      /* NO LOOPING  */
+        loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end)
           goto nxtseg;
       } while (--nsmps);
       break;
     case 1:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;        /* NORMAL LOOPING */
-        x0 = (phs >> LOBITS);
-        x0--;
-        if (x0<0) {
-          ym1 = ftbl[ftp->flen-2]; x0 = 0;
-        }
-        else ym1 = ftbl[x0++];
-        y0 = ftbl[x0++];
-        y1 = ftbl[x0++];
-        if (x0>ftp->flen) y2 = ftbl[1]; else y2 = ftbl[x0];
-        {
-          MYFLT frsq = fract*fract;
-          MYFLT frcu = frsq*ym1;
-          MYFLT t1 = y2 + y0+y0+y0;
-          *ar1++ = *xamp *(y0 + FL(0.5)*frcu +
-                           fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                           frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                           frsq*(FL(0.5)* y1 - y0));
-        }
+      do {                                      /* NORMAL LOOPING */
+        loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg;
@@ -569,26 +606,9 @@ int loscil3(CSOUND *csound, LOSC *p)
       break;
     case 2:
     case2:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;       /* BIDIR FORW, EVEN */
-        x0 = (phs >> LOBITS);
-        x0--;
-        if (x0<0) {
-          ym1 = ftbl[ftp->flen-2]; x0 = 0;
-        }
-        else ym1 = ftbl[x0++];
-        y0 = ftbl[x0++];
-        y1 = ftbl[x0++];
-        if (x0>ftp->flen) y2 = ftbl[1]; else y2 = ftbl[x0];
-        {
-          MYFLT frsq = fract*fract;
-          MYFLT frcu = frsq*ym1;
-          MYFLT t1 = y2 + y0+y0+y0;
-          *ar1++ = *xamp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-        }
+      do {                                      /* BIDIR FORW, EVEN */
+        loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg;
@@ -601,26 +621,9 @@ int loscil3(CSOUND *csound, LOSC *p)
       break;
     case 3:
     case3:
-      do {
-        fract = (phs & LOMASK) * LOSCAL;      /* BIDIR BACK, EVEN */
-        x0 = (phs >> LOBITS);
-        x0--;
-        if (x0<0) {
-          ym1 = ftbl[ftp->flen-2]; x0 = 0;
-        }
-        else ym1 = ftbl[x0++];
-        y0 = ftbl[x0++];
-        y1 = ftbl[x0++];
-        if (x0>ftp->flen) y2 = ftbl[1]; else y2 = ftbl[x0];
-        {
-          MYFLT frsq = fract*fract;
-          MYFLT frcu = frsq*ym1;
-          MYFLT t1 = y2 + y0+y0+y0;
-          *ar1++ = *xamp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-        }
+      do {                                      /* BIDIR BACK, EVEN */
+        loscil_cubic_interp_mono(ar1, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs -= inc) < beg) {
           phs += (beg - phs) * 2;
@@ -659,71 +662,24 @@ int loscil3(CSOUND *csound, LOSC *p)
     return OK;
 
  phsck2:
-    if (phs >= end && p->curmod != 3) goto put0s; /* for STEREO:  */
-    switch(p->curmod) {
+    if (phs >= end && p->curmod != 3)
+      goto put0s;                               /* for STEREO:  */
+    switch (p->curmod) {
     case 0:
-      do {
-        MYFLT ym1r, y0r, y1r, y2r;
-        fract = (phs & LOMASK) * LOSCAL;         /* NO LOOPING  */
-        x0 = (phs >> LOBITS) << 1;
-        y0 = ftbl[x0++]; y0r = ftbl[x0++];
-        x0--; if (x0<0) x0 = 0;
-        x0--; if (x0<0) x0 = 0;
-        ym1 = ftbl[x0++]; ym1r = ftbl[x0++];
-        y0 = ftbl[x0++]; y0r = ftbl[x0++];
-        if (x0>ftp->flen) x0 = 2;
-        y1 = ftbl[x0++]; y1r = ftbl[x0++];
-        if (x0>ftp->flen) x0 = 2;
-        y2 = ftbl[x0++]; y2r = ftbl[x0];
-        {
-          MYFLT frsq = fract*fract;
-          MYFLT frcu = frsq*ym1;
-          MYFLT t1 = y2 + y0+y0+y0;
-          *ar1++ = *xamp *(y0 + FL(0.5)*frcu +
-                           fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                           frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                           frsq*(FL(0.5)* y1 - y0));
-          frcu = frsq*ym1r;
-          t1 = y2r + y0r+y0r+y0r;
-          *ar2++ = *xamp *(y0r + FL(0.5)*frcu +
-                           fract*(y1r - frcu/FL(6.0) - t1/FL(6.0) - ym1r/FL(3.0)) +
-                           frsq*fract*(t1/FL(6.0) - FL(0.5)*y1r) +
-                           frsq*(FL(0.5)* y1r - y0r));
-        }
+      do {                                      /* NO LOOPING  */
+        loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
+        *ar2++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end)
           goto nxtseg2;
       } while (--nsmps);
       break;
     case 1:
-      do {
-        MYFLT ym1r, y0r, y1r, y2r;
-        fract = (phs & LOMASK) * LOSCAL;        /* NORMAL LOOPING */
-        x0 = (phs >> LOBITS) << 1;
-        y0 = ftbl[x0++]; y0r = ftbl[x0++];
-        x0--; if (x0<0) x0 = 0;
-        x0--; if (x0<0) x0 = 0;
-        ym1 = ftbl[x0++]; ym1r = ftbl[x0++];
-        y0 = ftbl[x0++]; y0r = ftbl[x0++];
-        if (x0>ftp->flen) x0 = 2;
-        y1 = ftbl[x0++]; y1r = ftbl[x0++];
-        if (x0>ftp->flen) x0 = 2;
-        y2 = ftbl[x0++]; y2r = ftbl[x0];
-        {
-          MYFLT frsq = fract*fract;
-          MYFLT frcu = frsq*ym1;
-          MYFLT t1 = y2 + y0+y0+y0;
-          *ar1++ = *xamp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-          frcu = frsq*ym1r;
-          t1 = y2r + y0r+y0r+y0r;
-          *ar2++ = *xamp * (y0r + FL(0.5)*frcu +
-                            fract*(y1r - frcu/FL(6.0) - t1/FL(6.0) - ym1r/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1r) +
-                            frsq*(FL(0.5)* y1r - y0r));
-        }
+      do {                                      /* NORMAL LOOPING */
+        loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
+        *ar2++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg2;
@@ -733,34 +689,10 @@ int loscil3(CSOUND *csound, LOSC *p)
       break;
     case 2:
     case2s:
-      do {
-        MYFLT ym1r, y0r, y1r, y2r;
-        fract = (phs & LOMASK) * LOSCAL;       /* BIDIR FORW, EVEN */
-        x0 = (phs >> LOBITS) << 1;
-        y0 = ftbl[x0++]; y0r = ftbl[x0++];
-        x0--; if (x0<0) x0 = 0;
-        x0--; if (x0<0) x0 = 0;
-        ym1 = ftbl[x0++]; ym1r = ftbl[x0++];
-        y0 = ftbl[x0++]; y0r = ftbl[x0++];
-        if (x0>ftp->flen) x0 = 2;
-        y1 = ftbl[x0++]; y1r = ftbl[x0++];
-        if (x0>ftp->flen) x0 = 2;
-        y2 = ftbl[x0++]; y2r = ftbl[x0];
-        {
-          MYFLT frsq = fract*fract;
-          MYFLT frcu = frsq*ym1;
-          MYFLT t1 = y2 + y0+y0+y0;
-          *ar1++ = *xamp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-          frcu = frsq*ym1r;
-          t1 = y2r + y0r+y0r+y0r;
-          *ar2++ = *xamp * (y0r + FL(0.5)*frcu +
-                            fract*(y1r - frcu/FL(6.0) - t1/FL(6.0) - ym1r/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1r) +
-                            frsq*(FL(0.5)* y1r - y0r));
-        }
+      do {                                      /* BIDIR FORW, EVEN */
+        loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
+        *ar2++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg2;
@@ -773,34 +705,10 @@ int loscil3(CSOUND *csound, LOSC *p)
       break;
     case 3:
     case3s:
-      do {
-        MYFLT ym1r, y0r, y1r, y2r;
-        fract = (phs & LOMASK) * LOSCAL;      /* BIDIR BACK, EVEN */
-        x0 = (phs >> LOBITS) << 1;
-        y0 = ftbl[x0++]; y0r = ftbl[x0++];
-        x0--; if (x0<0) x0 = 0;
-        x0--; if (x0<0) x0 = 0;
-        ym1 = ftbl[x0++]; ym1r = ftbl[x0++];
-        y0 = ftbl[x0++]; y0r = ftbl[x0++];
-        if (x0>ftp->flen) x0 = 2;
-        y1 = ftbl[x0++]; y1r = ftbl[x0++];
-        if (x0>ftp->flen) x0 = 2;
-        y2 = ftbl[x0++]; y2r = ftbl[x0];
-        {
-          MYFLT frsq = fract*fract;
-          MYFLT frcu = frsq*ym1;
-          MYFLT t1 = y2 + y0+y0+y0;
-          *ar1++ = *xamp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-          frcu = frsq*ym1r;
-          t1 = y2r + y0r+y0r+y0r;
-          *ar2++ = *xamp * (y0r + FL(0.5)*frcu +
-                            fract*(y1r - frcu/FL(6.0) - t1/FL(6.0) - ym1r/FL(3.0))+
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1r) +
-                            frsq*(FL(0.5)* y1r - y0r));
-        }
+      do {                                      /* BIDIR BACK, EVEN */
+        loscil_cubic_interp_stereo(ar1, ar2, ftbl, phs, ftp->flen);
+        *ar1++ *= *xamp;
+        *ar2++ *= *xamp;
         if (aamp)  xamp++;
         if ((phs -= inc) < beg) {
           phs += (beg - phs) * 2;
@@ -837,6 +745,7 @@ int loscil3(CSOUND *csound, LOSC *p)
       *ar1++ = FL(0.0);
       *ar2++ = FL(0.0);
     } while (--nsmps);
+
     return OK;
 }
 
@@ -848,9 +757,9 @@ int adset(CSOUND *csound, ADSYN *p)
     long    n;
     char    filnam[MAXNAME];
     MEMFIL  *mfp;
-    short  *adp, *endata, val;
-    PTLPTR *ptlap, *ptlfp, *ptlim;
-    int size;
+    short   *adp, *endata, val;
+    PTLPTR  *ptlap, *ptlfp, *ptlim;
+    int     size;
 
     if (csound->isintab == NULL) {  /* if no sin table yet, make one */
       short *ip;
@@ -864,10 +773,10 @@ int adset(CSOUND *csound, ADSYN *p)
         csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
         return NOTOK;
       }
-      p->mfp = mfp;                               /*   & record         */
+      p->mfp = mfp;                         /*   & record         */
     }
 
-    adp = (short *) mfp->beginp;                    /* align on file data */
+    adp = (short *) mfp->beginp;            /* align on file data */
     endata = (short *) mfp->endp;
     size = 1+(*adp == -1 ? MAXPTLS : *adp++); /* Old no header -> MAXPIL */
     if (p->aux.auxp==NULL || p->aux.size < (long)sizeof(PTLPTR)*size)
@@ -876,7 +785,7 @@ int adset(CSOUND *csound, ADSYN *p)
     ptlap = ptlfp = (PTLPTR*)p->aux.auxp;   /* find base ptl blk */
     ptlim = ptlap + size;
     do {
-      if ((val = *adp++) < 0) {            /* then for each brkpt set,   */
+      if ((val = *adp++) < 0) {             /* then for each brkpt set,   */
         switch (val) {
         case -1:
           ptlap->nxtp = ptlap + 1;       /* chain the ptl blks */
@@ -918,9 +827,9 @@ int adsyn(CSOUND *csound, ADSYN *p)
     PTLPTR  *curp, *prvp;
     DUPLE   *ap, *fp;
     short   curtim, diff, ktogo;
-    long   phs, sinc, *sp, amp;
-    int    nsmps;
-    MYFLT  *ar;
+    long    phs, sinc, *sp, amp;
+    int     nsmps;
+    MYFLT   *ar;
     MYFLT   ampscale, frqscale;
     long    timkincr, nxtim;
 
