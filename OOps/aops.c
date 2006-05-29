@@ -469,20 +469,20 @@ int atan2aa(CSOUND *csound, AOP *p)
     r = p->r;
     a = p->a;
     b = p->b;
-    for (n=0;n<nsmps;n++)
-      r[n] = (MYFLT)atan2((double)a[n], (double)b[n]);
+    for (n = 0; n < nsmps; n++)
+      r[n] = (MYFLT) atan2((double) a[n], (double) b[n]);
     return OK;
 }
 
 int dbamp(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT)(log(fabs((double)*p->a)) / LOG10D20);
+    *p->r = (MYFLT) (log(fabs((double) *p->a)) / LOG10D20);
     return OK;
 }
 
 int ampdb(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT) exp((double)*p->a * LOG10D20);
+    *p->r = (MYFLT) exp((double) *p->a * LOG10D20);
     return OK;
 }
 
@@ -492,20 +492,20 @@ int aampdb(CSOUND *csound, EVAL *p)
     MYFLT   *r = p->r, *a = p->a;
     int     nsmps = csound->ksmps;
 
-    for (n=0;n<nsmps;n++)
-      r[n] = (MYFLT) exp((double)a[n] * LOG10D20);
+    for (n = 0; n < nsmps; n++)
+      r[n] = (MYFLT) exp((double) a[n] * LOG10D20);
     return OK;
 }
 
 int dbfsamp(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT)(log(fabs((double)*p->a) / csound->e0dbfs) / LOG10D20);
+    *p->r = (MYFLT) (log(fabs((double) *p->a) / csound->e0dbfs) / LOG10D20);
     return OK;
 }
 
 int ampdbfs(CSOUND *csound, EVAL *p)
 {
-    *p->r =  csound->e0dbfs * (MYFLT) exp((double)*p->a * LOG10D20);
+    *p->r =  csound->e0dbfs * (MYFLT) exp((double) *p->a * LOG10D20);
     return OK;
 }
 
@@ -517,8 +517,8 @@ int aampdbfs(CSOUND *csound, EVAL *p)
 
     r = p->r;
     a = p->a;
-    for (n=0;n<nsmps;n++)
-      r[n] = csound->e0dbfs * (MYFLT) exp((double)a[n] * LOG10D20);
+    for (n = 0; n < nsmps; n++)
+      r[n] = csound->e0dbfs * (MYFLT) exp((double) a[n] * LOG10D20);
     return OK;
 }
 
@@ -526,10 +526,12 @@ int ftlen(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->a)) != NULL)
-      *p->r = (MYFLT)ftp->flen;
-    else
-      *p->r = -FL(1.0);      /* Return something */
+    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) {
+      *p->r = -FL(1.0);       /* Return something */
+      return NOTOK;
+    }
+    *p->r = (MYFLT) ftp->flen;
+
     return OK;
 }
 
@@ -537,17 +539,21 @@ int ftchnls(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->a)) != NULL)
-      *p->r = (MYFLT)ftp->nchanls;
-    else
-      *p->r = -FL(1.0);      /* Return something */
+    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) {
+      *p->r = -FL(1.0);       /* Return something */
+      return NOTOK;
+    }
+    *p->r = (MYFLT) ftp->nchanls;
+
     return OK;
 }
 
 int ftlptim(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
-    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) return OK;
+
+    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL)
+      return NOTOK;
     if (ftp->loopmode1)
       *p->r = ftp->begin1 * csound->onedsr;
     else {
@@ -560,20 +566,29 @@ int ftlptim(CSOUND *csound, EVAL *p)
 int numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****/
 {
     FUNC    *ftp;
-    if ((ftp = csound->FTFind(csound, p->a)) != NULL)
-      *p->r = (MYFLT) ftp->soundend;
-    else
+
+    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) {
       *p->r = FL(0.0);
+      return NOTOK;
+    }
+ /* if (ftp->soundend) */
+      *p->r = (MYFLT) ftp->soundend;
+ /* else
+      *p->r = (MYFLT) (ftp->flen + 1); */
+
     return OK;
 }
 
 int ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado ****/
 {
     FUNC    *ftp;
-    if ((ftp = csound->FTFind(csound, p->a)) != NULL)
-      *p->r = ftp->gen01args.sample_rate;
-    else
+
+    if ((ftp = csound->FTnp2Find(csound, p->a)) == NULL) {
       *p->r = FL(0.0);
+      return NOTOK;
+    }
+    *p->r = ftp->gen01args.sample_rate;
+
     return OK;
 }
 
@@ -1474,21 +1489,43 @@ int outch(CSOUND *csound, OUTCH *p)
 /* k-rate i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
 
+static CS_NOINLINE int parse_channel_name(void *p, char *chnName, MYFLT *valID)
+{
+    if (((OPDS*) p)->optext->t.xincod_str & 1) {
+      const char  *s = (char*) valID;
+      while (1) {
+        if (*s == (char) 0) {
+          CSOUND  *csound = ((OPDS*) p)->insdshead->csound;
+          return csound->InitError(csound, Str("invalid channel name"));
+        }
+        /* strip any leading '$' characters */
+        if (*s != (char) '$')
+          break;
+        s++;
+      }
+      /* FIXME: check for buffer overflow */
+      strcpy(chnName, s);
+    }
+    else
+      sprintf(chnName, "%d", (int) MYFLT2LRND(*valID));
+
+    return OK;
+}
+
 int kinval(CSOUND *csound, INVAL *p)
 {
     if (csound->InputValueCallback_)
       csound->InputValueCallback_(csound, p->channelName, p->value);
     else
       *(p->value) = FL(0.0);
+
     return OK;
 }
 
 int invalset(CSOUND *csound, INVAL *p)
 {
-    if (p->XSTRCODE)
-      strcpy(p->channelName, (char*) p->valID);
-    else
-      sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
+    if (parse_channel_name(p, p->channelName, p->valID) != OK)
+      return NOTOK;
 
     /* grab input now for use during i-pass */
     kinval(csound, p);
@@ -1499,23 +1536,22 @@ int invalset(CSOUND *csound, INVAL *p)
 int kinval_S(CSOUND *csound, INVAL *p)
 {
     if (csound->InputValueCallback_) {
-    	// a hack to support strings -- start with a "$" to tell host we are expecting a string
-		char text[2048];
-		sprintf(text, "$%s", p->channelName);
-		csound->InputValueCallback_(csound, text, p->value);
-    } 
+      char  text[2048];
+      /* a hack to support strings: */
+      /* start with a "$" to tell host we are expecting a string */
+      sprintf(text, "$%s", p->channelName);
+      csound->InputValueCallback_(csound, text, p->value);
+    }
     else
-      *(p->value) = FL(0.0);
-  
+      ((char*) p->value)[0] = (char) 0;
+
     return OK;
 }
 
 int invalset_S(CSOUND *csound, INVAL *p)
 {
-    if (p->XSTRCODE)
-      strcpy(p->channelName, (char*) p->valID);
-    else
-      sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
+    if (parse_channel_name(p, p->channelName, p->valID) != OK)
+      return NOTOK;
 
     /* grab input now for use during i-pass */
     kinval_S(csound, p);
@@ -1526,25 +1562,35 @@ int invalset_S(CSOUND *csound, INVAL *p)
 int koutval(CSOUND *csound, OUTVAL *p)
 {
     if (csound->OutputValueCallback_) {
-		if (p->XSTRCODE & 2) {
-			// a hack to support strings
-			char text[2048];
-			sprintf(text, "%s::%s", p->channelName, (char *)p->value);
-			csound->OutputValueCallback_(csound, text, -987654321);
-		}
-		else
-			csound->OutputValueCallback_(csound, p->channelName, *(p->value));
-	}
-	
+      if (p->XSTRCODE & 2) {
+        char  text[2048];
+#if 1
+        /* a hack to support strings */
+        /* FIXME: check for buffer overflow */
+        sprintf(text, "%s::%s", p->channelName, (char*) p->value);
+        /* NOTE: with 32 bit floats, */
+        /* the magic number is rounded to -987654336 */
+        csound->OutputValueCallback_(csound, text, (MYFLT) -987654321);
+#else
+        int   n;
+        /* alternate hack to support strings */
+        /* FIXME: check for buffer overflow */
+        n = sprintf(text, "$%s", p->channelName);
+        strcpy(&(text[n + 1]), (char*) p->value);
+        csound->OutputValueCallback_(csound, text, FL(0.0));
+#endif
+      }
+      else
+        csound->OutputValueCallback_(csound, p->channelName, *(p->value));
+    }
+
     return OK;
 }
 
 int outvalset(CSOUND *csound, OUTVAL *p)
 {
-    if (p->XSTRCODE)
-      strcpy(p->channelName, (char*) p->valID);
-    else
-      sprintf(p->channelName, "%d", (int) (*p->valID + FL(0.5)));
+    if (parse_channel_name(p, p->channelName, p->valID) != OK)
+      return NOTOK;
 
     /* send output now for use during i-pass */
     koutval(csound, p);
