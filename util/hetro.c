@@ -98,7 +98,8 @@ static int writesdif(CSOUND*, HET*);
 static  double  GETVAL(HET *, double *, long);
 static  double  sq(double);
 static  void    PUTVAL(HET *,double *, long, double);
-static  void    hetdyn(HET *, int), lpinit(HET*);
+static  int     hetdyn(CSOUND *csound, HET *, int);
+static	void	lpinit(HET*);
 static  void    lowpass(HET *,double *, double *, long);
 static  void    average(HET *,long, double *, double *, long);
 static  void    output(HET *,long, int, int);
@@ -319,7 +320,8 @@ static int hetro(CSOUND *csound, int argc, char **argv)
 
       csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
       csound->Message(csound,Str("freq est %6.1f,"), thishet->cur_est);
-      hetdyn(thishet, hno);             /* perform actual computation */
+      if (hetdyn(csound, thishet, hno) != 0)             /* perform actual computation */
+      	return -1;
       if (!csound->CheckEvents(csound))
         return -1;
       csound->Message(csound, Str(" max found %6.1f, rel amp %6.1f\n"),
@@ -351,7 +353,7 @@ static void PUTVAL(HET* thishet, double *outb, long smpl, double value)
     outb[(smpl + thishet->midbuf) & thishet->bufmask] = value;
 }
 
-static void hetdyn(HET* thishet, int hno)       /* HETERODYNE FILTER */
+static int hetdyn(CSOUND *csound, HET* thishet, int hno)       /* HETERODYNE FILTER */
 {
     long    smplno;
     double  temp_a, temp_b, tpidelest;
@@ -418,7 +420,12 @@ static void hetdyn(HET* thishet, int hno)       /* HETERODYNE FILTER */
         thishet->skip = 0;       /* quit if no more samples in file */
         break;
       }
+      
+      if (!csound->CheckEvents(csound))
+        return -1;
     }
+    
+    return 0;
 }
 
 static void lpinit(HET *thishet) /* lowpass coefficient ititializer */
