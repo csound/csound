@@ -346,7 +346,7 @@ int CsoundVST::perform()
           csound::System::inform("Multi-threaded performance.\n");
           getCppSound()->SetYieldCallback(threadYieldCallback);
           result = (int) csound::System::createThread(performanceThreadRoutine_, this, 0);
-	  csound::System::inform("Created Csound performance thread.\n");
+          csound::System::inform("Created Csound performance thread.\n");
         }
       else
         {
@@ -375,12 +375,12 @@ void CsoundVST::open()
       result = runScript("import sys\n");
       if(result)
         {
-	  csound::PyErr_Print_();
+          csound::PyErr_Print_();
         }
       result = runScript("import CsoundVST\n");
       if(result)
         {
-	  csound::PyErr_Print_();
+          csound::PyErr_Print_();
         }
       csound::PyObject_ *pyCsound = csound::PyObject_GetAttrString_(mainModule, "csound");
       // No doubt SWIG or the Python API could do this directly,
@@ -388,7 +388,7 @@ void CsoundVST::open()
       result = runScript("sys.stdout = sys.stderr = csound\n");
       if(result)
         {
-	  csound::PyErr_Print_();
+          csound::PyErr_Print_();
         }
       csound::PyObject_* pyCppSound = csound::PyObject_CallMethod_(pyCsound, "getThis", "");
       cppSound = (CppSound *) csound::PyLong_AsLong_(pyCppSound);
