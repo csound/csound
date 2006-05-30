@@ -35,7 +35,8 @@
 #define MTU (1456)
 
 extern  int     inet_aton(const char *cp, struct in_addr *inp);
-extern int usleep(int secs);
+/* this was causing a compile error, usleep is defined in unistd.h -- 
+extern int usleep(int secs); */
 static uintptr_t udpRecv(void *data);
 static int deinit_udpRecv(CSOUND *csound, void *pdata);
 
