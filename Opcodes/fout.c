@@ -422,12 +422,13 @@ static int ficlose_opcode(CSOUND *csound, FICLOSE *p)
       }
       csound->Free(csound, fname);
     }
-    else
+    else {
       idx = (int) MYFLT2LRND(*(p->iFile));
-    if (idx < 0 || idx > pp->file_num || pp->file_opened[idx].fd == NULL) {
-      csound->Warning(csound,
-                      Str("cannot close file #%d: not a valid handle"), idx);
-      return OK;
+      if (idx < 0 || idx > pp->file_num || pp->file_opened[idx].fd == NULL) {
+        csound->Warning(csound,
+                        Str("cannot close file #%d: not a valid handle"), idx);
+        return OK;
+      }
     }
     if (pp->file_opened[idx].refCount) {
       if (!(pp->file_opened[idx].refCount & 0x80000000U)) {
@@ -639,7 +640,7 @@ static int infile_act(CSOUND *csound, INFILE *p)
 static int kinfile_set(CSOUND *csound, KINFILE *p)
 {
     SF_INFO sfinfo;
-    int     n = 0;
+    int     n;
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int) MYFLT2LRND(csound->ekr);
@@ -807,10 +808,9 @@ static int fprintf_set(CSOUND *csound, FPRINTF *p)
     if (p->h.opadr != (SUBR) NULL)      /* fprintks */
       n = fout_open_file(csound, &(p->f), NULL, CSFILE_STD,
                          p->fname, p->XSTRCODE & 1, "w");
-    else {                              /* fprints */
+    else                                /* fprints */
       n = fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
                          p->fname, p->XSTRCODE & 1, "w");
-    }
     if (n < 0)
       return NOTOK;
 
