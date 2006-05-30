@@ -1565,21 +1565,12 @@ int koutval(CSOUND *csound, OUTVAL *p)
     if (csound->OutputValueCallback_) {
       if (p->XSTRCODE & 2) {
         char  text[2048];
-#if 1
         /* a hack to support strings */
         /* FIXME: check for buffer overflow */
         sprintf(text, "%s::%s", p->channelName, (char*) p->value);
         /* NOTE: with 32 bit floats, */
         /* the magic number is rounded to -987654336 */
         csound->OutputValueCallback_(csound, text, (MYFLT) -987654321);
-#else
-        int   n;
-        /* alternate hack to support strings */
-        /* FIXME: check for buffer overflow */
-        n = sprintf(text, "$%s", p->channelName);
-        strcpy(&(text[n + 1]), (char*) p->value);
-        csound->OutputValueCallback_(csound, text, FL(0.0));
-#endif
       }
       else
         csound->OutputValueCallback_(csound, p->channelName, *(p->value));
