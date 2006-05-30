@@ -99,7 +99,7 @@ static  double  GETVAL(HET *, double *, long);
 static  double  sq(double);
 static  void    PUTVAL(HET *,double *, long, double);
 static  int     hetdyn(CSOUND *csound, HET *, int);
-static	void	lpinit(HET*);
+static  void    lpinit(HET*);
 static  void    lowpass(HET *,double *, double *, long);
 static  void    average(HET *,long, double *, double *, long);
 static  void    output(HET *,long, int, int);
@@ -307,21 +307,21 @@ static int hetro(CSOUND *csound, int argc, char **argv)
     }
     lpinit(thishet);                        /* calculate LPF coeffs.  */
     thishet->adp = thishet->auxp;           /* point to beg sample data block */
-    for (hno = 0; hno < thishet->hmax; hno++) { /* for requested harmonics*/
+    for (hno = 0; hno < thishet->hmax; hno++) { /* for requested harmonics */
       double *dblp;
-      thishet->freq_est += thishet->fund_est;               /*   do analysis */
+      thishet->freq_est += thishet->fund_est; /*   do analysis */
       thishet->cur_est = thishet->freq_est;
       dblp = begbufs;
       do {
-        *dblp++ = FL(0.0);              /* clear all refilling buffers*/
+        *dblp++ = FL(0.0);                    /* clear all refilling buffers */
       } while (dblp < endbufs);
       thishet->max_frq = FL(0.0);
       thishet->max_amp = FL(0.0);
 
       csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
       csound->Message(csound,Str("freq est %6.1f,"), thishet->cur_est);
-      if (hetdyn(csound, thishet, hno) != 0)             /* perform actual computation */
-      	return -1;
+      if (hetdyn(csound, thishet, hno) != 0)  /* perform actual computation */
+        return -1;
       if (!csound->CheckEvents(csound))
         return -1;
       csound->Message(csound, Str(" max found %6.1f, rel amp %6.1f\n"),
@@ -353,7 +353,7 @@ static void PUTVAL(HET* thishet, double *outb, long smpl, double value)
     outb[(smpl + thishet->midbuf) & thishet->bufmask] = value;
 }
 
-static int hetdyn(CSOUND *csound, HET* thishet, int hno)       /* HETERODYNE FILTER */
+static int hetdyn(CSOUND *csound, HET* thishet, int hno) /* HETERODYNE FILTER */
 {
     long    smplno;
     double  temp_a, temp_b, tpidelest;
@@ -415,16 +415,15 @@ static int hetdyn(CSOUND *csound, HET* thishet, int hno)       /* HETERODYNE FIL
         /* if next out-time */
         output(thishet, smplno, hno, outpnt);  /*     place in     */
         lastout = outpnt;                      /*     output array */
+        if (!csound->CheckEvents(csound))
+          return -1;
       }
       if (thishet->skip) {
         thishet->skip = 0;       /* quit if no more samples in file */
         break;
       }
-      
-      if (!csound->CheckEvents(csound))
-        return -1;
     }
-    
+
     return 0;
 }
 
