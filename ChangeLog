@@ -1,3 +1,11 @@
+2006-05-30	ma++ ingalls	<matt@sonomatics.com>
+	* aops.c, aops.h, csound.h:
+		invalue/outvalue updates as per Isvan's comments
+	* csound.c: changed "early return" comments to debug only
+	* hetro.c: added pollevents inside processing loop
+	* lpanal.c: added warning message with -g flag
+	* sockrecv.c:  took out usleep() declaration - was causing compile error
+	
 2006-05-28	ma++ ingalls	<matt@sonomatics.com>
 	* frontends/CsoundX:  added to cvs
 	* aops.c, entry1.c, entry1.h, csound.h
