@@ -1489,33 +1489,11 @@ int outch(CSOUND *csound, OUTCH *p)
 /* k-rate i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
 
-static CS_NOINLINE int parse_channel_name(void *p, char *chnName, MYFLT *valID)
-{
-    if (((OPDS*) p)->optext->t.xincod_str & 1) {
-      const char  *s = (char*) valID;
-      while (1) {
-        if (*s == (char) 0) {
-          CSOUND  *csound = ((OPDS*) p)->insdshead->csound;
-          return csound->InitError(csound, Str("invalid channel name"));
-        }
-        /* strip any leading '$' characters */
-        if (*s != (char) '$')
-          break;
-        s++;
-      }
-      /* FIXME: check for buffer overflow */
-      strcpy(chnName, s);
-    }
-    else
-      sprintf(chnName, "%d", (int) MYFLT2LRND(*valID));
-
-    return OK;
-}
 
 int kinval(CSOUND *csound, INVAL *p)
 {
     if (csound->InputValueCallback_)
-      csound->InputValueCallback_(csound, p->channelName, p->value);
+      csound->InputValueCallback_(csound, (char *)p->channelName.auxp, p->value);
     else
       *(p->value) = FL(0.0);
 
@@ -1524,9 +1502,22 @@ int kinval(CSOUND *csound, INVAL *p)
 
 int invalset(CSOUND *csound, INVAL *p)
 {
-    if (parse_channel_name(p, p->channelName, p->valID) != OK)
-      return NOTOK;
+    if (p->XSTRCODE) {
+		const char  *s = (char*) p->valID;
+    	if (*s == '$') 
+    		return csound->PerfError(csound, "k-rate invalue ChannelName cannot start with $");
+    		
+		/* allocate the space used to pass a string during the k-pass */
+		csound->AuxAlloc(csound, strlen(s), &p->channelName);
+		sprintf((char *)p->channelName.auxp, "%s", s);
 
+    }
+    else {
+		/* convert numerical channel to string name */
+		csound->AuxAlloc(csound, 64, &p->channelName);
+      	sprintf((char *)p->channelName.auxp, "%d", (int) MYFLT2LRND(*p->valID));
+    }
+    
     /* grab input now for use during i-pass */
     kinval(csound, p);
 
@@ -1535,24 +1526,25 @@ int invalset(CSOUND *csound, INVAL *p)
 
 int kinval_S(CSOUND *csound, INVAL *p)
 {
-    if (csound->InputValueCallback_) {
-      char  text[2048];
-      /* a hack to support strings: */
-      /* start with a "$" to tell host we are expecting a string */
-      sprintf(text, "$%s", p->channelName);
-      ((char*) p->value)[sizeof(MYFLT)] = (char) 0;
-      csound->InputValueCallback_(csound, text, p->value);
-    }
-    else
-      ((char*) p->value)[0] = (char) 0;
+	((char*) p->value)[0] = (char) 0;
+	
+    if (csound->InputValueCallback_)
+      csound->InputValueCallback_(csound, (char *)p->channelName.auxp, p->value);
 
     return OK;
 }
 
 int invalset_S(CSOUND *csound, INVAL *p)
-{
-    if (parse_channel_name(p, p->channelName, p->valID) != OK)
-      return NOTOK;
+{    
+    if (p->XSTRCODE) {
+		const char  *s = (char*) p->valID;
+    	csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
+      	sprintf((char *)p->channelName.auxp, "$%s", s);
+    }
+    else {
+    	csound->AuxAlloc(csound, 64, &p->channelName);
+      	sprintf(p->channelName.auxp, "%d", (int) MYFLT2LRND(*p->valID));
+    }
 
     /* grab input now for use during i-pass */
     kinval_S(csound, p);
@@ -1562,18 +1554,18 @@ int invalset_S(CSOUND *csound, INVAL *p)
 
 int koutval(CSOUND *csound, OUTVAL *p)
 {
+    char *chan = (char *)p->channelName.auxp;
+
     if (csound->OutputValueCallback_) {
       if (p->XSTRCODE & 2) {
-        char  text[2048];
         /* a hack to support strings */
-        /* FIXME: check for buffer overflow */
-        sprintf(text, "%s::%s", p->channelName, (char*) p->value);
-        /* NOTE: with 32 bit floats, */
-        /* the magic number is rounded to -987654336 */
-        csound->OutputValueCallback_(csound, text, (MYFLT) -987654321);
+        long len = strlen(chan);
+        strcat(chan, (char*) p->value);
+        csound->OutputValueCallback_(csound, chan, (MYFLT)len);
+        chan[len] = '\0'; // clear for next time
       }
       else
-        csound->OutputValueCallback_(csound, p->channelName, *(p->value));
+        csound->OutputValueCallback_(csound, chan, *(p->value));
     }
 
     return OK;
@@ -1582,15 +1574,23 @@ int koutval(CSOUND *csound, OUTVAL *p)
 int outvalset(CSOUND *csound, OUTVAL *p)
 {
     if (p->XSTRCODE) {
-      const char  *s = (char*) p->valID;
-      if (*s == (char) 0)
-        return csound->InitError(csound, Str("invalid channel name"));
-      /* FIXME: check for buffer overflow */
-      strcpy(p->channelName, s);
+		const char  *s = (char*) p->valID;
+		if (p->XSTRCODE & 2) {
+			/* allocate the space used to pass a string during the k-pass */
+			csound->AuxAlloc(csound, strlen(s) + csound->strVarMaxLen + 2, &p->channelName);
+			sprintf((char *)p->channelName.auxp, "$%s$", s);
+		} 
+		else {
+			csound->AuxAlloc(csound, strlen(s), &p->channelName);
+			strcpy((char *)p->channelName.auxp, s);
+		}
     }
-    else
-      sprintf(p->channelName, "%d", (int) MYFLT2LRND(*p->valID));
-
+    else {
+		/* convert numerical channel to string name */
+		csound->AuxAlloc(csound, 64, &p->channelName);
+      	sprintf((char *)p->channelName.auxp, "%d", (int) MYFLT2LRND(*p->valID));
+    }
+    
     /* send output now for use during i-pass */
     koutval(csound, p);
 

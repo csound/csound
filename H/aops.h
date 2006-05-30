@@ -151,13 +151,13 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *value, *valID;
-    char    channelName[128];
+    AUXCH    channelName;
 } INVAL;
 
 typedef struct {
     OPDS    h;
     MYFLT   *valID, *value;
-    char    channelName[128];
+    AUXCH   channelName;
 } OUTVAL;
 
 typedef struct {
