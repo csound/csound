@@ -26,90 +26,95 @@
 
 #include "stdopcod.h"
 
+typedef struct FOUT_FILE_ {
+    OPDS    h;
+    SNDFILE *sf;
+    FILE    *f;
+    int     idx;        /* file index + 1 */
+} FOUT_FILE;
+
 typedef struct {
-    OPDS        h;
-    MYFLT       *fname, *iflag, *argums[VARGMAX];
-    SNDFILE     *fp;
-    MYFLT       scaleFac;
-    int         idx;
-    int         flag;
-    int         nargs;
+    OPDS    h;
+    MYFLT   *fname, *iflag, *argums[VARGMAX];
+    MYFLT   scaleFac;
+    int     nargs;
+    FOUT_FILE f;
 } OUTFILE;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *fname, *iflag, *argums[VARGMAX];
-    SNDFILE     *fp;
-    MYFLT       scaleFac;
-    int         idx;
-    int         flag;
-    int         nargs;
+    OPDS    h;
+    MYFLT   *fname, *iflag, *argums[VARGMAX];
+    MYFLT   scaleFac;
+    int     nargs;
+    FOUT_FILE f;
 } KOUTFILE;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
-    SNDFILE     *fp;
-    MYFLT       scaleFac;
-    int         idx;
-    long        currpos;
-    int         flag;
-    int         nargs;
+    OPDS    h;
+    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
+    MYFLT   scaleFac;
+    long    currpos;
+    int     flag;
+    int     nargs;
+    FOUT_FILE f;
 } INFILE;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
-    SNDFILE     *fp;
-    MYFLT       scaleFac;
-    int         idx;
-    long        currpos;
-    int         flag;
-    int         nargs;
+    OPDS    h;
+    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
+    MYFLT   scaleFac;
+    long    currpos;
+    int     flag;
+    int     nargs;
+    FOUT_FILE f;
 } KINFILE;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *fname, *iskpfrms, *iflag, *argums[VARGMAX];
-    long        currpos;
-    int         flag;
+    OPDS    h;
+    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
+    long    currpos;
+    int     flag;
 } I_INFILE;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *avar, *aincr;
+    OPDS    h;
+    MYFLT   *avar, *aincr;
 } INCR;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *argums[VARGMAX];
+    OPDS    h;
+    MYFLT   *argums[VARGMAX];
 } CLEARS;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *ihandle, *fname;
+    OPDS    h;
+    MYFLT   *ihandle, *fname;
     /* iascii=0 open ascii (default), iflag=1 open binary */
-    MYFLT       *iascii;
+    MYFLT   *iascii;
 } FIOPEN;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *ihandle, *iascii, *iflag, *argums[VARGMAX];
+    OPDS    h;
+    MYFLT   *iFile;
+} FICLOSE;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
 } IOUTFILE;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *ihandle, *iascii, *iflag, *argums[VARGMAX];
-    long        counter;
-    int         done;
+    OPDS    h;
+    MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
+    long    counter;
+    int     done;
 } IOUTFILE_R;
 
 typedef struct {
-    OPDS        h;
-    MYFLT       *fname, *fmt, *argums[VARGMAX];
-    FILE        *fp;
-    int         idx;
-    char        txtstring[8192];    /* Place to store the string printed */
+    OPDS    h;
+    MYFLT   *fname, *fmt, *argums[VARGMAX];
+    FOUT_FILE f;
+    char    txtstring[8192];    /* Place to store the string printed */
 } FPRINTF;
 
 #endif  /* FOUT_H */
