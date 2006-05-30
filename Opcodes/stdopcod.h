@@ -27,12 +27,12 @@
 /* file structure for fout opcodes */
 
 struct fileinTag {
-    SNDFILE     *file;          /* Used in audio cases */
-    FILE        *raw;           /* Only used if text file */
-    void        *fd;
-    char        *name;
-    char        *fullName;
-    int         do_scale;
+    SNDFILE     *file;        /* Used in audio cases */
+    FILE        *raw;         /* Only used if text file */
+    void        *fd;          /* file handle returned by CSOUND::FileOpen */
+    char        *name;        /* short name */
+    int         do_scale;     /* non-zero if 0dBFS scaling should be applied */
+    unsigned int  refCount;   /* reference count, | 0x80000000 if close reqd */
 };
 
 typedef struct VCO2_TABLE_ARRAY_  VCO2_TABLE_ARRAY;
