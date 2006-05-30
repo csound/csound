@@ -32,7 +32,7 @@
 #else
 #include <string>
 #endif
-  
+
 namespace csound
 {
   typedef void PyObject_;
@@ -45,9 +45,9 @@ namespace csound
   extern int         (*PyRun_SimpleFileEx_)(FILE *, const char *, int);
   extern int         (*PyRun_SimpleString_)(const char *);
   extern PyObject_   *(*PyObject_CallMethod_)(PyObject_ *,
-				       char *, char *, ...);
-  extern long        (*PyLong_AsLong_)(PyObject_ *); 
-   
+                                       char *, char *, ...);
+  extern long        (*PyLong_AsLong_)(PyObject_ *);
+
   /**
    * Provide a shell in which Python scripts
    * can be loaded, saved, and executed.

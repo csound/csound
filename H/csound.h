@@ -674,7 +674,7 @@ extern "C" {
    * Called by external software to set a function for Csound to
    * send output control values.  The 'outvalue' opcodes will
    * directly call this function.  If 'channelName' starts with a
-   * '$', then the 'outvalue' opcode is sending a string appended 
+   * '$', then the 'outvalue' opcode is sending a string appended
    * to channelName in the format: "$channelName$stringOutput".
    * and 'value' will be the index number into 'channelName' where
    * the stringOutput begins.
