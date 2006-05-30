@@ -673,7 +673,7 @@ extern "C" {
   /**
    * Called by external software to set a function for Csound to
    * send output control values.  The 'outvalue' opcodes will
-   * directly call this function.  If value == -987654321, then
+   * directly call this function.  If value == (MYFLT) -987654321, then
    * the outvalue opcode is sending a string appended to channelName
    * separated by 2 colons, such as "channelName::stringOutput"
    */
