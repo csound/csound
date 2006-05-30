@@ -34,12 +34,10 @@
 #define MAXBUFS 32
 #define MTU (1456)
 
-extern  int     inet_aton(const char *cp, struct in_addr *inp);
-/* this was causing a compile error, usleep is defined in unistd.h -- 
-extern int usleep(int secs); */
+extern int inet_aton(const char *cp, struct in_addr *inp);
+
 static uintptr_t udpRecv(void *data);
 static int deinit_udpRecv(CSOUND *csound, void *pdata);
-
 
 typedef struct {
     OPDS    h;
@@ -48,7 +46,6 @@ typedef struct {
     int     sock;
     struct sockaddr_in server_addr;
 } SOCKRECVT;
-
 
 typedef struct {
     OPDS    h;
@@ -80,11 +77,10 @@ typedef struct {
     struct sockaddr_in server_addr;
 } SOCKRECVS;
 
-
-
 static int deinit_udpRecv(CSOUND *csound, void *pdata)
 {
-    SOCKRECVS *p = (SOCKRECVS*) pdata;
+    SOCKRECVS *p = (SOCKRECVS *) pdata;
+
     p->threadon = 0;
     csound->JoinThread(p->thrid);
     /* csound->Message(csound, "+++ udp receive thread finished.\n"); */
@@ -95,35 +91,34 @@ static uintptr_t udpRecv(void *pdata)
 {
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
-    SOCKRECVS *p = (SOCKRECVS*) pdata;
-    int *threadon = &p->threadon;
-    MYFLT *tmp = (MYFLT *) p->tmp.auxp;
-    MYFLT *buf;
-    /* CSOUND *cs = p->cs;*/
-    int i, bytes, n, bufnos = p->bufnos;
-    while(*threadon)
-    {
-	/* get the data from the socket and store it in a tmp buffer */
-	if((bytes=recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))){
-	    /* while(p->usedbuf[p->wbufferuse]==1) usleep(1); */
-	    p->wbufferuse++;
-	    p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
-	    buf = p->buffer.auxp+(p->wbufferuse*MTU);
-	    p->usedbuf[p->wbufferuse] = 1;  
-	    p->bufsamps[p->wbufferuse] = n = bytes/sizeof(MYFLT);
-	    for(i=0; i < n; i++)
-		buf[i] = tmp[i];
-	}
-	
+    SOCKRECVS *p = (SOCKRECVS *) pdata;
+    int     *threadon = &p->threadon;
+    MYFLT   *tmp = (MYFLT *) p->tmp.auxp;
+    MYFLT   *buf;
+ /* CSOUND  *cs = p->cs; */
+    int     i, bytes, n, bufnos = p->bufnos;
+
+    while (*threadon) {
+      /* get the data from the socket and store it in a tmp buffer */
+      if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
+        /* while (p->usedbuf[p->wbufferuse] == 1) usleep(1); */
+        p->wbufferuse++;
+        p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
+        buf = (MYFLT*) ((char*) p->buffer.auxp + (p->wbufferuse * MTU));
+        p->usedbuf[p->wbufferuse] = 1;
+        p->bufsamps[p->wbufferuse] = n = bytes / sizeof(MYFLT);
+        for (i = 0; i < n; i++)
+          buf[i] = tmp[i];
+      }
     }
     /* cs->Message(cs, "+++ udp receive thread released.\n"); */
     return (uintptr_t) 0;
 }
 
-
 static int deinit_udpRecvS(CSOUND *csound, void *pdata)
 {
-    SOCKRECV *p = (SOCKRECV*) pdata;
+    SOCKRECV *p = (SOCKRECV *) pdata;
+
     p->threadon = 0;
     csound->JoinThread(p->thrid);
     /* csound->Message(csound, "+++ udp receive thread finished.\n"); */
@@ -134,48 +129,48 @@ static uintptr_t udpRecvS(void *pdata)
 {
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
-    SOCKRECV *p = (SOCKRECV*) pdata;
-    int *threadon = &p->threadon;
-    MYFLT *tmp = (MYFLT *) p->tmp.auxp;
-    MYFLT *buf;
-    /* CSOUND *cs = p->cs;*/
-    int i, bytes, n, bufnos = p->bufnos;
-    while(*threadon)
-    {
-	/* get the data from the socket and store it in a tmp buffer */
-	if((bytes=recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))){
-	    /* while(p->usedbuf[p->wbufferuse]==1) usleep(1); */
-	    p->wbufferuse++;
-	    p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
-	    buf = p->buffer.auxp+(p->wbufferuse*MTU);
-	    p->usedbuf[p->wbufferuse] = 1;  
-	    p->bufsamps[p->wbufferuse] = n = bytes/sizeof(MYFLT);
-	    for(i=0; i < n; i++)
-		buf[i] = tmp[i];
-	}
-	
+    SOCKRECV *p = (SOCKRECV *) pdata;
+    int     *threadon = &p->threadon;
+    MYFLT   *tmp = (MYFLT *) p->tmp.auxp;
+    MYFLT   *buf;
+ /* CSOUND  *cs = p->cs; */
+    int     i, bytes, n, bufnos = p->bufnos;
+
+    while (*threadon) {
+      /* get the data from the socket and store it in a tmp buffer */
+      if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
+        /* while(p->usedbuf[p->wbufferuse]==1) usleep(1); */
+        p->wbufferuse++;
+        p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
+        buf = (MYFLT*) ((char*) p->buffer.auxp + (p->wbufferuse * MTU));
+        p->usedbuf[p->wbufferuse] = 1;
+        p->bufsamps[p->wbufferuse] = n = bytes / sizeof(MYFLT);
+        for (i = 0; i < n; i++)
+          buf[i] = tmp[i];
+      }
     }
     /* cs->Message(cs, "+++ udp receive thread released.\n"); */
     return (uintptr_t) 0;
 }
 
-
 /* UDP version one channel */
 static int init_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
-    int bufnos;
+    int     bufnos;
+
     p->wp = 0;
     p->rp = 0;
-    p->cs = csound; 
+    p->cs = csound;
     p->bufnos = *p->ibuffnos;
-    if(p->bufnos > MAXBUFS) p->bufnos = MAXBUFS;
+    if (p->bufnos > MAXBUFS)
+      p->bufnos = MAXBUFS;
     bufnos = p->bufnos;
-    
+
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (p->sock < 0) {
-	csound->InitError(csound, "creating socket");
-	return NOTOK;
+      csound->InitError(csound, "creating socket");
+      return NOTOK;
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -185,32 +180,33 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     /* associate the socket with the address and port */
     if (bind(p->sock, (struct sockaddr *) &p->server_addr,
              sizeof(p->server_addr)) < 0)
-	return csound->InitError(csound, "bind failed");
-    
-    if (p->buffer.auxp == NULL || (long) (MTU*bufnos) > p->buffer.size)
-	/* allocate space for the buffer */
-	csound->AuxAlloc(csound, MTU*bufnos, &p->buffer);
+      return csound->InitError(csound, "bind failed");
+
+    if (p->buffer.auxp == NULL || (long) (MTU * bufnos) > p->buffer.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, MTU * bufnos, &p->buffer);
     else {
-	buf = (MYFLT *) p->buffer.auxp;  /* make sure buffer is empty */
-	memset(buf, 0, MTU*bufnos);
+      buf = (MYFLT *) p->buffer.auxp;  /* make sure buffer is empty */
+      memset(buf, 0, MTU * bufnos);
     }
     /* create a buffer to store the received interleaved audio data */
     if (p->tmp.auxp == NULL || (long) p->tmp.size < MTU)
-	/* allocate space for the buffer */
-	csound->AuxAlloc(csound, MTU, &p->tmp);
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, MTU, &p->tmp);
     else {
-	buf = (MYFLT *) p->tmp.auxp;  /* make sure buffer is empty */
-	memset(buf, 0, MTU);
+      buf = (MYFLT *) p->tmp.auxp;  /* make sure buffer is empty */
+      memset(buf, 0, MTU);
     }
 
-    // create thread
-    p->thrid = csound->CreateThread(udpRecvS,(void *)p);
-    csound->RegisterDeinitCallback(csound, (void*)p, deinit_udpRecvS);
+    /* create thread */
+    p->thrid = csound->CreateThread(udpRecvS, (void *) p);
+    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecvS);
     p->threadon = 1;
-    memset(p->usedbuf, 0, bufnos*sizeof(int));    
-    memset(p->bufsamps, 0, bufnos*sizeof(int));
+    memset(p->usedbuf, 0, bufnos * sizeof(int));
+    memset(p->bufsamps, 0, bufnos * sizeof(int));
     p->buf = p->buffer.auxp;
     p->rbufferuse = p->wbufferuse = 0;
+
     return OK;
 }
 
@@ -218,39 +214,41 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *asigl = p->asigl;
     MYFLT   *buf = p->buf;
-    int i, n, ksmps = csound->ksmps;
-    int *bufsamps = p->bufsamps;
-    int bufnos = p->bufnos;
-   
+    int     i, n, ksmps = csound->ksmps;
+    int     *bufsamps = p->bufsamps;
+    int     bufnos = p->bufnos;
+
     for (i = 0, n = p->rp; i < ksmps; i++, n++) {
-      if(n == bufsamps[p->rbufferuse]){
-	p->usedbuf[p->rbufferuse] = 0;
-	p->rbufferuse++;
-        p->rbufferuse = (p->rbufferuse == bufnos ? 0: p->rbufferuse);
-	buf = p->buffer.auxp+(p->rbufferuse*MTU);
-	while(p->usedbuf[p->rbufferuse]==0){
-	usleep(1);
-	 }
-	n = 0;
+      if (n == bufsamps[p->rbufferuse]) {
+        p->usedbuf[p->rbufferuse] = 0;
+        p->rbufferuse++;
+        p->rbufferuse = (p->rbufferuse == bufnos ? 0 : p->rbufferuse);
+        buf = (MYFLT*) ((char*) p->buffer.auxp + (p->rbufferuse * MTU));
+        while (p->usedbuf[p->rbufferuse] == 0) {
+          usleep(1);
+        }
+        n = 0;
       }
-      asigl[i] =  buf[n];         
+      asigl[i] = buf[n];
     }
     p->rp = n;
     p->buf = buf;
+
     return OK;
 }
-
 
 /* UDP version two channel */
 static int init_recvS(CSOUND *csound, SOCKRECVS *p)
 {
     MYFLT   *buf;
-    int bufnos;
+    int     bufnos;
+
     p->wp = 0;
     p->rp = 0;
-    p->cs = csound; 
+    p->cs = csound;
     p->bufnos = *p->ibuffnos;
-    if(p->bufnos > MAXBUFS) p->bufnos = MAXBUFS;
+    if (p->bufnos > MAXBUFS)
+      p->bufnos = MAXBUFS;
     bufnos = p->bufnos;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (p->sock < 0) {
@@ -267,12 +265,12 @@ static int init_recvS(CSOUND *csound, SOCKRECVS *p)
              sizeof(p->server_addr)) < 0)
       return csound->InitError(csound, "bind failed");
 
-    if (p->buffer.auxp == NULL || (long) (MTU*bufnos) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (long) (MTU * bufnos) > p->buffer.size)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, MTU*bufnos, &p->buffer);
+      csound->AuxAlloc(csound, MTU * bufnos, &p->buffer);
     else {
       buf = (MYFLT *) p->buffer.auxp;  /* make sure buffer is empty */
-      memset(buf, 0, MTU*bufnos);
+      memset(buf, 0, MTU * bufnos);
     }
     /* create a buffer to store the received interleaved audio data */
     if (p->tmp.auxp == NULL || (long) p->tmp.size < MTU)
@@ -283,14 +281,15 @@ static int init_recvS(CSOUND *csound, SOCKRECVS *p)
       memset(buf, 0, MTU);
     }
 
-    // create thread
-    p->thrid = csound->CreateThread(udpRecv,(void *)p);
-    csound->RegisterDeinitCallback(csound, (void*)p, deinit_udpRecv);
+    /* create thread */
+    p->thrid = csound->CreateThread(udpRecv, (void *) p);
+    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv);
     p->threadon = 1;
-    memset(p->usedbuf, 0, bufnos*sizeof(int));    
-    memset(p->bufsamps, 0, bufnos*sizeof(int));
+    memset(p->usedbuf, 0, bufnos * sizeof(int));
+    memset(p->bufsamps, 0, bufnos * sizeof(int));
     p->buf = p->buffer.auxp;
     p->rbufferuse = p->wbufferuse = 0;
+
     return OK;
 }
 
@@ -299,30 +298,29 @@ static int send_recvS(CSOUND *csound, SOCKRECVS *p)
     MYFLT   *asigl = p->asigl;
     MYFLT   *asigr = p->asigr;
     MYFLT   *buf = p->buf;
-    int i, n, ksmps = csound->ksmps;
-    int *bufsamps = p->bufsamps;
-    int bufnos = p->bufnos;
-   
-    for (i = 0, n = p->rp; i < ksmps; i++, n+=2) {
-      if(n == bufsamps[p->rbufferuse]){
-	p->usedbuf[p->rbufferuse] = 0;
-	p->rbufferuse++;
-        p->rbufferuse = (p->rbufferuse == bufnos ? 0: p->rbufferuse);
-	buf = p->buffer.auxp+(p->rbufferuse*MTU);
-	while(p->usedbuf[p->rbufferuse]==0){
-	usleep(1);
-	 }
-	n = 0;
+    int     i, n, ksmps = csound->ksmps;
+    int     *bufsamps = p->bufsamps;
+    int     bufnos = p->bufnos;
+
+    for (i = 0, n = p->rp; i < ksmps; i++, n += 2) {
+      if (n == bufsamps[p->rbufferuse]) {
+        p->usedbuf[p->rbufferuse] = 0;
+        p->rbufferuse++;
+        p->rbufferuse = (p->rbufferuse == bufnos ? 0 : p->rbufferuse);
+        buf = (MYFLT*) ((char*) p->buffer.auxp + (p->rbufferuse * MTU));
+        while (p->usedbuf[p->rbufferuse] == 0) {
+          usleep(1);
+        }
+        n = 0;
       }
-      asigl[i] =  buf[n];         
-      asigr[i] =  buf[n+1];
-      
+      asigl[i] = buf[n];
+      asigr[i] = buf[n + 1];
     }
     p->rp = n;
     p->buf = buf;
+
     return OK;
 }
-
 
 /* TCP version */
 static int init_srecv(CSOUND *csound, SOCKRECVT *p)
@@ -349,7 +347,7 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     /* the port we are going to listen on, in network byte order */
     p->server_addr.sin_port = htons((int) *p->port);
 
- again:
+again:
     if (connect(p->sock, (struct sockaddr *) &p->server_addr,
                 sizeof(p->server_addr)) < 0) {
       if (errno == ECONNREFUSED)
