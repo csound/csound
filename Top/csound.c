@@ -1072,7 +1072,9 @@ static const CSOUND cenviron_ = {
     int returnValue;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
+#ifndef MACOSX
       csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
+#endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     do {
@@ -1090,8 +1092,9 @@ static const CSOUND cenviron_ = {
     int returnValue;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
-	    if (csound->oparms->odebug)
-    		csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
+#ifndef MACOSX
+      csoundMessage(csound, "Early return from csoundPerformKsmps().\n");
+#endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     do {
@@ -1108,8 +1111,9 @@ static const CSOUND cenviron_ = {
     int done;
     /* Setup jmp for return after an exit(). */
     if ((returnValue = setjmp(csound->exitjmp))) {
-    	if (csound->oparms->odebug)
-      		csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
+#ifndef MACOSX
+      csoundMessage(csound, "Early return from csoundPerformBuffer().\n");
+#endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     csound->sampsNeeded += csound->oparms_.outbufsamps;
@@ -1133,8 +1137,9 @@ static const CSOUND cenviron_ = {
     csound->performState = 0;
     /* setup jmp for return after an exit() */
     if ((returnValue = setjmp(csound->exitjmp))) {
-    	if (csound->oparms->odebug)
-      		csoundMessage(csound, "Early return from csoundPerform().\n");
+#ifndef MACOSX
+      csoundMessage(csound, "Early return from csoundPerform().\n");
+#endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     do {
