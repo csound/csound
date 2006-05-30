@@ -662,8 +662,8 @@ extern "C" {
    * Called by external software to set a function for Csound to
    * fetch input control values.  The 'invalue' opcodes will
    * directly call this function. If 'channelName' starts with a
-   * '$', then the 'invalue' is expecting a C string, to be copied
-   * to 'value'.
+   * '$', then 'invalue' opcode is expecting a C string, to be copied
+   * to 'value', with maximum size csoundGetStrVarMaxLen().
    */
   PUBLIC void csoundSetInputValueCallback(CSOUND *,
                             void (*inputValueCalback_)(CSOUND *,
@@ -673,9 +673,11 @@ extern "C" {
   /**
    * Called by external software to set a function for Csound to
    * send output control values.  The 'outvalue' opcodes will
-   * directly call this function.  If value == (MYFLT) -987654321, then
-   * the outvalue opcode is sending a string appended to channelName
-   * separated by 2 colons, such as "channelName::stringOutput"
+   * directly call this function.  If 'channelName' starts with a
+   * '$', then the 'outvalue' opcode is sending a string appended 
+   * to channelName in the format: "$channelName$stringOutput".
+   * and 'value' will be the index number into 'channelName' where
+   * the stringOutput begins.
    */
   PUBLIC void csoundSetOutputValueCallback(CSOUND *,
                             void (*outputValueCalback_)(CSOUND *,
