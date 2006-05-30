@@ -432,9 +432,10 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
           if (lpc.verbose > 1)  lpc.debug = 1;
           break;
         case 'g':
-        	csound->Message(csound, "graphical display is currently unsupported\n", NULL);
-          break; 
-        case 'a':       storePoles=TRUE;
+          csound->Warning(csound, "graphical display is currently unsupported");
+          break;
+        case 'a':
+          storePoles = TRUE;
           break;
         default:
           {
