@@ -62,8 +62,9 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     int bsize = p->bsize;
     csound->Message(csound, "ksmps: %d   bsize: %d \n", csound->ksmps, p->bsize);
     if ((sizeof(MYFLT) * bsize) > MTU) {
-	csound->InitError(csound, "The buffersize must be <= 346 samples "
-			  "to fit in a udp-packet.");
+    if ((sizeof(MYFLT) * csound->ksmps) > MTU) {
+      csound->InitError(csound, "The buffersize must be <= %d samples "
+                                "to fit in a udp-packet.", MTU/sizeof(MYFLT));
 	return NOTOK;
     }
     p->wp=0;
@@ -125,8 +126,8 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     int bsize = p->bsize;
     csound->Message(csound, "ksmps: %d   bsize: %d \n", csound->ksmps, p->bsize);
     if ((sizeof(MYFLT) * bsize) > MTU) {
-	csound->InitError(csound, "The buffersize must be <= 346 samples "
-			  "to fit in a udp-packet.");
+	csound->InitError(csound, "The buffersize must be <= %d samples "
+			  "to fit in a udp-packet.", MTU/sizeof(MYFLT));
 	return NOTOK;
     }
     p->wp=0;
@@ -148,10 +149,11 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 	// allocate space for the buffer 
 	csound->AuxAlloc(csound, (bsize*sizeof(MYFLT)), &p->aux);
     else {
-	buf = (MYFLT *) p->aux.auxp;  // make sure buffer is empty 
-	do {
-	    *buf++ = FL(0.0);
-	} while (--bsize);
+      memset(p->aux.auxp, 0, sizeof(MYFLT)*n);
+/*       buf = (MYFLT *) p->aux.auxp;  /\* make sure buffer is empty *\/ */
+/*       do { */
+/*         *buf++ = FL(0.0); */
+/*       } while (--n); */
     }
     return OK;
 }
@@ -171,7 +173,8 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
     for(i=0, wp=p->wp; i<ksmps; i++, wp+=2){
 	if(wp==buffersize){
 	    // send the package when we have a full buffer
-	    if (sendto(p->sock, out, buffersize*sizeof(MYFLT), 0, to, sizeof(p->server_addr))<0) {
+	    if (sendto(p->sock, out, buffersize*sizeof(MYFLT), 0, to,
+                       sizeof(p->server_addr))<0) {
 		csound->PerfError(csound, "sendto failed");
 		return NOTOK;
 	    }
