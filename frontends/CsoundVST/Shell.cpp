@@ -44,7 +44,7 @@ namespace csound
   int         (*PyRun_SimpleFileEx_)(FILE *, const char *, int) = 0;
   int         (*PyRun_SimpleString_)(const char *) = 0;
   PyObject_   *(*PyObject_CallMethod_)(PyObject_ *,
-				       char *, char *, ...) = 0;
+                                       char *, char *, ...) = 0;
   long        (*PyLong_AsLong_)(PyObject_ *) = 0;
 
   void *Shell::pythonLibrary = 0;
@@ -86,10 +86,10 @@ namespace csound
   }
 
   static bool pythonFuncWarning(void **pythonLibrary,
-				const char *funcName)
+                                const char *funcName)
   {
     csound::System::warn("Failed to find '%s' function. "
-			 "Python scripting is not enabled.\n", funcName);
+                         "Python scripting is not enabled.\n", funcName);
     csoundCloseLibrary(*pythonLibrary);
     *pythonLibrary = (void *) 0;
     return false;
@@ -116,7 +116,7 @@ namespace csound
 #endif
     if (result != CSOUND_SUCCESS) {
       csound::System::warn("Python not found, disabling scripting. "
-			   "Check your PATH or Python installation.\n");
+                           "Check your PATH or Python installation.\n");
       pythonLibrary = (void*) 0;
       return;
     }
@@ -146,7 +146,7 @@ namespace csound
       csoundGetLibrarySymbol(pythonLibrary, "PyImport_ImportModule");
     if (!PyImport_ImportModule_) {
       pythonFuncWarning(&pythonLibrary,
-			"PyImport_ImportModule");
+                        "PyImport_ImportModule");
       return;
     }
     PyRun_SimpleFileEx_ =
@@ -175,7 +175,7 @@ namespace csound
       csoundGetLibrarySymbol(pythonLibrary, "PyObject_GetAttrString");
     if (!PyObject_GetAttrString_) {
       pythonFuncWarning(&pythonLibrary,
-			"PyObject_GetAttrString");
+                        "PyObject_GetAttrString");
       return;
     }
     PyObject_CallMethod_ =
@@ -194,7 +194,7 @@ namespace csound
     }
     Py_Initialize_();
   }
-  
+
   void Shell::close()
   {
     // Should be able to Py_Finalize here, but it doesn't work in VST.

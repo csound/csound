@@ -321,7 +321,7 @@ void CsoundGUIMain::updateGUIValues()
     scoreOffsetInput->value(currentPerformanceSettings.scoreOffsetSeconds);
     if (performing && csPerf != (CsoundPerformance*) 0) {
       csPerf->SetScoreOffsetSeconds(
-				    currentPerformanceSettings.scoreOffsetSeconds, false);
+                                    currentPerformanceSettings.scoreOffsetSeconds, false);
       setTimeDisplay(csPerf->GetScoreTime());
     }
     else
