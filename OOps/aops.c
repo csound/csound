@@ -1581,8 +1581,15 @@ int koutval(CSOUND *csound, OUTVAL *p)
 
 int outvalset(CSOUND *csound, OUTVAL *p)
 {
-    if (parse_channel_name(p, p->channelName, p->valID) != OK)
-      return NOTOK;
+    if (p->XSTRCODE) {
+      const char  *s = (char*) p->valID;
+      if (*s == (char) 0)
+        return csound->InitError(csound, Str("invalid channel name"));
+      /* FIXME: check for buffer overflow */
+      strcpy(p->channelName, s);
+    }
+    else
+      sprintf(p->channelName, "%d", (int) MYFLT2LRND(*p->valID));
 
     /* send output now for use during i-pass */
     koutval(csound, p);
