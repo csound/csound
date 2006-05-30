@@ -1511,7 +1511,9 @@ else:
     vstEnvironment.Append(LIBPATH = pythonLibraryPath)
     if getPlatform() != 'darwin':
         vstEnvironment.Prepend(LIBS = pythonLibs)
-    vstEnvironment.Prepend(LIBS = ['_csnd'])
+        vstEnvironment.Prepend(LIBS = [csoundLibraryName, 'sndfile', '_csnd'])
+    else:
+        vstEnvironment.Prepend(LIBS = ['sndfile', '_csnd'])
     vstEnvironment.Append(LINKFLAGS = libCsoundLinkFlags)
     vstEnvironment.Append(LIBS = libCsoundLibs)
     vstEnvironment.Append(SWIGFLAGS = Split('-c++ -includeall -verbose -outdir .'))
