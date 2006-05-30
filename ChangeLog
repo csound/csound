@@ -1,16 +1,19 @@
+2006-05-30	Istvan Varga	<ivarga@csounds.com>
+	* Opcodes/fout.c: new opcode: ficlose
+
 2006-05-30	ma++ ingalls	<matt@sonomatics.com>
 	* aops.c, aops.h, csound.h:
-		invalue/outvalue updates as per Isvan's comments
+	  invalue/outvalue updates as per Istvan's comments
 	* csound.c: changed "early return" comments to debug only
 	* hetro.c: added pollevents inside processing loop
 	* lpanal.c: added warning message with -g flag
-	* sockrecv.c:  took out usleep() declaration - was causing compile error
-	
+	* sockrecv.c: took out usleep() declaration - was causing compile error
+
 2006-05-28	ma++ ingalls	<matt@sonomatics.com>
-	* frontends/CsoundX:  added to cvs
-	* aops.c, entry1.c, entry1.h, csound.h
-		added hack to invalue/outvalue to support strings
-	
+	* frontends/CsoundX: added to cvs
+	* aops.c, entry1.c, entry1.h, csound.h:
+	  added hack to invalue/outvalue to support strings
+
 2006-05-27	Istvan Varga	<ivarga@csounds.com>
 	* Added ATS analysis utility.
 
