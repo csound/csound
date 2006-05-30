@@ -62,10 +62,9 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     int bsize = p->bsize;
     csound->Message(csound, "ksmps: %d   bsize: %d \n", csound->ksmps, p->bsize);
     if ((sizeof(MYFLT) * bsize) > MTU) {
-    if ((sizeof(MYFLT) * csound->ksmps) > MTU) {
       csound->InitError(csound, "The buffersize must be <= %d samples "
                                 "to fit in a udp-packet.", MTU/sizeof(MYFLT));
-	return NOTOK;
+      return NOTOK;
     }
     p->wp=0;
 
@@ -81,20 +80,21 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
               &p->server_addr.sin_addr);    /* the server IP address */
     p->server_addr.sin_port = htons((int) *p->port);  /* the port */
     
-    // create a buffer to write the interleaved audio to 
+    /* create a buffer to write the interleaved audio to  */
     if (p->aux.auxp == NULL || (long) (bsize*sizeof(MYFLT)) > p->aux.size)
-	// allocate space for the buffer 
-	csound->AuxAlloc(csound, (bsize*sizeof(MYFLT)), &p->aux);
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, (bsize*sizeof(MYFLT)), &p->aux);
     else {
-	buf = (MYFLT *) p->aux.auxp;  // make sure buffer is empty 
-	do {
-	    *buf++ = FL(0.0);
-	} while (--bsize);
+      memset(p->aux.auxp, 0, sizeof(MYFLT)*bsize);
+/*       buf = (MYFLT *) p->aux.auxp;  // make sure buffer is empty  */
+/*       do { */
+/*         *buf++ = FL(0.0); */
+/*       } while (--bsize); */
     }
     return OK;
-}
-
-static int send_send(CSOUND *csound, SOCKSEND *p)
+    }
+    
+    static int send_send(CSOUND *csound, SOCKSEND *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
     int i, wp, ksmps = csound->ksmps;
@@ -104,8 +104,9 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     
     for(i=0, wp=p->wp; i<ksmps; i++, wp++){
 	if(wp==buffersize){
-	    // send the package when we have a full buffer
-	    if (sendto(p->sock, out, buffersize*sizeof(MYFLT), 0, to, sizeof(p->server_addr))<0) {
+          /* send the package when we have a full buffer */
+	    if (sendto(p->sock, out, buffersize*sizeof(MYFLT), 0, to,
+                       sizeof(p->server_addr))<0) {
 		csound->PerfError(csound, "sendto failed");
 		return NOTOK;
 	    }
@@ -144,12 +145,12 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
               &p->server_addr.sin_addr);    /* the server IP address */
     p->server_addr.sin_port = htons((int) *p->port);  /* the port */
     
-    // create a buffer to write the interleaved audio to 
+    /* create a buffer to write the interleaved audio to */
     if (p->aux.auxp == NULL || (long) (bsize*sizeof(MYFLT)) > p->aux.size)
-	// allocate space for the buffer 
+      /* allocate space for the buffer */
 	csound->AuxAlloc(csound, (bsize*sizeof(MYFLT)), &p->aux);
     else {
-      memset(p->aux.auxp, 0, sizeof(MYFLT)*n);
+      memset(p->aux.auxp, 0, sizeof(MYFLT)*bsize);
 /*       buf = (MYFLT *) p->aux.auxp;  /\* make sure buffer is empty *\/ */
 /*       do { */
 /*         *buf++ = FL(0.0); */
@@ -170,15 +171,15 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
 
     /* store the samples of the channels interleaved in the packet */
     /* (left, right) */    
-    for(i=0, wp=p->wp; i<ksmps; i++, wp+=2){
-	if(wp==buffersize){
-	    // send the package when we have a full buffer
-	    if (sendto(p->sock, out, buffersize*sizeof(MYFLT), 0, to,
-                       sizeof(p->server_addr))<0) {
-		csound->PerfError(csound, "sendto failed");
-		return NOTOK;
-	    }
-	    wp=0;
+    for (i=0, wp=p->wp; i<ksmps; i++, wp+=2) {
+	if (wp==buffersize) {
+          /* send the package when we have a full buffer */
+          if (sendto(p->sock, out, buffersize*sizeof(MYFLT), 0, to,
+                     sizeof(p->server_addr))<0) {
+            csound->PerfError(csound, "sendto failed");
+            return NOTOK;
+          }
+          wp=0;
 	}
 	out[wp] = asigl[i];
 	out[wp+1] = asigr[i];
