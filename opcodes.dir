@@ -46,6 +46,13 @@ pitch:
 	phasorbnk adsynt mpulse lpf18 waveset pinkish noise transeg clip cpuprc
 	maxalloc active active.i active.k p.i p.k mute oscilv oscilv.kk
 	oscilv.ka oscilv.ak oscilv.aa
+pvoc:
+	ktableseg pvadd pvbufread pvcross pvinterp pvoc pvread tableseg
+	tablexseg vpvoc
+pvs_ops:
+	binit partials pvsblur pvscale pvscent pvsdemix pvsfilter pvsfreeze
+	pvshift pvsifd pvsinit pvsmix pvsmooth pvstencil resyn sinsyn tradsyn
+	trcross trfilter trhighest trlowest trmix trscale trshift trsplit
 py:
 	pyinit pyrun pyruni pylrun pylruni pyrunt pylrunt pyexec pyexeci
 	pylexec pylexeci pyexect pylexect pycall pycall1 pycall2 pycall3

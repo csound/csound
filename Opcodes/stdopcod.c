@@ -63,7 +63,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     err |= gab_gab_init_(csound);
     err |= gab_vectorial_init_(csound);
     err |= grain_init_(csound);
-    err |= ifd_init_(csound);
     err |= locsig_init_(csound);
     err |= lowpassr_init_(csound);
     err |= metro_init_(csound);
@@ -72,12 +71,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     err |= newfils_init_(csound);
     err |= nlfilt_init_(csound);
     err |= oscbnk_init_(csound);
-    err |= partials_init_(csound);
     err |= pluck_init_(csound);
-    err |= psynth_init_(csound);
-    err |= pvsbasic_init_(csound);
-    err |= pvscent_init_(csound);
-    err |= pvsdemix_init_(csound);
     err |= repluck_init_(csound);
     err |= reverbsc_init_(csound);
     err |= seqtime_init_(csound);

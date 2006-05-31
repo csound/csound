@@ -22,21 +22,19 @@
 */
 
 typedef struct {
-        FUNC    *function, *nxtfunction;
-        MYFLT   d;
-        long    cnt;
+    FUNC    *function, *nxtfunction;
+    MYFLT   d;
+    long    cnt;
 } TSEG;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *argums[VARGMAX];
-        TSEG    *cursegp;
-        FUNC    *outfunc;
-        long    nsegs;
-        AUXCH   auxch;
+    OPDS    h;
+    MYFLT   *argums[VARGMAX];
+    TSEG    *cursegp;
+    FUNC    *outfunc;
+    long    nsegs;
+    AUXCH   auxch;
 } TABLESEG;
-
-#include "ugens8.h"
 
 typedef struct {
     OPDS    h;
@@ -57,5 +55,6 @@ typedef struct {
     MYFLT   *window;        /* [PVWINLEN]   Store 1/2 window */
     TABLESEG *tableseg;
     AUXCH   auxtab;         /* For table is all else fails */
+    PVOC_GLOBALS  *pp;
 } VPVOC;
 

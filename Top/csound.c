@@ -521,8 +521,8 @@ static const CSOUND cenviron_ = {
         NULL,           /*  pvFileTable         */
         0,              /*  pvNumFiles          */
         0,              /*  pvErrorCode         */
-        NULL,           /*  pvbufreadaddr       */
-        NULL,           /*  tbladr              */
+        NULL,           /*  pluginOpcodeFiles   */
+        NULL,           /*  pluginOpcodeDB      */
         0,              /*  enableHostImplementedAudioIO  */
         0,              /*  hostRequestedBufferSize       */
         0,              /*  engineState         */
@@ -551,8 +551,8 @@ static const CSOUND cenviron_ = {
         1000,           /*  ugens4_rand_16      */
         1000,           /*  ugens4_rand_15      */
         NULL,           /*  schedule_kicked     */
-        (MYFLT*) NULL,  /*  dsputil_env         */
-        (MYFLT*) NULL,  /*  dsputil_sncTab      */
+        (LBLBLK**) NULL, /* lopds               */
+        NULL,           /*  larg                */
         (MYFLT*) NULL,  /*  disprep_fftcoefs    */
         NULL,           /*  winEPS_globals      */
         {               /*  oparms_             */
@@ -574,11 +574,7 @@ static const CSOUND cenviron_ = {
         },
         0L, 0L,         /*  instxtcount, optxtsize  */
         0L, 0L,         /*  poolcount, gblfixed     */
-        0L, 0L,         /*  gblacount, gblscount    */
-        NULL,           /*  pluginOpcodeFiles       */
-        NULL,           /*  pluginOpcodeDB          */
-        (LBLBLK**) NULL, /* lopds                   */
-        NULL            /*  larg                    */
+        0L, 0L          /*  gblacount, gblscount    */
 };
 
   /* from threads.c */

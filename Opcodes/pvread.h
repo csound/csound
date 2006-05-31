@@ -23,8 +23,6 @@
 
 /*                                                              PVREAD.H    */
 
-#include "ugens8.h"
-
 typedef struct {
     OPDS    h;
     MYFLT   *kfreq, *kamp, *ktimpnt,  *ifilno, *ibin;

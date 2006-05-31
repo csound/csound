@@ -28,8 +28,7 @@
 /* 20apr90 dpwe                                                   */
 /******************************************************************/
 
-#include "csoundCore.h"
-#include "dsputil.h"
+#include "pvoc.h"
 #include <math.h>
 
 /* Do we do the whole buffer, or just indep vals? */
@@ -39,13 +38,6 @@
 #define actual(s)       ((s-1L)*2L)
     /* if callers are passing whole frame size, make this (s) */
     /* where callers pass s/2+1, this recreates the parent fft frame size */
-
-void CopySamps(MYFLT *sce, MYFLT *dst, long size) /* just move samples */
-{
-    ++size;
-    while (--size)
-      *dst++ = *sce++;
-}
 
 /* assumes that FFTsize is an integer multiple of 4 */
 void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, int FFTsize)
@@ -243,7 +235,7 @@ void writeClrFromCircBuf(
 /* Static function prototypes - moved to top of file */
 
 void UDSample(
-    CSOUND  *csound,
+    PVOC_GLOBALS  *p,
     MYFLT   *inSnd,
     MYFLT   stindex,
     MYFLT   *outSnd,
@@ -288,24 +280,24 @@ void UDSample(
       posPhase = -negPhase;
       /* cum. sinc arguments for +ve & -ve going spans into input */
       nrst = (int)negPhase;       frac = negPhase - (MYFLT)nrst;
-      a = (csound->dsputil_sncTab[nrst]
-           + frac * (csound->dsputil_sncTab[nrst + 1]
-                     - csound->dsputil_sncTab[nrst]))
+      a = (p->dsputil_sncTab[nrst]
+           + frac * (p->dsputil_sncTab[nrst + 1]
+                     - p->dsputil_sncTab[nrst]))
           * (MYFLT) inSnd[nrstInStep];
       for (j=1L; j<in2out; ++j) { /* inner FIR convolution loop */
         posPhase += phasePerInStep;
         negPhase += phasePerInStep;
         if ( (x = nrstInStep-j)>=0L )
           nrst = (int)negPhase;   frac = negPhase - (MYFLT)nrst;
-        a += (csound->dsputil_sncTab[nrst]
-              + frac * (csound->dsputil_sncTab[nrst + 1]
-                        - csound->dsputil_sncTab[nrst]))
+        a += (p->dsputil_sncTab[nrst]
+              + frac * (p->dsputil_sncTab[nrst + 1]
+                        - p->dsputil_sncTab[nrst]))
              * (MYFLT) inSnd[x];
         if ( (x = nrstInStep+j)<inLen )
           nrst = (int)posPhase;   frac = posPhase - (MYFLT)nrst;
-        a += (csound->dsputil_sncTab[nrst]
-              + frac * (csound->dsputil_sncTab[nrst + 1]
-                        - csound->dsputil_sncTab[nrst]))
+        a += (p->dsputil_sncTab[nrst]
+              + frac * (p->dsputil_sncTab[nrst + 1]
+                        - p->dsputil_sncTab[nrst]))
              * (MYFLT) inSnd[x];
       }
       outSnd[i] = (float)a;
@@ -319,7 +311,7 @@ void UDSample(
 
 /* (ugens7.h) #define SPTS (16) */ /* How many points in each lobe */
 
-void MakeSinc(CSOUND *csound)   /* initialise our static sinc table */
+void MakeSinc(PVOC_GLOBALS *p)  /* initialise our static sinc table */
 {
     int     i;
     int     stLen = SPDS*SPTS;  /* sinc table is SPDS/2 periods of sinc */
@@ -328,16 +320,16 @@ void MakeSinc(CSOUND *csound)   /* initialise our static sinc table */
     MYFLT   phi     = FL(0.0);     /* phi (hamm arg) reaches pi at max ext */
     MYFLT   dphi    = PI_F/(MYFLT)(SPDS*SPTS);
 
-    if (csound->dsputil_sncTab == NULL)
-      csound->dsputil_sncTab = (MYFLT*) mmalloc(csound, (stLen + 1)
-                                                        * sizeof(MYFLT));
+    if (p->dsputil_sncTab == NULL)
+      p->dsputil_sncTab =
+          (MYFLT*) p->csound->Malloc(p->csound, (stLen + 1) * sizeof(MYFLT));
     /* (stLen+1 to include final zero; better for interpolation etc) */
-    csound->dsputil_sncTab[0] = FL(1.0);
-    for (i=1; i<=stLen; ++i) { /* build table of sin x / x */
+    p->dsputil_sncTab[0] = FL(1.0);
+    for (i = 1; i <= stLen; ++i) { /* build table of sin x / x */
       theta += dtheta;
       phi   += dphi;
-      csound->dsputil_sncTab[i] = (MYFLT) sin(theta) / theta
-                                  * (FL(0.54) + FL(0.46) * (MYFLT) cos(phi));
+      p->dsputil_sncTab[i] =
+          (MYFLT) sin(theta) / theta * (FL(0.54) + FL(0.46) * (MYFLT) cos(phi));
       /* hamming window on top of sinc */
     }
 }
@@ -354,7 +346,7 @@ void MakeSinc(CSOUND *csound)   /* initialise our static sinc table */
 */
 
 void PreWarpSpec(
-    CSOUND  *csound,
+    PVOC_GLOBALS  *p,
     MYFLT   *spec,      /* spectrum as magnitude,phase */
     long    size,       /* full frame size, tho' we only use n/2+1 */
     MYFLT   warpFactor) /* How much pitches are being multd by */
@@ -363,14 +355,15 @@ void PreWarpSpec(
     MYFLT   mag, lastmag, nextmag, pkOld;
     long    pkcnt, i, j;
 
-    if (csound->dsputil_env == (MYFLT*) NULL)
-      csound->dsputil_env = (MYFLT*) mmalloc(csound, size * sizeof(MYFLT));
+    if (p->dsputil_env == (MYFLT*) NULL)
+      p->dsputil_env =
+          (MYFLT*) p->csound->Malloc(p->csound, size * sizeof(MYFLT));
     /*!! Better hope <size> in first call is as big as it gets !! */
     eps = -FL(64.0) / size;              /* for spectral envelope estimation */
     lastmag = *spec;
     mag = spec[2*1];
     pkOld = lastmag;
-    csound->dsputil_env[0] = pkOld;
+    p->dsputil_env[0] = pkOld;
     pkcnt = 1;
 
     for (i = 1; i < someof(size); i++) {  /* step thru spectrum */
@@ -385,10 +378,10 @@ void PreWarpSpec(
 
       /* look for peaks */
       if ((mag>=lastmag)&&(mag>nextmag)&&(slope>eps)) {
-        csound->dsputil_env[i] = mag;
+        p->dsputil_env[i] = mag;
         pkcnt--;
         for (j = 1; j <= pkcnt; j++) {
-          csound->dsputil_env[i - pkcnt + j - 1] = pkOld
+          p->dsputil_env[i - pkcnt + j - 1] = pkOld
                                                    * (FL(1.0) + slope * j);
         }
         pkOld = mag;
@@ -404,18 +397,18 @@ void PreWarpSpec(
     if (pkcnt > 1) {                /* get final peak */
       mag = spec[2*(size/2)];
       slope = ((MYFLT) (mag - pkOld) / pkcnt);
-      csound->dsputil_env[size / 2] = mag;
+      p->dsputil_env[size / 2] = mag;
       pkcnt--;
       for (j = 1; j <= pkcnt; j++) {
-        csound->dsputil_env[size / 2 - pkcnt + j - 1] = pkOld + slope * j;
+        p->dsputil_env[size / 2 - pkcnt + j - 1] = pkOld + slope * j;
       }
     }
 
     for (i = 0; i < someof(size); i++) {  /* warp spectral env.*/
       j = (long)((MYFLT) i * warpFactor);
       mag = spec[2*i];
-      if ((j < someof(size)) && (csound->dsputil_env[i] != FL(0.0)))
-        spec[2 * i] *= csound->dsputil_env[j] / csound->dsputil_env[i];
+      if ((j < someof(size)) && (p->dsputil_env[i] != FL(0.0)))
+        spec[2 * i] *= p->dsputil_env[j] / p->dsputil_env[i];
       else
         spec[2*i] = FL(0.0);
     }

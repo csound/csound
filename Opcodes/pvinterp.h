@@ -23,8 +23,6 @@
 
 /*                                                              PVINTERP.H  */
 
-#include "ugens8.h"
-
 typedef struct {
     OPDS    h;
     MYFLT   *ktimpnt, *ifilno;
@@ -56,6 +54,7 @@ typedef struct {
     MYFLT   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
     MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
     PVBUFREAD *pvbufread;
+    PVOC_GLOBALS  *pp;
 } PVINTERP;
 
 typedef struct {
@@ -76,5 +75,6 @@ typedef struct {
     MYFLT   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
     MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
     PVBUFREAD *pvbufread;
+    PVOC_GLOBALS  *pp;
 } PVCROSS;
 

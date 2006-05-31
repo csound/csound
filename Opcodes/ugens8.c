@@ -21,13 +21,8 @@
     02111-1307 USA
 */
 
-#include "csoundCore.h"   /*      UGENS8.C        */
+#include "pvoc.h"         /*      UGENS8.C        */
 #include <math.h>
-#include "dsputil.h"
-#include "pvocext.h"
-#include "ugens8.h"
-#include "soundio.h"
-#include "oload.h"
 
 /* RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
@@ -50,6 +45,8 @@ int pvset(CSOUND *csound, PVOC *p)
     char     pvfilnam[MAXNAME];
     int      size;      /* THESE SHOULD BE SAVED IN PVOC STRUCT */
     FUNC     *AmpGateFunc = NULL;
+
+    p->pp = PVOC_GetGlobals(csound);
 
     csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", p->XSTRCODE);
     if (pvx_loadfile(csound, pvfilnam, p) != OK)
@@ -119,7 +116,7 @@ int pvset(CSOUND *csound, PVOC *p)
     /* NB: HANNING */
     for (i=0; i< pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
-    MakeSinc(csound);                   /* sinctab is same for all instances */
+    MakeSinc(p->pp);                    /* sinctab is same for all instances */
 
     return OK;
 }
@@ -173,15 +170,16 @@ int pvoc(CSOUND *csound, PVOC *p)
 
     if (specwp > 0)
       /* RWD: THIS CAUSED MASSIVE MEMORY ERROR, BUT DOESN'T WORK ANYWAY */
-      PreWarpSpec(csound, buf, asize, pex);
+      PreWarpSpec(p->pp, buf, asize, pex);
 
     Polar2Real_PVOC(csound, buf, size);
 
     if (pex != FL(1.0))
-      UDSample(csound, buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
+      UDSample(p->pp, buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
                buf2, size, buf2Size, pex);
     else
-      CopySamps(buf + (int) ((size - buf2Size) >> 1), buf2, buf2Size);
+      memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
+             sizeof(MYFLT) * buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
     addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
     writeClrFromCircBuf(p->outBuf, ar, p->opBpos, csound->ksmps, circBufSize);
@@ -210,7 +208,7 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
 {
     PVOCEX_MEMFILE  pp;
 
-    if (PVOCEX_LoadFile(csound, fname, &pp) != 0) {
+    if (csound->PVOCEX_LoadFile(csound, fname, &pp) != 0) {
       csound->InitError(csound, Str("PVOC cannot load %s"), fname);
       return NOTOK;
     }
