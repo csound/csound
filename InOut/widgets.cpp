@@ -1810,12 +1810,20 @@ extern "C" int fl_update(CSOUND *csound, FLRUN *p)
 
 static inline void displ(MYFLT val, MYFLT index)
 {
-  if (index >= 0) { //display current value of valuator
+  if (index >= 0) {     // display current value of valuator
     char valString[MAXNAME];
     sprintf(valString, "%.5g", val);
     ((Fl_Output*) (AddrSetValue[(long) index]).WidgAddress)->
       value(valString);
   }
+}
+
+static void fl_callbackButton1(Fl_Button* w, void *a)
+{
+  FLBUTTON *p = (FLBUTTON *) a;
+  *((FLBUTTON*) a)->kout =  *p->ion;
+  if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
+                                    p->args, p->INOCOUNT-8);
 }
 
 static void fl_callbackButton(Fl_Button* w, void *a)
@@ -3302,12 +3310,12 @@ static int fl_button(CSOUND *csound, FLBUTTON *p)
 {
   char *Name = GetString(csound, p->name, p->XSTRCODE);
   int type = (int) *p->itype;
-  if (type >9 ) { // ignored when getting snapshots
+  if (type > 9) {       // ignored when getting snapshots
     if (csound->oparms->msglevel & WARNMSG)
       csound->Warning(csound,
                       "FLbutton \"%s\" ignoring snapshot capture retrieve",
                       Name);
-    type = type-10;
+    type = type - 10;
   }
   Fl_Button *w;
   *p->kout = *p->ioff;        // IV - Aug 27 2002
@@ -3335,9 +3343,13 @@ static int fl_button(CSOUND *csound, FLBUTTON *p)
   Fl_Button *o = w;
   o->align(FL_ALIGN_WRAP);
   widget_attributes(csound, o);
-  o->callback((Fl_Callback*)fl_callbackButton,(void *) p);
+  if (type == 1)
+    o->callback((Fl_Callback*) fl_callbackButton1, (void*) p);
+  else
+    o->callback((Fl_Callback*) fl_callbackButton, (void*) p);
   AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o, (void *) p));
-  *p->ihandle = AddrSetValue.size()-1;
+  *p->ihandle = AddrSetValue.size() - 1;
+
   return OK;
 }
 
