@@ -1,8 +1,8 @@
 /*
     sndinfo.c:
 
-    Copyright (C) 1991 Barry Vercoe, John ffitch, matt ingalls,
-                       Eric de Castro Lupo
+    Copyright (C) 1991,2006 Barry Vercoe, John ffitch, matt ingalls, 
+                            Erik de Castro Lupo
 
     This file is part of Csound.
 
