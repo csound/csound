@@ -26,14 +26,8 @@
 /*** By Richard Karpen - July-October 1992************/
 /************************************************************/
 
-#include "csoundCore.h"
+#include "pvoc.h"
 #include <math.h>
-#include "dsputil.h"
-#include "pvfileio.h"
-#include "pstream.h"
-#include "vpvoc.h"
-#include "soundio.h"
-#include "oload.h"
 
 int tblesegset(CSOUND *csound, TABLESEG *p)
 {
@@ -44,7 +38,11 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     long    flength;
     int     i;
 
-    csound->tbladr = (void*) p;
+    {
+      PVOC_GLOBALS  *p_ = PVOC_GetGlobals(csound);
+      p_->tbladr = p;
+    }
+
     nsegs = (p->INCOUNT >> 1);  /* count segs & alloc if nec */
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
@@ -56,8 +54,8 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     if ((nxtfunc = csound->FTFind(csound, *argp++)) == NULL)
         return NOTOK;
     flength = nxtfunc->flen;
-    p->outfunc = (FUNC *) mcalloc(csound,
-                                  (long)sizeof(FUNC) + flength*sizeof(MYFLT));
+    p->outfunc =
+        (FUNC*) csound->Calloc(csound, sizeof(FUNC) + flength * sizeof(MYFLT));
     p->outfunc->flen = nxtfunc->flen;
     p->outfunc->lenmask = nxtfunc->lenmask;
     p->outfunc->lobits = nxtfunc->lobits;
@@ -161,9 +159,11 @@ int vpvset(CSOUND *csound, VPVOC *p)
     char     pvfilnam[64];
     PVOCEX_MEMFILE  pp;
     int     frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
-                        /* If optional table given, fake it up -- JPff  */
+
+    p->pp = PVOC_GetGlobals(csound);
+    /* If optional table given, fake it up -- JPff  */
     if (*p->isegtab == FL(0.0))
-      p->tableseg = (TABLESEG*) csound->tbladr;
+      p->tableseg = p->pp->tbladr;
     else {
       csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
@@ -251,7 +251,7 @@ int vpvset(CSOUND *csound, VPVOC *p)
     /* NB: HANNING */
     for (i = 0; i < pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
-    MakeSinc(csound);                   /* sinctab is same for all instances */
+    MakeSinc(p->pp);                    /* sinctab is same for all instances */
 
     return OK;
 }
@@ -319,16 +319,17 @@ int vpvoc(CSOUND *csound, VPVOC *p)
       if (specwp < 0)
         csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
       if (specwp > 0)
-        PreWarpSpec(csound, buf, asize, pex);
+        PreWarpSpec(p->pp, buf, asize, pex);
 
       Polar2Real_PVOC(csound, buf, size);
 
       if (pex != FL(1.0))
-        UDSample(csound, buf,
+        UDSample(p->pp, buf,
                  (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
                  buf2, size, buf2Size, pex);
       else
-        CopySamps(buf + (int) ((size - buf2Size) >> 1), buf2, buf2Size);
+        memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
+               sizeof(MYFLT) * buf2Size);
       if (specwp >= 0)
         ApplyHalfWin(buf2, p->window, buf2Size);
     }

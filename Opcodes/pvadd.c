@@ -28,14 +28,8 @@
 /******************************************/
 /*    PVADD.C        */
 
-#include "csoundCore.h"
+#include "pvoc.h"
 #include <math.h>
-#include "dsputil.h"
-#include "pvfileio.h"
-#include "pstream.h"
-#include "pvocext.h"
-#include "pvadd.h"
-#include "oload.h"
 
 static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 
@@ -206,7 +200,7 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
 {
     PVOCEX_MEMFILE  pp;
 
-    if (PVOCEX_LoadFile(csound, fname, &pp) != 0) {
+    if (csound->PVOCEX_LoadFile(csound, fname, &pp) != 0) {
       csound->InitError(csound, Str("PVADD cannot load %s"), fname);
       return NOTOK;
     }

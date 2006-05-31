@@ -23,7 +23,6 @@
 
 #include "csdl.h"   /*                                      UGENS9.C        */
 #include <math.h>
-#include "dsputil.h"
 #include "convolve.h"
 #include "ugens9.h"
 #include "soundio.h"
@@ -40,8 +39,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     if (csound->oparms->odebug)
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
-    csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.",
-                                p->XSTRCODE);
+    csound->strarg2name(csound, cvfilnam, p->ifilno, "convolve.", p->XSTRCODE);
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
       if ((mfp = csound->ldmemfile(csound, cvfilnam)) == NULL) {
@@ -58,7 +56,7 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
 
     nchanls = (cvh->channel == ALLCHNLS ? cvh->src_chnls : 1);
 
-    if (*p->channel == 0.) {
+    if (*p->channel == FL(0.0)) {
       if (p->OUTOCOUNT == nchanls)
         p->nchanls = nchanls;
       else {
