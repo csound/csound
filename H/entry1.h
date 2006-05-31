@@ -31,22 +31,16 @@
 #include "ugens4.h"
 #include "ugens5.h"
 #include "ugens6.h"
-#include "dsputil.h"
-#include "ugens8.h"
 #include "cwindow.h"
 #include "windin.h"
 #include "disprep.h"
 #include "soundio.h"
 #include "dumpf.h"
 #include "cmath.h"
-#include "pvread.h"
-#include "pvinterp.h"
-#include "vpvoc.h"
 #include "diskin.h"
 #include "diskin2.h"
 #include "oload.h"
 #include "midiout.h"
-#include "pvadd.h"
 #include "sndinfUG.h"
 #include "ugrw1.h"
 #include "ugrw2.h"
@@ -177,8 +171,6 @@ int     loscil3(CSOUND *, void *), koscl3(CSOUND *, void *);
 int     osckk3(CSOUND *, void *), oscka3(CSOUND *, void *);
 int     oscak3(CSOUND *, void *), oscaa3(CSOUND *, void *);
 int     adset(CSOUND *, void *), adsyn(CSOUND *, void *);
-int     pvset(CSOUND *, void *), pvoc(CSOUND *, void *);
-int     pvaddset(CSOUND *, void *), pvadd(CSOUND *, void *);
 int     bzzset(CSOUND *, void *), buzz(CSOUND *, void *);
 int     gbzset(CSOUND *, void *), gbuzz(CSOUND *, void *);
 int     plukset(CSOUND *, void *), pluck(CSOUND *, void *);
@@ -255,13 +247,6 @@ int     abeta(CSOUND *, void *), ikbeta(CSOUND *, void *);
 int     aweib(CSOUND *, void *), ikweib(CSOUND *, void *);
 int     apoiss(CSOUND *, void *), ikpoiss(CSOUND *, void *);
 int     seedrand(CSOUND *, void *);
-int     tblesegset(CSOUND *, void *), ktableseg(CSOUND *, void *);
-int     ktablexseg(CSOUND *, void *);
-int     vpvset(CSOUND *, void *), vpvoc(CSOUND *, void *);
-int     pvreadset(CSOUND *, void *), pvread(CSOUND *, void *);
-int     pvcrossset(CSOUND *, void *), pvcross(CSOUND *, void *);
-int     pvbufreadset(CSOUND *, void *), pvbufread(CSOUND *, void *);
-int     pvinterpset(CSOUND *, void *), pvinterp(CSOUND *, void *);
 int     auniform(CSOUND *, void *), ikuniform(CSOUND *, void *);
 int     newsndinset(CSOUND *, void *), soundinew(CSOUND *, void *);
 int     iout_on(CSOUND *, void *), iout_off(CSOUND *, void *);

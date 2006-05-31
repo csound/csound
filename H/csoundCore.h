@@ -1144,8 +1144,8 @@ extern "C" {
     void          *pvFileTable;         /* pvfileio.c */
     int           pvNumFiles;
     int           pvErrorCode;
-    void          *pvbufreadaddr;       /* pvinterp.c */
-    void          *tbladr;              /* vpvoc.c */
+    /* database for deferred loading of opcode plugin libraries */
+    void          *pluginOpcodeFiles, *pluginOpcodeDB;
     int           enableHostImplementedAudioIO;
     int           hostRequestedBufferSize;
     /* engineState is sum of:
@@ -1181,17 +1181,13 @@ extern "C" {
     int           ugens4_rand_16;
     int           ugens4_rand_15;
     void          *schedule_kicked;
-    MYFLT         *dsputil_env;
-    MYFLT         *dsputil_sncTab;
+    LBLBLK        **lopds;
+    void          *larg;        /* this is actually LARGNO* */
     MYFLT         *disprep_fftcoefs;
     void          *winEPS_globals;
     OPARMS        oparms_;
     long          instxtcount, optxtsize;
     long          poolcount, gblfixed, gblacount, gblscount;
-    /* database for deferred loading of opcode plugin libraries */
-    void          *pluginOpcodeFiles, *pluginOpcodeDB;
-    LBLBLK        **lopds;
-    void          *larg;        /* this is actually LARGNO* */
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

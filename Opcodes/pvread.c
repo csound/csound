@@ -25,12 +25,9 @@
 /***********pvread ********************************************/
 /*** By Richard Karpen - July-October 1992*********************/
 /**************************************************************/
-#include "csoundCore.h"
-#include "dsputil.h"
-#include "pvread.h"
-#include "soundio.h"
+
+#include "pvoc.h"
 #include <math.h>
-#include "oload.h"
 
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
@@ -110,7 +107,7 @@ static int pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
 {
     PVOCEX_MEMFILE  pp;
 
-    if (PVOCEX_LoadFile(csound, fname, &pp) != 0) {
+    if (csound->PVOCEX_LoadFile(csound, fname, &pp) != 0) {
       csound->InitError(csound, Str("PVREAD cannot load %s"), fname);
       return NOTOK;
     }

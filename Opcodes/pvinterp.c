@@ -26,14 +26,8 @@
 /******** By Richard Karpen 1996 *********/
 /*****************************************/
 
-#include "csoundCore.h"
+#include "pvoc.h"
 #include <math.h>
-#include "dsputil.h"
-#include "pvfileio.h"
-#include "pstream.h"
-#include "pvinterp.h"
-#include "soundio.h"
-#include "oload.h"
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*csound->ksmps)    /* manifest used for final time wdw */
@@ -48,7 +42,10 @@ int pvbufreadset(CSOUND *csound, PVBUFREAD *p)
     PVOCEX_MEMFILE  pp;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-    ((CSOUND*) csound)->pvbufreadaddr = (void*) p;
+    {
+      PVOC_GLOBALS  *p_ = PVOC_GetGlobals(csound);
+      p_->pvbufreadaddr = p;
+    }
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
@@ -144,7 +141,8 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     PVOCEX_MEMFILE  pp;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-    p->pvbufread = (PVBUFREAD*) csound->pvbufreadaddr;
+    p->pp = PVOC_GetGlobals(csound);
+    p->pvbufread = p->pp->pvbufreadaddr;
     if (p->pvbufread == NULL)
       return csound->InitError(csound,
                                Str("pvinterp: associated pvbufread not found"));
@@ -220,7 +218,7 @@ int pvinterpset(CSOUND *csound, PVINTERP *p)
     /* NB: HANNING */
     for (i = 0; i< pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
-    MakeSinc(csound);                   /* sinctab is same for all instances */
+    MakeSinc(p->pp);                    /* sinctab is same for all instances */
 
     return OK;
 }
@@ -285,11 +283,12 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     Polar2Real_PVOC(csound, buf, (int) size);
 
     if (pex != FL(1.0))
-      UDSample(csound, buf,
+      UDSample(p->pp, buf,
                (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)), buf2,
                size, buf2Size, pex);
     else
-      CopySamps(buf + (int) ((size - buf2Size) >> 1), buf2, buf2Size);
+      memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
+             sizeof(MYFLT) * buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
 
     addToCircBuf(buf2, p->outBuf, p->opBpos, csound->ksmps, circBufSize);
@@ -314,7 +313,8 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     PVOCEX_MEMFILE  pp;
     int      frInc, chans, size; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
-    p->pvbufread = (PVBUFREAD*) csound->pvbufreadaddr;
+    p->pp = PVOC_GetGlobals(csound);
+    p->pvbufread = p->pp->pvbufreadaddr;
     if (p->pvbufread == NULL)
       return csound->InitError(csound,
                                Str("pvcross: associated pvbufread not found"));
@@ -386,7 +386,7 @@ int pvcrossset(CSOUND *csound, PVCROSS *p)
     /* NB: HANNING */
     for (i = 0; i < pvfrsiz(p); ++i)
       p->outBuf[i] = FL(0.0);
-    MakeSinc(csound);                   /* sinctab is same for all instances */
+    MakeSinc(p->pp);                    /* sinctab is same for all instances */
 
     return OK;
 }
@@ -454,16 +454,17 @@ int pvcross(CSOUND *csound, PVCROSS *p)
       if (specwp < 0)
         csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
       if (specwp > 0)
-        PreWarpSpec(csound, buf, asize, pex);
+        PreWarpSpec(p->pp, buf, asize, pex);
 
       Polar2Real_PVOC(csound, buf, (int) size);
 
       if (pex != FL(1.0))
-        UDSample(csound, buf,
+        UDSample(p->pp, buf,
                  (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)), buf2,
                  size, buf2Size, pex);
       else
-        CopySamps(buf + (int) ((size - buf2Size) >> 1), buf2, buf2Size);
+        memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
+               sizeof(MYFLT) * buf2Size);
       if (specwp >= 0)
         ApplyHalfWin(buf2, p->window, buf2Size);
     }

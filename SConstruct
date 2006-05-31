@@ -680,7 +680,6 @@ OOps/cmath.c
 OOps/diskin.c
 OOps/diskin2.c
 OOps/disprep.c
-OOps/dsputil.c
 OOps/dumpf.c
 OOps/fftlib.c
 OOps/goto_ops.c
@@ -690,11 +689,7 @@ OOps/midiout.c
 OOps/mxfft.c
 OOps/oscils.c
 OOps/pstream.c
-OOps/pvadd.c
 OOps/pvfileio.c
-OOps/pvinterp.c
-OOps/pvocext.c
-OOps/pvread.c
 OOps/pvsanal.c
 OOps/random.c
 OOps/schedule.c
@@ -706,11 +701,9 @@ OOps/ugens3.c
 OOps/ugens4.c
 OOps/ugens5.c
 OOps/ugens6.c
-OOps/ugens8.c
 OOps/ugrw1.c
 OOps/ugrw2.c
 OOps/vdelay.c
-OOps/vpvoc.c
 Top/argdecode.c
 Top/cscore_internal.c
 Top/cscorfns.c
@@ -1019,11 +1012,9 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/flanger.c       Opcodes/follow.c        Opcodes/fout.c
     Opcodes/freeverb.c      Opcodes/ftconv.c        Opcodes/ftgen.c
     Opcodes/gab/gab.c       Opcodes/gab/vectorial.c Opcodes/grain.c
-    Opcodes/ifd.c           Opcodes/locsig.c        Opcodes/lowpassr.c
-    Opcodes/metro.c         Opcodes/midiops2.c      Opcodes/midiops3.c
-    Opcodes/newfils.c       Opcodes/nlfilt.c        Opcodes/oscbnk.c
-    Opcodes/partials.c      Opcodes/pluck.c         Opcodes/psynth.c
-    Opcodes/pvsbasic.c      Opcodes/pvscent.c       Opcodes/pvsdemix.c
+    Opcodes/locsig.c        Opcodes/lowpassr.c      Opcodes/metro.c
+    Opcodes/midiops2.c      Opcodes/midiops3.c      Opcodes/newfils.c
+    Opcodes/nlfilt.c        Opcodes/oscbnk.c        Opcodes/pluck.c
     Opcodes/repluck.c       Opcodes/reverbsc.c      Opcodes/seqtime.c
     Opcodes/sndloop.c       Opcodes/sndwarp.c       Opcodes/space.c
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
@@ -1061,6 +1052,14 @@ makePlugin(pluginEnvironment, 'grain4', ['Opcodes/grain4.c'])
 makePlugin(pluginEnvironment, 'hrtferX', ['Opcodes/hrtferX.c'])
 makePlugin(pluginEnvironment, 'minmax', ['Opcodes/minmax.c'])
 makePlugin(pluginEnvironment, 'phisem', ['Opcodes/phisem.c'])
+makePlugin(pluginEnvironment, 'pvoc', Split('''
+    Opcodes/dsputil.c Opcodes/pvadd.c Opcodes/pvinterp.c Opcodes/pvocext.c
+    Opcodes/pvread.c Opcodes/ugens8.c Opcodes/vpvoc.c Opcodes/pvoc.c
+'''))
+makePlugin(pluginEnvironment, 'pvs_ops', Split('''
+    Opcodes/ifd.c Opcodes/partials.c Opcodes/psynth.c Opcodes/pvsbasic.c
+    Opcodes/pvscent.c Opcodes/pvsdemix.c Opcodes/pvs_ops.c
+'''))
 makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
 makePlugin(pluginEnvironment, 'vbap',
            ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',

@@ -29,8 +29,7 @@
 
 /*    PVOCEXT.C        */
 
-#include "csoundCore.h"
-#include "pvocext.h"
+#include "pvoc.h"
 #include <math.h>
 
 #define minval(val1, val2) (val1 <= val2 ? val1 : val2)

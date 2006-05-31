@@ -25,7 +25,6 @@
 #include <math.h>
 #include "cwindow.h"
 #include "disprep.h"
-#include "dsputil.h"
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */
 # define hypot _hypot
@@ -181,6 +180,17 @@ static void FillHalfWin(MYFLT *wBuf, long size, MYFLT max, int hannq)
     return;
 }
 
+static void ApplyHalfWin(MYFLT *buf, MYFLT *win, long len)
+{   /* Window only store 1st half, is symmetric */
+    long    j;
+    long    lenOn2 = (len/2L);
+
+    for (j = lenOn2 + 1; j--; )
+      *buf++ *= *win++;
+    for (j = len - lenOn2 - 1, win--; j--; )
+      *buf++ *= *--win;
+}
+
 int fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier */
                                        /* Transform of collected samples and  */
                                        /* displays coefficients (mag or db)   */
@@ -289,8 +299,8 @@ static void d_fft(      /* perform an FFT as reqd below */
   MYFLT *hWin,  /* hanning window lookup table */
   int   dbq)    /* flag: 1-> convert output into db */
 {
-    CopySamps(sce,dst,size);                    /* copy into scratch buffer */
-    ApplyHalfWin(dst,hWin,size);
+    memcpy(dst, sce, sizeof(MYFLT) * size);     /* copy into scratch buffer */
+    ApplyHalfWin(dst, hWin, size);
     csound->RealFFT(csound, dst, (int) size);   /* perform the FFT */
     dst[size] = dst[1];
     dst[1] = dst[size + 1L] = FL(0.0);
