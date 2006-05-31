@@ -1,3 +1,7 @@
+2006-05-31	Istvan Varga	<ivarga@csounds.com>
+	* InOut/widgets.cpp:
+	  FLbutton type 1 callback now sets the output to "ion"
+
 2006-05-30	Istvan Varga	<ivarga@csounds.com>
 	* Opcodes/fout.c: new opcode: ficlose
 
