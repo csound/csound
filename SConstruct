@@ -457,6 +457,15 @@ if getPlatform() == 'darwin':
 elif configure.CheckHeader("dirent.h", language = "C"):
     commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
 
+if configure.CheckSndFile1016():
+    commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1016'])
+elif configure.CheckSndFile1013():
+    commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1013'])
+elif configure.CheckSndFile1011():
+    commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1011'])
+else:
+    commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1000'])
+
 # Package contents.
 
 zipfilename = "csound5-" + getPlatform() + "-" + str(today()) + ".zip"
@@ -538,14 +547,6 @@ if getPlatform() == 'darwin':
 
 csoundLibraryEnvironment = commonEnvironment.Copy()
 csoundLibraryEnvironment.Append(CPPFLAGS = ['-D__BUILDING_LIBCSOUND'])
-if configure.CheckSndFile1016():
-    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1016'])
-elif configure.CheckSndFile1013():
-    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1013'])
-elif configure.CheckSndFile1011():
-    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1011'])
-else:
-    csoundLibraryEnvironment.Prepend(CPPFLAGS = ['-DHAVE_LIBSNDFILE=1000'])
 if commonEnvironment['buildRelease'] != '0':
     csoundLibraryEnvironment.Append(CPPFLAGS = ['-D_CSOUND_RELEASE_'])
     if getPlatform() == 'linux':
