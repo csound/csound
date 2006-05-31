@@ -101,7 +101,9 @@ static uintptr_t udpRecv(void *pdata)
     while (*threadon) {
       /* get the data from the socket and store it in a tmp buffer */
       if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
-        /* while (p->usedbuf[p->wbufferuse] == 1) usleep(1); */
+        while (p->usedbuf[p->wbufferuse] == 1) {
+          usleep(1);
+        }
         p->wbufferuse++;
         p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
         buf = (MYFLT*) ((char*) p->buffer.auxp + (p->wbufferuse * MTU));
@@ -139,7 +141,9 @@ static uintptr_t udpRecvS(void *pdata)
     while (*threadon) {
       /* get the data from the socket and store it in a tmp buffer */
       if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
-        /* while(p->usedbuf[p->wbufferuse]==1) usleep(1); */
+        while(p->usedbuf[p->wbufferuse]==1) {
+          usleep(1);
+        }
         p->wbufferuse++;
         p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
         buf = (MYFLT*) ((char*) p->buffer.auxp + (p->wbufferuse * MTU));
