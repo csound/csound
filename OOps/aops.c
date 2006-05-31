@@ -1520,9 +1520,7 @@ static CS_NOINLINE int parse_channel_name(CSOUND *csound, void *p, AUXCH *aux_,
     if (strCode & 1) {
       char  *chnName = (char*) valID;
       if (chnName[0] == (char) '$') {
-        if (isStringValue)
-          chnName++;
-        else
+        if (!isStringValue)
           return csound->InitError(csound,
                                    "k-rate %s channel name cannot start with $",
                                    (isOutvalue ? "outvalue" : "invalue"));
