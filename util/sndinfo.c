@@ -1,7 +1,7 @@
 /*
     sndinfo.c:
 
-    Copyright (C) 1991 Barry Vercoe, John ffitch, matt ingalls, 
+    Copyright (C) 1991 Barry Vercoe, John ffitch, matt ingalls,
                        Eric de Castro Lupo
 
     This file is part of Csound.
@@ -33,7 +33,12 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
     char    *infilnam, *fname;
     char    channame[32];
     int     retval = 0;
-    int     instr_info = 0, bcast_info = 0;
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
+    int     instr_info = 0;
+#  if HAVE_LIBSNDFILE >= 1016
+    int     bcast_info = 0;
+#  endif
+#endif
     SF_INFO sf_info;
     SNDFILE *hndl;
 
@@ -44,22 +49,26 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
           ++argv, --argc;
         continue;
       }
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
       if (strcmp(infilnam, "-i") == 0) {
         instr_info = 1;
         continue;
       }
       if (strncmp(infilnam, "-i", 2) == 0) {
-        instr_info = atoi(infilnam+2);
+        instr_info = atoi(infilnam + 2);
         continue;
       }
+#  if HAVE_LIBSNDFILE >= 1016
       if (strcmp(infilnam, "-b") == 0) {
         bcast_info = 1;
         continue;
       }
       if (strncmp(infilnam, "-b", 2) == 0) {
-        bcast_info = atoi(infilnam+2);
+        bcast_info = atoi(infilnam + 2);
         continue;
       }
+#  endif
+#endif
       fname = csound->FindInputFile(csound, infilnam, "SFDIR;SSDIR");
       if (fname == NULL) {
         csound->Message(csound, Str("%s:\n\tcould not find\n"), infilnam);
@@ -105,56 +114,71 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
                         (MYFLT) sf_info.frames / sf_info.samplerate);
         csound->Message(csound, Str("\t(%ld sample frames)\n"),
                                 (long) sf_info.frames);
+#if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1013
         if (instr_info) {
           SF_INSTRUMENT inst;
-          int k;
-          if (sf_command (hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst))==0)
-            continue;
-          csound->Message(csound,Str("  Gain        : %d\n"), inst.gain);
-          csound->Message(csound,Str("  Base note   : %d\n"), inst.basenote);
-          csound->Message(csound,Str("  Velocity    : %d - %d\n"),
-                          (int) inst.velocity_lo, (int) inst.velocity_hi);
-          csound->Message(csound,Str("  Key         : %d - %d\n"),
-                          (int) inst.key_lo, (int) inst.key_hi) ;
-          csound->Message(csound,Str("  Loop points : %d\n"), inst.loop_count);
-          
-          for (k = 0; k<inst.loop_count; k++)
-            csound->Message(csound, Str("  %-2d    Mode : %s    "
-                                        "Start : %6d   End : %6d   "
-                                        "Count : %6d\n"),
-                            k,
-                            (inst.loops[k].mode==SF_LOOP_NONE ? "none" :
-                             inst.loops[k].mode==SF_LOOP_FORWARD ? "fwrd" : 
-                             inst.loops[k].mode==SF_LOOP_BACKWARD ? "bwrd" : 
-                             inst.loops[k].mode==SF_LOOP_FORWARD ? "alt " : ""),
-                            inst.loops[k].start, inst.loops[k].end,
-                            inst.loops[k].count);
-          csound->Message(csound,"\n") ;
+          int     k;
+
+          if (sf_command(hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst)) != 0) {
+            csound->Message(csound, Str("  Gain        : %d\n"),
+                            inst.gain);
+            csound->Message(csound, Str("  Base note   : %d\n"),
+                            inst.basenote);
+            csound->Message(csound, Str("  Velocity    : %d - %d\n"),
+                            (int) inst.velocity_lo, (int) inst.velocity_hi);
+            csound->Message(csound, Str("  Key         : %d - %d\n"),
+                            (int) inst.key_lo, (int) inst.key_hi);
+            csound->Message(csound, Str("  Loop points : %d\n"),
+                            inst.loop_count);
+
+            for (k = 0; k < inst.loop_count; k++)
+              csound->Message(csound, Str("  %-2d    Mode : %s    "
+                                          "Start : %6d   End : %6d   "
+                                          "Count : %6d\n"),
+                              k,
+                              (inst.loops[k].mode == SF_LOOP_NONE ? "none" :
+                               inst.loops[k].mode == SF_LOOP_FORWARD ? "fwrd" :
+                               inst.loops[k].mode == SF_LOOP_BACKWARD ? "bwrd" :
+                               inst.loops[k].mode == SF_LOOP_ALTERNATING ?
+                               "alt " : ""),
+                              inst.loops[k].start, inst.loops[k].end,
+                              inst.loops[k].count);
+            csound->Message(csound, "\n");
+          }
         }
+#  if HAVE_LIBSNDFILE >= 1016
         if (bcast_info) {
-          SF_BROADCAST_INFO bext ;
-          if (sf_command (hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))==0)
-            continue;
-          csound->Message(csound,Str("Description      : %.*s\n"),
-                          (int) sizeof (bext.description), bext.description) ;
-          csound->Message(csound,Str("Originator       : %.*s\n"),
-                          (int) sizeof (bext.originator), bext.originator) ;
-          csound->Message(csound,Str("Origination ref  : %.*s\n"),
-                          (int) sizeof (bext.originator_reference), bext.originator_reference) ;
-          csound->Message(csound,Str("Origination date : %.*s\n"),
-                          (int) sizeof (bext.origination_date), bext.origination_date) ;
-          csound->Message(csound,Str("Origination time : %.*s\n"),
-                          (int) sizeof (bext.origination_time), bext.origination_time) ;
-          csound->Message(csound,Str("BWF version      : %d\n"),
-                          bext.version) ;
-          csound->Message(csound,Str("UMID             : %.*s\n"),
-                          (int) sizeof (bext.umid), bext.umid) ;
-          csound->Message(csound,Str("Coding history   : %.*s\n"),
-                          bext.coding_history_size, bext.coding_history) ;
+          SF_BROADCAST_INFO bext;
+
+          if (sf_command(hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))
+              != 0) {
+            csound->Message(csound, Str("Description      : %.*s\n"),
+                            (int) sizeof (bext.description), bext.description);
+            csound->Message(csound, Str("Originator       : %.*s\n"),
+                            (int) sizeof (bext.originator), bext.originator);
+            csound->Message(csound, Str("Origination ref  : %.*s\n"),
+                            (int) sizeof (bext.originator_reference),
+                            bext.originator_reference);
+            csound->Message(csound, Str("Origination date : %.*s\n"),
+                            (int) sizeof (bext.origination_date),
+                            bext.origination_date);
+            csound->Message(csound, Str("Origination time : %.*s\n"),
+                            (int) sizeof (bext.origination_time),
+                            bext.origination_time);
+            csound->Message(csound, Str("BWF version      : %d\n"),
+                            bext.version);
+            csound->Message(csound, Str("UMID             : %.*s\n"),
+                            (int) sizeof (bext.umid), bext.umid);
+            csound->Message(csound, Str("Coding history   : %.*s\n"),
+                            bext.coding_history_size, bext.coding_history);
+          }
         }
+#  endif    /* HAVE_LIBSNDFILE >= 1016 */
+#endif      /* HAVE_LIBSNDFILE >= 1013 */
         sf_close(hndl);
       }
     }
+
     return retval;
 }
 
