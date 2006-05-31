@@ -30,6 +30,9 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <errno.h>
+#ifdef LINUX
+#include <unistd.h>
+#endif
 
 #define MAXBUFS 32
 #define MTU (1456)
