@@ -191,6 +191,15 @@ extern "C" {
    * TYPE DEFINITIONS
    */
 
+  /*
+   * Forward declarations.
+   */
+
+  typedef struct CSOUND_  CSOUND;
+
+  typedef struct windat_  WINDAT;
+  typedef struct xyindat_ XYINDAT;
+
   /**
    * Real-time audio parameters structure
    */
@@ -232,14 +241,10 @@ extern "C" {
     int         type;
   } CsoundChannelListEntry;
 
-  /*
-   * Forward declarations.
-   */
-
-  typedef struct CSOUND_  CSOUND;
-
-  typedef struct windat_  WINDAT;
-  typedef struct xyindat_ XYINDAT;
+  typedef void (*CsoundChannelIOCallback_t)(CSOUND *csound,
+                                            const char *channelName,
+                                            MYFLT *channelValuePtr,
+                                            int channelType);
 
 #ifndef CSOUND_CSDL_H
 
@@ -1277,6 +1282,33 @@ extern "C" {
    */
   PUBLIC int csoundGetControlChannelParams(CSOUND *, const char *name,
                                            MYFLT *dflt, MYFLT *min, MYFLT *max);
+
+  /**
+   * Sets callback function to be called by the opcodes 'chnsend' and
+   * 'chnrecv'. Should be called between csoundPreCompile() and
+   * csoundCompile(), or between csoundCompile() and the beginning
+   * of performance.
+   * The callback function takes the following arguments:
+   *   CSOUND *csound
+   *     Csound instance pointer
+   *   const char *channelName
+   *     the channel name
+   *   MYFLT *channelValuePtr
+   *     pointer to the channel value. Control channels are a single MYFLT
+   *     value, while audio channels are an array of csoundGetKsmps(csound)
+   *     MYFLT values. In the case of string channels, the pointer should be
+   *     cast to char *, and points to a buffer of
+   *     csoundGetStrVarMaxLen(csound) bytes
+   *   int channelType
+   *     bitwise OR of the channel type (CSOUND_CONTROL_CHANNEL,
+   *     CSOUND_AUDIO_CHANNEL, or CSOUND_STRING_CHANNEL; use
+   *     channelType & CSOUND_CHANNEL_TYPE_MASK to extract the channel
+   *     type), and either CSOUND_INPUT_CHANNEL or CSOUND_OUTPUT_CHANNEL
+   *     to indicate the direction of the data transfer
+   * The callback is not preserved on csoundReset().
+   */
+  PUBLIC void csoundSetChannelIOCallback(CSOUND *,
+                                         CsoundChannelIOCallback_t func);
 
   /**
    * Simple linear congruential random number generator:

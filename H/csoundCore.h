@@ -929,7 +929,8 @@ extern "C" {
     void (*DestroyMutex)(void *mutex_);
     long (*RunCommand)(const char * const *argv, int noWait);
     void *(*GetCurrentThreadID)(void);
-    SUBR dummyfn_1;
+    void (*SetChannelIOCallback)(CSOUND *, CsoundChannelIOCallback_t func);
+ /* SUBR dummyfn_1; */
     SUBR dummyfn_2[104];
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
@@ -1188,6 +1189,7 @@ extern "C" {
     OPARMS        oparms_;
     long          instxtcount, optxtsize;
     long          poolcount, gblfixed, gblacount, gblscount;
+    CsoundChannelIOCallback_t   channelIOCallback_;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

@@ -1,3 +1,8 @@
+2006-06-01	Istvan Varga	<ivarga@csounds.com>
+	* Added callback interface to the software bus with named channels,
+	  using new opcodes chnrecv and chnsend. The callback function can
+	  be set with csoundSetChannelIOCallback().
+
 2006-05-31  jpff  <jpff@codemist.co.uk>
 
 	* util/sndinfo.c: Added option to print looping information etc.
