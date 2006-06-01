@@ -2,7 +2,7 @@
     bus.c:
 
     Copyright (C) 2004 John ffitch
-              (C) 2005 Istvan Varga
+        (C) 2005, 2006 Istvan Varga
 
     This file is part of Csound.
 
@@ -24,7 +24,12 @@
                                 /*                      BUS.C           */
 #include "csoundCore.h"
 #include <setjmp.h>
+#include <ctype.h>
+
+#define CSOUND_BUS_C  1
+
 #include "aops.h"
+#include "bus.h"
 
 static CS_NOINLINE int chan_realloc(CSOUND *csound,
                                     MYFLT **p, int *oldSize, int newSize)
@@ -214,6 +219,891 @@ int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+ /* ======================================================================== */
+
+/* "chn" opcodes and bus interface by Istvan Varga */
+
+extern const unsigned char strhash_tabl_8[256];
+
+/* faster version that assumes non-empty string */
+
+static inline unsigned char name_hash_2(const char *s)
+{
+    unsigned char *c = (unsigned char*) &(s[0]);
+    unsigned char h = (unsigned char) 0;
+    do {
+      h = strhash_tabl_8[*c ^ h];
+    } while (*(++c) != (unsigned char) 0);
+    return h;
+}
+
+typedef struct controlChannelInfo_s {
+    int     type;
+    MYFLT   dflt;
+    MYFLT   min;
+    MYFLT   max;
+} controlChannelInfo_t;
+
+typedef struct channelEntry_s {
+    struct channelEntry_s *nxt;
+    controlChannelInfo_t  *info;
+    MYFLT       *data;
+    int         type;
+    char        name[1];
+} channelEntry_t;
+
+static int delete_channel_db(CSOUND *csound, void *p)
+{
+    channelEntry_t  **db, *pp;
+    int             i;
+
+    (void) p;
+    db = (channelEntry_t**) csound->chn_db;
+    if (db == NULL)
+      return 0;
+    for (i = 0; i < 256; i++) {
+      while (db[i] != NULL) {
+        pp = db[i];
+        db[i] = pp->nxt;
+        if (pp->info != NULL)
+          free((void*) pp->info);
+        free((void*) pp);
+      }
+    }
+    csound->chn_db = NULL;
+    free((void*) db);
+    return 0;
+}
+
+static inline channelEntry_t *find_channel(CSOUND *csound, const char *name)
+{
+    if (csound->chn_db != NULL && name[0]) {
+      channelEntry_t  *pp;
+      pp = ((channelEntry_t**) csound->chn_db)[name_hash_2(name)];
+      for ( ; pp != NULL; pp = pp->nxt) {
+        const char  *p1 = &(name[0]);
+        const char  *p2 = &(pp->name[0]);
+        while (1) {
+          if (*p1 != *p2)
+            break;
+          if (*p1 == (char) 0)
+            return pp;
+          p1++, p2++;
+        }
+      }
+    }
+    return NULL;
+}
+
+static CS_NOINLINE channelEntry_t *alloc_channel(CSOUND *csound, MYFLT **p,
+                                                 const char *name, int type)
+{
+    channelEntry_t  dummy;
+    void            *pp;
+    int             nbytes, nameOffs, dataOffs;
+
+    (void) dummy;
+    nameOffs = (int) ((char*) &(dummy.name[0]) - (char*) &dummy);
+    dataOffs = nameOffs + ((int) strlen(name) + 1);
+    dataOffs += ((int) sizeof(MYFLT) - 1);
+    dataOffs = (dataOffs / (int) sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    nbytes = dataOffs;
+    if (*p == NULL) {
+      switch (type & CSOUND_CHANNEL_TYPE_MASK) {
+      case CSOUND_CONTROL_CHANNEL:
+        nbytes += (int) sizeof(MYFLT);
+        break;
+      case CSOUND_AUDIO_CHANNEL:
+        nbytes += ((int) sizeof(MYFLT) * csound->global_ksmps);
+        break;
+      case CSOUND_STRING_CHANNEL:
+        nbytes += ((int) sizeof(MYFLT) * csound->strVarSamples);
+        break;
+      }
+    }
+    pp = (void*) malloc((size_t) nbytes);
+    if (pp == NULL)
+      return (channelEntry_t*) NULL;
+    memset(pp, 0, (size_t) nbytes);
+    if (*p == NULL)
+      *p = (MYFLT*) ((char*) pp + (int) dataOffs);
+    return (channelEntry_t*) pp;
+}
+
+CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
+                                   const char *name, int type)
+{
+    channelEntry_t  *pp;
+    const char      *s;
+    unsigned char   h;
+
+    /* check for valid parameters and calculate hash value */
+    if ((type & (~51)) || !(type & 3) || !(type & 48))
+      return CSOUND_ERROR;
+    s = name;
+    if (!isalpha((unsigned char) *s))
+      return CSOUND_ERROR;
+    h = (unsigned char) 0;
+    do {
+      h = strhash_tabl_8[(unsigned char) *(s++) ^ h];
+    } while (isalnum((unsigned char) *s) ||
+             *s == (char) '_' || *s == (char) '.');
+    if (*s != (char) 0)
+      return CSOUND_ERROR;
+    /* create new empty database on first call */
+    if (csound->chn_db == NULL) {
+      if (csound->RegisterResetCallback(csound, NULL, delete_channel_db) != 0)
+        return CSOUND_MEMORY;
+      csound->chn_db = (void*) calloc((size_t) 256, sizeof(channelEntry_t*));
+      if (csound->chn_db == NULL)
+        return CSOUND_MEMORY;
+    }
+    /* allocate new entry */
+    pp = alloc_channel(csound, p, name, type);
+    if (pp == NULL)
+      return CSOUND_MEMORY;
+    pp->nxt = ((channelEntry_t**) csound->chn_db)[h];
+    pp->info = NULL;
+    pp->data = (*p);
+    pp->type = type;
+    strcpy(&(pp->name[0]), name);
+    ((channelEntry_t**) csound->chn_db)[h] = pp;
+
+    return CSOUND_SUCCESS;
+}
+
+/**
+ * Stores a pointer to the specified channel of the bus in *p,
+ * creating the channel first if it does not exist yet.
+ * 'type' must be the bitwise OR of exactly one of the following values,
+ *   CSOUND_CONTROL_CHANNEL
+ *     control data (one MYFLT value)
+ *   CSOUND_AUDIO_CHANNEL
+ *     audio data (csoundGetKsmps(csound) MYFLT values)
+ *   CSOUND_STRING_CHANNEL
+ *     string data (MYFLT values with enough space to store
+ *     csoundGetStrVarMaxLen(csound) characters, including the
+ *     NULL character at the end of the string)
+ * and at least one of these:
+ *   CSOUND_INPUT_CHANNEL
+ *   CSOUND_OUTPUT_CHANNEL
+ * If the channel already exists, it must match the data type (control,
+ * audio, or string), however, the input/output bits are OR'd with the
+ * new value. Note that audio and string channels can only be created
+ * after calling csoundCompile(), because the storage size is not known
+ * until then.
+ * Return value is zero on success, or a negative error code,
+ *   CSOUND_MEMORY  there is not enough memory for allocating the channel
+ *   CSOUND_ERROR   the specified name or type is invalid
+ * or, if a channel with the same name but incompatible type already exists,
+ * the type of the existing channel. In the case of any non-zero return
+ * value, *p is set to NULL.
+ * Note: to find out the type of a channel without actually creating or
+ * changing it, set 'type' to zero, so that the return value will be either
+ * the type of the channel, or CSOUND_ERROR if it does not exist.
+ */
+
+PUBLIC int csoundGetChannelPtr(CSOUND *csound,
+                               MYFLT **p, const char *name, int type)
+{
+    channelEntry_t  *pp;
+
+    *p = (MYFLT*) NULL;
+    if (name == NULL)
+      return CSOUND_ERROR;
+    pp = find_channel(csound, name);
+    if (pp != NULL) {
+      if ((pp->type ^ type) & CSOUND_CHANNEL_TYPE_MASK)
+        return pp->type;
+      pp->type |= (type & (CSOUND_INPUT_CHANNEL | CSOUND_OUTPUT_CHANNEL));
+      *p = pp->data;
+      return CSOUND_SUCCESS;
+    }
+    return create_new_channel(csound, p, name, type);
+}
+
+static int cmp_func(const void *p1, const void *p2)
+{
+    return strcmp(((CsoundChannelListEntry*) p1)->name,
+                  ((CsoundChannelListEntry*) p2)->name);
+}
+
+/**
+ * Returns a list of allocated channels in *lst. A CsoundChannelListEntry
+ * structure contains the name and type of a channel, with the type having
+ * the same format as in the case of csoundGetChannelPtr().
+ * The return value is the number of channels, which may be zero if there
+ * are none, or CSOUND_MEMORY if there is not enough memory for allocating
+ * the list. In the case of no channels or an error, *lst is set to NULL.
+ * Notes: the caller is responsible for freeing the list returned in *lst
+ * with csoundDeleteChannelList(). The name pointers may become invalid
+ * after calling csoundReset().
+ */
+
+PUBLIC int csoundListChannels(CSOUND *csound, CsoundChannelListEntry **lst)
+{
+    channelEntry_t  *pp;
+    size_t          i, n;
+
+    *lst = (CsoundChannelListEntry*) NULL;
+    if (csound->chn_db == NULL)
+      return 0;
+    /* count the number of channels */
+    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) 256; i++) {
+      for (pp = ((channelEntry_t**) csound->chn_db)[i];
+           pp != NULL;
+           pp = pp->nxt, n++)
+        ;
+    }
+    if (!n)
+      return 0;
+    /* create list, initially in unsorted order */
+    *lst = (CsoundChannelListEntry*) malloc(n * sizeof(CsoundChannelListEntry));
+    if (*lst == NULL)
+      return CSOUND_MEMORY;
+    for (n = (size_t) 0, i = (size_t) 0; i < (size_t) 256; i++) {
+      for (pp = ((channelEntry_t**) csound->chn_db)[i];
+           pp != NULL;
+           pp = pp->nxt, n++) {
+        (*lst)[n].name = pp->name;
+        (*lst)[n].type = pp->type;
+      }
+    }
+    /* sort list */
+    qsort((void*) (*lst), n, sizeof(CsoundChannelListEntry), cmp_func);
+    /* return the number of channels */
+    return (int) n;
+}
+
+/**
+ * Releases a channel list previously returned by csoundListChannels().
+ */
+
+PUBLIC void csoundDeleteChannelList(CSOUND *csound, CsoundChannelListEntry *lst)
+{
+    (void) csound;
+    if (lst != NULL)
+      free(lst);
+}
+
+/**
+ * Sets special parameters for a control channel. The parameters are:
+ *   type:  must be one of CSOUND_CONTROL_CHANNEL_INT,
+ *          CSOUND_CONTROL_CHANNEL_LIN, or CSOUND_CONTROL_CHANNEL_EXP for
+ *          integer, linear, or exponential channel data, respectively,
+ *          or zero to delete any previously assigned parameter information
+ *   dflt:  the control value that is assumed to be the default, should be
+ *          greater than or equal to 'min', and less than or equal to 'max'
+ *   min:   the minimum value expected; if the control type is exponential,
+ *          it must be non-zero
+ *   max:   the maximum value expected, should be greater than 'min';
+ *          if the control type is exponential, it must be non-zero and
+ *          match the sign of 'min'
+ * Returns zero on success, or a non-zero error code on failure:
+ *   CSOUND_ERROR:  the channel does not exist, is not a control channel,
+ *                  or the specified parameters are invalid
+ *   CSOUND_MEMORY: could not allocate memory
+ */
+
+PUBLIC int csoundSetControlChannelParams(CSOUND *csound, const char *name,
+                                         int type, MYFLT dflt,
+                                         MYFLT min, MYFLT max)
+{
+    channelEntry_t  *pp;
+
+    if (name == NULL)
+      return CSOUND_ERROR;
+    pp = find_channel(csound, name);
+    if (pp == NULL)
+      return CSOUND_ERROR;
+    if ((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
+      return CSOUND_ERROR;
+    if (!type) {
+      if (pp->info != NULL) {
+        free((void*) pp->info);
+        pp->info = NULL;
+      }
+      return CSOUND_SUCCESS;
+    }
+    switch (type) {
+    case CSOUND_CONTROL_CHANNEL_INT:
+      dflt = (MYFLT) ((long) MYFLT2LRND(dflt));
+      min = (MYFLT) ((long) MYFLT2LRND(min));
+      max = (MYFLT) ((long) MYFLT2LRND(max));
+      break;
+    case CSOUND_CONTROL_CHANNEL_LIN:
+    case CSOUND_CONTROL_CHANNEL_EXP:
+      break;
+    default:
+      return CSOUND_ERROR;
+    }
+    if (min >= max || dflt < min || dflt > max ||
+        (type == CSOUND_CONTROL_CHANNEL_EXP && ((min * max) <= FL(0.0))))
+      return CSOUND_ERROR;
+    if (pp->info == NULL) {
+      pp->info = (controlChannelInfo_t*) malloc(sizeof(controlChannelInfo_t));
+      if (pp->info == NULL)
+        return CSOUND_MEMORY;
+    }
+    pp->info->type = type;
+    pp->info->dflt = dflt;
+    pp->info->min = min;
+    pp->info->max = max;
+    return CSOUND_SUCCESS;
+}
+
+/**
+ * Returns special parameters (assuming there are any) of a control channel,
+ * previously set with csoundSetControlChannelParams().
+ * If the channel exists, is a control channel, and has the special parameters
+ * assigned, then the default, minimum, and maximum value is stored in *dflt,
+ * *min, and *max, respectively, and a positive value that is one of
+ * CSOUND_CONTROL_CHANNEL_INT, CSOUND_CONTROL_CHANNEL_LIN, and
+ * CSOUND_CONTROL_CHANNEL_EXP is returned.
+ * In any other case, *dflt, *min, and *max are not changed, and the return
+ * value is zero if the channel exists, is a control channel, but has no
+ * special parameters set; otherwise, a negative error code is returned.
+ */
+
+PUBLIC int csoundGetControlChannelParams(CSOUND *csound, const char *name,
+                                         MYFLT *dflt, MYFLT *min, MYFLT *max)
+{
+    channelEntry_t  *pp;
+
+    if (name == NULL)
+      return CSOUND_ERROR;
+    pp = find_channel(csound, name);
+    if (pp == NULL)
+      return CSOUND_ERROR;
+    if ((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
+      return CSOUND_ERROR;
+    if (pp->info == NULL)
+      return 0;
+    (*dflt) = pp->info->dflt;
+    (*min) = pp->info->min;
+    (*max) = pp->info->max;
+    return pp->info->type;
+}
+
+/**
+ * Sets callback function to be called by the opcodes 'chnsend' and
+ * 'chnrecv'. Should be called between csoundPreCompile() and
+ * csoundCompile(), or between csoundCompile() and the beginning
+ * of performance.
+ * The callback function takes the following arguments:
+ *   CSOUND *csound
+ *     Csound instance pointer
+ *   const char *channelName
+ *     the channel name
+ *   MYFLT *channelValuePtr
+ *     pointer to the channel value. Control channels are a single MYFLT
+ *     value, while audio channels are an array of csoundGetKsmps(csound)
+ *     MYFLT values. In the case of string channels, the pointer should be
+ *     cast to char *, and points to a buffer of
+ *     csoundGetStrVarMaxLen(csound) bytes
+ *   int channelType
+ *     bitwise OR of the channel type (CSOUND_CONTROL_CHANNEL,
+ *     CSOUND_AUDIO_CHANNEL, or CSOUND_STRING_CHANNEL; use
+ *     channelType & CSOUND_CHANNEL_TYPE_MASK to extract the channel
+ *     type), and either CSOUND_INPUT_CHANNEL or CSOUND_OUTPUT_CHANNEL
+ *     to indicate the direction of the data transfer
+ * The callback is not preserved on csoundReset().
+ */
+
+PUBLIC void csoundSetChannelIOCallback(CSOUND *csound,
+                                       CsoundChannelIOCallback_t func)
+{
+    csound->channelIOCallback_ = func;
+}
+
+ /* ------------------------------------------------------------------------ */
+
+/* perf time stub for printing "not initialised" error message */
+
+int notinit_opcode_stub(CSOUND *csound, void *p)
+{
+    return csound->PerfError(csound, Str("%s: not initialised"),
+                                     csound->GetOpcodeName(p));
+}
+
+/* print error message on failed channel query */
+
+static CS_NOINLINE int print_chn_err(void *p, int err)
+{
+    CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
+    const char  *msg;
+
+    if (((OPDS*) p)->opadr != (SUBR) NULL)
+      ((OPDS*) p)->opadr = (SUBR) notinit_opcode_stub;
+    if (err == CSOUND_MEMORY)
+      msg = "memory allocation failure";
+    else if (err < 0)
+      msg = "invalid channel name";
+    else
+      msg = "channel already exists with incompatible type";
+    return csound->InitError(csound, Str(msg));
+}
+
+/* receive control value from bus at performance time */
+
+static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
+{
+    *(p->arg) = *(p->fp);
+    return OK;
+}
+
+/* receive audio data from bus at performance time */
+
+static int chnget_opcode_perf_a(CSOUND *csound, CHNGET *p)
+{
+    int   i = 0;
+
+    do {
+      p->arg[i] = p->fp[i];
+    } while (++i < csound->ksmps);
+
+    return OK;
+}
+
+/* receive control value from bus at init time */
+
+int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if (err)
+      return print_chn_err(p, err);
+    *(p->arg) = *(p->fp);
+
+    return OK;
+}
+
+/* init routine for chnget opcode (control data) */
+
+int chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if (!err) {
+      p->h.opadr = (SUBR) chnget_opcode_perf_k;
+      return OK;
+    }
+    return print_chn_err(p, err);
+}
+
+/* init routine for chnget opcode (audio data) */
+
+int chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if (!err) {
+      p->h.opadr = (SUBR) chnget_opcode_perf_a;
+      return OK;
+    }
+    return print_chn_err(p, err);
+}
+
+/* receive string value from bus at init time */
+
+int chnget_opcode_init_S(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if (err)
+      return print_chn_err(p, err);
+    strcpy((char*) p->arg, (char*) p->fp);
+
+    return OK;
+}
+
+/* send control value to bus at performance time */
+
+static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
+{
+    *(p->fp) = *(p->arg);
+    return OK;
+}
+
+/* send audio data to bus at performance time */
+
+static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
+{
+    int   i = 0;
+
+    do {
+      p->fp[i] = p->arg[i];
+    } while (++i < csound->ksmps);
+
+    return OK;
+}
+
+/* send audio data to bus at performance time, mixing to previous output */
+
+static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
+{
+    int   i = 0;
+
+    do {
+      p->fp[i] += p->arg[i];
+    } while (++i < csound->ksmps);
+
+    return OK;
+}
+
+/* clear an audio channel to zero at performance time */
+
+static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
+{
+    int   i = 0;
+
+    do {
+      p->fp[i] = FL(0.0);
+    } while (++i < csound->ksmps);
+
+    return OK;
+}
+
+/* send control value to bus at init time */
+
+int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if (err)
+      return print_chn_err(p, err);
+    *(p->fp) = *(p->arg);
+
+    return OK;
+}
+
+/* init routine for chnset opcode (control data) */
+
+int chnset_opcode_init_k(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if (!err) {
+      p->h.opadr = (SUBR) chnset_opcode_perf_k;
+      return OK;
+    }
+    return print_chn_err(p, err);
+}
+
+/* init routine for chnset opcode (audio data) */
+
+int chnset_opcode_init_a(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if (!err) {
+      p->h.opadr = (SUBR) chnset_opcode_perf_a;
+      return OK;
+    }
+    return print_chn_err(p, err);
+}
+
+/* init routine for chnmix opcode */
+
+int chnmix_opcode_init(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if (!err) {
+      p->h.opadr = (SUBR) chnmix_opcode_perf;
+      return OK;
+    }
+    return print_chn_err(p, err);
+}
+
+/* init routine for chnclear opcode */
+
+int chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
+{
+    int   err;
+
+    /* NOTE: p->imode is a pointer to the channel data here */
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if (!err) {
+      p->h.opadr = (SUBR) chnclear_opcode_perf;
+      return OK;
+    }
+    return print_chn_err(p, err);
+}
+
+/* send string to bus at init time */
+
+int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
+{
+    int   err;
+
+    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname,
+                              CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+    if (err)
+      return print_chn_err(p, err);
+    if ((int) strlen((char*) p->arg) >= csound->strVarMaxLen) {
+      /* can only happen with constants */
+      return csound->InitError(csound, Str("string is too long"));
+    }
+    strcpy((char*) p->fp, (char*) p->arg);
+
+    return OK;
+}
+
+/* declare control channel, optionally with special parameters */
+
+int chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
+{
+    MYFLT *dummy;
+    int   type, mode, err;
+
+    mode = (int) MYFLT2LRND(*(p->imode));
+    if (mode < 1 || mode > 3)
+      return csound->InitError(csound, Str("invalid mode parameter"));
+    type = CSOUND_CONTROL_CHANNEL;
+    if (mode & 1)
+      type |= CSOUND_INPUT_CHANNEL;
+    if (mode & 2)
+      type |= CSOUND_OUTPUT_CHANNEL;
+    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname, type);
+    if (err)
+      return print_chn_err(p, err);
+    type = (int) MYFLT2LRND(*(p->itype));
+    err = csoundSetControlChannelParams(csound, (char*) p->iname, type,
+                                        *(p->idflt), *(p->imin), *(p->imax));
+    if (!err)
+      return OK;
+    if (err == CSOUND_MEMORY)
+      return print_chn_err(p, err);
+    return csound->InitError(csound, Str("invalid channel parameters"));
+}
+
+/* declare audio channel */
+
+int chn_a_opcode_init(CSOUND *csound, CHN_OPCODE *p)
+{
+    MYFLT *dummy;
+    int   type, mode, err;
+
+    mode = (int) MYFLT2LRND(*(p->imode));
+    if (mode < 1 || mode > 3)
+      return csound->InitError(csound, Str("invalid mode parameter"));
+    type = CSOUND_AUDIO_CHANNEL;
+    if (mode & 1)
+      type |= CSOUND_INPUT_CHANNEL;
+    if (mode & 2)
+      type |= CSOUND_OUTPUT_CHANNEL;
+    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname, type);
+    if (err)
+      return print_chn_err(p, err);
+    return OK;
+}
+
+/* declare string channel */
+
+int chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
+{
+    MYFLT *dummy;
+    int   type, mode, err;
+
+    mode = (int) MYFLT2LRND(*(p->imode));
+    if (mode < 1 || mode > 3)
+      return csound->InitError(csound, Str("invalid mode parameter"));
+    type = CSOUND_STRING_CHANNEL;
+    if (mode & 1)
+      type |= CSOUND_INPUT_CHANNEL;
+    if (mode & 2)
+      type |= CSOUND_OUTPUT_CHANNEL;
+    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname, type);
+    if (err)
+      return print_chn_err(p, err);
+    return OK;
+}
+
+/* export new channel from global orchestra variable */
+
+int chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
+{
+    MYFLT       *dummy;
+    const char  *argName;
+    int         type = CSOUND_CONTROL_CHANNEL, mode, err;
+
+    /* must have an output argument of type 'gi', 'gk', 'ga', or 'gS' */
+    if (csound->GetOutputArgCnt(p) != 1)
+      goto arg_err;
+    argName = csound->GetOutputArgName(p, 0);
+    if (argName == NULL)
+      goto arg_err;
+    if (argName[0] != 'g')
+      goto arg_err;
+    switch ((int) argName[1]) {
+    case 'i':
+    case 'k':
+      break;
+    case 'a':
+      type = CSOUND_AUDIO_CHANNEL;
+      break;
+    case 'S':
+      type = CSOUND_STRING_CHANNEL;
+      break;
+    default:
+      goto arg_err;
+    }
+    /* mode (input and/or output) */
+    mode = (int) MYFLT2LRND(*(p->imode));
+    if (mode < 1 || mode > 3)
+      return csound->InitError(csound, Str("invalid mode parameter"));
+    if (mode & 1)
+      type |= CSOUND_INPUT_CHANNEL;
+    if (mode & 2)
+      type |= CSOUND_OUTPUT_CHANNEL;
+    /* check if the channel already exists (it should not) */
+    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname, 0);
+    if (err >= 0)
+      return csound->InitError(csound, Str("channel already exists"));
+    /* now create new channel, using output variable for data storage */
+    dummy = p->arg;
+    err = create_new_channel(csound, &dummy, (char*) p->iname, type);
+    if (err)
+      return print_chn_err(p, err);
+    /* if control channel, set additional parameters */
+    if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
+      return OK;
+    type = (int) MYFLT2LRND(*(p->itype));
+    err = csoundSetControlChannelParams(csound, (char*) p->iname, type,
+                                        *(p->idflt), *(p->imin), *(p->imax));
+    if (!err)
+      return OK;
+    if (err == CSOUND_MEMORY)
+      return print_chn_err(p, err);
+    return csound->InitError(csound, Str("invalid channel parameters"));
+
+ arg_err:
+    return csound->InitError(csound, Str("invalid export variable"));
+}
+
+/* returns all parameters of a channel */
+
+int chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
+{
+    MYFLT *dummy;
+    int   err;
+
+    /* all values default to zero... */
+    *(p->itype) = FL(0.0);
+    *(p->imode) = FL(0.0);
+    *(p->ictltype) = FL(0.0);
+    *(p->idflt) = FL(0.0);
+    *(p->imin) = FL(0.0);
+    *(p->imax) = FL(0.0);
+    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname, 0);
+    /* ...if channel does not exist */
+    if (err <= 0)
+      return OK;
+    /* type (control/audio/string) */
+    *(p->itype) = (MYFLT) (err & 15);
+    /* mode (input and/or output) */
+    *(p->imode) = (MYFLT) ((err & 48) >> 4);
+    /* check for control channel parameters */
+    if ((err & 15) == CSOUND_CONTROL_CHANNEL) {
+      err = csoundGetControlChannelParams(csound, (char*) p->iname,
+                                          p->idflt, p->imin, p->imax);
+      if (err > 0)
+        *(p->ictltype) = (MYFLT) err;
+    }
+    return OK;
+}
+
+static int dummy_opcode_stub(CSOUND *csound, void *p)
+{
+    (void) csound;
+    (void) p;
+    return OK;
+}
+
+static int chn_send_recv_opcodes_perf(CSOUND *csound, CHNSEND *p)
+{
+    csound->channelIOCallback_(csound, p->name, p->fp, p->type);
+    return OK;
+}
+
+static CS_NOINLINE int chn_send_recv_opcodes_init_(CSOUND *csound,
+                                                   CHNSEND *p, int ioType)
+{
+    channelEntry_t  *pp;
+    int             chnType, mode = 0;
+
+    pp = find_channel(csound, (char*) p->iname);
+    if (pp == (channelEntry_t*) NULL) {
+      p->h.opadr = (SUBR) notinit_opcode_stub;
+      return csound->InitError(csound, Str("channel '%s' does not exist"),
+                                       (char*) p->iname);
+    }
+    if (!(pp->type & ioType)) {
+      p->h.opadr = (SUBR) notinit_opcode_stub;
+      return csound->InitError(csound, Str("channel '%s' is not an %s channel"),
+                                       Str(ioType == CSOUND_INPUT_CHANNEL ?
+                                           "input" : "output"));
+    }
+    p->name = &(pp->name[0]);
+    p->fp = pp->data;
+    chnType = pp->type & CSOUND_CHANNEL_TYPE_MASK;
+    p->type = chnType | ioType;
+    if (chnType != CSOUND_AUDIO_CHANNEL) {
+      if (*(p->imode) < FL(0.5))
+        mode = (chnType == CSOUND_STRING_CHANNEL ? 1 : 3);
+      else {
+        mode = (int) (*(p->imode) + FL(0.5));
+        if (mode > 3) {
+          p->h.opadr = (SUBR) notinit_opcode_stub;
+          return csound->InitError(csound, Str("invalid mode parameter: %d"),
+                                           mode);
+        }
+      }
+    }
+    else
+      mode = 2;
+    if (csound->channelIOCallback_ != (CsoundChannelIOCallback_t) NULL) {
+      if (mode & 2)
+        p->h.opadr = (SUBR) chn_send_recv_opcodes_perf;
+      else
+        p->h.opadr = (SUBR) dummy_opcode_stub;
+      if (mode & 1)
+        csound->channelIOCallback_(csound, p->name, p->fp, p->type);
+    }
+    else
+      p->h.opadr = (SUBR) dummy_opcode_stub;
+
+    return OK;
+}
+
+int chnrecv_opcode_init(CSOUND *csound, CHNSEND *p)
+{
+    return chn_send_recv_opcodes_init_(csound, p, CSOUND_INPUT_CHANNEL);
+}
+
+int chnsend_opcode_init(CSOUND *csound, CHNSEND *p)
+{
+    return chn_send_recv_opcodes_init_(csound, p, CSOUND_OUTPUT_CHANNEL);
+}
+
 /* ********************************************************************** */
 /* *************** SENSING ********************************************** */
 /* ********************************************************************** */
@@ -231,6 +1121,7 @@ int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
 
 int sensekey_init(CSOUND *csound, KSENSE *p)
 {
+    (void) p;
     if (csound->inChar_ < 0) {
 #  if defined(WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);  /* Does not seem to work */

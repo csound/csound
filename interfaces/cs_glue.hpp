@@ -463,13 +463,18 @@ class CsoundCallbackWrapper {
  public:
     virtual void MessageCallback(int attr, char *msg)
     {
+      (void) attr;
+      (void) msg;
     }
     virtual double InputValueCallback(const char *chnName)
     {
+      (void) chnName;
       return 0.0;
     }
     virtual void OutputValueCallback(const char *chnName, double value)
     {
+      (void) chnName;
+      (void) value;
     }
     virtual int YieldCallback()
     {
@@ -483,12 +488,46 @@ class CsoundCallbackWrapper {
     {
       (void) p;
     }
+    virtual double ControlChannelInputCallback(const char *chnName)
+    {
+      (void) chnName;
+      return 0.0;
+    }
+    virtual void ControlChannelOutputCallback(const char *chnName, double value)
+    {
+      (void) chnName;
+      (void) value;
+    }
+    virtual void AudioChannelInputCallback(const char *chnName, MYFLT *buf)
+    {
+      int   ksmps = csoundGetKsmps(csound_);
+      (void) chnName;
+      for (int i = 0; i < ksmps; i++)
+        buf[i] = (MYFLT) 0;
+    }
+    virtual void AudioChannelOutputCallback(const char *chnName, MYFLT *buf)
+    {
+      (void) chnName;
+      (void) buf;
+    }
+    virtual const char *StringChannelInputCallback(const char *chnName)
+    {
+      (void) chnName;
+      return "";
+    }
+    virtual void StringChannelOutputCallback(const char *chnName,
+                                             const char *value)
+    {
+      (void) chnName;
+      (void) value;
+    }
     void SetMessageCallback();
     void SetInputValueCallback();
     void SetOutputValueCallback();
     void SetYieldCallback();
     void SetMidiInputCallback(CsoundArgVList *argv);
     void SetMidiOutputCallback(CsoundArgVList *argv);
+    void SetChannelIOCallbacks();
     CSOUND *GetCsound()
     {
       return csound_;
