@@ -734,6 +734,10 @@ public:
   {
     return csoundDeleteConfigurationVariable(csound, name);
   }
+  virtual void SetChannelIOCallback(CsoundChannelIOCallback_t func)
+  {
+    csoundSetChannelIOCallback(csound, func);
+  }
   // constructors
   // FIXME: should throw exception on failure ?
   Csound()

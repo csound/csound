@@ -160,8 +160,3 @@ typedef struct {
     AUXCH   channelName;
 } OUTVAL;
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *ans;
-} KSENSE;
-

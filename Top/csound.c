@@ -288,7 +288,8 @@ static const CSOUND cenviron_ = {
         csoundDestroyMutex,
         csoundRunCommand,
         csoundGetCurrentThreadId,
-        NULL,
+        csoundSetChannelIOCallback,
+     /* NULL, */
         { NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -574,7 +575,8 @@ static const CSOUND cenviron_ = {
         },
         0L, 0L,         /*  instxtcount, optxtsize  */
         0L, 0L,         /*  poolcount, gblfixed     */
-        0L, 0L          /*  gblacount, gblscount    */
+        0L, 0L,         /*  gblacount, gblscount    */
+        (CsoundChannelIOCallback_t) NULL    /*  channelIOCallback_  */
 };
 
   /* from threads.c */
