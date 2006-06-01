@@ -83,7 +83,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       else
         *((SNDFILE**) fp) = (SNDFILE*) NULL;
     }
-    /* if file is already open, close it first */
+    /* if the opcode already uses a file, remove old reference first */
     if (p != (FOUT_FILE*) NULL) {
       if (p->idx)
         fout_deinit_callback(csound, (void*) p);
