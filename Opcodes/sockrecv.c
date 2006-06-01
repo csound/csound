@@ -21,6 +21,11 @@
     02111-1307 USA
 */
 
+#if defined(__linux) || defined(__linux__)
+/* for usleep() */
+#  define _XOPEN_SOURCE 600
+#endif
+
 #include "csdl.h"
 #include <unistd.h>
 #include <stdlib.h>
@@ -30,9 +35,6 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <errno.h>
-#if defined(__linux__)
-int usleep(long);
-#endif
 
 #define MAXBUFS 32
 #define MTU (1456)
@@ -144,7 +146,7 @@ static uintptr_t udpRecvS(void *pdata)
     while (*threadon) {
       /* get the data from the socket and store it in a tmp buffer */
       if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
-        while(p->usedbuf[p->wbufferuse]==1) {
+        while (p->usedbuf[p->wbufferuse] == 1) {
           usleep(1);
         }
         p->wbufferuse++;
