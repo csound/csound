@@ -30,8 +30,8 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <errno.h>
-#ifdef LINUX
-#include <unistd.h>
+#if defined(__linux__)
+int usleep(long);
 #endif
 
 #define MAXBUFS 32
