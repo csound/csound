@@ -39,7 +39,9 @@ find "./debian/tmp" -type d -exec chmod 0755 "{}" \;
 find "./debian/tmp" -type f -perm +0100 -exec chmod 0755 "{}" \;
 find "./debian/tmp" -type f \! -perm +0100 -exec chmod 0644 "{}" \;
 
+dh_makeshlibs
 dh_gencontrol
+dh_md5sums
 dh_builddeb
 
 rm -f "./debian/files"
