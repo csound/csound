@@ -98,7 +98,8 @@ int express(CSOUND *csound, char *s)
         if (c == '+')               /*   look for signs:         */
           continue;
         if (c == '-') {             /* neg const:  get past sign */
-          if (*s == '.' || (*s >= '0' && *s <= '9'))
+          /* the check for 'd' is for correctly parsing "-0dbfs" */
+          if (*s == '.' || (*s >= '0' && *s <= '9' && s[1] != 'd'))
             *t++ = c;
           else {                    /* neg symbol: prv / illegal */
             if (csound->token > csound->tokens &&
@@ -106,16 +107,16 @@ int express(CSOUND *csound, char *s)
               XERROR(Str("divide by unary minus"))
             csound->token->str = (char*) strminus1; csound->token++;
             csound->token->str = (char*) strmult; csound->token++;
-            csound->token->str = t;     /* else -1 * symbol */
+            csound->token->str = t; /* else -1 * symbol */
           }
-          c = *s++;                /* beg rem of token */
+          c = *s++;                 /* beg rem of token */
         }
         else if (c == '*' || c == '/' || c == '%')  /* unary mlt, div */
-          XERROR(Str("unary mult or divide"))       /*   illegal */
+          XERROR(Str("unary mult or divide"))       /*   illegal      */
             open = 0;
       }
-      *t++ = c;                    /* copy this character or    */
-      if (((nextc = *s) == c && (c == '&' || c == '|')) || /* double op */
+      *t++ = c;                     /* copy this character or    */
+      if (((nextc = *s) == c && (c == '&' || c == '|')) ||  /* double op  */
           (nextc == '=' && (c=='<' || c=='>' || c=='=' || c=='!'))) {
         *t++ = c = *s++;
         open = 1;
@@ -124,20 +125,30 @@ int express(CSOUND *csound, char *s)
         *(t - 1) = (char) (c == '<' ? BITSHL : BITSHR);
         s++; open = 1;
       }
-      else if ( c == '(' || c == '+' || c == '-' || c == '*' || c == '/' ||
-                c == '%' || c == '>' || c == '<' || c == '=' || c == '&' ||
-                c == '|' || c == '?' || c == ':' || c == '#' || c == '\254' ||
-                c == '~') {
+      else if (c == '(' || c == '+' || c == '-' || c == '*' || c == '/' ||
+               c == '%' || c == '>' || c == '<' || c == '=' || c == '&' ||
+               c == '|' || c == '?' || c == ':' || c == '#' || c == '\254' ||
+               c == '~') {
         if (c == '&') *(t-1) = BITCLR;
         else if (c == '|') *(t-1) = BITSET;
         else if (c == '#') *(t-1) = BITFLP;
-        open = 1;                     /* decl if unary can follow */
+        open = 1;                     /* decl if unary can follow  */
       }
-      else if (nontermin(c))
-        while (nontermin(*s))         /* if not just a termin char */
+      else if (nontermin(c)) {        /* if not just a termin char */
+        if (c == '.' || (c >= '0' && c <= '9')) {
+          char  *tmp = --s;
+          (void) strtod(s, &tmp);     /*      copy constant        */
+          while (++s < tmp)
+            *t++ = *s;
+          /* also copy any trailing characters after a constant,   */
+          /* which will be a syntax error later (in constndx())    */
+          /* for anything other than "0dbfs" */
+        }
+        while (nontermin(*s))
           *t++ = *s++;                /*      copy entire token    */
+      }
       *t++ = '\0';                    /* terminate this token      */
-      if (t >= csound->stringend) {        /* Extend token length as required */
+      if (t >= csound->stringend) {       /* Extend token length as required */
         t = extend_tokenstring(csound, (size_t) (t - csound->tokenstring));
       }
       if ((csound->tokend - csound->token) <= 4) {
