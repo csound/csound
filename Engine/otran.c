@@ -765,9 +765,12 @@ static void insprep(CSOUND *csound, INSTRTXT *tp)
 
 static void lgbuild(CSOUND *csound, char *s)
 {                               /* build pool of floating const values  */
-    char c;                     /* build lcl/gbl list of ds names, offsets */
+    char    c;                  /* build lcl/gbl list of ds names, offsets */
                                 /*   (no need to save the returned values) */
-    if (((c = *s) >= '0' && c <= '9') || c == '.' || c == '-' || c == '+')
+    c = *s;
+    /* must trap 0dbfs as name starts with a digit! */
+    if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
+        (c == '0' && strcmp(s, "0dbfs") != 0))
       constndx(csound, s);
     else if (c == '"')
       strconstndx(csound, s);
@@ -850,14 +853,11 @@ static inline unsigned int MYFLT_hash(const MYFLT *x)
 static int constndx(CSOUND *csound, const char *s)
 {
     MYFLT   newval;
+    char    *tmp = (char*) s;
     int     h, n, prv;
 
-#ifdef USE_DOUBLE
-    if (sscanf(s, "%lf", &newval) != 1)
-#else
-    if (sscanf(s, "%f", &newval) != 1)
-#endif
-    {
+    newval = (MYFLT) strtod(s, &tmp);
+    if (tmp == s || *tmp != (char) 0) {
       synterr(csound, Str("numeric syntax '%s'"), s);
       return 0;
     }

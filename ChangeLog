@@ -15,6 +15,9 @@
 	  kpos    strindexk   Sstr1, Sstr2
 	  ipos    strrindex   Sstr1, Sstr2
 	  kpos    strrindexk  Sstr1, Sstr2
+	* Engine/express.c, Engine/otran.c:
+	  fixed parsing of numbers in exponential notation
+	  also some parser fixes related to 0dbfs
 
 2006-06-01	Istvan Varga	<ivarga@csounds.com>
 	* Added callback interface to the software bus with named channels,
