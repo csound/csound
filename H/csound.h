@@ -1286,8 +1286,7 @@ extern "C" {
   /**
    * Sets callback function to be called by the opcodes 'chnsend' and
    * 'chnrecv'. Should be called between csoundPreCompile() and
-   * csoundCompile(), or between csoundCompile() and the beginning
-   * of performance.
+   * csoundCompile().
    * The callback function takes the following arguments:
    *   CSOUND *csound
    *     Csound instance pointer
