@@ -1,7 +1,8 @@
 /*
     str_ops.h:
 
-    Copyright (C) 2005 Istvan Varga, Matt J. Ingalls, John ffitch
+    Copyright (C) 2005, 2006 Istvan Varga
+              (C) 2005       Matt J. Ingalls, John ffitch
 
     This file is part of Csound.
 
@@ -77,27 +78,67 @@ typedef struct {
     int     noNewLine;
 } PUTS_OP;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *Sdst;
+    MYFLT   *Ssrc;
+    MYFLT   *istart;
+    MYFLT   *iend;
+} STRSUB_OP;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ichr;
+    MYFLT   *Ssrc;
+    MYFLT   *ipos;
+} STRCHAR_OP;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ilen;
+    MYFLT   *Ssrc;
+} STRLEN_OP;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *Sdst;
+    MYFLT   *Ssrc;
+} STRUPPER_OP;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *Sdst;
+    MYFLT   *iopt;
+} GETCFG_OP;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ipos;
+    MYFLT   *Ssrc1;
+    MYFLT   *Ssrc2;
+} STRINDEX_OP;
+
 /*
  {  "strset",   S(STRSET_OP),   1,  "",     "iS",
     (SUBR) strset_init, (SUBR) NULL, (SUBR) NULL                        },
  {  "strget",   S(STRGET_OP),   1,  "S",    "i",
     (SUBR) strget_init, (SUBR) NULL, (SUBR) NULL                        },
  {  "strcpy",   S(STRCPY_OP),   1,  "S",    "S",
-    (SUBR) strcpy_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+    (SUBR) strcpy_opcode, (SUBR) NULL, (SUBR) NULL                      },
  {  "strcpyk",  S(STRCPY_OP),   3,  "S",    "S",
-    (SUBR) strcpy_opcode_init, (SUBR) strcpy_opcode_perf, (SUBR) NULL   },
+    (SUBR) strcpy_opcode, (SUBR) strcpy_opcode, (SUBR) NULL             },
  {  "strcat",   S(STRCAT_OP),   1,  "S",    "SS",
-    (SUBR) strcat_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+    (SUBR) strcat_opcode, (SUBR) NULL, (SUBR) NULL                      },
  {  "strcatk",  S(STRCAT_OP),   3,  "S",    "SS",
-    (SUBR) strcat_opcode_init, (SUBR) strcat_opcode_perf, (SUBR) NULL   },
+    (SUBR) strcat_opcode, (SUBR) strcat_opcode, (SUBR) NULL             },
  {  "strcmp",   S(STRCAT_OP),   1,  "i",    "SS",
-    (SUBR) strcpy_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+    (SUBR) strcmp_opcode, (SUBR) NULL, (SUBR) NULL                      },
  {  "strcmpk",  S(STRCAT_OP),   3,  "k",    "SS",
     (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, (SUBR) NULL             },
  {  "sprintf",  S(SPRINTF_OP),  1,  "S",    "SN",
-    (SUBR) sprintf_opcode_init, (SUBR) NULL, (SUBR) NULL                },
+    (SUBR) sprintf_opcode, (SUBR) NULL, (SUBR) NULL                     },
  {  "sprintfk", S(SPRINTF_OP),  3,  "S",    "SN",
-    (SUBR) sprintf_opcode_init, (SUBR) sprintf_opcode_perf, (SUBR) NULL },
+    (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, (SUBR) NULL           },
  {  "printf_i", S(PRINTF_OP),   1,  "",     "SiN",
     (SUBR) printf_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
  {  "printf",   S(PRINTF_OP),   3,  "",     "SkN",
@@ -105,35 +146,68 @@ typedef struct {
  {  "puts",     S(PUTS_OP),     3,  "",     "Sko",
     (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, (SUBR) NULL       },
  {  "strtod",   S(STRSET_OP),   1,  "i",    "T",
-    (SUBR) strtod_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+    (SUBR) strtod_opcode, (SUBR) NULL, (SUBR) NULL                      },
  {  "strtodk",  S(STRSET_OP),   3,  "k",    "U",
-    (SUBR) strtod_opcode_init, (SUBR) strtod_opcode_perf, (SUBR) NULL   },
+    (SUBR) strtod_opcode, (SUBR) strtod_opcode, (SUBR) NULL             },
  {  "strtol",   S(STRSET_OP),   1,  "i",    "T",
-    (SUBR) strtol_opcode_init, (SUBR) NULL, (SUBR) NULL                 },
+    (SUBR) strtol_opcode, (SUBR) NULL, (SUBR) NULL                      },
  {  "strtolk",  S(STRSET_OP),   3,  "k",    "U",
-    (SUBR) strtol_opcode_init, (SUBR) strtol_opcode_perf, (SUBR) NULL   },
+    (SUBR) strtol_opcode, (SUBR) strtol_opcode, (SUBR) NULL             },
+ {  "strsub",   S(STRSUB_OP),   1,  "S",    "Soj",
+    (SUBR) strsub_opcode, (SUBR) NULL, (SUBR) NULL                      },
+ {  "strsubk",  S(STRSUB_OP),   3,  "S",    "Skk",
+    (SUBR) strsub_opcode, (SUBR) strsub_opcode, (SUBR) NULL             },
+ {  "strchar",  S(STRCHAR_OP),  1,  "i",    "So",
+    (SUBR) strchar_opcode, (SUBR) NULL, (SUBR) NULL                     },
+ {  "strchark", S(STRCHAR_OP),  3,  "k",    "SO",
+    (SUBR) strchar_opcode, (SUBR) strchar_opcode, (SUBR) NULL           },
+ {  "strlen",   S(STRLEN_OP),   1,  "i",    "S",
+    (SUBR) strlen_opcode, (SUBR) NULL, (SUBR) NULL                      },
+ {  "strlenk",  S(STRLEN_OP),   3,  "k",    "S",
+    (SUBR) strlen_opcode, (SUBR) strlen_opcode, (SUBR) NULL             },
+ {  "strupper", S(STRUPPER_OP), 1,  "S",    "S",
+    (SUBR) strupper_opcode, (SUBR) NULL, (SUBR) NULL                    },
+ {  "strupperk", S(STRUPPER_OP), 3, "S",    "S",
+    (SUBR) strupper_opcode, (SUBR) strupper_opcode, (SUBR) NULL         },
+ {  "strlower", S(STRUPPER_OP), 1,  "S",    "S",
+    (SUBR) strlower_opcode, (SUBR) NULL, (SUBR) NULL                    },
+ {  "strlowerk", S(STRUPPER_OP), 3, "S",    "S",
+    (SUBR) strlower_opcode, (SUBR) strlower_opcode, (SUBR) NULL         },
+ {  "getcfg",   S(GETCFG_OP),   1,  "S",    "i",
+    (SUBR) getcfg_opcode, (SUBR) NULL, (SUBR) NULL                      },
+ {  "strindex", S(STRINDEX_OP), 1,  "i",    "SS",
+    (SUBR) strindex_opcode, (SUBR) NULL, (SUBR) NULL                    },
+ {  "strindexk", S(STRINDEX_OP), 3, "k",    "SS",
+    (SUBR) strindex_opcode, (SUBR) strindex_opcode, (SUBR) NULL         },
+ {  "strrindex", S(STRINDEX_OP), 1, "i",    "SS",
+    (SUBR) strrindex_opcode, (SUBR) NULL, (SUBR) NULL                   },
+ {  "strrindexk", S(STRINDEX_OP), 3, "k",   "SS",
+    (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, (SUBR) NULL       },
 */
 
 #ifndef CSOUND_STR_OPS_C
 
-int strset_init(CSOUND *, void *);
-int strget_init(CSOUND *, void *);
-int strcpy_opcode_init(CSOUND *, void *);
-int strcpy_opcode_perf(CSOUND *, void *);
-int strcat_opcode_init(CSOUND *, void *);
-int strcat_opcode_perf(CSOUND *, void *);
-int strcmp_opcode(CSOUND *, void *);
-int sprintf_opcode_init(CSOUND *, void *);
-int sprintf_opcode_perf(CSOUND *, void *);
-int printf_opcode_init(CSOUND *, void *);
-int printf_opcode_set(CSOUND *, void *);
-int printf_opcode_perf(CSOUND *, void *);
-int puts_opcode_init(CSOUND *, void *);
-int puts_opcode_perf(CSOUND *, void *);
-int strtod_opcode_init(CSOUND *, void *);
-int strtod_opcode_perf(CSOUND *, void *);
-int strtol_opcode_init(CSOUND *, void *);
-int strtol_opcode_perf(CSOUND *, void *);
+int     strset_init(CSOUND *, void *);
+int     strget_init(CSOUND *, void *);
+int     strcpy_opcode(CSOUND *, void *);
+int     strcat_opcode(CSOUND *, void *);
+int     strcmp_opcode(CSOUND *, void *);
+int     sprintf_opcode(CSOUND *, void *);
+int     printf_opcode_init(CSOUND *, void *);
+int     printf_opcode_set(CSOUND *, void *);
+int     printf_opcode_perf(CSOUND *, void *);
+int     puts_opcode_init(CSOUND *, void *);
+int     puts_opcode_perf(CSOUND *, void *);
+int     strtod_opcode(CSOUND *, void *);
+int     strtol_opcode(CSOUND *, void *);
+int     strsub_opcode(CSOUND *, void *);
+int     strchar_opcode(CSOUND *, void *);
+int     strlen_opcode(CSOUND *, void *);
+int     strupper_opcode(CSOUND *, void *);
+int     strlower_opcode(CSOUND *, void *);
+int     getcfg_opcode(CSOUND *, void *);
+int     strindex_opcode(CSOUND *, void *);
+int     strrindex_opcode(CSOUND *, void *);
 
 #endif      /* CSOUND_STR_OPS_C */
 

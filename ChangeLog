@@ -1,3 +1,21 @@
+2006-06-02	Istvan Varga	<ivarga@csounds.com>
+	* New string opcodes:
+	  Sdst    strsub      Ssrc[, istart[, iend]]
+	  Sdst    strsubk     Ssrc, kstart, kend
+	  ichr    strchar     Sstr[, ipos]
+	  kchr    strchark    Sstr[, kpos]
+	  ilen    strlen      Sstr
+	  klen    strlenk     Sstr
+	  Sdst    strupper    Ssrc
+	  Sdst    strupperk   Ssrc
+	  Sdst    strlower    Ssrc
+	  Sdst    strlowerk   Ssrc
+	  Sval    getcfg      iopt
+	  ipos    strindex    Sstr1, Sstr2
+	  kpos    strindexk   Sstr1, Sstr2
+	  ipos    strrindex   Sstr1, Sstr2
+	  kpos    strrindexk  Sstr1, Sstr2
+
 2006-06-01	Istvan Varga	<ivarga@csounds.com>
 	* Added callback interface to the software bus with named channels,
 	  using new opcodes chnrecv and chnsend. The callback function can
