@@ -1486,10 +1486,10 @@ int outch(CSOUND *csound, OUTCH *p)
     return OK;
 }
 
-/* k-rate i/o opcodes */
+/* k-rate and string i/o opcodes */
 /* invalue and outvalue are used with the csoundAPI */
+/*     ma++ ingalls      matt@sonomatics.com */
 
-/* ma++ */
 int kinval(CSOUND *csound, INVAL *p)
 {
     if (csound->InputValueCallback_)
@@ -1505,7 +1505,11 @@ int invalset(CSOUND *csound, INVAL *p)
 {
     if (p->XSTRCODE) {
       const char  *s = (char*) p->valID;
-      if (*s == '$')
+    
+      /* check for starting with a $, which will confuse hosts
+         -- pretty unlikely given that the parser thinks 
+         "$string" is a macro -- but just in case: */ 
+      if (*s == '$') 
         return csound->PerfError(csound, "k-rate invalue ChannelName "
                                          "cannot start with $");
       /* allocate the space used to pass a string during the k-pass */
