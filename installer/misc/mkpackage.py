@@ -3,7 +3,8 @@
 import os
 import re
 
-CFlags = '-Wall -O3 -fno-inline-functions -march=i686 -mtune=pentium3'
+CFlags = '-Wall -O3 -fno-inline-functions -march=i686'
+# CFlags += ' -mtune=pentium3'
 CFlags += ' -fomit-frame-pointer -ffast-math'
 
 # CFlags = '-O0'
@@ -50,8 +51,8 @@ pythonDir2  = pythonDir
 pdDir       = '/usr/local/lib/pd/extra'
 
 # uncomment this to install VIM syntax files
-# vimDir    = '/usr/share/vim/current'
-vimDir      = ''
+vimDir      = '/usr/share/vim/current'
+# vimDir    = ''
 
 buildOpts = ['buildRelease=1', 'buildUtilities=0', 'useLrint=1', 'noDebug=1']
 buildOpts += ['buildPythonOpcodes=1', 'useOSC=1', 'buildCsoundVST=0']
@@ -308,8 +309,8 @@ for i in range(4):
         runCmd(['./__make_pyc.sh'])
         os.remove('__make_pyc.sh')
         installFiles(['csnd.py', 'csnd.pyc', 'csnd.pyo',
-                      'CsoundVST.py', 'CsoundVST.pyc', 'CsoundVST.pyo',
                       'loris.py', 'loris.pyc', 'loris.pyo',
+                      'CsoundVST.py', 'CsoundVST.pyc', 'CsoundVST.pyo',
                       'scoregen.py', 'scoregen.pyc', 'scoregen.pyo'],
                      pythonDir)
         # Java interface library
