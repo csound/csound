@@ -54,11 +54,9 @@ static CS_NOINLINE int fout_deinit_callback(CSOUND *csound, void *p_)
           pp->do_scale = 0;
           pp->refCount = 0U;
           if (pp->fd != NULL) {
-#ifdef BETA
             if ((csound->oparms->msglevel & 7) == 7)
               csound->Message(csound, Str("Closing file '%s'...\n"),
                                       csound->GetFileName(pp->fd));
-#endif
             csound->FileClose(csound, pp->fd);
             pp->fd = NULL;
           }
@@ -709,8 +707,8 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
     switch ((int) MYFLT2LRND(*p->iflag)) {
     case 0: /* ascii file with loop */
       {
-        char cf[20], *cfp;
-        int cc;
+        char  cf[64], *cfp;
+        int   cc;
       newcycle:
         for (j = 0; j < nargs; j++) {
           cfp = cf;
@@ -719,7 +717,7 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
             fseek(fp, 0, SEEK_SET);
             goto newcycle;
           }
-          while (isdigit(*cfp) || *cfp == '.')  {
+          while (isdigit(*cfp) || *cfp == '.' || *cfp == '+' || *cfp == '-') {
             *(++cfp) = cc = getc(fp);
           }
           *++cfp = '\0';        /* Must terminate string */
@@ -733,8 +731,8 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
       break;
     case 1: /* ascii file without loop */
       {
-        char cf[20], *cfp;
-        int cc;
+        char  cf[64], *cfp;
+        int   cc;
         for (j = 0; j < nargs; j++) {
           cfp = cf;
           while ((*cfp = cc = getc(fp)) == 'i' || isspace(*cfp));
@@ -742,7 +740,7 @@ static int i_infile(CSOUND *csound, I_INFILE *p)
             *(args[j]) = FL(0.0);
             break;
           }
-          while (isdigit(*cfp) || *cfp == '.') {
+          while (isdigit(*cfp) || *cfp == '.' || *cfp == '+' || *cfp == '-') {
             *(++cfp) = cc = getc(fp);
           }
           *++cfp = '\0';        /* Must terminate */
@@ -1006,6 +1004,7 @@ static int fprintf_k(CSOUND *csound, FPRINTF *p)
 {
     char    string[8192];
 
+    (void) csound;
     sprints(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, string);
 
