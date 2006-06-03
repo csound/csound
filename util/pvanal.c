@@ -372,7 +372,7 @@ static void PVDisplay_Init(CSOUND *csound, PVDISPLAY *p,
       p->dispBufs[i] = (MYFLT*) csound->Calloc(csound, p->npts * sizeof(MYFLT));
 }
 
-static void PVDisplay_Update(PVDISPLAY *p, const MYFLT *buf)
+static void PVDisplay_Update(PVDISPLAY *p, const float *buf)
 {
     int     i;
 
