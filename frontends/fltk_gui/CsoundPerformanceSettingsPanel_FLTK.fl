@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundPerformanceSettingsPanel {open
+class CsoundPerformanceSettingsPanel {open selected
 } {
   decl {CsoundPerformanceSettings performanceSettings;} {public
   }
@@ -28,7 +28,7 @@ class CsoundPerformanceSettingsPanel {open
         xywh {0 0 390 405}
       } {
         Fl_Group {} {
-          label General open selected
+          label General open
           xywh {0 25 390 380}
         } {
           Fl_Input orcNameInput {
@@ -162,7 +162,7 @@ class CsoundPerformanceSettingsPanel {open
     controlRateInput->value(performanceSettings.controlRateOverride);
   }
 }}
-              tooltip {Sample rate override (<= 0: none)} xywh {20 255 75 25} align 8 when 4 minimum -1 maximum 1e+006
+              tooltip {Sample rate override (<= 0: none)} xywh {20 255 75 25} align 8 when 4 minimum -1 maximum 1e+06
               code0 {o->value(performanceSettings.sampleRateOverride);}
             }
             Fl_Value_Input controlRateInput {
@@ -178,7 +178,7 @@ class CsoundPerformanceSettingsPanel {open
     sampleRateInput->value(performanceSettings.sampleRateOverride);
   }
 }}
-              tooltip {Control rate override (<= 0: none)} xywh {205 255 75 25} align 8 when 4 minimum -1 maximum 1e+006
+              tooltip {Control rate override (<= 0: none)} xywh {205 255 75 25} align 8 when 4 minimum -1 maximum 1e+06
               code0 {o->value(performanceSettings.controlRateOverride);}
             }
             Fl_Value_Input {} {

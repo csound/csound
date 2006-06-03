@@ -422,13 +422,15 @@ top:
           if (type) {
             csoundDie(csound, Str("Number not allowed in context []"));
           }
+ parseNumber:
           i = 0;
-          while (isdigit(c) || c=='.' || c=='e' || c=='E') {
-            buffer[i++]=c;
+          while (isdigit(c) || c == '.' || c == '+' || c == '-' ||
+                 c == 'e' || c == 'E') {
+            buffer[i++] = c;
             c = getscochar(csound, 1);
           }
           buffer[i] = '\0';
-          *++pv = (MYFLT)atof(buffer);
+          *++pv = stof(csound, buffer);
           type = 1;
           break;
         case '~':
@@ -460,9 +462,8 @@ top:
           }
           break;
         case '+': case '-':
-          if (!type) {
-            csoundDie(csound, Str("Operator %c not allowed in context []"), c);
-          }
+          if (!type)
+            goto parseNumber;
           if (*op != '[' && *op != '(') {
             MYFLT v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
@@ -738,14 +739,31 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           goto again;
         }
       case 's':
+      case 'e':
         if (ST(repeat_cnt) != 0) {
           if (do_repeat(csound))
             return rtncod;
         }
         copylin(csound);
-        ST(clock_base) = FL(0.0);
-        ST(warp_factor) = FL(1.0);
-        ST(prvp2) = -FL(1.0);
+        {
+          char  *p = &(ST(bp)->text[1]);
+          while (*p == ' ' || *p == '\t')
+            p++;
+          if (strchr("+-.0123456789", *p) != NULL) {
+            double  tt;
+            char    *tmp = p;
+            tt = strtod(p, &tmp);
+            if (tmp != p && (*tmp == '\0' || isspace(*tmp))) {
+              ST(bp)->pcnt = 1;
+              ST(bp)->p1val = ST(bp)->p2val = ST(bp)->newp2 = (MYFLT) tt;
+            }
+          }
+        }
+        if (ST(op) != 'e') {
+          ST(clock_base) = FL(0.0);
+          ST(warp_factor) = FL(1.0);
+          ST(prvp2) = -FL(1.0);
+        }
         return rtncod;
       case '}':
         {
@@ -889,13 +907,6 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         ST(clock_base) = FL(0.0);
         ST(warp_factor) = FL(1.0);
         ST(prvp2) = -FL(1.0);
-        return rtncod;
-      case 'e':
-        if (ST(repeat_cnt) != 0) {
-          if (do_repeat(csound))
-            return rtncod;
-        }
-        copylin(csound);
         return rtncod;
       case 'm': /* Remember this place */
         {
@@ -1272,6 +1283,7 @@ static void salcblk(CSOUND *csound)
     ST(bp)->nxtblk = NULL;
     ST(bp)->prvblk = prvbp;
     ST(bp)->insno = 0;
+    ST(bp)->pcnt = 0;
     ST(nxp) = &(ST(bp)->text[0]);
     *ST(nxp)++ = ST(op);                /* place op, blank into text    */
     *ST(nxp)++ = SP;
@@ -1602,19 +1614,16 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
 MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
                                     /* (assumes no white space at beginning */
 {                                   /*      but a blank or nl at end)       */
-    char *p;                        /* sbrandon adds: or a \0, on NeXT m68k */
-    MYFLT x = (MYFLT) strtod(s, &p);
-#if defined(NeXT) && defined(__BIG_ENDIAN__)
-/* NeXT hardware only... */
-    if (*(p - 1) == SP) p--;
-#endif
-    if (s == p || (*p != SP && *p != LF)) {
+    char    *p;
+    MYFLT   x = (MYFLT) strtod(s, &p);
+
+    if (s == p || !(*p == '\0' || isspace(*p))) {
       csound->Message(csound,
                       Str("sread: illegal number format, sect %d line %d:  "),
                       csound->sectcnt, ST(lincnt));
       p = s;
-      while (*p != SP && *p != LF) {
-        csound->Message(csound,"%c", *p);
+      while (!(*p == '\0' || isspace(*p))) {
+        csound->Message(csound, "%c", *p);
         *p++ = '0';
       }
       csound->Message(csound,Str("   zero substituted.\n"));

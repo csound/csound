@@ -182,9 +182,9 @@ static int fluidEngineIopadr(CSOUND *csound, FLUIDENGINE *p)
   csound_global_mutex_unlock();
 
   ndx = fluidEngine_Alloc(csound, fluidSynth);
-  csound->Message(csound, "Created fluidEngine %d with sampling rate = %f, chorus %s, reverb %s.\n",
-                  ndx,
-                  (double) csound->esr,
+  csound->Message(csound, "Created fluidEngine %d with sampling rate = %f, "
+                          "chorus %s, reverb %s.\n",
+                  ndx, (double) csound->esr,
                   chorusEnabled ? "on" : "off",
                   reverbEnabled ? "on" : "off");
   *(p->iEngineNum) = (MYFLT) ndx;
@@ -209,10 +209,9 @@ static int fluidLoadIopadr(CSOUND *csound, FLUIDLOAD *p)
     csound->InitError(csound, "Illegal Engine Number: %i.", engineNum);
     return NOTOK;
   }
-  filename = csound->strarg2name(
-                                 csound, (char*) NULL, p->filename, "fluid.sf2.",
-                                 (int) csound->GetInputArgSMask(p)
-                                 );
+  filename = csound->strarg2name(csound,
+                                 (char*) NULL, p->filename, "fluid.sf2.",
+                                 (int) csound->GetInputArgSMask(p));
   filename_fullpath = csound->FindInputFile(csound, filename, "SFDIR;SSDIR");
   if (filename_fullpath != NULL && fluid_is_soundfont(filename_fullpath)) {
     csound->Message(csound, "Loading SoundFont : %s.\n", filename_fullpath);
@@ -338,9 +337,9 @@ static int fluidNoteIopadr(CSOUND *csound, FLUID_NOTE *p)
   if (p->initDone)
     fluidNoteTurnoff(csound, p);
   else
-    csound->RegisterDeinitCallback(
-                                   csound, (void*) p, (int (*)(CSOUND *, void *)) fluidNoteTurnoff);
-
+    csound->RegisterDeinitCallback(csound, (void*) p,
+                                   (int (*)(CSOUND *, void *))
+                                       fluidNoteTurnoff);
   fluid_synth_noteon(p->fluidEngine, channelNum, key, velocity);
   p->initDone = 1;
 

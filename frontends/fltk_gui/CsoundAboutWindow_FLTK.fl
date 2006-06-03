@@ -7,14 +7,14 @@ decl {\#include "CsoundGUI.hpp"} {}
 
 decl {\#include "CsoundCopyrightInfo.hpp"} {} 
 
-class CsoundAboutWindow {open
+class CsoundAboutWindow {open selected
 } {
   decl {Fl_Text_Buffer *buf;} {}
   Function {CsoundAboutWindow()} {open
   } {
     code {buf = new Fl_Text_Buffer();} {}
     Fl_Window window {
-      label {Csound license} open selected
+      label {Csound license} open
       xywh {227 242 480 340} type Double visible
     } {
       Fl_Text_Display textDisplay {

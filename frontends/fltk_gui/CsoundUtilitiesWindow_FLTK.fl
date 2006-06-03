@@ -5,7 +5,7 @@ header_name {.hpp}
 code_name {.cpp}
 decl {\#include "CsoundGUI.hpp"} {} 
 
-class CsoundUtilitiesWindow {open
+class CsoundUtilitiesWindow {open selected
 } {
   decl {CsoundGUIMain *p;} {}
   decl {CsoundUtilitySettings *u_cfg;} {}
@@ -23,7 +23,7 @@ class CsoundUtilitiesWindow {open
         xywh {0 0 450 390}
       } {
         Fl_Group {} {
-          label Convolve open selected
+          label Convolve open
           tooltip {Sound file analysis for convolve} xywh {0 25 450 365} labelsize 12
         } {
           Fl_Group {} {open
@@ -277,7 +277,7 @@ else
             Fl_Value_Input {} {
               label {Amplitude threshold}
               callback {u_cfg->hetro_minAmp = o->value();}
-              xywh {235 255 60 25} align 8 minimum -1 maximum 1e+006
+              xywh {235 255 60 25} align 8 minimum -1 maximum 1e+06
               code0 {o->value(u_cfg->hetro_minAmp);}
             }
             Fl_Value_Input {} {
@@ -289,7 +289,7 @@ else
             Fl_Value_Input {} {
               label {Maximum amplitude}
               callback {u_cfg->hetro_maxAmp = o->value();}
-              xywh {235 290 60 25} align 8 minimum -1 maximum 1e+006
+              xywh {235 290 60 25} align 8 minimum -1 maximum 1e+06
               code0 {o->value(u_cfg->hetro_maxAmp);}
             }
           }
@@ -470,7 +470,7 @@ if (u_cfg->srconv_sampleRate <= 0.0) {
   u_cfg->srconv_sampleRate = 44100.0;
   o->value(u_cfg->srconv_sampleRate);
 }}
-              xywh {20 150 60 25} align 8 when 4 minimum -1 maximum 1e+006
+              xywh {20 150 60 25} align 8 when 4 minimum -1 maximum 1e+06
               code0 {if (u_cfg->srconv_pitchRatio <= 0.0) o->value(u_cfg->srconv_sampleRate);}
               code1 {if (u_cfg->srconv_pitchRatio > 0.0) { o->deactivate(); o->value(-1.0); }}
             }

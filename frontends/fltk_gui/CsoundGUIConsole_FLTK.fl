@@ -31,7 +31,7 @@ class CsoundGUIConsole {open selected
 }} {}
     Fl_Window window {
       label {Csound console messages} open
-      xywh {500 150 585 320} type Double resizable
+      xywh {438 150 585 320} type Double resizable
       code0 {window = (Fl_Double_Window*) o;} visible
     } {
       Fl_Text_Display textDisplay {

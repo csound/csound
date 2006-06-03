@@ -43,8 +43,8 @@ typedef struct {
   OPDS    h;
   /* OUTPUTS */
   MYFLT   *iEngineNum;
-  MYFLT *iReverbEnabled;
-  MYFLT *iChorusEnabled;
+  MYFLT   *iReverbEnabled;
+  MYFLT   *iChorusEnabled;
 } FLUIDENGINE;
 
 typedef struct {

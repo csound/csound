@@ -321,7 +321,7 @@ void CsoundGUIMain::updateGUIValues()
     scoreOffsetInput->value(currentPerformanceSettings.scoreOffsetSeconds);
     if (performing && csPerf != (CsoundPerformance*) 0) {
       csPerf->SetScoreOffsetSeconds(
-                                    currentPerformanceSettings.scoreOffsetSeconds, false);
+          currentPerformanceSettings.scoreOffsetSeconds, false);
       setTimeDisplay(csPerf->GetScoreTime());
     }
     else
@@ -329,7 +329,7 @@ void CsoundGUIMain::updateGUIValues()
     updateGUIState();
 }
 
-void CsoundGUIMain::run(bool enablePython_)
+void CsoundGUIMain::run()
 {
     readCsound5GUIConfigFile("g_cfg.dat", currentGlobalSettings);
     readCsound5GUIConfigFile("p_cfg.dat", currentPerformanceSettings);
