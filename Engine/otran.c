@@ -833,14 +833,24 @@ static int strconstndx(CSOUND *csound, const char *s)
     return cnt;
 }
 
-static inline unsigned int MYFLT_hash(const MYFLT *x)
+static CS_NOINLINE unsigned int MYFLT_hash(const MYFLT *x,
+                                           const unsigned char *tbl)
 {
     const unsigned char *c = (const unsigned char*) x;
     unsigned int        h = 0U;
-    size_t              i;
 
-    for (i = (size_t) 0; i < sizeof(MYFLT); i++)
-      h = (unsigned int) strhash_tabl_8[(unsigned int) c[i] ^ h];
+    if (sizeof(MYFLT) == (size_t) 4) {
+      h = (unsigned int) tbl[(unsigned int) c[0]];
+      h = (unsigned int) tbl[(unsigned int) c[1] ^ h];
+      h = (unsigned int) tbl[(unsigned int) c[2] ^ h];
+      h = (unsigned int) tbl[(unsigned int) c[3] ^ h];
+    }
+    else {
+      size_t    i = sizeof(MYFLT);
+      do {
+        h = (unsigned int) tbl[(unsigned int) *(c++) ^ h];
+      } while (--i);
+    }
 
     return h;
 }
@@ -862,7 +872,7 @@ static int constndx(CSOUND *csound, const char *s)
       return 0;
     }
     /* calculate hash value (0 to 255) */
-    h = (int) MYFLT_hash(&newval);
+    h = (int) MYFLT_hash(&newval, &(strhash_tabl_8[0]));
     n = ST(constTbl)[h];                        /* now search constpool */
     prv = 0;
     while (n) {
