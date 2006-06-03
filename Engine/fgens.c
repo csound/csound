@@ -2120,6 +2120,12 @@ static void needsiz(CSOUND *csound, FGDATA *ff, long maxend)
                             (int) ff->fno, nxtpow);
 }
 
+static const int gen01_format_table[11] = {
+    0,
+    0,          AE_CHAR,    AE_ALAW,    AE_ULAW,    AE_SHORT,
+    AE_LONG,    AE_FLOAT,   AE_UNCH,    AE_24INT,   AE_DOUBLE
+};
+
 /* read ftable values from a sound file */
 /* stops reading when table is full     */
 
@@ -2153,16 +2159,12 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         strcpy(p->sfname, csound->strsets[filno]);
       else
         sprintf(p->sfname, "soundin.%ld", filno);   /* soundin.filno */
-      switch (fmt) {
-        case 0: p->format = AE_SHORT; break;
-        case 1: p->format = AE_CHAR;  break;
-        case 2: p->format = AE_ALAW;  break;
-        case 3: p->format = AE_ULAW;  break;
-        case 4: p->format = AE_SHORT; break;
-        case 5: p->format = AE_LONG;  break;
-        case 6: p->format = AE_FLOAT; break;
-        default:
+      if (!fmt)
+        p->format = csound->oparms->outformat;
+      else {
+        if (fmt < -1 || fmt > 9)
           return fterror(ff, Str("invalid sample format: %d"), fmt);
+        p->format = gen01_format_table[fmt + 1];
       }
     }
     p->skiptime = ff->e.p[6];
