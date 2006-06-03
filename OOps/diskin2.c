@@ -170,7 +170,7 @@ static int diskin2_calc_buffer_size(DISKIN2 *p, int n_monoSamps)
     return nFrames;
 }
 
-static const int diskin2_format_list[11] = {
+static const int diskin2_format_table[11] = {
     0,
     SF_FORMAT_RAW | SF_FORMAT_PCM_16,
     SF_FORMAT_RAW | SF_FORMAT_PCM_S8,
@@ -213,7 +213,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     n = (int) (*(p->iSampleFormat) + FL(2.5)) - 1;
     if (n < 0 || n > 10)
       return csound->InitError(csound, Str("diskin2: unknown sample format"));
-    sfinfo.format = diskin2_format_list[n];
+    sfinfo.format = diskin2_format_table[n];
     /* open file */
     /* FIXME: name can overflow with very long string */
     csound->strarg2name(csound, name, p->iFileCode, "soundin.", p->XSTRCODE);
@@ -583,7 +583,7 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     else {
       if (n < 0 || n > 10)
         return csound->InitError(csound, Str("soundin: unknown sample format"));
-      sfinfo.format = diskin2_format_list[n];
+      sfinfo.format = diskin2_format_table[n];
     }
     /* open file */
     /* FIXME: name can overflow with very long string */

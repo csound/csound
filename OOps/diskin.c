@@ -128,6 +128,20 @@ static int diskin_calc_buffer_size(SOUNDINEW *p, int n_monoSamps)
     return nFrames;
 }
 
+static const int diskin_format_table[11] = {
+    0,
+    0,
+    SF_FORMAT_RAW | SF_FORMAT_PCM_S8,
+    SF_FORMAT_RAW | SF_FORMAT_ALAW,
+    SF_FORMAT_RAW | SF_FORMAT_ULAW,
+    SF_FORMAT_RAW | SF_FORMAT_PCM_16,
+    SF_FORMAT_RAW | SF_FORMAT_PCM_32,
+    SF_FORMAT_RAW | SF_FORMAT_FLOAT,
+    SF_FORMAT_RAW | SF_FORMAT_PCM_U8,
+    SF_FORMAT_RAW | SF_FORMAT_PCM_24,
+    SF_FORMAT_RAW | SF_FORMAT_DOUBLE
+};
+
 /* init routine for diskin */
 
 int newsndinset(CSOUND *csound, SOUNDINEW *p)
@@ -155,26 +169,16 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int) (csound->esr + FL(0.5));
     sfinfo.channels = p->nChannels;
-    sfinfo.format = SF_FORMAT_RAW;
     /* check for user specified sample format */
-    n = (int) (*(p->iSampleFormat) + FL(0.5));
-    if (n <= 0)                 /* <= 0 ? default to output sample format */
-      sfinfo.format |= FORMAT2SF(csound->oparms->outformat);
+    n = (int) (*(p->iSampleFormat) + FL(2.5)) - 1;
+    if (n == 1) {
+      sfinfo.format = SF_FORMAT_RAW
+                      | (int) FORMAT2SF(csound->oparms->outformat);
+    }
     else {
-      switch (n) {
-        case 1: sfinfo.format |= SF_FORMAT_PCM_S8;  break;
-        case 2: sfinfo.format |= SF_FORMAT_ALAW;    break;
-        case 3: sfinfo.format |= SF_FORMAT_ULAW;    break;
-        case 4: sfinfo.format |= SF_FORMAT_PCM_16;  break;
-        case 5: sfinfo.format |= SF_FORMAT_PCM_32;  break;
-        case 6: sfinfo.format |= SF_FORMAT_FLOAT;   break;
-        case 7: sfinfo.format |= SF_FORMAT_PCM_U8;  break;
-        case 8: sfinfo.format |= SF_FORMAT_PCM_24;  break;
-        case 9: sfinfo.format |= SF_FORMAT_DOUBLE;  break;
-        default:
-          csound->InitError(csound, Str("diskin: unknown sample format"));
-          return NOTOK;
-      }
+      if (n < 0 || n > 10)
+        return csound->InitError(csound, Str("diskin: unknown sample format"));
+      sfinfo.format = diskin_format_table[n];
     }
     /* open file */
     /* FIXME: name can overflow with very long string */
