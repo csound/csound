@@ -26,19 +26,20 @@
 #define TSEGMAX (PMAX/2)
 
 typedef struct {
-        MYFLT betbas;
-        MYFLT durslp;
-        MYFLT durbas;
-        MYFLT timbas;
+    MYFLT   betbas;
+    MYFLT   durslp;
+    MYFLT   durbas;
+    MYFLT   timbas;
 } TSEG;
 
-int realtset(CSOUND *, SRTBLK *);
+int     realtset(CSOUND *, SRTBLK *);
+MYFLT   realt(CSOUND *, MYFLT);
 
 void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
 {
-    SRTBLK *bp;
-    MYFLT absp3, endtime, realt(CSOUND *, MYFLT);
-    int negp3;
+    SRTBLK  *bp;
+    MYFLT   absp3, endtime;
+    int     negp3;
 
     if ((bp = csound->frstbp) == NULL)      /* if null file,         */
       return;
@@ -76,8 +77,11 @@ void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
         break;
       case 't':
       case 'w':
+        break;
       case 's':
       case 'e':
+        if (bp->pcnt > 0)
+          bp->newp2 = realt(csound, bp->p2val);
         break;
       default:
         csound->Message(csound, Str("twarp: illegal opcode\n"));

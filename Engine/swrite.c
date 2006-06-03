@@ -41,7 +41,7 @@ static char   *fpnum(CSOUND *,char *, int, int);
 void swrite(CSOUND *csound)
 {
     SRTBLK *bp;
-    char *p, c, isntAfunc;
+    char   *p, c, isntAfunc;
     int    lincnt, pcnt=0;
 
     if ((bp = csound->frstbp) == NULL)
@@ -106,13 +106,8 @@ void swrite(CSOUND *csound)
       break;
     case 's':
     case 'e':
-      while (*p == ' ' || *p == '\t')
-        p++;
-      if (strchr("+-.0123456789", *p) != NULL) {
-        double tt;
-        if (sscanf(p, "%lf", &tt) == 1)
-          fprintf(csound->scoreout, "f 0 %f\n", tt);
-      }
+      if (bp->pcnt > 0)
+        fprintf(csound->scoreout, "f 0 %f %f\n", bp->p2val, bp->newp2);
       putc(c, csound->scoreout);
       putc(LF, csound->scoreout);
       break;

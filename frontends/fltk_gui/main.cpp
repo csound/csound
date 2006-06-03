@@ -22,21 +22,12 @@
 int main(int argc, char **argv)
 {
     CsoundGUIMain   *mainWin;
-    bool            enablePython = false;
 
     if (csoundInitialize(&argc, &argv, 0) < 0)
       return -1;
-    if (csoundGetSizeOfMYFLT() == (int) sizeof(double))
-      enablePython = true;
-    for (int i = 1; i < argc; i++) {
-      if (std::strcmp(argv[i], "-python") == 0)
-        enablePython = true;
-      else if (std::strcmp(argv[i], "-nopython") == 0)
-        enablePython = false;
-    }
     Fl::lock();
     mainWin = new CsoundGUIMain;
-    mainWin->run(enablePython);
+    mainWin->run();
     delete mainWin;
     Fl::wait(0.0);
 
