@@ -918,12 +918,14 @@ extern "C" {
     case CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL:
       p->ControlChannelOutputCallback(chnName, (double) *value);
       break;
+#if 0
     case CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL:
       p->AudioChannelInputCallback(chnName, value);
       break;
     case CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL:
       p->AudioChannelOutputCallback(chnName, value);
       break;
+#endif
     case CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL:
       {
         const char  *s = p->StringChannelInputCallback(chnName);

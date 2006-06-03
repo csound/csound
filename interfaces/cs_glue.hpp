@@ -498,6 +498,18 @@ class CsoundCallbackWrapper {
       (void) chnName;
       (void) value;
     }
+    virtual const char *StringChannelInputCallback(const char *chnName)
+    {
+      (void) chnName;
+      return "";
+    }
+    virtual void StringChannelOutputCallback(const char *chnName,
+                                             const char *value)
+    {
+      (void) chnName;
+      (void) value;
+    }
+#if 0
     virtual void AudioChannelInputCallback(const char *chnName, MYFLT *buf)
     {
       int   ksmps = csoundGetKsmps(csound_);
@@ -510,17 +522,7 @@ class CsoundCallbackWrapper {
       (void) chnName;
       (void) buf;
     }
-    virtual const char *StringChannelInputCallback(const char *chnName)
-    {
-      (void) chnName;
-      return "";
-    }
-    virtual void StringChannelOutputCallback(const char *chnName,
-                                             const char *value)
-    {
-      (void) chnName;
-      (void) value;
-    }
+#endif
     void SetMessageCallback();
     void SetInputValueCallback();
     void SetOutputValueCallback();
