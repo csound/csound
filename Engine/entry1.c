@@ -476,9 +476,9 @@ OENTRY opcodlst_1[] = {
 { "logbtwo.i",S(EVAL),   1,     "i",    "i",    ilogbasetwo                },
 { "logbtwo.k",S(EVAL),   3,     "k",    "k",    logbasetwo_set, logbasetwo },
 { "logbtwo.a",S(EVAL),   5,     "a",    "a", logbasetwo_set, NULL, logbasetwoa },
-{ "filelen", S(SNDINFO), 1,     "i",    "T",    filelen, NULL, NULL        },
-{ "filenchnls", S(SNDINFO), 1,  "i",    "T",    filenchnls, NULL, NULL     },
-{ "filesr", S(SNDINFO),  1,     "i",    "T",    filesr, NULL, NULL         },
+{ "filelen", S(SNDINFO), 1,     "i",    "Tp",   filelen, NULL, NULL        },
+{ "filenchnls", S(SNDINFO), 1,  "i",    "Tp",   filenchnls, NULL, NULL     },
+{ "filesr", S(SNDINFO),  1,     "i",    "Tp",   filesr, NULL, NULL         },
 { "filepeak", S(SNDINFOPEAK), 1, "i",   "To",   filepeak, NULL, NULL       },
 /*  { "nlalp", S(NLALP),     5,     "a",    "akkoo", nlalp_set, NULL, nlalp }, */
 /* Robin Whittle */
