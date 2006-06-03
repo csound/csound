@@ -62,7 +62,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     csound->Message(csound, "ksmps: %d   bsize: %d\n",
                             csound->ksmps, p->bsize);
     if ((sizeof(MYFLT) * bsize) > MTU) {
-      csound->InitError(csound, "The buffersize must be <= %d samples "
+      csound->InitError(csound, "The buffersize must be <= %ld samples "
                                 "to fit in a udp-packet.", MTU / sizeof(MYFLT));
       return NOTOK;
     }
@@ -130,7 +130,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     csound->Message(csound, "ksmps: %d   bsize: %d\n",
                             csound->ksmps, p->bsize);
     if ((sizeof(MYFLT) * bsize) > MTU) {
-      csound->InitError(csound, "The buffersize must be <= %d samples "
+      csound->InitError(csound, "The buffersize must be <= %ld samples "
                                 "to fit in a udp-packet.", MTU / sizeof(MYFLT));
       return NOTOK;
     }
