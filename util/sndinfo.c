@@ -26,7 +26,7 @@
 #include <sndfile.h>
 #include "soundio.h"
 
-/* Some of the information is borrowed from linsndfile's sndfile-info code */
+/* Some of the information is borrowed from libsndfile's sndfile-info code */
 
 static int sndinfo(CSOUND *csound, int argc, char **argv)
 {
