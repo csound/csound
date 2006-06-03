@@ -57,10 +57,10 @@ class CsoundGUIMain {open selected
 }} {}
     Fl_Window window {
       label {Csound 5} open
-      xywh {131 150 360 281} type Double visible
+      xywh {271 210 360 280} type Double visible
     } {
       Fl_Group {} {open
-        xywh {10 10 340 120} box THIN_UP_FRAME
+        xywh {10 10 340 115} box THIN_UP_FRAME
       } {
         Fl_Input orcNameInput {
           label {Orchestra/CSD}
@@ -187,7 +187,7 @@ if (performing && csPerf != (CsoundPerformance*) 0)
         }
       }
       Fl_Group {} {open
-        xywh {235 130 115 140} box THIN_UP_FRAME
+        xywh {240 130 110 140} box THIN_UP_FRAME
       } {
         Fl_Menu_Button {} {
           label Options
@@ -195,21 +195,21 @@ if (performing && csPerf != (CsoundPerformance*) 0)
   openGlobalSettingsWindow();
 else if (o->value() == 1)
   openPerformanceSettingsWindow();} open
-          xywh {245 140 95 25} align 20
+          xywh {250 140 90 25} align 20
           code0 {o->add("General...|Csound...");}
           code1 {o->value(0);}
         } {}
         Fl_Button {} {
           label {Utilities...}
           callback {openUtilitiesWindow();}
-          xywh {245 171 95 25} align 20
+          xywh {250 171 90 25} align 20
         }
         Fl_Button {} {
           label Messages
           callback {if (!consoleWindow.window->shown())
   consoleWindow.Clear();
   consoleWindow.window->show();}
-          tooltip {Show Csound console messages} xywh {245 202 95 25} align 20
+          tooltip {Show Csound console messages} xywh {250 202 90 25} align 20
         }
         Fl_Menu_Button {} {
           label Help
@@ -217,7 +217,7 @@ else if (o->value() == 1)
   runHelpBrowser();
 else if (o->value() == 1)
   openAboutWindow();} open
-          xywh {245 233 95 25} align 20
+          xywh {250 233 90 25} align 20
           code0 {o->add("Manual|About");}
           code1 {o->value(0);}
         } {}
@@ -252,7 +252,7 @@ else if (o->value() == 1)
   }
   decl {void updateGUIValues();} {public
   }
-  decl {void run(bool);} {public
+  decl {void run();} {public
   }
   decl {void startPerformance();} {public
   }

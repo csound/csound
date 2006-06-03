@@ -676,17 +676,19 @@ int getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
       sprintf(&(buf[0]), "%d", (int) csound->strVarMaxLen - 1);
       break;
     case 2:             /* input sound file name */
-      s = csound->oparms->infilename;
+      s = (csound->oparms->sfread && !csound->initonly ?
+           csound->oparms->infilename : (char*) NULL);
       break;
     case 3:             /* output sound file name */
-      s = csound->oparms->outfilename;
+      s = (csound->oparms->sfwrite && !csound->initonly ?
+           csound->oparms->outfilename : (char*) NULL);
       break;
     case 4:             /* is real-time audio being used ? (0: no, 1: yes) */
       buf[0] = (char) '0';
       buf[1] = (char) 0;
-      if ((csound->oparms->sfread &&
+      if ((csound->oparms->sfread && !csound->initonly &&
            check_rtaudio_name(csound->oparms->infilename, NULL, 0) >= 0) ||
-          (csound->oparms->sfwrite &&
+          (csound->oparms->sfwrite && !csound->initonly &&
            check_rtaudio_name(csound->oparms->outfilename, NULL, 1) >= 0))
         buf[0] = (char) '1';
       break;

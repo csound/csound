@@ -1505,11 +1505,11 @@ int invalset(CSOUND *csound, INVAL *p)
 {
     if (p->XSTRCODE) {
       const char  *s = (char*) p->valID;
-    
+
       /* check for starting with a $, which will confuse hosts
-         -- pretty unlikely given that the parser thinks 
-         "$string" is a macro -- but just in case: */ 
-      if (*s == '$') 
+         -- pretty unlikely given that the parser thinks
+         "$string" is a macro -- but just in case: */
+      if (*s == '$')
         return csound->PerfError(csound, "k-rate invalue ChannelName "
                                          "cannot start with $");
       /* allocate the space used to pass a string during the k-pass */
