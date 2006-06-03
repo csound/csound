@@ -68,7 +68,7 @@ int midinoteonoct(CSOUND *csound, MIDINOTEON *p)
 {
     MYFLT octave;
     if (!p->h.insdshead->m_chnbp) {
-       return OK;
+      return OK;
     }
     octave = (MYFLT) (p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
     *p->xkey = octave;
