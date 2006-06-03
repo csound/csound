@@ -1,3 +1,15 @@
+2006-06-03	Istvan Varga	<ivarga@csounds.com>
+	* Engine/fgens.c, InOut/libsnd_u.c, OOps/diskin.c, OOps/diskin2.c:
+	  GEN01, diskin, diskin2, soundin: with an iformat value of -1,
+	  reject headerless files, rather than assuming the same format
+	  as the one specified on the command line
+	  GEN01: added format codes 7 (8 bit unsigned), 8 (24 bit), and
+	  9 (doubles)
+	* Engine/entry1.c, H/sndinfUG.h, OOps/sndinfUG.c:
+	  filelen, filenchnls, filesr: added optional i-time argument that
+	  defaults to 1, and if zero, will make the opcodes return zero on
+	  headerless files rather than some possibly incorrect defaults
+
 2006-06-02	Istvan Varga	<ivarga@csounds.com>
 	* New string opcodes:
 	  Sdst    strsub      Ssrc[, istart[, iend]]
