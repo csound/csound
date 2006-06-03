@@ -22,13 +22,12 @@
 */
 
 typedef struct {
-  OPDS  h;
-  MYFLT *r1, *ifilno;
-  long audsize;
+    OPDS    h;
+    MYFLT   *r1, *ifilno, *irawfiles;
 } SNDINFO;
 
 typedef struct {
-  OPDS  h;
-  MYFLT *r1, *ifilno, *channel;
-  long audsize;
+    OPDS    h;
+    MYFLT   *r1, *ifilno, *channel;
 } SNDINFOPEAK;
+

@@ -27,32 +27,19 @@
 #include "csoundCore.h"
 #include "soundio.h"
 #include "sndinfUG.h"
-#include "oload.h" /* for strset */
+#include "oload.h"  /* for strset */
 #include "pvfileio.h"
 #include <sndfile.h>
 
-typedef struct {         /* struct for passing data to/from sfheader routines */
-    long    sr;
-    long    nchanls;
-    long    sampsize;
-    long    format;
-    long    hdrsize;
-    int     filetyp;
-    AIFFDAT *aiffdata;
-    long    audsize;
-    long    readlong;
-    long    firstlong;
-} HEADATA;
-
 static int anal_filelen(CSOUND *csound, SNDINFO *p, MYFLT *p_length);
 
-static HEADATA *getsndinfo(CSOUND *csound, SNDINFO *p)
+static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
 {
-    HEADATA *hdr = NULL;
     char    *sfname, *s, soundiname[512];
     SNDFILE *sf;
     SF_INFO sfinfo;
 
+    memset(hdr, 0, sizeof(SF_INFO));
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
                                 p->XSTRCODE);
     sfname = soundiname;
@@ -67,11 +54,14 @@ static HEADATA *getsndinfo(CSOUND *csound, SNDINFO *p)
       csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
     sfname = s;                             /* & record fullpath filnam */
-    hdr = (HEADATA*) mcalloc(csound, sizeof(HEADATA));
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sf = sf_open(sfname, SFM_READ, &sfinfo);
     if (sf == NULL) {
       /* open failed: maybe raw file ? */
+      if (*(p->irawfiles) == FL(0.0)) {
+        mfree(csound, sfname);
+        return 0;
+      }
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.samplerate = (int) (csound->esr + FL(0.5));
       sfinfo.channels = 1;
@@ -84,58 +74,47 @@ static HEADATA *getsndinfo(CSOUND *csound, SNDINFO *p)
       csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
     }
     mfree(csound, sfname);
-    hdr->sr = (long) sfinfo.samplerate;
-    hdr->nchanls = (long) sfinfo.channels;
-    hdr->format = (long) SF2FORMAT(sfinfo.format);
-    switch ((int) hdr->format) {
-      case AE_SHORT: hdr->sampsize = 2L; break;
-      case AE_24INT: hdr->sampsize = 3L; break;
-      case AE_LONG:
-      case AE_FLOAT: hdr->sampsize = 4L; break;
-      default:       hdr->sampsize = 1L; break;
-    }
-    hdr->filetyp = (int) SF2TYPE(sfinfo.format);
-    hdr->audsize = (long) sfinfo.frames * hdr->sampsize * hdr->nchanls;
+    memcpy(hdr, &sfinfo, sizeof(SF_INFO));
     sf_close(sf);
-    return hdr;
+
+    return 1;
 }
 
 int filelen(CSOUND *csound, SNDINFO *p)
 {
-    HEADATA *hdr;
-    MYFLT dur = FL(0.0);        /*RWD 8:2001 */
+    SF_INFO hdr;
+    MYFLT   dur = FL(0.0);      /* RWD 8:2001 */
 
     if (anal_filelen(csound, p, &dur)) {
       *(p->r1) = dur;
     }
     /* RWD 8:2001 now set to quit on failure, else we have bad hdr */
     else {
-      hdr = getsndinfo(csound, p);
-      *(p->r1) = (MYFLT) hdr->audsize
-                 / ((MYFLT) hdr->sampsize * (MYFLT) hdr->nchanls
-                    * (MYFLT) hdr->sr);
-      mfree(csound, hdr);
+      if (getsndinfo(csound, p, &hdr))
+        *(p->r1) = (MYFLT) ((long) hdr.frames) / (MYFLT) hdr.samplerate;
+      else
+        *(p->r1) = FL(0.0);
     }
     return OK;
 }
 
 int filenchnls(CSOUND *csound, SNDINFO *p)
 {
-    HEADATA *hdr;
+    SF_INFO hdr;
 
-    hdr = getsndinfo(csound, p);
-    *(p->r1) = (MYFLT) hdr->nchanls;
-    mfree(csound, hdr);
+    getsndinfo(csound, p, &hdr);
+    *(p->r1) = (MYFLT) hdr.channels;
+
     return OK;
 }
 
 int filesr(CSOUND *csound, SNDINFO *p)
 {
-    HEADATA *hdr;
+    SF_INFO hdr;
 
-    hdr = getsndinfo(csound, p);
-    *(p->r1) = (MYFLT) hdr->sr;
-    mfree(csound, hdr);
+    getsndinfo(csound, p, &hdr);
+    *(p->r1) = (MYFLT) hdr.samplerate;
+
     return OK;
 }
 
