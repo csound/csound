@@ -833,24 +833,14 @@ static int strconstndx(CSOUND *csound, const char *s)
     return cnt;
 }
 
-static CS_NOINLINE unsigned int MYFLT_hash(const MYFLT *x,
-                                           const unsigned char *tbl)
+static inline unsigned int MYFLT_hash(const MYFLT *x)
 {
     const unsigned char *c = (const unsigned char*) x;
+    size_t              i;
     unsigned int        h = 0U;
 
-    if (sizeof(MYFLT) == (size_t) 4) {
-      h = (unsigned int) tbl[(unsigned int) c[0]];
-      h = (unsigned int) tbl[(unsigned int) c[1] ^ h];
-      h = (unsigned int) tbl[(unsigned int) c[2] ^ h];
-      h = (unsigned int) tbl[(unsigned int) c[3] ^ h];
-    }
-    else {
-      size_t    i = sizeof(MYFLT);
-      do {
-        h = (unsigned int) tbl[(unsigned int) *(c++) ^ h];
-      } while (--i);
-    }
+    for (i = (size_t) 0; i < sizeof(MYFLT); i++)
+      h = (unsigned int) strhash_tabl_8[(unsigned int) c[i] ^ h];
 
     return h;
 }
@@ -863,16 +853,20 @@ static CS_NOINLINE unsigned int MYFLT_hash(const MYFLT *x,
 static int constndx(CSOUND *csound, const char *s)
 {
     MYFLT   newval;
-    char    *tmp = (char*) s;
     int     h, n, prv;
 
-    newval = (MYFLT) strtod(s, &tmp);
-    if (tmp == s || *tmp != (char) 0) {
-      synterr(csound, Str("numeric syntax '%s'"), s);
-      return 0;
+    {
+      volatile MYFLT  tmpVal;   /* make sure it really gets rounded to MYFLT */
+      char            *tmp = (char*) s;
+      tmpVal = (MYFLT) strtod(s, &tmp);
+      newval = tmpVal;
+      if (tmp == s || *tmp != (char) 0) {
+        synterr(csound, Str("numeric syntax '%s'"), s);
+        return 0;
+      }
     }
     /* calculate hash value (0 to 255) */
-    h = (int) MYFLT_hash(&newval, &(strhash_tabl_8[0]));
+    h = (int) MYFLT_hash(&newval);
     n = ST(constTbl)[h];                        /* now search constpool */
     prv = 0;
     while (n) {
