@@ -1,3 +1,8 @@
+2006-06-04	Michael Gogins	<gogins@pipeline.com>
+	* Changed the MIDI interoperability opcodes (OOps/midiinterop.c)
+	midinoteoncps, midinoteonoct, midinoteonpch to leave key and
+	velocity unchanged for score-driven performance.
+
 2006-06-04
 	* Csound 5.02 release
 
