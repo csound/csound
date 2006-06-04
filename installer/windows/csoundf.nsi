@@ -5,7 +5,7 @@
 ; "-f" for single-precision audio samples.
 ;!define VERSION "win32-d"
 !define VERSION "win32-f"
-!define PROGRAM "Csound5.02"
+!define PROGRAM "Csound5.02.1"
 
 !include "MUI.nsh"
 

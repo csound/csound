@@ -33,7 +33,7 @@
 #include <boost/tokenizer.hpp>
 
 static std::string about = "CSOUND AND CSOUND VST\n"
-"Version 5.02\n"
+"Version 5.02.1\n"
 "\n"
 "A user-programmable and user-extensible sound processing language \n"
 "and software synthesizer. \n"
