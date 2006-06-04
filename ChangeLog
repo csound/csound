@@ -1,3 +1,10 @@
+2006-06-04
+	* Csound 5.02 release
+
+2006-06-04	Istvan Varga	<ivarga@csounds.com>
+	* Engine/otran.c:
+	  work around constndx() not being compiled correctly
+
 2006-06-03	Istvan Varga	<ivarga@csounds.com>
 	* Engine/fgens.c, InOut/libsnd_u.c, OOps/diskin.c, OOps/diskin2.c:
 	  GEN01, diskin, diskin2, soundin: with an iformat value of -1,
@@ -9,6 +16,11 @@
 	  filelen, filenchnls, filesr: added optional i-time argument that
 	  defaults to 1, and if zero, will make the opcodes return zero on
 	  headerless files rather than some possibly incorrect defaults
+	* Opcodes/fout.c:
+	  fixed bug in fini opcode (negative numbers were read incorrectly)
+	* Engine/sread.c, Engine/swrite.c, Engine/twarp.c:
+	  fixes to reading numbers in [] score expressions
+	  fixed 's' and 'e' score opcodes with time parameter
 
 2006-06-02	Istvan Varga	<ivarga@csounds.com>
 	* New string opcodes:
