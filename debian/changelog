@@ -1,3 +1,9 @@
+csound (5.02.1-1) unstable; urgency=low
+
+    * Updated version to 5.02.1
+
+ -- Istvan Varga <ivarga@csounds.com>  Sun, 04 Jun 2006 13:45:50 +0200
+
 csound (5.02.0-1) unstable; urgency=low
 
     * Created Debian package.
