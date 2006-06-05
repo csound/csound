@@ -26,17 +26,18 @@ elif sys.platform == 'darwin':
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    customCPPPATH.append('c:/utah/msys/1.0/local/include')
-    customLIBPATH.append('c:/utah/msys/1.0/local/lib')
+    #customCPPPATH.append('c:/utah/msys/1.0/local/include')
+    #customLIBPATH.append('c:/utah/msys/1.0/local/lib')
     # If libsndfile is not in a standard location add it here:
-    #customCPPPATH.append('C:/utah/opt/libsndfile-1_0_16')
-    #customLIBPATH.append('C:/utah/opt/libsndfile-1_0_16')
+    customCPPPATH.append('C:/utah/opt/libsndfile-1_0_16')
+    customLIBPATH.append('C:/utah/opt/libsndfile-1_0_16')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
     # (of course you must build it first):
-    customCPPPATH.append('C:/utah/home/mkg/projects/portaudio/pa_common')
-    customLIBPATH.append('C:/utah/home/mkg/projects/portaudio/lib')
+    customCPPPATH.append('C:/utah/home/mkg/projects/portaudio/include')
+    #customLIBPATH.append('C:/utah/home/mkg/projects/portaudio/build/PortAudio/release')
+    customLIBPATH.append('C:/utah/opt/lazzarini')
     ################################################################
     # If you want PortMidi for real-time midi,
     # if it is not in a standard location add it here
@@ -51,8 +52,8 @@ elif sys.platform[:3] == 'win':
     # If you want FLTK widgets or if you want to build CsoundVST,
     # you need FLTK. If it is not in a standard location,
     # add it here (of course you must build it first):
-    #customCPPPATH.append('C:/utah/opt/fltk-1.1.7')
-    #customLIBPATH.append('C:/utah/opt/fltk-1.1.7/lib')
+    customCPPPATH.append('C:/utah/opt/fltk-1.1.7')
+    customLIBPATH.append('C:/utah/opt/fltk-1.1.7/lib')
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
