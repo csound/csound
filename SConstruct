@@ -1451,6 +1451,7 @@ else:
             '''))
         csound5GUIEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
+        csound5GUIEnvironment.Prepend(CXXFLAGS = "-fno-rtti")
         csound5GUIEnvironment.Append(LIBS = Split('''
             fltk stdc++ pthread m
         '''))
