@@ -35,8 +35,7 @@ elif sys.platform[:3] == 'win':
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
     # (of course you must build it first):
-    customCPPPATH.append('C:/utah/home/mkg/projects/portaudio/include')
-    #customLIBPATH.append('C:/utah/home/mkg/projects/portaudio/build/PortAudio/release')
+    customCPPPATH.append('C:/utah/opt/portaudio_varga/include')
     customLIBPATH.append('C:/utah/opt/lazzarini')
     ################################################################
     # If you want PortMidi for real-time midi,
@@ -58,7 +57,7 @@ elif sys.platform[:3] == 'win':
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
     customCPPPATH.append('c:/utah/opt/Python24/include')
-    #customLIBPATH.append('c:/WINDOWS/system32')
+    customLIBPATH.append('c:/utah/msys/1.0/local/lib')
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
