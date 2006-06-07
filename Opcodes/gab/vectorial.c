@@ -520,7 +520,7 @@ static int vcopy_i(CSOUND *csound,VECTORSOP *p)
 {
     FUNC        *ftp1, *ftp2;
     MYFLT   *vector1 = NULL, *vector2 = NULL;
-    long       elements;
+    long       elements, srcoffset, dstoffset;
     if ((ftp1 = csound->FTnp2Find(csound,p->ifn1)) != NULL) {
       vector1 = ftp1->ftable;
     }
@@ -528,12 +528,14 @@ static int vcopy_i(CSOUND *csound,VECTORSOP *p)
       vector2 = ftp2->ftable;
     }
     elements = (unsigned long) *p->ielements;
-    if ( elements > ftp1->flen || elements > ftp2->flen) {
+    srcoffset = (unsigned long) *p->isrcoffset;
+    dstoffset = (unsigned long) *p->idstoffset;
+    if ((elements+dstoffset) > ftp1->flen || ((elements+srcoffset) > ftp2->flen)) {
       return csound->InitError(csound, "vcopy_i: invalid num of elements");
     }
-
+    /* TODO: make messages clearer*/
     do {
-      *vector1++ = *vector2++;
+      vector1[dstoffset++] = vector2[srcoffset++];
     } while (--elements);
     return OK;
 }
@@ -1327,7 +1329,7 @@ static OENTRY localops[] = {
   { "vpowv",S(VECTORSOP),    3, "",  "iii", (SUBR)vectorsOp_set, (SUBR)vpowv   },
   { "vexpv",S(VECTORSOP),    3, "",  "iii", (SUBR)vectorsOp_set, (SUBR) vexpv  },
   { "vcopy",S(VECTORSOP),    3, "",  "iii", (SUBR)vectorsOp_set, (SUBR)vcopy   },
-  { "vcopy_i",S(VECTORSOP),  1, "",  "iii", (SUBR)vcopy_i           },
+  { "vcopy_i",S(VECTORSOP),  1, "",  "iiioo", (SUBR)vcopy_i           },
   { "vmap",S(VECTORSOP),     3, "",  "iii", (SUBR)vectorsOp_set, (SUBR)vmap    },
   { "vlimit",S(VLIMIT),      3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vlimit     },
   { "vwrap",S(VLIMIT),       3, "",  "ikki",(SUBR)vlimit_set, (SUBR) vwrap     },

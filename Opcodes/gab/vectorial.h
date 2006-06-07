@@ -88,7 +88,7 @@ typedef struct {
 
 typedef struct {
         OPDS   h;
-        MYFLT *ifn1, *ifn2, *ielements;
+        MYFLT *ifn1, *ifn2, *ielements, *idstoffset, *isrcoffset;
         int elements;
         MYFLT *vector1, *vector2;
 } VECTORSOP;
