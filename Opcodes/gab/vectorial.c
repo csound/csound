@@ -516,27 +516,30 @@ static int vcopy(CSOUND *csound,VECTORSOP *p)
     return OK;
 }
 
-static int vcopy_i(CSOUND *csound,VECTORSOP *p)
+static int vcopy_i(CSOUND *csound, VECTORSOP *p)
 {
-    FUNC        *ftp1, *ftp2;
-    MYFLT   *vector1 = NULL, *vector2 = NULL;
-    long       elements, srcoffset, dstoffset;
-    if ((ftp1 = csound->FTnp2Find(csound,p->ifn1)) != NULL) {
-      vector1 = ftp1->ftable;
-    }
-    if ((ftp2 = csound->FTnp2Find(csound,p->ifn2)) != NULL) {
-      vector2 = ftp2->ftable;
-    }
-    elements = (unsigned long) *p->ielements;
-    srcoffset = (unsigned long) *p->isrcoffset;
-    dstoffset = (unsigned long) *p->idstoffset;
-    if ((elements+dstoffset) > ftp1->flen || ((elements+srcoffset) > ftp2->flen)) {
+    FUNC    *ftp1, *ftp2;
+    MYFLT   *vector1, *vector2;
+    long    i, elements, srcoffset, dstoffset;
+
+    ftp1 = csound->FTnp2Find(csound, p->ifn1);
+    ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if (ftp1 == NULL || ftp2 == NULL)
+      return NOTOK;
+    elements = (long) *p->ielements;
+    srcoffset = (long) *p->isrcoffset;
+    dstoffset = (long) *p->idstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L ||
+        (elements + dstoffset) > ftp1->flen ||
+        (elements + srcoffset) > ftp2->flen) {
+      /* TODO: make messages clearer */
       return csound->InitError(csound, "vcopy_i: invalid num of elements");
     }
-    /* TODO: make messages clearer*/
-    do {
-      vector1[dstoffset++] = vector2[srcoffset++];
-    } while (--elements);
+    vector1 = &(ftp1->ftable[dstoffset]);
+    vector2 = &(ftp2->ftable[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] = vector2[i];
+
     return OK;
 }
 
