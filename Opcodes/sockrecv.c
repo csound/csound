@@ -21,11 +21,6 @@
     02111-1307 USA
 */
 
-#if defined(__linux) || defined(__linux__)
-/* for usleep() */
-#  define _XOPEN_SOURCE 600
-#endif
-
 #include "csdl.h"
 #include <unistd.h>
 #include <stdlib.h>
@@ -54,11 +49,13 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asigl, *ipaddress, *port, *ibuffnos;
+    // 1 channel: ptr1=asig, ptr2=port, ptr3=buffnos
+    // 2 channel: ptr1=asigl, ptr2=asigr, ptr3=port, ptr4=buffnos
+    MYFLT   *ptr1, *ptr2, *ptr3, *ptr4;
     AUXCH   buffer, tmp;
     MYFLT   *buf;
     int     sock;
-    int     wp, rp, wbufferuse, rbufferuse;
+    int     wp, rp, wbufferuse, rbufferuse, canread;
     int     threadon;
     int     usedbuf[MAXBUFS];
     int     bufnos, bufsamps[MAXBUFS];
@@ -67,28 +64,12 @@ typedef struct {
     struct sockaddr_in server_addr;
 } SOCKRECV;
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *asigl, *asigr, *ipaddress, *port, *ibuffnos;
-    AUXCH   buffer, tmp;
-    MYFLT   *buf;
-    int     sock;
-    int     wp, rp, wbufferuse, rbufferuse;
-    int     threadon;
-    int     usedbuf[MAXBUFS];
-    int     bufnos, bufsamps[MAXBUFS];
-    CSOUND  *cs;
-    void    *thrid;
-    struct sockaddr_in server_addr;
-} SOCKRECVS;
 
 static int deinit_udpRecv(CSOUND *csound, void *pdata)
 {
-    SOCKRECVS *p = (SOCKRECVS *) pdata;
-
+    SOCKRECV *p = (SOCKRECV*) pdata;
     p->threadon = 0;
     csound->JoinThread(p->thrid);
-    /* csound->Message(csound, "+++ udp receive thread finished.\n"); */
     return OK;
 }
 
@@ -96,69 +77,25 @@ static uintptr_t udpRecv(void *pdata)
 {
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
-    SOCKRECVS *p = (SOCKRECVS *) pdata;
-    int     *threadon = &p->threadon;
-    MYFLT   *tmp = (MYFLT *) p->tmp.auxp;
-    MYFLT   *buf;
- /* CSOUND  *cs = p->cs; */
-    int     i, bytes, n, bufnos = p->bufnos;
-
-    while (*threadon) {
-      /* get the data from the socket and store it in a tmp buffer */
-      if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
-        while (p->usedbuf[p->wbufferuse] == 1) {
-          usleep(1);
-        }
-        p->wbufferuse++;
-        p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
-        buf = (MYFLT*) ((char*) p->buffer.auxp + (p->wbufferuse * MTU));
-        p->usedbuf[p->wbufferuse] = 1;
-        p->bufsamps[p->wbufferuse] = n = bytes / sizeof(MYFLT);
-        for (i = 0; i < n; i++)
-          buf[i] = tmp[i];
-      }
+    SOCKRECV *p = (SOCKRECV*) pdata;
+    int *threadon = &p->threadon;
+    MYFLT *tmp = (MYFLT *) p->tmp.auxp;
+    MYFLT *buf;
+    int i, bytes, n, bufnos = p->bufnos;
+    while(*threadon)
+    {
+	/* get the data from the socket and store it in a tmp buffer */
+	if((bytes=recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))){
+	    p->wbufferuse++;
+	    p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
+	    buf = p->buffer.auxp+(p->wbufferuse*MTU);
+	    p->usedbuf[p->wbufferuse] = 1;  
+	    p->bufsamps[p->wbufferuse] = n = bytes/sizeof(MYFLT);
+	    for(i=0; i < n; i++)
+		buf[i] = tmp[i];
+	    p->canread=1;
+	}
     }
-    /* cs->Message(cs, "+++ udp receive thread released.\n"); */
-    return (uintptr_t) 0;
-}
-
-static int deinit_udpRecvS(CSOUND *csound, void *pdata)
-{
-    SOCKRECV *p = (SOCKRECV *) pdata;
-
-    p->threadon = 0;
-    csound->JoinThread(p->thrid);
-    /* csound->Message(csound, "+++ udp receive thread finished.\n"); */
-    return OK;
-}
-
-static uintptr_t udpRecvS(void *pdata)
-{
-    struct sockaddr from;
-    socklen_t clilen = sizeof(from);
-    SOCKRECV *p = (SOCKRECV *) pdata;
-    int     *threadon = &p->threadon;
-    MYFLT   *tmp = (MYFLT *) p->tmp.auxp;
-    MYFLT   *buf;
- /* CSOUND  *cs = p->cs; */
-    int     i, bytes, n, bufnos = p->bufnos;
-
-    while (*threadon) {
-      /* get the data from the socket and store it in a tmp buffer */
-      if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
-        while (p->usedbuf[p->wbufferuse] == 1) {
-          usleep(1);
-        }
-        p->wbufferuse++;
-        p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
-        buf = (MYFLT*) ((char*) p->buffer.auxp + (p->wbufferuse * MTU));
-        p->usedbuf[p->wbufferuse] = 1;
-        p->bufsamps[p->wbufferuse] = n = bytes / sizeof(MYFLT);
-        for (i = 0; i < n; i++)
-          buf[i] = tmp[i];
-      }
-    }
-    /* cs->Message(cs, "+++ udp receive thread released.\n"); */
     return (uintptr_t) 0;
 }
 
@@ -170,10 +107,9 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 
     p->wp = 0;
     p->rp = 0;
-    p->cs = csound;
-    p->bufnos = *p->ibuffnos;
-    if (p->bufnos > MAXBUFS)
-      p->bufnos = MAXBUFS;
+    p->cs = csound; 
+    p->bufnos = *p->ptr3;
+    if(p->bufnos > MAXBUFS) p->bufnos = MAXBUFS;
     bufnos = p->bufnos;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -185,7 +121,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;  /* it is an INET address */
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    p->server_addr.sin_port = htons((int) *p->port);  /* the port */
+    p->server_addr.sin_port = htons((int) *p->ptr2);  /* the port */
     /* associate the socket with the address and port */
     if (bind(p->sock, (struct sockaddr *) &p->server_addr,
              sizeof(p->server_addr)) < 0)
@@ -207,57 +143,62 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
       memset(buf, 0, MTU);
     }
 
-    /* create thread */
-    p->thrid = csound->CreateThread(udpRecvS, (void *) p);
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecvS);
+    // create thread
+    p->thrid = csound->CreateThread(udpRecv,(void *)p);
+    csound->RegisterDeinitCallback(csound, (void*)p, deinit_udpRecv);
     p->threadon = 1;
     memset(p->usedbuf, 0, bufnos * sizeof(int));
     memset(p->bufsamps, 0, bufnos * sizeof(int));
     p->buf = p->buffer.auxp;
     p->rbufferuse = p->wbufferuse = 0;
-
+    p->canread = 0;
     return OK;
 }
 
 static int send_recv(CSOUND *csound, SOCKRECV *p)
 {
-    MYFLT   *asigl = p->asigl;
+    MYFLT   *asig = p->ptr1;
     MYFLT   *buf = p->buf;
-    int     i, n, ksmps = csound->ksmps;
-    int     *bufsamps = p->bufsamps;
-    int     bufnos = p->bufnos;
-
-    for (i = 0, n = p->rp; i < ksmps; i++, n++) {
-      if (n == bufsamps[p->rbufferuse]) {
-        p->usedbuf[p->rbufferuse] = 0;
-        p->rbufferuse++;
-        p->rbufferuse = (p->rbufferuse == bufnos ? 0 : p->rbufferuse);
-        buf = (MYFLT*) ((char*) p->buffer.auxp + (p->rbufferuse * MTU));
-        while (p->usedbuf[p->rbufferuse] == 0) {
-          usleep(1);
-        }
-        n = 0;
-      }
-      asigl[i] = buf[n];
+    int i, n, ksmps = csound->ksmps;
+    int *bufsamps = p->bufsamps;
+    int bufnos = p->bufnos;
+   
+    if(p->canread){
+	for (i = 0, n = p->rp; i < ksmps; i++, n++) {
+	    if(n == bufsamps[p->rbufferuse]){
+		p->usedbuf[p->rbufferuse] = 0;
+		p->rbufferuse++;
+		p->rbufferuse = (p->rbufferuse == bufnos ? 0: p->rbufferuse);
+		buf = p->buffer.auxp+(p->rbufferuse*MTU);
+		n = 0;
+		if(p->usedbuf[p->rbufferuse]==0){
+		    p->canread=0;
+		    break;
+		}
+	    }
+	    asig[i] =  buf[n];         
+	}
+	p->rp = n;
+	p->buf = buf;
     }
-    p->rp = n;
-    p->buf = buf;
-
+    else{
+	for(i=0; i<ksmps; i++)
+	    asig[i]= FL(0.0);
+    }
     return OK;
 }
 
 /* UDP version two channel */
-static int init_recvS(CSOUND *csound, SOCKRECVS *p)
+static int init_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
     int     bufnos;
 
     p->wp = 0;
     p->rp = 0;
-    p->cs = csound;
-    p->bufnos = *p->ibuffnos;
-    if (p->bufnos > MAXBUFS)
-      p->bufnos = MAXBUFS;
+    p->cs = csound; 
+    p->bufnos = *p->ptr4;
+    if(p->bufnos > MAXBUFS) p->bufnos = MAXBUFS;
     bufnos = p->bufnos;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (p->sock < 0) {
@@ -268,7 +209,7 @@ static int init_recvS(CSOUND *csound, SOCKRECVS *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;  /* it is an INET address */
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    p->server_addr.sin_port = htons((int) *p->port);  /* the port */
+    p->server_addr.sin_port = htons((int) *p->ptr3);  /* the port */
     /* associate the socket with the address and port */
     if (bind(p->sock, (struct sockaddr *) &p->server_addr,
              sizeof(p->server_addr)) < 0)
@@ -298,36 +239,44 @@ static int init_recvS(CSOUND *csound, SOCKRECVS *p)
     memset(p->bufsamps, 0, bufnos * sizeof(int));
     p->buf = p->buffer.auxp;
     p->rbufferuse = p->wbufferuse = 0;
-
+    p->canread=0;
     return OK;
 }
 
-static int send_recvS(CSOUND *csound, SOCKRECVS *p)
+static int send_recvS(CSOUND *csound, SOCKRECV *p)
 {
-    MYFLT   *asigl = p->asigl;
-    MYFLT   *asigr = p->asigr;
+    MYFLT   *asigl = p->ptr1;
+    MYFLT   *asigr = p->ptr2;
     MYFLT   *buf = p->buf;
-    int     i, n, ksmps = csound->ksmps;
-    int     *bufsamps = p->bufsamps;
-    int     bufnos = p->bufnos;
+    int i, n, ksmps = csound->ksmps;
+    int *bufsamps = p->bufsamps;
+    int bufnos = p->bufnos;
 
-    for (i = 0, n = p->rp; i < ksmps; i++, n += 2) {
-      if (n == bufsamps[p->rbufferuse]) {
-        p->usedbuf[p->rbufferuse] = 0;
-        p->rbufferuse++;
-        p->rbufferuse = (p->rbufferuse == bufnos ? 0 : p->rbufferuse);
-        buf = (MYFLT*) ((char*) p->buffer.auxp + (p->rbufferuse * MTU));
-        while (p->usedbuf[p->rbufferuse] == 0) {
-          usleep(1);
-        }
-        n = 0;
-      }
-      asigl[i] = buf[n];
-      asigr[i] = buf[n + 1];
+    if(p->canread){
+	for (i = 0, n = p->rp; i < ksmps; i++, n+=2) {
+	    if(n == bufsamps[p->rbufferuse]){
+		p->usedbuf[p->rbufferuse] = 0;
+		p->rbufferuse++;
+		p->rbufferuse = (p->rbufferuse == bufnos ? 0: p->rbufferuse);
+		buf = p->buffer.auxp+(p->rbufferuse*MTU);
+		n = 0;
+		if(p->usedbuf[p->rbufferuse]==0){
+		    p->canread=0;
+		    break;
+		}
+	    }
+	    asigl[i] =  buf[n];         
+	    asigr[i] =  buf[n+1];
+	}
+	p->rp = n;
+	p->buf = buf;
     }
-    p->rp = n;
-    p->buf = buf;
-
+    else{
+	for(i=0; i<ksmps; i++){
+	    asigl[i]= FL(0.0);
+	    asigr[i]= FL(0.0);
+	}
+    }	
     return OK;
 }
 
@@ -384,9 +333,9 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "sockrecv", S(SOCKRECV), 5, "a", "Sii", (SUBR) init_recv, NULL,
+  { "sockrecv", S(SOCKRECV), 5, "a", "ii", (SUBR) init_recv, NULL,
     (SUBR) send_recv },
-  { "sockrecvs", S(SOCKRECVS), 5, "aa", "Sii", (SUBR) init_recvS, NULL,
+  { "sockrecvs", S(SOCKRECV), 5, "aa", "ii", (SUBR) init_recvS, NULL,
     (SUBR) send_recvS },
   { "strecv", S(SOCKRECVT), 5, "a", "Si", (SUBR) init_srecv, NULL,
     (SUBR) send_srecv }
