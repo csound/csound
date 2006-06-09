@@ -1117,10 +1117,13 @@ int chnsend_opcode_init(CSOUND *csound, CHNSEND *p)
 #  ifdef HAVE_TERMIOS_H
 #    include <termios.h>
 #  endif
+#elif defined(WIN32)
+#  include <conio.h>
+#endif
 
 int sensekey_init(CSOUND *csound, KSENSE *p)
 {
-    (void) p;
+#if defined(__unix) || defined(__unix__) || defined(__MACH__)
     if (csound->inChar_ < 0) {
 #  if defined(WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);  /* Does not seem to work */
@@ -1131,16 +1134,23 @@ int sensekey_init(CSOUND *csound, KSENSE *p)
       tcsetattr(0, TCSANOW, &tty);
 #  endif
     }
+#else
+    (void) csound;
+#endif
+    p->evtbuf = 0;
+
     return OK;
 }
 
 int sensekey_perf(CSOUND *csound, KSENSE *p)
 {
-    fd_set          rfds;
-    struct timeval  tv;
-    int             retval;
+    int     keyCode = -1;
 
     if (csound->inChar_ < 0) {
+#if defined(__unix) || defined(__unix__) || defined(__MACH__)
+      fd_set  rfds;
+      struct timeval  tv;
+      int     retval;
       /* Watch stdin (fd 0) to see when it has input. */
       FD_ZERO(&rfds);
       FD_SET(0, &rfds);
@@ -1151,77 +1161,40 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
       retval = select(1, &rfds, NULL, NULL, &tv);
 
       if (retval) {
-        char  ch;
+        char    ch;
         read(0, &ch, 1);
-        *p->ans = (MYFLT) ch;
-     /* FD_ISSET(0, &rfds) will be true. */
+        if (ch)
+          keyCode = (int) ((unsigned char) ch);
+        /* FD_ISSET(0, &rfds) will be true. */
       }
-      else
-        *p->ans = FL(-1.0);
-    }
-    else {
-      if (csound->inChar_) {
-        *p->ans = (MYFLT) csound->inChar_;
-        csound->inChar_ = 0;
-      }
-      else
-        *p->ans = FL(-1.0);
-    }
-
-    return OK;
-}
-
-#else       /* __unix || __unix__ || __MACH__ */
-
-int sensekey_init(CSOUND *csound, KSENSE *p)
-{
-    (void) csound;
-    (void) p;
-    return OK;
-}
-
+#else
+      unsigned char ch = (unsigned char) 0;
 #  ifdef WIN32
-#    include <conio.h>
-
-int sensekey_perf(CSOUND *csound, KSENSE *p)
-{
-    if (csound->inChar_ < 0) {
       if (_kbhit())
-        *p->ans = (MYFLT) _getch();
-      else
-        *p->ans = FL(-1.0);
+        ch = (unsigned char) _getch();
+#  else
+      ch = (unsigned char) getchar();
+#  endif
+      if (ch)
+        keyCode = (int) ch;
+#endif
     }
-    else {
-      if (csound->inChar_) {
-        *p->ans = (MYFLT) csound->inChar_;
-        csound->inChar_ = 0;
-      }
-      else
-        *p->ans = FL(-1.0);
+    else if (csound->inChar_) {
+      keyCode = csound->inChar_;
+      csound->inChar_ = 0;
     }
+    if (p->evtbuf != 0) {
+      int     tmp = keyCode;
+      keyCode = p->evtbuf;
+      tmp = (keyCode < 0 ? tmp : (-1 - keyCode));
+      p->evtbuf = (tmp != -1 ? tmp : 0);
+    }
+    else if (p->keyDown != NULL)
+      p->evtbuf = -1 - keyCode;
+    *(p->ans) = (MYFLT) (keyCode >= -1 ? keyCode : (-1 - keyCode));
+    if (p->keyDown != NULL)
+      *(p->keyDown) = (MYFLT) (keyCode >= 0 ? 1 : 0);
 
     return OK;
 }
-
-#  else     /* WIN32 */
-
-int sensekey_perf(CSOUND *csound, KSENSE *p)
-{
-    if (csound->inChar_ < 0) {
-      *p->ans = (MYFLT) getchar();
-    }
-    else {
-      if (csound->inChar_) {
-        *p->ans = (MYFLT) csound->inChar_;
-        csound->inChar_ = 0;
-      }
-      else
-        *p->ans = FL(-1.0);
-    }
-
-    return OK;
-}
-
-#  endif    /* !WIN32 */
-#endif      /* !(__unix || __unix__ || __MACH__) */
 

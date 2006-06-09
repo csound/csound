@@ -1772,12 +1772,13 @@ TEXT *getoptxt(CSOUND *csound, int *init)
       if (nreqd < 0)    /* for other opcodes */
         nreqd = strlen(types = ep->outypes);
       if ((n != nreqd) &&               /* IV - Oct 24 2002: end of new code */
-          ((*types != (char) 'm' && *types != (char) 'z' &&
-            *types != (char) 'X' && *types != (char) 'N') ||
-           (!n || n > MAXCHNLS)))
+          !(n > 0 && n < nreqd &&
+            (types[n] == (char) 'm' || types[n] == (char) 'z' ||
+             types[n] == (char) 'X' || types[n] == (char) 'N'))) {
         synterr(csound, Str("illegal no of output args"));
-      if (n > nreqd)            /* IV - Oct 24 2002: need this check */
-        n = nreqd;
+        if (n > nreqd)
+          n = nreqd;
+      }
       while (n--) {                                     /* outargs:  */
         long    tfound_m;       /* IV - Oct 31 2002 */
         s = tp->outlist->arg[n];
