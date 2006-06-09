@@ -1,3 +1,10 @@
+2006-06-09	Istvan Varga	<ivarga@csounds.com>
+	* OOps/bus.c:
+	  Added new optional output argument to sensekey opcode.
+	* Engine/rdorch.c:
+	  Made excess number of output arguments a syntax error, rather
+	  than silently ignoring them.
+
 2006-06-04	Michael Gogins	<gogins@pipeline.com>
 	* Changed the MIDI interoperability opcodes (OOps/midiinterop.c)
 	midinoteoncps, midinoteonoct, midinoteonpch to leave key and

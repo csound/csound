@@ -34,6 +34,8 @@ extern "C" {
 typedef struct {
     OPDS    h;
     MYFLT   *ans;
+    MYFLT   *keyDown;
+    int     evtbuf;
 } KSENSE;
 
 typedef struct {
