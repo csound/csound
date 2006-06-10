@@ -1,3 +1,6 @@
+2006-06-10
+	* Csound 5.02.1 release
+
 2006-06-10	Istvan Varga	<ivarga@csounds.com>
 	* Engine/sread.c:
 	  fixed parsing of score expressions
@@ -6,6 +9,8 @@
 	  channel ID in invalue and outvalue
 	* frontends/winsound/main.cxx, frontends/CsoundVST/CsoundVST.cpp:
 	  minor fixes
+	* frontends/fltk_gui/CsoundPerformance.cpp:
+	  fixed bug related to display callbacks
 
 2006-06-09	Istvan Varga	<ivarga@csounds.com>
 	* OOps/bus.c:
