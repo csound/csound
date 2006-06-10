@@ -1513,7 +1513,7 @@ int invalset(CSOUND *csound, INVAL *p)
         return csound->PerfError(csound, "k-rate invalue ChannelName "
                                          "cannot start with $");
       /* allocate the space used to pass a string during the k-pass */
-      csound->AuxAlloc(csound, strlen(s), &p->channelName);
+      csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
       sprintf((char*) p->channelName.auxp, "%s", s);
     }
     else {
@@ -1531,6 +1531,9 @@ int invalset(CSOUND *csound, INVAL *p)
 int kinval_S(CSOUND *csound, INVAL *p)
 {
     ((char*) p->value)[0] = (char) 0;
+    /* make sure the output is null-terminated with old hosts that */
+    /* are not aware of string channels */
+    ((char*) p->value)[sizeof(MYFLT)] = (char) 0;
 
     if (csound->InputValueCallback_)
       csound->InputValueCallback_(csound,
@@ -1543,12 +1546,12 @@ int invalset_S(CSOUND *csound, INVAL *p)
 {
     if (p->XSTRCODE) {
       const char  *s = (char*) p->valID;
-      csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
+      csound->AuxAlloc(csound, strlen(s) + 2, &p->channelName);
       sprintf((char*) p->channelName.auxp, "$%s", s);
     }
     else {
       csound->AuxAlloc(csound, 64, &p->channelName);
-      sprintf(p->channelName.auxp, "%d", (int) MYFLT2LRND(*p->valID));
+      sprintf(p->channelName.auxp, "$%d", (int) MYFLT2LRND(*p->valID));
     }
 
     /* grab input now for use during i-pass */
@@ -1578,23 +1581,25 @@ int koutval(CSOUND *csound, OUTVAL *p)
 
 int outvalset(CSOUND *csound, OUTVAL *p)
 {
-    if (p->XSTRCODE) {
+    if (p->XSTRCODE & 1) {
       const char  *s = (char*) p->valID;
       if (p->XSTRCODE & 2) {
         /* allocate the space used to pass a string during the k-pass */
+        /* FIXME: string constants may use more space than strVarMaxLen */
         csound->AuxAlloc(csound, strlen(s) + csound->strVarMaxLen + 2,
                          &p->channelName);
         sprintf((char*) p->channelName.auxp, "$%s$", s);
       }
       else {
-        csound->AuxAlloc(csound, strlen(s), &p->channelName);
+        csound->AuxAlloc(csound, strlen(s) + 1, &p->channelName);
         strcpy((char*) p->channelName.auxp, s);
       }
     }
     else {
       /* convert numerical channel to string name */
       csound->AuxAlloc(csound, 64, &p->channelName);
-      sprintf((char*) p->channelName.auxp, "%d", (int) MYFLT2LRND(*p->valID));
+      sprintf((char*) p->channelName.auxp, (p->XSTRCODE & 2 ? "$%d" : "%d"),
+              (int) MYFLT2LRND(*p->valID));
     }
 
     /* send output now for use during i-pass */
