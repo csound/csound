@@ -52,7 +52,8 @@ elif sys.platform[:3] == 'win':
     # you need FLTK. If it is not in a standard location,
     # add it here (of course you must build it first):
     customCPPPATH.append('C:/utah/opt/fltk-1.1.7')
-    customLIBPATH.append('C:/utah/opt/fltk-1.1.7/lib')
+    customLIBPATH.append('C:/utah/opt/csound5/bin')
+    #customLIBPATH.append('C:/utah/opt/fltk-1.1.7/lib')
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:

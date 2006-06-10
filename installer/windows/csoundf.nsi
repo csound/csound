@@ -426,9 +426,11 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_scoregen.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  File C:\utah\opt\libsndfile-1.0.15\src\.libs\libsndfile-1.dll
-  File C:\utah\opt\Lazzarini\portaudio.dll
-  File C:\utah\usr\mingw\bin\mingwm10.dll
+  File C:\utah\opt\csound5\bin\fltk.dll
+  File C:\utah\opt\libsndfile-1_0_16\libsndfile-1.dll
+  #File C:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
+  File C:\utah\opt\lazzarini\portaudio.dll
+  File C:\utah\opt\csound5\bin\fluidsynth.dll
   File C:\utah\opt\portmidi\pm_win\*.dll
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
