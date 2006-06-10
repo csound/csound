@@ -245,13 +245,13 @@ void CsoundVST::performanceThreadRoutine()
       }
       vstcommand.append(command);
       if (command.find(".orc") == std::string::npos && command.find(".sco") == std::string::npos) {
-	updateCommand = true;
-	vstcommand.append(" temp.orc temp.sco");
+        updateCommand = true;
+        vstcommand.append(" temp.orc temp.sco");
       }
       if (updateCommand) {
-	cppSound->setCommand(vstcommand);
-	std::string buffer = cppSound->getCommand();
-	csoundVstFltk->commandInput->value(buffer.c_str());
+        cppSound->setCommand(vstcommand);
+        std::string buffer = cppSound->getCommand();
+        csoundVstFltk->commandInput->value(buffer.c_str());
       }
       cppSound->exportForPerformance();
       csound::System::inform("Saved as: '%s' and '%s'.\n", cppSound->getOrcFilename().c_str(), cppSound->getScoFilename().c_str());
@@ -262,6 +262,18 @@ void CsoundVST::performanceThreadRoutine()
           getCppSound()->PreCompile();
           getCppSound()->SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
           getCppSound()->SetExternalMidiReadCallback(&CsoundVST::midiRead);
+          // disable threading in widgets plugin as if noFLTKThreads=1 was used
+          //
+          // FLTK flags is the sum of any of the following values:
+          //   1:  disable widget opcodes by setting up dummy opcodes instead
+          //   2:  disable FLTK graphs
+          //   4:  disable the use of a separate thread for widget opcodes
+          //   8:  disable the use of Fl::lock() and Fl::unlock()
+          //  16:  disable the use of Fl::awake()
+          // 128:  disable widget opcodes by not registering any opcodes
+          // 256:  disable the use of Fl::wait() (implies no widget thread)
+          csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
+          *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 28;
           if(getCppSound()->compile())
             {
               csound::System::inform("Csound compilation failed.\n");
