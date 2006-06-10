@@ -256,25 +256,23 @@ void CsoundVST::performanceThreadRoutine()
       cppSound->exportForPerformance();
       csound::System::inform("Saved as: '%s' and '%s'.\n", cppSound->getOrcFilename().c_str(), cppSound->getScoFilename().c_str());
       reset();
+      getCppSound()->PreCompile();
+      // FLTK flags is the sum of any of the following values:
+      //   1:  disable widget opcodes by setting up dummy opcodes instead
+      //   2:  disable FLTK graphs
+      //   4:  disable the use of a separate thread for widget opcodes
+      //   8:  disable the use of Fl::lock() and Fl::unlock()
+      //  16:  disable the use of Fl::awake()
+      // 128:  disable widget opcodes by not registering any opcodes
+      // 256:  disable the use of Fl::wait() (implies no widget thread)
+      cppSound->CreateGlobalVariable("FLTK_Flags", sizeof(int));
+      int *fltkFlags = (int *)cppSound->QueryGlobalVariable("FLTK_Flags");
+      *fltkFlags = 274;
       if(getIsVst())
         {
           csound::System::inform("Classic VST performance.\n");
-          getCppSound()->PreCompile();
           getCppSound()->SetExternalMidiInOpenCallback(&CsoundVST::midiDeviceOpen);
           getCppSound()->SetExternalMidiReadCallback(&CsoundVST::midiRead);
-          // disable threading in widgets plugin as if noFLTKThreads=1 was used
-          //
-          // FLTK flags is the sum of any of the following values:
-          //   1:  disable widget opcodes by setting up dummy opcodes instead
-          //   2:  disable FLTK graphs
-          //   4:  disable the use of a separate thread for widget opcodes
-          //   8:  disable the use of Fl::lock() and Fl::unlock()
-          //  16:  disable the use of Fl::awake()
-          // 128:  disable widget opcodes by not registering any opcodes
-          // 256:  disable the use of Fl::wait() (implies no widget thread)
-          cppSound->CreateGlobalVariable("FLTK_Flags", sizeof(int));
-	  int *fltkFlags = (int *)cppSound->QueryGlobalVariable("FLTK_Flags");
-          *fltkFlags = 28;
           if(getCppSound()->compile())
             {
               csound::System::inform("Csound compilation failed.\n");
@@ -309,11 +307,6 @@ void CsoundVST::setIsMultiThreaded(bool isMultiThreaded)
 void performanceThreadRoutine_(void *data)
 {
   ((CsoundVST *)data)->performanceThreadRoutine();
-}
-
-extern "C"
-{
-  extern int POLL_EVENTS(CSOUND *);
 }
 
 static int threadYieldCallback(CSOUND *csound)
@@ -921,5 +914,5 @@ extern "C"
   {
     return new CsoundVST;
   }
-};
+}
 
