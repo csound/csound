@@ -57,15 +57,15 @@ class SILENCE_PUBLIC ScoreGeneratorVst :
 protected:
   enum
     {
-      kNumInputs = 2,
+      kNumInputs = 2
     };
   enum
     {
-      kNumOutputs = 2,
+      kNumOutputs = 2
     };
   enum
     {
-      kNumPrograms = 10,
+      kNumPrograms = 10
     };
   std::multimap<int, ScoreGeneratorEvent> scoreGeneratorEvents;
   std::vector<VstMidiEvent> vstMidiEventsBuffer;

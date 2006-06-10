@@ -63,10 +63,10 @@ namespace csound
   public:
     enum Level
       {
-        ERROR_LEVEL                     = 1,
+        ERROR_LEVEL             = 1,
         WARNING_LEVEL           = 2,
         INFORMATION_LEVEL       = 4,
-        DEBUGGING_LEVEL         = 8,
+        DEBUGGING_LEVEL         = 8
       };
     /**
      *  Parses a filename into its component parts, which are returned in the arguments.

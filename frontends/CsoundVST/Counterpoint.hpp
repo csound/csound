@@ -101,7 +101,7 @@ public:
   enum
     {
       MostNotes_ = 128,
-      MostVoices_ = 12,
+      MostVoices_ = 12
     };
   long randx;
   boost::numeric::ublas::matrix<int> Ctrpt;
@@ -227,7 +227,7 @@ public:
       MajorSixth = 9,
       MinorSeventh = 10,
       MajorSeventh = 11,
-      Octave = 12,
+      Octave = 12
     };
   static int PerfectConsonance[13];
   static int ImperfectConsonance[13];
@@ -241,7 +241,7 @@ public:
       Lydian = 4,
       Mixolydian = 5,
       Ionian = 6,
-      Locrian = 7,
+      Locrian = 7
     };
   static int _Ionian[12];
   static int _Dorian[12];
@@ -286,7 +286,7 @@ public:
       DirectMotion = 1,
       ContraryMotion = 2,
       ObliqueMotion = 3,
-      NoMotion = 4,
+      NoMotion = 4
     };
 
   int MotionType(int Pitch1, int Pitch2, int Pitch3, int Pitch4)
@@ -371,7 +371,7 @@ public:
     DottedHalfNote = 6,
     QuarterNote = 2,
     DottedQuarterNote = 3,
-    EighthNote = 1,
+    EighthNote = 1
   };
 
   int Beat8(int n) {return(n % 8);}
@@ -393,7 +393,7 @@ public:
     Four = 4,
     Five = 5,
     Six = 6,
-    Eight = 8,
+    Eight = 8
   };
 
   int Size(int MelInt)
@@ -505,7 +505,7 @@ public:
     {
       infinity = 1000000,
       Bad = 100,
-      RealBad = 200,
+      RealBad = 200
     };
 
   int UnisonPenalty;
@@ -1209,7 +1209,7 @@ public:
     {
       NumFields = 16,
       Field = (MostVoices_+1),
-      EndF = (Field*NumFields),
+      EndF = (Field*NumFields)
     };
   int SaveIndx(int indx, int *Sp)
   {
