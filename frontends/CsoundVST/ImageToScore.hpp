@@ -62,6 +62,6 @@ namespace csound
                 virtual double getMinimumValue() const;
                 virtual void generate();
         };
-};
+}
 
 #endif

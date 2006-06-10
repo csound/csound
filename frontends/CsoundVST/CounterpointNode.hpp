@@ -59,7 +59,7 @@ namespace csound
     enum
       {
         GenerateCounterpoint = 0,
-        CorrectCounterpoint = 1,
+        CorrectCounterpoint = 1
       };
     int generationMode;
     int musicMode;
