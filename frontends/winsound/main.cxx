@@ -68,14 +68,14 @@ int main(int argc, char **argv)
     csoundSetMessageCallback(csound, mytextOutput);
     csoundSetYieldCallback(csound, yieldCallback);
     mw->show();
-    do_load = 0;
+    do_load = 1;
     do_exit = 0;
-    while (!do_exit) {
+    while (!do_exit && mw->shown()) {
       do_perf = 0;
       while (!do_exit && !do_perf) Fl::wait();
       if (do_perf) cs_compile_run();
     }
-    csoundCleanup(csound);
+    csoundReset(csound);
 }
 
 void cs_compile_run(void)
@@ -83,12 +83,14 @@ void cs_compile_run(void)
     int res=0;
     textw->show();
     Fl::wait(0);
+    csoundSetYieldCallback(csound, yieldCallback);
     if (do_load) {
       char *argv[100];
       char b1[12], b2[12], b3[12], b4[12], b5[12], b6[12], b7[12];
       int nxt=1;
       int itmp;
       char *stmp;
+      do_load = 0;
       /* Remember profile */
       prof.set("orchestra", orchname->value());
       prof.set("score", scorename->value());
@@ -169,33 +171,44 @@ void cs_compile_run(void)
       }
       prof.get("N", itmp, 0); if (itmp) argv[nxt++] = "-N";
       prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = "-Z";
-      argv[nxt++] = "-d";       // for the moment
-#if defined(WIN32)
-      argv[nxt++] = "-+rtaudio=mme";
-#elif defined(LINUX)
-      argv[nxt++] = "-+rtaudio=alsa";
-#elif defined(OSX)
-      argv[nxt++] = "-+rtaudio=CoreAudio";
-#else
-#endif
-      csoundReset(csound);
+   /* argv[nxt++] = "-d"; */    // for the moment
+      res = csoundPreCompile(csound);
 //       {
 //         int n;
 //         printf("nxt=%d\n", nxt);
 //         for (n=0; n<nxt; n++) printf("%d: \"%s\"\n", n, argv[n]);
 //       }
-      res = csoundCompile(csound, nxt, argv);
+      if (res == 0) {
+        // set default, but allow to be overridden by .csoundrc or <CsOptions>
+#if defined(WIN32)
+        csoundParseConfigurationVariable(csound, "rtaudio", "pa_cb");
+#elif defined(LINUX)
+        csoundParseConfigurationVariable(csound, "rtaudio", "alsa");
+#elif defined(OSX)
+        csoundParseConfigurationVariable(csound, "rtaudio", "CoreAudio");
+#else
+#endif
+        // disable threading in widgets plugin, and also graphs for safety
+        // (the latter is only needed with a static FLTK library)
+        csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
+        *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 30;
+        res = csoundCompile(csound, nxt, argv);
+      }
     }
     else
       csoundRewindScore(csound);
     Fl::wait(0);
-    res = 0;
-    csoundSetYieldCallback(csound, yieldCallback);
-    while (res==0 && do_perf) {
-      if (do_exit) return;
+    while (res == 0 && do_perf) {
+      if (do_exit) {
+        do_exit = 0;    // allow stopping performance without quitting program
+        break;
+      }
       res = csoundPerformKsmps(csound);
     }
-    csoundCleanup(csound);
+ // if (res < 0 || res == CSOUND_EXITJMP_SUCCESS) {
+      do_load = 1;
+      csoundReset(csound);
+ // }
 }
 
 void cs_util_sndinfo(void)

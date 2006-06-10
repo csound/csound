@@ -1,3 +1,12 @@
+2006-06-10	Istvan Varga	<ivarga@csounds.com>
+	* Engine/sread.c:
+	  fixed parsing of score expressions
+	* OOps/aops.c:
+	  fixed memory access errors and string channels with numeric
+	  channel ID in invalue and outvalue
+	* frontends/winsound/main.cxx, frontends/CsoundVST/CsoundVST.cpp:
+	  minor fixes
+
 2006-06-09	Istvan Varga	<ivarga@csounds.com>
 	* OOps/bus.c:
 	  Added new optional output argument to sensekey opcode.
