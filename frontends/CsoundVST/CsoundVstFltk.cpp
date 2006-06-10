@@ -220,13 +220,6 @@ long CsoundVstFltk::getRect(ERect **erect)
 
 long CsoundVstFltk::open(void *parentWindow)
 {
-  if (csoundVST->isVst) {
-    if (csoundVST->fltkWaitThreadId == 0)
-      {
-	Fl::lock();
-	csoundVST->fltkWaitThreadId == csoundGetCurrentThreadId();
-      }
-  }
   csoundVST->fltklock();
   systemWindow = parentWindow;
   this->csoundVstUi = make_window(this);
@@ -315,7 +308,7 @@ void CsoundVstFltk::idle()
           while(!messages.empty())
             {
               csoundVST->fltklock();
-              csoundVST->fltkflush();
+              //csoundVST->fltkflush();
               this->runtimeMessagesBrowser->add(messages.front().c_str());
               this->runtimeMessagesBrowser->bottomline(this->runtimeMessagesBrowser->size());
               csoundVST->fltkunlock();
@@ -406,7 +399,7 @@ void CsoundVstFltk::messageCallback(CSOUND *csound, int attribute, const char *f
           else
             {
               csoundVstFltk->csoundVST->fltklock();
-              csoundVstFltk->csoundVST->fltkflush();
+              //csoundVstFltk->csoundVST->fltkflush();
               csoundVstFltk->runtimeMessagesBrowser->add(it->c_str());
               csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
               csoundVstFltk->csoundVST->fltkunlock();
