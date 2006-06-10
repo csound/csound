@@ -59,7 +59,7 @@ class SILENCE_PUBLIC CsoundVST :
   public AudioEffectX,
   public csound::Shell
 {
-protected:
+public:
   enum
     {
       kNumInputs = 2
@@ -97,7 +97,6 @@ protected:
   float vstPriorSamplePosition;
   CsoundVstFltk *csoundVstFltk;
   std::list<VstMidiEvent> midiEventQueue;
-public:
   std::vector<Preset> bank;
   // AudioEffectX overrides.
   CsoundVST(audioMasterCallback audioMaster);
