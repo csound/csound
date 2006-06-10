@@ -150,7 +150,7 @@ namespace csound
                         SYSTEM_CONTINUE = 0xfb,
                         SYSTEM_STOP = 0xfc,
                         SYSTEM_ACTIVE_SENSING = 0xfe,
-                        META_EVENT = 0xff,
+                        META_EVENT = 0xff
                 } MidiEventTypes;
                 typedef enum {
                         META_SEQUENCE_NUMBER = 0x00,
@@ -167,7 +167,7 @@ namespace csound
                         META_SMPTE_OFFSET = 0x54,
                         META_TIME_SIGNATURE = 0x58,
                         META_KEY_SIGNATURE = 0x59,
-                        META_SEQUENCER_SPECIFIC = 0x74,
+                        META_SEQUENCER_SPECIFIC = 0x74
                 } MetaEventTypes;
                 typedef enum {
                         CONTROLLER_MOD_WHEEL = 1,
@@ -199,7 +199,7 @@ namespace csound
                         CONTROLLER_NON_REG_MSB = 0x63,
                         CONTROLLER_REG_LSB = 0x64,
                         CONTROLLER_REG_MSG = 0x65,
-                        CONTROLLER_CONTINUOUS_AFTERTOUCH = 128,
+                        CONTROLLER_CONTINUOUS_AFTERTOUCH = 128
                 } MidiControllers;
                 static int readVariableLength(std::istream &stream);
                 static void writeVariableLength(std::ostream &stream, int value);

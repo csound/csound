@@ -278,4 +278,4 @@ namespace csound
                         System::debug("Ending:   %d  %s\n", eventIndex, startingEvent.toString().c_str());
                 }
         }
-};
+}

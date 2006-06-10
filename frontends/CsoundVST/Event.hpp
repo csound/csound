@@ -89,11 +89,11 @@ namespace csound
         HEIGHT,
         PITCHES,
         HOMOGENEITY,
-        ELEMENT_COUNT,
+        ELEMENT_COUNT
       } Dimensions;
     enum
       {
-        INDEFINITE = 16384,
+        INDEFINITE = 16384
       };
     static int SORT_ORDER[];
     static const char *labels[];

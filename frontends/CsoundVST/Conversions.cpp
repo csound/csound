@@ -26,7 +26,7 @@
 extern "C"
 {
   extern __stdcall void OutputDebugStringA(const char *text);
-};
+}
 #endif
 
 namespace csound

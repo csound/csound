@@ -115,4 +115,4 @@ namespace csound
                 generate();
                 ScoreNode::produceOrTransform(score, beginAt, endAt, coordinates);
         }
-};
+}
