@@ -272,8 +272,9 @@ void CsoundVST::performanceThreadRoutine()
           //  16:  disable the use of Fl::awake()
           // 128:  disable widget opcodes by not registering any opcodes
           // 256:  disable the use of Fl::wait() (implies no widget thread)
-          csoundCreateGlobalVariable(csound, "FLTK_Flags", sizeof(int));
-          *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 28;
+          cppSound->CreateGlobalVariable("FLTK_Flags", sizeof(int));
+	  int *fltkFlags = (int *)cppSound->QueryGlobalVariable("FLTK_Flags");
+          *fltkFlags = 28;
           if(getCppSound()->compile())
             {
               csound::System::inform("Csound compilation failed.\n");
