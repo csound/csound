@@ -246,7 +246,7 @@ void makeWindow(char *name)
   choice->callback((Fl_Callback*) do_redraw);
   graph = new graph_box(BDR, 30 + BDR, WIDTH - 2 * BDR, HEIGHT - 30 - 2 * BDR);
   graph->end();
-  end = new Fl_Button(WIDTH - 30, 0, 25, 15, "Quit");
+  end = new Fl_Button(WIDTH - 40, 0, 35, 20, "Quit");
   end->hide();
   form->resizable(graph);
   form->end();
