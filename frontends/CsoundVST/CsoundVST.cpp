@@ -60,11 +60,6 @@ CsoundVST::CsoundVST(audioMasterCallback audioMaster) :
   vstPriorSamplePosition(0),
   csoundVstFltk(0)
 {
-  if (fltkWaitThreadId == 0)
-    {
-      Fl::lock();
-      fltkWaitThreadId == csoundGetCurrentThreadId();
-    }
   setNumInputs(kNumInputs);             // stereo in
   setNumOutputs(kNumOutputs);           // stereo out
   setUniqueID('cVsT');  // identify

@@ -220,6 +220,13 @@ long CsoundVstFltk::getRect(ERect **erect)
 
 long CsoundVstFltk::open(void *parentWindow)
 {
+  if (csoundVST->isVst) {
+    if (csoundVST->fltkWaitThreadId == 0)
+      {
+	Fl::lock();
+	csoundVST->fltkWaitThreadId == csoundGetCurrentThreadId();
+      }
+  }
   csoundVST->fltklock();
   systemWindow = parentWindow;
   this->csoundVstUi = make_window(this);
