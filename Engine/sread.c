@@ -424,10 +424,21 @@ top:
           }
  parseNumber:
           i = 0;
-          while (isdigit(c) || c == '.' || c == '+' || c == '-' ||
-                 c == 'e' || c == 'E') {
+          do {
             buffer[i++] = c;
             c = getscochar(csound, 1);
+          } while (isdigit(c) || c == '.');
+          if (c == 'e' || c == 'E') {
+            buffer[i++] = c;
+            c = getscochar(csound, 1);
+            if (c == '+' || c == '-') {
+              buffer[i++] = c;
+              c = getscochar(csound, 1);
+            }
+            while (isdigit(c)) {
+              buffer[i++] = c;
+              c = getscochar(csound, 1);
+            }
           }
           buffer[i] = '\0';
           *++pv = stof(csound, buffer);
@@ -534,17 +545,17 @@ top:
           c = getscochar(csound, 1);
           continue;
         default:
-          csound->Message(csound,"read %c(%.2x)\n", c, c);
+          csound->Message(csound, "read %c(%.2x)\n", c, c);
           csoundDie(csound, Str("Incorrect evaluation"));
         }
       } while (c != '$');
       /* Make string macro or value */
       sprintf(buffer, "%f", *pv);
       {
-        MACRO* nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
+        MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
         nn->name = mmalloc(csound, 2);
         strcpy(nn->name, "[");
-        nn->body = (char*)mmalloc(csound, strlen(buffer)+1);
+        nn->body = (char*) mmalloc(csound, strlen(buffer) + 1);
         strcpy(nn->body, buffer);
         nn->acnt = 0;   /* No arguments for arguments */
         nn->next = ST(macros);
