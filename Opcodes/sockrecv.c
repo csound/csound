@@ -34,10 +34,10 @@
 #define MAXBUFS 32
 #define MTU (1456)
 
-extern int inet_aton(const char *cp, struct in_addr *inp);
+extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
-static uintptr_t udpRecv(void *data);
-static int deinit_udpRecv(CSOUND *csound, void *pdata);
+static  uintptr_t udpRecv(void *data);
+static  int     deinit_udpRecv(CSOUND *csound, void *pdata);
 
 typedef struct {
     OPDS    h;
@@ -49,14 +49,14 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    // 1 channel: ptr1=asig, ptr2=port, ptr3=buffnos
-    // 2 channel: ptr1=asigl, ptr2=asigr, ptr3=port, ptr4=buffnos
+    /* 1 channel: ptr1=asig, ptr2=port, ptr3=buffnos */
+    /* 2 channel: ptr1=asigl, ptr2=asigr, ptr3=port, ptr4=buffnos */
     MYFLT   *ptr1, *ptr2, *ptr3, *ptr4;
     AUXCH   buffer, tmp;
     MYFLT   *buf;
     int     sock;
     int     wp, rp, wbufferuse, rbufferuse, canread;
-    int     threadon;
+    volatile int threadon;
     int     usedbuf[MAXBUFS];
     int     bufnos, bufsamps[MAXBUFS];
     CSOUND  *cs;
@@ -64,10 +64,10 @@ typedef struct {
     struct sockaddr_in server_addr;
 } SOCKRECV;
 
-
 static int deinit_udpRecv(CSOUND *csound, void *pdata)
 {
-    SOCKRECV *p = (SOCKRECV*) pdata;
+    SOCKRECV *p = (SOCKRECV *) pdata;
+
     p->threadon = 0;
     csound->JoinThread(p->thrid);
     return OK;
@@ -77,24 +77,23 @@ static uintptr_t udpRecv(void *pdata)
 {
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
-    SOCKRECV *p = (SOCKRECV*) pdata;
-    int *threadon = &p->threadon;
-    MYFLT *tmp = (MYFLT *) p->tmp.auxp;
-    MYFLT *buf;
-    int i, bytes, n, bufnos = p->bufnos;
-    while(*threadon)
-    {
-	/* get the data from the socket and store it in a tmp buffer */
-	if((bytes=recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))){
-	    p->wbufferuse++;
-	    p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
-	    buf = p->buffer.auxp+(p->wbufferuse*MTU);
-	    p->usedbuf[p->wbufferuse] = 1;  
-	    p->bufsamps[p->wbufferuse] = n = bytes/sizeof(MYFLT);
-	    for(i=0; i < n; i++)
-		buf[i] = tmp[i];
-	    p->canread=1;
-	}
+    SOCKRECV *p = (SOCKRECV *) pdata;
+    MYFLT   *tmp = (MYFLT *) p->tmp.auxp;
+    MYFLT   *buf;
+    int     i, bytes, n, bufnos = p->bufnos;
+
+    while (p->threadon) {
+      /* get the data from the socket and store it in a tmp buffer */
+      if ((bytes = recvfrom(p->sock, tmp, MTU, 0, &from, &clilen))) {
+        p->wbufferuse++;
+        p->wbufferuse = (p->wbufferuse == bufnos ? 0 : p->wbufferuse);
+        buf = (MYFLT *) ((char *) p->buffer.auxp + (p->wbufferuse * MTU));
+        p->usedbuf[p->wbufferuse] = 1;
+        p->bufsamps[p->wbufferuse] = n = bytes / sizeof(MYFLT);
+        for (i = 0; i < n; i++)
+          buf[i] = tmp[i];
+        p->canread = 1;
+      }
     }
     return (uintptr_t) 0;
 }
@@ -107,9 +106,10 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 
     p->wp = 0;
     p->rp = 0;
-    p->cs = csound; 
+    p->cs = csound;
     p->bufnos = *p->ptr3;
-    if(p->bufnos > MAXBUFS) p->bufnos = MAXBUFS;
+    if (p->bufnos > MAXBUFS)
+      p->bufnos = MAXBUFS;
     bufnos = p->bufnos;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -119,9 +119,9 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
-    p->server_addr.sin_family = AF_INET;  /* it is an INET address */
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    p->server_addr.sin_port = htons((int) *p->ptr2);  /* the port */
+    p->server_addr.sin_port = htons((int) *p->ptr2);    /* the port */
     /* associate the socket with the address and port */
     if (bind(p->sock, (struct sockaddr *) &p->server_addr,
              sizeof(p->server_addr)) < 0)
@@ -131,7 +131,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU * bufnos, &p->buffer);
     else {
-      buf = (MYFLT *) p->buffer.auxp;  /* make sure buffer is empty */
+      buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
       memset(buf, 0, MTU * bufnos);
     }
     /* create a buffer to store the received interleaved audio data */
@@ -139,19 +139,20 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->tmp);
     else {
-      buf = (MYFLT *) p->tmp.auxp;  /* make sure buffer is empty */
+      buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
 
-    // create thread
-    p->thrid = csound->CreateThread(udpRecv,(void *)p);
-    csound->RegisterDeinitCallback(csound, (void*)p, deinit_udpRecv);
+    /* create thread */
+    p->thrid = csound->CreateThread(udpRecv, (void *) p);
+    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv);
     p->threadon = 1;
     memset(p->usedbuf, 0, bufnos * sizeof(int));
     memset(p->bufsamps, 0, bufnos * sizeof(int));
     p->buf = p->buffer.auxp;
     p->rbufferuse = p->wbufferuse = 0;
     p->canread = 0;
+
     return OK;
 }
 
@@ -159,31 +160,31 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *asig = p->ptr1;
     MYFLT   *buf = p->buf;
-    int i, n, ksmps = csound->ksmps;
-    int *bufsamps = p->bufsamps;
-    int bufnos = p->bufnos;
-   
-    if(p->canread){
-	for (i = 0, n = p->rp; i < ksmps; i++, n++) {
-	    if(n == bufsamps[p->rbufferuse]){
-		p->usedbuf[p->rbufferuse] = 0;
-		p->rbufferuse++;
-		p->rbufferuse = (p->rbufferuse == bufnos ? 0: p->rbufferuse);
-		buf = p->buffer.auxp+(p->rbufferuse*MTU);
-		n = 0;
-		if(p->usedbuf[p->rbufferuse]==0){
-		    p->canread=0;
-		    break;
-		}
-	    }
-	    asig[i] =  buf[n];         
-	}
-	p->rp = n;
-	p->buf = buf;
+    int     i, n, ksmps = csound->ksmps;
+    int     *bufsamps = p->bufsamps;
+    int     bufnos = p->bufnos;
+
+    if (p->canread) {
+      for (i = 0, n = p->rp; i < ksmps; i++, n++) {
+        if (n == bufsamps[p->rbufferuse]) {
+          p->usedbuf[p->rbufferuse] = 0;
+          p->rbufferuse++;
+          p->rbufferuse = (p->rbufferuse == bufnos ? 0 : p->rbufferuse);
+          buf = (MYFLT *) ((char *) p->buffer.auxp + (p->rbufferuse * MTU));
+          n = 0;
+          if (p->usedbuf[p->rbufferuse] == 0) {
+            p->canread = 0;
+            break;
+          }
+        }
+        asig[i] = buf[n];
+      }
+      p->rp = n;
+      p->buf = buf;
     }
-    else{
-	for(i=0; i<ksmps; i++)
-	    asig[i]= FL(0.0);
+    else {
+      for (i = 0; i < ksmps; i++)
+        asig[i] = FL(0.0);
     }
     return OK;
 }
@@ -196,9 +197,10 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
 
     p->wp = 0;
     p->rp = 0;
-    p->cs = csound; 
+    p->cs = csound;
     p->bufnos = *p->ptr4;
-    if(p->bufnos > MAXBUFS) p->bufnos = MAXBUFS;
+    if (p->bufnos > MAXBUFS)
+      p->bufnos = MAXBUFS;
     bufnos = p->bufnos;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (p->sock < 0) {
@@ -207,9 +209,9 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
-    p->server_addr.sin_family = AF_INET;  /* it is an INET address */
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    p->server_addr.sin_port = htons((int) *p->ptr3);  /* the port */
+    p->server_addr.sin_port = htons((int) *p->ptr3);    /* the port */
     /* associate the socket with the address and port */
     if (bind(p->sock, (struct sockaddr *) &p->server_addr,
              sizeof(p->server_addr)) < 0)
@@ -219,7 +221,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU * bufnos, &p->buffer);
     else {
-      buf = (MYFLT *) p->buffer.auxp;  /* make sure buffer is empty */
+      buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
       memset(buf, 0, MTU * bufnos);
     }
     /* create a buffer to store the received interleaved audio data */
@@ -227,7 +229,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->tmp);
     else {
-      buf = (MYFLT *) p->tmp.auxp;  /* make sure buffer is empty */
+      buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
 
@@ -239,7 +241,8 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     memset(p->bufsamps, 0, bufnos * sizeof(int));
     p->buf = p->buffer.auxp;
     p->rbufferuse = p->wbufferuse = 0;
-    p->canread=0;
+    p->canread = 0;
+
     return OK;
 }
 
@@ -248,35 +251,35 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
     MYFLT   *asigl = p->ptr1;
     MYFLT   *asigr = p->ptr2;
     MYFLT   *buf = p->buf;
-    int i, n, ksmps = csound->ksmps;
-    int *bufsamps = p->bufsamps;
-    int bufnos = p->bufnos;
+    int     i, n, ksmps = csound->ksmps;
+    int     *bufsamps = p->bufsamps;
+    int     bufnos = p->bufnos;
 
-    if(p->canread){
-	for (i = 0, n = p->rp; i < ksmps; i++, n+=2) {
-	    if(n == bufsamps[p->rbufferuse]){
-		p->usedbuf[p->rbufferuse] = 0;
-		p->rbufferuse++;
-		p->rbufferuse = (p->rbufferuse == bufnos ? 0: p->rbufferuse);
-		buf = p->buffer.auxp+(p->rbufferuse*MTU);
-		n = 0;
-		if(p->usedbuf[p->rbufferuse]==0){
-		    p->canread=0;
-		    break;
-		}
-	    }
-	    asigl[i] =  buf[n];         
-	    asigr[i] =  buf[n+1];
-	}
-	p->rp = n;
-	p->buf = buf;
+    if (p->canread) {
+      for (i = 0, n = p->rp; i < ksmps; i++, n += 2) {
+        if (n == bufsamps[p->rbufferuse]) {
+          p->usedbuf[p->rbufferuse] = 0;
+          p->rbufferuse++;
+          p->rbufferuse = (p->rbufferuse == bufnos ? 0 : p->rbufferuse);
+          buf = (MYFLT *) ((char *) p->buffer.auxp + (p->rbufferuse * MTU));
+          n = 0;
+          if (p->usedbuf[p->rbufferuse] == 0) {
+            p->canread = 0;
+            break;
+          }
+        }
+        asigl[i] = buf[n];
+        asigr[i] = buf[n + 1];
+      }
+      p->rp = n;
+      p->buf = buf;
     }
-    else{
-	for(i=0; i<ksmps; i++){
-	    asigl[i]= FL(0.0);
-	    asigr[i]= FL(0.0);
-	}
-    }	
+    else {
+      for (i = 0; i < ksmps; i++) {
+        asigl[i] = FL(0.0);
+        asigr[i] = FL(0.0);
+      }
+    }
     return OK;
 }
 

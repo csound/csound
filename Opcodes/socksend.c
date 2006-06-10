@@ -31,7 +31,7 @@
 #include <sys/types.h>
 #include <string.h>
 
-extern int inet_aton(const char *cp, struct in_addr *inp);
+extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
     OPDS    h;
@@ -56,12 +56,13 @@ typedef struct {
 /* UDP version one channel */
 static int init_send(CSOUND *csound, SOCKSEND *p)
 {
-    p->bsize=*p->buffersize;
-    int bsize = p->bsize;
+    int     bsize;
 
+    p->bsize = bsize = (int) *p->buffersize;
     if ((sizeof(MYFLT) * bsize) > MTU) {
       csound->InitError(csound, "The buffersize must be <= %d samples "
-                                "to fit in a udp-packet.", MTU / sizeof(MYFLT));
+                                "to fit in a udp-packet.",
+                                (int) (MTU / sizeof(MYFLT)));
       return NOTOK;
     }
     p->wp = 0;
@@ -79,11 +80,11 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
     /* create a buffer to write the interleaved audio to  */
-    if (p->aux.auxp == NULL || (long) (bsize*sizeof(MYFLT)) > p->aux.size)
-	/* allocate space for the buffer */
-	csound->AuxAlloc(csound, (bsize*sizeof(MYFLT)), &p->aux);
+    if (p->aux.auxp == NULL || (long) (bsize * sizeof(MYFLT)) > p->aux.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, (bsize * sizeof(MYFLT)), &p->aux);
     else {
-	memset(p->aux.auxp, 0, sizeof(MYFLT)*bsize);
+      memset(p->aux.auxp, 0, sizeof(MYFLT) * bsize);
     }
     return OK;
 }
@@ -116,12 +117,13 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
 /* UDP version 2 channels */
 static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
-    p->bsize=*p->buffersize;
-    int bsize = p->bsize;
+    int     bsize;
 
+    p->bsize = bsize = (int) *p->buffersize;
     if ((sizeof(MYFLT) * bsize) > MTU) {
       csound->InitError(csound, "The buffersize must be <= %d samples "
-                                "to fit in a udp-packet.", MTU / sizeof(MYFLT));
+                                "to fit in a udp-packet.",
+                                (int) (MTU / sizeof(MYFLT)));
       return NOTOK;
     }
     p->wp = 0;
@@ -139,11 +141,11 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
     /* create a buffer to write the interleaved audio to */
-    if (p->aux.auxp == NULL || (long) (bsize*sizeof(MYFLT)) > p->aux.size)
-	/* allocate space for the buffer */
-	csound->AuxAlloc(csound, (bsize*sizeof(MYFLT)), &p->aux);
+    if (p->aux.auxp == NULL || (long) (bsize * sizeof(MYFLT)) > p->aux.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, (bsize * sizeof(MYFLT)), &p->aux);
     else {
-	memset(p->aux.auxp, 0, sizeof(MYFLT)*bsize);
+      memset(p->aux.auxp, 0, sizeof(MYFLT) * bsize);
     }
     return OK;
 }
