@@ -515,7 +515,7 @@ class CsoundCallbackWrapper {
       int   ksmps = csoundGetKsmps(csound_);
       (void) chnName;
       for (int i = 0; i < ksmps; i++)
-        buf[i] = (MYFLT) 0;
+        buf[i] = (MYFLT) 0.0;
     }
     virtual void AudioChannelOutputCallback(const char *chnName, MYFLT *buf)
     {
