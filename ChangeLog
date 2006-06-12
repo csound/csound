@@ -1,3 +1,7 @@
+2006-06-12  jpff  <jpff@codemist.co.uk>
+
+	* InOut/midifile.c (csoundMIDIFileOpen): Added MFDIR
+
 2006-06-10
 	* Csound 5.02.1 release
 
