@@ -1,7 +1,7 @@
 /*
     csoundCore.h:
 
-    Copyright (C) 1991-2005 Barry Vercoe, John ffitch, Istvan Varga
+    Copyright (C) 1991-2006 Barry Vercoe, John ffitch, Istvan Varga
 
     This file is part of Csound.
 
@@ -930,8 +930,12 @@ extern "C" {
     long (*RunCommand)(const char * const *argv, int noWait);
     void *(*GetCurrentThreadID)(void);
     void (*SetChannelIOCallback)(CSOUND *, CsoundChannelIOCallback_t func);
+    int (*Set_Callback)(CSOUND *, int (*func)(void *, void *, unsigned int),
+                                  void *userData, unsigned int typeMask);
+    void (*Remove_Callback)(CSOUND *,
+                            int (*func)(void *, void *, unsigned int));
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[104];
+    SUBR dummyfn_2[102];
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     OPDS          *ids, *pds;
@@ -1033,7 +1037,7 @@ extern "C" {
     long          nrecs;
     FILE*         Linepipe;
     int           Linefd;
-    MYFLT         *dummy_04;
+    void          *csoundCallbacks_;
     FILE*         scfp;
     FILE*         oscfp;
     MYFLT         maxamp[MAXCHNLS];
@@ -1190,6 +1194,7 @@ extern "C" {
     long          instxtcount, optxtsize;
     long          poolcount, gblfixed, gblacount, gblscount;
     CsoundChannelIOCallback_t   channelIOCallback_;
+    int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
