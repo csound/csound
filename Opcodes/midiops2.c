@@ -2,6 +2,7 @@
     midiops2.c:
 
     Copyright (C) 1997 Gabriel Maldonado
+              (C) 2006 Istvan Varga
 
     This file is part of Csound.
 
@@ -558,6 +559,35 @@ static int initc21(CSOUND *csound, INITC21 *p)
     return OK;
 }
 
+/* midipgm by Istvan Varga, 2006 */
+
+typedef struct MIDIPGM_OP_ {
+    OPDS    h;
+    MYFLT   *ipgm, *ichn;
+} MIDIPGM_OP;
+
+static int midipgm_opcode(CSOUND *csound, MIDIPGM_OP *p)
+{
+    MCHNBLK *chnp;
+    int     channelNum;
+
+    *(p->ipgm) = FL(0.0);
+    channelNum = (int) (*(p->ichn) + FL(0.5));
+    if (channelNum > 0) {
+      if (channelNum > 16)
+        return csound->InitError(csound, Str("invalid channel number: %d"),
+                                         channelNum);
+      chnp = csound->m_chnbp[channelNum - 1];
+    }
+    else
+      chnp = p->h.insdshead->m_chnbp;
+    if (chnp != NULL) {
+      if ((int) chnp->pgmno >= 0)
+        *(p->ipgm) = (MYFLT) ((int) chnp->pgmno + 1);
+    }
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
@@ -581,7 +611,8 @@ static OENTRY localops[] = {
 { "ctrl21.k", S(CTRL21), 3,  "k", "iiiikko", (SUBR)ctrl21set, (SUBR)ctrl21, NULL },
 { "initc7", S(INITC7), 1,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
 { "initc14", S(INITC14), 1,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
-{ "initc21", S(INITC21), 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL }
+{ "initc21", S(INITC21), 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
+{ "midipgm", S(MIDIPGM_OP), 1, "i", "o",   (SUBR)midipgm_opcode, NULL, NULL }
 };
 
 int midiops2_init_(CSOUND *csound)
