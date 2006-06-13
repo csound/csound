@@ -561,12 +561,7 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     if (strcmp(name, "stdin") == 0)
       f = stdin;
     else {
-#if 0
       fd = csound->FileOpen(csound, &f, CSFILE_STD, name, "rb", "SFDIR;SSDIR");
-#else
-      fd = csound->FileOpen(csound,
-                            &f, CSFILE_STD, name, "rb", "SFDIR;SSDIR;MFDIR");
-#endif
       if (fd == NULL) {
         csound->ErrorMsg(csound, Str(" *** error opening MIDI file '%s': %s"),
                                  name, strerror(errno));
