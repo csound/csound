@@ -1,3 +1,8 @@
+2006-06-13	Istvan Varga	<ivarga@csounds.com>
+	* New API functions: csoundSetCallback(), csoundRemoveCallback()
+	* OOps/bus.c: sensekey opcode: use new callback interface
+	* H/version.h: updated API version to 1.02
+
 2006-06-12  jpff  <jpff@codemist.co.uk>
 
 	* InOut/midifile.c (csoundMIDIFileOpen): Added MFDIR

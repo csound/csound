@@ -187,6 +187,9 @@ extern "C" {
 #define CSOUND_CONTROL_CHANNEL_LIN  2
 #define CSOUND_CONTROL_CHANNEL_EXP  3
 
+#define CSOUND_CALLBACK_KBD_EVENT   (0x00000001U)
+#define CSOUND_CALLBACK_KBD_TEXT    (0x00000002U)
+
   /*
    * TYPE DEFINITIONS
    */
@@ -647,7 +650,8 @@ extern "C" {
 
   /**
    * Set the ASCII code of the most recent key pressed.
-   * This value is used by the 'keypress' opcode.
+   * This value is used by the 'sensekey' opcode if a callback
+   * for returning keyboard events is not set (see csoundSetCallback()).
    */
   PUBLIC void csoundKeyPress(CSOUND *, char c);
 
@@ -1367,6 +1371,52 @@ extern "C" {
    * CSOUND_MEMORY if there is not enough memory to extend the bus.
    */
   PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
+
+  /**
+   * Sets general purpose callback function that will be called on various
+   * events. The callback is preserved on csoundReset(), and multiple
+   * callbacks may be set and will be called in reverse order of
+   * registration. If the same function is set again, it is only moved
+   * in the list of callbacks so that it will be called first, and the
+   * user data and type mask parameters are updated. 'typeMask' can be the
+   * bitwise OR of callback types for which the function should be called,
+   * or zero for all types.
+   * Returns zero on success, CSOUND_ERROR if the specified function
+   * pointer or type mask is invalid, and CSOUND_MEMORY if there is not
+   * enough memory.
+   *
+   * The callback function takes the following arguments:
+   *   void *userData
+   *     the "user data" pointer, as specified when setting the callback
+   *   void *p
+   *     data pointer, depending on the callback type
+   *   unsigned int type
+   *     callback type, can be one of the following (more may be added in
+   *     future versions of Csound):
+   *       CSOUND_CALLBACK_KBD_EVENT
+   *       CSOUND_CALLBACK_KBD_TEXT
+   *         called by the sensekey opcode to fetch key codes. The data
+   *         pointer is a pointer to a single value of type 'int', for
+   *         returning the key code, which can be in the range 1 to 65535,
+   *         or 0 if there is no keyboard event.
+   *         For CSOUND_CALLBACK_KBD_EVENT, both key press and release
+   *         events should be returned (with 65536 (0x10000) added to the
+   *         key code in the latter case) as unshifted ASCII codes.
+   *         CSOUND_CALLBACK_KBD_TEXT expects key press events only as the
+   *         actual text that is typed.
+   * The return value should be zero on success, negative on error, and
+   * positive if the callback was ignored (for example because the type is
+   * not known).
+   */
+  PUBLIC int csoundSetCallback(CSOUND *, int (*func)(void *userData, void *p,
+                                                     unsigned int type),
+                                         void *userData, unsigned int typeMask);
+
+  /**
+   * Removes a callback previously set with csoundSetCallback().
+   */
+  PUBLIC void csoundRemoveCallback(CSOUND *,
+                                   int (*func)(void *, void *, unsigned int));
 
 #endif  /* !CSOUND_CSDL_H */
 
