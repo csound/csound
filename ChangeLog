@@ -2,6 +2,10 @@
 
 	* InOut/midifile.c (csoundMIDIFileOpen): Added MFDIR
 
+2006-06-11	Istvan Varga	<ivarga@csounds.com>
+	* Updated version to 5.03.0 beta.
+	* Opcodes/midiops2.c: new opcode:  ipgm  midipgm  [ichn]
+
 2006-06-10
 	* Csound 5.02.1 release
 

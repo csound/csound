@@ -1,3 +1,9 @@
+csound (5.03.0-1) unstable; urgency=low
+
+    * Updated version to 5.03.0
+
+ -- Istvan Varga <ivarga@csounds.com>  Sun, 11 Jun 2006 14:41:06 +0200
+
 csound (5.02.1-1) unstable; urgency=low
 
     * Updated version to 5.02.1
