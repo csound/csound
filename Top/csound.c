@@ -4,7 +4,7 @@
  * An auto-extensible system for making music on computers
  * by means of software alone.
  *
- * Copyright (C) 2001-2005 Michael Gogins, Matt Ingalls, John D. Ramsdell,
+ * Copyright (C) 2001-2006 Michael Gogins, Matt Ingalls, John D. Ramsdell,
  *                         John P. ffitch, Istvan Varga
  *
  * L I C E N S E
@@ -68,6 +68,7 @@ static void defaultCsoundMakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 static void defaultCsoundReadKillXYin(CSOUND *, XYINDAT *);
 static int  defaultCsoundExitGraph(CSOUND *);
 static int  defaultCsoundYield(CSOUND *);
+static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 
 extern void close_all_files(CSOUND *);
 
@@ -289,8 +290,10 @@ static const CSOUND cenviron_ = {
         csoundRunCommand,
         csoundGetCurrentThreadId,
         csoundSetChannelIOCallback,
+        csoundSetCallback,
+        csoundRemoveCallback,
      /* NULL, */
-        { NULL, NULL, NULL, NULL,
+        { NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -405,7 +408,7 @@ static const CSOUND cenviron_ = {
         0,              /*  nrecs               */
         NULL,           /*  Linepipe            */
         0,              /*  Linefd              */
-        NULL,           /*  dummy_04            */
+        NULL,           /*  csoundCallbacks_    */
         NULL,           /*  scfp                */
         NULL,           /*  oscfp               */
         { FL(0.0) },    /*  maxamp              */
@@ -576,7 +579,8 @@ static const CSOUND cenviron_ = {
         0L, 0L,         /*  instxtcount, optxtsize  */
         0L, 0L,         /*  poolcount, gblfixed     */
         0L, 0L,         /*  gblacount, gblscount    */
-        (CsoundChannelIOCallback_t) NULL    /*  channelIOCallback_  */
+        (CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
+        csoundDoCallback_   /*  doCsoundCallback    */
 };
 
   /* from threads.c */
@@ -966,9 +970,19 @@ static const CSOUND cenviron_ = {
     return 0;
   }
 
+  typedef struct CsoundCallbackEntry_s CsoundCallbackEntry_t;
+
+  struct CsoundCallbackEntry_s {
+    unsigned int  typeMask;
+    CsoundCallbackEntry_t *nxt;
+    void    *userData;
+    int     (*func)(void *, void *, unsigned int);
+  };
+
   PUBLIC void csoundDestroy(CSOUND *csound)
   {
     csInstance_t  *p, *prv = NULL;
+
     csoundLock();
     p = (csInstance_t*) instance_list;
     while (p != NULL && p->csound != csound) {
@@ -985,7 +999,16 @@ static const CSOUND cenviron_ = {
     csoundUnLock();
     free(p);
     csoundReset(csound);
-    free(csound);
+    if (csound->csoundCallbacks_ != NULL) {
+      CsoundCallbackEntry_t *pp, *nxt;
+      pp = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
+      do {
+        nxt = pp->nxt;
+        free((void*) pp);
+        pp = nxt;
+      } while (pp != (CsoundCallbackEntry_t*) NULL);
+    }
+    free((void*) csound);
   }
 
   PUBLIC int csoundGetVersion(void)
@@ -2045,6 +2068,7 @@ static const CSOUND cenviron_ = {
     p2 = (void*) &(csound->last_callback_);
     length = (uintptr_t) p2 - (uintptr_t) p1;
     memcpy(p1, (void*) &(saved_env->first_callback_), (size_t) length);
+    csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
     free(saved_env);
@@ -2076,6 +2100,109 @@ static const CSOUND cenviron_ = {
   PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
   {
     csound->flist[table]->ftable[index] = value;
+  }
+
+  static int csoundDoCallback_(CSOUND *csound, void *p, unsigned int type)
+  {
+    if (csound->csoundCallbacks_ != NULL) {
+      CsoundCallbackEntry_t *pp;
+      pp = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
+      do {
+        if (pp->typeMask & type) {
+          int   retval = pp->func(pp->userData, p, type);
+          if (retval <= 0)
+            return retval;
+        }
+        pp = pp->nxt;
+      } while (pp != (CsoundCallbackEntry_t*) NULL);
+    }
+    return 1;
+  }
+
+  /**
+   * Sets general purpose callback function that will be called on various
+   * events. The callback is preserved on csoundReset(), and multiple
+   * callbacks may be set and will be called in reverse order of
+   * registration. If the same function is set again, it is only moved
+   * in the list of callbacks so that it will be called first, and the
+   * user data and type mask parameters are updated. 'typeMask' can be the
+   * bitwise OR of callback types for which the function should be called,
+   * or zero for all types.
+   * Returns zero on success, CSOUND_ERROR if the specified function
+   * pointer or type mask is invalid, and CSOUND_MEMORY if there is not
+   * enough memory.
+   *
+   * The callback function takes the following arguments:
+   *   void *userData
+   *     the "user data" pointer, as specified when setting the callback
+   *   void *p
+   *     data pointer, depending on the callback type
+   *   unsigned int type
+   *     callback type, can be one of the following (more may be added in
+   *     future versions of Csound):
+   *       CSOUND_CALLBACK_KBD_EVENT
+   *       CSOUND_CALLBACK_KBD_TEXT
+   *         called by the sensekey opcode to fetch key codes. The data
+   *         pointer is a pointer to a single value of type 'int', for
+   *         returning the key code, which can be in the range 1 to 65535,
+   *         or 0 if there is no keyboard event.
+   *         For CSOUND_CALLBACK_KBD_EVENT, both key press and release
+   *         events should be returned (with 65536 (0x10000) added to the
+   *         key code in the latter case) as unshifted ASCII codes.
+   *         CSOUND_CALLBACK_KBD_TEXT expects key press events only as the
+   *         actual text that is typed.
+   * The return value should be zero on success, negative on error, and
+   * positive if the callback was ignored (for example because the type is
+   * not known).
+   */
+
+  PUBLIC int csoundSetCallback(CSOUND *csound,
+                               int (*func)(void *userData, void *p,
+                                           unsigned int type),
+                               void *userData, unsigned int typeMask)
+  {
+    CsoundCallbackEntry_t *pp;
+
+    if (func == (int (*)(void *, void *, unsigned int)) NULL ||
+        (typeMask
+         & (~(CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT))) != 0U)
+      return CSOUND_ERROR;
+    csoundRemoveCallback(csound, func);
+    pp = (CsoundCallbackEntry_t*) malloc(sizeof(CsoundCallbackEntry_t));
+    if (pp == (CsoundCallbackEntry_t*) NULL)
+      return CSOUND_MEMORY;
+    pp->typeMask = (typeMask ? typeMask : 0xFFFFFFFFU);
+    pp->nxt = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
+    pp->userData = userData;
+    pp->func = func;
+    csound->csoundCallbacks_ = (void*) pp;
+
+    return CSOUND_SUCCESS;
+  }
+
+  /**
+   * Removes a callback previously set with csoundSetCallback().
+   */
+
+  PUBLIC void csoundRemoveCallback(CSOUND *csound,
+                                   int (*func)(void *, void *, unsigned int))
+  {
+    CsoundCallbackEntry_t *pp, *prv;
+
+    pp = (CsoundCallbackEntry_t*) csound->csoundCallbacks_;
+    prv = (CsoundCallbackEntry_t*) NULL;
+    while (pp != (CsoundCallbackEntry_t*) NULL) {
+      if (pp->func == func) {
+        if (prv != (CsoundCallbackEntry_t*) NULL)
+          prv->nxt = pp->nxt;
+        else
+          csound->csoundCallbacks_ = (void*) pp->nxt;
+        free((void*) pp);
+        return;
+      }
+      prv = pp;
+      pp = pp->nxt;
+    }
   }
 
 /* -------- IV - Jan 27 2005: timer functions -------- */

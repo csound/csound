@@ -1121,79 +1121,83 @@ int chnsend_opcode_init(CSOUND *csound, CHNSEND *p)
 #  include <conio.h>
 #endif
 
-int sensekey_init(CSOUND *csound, KSENSE *p)
-{
-#if defined(__unix) || defined(__unix__) || defined(__MACH__)
-    if (csound->inChar_ < 0) {
-#  if defined(WIN32)
-      setvbuf(stdin, NULL, _IONBF, 0);  /* Does not seem to work */
-#  elif defined(HAVE_TERMIOS_H)
-      struct termios  tty;
-      tcgetattr(0, &tty);
-      tty.c_lflag &= (~ICANON);
-      tcsetattr(0, TCSANOW, &tty);
-#  endif
-    }
-#else
-    (void) csound;
-#endif
-    p->evtbuf = 0;
-
-    return OK;
-}
-
 int sensekey_perf(CSOUND *csound, KSENSE *p)
 {
-    int     keyCode = -1;
+    int     keyCode = 0;
+    int     retval;
 
-    if (csound->inChar_ < 0) {
+    retval = csound->doCsoundCallback(csound, &keyCode,
+                                      (p->keyDown != NULL ?
+                                       CSOUND_CALLBACK_KBD_EVENT
+                                       : CSOUND_CALLBACK_KBD_TEXT));
+    if (retval > 0) {
+      if (!p->evtbuf) {
 #if defined(__unix) || defined(__unix__) || defined(__MACH__)
-      fd_set  rfds;
-      struct timeval  tv;
-      int     retval;
-      /* Watch stdin (fd 0) to see when it has input. */
-      FD_ZERO(&rfds);
-      FD_SET(0, &rfds);
-      /* No waiting */
-      tv.tv_sec = 0;
-      tv.tv_usec = 0;
-
-      retval = select(1, &rfds, NULL, NULL, &tv);
-
-      if (retval) {
-        char    ch;
-        read(0, &ch, 1);
-        if (ch)
-          keyCode = (int) ((unsigned char) ch);
-        /* FD_ISSET(0, &rfds) will be true. */
-      }
-#else
-      unsigned char ch = (unsigned char) 0;
-#  ifdef WIN32
-      if (_kbhit())
-        ch = (unsigned char) _getch();
-#  else
-      ch = (unsigned char) getchar();
+        if (csound->inChar_ < 0) {
+#  if defined(WIN32)
+          setvbuf(stdin, NULL, _IONBF, 0);  /* Does not seem to work */
+#  elif defined(HAVE_TERMIOS_H)
+          struct termios  tty;
+          tcgetattr(0, &tty);
+          tty.c_lflag &= (~ICANON);
+          tcsetattr(0, TCSANOW, &tty);
 #  endif
-      if (ch)
+        }
+#endif
+        p->evtbuf = -1;
+      }
+      if (csound->inChar_ < 0) {
+#if defined(__unix) || defined(__unix__) || defined(__MACH__)
+        fd_set  rfds;
+        struct timeval  tv;
+        /* Watch stdin (fd 0) to see when it has input. */
+        FD_ZERO(&rfds);
+        FD_SET(0, &rfds);
+        /* No waiting */
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+
+        retval = select(1, &rfds, NULL, NULL, &tv);
+
+        if (retval) {
+          char    ch = (char) 0;
+          read(0, &ch, 1);
+          keyCode = (int) ((unsigned char) ch);
+          /* FD_ISSET(0, &rfds) will be true. */
+        }
+#else
+        unsigned char ch = (unsigned char) 0;
+#  ifdef WIN32
+        if (_kbhit())
+          ch = (unsigned char) _getch();
+#  else
+        ch = (unsigned char) getchar();
+#  endif
         keyCode = (int) ch;
 #endif
+      }
+      else if (csound->inChar_ > 0) {
+        keyCode = csound->inChar_;
+        csound->inChar_ = 0;
+      }
+      if (p->evtbuf != -1) {
+        int     tmp = keyCode;
+        keyCode = p->evtbuf;
+        tmp = (keyCode < 0 ? tmp : (-1 - keyCode));
+        p->evtbuf = (tmp != 0 ? tmp : -1);
+      }
+      else if (p->keyDown != NULL)
+        p->evtbuf = -1 - keyCode;
+      if (keyCode < 0)
+        keyCode = 65535 - keyCode;
     }
-    else if (csound->inChar_) {
-      keyCode = csound->inChar_;
-      csound->inChar_ = 0;
+    else if (retval < 0) {
+      keyCode = 0;
     }
-    if (p->evtbuf != 0) {
-      int     tmp = keyCode;
-      keyCode = p->evtbuf;
-      tmp = (keyCode < 0 ? tmp : (-1 - keyCode));
-      p->evtbuf = (tmp != -1 ? tmp : 0);
-    }
-    else if (p->keyDown != NULL)
-      p->evtbuf = -1 - keyCode;
-    *(p->ans) = (MYFLT) (keyCode >= -1 ? keyCode : (-1 - keyCode));
+    *(p->ans) = (MYFLT) ((keyCode & (int) 0xFFFF) ?
+                         (keyCode & (int) 0xFFFF) : -1);
     if (p->keyDown != NULL)
-      *(p->keyDown) = (MYFLT) (keyCode >= 0 ? 1 : 0);
+      *(p->keyDown) = (MYFLT) ((keyCode > 0 && keyCode < 65536) ? 1 : 0);
 
     return OK;
 }
