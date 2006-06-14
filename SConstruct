@@ -1355,7 +1355,7 @@ makePlugin(pluginEnvironment, 'stdutil', Split('''
     util/het_import.c   util/hetro.c        util/lpanal.c
     util/lpc_export.c   util/lpc_import.c   util/mixer.c
     util/pvanal.c       util/pvlook.c       util/scale.c
-    util/sndinfo.c      util/srconv.c
+    util/sndinfo.c      util/srconv.c       SDIF/sdif.c
     util/std_util.c
 '''))
 
