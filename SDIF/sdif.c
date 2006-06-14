@@ -658,30 +658,30 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f)
 
 static int SizeofSanityCheck(void)
 {
-    int OK = 1;
+    int OOK = 1;
     static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
 
     if (sizeof(sdif_int32) != 4) {
       sprintf(errorMessage, "sizeof(sdif_int32) is %d!", (int)sizeof(sdif_int32));
-      OK = 0;
+      OOK = 0;
     }
 
     if (sizeof(sdif_float32) != 4) {
       sprintf(errorMessage, "sizeof(sdif_float32) is %d!",
               (int)sizeof(sdif_float32));
-      OK = 0;
+      OOK = 0;
     }
 
     if (sizeof(sdif_float64) != 8) {
       sprintf(errorMessage, "sizeof(sdif_float64) is %d!",
               (int)sizeof(sdif_float64));
-      OK = 0;
+      OOK = 0;
     }
 
-    if (!OK) {
+    if (!OOK) {
       error_string_array[ESDIF_BAD_SIZEOF] = errorMessage;
     }
-    return OK;
+    return OOK;
 }
 
 static SDIFresult SkipBytes(FILE *f, int bytesToSkip)

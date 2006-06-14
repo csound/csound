@@ -1399,8 +1399,8 @@ executables.append(commonEnvironment.Program('scot',
 #    ['util2/exports/pv_export.c']))
 #executables.append(csoundProgramEnvironment.Program('pv_import',
 #    ['util2/exports/pv_import.c']))
-#executables.append(csoundProgramEnvironment.Program('sdif2ad',
-#    ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
+sdif2ad = commonEnvironment.Program('sdif2ad',
+     ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c'])
 
 makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
 zipDependencies.append(makedb)
