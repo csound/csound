@@ -25,7 +25,9 @@
 #include "soundio.h"
 #include <math.h>
 
-#if 0
+#define INCSDIF 0
+
+#if INCSDIF
 /*RWD need to set this to prevent sdif.h including windows.h */
 #define _WINDOWS_
 /* CNMAT sdif library, subject to change..... */
@@ -37,7 +39,7 @@
 #define SQUELCH 0.5     /* % of max ampl below which delta_f is frozen */
 #define HMAX    50
 
-#if 0
+#if INCSDIF
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;
@@ -55,44 +57,44 @@ static int is_sdiffile(char *name);
 typedef struct {
   MYFLT    x1,x2,yA,y2,y3;      /* lpf coefficients*/
   MYFLT    cur_est,             /* current freq. est.*/
-        freq_est, max_frq, max_amp,/* harm freq. est. & max vals found */
-        fund_est,           /* fundamental est.*/
-        t,                              /* fundamental period est.*/
-        delta_t, outdelta_t,            /* sampling period, outpnt period */
-        sr,                   /* sampling rate */
-        freq_c,               /* filter cutoff freq.*/
-        beg_time, input_dur,
-                                        /* begin time & sample input duration*/
-        **MAGS, **FREQS;                /* magnitude and freq. output buffers*/
+           freq_est, max_frq, max_amp,/* harm freq. est. & max vals found */
+           fund_est,            /* fundamental est.*/
+           t,                   /* fundamental period est.*/
+           delta_t, outdelta_t, /* sampling period, outpnt period */
+           sr,                  /* sampling rate */
+           freq_c,              /* filter cutoff freq.*/
+           beg_time, input_dur,
+                                /* begin time & sample input duration*/
+           **MAGS, **FREQS;     /* magnitude and freq. output buffers*/
 
-  double *cos_mul, *sin_mul,       /* quad. term buffers*/
-         *a_term, *b_term,               /*real & imag. terms*/
-         *r_ampl,                        /* pt. by pt. amplitude buffer*/
-         *r_phase,                       /* pt. by pt. phase buffer*/
-         *a_avg,                         /* output dev. freq. buffer*/
-         new_ph,                         /* new phase value*/
-         old_ph,                   /* previous phase value*/
-         jmp_ph,                   /* for phase unwrap*/
+  double *cos_mul, *sin_mul,    /* quad. term buffers*/
+         *a_term, *b_term,      /*real & imag. terms*/
+         *r_ampl,               /* pt. by pt. amplitude buffer*/
+         *r_phase,              /* pt. by pt. phase buffer*/
+         *a_avg,                /* output dev. freq. buffer*/
+         new_ph,                /* new phase value*/
+         old_ph,                /* previous phase value*/
+         jmp_ph,                /* for phase unwrap*/
          *ph_av1, *ph_av2, *ph_av3,      /*tempor. buffers*/
          *amp_av1, *amp_av2, *amp_av3,   /* same for ampl.*/
-         m_ampsum;             /* maximum amplitude at output*/
-  long   windsiz;                 /* # of pts. in one per. of sample*/
-  short  hmax;              /* max harmonics requested */
-  int    num_pts,          /* breakpoints per harmonic */
-         amp_min;           /* amplitude cutout threshold */
-  int    skip,                    /* flag to stop analysis if zeros*/
-         bufsiz;                     /* circular buffer size */
-  long   smpsin;                 /* num sampsin */
-  long   midbuf,                  /* set to bufsiz / 2   */
-         bufmask;                        /* set to bufsiz - 1   */
-  char   *infilnam,               /* input file name */
-         *outfilnam;                     /* output file name */
-  MYFLT  *auxp;                  /* pointer to input file */
-  MYFLT  *adp;           /*pointer to front of sample file*/
-  double *c_p,*s_p;      /* pointers to space for sine and cos terms */
+         m_ampsum;              /* maximum amplitude at output*/
+  long   windsiz;               /* # of pts. in one per. of sample*/
+  short  hmax;                  /* max harmonics requested */
+  int    num_pts,               /* breakpoints per harmonic */
+         amp_min;               /* amplitude cutout threshold */
+  int    skip,                  /* flag to stop analysis if zeros*/
+         bufsiz;                /* circular buffer size */
+  long   smpsin;                /* num sampsin */
+  long   midbuf,                /* set to bufsiz / 2   */
+         bufmask;               /* set to bufsiz - 1   */
+  char   *infilnam,             /* input file name */
+         *outfilnam;            /* output file name */
+  MYFLT  *auxp;                 /* pointer to input file */
+  MYFLT  *adp;                  /* pointer to front of sample file */
+  double *c_p,*s_p;             /* pointers to space for sine and cos terms */
 } HET;
 
-#if 0
+#if INCSDIF
 static int writesdif(CSOUND*, HET*);
 #endif
 static  double  GETVAL(HET *, double *, long);
@@ -116,19 +118,19 @@ static  int     quit(CSOUND *, char *);
 
 static void init_het(HET *thishet)
 {
-    thishet->freq_est = FL(0.0);
-    thishet->fund_est = FL(100.0);
-    thishet->sr = FL(0.0);                   /* sampling rate */
-    thishet->freq_c = FL(0.0);               /* filter cutoff freq.*/
-    thishet->beg_time = FL(0.0);
+    thishet->freq_est  = FL(0.0);
+    thishet->fund_est  = FL(100.0);
+    thishet->sr        = FL(0.0);	/* sampling rate */
+    thishet->freq_c    = FL(0.0); 	/* filter cutoff freq.*/
+    thishet->beg_time  = FL(0.0);
     thishet->input_dur = FL(0.0);
-    thishet->old_ph = 0.0;                   /* previous phase value*/
-    thishet->jmp_ph = 0.0;                   /* for phase unwrap*/
-    thishet->m_ampsum = 32767.0;             /* maximum amplitude at output*/
-    thishet->hmax = 10;              /* max harmonics requested */
-    thishet->num_pts = 256;         /* breakpoints per harmonic */
-    thishet->amp_min = 64;           /* amplitude cutout threshold */
-    thishet->bufsiz = 1;                     /* circular buffer size */
+    thishet->old_ph    = 0.0;   	/* previous phase value*/
+    thishet->jmp_ph    = 0.0;   	/* for phase unwrap*/
+    thishet->m_ampsum  = 32767.0; 	/* maximum amplitude at output*/
+    thishet->hmax      = 10;    	/* max harmonics requested */
+    thishet->num_pts   = 256;   	/* breakpoints per harmonic */
+    thishet->amp_min   = 64;    	/* amplitude cutout threshold */
+    thishet->bufsiz    = 1;     	/* circular buffer size */
 }
 
 static int hetro(CSOUND *csound, int argc, char **argv)
@@ -152,39 +154,45 @@ static int hetro(CSOUND *csound, int argc, char **argv)
       char *s = *++argv;
       if (*s++ == '-')
         switch (*s++) {
-        case 's':   FIND(Str("no sampling rate"))
+        case 's':
+          FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
           sscanf(s,"%lf",&thishet->sr);
 #else
           sscanf(s,"%f",&thishet->sr);
 #endif
           break;
-        case 'c':   FIND(Str("no channel"))
+        case 'c':
+          FIND(Str("no channel"))
           sscanf(s,"%d",&channel);
           break;
-        case 'b':   FIND(Str("no begin time"))
+        case 'b':
+          FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-                      sscanf(s,"%lf",&thishet->beg_time);
+          sscanf(s,"%lf",&thishet->beg_time);
 #else
           sscanf(s,"%f",&thishet->beg_time);
 #endif
           break;
-        case 'd':   FIND(Str("no duration time"))
+        case 'd':
+          FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-                      sscanf(s,"%lf",&thishet->input_dur);
+          sscanf(s,"%lf",&thishet->input_dur);
 #else
           sscanf(s,"%f",&thishet->input_dur);
 #endif
           break;
-        case 'f':   FIND(Str("no fundamental estimate"))
+        case 'f':
+          FIND(Str("no fundamental estimate"))
 #if defined(USE_DOUBLE)
-                      sscanf(s,"%lf",&thishet->fund_est);
+          sscanf(s,"%lf",&thishet->fund_est);
 #else
           sscanf(s,"%f",&thishet->fund_est);
 #endif
           break;
-        case 'h':   FIND(Str("no harmonic count"))
-                      sscanf(s,"%hd",&thishet->hmax);
+        case 'h':
+          FIND(Str("no harmonic count"))
+          sscanf(s,"%hd",&thishet->hmax);
           if (thishet->hmax > HMAX)
             csound->Message(csound,Str("over %d harmonics but continuing"),
                             HMAX);
@@ -194,23 +202,28 @@ static int hetro(CSOUND *csound, int argc, char **argv)
                 thishet->hmax = 1;
           }
           break;
-        case 'M':   FIND(Str("no amplitude maximum"))
-                      sscanf(s,"%lf",&thishet->m_ampsum);
+        case 'M':
+          FIND(Str("no amplitude maximum"))
+          sscanf(s,"%lf",&thishet->m_ampsum);
           break;
-        case 'm':   FIND(Str("no amplitude minimum"))
-                      sscanf(s,"%d",&thishet->amp_min);
+        case 'm':
+          FIND(Str("no amplitude minimum"))
+          sscanf(s,"%d",&thishet->amp_min);
           break;
-        case 'n':   FIND(Str("no number of output points"))
-                      sscanf(s,"%d",&thishet->num_pts);
+        case 'n':
+          FIND(Str("no number of output points"))
+          sscanf(s,"%d",&thishet->num_pts);
           break;
-            case 'l':   FIND(Str("no filter cutoff"))
+        case 'l':
+          FIND(Str("no filter cutoff"))
 #if defined(USE_DOUBLE)
-                          sscanf(s,"%lf",&thishet->freq_c);
+          sscanf(s,"%lf",&thishet->freq_c);
 #else
-              sscanf(s,"%f",&thishet->freq_c);
+          sscanf(s,"%f",&thishet->freq_c);
 #endif
-              break;
-        case '-':   FIND(Str("no log file"));
+          break;
+        case '-':
+          FIND(Str("no log file"));
           while (*s++); s--;
           break;
         default:
@@ -252,8 +265,8 @@ static int hetro(CSOUND *csound, int argc, char **argv)
     thishet->sr = (MYFLT) p->sr;                /* sr now from open  */
     /* samps in fund prd */
     thishet->windsiz = (long)(thishet->sr / thishet->fund_est + FL(0.5));
+#if INCSDIF
     /* RWD no limit for SDIF files! */
-#if 0
     if (is_sdiffile(thishet->outfilnam)) {
       if (thishet->num_pts >= nsamps - thishet->windsiz)
         return quit(csound, Str("number of output points is too great"));
@@ -328,7 +341,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
                               thishet->max_frq, thishet->max_amp);
     }
     csound->Free(csound, dspace);
-#if 0
+#if INCSDIF
     /* RWD if extension is .sdif, write as 1TRC frames */
     if (is_sdiffile(thishet->outfilnam)) {
       if (!writesdif(csound,thishet)) {
@@ -468,12 +481,13 @@ static void average(HET *thishet, long window,double *in,double *out, long smpl)
 {
     PUTVAL(thishet,out, smpl,
            (double)(GETVAL(thishet,out,smpl-1) +
-                    (1/(double)window) *
+                    (1.0/(double)window) *
                     (GETVAL(thishet,in,smpl) - GETVAL(thishet,in,smpl-window))));
 }
 
                                  /* update phase counter */
-static void output_ph(HET *thishet,long smpl)/* calculates magnitude and phase components */
+static void output_ph(HET *thishet,long smpl)
+                                /* calculates magnitude and phase components */
                                 /* for each samples quadrature components, & */
                                 /* and unwraps the phase.  A phase difference*/
 {                               /* is taken to represent the freq. change.   */
@@ -481,19 +495,23 @@ static void output_ph(HET *thishet,long smpl)/* calculates magnitude and phase c
     double      temp_a;
 
     if ((temp_a=GETVAL(thishet,thishet->a_term,smpl)) == 0)
-            thishet->new_ph=(-PI/FL(2.0))*sgn(GETVAL(thishet,thishet->b_term,smpl));
-    else thishet->new_ph= -atan(GETVAL(thishet,thishet->b_term,smpl)/temp_a) - PI*u(-temp_a);
+            thishet->new_ph=
+              (-PI/FL(2.0))*sgn(GETVAL(thishet,thishet->b_term,smpl));
+    else thishet->new_ph=
+           -atan(GETVAL(thishet,thishet->b_term,smpl)/temp_a) - PI*u(-temp_a);
 
     if (fabs((double)thishet->new_ph - thishet->old_ph)>PI)
       thishet->jmp_ph -= TWOPI*sgn(temp_a);
 
     thishet->old_ph = thishet->new_ph;
     PUTVAL(thishet,thishet->r_phase,smpl,thishet->old_ph+thishet->jmp_ph);
-    delt_temp = ((GETVAL(thishet,thishet->r_phase,smpl) - GETVAL(thishet,thishet->r_phase,smpl-1))/
+    delt_temp = ((GETVAL(thishet,thishet->r_phase,smpl) -
+                  GETVAL(thishet,thishet->r_phase,smpl-1))/
                  (TWOPI*thishet->delta_t));
     if ((thishet->freq_c <= 1) || (smpl < 3)) {
-      PUTVAL(thishet,thishet->amp_av1,smpl,(MYFLT)sqrt(sq(GETVAL(thishet,thishet->a_term,smpl))
-                                      + sq(GETVAL(thishet,thishet->b_term,smpl))));
+      PUTVAL(thishet,thishet->amp_av1,smpl,
+             (MYFLT)sqrt(sq(GETVAL(thishet,thishet->a_term,smpl))
+                         + sq(GETVAL(thishet,thishet->b_term,smpl))));
       average(thishet, thishet->windsiz,thishet->amp_av1,thishet->amp_av2,smpl);
       average(thishet, thishet->windsiz,thishet->amp_av2,thishet->amp_av3,smpl);
       average(thishet, thishet->windsiz,thishet->amp_av3,thishet->r_ampl,smpl);
@@ -503,8 +521,9 @@ static void output_ph(HET *thishet,long smpl)/* calculates magnitude and phase c
       average(thishet, thishet->windsiz,thishet->ph_av3,thishet->a_avg,smpl);
     }
     else {
-      PUTVAL(thishet,thishet->r_ampl,smpl,(MYFLT)sqrt(sq(GETVAL(thishet,thishet->a_term,smpl))
-                                     + sq(GETVAL(thishet,thishet->b_term,smpl))));
+      PUTVAL(thishet,thishet->r_ampl,smpl,
+             (MYFLT)sqrt(sq(GETVAL(thishet,thishet->a_term,smpl))
+                         + sq(GETVAL(thishet,thishet->b_term,smpl))));
       PUTVAL(thishet,thishet->a_avg,smpl,delt_temp);
     }
 }
@@ -518,9 +537,11 @@ static void output(HET *thishet, long smpl, int hno, int pnt)
     MYFLT  new_amp, new_freq;
 
     if (pnt < thishet->num_pts) {
-      delt_freq = GETVAL(thishet,thishet->a_avg,smpl);        /* 0.5 for rounding ? */
-      thishet->FREQS[hno][pnt] = new_freq = (MYFLT)(delt_freq + thishet->cur_est);
-      thishet->MAGS[hno][pnt] = new_amp = (MYFLT)GETVAL(thishet, thishet->r_ampl,smpl);
+      delt_freq = GETVAL(thishet,thishet->a_avg,smpl); /* 0.5 for rounding ? */
+      thishet->FREQS[hno][pnt] =
+        new_freq = (MYFLT)(delt_freq + thishet->cur_est);
+      thishet->MAGS[hno][pnt] =
+        new_amp = (MYFLT)GETVAL(thishet, thishet->r_ampl,smpl);
       if (new_freq > thishet->max_frq)
         thishet->max_frq = new_freq;
       if (new_amp > thishet->max_amp)
@@ -697,7 +718,7 @@ static int filedump(HET *thishet, CSOUND *csound)
     return 0;
 }
 
-#if 0
+#if INCSDIF
 /* simply writes the number of frames generated - no data reduction,
    no interpolation */
 static int writesdif(CSOUND *csound, HET *thishet)
