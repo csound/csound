@@ -718,6 +718,8 @@ static int filedump(HET *thishet, CSOUND *csound)
 #if INCSDIF
 /* simply writes the number of frames generated - no data reduction,
    no interpolation */
+#include "SDIF/sdif.c"
+
 static int writesdif(CSOUND *csound, HET *thishet)
 {
     int         i,j,h, pnt;
