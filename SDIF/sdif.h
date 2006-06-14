@@ -300,12 +300,14 @@ void SDIF_Copy4Bytes(char *target, const char *string);
    you call instead of an explicit argument.  Also, they do little-endian
    conversion when necessary. */
 
-#if defined(_WIN32) || defined(_WINDOWS) || defined(__i386__)
 #ifndef LITTLE_ENDIAN
-#define LITTLE_ENDIAN  1
+#  define LITTLE_ENDIAN 1
 #endif
-#else
-    /* Insert other checks for your architecture here if it's little endian. */
+
+#if defined(__POWERPC__) || defined(__PPC__) || defined(__ppc__)
+#  undef LITTLE_ENDIAN
+#elif defined(mac_classic)
+#  undef LITTLE_ENDIAN
 #endif
 
 SDIFresult SDIF_Write1(const void *block, size_t n, FILE *f);
