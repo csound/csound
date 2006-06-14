@@ -1,3 +1,9 @@
+2006-06-14	Istvan Varga	<ivarga@csounds.com>
+	* Made messages less verbose in soundin, diskin, diskin2, and
+	  sfpassign.
+	* Engine/otran.c:
+	  fixed (hopefully) incorrect offset calculation of string variables
+
 2006-06-13	Istvan Varga	<ivarga@csounds.com>
 	* New API functions: csoundSetCallback(), csoundRemoveCallback()
 	* OOps/bus.c: sensekey opcode: use new callback interface
