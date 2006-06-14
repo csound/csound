@@ -198,7 +198,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *name, *iwidth, *iheight, *ix, *iy, *border;
+    MYFLT   *name, *iwidth, *iheight, *ix, *iy, *border, *ikbdsense;
 } FLPANEL;
 
 typedef struct {
