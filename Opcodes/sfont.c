@@ -192,21 +192,26 @@ static int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
-    int j;
-    csound->Message(csound,
-                    Str("\nAssigning all Presets of \"%s\" starting from"
-                        " %d (preset handle number)\n"), sf->name, pHandle);
-    for (j =0; j < pnum;  j++) {
+    int j, disableMsgs;
+
+    disableMsgs = (~(csound->oparms->msglevel)) & 7;
+    if (!disableMsgs)
+      csound->Message(csound,
+                      Str("\nAssigning all Presets of \"%s\" starting from"
+                          " %d (preset handle number)\n"), sf->name, pHandle);
+    for (j = 0; j < pnum; j++) {
       presetType *prs = &sf->preset[j];
-      csound->Message(csound, Str("%3d<--%-20s\t(prog:%-3d bank:%d)\n"),
-                              j, prs->name, prs->prog, prs->bank);
+      if (!disableMsgs)
+        csound->Message(csound, Str("%3d<--%-20s\t(prog:%-3d bank:%d)\n"),
+                                j, prs->name, prs->prog, prs->bank);
       presetp[pHandle] = &sf->preset[j];
       sampleBase[pHandle] = sf->sampleData;
       pHandle++;
     }
-    csound->Message(csound, Str("\nAll presets have been assigned to preset"
-                                " handles from %d to %d \n\n"),
-                            (int) *p->startNum, pHandle-1);
+    if (!disableMsgs)
+      csound->Message(csound, Str("\nAll presets have been assigned to preset"
+                                  " handles from %d to %d \n\n"),
+                              (int) *p->startNum, pHandle - 1);
     return OK;
 }
 
