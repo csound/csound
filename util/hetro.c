@@ -25,27 +25,24 @@
 #include "soundio.h"
 #include <math.h>
 
-#define INCSDIF 0
+#define INCSDIF 1
 
 #if INCSDIF
 /*RWD need to set this to prevent sdif.h including windows.h */
 #define _WINDOWS_
 /* CNMAT sdif library, subject to change..... */
-#include "sdif.h"
-#include "sdif-mem.h"
-#endif
-
-#define SQRTOF3 1.73205080756887729352
-#define SQUELCH 0.5     /* % of max ampl below which delta_f is frozen */
-#define HMAX    50
-
-#if INCSDIF
+#include "SDIF/sdif.h"
+#include "SDIF/sdif-mem.h"
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;
 
 static int is_sdiffile(char *name);
 #endif
+
+#define SQRTOF3 1.73205080756887729352
+#define SQUELCH 0.5     /* % of max ampl below which delta_f is frozen */
+#define HMAX    50
 
 /* Authors:   Tom Sullivan, Nov'86, Mar'87;  bv revised Jun'92, Aug'92  */
 /* Function:  Fixed frequency heterodyne filter analysis.               */
@@ -782,7 +779,7 @@ static int writesdif(CSOUND *csound, HET *thishet)
     /* don't even need a TIME array */
 
     /* main loop to write 1TRC frames */
-    for (i=0;i < thishet->num_pts;i++) {
+    for (i=0; i < thishet->num_pts; i++) {
       sdif_float32 amp,freq,phase = 0.0f;
       /* cannot offer anything interesting with phase! */
       head.time = (sdif_float32) ((MYFLT)i * timesiz);
