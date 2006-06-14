@@ -2,6 +2,10 @@
 	* New API functions: csoundSetCallback(), csoundRemoveCallback()
 	* OOps/bus.c: sensekey opcode: use new callback interface
 	* H/version.h: updated API version to 1.02
+	* InOut/widgets.cpp:
+	  experimental implementation of sensekey using FLTK (activated with
+	  a new optional argument to FLpanel; only one window can receive
+	  keyboard events)
 
 2006-06-12  jpff  <jpff@codemist.co.uk>
 

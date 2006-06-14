@@ -69,6 +69,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <map>
 
 using namespace std;
 
@@ -141,27 +142,6 @@ static char hack_o_rama2;
  * This code has been written by Nicola Bernardini (nicb@centrotemporeale.it)
  * mostly based on ideas by Dave Phillips (dlphip@bright.net)
  */
-
-int FLkeyboard_sensing(void)
-{
-  /*
-   * since we still don't know what is FLkeyboard_sensing(void)
-   * should be returning, but we know that 0 will avoid troubles (?)
-   * we return this for now... [nicb@axnet.it]
-   */
-  return 0;
-}
-
-Fl_Window *FLkeyboard_init(void)
-{
-  /*
-   * here too - we don't know what is going on...
-   * we fake it through and hope for the best...
-   */
-  Fl_Window *result = new Fl_Window(0, 0);
-
-  return result;
-}
 
 extern "C" {
   void ButtonSched(CSOUND *csound, MYFLT *args[], int numargs)
@@ -1601,6 +1581,8 @@ static int load_snap(CSOUND *csound, FLLOADSNAPS* p)
   return OK;
 }
 
+static int fltkKeyboardCallback(void *, void *, unsigned int);
+
 }       // extern "C"
 
 // -----------
@@ -1612,44 +1594,196 @@ static char *GetString(CSOUND *csound, MYFLT *pname, int is_string)
   return csound->strarg2name(csound, Name, pname, "", is_string);
 }
 
+class CsoundFLTKKeyboardBuffer {
+ private:
+  CSOUND  *csound;
+  void    *mutex_;
+  char    kbdTextBuf[64];
+  int     kbdEvtBuf[64];
+  int     kbdTextBufRPos;
+  int     kbdTextBufWPos;
+  int     kbdEvtBufRPos;
+  int     kbdEvtBufWPos;
+  std::map<int, unsigned char> keyboardState;
+  void lockMutex()
+  {
+    if (mutex_)
+      csound->LockMutex(mutex_);
+  }
+  void unlockMutex()
+  {
+    if (mutex_)
+      csound->UnlockMutex(mutex_);
+  }
+ public:
+  CsoundFLTKKeyboardBuffer(CSOUND *csound)
+  {
+    this->csound = csound;
+    mutex_ = csound->Create_Mutex(0);
+    kbdTextBufRPos = 0;
+    kbdTextBufWPos = 0;
+    kbdEvtBufRPos = 0;
+    kbdEvtBufWPos = 0;
+  }
+  ~CsoundFLTKKeyboardBuffer()
+  {
+    if (mutex_) {
+      csound->DestroyMutex(mutex_);
+      mutex_ = (void*) 0;
+    }
+  }
+  CSOUND *GetCsound()
+  {
+    return csound;
+  }
+  void writeFLEvent(int evt)
+  {
+    const char  *s;
+    int     keyCode;
+    keyCode = (int) Fl::event_key() & (int) 0xFFFF;
+    if (keyCode) {
+      lockMutex();
+      if (evt == FL_KEYDOWN) {
+        s = Fl::event_text();
+        while (*s != (char) 0) {
+          kbdTextBuf[kbdTextBufWPos] = *(s++);
+          kbdTextBufWPos = (kbdTextBufWPos + 1) & 63;
+        }
+        if (keyboardState[keyCode] == (unsigned char) 0) {
+          keyboardState[keyCode] = (unsigned char) 1;
+          kbdEvtBuf[kbdEvtBufWPos] = keyCode;
+          kbdEvtBufWPos = (kbdEvtBufWPos + 1) & 63;
+        }
+      }
+      else if (keyboardState[keyCode] != (unsigned char) 0) {
+        keyboardState[keyCode] = (unsigned char) 0;
+        kbdEvtBuf[kbdEvtBufWPos] = keyCode | (int) 0x10000;
+        kbdEvtBufWPos = (kbdEvtBufWPos + 1) & 63;
+      }
+      unlockMutex();
+    }
+  }
+  int getKeyboardText()
+  {
+    int     retval = 0;
+    lockMutex();
+    if (kbdTextBufRPos != kbdTextBufWPos) {
+      retval = (int) ((unsigned char) kbdTextBuf[kbdTextBufRPos]);
+      kbdTextBufRPos = (kbdTextBufRPos + 1) & 63;
+    }
+    unlockMutex();
+    return retval;
+  }
+  int getKeyboardEvent()
+  {
+    int     retval = 0;
+    lockMutex();
+    if (kbdEvtBufRPos != kbdEvtBufWPos) {
+      retval = kbdEvtBuf[kbdEvtBufRPos];
+      kbdEvtBufRPos = (kbdEvtBufRPos + 1) & 63;
+    }
+    unlockMutex();
+    return retval;
+  }
+};
+
+class CsoundFLWindow : public Fl_Window {
+ public:
+  CsoundFLTKKeyboardBuffer  fltkKeyboardBuffer;
+  CsoundFLWindow(CSOUND *csound, int w, int h, const char *title = 0)
+      : Fl_Window(w, h, title),
+        fltkKeyboardBuffer(csound)
+  {
+    csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
+                         CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
+  }
+  CsoundFLWindow(CSOUND *csound,
+                 int x, int y, int w, int h, const char *title = 0)
+      : Fl_Window(x, y, w, h, title),
+        fltkKeyboardBuffer(csound)
+  {
+    csound->Set_Callback(csound, fltkKeyboardCallback, (void*) this,
+                         CSOUND_CALLBACK_KBD_EVENT | CSOUND_CALLBACK_KBD_TEXT);
+  }
+  virtual ~CsoundFLWindow()
+  {
+    CSOUND  *csound = fltkKeyboardBuffer.GetCsound();
+    csound->Remove_Callback(csound, fltkKeyboardCallback);
+  }
+  virtual int handle(int evt)
+  {
+    switch (evt) {
+    case FL_FOCUS:
+      Fl::focus(this);
+    case FL_UNFOCUS:
+      return 1;
+    case FL_KEYDOWN:
+    case FL_KEYUP:
+      if (Fl::focus() == this)
+        fltkKeyboardBuffer.writeFLEvent(evt);
+      break;
+    }
+    return Fl_Window::handle(evt);
+  }
+};
+
 extern "C" {
+
+  static int fltkKeyboardCallback(void *userData, void *p, unsigned int type)
+  {
+    switch (type) {
+    case CSOUND_CALLBACK_KBD_EVENT:
+      *((int*) p) =
+          ((CsoundFLWindow*) userData)->fltkKeyboardBuffer.getKeyboardEvent();
+      break;
+    case CSOUND_CALLBACK_KBD_TEXT:
+      *((int*) p) =
+          ((CsoundFLWindow*) userData)->fltkKeyboardBuffer.getKeyboardText();
+      break;
+    default:
+      return 1;
+    }
+    return 0;
+  }
+
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    int   j;
+    int     j;
+
 #ifndef NO_FLTK_THREADS
     if ((getFLTKFlags(csound) & 260) ^ 4) {
       widgetsGlobals_t *p;
 
       p = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
                                                           "_widgets_globals");
-      if (p == NULL)
-        return 0;
-      if (!(getFLTKFlags(csound) & 256)) {
-        /* if window(s) still open: */
-        if (!p->exit_now) {
-          /* notify GUI thread... */
-          p->end_of_perf = -1;
-          Fl_lock(csound);
-          Fl_awake(csound);
-          Fl_unlock(csound);
-          /* ...and wait for it to close */
-          csound->JoinThread(p->threadHandle);
-          p->threadHandle = NULL;
+      if (p != NULL) {
+        if (!(getFLTKFlags(csound) & 256)) {
+          /* if window(s) still open: */
+          if (!p->exit_now) {
+            /* notify GUI thread... */
+            p->end_of_perf = -1;
+            Fl_lock(csound);
+            Fl_awake(csound);
+            Fl_unlock(csound);
+            /* ...and wait for it to close */
+            csound->JoinThread(p->threadHandle);
+            p->threadHandle = NULL;
+          }
         }
+        /* clean up */
+        csound->LockMutex(p->mutex_);
+        while (p->eventQueue != NULL) {
+          rtEvt_t *nxt = p->eventQueue->nxt;
+          free(p->eventQueue);
+          p->eventQueue = nxt;
+        }
+        csound->UnlockMutex(p->mutex_);
+        csound->DestroyMutex(p->mutex_);
+        csound->DestroyGlobalVariable(csound, "_widgets_globals");
       }
-      /* clean up */
-      csound->LockMutex(p->mutex_);
-      while (p->eventQueue != NULL) {
-        rtEvt_t *nxt = p->eventQueue->nxt;
-        free(p->eventQueue);
-        p->eventQueue = nxt;
-      }
-      csound->UnlockMutex(p->mutex_);
-      csound->DestroyMutex(p->mutex_);
-      csound->DestroyGlobalVariable(csound, "_widgets_globals");
     }
 #endif  // NO_FLTK_THREADS
-    for (j = allocatedStrings.size()-1; j >= 0; j--)  {
+    for (j = allocatedStrings.size() - 1; j >= 0; j--)  {
       delete[] allocatedStrings[j];
       allocatedStrings.pop_back();
     }
@@ -1668,7 +1802,7 @@ extern "C" {
     //      AddrValue.pop_back();
     //}
     int ss = snapshots.size();
-    for (j=0; j< ss; j++) {
+    for (j = 0; j < ss; j++) {
       snapshots[j].fields.erase(snapshots[j].fields.begin(),
                                 snapshots[j].fields.end());
       snapshots.resize(snapshots.size() + 1);
@@ -1693,6 +1827,7 @@ extern "C" {
     FLtext_align      = 0;
     FL_ix             = 10;
     FL_iy             = 10;
+
     return 0;
   }
 }       // extern "C"
@@ -1747,64 +1882,67 @@ static uintptr_t fltkRun(void *userdata)
 
 #endif  // NO_FLTK_THREADS
 
-extern "C" int CsoundYield_FLTK(CSOUND *csound);
+extern "C" {
 
-extern "C" int FL_run(CSOUND *csound, FLRUN *p)
-{
-  int     *fltkFlags;
+  int CsoundYield_FLTK(CSOUND *csound);
 
-  fltkFlags = getFLTKFlagsPtr(csound);
-  (*fltkFlags) |= 32;
-#ifndef NO_FLTK_THREADS
-  if (((*fltkFlags) & 260) ^ 4) {
-    widgetsGlobals_t  *pp;
-
-    if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
-      return csound->InitError(csound, Str("FLrun was already called"));
-    if (csound->CreateGlobalVariable(csound, "_widgets_globals",
-                                             sizeof(widgetsGlobals_t)) != 0)
-      csound->Die(csound, Str("FL_run: memory allocation failure"));
-    pp = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
-                                                         "_widgets_globals");
-    pp->fltkFlags = *fltkFlags;
-    /* create thread lock */
-    pp->mutex_ = csound->Create_Mutex(0);
-    /* register callback function to be called by sensevents() */
-    csound->RegisterSenseEventCallback(csound, (void (*)(CSOUND *, void *))
-                                                   evt_callback,
-                                               (void*) pp);
-    if (!((*fltkFlags) & 256)) {
-      pp->threadHandle = csound->CreateThread(fltkRun, (void*) csound);
-      return OK;
-    }
-  }
-#endif  // NO_FLTK_THREADS
+  int FL_run(CSOUND *csound, FLRUN *p)
   {
-    int j;
+    int     *fltkFlags;
 
-    Fl_lock(csound);
-    for (j = 0; j < (int) fl_windows.size(); j++) {
-      fl_windows[j].panel->show();
+    fltkFlags = getFLTKFlagsPtr(csound);
+    (*fltkFlags) |= 32;
+#ifndef NO_FLTK_THREADS
+    if (((*fltkFlags) & 260) ^ 4) {
+      widgetsGlobals_t  *pp;
+
+      if (csound->QueryGlobalVariable(csound, "_widgets_globals") != NULL)
+        return csound->InitError(csound, Str("FLrun was already called"));
+      if (csound->CreateGlobalVariable(csound, "_widgets_globals",
+                                               sizeof(widgetsGlobals_t)) != 0)
+        csound->Die(csound, Str("FL_run: memory allocation failure"));
+      pp = (widgetsGlobals_t*) csound->QueryGlobalVariable(csound,
+                                                           "_widgets_globals");
+      pp->fltkFlags = *fltkFlags;
+      /* create thread lock */
+      pp->mutex_ = csound->Create_Mutex(0);
+      /* register callback function to be called by sensevents() */
+      csound->RegisterSenseEventCallback(csound, (void (*)(CSOUND *, void *))
+                                                     evt_callback,
+                                                 (void*) pp);
+      if (!((*fltkFlags) & 256)) {
+        pp->threadHandle = csound->CreateThread(fltkRun, (void*) csound);
+        return OK;
+      }
     }
-    Fl_wait(csound, 0.0);
-    Fl_unlock(csound);
-    if (!((*fltkFlags) & 256))
-      csound->SetYieldCallback(csound, CsoundYield_FLTK);
-  }
-  return OK;
-}
+#endif  // NO_FLTK_THREADS
+    {
+      int j;
 
-extern "C" int fl_update(CSOUND *csound, FLRUN *p)
-{
-  Fl_lock(csound);
-  for (int j=0; j< (int) AddrSetValue.size()-1; j++) {
-    ADDR_SET_VALUE v = AddrSetValue[j];
-    Fl_Valuator *o = (Fl_Valuator *) v.WidgAddress;
-    o->do_callback(o, v.opcode);
+      Fl_lock(csound);
+      for (j = 0; j < (int) fl_windows.size(); j++) {
+        fl_windows[j].panel->show();
+      }
+      Fl_wait(csound, 0.0);
+      Fl_unlock(csound);
+      if (!((*fltkFlags) & 256))
+        csound->SetYieldCallback(csound, CsoundYield_FLTK);
+    }
+    return OK;
   }
-  Fl_unlock(csound);
-  return OK;
-}
+
+  int fl_update(CSOUND *csound, FLRUN *p)
+  {
+    Fl_lock(csound);
+    for (int j=0; j< (int) AddrSetValue.size()-1; j++) {
+      ADDR_SET_VALUE v = AddrSetValue[j];
+      Fl_Valuator *o = (Fl_Valuator *) v.WidgAddress;
+      o->do_callback(o, v.opcode);
+    }
+    Fl_unlock(csound);
+    return OK;
+  }
+}       // extern "C"
 
 //----------------------------------------------
 
@@ -2128,13 +2266,13 @@ static int FLkeyb(CSOUND *csound, FLKEYB *p)
 
 static int StartPanel(CSOUND *csound, FLPANEL *p)
 {
-  char *panelName = GetString(csound, p->name, p->XSTRCODE);
+  char    *panelName = GetString(csound, p->name, p->XSTRCODE);
 
   *(getFLTKFlagsPtr(csound)) |= 32;
-  int x = (int) *p->ix, y = (int) *p->iy,
-    width = (int) *p->iwidth, height = (int) *p->iheight;
-  if (width <0) width = 400; //default
-  if (height <0) height = 300;
+  int     x = (int) *p->ix, y = (int) *p->iy,
+          width = (int) *p->iwidth, height = (int) *p->iheight;
+  if (width < 0) width = 400;   // default
+  if (height < 0) height = 300;
 
   int borderType;
   switch( (int) *p->border ) {
@@ -2150,17 +2288,26 @@ static int StartPanel(CSOUND *csound, FLPANEL *p)
   }
 
   Fl_Window *o;
-  if (x < 0) o = new Fl_Window(width,height, panelName);
-  else    o = new Fl_Window(x,y,width,height, panelName);
+  if (*(p->ikbdsense) == FL(0.0)) {
+    if (x < 0)
+      o = new Fl_Window(width, height, panelName);
+    else
+      o = new Fl_Window(x, y, width, height, panelName);
+  }
+  else if (x < 0)
+    o = new CsoundFLWindow(csound, width, height, panelName);
+  else
+    o = new CsoundFLWindow(csound, x, y, width, height, panelName);
   widget_attributes(csound, o);
   o->box((Fl_Boxtype) borderType);
   o->resizable(o);
   widget_attributes(csound, o);
   ADDR_STACK adrstk(&p->h, (void *) o, stack_count);
   AddrStack.push_back(adrstk);
-  PANELS panel(o, (stack_count>0) ? 1 : 0);
+  PANELS panel(o, (stack_count > 0) ? 1 : 0);
   fl_windows.push_back(panel);
   stack_count++;
+
   return OK;
 }
 
@@ -3637,7 +3784,7 @@ const OENTRY widgetOpcodes_[] = {
         (SUBR) fl_box,                  (SUBR) NULL,              (SUBR) NULL },
     { "FLvalue",        S(FLVALUE),             1,  "i",    "Tjjjj",
         (SUBR) fl_value,                (SUBR) NULL,              (SUBR) NULL },
-    { "FLpanel",        S(FLPANEL),             1,  "",     "Tjjooo",
+    { "FLpanel",        S(FLPANEL),             1,  "",     "Tjjjooo",
         (SUBR) StartPanel,              (SUBR) NULL,              (SUBR) NULL },
     { "FLpanelEnd",     S(FLPANELEND),          1,  "",     "",
         (SUBR) EndPanel,                (SUBR) NULL,              (SUBR) NULL },
