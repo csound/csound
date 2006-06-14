@@ -1176,7 +1176,7 @@ static void convert_strconst_pool(CSOUND *csound, MYFLT *dst)
 void oload(CSOUND *p)
 {
     long    n, combinedsize, insno, *lp;
-    long    gblabeg, gblsbeg, gblscbeg, lclabeg, lclsbeg;
+    long    gblabeg, gblsbeg, gblsbas, gblscbeg, lclabeg, lclsbeg, lclsbas;
     MYFLT   *combinedspc, *gblspace, *fp1;
     INSTRTXT *ip;
     OPTXT   *optxt;
@@ -1255,11 +1255,13 @@ void oload(CSOUND *p)
 
     gblabeg = p->poolcount + p->gblfixed + 1;
     gblsbeg = gblabeg + p->gblacount;
+    gblsbas = gblabeg + (p->gblacount * p->ksmps);
     ip = &(p->instxtanchor);
     while ((ip = ip->nxtinstxt) != NULL) {      /* EXPAND NDX for A & S Cells */
       optxt = (OPTXT *) ip;                     /*   (and set localen)        */
       lclabeg = (long) (ip->pmax + ip->lclfixed + 1);
       lclsbeg = (long) (lclabeg + ip->lclacnt);
+      lclsbas = (long) (lclabeg + (ip->lclacnt * (long) p->ksmps));
       if (O->odebug) p->Message(p, "lclabeg %ld, lclsbeg %ld\n",
                                    lclabeg, lclsbeg);
       ip->localen = ((long) ip->lclfixed
@@ -1268,7 +1270,7 @@ void oload(CSOUND *p)
                     * (long) sizeof(MYFLT);
       /* align to 64 bits */
       ip->localen = (ip->localen + 7L) & (~7L);
-      for (insno=0, n=0; insno <= p->maxinsno; insno++)
+      for (insno = 0, n = 0; insno <= p->maxinsno; insno++)
         if (p->instrtxtp[insno] == ip)  n++;            /* count insnos  */
       lp = ip->inslist = (long *) mmalloc(p, (long)(n+1) * sizeof(long));
       for (insno=0; insno <= p->maxinsno; insno++)
@@ -1292,7 +1294,7 @@ void oload(CSOUND *p)
             if (indx >= STR_OFS)        /* string constant          */
               p->Die(p, Str("internal error: string constant outarg"));
             if (indx > gblsbeg)         /* global string variable   */
-              indx = gblsbeg + (indx - gblsbeg) * p->strVarSamples;
+              indx = gblsbas + (indx - gblsbeg) * p->strVarSamples;
             else if (indx > gblabeg)    /* global a-rate variable   */
               indx = gblabeg + (indx - gblabeg) * p->ksmps;
             else if (indx <= 3 && O->sr_override &&
@@ -1304,7 +1306,7 @@ void oload(CSOUND *p)
             if (indx < LABELIM)         /* label                    */
               continue;
             if (posndx > lclsbeg)       /* local string variable    */
-              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVarSamples);
+              indx = -(lclsbas + (posndx - lclsbeg) * p->strVarSamples);
             else if (posndx > lclabeg)  /* local a-rate variable    */
               indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
           }
@@ -1338,7 +1340,7 @@ void oload(CSOUND *p)
             if (indx >= STR_OFS)        /* string constant          */
               indx = (long) strConstIndexList[indx - (long) (STR_OFS + 1)];
             else if (indx > gblsbeg)    /* global string variable   */
-              indx = gblsbeg + (indx - gblsbeg) * p->strVarSamples;
+              indx = gblsbas + (indx - gblsbeg) * p->strVarSamples;
             else if (indx > gblabeg)    /* global a-rate variable   */
               indx = gblabeg + (indx - gblabeg) * p->ksmps;
           }
@@ -1347,7 +1349,7 @@ void oload(CSOUND *p)
             if (indx < LABELIM)         /* label                    */
               continue;
             if (posndx > lclsbeg)       /* local string variable    */
-              indx = -(lclsbeg + (posndx - lclsbeg) * p->strVarSamples);
+              indx = -(lclsbas + (posndx - lclsbeg) * p->strVarSamples);
             else if (posndx > lclabeg)  /* local a-rate variable    */
               indx = -(lclabeg + (posndx - lclabeg) * p->ksmps);
           }
