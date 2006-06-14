@@ -228,7 +228,7 @@ int diskin2_init(CSOUND *csound, DISKIN2 *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if (csound->GetMessageLevel(csound) != 0) {
+    if ((csound->oparms->msglevel & 7) == 7) {
       csound->Message(csound, Str("diskin2: opened '%s':\n"),
                               csound->GetFileName(fd));
       csound->Message(csound, Str("         %d Hz, %d channel(s), "
@@ -599,7 +599,7 @@ int sndinset(CSOUND *csound, SOUNDIN_ *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if (csound->GetMessageLevel(csound) != 0) {
+    if ((csound->oparms->msglevel & 7) == 7) {
       csound->Message(csound, Str("soundin: opened '%s':\n"),
                               csound->GetFileName(fd));
       csound->Message(csound, Str("         %d Hz, %d channel(s), "

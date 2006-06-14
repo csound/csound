@@ -194,7 +194,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if (csound->GetMessageLevel(csound) != 0) {
+    if ((csound->oparms->msglevel & 7) == 7) {
       csound->Message(csound, Str("diskin: opened '%s':\n"),
                               csound->GetFileName(fd));
       csound->Message(csound, Str("        %d Hz, %d channel(s), "
