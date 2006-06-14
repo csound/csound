@@ -117,17 +117,17 @@ static void init_het(HET *thishet)
 {
     thishet->freq_est  = FL(0.0);
     thishet->fund_est  = FL(100.0);
-    thishet->sr        = FL(0.0);	/* sampling rate */
-    thishet->freq_c    = FL(0.0); 	/* filter cutoff freq.*/
+    thishet->sr        = FL(0.0);       /* sampling rate */
+    thishet->freq_c    = FL(0.0);       /* filter cutoff freq.*/
     thishet->beg_time  = FL(0.0);
     thishet->input_dur = FL(0.0);
-    thishet->old_ph    = 0.0;   	/* previous phase value*/
-    thishet->jmp_ph    = 0.0;   	/* for phase unwrap*/
-    thishet->m_ampsum  = 32767.0; 	/* maximum amplitude at output*/
-    thishet->hmax      = 10;    	/* max harmonics requested */
-    thishet->num_pts   = 256;   	/* breakpoints per harmonic */
-    thishet->amp_min   = 64;    	/* amplitude cutout threshold */
-    thishet->bufsiz    = 1;     	/* circular buffer size */
+    thishet->old_ph    = 0.0;           /* previous phase value*/
+    thishet->jmp_ph    = 0.0;           /* for phase unwrap*/
+    thishet->m_ampsum  = 32767.0;       /* maximum amplitude at output*/
+    thishet->hmax      = 10;            /* max harmonics requested */
+    thishet->num_pts   = 256;           /* breakpoints per harmonic */
+    thishet->amp_min   = 64;            /* amplitude cutout threshold */
+    thishet->bufsiz    = 1;             /* circular buffer size */
 }
 
 static int hetro(CSOUND *csound, int argc, char **argv)
@@ -718,7 +718,6 @@ static int filedump(HET *thishet, CSOUND *csound)
 #if INCSDIF
 /* simply writes the number of frames generated - no data reduction,
    no interpolation */
-#include "SDIF/sdif.c"
 
 static int writesdif(CSOUND *csound, HET *thishet)
 {
