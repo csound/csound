@@ -584,51 +584,59 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
               ST(linepos) = -1;
             }
           }
-          else if (c == 'f' &&          /* #ifdef */
-                   (c = getorchar(csound)) == 'd' &&
-                   (c = getorchar(csound)) == 'e' &&
-                   (c = getorchar(csound)) == 'f') {
-            int def = 0;
-            MACRO *mm = ST(macros);
-            while (isspace(c = getorchar(csound)));
-            while (isNameChar(c, i)) {
-              mname[i++] = c;
+          else if (c == 'f') {          /* #ifdef or #ifndef */
+            MACRO *mm;
+            int   def = 0;
+            if ((c = getorchar(csound)) == 'n') {
+              def = 1;
               c = getorchar(csound);
             }
-            mname[i] = '\0';
-            while (mm) {
-              if (strcmp(mname, mm->name) == 0) {
-                def = 1;
-                break;
-              }
-              mm = mm->next;
-            }
-            if (def) {
-              while (c != '\n' && c != EOF) {   /* Skip to end of line */
+            if (c == 'd' &&
+                (c = getorchar(csound)) == 'e' &&
+                (c = getorchar(csound)) == 'f') {
+              while (isspace(c = getorchar(csound)))
+                ;
+              while (isNameChar(c, i)) {
+                mname[i++] = c;
                 c = getorchar(csound);
               }
-              srccnt++; goto top;
-            }
-            else {
-              for (;;) {
-                while (c != '\n') {
-                  if (c == EOF)
-                    lexerr(csound, Str("unmatched #ifdef"));
+              mname[i] = '\0';
+              for (mm = ST(macros); mm != NULL; mm = mm->next) {
+                if (strcmp(mname, mm->name) == 0) {
+                  def ^= 1;
+                  break;
+                }
+              }
+              if (def) {
+                while (c != '\n' && c != EOF) { /* Skip to end of line */
                   c = getorchar(csound);
                 }
-                srccnt++;
-                if ((c = getorchar(csound)) == '#' &&
-                    (c = getorchar(csound)) == 'e' &&
-                    (c = getorchar(csound)) == 'n' &&
-                    (c = getorchar(csound)) == 'd') {
-                  while ((c = getorchar(csound)) != '\n' && c != EOF)
-                    ;
-                  goto top;
-                }
-              } /* never returns */
+                srccnt++; goto top;
+              }
+              else {
+                for ( ; ; ) {
+                  while (c != '\n') {
+                    if (c == EOF)
+                      lexerr(csound, Str("unmatched #ifdef"));
+                    c = getorchar(csound);
+                  }
+                  srccnt++;
+                  if ((c = getorchar(csound)) == '#' &&
+                      (c = getorchar(csound)) == 'e' &&
+                      (c = getorchar(csound)) == 'n' &&
+                      (c = getorchar(csound)) == 'd') {
+                    while ((c = getorchar(csound)) != '\n' && c != EOF)
+                      ;
+                    goto top;
+                  }
+                } /* never returns */
+              }
             }
+            else
+              lexerr(csound, Str("Not #ifdef"));
           }
-          else lexerr(csound, "Not #ifdef");
+          else
+            lexerr(csound, Str("Unknown # option"));
         }
         else if (c == 'e' && (c = getorchar(csound)) == 'n' &&
                  (c = getorchar(csound)) == 'd') {
