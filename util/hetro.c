@@ -128,6 +128,7 @@ static void init_het(HET *thishet)
     thishet->num_pts   = 256;           /* breakpoints per harmonic */
     thishet->amp_min   = 64;            /* amplitude cutout threshold */
     thishet->bufsiz    = 1;             /* circular buffer size */
+    thishet->skip      = 0;             /* JPff: this was missing */
 }
 
 static int hetro(CSOUND *csound, int argc, char **argv)
@@ -355,6 +356,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
 
 static double GETVAL(HET* thishet, double *inb, long smpl)
 {                               /* get value at position smpl in array inb */
+    if (smpl<0) return 0.0;
     return   inb[(smpl + thishet->midbuf) & thishet->bufmask];
 }
 
@@ -463,10 +465,11 @@ static void lowpass(HET *thishet, double *out, double *in, long smpl)
   /* call with x1,x2,yA,y2,y3 initialised  */
   /* calls LPF function */
 {
-    PUTVAL(thishet,out, smpl, (thishet->x1 *
-                       GETVAL(thishet,in,smpl-1) + thishet->x2 * GETVAL(thishet,in,smpl-2) -
-                       thishet->yA * GETVAL(thishet,out,smpl-1) - thishet->y2 *
-                       GETVAL(thishet,out,smpl-2) - thishet->y3 * GETVAL(thishet,out,smpl-3)));
+    PUTVAL(thishet, out, smpl,
+           (thishet->x1 *
+            GETVAL(thishet,in,smpl-1) + thishet->x2 * GETVAL(thishet,in,smpl-2) -
+            thishet->yA * GETVAL(thishet,out,smpl-1) - thishet->y2 *
+            GETVAL(thishet,out,smpl-2) - thishet->y3 * GETVAL(thishet,out,smpl-3)));
 }
 
 static void average(HET *thishet, long window,double *in,double *out, long smpl)
@@ -476,10 +479,23 @@ static void average(HET *thishet, long window,double *in,double *out, long smpl)
   /* ie. zeros at all harmonic frequencies except*/
   /* the current one where the pole cancels it */
 {
+#if 0
     PUTVAL(thishet,out, smpl,
            (double)(GETVAL(thishet,out,smpl-1) +
                     (1.0/(double)window) *
                     (GETVAL(thishet,in,smpl) - GETVAL(thishet,in,smpl-window))));
+#else
+    if (smpl==0) return;
+    if (smpl<window)
+      PUTVAL(thishet,out, smpl,
+             (double)(GETVAL(thishet,out,smpl-1) +
+                      (1.0/(double)window) * (GETVAL(thishet,in,smpl))));
+    else 
+      PUTVAL(thishet,out, smpl,
+             (double)(GETVAL(thishet,out,smpl-1) +
+                      (1.0/(double)window) *
+                      (GETVAL(thishet,in,smpl) - GETVAL(thishet,in,smpl-window))));
+#endif
 }
 
                                  /* update phase counter */
@@ -532,7 +548,6 @@ static void output(HET *thishet, long smpl, int hno, int pnt)
 {                       /* current amp and new freq in arrays */
     double delt_freq;
     MYFLT  new_amp, new_freq;
-
     if (pnt < thishet->num_pts) {
       delt_freq = GETVAL(thishet,thishet->a_avg,smpl); /* 0.5 for rounding ? */
       thishet->FREQS[hno][pnt] =
@@ -543,6 +558,8 @@ static void output(HET *thishet, long smpl, int hno, int pnt)
         thishet->max_frq = new_freq;
       if (new_amp > thishet->max_amp)
         thishet->max_amp = new_amp;
+    }
+    else {
     }
 }
 
