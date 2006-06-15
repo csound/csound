@@ -173,7 +173,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     n = (int) (*(p->iSampleFormat) + FL(2.5)) - 1;
     if (n == 1) {
       sfinfo.format = SF_FORMAT_RAW
-                      | (int) FORMAT2SF(csound->oparms->outformat);
+                      | (int) FORMAT2SF(csound->oparms_.outformat);
     }
     else {
       if (n < 0 || n > 10)
@@ -194,7 +194,7 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     p->fdch.fd = fd;
     fdrecord(csound, &(p->fdch));
     /* print file information */
-    if ((csound->oparms->msglevel & 7) == 7) {
+    if ((csound->oparms_.msglevel & 7) == 7) {
       csound->Message(csound, Str("diskin: opened '%s':\n"),
                               csound->GetFileName(fd));
       csound->Message(csound, Str("        %d Hz, %d channel(s), "
@@ -360,7 +360,7 @@ int sndo1set(CSOUND *csound, void *pp)
     char    *sfname, *opname, sndoutname[256];
     SNDCOM  *p;
     MYFLT   *ifilcod, *iformat;
-    int     filetyp = TYP_RAW, format = csound->oparms->outformat, nchns = 1;
+    int     filetyp = TYP_RAW, format = csound->oparms_.outformat, nchns = 1;
     SF_INFO sfinfo;
 
     opname = csound->GetOpcodeName(pp);
