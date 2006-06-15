@@ -166,25 +166,27 @@ void *sndgetset(CSOUND *csound, void *p_)
       goto err_return;
     }
     p->sr = (int) sfinfo.samplerate;
-    csound->Message(csound, Str("audio sr = %d, "), (int) p->sr);
-    switch (p->nchanls) {
-      case 1: csound->Message(csound, Str("monaural")); break;
-      case 2: csound->Message(csound, Str("stereo"));   break;
-      case 4: csound->Message(csound, Str("quad"));     break;
-      case 6: csound->Message(csound, Str("hex"));      break;
-      case 8: csound->Message(csound, Str("oct"));      break;
-      default: csound->Message(csound, Str("%d-channels"), (int) p->nchanls);
+    if (csound->oparms_.msglevel & 3) {
+      csound->Message(csound, Str("audio sr = %d, "), (int) p->sr);
+      switch (p->nchanls) {
+        case 1: csound->Message(csound, Str("monaural")); break;
+        case 2: csound->Message(csound, Str("stereo"));   break;
+        case 4: csound->Message(csound, Str("quad"));     break;
+        case 6: csound->Message(csound, Str("hex"));      break;
+        case 8: csound->Message(csound, Str("oct"));      break;
+        default: csound->Message(csound, Str("%d-channels"), (int) p->nchanls);
+      }
+      if (p->nchanls > 1) {
+        if (p->channel == ALLCHNLS)
+          csound->Message(csound, Str(", reading %s channels"),
+                                  (p->nchanls == 2 ? Str("both") : Str("all")));
+        else
+          csound->Message(csound, Str(", reading channel %d"),
+                                  (int) p->channel);
+      }
+      csound->Message(csound, Str("\nopening %s infile %s\n"),
+                              type2string(p->filetyp), sfname);
     }
-    if (p->nchanls > 1) {
-      if (p->channel == ALLCHNLS)
-        csound->Message(csound, Str(", reading %s channels"),
-                                (p->nchanls == 2 ? Str("both") : Str("all")));
-      else
-        csound->Message(csound, Str(", reading channel %d"), (int) p->channel);
-    }
-    csound->Message(csound, Str("\nopening %s infile %s\n"),
-                            type2string(p->filetyp), sfname);
-
     p->audrem = (int64_t) sfinfo.frames * (int64_t) sfinfo.channels;
     p->framesrem = (int64_t) sfinfo.frames;         /*   find frames rem */
     skipframes = (int) ((double) p->skiptime * (double) p->sr
