@@ -1,3 +1,7 @@
+2006-06-15  jpff  <jpff@codemist.co.uk>
+
+	* util/hetro.c (init_het): skip was not initialised
+
 2006-06-15	Istvan Varga	<ivarga@csounds.com>
 	* Engine/rdorch.c: added #ifndef
 	* InOut/libsnd_u.c: more quietening of messages
