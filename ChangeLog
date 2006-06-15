@@ -1,3 +1,7 @@
+2006-06-15	Istvan Varga	<ivarga@csounds.com>
+	* Engine/rdorch.c: added #ifndef
+	* InOut/libsnd_u.c: more quietening of messages
+
 2006-06-14	Istvan Varga	<ivarga@csounds.com>
 	* Made messages less verbose in soundin, diskin, diskin2, and
 	  sfpassign.
