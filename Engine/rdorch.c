@@ -73,6 +73,15 @@ typedef struct iflabel {            /* for if/else/endif */
     struct  iflabel *prv;
 } IFLABEL;
 
+typedef struct IFDEFSTACK_ {
+    struct IFDEFSTACK_  *prv;
+    unsigned char   isDef;      /* non-zero if #ifdef is true, or #ifndef   */
+                                /*   is false                               */
+    unsigned char   isElse;     /* non-zero between #else and #endif        */
+    unsigned char   isSkip;     /* sum of: 1: skipping code due to this     */
+                                /*   #ifdef, 2: skipping due to parent      */
+} IFDEFSTACK;
+
 typedef struct {
     MACRO   *macros;
     long    lenmax /* = LENMAX */;  /* Length of input line buffer  */
@@ -116,6 +125,7 @@ typedef struct {
     short   instrblk, instrcnt;
     short   opcodblk;               /* IV - Sep 8 2002 */
     short   opcodflg;               /* 1: xin, 2: xout, 4: setksmps */
+    IFDEFSTACK  *ifdefStack;
     TEXT    optext;                 /* struct to be passed back to caller */
 } RDORCH_GLOBALS;
 
@@ -265,6 +275,16 @@ static int getorchar(CSOUND *csound)
     return c;
 }
 
+static int getorchar_noeof(CSOUND *csound)
+{
+    int     c;
+
+    c = getorchar(csound);
+    if (c == EOF)
+      lexerr(csound, Str("Unexpected end of orchestra file"));
+    return c;
+}
+
 void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
                                   char *env)
 {
@@ -295,22 +315,40 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
 static void init_omacros(CSOUND *csound, NAMES *nn)
 {
     while (nn) {
-      char *s = nn->mac;
-      char *p = strchr(s,'=');
-      MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
-      mm->margs = MARGS;  /* Initial size */
-      if (p==NULL) p = s+strlen(s);
-      if (csound->oparms->msglevel)
-        csound->Message(csound,Str("Macro definition for %*s\n"), p-s, s);
-      s = strchr(s,':')+1;                     /* skip arg bit */
-      mm->name = mmalloc(csound, p-s+1);
-      mm->name[p-s] = '\0';
-      strncpy(mm->name, s, p-s);
+      char  *s = nn->mac;
+      char  *p = strchr(s, '=');
+      char  *mname;
+      MACRO *mm;
+
+      if (p == NULL)
+        p = s + strlen(s);
+      if (csound->oparms->msglevel & 7)
+        csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
+      s = strchr(s, ':') + 1;                   /* skip arg bit */
+      if (s == NULL || s >= p)
+        csound->Die(csound, Str("Invalid macro name for --omacro"));
+      mname = (char*) mmalloc(csound, (p - s) + 1);
+      strncpy(mname, s, p - s);
+      mname[p - s] = '\0';
+      /* check if macro is already defined */
+      for (mm = ST(macros); mm != NULL; mm = mm->next) {
+        if (strcmp(mm->name, mname) == 0)
+          break;
+      }
+      if (mm == NULL) {
+        mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
+        mm->name = mname;
+        mm->next = ST(macros);
+        ST(macros) = mm;
+      }
+      else
+        mfree(csound, mname);
+      mm->margs = MARGS;    /* Initial size */
       mm->acnt = 0;
-      mm->body = (char*)mmalloc(csound, strlen(p+1)+1);
-      strcpy(mm->body, p+1);
-      mm->next = ST(macros);
-      ST(macros) = mm;
+      if (*p != '\0')
+        p++;
+      mm->body = (char*) mmalloc(csound, strlen(p) + 1);
+      strcpy(mm->body, p);
       nn = nn->next;
     }
 }
@@ -425,7 +463,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         else
           ungetorchar(csound, c2);
       }
-      if (c == ';' && !heredoc) {
+      if (c == ';' && !heredoc && !openquote) {
         skiporchar(csound);
         *(cp - 1) = (char) (c = '\n');
       }
@@ -433,7 +471,8 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         openquote = !openquote;
       }
       if (c == '\\' && !heredoc) {                   /* Continuation ?       */
-        while ((c = getorchar(csound))==' ' || c == '\t');  /* Ignore spaces */
+        while ((c = getorchar(csound)) == ' ' || c == '\t')
+          ;                                          /* Ignore spaces        */
         if (c == ';') {                              /* Comments get skipped */
           skiporchar(csound);
           c = '\n';
@@ -471,35 +510,57 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
       else if (c == '#' && ST(linepos) == 0 && !heredoc) {
         /* Start Macro definition */
         /* also deal with #include here */
-        char  mname[100];
-        int   i = 0;
-        int   arg = 0;
-        int   size = 100;
-        MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
-        mm->margs = MARGS;  /* Initial size */
+        char  mname[100], *preprocName;
+        int   i, cnt;
         cp--;
-        while (isspace(c = getorchar(csound)));
-        if (c=='d') {
-          if ((c = getorchar(csound))!='e' || (c = getorchar(csound))!='f' ||
-              (c = getorchar(csound))!='i' || (c = getorchar(csound))!='n' ||
-              (c = getorchar(csound))!='e')
-            lexerr(csound, Str("Not #define"));
-          while (isspace(c = getorchar(csound)));
+ parsePreproc:
+        preprocName = NULL;
+        i = 0;
+        cnt = 0;
+        mname[cnt++] = '#';
+        do {
+          c = getorchar(csound);
+          if (c == EOF)
+            break;
+          mname[cnt++] = c;
+        } while ((c == ' ' || c == '\t') && cnt < 99);
+        mname[cnt] = '\0';
+        if (c == EOF || c == '\n' || cnt >= 99)
+          goto unknownPreproc;
+        preprocName = &(mname[cnt - 1]);
+        do {
+          c = getorchar(csound);
+          if (c == EOF || !isalpha(c))
+            break;
+          mname[cnt++] = c;
+        } while (cnt < 99);
+        mname[cnt] = '\0';
+        if (cnt >= 99)
+          goto unknownPreproc;
+        if (strcmp(preprocName, "define") == 0 &&
+            !(ST(ifdefStack) != NULL && ST(ifdefStack)->isSkip)) {
+          MACRO *mm = (MACRO*) mmalloc(csound, sizeof(MACRO));
+          int   arg = 0;
+          int   size = 100;
+          mm->margs = MARGS;    /* Initial size */
+          while (isspace((c = getorchar(csound))))
+            ;
           while (isNameChar(c, i)) {
             mname[i++] = c;
             c = getorchar(csound);
           }
           mname[i] = '\0';
-          if (csound->oparms->msglevel)
+          if (csound->oparms->msglevel & 7)
             csound->Message(csound,Str("Macro definition for %s\n"), mname);
-          mm->name = mmalloc(csound, i+1);
+          mm->name = mmalloc(csound, i + 1);
           strcpy(mm->name, mname);
           if (c == '(') {       /* arguments */
 #ifdef MACDEBUG
             csound->Message(csound, "M-arguments: ");
 #endif
             do {
-              while (isspace(c = getorchar(csound)));
+              while (isspace((c = getorchar_noeof(csound))))
+                ;
               i = 0;
               while (isNameChar(c, i)) {
                 mname[i++] = c;
@@ -512,30 +573,34 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
               mm->arg[arg] = mmalloc(csound, i+1);
               strcpy(mm->arg[arg++], mname);
               if (arg>=mm->margs) {
-                mm = (MACRO*)mrealloc(csound, mm,
-                                      sizeof(MACRO)+mm->margs*sizeof(char*));
+                mm = (MACRO*) mrealloc(csound, mm, sizeof(MACRO)
+                                                   + mm->margs * sizeof(char*));
                 mm->margs += MARGS;
               }
-              while (isspace(c)) c = getorchar(csound);
-            } while (c=='\'' || c=='#');
-            if (c!=')') csound->Message(csound, Str("macro error\n"));
+              while (isspace(c))
+                c = getorchar_noeof(csound);
+            } while (c == '\'' || c == '#');
+            if (c != ')')
+              csound->Message(csound, Str("macro error\n"));
           }
           mm->acnt = arg;
           i = 0;
-          while ((c = getorchar(csound)) != '#'); /* Skip to next # */
-          mm->body = (char*)mmalloc(csound, 100);
-          while ((c = getorchar(csound)) != '#') {
+          while (c != '#')
+            c = getorchar_noeof(csound);        /* Skip to next # */
+          mm->body = (char*) mmalloc(csound, 100);
+          while ((c = getorchar_noeof(csound)) != '#') {
             mm->body[i++] = c;
-            if (i>= size) mm->body = mrealloc(csound, mm->body, size += 100);
-            if (c=='\\') {      /* allow escaped # */
-              mm->body[i++] = c = getorchar(csound);
-              if (i>= size) mm->body = mrealloc(csound, mm->body, size += 100);
+            if (i >= size)
+              mm->body = mrealloc(csound, mm->body, size += 100);
+            if (c == '\\') {                    /* allow escaped # */
+              mm->body[i++] = c = getorchar_noeof(csound);
+              if (i >= size)
+                mm->body = mrealloc(csound, mm->body, size += 100);
             }
-            if (c == '\n') {
+            if (c == '\n')
               srccnt++;
-            }
           }
-          mm->body[i]='\0';
+          mm->body[i] = '\0';
           mm->next = ST(macros);
           ST(macros) = mm;
 #ifdef MACDEBUG
@@ -544,111 +609,120 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
 #endif
           c = ' ';
         }
-        else if (c=='i') {
-          int delim;
-          c = getorchar(csound);
-          if (c == 'n') {               /* #include */
-            if ((c = getorchar(csound))!='c' || (c = getorchar(csound))!='l' ||
-                (c = getorchar(csound))!='u' || (c = getorchar(csound))!='d' ||
-                (c = getorchar(csound))!='e')
-              lexerr(csound, Str("Not #include"));
-            while (isspace(c = getorchar(csound)));
-            delim = c;
-            i = 0;
-            while ((c=getorchar(csound))!=delim) mname[i++] = c;
-            mname[i]='\0';
-            while ((c=getorchar(csound))!='\n');
+        else if (strcmp(preprocName, "include") == 0 &&
+                 !(ST(ifdefStack) != NULL && ST(ifdefStack)->isSkip)) {
+          int   delim;
+          while (isspace(c))
+            c = getorchar(csound);
+          delim = c;
+          i = 0;
+          while ((c = getorchar_noeof(csound)) != delim)
+            mname[i++] = c;
+          mname[i] = '\0';
+          do {
+            c = getorchar(csound);
+          } while (c != EOF && c != '\n');
 #ifdef MACDEBUG
-            csound->Message(csound, "#include \"%s\"\n", mname);
+          csound->Message(csound, "#include \"%s\"\n", mname);
 #endif
-            ST(input_cnt)++;
-            if (ST(input_cnt) >= ST(input_size)) {
-              ST(input_size) += 20;
-              ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
-                                                        * sizeof(IN_STACK));
-            }
-            ST(str) = (IN_STACK*) ST(inputs) + (int) ST(input_cnt);
-            ST(str)->string = 0;
-            ST(str)->fd = fopen_path(csound, &(ST(str)->file),
-                                             mname, csound->orchname, "INCDIR");
-            if (ST(str)->fd == NULL) {
-              csound->Message(csound,
-                              Str("Cannot open #include'd file %s\n"), mname);
-              /* Should this stop things?? */
-              ST(str)--; ST(input_cnt)--;
-            }
-            else {
-              ST(str)->body = csound->GetFileName(ST(str)->fd);
-              ST(str)->line = 1;
-              ST(str)->unget_cnt = 0;
-              ST(linepos) = -1;
+          ST(input_cnt)++;
+          if (ST(input_cnt) >= ST(input_size)) {
+            ST(input_size) += 20;
+            ST(inputs) = mrealloc(csound, ST(inputs), ST(input_size)
+                                                      * sizeof(IN_STACK));
+          }
+          ST(str) = (IN_STACK*) ST(inputs) + (int) ST(input_cnt);
+          ST(str)->string = 0;
+          ST(str)->fd = fopen_path(csound, &(ST(str)->file),
+                                           mname, csound->orchname, "INCDIR");
+          if (ST(str)->fd == NULL) {
+            csound->Message(csound,
+                            Str("Cannot open #include'd file %s\n"), mname);
+            /* Should this stop things?? */
+            ST(str)--; ST(input_cnt)--;
+          }
+          else {
+            ST(str)->body = csound->GetFileName(ST(str)->fd);
+            ST(str)->line = 1;
+            ST(str)->unget_cnt = 0;
+            ST(linepos) = -1;
+          }
+        }
+        else if (strcmp(preprocName, "ifdef") == 0 ||
+                 strcmp(preprocName, "ifndef") == 0) {
+          MACRO   *mm;                  /* #ifdef or #ifndef */
+          IFDEFSTACK  *pp;
+          pp = (IFDEFSTACK*) mcalloc(csound, sizeof(IFDEFSTACK));
+          pp->prv = ST(ifdefStack);
+          if (strcmp(preprocName, "ifndef") == 0)
+            pp->isDef = 1;
+          while (isspace(c = getorchar(csound)))
+            ;
+          while (isNameChar(c, i)) {
+            mname[i++] = c;
+            c = getorchar(csound);
+          }
+          mname[i] = '\0';
+          for (mm = ST(macros); mm != NULL; mm = mm->next) {
+            if (strcmp(mname, mm->name) == 0) {
+              pp->isDef ^= (unsigned char) 1;
+              break;
             }
           }
-          else if (c == 'f') {          /* #ifdef or #ifndef */
-            MACRO *mm;
-            int   def = 0;
-            if ((c = getorchar(csound)) == 'n') {
-              def = 1;
+          ST(ifdefStack) = pp;
+          pp->isSkip = pp->isDef ^ (unsigned char) 1;
+          if (pp->prv != NULL && pp->prv->isSkip)
+            pp->isSkip |= (unsigned char) 2;
+          if (!pp->isSkip) {
+            while (c != '\n' && c != EOF) {     /* Skip to end of line */
               c = getorchar(csound);
             }
-            if (c == 'd' &&
-                (c = getorchar(csound)) == 'e' &&
-                (c = getorchar(csound)) == 'f') {
-              while (isspace(c = getorchar(csound)))
-                ;
-              while (isNameChar(c, i)) {
-                mname[i++] = c;
+            srccnt++; goto top;
+          }
+          else {                                /* Skip a section of code */
+ ifdefSkipCode:
+            do {
+              while (c != '\n') {
+                if (c == EOF)
+                  lexerr(csound, Str("unmatched #ifdef"));
                 c = getorchar(csound);
               }
-              mname[i] = '\0';
-              for (mm = ST(macros); mm != NULL; mm = mm->next) {
-                if (strcmp(mname, mm->name) == 0) {
-                  def ^= 1;
-                  break;
-                }
-              }
-              if (def) {
-                while (c != '\n' && c != EOF) { /* Skip to end of line */
-                  c = getorchar(csound);
-                }
-                srccnt++; goto top;
-              }
-              else {
-                for ( ; ; ) {
-                  while (c != '\n') {
-                    if (c == EOF)
-                      lexerr(csound, Str("unmatched #ifdef"));
-                    c = getorchar(csound);
-                  }
-                  srccnt++;
-                  if ((c = getorchar(csound)) == '#' &&
-                      (c = getorchar(csound)) == 'e' &&
-                      (c = getorchar(csound)) == 'n' &&
-                      (c = getorchar(csound)) == 'd') {
-                    while ((c = getorchar(csound)) != '\n' && c != EOF)
-                      ;
-                    goto top;
-                  }
-                } /* never returns */
-              }
-            }
-            else
-              lexerr(csound, Str("Not #ifdef"));
+              srccnt++;
+              c = getorchar(csound);
+            } while (c != '#');
+            goto parsePreproc;
           }
-          else
-            lexerr(csound, Str("Unknown # option"));
         }
-        else if (c == 'e' && (c = getorchar(csound)) == 'n' &&
-                 (c = getorchar(csound)) == 'd') {
-          /* end of #ifdef section */
+        else if (strcmp(preprocName, "else") == 0) {
+          if (ST(ifdefStack) == NULL || ST(ifdefStack)->isElse)
+            lexerr(csound, Str("Unmatched #else"));
           while (c != '\n' && c != EOF)
             c = getorchar(csound);
+          srccnt++;
+          ST(ifdefStack)->isElse = 1;
+          ST(ifdefStack)->isSkip ^= (unsigned char) 1;
+          if (ST(ifdefStack)->isSkip)
+            goto ifdefSkipCode;
+          goto top;
         }
-        else if (c=='u') {
-          if ((c = getorchar(csound))!='n' || (c = getorchar(csound))!='d' ||
-              (c = getorchar(csound))!='e' || (c = getorchar(csound))!='f')
-            lexerr(csound, Str("Not #undef"));
-          while (isspace(c = getorchar(csound)));
+        else if (strcmp(preprocName, "end") == 0 ||
+                 strcmp(preprocName, "endif") == 0) {
+          IFDEFSTACK  *pp = ST(ifdefStack);
+          if (pp == NULL)
+            lexerr(csound, Str("Unmatched #endif"));
+          while (c != '\n' && c != EOF)
+            c = getorchar(csound);
+          srccnt++;
+          ST(ifdefStack) = pp->prv;
+          mfree(csound, pp);
+          if (ST(ifdefStack) != NULL && ST(ifdefStack)->isSkip)
+            goto ifdefSkipCode;
+          goto top;
+        }
+        else if (strcmp(preprocName, "undef") == 0 &&
+                 !(ST(ifdefStack) != NULL && ST(ifdefStack)->isSkip)) {
+          while (isspace(c = getorchar(csound)))
+            ;
           while (isNameChar(c, i)) {
             mname[i++] = c;
             c = getorchar(csound);
@@ -666,7 +740,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           else {
             MACRO *mm = ST(macros);
             MACRO *nn = mm->next;
-            while (strcmp(mname, nn->name)!=0) {
+            while (strcmp(mname, nn->name) != 0) {
               mm = nn; nn = nn->next;
               if (nn == NULL)
                 lexerr(csound, Str("Undefining undefined macro"));
@@ -676,12 +750,18 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
               mfree(csound, nn->arg[i]);
             mm->next = nn->next; mfree(csound, nn);
           }
-          while (c!='\n') c = getorchar(csound);  /* ignore rest of line */
+          while (c != '\n' && c != EOF)
+            c = getorchar(csound);              /* ignore rest of line */
+          srccnt++;
         }
         else {
-          csound->Message(csound, Str("Warning: Unknown # option"));
-          ungetorchar(csound, c);
-          c = '#';
+ unknownPreproc:
+          if (ST(ifdefStack) != NULL && ST(ifdefStack)->isSkip)
+            goto ifdefSkipCode;
+          if (preprocName == NULL)
+            lexerr(csound, Str("Unexpected # character"));
+          else
+            lexerr(csound, Str("Unknown # option: '%s'"), preprocName);
         }
       }
       else if (c == '$' && !heredoc) {
@@ -776,6 +856,8 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         ST(ingappop) = 1;
       }
     }
+    if (ST(ifdefStack) != NULL)
+      lexerr(csound, Str("Unmatched #ifdef"));
     if (cp >= endspace) {                   /* Ought to extend */
       csoundDie(csound, Str("file too large for ortext space"));
     }

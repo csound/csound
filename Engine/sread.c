@@ -670,21 +670,40 @@ static int do_repeat(CSOUND *csound)
 static void init_smacros(CSOUND *csound, NAMES *nn)
 {
     while (nn) {
-      char *s = nn->mac;
-      char *p = strchr(s,'=');
-      MACRO *mm = (MACRO*)mmalloc(csound, sizeof(MACRO));
-      mm->margs = MARGS;  /* Initial size */
-      if (p==NULL) p = s+strlen(s);
-      if (csound->oparms->msglevel)
-        csound->Message(csound,Str("Macro definition for %s\n"), s);
-      s = strchr(s,':')+1;                     /* skip arg bit */
-      mm->name = mmalloc(csound, p-s+1);
-      strncpy(mm->name, s, p-s); mm->name[p-s] = '\0';
+      char  *s = nn->mac;
+      char  *p = strchr(s, '=');
+      char  *mname;
+      MACRO *mm;
+
+      if (p == NULL)
+        p = s + strlen(s);
+      if (csound->oparms->msglevel & 7)
+        csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
+      s = strchr(s, ':') + 1;                   /* skip arg bit */
+      if (s == NULL || s >= p)
+        csound->Die(csound, Str("Invalid macro name for --smacro"));
+      mname = (char*) mmalloc(csound, (p - s) + 1);
+      strncpy(mname, s, p - s);
+      mname[p - s] = '\0';
+      /* check if macro is already defined */
+      for (mm = ST(macros); mm != NULL; mm = mm->next) {
+        if (strcmp(mm->name, mname) == 0)
+          break;
+      }
+      if (mm == NULL) {
+        mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
+        mm->name = mname;
+        mm->next = ST(macros);
+        ST(macros) = mm;
+      }
+      else
+        mfree(csound, mname);
+      mm->margs = MARGS;    /* Initial size */
       mm->acnt = 0;
-      mm->body = (char*)mmalloc(csound, strlen(p+1)+1);
-      strcpy(mm->body, p+1);
-      mm->next = ST(macros);
-      ST(macros) = mm;
+      if (*p != '\0')
+        p++;
+      mm->body = (char*) mmalloc(csound, strlen(p) + 1);
+      strcpy(mm->body, p);
       nn = nn->next;
     }
 }
