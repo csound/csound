@@ -399,7 +399,7 @@ extern "C" {
         {"vstparamset", sizeof(VSTPARAMSET), 3, "",   "ikk",   &vstparamset_init, &vstparamset, 0       },
         {"vstbankload", sizeof(VSTBANKLOAD), 1, "" ,  "iS",    &vstbankload,      0,            0               },
         {"vstprogset",  sizeof(VSTPROGSET),  1, "" ,  "ii",    &vstprogset,       0,            0               },
-        {"vstedit",     sizeof(VSTEDIT),     1, "" ,  "ik",    &vstedit_init,     0,            0               },
+        {"vstedit",     sizeof(VSTEDIT),     1, "" ,  "i",     &vstedit_init,     0,            0               },
         { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
     };
 
