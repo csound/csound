@@ -1,3 +1,7 @@
+2006-06-16	Istvan Varga	<ivarga@csounds.com>
+	* Engine/rdorch.c:
+	  experimental implementation of nested #ifdef/#ifndef and #else
+
 2006-06-15  jpff  <jpff@codemist.co.uk>
 
 	* util/hetro.c (init_het): skip was not initialised
