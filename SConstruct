@@ -1349,15 +1349,17 @@ else:
 
 # Utility programs.
 
-makePlugin(pluginEnvironment, 'stdutil', Split('''
+stdutilSources = Split('''
     util/atsa.c         util/cvanal.c       util/dnoise.c
     util/envext.c       util/xtrct.c        util/het_export.c
     util/het_import.c   util/hetro.c        util/lpanal.c
     util/lpc_export.c   util/lpc_import.c   util/mixer.c
     util/pvanal.c       util/pvlook.c       util/scale.c
-    util/sndinfo.c      util/srconv.c       SDIF/sdif.c
+    util/sndinfo.c      util/srconv.c
     util/std_util.c
-'''))
+''')
+stdutilSources += pluginEnvironment.SharedObject('util/sdif', 'SDIF/sdif.c')
+makePlugin(pluginEnvironment, 'stdutil', stdutilSources)
 
 if (commonEnvironment['buildUtilities'] != '0'):
     utils = [
@@ -1399,8 +1401,8 @@ executables.append(commonEnvironment.Program('scot',
 #    ['util2/exports/pv_export.c']))
 #executables.append(csoundProgramEnvironment.Program('pv_import',
 #    ['util2/exports/pv_import.c']))
-sdif2ad = commonEnvironment.Program('sdif2ad',
-     ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c'])
+executables.append(commonEnvironment.Program('sdif2ad',
+    ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
 makedb = commonEnvironment.Program('makedb', ['strings/makedb.c'])
 zipDependencies.append(makedb)
