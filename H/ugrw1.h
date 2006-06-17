@@ -314,7 +314,6 @@ typedef struct {
         MYFLT   *val, *space;
         MYFLT   oldvalue;
         int     pspace;
-
 } PRINTK2;
 
 typedef struct {
@@ -322,7 +321,6 @@ typedef struct {
         MYFLT   *ndx;
 } IOZ;
 
-int ftkrchkw(CSOUND*,TABLEW *p);
 int instimek(CSOUND*,RDTIME *p);
 int instimes(CSOUND*,RDTIME *p);
 int instimset(CSOUND*,RDTIME *p);
@@ -332,7 +330,6 @@ int itablegpw(CSOUND*,TABLEGPW *p);
 int itablemix(CSOUND*,TABLEMIX *p);
 int itableng(CSOUND*,TABLENG *p);
 int itablew(CSOUND*,TABLEW *p);
-int itblchkw(CSOUND*,TABLEW *p);
 int ktablew(CSOUND*,TABLEW   *p);
 int ktablewkt(CSOUND*,TABLEW *p);
 int outz(CSOUND*,IOZ *p);
@@ -345,7 +342,6 @@ int printks(CSOUND*,PRINTKS *p);
 int printkset(CSOUND*,PRINTK *p);
 int printksset(CSOUND*,PRINTKS *p);
 int printsset(CSOUND*,PRINTS *p);
-int ptblchkw(CSOUND*,TABLEW *p);
 int tablecopy(CSOUND*,TABLECOPY *p);
 int tablecopyset(CSOUND*,TABLECOPY *p);
 int tablegpw(CSOUND*,TABLEGPW *p);
