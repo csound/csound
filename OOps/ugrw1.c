@@ -858,6 +858,10 @@
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 
+static int ftkrchkw(CSOUND *, TABLEW *p);
+static int itblchkw(CSOUND *, TABLEW *p);
+static int ptblchkw(CSOUND *, TABLEW *p);
+
 /* Table write code
  *
  * The way that the k rate table numbers are handled by different
@@ -883,7 +887,7 @@
  * 3 -  There is an igwmode parameter.
 */
 
-int itblchkw(CSOUND *csound, TABLEW *p)
+static int itblchkw(CSOUND *csound, TABLEW *p)
 {
     /* Get pointer to the function table data structure of the table
      * number specified in xfn. Return 0 if it cannot be found.
@@ -944,7 +948,7 @@ int itblchkw(CSOUND *csound, TABLEW *p)
  * ktablewkt tablewkt
  *
  */
-int ptblchkw(CSOUND *csound, TABLEW *p)
+static int ptblchkw(CSOUND *csound, TABLEW *p)
 {
     /* TABLEW has an integer variable for the previous table number
      * (p->pfn).
@@ -1180,7 +1184,7 @@ int tablew(CSOUND *csound, TABLEW *p)
  *
  * ftkrchkw() */
 
-int ftkrchkw(CSOUND *csound, TABLEW *p)
+static int ftkrchkw(CSOUND *csound, TABLEW *p)
 {
 /* Check the table number is >= 1.  Print error and deactivate if it
  * is.  Return 0 to tell calling function not to proceed with a or k

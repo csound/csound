@@ -124,7 +124,7 @@ int phsor(CSOUND *csound, PHSOR *p)
  * input variable - (which we can assume here is also i rate) to set
  * up the TABLE data structure ready for the k and a rate functions.  */
 
-int itblchk(CSOUND *csound, TABLE *p)
+static int itblchk(CSOUND *csound, TABLE *p)
 {
     if ((p->ftp = csound->FTFind(csound, p->xfn)) == NULL)
       return NOTOK;
@@ -176,7 +176,7 @@ int itblchk(CSOUND *csound, TABLE *p)
  * ktablekt tablekt   Non interpolated
  * ktablikt tablikt   Interpolated
  *  */
-int ptblchk(CSOUND *csound, TABLE *p)
+static int ptblchk(CSOUND *csound, TABLE *p)
 {
     /* TABLE has an integer variable for the previous table number
      * (p->pfn).
@@ -197,16 +197,48 @@ int ptblchk(CSOUND *csound, TABLE *p)
 
 /* tblset() */
 
+static int tblset_(CSOUND *csound, TABLE *p)
+{
+    return itblchk(csound, p);
+}
+
 int tblset(CSOUND *csound, TABLE *p)
 {
-    return itblchk(csound,p);
+    if (p->XINCODE != p->XOUTCODE) {
+      const char  *opname = csound->GetOpcodeName(p);
+      const char  *msg = Str("%s: table index type inconsistent with output");
+      if (csound->ksmps == 1)
+        csound->Warning(csound, msg, opname);
+      else {
+        csound->InitError(csound, msg, opname);
+        csound->LongJmp(csound, 1);
+      }
+    }
+    p->h.iopadr = (SUBR) tblset_;
+    return itblchk(csound, p);
 }
 
 /* tblsetkt() */
 
+static int tblsetkt_(CSOUND *csound, TABLE *p)
+{
+    return ptblchk(csound, p);
+}
+
 int tblsetkt(CSOUND *csound, TABLE *p)
 {
-    return ptblchk(csound,p);
+    if (p->XINCODE != p->XOUTCODE) {
+      const char  *opname = csound->GetOpcodeName(p);
+      const char  *msg = Str("%s: table index type inconsistent with output");
+      if (csound->ksmps == 1)
+        csound->Warning(csound, msg, opname);
+      else {
+        csound->InitError(csound, msg, opname);
+        csound->LongJmp(csound, 1);
+      }
+    }
+    p->h.iopadr = (SUBR) tblsetkt_;
+    return ptblchk(csound, p);
 }
 
 /*************************************/
@@ -763,7 +795,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
  *
  * ftkrchk() */
 
-int ftkrchk(CSOUND *csound, TABLE *p)
+static int ftkrchk(CSOUND *csound, TABLE *p)
 {
     /* Check the table number is >= 1.  Print error and deactivate if
      * it is not.  Return NOTOK to tell calling function not to proceed
