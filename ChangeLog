@@ -1,3 +1,7 @@
+2006-06-17	Istvan Varga	<ivarga@csounds.com>
+	* OOps/ugens2.c: allow inconsistent table index and output type in
+	  table read opcodes if ksmps is 1, but print a warning message
+
 2006-06-16	Istvan Varga	<ivarga@csounds.com>
 	* Engine/rdorch.c:
 	  experimental implementation of nested #ifdef/#ifndef and #else
