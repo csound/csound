@@ -530,7 +530,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         preprocName = &(mname[cnt - 1]);
         do {
           c = getorchar(csound);
-          if (c == EOF || !isalpha(c))
+          if (c == EOF || !(isalnum(c) || c == '_'))
             break;
           mname[cnt++] = c;
         } while (cnt < 99);
@@ -551,7 +551,7 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           }
           mname[i] = '\0';
           if (csound->oparms->msglevel & 7)
-            csound->Message(csound,Str("Macro definition for %s\n"), mname);
+            csound->Message(csound, Str("Macro definition for %s\n"), mname);
           mm->name = mmalloc(csound, i + 1);
           strcpy(mm->name, mname);
           if (c == '(') {       /* arguments */
@@ -570,9 +570,9 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
 #ifdef MACDEBUG
               csound->Message(csound, "%s\t", mname);
 #endif
-              mm->arg[arg] = mmalloc(csound, i+1);
+              mm->arg[arg] = mmalloc(csound, i + 1);
               strcpy(mm->arg[arg++], mname);
-              if (arg>=mm->margs) {
+              if (arg >= mm->margs) {
                 mm = (MACRO*) mrealloc(csound, mm, sizeof(MACRO)
                                                    + mm->margs * sizeof(char*));
                 mm->margs += MARGS;
@@ -710,8 +710,9 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
           IFDEFSTACK  *pp = ST(ifdefStack);
           if (pp == NULL)
             lexerr(csound, Str("Unmatched #endif"));
-          while (c != '\n' && c != EOF)
+          while (c != '\n' && c != EOF) {
             c = getorchar(csound);
+          }
           srccnt++;
           ST(ifdefStack) = pp->prv;
           mfree(csound, pp);
@@ -809,12 +810,12 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
         if (mm->acnt) {
           if ((c = getorchar(csound)) != '(')
             lexerr(csound, Str("Syntax error in macro call"));
-          for (j=0; j<mm->acnt; j++) {
-            char term = (j==mm->acnt-1 ? ')' : '\'');
-            char trm1 = (j==mm->acnt-1 ? ')' : '#'); /* Compatability */
-            MACRO* nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
-            int size = 100;
-            nn->name = mmalloc(csound, strlen(mm->arg[j])+1);
+          for (j = 0; j < mm->acnt; j++) {
+            char  term = (j == mm->acnt - 1 ? ')' : '\'');
+            char  trm1 = (j == mm->acnt - 1 ? ')' : '#');   /* Compatability */
+            MACRO *nn = (MACRO*) mmalloc(csound, sizeof(MACRO));
+            int   size = 100;
+            nn->name = mmalloc(csound, strlen(mm->arg[j]) + 1);
             strcpy(nn->name, mm->arg[j]);
 #ifdef MACDEBUG
             csound->Message(csound, "defining argument %s ", nn->name);
@@ -822,17 +823,18 @@ void rdorchfile(CSOUND *csound)     /* read entire orch file into txt space */
             i = 0;
             nn->body = (char*) mmalloc(csound, 100);
             while ((c = getorchar(csound))!= term && c!=trm1) {
-              if (i>98) {
+              if (i > 98) {
                 csound->Die(csound, Str("Missing argument terminator\n%.98s"),
                                     nn->body);
               }
               nn->body[i++] = c;
-              if (i>= size) nn->body = mrealloc(csound, nn->body, size += 100);
+              if (i >= size)
+                nn->body = mrealloc(csound, nn->body, size += 100);
               if (c == '\n') {
                 srccnt++;
               }
             }
-            nn->body[i]='\0';
+            nn->body[i] = '\0';
 #ifdef MACDEBUG
             csound->Message(csound, "as...#%s#\n", nn->body);
 #endif
