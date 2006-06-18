@@ -2,6 +2,7 @@
     sndinfUG.c:
 
     Copyright (C) 1999 matt ingalls, Richard Dobson
+              (C) 2006 Istvan Varga
 
     This file is part of Csound.
 
@@ -25,13 +26,13 @@
              ugens to retrieve info about a sound file */
 
 #include "csoundCore.h"
-#include "soundio.h"
-#include "sndinfUG.h"
-#include "oload.h"  /* for strset */
-#include "pvfileio.h"
 #include <sndfile.h>
 
-static int anal_filelen(CSOUND *csound, SNDINFO *p, MYFLT *p_length);
+#include "soundio.h"
+#include "sndinfUG.h"
+#include "oload.h"      /* for strset */
+#include "pvfileio.h"
+#include "convolve.h"
 
 static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
 {
@@ -40,6 +41,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
     SF_INFO sfinfo;
 
     memset(hdr, 0, sizeof(SF_INFO));
+    /* leap thru std hoops to get the name */
     csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
                                 p->XSTRCODE);
     sfname = soundiname;
@@ -49,18 +51,61 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
       sfname = csound->oparms->infilename;
     }
     s = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
-    if (s == NULL) {                        /* open with full dir paths */
-      /* RWD 5:2001 better to exit in this situation ! */
-      csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
+    if (s == NULL) {                    /* open with full dir paths */
+      s = csoundFindInputFile(csound, sfname, "SADIR");
+      if (s == NULL) {
+        /* RWD 5:2001 better to exit in this situation ! */
+        csound->Die(csound, Str("diskinfo cannot open %s"), sfname);
+      }
     }
-    sfname = s;                             /* & record fullpath filnam */
+    sfname = s;                         /* & record fullpath filnam */
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sf = sf_open(sfname, SFM_READ, &sfinfo);
     if (sf == NULL) {
-      /* open failed: maybe raw file ? */
+      /* open failed: maybe analysis or raw file ? */
       if (*(p->irawfiles) == FL(0.0)) {
         mfree(csound, sfname);
         return 0;
+      }
+      /* check for analysis files */
+      memset(hdr, 0, sizeof(SF_INFO));
+      {                                 /* convolve */
+        FILE      *f;
+        CVSTRUCT  cvdata;
+
+        f = fopen(sfname, "rb");
+        if (f != NULL) {
+          int   n = (int) fread(&cvdata, sizeof(CVSTRUCT), 1, f);
+          fclose(f);
+          if (n == 1) {
+            if (cvdata.magic == (long) CVMAGIC &&
+                cvdata.dataFormat == (long) CVMYFLT &&
+                cvdata.Format == (long) CVRECT) {
+              hdr->frames = (sf_count_t) cvdata.Hlen;
+              hdr->samplerate = (int) (cvdata.samplingRate + FL(0.5));
+              hdr->channels = (cvdata.channel == (long) ALLCHNLS ?
+                               (int) cvdata.src_chnls : 1);
+              return 1;
+            }
+          }
+        }
+      }
+      {                                 /* PVOC */
+        int     fd;
+        PVOCDATA pvdata;
+        WAVEFORMATEX fmt;
+
+        /* RWD: my prerogative: try pvocex file first! */
+        fd = csound->PVOC_OpenFile(csound, sfname, &pvdata, &fmt);
+        if (fd >= 0) {
+          hdr->frames =
+              (sf_count_t) (((long) csound->PVOC_FrameCount(csound, fd)
+                             / (int) fmt.nChannels) * (int) pvdata.dwOverlap);
+          hdr->samplerate = (int) fmt.nSamplesPerSec;
+          hdr->channels = (int) fmt.nChannels;
+          csound->PVOC_CloseFile(csound, fd);
+          return 1;
+        }
       }
       memset(&sfinfo, 0, sizeof(SF_INFO));
       sfinfo.samplerate = (int) (csound->esr + FL(0.5));
@@ -83,18 +128,12 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
 int filelen(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
-    MYFLT   dur = FL(0.0);      /* RWD 8:2001 */
 
-    if (anal_filelen(csound, p, &dur)) {
-      *(p->r1) = dur;
-    }
-    /* RWD 8:2001 now set to quit on failure, else we have bad hdr */
-    else {
-      if (getsndinfo(csound, p, &hdr))
-        *(p->r1) = (MYFLT) ((long) hdr.frames) / (MYFLT) hdr.samplerate;
-      else
-        *(p->r1) = FL(0.0);
-    }
+    if (getsndinfo(csound, p, &hdr))
+      *(p->r1) = (MYFLT) ((long) hdr.frames) / (MYFLT) hdr.samplerate;
+    else
+      *(p->r1) = FL(0.0);
+
     return OK;
 }
 
@@ -192,35 +231,5 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
     csound->FileClose(csound, fd);
 
     return OK;
-}
-
-/* RWD 8:2001 support analysis files in filelen opcode  */
-
-static int anal_filelen(CSOUND *csound, SNDINFO *p,MYFLT *p_dur)
-{
-    char    *sfname, soundiname[256];
-    int     fd;
-    PVOCDATA pvdata;
-    WAVEFORMATEX fmt;
-    MYFLT   nframes, nchans, srate, overlap, arate, dur;
-
-    /* leap thru std hoops to get the name */
-    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",
-                                p->XSTRCODE);
-    sfname = soundiname;
-    /* my prerogative: try pvocex file first! */
-    fd = csound->PVOC_OpenFile(csound, sfname, &pvdata, &fmt);
-    if (fd >= 0) {
-      nframes   = (MYFLT) csound->PVOC_FrameCount(csound, fd);
-      nchans    = (MYFLT) fmt.nChannels;
-      srate     = (MYFLT) fmt.nSamplesPerSec;
-      overlap   = (MYFLT) pvdata.dwOverlap;
-      arate     = srate / overlap;
-      dur       = (nframes / nchans) / arate;
-      *p_dur    = dur;
-      csound->PVOC_CloseFile(csound, fd);
-      return 1;
-    }
-    return 0;
 }
 
