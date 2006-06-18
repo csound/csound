@@ -490,7 +490,7 @@ static void average(HET *thishet, long window,double *in,double *out, long smpl)
       PUTVAL(thishet,out, smpl,
              (double)(GETVAL(thishet,out,smpl-1) +
                       (1.0/(double)window) * (GETVAL(thishet,in,smpl))));
-    else 
+    else
       PUTVAL(thishet,out, smpl,
              (double)(GETVAL(thishet,out,smpl-1) +
                       (1.0/(double)window) *
@@ -548,6 +548,7 @@ static void output(HET *thishet, long smpl, int hno, int pnt)
 {                       /* current amp and new freq in arrays */
     double delt_freq;
     MYFLT  new_amp, new_freq;
+
     if (pnt < thishet->num_pts) {
       delt_freq = GETVAL(thishet,thishet->a_avg,smpl); /* 0.5 for rounding ? */
       thishet->FREQS[hno][pnt] =
@@ -558,8 +559,6 @@ static void output(HET *thishet, long smpl, int hno, int pnt)
         thishet->max_frq = new_freq;
       if (new_amp > thishet->max_amp)
         thishet->max_amp = new_amp;
-    }
-    else {
     }
 }
 
