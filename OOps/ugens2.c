@@ -197,11 +197,6 @@ static int ptblchk(CSOUND *csound, TABLE *p)
 
 /* tblset() */
 
-static int tblset_(CSOUND *csound, TABLE *p)
-{
-    return itblchk(csound, p);
-}
-
 int tblset(CSOUND *csound, TABLE *p)
 {
     if (p->XINCODE != p->XOUTCODE) {
@@ -214,16 +209,11 @@ int tblset(CSOUND *csound, TABLE *p)
         csound->LongJmp(csound, 1);
       }
     }
-    p->h.iopadr = (SUBR) tblset_;
+    p->h.iopadr = (SUBR) itblchk;
     return itblchk(csound, p);
 }
 
 /* tblsetkt() */
-
-static int tblsetkt_(CSOUND *csound, TABLE *p)
-{
-    return ptblchk(csound, p);
-}
 
 int tblsetkt(CSOUND *csound, TABLE *p)
 {
@@ -237,7 +227,7 @@ int tblsetkt(CSOUND *csound, TABLE *p)
         csound->LongJmp(csound, 1);
       }
     }
-    p->h.iopadr = (SUBR) tblsetkt_;
+    p->h.iopadr = (SUBR) ptblchk;
     return ptblchk(csound, p);
 }
 
