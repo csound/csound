@@ -76,33 +76,55 @@ const unsigned char strhash_tabl_8[256] = {
         207, 240, 127,  70
 };
 
-static inline unsigned char name_hash(const char *s)
+unsigned int csound_str_hash_32(const char *s)
 {
-    unsigned char *c = (unsigned char*) &(s[0]);
-    unsigned char h = (unsigned char) 0;
-    for ( ; *c != (unsigned char) 0; c++)
-      h = strhash_tabl_8[*c ^ h];
+    uint64_t      tmp;
+    unsigned int  h = 0U;
+
+    while (1) {
+      unsigned int  c;
+      c = (unsigned int) s[0] & 0xFFU;
+      if (!c)
+        return h;
+      h ^= c;
+      c = (unsigned int) s[1] & 0xFFU;
+      if (!c)
+        break;
+      h ^= (c << 8);
+      c = (unsigned int) s[2] & 0xFFU;
+      if (!c)
+        break;
+      h ^= (c << 16);
+      c = (unsigned int) s[3] & 0xFFU;
+      if (!c)
+        break;
+      h ^= (c << 24);
+      tmp = (uint32_t) h * (uint64_t) 0xD1A458CBU;
+      h = ((unsigned int) tmp ^ (unsigned int) (tmp >> 32)) & 0xFFFFFFFFU;
+      c = (unsigned int) s[4] & 0xFFU;
+      if (!c)
+        return h;
+      h ^= c;
+      c = (unsigned int) s[5] & 0xFFU;
+      if (!c)
+        break;
+      h ^= (c << 8);
+      c = (unsigned int) s[6] & 0xFFU;
+      if (!c)
+        break;
+      h ^= (c << 16);
+      c = (unsigned int) s[7] & 0xFFU;
+      if (!c)
+        break;
+      h ^= (c << 24);
+      s += 8;
+      tmp = (uint32_t) h * (uint64_t) 0xD1A458CBU;
+      h = ((unsigned int) tmp ^ (unsigned int) (tmp >> 32)) & 0xFFFFFFFFU;
+    }
+    tmp = (uint32_t) h * (uint64_t) 0xD1A458CBU;
+    h = ((unsigned int) tmp ^ (unsigned int) (tmp >> 32)) & 0xFFFFFFFFU;
+
     return h;
-}
-
-/* faster version that assumes non-empty string */
-
-static inline unsigned char name_hash_2(const char *s)
-{
-    unsigned char *c = (unsigned char*) &(s[0]);
-    unsigned char h = (unsigned char) 0;
-    do {
-      h = strhash_tabl_8[*c ^ h];
-    } while (*(++c) != (unsigned char) 0);
-    return h;
-}
-
-static inline int sCmp(const char *x, const char *y)
-{
-    int tmp = 0;
-    while (x[tmp] == y[tmp] && x[tmp] != (char) 0)
-      tmp++;
-    return (x[tmp] != y[tmp]);
 }
 
 /* check if the string s is a valid instrument or opcode name */
@@ -125,7 +147,7 @@ int check_instr_name(char *s)
 long named_instr_find(CSOUND *csound, char *s)
 {
     INSTRNAME     *inm;
-    unsigned char h = name_hash(s);     /* calculate hash value */
+    unsigned char h = name_hash(csound, s);   /* calculate hash value */
 
     if (!csound->instrumentNames) return 0L;  /* no named instruments defined */
     /* now find instrument */
@@ -147,7 +169,7 @@ long named_instr_find(CSOUND *csound, char *s)
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, long insno)
 {
     INSTRNAME   **inm_base = (INSTRNAME**) csound->instrumentNames, *inm, *inm2;
-    unsigned char h = name_hash(s);     /* calculate hash value */
+    unsigned char h = name_hash(csound, s);   /* calculate hash value */
 
     if (!inm_base)
       /* no named instruments defined yet */
@@ -421,7 +443,7 @@ int find_opcode(CSOUND *csound, char *opname)
       return 0;
 
     /* calculate hash value */
-    h = (int) name_hash_2(opname);
+    h = (int) name_hash_2(csound, opname);
     /* now find entry in opcode chain */
     n = ((int*) csound->opcode_list)[h];
     while (n) {
@@ -480,7 +502,7 @@ char *strsav_string(CSOUND *csound, char *s)
 {
     STRSAV        *ssp, *prv;
     int           n;
-    unsigned char h = name_hash(s);     /* calculate hash value */
+    unsigned char h = name_hash(csound, s);   /* calculate hash value */
 
     /* now find entry in database */
     ssp = STRSAV_STR_[h];
@@ -846,7 +868,7 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csnd,
     if (nbytes < (size_t) 1 || nbytes >= (size_t) 0x7F000000L)
       return CSOUND_ERROR;
     /* calculate hash value */
-    h = name_hash(name);
+    h = name_hash_2(csnd, name);
     /* number of bytes to allocate */
     structBytes = ((int) sizeof(GlobalVariableEntry_t) + 15) & (~15);
     nameBytes = (((int) strlen(name) + 1) + 15) & (~15);
@@ -902,7 +924,7 @@ PUBLIC void *csoundQueryGlobalVariable(CSOUND *csnd, const char *name)
     if (name[0] == '\0')
       return NULL;
     /* calculate hash value */
-    h = name_hash_2(name);
+    h = name_hash_2(csnd, name);
     /* search tree */
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
     if (p == NULL)
@@ -927,7 +949,7 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csnd, const char *name)
     unsigned char         h;
 
     /* calculate hash value */
-    h = name_hash_2(name);
+    h = name_hash_2(csnd, name);
     /* search tree */
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
     while (p->nxt != NULL && sCmp(name, (char*) (p->name)) != 0)
@@ -949,7 +971,7 @@ PUBLIC int csoundDestroyGlobalVariable(CSOUND *csnd, const char *name)
     if (csoundQueryGlobalVariable(csnd, name) == (void*) NULL)
       return CSOUND_ERROR;
     /* calculate hash value */
-    h = name_hash(name);
+    h = name_hash_2(csnd, name);
     /* search database (simple version, as the name will surely be found) */
     prvp = NULL;
     p = (GlobalVariableEntry_t*) (csnd->namedGlobals[(int) h]);
@@ -1031,7 +1053,7 @@ int csoundCheckOpcodePluginFile(CSOUND *csound, const char *fname)
     s = fname;
 #endif
     pp = (CsoundOpcodePluginFile_t**) csound->pluginOpcodeFiles;
-    h = name_hash_2(s);
+    h = name_hash_2(csound, s);
     p = (CsoundOpcodePluginFile_t*) NULL;
     if (pp) {
       p = pp[h];
@@ -1055,7 +1077,7 @@ static CS_NOINLINE int csoundLoadOpcodeDB_AddFile(CSOUND *csound,
     unsigned char               h;
 
     pp = (CsoundOpcodePluginFile_t**) csound->pluginOpcodeFiles;
-    h = name_hash_2(fp->fname);
+    h = name_hash_2(csound, fp->fname);
     p = pp[h];
     while (p) {
       /* check for a name conflict */
@@ -1076,7 +1098,7 @@ static CS_NOINLINE int csoundLoadOpcodeDB_AddOpcode(CSOUND *csound,
     unsigned char           h;
 
     pp = (CsoundPluginOpcode_t**) csound->pluginOpcodeDB;
-    h = name_hash_2(op->opname);
+    h = name_hash_2(csound, op->opname);
     p = pp[h];
     while (p) {
       /* check for a name conflict */

@@ -29,11 +29,19 @@
 
 #include "csoundCore.h"
 #include "cfgvar.h"
+#include "namedins.h"
 
-/* from namedins.c */
-extern const unsigned char strhash_tabl_8[256];
+/* faster version that assumes a non-empty string */
 
-#define name_hash(x,y) (strhash_tabl_8[(unsigned char) x ^ (unsigned char) y])
+static inline unsigned char name_hash_(const char *s)
+{
+    const unsigned char *c = (const unsigned char*) &(s[0]);
+    unsigned int  h = 0U;
+    do {
+      h = strhash_tabl_8[h ^ *c];
+    } while (*(++c) != (unsigned char) 0);
+    return (unsigned char) h;
+}
 
 #define local_cfg_db    (((CSOUND*) csound)->cfgVariableDB)
 
@@ -285,7 +293,7 @@ int csoundCreateGlobalConfigurationVariable(const char *name,
 {
     csCfgVariable_t *pp;
     int             i, retval;
-    unsigned char   *c, h;
+    unsigned char   h;
 
     /* check if name is already in use */
     if (csoundQueryGlobalConfigurationVariable(name) != NULL)
@@ -304,9 +312,7 @@ int csoundCreateGlobalConfigurationVariable(const char *name,
     if (retval != CSOUNDCFG_SUCCESS)
       return retval;
     /* link into database */
-    c = (unsigned char*) name - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash_(name);
     pp->h.nxt = (csCfgVariable_t*) (global_cfg_db[(int) h]);
     global_cfg_db[(int) h] = (void*) pp;
     /* report success */
@@ -332,7 +338,7 @@ PUBLIC int
 {
     csCfgVariable_t *pp;
     int             i, retval;
-    unsigned char   *c, h;
+    unsigned char   h;
 
     /* check if name is already in use */
     if (csoundQueryConfigurationVariable(csound, name) != NULL)
@@ -351,9 +357,7 @@ PUBLIC int
     if (retval != CSOUNDCFG_SUCCESS)
       return retval;
     /* link into database */
-    c = (unsigned char*) name - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash_(name);
     pp->h.nxt = (csCfgVariable_t*) (local_cfg_db[(int) h]);
     local_cfg_db[(int) h] = (void*) pp;
     /* report success */
@@ -819,22 +823,20 @@ PUBLIC int
 static csCfgVariable_t *find_cfg_variable(void **db, const char *name)
 {
     csCfgVariable_t *pp;
-    unsigned char   *c, h;
+    unsigned char   h;
     /* check for trivial errors */
     if (db == NULL || name == NULL)
       return (csCfgVariable_t*) NULL;
     if (name[0] == '\0')
       return (csCfgVariable_t*) NULL;
     /* calculate hash value */
-    c = (unsigned char*) name - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash_(name);
     /* find entry in database */
     pp = (csCfgVariable_t*) (db[(int) h]);
     do {
       if (pp == NULL)
         return (csCfgVariable_t*) NULL;     /* not found */
-      if (strcmp((char*) pp->h.name, name) == 0)
+      if (sCmp((char*) pp->h.name, name) == 0)
         return pp;                          /* found */
       pp = (csCfgVariable_t*) (pp->h.nxt);
     } while (1);
@@ -963,14 +965,12 @@ PUBLIC void csoundDeleteCfgVarList(csCfgVariable_t **lst)
 static int remove_entry_from_db(void **db, const char *name)
 {
     csCfgVariable_t *pp, *prvp;
-    unsigned char   *c, h;
+    unsigned char   h;
     /* first, check if this key actually exists */
     if (find_cfg_variable(db, name) == NULL)
       return CSOUNDCFG_INVALID_NAME;
     /* calculate hash value */
-    c = (unsigned char*) name - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash_(name);
     /* find entry in database */
     prvp = (csCfgVariable_t*) NULL;
     pp = (csCfgVariable_t*) (db[(int) h]);
