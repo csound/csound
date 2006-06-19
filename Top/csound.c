@@ -1410,6 +1410,7 @@ static const CSOUND cenviron_ = {
     va_start(args, msg);
     csound->ErrMsgV(csound, (char*) 0, msg, args);
     va_end(args);
+    csound->perferrcnt++;
     csound->LongJmp(csound, 1);
   }
 
@@ -1456,11 +1457,21 @@ static const CSOUND cenviron_ = {
 
   void csoundLongJmp(CSOUND *csound, int retval)
   {
-    int n = CSOUND_EXITJMP_SUCCESS;
+    int   n = CSOUND_EXITJMP_SUCCESS;
+
     n = (retval < 0 ? n + retval : n - retval) & (CSOUND_EXITJMP_SUCCESS - 1);
     if (!n)
       n = CSOUND_EXITJMP_SUCCESS;
+
+    csound->curip = NULL;
+    csound->ids = NULL;
+    csound->pds = NULL;
+    csound->reinitflag = 0;
+    csound->tieflag = 0;
+    csound->perferrcnt += csound->inerrcnt;
+    csound->inerrcnt = 0;
     csound->engineState |= CS_STATE_JMP;
+
     longjmp(csound->exitjmp, n);
   }
 
