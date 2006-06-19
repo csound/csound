@@ -1195,6 +1195,8 @@ extern "C" {
     long          poolcount, gblfixed, gblacount, gblscount;
     CsoundChannelIOCallback_t   channelIOCallback_;
     int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
+    const unsigned char *strhash_tabl_8;
+    unsigned int  (*strHash32)(const char *s);
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

@@ -136,6 +136,55 @@ void strsav_create(CSOUND *);
 
 char *strsav_string(CSOUND *, char *);
 
+/* ----------------------------------------------------------------------- */
+
+extern const unsigned char strhash_tabl_8[256];
+extern unsigned int csound_str_hash_32(const char *s);
+
+static inline unsigned char name_hash(CSOUND *csound, const char *s)
+{
+    const unsigned char *c = (const unsigned char*) &(s[0]);
+    unsigned int  h = 0U;
+#ifdef LINUX
+    for ( ; *c != (unsigned char) 0; c++)
+      h = csound->strhash_tabl_8[h ^ *c];
+#else
+    (void) csound;
+    for ( ; *c != (unsigned char) 0; c++)
+      h = strhash_tabl_8[h ^ *c];
+#endif
+    return (unsigned char) h;
+}
+
+/* faster version that assumes a non-empty string */
+
+static inline unsigned char name_hash_2(CSOUND *csound, const char *s)
+{
+    const unsigned char *c = (const unsigned char*) &(s[0]);
+    unsigned int  h = 0U;
+#ifdef LINUX
+    do {
+      h = csound->strhash_tabl_8[h ^ *c];
+    } while (*(++c) != (unsigned char) 0);
+#else
+    (void) csound;
+    do {
+      h = strhash_tabl_8[h ^ *c];
+    } while (*(++c) != (unsigned char) 0);
+#endif
+    return (unsigned char) h;
+}
+
+static inline int sCmp(const char *x, const char *y)
+{
+    int   i = 0;
+    while (x[i] == y[i] && x[i] != (char) 0)
+      i++;
+    return (x[i] != y[i]);
+}
+
+/* ----------------------------------------------------------------------- */
+
 #ifdef __cplusplus
 }
 #endif

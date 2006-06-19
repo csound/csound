@@ -580,7 +580,9 @@ static const CSOUND cenviron_ = {
         0L, 0L,         /*  poolcount, gblfixed     */
         0L, 0L,         /*  gblacount, gblscount    */
         (CsoundChannelIOCallback_t) NULL,   /*  channelIOCallback_  */
-        csoundDoCallback_   /*  doCsoundCallback    */
+        csoundDoCallback_,  /*  doCsoundCallback    */
+        &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
+        csound_str_hash_32  /*  strHash32           */
 };
 
   /* from threads.c */
@@ -1869,28 +1871,6 @@ static const CSOUND cenviron_ = {
    * OPCODES
    */
 
-  extern const unsigned char strhash_tabl_8[256];
-
-  /* faster version that assumes non-empty string */
-
-  static inline unsigned char name_hash_2(const char *s)
-  {
-    unsigned char *c = (unsigned char*) &(s[0]);
-    unsigned char h = (unsigned char) 0;
-    do {
-      h = strhash_tabl_8[*c ^ h];
-    } while (*(++c) != (unsigned char) 0);
-    return h;
-  }
-
-  static inline int sCmp(const char *x, const char *y)
-  {
-    int tmp = 0;
-    while (x[tmp] == y[tmp] && x[tmp] != (char) 0)
-      tmp++;
-    return (x[tmp] != y[tmp]);
-  }
-
   static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
                                                 const OENTRY *ep)
   {
@@ -1900,7 +1880,7 @@ static const CSOUND cenviron_ = {
     if (ep->opname == NULL)
       return CSOUND_ERROR;
     if (ep->opname[0] != (char) 0)
-      h = (int) name_hash_2(ep->opname);
+      h = (int) name_hash_2(csound, ep->opname);
     else if (csound->opcodlst != NULL)
       return CSOUND_ERROR;
     if (csound->opcodlst != NULL) {

@@ -30,6 +30,7 @@
 
 #include "aops.h"
 #include "bus.h"
+#include "namedins.h"
 
 static CS_NOINLINE int chan_realloc(CSOUND *csound,
                                     MYFLT **p, int *oldSize, int newSize)
@@ -223,20 +224,6 @@ int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
 
 /* "chn" opcodes and bus interface by Istvan Varga */
 
-extern const unsigned char strhash_tabl_8[256];
-
-/* faster version that assumes non-empty string */
-
-static inline unsigned char name_hash_2(const char *s)
-{
-    unsigned char *c = (unsigned char*) &(s[0]);
-    unsigned char h = (unsigned char) 0;
-    do {
-      h = strhash_tabl_8[*c ^ h];
-    } while (*(++c) != (unsigned char) 0);
-    return h;
-}
-
 typedef struct controlChannelInfo_s {
     int     type;
     MYFLT   dflt;
@@ -247,9 +234,9 @@ typedef struct controlChannelInfo_s {
 typedef struct channelEntry_s {
     struct channelEntry_s *nxt;
     controlChannelInfo_t  *info;
-    MYFLT       *data;
-    int         type;
-    char        name[1];
+    MYFLT   *data;
+    int     type;
+    char    name[1];
 } channelEntry_t;
 
 static int delete_channel_db(CSOUND *csound, void *p)
@@ -279,7 +266,7 @@ static inline channelEntry_t *find_channel(CSOUND *csound, const char *name)
 {
     if (csound->chn_db != NULL && name[0]) {
       channelEntry_t  *pp;
-      pp = ((channelEntry_t**) csound->chn_db)[name_hash_2(name)];
+      pp = ((channelEntry_t**) csound->chn_db)[name_hash_2(csound, name)];
       for ( ; pp != NULL; pp = pp->nxt) {
         const char  *p1 = &(name[0]);
         const char  *p2 = &(pp->name[0]);
@@ -330,8 +317,8 @@ static CS_NOINLINE channelEntry_t *alloc_channel(CSOUND *csound, MYFLT **p,
     return (channelEntry_t*) pp;
 }
 
-CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
-                                   const char *name, int type)
+static CS_NOINLINE int create_new_channel(CSOUND *csound, MYFLT **p,
+                                          const char *name, int type)
 {
     channelEntry_t  *pp;
     const char      *s;
