@@ -23,173 +23,173 @@
 
 /* The follwoing from CsoundAV/newopcodes.h */
 typedef struct {
-        OPDS    h;
-        MYFLT   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
+    OPDS    h;
+    MYFLT   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
 } MTABLEI;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
-        int nargs;
-        MYFLT   xbmul;
-        long  pfn, len;
-        MYFLT   *ftable;
+    OPDS    h;
+    MYFLT   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
+    int     nargs;
+    MYFLT   xbmul;
+    long    pfn, len;
+    MYFLT   *ftable;
 } MTABLE;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
+    OPDS    h;
+    MYFLT   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
 } MTABLEIW;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
-        int nargs;
-        MYFLT   xbmul;
-        long  pfn, len;
-        MYFLT   *ftable;
+    OPDS    h;
+    MYFLT   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
+    int     nargs;
+    MYFLT   xbmul;
+    long    pfn, len;
+    MYFLT   *ftable;
 } MTABLEW;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *xndx, *xfn, *inargs[VARGMAX];
+    OPDS    h;
+    MYFLT   *xndx, *xfn, *inargs[VARGMAX];
 } MTABIW;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *xndx, *xfn, *inargs[VARGMAX];
-        int nargs;
-  /* MYFLT      xbmul; */
-        long  pfn, len;
-        MYFLT   *ftable;
+    OPDS    h;
+    MYFLT   *xndx, *xfn, *inargs[VARGMAX];
+    int     nargs;
+ /* MYFLT   xbmul; */
+    long    pfn, len;
+    MYFLT   *ftable;
 } MTABW;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *xndx, *xfn, *outargs[VARGMAX];
+    OPDS    h;
+    MYFLT   *xndx, *xfn, *outargs[VARGMAX];
 } MTABI;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *xndx, *xfn, *outargs[VARGMAX];
-        int nargs;
-  /* MYFLT      xbmul; */
-        long  pfn, len;
-        MYFLT   *ftable;
+    OPDS    h;
+    MYFLT   *xndx, *xfn, *outargs[VARGMAX];
+    int     nargs;
+ /* MYFLT   xbmul; */
+    long    pfn, len;
+    MYFLT   *ftable;
 } MTAB;
 
 /* The following from CSoundAV/vectorial.h */
 typedef struct {
-        OPDS   h;
-        MYFLT *ifn, *kval, *kelements, *kdstoffset;
-        long elements, len;
-        MYFLT *vector;
+    OPDS    h;
+    MYFLT   *ifn, *kval, *kelements, *kdstoffset;
+    long    elements, len, dstoffset;
+    MYFLT   *vector;
 } VECTOROP;
 
 typedef struct {
-    OPDS   h;
-    MYFLT *ifn, *kval, *ielements, *idstoffset;
-    long elements, len;
-    MYFLT *vector;
+    OPDS    h;
+    MYFLT   *ifn, *kval, *ielements, *idstoffset;
+    long    elements, len;
+    MYFLT   *vector;
 } VECTOROPI;
 
 typedef struct {
-        OPDS   h;
-        MYFLT *ifn1, *ifn2, *ielements, *idstoffset, *isrcoffset;
-        int elements;
-        MYFLT *vector1, *vector2;
+    OPDS    h;
+    MYFLT   *ifn1, *ifn2, *ielements, *idstoffset, *isrcoffset;
+    int     elements;
+    MYFLT   *vector1, *vector2;
 } VECTORSOP;
 
 typedef struct {
-        OPDS   h;
-        MYFLT *ifn, *kmin, *kmax, *ielements;
-        int elements;
-        MYFLT *vector;
+    OPDS    h;
+    MYFLT   *ifn, *kmin, *kmax, *ielements;
+    int     elements;
+    MYFLT   *vector;
 } VLIMIT;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ifn, *krange, *kcps, *ielements;
-        AUXCH auxch;
-        MYFLT *vector;
-        int elements;
-        long    phs;
-        MYFLT   *num1;
+    OPDS    h;
+    MYFLT   *ifn, *krange, *kcps, *ielements;
+    AUXCH   auxch;
+    MYFLT   *vector;
+    int     elements;
+    long    phs;
+    MYFLT   *num1;
 } VRANDH;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ifn, *krange, *kcps, *ielements;
-        AUXCH   auxch;
-        MYFLT   *vector;
-        int             elements;
-        long    phs;
-        MYFLT   *num1, *num2, *dfdmax;
+    OPDS    h;
+    MYFLT   *ifn, *krange, *kcps, *ielements;
+    AUXCH   auxch;
+    MYFLT   *vector;
+    int     elements;
+    long    phs;
+    MYFLT   *num1, *num2, *dfdmax;
 } VRANDI;
 
 /*  TSEG definition from H/vpvoc.h */
 typedef struct {
-        FUNC *function, *nxtfunction;
-        MYFLT d;
-        long   cnt;
+    FUNC    *function, *nxtfunction;
+    MYFLT   d;
+    long    cnt;
 } TSEG;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ioutfunc,*ielements,*argums[VARGMAX];
-        TSEG    *cursegp;
-        MYFLT *vector;
-        int     elements;
-        long    nsegs;
-        AUXCH   auxch;
+    OPDS    h;
+    MYFLT   *ioutfunc,*ielements,*argums[VARGMAX];
+    TSEG    *cursegp;
+    MYFLT   *vector;
+    int     elements;
+    long    nsegs;
+    AUXCH   auxch;
 } VSEG;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ifn, *khtim, *ielements, *ifnInit;
-        MYFLT   c1, c2, *yt1, *vector, prvhtim;
-        int elements;
-        AUXCH   auxch;
+    OPDS    h;
+    MYFLT   *ifn, *khtim, *ielements, *ifnInit;
+    MYFLT   c1, c2, *yt1, *vector, prvhtim;
+    int     elements;
+    AUXCH   auxch;
 } VPORT;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ifnOut, *ifnIn, *ifnDel, *ielements, *imaxd, *istod;
-        AUXCH   aux;
-        MYFLT   **buf, *outvec, *invec, *dlyvec;
-        long    *left, maxd;
-        int             elements;
+    OPDS    h;
+    MYFLT   *ifnOut, *ifnIn, *ifnDel, *ielements, *imaxd, *istod;
+    AUXCH   aux;
+    MYFLT   **buf, *outvec, *invec, *dlyvec;
+    long    *left, maxd;
+    int     elements;
 } VECDEL;
 
 typedef struct {
-        FUNC *function, *nxtfunction;
-        double d;
+    FUNC    *function, *nxtfunction;
+    double  d;
 } TSEG2;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *kphase, *ioutfunc, *ielements,*argums[VARGMAX];
-        TSEG2    *cursegp;
-        MYFLT *vector;
-        int     elements;
-        long    nsegs;
-        AUXCH   auxch;
+    OPDS    h;
+    MYFLT   *kphase, *ioutfunc, *ielements,*argums[VARGMAX];
+    TSEG2   *cursegp;
+    MYFLT   *vector;
+    int     elements;
+    long    nsegs;
+    AUXCH   auxch;
 } VPSEG;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *kr, *kin, *kdel, *imaxd, *istod, *interp;
-        AUXCH   aux;
-        long    left, maxd;
+    OPDS    h;
+    MYFLT   *kr, *kin, *kdel, *imaxd, *istod, *interp;
+    AUXCH   aux;
+    long    left, maxd;
 } KDEL;
 
 typedef struct {
-        OPDS    h;
-        MYFLT   *ktrig, *kreinit, *ioutFunc, *initStateFunc,
-                *iRuleFunc, *ielements, *irulelen, *iradius;
-        MYFLT   *currLine, *outVec, *initVec, *ruleVec;
-        int     elements, NewOld, ruleLen;
-        AUXCH   auxch;
+    OPDS    h;
+    MYFLT   *ktrig, *kreinit, *ioutFunc, *initStateFunc,
+            *iRuleFunc, *ielements, *irulelen, *iradius;
+    MYFLT   *currLine, *outVec, *initVec, *ruleVec;
+    int     elements, NewOld, ruleLen;
+    AUXCH   auxch;
 } CELLA;
 
 /* from uggab.h for vrandi, vrandh */
@@ -197,10 +197,10 @@ typedef struct {
 #define oneUp31Bit      (double) (4.656612875245796924105750827168e-10)
 
 #define randGab   (MYFLT) ((double)     \
-        (((csound->holdrand = csound->holdrand * 214013 + 2531011) >> 1)  \
-         & 0x7fffffff) * oneUp31Bit)
+    (((csound->holdrand = csound->holdrand * 214013 + 2531011) >> 1)  \
+     & 0x7fffffff) * oneUp31Bit)
 #define BiRandGab (MYFLT) ((double)     \
-        (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)
+    (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)
 
 #endif
 

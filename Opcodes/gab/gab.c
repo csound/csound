@@ -501,6 +501,7 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
 
 static int exitnow(CSOUND *csound, EXITNOW *p)
 {
+    (void) p;
     csound->LongJmp(csound, 0);
     return OK;  /* compiler only */
 }

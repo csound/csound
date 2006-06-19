@@ -329,7 +329,7 @@ int diskin2_perf(CSOUND *csound, DISKIN2 *p)
     long    ndx;
     int     i, nn, chn, wsized2, warp;
 
-    if (!p->initDone) {
+    if (p->fdch.fd == NULL) {
       csound->PerfError(csound, Str("diskin2: not initialised"));
       return NOTOK;
     }
