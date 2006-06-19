@@ -26,9 +26,7 @@
 #include "soundio.h"
 #include "pvfileio.h"
 #include "pstream.h"
-
-extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
-#define name_hash(x,y) (strhash_tabl_8[(unsigned char) x ^ (unsigned char) y])
+#include "namedins.h"
 
 static int Load_File_(CSOUND *csound,
                       const char *filnam, char **allocp, long *len)
@@ -314,17 +312,15 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName,
     void          *fd;
     SNDMEMFILE    *p = NULL;
     SF_INFO       tmp;
-    unsigned char *c, h;
+    unsigned char h;
 
     if (fileName == NULL || fileName[0] == '\0')
       return NULL;
     /* check if file is already loaded */
-    c = (unsigned char*) fileName - 1;
-    h = (unsigned char) 0;
-    while (*++c) h = name_hash(h, *c);
+    h = name_hash_2(csound, fileName);
     if (csound->sndmemfiles != NULL) {
       p = ((SNDMEMFILE**) csound->sndmemfiles)[(int) h];
-      while (p != NULL && strcmp(p->name, fileName) != 0)
+      while (p != NULL && sCmp(p->name, fileName) != 0)
         p = p->nxt;
     }
     else {

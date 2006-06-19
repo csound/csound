@@ -33,6 +33,8 @@
 extern off_t lseek(int, off_t, int);
 #endif
 
+#include "namedins.h"
+
 /* list of environment variables used by Csound */
 
 static const char *envVar_list[] = {
@@ -52,9 +54,6 @@ static const char *envVar_list[] = {
     "SSDIR",
     NULL
 };
-
-/* from namedins.c */
-extern const unsigned char strhash_tabl_8[256];
 
 #define ENV_DB          (((CSOUND*) csound)->envVarDB)
 
@@ -112,23 +111,6 @@ static char globalEnvVars[8192] = { (char) 0 };
 #define globalEnvVarName(x)   ((char*) &(globalEnvVars[(int) (x) << 9]))
 #define globalEnvVarValue(x)  ((char*) &(globalEnvVars[((int) (x) << 9) + 32]))
 
-static inline unsigned char name_hash(const char *s)
-{
-    unsigned char *c = (unsigned char*) &(s[0]);
-    unsigned char h = (unsigned char) 0;
-    for ( ; *c != (unsigned char) 0; c++)
-      h = strhash_tabl_8[*c ^ h];
-    return h;
-}
-
-static inline int sCmp(const char *x, const char *y)
-{
-    int tmp = 0;
-    while (x[tmp] == y[tmp] && x[tmp] != (char) 0)
-      tmp++;
-    return (x[tmp] != y[tmp]);
-}
-
 static inline envVarEntry_t **getEnvVarChain(CSOUND *csound, const char *name)
 {
     unsigned char h;
@@ -136,7 +118,7 @@ static inline envVarEntry_t **getEnvVarChain(CSOUND *csound, const char *name)
     if (ENV_DB == NULL || name == NULL || name[0] == '\0')
       return NULL;
     /* calculate hash value */
-    h = name_hash(name);
+    h = name_hash_2(csound, name);
     /* return with pointer from table */
     return &(((envVarEntry_t**) ENV_DB)[(int) h]);
 }

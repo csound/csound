@@ -22,12 +22,13 @@
 */
 
 #include "csoundCore.h"         /*                      OTRAN.C         */
+#include <math.h>
+#include <ctype.h>
+
 #include "oload.h"
 #include "insert.h"
-#include <math.h>
 #include "pstream.h"
 #include "namedins.h"           /* IV - Oct 31 2002 */
-#include <ctype.h>
 
 typedef struct NAME_ {
     char          *namep;
@@ -63,8 +64,6 @@ static  NAME    *lclnamset(CSOUND *, char *);
         int     lgexist(CSOUND *, const char *);
 static  void    delete_global_namepool(CSOUND *);
 static  void    delete_local_namepool(CSOUND *);
-
-extern  const   unsigned char   strhash_tabl_8[256];    /* namedins.c */
 
 #define txtcpy(a,b) memcpy(a,b,sizeof(TEXT));
 #define ST(x)   (((OTRAN_GLOBALS*) ((CSOUND*) csound)->otranGlobals)->x)
@@ -921,29 +920,12 @@ void putop(CSOUND *csound, TEXT *tp)
     csound->Message(csound, "\n");
 }
 
-static inline unsigned char name_hash(const char *s)
-{
-    unsigned char *c = (unsigned char*) &(s[0]);
-    unsigned char h = (unsigned char) 0;
-    for ( ; *c != (unsigned char) 0; c++)
-      h = strhash_tabl_8[*c ^ h];
-    return h;
-}
-
-static inline int sCmp(const char *x, const char *y)
-{
-    int tmp = 0;
-    while (x[tmp] == y[tmp] && x[tmp] != (char) 0)
-      tmp++;
-    return (x[tmp] != y[tmp]);
-}
-
 /* tests whether variable name exists   */
 /*      in gbl namelist                 */
 
 static int gexist(CSOUND *csound, char *s)
 {
-    unsigned char h = name_hash(s);
+    unsigned char h = name_hash(csound, s);
     NAME          *p;
 
     for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
@@ -954,7 +936,7 @@ static int gexist(CSOUND *csound, char *s)
 
 int lgexist(CSOUND *csound, const char *s)
 {
-    unsigned char h = name_hash(s);
+    unsigned char h = name_hash(csound, s);
     NAME          *p;
 
     for (p = ST(gblNames)[h]; p != NULL && sCmp(p->namep, s); p = p->nxt);
@@ -968,7 +950,7 @@ int lgexist(CSOUND *csound, const char *s)
 
 static void gblnamset(CSOUND *csound, char *s)
 {
-    unsigned char h = name_hash(s);
+    unsigned char h = name_hash(csound, s);
     NAME          *p = ST(gblNames)[h];
                                                 /* search gbl namelist: */
     for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
@@ -996,7 +978,7 @@ static void gblnamset(CSOUND *csound, char *s)
 
 static NAME *lclnamset(CSOUND *csound, char *s)
 {
-    unsigned char h = name_hash(s);
+    unsigned char h = name_hash(csound, s);
     NAME          *p = ST(lclNames)[h];
                                                 /* search lcl namelist: */
     for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
@@ -1024,7 +1006,7 @@ static NAME *lclnamset(CSOUND *csound, char *s)
 
 static int gbloffndx(CSOUND *csound, char *s)
 {
-    unsigned char h = name_hash(s);
+    unsigned char h = name_hash(csound, s);
     NAME          *p = ST(gblNames)[h];
 
     for ( ; p != NULL && sCmp(p->namep, s); p = p->nxt);
