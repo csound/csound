@@ -448,12 +448,14 @@ static void lpinit(HET *thishet) /* lowpass coefficient ititializer */
     omega_c = thishet->freq_c*TWOPI;
     costerm = (MYFLT)cos(SQRTOF3*omega_c*thishet->delta_t/2.0);
     sinterm = (MYFLT)sin(SQRTOF3*omega_c*thishet->delta_t/2.0);
-    thishet->x1 = (MYFLT)(omega_c*thishet->delta_t*(exp(-omega_c*thishet->delta_t) +
-                                  exp(-omega_c*thishet->delta_t/2.0)
-                                  * (-costerm + sinterm/SQRTOF3)));
-    thishet->x2 = (MYFLT)(omega_c*thishet->delta_t*(exp(-omega_c*thishet->delta_t) -
-                                  exp(-3*omega_c*thishet->delta_t/2)
-                                  * (costerm + sinterm/SQRTOF3)));
+    thishet->x1 = (MYFLT)(omega_c*thishet->delta_t*
+                          (exp(-omega_c*thishet->delta_t) +
+                           exp(-omega_c*thishet->delta_t/2.0)
+                           * (-costerm + sinterm/SQRTOF3)));
+    thishet->x2 = (MYFLT)(omega_c*thishet->delta_t*
+                          (exp(-omega_c*thishet->delta_t) -
+                           exp(-3*omega_c*thishet->delta_t/2)
+                           * (costerm + sinterm/SQRTOF3)));
     thishet->yA = (-((MYFLT)exp(-omega_c*thishet->delta_t) +
             FL(2.0)*(MYFLT)exp(-omega_c*thishet->delta_t/2)*costerm));
     thishet->y2 = FL(2.0) * (MYFLT)exp(-3.0*omega_c*thishet->delta_t/2.0)*costerm +
@@ -469,7 +471,8 @@ static void lowpass(HET *thishet, double *out, double *in, long smpl)
            (thishet->x1 *
             GETVAL(thishet,in,smpl-1) + thishet->x2 * GETVAL(thishet,in,smpl-2) -
             thishet->yA * GETVAL(thishet,out,smpl-1) - thishet->y2 *
-            GETVAL(thishet,out,smpl-2) - thishet->y3 * GETVAL(thishet,out,smpl-3)));
+            GETVAL(thishet,out,smpl-2) -
+            thishet->y3 * GETVAL(thishet,out,smpl-3)));
 }
 
 static void average(HET *thishet, long window,double *in,double *out, long smpl)
@@ -479,12 +482,6 @@ static void average(HET *thishet, long window,double *in,double *out, long smpl)
   /* ie. zeros at all harmonic frequencies except*/
   /* the current one where the pole cancels it */
 {
-#if 0
-    PUTVAL(thishet,out, smpl,
-           (double)(GETVAL(thishet,out,smpl-1) +
-                    (1.0/(double)window) *
-                    (GETVAL(thishet,in,smpl) - GETVAL(thishet,in,smpl-window))));
-#else
     if (smpl==0) return;
     if (smpl<window)
       PUTVAL(thishet,out, smpl,
@@ -495,7 +492,6 @@ static void average(HET *thishet, long window,double *in,double *out, long smpl)
              (double)(GETVAL(thishet,out,smpl-1) +
                       (1.0/(double)window) *
                       (GETVAL(thishet,in,smpl) - GETVAL(thishet,in,smpl-window))));
-#endif
 }
 
                                  /* update phase counter */
