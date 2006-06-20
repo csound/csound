@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:     Csound unified file (CSD)
 " Maintainer:   Istvan Varga
-" Last change:  Jun 2 2006
+" Last change:  Jun 20 2006
 
 syn	clear
 
@@ -261,14 +261,16 @@ syn	region	Constant	start="{{" end="}}" contains=csdBackSlashChar
 
 " include files and macros
 
-syn	match	PreProc	"^[[:space:]]*#"
+syn	match	PreProc	"^#"
 syn	match	PreProc	"#[[:space:]]*$"
-syn	match	PreProc	"^[[:space:]]*#include\>"
-syn	match	PreProc	"^[[:space:]]*#define\>"
-syn	match	PreProc	"^[[:space:]]*#define[^#]*#"
-syn	match	PreProc	"^[[:space:]]*#undef.*$"
-syn	match	PreProc	"^[[:space:]]*#ifdef[[:space:]]\+[[:alnum:]_]\+"
-syn	match	PreProc	"^[[:space:]]*#end\(if\)\{,1\}\>"
+syn	match	PreProc	"^#[[:space:]]*include\>"
+syn	match	PreProc	"^#[[:space:]]*define\>"
+syn	match	PreProc	"^#[[:space:]]*define[^#]*#"
+syn	match	PreProc	"^#[[:space:]]*undef[[:space:]]\+[[:alnum:]_]\+"
+syn	match	PreProc	"^#[[:space:]]*ifdef[[:space:]]\+[[:alnum:]_]\+"
+syn	match	PreProc	"^#[[:space:]]*ifndef[[:space:]]\+[[:alnum:]_]\+"
+syn	match	PreProc	"^#[[:space:]]*else\>"
+syn	match	PreProc	"^#[[:space:]]*end\(if\)\{,1\}\>"
 syn	match	PreProc	"\$[[:alpha:]][[:alnum:]_]*\(([^()]*)\)\{,1\}\.\{,1\}"
 
 " some useful keyboard shortcuts
