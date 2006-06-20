@@ -99,7 +99,7 @@ unsigned int csound_str_hash_32(const char *s)
       if (!c)
         break;
       h ^= (c << 24);
-      tmp = (uint32_t) h * (uint64_t) 0xD1A458CBU;
+      tmp = (uint32_t) h * (uint64_t) 0xC2B0C3CCU;
       h = ((unsigned int) tmp ^ (unsigned int) (tmp >> 32)) & 0xFFFFFFFFU;
       c = (unsigned int) s[4] & 0xFFU;
       if (!c)
@@ -118,10 +118,10 @@ unsigned int csound_str_hash_32(const char *s)
         break;
       h ^= (c << 24);
       s += 8;
-      tmp = (uint32_t) h * (uint64_t) 0xD1A458CBU;
+      tmp = (uint32_t) h * (uint64_t) 0xC2B0C3CCU;
       h = ((unsigned int) tmp ^ (unsigned int) (tmp >> 32)) & 0xFFFFFFFFU;
     }
-    tmp = (uint32_t) h * (uint64_t) 0xD1A458CBU;
+    tmp = (uint32_t) h * (uint64_t) 0xC2B0C3CCU;
     h = ((unsigned int) tmp ^ (unsigned int) (tmp >> 32)) & 0xFFFFFFFFU;
 
     return h;
