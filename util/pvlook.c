@@ -77,7 +77,7 @@ static const char *pvlook_usage_txt[] = {
     "file and outputs frequency and magnitude trajectories for each ",
     "of the analysis bins.",
     "",
-    "usage: pvlook [-bb X] [-eb X] [-bf X] [-ef X] [-i X]  file > output",
+    "usage: pvlook [-bb X] [-eb X] [-bf X] [-ef X] [-i]  file > output",
     "",
     " -bb X  begin at anaysis bin X. Numbered from 1 [defaults to 1]",
     " -eb X  end at anaysis bin X [defaults to highest]",
