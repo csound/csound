@@ -435,6 +435,8 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\opt\portmidi\pm_win\*.dll
   File D:\utah\opt\LuaJIT-1.1.0\src\luajit.exe
   File D:\utah\opt\LuaJIT-1.1.0\src\lua51.dll
+  File D:\utah\opt\csound5\bin\liblo.dll
+  File D:\utah\opt\csound5\bin\pthreadGC2.dll
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
   File ..\..\scoregen.py
@@ -487,6 +489,7 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\plugins64
   File /x csound*.dll* /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll ..\..\opcodes.dir
+  File D:\utah\opt\csound5\plugins64\osc.dll
  
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
