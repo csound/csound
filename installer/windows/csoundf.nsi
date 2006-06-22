@@ -426,12 +426,14 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_scoregen.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
-  File C:\utah\opt\csound5\bin\fltk.dll
-  File C:\utah\opt\libsndfile-1_0_16\libsndfile-1.dll
-  #File C:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
-  File C:\utah\opt\lazzarini\portaudio.dll
-  File C:\utah\opt\csound5\bin\fluidsynth.dll
-  File C:\utah\opt\portmidi\pm_win\*.dll
+  File D:\utah\opt\csound5\bin\fltk.dll
+  File D:\utah\opt\libsndfile-1_0_16\libsndfile-1.dll
+  #File D:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
+  File D:\utah\opt\lazzarini\portaudio.dll
+  File D:\utah\opt\csound5\bin\fluidsynth.dll
+  File D:\utah\opt\portmidi\pm_win\*.dll
+  File D:\utah\opt\csound5\bin\liblo.dll
+  File D:\utah\opt\csound5\bin\pthreadGC2.dll
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
   File ..\..\scoregen.py
@@ -482,7 +484,8 @@ Section "${PRODUCT}" SecCopyUI
   
   SetOutPath $INSTDIR\plugins
   File /x csound*.dll* /x _*.dll /x libsndfile-1.dll /x portaudio\lib\portaudio.dll.0.0.19 /x tclcsound.dll /x csoundapi~.dll /x pm_midi.dll ..\..\*.dll ..\..\opcodes.dir
- 
+  File D:\utah\opt\csound5\plugins\osc.dll
+
   SetOutPath $INSTDIR\samples
   File /r ..\..\samples\*
 
