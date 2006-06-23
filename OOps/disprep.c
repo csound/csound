@@ -464,7 +464,7 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       long terms;
       long lambda, maxlam;
       MYFLT crossprods, RMS, *endtable = p->ftable + nptsm1;
-      /*            MYFLT coef, log001 = -6.9078; */
+   /* MYFLT coef, log001 = -6.9078; */
       MYFLT *xscale = p->xscale;
 
       p->ncross = (MYFLT) NCROSS;
@@ -480,8 +480,8 @@ int tempeset(CSOUND *csound, TEMPEST *p)
         } while (--terms);
         crossprods = sumraw * sumraw - sumsqr;
         RMS = (MYFLT) sqrt(crossprods / p->ncross);
-        /*              coef = exp(log001 * lambda / npts);
-         *xscale++ = coef / RMS / (NTERMS - 1);  */
+    /*  coef = exp(log001 * lambda / npts);
+        *xscale++ = coef / RMS / (NTERMS - 1);  */
         *xscale++ = FL(0.05)/ RMS / lambda;
       }
     }
@@ -492,9 +492,11 @@ int tempeset(CSOUND *csound, TEMPEST *p)
     p->yt1 = FL(0.0);
     p->fwdcoef = (MYFLT)pow(0.5, p->timcount/csound->ekr/(*p->ihtim));
     p->fwdmask = FL(0.0);
-/*     csound->Message(csound, */
-/*                     Str("kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"), */
-/*                     p->coef1, p->fwdcoef); */
+#ifdef DEBUG
+    csound->Message(csound,
+                    Str("kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"),
+                    p->coef1, p->fwdcoef);
+#endif
     p->thresh = *p->ithresh;            /* record incoming loudness threshold */
     p->xfdbak = *p->ixfdbak;            /*    & expectation feedback fraction */
     p->tempscal = FL(60.0) * csound->ekr / p->timcount;
@@ -535,9 +537,12 @@ int tempest(CSOUND *csound, TEMPEST *p)
       *xcur++ = FL(0.0);                    /*    & clear the loc it occupied */
       if (xcur >= p->xend) xcur = p->xbeg;  /* xcur now points to cur xarray  */
       p->xcur = xcur;
-/*       csound->Message(csound, "**kin -> %f (%f,%f)\n",  */
-/*                       *p->kin - p->yt1, *p->kin, p->yt1); */
-      if ((kin = *p->kin - p->yt1) < FL(0.0))  kin = FL(0.0);
+#ifdef DEBUG
+      csound->Message(csound, "**kin -> %f (%f,%f)\n",
+                      *p->kin - p->yt1, *p->kin, p->yt1);
+#endif
+      if ((kin = *p->kin - p->yt1) < FL(0.0))
+        kin = FL(0.0);
       { /* ignore input below lopass */
         MYFLT *hcur = p->hcur;
         MYFLT *hend = p->hend;
@@ -568,7 +573,9 @@ int tempest(CSOUND *csound, TEMPEST *p)
         for (memp=p->stmemp,nn=npts,sumsqr=FL(0.0); nn--; memp++)
           sumsqr += *memp * *memp;
         RMStot = (MYFLT)sqrt(sumsqr/npts);
-/*         csound->Message(csound, "RMStot = %6.1f\n", RMStot); */
+#ifdef DEBUG
+        csound->Message(csound, "RMStot = %6.1f\n", RMStot);
+#endif
         mults = lenmults;                     /* use the static lentables  */
         fracs = lenfracs;
         mulp = p->lmults;
@@ -601,16 +608,18 @@ int tempest(CSOUND *csound, TEMPEST *p)
           } while (--terms);
           crossprods = sumraw * sumraw - sumsqr;
           RMScross = (MYFLT)sqrt(crossprods / p->ncross);
-          if (RMScross < FL(1.4) * RMStot)         /* if RMScross significant:   */
+          if (RMScross < FL(1.4) * RMStot)    /* if RMScross significant:   */
             continue;
-/*           csound->Message(csound, "RMScross = %6.1f, lambda = %ld\n", */
-/*                           RMScross, lambda); */
-          /*                  RMS *= *xscale++;     */
-          unilam = lambda * mult;               /*    get unit lambda implied */
-          lamtot += unilam * RMScross;          /*    & add weighted to total */
+#ifdef DEBUG
+          csound->Message(csound, "RMScross = %6.1f, lambda = %ld\n",
+                                  RMScross, lambda);
+#endif
+       /* RMS *= *xscale++; */
+          unilam = lambda * mult;             /*    get unit lambda implied */
+          lamtot += unilam * RMScross;        /*    & add weighted to total */
           weightot += RMScross;
           RMScross /= FL(5.0);
-          memp = xcur - 1;                /* multiply project into expect buf */
+          memp = xcur - 1;              /* multiply project into expect buf */
           for (terms=1; terms < NTERMS; ++terms) {
             if ((memp += (lambda-terms+1)) >= xend)
               memp -= npts;
@@ -622,19 +631,19 @@ int tempest(CSOUND *csound, TEMPEST *p)
           }
         }
       }
-      if (weightot) {                                     /* if accumed weights, */
+      if (weightot) {                         /* if accumed weights, */
         p->avglam = (p->avglam + lamtot/weightot)/FL(2.0); /* update the avglam */
         p->avglam /= p->tweek;
-        p->tempo = p->tempscal / p->avglam;         /*   & cvt to tempo    */
-/*         csound->Message(csound, "lamtot %6.2f, weightot %6.2f, " */
-/*                         "newavglam %6.2f, tempo %6.2f\n", */
-/*                         lamtot, weightot, p->avglam, p->tempo); */
-        /*      csound->Message(csound, "%6.1f\n", p->tempo);  */
-/*         csound->Message(csound, "."); */
+        p->tempo = p->tempscal / p->avglam;   /*   & cvt to tempo    */
+#ifdef DEBUG
+        csound->Message(csound, "lamtot %6.2f, weightot %6.2f, "
+                                "newavglam %6.2f, tempo %6.2f\n",
+                        lamtot, weightot, p->avglam, p->tempo);
+#endif
       }
       else {
-        if (kin <- p->fwdmask) {
-          p->tempo = FL(0.0);              /* else tempo is 0     */
+        if (kin < -(p->fwdmask)) {
+          p->tempo = FL(0.0);                 /* else tempo is 0     */
         }
       }
       p->fwdmask = p->fwdmask * p->fwdcoef + kin;
@@ -651,7 +660,7 @@ int tempest(CSOUND *csound, TEMPEST *p)
       display(csound, &p->dwindow);         /* display double window  */
       p->dcntdown = p->dtimcnt;             /*   & reset the counter  */
     }
-/*     if (p->tempo != 0.0)  */
+/*  if (p->tempo != 0.0)  */
     *p->kout = p->tempo;                    /* put current tempo */
     return OK;
 }
