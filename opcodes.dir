@@ -25,6 +25,8 @@ hrtferX:
 	hrtfer
 loris:
 	lorisread lorisplay lorismorph
+loscilx:
+	loscilx sndload
 minmax:
 	maxaccum minaccum maxabsaccum minabsaccum max min maxabs minabs
 	max.a min.a maxabs.a minabs.a max.k min.k maxabs.k minabs.k
