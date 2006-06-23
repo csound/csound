@@ -1,3 +1,8 @@
+2006-06-23  jpff  <jpff@codemist.co.uk>
+
+	* OOps/disprep.c (tempest): If we are in a mask situation retain
+	previous best estimate of tempo
+
 2006-06-18	Istvan Varga	<ivarga@csounds.com>
 	* OOps/sndinfUG.c: filelen, filenchnls, filesr opcodes: allow for
 	  getting parameters of convolve and PVOC files unless the "enable
