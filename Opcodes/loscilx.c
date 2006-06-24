@@ -177,7 +177,6 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       if (sf == NULL)
         return csound->InitError(csound, Str("could not load '%s'"),
                                          (char*) p->ifn);
-      dataPtr = (void*) &(sf->data[0]);
       if (sf->loopMode < 2 || sf->loopStart == sf->loopEnd) {
         sf->loopStart = 0.0;
         sf->loopEnd = (double) ((long) sf->nFrames);
@@ -191,6 +190,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
         return csound->InitError(csound, Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
+      dataPtr = (void*) &(sf->data[0]);
       p->curPos = loscilx_convert_phase(sf->startOffs);
       p->curLoopMode = sf->loopMode - 1;
       if (p->curLoopMode < 1 || p->curLoopMode > 3)
@@ -211,7 +211,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     else {
       FUNC  *ftp;
 
-      p->usingFtable = ~((int) 0);      /* used as a bit mask */
+      p->usingFtable = 1;
       ftp = csound->FTnp2Find(csound, p->ifn);
       if (ftp == NULL)
         return NOTOK;
@@ -219,8 +219,8 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
         return csound->InitError(csound, Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
-      p->nFrames = ftp->flenfrms + 1L;
       dataPtr = (void*) &(ftp->ftable[0]);
+      p->curPos = (int_least64_t) 0;
       switch ((int) ftp->loopmode1) {
       case 1:
         p->curLoopMode = 1;
@@ -246,6 +246,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       else if (ftp->gen01args.sample_rate > FL(0.0))
         frqScale = (double) ftp->gen01args.sample_rate / (double) csound->esr;
       p->ampScale = FL(1.0);
+      p->nFrames = ftp->flenfrms + 1L;
     }
     if (*(p->istrt) >= FL(0.0))
       p->curPos = loscilx_convert_phase((double) *(p->istrt));
@@ -289,7 +290,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     }
     p->enableWarp = 0;
     if (csound->GetInputArgAMask(p))
-      p->arateXamp = 1;
+      p->arateXamp = ~((int) 0);        /* used as a bit mask */
     else
       p->arateXamp = 0;
     p->loopingWholeFile = 0;
@@ -430,7 +431,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
         {
           double  d, x, v;
           MYFLT   a0, a1;
-          int     j, wsized2 = winSmps >> 1;
+          int     wsized2 = winSmps >> 1;
 
           ndx += (long) (1 - wsized2);
           d = (double) (1 - wsized2) - frac_d;
