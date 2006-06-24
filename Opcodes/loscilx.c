@@ -342,7 +342,7 @@ static inline void init_sine_gen(double a, double f, double p, double c,
 
 static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
 {
-    int     i, j, k;
+    int     i, j;
     double  frac_d, pidwarp_d = 0.0, c = 0.0;
     MYFLT   frac, ampScale, winFact = p->winFact;
     long    ndx;
@@ -436,7 +436,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           ndx += (long) (1 - wsized2);
           d = (double) (1 - wsized2) - frac_d;
           j = 0;
-          if (p->warpFact < FL(1.0)) {      /* ...with window warp enabled */
+          if (p->enableWarp) {              /* ...with window warp enabled */
             init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
             /* samples -(window size / 2 - 1) to -1 */
             do {
@@ -487,12 +487,12 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
               do {
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * winFact;
                 a1 = a0 * a1 * a1 / (MYFLT) d;
-                d += 1.0;
                 winBuf[j++] = (float) a1;
+                d += 1.0;
                 a1 = (MYFLT) d; a1 = FL(1.0) - a1 * a1 * winFact;
                 a1 = -(a0 * a1 * a1 / (MYFLT) d);
-                d += 1.0;
                 winBuf[j++] = (float) a1;
+                d += 1.0;
               } while (j < p->winSize);
             }
           }
@@ -503,9 +503,8 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
 
       ndx--;
       j = 0;
-      switch (p->nChannels) {
-      case 1:                                   /* mono */
-        p->ar[0][i] = FL(0.0);
+      if (p->nChannels == 1) {                  /* mono */
+        MYFLT   ar = FL(0.0);
         do {
           ndx++;
           if ((unsigned long) ndx >= (unsigned long) p->nFrames) {
@@ -524,21 +523,19 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           }
 #ifdef USE_DOUBLE
           if (p->usingFtable) {
-            p->ar[0][i] += (((MYFLT*) p->dataPtr)[ndx] * (MYFLT) winBuf[j]);
+            ar += (((MYFLT*) p->dataPtr)[ndx] * (MYFLT) winBuf[j]);
           }
           else
 #endif
           {
-            p->ar[0][i] += ((MYFLT) ((float*) p->dataPtr)[ndx]
-                            * (MYFLT) winBuf[j]);
+            ar += ((MYFLT) ((float*) p->dataPtr)[ndx] * (MYFLT) winBuf[j]);
           }
         } while (++j < winSmps);
         /* scale output */
-        p->ar[0][i] *= ampScale;
-        break;
-      case 2:                                   /* stereo */
-        p->ar[0][i] = FL(0.0);
-        p->ar[1][i] = FL(0.0);
+        p->ar[0][i] = ar * ampScale;
+      }
+      else if (p->nChannels == 2) {             /* stereo */
+        MYFLT   ar1 = FL(0.0), ar2 = FL(0.0);
         do {
           ndx++;
           if ((unsigned long) ndx >= (unsigned long) p->nFrames) {
@@ -557,26 +554,24 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           }
 #ifdef USE_DOUBLE
           if (p->usingFtable) {
-            p->ar[0][i] += (((MYFLT*) p->dataPtr)[ndx + ndx]
-                            * (MYFLT) winBuf[j]);
-            p->ar[1][i] += (((MYFLT*) p->dataPtr)[ndx + ndx + 1L]
-                            * (MYFLT) winBuf[j]);
+            ar1 += (((MYFLT*) p->dataPtr)[ndx + ndx] * (MYFLT) winBuf[j]);
+            ar2 += (((MYFLT*) p->dataPtr)[ndx + ndx + 1L] * (MYFLT) winBuf[j]);
           }
           else
 #endif
           {
-            p->ar[0][i] += ((MYFLT) ((float*) p->dataPtr)[ndx + ndx]
-                            * (MYFLT) winBuf[j]);
-            p->ar[1][i] += ((MYFLT) ((float*) p->dataPtr)[ndx + ndx + 1L]
-                            * (MYFLT) winBuf[j]);
+            ar1 += ((MYFLT) ((float*) p->dataPtr)[ndx + ndx]
+                    * (MYFLT) winBuf[j]);
+            ar2 += ((MYFLT) ((float*) p->dataPtr)[ndx + ndx + 1L]
+                    * (MYFLT) winBuf[j]);
           }
         } while (++j < winSmps);
         /* scale output */
-        p->ar[0][i] *= ampScale;
-        p->ar[1][i] *= ampScale;
-        break;
-      default:                                  /* generic multichannel code */
-        k = 0;
+        p->ar[0][i] = ar1 * ampScale;
+        p->ar[1][i] = ar2 * ampScale;
+      }
+      else {                                    /* generic multichannel code */
+        int     k = 0;
         do {
           p->ar[k][i] = FL(0.0);
         } while (++k < p->nChannels);
@@ -632,21 +627,7 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           p->curPos += p->curPosInc;
         else
           p->curPos -= p->curPosInc;
-        if (p->curPos >= p->curLoopEnd) {
-          if (prvPos < p->curLoopEnd) {
-            switch (p->curLoopMode) {
-            case 1:
-              p->curPos = p->curPos + (p->curLoopStart - p->curLoopEnd);
-              break;
-            case 2:
-            case 3:
-              p->curPos = p->curLoopEnd + (p->curLoopEnd - p->curPos);
-              p->curLoopDir = -(p->curLoopDir);
-              break;
-            }
-          }
-        }
-        else if (p->curPos < p->curLoopStart) {
+        if (p->curPos < p->curLoopStart) {
           if (prvPos >= p->curLoopStart) {
             switch (p->curLoopMode) {
             case 1:
@@ -655,6 +636,20 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
               break;
             case 3:
               p->curPos = p->curLoopStart + (p->curLoopStart - p->curPos);
+              p->curLoopDir = -(p->curLoopDir);
+              break;
+            }
+          }
+        }
+        else if (p->curPos >= p->curLoopEnd) {
+          if (prvPos < p->curLoopEnd) {
+            switch (p->curLoopMode) {
+            case 1:
+              p->curPos = p->curPos + (p->curLoopStart - p->curLoopEnd);
+              break;
+            case 2:
+            case 3:
+              p->curPos = p->curLoopEnd + (p->curLoopEnd - p->curPos);
               p->curLoopDir = -(p->curLoopDir);
               break;
             }
