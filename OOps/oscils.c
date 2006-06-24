@@ -153,14 +153,14 @@ int lphasor(CSOUND *csound, LPHASOR *p)
       if (loop_mode) {
         dir = (trns < 0.0 ? !(p->dir) : p->dir);
         if (dir && (phs >= lpe)) {
-          phs += lpt * (double) ((int) (lps - phs) / lpt);
+          phs += lpt * (double) ((int) ((lps - phs) / lpt));
           if (loop_mode & 2) {
             phs = lps + lpe - phs;  /* reverse direction */
             p->dir = !(p->dir);
           }
         }
         else if (!dir && (phs <= lps)) {
-          phs += lpt * (double) ((int) (lpe - phs) / lpt);
+          phs += lpt * (double) ((int) ((lpe - phs) / lpt));
           if (loop_mode & 1) {
             phs = lps + lpe - phs;  /* reverse direction */
             p->dir = !(p->dir);
