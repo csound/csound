@@ -241,7 +241,7 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
           frqScale = 1.0 / (double) *(p->ibas);
       }
       else if (ftp->cpscvt > FL(0.0)) {
-        frqScale = (double) ftp->cpscvt / (double) LOFACT;
+        frqScale = (double) ftp->cpscvt * (1.0 / (double) LOFACT);
       }
       else if (ftp->gen01args.sample_rate > FL(0.0))
         frqScale = (double) ftp->gen01args.sample_rate / (double) csound->esr;
@@ -275,14 +275,17 @@ static int loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     p->winSize = (int) MYFLT2LRND(*(p->iwsize));
     if (p->winSize < 1)
       p->winSize = 4;                   /* default to cubic interpolation */
-    else if (p->winSize > LOSCILX_MAX_INTERP_SIZE)
-      p->winSize = LOSCILX_MAX_INTERP_SIZE;
-    else
-      p->winSize = (p->winSize + 2) & (~((int) 3));
-    if (p->winSize > 4) {
-      /* constant for window calculation */
-      p->winFact = (MYFLT) ((1.0 - pow((double) p->winSize * 0.85172, -0.89624))
-                            / ((double) ((p->winSize * p->winSize) >> 2)));
+    else if (p->winSize > 2) {
+      if (p->winSize > LOSCILX_MAX_INTERP_SIZE)
+        p->winSize = LOSCILX_MAX_INTERP_SIZE;
+      else
+        p->winSize = (p->winSize + 2) & (~((int) 3));
+      if (p->winSize > 4) {
+        /* constant for window calculation */
+        p->winFact =
+            (MYFLT) ((1.0 - pow((double) p->winSize * 0.85172, -0.89624))
+                     / ((double) ((p->winSize * p->winSize) >> 2)));
+      }
     }
     p->enableWarp = 0;
     if (csound->GetInputArgAMask(p))
@@ -338,7 +341,7 @@ static inline void init_sine_gen(double a, double f, double p, double c,
 
 static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
 {
-    int     i;
+    int     i, j, k;
     double  frac_d, pidwarp_d = 0.0, c = 0.0;
     MYFLT   frac, ampScale, winFact = p->winFact;
     long    ndx;
@@ -497,35 +500,16 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
 
       /* generate sound output */
 
-      {
-        int   j, k;
-
-        k = 0;
+      ndx--;
+      j = 0;
+      switch (p->nChannels) {
+      case 1:                                   /* mono */
+        p->ar[0][i] = FL(0.0);
         do {
-          p->ar[k][i] = FL(0.0);
-        } while (++k < p->nChannels);
-        j = 0;
-        do {
-          if ((unsigned long) ndx < (unsigned long) p->nFrames) {
- calcSample:
-            if (p->usingFtable) {
-              MYFLT *fp = &(((MYFLT*) p->dataPtr)[ndx * (long) p->nChannels]);
-
-              k = 0;
-              do {
-                p->ar[k][i] += (fp[k] * (MYFLT) winBuf[j]);
-              } while (++k < p->nChannels);
-            }
-            else {
-              float *fp = &(((float*) p->dataPtr)[ndx * (long) p->nChannels]);
-
-              k = 0;
-              do {
-                p->ar[k][i] += ((MYFLT) fp[k] * (MYFLT) winBuf[j]);
-              } while (++k < p->nChannels);
-            }
-          }
-          else if (p->loopingWholeFile) {
+          ndx++;
+          if ((unsigned long) ndx >= (unsigned long) p->nFrames) {
+            if (!p->loopingWholeFile)
+              continue;
             if (ndx < 0L) {
               do {
                 ndx += p->nFrames;
@@ -536,9 +520,100 @@ static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
                 ndx -= p->nFrames;
               } while (ndx >= p->nFrames);
             }
-            goto calcSample;
           }
+#ifdef USE_DOUBLE
+          if (p->usingFtable) {
+            p->ar[0][i] += (((MYFLT*) p->dataPtr)[ndx] * (MYFLT) winBuf[j]);
+          }
+          else
+#endif
+          {
+            p->ar[0][i] += ((MYFLT) ((float*) p->dataPtr)[ndx]
+                            * (MYFLT) winBuf[j]);
+          }
+        } while (++j < winSmps);
+        /* scale output */
+        p->ar[0][i] *= ampScale;
+        break;
+      case 2:                                   /* stereo */
+        p->ar[0][i] = FL(0.0);
+        p->ar[1][i] = FL(0.0);
+        do {
           ndx++;
+          if ((unsigned long) ndx >= (unsigned long) p->nFrames) {
+            if (!p->loopingWholeFile)
+              continue;
+            if (ndx < 0L) {
+              do {
+                ndx += p->nFrames;
+              } while (ndx < 0L);
+            }
+            else {
+              do {
+                ndx -= p->nFrames;
+              } while (ndx >= p->nFrames);
+            }
+          }
+#ifdef USE_DOUBLE
+          if (p->usingFtable) {
+            p->ar[0][i] += (((MYFLT*) p->dataPtr)[ndx + ndx]
+                            * (MYFLT) winBuf[j]);
+            p->ar[1][i] += (((MYFLT*) p->dataPtr)[ndx + ndx + 1L]
+                            * (MYFLT) winBuf[j]);
+          }
+          else
+#endif
+          {
+            p->ar[0][i] += ((MYFLT) ((float*) p->dataPtr)[ndx + ndx]
+                            * (MYFLT) winBuf[j]);
+            p->ar[1][i] += ((MYFLT) ((float*) p->dataPtr)[ndx + ndx + 1L]
+                            * (MYFLT) winBuf[j]);
+          }
+        } while (++j < winSmps);
+        /* scale output */
+        p->ar[0][i] *= ampScale;
+        p->ar[1][i] *= ampScale;
+        break;
+      default:                                  /* generic multichannel code */
+        k = 0;
+        do {
+          p->ar[k][i] = FL(0.0);
+        } while (++k < p->nChannels);
+        do {
+          ndx++;
+          if ((unsigned long) ndx >= (unsigned long) p->nFrames) {
+            if (!p->loopingWholeFile)
+              continue;
+            if (ndx < 0L) {
+              do {
+                ndx += p->nFrames;
+              } while (ndx < 0L);
+            }
+            else {
+              do {
+                ndx -= p->nFrames;
+              } while (ndx >= p->nFrames);
+            }
+          }
+#ifdef USE_DOUBLE
+          if (p->usingFtable) {
+            MYFLT *fp = &(((MYFLT*) p->dataPtr)[ndx * (long) p->nChannels]);
+
+            k = 0;
+            do {
+              p->ar[k][i] += (fp[k] * (MYFLT) winBuf[j]);
+            } while (++k < p->nChannels);
+          }
+          else
+#endif
+          {
+            float *fp = &(((float*) p->dataPtr)[ndx * (long) p->nChannels]);
+
+            k = 0;
+            do {
+              p->ar[k][i] += ((MYFLT) fp[k] * (MYFLT) winBuf[j]);
+            } while (++k < p->nChannels);
+          }
         } while (++j < winSmps);
         /* scale output */
         k = 0;
