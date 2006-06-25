@@ -46,7 +46,6 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
     int i;
     PVOCDATA data;
     WAVEFORMATEX fmt;
-    float *frame;
 
     if (argc!= 3) {
       pv_export_usage(csound);
@@ -55,14 +54,14 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
     inf = csound->PVOC_OpenFile(csound, argv[1], &data, &fmt);
     if (inf<0) {
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
-      exit(1);
+      return 1;
     }
     if (strcmp(argv[2], "-")==0) outf=stdout;
     else
       outf = fopen(argv[2], "w");
     if (outf == NULL) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
-      exit(1);
+      return 1;
     }
 
     fprintf(outf, "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
@@ -79,17 +78,32 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
             data.wWindowType,data.nAnalysisBins,data.dwWinlen,
             data.dwOverlap,data.dwFrameAlign,data.fAnalysisRate,
             data.fWindowParam);
-    i = csound->PVOC_FrameCount(csound, inf);
-    frame = (float*) malloc(data.nAnalysisBins * 2 * sizeof(float));
+/*     if (data.wWordFormat==PVOC_IEEE_FLOAT)  */
+    {
+      float *frame =
+        (float*) csound->Malloc(csound, data.nAnalysisBins * 2 * sizeof(float));
 
-    for (; i!=0; i--) {
-      int j;
-      csound->PVOC_GetFrames(csound, inf, frame, 1);
-      for (j = 0; j<data.nAnalysisBins*2; j ++)
-        fprintf(outf, "%s%g", (j==0 ? "" : ","), frame[j]);
-      fprintf(outf, "\n");
+      for (; i!=0; i--) {
+        int j;
+        csound->PVOC_GetFrames(csound, inf, frame, 1);
+        for (j=0; j<data.nAnalysisBins*2; j++)
+          fprintf(outf, "%s%g", (j==0 ? "" : ","), frame[j]);
+        fprintf(outf, "\n");
+      }
+      csound->Free(csound,frame);
     }
-    free(frame);
+/*     else { */
+/*       double *frame = (double*) malloc(data.nAnalysisBins * 2 * sizeof(double)); */
+
+/*       for (; i!=0; i--) { */
+/*         int j; */
+/*         csound->PVOC_GetFrames(csound, inf, frame, 1); */
+/*         for (j = 0; j<data.nAnalysisBins*2; j ++) */
+/*           fprintf(outf, "%s%g", (j==0 ? "" : ","), frame[j]); */
+/*         fprintf(outf, "\n"); */
+/*       } */
+/*       free(frame); */
+/*     }       */
     csound->PVOC_CloseFile(csound, inf);
     fclose(outf);
     return 0;
