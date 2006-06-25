@@ -40,6 +40,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     err |= mixer_init_(csound);
     err |= pvanal_init_(csound);
     err |= pvlook_init_(csound);
+    err |= pv_export_init_(csound);
     err |= scale_init_(csound);
     err |= sndinfo_init_(csound);
     err |= srconv_init_(csound);
