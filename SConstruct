@@ -1357,6 +1357,7 @@ stdutilSources = Split('''
     util/lpc_export.c   util/lpc_import.c   util/mixer.c
     util/pvanal.c       util/pvlook.c       util/scale.c
     util/sndinfo.c      util/srconv.c       util/pv_export.c
+    util/pv_import.c
     util/std_util.c
 ''')
 stdutilSources += pluginEnvironment.SharedObject('util/sdif', 'SDIF/sdif.c')
