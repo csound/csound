@@ -52,7 +52,7 @@ static const char *envVar_list[] = {
     "SFOUTYP",
     "SNAPDIR",
     "SSDIR",
-    /* PLEASE STOP MESSING WITH MY CODE !!! */
+    "MFDIR",
     NULL
 };
 
