@@ -363,30 +363,29 @@ static int pvsys_createFileHandle(CSOUND *csound)
 static void prepare_pvfmt(WAVEFORMATEX *pfmt, unsigned long chans,
                           unsigned long srate, pv_stype stype)
 {
-    pfmt->wFormatTag      = WAVE_FORMAT_EXTENSIBLE;
-    pfmt->nChannels       = (uint16_t) chans;
-    pfmt->nSamplesPerSec  = srate;
+    pfmt->wFormatTag       = WAVE_FORMAT_EXTENSIBLE;
+    pfmt->nChannels        = (uint16_t) chans;
+    pfmt->nSamplesPerSec   = srate;
     switch (stype) {
-      case (STYPE_16):
-        pfmt->wBitsPerSample  = (uint16_t) 16;
-        pfmt->nBlockAlign     = (uint16_t) (chans * 2 * sizeof(char));
-        break;
-      case (STYPE_24):
-        pfmt->wBitsPerSample  = (uint16_t) 24;
-        pfmt->nBlockAlign     = (uint16_t) (chans * 3 * sizeof(char));
-        break;
-      case (STYPE_32):
-      case (STYPE_IEEE_FLOAT):
-        pfmt->wBitsPerSample  = (uint16_t) 32;
-        pfmt->nBlockAlign     = (uint16_t) (chans * 4 * sizeof(char));
-        break;
-      default:
-        break;
+    default:
+    case (STYPE_16):
+      pfmt->wBitsPerSample = (uint16_t) 16;
+      pfmt->nBlockAlign    = (uint16_t) (chans * 2 * sizeof(char));
+      break;
+    case (STYPE_24):
+      pfmt->wBitsPerSample = (uint16_t) 24;
+      pfmt->nBlockAlign    = (uint16_t) (chans * 3 * sizeof(char));
+      break;
+    case (STYPE_32):
+    case (STYPE_IEEE_FLOAT):
+      pfmt->wBitsPerSample = (uint16_t) 32;
+      pfmt->nBlockAlign    = (uint16_t) (chans * 4 * sizeof(char));
+      break;
     }
-    pfmt->nAvgBytesPerSec = pfmt->nBlockAlign * srate;
+    pfmt->nAvgBytesPerSec  = pfmt->nBlockAlign * srate;
     /* if we have extended WindowParam fields, or something,
        will need to adjust this */
-    pfmt->cbSize          = 62;
+    pfmt->cbSize           = 62;
 }
 
 /* lots of different ways of doing this!
@@ -455,7 +454,6 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
 
     /* setup rendering inforamtion */
     prepare_pvfmt(&p->fmtdata, chans, srate, stype);
-
     p->pvdata.wWordFormat     = PVOC_IEEE_FLOAT;
     p->pvdata.wAnalFormat     = (uint16_t) format;
     if (stype == STYPE_IEEE_FLOAT)
@@ -475,7 +473,6 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
     p->pvdata.dwFrameAlign    = p->pvdata.nAnalysisBins * 2 * sizeof(float);
     p->pvdata.fAnalysisRate   = (float) srate / (float) p->pvdata.dwOverlap;
     p->pvdata.fWindowParam    = winparam;
-
     if (fWindow != NULL) {
       p->customWindow = mmalloc(csound, dwWinlen * sizeof(float));
       memcpy(p->customWindow, fWindow, dwWinlen * sizeof(float));
