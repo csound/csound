@@ -125,22 +125,22 @@ int kdsplay(CSOUND *csound, DSPLAY *p)
 int dsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
-    int    nsmps = csound->ksmps;
+    int    n, nsmps = csound->ksmps;
 
     if (!p->nprds) {
-      do {
-        *fp++ = *sp++;
+      for (n=0; n<nsmps; n++) {
+        fp[n] = sp[n];
         if (fp >= endp) {
           fp = p->begp;
           display(csound, &p->dwindow);
         }
-      } while (--nsmps);
+      }
     }
     else {
       MYFLT *fp2 = fp + p->bufpts;
-      do {
-        *fp++ = *sp;
-        *fp2++ = *sp++;
+      for (n=0; n<nsmps; n++) {
+        *fp++ = sp[n];
+        *fp2++ = sp[n];
         if (!(--p->pntcnt)) {
           p->pntcnt = p->npts;
           if (fp >= endp) {
@@ -150,7 +150,7 @@ int dsplay(CSOUND *csound, DSPLAY *p)
           p->dwindow.fdata = fp;  /* display from fp */
           display(csound, &p->dwindow);
         }
-      } while (--nsmps);
+      }
     }
     p->nxtp = fp;
     return OK;
@@ -185,9 +185,9 @@ static void ApplyHalfWin(MYFLT *buf, MYFLT *win, long len)
     long    j;
     long    lenOn2 = (len/2L);
 
-    for (j = lenOn2 + 1; j--; )
+    for (j=lenOn2+1; j--; )
       *buf++ *= *win++;
-    for (j = len - lenOn2 - 1, win--; j--; )
+    for (j =len-lenOn2-1, win--; j--; )
       *buf++ *= *--win;
 }
 
@@ -271,14 +271,14 @@ static void Rect2Polar(MYFLT *buffer, long size)
 
     real = buffer;
     imag = buffer+1;
-    for (i = 0; i < size; ++i) {
-      re = (double)real[2L*i];
-      im = (double)imag[2L*i];
+    for (i = 0; i < size; i++) {
+      re = (double)real[i+i];
+      im = (double)imag[i+i];
       real[2L*i] = mag = (MYFLT)hypot(re,im);
       if (mag == FL(0.0))
-        imag[2L*i] = FL(0.0);
+        imag[i+i] = FL(0.0);
       else
-        imag[2L*i] = (MYFLT)atan2(im,re);
+        imag[i+i] = (MYFLT)atan2(im,re);
     }
 }
 
@@ -382,8 +382,7 @@ int dspfft(CSOUND *csound, DSPFFT *p)
           else bufp = p->sampbuf + p->overlap;
         }
       }
-    }
-    while (--nsmps);
+    } while (--nsmps);
     p->bufp = bufp;
     return OK;
 }

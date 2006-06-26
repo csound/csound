@@ -924,7 +924,7 @@ static int itblchkw(CSOUND *csound, TABLEW *p)
                           Str("Table write offset %f < 0 or > tablelength"),
                           p->offset);
     }
-    p->iwgm   = (int) *p->iwgmode;
+    p->iwgm   = (int)*p->iwgmode;
     return OK;
 }
 
@@ -1291,7 +1291,7 @@ int    tableng(CSOUND *csound, TABLENG *p)
      * memory.  Returns -1 if not found.  Report and error, which
      * will cause this instrument to be de-activated.  */
 
-    flen = csound->GetTable(csound, &dummy, (int) *(p->xfn));
+    flen = csound->GetTable(csound, &dummy, (int)*(p->xfn));
     if (flen < 0) {
       *p->kout = FL(0.0);
       return csound->PerfError(csound, Str("Table %f not found"), *(p->xfn));
@@ -1314,7 +1314,7 @@ int    itableng(CSOUND *csound, TABLENG *p)
      * memory.  Returns -1 if not found.  Report and error, which
      * will cause this instrument initialisation to fail.  */
 
-    flen = csound->GetTable(csound, &dummy, (int) *(p->xfn));
+    flen = csound->GetTable(csound, &dummy, (int)*(p->xfn));
     if (flen < 0) {
       *p->kout = FL(0.0);
       return csound->InitError(csound, Str("Table %f not found"), *(p->xfn));
@@ -1500,7 +1500,7 @@ int tablemix(CSOUND *csound, TABLEMIX *p)
     }
 
     /* Source 1 */
-    if (p->ps1ft != (int) *p->s1ft) {
+    if (p->ps1ft != (int)*p->s1ft) {
       if ((p->funcs1 = csound->FTFindP(csound, p->s1ft)) == NULL) {
         return csound->PerfError(csound,
                                  Str("Source 1 s1ft table %.2f not found."),
@@ -2860,7 +2860,7 @@ int printk(CSOUND *csound, PRINTK *p)
        * printv() in disprep.c.
        */
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
-                               (int) p->h.insdshead->p1);
+                               (int)p->h.insdshead->p1);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
                                csound->curTime);
       /* Print spaces and then the value we want to read.   */
@@ -3205,7 +3205,7 @@ int peaka(CSOUND *csound, PEAK *p)
 
 int printk2set(CSOUND *csound, PRINTK2 *p)
 {
-    p->pspace = (int) *p->space;
+    p->pspace = (int)*p->space;
     if (p->pspace < 0)
       p->pspace = 0;
     else if (p->pspace > 120)
@@ -3223,7 +3223,7 @@ int printk2(CSOUND *csound, PRINTK2 *p)
 
     if (p->oldvalue != value) {
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
-                                               (int) p->h.insdshead->p1);
+                                               (int)p->h.insdshead->p1);
       if (p->pspace > 0) {
         char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
         memset(s, ' ', (size_t) p->pspace);

@@ -43,9 +43,9 @@ void aops_init_tables(void)
     int   i;
 
     for (i = 0; i < OCTRES; i++)
-      cpsocfrc[i] = (MYFLT) (pow(2.0, (double) i / (double) OCTRES) * ONEPT);
+      cpsocfrc[i] = (MYFLT) (pow(2.0, (double)i / (double)OCTRES) * ONEPT);
     for (i = 0; i < 4096; i++)
-      powerof2[i] = (MYFLT) (pow(2.0, (double) i * (1.0 / 4096.0) - 15.0));
+      powerof2[i] = (MYFLT) (pow(2.0, (double)i * (1.0/4096.0) - 15.0));
 }
 
 static inline MYFLT pow2(MYFLT a)
@@ -135,7 +135,8 @@ int modkk(CSOUND *csound, AOP *p)
     return OK;
 }
 
-#define KA(OPNAME,OP) int OPNAME(CSOUND *csound, AOP *p) {       \
+#define KA(OPNAME,OP)                           \
+    int OPNAME(CSOUND *csound, AOP *p) {        \
         int     n;                              \
         MYFLT   *r, a, *b;                      \
         int nsmps = csound->ksmps;              \
@@ -166,7 +167,8 @@ int modka(CSOUND *csound, AOP *p)
     return OK;
 }
 
-#define AK(OPNAME,OP) int OPNAME(CSOUND *csound, AOP *p) {       \
+#define AK(OPNAME,OP)                           \
+    int OPNAME(CSOUND *csound, AOP *p) {        \
         int     n;                              \
         MYFLT   *r, *a, b;                      \
         int nsmps = csound->ksmps;              \
@@ -197,7 +199,8 @@ int modak(CSOUND *csound, AOP *p)
     return OK;
 }
 
-#define AA(OPNAME,OP) int OPNAME(CSOUND *csound, AOP *p) {       \
+#define AA(OPNAME,OP)                           \
+    int OPNAME(CSOUND *csound, AOP *p) {        \
         int     n;                              \
         MYFLT   *r, *a, *b;                     \
         int nsmps = csound->ksmps;              \
@@ -1059,16 +1062,14 @@ int inall_opcode(CSOUND *csound, INALL *p)
     int   i, j = 0, k = 0;
 
     m = (n < csound->nchnls ? n : csound->nchnls);
-    do {
-      i = 0;
-      do {
+    for (j=0; j<csound->ksmps; j++) {
+      for (i=0; i<m; i++) {
         p->ar[i][j] = csound->spin[k + i];
-      } while (++i < m);
+      }
       for ( ; i < n; i++)
         p->ar[i][j] = FL(0.0);
-      j++;
       k += csound->nchnls;
-    } while (j < csound->ksmps);
+    }
 
     return OK;
 }
@@ -1076,14 +1077,16 @@ int inall_opcode(CSOUND *csound, INALL *p)
 int out(CSOUND *csound, OUTM *p)
 {
     int n;
+    int nsmps = csound->ksmps;
+    MYFLT *smp = p->asig;
 
     if (!csound->spoutactive) {
-      memcpy(csound->spout, p->asig, csound->ksmps * sizeof(MYFLT));
+      memcpy(csound->spout, smp, nsmps * sizeof(MYFLT));
       csound->spoutactive = 1;
     }
     else {
-      for (n = 0; n < csound->ksmps; n++)
-        csound->spout[n] += p->asig[n];
+      for (n=0; n<nsmps; n++)
+        csound->spout[n] += smp[n];
     }
     return OK;
 }
@@ -1407,30 +1410,27 @@ int outo(CSOUND *csound, OUTO *p)
 static int outn(CSOUND *csound, int n, OUTX *p)
 {
     int   i, j = 0, k = 0;
+    int nsmps = csound->ksmps;
 
     if (!csound->spoutactive) {
-      do {
-        i = 0;
-        do {
+      for (j=0; j<nsmps; j++) {
+        for (i=0; i<n; i++) {
           csound->spout[k + i] = p->asig[i][j];
-        } while (++i < n);
+        }
         for ( ; i < csound->nchnls; i++) {
           csound->spout[k + i] = FL(0.0);
         }
-        j++;
         k += csound->nchnls;
-      } while (j < csound->ksmps);
+      }
       csound->spoutactive = 1;
     }
     else {
-      do {
-        i = 0;
-        do {
+      for (j=0; j<nsmps; j++) {
+        for (i=0; i<n; i++) {
           csound->spout[k + i] += p->asig[i][j];
-        } while (++i < n);
-        j++;
+        }
         k += csound->nchnls;
-      } while (j < csound->ksmps);
+      }
     }
     return OK;
 }

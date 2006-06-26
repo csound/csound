@@ -637,7 +637,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
       prvpt = segp->nxtpt;
       segp++;
     } while (--nsegs);
-    relestim = (int) (p->cursegp + p->segsrem - 1)->cnt;
+    relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;
@@ -683,7 +683,7 @@ int mxdsrset(CSOUND *csound, EXPSEG *p)
     segp[2].cnt = (long) (decay*csound->ekr + FL(0.5));
     segp[3].nxtpt = FL(0.001);
     segp[3].cnt = (long) (rel*csound->ekr + FL(0.5));
-    relestim = (int) (p->cursegp + p->segsrem - 1)->cnt;
+    relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
     p->xtra = (long)(*argp[5] * csound->ekr + FL(0.5));     /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
@@ -873,19 +873,19 @@ int lnrset(CSOUND *csound, LINENR *p)
 {
     p->cnt1 = (long)(*p->iris * csound->ekr + FL(0.5));
     if (p->cnt1 > 0L) {
-      p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
+      p->inc1 = FL(1.0) / (MYFLT)p->cnt1;
       p->val = FL(0.0);
     }
     else p->inc1 = p->val = FL(1.0);
     if (*p->idec > FL(0.0)) {
-      int relestim = (int) (*p->idec * csound->ekr + FL(0.5));
+      int relestim = (int)(*p->idec * csound->ekr + FL(0.5));
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (*p->iatdec <= FL(0.0)) {
         return csound->InitError(csound, Str("non-positive iatdec"));
       }
-      else p->mlt2 = (MYFLT) pow((double)*p->iatdec,
-                                 ((double)csound->onedkr / *p->idec));
+      else p->mlt2 = (MYFLT)pow((double)*p->iatdec,
+                                ((double)csound->onedkr / *p->idec));
     }
     else p->mlt2 = FL(1.0);
     p->lin1 = FL(0.0);
