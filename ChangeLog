@@ -1,3 +1,10 @@
+2006-06-26  jpff  <jpff@codemist.co.uk>
+
+	* util/pv_import.c: Inverse of pv_export
+
+	* util/pv_export.c: Code to convert .pvx file to comma-separated
+	text, as a utility
+
 2006-06-23	Istvan Varga	<ivarga@csounds.com>
 	* Opcodes/loscilx.c: experimental new opcodes: loscilx, sndload
 

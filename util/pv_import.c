@@ -73,9 +73,10 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     {
       int fmt1, fmt2, fmt3, fmt4, fmt5;
       fscanf(inf, "%d,%d,%d,%d,%d,%d,%d\n",
-           &fmt1, &fmt2, 
-           &fmt.nSamplesPerSec, &fmt.nAvgBytesPerSec, 
-           &fmt3, &fmt4, &fmt5);
+             &fmt1, &fmt2, 
+             &fmt.nSamplesPerSec, 
+             &fmt.nAvgBytesPerSec, 
+             &fmt3, &fmt4, &fmt5);
       fmt.wFormatTag = fmt1;
       fmt.nChannels = fmt2;
       fmt.nBlockAlign = fmt3;
@@ -96,12 +97,18 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       data.wSourceFormat = data3;
       data.wWindowType = data4;
     }
-    outf = csound->PVOC_CreateFile(csound, argv[2],
-                                   data.nAnalysisBins, data.dwOverlap,
-                                   fmt.nChannels, data.wAnalFormat,
-                                   fmt.nSamplesPerSec, fmt.nBlockAlign,
-                                   data.wWindowType, data.fWindowParam,
-                                   NULL, data.dwWinlen);
+
+    {
+      pv_stype stype = (fmt.wBitsPerSample==16?STYPE_16:
+                        fmt.wBitsPerSample==24?STYPE_24:
+                        fmt.wBitsPerSample==32?STYPE_32:STYPE_IEEE_FLOAT);
+      outf = csound->PVOC_CreateFile(csound, argv[2],
+                                     (data.nAnalysisBins-1)*2, data.dwOverlap,
+                                     fmt.nChannels, data.wAnalFormat,
+                                     fmt.nSamplesPerSec, stype,
+                                     data.wWindowType, data.fWindowParam,
+                                     NULL, data.dwWinlen);
+    }
     if (inf < 0) {
       fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
       exit(1);
@@ -110,16 +117,18 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     {
       float *frame =
         (float*) csound->Malloc(csound, data.nAnalysisBins * 2 * sizeof(float));
-
-      while (!feof(inf)) {
+      int i;
+      for (i=1;;) {
         int j;
         for (j=0; j<data.nAnalysisBins*2; j++) {
           char term;
           frame[j] = getnum(inf, &term);
+          if (term==EOF) goto ending;
           if (feof(inf)) goto ending;
           if (term!=',' && term!='\n')
             csound->Message(csound, Str("Sync error\n"));
         }
+        if (i%100==0) csound->Message(csound, "%d\n", i);
         csound->PVOC_PutFrames(csound, outf, frame, 1);
       }
     ending:
