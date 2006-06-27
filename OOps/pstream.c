@@ -176,7 +176,7 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
       /* kill stuff over Nyquist. Need to worry about vlf values? */
       if (freqs[i] > nyquist)
         amps[i] = FL(0.0);
-      a[i] = (MYFLT )(2.0 * sin( freqs[i] * (double) csound->pidsr));
+      a[i] = (MYFLT)(2.0 * sin(freqs[i] * (double)csound->pidsr));
     }
 
     /* we need to interp amplitude, but seems we can avoid doing freqs too,

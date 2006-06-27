@@ -131,7 +131,7 @@ int schedule(CSOUND *csound, SCHED *p)
         }
       }
       else
-        queue_event(csound, (MYFLT) which, (double) *p->when + csound->curTime,
+        queue_event(csound, (MYFLT) which, (double)*p->when + csound->curTime,
                             dur, p->INOCOUNT - 3, p->argums);
     }
     return OK;
@@ -196,7 +196,7 @@ int kschedule(CSOUND *csound, WSCHED *p)
                             "implemented correctly, do not use it\n"));
       p->todo = 0;
                                 /* Insert event */
-      starttime = (double) p->abs_when + (double) *(p->when) + csound->timeOffs;
+      starttime = (double)p->abs_when + (double)*(p->when) + csound->timeOffs;
       if (starttime <= csound->curTime) {
         p->kicked = insert_event(csound, (MYFLT) which,
                                  (MYFLT) (csound->curTime - csound->timeOffs),
@@ -416,11 +416,11 @@ static int get_absinsno(CSOUND *csound, TRIGINSTR *p)
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (p->XSTRCODE)
-      insno = (int) strarg2insno_p(csound, (char*) p->args[0]);
+      insno = (int)strarg2insno_p(csound, (char*)p->args[0]);
     else if (*p->args[0] == SSTRCOD)
-      insno = (int) strarg2insno_p(csound, csound->currevent->strarg);
+      insno = (int)strarg2insno_p(csound, csound->currevent->strarg);
     else
-      insno = (int) fabs((double) *p->args[0]);
+      insno = (int)fabs((double)*p->args[0]);
     /* Check that instrument is defined */
     if (insno < 1 || insno > csound->maxinsno ||
         csound->instrtxtp[insno] == NULL) {
@@ -494,8 +494,8 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
     evt.opcod = 'i';
     evt.pcnt = argnum = p->INOCOUNT - 3;
     /* Add current time (see note about kadjust in triginset() above) */
-    starttime = (double) (csound->global_kcounter + p->kadjust)
-                / (double) csound->global_ekr;
+    starttime = (double)(csound->global_kcounter + p->kadjust)
+                / (double)csound->global_ekr;
     /* Copy all arguments to the new event */
     for (i = 1; i < argnum; i++)
       evt.p[i + 1] = *p->args[i];

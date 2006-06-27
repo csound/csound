@@ -233,8 +233,8 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
     if (p->fileLength < 1L)
       p->wrapMode = 0;
     /* initialise read position */
-    pos = (double) *(p->iSkipTime) * (double) sfinfo.samplerate;
-    if (pos > (double) p->fileLength) {
+    pos = (double)*(p->iSkipTime) * (double)sfinfo.samplerate;
+    if (pos > (double)p->fileLength) {
       csound->Warning(csound, Str("skip time larger than audio data, "
                                   "substituting zero."));
       pos = 0.0;
@@ -243,13 +243,13 @@ int newsndinset(CSOUND *csound, SOUNDINEW *p)
       csound->Warning(csound, Str("negative skip time, substituting zero."));
       pos = 0.0;
     }
-    pos = (pos + 0.5) * (double) POS_FRAC_SCALE;
-    p->pos_frac = (int64_t) pos & (~((int64_t) POS_FRAC_MASK));
-    p->pos_frac_inc = (int64_t) 0;
+    pos = (pos + 0.5) * (double)POS_FRAC_SCALE;
+    p->pos_frac = (int64_t)pos & (~((int64_t)POS_FRAC_MASK));
+    p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* initialise buffer */
     p->bufSize = diskin_calc_buffer_size(p, 4096);
-    p->bufStartPos = -((long) (p->bufSize << 1));
+    p->bufStartPos = -((long)(p->bufSize << 1));
     /* done initialisation */
     p->initDone = -1;
 
@@ -285,16 +285,16 @@ int soundinew(CSOUND *csound, SOUNDINEW *p)
         return csound->PerfError(csound, Str("diskin: not initialised"));
       p->initDone = 1;
       /* if no skip time, and playing backwards: start from end of file */
-      if (p->pos_frac <= (int64_t) 0 && *(p->kTranspose) < FL(0.0)) {
-        p->pos_frac = (int64_t) (((double) p->fileLength + 0.5)
-                                 * (double) POS_FRAC_SCALE);
-        p->pos_frac = p->pos_frac & (~((int64_t) POS_FRAC_MASK));
+      if (p->pos_frac <= (int64_t)0 && *(p->kTranspose) < FL(0.0)) {
+        p->pos_frac = (int64_t)(((double)p->fileLength + 0.5)
+                                 * (double)POS_FRAC_SCALE);
+        p->pos_frac = p->pos_frac & (~((int64_t)POS_FRAC_MASK));
       }
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
       double  f;
       p->prv_kTranspose = *(p->kTranspose);
-      f = (double) p->prv_kTranspose * (double) POS_FRAC_SCALE;
+      f = (double)p->prv_kTranspose * (double)POS_FRAC_SCALE;
 #ifdef HAVE_C99
       p->pos_frac_inc = (int64_t) llrint(f);
 #else
