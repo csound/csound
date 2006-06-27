@@ -756,9 +756,9 @@ int expsegr(CSOUND *csound, EXPSEG *p)
           goto putk;
         }
         else {
-          p->curmlt = (MYFLT) pow((double)(segp->nxtpt/val),
+          p->curmlt = (MYFLT)pow((double)(segp->nxtpt/val),
                                   1.0/(double)segp->cnt);
-          p->curamlt = (MYFLT) pow(p->curmlt, (double) csound->onedksmps);
+          p->curamlt = (MYFLT)pow(p->curmlt, (double)csound->onedksmps);
         }
       }
       p->curval = val * p->curmlt;        /* advance the cur val  */

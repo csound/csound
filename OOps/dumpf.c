@@ -32,8 +32,8 @@ int kdmpset(CSOUND *csound, KDUMP *p)
     csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", p->XSTRCODE);
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname, "wb",
-                                          "");
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, 
+                                  soundoname, "wb", "");
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
@@ -190,7 +190,7 @@ int kdump(CSOUND *csound, KDUMP *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       kval[0] = *p->ksig;
-      nkdump(csound, &(kval[0]), p->f, p->format, 1);
+      nkdump(csound, kval, p->f, p->format, 1);
     }
     return OK;
 }
@@ -203,7 +203,7 @@ int kdump2(CSOUND *csound, KDUMP2 *p)
       p->countdown = p->timcount;
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
-      nkdump(csound, &(kval[0]), p->f, p->format, 2);
+      nkdump(csound, kval, p->f, p->format, 2);
     }
     return OK;
 }
@@ -217,7 +217,7 @@ int kdump3(CSOUND *csound, KDUMP3 *p)
       kval[0] = *p->ksig1;
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
-      nkdump(csound, &(kval[0]), p->f, p->format, 3);
+      nkdump(csound, kval, p->f, p->format, 3);
     }
     return OK;
 }
@@ -232,7 +232,7 @@ int kdump4(CSOUND *csound, KDUMP4 *p)
       kval[1] = *p->ksig2;
       kval[2] = *p->ksig3;
       kval[3] = *p->ksig4;
-      nkdump(csound, &(kval[0]), p->f, p->format, 4);
+      nkdump(csound, kval, p->f, p->format, 4);
     }
     return OK;
 }
@@ -245,11 +245,12 @@ int krdset(CSOUND *csound, KREAD *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
+    csound->strarg2name(csound, soundiname,
+                        p->ifilcod, "readk.", p->XSTRCODE);
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
-                                          "SFDIR;SSDIR");
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, 
+                                  soundiname, "rb", "SFDIR;SSDIR");
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
@@ -271,11 +272,12 @@ int krd2set(CSOUND *csound, KREAD2 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
+    csound->strarg2name(csound, soundiname, p->ifilcod,
+                        "readk.", p->XSTRCODE);
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
-                                          "SFDIR;SSDIR");
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, 
+                                  "rb", "SFDIR;SSDIR");
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
@@ -297,11 +299,12 @@ int krd3set(CSOUND *csound, KREAD3 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
+    csound->strarg2name(csound, soundiname, p->ifilcod,
+                        "readk.", p->XSTRCODE);
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
-                                          "SFDIR;SSDIR");
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname,
+                                  "rb", "SFDIR;SSDIR");
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
@@ -323,11 +326,12 @@ int krd4set(CSOUND *csound, KREAD4 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", p->XSTRCODE);
+    csound->strarg2name(csound, soundiname, p->ifilcod,
+                        "readk.", p->XSTRCODE);
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
-                                          "SFDIR;SSDIR");
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname,
+                                  "rb", "SFDIR;SSDIR");
     if (p->fdch.fd == NULL)
       return csound->InitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
@@ -352,46 +356,46 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
 
     switch(format) {               /* place formatted kvals into outbuf */
     case 1: {
-      int8_t *bp = (int8_t*) inbuf;
+      int8_t *bp = (int8_t*)inbuf;
       len = nk;
       fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--) {
-        *kp++ = (MYFLT) *bp++;
+        *kp++ = (MYFLT)*bp++;
         break;
       }
     }
     case 4: {
-      int16_t *bp = (int16_t*) inbuf;
+      int16_t *bp = (int16_t*)inbuf;
       len = nk * 2;
       fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
-        *kp++ = (MYFLT) *bp++;
+        *kp++ = (MYFLT)*bp++;
       break;
     }
     case 5: {
-      int32_t *bp = (int32_t*) inbuf;
+      int32_t *bp = (int32_t*)inbuf;
       len = nk * 4;
       fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
-        *kp++ = (MYFLT) *bp++;
+        *kp++ = (MYFLT)*bp++;
       break;
     }
     case 6: {
-      float *bp = (float*) inbuf;
+      float *bp = (float*)inbuf;
       len = nk * sizeof(float);
       fread(inbuf, 1, len, ifd);        /* now read the buffer */
       while (nk--)
-        *kp++ = (MYFLT) *bp++;
+        *kp++ = (MYFLT)*bp++;
       break;
     }
     case 7:
       while (nk--) {
         char *bp = inbuf;
         do {                    /* Skip whitespace */
-          *bp = (char) getc(ifd);
+          *bp = (char)getc(ifd);
         } while (isspace(*bp));
         do {                    /* Absorb digits */
-          *(++bp) = (char) getc(ifd);
+          *(++bp) = (char)getc(ifd);
         } while (isdigit(*bp));
         fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
@@ -407,10 +411,10 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
       while (nk--) {
         char *bp = inbuf;
         do {                    /* Skip whitespace */
-          *bp = (char) getc(ifd);
+          *bp = (char)getc(ifd);
         } while (isspace(*bp));
         do {                    /* Absorb digits and such*/
-          *(++bp) = (char) getc(ifd);
+          *(++bp) = (char)getc(ifd);
         } while (!isspace(*bp));
         fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';
@@ -432,7 +436,7 @@ int kread(CSOUND *csound, KREAD *p)
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, &(kval[0]), p->f, p->format, 1);
+      nkread(csound, kval, p->f, p->format, 1);
       *p->k1 = p->k[0] = kval[0];
     }
     else *p->k1 = p->k[0];
@@ -445,7 +449,7 @@ int kread2(CSOUND *csound, KREAD2 *p)
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, &(kval[0]), p->f, p->format, 2);
+      nkread(csound, kval, p->f, p->format, 2);
       *p->k1 = p->k[0] = kval[0];
       *p->k2 = p->k[1] = kval[1];
     }
@@ -462,7 +466,7 @@ int kread3(CSOUND *csound, KREAD3 *p)
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, &(kval[0]), p->f, p->format, 3);
+      nkread(csound, kval, p->f, p->format, 3);
       *p->k1 = p->k[0] = kval[0];
       *p->k2 = p->k[1] = kval[1];
       *p->k3 = p->k[2] = kval[2];
@@ -481,7 +485,7 @@ int kread4(CSOUND *csound, KREAD4 *p)
 
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
-      nkread(csound, &(kval[0]), p->f, p->format, 4);
+      nkread(csound, kval, p->f, p->format, 4);
       *p->k1 = p->k[0] = kval[0];
       *p->k2 = p->k[1] = kval[1];
       *p->k3 = p->k[2] = kval[2];

@@ -109,7 +109,7 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
       strcpy((char*) p->r, csound->currevent->strarg);
       return OK;
     }
-    indx = (int) ((double) *(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
+    indx = (int)((double)*(p->indx) + (*(p->indx) >= FL(0.0) ? 0.5 : -0.5));
     if (indx < 0 || indx > (int) csound->strsmax ||
         csound->strsets == NULL || csound->strsets[indx] == NULL)
       return OK;
@@ -271,20 +271,20 @@ static CS_NOINLINE int
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, (double) *pp);
+          n = snprintf(outstring, maxChars, strseg, (double)*pp);
 #else
-          n = sprintf(outstring, strseg, (double) *pp);
+          n = sprintf(outstring, strseg, (double)*pp);
 #endif
           break;
         case 's':
-          if ((char*) pp == dst) {
+          if ((char*)pp == dst) {
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
 #ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, (char*) pp);
+          n = snprintf(outstring, maxChars, strseg, (char*) p);
 #else
-          n = sprintf(outstring, strseg, (char*) pp);
+          n = sprintf(outstring, strseg, (char*)pp);
 #endif
           break;
         default:

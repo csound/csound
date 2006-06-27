@@ -50,7 +50,7 @@ void aops_init_tables(void)
 
 static inline MYFLT pow2(MYFLT a)
 {
-    int n = (int) MYFLT2LRND(a * FL(4096.0)) + 61440;   /* 4096 * 15 */
+    int n = (int)MYFLT2LRND(a * FL(4096.0)) + 61440;   /* 4096 * 15 */
     return ((MYFLT) (1 << (n >> 12)) * powerof2[n & 4095]);
 }
 
@@ -320,7 +320,7 @@ int int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. */
     double intpart;
     int    n;
     for (n = 0; n < csound->ksmps; n++) {
-      modf((double) p->a[n], &intpart);
+      modf((double)p->a[n], &intpart);
       p->r[n] = (MYFLT) intpart;
     }
     return OK;
@@ -339,7 +339,7 @@ int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
     double intpart, fracpart;
     int    n;
     for (n = 0; n < csound->ksmps; n++) {
-      fracpart = modf((double) p->a[n], &intpart);
+      fracpart = modf((double)p->a[n], &intpart);
       p->r[n] = (MYFLT) fracpart;
     }
     return OK;
@@ -348,12 +348,12 @@ int frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
 #ifdef FLOOR
 #undef FLOOR
 #endif
-#define FLOOR(x) ((long) ((double) (x) >= 0.0 ? (x) : (x) - 0.99999999))
+#define FLOOR(x) ((long)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
 
 #ifdef CEIL
 #undef CEIL
 #endif
-#define CEIL(x) ((long) ((double) (x) >= 0.0 ? (x) + 0.99999999 : (x)))
+#define CEIL(x) ((long)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
 
 int int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 {
@@ -365,13 +365,13 @@ int int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer */
 {
     int n;
     for (n = 0; n < csound->ksmps; n++)
-      p->r[n] = (MYFLT) MYFLT2LRND(p->a[n]);
+      p->r[n] = (MYFLT)MYFLT2LRND(p->a[n]);
     return OK;
 }
 
 int int1_floor(CSOUND *csound, EVAL *p)         /* round down */
 {
-    *p->r = (MYFLT) (FLOOR(*p->a));
+    *p->r = (MYFLT)(FLOOR(*p->a));
     return OK;
 }
 
@@ -379,13 +379,13 @@ int int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
 {
     int n;
     for (n = 0; n < csound->ksmps; n++)
-      p->r[n] = (MYFLT) (FLOOR(p->a[n]));
+      p->r[n] = (MYFLT)(FLOOR(p->a[n]));
     return OK;
 }
 
 int int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
 {
-    *p->r = (MYFLT) (CEIL(*p->a));
+    *p->r = (MYFLT)(CEIL(*p->a));
     return OK;
 }
 
@@ -393,7 +393,7 @@ int int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 {
     int n;
     for (n = 0; n < csound->ksmps; n++)
-      p->r[n] = (MYFLT) (CEIL(p->a[n]));
+      p->r[n] = (MYFLT)(CEIL(p->a[n]));
     return OK;
 }
 
@@ -403,7 +403,7 @@ int rnd1(CSOUND *csound, EVAL *p)               /* returns unipolar rand(x) */
 {
     double intpart;
     csound->rndfrac = modf(csound->rndfrac * rndmlt, &intpart);
-    *p->r = *p->a * (MYFLT) csound->rndfrac;
+    *p->r = *p->a * (MYFLT)csound->rndfrac;
     return OK;
 }
 
@@ -411,7 +411,7 @@ int birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) */
 {
     double intpart;
     csound->rndfrac = modf(csound->rndfrac * rndmlt, &intpart);
-    *p->r = *p->a * (FL(2.0) * (MYFLT) csound->rndfrac - FL(1.0));
+    *p->r = *p->a * (FL(2.0) * (MYFLT)csound->rndfrac - FL(1.0));
     return OK;
 }
 
@@ -473,19 +473,19 @@ int atan2aa(CSOUND *csound, AOP *p)
     a = p->a;
     b = p->b;
     for (n = 0; n < nsmps; n++)
-      r[n] = (MYFLT) atan2((double) a[n], (double) b[n]);
+      r[n] = (MYFLT)atan2((double)a[n], (double)b[n]);
     return OK;
 }
 
 int dbamp(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT) (log(fabs((double) *p->a)) / LOG10D20);
+    *p->r = (MYFLT)(log(fabs((double)*p->a)) / LOG10D20);
     return OK;
 }
 
 int ampdb(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT) exp((double) *p->a * LOG10D20);
+    *p->r = (MYFLT)exp((double)*p->a * LOG10D20);
     return OK;
 }
 
@@ -496,19 +496,19 @@ int aampdb(CSOUND *csound, EVAL *p)
     int     nsmps = csound->ksmps;
 
     for (n = 0; n < nsmps; n++)
-      r[n] = (MYFLT) exp((double) a[n] * LOG10D20);
+      r[n] = (MYFLT)exp((double)a[n] * LOG10D20);
     return OK;
 }
 
 int dbfsamp(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT) (log(fabs((double) *p->a) / csound->e0dbfs) / LOG10D20);
+    *p->r = (MYFLT)(log(fabs((double)*p->a) / csound->e0dbfs) / LOG10D20);
     return OK;
 }
 
 int ampdbfs(CSOUND *csound, EVAL *p)
 {
-    *p->r =  csound->e0dbfs * (MYFLT) exp((double) *p->a * LOG10D20);
+    *p->r =  csound->e0dbfs * (MYFLT)exp((double)*p->a * LOG10D20);
     return OK;
 }
 
@@ -521,7 +521,7 @@ int aampdbfs(CSOUND *csound, EVAL *p)
     r = p->r;
     a = p->a;
     for (n = 0; n < nsmps; n++)
-      r[n] = csound->e0dbfs * (MYFLT) exp((double) a[n] * LOG10D20);
+      r[n] = csound->e0dbfs * (MYFLT)exp((double)a[n] * LOG10D20);
     return OK;
 }
 
@@ -533,7 +533,7 @@ int ftlen(CSOUND *csound, EVAL *p)
       *p->r = -FL(1.0);       /* Return something */
       return NOTOK;
     }
-    *p->r = (MYFLT) ftp->flen;
+    *p->r = (MYFLT)ftp->flen;
 
     return OK;
 }
@@ -546,7 +546,7 @@ int ftchnls(CSOUND *csound, EVAL *p)
       *p->r = -FL(1.0);       /* Return something */
       return NOTOK;
     }
-    *p->r = (MYFLT) ftp->nchanls;
+    *p->r = (MYFLT)ftp->nchanls;
 
     return OK;
 }
@@ -575,9 +575,9 @@ int numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****/
       return NOTOK;
     }
  /* if (ftp->soundend) */
-      *p->r = (MYFLT) ftp->soundend;
+      *p->r = (MYFLT)ftp->soundend;
  /* else
-      *p->r = (MYFLT) (ftp->flen + 1); */
+      *p->r = (MYFLT)(ftp->flen + 1); */
 
     return OK;
 }
@@ -597,7 +597,7 @@ int ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado ****/
 
 int rtclock(CSOUND *csound, EVAL *p)
 {
-    *p->r = (MYFLT) csoundGetRealTime(csound->csRtClock);
+    *p->r = (MYFLT)csoundGetRealTime(csound->csRtClock);
     return OK;
 }
 
@@ -606,7 +606,7 @@ int octpch(CSOUND *csound, EVAL *p)
     double fract, oct;
     fract = modf((double)*p->a, &oct);
     fract *= EIPT3;
-    *p->r = (MYFLT) (oct + fract);
+    *p->r = (MYFLT)(oct + fract);
     return OK;
 }
 
@@ -652,9 +652,9 @@ int cpspch(CSOUND *csound, EVAL *p)
     double fract, oct;
     long   loct;
 
-    fract = modf((double) *p->a, &oct);
+    fract = modf((double)*p->a, &oct);
     fract *= EIPT3;
-    loct = (long) ((oct + fract) * OCTRES);
+    loct = (long)((oct + fract) * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
 }
@@ -675,7 +675,7 @@ int cpsxpch(CSOUND *csound, XENH *p)
       long len;
       if (ftp == NULL)
         return csound->PerfError(csound, Str("No tuning table %d"),
-                                         -((int) *p->et));
+                                         -((int)*p->et));
       len = ftp->flen;
       while (fract>len) {
         fract -= len; loct++;
@@ -703,7 +703,7 @@ int cps2pch(CSOUND *csound, XENH *p)
       long len;
       if (ftp == NULL)
         return csound->PerfError(csound, Str("No tuning table %d"),
-                                         -((int) *p->et));
+                                         -((int)*p->et));
       len = ftp->flen;
       while (fract>len) {
         fract -= len; loct++;
@@ -721,7 +721,7 @@ int cpstun_i(CSOUND *csound, CPSTUNI *p)
 {
     FUNC  *ftp;
     MYFLT *func;
-    int notenum = (int) *p->input;
+    int notenum = (int)*p->input;
     int grade;
     int numgrades;
     int basekeymidi;
@@ -730,20 +730,20 @@ int cpstun_i(CSOUND *csound, CPSTUNI *p)
       return csound->PerfError(csound, Str("cpstun: invalid table"));
     }
     func = ftp->ftable;
-    numgrades = (int) *func++;
+    numgrades = (int)*func++;
     interval = *func++;
     basefreq = *func++;
-    basekeymidi = (int) *func++;
+    basekeymidi = (int)*func++;
 
     if (notenum < basekeymidi) {
       notenum = basekeymidi - notenum;
       grade  = (numgrades-(notenum % numgrades)) % numgrades;
-      factor = - (MYFLT)(int) ((notenum+numgrades-1) / numgrades) ;
+      factor = - (MYFLT)(int)((notenum+numgrades-1) / numgrades) ;
     }
     else {
       notenum = notenum - basekeymidi;
       grade  = notenum % numgrades;
-      factor = (MYFLT)(int) (notenum / numgrades);
+      factor = (MYFLT)(int)(notenum / numgrades);
     }
     factor = (MYFLT)pow((double)interval, (double)factor);
     *p->r = func[grade] * factor * basefreq;
@@ -755,7 +755,7 @@ int cpstun(CSOUND *csound, CPSTUN *p)
     if (*p->ktrig) {
       FUNC  *ftp;
       MYFLT *func;
-      int notenum = (int) *p->kinput;
+      int notenum = (int)*p->kinput;
       int grade;
       int numgrades;
       int basekeymidi;
@@ -764,20 +764,20 @@ int cpstun(CSOUND *csound, CPSTUN *p)
         return csound->PerfError(csound, Str("cpstun: invalid table"));
       }
       func = ftp->ftable;
-      numgrades = (int) *func++;
+      numgrades = (int)*func++;
       interval = *func++;
       basefreq = *func++;
-      basekeymidi = (int) *func++;
+      basekeymidi = (int)*func++;
 
       if (notenum < basekeymidi) {
         notenum = basekeymidi - notenum;
         grade  = (numgrades-(notenum % numgrades)) % numgrades;
-        factor = - (MYFLT)(int) ((notenum+numgrades-1) / numgrades) ;
+        factor = - (MYFLT)(int)((notenum+numgrades-1) / numgrades) ;
       }
       else {
         notenum = notenum - basekeymidi;
         grade  = notenum % numgrades;
-        factor = (MYFLT)(int) (notenum / numgrades);
+        factor = (MYFLT)(int)(notenum / numgrades);
       }
       factor = (MYFLT)pow((double)interval, (double)factor);
       p->old_r = (*p->r = func[grade] * factor * basefreq);
@@ -795,8 +795,8 @@ int logbasetwo_set(CSOUND *csound, EVAL *p)
       csound->logbase2 = (MYFLT*) csound->Malloc(csound, (STEPS + 1)
                                                          * sizeof(MYFLT));
       for (i = 0; i <= STEPS; i++) {
-        csound->logbase2[i] = (MYFLT) (ONEdLOG2 * log(x));
-        x += ((INTERVAL - 1.0 / INTERVAL) / (double) STEPS);
+        csound->logbase2[i] = (MYFLT)(ONEdLOG2 * log(x));
+        x += ((INTERVAL - 1.0 / INTERVAL) / (double)STEPS);
       }
     }
     return OK;
@@ -885,7 +885,7 @@ int dba(CSOUND *csound, EVAL *p)          /* JPff */
 
 int logbasetwo(CSOUND *csound, EVAL *p)
 {
-    int n = (int) ((*p->a -  (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
+    int n = (int)((*p->a -  (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
                    *  STEPS + FL(0.5));
     if (n<0 || n>STEPS)
       *p->r = (MYFLT)(log((double)*p->a)*ONEdLOG2);
@@ -903,7 +903,7 @@ int logbasetwoa(CSOUND *csound, EVAL *p)
     r = p->r;
     for (n=0; n<nsmps; n++) {
       MYFLT aa = a[n];
-      int n = (int) ((aa - (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
+      int n = (int)((aa - (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
                      *  STEPS + FL(0.5));
       if (n<0 || n>STEPS) r[n] = (MYFLT)(log((double)aa)*ONEdLOG2);
       else                r[n] = csound->logbase2[n];
@@ -1040,7 +1040,7 @@ int in32(CSOUND *csound, INALL *p)
 
 int inch_opcode(CSOUND *csound, INCH *p)
 {
-    int   ch = (int) (*p->ch + FL(0.5));
+    int   ch = (int)(*p->ch + FL(0.5));
     int   n;
     int   nsmps = csound->ksmps;
     MYFLT *sp = csound->spin + (ch - 1);
@@ -1057,7 +1057,7 @@ int inch_opcode(CSOUND *csound, INCH *p)
 
 int inall_opcode(CSOUND *csound, INALL *p)
 {
-    int   n = (int) p->OUTOCOUNT;
+    int   n = (int)p->OUTOCOUNT;
     int   m;
     int   i, j = 0, k = 0;
 
@@ -1447,7 +1447,7 @@ int outX(CSOUND *csound, OUTX *p)
 
 int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
 {
-    int nch = (int) p->INOCOUNT;
+    int nch = (int)p->INOCOUNT;
     return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
 }
 
@@ -1457,12 +1457,12 @@ int outch(CSOUND *csound, OUTCH *p)
     int         i, j;
     MYFLT       *sp, *apn;
     int         nsmps = csound->ksmps;
-    int         count = (int) p->INOCOUNT;
+    int         count = (int)p->INOCOUNT;
     MYFLT       **args = p->args;
 
     for (j = 0; j < count; j += 2) {
       nsmps = csound->ksmps;
-      ch = (int) (*args[j] + FL(0.5));
+      ch = (int)(*args[j] + FL(0.5));
       apn = args[j + 1];
       if (ch > csound->nchnls) continue;
       if (!csound->spoutactive) {
@@ -1519,7 +1519,7 @@ int invalset(CSOUND *csound, INVAL *p)
     else {
       /* convert numerical channel to string name */
       csound->AuxAlloc(csound, 64, &p->channelName);
-      sprintf((char*) p->channelName.auxp, "%d", (int) MYFLT2LRND(*p->valID));
+      sprintf((char*) p->channelName.auxp, "%d", (int)MYFLT2LRND(*p->valID));
     }
 
     /* grab input now for use during i-pass */
@@ -1551,7 +1551,7 @@ int invalset_S(CSOUND *csound, INVAL *p)
     }
     else {
       csound->AuxAlloc(csound, 64, &p->channelName);
-      sprintf(p->channelName.auxp, "$%d", (int) MYFLT2LRND(*p->valID));
+      sprintf(p->channelName.auxp, "$%d", (int)MYFLT2LRND(*p->valID));
     }
 
     /* grab input now for use during i-pass */
@@ -1562,14 +1562,14 @@ int invalset_S(CSOUND *csound, INVAL *p)
 
 int koutval(CSOUND *csound, OUTVAL *p)
 {
-    char    *chan = (char*) p->channelName.auxp;
+    char    *chan = (char*)p->channelName.auxp;
 
     if (csound->OutputValueCallback_) {
       if (p->XSTRCODE & 2) {
         /* a hack to support strings */
         long  len = strlen(chan);
-        strcat(chan, (char*) p->value);
-        csound->OutputValueCallback_(csound, chan, (MYFLT) len);
+        strcat(chan, (char*)p->value);
+        csound->OutputValueCallback_(csound, chan, (MYFLT)len);
         chan[len] = '\0';   /* clear for next time */
       }
       else
@@ -1598,8 +1598,8 @@ int outvalset(CSOUND *csound, OUTVAL *p)
     else {
       /* convert numerical channel to string name */
       csound->AuxAlloc(csound, 64, &p->channelName);
-      sprintf((char*) p->channelName.auxp, (p->XSTRCODE & 2 ? "$%d" : "%d"),
-              (int) MYFLT2LRND(*p->valID));
+      sprintf((char*)p->channelName.auxp, (p->XSTRCODE & 2 ? "$%d" : "%d"),
+              (int)MYFLT2LRND(*p->valID));
     }
 
     /* send output now for use during i-pass */

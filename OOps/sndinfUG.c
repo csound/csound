@@ -75,16 +75,16 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
 
         f = fopen(sfname, "rb");
         if (f != NULL) {
-          int   n = (int) fread(&cvdata, sizeof(CVSTRUCT), 1, f);
+          int   n = (int)fread(&cvdata, sizeof(CVSTRUCT), 1, f);
           fclose(f);
           if (n == 1) {
-            if (cvdata.magic == (long) CVMAGIC &&
-                cvdata.dataFormat == (long) CVMYFLT &&
-                cvdata.Format == (long) CVRECT) {
-              hdr->frames = (sf_count_t) cvdata.Hlen;
-              hdr->samplerate = (int) (cvdata.samplingRate + FL(0.5));
-              hdr->channels = (cvdata.channel == (long) ALLCHNLS ?
-                               (int) cvdata.src_chnls : 1);
+            if (cvdata.magic == (long)CVMAGIC &&
+                cvdata.dataFormat == (long)CVMYFLT &&
+                cvdata.Format == (long)CVRECT) {
+              hdr->frames = (sf_count_t)cvdata.Hlen;
+              hdr->samplerate = (int)(cvdata.samplingRate + FL(0.5));
+              hdr->channels = (cvdata.channel == (long)ALLCHNLS ?
+                               (int)cvdata.src_chnls : 1);
               return 1;
             }
           }
@@ -99,19 +99,19 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr)
         fd = csound->PVOC_OpenFile(csound, sfname, &pvdata, &fmt);
         if (fd >= 0) {
           hdr->frames =
-              (sf_count_t) (((long) csound->PVOC_FrameCount(csound, fd)
-                             / (int) fmt.nChannels) * (int) pvdata.dwOverlap);
-          hdr->samplerate = (int) fmt.nSamplesPerSec;
-          hdr->channels = (int) fmt.nChannels;
+              (sf_count_t) (((long)csound->PVOC_FrameCount(csound, fd)
+                             / (int)fmt.nChannels) * (int)pvdata.dwOverlap);
+          hdr->samplerate = (int)fmt.nSamplesPerSec;
+          hdr->channels = (int)fmt.nChannels;
           csound->PVOC_CloseFile(csound, fd);
           return 1;
         }
       }
       memset(&sfinfo, 0, sizeof(SF_INFO));
-      sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+      sfinfo.samplerate = (int)(csound->esr + FL(0.5));
       sfinfo.channels = 1;
-      sfinfo.format = (int) FORMAT2SF(csound->oparms->outformat)
-                      | (int) TYPE2SF(TYP_RAW);
+      sfinfo.format = (int)FORMAT2SF(csound->oparms->outformat)
+                      | (int)TYPE2SF(TYP_RAW);
       /* try again */
       sf = sf_open(sfname, SFM_READ, &sfinfo);
     }
@@ -130,7 +130,7 @@ int filelen(CSOUND *csound, SNDINFO *p)
     SF_INFO hdr;
 
     if (getsndinfo(csound, p, &hdr))
-      *(p->r1) = (MYFLT) ((long) hdr.frames) / (MYFLT) hdr.samplerate;
+      *(p->r1) = (MYFLT)((long)hdr.frames) / (MYFLT)hdr.samplerate;
     else
       *(p->r1) = FL(0.0);
 
@@ -142,7 +142,7 @@ int filenchnls(CSOUND *csound, SNDINFO *p)
     SF_INFO hdr;
 
     getsndinfo(csound, p, &hdr);
-    *(p->r1) = (MYFLT) hdr.channels;
+    *(p->r1) = (MYFLT)hdr.channels;
 
     return OK;
 }
@@ -152,7 +152,7 @@ int filesr(CSOUND *csound, SNDINFO *p)
     SF_INFO hdr;
 
     getsndinfo(csound, p, &hdr);
-    *(p->r1) = (MYFLT) hdr.samplerate;
+    *(p->r1) = (MYFLT)hdr.samplerate;
 
     return OK;
 }
@@ -162,7 +162,7 @@ int filesr(CSOUND *csound, SNDINFO *p)
 
 int filepeak(CSOUND *csound, SNDINFOPEAK *p)
 {
-    int     channel = (int) (*p->channel + FL(0.5));
+    int     channel = (int)(*p->channel + FL(0.5));
     char    *sfname, soundiname[512];
     void    *fd;
     SNDFILE *sf;
@@ -170,12 +170,14 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
     int     fmt, typ;
     SF_INFO sfinfo;
 
-    csound->strarg2name(csound, soundiname, p->ifilno, "soundin.", p->XSTRCODE);
+    csound->strarg2name(csound, soundiname, p->ifilno,
+                        "soundin.", p->XSTRCODE);
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {        /* get info on the -i    */
       sfname = csound->oparms->infilename;  /* commandline inputfile */
       if (sfname == NULL)
-        csound->Die(csound, Str("no infile specified in the commandline"));
+        csound->Die(csound,
+                    Str("no infile specified in the commandline"));
     }
     memset(&sfinfo, 0, sizeof(SF_INFO));    /* open with full dir paths */
     fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
@@ -191,8 +193,8 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
 #endif
-        if (sf_command(sf, SFC_CALC_NORM_SIGNAL_MAX, &peakVal, sizeof(double))
-            != 0)
+        if (sf_command(sf, SFC_CALC_NORM_SIGNAL_MAX,
+                       &peakVal, sizeof(double)) != 0)
           peakVal = -1.0;
 #if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1016
       }
@@ -204,8 +206,8 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
       if (channel > sfinfo.channels)
         csound->Die(csound, Str("Input channel for peak exceeds number "
                                 "of channels in file"));
-      nBytes = sizeof(double) * sfinfo.channels;
-      peaks = (double*) csound->Malloc(csound, nBytes);
+      nBytes = sizeof(double)* sfinfo.channels;
+      peaks = (double*)csound->Malloc(csound, nBytes);
 #if defined(HAVE_LIBSNDFILE) && HAVE_LIBSNDFILE >= 1016
       if (sf_command(sf, SFC_GET_MAX_ALL_CHANNELS, peaks, nBytes) == SF_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
@@ -225,9 +227,9 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p)
     typ = sfinfo.format & SF_FORMAT_TYPEMASK;
     if ((fmt != SF_FORMAT_FLOAT && fmt != SF_FORMAT_DOUBLE) ||
         (typ == SF_FORMAT_WAV || typ == SF_FORMAT_W64 || typ == SF_FORMAT_AIFF))
-      *p->r1 = (MYFLT) (peakVal * (double) csound->e0dbfs);
+      *p->r1 = (MYFLT)(peakVal * (double)csound->e0dbfs);
     else
-      *p->r1 = (MYFLT) peakVal;
+      *p->r1 = (MYFLT)peakVal;
     csound->FileClose(csound, fd);
 
     return OK;
