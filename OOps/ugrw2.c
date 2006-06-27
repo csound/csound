@@ -239,7 +239,7 @@ int ktone(CSOUND *csound, KTONE *p)
        * We need this since we are filtering at k rate, not a rate. */
 
       b = FL(2.0)
-          - (MYFLT) cos((double) (*p->khp * csound->tpidsr * csound->ksmps));
+          - (MYFLT)cos((double)(*p->khp * csound->tpidsr * csound->ksmps));
       p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
       p->c1 = FL(1.0) - p->c2;
     }
@@ -259,7 +259,7 @@ int katone(CSOUND *csound, KTONE *p)
       MYFLT b;
       p->prvhp = *p->khp;
       b = FL(2.0)
-          - (MYFLT) cos((double) (*p->khp * csound->tpidsr * csound->ksmps));
+          - (MYFLT)cos((double)(*p->khp * csound->tpidsr * csound->ksmps));
       p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.));
       p->c1 = FL(1.0) - p->c2;
     }

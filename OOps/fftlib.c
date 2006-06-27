@@ -64,9 +64,9 @@ static void fftCosInit(int M, MYFLT *Utbl)
     unsigned int i1;
 
     Utbl[0] = FL(1.0);
-    for (i1 = 1; i1 < fftN / 4; i1++)
-      Utbl[i1] = (MYFLT) cos((2.0 * MYPI * (double) i1) / (double) fftN);
-    Utbl[fftN / 4] = FL(0.0);
+    for (i1 = 1; i1 < fftN/4; i1++)
+      Utbl[i1] = (MYFLT)cos((2.0 * MYPI * (double)i1) / (double)fftN);
+    Utbl[fftN/4] = FL(0.0);
 }
 
 static void fftBRInit(int M, short *BRLow)
@@ -3067,7 +3067,7 @@ static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, short *BRLow)
     int StageCnt;
     int NDiffU;
 
-    scale = (MYFLT) (1.0 / (double) ((int) POW2(M)));
+    scale = (MYFLT)(1.0 / (double)((int)POW2(M)));
     M = M - 1;
     switch (M) {
     case -1:

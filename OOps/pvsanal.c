@@ -59,12 +59,12 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
         {
           double  beta = 6.8;
           double  x, flen2, besbeta;
-          flen2 = 1.0 / ((double) (winLen >> 1) * (double) (winLen >> 1));
+          flen2 = 1.0 / ((double)(winLen >> 1) * (double)(winLen >> 1));
           besbeta = 1.0 / besseli(beta);
           n = winLen >> 1;
           x = (even ? 0.5 : 0.05);
           for (i = 0; i < n; i++, x += 1.0)
-            buf[i] = (MYFLT) (besseli(beta * sqrt(1.0 - x * x * flen2))
+            buf[i] = (MYFLT)(besseli(beta * sqrt(1.0 - x * x * flen2))
                               * besbeta);
           buf[i] = FL(0.0);
         }
@@ -77,8 +77,8 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     flen = csound->GetTable(csound, &ftable, -(type));
     if (flen < 0)
       return csound->InitError(csound, Str("ftable for window not found"));
-    inc = (double) flen / (double) (winLen & (~1));
-    fpos = ((double) flen + (double) even * inc) * 0.5;
+    inc = (double)flen / (double)(winLen & (~1));
+    fpos = ((double)flen + (double)even * inc) * 0.5;
     n = winLen >> 1;
     /* this assumes that for a window with even size, space for an extra */
     /* sample is allocated */
@@ -154,7 +154,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
                                 (PI*0.5));
       for (i = 1; i <= halfwinsize; i++)
         *(analwinhalf + i) *= (MYFLT)
-          ((double)N * sin((double) (PI*(i+0.5*Mf)/N)) / (PI*(i+0.5*Mf)));
+          ((double)N * sin((double)(PI*(i+0.5*Mf)/N)) / (PI*(i+0.5*Mf)));
       for (i = 1; i <= halfwinsize; i++)
         *(analwinhalf - i) = *(analwinhalf + i - Mf);
     }
@@ -390,7 +390,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->format = p->fsig->format;
     halfwinsize = M/2;
     buflen = M*4;
-    IO = (double) overlap;         /* always, no time-scaling possible */
+    IO = (double)overlap;         /* always, no time-scaling possible */
 
     p->arate = csound->esr / (MYFLT) overlap;
     p->fund = csound->esr / (MYFLT) N;
@@ -422,7 +422,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
                                 ( PI*0.5));
       for (i = 1; i <= halfwinsize; i++)
         *(analwinhalf + i) *= (MYFLT)
-          ((double)N * sin((double) (PI*(i+0.5*Mf)/N)) / (PI*(i+0.5*Mf)));
+          ((double)N * sin((double)(PI*(i+0.5*Mf)/N)) / (PI*(i+0.5*Mf)));
       for (i = 1; i <= halfwinsize; i++)
         *(analwinhalf - i) = *(analwinhalf + i - Mf);
     }
@@ -458,10 +458,10 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
 
       if (Lf)
-        *synwinhalf *= (MYFLT)(IO * sin((double) (PI*0.5/IO)) / (PI*0.5));
+        *synwinhalf *= (MYFLT)(IO * sin((double)(PI*0.5/IO)) / (PI*0.5));
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf + i) *= (MYFLT)
-          ((double)IO * sin((double) (PI*(i+0.5*Lf)/IO)) /
+          ((double)IO * sin((double)(PI*(i+0.5*Lf)/IO)) /
            (PI*(i+0.5*(double)Lf)));
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);

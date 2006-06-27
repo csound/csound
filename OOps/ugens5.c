@@ -970,7 +970,7 @@ int gain(CSOUND *csound, GAIN *p)
     q = p->prvq;
     asig = p->asig;
     for (n = 0; n < nsmps; n++) {
-      double as = (double) asig[n];
+      double as = (double)asig[n];
       q = c1 * as * as + c2 * q;
     }
     p->prvq = q;
@@ -981,7 +981,7 @@ int gain(CSOUND *csound, GAIN *p)
     ar = p->ar;
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff * (double) csound->onedksmps;
+      inc = diff * (double)csound->onedksmps;
       for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;
@@ -1008,8 +1008,8 @@ int balance(CSOUND *csound, BALANCE *p)
     asig = p->asig;
     csig = p->csig;
     for (n = 0; n < nsmps; n++) {
-      double as = (double) asig[n];
-      double cs = (double) csig[n];
+      double as = (double)asig[n];
+      double cs = (double)csig[n];
       q = c1 * as * as + c2 * q;
       r = c1 * cs * cs + c2 * r;
     }
@@ -1022,7 +1022,7 @@ int balance(CSOUND *csound, BALANCE *p)
     ar = p->ar;
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
-      inc = diff * (double) csound->onedksmps;
+      inc = diff * (double)csound->onedksmps;
       for (n = 0; n < nsmps; n++) {
         ar[n] = asig[n] * m;
         m += inc;

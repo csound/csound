@@ -58,36 +58,36 @@ int apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
     }
     else {
       for (n = 0; n < nsmps; n++)
-        out[n] = (MYFLT) pow(in[n], powerOf) / *p->norm;
+        out[n] = (MYFLT)pow(in[n], powerOf) / *p->norm;
     }
     return OK;
 }
 
 int seedrand(CSOUND *csound, PRAND *p)
 {
-    uint32_t  seedVal = (uint32_t) 0;
+    uint32_t  seedVal = (uint32_t)0;
 
     if (*p->out > FL(0.0))
-      seedVal = (uint32_t) ((double) *p->out + 0.5);
+      seedVal = (uint32_t)((double)*p->out + 0.5);
     if (!seedVal) {
-      seedVal = (uint32_t) csound->GetRandomSeedFromTime();
+      seedVal = (uint32_t)csound->GetRandomSeedFromTime();
       csound->Message(csound, Str("Seeding from current time %u\n"),
-                              (unsigned int) seedVal);
+                              (unsigned int)seedVal);
     }
     else
-      csound->Message(csound, Str("Seeding with %u\n"), (unsigned int) seedVal);
+      csound->Message(csound, Str("Seeding with %u\n"), (unsigned int)seedVal);
     csound->SeedRandMT(&(csound->randState_), NULL, seedVal);
-    csound->holdrand = (int) (seedVal & (uint32_t) 0x7FFFFFFF);
-    while (seedVal >= (uint32_t) 0x7FFFFFFE)
-      seedVal -= (uint32_t) 0x7FFFFFFE;
-    csound->randSeed1 = ((int) seedVal + 1);
+    csound->holdrand = (int)(seedVal & (uint32_t) 0x7FFFFFFF);
+    while (seedVal >= (uint32_t)0x7FFFFFFE)
+      seedVal -= (uint32_t)0x7FFFFFFE;
+    csound->randSeed1 = ((int)seedVal + 1);
 
     return OK;
 }
 
 /* * * * * * RANDOM NUMBER GENERATORS * * * * * */
 
-#define UInt32toFlt(x) ((double) (x) * (1.0 / 4294967295.03125))
+#define UInt32toFlt(x) ((double)(x) * (1.0 / 4294967295.03125))
 
 #define unirand(c) ((MYFLT) UInt32toFlt(csoundRandMT(&((c)->randState_))))
 
@@ -105,7 +105,7 @@ static inline MYFLT linrand(CSOUND *csound, MYFLT range)
     r1 = csoundRandMT(&(csound->randState_));
     r2 = csoundRandMT(&(csound->randState_));
 
-    return ((MYFLT) UInt32toFlt(r1 < r2 ? r1 : r2) * range);
+    return ((MYFLT)UInt32toFlt(r1 < r2 ? r1 : r2) * range);
 }
 
 /* triangle distribution routine */
@@ -114,10 +114,10 @@ static inline MYFLT trirand(CSOUND *csound, MYFLT range)
 {
     uint64_t  r1;
 
-    r1 = (uint64_t) csoundRandMT(&(csound->randState_));
-    r1 += (uint64_t) csoundRandMT(&(csound->randState_));
+    r1 = (uint64_t)csoundRandMT(&(csound->randState_));
+    r1 += (uint64_t)csoundRandMT(&(csound->randState_));
 
-    return ((MYFLT) ((double) ((int64_t) r1 - (int64_t) 0xFFFFFFFFU)
+    return ((MYFLT) ((double)((int64_t)r1 - (int64_t)0xFFFFFFFFU)
                      * (1.0 / 4294967295.03125)) * range);
 }
 
@@ -127,11 +127,13 @@ static MYFLT exprand(CSOUND *csound, MYFLT l)
 {
     uint32_t  r1;
 
+    if (l < FL(0.0)) return (FL(0.0)); /* for safety */
+
     do {
       r1 = csoundRandMT(&(csound->randState_));
     } while (!r1);
 
-    return -((MYFLT) log(UInt32toFlt(r1)) * l);
+    return -((MYFLT)log(UInt32toFlt(r1)) * l);
 }
 
 /* bilateral exponential distribution routine */
@@ -140,29 +142,31 @@ static MYFLT biexprand(CSOUND *csound, MYFLT l)
 {
     int32_t r1;
 
+    if (l < FL(0.0)) return (FL(0.0)); /* For safety */
+
     do {
-      r1 = (int32_t) csoundRandMT(&(csound->randState_));
+      r1 = (int32_t)csoundRandMT(&(csound->randState_));
     } while (!r1);
 
-    if (r1 < (int32_t) 0) {
-      return -((MYFLT) log(-((double) r1) * (1.0 / 2147483648.0)) * l);
+    if (r1 < (int32_t)0) {
+      return -((MYFLT)log(-((double)r1) * (1.0 / 2147483648.0)) * l);
     }
-    return ((MYFLT) log((double) r1 * (1.0 / 2147483648.0)) * l);
+    return ((MYFLT)log((double)r1 * (1.0 / 2147483648.0)) * l);
 }
 
 /* gaussian distribution routine */
 
 static MYFLT gaussrand(CSOUND *csound, MYFLT s)
 {
-    int64_t   r1 = -((int64_t) 0xFFFFFFFFU * 6);
+    int64_t   r1 = -((int64_t)0xFFFFFFFFU * 6);
     int       n = 12;
     double    x;
 
     do {
-      r1 += (int64_t) csoundRandMT(&(csound->randState_));
+      r1 += (int64_t)csoundRandMT(&(csound->randState_));
     } while (--n);
-    x = (double) r1;
-    return (MYFLT) (x * ((double) s * (1.0 / (3.83 * 4294967295.03125))));
+    x = (double)r1;
+    return (MYFLT)(x * ((double)s * (1.0 / (3.83 * 4294967295.03125))));
 }
 
 /* cauchy distribution routine */
@@ -174,8 +178,8 @@ static MYFLT cauchrand(CSOUND *csound, MYFLT a)
 
     do {
       r1 = csoundRandMT(&(csound->randState_)); /* Limit range artificially */
-    } while (r1 > (uint32_t) 2143188560U && r1 < (uint32_t) 2151778735U);
-    x = (MYFLT) (tan((double) r1 * (PI / 4294967295.0)) * (1.0 / 318.3));
+    } while (r1 > (uint32_t)2143188560U && r1 < (uint32_t)2151778735U);
+    x = (MYFLT)(tan((double)r1 * (PI / 4294967295.0)) * (1.0 / 318.3));
     return (x * a);
 }
 
@@ -188,8 +192,8 @@ static MYFLT pcauchrand(CSOUND *csound, MYFLT a)
 
     do {
       r1 = csoundRandMT(&(csound->randState_));
-    } while (r1 > (uint32_t) 4286377121U);      /* Limit range artificially */
-    x = (MYFLT) (tan((double) r1 * (PI * 0.5 / 4294967295.0)) * (1.0 / 318.3));
+    } while (r1 > (uint32_t)4286377121U);      /* Limit range artificially */
+    x = (MYFLT)(tan((double)r1 * (PI * 0.5 / 4294967295.0)) * (1.0 / 318.3));
     return (x * a);
 }
 
@@ -207,14 +211,14 @@ static MYFLT betarand(CSOUND *csound, MYFLT range, MYFLT a, MYFLT b)
       do {
         tmp = csoundRandMT(&(csound->randState_));
       } while (!tmp);
-      r1 = pow(UInt32toFlt(tmp), 1.0 / (double) a);
+      r1 = pow(UInt32toFlt(tmp), 1.0 / (double)a);
       do {
         tmp = csoundRandMT(&(csound->randState_));
       } while (!tmp);
-      r2 = r1 + pow(UInt32toFlt(tmp), 1.0 / (double) b);
+      r2 = r1 + pow(UInt32toFlt(tmp), 1.0 / (double)b);
     } while (r2 > 1.0);
 
-    return (((MYFLT) r1 / (MYFLT) r2) * range);
+    return (((MYFLT)r1 / (MYFLT)r2) * range);
 }
 
 /* weibull distribution routine */
@@ -224,16 +228,15 @@ static MYFLT weibrand(CSOUND *csound, MYFLT s, MYFLT t)
     uint32_t  r1;
     double    r2;
 
-    if (t <= FL(0.0))
-      return FL(0.0);
+    if (t <= FL(0.0)) return FL(0.0);
 
     do {
       r1 = csoundRandMT(&(csound->randState_));
-    } while (!r1 || r1 == (uint32_t) 0xFFFFFFFFU);
+    } while (!r1 || r1 == (uint32_t)0xFFFFFFFFU);
 
-    r2 = 1.0 - ((double) r1 * (1.0 / 4294967295.0));
+    r2 = 1.0 - ((double)r1 * (1.0 / 4294967295.0));
 
-    return (s * (MYFLT) pow(-(log(r2)), (1.0 / (double) t)));
+    return (s * (MYFLT)pow(-(log(r2)), (1.0 / (double)t)));
 }
 
 /* Poisson distribution routine */
@@ -242,11 +245,10 @@ static MYFLT poissrand(CSOUND *csound, MYFLT l)
 {
     MYFLT r1, r2, r3;
 
-    if (l < FL(0.0))
-      return FL(0.0);
+    if (l < FL(0.0)) return FL(0.0);
 
     r1 = unirand(csound);
-    r2 = (MYFLT) exp(-l);
+    r2 = (MYFLT)exp(-l);
     r3 = FL(0.0);
 
     while (r1 >= r2) {
@@ -262,10 +264,10 @@ static MYFLT poissrand(CSOUND *csound, MYFLT l)
 int auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
 {
     MYFLT   *out = p->out, *endp = p->out + csound->ksmps;
-    double  scale = (double) *p->arg1 * (1.0 / 4294967295.03125);
+    double  scale = (double)*p->arg1 * (1.0 / 4294967295.03125);
 
     do {
-      *(out++) = (MYFLT) ((double) csoundRandMT(&(csound->randState_)) * scale);
+      *(out++) = (MYFLT)((double)csoundRandMT(&(csound->randState_)) * scale);
     } while (out < endp);
     return OK;
 }
