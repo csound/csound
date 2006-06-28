@@ -25,100 +25,102 @@
 
 #ifndef VST4CS_H
 #define VST4CS_H
+
 #include "csdl.h"
 
 typedef struct VSTINIT_ {
-        OPDS h;
-        // Inputs.
-        MYFLT *iVSThandle;
-        MYFLT *iplugin;
-        MYFLT *iverbose;
-} VSTINIT ;
+    OPDS    h;
+    // Inputs.
+    MYFLT   *iVSThandle;
+    MYFLT   *iplugin;
+    MYFLT   *iverbose;
+} VSTINIT;
 
 typedef struct VSTINFO_ {
-        OPDS h;
-        // Inputs.
-        MYFLT *iVSThandle;
-} VSTINFO ;
+    OPDS    h;
+    // Inputs.
+    MYFLT   *iVSThandle;
+} VSTINFO;
 
 typedef struct VSTAUDIO_ {
-        OPDS h;
-        // Outputs.
-        MYFLT *aout1;
-        MYFLT *aout2;
-        // Inputs.
-        MYFLT *iVSThandle;
-        MYFLT *ain1;
-        MYFLT *ain2;
-        // State.
-        size_t framesPerBlock;
-        size_t channels;
-} VSTAUDIO ;
+    OPDS    h;
+    // Outputs.
+    MYFLT   *aouts[32];
+    // Inputs.
+    MYFLT   *iVSThandle;
+    MYFLT   *ains[32];
+    // State.
+    size_t  framesPerBlock;
+    size_t  pluginInChannels;
+    size_t  pluginOutChannels;
+    size_t  opcodeInChannels;
+    size_t  opcodeOutChannels;
+} VSTAUDIO;
 
 typedef struct VSTNOTE_ {
-        OPDS h;
-        // Inputs.
-        MYFLT *iVSThandle;
-        MYFLT *kchan;
-        MYFLT *knote;
-        MYFLT *kveloc;
-        MYFLT *kdur;
-        // State.
-        MYFLT framesRemaining;
-} VSTNOTE ;
+    OPDS    h;
+    // Inputs.
+    MYFLT   *iVSThandle;
+    MYFLT   *kchan;
+    MYFLT   *knote;
+    MYFLT   *kveloc;
+    MYFLT   *kdur;
+    // State.
+    MYFLT   framesRemaining;
+} VSTNOTE;
 
 typedef struct VSTMIDIOUT_ {
-        OPDS h;
-        // Inputs.
-        MYFLT *iVSThandle;
-        MYFLT *kstatus;
-        MYFLT *kchan;
-        MYFLT *kdata1;
-        MYFLT *kdata2;
-        // State.
-        MYFLT oldkstatus;
-        MYFLT oldkchan;
-        MYFLT oldkvalue;
+    OPDS    h;
+    // Inputs.
+    MYFLT   *iVSThandle;
+    MYFLT   *kstatus;
+    MYFLT   *kchan;
+    MYFLT   *kdata1;
+    MYFLT   *kdata2;
+    // State.
+    MYFLT   oldkstatus;
+    MYFLT   oldkchan;
+    MYFLT   oldkvalue;
 } VSTMIDIOUT;
 
 typedef struct VSTPARAMGET_ {
-        OPDS h;
-        // Outputs.
-        MYFLT *kvalue;
-        // Intputs.
-        MYFLT *iVSThandle;
-        MYFLT *kparam;
-} VSTPARAMGET ;
+    OPDS    h;
+    // Outputs.
+    MYFLT   *kvalue;
+    // Intputs.
+    MYFLT   *iVSThandle;
+    MYFLT   *kparam;
+} VSTPARAMGET;
 
 typedef struct VSTPARAMSET_ {
-        OPDS h;
-        // Inputs.
-        MYFLT *iVSThandle;
-        MYFLT *kparam;
-        MYFLT *kvalue;
-        // State.
-        MYFLT oldkparam;
-        MYFLT oldkvalue;
-} VSTPARAMSET ;
+    OPDS    h;
+    // Inputs.
+    MYFLT   *iVSThandle;
+    MYFLT   *kparam;
+    MYFLT   *kvalue;
+    // State.
+    MYFLT   oldkparam;
+    MYFLT   oldkvalue;
+} VSTPARAMSET;
 
 typedef struct VSTBANKLOAD_ {
-        OPDS h;
-        // Inputs.
-        MYFLT *iVSThandle;
-        MYFLT *ibank;
+    OPDS    h;
+    // Inputs.
+    MYFLT   *iVSThandle;
+    MYFLT   *ibank;
 } VSTBANKLOAD;
 
 typedef struct VSTPROGSET_ {
-        OPDS h;
-        // Inputs.
-        MYFLT *iVSThandle;
-        MYFLT *iprogram;
+    OPDS    h;
+    // Inputs.
+    MYFLT   *iVSThandle;
+    MYFLT   *iprogram;
 } VSTPROGSET;
 
 typedef struct VSTEDIT_ {
-        OPDS h;
-        // Inputs.
-        MYFLT *iVSThandle;
+    OPDS    h;
+    // Inputs.
+    MYFLT   *iVSThandle;
 } VSTEDIT;
 
 #endif

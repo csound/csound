@@ -1,3 +1,8 @@
+2006-06-28  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/vst4cs/src/: Many changes bringing code closer to
+	Istvan's fork
+
 2006-06-27  jpff  <jpff@codemist.co.uk>
 
 	* OOps/cmath.c (exprand):
