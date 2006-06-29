@@ -31,7 +31,7 @@
 #include "csoundCore.h"
 #include "midiout.h"
 
-#define MGLOB(x) (((CSOUND*) csound)->midiGlobals->x)
+#define MGLOB(x) (((CSOUND*)csound)->midiGlobals->x)
 
 #define NUMCHN          (16)
 #define EXTRA_TIME      (1)
@@ -58,16 +58,16 @@ int release_set(CSOUND *csound, REL *p)
 int release(CSOUND *csound, REL *p)
 {
     if (p->h.insdshead->relesing)
-      *p->r=FL(1.0); /* TRUE */
+      *p->r = FL(1.0); /* TRUE */
     else
-      *p->r=FL(0.0); /* FALSE */
+      *p->r = FL(0.0); /* FALSE */
     return OK;
 }
 
 int xtratim(CSOUND *csound, XTRADUR *p)
 {
     int *xtra = &(p->h.insdshead->xtratim);
-    int tim = (int) (*p->extradur * csound->ekr);
+    int tim = (int)(*p->extradur * csound->ekr);
     if (*xtra < tim)  /* gab-a5 revised */
       *xtra = tim;
     return OK;
@@ -97,7 +97,7 @@ int mclock(CSOUND *csound, MCLOCK *p)
 
 int mrtmsg(CSOUND *csound, MRT *p)
 {
-    switch ((int) *p->message) {
+    switch ((int)*p->message) {
     case 0:
       send_midi_message(csound, 0xFC, 0, 0); /* stop */
       break;
@@ -139,12 +139,12 @@ int iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;
 
-    p->chn = (temp = abs((int) *p->ichn-1)) < NUMCHN ? temp : NUMCHN-1;
-    p->num = (temp = abs((int) *p->inum)) < 128 ? temp : 127;
-    p->vel = (temp = abs((int) *p->ivel)) < 128 ? temp : 127;
+    p->chn = (temp = abs((int)*p->ichn-1)) < NUMCHN ? temp : NUMCHN-1;
+    p->num = (temp = abs((int)*p->inum)) < 128 ? temp : 127;
+    p->vel = (temp = abs((int)*p->ivel)) < 128 ? temp : 127;
 
     note_on(csound, p->chn,p->num, p->vel);
-    p->istart_time = (MYFLT) csound->kcounter * csound->onedkr;
+    p->istart_time = (MYFLT)csound->kcounter * csound->onedkr;
     p->fl_expired = FALSE;
     p->fl_extra_dur = FALSE;
     return OK;
@@ -171,7 +171,7 @@ int iout_on_dur(CSOUND *csound, OUT_ON_DUR *p)
 int iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
 {
     if (!(p->fl_expired)) {
-      MYFLT actual_dur = (MYFLT) csound->kcounter * csound->onedkr
+      MYFLT actual_dur = (MYFLT)csound->kcounter * csound->onedkr
                          - p->istart_time;
       MYFLT dur = *p->idur;
       if (dur < actual_dur) {
@@ -199,7 +199,7 @@ int moscil_set(CSOUND *csound, MOSCIL *p)
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;
-    p->istart_time = (MYFLT) csound->kcounter * csound->onedkr;
+    p->istart_time = (MYFLT)csound->kcounter * csound->onedkr;
     p->fl_first_note   = TRUE;
     p->fl_note_expired = TRUE;
     p->fl_end_note     = FALSE;
@@ -218,7 +218,7 @@ int moscil(CSOUND *csound, MOSCIL *p)
         p->fl_end_note     = TRUE;
         note_off(csound, p->last_chn, p->last_num, p->last_vel);
       }
-      else if (p->last_dur < (MYFLT) csound->kcounter * csound->onedkr
+      else if (p->last_dur < (MYFLT)csound->kcounter * csound->onedkr
                              - p->istart_time) {
         p->fl_note_expired = TRUE;
         note_off(csound, p->last_chn, p->last_num, p->last_vel);
@@ -227,7 +227,7 @@ int moscil(CSOUND *csound, MOSCIL *p)
     else {
       if (!p->fl_end_note
           && p->last_pause + p->last_dur <
-             (MYFLT) csound->kcounter * csound->onedkr - p->istart_time
+             (MYFLT)csound->kcounter * csound->onedkr - p->istart_time
           && !(p->h.insdshead->relesing)) {
         MYFLT ftemp;
         p->istart_time = p->istart_time + p->last_pause + p->last_dur;
@@ -237,10 +237,10 @@ int moscil(CSOUND *csound, MOSCIL *p)
  first_note:
         {
           int temp;
-          p->last_chn = (temp = abs((int) *p->kchn-1)) < NUMCHN ? temp :
+          p->last_chn = (temp = abs((int)*p->kchn-1)) < NUMCHN ? temp :
                                                                   NUMCHN-1;
-          p->last_num = (temp = abs((int) *p->knum)) < 128    ? temp : 127;
-          p->last_vel = (temp = abs((int) *p->kvel)) < 128    ? temp : 127;
+          p->last_num = (temp = abs((int)*p->knum)) < 128    ? temp : 127;
+          p->last_vel = (temp = abs((int)*p->kvel)) < 128    ? temp : 127;
         }
         p->fl_note_expired = FALSE;
         note_on(csound, p->last_chn, p->last_num, p->last_vel);
@@ -263,9 +263,9 @@ int kvar_out_on(CSOUND *csound, KOUT_ON *p)
     if (p->fl_first_note) {
       int temp;
 
-      p->last_chn = (temp = abs((int) *p->kchn-1)) < NUMCHN  ? temp : NUMCHN-1;
-      p->last_num = (temp = abs((int) *p->knum)) < 128     ? temp : 127;
-      p->last_vel = (temp = abs((int) *p->kvel)) < 128     ? temp : 127;
+      p->last_chn = (temp = abs((int)*p->kchn-1)) < NUMCHN  ? temp : NUMCHN-1;
+      p->last_num = (temp = abs((int)*p->knum)) < 128     ? temp : 127;
+      p->last_vel = (temp = abs((int)*p->kvel)) < 128     ? temp : 127;
       p->fl_first_note   = FALSE;
       p->fl_note_expired = FALSE;
 
@@ -280,8 +280,8 @@ int kvar_out_on(CSOUND *csound, KOUT_ON *p)
       else {
         int temp;
         int curr_chn = (temp = abs((int)*p->kchn-1)) < NUMCHN ? temp : NUMCHN-1;
-        int curr_num = (temp = abs((int) *p->knum)) < 128    ? temp : 127;
-        int curr_vel = (temp = abs((int) *p->kvel)) < 128    ? temp : 127;
+        int curr_num = (temp = abs((int)*p->knum)) < 128    ? temp : 127;
+        int curr_vel = (temp = abs((int)*p->kvel)) < 128    ? temp : 127;
 
         if (  p->last_chn != curr_chn
                || p->last_num != curr_num
@@ -306,7 +306,7 @@ int out_controller (CSOUND *csound, OUT_CONTR *p)
       /* if prev instance already allocated in the same MIDI chan */
       int value;
       MYFLT min = *p->min;
-      value =  (int)((*p->value - min) * 127. / (*p->max - min));
+      value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
       value = (value < 128) ?  value : 127;
       value = (value > -1) ?  value : 0;
       if (value != p->last_value) {
@@ -324,7 +324,7 @@ int out_aftertouch (CSOUND *csound, OUT_ATOUCH *p)
       /* if prev instance already allocated in the same MIDI chan */
       int value;
       MYFLT min = *p->min;
-      value =  (int)((*p->value - min) * 127. / (*p->max - min));
+      value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
       value = value < 128 ?  value : 127;
       value = value > -1  ?  value : 0;
       if (value != p->last_value) {
@@ -339,11 +339,11 @@ int out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
 {
     int value;
     MYFLT min = *p->min;
-    value =  (int)((*p->value - min) * 127. / (*p->max - min));
+    value =  (int)((*p->value - min) * FL(127.0) / (*p->max - min));
     value = value < 128 ?  value : 127;
     value = value > -1  ?  value : 0;
     if (value != p->last_value) {
-      poly_after_touch(csound, (int) *p->chn-1, (int) *p->num, value);
+      poly_after_touch(csound, (int)*p->chn-1, (int)*p->num, value);
       p->last_value = value;
     }
 
@@ -356,11 +356,11 @@ int out_progchange (CSOUND *csound, OUT_PCHG *p)
       /* if prev instance already allocated in the same MIDI chan */
       int prog_num;
       MYFLT min = *p->min;
-      prog_num =  (int)((*p->prog_num - min) * 127. / (*p->max - min));
+      prog_num =  (int)((*p->prog_num - min) * FL(127.0) / (*p->max - min));
       prog_num = prog_num < 128 ?  prog_num : 127;
       prog_num = prog_num > -1  ?  prog_num : 0;
       if (prog_num != p->last_prog_num) {
-        program_change(csound, (int) *p->chn-1, prog_num);
+        program_change(csound, (int)*p->chn-1, prog_num);
         p->last_prog_num = prog_num;
       }
     }
@@ -374,7 +374,7 @@ int out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
       int value;
       MYFLT min = *p->min;
 
-      value =  (int)((*p->value - min) * 16383. / (*p->max - min));
+      value =  (int)((*p->value - min) * FL(16383.0) / (*p->max - min));
       value = (value < 16384) ?  value : 16383;
       value = (value > -1) ?  value : 0;
 
@@ -382,7 +382,7 @@ int out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
         csound->Message(csound, Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
-        control_change(csound, (int) *p->chn-1, (int)*p->msb_num, msb);
+        control_change(csound, (int)*p->chn-1, (int)*p->msb_num, msb);
         control_change(csound, (int)*p->chn-1, (int)*p->lsb_num, lsb);
         p->last_value = value;
       }
@@ -400,13 +400,13 @@ int out_pitch_bend(CSOUND *csound, OUT_PB *p)
       int   value;
       MYFLT min = *p->min;
 
-      value = (int) ((*p->value - min) * 16383.0 / (*p->max - min));
+      value = (int)((*p->value - min) * FL(16383.0) / (*p->max - min));
       value = (value < 16384  ?  value : 16383);
       value = (value > -1     ?  value : 0);
       if (value != p->last_value) {
         unsigned int msb = value >> 7;
         unsigned int lsb = value & 0x7F;
-        pitch_bend(csound, (int) *p->chn - 1, lsb, msb);
+        pitch_bend(csound, (int)*p->chn - 1, lsb, msb);
         p->last_value = value;
       }
     }
@@ -428,15 +428,15 @@ int kon2(CSOUND *csound, KON2 *p)
 {
     /*
         if (p->fl_first_note) {
-                register int temp;
+          register int temp;
 
-                p->last_chn = (temp = abs((int) *p->kchn)) < NUMCHN  ? temp : NUMCHN-1;
-                p->last_num = (temp = abs((int) *p->knum)) < 128     ? temp : 127;
-                p->last_vel = (temp = abs((int) *p->kvel)) < 128     ? temp : 127;
-                p->fl_first_note   = FALSE;
-                p->fl_note_expired = FALSE;
+          p->last_chn = (temp = abs((int)*p->kchn)) < NUMCHN  ? temp : NUMCHN-1;
+          p->last_num = (temp = abs((int)*p->knum)) < 128     ? temp : 127;
+          p->last_vel = (temp = abs((int)*p->kvel)) < 128     ? temp : 127;
+          p->fl_first_note   = FALSE;
+          p->fl_note_expired = FALSE;
 
-                note_on(csound, p->last_chn, p->last_num, p->last_vel);
+          note_on(csound, p->last_chn, p->last_num, p->last_vel);
         }
 
     */
@@ -450,11 +450,11 @@ int kon2(CSOUND *csound, KON2 *p)
       else {
         int temp;
 
-        int curr_chn = (temp = abs((int) *p->kchn-1)) <= NUMCHN ? temp : NUMCHN;
-        int curr_num = (temp = abs((int) *p->knum)) < 128    ? temp : 127;
-        int curr_vel = (temp = abs((int) *p->kvel)) < 128    ? temp : 127;
+        int curr_chn = (temp = abs((int)*p->kchn-1)) <= NUMCHN ? temp : NUMCHN;
+        int curr_num = (temp = abs((int)*p->knum)) < 128    ? temp : 127;
+        int curr_vel = (temp = abs((int)*p->kvel)) < 128    ? temp : 127;
 
-        if ((int)(*p->ktrig +.5) != 0  )/* i.e. equal to 1  */
+        if ((int)(*p->ktrig +FL(0.5)) != 0  )/* i.e. equal to 1  */
                                 /*   p->last_chn != curr_chn
                                 || p->last_num != curr_num
                                 || p->last_vel != curr_vel
@@ -475,21 +475,21 @@ int midiout(CSOUND *csound, MIDIOUT *p)         /*gab-A6 fixed*/
 {
     int st, ch, d1, d2;
 
-    st = (int) (*p->in_type + 0.5);
+    st = (int)(*p->in_type + FL(0.5));
     if (!st)
       return OK;
     st = (st & 0x70) | 0x80;
-    ch = (int) (*p->in_chan - 0.5) & 0x0F;
-    d1 = (int) (*p->in_dat1 + 0.5) & 0x7F;
-    d2 = (int) (*p->in_dat2 + 0.5) & 0x7F;
+    ch = (int)(*p->in_chan - FL(0.5)) & 0x0F;
+    d1 = (int)(*p->in_dat1 + FL(0.5)) & 0x7F;
+    d2 = (int)(*p->in_dat2 + FL(0.5)) & 0x7F;
     send_midi_message(csound, st | ch, d1, d2);
     return OK;
 }
 
 int nrpn(CSOUND *csound, NRPN *p)
 {
-    int chan = (int) *p->chan-1, parm = (int) *p->parm_num;
-    int value = (int) *p->parm_value;
+    int chan = (int)*p->chan-1, parm = (int)*p->parm_num;
+    int value = (int)*p->parm_value;
     if (chan != p->old_chan || parm != p->old_parm || value != p->old_value) {
       int status = 176 | chan;
       int parm_msb =  parm >> 7;
@@ -523,11 +523,11 @@ int mdelay(CSOUND *csound, MDELAY *p)                   /*gab-A6 fixed*/
     int write_index = p->write_index % DELTAB_LENGTH;
     MYFLT present_time =  csound->kcounter * csound->onedkr;
 
-    if (((int) *p->in_status == 0x90 || (int) *p->in_status == 0x80)) {
-      p->status[write_index] = (int) *p->in_status;
-      p->chan[write_index] = (int) *p->in_chan-1;
-      p->dat1[write_index] = (int) *p->in_dat1;
-      p->dat2[write_index] = (int) *p->in_dat2;
+    if (((int)*p->in_status == 0x90 || (int)*p->in_status == 0x80)) {
+      p->status[write_index] = (int)*p->in_status;
+      p->chan[write_index] = (int)*p->in_chan-1;
+      p->dat1[write_index] = (int)*p->in_dat1;
+      p->dat2[write_index] = (int)*p->in_dat2;
       p->time[write_index] = present_time;
       (p->write_index)++;
     }

@@ -57,9 +57,9 @@ int midinoteoncps(CSOUND *csound, MIDINOTEON *p)
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
-    octave = (MYFLT) (p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
+    octave = (MYFLT)(p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
     longOctave = (long)(octave * OCTRES);
-    *p->xkey = (MYFLT) CPSOCTL(longOctave);
+    *p->xkey = (MYFLT)CPSOCTL(longOctave);
     *p->xvelocity = p->h.insdshead->m_veloc;
     return OK;
 }
@@ -70,7 +70,7 @@ int midinoteonoct(CSOUND *csound, MIDINOTEON *p)
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }
-    octave = (MYFLT) (p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
+    octave = (MYFLT)(p->h.insdshead->m_pitch / FL(12.0) + FL(3.0));
     *p->xkey = octave;
     *p->xvelocity = p->h.insdshead->m_veloc;
     return OK;

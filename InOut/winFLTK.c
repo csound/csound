@@ -37,7 +37,7 @@
 
 static void MakeGraph_FLTK(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
-    wdptr->windid = MakeWindow_FLTK((char*) name);
+    wdptr->windid = MakeWindow_FLTK((char*)name);
 }
 
 static void KillGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
@@ -57,7 +57,7 @@ static int dummyWidgetOpcode(CSOUND *csound, void *p)
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
-    (void) csound;
+    (void)csound;
     return 0;
 }
 
@@ -68,9 +68,12 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     int           *fltkFlags;
     int           enableDisplays = 0;
 
-    if (csound->QueryGlobalVariable(csound, "FLTK_Flags") == (void*) 0) {
-      if (csound->CreateGlobalVariable(csound, "FLTK_Flags", sizeof(int)) != 0)
-        csound->Die(csound, Str("widgets.cpp: error allocating FLTK flags"));
+    if (csound->QueryGlobalVariable(csound,
+                                    "FLTK_Flags") == (void*) 0) {
+      if (csound->CreateGlobalVariable(csound,
+                                       "FLTK_Flags", sizeof(int)) != 0)
+        csound->Die(csound,
+                    Str("widgets.cpp: error allocating FLTK flags"));
       initFlags = 1;
     }
     fltkFlags = getFLTKFlagsPtr(csound);
@@ -108,7 +111,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!((*fltkFlags) & 129)) {
       for ( ; ep->opname != NULL; ep++) {
         if (csound->AppendOpcode(csound, ep->opname,
-                                 (int) ep->dsblksiz, (int) ep->thread,
+                                 (int)ep->dsblksiz, (int)ep->thread,
                                  ep->outypes, ep->intypes,
                                  ep->iopadr, ep->kopadr, ep->aopadr) != 0) {
           csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
@@ -120,11 +123,11 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     else if (!((*fltkFlags) & 128)) {
       for ( ; ep->opname != NULL; ep++) {
         if (csound->AppendOpcode(
-                csound, ep->opname, (int) ep->dsblksiz, (int) ep->thread,
+                csound, ep->opname, (int)ep->dsblksiz, (int)ep->thread,
                 ep->outypes, ep->intypes,
-                (((int) ep->thread & 1) ? dummyWidgetOpcode : (SUBR) 0),
-                (((int) ep->thread & 2) ? dummyWidgetOpcode : (SUBR) 0),
-                (((int) ep->thread & 4) ? dummyWidgetOpcode : (SUBR) 0)) != 0) {
+                (((int)ep->thread & 1) ? dummyWidgetOpcode : (SUBR) 0),
+                (((int)ep->thread & 2) ? dummyWidgetOpcode : (SUBR) 0),
+                (((int)ep->thread & 4) ? dummyWidgetOpcode : (SUBR) 0)) != 0) {
           csound->ErrorMsg(csound, Str("Error registering opcode '%s'"),
                                    ep->opname);
           return -1;
@@ -137,6 +140,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int)sizeof(MYFLT));
 }
 
