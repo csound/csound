@@ -51,7 +51,7 @@ int vbap_FOUR(CSOUND *csound, VBAP_FOUR *p) /* during note performance: */
 
     /* write audio to result audio streams weighted
        with gain factors*/
-    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
+    invfloatn =  FL(1.0) / (MYFLT)csound->ksmps;
     for (j=0; j<FOUR; j++) {
       inptr      = p->audio;
       outptr     = p->out_array[j];
@@ -62,10 +62,10 @@ int vbap_FOUR(CSOUND *csound, VBAP_FOUR *p) /* during note performance: */
         if (ngain != ogain) {
           for (i = 0; i < csound->ksmps; i++) {
             *outptr++ = *inptr++ *
-              (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
+              (ogain + (MYFLT)(i+1) * invfloatn * gainsubstr);
           }
           p->curr_gains[j]= ogain +
-            (MYFLT) (i) * invfloatn * gainsubstr;
+            (MYFLT)(i) * invfloatn * gainsubstr;
         }
         else {
           for (i=0; i<csound->ksmps; ++i)
@@ -111,7 +111,8 @@ int vbap_FOUR_control(CSOUND *csound, VBAP_FOUR *p)
         /* four orthogonal dirs*/
         new_spread_dir(&spreaddir[0], p->cart_dir,
                        p->spread_base, *p->azi, *p->spread);
-        new_spread_base(spreaddir[0], p->cart_dir,*p->spread, &p->spread_base);
+        new_spread_base(spreaddir[0], p->cart_dir,
+                        *p->spread, &p->spread_base);
         cross_prod(p->spread_base, p->cart_dir, &spreadbase[1]);
         cross_prod(spreadbase[1], p->cart_dir, &spreadbase[2]);
         cross_prod(spreadbase[2], p->cart_dir, &spreadbase[3]);
@@ -193,9 +194,9 @@ int vbap_FOUR_init(CSOUND *csound, VBAP_FOUR *p)
     LS_SET  *ls_set_ptr;
 
     ls_table = get_ls_table(csound);
-    p->dim       = (int) ls_table[0];   /* reading in loudspeaker info */
-    p->ls_am     = (int) ls_table[1];
-    p->ls_set_am = (int) ls_table[2];
+    p->dim       = (int)ls_table[0];   /* reading in loudspeaker info */
+    p->ls_am     = (int)ls_table[1];
+    p->ls_set_am = (int)ls_table[2];
     ptr = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (p->aux.auxp == NULL) {
@@ -206,22 +207,23 @@ int vbap_FOUR_init(CSOUND *csound, VBAP_FOUR *p)
     for (i=0; i < p->ls_set_am; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
       for (j=0 ; j < p->dim ; j++) {
-        ls_set_ptr[i].ls_nos[j] = (int) *(ptr++);
+        ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
       }
       for (j=0 ; j < 9; j++)
         ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
       for (j=0 ; j < (p->dim) * (p->dim); j++) {
-        ls_set_ptr[i].ls_mx[j] = (MYFLT) *(ptr++);
+        ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
       }
     }
 
     /* other initialization */
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Message(csound,
+                      Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
-    p->ang_dir.azi    = (MYFLT) *p->azi;
-    p->ang_dir.ele    = (MYFLT) *p->ele;
+    p->ang_dir.azi    = (MYFLT)*p->azi;
+    p->ang_dir.ele    = (MYFLT)*p->ele;
     p->ang_dir.length = FL(1.0);
     angle_to_cart(p->ang_dir, &(p->cart_dir));
     p->spread_base.x  = p->cart_dir.y;
@@ -235,8 +237,8 @@ int vbap_FOUR_init(CSOUND *csound, VBAP_FOUR *p)
     return OK;
 }
 
-int vbap_FOUR_moving(CSOUND *csound, VBAP_FOUR_MOVING *p) /* during note performance:   */
-{
+int vbap_FOUR_moving(CSOUND *csound, VBAP_FOUR_MOVING *p)
+{                               /* during note performance:   */
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
@@ -250,7 +252,7 @@ int vbap_FOUR_moving(CSOUND *csound, VBAP_FOUR_MOVING *p) /* during note perform
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
-    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
+    invfloatn =  FL(1.0) / (MYFLT)csound->ksmps;
     for (j=0; j<FOUR ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
@@ -261,10 +263,10 @@ int vbap_FOUR_moving(CSOUND *csound, VBAP_FOUR_MOVING *p) /* during note perform
         if (ngain != ogain) {
           for (i = 0; i < csound->ksmps; i++) {
             *outptr++ = *inptr++ *
-              (ogain + (MYFLT) (i+1) * invfloatn * gainsubstr);
+              (ogain + (MYFLT)(i+1) * invfloatn * gainsubstr);
           }
           p->curr_gains[j]= ogain +
-            (MYFLT) (i) * invfloatn * gainsubstr;
+            (MYFLT)(i) * invfloatn * gainsubstr;
         }
         else
           for (i=0; i<csound->ksmps; ++i)
@@ -286,7 +288,8 @@ int vbap_FOUR_moving_control(CSOUND *csound, VBAP_FOUR_MOVING *p)
     MYFLT coeff, angle;
     MYFLT tmp_gains[FOUR],sum=FL(0.0);
     if (p->dim == 2 && fabs(p->ang_dir.ele) > 0.0) {
-      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Message(csound,
+                      Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
     if (*p->spread <FL(0.0))
@@ -315,7 +318,8 @@ int vbap_FOUR_moving_control(CSOUND *csound, VBAP_FOUR_MOVING *p)
         csound->Die(csound, Str("Missing fields in vbap4move\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
-          csound->Message(csound,Str("Warning: Ambiguous transition 180 degrees.\n"));
+          csound->Message(csound,
+                          Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (*p->field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D*/
@@ -469,11 +473,11 @@ int vbap_FOUR_moving_init(CSOUND *csound, VBAP_FOUR_MOVING *p)
 
     ls_table = get_ls_table(csound);
     /* reading in loudspeaker info */
-    p->dim       = (int) ls_table[0];
-    p->ls_am     = (int) ls_table[1];
-    p->ls_set_am = (int) ls_table[2];
+    p->dim       = (int)ls_table[0];
+    p->ls_am     = (int)ls_table[1];
+    p->ls_set_am = (int)ls_table[2];
     ptr = &(ls_table[3]);
-    csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
+    csound->AuxAlloc(csound, p->ls_set_am * sizeof(LS_SET), &p->aux);
     if (p->aux.auxp == NULL) {
       return csound->InitError(csound, Str("could not allocate memory"));
     }
@@ -482,12 +486,12 @@ int vbap_FOUR_moving_init(CSOUND *csound, VBAP_FOUR_MOVING *p)
     for (i=0 ; i < p->ls_set_am ; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
       for (j=0 ; j < p->dim ; j++) {
-        ls_set_ptr[i].ls_nos[j] = (int) *(ptr++);
+        ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
       }
       for (j=0 ; j < 9; j++)
         ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
       for (j=0 ; j < (p->dim) * (p->dim); j++) {
-        ls_set_ptr[i].ls_mx[j] = (MYFLT) *(ptr++);
+        ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
       }
     }
 

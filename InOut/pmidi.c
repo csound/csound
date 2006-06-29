@@ -48,12 +48,12 @@ static int portMidi_getDeviceCount(int output)
     int           i, cnt1, cnt2;
     PmDeviceInfo  *info;
 
-    cnt1 = (int) Pm_CountDevices();
+    cnt1 = (int)Pm_CountDevices();
     if (cnt1 < 1)
       return cnt1;      /* no devices */
     cnt2 = 0;
     for (i = 0; i < cnt1; i++) {
-      info = (PmDeviceInfo*) Pm_GetDeviceInfo((PmDeviceID) i);
+      info = (PmDeviceInfo*)Pm_GetDeviceInfo((PmDeviceID) i);
       if (output && info->output)
         cnt2++;
       else if (!output && info->input)
@@ -67,10 +67,10 @@ static int portMidi_getRealDeviceID(int dev, int output)
     int           i, j, cnt;
     PmDeviceInfo  *info;
 
-    cnt = (int) Pm_CountDevices();
+    cnt = (int)Pm_CountDevices();
     i = j = -1;
     while (++i < cnt) {
-      info = (PmDeviceInfo*) Pm_GetDeviceInfo((PmDeviceID) i);
+      info = (PmDeviceInfo*)Pm_GetDeviceInfo((PmDeviceID) i);
       if ((output && !(info->output)) || (!output && !(info->input)))
         continue;
       if (++j == dev)
@@ -84,10 +84,10 @@ static int portMidi_getPackedDeviceID(int dev, int output)
     int           i, j, cnt;
     PmDeviceInfo  *info;
 
-    cnt = (int) Pm_CountDevices();
+    cnt = (int)Pm_CountDevices();
     i = j = -1;
     while (++i < cnt) {
-      info = (PmDeviceInfo*) Pm_GetDeviceInfo((PmDeviceID) i);
+      info = (PmDeviceInfo*)Pm_GetDeviceInfo((PmDeviceID) i);
       if ((output && info->output) || (!output && info->input))
         j++;
       if (i == dev)
@@ -103,7 +103,7 @@ static PmDeviceInfo *portMidi_getDeviceInfo(int dev, int output)
     i = portMidi_getRealDeviceID(dev, output);
     if (i < 0)
       return NULL;
-    return ((PmDeviceInfo*) Pm_GetDeviceInfo((PmDeviceID) i));
+    return ((PmDeviceInfo*)Pm_GetDeviceInfo((PmDeviceID) i));
 }
 
 static void portMidi_listDevices(CSOUND *csound, int output)
@@ -185,7 +185,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     /* look up device in list */
     if (dev == NULL || dev[0] == '\0')
       devnum =
-        portMidi_getPackedDeviceID((int) Pm_GetDefaultInputDeviceID(), 0);
+        portMidi_getPackedDeviceID((int)Pm_GetDefaultInputDeviceID(), 0);
     else if (dev[0] < '0' || dev[0] > '9') {
       portMidiErrMsg(csound, Str("error: must specify a device number (>=0), "
                                  "not a name"));
@@ -193,7 +193,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       return -1;
     }
     else
-      devnum = (int) atoi(dev);
+      devnum = (int)atoi(dev);
     if (devnum < 0 || devnum >= cntdev) {
       portMidiErrMsg(csound, Str("error: device number is out of range"));
       portMidi_listDevices(csound, 0);
@@ -242,7 +242,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
     /* look up device in list */
     if (dev == NULL || dev[0] == '\0')
       devnum =
-        portMidi_getPackedDeviceID((int) Pm_GetDefaultOutputDeviceID(), 1);
+        portMidi_getPackedDeviceID((int)Pm_GetDefaultOutputDeviceID(), 1);
     else if (dev[0] < '0' || dev[0] > '9') {
       portMidiErrMsg(csound, Str("error: must specify a device number (>=0), "
                                  "not a name"));
@@ -250,7 +250,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
       return -1;
     }
     else
-      devnum = (int) atoi(dev);
+      devnum = (int)atoi(dev);
     if (devnum < 0 || devnum >= cntdev) {
       portMidiErrMsg(csound, Str("error: device number is out of range"));
       portMidi_listDevices(csound, 1);
@@ -294,9 +294,9 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
       return portMidiErrMsg(csound, Str("error polling input device"));
     n = 0;
     while ((retval = Pm_Read(midistream, &mev, 1L)) > 0) {
-      st = (int) Pm_MessageStatus(mev.message);
-      d1 = (int) Pm_MessageData1(mev.message);
-      d2 = (int) Pm_MessageData2(mev.message);
+      st = (int)Pm_MessageStatus(mev.message);
+      d1 = (int)Pm_MessageData1(mev.message);
+      d2 = (int)Pm_MessageData2(mev.message);
       /* unknown message or sysex data: ignore */
       if (st < 0x80)
         continue;
@@ -349,7 +349,7 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       return 0;
     n = 0;
     do {
-      st = (int) *(mbuf++);
+      st = (int)*(mbuf++);
       if (st < 0x80) {
         portMidiErrMsg(csound, Str("invalid MIDI out data"));
         break;
@@ -369,9 +369,9 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       mev.timestamp = (PmTimestamp) 0;
       mev.message |= (PmMessage) Pm_Message(st, 0, 0);
       if (datbyts[(st - 0x80) >> 4] > 0)
-        mev.message |= (PmMessage) Pm_Message(0, (int) *(mbuf++), 0);
+        mev.message |= (PmMessage) Pm_Message(0, (int)*(mbuf++), 0);
       if (datbyts[(st - 0x80) >> 4] > 1)
-        mev.message |= (PmMessage) Pm_Message(0, 0, (int) *(mbuf++));
+        mev.message |= (PmMessage) Pm_Message(0, 0, (int)*(mbuf++));
       if (Pm_Write(midistream, &mev, 1L) != pmNoError)
         portMidiErrMsg(csound, Str("MIDI out: error writing message"));
       else

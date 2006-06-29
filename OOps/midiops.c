@@ -47,15 +47,15 @@ extern int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls);
  * code so the test is not dynamic, but until I understand it.... */
 #define pitchbend_value(m) MIDI_VALUE(m,pchbend)
 
-#define MGLOB(x) (((CSOUND*) csound)->midiGlobals->x)
+#define MGLOB(x) (((CSOUND*)csound)->midiGlobals->x)
 
-int midibset(CSOUND *, MIDIKMB *);
+int midibset(CSOUND*, MIDIKMB*);
 
 /* IV - Oct 31 2002: modified to allow named instruments */
 
 int massign(CSOUND *csound, MASSIGN *p)
 {
-    int   chnl = (int) (*p->chnl + FL(0.5));
+    int   chnl = (int)(*p->chnl + FL(0.5));
     long  instno = 0L;
     int   resetCtls;
     int   retval = OK;
@@ -78,26 +78,26 @@ int massign(CSOUND *csound, MASSIGN *p)
 
 int ctrlinit(CSOUND *csound, CTLINIT *p)
 {
-    short chnl = (short) (*p->chnl - FL(0.5));
+    short chnl = (short)(*p->chnl - FL(0.5));
     short nargs = p->INOCOUNT;
     if ((nargs & 0x1) == 0) {
-        csound->InitError(csound, Str("uneven ctrl pairs"));
-        return 0;
+      csound->InitError(csound, Str("uneven ctrl pairs"));
+      return 0;
     }
     else {
-        MCHNBLK *chn;
-        MYFLT **argp = p->ctrls;
-        short ctlno, nctls = nargs >> 1;
-        chn = csound->m_chnbp[chnl];
-        do {
-            ctlno = (short) **argp++;
-            if (ctlno < 0 || ctlno > 127) {
-                csound->InitError(csound, Str("illegal ctrl no"));
-                return NOTOK;
-            }
-            chn->ctl_val[ctlno] = **argp++;
-        } while (--nctls);
-        return OK;
+      MCHNBLK *chn;
+      MYFLT **argp = p->ctrls;
+      short ctlno, nctls = nargs >> 1;
+      chn = csound->m_chnbp[chnl];
+      do {
+        ctlno = (short)**argp++;
+        if (ctlno < 0 || ctlno > 127) {
+          csound->InitError(csound, Str("illegal ctrl no"));
+          return NOTOK;
+        }
+        chn->ctl_val[ctlno] = **argp++;
+      } while (--nctls);
+      return OK;
     }
 }
 
@@ -123,20 +123,20 @@ int cpstmid(CSOUND *csound, CPSTABLE *p)
       return NOTOK;
     }
     func = ftp->ftable;
-    numgrades = (int) *func++;
+    numgrades = (int)*func++;
     interval = *func++;
     basefreq = *func++;
-    basekeymidi = (int) *func++;
+    basekeymidi = (int)*func++;
 
     if (notenum < basekeymidi) {
       notenum = basekeymidi - notenum;
       grade  = (numgrades-(notenum % numgrades)) % numgrades;
-      factor = - (MYFLT)(int) ((notenum+numgrades-1) / numgrades) ;
+      factor = - (MYFLT)(int)((notenum+numgrades-1) / numgrades) ;
     }
     else {
       notenum = notenum - basekeymidi;
       grade  = notenum % numgrades;
-      factor = (MYFLT)(int) (notenum / numgrades);
+      factor = (MYFLT)(int)(notenum / numgrades);
     }
     factor = (MYFLT)pow((double)interval, (double)factor);
     *p->r = func[grade] * factor * basefreq;
@@ -145,7 +145,7 @@ int cpstmid(CSOUND *csound, CPSTABLE *p)
 
 int veloc(CSOUND *csound, MIDIMAP *p)           /* valid only at I-time */
 {
-    *p->r = *p->ilo + csound->curip->m_veloc * (*p->ihi - *p->ilo) * dv127;
+    *p->r = *p->ilo + csound->curip->m_veloc*(*p->ihi - *p->ilo) * dv127;
     return OK;
 }
 
@@ -375,17 +375,17 @@ int pgmassign(CSOUND *csound, PGMASSIGN *p)
 {
     int pgm, ins, chn;
 
-    chn = (int) (*p->ichn + 0.5);
+    chn = (int)(*p->ichn + 0.5);
     if (chn < 0 || chn > 16)
       return csound->InitError(csound, Str("illegal channel number"));
     /* IV - Oct 31 2002: allow named instruments */
     if (p->XSTRCODE || *p->inst == SSTRCOD) {
       MYFLT buf[128];
       csound->strarg2name(csound, (char*) buf, p->inst, "", 1);
-      ins = (int) strarg2insno(csound, buf, 1);
+      ins = (int)strarg2insno(csound, buf, 1);
     }
     else
-      ins = (int) (*(p->inst) + FL(0.5));
+      ins = (int)(*(p->inst) + FL(0.5));
     if (*(p->ipgm) < FL(0.5)) {         /* program <= 0: assign all pgms */
       if (!chn) {                           /* on all channels */
         for (chn = 0; chn < 16; chn++)
@@ -399,7 +399,7 @@ int pgmassign(CSOUND *csound, PGMASSIGN *p)
       }
     }
     else {                              /* program > 0: assign selected pgm */
-      pgm = (int) (*(p->ipgm) - FL(0.5));
+      pgm = (int)(*(p->ipgm) - FL(0.5));
       if (pgm < 0 || pgm > 127) {
         csound->InitError(csound, Str("pgmassign: invalid program number"));
         return NOTOK;

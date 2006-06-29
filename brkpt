@@ -173,28 +173,28 @@ sub getsort(){
     @ylist = ();
 # find dots, and populate arrays
     for ($i=0; $i<=100; $i++){
-	($tx,,$ty,) = $c->coords("p$i");
-	if ($tx && $ty){
-	    $xlist[$j] = int $tx - 1;
-	    $ylist[$j++] = int $ty - 1;
-	}
+        ($tx,,$ty,) = $c->coords("p$i");
+        if ($tx && $ty){
+            $xlist[$j] = int $tx - 1;
+            $ylist[$j++] = int $ty - 1;
+        }
     }
 
     $pc = $j;
 
 # Sort arrays in order of increasing x value.
     for ($j=0; $j<$pc; $j++){
-	for ($i=0; $i<$pc; $i++){
-	    if ($xlist[$i] > $xlist[$i+1]){
-		$temp = $xlist[$i];
-		$xlist[$i] = $xlist[$i+1];
-		$xlist[$i+1] = $temp;
+        for ($i=0; $i<$pc; $i++){
+            if ($xlist[$i] > $xlist[$i+1]){
+                $temp = $xlist[$i];
+                $xlist[$i] = $xlist[$i+1];
+                $xlist[$i+1] = $temp;
 
-		$temp = $ylist[$i];
-		$ylist[$i] = $ylist[$i+1];
-		$ylist[$i+1] = $temp;
-	    }
-	}
+                $temp = $ylist[$i];
+                $ylist[$i] = $ylist[$i+1];
+                $ylist[$i+1] = $temp;
+            }
+        }
     }
 }
 
@@ -220,11 +220,11 @@ sub drag_point(){
 # Keep the dot inside the square, not just the canvas
     if (($cx + $x - $iinfo->{lastx} < 3) ||
         ($cx + $x - $iinfo->{lastx} > $scale)){
-	$xamount = 0;
+        $xamount = 0;
     }
     if (($cy + $y - $iinfo->{lasty} > $scale) ||
-	($cy + $y - $iinfo->{lasty} < 1)){
-	$yamount = 0;
+        ($cy + $y - $iinfo->{lasty} < 1)){
+        $yamount = 0;
     }
     $c->move('current', $xamount, $yamount);
     $iinfo->{lastx} = $x;
@@ -246,9 +246,9 @@ sub drag_edge(){
 # Not off the top or bottom, please
     if (($cy + $y - $iinfo->{lasty} > 0) &&
         ($cy + $y - $iinfo->{lasty} <= $scale)){
-	$c->move('current', 0, $y-$iinfo->{lasty});
-	$iinfo->{lastx} = $x;
-	$iinfo->{lasty} = $y;
+        $c->move('current', 0, $y-$iinfo->{lasty});
+        $iinfo->{lastx} = $x;
+        $iinfo->{lasty} = $y;
     }
 
 # Redraw lines
@@ -266,7 +266,7 @@ sub draw_lines(){
 
 # Delete all lines
     for ($i=0; $i<=100; $i++){
-	$c->delete("line$i");
+        $c->delete("line$i");
     }
 
 # Use end points
@@ -278,28 +278,28 @@ sub draw_lines(){
 
     if ($pc == 0){
 # Line only has 2 points
-	my $line = $c->createLine(4, $starty+4, $scale+4, $endy+4);
-	$c->addtag('line0', 'withtag', $line);
-	$c->lower('line0', 'left_point');
+        my $line = $c->createLine(4, $starty+4, $scale+4, $endy+4);
+        $c->addtag('line0', 'withtag', $line);
+        $c->lower('line0', 'left_point');
 
     }else{
 # First section
-	my $line = $c->createLine(4, $starty+4, $xlist[1]+4, $ylist[1]+4);
-	$c->addtag('line0', 'withtag', $line);
-	$c->lower('line0', 'left_point');
+        my $line = $c->createLine(4, $starty+4, $xlist[1]+4, $ylist[1]+4);
+        $c->addtag('line0', 'withtag', $line);
+        $c->lower('line0', 'left_point');
 
 # Middle sections
-	for ($i=1; $i<$pc; $i++){
-	    my $line = $c->createLine($xlist[$i]+4, $ylist[$i]+4,
+        for ($i=1; $i<$pc; $i++){
+            my $line = $c->createLine($xlist[$i]+4, $ylist[$i]+4,
                                       $xlist[$i+1]+4, $ylist[$i+1]+4);
-	$c->addtag("line$i", 'withtag', $line);
-	$c->lower("line$i", 'left_point');
-	}
+        $c->addtag("line$i", 'withtag', $line);
+        $c->lower("line$i", 'left_point');
+        }
 
 # Last section
-	my $line = $c->createLine($xlist[$pc]+4, $ylist[$pc]+4, $scale+4, $endy+4);
-	$c->addtag("line$pc", 'withtag', $line);
-	$c->lower("line$pc", 'left_point');
+        my $line = $c->createLine($xlist[$pc]+4, $ylist[$pc]+4, $scale+4, $endy+4);
+        $c->addtag("line$pc", 'withtag', $line);
+        $c->lower("line$pc", 'left_point');
     }
 
 # Generate the new "brkpt ..." line
@@ -328,12 +328,12 @@ sub gen_brkpt(){
 
 # Middle sections
     for ($i=1; $i<=$pc; $i++){
-	$x = int(($xlist[$i])/($scale/100.0))/100.0;
-	$tx = $x;
+        $x = int(($xlist[$i])/($scale/100.0))/100.0;
+        $tx = $x;
         $tx *= $max_x;
-	$y = int(($scale - $ylist[$i])/($scale/100.0))/100 *
+        $y = int(($scale - $ylist[$i])/($scale/100.0))/100 *
                                         ($max_y-$min_y) + $min_y;
-	$brkpt .= "($tx, $y) ";
+        $brkpt .= "($tx, $y) ";
     }
 
 # Last section
@@ -366,12 +366,12 @@ sub print_coords(){
 
 # Middle sections
     for ($i=1; $i<=$pc; $i++){
-	$x = int(($xlist[$i])/($scale/100.0))/100.0;
-	$tx = $x;
+        $x = int(($xlist[$i])/($scale/100.0))/100.0;
+        $tx = $x;
         $tx *= $max_x;
-	$y = int(($scale - $ylist[$i])/($scale/100.0))/100 *
+        $y = int(($scale - $ylist[$i])/($scale/100.0))/100 *
                                         ($max_y-$min_y) + $min_y;
-	$fbrkpt .= "$tx\t$y\n";
+        $fbrkpt .= "$tx\t$y\n";
     }
 
 # Last section
