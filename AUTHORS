@@ -2,17 +2,20 @@ Csound is the product of many people
 
 The original author is Barry Vercoe of the Media Lab, MIT
 
-Most of the Csound code has been modified, developed and extended by an
-independent group of programmers, composers and scientists. 
+Most of the Csound code has been modified, developed, documented and
+extended by an independent group of programmers, composers and
+scientists.
 
 These contributors include
 
 Mike Berry
+David Boothe
 Richard Boulanger
 Eli Breder
 Andres Cabrera
 Michael Casey
 Michael Clark
+Kevin Conder
 Perry Cook
 Sean Costello
 Rasmus Ekman
@@ -46,5 +49,4 @@ Robin Whittle
 Steven Yi
 
 There may be others whose names have been inadvertantly omitted.
-
-ãäåæçèé
+If so, many apologies.  Please report any mssing names.

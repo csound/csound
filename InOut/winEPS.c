@@ -1,5 +1,5 @@
 /*
-    XXX code for
+    winEPS.c:
 
     Copyright (C) 1995 Fabio P. Bertolotti
 
@@ -124,8 +124,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
      */
     strcpy(pathnam, filenam);
     t = strrchr(pathnam, '.');
-    if (t != NULL)
-      *t = '\0';
+    if (t != NULL) *t = '\0';
     strcat(pathnam, ".eps");
     pathnam_ = csoundFindOutputFile(csound, pathnam, "SFDIR");
     pp->psFile = NULL;
@@ -137,7 +136,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
       csound->Message(csound, Str("** Warning **  PostScript file %s "
                                   "cannot be opened\n"), pathnam);
       csound->winEPS_globals = NULL;
-      csound->Free(csound, (void *) pp);
+      csound->Free(csound, (void *)pp);
       return;
     }
     csound->Message(csound, Str("\n PostScript graphs written to file %s\n\n"),
@@ -192,13 +191,13 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
 
     bmin = 0.0000001;
     if (fabs(*min) > bmin) {
-      while ((int) (fabs(*min) / bmin))
+      while ((int)(fabs(*min) / bmin))
         bmin = bmin * 10.0;
     }
 
     bmax = 0.0000001;
     if (fabs(*max) > bmax) {
-      while ((i = (int) (fabs(*max) / bmax)))
+      while ((i = (int)(fabs(*max) / bmax)))
         bmax = bmax * 10.0;
     }
     if (fabs(bmin) > fabs(bmax))
@@ -213,13 +212,13 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
     if (*max == FL(0.0))
       i = 0;
     else
-      i = (int) ((*max / big) * 100.0) + 1;
+      i = (int)((*max / big) * 100.0) + 1;
     *max = (MYFLT) (i * big / 100.0);
 
     if (*min == FL(0.0))
       i = 0;
     else
-      i = (int) ((*min / big) * 100.0) - 1;
+      i = (int)((*min / big) * 100.0) - 1;
     *min = (MYFLT) (i * big / 100.0);
 
     if (fabs(*max - *min) < 0.0000001)
@@ -337,7 +336,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
 {
     winEPS_globals_t  *pp;
     int   iskip = (wdptr->npts < MyPS_WIDTH ?
-                   1 : (int) (wdptr->npts / MyPS_WIDTH));
+                   1 : (int)(wdptr->npts / MyPS_WIDTH));
     MYFLT xmin, xmax, ymin, ymax, xx, yy, dx, dy, fnts;
     char  cxmin[20], cxmax[20], cymin[20], cymax[20];
     int   i;
@@ -345,7 +344,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
     /**
      *  No action when the output file is not opened
      */
-    pp = (winEPS_globals_t *) csound->winEPS_globals;
+    pp = (winEPS_globals_t *)csound->winEPS_globals;
     if (pp == NULL)
       return;
 
@@ -378,7 +377,8 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
      */
     fnts = MyPS_FONTSIZE;
     fprintf(pp->psFile, "                \n");
-    fprintf(pp->psFile, "%s findfont %f scalefont setfont \n", MyPS_FONT, fnts);
+    fprintf(pp->psFile, "%s findfont %f scalefont setfont \n",
+            MyPS_FONT, fnts);
     xx = MyPS_XORIG;
     yy = MyPS_YORIG + MyPS_HEIGHT + FL(7.0) * fnts * FL(1.5);
     fprintf(pp->psFile, "%f  %f  moveto \n", xx, yy);

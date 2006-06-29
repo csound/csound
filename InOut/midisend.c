@@ -192,7 +192,7 @@ void openMIDIout(CSOUND *csound)
     }
     p->midiOutFileData = (void *) fp;
     /* write header */
-    fwrite(&(midiOutFile_header[0]), (size_t) 1, (size_t) 22, fp->f);
+    fwrite(&(midiOutFile_header[0]), (size_t)1, (size_t)22, fp->f);
 }
 
 void csoundCloseMidiOutFile(CSOUND *csound)
@@ -203,10 +203,10 @@ void csoundCloseMidiOutFile(CSOUND *csound)
     csoundWriteMidiOutFile(csound, &(midiOutFile_header[22]), 3);
     /* update header for track length */
     fseek(p->f, 18L, SEEK_SET);
-    fputc((int) (p->nBytes >> 24) & 0xFF, p->f);
-    fputc((int) (p->nBytes >> 16) & 0xFF, p->f);
-    fputc((int) (p->nBytes >> 8) & 0xFF, p->f);
-    fputc((int) p->nBytes & 0xFF, p->f);
+    fputc((int)(p->nBytes >> 24) & 0xFF, p->f);
+    fputc((int)(p->nBytes >> 16) & 0xFF, p->f);
+    fputc((int)(p->nBytes >> 8) & 0xFF, p->f);
+    fputc((int)(p->nBytes) & 0xFF, p->f);
     /* close file and clean up */
     csound->midiGlobals->midiOutFileData = NULL;
     csound->FileClose(csound, p->fd);

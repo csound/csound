@@ -30,7 +30,7 @@ const int MyVersion = 1;                /* highest known VST FX version      */
 
 CFxBank::CFxBank(char *pszFile)
 {
-    Init();                     	    /* initialize data areas             */
+    Init();                                 /* initialize data areas             */
     if (pszFile)                            /* if a file name has been passed    */
       LoadBank(pszFile);                    /* load the corresponding bank       */
 }
