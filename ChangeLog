@@ -1,3 +1,16 @@
+2006-06-30  jpff  <jpff@codemist.co.uk>
+
+	* OOps/midiops.c:
+	* OOps/ugrw1.c:
+	* Opcodes/oscbnk.c:
+	* Opcodes/physmod.c:
+	* Opcodes/uggab.c:
+	* Opcodes/wave-terrain.c: Similar changes to previous
+
+2006-06-30  Istvan Varga  <via jpff@codemist.co.uk>
+
+	* Opcodes/vbap_*.c (vbap_*): Replace 1/ksmps by the precomputed value
+
 2006-06-28  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/vst4cs/src/: Many changes bringing code closer to

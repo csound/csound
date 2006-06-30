@@ -310,7 +310,7 @@ static int poscak(CSOUND *csound, POSC *p)
 static int kposc(CSOUND *csound, POSC *p)
 {
     double      phs = p->phs;
-    double      si = *p->freq * p->tablen / csound->ekr;
+    double      si = *p->freq * p->tablen * csound->onedkr;
     MYFLT       *curr_samp = p->ftp->ftable + (long)phs;
     MYFLT       fract = (MYFLT)(phs - (double)((long)phs));
 
@@ -368,7 +368,7 @@ static int posc3(CSOUND *csound, POSC *p)
 static int kposc3(CSOUND *csound, POSC *p)
 {
     double      phs   = p->phs;
-    double      si    = *p->freq * p->tablen / csound->ekr;
+    double      si    = *p->freq * p->tablen * csound->onedkr;
     MYFLT       *ftab = p->ftp->ftable;
     int         x0    = (long)phs;
     MYFLT       fract = (MYFLT)(phs - (double)x0);
@@ -661,7 +661,7 @@ static int loopseg(CSOUND *csound, LOOPSEG *p)
 {
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
-    double   phs, si=*p->freq/csound->ekr;
+    double   phs, si=*p->freq*csound->onedkr;
     int nsegs=p->nsegs+1;
     int j;
     if (*p->retrig)
@@ -702,7 +702,7 @@ static int lpshold(CSOUND *csound, LOOPSEG *p)
 {
     MYFLT *argp=p->args;
     MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
-    double   phs, si=*p->freq/csound->ekr;
+    double   phs, si=*p->freq*csound->onedkr;
     int nsegs=p->nsegs+1;
     int j;
 
@@ -875,7 +875,7 @@ static int tlineto(CSOUND *csound, LINETO2 *p)
       p->current_val = *p->ksig;
     }
     else if (p->current_time < p->old_time) {
-      p->current_time += 1/csound->ekr;
+      p->current_time += csound->onedkr;
       p->val_incremented += p->incr;
     }
     *p->kr = p->val_incremented;
@@ -898,7 +898,7 @@ static int vibrato_set(CSOUND *csound, VIBRATO *p)
     p->xcpsAmpRate = randGab *(*p->cpsMaxRate - *p->cpsMinRate) + *p->cpsMinRate;
     p->xcpsFreqRate = randGab *(*p->ampMaxRate - *p->ampMinRate) + *p->ampMinRate;
     p->tablen = ftp->flen;
-    p->tablenUPkr = p->tablen /csound->ekr;
+    p->tablenUPkr = p->tablen * csound->onedkr;
     return OK;
 }
 
@@ -973,7 +973,7 @@ static int vibr_set(CSOUND *csound, VIBR *p)
     p->xcpsAmpRate = randGab  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
     p->xcpsFreqRate = randGab  * (ampMaxRate - ampMinRate) + ampMinRate;
     p->tablen = ftp->flen;
-    p->tablenUPkr = p->tablen /csound->ekr;
+    p->tablenUPkr = p->tablen * csound->onedkr;
     return OK;
 }
 
@@ -1137,7 +1137,7 @@ static int jitters(CSOUND *csound, JITTERS *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si =  (randGab  * (*p->cpsMax - *p->cpsMin) + *p->cpsMin)/csound->ekr;
+      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*csound->onedkr;
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0 = p->num0 = p->num1;
@@ -1432,7 +1432,7 @@ static int random3(CSOUND *csound, RANDOM3 *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si =  (randGab  * (*p->cpsMax - *p->cpsMin) + *p->cpsMin)/csound->ekr;
+      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)/csound->onedkr;
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0     = p->num0 = p->num1;

@@ -53,7 +53,7 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
 
     /* write audio to result audio streams weighted
        with gain factors */
-    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
+    invfloatn =  csound->onedksmps;
     outptr = p->out_array;
     for (j=0; j<n; j++) {
       inptr = p->audio;
@@ -88,7 +88,8 @@ int vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
     int n = p->n;
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0);
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Message(csound,
+                      Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
 
@@ -232,7 +233,8 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
 
     /* other initialization */
     if (p->dim == 2 && fabs(*p->ele) > 0.0) {
-      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Message(csound,
+                      Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
     p->ang_dir.azi = (MYFLT) *p->azi;
@@ -302,7 +304,8 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
     MYFLT coeff, angle;
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0); /* Array long enough */
     if (p->dim == 2 && fabs(p->ang_dir.ele) > 0.0) {
-      csound->Message(csound,Str("Warning: truncating elevation to 2-D plane\n"));
+      csound->Message(csound,
+                      Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
 
@@ -331,8 +334,10 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
       if ((p->fld[abs(p->next_fld)]==NULL))
         csound->Die(csound, Str("Missing fields in vbapzmove\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
-        if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld]) - 180.0) < 1.0)
-          csound->Message(csound,Str("Warning: Ambiguous transition 180 degrees.\n"));
+        if (fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld])
+                 - 180.0) < 1.0)
+          csound->Message(csound,
+                          Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (*p->field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D */
@@ -376,13 +381,15 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
     }
     else { /* angular velocities */
       if (p->dim == 2) {
-        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / csound->ekr);
+        p->ang_dir.azi = p->ang_dir.azi +
+          (*p->fld[p->next_fld] * csound->onedkr);
         scale_angles(&(p->ang_dir));
       }
       else { /* 3D angular */
-        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / csound->ekr);
-        p->ang_dir.ele =  p->ang_dir.ele +
-          p->ele_vel * (*p->fld[p->next_fld+1] / csound->ekr);
+        p->ang_dir.azi = p->ang_dir.azi +
+          (*p->fld[p->next_fld] * csound->onedkr);
+        p->ang_dir.ele = p->ang_dir.ele +
+          p->ele_vel * (*p->fld[p->next_fld+1] * csound->onedkr);
         if (p->ang_dir.ele > FL(90.0)) {
           p->ang_dir.ele = FL(90.0);
           p->ele_vel = -p->ele_vel;

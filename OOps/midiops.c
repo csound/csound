@@ -82,7 +82,7 @@ int ctrlinit(CSOUND *csound, CTLINIT *p)
     short nargs = p->INOCOUNT;
     if ((nargs & 0x1) == 0) {
       csound->InitError(csound, Str("uneven ctrl pairs"));
-      return 0;
+      return NOTOK;
     }
     else {
       MCHNBLK *chn;
