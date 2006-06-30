@@ -427,10 +427,10 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
     pm_enabled = (p->ilfomode & 0x22 ? 1 : 0);
     am_enabled = (p->ilfomode & 0x44 ? 1 : 0);
     p->frq_scl = csound->onedsr;                      /* osc. freq.   */
-    p->lf1_scl = (*(p->args[8]) - *(p->args[7])) / csound->ekr;
-    p->lf1_ofs = *(p->args[7]) / csound->ekr;         /* LFO1 freq.   */
-    p->lf2_scl = (*(p->args[10]) - *(p->args[9])) / csound->ekr;
-    p->lf2_ofs = *(p->args[9]) / csound->ekr;         /* LFO2 freq.   */
+    p->lf1_scl = (*(p->args[8]) - *(p->args[7])) * csound->onedkr;
+    p->lf1_ofs = *(p->args[7]) * csound->onedkr;      /* LFO1 freq.   */
+    p->lf2_scl = (*(p->args[10]) - *(p->args[9])) * csound->onedkr;
+    p->lf2_ofs = *(p->args[9]) * csound->onedkr;      /* LFO2 freq.   */
     if (p->ieqmode >= 0) {
       p->eqo_scl = (*(p->args[13]) - *(p->args[12])) * csound->tpidsr;
       p->eqo_ofs = *(p->args[12]) * csound->tpidsr;   /* EQ omega */

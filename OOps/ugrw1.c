@@ -2806,9 +2806,10 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set up ctime so that if it was 0 or negative, it is set to a low value
      * to ensure that the print cycle happens every k cycle.  This low value is
      * 1 / ekr     */
-    if (*p->ptime < FL(1.0) / csound->ekr)
-      p->ctime = FL(1.0) / csound->ekr;
-    else        p->ctime = *p->ptime;
+    if (*p->ptime < csound->onedkr)
+      p->ctime = csound->onedkr;
+    else
+      p->ctime = *p->ptime;
 
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
@@ -2890,9 +2891,10 @@ int printksset(CSOUND *csound, PRINTKS *p)
     char        *sdest;
     char        temp, tempn;
 
-    if (*p->ptime < FL(1.0) / csound->ekr)
-      p->ctime = FL(1.0) / csound->ekr;
-    else        p->ctime = *p->ptime;
+    if (*p->ptime < csound->onedkr)
+      p->ctime = csound->onedkr;
+    else
+      p->ctime = *p->ptime;
 
     /* Set the initime variable - how many seconds in absolute time
      * when this instance of the instrument was initialised.     */

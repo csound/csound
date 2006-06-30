@@ -51,7 +51,7 @@ int vbap_SIXTEEN(CSOUND *csound, VBAP_SIXTEEN *p) /* during note performance:   
 
     /* write audio to result audio streams weighted
        with gain factors */
-    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
+    invfloatn =  csound->onedksmps;
     for (j=0; j<SIXTEEN; j++) {
       inptr      = p->audio;
       outptr     = p->out_array[j];
@@ -360,13 +360,15 @@ int vbap_SIXTEEN_moving_control(CSOUND *csound, VBAP_SIXTEEN_MOVING *p)
     }
     else { /* angular velocities */
       if (p->dim == 2) {
-        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / csound->ekr);
+        p->ang_dir.azi =  p->ang_dir.azi +
+          (*p->fld[p->next_fld] * csound->onedkr);
         scale_angles(&(p->ang_dir));
       }
       else { /* 3D angular */
-        p->ang_dir.azi =  p->ang_dir.azi + (*p->fld[p->next_fld] / csound->ekr);
+        p->ang_dir.azi =  p->ang_dir.azi +
+          (*p->fld[p->next_fld] * csound->onedkr);
         p->ang_dir.ele =  p->ang_dir.ele +
-          p->ele_vel * (*p->fld[p->next_fld+1] / csound->ekr);
+          p->ele_vel * (*p->fld[p->next_fld+1] * csound->onedkr);
         if (p->ang_dir.ele > FL(90.0)) {
           p->ang_dir.ele = FL(90.0);
           p->ele_vel = -p->ele_vel;
