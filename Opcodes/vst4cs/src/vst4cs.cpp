@@ -35,10 +35,10 @@ extern "C" {
   std::vector<VSTPlugin *> vstPlugins;
   std::string version = "0.1alpha";
 #ifdef WIN32
-  void    path_convert(char *in);
+  static void path_convert(char *in);
 #endif
 
-  int vstinit(CSOUND *csound, void *data)
+  static int vstinit(CSOUND *csound, void *data)
   {
       VSTINIT *p = (VSTINIT *) data;
       VSTPlugin *plugin = new VSTPlugin(csound);
@@ -46,13 +46,16 @@ extern "C" {
       *p->iVSThandle = vstPlugins.size();
       vstPlugins.push_back(plugin);
       if (vstPlugins.size() == 1) {
-        plugin->Log("=============================================================\n");
+      plugin->Log(
+          "=============================================================\n");
         plugin->Log("vst4cs version %s by Andres Cabrera and Michael Gogins\n",
                     version.c_str());
-        plugin->Log("Using code from Hermann Seib's VstHost and Thomas Grill's vst~ object\n");
+      plugin->Log("Using code from Hermann Seib's VstHost "
+                  "and Thomas Grill's vst~ object\n");
         plugin->Log("VST is a trademark of Steinberg Media Technologies GmbH\n");
         plugin->Log("VST Plug-In Technology by Steinberg\n");
-        plugin->Log("=============================================================\n");
+      plugin->Log(
+          "=============================================================\n");
       }
       char    vstplugname[0x100];
       strcpy(vstplugname, (char *) p->iplugin);
@@ -69,7 +72,7 @@ extern "C" {
       return OK;
   }
 
-  int vstinfo(CSOUND *csound, void *data)
+  static int vstinfo(CSOUND *csound, void *data)
   {
       VSTINFO *p = (VSTINFO *) data;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -78,7 +81,7 @@ extern "C" {
       return OK;
   }
 
-  int vstaudio_init(CSOUND *csound, void *data)
+  static int vstaudio_init(CSOUND *csound, void *data)
   {
       VSTAUDIO *p = (VSTAUDIO *) data;
 
@@ -96,7 +99,7 @@ extern "C" {
       return OK;
   }
 
-  int vstaudio(CSOUND *csound, void *data)
+  static int vstaudio(CSOUND *csound, void *data)
   {
       VSTAUDIO *p = (VSTAUDIO *) data;
       size_t  i, j;
@@ -134,7 +137,7 @@ extern "C" {
       return OK;
   }
 
-  int vstaudiog(CSOUND *csound, void *data)
+  static int vstaudiog(CSOUND *csound, void *data)
   {
       VSTAUDIO *p = (VSTAUDIO *) data;
       size_t  i, j;
@@ -163,109 +166,120 @@ extern "C" {
       return OK;
   }
 
-  int vstnote_init(CSOUND *csound, void *data)
+  static int vstnote_init(CSOUND *csound, void *data)
   {
       VSTNOTE *p = (VSTNOTE *) data;
-      VSTPlugin *vstPlugin = vstPlugins[(size_t) *p->iVSThandle];
+
+      p->vstHandle = (size_t) *p->iVSThandle;
+      VSTPlugin *vstPlugin = vstPlugins[p->vstHandle];
+
+      int     rounded = (int) ((double) *p->knote + 0.5);
+      int     cents = (int) (((double) *p->knote - (double) rounded) * 100.0
+                             + 100.5) - 100;
+      int     veloc = (int) *p->kveloc;
+      double  deltaTime =
+        ((double) p->h.insdshead->p2 + csound->timeOffs) - csound->curTime;
+      int     deltaFrames =
+        (int) (deltaTime * (double) vstPlugin->framesPerSecond
+               + (deltaTime < 0.0 ? -0.5 : 0.5));
+      long    framesRemaining =
+        (long) ((double) *p->kdur * (double) vstPlugin->framesPerSecond + 0.5)
+        + (long) deltaFrames;
+
+      p->chn = (int) *p->kchan & 15;
+      p->note = (rounded >= 0 ? (rounded < 128 ? rounded : 127) : 0);
+      veloc = (veloc >= 0 ? (veloc < 128 ? veloc : 127) : 0);
+      if (deltaFrames < 0)
+        deltaFrames = 0;
+      else if (deltaFrames >= (int) vstPlugin->framesPerBlock)
+      deltaFrames = (int) vstPlugin->framesPerBlock - 1;
+      if (framesRemaining < 0L)
+        framesRemaining = 0L;
+      p->framesRemaining = (size_t) framesRemaining;
 
       vstPlugin->Debug("vstnote_init\n");
-      p->framesRemaining = *p->kdur * vstPlugin->framesPerSecond;
-      vstPlugin->AddNoteOn(p->h.insdshead->p2, int(*p->kchan), *p->knote,
-                           *p->kveloc);
+    vstPlugin->AddMIDI(144 | p->chn | (p->note << 8) | (veloc << 16),
+                       deltaFrames, cents);
+
       return OK;
   }
 
-  int vstnote(CSOUND *csound, void *data)
+  static int vstnote(CSOUND *csound, void *data)
   {
       VSTNOTE *p = (VSTNOTE *) data;
 
-      if (p->framesRemaining >= 0) {
+      if (p->framesRemaining >= (size_t) csound->ksmps) {
         p->framesRemaining -= (size_t) csound->ksmps;
-        if (p->framesRemaining <= 0) {
-          VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-
-          plugin->Debug("vstnote.\n");
-          plugin->AddNoteOff(p->h.insdshead->p2, int(*p->kchan), *p->knote);
-        }
-      }
-      return OK;
-  }
-
-  int vstmidiout_init(CSOUND *csound, void *data)
-  {
-      VSTMIDIOUT *p = (VSTMIDIOUT *) data;
-      VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-
-      plugin->Debug("vstmidiout_init.\n");
-      p->oldkstatus = 0;
-      p->oldkchan = 0;
-      p->oldkvalue = 0;
-      return OK;
-  }
-
-  int vstmidiout(CSOUND *csound, void *data)
-  {
-      VSTMIDIOUT *p = (VSTMIDIOUT *) data;
-      VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
-
-      if ((int) (p->oldkstatus) == (int) (*p->kstatus) &&
-          (int) (p->oldkchan) == (int) (*p->kchan) &&
-          (int) (p->oldkvalue) == (int) (*p->kdata1))
         return OK;
-      plugin->Debug("vstmidiout.\n");
-      p->oldkstatus = *p->kstatus;
-      p->oldkchan = *p->kchan;
-      p->oldkvalue = *p->kdata1;
-      switch (int(*p->kstatus)) {
-      case 144:                   // noteon
-        {
-          plugin->AddNoteOn(p->h.insdshead->p2, (int) (*p->kchan), *p->kdata1,
-                            *p->kdata2);
-        }
-        break;
-      case 128:                   // noteoff
-        {
-          plugin->AddNoteOff(p->h.insdshead->p2, (int) (*p->kchan), *p->kdata1);
-        }
-        break;
-        /* case 160:                   // poly aftertouch
-           {
-           plugin->AddPolyAftertouch((int) *kdata1, (int) *kdata2, (int) *kchan);
-           }
-        */
-        break;
-      case 176:                   // control change
-        {
-          plugin->AddControlChange((int) *p->kdata1, (int) *p->kdata2);
-        }
-        break;
-      case 192:                   // program change
-        {
-          plugin->AddProgramChange(int(*p->kdata1));
-        }
-        break;
-      case 208:                   // aftertouch
-        {
-          plugin->AddAftertouch(int(*p->kdata1));
-        }
-        break;
-      case 224:                   // pitch bend
-        {
-          plugin->AddPitchBend(int(*p->kdata1));
-        }
-        break;
-      default:
-        break;
       }
+
+      VSTPlugin *plugin = vstPlugins[p->vstHandle];
+      plugin->Debug("vstnote.\n");
+      plugin->AddMIDI(144 | p->chn | (p->note << 8), (int) p->framesRemaining, 0);
+      p->framesRemaining = ~((size_t) 0);
+      
       return OK;
   }
 
-  int vstparamget_init(CSOUND *csound, void *data)
+  static int vstmidiout_init(CSOUND *csound, void *data)
+  {
+      VSTMIDIOUT *p = (VSTMIDIOUT *) data;
+      VSTPlugin *plugin;
+
+      p->vstHandle = (size_t) *p->iVSThandle;
+      plugin = vstPlugins[p->vstHandle];
+      plugin->Debug("vstmidiout_init.\n");
+      p->prvMidiData = 0;
+
+      return OK;
+  }
+
+  static int vstmidiout(CSOUND *csound, void *data)
+  {
+      VSTMIDIOUT *p = (VSTMIDIOUT *) data;
+      VSTPlugin *plugin;
+      int     st, ch, d1, d2, midiData;
+
+      st = (int) *(p->kstatus);
+      if (st < 128 || st >= 240) {
+        p->prvMidiData = 0;
+        return OK;
+      }
+      ch = (int) *(p->kchan) & 15;
+      if ((st & 15) > ch)
+        ch = st & 15;
+      st &= 240;
+      d1 = (int) *(p->kdata1);
+      if (st != 192 && st != 208) {
+        d2 = (int) *(p->kdata2);
+        if (st == 224) {
+          d2 += ((d1 >> 7) & 127);
+          d1 &= 127;
+        }
+        d2 = (d2 >= 0 ? (d2 < 128 ? d2 : 127) : 0);
+      }
+      else
+        d2 = 0;
+      d1 = (d1 >= 0 ? (d1 < 128 ? d1 : 127) : 0);
+      midiData = st | ch | (d1 << 8) | (d2 << 16);
+
+      if (midiData == p->prvMidiData)
+        return OK;
+
+      p->prvMidiData = midiData;
+      plugin = vstPlugins[p->vstHandle];
+      plugin->Debug("vstmidiout.\n");
+      plugin->AddMIDI(midiData, 0, 0);
+
+      return OK;
+  }
+
+  static int vstparamget_init(CSOUND *csound, void *data)
   {
       return OK;
   }
 
-  int vstparamget(CSOUND *csound, void *data)
+  static int vstparamget(CSOUND *csound, void *data)
   {
       VSTPARAMGET *p = (VSTPARAMGET *) data;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -279,7 +293,7 @@ extern "C" {
       return OK;
   }
 
-  int vstparamset_init(CSOUND *csound, void *data)
+  static int vstparamset_init(CSOUND *csound, void *data)
   {
       VSTPARAMSET *p = (VSTPARAMSET *) data;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -290,7 +304,7 @@ extern "C" {
       return OK;
   }
 
-  int vstparamset(CSOUND *csound, void *data)
+  static int vstparamset(CSOUND *csound, void *data)
   {
       VSTPARAMSET *p = (VSTPARAMSET *) data;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -305,7 +319,7 @@ extern "C" {
       return OK;
   }
   
-  int vstbankload(CSOUND *csound, void *data)
+  static int vstbankload(CSOUND *csound, void *data)
   {
       VSTBANKLOAD *p = (VSTBANKLOAD *) data;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -369,7 +383,7 @@ extern "C" {
       return OK;
   }
   
-  int vstprogset(CSOUND *csound, void *data)
+  static int vstprogset(CSOUND *csound, void *data)
   {
       VSTPROGSET *p = (VSTPROGSET *) data;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -378,7 +392,7 @@ extern "C" {
       return OK;
   }
 
-  int vstedit_init(CSOUND *csound, void *data)
+  static int vstedit_init(CSOUND *csound, void *data)
   {
       VSTEDIT *p = (VSTEDIT *) data;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
@@ -391,7 +405,7 @@ extern "C" {
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
         size_t  i, n = 0;
-
+        
         for (i = 0; i < vstPlugins.size(); i++) {
           if (vstPlugins[i] != (VSTPlugin *) 0) {
             n = i + 1;
@@ -406,29 +420,14 @@ extern "C" {
         return 0;
     }
   }
-
+  
 #ifdef WIN32
-  void path_convert(char *in)
+  static void path_convert(char *in)
   {
-      char    inpath[128];
-      char    outpath[64];
-      int     i = 0;
-      int     j = 0;
-
-      strcpy(inpath, in);
-      for (i = 0; i <= 63; i++) {
-        if (inpath[i]) {
-          if (inpath[i] == 47) {
-            outpath[j] = 92;
-          }
-          else
-            outpath[j] = inpath[i];
-        }
-        else
-          outpath[j] = 0;
-        j++;
+      for (int i = 0; in[i] != (char) 0; i++) {
+        if (in[i] == (char) 47)
+          in[i] = (char) 92;
       }
-      in = outpath;
   }
 #endif
 
@@ -439,7 +438,7 @@ extern "C" {
       "iy", &vstaudio_init, 0, &vstaudio },
     { "vstaudiog", sizeof(VSTAUDIO), 5, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
       "iy", &vstaudio_init, 0, &vstaudiog },
-    { "vstnote", sizeof(VSTNOTE), 3, "", "ikkkk", &vstnote_init, &vstnote, 0 },
+    { "vstnote", sizeof(VSTNOTE), 3, "", "iiiii", &vstnote_init, &vstnote, 0 },
     { "vstmidiout", sizeof(VSTMIDIOUT), 3, "", "ikkkk", &vstmidiout_init,
       &vstmidiout, 0 },
     { "vstparamget", sizeof(VSTPARAMGET), 3, "k", "ik", &vstparamget_init,
