@@ -248,7 +248,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     SNDFILE     *inf = NULL, *outfd = NULL;
     char        c, *s;
     int         channel = ALLCHNLS;
-    MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
+    MYFLT       beg_time  = FL(0.0), input_dur  = FL(0.0), sr  = FL(0.0);
     MYFLT       beg_ntime = FL(0.0), input_ndur = FL(0.0), srn = FL(0.0);
     const char  *envoutyp = NULL;
     unsigned int  outbufsiz = 0U;
@@ -608,9 +608,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
 
     minv = FL(1.0) / (MYFLT)m;
     md = m / 2;
-    g0 = (MYFLT) pow(10.0,(double) (.05*(double)g0));
+    g0 = (MYFLT) pow(10.0,(double)(0.05*(double)g0));
     g0m = FL(1.0) - g0;
-    th = (MYFLT) pow(10.0,(double) (.05*(double)th));
+    th = (MYFLT) pow(10.0,(double)(0.05*(double)th));
 
     /* set up analysis window: The window is assumed to be symmetric
         with M total points.  After the initial memory allocation,
@@ -772,7 +772,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     }
 
     /* skip over nMin samples */
-    while (nMin > (long) ibuflen) {
+    while (nMin > (long)ibuflen) {
       if (!csound->CheckEvents(csound))
         csound->LongJmp(csound, 1);
       nread = csound->getsndin(csound, fp, ibuf1, ibuflen, pn);
@@ -1237,13 +1237,13 @@ static void hamming(MYFLT *win, int winLen, int even)
 
     if (even) {
       for (i = 0; i < winLen; i++)
-        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * ((double) i + 0.5)));
+        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * ((double)i + 0.5)));
       win[winLen] = FL(0.0);
     }
     else {
       win[0] = FL(1.0);
       for (i = 1; i <= winLen; i++)
-        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * (double) i));
+        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * (double)i));
     }
 }
 

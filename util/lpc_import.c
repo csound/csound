@@ -47,7 +47,7 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
     char *str;
     MYFLT *coef;
 
-    if (argc!= 3) {
+    if (argc != 3) {
       lpc_import_usage(csound);
       return 1;
     }

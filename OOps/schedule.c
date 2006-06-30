@@ -314,7 +314,7 @@ int lfok(CSOUND *csound, LFO *p)
       res = FL(1.0) - (MYFLT)phs/(MYFLT)MAXPHASE;
       break;
     }
-    phs += (long)(*p->xcps * MAXPHASE / csound->ekr);
+    phs += (long)(*p->xcps * MAXPHASE * csound->onedkr);
     phs &= MAXMASK;
     p->phs = phs;
     *p->res = *p->kamp * res;
@@ -495,7 +495,7 @@ int ktriginstr(CSOUND *csound, TRIGINSTR *p)
     evt.pcnt = argnum = p->INOCOUNT - 3;
     /* Add current time (see note about kadjust in triginset() above) */
     starttime = (double)(csound->global_kcounter + p->kadjust)
-                / (double)csound->global_ekr;
+                * (double)csound->global_onedkr;
     /* Copy all arguments to the new event */
     for (i = 1; i < argnum; i++)
       evt.p[i + 1] = *p->args[i];

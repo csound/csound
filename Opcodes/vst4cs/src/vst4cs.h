@@ -66,7 +66,10 @@ typedef struct VSTNOTE_ {
     MYFLT   *kveloc;
     MYFLT   *kdur;
     // State.
-    MYFLT   framesRemaining;
+    size_t  vstHandle;
+    int     chn;
+    int     note;
+    size_t  framesRemaining;
 } VSTNOTE;
 
 typedef struct VSTMIDIOUT_ {
@@ -78,9 +81,8 @@ typedef struct VSTMIDIOUT_ {
     MYFLT   *kdata1;
     MYFLT   *kdata2;
     // State.
-    MYFLT   oldkstatus;
-    MYFLT   oldkchan;
-    MYFLT   oldkvalue;
+    size_t  vstHandle;
+    int     prvMidiData;
 } VSTMIDIOUT;
 
 typedef struct VSTPARAMGET_ {

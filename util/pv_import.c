@@ -47,7 +47,6 @@ static float getnum(FILE* inf, char *term)
     while ((cc=getc(inf))!=',' && cc!='\n' && cc!=EOF) buff[p++] = cc;
     buff[p]='\0';
     *term = cc;
-/*     fprintf(stderr, "getnum=%s\n", buff); */
     return (float)atof(buff);
 }
 
@@ -58,7 +57,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     PVOCDATA data;
     WAVEFORMATEX fmt;
 
-    if (argc!= 3) {
+    if (argc != 3) {
       pv_import_usage(csound);
       return 1;
     }
@@ -73,10 +72,8 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     {
       int fmt1, fmt2, fmt3, fmt4, fmt5;
       fscanf(inf, "%d,%d,%d,%d,%d,%d,%d\n",
-             &fmt1, &fmt2, 
-             &fmt.nSamplesPerSec, 
-             &fmt.nAvgBytesPerSec, 
-             &fmt3, &fmt4, &fmt5);
+             &fmt1, &fmt2, &fmt.nSamplesPerSec, 
+             &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5);
       fmt.wFormatTag = fmt1;
       fmt.nChannels = fmt2;
       fmt.nBlockAlign = fmt3;
@@ -89,9 +86,9 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     {
       int data1, data2, data3, data4;
       fscanf(inf, "%d,%d,%d,%d,%d,%d,%d,%d,%g,%g\n",
-             &data1,&data2,&data3,&data4,&data.nAnalysisBins,&data.dwWinlen,
-             &data.dwOverlap,&data.dwFrameAlign,&data.fAnalysisRate,
-             &data.fWindowParam);
+             &data1,&data2,&data3,&data4,&data.nAnalysisBins,
+             &data.dwWinlen, &data.dwOverlap,&data.dwFrameAlign,
+             &data.fAnalysisRate, &data.fWindowParam);
       data.wWordFormat = data1;
       data.wAnalFormat = data2;
       data.wSourceFormat = data3;
@@ -116,7 +113,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     
     {
       float *frame =
-        (float*) csound->Malloc(csound, data.nAnalysisBins * 2 * sizeof(float));
+        (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));
       int i;
       for (i=1;;) {
         int j;
