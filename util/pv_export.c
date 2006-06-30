@@ -47,7 +47,7 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
     PVOCDATA data;
     WAVEFORMATEX fmt;
 
-    if (argc!= 3) {
+    if (argc != 3) {
       pv_export_usage(csound);
       return 1;
     }

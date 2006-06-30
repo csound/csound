@@ -485,11 +485,11 @@ int tempeset(CSOUND *csound, TEMPEST *p)
       }
     }
     /* calc input lo-pass filter coefs */
-    b = FL(2.0) - (MYFLT)cos((*p->ihp * 6.28318 / csound->ekr));
+    b = FL(2.0) - (MYFLT)cos((*p->ihp * 6.28318 * csound->onedkr));
     p->coef1 = b - (MYFLT)sqrt(b * b - 1.0);
     p->coef0 = FL(1.0) - p->coef1;
     p->yt1 = FL(0.0);
-    p->fwdcoef = (MYFLT)pow(0.5, p->timcount/csound->ekr/(*p->ihtim));
+    p->fwdcoef = (MYFLT)pow(0.5, p->timcount*csound->onedkr/(*p->ihtim));
     p->fwdmask = FL(0.0);
 #ifdef DEBUG
     csound->Message(csound,
