@@ -44,84 +44,83 @@ void VSTPlugin::initializeOpcodes()
       opcodeRefCount++;
         return;
     }
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOpen, "effOpen"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effClose, "effClose"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetProgram, "effSetProgram"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProgram, "effGetProgram"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetProgramName, "effSetProgramName"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProgramName, "effGetProgramName"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetParamLabel, "effGetParamLabel"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetParamDisplay, "effGetParamDisplay"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetParamName, "effGetParamName"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetVu, "effGetVu"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetSampleRate, "effSetSampleRate"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetBlockSize, "effSetBlockSize"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effMainsChanged, "effMainsChanged"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditGetRect, "effEditGetRect"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditOpen, "effEditOpen"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditClose, "effEditClose"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditDraw, "effEditDraw"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditMouse, "effEditMouse"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditKey, "effEditKey"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditIdle, "effEditIdle"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditTop, "effEditTop"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditSleep, "effEditSleep"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effIdentify, "effIdentify"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetChunk, "effGetChunk"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetChunk, "effSetChunk"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effProcessEvents, "effProcessEvents"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effCanBeAutomated, "effCanBeAutomated"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effString2Parameter, "effString2Parameter"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetNumProgramCategories, "effGetNumProgramCategories"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProgramNameIndexed, "effGetProgramNameIndexed"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effCopyProgram, "effCopyProgram"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effConnectInput, "effConnectInput"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effConnectOutput, "effConnectOutput"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetInputProperties, "effGetInputProperties"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetOutputProperties, "effGetOutputProperties"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetPlugCategory, "effGetPlugCategory"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetCurrentPosition, "effGetCurrentPosition"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetDestinationBuffer, "effGetDestinationBuffer"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOfflineNotify, "effOfflineNotify"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOfflinePrepare, "effOfflinePrepare"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effOfflineRun, "effOfflineRun"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effProcessVarIo, "effProcessVarIo"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetSpeakerArrangement, "effSetSpeakerArrangement"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetBlockSizeAndSampleRate, "effSetBlockSizeAndSampleRate"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetBypass, "effSetBypass"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetEffectName, "effGetEffectName"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetErrorText, "effGetErrorText"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetVendorString, "effGetVendorString"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetProductString, "effGetProductString"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetVendorVersion, "effGetVendorVersion"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effVendorSpecific, "effVendorSpecific"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effCanDo, "effCanDo"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetTailSize, "effGetTailSize"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effIdle, "effIdle"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetIcon, "effGetIcon"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetViewPosition, "effSetViewPosition"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetParameterProperties, "effGetParameterProperties"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effKeysRequired, "effKeysRequired"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetVstVersion, "effGetVstVersion"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditKeyDown, "effEditKeyDown"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEditKeyUp, "effEditKeyUp"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetEditKnobMode, "effSetEditKnobMode"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetMidiProgramName, "effGetMidiProgramName"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetCurrentMidiProgram, "effGetCurrentMidiProgram"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetMidiProgramCategory, "effGetMidiProgramCategory"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effHasMidiProgramsChanged, "effHasMidiProgramsChanged"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetMidiKeyName, "effGetMidiKeyName"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effBeginSetProgram, "effBeginSetProgram"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effEndSetProgram, "effEndSetProgram"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effGetSpeakerArrangement, "effGetSpeakerArrangement"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effShellGetNextPlugin, "effShellGetNextPlugin"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effStartProcess, "effStartProcess"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effStopProcess, "effStopProcess"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetTotalSampleToProcess, "effSetTotalSampleToProcess"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effSetPanLaw, "effSetPanLaw"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effBeginLoadBank, "effBeginLoadBank"));
-    dispatchOpcodes.insert(std::pair<long,std::string>((long) effBeginLoadProgram, "effBeginLoadProgram"));
-
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effOpen, "effOpen"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effClose, "effClose"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetProgram, "effSetProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetProgram, "effGetProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetProgramName, "effSetProgramName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetProgramName, "effGetProgramName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetParamLabel, "effGetParamLabel"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetParamDisplay, "effGetParamDisplay"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetParamName, "effGetParamName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetVu, "effGetVu"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetSampleRate, "effSetSampleRate"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetBlockSize, "effSetBlockSize"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effMainsChanged, "effMainsChanged"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditGetRect, "effEditGetRect"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditOpen, "effEditOpen"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditClose, "effEditClose"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditDraw, "effEditDraw"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditMouse, "effEditMouse"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditKey, "effEditKey"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditIdle, "effEditIdle"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditTop, "effEditTop"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditSleep, "effEditSleep"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effIdentify, "effIdentify"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetChunk, "effGetChunk"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetChunk, "effSetChunk"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effProcessEvents, "effProcessEvents"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effCanBeAutomated, "effCanBeAutomated"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effString2Parameter, "effString2Parameter"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetNumProgramCategories, "effGetNumProgramCategories"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetProgramNameIndexed, "effGetProgramNameIndexed"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effCopyProgram, "effCopyProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effConnectInput, "effConnectInput"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effConnectOutput, "effConnectOutput"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetInputProperties, "effGetInputProperties"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetOutputProperties, "effGetOutputProperties"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetPlugCategory, "effGetPlugCategory"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetCurrentPosition, "effGetCurrentPosition"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetDestinationBuffer, "effGetDestinationBuffer"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effOfflineNotify, "effOfflineNotify"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effOfflinePrepare, "effOfflinePrepare"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effOfflineRun, "effOfflineRun"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effProcessVarIo, "effProcessVarIo"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetSpeakerArrangement, "effSetSpeakerArrangement"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetBlockSizeAndSampleRate, "effSetBlockSizeAndSampleRate"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetBypass, "effSetBypass"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetEffectName, "effGetEffectName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetErrorText, "effGetErrorText"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetVendorString, "effGetVendorString"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetProductString, "effGetProductString"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetVendorVersion, "effGetVendorVersion"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effVendorSpecific, "effVendorSpecific"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effCanDo, "effCanDo"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetTailSize, "effGetTailSize"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effIdle, "effIdle"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetIcon, "effGetIcon"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetViewPosition, "effSetViewPosition"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetParameterProperties, "effGetParameterProperties"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effKeysRequired, "effKeysRequired"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetVstVersion, "effGetVstVersion"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditKeyDown, "effEditKeyDown"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEditKeyUp, "effEditKeyUp"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetEditKnobMode, "effSetEditKnobMode"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetMidiProgramName, "effGetMidiProgramName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetCurrentMidiProgram, "effGetCurrentMidiProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetMidiProgramCategory, "effGetMidiProgramCategory"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effHasMidiProgramsChanged, "effHasMidiProgramsChanged"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetMidiKeyName, "effGetMidiKeyName"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effBeginSetProgram, "effBeginSetProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effEndSetProgram, "effEndSetProgram"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effGetSpeakerArrangement, "effGetSpeakerArrangement"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effShellGetNextPlugin, "effShellGetNextPlugin"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effStartProcess, "effStartProcess"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effStopProcess, "effStopProcess"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetTotalSampleToProcess, "effSetTotalSampleToProcess"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effSetPanLaw, "effSetPanLaw"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effBeginLoadBank, "effBeginLoadBank"));
+    dispatchOpcodes.insert(std::pair<long,std::string>((long)effBeginLoadProgram, "effBeginLoadProgram"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterAutomate, "audioMasterAutomate"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterVersion, "audioMasterVersion"));
     masterOpcodes.insert(std::pair<long,std::string>((long) audioMasterCurrentId, "audioMasterCurrentId"));
@@ -176,14 +175,14 @@ void VSTPlugin::initializeOpcodes()
 }
 
 VSTPlugin::VSTPlugin(CSOUND *csound_)
-    : csound(csound_),
-    libraryHandle(0),
+  : csound(csound_),
+  libraryHandle(0),
     aeffect(0),
     hasEditor(false),
     editor(0),
     window(0),
     windowHandle(0),
-        pluginIsSynth(true),
+    pluginIsSynth(true),
     overwrite(false),
     edited(false),
     showParameters(false),
@@ -240,7 +239,8 @@ bool VSTPlugin::AddNoteOn(MYFLT time, int midichannel, MYFLT note, MYFLT speed)
       vstMidiEvent.type = kVstMidiType;
       vstMidiEvent.byteSize = 24;
       size_t currentFrame = size_t(time * framesPerSecond);
-      size_t currentBlockStart = size_t(floor(currentFrame / framesPerBlock) * framesPerBlock);
+      size_t currentBlockStart = size_t(floor(currentFrame / framesPerBlock) *
+                                        framesPerBlock);
       vstMidiEvent.deltaFrames = long(floor(currentFrame - currentBlockStart));
       Debug("VSTPlugin::AddNoteOn(time %f currentFrame %d "
             "currentBlockStart %d deltaFrames %d.\n",
@@ -271,7 +271,8 @@ bool VSTPlugin::AddNoteOff(MYFLT time, int midichannel, MYFLT note)
       vstMidiEvent.type = kVstMidiType;
       vstMidiEvent.byteSize = 24;
       MYFLT currentFrame = (MYFLT) time * framesPerSecond;
-      MYFLT currentBlockStart = (MYFLT) floor(currentFrame / framesPerBlock) * framesPerBlock;
+      MYFLT currentBlockStart = 
+        (MYFLT)floor(currentFrame / framesPerBlock) * framesPerBlock;
       vstMidiEvent.deltaFrames = long(floor(currentFrame - currentBlockStart));
       vstMidiEvent.flags = 0;
       vstMidiEvent.detune = 0;
@@ -335,12 +336,14 @@ int VSTPlugin::Instantiate(const char *libraryName_)
 {
     Debug("VSTPlugin::Instance.\n");
 #ifdef __MACH__
-    CFStringRef vstBundlePath = CFStringCreateWithCString(kCFAllocatorDefault,
-                                                          libraryName_, kCFStringEncodingMacRoman );
-    CFURLRef vstBundleURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
-                                                          vstBundlePath,
-                                                          kCFURLPOSIXPathStyle,
-                                                          true );
+    CFStringRef vstBundlePath = 
+      CFStringCreateWithCString(kCFAllocatorDefault,
+                                libraryName_, kCFStringEncodingMacRoman );
+    CFURLRef vstBundleURL =
+      CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
+                                    vstBundlePath,
+                                    kCFURLPOSIXPathStyle,
+                                    true );
 
     CFBundleRef vstBundle = CFBundleCreate( kCFAllocatorDefault, vstBundleURL );
     CFRelease( vstBundlePath );
@@ -425,7 +428,8 @@ void VSTPlugin::Info()
       if (strcmp("default",buffer)==1)
         Log("  Program%7i: %s\n", i, buffer);
     }
-    csound->Message(csound,"----------------------------------------------------\n");
+    csound->Message(csound,
+                    "----------------------------------------------------\n");
 }
 
 int VSTPlugin::getNumInputs( void )
@@ -773,7 +777,7 @@ bool VSTPlugin::OnCanDo(const char *ptr)
         (!strcmp(ptr, "sendVstEvents")) ||
         (!strcmp(ptr, "receiveVstEvents")) ||
         (!strcmp(ptr, "sendVstTimeInfo")) /*||
-                                            (!strcmp(ptr, "sizeWindow"))*/)
+        (!strcmp(ptr, "sizeWindow"))*/)
       return true;
     return false;
 }
@@ -879,6 +883,7 @@ long VSTPlugin::Master(AEffect *effect, long opcode, long index,
       //if(plugin)
       return OnCanDo((char *)ptr);
       //else printf("No instance");
+    default:
       break;
     }
     return 0;
