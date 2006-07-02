@@ -432,6 +432,8 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\opt\lazzarini\portaudio.dll
   File D:\utah\opt\csound5\bin\fluidsynth.dll
   File D:\utah\opt\portmidi\pm_win\*.dll
+  File D:\utah\opt\LuaJIT-1.1.0\src\luajit.exe
+  File D:\utah\opt\LuaJIT-1.1.0\src\lua51.dll
   File D:\utah\opt\csound5\bin\liblo.dll
   File D:\utah\opt\csound5\bin\pthreadGC2.dll
   File ..\..\csnd.py
@@ -537,7 +539,7 @@ Section "${PRODUCT}" SecCopyUI
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\bin\${PROGRAM}.exe"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVST.exe"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5.txt"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\indexframes.html"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\CsoundAPI.pdf"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe"
   
