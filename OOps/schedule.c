@@ -521,10 +521,10 @@ int trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
     if ((ftp = csound->FTFind(csound, p->kfn)) == NULL) {
       return csound->InitError(csound, Str("trigseq: incorrect table number"));
     }
-    p->done=0;
+    p->done  = 0;
     p->table = ftp->ftable;
-    p->pfn = (long)*p->kfn;
-    p->ndx = (long)*p->initndx;
+    p->pfn   = (long)*p->kfn;
+    p->ndx   = (long)*p->initndx;
     p->nargs = p->INOCOUNT-5;
     return OK;
 }
