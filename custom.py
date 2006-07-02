@@ -26,94 +26,93 @@ elif sys.platform == 'darwin':
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    #customCPPPATH.append('D:/utah/msys/1.0/local/include')
-    #customLIBPATH.append('D:/utah/msys/1.0/local/lib')
+    customCPPPATH.append('c:/msys/1.0/mingw/include')
+    customLIBPATH.append('c:/msys/1.0/mingw/lib')
     # If libsndfile is not in a standard location add it here:
-    customCPPPATH.append('D:/utah/opt/libsndfile-1_0_16')
-    customLIBPATH.append('D:/utah/opt/libsndfile-1_0_16')
+    #customCPPPATH.append('C:/opt/libsndfile-1.0.15/src')
+    #customLIBPATH.append('C:/opt/libsndfile-1.0.15/src/.libs')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
     # (of course you must build it first):
-    customCPPPATH.append('D:/utah/opt/portaudio_varga/include')
-    customLIBPATH.append('D:/utah/opt/lazzarini')
+    customCPPPATH.append('C:/home/mkg/projects/portaudio/pa_common')
+    customLIBPATH.append('C:/home/mkg/projects/portaudio/lib')
     ################################################################
     # If you want PortMidi for real-time midi,
     # if it is not in a standard location add it here
     # (of course you must build it first):
-    customCPPPATH.append('D:/utah/opt/portmidi/pm_common')
-    customCPPPATH.append('D:/utah/opt/portmidi/pm_win')
-    customCPPPATH.append('D:/utah/opt/portmidi/porttime')
-    customLIBPATH.append('D:/utah/opt/portmidi/pm_win')
-    customLIBPATH.append('D:/utah/opt/portmidi/porttime')
-    customLIBPATH.append('D:/utah/opt/portmidi')
+    customCPPPATH.append('C:/opt/portmidi/pm_common')
+    customCPPPATH.append('C:/opt/portmidi/pm_win')
+    customCPPPATH.append('C:/opt/portmidi/porttime')
+    customLIBPATH.append('C:/opt/portmidi/pm_win')
+    customLIBPATH.append('C:/opt/portmidi/porttime')
+    customLIBPATH.append('C:/opt/portmidi')
     ################################################################
     # If you want FLTK widgets or if you want to build CsoundVST,
     # you need FLTK. If it is not in a standard location,
     # add it here (of course you must build it first):
-    customCPPPATH.append('D:/utah/opt/fltk-1.1.7')
-    customLIBPATH.append('D:/utah/opt/csound5/bin')
-    #customLIBPATH.append('D:/utah/opt/fltk-1.1.7/lib')
+    #customCPPPATH.append('C:/opt/fltk-1.1.7')
+    #customLIBPATH.append('C:/opt/fltk-1.1.7/lib')
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
-    customCPPPATH.append('D:/utah/opt/Python24/include')
-    customLIBPATH.append('D:/utah/msys/1.0/local/lib')
+    customCPPPATH.append('c:/opt/Python24/include')
+    #customLIBPATH.append('c:/WINDOWS/system32')
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
-    customCPPPATH.append('D:/utah/opt/lua-5.1/src')
-    customLIBPATH.append('D:/utah/opt/lua-5.1/src')
+    customCPPPATH.append('c:/opt/lua-5.1/src')
+    customLIBPATH.append('C:/opt/lua-5.1/src')
     ################################################################
     # If you want to build Tcl/Tk interfaces
     # and Tclcsound you need Tcl/Tk.
     # Add it here:
-    customCPPPATH.append('D:/utah/opt/Tcl/include')
-    customLIBPATH.append('D:/utah/opt/Tcl/bin')
+    customCPPPATH.append('c:/opt/Tcl/include')
+    customLIBPATH.append('c:/opt/Tcl/bin')
     ################################################################
     # If you want to build CsoundVST you need boost.
     # If it is not in a standard lcoation add it here
     # (you do NOT need to build it first):
-    customCPPPATH.append('D:/utah/opt/boost/')
+    customCPPPATH.append('c:/opt/boost/')
     ################################################################
     # If you want to build the FluidSynth opcodes
     # you need FluidSynth. If it is not a standard location,
     # add it here (you do NOT need to build it first):
-    #customLIBPATH.append('D:/utah/opt/fluidsynth-1.0.3-win32')
-    #customCPPPATH.append('D:/utah/opt/fluidsynth-1.0.3-win32/include')
-    customLIBPATH.append('D:/utah/home/mkg/projects/fluid/fluidsynth/src')
-    customCPPPATH.append('D:/utah/home/mkg/projects/fluid/fluidsynth/include')
+    #customLIBPATH.append('c:/opt/fluidsynth-1.0.3-win32')
+    #customCPPPATH.append('c:/opt/fluidsynth-1.0.3-win32/include')
+    customLIBPATH.append('C:/home/mkg/projects/fluid/fluidsynth/src')
+    customCPPPATH.append('C:/home/mkg/projects/fluid/fluidsynth/include')
     ################################################################
     # If you want to build the Java wrapper for CsoundVST
     # you need Java. If it is not in a standard location,
     # add it here (you do NOT need to build it first):
-    customCPPPATH.append('D:/utah/opt/jdk1.5.0/include')
-    customCPPPATH.append('D:/utah/opt/jdk1.5.0/include/win32')
+    customCPPPATH.append('c:/opt/jdk1.5.0/include')
+    customCPPPATH.append('c:/opt/jdk1.5.0/include/win32')
     ################################################################
     # If you want to build the PD external csoundapi~
     # you need PD. If it is not in a standard location,
     # add it here (you do NOT need to build it first):
-    customCPPPATH.append('D:/utah/opt/pd-0.38-4-devel-2/src')
-    customLIBPATH.append('D:/utah/opt/pd-0.38-4-devel-2/bin')
+    customCPPPATH.append('c:/opt/pd-0.38-4-devel-2/src')
+    customLIBPATH.append('c:/opt/pd-0.38-4-devel-2/bin')
     platform = 'mingw'
     ################################################################
     # If you want to build the Loris opcodes,
     # then copy Loris to csound5/Opcodes/Loris. Loris also
     # requires FFTW, if it is not in a standard location,
     # add it here (you do need to build it first):
-    customCPPPATH.append('D:/utah/opt/fftw-3.0.1/api')
-    customLIBPATH.append('D:/utah/opt/fftw-3.0.1/.libs')
+    customCPPPATH.append('c:/opt/fftw-3.0.1/api')
+    customLIBPATH.append('c:/opt/fftw-3.0.1/.libs')
     ################################################################
     # If you want to build the OSC opcodes,
     # if it is not in a standard location,
     # add it here (you do need to build it first):
-    #customCPPPATH.append('D:/utah/home/mkg/projects/liblo')
-    #customLIBPATH.append('D:/utah/home/mkg/projects/liblo/src/.libs')
+    #customCPPPATH.append('c:/home/mkg/projects/liblo')
+    #customLIBPATH.append('c:/home/mkg/projects/liblo/src/.libs')
     # For OSC on Windows you will also need a Windows pthread library,
     # if it is not in a standard location,
     # add it here (you do need to build it first):
-    #customCPPPATH.append('D:/utah/opt/pthreads')
-    #customLIBPATH.append('D:/utah/opt/pthreads')
+    #customCPPPATH.append('c:/opt/pthreads')
+    #customLIBPATH.append('c:/opt/pthreads')
     ################################################################
     # print "Adding custom path"
     # customLIBPATH.append("D:/Program Files/Microsoft Visual Studio/vc98/Lib")
