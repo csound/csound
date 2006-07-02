@@ -1055,7 +1055,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
     q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
     fco1 = (MYFLT)pow((double)fco*260.0/(1.0+(double)q1*0.5),0.58);
     q  = q1*fco1*fco1*FL(0.0005);
-    fc  = fco1/FL(8.0)/csound->esr*FL(44100.0);
+    fc  = fco1*csound->onedsr*(FL(44100.0)/FL(8.0));
     do {
       x  = *in++;
       fdbk = q*y/(FL(1.0) + (MYFLT)exp(-3.0*(double)y)*asym);
@@ -1077,7 +1077,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
         q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
         fco1 = (MYFLT)pow((double)(fco*260.0/(1.0+q1*0.5)),0.58);
         q  = q1*fco1*fco1*FL(0.0005);
-        fc  = fco1/FL(8.0)/csound->esr*FL(44100.0);
+        fc  = fco1*csound->onedsr*FL(44100.0)/FL(8.0));
       }
     } while (--n);
     p->y = y; p->y1 = y1; p->y2 = y2;

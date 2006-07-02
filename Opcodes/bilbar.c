@@ -52,8 +52,8 @@ static int bar_init(CSOUND *csound, BAR *p)
                                    (keep small) */
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
-      double  dt = 1.0/csound->esr;
-      double  sig = (2.0/dt)*(pow(10.0,3.0*dt/T30)-1.0);
+      double  dt = (double)csound->onedsr;
+      double  sig = (2.0*(double)csound->esr)*(pow(10.0,3.0*dt/T30)-1.0);
       double  dxmin = sqrt(dt*(b+sqrt(b*b+4*K*K)));
       int     N = (int) (1.0/dxmin);
       double  dx = 1.0/N;
@@ -253,8 +253,8 @@ int init_pp(CSOUND *csound, CSPP *p)
                           /* and lowest string in set */
                           /* initialize prepared objects and hammer */
                           /* derived parameters */
-      double dt = csound->onedsr;
-      double sig = (2.0/dt)*(pow(10,3.0*dt/T30)-1.0);
+      double dt = (double)csound->onedsr;
+      double sig = (2.0*(double)csound->esr)*(pow(10,3.0*dt/T30)-1.0);
 
       int N, n;
       double *c, dx, dxmin = 0.0; /* for stability */
@@ -298,13 +298,13 @@ int init_pp(CSOUND *csound, CSPP *p)
 
       for (n=0; n<NS; n++) {
         p->s0[n] = (2.0-6.0*K*K*dt*dt*N*N*N*N-2.0*b*dt*N*N-
-                    2.0*c[n]*c[n]*dt*dt*N*N)/(1.0+sig*dt/2.0);
+                    2.0*c[n]*c[n]*dt*dt*N*N)/(1.0+sig*dt*0.5);
         p->s1[n] = (4*K*K*dt*dt*N*N*N*N+b*dt*N*N+
-                    c[n]*c[n]*dt*dt*N*N)/(1.0+sig*dt/2.0);
+                    c[n]*c[n]*dt*dt*N*N)/(1.0+sig*dt*0.5);
       }
-      p->s2 = -K*K*dt*dt*N*N*N*N/(1.0+sig*dt/2.0);
-      p->t0 = (-1.0+2.0*b*dt*N*N+sig*dt/2.0)/(1.0+sig*dt/2.0);
-      p->t1 = (-b*dt)*N*N/(1.0+sig*dt/2.0);
+      p->s2 = -K*K*dt*dt*N*N*N*N/(1.0+sig*dt*0.5);
+      p->t0 = (-1.0+2.0*b*dt*N*N+sig*dt*0.5)/(1.0+sig*dt*0.5);
+      p->t1 = (-b*dt)*N*N/(1.0+sig*dt*0.5);
 
       /* note, each of these is an array, of size N+5 by NS...i.e., need a
          separate N+5 element array per string. */
@@ -448,9 +448,9 @@ int play_pp(CSOUND *csound, CSPP *p)
             w[rubber_index*NS+n] += -dt*dt*(TWOPI*p->rubber[qq].freq)*
               (TWOPI*p->rubber[qq].freq)*p->rubber[qq].massden*force;
             rub[qq] = 2*rub1[qq]/(1+p->rubber[qq].loss*dt/2)-
-              (1-p->rubber[qq].loss*dt/2)*rub2[qq]/(1+p->rubber[qq].loss*dt/2)+
+              (1-p->rubber[qq].loss*dt/2)*rub2[qq]/(1+p->rubber[qq].loss*dt*0.5)+
               (TWOPI*p->rubber[qq].freq)*(TWOPI*p->rubber[qq].freq)*
-              dt*dt*(-rub1[qq]+force)/(1+p->rubber[qq].loss*dt/2);
+              dt*dt*(-rub1[qq]+force)/(1+p->rubber[qq].loss*dt*0.5);
             rub2[qq] = rub1[qq];
             rub1[qq] = rub[qq];
           }
