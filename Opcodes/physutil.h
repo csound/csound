@@ -222,7 +222,7 @@ void BiQuad_setZeroCoeffs(BiQuad*, MYFLT *);
 #define BiQuad_setFreqAndReson(b,freq,reson)    \
         { (b).poleCoeffs[1]= -((reson)*(reson)); \
           (b).poleCoeffs[0]= FL(2.0)*(reson)*\
-          (MYFLT)cos(TWOPI*(double)(freq)/(double)csound->esr); }
+          (MYFLT)cos((double)(freq)*(double)csound->tpidsr); }
 MYFLT BiQuad_tick(BiQuad*, MYFLT);
 #define BiQuad_lastOut(x)       (x)->lastOutput
 

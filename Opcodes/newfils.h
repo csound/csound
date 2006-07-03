@@ -134,7 +134,6 @@ typedef struct _fofilter {
   MYFLT   *istor;
 
   double  delay[4];
-  double  twopiosr;
 } fofilter;
 
 static int fofilter_init(CSOUND *csound,fofilter *p);

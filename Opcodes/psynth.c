@@ -74,8 +74,7 @@ typedef struct _psyn {
     int     tracks, pos, numbins, hopsize;
     FUNC    *func;
     AUXCH   sum, amps, freqs, phases, trackID;
-    MYFLT   invsr, factor, facsqr;
-    double  pi, twopi;
+    MYFLT   factor, facsqr;
 } _PSYN;
 
 typedef struct _psyn2 {
@@ -86,8 +85,7 @@ typedef struct _psyn2 {
     int     tracks, pos, numbins, hopsize;
     FUNC    *func;
     AUXCH   sum, amps, freqs, phases, trackID;
-    MYFLT   invsr, factor, facsqr;
-    double  pi, twopi;
+    MYFLT   factor, facsqr;
 } _PSYN2;
 
 static int psynth_init(CSOUND *csound, _PSYN *p)
@@ -108,11 +106,8 @@ static int psynth_init(CSOUND *csound, _PSYN *p)
     p->hopsize = p->fin->overlap;
     p->pos = 0;
     p->numbins = numbins;
-    p->invsr = (MYFLT) (1. / csound->esr);
-    p->factor = p->hopsize / csound->esr;
+    p->factor = p->hopsize * csound->onedsr;
     p->facsqr = p->factor * p->factor;
-    p->pi = 4. * atan(1.);
-    p->twopi = 2. * p->pi;
 
     if (p->amps.auxp == NULL ||
         (unsigned) p->amps.size < sizeof(MYFLT) * numbins)
@@ -151,7 +146,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
     int     *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
 
-    ratio = size / csound->esr;
+    ratio = size * csound->onedsr;
     factor = p->factor;
 
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -185,7 +180,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
                 freqnext = freq = freqs[j];
                 phase = phases[j];
                 amp = amps[j];
-                ampnext = 0.f;
+                ampnext = 0.0f;
               }
             }
             else {
@@ -193,7 +188,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
               contin = 1;
               freq = freqnext;
               phase = -freq * factor;
-              amp = 0.f;
+              amp = 0.0f;
 
             }
             /* interpolation & track synthesis loop */
@@ -258,11 +253,8 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
     p->hopsize = p->fin->overlap;
     p->pos = 0;
     p->numbins = numbins;
-    p->invsr = (MYFLT) (1. / csound->esr);
-    p->factor = p->hopsize / csound->esr;
+    p->factor = p->hopsize * csound->onedsr;
     p->facsqr = p->factor * p->factor;
-    p->pi = 4. * atan(1.);
-    p->twopi = 2. * p->pi;
 
     if (p->amps.auxp == NULL ||
         (unsigned) p->amps.size < sizeof(MYFLT) * numbins)
@@ -286,7 +278,7 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
 static int psynth2_process(CSOUND *csound, _PSYN2 *p)
 {
     MYFLT   ampnext, amp, freq, freqnext, phase, phasenext, ratio;
-    double  a2, a3, cph, pi, twopi;
+    double  a2, a3, cph;
     MYFLT   phasediff, facsqr, ph;
     MYFLT   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal;
@@ -303,11 +295,9 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     int     *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
 
-    incrph = p->invsr;
-    pi = p->pi;
-    twopi = p->twopi;
-    lotwopi = (MYFLT) (size / twopi);
-    ratio = size / csound->esr;
+    incrph = csound->onedsr;
+    lotwopi = (MYFLT)(size) / TWOPI_F;
+    ratio = size * csound->onedsr;
     factor = p->factor;
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -321,7 +311,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
         i = j = k = 0;
         while (i < maxtracks * 4) {
           ampnext = (MYFLT) fin[i] * scale;
-          freqnext = (MYFLT) fin[i + 1] * twopi;
+          freqnext = (MYFLT) fin[i + 1] * TWOPI_F;
           phasenext = (MYFLT) fin[i + 2];
           if ((id = (int) fin[i + 3]) != -1) {
             j = k + notcontin;
@@ -341,7 +331,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
                 phase = phases[j];
                 phasenext = phase + freq * factor;
                 amp = amps[j];
-                ampnext = 0.f;
+                ampnext = 0.0f;
               }
             }
             else {
@@ -349,23 +339,23 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               contin = 1;
               freq = freqnext;
               phase = phasenext - freq * factor;
-              amp = 0.f;
+              amp = 0.0f;
             }
             /* phasediff */
             phasediff = phasenext - phase;
 
-            while (phasediff >= pi)
-              phasediff -= twopi;
-            while (phasediff < -pi)
-              phasediff += twopi;
+            while (phasediff >= PI_F)
+              phasediff -= TWOPI_F;
+            while (phasediff < -PI_F)
+              phasediff += TWOPI_F;
 
             /* update phasediff to match the freq */
-            cph = ((freq + freqnext) * factor / 2. - phasediff) / twopi;
-            phasediff += twopi * (int) (cph + 0.5);
+            cph = ((freq + freqnext) * factor * 0.5 - phasediff) / TWOPI;
+            phasediff += TWOPI_F * (int) (cph + 0.5);
             /* interpolation coefs */
-            a2 = 3. / facsqr * (phasediff -
-                                factor / 3. * (2. * freq + freqnext));
-            a3 = 1. / (3 * facsqr) * (freqnext - freq - 2. * a2 * factor);
+            a2 = 3.0 / facsqr * (phasediff -
+                                factor / 3.0 * (2.0 * freq + freqnext));
+            a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
             /* interpolation & track synthesis loop */
             a = amp;
             ph = phase;
@@ -412,7 +402,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
 static int psynth3_process(CSOUND *csound, _PSYN *p)
 {
     MYFLT   ampnext, amp, freq, freqnext, phase, phasenext, ratio;
-    double  a2, a3, cph, pi, twopi;
+    double  a2, a3, cph;
     MYFLT   phasediff, facsqr, ph;
     MYFLT   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal, pitch = *p->pitch;
@@ -429,11 +419,9 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
     int     *trackID = (int *) p->trackID.auxp;
     int     hopsize = p->hopsize;
 
-    incrph = p->invsr;
-    pi = p->pi;
-    twopi = p->twopi;
-    lotwopi = (MYFLT) (size / twopi);
-    ratio = size / csound->esr;
+    incrph = csound->onedsr;
+    lotwopi = (MYFLT) (size) / TWOPI_F;
+    ratio = size * csound->onedsr;
     factor = p->factor;
     facsqr = p->facsqr;
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -447,7 +435,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
         i = j = k = 0;
         while (i < maxtracks * 4) {
           ampnext = (MYFLT) fin[i] * scale;
-          freqnext = (MYFLT) fin[i + 1] * twopi * pitch;
+          freqnext = (MYFLT) fin[i + 1] * TWOPI_F * pitch;
           phasenext = (MYFLT) fin[i + 2];
           if ((id = (int) fin[i + 3]) != -1) {
             j = k + notcontin;
@@ -467,7 +455,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
                 phase = phases[j];
                 phasenext = phase + freq * factor;
                 amp = amps[j];
-                ampnext = 0.f;
+                ampnext = 0.0f;
               }
             }
             else {
@@ -475,23 +463,23 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
               contin = 1;
               freq = freqnext;
               phase = phasenext - freq * factor;
-              amp = 0.f;
+              amp = 0.0f;
             }
             /* phasediff */
             phasediff = phasenext - phase;
 
-            while (phasediff >= pi)
-              phasediff -= twopi;
-            while (phasediff < -pi)
-              phasediff += twopi;
+            while (phasediff >= PI_F)
+              phasediff -= TWOPI_F;
+            while (phasediff < -PI_F)
+              phasediff += TWOPI_F;
 
             /* update phasediff to match the freq */
-            cph = ((freq + freqnext) * factor / 2. - phasediff) / twopi;
-            phasediff += twopi * cph;
+            cph = ((freq + freqnext) * factor *0.5 - phasediff) / TWOPI;
+            phasediff += TWOPI_F * cph;
             /* interpolation coefs */
-            a2 = 3. / facsqr * (phasediff -
-                                factor / 3. * (2. * freq + freqnext));
-            a3 = 1. / (3 * facsqr) * (freqnext - freq - 2. * a2 * factor);
+            a2 = 3.0 / facsqr * (phasediff -
+                                factor / 3.0 * (2.0 * freq + freqnext));
+            a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
             /* interpolation & track synthesis loop */
             a = amp;
             ph = phase;
@@ -515,11 +503,11 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
             if (contin) {
               amps[k] = ampnext;
               freqs[k] = freqnext;
-              phasenext += (cph - (int) cph) * twopi;
+              phasenext += (cph - (int) cph) * TWOPI;
               while (phasenext < 0)
-                phasenext += twopi;
-              while (phasenext >= twopi)
-                phasenext -= twopi;
+                phasenext += TWOPI_F;
+              while (phasenext >= TWOPI_F)
+                phasenext -= TWOPI_F;
               phases[k] = phasenext;
               trackID[k] = id;
               i += 4;
@@ -565,7 +553,7 @@ static int trans_init(CSOUND *csound, _PTRANS *p)
     if (p->fout->frame.auxp == NULL ||
         p->fout->frame.size < sizeof(float) * numbins * 4)
       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
-    ((float *) p->fout->frame.auxp)[3] = -1.f;
+    ((float *) p->fout->frame.auxp)[3] = -1.0f;
 
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -581,7 +569,7 @@ static int trscale_process(CSOUND *csound, _PTRANS *p)
 {
     MYFLT   scale = *p->kpar;
     MYFLT   gain = (p->kgain != NULL ? *p->kgain : FL(1.0));
-    MYFLT   nyq = csound->esr / 2;
+    MYFLT   nyq = csound->esr * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
     int     i = 0, id = (int) framein[3], end = p->numbins * 4;
@@ -610,7 +598,7 @@ static int trshift_process(CSOUND *csound, _PTRANS *p)
 {
     MYFLT   shift = *p->kpar;
     MYFLT   gain = (p->kgain != NULL ? *p->kgain : FL(1.0));
-    MYFLT   nyq = csound->esr / 2;
+    MYFLT   nyq = csound->esr * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
     int     i = 0, id = (int) framein[3], end = p->numbins * 4;
@@ -659,7 +647,7 @@ static int trlowest_init(CSOUND *csound, _PLOW *p)
     if (p->fout->frame.auxp == NULL ||
         p->fout->frame.size < sizeof(float) * numbins * 4)
       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
-    ((float *) p->fout->frame.auxp)[3] = -1.f;
+    ((float *) p->fout->frame.auxp)[3] = -1.0f;
 
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -674,15 +662,15 @@ static int trlowest_init(CSOUND *csound, _PLOW *p)
 static int trlowest_process(CSOUND *csound, _PLOW *p)
 {
     MYFLT   scale = *p->kpar;
-    MYFLT   nyq = csound->esr / 2;
-    float   lowest = (float) nyq, outamp = 0.f, outph = 0.f, outid = -1.f;
+    MYFLT   nyq = csound->esr * FL(0.5);
+    float   lowest = (float) nyq, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
     int     i = 0, id = (int) framein[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       do {
-        if (framein[i + 1] < lowest && framein[i] > 0.f) {
+        if (framein[i + 1] < lowest && framein[i] > 0.0f) {
           lowest = framein[i + 1];
           outamp = framein[i];
           outph = framein[i + 2];
@@ -695,7 +683,7 @@ static int trlowest_process(CSOUND *csound, _PLOW *p)
       frameout[1] = lowest;
       frameout[2] = outph;
       frameout[3] = outid;
-      frameout[7] = -1.f;
+      frameout[7] = -1.0f;
       *p->kfr = (MYFLT) lowest;
       *p->kamp = (MYFLT) frameout[0];
       p->fout->framecount = p->lastframe = p->fin->framecount;
@@ -708,14 +696,14 @@ static int trlowest_process(CSOUND *csound, _PLOW *p)
 static int trhighest_process(CSOUND *csound, _PLOW *p)
 {
     MYFLT   scale = *p->kpar;
-    float   highest = (float) 0, outamp = 0.f, outph = 0.f, outid = -1.f;
+    float   highest = 0.0f, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
     int     i = 0, id = (int) framein[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       do {
-        if (framein[i + 1] > highest && framein[i] > 0.f) {
+        if (framein[i + 1] > highest && framein[i] > 0.0f) {
           highest = framein[i + 1];
           outamp = framein[i];
           outph = framein[i + 2];
@@ -728,7 +716,7 @@ static int trhighest_process(CSOUND *csound, _PLOW *p)
       frameout[1] = highest;
       frameout[2] = outph;
       frameout[3] = outid;
-      frameout[7] = -1.f;
+      frameout[7] = -1.0f;
       *p->kfr = (MYFLT) highest;
       *p->kamp = (MYFLT) frameout[0];
       p->fout->framecount = p->lastframe = p->fin->framecount;
@@ -765,7 +753,7 @@ static int trsplit_init(CSOUND *csound, _PSPLIT *p)
     if (p->fsig1->frame.auxp == NULL ||
         p->fsig1->frame.size < sizeof(float) * numbins * 4)
       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
-    ((float *) p->fsig1->frame.auxp)[3] = -1.f;
+    ((float *) p->fsig1->frame.auxp)[3] = -1.0f;
 
     p->fsig1->overlap = p->fsig3->overlap;
     p->fsig1->winsize = p->fsig3->winsize;
@@ -776,7 +764,7 @@ static int trsplit_init(CSOUND *csound, _PSPLIT *p)
         p->fsig2->frame.size < sizeof(float) * numbins * 4)
       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig2->frame);
 
-    ((float *) p->fsig2->frame.auxp)[3] = -1.f;
+    ((float *) p->fsig2->frame.auxp)[3] = -1.0f;
     p->fsig2->overlap = p->fsig3->overlap;
     p->fsig2->winsize = p->fsig3->winsize;
     p->fsig2->wintype = p->fsig3->wintype;
@@ -827,9 +815,9 @@ static int trsplit_process(CSOUND *csound, _PSPLIT *p)
         i += 4;
       } while (id != -1 && i < end);
       if (trkcnt1)
-        frameout1[trkcnt1 - 1] = -1.f;
+        frameout1[trkcnt1 - 1] = -1.0f;
       if (trkcnt2)
-        frameout2[trkcnt2 - 1] = -1.f;
+        frameout2[trkcnt2 - 1] = -1.0f;
       p->fsig2->framecount = p->fsig1->framecount = p->lastframe =
           p->fsig3->framecount;
 /*csound->Message(csound, "split %d : %d\n", trkcnt1/4, trkcnt2/4);*/
@@ -865,7 +853,7 @@ static int trmix_init(CSOUND *csound, _PSMIX *p)
     if (p->fsig1->frame.auxp == NULL ||
         p->fsig1->frame.size < sizeof(float) * numbins * 4)
       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
-    ((float *) p->fsig1->frame.auxp)[3] = -1.f;
+    ((float *) p->fsig1->frame.auxp)[3] = -1.0f;
 
     p->fsig1->overlap = p->fsig2->overlap;
     p->fsig1->winsize = p->fsig2->winsize;
@@ -906,7 +894,7 @@ static int trmix_process(CSOUND *csound, _PSMIX *p)
         id = (int) framein2[j + 3];
       }
       if (i + 3 < p->numbins * 4)
-        frameout[i + 3] = -1.f;
+        frameout[i + 3] = -1.0f;
       p->fsig1->framecount = p->lastframe = p->fsig2->framecount;
 
 /*csound->Message(csound, "mix %d : %d\n", k/4, j/4);*/
@@ -945,7 +933,7 @@ static int trfil_init(CSOUND *csound, _PSFIL *p)
     if (p->fout->frame.auxp == NULL ||
         p->fout->frame.size < sizeof(float) * numbins * 4)
       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
-    ((float *) p->fout->frame.auxp)[3] = -1.f;
+    ((float *) p->fout->frame.auxp)[3] = -1.0f;
 
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -960,7 +948,7 @@ static int trfil_init(CSOUND *csound, _PSFIL *p)
 static int trfil_process(CSOUND *csound, _PSFIL *p)
 {
     MYFLT   amnt = *p->kpar, gain = FL(1.0);
-    MYFLT   nyq = csound->esr / 2;
+    MYFLT   nyq = csound->esr * FL(0.5);
     MYFLT   *fil = p->tab->ftable;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
@@ -992,7 +980,7 @@ static int trfil_process(CSOUND *csound, _PSFIL *p)
         i += 4;
       } while (id != -1 && i < end);
       if (i - 1 < p->numbins * 4)
-        frameout[i - 1] = -1.f;
+        frameout[i - 1] = -1.0f;
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
 
@@ -1029,7 +1017,7 @@ static int trcross_init(CSOUND *csound, _PSCROSS *p)
     if (p->fsig1->frame.auxp == NULL ||
         p->fsig1->frame.size < sizeof(float) * numbins * 4)
       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
-    ((float *) p->fsig1->frame.auxp)[3] = -1.f;
+    ((float *) p->fsig1->frame.auxp)[3] = -1.0f;
 
     p->fsig1->overlap = p->fsig2->overlap;
     p->fsig1->winsize = p->fsig2->winsize;
@@ -1067,7 +1055,7 @@ static int trcross_process(CSOUND *csound, _PSCROSS *p)
       for (i = 0; id != -1 && i < end; i += 4, id = (int) framein1[i + 3]) {
 
         boundup = framein1[i + 1] * interval;
-        boundown = framein1[i + 1] * (1. / interval);
+        boundown = framein1[i + 1] * (FL(1.0) / interval);
         for (j = 0; j < end && framein2[j + 3] != -1; j += 4) {
           if ((framein2[j + 1] > boundown) && (framein2[j + 1] <= boundup)) {
             if (maxj != -1)
@@ -1080,7 +1068,7 @@ static int trcross_process(CSOUND *csound, _PSCROSS *p)
         if (!nomatch) {
           if (mode < 1)
             frameout[i] =
-                (float) ((framein1[i] * (max ? framein2[maxj] / max : 1.f)) *
+                (float) ((framein1[i] * (max ? framein2[maxj] / max : 1.0f)) *
                          bal + framein1[i] * (FL(1.0) - bal));
           else
             frameout[i] =
@@ -1100,7 +1088,7 @@ static int trcross_process(CSOUND *csound, _PSCROSS *p)
       }
 
       if (i + 3 < p->numbins * 4)
-        frameout[i + 3] = -1.f;
+        frameout[i + 3] = -1.0f;
       p->fsig1->framecount = p->lastframe = p->fsig2->framecount;
 
 /*csound->Message(csound, "mix %d : %d\n", k/4, j/4);*/
@@ -1152,8 +1140,8 @@ static int binit_process(CSOUND *csound, _PSBIN *p)
     float   *framein = (float *) p->fsig2->frame.auxp;
     int     i = 0, n = 0, id = (int) framein[3], end = p->numbins * 4;
     int     maxi = -1;
-    MYFLT   bw = csound->esr / N, boundup, boundown;
-    MYFLT   nyq = csound->esr / 2, centre;
+    MYFLT   bw = csound->esr / (MYFLT)N, boundup, boundown;
+    MYFLT   nyq = csound->esr * FL(0.5), centre;
 
     if (p->lastframe < p->fsig2->framecount) {
 
