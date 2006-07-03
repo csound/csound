@@ -51,7 +51,7 @@ typedef struct _ifd {
     AUXCH   sigframe, diffsig, win, diffwin;
     AUXCH   counter;
     int     fftsize, hopsize, wintype, frames, cnt;
-    double  fund, factor, pi, twopi;
+    double  fund, factor;
     MYFLT   norm, g;
 } _IFD;
 
@@ -61,7 +61,7 @@ static int ifd_init(CSOUND * csound, _IFD * p)
     int     hsize, fftsize, hopsize, frames;
     int    *counter, wintype, i;
     MYFLT  *winf, *dwinf;
-    double  alpha = 0.f, fac;
+    double  alpha = 0.0f, fac;
 
     p->cnt = 0;
     fftsize = p->fftsize = (int) *p->size;
@@ -70,7 +70,7 @@ static int ifd_init(CSOUND * csound, _IFD * p)
     wintype = p->wintype = (int) *p->type;
     frames = fftsize / hopsize;
 
-    if ((frames - (float) fftsize / hopsize) != 0.f)
+    if ((frames - (float) fftsize / hopsize) != 0.0f)
       csound->Die(csound, "pvsifd: "
                           "fftsize should be an integral multiple of hopsize");
 
@@ -78,7 +78,6 @@ static int ifd_init(CSOUND * csound, _IFD * p)
       csound->Die(csound, "pvsifd: fftsize should be power-of-two");
 
     p->frames = frames;
-    p->pi = 4. * atan(1.);
     hsize = fftsize / 2;
 
     if (p->sigframe.auxp == NULL ||
@@ -137,19 +136,18 @@ static int ifd_init(CSOUND * csound, _IFD * p)
       csound->Die(csound, Str("pvsifd: unsupported value for iwintype\n"));
       break;
     }
-    fac = 2. * p->pi / (fftsize - 1.);
+    fac = TWOPI / (fftsize - 1.0);
 
     for (i = 0; i < fftsize; i++)
-      winf[i] = (MYFLT) (alpha - (1. - alpha) * cos(fac * i));
+      winf[i] = (MYFLT) (alpha - (1.0 - alpha) * cos(fac * i));
 
     p->norm = 0;
     for (i = 0; i < fftsize; i++) {
-      dwinf[i] = winf[i] - (i + 1 < fftsize ? winf[i + 1] : 0.f);
+      dwinf[i] = winf[i] - (i + 1 < fftsize ? winf[i + 1] : 0.0f);
       p->norm += winf[i];
     }
 
-    p->twopi = 2. * p->pi;
-    p->factor = csound->esr / p->twopi;
+    p->factor = csound->esr / TWOPI_F;
     p->fund = csound->esr / fftsize;
 
     return OK;
@@ -159,9 +157,7 @@ static void IFAnalysis(CSOUND * csound, _IFD * p, MYFLT * signal)
 {
 
     double  powerspec, da, db, a, b, ph, d, factor = p->factor, fund = p->fund;
-    double  twopi = p->twopi, pi = p->pi;
     MYFLT   scl = p->g / p->norm;
-    MYFLT   sr = csound->esr;
     int     i2, i, fftsize = p->fftsize, hsize = p->fftsize / 2;
     MYFLT   tmp1, tmp2, *diffwin = (MYFLT *) p->diffwin.auxp;
     MYFLT  *win = (MYFLT *) p->win.auxp;
@@ -198,25 +194,25 @@ static void IFAnalysis(CSOUND * csound, _IFD * p, MYFLT * signal)
       db = diffsig[i + 1] * scl;
       powerspec = a * a + b * b;
 
-      if ((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.f) {
+      if ((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.0f) {
         output[i + 1] = ((a * db - b * da) / powerspec) * factor + i2 * fund;
         ph = (float) atan2(b, a);
         d = ph - outphases[i + 1];
-        while (d > pi)
-          d -= twopi;
-        while (d < -pi)
-          d += twopi;
-        outphases[i + 1] += d;
+        while (d > PI)
+          d -= TWOPI;
+        while (d < -PI)
+          d += TWOPI;
+        outphases[i + 1] += (float)d;
       }
       else {
         output[i + 1] = i2 * fund;
-        outphases[i + 1] = 0.f;
+        outphases[i + 1] = 0.0f;
       }
     }
     output[0] = outphases[0] = signal[0] * scl;
-    output[1] = outphases[1] = outphases[fftsize + 1] = 0.f;
+    output[1] = outphases[1] = outphases[fftsize + 1] = 0.0f;
     output[fftsize] = outphases[fftsize] = signal[1] * scl;
-    output[fftsize + 1] = sr / 2.;
+    output[fftsize + 1] = csound->esr * FL(0.5);
     p->fout1->framecount++;
     p->fout2->framecount++;
 }
