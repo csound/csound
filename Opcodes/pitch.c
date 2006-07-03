@@ -710,7 +710,7 @@ int hsboscil(CSOUND *csound, HSBOSC   *p)
     tonal = *p->ktona;
     tonal -= (MYFLT)floor(tonal);
     bright = *p->kbrite - tonal;
-    octstart = bright - (MYFLT)octcnt / FL(2.0);
+    octstart = bright - (MYFLT)octcnt * FL(0.5);
     octbase = (MYFLT)floor(floor(octstart) + 1.5);
     octoffs = octbase - octstart;
 
@@ -779,13 +779,13 @@ int pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (downs < (-1.9)) {
       upsamp = (int)((-downs) + FL(0.5));
       downsamp = 0;
-      srate = csound->esr * (float)upsamp;
+      srate = csound->esr * (MYFLT)upsamp;
     }
     else {
       downsamp = (int)(downs+FL(0.5));
       if (downsamp < 1)
         downsamp = 1;
-      srate = csound->esr / (float)downsamp;
+      srate = csound->esr / (MYFLT)downsamp;
       upsamp = 0;
     }
 

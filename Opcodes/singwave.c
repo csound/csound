@@ -92,7 +92,7 @@ static int make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 }
 
 #define Modulatr_setVibFreq(p,vibFreq)  \
-                          (p.v_rate = vibFreq * (MYFLT)p.wave->flen/csound->esr)
+        (p.v_rate = vibFreq * (MYFLT)p.wave->flen*csound->onedsr)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
 static MYFLT Modulatr_tick(CSOUND *csound, Modulatr *p)
