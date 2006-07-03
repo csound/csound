@@ -115,7 +115,7 @@ static int statevar_process(CSOUND *csound,statevar *p)
     double  f,q,lim;
     int ostimes = p->ostimes,i,j;
 
-    f = 2.0*sin(PI*freq/(ostimes*csound->esr));
+    f = 2.0*sin(freq*(double)csound->pidsr/ostimes);
     q = 1.0/res;
     lim = (2.0 - f) / (ostimes * 0.4);
 
@@ -152,7 +152,6 @@ static int fofilter_init(CSOUND *csound,fofilter *p)
       for (i=0;i<4; i++)
         p->delay[i] = 0;
     }
-    p->twopiosr = TWOPI/csound->esr;
     return OK;
 }
 
@@ -167,8 +166,8 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     double  w1,y1,w2,y2;
     int i;
 
-    ang = p->twopiosr*freq;                      /* pole angle */
-    fsc = sin(ang) - 3.0;                        /* freq scl   */
+    ang = (double)csound->tpidsr*freq;         /* pole angle */
+    fsc = sin(ang) - 3.0;                      /* freq scl   */
     rad1 =  pow(10.0, fsc/(dec*csound->esr));  /* filter radii */
     rad2 =  pow(10.0, fsc/(ris*csound->esr));
 

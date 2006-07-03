@@ -48,7 +48,7 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
     bframe = (float *) p->fout->frame.auxp;
     for (i = 0; i < N + 2; i += 2) {
       bframe[i] = 0.0f;
-      bframe[i + 1] = (i / 2) * N / csound->esr;
+      bframe[i + 1] = (i / 2) * N * csound->onedsr;
     }
     return OK;
 }
@@ -370,9 +370,9 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
 {
     long    i, chan, newchan, N = p->fout->N;
     MYFLT   pshift = (MYFLT) *p->kshift;
-    int     lowest = abs((int) (*p->lowest * N / csound->esr));
+    int     lowest = abs((int) (*p->lowest * N * csound->onedsr));
     float   max = 0.0f;
-    int     cshift = (int) (pshift * N / csound->esr);
+    int     cshift = (int) (pshift * N * csound->onedsr);
     int     keepform = (int) *p->keepform;
     float   g = (float) *p->gain;
     float   *fin = (float *) p->fin->frame.auxp;

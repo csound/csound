@@ -172,7 +172,7 @@ int clarin(CSOUND *csound, CLARIN *p)
     p->outputGain = amp + FL(0.001);
     DLineL_setDelay(&p->delayLine, /* length - approx filter delay */
         (csound->esr/ *p->frequency) * FL(0.5) - FL(1.5));
-    p->v_rate = *p->vibFreq * p->vibr->flen / csound->esr;
+    p->v_rate = *p->vibFreq * p->vibr->flen * csound->onedsr;
                                 /* Check to see if into decay yet */
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
