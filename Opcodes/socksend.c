@@ -3,7 +3,7 @@
 
     Copyright (C) 2006 by John ffitch
 
-    This file is not yet part of Csound.
+    This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
