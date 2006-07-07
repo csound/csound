@@ -114,8 +114,8 @@ static int hilbertset(CSOUND *csound, HILBERT *p)
       polefreq[j] = poles[j] * 15.0;
       rc[j] = 1.0 / (2.0 * PI * polefreq[j]);
       alpha[j] = 1.0 / rc[j];
-      beta[j] = (1.0 - (alpha[j] / (2.0 * (double)csound->esr))) /
-                (1.0 + (alpha[j] / (2.0 * (double)csound->esr)));
+      beta[j] = (1.0 - (alpha[j] * 0.5 * (double)csound->onedsr)) /
+                (1.0 + (alpha[j] * 0.5 * (double)csound->onedsr));
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
       p->coef[j] = -(MYFLT)beta[j];
     }
