@@ -891,31 +891,31 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     p->nfreq[24] = 4500.0;
 
     /* initialise frequencies to modulate noise by */
-    p->phaseinc[0] = TWOPI * 50.0 / csound->esr;
-    p->phaseinc[1] = TWOPI * 150.0 / csound->esr;
-    p->phaseinc[2] = TWOPI * 250.0 / csound->esr;
-    p->phaseinc[3] = TWOPI * 350.0 / csound->esr;
-    p->phaseinc[4] = TWOPI * 455.0 / csound->esr;
-    p->phaseinc[5] = TWOPI * 570.0 / csound->esr;
-    p->phaseinc[6] = TWOPI * 700.0 / csound->esr;
-    p->phaseinc[7] = TWOPI * 845.0 / csound->esr;
-    p->phaseinc[8] = TWOPI * 1000.0 / csound->esr;
-    p->phaseinc[9] = TWOPI * 1175.0 / csound->esr;
-    p->phaseinc[10] = TWOPI * 1375.0 / csound->esr;
-    p->phaseinc[11] = TWOPI * 1600.0 / csound->esr;
-    p->phaseinc[12] = TWOPI * 1860.0 / csound->esr;
-    p->phaseinc[13] = TWOPI * 2160.0 / csound->esr;
-    p->phaseinc[14] = TWOPI * 2510.0 / csound->esr;
-    p->phaseinc[15] = TWOPI * 2925.0 / csound->esr;
-    p->phaseinc[16] = TWOPI * 3425.0 / csound->esr;
-    p->phaseinc[17] = TWOPI * 4050.0 / csound->esr;
-    p->phaseinc[18] = TWOPI * 4850.0 / csound->esr;
-    p->phaseinc[19] = TWOPI * 5850.0 / csound->esr;
-    p->phaseinc[20] = TWOPI * 7050.0 / csound->esr;
-    p->phaseinc[21] = TWOPI * 8600.0 / csound->esr;
-    p->phaseinc[22] = TWOPI * 10750.0 / csound->esr;
-    p->phaseinc[23] = TWOPI * 13750.0 / csound->esr;
-    p->phaseinc[24] = TWOPI * 17750.0 / csound->esr;
+    p->phaseinc[0] = TWOPI * 50.0 * csound->onedsr;
+    p->phaseinc[1] = TWOPI * 150.0 * csound->onedsr;
+    p->phaseinc[2] = TWOPI * 250.0 * csound->onedsr;
+    p->phaseinc[3] = TWOPI * 350.0 * csound->onedsr;
+    p->phaseinc[4] = TWOPI * 455.0 * csound->onedsr;
+    p->phaseinc[5] = TWOPI * 570.0 * csound->onedsr;
+    p->phaseinc[6] = TWOPI * 700.0 * csound->onedsr;
+    p->phaseinc[7] = TWOPI * 845.0 * csound->onedsr;
+    p->phaseinc[8] = TWOPI * 1000.0 * csound->onedsr;
+    p->phaseinc[9] = TWOPI * 1175.0 * csound->onedsr;
+    p->phaseinc[10] = TWOPI * 1375.0 * csound->onedsr;
+    p->phaseinc[11] = TWOPI * 1600.0 * csound->onedsr;
+    p->phaseinc[12] = TWOPI * 1860.0 * csound->onedsr;
+    p->phaseinc[13] = TWOPI * 2160.0 * csound->onedsr;
+    p->phaseinc[14] = TWOPI * 2510.0 * csound->onedsr;
+    p->phaseinc[15] = TWOPI * 2925.0 * csound->onedsr;
+    p->phaseinc[16] = TWOPI * 3425.0 * csound->onedsr;
+    p->phaseinc[17] = TWOPI * 4050.0 * csound->onedsr;
+    p->phaseinc[18] = TWOPI * 4850.0 * csound->onedsr;
+    p->phaseinc[19] = TWOPI * 5850.0 * csound->onedsr;
+    p->phaseinc[20] = TWOPI * 7050.0 * csound->onedsr;
+    p->phaseinc[21] = TWOPI * 8600.0 * csound->onedsr;
+    p->phaseinc[22] = TWOPI * 10750.0 * csound->onedsr;
+    p->phaseinc[23] = TWOPI * 13750.0 * csound->onedsr;
+    p->phaseinc[24] = TWOPI * 17750.0 * csound->onedsr;
 
     /* initialise phase */
     p->oscphase[0] = 0.0;
@@ -1259,7 +1259,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
         nsmps = csound->ksmps;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
-        inc = TWOPI * freq / csound->esr;
+        inc = TWOPI * freq * csound->onedsr;
         nzamp =
             sqrt(*(p->nzbuf + i) / (p->atshead->winsz * ATSA_NOISE_VARIANCE));
         nzfreq = (freq < 500.0 ? 50.0 : freq * 0.05);
@@ -1286,7 +1286,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
         nsmps = csound->ksmps;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
-        inc = TWOPI * freq / csound->esr;
+        inc = TWOPI * freq * csound->onedsr;
         do {
           /* calc sine wave */
           sinewave = cos(phase) * amp;
