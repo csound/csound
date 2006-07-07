@@ -506,10 +506,10 @@ int vbap_FOUR_moving_init(CSOUND *csound, VBAP_FOUR_MOVING *p)
     }
     if (p->dim == 2)
       p->point_change_interval =
-        (int)(csound->ekr * *p->dur /(fabs(*p->field_am) - 1));
+        (int)(csound->ekr * *p->dur /(fabs(*p->field_am) - 1.0));
     else if (p->dim == 3)
       p->point_change_interval =
-        (int)(csound->ekr * *p->dur /((fabs(*p->field_am)/2.0) - 1.0 ));
+        (int)(csound->ekr * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
       csound->Die(csound, Str("Wrong dimension"));
     p->point_change_counter = 0;
