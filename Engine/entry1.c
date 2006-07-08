@@ -540,8 +540,8 @@ OENTRY opcodlst_1[] = {
 { "limit.a",  S(LIMIT), 5, "a",     "xkk",  (SUBR)limitset, NULL,  (SUBR)limit },
 { "prealloc", S(AOP),   1, "",      "Tio",  (SUBR)prealloc, NULL, NULL  },
 /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
-{ "inh",    S(INQ),     4,      "aaaaaa","",    NULL,   NULL,   inh     },
-{ "ino",    S(INQ),     4,      "aaaaaaaa","",  NULL,   NULL,   ino     },
+{ "inh",    S(INH),     4,      "aaaaaa","",    NULL,   NULL,   inh     },
+{ "ino",    S(INO),     4,      "aaaaaaaa","",  NULL,   NULL,   ino     },
 { "inx",    S(INALL),   4,      "aaaaaaaaaaaaaaaa","",  NULL,   NULL,   in16 },
 { "in32",   S(INALL),   4,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                                         "",     NULL,   NULL,   in32 },
