@@ -48,7 +48,7 @@ typedef AEffect * (*PVSTMAIN)(audioMasterCallback audioMaster);
 class Fl_Window;
 
 class VSTPlugin {
-public:
+ public:
     CSOUND *csound;
     void *libraryHandle;
     AEffect *aeffect;

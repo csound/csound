@@ -385,10 +385,16 @@ extern "C" {
   
   static int vstprogset(CSOUND *csound, void *data)
   {
+      // The changes here are part of an attempt to map 0 to 1 and others
+      int program = (int)*p->iprogram;
       VSTPROGSET *p = (VSTPROGSET *) data;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
       
-      plugin->SetCurrentProgram(int(*p->iprogram));
+      if (program>16 || program<=0) {
+        csound->Message(csound, "VSTprogset: Program %d treated as 1\n", program);
+        program = 1;
+      }
+      plugin->SetCurrentProgram(program));
       return OK;
   }
 
@@ -424,9 +430,9 @@ extern "C" {
 #ifdef WIN32
   static void path_convert(char *in)
   {
-      for (int i = 0; in[i] != (char) 0; i++) {
-        if (in[i] == (char) 47)
-          in[i] = (char) 92;
+      for (int i = 0; in[i] != '\0'; i++) {
+        if (in[i] == '/')
+          in[i] = '\\';
       }
   }
 #endif
