@@ -1,5 +1,7 @@
 2006-07-08  jpff  <jpff@codemist.co.uk>
 
+	* H/csoundCore.h: Removed unused macros and typedefs
+
 	* Opcodes/physmod.c (make_DLineA): 
 	* Opcodes/physutil.c (make_DLineL): No need to zero allocated array
 
@@ -9,7 +11,7 @@
 	* Opcodes/osc-sock.c (osc_send_set, oscInitUDP): Use memset rather
 	than deprecated bzero
 
-2006-07-07      Istvan Varga    <ivarga@csounds.com> (via JPff)
+2006-07-07      Istvan Varga    <via JPff>
         * Engine/entry1.c: corrected opcode data size for inh and ino
 	
         * Opcodes/bilbar.c (play_pp): use fabs() instead of abs() 

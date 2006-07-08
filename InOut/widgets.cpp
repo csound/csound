@@ -116,6 +116,18 @@ Fl_Align ALIGN_TABLE[] = { FL_ALIGN_BOTTOM,      FL_ALIGN_CENTER,
                            FL_ALIGN_TOP_LEFT,    FL_ALIGN_TOP_RIGHT,
                            FL_ALIGN_BOTTOM_LEFT, FL_ALIGN_BOTTOM_RIGHT };
 
+Fl_Boxtype BOX_TABLE[] = {  FL_FLAT_BOX,	 FL_FLAT_BOX,
+                            FL_UP_BOX,           FL_DOWN_BOX,
+                            FL_THIN_UP_BOX,      FL_THIN_DOWN_BOX,
+                            FL_ENGRAVED_BOX,     FL_EMBOSSED_BOX,
+                            FL_BORDER_BOX,      _FL_SHADOW_BOX,
+                            _FL_ROUNDED_BOX,    _FL_RSHADOW_BOX,
+                            _FL_RFLAT_BOX,      _FL_ROUND_UP_BOX,
+                            _FL_ROUND_DOWN_BOX, _FL_DIAMOND_UP_BOX,
+                            _FL_DIAMOND_DOWN_BOX,_FL_OVAL_BOX,
+                            _FL_OSHADOW_BOX,    _FL_OFLAT_BOX};
+
+
 #ifndef NO_FLTK_THREADS
 extern "C" {
   /* called by sensevents() once in every control period */
@@ -2188,32 +2200,32 @@ static int rand_31_i(CSOUND *csound, int maxVal)
 
 static void widget_attributes(CSOUND *csound, Fl_Widget *o)
 {
-  if (FLtext_size == -2 ) {
-    FLtext_size = -1;
-    FLtext_color= -1;
-    FLtext_font = -1;
-    FLtext_align= -1;
-    FLcolor = -1;
-  }
-  if (FLtext_size)
-    o->labelsize(FLtext_size); // if > 0 assign it, else skip, leaving default
-  switch ((int) FLtext_color) {
-  case -2: // random color
-    o->labelcolor(fl_rgb_color(rand_31_i(csound, 255), rand_31_i(csound, 255),
-                               rand_31_i(csound, 255)));
-    break;
-  case -1:
-    // if FLtext_color is == -1, color assignment is skipped,
-    // leaving default color
-    break;
-  default:
-    o->labelcolor(FLtext_color);
-    break;
-  }
-  if (FLtext_font> 0) {
-    Fl_Font font;
-    if (FLtext_font<0 || FLtext_font>16) font = FL_HELVETICA;
-    else font = FONT_TABLE[FLtext_font];
+    if (FLtext_size == -2 ) {
+      FLtext_size = -1;
+      FLtext_color= -1;
+      FLtext_font = -1;
+      FLtext_align= -1;
+      FLcolor = -1;
+    }
+    if (FLtext_size)
+      o->labelsize(FLtext_size); // if > 0 assign it, else skip, leaving default
+    switch ((int) FLtext_color) {
+    case -2: // random color
+      o->labelcolor(fl_rgb_color(rand_31_i(csound, 255), rand_31_i(csound, 255),
+                                 rand_31_i(csound, 255)));
+      break;
+    case -1:
+      // if FLtext_color is == -1, color assignment is skipped,
+      // leaving default color
+      break;
+    default:
+      o->labelcolor(FLtext_color);
+      break;
+    }
+    if (FLtext_font> 0) {
+      Fl_Font font;
+      if (FLtext_font<0 || FLtext_font>16) font = FL_HELVETICA;
+      else font = FONT_TABLE[FLtext_font];
 //     switch (FLtext_font) {
 //     case 1: font  = FL_HELVETICA; break;
 //     case 2: font  = FL_HELVETICA_BOLD; break;
@@ -2233,12 +2245,12 @@ static void widget_attributes(CSOUND *csound, Fl_Widget *o)
 //     case 16: font = FL_ZAPF_DINGBATS; break;
 //     default: font = FL_HELVETICA; break;
 //     }
-    o->labelfont(font);
-  }
-  if (FLtext_align > 0) {
-    Fl_Align type;
-    if (FLtext_align<0 || FLtext_align>9) type = FL_ALIGN_BOTTOM;
-    else type = ALIGN_TABLE[FLtext_align];
+      o->labelfont(font);
+    }
+    if (FLtext_align > 0) {
+      Fl_Align type;
+      if (FLtext_align<0 || FLtext_align>9) type = FL_ALIGN_BOTTOM;
+      else type = ALIGN_TABLE[FLtext_align];
 //     switch (FLtext_align) {
 //     case 1: type  = FL_ALIGN_CENTER; break;
 //     case 2: type  = FL_ALIGN_TOP; break;
@@ -2252,22 +2264,22 @@ static void widget_attributes(CSOUND *csound, Fl_Widget *o)
 //     case -1:                // What type is this?
 //     default: type = FL_ALIGN_BOTTOM; break;
 //     }
-    o->align(type);
-  }
-  switch ((int) FLcolor) {  // random color
-  case -2:
-    o->color(FL_GRAY,
-             fl_rgb_color(rand_31_i(csound, 255), rand_31_i(csound, 255),
-                          rand_31_i(csound, 255)));
-    break;
-  case -1:
-    // if FLcolor is == -1, color assignment is skipped,
-    // leaving widget default color
-    break;
-  default:
-    o->color(FLcolor, FLcolor2);
-    break;
-  }
+      o->align(type);
+    }
+    switch ((int) FLcolor) {  // random color
+    case -2:
+      o->color(FL_GRAY,
+               fl_rgb_color(rand_31_i(csound, 255), rand_31_i(csound, 255),
+                            rand_31_i(csound, 255)));
+      break;
+    case -1:
+      // if FLcolor is == -1, color assignment is skipped,
+      // leaving widget default color
+      break;
+    default:
+      o->color(FLcolor, FLcolor2);
+      break;
+    }
 }
 
 //-----------
@@ -2276,9 +2288,9 @@ extern "C" {
 
 static int FLkeyb(CSOUND *csound, FLKEYB *p)
 {
-  (void) csound;
-  (void) p;
-  return OK;
+    (void) csound;
+    (void) p;
+    return OK;
 }
 
 //-----------
@@ -2293,18 +2305,21 @@ static int StartPanel(CSOUND *csound, FLPANEL *p)
   if (width < 0) width = 400;   // default
   if (height < 0) height = 300;
 
-  int borderType;
-  switch( (int) *p->border ) {
-  case 0: borderType = FL_FLAT_BOX; break;
-  case 1: borderType = FL_DOWN_BOX; break;
-  case 2: borderType = FL_UP_BOX; break;
-  case 3: borderType = FL_ENGRAVED_BOX; break;
-  case 4: borderType = FL_EMBOSSED_BOX; break;
-  case 5: borderType = FL_BORDER_BOX; break;
-  case 6: borderType = FL_THIN_DOWN_BOX; break;
-  case 7: borderType = FL_THIN_UP_BOX; break;
-  default: borderType = FL_FLAT_BOX;
-  }
+  Fl_Boxtype borderType;
+  int iborder = (int) *p->border;
+  if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX;
+  else borderType = BOX_TABLE[iborder];
+//   switch( (int) *p->border ) {
+//   case 0: borderType = FL_FLAT_BOX; break;
+//   case 1: borderType = FL_DOWN_BOX; break;
+//   case 2: borderType = FL_UP_BOX; break;
+//   case 3: borderType = FL_ENGRAVED_BOX; break;
+//   case 4: borderType = FL_EMBOSSED_BOX; break;
+//   case 5: borderType = FL_BORDER_BOX; break;
+//   case 6: borderType = FL_THIN_DOWN_BOX; break;
+//   case 7: borderType = FL_THIN_UP_BOX; break;
+//   default: borderType = FL_FLAT_BOX;
+//   }
 
   Fl_Window *o;
   if (*(p->ikbdsense) == FL(0.0)) {
@@ -2318,7 +2333,7 @@ static int StartPanel(CSOUND *csound, FLPANEL *p)
   else
     o = new CsoundFLWindow(csound, x, y, width, height, panelName);
   widget_attributes(csound, o);
-  o->box((Fl_Boxtype) borderType);
+  o->box(borderType);
   o->resizable(o);
   widget_attributes(csound, o);
   ADDR_STACK adrstk(&p->h, (void *) o, stack_count);
@@ -2409,19 +2424,22 @@ static int StartGroup(CSOUND *csound, FLGROUP *p)
   Fl_Group *o = new Fl_Group ((int) *p->ix, (int) *p->iy,
                               (int) *p->iwidth, (int) *p->iheight,Name);
   widget_attributes(csound, o);
-  int borderType;
-  switch((int)*p->border ) {
-  case 0: borderType = FL_FLAT_BOX; break;
-  case 1: borderType = FL_DOWN_BOX; break;
-  case 2: borderType = FL_UP_BOX; break;
-  case 3: borderType = FL_ENGRAVED_BOX; break;
-  case 4: borderType = FL_EMBOSSED_BOX; break;
-  case 5: borderType = FL_BORDER_BOX; break;
-  case 6: borderType = FL_THIN_DOWN_BOX; break;
-  case 7: borderType = FL_THIN_UP_BOX; break;
-  default: borderType = FL_FLAT_BOX;
-  }
-  o->box((Fl_Boxtype) borderType);
+  Fl_Boxtype borderType;
+  int iborder = (int)*p->border;
+  if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX; 
+  else borderType = BOX_TABLE[iborder];
+//   switch((int)*p->border ) {
+//   case 0: borderType = FL_FLAT_BOX; break;
+//   case 1: borderType = FL_DOWN_BOX; break;
+//   case 2: borderType = FL_UP_BOX; break;
+//   case 3: borderType = FL_ENGRAVED_BOX; break;
+//   case 4: borderType = FL_EMBOSSED_BOX; break;
+//   case 5: borderType = FL_BORDER_BOX; break;
+//   case 6: borderType = FL_THIN_DOWN_BOX; break;
+//   case 7: borderType = FL_THIN_UP_BOX; break;
+//   default: borderType = FL_FLAT_BOX;
+//   }
+  o->box(borderType);
   widget_attributes(csound, o);
   ADDR_STACK adrstk(&p->h,o,stack_count);
   AddrStack.push_back(adrstk);
@@ -2775,28 +2793,31 @@ static int fl_box(CSOUND *csound, FL_BOX *p)
                           (int)*p->iwidth, (int)*p->iheight, text);
   widget_attributes(csound, o);
   Fl_Boxtype type;
-  switch ((int) *p->itype) {
-  case 1: type  = FL_FLAT_BOX; break;
-  case 2: type  = FL_UP_BOX; break;
-  case 3: type  = FL_DOWN_BOX; break;
-  case 4: type  = FL_THIN_UP_BOX; break;
-  case 5: type  = FL_THIN_DOWN_BOX; break;
-  case 6: type  = FL_ENGRAVED_BOX; break;
-  case 7: type  = FL_EMBOSSED_BOX; break;
-  case 8: type  = FL_BORDER_BOX; break;
-  case 9: type  = _FL_SHADOW_BOX; break;
-  case 10: type = _FL_ROUNDED_BOX; break;
-  case 11: type = _FL_RSHADOW_BOX; break;
-  case 12: type = _FL_RFLAT_BOX; break;
-  case 13: type = _FL_ROUND_UP_BOX; break;
-  case 14: type = _FL_ROUND_DOWN_BOX; break;
-  case 15: type = _FL_DIAMOND_UP_BOX; break;
-  case 16: type = _FL_DIAMOND_DOWN_BOX; break;
-  case 17: type = _FL_OVAL_BOX; break;
-  case 18: type = _FL_OSHADOW_BOX; break;
-  case 19: type = _FL_OFLAT_BOX; break;
-  default: type = FL_FLAT_BOX;
-  }
+  int itype = (int) *p->itype;
+  if (itype<0 || itype>19) type = FL_FLAT_BOX;
+  else type = BOX_TABLE[itype];
+//   switch ((int) *p->itype) {
+//   case 1: type  = FL_FLAT_BOX; break;
+//   case 2: type  = FL_UP_BOX; break;
+//   case 3: type  = FL_DOWN_BOX; break;
+//   case 4: type  = FL_THIN_UP_BOX; break;
+//   case 5: type  = FL_THIN_DOWN_BOX; break;
+//   case 6: type  = FL_ENGRAVED_BOX; break;
+//   case 7: type  = FL_EMBOSSED_BOX; break;
+//   case 8: type  = FL_BORDER_BOX; break;
+//   case 9: type  = _FL_SHADOW_BOX; break;
+//   case 10: type = _FL_ROUNDED_BOX; break;
+//   case 11: type = _FL_RSHADOW_BOX; break;
+//   case 12: type = _FL_RFLAT_BOX; break;
+//   case 13: type = _FL_ROUND_UP_BOX; break;
+//   case 14: type = _FL_ROUND_DOWN_BOX; break;
+//   case 15: type = _FL_DIAMOND_UP_BOX; break;
+//   case 16: type = _FL_DIAMOND_DOWN_BOX; break;
+//   case 17: type = _FL_OVAL_BOX; break;
+//   case 18: type = _FL_OSHADOW_BOX; break;
+//   case 19: type = _FL_OFLAT_BOX; break;
+//   default: type = FL_FLAT_BOX;
+//   }
   o->box(type);
   Fl_Font font;
   int ifnt = (int) *p->ifont;
@@ -2879,28 +2900,31 @@ static int fl_setBox(CSOUND *csound, FL_SETBOX *p)
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   Fl_Boxtype type;
-  switch ((int) *p->itype) {
-  case 1: type  = FL_FLAT_BOX; break;
-  case 2: type  = FL_UP_BOX; break;
-  case 3: type  = FL_DOWN_BOX; break;
-  case 4: type  = FL_THIN_UP_BOX; break;
-  case 5: type  = FL_THIN_DOWN_BOX; break;
-  case 6: type  = FL_ENGRAVED_BOX; break;
-  case 7: type  = FL_EMBOSSED_BOX; break;
-  case 8: type  = FL_BORDER_BOX; break;
-  case 9: type  = FL_SHADOW_BOX; break;
-  case 10: type = FL_ROUNDED_BOX; break;
-  case 11: type = FL_RSHADOW_BOX; break;
-  case 12: type = FL_RFLAT_BOX; break;
-  case 13: type = FL_ROUND_UP_BOX; break;
-  case 14: type = FL_ROUND_DOWN_BOX; break;
-  case 15: type = FL_DIAMOND_UP_BOX; break;
-  case 16: type = FL_DIAMOND_DOWN_BOX; break;
-  case 17: type = FL_OVAL_BOX; break;
-  case 18: type = FL_OSHADOW_BOX; break;
-  case 19: type = FL_OFLAT_BOX; break;
-  default: type = FL_FLAT_BOX;
-  }
+  int itype = (int) *p->itype;
+  if (itype<0||itype>19) type = FL_FLAT_BOX;
+  else type = BOX_TABLE[itype];
+//   switch ((int) *p->itype) {
+//   case 1: type  = FL_FLAT_BOX; break;
+//   case 2: type  = FL_UP_BOX; break;
+//   case 3: type  = FL_DOWN_BOX; break;
+//   case 4: type  = FL_THIN_UP_BOX; break;
+//   case 5: type  = FL_THIN_DOWN_BOX; break;
+//   case 6: type  = FL_ENGRAVED_BOX; break;
+//   case 7: type  = FL_EMBOSSED_BOX; break;
+//   case 8: type  = FL_BORDER_BOX; break;
+//   case 9: type  = FL_SHADOW_BOX; break;
+//   case 10: type = FL_ROUNDED_BOX; break;
+//   case 11: type = FL_RSHADOW_BOX; break;
+//   case 12: type = FL_RFLAT_BOX; break;
+//   case 13: type = FL_ROUND_UP_BOX; break;
+//   case 14: type = FL_ROUND_DOWN_BOX; break;
+//   case 15: type = FL_DIAMOND_UP_BOX; break;
+//   case 16: type = FL_DIAMOND_DOWN_BOX; break;
+//   case 17: type = FL_OVAL_BOX; break;
+//   case 18: type = FL_OSHADOW_BOX; break;
+//   case 19: type = FL_OFLAT_BOX; break;
+//   default: type = FL_FLAT_BOX;
+//   }
   o->box(type);
   return OK;
 }
