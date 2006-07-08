@@ -442,7 +442,7 @@ int play_pp(CSOUND *csound, CSPP *p)
             /* calc. pos. diff between rubber and string */
             pos = w1[rubber_index*NS+n]-rub1[qq];
             /* calc force (nonzero only when in contact) */
-            force += 0.5*(pos-abs(pos));
+            force += 0.5*(pos-fabs(pos));
           }
           for (n=0; n<NS; n++) {
             w[rubber_index*NS+n] += -dt*dt*(TWOPI*p->rubber[qq].freq)*
