@@ -1,5 +1,11 @@
 2006-07-08  jpff  <jpff@codemist.co.uk>
 
+	* Opcodes/physmod.c (make_DLineA): 
+	* Opcodes/physutil.c (make_DLineL): No need to zero allocated array
+
+	* Opcodes/vst4cs/src/vst4cs.cpp: **EXPERIMENTAL** try to make
+	programs 1-16
+
 	* Opcodes/osc-sock.c (osc_send_set, oscInitUDP): Use memset rather
 	than deprecated bzero
 
