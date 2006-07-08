@@ -101,7 +101,6 @@ extern "C" {
 #define DFLT_DBFS (FL(32768.0))
 
 #define MAXOCTS         8
-#define AIFF_MAXCHAN    8
 #define MAXCHAN         16      /* 16 MIDI channels; only one port for now */
 
 #define ONEPT           1.02197486              /* A440 tuning factor */
@@ -418,16 +417,6 @@ extern "C" {
     /** All p-fields for this event (SSTRCOD: string argument) */
     MYFLT   p[PMAX + 1];
   } EVTBLK;
-
-  typedef struct {
-    MYFLT   natcps;
-    MYFLT   gainfac;
-    short   loopmode1;
-    short   loopmode2;
-    long    begin1, end1;
-    long    begin2, end2;
-    MYFLT   fmaxamps[AIFF_MAXCHAN + 1];
-  } AIFFDAT;
 
   typedef struct {
     MYFLT   gen01;
