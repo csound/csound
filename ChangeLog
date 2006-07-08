@@ -1,3 +1,8 @@
+2006-07-08  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/osc-sock.c (osc_send_set, oscInitUDP): Use memset rather
+	than deprecated bzero
+
 2006-07-07      Istvan Varga    <ivarga@csounds.com> (via JPff)
         * Engine/entry1.c: corrected opcode data size for inh and ino
 	
