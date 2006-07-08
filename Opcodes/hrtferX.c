@@ -399,7 +399,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
             outr[i] = yr[i-outend];
           }
           outcount += FILT_LEN;
-          outend += FILT_LEN;
+          outend   += FILT_LEN;
         }
         else {
                   /* circular reference required due to buffer boundaries */
@@ -412,7 +412,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
             outr[i] = yr[(BUF_LEN-outend) + i];
           }
           outcount += FILT_LEN;
-          outend += -FILT_LEN;
+          outend   -= FILT_LEN;
         }
       }
 
@@ -473,10 +473,10 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     } /* end of control period loop - "while" */
 
         /* update state in p */
-    p->outcount = outcount;
-    p->incount = incount;
-    p->outfront = outfront;
-    p->outend = outend;
+    p->outcount    = outcount;
+    p->incount     = incount;
+    p->outfront    = outfront;
+    p->outend      = outend;
     p->oldel_index = el_index;
     p->oldaz_index = az_index;
 
