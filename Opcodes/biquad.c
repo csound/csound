@@ -759,7 +759,7 @@ static int pareq(CSOUND *csound, PAREQ *p)
 static int nestedapset(CSOUND *csound, NESTEDAP *p)
 {
     long    npts, npts1=0, npts2=0, npts3=0;
-    char    *auxp;
+    void    *auxp;
 
     if (*p->istor && p->auxch.auxp != NULL)
       return OK;
@@ -799,23 +799,22 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
         if (npts1 <= 0 || npts2 <= 0 || npts3 <= 0) {
           return csound->InitError(csound, Str("illegal delay time"));
         }
-        p->beg1p = (MYFLT *)  p->auxch.auxp;
-        p->beg2p = (MYFLT *) ((char*)p->auxch.auxp + (long)npts1*sizeof(MYFLT));
-        p->beg3p = (MYFLT *) ((char*)p->auxch.auxp +
-                              (long)npts1*sizeof(MYFLT) +
-                              (long)npts2*sizeof(MYFLT));
+        p->beg1p = (MYFLT *) p->auxch.auxp;
+        p->beg2p = (MYFLT *) p->auxch.auxp + (long)npts1;
+        p->beg3p = (MYFLT *) p->auxch.auxp + (long)npts1 + (long)npts2;
         p->end1p = p->beg2p - 1;
         p->end2p = p->beg3p - 1;
-        p->end3p = (MYFLT *)  p->auxch.endp;
+        p->end3p = (MYFLT *) p->auxch.endp;
       }
     }
     /* else if requested */
     else if (!(*p->istor)) {
-      long *lp = (long *)auxp;
-      /*   clr old to zero */
-      do {
-        *lp++ = 0L;
-      } while (--npts);
+      memset(auxp, 0, npts*sizeof(MYFLT)); /* Punning IEEE zero */
+/*       long *lp = (long *)auxp; */
+/*       /\*   clr old to zero *\/ */
+/*       do { */
+/*         *lp++ = 0L; */
+/*       } while (--npts); */
     }
     p->del1p = p->beg1p;
     p->del2p = p->beg2p;
