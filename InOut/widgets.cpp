@@ -100,6 +100,22 @@ typedef struct widgetsGlobals_s {
 } widgetsGlobals_t;
 #endif
 
+Fl_Font FONT_TABLE[] = { FL_HELVETICA,			FL_HELVETICA,
+                         FL_HELVETICA_BOLD,             FL_HELVETICA_ITALIC,
+                         FL_HELVETICA_BOLD_ITALIC,      FL_COURIER,
+                         FL_COURIER_BOLD,               FL_COURIER_ITALIC,
+                         FL_COURIER_BOLD_ITALIC,        FL_TIMES,
+                         FL_TIMES_BOLD,                 FL_TIMES_ITALIC,
+                         FL_TIMES_BOLD_ITALIC,          FL_SYMBOL,
+                         FL_SCREEN,                     FL_SCREEN_BOLD,
+                         FL_ZAPF_DINGBATS };
+
+Fl_Align ALIGN_TABLE[] = { FL_ALIGN_BOTTOM,      FL_ALIGN_CENTER,
+                           FL_ALIGN_TOP,         FL_ALIGN_BOTTOM,
+                           FL_ALIGN_LEFT,        FL_ALIGN_RIGHT,
+                           FL_ALIGN_TOP_LEFT,    FL_ALIGN_TOP_RIGHT,
+                           FL_ALIGN_BOTTOM_LEFT, FL_ALIGN_BOTTOM_RIGHT };
+
 #ifndef NO_FLTK_THREADS
 extern "C" {
   /* called by sensevents() once in every control period */
@@ -213,7 +229,7 @@ Fl_Knob::Fl_Knob(int xx,int yy,int ww,int hh,const char *l)
     a1 = 35;
     a2 = 325;
     _type = DOTLIN;
-    _percent = 0.3;
+    _percent = 0.3f;
     _scaleticks = 10;
 }
 
@@ -282,9 +298,7 @@ void Fl_Knob::draw(void)
   draw_cursor(ox,oy,side);
   fl_pop_clip();
 }
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif
+
 int Fl_Knob::handle(int  event)
 {
   int ox,oy,ww,hh;
@@ -300,7 +314,7 @@ int Fl_Knob::handle(int  event)
       int mx = Fl::event_x()-ox-ww/2;
       int my = Fl::event_y()-oy-hh/2;
       if (!mx && !my) return 1;
-      double angle = 270-atan2((float)-my, (float)mx)*180.0/M_PI;
+      double angle = 270-atan2((float)-my, (float)mx)*180.0/PI;
       double oldangle = (a2-a1)*(value()-minimum())/(maximum()-minimum()) + a1;
       while (angle < oldangle-180) angle += 360.0;
       while (angle > oldangle+180) angle -= 360.0;
@@ -351,13 +365,13 @@ void Fl_Knob::draw_scale(const int ox,const int oy,const int side)
 {
   float x1,y1,x2,y2,rds,cx,cy,ca,sa;
 
-  rds = side / 2;
-  cx = ox + side / 2;
-  cy = oy + side / 2;
+  rds = side * 0.5f;
+  cx = ox + side * 0.5f;
+  cy = oy + side * 0.5f;
   if (!(_type & DOTLOG_3)) {
     if (_scaleticks == 0) return;
-    double a_step = (10.0*M_PI/6.0) / _scaleticks;
-    double a_orig = -(M_PI/3.0);
+    double a_step = (10.0*PI/6.0) / _scaleticks;
+    double a_orig = -(PI/3.0);
     for (int a = 0; a <= _scaleticks; a++) {
       double na = a_orig + a * a_step;
       ca = cos(na);
@@ -378,8 +392,8 @@ void Fl_Knob::draw_scale(const int ox,const int oy,const int side)
   else {
     int nb_dec = (_type & DOTLOG_3);
     for (int k = 0; k < nb_dec; k++) {
-      double a_step = (10.0*M_PI/6.0) / nb_dec;
-      double a_orig = -(M_PI/3.0) + k * a_step;
+      double a_step = (10.0*PI/6.0) / nb_dec;
+      double a_orig = -(PI/3.0) + k * a_step;
       for (int a = (k) ? 2:1; a <= 10; ) {
         double na = a_orig + log10((double)a) * a_step;
         ca = cos(na);
@@ -409,10 +423,10 @@ void Fl_Knob::draw_cursor(const int ox,const int oy,const int side)
   float rds,cur,cx,cy;
   double angle;
 
-  rds = (side - 20.0f) / 2.0f;
-  cur = _percent * rds / 2.0f;
-  cx = ox + side / 2.0f;
-  cy = oy + side / 2.0f;
+  rds = (side - 20.0f) * 0.5f;
+  cur = _percent * rds * 0.5f;
+  cx = ox + side * 0.5f;
+  cy = oy + side * 0.5f;
   angle = (a2-a1)*(value()-minimum())/(maximum()-minimum()) + a1;
   fl_push_matrix();
   fl_scale(1,1);
@@ -450,7 +464,7 @@ void Fl_Knob::draw_cursor(const int ox,const int oy,const int side)
 
 void Fl_Knob::cursor(const int pc)
 {
-  _percent = (float)pc/100.0f;
+  _percent = (float)pc*0.01f;
 
   if (_percent < 0.05f) _percent = 0.05f;
   if (_percent > 1.0f) _percent = 1.0f;
@@ -1274,7 +1288,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         break;
       case EXP_:
         range  = fld.max - fld.min;
-        base = ::pow(fld.max / fld.min, 1/range);
+        base = ::pow(fld.max / fld.min, 1.0/(double)range);
         ((Fl_Positioner*) o)->xvalue(log(val/fld.min) / log(base)) ;
         break;
       default:
@@ -1292,7 +1306,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         break;
       case EXP_:
         range  = fld.max2 - fld.min2;
-        base = ::pow(fld.max2 / fld.min2, 1/range);
+        base = ::pow(fld.max2 / fld.min2, 1.0/(double)range);
         ((Fl_Positioner*) o)->yvalue(log(val/fld.min2) / log(base)) ;
         break;
       default:
@@ -1338,7 +1352,8 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
           break;
         case EXP_:
           range  = p->slider_data[j].max - p->slider_data[j].min;
-          base = ::pow(p->slider_data[j].max / p->slider_data[j].min, 1/range);
+          base = ::pow(p->slider_data[j].max / p->slider_data[j].min,
+                       1.0/(double)range);
           ((Fl_Valuator*) grup->child(j))->
             value(log(val/p->slider_data[j].min) / log(base)) ;
           break;
@@ -1362,7 +1377,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators)
         break;
       case EXP_:
         range  = fld.max - fld.min;
-        base = ::pow(fld.max / fld.min, 1/range);
+        base = ::pow(fld.max / fld.min, 1.0/(double)range);
         ((Fl_Valuator*) o)->value(log(val/fld.min) / log(base)) ;
         break;
       default:
@@ -2197,42 +2212,46 @@ static void widget_attributes(CSOUND *csound, Fl_Widget *o)
   }
   if (FLtext_font> 0) {
     Fl_Font font;
-    switch (FLtext_font) {
-    case 1: font  = FL_HELVETICA; break;
-    case 2: font  = FL_HELVETICA_BOLD; break;
-    case 3: font  = FL_HELVETICA_ITALIC; break;
-    case 4: font  = FL_HELVETICA_BOLD_ITALIC; break;
-    case 5: font  = FL_COURIER; break;
-    case 6: font  = FL_COURIER_BOLD; break;
-    case 7: font  = FL_COURIER_ITALIC; break;
-    case 8: font  = FL_COURIER_BOLD_ITALIC; break;
-    case 9: font  = FL_TIMES; break;
-    case 10: font = FL_TIMES_BOLD; break;
-    case 11: font = FL_TIMES_ITALIC; break;
-    case 12: font = FL_TIMES_BOLD_ITALIC; break;
-    case 13: font = FL_SYMBOL; break;
-    case 14: font = FL_SCREEN; break;
-    case 15: font = FL_SCREEN_BOLD; break;
-    case 16: font = FL_ZAPF_DINGBATS; break;
-    default: font = FL_HELVETICA; break;
-    }
+    if (FLtext_font<0 || FLtext_font>16) font = FL_HELVETICA;
+    else font = FONT_TABLE[FLtext_font];
+//     switch (FLtext_font) {
+//     case 1: font  = FL_HELVETICA; break;
+//     case 2: font  = FL_HELVETICA_BOLD; break;
+//     case 3: font  = FL_HELVETICA_ITALIC; break;
+//     case 4: font  = FL_HELVETICA_BOLD_ITALIC; break;
+//     case 5: font  = FL_COURIER; break;
+//     case 6: font  = FL_COURIER_BOLD; break;
+//     case 7: font  = FL_COURIER_ITALIC; break;
+//     case 8: font  = FL_COURIER_BOLD_ITALIC; break;
+//     case 9: font  = FL_TIMES; break;
+//     case 10: font = FL_TIMES_BOLD; break;
+//     case 11: font = FL_TIMES_ITALIC; break;
+//     case 12: font = FL_TIMES_BOLD_ITALIC; break;
+//     case 13: font = FL_SYMBOL; break;
+//     case 14: font = FL_SCREEN; break;
+//     case 15: font = FL_SCREEN_BOLD; break;
+//     case 16: font = FL_ZAPF_DINGBATS; break;
+//     default: font = FL_HELVETICA; break;
+//     }
     o->labelfont(font);
   }
   if (FLtext_align > 0) {
     Fl_Align type;
-    switch (FLtext_align) {
-    case 1: type  = FL_ALIGN_CENTER; break;
-    case 2: type  = FL_ALIGN_TOP; break;
-    case 3: type  = FL_ALIGN_BOTTOM; break;
-    case 4: type  = FL_ALIGN_LEFT; break;
-    case 5: type  = FL_ALIGN_RIGHT; break;
-    case 6: type  = FL_ALIGN_TOP_LEFT; break;
-    case 7: type  = FL_ALIGN_TOP_RIGHT; break;
-    case 8: type  = FL_ALIGN_BOTTOM_LEFT; break;
-    case 9: type  = FL_ALIGN_BOTTOM_RIGHT; break;
-    case -1:                // What type is this?
-    default: type = FL_ALIGN_BOTTOM; break;
-    }
+    if (FLtext_align<0 || FLtext_align>9) type = FL_ALIGN_BOTTOM;
+    else type = ALIGN_TABLE[FLtext_align];
+//     switch (FLtext_align) {
+//     case 1: type  = FL_ALIGN_CENTER; break;
+//     case 2: type  = FL_ALIGN_TOP; break;
+//     case 3: type  = FL_ALIGN_BOTTOM; break;
+//     case 4: type  = FL_ALIGN_LEFT; break;
+//     case 5: type  = FL_ALIGN_RIGHT; break;
+//     case 6: type  = FL_ALIGN_TOP_LEFT; break;
+//     case 7: type  = FL_ALIGN_TOP_RIGHT; break;
+//     case 8: type  = FL_ALIGN_BOTTOM_LEFT; break;
+//     case 9: type  = FL_ALIGN_BOTTOM_RIGHT; break;
+//     case -1:                // What type is this?
+//     default: type = FL_ALIGN_BOTTOM; break;
+//     }
     o->align(type);
   }
   switch ((int) FLcolor) {  // random color
@@ -2699,25 +2718,28 @@ static int fl_setFont(CSOUND *csound, FL_SET_FONT *p)
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   Fl_Font font;
-  switch ((int) *p->itype) {
-  case 1: font  = FL_HELVETICA; break;
-  case 2: font  = FL_HELVETICA_BOLD; break;
-  case 3: font  = FL_HELVETICA_ITALIC; break;
-  case 4: font  = FL_HELVETICA_BOLD_ITALIC; break;
-  case 5: font  = FL_COURIER; break;
-  case 6: font  = FL_COURIER_BOLD; break;
-  case 7: font  = FL_COURIER_ITALIC; break;
-  case 8: font  = FL_COURIER_BOLD_ITALIC; break;
-  case 9: font  = FL_TIMES; break;
-  case 10: font = FL_TIMES_BOLD; break;
-  case 11: font = FL_TIMES_ITALIC; break;
-  case 12: font = FL_TIMES_BOLD_ITALIC; break;
-  case 13: font = FL_SYMBOL; break;
-  case 14: font = FL_SCREEN; break;
-  case 15: font = FL_SCREEN_BOLD; break;
-  case 16: font = FL_ZAPF_DINGBATS; break;
-  default: font = FL_SCREEN;
-  }
+  int ifnt = (int) *p->itype;
+  if (ifnt<0 || ifnt>16) font = FL_HELVETICA;
+  else font = FONT_TABLE[ifnt];
+//   switch ((int) *p->itype) {
+//   case 1: font  = FL_HELVETICA; break;
+//   case 2: font  = FL_HELVETICA_BOLD; break;
+//   case 3: font  = FL_HELVETICA_ITALIC; break;
+//   case 4: font  = FL_HELVETICA_BOLD_ITALIC; break;
+//   case 5: font  = FL_COURIER; break;
+//   case 6: font  = FL_COURIER_BOLD; break;
+//   case 7: font  = FL_COURIER_ITALIC; break;
+//   case 8: font  = FL_COURIER_BOLD_ITALIC; break;
+//   case 9: font  = FL_TIMES; break;
+//   case 10: font = FL_TIMES_BOLD; break;
+//   case 11: font = FL_TIMES_ITALIC; break;
+//   case 12: font = FL_TIMES_BOLD_ITALIC; break;
+//   case 13: font = FL_SYMBOL; break;
+//   case 14: font = FL_SCREEN; break;
+//   case 15: font = FL_SCREEN_BOLD; break;
+//   case 16: font = FL_ZAPF_DINGBATS; break;
+//   default: font = FL_SCREEN;
+//   }
   o->labelfont(font);
   return OK;
 }
@@ -2777,25 +2799,28 @@ static int fl_box(CSOUND *csound, FL_BOX *p)
   }
   o->box(type);
   Fl_Font font;
-  switch ((int) *p->ifont) {
-  case 1: font  = FL_HELVETICA; break;
-  case 2: font  = FL_HELVETICA_BOLD; break;
-  case 3: font  = FL_HELVETICA_ITALIC; break;
-  case 4: font  = FL_HELVETICA_BOLD_ITALIC; break;
-  case 5: font  = FL_COURIER; break;
-  case 6: font  = FL_COURIER_BOLD; break;
-  case 7: font  = FL_COURIER_ITALIC; break;
-  case 8: font  = FL_COURIER_BOLD_ITALIC; break;
-  case 9: font  = FL_TIMES; break;
-  case 10: font = FL_TIMES_BOLD; break;
-  case 11: font = FL_TIMES_ITALIC; break;
-  case 12: font = FL_TIMES_BOLD_ITALIC; break;
-  case 13: font = FL_SYMBOL; break;
-  case 14: font = FL_SCREEN; break;
-  case 15: font = FL_SCREEN_BOLD; break;
-  case 16: font = FL_ZAPF_DINGBATS; break;
-  default: font = FL_HELVETICA;
-  }
+  int ifnt = (int) *p->ifont;
+  if (ifnt<0 || ifnt>16) font = FL_HELVETICA;
+  else font = FONT_TABLE[ifnt];
+//   switch ((int) *p->ifont) {
+//   case 1: font  = FL_HELVETICA; break;
+//   case 2: font  = FL_HELVETICA_BOLD; break;
+//   case 3: font  = FL_HELVETICA_ITALIC; break;
+//   case 4: font  = FL_HELVETICA_BOLD_ITALIC; break;
+//   case 5: font  = FL_COURIER; break;
+//   case 6: font  = FL_COURIER_BOLD; break;
+//   case 7: font  = FL_COURIER_ITALIC; break;
+//   case 8: font  = FL_COURIER_BOLD_ITALIC; break;
+//   case 9: font  = FL_TIMES; break;
+//   case 10: font = FL_TIMES_BOLD; break;
+//   case 11: font = FL_TIMES_ITALIC; break;
+//   case 12: font = FL_TIMES_BOLD_ITALIC; break;
+//   case 13: font = FL_SYMBOL; break;
+//   case 14: font = FL_SCREEN; break;
+//   case 15: font = FL_SCREEN_BOLD; break;
+//   case 16: font = FL_ZAPF_DINGBATS; break;
+//   default: font = FL_HELVETICA;
+//   }
   o->labelfont(font);
   o->labelsize((unsigned char)*p->isize);
   o->align(FL_ALIGN_WRAP);
@@ -2885,18 +2910,21 @@ static int fl_align(CSOUND *csound, FL_TALIGN *p)
   ADDR_SET_VALUE v = AddrSetValue[(int) *p->ihandle];
   Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
   Fl_Align type;
-  switch ((int) *p->itype) {
-  case 1: type  = FL_ALIGN_CENTER; break;
-  case 2: type  = FL_ALIGN_TOP; break;
-  case 3: type  = FL_ALIGN_BOTTOM; break;
-  case 4: type  = FL_ALIGN_LEFT; break;
-  case 5: type  = FL_ALIGN_RIGHT; break;
-  case 6: type  = FL_ALIGN_TOP_LEFT; break;
-  case 7: type  = FL_ALIGN_TOP_RIGHT; break;
-  case 8: type  = FL_ALIGN_BOTTOM_LEFT; break;
-  case 9: type  = FL_ALIGN_BOTTOM_RIGHT; break;
-  default: type = FL_ALIGN_BOTTOM;
-  }
+  int itype= (int) *p->itype;
+  if (itype<0 || itype>9) type = FL_ALIGN_BOTTOM;
+  else type = ALIGN_TABLE[itype];
+//   switch ((int) *p->itype) {
+//   case 1: type  = FL_ALIGN_CENTER; break;
+//   case 2: type  = FL_ALIGN_TOP; break;
+//   case 3: type  = FL_ALIGN_BOTTOM; break;
+//   case 4: type  = FL_ALIGN_LEFT; break;
+//   case 5: type  = FL_ALIGN_RIGHT; break;
+//   case 6: type  = FL_ALIGN_TOP_LEFT; break;
+//   case 7: type  = FL_ALIGN_TOP_RIGHT; break;
+//   case 8: type  = FL_ALIGN_BOTTOM_LEFT; break;
+//   case 9: type  = FL_ALIGN_BOTTOM_RIGHT; break;
+//   default: type = FL_ALIGN_BOTTOM;
+//   }
   o->align(type);
   return OK;
 }
@@ -2999,7 +3027,7 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
                                        "in exponential operations");
     range = max - min;
     o->range(0,range);
-    p->base = ::pow((max / min), 1/range);
+    p->base = ::pow((max / min), 1.0/(double)range);
     o->callback((Fl_Callback*)fl_callbackExponentialSlider,(void *) p);
     break;
   default:
@@ -3011,7 +3039,7 @@ static int fl_slider(CSOUND *csound, FLSLIDER *p)
         p->tablen = ftp->flen;
       }
       else return NOTOK;
-      o->range(0,.99999999);
+      o->range(0,0.99999999);
       if (iexp > 0) //interpolated
         o->callback((Fl_Callback*)fl_callbackInterpTableSlider,(void *) p);
       else // non-interpolated
@@ -3160,13 +3188,13 @@ static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
                                     "in exponential operations");
       range = max - min;
       o->range(0,range);
-      p->slider_data[j].base = ::pow((max / min), 1/range);
+      p->slider_data[j].base = ::pow((max / min), 1.0/(double)range);
       o->callback((Fl_Callback*)fl_callbackExponentialSliderBank,
                   (void *) &(p->slider_data[j]));
       {
         val = outable[j];
         MYFLT range = max-min;
-        MYFLT base = ::pow(max / min, 1/range);
+        MYFLT base = ::pow(max / min, 1.0/(double)range);
         val = (log(val/min) / log(base)) ;
       }
       break;
@@ -3178,7 +3206,7 @@ static int fl_slider_bank(CSOUND *csound, FLSLIDERBANK *p)
           p->slider_data[j].table = ftp->ftable;
         else return NOTOK;
         p->slider_data[j].tablen = ftp->flen;
-        o->range(0,.99999999);
+        o->range(0,0.99999999);
         if (iexp > 0) //interpolated
           o->callback((Fl_Callback*)fl_callbackInterpTableSliderBank,
                       (void *)  &(p->slider_data[j]));
@@ -3247,7 +3275,7 @@ static int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
                                        "in exponential operations");
     MYFLT range = *p->imaxx - *p->iminx;
     o->xbounds(0,range);
-    p->basex = ::pow((*p->imaxx / *p->iminx), 1/range);
+    p->basex = ::pow((*p->imaxx / *p->iminx), 1.0/(double)range);
     } break;
   default:
     {
@@ -3276,7 +3304,7 @@ static int fl_joystick(CSOUND *csound, FLJOYSTICK *p)
                                        "in exponential operations");
     MYFLT range = *p->imaxy - *p->iminy;
     o->ybounds(range,0);
-    p->basey = ::pow((*p->imaxy / *p->iminy), 1/range);
+    p->basey = ::pow((*p->imaxy / *p->iminy), 1.0/(double)range);
     } break;
   default:
     {
@@ -3373,7 +3401,7 @@ static int fl_knob(CSOUND *csound, FLKNOB *p)
                                          "in exponential operations");
       MYFLT range = max - min;
       o->range(0,range);
-      p->base = ::pow((max / min), 1/range);
+      p->base = ::pow((max / min), 1.0/(double)range);
       o->callback((Fl_Callback*)fl_callbackExponentialKnob,(void *) p);
     } break;
   default:
@@ -3386,7 +3414,7 @@ static int fl_knob(CSOUND *csound, FLKNOB *p)
         p->tablen = ftp->flen;
       }
       else return OK;
-      o->range(0,.99999999);
+      o->range(0,0.99999999);
       if (iexp > 0) //interpolated
         o->callback((Fl_Callback*)fl_callbackInterpTableKnob,(void *) p);
       else // non-interpolated
@@ -3646,7 +3674,7 @@ static int fl_roller(CSOUND *csound, FLROLLER *p)
                                          "in exponential operations");
       MYFLT range = max - min;
       o->range(0,range);
-      p->base = ::pow((max / min), 1/range);
+      p->base = ::pow((max / min), 1.0/(double)range);
       o->callback((Fl_Callback*)fl_callbackExponentialRoller,(void *) p);
     }
     break;

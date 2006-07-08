@@ -770,7 +770,7 @@ char* VSTPlugin::GetName(void)
     return productName;
 }
 
-unsigned long VSTPlugin::GetVersion()
+unsigned long VSTPlugin::GetVersion(void)
 {
     return pluginVersion;
 }
@@ -795,12 +795,12 @@ float VSTPlugin::GetParameter(long parameter)
     return aeffect->getParameter(aeffect, parameter);
 }
 
-int VSTPlugin::NumPrograms()
+int VSTPlugin::NumPrograms(void)
 {
     return aeffect->numPrograms;
 }
 
-VstTimeInfo *VSTPlugin::GetTime()
+VstTimeInfo *VSTPlugin::GetTime(void)
 {
     Debug("VSGPlugin::GetTime().\n");
     if (csound)
