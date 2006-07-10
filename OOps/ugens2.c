@@ -178,6 +178,7 @@ static int itblchk(CSOUND *csound, TABLE *p)
  *  */
 static int ptblchk(CSOUND *csound, TABLE *p)
 {
+    IGN(csound);                /* Argument is needed to fit structure */
     /* TABLE has an integer variable for the previous table number
      * (p->pfn).
      *

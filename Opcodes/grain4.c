@@ -257,9 +257,9 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 #ifdef BETA
     csound->Message(csound, "granule_set: User define sampling rate esr is "
                             "%f samp/sec.\n", csound->esr);
-    csound->Message(csound, "granule_set: Funtion table length in samples is "
+    csound->Message(csound, "granule_set: Function table length in samples is "
                             "%ld\n", ftp->flen);
-    csound->Message(csound, "granule_set: Funtion table length in seconds is "
+    csound->Message(csound, "granule_set: Function table length in seconds is "
                             "%f\n", (MYFLT)ftp->flen * csound->onedsr);
 #endif
     if (*p->ithd != 0) {        /* Do thresholding.... */
