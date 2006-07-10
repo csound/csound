@@ -50,13 +50,12 @@ int port(CSOUND *csound, PORT *p)
 
 int tonset(CSOUND *csound, TONE *p)
 {
-    {
-      double b;
-      p->prvhp = (double)*p->khp;
-      b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
-      p->c2 = b - sqrt(b * b - 1.0);
-      p->c1 = 1.0 - p->c2;
-    }
+    double b;
+    p->prvhp = (double)*p->khp;
+    b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+    p->c2 = b - sqrt(b * b - 1.0);
+    p->c1 = 1.0 - p->c2;
+
     if (!(*p->istor))
       p->yt1 = 0.0;
     return OK;
@@ -65,7 +64,7 @@ int tonset(CSOUND *csound, TONE *p)
 int tone(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
-    int         nsmps = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     double      c1 = p->c1, c2 = p->c2;
     double      yt1 = p->yt1;
 
@@ -78,10 +77,10 @@ int tone(CSOUND *csound, TONE *p)
     }
     ar = p->ar;
     asig = p->asig;
-    do {
-      yt1 = c1 * (double)(*asig++) + c2 * yt1;
-      *ar++ = (MYFLT)yt1;
-    } while (--nsmps);
+    for (n=0; n<nsmps; n++) {
+      yt1 = c1 * (double)(asig[n]) + c2 * yt1;
+      ar[n] = (MYFLT)yt1;
+    }
     p->yt1 = yt1;
     return OK;
 }
@@ -101,8 +100,9 @@ int tonsetx(CSOUND *csound, TONEX *p)
       csound->AuxAlloc(csound, (long)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
     if (!(*p->istor)) {
-      int j;
-      for (j=0; j< p->loop; j++) p->yt1[j] = 0.0;
+      memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
+/*       int j; */
+/*       for (j=0; j< p->loop; j++) p->yt1[j] = 0.0; */
     }
     return OK;
 }
@@ -124,16 +124,17 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
     c2 = p->c2;
     yt1= p->yt1;
     asig = p->asig;
+    nsmps = csound->ksmps;
+    ar = p->ar;
     for (j=0; j< p->loop; j++) {
-      nsmps = csound->ksmps;
-      ar = p->ar;
-      do {
-        double x = c1 * *asig++ + c2 * *yt1;
+      int n;
+      for (n=0; n<nsmps; n++) {
+        double x = c1 * asig[n] + c2 * *yt1;
         *yt1 = x;
-        *ar++ = (MYFLT)x;
-      } while (--nsmps);
-      yt1++;
+        ar[n] = (MYFLT)x;
+      }
       asig = p->ar;
+      yt1++;
     }
     return OK;
 }
@@ -141,7 +142,7 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
 int atone(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     double      c2 = p->c2, yt1 = p->yt1;
 
     if (*p->khp != p->prvhp) {
@@ -153,12 +154,12 @@ int atone(CSOUND *csound, TONE *p)
     }
     ar = p->ar;
     asig = p->asig;
-    do {
-      double sig = (double)*asig++;
+    for (n=0; n<nsmps; n++) {
+      double sig = (double)asig[n];
       double x = yt1 = c2 * (yt1 + sig);
-      *ar++ = (MYFLT)x;
+      ar[n] = (MYFLT)x;
       yt1 -= sig;               /* yt1 contains yt1-xt1 */
-    } while (--nsmps);
+    }
     p->yt1 = yt1;
     return OK;
 }
@@ -211,7 +212,7 @@ int rsnset(CSOUND *csound, RESON *p)
 
 int reson(CSOUND *csound, RESON *p)
 {
-    int flag = 0, nsmps = csound->ksmps;
+    int flag = 0, n, nsmps = csound->ksmps;
     MYFLT       *ar, *asig;
     double      c3p1, c3t4, omc3, c2sqr;
     double      yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
@@ -241,12 +242,12 @@ int reson(CSOUND *csound, RESON *p)
     asig = p->asig;
     ar = p->ar;
     yt1 = p->yt1; yt2 = p->yt2;
-    do {
-      double yt0 = c1 * (double)(*asig++) + c2 * yt1 - c3 * yt2;
-      *ar++ = (MYFLT)yt0;
+    for (n=0; n<nsmps; n++) {
+      double yt0 = c1 * (double)(asig[n]) + c2 * yt1 - c3 * yt2;
+      ar[n] = (MYFLT)yt0;
       yt2 = yt1;
       yt1 = yt0;
-    } while (--nsmps);
+    }
     p->yt1 = yt1; p->yt2 = yt2; /* Write back for next cycle */
     return OK;
 }
@@ -268,8 +269,10 @@ int rsnsetx(CSOUND *csound, RESONX *p)
     p->prvcf = p->prvbw = -100.0;
 
     if (!(*p->istor)) {
-      int j;
-      for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = 0.0;
+      memset(p->yt1, 0, p->loop*sizeof(double));
+      memset(p->yt2, 0, p->loop*sizeof(double));
+/*       int j; */
+/*       for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = 0.0; */
     }
     return OK;
 }
@@ -310,19 +313,18 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     c3   = p->c3;
     yt1  = p->yt1;
     yt2  = p->yt2;
+    ar = p->ar;
     asig = p->asig;
+    nsmps = csound->ksmps;
     for (j=0; j< p->loop; j++) {
-      nsmps = csound->ksmps;
-      ar = p->ar;
-      do {
+      int n;
+      for (n=0; n<nsmps; n++) {
         double x =
-        c1 * (double)*asig++ + c2 * *yt1 - c3 * *yt2;
-        *yt2 = *yt1;
-        *ar++ = (MYFLT)x;
-        *yt1 = x;
-      } while (--nsmps);
-      yt1++;
-      yt2++;
+          c1 * (double)asig[n] + c2 * yt1[j] - c3 * yt2[j];
+        yt2[j] = yt1[j];
+        ar[n] = (MYFLT)x;
+        yt1[j] = x;
+      }
       asig = p->ar;
     }
     return OK;
@@ -362,22 +364,24 @@ int areson(CSOUND *csound, RESON *p)
     ar = p->ar;
     c1 = p->c1; c2 = p->c2; c3 = p->c3; yt1 = p->yt1; yt2 = p->yt2;
     if (p->scale == 1 || p->scale == 0) {
-      do {
-        double sig = (double)*asig++;
+      int n;
+      for (n=0; n<nsmps; n++) {
+        double sig = (double)asig[n];
         double ans = c1 * sig + c2 * yt1 - c3 * yt2;
         yt2 = yt1;
         yt1 = ans - sig;  /* yt1 contains yt1-xt1 */
-        *ar++ = (MYFLT)ans;
-      } while (--nsmps);
+        ar[n] = (MYFLT)ans;
+      }
     }
     else if (p->scale == 2) {
-      do {
-        double sig = (double)*asig++;
+      int n;
+      for (n=0; n<nsmps; n++) {
+        double sig = (double)asig[n];
         double ans = c1 * sig + c2 * yt1 - c3 * yt2;
         yt2 = yt1;
         yt1 = ans - D * sig;      /* yt1 contains yt1-D*xt1 */
-        *ar++ = (MYFLT)ans;
-      } while (--nsmps);
+        ar[n] = (MYFLT)ans;
+      }
     }
     p->yt1 = yt1; p->yt2 = yt2;
     return OK;
@@ -475,10 +479,10 @@ int lprdset(CSOUND *csound, LPREAD *p)
     return OK;
 }
 
+#ifdef TRACE_POLES
 static void
  DumpPolesF(int poleCount, MYFLT *part1, MYFLT *part2, int isMagn, char *where)
 {
-#ifdef TRACE_POLES
     int i;
 
     csound->Message(csound, "%s\n", where);
@@ -490,8 +494,8 @@ static void
         csound->Message(csound, Str("Real: %f   Imag: %f\n"),
                                 part1[i], part2[i]);
     }
-#endif
 }
+#endif
 
 static void SortPoles(int poleCount, MYFLT *poleMagn, MYFLT *polePhas)
 {
@@ -507,14 +511,14 @@ static void SortPoles(int poleCount, MYFLT *poleMagn, MYFLT *polePhas)
         shouldSwap = 0;
 
         diff = (MYFLT)(fabs(polePhas[j])-fabs(polePhas[i]));
-        if (diff>1e-10)
+        if (diff>1.0e-10)
           shouldSwap = 1;
-        else if (diff>-1e-10) {
+        else if (diff>-1.0e-10) {
           diff = poleMagn[j]-poleMagn[i];
 
-          if (diff>1e-10)
+          if (diff>1.0e-10)
             shouldSwap = 1;
-          else if (diff>-1e-10)
+          else if (diff>-1.0e-10)
             {
               if (polePhas[j]>polePhas[i])
                 shouldSwap = 1;
@@ -547,12 +551,12 @@ static int DoPoleInterpolation(int poleCount,
     }
 
     for (i=0; i<poleCount; i++) {
-      if (fabs(fabs(pp1[i])-PI)<1e-5) {
+      if (fabs(fabs(pp1[i])-PI)<1.0e-5) {
         pm1[i] = -pm1[i];
         pp1[i] = FL(0.0);
       }
 
-      if (fabs(fabs(pp2[i])-PI)<1e-5) {
+      if (fabs(fabs(pp2[i])-PI)<1.0e-5) {
         pm2[i] = -pm2[i];
         pp2[i] = FL(0.0);
       }
@@ -573,7 +577,7 @@ static int DoPoleInterpolation(int poleCount,
       outPhas[i] = pp1[i]+(pp2[i]-pp1[i])*factor;
     }
 
-    DumpPolesF(poleCount, outMagn, outPhas, 1, "Interpolated poles");
+/*     DumpPolesF(poleCount, outMagn, outPhas, 1, "Interpolated poles"); */
 
     return(1);
 }
@@ -779,7 +783,7 @@ int lpreson(CSOUND *csound, LPRESON *p)
       for (i=0; i<q->npoles; i++) {
         coefp[i] = -(MYFLT)polyReal[q->npoles-i]; /* MR_WHY - somthing with the atan2 ? */
 #ifdef _DEBUG
-/*                      if (polyImag[i]>1e-10) */
+/*                      if (polyImag[i]>1.0e-10) */
 /*                      { */
 /*                              printf ("bad polymag: %f\n",polyImag[i]); */
 /*                      } */
@@ -943,17 +947,17 @@ int balnset(CSOUND *csound, BALANCE *p)
 
 int rms(CSOUND *csound, RMS *p)
 {
-    int     nsmps = csound->ksmps;
+    int     n, nsmps = csound->ksmps;
     MYFLT   *asig;
     double  q;
     double  c1 = p->c1, c2 = p->c2;
 
     q = p->prvq;
     asig = p->asig;
-    do {
-      double as = (double)*asig++;
+    for (n=0; n<nsmps; n++) {
+      double as = (double)asig[n];
       q = c1 * as * as + c2 * q;
-    } while (--nsmps);
+    }
     p->prvq = q;
     *p->kr = (MYFLT) sqrt(q);
     return OK;

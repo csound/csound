@@ -828,7 +828,7 @@ int adsyn(CSOUND *csound, ADSYN *p)
     DUPLE   *ap, *fp;
     short   curtim, diff, ktogo;
     long    phs, sinc, *sp, amp;
-    int     nsmps;
+    int     n, nsmps;
     MYFLT   *ar;
     MYFLT   ampscale, frqscale;
     long    timkincr, nxtim;
@@ -885,13 +885,15 @@ int adsyn(CSOUND *csound, ADSYN *p)
     }
     p->mksecs += timkincr;                  /* advance the time */
     ar = p->rslt;
-    sp = (long *) ar;
+    sp = (long *) ar;           /* Seems to make assumptions about long/MYFLT */
     nsmps = csound->ksmps;
-    do {
       /* a quick-hack fix: should change adsyn to use floats table and
          buffers and should replace hetro format anyway.... */
-      *ar++ = (MYFLT) ((*sp++ * ampscale) / ADSYN_MAXLONG);
-    } while (--nsmps);
+    for (n=0; n<nsmps; n++)
+      ar[n] = (MYFLT) ((sp[n] * ampscale) / ADSYN_MAXLONG);
+/*     do { */
+/*       *ar++ = (MYFLT) ((*sp++ * ampscale) / ADSYN_MAXLONG); */
+/*     } while (--nsmps); */
     return OK;
 }
 

@@ -460,7 +460,7 @@ int deltapn(CSOUND *csound, DELTAP *p)
 {
     DELAYR *q = p->delayr;
     MYFLT *ar, *tap, *begp, *endp;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     long idelsmps;
     MYFLT delsmps;
 
@@ -475,26 +475,26 @@ int deltapn(CSOUND *csound, DELTAP *p)
       idelsmps = (long)delsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
-      do {
+      for (n=0; n<nsmps; n++) {
         if (tap >= endp )
           tap -= q->npts;
         if (tap < begp)
           tap += q->npts;
-        *ar++ = *tap;
+        ar[n] = *tap;
         tap++;
-      } while (--nsmps);
+      }
     }
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
-      do {
-        delsmps = *timp++;
+      for (n=0; n<nsmps; n++) {
+        delsmps = timp[n];
         idelsmps = (long)delsmps;
         if ((tap = curq++ - idelsmps) < begp)
           tap += q->npts;
         else if (tap >= endp)
           tap -= q->npts;
-        *ar++ = *tap;
-      } while (--nsmps);
+        ar[n] = *tap;
+      }
     }
     return OK;
 }
@@ -504,7 +504,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
     MYFLT       *ar, *tap, *prv, *begp, *endp;
-    int nsmps = csound->ksmps;
+    int n, nsmps = csound->ksmps;
     long        idelsmps;
     MYFLT       delsmps, delfrac;
 
@@ -520,7 +520,7 @@ int deltap3(CSOUND *csound, DELTAP *p)
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
-      do {
+      for (n=0; n<nsmps; n++) {
         MYFLT ym1, y0, y1, y2;
         if (tap >= endp)
           tap -= q->npts;
@@ -536,14 +536,14 @@ int deltap3(CSOUND *csound, DELTAP *p)
           z = delfrac * delfrac; z--; z *= FL(0.1666666667);
           y = delfrac; y++; w = (y *= FL(0.5)); w--;
           x = FL(3.0) * z; y -= x; w -= z; x -= delfrac;
-          *(ar++) = (w*ym1 + x*y0 + y*y1 + z*y2) * delfrac + y0;
+          ar[n] = (w*ym1 + x*y0 + y*y1 + z*y2) * delfrac + y0;
         }
         tap++;
-      } while (--nsmps);
+      }
     }
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
-      do {
+      for (n=0; n<nsmps; n++) {
         MYFLT ym1, y0, y1, y2;
         delsmps = *timp++ * csound->esr;
         idelsmps = (long)delsmps;
@@ -564,9 +564,9 @@ int deltap3(CSOUND *csound, DELTAP *p)
           z = delfrac * delfrac; z--; z *= FL(0.1666666667);
           y = delfrac; y++; w = (y *= FL(0.5)); w--;
           x = FL(3.0) * z; y -= x; w -= z; x -= delfrac;
-          *(ar++) = (w*ym1 + x*y0 + y*y1 + z*y2) * delfrac + y0;
+          ar[n] = (w*ym1 + x*y0 + y*y1 + z*y2) * delfrac + y0;
         }
-      } while (--nsmps);
+      }
     }
     return OK;
 }
@@ -1028,14 +1028,13 @@ int pan(CSOUND *csound, PAN *p)
     ch2 = ftp->ftable[xndx]        * ftp->ftable[yndx];
     ch3 = ftp->ftable[flen - xndx] * ftp->ftable[flen - yndx];
     ch4 = ftp->ftable[xndx]        * ftp->ftable[flen - yndx];
-    n = 0;
-    do {
+    for (n=0; n<nsmps; n++) {
       MYFLT sig = p->asig[n];
       p->r1[n] = sig * ch1;
       p->r2[n] = sig * ch2;
       p->r3[n] = sig * ch3;
       p->r4[n] = sig * ch4;
-    } while (++n < nsmps);
+    }
 
     return OK;
 }
