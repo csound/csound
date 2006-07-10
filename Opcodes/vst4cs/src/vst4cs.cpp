@@ -386,15 +386,15 @@ extern "C" {
   static int vstprogset(CSOUND *csound, void *data)
   {
       // The changes here are part of an attempt to map 0 to 1 and others
-      int program = (int)*p->iprogram;
       VSTPROGSET *p = (VSTPROGSET *) data;
+      int program = (int)*p->iprogram;
       VSTPlugin *plugin = vstPlugins[(size_t) *p->iVSThandle];
       
       if (program>16 || program<=0) {
         csound->Message(csound, "VSTprogset: Program %d treated as 1\n", program);
         program = 1;
       }
-      plugin->SetCurrentProgram(program));
+      plugin->SetCurrentProgram(program);
       return OK;
   }
 
