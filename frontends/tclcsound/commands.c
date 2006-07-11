@@ -70,6 +70,13 @@ uintptr_t csThread(void *clientData)
     }
     return 0;
 }
+uintptr_t csThread2(void *clientData) {
+    csdata        *p = (csdata *) clientData;
+    CSOUND        *cs = p->instance;
+    csThread(clientData);
+    csoundReset(cs);
+    p->status = CS_READY;
+}
 
 /* TCL commands  */
 
@@ -192,6 +199,28 @@ int csPlay(ClientData clientData, Tcl_Interp * interp, int argc, char **argv)
     if (p->status == CS_COMPILED) {
       p->threadID =
           csoundCreateThread((uintptr_t(*)(void *)) csThread, (void *) p);
+      sprintf(res, "%d", p->result);
+      Tcl_SetResult(interp, res, TCL_VOLATILE);
+    }
+    else if (p->status == CS_PAUSED) {
+      p->status = CS_RUNNING;
+      sprintf(res, "%d", 0);
+      Tcl_SetResult(interp, res, TCL_VOLATILE);
+    }
+    return (TCL_OK);
+}
+/* csPlayAll
+   starts performance, returns immediately, resets after performance
+*/
+int csPlayAll(ClientData clientData, Tcl_Interp * interp, int argc, char **argv)
+{
+
+    char    res[10];
+    csdata *p = (csdata *) clientData;
+
+    if (p->status == CS_COMPILED) {
+      p->threadID =
+          csoundCreateThread((uintptr_t(*)(void *)) csThread2, (void *) p);
       sprintf(res, "%d", p->result);
       Tcl_SetResult(interp, res, TCL_VOLATILE);
     }
@@ -939,6 +968,8 @@ int tclcsound_initialise(Tcl_Interp * interp)
     Tcl_CreateCommand(interp, "csCompileList", (Tcl_CmdProc *) csCompileList,
                       (ClientData) pdata, NULL);
     Tcl_CreateCommand(interp, "csPlay", (Tcl_CmdProc *) csPlay,
+                      (ClientData) pdata, NULL);
+    Tcl_CreateCommand(interp, "csPlayAll", (Tcl_CmdProc *) csPlayAll,
                       (ClientData) pdata, NULL);
     Tcl_CreateCommand(interp, "csPerform", (Tcl_CmdProc *) csPerform,
                       (ClientData) pdata, NULL);
