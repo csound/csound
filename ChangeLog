@@ -1,3 +1,10 @@
+2006-07-12  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/nlfilt.c (pcount, pvalue): New opodes after IV suggestion
+
+	* Opcodes/pitch.c (pitchset): Moved some filter coeffieients to
+	double
+	
 2006-07-08  jpff  <jpff@codemist.co.uk>
 
 	* H/csoundCore.h: Removed unused macros and typedefs

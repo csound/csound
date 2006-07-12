@@ -56,10 +56,10 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
                                 /* RMS of input signal */
-    b = FL(2.0) - (MYFLT)cos((double)(10.0 * csound->tpidsr));
-    p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
-    p->c1 = FL(1.0) - p->c2;
-    if (!*p->istor) p->prvq = FL(0.0);
+    b = 2.0 - cos((double)(10.0 * csound->tpidsr));
+    p->c2 = b - sqrt((double)(b * b - 1.0));
+    p->c1 = 1.0 - p->c2;
+    if (!*p->istor) p->prvq = 0.0;
                                 /* End of rms */
                                 /* Initialise spectrum */
     /* for mac roundoff */
@@ -73,9 +73,9 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     if (nocts > MAXOCTS)  return csound->InitError(csound, Str("illegal iocts"));
     if (nfreqs > MAXFRQS) return csound->InitError(csound, Str("illegal ifrqs"));
 
-    if (nocts != dwnp->nocts
-        || nfreqs != p->nfreqs          /* if anything has changed */
-        || Q != p->curq ) {             /*     make new tables */
+    if (nocts != dwnp->nocts ||
+        nfreqs != p->nfreqs  || /* if anything has changed */
+        Q != p->curq ) {        /*     make new tables */
       double      basfrq, curfrq, frqmlt, Qfactor;
       double      theta, a, windamp, onedws, pidws;
       MYFLT       *sinp, *cosp;
@@ -92,8 +92,8 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
       oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
       dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
       locps = hicps / (1L << nocts);
-      basfrq = hicps/2.0;                          /* oct below retuned top */
-      frqmlt = pow((double)2.0,(double)1.0/nfreqs);  /* nfreq interval mult */
+      basfrq = hicps * 0.5;                   /* oct below retuned top */
+      frqmlt = pow(2.0,1.0/nfreqs);           /* nfreq interval mult */
       Qfactor = Q * dwnp->srate;
       curfrq = basfrq;
       for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {
@@ -175,10 +175,13 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
     fnfreqs = (MYFLT)specp->nfreqs;
     for (nn = 1; nn <= ptlmax; nn++)
       *dstp++ = (int) ((log((double) nn) / LOGTWO) * (double)fnfreqs + 0.5);
-    if ((rolloff = *p->irolloff) == 0. || rolloff == 1. || nptls == 1) {
+    if ((rolloff = *p->irolloff) == FL(0.0) ||
+        rolloff == FL(1.0)
+        || nptls == 1) {
       p->rolloff = 0;
       weightsum = (MYFLT)nptls;
-    } else {
+    } 
+    else {
       MYFLT *fltp = p->pmult;
       MYFLT octdrop = (FL(1.0) - rolloff) / fnfreqs;
       weightsum = FL(0.0);
@@ -230,8 +233,8 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
 int pitch(CSOUND *csound, PITCH *p)
 {
     MYFLT       *asig;
-    MYFLT       q;
-    MYFLT       c1 = p->c1, c2 = p->c2;
+    double      q;
+    double      c1 = p->c1, c2 = p->c2;
 
     MYFLT   a, b, *dftp, *sigp = p->asig, SIG, yt1, yt2;
     int     nocts, nsmps = csound->ksmps, winlen;
