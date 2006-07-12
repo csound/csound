@@ -35,7 +35,7 @@ typedef struct {
         MYFLT   *iprd, *ilo, *ihi, *idbthresh;
                                 /* Optional */
         MYFLT   *ifrqs, *iconf, *istrt, *iocts, *iq, *inptls, *irolloff, *istor;
-        MYFLT   c1, c2, prvq;
+        double  c1, c2, prvq;
 #define MAXFRQS 120
         SPECDAT wsig;
         int     nfreqs, ncoefs, dbout, scountdown, timcount;
