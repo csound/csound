@@ -33,6 +33,12 @@
 #include "csdl.h"
 #include "nlfilt.h"
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *ians;
+        MYFLT   *index;
+} PFIELD;
+
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
 
@@ -116,9 +122,34 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
 
 /* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
 
+/* ***************************************************************** */
+/* ***************************************************************** */
+/* ***************************************************************** */
+/* ***************************************************************** */
+/*     icnt    pcnt */
+/*     ival    pfld indx */
+int pcount(CSOUND *csound, PFIELD *p)
+{
+    *p->ians = (MYFLT) csound->currevent->pcnt;
+    return OK;
+}
+
+int pvalue(CSOUND *csound, PFIELD *p)
+{
+    int n = (int)(*p->index);
+    if (n>csound->currevent->pcnt) {
+      *p->ians = FL(0.0);       /* For tidyness */
+      return NOTOK;
+    }
+    *p->ians = csound->currevent->p[n];
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+{ "pcount", S(PFIELD),   1,  "i", "",     (SUBR)pcount,    NULL, NULL },
+{ "pindex", S(PFIELD),   1,  "i", "i",    (SUBR)pvalue,    NULL, NULL },
 { "nlfilt",  S(NLFILT), 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt }
 };
 
