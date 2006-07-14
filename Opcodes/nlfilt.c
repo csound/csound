@@ -137,9 +137,9 @@ int pcount(CSOUND *csound, PFIELD *p)
 int pvalue(CSOUND *csound, PFIELD *p)
 {
     int n = (int)(*p->index);
-    if (n>csound->currevent->pcnt || n<1) {
+    if (csound->currevent==NULL || n<1 || n>csound->currevent->pcnt) {
       *p->ians = FL(0.0);       /* For tidyness */
-      return NOTOK;
+      return NOTOK;             /* Should this be an error?? */
     }
     *p->ians = csound->currevent->p[n];
     return OK;
