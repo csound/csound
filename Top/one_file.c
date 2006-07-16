@@ -197,6 +197,12 @@ int readOptions(CSOUND *csound, FILE *unf)
     alloc_globals(csound);
     while (my_fgets(ST(buffer), CSD_MAX_LINE_LEN, unf) != NULL) {
       p = ST(buffer);
+      /* Remove trailing spaces; rather heavy handed */
+      {
+        int len = strlen(p)-2;
+        while (len>0 && (p[len]==' ' || p[len]=='\t')) len--;
+        p[len+1] = '\n'; p[len+2] = '\0';
+      }
       while (*p == ' ' || *p == '\t') p++;
       if (strstr(p, "</CsOptions>") == p) {
         return TRUE;

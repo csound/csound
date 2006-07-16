@@ -1,3 +1,7 @@
+2006-07-16  jpff  <jpff@codemist.co.uk>
+
+	* Top/one_file.c (readOptions): Remove trailing spaces in input
+
 2006-07-12  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/nlfilt.c (pcount, pvalue): New opodes after IV suggestion
