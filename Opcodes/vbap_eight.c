@@ -250,7 +250,7 @@ int vbap_EIGHT_moving(CSOUND *csound, VBAP_EIGHT_MOVING *p) /* during note perfo
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
-    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
+    invfloatn =  csound->onedksmps;
     for (j=0; j<EIGHT ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
