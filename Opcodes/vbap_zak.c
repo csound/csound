@@ -267,7 +267,7 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
 
     /* write audio to resulting audio streams wEIGHTed
        with gain factors */
-    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
+    invfloatn =  csound->onedksmps;
     outptr = p->out_array;
     for (j=0; j<p->n ;j++) {
       inptr = p->audio;

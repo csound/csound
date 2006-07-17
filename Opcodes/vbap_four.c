@@ -252,7 +252,7 @@ int vbap_FOUR_moving(CSOUND *csound, VBAP_FOUR_MOVING *p)
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
-    invfloatn =  FL(1.0) / (MYFLT)csound->ksmps;
+    invfloatn =  csound->onedksmps;
     for (j=0; j<FOUR ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
