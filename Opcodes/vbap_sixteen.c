@@ -251,7 +251,7 @@ int vbap_SIXTEEN_moving(CSOUND *csound, VBAP_SIXTEEN_MOVING *p) /* during note p
 
     /* write audio to resulting audio streams weighted
        with gain factors */
-    invfloatn =  FL(1.0) / (MYFLT) csound->ksmps;
+    invfloatn =  csound->onedksmps;
     for (j=0; j<SIXTEEN ;j++) {
       inptr = p->audio;
       outptr = p->out_array[j];
