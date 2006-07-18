@@ -1,3 +1,9 @@
+2006-07-18  jpff  <jpff@codemist.co.uk>
+
+	* frontends/csound/sched.c (set_rt_priority): Comment out the
+	check to see if running as root.  Will fail later perhaps if
+	cannot set priority
+
 2006-07-16  jpff  <jpff@codemist.co.uk>
 
 	* Top/one_file.c (readOptions): Remove trailing spaces in input
