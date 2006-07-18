@@ -2,7 +2,8 @@
 
 	* frontends/csound/sched.c (set_rt_priority): Comment out the
 	check to see if running as root.  Will fail later perhaps if
-	cannot set priority
+	cannot set priority.
+	Allow "-o dac" as well as "-odac" in this special decode.
 
 2006-07-16  jpff  <jpff@codemist.co.uk>
 
