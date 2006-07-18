@@ -176,11 +176,11 @@ int set_rt_priority(int argc, char **argv)
       return 0;
     }
 
-    if (not_root) {
-      err_msg("WARNING: not running as root, --sched ignored");
-      csoundSleep(1000);
-      return 0;
-    }
+/*     if (not_root) { */
+/*       err_msg("WARNING: not running as root, --sched ignored"); */
+/*       csoundSleep(1000); */
+/*       return 0; */
+/*     } */
 
 #ifndef __FreeBSD__
     /* lock all pages into physical memory */
