@@ -143,9 +143,19 @@ int set_rt_priority(int argc, char **argv)
     if (argc > 1) {
       for (i = 1; i <= (argc - 1); i++) {
         if (!(strncmp(argv[i], "-iadc", 5))) rtmode |= 2;
-        if (!(strncmp(argv[i], "-odac", 5))) rtmode |= 2;
-        if (!(strncmp(argv[i], "-idevaudio", 10))) rtmode |= 2;
-        if (!(strncmp(argv[i], "-odevaudio", 10))) rtmode |= 2;
+        else if (!(strncmp(argv[i], "-odac", 5))) rtmode |= 2;
+        else if (!(strncmp(argv[i], "-idevaudio", 10))) rtmode |= 2;
+        else if (!(strncmp(argv[i], "-odevaudio", 10))) rtmode |= 2;
+        else if (!strcmp(argv[i], "-o")) {
+          if (++i>argc) break;
+          if ((!(strncmp(argv[i], "dac", 3))) ||
+              (!(strncmp(argv[i], "devaudio", 8)))) rtmode |= 2;
+        }
+        else if (!strcmp(argv[i], "-i")) {
+          if (++i>argc) break;
+          if ((!(strncmp(argv[i], "adc", 3))) ||
+              (!(strncmp(argv[i], "devaudio", 8)))) rtmode |= 2;
+        }
         /* also check for --sched option, and -d */
         err = parse_sched_opt(argv[i], &priority, &cpuMax, &secs);
         if (err < 0)
