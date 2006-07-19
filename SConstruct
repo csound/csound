@@ -749,12 +749,12 @@ if commonEnvironment['dynamicCsoundLibrary'] == '1':
             '%s/%s' % (OSXFrameworkCurrentVersion, libName),
             libName,
             'cp -f %s %s/' % (libName, OSXFrameworkCurrentVersion))
+        for i in headers:
+            MacOSX_InstallHeader(i)
         csoundFrameworkEnvironment.Command(
             'CsoundLib_install',
             libName,
             'rm -r /Library/Frameworks/%s; cp -R %s /Library/Frameworks/' % (OSXFrameworkBaseDir, OSXFrameworkBaseDir))
-        for i in headers:
-            MacOSX_InstallHeader(i)
         libCsoundLinkFlags = ['-F.', '-framework', libName, '-lsndfile']
         libCsoundLibs = []
     elif getPlatform() == 'mingw':
@@ -1703,6 +1703,8 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         SHLIBPREFIX = '')
     if getPlatform() == 'darwin':
         csTclEnvironment.Command('cswish_resources', 'cswish', "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
+        if dynamicCsoundLibrary == '1':
+           csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib', 'mkdir /Library/Frameworks/CsoundLib.framework/Resources/TclTk; cp -R tclcsound.dylib /Library/Frameworks/CsoundLib.framework/Resources/TclTk/')
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
     Depends(Tclcsoundlib, csoundLibrary)
