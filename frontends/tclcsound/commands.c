@@ -26,6 +26,8 @@
 #include <windows.h>
 #endif
 
+#define MAX_PFIELDNO 256
+
 #define CS_READY 0
 #define CS_COMPILED 1
 #define CS_RUNNING 2
@@ -70,12 +72,14 @@ uintptr_t csThread(void *clientData)
     }
     return 0;
 }
+
 uintptr_t csThread2(void *clientData) {
     csdata        *p = (csdata *) clientData;
     CSOUND        *cs = p->instance;
     csThread(clientData);
     csoundReset(cs);
     p->status = CS_READY;
+    return 0;
 }
 
 /* TCL commands  */
@@ -89,12 +93,8 @@ int csCompile(ClientData clientData, Tcl_Interp * interp,
     char    res[4];
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
-    int i;
-    char **cmdl = (char **) Tcl_Alloc(sizeof(char *)*(argc+1));
-    for(i=0;i<argc;i++) cmdl[i] =argv[i];
-    cmdl[i] = "-d";
     if (p->status == CS_READY) {
-      p->result = csoundCompile(cs, argc+1, cmdl);
+      p->result = csoundCompile(cs, argc, argv);
       if (!p->result)
         p->status = CS_COMPILED;
       else
@@ -102,7 +102,6 @@ int csCompile(ClientData clientData, Tcl_Interp * interp,
       sprintf(res, "%d", p->result);
       Tcl_SetResult(interp, res, TCL_VOLATILE);
     }
-    Tcl_Free((char *)cmdl);
     return (TCL_OK);
 }
 
@@ -120,7 +119,8 @@ int csCompileList(ClientData clientData, Tcl_Interp * interp,
 
     if (argc == 2) {
       cmd = (char *) Tcl_Alloc(16384);
-      sprintf(cmd, "csound -d %s", argv[1]);
+      memset(cmd, 0, 16384);
+      sprintf(cmd, "csound %s", argv[1]);
       Tcl_SplitList(interp, cmd, &largc, (CONST84 char ***) &largv);
       csCompile(p, interp, largc, largv);
       Tcl_Free((char *) largv);
@@ -271,7 +271,7 @@ int csNote(ClientData clientData, Tcl_Interp * interp,
     Tcl_Obj *resp;
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
-    MYFLT   pFields[256];
+    MYFLT   pFields[MAX_PFIELDNO];
     double  val;
     int     i;
 
@@ -296,7 +296,7 @@ int csNoteList(ClientData clientData, Tcl_Interp * interp,
 {
     char  **largv;
     int     largc;
-    MYFLT   pFields[256];
+    MYFLT   pFields[MAX_PFIELDNO];
     int     i;
     char    res[10];
     csdata *p = (csdata *) clientData;
@@ -327,7 +327,7 @@ int csTable(ClientData clientData, Tcl_Interp * interp,
     Tcl_Obj *resp;
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
-    MYFLT   pFields[256];
+    MYFLT   pFields[MAX_PFIELDNO];
     double  val;
     int     i;
 
@@ -352,7 +352,7 @@ int csTableList(ClientData clientData, Tcl_Interp * interp,
 {
     char  **largv;
     int     largc;
-    MYFLT   pFields[256];
+    MYFLT   pFields[MAX_PFIELDNO];
     int     i;
     char    res[10];
     csdata *p = (csdata *) clientData;
@@ -380,7 +380,7 @@ int csEvent(ClientData clientData, Tcl_Interp * interp,
     Tcl_Obj *resp;
     csdata *p = (csdata *) clientData;
     CSOUND *cs = p->instance;
-    MYFLT   pFields[256];
+    MYFLT   pFields[MAX_PFIELDNO];
     double  val;
     int     i;
     char    type;
@@ -404,7 +404,7 @@ int csEventList(ClientData clientData, Tcl_Interp * interp,
 {
     char  **largv;
     int     largc;
-    MYFLT   pFields[256];
+    MYFLT   pFields[MAX_PFIELDNO];
     int     i;
     char    res[4], type;
     csdata *p = (csdata *) clientData;
@@ -676,7 +676,7 @@ int csOutValue(ClientData clientData, Tcl_Interp * interp,
 
     if (argc == 2) {
       resp = Tcl_GetObjResult(interp);
-      if (GetChannelValue(p->inchan, Tcl_GetStringFromObj(argv[1], NULL), &val)
+      if (GetChannelValue(p->outchan, Tcl_GetStringFromObj(argv[1], NULL), &val)
           != CHAN_NOT_FOUND) {
         Tcl_SetDoubleObj(resp, (double) val);
       }

@@ -81,8 +81,21 @@ ifun1: source signal function table. Deferred-allocation tables are accepted.
 ifun2: grain envelope function table.
 iolaps: maximum number of overlaps, max(kfreq)*max(kgrsize).
 
-The syncgrain opcode is based on an improved version of the
+The syncgrain opcode is based on an improved version of the original
 SndObj library SyncGrain class.
+
+SYNCLOOP:
+
+A variation on syncgrain allowing for loop points to be set, as well
+as sound start position
+
+asig  syncloop kamp, kfreq, kpitch, kgrsize, kprate,kloopstart, kloopend, ifun1, ifun2, iolaps [, istart]
+
+parameters are as above, with the following additions:
+
+kloopstart - loop start point (in secs)
+kloopend - loop end point (in secs)
+istart - start position (in secs), defaults to 0.
 
 */
 
@@ -109,6 +122,31 @@ typedef struct _syncgrain {
     AUXCH envindex;
     float start,frac;
 } syncgrain;
+
+typedef struct _syncgrainl {
+    OPDS h;
+    MYFLT *output;
+    MYFLT *amp;
+    MYFLT *fr;
+    MYFLT *pitch;
+    MYFLT *grsize;
+    MYFLT *prate;
+    MYFLT *loop_start;
+    MYFLT *loop_end;
+    MYFLT *ifn1;
+    MYFLT *ifn2;
+    MYFLT *ols;
+    MYFLT *startpos;
+    FUNC  *sfunc;
+    FUNC  *efunc;
+    int count, numstreams, firststream;
+    int datasize, envtablesize, olaps;
+    AUXCH streamon;
+    AUXCH index;
+    AUXCH envindex;
+    float start,frac;
+    int firsttime;
+} syncgrainloop;
 
 static int syncgrain_process(CSOUND *csound, syncgrain *p);
 static int syncgrain_init(CSOUND *csound, syncgrain *p);
