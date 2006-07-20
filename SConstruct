@@ -1703,7 +1703,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
         SHLIBPREFIX = '')
     if getPlatform() == 'darwin':
         csTclEnvironment.Command('cswish_resources', 'cswish', "/Developer/Tools/Rez -i APPL -o cswish frontends/tclcsound/cswish.r")
-        if dynamicCsoundLibrary == '1':
+        if commonEnvironment['dynamicCsoundLibrary'] == '1':
            csTclEnvironment.Command('tclcsound_install', 'tclcsound.dylib', 'mkdir /Library/Frameworks/CsoundLib.framework/Resources/TclTk; cp -R tclcsound.dylib /Library/Frameworks/CsoundLib.framework/Resources/TclTk/')
     Depends(csTcl, csoundLibrary)
     Depends(csTk, csoundLibrary)
