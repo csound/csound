@@ -1,3 +1,10 @@
+2006-07-19  Victor  Lazzarini <victor.lazzarini@nuim.ie>
+	* Opcodes/sndloop.c: added flooper2 opcode
+	* Opcodes/syncgrain.*: added syncloop opcode
+	Manual pages also added to cvs
+	* frontends/tclcsound/commands.c: removed -d flag,
+	added csPlayAll command, fixed csCompilelist bug.
+
 2006-07-18  jpff  <jpff@codemist.co.uk>
 
 	* frontends/csound/sched.c (set_rt_priority): Comment out the
