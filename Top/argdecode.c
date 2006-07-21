@@ -20,7 +20,6 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
     02111-1307 USA
 */
-
 #include "csoundCore.h"         /*                      ARGDECODE.C     */
 #include "soundio.h"
 #include "new_opts.h"
@@ -103,7 +102,7 @@ static const char *shortUsageList[] = {
   "-F fnam\tread MIDIfile event stream from file 'fnam'",
   /*  "-P N\tMIDI sustain pedal threshold (0 - 128)", */
   "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)",
-  "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write",
+  "-H#\tprint heartbeat style 1, 2 or 3 at each soundfile write",
   "-N\tnotify (ring the bell) when score or miditrack is done",
   "-T\tterminate the performance when miditrack is done",
   "-D\tdefer GEN01 soundfile loads until performance time",
@@ -179,6 +178,18 @@ static const char *longUsageList[] = {
   "--opcode-lib=NAMES\tDynamic libraries to load",
   "--omacro:XXX=YYY\tSet orchestra macro XXX to value YYY",
   "--smacro:XXX=YYY\tSet score macro XXX to value YYY",
+  "--midi-key=N\t\tRoute MIDI note on message",
+  "\t\t\tkey number to pfield N as MIDI value [0-127]",
+  "--midi-key-cps=N\tRoute MIDI note on message",
+  "\t\t\tkey number to pfield N as cycles per second",
+  "--midi-key-oct=N\tRoute MIDI note on message",
+  "\t\t\tkey number to pfield N as linear octave",
+  "--midi-key-pch=N\tRoute MIDI note on message",
+  "\t\t\tkey number to pfield N as oct.pch",
+  "--midi-velocity=N\tRoute MIDI note on message",
+  "\t\t\tvelocity number to pfield N as MIDI value [0-127]",
+  "--midi-velocity-amp=N\tRoute MIDI note on message",
+  "\t\t\tvelocity number to pfield N as amplitude",
   "",
   "--help\t\t\tLong help",
   NULL
@@ -658,7 +669,37 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->dither_output = 1;
       return 1;
     }
-    else if (!(strncmp(s, "opcode-lib=", 11))) {
+    else if (!(strncmp (s, "midi-key=", 9))) {
+      s += 9;
+      O->midiKey = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp (s, "midi-key-cps=", 13))) {
+      s += 13 ;
+      O->midiKeyCps = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp (s, "midi-key-oct=", 13))) {
+      s += 13 ;
+      O->midiKeyOct = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp (s, "midi-key-pch=", 13))) {
+      s += 13 ;
+      O->midiKeyPch = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp (s, "midi-velocity=", 14))) {
+      s += 14;
+      O->midiVelocity = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp (s, "midi-velocity-amp=", 18))) {
+      s += 18;
+      O->midiVelocityAmp = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp (s, "opcode-lib=", 11))) {
       int   nbytes;
       s += 11;
       nbytes = (int) strlen(s) + 1;
