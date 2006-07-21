@@ -1,3 +1,10 @@
+2006-07-21  Michael Gogins <gogins@pipeline.com>
+	* Added new long options for routing MIDI note on message key and velocity
+	numbers to specified pfields: --midi-key=<pfield>, --midi-key-cps=<pfield>, 
+	--midi-key-oct=<pfield>, --midi-key-pch=<pfield>, --midi-velocity=<pfield>, 
+	--midi-velocity-amp=<pfield>.
+	* Added tutorial LaTeX file tutorial/tutorial.tex.
+
 2006-07-19  Victor  Lazzarini <victor.lazzarini@nuim.ie>
 	* Opcodes/sndloop.c: added flooper2 opcode
 	* Opcodes/syncgrain.*: added syncloop opcode
