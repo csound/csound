@@ -136,6 +136,8 @@ extern "C" {
     char    *Linename, *Midiname, *FMidiname;
     char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
     char    *FMidioutname;
+    int     midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
+    int     midiVelocity, midiVelocityAmp;
   } OPARMS;
 
   typedef struct arglst {
