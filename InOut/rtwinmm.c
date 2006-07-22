@@ -235,15 +235,15 @@ static int open_device(CSOUND *csound,
     if (is_playback) {
       WAVEOUTCAPSA  caps;
       ndev = (int) waveOutGetNumDevs();
+      csound->Message(csound, Str("The available output devices are:\n"));
+      for (i = 0; i < ndev; i++) {
+	waveOutGetDevCapsA((unsigned int) i, (LPWAVEOUTCAPSA) &caps,
+			   sizeof(WAVEOUTCAPSA));
+	csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
+      }
       if (ndev < 1)
         return err_msg(csound, Str("no output device is available"));
       if (devNum < 0 || devNum >= ndev) {
-        csound->Message(csound, Str("The available output devices are:\n"));
-        for (i = 0; i < ndev; i++) {
-          waveOutGetDevCapsA((unsigned int) i, (LPWAVEOUTCAPSA) &caps,
-                             sizeof(WAVEOUTCAPSA));
-          csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
-        }
         return err_msg(csound, Str("device number is out of range"));
       }
       waveOutGetDevCapsA((unsigned int) devNum, (LPWAVEOUTCAPSA) &caps,
@@ -254,21 +254,21 @@ static int open_device(CSOUND *csound,
     else {
       WAVEINCAPSA  caps;
       ndev = (int) waveInGetNumDevs();
+      csound->Message(csound, Str("The available input devices are:\n"));
+      for (i = 0; i < ndev; i++) {
+	waveInGetDevCapsA((unsigned int) i, (LPWAVEINCAPSA) &caps,
+			  sizeof(WAVEINCAPSA));
+	csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
+      }
       if (ndev < 1)
-        return err_msg(csound, Str("no input device is available"));
+	return err_msg(csound, Str("no input device is available"));
       if (devNum < 0 || devNum >= ndev) {
-        csound->Message(csound, Str("The available input devices are:\n"));
-        for (i = 0; i < ndev; i++) {
-          waveInGetDevCapsA((unsigned int) i, (LPWAVEINCAPSA) &caps,
-                            sizeof(WAVEINCAPSA));
-          csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
-        }
-        return err_msg(csound, Str("device number is out of range"));
+	return err_msg(csound, Str("device number is out of range"));
       }
       waveInGetDevCapsA((unsigned int) devNum, (LPWAVEINCAPSA) &caps,
                         sizeof(WAVEINCAPSA));
       csound->Message(csound, Str("winmm: opening input device %d (%s)\n"),
-                              devNum, (char*) caps.szPname);
+		      devNum, (char*) caps.szPname);
     }
     p = (rtWinMMGlobals*)
           csound->QueryGlobalVariable(csound, "_rtwinmm_globals");
@@ -478,7 +478,7 @@ static void CALLBACK midi_in_handler(HMIDIIN hmin, UINT wMsg, DWORD dwInstance,
 
 static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
 {
-    int                 ndev, devnum = 0;
+  int                 i, ndev, devnum = 0;
     RTMIDI_MME_GLOBALS  *p;
     MIDIINCAPS          caps;
 
@@ -497,12 +497,12 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
       }
       devnum = (int) atoi(devName);
     }
+    csound->Message(csound, Str("The available MIDI input devices are:\n"));
+    for (i = 0; i < ndev; i++) {
+      midiInGetDevCaps((unsigned int) i, &caps, sizeof(MIDIINCAPS));
+      csound->Message(csound, "%3d: %s\n", i, &(caps.szPname[0]));
+    }
     if (devnum < 0 || devnum >= ndev) {
-      csound->Message(csound, Str("The available MIDI input devices are:\n"));
-      for (devnum = 0; devnum < ndev; devnum++) {
-        midiInGetDevCaps((unsigned int) devnum, &caps, sizeof(MIDIINCAPS));
-        csound->Message(csound, "%3d: %s\n", devnum, &(caps.szPname[0]));
-      }
       csound->ErrorMsg(csound,
                        Str("rtmidi: input device number is out of range"));
       return -1;
@@ -582,7 +582,7 @@ static int midi_in_close(CSOUND *csound, void *userData)
 
 static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
 {
-    int         ndev, devnum = 0;
+  int         i, ndev, devnum = 0;
     MIDIOUTCAPS caps;
     HMIDIOUT    outDev = (HMIDIOUT) 0;
 
@@ -601,12 +601,12 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
       }
       devnum = (int) atoi(devName);
     }
+    csound->Message(csound, Str("The available MIDI output devices are:\n"));
+    for (i = 0; i < ndev; i++) {
+      midiOutGetDevCaps((unsigned int) i, &caps, sizeof(MIDIOUTCAPS));
+      csound->Message(csound, "%3d: %s\n", i, &(caps.szPname[0]));
+    }
     if (devnum < 0 || devnum >= ndev) {
-      csound->Message(csound, Str("The available MIDI output devices are:\n"));
-      for (devnum = 0; devnum < ndev; devnum++) {
-        midiOutGetDevCaps((unsigned int) devnum, &caps, sizeof(MIDIOUTCAPS));
-        csound->Message(csound, "%3d: %s\n", devnum, &(caps.szPname[0]));
-      }
       csound->ErrorMsg(csound,
                        Str("rtmidi: output device number is out of range"));
       return -1;
