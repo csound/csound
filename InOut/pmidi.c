@@ -182,6 +182,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     if (cntdev < 1) {
       return portMidiErrMsg(csound, Str("no input devices are available"));
     }
+    portMidi_listDevices(csound, 0);
     /* look up device in list */
     if (dev == NULL || dev[0] == '\0')
       devnum =
@@ -189,14 +190,12 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     else if (dev[0] < '0' || dev[0] > '9') {
       portMidiErrMsg(csound, Str("error: must specify a device number (>=0), "
                                  "not a name"));
-      portMidi_listDevices(csound, 0);
       return -1;
     }
     else
       devnum = (int)atoi(dev);
     if (devnum < 0 || devnum >= cntdev) {
       portMidiErrMsg(csound, Str("error: device number is out of range"));
-      portMidi_listDevices(csound, 0);
       return -1;
     }
     info = portMidi_getDeviceInfo(devnum, 0);
@@ -240,20 +239,19 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
       return portMidiErrMsg(csound, Str("no output devices are available"));
     }
     /* look up device in list */
+    portMidi_listDevices(csound, 1);
     if (dev == NULL || dev[0] == '\0')
       devnum =
         portMidi_getPackedDeviceID((int)Pm_GetDefaultOutputDeviceID(), 1);
     else if (dev[0] < '0' || dev[0] > '9') {
       portMidiErrMsg(csound, Str("error: must specify a device number (>=0), "
                                  "not a name"));
-      portMidi_listDevices(csound, 1);
       return -1;
     }
     else
       devnum = (int)atoi(dev);
     if (devnum < 0 || devnum >= cntdev) {
       portMidiErrMsg(csound, Str("error: device number is out of range"));
-      portMidi_listDevices(csound, 1);
       return -1;
     }
     info = portMidi_getDeviceInfo(devnum, 1);
