@@ -134,7 +134,7 @@ int set_rt_priority(int argc, char **argv)
             (!(strncmp(argv[i + 1], "dac", 3)) ||       /* or output is     */
              !(strncmp(argv[i + 1], "devaudio", 8))))   /* audio device     */
           rtmode |= 2;
-        if (!(strcmp(argv[i], "-i")) &&
+        else if (!(strcmp(argv[i], "-i")) &&
             (!(strncmp(argv[i + 1], "adc", 3)) ||
              !(strncmp(argv[i + 1], "devaudio", 8))))
           rtmode |= 2;
@@ -146,16 +146,6 @@ int set_rt_priority(int argc, char **argv)
         else if (!(strncmp(argv[i], "-odac", 5))) rtmode |= 2;
         else if (!(strncmp(argv[i], "-idevaudio", 10))) rtmode |= 2;
         else if (!(strncmp(argv[i], "-odevaudio", 10))) rtmode |= 2;
-        else if (!strcmp(argv[i], "-o")) {
-          if (++i>argc) break;
-          if ((!(strncmp(argv[i], "dac", 3))) ||
-              (!(strncmp(argv[i], "devaudio", 8)))) rtmode |= 2;
-        }
-        else if (!strcmp(argv[i], "-i")) {
-          if (++i>argc) break;
-          if ((!(strncmp(argv[i], "adc", 3))) ||
-              (!(strncmp(argv[i], "devaudio", 8)))) rtmode |= 2;
-        }
         /* also check for --sched option, and -d */
         err = parse_sched_opt(argv[i], &priority, &cpuMax, &secs);
         if (err < 0)
