@@ -593,12 +593,12 @@ int csInChannel(ClientData clientData, Tcl_Interp * interp,
 
     if (argc >= 2) {
       if (FindChannel(p, argv[1]) != IN_CHAN) {
-        newch = (ctlchn *) Tcl_Alloc(sizeof(ctlchn));
-        tmp = p->inchan;
+	newch = (ctlchn *) Tcl_Alloc(sizeof(ctlchn));
+        tmp = p->inchan; 
         p->inchan = newch;
         p->inchan->next = tmp;
-        p->inchan->name = (char *) Tcl_Alloc(strlen(argv[1]));
-        strcpy(p->inchan->name, argv[1]);
+        p->inchan->name = (char *) Tcl_Alloc(strlen(argv[1])+1);
+	strcpy(p->inchan->name, argv[1]);
         p->inchan->value = 0.0;
         Tcl_SetResult(interp, argv[1], TCL_VOLATILE);
       }
@@ -624,7 +624,7 @@ int csOutChannel(ClientData clientData, Tcl_Interp * interp,
         tmp = p->outchan;
         p->outchan = newch;
         p->outchan->next = tmp;
-        p->outchan->name = (char *)Tcl_Alloc(strlen(argv[1]));
+        p->outchan->name = (char *)Tcl_Alloc(strlen(argv[1])+1);
         strcpy(p->outchan->name, argv[1]);
         p->outchan->value = 0.0;
         Tcl_LinkVar(interp, p->outchan->name, (char *) &p->outchan->value,
