@@ -124,7 +124,6 @@ orcfile           : header instrlist	{ }
                   ;
 
 header            : header rtparam      { }
-                  | S_NL		{ }
                   | /* null */
                   ;
 
@@ -132,11 +131,11 @@ instrlist         : instrlist instrdecl { }
 		  | instrdecl           { }
 		  ;
 
+/* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
 instrdecl	  : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
                         { start_instr(((TOKEN*)$2)->value);
                           statement_list = (TREE*)$4;
                           end_instr(); }
-                  | S_NL {}
 		  | T_INSTR S_NL
                         { printf("No number following instr\n"); }
 		  ;
@@ -163,7 +162,7 @@ rtparam		  : T_SRATE S_ASSIGN T_NUMBER S_NL
                                 { instr0($2, $1, check_opcode($2, $1, $3)); }
 		  |    initop0 exprlist S_NL
                                 { instr0($1, NULL, check_opcode0($1, $2)); }
-                  | S_NL                { }
+          | S_NL {}
                   ;
 
 initop0           : T_STRSET		{ $$ = make_leaf(T_STRSET, NULL); }
@@ -214,12 +213,12 @@ statement	  : lvalue S_ASSIGN expr
                   | goto T_IDENT        { $$ = make_node(S_GOTO, $1,
                                                  make_leaf(T_IDENT, yylval)); }
 		  | T_IF S_LB expr S_RB goto T_IDENT
-                                        { $$ = make_node(T_IF, $3, 
+                                        { $$ = make_node(T_IF, $3,
                                                 make_node(S_GOTO, $5,
                                                  make_leaf(T_IDENT, yylval))); }
-		  | T_IF S_LB expr S_RB error 
-		  | T_IF S_LB expr error 
-		  | T_IF error 
+		  | T_IF S_LB expr S_RB error
+		  | T_IF S_LB expr error
+		  | T_IF error
 		  ;
 ident		  : T_IDENT_I           { $$ = make_leaf(T_IDENT_I, yylval); }
 		  | T_IDENT_K           { $$ = make_leaf(T_IDENT_K, yylval); }
@@ -276,65 +275,65 @@ function          : T_ABS		{ $$ = make_leaf(T_ABS, NULL); }
                   | T_TANINV2		{ $$ = make_leaf(T_TANINV2, NULL); }
                   ;
 
-expr              : expr S_Q expr S_COL expr %prec S_Q 
+expr              : expr S_Q expr S_COL expr %prec S_Q
                                         { $$ = make_node(S_Q, $1,
-                                                make_node(S_COL, $3, $5)); } 
-		  | expr S_Q expr S_COL error 
-		  | expr S_Q expr error 
-		  | expr S_Q error 
-		  | expr S_LE expr      { $$ = make_node(S_LE, $1, $3); } 
-		  | expr S_LE error 
-		  | expr S_GE expr      { $$ = make_node(S_GE, $1, $3); } 
-		  | expr S_GE error   
-		  | expr S_NEQ expr     { $$ = make_node(S_NEQ, $1, $3); } 
-		  | expr S_NEQ error   
-		  | expr S_EQ expr      { $$ = make_node(S_EQ, $1, $3); } 
-		  | expr S_EQ error   
-		  | expr S_GT expr      { $$ = make_node(S_GT, $1, $3); } 
-		  | expr S_GT error   
-		  | expr S_LT expr      { $$ = make_node(S_LT, $1, $3); } 
-		  | expr S_LT error   
-		  | expr S_AND expr     { $$ = make_node(S_AND, $1, $3); }   
-		  | expr S_AND error   
-		  | expr S_OR expr      { $$ = make_node(S_OR, $1, $3); } 
-		  | expr S_OR error   
+                                                make_node(S_COL, $3, $5)); }
+		  | expr S_Q expr S_COL error
+		  | expr S_Q expr error
+		  | expr S_Q error
+		  | expr S_LE expr      { $$ = make_node(S_LE, $1, $3); }
+		  | expr S_LE error
+		  | expr S_GE expr      { $$ = make_node(S_GE, $1, $3); }
+		  | expr S_GE error
+		  | expr S_NEQ expr     { $$ = make_node(S_NEQ, $1, $3); }
+		  | expr S_NEQ error
+		  | expr S_EQ expr      { $$ = make_node(S_EQ, $1, $3); }
+		  | expr S_EQ error
+		  | expr S_GT expr      { $$ = make_node(S_GT, $1, $3); }
+		  | expr S_GT error
+		  | expr S_LT expr      { $$ = make_node(S_LT, $1, $3); }
+		  | expr S_LT error
+		  | expr S_AND expr     { $$ = make_node(S_AND, $1, $3); }
+		  | expr S_AND error
+		  | expr S_OR expr      { $$ = make_node(S_OR, $1, $3); }
+		  | expr S_OR error
 		  | S_NOT expr %prec S_UNOT { $$ = make_node(S_UNOT, $2, NULL); }
-		  | S_NOT error 
+		  | S_NOT error
                   | iexp                { $$ = $1; }
                   ;
 
 iexp              : iexp S_PLUS iterm   { $$ = make_node(S_PLUS, $1, $3); }
-		  | iexp S_PLUS error   
+		  | iexp S_PLUS error
 		  | iexp S_MINUS iterm  { $$ = make_node(S_MINUS, $1, $3); }
-		  | expr S_MINUS error   
+		  | expr S_MINUS error
                   | iterm               { $$ = $1; }
                   ;
 iterm             : iterm S_TIMES ifac   { $$ = make_node(S_TIMES, $1, $3); }
-		  | iterm S_TIMES ifac   
+		  /* | iterm S_TIMES ifac  */
 		  | iterm S_DIV ifac     { $$ = make_node(S_DIV, $1, $3); }
-		  | iterm S_DIV error 
+		  | iterm S_DIV error
                   | ifac                { $$ = $1; }
                   ;
 ifac              : ident               { $$ = $1; }
                   | constant               { $$ = $1; }
 		  | S_MINUS ifac %prec S_UMINUS
                                         { $$ = make_node(S_UMINUS, $2, NULL); }
-		  | S_MINUS error       
+		  | S_MINUS error
                   | S_LB expr S_RB      { $$ = $2; }
-		  | S_LB expr error 
-		  | S_LB error 
+		  | S_LB expr error
+		  | S_LB error
 		  | function S_LB exprlist S_RB
                                         { $$ = make_node(S_APPLY, $1, $3); }
-		  | function S_LB error 
+		  | function S_LB error
                   ;
 exprlist          : exprlist S_COM expr { $$ = make_node(S_COM, $1, $3); }
-		  | exprlist S_COM error 
+		  | exprlist S_COM error
 		  | expr                { $$ = $1; }
 		  | /* null */          { $$ = NULL; }
 		  ;
 /* exprstrlist	  : exprstrlist S_COM expr
                                         { $$ = make_node(S_COM, $1, $3); }
-		  | exprstrlist S_COM T_STRCONST 
+		  | exprstrlist S_COM T_STRCONST
                                         { $$ = make_node(S_COM, $1,
                                                 make_leaf(T_STRCONST, yylval)); }
 		  | exprstrlist S_COM error
@@ -356,4 +355,5 @@ opcode0           : T_OPCODE0           { printf("opcode0 yylval=%p\n", yylval);
 
 opcode            : T_OPCODE		{ $$ = make_leaf(T_OPCODE, yylval); }
                   ;
+
 %%
