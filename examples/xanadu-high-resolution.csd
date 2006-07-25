@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -RWZfo Xanadu-high-resolution.wav temp.orc temp.sco
+csound -R -W -Z -f
 </CsOptions>
 <CsInstruments>
 sr          =           88200
@@ -16,10 +16,14 @@ nchnls      =           2
 ishift      =           .00666667               ;shift it 8/1200.
 ipch        =           cpspch(p5)              ;convert parameter 5 to cps.
 ioct        =           octpch(p5)              ;convert parameter 5 to oct.
-kvib        poscil       1/120, ipch/50, 1       ;vibrato
+kvib        poscil      1/120, ipch/50, 1      ;vibrato
 ag          pluck       2000, cpsoct(ioct+kvib), 1000, 1, 1
 agleft      pluck       2000, cpsoct(ioct+ishift), 1000, 1, 1
 agright     pluck       2000, cpsoct(ioct-ishift), 1000, 1, 1
+adamping    linsegr     0.0, 0.006, 1.0, p3 - 0.066, 1.0, 0.06, 0.0
+ag          =           adamping * ag
+agleft      =           adamping * agleft
+agright     =           adamping * agright
 af1         expon       .1, p3, 1.0             ;exponential from 0.1 to 1.0
 af2         expon       1.0, p3, .1             ;exponential from 1.0 to 0.1
 adump       delayr      2.0                     ;set delay line of 2.0 sec
@@ -39,10 +43,14 @@ ad2         deltap3     1.1                     ;delay 1.1 sec.
 ishift      =           .00666667               ;shift it 8/1200.
 ipch        =           cpspch(p5)              ;convert parameter 5 to cps.
 ioct        =           octpch(p5)              ;convert parameter 5 to oct.
-kvib        poscil       1/120, ipch/50, 1       ;vibrato
+kvib        poscil      1/120, ipch/50, 1       ;vibrato
 ag          pluck       1000, cpsoct(ioct+kvib), 1000, 1, 1
 agleft      pluck       1000, cpsoct(ioct+ishift), 1000, 1, 1
 agright     pluck       1000, cpsoct(ioct-ishift), 1000, 1, 1
+adamping    linsegr     0.0, 0.006, 1.0, p3 - 0.066, 1.0, 0.06, 0.0
+ag          =           adamping * ag
+agleft      =           adamping * agleft
+agright     =           adamping * agright
 adump       delayr      0.3                     ;set delay line of 0.3 sec
 ad1         deltap3     0.1                     ;delay 100 msec.
 ad2         deltap3     0.2                     ;delay 200 msec.
@@ -57,7 +65,7 @@ ad2         deltap3     0.2                     ;delay 200 msec.
 ishift      =           .00666667               ;shift it 8/1200.
 ipch        =           cpspch(p5)              ;convert parameter 5 to cps.
 ioct        =           octpch(p5)              ;convert parameter 5 to oct.
-aadsr       linseg      0, p3/3, 1.0, p3/3, 1.0, p3/3, 0 ;ADSR envelope
+aadsr       linsegr     0, p3/3, 1.0, p3/3, 1.0, p3/3, 0 ;ADSR envelope
 amodi       linseg      0, p3/3, 5, p3/3, 3, p3/3, 0 ;ADSR envelope for I
 amodr       linseg      p6, p3, p7              ;r moves from p6->p7 in p3 sec.
 a1          =           amodi*(amodr-1/amodr)/2
