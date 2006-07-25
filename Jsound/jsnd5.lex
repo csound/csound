@@ -10,15 +10,16 @@ extern TOKEN *lookup_token(char *);
 TOKEN *make_int(char *);
 TOKEN *make_num(char *);
 void comment(void);
+void do_comment(void);
 int yyline = 0;
 %}
 
-STRCONST	\"(\\.|[^\\"])*\"
+STRCONST	\"(\\.|[^\"])*\"
 IDENT		[a-zA-Z_][a-zA-Z0-9_]*
 IDENTN		[a-zA-Z0-9_]+
 INTGR		[0-9]+
-NUMBER	[0-9]*(\.[0-9]*)?(e[-+]?[0-9]+)?|-?\.[0-9]*(e[-+]?[0-9]+)?
-COMMENT		/\*.*\*/
+NUMBER	        [0-9]*(\.[0-9]*)?(e[-+]?[0-9]+)?|-?\.[0-9]*(e[-+]?[0-9]+)?
+STCOM		"/"\*
 WHITE		[ \t]
 
 %%
@@ -26,7 +27,7 @@ WHITE		[ \t]
 "\n"		{ yyline++; return S_NL; }
 "//"	    	{ comment(); return S_NL; }
 ";"		{ comment(); return S_NL; }
-COMMENT         { }
+{STCOM}		{ do_comment(); }
 "("		{ return S_LB; }
 ")"		{ return S_RB; }
 "+"		{ return S_PLUS; }
@@ -76,6 +77,16 @@ void comment(void)              /* Skip until nextline */
     yyline++;
 }
 
+void do_comment(void)              /* Skip until * and / chars */
+{
+    char c;
+    for(;;) {
+      while ((c=input()) != '*') if (c=='\n') yyline++; /* skip */
+      if ((c=input())=='/') return;
+      if (c=='\n') yyline++;
+    }
+}
+
 TOKEN *new_token(int type)
 {
     TOKEN *ans = (TOKEN*)malloc(sizeof(TOKEN));
@@ -89,6 +100,7 @@ TOKEN *make_string(char *s)
     int len = strlen(s);
     ans->lexeme = (char*)calloc(1, len-1);
     strncpy(ans->lexeme, s+1, len-2);
+    ans->lexeme[len-2] = '\0';
     return ans;
 }
 
