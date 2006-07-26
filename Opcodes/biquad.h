@@ -36,15 +36,16 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *fco, *res, *max, *iskip;
-    MYFLT   xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
+    double  xnm1, y1nm1, y2nm1, y3nm1, y1n, y2n, y3n, y4n;
+    MYFLT   maxint;
     short   fcocod, rezcod;
 } MOOGVCF;
 
                                 /* Structure for rezzy filter */
 typedef struct {
     OPDS    h;
-    MYFLT *out, *in, *fco, *rez, *mode, *iskip;
-    MYFLT   xnm1, xnm2, ynm1, ynm2;
+    MYFLT   *out, *in, *fco, *rez, *mode, *iskip;
+    double  xnm1, xnm2, ynm1, ynm2;
     short   fcocod, rezcod;
 } REZZY;
 
@@ -79,11 +80,12 @@ typedef struct {
 } PLANET;
 
 typedef struct {
-    OPDS  h;
-    MYFLT *out, *in, *fc, *v, *q, *mode, *iskip;
-    MYFLT xnm1, xnm2, ynm1, ynm2;
-    MYFLT prv_fc, prv_v, prv_q, b0, b1, b2, a1, a2;
-    int   imode;
+    OPDS   h;
+    MYFLT  *out, *in, *fc, *v, *q, *mode, *iskip;
+    double xnm1, xnm2, ynm1, ynm2;
+    MYFLT  prv_fc, prv_v, prv_q;
+    double b0, b1, b2, a1, a2;
+    int    imode;
 } PAREQ;
 
 typedef struct {
