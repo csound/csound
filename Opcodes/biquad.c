@@ -684,8 +684,7 @@ static int pareqset(CSOUND *csound, PAREQ *p)
 static int pareq(CSOUND *csound, PAREQ *p)
 {
     MYFLT xn, yn;
-    int   n = 0;
-    int n, nsmps = csound->ksmps;
+    int   n, nsmps = csound->ksmps;
 
     if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
       double omega = (double)(csound->tpidsr * *p->fc), k, kk, vkk, vk, vkdq, a0;
