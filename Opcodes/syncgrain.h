@@ -137,6 +137,7 @@ typedef struct _syncgrainl {
     MYFLT *ifn2;
     MYFLT *ols;
     MYFLT *startpos;
+  MYFLT *iskip;
     FUNC  *sfunc;
     FUNC  *efunc;
     int count, numstreams, firststream;
