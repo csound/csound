@@ -102,11 +102,13 @@ static int biquada(CSOUND *csound, BIQUAD *p)
 static int moogvcfset(CSOUND *csound, MOOGVCF *p)
 {
     if (*p->iskip==FL(0.0)) {
-      p->xnm1 = p->y1nm1 = p->y2nm1 = p->y3nm1 = FL(0.0);
-      p->y1n  = p->y2n   = p->y3n   = p->y4n   = FL(0.0);
+      p->xnm1 = p->y1nm1 = p->y2nm1 = p->y3nm1 = 0.0;
+      p->y1n  = p->y2n   = p->y3n   = p->y4n   = 0.0;
     }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
+    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->dbfs_to_float;
+    
     return OK;
 }
 
@@ -114,29 +116,27 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
 {
     long n;
     MYFLT *out, *in;
-    MYFLT xn;
+    double xn;
     MYFLT *fcoptr, *resptr;
-    MYFLT fco, res, fcon, kp, pp1d2, scale, k;
-    MYFLT max = *p->max;
-    MYFLT xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
-    MYFLT y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
+    double fco, res, fcon, kp, pp1d2, scale, k;
+    MYFLT max = p->maxint;
+    double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
+    double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
 
     in      = p->in;
     out     = p->out;
     fcoptr  = p->fco;
     resptr  = p->res;
-    fco     = *fcoptr;
-    res     = *resptr;
+    fco     = (double)*fcoptr;
+    res     = (double)*resptr;
 
-    if (max==FL(1.0)) max = FL(1.0); /* Avoid disaster? */
-
-    fcon    = FL(2.0)*fco * csound->onedsr; /* normalised freq. 0 to Nyquist */
-    kp      = FL(3.6)*fcon-FL(1.6)*fcon*fcon-FL(1.0);  /* Emperical tuning   */
-    pp1d2   = (kp+FL(1.0))*FL(0.5);         /* Timesaver                  */
-    scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249); /* Scaling factor  */
+    fcon    = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
+    kp      = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
+    pp1d2   = (kp+1.0)*0.5;                   /* Timesaver          */
+    scale   = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
     k       = res*scale;
     for (n=0; n<csound->ksmps; n++) {
-      xn = in[n] / max;
+      xn = (double)(in[n] / max);
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
       /* Four cascaded onepole filters (bilinear transform) */
@@ -145,26 +145,26 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       y3n   = y2n * pp1d2 + y2nm1 * pp1d2 - kp * y3n;
       y4n   = y3n * pp1d2 + y3nm1 * pp1d2 - kp * y4n;
                                 /* Clipper band limited sigmoid */
-      y4n   = y4n - y4n * y4n * y4n / FL(6.0);
+      y4n   = y4n - y4n * y4n * y4n / 6.0;
       xnm1  = xn;       /* Update Xn-1  */
       y1nm1 = y1n;      /* Update Y1n-1 */
       y2nm1 = y2n;      /* Update Y2n-1 */
       y3nm1 = y3n;      /* Update Y3n-1 */
-      out[n]   = y4n * max;
+      out[n]   = (MYFLT)(y4n * max);
 
       /* Handle a-rate modulation of fco & res. */
       if (p->fcocod) {
-        fco = *(++fcoptr);
+        fco = (double)fcoptr[n+1];
       }
       if (p->rezcod) {
-        res = *(++resptr);
+        res = (double)resptr[n+1];
       }
       if ((p->rezcod==1) || (p->fcocod==1)) {
-        fcon    = FL(2.0)*fco*csound->onedsr; /* normalised frq. 0 to Nyquist */
-        kp      = FL(3.6)*fcon-FL(1.6)*fcon*fcon-FL(1.0); /* Emperical tuning */
-        pp1d2   = (kp+FL(1.0))*FL(0.5);                   /* Timesaver */
-        scale   = (MYFLT)exp((1.0-(double)pp1d2)*1.386249); /* Scaling factor */
-        k       = res*scale;
+        fcon  = 2.0*fco*(double)csound->onedsr; /* normalised frq. 0 to Nyquist */
+        kp    = 3.6*fcon-1.6*fcon*fcon-1.0; /* Emperical tuning */
+        pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
+        scale = exp((1.0-pp1d2)*1.386249); /* Scaling factor */
+        k     = res*scale;
       }
     }
     p->xnm1 = xnm1; p->y1nm1 = y1nm1; p->y2nm1 = y2nm1; p->y3nm1 = y3nm1;
@@ -180,7 +180,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
 static int rezzyset(CSOUND *csound, REZZY *p)
 {
     if (*p->iskip==FL(0.0)) {
-      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0); /* Initialize to zero */
+      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0; /* Initialize to zero */
     }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
@@ -192,86 +192,85 @@ static int rezzy(CSOUND *csound, REZZY *p)
 {
     long n;
     MYFLT *out, *fcoptr, *rezptr, *in;
-    MYFLT fco, rez, xn, yn;
-    MYFLT fqcadj, c, rez2, a,
+    double fco, rez, xn, yn;
+    double fqcadj, c, rez2, a,
           csq, b, tval; /* Temporary varibles for the filter */
-    MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+    double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     in     = p->in;
     out    = p->out;
     fcoptr = p->fco;
     rezptr = p->rez;
-    fco    = *fcoptr;
-    rez    = *rezptr;
+    fco    = (double)*fcoptr;
+    rez    = (double)*rezptr;
 
     /* Freq. is adjusted based on sample rate */
-    fqcadj = FL(0.149659863)*csound->esr;
+    fqcadj = 0.149659863*(double)csound->esr;
     c      = fqcadj/fco;          /* Filter constant c=1/Fco * adjustment   */
     /* Try to keep the resonance under control     */
-    if (rez < FL(1.0)) rez = FL(1.0);
+    if (rez < 1.0) rez = 1.0;
     if (*p->mode == FL(0.0)) {    /* Low Pass */
-      rez2   = rez/(FL(1.0) + (MYFLT)exp((double)fco/11000.0));
-      a      = c/rez2 - FL(1.0);  /* a depends on both Fco and Rez */
+      rez2   = rez/(1.0 + exp(fco/11000.0));
+      a      = c/rez2 - 1.0;      /* a depends on both Fco and Rez */
       csq    = c*c;               /* Precalculate c^2 */
-      b      = FL(1.0) + a + csq; /* Normalization constant */
+      b      = 1.0 + a + csq;     /* Normalization constant */
 
       for (n=0; n<csound->ksmps; n++) { /* do ksmp times   */
-        xn = in[n];                     /* Get the next sample */
+        xn = (double)in[n];             /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
-        yn = (FL(1.0)/(MYFLT)sqrt(1.0+(double)rez)*xn -
-              (-a-FL(2.0)*csq)*ynm1 - csq*ynm2)/b;
+        yn = (1.0/sqrt(1.0+rez)*xn - (-a-2.0*csq)*ynm1 - csq*ynm2)/b;
 
         xnm2 = xnm1; /* Update Xn-2 */
         xnm1 = xn;   /* Update Xn-1 */
         ynm2 = ynm1; /* Update Yn-2 */
         ynm1 = yn;   /* Update Yn-1 */
-        out[n] = yn; /* Generate the output sample */
+        out[n] = (MYFLT)yn; /* Generate the output sample */
 
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
-          fco = fcoptr[n+1];
+          fco = (double)fcoptr[n+1];
         }
         if (p->rezcod) {
-          rez = rezptr[n+1];
+          rez = (double)rezptr[n+1];
         }
         if ((p->rezcod==1) || (p->fcocod==1)) {
           c      = fqcadj/fco;
-          rez2   = rez/(FL(1.0) + (MYFLT)exp((double) fco/11000.0));
-          a      = c/rez2 - FL(1.0); /* a depends on both Fco and Rez */
-          csq    = c*c;  /* Precalculate c^2 */
-          b      = FL(1.0) + a + csq; /* Normalization constant */
+          rez2   = rez/(1.0 + exp(fco/11000.0));
+          a      = c/rez2 - 1.0;  /* a depends on both Fco and Rez */
+          csq    = c*c;           /* Precalculate c^2 */
+          b      = 1.0 + a + csq; /* Normalization constant */
         }
       }
     }
     else { /* High Pass Rezzy */
-      rez2   = rez/(FL(1.0) + (MYFLT)sqrt(sqrt(1.0/((double) c))));
-      tval   = FL(0.75)/(MYFLT)sqrt(1.0 + (double) rez);
+      rez2   = rez/(1.0 + sqrt(sqrt(1.0/c)));
+      tval   = 0.75/sqrt(1.0 + rez);
       csq    = c*c;
       b      = (c/rez2 + csq);
       for (n=0; n<csound->ksmps; n++) { /* do ksmp times   */
-        xn = in[n];                     /* Get the next sample */
+        xn = (double) in[n];            /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
-        yn = ((c/rez2 + FL(2.0)*csq - FL(1.0))*ynm1 - csq*ynm2
-              + ( c/rez2 + csq)*tval*xn + (-c/rez2 - FL(2.0)*csq)*tval*xnm1
+        yn = ((c/rez2 + 2.0*csq - 1.0)*ynm1 - csq*ynm2
+              + ( c/rez2 + csq)*tval*xn + (-c/rez2 - 2.0*csq)*tval*xnm1
               + csq*tval*xnm2)/b;
 
         xnm2 = xnm1;            /* Update Xn-2 */
         xnm1 = xn;              /* Update Xn-1 */
         ynm2 = ynm1;            /* Update Yn-2 */
         ynm1 = yn;              /* Update Yn-1 */
-        out[n] = yn;            /* Generate the output sample */
+        out[n] = (MYFLT)yn;     /* Generate the output sample */
 
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
-          fco = fcoptr[n+1];
+          fco = (double)fcoptr[n+1];
         }
         if (p->rezcod) {
-          rez = rezptr[n+1];
+          rez = (double)rezptr[n+1];
         }
         if (p->fcocod || p->rezcod) {
           c      = fqcadj/fco;
-          rez2   = rez/(FL(1.0) + (MYFLT)sqrt(sqrt(1.0/((double) c))));
-          tval   = FL(0.75)/(MYFLT)sqrt(1.0 + (double) rez);
+          rez2   = rez/(1.0 + sqrt(sqrt(1.0/c)));
+          tval   = 0.75/sqrt(1.0 + rez);
           csq    = c*c;
           b      = (c/rez2 + csq);
         }
@@ -675,7 +674,7 @@ static int pareqset(CSOUND *csound, PAREQ *p)
 {
     /* The equalizer filter is initialised to zero.    */
     if (*p->iskip == FL(0.0)) {
-      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);
+      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
       p->prv_fc = p->prv_v = p->prv_q = FL(-1.0);
       p->imode = (int) (*p->mode + FL(0.5));
     }
@@ -686,68 +685,73 @@ static int pareq(CSOUND *csound, PAREQ *p)
 {
     MYFLT xn, yn;
     int   n = 0;
+    int n, nsmps = csound->ksmps;
 
     if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
-      MYFLT omega = csound->tpidsr * *p->fc, k, kk, vkk, vk, vkdq, a0;
+      double omega = (double)(csound->tpidsr * *p->fc), k, kk, vkk, vk, vkdq, a0;
       p->prv_fc = *p->fc; p->prv_v = *p->v; p->prv_q = *p->q;
       switch (p->imode) {
         /* Low Shelf */
         case 1: {
-          MYFLT sq = (MYFLT) sqrt(2.0 * (double) p->prv_v);
-          k = (MYFLT) tan((double) omega * 0.5);
+          double sq = sqrt(2.0 * (double) p->prv_v);
+          k = tan(omega * 0.5);
           kk = k * k;
-          vkk = p->prv_v * kk;
-          p->b0 =  FL(1.0) + sq * k + vkk;
-          p->b1 =  FL(2.0) * (vkk - FL(1.0));
-          p->b2 =  FL(1.0) - sq * k + vkk;
-          a0    =  FL(1.0) + k / p->prv_q + kk;
-          p->a1 =  FL(2.0) * (kk - FL(1.0));
-          p->a2 =  FL(1.0) - k / p->prv_q + kk;
+          vkk = (double)p->prv_v * kk;
+          p->b0 =  1.0 + sq * k + vkk;
+          p->b1 =  2.0 * (vkk - FL(1.0));
+          p->b2 =  1.0 - sq * k + vkk;
+          a0    =  1.0 + k / (double)p->prv_q + kk;
+          p->a1 =  2.0 * (kk - 1.0);
+          p->a2 =  1.0 - k / (double)p->prv_q + kk;
         }
         break;
         /* High Shelf */
         case 2: {
-          MYFLT sq = (MYFLT) sqrt(2.0 * (double) p->prv_v);
-          k = (MYFLT) tan((PI - (double) omega) * 0.5);
+          double sq = sqrt(2.0 * (double) p->prv_v);
+          k = tan((PI - omega) * 0.5);
           kk = k * k;
-          vkk = p->prv_v * kk;
-          p->b0 =  FL(1.0) + sq * k + vkk;
-          p->b1 = -FL(2.0) * (vkk - FL(1.0));
-          p->b2 =  FL(1.0) - sq * k + vkk;
-          a0    =  FL(1.0) + k / p->prv_q + kk;
-          p->a1 = -FL(2.0) * (kk - FL(1.0));
-          p->a2 =  FL(1.0) - k / p->prv_q + kk;
+          vkk = (double)p->prv_v * kk;
+          p->b0 =  1.0 + sq * k + vkk;
+          p->b1 = -2.0 * (vkk - 1.0);
+          p->b2 =  1.0 - sq * k + vkk;
+          a0    =  1.0 + k / (double)p->prv_q + kk;
+          p->a1 = -2.0 * (kk - 1.0);
+          p->a2 =  1.0 - k / (double)p->prv_q + kk;
         }
         break;
         /* Peaking EQ */
         default: {
-          k = (MYFLT) tan((double) omega * 0.5);
+          k = tan(omega * 0.5);
           kk = k * k;
-          vk = p->prv_v * k;
-          vkdq = vk / p->prv_q;
-          p->b0 =  FL(1.0) + vkdq + kk;
-          p->b1 =  FL(2.0) * (kk - FL(1.0));
-          p->b2 =  FL(1.0) - vkdq + kk;
-          a0    =  FL(1.0) + k / p->prv_q + kk;
-          p->a1 =  FL(2.0) * (kk - FL(1.0));
-          p->a2 =  FL(1.0) - k / p->prv_q + kk;
+          vk = (double)p->prv_v * k;
+          vkdq = vk / (double)p->prv_q;
+          p->b0 =  1.0 + vkdq + kk;
+          p->b1 =  2.0 * (kk - 1.0);
+          p->b2 =  1.0 - vkdq + kk;
+          a0    =  1.0 + k / (double)p->prv_q + kk;
+          p->a1 =  2.0 * (kk - 1.0);
+          p->a2 =  1.0 - k / (double)p->prv_q + kk;
         }
       }
-      a0 = FL(1.0) / a0;
+      a0 = 1.0 / a0;
       p->a1 *= a0; p->a2 *= a0; p->b0 *= a0; p->b1 *= a0; p->b2 *= a0;
     }
 
-    do {
-      xn = p->in[n];
-      yn = p->b0 * xn + p->b1 * p->xnm1 + p->b2 * p->xnm2
-                      - p->a1 * p->ynm1 - p->a2 * p->ynm2;
-      p->xnm2 = p->xnm1;
-      p->xnm1 = xn;
-      p->ynm2 = p->ynm1;
-      p->ynm1 = yn;
-      p->out[n] = yn;
-    } while (++n < csound->ksmps);
-
+    {
+      double a1 = p->a1, a2 = p->a2;
+      double b0 = p->b0, b1 = p->b1, b2 = p->b2;
+      double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+      for (n=0; n<nsmps; n++) {
+        xn = (double)p->in[n];
+        yn = b0 * xn + b1 * xnm1 + b2 * xnm2 - a1 * ynm1 - a2 * ynm2;
+        xnm2 = xnm1;
+        xnm1 = xn;
+        ynm2 = ynm1;
+        ynm1 = yn;
+        p->out[n] = (MYFLT)yn;
+      }
+      p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
+    }
     return OK;
 }
 
@@ -1087,7 +1091,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
 static int bqrezset(CSOUND *csound, REZZY *p)
 {
     if (*p->iskip==FL(0.0)) {
-      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = FL(0.0);  /* Initialise to zero */
+      p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;  /* Initialise to zero */
     }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
@@ -1099,96 +1103,96 @@ static int bqrez(CSOUND *csound, REZZY *p)
 {
     long n;
     MYFLT *out, *fcoptr, *rezptr, *in;
-    MYFLT fco, rez, xn, yn;
-    MYFLT sin2, cos2, beta, alpha, gamma, mu, sigma, chi;
+    double fco, rez, xn, yn;
+    double sin2, cos2, beta, alpha, gamma, mu, sigma, chi;
     double theta;
-    MYFLT xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+    double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     n      = csound->ksmps;
     in     = p->in;
     out    = p->out;
     fcoptr = p->fco;
     rezptr = p->rez;
-    fco    = *fcoptr;
-    rez    = *rezptr;
+    fco    = (double)*fcoptr;
+    rez    = (double)*rezptr;
 
-    theta = (double)fco * (double)csound->tpidsr;
-    sin2 = (MYFLT) sin(theta) * FL(0.5);
-    cos2 = (MYFLT) cos(theta);
+    theta = fco * (double)csound->tpidsr;
+    sin2 = sin(theta) * 0.5;
+    cos2 = cos(theta);
     beta = (rez - sin2) / (rez + sin2);
-    gamma = (beta + FL(1.0)) * cos2;
+    gamma = (beta + 1.0) * cos2;
     if (*p->mode < FL(3.0)) {
       if (*p->mode == FL(0.0)) {    /* Low Pass */
-        chi   = -FL(1.0);
-        mu    = FL(2.0);
-        sigma = FL(1.0);
+        chi   = -1.0;
+        mu    = 2.0;
+        sigma = 1.0;
       }
       else if (*p->mode == FL(1.0)) { /* High Pass */
-        chi   = FL(1.0);
-        mu    = -FL(2.0);
-        sigma = FL(1.0);
+        chi   = 1.0;
+        mu    = -2.0;
+        sigma = 1.0;
       }
       else {                         /* Band Pass */
-        chi   = FL(1.0);
-        mu    = FL(0.0);
-        sigma = -FL(1.0);
+        chi   = 1.0;
+        mu    = 0.0;
+        sigma = -1.0;
       }
-      alpha = (beta + FL(1.0) + chi*gamma) * FL(0.5);
+      alpha = (beta + 1.0 + chi*gamma) * 0.5;
 
       do {                        /* do ksmp times   */
-        xn     = *in++;           /* Get the next sample */
+        xn     = (double)*in++;   /* Get the next sample */
         yn     = alpha*(xn + mu*xnm1 + sigma*xnm2) + gamma*ynm1 - beta*ynm2;
 
         xnm2   = xnm1; /* Update Xn-2 */
         xnm1   = xn;   /* Update Xn-1 */
         ynm2   = ynm1; /* Update Yn-2 */
         ynm1   = yn;   /* Update Yn-1 */
-        *out++ = yn;   /* Generate the output sample */
+        *out++ = (MYFLT)yn;   /* Generate the output sample */
 
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
-          fco = *(++fcoptr);
+          fco = (double)fcoptr[n+1];
         }
         if (p->rezcod) {
-          rez = *(++rezptr);
+          rez = (double)rezptr[n+1];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = (double) fco * (double) csound->tpidsr;
-          sin2 = (MYFLT) sin(theta) * FL(0.5);
-          cos2 = (MYFLT) cos(theta);
+          theta = fco * (double) csound->tpidsr;
+          sin2 = sin(theta) * 0.5;
+          cos2 = cos(theta);
           beta = (rez - sin2) / (rez + sin2);
-          gamma = (beta + FL(1.0)) * cos2;
-          alpha = (beta + FL(1.0) + chi*gamma) * FL(0.5);
+          gamma = (beta + 1.0) * cos2;
+          alpha = (beta + 1.0 + chi*gamma) * 0.5;
         }
       } while (--n);
     }
     else if (*p->mode == FL(3.0)) {   /* Band Stop */
-      alpha  = (beta + FL(1.0)) * FL(0.5);
-      do {                        /* do ksmp times   */
-        mu     = -FL(2.0)*cos2;
-        xn     = *in++;               /* Get the next sample */
+      alpha  = (beta + 1.0) * 0.5;
+      do {                            /* do ksmp times   */
+        mu     = -2.0*cos2;
+        xn     = (double)*in++;       /* Get the next sample */
         yn     = alpha*(xn + mu*xnm1 + xnm2) + gamma*ynm1 - beta*ynm2;
 
         xnm2   = xnm1;  /* Update Xn-2 */
         xnm1   = xn;    /* Update Xn-1 */
         ynm2   = ynm1;  /* Update Yn-2 */
         ynm1   = yn;    /* Update Yn-1 */
-        *out++ = yn;  /* Generate the output sample */
+        *out++ = (MYFLT) yn;  /* Generate the output sample */
 
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
-          fco = *(++fcoptr);
+          fco = (double)fcoptr[n+1];
         }
         if (p->rezcod) {
-          rez = *(++rezptr);
+          rez = (double)rezptr[n+1];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = (double) fco * (double) csound->tpidsr;
-          sin2  = (MYFLT) sin(theta) * FL(0.5);
-          cos2  = (MYFLT) cos(theta);
+          theta = fco * (double) csound->tpidsr;
+          sin2  = sin(theta) * 0.5;
+          cos2  = cos(theta);
           beta  = (rez - sin2) / (rez + sin2);
-          gamma = (beta + FL(1.0)) * cos2;
-          alpha = (beta + FL(1.0)) * FL(0.5);
+          gamma = (beta + 1.0) * cos2;
+          alpha = (beta + 1.0) * 0.5;
         }
       } while (--n);
     }
@@ -1196,28 +1200,28 @@ static int bqrez(CSOUND *csound, REZZY *p)
       do {                        /* do ksmp times   */
         chi    = beta;
         mu     = -gamma;
-        xn     = *in++;               /* Get the next sample */
+        xn     = (double)*in++;               /* Get the next sample */
         yn     = chi*xn + mu*xnm1 + xnm2 + gamma*ynm1 - beta*ynm2;
 
         xnm2   = xnm1;  /* Update Xn-2 */
         xnm1   = xn;    /* Update Xn-1 */
         ynm2   = ynm1;  /* Update Yn-2 */
         ynm1   = yn;    /* Update Yn-1 */
-        *out++ = yn;  /* Generate the output sample */
+        *out++ = (MYFLT)yn;  /* Generate the output sample */
 
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
-          fco = *(++fcoptr);
+          fco = (double)fcoptr[n+1];
         }
         if (p->rezcod) {
-          rez = *(++rezptr);
+          rez = (double)rezptr[n=1];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = (double) fco * (double) csound->tpidsr;
-          sin2 = (MYFLT) sin(theta) * FL(0.5);
-          cos2 = (MYFLT) cos(theta);
+          theta = fco * (double) csound->tpidsr;
+          sin2 = sin(theta) * 0.5;
+          cos2 = cos(theta);
           beta = (rez - sin2) / (rez + sin2);
-          gamma = (beta + FL(1.0)) * cos2;
+          gamma = (beta + 1.0) * cos2;
         }
       } while (--n);
     }
@@ -1231,6 +1235,7 @@ static OENTRY localops[] = {
 { "biquad", S(BIQUAD),   5, "a", "akkkkkko",(SUBR)biquadset, NULL, (SUBR)biquad },
 { "biquada", S(BIQUAD),  5, "a", "aaaaaaao",(SUBR)biquadset, NULL, (SUBR)biquada },
 { "moogvcf", S(MOOGVCF), 5, "a", "axxpo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
+{ "moogvcf2", S(MOOGVCF), 5, "a", "axxoo", (SUBR)moogvcfset, NULL,(SUBR)moogvcf },
 { "rezzy", S(REZZY),     5, "a", "axxoo", (SUBR)rezzyset, NULL, (SUBR)rezzy },
 { "bqrez", S(REZZY),     5, "a", "axxoo", (SUBR)bqrezset, NULL, (SUBR)bqrez },
 { "distort1", S(DISTORT), 4,"a", "akkkko",  NULL,   NULL,   (SUBR)distort   },
