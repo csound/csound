@@ -151,7 +151,7 @@ typedef struct _flooper2 {
   OPDS h;
   MYFLT *out;  /* output */
   MYFLT *amp, *pitch, *loop_start, *loop_end, 
-    *crossfade, *ifn, *start, *imode, *ifn2;
+    *crossfade, *ifn, *start, *imode, *ifn2, *iskip;
   FUNC  *sfunc;  /* function table */
   FUNC *efunc;
   MYFLT count;
@@ -360,6 +360,7 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
   if(*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
   else p->efunc = NULL;
  
+  if(*p->iskip == 0){
   p->mode = *p->imode;
   if(p->mode == 0 || p->mode == 2){
     if((p->ndx[0] = *p->start*csound->GetSr(csound)) < 0)
@@ -370,6 +371,7 @@ static int flooper2_init(CSOUND *csound, flooper2 *p)
   }
   p->init = 1; 
   p->firsttime = 1;
+  }
   return OK;
 }
 
@@ -689,7 +691,7 @@ static OENTRY localops[] = {
   {"pvsvoc", sizeof(pvsarp), 3,
    "f", "ffkk", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
   {"flooper2", sizeof(flooper2), 5,
-   "a", "kkkkkiooo", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
+   "a", "kkkkkioooo", (SUBR)flooper2_init, NULL, (SUBR)flooper2_process},
 };
 
 int sndloop_init_(CSOUND *csound)

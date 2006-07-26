@@ -162,25 +162,25 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
     p->sfunc = csound->FTnp2Find(csound, p->ifn1);
     if (p->sfunc == NULL)
       return NOTOK;
-
+    
+    p->datasize =  p->sfunc->flen;
+    p->envtablesize = p->efunc->flen;   /* size of envtable */
     p->olaps = (int) *p->ols;
 
     if (p->olaps < 1)
       p->olaps = 1;
 
+    if(*p->iskip == 0){ 
     csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->index);
     csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->envindex);
     csound->AuxAlloc(csound, p->olaps * sizeof(int), &p->streamon);
-
     p->count = 0xFFFFFFFF;              /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
-    p->datasize =  p->sfunc->flen;
-    p->envtablesize = p->efunc->flen;   /* size of envtable */
-
     p->start = *p->startpos*(csound->GetSr(csound));
     p->frac = 0.0f;
     p->firsttime = 1;
+    }
     return OK;
 }
 
@@ -309,7 +309,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
 static OENTRY localops[] = {
 {"syncgrain", sizeof(syncgrain), 5, "a", "kkkkkiii",
  (SUBR)syncgrain_init, NULL,(SUBR)syncgrain_process },
-{"syncloop", sizeof(syncgrainloop), 5, "a", "kkkkkkkiiio",
+{"syncloop", sizeof(syncgrainloop), 5, "a", "kkkkkkkiiioo",
                             (SUBR)syncgrainloop_init, NULL,(SUBR)syncgrainloop_process }
 
 };
