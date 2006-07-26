@@ -1,3 +1,9 @@
+2006-07-26  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/biquad.c (moogvcfset, moogvcf): Allow for scaling to
+	0dbfs and improve accuracy of filter by using doubles.
+	(rezzyset, rezzy, bqrezset, bqrez): Use doubles in filter
+
 2006-07-21  Michael Gogins <gogins@pipeline.com>
 	* Added new long options for routing MIDI note on message key and velocity
 	numbers to specified pfields: --midi-key=<pfield>, --midi-key-cps=<pfield>, 
