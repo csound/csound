@@ -17,6 +17,6 @@ typedef struct TOKEN {
 
 extern TOKEN *new_token(int);
 
-#define HASH_SIZE (1024)
+#define HASH_SIZE (4096)
 
 #endif
