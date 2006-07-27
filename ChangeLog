@@ -1,3 +1,8 @@
+2006-07-27  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/biquad.c (moogvcfset): Corrected mind error (divide and
+	divide).  Thanks to IV
+
 2006-07-26  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/biquad.c (moogvcfset, moogvcf): Allow for scaling to
