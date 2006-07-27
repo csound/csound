@@ -120,17 +120,13 @@ TREE* make_leaf(int, TOKEN*);
 %}
 %%
 
-orcfile           : header instrlist	{ }
+orcfile           : topstatement	{ }
                   ;
 
-header            : header rtparam      { }
-                  | /* null */
-                  ;
-
-instrlist         : instrlist instrdecl { }
-		  | instrdecl           { }
-		  | S_NL {}
-		  ;
+topstatement	  : topstatement rtparam { }
+				  | topstatement instrdecl { }
+				  | S_NL { }
+				  ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
 instrdecl	  : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
