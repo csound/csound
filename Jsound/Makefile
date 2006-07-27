@@ -5,6 +5,7 @@ CFLAGS = -c -g
 SRCS = jsnd5.tab.c lex.yy.c symbtab.c main.c semantics.c generate.c
 OBJS = jsnd5.tab.o lex.yy.o symbtab.o main.o semantics.o generate.o
 
+all:	jsnd
 
 jsnd:	$(OBJS)
 	$(CC) -o jsnd $(OBJS) -lm
@@ -28,5 +29,11 @@ lex.yy.o:	lex.yy.c
 depend:
 	$(CC) -M $(SRCS) > deps
 	cat Makefile deps > makefile
+
+clean:
+	-rm *.o
+	-rm jsnd5.tab.*
+	-rm lex.yy.c
+	-rm jsnd
 
 ####################################################
