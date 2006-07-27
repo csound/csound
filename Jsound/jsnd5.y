@@ -25,6 +25,12 @@
 
 %token T_OPCODE0
 %token T_OPCODE
+
+%token T_UDOSTART
+%token T_UDOEND
+%token T_UDO_ANS
+%token T_UDO_ARGS
+
 %token T_ERROR
 
 %token T_ABS
@@ -117,6 +123,7 @@
 #define YYSTYPE TOKEN*
 #include "jsnd5.h"
 TREE* make_leaf(int, TOKEN*);
+int udoflag = -1;
 %}
 %%
 
@@ -125,10 +132,12 @@ orcfile           : topstatement	{ }
 
 topstatement	  : topstatement rtparam { }
 				  | topstatement instrdecl { }
+				  | topstatement udodecl { }
 				  | S_NL { }
 				  ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
+/* FIXME: Does not allow named instruments i.e. "instr trumpet" */
 instrdecl	  : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
                         { start_instr(((TOKEN*)$2)->value);
                           statement_list = (TREE*)$4;
@@ -136,6 +145,21 @@ instrdecl	  : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
 		  | T_INSTR S_NL
                         { printf("No number following instr\n"); }
 		  ;
+
+udodecl		: T_UDOSTART T_IDENT S_COM {
+					udoflag = 0;
+				} T_UDO_ANS {
+					udoflag = 1;
+				} S_COM T_UDO_ARGS S_NL {
+					udoflag = 2;
+				}
+				statementlist T_UDOEND S_NL
+				{
+					udoflag = -1;
+					printf("Found UDO %s\n", $2->value);
+				}
+
+			;
 
 rtparam		  : T_SRATE S_ASSIGN T_NUMBER S_NL
                         { sr = ((TOKEN*)$3)->fvalue;
@@ -338,6 +362,10 @@ exprlist          : exprlist S_COM expr { $$ = make_node(S_COM, $1, $3); }
 		  | expr                { $$ = $1; }
 		  ;
  */
+
+/* udoarglist : udoarglist "0" {}
+			; */
+
 constant	  : T_INTGR 		{ $$ = make_leaf(T_INTGR, yylval); }
 		  | T_NUMBER 		{ $$ = make_leaf(T_NUMBER, yylval); }
 		  | T_STRCONST 		{ $$ = make_leaf(T_STRCONST, yylval); }
