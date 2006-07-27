@@ -132,37 +132,36 @@ instrlist         : instrlist instrdecl { }
 		  ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
-instrdecl	  : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
+instrdecl	  : T_INSTR T_INTGR  statementlist T_ENDIN
                         { start_instr(((TOKEN*)$2)->value);
                           statement_list = (TREE*)$4;
                           end_instr(); }
-		  | T_INSTR S_NL
+		  | T_INSTR
                         { printf("No number following instr\n"); }
 		  ;
 
-rtparam		  : T_SRATE S_ASSIGN T_NUMBER S_NL
+rtparam		  : T_SRATE S_ASSIGN T_NUMBER
                         { sr = ((TOKEN*)$3)->fvalue;
                           printf("sr set to %f\n", sr); }
-                  | T_SRATE S_ASSIGN T_INTGR S_NL
+                  | T_SRATE S_ASSIGN T_INTGR
                         { sr = (double)((TOKEN*)$3)->value;
                           printf("sr set to %f\n", sr); }
-		  | T_KRATE S_ASSIGN T_NUMBER S_NL
+		  | T_KRATE S_ASSIGN T_NUMBER
                         { kr = ((TOKEN*)$3)->fvalue;
                           printf("kr set to %f\n", kr); }
-		  | T_KRATE S_ASSIGN T_INTGR S_NL
+		  | T_KRATE S_ASSIGN T_INTGR
                         { kr = (double)((TOKEN*)$3)->value;
                           printf("kr set to %f\n", kr); }
-		  | T_KSMPS S_ASSIGN T_INTGR S_NL
+		  | T_KSMPS S_ASSIGN T_INTGR
                         { ksmps = ((TOKEN*)$3)->value;
                           printf("ksmps set to %d\n", ksmps);}
-		  | T_NCHNLS S_ASSIGN T_INTGR S_NL
+		  | T_NCHNLS S_ASSIGN T_INTGR
                         { nchnls = ((TOKEN*)$3)->value;
                           printf("nchnlc set to %d\n", nchnls); }
-                  | gans initop exprlist S_NL
+                  | gans initop exprlist
                                 { instr0($2, $1, check_opcode($2, $1, $3)); }
-		  |    initop0 exprlist S_NL
+		  |    initop0 exprlist
                                 { instr0($1, NULL, check_opcode0($1, $2)); }
-          | S_NL {}
                   ;
 
 initop0           : T_STRSET		{ $$ = make_leaf(T_STRSET, NULL); }
@@ -189,7 +188,7 @@ gident		  : T_IDENT_GI          { $$ = make_leaf(T_IDENT_GI, yylval); }
 		  | T_IDENT_GA          { $$ = make_leaf(T_IDENT_GA, yylval); }
                   ;
 
-statementlist     : statementlist statement S_NL
+statementlist     : statementlist statement
                         { if ($2 == NULL) $$ = $1;
                           else            $$ = make_node(S_ANDTHEN, $1, $2); }
                   | /* null */          { $$ = NULL; }

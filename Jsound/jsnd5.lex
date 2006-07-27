@@ -24,9 +24,9 @@ WHITE		[ \t]+
 
 %%
 
-"\n"		{ yyline++; return S_NL; }
-"//"	    	{ comment(); return S_NL; }
-";"		{ comment(); return S_NL; }
+"\n"		{ yyline++; }
+"//"	    	{ comment(); }
+";"		{ comment();  }
 {STCOM}		{ do_comment(); }
 "("		{ return S_LB; }
 ")"		{ return S_RB; }
