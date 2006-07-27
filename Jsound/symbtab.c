@@ -15,7 +15,14 @@ void init_symbtab(void)
     symbtab = (TOKEN**)calloc(HASH_SIZE, sizeof(TOKEN*));
     /* Now we need to populate with basic words */
 
-	add_token("init", T_OPCODE);
+	add_token("init", T_INIT);
+	add_token("cpspch", T_CPSPCH);
+	add_token("expseg", T_OPCODE);
+	add_token("line", T_OPCODE);
+	add_token("oscil", T_OPCODE);
+	add_token("linseg", T_OPCODE);
+	add_token("linen", T_OPCODE);
+	add_token("outs", T_OPCODE0);
 
 
 }
