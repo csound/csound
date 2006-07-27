@@ -7,6 +7,7 @@
 
 TOKEN** symbtab;
 extern int yyline;
+extern int udoflag;
 
 TOKEN *add_token(char *s, int type);
 
@@ -42,7 +43,7 @@ void init_symbtab(void)
 	add_token("cpsoct", T_CPSOCT);
 	add_token("delay", T_OPCODE);
 	add_token("reverb", T_OPCODE);
-
+	add_token("xout", T_OPCODE0);
 
 }
 
@@ -77,10 +78,40 @@ TOKEN *add_token(char *s, int type)
     return ans;
 }
 
+int isUDOArgList(char *s) {
+
+	int len = strlen(s) - 1;
+
+	while(len >= 0) {
+		if(strchr("aijkKop0", s[len]) == NULL) {
+			/* printf("Invalid char '%c' in '%s'", *p, s); */
+			return 0;
+		}
+
+		len--;
+	}
+
+	return 1;
+}
+
+int isUDOAnsList(char *s) {
+	int len = strlen(s) - 1;
+
+	while(len >= 0) {
+		if(strchr("aikK0", s[len]) == NULL) {
+			return 0;
+		}
+
+		len--;
+	}
+
+	return 1;
+}
+
 TOKEN *lookup_token(char *s)
 {
     int h = hash(s);
-    int type = -1;
+    int type = T_IDENT;
     TOKEN *a = symbtab[h];
     TOKEN *ans;
     while (a!=NULL) {
@@ -89,6 +120,32 @@ TOKEN *lookup_token(char *s)
       }
       a = a->next;
     }
+
+	if(udoflag == 0) {
+
+		if(isUDOAnsList(s)) {
+			ans = new_token(T_UDO_ANS);
+		    ans->lexeme = (char*)malloc(1+strlen(s));
+	    	strcpy(ans->lexeme, s);
+	    	ans->next = symbtab[h];
+	    	symbtab[h] = ans;
+	    	printf("Found UDO Answer List\n");
+			return ans;
+		}
+	}
+
+	if(udoflag == 1) {
+		if(isUDOArgList(s)) {
+			ans = new_token(T_UDO_ARGS);
+		    ans->lexeme = (char*)malloc(1+strlen(s));
+	    	strcpy(ans->lexeme, s);
+	    	ans->next = symbtab[h];
+	    	symbtab[h] = ans;
+	    	printf("Found UDO Arg List\n");
+			return ans;
+		}
+	}
+
     ans = new_token(T_IDENT);
     ans->lexeme = (char*)malloc(1+strlen(s));
     strcpy(ans->lexeme, s);
@@ -112,11 +169,13 @@ TOKEN *lookup_token(char *s)
         exit(1);
       }
     }
-    else {
+    /* else {
+      printf("IDENT Token: %i : %i", ans->type, T_IDENT);
       printf("Unknown word type for %s on line %d\n", s, yyline);
       exit(1);
-    }
+    } */
     ans->type = type;
     symbtab[h] = ans;
+
     return ans;
 }

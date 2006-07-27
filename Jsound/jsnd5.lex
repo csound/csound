@@ -11,6 +11,7 @@ TOKEN *make_int(char *);
 TOKEN *make_num(char *);
 void comment(void);
 void do_comment(void);
+extern int udoflag;
 int yyline = 0;
 %}
 
@@ -57,13 +58,30 @@ WHITE		[ \t]+
 "nchnls"	{ return T_NCHNLS; }
 "instr"		{ return T_INSTR; }
 "endin"		{ return T_ENDIN; }
+"opcode"	{ return T_UDOSTART; }
+"endop"	    { return T_UDOEND; }
 
 {STRCONST}	{ yylval = make_string(yytext); return (T_STRCONST); }
 
 {IDENT} 	{ yylval = lookup_token(yytext); printf("%d\n", yylval->type);
                   return (yylval->type); }
 
-{INTGR}		{ yylval = make_int(yytext); return (T_INTGR); }
+{INTGR}		{
+
+
+					if(udoflag == 0) {
+						yylval = lookup_token(yytext);
+					} else if(udoflag == 1) {
+						yylval = lookup_token(yytext);
+						yylval->type = T_UDO_ARGS;
+					} else {
+						yylval = make_int(yytext); return (T_INTGR);
+					}
+
+					printf("%d\n", yylval->type);
+                    return (yylval->type);
+
+			}
 {NUMBER}	{ yylval = make_num(yytext); return (T_NUMBER); }
 {WHITE}		{ }
 .		{ printf("Line %d: Unknown character: '%s'\n",yyline,yytext); }
