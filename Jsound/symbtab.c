@@ -23,6 +23,25 @@ void init_symbtab(void)
 	add_token("linseg", T_OPCODE);
 	add_token("linen", T_OPCODE);
 	add_token("outs", T_OPCODE0);
+	add_token("randi", T_OPCODE);
+	add_token("randh", T_OPCODE);
+	add_token("gbuzz", T_OPCODE);
+	add_token("buzz", T_OPCODE);
+	add_token("expon", T_OPCODE);
+	add_token("rand", T_OPCODE);
+	add_token("reson", T_OPCODE);
+	add_token("foscil", T_OPCODE);
+	add_token("int", T_INT);
+	add_token("frac", T_FRAC);
+	add_token("phasor", T_OPCODE);
+	add_token("table", T_OPCODE);
+	add_token("oscili", T_OPCODE);
+	add_token("tablei", T_OPCODE);
+	add_token("balance", T_OPCODE);
+	add_token("octpch", T_OCTPCH);
+	add_token("cpsoct", T_CPSOCT);
+	add_token("delay", T_OPCODE);
+	add_token("reverb", T_OPCODE);
 
 
 }
