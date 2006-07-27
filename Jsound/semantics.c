@@ -781,6 +781,15 @@ TREE* check_opcode(TREE *op, TREE* ans, TREE* args)
 
 TREE *check_opcode0(TREE *op, TREE* args)
 {
+
+	printf("Arg length = %d\n", length_list(args));
+    return args;
+
+}
+
+TREE *check_opcode0_backup(TREE *op, TREE* args)
+{
+
     /* Note that there is no multiple cases here except the odd case of out */
     CHECKS0 *th = check0;
     TOKEN *xx = op->value;
