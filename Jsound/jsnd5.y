@@ -129,39 +129,41 @@ header            : header rtparam      { }
 
 instrlist         : instrlist instrdecl { }
 		  | instrdecl           { }
+		  | S_NL {}
 		  ;
 
 /* FIXME: Does not allow "instr 2,3,4,5,6" syntax */
-instrdecl	  : T_INSTR T_INTGR  statementlist T_ENDIN
+instrdecl	  : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
                         { start_instr(((TOKEN*)$2)->value);
                           statement_list = (TREE*)$4;
                           end_instr(); }
-		  | T_INSTR
+		  | T_INSTR S_NL
                         { printf("No number following instr\n"); }
 		  ;
 
-rtparam		  : T_SRATE S_ASSIGN T_NUMBER
+rtparam		  : T_SRATE S_ASSIGN T_NUMBER S_NL
                         { sr = ((TOKEN*)$3)->fvalue;
                           printf("sr set to %f\n", sr); }
-                  | T_SRATE S_ASSIGN T_INTGR
+                  | T_SRATE S_ASSIGN T_INTGR S_NL
                         { sr = (double)((TOKEN*)$3)->value;
                           printf("sr set to %f\n", sr); }
-		  | T_KRATE S_ASSIGN T_NUMBER
+		  | T_KRATE S_ASSIGN T_NUMBER S_NL
                         { kr = ((TOKEN*)$3)->fvalue;
                           printf("kr set to %f\n", kr); }
-		  | T_KRATE S_ASSIGN T_INTGR
+		  | T_KRATE S_ASSIGN T_INTGR S_NL
                         { kr = (double)((TOKEN*)$3)->value;
                           printf("kr set to %f\n", kr); }
-		  | T_KSMPS S_ASSIGN T_INTGR
+		  | T_KSMPS S_ASSIGN T_INTGR S_NL
                         { ksmps = ((TOKEN*)$3)->value;
                           printf("ksmps set to %d\n", ksmps);}
-		  | T_NCHNLS S_ASSIGN T_INTGR
+		  | T_NCHNLS S_ASSIGN T_INTGR S_NL
                         { nchnls = ((TOKEN*)$3)->value;
                           printf("nchnlc set to %d\n", nchnls); }
-                  | gans initop exprlist
+                  | gans initop exprlist S_NL
                                 { instr0($2, $1, check_opcode($2, $1, $3)); }
-		  |    initop0 exprlist
+		  |    initop0 exprlist S_NL
                                 { instr0($1, NULL, check_opcode0($1, $2)); }
+          | S_NL { }
                   ;
 
 initop0           : T_STRSET		{ $$ = make_leaf(T_STRSET, NULL); }
@@ -199,25 +201,26 @@ goto		  : T_GOTO              { $$ = make_leaf(T_GOTO, NULL); }
                   | T_IGOTO             { $$ = make_leaf(T_IGOTO, NULL); }
                   ;
 
-statement	  : lvalue S_ASSIGN expr
+statement	  : lvalue S_ASSIGN expr S_NL
                                 { $$ = make_node(S_ASSIGN, $1, $3); }
-		  | ans opcode exprlist
+		  | ans opcode exprlist S_NL
                                 { $$ = make_node($2->type,
                                                  make_node($2->type,$2,$1),
                                                  check_opcode($2, $1, $3)); }
-		  |     opcode0 exprlist
+		  | opcode0 exprlist S_NL
                                 { $$ = make_node($1->type, $2,
                                                  check_opcode0($1, $2)); }
-                  | /* NULL */  { $$ = NULL; }
-                  | goto T_IDENT        { $$ = make_node(S_GOTO, $1,
+          | /* NULL */  { $$ = NULL; }
+          | goto T_IDENT S_NL       { $$ = make_node(S_GOTO, $1,
                                                  make_leaf(T_IDENT, yylval)); }
-		  | T_IF S_LB expr S_RB goto T_IDENT
+		  | T_IF S_LB expr S_RB goto T_IDENT S_NL
                                         { $$ = make_node(T_IF, $3,
                                                 make_node(S_GOTO, $5,
                                                  make_leaf(T_IDENT, yylval))); }
 		  | T_IF S_LB expr S_RB error
 		  | T_IF S_LB expr error
 		  | T_IF error
+		  | S_NL {}
 		  ;
 ident		  : T_IDENT_I           { $$ = make_leaf(T_IDENT_I, yylval); }
 		  | T_IDENT_K           { $$ = make_leaf(T_IDENT_K, yylval); }
