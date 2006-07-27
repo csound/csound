@@ -324,7 +324,7 @@ void end_instr(void)
 {
     printf("End Instr\n");
 /*     print_tree(statement_list); */
-    statement_list = optimise_tree(statement_list);
-    generate_code(statement_list);
+    /* statement_list = optimise_tree(statement_list);
+    generate_code(statement_list);  */
     fprintf(csfile, "\nendin\n");
 }
