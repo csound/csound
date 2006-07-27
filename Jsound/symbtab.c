@@ -4,13 +4,19 @@
 #include "tok.h"
 #include "jsnd5.tab.h"
 
+
 TOKEN** symbtab;
 extern int yyline;
+
+TOKEN *add_token(char *s, int type);
 
 void init_symbtab(void)
 {
     symbtab = (TOKEN**)calloc(HASH_SIZE, sizeof(TOKEN*));
     /* Now we need to populate with basic words */
+
+	add_token("init", T_OPCODE);
+
 
 }
 
