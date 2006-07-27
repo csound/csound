@@ -107,7 +107,7 @@ static int moogvcfset(CSOUND *csound, MOOGVCF *p)
     }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
-    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->dbfs_to_float;
+    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->e0dbfs;
     
     return OK;
 }
