@@ -1,22 +1,22 @@
 SHELL = /bin/sh
 CC = cc
-CFLAGS = -c -g
+CFLAGS = -c -g -D__BUILDING_LIBCSOUND -DUSE_DOUBLE
 
-SRCS = jsnd5.tab.c lex.yy.c symbtab.c main.c semantics.c generate.c
-OBJS = jsnd5.tab.o lex.yy.o symbtab.o main.o semantics.o generate.o
+SRCS = csound_orcparse.c csound_orclex.c symbtab.c main.c semantics.c generate.c
+OBJS = csound_orcparse.o csound_orclex.o symbtab.o main.o semantics.o generate.o
 
 all:	jsnd
 
 jsnd:	$(OBJS)
 	$(CC) -o jsnd $(OBJS) -lm
 
-jsnd5.tab.c:	jsnd5.y
-	#bison -d -p csound_orch -v -t jsnd5.y
-	bison -d -v -t jsnd5.y
+csound_orcparse.c:	jsnd5.y
+	bison -d -p csound_orc -v -t  -o csound_orcparse.c jsnd5.y
+	#bison -d -v -t jsnd5.y
 
-lex.yy.c:	jsnd5.lex
-	#flex -Pcsound_orch -d jsnd5.lex
-	flex -d jsnd5.lex
+csound_orclex.c:	jsnd5.lex
+	flex -d -ocsound_orclex.c -Pcsound_orc  jsnd5.lex 
+	#flex -d jsnd5.lex
 #	flex -d jsnd.lex
 
 y.tab.o:	y.tab.c
@@ -34,8 +34,9 @@ depend:
 
 clean:
 	-rm *.o
-	-rm jsnd5.tab.*
-	-rm lex.yy.c
+	-rm csound_orcparse.c
+	-rm csound_orcparse.h
+	-rm csound_orclex.c
 	-rm jsnd
 
 ####################################################
