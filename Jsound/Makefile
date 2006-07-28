@@ -11,9 +11,11 @@ jsnd:	$(OBJS)
 	$(CC) -o jsnd $(OBJS) -lm
 
 jsnd5.tab.c:	jsnd5.y
+	#bison -d -p csound_orch -v -t jsnd5.y
 	bison -d -v -t jsnd5.y
 
 lex.yy.c:	jsnd5.lex
+	#flex -Pcsound_orch -d jsnd5.lex
 	flex -d jsnd5.lex
 #	flex -d jsnd.lex
 
