@@ -118,7 +118,6 @@
 %right S_UMINUS
 %token S_GOTO
 %token T_HIGHEST
-
 %{
 #define YYSTYPE TOKEN*
 #include "jsnd5.h"
