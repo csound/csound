@@ -118,10 +118,11 @@
 %right S_UMINUS
 %token S_GOTO
 %token T_HIGHEST
-/* %pure_parser */
+/* %pure_parser
+%parse-param { CSOUND * csound }
+%lex_param { CSOUND * csound } */
 %{
 #define YYSTYPE TOKEN*
-/* #define YYPARSE_PARAM csound */
 #include "jsnd5.h"
 TREE* make_leaf(int, TOKEN*);
 int udoflag = -1;
@@ -147,17 +148,18 @@ instrdecl	  : T_INSTR T_INTGR S_NL statementlist T_ENDIN S_NL
                         { printf("No number following instr\n"); }
 		  ;
 
-udodecl		: T_UDOSTART T_IDENT S_COM {
-					udoflag = 0;
-				} T_UDO_ANS {
-					udoflag = 1;
-				} S_COM T_UDO_ARGS S_NL {
-					udoflag = 2;
-				}
-				statementlist T_UDOEND S_NL
-				{
-					udoflag = -1;
-					printf("Found UDO %s\n", $2->value);
+udodecl		: T_UDOSTART T_IDENT S_COM
+				{ udoflag = 0;}
+			  T_UDO_ANS
+			  	{ udoflag = 1; }
+			  S_COM T_UDO_ARGS S_NL
+			  	{ udoflag = 2; }
+			  statementlist T_UDOEND S_NL
+			  	{	udoflag = -1;
+					start_udo( ((TOKEN*)$2)->lexeme,
+							   ((TOKEN*)$5)->lexeme,
+							   ((TOKEN*)$8)->lexeme );
+					end_udo();
 				}
 
 			;
@@ -364,8 +366,6 @@ exprlist          : exprlist S_COM expr { $$ = make_node(S_COM, $1, $3); }
 		  ;
  */
 
-/* udoarglist : udoarglist "0" {}
-			; */
 
 constant	  : T_INTGR 		{ $$ = make_leaf(T_INTGR, yylval); }
 		  | T_NUMBER 		{ $$ = make_leaf(T_NUMBER, yylval); }

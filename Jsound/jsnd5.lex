@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #define YYSTYPE TOKEN*
 #include "tok.h"
-#include "jsnd5.tab.h"
+#include "csound_orcparse.h"
 TOKEN *make_string(char *);
 extern TOKEN *lookup_token(char *);
 TOKEN *make_int(char *);
@@ -61,28 +61,28 @@ WHITE		[ \t]+
 "opcode"	{ return T_UDOSTART; }
 "endop"	    { return T_UDOEND; }
 
-{STRCONST}	{ yylval = make_string(yytext); return (T_STRCONST); }
+{STRCONST}	{ csound_orclval = make_string(yytext); return (T_STRCONST); }
 
-{IDENT} 	{ yylval = lookup_token(yytext); printf("%d\n", yylval->type);
-                  return (yylval->type); }
+{IDENT} 	{ csound_orclval = lookup_token(yytext); printf("%d\n", csound_orclval->type);
+                  return (csound_orclval->type); }
 
 {INTGR}		{
 
 
 					if(udoflag == 0) {
-						yylval = lookup_token(yytext);
+						csound_orclval = lookup_token(yytext);
 					} else if(udoflag == 1) {
-						yylval = lookup_token(yytext);
-						yylval->type = T_UDO_ARGS;
+						csound_orclval = lookup_token(yytext);
+						csound_orclval->type = T_UDO_ARGS;
 					} else {
-						yylval = make_int(yytext); return (T_INTGR);
+						csound_orclval = make_int(yytext); return (T_INTGR);
 					}
 
-					printf("%d\n", yylval->type);
-                    return (yylval->type);
+					printf("%d\n", csound_orclval->type);
+                    return (csound_orclval->type);
 
 			}
-{NUMBER}	{ yylval = make_num(yytext); return (T_NUMBER); }
+{NUMBER}	{ csound_orclval = make_num(yytext); return (T_NUMBER); }
 {WHITE}		{ }
 .		{ printf("Line %d: Unknown character: '%s'\n",yyline,yytext); }
 

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tok.h"
-#include "jsnd5.tab.h"
+#include "csound_orcparse.h"
 
 
 TOKEN** symbtab;

@@ -10,14 +10,14 @@ typedef struct TREE {
   struct TREE   *left;
   struct TREE   *right;
 } TREE;
-#include "jsnd5.tab.h"
+#include "csound_orcparse.h"
 
 enum {
   S_ANDTHEN = T_HIGHEST+1,
   S_APPLY
 };
 
-#define YYDEBUG 1
+#define CSOUND_ORCDEBUG 1
 
 TREE* make_node(int, TREE*, TREE*);
 TREE* make_leaf(int, TOKEN*);
