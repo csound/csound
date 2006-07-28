@@ -130,11 +130,13 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     fco     = (double)*fcoptr;
     res     = (double)*resptr;
 
-    fcon    = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
-    kp      = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
-    pp1d2   = (kp+1.0)*0.5;                   /* Timesaver          */
-    scale   = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
-    k       = res*scale;
+    if ((p->rezcod==0) && (p->fcocod==0)) {   /* Only need to calculate once */
+      fcon  = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
+      kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
+      pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
+      scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
+      k     = res*scale;
+    }
     for (n=0; n<nsmps; n++) {
       /* Handle a-rate modulation of fco & res. */
       if (p->fcocod) {
@@ -145,7 +147,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       }
       if ((p->rezcod==1) || (p->fcocod==1)) {
         fcon  = 2.0*fco*(double)csound->onedsr; /* normalised frq. 0 to Nyquist */
-        kp    = 3.6*fcon-1.6*fcon*fcon-1.0; /* Emperical tuning */
+        kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning */
         pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
         scale = exp((1.0-pp1d2)*1.386249); /* Scaling factor */
         k     = res*scale;
@@ -209,11 +211,12 @@ static int rezzy(CSOUND *csound, REZZY *p)
     /* Try to keep the resonance under control     */
     if (rez < 1.0) rez = 1.0;
     if (*p->mode == FL(0.0)) {    /* Low Pass */
-      rez2   = rez/(1.0 + exp(fco/11000.0));
-      a      = c/rez2 - 1.0;      /* a depends on both Fco and Rez */
-      csq    = c*c;               /* Precalculate c^2 */
-      b      = 1.0 + a + csq;     /* Normalization constant */
-
+      if ((p->rezcod==0) && (p->fcocod==0)) {/* Only need to calculate once */
+        rez2 = rez/(1.0 + exp(fco/11000.0));
+        a    = c/rez2 - 1.0;      /* a depends on both Fco and Rez */
+        csq  = c*c;               /* Precalculate c^2 */
+        b    = 1.0 + a + csq;     /* Normalization constant */
+      }
       for (n=0; n<nsmps; n++) { /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
@@ -242,17 +245,19 @@ static int rezzy(CSOUND *csound, REZZY *p)
       }
     }
     else { /* High Pass Rezzy */
-      rez2   = rez/(1.0 + sqrt(sqrt(1.0/c)));
-      tval   = 0.75/sqrt(1.0 + rez);
-      csq    = c*c;
-      b      = (c/rez2 + csq);
+      if (p->fcocod==0 && p->rezcod==0) {/* Only need to calculate once */
+        rez2   = rez/(1.0 + sqrt(sqrt(1.0/c)));
+        tval   = 0.75/sqrt(1.0 + rez);
+        csq    = c*c;
+        b      = (c/rez2 + csq);
+      }
       for (n=0; n<nsmps; n++) { /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
         if (p->fcocod) {
-          fco = (double)fcoptr[n+1];
+          fco = (double)fcoptr[n];
         }
         if (p->rezcod) {
-          rez = (double)rezptr[n+1];
+          rez = (double)rezptr[n];
         }
         if (p->fcocod || p->rezcod) {
           c      = fqcadj/fco;
@@ -261,7 +266,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
           csq    = c*c;
           b      = (c/rez2 + csq);
         }
-        xn = (double) in[n];            /* Get the next sample */
+        xn = (double)in[n];            /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
         yn = ((c/rez2 + 2.0*csq - 1.0)*ynm1 - csq*ynm2
               + ( c/rez2 + csq)*tval*xn + (-c/rez2 - 2.0*csq)*tval*xnm1
@@ -454,7 +459,7 @@ static int vco(CSOUND *csound, VCO *p)
         phs &= PHMASK;
         if (p->ampcod) {
           amp  = ampp[n];
-          scal = over2n;
+          scal = over2n;        /* Why is this needed?? */
         }
         if (p->cpscod) {
           fqc = cpsp[n];
@@ -503,7 +508,7 @@ static int vco(CSOUND *csound, VCO *p)
         phs += inc;
         phs &= PHMASK;
         if (p->ampcod) {
-          scal = over2n;
+          scal = over2n;        /* Why is this needed?? */
           amp = ampp[n];
         }
         if (p->cpscod) {
@@ -556,7 +561,7 @@ static int vco(CSOUND *csound, VCO *p)
         phs &= PHMASK;
         if (p->ampcod) {
           /* scal = *(++ampp) * over2n; */
-          scal = over2n;
+          scal = over2n;        /* Why is this needed?? */
           amp = ampp[n];
         }
         if (p->cpscod) {
@@ -1037,16 +1042,18 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
     asymptr = p->asym;
 
  /* Get the values for the k-rate variables */
-    fco     = *fcoptr;
-    res     = *resptr;
+    fco  = *fcoptr;
+    res  = *resptr;
     dist = *distptr;
     asym = *asymptr;
 
  /* Try to decouple the variables */
-    q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
-    fco1 = (MYFLT)pow((double)fco*260.0/(1.0+(double)q1*0.5),0.58);
-    q  = q1*fco1*fco1*FL(0.0005);
-    fc  = fco1*csound->onedsr*(FL(44100.0)/FL(8.0));
+    if ((p->rezcod==0) && (p->fcocod==0)) { /* Calc once only */
+      q1   = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
+      fco1 = (MYFLT)pow((double)fco*260.0/(1.0+(double)q1*0.5),0.58);
+      q    = q1*fco1*fco1*FL(0.0005);
+      fc   = fco1*csound->onedsr*(FL(44100.0)/FL(8.0));
+    }
     for (n=0; n<nsmps; n++) {
       /* Handle a-rate modulation of fco & res. */
       if (p->fcocod) {
@@ -1102,11 +1109,14 @@ static int bqrez(CSOUND *csound, REZZY *p)
     fco    = (double)*fcoptr;
     rez    = (double)*rezptr;
 
-    theta = fco * (double)csound->tpidsr;
-    sin2 = sin(theta) * 0.5;
-    cos2 = cos(theta);
-    beta = (rez - sin2) / (rez + sin2);
-    gamma = (beta + 1.0) * cos2;
+    if ((p->rezcod == 0) && (p->fcocod == 0)) {
+      theta = fco * (double)csound->tpidsr;
+      sin2 = sin(theta) * 0.5;
+      cos2 = cos(theta);
+      beta = (rez - sin2) / (rez + sin2);
+      gamma = (beta + 1.0) * cos2;
+    }
+
     if (*p->mode < FL(3.0)) {
       if (*p->mode == FL(0.0)) {    /* Low Pass */
         chi   = -1.0;
