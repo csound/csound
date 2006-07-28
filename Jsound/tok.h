@@ -2,7 +2,7 @@
 
 #define __TOK_H
 
-typedef int    (*SUBR)(void *, void *);
+/* typedef int    (*SUBR)(void *, void *); */
 
 typedef struct TOKEN {
   int           type;
@@ -11,7 +11,7 @@ typedef struct TOKEN {
   double        fvalue;
   char          *ins,*outs;
   int           size;
-  SUBR          init,perform,denit;
+  /* SUBR          init,perform,denit; */
   struct TOKEN  *next;
 } TOKEN;
 
