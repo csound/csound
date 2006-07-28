@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "jsnd5.h"
-#include "jsnd5.tab.h"
 
-void yyparse(void);
-extern int yydebug;
+void csound_orcparse(void);
+extern int csound_orcdebug;
 int debug = 0;
 int noheader;
 
@@ -29,7 +28,7 @@ int main(int argc, char **argv)
     if (argc>1) {
       for (n=1; n<argc; n++) {
         if (argv[n][0]=='-') {
-          if (argv[n][1]=='d') yydebug = 1;
+          if (argv[n][1]=='d') csound_orcdebug = 1;
           else {}
         }
         else name = argv[n];
@@ -39,19 +38,19 @@ int main(int argc, char **argv)
     printf("JSND....\n");
     if (strcmp(name, "stdout")==0) csfile = stdout;
     else csfile = fopen(name, "w");
-    yyparse();
+    csound_orcparse();
     process_init(init_list);
     printf(".......done\n");
     fclose(csfile);
 }
 
-int yywrap(void)
+int csound_orcwrap(void)
 {
     printf("END OF INPUT\n");
     return (1);
 }
 
-void yyerror(char *str)
+void csound_orcerror(char *str)
 {
     printf("%s\n", str);
 }
@@ -327,4 +326,17 @@ void end_instr(void)
     /* statement_list = optimise_tree(statement_list);
     generate_code(statement_list);  */
     fprintf(csfile, "\nendin\n");
+}
+
+void start_udo(char * opname, char * udoAnsList, char * udoArgList) {
+	printf("Start UDO %s", opname);
+	statement_list = NULL;
+
+	fprintf(csfile, "\nopcode %s, %s, %s\n", opname, udoAnsList, udoArgList);
+}
+
+void end_udo(void) {
+	printf("End UDO\n");
+
+	fprintf(csfile, "\nendop\n");
 }
