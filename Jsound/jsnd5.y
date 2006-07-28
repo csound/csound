@@ -118,8 +118,10 @@
 %right S_UMINUS
 %token S_GOTO
 %token T_HIGHEST
+/* %pure_parser */
 %{
 #define YYSTYPE TOKEN*
+/* #define YYPARSE_PARAM csound */
 #include "jsnd5.h"
 TREE* make_leaf(int, TOKEN*);
 int udoflag = -1;
