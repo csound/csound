@@ -317,37 +317,41 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 
     if (O->midiKey) {
       int pfield = O->midiKey;
+      int index = pfield - 1;
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_pitch;
-      pfields[pfield - 1] = value;
+      pfields[index] = value;
       if (O->msglevel & WARNMSG) {
-	csound->Message(csound, "midiKey pfield: %d value: %f\n", pfield, pfields[pfield - 1]);
+	csound->Message(csound, "midiKey          pfield: %2d  value: %3f\n", pfield, pfields[index]);
       }
     }
     else if (O->midiKeyCps) {
-      int pfield = O->midiKey;
+      int pfield = O->midiKeyCps;
+      int index = pfield - 1;
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_pitch;
       value = value / FL(12.0) + FL(3.0);
       value = value * OCTRES;
       value = (MYFLT) CPSOCTL((long) value);
-      pfields[pfield - 1] = value;
+      pfields[index] = value;
       if (O->msglevel & WARNMSG) {
-	csound->Message(csound, "midiKeyCps pfield: %d value: %f\n", pfield, pfields[pfield - 1]);
+	csound->Message(csound, "midiKeyCps       pfield: %2d  value: %f3\n", pfield, pfields[index]);
       }
     }
     else if (O->midiKeyOct) {
       int pfield = O->midiKeyOct;
+      int index = pfield - 1;
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_pitch;
       value = value / FL(12.0) + FL(3.0);
-      pfields[pfield - 1] = value;
+      pfields[index] = value;
       if (O->msglevel & WARNMSG) {
-	csound->Message(csound, "midiKeyOct pfield: %d value: %f\n", pfield, pfields[pfield - 1]);
+	csound->Message(csound, "midiKeyOct       pfield: %2d  value: %3f\n", pfield, pfields[index]);
       }
     }
     else if (O->midiKeyPch) {
       int pfield = O->midiKeyPch;
+      int index = pfield - 1;
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_pitch;
       double octave = 0;
@@ -356,29 +360,31 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       fraction = modf(value, &octave);
       fraction *= 0.12;
       value = octave + fraction;
-      pfields[pfield - 1] = value;
+      pfields[index] = value;
       if (O->msglevel & WARNMSG) {
-	csound->Message(csound, "midiKeyPch pfield: %d value: %f\n", pfield, pfields[pfield - 1]);
+	csound->Message(csound, "midiKeyPch       pfield: %2d  value: %3f\n", pfield, pfields[index]);
       }
     }
     if (O->midiVelocity) {
       int pfield = O->midiVelocity;
+      int index = pfield - 1;
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_veloc;
-      pfields[pfield - 1] = value;
+      pfields[index] = value;
       if (O->msglevel & WARNMSG) {
-	csound->Message(csound, "midiVelocity pfield: %d value: %f\n", pfield, pfields[pfield - 1]);
+	csound->Message(csound, "midiVelocity     pfield: %2d  value: %3f\n", pfield, pfields[index]);
       }
     }
     else if (O->midiVelocityAmp) {
       int pfield = O->midiVelocityAmp;
+      int index = pfield - 1;
       MYFLT *pfields = &ip->p1;
       MYFLT value = (MYFLT) ip->m_veloc;
       value = value * value / 16239.0;
       value = value * csound->e0dbfs;
-      pfields[pfield - 1] = value;
+      pfields[index] = value;
       if (O->msglevel & WARNMSG) {
-	csound->Message(csound, "midiVelocityAmp pfield: %d value: %f\n", pfield, pfields[pfield - 1]);
+	csound->Message(csound, "midiVelocityAmp  pfield: %2d  value: %3f\n", pfield, pfields[index]);
       }
     }
     
