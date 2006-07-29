@@ -220,7 +220,7 @@ char* type2string(int n)
       return ">=";
     case T_IF:
       return " if";
-    case T_ABS:
+    /* case T_ABS:
       return "abs";
     case T_AMPDB:
       return "ampdb";
@@ -287,7 +287,7 @@ char* type2string(int n)
     case T_TANH:
       return "tanh";
     case T_TANINV:
-      return "taninv";
+      return "taninv"; */
     case T_SRATE:
       return "sr";
     case T_KRATE:
