@@ -33,42 +33,7 @@
 
 %token T_ERROR
 
-%token T_ABS
-%token T_AMPDB
-%token T_AMPDBFS
-%token T_BIRND
-%token T_COS
-%token T_COSH
-%token T_COSINV
-%token T_CPS2PCH
-%token T_CPSOCT
-%token T_CPSPCH
-%token T_DB
-%token T_DBAMP
-%token T_DBFSAMP
-%token T_EXP
-%token T_FILELEN
-%token T_FILENCHNLS
-%token T_FILESR
-%token T_FRAC
-%token T_I
-%token T_INT
-%token T_LOG
-%token T_LOG10
-%token T_OCTCPS
-%token T_OCTPCH
-%token T_P
-%token T_RND
-%token T_RND31
-%token T_SIN
-%token T_SINH
-%token T_SININV
-%token T_SQRT
-%token T_TABLENG
-%token T_TAN
-%token T_TANH
-%token T_TANINV
-%token T_TANINV2
+%token T_FUNCTION
 
 %token T_INSTR
 %token T_ENDIN
@@ -262,43 +227,9 @@ ans               : ident               { $$ = $1; }
                   | ans S_COM ident     { $$ = make_node(S_COM, $1, $3); }
                   ;
 
-function          : T_ABS		{ $$ = make_leaf(T_ABS, NULL); }
-                  | T_AMPDB		{ $$ = make_leaf(T_AMPDB, NULL); }
-                  | T_AMPDBFS		{ $$ = make_leaf(T_AMPDBFS, NULL); }
-                  | T_BIRND		{ $$ = make_leaf(T_BIRND, NULL); }
-                  | T_COS		{ $$ = make_leaf(T_COS, NULL); }
-                  | T_COSH		{ $$ = make_leaf(T_COSH, NULL); }
-                  | T_COSINV		{ $$ = make_leaf(T_COSINV, NULL); }
-                  | T_CPS2PCH		{ $$ = make_leaf(T_CPS2PCH, NULL); }
-                  | T_CPSOCT		{ $$ = make_leaf(T_CPSOCT, NULL); }
-                  | T_CPSPCH		{ $$ = make_leaf(T_CPSPCH, NULL); }
-                  | T_DB		{ $$ = make_leaf(T_DB, NULL); }
-                  | T_DBAMP		{ $$ = make_leaf(T_DBAMP, NULL); }
-                  | T_DBFSAMP		{ $$ = make_leaf(T_DBFSAMP, NULL); }
-                  | T_EXP		{ $$ = make_leaf(T_EXP, NULL); }
-                  | T_FILELEN		{ $$ = make_leaf(T_FILELEN, NULL); }
-                  | T_FILENCHNLS	{ $$ = make_leaf(T_FILENCHNLS, NULL); }
-                  | T_FILESR		{ $$ = make_leaf(T_FILESR, NULL); }
-                  | T_FRAC		{ $$ = make_leaf(T_FRAC, NULL); }
-                  | T_I		        { $$ = make_leaf(T_I, NULL); }
-                  | T_INT		{ $$ = make_leaf(T_INT, NULL); }
-                  | T_LOG		{ $$ = make_leaf(T_LOG, NULL); }
-                  | T_LOG10		{ $$ = make_leaf(T_LOG10, NULL); }
-                  | T_OCTCPS		{ $$ = make_leaf(T_OCTCPS, NULL); }
-                  | T_OCTPCH		{ $$ = make_leaf(T_OCTPCH, NULL); }
-                  | T_P	        	{ $$ = make_leaf(T_P, NULL); }
-                  | T_RND		{ $$ = make_leaf(T_RND, NULL); }
-                  | T_RND31		{ $$ = make_leaf(T_RND31, NULL); }
-                  | T_SIN		{ $$ = make_leaf(T_SIN, NULL); }
-                  | T_SINH		{ $$ = make_leaf(T_SINH, NULL); }
-                  | T_SININV		{ $$ = make_leaf(T_SININV, NULL); }
-                  | T_SQRT		{ $$ = make_leaf(T_SQRT, NULL); }
-                  | T_TABLENG		{ $$ = make_leaf(T_TABLENG, NULL); }
-                  | T_TAN		{ $$ = make_leaf(T_TAN, NULL); }
-                  | T_TANH		{ $$ = make_leaf(T_TANH, NULL); }
-                  | T_TANINV		{ $$ = make_leaf(T_TANINV, NULL); }
-                  | T_TANINV2		{ $$ = make_leaf(T_TANINV2, NULL); }
-                  ;
+function		  : T_FUNCTION	{ $$ = make_leaf(T_FUNCTION, NULL); }
+				  ;
+
 
 expr              : expr S_Q expr S_COL expr %prec S_Q
                                         { $$ = make_node(S_Q, $1,
