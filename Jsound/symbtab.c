@@ -17,7 +17,6 @@ void init_symbtab(void)
     /* Now we need to populate with basic words */
 
 	add_token("init", T_INIT);
-	add_token("cpspch", T_CPSPCH);
 	add_token("expseg", T_OPCODE);
 	add_token("line", T_OPCODE);
 	add_token("oscil", T_OPCODE);
@@ -32,24 +31,63 @@ void init_symbtab(void)
 	add_token("rand", T_OPCODE);
 	add_token("reson", T_OPCODE);
 	add_token("foscil", T_OPCODE);
-	add_token("int", T_INT);
-	add_token("frac", T_FRAC);
 	add_token("phasor", T_OPCODE);
 	add_token("table", T_OPCODE);
 	add_token("oscili", T_OPCODE);
 	add_token("tablei", T_OPCODE);
 	add_token("balance", T_OPCODE);
-	add_token("octpch", T_OCTPCH);
-	add_token("cpsoct", T_CPSOCT);
 	add_token("delay", T_OPCODE);
 	add_token("reverb", T_OPCODE);
 	add_token("xout", T_OPCODE0);
 
+	/* This adds all the T_FUNCTION tokens.  These should only be
+	 * looked up in context when parsing a expression list (not yet done)
+	 * and perhaps a more intelligent way needs to be done eventually to
+	 * look up opcodes which can serve as functions, as well as for allowing
+	 * multiple arguments to functions
+	 */
+	add_token("abs", T_FUNCTION);
+	add_token("ampdb", T_FUNCTION);
+	add_token("ampdbfs", T_FUNCTION);
+	add_token("birnd", T_FUNCTION);
+	add_token("cos", T_FUNCTION);
+	add_token("cosh", T_FUNCTION);
+	add_token("cosinv", T_FUNCTION);
+	add_token("cps2pch", T_FUNCTION);
+	add_token("cpsoct", T_FUNCTION);
+	add_token("cpspch", T_FUNCTION);
+	add_token("db", T_FUNCTION);
+	add_token("dbamp", T_FUNCTION);
+	add_token("dbfsamp", T_FUNCTION);
+	add_token("exp", T_FUNCTION);
+	add_token("filelen", T_FUNCTION);
+	add_token("filenchnls", T_FUNCTION);
+	add_token("filesr", T_FUNCTION);
+	add_token("frac", T_FUNCTION);
+	add_token("i", T_FUNCTION);
+	add_token("int", T_FUNCTION);
+	add_token("log", T_FUNCTION);
+	add_token("log10", T_FUNCTION);
+	add_token("octcps", T_FUNCTION);
+	add_token("octpch", T_FUNCTION);
+	add_token("p", T_FUNCTION);
+	add_token("rnd", T_FUNCTION);
+	add_token("rnd31", T_FUNCTION);
+	add_token("sin", T_FUNCTION);
+	add_token("sinh", T_FUNCTION);
+	add_token("sininv", T_FUNCTION);
+	add_token("sqrt", T_FUNCTION);
+	add_token("tableng", T_FUNCTION);
+	add_token("tan", T_FUNCTION);
+	add_token("tanh", T_FUNCTION);
+	add_token("taninv", T_FUNCTION);
+	add_token("taninv2", T_FUNCTION);
+
 }
 
-int hash(char *s)
+unsigned int hash(char *s)
 {
-    int h = 0;
+    unsigned int h = 0;
     while (*s != '\0') {
       h = (h<<4) ^ *s++;
     }
@@ -59,6 +97,9 @@ int hash(char *s)
 TOKEN *add_token(char *s, int type)
 {
     int h = hash(s);
+
+    printf("Hash value for %s: %i\n", s, h);
+
     TOKEN *a = symbtab[h];
     TOKEN *ans;
     while (a!=NULL) {
@@ -110,16 +151,10 @@ int isUDOAnsList(char *s) {
 
 TOKEN *lookup_token(char *s)
 {
-    int h = hash(s);
+	int h = hash(s);
     int type = T_IDENT;
     TOKEN *a = symbtab[h];
     TOKEN *ans;
-    while (a!=NULL) {
-      if (strcmp(a->lexeme, s)==0) {
-        return a;
-      }
-      a = a->next;
-    }
 
 	if(udoflag == 0) {
 
@@ -145,6 +180,14 @@ TOKEN *lookup_token(char *s)
 			return ans;
 		}
 	}
+
+    while (a!=NULL) {
+      if (strcmp(a->lexeme, s)==0) {
+        return a;
+      }
+      a = a->next;
+    }
+
 
     ans = new_token(T_IDENT);
     ans->lexeme = (char*)malloc(1+strlen(s));
