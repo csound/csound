@@ -151,7 +151,7 @@ static void print_tree_i(TREE* l, int n)
       printf("S_GE:\n"); break;
     case T_IF:
       printf("T_IF:\n"); break;
-    case T_ABS:
+    /* case T_ABS:
       printf("T_ABS:\n"); break;
     case T_AMPDB:
       printf("T_AMPDB:\n"); break;
@@ -218,7 +218,7 @@ static void print_tree_i(TREE* l, int n)
     case T_TANH:
       printf("T_TANH:\n"); break;
     case T_TANINV:
-      printf("T_TANINV:\n"); break;
+      printf("T_TANINV:\n"); break; */
     case T_SRATE:
       printf("T_SRATE:\n"); break;
     case T_KRATE:
