@@ -59,6 +59,7 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
     long    Estdatasiz, Hlen;
     long    Hlenpadded = 1;
     char    err_msg[512];
+    int     res;
 
     csound->dbfs_to_float = csound->e0dbfs = FL(1.0);
     if (!(--argc)) {
@@ -136,10 +137,9 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
     if ((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize) {
       return quit(csound, Str("cannot write header"));
     }
-    if (takeFFT(csound, p, cvh, Hlenpadded, infd, ofd) != 0) {
-      return -1;
-    }
-    return 0;
+    res = takeFFT(csound, p, cvh, Hlenpadded, infd, ofd);
+    csound->Message(csound, Str("cvanal finished\n"));
+    return (res != 0 ? -1 : 0);
 }
 
 static int quit(CSOUND *csound, char *msg)
