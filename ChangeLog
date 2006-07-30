@@ -1,3 +1,10 @@
+2006-07-30  jpff  <jpff@codemist.co.uk>
+
+	* Engine/otran.c (parse_opcode_args): Tracking strings as
+	arguments to UDO
+
+	* util/cvanal.c (cvanal): Added termination message
+
 2006-07-27  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/biquad.c (moogvcfset): Corrected mind error (divide and
