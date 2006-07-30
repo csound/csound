@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--f -M0 -+rtaudio=PortAudio -m7 --midi-key=4 --midi-velocity=5 -odac0
+csound -h -n -f -d -M0 -m7 -+rtmidi=null --midi-key=4 --midi-velocity=5 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -58,7 +58,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 sr                      =                       44100
-ksmps			=                       30
+ksmps			=                       15
 nchnls                  =                       2
 ; Note that -1 dB for float samples is 29205.
 0dbfs                   =                       32767.
@@ -136,21 +136,20 @@ giFluidOrgan		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/Organ
 ; U S E R - D E F I N E D   O P C O D E S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 						
-			opcode 			AssignSend, 0, iiii
+			opcode 			AssignSend, 0, iiiii
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-ic,il,ir,im 		xin
-inum			init			floor(p1)
+inso,ic,il,ir,im 	xin
+inum			init			floor(inso)
 			MixerSetLevel	 	inum, 200, ic
 			MixerSetLevel	 	inum, 201, il
 			MixerSetLevel	 	inum, 210, ir
 			MixerSetLevel	 	inum, 220, im
 			endop
-						
+                        
 			opcode			NoteOn, ii, iii
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         
 ikey,ivelocity,imeasure xin
-                        print ikey,ivelocity,imeasure
 inormal			=			ampdb(80)
                         ; MIDI key number to linear octave.
 ikey                     =                       ikey / 12.0 + 3.0
@@ -158,14 +157,13 @@ ikey                     =                       ikey / 12.0 + 3.0
 ifrequency 		= 			cpsoct(ikey)
 			; Normalize so iamplitude for p5 of 80 == ampdb(80) == 10000.
 iamplitude 		= 			ampdb(ivelocity) * (inormal / imeasure)
-                        print                   ikey, ifrequency, iamplitude
-			xout			ifrequency, iamplitude
+ 			xout			ifrequency, iamplitude
 			endop
-						
+                        
 			opcode			SendOut, 0, aa
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-aleft, aright		xin
-inum			init			floor(p1)
+insno, aleft, aright	xin
+inum			init			floor(insno)
 			MixerSend               aleft, inum, 200, 0
 			MixerSend               aright, inum, 200, 1
 			MixerSend               aleft, inum, 201, 0
@@ -176,46 +174,47 @@ inum			init			floor(p1)
 			MixerSend               aright, inum, 220, 1
 			endop
 
-			opcode			Pan, aa, a
+			opcode			Pan, aa, ia
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-asignal			xin
+ipan,asignal		xin
 			; Constant-power pan.
 ipi                     =                       4.0 * taninv(1.0)
-iradians                =                       p7 * ipi / 2.0
+iradians                =                       ipan * ipi / 2.0
 itheta                  =                       iradians / 2.0
 			; Translate angle in [-1, 1] to left and right gain factors.
 irightgain              =                       sqrt(2.0) / 2.0 * (cos(itheta) + sin(itheta))
 ileftgain               =                       sqrt(2.0) / 2.0 * (cos(itheta) - sin(itheta))
 			xout			ileftgain * asignal, irightgain * asignal
-			endop						
+			endop
 
-			opcode			Declick, aa, iiaa
+			opcode			Declick, aa, iiiaa
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-iatt,irel,a1,a2		xin
-                        if (p3 > 0)             then
-isustain		= 			p3
-p3			=			iatt + isustain + irel                        
+iatt,idur,irel,a1,a2	xin
+                        if (idur > 0)             then
+isustain		= 			idur
+idur			=			iatt + isustain + irel                        
                         else
 isustain                =                       100000
                         endif                        
 aenv			linsegr			0.0, iatt, 1.0, isustain, 1.0, irel, 0.0
 ab1			=			a1 * aenv
 ab2			=			a2 * aenv
-			xout			ab1, ab2
-			endop						
+			xout			idur, ab1, ab2
+			endop	
 
-			opcode			Damping, a, ii
+
+			opcode			Damping, ia, iii
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-iatt,irel		xin
-                        if (p3 > 0)             then
-isustain		= 			p3
-p3			=			iatt + isustain + irel                        
+idur,iatt,irel		xin
+                        if (idur > 0)           then
+isustain		= 			idur
+idur			=			iatt + isustain + irel                        
                         else
 isustain                =                       100000
                         endif                        
                         ; Releasing envelope for MIDI performance.
 aenv			linsegr			0.0, iatt, 1.0, isustain, 1.0, irel, 0.0
-			xout			aenv
+			xout			idur, aenv
 			endop						
 			
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -235,9 +234,9 @@ igain0                 	=                       p6
 
 			instr                   2 ; Xanadu instr 1
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1500000
-adamping		Damping			.003, .1
+p3,adamping		Damping			.003, p3,.1
 ishift			=           		8./1200.
 ipch        		=           		ifrequency              	; convert parameter 5 to cps.
 ioct        		=           		octcps(ifrequency)      	; convert parameter 5 to oct.
@@ -248,23 +247,23 @@ agright     		pluck       		2000, cpsoct(ioct - ishift), ipch, 1, 1
 af1         		expon       		.01, 10., 1.0             	; exponential from 0.1 to 1.0
 af2         		expon       		.015, 15., 1.055             	; exponential from 1.0 to 0.1
 adump       		delayr      		2.0                     	; set delay line of 2.0 sec
-atap1       		deltapi     		af1                     	; tap delay line with kf1 func.
-atap2       		deltapi     		af2                     	; tap delay line with kf2 func.
-ad1         		deltap      		2.0                     	; delay 2 sec.
-ad2         		deltap      		1.1                     	; delay 1.1 sec.
+atap1       		deltap3     		af1                     	; tap delay line with kf1 func.
+atap2       		deltap3     		af2                     	; tap delay line with kf2 func.
+ad1         		deltap3      		2.0                     	; delay 2 sec.
+ad2         		deltap3      		1.1                     	; delay 1.1 sec.
 			delayw      		ag * adamping                  	; put ag signal into delay line.
 aleft 			= 			agleft+atap1+ad1
 aright			=			agright+atap2+ad2
-aleft, aright		Pan			iamplitude * (aleft + aright) * adamping
-			AssignSend		0., 0., .2, 1.
-			SendOut			aleft, aright
+aleft, aright		Pan			p7,iamplitude * (aleft + aright) * adamping
+			AssignSend		p1,0., 0., .2, 1.
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   3 ; Xanadu instr 2
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1500000
-adamping		Damping			.01, .01
+p3,adamping		Damping			.01, p3, .01
 ishift      		=           		8./1200.
 ipch       		=           		ifrequency
 ioct        		=           		octcps(ifrequency) 
@@ -273,21 +272,21 @@ ag          		pluck       		1000, cpsoct(ioct + kvib),   ipch, 1, 1
 agleft      		pluck       		1000, cpsoct(ioct + ishift), ipch, 1, 1
 agright     		pluck       		1000, cpsoct(ioct - ishift), ipch, 1, 1
 adump       		delayr      		0.4                     	; set delay line of 0.3 sec
-ad1         		deltap      		0.07                     	; delay 100 msec.
-ad2         		deltap      		0.105                    	; delay 200 msec.
+ad1         		deltap3      		0.07                     	; delay 100 msec.
+ad2         		deltap3      		0.105                    	; delay 200 msec.
 			delayw      		ag * adamping                  	; put ag sign into del line.
 aleft			=			agleft + ad1
 aright			=			agright + ad2
-aleft, aright		Pan			iamplitude * (aleft + aright) * adamping
-			AssignSend		0, 0, .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, iamplitude * (aleft + aright) * adamping
+			AssignSend		p1, 0, 0, .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   4 ; Xanadu instr 3
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1500000
-adamping		Damping			.01, .01
+p3, adamping		Damping			.01, p3, .01
 ishift      		=           		8. / 1200.
 ipch        		=           		ifrequency
 ioct        		=           		octcps(ifrequency)
@@ -309,14 +308,14 @@ aoutl       		poscil       		1000*a4, ao2+cpsoct(ioct+ishift), gisine
 aoutr       		poscil       		1000*a4, ao2+cpsoct(ioct-ishift), gisine 
 aleft			=			aoutl * iamplitude * adamping
 aright			=			aoutr * iamplitude * adamping
-; aleft, aright		Pan			aleft + aright
-			AssignSend		0., 0., .2, 1
-			SendOut			aleft, aright
+; aleft, aright		Pan			p7, aleft + aright
+			AssignSend		p1, 0., 0., .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   5 ; Tone wheel organ by Mikelson
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 20000
 iphase			=			0.
 ikey                    =                       12 * int(p4 - 6) + 100 * (p4 - 6)
@@ -338,15 +337,15 @@ a5th                    poscil                  1, 5.0397*ifqc,  iwheel4, iphase
 a6th                    poscil                  0, 5.9932*ifqc,  iwheel4, iphase/(ikey+31)
 a8th                    poscil                  4, 8*ifqc,       iwheel4, iphase/(ikey+36)
 asignal                 =                       asubfund + asub3rd + afund + a2nd + a3rd + a4th + a5th + a6th + a8th
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.005, 0.3, aleft, aright
-			AssignSend		0., 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.005, p3, 0.3, aleft, aright
+			AssignSend		p1, 0., 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   6 ; Guitar, Michael Gogins
                         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 400
 aenvelope               transeg                 1.0, 10.0, -5.0, 0.0
 asigcomp                pluck                   1, 440, 440, 0, 1
@@ -356,30 +355,30 @@ af1                     reson                   asig, 110, 80
 af2                     reson                   asig, 220, 100
 af3                     reson                   asig, 440, 80
 asignal                 balance                 0.6 * af1+ af2 + 0.6 * af3 + 0.4 * asig, asigcomp
-aleft, aright		Pan			asignal * iamplitude * aenvelope
-aleft, aright		Declick			.01, 0.3, aleft, aright
-			AssignSend		0., 0.,  .4, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.01, p3, 0.3, aleft, aright
+			AssignSend		p1, 0., 0.,  .4, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   7 ; Harpsichord, James Kelley
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 600
 aenvelope               transeg                 1.0, 10.0, -5.0, 0.0
 apluck                  pluck                   iamplitude, ifrequency, ifrequency, 0, 1
 aharp                   poscil                  aenvelope, ifrequency, giharpsichord
 aharp2                  balance                 apluck, aharp
 asignal			=			apluck + aharp2
-aleft, aright		Pan			asignal
-aleft, aright		Declick			.005, 0.3, aleft, aright
-			AssignSend		0., 0., .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal
+p3, aleft, aright	Declick			.005, p3, 0.3, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   8 ; Heavy metal model, Perry Cook
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 100
 iindex                  =                       1
 icrossfade              =                       3
@@ -392,15 +391,15 @@ ifn4                    =                       gisine
 ivibefn                 =                       gicosine
 adecay                  transeg                 0.0, .001, 4, 1.0, 2.0, -4, 0.1, 0.125, -4, 0.0
 asignal                 fmmetal                 0.1, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.005, 0.3, aleft, aright
-			AssignSend		0., 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.005, p3, 0.3, aleft, aright
+			AssignSend		p1, 0., 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   9 ; Xing by Andrew Horner
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 			; p4 pitch in octave.pch
 			; original pitch        = A6
 			; range                 = C6 - C7
@@ -432,20 +431,20 @@ awt3                    poscil                  amp3, 4.95 * ifreq, gisine
 asig                    =                       awt1 + awt2 + awt3
 arel                    linenr                  1,0, idur, .06
 asignal                 =                       asig * arel * (iamp / inorm)
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.005, 0.3, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.005, p3, 0.3, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   10 ; FM modulated left and right detuned chorusing, Thomas Kung
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 5530
 iattack 		= 			0.25
 isustain		=			p3
 irelease 		= 			0.3333333
-adamping		Damping			iattack,irelease
+p3, adamping		Damping			iattack,p3,irelease
 ip6                     =                       0.3
 ip7                     =                       2.2
 ishift      		=           		4./12000.
@@ -470,9 +469,9 @@ ao2                     poscil                  a2 * ipch, ipch, gicosine
 aleft                   poscil                  a4, ao2 + cpsoct(ioct + ishift), gisine
 			; Final output right
 aright                  poscil                  a4, ao2 + cpsoct(ioct - ishift), gisine
-aleft, aright		Pan			(aleft + aright) * iamplitude
-			AssignSend		0., 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, (aleft + aright) * iamplitude
+			AssignSend		p1, 0., 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   11 ; String pad
@@ -490,15 +489,15 @@ asig    		=   			afund + acel1 + acel2
 			; Cut-off high frequencies depending on midi-velocity
 			; (larger velocity implies brighter sound)
 ;asig 			butterlp 		asig, 900 + iamp / 40.
-aleft, aright		Pan			asig * iamp
-aleft, aright		Declick			.25, .5, aleft, aright
-			AssignSend		.2, 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asig * iamp
+p3, aleft, aright	Declick			.25, p3, .5, aleft, aright
+			AssignSend		p1, .2, 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   12 ; Filtered chorus, Michael Bergeman
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 4000
 ioctave			=			octcps(ifrequency)
 idb			= 			1.5
@@ -534,15 +533,15 @@ a15                     reverb2                 a4, 5, .3
 a16                     reverb2                 a4, 4, .2
 a17                     =                       (a15 + a4) * k7
 a18                     =                       (a16 + a4) * k7
-aleft, aright		Pan			(a17 + a18) * iamplitude
-aleft, aright		Declick			.15, .25, aleft, aright
-			AssignSend		0., 0.,  .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, (a17 + a18) * iamplitude
+p3, aleft, aright	Declick			.15, p3, .25, aleft, aright
+			AssignSend		p1, 0., 0.,  .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   13 ; Plain plucked string, Michael Gogins
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1500
 iattack			=			.002
 isustain		=			p3
@@ -553,15 +552,15 @@ asignal1		wgpluck2 		.1, 1.0, ifrequency,         .15, .2
 asignal2		wgpluck2 		.1, 1.0, ifrequency * 1.003, .14, .1
 asignal3		wgpluck2 		.1, 1.0, ifrequency * 0.997, .16, .1
 apluckout               =                       (asignal1 + asignal2 + asignal3) * aenvelope
-aleft, aright		Pan			apluckout * iamplitude
-aleft, aright		Declick			iattack, irelease, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, apluckout * iamplitude
+p3, aleft, aright	Declick			iattack, p3, irelease, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr 14                ; Rhodes electric piano model, Perry Cook
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1500
 iattack			=			.002
 isustain		=			p3
@@ -576,15 +575,15 @@ ifn3                    =                       gisine
 ifn4                    =                       gicookblank
 ivibefn                 =                       gisine
 asignal                 fmrhode                 iamplitude, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-aleft, aright		Pan			asignal
-aleft, aright		Declick			iattack, irelease, aleft, aright
-			AssignSend		.2, 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal
+p3, aleft, aright	Declick			iattack, p3, irelease, aleft, aright
+			AssignSend		p1, .2, 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   15 ; Tubular bell model, Perry Cook
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 800
 iindex                  =                       1
 icrossfade              =                       2
@@ -596,15 +595,15 @@ ifn3                    =                       gisine
 ifn4                    =                       gisine
 ivibefn                 =                       gicosine
 asignal                 fmbell                  1.0, ifrequency, iindex, icrossfade, ivibedepth, iviberate, ifn1, ifn2, ifn3, ifn4, ivibefn
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.005, .05, aleft, aright
-			AssignSend		0., 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.005, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   16 ; FM moderate index, Michael Gogins
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1500
 iattack			=			.002
 isustain		=			p3
@@ -621,15 +620,15 @@ aouta                   foscili                 1.0, ifrequency, icarrier, irati
 aoutb                   foscili                 1.0, ifrequencyb, icarrierb, iratio, index, 1
 			; Plus amplitude correction.
 asignal                 =                       (aouta + aoutb) * aindenv
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			iattack, irelease, aleft, aright
-			AssignSend		0., 0., .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			iattack, p3, irelease, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   17 ; FM moderate index 2, Michael Gogins
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1500
 iattack			=			.002
 isustain		=			p3
@@ -646,15 +645,15 @@ aouta                   foscili                 1.0, ifrequency, icarrier, irati
 aoutb                   foscili                 1.0, ifrequencyb, icarrierb, iratio, index, 1
 			; Plus amplitude correction.
 afmout                  =                       (aouta + aoutb) * aindenv
-aleft, aright		Pan			afmout * iamplitude
-aleft, aright		Declick			iattack, irelease, aleft, aright
-			AssignSend		0., 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, afmout * iamplitude
+p3, aleft, aright	Declick			iattack, p3, irelease, aleft, aright
+			AssignSend		p1, 0., 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   18 ; Guitar, Michael Gogins
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 500
 iattack			=			.002
 isustain		=			p3
@@ -668,15 +667,15 @@ aout                    balance                 0.6 * af1+ af2 + 0.6 * af3 + 0.4
 aexp                    expseg                  1.0, iattack, 2.0, isustain, 1.0, irelease, 1.0
 aenv                    =                       aexp - 1.0
 asignal                 =                       aout * aenv,
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			iattack, irelease, aleft, aright
-			AssignSend		0., 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			iattack, p3, irelease, aleft, aright
+			AssignSend		p1, 0., 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   19 ;  Flute, James Kelley
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1500
 ioctave			=			octcps(ifrequency)
 icpsp1                  =                       cpsoct(ioctave - .0002)
@@ -720,15 +719,15 @@ anoise                  tone                    anoise1, 200
 a1                      poscil                  kamp, kfreq1, gikellyflute, ireinit
 a2                      poscil                  kamp, kfreq2, gikellyflute, ireinit
 asignal                 =                       a1 + a2 + anoise
-aleft, aright		Pan			asignal
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		.2, 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, .2, 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   20 ; Delayed plucked string, Michael Gogins
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1200
 iattack			=			.002
 isustain		=			p3
@@ -755,15 +754,15 @@ asignal                 =                       agleft + adelayleft + agright + 
 			; Highpass filter to exclude speaker cone excursions.
 asignal1                butterhp                asignal, 32.0
 asignal2                balance                 asignal1, asignal
-aleft, aright		Pan			asignal2 * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal2 * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   21 ; Melody (Chebyshev / FM / additive), Jon Nelson
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 300
 iattack			=			.05
 isustain		=			p3
@@ -796,15 +795,15 @@ a6                      =                       ((a3 * .1) + (a4 * .1) + (a5 * .
 a7                      comb                    a6, .5, 1 / i1
 a8                      =                       (a6 * .9) + (a7 * .1)
 asignal        		balance         	a8, a1
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		.2, 0.,  .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, .2, 0.,  .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   22 ; Tone wheel organ by Mikelson
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 2500
 iphase			=			p2
 ikey                    =                       12 * int(p4 - 6) + 100 * (p4 - 6)
@@ -826,15 +825,15 @@ a5th                    poscil                  1, 5.0397*ifqc,  iwheel4, iphase
 a6th                    poscil                  0, 5.9932*ifqc,  iwheel4, iphase/(ikey+31)
 a8th                    poscil                  4, 8*ifqc,       iwheel4, iphase/(ikey+36)
 asignal                 =                       asubfund + asub3rd + afund + a2nd + a3rd + a4th + a5th + a6th + a8th
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.25, .5, aleft, aright
-			AssignSend		0., 0., .2, 1
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.25, p3, .5, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1
+			SendOut			p1, aleft, aright
 			endin
 
 			instr                   23 ; Enhanced FM bell, John ffitch
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 10000
 ioct			=			octcps(ifrequency)
 idur      		=       		15.0
@@ -859,313 +858,313 @@ anoise5   		balance   		anoise4, anoise3
 noisend:
 arvb      		nreverb   		acar, 2, 0.1
 asignal      		=         		acar + anoise5 + arvb
-aleft, aright		Pan			asignal
-aleft, aright		Declick			.003, .5, aleft, aright
-			AssignSend		0., 0., .1, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal
+p3, aleft, aright	Declick			.003, p3, .5, aleft, aright
+			AssignSend		p1, 0., 0., .1, 1.0
+			SendOut			p1, aleft, aright
 			endin
 			
 
 			instr			24 ; STK BandedWG
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 8
 asignal 		STKBandedWG 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.006, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.006, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 			
 			instr			25 ; STK BeeThree
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 200
 asignal 		STKBeeThree 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 			
 			instr			26 ; STK BlowBotl
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 400
 asignal 		STKBlowBotl 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			27 ; STK BlowHole
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 500
 asignal 		STKBlowHole 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			28 ; STK Bowed
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 50
 asignal 		STKBowed 		ifrequency, 1.0, 1, 4, 2, 0, 4, 0, 11, 50
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0.0, 0., .1, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0.0, 0., .1, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			29 ; STK Brass
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 100
 asignal 		STKBrass 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			30 ; STK Clarinet
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 375
 asignal 		STKClarinet 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			31; STK Drummer
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 500
 asignal 		STKDrummer 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			32 ; STK Flute
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 260
 asignal 		STKFlute 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			33 ; STK FMVoices
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 425
 asignal 		STKFMVoices 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			34 ; STK HevyMetl
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 180
 asignal 		STKHevyMetl 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			35 ; STK Mandolin
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 350
 asignal 		STKMandolin 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			36 ; STK ModalBar
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 100
 asignal 		STKModalBar 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			37 ; STK Moog
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 375
 asignal 		STKMoog 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			38 ; STK PercFlut
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 150
 asignal 		STKPercFlut 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			39 ; STK Plucked
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 425
 asignal 		STKPlucked 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			40 ; STK Resonate
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 240
 asignal 		STKResonate 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			41 ; STK Rhodey
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 225
 asignal 		STKRhodey 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			42 ; STK Saxofony
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 550
 asignal 		STKSaxofony 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			43 ; STK Shakers
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 100
 asignal 		STKShakers 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			44 ; STK Simple
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 200
 asignal 		STKSimple 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			45 ; STK Sitar
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 275
 asignal 		STKSitar 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			46 ; STK StifKarp
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 400
 asignal 		STKStifKarp 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			47 ; STK TubeBell
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 500
 asignal 		STKTubeBell 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			48 ; STK VoicForm
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 200
 asignal 		STKVoicForm 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			49 ; STK Whistle
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 1000
 asignal 		STKWhistle 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr			50 ; STK Wurley
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 250
 asignal 		STKWurley 		ifrequency, 1.0
-aleft, aright		Pan			asignal * iamplitude
-aleft, aright		Declick			.003, .05, aleft, aright
-			AssignSend		0., 0., .2, 1.0
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * iamplitude
+p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
+			AssignSend		p1, 0., 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 
 			instr 			51 ; FluidSynth Steinway
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 10000
 			; Use channel assigned in fluidload.
 ichannel		=			0
@@ -1178,7 +1177,7 @@ ivelocity 		= 			dbamp(iamplitude)
 
 			instr 			52 ; FluidSynth General MIDI
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 10000
 			; Use channel assigned in fluidload.
 ichannel		=			1
@@ -1191,7 +1190,7 @@ ivelocity 		= 			dbamp(iamplitude)
 
 			instr 			53 ; FluidSynth Marimba
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 10000
 			; Use channel assigned in fluidload.
 ichannel		=			2
@@ -1204,7 +1203,7 @@ ivelocity 		= 			dbamp(iamplitude)
 
 			instr 			54 ; FluidSynth Organ
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 10000
 			; Use channel assigned in fluidload.
 ichannel		=			3
@@ -1221,9 +1220,9 @@ ivelocity 		= 			dbamp(iamplitude)
 			; p1     p2   p3    p4    p5    p6      p7      p8       p9        p10         p11     p12      p13
 			; in     st   dur   amp   pch   plklen  fbfac	pkupPos	 pluckPos  brightness  vibf    vibd     vibdel
 			; i01.2	 0.5  0.75  5000  7.11	.85     0.9975	.0	 .25	   1	       0	0	0
-                        pset                    0, 0, -1, 60, 80, 0, 0, 0, 0, 0, 0
+                        pset                    0, 0,3600, 60, 80, 0, 0, 0, 0, 0, 0
 ifrequency,iamplitude	NoteOn                  p4, p5, 2000
-adamping		Damping			.003, .03
+p3, adamping		Damping			.003, p3,.03
 ip4			=			iamplitude
 ; ip5			=			pchcps(ifrequency)
 ip6			=			.85
@@ -1344,9 +1343,9 @@ delayw  		ainputb + abkdout * ifbfac * ifbfac
 			; resonance due to the inclusion of the back plate = 400Hz (weakest)
 aresbod 		filter2 		(afwdout + abkdout), 5,4, .000000000005398681501844749, .00000000000001421085471520200, -.00000000001076383426834582, -00000000000001110223024625157, .000000000005392353230604385, -3.990098622573566, 5.974971737738533, -3.979630684599723, .9947612723736902
 asignal			=			1500 * (afwav + abkwav + aresbod * .000000000000000000003);
-aleft, aright		Pan			asignal * adamping
-			AssignSend		.0, 0., 0.2, 1.2
-			SendOut			aleft, aright
+aleft, aright		Pan			p7, asignal * adamping
+			AssignSend		p1, .0, 0., 0.2, 1.2
+			SendOut			p1, aleft, aright
 			endin
 
 instr 			190 ; Fluidsynth output
@@ -1356,8 +1355,8 @@ ifrequency,iamplitude	NoteOn p4,p5, 			100.
 aleft, aright   	fluidOut		giFluidsynth
 aleft			= 			iamplitude * aleft
 aright			=			iamplitude * aright
-			AssignSend		.0, 0., .2, 1.0
-			SendOut			aleft, aright
+			AssignSend		p1, .0, 0., .2, 1.0
+			SendOut			p1, aleft, aright
 			endin
 			
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1609,20 +1608,20 @@ a2blocked               dcblock                 a2
 ; EFFECTS MATRIX
 
 ; Chorus to Reverb
-i 1 0 0 200 210 0.1
+;i 1 0 0 200 210 0.1
 ; Leslie to Reverb
 ; i 1 0 0 201 210 0.5
 ; Chorus to Output
-i 1 0 0 200 220 0.2
+;i 1 0 0 200 220 0.2
 ; Leslie to Output
-i 1 0 0 201 220 0.5
+;i 1 0 0 201 220 0.5
 ; Reverb to Output
-i 1 0 0 210 220 1.0
+;i 1 0 0 210 220 1.0
 
 ; SOUNDFONTS OUTPUT
 
 ; Insno Start   Dur     Key 	Amplitude
-i 190 	0       10000   0	80.
+;i 190 	0       10000   0	80.
 
 ; MASTER EFFECT CONTROLS
 
@@ -1632,18 +1631,15 @@ i 190 	0       10000   0	80.
 
 ; Chorus.
 ; Insno	Start	Dur	Delay	Divisor of Delay
-i 200   0       10000  10      30
+;i 200   0       10000  10      30
 
 ; Reverb.
 ; Insno	Start	Dur	Level	Feedback	Cutoff
-i 210   0       10000   0.88    0.5  		16000
+;i 210   0       10000   0.88    0.5  		16000
 
 ; Master output.
 ; Insno	Start	Dur	Fadein	Fadeout
-i 220   0       10000   0.1     0.1
-
-
-
+;i 220   0       10000   0.1     0.1
 
 </CsScore>
 </CsoundSynthesizer>
