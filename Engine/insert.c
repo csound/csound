@@ -992,7 +992,7 @@ int xinset(CSOUND *csound, XIN *p)
     /* IV - Jul 29 2006: and string variables */
     while (*++ndx_list >= 0) {
       int n;
-      const char  *src = (char *)(*(bufs + *ndx_list));
+      char  *src = (char *)(*(bufs + *ndx_list));
       char  *dst = (char *)(*(p->args + *ndx_list));
       for (n = csound->strVarMaxLen - 1; *src != '\0' && n != 0; n--)
         *(dst++) = *(src++);
@@ -1039,10 +1039,11 @@ int xoutset(CSOUND *csound, XOUT *p)
     }
     *(tmp++) = NULL;                /* put delimiter */
     while (*++ndx_list >= 0) {
+      int n;
       char  *src = (char *)(*(p->args + *ndx_list));
       char  *dst = (char *)(*(bufs + *ndx_list));
       // FIXME: should throw error instead of truncating string ?
-      for (int n = csound->strVarMaxLen - 1; *src != '\0' && n != 0; n--)
+      for (n = csound->strVarMaxLen - 1; *src != '\0' && n != 0; n--)
         *(dst++) = *(src++);
       *dst = '\0';
     }
