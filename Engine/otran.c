@@ -193,9 +193,9 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i_outcnt + S_outcnt + inm->perf_outcnt;
     i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
                                                    sizeof(short) * (i + 8));
-    S_inlist = i_inlist + i_incnt + 1;
     a_inlist = i_inlist + i_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
+    S_inlist = k_inlist + k_incnt + 1; /* New stuff at end until used */
     i = 0; types = inm->intypes;
     while (*types) {
       switch (*types++) {
