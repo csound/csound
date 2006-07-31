@@ -107,13 +107,10 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char    *types, *otypes;
     int     i, i_incnt, a_incnt, k_incnt, i_outcnt, a_outcnt, k_outcnt, err;
-    int     S_incnt, S_outcnt;
     short   *a_inlist, *k_inlist, *i_inlist, *a_outlist, *k_outlist, *i_outlist;
-    short   *S_inlist, *S_outlist;
 
     /* count the number of arguments, and check types */
     i = i_incnt = a_incnt = k_incnt = i_outcnt = a_outcnt = k_outcnt = err = 0;
-    S_incnt = S_outcnt = 0;
     types = inm->intypes; otypes = opc->intypes;
     opc->dsblksiz = (unsigned short) sizeof(UOPCODE);
     if (!strcmp(types, "0"))
@@ -133,9 +130,6 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       case 'p':
       case 'j':
         i_incnt++; *otypes++ = *types;
-        break;
-      case 'S':
-        S_incnt++; *otypes++ = *types;
         break;
       default:
         synterr(csound, "invalid input type for opcode %s", inm->name);
@@ -173,9 +167,6 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       case 'i':
         i_outcnt++; *otypes++ = *types;
         break;
-      case 'S':
-        S_outcnt++; *otypes++ = *types;
-        break;
       default:
         synterr(csound, "invalid output type for opcode %s", inm->name);
         err++; i--;
@@ -189,13 +180,11 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     opc->dsblksiz = ((opc->dsblksiz + (unsigned short) 15)
                      & (~((unsigned short) 15)));   /* align (needed ?) */
     /* now build index lists for the various types of arguments */
-    i = i_incnt + S_incnt + inm->perf_incnt +
-        i_outcnt + S_outcnt + inm->perf_outcnt;
+    i = i_incnt + inm->perf_incnt + i_outcnt + inm->perf_outcnt;
     i_inlist = inm->in_ndx_list = (short*) mmalloc(csound,
-                                                   sizeof(short) * (i + 8));
+                                                   sizeof(short) * (i + 6));
     a_inlist = i_inlist + i_incnt + 1;
     k_inlist = a_inlist + a_incnt + 1;
-    S_inlist = k_inlist + k_incnt + 1; /* New stuff at end until used */
     i = 0; types = inm->intypes;
     while (*types) {
       switch (*types++) {
@@ -205,15 +194,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'i':
         case 'o':
         case 'p':
-        case 'j': *i_inlist++ = i; break;
-        case 'S': *S_inlist++ = i; break;
+        case 'j': *i_inlist++ = i;
       }
       i++;
     }
-    *i_inlist = *S_inlist = *a_inlist = *k_inlist = -1;     /* put delimiters */
+    *i_inlist = *a_inlist = *k_inlist = -1;     /* put delimiters */
     i_outlist = inm->out_ndx_list = k_inlist + 1;
-    S_outlist = i_outlist + i_outcnt + 1;
-    a_outlist = S_outlist + S_outcnt + 1;
+    a_outlist = i_outlist + i_outcnt + 1;
     k_outlist = a_outlist + a_outcnt + 1;
     i = 0; types = inm->outtypes;
     while (*types) {
@@ -221,12 +208,11 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         case 'a': *a_outlist++ = i; break;
         case 'k': *k_outlist++ = i; break;
         case 'K': *k_outlist++ = i;     /* also updated at i-time */
-        case 'i': *i_outlist++ = i; break;
-        case 'S': *S_outlist++ = i; break;
+        case 'i': *i_outlist++ = i;
       }
       i++;
     }
-    *i_outlist = *S_outlist = *a_outlist = *k_outlist = -1;  /* put delimiters */
+    *i_outlist = *a_outlist = *k_outlist = -1;  /* put delimiters */
     return err;
 }
 
