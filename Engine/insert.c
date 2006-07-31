@@ -997,6 +997,11 @@ int xinset(CSOUND *csound, XIN *p)
       for (n = csound->strVarMaxLen - 1; *src != '\0' && n != 0; n--)
         *(dst++) = *(src++);
       *dst = '\0';
+      /* This code is almost
+         strncmp(*(p->args + *ndx_list),
+                 *(bufs + *ndx_list), csound->strVarMaxLen);
+         *(p->args + *ndx_list+csound->strVarMaxLen-1)='\0';
+       */
     }
     /* fix for case when xout is omitted */
     *(tmp++) = NULL; *tmp = NULL;
@@ -1039,6 +1044,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     }
     *(tmp++) = NULL;                /* put delimiter */
     while (*++ndx_list >= 0) {
+      /* See comment above */
       int n;
       char  *src = (char *)(*(p->args + *ndx_list));
       char  *dst = (char *)(*(bufs + *ndx_list));
