@@ -643,19 +643,19 @@ OENTRY opcodlst_1[] = {
 /* and setksmps */
 { ".userOpcode", S(UOPCODE), 7, "", "", useropcdset, useropcd, useropcd },
 /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-{ "xin",      S(XIN_LOW),   1,  "XXXXXXXXXXXXXXXX", "",  xinset,  NULL, NULL },
+{ "xin",      S(XIN_LOW),   1,  "NNNNNNNNNNNNNNNN", "",  xinset,  NULL, NULL },
 { ".xin64",   S(XIN_HIGH),  1,
-    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", "",
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
     xinset,  NULL, NULL },
 { ".xin256",  S(XIN_MAX),   1,
-    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", "",
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
     xinset,  NULL, NULL },
-{ "xout",     S(XOUT_LOW),  1,  "",                 "M", xoutset, NULL, NULL },
-{ ".xout64",  S(XOUT_HIGH), 1,  "",                 "M", xoutset, NULL, NULL },
-{ ".xout256", S(XOUT_MAX),  1,  "",                 "M", xoutset, NULL, NULL },
+{ "xout",     S(XOUT_LOW),  1,  "",                 "N", xoutset, NULL, NULL },
+{ ".xout64",  S(XOUT_HIGH), 1,  "",                 "N", xoutset, NULL, NULL },
+{ ".xout256", S(XOUT_MAX),  1,  "",                 "N", xoutset, NULL, NULL },
 { "setksmps", S(SETKSMPS),  1,  "",     "i",    setksmpsset, NULL, NULL  },
 { "tempoval", S(GTEMPO), 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
 { "downsamp",S(DOWNSAMP),3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
