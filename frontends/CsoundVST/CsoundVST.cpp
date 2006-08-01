@@ -470,10 +470,10 @@ int CsoundVST::midiRead(CSOUND *csound, void *userData,
     midiData[cnt + 1] = (unsigned char) event.midiData[1];
     midiData[cnt + 2] = (unsigned char) event.midiData[2];
     csoundVST->midiEventQueue.pop_front();
-    csound::System::message("CsoundVST::midiRead(%x, %x, %x)\n",
-                            (int) midiData[cnt + 0],
-                            (int) midiData[cnt + 1],
-                            (int) midiData[cnt + 2]);
+    //~ csound::System::message("CsoundVST::midiRead(%x, %x, %x)\n",
+                            //~ (int) midiData[cnt + 0],
+                            //~ (int) midiData[cnt + 1],
+                            //~ (int) midiData[cnt + 2]);
     switch ((int) midiData[cnt] & 0xF0) {
     case 0x80:    /* note off */
     case 0x90:    /* note on */

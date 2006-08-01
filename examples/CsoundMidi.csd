@@ -9,7 +9,7 @@
 
 ; Command-line options for Windows:
 
-  -b100     -B100     -o dac8      -M 0  
+  -b100     -B200     -o dac8      -M 0  
 
 </CsOptions>
 <CsInstruments>
