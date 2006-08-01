@@ -30,6 +30,8 @@
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
 
+extern MYFLT cpsocfrc[];
+
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
 static  void    schedofftim(CSOUND *, INSDS *);
@@ -310,6 +312,82 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
         *pfld++ = *pdat++;
       } while (--nn);
     }
+    
+    /* MIDI channel message note on routing overrides pset: */
+
+    if (O->midiKey) {
+      int pfield = O->midiKey;
+      int index = pfield - 1;
+      MYFLT *pfields = &ip->p1;
+      MYFLT value = (MYFLT) ip->m_pitch;
+      pfields[index] = value;
+      if (O->msglevel & WARNMSG) {
+	csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n", pfield, (int) pfields[index]);
+      }
+    }
+    else if (O->midiKeyCps) {
+      int pfield = O->midiKeyCps;
+      int index = pfield - 1;
+      MYFLT *pfields = &ip->p1;
+      MYFLT value = (MYFLT) ip->m_pitch;
+      value = value / FL(12.0) + FL(3.0);
+      value = value * OCTRES;
+      value = (MYFLT) CPSOCTL((long) value);
+      pfields[index] = value;
+      if (O->msglevel & WARNMSG) {
+	csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n", pfield, (int) pfields[index]);
+      }
+    }
+    else if (O->midiKeyOct) {
+      int pfield = O->midiKeyOct;
+      int index = pfield - 1;
+      MYFLT *pfields = &ip->p1;
+      MYFLT value = (MYFLT) ip->m_pitch;
+      value = value / FL(12.0) + FL(3.0);
+      pfields[index] = value;
+      if (O->msglevel & WARNMSG) {
+	csound->Message(csound, "  midiKeyOct:      pfield: %3d  value: %3d\n", pfield, (int) pfields[index]);
+      }
+    }
+    else if (O->midiKeyPch) {
+      int pfield = O->midiKeyPch;
+      int index = pfield - 1;
+      MYFLT *pfields = &ip->p1;
+      MYFLT value = (MYFLT) ip->m_pitch;
+      double octave = 0;
+      double fraction = FL(0.0);
+      value = value / FL(12.0) + FL(3.0);
+      fraction = modf(value, &octave);
+      fraction *= 0.12;
+      value = octave + fraction;
+      pfields[index] = value;
+      if (O->msglevel & WARNMSG) {
+	csound->Message(csound, "  midiKeyPch:      pfield: %3d  value: %3d\n", pfield, (int) pfields[index]);
+      }
+    }
+    if (O->midiVelocity) {
+      int pfield = O->midiVelocity;
+      int index = pfield - 1;
+      MYFLT *pfields = &ip->p1;
+      MYFLT value = (MYFLT) ip->m_veloc;
+      pfields[index] = value;
+      if (O->msglevel & WARNMSG) {
+	csound->Message(csound, "  midiVelocity:    pfield: %3d  value: %3d\n", pfield, (int) pfields[index]);
+      }
+    }
+    else if (O->midiVelocityAmp) {
+      int pfield = O->midiVelocityAmp;
+      int index = pfield - 1;
+      MYFLT *pfields = &ip->p1;
+      MYFLT value = (MYFLT) ip->m_veloc;
+      value = value * value / 16239.0;
+      value = value * csound->e0dbfs;
+      pfields[index] = value;
+      if (O->msglevel & WARNMSG) {
+	csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n", pfield, (int) pfields[index]);
+      }
+    }
+    
     csound->curip = ip;
     csound->ids = (OPDS *)ip;
     /* do init pass for this instr  */
