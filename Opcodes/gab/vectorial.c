@@ -433,13 +433,13 @@ static int vectorOp_set(CSOUND *csound, VECTOROP *p)
     if (ftp == NULL)
       return NOTOK;
     p->vector = ftp->ftable;
-    p->elements = (long) *p->kelements;
+    long elements = (long) *p->kelements;
     p->len = (long) ftp->flen;
-    p->dstoffset = (long) *p->kdstoffset;
-    if ((p->elements | p->dstoffset) < 0L ||
-        (p->elements + p->dstoffset) > p->len) {
+    p->dstoffset = (long) *p->idstoffset;
+    if ((elements | p->dstoffset) < 0L ||
+        (elements + p->dstoffset) > p->len) {
       return csound->InitError(csound,
-                               Str("Destination table length exceeded"));
+                               Str("vectorop: Destination table length exceeded"));
     }
     return OK;
 }
@@ -458,7 +458,7 @@ static int vadd_i(CSOUND *csound, VECTOROPI *p)
     dstoffset = (long) *p->idstoffset;
     if ((elements | dstoffset) < 0L || (elements + dstoffset) > ftp->flen) {
       return csound->InitError(csound,
-                               Str("Destination table length exceeded"));
+                               Str("vadd_i: Destination table length exceeded"));
     }
     vector = &(ftp->ftable[dstoffset]);
     for (i = 0L; i < elements; i++)
@@ -471,8 +471,13 @@ static int vaddk(CSOUND *csound, VECTOROP *p)
 {
     MYFLT   *vector;
     MYFLT   value = *p->kval;
-    long    i, elements = p->elements;
-
+    long    i, elements = (long)*p->kelements; /*k-rate*/
+    if ((elements | p->dstoffset) < 0L ||
+         (elements + p->dstoffset) > p->len) {
+      csound->Warning(csound,
+                      Str("vadd: Destination table length exceeded"));
+      return NOTOK;
+         }
     vector = &(p->vector[p->dstoffset]);
     for (i = 0L; i < elements; i++)
       vector[i] += value;
@@ -493,7 +498,7 @@ static int vmult_i(CSOUND *csound, VECTOROPI *p)
     dstoffset = (long) *p->idstoffset;
     if ((elements | dstoffset) < 0L || (elements + dstoffset) > ftp->flen) {
       return csound->InitError(csound,
-                               Str("Destination table length exceeded"));
+                               Str("vmult_i: Destination table length exceeded"));
     }
     vector = &(ftp->ftable[dstoffset]);
     for (i = 0L; i < elements; i++)
@@ -506,8 +511,13 @@ static int vmultk(CSOUND *csound, VECTOROP *p)
 {
     MYFLT   *vector;
     MYFLT   value = *p->kval;
-    long    i, elements = p->elements;
-
+    long    i, elements = (long)*p->kelements;
+    if ((elements | p->dstoffset) < 0L ||
+         (elements + p->dstoffset) > p->len) {
+      csound->Warning(csound,
+                             Str("vmult: Destination table length exceeded"));
+      return NOTOK;
+         }
     vector = &(p->vector[p->dstoffset]);
     for (i = 0L; i < elements; i++)
       vector[i] *= value;
@@ -528,7 +538,7 @@ static int vpow_i(CSOUND *csound, VECTOROPI *p)
     dstoffset = (long) *p->idstoffset;
     if ((elements | dstoffset) < 0L || (elements + dstoffset) > ftp->flen) {
       return csound->InitError(csound,
-                               Str("Destination table length exceeded"));
+                               Str("vpow_i: Destination table length exceeded"));
     }
     vector = &(ftp->ftable[dstoffset]);
     for (i = 0L; i < elements; i++)
@@ -541,8 +551,12 @@ static int vpowk(CSOUND *csound, VECTOROP *p)
 {
     MYFLT   *vector;
     MYFLT   value = *p->kval;
-    long    i, elements = p->elements;
-
+    long    i, elements = (long)*p->kelements;
+    if ((elements | p->dstoffset) < 0L ||
+         (elements + p->dstoffset) > p->len) {
+      csound->Warning(csound,Str("vpow: Destination table length exceeded"));
+      return NOTOK;
+         }
     vector = &(p->vector[p->dstoffset]);
     for (i = 0L; i < elements; i++)
       vector[i] = pow(vector[i], value);
@@ -563,7 +577,7 @@ static int vexp_i(CSOUND *csound, VECTOROPI *p)
     dstoffset = (long) *p->idstoffset;
     if ((elements | dstoffset) < 0L || (elements + dstoffset) > ftp->flen) {
       return csound->InitError(csound,
-                               Str("Destination table length exceeded"));
+                               Str("vexp_i: Destination table length exceeded"));
     }
     vector = &(ftp->ftable[dstoffset]);
     for (i = 0L; i < elements; i++)
@@ -576,8 +590,13 @@ static int vexpk(CSOUND *csound, VECTOROP *p)
 {
     MYFLT   *vector;
     MYFLT   value = *p->kval;
-    long    i, elements = p->elements;
-
+    long    i, elements = (long)*p->kelements;
+    if ((elements | p->dstoffset) < 0L ||
+         (elements + p->dstoffset) > p->len) {
+      csound->Warning(csound,
+                             Str("vexp: Destination table length exceeded"));
+      return NOTOK;
+         }
     vector = &(p->vector[p->dstoffset]);
     for (i = 0L; i < elements; i++)
       vector[i] = pow(value, vector[i]);
@@ -589,31 +608,52 @@ static int vexpk(CSOUND *csound, VECTOROP *p)
 static int vectorsOp_set(CSOUND *csound, VECTORSOP *p)
 {
     FUNC        *ftp1, *ftp2;
-    if ((ftp1 = csound->FTnp2Find(csound,p->ifn1)) != NULL) {
-      p->vector1 = ftp1->ftable;
+    ftp1 = csound->FTnp2Find(csound, p->ifn1);
+    ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if ((ftp1 == NULL)||(ftp2 == NULL)) {
+      csound->InitError(csound, Str("vectorops: invalid table number."));
+      return NOTOK;
     }
-    if ((ftp2 = csound->FTnp2Find(csound,p->ifn2)) != NULL) {
-      p->vector2 = ftp2->ftable;
-    }
-    p->elements = (int) *p->ielements;
-    if ( p->elements > ftp1->flen || p->elements > ftp2->flen) {
-      return csound->InitError(csound, "vectorop: invalid num of elements");
+    p->vector1 = ftp1->ftable;
+    p->vector2 = ftp2->ftable;
+    int elements = (int) *p->kelements;
+    p->dstoffset = (long) *p->idstoffset;
+    p->srcoffset = (long) *p->isrcoffset;
+    p->len1 = (long) ftp1->flen;
+    p->len2 = (long) ftp2->flen;
+    if ((elements | p->dstoffset) < 0L ||
+         (elements + p->dstoffset)  > p->len1) {
+      return csound->InitError(csound, Str("vectorops: Destination table length exceeded"));
     }
     return OK;
 }
 
 static int vcopy(CSOUND *csound,VECTORSOP *p)
 {
-    int elements = p->elements;
-    MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
-
-    do {
-      *vector1++ = *vector2++;
-    } while (--elements);
+    long i, srcoffset, dstoffset, elements = (long)*p->kelements;
+    MYFLT *vector1, *vector2;
+    srcoffset = p->srcoffset;
+    dstoffset = p->dstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L) {
+      csound->Warning(csound,Str("vcopy: Invalid offset or number of elements."));
+      return NOTOK;
+    }
+    if ((elements + dstoffset) > p->len1) {
+      csound->Warning(csound,Str("vcopy: Destination table length exceeded."));
+      return NOTOK;
+    }
+    if ((elements + srcoffset) > p->len2) {
+      csound->Warning(csound, Str("vcopy: Source table length exceeded."));
+      return NOTOK;
+    }
+    vector1 = &(p->vector1[dstoffset]);
+    vector2 = &(p->vector2[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] = vector2[i];
     return OK;
 }
 
-static int vcopy_i(CSOUND *csound, VECTORSOP *p)
+static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
@@ -628,91 +668,357 @@ static int vcopy_i(CSOUND *csound, VECTORSOP *p)
     dstoffset = (long) *p->idstoffset;
     if ((elements | srcoffset | dstoffset) < 0L)
       return csound->InitError(csound,
-                               Str("Invalid offset or number of elements."));
+                               Str("vcopy_i: Invalid offset or number of elements."));
     if ((elements + dstoffset) > ftp1->flen)
       return csound->InitError(csound,
-                               Str("Destination table length exceeded."));
+                               Str("vcopy_i: Destination table length exceeded."));
     if ((elements + srcoffset) > ftp2->flen)
-      return csound->InitError(csound, Str("Source table length exceeded."));
+      return csound->InitError(csound, Str("vcopy_i: Source table length exceeded."));
     vector1 = &(ftp1->ftable[dstoffset]);
     vector2 = &(ftp2->ftable[srcoffset]);
     for (i = 0L; i < elements; i++)
       vector1[i] = vector2[i];
-
     return OK;
 }
 
-static int vaddv(CSOUND *csound,VECTORSOP *p)
+static int vaddvk(CSOUND *csound,VECTORSOP *p)
 {
-    int elements = p->elements;
-    MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
-
-    do {
-      *vector1++ += *vector2++;
-    } while (--elements);
+    long i, srcoffset, dstoffset, elements = (long)*p->kelements;
+    MYFLT *vector1, *vector2;
+    srcoffset = p->srcoffset;
+    dstoffset = p->dstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L) {
+      csound->Warning(csound,
+                      Str("vaddv: Invalid offset or number of elements."));
+      return NOTOK;
+    }
+    if ((elements + dstoffset) > p->len1) {
+      csound->Warning(csound,
+                      Str("vaddv: Destination table length exceeded."));
+      return NOTOK;
+    }
+    if ((elements + srcoffset) > p->len2) {
+      csound->Warning(csound,
+                      Str("vaddv: Source table length exceeded."));
+      return NOTOK;
+    }
+    vector1 = &(p->vector1[dstoffset]);
+    vector2 = &(p->vector2[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] += vector2[i];
     return OK;
 }
 
-static int vsubv(CSOUND *csound,VECTORSOP *p)
+static int vaddv_i(CSOUND *csound, VECTORSOPI *p)
 {
-    int elements = p->elements;
-    MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
-
-    do {
-      *vector1++ -= *vector2++;
-    } while (--elements);
+    FUNC    *ftp1, *ftp2;
+    MYFLT   *vector1, *vector2;
+    long    i, elements, srcoffset, dstoffset;
+    ftp1 = csound->FTnp2Find(csound, p->ifn1);
+    ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if (ftp1 == NULL || ftp2 == NULL)
+      return NOTOK;
+    elements = (long) *p->ielements;
+    srcoffset = (long) *p->isrcoffset;
+    dstoffset = (long) *p->idstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L)
+      return csound->InitError(csound,
+                              Str("vaddv_i: Invalid offset or number of elements."));
+    if ((elements + dstoffset) > ftp1->flen)
+      return csound->InitError(csound,
+                              Str("vaddv_i: Destination table length exceeded."));
+    if ((elements + srcoffset) > ftp2->flen)
+      return csound->InitError(csound, Str("vaddv_i: Source table length exceeded."));
+    vector1 = &(ftp1->ftable[dstoffset]);
+    vector2 = &(ftp2->ftable[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] += vector2[i];
     return OK;
 }
 
-static int vmultv(CSOUND *csound,VECTORSOP *p)
+static int vsubvk(CSOUND *csound,VECTORSOP *p)
 {
-    int elements = p->elements;
-    MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
-
-    do {
-      *vector1++ *= *vector2++;
-    } while (--elements);
+    long i, srcoffset, dstoffset, elements = (long)*p->kelements;
+    MYFLT *vector1, *vector2;
+    srcoffset = p->srcoffset;
+    dstoffset = p->dstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L) {
+      csound->Warning(csound,
+                      Str("vsubv: Invalid offset or number of elements."));
+      return NOTOK;
+    }
+    if ((elements + dstoffset) > p->len1) {
+      csound->Warning(csound,
+                      Str("vsubv: Destination table length exceeded."));
+      return NOTOK;
+    }
+    if ((elements + srcoffset) > p->len2) {
+      csound->Warning(csound,
+                      Str("vsubv: Source table length exceeded."));
+      return NOTOK;
+    }
+    vector1 = &(p->vector1[dstoffset]);
+    vector2 = &(p->vector2[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] -= vector2[i];
     return OK;
 }
 
-static int vdivv(CSOUND *csound,VECTORSOP *p)
+static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
 {
-    int elements = p->elements;
-    MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
-
-    do {
-      *vector1++ /= *vector2++;
-    } while (--elements);
+    FUNC    *ftp1, *ftp2;
+    MYFLT   *vector1, *vector2;
+    long    i, elements, srcoffset, dstoffset;
+  
+    ftp1 = csound->FTnp2Find(csound, p->ifn1);
+    ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if (ftp1 == NULL || ftp2 == NULL)
+      return NOTOK;
+    elements = (long) *p->ielements;
+    srcoffset = (long) *p->isrcoffset;
+    dstoffset = (long) *p->idstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L)
+      return csound->InitError(csound,
+                              Str("vsubv_i: Invalid offset or number of elements."));
+    if ((elements + dstoffset) > ftp1->flen)
+      return csound->InitError(csound,
+                              Str("vsubv_i: Destination table length exceeded."));
+    if ((elements + srcoffset) > ftp2->flen)
+      return csound->InitError(csound, Str("vsubv_i: Source table length exceeded."));
+    vector1 = &(ftp1->ftable[dstoffset]);
+    vector2 = &(ftp2->ftable[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] -= vector2[i];
     return OK;
 }
 
-static int vpowv(CSOUND *csound,VECTORSOP *p)
+static int vmultvk(CSOUND *csound,VECTORSOP *p)
 {
-    int elements = p->elements;
-    MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
-
-    do {
-      *vector1 = (MYFLT) pow (*vector1, *vector2++);
-      vector1++;
-    } while (--elements);
+    long i, srcoffset, dstoffset, elements = (long)*p->kelements;
+    MYFLT *vector1, *vector2;
+    srcoffset = p->srcoffset;
+    dstoffset = p->dstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L) {
+      csound->Warning(csound,
+                      Str("vmultv: Invalid offset or number of elements."));
+      return NOTOK;
+    }
+    if ((elements + dstoffset) > p->len1) {
+      csound->Warning(csound,
+                      Str("vmultv: Destination table length exceeded."));
+      return NOTOK;
+    }
+    if ((elements + srcoffset) > p->len2) {
+      csound->Warning(csound,
+                      Str("vmultv: Source table length exceeded."));
+      return NOTOK;
+    }
+    vector1 = &(p->vector1[dstoffset]);
+    vector2 = &(p->vector2[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] *= vector2[i];
     return OK;
 }
 
-static int vexpv(CSOUND *csound,VECTORSOP *p)
+static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
 {
-    int elements = p->elements;
-    MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
-
-    do {
-      *vector1 = (MYFLT) pow (*vector1, *vector2++);
-      vector1++;
-    } while (--elements);
+    FUNC    *ftp1, *ftp2;
+    MYFLT   *vector1, *vector2;
+    long    i, elements, srcoffset, dstoffset;
+  
+    ftp1 = csound->FTnp2Find(csound, p->ifn1);
+    ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if (ftp1 == NULL || ftp2 == NULL)
+      return NOTOK;
+    elements = (long) *p->ielements;
+    srcoffset = (long) *p->isrcoffset;
+    dstoffset = (long) *p->idstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L)
+      return csound->InitError(csound,
+                              Str("vmultv_i: Invalid offset or number of elements."));
+    if ((elements + dstoffset) > ftp1->flen)
+      return csound->InitError(csound,
+                              Str("vmultv_i: Destination table length exceeded."));
+    if ((elements + srcoffset) > ftp2->flen)
+      return csound->InitError(csound, Str("vmultv_i: Source table length exceeded."));
+    vector1 = &(ftp1->ftable[dstoffset]);
+    vector2 = &(ftp2->ftable[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] *= vector2[i];
     return OK;
+}
+
+static int vdivvk(CSOUND *csound,VECTORSOP *p)
+{
+    long i, srcoffset, dstoffset, elements = (long)*p->kelements;
+    MYFLT *vector1, *vector2;
+    srcoffset = p->srcoffset;
+    dstoffset = p->dstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L) {
+      csound->Warning(csound,
+                      Str("vdivv: Invalid offset or number of elements."));
+      return NOTOK;
+    }
+    if ((elements + dstoffset) > p->len1) {
+      csound->Warning(csound,
+                      Str("vdivv: Destination table length exceeded."));
+      return NOTOK;
+    }
+    if ((elements + srcoffset) > p->len2) {
+      csound->Warning(csound,
+                      Str("vdivv: Source table length exceeded."));
+      return NOTOK;
+    }
+    vector1 = &(p->vector1[dstoffset]);
+    vector2 = &(p->vector2[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] /= vector2[i];
+    return OK;
+}
+
+static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
+{
+    FUNC    *ftp1, *ftp2;
+    MYFLT   *vector1, *vector2;
+    long    i, elements, srcoffset, dstoffset;
+  
+    ftp1 = csound->FTnp2Find(csound, p->ifn1);
+    ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    if (ftp1 == NULL || ftp2 == NULL)
+      return NOTOK;
+    elements = (long) *p->ielements;
+    srcoffset = (long) *p->isrcoffset;
+    dstoffset = (long) *p->idstoffset;
+    if ((elements | srcoffset | dstoffset) < 0L)
+      return csound->InitError(csound,
+                              Str("vdivv_i: Invalid offset or number of elements."));
+    if ((elements + dstoffset) > ftp1->flen)
+      return csound->InitError(csound,
+                              Str("vdivv_i: Destination table length exceeded."));
+    if ((elements + srcoffset) > ftp2->flen)
+      return csound->InitError(csound, Str("vdivv_i: Source table length exceeded."));
+    vector1 = &(ftp1->ftable[dstoffset]);
+    vector2 = &(ftp2->ftable[srcoffset]);
+    for (i = 0L; i < elements; i++)
+      vector1[i] /= vector2[i];
+    return OK;
+}
+
+static int vpowvk(CSOUND *csound,VECTORSOP *p)
+{
+  long i, srcoffset, dstoffset, elements = (long)*p->kelements;
+  MYFLT *vector1, *vector2;
+  srcoffset = p->srcoffset;
+  dstoffset = p->dstoffset;
+  if ((elements | srcoffset | dstoffset) < 0L) {
+    csound->Warning(csound,
+                    Str("vpowv: Invalid offset or number of elements."));
+    return NOTOK;
+  }
+  if ((elements + dstoffset) > p->len1) {
+    csound->Warning(csound,
+                    Str("vpowv: Destination table length exceeded."));
+    return NOTOK;
+  }
+  if ((elements + srcoffset) > p->len2) {
+    csound->Warning(csound,
+                    Str("vpowv: Source table length exceeded."));
+    return NOTOK;
+  }
+  vector1 = &(p->vector1[dstoffset]);
+  vector2 = &(p->vector2[srcoffset]);
+  for (i = 0L; i < elements; i++)
+    vector1[i] = (MYFLT) pow (vector1[i], vector2[i]);
+  return OK;
+}
+
+static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
+{
+  FUNC    *ftp1, *ftp2;
+  MYFLT   *vector1, *vector2;
+  long    i, elements, srcoffset, dstoffset;
+  
+  ftp1 = csound->FTnp2Find(csound, p->ifn1);
+  ftp2 = csound->FTnp2Find(csound, p->ifn2);
+  if (ftp1 == NULL || ftp2 == NULL)
+    return NOTOK;
+  elements = (long) *p->ielements;
+  srcoffset = (long) *p->isrcoffset;
+  dstoffset = (long) *p->idstoffset;
+  if ((elements | srcoffset | dstoffset) < 0L)
+    return csound->InitError(csound,
+                             Str("vpowv_i: Invalid offset or number of elements."));
+  if ((elements + dstoffset) > ftp1->flen)
+    return csound->InitError(csound,
+                             Str("vpowv_i: Destination table length exceeded."));
+  if ((elements + srcoffset) > ftp2->flen)
+    return csound->InitError(csound, Str("vpowv_i: Source table length exceeded."));
+  vector1 = &(ftp1->ftable[dstoffset]);
+  vector2 = &(ftp2->ftable[srcoffset]);
+  for (i = 0L; i < elements; i++)
+    vector1[i] = (MYFLT) pow (vector1[i], vector2[i]);
+  return OK;
+}
+
+static int vexpvk(CSOUND *csound,VECTORSOP *p)
+{
+  long i, srcoffset, dstoffset, elements = (long)*p->kelements;
+  MYFLT *vector1, *vector2;
+  srcoffset = p->srcoffset;
+  dstoffset = p->dstoffset;
+  if ((elements | srcoffset | dstoffset) < 0L) {
+    csound->Warning(csound,
+                    Str("vpowv: Invalid offset or number of elements."));
+    return NOTOK;
+  }
+  if ((elements + dstoffset) > p->len1) {
+    csound->Warning(csound,
+                    Str("vpowv: Destination table length exceeded."));
+    return NOTOK;
+  }
+  if ((elements + srcoffset) > p->len2) {
+    csound->Warning(csound,
+                    Str("vpowv: Source table length exceeded."));
+    return NOTOK;
+  }
+  vector1 = &(p->vector1[dstoffset]);
+  vector2 = &(p->vector2[srcoffset]);
+  for (i = 0L; i < elements; i++)
+    vector1[i] = (MYFLT) pow (vector2[i], vector1[i]);
+  return OK;
+}
+
+static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
+{
+  FUNC    *ftp1, *ftp2;
+  MYFLT   *vector1, *vector2;
+  long    i, elements, srcoffset, dstoffset;
+  
+  ftp1 = csound->FTnp2Find(csound, p->ifn1);
+  ftp2 = csound->FTnp2Find(csound, p->ifn2);
+  if (ftp1 == NULL || ftp2 == NULL)
+    return NOTOK;
+  elements = (long) *p->ielements;
+  srcoffset = (long) *p->isrcoffset;
+  dstoffset = (long) *p->idstoffset;
+  if ((elements | srcoffset | dstoffset) < 0L)
+    return csound->InitError(csound,
+                             Str("vpowv_i: Invalid offset or number of elements."));
+  if ((elements + dstoffset) > ftp1->flen)
+    return csound->InitError(csound,
+                             Str("vpowv_i: Destination table length exceeded."));
+  if ((elements + srcoffset) > ftp2->flen)
+    return csound->InitError(csound, Str("vpowv_i: Source table length exceeded."));
+  vector1 = &(ftp1->ftable[dstoffset]);
+  vector2 = &(ftp2->ftable[srcoffset]);
+  for (i = 0L; i < elements; i++)
+    vector1[i] = (MYFLT) pow (vector1[i], vector2[i]);
+  return OK;
 }
 
 static int vmap(CSOUND *csound,VECTORSOP *p)
 {
-    int elements = p->elements;
+    int elements = *p->kelements;
     MYFLT *vector1 = p->vector1, *vector2 = p->vector2;
 
     do {
@@ -1420,21 +1726,27 @@ static OENTRY localops[] = {
   { "vtabwk", S(MTABW),      3, "",  "kiz", (SUBR)mtabw_set, (SUBR)mtabw_k, NULL },
   { "vtabwa", S(MTABW),      5, "",  "aiy", (SUBR)mtabw_set, NULL, (SUBR)mtabw_a },
 
-  { "vadd",   S(VECTOROP),   3, "",  "ikio", (SUBR)vectorOp_set, (SUBR) vaddk },
+  { "vadd",   S(VECTOROP),   3, "",  "ikko", (SUBR)vectorOp_set, (SUBR) vaddk },
   { "vadd_i", S(VECTOROPI),  1, "",  "iiio", (SUBR) vadd_i, NULL, NULL        },
-  { "vmult",  S(VECTOROP),   3, "",  "ikio", (SUBR)vectorOp_set, (SUBR) vmultk},
+  { "vmult",  S(VECTOROP),   3, "",  "ikko", (SUBR)vectorOp_set, (SUBR) vmultk},
   { "vmult_i", S(VECTOROPI), 1, "",  "iiio", (SUBR) vmult_i, NULL, NULL       },
-  { "vpow",   S(VECTOROP),   3, "",  "ikio", (SUBR)vectorOp_set, (SUBR) vpowk },
+  { "vpow",   S(VECTOROP),   3, "",  "ikko", (SUBR)vectorOp_set, (SUBR) vpowk },
   { "vpow_i", S(VECTOROPI),  1, "",  "iiio", (SUBR) vpow_i, NULL, NULL        },
-  { "vexp",   S(VECTOROP),   3, "",  "ikio", (SUBR)vectorOp_set, (SUBR) vexpk },
+  { "vexp",   S(VECTOROP),   3, "",  "ikko", (SUBR)vectorOp_set, (SUBR) vexpk },
   { "vexp_i", S(VECTOROPI),  1, "",  "iiio", (SUBR) vexp_i, NULL, NULL        },
-  { "vaddv",  S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR) vaddv },
-  { "vsubv",  S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR) vsubv },
-  { "vmultv", S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR) vmultv},
-  { "vdivv",  S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR) vdivv },
-  { "vpowv",  S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR) vpowv },
-  { "vexpv",  S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR) vexpv },
-  { "vcopy",  S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR) vcopy },
+  { "vaddv",  S(VECTORSOP),  3, "",  "iikoo", (SUBR)vectorsOp_set, (SUBR) vaddvk },
+  { "vaddv_i",  S(VECTORSOPI),  1, "",  "iiioo", (SUBR)vaddv_i, NULL, NULL        },
+  { "vsubv",  S(VECTORSOP),  3, "",  "iikoo", (SUBR)vectorsOp_set, (SUBR) vsubvk },
+  { "vsubv_i",  S(VECTORSOPI),  1, "",  "iiioo", (SUBR)vsubv_i, NULL, NULL        },
+  { "vmultv", S(VECTORSOP),  3, "",  "iikoo", (SUBR)vectorsOp_set, (SUBR) vmultvk},
+  { "vmultv_i", S(VECTORSOPI),  1, "",  "iiioo", (SUBR)vmultv_i, NULL, NULL       },
+  { "vdivv",  S(VECTORSOP),  3, "",  "iikoo", (SUBR)vectorsOp_set, (SUBR) vdivvk },
+  { "vdivv_i",  S(VECTORSOPI),  1, "",  "iiioo", (SUBR)vdivv_i, NULL, NULL        },
+  { "vpowv",  S(VECTORSOP),  3, "",  "iikoo", (SUBR)vectorsOp_set, (SUBR) vpowvk },
+  { "vpowv_i",  S(VECTORSOPI),  1, "",  "iiioo", (SUBR)vpowv_i, NULL, NULL      },
+  { "vexpv",  S(VECTORSOP),  3, "",  "iikoo", (SUBR)vectorsOp_set, (SUBR) vexpvk },
+  { "vexpv_i",  S(VECTORSOPI),  1, "",  "iiioo", (SUBR)vexpv_i, NULL, NULL      },
+  { "vcopy",  S(VECTORSOP),  3, "",  "iikoo", (SUBR)vectorsOp_set, (SUBR) vcopy },
   { "vcopy_i", S(VECTORSOP), 1, "",  "iiioo", (SUBR) vcopy_i, NULL, NULL      },
   { "vmap",   S(VECTORSOP),  3, "",  "iii", (SUBR)vectorsOp_set, (SUBR)vmap   },
   { "vlimit", S(VLIMIT),     3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vlimit    },
