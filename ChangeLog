@@ -1,3 +1,11 @@
+2006-08-07  Andres Cabrera  <andres@geminiflux.com>
+
+	* opcodes/Gab/vectorial.c: Added optional arguments isrcoffset
+	and idstoffset to most vectorial opcodes.
+
+	* opcodes/Gab/vectorial.c: Added i-rate versions of most
+	vectorial opcodes.
+
 2006-07-30  jpff  <jpff@codemist.co.uk>
 
 	* Engine/otran.c (parse_opcode_args): Tracking strings as
