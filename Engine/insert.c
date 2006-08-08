@@ -30,7 +30,7 @@
 #include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
 
-extern MYFLT cpsocfrc[];
+extern MYFLT cpsocfrc[];        /* Needed by CPSOCTL */
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
