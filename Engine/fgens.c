@@ -77,7 +77,7 @@ typedef struct namedgen {
     struct namedgen *next;
 } NAMEDGEN;
 
-#define tpd360  (0.0174532925199433)
+#define tpd360  (FL(0.0174532925199433))
 
 static CS_NOINLINE int  fterror(const FGDATA *, const char *, ...);
 static CS_NOINLINE void ftresdisp(const FGDATA *, FUNC *);
