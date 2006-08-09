@@ -23,12 +23,16 @@
 
 #include "csdl.h"
 #include <sys/types.h>
+#ifdef __OS_WINDOWS__
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <string.h>
 
 extern  int     inet_aton(const char *cp, struct in_addr *inp);
