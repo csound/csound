@@ -25,9 +25,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#ifdef __OS_WINDOWS__
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 #include <string.h>
 #include <errno.h>
 
