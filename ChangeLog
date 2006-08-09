@@ -6,10 +6,15 @@
 	* opcodes/Gab/vectorial.c: Added i-rate versions of most
 	vectorial opcodes.
 
+2006-07-31  John ffitch  <jpff@codemist.co.uk>
+
+	* Engine/insert.c (xinset): strings as arguments
+	(xoutset): Ditto [***REVERTED***]
+
 2006-07-30  jpff  <jpff@codemist.co.uk>
 
 	* Engine/otran.c (parse_opcode_args): Tracking strings as
-	arguments to UDO
+	arguments to UDO [***REVERTED***]
 
 	* util/cvanal.c (cvanal): Added termination message
 
@@ -54,7 +59,7 @@
 
 	* Opcodes/pitch.c (pitchset): Moved some filter coeffieients to
 	double
-	
+
 2006-07-08  jpff  <jpff@codemist.co.uk>
 
 	* H/csoundCore.h: Removed unused macros and typedefs
@@ -70,9 +75,9 @@
 
 2006-07-07      Istvan Varga    <via JPff>
         * Engine/entry1.c: corrected opcode data size for inh and ino
-	
+
         * Opcodes/bilbar.c (play_pp): use fabs() instead of abs() 
-	
+
         * Opcodes/biquad.c (nestedapset): do not assume sizeof(MYFLT) ==
 	sizeof(long) 
 
@@ -98,7 +103,7 @@
 
 	* OOps/cmath.c (exprand):
 	(biexprand): Restored safety checks for negative argument 
-	
+
 2006-06-26  jpff  <jpff@codemist.co.uk>
 
 	* util/pv_import.c: Inverse of pv_export
