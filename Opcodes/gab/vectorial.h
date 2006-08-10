@@ -82,7 +82,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *ifn, *kval, *kelements, *idstoffset;
-    long    /*elements,*/ len, dstoffset;
+    long    elements, len, dstoffset;
     MYFLT   *vector;
 } VECTOROP;
 
@@ -95,8 +95,8 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *ifn1, *ifn2, *kelements, *idstoffset, *isrcoffset;
-  int     /*elements,*/ len1, len2, dstoffset, srcoffset;
+  MYFLT   *ifn1, *ifn2, *kelements, *kdstoffset, *ksrcoffset, *kverbose;
+  int     /*elements,*/ len1, len2/*, dstoffset, srcoffset*/;
   MYFLT   *vector1, *vector2;
 } VECTORSOP;
 
