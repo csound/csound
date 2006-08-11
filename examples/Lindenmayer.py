@@ -50,7 +50,7 @@ print 'Filename:', filename
 model.setConformPitches(True)
 csound.load('d:/utah/home/mkg/projects/csoundd/examples/CsoundVST.csd')
 #csound.load('d:/utah/home/mkg/projects/music/library/silence.csd')
-csound.setCommand("csound -m7 -RWdfo" + filename + ".wav " + filename + ".orc " + filename + ".sco")
+csound.setCommand("csound -m3 -RWZdfo" + filename + ".wav " + filename + ".orc " + filename + ".sco")
 csound.setFilename(filename)
 print "Events in generated score:", len(score)
 duration = score.getDuration()
