@@ -508,6 +508,7 @@ void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
       synchronizeScore();
       MYFLT *csoundInput = cppSound->GetSpin();
       MYFLT *csoundOutput = cppSound->GetSpout();
+      MYFLT zeroDBFS = cppSound->Get0dBFS();
       size_t csoundLastFrame = cppSound->GetKsmps() - 1;
       size_t channelN = cppSound->GetNchnls();
       size_t channelI;
@@ -523,7 +524,7 @@ void CsoundVST::process(float **hostInput, float **hostOutput, long hostFrameN)
             }
           for(channelI = 0; channelI < channelN; channelI++)
             {
-              hostOutput[channelI][hostFrameI] += csoundOutput[(csoundFrameI * channelN) + channelI] * outputScale;
+              hostOutput[channelI][hostFrameI] += csoundOutput[(csoundFrameI * channelN) + channelI] * zeroDBFS;
               csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
             }
           csoundFrameI++;
@@ -542,6 +543,7 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, long hos
       synchronizeScore();
       MYFLT *csoundInput = cppSound->GetSpin();
       MYFLT *csoundOutput = cppSound->GetSpout();
+      MYFLT zeroDBFS = cppSound->Get0dBFS();
       size_t csoundLastFrame = cppSound->GetKsmps() - 1;
       size_t channelN = cppSound->GetNchnls();
       size_t channelI;
@@ -557,7 +559,7 @@ void CsoundVST::processReplacing(float **hostInput, float **hostOutput, long hos
             }
           for(channelI = 0; channelI < channelN; channelI++)
             {
-              hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] * outputScale;
+              hostOutput[channelI][hostFrameI] = csoundOutput[(csoundFrameI * channelN) + channelI] * zeroDBFS;
               csoundOutput[(csoundFrameI * channelN) + channelI] = 0.0;
             }
           csoundFrameI++;
