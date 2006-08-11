@@ -353,7 +353,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
     long    i, j, read_in, part;
     MYFLT   *IRblock;
     MYFLT   ainput_dur, scaleFac;
-    MYFLT   partionsize;
+    MYFLT   partitionSize;
 
     /* IV - 2005-04-06: fixed bug: was uninitialised */
     memset(&IRfile, 0, sizeof(SOUNDIN));
