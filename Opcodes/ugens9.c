@@ -346,7 +346,7 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
 
 static int pconvset(CSOUND *csound, PCONVOLVE *p)
 {
-    int      channel = (*(p->channel) <= 0 ? ALLCHNLS : *(p->channel));
+    int     channel = (*(p->channel) <= 0 ? ALLCHNLS : (int) *(p->channel));
     SNDFILE *infd;
     SOUNDIN IRfile;
     MYFLT   *inbuf, *fp1,*fp2;
@@ -396,7 +396,7 @@ static int pconvset(CSOUND *csound, PCONVOLVE *p)
 
     /* make sure the partition size is nonzero and a power of 2  */
     if (*p->partitionSize <= 0)
-      *p->partitionSize = csound->oparms->outbufsamps;
+      *p->partitionSize = csound->oparms->outbufsamps / csound->nchnls;
 
     p->Hlen = 1;
     while (p->Hlen < *p->partitionSize)
@@ -480,7 +480,8 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
 {
     int    nsmpsi = csound->ksmps;
     MYFLT  *ai = p->ain;
-    MYFLT *buf, *input = p->savedInput.auxp, *workWrite = p->workWrite;
+    MYFLT  *buf;
+    MYFLT  *input = (MYFLT*) p->savedInput.auxp, *workWrite = p->workWrite;
     MYFLT  *a1 = p->ar1, *a2 = p->ar2, *a3 = p->ar3, *a4 = p->ar4;
     long   i, j, count = p->inCount;
     long   hlenpaddedplus2 = p->Hlenpadded+2;
@@ -512,8 +513,8 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
             dest[n + 1] += (h[n + 1] * src[n + 0]) + (h[n + 0] * src[n + 1]);
           }
           h += n; dest += n;
-          if (dest == p->convBuf.endp)
-            dest = p->convBuf.auxp;
+          if (dest == (MYFLT*)p->convBuf.endp)
+            dest = (MYFLT*)p->convBuf.auxp;
         }
 
         /* Perform inverse FFT of the ondeck partion block */
