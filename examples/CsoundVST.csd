@@ -127,7 +127,7 @@ gitonewheel6            ftgen                   0, 0, 65537,     8     -.8, 336,
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 inso,ic,il,ir,im 	xin
 inum			init			floor(inso)
-                        print                   inum, ic, il, ir, im
+                        ;print                   inum, ic, il, ir, im
 			MixerSetLevel	 	inum, 200, ic
 			;MixerSetLevel	 	inum, 201, il
 			MixerSetLevel	 	inum, 210, ir
@@ -156,7 +156,7 @@ inum, aleft, aright	xin
 			MixerSend               aright, inum, 210, 1
 			MixerSend               aleft, inum, 220, 0
 			MixerSend               aright, inum, 220, 1
-                        print                   inum
+                        ;print                   inum
 			endop
 
 			opcode			Pan, aa, a
