@@ -1,16 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-
-; Audio     Audio
-; output    output
-; software  hardware  Audio        MIDI
-; buffer    buffer    output       input
-; frames    frames    port number  port number
-
-; Command-line options for Windows:
-
-  -b100     -B200     -o dac8      -M 0  
-
+--midi-key=4 --midi-velocity=5
 </CsOptions>
 <CsInstruments>
 
