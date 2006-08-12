@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -h -n -f -d -M0 -m7 -+rtmidi=null --midi-key=4 --midi-velocity=5 temp.orc temp.sco
+csound -n -h -d -f -M0 -m7 -+rtmidi=null --midi-key=4 --midi-velocity=5 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -58,7 +58,7 @@ csound -h -n -f -d -M0 -m7 -+rtmidi=null --midi-key=4 --midi-velocity=5 temp.orc
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 sr                      =                       44100
-ksmps			=                       1
+ksmps			=                       15
 nchnls                  =                       2
 ; Note that -1 dB for float samples is 29205.
 0dbfs                   =                       1000000.
@@ -67,21 +67,7 @@ nchnls                  =                       2
 ; A S S I G N   M I D I   C H A N N E L S   T O   I N S T R U M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-			massign			 1,  5
-			massign			 3, 12
-			massign			 4, 37
-			massign			 5, 11
-			massign			 6,  9
-			massign			 7, 51
-			massign			 8, 52
-			massign			 9, 53
-			massign			10, 15
-			massign			11, 10
-			massign			12, 21
-			massign			13, 22
-			massign			14, 28
-			massign			15, 26
-			massign			16, 41
+			massign			 1,  7
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; F U N C T I O N   T A B L E S
@@ -117,19 +103,20 @@ gitonewheel6            ftgen                   0, 0, 65537,     8     -.8, 336,
 ; S O U N D F O N T   A S S I G N M E N T S
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; Disabled for Csound installer -- enable if you have the SoundFonts.
 
-giFluidsynth		fluidEngine		0, 0
-giFluidSteinway		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
-			fluidProgramSelect	giFluidsynth, 0, giFluidSteinway, 0, 1
+; giFluidsynth		fluidEngine		0, 0
+; gFluidSteinway		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
+; 			fluidProgramSelect	giFluidsynth, 0, giFluidSteinway, 0, 1
 
-giFluidGM		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/63.3mg The Sound Site Album Bank V1.0.SF2", giFluidsynth, 1
-			fluidProgramSelect	giFluidsynth, 1, giFluidGM, 0, 26
+; giFluidGM		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/63.3mg The Sound Site Album Bank V1.0.SF2", giFluidsynth, 1
+;			fluidProgramSelect	giFluidsynth, 1, giFluidGM, 0, 26
 
-giFluidMarimba		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/Marimba Moonman (414KB).SF2", giFluidsynth, 1
-			fluidProgramSelect	giFluidsynth, 2, giFluidMarimba, 0, 0
+; giFluidMarimba		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/Marimba Moonman (414KB).SF2", giFluidsynth, 1
+;			fluidProgramSelect	giFluidsynth, 2, giFluidMarimba, 0, 0
 
-giFluidOrgan		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
-			fluidProgramSelect	giFluidsynth, 3, giFluidOrgan, 0, 36
+; giFluidOrgan		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
+;			fluidProgramSelect	giFluidsynth, 3, giFluidOrgan, 0, 36
 						
 			
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -140,6 +127,7 @@ giFluidOrgan		fluidLoad		"/utah/home/mkg/projects/music/library/soundfonts/Organ
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 inso,ic,il,ir,im 	xin
 inum			init			floor(inso)
+                        print                   inum, ic, il, ir, im
 			MixerSetLevel	 	inum, 200, ic
 			;MixerSetLevel	 	inum, 201, il
 			MixerSetLevel	 	inum, 210, ir
@@ -159,16 +147,16 @@ iamplitude 		= 			ampdb(ivelocity) * (inormal / imeasure)
  			xout			ifrequency, iamplitude
 			endop
                         
-			opcode			SendOut, 0, kaa
+			opcode			SendOut, 0, iaa
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-knsno, aleft, aright	xin
-inum			=			floor(i(knsno))
+inum, aleft, aright	xin
 			MixerSend               aleft, inum, 200, 0
 			MixerSend               aright, inum, 200, 1
 			MixerSend               aleft, inum, 210, 0
 			MixerSend               aright, inum, 210, 1
 			MixerSend               aleft, inum, 220, 0
 			MixerSend               aright, inum, 220, 1
+                        print                   inum
 			endop
 
 			opcode			Pan, aa, a
@@ -189,7 +177,7 @@ aright                  =                       asignal * irightgain
 			opcode			Declick, iaa, iiiaa
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 iatt,idur,irel,a1,a2	xin
-                        if (idur > 0)             then
+                        if (idur > 0)           then
 isustain		= 			idur
 idur			=			iatt + isustain + irel                        
                         else
@@ -399,7 +387,6 @@ p3, aleft, aright	Declick			.005, p3, 0.3, aleft, aright
 			instr                   9 ; Xing by Andrew Horner
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                         pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-                        print                   p1,p2,p3,p4,p5,p6,p7,p8,p9,p11
 			; p4 pitch in octave.pch
 			; original pitch        = A6
 			; range                 = C6 - C7
@@ -1162,57 +1149,57 @@ p3, aleft, aright	Declick			.003, p3, .05, aleft, aright
 			SendOut			p1, aleft, aright
 			endin
 
-			instr 			51 ; FluidSynth Steinway
-			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-ifrequency,iamplitude	NoteOn                  p4, p5, 10000
-			; Use channel assigned in fluidload.
-ichannel		=			0
+;			instr 			51 ; FluidSynth Steinway
+;			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
+;ifrequency,iamplitude	NoteOn                  p4, p5, 10000
+;			; Use channel assigned in fluidload.
+;ichannel		=			0
 ; ioffset			=			((sr / 44100) - 1) * 12
 ; ikey	 		= 			p4 - ioffset
-ikey 			=			p4
-ivelocity 		= 			dbamp(iamplitude)
-			fluidNote		giFluidsynth, ichannel, ikey, ivelocity
-			endin
+;ikey 			=			p4
+;ivelocity 		= 			dbamp(iamplitude)
+;			fluidNote		giFluidsynth, ichannel, ikey, ivelocity
+;			endin
 
-			instr 			52 ; FluidSynth General MIDI
-			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-ifrequency,iamplitude	NoteOn                  p4, p5, 10000
-			; Use channel assigned in fluidload.
-ichannel		=			1
+;			instr 			52 ; FluidSynth General MIDI
+;			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
+;ifrequency,iamplitude	NoteOn                  p4, p5, 10000
+;			; Use channel assigned in fluidload.
+;ichannel		=			1
 ; ioffset			=			((sr / 44100) - 1) * 12
 ; ikey	 		= 			p4 - ioffset
-ikey 			=			p4
-ivelocity 		= 			dbamp(iamplitude)
-			fluidNote		giFluidsynth, ichannel, ikey, ivelocity
-			endin
+;ikey 			=			p4
+;ivelocity 		= 			dbamp(iamplitude)
+;			fluidNote		giFluidsynth, ichannel, ikey, ivelocity
+;			endin
 
-			instr 			53 ; FluidSynth Marimba
-			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-ifrequency,iamplitude	NoteOn                  p4, p5, 10000
-			; Use channel assigned in fluidload.
-ichannel		=			2
+;			instr 			53 ; FluidSynth Marimba
+;			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
+;ifrequency,iamplitude	NoteOn                  p4, p5, 10000
+;			; Use channel assigned in fluidload.
+;ichannel		=			2
 ; ioffset			=			((sr / 44100) - 1) * 12
 ; ikey	 		= 			p4 - ioffset
-ikey 			=			p4
-ivelocity 		= 			dbamp(iamplitude)
-			fluidNote		giFluidsynth, ichannel, ikey, ivelocity
-			endin
+;ikey 			=			p4
+;ivelocity 		= 			dbamp(iamplitude)
+;			fluidNote		giFluidsynth, ichannel, ikey, ivelocity
+;			endin
 
-			instr 			54 ; FluidSynth Organ
-			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
-ifrequency,iamplitude	NoteOn                  p4, p5, 10000
-			; Use channel assigned in fluidload.
-ichannel		=			3
+;			instr 			54 ; FluidSynth Organ
+;			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;                        pset                    0, 0, 3600, 0, 0, 0, 0, 0, 0, 0, 0
+;ifrequency,iamplitude	NoteOn                  p4, p5, 10000
+;			; Use channel assigned in fluidload.
+;ichannel		=			3
 ; ioffset			=			((sr / 44100) - 1) * 12
 ; ikey	 		= 			p4 - ioffset
-ikey 			=			p4
-ivelocity 		= 			dbamp(iamplitude)
-			fluidNote		giFluidsynth, ichannel, ikey, ivelocity
-			endin
+;ikey 			=			p4
+;ivelocity 		= 			dbamp(iamplitude)
+;			fluidNote		giFluidsynth, ichannel, ikey, ivelocity
+;			endin
 			
 			instr			55 ; Modeled guitar by Jeff Livingston
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1346,16 +1333,16 @@ aleft, aright		Pan			asignal
 			SendOut			p1, aleft, aright
 			endin
 
-instr 			190 ; Fluidsynth output
+;instr 			190 ; Fluidsynth output
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-ijunk			= 			p1 + p2 + p3 + p4 + p5
-ifrequency,iamplitude	NoteOn                  p4, p5, 100.
-aleft, aright   	fluidOut		giFluidsynth
-aleft			= 			iamplitude * aleft
-aright			=			iamplitude * aright
-			AssignSend		p1, .0, 0., .2, 1.0
-			SendOut			p1, aleft, aright
-			endin
+;ijunk			= 			p1 + p2 + p3 + p4 + p5
+;ifrequency,iamplitude	NoteOn                  p4, p5, 100.
+;aleft, aright   	fluidOut		giFluidsynth
+;aleft			= 			iamplitude * aleft
+;aright			=			iamplitude * aright
+;			AssignSend		p1, .0, 0., .2, 1.0
+;			SendOut			p1, aleft, aright
+;			endin
 			
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; B U S S   E F F E C T S 
@@ -1520,10 +1507,6 @@ al1                     butterlp                a1, 100
 al2                     butterlp                a2, 100
 a1                      =                       al1 * 1.5 + a1
 a2                      =                       al2 * 1.5 + a2
-			; Fade in, fade out.
-kenv                    linseg                  0., p5 / 2.0, p4, p3 - p5, p4, p5 / 2.0, 0.
-a1                      =                       a1 * kenv
-a2                      =                       a2 * kenv
 			; Apply compression.
 a1                      dam                     a1, 5000, 0.5, 1, 0.2, 0.1
 a2                      dam                     a2, 5000, 0.5, 1, 0.2, 0.1
@@ -1549,22 +1532,22 @@ i 1 0 0 210 220 1.0
 
 ; SOUNDFONTS OUTPUT
 
-; Insno Start   Dur     Key 	Amplitude
-i 190 	0       10000   0	80.
+;       Insno   Start   Dur     Key 	Amplitude
+; i     190 	0       10000   0	80.
 
 ; MASTER EFFECT CONTROLS
 
 ; Chorus.
 ; Insno	Start	Dur	Delay	Divisor of Delay
-i 200   0       10000   10      30
+i 200   0       -1   10      30
 
 ; Reverb.
 ; Insno	Start	Dur	Level	Feedback	Cutoff
-i 210   0       10000   0.81    0.2  		16000
+i 210   0       -1   0.81    0.2  		16000
 
 ; Master output.
 ; Insno	Start	Dur	Fadein	Fadeout
-i 220   0       10000   0.1     0.1
+i 220   0       -1   0.1     0.1
 
 </CsScore>
 </CsoundSynthesizer>
