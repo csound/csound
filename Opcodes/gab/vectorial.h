@@ -81,15 +81,15 @@ typedef struct {
 /* The following from CSoundAV/vectorial.h */
 typedef struct {
     OPDS    h;
-    MYFLT   *ifn, *kval, *kelements, *idstoffset;
-    long    elements, len, dstoffset;
+    MYFLT   *ifn, *kval, *kelements, *kdstoffset, *kverbose;
+    long    /*elements,*/ len/*, dstoffset*/;
     MYFLT   *vector;
 } VECTOROP;
 
 typedef struct {
   OPDS    h;
   MYFLT   *ifn, *kval, *ielements, *idstoffset;
-  long    elements, len;
+  long    /*elements,*/ len;
   MYFLT   *vector;
 } VECTOROPI;
 
@@ -103,7 +103,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   MYFLT   *ifn1, *ifn2, *ielements, *idstoffset, *isrcoffset;
-  int     elements, len1, len2;
+  int     /*elements,*/ len1, len2;
   MYFLT   *vector1, *vector2;
 } VECTORSOPI;
 
