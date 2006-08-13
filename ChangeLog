@@ -2,9 +2,6 @@
 	* opcodes/Gab/vectorial.c: Added kverbose optional argument and
 	other bug fixes.
 
-2006-08-10  Michael Gogins <gogins@pipeline.com>
-	* Changed CsoundVST to use 0dbfs.
-        
 2006-08-07  Andres Cabrera  <andres@geminiflux.com>
 	* opcodes/Gab/vectorial.c: Added optional arguments isrcoffset
 	and idstoffset to most vectorial opcodes.
