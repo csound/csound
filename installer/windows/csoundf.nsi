@@ -456,6 +456,13 @@ Section "${PRODUCT}" SecCopyUI
   SetOutPath $INSTDIR\doc\manual
   File /r ..\..\..\manual\html\*
   
+  SetOutPath $INSTDIR\tutorial
+  File ..\..\tutorial\*.pdf
+  File ..\..\tutorial\*.csd
+  File ..\..\tutorial\*.py
+  File ..\..\tutorial\tutorial3.cpr
+ 
+  
   SetOutPath $INSTDIR\examples
   File /x *.wav /x *.orc /x *.sco ..\..\examples\*.*
   SetOutPath $INSTDIR\examples\csoundapi_tilde
@@ -543,7 +550,8 @@ Section "${PRODUCT}" SecCopyUI
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\winsound.lnk" "$INSTDIR\bin\winsound.exe" "" "" "" "" "" "ffitch Csound GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVST.exe" "" "" "" "" "" "CsoundVST GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\License.lnk" "$INSTDIR\doc\readme-csound5.txt" "" "" "" "" "" "Csound README"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\indexframes.html" "" "" "" "" "" "Csound manual (frames version)"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Manual.lnk" "$INSTDIR\doc\manual\index.html" "" "" "" "" "" "Csound manual"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Tutorial.lnk" "$INSTDIR\tutorial\tutorial.pdf" "" "" "" "" "" "Csound tutorial"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" "$INSTDIR\doc\CsoundAPI.pdf" "" "" "" "" "" "API reference"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "" "" "" "" "Uninstall Csound"
   
