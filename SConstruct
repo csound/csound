@@ -1736,6 +1736,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
             '''))
         csWinEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
+    	csWinEnvironment.Append(CXXFLAGS = ['-fno-rtti'])
         csWinEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
         csWinEnvironment.Append(LINKFLAGS = Split('''
             -framework Carbon -framework CoreAudio -framework CoreMidi
