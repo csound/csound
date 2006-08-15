@@ -1549,8 +1549,5 @@ i 210   0       -1   0.81    0.2  		16000
 ; Master output.
 ; Insno	Start	Dur	Fadein	Fadeout
 i 220   0       -1   0.1     0.1
-
-f 0 3600
-
 </CsScore>
 </CsoundSynthesizer>
