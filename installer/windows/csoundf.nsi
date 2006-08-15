@@ -545,7 +545,7 @@ Section "${PRODUCT}" SecCopyUI
     ; link.lnk target.file [parameters [icon.file [icon_index_number [start_options [keyboard_shortcut [description]]]]]]
 
     CreateDirectory "$SMPROGRAMS\$STARTMENU_FOLDER"
-    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\bin\${PROGRAM}.exe" "" "" "" "" "" "Command-line Csound"
+    CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\${PRODUCT}.lnk" "$INSTDIR\bin\csound.exe" "" "" "" "" "" "Command-line Csound"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\csound5gui.lnk" "$INSTDIR\bin\csound5gui.exe" "" "" "" "" "" " Varga Csound GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\winsound.lnk" "$INSTDIR\bin\winsound.exe" "" "" "" "" "" "ffitch Csound GUI"
     CreateShortCut "$SMPROGRAMS\$STARTMENU_FOLDER\CsoundVST.lnk" "$INSTDIR\bin\CsoundVST.exe" "" "" "" "" "" "CsoundVST GUI"
