@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -n -h -d -f -M0 -m7 -+rtmidi=null --midi-key=4 --midi-velocity=5 temp.orc temp.sco
+csound -M0 -m3 --midi-key=4 --midi-velocity=5 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -125,8 +125,8 @@ gitonewheel6            ftgen                   0, 0, 65537,     8     -.8, 336,
 						
 			opcode 			AssignSend, 0, iiiii
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-inso,ic,il,ir,im 	xin
-inum			init			floor(inso)
+insno,ic,il,ir,im 	xin
+inum			=			floor(insno)
                         ;print                   inum, ic, il, ir, im
 			MixerSetLevel	 	inum, 200, ic
 			;MixerSetLevel	 	inum, 201, il
@@ -149,7 +149,8 @@ iamplitude 		= 			ampdb(ivelocity) * (inormal / imeasure)
                         
 			opcode			SendOut, 0, iaa
 			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-inum, aleft, aright	xin
+insno, aleft, aright	xin
+inum                    =                       floor(insno)
 			MixerSend               aleft, inum, 200, 0
 			MixerSend               aright, inum, 200, 1
 			MixerSend               aleft, inum, 210, 0
@@ -1548,6 +1549,8 @@ i 210   0       -1   0.81    0.2  		16000
 ; Master output.
 ; Insno	Start	Dur	Fadein	Fadeout
 i 220   0       -1   0.1     0.1
+
+f 0 3600
 
 </CsScore>
 </CsoundSynthesizer>
