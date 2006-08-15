@@ -1216,6 +1216,16 @@ if getPlatform() == 'mingw' and fltkFound:
         Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
         Opcodes/vst4cs/src/vsthost.cpp
     '''))
+if getPlatform() == 'darwin' and fltkFound:
+    vst4Environment = vstEnvironment.Copy()
+    vst4Environment.Append(LIBS = ['fltk'])
+    vst4Environment.Append(LIBS = ['stdc++'])
+    vst4Environment.Append(LINKFLAGS=['-framework', 'carbon', '-framework', 'ApplicationServices'])
+    vst4Environment.Append(CPPPATH = ['frontends/CsoundVST'])
+    makePlugin(vst4Environment, 'vst4cs', Split('''
+        Opcodes/vst4cs/src/vst4cs.cpp Opcodes/vst4cs/src/fxbank.cpp
+        Opcodes/vst4cs/src/vsthost.cpp
+    '''))
 
 # Build the Loris and Python opcodes here
 
