@@ -4,22 +4,10 @@ csound -M0 -odac8 --midi-key-oct=4 --midi-velocity=5 temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; O R C H E S T R A   F O R   V S T   P L U G I N   U S E
-; Copyright (c) 2005 by Michael Gogins.
+; O R C H E S T R A   F O R   V S T   A N D   M I D I   U S E
+; Copyright (c) 2006 by Michael Gogins.
 ; All rights reserved.
-;
-; There is one input buss for each effect,
-; and each instrument has a send to each buss.
-;
-; Mixer levels are set with instr 1.
-;
-; Numbered instruments range from 2 through 100.
-;
-; Effects range from 200 up.
-;
-; Incorporated instruments can be named and wrapped
-; with numbered instrument definitions.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; HEADER
@@ -38,7 +26,7 @@ nchnls                  =                       2
 ; Channel to instrument assignments.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                        massign                 1,19
+                        massign                 1,1
                         massign                 2,13
                         massign                 3,6
 
