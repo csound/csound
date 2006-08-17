@@ -225,11 +225,13 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     /* load library */
     err = csound->OpenLibrary(&h, libraryPath);
     if (err) {
-#if defined(BETA) && defined(LINUX)
-      csound->Warning(csound, "%s", dlerror());
-#endif
+#if defined(LINUX)
+      csound->Warning(csound, Str("could not open library '%s' (%s)"),
+                      libraryPath, dlerror());
+#else
       csound->Warning(csound, Str("could not open library '%s' (%d)"),
-                              libraryPath, err);
+                      libraryPath, err);
+#endif
       return CSOUND_ERROR;
     }
     /* check if the library is compatible with this version of Csound */
