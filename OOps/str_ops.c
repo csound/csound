@@ -213,7 +213,7 @@ static CS_NOINLINE int
 {
     int     len = 0;
     char    strseg[2048], *outstring = dst;
-    MYFLT   *pp = NULL;
+    MYFLT   *parm = NULL;
     int     i = 0, j = 0, n;
     const char  *segwaiting = NULL;
     int     maxChars;
@@ -249,7 +249,7 @@ static CS_NOINLINE int
           return StrOp_ErrMsg(p, "argument type inconsistent with format");
         }
         strCode >>= 1;
-        pp = kvals[j++];
+        parm = kvals[j++];
         switch (*segwaiting) {
         case 'd':
         case 'i':
@@ -259,9 +259,9 @@ static CS_NOINLINE int
         case 'u':
         case 'c':
 #ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*pp));
+          n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));
 #else
-          n = sprintf(outstring, strseg, (int) MYFLT2LRND(*pp));
+          n = sprintf(outstring, strseg, (int) MYFLT2LRND(*parm));
 #endif
           break;
         case 'e':
@@ -271,20 +271,20 @@ static CS_NOINLINE int
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, (double)*pp);
+          n = snprintf(outstring, maxChars, strseg, (double)*parm);
 #else
-          n = sprintf(outstring, strseg, (double)*pp);
+          n = sprintf(outstring, strseg, (double)*parm);
 #endif
           break;
         case 's':
-          if ((char*)pp == dst) {
+          if ((char*)parm == dst) {
             return StrOp_ErrMsg(p, "output argument may not be "
                                    "the same as any of the input args");
           }
 #ifdef HAVE_SNPRINTF
-          n = snprintf(outstring, maxChars, strseg, (char*) p);
+          n = snprintf(outstring, maxChars, strseg, (char*) parm);
 #else
-          n = sprintf(outstring, strseg, (char*)pp);
+          n = sprintf(outstring, strseg, (char*)parm);
 #endif
           break;
         default:
