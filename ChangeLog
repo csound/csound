@@ -1,3 +1,11 @@
+2006-08-17  jpff  <jpff@codemist.co.uk>
+
+	* Top/csmodule.c (csoundLoadExternal): Even if not BETA display
+	the reason that a module failed to load rather than -1
+
+2006-08-15  jpff  <jpff@codemist.co.uk>
+	* Version 5.03 released
+
 2006-08-11  Andres Cabrera  <andres@geminiflux.com>
 	* opcodes/Gab/vectorial.c: Added kverbose optional argument and
 	other bug fixes.
