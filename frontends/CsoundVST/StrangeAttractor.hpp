@@ -59,7 +59,6 @@ namespace csound
         {
         protected:
                 std::string code;
-                Random random;
                 std::string filename;
                 int scoreType;
                 int NMAX;
@@ -169,6 +168,7 @@ namespace csound
                 std::vector<double> ZS;
                 double ZSAVE;
         public:
+                Random random;
                 StrangeAttractor(void);
                 virtual ~StrangeAttractor(void);
                 virtual void setCode(std::string code);
