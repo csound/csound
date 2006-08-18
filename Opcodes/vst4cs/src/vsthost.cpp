@@ -546,6 +546,7 @@ void VSTPlugin::Free() // Called also in destruction
 
 void VSTPlugin::Init()
 {
+  size_t i;
     Debug("VSTPlugin::Init.\n");
     framesPerSecond = (size_t) ((long) (csound->esr + FL(0.5)));
     framesPerBlock = csound->ksmps;
@@ -554,11 +555,11 @@ void VSTPlugin::Init()
         framesPerSecond, framesPerBlock, getNumInputs(), getNumOutputs());
     inputs_.resize((size_t) getNumInputs());
     outputs_.resize((size_t) getNumOutputs());
-    for (size_t i = 0; i < inputs_.size(); i++) {
+    for (i = 0; i < inputs_.size(); i++) {
       inputs_[i].resize(framesPerBlock);
       inputs.push_back(&inputs_[i].front());
     }
-    for (size_t i = 0; i < outputs_.size(); i++) {
+    for (i = 0; i < outputs_.size(); i++) {
       outputs_[i].resize(framesPerBlock);
       outputs.push_back(&outputs_[i].front());
     }
