@@ -276,7 +276,7 @@ if commonEnvironment['gcc3opt'] != '0' or commonEnvironment['gcc4opt'] != '0':
     flags = '-O3 -march=%s'%(cpuType)
   commonEnvironment.Prepend(CCFLAGS = Split(flags))
 elif commonEnvironment['buildRelease'] != '0':
-  if withMSVC() == '0':
+  if not withMSVC():
     commonEnvironment.Prepend(CCFLAGS = Split('''
       -O3 -fno-inline-functions -fomit-frame-pointer -ffast-math
     '''))
@@ -310,7 +310,7 @@ else:
 
 # Define different build environments for different types of targets.
 
-if withMSVC() == '0':
+if not withMSVC():
     commonEnvironment.Prepend(CCFLAGS = "-Wall")
 
 if getPlatform() == 'linux':
@@ -332,7 +332,7 @@ elif getPlatform() == 'win32':
     commonEnvironment.Append(CCFLAGS = "-DWIN32")
     commonEnvironment.Append(CCFLAGS = "-DPIPES")
     commonEnvironment.Append(CCFLAGS = "-DOS_IS_WIN32")
-    if withMSVC() == '0':
+    if not withMSVC():
         commonEnvironment.Append(CPPPATH = '/usr/local/include')
         commonEnvironment.Append(CPPPATH = '/usr/include')
         commonEnvironment.Append(CCFLAGS = "-mthreads")
@@ -589,12 +589,13 @@ csoundDynamicLibraryEnvironment = csoundLibraryEnvironment.Copy()
 csoundDynamicLibraryEnvironment.Append(LIBS = ['sndfile'])
 if getPlatform() == 'win32':
     # These are the Windows system call libraries.
-    if withMSVC() == '0':
+    if not withMSVC():
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm
             kernel32 gdi32 wsock32 ws2_32 ole32 uuid winmm
         ''')
     else:
+        print 'MSVC'
         csoundWindowsLibraries = Split('''
             kernel32 gdi32 wsock32 ole32 uuid winmm user32.lib ws2_32.lib
             comctl32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib
@@ -818,7 +819,7 @@ if getPlatform() == 'darwin':
 guiProgramEnvironment = commonEnvironment.Copy()
 
 if getPlatform() == 'win32':
-    if withMSVC() == '0':
+    if not withMSVC():
         vstEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         guiProgramEnvironment.Append(LINKFLAGS = "--subsystem:windows")
         vstEnvironment.Append(LIBS = ['stdc++', 'supc++'])
@@ -863,7 +864,7 @@ def fixCFlagsForSwig(env):
         env['CCFLAGS'].remove('-pedantic')
     if '-pedantic' in env['CXXFLAGS']:
         env['CXXFLAGS'].remove('-pedantic')
-    if withMSVC() == '0':
+    if not withMSVC():
         # work around non-ANSI type punning in SWIG generated wrapper files
         env['CCFLAGS'].append('-fno-strict-aliasing')
 
@@ -1066,7 +1067,7 @@ makePlugin(pluginEnvironment, 'pitch',
 makePlugin(pluginEnvironment, 'scansyn',
            ['Opcodes/scansyn.c', 'Opcodes/scansynx.c'])
 sfontEnvironment = pluginEnvironment.Copy()
-if (withMSVC() == '0'):
+if (not withMSVC()):
     sfontEnvironment.Append(CCFLAGS = ['-fno-strict-aliasing'])
 makePlugin(sfontEnvironment, 'sfont', ['Opcodes/sfont.c'])
 makePlugin(pluginEnvironment, 'babo', ['Opcodes/babo.c'])
@@ -1106,7 +1107,7 @@ else:
         widgetsEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
         widgetsEnvironment.Append(LIBS = ['fltk'])
-        if (withMSVC() == '0'):
+        if (not withMSVC()):
             widgetsEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             widgetsEnvironment.Prepend(
                 LINKFLAGS = ['-Wl,--enable-runtime-pseudo-reloc'])
@@ -1230,7 +1231,7 @@ else:
 if getPlatform() == 'win32' and fltkFound:
     vst4Environment = vstEnvironment.Copy()
     vst4Environment.Append(LIBS = ['fltk'])
-    if withMSVC() == '0':
+    if not withMSVC():
         vst4Environment.Append(LIBS = ['stdc++'])
     if getPlatform() == 'win32':
         vst4Environment.Append(LIBS = csoundWindowsLibraries)
@@ -1267,7 +1268,7 @@ else:
         lorisEnvironment.Append(CCFLAGS = '-DDEBUG_LORISGENS')
     if getPlatform() == 'win32':
         lorisEnvironment.Append(CCFLAGS = '-D_MSC_VER')
-    if withMSVC() == '0':
+    if not withMSVC():
         lorisEnvironment.Append(CCFLAGS = Split('''
             -Wno-comment -Wno-unknown-pragmas -Wno-sign-compare
         '''))
@@ -1349,7 +1350,7 @@ else:
         stkLibrarySources += stkEnvironment.SharedObject(i)
     stkLibrary = stkEnvironment.StaticLibrary('stk_base', stkLibrarySources)
     stkEnvironment.Prepend(LIBS = ['stk_base'])
-    if withMSVC() == '0':
+    if not withMSVC():
         stkEnvironment.Append(LIBS = ['stdc++'])
     if getPlatform() == 'win32':
         stkEnvironment.Append(LIBS = csoundWindowsLibraries)
@@ -1481,7 +1482,7 @@ else:
         csound5GUIEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
         csound5GUIEnvironment.Append(LIBS = ['fltk'])
-        if (withMSVC() == '0'):
+        if (not withMSVC()):
             csound5GUIEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csound5GUIEnvironment.Prepend(LINKFLAGS = Split('''
                 -mwindows -Wl,--enable-runtime-pseudo-reloc
@@ -1762,7 +1763,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
         csWinEnvironment.Append(LIBS = ['stdc++', 'pthread', 'm'])
     elif getPlatform() == 'win32':
         csWinEnvironment.Append(LIBS = ['fltk'])
-        if withMSVC() == '0':
+        if not withMSVC():
             csWinEnvironment.Append(LIBS = ['stdc++', 'supc++'])
             csWinEnvironment.Prepend(LINKFLAGS = Split('''
                 -mwindows -Wl,--enable-runtime-pseudo-reloc
