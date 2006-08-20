@@ -3,6 +3,7 @@
 
     Copyright (C) 2004 John ffitch
         (C) 2005, 2006 Istvan Varga
+        (C) 2006 Victor Lazzarini
 
     This file is part of Csound.
 
@@ -27,9 +28,17 @@
 #ifndef CSOUND_BUS_H
 #define CSOUND_BUS_H
 
+#include "pstream.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct {
+    OPDS    h;
+    PVSDAT   *r;
+    MYFLT    *a,n;
+} FCHAN;
 
 typedef struct {
     OPDS    h;
@@ -157,6 +166,8 @@ int     chano_opcode_perf_k(CSOUND *, void *);
 int     chano_opcode_perf_a(CSOUND *, void *);
 int     chani_opcode_perf_k(CSOUND *, void *);
 int     chani_opcode_perf_a(CSOUND *, void *);
+int     chani_opcode_perf_f(CSOUND *, void *);
+int     chano_opcode_perf_f(CSOUND *, void *);
 
 int     sensekey_perf(CSOUND *, void *);
 
