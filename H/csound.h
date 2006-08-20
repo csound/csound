@@ -5,7 +5,7 @@
  * by means of software alone.
  *
  * Copyright (C) 2001-2005 Michael Gogins, Matt Ingalls, John D. Ramsdell,
- *                         John P. ffitch, Istvan Varga
+ *                         John P. ffitch, Istvan Varga, Victor Lazzarini
  *
  * L I C E N S E
  *
@@ -1372,6 +1372,25 @@ extern "C" {
    */
   PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
 
+ /**
+ * Sends a PVSDAT value (as void *) to the chani opcode (f-rate) at index 'n'.
+ * The bus is automatically extended if 'n' exceeds any previously used
+ * index value, clearing new locations to zero.
+ * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+ * CSOUND_MEMORY if there is not enough memory to extend the bus.
+ */
+  PUBLIC int csoundChanIFSet(CSOUND *, const void *, int n);
+
+ /**
+ * Receives a PVSDAT value (as void *) from the chano opcode (f-rate) at index 'n'.
+ * The bus is automatically extended if 'n' exceeds any previously used
+ * index value, clearing new locations to zero.
+ * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+ * CSOUND_MEMORY if there is not enough memory to extend the bus.
+ * The fftsize argument is used as an initialiser if a channel has to be created.
+ */
+  PUBLIC int csoundChanOFGet(CSOUND *csound, void *value, int n, int fftsize);
+ 
   /**
    * Sets general purpose callback function that will be called on various
    * events. The callback is preserved on csoundReset(), and multiple

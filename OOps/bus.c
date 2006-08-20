@@ -3,6 +3,7 @@
 
     Copyright (C) 2004 John ffitch
         (C) 2005, 2006 Istvan Varga
+        (c) 2006 Victor Lazzarini
 
     This file is part of Csound.
 
@@ -142,6 +143,64 @@ PUBLIC int csoundChanOAGet(CSOUND *csound, MYFLT *value, int n)
     memcpy(value, &(csound->chanoa[n]), sizeof(MYFLT) * csound->ksmps);
     return CSOUND_SUCCESS;
 }
+/**
+ * Sends a PVSDAT value to the chani opcode (f-rate) at index 'n'.
+ * The bus is automatically extended if 'n' exceeds any previously used
+ * index value, clearing new locations to zero.
+ * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+ * CSOUND_MEMORY if there is not enough memory to extend the bus.
+ */
+PUBLIC int csoundChanIFSet(CSOUND *csound, const void *value, int n)
+{
+    PVSDAT *fsig; 
+    n *= sizeof(PVSDAT);
+    if ((unsigned int)n >= (unsigned int)csound->nchanif) {
+      int   err;
+      if (n < 0)
+        return CSOUND_ERROR;
+      err = chan_realloc(csound, &(csound->chanif),
+                         &(csound->nchanif), n + sizeof(PVSDAT));
+      /* allocate memory for frames */
+      if (err)
+        return err;
+      else {
+       fsig = (PVSDAT *)&(csound->chanif[n]);
+       csound->AuxAlloc(csound, (((PVSDAT *)value)->N + 2) * sizeof(float), &fsig->frame);
+      }
+   }
+    memcpy(&(csound->chanif[n]), value, sizeof(PVSDAT));
+    return CSOUND_SUCCESS;
+}
+
+/**
+ * Receives a PVSDAT value from the chano opcode (f-rate) at index 'n'.
+ * The bus is automatically extended if 'n' exceeds any previously used
+ * index value, clearing new locations to zero.
+ * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+ * CSOUND_MEMORY if there is not enough memory to extend the bus.
+ * The fftsize argument is used as an initialiser if a channel has to be created.
+ */
+PUBLIC int csoundChanOFGet(CSOUND *csound, void *value, int n, int fftsize)
+{
+    PVSDAT *fsig;
+    n *= sizeof(PVSDAT);
+    if ((unsigned int)n >= (unsigned int)csound->nchanof) {
+      int   err;
+      if (n < 0)
+        return CSOUND_ERROR;
+      err = chan_realloc(csound, &(csound->chanof),
+                         &(csound->nchanof), n + sizeof(PVSDAT));
+      if (err)
+        return err;
+      else 
+        {
+       fsig = (PVSDAT *)&(csound->chanof[n]);
+       csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &fsig->frame);
+	}
+    }
+    memcpy(value, &(csound->chanof[n]), sizeof(PVSDAT));
+    return CSOUND_SUCCESS;
+}
 
  /* ------------------------------------------------------------------------ */
 
@@ -220,6 +279,44 @@ int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+int chani_opcode_perf_f(CSOUND *csound, FCHAN *p)
+{
+    int     n = (int)MYFLT2LRND(*(p->a)) * sizeof(PVSDAT);
+
+    if ((unsigned int)n >= (unsigned int)csound->nchanif) {
+      if (n < 0)
+        return csound->PerfError(csound, Str("chani: invalid index"));
+      if (chan_realloc(csound, &(csound->chanif),
+                       &(csound->nchanif), n + sizeof(PVSDAT)) != 0)
+        return csound->PerfError(csound,
+                                 Str("chani: memory allocation failure"));
+      else {
+	/* allocate frame memory */
+        PVSDAT *fout = (PVSDAT *)&(csound->chanif[n]);
+        csound->AuxAlloc(csound, (p->n + 2) * sizeof(float), &fout->frame);                          }
+    }
+    memcpy(p->r, &(csound->chanif[n]), sizeof(PVSDAT));
+    return OK;
+}
+
+int chano_opcode_perf_f(CSOUND *csound, FCHAN *p)
+{
+    int     n = (int)MYFLT2LRND(*(p->a)) * sizeof(PVSDAT);
+    if (n < 0)
+        return csound->PerfError(csound, Str("chano: invalid index"));
+    if ((unsigned int)n >= (unsigned int)csound->nchanof) {
+      if (chan_realloc(csound, &(csound->chanof),
+                       &(csound->nchanof), n + sizeof(PVSDAT)) != 0)
+        return csound->PerfError(csound,
+                                 Str("chano: memory allocation failure"));
+       else {
+	/* allocate frame memory */
+	PVSDAT *fin = p->r;
+        csound->AuxAlloc(csound, (fin->N + 2) * sizeof(float), &fin->frame);               }
+    }
+    memcpy(&(csound->chanof[n]), p->r, sizeof(PVSDAT));
+    return OK;
+}
  /* ======================================================================== */
 
 /* "chn" opcodes and bus interface by Istvan Varga */
