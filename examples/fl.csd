@@ -15,6 +15,7 @@ gk1,gih  FLknob  "Current value of this Knob is shown in a text field", 80,5000,
 
         instr 1
         FLsetVal_i 440, gih
+gk1     tonek gk1, 1
 a1      oscili  3000, gk1, 1
         outs     a1,a1
         endin
