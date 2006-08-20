@@ -117,25 +117,6 @@ elif sys.platform[:3] == 'win':
     #customLIBPATH.append('c:/opt/pthreads')
     ################################################################
     # print "Adding custom path"
-    # customLIBPATH.append("D:/Program Files/Microsoft Visual Studio/vc98/Lib")
-    # customLIBPATH.append('msvc')
-    # customCPPPATH.append("D:/Program Files/Microsoft Visual Studio/vc98/include")
-    # customCPPPATH.append("D:/Program Files/java/jdk1.5.0_05/include")
-    # customCPPPATH.append("D:/Program Files/java/jdk1.5.0_05/include/win32")
-    # customLIBPATH.append("D:/Program Files/java/jdk1.5.0_05/lib")
-    # customCPPPATH.append("msvc/pa_common")
-    # customCPPPATH.append("msvc/tcl")
-    # customCPPPATH.append("D:/Python23/include")
-    # customCPPPATH.append("msvc/tk")
-    # customCPPPATH.append("msvc")
-    ### If libsndfile is not in a standard location add it here:
-    # customCPPPATH.append("./msvc/libsndfile")
-    # print customCPPPATH
-    # customCCFLAGS.append("-DMSVC")
-    # customCCFLAGS.append("-GX")
-    # customCCFLAGS.append("-MD")
-    # customCCFLAGS.append("-W2")
-    # customCCFLAGS.append("-Ob2")
 else:
     platform = 'unsupported platform'
 
