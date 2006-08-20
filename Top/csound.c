@@ -73,7 +73,7 @@ static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 extern void close_all_files(CSOUND *);
 
 static const CSOUND cenviron_ = {
-    /* ----------------- interface functions (320 total) ----------------- */
+    /* ----------------- interface functions (322 total) ----------------- */
         csoundGetVersion,
         csoundGetAPIVersion,
         csoundGetHostData,
@@ -281,6 +281,8 @@ static const CSOUND cenviron_ = {
         csoundChanOKGet,
         csoundChanIASet,
         csoundChanOAGet,
+        csoundChanOFGet,
+        csoundChanIFSet,
         dispinit,
         csoundCreateMutex,
         csoundLockMutexNoWait,
@@ -392,8 +394,10 @@ static const CSOUND cenviron_ = {
         /* end of callbacks */
         0, 0,           /*  nchanik, nchania    */
         0, 0,           /*  nchanok, nchanoa    */
+        0, 0,
         NULL, NULL,     /*  chanik, chania      */
         NULL, NULL,     /*  chanok, chanoa      */
+        NULL, NULL,     /*  chanif, chanof */
         FL(0.0),        /*  cpu_power_busy      */
         (char*) NULL,   /*  xfilename           */
         NLABELS,        /*  nlabels             */
