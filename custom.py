@@ -26,8 +26,10 @@ elif sys.platform == 'darwin':
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    customCPPPATH.append('c:/msys/1.0/mingw/include')
-    customLIBPATH.append('c:/msys/1.0/mingw/lib')
+    customCPPPATH.append('c:/msys/1.0/include')
+    customLIBPATH.append('c:/msys/1.0/lib')
+    customCPPPATH.append('c:/msys/1.0/local/include')
+    customLIBPATH.append('c:/msys/1.0/local/lib')
     # If libsndfile is not in a standard location add it here:
     #customCPPPATH.append('C:/opt/libsndfile-1.0.15/src')
     #customLIBPATH.append('C:/opt/libsndfile-1.0.15/src/.libs')
@@ -56,8 +58,8 @@ elif sys.platform[:3] == 'win':
     ################################################################
     # If you want to build CsoundVST you need Python and
     # a MinGW import library for Python. Add them here:
-    customCPPPATH.append('c:/opt/Python24/include')
-    #customLIBPATH.append('c:/WINDOWS/system32')
+    customCPPPATH.append('c:/Python24/include')
+    customLIBPATH.append('c:/Python24/libs')
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:

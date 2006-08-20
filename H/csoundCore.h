@@ -116,8 +116,10 @@ extern "C" {
 
 #define WARNMSG 04
 #define IGN(X)  (void) X
+/* VL: this is a silly redefinition that can only
+   cause confusion
 #define printf  use_csoundMessage_instead_of_printf
-
+*/
   typedef struct {
     int     odebug;
     int     sfread, sfwrite, sfheader, filetyp;
