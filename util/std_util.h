@@ -37,6 +37,8 @@ extern int lpc_import_init_(CSOUND *);
 extern int mixer_init_(CSOUND *);
 extern int pvanal_init_(CSOUND *);
 extern int pvlook_init_(CSOUND *);
+extern int pv_export_init_(CSOUND *);
+extern int pv_import_init_(CSOUND *);
 extern int scale_init_(CSOUND *);
 extern int sndinfo_init_(CSOUND *);
 extern int srconv_init_(CSOUND *);
