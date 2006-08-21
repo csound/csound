@@ -33,7 +33,7 @@ void csoundAuxAlloc(CSOUND *csound, long nbytes, AUXCH *auxchp)
 {
     if (auxchp->auxp != NULL) {
       /* if allocd with same size, just clear to zero */
-      if (nbytes == (long) auxchp->size) {
+      if (nbytes == (long)auxchp->size) {
         memset(auxchp->auxp, 0, (size_t) nbytes);
         return;
       }
@@ -51,7 +51,7 @@ void csoundAuxAlloc(CSOUND *csound, long nbytes, AUXCH *auxchp)
     /* now alloc the space and update the internal data */
     auxchp->size = nbytes;
     auxchp->auxp = mcalloc(csound, nbytes);
-    auxchp->endp = (char*) auxchp->auxp + nbytes;
+    auxchp->endp = (char*)auxchp->auxp + nbytes;
     if (csound->oparms->odebug)
       auxchprint(csound, csound->curip);
 }

@@ -834,10 +834,8 @@ OENTRY opcodlst_1[] = {
     (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
  {  "sensekey",    S(KSENSE),           2,      "kz",           "",
     (SUBR) NULL, (SUBR) sensekey_perf, (SUBR) NULL                      },
-#ifdef BETA
  {  "remove",      S(DELETEIN),         1,      "",             "i",
     (SUBR) delete_instr, (SUBR) NULL, (SUBR) NULL                       },
-#endif
  /* terminate list */
  {  NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
