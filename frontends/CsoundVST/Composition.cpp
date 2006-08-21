@@ -55,11 +55,18 @@ namespace csound
     score.sort();
     for(Score::iterator it = score.begin(); it != score.end(); ++it)
       {
-        if(getConformPitches())
+       if (!score.reassignments.empty())
+	{
+	  double oldInstrument = std::floor(it->getInstrument());
+	  if (score.reassignments.find(oldInstrument) != score.reassignments.end())
+	    {
+	      it->setInstrument(score.reassignments[oldInstrument]);
+	    }
+	}
+       if(getConformPitches())
           {
-            csound::Event e = *it;
-            e.conformToPitchClassSet();
-            cppSound->addScoreLine(e.toCsoundIStatement(tonesPerOctave));
+            it->conformToPitchClassSet();
+            cppSound->addScoreLine(it->toCsoundIStatement(tonesPerOctave));
           }
         else
           {
