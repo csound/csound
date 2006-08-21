@@ -394,7 +394,7 @@ static const CSOUND cenviron_ = {
         /* end of callbacks */
         0, 0,           /*  nchanik, nchania    */
         0, 0,           /*  nchanok, nchanoa    */
-        0, 0,
+        0, 0,           /* nchanof, nchanif */
         NULL, NULL,     /*  chanik, chania      */
         NULL, NULL,     /*  chanok, chanoa      */
         NULL, NULL,     /*  chanif, chanof */
