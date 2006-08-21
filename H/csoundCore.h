@@ -1016,7 +1016,8 @@ extern "C" {
     void          (*rtclose_callback)(CSOUND *);
     /* end of callbacks */
     int           nchanik, nchania, nchanok, nchanoa, nchanif, nchanof;
-    MYFLT         *chanik, *chania, *chanok, *chanoa,*chanif, *chanof;
+    MYFLT         *chanik, *chania, *chanok, *chanoa;
+    void          *chanif, *chanof;
     MYFLT         cpu_power_busy;
     char          *xfilename;
     /* oload.h */

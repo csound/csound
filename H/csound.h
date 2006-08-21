@@ -1376,7 +1376,8 @@ extern "C" {
  * Sends a PVSDAT value (as void *) to the chani opcode (f-rate) at index 'n'.
  * The bus is automatically extended if 'n' exceeds any previously used
  * index value, clearing new locations to zero.
- * Returns zero on success, CSOUND_ERROR if the index is invalid, and
+ * Returns zero on success, CSOUND_ERROR if the index is invalid or
+ * fsig framesizes are incompatible, and
  * CSOUND_MEMORY if there is not enough memory to extend the bus.
  */
   PUBLIC int csoundChanIFSet(CSOUND *, const void *, int n);
@@ -1385,7 +1386,8 @@ extern "C" {
  * Receives a PVSDAT value (as void *) from the chano opcode (f-rate) at index 'n'.
  * The bus is not extended if 'n' exceeds any previously used
  * index value
- * Returns zero on success, CSOUND_ERROR if the index is invalid
+ * Returns zero on success, CSOUND_ERROR if the index is invalid or
+ * if fsig framesizes are incompatible
  */
   PUBLIC int csoundChanOFGet(CSOUND *csound, void *value, int n);
  

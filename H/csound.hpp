@@ -694,6 +694,17 @@ public:
   {
     return csoundChanOAGet(csound, value, n);
   }
+
+  virtual int ChanIFSet(void* value, int n)
+  {
+    return csoundChanIFSet(csound, value, n);
+  }
+ 
+  virtual int ChanOFGet(void* value, int n)
+  {
+    return csoundChanOFGet(csound, value, n);
+  }
+
   // cfgvar.h interface
   virtual int CreateConfigurationVariable(const char *name, void *p,
                                           int type, int flags,
