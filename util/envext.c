@@ -54,7 +54,7 @@ static void envext_usage(CSOUND *csound, char *mesg, ...)
     csound->Message(csound, "Legal flags are:\n");
     csound->Message(csound,"-o fnam\tsound output filename\n");
     csound->Message(csound, "-w time\tSize of window\n");
-    csound->Message(csound,"flag defaults: envext -onewenv\n");
+    csound->Message(csound,"flag defaults: envext -onewenv -w0.25\n");
     va_start(args, mesg);
     csound->ErrMsgV(csound, Str("envext: error: "), mesg, args);
     va_end(args);
