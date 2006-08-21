@@ -67,13 +67,12 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
       memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
       return CSOUND_MEMORY;
       }
-    newp = (PVSDAT*)mmalloc(csound, sizeof(PVSDAT) * newSize);
-    memcpy(newp, *p, sizeof(PVSDAT)*(*oldSize));
-    mfree(csound, *p);
+    newp = (PVSDAT*)mrealloc(csound, *p,  sizeof(PVSDAT) * newSize);
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
-    memset(newp, 0, sizeof(PVSDAT));
+    memset(newp+*oldSize, 0, sizeof(PVSDAT));
     (*p) = newp;
     (*oldSize) = newSize;
+    
     return CSOUND_SUCCESS;
 }
 
@@ -199,7 +198,6 @@ PUBLIC int csoundChanIFSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       return CSOUND_SUCCESS;
       }
     }
-
     if(fout[n].N >= fin->N){
       fout[n].N = fin->N; 
       fout[n].overlap = fin->overlap;   
@@ -207,7 +205,7 @@ PUBLIC int csoundChanIFSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       fout[n].wintype = fin->wintype;  
       fout[n].format =  fin->format; 
       fout[n].framecount = fin->framecount; 
-    memcpy(fout[n].frame.auxp, fin->frame, sizeof(float)*(fin->N+2));
+      memcpy(fout[n].frame.auxp, fin->frame, sizeof(float)*(fin->N+2));
     }
     else return CSOUND_ERROR;
     return CSOUND_SUCCESS;
@@ -215,16 +213,33 @@ PUBLIC int csoundChanIFSet(CSOUND *csound, const PVSDATEXT *fin, int n)
 
 /**
  * Receives a PVSDATEX fout from the chano opcode (f-rate) at index 'n'.
- * The bus is not extended if n exceeds existing spaces.
+ * The bus is extended if n exceeds existing spaces, initialising
+ * it using the PVSDATEX fout struct parameters.
  * Returns zero on success, CSOUND_ERROR if the index is invalid or
- * if fsigs framesizes are inmcompatible
+ * if fsigs framesizes are incompatible
  */
 PUBLIC int csoundChanOFGet(CSOUND *csound, PVSDATEXT *fout, int n)
 {
     PVSDAT *fin = (PVSDAT *)csound->chanof;
-    if (((unsigned int)n >= (unsigned int)csound->nchanof)
-         || n < 0)
-        return CSOUND_ERROR;
+    if(n < 0) return CSOUND_ERROR;
+    if (((unsigned int)n >= (unsigned int)csound->nchanof)){
+      int err = chan_realloc_f(csound, (void *)&(csound->chanof),
+			       &(csound->nchanof), n + 1);
+      if(err)
+        return err;
+      else {
+      fin = (PVSDAT *)csound->chanif;
+      csound->AuxAlloc(csound, (fout->N+2)*sizeof(float), &fin[n].frame);
+      fin[n].N = fout->N; 
+      fin[n].overlap = fout->overlap;   
+      fin[n].winsize = fout->winsize; 
+      fin[n].wintype = fout->wintype;  
+      fin[n].format =  fout->format; 
+      fin[n].framecount = fout->framecount;				
+      memset(fin[n].frame.auxp, 0, sizeof(float)*(fin[n].N+2));
+      return CSOUND_SUCCESS;
+      }
+    }
     if(fout->N >= fin[n].N){
       fout->N = fin[n].N; 
       fout->overlap = fin[n].overlap;   
@@ -314,23 +329,42 @@ int chano_opcode_perf_a(CSOUND *csound, ASSIGN *p)
     memcpy(&(csound->chanoa[n]), p->r, sizeof(MYFLT) * csound->ksmps);
     return OK;
 }
+int chani_opcode_init_f(CSOUND *csound, FCHAN *p){
+  p->init.N = *p->N ? *p->N : 1024;
+  p->init.overlap = *p->overlap ? *p->overlap : p->init.N/4;
+  p->init.winsize = *p->winsize ? *p->winsize : p->init.N;
+  p->init.wintype = *p->wintype;
+  p->init.format = *p->format;
+  return OK;
+}
 
 int chani_opcode_perf_f(CSOUND *csound, FCHAN *p)
 {
     PVSDAT *fin = (PVSDAT *)csound->chanif;
     PVSDAT *fout = p->r;
     int     n = (int)MYFLT2LRND(*(p->a));
-    if (((unsigned int)n >= (unsigned int)csound->nchanif) || (n < 0))
-        return csound->PerfError(csound, Str("chani: invalid index"));
-     if(fout->N >= fin[n].N) {
-      fout->N = fin[n].N; 
-      fout->overlap = fin[n].overlap;   
-      fout->winsize = fin[n].winsize; 
-      fout->wintype = fin[n].wintype;  
-      fout->format =  fin[n].format; 
-      fout->framecount = fin[n].framecount; 
-      memcpy(fout->frame.auxp, fin[n].frame.auxp, sizeof(float)*(fin[n].N+2));
-    } else return csound->PerfError(csound, "chani: incompatible fsigs"); 
+    if(n < 0)
+       return csound->PerfError(csound, Str("chani: invalid index"));
+    if (((unsigned int)n >= (unsigned int)csound->nchanif) || (n < 0)){
+      int err = chan_realloc_f(csound, (void *)&(csound->chanif),
+		    &(csound->nchanif), n + 1);
+      if (err){
+        csound->PerfError(csound, Str("chani: memory allocation failure"));
+      }
+      /* allocate memory for frames */
+      else{
+      fin = (PVSDAT *)csound->chanif;
+      csound->AuxAlloc(csound, (p->init.N+2)*sizeof(float), &fin[n].frame);
+      fin[n].N = p->init.N; 
+      fin[n].overlap = p->init.overlap; 
+      fin[n].winsize = p->init.winsize; 
+      fin[n].wintype = p->init.wintype;  
+      fin[n].format =  p->init.format; 
+      fin[n].framecount = 0;				
+      memset(fin[n].frame.auxp, 0, sizeof(float)*(fin[n].N+2));
+      }
+    }
+    memcpy(fout, &fin[n], sizeof(PVSDAT));
     return OK;
 }
 
@@ -339,26 +373,21 @@ int chano_opcode_perf_f(CSOUND *csound, FCHAN *p)
     int     n = (int)MYFLT2LRND(*(p->a));
     PVSDAT *fout = (PVSDAT *)csound->chanof;
     PVSDAT *fin = p->r;
-    
       if (n < 0)
-        return csound->PerfError(csound,"chano: invalid index");
+        return csound->PerfError(csound,Str("chano: invalid index"));
       
       if ((unsigned int)n >= (unsigned int)csound->nchanof){
       if (chan_realloc_f(csound, (void *)&(csound->chanof),
                        &(csound->nchanof), n + 1) != 0)
         return csound->PerfError(csound,
-                                 "chano: memory allocation failure");
+                                 Str("chano: memory allocation failure"));
       else {
        fout = (PVSDAT *)csound->chanof; 
        memcpy(&fout[n], fin, sizeof(PVSDAT));
 	 return OK;
       }
       }
-       if(fout[n].N >= fin->N) {
        memcpy(&fout[n], fin, sizeof(PVSDAT));
-       }
-       else return csound->PerfError(csound, "chano: incompatible fsigs");
-      
     return OK;
 }
  /* ======================================================================== */
