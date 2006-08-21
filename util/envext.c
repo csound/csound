@@ -153,10 +153,10 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p, double window)
       max = 0.0;        mxpos = 0;
       min = 0.0;        minpos = 0;
       for (i=0; i<read_in; i++) {
-        if (buffer[i] > max)
-          max = buffer[i], mxpos = i;
-        if (buffer[i] < min)
-          min = buffer[i], minpos = i;
+        if ((double)buffer[i] > max)
+          max = (double)buffer[i], mxpos = i;
+        if ((double)buffer[i] < min)
+          min = (double)buffer[i], minpos = i;
       }
       if (-min > max) max = -min, mxpos = minpos;
       fprintf(outfile, "%.3f\t%.3f\n",

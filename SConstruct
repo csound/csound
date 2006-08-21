@@ -1399,6 +1399,7 @@ makePlugin(pluginEnvironment, 'stdutil', stdutilSources)
 
 if (commonEnvironment['buildUtilities'] != '0'):
     utils = [
+        ['atsa',        'util/atsa_main.c'    ],
         ['cvanal',      'util/cvl_main.c'     ],
         ['dnoise',      'util/dnoise_main.c'  ],
         ['envext',      'util/env_main.c'     ],
@@ -1435,10 +1436,6 @@ executables.append(commonEnvironment.Program('scot',
 
 #executables.append(csoundProgramEnvironment.Program('cscore',
 #    ['util1/cscore/cscore_main.c']))
-#executables.append(csoundProgramEnvironment.Program('pv_export',
-#    ['util2/exports/pv_export.c']))
-#executables.append(csoundProgramEnvironment.Program('pv_import',
-#    ['util2/exports/pv_import.c']))
 executables.append(commonEnvironment.Program('sdif2ad',
     ['SDIF/sdif2adsyn.c', 'SDIF/sdif.c', 'SDIF/sdif-mem.c']))
 
