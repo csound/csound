@@ -695,12 +695,12 @@ public:
     return csoundChanOAGet(csound, value, n);
   }
 
-  virtual int ChanIFSet(void* value, int n)
+  virtual int ChanIFSet(const PVSDATEXT* value, int n)
   {
     return csoundChanIFSet(csound, value, n);
   }
  
-  virtual int ChanOFGet(void* value, int n)
+  virtual int ChanOFGet(PVSDATEXT* value, int n)
   {
     return csoundChanOFGet(csound, value, n);
   }

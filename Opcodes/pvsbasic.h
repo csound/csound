@@ -128,7 +128,7 @@
 typedef struct _pvsini {
     OPDS    h;
     PVSDAT  *fout;
-    MYFLT   *framesize;
+    MYFLT   *framesize, *olap, *winsize, *wintype, *format;
 } PVSINI;
 
 typedef struct _pvsfreez {
