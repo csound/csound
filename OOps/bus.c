@@ -62,12 +62,14 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
   volatile jmp_buf  saved_exitjmp;
   PVSDAT           *newp;
 
-       memcpy((void*) &saved_exitjmp, (void*)&csound->exitjmp, sizeof(jmp_buf));
+    memcpy((void*) &saved_exitjmp, (void*)&csound->exitjmp, sizeof(jmp_buf));
     if (setjmp(csound->exitjmp) != 0) {
       memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
       return CSOUND_MEMORY;
       }
-    newp = (PVSDAT*)mrealloc(csound, (*p), sizeof(PVSDAT) * newSize);
+    newp = (PVSDAT*)mmalloc(csound, sizeof(PVSDAT) * newSize);
+    memcpy(newp, *p, sizeof(PVSDAT)*(*oldSize));
+    mfree(csound, *p);
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
     memset(newp, 0, sizeof(PVSDAT));
     (*p) = newp;
@@ -179,7 +181,7 @@ PUBLIC int csoundChanIFSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       int   err;
       if (n < 0)
         return CSOUND_ERROR;
-      err = chan_realloc_f(csound, &(csound->chanif),
+      err = chan_realloc_f(csound, (void *)&(csound->chanif),
 			   &(csound->nchanif), n + 1);
       if (err)
         return err;
@@ -192,8 +194,7 @@ PUBLIC int csoundChanIFSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       fout[n].winsize = fin->winsize; 
       fout[n].wintype = fin->wintype;  
       fout[n].format =  fin->format; 
-      fout[n].framecount = fin->framecount; 
-					
+      fout[n].framecount = fin->framecount;				
       memcpy(fout[n].frame.auxp, fin->frame, sizeof(float)*(fin->N+2));
       return CSOUND_SUCCESS;
       }
@@ -343,7 +344,7 @@ int chano_opcode_perf_f(CSOUND *csound, FCHAN *p)
         return csound->PerfError(csound,"chano: invalid index");
       
       if ((unsigned int)n >= (unsigned int)csound->nchanof){
-      if (chan_realloc_f(csound, &(csound->chanof),
+      if (chan_realloc_f(csound, (void *)&(csound->chanof),
                        &(csound->nchanof), n + 1) != 0)
         return csound->PerfError(csound,
                                  "chano: memory allocation failure");
