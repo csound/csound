@@ -852,18 +852,18 @@ static float *make_window(CSOUND *csound, int win_type, int win_size)
     for (i = 0; i < win_size; i++) {
       switch (win_type) {
       case BLACKMAN:           /* Blackman (3 term) */
-        buffer[i] = 0.42 - 0.5 * cos(arg * i) + 0.08 * cos(arg * i * 2.);
+        buffer[i] = (float)(0.42 - 0.5 * cos(arg * i) + 0.08 * cos(arg * (i+i)));
         break;
       case BLACKMAN_H:         /* Blackman-Harris (4 term) */
-        buffer[i] =
-            0.35875 - 0.48829 * cos(arg * i) + 0.14128 * cos(arg * i * 2.) -
-            0.01168 * cos(arg * i * 3.);
+        buffer[i] =(float)(
+            0.35875 - 0.48829 * cos(arg * i) + 0.14128 * cos(arg * (i+i)) -
+            0.01168 * cos(arg * (i+i+i)));
         break;
       case HAMMING:           /* Hamming */
-        buffer[i] = 0.54 - 0.46 * cos(arg * i);
+        buffer[i] = (float)(0.54 - 0.46 * cos(arg * i));
         break;
       case VONHANN:           /* Von Hann ("hanning") */
-        buffer[i] = 0.5 - 0.5 * cos(arg * i);
+        buffer[i] = (float)(0.5 - 0.5 * cos(arg * i));
         break;
       }
     }
@@ -879,7 +879,7 @@ static float *make_window(CSOUND *csound, int win_type, int win_size)
  */
 static float window_norm(float *win, int size)
 {
-    float   acc = 0.0;
+    float   acc = 0.0f;
     int     i;
 
     for (i = 0; i < size; i++) {
@@ -924,7 +924,7 @@ static int peak_frq_inc(void const *a, void const *b)
  */
 static int peak_amp_inc(void const *a, void const *b)
 {
-    return (1000.0 * (((ATS_PEAK *) a)->amp - ((ATS_PEAK *) b)->amp));
+    return (int)(1000.0 * (((ATS_PEAK *) a)->amp - ((ATS_PEAK *) b)->amp));
 }
 
 /* peak_smr_dec
@@ -935,7 +935,7 @@ static int peak_amp_inc(void const *a, void const *b)
 #if 0
 static int peak_smr_dec(void const *a, void const *b)
 {
-    return (1000.0 * (((ATS_PEAK *) b)->smr - ((ATS_PEAK *) a)->smr));
+    return (int)(1000.0 * (((ATS_PEAK *) b)->smr - ((ATS_PEAK *) a)->smr));
 }
 #endif
 
@@ -1032,10 +1032,10 @@ static ATS_PEAK *peak_detection(CSOUND *csound, ATS_FFT *ats_fft,
     lowest_mag = (float) db2amp(lowest_mag);
 
     /* init peak */
-    ats_peak.amp = (double) 0.0;
-    ats_peak.frq = (double) 0.0;
-    ats_peak.pha = (double) 0.0;
-    ats_peak.smr = (double) 0.0;
+    ats_peak.amp = 0.0;
+    ats_peak.frq = 0.0;
+    ats_peak.pha = 0.0;
+    ats_peak.smr = 0.0;
 
     fftmags = (double *) csound->Malloc(csound, N * sizeof(double));
     fftphase = (double *) csound->Malloc(csound, N * sizeof(double));
@@ -1104,8 +1104,8 @@ static void parabolic_interp(double alpha, double beta, double gamma,
 {
     double  dbAlpha = amp2db(alpha), dbBeta = amp2db(beta), dbGamma =
         amp2db(gamma);
-    *offset = .5 * ((dbAlpha - dbGamma) / (dbAlpha - 2 * dbBeta + dbGamma));
-    *height = db2amp(dbBeta - ((dbAlpha - dbGamma) * .25 * *offset));
+    *offset = 0.5 * ((dbAlpha - dbGamma) / (dbAlpha - 2.0 * dbBeta + dbGamma));
+    *height = db2amp(dbBeta - ((dbAlpha - dbGamma) * 0.25 * *offset));
 }
 
 /* phase_interp
@@ -1169,8 +1169,8 @@ static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
     /* find candidates for each peak and set each peak to best candidate */
     for (k = 0; k < *peaks_size; k++) {
       /* find frq limits for candidates */
-      lo = peaks[k].frq - (.5 * peaks[k].frq * frq_dev);
-      hi = peaks[k].frq + (.5 * peaks[k].frq * frq_dev);
+      lo = peaks[k].frq - (0.5 * peaks[k].frq * frq_dev);
+      hi = peaks[k].frq + (0.5 * peaks[k].frq * frq_dev);
       /* get possible candidates */
       track_candidates[k].size = 0;
       track_candidates[k].cands =
@@ -1920,14 +1920,14 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
     /* sort partials by increasing frequency */
     qsort(sound->av, sound->partials, sizeof(ATS_PEAK), peak_frq_inc);
     /* fill header up */
-    header.mag = (double) 123.0;
-    header.sr = (double) sound->srate;
-    header.fs = (double) sound->frame_size;
-    header.ws = (double) sound->window_size;
+    header.mag = 123.0;
+    header.sr  = (double) sound->srate;
+    header.fs  = (double) sound->frame_size;
+    header.ws  = (double) sound->window_size;
     header.par = (double) (sound->partials - dead);
     header.fra = (double) sound->frames;
-    header.ma = sound->ampmax;
-    header.mf = sound->frqmax;
+    header.ma  = sound->ampmax;
+    header.mf  = sound->frqmax;
     header.dur = sound->dur;
     header.typ = (double) type;
     /* write header */
@@ -2402,12 +2402,12 @@ static void set_av(CSOUND *csound, ATS_SOUND *sound);
  */
 static inline double amp2db(double amp)
 {
-    return (20 * log10(amp));
+    return (20.0 * log10(amp));
 }
 
 static inline double db2amp(double db)
 {
-    return (pow(10, db / 20));
+    return (pow(10.0, db / 20.0));
 }
 
 static inline double amp2db_spl(double amp)
@@ -2526,7 +2526,7 @@ static void fill_sound_gaps(CSOUND *csound, ATS_SOUND *sound, int min_gap_len)
               while (sound->pha[i][j] > PI) {
                 sound->pha[i][j] -= TWOPI;
               }
-              while (sound->pha[i][j] < (PI * -1.0)) {
+              while (sound->pha[i][j] < (PI * (-1.0))) {
                 sound->pha[i][j] += TWOPI;
               }
             }
@@ -2590,8 +2590,8 @@ static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int min_seg_len,
               /* trim segment, only amplitude and SMR data */
            /* csound->Message(csound, "Trimming par: %d\n", i); */
               for (j = seg_beg; j < seg_end; j++) {
-                sound->amp[i][j] = (double) 0.0;
-                sound->smr[i][j] = (double) 0.0;
+                sound->amp[i][j] = 0.0;
+                sound->smr[i][j] = 0.0;
               }
             }
             k = seg_end;
@@ -2673,7 +2673,7 @@ static void set_av(CSOUND *csound, ATS_SOUND *sound)
         sound->av[i].smr = val / (double) count;
       }
       else {
-        sound->av[i].smr = (double) 0.0;
+        sound->av[i].smr = 0.0;
       }
    /* csound->Message(csound, "par: %d smr_av: %f\n",
                       i, (float)sound->av[i].smr); */
@@ -2718,11 +2718,11 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int sampling_rate,
         (ATS_PEAK *) csound->Malloc(csound, partials * sizeof(ATS_PEAK));
     sound->optimized = NIL;
     sound->time = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->frq = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->amp = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->pha = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->smr = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->res = (void *) csound->Malloc(csound, partials * sizeof(void *));
+    sound->frq  = (void *) csound->Malloc(csound, partials * sizeof(void *));
+    sound->amp  = (void *) csound->Malloc(csound, partials * sizeof(void *));
+    sound->pha  = (void *) csound->Malloc(csound, partials * sizeof(void *));
+    sound->smr  = (void *) csound->Malloc(csound, partials * sizeof(void *));
+    sound->res  = (void *) csound->Malloc(csound, partials * sizeof(void *));
     /* allocate memory for time, amp, frq, smr, and res data */
     for (i = 0; i < partials; i++) {
       sound->time[i] =
@@ -2741,11 +2741,11 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int sampling_rate,
     /* init all array values with 0.0 */
     for (i = 0; i < partials; i++)
       for (j = 0; j < frames; j++) {
-        sound->amp[i][j] = (double) 0.0;
-        sound->frq[i][j] = (double) 0.0;
-        sound->pha[i][j] = (double) 0.0;
-        sound->smr[i][j] = (double) 0.0;
-        sound->res[i][j] = (double) 0.0;
+        sound->amp[i][j] = 0.0;
+        sound->frq[i][j] = 0.0;
+        sound->pha[i][j] = 0.0;
+        sound->smr[i][j] = 0.0;
+        sound->res[i][j] = 0.0;
       }
     if (use_noise) {
       sound->band_energy =
