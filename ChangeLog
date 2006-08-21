@@ -1,3 +1,14 @@
+2006-08-21  jpff  <jpff@codemist.co.uk>
+
+	* util/lpanal.c (polyzero): Replaces pow(..,2.0) by direct
+	calculation twice
+
+	* SConstruct (stdutilSources): Added build of pv_import/export utilities
+
+	* Engine/insert.c: Include delete in non-Beta version
+	
+	* util/pvi_main.c, util/pvx_main.c: New code
+
 2006-08-20 veplaini <Victor.Lazzarini@nuim.ie>
 	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c : 
 	  added fsig to chani/chano bus interface.

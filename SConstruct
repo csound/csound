@@ -1412,6 +1412,8 @@ if (commonEnvironment['buildUtilities'] != '0'):
         ['mixer',       'util/mixer_main.c'   ],
         ['pvanal',      'util/pvc_main.c'     ],
         ['pvlook',      'util/pvl_main.c'     ],
+        ['pv_export',   'util/pvx_main.c'     ],
+        ['pv_import',   'util/pvi_main.c'     ],
         ['scale',       'util/scale_main.c'   ],
         ['sndinfo',     'util/sndinfo_main.c' ],
         ['srconv',      'util/srconv_main.c'  ]]

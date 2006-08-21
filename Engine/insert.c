@@ -1714,8 +1714,6 @@ int prealloc(CSOUND *csound, AOP *p)
     return OK;
 }
 
-#ifdef BETA
-
 int delete_instr(CSOUND *csound, DELETEIN *p)
 {
     int       n = (int) (*p->insno + FL(0.5));
@@ -1727,7 +1725,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       return OK;                /* Instrument does not exist so noop */
     ip = csound->instrtxtp[n];
     active = ip->instance;
-    while (active != NULL) {
+    while (active != NULL) {    /* Check there are no active instances */
       INSDS   *nxt = active->nxtinstance;
       if (active->actflg)       /* Can only remove non-active instruments */
         return csound->InitError(csound, "Instrument %d is stilll active", n);
@@ -1742,7 +1740,8 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       mfree(csound, active);
       active = nxt;
     }
-    csound->instrtxtp[n] = NULL;
+    csound->instrtxtp[n] = NULL; 
+    /* Now patch it out */
     for (txtp = &(csound->instxtanchor); txtp != NULL; txtp = txtp->nxtinstxt)
       if (txtp->nxtinstxt == ip) {
         OPTXT *t = ip->nxtop;
@@ -1758,5 +1757,4 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     return NOTOK;
 }
 
-#endif  /* BETA */
 

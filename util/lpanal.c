@@ -87,6 +87,7 @@ static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
     double        dx, dy, term, factor;
     int           n1, i, j, p, iter;
     unsigned char conv;
+    double        tmp;
 
     factor = 1.0;
 
@@ -153,7 +154,8 @@ static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
               u = w;
             }
 
-            f = pow(a[n1]+u*xr-m*v,2.0)+(u*u*yr*yr) /*(pow(u*yr,2.0)*/;
+            tmp = a[n1]+u*xr-m*v;
+            f = tmp*tmp+(u*u*yr*yr) /*(pow(u*yr,2.0)*/;
             if (f<fm) {
               xm = xr;
               ym = yr;
@@ -193,8 +195,9 @@ static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
           v = u;
           u = w;
         }
-
-        if (pow(a[n1]+u*xc-m*v,2.0)<=fc) {
+        
+        tmp = a[n1]+u*xc-m*v;
+        if (tmp*tmp<=fc) {
           u = 0.0;
           for (j=0; j<=p; j++) {
             a[j] = u*xc+a[j];
