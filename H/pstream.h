@@ -74,9 +74,7 @@
                                  if it's possible...
  */
 
-/* may be no point supporting Kaiser in an opcode unless we can support
-   the param too but we can have kaiser in a PVOCEX file. */
-
+/* description of an fsig analysis frame*/
 enum PVS_WINTYPE {
     PVS_WIN_HAMMING = 0,
     PVS_WIN_HANN,
@@ -91,9 +89,6 @@ enum PVS_ANALFORMAT {
     PVS_TRACKS          /* added VL, 24.06.2005 */
 };
 
-/* description of an fsig analysis frame*/
-/* should go in cs,h eventually ?*/
-
 typedef struct pvsdat {
         long            N;
         long            overlap;
@@ -103,6 +98,9 @@ typedef struct pvsdat {
         unsigned long   framecount;
         AUXCH           frame;          /* RWD MUST always be 32bit floats */
 } PVSDAT;
+
+/* may be no point supporting Kaiser in an opcode unless we can support
+   the param too but we can have kaiser in a PVOCEX file. */
 
 typedef struct {
         OPDS    h;

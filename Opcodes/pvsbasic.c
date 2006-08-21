@@ -40,10 +40,10 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
         p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->N = N;
-    p->fout->overlap = N;
-    p->fout->winsize = N;
-    p->fout->wintype = 0;
-    p->fout->format = PVS_AMP_FREQ;
+    p->fout->overlap = *p->olap ? *p->olap : N/4;
+    p->fout->winsize = *p->winsize ? *p->winsize : N;
+    p->fout->wintype = *p->wintype;
+    p->fout->format = *p->format;
     p->fout->framecount = 1;
     bframe = (float *) p->fout->frame.auxp;
     for (i = 0; i < N + 2; i += 2) {
@@ -102,7 +102,8 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
           freez[i + 1] = fin[i + 1];
         fout[i] = freez[i];
         fout[i + 1] = freez[i + 1];
-      }
+      
+}
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
     return OK;
@@ -619,7 +620,7 @@ static OENTRY localops[] = {
      NULL},
     {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR) pvstencilset,
      (SUBR) pvstencil},
-    {"pvsinit", S(PVSINI), 1, "f", "i", (SUBR) pvsinit, NULL, NULL},
+    {"pvsinit", S(PVSINI), 1, "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
     {"pvsfreeze", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
      (SUBR) pvsfreezeprocess, NULL},
     {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
