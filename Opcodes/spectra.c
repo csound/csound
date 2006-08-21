@@ -124,7 +124,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
                               hicps, locps);
 
       basfrq = hicps/2.0;                          /* oct below retuned top */
-      frqmlt = pow((double)2.0,(double)1./nfreqs);   /* nfreq interval mult */
+      frqmlt = pow((double)2.0,(double)1.0/nfreqs);  /* nfreq interval mult */
       Qfactor = Q * dwnp->srate;
       curfrq = basfrq;
       for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {

@@ -1,6 +1,6 @@
 2006-08-21  jpff  <jpff@codemist.co.uk>
 
-	* util/lpanal.c (polyzero): Replaces pow(..,2.0) by direct
+	* util/lpanal.c (polyzero): Replace pow(..,2.0) by direct
 	calculation twice
 
 	* SConstruct (stdutilSources): Added build of pv_import/export utilities
