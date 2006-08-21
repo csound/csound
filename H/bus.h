@@ -37,7 +37,8 @@ extern "C" {
 typedef struct {
     OPDS    h;
     PVSDAT   *r;
-    MYFLT    *a,n;
+    MYFLT    *a,*N, *overlap, *winsize, *wintype, *format;
+    PVSDAT   init;
 } FCHAN;
 
 typedef struct {
@@ -166,6 +167,7 @@ int     chano_opcode_perf_k(CSOUND *, void *);
 int     chano_opcode_perf_a(CSOUND *, void *);
 int     chani_opcode_perf_k(CSOUND *, void *);
 int     chani_opcode_perf_a(CSOUND *, void *);
+int     chani_opcode_init_f(CSOUND *, void *);
 int     chani_opcode_perf_f(CSOUND *, void *);
 int     chano_opcode_perf_f(CSOUND *, void *);
 
