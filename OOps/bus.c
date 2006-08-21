@@ -200,7 +200,7 @@ PUBLIC int csoundChanIFSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       }
     }
 
-    if(fout[n].N <= fin->N){
+    if(fout[n].N >= fin->N){
       fout[n].N = fin->N; 
       fout[n].overlap = fin->overlap;   
       fout[n].winsize = fin->winsize; 
@@ -225,7 +225,7 @@ PUBLIC int csoundChanOFGet(CSOUND *csound, PVSDATEXT *fout, int n)
     if (((unsigned int)n >= (unsigned int)csound->nchanof)
          || n < 0)
         return CSOUND_ERROR;
-    if(fout->N <= fin[n].N){
+    if(fout->N >= fin[n].N){
       fout->N = fin[n].N; 
       fout->overlap = fin[n].overlap;   
       fout->winsize = fin[n].winsize; 
@@ -322,7 +322,7 @@ int chani_opcode_perf_f(CSOUND *csound, FCHAN *p)
     int     n = (int)MYFLT2LRND(*(p->a));
     if (((unsigned int)n >= (unsigned int)csound->nchanif) || (n < 0))
         return csound->PerfError(csound, Str("chani: invalid index"));
-     if(fout->N <= fin[n].N) {
+     if(fout->N >= fin[n].N) {
       fout->N = fin[n].N; 
       fout->overlap = fin[n].overlap;   
       fout->winsize = fin[n].winsize; 
@@ -354,7 +354,7 @@ int chano_opcode_perf_f(CSOUND *csound, FCHAN *p)
 	 return OK;
       }
       }
-       if(fout[n].N <= fin->N) {
+       if(fout[n].N >= fin->N) {
        memcpy(&fout[n], fin, sizeof(PVSDAT));
        }
        else return csound->PerfError(csound, "chano: incompatible fsigs");
