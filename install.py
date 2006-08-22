@@ -23,6 +23,7 @@ exeFiles1 = ['csound', 'csound5gui', 'CsoundVST', 'winsound',
              'cvanal', 'dnoise', 'envext', 'extractor',
              'het_export', 'het_import', 'hetro', 'lpanal',
              'lpc_export', 'lpc_import', 'mixer', 'pvanal',
+             'pv_export', 'pv_import',
              'pvlook', 'scale', 'sndinfo', 'srconv',
              'scsort', 'extract', 'cs', 'csb64enc', 'makecsd', 'scot']
 
