@@ -22,6 +22,7 @@
 */
 
                         /*                                      DISPREP.H       */
+#include "pstream.h"
 
 typedef struct {
         OPDS    h;
@@ -36,6 +37,16 @@ typedef struct {
         MYFLT   *nxtp, *begp, *endp;
         AUXCH   auxch;
 } DSPLAY;
+
+typedef struct {
+        OPDS    h;
+        PVSDAT  *fin;
+        MYFLT   *points, *flag;
+        MYFLT size;
+        WINDAT dwindow;
+        AUXCH   fdata;
+        unsigned long lastframe;        
+} FSIGDISP;
 
 #define WINDMAX 4096
 #define WINDMIN 16

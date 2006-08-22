@@ -26,8 +26,8 @@ elif sys.platform == 'darwin':
 elif sys.platform[:3] == 'win':
     # For the basic build you need MinGW, MSys, and libsndfile.
     # Add them here:
-    customCPPPATH.append('D:/utah/msys/1.0/local/include')
-    customLIBPATH.append('D:/utah/msys/1.0/local/lib')
+    customCPPPATH.append('c:/msys/1.0/local/include')
+    customLIBPATH.append('c:/msys/1.0/local/lib')
     # If libsndfile is not in a standard location add it here:
     customCPPPATH.append('D:/utah/opt/libsndfile-1_0_16')
     customLIBPATH.append('D:/utah/opt/libsndfile-1_0_16')

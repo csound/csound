@@ -388,6 +388,7 @@ OENTRY opcodlst_1[] = {
 { "tival",  S(EVAL),    1,      "i",    "",     tival                   },
 { "print",  S(PRINTV),  1,      "",     "m",    printv                  },
 { "display",S(DSPLAY),  7,      "",     "sioo", dspset, kdsplay,dsplay  },
+{ "pvsdisp",S(FSIGDISP),  3,      "",     "foo", fdspset, fdsplay,NULL },
 { "dispfft",S(DSPFFT),  7,      "",     "siiooo",fftset,kdspfft,dspfft  },
 { "dumpk",  S(KDUMP),   3,      "",     "kTii", kdmpset,kdump           },
 { "dumpk2", S(KDUMP2),  3,      "",     "kkTii",kdmp2set,kdump2         },
