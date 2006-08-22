@@ -692,8 +692,8 @@ static int vexpk(CSOUND *csound, VECTOROP *p)
 static int vectorsOp_set(CSOUND *csound, VECTORSOP *p)
 {
     FUNC        *ftp1, *ftp2;
-    if (*p->ifn1 == *p->ifn2)
-      csound->Warning(csound, Str("vectorsop: ifn1 = ifn2."));
+//     if (*p->ifn1 == *p->ifn2)
+//       csound->Warning(csound, Str("vectorsop: ifn1 = ifn2."));
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
     if (ftp1 == NULL)  {
@@ -724,7 +724,7 @@ static int vectorsOp_set(CSOUND *csound, VECTORSOP *p)
 
 static int vcopy(CSOUND *csound,VECTORSOP *p)
 {
-    int i, n;
+    int i, j, n;
     long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
@@ -766,7 +766,13 @@ static int vcopy(CSOUND *csound,VECTORSOP *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] = vector2[j];
+    }
+    for (; i < n; i++)
       vector1[i] = vector2[i];
     for ( ; i < elements; i++)
       vector1[i] = 0;
@@ -777,7 +783,7 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, n, elements, srcoffset, dstoffset, len1, len2;
+    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
 
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
@@ -793,8 +799,8 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
                         (int) *p->ifn2);
       return NOTOK;
     }
-    if (*p->ifn1 == *p->ifn2)
-      csound->Warning(csound, Str("vcopy_i: ifn1 = ifn2."));
+//     if (*p->ifn1 == *p->ifn2)
+//       csound->Warning(csound, Str("vcopy_i: ifn1 = ifn2."));
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
     len1 = (long) ftp1->flen+1;
@@ -833,7 +839,13 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] = vector2[j];
+    }
+    for ( ; i < n; i++)
       vector1[i] = vector2[i];
     for ( ; i < elements; i++)
       vector1[i] = 0;
@@ -842,7 +854,7 @@ static int vcopy_i(CSOUND *csound, VECTORSOPI *p)
 
 static int vaddvk(CSOUND *csound,VECTORSOP *p)
 {
-    int i, n;
+    int i, j, n;
     long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
@@ -884,7 +896,13 @@ static int vaddvk(CSOUND *csound,VECTORSOP *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] += vector2[j];
+    }
+    for (; i < n; i++)
       vector1[i] += vector2[i];/*
     for ( ; i < elements; i++)
       vector1[i] = 0;*/
@@ -910,8 +928,8 @@ static int vaddv_i(CSOUND *csound, VECTORSOPI *p)
                         (int) *p->ifn2);
       return NOTOK;
     }
-    if (*p->ifn1 == *p->ifn2)
-      csound->Warning(csound, Str("vaddv_i: ifn1 = ifn2."));
+//     if (*p->ifn1 == *p->ifn2)
+//       csound->Warning(csound, Str("vaddv_i: ifn1 = ifn2."));
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
     len1 = (long) ftp1->flen+1;
@@ -957,7 +975,7 @@ static int vaddv_i(CSOUND *csound, VECTORSOPI *p)
 
 static int vsubvk(CSOUND *csound,VECTORSOP *p)
 {
-    int i, n;
+    int i, j, n;
     long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
@@ -999,7 +1017,13 @@ static int vsubvk(CSOUND *csound,VECTORSOP *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] -= vector2[j];
+    }
+    for ( ; i < n; i++)
       vector1[i] -= vector2[i];/*
     for ( ; i < elements; i++)
       vector1[i] = 0;*/
@@ -1010,7 +1034,7 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, n, elements, srcoffset, dstoffset, len1, len2;
+    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
   
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
@@ -1026,8 +1050,8 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
                         (int) *p->ifn2);
       return NOTOK;
     }
-    if (*p->ifn1 == *p->ifn2)
-      csound->Warning(csound, Str("vsubv_i: ifn1 = ifn2."));
+//     if (*p->ifn1 == *p->ifn2)
+//       csound->Warning(csound, Str("vsubv_i: ifn1 = ifn2."));
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
     len1 = (long) ftp1->flen+1;
@@ -1066,14 +1090,20 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] -= vector2[j];
+    }
+    for ( ; i < n; i++)
       vector1[i] -= vector2[i];
     return OK;
 }
 
 static int vmultvk(CSOUND *csound,VECTORSOP *p)
 {
-    int i, n;
+    int i, j, n;
     long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
@@ -1115,7 +1145,13 @@ static int vmultvk(CSOUND *csound,VECTORSOP *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] *= vector2[j];
+    }
+    for ( ; i < n; i++)
       vector1[i] *= vector2[i];/*
     for ( ; i < elements; i++)
       vector1[i] = 0;*/
@@ -1126,7 +1162,7 @@ static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, n, elements, srcoffset, dstoffset, len1, len2;
+    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
   
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
@@ -1142,8 +1178,8 @@ static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
                         (int) *p->ifn2);
       return NOTOK;
     }
-    if (*p->ifn1 == *p->ifn2)
-      csound->Warning(csound, Str("vmultv_i: ifn1 = ifn2."));
+//     if (*p->ifn1 == *p->ifn2)
+//       csound->Warning(csound, Str("vmultv_i: ifn1 = ifn2."));
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
     len1 = (long) ftp1->flen+1;
@@ -1182,14 +1218,20 @@ static int vmultv_i(CSOUND *csound, VECTORSOPI *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] *= vector2[j];
+    }
+    for ( ; i < n; i++)
       vector1[i] *= vector2[i];
     return OK;
 }
 
 static int vdivvk(CSOUND *csound,VECTORSOP *p)
 {
-    int i, n;
+    int i, j, n;
     long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
@@ -1231,7 +1273,13 @@ static int vdivvk(CSOUND *csound,VECTORSOP *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] /= vector2[j];
+    }
+    for ( ; i < n; i++)
       vector1[i] /= vector2[i];/*
     for ( ; i < elements; i++)
       vector1[i] = 0;*/
@@ -1242,7 +1290,7 @@ static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
 {
     FUNC    *ftp1, *ftp2;
     MYFLT   *vector1, *vector2;
-    long    i, n, elements, srcoffset, dstoffset, len1, len2;
+    long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
   
     ftp1 = csound->FTnp2Find(csound, p->ifn1);
     ftp2 = csound->FTnp2Find(csound, p->ifn2);
@@ -1258,8 +1306,8 @@ static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
                         (int) *p->ifn2);
       return NOTOK;
     }
-    if (*p->ifn1 == *p->ifn2)
-      csound->Warning(csound, Str("vdivv_i: ifn1 = ifn2."));
+//     if (*p->ifn1 == *p->ifn2)
+//       csound->Warning(csound, Str("vdivv_i: ifn1 = ifn2."));
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
     len1 = (long) ftp1->flen+1;
@@ -1298,14 +1346,20 @@ static int vdivv_i(CSOUND *csound, VECTORSOPI *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] = vector2[j];
+    }
+    for ( ; i < n; i++)
       vector1[i] /= vector2[i];
     return OK;
 }
 
 static int vpowvk(CSOUND *csound,VECTORSOP *p)
 {
-    int i, n;
+    int i, j, n;
     long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
@@ -1347,7 +1401,13 @@ static int vpowvk(CSOUND *csound,VECTORSOP *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] = (MYFLT) pow (vector1[j], vector2[j]);
+    }
+    for ( ; i < n; i++)
       vector1[i] = (MYFLT) pow (vector1[i], vector2[i]);/*
     for ( ; i < elements; i++)
       vector1[i] = 0;*/
@@ -1358,7 +1418,7 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
 {
   FUNC    *ftp1, *ftp2;
   MYFLT   *vector1, *vector2;
-  long    i, n, elements, srcoffset, dstoffset, len1, len2;
+  long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
   
   ftp1 = csound->FTnp2Find(csound, p->ifn1);
   ftp2 = csound->FTnp2Find(csound, p->ifn2);
@@ -1374,8 +1434,8 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
                         (int) *p->ifn2);
       return NOTOK;
     }
-    if (*p->ifn1 == *p->ifn2)
-      csound->Warning(csound, Str("vpowv_i: ifn1 = ifn2."));
+//     if (*p->ifn1 == *p->ifn2)
+//       csound->Warning(csound, Str("vpowv_i: ifn1 = ifn2."));
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
     len1 = (long) ftp1->flen+1;
@@ -1414,6 +1474,12 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
       n = len2;
     }
     else n = elements;
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] = (MYFLT) pow (vector1[j], vector2[j]);
+    }
     for (i = 0; i < n; i++)
       vector1[i] = (MYFLT) pow (vector1[i], vector2[i]);
     return OK;
@@ -1421,7 +1487,7 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
 
 static int vexpvk(CSOUND *csound,VECTORSOP *p)
 {
-    int i, n;
+    int i, j, n;
     long len1, len2, srcoffset, dstoffset, elements = (long)*p->kelements;
     MYFLT *vector1, *vector2;
     vector1 = p->vector1;
@@ -1463,7 +1529,13 @@ static int vexpvk(CSOUND *csound,VECTORSOP *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] = (MYFLT) pow (vector2[j], vector1[j]);
+    }
+    for ( ; i < n; i++)
       vector1[i] = (MYFLT) pow (vector2[i], vector1[i]);/*
     for ( ; i < elements; i++)
       vector1[i] = 1;*/
@@ -1474,7 +1546,7 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
 {
   FUNC    *ftp1, *ftp2;
   MYFLT   *vector1, *vector2;
-  long    i, n, elements, srcoffset, dstoffset, len1, len2;
+  long    i, j, n, elements, srcoffset, dstoffset, len1, len2;
   
   ftp1 = csound->FTnp2Find(csound, p->ifn1);
   ftp2 = csound->FTnp2Find(csound, p->ifn2);
@@ -1490,8 +1562,8 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
                         (int) *p->ifn2);
       return NOTOK;
     }
-    if (*p->ifn1 == *p->ifn2)
-      csound->Warning(csound, Str("vexpv_i: ifn1 = ifn2."));
+//     if (*p->ifn1 == *p->ifn2)
+//       csound->Warning(csound, Str("vexpv_i: ifn1 = ifn2."));
     vector1 = ftp1->ftable;
     vector2 = ftp2->ftable;
     len1 = (long) ftp1->flen+1;
@@ -1530,26 +1602,15 @@ static int vexpv_i(CSOUND *csound, VECTORSOPI *p)
       n = len2;
     }
     else n = elements;
-    for (i = 0; i < n; i++)
-      vector1[i] = (MYFLT) pow (vector1[i], vector2[i]);
-    return OK;if (ftp1 == NULL || ftp2 == NULL)
-    return NOTOK;
-  elements = (long) *p->ielements;
-  srcoffset = (long) *p->isrcoffset;
-  dstoffset = (long) *p->idstoffset;
-  if ((elements | srcoffset | dstoffset) < 0L)
-    return csound->InitError(csound,
-                             Str("vpowv_i: Invalid offset or number of elements."));
-  if ((elements + dstoffset) > ftp1->flen)
-    return csound->InitError(csound,
-                             Str("vpowv_i: Destination table length exceeded."));
-  if ((elements + srcoffset) > ftp2->flen)
-    return csound->InitError(csound, Str("vpowv_i: Source table length exceeded."));
-  vector1 = &(ftp1->ftable[dstoffset]);
-  vector2 = &(ftp2->ftable[srcoffset]);
-  for (i = 0L; i < elements; i++)
-    vector1[i] = (MYFLT) pow (vector2[i], vector1[i]);
-  return OK;
+    i = 0;
+    if (p->vector1 == p->vector2 && vector1 > vector2) {
+      // special case: need to reverse direction
+      for (j = n; --j >= 0; i++)
+        vector1[j] = (MYFLT) pow (vector2[j], vector1[j]);
+    }
+    for ( ; i < n; i++)
+      vector1[i] = (MYFLT) pow (vector2[i], vector1[i]);
+    return OK;
 }
 
 static int vmap(CSOUND *csound,VECTORSOP *p)
