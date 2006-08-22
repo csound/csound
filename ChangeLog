@@ -1,3 +1,8 @@
+2006-08-23 veplaini <Victor.Lazzarini@nuim.ie>
+	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c : 
+	  pvs bus now called pvsin/pvsout.
+	* disprep.*, entry1.c: added pvsdisp opcode
+
 2006-08-22  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/biquad.c (moogvcf, rezzy): Minor optimisations
@@ -15,7 +20,7 @@
 
 2006-08-20 veplaini <Victor.Lazzarini@nuim.ie>
 	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c : 
-	  added fsig to chani/chano bus interface.
+	  added fsig to chani/chano bus interface (now called pvsin/pvsout).
 	* csoundCore.h: commented out redefinition of printf to 
 	  eliminate warnings (on OLPC build)
 	

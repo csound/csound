@@ -26,6 +26,7 @@
 #include "cwindow.h"
 #include "disprep.h"
 
+
 #ifdef MSVC                   /* Thanks to Richard Dobson */
 # define hypot _hypot
 #endif
@@ -48,6 +49,36 @@ int printv(CSOUND *csound, PRINTV *p)
     csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
 }
+
+int fdspset(CSOUND *csound, FSIGDISP *p){
+    char strmsg[256];
+    p->size = p->fin->N/2 + 1;
+    if(*p->points && (p->size > *p->points)) p->size = *p->points;
+
+  if (p->fdata.auxp == NULL || p->fdata.size < p->size*sizeof(MYFLT)) 
+      csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
+    
+    sprintf(strmsg, Str("instr %d, pvs-signal %s:"),
+      (int) p->h.insdshead->p1, p->h.optext->t.inlist->arg[0]);
+    dispset(csound, &p->dwindow, (MYFLT*) p->fdata.auxp, p->size, strmsg,
+                    (int) *p->flag, Str("display"));
+    p->lastframe = 0;
+    return OK;
+
+}
+
+int fdsplay(CSOUND *csound, FSIGDISP *p){
+    float *fin  = p->fin->frame.auxp;
+    MYFLT *pdata = p->fdata.auxp;
+    int i,k, end = p->size;
+
+   if (p->lastframe < p->fin->framecount) {
+    for(i=0, k=0; k < end; i+=2,k++)pdata[k] = fin[i];
+     display(csound, &p->dwindow);
+      p->lastframe = p->fin->framecount;
+   }
+   return OK;
+ }
 
 int dspset(CSOUND *csound, DSPLAY *p)
 {
