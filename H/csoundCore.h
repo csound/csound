@@ -914,8 +914,8 @@ extern "C" {
     int (*ChanOKGet)(CSOUND *, MYFLT *value, int n);
     int (*ChanIASet)(CSOUND *, const MYFLT *value, int n);
     int (*ChanOAGet)(CSOUND *, MYFLT *value, int n);
-    int (*ChanIFSet)(CSOUND *, const PVSDATEXT *value, int n);
-    int (*ChanOFGet)(CSOUND *, PVSDATEXT *value, int n);
+    int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
+    int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
     void (*dispinit)(CSOUND *);
     void *(*Create_Mutex)(int isRecursive);
     int (*LockMutexNoWait)(void *mutex_);

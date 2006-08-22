@@ -245,7 +245,7 @@ extern "C" {
   } CsoundChannelListEntry;
 
   /* PVSDATEX is a variation on PVSDAT used in
-     the bus interface */
+     the pvs bus interface */
   typedef struct pvsdat_ext {
         long            N;
         long            overlap;
@@ -1385,23 +1385,23 @@ extern "C" {
   PUBLIC int csoundChanOAGet(CSOUND *, MYFLT *value, int n);
 
  /**
- * Sends a PVSDATEX fin to the chani opcode (f-rate) at index 'n'.
+ * Sends a PVSDATEX fin to the pvsin opcode (f-rate) at index 'n'.
  * The bus is automatically extended if 'n' exceeds any previously used
  * index value, clearing new locations to zero.
  * Returns zero on success, CSOUND_ERROR if the index is invalid or
- * fsig framesizes are incompatible, and
+ * fsig framesizes are incompatible
  * CSOUND_MEMORY if there is not enough memory to extend the bus.
  */
-  PUBLIC int csoundChanIFSet(CSOUND *, const PVSDATEXT *fin, int n);
+  PUBLIC int csoundPvsinSet(CSOUND *, const PVSDATEXT *fin, int n);
 
  /**
- * Receives a PVSDAT fout from the chano opcode (f-rate) at index 'n'.
- * The bus is not extended if 'n' exceeds any previously used
- * index value
+ * Receives a PVSDAT fout from the pvsout opcode (f-rate) at index 'n'.
+ * The bus is extended if 'n' exceeds any previous value.
  * Returns zero on success, CSOUND_ERROR if the index is invalid or
  * if fsig framesizes are incompatible
+ * CSOUND_MEMORY if there is not enough memory to extend the bus
  */
-  PUBLIC int csoundChanOFGet(CSOUND *csound, PVSDATEXT *fout, int n);
+  PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n);
  
   /**
    * Sets general purpose callback function that will be called on various
