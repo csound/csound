@@ -48,31 +48,10 @@ namespace csound
   void Composition::createCsoundScore(std::string addToScore)
   {
     cppSound->removeScore();
-    if(addToScore.length())
-      {
-        cppSound->setScore(addToScore);
-      }
-    score.sort();
-    for(Score::iterator it = score.begin(); it != score.end(); ++it)
-      {
-       if (!score.reassignments.empty())
-	{
-	  double oldInstrument = std::floor(it->getInstrument());
-	  if (score.reassignments.find(oldInstrument) != score.reassignments.end())
-	    {
-	      it->setInstrument(score.reassignments[oldInstrument]);
-	    }
-	}
-       if(getConformPitches())
-          {
-            it->conformToPitchClassSet();
-            cppSound->addScoreLine(it->toCsoundIStatement(tonesPerOctave));
-          }
-        else
-          {
-            cppSound->addScoreLine(it->toCsoundIStatement(tonesPerOctave));
-          }
-      }
+    std::string csoundScore = addToScore;
+    csoundScore.append(score.getCsoundScore(tonesPerOctave, conformPitches));
+    csoundScore.append("\ne 5.0");
+    cppSound->setScore(csoundScore);      
     cppSound->exportForPerformance();
   }
 
