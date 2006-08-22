@@ -118,7 +118,8 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     MYFLT *out, *in;
     double xn;
     MYFLT *fcoptr, *resptr;
-    double fco, res, fcon, kp, pp1d2, scale, k;
+    /* Fake initialisations to stop compiler warnings!! */
+    double fco=0.0, res, fcon, kp=0.0, pp1d2=0.0, scale=0.0, k=0.0;
     MYFLT max = p->maxint;
     MYFLT dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
@@ -195,8 +196,9 @@ static int rezzy(CSOUND *csound, REZZY *p)
     int n, nsmps = csound->ksmps;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
-    double fqcadj, c, rez2, a,
-          csq, b, invb, tval; /* Temporary varibles for the filter */
+    double fqcadj, c, rez2=0.0, a=0.0, /* Initialisations fake */
+           csq=0.0, b=0.0, invb=0.0,
+           tval=0.9; /* Temporary varibles for the filter */
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     in     = p->in;
@@ -1034,7 +1036,8 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
     MYFLT *fcoptr, *resptr, *distptr, *asymptr;
     MYFLT fco, res, dist, asym;
     MYFLT y = p->y, y1 = p->y1, y2 = p->y2;
-    MYFLT ih, fc, fco1, q, q1, fdbk, d, ad;
+    /* The initialisations are fake to fool compiler warnings */
+    MYFLT ih, fc=FL(0.0), fco1=FL(0.0), q=FL(0.0), q1=FL(0.0), fdbk, d, ad;
 
     ih  = FL(0.001); /* ih is the incremental factor */
 
@@ -1067,7 +1070,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
       if (p->rezcod) {
         res = resptr[n];
       }
-      if ((p->rezcod==1) || (p->fcocod==1)) {
+      if ((p->rezcod!=0) || (p->fcocod!=0)) {
         q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
         fco1 = (MYFLT)pow((double)(fco*260.0/(1.0+q1*0.5)),0.58);
         q  = q1*fco1*fco1*FL(0.0005);
@@ -1103,7 +1106,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
     long n, nsmps = csound->ksmps;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
-    double sin2, cos2, beta, alpha, gamma, mu, sigma, chi;
+    double sin2=0.0, cos2=0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
     double theta;
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
