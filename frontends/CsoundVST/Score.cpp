@@ -424,21 +424,22 @@ namespace csound
   {
     std::string csoundScore;
     sort();
-    for(Score::iterator it = begin(); it != end(); ++it) {
-      csound::Event e = *it;
-      if(conformPitches) {
-	e.conformToPitchClassSet();
-      }
-      if (!reassignments.empty())
+    for(Score::iterator it = begin(); it != end(); ++it)
+      {
+       if (!reassignments.empty())
 	{
-	  double oldInstrument = std::floor(e.getInstrument());
+	  double oldInstrument = std::floor(it->getInstrument());
 	  if (reassignments.find(oldInstrument) != reassignments.end())
 	    {
-	      e.setInstrument(reassignments[oldInstrument]);
+	      it->setInstrument(reassignments[oldInstrument]);
 	    }
 	}
-      csoundScore.append(e.toCsoundIStatement(tonesPerOctave));
-    }
+       if(conformPitches)
+          {
+            it->conformToPitchClassSet();
+          }
+       csoundScore.append(it->toCsoundIStatement(tonesPerOctave));
+      }
     return csoundScore;
   }
 
