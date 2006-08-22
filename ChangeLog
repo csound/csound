@@ -1,3 +1,7 @@
+2006-08-22  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/biquad.c (moogvcf, rezzy): Minor optimisations
+
 2006-08-21  jpff  <jpff@codemist.co.uk>
 
 	* util/lpanal.c (polyzero): Replace pow(..,2.0) by direct
