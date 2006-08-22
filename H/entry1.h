@@ -53,6 +53,7 @@
 #include "linevent.h"
 #include "str_ops.h"
 #include "bus.h"
+#include "pstream.h"
 
 #define S(x)    sizeof(x)
 
@@ -221,6 +222,7 @@ int     reinit(CSOUND *, void *), rigoto(CSOUND *, void *);
 int     rireturn(CSOUND *, void *), tigoto(CSOUND *, void *);
 int     tival(CSOUND *, void *), printv(CSOUND *, void *);
 int     dspset(CSOUND *, void *), kdsplay(CSOUND *, void *);
+int     fdspset(CSOUND *, void *), fdsplay(CSOUND *, void *);
 int     dsplay(CSOUND *, void *), fftset(CSOUND *, void *);
 int     kdspfft(CSOUND *, void *), dspfft(CSOUND *, void *);
 int     xyinset(CSOUND *, void *), xyin(CSOUND *, void *);
