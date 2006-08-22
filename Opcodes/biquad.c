@@ -120,6 +120,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     MYFLT *fcoptr, *resptr;
     double fco, res, fcon, kp, pp1d2, scale, k;
     MYFLT max = p->maxint;
+    MYFLT dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
 
@@ -145,14 +146,14 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       if (p->rezcod) {
         res = (double)resptr[n];
       }
-      if ((p->rezcod==1) || (p->fcocod==1)) {
+      if ((p->rezcod!=0) || (p->fcocod!=0)) {
         fcon  = 2.0*fco*(double)csound->onedsr; /* normalised frq. 0 to Nyquist */
         kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning */
         pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
-        scale = exp((1.0-pp1d2)*1.386249); /* Scaling factor */
+        scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
         k     = res*scale;
       }
-      xn = (double)(in[n] / max);
+      xn = (double)(in[n] * dmax);
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
       /* Four cascaded onepole filters (bilinear transform) */
@@ -195,7 +196,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
     double fqcadj, c, rez2, a,
-          csq, b, tval; /* Temporary varibles for the filter */
+          csq, b, invb, tval; /* Temporary varibles for the filter */
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     in     = p->in;
@@ -216,6 +217,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
         a    = c/rez2 - 1.0;      /* a depends on both Fco and Rez */
         csq  = c*c;               /* Precalculate c^2 */
         b    = 1.0 + a + csq;     /* Normalization constant */
+        invb = 1.0/b;
       }
       for (n=0; n<nsmps; n++) { /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
@@ -225,16 +227,17 @@ static int rezzy(CSOUND *csound, REZZY *p)
         if (p->rezcod) {
           rez = (double)rezptr[n];
         }
-        if ((p->rezcod==1) || (p->fcocod==1)) {
+        if ((p->rezcod!=0) || (p->fcocod!=0)) {
           c      = fqcadj/fco;
           rez2   = rez/(1.0 + exp(fco/11000.0));
           a      = c/rez2 - 1.0;  /* a depends on both Fco and Rez */
           csq    = c*c;           /* Precalculate c^2 */
           b      = 1.0 + a + csq; /* Normalization constant */
+          invb   = 1.0/b;
         }
         xn = (double)in[n];             /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
-        yn = (1.0/sqrt(1.0+rez)*xn - (-a-2.0*csq)*ynm1 - csq*ynm2)/b;
+        yn = (1.0/sqrt(1.0+rez)*xn - (-a-2.0*csq)*ynm1 - csq*ynm2)*invb;
 
         xnm2 = xnm1; /* Update Xn-2 */
         xnm1 = xn;   /* Update Xn-1 */
@@ -250,6 +253,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
         tval   = 0.75/sqrt(1.0 + rez);
         csq    = c*c;
         b      = (c/rez2 + csq);
+        invb = 1.0/b;
       }
       for (n=0; n<nsmps; n++) { /* do ksmp times   */
         /* Handle a-rate modulation of fco and rez */
@@ -259,18 +263,19 @@ static int rezzy(CSOUND *csound, REZZY *p)
         if (p->rezcod) {
           rez = (double)rezptr[n];
         }
-        if (p->fcocod || p->rezcod) {
+        if (p->fcocod!=0 || p->rezcod!=0) {
           c      = fqcadj/fco;
           rez2   = rez/(1.0 + sqrt(sqrt(1.0/c)));
           tval   = 0.75/sqrt(1.0 + rez);
           csq    = c*c;
           b      = (c/rez2 + csq);
+          invb   = 1.0/b;
         }
         xn = (double)in[n];            /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
         yn = ((c/rez2 + 2.0*csq - 1.0)*ynm1 - csq*ynm2
               + ( c/rez2 + csq)*tval*xn + (-c/rez2 - 2.0*csq)*tval*xnm1
-              + csq*tval*xnm2)/b;
+              + csq*tval*xnm2)*invb;
 
         xnm2 = xnm1;            /* Update Xn-2 */
         xnm1 = xn;              /* Update Xn-1 */
@@ -1228,12 +1233,12 @@ static int bqrez(CSOUND *csound, REZZY *p)
 
 static OENTRY localops[] = {
 { "biquad", S(BIQUAD),   5, "a", "akkkkkko",(SUBR)biquadset, NULL, (SUBR)biquad },
-{ "biquada", S(BIQUAD),  5, "a", "aaaaaaao",(SUBR)biquadset, NULL, (SUBR)biquada },
+{ "biquada", S(BIQUAD),  5, "a", "aaaaaaao",(SUBR)biquadset, NULL,(SUBR)biquada },
 { "moogvcf", S(MOOGVCF), 5, "a", "axxpo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
-{ "moogvcf2", S(MOOGVCF), 5, "a", "axxoo", (SUBR)moogvcfset, NULL,(SUBR)moogvcf },
+{ "moogvcf2", S(MOOGVCF),5, "a", "axxoo", (SUBR)moogvcfset, NULL, (SUBR)moogvcf },
 { "rezzy", S(REZZY),     5, "a", "axxoo", (SUBR)rezzyset, NULL, (SUBR)rezzy },
 { "bqrez", S(REZZY),     5, "a", "axxoo", (SUBR)bqrezset, NULL, (SUBR)bqrez },
-{ "distort1", S(DISTORT), 4,"a", "akkkko",  NULL,   NULL,   (SUBR)distort   },
+{ "distort1", S(DISTORT),4, "a", "akkkko",  NULL,   NULL,   (SUBR)distort   },
 { "vco", S(VCO),         5, "a", "xxiVppovoo",(SUBR)vcoset, NULL, (SUBR)vco },
 { "tbvcf", S(TBVCF),     5, "a", "axxkkp",  (SUBR)tbvcfset, NULL, (SUBR)tbvcf   },
 { "planet", S(PLANET),5,"aaa","kkkiiiiiiioo", (SUBR)planetset, NULL, (SUBR)planet},
