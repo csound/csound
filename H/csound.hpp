@@ -695,14 +695,14 @@ public:
     return csoundChanOAGet(csound, value, n);
   }
 
-  virtual int ChanIFSet(const PVSDATEXT* value, int n)
+  virtual int PvsinSet(const PVSDATEXT* value, int n)
   {
-    return csoundChanIFSet(csound, value, n);
+    return csoundPvsinSet(csound, value, n);
   }
  
-  virtual int ChanOFGet(PVSDATEXT* value, int n)
+  virtual int PvsoutGet(PVSDATEXT* value, int n)
   {
-    return csoundChanOFGet(csound, value, n);
+    return csoundPvsoutGet(csound, value, n);
   }
 
   // cfgvar.h interface
