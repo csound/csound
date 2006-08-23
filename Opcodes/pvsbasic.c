@@ -26,6 +26,7 @@
 
 #include "csdl.h"
 #include "pvsbasic.h"
+#include "pvfileio.h"
 #include <math.h>
 
 static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);
@@ -51,6 +52,61 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
       bframe[i + 1] = (i / 2) * N * csound->onedsr;
     }
     return OK;
+}
+
+typedef struct {
+  OPDS h;
+  PVSDAT *fin;
+  MYFLT  *file;
+  int    pvfile;
+  AUXCH  frame;
+  unsigned long lastframe;
+}PVSFWRITE;
+
+static int pvsfwrite_destroy(CSOUND *csound, void *p){
+ csound->PVOC_CloseFile(csound,((PVSFWRITE *) p)->pvfile);
+ return OK;
+}
+
+static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p){
+  int N;
+  char *fname = csound->strarg2name(csound, NULL, p->file, 
+                  "pvoc.",p->XSTRCODE);
+  p->pvfile= -1;
+  N = p->fin->N;
+  if((p->pvfile  = csound->PVOC_CreateFile(csound, fname, 
+              p->fin->N, 
+              p->fin->overlap, 1, p->fin->format, 
+               csound->esr, STYPE_16,
+               p->fin->wintype, 0.0f, NULL, 
+               p->fin->winsize)) == -1)
+                return 
+                  csound->InitError(csound, 
+                    Str("pvsfwrite: could not open file %s\n"),
+		                    fname);
+  if (p->frame.auxp == NULL || p->frame.size < sizeof(float) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->frame);
+  csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);
+  p->lastframe = 0;
+  return OK; 
+}
+
+static int pvsfwrite(CSOUND *csound, PVSFWRITE *p){
+  float *fout = p->frame.auxp;
+  float *fin = p->fin->frame.auxp;
+
+  if (p->lastframe < p->fin->framecount) {
+  long framesize = p->fin->N + 2, i;
+  MYFLT scale = csound->e0dbfs;
+  for(i=0;i < framesize; i+=2) {
+      fout[i] = fin[i]/scale;
+      fout[i+1] = fin[i+1];
+  }
+  if (!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1))
+    return csound->PerfError(csound, Str("pvsfwrite: could not write data\n"));
+  p->lastframe = p->fin->framecount;
+   }
+  return OK;
 }
 
 static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
@@ -708,6 +764,8 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+    {"pvsfwrite", S(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
+     (SUBR) pvsfwrite},
     {"pvscale", S(PVSSCALE), 3, "f", "fkop", (SUBR) pvsscaleset,
      (SUBR) pvsscale},
     {"pvshift", S(PVSSHIFT), 3, "f", "fkkop", (SUBR) pvsshiftset,
