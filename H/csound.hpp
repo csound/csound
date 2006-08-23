@@ -701,6 +701,7 @@ public:
   // pvsbus interface 
   virtual void PvsBusInit(int N=1024, int olaps=256, int wsize=256, 
 			int wtype=1, int format=0){
+    if(pvsindata.frame != NULL) PvsBusDestroy();
     pvsindata.frame = new float[N+2];
     pvsoutdata.frame = new float[N+2];
     pvsindata.N = pvsoutdata.N = N;
@@ -713,8 +714,10 @@ public:
       pvsindata.frame[i] = pvsoutdata.frame[i] = 0.f;
   }
   virtual void PvsBusDestroy(){
+    if(pvsindata.frame != NULL){
     delete[] pvsindata.frame;
     delete[] pvsoutdata.frame;
+    }
   }
 
   virtual void PvsinSet(MYFLT val, int k, int n){
@@ -795,10 +798,12 @@ public:
   Csound(void *hostData)
   {
     csound = csoundCreate(hostData);
+    pvsindata.frame = pvsoutdata.frame  = NULL;
   }
   // destructor
   virtual ~Csound()
   {
+    PvsBusDestroy();
     csoundDestroy(csound);
   }
   // Functions for embedding.
