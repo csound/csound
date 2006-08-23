@@ -7,6 +7,8 @@
 	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c : 
 	  pvs bus now called pvsin/pvsout.
 	* disprep.*, entry1.c: added pvsdisp opcode
+	* pvsbasic.*: added pvsbin opcode
+	  Manual pages to follow
 
 2006-08-22  jpff  <jpff@codemist.co.uk>
 

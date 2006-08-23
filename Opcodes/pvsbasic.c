@@ -109,6 +109,28 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
     return OK;
 }
 
+static int pvsbinset(CSOUND *csound, PVSBIN *p){
+  p->lastframe = 0;
+  return OK;
+}
+
+static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
+{
+    long    framesize, pos;
+    float   *fin;
+    fin = (float *) p->fin->frame.auxp;
+    if (p->lastframe < p->fin->framecount) {
+       framesize = p->fin->N + 2;
+       pos=*p->kbin*2;
+      if(pos >= 0 && pos < framesize){
+	*p->kamp = (MYFLT)fin[pos];
+        *p->kfreq = (MYFLT)fin[pos+1];
+      }
+      p->lastframe = p->fin->framecount;
+    }
+    return OK;
+}
+
 static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
 {
     long    N = p->fin->N;
@@ -621,6 +643,8 @@ static OENTRY localops[] = {
     {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR) pvstencilset,
      (SUBR) pvstencil},
     {"pvsinit", S(PVSINI), 1, "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
+    {"pvsbin", S(PVSBIN), 3, "kk", "fk", (SUBR) pvsbinset, 
+         (SUBR) pvsbinprocess, NULL},
     {"pvsfreeze", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
      (SUBR) pvsfreezeprocess, NULL},
     {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
