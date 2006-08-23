@@ -60,7 +60,7 @@ typedef float mus_sample_t;
 /* highest frequency (hertz) */
 #define  ATSA_HFREQ 20000.0
 /* frequency deviation (ratio) */
-#define  ATSA_FREQDEV 0.1
+#define  ATSA_FREQDEV 0.1f
 /* number of f0 cycles in window */
 #define  ATSA_WCYCLES 4
 /* window type */
@@ -914,7 +914,7 @@ static ATS_PEAK *push_peak(CSOUND *csound, ATS_PEAK *new_peak,
  */
 static int peak_frq_inc(void const *a, void const *b)
 {
-    return (1000.0 * (((ATS_PEAK *) a)->frq - ((ATS_PEAK *) b)->frq));
+    return (int)(1000.0 * (((ATS_PEAK *) a)->frq - ((ATS_PEAK *) b)->frq));
 }
 
 /* peak_amp_inc
@@ -1055,7 +1055,7 @@ static ATS_PEAK *peak_detection(CSOUND *csound, ATS_FFT *ats_fft,
         ats_peak.frq = fft_mag * ((k - 1) + offset);
         ats_peak.pha =
             (offset < 0.0) ? phase_interp(fftphase[k - 2], fftphase[k - 1],
-                                          abs(offset))
+                                          fabs(offset))
                              : phase_interp(fftphase[k - 1], fftphase[k],
                                             offset);
         ats_peak.track = -1;
@@ -1395,7 +1395,7 @@ static void residual_get_bands(double fft_mag, double *true_bands,
     int     k;
 
     for (k = 0; k < bands; k++)
-      limits[k] = floor(true_bands[k] / fft_mag);
+      limits[k] = (int)floor(true_bands[k] / fft_mag);
 }
 
 static double residual_compute_time_domain_energy(ATS_FFT *fft)
@@ -1428,8 +1428,8 @@ static double residual_get_band_energy(int lo, int hi, ATS_FFT *fft,
 
     if (lo < 0)
       lo = 0;
-    if (hi > floor(fft->size * 0.5))
-      hi = floor(fft->size * 0.5);
+    if (hi > fft->size / 2)
+      hi = fft->size / 2;       /* was (int)floor(fft->size * 0.5) */
     for (k = lo; k < hi; k++) {
       double  re = (double) fft->data[k << 1];
       double  im = (double) fft->data[(k << 1) + 1];
@@ -1509,7 +1509,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     band_energy =
         (double *) csound->Malloc(csound, ATSA_CRITICAL_BANDS * sizeof(double));
 
-    M_2 = floor(((double) M - 1) * 0.5);
+    M_2 = (int)floor(((double) M - 1.0) * 0.5);
     st_pt = N - M_2;
     filptr = M_2 * -1;
     /* read sound into memory */
@@ -2059,7 +2059,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       anargs->highest_freq = ATSA_HFREQ;
     }
     /* frequency deviation */
-    if (!(anargs->freq_dev > 0.0 && anargs->freq_dev < 1.0)) {
+    if (!(anargs->freq_dev > 0.0f && anargs->freq_dev < 1.0f)) {
       csound->Warning(csound, Str("freq. dev. %f out of bounds, "
                                   "should be > 0.0 and <= 1.0, "
                                   "forced to default: %f"),
@@ -2110,7 +2110,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
         (anargs->cycle_smp % 2 ==
          0) ? anargs->cycle_smp + 1 : anargs->cycle_smp;
     /* calculate hop samples */
-    anargs->hop_smp = floor((float) anargs->win_size * anargs->hop_size);
+    anargs->hop_smp = (int)floor((float) anargs->win_size * anargs->hop_size);
     /* compute total number of frames */
     anargs->frames = compute_frames(anargs);
     /* check that we have enough frames for the analysis */
@@ -2197,9 +2197,9 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* fft mag for computing frequencies */
     anargs->fft_mag = (double) anargs->srate / (double) anargs->fft_size;
     /* lowest fft bin for analysis */
-    anargs->lowest_bin = floor(anargs->lowest_freq / anargs->fft_mag);
+    anargs->lowest_bin = (int)floor(anargs->lowest_freq / anargs->fft_mag);
     /* highest fft bin for analisis */
-    anargs->highest_bin = floor(anargs->highest_freq / anargs->fft_mag);
+    anargs->highest_bin = (int)floor(anargs->highest_freq / anargs->fft_mag);
     /* allocate an array analysis frames in memory */
     ana_frames =
         (ATS_FRAME *) csound->Malloc(csound,
@@ -2207,7 +2207,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* alocate memory to store mid-point window sample numbers */
     win_samps = (int *) csound->Malloc(csound, anargs->frames * sizeof(int));
     /* center point of window */
-    M_2 = floor((anargs->win_size - 1) / 2);
+    M_2 = (anargs->win_size-1)/2; /* Was (int)floor((anargs->win_size - 1) / 2) */
     /* first point in fft buffer to write */
     first_point = anargs->fft_size - M_2;
     /* half a window from first sample */
