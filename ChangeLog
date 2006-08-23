@@ -6,6 +6,7 @@
 2006-08-23 veplaini <Victor.Lazzarini@nuim.ie>
 	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c : 
 	  pvs bus now called pvsin/pvsout.
+	* csound.hpp: added a user-friendly interface to pvsin/out
 	* disprep.*, entry1.c: added pvsdisp opcode
 	* pvsbasic.*: added pvsbin opcode
 	  Manual pages to follow

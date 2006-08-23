@@ -57,6 +57,9 @@ class Csound
 {
 protected:
   CSOUND *csound;
+  PVSDATEXT pvsindata;
+  PVSDATEXT pvsoutdata;
+
 public:
   virtual CSOUND *GetCsound()
   {
@@ -693,6 +696,40 @@ public:
   virtual int ChanOAGet(MYFLT *value, int n)
   {
     return csoundChanOAGet(csound, value, n);
+  }
+  
+  // pvsbus interface 
+  virtual void PvsBusInit(int N=1024, int olaps=256, int wsize=256, 
+			int wtype=1, int format=0){
+    pvsindata.frame = new float[N+2];
+    pvsoutdata.frame = new float[N+2];
+    pvsindata.N = pvsoutdata.N = N;
+    pvsindata.overlap = pvsoutdata.overlap = olaps;
+    pvsindata.winsize = pvsoutdata.winsize = wsize;
+    pvsindata.wintype = pvsoutdata.wintype = wtype;
+    pvsindata.format = pvsoutdata.format = format;
+    pvsindata.framecount = pvsoutdata.framecount = 0;
+    for(int i=0; i < N+2; i++)
+      pvsindata.frame[i] = pvsoutdata.frame[i] = 0.f;
+  }
+  virtual void PvsBusDestroy(){
+    delete[] pvsindata.frame;
+    delete[] pvsoutdata.frame;
+  }
+
+  virtual void PvsinSet(MYFLT val, int k, int n){
+    if(pvsindata.frame != NULL && k < pvsindata.N+2){
+      pvsindata.frame[k] = (float) val;
+      csoundPvsinSet(csound, &pvsindata, n);
+    }
+  }
+
+  virtual MYFLT  PvsoutGet(int k, int n){
+    if(pvsoutdata.frame != NULL && k < pvsoutdata.N+2){
+      csoundPvsoutGet(csound, &pvsoutdata, n);
+      return (MYFLT) pvsoutdata.frame[k];
+    }
+    else return 0;
   }
 
   virtual int PvsinSet(const PVSDATEXT* value, int n)
