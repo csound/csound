@@ -42,7 +42,7 @@ typedef struct {
         OPDS    h;
         PVSDAT  *fin;
         MYFLT   *points, *flag;
-        MYFLT size;
+        int     size;
         WINDAT dwindow;
         AUXCH   fdata;
         unsigned long lastframe;        
