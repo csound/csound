@@ -359,7 +359,5 @@ int     loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
 int     loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
 int     loop_l_p(CSOUND *, void *), loop_le_p(CSOUND *, void *);
 int     loop_g_p(CSOUND *, void *), loop_ge_p(CSOUND *, void *);
-#ifdef BETA
 int     delete_instr(CSOUND *, void *);
-#endif
 
