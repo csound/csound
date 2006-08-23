@@ -40,10 +40,10 @@ static int pvsinit(CSOUND *csound, PVSINI *p)
         p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->N = N;
-    p->fout->overlap = *p->olap ? *p->olap : N/4;
-    p->fout->winsize = *p->winsize ? *p->winsize : N;
-    p->fout->wintype = *p->wintype;
-    p->fout->format = *p->format;
+    p->fout->overlap = (long)(*p->olap ? *p->olap : N/4);
+    p->fout->winsize = (long)(*p->winsize ? *p->winsize : N);
+    p->fout->wintype = (long) *p->wintype;
+    p->fout->format = (long) *p->format;
     p->fout->framecount = 1;
     bframe = (float *) p->fout->frame.auxp;
     for (i = 0; i < N + 2; i += 2) {
@@ -84,7 +84,6 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
     long    framesize;
     MYFLT   freeza, freezf;
     float   *fout, *fin, *freez;
-
     freeza = *p->kfra;
     freezf = *p->kfrf;
     fout = (float *) p->fout->frame.auxp;
@@ -93,8 +92,8 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 
     framesize = p->fin->N + 2;
 
-    if (p->lastframe < p->fin->framecount) {
-
+   if (p->lastframe < p->fin->framecount) {
+   
       for (i = 0; i < framesize; i += 2) {
         if (freeza < 1)
           freez[i] = fin[i];
@@ -102,12 +101,90 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
           freez[i + 1] = fin[i + 1];
         fout[i] = freez[i];
         fout[i + 1] = freez[i + 1];
-      
-}
+	 }
       p->fout->framecount = p->lastframe = p->fin->framecount;
-    }
-    return OK;
+   }  
+   return OK;
 }
+
+static int pvsoscset(CSOUND *csound, PVSOSC *p)
+{
+    int     i;
+    float   *bframe;
+    long    N = (long) *p->framesize;
+
+    if (p->fout->frame.auxp == NULL ||
+        p->fout->frame.size < sizeof(float) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    p->fout->N = N;
+    p->fout->overlap = (long)(*p->olap ? *p->olap : N/4);
+    p->fout->winsize = (long)(*p->winsize ? *p->winsize : N);
+    p->fout->wintype = (long) *p->wintype;
+    p->fout->format = (long) *p->format;
+    p->fout->framecount = 0;
+    bframe = (float *) p->fout->frame.auxp;
+    for (i = 0; i < N + 2; i += 2) {
+      bframe[i] = 0.0f;
+      bframe[i + 1] = (i / 2) * N * csound->onedsr;
+    }
+	p->lastframe = 1;
+	p->incr = (MYFLT)csound->ksmps/p->fout->overlap; 
+	return OK;
+}
+
+static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
+{
+    int     i, harm, type;
+    long    framesize;
+    MYFLT   famp, ffun,w;
+    float   *fout;
+	double cfbin,a;
+	float amp, freq;
+	int cbin, k, n;
+
+    famp = *p->ka;
+    ffun = *p->kf;
+	type = (int)MYFLT2LRND(*p->type);
+    fout = (float *) p->fout->frame.auxp;
+
+    framesize = p->fout->N + 2;
+
+   if (p->lastframe > p->fout->framecount) {
+    w = csound->esr/p->fout->N;
+    harm = (int)(csound->esr/(2*ffun));
+	for (i = 0; i < framesize; i ++) fout[i] = 0.f;
+
+	if(type==1) famp *= (MYFLT)(1.456/pow(harm, 1./2.4));
+    else if(type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
+    else if(type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
+    else {
+     	harm = 1; 
+	    famp *= (MYFLT)1.456;
+	}
+	 for(n=1; n <= harm; n++){
+	  if(type == 3) amp = famp/(harm);
+	  else amp = (famp/n);
+	  freq = ffun*n;
+	  cfbin = freq/w;
+	  cbin = (int)MYFLT2LRND(cfbin);
+	  for(i=cbin-1;i < cbin+3 &&i < framesize/2 ; i++){
+       k = i<<1;
+	   a = sin(i-cfbin)/(i-cfbin);
+       fout[k] = amp*a*a*a;
+	   fout[k+1] = freq;
+	  }
+	  if(type==2) n++;
+	 }
+      p->fout->framecount = p->lastframe;
+   }
+   p->incr += p->incr;
+   if(p->incr > 1){
+    p->incr = (MYFLT)csound->ksmps/p->fout->overlap;	   
+	p->lastframe++;   
+   }  
+   return OK;
+}
+
 
 static int pvsbinset(CSOUND *csound, PVSBIN *p){
   p->lastframe = 0;
@@ -648,7 +725,9 @@ static OENTRY localops[] = {
     {"pvsfreeze", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
      (SUBR) pvsfreezeprocess, NULL},
     {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
-     (SUBR) pvsmoothprocess, NULL}
+     (SUBR) pvsmoothprocess, NULL},
+	  {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset, (SUBR) pvsoscprocess, 
+	  NULL}
 };
 
 int pvsbasic_init_(CSOUND *csound)
