@@ -1,3 +1,8 @@
+2006-08-23  jpff  <jpff@codemist.co.uk>
+
+	* util/atsa.c: All over removed compiler warnings -- mainly
+	missing casts and inappropriate use of floor
+
 2006-08-23 veplaini <Victor.Lazzarini@nuim.ie>
 	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c : 
 	  pvs bus now called pvsin/pvsout.
