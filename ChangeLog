@@ -1,5 +1,7 @@
 2006-08-23  jpff  <jpff@codemist.co.uk>
 
+	* Opcodes/biquad.c (tbvcf): Use doubles inside filter
+
 	* util/atsa.c: All over removed compiler warnings -- mainly
 	missing casts and inappropriate use of floor
 
