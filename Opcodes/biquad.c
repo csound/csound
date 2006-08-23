@@ -120,8 +120,8 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     MYFLT *fcoptr, *resptr;
     /* Fake initialisations to stop compiler warnings!! */
     double fco=0.0, res, fcon, kp=0.0, pp1d2=0.0, scale=0.0, k=0.0;
-    MYFLT max = p->maxint;
-    MYFLT dmax = 1.0/max;
+    double max = (double)p->maxint;
+    double dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
 
@@ -154,7 +154,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
         scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
         k     = res*scale;
       }
-      xn = (double)(in[n] * dmax);
+      xn = (double)in[n] * dmax;
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
       /* Four cascaded onepole filters (bilinear transform) */
@@ -198,7 +198,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
     double fco, rez, xn, yn;
     double fqcadj, c, rez2=0.0, a=0.0, /* Initialisations fake */
            csq=0.0, b=0.0, invb=0.0,
-           tval=0.9; /* Temporary varibles for the filter */
+           tval=0.0; /* Temporary varibles for the filter */
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     in     = p->in;
@@ -1021,7 +1021,7 @@ static int lorenz(CSOUND *csound, LORENZ *p)
 static int tbvcfset(CSOUND *csound, TBVCF *p)
 {
     if (*p->iskip==FL(0.0)) {
-      p->y = p->y1 = p->y2 = FL(0.0);
+      p->y = p->y1 = p->y2 = 0.0;
     }
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
@@ -1034,12 +1034,13 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
     MYFLT *out, *in;
     MYFLT x;
     MYFLT *fcoptr, *resptr, *distptr, *asymptr;
-    MYFLT fco, res, dist, asym;
-    MYFLT y = p->y, y1 = p->y1, y2 = p->y2;
+    double fco, res, dist, asym;
+    double y = p->y, y1 = p->y1, y2 = p->y2;
     /* The initialisations are fake to fool compiler warnings */
-    MYFLT ih, fc=FL(0.0), fco1=FL(0.0), q=FL(0.0), q1=FL(0.0), fdbk, d, ad;
+    double ih, fdbk, d, ad;
+    double fc=0.0, fco1=0.0, q=0.0, q1=0.0;
 
-    ih  = FL(0.001); /* ih is the incremental factor */
+    ih  = 0.001; /* ih is the incremental factor */
 
  /* Set up the pointers */
     in      = p->in;
@@ -1050,40 +1051,40 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
     asymptr = p->asym;
 
  /* Get the values for the k-rate variables */
-    fco  = *fcoptr;
-    res  = *resptr;
-    dist = *distptr;
-    asym = *asymptr;
+    fco  = (double)*fcoptr;
+    res  = (double)*resptr;
+    dist = (double)*distptr;
+    asym = (double)*asymptr;
 
  /* Try to decouple the variables */
     if ((p->rezcod==0) && (p->fcocod==0)) { /* Calc once only */
-      q1   = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
-      fco1 = (MYFLT)pow((double)fco*260.0/(1.0+(double)q1*0.5),0.58);
-      q    = q1*fco1*fco1*FL(0.0005);
-      fc   = fco1*csound->onedsr*(FL(44100.0)/FL(8.0));
+      q1   = res/(1.0 + sqrt(dist));
+      fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
+      q    = q1*fco1*fco1*0.0005;
+      fc   = fco1*(double)csound->onedsr*(44100.0/8.0);
     }
     for (n=0; n<nsmps; n++) {
       /* Handle a-rate modulation of fco & res. */
       if (p->fcocod) {
-        fco = fcoptr[n];
+        fco = (double)fcoptr[n];
       }
       if (p->rezcod) {
-        res = resptr[n];
+        res = (double)resptr[n];
       }
       if ((p->rezcod!=0) || (p->fcocod!=0)) {
-        q1  = res/(FL(1.0) + (MYFLT)sqrt((double)dist));
-        fco1 = (MYFLT)pow((double)(fco*260.0/(1.0+q1*0.5)),0.58);
-        q  = q1*fco1*fco1*FL(0.0005);
-        fc  = fco1*csound->onedsr*(FL(44100.0)/FL(8.0));
+        q1  = res/(1.0 + sqrt(dist));
+        fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
+        q  = q1*fco1*fco1*0.0005;
+        fc  = fco1*(double)csound->onedsr*(44100.0/8.0);
       }
       x  = in[n];
-      fdbk = q*y/(FL(1.0) + (MYFLT)exp(-3.0*(double)y)*asym);
+      fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
       y1  = y1 + ih*((x - y1)*fc - fdbk);
-      d  = -FL(0.1)*y*FL(20.0);
-      ad  = (d*d*d + y2)*FL(100.0)*dist;
+      d  = -0.1*y*20.0;
+      ad  = (d*d*d + y2)*100.0*dist;
       y2  = y2 + ih*((y1 - y2)*fc + ad);
       y  = y + ih*((y2 - y)*fc);
-      out[n] = y*fc/FL(1000.0)*(1.0f + q1)*FL(3.2);
+      out[n] = (MYFLT)(y*fc/1000.0*(1.0 + q1)*3.2);
     }
     p->y = y; p->y1 = y1; p->y2 = y2;
     return OK;

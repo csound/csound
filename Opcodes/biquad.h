@@ -112,7 +112,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *out, *in, *fco, *res, *dist, *asym, *iskip;
-    MYFLT   y, y1, y2;
+    double  y, y1, y2;
     short   fcocod, rezcod;
 } TBVCF;
 
