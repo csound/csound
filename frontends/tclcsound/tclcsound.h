@@ -47,6 +47,13 @@ typedef struct __ctlchn {
     struct __ctlchn *next;
 } ctlchn;
 
+typedef struct __pvsctlchn {
+    char   *name;
+    int n;
+    PVSDATEXT data;
+    struct __pvsctlchn *next;
+} pvsctlchn;
+
 typedef struct __csdata {
     CSOUND *instance;           /* csound object */
     int     result;             /* action result */
@@ -57,6 +64,8 @@ typedef struct __csdata {
     Tcl_Interp *interp;
     char *mbuf;                /* message buffer */
     char mess[50];             /* message recipient name */
+    pvsctlchn *pvsinchan;
+  pvsctlchn *pvsoutchan;
 } csdata;
 
 extern int tclcsound_initialise(Tcl_Interp * interp);
