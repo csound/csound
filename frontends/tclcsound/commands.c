@@ -734,9 +734,10 @@ int SetPVSChannelBin(csdata *p,
     while (chan != NULL) {
       if (!strcmp(chan->name, name)) {
         if(bin >= 0  && bin <= chan->data.N/2){
-        chan->data.frame[bin] = amp;
-        chan->data.frame[bin+1] = freq;
-        //csoundPvsinSet(cs, &chan->data, chan->n);
+        chan->data.frame[bin*2] = amp;
+        chan->data.frame[(bin*2)+1] = freq;
+        if(p->status >= CS_COMPILED)
+        csoundPvsinSet(cs, &chan->data, chan->n);
 	}
         return CHAN_FOUND;
       }
@@ -753,10 +754,11 @@ int GetPVSChannelBin(csdata *p, char *name,
     while (chan != NULL) {
       if (!strcmp(chan->name, name)) {
        if(bin >= 0  && bin <= chan->data.N/2){
-        *amp = (MYFLT) chan->data.frame[bin];
-        *amp = (MYFLT) chan->data.frame[bin+1];
-	//csoundPvsoutGet(cs, &chan->data, chan->n);
+        if(p->status >= CS_COMPILED)
+	  csoundPvsoutGet(cs, &chan->data, chan->n);
        }
+        *amp = (MYFLT) chan->data.frame[bin*2];
+        *freq = (MYFLT) chan->data.frame[(bin*2)+1];
         return CHAN_FOUND;
       }
       chan = chan->next;
