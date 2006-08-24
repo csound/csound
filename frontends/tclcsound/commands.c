@@ -704,6 +704,217 @@ void out_channel_value_callback(CSOUND * csound, const char *name, MYFLT val)
         Tcl_UpdateLinkedVar(p->interp, name);
     }
 }
+/* pvs channels */
+/* channel interface */
+
+int FindPVSChannel(csdata * p, char *name)
+{
+    pvsctlchn *chan = p->pvsinchan;
+
+    while (chan != NULL) {
+      if (!strcmp(chan->name, name))
+        return IN_CHAN;
+      chan = chan->next;
+    }
+    chan = p->pvsoutchan;
+    while (chan != NULL) {
+      if (!strcmp(chan->name, name))
+        return OUT_CHAN;
+      chan = chan->next;
+    }
+    return CHAN_NOT_FOUND;
+}
+
+int SetPVSChannelBin(csdata *p, 
+  char *name, int bin, float amp, float freq)
+{
+  pvsctlchn *chan = p->pvsinchan;
+  CSOUND *cs = p->instance;
+    while (chan != NULL) {
+      if (!strcmp(chan->name, name)) {
+        if(bin >= 0  && bin <= chan->data.N/2){
+        chan->data.frame[bin] = amp;
+        chan->data.frame[bin+1] = freq;
+        csoundPvsinSet(cs, chan->data.frame, chan->n);
+	}
+        return CHAN_FOUND;
+      }
+      chan = chan->next;
+    }
+    return CHAN_NOT_FOUND;
+}
+
+int GetPVSChannelBin(csdata *p, char *name,
+ int bin, float *amp, float *freq)
+{
+    pvsctlchn *chan = p->pvsoutchan;
+    CSOUND *cs = p->instance;
+    while (chan != NULL) {
+      if (!strcmp(chan->name, name)) {
+       if(bin >= 0  && bin <= chan->data.N/2){
+        *amp = (MYFLT) chan->data.frame[bin];
+        *amp = (MYFLT) chan->data.frame[bin+1];
+         csoundPvsoutGet(cs, chan->data.frame, chan->n);
+       }
+        return CHAN_FOUND;
+      }
+      chan = chan->next;
+    }
+    *amp = *freq = (MYFLT) 0.0;
+    return CHAN_NOT_FOUND;
+}
+
+void FreePVSChannels(csdata * p)
+{
+    pvsctlchn *chan = p->pvsinchan, *tmp;
+
+    while (chan != NULL) {
+      tmp = chan;
+      chan = chan->next;
+      Tcl_Free((char *)tmp->data.frame);
+      Tcl_Free(tmp->name);
+      Tcl_Free((char *)tmp);
+    }
+    chan = p->pvsoutchan;
+    while (chan != NULL) {
+      tmp = chan;
+      chan = chan->next;
+      Tcl_Free((char *)tmp->data.frame);
+      Tcl_Free(tmp->name);
+      Tcl_Free((char *)tmp);
+    }
+}
+
+/*
+csPvsIn channel [size olaps winsize wintype] 
+Register new input channel for use with invalue opcode
+*/
+int csPvsIn(ClientData clientData, Tcl_Interp * interp,
+                  int argc, char **argv)
+{
+    csdata *p = (csdata *) clientData;
+    int N;
+    pvsctlchn *newch, *tmp;
+
+    if (argc >= 2) {
+      if (FindChannel(p, argv[1]) != IN_CHAN) {
+	newch = (pvsctlchn *) Tcl_Alloc(sizeof(pvsctlchn));
+        tmp = p->pvsinchan; 
+        p->pvsinchan = newch;
+        p->pvsinchan->next = tmp;
+        if(tmp)p->pvsinchan->n = tmp->n++;
+        else p->pvsinchan->n = 0;
+        p->pvsinchan->name = (char *) Tcl_Alloc(strlen(argv[1])+1);
+	strcpy(p->pvsinchan->name, argv[1]);
+        N = p->pvsinchan->data.N = (argc > 2 ? atoi(argv[2]) : 1024);
+        p->pvsinchan->data.overlap  = (argc > 3 ? atoi(argv[3]) : N/4);
+        p->pvsinchan->data.winsize = (argc > 4 ? atoi(argv[4]) : N);
+        p->pvsinchan->data.wintype = (argc > 5 ? atoi(argv[5]) : 1);
+        p->pvsinchan->data.frame = (float *) Tcl_Alloc(sizeof(float)*(N+2));
+        memset(p->pvsinchan->data.frame, 0,sizeof(float)*(N+2));
+        Tcl_SetResult(interp, argv[1], TCL_VOLATILE);
+      }
+      else
+        Tcl_SetResult(interp, "0", TCL_VOLATILE);
+    }
+    return (TCL_OK);
+}
+
+/*
+csPvsOut channel [size olaps winsize wintype] 
+Register new output channel for use with outvalue opcode
+*/
+int csPvsOut(ClientData clientData, Tcl_Interp * interp,
+                   int argc, char **argv)
+{
+    csdata *p = (csdata *) clientData;
+    int N;
+    pvsctlchn *newch, *tmp;
+
+    if (argc >= 2) {
+      if (FindChannel(p, argv[1]) != OUT_CHAN) {
+        newch = (pvsctlchn *) Tcl_Alloc(sizeof(ctlchn));
+        tmp = p->outchan;
+        p->pvsoutchan = newch;
+        p->pvsoutchan->next = tmp;
+       if(tmp)p->pvsoutchan->n = tmp->n++;
+        else p->pvsoutchan->n = 0;
+        p->pvsoutchan->name = (char *)Tcl_Alloc(strlen(argv[1])+1);
+        strcpy(p->pvsoutchan->name, argv[1]);
+        N = p->pvsoutchan->data.N = (argc > 2 ? atoi(argv[2]) : 1024);
+        p->pvsoutchan->data.overlap  = (argc > 3 ? atoi(argv[3]) : N/4);
+        p->pvsoutchan->data.winsize = (argc > 4 ? atoi(argv[4]) : N);
+        p->pvsoutchan->data.wintype = (argc > 5 ? atoi(argv[5]) : 1);
+        p->pvsoutchan->data.frame = (float *) Tcl_Alloc(sizeof(float)*(N+2));
+        memset(p->pvsoutchan->data.frame, 0,sizeof(float)*(N+2));
+        Tcl_SetResult(interp, argv[1], TCL_VOLATILE);
+      }
+      else
+        Tcl_SetResult(interp, "0", TCL_VOLATILE);
+    }
+    return (TCL_OK);
+}
+
+/*
+csPvsInSet channel bin amp freq
+sets the amp & freq of a pvs in channel bin
+[to be used with pvsin opcode]
+*/
+int csPvsInSet(ClientData clientData, Tcl_Interp * interp,
+                int argc, Tcl_Obj ** argv)
+{
+    Tcl_Obj *resp;
+    csdata *p = (csdata *) clientData;
+    double  amp, freq;
+    int bin;
+
+    if (argc == 5) {
+      Tcl_GetIntFromObj(interp, argv[2], &bin);
+      Tcl_GetDoubleFromObj(interp, argv[3], &amp);
+      Tcl_GetDoubleFromObj(interp, argv[4], &freq);
+      resp = Tcl_GetObjResult(interp);
+      if (SetPVSChannelBin
+          (p,Tcl_GetStringFromObj(argv[1], NULL), bin,
+            (float)amp, (float) freq)
+          != CHAN_NOT_FOUND)
+        Tcl_SetObjResult(interp, argv[1]);
+      else
+        Tcl_SetStringObj(resp, "channel not found", -1);
+    }
+    return (TCL_OK);
+}
+
+/*
+csPvsOutGet channel bin [IsFreq]
+returns the amp or freq of a pvs out channel channel bin
+[to be used with pvsout opcode]
+*/
+int csPvsOutGet(ClientData clientData, Tcl_Interp * interp,
+                 int argc, Tcl_Obj ** argv)
+{
+    Tcl_Obj *resp;
+    csdata *p = (csdata *) clientData;
+    float   amp, freq;
+    int     bin, isFreq = 0;
+
+    if (argc >= 3) {
+      resp = Tcl_GetObjResult(interp);
+      Tcl_GetIntFromObj(interp, argv[2], &bin);
+      if(argc > 3) Tcl_GetIntFromObj(interp, argv[3], &isFreq);
+      if (GetPVSChannelBin(p, Tcl_GetStringFromObj(argv[1], NULL), bin,
+          &amp, &freq)
+          != CHAN_NOT_FOUND) {
+        if(!isFreq)
+        Tcl_SetDoubleObj(resp, (double) amp);
+        else
+        Tcl_SetDoubleObj(resp, (double) freq);
+      }
+      else
+        Tcl_SetStringObj(resp, "channel not found", -1);
+    }
+    return (TCL_OK);
+}
+
 
 int csSetTable(ClientData clientData, Tcl_Interp * interp,
                  int argc, Tcl_Obj ** argv)
@@ -813,6 +1024,7 @@ void QuitCsTcl(ClientData clientData)
       Tcl_Sleep(1000);
     }
     FreeChannels(p);
+    FreePVSChannels(p);
     csoundDestroy(cs);
     Tcl_Free(p->mbuf);
     Tcl_Free((char *)clientData);
@@ -958,6 +1170,8 @@ int tclcsound_initialise(Tcl_Interp * interp)
     pdata->result = 0;
     pdata->inchan = NULL;
     pdata->outchan = NULL;
+    pdata->pvsinchan = NULL;
+    pdata->pvsinchan = NULL;
     pdata->interp = interp;
     pdata->mbuf = Tcl_Alloc(16384);
     csoundSetInputValueCallback(pdata->instance, in_channel_value_callback);
@@ -1012,6 +1226,14 @@ int tclcsound_initialise(Tcl_Interp * interp)
     Tcl_CreateObjCommand(interp, "csOutValue", (Tcl_ObjCmdProc *) csOutValue,
                          (ClientData) pdata, NULL);
     Tcl_CreateObjCommand(interp, "csInValue", (Tcl_ObjCmdProc *) csInValue,
+                         (ClientData) pdata, NULL);
+   Tcl_CreateCommand(interp, "csPvsOut", (Tcl_CmdProc *) csPvsOut,
+                      (ClientData) pdata, NULL);
+    Tcl_CreateCommand(interp, "csPvsIn", (Tcl_CmdProc *) csPvsIn,
+                      (ClientData) pdata, NULL);
+    Tcl_CreateObjCommand(interp, "csPvsOutGet", (Tcl_ObjCmdProc *) csPvsOutGet,
+                         (ClientData) pdata, NULL);
+    Tcl_CreateObjCommand(interp, "csPvsInSet", (Tcl_ObjCmdProc *) csPvsInSet,
                          (ClientData) pdata, NULL);
     Tcl_CreateCommand(interp, "csOpcodedir", (Tcl_CmdProc *) csOpcodedir,
                       (ClientData) pdata, NULL);

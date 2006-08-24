@@ -1,4 +1,8 @@
-
+2006-08-23 veplaini <Victor.Lazzarini@nuim.ie>
+	* frontends/tclcsound/commands.c, tclcsound.h: added
+	pvs bus channel interface to tclcsound. Not tested yet.
+	Manual pages for all new opcodes have also been added.
+	
 2006-08-23  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/biquad.c (tbvcf): Use doubles inside filter
