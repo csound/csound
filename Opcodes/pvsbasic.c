@@ -68,45 +68,47 @@ static int pvsfwrite_destroy(CSOUND *csound, void *p){
  return OK;
 }
 
-static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p){
-  int N;
-  char *fname = csound->strarg2name(csound, NULL, p->file, 
-                  "pvoc.",p->XSTRCODE);
-  p->pvfile= -1;
-  N = p->fin->N;
-  if((p->pvfile  = csound->PVOC_CreateFile(csound, fname, 
-              p->fin->N, 
-              p->fin->overlap, 1, p->fin->format, 
-               csound->esr, STYPE_16,
-               p->fin->wintype, 0.0f, NULL, 
-               p->fin->winsize)) == -1)
-                return 
-                  csound->InitError(csound, 
-                    Str("pvsfwrite: could not open file %s\n"),
-		                    fname);
-  if (p->frame.auxp == NULL || p->frame.size < sizeof(float) * (N + 2))
+static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
+{
+    int N;
+    char *fname = csound->strarg2name(csound, NULL, p->file, 
+                                      "pvoc.",p->XSTRCODE);
+    p->pvfile= -1;
+    N = p->fin->N;
+    if((p->pvfile  = csound->PVOC_CreateFile(csound, fname, 
+                                             p->fin->N, 
+                                             p->fin->overlap, 1, p->fin->format, 
+                                             csound->esr, STYPE_16,
+                                             p->fin->wintype, 0.0f, NULL, 
+                                             p->fin->winsize)) == -1)
+      return 
+        csound->InitError(csound, 
+                          Str("pvsfwrite: could not open file %s\n"),
+                          fname);
+    if (p->frame.auxp == NULL || p->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->frame);
-  csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);
-  p->lastframe = 0;
-  return OK; 
+    csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);
+    p->lastframe = 0;
+    return OK; 
 }
 
-static int pvsfwrite(CSOUND *csound, PVSFWRITE *p){
-  float *fout = p->frame.auxp;
-  float *fin = p->fin->frame.auxp;
+static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
+{
+    float *fout = p->frame.auxp;
+    float *fin = p->fin->frame.auxp;
 
-  if (p->lastframe < p->fin->framecount) {
-  long framesize = p->fin->N + 2, i;
-  MYFLT scale = csound->e0dbfs;
-  for(i=0;i < framesize; i+=2) {
-      fout[i] = fin[i]/scale;
-      fout[i+1] = fin[i+1];
-  }
-  if (!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1))
-    return csound->PerfError(csound, Str("pvsfwrite: could not write data\n"));
-  p->lastframe = p->fin->framecount;
-   }
-  return OK;
+    if (p->lastframe < p->fin->framecount) {
+      long framesize = p->fin->N + 2, i;
+      MYFLT scale = csound->e0dbfs;
+      for(i=0;i < framesize; i+=2) {
+        fout[i] = fin[i]/scale;
+        fout[i+1] = fin[i+1];
+      }
+      if (!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1))
+        return csound->PerfError(csound, Str("pvsfwrite: could not write data\n"));
+      p->lastframe = p->fin->framecount;
+    }
+    return OK;
 }
 
 static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
@@ -150,15 +152,15 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 
    if (p->lastframe < p->fin->framecount) {
    
-      for (i = 0; i < framesize; i += 2) {
-        if (freeza < 1)
-          freez[i] = fin[i];
-        if (freezf < 1)
-          freez[i + 1] = fin[i + 1];
-        fout[i] = freez[i];
-        fout[i + 1] = freez[i + 1];
-	 }
-      p->fout->framecount = p->lastframe = p->fin->framecount;
+     for (i = 0; i < framesize; i += 2) {
+       if (freeza < 1)
+         freez[i] = fin[i];
+       if (freezf < 1)
+         freez[i + 1] = fin[i + 1];
+       fout[i] = freez[i];
+       fout[i + 1] = freez[i + 1];
+     }
+     p->fout->framecount = p->lastframe = p->fin->framecount;
    }  
    return OK;
 }
@@ -183,9 +185,9 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
       bframe[i] = 0.0f;
       bframe[i + 1] = (i / 2) * N * csound->onedsr;
     }
-	p->lastframe = 1;
-	p->incr = (MYFLT)csound->ksmps/p->fout->overlap; 
-	return OK;
+    p->lastframe = 1;
+    p->incr = (MYFLT)csound->ksmps/p->fout->overlap; 
+    return OK;
 }
 
 static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
@@ -194,57 +196,58 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
     long    framesize;
     MYFLT   famp, ffun,w;
     float   *fout;
-	double cfbin,a;
-	float amp, freq;
-	int cbin, k, n;
+    double  cfbin,a;
+    float   amp, freq;
+    int     cbin, k, n;
 
     famp = *p->ka;
     ffun = *p->kf;
-	type = (int)MYFLT2LRND(*p->type);
+    type = (int)MYFLT2LRND(*p->type);
     fout = (float *) p->fout->frame.auxp;
 
     framesize = p->fout->N + 2;
 
-   if (p->lastframe > p->fout->framecount) {
-    w = csound->esr/p->fout->N;
-    harm = (int)(csound->esr/(2*ffun));
-	for (i = 0; i < framesize; i ++) fout[i] = 0.f;
+    if (p->lastframe > p->fout->framecount) {
+      w = csound->esr/p->fout->N;
+      harm = (int)(csound->esr/(2*ffun));
+      for (i = 0; i < framesize; i ++) fout[i] = 0.f;
 
-	if(type==1) famp *= (MYFLT)(1.456/pow(harm, 1./2.4));
-    else if(type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
-    else if(type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
-    else {
-     	harm = 1; 
-	    famp *= (MYFLT)1.456;
-	}
-	 for(n=1; n <= harm; n++){
-	  if(type == 3) amp = famp/(harm);
-	  else amp = (famp/n);
-	  freq = ffun*n;
-	  cfbin = freq/w;
-	  cbin = (int)MYFLT2LRND(cfbin);
-	  for(i=cbin-1;i < cbin+3 &&i < framesize/2 ; i++){
-       k = i<<1;
-	   a = sin(i-cfbin)/(i-cfbin);
-       fout[k] = amp*a*a*a;
-	   fout[k+1] = freq;
-	  }
-	  if(type==2) n++;
-	 }
+      if(type==1) famp *= (MYFLT)(1.456/pow(harm, 1./2.4));
+      else if(type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
+      else if(type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
+      else {
+        harm = 1; 
+        famp *= (MYFLT)1.456;
+      }
+      for(n=1; n <= harm; n++){
+        if(type == 3) amp = famp/(harm);
+        else amp = (famp/n);
+        freq = ffun*n;
+        cfbin = freq/w;
+        cbin = (int)MYFLT2LRND(cfbin);
+        for(i=cbin-1;i < cbin+3 &&i < framesize/2 ; i++){
+          k = i<<1;
+          a = sin(i-cfbin)/(i-cfbin);
+          fout[k] = amp*a*a*a;
+          fout[k+1] = freq;
+        }
+        if(type==2) n++;
+      }
       p->fout->framecount = p->lastframe;
-   }
-   p->incr += p->incr;
-   if(p->incr > 1){
-    p->incr = (MYFLT)csound->ksmps/p->fout->overlap;	   
-	p->lastframe++;   
-   }  
-   return OK;
+    }
+    p->incr += p->incr;
+    if(p->incr > 1){
+      p->incr = (MYFLT)csound->ksmps/p->fout->overlap;       
+      p->lastframe++;   
+    }  
+    return OK;
 }
 
 
-static int pvsbinset(CSOUND *csound, PVSBIN *p){
-  p->lastframe = 0;
-  return OK;
+static int pvsbinset(CSOUND *csound, PVSBIN *p)
+{
+    p->lastframe = 0;
+    return OK;
 }
 
 static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
@@ -255,11 +258,11 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
     if (p->lastframe < p->fin->framecount) {
        framesize = p->fin->N + 2;
        pos=*p->kbin*2;
-      if(pos >= 0 && pos < framesize){
-	*p->kamp = (MYFLT)fin[pos];
-        *p->kfreq = (MYFLT)fin[pos+1];
-      }
-      p->lastframe = p->fin->framecount;
+       if(pos >= 0 && pos < framesize){
+         *p->kamp = (MYFLT)fin[pos];
+         *p->kfreq = (MYFLT)fin[pos+1];
+       }
+       p->lastframe = p->fin->framecount;
     }
     return OK;
 }
@@ -456,7 +459,7 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
 static int pvsscale(CSOUND *csound, PVSSCALE *p)
 {
     long    i, chan, newchan, N = p->fout->N;
-    float   max = 0.f;
+    float   max = 0.0f;
     MYFLT   pscal = (MYFLT) fabs(*p->kscal);
     int     keepform = (int) *p->keepform;
     float   g = (float) *p->gain;
@@ -765,27 +768,27 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 static OENTRY localops[] = {
     {"pvsfwrite", S(PVSFWRITE), 3, "", "fT", (SUBR) pvsfwriteset,
-     (SUBR) pvsfwrite},
+         (SUBR) pvsfwrite},
     {"pvscale", S(PVSSCALE), 3, "f", "fkop", (SUBR) pvsscaleset,
-     (SUBR) pvsscale},
+         (SUBR) pvsscale},
     {"pvshift", S(PVSSHIFT), 3, "f", "fkkop", (SUBR) pvsshiftset,
-     (SUBR) pvsshift},
+         (SUBR) pvsshift},
     {"pvsmix", S(PVSMIX), 3, "f", "ff", (SUBR) pvsmixset, (SUBR) pvsmix, NULL},
     {"pvsfilter", S(PVSFILTER), 3, "f", "ffkp", (SUBR) pvsfilterset,
-     (SUBR) pvsfilter},
+         (SUBR) pvsfilter},
     {"pvsblur", S(PVSBLUR), 3, "f", "fki", (SUBR) pvsblurset, (SUBR) pvsblur,
-     NULL},
+         NULL},
     {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR) pvstencilset,
-     (SUBR) pvstencil},
+         (SUBR) pvstencil},
     {"pvsinit", S(PVSINI), 1, "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
     {"pvsbin", S(PVSBIN), 3, "kk", "fk", (SUBR) pvsbinset, 
          (SUBR) pvsbinprocess, NULL},
     {"pvsfreeze", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
-     (SUBR) pvsfreezeprocess, NULL},
+         (SUBR) pvsfreezeprocess, NULL},
     {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
-     (SUBR) pvsmoothprocess, NULL},
-	  {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset, (SUBR) pvsoscprocess, 
-	  NULL}
+         (SUBR) pvsmoothprocess, NULL},
+    {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset, 
+         (SUBR) pvsoscprocess, NULL}
 };
 
 int pvsbasic_init_(CSOUND *csound)

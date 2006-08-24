@@ -237,9 +237,9 @@ static int open_device(CSOUND *csound,
       ndev = (int) waveOutGetNumDevs();
       csound->Message(csound, Str("The available output devices are:\n"));
       for (i = 0; i < ndev; i++) {
-	waveOutGetDevCapsA((unsigned int) i, (LPWAVEOUTCAPSA) &caps,
-			   sizeof(WAVEOUTCAPSA));
-	csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
+        waveOutGetDevCapsA((unsigned int) i, (LPWAVEOUTCAPSA) &caps,
+                           sizeof(WAVEOUTCAPSA));
+        csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
       if (ndev < 1)
         return err_msg(csound, Str("no output device is available"));
@@ -256,19 +256,19 @@ static int open_device(CSOUND *csound,
       ndev = (int) waveInGetNumDevs();
       csound->Message(csound, Str("The available input devices are:\n"));
       for (i = 0; i < ndev; i++) {
-	waveInGetDevCapsA((unsigned int) i, (LPWAVEINCAPSA) &caps,
-			  sizeof(WAVEINCAPSA));
-	csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
+        waveInGetDevCapsA((unsigned int) i, (LPWAVEINCAPSA) &caps,
+                          sizeof(WAVEINCAPSA));
+        csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
       if (ndev < 1)
-	return err_msg(csound, Str("no input device is available"));
+        return err_msg(csound, Str("no input device is available"));
       if (devNum < 0 || devNum >= ndev) {
-	return err_msg(csound, Str("device number is out of range"));
+        return err_msg(csound, Str("device number is out of range"));
       }
       waveInGetDevCapsA((unsigned int) devNum, (LPWAVEINCAPSA) &caps,
                         sizeof(WAVEINCAPSA));
       csound->Message(csound, Str("winmm: opening input device %d (%s)\n"),
-		      devNum, (char*) caps.szPname);
+                      devNum, (char*) caps.szPname);
     }
     p = (rtWinMMGlobals*)
           csound->QueryGlobalVariable(csound, "_rtwinmm_globals");

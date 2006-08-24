@@ -262,10 +262,11 @@ int delrset(CSOUND *csound, DELAYR *p)
       p->npts = npts;
     }
     else if (*p->istor == FL(0.0)) {            /* else if requested */
-      MYFLT *lp = auxp;
-      do {
-        *lp++ = FL(0.0);                        /*   clr old to zero */
-      } while (--npts);
+      memset(auxp, '\0', npts*sizeof(MYFLT));
+/*       MYFLT *lp = auxp; */
+/*       do { */
+/*         *lp++ = FL(0.0);                        /\*   clr old to zero *\/ */
+/*       } while (--npts); */
     }
     p->curp = auxp;
     return OK;
@@ -793,11 +794,9 @@ int cmbset(CSOUND *csound, COMB *p)
       p->coef = FL(0.0);
     }
     else if (!(*p->istor)) {
-      long *fp = (long *) p->auxch.auxp;
-      p->pntr = (MYFLT *) fp;
-      do {
-        *fp++ = 0;
-      } while (--lpsiz);
+      /* Does this assume sizeof(MYFLT)==sizeof(long)?? */
+      p->pntr = (MYFLT *) p->auxch.auxp;
+      memset(p->auxch.auxp, '\0', nbytes);
       p->prvt = FL(0.0);
       p->coef = FL(0.0);
     }
@@ -908,11 +907,12 @@ int rvbset(CSOUND *csound, REVERB *p)
       p->prvt = FL(0.0);
     }
     else if (!(*p->istor)) {                    /* else if istor = 0 */
-      MYFLT     *fp = p->adr1;
-      long      nn = csound->revlpsum;
-      do {
-        *fp++ = FL(0.0);                        /*  clr existing spc */
-      } while (--nn);
+/*       MYFLT     *fp = p->adr1; */
+/*       long      nn = csound->revlpsum; */
+      memset(p->adr1, '\0', csound->revlpsum * sizeof(MYFLT));
+/*       do { */
+/*         *fp++ = FL(0.0);                        /\*  clr existing spc *\/ */
+/*       } while (--nn); */
       p->p1 = p->adr1;                          /*  and reset   */
       p->p2 = p->adr2;
       p->p3 = p->adr3;

@@ -134,10 +134,10 @@ typedef struct _pvsini {
 typedef struct _pvsosc {
     OPDS    h;
     PVSDAT  *fout;
-	MYFLT   *ka, *kf, *type;
+    MYFLT   *ka, *kf, *type;
     MYFLT   *framesize, *olap, *winsize, *wintype, *format;
-	MYFLT incr;
-	unsigned long lastframe;
+    MYFLT incr;
+    unsigned long lastframe;
 } PVSOSC;
 
 typedef struct _pvsbin {

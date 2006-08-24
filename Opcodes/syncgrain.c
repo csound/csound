@@ -162,7 +162,7 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
     p->sfunc = csound->FTnp2Find(csound, p->ifn1);
     if (p->sfunc == NULL)
       return NOTOK;
-    
+
     p->datasize =  p->sfunc->flen;
     p->envtablesize = p->efunc->flen;   /* size of envtable */
     p->olaps = (int) *p->ols;
@@ -170,7 +170,7 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
     if (p->olaps < 1)
       p->olaps = 1;
 
-    if(*p->iskip == 0){ 
+    if(*p->iskip == 0){
     csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->index);
     csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->envindex);
     csound->AuxAlloc(csound, p->olaps * sizeof(int), &p->streamon);
@@ -207,7 +207,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     /* loop points & checks */
     loop_start = *p->loop_start*sr;
     loop_end = *p->loop_end*sr;
-    if(loop_start < 0) loop_start = 0; 
+    if(loop_start < 0) loop_start = 0;
     if(loop_start >= datasize) loop_start = datasize-1;
     if(firsttime) start = start > loop_start ? loop_start : start;
     loop_end = (loop_start > loop_end ? loop_start : loop_end);
@@ -247,14 +247,14 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
         /* this will keep syncgrain looping within the
            loop boundaries */
         while (start >= loop_end) {
-                  firsttime = 0;
-                  start -= loopsize;
+          firsttime = 0;
+          start -= loopsize;
         }
         while (start < loop_start && !firsttime)
-	              start += loopsize;
+          start += loopsize;
       }
       /* depending on pitch transpsition a
-         grain can extend beyond the loop points. 
+         grain can extend beyond the loop points.
          it will be wrapped up at the ends of the
          table.
        */
@@ -266,7 +266,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
           index[j] -= datasize;
         while(index[j] < 0)
           index[j] += datasize;
-    
+
         /* sum all the grain streams */
         sig += ((datap[(int)index[j]] +
                  (index[j] - (int)index[j])*
