@@ -184,7 +184,7 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       /* allocate memory for frames */
       else {
         fout = (PVSDAT *)csound->chanif;
-        csound->AuxAlloc(csound, (fin->N+2)*sizeof(float), &fout[n].frame);
+        fout[n].frame.auxp = mmalloc(csound, (fin->N+2)*sizeof(float));
         fout[n].N = fin->N;
         fout[n].overlap = fin->overlap;
         fout[n].winsize = fin->winsize;
@@ -227,7 +227,7 @@ PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n)
         return err;
 
       fin = (PVSDAT *)csound->chanif;
-      csound->AuxAlloc(csound, (fout->N+2)*sizeof(float), &fin[n].frame);
+      fin[n].frame.auxp = mmalloc(csound, (fout->N+2)*sizeof(float));
       fin[n].N = fout->N;
       fin[n].overlap = fout->overlap;
       fin[n].winsize = fout->winsize;
@@ -357,7 +357,7 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
       }
       else {
         fin = (PVSDAT *)csound->chanif;
-        csound->AuxAlloc(csound, (p->init.N+2)*sizeof(float), &fin[n].frame);
+        fin[n].frame.auxp = mmalloc(csound, (p->init.N+2)*sizeof(float));
         fin[n].N = p->init.N;
         fin[n].overlap = p->init.overlap;
         fin[n].winsize = p->init.winsize;
