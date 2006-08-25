@@ -1,3 +1,7 @@
+2006-08-25  jpff  <jpff@codemist.co.uk>
+
+	* Engine/insert.c (delete_instr): Allowed named instruments as well
+
 2006-08-23 veplaini <Victor.Lazzarini@nuim.ie>
 	* frontends/tclcsound/commands.c, tclcsound.h: added
 	pvs bus channel interface to tclcsound. Not tested yet.
