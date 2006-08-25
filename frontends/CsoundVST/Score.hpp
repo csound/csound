@@ -61,7 +61,9 @@ namespace csound
     Event scaleActualMinima;
     Event scaleActualRanges;
     MidiFile midifile;
-    std::map<double, double> reassignments;
+    std::map<int, double> reassignments;
+    std::map<int, double> gains;
+    std::map<int, double> pans;
     Score();
     virtual ~Score();
     virtual void initialize();
@@ -96,8 +98,10 @@ namespace csound
      * are not conformed.
      */
     virtual std::string getCsoundScore(double tonesPerOctave = 12.0, bool conformPitches = false);
-    virtual void reassign(double oldInstrumentNumber, double newInstrumentNumber);
-    virtual void removeReassignments();
+    virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber);
+    virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain);
+    virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain, double pan);
+    virtual void removeArrangement();
   };
 }
 #endif
