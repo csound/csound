@@ -26,6 +26,7 @@
 #include "Midifile.hpp"
 #include "Score.hpp"
 #include "System.hpp"
+#include "Conversions.hpp"
 #include <set>
 #include <cstdarg>
 #include <iostream>
@@ -424,33 +425,59 @@ namespace csound
   {
     std::string csoundScore;
     sort();
-    for(Score::iterator it = begin(); it != end(); ++it)
-      {
-       if (!reassignments.empty())
-	{
-	  double oldInstrument = std::floor(it->getInstrument());
-	  if (reassignments.find(oldInstrument) != reassignments.end())
-	    {
-	      it->setInstrument(reassignments[oldInstrument]);
-	    }
+    for( Score::iterator it = begin(); it != end(); ++it ) {
+      int oldInstrument = int( std::floor( it->getInstrument() ) );
+      if( gains.find( oldInstrument ) != gains.end() ) {
+	double velocity = it->getVelocity();
+	if( velocity > 0.0 ) {
+	  double gain = gains[oldInstrument];
+	  double amplitude = std::exp( it->getVelocity() * Conversions::log10d20 );
+	  amplitude = std::fabs( amplitude * gain );
+	  if( amplitude > 0.0 ) {
+	    velocity = std::log( amplitude )  / Conversions::log10d20;
+	    it->setVelocity( velocity );
+	  }
 	}
-       if(conformPitches)
-          {
-            it->conformToPitchClassSet();
-          }
-       csoundScore.append(it->toCsoundIStatement(tonesPerOctave));
       }
+      if( pans.find( oldInstrument ) != pans.end() ) {
+	double pan = pans[oldInstrument];
+	it->setPan( pan );
+      }
+      if( reassignments.find( oldInstrument ) != reassignments.end() ) {
+	it->setInstrument( reassignments[oldInstrument] );
+      }
+      if( conformPitches ) {
+	it->conformToPitchClassSet();
+      }
+      csoundScore.append( it->toCsoundIStatement( tonesPerOctave ) );
+    }
     return csoundScore;
   }
 
-  void Score::reassign(double oldInstrumentNumber, double newInstrumentNumber)
+  void Score::arrange(int oldInstrumentNumber, int newInstrumentNumber)
   {
     reassignments[oldInstrumentNumber] = newInstrumentNumber;
   }
 
-  void Score::removeReassignments()
+  void Score::arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain)
+  {
+    reassignments[oldInstrumentNumber] = newInstrumentNumber;
+    gains[oldInstrumentNumber] = gain;
+  }
+
+  void Score::arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain, double pan)
+  {
+    reassignments[oldInstrumentNumber] = newInstrumentNumber;
+    gains[oldInstrumentNumber] = gain;
+    pans[oldInstrumentNumber] = pan;
+  }
+
+  void Score::removeArrangement()
   {
     reassignments.clear();
+    gains.clear();
+    pans.clear();
   }
+
 
 }
