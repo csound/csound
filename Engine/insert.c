@@ -1716,10 +1716,16 @@ int prealloc(CSOUND *csound, AOP *p)
 
 int delete_instr(CSOUND *csound, DELETEIN *p)
 {
-    int       n = (int) (*p->insno + FL(0.5));
+    int       n;
     INSTRTXT  *ip;
     INSDS     *active;
     INSTRTXT  *txtp;
+    int isNamedInstr = (int) csound->GetInputArgSMask(p);
+
+    if (isNamedInstr)
+      n = csound->strarg2insno(csound, p->insno, isNamedInstr);
+    else
+      n = (int) (*p->insno + FL(0.5));
 
     if (n < 1 || n > csound->maxinsno || csound->instrtxtp[n] == NULL)
       return OK;                /* Instrument does not exist so noop */
