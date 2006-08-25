@@ -48,7 +48,6 @@ typedef struct __ctlchn {
 } ctlchn;
 
 typedef struct __pvsctlchn {
-    char   *name;
     int n;
     PVSDATEXT data;
     struct __pvsctlchn *next;
