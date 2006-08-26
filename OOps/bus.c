@@ -57,19 +57,30 @@ static CS_NOINLINE int chan_realloc(CSOUND *csound,
 }
 
 static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
-                                      void **p, int *oldSize, int newSize)
+                                      void **p, int *oldSize, 
+                                      int newSize, PVSDATEXT *fin)
 {
     volatile jmp_buf  saved_exitjmp;
-    PVSDAT           *newp;
+    PVSDATEXT           *newp, *pp;
+    int chans = newSize - *oldSize, i;
 
     memcpy((void*) &saved_exitjmp, (void*)&csound->exitjmp, sizeof(jmp_buf));
     if (setjmp(csound->exitjmp) != 0) {
       memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
       return CSOUND_MEMORY;
         }
-    newp = (PVSDAT*)mrealloc(csound, *p,  sizeof(PVSDAT) * newSize);
+    newp = (PVSDATEXT *)mrealloc(csound, *p,  sizeof(PVSDATEXT) * newSize);
+    for(i=*oldSize; i < chans; i++){
+    pp = &newp[i];
+    pp->frame = (float *)mmalloc(csound, (fin->N+2)*sizeof(float));
+    pp->N = fin->N;
+    pp->overlap = fin->overlap;
+    pp->winsize = fin->winsize;
+    pp->wintype = fin->wintype;
+    pp->format =  fin->format;
+    pp->framecount = fin->framecount;
+    }   
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
-    memset(newp+*oldSize, 0, sizeof(PVSDAT));
     (*p) = newp;
     (*oldSize) = newSize;
 
@@ -173,39 +184,23 @@ PUBLIC int csoundChanOAGet(CSOUND *csound, MYFLT *value, int n)
 */
 PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
 {
-    PVSDAT *fout = (PVSDAT *)csound->chanif;
+    PVSDATEXT *fout = (PVSDATEXT *)csound->chanif;
+    int size;
     if (n < 0)
       return CSOUND_ERROR;
     if ((unsigned int)n >= (unsigned int)csound->nchanif) {
       int   err = chan_realloc_f(csound, (void *)&(csound->chanif),
-                                 &(csound->nchanif), n + 1);
+                                 &(csound->nchanif), n + 1, 
+                                   (PVSDATEXT *)fin);
       if (err)
         return err;
-      /* allocate memory for frames */
-      else {
-        fout = (PVSDAT *)csound->chanif;
-        fout[n].frame.auxp = mmalloc(csound, (fin->N+2)*sizeof(float));
-        fout[n].N = fin->N;
-        fout[n].overlap = fin->overlap;
-        fout[n].winsize = fin->winsize;
-        fout[n].wintype = fin->wintype;
-        fout[n].format =  fin->format;
-        fout[n].framecount = fin->framecount;
-        memcpy(fout[n].frame.auxp, fin->frame, sizeof(float)*(fin->N+2));
-        return CSOUND_SUCCESS;
-      }
+      fout = (PVSDATEXT *)csound->chanif;
+      memcpy(fout[n].frame, fin->frame, sizeof(float)*(fin->N+2));
+      return CSOUND_SUCCESS;
     }
-    if (fout[n].N >= fin->N) {
-      fout[n].N = fin->N;
-      fout[n].overlap = fin->overlap;
-      fout[n].winsize = fin->winsize;
-      fout[n].wintype = fin->wintype;
-      fout[n].format =  fin->format;
-      fout[n].framecount = fin->framecount;
-      memcpy(fout[n].frame.auxp, fin->frame, sizeof(float)*(fin->N+2));
-    }
-    else
-      return CSOUND_ERROR;
+    size = fout[n].N < fin->N ? fout[n].N : fin->N;
+    memcpy(&fout[n], fin, sizeof(PVSDATEXT)-sizeof(float *));
+    memcpy(fout[n].frame, fin->frame, sizeof(float)*(size+2));
     return CSOUND_SUCCESS;
 }
 
@@ -218,35 +213,21 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
 */
 PUBLIC int csoundPvsoutGet(CSOUND *csound, PVSDATEXT *fout, int n)
 {
-    PVSDAT *fin = (PVSDAT *)csound->chanof;
+    PVSDATEXT *fin = (PVSDATEXT *)csound->chanof;
+    int size;
     if (n < 0) return CSOUND_ERROR;
     if (((unsigned int)n >= (unsigned int)csound->nchanof)) {
       int err = chan_realloc_f(csound, (void *)&(csound->chanof),
-                               &(csound->nchanof), n + 1);
+                               &(csound->nchanof), n + 1, fout);
       if (err)
         return err;
-
-      fin = (PVSDAT *)csound->chanif;
-      fin[n].frame.auxp = mmalloc(csound, (fout->N+2)*sizeof(float));
-      fin[n].N = fout->N;
-      fin[n].overlap = fout->overlap;
-      fin[n].winsize = fout->winsize;
-      fin[n].wintype = fout->wintype;
-      fin[n].format =  fout->format;
-      fin[n].framecount = fout->framecount;
-      memset(fin[n].frame.auxp, 0, sizeof(float)*(fin[n].N+2));
+      fin = (PVSDATEXT *)csound->chanof;
+      memset(fin[n].frame, 0, sizeof(float)*(fin[n].N+2));
       return CSOUND_SUCCESS;
     }
-    if (fout->N >= fin[n].N) {
-      fout->N = fin[n].N;
-      fout->overlap = fin[n].overlap;
-      fout->winsize = fin[n].winsize;
-      fout->wintype = fin[n].wintype;
-      fout->format =  fin[n].format;
-      fout->framecount = fin[n].framecount;
-      memcpy(fout->frame, fin[n].frame.auxp, sizeof(float)*(fin[n].N+2));
-    }
-    else return CSOUND_ERROR;
+    size = fout->N < fin[n].N ? fout->N : fin[n].N;
+    memcpy(fout, &fin[n], sizeof(PVSDATEXT)-sizeof(float *));
+    memcpy(fout->frame, fin[n].frame, sizeof(float)*(size+2));
     return CSOUND_SUCCESS;
 }
 
@@ -335,6 +316,7 @@ int pvsin_init(CSOUND *csound, FCHAN *p)
     p->init.winsize = (long) (*p->winsize ? *p->winsize : p->init.N);
     p->init.wintype = (long)(*p->wintype);
     p->init.format = (long)(*p->format);
+    p->init.framecount = 0;
     memcpy(p->r, &p->init, sizeof(PVSDAT)-sizeof(AUXCH));
     if (p->r->frame.auxp == NULL ||
         p->r->frame.size < sizeof(float) * (N + 2))
@@ -344,55 +326,48 @@ int pvsin_init(CSOUND *csound, FCHAN *p)
 
 int pvsin_perf(CSOUND *csound, FCHAN *p)
 {
-    PVSDAT *fin = (PVSDAT *)csound->chanif;
+    PVSDATEXT *fin = (PVSDATEXT *)csound->chanif;
     PVSDAT *fout = p->r;
     int     n = (int)MYFLT2LRND(*(p->a)), size;
     if(n < 0)
       return csound->PerfError(csound, Str("chani: invalid index"));
     if (((unsigned int)n >= (unsigned int)csound->nchanif)){
       int err = chan_realloc_f(csound, (void *)&(csound->chanif),
-                               &(csound->nchanif), n + 1);
+                               &(csound->nchanif), n + 1, 
+                               (PVSDATEXT *) &(p->init));
       if (err) {
-        return csound->PerfError(csound, Str("chani: memory allocation failure"));
+     return csound->PerfError(csound, Str("chani: memory allocation failure"));
       }
       else {
-        fin = (PVSDAT *)csound->chanif;
-        fin[n].frame.auxp = mmalloc(csound, (p->init.N+2)*sizeof(float));
-        fin[n].N = p->init.N;
-        fin[n].overlap = p->init.overlap;
-        fin[n].winsize = p->init.winsize;
-        fin[n].wintype = p->init.wintype;
-        fin[n].format =  p->init.format;
-        fin[n].framecount = 0;
-        memset(fin[n].frame.auxp, 0, sizeof(float)*(fin[n].N+2));
+        fin = (PVSDATEXT *)csound->chanif;
+        memset(fin[n].frame, 0, sizeof(float)*(fin[n].N+2));
       }
     }
+    size = fin[n].N < fout->N ? fin[n].N : fout->N;
     memcpy(fout, &fin[n], sizeof(PVSDAT)-sizeof(AUXCH));
-    size = (fin[n].N < fout->N ? fin[n].N : fout->N);
-    memcpy(fout->frame.auxp, fin[n].frame.auxp, sizeof(float)*(size+2));
+    memcpy(fout->frame.auxp, fin[n].frame, sizeof(float)*(size+2));
     return OK;
 }
 
 int pvsout_perf(CSOUND *csound, FCHAN *p)
 {
-    int     n = (int)MYFLT2LRND(*(p->a));
-    PVSDAT *fout = (PVSDAT *)csound->chanof;
+    int     n = (int)MYFLT2LRND(*(p->a)), size;
+    PVSDATEXT *fout = (PVSDATEXT *)csound->chanof;
     PVSDAT *fin = p->r;
     if (n < 0)
       return csound->PerfError(csound,Str("chano: invalid index"));
 
     if ((unsigned int)n >= (unsigned int)csound->nchanof) {
       if (chan_realloc_f(csound, (void *)&(csound->chanof),
-                         &(csound->nchanof), n + 1) != 0)
+                         &(csound->nchanof), n + 1, 
+                         (PVSDATEXT *) fin) != 0)
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
-      else {
-        fout = (PVSDAT *)csound->chanof;
-        memcpy(&fout[n], fin, sizeof(PVSDAT));
-        return OK;
-      }
+      else fout = (PVSDATEXT *)csound->chanof;       
     }
-    memcpy(&fout[n], fin, sizeof(PVSDAT));
+    size = fout[n].N < fin->N ? fout[n].N : fin->N;
+    memcpy(&fout[n], fin, sizeof(PVSDAT)-sizeof(AUXCH)); 
+    memcpy(fout[n].frame, fin->frame.auxp, sizeof(float)*(size+2));
     return OK;
 }
 /* ======================================================================== */
