@@ -428,16 +428,10 @@ namespace csound
     for( Score::iterator it = begin(); it != end(); ++it ) {
       int oldInstrument = int( std::floor( it->getInstrument() ) );
       if( gains.find( oldInstrument ) != gains.end() ) {
-	double velocity = it->getVelocity();
-	if( velocity > 0.0 ) {
-	  double gain = gains[oldInstrument];
-	  double amplitude = std::exp( it->getVelocity() * Conversions::log10d20 );
-	  amplitude = std::fabs( amplitude * gain );
-	  if( amplitude > 0.0 ) {
-	    velocity = std::log( amplitude )  / Conversions::log10d20;
-	    it->setVelocity( velocity );
-	  }
-	}
+	double inputDb = it->getVelocity();
+        double gain = gains[oldInstrument];
+        double outputDb = Conversions::dbFromGain( inputDb, gain );
+	it->setVelocity( outputDb );
       }
       if( pans.find( oldInstrument ) != pans.end() ) {
 	double pan = pans[oldInstrument];
