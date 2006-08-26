@@ -874,17 +874,17 @@ int csPvsInSet(ClientData clientData, Tcl_Interp * interp,
 {
     Tcl_Obj *resp;
     csdata *p = (csdata *) clientData;
-    double  amp, freq;
-    int bin, chan;
+    double  amp, freq, bin;
+    int chan;
 
     if (argc == 5) {
       Tcl_GetIntFromObj(interp, argv[1], &chan);
-      Tcl_GetIntFromObj(interp, argv[2], &bin);
+      Tcl_GetDoubleFromObj(interp, argv[2], &bin);
       Tcl_GetDoubleFromObj(interp, argv[3], &amp);
       Tcl_GetDoubleFromObj(interp, argv[4], &freq);
       resp = Tcl_GetObjResult(interp);
       if (SetPVSChannelBin
-          (p,chan, bin, (float)amp, (float) freq)
+          (p,chan, (int)bin, (float)amp, (float) freq)
 	    != CHAN_NOT_FOUND)
         Tcl_SetIntObj(resp, 1);
 	 else
@@ -904,14 +904,15 @@ int csPvsOutGet(ClientData clientData, Tcl_Interp * interp,
     Tcl_Obj *resp;
     csdata *p = (csdata *) clientData;
     float   amp, freq;
-    int     bin, isFreq = 0, chan;
+    double  bin;
+    int     isFreq = 0, chan;
 
     if (argc >= 3) {
       resp = Tcl_GetObjResult(interp);
       Tcl_GetIntFromObj(interp, argv[1], &chan);
-      Tcl_GetIntFromObj(interp, argv[2], &bin);
+      Tcl_GetDoubleFromObj(interp, argv[2], &bin);
       if(argc > 3) Tcl_GetIntFromObj(interp, argv[3], &isFreq);
-      if (GetPVSChannelBin(p,chan, bin,&amp,&freq)
+      if (GetPVSChannelBin(p,chan,(int)bin,&amp,&freq)
           != CHAN_NOT_FOUND) {
         if(!isFreq)
         Tcl_SetDoubleObj(resp, (double) amp);
