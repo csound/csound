@@ -584,5 +584,12 @@ namespace csound
     copy[len] = '\0';
     return copy;
   }
-
+  double Conversions::dbFromGain(double inputDb, double gain, bool odbfs)
+  {
+    double factor = 1.0;
+    if (odbfs) {
+      factor = -1.0;
+    } 
+    return std::exp( factor * std::log( 10.0 ) * gain / 20.0 ) * inputDb;
+  }
 }

@@ -153,6 +153,14 @@ namespace csound
      * The user is responsible for freeing the copy.
      */
     static char *dupstr(const char *string);
+    /**
+     * Return a new value in dB that represents 
+     * the input value in dB adjusted by the specified gain.
+     * If odbfs is false (the default), then 
+     * 0 dB is the threshold of hearing; 
+     * otherwise, 0 dB is full scale.
+     */
+    static double dbFromGain(double inputDb, double gain, bool odbfs = false);
   };
 }
 
