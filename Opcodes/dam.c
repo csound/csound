@@ -83,6 +83,7 @@ static int dam(CSOUND *csound, DAM *p)
     MYFLT *powerBuffer;
     MYFLT power;
     MYFLT tg;
+    int nsmps = csound->ksmps;
 
     ain         = p->ain;
     aout        = p->aout;
@@ -96,7 +97,7 @@ static int dam(CSOUND *csound, DAM *p)
 
  /* Process ksmps samples */
 
-    for (i=0;i<csound->ksmps;i++) {
+    for (i=0;i<nsmps;i++) {
 
         /* Estimates the current power level */
 
@@ -115,7 +116,7 @@ static int dam(CSOUND *csound, DAM *p)
       }
       else {
         tg = threshold*(MYFLT)(pow((double)(power/threshold),
-                                 1.0/(double)comp2))/power;
+                                   1.0/(double)comp2))/power;
       }
 
       /* move gain toward target */

@@ -36,11 +36,11 @@
 
 static int dcblockrset(CSOUND *csound, DCBlocker* p)
 {
-    p->outputs = FL(0.0);
-    p->inputs = FL(0.0);
-    p->gain = *p->gg;
-    if (p->gain == FL(0.0) || p->gain>=FL(1.0) || p->gain<=-FL(1.0))
-      p->gain = FL(0.99);
+    p->outputs = 0.0;
+    p->inputs = 0.0;
+    p->gain = (double)*p->gg;
+    if (p->gain == 0.0 || p->gain>=1.0 || p->gain<=-1.0)
+      p->gain = 0.99;
     return OK;
 }
 
@@ -48,16 +48,16 @@ static int dcblockr(CSOUND *csound, DCBlocker* p)
 {
     MYFLT       *ar = p->ar;
     int         n, nsmps = csound->ksmps;
-    MYFLT       gain = p->gain;
-    MYFLT       outputs = p->outputs;
-    MYFLT       inputs = p->inputs;
+    double      gain = p->gain;
+    double      outputs = p->outputs;
+    double      inputs = p->inputs;
     MYFLT       *samp = p->in;
 
     for (n=0; n<nsmps; n++) {
-      MYFLT sample = samp[n];
+      double sample = (double)samp[n];
       outputs = sample - inputs + (gain * outputs);
       inputs = sample;
-      ar[n] = outputs;
+      ar[n] = (MYFLT)outputs;
     }
     p->outputs = outputs;
     p->inputs = inputs;
