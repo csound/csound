@@ -191,7 +191,7 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
     if ((unsigned int)n >= (unsigned int)csound->nchanif) {
       int   err = chan_realloc_f(csound, (void *)&(csound->chanif),
                                  &(csound->nchanif), n + 1, 
-                                   (PVSDATEXT *)fin);
+                                 (PVSDATEXT *)fin);
       if (err)
         return err;
       fout = (PVSDATEXT *)csound->chanif;
