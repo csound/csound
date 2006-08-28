@@ -707,11 +707,7 @@ static OENTRY localops[] = {
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
 {
-#ifdef BETA
-    csound->Message(csound, "**** OSC: liblo started ****\n");
-#else
-    (void) csound;
-#endif
+    IGN(csound);
     *ep = localops;
     return (long) sizeof(localops);
 }

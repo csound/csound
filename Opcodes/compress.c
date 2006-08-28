@@ -52,7 +52,7 @@ static int compset(CSOUND *csound, CMPRS *p)
     p->thresh = (MYFLT) MAXPOS;
     p->loknee = (MYFLT) MAXPOS;                 /* force reinits        */
     p->hiknee = (MYFLT) MAXPOS;
-    p->ratio = (MYFLT) MAXPOS;
+    p->ratio  = (MYFLT) MAXPOS;
     p->curatt = (MYFLT) MAXPOS;
     p->currls = (MYFLT) MAXPOS;
     /* round to nearest integer */
@@ -82,9 +82,9 @@ static int compress(CSOUND *csound, CMPRS *p)
       p->thresh = *p->kthresh;
       p->envthrsh = (MYFLT) exp(p->thresh * LOG10D20);
     }
-    if (*p->kloknee != p->loknee
-        || *p->khiknee != p->hiknee
-        || *p->kratio != p->ratio) {
+    if (*p->kloknee != p->loknee ||
+        *p->khiknee != p->hiknee ||
+        *p->kratio != p->ratio) {
       MYFLT ratio, K;
       p->loknee = *p->kloknee;
       p->hiknee = *p->khiknee;

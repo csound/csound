@@ -45,12 +45,12 @@ static int flwset(CSOUND *csound, FOL *p)
                                 /* Use absolute value rather than max/min */
 static int follow(CSOUND *csound, FOL *p)
 {
-    long        n = csound->ksmps;
+    int         n, nsmps = csound->ksmps;
     MYFLT       *in = p->in, *out = p->out;
     MYFLT       max = p->max;
     long        count = p->count;
-    do {
-      MYFLT sig = *in++;
+    for (n=0; n<nsmps; n++) {
+      MYFLT sig = in[n];
       if (sig > max) max = sig;
       else if (sig < -max) max = -sig;
       if (--count == 0L) {
@@ -58,8 +58,8 @@ static int follow(CSOUND *csound, FOL *p)
         max = FL(0.0);
         count = p->length;
       }
-      *out++ = p->wgh;
-    } while (--n);
+      out[n] = p->wgh;
+    }
     p->max = max;
     p->count = count;
     return OK;

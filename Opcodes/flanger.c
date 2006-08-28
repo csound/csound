@@ -52,9 +52,9 @@ static int flanger(CSOUND *csound, FLANGER *p)
     long  v1;
     MYFLT *yt1= &(p->yt1);
 
-    int nsmps = csound->ksmps;
+    int n,nsmps = csound->ksmps;
 
-    do {
+    for (n=0; n<nsmps; n++) {
                 /*---------------- delay -----------------------*/
       buf[indx] = *in++ + (*yt1 * feedback);
       fv1 = indx - (*freq_del++ * csound->esr); /* Make sure inside the buffer*/
@@ -65,7 +65,7 @@ static int flanger(CSOUND *csound, FLANGER *p)
       *out++ = *yt1 = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
       if (++indx == maxdelay)
         indx = 0;                      /* Advance current pointer */
-    } while (--nsmps);
+    }
     p->left = indx;
     return OK;
 }
@@ -106,10 +106,10 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     indx = p->left;
     /*---------------- filter -----------------------*/
     if (*p->filt_khp != p->prvhp) {
-      MYFLT b;
+      double b;
       p->prvhp = *p->filt_khp;
-      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp * csound->tpidsr));
-      p->c2 = b - (MYFLT)sqrt((double)(b * b - 1.0));
+      b = 2.0 - cos((double)(*p->filt_khp * csound->tpidsr));
+      p->c2 = (MYFLT)(b - sqrt((double)(b * b - 1.0)));
       p->c1 = FL(1.0) - p->c2;
     }
     c1= p->c1;
@@ -217,17 +217,17 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     indx1 = p->left1;
     indx2 = p->left2;
     if (*p->filt_khp1 != p->prvhp1) {
-      MYFLT b;
+      double b;
       p->prvhp1 = *p->filt_khp1;
-      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp1 * csound->tpidsr));
-      p->c2_1 = b - (MYFLT)sqrt((double)(b * b) - 1.0);
+      b = 2.0 - cos((double)(*p->filt_khp1 * csound->tpidsr));
+      p->c2_1 = (MYFLT)(b - sqrt((b * b) - 1.0));
       p->c1_1 = FL(1.0) - p->c2_1;
     }
     if (*p->filt_khp2 != p->prvhp2) {
-      MYFLT b;
+      double b;
       p->prvhp2 = *p->filt_khp2;
-      b = FL(2.0) - (MYFLT)cos((double)(*p->filt_khp2 * csound->tpidsr));
-      p->c2_2 = b - (MYFLT)sqrt((double)(b * b) - 1.0);
+      b = 2.0 - cos((double)(*p->filt_khp2 * csound->tpidsr));
+      p->c2_2 = (MYFLT)(b - sqrt((double)(b * b) - 1.0));
       p->c1_2 = FL(1.0) - p->c2_2;
     }
     c1_1= p->c1_1;
