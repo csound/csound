@@ -4,12 +4,12 @@
 ;; and change the cffi:load-foreign-library call to suit your installation.
 ;; Author: Michael Gogins
 
-(load "c:/utah/home/mkg/projects/cm/src/cm.lisp")
+(load "d:/utah/opt/cm/src/cm.lisp")
 (use-system :cffi)
-(cffi:load-foreign-library "c:/utah/home/mkg/projects/csound5/_csnd.dll")
-(load "c:/utah/home/mkg/projects/csound5/interfaces/csound5.lisp")
+(cffi:load-foreign-library "d:/utah/home/mkg/projects/csoundd/_csnd.dll")
+(load "d:/utah/home/mkg/projects/csoundd/interfaces/csound5.lisp")
 (setq cs (csound5::csound-create nil))
-(cffi:with-foreign-string (csd "c:/utah/home/mkg/projects/csound5/examples/trapped.csd")
+(cffi:with-foreign-string (csd "d:/utah/home/mkg/projects/csoundd/examples/trapped.csd")
 			  (csound5::csound-compile-csd cs csd))
 (setq *keep-playing* t result 0)
 (loop while (and *keep-playing* (eq result 0)) do
