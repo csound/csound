@@ -1,10 +1,10 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -RWfo Xanadu.wav temp.orc temp.sco
+csound -RWso Xanadu.wav temp.orc temp.sco
 </CsOptions>
 <CsInstruments>
-sr          =           48000
-kr          =           48000
+sr          =           44100
+kr          =           44100
 ksmps       =           1
 nchnls      =           2
 ;--------------------------------------------------------
