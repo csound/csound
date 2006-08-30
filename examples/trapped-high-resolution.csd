@@ -30,8 +30,11 @@ nchnls =        2
 ;============================================================================;
 ;=============================== INITIALIZATION =============================;
 ;============================================================================;
-garvb  init     0
-gadel  init     0
+garvb  		init    0
+gadel  		init    0
+giattack 	init   	0.003
+girelease 	init  	0.05
+giar 		init 	0.053
 ;============================================================================;
 ;================================== INSTRUMENTS =============================;
 ;============================================================================;
@@ -71,8 +74,9 @@ k16    expseg   4, p3 * .91, 1, p3 * .09, 1
 k17    poscil    k16, p7 * 1.4, 1, .2
 k18    expseg   .001, p3 *.6, p6, p3 *.2, p6 *.8, p3 *.1, p6 *.98, p3 *.1, .001
 a11    poscil    k18, ((ifreq + .001) + k17) * aglis, 13, 1.3
+adamp  linseg   0.0, 0.02, 1.0, p3 - .07, 1.0, .05, 0.0
 
-       outs     a1 + a3 + a5, a7 + a9 + a11
+       outs     adamp * (a1 + a3 + a5), adamp * (a7 + a9 + a11)
        endin
 ;============================================================================;
 ;==================================== BLUE ==================================;
@@ -90,9 +94,11 @@ ksweep linseg   p9, p3 * p10, 1, p3 * (p3 - (p3 * p10)), 1
 
 kenv   expseg   .001, p3 * .01, p6, p3 * .99, .001
 asig   gbuzz    kenv, ifreq + k3, k5, ksweep, k1, 15
+adamp  linseg   0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
+asig   = 	asig * adamp
 
        outs     asig, asig
-garvb  =        garvb + (asig * p7)
+garvb  =        garvb + (asig * p7 * adamp)
        endin
 ;============================================================================;
 ;================================== VIOLET ==================================;
@@ -121,8 +127,9 @@ k16    randh   k4 * 1.4, k7 * 2.1, .2
 a3     poscil   kenv1, ifreq + (p5 * .1) + k16 + k13, 16, .3
 
 amix   =       a1 + a2 + a3
-       outs    a1 + a3, a2 + a3
-garvb  =       garvb + (amix * p7)
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
+       outs    adamp * (a1 + a3), adamp * (a2 + a3)
+garvb  =       garvb + (amix * p7 * adamp)
        endin
 ;============================================================================;
 ;==================================== BLACK =================================;
@@ -136,9 +143,10 @@ a1     reson   anoise, k1, k1 / p9, 1
 k2     poscil   .6, 11.3, 1, .1
 k3     expseg  .001,p3 * .001, p6, p3 * .999, .001
 a2     poscil   k3, ifreq + k2, 15
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
 
-       outs   (a1 * .8) + a2, (a1 * .6) + (a2 * .7)
-garvb  =      garvb + (a2 * p10)
+       outs   adamp * ((a1 * .8) + a2), adamp * ((a1 * .6) + (a2 * .7))
+garvb  =      garvb + (a2 * p10 * adamp)
        endin
 ;============================================================================;
 ;==================================== GREEN =================================;
@@ -161,8 +169,9 @@ a2     poscil   kenv2, ifreq * 1.001, 1
 
 amix   =       a1 + a2
 kpan   linseg  int(p8), p3 * .7, frac(p8), p3 * .3, int(p8)
-       outs    amix * kpan, amix * (1 - kpan)
-garvb  =       garvb + (amix * p7)
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
+       outs    adamp * (amix * kpan), adamp * (amix * (1 - kpan))
+garvb  =       garvb + (amix * p7 * adamp)
        endin
 ;============================================================================;
 ;================================== COPPER ==================================;
@@ -171,16 +180,17 @@ garvb  =       garvb + (amix * p7)
 ifuncl  =      8                             ; p6 = FilterSweep EndFreq
                                              ; p7 = bandwidth
 k1      phasor p4                            ; p8 = reverb send factor
-k2      table  k1 * ifuncl, 19               ; p9 = amp
+k2      tablei k1 * ifuncl, 19               ; p9 = amp
 anoise  rand   8000
 k3      expon  p5, p3, p6
 a1      reson  anoise, k3 * k2, k3 / p7, 1
 
 kenv    linen  p9, .01, p3, .05
 asig    =      a1 * kenv
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
 
-        outs   asig, asig
-garvb   =      garvb + (asig * p8)
+        outs   adamp * asig, adamp * asig
+garvb   =      garvb + (asig * p8 * adamp)
         endin
 ;============================================================================;
 ;==================================== PEWTER ================================;
@@ -193,13 +203,14 @@ a1     poscil   1, ifreq, p10                 ; p8 = ctrl osc amp (.1 -> 1)
 k1     linseg  p6, p3 * .5, p7, p3 * .5, p6  ; p9 = ctrl osc func
 a3     poscil  p8, ifreq + k1, p9            ; p10 = main osc func (f2 or f3)
 a4     phasor  ifreq                         ; ...(function length must be 512!)
-a5     table   (a4 + a3) * ifuncl, p10       ; p11 = reverb send factor
+a5     tablei   (a4 + a3) * ifuncl, p10       ; p11 = reverb send factor
 
 kenv   linen   p4, p3 * .4, p3, p3 * .5
 asig   =       kenv * ((a1 + a5) * .2)
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
 
-       outs    asig, asig
-garvb  =       garvb + (asig * p11)
+       outs    adamp * asig, adamp * asig
+garvb  =       garvb + (asig * p11 * adamp)
        endin
 ;============================================================================;
 ;==================================== RED ===================================;
@@ -210,7 +221,7 @@ ifuncl =       16                            ; p5 = FilterSweep StartFreq
 k1     expon   p5, p3, p6                    ; p7 = bandwidth
 k2     line    p8, p3, p8 * .93              ; p8 = cps of rand1
 k3     phasor  k2                            ; p9 = cps of rand2
-k4     table   k3 * ifuncl, 20               ; p10 = reverb send factor
+k4     tablei   k3 * ifuncl, 20               ; p10 = reverb send factor
 anoise rand    8000
 aflt1  reson   anoise, k1, 20 + (k4 * k1 / p7), 1
 
@@ -232,8 +243,10 @@ k9     randh   1, k2
 aleft  =       ((a3 * k9) * .7) + ((a5 * k9) * .3)
 k10    randh   1, k6
 aright =       ((a3 * k10) * .3)+((a5 * k10) * .7)
-       outs    aleft, aright
-garvb  =       garvb + (a3 * p10)
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
+
+       outs    adamp * aleft, adamp * aright
+garvb  =       garvb + (a3 * p10 * adamp)
 endin
 ;============================================================================;
 ;==================================== SAND ==================================;
@@ -254,10 +267,11 @@ a3      poscil  kenv * .85, (ifreq + .006) + k4, 3, .5
 a4      poscil  kenv * .95, (ifreq + .009) + k5, 4, .8
 
 amix    =      a1 + a2 + a3 + a4
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
 
-        outs   a1 + a3, a2 + a4
-garvb   =      garvb + (amix * p7)
-gadel   =      gadel + (amix * p4)
+        outs   adamp * (a1 + a3), adamp * (a2 + a4)
+garvb   =      garvb + (amix * p7 * adamp)
+gadel   =      gadel + (amix * p4 * adamp)
         endin
 ;============================================================================;
 ;==================================== TAUPE =================================;
@@ -272,15 +286,16 @@ k5      randh  p8 * .9, p9 * 1.3
 
 kenv    linen  p6, p3 *.1, p3, p3 * .8
 
-a1      oscil  kenv, ifreq + k2, 1, .2
-a2      oscil  kenv * .91, (ifreq + .004) + k3, 2, .3
-a3      oscil  kenv * .85, (ifreq + .006) + k4, 3, .5
-a4      oscil  kenv * .95, (ifreq + .009) + k5, 4, .8
+a1      poscil  kenv, ifreq + k2, 1, .2
+a2      poscil  kenv * .91, (ifreq + .004) + k3, 2, .3
+a3      poscil  kenv * .85, (ifreq + .006) + k4, 3, .5
+a4      poscil  kenv * .95, (ifreq + .009) + k5, 4, .8
 
 amix    =      a1 + a2 + a3 + a4
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
 
-        outs   a1 + a3, a2 + a4
-garvb   =      garvb + (amix * p7)
+        outs   adamp * (a1 + a3), adamp * (a2 + a4)
+garvb   =      garvb + (amix * p7 * adamp)
         endin
 ;============================================================================;
 ;==================================== RUST ==================================;
@@ -292,30 +307,32 @@ k1     expseg  1, p3 * .5, 40, p3 * .5, 2    ; p7 = reverb send factor
 k2     expseg  10, p3 * .72, 35, p3 * .28, 6
 k3     linen   p6, p3* .333, p3, p3 * .333
 k4     randh   k1, k2, .5
-a4     oscil   k3, ifreq + (p5 * .05) + k4, 1, .1
+a4     poscil   k3, ifreq + (p5 * .05) + k4, 1, .1
 
 k5     linseg  .4, p3 * .9, 26, p3 * .1, 0
 k6     linseg  8, p3 * .24, 20, p3 * .76, 2
 k7     linen   p6, p3 * .5, p3, p3 * .46
 k8     randh   k5, k6, .4
-a3     oscil   k7, ifreq + (p5 * .03) + k8, 14, .3
+a3     poscil   k7, ifreq + (p5 * .03) + k8, 14, .3
 
 k9     expseg  1, p3 * .7, 50, p3 * .3, 2
 k10    expseg  10, p3 * .3, 45, p3 * .7, 6
 k11    linen   p6, p3 * .25, p3, p3 * .25
 k12    randh   k9, k10, .5
-a2     oscil   k11, ifreq + (p5 * .02) + k12, 1, .1
+a2     poscil   k11, ifreq + (p5 * .02) + k12, 1, .1
 
 k13    linseg  .4, p3 * .6, 46, p3 * .4, 0
 k14    linseg  18, p3 * .1, 50, p3 * .9, 2
 k15    linen   p6, p3 * .2, p3, p3 * .3
 k16    randh   k13, k14, .8
-a1     oscil   k15, ifreq + (p5 * .01) + k16, 14, .3
+a1     poscil   k15, ifreq + (p5 * .01) + k16, 14, .3
 
 amix   =       a1 + a2 + a3 + a4
-       outs    a1 + a3, a2 + a4
-garvb  =       garvb + (amix * p7)
-gadel  =       gadel + (amix * p4)
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
+
+       outs    adamp * (a1 + a3), adamp * (a2 + a4)
+garvb  =       garvb + (amix * p7 * adamp)
+gadel  =       gadel + (amix * p4 * adamp)
        endin
 ;============================================================================;
 ;==================================== TEAL ==================================;
@@ -326,17 +343,18 @@ ifuncl =       8                             ; p8 = FilterSweep PeakFreq
                                              ; p9 = bandwdth
 k1     linseg  0, p3 * .8, 9, p3 * .2, 1     ; p10 = reverb send factor
 k2     phasor  k1
-k3     table   k2 * ifuncl, 22
+k3     tablei  k2 * ifuncl, 22
 k4     expseg  p7, p3 * .7, p8, p3 * .3, p7 * .9
 
 anoise rand    8000
 
 aflt   reson   anoise, k4, k4 / p9, 1
 kenv1  expseg  .001, p3 *.1, p6, p3 *.1, p6 *.5, p3 *.3, p6 *.8, p3 *.5,.001
-a3     oscil   kenv1, cpsoct(ifreq + k3) + aflt * .8, 1
+a3     poscil   kenv1, cpsoct(ifreq + k3) + aflt * .8, 1
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
 
-       outs    a3,(a3 * .98) + (aflt * .3)
-garvb  =       garvb + (anoise * p10)
+       outs    adamp * a3,adamp * ((a3 * .98) + (aflt * .3))
+garvb  =       garvb + (anoise * p10 * adamp)
        endin
 ;============================================================================;
 ;==================================== FOAM ==================================;
@@ -345,36 +363,37 @@ garvb  =       garvb + (anoise * p10)
 ifreq  =       octpch(p5)                    ; p7 = vibrato rate
                                              ; p8 = glis. factor
 k1     line    0, p3, p8
-k2     oscil   k1, p7, 1
+k2     poscil   k1, p7, 1
 k3     linseg  0, p3 * .7, p6, p3 * .3, 1
-a1     oscil   k3, cpsoct(ifreq + k2), 1
+a1     poscil   k3, cpsoct(ifreq + k2), 1
 
 k4     linseg  0, p3 * .6, p8 * .995, p3 * .4, 0
-k5     oscil   k4, p7 * .9, 1, .1
+k5     poscil   k4, p7 * .9, 1, .1
 k6     linseg  0, p3 * .9, p6, p3 * .1, 3
-a2     oscil   k6, cpsoct((ifreq + .009) + k5), 4, .2
+a2     poscil   k6, cpsoct((ifreq + .009) + k5), 4, .2
 
 k7     linseg  p8 * .985, p3 * .7, 0, p3 * .3, 0
-k8     oscil   k7, p7 * 1.2, 1, .7
+k8     poscil   k7, p7 * 1.2, 1, .7
 k9     linen   p6, p3 * .5, p3, p3 * .333
-a3     oscil   k6, cpsoct((ifreq + .007) + k8), 5, .5
+a3     poscil   k6, cpsoct((ifreq + .007) + k8), 5, .5
 
 k10    expseg  1, p3 * .8, p8, p3 * .2, 4
-k11    oscil   k10, p7 * .97, 1, .6
+k11    poscil   k10, p7 * .97, 1, .6
 k12    expseg  .001, p3 * .99, p6 * .97, p3 * .01, p6 * .97
-a4     oscil   k12, cpsoct((ifreq + .005) + k11), 6, .8
+a4     poscil   k12, cpsoct((ifreq + .005) + k11), 6, .8
 
 k13    expseg  .002, p3 * .91, p8 * .99, p3 * .09, p8 * .99
-k14    oscil   k13, p7 * .99, 1, .4
+k14    poscil   k13, p7 * .99, 1, .4
 k15    expseg  .001, p3 *.5, p6, p3 *.1, p6 *.6, p3 *.2, p6 *.97, p3 *.2, .001
-a5     oscil   k15, cpsoct((ifreq + .003) + k14), 7, .9
+a5     poscil   k15, cpsoct((ifreq + .003) + k14), 7, .9
 
 k16    expseg  p8 * .98, p3 * .81, .003, p3 * .19, .003
-k17    oscil   k16, p7 * 1.4, 1, .2
+k17    poscil   k16, p7 * 1.4, 1, .2
 k18    expseg  .001, p3 *.6, p6, p3 *.2, p6 *.8, p3 *.1, p6 *.98, p3 *.1, .001
-a6     oscil   k18, cpsoct((ifreq + .001) + k17), 8, .1
+a6     poscil   k18, cpsoct((ifreq + .001) + k17), 8, .1
+adamp  linseg  0.0, giattack, 1.0, p3 - giar, 1.0, girelease, 0.0
 
-       outs    a1 + a3 + a5, a2 + a4 + a6
+       outs    adamp * (a1 + a3 + a5), adamp * (a2 + a4 + a6)
        endin
 ;============================================================================;
 ;==================================== SMEAR =================================;
@@ -388,12 +407,11 @@ gadel   =      0
 ;==================================== SWIRL =================================;
 ;============================================================================;
        instr   99                            ; p4 = panrate
-k1     oscil   .5, p4, 1
+k1     poscil   .5, p4, 1
 k2     =       .5 + k1
 k3     =       1 - k2
-; asig   reverb  garvb, 2.1
-asig1, asig2 reverbsc garvb, garvb, 0.85, 12000, sr, 0.5, 1
-       outs    asig1 * k2, (asig2 * k3) * (-1)
+asig   reverb  garvb, 2.1
+       outs    asig * k2, (asig * k3) * (-1)
 garvb  =       0
        endin
 ;============================================================================;
