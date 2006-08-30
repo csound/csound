@@ -2,6 +2,7 @@ export IFMKBASE=../csound5_install/csoundlib/package_contents/Library/Frameworks
 export APPSBASE=../csound5_install/csoundapps/package_contents/usr/local/bin
 export FMKBASE=./CsoundLib.framework
 
+rm -R IFMKBASE/CsoundLib.framework
 cp _csnd.so ../csound5_install/csoundlib/package_contents/System/Library/Frameworks/Python.framework/Versions/2.3/lib/Python2.3/
 cp csnd.py ../csound5_install/csoundlib/package_contents/System/Library/Frameworks/Python.framework/Versions/2.3/lib/Python2.3/
 cp lib_csnd.dylib $FMKBASE/Versions/5.1/
