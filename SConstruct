@@ -1,3 +1,4 @@
+
 # vim:syntax=python
 
 print '''
@@ -848,10 +849,11 @@ else:
 #
 #############################################################################
 
-if not commonEnvironment['isWinNT']:
-  PYDLL = 'c:/WINDOWS/system32/%s.dll' % (pythonLibs[0])
-else:
-  PYDLL = 'c:/WINNT/system32/%s.dll' % (pythonLibs[0])
+if getPlatform() == 'win32': 
+ if not commonEnvironment['isWinNT']:
+   PYDLL = 'c:/WINDOWS/system32/%s.dll' % (pythonLibs[0])
+ else:
+   PYDLL = 'c:/WINNT/system32/%s.dll' % (pythonLibs[0])
 if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
     pythonImportLibrary = csoundInterfacesEnvironment.Command(
         '/usr/local/lib/lib%s.a' % (pythonLibs[0]),
