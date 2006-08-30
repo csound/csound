@@ -112,9 +112,9 @@ aoutr       poscil      1000*aadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
 ;All functions are post-normalized (max value is 1) if p4 is
 ;POSITIVE.
 
-f1 0 65536 10 1      ;sine wave
-f2 0 65536 11 1      ;cosine wave
-f3 0 65536 -12 20.0  ;unscaled ln(I(x)) from 0 to 20.0
+f1 0 65537  10 1      ;sine wave
+f2 0 65537  11 1      ;cosine wave
+f3 0 65537 -12 20.0  ;unscaled ln(I(x)) from 0 to 20.0
 
 ;-----------------------------------------------------------
 
