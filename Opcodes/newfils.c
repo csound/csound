@@ -45,6 +45,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     MYFLT   *in = p->in;
     MYFLT   freq = *p->freq;
     MYFLT   res = *p->res;
+    double  res4;
     double  *delay = p->delay;
     double  *tanhstg = p->tanhstg;
     double  stg[4], input;
@@ -63,6 +64,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
     tune = (1.0 - exp(-(TWOPI*f*fcr))) / thermal;   /* filter tuning  */
+    res4 = 4.0*(double)res*acr;
 
     for (i = 0; i < csound->ksmps; i++) {
       /* oversampling  */
@@ -76,7 +78,7 @@ static int moogladder_process(CSOUND *csound,moogladder *p)
                              - (k != 3 ? tanhstg[k] : tanh(delay[k]*thermal)));
           }
           else {
-            input = in[i] - 4.0*res*acr*delay[5];
+            input = in[i] - res4 /*4.0*res*acr*/ *delay[5];
             stg[k] = delay[k] + tune*(tanh(input*thermal) - tanhstg[k]);
           }
           delay[k] = stg[k];

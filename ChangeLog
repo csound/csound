@@ -1,3 +1,8 @@
+2006-08-28  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/newfils.c (moogladder_process): Minor optimisation (loop
+	invariant)
+
 2006-08-25  jpff  <jpff@codemist.co.uk>
 
 	* Engine/insert.c (delete_instr): Allowed named instruments as well
