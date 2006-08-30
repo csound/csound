@@ -1000,6 +1000,18 @@ else:
         os.spawnvp(os.P_WAIT, 'rm', ['rm', '-f', '_csnd.so'])
         os.symlink('lib_csnd.so', '_csnd.so')
         csoundInterfacesEnvironment.Append(LINKFLAGS = ['-Wl,-rpath-link,.'])
+    if getPlatform() == 'darwin':
+        ilibName = "lib_csnd.dylib"
+        ilibVersion = csoundLibraryVersion
+        csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''
+            -Xlinker -compatibility_version -Xlinker %s
+        ''' % ilibVersion))
+        csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''
+            -Xlinker -current_version -Xlinker %s
+        ''' % ilibVersion))
+        csoundInterfacesEnvironment.Append(SHLINKFLAGS = Split('''
+            -install_name /Library/Frameworks/CsoundLib.framework/Versions/%s/%s
+        ''' % ('5.1', ilibName)))
     csoundInterfaces = csoundInterfacesEnvironment.SharedLibrary(
         '_csnd', csoundInterfacesSources)
     Depends(csoundInterfaces, csoundLibrary)
