@@ -849,7 +849,7 @@ else:
 #
 #############################################################################
 
-if getPlatform() == 'win32': 
+if getPlatform() == 'win32':
  if not commonEnvironment['isWinNT']:
    PYDLL = 'c:/WINDOWS/system32/%s.dll' % (pythonLibs[0])
  else:
@@ -1104,6 +1104,7 @@ makePlugin(pluginEnvironment, 'stackops', ['Opcodes/stackops.c'])
 makePlugin(pluginEnvironment, 'vbap',
            ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
             'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
+makePlugin(pluginEnvironment, 'avarops', ['Opcodes/avarops.c'])
 
 # Plugins with External Dependencies
 
