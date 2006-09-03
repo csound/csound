@@ -1,3 +1,8 @@
+2006-09-04  Steven Yi  <stevenyi@gmail.com>
+
+	* Opcodes/avarops.c: added avar_get and avar_set opcodes to read from and
+	write values to a-rate variables at k-rate
+
 2006-08-28  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/newfils.c (moogladder_process): Minor optimisation (loop
@@ -11,7 +16,7 @@
 	* frontends/tclcsound/commands.c, tclcsound.h: added
 	pvs bus channel interface to tclcsound. Not tested yet.
 	Manual pages for all new opcodes have also been added.
-	
+
 2006-08-23  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/biquad.c (tbvcf): Use doubles inside filter
@@ -20,7 +25,7 @@
 	missing casts and inappropriate use of floor
 
 2006-08-23 veplaini <Victor.Lazzarini@nuim.ie>
-	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c : 
+	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c :
 	  pvs bus now called pvsin/pvsout.
 	* csound.hpp: added a user-friendly interface to pvsin/out
 	* disprep.*, entry1.c: added pvsdisp opcode
@@ -40,15 +45,15 @@
 	* SConstruct (stdutilSources): Added build of pv_import/export utilities
 
 	* Engine/insert.c: Include delete in non-Beta version
-	
+
 	* util/pvi_main.c, util/pvx_main.c: New code
 
 2006-08-20 veplaini <Victor.Lazzarini@nuim.ie>
-	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c : 
+	* csoundCore.h, csound.h, bus.h, bus.c, csound.c, entry1.c :
 	  added fsig to chani/chano bus interface (now called pvsin/pvsout).
-	* csoundCore.h: commented out redefinition of printf to 
+	* csoundCore.h: commented out redefinition of printf to
 	  eliminate warnings (on OLPC build)
-	
+
 2006-08-17  jpff  <jpff@codemist.co.uk>
 
 	* Top/csmodule.c (csoundLoadExternal): Even if not BETA display
@@ -87,8 +92,8 @@
 
 2006-07-21  Michael Gogins <gogins@pipeline.com>
 	* Added new long options for routing MIDI note on message key and velocity
-	numbers to specified pfields: --midi-key=<pfield>, --midi-key-cps=<pfield>, 
-	--midi-key-oct=<pfield>, --midi-key-pch=<pfield>, --midi-velocity=<pfield>, 
+	numbers to specified pfields: --midi-key=<pfield>, --midi-key-cps=<pfield>,
+	--midi-key-oct=<pfield>, --midi-key-pch=<pfield>, --midi-velocity=<pfield>,
 	--midi-velocity-amp=<pfield>.
 	* Added tutorial LaTeX file tutorial/tutorial.tex.
 
@@ -114,7 +119,7 @@
 
 2006-07-08  jpff  <jpff@codemist.co.uk>
 	* H/csoundCore.h: Removed unused macros and typedefs
-	* Opcodes/physmod.c (make_DLineA): 
+	* Opcodes/physmod.c (make_DLineA):
 	* Opcodes/physutil.c (make_DLineL): No need to zero allocated array
 	* Opcodes/vst4cs/src/vst4cs.cpp: **EXPERIMENTAL** try to make
 	programs 1-16
@@ -123,9 +128,9 @@
 
 2006-07-07      Istvan Varga    <via JPff>
         * Engine/entry1.c: corrected opcode data size for inh and ino
-        * Opcodes/bilbar.c (play_pp): use fabs() instead of abs() 
+        * Opcodes/bilbar.c (play_pp): use fabs() instead of abs()
         * Opcodes/biquad.c (nestedapset): do not assume sizeof(MYFLT) ==
-	sizeof(long) 
+	sizeof(long)
 
 2006-06-30  jpff  <jpff@codemist.co.uk>
 	* OOps/midiops.c:
@@ -144,7 +149,7 @@
 
 2006-06-27  jpff  <jpff@codemist.co.uk>
 	* OOps/cmath.c (exprand):
-	(biexprand): Restored safety checks for negative argument 
+	(biexprand): Restored safety checks for negative argument
 
 2006-06-26  jpff  <jpff@codemist.co.uk>
 	* util/pv_import.c: Inverse of pv_export
