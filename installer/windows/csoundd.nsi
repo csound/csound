@@ -433,8 +433,8 @@ Section "${PRODUCT}" SecCopyUI
   File D:\utah\opt\lazzarini\portaudio.dll
   File D:\utah\opt\csound5\bin\fluidsynth.dll
   File D:\utah\opt\portmidi\pm_win\*.dll
-  File D:\utah\opt\LuaJIT-1.1.0\src\luajit.exe
-  File D:\utah\opt\LuaJIT-1.1.0\src\lua51.dll
+  File D:\utah\opt\LuaJIT-1.1.2\src\luajit.exe
+  File D:\utah\opt\LuaJIT-1.1.2\src\lua51.dll
   File D:\utah\opt\csound5\bin\liblo.dll
   File D:\utah\opt\csound5\bin\pthreadGC2.dll
   File ..\..\csnd.py
