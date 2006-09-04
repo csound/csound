@@ -50,8 +50,8 @@ static int avar_set(CSOUND *csound, AVAR_SET *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "avar_get",  S(AVAR_GET),   2,      "k", "ka",    NULL, (SUBR)avar_get   },
-  { "avar_set", S(AVAR_SET), 2, "",  "kka", NULL, (SUBR)avar_set }
+  { "avarget",  S(AVAR_GET),   2,      "k", "ka",    NULL, (SUBR)avar_get   },
+  { "avarset", S(AVAR_SET), 2, "",  "kka", NULL, (SUBR)avar_set }
 
 };
 
