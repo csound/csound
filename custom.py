@@ -29,8 +29,8 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('c:/msys/1.0/local/include')
     customLIBPATH.append('c:/msys/1.0/local/lib')
     # If libsndfile is not in a standard location add it here:
-    customCPPPATH.append('D:/utah/opt/libsndfile-1_0_16')
-    customLIBPATH.append('D:/utah/opt/libsndfile-1_0_16')
+    customCPPPATH.append('D:/utah/opt/libsndfile-1_0_17')
+    customLIBPATH.append('D:/utah/opt/libsndfile-1_0_17')
     ################################################################
     # If you want real-time audio you need PortAudio.
     # If it is not in a standard location add it here
@@ -64,8 +64,8 @@ elif sys.platform[:3] == 'win':
     ################################################################
     # If you want to build Lua interfaces you need Lua.
     # Add it here:
-    customCPPPATH.append('D:/utah/opt/lua-5.1/src')
-    customLIBPATH.append('D:/utah/opt/lua-5.1/src')
+    customCPPPATH.append('D:/utah/opt/lua-5.1.1/src')
+    customLIBPATH.append('D:/utah/opt/lua-5.1.1/src')
     ################################################################
     # If you want to build Tcl/Tk interfaces
     # and Tclcsound you need Tcl/Tk.
