@@ -1,3 +1,8 @@
+2006-09-08  Steven Yi  <stevenyi@gmail.com>
+
+	* Engine/rdorch.c (rdorchfile, init_math_constants_macros): added math
+	constants found in math.h as a default set of macros (M_PI is $M_PI, etc.)
+
 2006-09-04  Steven Yi  <stevenyi@gmail.com>
 
 	* Opcodes/avarops.c: added avar_get and avar_set opcodes to read from and
