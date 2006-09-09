@@ -966,7 +966,7 @@ LorisMorpher::updateEnvelopes( void )
   for( it = labelMap.begin(); it != labelMap.end(); ++it, ++envidx )
     {
       std::pair<long, long> & indices = it->second;
-      Breakpoint & bp = morphed_envelopes.valueAt(envidx);
+      Breakpoint bp = morphed_envelopes.valueAt(envidx);
 
       long isrc = indices.first;
       long itgt = indices.second;
@@ -988,19 +988,19 @@ LorisMorpher::updateEnvelopes( void )
         {
           //    morph from the source to a dummy:
           // std::cerr << "** Fading from source " << envidx << std::endl;
-          bp = morpher.fadeSrcBreakpoint( src_reader->valueAt(isrc), 0 );
+          bp = morpher.fadeSrcBreakpoint( src_reader->valueAt(isrc), 0.0 );
         }
       else if ( isrc < 0 )
         {
           //    morph from a dummy to the target:
           // std::cerr << "** Fading to target " << envidx << std::endl;
-          bp = morpher.fadeTgtBreakpoint( tgt_reader->valueAt(itgt), 0 );
+          bp = morpher.fadeTgtBreakpoint( tgt_reader->valueAt(itgt), 0.0 );
         }
       else
         {
           //    morph from the source to the target:
           // std::cerr << "** Morphing source to target " << envidx << std::endl;
-          bp = morpher.morphBreakpoints( src_reader->valueAt(isrc), tgt_reader->valueAt(itgt), 0 );
+          bp = morpher.morphBreakpoints( src_reader->valueAt(isrc), tgt_reader->valueAt(itgt), 0.0 );
         }
     }
 
@@ -1011,7 +1011,7 @@ LorisMorpher::updateEnvelopes( void )
     {
       //        fade from the source:
       Breakpoint & bp = morphed_envelopes.valueAt(envidx);
-      bp = morpher.fadeSrcBreakpoint( src_reader->valueAt( src_unlabeled[i] ), 0 );
+      bp = morpher.fadeSrcBreakpoint( src_reader->valueAt( src_unlabeled[i] ), 0.0 );
     }
 
   //    render unlabeled target Partials:
@@ -1021,7 +1021,7 @@ LorisMorpher::updateEnvelopes( void )
     {
       //        fade to the target:
       Breakpoint & bp = morphed_envelopes.valueAt(envidx);
-      bp = morpher.fadeTgtBreakpoint( tgt_reader->valueAt( tgt_unlabeled[i] ), 0 );
+      bp = morpher.fadeTgtBreakpoint( tgt_reader->valueAt( tgt_unlabeled[i] ), 0.0 );
     }
 
   //    tag these envelopes:
