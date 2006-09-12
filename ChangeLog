@@ -1,3 +1,8 @@
+2006-09-12  Steven Yi  <stevenyi@gmail.com>
+
+	* Renamed Opcodes/avarops.c to Opcodes/vaops.c, renamed avar_get and
+	avar_set opcodes to vaget and vaset (as requested on Csound list)
+
 2006-09-09  Michael Gogins <gogins@pipeline.com>
 
 	* Upgraded Loris to version 1.3.0 with dynamically linked FFTW 3.1.2
