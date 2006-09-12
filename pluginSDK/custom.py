@@ -17,6 +17,7 @@ customSWIGFLAGS = []
 
 if sys.platform[:5] == 'linux':
     platform = 'linux'
+    customCPPPATH.append('/usr/local/include/csound')
 elif sys.platform == 'darwin':
     platform = 'darwin'
     customCPPPATH.append('/usr/include/malloc')
