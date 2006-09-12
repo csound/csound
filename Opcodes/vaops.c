@@ -1,5 +1,5 @@
 /*
-    avarops.c:
+    vaops.c:
 
     Copyright (C) 2006 Steven Yi
 
@@ -21,27 +21,27 @@
     02111-1307 USA
 */
 
-#include <csdl.h>
+#include <csound/csdl.h>
 
 #define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.99999999))
 
 typedef struct {
         OPDS    h;
         MYFLT   *kout, *kindx, *avar;
-} AVAR_GET;
+} VA_GET;
 
 typedef struct {
         OPDS    h;
         MYFLT   *kval, *kindx, *avar;
-} AVAR_SET;
+} VA_SET;
 
-static int avar_get(CSOUND *csound, AVAR_GET *p) {
+static int vaget(CSOUND *csound, VA_GET *p) {
 	long ndx = (long) FLOOR((double)*p->kindx);
 	*p->kout = *(p->avar + ndx);
 	return OK;
 }
 
-static int avar_set(CSOUND *csound, AVAR_SET *p) {
+static int vaset(CSOUND *csound, VA_SET *p) {
 	long ndx = (long) FLOOR((double)*p->kindx);
 	*(p->avar + ndx) = *p->kval;
 	return OK;
@@ -50,8 +50,8 @@ static int avar_set(CSOUND *csound, AVAR_SET *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "avarget",  S(AVAR_GET),   2,      "k", "ka",    NULL, (SUBR)avar_get   },
-  { "avarset", S(AVAR_SET), 2, "",  "kka", NULL, (SUBR)avar_set }
+  { "vaget",  S(VA_GET),   2,      "k", "ka",    NULL, (SUBR)vaget   },
+  { "vaset", S(VA_SET), 2, "",  "kka", NULL, (SUBR)vaset }
 
 };
 
