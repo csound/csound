@@ -21,7 +21,7 @@
     02111-1307 USA
 */
 
-#include <csound/csdl.h>
+#include "csdl.h"
 
 #define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.99999999))
 
