@@ -26,6 +26,7 @@
 
 static int syncgrain_init(CSOUND *csound, syncgrain *p)
 {
+  int size;
     p->efunc = csound->FTFind(csound, p->ifn2);
     if (p->efunc == NULL)
       return NOTOK;
@@ -38,10 +39,16 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
 
     if (p->olaps < 1)
       p->olaps = 1;
+      
+   size =  p->olaps * sizeof(double);
+   if(p->index.auxp == NULL || p->index.size < size)
+          csound->AuxAlloc(csound, size, &p->index);
+   if(p->envindex.auxp == NULL || p->envindex.size < size)
+          csound->AuxAlloc(csound, size, &p->envindex);
+   size = p->olaps * sizeof(int);
+   if(p->streamon.auxp == NULL || p->streamon.size > size)
+          csound->AuxAlloc(csound, size, &p->streamon);
 
-    csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->index);
-    csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->envindex);
-    csound->AuxAlloc(csound, p->olaps * sizeof(int), &p->streamon);
 
     p->count = 0xFFFFFFFF;              /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
@@ -63,8 +70,8 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     MYFLT   *ftable = p->efunc->ftable;
     int     *streamon = (int *) p->streamon.auxp;
     float   start = p->start, frac = p->frac;
-    float   *index = (float *) p->index.auxp;
-    float   *envindex = (float *) p->envindex.auxp;
+    double   *index = (double *) p->index.auxp;
+    double   *envindex = (double *) p->envindex.auxp;
     int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
@@ -96,7 +103,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
         frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
-        envindex[newstream] = 0.f;
+        envindex[newstream] = 0.;
         index[newstream] = start;
         numstreams++; /* increase the stream count */
         count = 0;
@@ -171,9 +178,14 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
       p->olaps = 1;
 
     if(*p->iskip == 0){
-    csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->index);
-    csound->AuxAlloc(csound, p->olaps * sizeof(float), &p->envindex);
-    csound->AuxAlloc(csound, p->olaps * sizeof(int), &p->streamon);
+      int size =  p->olaps * sizeof(double);
+      if(p->index.auxp == NULL || p->index.size < size)
+          csound->AuxAlloc(csound, size, &p->index);
+      if(p->envindex.auxp == NULL || p->envindex.size < size)
+          csound->AuxAlloc(csound, size, &p->envindex);
+       size = p->olaps * sizeof(int);
+       if(p->streamon.auxp == NULL || p->streamon.size > size)
+          csound->AuxAlloc(csound, size, &p->streamon);
     p->count = 0xFFFFFFFF;              /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
@@ -192,8 +204,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     MYFLT   *ftable = p->efunc->ftable;
     int     *streamon = (int *) p->streamon.auxp;
     float   start = p->start, frac = p->frac;
-    float   *index = (float *) p->index.auxp;
-    float   *envindex = (float *) p->envindex.auxp;
+    double  *index = (double *) p->index.auxp;
+    double  *envindex = (double *) p->envindex.auxp;
     int     vecpos, vecsize=csound->ksmps, firststream = p->firststream;
     int     numstreams = p->numstreams, olaps = p->olaps;
     int     count = p->count, i,j, newstream;
@@ -205,8 +217,8 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     MYFLT   sr = csound->GetSr(csound);
 
     /* loop points & checks */
-    loop_start = *p->loop_start*sr;
-    loop_end = *p->loop_end*sr;
+    loop_start = (int) (*p->loop_start*sr);
+    loop_end = (int) (*p->loop_end*sr);
     if(loop_start < 0) loop_start = 0;
     if(loop_start >= datasize) loop_start = datasize-1;
     if(firsttime) start = start > loop_start ? loop_start : start;
@@ -239,7 +251,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
         frac = count - period; /* frac part to be accummulated */
         newstream =(firststream+numstreams)%olaps;
         streamon[newstream] = 1; /* turn the stream on */
-        envindex[newstream] = 0.f;
+        envindex[newstream] = 0.0;
         index[newstream] = start;
         numstreams++; /* increase the stream count */
         count = 0;
