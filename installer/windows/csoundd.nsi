@@ -424,7 +424,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_jcsound.dll
   File ..\..\_CsoundVST.dll
   File ..\..\_scoregen.dll
-  File ..\..\_loris.dll
+  ; File ..\..\_loris.dll
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
   File D:\utah\opt\csound5\bin\fltk.dll
@@ -441,13 +441,18 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\csnd.py
   File ..\..\CsoundVST.py
   File ..\..\scoregen.py
-  File ..\..\loris.py
+  ; File ..\..\loris.py
   File ..\..\*.exe
   File ..\..\csound.def
   File ..\..\_csnd.def
   File ..\..\_jcsound.def
   File ..\..\frontends\CsoundVST\_CsoundVST.def
-  File ..\..\_loris.def
+  ; File ..\..\_loris.def
+  
+  SetOutPath $INSTDIR\pluginSDK
+  File ..\..\pluginSDK\SConstruct
+  File ..\..\pluginSDK\examplePlugin.c
+  File ..\..\pluginSDK\custom.py
   
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
@@ -585,11 +590,14 @@ Section "Uninstall"
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     
   Delete "$SMPROGRAMS\$MUI_TEMP\${PRODUCT}.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\csound5gui.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\winsound.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\CsoundVST.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Overview.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\API Reference.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\Tutorial.lnk"
   Delete "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" 
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
   
