@@ -427,7 +427,7 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\tclcsound.dll
   File ..\..\csoundapi~.dll
   File D:\utah\opt\csound5\bin\fltk.dll
-  File D:\utah\opt\libsndfile-1_0_16\libsndfile-1.dll
+  File D:\utah\opt\libsndfile-1_0_17\libsndfile-1.dll
   #File D:\utah\home\mkg\projects\portaudio\build\PortAudio\release\portaudio.dll
   File D:\utah\opt\lazzarini\portaudio.dll
   File D:\utah\opt\csound5\bin\fluidsynth.dll
@@ -444,6 +444,10 @@ Section "${PRODUCT}" SecCopyUI
   File ..\..\_csnd.def
   File ..\..\_jcsound.def
   File ..\..\frontends\CsoundVST\_CsoundVST.def
+  SetOutPath $INSTDIR\pluginSDK
+  File ..\..\pluginSDK\SConstruct
+  File ..\..\pluginSDK\examplePlugin.c
+  File ..\..\pluginSDK\custom.py
   
   SetOutPath $INSTDIR\doc
   File ..\..\*.txt
@@ -457,7 +461,7 @@ Section "${PRODUCT}" SecCopyUI
   File /r ..\..\..\manual\html\*
   
   SetOutPath $INSTDIR\tutorial
-  File ..\..\tutorial\*.pdf
+  File ..\..\tutorial\tutorial.pdf
   File ..\..\tutorial\*.csd
   File ..\..\tutorial\*.py
   File ..\..\tutorial\tutorial3.cpr
@@ -580,11 +584,14 @@ Section "Uninstall"
   !insertmacro MUI_STARTMENU_GETFOLDER Application $MUI_TEMP
     
   Delete "$SMPROGRAMS\$MUI_TEMP\${PRODUCT}.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\csound5gui.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\winsound.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\CsoundVST.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Overview.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\License.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\API Reference.lnk"
   Delete "$SMPROGRAMS\$MUI_TEMP\Manual.lnk"
+  Delete "$SMPROGRAMS\$MUI_TEMP\Tutorial.lnk"
   Delete "$SMPROGRAMS\$STARTMENU_FOLDER\API Reference.lnk" 
   Delete "$SMPROGRAMS\$MUI_TEMP\Uninstall.lnk"
   
