@@ -1,3 +1,7 @@
+2006-09-16  Michael Gogins <gogins@pipeline.com>
+
+	* Added plugin SDK to Windows installers.
+
 2006-09-12  Steven Yi  <stevenyi@gmail.com>
 
 	* Renamed Opcodes/avarops.c to Opcodes/vaops.c, renamed avar_get and
