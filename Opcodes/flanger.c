@@ -178,9 +178,10 @@ static int wguide2set (CSOUND *csound, WGUIDE2 *p)
     p->yt1_2 = FL(0.0);
 
     p->old_out=FL(0.0);
-    p->xdel1cod = (XINARG1) ? 1 : 0;
-    p->xdel2cod = (XINARG2) ? 1 : 0;
-    if (p->xdel2cod != p->xdel2cod)
+    p->xdel1cod = (XINARG2) ? 1 : 0;
+    p->xdel2cod = (XINARG3) ? 1 : 0;
+
+    if (p->xdel1cod != p->xdel2cod)
       return csound->InitError(csound, Str(
                     "wguide2 xfreq1 and xfreq2 arguments must"
                     " be both a-rate or k and i-rate"));
@@ -297,6 +298,7 @@ static int wguide2(CSOUND *csound, WGUIDE2 *p)
     }
     p->left1 = indx1;
     p->left2 = indx2;
+
     return OK;
 }
 

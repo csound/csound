@@ -1,3 +1,9 @@
+2006-09-18  Steven Yi  <stevenyi@gmail.com>
+
+	* Opcodes/flanger.c (wguide2set): fixed wguide2, code was looking at wrong
+	arguments for xincod values, also check for comparison between the two
+	xincod's was incorrect
+
 2006-09-16  Michael Gogins <gogins@pipeline.com>
 
 	* Added plugin SDK to Windows installers.
