@@ -119,7 +119,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     double xn;
     MYFLT *fcoptr, *resptr;
     /* Fake initialisations to stop compiler warnings!! */
-    double fco=0.0, res, fcon, kp=0.0, pp1d2=0.0, scale=0.0, k=0.0;
+    double fco, res, kp=0.0, pp1d2=0.0, scale=0.0, k=0.0;
     double max = (double)p->maxint;
     double dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
@@ -133,6 +133,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
     res     = (double)*resptr;
 
     if ((p->rezcod==0) && (p->fcocod==0)) {   /* Only need to calculate once */
+      double fcon;
       fcon  = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
       kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
       pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
@@ -148,6 +149,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
         res = (double)resptr[n];
       }
       if ((p->rezcod!=0) || (p->fcocod!=0)) {
+        double fcon;
         fcon  = 2.0*fco*(double)csound->onedsr; /* normalised frq. 0 to Nyquist */
         kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning */
         pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
@@ -162,6 +164,13 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       y2n   = y1n * pp1d2 + y1nm1 * pp1d2 - kp * y2n;
       y3n   = y2n * pp1d2 + y2nm1 * pp1d2 - kp * y3n;
       y4n   = y3n * pp1d2 + y3nm1 * pp1d2 - kp * y4n;
+      /* why not
+      y1n   = (xn  + xnm1 ) * pp1d2 - kp * y1n;
+      y2n   = (y1n + y1nm1) * pp1d2 - kp * y2n;
+      y3n   = (y2n + y2nm1) * pp1d2 - kp * y3n;
+      y4n   = (y3n + y3nm1) * pp1d2 - kp * y4n;
+      ?? Algebraically the same and 4 fewer multiplies per sample.
+      */
                                 /* Clipper band limited sigmoid */
       y4n   = y4n - y4n * y4n * y4n / 6.0;
       xnm1  = xn;       /* Update Xn-1  */
@@ -196,9 +205,8 @@ static int rezzy(CSOUND *csound, REZZY *p)
     int n, nsmps = csound->ksmps;
     MYFLT *out, *fcoptr, *rezptr, *in;
     double fco, rez, xn, yn;
-    double fqcadj, c, rez2=0.0, a=0.0, /* Initialisations fake */
-           csq=0.0, b=0.0, invb=0.0,
-           tval=0.0; /* Temporary varibles for the filter */
+    double fqcadj, a=0.0, /* Initialisations fake */
+           csq=0.0, invb=0.0, tval=0.0; /* Temporary varibles for the filter */
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
 
     in     = p->in;
@@ -210,12 +218,13 @@ static int rezzy(CSOUND *csound, REZZY *p)
 
     /* Freq. is adjusted based on sample rate */
     fqcadj = 0.149659863*(double)csound->esr;
-    c      = fqcadj/fco;          /* Filter constant c=1/Fco * adjustment   */
     /* Try to keep the resonance under control     */
     if (rez < 1.0) rez = 1.0;
     if (*p->mode == FL(0.0)) {    /* Low Pass */
       if ((p->rezcod==0) && (p->fcocod==0)) {/* Only need to calculate once */
-        rez2 = rez/(1.0 + exp(fco/11000.0));
+        double c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
+        double rez2 = rez/(1.0 + exp(fco/11000.0));
+        double b;
         a    = c/rez2 - 1.0;      /* a depends on both Fco and Rez */
         csq  = c*c;               /* Precalculate c^2 */
         b    = 1.0 + a + csq;     /* Normalization constant */
@@ -230,12 +239,13 @@ static int rezzy(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod!=0) || (p->fcocod!=0)) {
-          c      = fqcadj/fco;
-          rez2   = rez/(1.0 + exp(fco/11000.0));
-          a      = c/rez2 - 1.0;  /* a depends on both Fco and Rez */
-          csq    = c*c;           /* Precalculate c^2 */
-          b      = 1.0 + a + csq; /* Normalization constant */
-          invb   = 1.0/b;
+          double c = fqcadj/fco;
+          double rez2 = rez/(1.0 + exp(fco/11000.0));
+          double b;
+          a    = c/rez2 - 1.0;  /* a depends on both Fco and Rez */
+          csq  = c*c;           /* Precalculate c^2 */
+          b    = 1.0 + a + csq; /* Normalization constant */
+          invb = 1.0/b;
         }
         xn = (double)in[n];             /* Get the next sample */
         /* Mikelson Biquad Filter Guts*/
@@ -250,11 +260,14 @@ static int rezzy(CSOUND *csound, REZZY *p)
       }
     }
     else { /* High Pass Rezzy */
+      double c=0.0, rez2=0.0;
       if (p->fcocod==0 && p->rezcod==0) {/* Only need to calculate once */
-        rez2   = rez/(1.0 + sqrt(sqrt(1.0/c)));
-        tval   = 0.75/sqrt(1.0 + rez);
-        csq    = c*c;
-        b      = (c/rez2 + csq);
+        double b;
+        c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
+        rez2 = rez/(1.0 + sqrt(sqrt(1.0/c)));
+        tval = 0.75/sqrt(1.0 + rez);
+        csq  = c*c;
+        b    = (c/rez2 + csq);
         invb = 1.0/b;
       }
       for (n=0; n<nsmps; n++) { /* do ksmp times   */
@@ -266,8 +279,9 @@ static int rezzy(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if (p->fcocod!=0 || p->rezcod!=0) {
-          c      = fqcadj/fco;
-          rez2   = rez/(1.0 + sqrt(sqrt(1.0/c)));
+          double b;
+          c = fqcadj/fco;
+          rez2 = rez/(1.0 + sqrt(sqrt(1.0/c)));
           tval   = 0.75/sqrt(1.0 + rez);
           csq    = c*c;
           b      = (c/rez2 + csq);

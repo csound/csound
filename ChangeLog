@@ -1,3 +1,20 @@
+2006-09-15  jpff  <jpff@codemist.co.uk>
+
+	* util/lpcx_main.c: 
+	* util/lpci_main.c: 
+	* util/heti_main.c: Simpler versions that do not depend on all
+	of csound for stand-alone versions
+
+2006-09-12  jpff  <jpff@codemist.co.uk>
+
+	* Engine/sread.c (sread): isdigit is faster than strchr
+
+	* Engine/insert.c (xinset): strings as arguments
+	(xoutset): Ditto
+
+	* Engine/otran.c (parse_opcode_args): Tracking strings as UDO
+	arguments
+
 2006-09-18  Steven Yi  <stevenyi@gmail.com>
 
 	* Opcodes/flanger.c (wguide2set): fixed wguide2, code was looking at wrong
@@ -42,6 +59,7 @@
 	* Engine/insert.c (delete_instr): Allowed named instruments as well
 
 2006-08-23 veplaini <Victor.Lazzarini@nuim.ie>
+
 	* frontends/tclcsound/commands.c, tclcsound.h: added
 	pvs bus channel interface to tclcsound. Not tested yet.
 	Manual pages for all new opcodes have also been added.
@@ -89,37 +107,38 @@
 	the reason that a module failed to load rather than -1
 
 2006-08-15  jpff  <jpff@codemist.co.uk>
+
 	* Version 5.03 released
 
 2006-08-11  Andres Cabrera  <andres@geminiflux.com>
+
 	* opcodes/Gab/vectorial.c: Added kverbose optional argument and
 	other bug fixes.
 
 2006-08-07  Andres Cabrera  <andres@geminiflux.com>
+
 	* opcodes/Gab/vectorial.c: Added optional arguments isrcoffset
 	and idstoffset to most vectorial opcodes.
 	* opcodes/Gab/vectorial.c: Added i-rate versions of most
 	vectorial opcodes.
 
-2006-07-31  John ffitch  <jpff@codemist.co.uk>
-	* Engine/insert.c (xinset): strings as arguments
-	(xoutset): Ditto [***REVERTED***]
-
 2006-07-30  jpff  <jpff@codemist.co.uk>
-	* Engine/otran.c (parse_opcode_args): Tracking strings as
-	arguments to UDO [***REVERTED***]
+
 	* util/cvanal.c (cvanal): Added termination message
 
 2006-07-27  jpff  <jpff@codemist.co.uk>
+
 	* Opcodes/biquad.c (moogvcfset): Corrected mind error (divide and
 	divide).  Thanks to IV
 
 2006-07-26  jpff  <jpff@codemist.co.uk>
+
 	* Opcodes/biquad.c (moogvcfset, moogvcf): Allow for scaling to
 	0dbfs and improve accuracy of filter by using doubles.
 	(rezzyset, rezzy, bqrezset, bqrez): Use doubles in filter
 
 2006-07-21  Michael Gogins <gogins@pipeline.com>
+
 	* Added new long options for routing MIDI note on message key and velocity
 	numbers to specified pfields: --midi-key=<pfield>, --midi-key-cps=<pfield>,
 	--midi-key-oct=<pfield>, --midi-key-pch=<pfield>, --midi-velocity=<pfield>,
@@ -127,6 +146,7 @@
 	* Added tutorial LaTeX file tutorial/tutorial.tex.
 
 2006-07-19  Victor  Lazzarini <victor.lazzarini@nuim.ie>
+
 	* Opcodes/sndloop.c: added flooper2 opcode
 	* Opcodes/syncgrain.*: added syncloop opcode
 	Manual pages also added to cvs
@@ -134,19 +154,23 @@
 	added csPlayAll command, fixed csCompilelist bug.
 
 2006-07-18  jpff  <jpff@codemist.co.uk>
+
 	* frontends/csound/sched.c (set_rt_priority): Comment out the
 	check to see if running as root.  Will fail later perhaps if
 	cannot set priority.
 
 2006-07-16  jpff  <jpff@codemist.co.uk>
+
 	* Top/one_file.c (readOptions): Remove trailing spaces in input
 
 2006-07-12  jpff  <jpff@codemist.co.uk>
+
 	* Opcodes/nlfilt.c (pcount, pvalue): New opodes after IV suggestion
 	* Opcodes/pitch.c (pitchset): Moved some filter coeffieients to
 	double
 
 2006-07-08  jpff  <jpff@codemist.co.uk>
+
 	* H/csoundCore.h: Removed unused macros and typedefs
 	* Opcodes/physmod.c (make_DLineA):
 	* Opcodes/physutil.c (make_DLineL): No need to zero allocated array
@@ -156,12 +180,14 @@
 	than deprecated bzero
 
 2006-07-07      Istvan Varga    <via JPff>
+
         * Engine/entry1.c: corrected opcode data size for inh and ino
         * Opcodes/bilbar.c (play_pp): use fabs() instead of abs()
         * Opcodes/biquad.c (nestedapset): do not assume sizeof(MYFLT) ==
 	sizeof(long)
 
 2006-06-30  jpff  <jpff@codemist.co.uk>
+
 	* OOps/midiops.c:
 	* OOps/ugrw1.c:
 	* Opcodes/oscbnk.c:
@@ -170,55 +196,68 @@
 	* Opcodes/wave-terrain.c: Similar changes to previous
 
 2006-06-30  Istvan Varga  <via jpff@codemist.co.uk>
+
 	* Opcodes/vbap_*.c (vbap_*): Replace 1/ksmps by the precomputed value
 
 2006-06-28  jpff  <jpff@codemist.co.uk>
+
 	* Opcodes/vst4cs/src/: Many changes bringing code closer to
 	Istvan's fork
 
 2006-06-27  jpff  <jpff@codemist.co.uk>
+
 	* OOps/cmath.c (exprand):
 	(biexprand): Restored safety checks for negative argument
 
 2006-06-26  jpff  <jpff@codemist.co.uk>
+
 	* util/pv_import.c: Inverse of pv_export
 	* util/pv_export.c: Code to convert .pvx file to comma-separated
 	text, as a utility
 
-2006-06-23	Istvan Varga	<ivarga@csounds.com>
+2006-06-23  Istvan Varga	<ivarga@csounds.com>
+
 	* Opcodes/loscilx.c: experimental new opcodes: loscilx, sndload
 
 2006-06-23  jpff  <jpff@codemist.co.uk>
+
 	* OOps/disprep.c (tempest): If we are in a mask situation retain
 	previous best estimate of tempo
 
-2006-06-18	Istvan Varga	<ivarga@csounds.com>
+2006-06-18  Istvan Varga	<ivarga@csounds.com>
+
 	* OOps/sndinfUG.c: filelen, filenchnls, filesr opcodes: allow for
 	  getting parameters of convolve and PVOC files unless the "enable
 	  raw files" flag is zero
 
-2006-06-17	Istvan Varga	<ivarga@csounds.com>
+2006-06-17  Istvan Varga	<ivarga@csounds.com>
+
 	* OOps/ugens2.c: allow inconsistent table index and output type in
 	  table read opcodes if ksmps is 1, but print a warning message
 
-2006-06-16	Istvan Varga	<ivarga@csounds.com>
+2006-06-16  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/rdorch.c:
 	  experimental implementation of nested #ifdef/#ifndef and #else
 
 2006-06-15  jpff  <jpff@codemist.co.uk>
+
 	* util/hetro.c (init_het): skip was not initialised
 
-2006-06-15	Istvan Varga	<ivarga@csounds.com>
+2006-06-15  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/rdorch.c: added #ifndef
 	* InOut/libsnd_u.c: more quietening of messages
 
-2006-06-14	Istvan Varga	<ivarga@csounds.com>
+2006-06-14  Istvan Varga	<ivarga@csounds.com>
+
 	* Made messages less verbose in soundin, diskin, diskin2, and
 	  sfpassign.
 	* Engine/otran.c:
 	  fixed (hopefully) incorrect offset calculation of string variables
 
-2006-06-13	Istvan Varga	<ivarga@csounds.com>
+2006-06-13  Istvan Varga	<ivarga@csounds.com>
+
 	* New API functions: csoundSetCallback(), csoundRemoveCallback()
 	* OOps/bus.c: sensekey opcode: use new callback interface
 	* H/version.h: updated API version to 1.02
@@ -228,16 +267,19 @@
 	  keyboard events)
 
 2006-06-12  jpff  <jpff@codemist.co.uk>
+
 	* InOut/midifile.c (csoundMIDIFileOpen): Added MFDIR
 
-2006-06-11	Istvan Varga	<ivarga@csounds.com>
+2006-06-11  Istvan Varga	<ivarga@csounds.com>
+
 	* Updated version to 5.03.0 beta.
 	* Opcodes/midiops2.c: new opcode:  ipgm  midipgm  [ichn]
 
 2006-06-10
 	* Csound 5.02.1 release
 
-2006-06-10	Istvan Varga	<ivarga@csounds.com>
+2006-06-10  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/sread.c:
 	  fixed parsing of score expressions
 	* OOps/aops.c:
@@ -248,14 +290,16 @@
 	* frontends/fltk_gui/CsoundPerformance.cpp:
 	  fixed bug related to display callbacks
 
-2006-06-09	Istvan Varga	<ivarga@csounds.com>
+2006-06-09  Istvan Varga	<ivarga@csounds.com>
+
 	* OOps/bus.c:
 	  Added new optional output argument to sensekey opcode.
 	* Engine/rdorch.c:
 	  Made excess number of output arguments a syntax error, rather
 	  than silently ignoring them.
 
-2006-06-04	Michael Gogins	<gogins@pipeline.com>
+2006-06-04  Michael Gogins	<gogins@pipeline.com>
+
 	* Changed the MIDI interoperability opcodes (OOps/midiinterop.c)
 	midinoteoncps, midinoteonoct, midinoteonpch to leave key and
 	velocity unchanged for score-driven performance.
@@ -263,11 +307,13 @@
 2006-06-04
 	* Csound 5.02 release
 
-2006-06-04	Istvan Varga	<ivarga@csounds.com>
+2006-06-04  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/otran.c:
 	  work around constndx() not being compiled correctly
 
-2006-06-03	Istvan Varga	<ivarga@csounds.com>
+2006-06-03  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/fgens.c, InOut/libsnd_u.c, OOps/diskin.c, OOps/diskin2.c:
 	  GEN01, diskin, diskin2, soundin: with an iformat value of -1,
 	  reject headerless files, rather than assuming the same format
@@ -284,7 +330,8 @@
 	  fixes to reading numbers in [] score expressions
 	  fixed 's' and 'e' score opcodes with time parameter
 
-2006-06-02	Istvan Varga	<ivarga@csounds.com>
+2006-06-02  Istvan Varga	<ivarga@csounds.com>
+
 	* New string opcodes:
 	  Sdst    strsub      Ssrc[, istart[, iend]]
 	  Sdst    strsubk     Ssrc, kstart, kend
@@ -305,7 +352,8 @@
 	  fixed parsing of numbers in exponential notation
 	  also some parser fixes related to 0dbfs
 
-2006-06-01	Istvan Varga	<ivarga@csounds.com>
+2006-06-01  Istvan Varga	<ivarga@csounds.com>
+
 	* Added callback interface to the software bus with named channels,
 	  using new opcodes chnrecv and chnsend. The callback function can
 	  be set with csoundSetChannelIOCallback().
@@ -314,14 +362,17 @@
 
 	* util/sndinfo.c: Added option to print looping information etc.
 
-2006-05-31	Istvan Varga	<ivarga@csounds.com>
+2006-05-31  Istvan Varga	<ivarga@csounds.com>
+
 	* InOut/widgets.cpp:
 	  FLbutton type 1 callback now sets the output to "ion"
 
-2006-05-30	Istvan Varga	<ivarga@csounds.com>
+2006-05-30  Istvan Varga	<ivarga@csounds.com>
+
 	* Opcodes/fout.c: new opcode: ficlose
 
-2006-05-30	ma++ ingalls	<matt@sonomatics.com>
+2006-05-30  ma++ ingalls	<matt@sonomatics.com>
+
 	* aops.c, aops.h, csound.h:
 	  invalue/outvalue updates as per Istvan's comments
 	* csound.c: changed "early return" comments to debug only
@@ -329,15 +380,18 @@
 	* lpanal.c: added warning message with -g flag
 	* sockrecv.c: took out usleep() declaration - was causing compile error
 
-2006-05-28	ma++ ingalls	<matt@sonomatics.com>
+2006-05-28  ma++ ingalls	<matt@sonomatics.com>
+
 	* frontends/CsoundX: added to cvs
 	* aops.c, entry1.c, entry1.h, csound.h:
 	  added hack to invalue/outvalue to support strings
 
-2006-05-27	Istvan Varga	<ivarga@csounds.com>
+2006-05-27  Istvan Varga	<ivarga@csounds.com>
+
 	* Added ATS analysis utility.
 
-2006-05-26	ma++ ingalls	<matt@sonomatics.com>
+2006-05-26  ma++ ingalls	<matt@sonomatics.com>
+
 	* frontends/CsoundVST/AEffect.h:
 	  commented out 2 PRAGMAS causing compile error on mac
 	* Opcodes/vst4cs/vsthost.c:
@@ -350,24 +404,29 @@
 	* OOps/aops.c:
 	  added i-rate support to invalue/outvalue
 
-2006-05-24	Istvan Varga	<ivarga@csounds.com>
+2006-05-24  Istvan Varga	<ivarga@csounds.com>
+
 	* InOut/rtalsa.c: changed default device from "default" to "plughw"
 	* InOut/rtjack.c: list available device names for -i adc or -o dac
 	  if an invalid device is specified
 
-2006-05-23	Istvan Varga	<ivarga@csounds.com>
+2006-05-23  Istvan Varga	<ivarga@csounds.com>
+
 	* Opcodes/ugnorman.c: fixed "not initialised" bug in ATSbufread
 
-2006-05-22	Istvan Varga	<ivarga@csounds.com>
+2006-05-22  Istvan Varga	<ivarga@csounds.com>
+
 	* OOps/midiops.c:
 	  massign(): interpret channel number <= 0 as all channels
 	* H/csoundCore.h, Top/csound.c:
 	  added new function GetCurrentThreadID() to CSOUND structure
 
-2006-05-21	Michael Gogins	<gogins@pipeline.com>
+2006-05-21  Michael Gogins	<gogins@pipeline.com>
+
 	* New API function: csoundGetCurrentThreadId()
 
-2006-05-20	Istvan Varga	<ivarga@csounds.com>
+2006-05-20  Istvan Varga	<ivarga@csounds.com>
+
 	* Opcodes/stackops.c: added new stack opcodes (stack, push, pop,
 	  push_f, pop_f); also moved monitor opcode here.
 	* Reworked user defined opcodes to allow for up to 256 input/output
@@ -378,13 +437,15 @@
 
 	* Engine/entry1.c: Change args of xin to match OPCODENUMOUTS
 
-2006-05-15	Anthony Kozar	<anthonykozar@sbcglobal.net>
+2006-05-15  Anthony Kozar	<anthonykozar@sbcglobal.net>
+
 	* Top/cscormai.c:  Fixed #includes.
 	* interfaces/CsoundFile.cpp:  isspace() is in <cctype> and supposed
 	  to be in std namespace
 	* H/csoundCore.h:  Increased OPCODENUMOUTS to 64 as requested.
 
-2006-05-15	Istvan Varga	<ivarga@csounds.com>
+2006-05-15  Istvan Varga	<ivarga@csounds.com>
+
 	* Opcodes/monitor.c:
 	  added new opcode: monitor
 
@@ -397,32 +458,38 @@
 	* util/pvanal.c: Added -B # argument to give a beta to the Kaiser
 	window; still defaults to 6.8
 
-2006-05-12	Istvan Varga	<ivarga@csounds.com>
+2006-05-12  Istvan Varga	<ivarga@csounds.com>
+
 	* frontends/csound/csound_main.c:
 	  overwrite old log files, rather than appending messages
 
-2006-05-08	Istvan Varga	<ivarga@csounds.com>
+2006-05-08  Istvan Varga	<ivarga@csounds.com>
+
 	* New API functions:
 	  csoundCreateMutex, csoundLockMutex, csoundLockMutexNoWait,
 	  csoundUnlockMutex, csoundDestroyMutex, csoundRunCommand
 
-2006-05-04	Istvan Varga	<ivarga@csounds.com>
+2006-05-04  Istvan Varga	<ivarga@csounds.com>
+
 	* InOut/rtalsa.c:
 	  added new "devfile" MIDI driver that uses device files in /dev,
 	  based on code from Csound 4.23 mididevice.c
 
-2006-05-03	Istvan Varga	<ivarga@csounds.com>
+2006-05-03  Istvan Varga	<ivarga@csounds.com>
+
 	* InOut/FL_graph.cpp, InOut/widgets.cpp:
 	* InOut/winFLTK.c, InOut/winFLTK.h:
 	  added more FLTK flags (see winFLTK.h)
 
-2006-05-02	Istvan Varga	<ivarga@csounds.com>
+2006-05-02  Istvan Varga	<ivarga@csounds.com>
+
 	* InOut/widgets.cpp, InOut/winFLTK.c, InOut/winFLTK.h:
 	  disable threads by default if graphs are used
 	* OOps/sndinfUG.c:
 	  filepeak opcode now uses PEAK chunks with libsndfile >= 1.0.16
 
-2006-04-30	Istvan Varga	<ivarga@csounds.com>
+2006-04-30  Istvan Varga	<ivarga@csounds.com>
+
 	* Attempt to fix thread locks on MacOS X.
 	* util/srconv.c:
 	  fixed output amplitude when downsampling
@@ -430,7 +497,8 @@
 	* install.py, installer/misc/mkpackage.py:
 	  install TclCsound command documentation
 
-2006-04-29	Istvan Varga	<ivarga@csounds.com>
+2006-04-29  Istvan Varga	<ivarga@csounds.com>
+
 	* Made it possible to control the behavior of the FLTK plugin
 	  from the host application. This can be done with the following
 	  code between calling csoundPreCompile() and csoundCompile():
@@ -453,12 +521,12 @@
 	* frontends/fltk_gui:
 	  new GUI frontend that uses the Csound 5 API and FLTK
 
-2006-04-19	Michael gogins	<gogins@pipeline.com>
+2006-04-19  Michael Gogins	<gogins@pipeline.com>
 
 	* Updated Lua to version 5.1 (current version),
 	changed lua_example.lua to use Class:method calls.
 
-2006-04-17	John ffitch	<jpff@codemist.co.uk>
+2006-04-17  John ffitch	<jpff@codemist.co.uk>
 
 	* Opcodes/bilbar.c: Added prepared piano string model
 
@@ -470,13 +538,15 @@
 	instruments.  Still needs to be checked as it may leave structures
 	dangling.
 
-2006-04-15	Istvan Varga	<ivarga@csounds.com>
+2006-04-15  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/namedins.c, Engine/otran.c:
 	  optimizations in orchestra parser
 	* interfaces/lua_interface.i:
 	  wrap cs_glue.hpp and csPerfThread.hpp
 
-2006-04-09	Istvan Varga	<ivarga@csounds.com>
+2006-04-09  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/envvar.c:
 	  csoundFileOpen(): check for files with .sd2 extension, and use
 	  sf_open() in this case if sf_open_fd() fails
@@ -504,17 +574,20 @@
 	* util/sndinfo.c:
 	  clear SF_INFO structure before calling sf_open()
 
-2006-04-08	Istvan Varga	<ivarga@csounds.com>
+2006-04-08  Istvan Varga	<ivarga@csounds.com>
+
 	* OOps/sndinfUG.c:
 	  restored filepeak opcode
 
-2006-04-07	Istvan Varga	<ivarga@csounds.com>
+2006-04-07  Istvan Varga	<ivarga@csounds.com>
+
 	* H/version.h:
 	  updated version number to 5.02.0 to reflect addition of new opcodes
 	* Opcodes/compress.c:
 	  fixed a few minor errors
 
-2006-04-04	Michael Gogins	<gogins@pipeline.com>
+2006-04-04  Michael Gogins	<gogins@pipeline.com>
+
 	* Changed FluidSynth opcodes slightly, with
 	    fluidEngine iChorusOn, iReverbOn
 	  pfields, defaulting to "on"; this can reduce noise in low frequencies
@@ -526,17 +599,20 @@
 	* Opcodes/compress.c: New code for distort and compress/expander
 	from Barry Vercoe
 
-2006-03-25	Istvan Varga	<ivarga@csounds.com>
+2006-03-25  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/entry1.c, H/aops.h, H/entry1.h, OOps/bus.c, opcodes.dir,
 	  Opcodes/pitch.c, Opcodes/pitch.h, Opcodes/spectra.c, Top/csound.c:
 	  fixes in sensekey opcode
 
-2006-03-22	Michael Gogins	<gogins@pipeline.com>
+2006-03-22  Michael Gogins	<gogins@pipeline.com>
+
 	* Added ScoreGeneratorVST, a VST plugin for generating scores in VST
 	  hosts using Python.
 	* Updated Windows installer for new targets, including Winsound.
 
-2006-03-22	Istvan Varga	<ivarga@csounds.com>
+2006-03-22  Istvan Varga	<ivarga@csounds.com>
+
 	* interfaces/cs_glue.cpp:
 	* interfaces/cs_glue.hpp:
 	  - added new classes to wrap MIDI I/O:
@@ -547,7 +623,8 @@
 	    to allow for redirecting the message output of a
 	    CsoundPerformanceThread
 
-2006-03-21	Istvan Varga	<ivarga@csounds.com>
+2006-03-21  Istvan Varga	<ivarga@csounds.com>
+
 	* SConstruct, Makefile-win32:
 	  renamed Csound library to csound{32,64}.dll.5.1 on Windows
 	* SConstruct:
@@ -558,12 +635,14 @@
 	* Engine/linevent.c:
 	  various minor fixes and code improvements
 
-2006-03-16	Istvan Varga	<ivarga@csounds.com>
+2006-03-16  Istvan Varga	<ivarga@csounds.com>
+
 	* Updated version number to 5.01.1 beta.
 	* Opcodes/sftype.h: check for MacOS 9 or PowerPC, and define
 	  WORDS_BIGENDIAN on those platforms.
 
-2006-03-13	Anthony Kozar	<anthonykozar@sbcglobal.net>
+2006-03-13  Anthony Kozar	<anthonykozar@sbcglobal.net>
+
 	* Top/main.c:  Made TYP_AIFF the default for MacOS 9.
 	* Engine/entry1.c:  Removed duplicate OENTRYs.
 
@@ -571,22 +650,26 @@
 
 	* Opcodes/bilbar.c (bar_run): Corrected boundary condition
 
-2006-03-11	Istvan Varga	<ivarga@csounds.com>
+2006-03-11  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/express.c:
 	  fixes in extending tokenstring buffer
 
-2006-03-10	Anthony Kozar	<anthonykozar@sbcglobal.net>
+2006-03-10  Anthony Kozar	<anthonykozar@sbcglobal.net>
+
 	* Opcodes/minmax.c:
 	* SConstruct:
 	  Added new 'minmax' plugin library with opcodes for finding minimum
 	  and maximum values among several signals.
 
-2006-03-10      Michael Gogins  <gogins@pipeline.com>
+2006-03-10  Michael Gogins  <gogins@pipeline.com>
+
 	* CSD style command lines in CsoundVST are now translated
 	  to orc/sco style before performance in order to save having to edit
 	  the command line after loading some CSD files.
 
-2006-03-08	Istvan Varga	<ivarga@csounds.com>
+2006-03-08  Istvan Varga	<ivarga@csounds.com>
+
 	* Made it possible to load opcode plugins only when the opcode is
 	  actually used.
 
@@ -594,11 +677,13 @@
 
 	* Engine/otran.c: Removed DTYPE and lclnxtdcnt as not used
 
-2006-02-25      Michael Gogins  <gogins@pipeline.com>
+2006-02-25  Michael Gogins  <gogins@pipeline.com>
+
 	* Updated SConstruct, custom.py, and Windows
 	  installer to build and install PortMidi.
 
-2006-02-24	Istvan Varga	<ivarga@csounds.com>
+2006-02-24  Istvan Varga	<ivarga@csounds.com>
+
 	* InOut/rtjack.c:
 	  Use thread locks instead of calling usleep() in a loop to
 	  implement blocking I/O; the -+jack_sleep_time option is now
@@ -617,12 +702,14 @@
 	  addition of new opcodes.
 
 2006-02-24      Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+
 	* Opcodes/psynth.c
 	  new track processing opcodes (also added manual pages):
 	  trscale, trshift, trsplit, trmix, trfilter, trcross,
 	  trhighest, trlowest, binit.
 
-2006-02-15	Istvan Varga	<ivarga@csounds.com>
+2006-02-15  Istvan Varga	<ivarga@csounds.com>
+
 	* InOut/widgets.h:
 	  moved file from H/
 	* InOut/widgets.cpp:
@@ -631,16 +718,19 @@
 	  fixed handle output of FLbutBank (not sure if this is safe)
 	  implemented cursor size parameter for FLknob
 
-2006-02-13	Istvan Varga	<ivarga@csounds.com>
+2006-02-13  Istvan Varga	<ivarga@csounds.com>
+
 	* OOps/ugrw1.c: fixed bugs in i-rate ZAK opcodes
 
-2006-02-09	Istvan Varga	<ivarga@csounds.com>
+2006-02-09  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/rdorch.c:
 	  splitline(): made checking for invalid characters stricter
 	  fixed labels before else/endif
 	  allow bitwise NOT operator in UTF-8 format
 
-2006-02-06	Istvan Varga	<ivarga@csounds.com>
+2006-02-06  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/entry1.c:
 	  cogoto requires an i-rate conditional
 	* Engine/musmon.c:
@@ -652,40 +742,48 @@
 	  expression for if/elseif (still does not work if there are no
 	  parentheses around the conditional expression).
 
-2006-02-03	Istvan Varga	<ivarga@csounds.com>
+2006-02-03  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/rdorch.c:
 	  fixed crash on extra ) in expressions
 	* Engine/rdorch.c:
 	  fixed crash on missing whitespace between if/elseif and (
 	  this needs more testing
 
-2006-01-25	Istvan Varga	<ivarga@csounds.com>
+2006-01-25  Istvan Varga	<ivarga@csounds.com>
+
 		Anthony Kozar	<anthonykozar@sbcglobal.net>
+
 	* Opcodes/mixer.cpp: "OpcodeBase.hpp", not <OpcodeBase.hpp>
+
 	* Opcodes/py/pythonopcodes.c: Added support for MacOS 9 Python quirks.
 	* H/sysdep.h: MacOS 9 changes so that Python stuff will compile.
 
-2006-01-11	Istvan Varga	<ivarga@csounds.com>
+2006-01-11  Istvan Varga	<ivarga@csounds.com>
+
 	* fixed temporary file bug on Windows (do not try to remove extension)
 	* new opcodes:
 	    chnmix    asig, Schn    (mixes to audio output channel)
 	    chnclear  Schn          (clears audio output channel at perf time)
 	* allow dot in channel names (but not as first character)
 
-2006-01-04	Michael Gogins	<gogins@pipeline.com>
+2006-01-04  Michael Gogins	<gogins@pipeline.com>
+
 	* Updated Windows installer script to be compatible with
-	Istvan Varga's zip file layout; also includes vst4cs, csoundapi~,
+  Istvan Varga's zip file layout; also includes vst4cs, csoundapi~,
 	FluidSynth opcodes, CsoundVST, tclcsound, Loris opcodes, STK C++
 	opcodes. Also includes manual and API reference. Now uses
 	Python 2.4.
 
-2006-01-04	Istvan Varga	<ivarga@csounds.com>
+2006-01-04  Istvan Varga	<ivarga@csounds.com>
+
 	* changed default output file type to AIFF on MacOS X
 	* added support for writing MIDI output to a file
 	  (--midioutfile=FNAME); not really useful, so may be removed later
 	* various fixes related to creating temporary files
 
-2006-01-03	Istvan Varga	<ivarga@csounds.com>
+2006-01-03  Istvan Varga	<ivarga@csounds.com>
+
 	* added new optional argument to massign (defaults to 1), which,
 	  if zero, skips resetting of MIDI controllers
 	* fixed bugs in pan opcode
@@ -705,18 +803,21 @@
 	int to avoid error
 	(csoundModuleDestroy): Ditto
 
-2005-11-12	Michael Gogins	<gogins@pipeline.com>
+2005-11-12  Michael Gogins	<gogins@pipeline.com>
+
 	* Removed csoundThrowMessage APIs as redundant with csoundMessage,
 	and not used.
 	* Removed strdup and boost from all but CsoundVST.
 	* Fixes in interfaces and frontends/CsoundVST so that CsoundVST
 	works again.
 
-2005-11-03	Istvan Varga	<ivarga@csounds.com>
+2005-11-03  Istvan Varga	<ivarga@csounds.com>
+
 	* Changed csoundInitialize() to return a positive value if it was
 	  already called earlier.
 
-2005-11-01	Istvan Varga	<ivarga@csounds.com>
+2005-11-01  Istvan Varga	<ivarga@csounds.com>
+
 	* Removed support for Cygwin.
 	* Fixes in Python opcodes. Also implemented a temporary hack
 	  in Top/csmodule.c to fix importing modules from Python opcodes
@@ -726,7 +827,8 @@
 	* installer/linux/mkpackage.py:
 	  preliminary tools for creating Linux packages
 
-2005-10-31	Michael Gogins	<gogins@pipeline.com>
+2005-10-31  Michael Gogins	<gogins@pipeline.com>
+
 	* Moved external language interfaces from frontends/CsoundVST
 	into interfaces directory.
 	* Created interfaces for Python, Java, Lua (all "csnd" module).
@@ -742,25 +844,31 @@
 	* Other interfaces have test scripts in interfaces directory.
 
 2005-10-25  John ff  <jpff@codemist.co.uk>
+
 	* SConstruct: Make building interfaces optional
 
 2005-10-05 Victor Lazzarini <victor.lazzarini@nuim.ie>
+
 	* Added Tcl/TK frontends (cstclsh and cswish)
 
-2005-10-15	Michael Gogins	<gogins@pipeline.com>
+2005-10-15  Michael Gogins	<gogins@pipeline.com>
+
 	* Fixed SConstruct to build CsoundVST using Csound as a
 	  shared library.
 	* Added csound.lisp FFI for CLisp (experimental).
 
-2005-10-15	Anthony Kozar	<anthonykozar@sbcglobal.net>
+2005-10-15  Anthony Kozar	<anthonykozar@sbcglobal.net>
+
 	* Top/csmodule.c:  Implemented csoundOpenLibrary, csoundCloseLibrary,
 	  and csoundGetLibrarySymbol for platform (mac_classic).
 
 2005-10-13  John ff  <jpff@codemist.co.uk>
+
 	* InOut/OSCrecv.c: Many changes to allow listening on multiple
 	ports.  Uses same patterns though.
 
-2005-10-12	Anthony Kozar	<anthonykozar@sbcglobal.net>
+2005-10-12  Anthony Kozar	<anthonykozar@sbcglobal.net>
+
 	* Top/cscorfns.c:
 	  cscoreGetEvent(): Check for file closed to avoid loop.
 	  csoundInitializeCscore(): Set next->op = '\0'.
@@ -769,7 +877,8 @@
 	* Opcodes/gab/vectorial.c:
 	  Fixed small bugs in checking table size.
 
-2005-10-11	Anthony Kozar	<anthonykozar@sbcglobal.net>
+2005-10-11  Anthony Kozar	<anthonykozar@sbcglobal.net>
+
 	* H/cscore.h, Top/cscorfns.c, Top/cscore_internal.c:
 	  Renamed all Cscore functions that are to be exported in the
 	  "Cscore API".  Made all of these take a CSOUND* argument if they
@@ -789,17 +898,20 @@
 	unsigned to avoid compiler warnings.  Also change && to || as I
 	think that is more likely correct.
 
-2005-10-07	Anthony Kozar	<anthonykozar@sbcglobal.net>
+2005-10-07  Anthony Kozar	<anthonykozar@sbcglobal.net>
+
 	* H/csound.h, H/csoundCore.h, Top/csound.c, Engine/musmon.c:
 	  Added new API function csoundSetCscoreCallback() for using an
 	  external cscore routine.
 	* SDIF/sdif-mem.h:  Changed #include "H/sdif.h" to "sdif.h".
 
-2005-10-02	Istvan Varga	<ivarga@csounds.com>
+2005-10-02  Istvan Varga	<ivarga@csounds.com>
+
 	* restored Tcl/Tk control opcodes
 	* xyin fixes
 
-2005-09-30	Istvan Varga	<ivarga@csounds.com>
+2005-09-30  Istvan Varga	<ivarga@csounds.com>
+
 	* new API functions for random numbers:
 	  csoundRand31(), csoundSeedRandMT(), csoundRandMT()
 	* removed all uses of rand(), csoundRandMT() is used instead in
@@ -807,7 +919,8 @@
 	  in all other opcodes that previously used rand()
 	* attempts to get xyin working
 
-2005-09-25	Istvan Varga	<ivarga@csounds.com>
+2005-09-25  Istvan Varga	<ivarga@csounds.com>
+
 	* frontends/CsoundVST/CppSound.cpp, frontends/CsoundVST/CppSound.hpp:
 	* frontends/CsoundVST/CsoundVST.cpp:
 	* flcsound/synthesizer.cpp:
@@ -822,7 +935,8 @@
 	* InOut/window.c, Makefile-win32, SConstruct:
 	  moved FLTK display code from libcsound to the widgets plugin
 
-2005-09-22	Istvan Varga	<ivarga@csounds.com>
+2005-09-22  Istvan Varga	<ivarga@csounds.com>
+
 	* frontends/csound/csound_main.c:
 	  allow logging to file (-O NAME or --logfile=NAME)
 	* frontends/csound/sched.c:
@@ -832,14 +946,16 @@
 	    C: maximum allowed CPU usage (1 to 99 percents)
 	    T: time interval to check CPU usage (1 to 60 seconds)
 
-2005-09-18	Istvan Varga	<ivarga@csounds.com>
+2005-09-18  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/namedins.c, H/csound.h:
 	  more complete implementation of bus interface (may still need
 	  some changes)
 	* Engine/entry2.c, H/str_ops.h, OOps/str_ops.c:
 	  new opcodes
 
-2005-09-17	Istvan Varga	<ivarga@csounds.com>
+2005-09-17  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/namedins.c:
 	  started to implement bus with named channels; this is not
 	  complete yet
@@ -855,11 +971,13 @@
 	  options specified in a CSD file
 	  one_file.c: minor fixes in parsing CSD files
 
-2005-09-01	Michael Gogins	<gogins@pipeline.com>
+2005-09-01  Michael Gogins	<gogins@pipeline.com>
+
 	* Added CsoundVST.Soundfile wrapper class for Python access
 	to libsndfile.
 
-2005-09-01	Istvan Varga	<ivarga@csounds.com>
+2005-09-01  Istvan Varga	<ivarga@csounds.com>
+
 	* Top/csmodule.c:
 	  revised code for loading plugin libraries
 	  new function: csoundModuleInfo() can be used in plugin libraries to
@@ -875,14 +993,17 @@
 	* SConstruct:
 	  fixed bug that broke building libcsound as a shared library
 
-2005-08-30	Istvan Varga	<ivarga@csounds.com>
+2005-08-30  Istvan Varga	<ivarga@csounds.com>
+
 	* Opcodes/ugnorman.c:
 	  renamed opcodes from ats* to ATS* to avoid namespace pollution
 
-2005-08-28	Istvan Varga	<ivarga@csounds.com>
+2005-08-28  Istvan Varga	<ivarga@csounds.com>
+
 	* Opcodes/ugnorman.c, Opcodes/ugnorman.h: new opcodes
 
-2005-08-22	Istvan Varga	<ivarga@csounds.com>
+2005-08-22  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/musmon.c, H/csound.h, InOut/libsnd.c, Top/csound.c:
 	  new API function: csoundSetHostImplementedAudioIO()
 	  allows the host application to implement sound I/O with
@@ -893,7 +1014,8 @@
 	  added return value to csoundWaitThreadLock(); non-zero if
 	  the function returns on timeout instead of the lock being notified
 
-2005-08-20	Istvan Varga	<ivarga@csounds.com>
+2005-08-20  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/oload.c, H/csound.h, H/csoundCore.h, Top/threads.c:
 	  new API function: csoundWaitThreadLockNoTimeout()
 	  similar to csoundWaitThreadLock(), but with infinite timeout,
@@ -903,7 +1025,8 @@
 	* H/csoundCore.h, H/envvar.h, SConstruct:
 	  removed envvar.h from installation
 
-2005-08-19	Istvan Varga	<ivarga@csounds.com>
+2005-08-19  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/namedins.c, Engine/otran.c, Engine/rdorch.c:
 	* Opcodes/fout.c, Opcodes/oscbnk.c:
 	  removed unneeded/redundant RESET code
@@ -915,7 +1038,8 @@
 	* examples/fl_controller/fl_controller.cpp:
 	  fixed a few minor errors
 
-2005-08-18	Istvan Varga	<ivarga@csounds.com>
+2005-08-18  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/namedins.c:
 	* Top/csound.c:
 	* Top/main.c:
@@ -934,18 +1058,21 @@
 	  currently, the opcodes can only be listed after loading an orchestra
 	  with csoundCompile()
 
-2005-08-12	Istvan Varga	<ivarga@csounds.com>
+2005-08-12  Istvan Varga	<ivarga@csounds.com>
+
 	* renamed struct ENVIRON_ to struct CSOUND_, and ENVIRON to CSOUND
 	* replaced uses of void* Csound instance pointers with CSOUND*
 	* changes to header files to clean up the API; more need to be done
 	* attempts to fix CsoundVST build - still not quite right
 
-2005-08-03	Steven Yi	<stevenyi@gmail.com>
+2005-08-03  Steven Yi	<stevenyi@gmail.com>
+
 	* Engine/Entry1.c, Engine/fgens.c, H/ftgen.h:
 	  New ftfree opcode, takes in table number and free time arg,
 	  if zero frees at opcode init time, otherwise at opcode deinit time
 
-2005-08-01	Istvan Varga	<ivarga@csounds.com>
+2005-08-01  Istvan Varga	<ivarga@csounds.com>
+
 	* Minor fixes in DSSI opcodes (still have problems)
 	* Engine/rdorch.c, Engine/entry1.c, Opcodes/uggab.c:
 	  minor parser changes, including the addition of a new code (fffb)
@@ -967,13 +1094,15 @@
 	* Opcodes/bowedbar.c (bowedbarset): ADSR not initialised
 	correctly.  Still has over hash attack.  Also adjust gain.
 
-2005-07-17	Istvan Varga	<ivarga@csounds.com>
+2005-07-17  Istvan Varga	<ivarga@csounds.com>
+
 	* Engine/rdorch.c: fixed crash on missing endin
 	* Engine/rdorch.c, Engine/sread.c: fixed error message on $ without
 	  macro name
 	* H/diskin.h, OOps/diskin.c: fixed soundout crash on Win32 with doubles
 
-2005-07-15	Istvan Varga	<ivarga@csounds.com>
+2005-07-15  Istvan Varga	<ivarga@csounds.com>
+
 	* removed use of cs.h; replaced with csoundCore.h
 	* util1/sortex/smain.c, util1/sortex/xmain.c: fixed compiler warnings
 	* OOps/diskin2.c: minor fixes in soundin and diskin2
@@ -988,7 +1117,8 @@
 	* Engine/fgens.c: fixed memory error in GEN20
 	* Engine/rdorch.c: minor fix in parsing of comments
 
-2005-07-13	Istvan Varga	<ivarga@csounds.com>
+2005-07-13  Istvan Varga	<ivarga@csounds.com>
+
 	* InOut/midirecv.c: reset controllers 7-11 to 0 in raw controller mode
 
 2005-06-25 Victor  Lazzarini <Victor.Lazzarini@nuim.ie>
@@ -1027,14 +1157,17 @@
 
 	* SConstruct: Fixed TAGS so it looks at C files as well
 
-2005-06-13    Victor Lazzarini <victor.lazzarini@nuim.ie>
+2005-06-13  Victor Lazzarini <victor.lazzarini@nuim.ie>
+
 	* Top/dl_opcodes.c: commented out old code that was causing conflict
 	                    on OSX 10.4
 
-2005-06-09     Victor Lazzarini <victor.lazzarini@nuim.ie>
+2005-06-09  Victor Lazzarini <victor.lazzarini@nuim.ie>
+
 	* InOut/rtcoreaudio.c : further improvements to coreaudio RT IO
 
-2005-06-03	Istvan Varga	<istvan@csounds.com>
+2005-06-03  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/oload.c:
 	* H/csoundCore.h:
 	  added (some) PVOC related functions to API
@@ -1045,16 +1178,19 @@
 	* util/pvanal.c:
 	  allow the use of PVOC-EX format again (still no displays though)
 
-2005-06-03 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+2005-06-03  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+
 	* OOps/pvfileio.c: removed statics and added csound* to functions;
 	 changed all relevant function calls elsewhere in the code to
 	 match the new prototypes
 
-2005-06-01 Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+2005-06-01  Victor Lazzarini <Victor.Lazzarini@nuim.ie>
+
 	* Opcodes/pvsbasic.c pvsbasic.h added opcode pvsinit for fsig
 	initialisation
 
-2005-05-31	Istvan Varga	<istvan@csounds.com>
+2005-05-31  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/otran.c:
 	  allow global f-signals
 	  code changes for faster name lookup in global/local pools
@@ -1070,7 +1206,8 @@
 	  fixed crash on 64 bit platforms
 	  minor code changes
 
-2005-05-30	Istvan Varga	<istvan@csounds.com>
+2005-05-30  Istvan Varga	<istvan@csounds.com>
+
 	* New API functions:
 	    csoundAppendOpcodes():
 	      appends a list of opcodes (OENTRY*)
@@ -1083,6 +1220,7 @@
 	  opcodlst directly
 
 2005-05-30  Michael Gogins <gogins@pipeline.com>
+
 	* CsoundVST now supports multiple instantiation of VST plugins;
 	it is not completely stable yet.
 	* The Mixer opcodes now support multiple instantiation of Csound.
@@ -1093,10 +1231,12 @@
 	and the csoundModule* initialization and deinitialization routines.
 
 2005-05-27  Steven Yi  <stevenyi@gmail.com>
+
 	* Opcodes/fluidOpcodes/fluidOpcodes.cpp: modified fluidNote to use
 	RegisterDeinitCallback, removed krate function call
 
-2005-05-27	Istvan Varga	<istvan@csounds.com>
+2005-05-27  Istvan Varga	<istvan@csounds.com>
+
 	* Added new API functions:
 	    csoundListUtilities():
 	      returns alphabetically sorted list of registered utilities
@@ -1112,16 +1252,19 @@
 	  needed now (can use csoundModuleDestroy and RegisterDeinitCallback
 	  instead).
 
-2005-05-25	Istvan Varga	<istvan@csounds.com>
+2005-05-25  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/insert.c: fixed bug in ihold opcode
 	* Engine/rdorch.c: attempts at fixing else and endif bugs
 	* Added new macros (MYFLT2LONG and MYFLT2LRND) for converting
 	  floating point values to integers.
 
 2005-05-24 Victor Lazzarini <victor.lazzarini@nuim.ie>
+
 	* changes to rtcoreaudio.c to enable channel independence
 
 2005-05-23 Victor Lazzarini <victor.lazzarini@nuim.ie>
+
 	* late entry to the log: added InOut/rtcoreaudio.c
 	* late entry to the log: added Opcodes/sndloop.c (sndloop,
 	flooper, pvsarp, pvsvoc)
@@ -1154,6 +1297,7 @@
 2005-05-15  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/getstring.c: #include "cs.h", not <cs.h>
+
 	* Top/threads.c: Added stubs for csound*ThreadLock functions.
 	* Engine/envvar.c: Fixes for MacOS pathnames (more may be needed).
 
@@ -1174,6 +1318,7 @@
 	overwriting arguments
 
 2005-05-08  Michael Gogins <gogins@pipeline.com>
+
 	* Added examples/Orbifold.py, an interactive display of the
 	3-dimensional orbifold of all close voice-leadings between
 	3-tone chords (based on the work of Professor Dmitri Tymoczko
@@ -1181,7 +1326,8 @@
 	for real-time performance, and the use of 3-dimensional graphics
 	for constructing graphical user interfaces.
 
-2005-05-07	Istvan Varga	<istvan@csounds.com>
+2005-05-07  Istvan Varga	<istvan@csounds.com>
+
 	* Opcodes/biquad.c:
 	* Opcodes/biquad.h:
 	  added new optional argument to distort1 opcode (defaults to zero),
@@ -1199,7 +1345,8 @@
 	* OOps/ugens6.c:
 	  deltapx/deltapxw revised for speed
 
-2005-05-06	Istvan Varga	<istvan@csounds.com>
+2005-05-06  Istvan Varga	<istvan@csounds.com>
+
 	* H/msg_attr.h:
 	* Top/csound.c:
 	  new message attributes: CSOUNDMSG_WARNING, CSOUNDMSG_FG_UNDERLINE
@@ -1210,12 +1357,14 @@
 	  to allow delay taps to read from any of the nested delayr/delayw
 	  pairs, not just the last (from Csound 4.23.4.1)
 
-2005-05-05	Istvan Varga	<istvan@csounds.com>
+2005-05-05  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry1.c:
 	* Engine/express.c:
 	  added k() function for converting i-rate values to k-rate
 
-2005-05-01	Istvan Varga	<istvan@csounds.com>
+2005-05-01  Istvan Varga	<istvan@csounds.com>
+
 	* H/csound.h:
 	* Top/threads.c:
 	  new functions: csoundLock(), csoundUnLock()
@@ -1232,7 +1381,8 @@
 	  right, should really be done by host application)
 	  - removed some unused/useless static variables
 
-2005-04-30	Istvan Varga	<istvan@csounds.com>
+2005-04-30  Istvan Varga	<istvan@csounds.com>
+
 	* removed global variable O - use csound->oparms instead
 	* Top/csound.c:
 	  - dynamically allocate and destroy Csound instances, rather than
@@ -1241,10 +1391,12 @@
 	  - made calls to deprecated functions csoundPrintf() (#defined as
 	  printf()) and err_printf() fatal errors.
 
-2005-04-29	Istvan Varga	<istvan@csounds.com>
+2005-04-29  Istvan Varga	<istvan@csounds.com>
+
 	* removed all static variables from Engine/sread.c
 
 2005-04-30  Michael Gogins <gogins@pipeline.com>
+
 	* Disabled GUI options for Python mode and for auto-play
 	when in VST plugin mode, to prevent side effects.
 	* Improved version of CsoundVST.csd orchestra for VST plugin use,
@@ -1262,13 +1414,15 @@
 	without FLTK
 
 2005-04-14  Michael Gogins <gogins@pipeline.com>
+
 	* Added (very) basic Java GUI front end for Csound.
 	It is the main class in CsoundVST.jar. To be extended.
 	The purpose of this work is to embed Csound5 in Kandid,
 	an interactive graphics program for evolving pictures, and
 	adapt Kandid for evolving pieces.
 
-2005-04-18	Istvan Varga	<istvan@csounds.com>
+2005-04-18  Istvan Varga	<istvan@csounds.com>
+
 	* Top/utility.c, H/cs_util.h:
 	  new files for dynamically loading utilities
 	* cvanal.c, dnoise.c, hetro.c, lpanal.c, pvanal.c, pvlook.c, sndinfo.c:
@@ -1289,6 +1443,7 @@
 	to a warning.  Trest with care!
 
 2005-04-14  Michael Gogins <gogins@pipeline.com>
+
 	* Changed CsoundVST to print log messages to stderr (used to be
 	stdout) by default.
 	* Added option to CsoundVST to automatically open the output
@@ -1302,6 +1457,7 @@
 	* Opcodes/wave-terrain.c (wtPerf): Improved phase accumulation problem
 
 2005-04-10  Michael Gogins <gogins@pipeline.com>
+
 	* Updated the STK opcodes to take from 0 to 4 optional
 	krate controller-value pairs.
 
@@ -1310,6 +1466,7 @@
 	* OOps/ugens2.c (itabl3): Missing return
 
 2005-04-09  Michael Gogins <gogins@pipeline.com>
+
 	* Added "STKName" (e.g. "STKBowed") opcodes for all Perry Cook's
 	Synthesis Toolkit in C++ (STK) 4.2.0 instruments in
 	his "demo" program, using Cook's original C++ code
@@ -1328,7 +1485,8 @@
 	* H/soundio.h:
 	* InOut/libsnd_u.c (sndgetset): Fix skipinit for soundin
 
-2005-04-06	Istvan Varga	<istvan@csounds.com>
+2005-04-06  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/fgens.c:
 	  use csound->Message() instead of printf()
 	  added ENVIRON* pointer and variable arg list to fterror()
@@ -1355,7 +1513,8 @@
 	  do not call fftRESET() (this function was removed)
 	  err_printf moved to Top/csound.c
 
-2005-04-05	Istvan Varga	<istvan@csounds.com>
+2005-04-05  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/sread.c:
 	* H/sort.h:
 	  attempts to fix bugs in reading large score files
@@ -1374,10 +1533,12 @@
 	  fixed crash in cpsoct() and similar functions on out of range arg
 
 2005-04-03	Steven Yi		<stevenyi@gmail.com>
+
 	* SConstruct: added arch and cpu commandline options to fine tune gcc3opt
 	  flags for -march and -mcpu
 
-2005-04-03	Istvan Varga	<istvan@csounds.com>
+2005-04-03  Istvan Varga	<istvan@csounds.com>
+
 	* removed macro definitions for ksmps, esr, ekr, and some others;
 	  use csound->Message() instead of printf() and err_printf();
 	  (large number of changes in many files)
@@ -1385,7 +1546,8 @@
 	* Engine/express.c:
 	  removed static and global variables
 
-2005-03-31	Istvan Varga	<istvan@csounds.com>
+2005-03-31  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry1.c:
 	* OOps/aops.c:
 	  added a-rate int() and frac(), and round(), floor(), and ceil()
@@ -1408,7 +1570,8 @@
 
 	* Engine/express.c: Removed statics to environment structure
 
-2005-03-30	Istvan Varga	<istvan@csounds.com>
+2005-03-30  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/oload.c:
 	* Engine/twarp.c:
 	* H/csoundCore.h:
@@ -1432,12 +1595,14 @@
 	* Engine/oload.c:
 	* Engine/twarp.c: Removed statics from file twarp.c
 
-2005-03-29	Istvan Varga	<istvan@csounds.com>
+2005-03-29  Istvan Varga	<istvan@csounds.com>
+
 	* more API changes (affecting a large number of files)
 	* Opcodes/newfils.c:
 	  fixed statevar bug
 
-2005-03-28	Istvan Varga	<istvan@csounds.com>
+2005-03-28  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/auxfd.c, Engine/fgens.c, Engine/insert.c, Engine/oload.c:
 	* H/csdl.h, H/csoundCore.h, H/prototyp.h, InOut/pa_blocking.c:
 	* InOut/rtpa_new.c, InOut/widgets.cpp, OOps/aops.c, OOps/diskin2.c:
@@ -1470,7 +1635,8 @@
 	* util2/mixer/extract.c:
 	  removed unused files
 
-2005-03-27	Istvan Varga	<istvan@csounds.com>
+2005-03-27  Istvan Varga	<istvan@csounds.com>
+
 	* SConstruct:
 	* InOut/libsnd.c:
 	* InOut/rtpa_new.c:
@@ -1480,7 +1646,8 @@
 	* H/insert.h:
 	  new opcode: turnoff2 (can turn off other instruments)
 
-2005-03-25	Istvan Varga	<istvan@csounds.com>
+2005-03-25  Istvan Varga	<istvan@csounds.com>
+
 	* InOut/midirecv.c:
 	* Engine/express.c:
 	* Engine/fgens.c:
@@ -1502,14 +1669,16 @@
 	* OOps/dnfft.c:
 	  removed files
 
-2005-03-23	Istvan Varga	<istvan@csounds.com>
+2005-03-23  Istvan Varga	<istvan@csounds.com>
+
 	* OOps/ugens2.c:
 	* Opcodes/biquad.c:
 	* Opcodes/lowpassr.c:
 	* Top/one_file.c:
 	  minor fixes
 
-2005-03-22	Istvan Varga	<istvan@csounds.com>
+2005-03-22  Istvan Varga	<istvan@csounds.com>
+
 	* H/diskin2.h:
 	* OOps/diskin2.c:
 	  various minor code changes
@@ -1521,7 +1690,8 @@
 	* util1/csd_util/makecsd.c:
 	  new utilities
 
-2005-03-21	Istvan Varga	<istvan@csounds.com>
+2005-03-21  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry1.c:
 	* H/diskin2.h:
 	* OOps/diskin2.c:
@@ -1539,7 +1709,8 @@
 	* Engine/sread.c (MARGIN): Increase to 600, but needs to be
 	rethought
 
-2005-03-18	Istvan Varga	<istvan@csounds.com>
+2005-03-18  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/oload.c:
 	* H/csoundCore.h:
 	* H/fftlib.h:
@@ -1553,6 +1724,7 @@
 	  minor GEN52 fix
 
 2005-03-15  Michael Gogins <gogins@pipeline.com>
+
 	* The Loris opcodes now work.
 	* Removed pyrun.dll and -lswigpy from SConstruct,
 	as SWIG 1.3.24 (current stable version) does not use it.
@@ -1574,7 +1746,8 @@
 	* Opcodes/modal4.c (marimbaset): Make zero valid probability for
 	multiple strikes
 
-2005-03-14	Istvan Varga	<istvan@csounds.com>
+2005-03-14  Istvan Varga	<istvan@csounds.com>
+
 	* SConstruct:
 	* Engine/oload.c:
 	* H/csound.h:
@@ -1591,7 +1764,8 @@
 	* Opcodes/ftconv.c:
 	  use new FFT functions; opcode is faster now
 
-2005-03-13	Istvan Varga	<istvan@csounds.com>
+2005-03-13  Istvan Varga	<istvan@csounds.com>
+
 	* SConstruct:
 	* Opcodes/ftconv.c:
 	  new opcode (zero delay multichannel convolve, reads IR from ftable)
@@ -1603,9 +1777,11 @@
 	  made it possible to run spat3dt from the orchestra header (instr 0)
 
 2005-03-13  John ffitch  <jpff@codemist.co.uk>
+
 	* SConstruct (opts): make installation optional
 
-2005-03-13	Istvan Varga	<istvan@csounds.com>
+2005-03-13  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/fgens.c:
 	* H/ftgen.h:
 	  added GEN51
@@ -1613,15 +1789,18 @@
 	  minor code improvements
 
 2005-03-13  John ffitch  <jpff@codemist.co.uk>
+
 	* Opcodes/ftest.c (gentune): Added Gabriel's gen to the loadable
 	gens under the name gentune
 
-2005-03-12	Istvan Varga	<istvan@csounds.com>
+2005-03-12  Istvan Varga	<istvan@csounds.com>
+
 	* SConstruct:
 	* Opcodes/screverb.c:
 	  new opcode (Sean Costello's waveguide reverb)
 
-2005-03-11	Istvan Varga	<istvan@csounds.com>
+2005-03-11  Istvan Varga	<istvan@csounds.com>
+
 	* InOut/widgets.cpp:
 	* Top/csound.c:
 	* Top/pvanal.c:
@@ -1629,7 +1808,8 @@
 	* Engine/entry1.c:
 	  fixed rtclock opcode (should be 0xffff, not 0xfffd)
 
-2005-03-10	Istvan Varga	<istvan@csounds.com>
+2005-03-10  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry2.c:
 	  run miditempo opcode both at init and performance time
 	* Engine/musmon.c:
@@ -1639,7 +1819,8 @@
 	* Top/argdecode.c:
 	  load external modules before printing opcode list
 
-2005-03-09	Istvan Varga	<istvan@csounds.com>
+2005-03-09  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/insert.c:
 	* OOps/schedule.c:
 	  fixes in schedule opcodes
@@ -1657,7 +1838,8 @@
 	* Opcodes/freeverb.c:
 	  new opcode
 
-2005-03-08	Istvan Varga	<istvan@csounds.com>
+2005-03-08  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/insert.c:
 	  MIDIinsert(): allow muting instrument by 'q' score opcode
 	* Engine/linevent.c:
@@ -1672,7 +1854,8 @@
 	* Top/csound.c:
 	  csoundScoreEvent(): add p2 to current time, not section start time
 
-2005-03-08	Istvan Varga	<istvan@csounds.com>
+2005-03-08  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry2.c:
 	  added "event_i" opcode (same as "event" but runs at i-time)
 	* Engine/fgens.c, Engine/memalloc.c, Engine/memfiles.c:
@@ -1724,6 +1907,7 @@
 	  added &cenviron to ldmemfile() call
 
 2005-03-07  Michael Gogins <gogins@pipeline.com>
+
 	* Added CsoundVST, Loris, and the Csound API headers and libraries
 	to the install target in SConstruct.
 	* Added the Csound manual and the API documentation to the Windows
@@ -1733,7 +1917,8 @@
 	Other loris opcodes may be broken as well. However, the Loris Python
 	extension module built here does seem to work.
 
-2005-03-07	Istvan Varga	<istvan@csounds.com>
+2005-03-07  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry2.c:
 	  removed event_set; no longer needed
 	* Engine/insert.c:
@@ -1781,7 +1966,8 @@
 	* Top/csound.c:
 	  changes for using insert_score_event() to schedule events
 
-2005-03-06	Istvan Varga	<istvan@csounds.com>
+2005-03-06  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/insert.c:
 	* Engine/musmon.c:
 	* InOut/midirecv.c:
@@ -1813,7 +1999,8 @@
 	* Top/opcode.c:
 	  minor fix: print opcodes like oscil.kk correctly
 
-2005-03-03	Istvan Varga	<istvan@csounds.com>
+2005-03-03  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/envvar.c:
 	* H/envvar.h:
 	  added SNAPDIR to environment variable list (used by widget opcodes)
@@ -1850,10 +2037,12 @@
 	  option was specified
 
 2005-03-02  Michael Gogins <gogins@pipeline.com>
+
 	* Added rule for SConstruct to build Java wrappers for CsoundVST
 	if jni.h is present.
 
-2005-03-02	Istvan Varga	<istvan@csounds.com>
+2005-03-02  Istvan Varga	<istvan@csounds.com>
+
 	* anal/adsyn/het_main.c:
 	* anal/convol/cvl_main.c:
 	* anal/lpc/lpc_main.c:
@@ -1919,11 +2108,13 @@
 	  fixed crash
 
 2005-03-01  Michael Gogins <gogins@pipeline.com>
+
 	* Updated CsoundVST code to use Istvan Varga's MIDI driver system,
 	so that CsoundVST works again as a VST plugin, at least in
 	"Csound classic" mode.
 
-2005-03-01	Istvan Varga	<istvan@csounds.com>
+2005-03-01  Istvan Varga	<istvan@csounds.com>
+
 	* Opcodes/gab/gab.c:
 	  fixes in Maldonado opcodes
 	* Top/dl_opcodes.c:
@@ -1940,7 +2131,8 @@
 	* Top/pvanal.c:
 	  bug fixes in sound I/O, pvanal, and pvoc
 
-2005-02-28	Istvan Varga	<istvan@csounds.com>
+2005-02-28  Istvan Varga	<istvan@csounds.com>
+
 	* cleanup.sh:
 	  new script to remove files generated during compilation
 	* OOps/fout.c:
@@ -1956,10 +2148,12 @@
 	  removed files from repository
 
 2005-02-27	Steven Yi <stevenyi@csounds.com>
+
 	* frontends/CsoundVST/CppSound.hpp: changed #include of cs.h to
 	csoundCore.h
 
 2005-02-27  Michael Gogins <gogins@pipeline.com>
+
 	* Changed fluid* opcodes: removed Gogins version, merged
 	option to print presets to fluidLoad and added fluidControl opcode
 	from Gogins version, added new fluidAllOut opcode to collect
@@ -1969,7 +2163,8 @@
 	* Updated H/OpcodeBase.hpp to work properly with new SUBR signature.
 	* Updated examples/Koch.py to use fluidOpcodes.
 
-2005-02-27	Istvan Varga	<istvan@csounds.com>
+2005-02-27  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry2.c:
 	* H/midiops.h:
 	* OOps/midiops.c:
@@ -2008,13 +2203,15 @@
 	  new command line option: -+mute_tracks=STRING
 	  new command line option: -+raw_controller_mode=BOOLEAN
 
-2005-02-26	Istvan Varga	<istvan@csounds.com>
+2005-02-26  Istvan Varga	<istvan@csounds.com>
+
 	* InOut/libsnd_u.c:
 	  fixed bug in sndgetset(): sfinfo structure was uninitialised
 	* InOut/midirecv.c:
 	  fixed bug in reading MIDI device and file at the same time
 
-2005-02-25	Istvan Varga	<istvan@csounds.com>
+2005-02-25  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry2.c:
 	  added miditempo opcode (returns current tempo of MIDI file
 	  at control rate)
@@ -2048,7 +2245,8 @@
 	* SConstruct:
 	  compile InOut/midifile.c
 
-2005-02-24	Istvan Varga	<istvan@csounds.com>
+2005-02-24  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/oload.c:
 	* H/csdl.h:
 	* H/cs.h:
@@ -2093,12 +2291,14 @@
 
 	* OOps/ugens2.c (tabli): Unwrap the two case so tests outside loop
 
-2005-02-23	Istvan Varga	<istvan@csounds.com>
+2005-02-23  Istvan Varga	<istvan@csounds.com>
+
 	* InOut/midisend.c:
 	* OOps/midiout.c:
 	  Fixed 2 byte messages (program change and channel pressure).
 
-2005-02-22	Istvan Varga	<istvan@csounds.com>
+2005-02-22  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/musmon.c:
 	* Engine/oload.c:
 	* H/csdl.h:
@@ -2134,7 +2334,8 @@
 	automatically but one needs to select 64 or 32 bit on a 64 bit
 	machine.
 
-2005-02-20	Istvan Varga	<istvan@csounds.com>
+2005-02-20  Istvan Varga	<istvan@csounds.com>
+
 	* Top/argdecode.c:
 	* Top/main.c:
 	  allow orc/sco names in CSD (may be broken), but not in .csoundrc
@@ -2170,7 +2371,8 @@
 	the duration of each node is the total duration
 	of all notes that it produces.
 
-2005-02-19	Istvan Varga	<istvan@csounds.com>
+2005-02-19  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/musmon.c:
 	  fixed orcompact bug (takes a Csound instance pointer)
 	* Engine/oload.c:
@@ -2221,7 +2423,8 @@
 	* Engine/oload.c:
 	  fixed memory leak (overwrite of ENVIRON.memalloc_db by oloadRESET())
 
-2005-02-18	Istvan Varga	<istvan@csounds.com>
+2005-02-18  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/auxfd.c, Engine/express.c, Engine/fgens.c, Engine/insert.c:
 	* Engine/linevent.c, Engine/memalloc.c, Engine/memfiles.c:
 	* Engine/musmon.c, Engine/namedins.c, Engine/oload.c, Engine/otran.c:
@@ -2263,7 +2466,8 @@
 	* Top/main.c:
 	  read .csoundrc both from HOME directory and from current directory
 
-2005-02-17	Istvan Varga	<istvan@csounds.com>
+2005-02-17  Istvan Varga	<istvan@csounds.com>
+
 	* Top/csound.c:
 	  the CSRTAUDIO environment variable can be used to set default
 	  for -+rtaudio
@@ -2280,7 +2484,8 @@
 	* Top/one_file.c:
 	  fixes in parsing string options such as file names
 
-2005-02-16	Istvan Varga	<istvan@csounds.com>
+2005-02-16  Istvan Varga	<istvan@csounds.com>
+
 	* InOut/libsnd.c:
 	  print correct audio block sizes
 	  audrecv/rtrecord returns the number of bytes read
@@ -2315,7 +2520,8 @@
 
 	* SConstruct: Added pvsdemic
 
-2005-02-10	Istvan Varga	<istvan@csounds.com>
+2005-02-10  Istvan Varga	<istvan@csounds.com>
+
 	* frontends/csound/csound_main.c
 	* Top/argdecode.c:
 	  Improved --sched option, now accepts a priority value (--sched=N).
@@ -2325,7 +2531,8 @@
 	* Opcodes/gab/vectorial.c:
 	  Fixed sequence point warnings.
 
-2005-02-10	Istvan Varga	<istvan@csounds.com>
+2005-02-10  Istvan Varga	<istvan@csounds.com>
+
 	* InOut/rtjack:
 	  Implemented JACK real time audio plugin (experimental).
 	* InOut/libsnd.c:
@@ -2372,7 +2579,8 @@
 	--id-comment=COMMENT    Comment tag in output soundfile (no spaces)
 	--id-date=DATE          Date tag in output soundfile (no spaces)
 
-2005-02-07	Istvan Varga	<istvan@csounds.com>
+2005-02-07  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/insert.c:
 	  Fixed uses of INSDS.xtratim where it was assumed to be short.
 	* Engine/musmon.c:
@@ -2391,7 +2599,8 @@
 	  Use user data pointers instead of csoundGlobalVariables to store
 	  device instance data; reduces CPU usage.
 
-2005-02-06	Istvan Varga	<istvan@csounds.com>
+2005-02-06  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/sread.c:
 	  Fixed memory corruption bugs that were caused by mixed use of
 	  mmalloc and realloc.
@@ -2402,7 +2611,8 @@
 	* Engine/memalloc.c:
 	  Rewritten functions mmalloc, mrealloc, etc.
 
-2005-02-05	Istvan Varga	<istvan@csounds.com>
+2005-02-05  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/insert.c:
 	  Reworked kperf() so that it always performs one k-period, and
 	  does not check for real-time events (that is now done by
@@ -2433,7 +2643,8 @@
 	* InOut/rtpa.c:
 	  Fixed bug in module selection (incorrect use of strcmp).
 
-2005-02-03	Istvan Varga	<istvan@csounds.com>
+2005-02-03  Istvan Varga	<istvan@csounds.com>
+
 	* SConstruct:
 	  Fixed (hopefully) the PortMIDI compile error.
 	* Engine/musmon.c:
@@ -2461,7 +2672,7 @@
 	  this is still not perfect in the case of PortAudio, but ALSA is
 	  better now.
 
-2005-02-02	Istvan Varga	<istvan@csounds.com>
+2005-02-02  Istvan Varga	<istvan@csounds.com>
 
 	* Top/main.c:
 	* frontends/csound/csound_main.c:
@@ -2521,21 +2732,24 @@
 
 	* frontends/csound/csound_main.c (main): Corrected incorrect C
 
-2005-01-29	Istvan Varga	<istvan@csounds.com>
+2005-01-29  Istvan Varga	<istvan@csounds.com>
+
 	* SConstruct:
 	* InOut/rtalsa.c:
 	  added ALSA real-time audio; disabled by default, as it is
 	  currently quite limited (no device selection, only float samples
 	  are supported).
 
-2005-01-29	Istvan Varga	<istvan@csounds.com>
+2005-01-29  Istvan Varga	<istvan@csounds.com>
+
 	* H/csound.h, H/csoundCore.h:
 	* Engine/namedins.c, Engine/oload.c, Top/csound.c:
 	  new function: csoundQueryGlobalVariableNoCheck()
 	  functions moved from csound.c to namedins.c
 	* OOps/aops.c: use csoundQueryGlobalVariableNoCheck()
 
-2005-01-28	Istvan Varga	<istvan@csounds.com>
+2005-01-28  Istvan Varga	<istvan@csounds.com>
+
 	* H/csoundCore.h, Engine/oload.c:
 	  added void **namedGlobals, int namedGlobalsCurrLimit, and
 	  int namedGlobalsMaxLimit to ENVIRON
@@ -2553,12 +2767,14 @@
 	   timers_get_real_time(csoundQueryGlobalVariable(csound, "csRtClock"))
 	   timers_get_CPU_time(csoundQueryGlobalVariable(csound, "csRtClock"))
 
-2005-01-27	Istvan Varga	<istvan@csounds.com>
+2005-01-27  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/express.c, Engine/oload.c, Engine/rdorch.c, H/csoundCore.h:
 	* Top/argdecode.c:
 	  implemented --expression-opt
 
-2005-01-27	Istvan Varga	<istvan@csounds.com>
+2005-01-27  Istvan Varga	<istvan@csounds.com>
+
 	* Engine/entry1.c:
 	* Engine/entry2.c:
 	* Engine/express.c:
@@ -3412,6 +3628,7 @@
 	* Opcodes/flanger.c (wguide2, wguide1): Avoid frequencies below 5Hz
 
 2003-11-30	Steven Yi	<stevenyi@csounds.com>
+
 	* Engine/insert.c (orcompact): Added calls to deinitialize i-time opcodes
 
 2003-11-29	Steven Yi 	<stevenyi@csounds.com>
@@ -3475,6 +3692,7 @@
 	we comply with the GNU Coding Standards.
 
 2003-11-1	Steven Y. Yi	<stevenyi@csounds.com>
+
 	* rdorch.c: fixed printf statement in synterr() to use %c instead of %f
 
 2003-10-29  John D. Ramsdell  <ramsdell@mitre.org>
@@ -6183,6 +6401,7 @@
 	(deleteSamp): Delete samples created
 	(read_unified_file): Added <CsSampleB filename=%d> option
 	and <CsFileB filename=%s>
+
 	(createFile): Create file locally if safe from Base64
 
 2000-06-23    <jpff@cage>
@@ -6884,6 +7103,7 @@
 	* repluck.c (streson): Change sign of output sample
 
 	* one_file.c (eat_to_eol): New function to handle comments in <>
+
 	context.
 	(readOptions): Alow empty lines
 
@@ -8778,6 +8998,7 @@ Tue Apr 14 12:41:54 1998    <jpff@montague>
 	* rdorch.c (getoptxt): Add 'h' case
 
 1998-02-01  John Fitch  <jpff@lansky>
+
 	* VERSION.H: 3.473
 
 	* shaker.c (shaker): Change type of shake to float
@@ -10585,6 +10806,7 @@ Tue Nov 21 07:22:20 1995  John Fitch  <jpff@lansky>
 	(sfopenout): (solaris) write header specially
 
 	* sfheader.c: Solaris support, include <unistd.h>
+
 	(readheader): No need for ininfop, and do rewind (solaris)
 	(writeheader): Solaris has different checks for devaudio when
 	opening.
@@ -10751,6 +10973,7 @@ Sun Jul 30 10:20:57 1995  John Fitch  <jpff@maths.bath.ac.uk>
 	(reinit): Add explicit cast to keep type system sweet
 
 	* cs.h: Include <stdlib.h>
+
 	: __ZTC__ -> __ZPC__ and WATCOMC support
 	: LATTICE C support incorporated from Atari
 	: Declare structures only if in C (not C++)

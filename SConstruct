@@ -1423,7 +1423,7 @@ if (commonEnvironment['buildUtilities'] != '0'):
         ['het_import',  'util/heti_main.c'    ],
         ['hetro',       'util/het_main.c'     ],
         ['lpanal',      'util/lpc_main.c'     ],
-        ['lpc_export',  'util/lpcx_main.c'    ],
+        ['lpc_export',  'util/lpce_main.c'    ],
         ['lpc_import',  'util/lpci_main.c'    ],
         ['mixer',       'util/mixer_main.c'   ],
         ['pvanal',      'util/pvc_main.c'     ],
