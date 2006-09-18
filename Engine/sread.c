@@ -72,7 +72,7 @@ typedef struct {
     char    *memend;                /* end of cur memblk                    */
     MACRO   *macros;
     int     next_name /* = -1 */;
-    IN_STACK  *inputs, *str;        /* Currently allow 20 maximum           */
+    IN_STACK  *inputs, *str;        
     int     input_size, input_cnt;
     int     pop;                    /* Number of macros to pop              */
     int     ingappop /* = 1 */;     /* Are we in a popable gap?             */
@@ -270,7 +270,7 @@ static inline void ungetscochar(CSOUND *csound, int c)
 static int getscochar(CSOUND *csound, int expand)
 {                   /* Read a score character, expanding macros if flag set */
     int     c;
-top:
+ top:
     if (ST(str)->unget_cnt) {
       c = (int) ((unsigned char) ST(str)->unget_buf[--ST(str)->unget_cnt]);
       if (c == '\n')
@@ -777,9 +777,14 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         copylin(csound);
         {
           char  *p = &(ST(bp)->text[1]);
+          char q;
           while (*p == ' ' || *p == '\t')
             p++;
-          if (strchr("+-.0123456789", *p) != NULL) {
+          /* Measurement shows isdigit and 3 cases is about 30% */
+          /* faster than use of strchr (measured on Suse9.3)    */
+          /*         if (strchr("+-.0123456789", *p) != NULL) { */
+          q = *p;
+          if (isdigit(q) || q=='+' || q=='-' || q=='.') {
             double  tt;
             char    *tmp = p;
             tt = strtod(p, &tmp);
@@ -1545,17 +1550,17 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
     c = sget1(csound);  /* get first active char */
 
     switch (c) {        /*   and check legality  */
-    case 'a':
+    case 'a':           /* Advance time */
     case 'b':           /* Reset base clock */
     case 'e':           /* End of all */
-    case 'f':
-    case 'i':
+    case 'f':           /* f-table */
+    case 'i':           /* Instrument */
     case 'm':           /* Mark this point */
     case 'n':           /* Duplicate from named position */
     case 'q':           /* quiet instrument ie mute */
     case 'r':           /* Repeated section */
     case 's':           /* Section */
-    case 't':
+    case 't':           /* time warp */
     case 'v':           /* Local warping */
     case 'w':
     case 'x':
@@ -1583,7 +1588,10 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
                     /* if non-numeric, and non-carry, and non-special-char: */
-    if (strchr("0123456789.+-^np<>{}()\"~", c) == NULL) {
+    /*    if (strchr("0123456789.+-^np<>{}()\"~", c) == NULL) { */
+    if (!isdigit(c) && c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
+        && c!='p' && c!='<' && c!='>' && c!='{' && c!='}' && c!='('
+        && c!=')' && c!='"' && c!='~') {
       ungetscochar(csound, c);                /* then no more pfields    */
       if (ST(linpos))
         csound->Message(csound,
@@ -1623,7 +1631,10 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     while (1) {
       c = getscochar(csound, 1);
       /* else while legal chars, continue to bld string */
-      if (strchr("0123456789.+-eEnp<>()~", c) != NULL) {
+      /*      if (strchr("0123456789.+-eEnp<>()~", c) != NULL) { */
+      if (isdigit(c) || c=='.' || c=='+' || c=='-' || c=='e' ||
+          c=='E' || c=='n' || c=='p' || c=='<' || c=='>' || c=='(' ||
+          c==')' || c=='~') {
         *p++ = c;
         /* **** CHECK **** */
         if (p >= ST(memend))

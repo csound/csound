@@ -978,6 +978,16 @@ int xinset(CSOUND *csound, XIN *p)
     ndx_list = inm->in_ndx_list - 1;
     while (*++ndx_list >= 0)
       *(*(p->args + *ndx_list)) = *(*(bufs + *ndx_list));
+    /* IV - Jul 29 2006: and string variables */
+    while (*++ndx_list >= 0) {
+      const char  *src = (char *)bufs[*ndx_list];
+      char  *dst = (char *)(p->args[*ndx_list]);
+      int n;
+      /* FIXME: should throw error instead of truncating string ? */
+      for (n = csound->strVarMaxLen - 1; *src != '\0' && n != 0; n--)
+        *(dst++) = *(src++);
+      *dst = '\0';
+    }
 
     /* find a-rate variables and add to list of perf-time buf ptrs ... */
     tmp = buf->iobufp_ptrs;
@@ -1013,8 +1023,19 @@ int xoutset(CSOUND *csound, XOUT *p)
     bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
     /* copy i-time variables */
     ndx_list = inm->out_ndx_list - 1;
-    while (*++ndx_list >= 0)
+    while (*++ndx_list >= 0) {
       *(*(bufs + *ndx_list)) = *(*(p->args + *ndx_list));
+    }
+    /* IV - Jul 29 2006: and string variables */
+    while (*++ndx_list >= 0) {
+      const char  *src = (char *)(p->args[*ndx_list]);
+      char  *dst = (char *)(bufs[*ndx_list]);
+      int n;
+      /* FIXME: should throw error instead of truncating string ? */
+      for (n = csound->strVarMaxLen - 1; *src != '\0' && n != 0; n--)
+        *(dst++) = *(src++);
+      *dst = '\0';
+    }
 
     /* skip input pointers, including the two delimiter NULLs */
     tmp = buf->iobufp_ptrs;
