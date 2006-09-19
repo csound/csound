@@ -64,7 +64,8 @@ typedef struct __csdata {
     char *mbuf;                /* message buffer */
     char mess[50];             /* message recipient name */
     pvsctlchn *pvsinchan;
-  pvsctlchn *pvsoutchan;
+    pvsctlchn *pvsoutchan;
+    void  *threadlock;
 } csdata;
 
 extern int tclcsound_initialise(Tcl_Interp * interp);

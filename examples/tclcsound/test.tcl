@@ -29,7 +29,7 @@ set aval 1000
 set fval 300
 set filename "test_sliders.csd"
 set grph 0
-csCompile -odac -iadc -d $filename -b512 -B512
+csCompile -odac -iadc -d $filename -b1024 
 csInChannel freq
 csInChannel amp
 csInChannel filfreq
