@@ -53,9 +53,9 @@ uintptr_t csThread(void *clientData)
           <= (csoundGetKsmps(cs) * csoundGetNchnls(cs))) {
         while (result == 0 && *status != -1)
           if (*status != CS_PAUSED){
-            csoundLockMutex(lock);
+            // csoundLockMutex(lock);
             result = csoundPerformKsmps(cs);
-            csoundUnlockMutex(lock);
+            // csoundUnlockMutex(lock);
 	  }
           else {
             csoundSleep(1);
@@ -65,9 +65,9 @@ uintptr_t csThread(void *clientData)
       else {
         while (result == 0 && *status != -1)
           if (*status != CS_PAUSED){
- csoundLockMutex(lock);
+	    // csoundLockMutex(lock);
             result = csoundPerformBuffer(cs);
-  csoundUnlockMutex(lock);
+	    // csoundUnlockMutex(lock);
 	  }
           else {
             csoundSleep(1);
@@ -87,6 +87,21 @@ uintptr_t csThread2(void *clientData) {
     csoundReset(cs);
     p->status = CS_READY;
     return 0;
+}
+
+void csTimerproc(ClientData clientData)
+{
+  csdata *p = (csdata *) clientData; 
+  CSOUND *cs = p->instance;
+  if(p->result == 0 && p->status > CS_COMPILED) {
+    if(p->status == CS_RUNNING) p->result = csoundPerformBuffer(cs);
+    if(p->result == 0) 
+      Tcl_CreateTimerHandler(1, csTimerproc, clientData);
+    else {
+      csoundReset(cs);
+      p->status = CS_READY;
+    } 
+  }
 }
 
 /* TCL commands  */
@@ -132,6 +147,28 @@ int csCompileList(ClientData clientData, Tcl_Interp * interp,
       csCompile(p, interp, largc, largv);
       Tcl_Free((char *) largv);
       Tcl_Free(cmd);
+    }
+    return (TCL_OK);
+}
+/* csPlaySync
+*/
+
+int csPlaySync(ClientData clientData, Tcl_Interp * interp, int argc, char **argv)
+{
+
+    char    res[10];
+    csdata *p = (csdata *) clientData;
+
+    if (p->status == CS_COMPILED) {
+      p->status = CS_RUNNING;
+      Tcl_CreateTimerHandler(1, csTimerproc, clientData);
+      sprintf(res, "%d", p->result);
+      Tcl_SetResult(interp, res, TCL_VOLATILE);
+    }
+    else if (p->status == CS_PAUSED) {
+      p->status = CS_RUNNING;
+      sprintf(res, "%d", 0);
+      Tcl_SetResult(interp, res, TCL_VOLATILE);
     }
     return (TCL_OK);
 }
@@ -288,9 +325,9 @@ int csNote(ClientData clientData, Tcl_Interp * interp,
     }
     if (p->status == CS_RUNNING || p->status == CS_COMPILED
         || p->status == CS_PAUSED) {
-      csoundLockMutex(p->threadlock);
+      // csoundLockMutex(p->threadlock);
       p->result = csoundScoreEvent(cs, 'i', pFields, argc - 1);
-      csoundUnlockMutex(p->threadlock);
+      // csoundUnlockMutex(p->threadlock);
       resp = Tcl_GetObjResult(interp);
       Tcl_SetIntObj(resp, p->result);
     }
@@ -317,9 +354,9 @@ int csNoteList(ClientData clientData, Tcl_Interp * interp,
         pFields[i] = (MYFLT) atof(largv[i]);
       if (p->status == CS_RUNNING || p->status == CS_COMPILED
           || p->status == CS_PAUSED) {
-        csoundLockMutex(p->threadlock);
+        // csoundLockMutex(p->threadlock);
         p->result = csoundScoreEvent(cs, 'i', pFields, largc);
-        csoundUnlockMutex(p->threadlock);
+        // csoundUnlockMutex(p->threadlock);
         sprintf(res, "%d", p->result);
         Tcl_SetResult(interp, res, TCL_VOLATILE);
       }
@@ -348,9 +385,9 @@ int csTable(ClientData clientData, Tcl_Interp * interp,
     }
     if (p->status == CS_RUNNING || p->status == CS_COMPILED
         || p->status == CS_PAUSED) {
-      csoundLockMutex(p->threadlock);
+      // csoundLockMutex(p->threadlock);
       p->result = csoundScoreEvent(cs, 'f', pFields, argc - 1);
-      csoundUnlockMutex(p->threadlock);
+      // csoundUnlockMutex(p->threadlock);
       resp = Tcl_GetObjResult(interp);
       Tcl_SetIntObj(resp, p->result);
     }
@@ -377,9 +414,9 @@ int csTableList(ClientData clientData, Tcl_Interp * interp,
         pFields[i] = (MYFLT) atof(largv[i]);
       if (p->status == CS_RUNNING || p->status == CS_COMPILED
           || p->status == CS_PAUSED) {   
-        csoundLockMutex(p->threadlock);
+        // csoundLockMutex(p->threadlock);
         p->result = csoundScoreEvent(cs, 'f', pFields, largc);
-        csoundUnlockMutex(p->threadlock);
+        // csoundUnlockMutex(p->threadlock);
         sprintf(res, "%d", p->result);
         Tcl_SetResult(interp, res, TCL_VOLATILE);
       }
@@ -407,9 +444,9 @@ int csEvent(ClientData clientData, Tcl_Interp * interp,
     }
     if (p->status == CS_RUNNING || p->status == CS_COMPILED
         || p->status == CS_PAUSED) {
-      csoundLockMutex(p->threadlock);
+      // csoundLockMutex(p->threadlock);
       p->result = csoundScoreEvent(cs, type, pFields, argc - 2);
-      csoundUnlockMutex(p->threadlock);
+      // csoundUnlockMutex(p->threadlock);
       resp = Tcl_GetObjResult(interp);
       Tcl_SetIntObj(resp, p->result);
     }
@@ -434,9 +471,9 @@ int csEventList(ClientData clientData, Tcl_Interp * interp,
         pFields[i - 1] = (MYFLT) atof(largv[i]);
       if (p->status == CS_RUNNING || p->status == CS_COMPILED
           || p->status == CS_PAUSED) {
-        csoundLockMutex(p->threadlock);
+        // csoundLockMutex(p->threadlock);
         p->result = csoundScoreEvent(cs, type, pFields, largc - 1);
-        csoundUnlockMutex(p->threadlock);
+        // csoundUnlockMutex(p->threadlock);
         sprintf(res, "%d", p->result);
         Tcl_SetResult(interp, res, TCL_VOLATILE);
       }
@@ -554,12 +591,14 @@ int FindChannel(csdata * p, char *name)
     return CHAN_NOT_FOUND;
 }
 
-int SetChannelValue(ctlchn * chan, char *name, MYFLT val)
+int SetChannelValue(ctlchn * chan, char *name, MYFLT val, csdata *p)
 {
 
     while (chan != NULL) {
       if (!strcmp(chan->name, name)) {
+        csoundLockMutex(p->threadlock); 
         chan->value = (double) val;
+        csoundUnlockMutex(p->threadlock);
         return CHAN_FOUND;
       }
       chan = chan->next;
@@ -567,12 +606,14 @@ int SetChannelValue(ctlchn * chan, char *name, MYFLT val)
     return CHAN_NOT_FOUND;
 }
 
-int GetChannelValue(ctlchn * chan, char *name, MYFLT * val)
+int GetChannelValue(ctlchn * chan, char *name, MYFLT * val, csdata *p)
 {
 
     while (chan != NULL) {
       if (!strcmp(chan->name, name)) {
+        csoundLockMutex(p->threadlock);
         *val = (MYFLT) chan->value;
+        csoundUnlockMutex(p->threadlock);
         return CHAN_FOUND;
       }
       chan = chan->next;
@@ -671,14 +712,12 @@ int csInValue(ClientData clientData, Tcl_Interp * interp,
     if (argc == 3) {
       Tcl_GetDoubleFromObj(interp, argv[2], &val);
       resp = Tcl_GetObjResult(interp);
-      csoundLockMutex(p->threadlock);
       if (SetChannelValue
-          (p->inchan, Tcl_GetStringFromObj(argv[1], NULL), (MYFLT) val)
+          (p->inchan, Tcl_GetStringFromObj(argv[1], NULL), (MYFLT) val, p)
           != CHAN_NOT_FOUND)
         Tcl_SetObjResult(interp, argv[1]);
       else
         Tcl_SetStringObj(resp, "channel not found", -1);
-      csoundUnlockMutex(p->threadlock);
     }
     return (TCL_OK);
 }
@@ -697,14 +736,12 @@ int csOutValue(ClientData clientData, Tcl_Interp * interp,
 
     if (argc == 2) {
       resp = Tcl_GetObjResult(interp);
-      csoundLockMutex(p->threadlock);
-      if (GetChannelValue(p->outchan, Tcl_GetStringFromObj(argv[1], NULL), &val)
+      if (GetChannelValue(p->outchan, Tcl_GetStringFromObj(argv[1], NULL), &val, p)
           != CHAN_NOT_FOUND) {
         Tcl_SetDoubleObj(resp, (double) val);
       }
       else
         Tcl_SetStringObj(resp, "channel not found", -1);
-      csoundUnlockMutex(p->threadlock);
     }
     return (TCL_OK);
 }
@@ -713,7 +750,7 @@ void in_channel_value_callback(CSOUND * csound, const char *name, MYFLT * val)
 {
     csdata *p = (csdata *) csoundGetHostData(csound);
 
-    GetChannelValue(p->inchan, (char *) name, val);
+    GetChannelValue(p->inchan, (char *) name, val, p);
 }
 
 void out_channel_value_callback(CSOUND * csound, const char *name, MYFLT val)
@@ -721,8 +758,8 @@ void out_channel_value_callback(CSOUND * csound, const char *name, MYFLT val)
     csdata *p = (csdata *) csoundGetHostData(csound);
     MYFLT   oldval;
 
-    if (GetChannelValue(p->outchan, (char *) name, &oldval) == CHAN_FOUND) {
-      SetChannelValue(p->outchan, (char *) name, val);
+    if (GetChannelValue(p->outchan, (char *) name, &oldval, p) == CHAN_FOUND) {
+      SetChannelValue(p->outchan, (char *) name, val, p);
       if (oldval != val)
         Tcl_UpdateLinkedVar(p->interp, name);
     }
@@ -775,8 +812,10 @@ int SetPVSChannelBin(csdata *p,
     while (chan != NULL) {
       if (chan->n == n) {
         if(bin >= 0  && bin <= chan->data.N/2){
+	  csoundLockMutex(p->threadlock);
         chan->data.frame[bin*2] = amp;
         chan->data.frame[bin*2+1] = freq;
+         csoundUnlockMutex(p->threadlock);
 	}
         return CHAN_FOUND;
       }
@@ -792,16 +831,22 @@ int GetPVSChannelBin(csdata *p, int n,
     while (chan != NULL) {
       if (chan->n == n) {
        if(bin >= 0  && bin <= chan->data.N/2){
+        csoundLockMutex(p->threadlock);
         *amp = (MYFLT) chan->data.frame[bin*2];
         *freq = (MYFLT) chan->data.frame[bin*2+1];
+         csoundUnlockMutex(p->threadlock);
        } else {
+          csoundLockMutex(p->threadlock);
          *amp = *freq = (MYFLT) 0.0;
+          csoundUnlockMutex(p->threadlock);
        }
         return CHAN_FOUND;
       }
       else chan = chan->next;
     }
+    csoundLockMutex(p->threadlock);
     *amp = *freq = (MYFLT) 0.0;
+    csoundUnlockMutex(p->threadlock);
     return CHAN_NOT_FOUND;
 }
 
@@ -906,14 +951,14 @@ int csPvsInSet(ClientData clientData, Tcl_Interp * interp,
       Tcl_GetDoubleFromObj(interp, argv[3], &amp);
       Tcl_GetDoubleFromObj(interp, argv[4], &freq);
       resp = Tcl_GetObjResult(interp);
-      csoundLockMutex(p->threadlock);
+      // csoundLockMutex(p->threadlock);
       if (SetPVSChannelBin
           (p,chan, (int)bin, (float)amp, (float) freq)
 	    != CHAN_NOT_FOUND)
         Tcl_SetIntObj(resp, 1);
 	 else
         Tcl_SetIntObj(resp, 0);
-      csoundUnlockMutex(p->threadlock);
+      // csoundUnlockMutex(p->threadlock);
     }
     return (TCL_OK);
 }
@@ -968,9 +1013,9 @@ int csSetTable(ClientData clientData, Tcl_Interp * interp,
       Tcl_GetDoubleFromObj(interp, argv[3], &value);
       size = csoundTableLength(cs, ftn);
       if (ndx >= 0 && ndx <= size) {
-        csoundLockMutex(p->threadlock);
+        // csoundLockMutex(p->threadlock);
         csoundTableSet(cs, ftn, ndx, (MYFLT) value);
-        csoundUnlockMutex(p->threadlock);
+        // csoundUnlockMutex(p->threadlock);
         Tcl_SetDoubleObj(resp, value);
       }
       else if (size < 0)
@@ -998,9 +1043,9 @@ int csGetTable(ClientData clientData, Tcl_Interp * interp,
       Tcl_GetIntFromObj(interp, argv[2], &ndx);
       size = csoundTableLength(cs, ftn);
       if (ndx >= 0 && ndx <= size) {
-        csoundLockMutex(p->threadlock);
+        // csoundLockMutex(p->threadlock);
         value = (double) csoundTableGet(cs, ftn, ndx);
-        csoundUnlockMutex(p->threadlock);
+        // csoundUnlockMutex(p->threadlock);
         Tcl_SetDoubleObj(resp, value);
       }
       else if (ndx < 0 || ndx > size)
@@ -1092,9 +1137,9 @@ int csSetControlChannel(ClientData clientData, Tcl_Interp * interp,
                               CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL);
       if (!result) {
         Tcl_GetDoubleFromObj(interp, argv[2], &val);
-        csoundLockMutex(p->threadlock);
+        // csoundLockMutex(p->threadlock);
         *pvalue = val;
-        csoundUnlockMutex(p->threadlock);
+        // csoundUnlockMutex(p->threadlock);
         Tcl_SetObjResult(interp, argv[1]);
       }
       else if (result == CSOUND_ERROR)
@@ -1232,6 +1277,8 @@ int tclcsound_initialise(Tcl_Interp * interp)
     Tcl_CreateCommand(interp, "csCompileList", (Tcl_CmdProc *) csCompileList,
                       (ClientData) pdata, NULL);
     Tcl_CreateCommand(interp, "csPlay", (Tcl_CmdProc *) csPlay,
+                      (ClientData) pdata, NULL);
+    Tcl_CreateCommand(interp, "csPlaySync", (Tcl_CmdProc *) csPlaySync,
                       (ClientData) pdata, NULL);
     Tcl_CreateCommand(interp, "csPlayAll", (Tcl_CmdProc *) csPlayAll,
                       (ClientData) pdata, NULL);

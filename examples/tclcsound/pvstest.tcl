@@ -27,11 +27,11 @@ csCompile pvsgraph.csd
 proc grapher { } {
     spectrum 400 800 400
     update
-    after 50 grapher
+    after 100 grapher
     set stat [csStatus]
     if { $stat == "CS_READY" } exit
 }
 
-csPlayAll 
+csPlayAll
 grapher
 
