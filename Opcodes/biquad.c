@@ -2,7 +2,7 @@
     biquad.c:
 
     Copyright (C) 1998, 1999, 2001 by Hans Mikelson, Matt Gerassimoff,
-                                      Jens Groh, John ffitch
+                                      Jens Groh, John ffitch, Steven Yi
 
     This file is part of Csound.
 
@@ -108,7 +108,7 @@ static int moogvcfset(CSOUND *csound, MOOGVCF *p)
     p->fcocod = (XINARG2) ? 1 : 0;
     p->rezcod = (XINARG3) ? 1 : 0;
     if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->e0dbfs;
-    
+
     return OK;
 }
 
@@ -1247,6 +1247,53 @@ static int bqrez(CSOUND *csound, REZZY *p)
     return OK;
 }
 
+/* mode opcode - original UDO code by François Blanc, rewritten in C by
+ * Steven Yi
+ */
+
+ static int modeset(CSOUND *csound, MODE *p)
+{
+    /* Initialize filter to zero if set to reinitialize.  */
+    if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
+      p->xnm1 = p->ynm1 = p->ynm2 = 0.0;
+    }
+    return OK;
+}
+
+
+static int mode(CSOUND *csound, MODE *p)
+{
+    int   n = 0, nsmps = csound->ksmps;
+
+    double kfreq = *p->kfreq*2*PI;
+    double kalpha = (csound->esr/kfreq);
+    double kbeta  = kalpha*kalpha;
+
+    double a0 = 1/ (kbeta+kalpha/(2* *p->kq));
+    double a1 = a0 * (1-2*kbeta);
+    double a2 = a0 * (kbeta-kalpha/(2* *p->kq));
+
+    double xn, yn;
+
+    for (n=0; n<nsmps; n++) {
+      xn = (double)p->ain[n];
+
+      yn = a0*p->xnm1 - a1*p->ynm1 - a2*p->ynm2;
+
+      p->xnm1 = xn;
+      p->ynm2 = p->ynm1;
+      p->ynm1 = yn;
+
+      yn = yn*csound->esr/(2*kfreq);
+
+      p->aout[n] = (MYFLT)yn;
+    }
+
+    return OK;
+}
+
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
@@ -1263,7 +1310,8 @@ static OENTRY localops[] = {
 { "pareq", S(PAREQ),     5, "a", "akkkoo",(SUBR)pareqset, NULL, (SUBR)pareq },
 { "nestedap", S(NESTEDAP),5,"a", "aiiiiooooo",
                                      (SUBR)nestedapset, NULL, (SUBR)nestedap},
-{ "lorenz", S(LORENZ), 5, "aaa", "kkkkiiiio", (SUBR)lorenzset, NULL, (SUBR)lorenz}
+{ "lorenz", S(LORENZ), 5, "aaa", "kkkkiiiio", (SUBR)lorenzset, NULL, (SUBR)lorenz},
+{ "mode",  S(MODE),   5,      "a", "akko", (SUBR)modeset, NULL, (SUBR)mode   }
 };
 
 int biquad_init_(CSOUND *csound)

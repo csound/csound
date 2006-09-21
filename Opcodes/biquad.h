@@ -2,7 +2,8 @@
     biquad.h:
 
     Copyright (C) 1998, 1999, 2001 by Hans Mikelson,
-                                      Matt Gerassimoff, John ffitch
+                                      Matt Gerassimoff, John ffitch,
+                                      Steven Yi
 
     This file is part of Csound.
 
@@ -115,4 +116,11 @@ typedef struct {
     double  y, y1, y2;
     short   fcocod, rezcod;
 } TBVCF;
+
+/* Structure for mode opcode */
+typedef struct {
+        OPDS    h;
+        MYFLT   *aout, *ain, *kfreq, *kq, *reinit;
+        double  xnm1, ynm1, ynm2;
+} MODE;
 
