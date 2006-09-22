@@ -3,6 +3,11 @@
 	* Opcodes/biquad.c (mode): added mode opcode, a translation of François
 	Blanc's mode UDO to C
 
+2006-09-20  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/sfont.c (SfLoad): Allow string or number and strset code
+	for file
+
 2006-09-18  Steven Yi  <stevenyi@gmail.com>
 
 	* Opcodes/flanger.c (wguide2set): fixed wguide2, code was looking at wrong
