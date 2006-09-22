@@ -861,7 +861,11 @@ int argdecode(CSOUND *csound, int argc, char **argv_)
           break;
         case 'm':
           FIND(Str("no message level"));
-          sscanf(s, "%d%n", &(O->msglevel), &n);
+#ifdef useoctal
+          if (*s=='0') sscanf(s, "%o%n", &(O->msglevel), &n);
+          else
+#endif
+            sscanf(s, "%d%n", &(O->msglevel), &n);
           s += n;
           break;
         case 'd':

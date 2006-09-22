@@ -118,20 +118,33 @@ int tempo(CSOUND *csound, TEMPO *p)
 
 static void print_maxamp(CSOUND *csound, MYFLT x)
 {
+    int   attr = 0;
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
+      if (csound->oparms->msglevel & 0x200) {
+        MYFLT y = x / csound->e0dbfs;     /* relative level */
+        if (y >= FL(1.0))                               /* >= 0 dB: red */
+          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
+        else if (csound->oparms->msglevel & 0x100) {
+          if (y >= FL(0.5))                            /* -6..0 dB: yellow */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_YELLOW;
+          else if (y >= FL(0.25))                      /* -24..-6 dB: green */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_GREEN;
+          else                                          /* -200..-24 dB: blue */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_BLUE;
+        }
+      }
       if (csound->e0dbfs > FL(3000.0))
-        csound->Message(csound, "%9.1f", x);
+        csound->MessageS(csound, attr, "%9.1f", x);
       else if (csound->e0dbfs < FL(3.0))
-        csound->Message(csound, "%9.5f", x);
+        csound->MessageS(csound, attr, "%9.5f", x);
       else if (csound->e0dbfs > FL(300.0))
-        csound->Message(csound, "%9.2f", x);
+        csound->MessageS(csound, attr, "%9.2f", x);
       else if (csound->e0dbfs > FL(30.0))
-        csound->Message(csound, "%9.3f", x);
+        csound->MessageS(csound, attr, "%9.3f", x);
       else
-        csound->Message(csound, "%9.4f", x);
+        csound->MessageS(csound, attr, "%9.4f", x);
     }
     else {                              /* dB values */
-      int   attr = 0;
       MYFLT y = x / csound->e0dbfs;     /* relative level */
       if (y < FL(1.0e-10)) {
         /* less than -200 dB: print zero */
