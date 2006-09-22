@@ -141,9 +141,12 @@ static char *Gfname;
 
 static int SfLoad(CSOUND *csound, SFLOAD *p)   /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
-    char fname[256];
+    char *fname;
     SFBANK *sf;
-    strcpy(fname, (char*) p->fname);
+    fname = csound->strarg2name(csound,
+                                NULL, p->fname, "sfont.",
+                                (int) csound->GetInputArgSMask(p));
+/*     strcpy(fname, (char*) p->fname); */
     Gfname = fname;
     SoundFontLoad(csound, fname);
     *p->ihandle = (float) currSFndx;
@@ -151,6 +154,7 @@ static int SfLoad(CSOUND *csound, SFLOAD *p)   /* open a file and return its han
     qsort(sf->preset, sf->presets_num, sizeof(presetType),
           (int (*)(const void *, const void * )) compare);
     currSFndx++;
+    csound->Free(csound,fname);
     return OK;
 }
 
@@ -1935,7 +1939,7 @@ static void fill_SfPointers(CSOUND *csound)
 #define S       sizeof
 
 static OENTRY localops[] = {
-{ "sfload",S(SFLOAD),     1,    "i",    "S",      (SUBR)SfLoad, NULL, NULL },
+{ "sfload",S(SFLOAD),     1,    "i",    "T",      (SUBR)SfLoad, NULL, NULL },
 { "sfpreset",S(SFPRESET), 1,    "i",    "iiii",   (SUBR)SfPreset         },
 { "sfplay", S(SFPLAY), 5, "aa", "iixxioo",        (SUBR)SfPlay_set,
                                                   NULL, (SUBR)SfPlay     },
