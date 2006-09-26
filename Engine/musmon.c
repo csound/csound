@@ -126,7 +126,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
         else if (csound->oparms->msglevel & 0x200) {
           if (y >= FL(0.5))                            /* -6..0 dB: yellow */
-            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_YELLOW;
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_CYAN; /* was yellow but... */
           else if (y >= FL(0.125))                      /* -24..-6 dB: green */
             attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_GREEN;
           else                                          /* -200..-24 dB: blue */
