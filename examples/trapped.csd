@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--d -m231 -H0 -R -W --expression-opt
+-d -m783 -H0 -R -W --expression-opt
 </CsOptions>
 <CsInstruments>
 ;============================================================================;
