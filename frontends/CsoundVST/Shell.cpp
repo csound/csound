@@ -24,7 +24,7 @@
 #include "System.hpp"
 #include <iostream>
 #include <fstream>
-#include <time.h>
+#include <ctime>
 #include "csdl.h"
 
 #ifdef WIN32
@@ -221,7 +221,7 @@ namespace csound
   {
     time_t time_ = 0;
     time(&time_);
-    struct tm* tm_ = gmtime(&time_);
+    struct tm* tm_ = std::gmtime(&time_);
     char buffer[0x100];
     strftime(buffer, 0x100, "csound.%Y-%m-%d.%H-%M-%S.py", tm_);
     return buffer;
@@ -305,6 +305,7 @@ namespace csound
   int Shell::runScript(std::string script_)
   {
     csound::System::message("BEGAN Shell::runScript()...\n");
+    clock_t began = std::clock();
     int result = 0;
     try
       {
@@ -321,7 +322,9 @@ namespace csound
         csound::System::error("Unidentified exception in silence::Shell::run().\n");
       }
     csound::System::message("==============================================================================================================\n");
-    csound::System::message("PyRun_SimpleString returned %d.\n", result);
+    clock_t ended = std::clock();
+    double elapsed = double(ended - began) / double(CLOCKS_PER_SEC);
+    csound::System::message("PyRun_SimpleString returned %d after %.3f seconds.\n", result, elapsed);
     csound::System::message("ENDED Shell::runScript().\n");
     return result;
   }
