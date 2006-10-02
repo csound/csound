@@ -79,6 +79,7 @@
 #include "Lindenmayer.hpp"
 #include "MCRM.hpp"
 #include "Soundfile.hpp"
+#include "Voicelead.hpp"
 
 #endif
 

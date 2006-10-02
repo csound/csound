@@ -19,29 +19,12 @@ std::ostream &operator << (std::ostream &stream,
 
 namespace csound 
 {
-  static int debug = 1;
+  static int debug = 0;
 
   double round(double x)
   {
     return std::floor(x + 0.5);
   }
-
-  struct ChordComparator
-  {
-    bool operator()(const std::vector<double> &a, 
-		    const std::vector<double> &b) const
-    {
-      for (size_t i = 0, n = a.size(); i < n; i++) {
-	if (round(a[i]) < round(b[i])) {
-	  return true;
-	}
-	if (round(a[i]) > round(b[i])) {
-	  return false;
-	}
-      }
-      return false;
-    }
-  };
 
   double pc(double p)
   {
@@ -188,7 +171,7 @@ namespace csound
   void inversions_(const std::vector<double> &tones, 
 		   std::vector<double> &iterating_chord, 
 		   size_t voice, 
-		   std::set< std::vector<double>, ChordComparator > &inversions__, 
+		   std::set< std::vector<double> > &inversions__, 
 		   double range)
   {
     if (voice >= tones.size()) {
@@ -206,7 +189,7 @@ namespace csound
   }
 
   void inversions(const std::vector<double> &chord, 
-		  std::set< std::vector<double>, ChordComparator> &inversions__, 
+		  std::set< std::vector<double> > &inversions__, 
 		  double range)
   {
     std::vector<double> tones_ = tones(chord);
@@ -221,10 +204,10 @@ namespace csound
   }
   
   const std::vector<double> &closest(const std::vector<double> &source, 
-				     std::set< std::vector<double>, ChordComparator > &destinations, 
+				     const std::set< std::vector<double> > &destinations, 
 				     bool avoidParallels)
   {
-    std::set< std::vector<double>, ChordComparator >::const_iterator it = destinations.begin();
+    std::set< std::vector<double> >::const_iterator it = destinations.begin();
     std::vector<double> &d1 = const_cast< std::vector<double> &>(*it);
     for (++it; it != destinations.end(); ++it) {
       const std::vector<double> &d2 = *it;
@@ -249,7 +232,7 @@ namespace csound
       source[i] = source[i] - lowest;
       target[i] = target[i] - lowest;
     }
-    std::set< std::vector<double>, ChordComparator > inversions_;
+    std::set< std::vector<double> > inversions_;
     inversions(target, inversions_, range);
     std::vector<double> targetChord = closest(source, inversions_, avoidParallels);
     for (size_t i = 0, n = source.size(); i < n; i++) {
@@ -266,19 +249,19 @@ namespace csound
   } 
 
 #ifndef TEST
-  std::vector<Event> voicelead(const std::vector<Event> &source,
-			       const std::vector<Event> &target,
-			       double lowest,
-			       double range,
-			       bool avoidParallels)
+  std::vector<Event> voiceleadEvents(const std::vector<Event> &source,
+				     const std::vector<Event> &target,
+				     double lowest,
+				     double range,
+				     bool avoidParallels)
   {
     std::vector<double> s;
     std::vector<double> t;
     for (size_t i = 0, n = source.size(); i < n; i++) {
-      s.push_back(source.getKey());
-      t.push_back(target.getKey());
+      s.push_back(source[i].getKey());
+      t.push_back(target[i].getKey());
     }
-    std::vector<double> tc = voicelead(a, b, lowest, range, avoidParallels);
+    std::vector<double> tc = voicelead(s, t, lowest, range, avoidParallels);
     std::vector<Event> tec;
     for (size_t i = 0, n = source.size(); i < n; i++) {
       tec.push_back(source[i]);

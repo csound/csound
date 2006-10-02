@@ -1630,6 +1630,7 @@ else:
     frontends/CsoundVST/Sequence.cpp
     frontends/CsoundVST/Soundfile.cpp
     frontends/CsoundVST/StrangeAttractor.cpp
+    frontends/CsoundVST/Voicelead.cpp
     ''')
     # These are the Windows system call libraries.
     if getPlatform() == 'win32':

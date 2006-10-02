@@ -9,13 +9,9 @@
 #include "Event.hpp"
 #endif
 #include <vector>
-#include <set>
 #include <algorithm>
 #include <cmath>
   %}
-%include "std_vector.i"
-%template(EventVector) std::vector<csound::Event>;
-%template(DoubleVector) std::vector<double>;
 #else
 #ifndef TEST
 #include "Event.hpp"
@@ -33,6 +29,7 @@ namespace csound
    * in 12-tone equal temperament.
    */
   double pc(double pitch);
+
 
   /**
    * Returns the voice-leading vector between
@@ -99,7 +96,6 @@ namespace csound
   void inversions(const std::vector<double> &chord, 
 		  std::set< std::vector<double> > &inversions__, 
 		  double range);
-  
   /**
    * Returns the closest voiceleading within the specified range, 
    * first by smoothness then by simplicity, 
@@ -107,10 +103,9 @@ namespace csound
    * optionally avoiding parallel fifths.
    */
   const std::vector<double> &closest(const std::vector<double> &source, 
-				     std::set< std::vector<double> > &destinations,
-				     double range, 
+				     const std::set< std::vector<double> > &destinations, 
 				     bool avoidParallels);
-  
+   
   /**
    * Returns the closest voiceleading within the specified range, 
    * first by smoothness then by simplicity, 
@@ -138,11 +133,11 @@ namespace csound
    * the specified range. For up to 6 voices this is usable
    * for non-real-time computation.
    */
-  std::vector<Event> voicelead(const std::vector<Event> &source,
-			       const std::vector<Event> &target,
-			       double lowest,
-			       double range,
-			       bool avoidParallels);
+  std::vector<Event> voiceleadEvents(const std::vector<Event> &source,
+				     const std::vector<Event> &target,
+				     double lowest,
+				     double range,
+				     bool avoidParallels);
 #endif
   
 }
