@@ -160,16 +160,16 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
       xn = xn - k * y4n; /* Inverted feed back for corner peaking */
 
       /* Four cascaded onepole filters (bilinear transform) */
-      y1n   = xn  * pp1d2 + xnm1  * pp1d2 - kp * y1n;
-      y2n   = y1n * pp1d2 + y1nm1 * pp1d2 - kp * y2n;
-      y3n   = y2n * pp1d2 + y2nm1 * pp1d2 - kp * y3n;
-      y4n   = y3n * pp1d2 + y3nm1 * pp1d2 - kp * y4n;
-      /* why not
+/*       y1n   = xn  * pp1d2 + xnm1  * pp1d2 - kp * y1n; */
+/*       y2n   = y1n * pp1d2 + y1nm1 * pp1d2 - kp * y2n; */
+/*       y3n   = y2n * pp1d2 + y2nm1 * pp1d2 - kp * y3n; */
+/*       y4n   = y3n * pp1d2 + y3nm1 * pp1d2 - kp * y4n; */
+      /* why not */
       y1n   = (xn  + xnm1 ) * pp1d2 - kp * y1n;
       y2n   = (y1n + y1nm1) * pp1d2 - kp * y2n;
       y3n   = (y2n + y2nm1) * pp1d2 - kp * y3n;
       y4n   = (y3n + y3nm1) * pp1d2 - kp * y4n;
-      ?? Algebraically the same and 4 fewer multiplies per sample.
+      /* ?? Algebraically the same and 4 fewer multiplies per sample.
       */
                                 /* Clipper band limited sigmoid */
       y4n   = y4n - y4n * y4n * y4n / 6.0;
