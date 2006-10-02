@@ -1105,6 +1105,7 @@ makePlugin(pluginEnvironment, 'vbap',
            ['Opcodes/vbap.c', 'Opcodes/vbap_eight.c', 'Opcodes/vbap_four.c',
             'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
 makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
+makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
 
 # Plugins with External Dependencies
 
