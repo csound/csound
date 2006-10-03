@@ -1,7 +1,25 @@
+/*
+    ugakbari.c:
 
-/**         Add this line at about Line 1104 in SConstruct          **/
-/** makePlugin(pluginEnvironment, 'akbari', ['Opcodes/ugakbari.c']) **/
-/**                                                                 **/
+    Copyright (C) 2006 by David Akbari
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
 
 #include "csdl.h"
 #include <math.h>
@@ -38,68 +56,69 @@ typedef struct _gainslider {
 
 int scale_init(CSOUND *csound, scale *p)
 {
-  *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
+    /* This does little as k values not available yet */
+    *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
 
-  return OK;
+    return OK;
 }
 
 int scale_process(CSOUND *csound, scale *p)
 {
 
-  if (*p->kmin != *p->kmax)
-  {
-    *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
-  }
+    if (*p->kmin != *p->kmax)
+      {
+        *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
+      }
 
-  return OK;
+    return OK;
 }
 
 /*  expcurve opcode  */
 
 int expcurve_init(CSOUND *csound, expcurve *p)
 {
-  *p->kout = EXPCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
+    *p->kout = EXPCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
 
-  return OK;
+    return OK;
 }
 
 int expcurve_perf(CSOUND *csound, expcurve *p)
 {
-  *p->kout = EXPCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
+    *p->kout = EXPCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
 
-  return OK;
+    return OK;
 }
 
 /*  logcurve opcode  */
 
 int logcurve_init(CSOUND *csound, logcurve *p)
 {
-  *p->kout = LOGCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
+    *p->kout = LOGCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
 
-  return OK;
+    return OK;
 }
 
 int logcurve_perf(CSOUND *csound, logcurve *p)
 {
-  *p->kout = LOGCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
+    *p->kout = LOGCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
 
-  return OK;
+    return OK;
 }
 
 /*  gainslider opcode  */
 
 int gainslider_init(CSOUND *csound, gainslider *p)
 {
-  *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
+    *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
  
-  return OK;
+    return OK;
 }
 
 int gainslider_perf(CSOUND *csound, gainslider *p)
 {
 
-  if (*p->kindex >= 0 && *p->kindex <= 152) {
-    *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
+    if (*p->kindex >= FL(0.0) && *p->kindex <= FL(152.0)) {
+      *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
   }
 
   return OK;
