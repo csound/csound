@@ -1416,6 +1416,7 @@ static int random3_set(CSOUND *csound, RANDOM3 *p)
     p->df1      = FL(0.0);
     p->initflag = 1;
     p->cod      = (XINARG1) ? 1 : 0;
+    p->phs      = 0;
     return OK;
 }
 
@@ -1432,7 +1433,7 @@ static int random3(CSOUND *csound, RANDOM3 *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)/csound->onedkr;
+      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*csound->onedkr;
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0     = p->num0 = p->num1;
