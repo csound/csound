@@ -232,7 +232,7 @@ namespace csound
     }
     for (size_t i = 0, n = invs.size(); i < n; i++) {
       for (size_t j = 0, k = invs[i].size(); j < k; j++) {
-	invs[i][k] += lowest;
+	invs[i][j] += lowest;
       }
     }
     return invs;
