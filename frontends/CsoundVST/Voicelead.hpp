@@ -9,9 +9,12 @@
 #include "Event.hpp"
 #endif
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <cmath>
   %}
+%include "std_vector.i"
+%template(ChordVector) std::vector< std::vector<double> >;
 #else
 #ifndef TEST
 #include "Event.hpp"
@@ -90,12 +93,13 @@ namespace csound
   std::vector<double> tones(const std::vector<double> &chord);
 
   /**
-   * Returns in the argument all inversions of the chord
+   * Returns all voicings of the chord
    * within the specified range.
    */
-  void inversions(const std::vector<double> &chord, 
-		  std::set< std::vector<double> > &inversions__, 
-		  double range);
+  std::vector< std::vector<double> > voicings(const std::vector<double> &chord, 
+					      double lowest, 
+					      double range);
+ 
   /**
    * Returns the closest voiceleading within the specified range, 
    * first by smoothness then by simplicity, 
