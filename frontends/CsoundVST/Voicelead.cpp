@@ -216,6 +216,28 @@ namespace csound
     return d1;
   }
   
+  std::vector< std::vector<double> > voicings(const std::vector<double> &chord, 
+					      double lowest, 
+					      double range)
+  {
+    std::vector<double> source = chord;
+    for (size_t i = 0, n = source.size(); i < n; i++) {
+      source[i] = source[i] - lowest;
+    }
+    std::set< std::vector<double> > inversions_;
+    inversions(source, inversions_, range);
+    std::vector< std::vector<double> > invs;
+    for (std::set< std::vector<double> >::iterator it = inversions_.begin(); it != inversions_.end(); ++it) {
+      invs.push_back(*it);
+    }
+    for (size_t i = 0, n = invs.size(); i < n; i++) {
+      for (size_t j = 0, k = invs[i].size(); j < k; j++) {
+	invs[i][k] += lowest;
+      }
+    }
+    return invs;
+  }
+
   /**
    * Bijective voiceleading first by closeness, then by simplicity, 
    * with optional avoidance of parallel fifths.
@@ -311,5 +333,14 @@ int main(int argc, const char **argv)
   double elapsed = double(ended - began) / double(CLOCKS_PER_SEC);
   double secondsPerVoiceleading = elapsed / double(voiceleadings);
   std::cout << elapsed << " seconds / " << voiceleadings << " voiceleadings = " << secondsPerVoiceleading << " seconds per voiceleading." << std::endl;
+  std::vector<double> G7;
+  G7.push_back(67.);
+  G7.push_back(71.);
+  G7.push_back(74.);
+  G7.push_back(77.);
+  std::vector< std::vector<double> > voicings_ = csound::voicings(csound::tones(G7), 48.0, 48.0);
+  for (size_t i = 0, n = voicings_.size(); i < n; i++) {
+    std::cout << "voiding " << (i+1) << ": " << voicings_[i] << std::endl;
+  }
   return 0;
 }
