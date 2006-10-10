@@ -66,6 +66,7 @@ typedef struct __csdata {
     pvsctlchn *pvsinchan;
     pvsctlchn *pvsoutchan;
     void  *threadlock;
+  void *messlock;
 } csdata;
 
 extern int tclcsound_initialise(Tcl_Interp * interp);
