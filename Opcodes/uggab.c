@@ -1416,7 +1416,7 @@ static int random3_set(CSOUND *csound, RANDOM3 *p)
     p->df1      = FL(0.0);
     p->initflag = 1;
     p->cod      = (XINARG1) ? 1 : 0;
-    p->phs      = 0;
+    p->phs      = 0.0;
     return OK;
 }
 
@@ -1426,7 +1426,7 @@ static int random3(CSOUND *csound, RANDOM3 *p)
     MYFLT       f0 = p->num0, df0= p->df0;
 
     if (p->initflag) {
-      p->initflag =0;
+      p->initflag = 0;
       goto next;
     }
     p->phs += p->si;
