@@ -44,7 +44,7 @@ uintptr_t csThread(void *clientData)
     int           result = 0;
     csdata        *p = (csdata *) clientData;
     CSOUND        *cs = p->instance;
-    void          *lock = p->threadlock;
+    // void          *lock = p->threadlock;
     volatile int  *status = &p->status;
 
     if (*status == CS_COMPILED) {
@@ -1112,6 +1112,7 @@ void QuitCsTcl(ClientData clientData)
     FreeChannels(p);
     FreePVSChannels(p);
     csoundDestroyMutex(p->threadlock);
+    csoundDestroyMutex(p->messlock);
     csoundDestroy(cs);
     Tcl_Free(p->mbuf);
     Tcl_Free((char *)clientData);
@@ -1227,17 +1228,32 @@ void csMessCallback(CSOUND *csound,
                     int attr, const char *format, va_list valist)
 {
     csdata *p = (csdata *) csoundGetHostData(csound);
-
     vsprintf(p->mbuf, format, valist);
-    Tcl_SetVar(p->interp, p->mess, p->mbuf, 0);
+csoundLockMutex(p->messlock);
+    Tcl_SetVar(p->interp, p->mess, p->mbuf, TCL_APPEND_VALUE);
+csoundUnlockMutex(p->messlock);
 }
+
+int
+csGetMessageOutput(ClientData clientData, Tcl_Interp * interp,
+		   int argc, char **argv){
+csdata  *p = (csdata *) clientData;
+ char *data;
+csoundLockMutex(p->messlock);
+data =  Tcl_Alloc(strlen(Tcl_GetVar(p->interp,p->mess,0)+1));
+strcpy(data,Tcl_GetVar(p->interp, p->mess,0));
+Tcl_SetResult(interp,data, TCL_DYNAMIC);
+Tcl_SetVar(p->interp, p->mess, "", 0);
+csoundUnlockMutex(p->messlock);
+return (TCL_OK);
+}
+
 
 int csMessageOutput(ClientData clientData, Tcl_Interp * interp,
                     int argc, char **argv)
 {
     if (argc > 1) {
       csdata  *p = (csdata *) clientData;
-
       strcpy(p->mess, argv[1]);
       Tcl_SetVar(interp, p->mess, "", 0);
       csoundSetMessageCallback(p->instance, csMessCallback);
@@ -1264,14 +1280,16 @@ int tclcsound_initialise(Tcl_Interp * interp)
     pdata->pvsinchan = NULL;
     pdata->pvsoutchan = NULL;
     pdata->interp = interp;
-    pdata->mbuf = Tcl_Alloc(16384);
+    pdata->mbuf = Tcl_Alloc(10000000);
     csoundPreCompile(pdata->instance);
     csoundSetInputValueCallback(pdata->instance, in_channel_value_callback);
     csoundSetOutputValueCallback(pdata->instance, out_channel_value_callback);
     csoundSetYieldCallback(pdata->instance, PvsChannelCallback) ;
 
     pdata->threadlock  = csoundCreateMutex(0);
-
+    pdata->messlock = csoundCreateMutex(0);
+   Tcl_CreateCommand(interp, "csGetMessageOutput", (Tcl_CmdProc *) csGetMessageOutput,
+                      (ClientData) pdata, NULL);
     Tcl_CreateCommand(interp, "csCompile", (Tcl_CmdProc *) csCompile,
                       (ClientData) pdata, NULL);
     Tcl_CreateCommand(interp, "csCompileList", (Tcl_CmdProc *) csCompileList,
