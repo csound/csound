@@ -23,8 +23,11 @@
 
 #include "csoundCore.h"
 #include "remote.h"
+
+#ifdef LINUX
 #include <sys/ioctl.h>
 #include <linux/if.h>
+#endif
 
 #define MAXREMOTES 10
 
@@ -38,6 +41,10 @@ void remoteRESET(CSOUND *csound)
  /* get the IPaddress of this machine */
 static void getIpAddress(char *ipaddr, char *ifname)
 {
+
+#ifdef WIN32
+
+#else
     struct ifreq ifr;
     int fd, i;
     unsigned char val;
@@ -45,6 +52,7 @@ static void getIpAddress(char *ipaddr, char *ifname)
     fd = socket(AF_INET,SOCK_DGRAM, 0);
     if (fd >= 0) {
       strcpy(ifr.ifr_name, ifname);
+
       if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
         for( i=2; i<6; i++){
           val = (unsigned char)ifr.ifr_ifru.ifru_addr.sa_data[i];
@@ -53,6 +61,7 @@ static void getIpAddress(char *ipaddr, char *ifname)
       }
     }
     close(fd);
+#endif
 }
 
 char remoteID(CSOUND *csound)
@@ -134,7 +143,12 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
     memset(&(to_addr), 0, sizeof(to_addr));        /* clear sock mem */
     to_addr.sin_family = AF_INET;                  /* set as INET address */
     /* server IP adr, netwk byt order */
+#ifdef WIN32
+    /* VL 12/10/06: something needs to go here */
+
+#else
     inet_aton((const char *)ipadrs, &(to_addr.sin_addr));
+#endif
     to_addr.sin_port = htons((int) REMOT_PORT);    /* port we will listen on,
                                                       netwrk byt order */
     for (i=0; i<10; i++){
@@ -169,10 +183,16 @@ int CLsend(CSOUND *csound, int conn, void *data, int length)
 static int SVopen(CSOUND *csound, char *ipadrs_local)
            /* Server -- open to receive */
 {
-    int conn, socklisten, opt;
+    int conn, socklisten;
     char ipadrs[15];
     int *sop = ST(socksin), *sop_end = sop + MAXREMOTES;
+#ifdef WIN32
+    int clilen;
+    char opt[2] = "1";
+#else
     socklen_t clilen;
+    int opt = 1;
+#endif
 
     if ((socklisten = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
       csound->InitError(csound, "creating socket\n");
@@ -180,15 +200,25 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
     }
     else csound->Message(csound, "created socket \n");
     /* set the addresse to be reusable */
-    opt = 1;
-    if ( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0 )
+    if ( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR, 
+#ifdef WIN32
+		    opt, 
+#else
+		    &opt,
+#endif
+		    sizeof(opt)) < 0 )
+
       csound->InitError(csound, "setting socket option to reuse the addresse \n");
 
     memset(&(to_addr), 0, sizeof(to_addr));             /* clear sock mem */
     local_addr.sin_family = AF_INET;                    /* set as INET address */
+#ifdef WIN32
+    /* VL 12/10/06: something needs to go here */
 
+#else
     inet_aton((const char *)ipadrs, &(local_addr.sin_addr)); /* our adrs,
                                                                 netwrk byt order */
+#endif
     local_addr.sin_port = htons((int)REMOT_PORT); /* port we will listen on,
                                                      netwrk byt order */
     /* associate the socket with the address and port */
@@ -223,7 +253,12 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
 int SVrecv(CSOUND *csound, int conn, void *data, int length)
 {
     struct sockaddr from;
+#ifdef WIN32 /* VL, 12/10/06: I'm guessing here. If someone knows better, fix it */
+#define MSG_DONTWAIT  0
+   int clilen = sizeof(from);
+#else
     socklen_t clilen = sizeof(from);
+#endif
     ssize_t n;
     n = recvfrom(conn, data, length, MSG_DONTWAIT, &from, &clilen);
     /*  if (n>0) csound->Message(csound, "nbytes received: %d \n", (int)n); */
