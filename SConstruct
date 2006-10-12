@@ -715,6 +715,7 @@ OOps/pstream.c
 OOps/pvfileio.c
 OOps/pvsanal.c
 OOps/random.c
+OOps/remote.c
 OOps/schedule.c
 OOps/sndinfUG.c
 OOps/str_ops.c
