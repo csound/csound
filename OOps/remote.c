@@ -145,8 +145,7 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
     to_addr.sin_family = AF_INET;                  /* set as INET address */
     /* server IP adr, netwk byt order */
 #ifdef WIN32
-    /* VL 12/10/06: something needs to go here */
-
+    to_addr.sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
 #else
     inet_aton((const char *)ipadrs, &(to_addr.sin_addr));
 #endif
@@ -213,8 +212,7 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
     memset(&(to_addr), 0, sizeof(to_addr));             /* clear sock mem */
     local_addr.sin_family = AF_INET;                    /* set as INET address */
 #ifdef WIN32
-    /* VL 12/10/06: something needs to go here */
-
+      to_addr.sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
 #else
     inet_aton((const char *)ipadrs, &(local_addr.sin_addr)); /* our adrs,
                                                                 netwrk byt order */
