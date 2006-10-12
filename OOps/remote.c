@@ -43,6 +43,7 @@ static void getIpAddress(char *ipaddr, char *ifname)
 {
 
 #ifdef WIN32
+    /* VL 12/10/06: something needs to go here */
 
 #else
     struct ifreq ifr;
@@ -183,16 +184,15 @@ int CLsend(CSOUND *csound, int conn, void *data, int length)
 static int SVopen(CSOUND *csound, char *ipadrs_local)
            /* Server -- open to receive */
 {
-    int conn, socklisten;
+    int conn, socklisten,opt;
     char ipadrs[15];
     int *sop = ST(socksin), *sop_end = sop + MAXREMOTES;
 #ifdef WIN32
     int clilen;
-    char opt[2] = "1";
 #else
     socklen_t clilen;
-    int opt = 1;
 #endif
+    opt = 1;
 
     if ((socklisten = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
       csound->InitError(csound, "creating socket\n");
@@ -202,7 +202,7 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
     /* set the addresse to be reusable */
     if ( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR, 
 #ifdef WIN32
-		    opt, 
+		    (const char *)&opt, 
 #else
 		    &opt,
 #endif
