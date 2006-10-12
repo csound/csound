@@ -230,6 +230,15 @@ int readOptions(CSOUND *csound, FILE *unf)
                                 argc, argc, argv[argc]);
 #endif
           while (*p == ' ' || *p=='\t') p++;
+
+          if (*p== '"') {
+          	argv[++argc] = ++p;
+          	while(*p != '"' && *p != '\0') p++;
+
+          	if(*p == '"') *p = '\0';
+          	break;
+          }
+
           if (*p==';' ||
               *p=='#' ||
               (*p == '/' && *(p+1) == '/')) { /* Comment line? */
