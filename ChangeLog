@@ -1,3 +1,7 @@
+2006-10-12  Steven Yi  <stevenyi@gmail.com>
+
+	* Top/one_file.c (readOptions): fixed parsing of quoted strings
+
 2006-09-24  jpff  <jpff@codemist.co.uk>
 
 	* Engine/musmon.c (print_maxamp): Allow coloured numbers in raw
