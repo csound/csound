@@ -129,7 +129,7 @@ extern "C" {
     int     displays, graphsoff, postscript, msglevel;
     int     Beatmode, cmdTempo, oMaxLag;
     int     usingcscore, Linein;
-    int     RTevents, Midiin, FMidiin;
+    int     RTevents, Midiin, FMidiin, RMidiin;
     int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
     int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
@@ -642,6 +642,7 @@ extern "C" {
 #include "prototyp.h"
 #include "cwindow.h"
 #include "envvar.h"
+#include "remote.h"
 
 #define CS_STATE_PRE    (1)
 #define CS_STATE_COMP   (2)
@@ -650,7 +651,6 @@ extern "C" {
 #define CS_STATE_JMP    (16)
 
 #endif  /* __BUILDING_LIBCSOUND */
-
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1117,6 +1117,7 @@ extern "C" {
     void          *lineventGlobals;
     void          *musmonGlobals;
     void          *libsndGlobals;
+    void          *remoteGlobals;
     void          (*spinrecv)(CSOUND *);
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
@@ -1193,6 +1194,7 @@ extern "C" {
     int           (*doCsoundCallback)(CSOUND *, void *, unsigned int);
     const unsigned char *strhash_tabl_8;
     unsigned int  (*strHash32)(const char *s);
+    REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
 #endif  /* __BUILDING_LIBCSOUND */
   };
 

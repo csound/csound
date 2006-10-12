@@ -206,7 +206,7 @@ void midi_ctl_reset(CSOUND *csound, short chan)
 
 /* execute non-note channel voice and channel mode commands */
 
-static void m_chanmsg(CSOUND *csound, MEVENT *mep)
+void m_chanmsg(CSOUND *csound, MEVENT *mep)
 {
     MCHNBLK *chn = csound->m_chnbp[mep->chan];
     short   n;

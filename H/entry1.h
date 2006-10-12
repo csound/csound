@@ -54,6 +54,7 @@
 #include "str_ops.h"
 #include "bus.h"
 #include "pstream.h"
+#include "remote.h"
 
 #define S(x)    sizeof(x)
 
@@ -360,4 +361,5 @@ int     loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
 int     loop_l_p(CSOUND *, void *), loop_le_p(CSOUND *, void *);
 int     loop_g_p(CSOUND *, void *), loop_ge_p(CSOUND *, void *);
 int     delete_instr(CSOUND *, void *);
-
+int     insremot(CSOUND *, void *), insglobal(CSOUND *, void *);
+int     midremot(CSOUND *, void *), midglobal(CSOUND *, void *);

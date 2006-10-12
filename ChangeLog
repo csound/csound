@@ -1,3 +1,17 @@
+2006-10-12  jpff  <jpff@codemist.co.uk>
+
+	* OOps/remote.c: 
+	* H/remote.h:	New code for remote performance (OLPC)
+
+	* Engine/entry1.c: Add opcodes insremot, midremot, insglobal and
+	midglobal
+
+	* Engine/musmon.c: New code for this
+
+	* H/csoundCore.h: New fields for remote
+	
+	* InOut/midirecv.c: minor chjange for remote
+
 2006-10-12  Steven Yi  <stevenyi@gmail.com>
 
 	* Top/one_file.c (readOptions): fixed parsing of quoted strings
