@@ -24,11 +24,16 @@
 #ifndef CSOUND_REMOTE_H
 #define CSOUND_REMOTE_H
 
+#ifdef WIN32
+#include <winsock.h>
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
