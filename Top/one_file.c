@@ -232,11 +232,11 @@ int readOptions(CSOUND *csound, FILE *unf)
           while (*p == ' ' || *p=='\t') p++;
 
           if (*p== '"') {
-          	argv[++argc] = ++p;
-          	while(*p != '"' && *p != '\0') p++;
+            argv[++argc] = ++p;
+            while (*p != '"' && *p != '\0') p++;
 
-          	if(*p == '"') *p = '\0';
-          	break;
+            if (*p == '"') *p = '\0';
+            break;
           }
 
           if (*p==';' ||
