@@ -1,3 +1,15 @@
+2006-10-12  Michael Gogins <gogins@pipeline.com>
+
+	* Added Voicelead class to the Silence system in CsoundVST.
+	It finds the closest voice-leadings first by smoothness,
+	then by parsimony, optionally avoiding parallel fifths,
+	between two sets of pitches.
+	* Added methods to the Score class in the Silence system
+	for identifying the prime chord, transposition of prime chord,
+	and voicing index for segments of scores; setting the same
+	properties in segments of scores; and voice-leading between
+	segments of scores.
+
 2006-10-12  jpff  <jpff@codemist.co.uk>
 
 	* OOps/remote.c: 
