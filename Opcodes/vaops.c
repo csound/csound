@@ -35,16 +35,18 @@ typedef struct {
         MYFLT   *kval, *kindx, *avar;
 } VA_SET;
 
-static int vaget(CSOUND *csound, VA_GET *p) {
-	long ndx = (long) FLOOR((double)*p->kindx);
-	*p->kout = *(p->avar + ndx);
-	return OK;
+static int vaget(CSOUND *csound, VA_GET *p)
+{
+    long ndx = (long) FLOOR((double)*p->kindx);
+    *p->kout = *(p->avar + ndx);
+    return OK;
 }
 
-static int vaset(CSOUND *csound, VA_SET *p) {
-	long ndx = (long) FLOOR((double)*p->kindx);
-	*(p->avar + ndx) = *p->kval;
-	return OK;
+static int vaset(CSOUND *csound, VA_SET *p)
+{
+    long ndx = (long) FLOOR((double)*p->kindx);
+    *(p->avar + ndx) = *p->kval;
+    return OK;
 }
 
 #define S(x)    sizeof(x)

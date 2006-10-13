@@ -312,40 +312,40 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
     return fd;
 }
 
-static void add_math_const_macro(CSOUND *csound, char * name, char *body) {
-	MACRO *mm;
+static void add_math_const_macro(CSOUND *csound, char * name, char *body)
+{
+    MACRO *mm;
 
-	mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
-	mm->name = (char*) mcalloc(csound, strlen(name) + 3);
+    mm = (MACRO*) mcalloc(csound, sizeof(MACRO));
+    mm->name = (char*) mcalloc(csound, strlen(name) + 3);
     sprintf(mm->name, "M_%s", name);
     mm->next = ST(macros);
     ST(macros) = mm;
     mm->margs = MARGS;    /* Initial size */
     mm->acnt = 0;
     mm->body = (char*) mcalloc(csound, strlen(body) + 1);
-	mm->body = strcpy(mm->body, body);
+    mm->body = strcpy(mm->body, body);
 }
 
 /**
  * Add math constants from math.h as orc macros
  */
-static void init_math_constants_macros(CSOUND *csound) {
-	add_math_const_macro(csound, "E", "2.7182818284590452354");
-	add_math_const_macro(csound, "LOG2E", "1.4426950408889634074");
-	add_math_const_macro(csound, "LOG10E", "0.43429448190325182765");
-	add_math_const_macro(csound, "LN2", "0.69314718055994530942");
-	add_math_const_macro(csound, "LN10", "2.30258509299404568402");
-	add_math_const_macro(csound, "PI", "3.14159265358979323846");
-	add_math_const_macro(csound, "PI_2", "1.57079632679489661923");
-	add_math_const_macro(csound, "PI_4", "0.78539816339744830962");
-	add_math_const_macro(csound, "1_PI", "0.31830988618379067154");
-	add_math_const_macro(csound, "2_PI", "0.63661977236758134308");
-	add_math_const_macro(csound, "2_SQRTPI", "1.12837916709551257390");
-	add_math_const_macro(csound, "SQRT2", "1.41421356237309504880");
-	add_math_const_macro(csound, "SQRT1_2", "0.70710678118654752440");
+static void init_math_constants_macros(CSOUND *csound)
+ {
+     add_math_const_macro(csound, "E", "2.7182818284590452354");
+     add_math_const_macro(csound, "LOG2E", "1.4426950408889634074");
+     add_math_const_macro(csound, "LOG10E", "0.43429448190325182765");
+     add_math_const_macro(csound, "LN2", "0.69314718055994530942");
+     add_math_const_macro(csound, "LN10", "2.30258509299404568402");
+     add_math_const_macro(csound, "PI", "3.14159265358979323846");
+     add_math_const_macro(csound, "PI_2", "1.57079632679489661923");
+     add_math_const_macro(csound, "PI_4", "0.78539816339744830962");
+     add_math_const_macro(csound, "1_PI", "0.31830988618379067154");
+     add_math_const_macro(csound, "2_PI", "0.63661977236758134308");
+     add_math_const_macro(csound, "2_SQRTPI", "1.12837916709551257390");
+     add_math_const_macro(csound, "SQRT2", "1.41421356237309504880");
+     add_math_const_macro(csound, "SQRT1_2", "0.70710678118654752440");
 }
-
-
 
 static void init_omacros(CSOUND *csound, NAMES *nn)
 {

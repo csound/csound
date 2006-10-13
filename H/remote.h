@@ -45,10 +45,6 @@ extern  int     inet_aton(const char *cp, struct in_addr *inp);
 void m_chanmsg(CSOUND *csound, MEVENT *mep);   /* called from midirecv & musmon */
 char remoteID(CSOUND *csound);
 
-struct sockaddr_in to_addr;
-struct sockaddr_in local_addr;
-extern int *socksin;
-
 #define REMOT_PORT 40002
 
 #define SCOR_EVT 1
@@ -63,29 +59,31 @@ typedef struct {
 } SOCK;
 
 typedef struct {
-  SOCK *socksout; // = NULL;
-  int *socksin; // = NULL;
-  int *insrfd_list; // = NULL;
-  int *chnrfd_list; // = NULL;
-  int insrfd_count; // = 0;
-  int chnrfd_count; // = 0;
-  int  *insrfd; // = NULL;
-  int  *chnrfd; // = NULL;
-  char *ipadrs; // = NULL;
+  SOCK *socksout; /* = NULL; */
+  int *socksin; /* = NULL; */
+  int *insrfd_list; /* = NULL; */
+  int *chnrfd_list; /* = NULL; */
+  int insrfd_count; /* = 0; */
+  int chnrfd_count; /* = 0; */
+  int  *insrfd; /* = NULL; */
+  int  *chnrfd; /* = NULL; */
+  char *ipadrs; /* = NULL; */
+  struct sockaddr_in to_addr;
+  struct sockaddr_in local_addr;
 } REMOTE_GLOBALS;
 
-typedef struct {					/* Remote Communication buffer		*/
-    int		len;			/* lentot = len + type + data used	*/
-    int		type;
-    char	data[MAXSEND];
+typedef struct {                        /* Remote Communication buffer          */
+    int         len;                    /* lentot = len + type + data used      */
+    int         type;
+    char        data[MAXSEND];
 } REMOT_BUF;
 
-typedef struct {						/* structs for INSTR 0 opcodes */
+typedef struct {                        /* structs for INSTR 0 opcodes */
     OPDS    h;
     MYFLT   *str1, *str2, *insno[64];
 } INSREMOT;
 
-typedef struct {						/* structs for INSTR 0 opcodes */
+typedef struct {                                /* structs for INSTR 0 opcodes */
     OPDS    h;
     MYFLT   *str1, *insno[64];
 } INSGLOBAL;
@@ -95,7 +93,7 @@ typedef struct {
     MYFLT   *str1, *str2, *chnum[16];
 } MIDREMOT;
 
-typedef struct {						/* structs for INSTR 0 opcodes */
+typedef struct {                                /* structs for INSTR 0 opcodes */
     OPDS    h;
     MYFLT   *str1, *chnum[16];
 } MIDGLOBAL;
@@ -108,22 +106,24 @@ extern int chnrfd_count;
 int CLsend(CSOUND *csound, int conn, void *data, int length);
 int SVrecv(CSOUND *csound, int conn, void *data, int length);
 
-/* musmon:	divert a score insno event to a remote machine */
+/* musmon:      divert a score insno event to a remote machine */
 int insSendevt(CSOUND *p, EVTBLK *evt, int rfd);
 
-/* musmon:	send an event (funcs, reverbs) to all active remote machines */
+/* musmon:      send an event (funcs, reverbs) to all active remote machines */
 int insGlobevt(CSOUND *p, EVTBLK *evt);
 
-/* musmon:	divert a MIDI channel event to a remote machine */
+/* musmon:      divert a MIDI channel event to a remote machine */
 int MIDIsendevt(CSOUND *p, MEVENT *evt, int rfd);
 
-/* musmon:	send a MIDI channel event (ctrlrs, reverbs) to all active remote machines */
+/* musmon:      send a MIDI channel event (ctrlrs, reverbs) to all
+   active remote machines */
 int MIDIGlobevt(CSOUND *p, MEVENT *evt);
 
-/* midirecv:	divert a MIDI channel message to a remote machine */
+/* midirecv:    divert a MIDI channel message to a remote machine */
 int MIDIsend_msg(CSOUND *p, MEVENT *evt, int rfd);
 
-/* midirecv:	send a MIDI channel message (ctrlrs, reverbs) to all active remote machines */
+/* midirecv:    send a MIDI channel message (ctrlrs, reverbs) to all
+   active remote machines */
 int MIDIGlob_msg(CSOUND *p, MEVENT *evt);
 
 #endif      /* CSOUND_REMOTE_H */
