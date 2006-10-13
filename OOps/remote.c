@@ -138,28 +138,28 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
 
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     if (( rfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-      csound->InitError(csound, "could not open remote port");
+      csound->InitError(csound, Str("could not open remote port"));
       return NOTOK;
     }
-    memset(&(to_addr), 0, sizeof(to_addr));        /* clear sock mem */
-    to_addr.sin_family = AF_INET;                  /* set as INET address */
+    memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));        /* clear sock mem */
+    ST(to_addr).sin_family = AF_INET;                  /* set as INET address */
     /* server IP adr, netwk byt order */
 #ifdef WIN32
-    to_addr.sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
+    ST(to_addr).sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
 #else
-    inet_aton((const char *)ipadrs, &(to_addr.sin_addr));
+    inet_aton((const char *)ipadrs, &(ST(to_addr).sin_addr));
 #endif
-    to_addr.sin_port = htons((int) REMOT_PORT);    /* port we will listen on,
+    ST(to_addr).sin_port = htons((int) REMOT_PORT);    /* port we will listen on,
                                                       netwrk byt order */
     for (i=0; i<10; i++){
-      if (connect(rfd, (struct sockaddr *) &to_addr, sizeof(to_addr)) < 0)
-        csound->Message(csound, "---> Could not connect \n");
+      if (connect(rfd, (struct sockaddr *) &ST(to_addr), sizeof(ST(to_addr))) < 0)
+        csound->Message(csound, Str("---> Could not connect \n"));
       else goto conok;
     }
-    csound->InitError(csound, "---> Failed all attempts to connect. \n");
+    csound->InitError(csound, Str("---> Failed all attempts to connect. \n"));
     return NOTOK;
  conok:
-    csound->Message(csound, "--->  Connected. \n");
+    csound->Message(csound, Str("--->  Connected. \n"));
     for (sop = ST(socksout); sop < sop_end; sop++)
       if (sop->adr == NULL) {
         sop->adr = ipadrs;                         /* record the new socket */
@@ -173,7 +173,7 @@ int CLsend(CSOUND *csound, int conn, void *data, int length)
 {
     int nbytes;
     if ((nbytes = write(conn, data, length)) <= 0) {
-      csound->PerfError(csound, "write to socket failed");
+      csound->PerfError(csound, Str("write to socket failed"));
       return NOTOK;
     }
     /*    csound->Message(csound, "nbytes sent: %d \n", nbytes); */
@@ -194,51 +194,52 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
     opt = 1;
 
     if ((socklisten = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-      csound->InitError(csound, "creating socket\n");
+      csound->InitError(csound, Str("creating socket\n"));
       return NOTOK;
     }
-    else csound->Message(csound, "created socket \n");
+    else csound->Message(csound, Str("created socket \n"));
     /* set the addresse to be reusable */
-    if ( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR, 
+    if ( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR,
 #ifdef WIN32
-		    (const char *)&opt, 
+                    (const char *)&opt,
 #else
-		    &opt,
+                    &opt,
 #endif
-		    sizeof(opt)) < 0 )
+                    sizeof(opt)) < 0 )
 
-      csound->InitError(csound, "setting socket option to reuse the addresse \n");
+      csound->InitError(csound,
+                        Str("setting socket option to reuse the addresse \n"));
 
-    memset(&(to_addr), 0, sizeof(to_addr));             /* clear sock mem */
-    local_addr.sin_family = AF_INET;                    /* set as INET address */
+    memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));             /* clear sock mem */
+    ST(local_addr).sin_family = AF_INET;                    /* set as INET address */
+    /* our adrs, netwrk byt order */
 #ifdef WIN32
-      to_addr.sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
+    ST(to_addr).sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
 #else
-    inet_aton((const char *)ipadrs, &(local_addr.sin_addr)); /* our adrs,
-                                                                netwrk byt order */
+    inet_aton((const char *)ipadrs, &(ST(local_addr).sin_addr));
 #endif
-    local_addr.sin_port = htons((int)REMOT_PORT); /* port we will listen on,
-                                                     netwrk byt order */
+    ST(local_addr).sin_port = htons((int)REMOT_PORT); /* port we will listen on,
+                                                         netwrk byt order */
     /* associate the socket with the address and port */
     if (bind (socklisten,
-              (struct sockaddr *) &local_addr,
-              sizeof(local_addr)) < 0) {
-      csound->InitError(csound, "bind failed");
+              (struct sockaddr *) &ST(local_addr),
+              sizeof(ST(local_addr))) < 0) {
+      csound->InitError(csound, Str("bind failed"));
       return NOTOK;
     }
     if (listen(socklisten, 5) < 0) {    /* start the socket listening
                                            for new connections -- may wait */
-      csound->InitError(csound, "listen failed");
+      csound->InitError(csound, Str("listen failed"));
       return NOTOK;
     }
-    clilen = sizeof(local_addr);  /* FIX THIS FOR MULTIPLE CLIENTS !!!!!!!!!!!*/
-    conn = accept(socklisten, (struct sockaddr *) &local_addr, &clilen);
+    clilen = sizeof(ST(local_addr));  /* FIX THIS FOR MULTIPLE CLIENTS !!!!!!!*/
+    conn = accept(socklisten, (struct sockaddr *) &ST(local_addr), &clilen);
     if (conn < 0) {
-      csound->InitError(csound, "accept failed");
+      csound->InitError(csound, Str("accept failed"));
       return NOTOK;
     }
     else {
-      csound->Message(csound, "accepted, conn=%d \n", conn);
+      csound->Message(csound, Str("accepted, conn=%d \n"), conn);
       for (sop = ST(socksin); sop < sop_end; sop++)
         if (*sop == 0) {
           *sop = conn;                       /* record the new connection */
@@ -275,7 +276,8 @@ int insremot(CSOUND *csound, INSREMOT *p)
       csound->InitError(csound, Str("missing instr nos"));
       return 0;
     }
-    csound->Message(csound, "*** str1: %s own:%s\n", (char *)p->str1 , ST(ipadrs));
+    csound->Message(csound, Str("*** str1: %s own:%s\n"),
+                    (char *)p->str1 , ST(ipadrs));
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) {  /* if client is this adrs */
       MYFLT   **argp = p->insno;
       int rfd = 0;
@@ -296,7 +298,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
       ST(insrfd_list)[ST(insrfd_count)++] = rfd;   /*  and make a list    */
     }
     else if (!strcmp(ST(ipadrs),(char *)p->str2)) { /* if server is this adrs*/
-      csound->Message(csound, "*** str2: %s own:%s\n",
+      csound->Message(csound, Str("*** str2: %s own:%s\n"),
                       (char *)p->str2 , ST(ipadrs));
       if (SVopen(csound, (char *)p->str2) == NOTOK){ /* open port to listen */
         csound->InitError(csound, Str("Failed to open port to listen"));
@@ -316,7 +318,8 @@ int insglobal(CSOUND *csound, INSGLOBAL *p)
       csound->InitError(csound, Str("missing instr nos"));
       return NOTOK;
     }
-    csound->Message(csound, "*** str1: %s own:%s\n", (char *)p->str1 , ST(ipadrs));
+    csound->Message(csound, Str("*** str1: %s own:%s\n"),
+                    (char *)p->str1 , ST(ipadrs));
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) { /* if client is this adrs */
       MYFLT   **argp = p->insno;
       for (nargs -= 1; nargs--; ) {
@@ -384,7 +387,8 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
       csound->InitError(csound, Str("missing channel nos"));
       return NOTOK;
     }
-    csound->Message(csound, "*** str1: %s own:%s\n", (char *)p->str1 , ST(ipadrs));
+    csound->Message(csound, Str("*** str1: %s own:%s\n"),
+                    (char *)p->str1 , ST(ipadrs));
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) { /* if client is this adrs */
       MYFLT   **argp = p->chnum;
       for (nargs -= 1; nargs--; ) {
@@ -423,7 +427,7 @@ int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
     bp->type = SCOR_EVT;                    /* insert type and len */
     bp->len = (char *)g - (char *)bp;
     if (CLsend(csound, rfd, (void *)bp, (int)bp->len) < 0) {
-      csound->PerfError(csound, "CLsend failed");
+      csound->PerfError(csound, Str("CLsend failed"));
       return NOTOK;
     }
     else return OK;
@@ -448,7 +452,7 @@ int MIDIsendevt(CSOUND *csound, MEVENT *evt, int rfd)
     bp->len = sizeof(int) * 2 + sizeof(MEVENT);
 
     if (CLsend(csound, rfd, (void *)bp, (size_t)bp->len) < 0) {
-      csound->PerfError(csound, "CLsend failed");
+      csound->PerfError(csound, Str("CLsend failed"));
       return NOTOK;
     }
     else return OK;
@@ -473,7 +477,7 @@ int MIDIsend_msg(CSOUND *csound, MEVENT *evt, int rfd)
     bp->len = sizeof(int) * 2 + sizeof(MEVENT);
 
     if (CLsend(csound, rfd, (void *)bp, (size_t)bp->len) < 0) {
-      csound->PerfError(csound, "CLsend failed");
+      csound->PerfError(csound, Str("CLsend failed"));
       return NOTOK;
     }
     else return OK;
