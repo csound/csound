@@ -1117,7 +1117,6 @@ extern "C" {
     void          *lineventGlobals;
     void          *musmonGlobals;
     void          *libsndGlobals;
-    void          *remoteGlobals;
     void          (*spinrecv)(CSOUND *);
     void          (*spoutran)(CSOUND *);
     int           (*audrecv)(CSOUND *, MYFLT *, int);
@@ -1195,6 +1194,7 @@ extern "C" {
     const unsigned char *strhash_tabl_8;
     unsigned int  (*strHash32)(const char *s);
     REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
+    void          *remoteGlobals;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
