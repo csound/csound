@@ -281,8 +281,6 @@ static const CSOUND cenviron_ = {
         csoundChanOKGet,
         csoundChanIASet,
         csoundChanOAGet,
-        csoundPvsinSet,
-        csoundPvsoutGet,
         dispinit,
         csoundCreateMutex,
         csoundLockMutexNoWait,
@@ -394,10 +392,8 @@ static const CSOUND cenviron_ = {
         /* end of callbacks */
         0, 0,           /*  nchanik, nchania    */
         0, 0,           /*  nchanok, nchanoa    */
-        0, 0,           /* nchanof, nchanif */
         NULL, NULL,     /*  chanik, chania      */
         NULL, NULL,     /*  chanok, chanoa      */
-        NULL, NULL,     /*  chanif, chanof */
         FL(0.0),        /*  cpu_power_busy      */
         (char*) NULL,   /*  xfilename           */
         NLABELS,        /*  nlabels             */
@@ -588,7 +584,11 @@ static const CSOUND cenviron_ = {
         &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
         csound_str_hash_32, /*  strHash32           */
         {0, 0, ""},     /* REMOT_BUF */
-        NULL            /*  remoteGlobals       */
+        NULL,            /*  remoteGlobals       */
+        0, 0,           /* nchanof, nchanif */
+        NULL, NULL,     /*  chanif, chanof */
+        csoundPvsinSet,
+        csoundPvsoutGet
 };
 
   /* from threads.c */
