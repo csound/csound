@@ -74,13 +74,7 @@ int scale_process(CSOUND *csound, scale *p)
 }
 
 /*  expcurve opcode  */
-
-int expcurve_init(CSOUND *csound, expcurve *p)
-{
-    *p->kout = EXPCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
-
-    return OK;
-}
+/* Also used as initialisation */
 
 int expcurve_perf(CSOUND *csound, expcurve *p)
 {
@@ -90,13 +84,7 @@ int expcurve_perf(CSOUND *csound, expcurve *p)
 }
 
 /*  logcurve opcode  */
-
-int logcurve_init(CSOUND *csound, logcurve *p)
-{
-    *p->kout = LOGCURVE((MYFLT) *p->kin, (MYFLT) *p->ksteepness);
-
-    return OK;
-}
+/* Also used as initialisation */
 
 int logcurve_perf(CSOUND *csound, logcurve *p)
 {
@@ -107,30 +95,30 @@ int logcurve_perf(CSOUND *csound, logcurve *p)
 
 /*  gainslider opcode  */
 
-int gainslider_init(CSOUND *csound, gainslider *p)
-{
-    *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
- 
-    return OK;
-}
-
 int gainslider_perf(CSOUND *csound, gainslider *p)
 {
 
-    if (*p->kindex >= FL(0.0) && *p->kindex <= FL(152.0)) {
+    if (*p->kindex <= FL(0.0)) {
+      *p->koutsig = FL(0.0);
+    }
+    else {
       *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
-  }
+    }
 
-  return OK;
+    return OK;
 }
 
 /* opcode library entries */
 
 static OENTRY localops[] = {
-  { "scale", sizeof(scale), 3, "k", "kkk", (SUBR)scale_init, (SUBR)scale_process, NULL },
-  { "expcurve", sizeof(expcurve), 3, "k", "kk", (SUBR)expcurve_init, (SUBR)expcurve_perf, NULL },
-  { "logcurve", sizeof(logcurve), 3, "k", "kk", (SUBR)logcurve_init, (SUBR)logcurve_perf, NULL },
-  { "gainslider", sizeof(gainslider), 3, "k", "k", (SUBR)gainslider_init, (SUBR)gainslider_perf, NULL }
+  { "scale", sizeof(scale), 3, "k", "kkk",
+    (SUBR)scale_init, (SUBR)scale_process, NULL },
+  { "expcurve", sizeof(expcurve), 3, "k", "kk",
+    (SUBR)expcurve_perf, (SUBR)expcurve_perf, NULL },
+  { "logcurve", sizeof(logcurve), 3, "k", "kk",
+    (SUBR)logcurve_perf, (SUBR)logcurve_perf, NULL },
+  { "gainslider", sizeof(gainslider), 3, "k", "k",
+    NULL, (SUBR)gainslider_perf, NULL }
 };
 
 LINKAGE
