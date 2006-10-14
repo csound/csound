@@ -44,7 +44,7 @@ static void getIpAddress(char *ipaddr, char *ifname)
 
 #ifdef WIN32
     /* VL 12/10/06: something needs to go here */
-
+    /* gethostbyname ??? */
 #else
     struct ifreq ifr;
     int fd, i;
@@ -150,7 +150,7 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
     inet_aton((const char *)ipadrs, &(ST(to_addr).sin_addr));
 #endif
     ST(to_addr).sin_port = htons((int) REMOT_PORT);    /* port we will listen on,
-                                                      netwrk byt order */
+                                                      network byte order */
     for (i=0; i<10; i++){
       if (connect(rfd, (struct sockaddr *) &ST(to_addr), sizeof(ST(to_addr))) < 0)
         csound->Message(csound, Str("---> Could not connect \n"));
