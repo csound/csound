@@ -44,7 +44,6 @@ static void getIpAddress(char *ipaddr, char *ifname)
 
 #ifdef WIN32
     /* VL 12/10/06: something needs to go here */
-    /* gethostbyname ??? */
 #else
     struct ifreq ifr;
     int fd, i;

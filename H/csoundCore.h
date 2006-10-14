@@ -914,8 +914,6 @@ extern "C" {
     int (*ChanOKGet)(CSOUND *, MYFLT *value, int n);
     int (*ChanIASet)(CSOUND *, const MYFLT *value, int n);
     int (*ChanOAGet)(CSOUND *, MYFLT *value, int n);
-    int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
-    int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
     void (*dispinit)(CSOUND *);
     void *(*Create_Mutex)(int isRecursive);
     int (*LockMutexNoWait)(void *mutex_);
@@ -1015,9 +1013,8 @@ extern "C" {
     int           (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int nbytes);
     void          (*rtclose_callback)(CSOUND *);
     /* end of callbacks */
-    int           nchanik, nchania, nchanok, nchanoa, nchanif, nchanof;
+    int           nchanik, nchania, nchanok, nchanoa;
     MYFLT         *chanik, *chania, *chanok, *chanoa;
-    char          *chanif, *chanof;
     MYFLT         cpu_power_busy;
     char          *xfilename;
     /* oload.h */
@@ -1195,6 +1192,11 @@ extern "C" {
     unsigned int  (*strHash32)(const char *s);
     REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
     void          *remoteGlobals;
+    /* VL: pvs bus */
+    int            nchanif, nchanof;  
+    char          *chanif, *chanof;
+    int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
+    int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
