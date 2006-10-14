@@ -386,12 +386,12 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
     MYFLT *tab = p->sfunc->ftable;
     double *ndx = p->ndx;
     MYFLT frac0, frac1, *etab;
-    int loop_end = p->lend, loop_start = p->lstart, 
+    int loop_end = p->lend, loop_start = p->lstart,
         crossfade = p->cfade, len = p->sfunc->flen;
     MYFLT count = p->count,fadein, fadeout;
     int *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init;
     unsigned long tndx0, tndx1;
- 
+
     if (p->efunc != NULL) {
       etab = p->efunc->ftable;
       elen = p->efunc->flen;
@@ -608,7 +608,7 @@ static int pvsarp_init(CSOUND *csound, pvsarp *p)
 
   if (!(p->fout->format==PVS_AMP_FREQ) || (p->fout->format==PVS_AMP_PHASE)){
     return csound->InitError(csound,
-                             "Str(pvsarp: signal format must be amp-phase "
+                             Str("pvsarp: signal format must be amp-phase "
                              "or amp-freq.\n"));
   }
 
