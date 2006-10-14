@@ -93,7 +93,7 @@ static void callox(CSOUND *csound)
 void remote_Cleanup(CSOUND *csound)
 {
     int fd;
-    if (csound->remoteGlobals == NULL) return;
+/*     if (csound->remoteGlobals == NULL) return; */
     if (ST(socksout) == NULL) return;           /* if nothing allocated, return */
     else {
       SOCK *sop = ST(socksout), *sop_end = sop + MAXREMOTES;
