@@ -416,7 +416,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
         csound->Message(csound, Str("no sound written to disk\n"));
     }
     /* close any remote.c sockets */
-    remote_Cleanup(csound);
+    if (csound->remoteGlobals) remote_Cleanup(csound);
     if (csound->oparms->ringbell)
       cs_beep(csound);
     return dispexit(csound);    /* hold or terminate the display output     */
