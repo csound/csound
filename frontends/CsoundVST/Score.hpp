@@ -116,20 +116,30 @@ namespace csound
      * For the specified segment of the score,
      * return the indexes for the prime chord, its transposition, 
      * and their voicing within the specified range.
+     *
+     * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
     virtual std::vector<double> getPTV(size_t begin, size_t end, double lowest, double range) const;
     /**
      * For the specified segment of the score,
      * adjust the pitches to match the specified indexes for the prime chord, its transposition, 
      * and their voicing within the specified range.
+     *
+     * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
     virtual void setPTV(size_t begin, size_t end, double prime, double transposition, double voicing, double lowest, double range);
     /**
-     * Perform the closest voiceleading, first by smoothness then by simplicity,
-     * between the specified segments of the score within the specified range,
-     * optionally avoiding parallel fifths. Only the pitches of the target notes
-     * are affected. If necessary, the number of pitches and even voices
-     * in the target are adjusted to match the source.
+     * Performs voice-leading between 
+     * between the specified segments of the score 
+     * within the specified range.
+     * The voice-leading is first the closest by
+     * taxicab norm, and then the simplest in motion,
+     * optionally avoiding parallel fifths.
+     * Only the pitches of the target notes
+     * are affected. If necessary, the number of pitches 
+     * in the target chord is adjusted to match the source.
+     *
+     * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
     virtual void voicelead(size_t beginSource, size_t endSource, size_t beginTarget, size_t endTarget, double lowest, double range, bool avoidParallelFifths);
   };
