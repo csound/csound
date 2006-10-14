@@ -501,7 +501,6 @@ static const CSOUND cenviron_ = {
         NULL,           /*  lineventGlobals     */
         NULL,           /*  musmonGlobals       */
         NULL,           /*  libsndGlobals       */
-        NULL,           /*  remoteGlobals       */
         (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
         (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
         (int (*)(CSOUND *, MYFLT *, int)) NULL,         /*  audrecv     */
@@ -588,7 +587,8 @@ static const CSOUND cenviron_ = {
         csoundDoCallback_,  /*  doCsoundCallback    */
         &(strhash_tabl_8[0]),   /*  strhash_tabl_8  */
         csound_str_hash_32, /*  strHash32           */
-        {0, 0, ""}      /* REMOT_BUF */
+        {0, 0, ""},     /* REMOT_BUF */
+        NULL            /*  remoteGlobals       */
 };
 
   /* from threads.c */
