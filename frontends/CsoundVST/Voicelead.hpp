@@ -27,6 +27,15 @@
 
 namespace csound 
 {
+  /**
+   * Performs voice-leading between 
+   * two sets of unordered pitches (MIDI key numbers).
+   * The voice-leading is first the closest by
+   * taxicab norm, and then the simplest in motion,
+   * optionally avoiding parallel fifths.
+   *
+   * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
+   */
   class Voicelead
   {
   public:
