@@ -494,7 +494,7 @@ namespace csound
   {
     size_t n = std::min(end, size());
     size_t pn = pitches.size();
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = begin; i < n; i++) {
       Event &event = (*this)[i];
       event.setKey(pitches[i % pn]);
     }
