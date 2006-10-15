@@ -44,6 +44,7 @@ static void getIpAddress(char *ipaddr, char *ifname)
 
 #ifdef WIN32
     /* VL 12/10/06: something needs to go here */
+    /* gethostbyname is the real answer; code below id unsafe */
 #else
     struct ifreq ifr;
     int fd, i;
@@ -93,7 +94,7 @@ void remote_Cleanup(CSOUND *csound)
 {
     int fd;
 /*     if (csound->remoteGlobals == NULL) return; */
-    if (ST(socksout) == NULL) return;           /* if nothing allocated, return */
+    if (ST(socksout) == NULL) return;     /* if nothing allocated, return */
     else {
       SOCK *sop = ST(socksout), *sop_end = sop + MAXREMOTES;
       for ( ; sop < sop_end; sop++)

@@ -56,11 +56,9 @@ typedef struct _gainslider {
 
 int scale_process(CSOUND *csound, scale *p)
 {
-
-    if (*p->kmin != *p->kmax)
-      {
+    if (*p->kmin != *p->kmax) {
         *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
-      }
+    }
 
     return OK;
 }
@@ -87,16 +85,14 @@ int logcurve_perf(CSOUND *csound, logcurve *p)
 
 int gainslider_perf(CSOUND *csound, gainslider *p)
 {
-	if(*p->kindex <= FL(0.0))
-	  {
-         *p->koutsig = FL(0.0);
-      }
-    else
-      {
-         *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
-      }
+    if (*p->kindex <= FL(0.0)) {
+      *p->koutsig = FL(0.0);
+    }
+    else {
+      *p->koutsig = GAINSLIDER((MYFLT) *p->kindex);
+    }
 
-  return OK;
+    return OK;
 }
 
 /* opcode library entries */
