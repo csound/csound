@@ -28,6 +28,8 @@
 #include "System.hpp"
 #include "Conversions.hpp"
 #include "Voicelead.hpp"
+#include <algorithm>
+#include <cfloat>
 #include <set>
 #include <cstdarg>
 #include <iostream>
@@ -487,16 +489,25 @@ namespace csound
 	chord.push_back(pitch);
       }
     }
+    std::sort(chord.begin(), chord.end());
     return chord;
   }
 
   void Score::setPitches(size_t begin, size_t end, const std::vector<double> &pitches)
   {
     size_t n = std::min(end, size());
-    size_t pn = pitches.size();
+     for (size_t i = begin; i < n; i++) {
+      Event &event = (*this)[i];
+      event.setKey(Voicelead::closestPitch(event.getKey(), pitches));
+    }
+  }
+
+  void Score::setPitchClassSet(size_t begin, size_t end, const std::vector<double> &pcs, size_t tonesPerOctave)
+  {
+    size_t n = std::min(end, size());
     for (size_t i = begin; i < n; i++) {
       Event &event = (*this)[i];
-      event.setKey(pitches[i % pn]);
+      event.setKey(Voicelead::conformToPitchClassSet(event.getKey(), pcs, tonesPerOctave));
     }
   }
 
@@ -510,7 +521,7 @@ namespace csound
     if (chord.size() == 0) {
       return ptv;
     }
-    std::vector<double> tones = Voicelead::tones(chord);
+    std::vector<double> tones = Voicelead::pcs(chord);
     std::vector< std::vector<double> > voicings = Voicelead::voicings(tones, lowest, range);
     std::vector< std::vector<double> >::iterator it = std::find(voicings.begin(), voicings.end(), chord);
     if (it != voicings.end()) {
@@ -554,7 +565,7 @@ namespace csound
     if (target.size() == 0) {
       return;
     }
-    std::vector<double> tones = Voicelead::tones(target);
+    std::vector<double> tones = Voicelead::pcs(target);
     if (source.size() > tones.size()) {
       size_t n = source.size() - tones.size();
       for (size_t i = 0; i < n; i++) {
@@ -564,4 +575,40 @@ namespace csound
     std::vector<double> voicing = Voicelead::voicelead(source, tones, lowest, range, avoidParallelFifths);
     setPitches(beginTarget, endTarget, voicing);
   }
+
+  struct TimeComparator
+  {
+    double time;
+    TimeComparator(double time_) : time(time_) 
+    {
+    }
+    bool operator()(const Event &event)
+    {
+      if (event.getTime() >= time) {
+	return true;
+      } else {
+	return false;
+      }
+    }
+  };
+
+  int Score::indexForTime(double time)
+  {
+    int index = -1;
+    std::vector<Event>::iterator it = std::find_if(begin(), end(), TimeComparator(time));
+    if (it != end()) {
+      index = (it - begin());
+    }
+    return index;
+  }
+
+  double Score::timeForIndex(size_t index)
+  {
+    double time = DBL_MAX;
+    if (index >= 0 && index < size()) {
+      time = (*this)[index].getTime();
+    }
+    return time;
+  }
+
 }
