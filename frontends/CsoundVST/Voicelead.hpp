@@ -40,10 +40,9 @@ namespace csound
   {
   public:
     /**
-     * Returns the pitch-class of the pitch,
-     * in 12-tone equal temperament.
+     * Returns the pitch-class of the pitch.
      */
-    static double pc(double pitch);
+    static double pc(double pitch, size_t tonesPerOctave = 12);
 
 
     /**
@@ -102,7 +101,18 @@ namespace csound
     /**
      * Returns the chord as the list of its pitch-classes.
      */
-    static std::vector<double> tones(const std::vector<double> &chord);
+    static std::vector<double> pcs(const std::vector<double> &chord, size_t tonesPerOctave = 12);
+
+    /**
+     * Converts a chord to a pitch-class set number 
+     * N = sum (2 ^ pc).
+     */
+    static double numberFromChord(const std::vector<double> &chord, size_t tonesPerOctave = 12);
+
+    /**
+     * Converts a pitch-class set number to a pitch-class set chord.
+     */
+    static std::vector<double> pcsFromNumber(double pcn, size_t tonesPerOctave = 12);
 
     /**
      * Returns all voicings of the chord
@@ -137,6 +147,19 @@ namespace csound
 					 double lowest, 
 					 double range, 
 					 bool avoidParallels);
+
+    /**
+     * Return the pitch in pitches that is closest to the specified pitch.
+     */
+    static double closestPitch(double pitch, const std::vector<double> &pitches);
+
+    /**
+     * Return the pitch that results from making the minimum adjustment
+     * to the pitch-class of the pitch argument that is required to make
+     * its pitch-class the same as one of the pitch-classes in the
+     * pitch-class set argument.
+     */
+    static double conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t tonesPerOctave = 12);
 
 #ifndef TEST
     /**
