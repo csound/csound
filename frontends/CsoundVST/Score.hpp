@@ -110,8 +110,15 @@ namespace csound
     /**
      * Set the pitches of the specified segment of the score
      * to the specified pitches.
+     * Each pitch in the score is moved to the closest pitch in the specified pitches.
      */
     virtual void setPitches(size_t begin, size_t end, const std::vector<double> &pitches);
+    /**
+     * Set the pitches of the specified segment of the score
+     * to the specified pitch-class set.
+     * Each pitch in the score is moved to the closest pitch-class in the specified set.
+     */
+    virtual void setPitchClassSet(size_t begin, size_t end, const std::vector<double> &pcs, size_t tonesPerOctave = 12);
     /**
      * For the specified segment of the score,
      * return the indexes for the prime chord, its transposition, 
@@ -142,6 +149,16 @@ namespace csound
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
     virtual void voicelead(size_t beginSource, size_t endSource, size_t beginTarget, size_t endTarget, double lowest, double range, bool avoidParallelFifths);
+    /**
+     * Return the index of the first event at or after the specified time;
+     * if the time is not found, return -1.
+     */
+    virtual int indexForTime(double time);
+    /**
+     * Return the time of the first event at or after the specified index;
+     * if the index is not found, return DBL_MAX.
+     */
+    virtual double timeForIndex(size_t index);
   };
 }
 #endif
