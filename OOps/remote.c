@@ -45,6 +45,16 @@ static void getIpAddress(char *ipaddr, char *ifname)
 #ifdef WIN32
     /* VL 12/10/06: something needs to go here */
     /* gethostbyname is the real answer; code below id unsafe */
+char hostname[1024];
+struct hostent *he;
+struct sockaddr_in sin;
+gethostname(hostname, sizeof(hostname));
+he = gethostbyname(hostname);
+
+memset(&sin, 0, sizeof (struct sockaddr_in));
+memmove(&sin.sin_addr, he->h_addr_list[0], he->h_length);
+strcpy(ipaddr, inet_ntoa (sin.sin_addr));
+
 #else
     struct ifreq ifr;
     int fd, i;
@@ -259,7 +269,7 @@ int SVrecv(CSOUND *csound, int conn, void *data, int length)
 #else
     socklen_t clilen = sizeof(from);
 #endif
-    ssize_t n;
+    size_t n;
     n = recvfrom(conn, data, length, MSG_DONTWAIT, &from, &clilen);
     /*  if (n>0) csound->Message(csound, "nbytes received: %d \n", (int)n); */
     return (int)n;
