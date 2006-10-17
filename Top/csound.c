@@ -292,9 +292,10 @@ static const CSOUND cenviron_ = {
         csoundSetChannelIOCallback,
         csoundSetCallback,
         csoundRemoveCallback,
+        csoundPvsinSet,
+        csoundPvsoutGet,
      /* NULL, */
-        { NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -587,8 +588,6 @@ static const CSOUND cenviron_ = {
         NULL,            /*  remoteGlobals       */
         0, 0,           /* nchanof, nchanif */
         NULL, NULL,     /*  chanif, chanof */
-        csoundPvsinSet,
-        csoundPvsoutGet
 };
 
   /* from threads.c */

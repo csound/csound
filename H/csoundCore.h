@@ -927,8 +927,10 @@ extern "C" {
                                   void *userData, unsigned int typeMask);
     void (*Remove_Callback)(CSOUND *,
                             int (*func)(void *, void *, unsigned int));
+    int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
+    int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n); 
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[102];
+    SUBR dummyfn_2[100];
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     OPDS          *ids, *pds;
@@ -1194,9 +1196,7 @@ extern "C" {
     void          *remoteGlobals;
     /* VL: pvs bus */
     int            nchanif, nchanof;  
-    char          *chanif, *chanof;
-    int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
-    int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
+    char           *chanif, *chanof;
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
