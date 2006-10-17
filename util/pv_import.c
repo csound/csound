@@ -63,8 +63,8 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     }
     inf = fopen(argv[1], "rb");
     if (inf == NULL) {
-      fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
-      exit(1);
+      csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
+      return 1;
     }
     fscanf(inf,
            "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
@@ -107,8 +107,8 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
                                      NULL, data.dwWinlen);
     }
     if (outf < 0) {
-      fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
-      exit(1);
+      csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
+      return 1;
     }
     
     {
