@@ -106,7 +106,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
                                      data.wWindowType, data.fWindowParam,
                                      NULL, data.dwWinlen);
     }
-    if (inf < 0) {
+    if (outf < 0) {
       fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
       exit(1);
     }
