@@ -57,6 +57,11 @@ typedef struct {
         EVENT *e[1];
 } EVLIST;
 
+/* This pragma must come before all public function declarations */
+#if (defined(macintosh) && defined(__MWERKS__))
+#  pragma export on
+#endif
+
 /* Functions for working with single events */
 PUBLIC EVENT  *cscoreCreateEvent(CSOUND*, int);
 PUBLIC EVENT  *cscoreDefineEvent(CSOUND*, char*);
@@ -95,5 +100,10 @@ PUBLIC FILE   *cscoreFileOpen(CSOUND*, char*);
 PUBLIC void    cscoreFileClose(CSOUND*, FILE*);
 PUBLIC FILE   *cscoreFileGetCurrent(CSOUND*);
 PUBLIC void    cscoreFileSetCurrent(CSOUND*, FILE*);
+
+/* This pragma must come after all public function declarations */
+#if (defined(macintosh) && defined(__MWERKS__))
+#  pragma export off
+#endif
 
 #endif
