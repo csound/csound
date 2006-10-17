@@ -164,6 +164,11 @@ typedef union csCfgVariable_u {
 
 /* -------- interface functions -------- */
 
+/* This pragma must come before all public function declarations */
+#if (defined(macintosh) && defined(__MWERKS__))
+#  pragma export on
+#endif
+
   /**
    * Create global configuration variable with the specified parameters.
    * This function should be called by the host application only.
@@ -396,6 +401,11 @@ typedef union csCfgVariable_u {
    * CSOUNDCFG error code. The string is not translated.
    */
   PUBLIC const char *csoundCfgErrorCodeToString(int errcode);
+
+/* This pragma must come after all public function declarations */
+#if (defined(macintosh) && defined(__MWERKS__))
+#  pragma export off
+#endif
 
 #ifdef __cplusplus
 }

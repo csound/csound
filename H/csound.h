@@ -263,6 +263,11 @@ extern "C" {
                                             int channelType);
 #ifndef CSOUND_CSDL_H
 
+/* This pragma must come before all public function declarations */
+#if (defined(macintosh) && defined(__MWERKS__))
+#  pragma export on
+#endif
+
   /*
    * INSTANTIATION
    */
@@ -1448,6 +1453,11 @@ extern "C" {
    */
   PUBLIC void csoundRemoveCallback(CSOUND *,
                                    int (*func)(void *, void *, unsigned int));
+
+/* This pragma must come after all public function declarations */
+#if (defined(macintosh) && defined(__MWERKS__))
+#  pragma export off
+#endif
 
 #endif  /* !CSOUND_CSDL_H */
 
