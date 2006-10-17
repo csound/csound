@@ -2,6 +2,9 @@
 
 #include <iostream>
 #include <ctime>
+#include <set>
+#include <algorithm>
+#include <cmath>
 
 std::ostream &operator << (std::ostream &stream, 
 			   const std::vector<double> &chord)
@@ -26,17 +29,24 @@ namespace csound
     return std::floor(x + 0.5);
   }
 
-  double Voicelead::pc(double p, size_t tonesPerOctave)
+  std::vector<double> sort(const std::vector<double> &chord)
   {
-    p = std::fabs(round(p));
-    return double(int(round(p)) % tonesPerOctave);
+    std::vector<double> sorted(chord);
+    std::sort(sorted.begin(), sorted.end());
+    return sorted;
   }
 
-  double Voicelead::numberFromChord(const std::vector<double> &chord, size_t tonesPerOctave)
+  double Voicelead::pc(double p, size_t divisionsPerOctave)
+  {
+    p = std::fabs(round(p));
+    return double(int(round(p)) % divisionsPerOctave);
+  }
+
+  double Voicelead::numberFromChord(const std::vector<double> &chord, size_t divisionsPerOctave)
   {
     std::set<double> pcs_;
     for (size_t i = 0, n = chord.size(); i < n; i++) {
-      pcs_.insert(pc(chord[i], tonesPerOctave));
+      pcs_.insert(pc(chord[i], divisionsPerOctave));
     }
     double N = 0;
     for(std::set<double>::iterator it = pcs_.begin(); it != pcs_.end(); ++it) {
@@ -45,25 +55,25 @@ namespace csound
     return N;
   }
 
-  std::vector<double> Voicelead::pcsFromNumber(double pcn, size_t tonesPerOctave)
+  std::vector<double> Voicelead::pcsFromNumber(double pcn, size_t divisionsPerOctave)
   {
-    int n = int(round(pcn));
+    size_t n = size_t(round(pcn));
     std::vector<double> pcs;
-    for (int i = 0; i < tonesPerOctave; i++) {
-      int powerOf2 = std::pow(2.0, double(i));
-      if ((n & powerOf2) == powerOf2) {
-	pcs.push_back(double(i));
+    for (double i = 0.0; i < double(divisionsPerOctave); i = i + 1.0) {
+      size_t p2 = size_t(std::pow(2.0, i));
+      if ((p2 & n) == p2) {
+	pcs.push_back(i);
       }
-      return pcs;
     }
+    return pcs;
   }
 
   std::vector<double> Voicelead::voiceleading(const std::vector<double> &a, 
 					      const std::vector<double> &b)
   {
-    std::vector<double> v;
+    std::vector<double> v(a.size());
     for (size_t i = 0, n = a.size(); i < n; i++) {
-      v.push_back(b[i] - a[i]);
+      v[i] = (b[i] - a[i]);
     }
     return v;
   }
@@ -76,7 +86,7 @@ namespace csound
     std::vector<double> v1 = voiceleading(source, destination1);
     std::sort(v1.begin(), v1.end());
     std::vector<double> v2 = voiceleading(source, destination2);
-    std::sort(v2.begin(), v2.end());
+    std::sort(v2.begin(), v2.end());    
     for (size_t i = v1.size() - 1; i >= 0; i--) {
       if(v1[i] < v2[i]) {
 	return destination1;
@@ -154,9 +164,9 @@ namespace csound
     return inversion;
   }
 
-  void Voicelead::rotations(std::vector<double> chord,  std::vector< std::vector<double> > &rotations_)
+  std::vector< std::vector<double> > Voicelead::rotations(const std::vector<double> &chord)
   {
-    rotations_.clear();
+    std::vector< std::vector<double> > rotations_;
     std::vector<double> inversion = pcs(chord);
     if (debug > 1) {
       std::cout << "rotating:   " << chord << std::endl;
@@ -173,13 +183,14 @@ namespace csound
     if (debug > 1) {
       std::cout << std::endl;
     }
+    return rotations_;
   }
   
-  std::vector<double> Voicelead::pcs(const std::vector<double> &chord, size_t tonesPerOctave) 
+  std::vector<double> Voicelead::pcs(const std::vector<double> &chord, size_t divisionsPerOctave) 
   {
     std::vector<double> pcs_(chord.size());
     for (size_t i = 0, n = chord.size(); i < n; i++) {
-      pcs_[i] = pc(chord[i], tonesPerOctave);
+      pcs_[i] = pc(chord[i], divisionsPerOctave);
     }
     if (debug > 1) {
       std::cout << "chord: " << chord << std::endl;
@@ -188,81 +199,55 @@ namespace csound
     return pcs_;
   }
 
-  std::vector<double> sort(const std::vector<double> &chord)
-  {
-    std::vector<double> sorted(chord);
-    std::sort(sorted.begin(), sorted.end());
-    return sorted;
-  }
-
-  void inversions_(const std::vector<double> &pcs, 
-		   std::vector<double> &iterating_chord, 
-		   size_t voice, 
-		   std::set< std::vector<double> > &inversions__, 
-		   double range)
-  {
-    if (voice >= pcs.size()) {
-      return;
-    }
-    for(double p = Voicelead::pc(iterating_chord[voice]); p <= range; p+= 12.0) {
-      iterating_chord[voice] = p;
-      std::vector<double> sorted = sort(iterating_chord);
-      if (debug > 1) {
-	std::cout << "iterating " << sorted << std::endl;
-      }
-      inversions__.insert(sorted);
-      inversions_(pcs, iterating_chord, voice + 1, inversions__, range);
-    }
-  }
-  
-  void inversions(const std::vector<double> &chord, 
-		  std::set< std::vector<double> > &inversions__, 
-		  double range)
-  {
-    std::vector<double> pcs_ = Voicelead::pcs(chord);
-    std::vector< std::vector<double> > iterating_chords;
-    Voicelead::rotations(pcs_, iterating_chords);
-    inversions__.clear();
-    for(size_t i = 0, n = iterating_chords.size(); i < n; i++) {
-      size_t voice = 0;
-      std::vector<double> iterating_chord = iterating_chords[i];
-      inversions_(pcs_, iterating_chord, voice, inversions__, range);
-    }
-  }
-  
-  const std::vector<double> &Voicelead::closest(const std::vector<double> &source, 
-						const std::set< std::vector<double> > &destinations, 
+  const std::vector<double> Voicelead::closest(const std::vector<double> &source, 
+						const std::vector< std::vector<double> > &targets,
 						bool avoidParallels)
   {
-    std::set< std::vector<double> >::const_iterator it = destinations.begin();
-    std::vector<double> &d1 = const_cast< std::vector<double> &>(*it);
-    for (++it; it != destinations.end(); ++it) {
-      const std::vector<double> &d2 = *it;
-      d1 = closer(source, d1, d2, avoidParallels);
+    if (targets.size() == 0) {
+      return source;
+    } else if (targets.size() == 1) {
+      return targets[0];
     }
-    return d1;
+    std::vector<double> t1 = targets[0];
+    for (size_t i = 1, n = targets.size(); i < n; i++) {
+      t1 = closer(source, t1, targets[i], avoidParallels);
+    }
+    return t1;
+  }
+
+  void inversions(const std::vector<double> &original, 
+		  const std::vector<double> &iterator, 
+		  size_t voice, 
+		  double range, 
+		  std::set< std::vector<double> > &chords, 
+		  size_t divisionsPerOctave = 12)
+  {
+    if (voice >= original.size()) {
+      return;
+    }
+    std::vector<double> iterator_ = iterator;
+    for (double pitch = original[voice]; pitch < range; pitch = pitch + divisionsPerOctave) {
+      iterator_[voice] = pitch;
+      chords.insert(iterator_);
+      inversions(original, iterator_, voice + 1, range, chords, divisionsPerOctave);
+    }
   }
   
   std::vector< std::vector<double> > Voicelead::voicings(const std::vector<double> &chord, 
 							 double lowest, 
 							 double range)
   {
-    std::vector<double> source = chord;
-    for (size_t i = 0, n = source.size(); i < n; i++) {
-      source[i] = source[i] - lowest;
-    }
+    std::vector< std::vector<double> > rotations_ = rotations(chord);
     std::set< std::vector<double> > inversions_;
-    inversions(source, inversions_, range);
-    std::vector< std::vector<double> > invs;
-    for (std::set< std::vector<double> >::iterator it = inversions_.begin(); it != inversions_.end(); ++it) {
-      invs.push_back(*it);
+    for (size_t i = 0, n = rotations_.size(); i < n; i++) {
+      std::vector<double> iterator = rotations_[i];
+      inversions(rotations_[i], iterator, 0, range, inversions_);
     }
-    for (size_t i = 0, n = invs.size(); i < n; i++) {
-      for (size_t j = 0, k = invs[i].size(); j < k; j++) {
-	invs[i][j] += lowest;
-      }
+    std::vector< std::vector<double> > inversions__;
+    for(std::set< std::vector<double > >::iterator it = inversions_.begin(); it != inversions_.end(); ++it) {
+      inversions__.push_back(*it);
     }
-    return invs;
+    return inversions__;
   }
 
   /**
@@ -277,48 +262,16 @@ namespace csound
   {
     std::vector<double> source = source_;
     std::vector<double> target = target_;
-    for (size_t i = 0, n = source.size(); i < n; i++) {
-      source[i] = source[i] - lowest;
-      target[i] = target[i] - lowest;
-    }
-    std::set< std::vector<double> > inversions_;
-    inversions(target, inversions_, range);
-    std::vector<double> targetChord = closest(source, inversions_, avoidParallels);
-    for (size_t i = 0, n = source.size(); i < n; i++) {
-      targetChord[i] = targetChord[i] + lowest;
-      target[i] = target[i] + lowest;
-    }
+    std::vector< std::vector<double> > voicings_ = voicings(target, lowest, range);
+    std::vector<double> voicing = closest(source, voicings_, avoidParallels);
     if (debug) {
       std::cout << "   From: " << source_ << std::endl;
       std::cout << "     To: " << target_ << std::endl;
-      std::cout << "Leading: " << voiceleading(source_, targetChord) << std::endl;
-      std::cout << "     Is: " << targetChord << std::endl << std::endl;
+      std::cout << "Leading: " << voiceleading(source_, voicing) << std::endl;
+      std::cout << "     Is: " << voicing << std::endl << std::endl;
     }
-    return targetChord;
+    return voicing;
   } 
-
-#ifndef TEST
-  std::vector<Event> Voicelead::voiceleadEvents(const std::vector<Event> &source,
-						const std::vector<Event> &target,
-						double lowest,
-						double range,
-						bool avoidParallels)
-  {
-    std::vector<double> s;
-    std::vector<double> t;
-    for (size_t i = 0, n = source.size(); i < n; i++) {
-      s.push_back(source[i].getKey());
-      t.push_back(target[i].getKey());
-    }
-    std::vector<double> tc = Voicelead::voicelead(s, t, lowest, range, avoidParallels);
-    std::vector<Event> tec;
-    for (size_t i = 0, n = source.size(); i < n; i++) {
-      tec.push_back(source[i]);
-      tec[i].setKey(tc[i]);
-    }
-    return tec;
-  }
-#endif
 
   double Voicelead::closestPitch(double pitch, const std::vector<double> &pitches)
   {
@@ -341,12 +294,12 @@ namespace csound
     }
   }
 
-  double Voicelead::conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t tonesPerOctave)
+  double Voicelead::conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t divisionsPerOctave)
   {
-    double closestPc = closestPitch(Voicelead::pc(pitch, tonesPerOctave), pcs);
-    double octave = round(pitch / tonesPerOctave) * tonesPerOctave;
-    if (closestPc <= (tonesPerOctave / 2.0)) {
-      return (octave - tonesPerOctave) + closestPc;
+    double closestPc = closestPitch(Voicelead::pc(pitch, divisionsPerOctave), pcs);
+    double octave = round(pitch / divisionsPerOctave) * divisionsPerOctave;
+    if (closestPc <= (divisionsPerOctave / 2.0)) {
+      return (octave - divisionsPerOctave) + closestPc;
     } else {
       return octave + closestPc;
     }
