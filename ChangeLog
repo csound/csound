@@ -1,3 +1,11 @@
+2006-10-16  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* H/csound.h:
+	* H/cscore.h:
+	* H/cvgvar.h: Added Mac pragmas to export PUBLIC functions.
+
+	* util/pv_import.c: Fixed check for failure to open output file.
+
 2006-10-12  Michael Gogins <gogins@pipeline.com>
 
 	* Added Voicelead class to the Silence system in CsoundVST.
