@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     inf = fopen(argv[1], "rb");
     if (inf == NULL) {
       fprintf(stderr, "Cannot open input file %s\n", argv[1]);
-      exit(1);
+      return 1;
     }
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
