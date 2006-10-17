@@ -54,7 +54,7 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
     inf = fopen(argv[1], "rb");
     if (inf == NULL) {
       fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
-      exit(1);
+      return 1;
     }
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
