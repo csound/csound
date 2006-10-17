@@ -52,13 +52,13 @@ static int het_export(CSOUND *csound, int argc, char **argv)
     }
     inf = csound->ldmemfile(csound, argv[1]);
     if (inf == NULL) {
-      fprintf(stderr, Str("Cannot open input file %s\n"), argv[1]);
-      exit(1);
+      csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
+      return 1;
     }
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
-      fprintf(stderr, Str("Cannot open output file %s\n"), argv[2]);
-      exit(1);
+      csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
+      return 1;
     }
     adp = (short *) inf->beginp;
     endata = (short *) inf->endp;
