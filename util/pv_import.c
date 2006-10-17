@@ -115,7 +115,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       float *frame =
         (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));
       int i;
-      for (i=1;;) {
+      for (i=1;;i++) {
         int j;
         for (j=0; j<data.nAnalysisBins*2; j++) {
           char term;
