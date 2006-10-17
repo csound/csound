@@ -9,7 +9,6 @@
 #include "Event.hpp"
 #endif
 #include <vector>
-#include <set>
 #include <algorithm>
 #include <cmath>
   %}
@@ -20,9 +19,6 @@
 #include "Event.hpp"
 #endif
 #include <vector>
-#include <set>
-#include <algorithm>
-#include <cmath>
 #endif
 
 namespace csound 
@@ -42,7 +38,7 @@ namespace csound
     /**
      * Returns the pitch-class of the pitch.
      */
-    static double pc(double pitch, size_t tonesPerOctave = 12);
+    static double pc(double pitch, size_t divisionsPerOctave = 12);
 
 
     /**
@@ -95,24 +91,23 @@ namespace csound
     /**
      * Returns the set of all rotations of the chord.
      */
-    static void rotations(std::vector<double> chord, 
-			  std::vector< std::vector<double> > &rotations_);
+    static std::vector< std::vector<double> > rotations(const std::vector<double> &chord);
   
     /**
      * Returns the chord as the list of its pitch-classes.
      */
-    static std::vector<double> pcs(const std::vector<double> &chord, size_t tonesPerOctave = 12);
+    static std::vector<double> pcs(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
      * Converts a chord to a pitch-class set number 
      * N = sum (2 ^ pc).
      */
-    static double numberFromChord(const std::vector<double> &chord, size_t tonesPerOctave = 12);
+    static double numberFromChord(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
      * Converts a pitch-class set number to a pitch-class set chord.
      */
-    static std::vector<double> pcsFromNumber(double pcn, size_t tonesPerOctave = 12);
+    static std::vector<double> pcsFromNumber(double pcn, size_t divisionsPerOctave = 12);
 
     /**
      * Returns all voicings of the chord
@@ -128,9 +123,9 @@ namespace csound
      * between the source chord any of the destination chords,
      * optionally avoiding parallel fifths.
      */
-    static const std::vector<double> &closest(const std::vector<double> &source, 
-					      const std::set< std::vector<double> > &destinations, 
-					      bool avoidParallels);
+    static const std::vector<double> closest(const std::vector<double> &source, 
+					     const std::vector< std::vector<double> > &destinations, 
+					     bool avoidParallels);
    
     /**
      * Returns the closest voiceleading within the specified range, 
@@ -159,25 +154,8 @@ namespace csound
      * its pitch-class the same as one of the pitch-classes in the
      * pitch-class set argument.
      */
-    static double conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t tonesPerOctave = 12);
+    static double conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t divisionsPerOctave = 12);
 
-#ifndef TEST
-    /**
-     * Returns the closest voiceleading within the specified range, 
-     * first by smoothness then by simplicity, 
-     * between the source chord and the target pitch-class set,
-     * optionally avoiding parallel fifths.
-     * The algorithm uses a brute-force search through all
-     * unordered chords fitting the target pitch-class set within
-     * the specified range. For up to 6 voices this is usable
-     * for non-real-time computation.
-     */
-    static std::vector<Event> voiceleadEvents(const std::vector<Event> &source,
-					      const std::vector<Event> &target,
-					      double lowest,
-					      double range,
-					      bool avoidParallels);
-#endif
   };
   
 }
