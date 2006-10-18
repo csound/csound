@@ -273,86 +273,35 @@ namespace csound
     return voicing;
   } 
 
-  double Voicelead::closestPitch(double pitch, const std::vector<double> &pitches)
+  double Voicelead::closestPitch(double pitch, const std::vector<double> &pitches_)
   {
-    std::vector<double>::const_iterator lowerI = std::lower_bound(pitches.begin(), pitches.end(), pitch);
-    if (lowerI == pitches.end()) {
+    std::vector<double> pitches = pitches_;
+    std::sort(pitches.begin(), pitches.end());
+    std::pair< std::vector<double>::iterator, std::vector<double>::iterator > its = std::equal_range(pitches.begin(), pitches.end(), pitch);
+    if (its.first == pitches.end()) {
       return pitches.back();
     }
-    std::vector<double>::const_iterator upperI = std::upper_bound(pitches.begin(), pitches.end(), pitch);
-    if (upperI == pitches.begin()) {
+    if (its.first == pitches.begin()) {
       return pitches.front();
     }
-    double lower = *lowerI;
-    double upper = *upperI;
-    double lowerDifference = std::fabs(pitch - lower);
-    double upperDifference = std::fabs(pitch - upper);
-    if (lowerDifference < upperDifference) {
+    double lower = *its.first;
+    double upper = *its.second;
+    double lowerDifference = std::fabs(lower - pitch);
+    double upperDifference = std::fabs(upper - pitch);
+    if (lowerDifference <= upperDifference) {
       return lower;
     } else {
       return upper;
     }
   }
 
-  double Voicelead::conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t divisionsPerOctave)
+  double Voicelead::conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t divisionsPerOctave_)
   {
-    double closestPc = closestPitch(Voicelead::pc(pitch, divisionsPerOctave), pcs);
-    double octave = round(pitch / divisionsPerOctave) * divisionsPerOctave;
-    if (closestPc <= (divisionsPerOctave / 2.0)) {
-      return (octave - divisionsPerOctave) + closestPc;
-    } else {
-      return octave + closestPc;
-    }
+    double divisionsPerOctave = round(double(divisionsPerOctave_));
+    double pc_ = pc(pitch);
+    double closestPc = closestPitch(pc_, pcs);
+    double octave = std::floor(pitch / divisionsPerOctave) * divisionsPerOctave;
+    double closestPitch = octave + closestPc;
+    return closestPitch;
   }
-
-}
-
-int main(int argc, const char **argv)
-{
-  clock_t began = std::clock();
-  int voiceleadings = 0;
-  for (size_t i = 0; i < 100; i++ ){
-    std::vector<double> CM7;
-    CM7.push_back(60.);
-    CM7.push_back(64.);
-    CM7.push_back(67.);
-    CM7.push_back(71.);
-    //CM7.push_back(74.);
-    std::vector<double> Dm7;
-    Dm7.push_back(62.);
-    Dm7.push_back(65.);
-    Dm7.push_back(69.);
-    Dm7.push_back(72.);
-    //Dm7.push_back(74.);
-    std::vector<double> G7;
-    G7.push_back(67.);
-    G7.push_back(71.);
-    G7.push_back(74.);
-    G7.push_back(77.);
-    //G7.push_back(79.);
-    std::cout << "CM7:   " << CM7 << std::endl;
-    std::cout << "Pcs: " << csound::Voicelead::pcs(CM7) << std::endl;
-    std::cout << "Dm7:   " << Dm7 << std::endl;
-    std::cout << "Pcs: " << csound::Voicelead::pcs(Dm7) << std::endl;
-    std::cout << "G7:    " << G7 << std::endl;
-    std::cout << "Pcs: " << csound::Voicelead::pcs(G7) << std::endl;
-    std::vector<double> target = csound::Voicelead::voicelead(CM7, Dm7, 0.0, 84.0, true);
-    voiceleadings++;
-    target = csound::Voicelead::voicelead(target, G7, 36.0, 60.0, true);
-    voiceleadings++;
-  }
-  clock_t ended = std::clock();
-  double elapsed = double(ended - began) / double(CLOCKS_PER_SEC);
-  double secondsPerVoiceleading = elapsed / double(voiceleadings);
-  std::cout << elapsed << " seconds / " << voiceleadings << " voiceleadings = " << secondsPerVoiceleading << " seconds per voiceleading." << std::endl;
-  std::vector<double> G7;
-  G7.push_back(67.);
-  G7.push_back(71.);
-  G7.push_back(74.);
-  G7.push_back(77.);
-  std::vector< std::vector<double> > voicings_ = csound::Voicelead::voicings(csound::Voicelead::pcs(G7), 48.0, 48.0);
-  for (size_t i = 0, n = voicings_.size(); i < n; i++) {
-    std::cout << "voiding " << (i+1) << ": " << voicings_[i] << std::endl;
-  }
-  return 0;
 }
