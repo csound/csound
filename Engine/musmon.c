@@ -766,7 +766,7 @@ static int process_rt_event(CSOUND *csound, int sensType)
       /* realtime or Midifile  */
       mep = csound->midiGlobals->Midevtblk;
       chn = csound->m_chnbp[mep->chan];
-      if (SR(chnrfd) && (rfd = SR(chnrfd)[mep->chan+1])) { /* RM: USE CHAN + 1 */
+      if (csound->remoteGlobals && SR(chnrfd) && (rfd = SR(chnrfd)[mep->chan+1])) { /* RM: USE CHAN + 1 */
         if (rfd == GLOBAL_REMOT)
           MIDIGlobevt(csound, mep);
         else MIDIsendevt(csound, mep, rfd);
