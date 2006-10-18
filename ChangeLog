@@ -1,4 +1,4 @@
-2006-10-17    Steven Yi  <stevenyi@gmail.com>
+2006-10-18    Steven Yi  <stevenyi@gmail.com>
 
 	* Engine/musmon.c (process_rt_event): Fixed to check if remoteGlobals is
 	initialized when processing MIDI events
