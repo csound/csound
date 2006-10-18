@@ -24,9 +24,12 @@
 #include "csoundCore.h"
 #include "remote.h"
 
-#ifdef LINUX
+#ifndef WIN32
 #include <sys/ioctl.h>
+#ifdef LINUX
 #include <linux/if.h>
+#endif
+#include <net/if.h>
 #endif
 
 #define MAXREMOTES 10
