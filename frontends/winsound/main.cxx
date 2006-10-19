@@ -175,16 +175,18 @@ void cs_compile_run(void)
    /* argv[nxt++] = "-d"; */    // for the moment
       // If orch name starts with / do a chdir
       getcwd(olddir, 255);
-      if (strchr(orchname->value(),'/')!=NULL) {
+      if ((orchname->value())[0]=='/') {
         char dir[256];
         strcpy(dir, orchname->value());
         *(strrchr(dir,'/')) = '\0';
+        if (dir[0]=='\0') strcpy(dir, "/");
         chdir(dir);
       }
-      else if (strchr(orchname->value(),'\\')!=NULL) {
+      else if ((orchname->value())[0]=='\\') {
         char dir[256];
         strcpy(dir, orchname->value());
         *(strrchr(dir,'\\')) = '\0';
+        if (dir[0]=='\0') strcpy(dir, "\\");
         chdir(dir);
       };
       res = csoundPreCompile(csound);
