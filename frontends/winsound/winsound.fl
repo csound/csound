@@ -242,7 +242,7 @@ size_f->value(1);}
     Fl_Button {} {
       label {?}
       callback {orchname->value(fl_file_chooser("Orc/Csd", "*.{orc,csd}", NULL));
-do_load = 1;}
+      do_load = 1;}
       xywh {100 20 25 25}
     }
     Fl_Button {} {
