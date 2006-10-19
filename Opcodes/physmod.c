@@ -655,7 +655,6 @@ int bowed(CSOUND *csound, BOWED *p)
 
 void make_DLineA(CSOUND *csound, DLineA *p, long max_length)
 {
-    int i;
     p->length = max_length;
     csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
     /* Next line is not necessary as AuxAlloc clears array */
