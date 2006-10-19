@@ -215,34 +215,47 @@ namespace csound
     return t1;
   }
 
+  // Recursively enumerate inversions of the original chord
+  // that fit within the maximum pitch.
+
   void inversions(const std::vector<double> &original, 
 		  const std::vector<double> &iterator, 
 		  size_t voice, 
-		  double range, 
+		  double maximum, 
 		  std::set< std::vector<double> > &chords, 
-		  size_t divisionsPerOctave = 12)
+		  size_t divisionsPerOctave)
   {
     if (voice >= original.size()) {
       return;
     }
     std::vector<double> iterator_ = iterator;
-    for (double pitch = original[voice]; pitch < range; pitch = pitch + divisionsPerOctave) {
+    for (double pitch = original[voice]; pitch < maximum; pitch = pitch + double(divisionsPerOctave)) {
       iterator_[voice] = pitch;
       chords.insert(iterator_);
-      inversions(original, iterator_, voice + 1, range, chords, divisionsPerOctave);
+      inversions(original, iterator_, voice + 1, maximum, chords, divisionsPerOctave);
     }
   }
   
   std::vector< std::vector<double> > Voicelead::voicings(const std::vector<double> &chord, 
 							 double lowest, 
-							 double range)
+							 double range,
+							 size_t divisionsPerOctave)
   {
-    std::vector< std::vector<double> > rotations_ = rotations(chord);
+    // Find the smallest inversion of the chord that is closest to the lowest pitch, but no lower.
+    std::vector<double> inversion = pcs(chord, divisionsPerOctave);
+    while (*std::min_element(inversion.begin(), inversion.end()) < lowest) {
+      inversion = rotate(inversion);
+      inversion[inversion.size() - 1] += double(divisionsPerOctave);
+    }
+    // Generate all permutations of that inversion.
+    std::vector< std::vector<double> > rotations_ = rotations(inversion);
+    // Iterate through all inversions of those permutations within the range.
     std::set< std::vector<double> > inversions_;
     for (size_t i = 0, n = rotations_.size(); i < n; i++) {
       std::vector<double> iterator = rotations_[i];
-      inversions(rotations_[i], iterator, 0, range, inversions_);
+      inversions(rotations_[i], iterator, 0, lowest + range, inversions_, divisionsPerOctave);
     }
+    // To have a random access but ordered set, return it as a vector.
     std::vector< std::vector<double> > inversions__;
     for(std::set< std::vector<double > >::iterator it = inversions_.begin(); it != inversions_.end(); ++it) {
       inversions__.push_back(*it);
@@ -258,11 +271,12 @@ namespace csound
 					   const std::vector<double> &target_, 
 					   double lowest, 
 					   double range, 
-					   bool avoidParallels)
+					   bool avoidParallels,
+					   size_t divisionsPerOctave)
   {
     std::vector<double> source = source_;
     std::vector<double> target = target_;
-    std::vector< std::vector<double> > voicings_ = voicings(target, lowest, range);
+    std::vector< std::vector<double> > voicings_ = voicings(target, lowest, range, divisionsPerOctave);
     std::vector<double> voicing = closest(source, voicings_, avoidParallels);
     if (debug) {
       std::cout << "   From: " << source_ << std::endl;
@@ -277,6 +291,8 @@ namespace csound
   {
     std::vector<double> pitches = pitches_;
     std::sort(pitches.begin(), pitches.end());
+    // its.first is the first iterator not less than pitch, or end if all are less.
+    // its.second is the first iterator greater than pitch, or end if none are greater.
     std::pair< std::vector<double>::iterator, std::vector<double>::iterator > its = std::equal_range(pitches.begin(), pitches.end(), pitch);
     if (its.first == pitches.end()) {
       return pitches.back();
@@ -285,13 +301,19 @@ namespace csound
       return pitches.front();
     }
     double lower = *its.first;
-    double upper = *its.second;
-    double lowerDifference = std::fabs(lower - pitch);
-    double upperDifference = std::fabs(upper - pitch);
-    if (lowerDifference <= upperDifference) {
-      return lower;
+    if (pitch == lower) {
+      return pitch;
+    }
+    // If lower isn't pitch, 
+    // then pitch always lies in the interval (first - 1, second).
+    double lowerP = *(its.first - 1);
+    double upperP = *its.second;
+    double lowerD = std::fabs(pitch - lowerP);
+    double upperD = std::fabs(upperP - pitch);
+    if (lowerD <= upperD) {
+      return lowerP;
     } else {
-      return upper;
+      return upperP;
     }
   }
 
