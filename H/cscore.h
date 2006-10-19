@@ -29,7 +29,7 @@
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
-#include "csoundCore.h"
+#include "csound.h"
 
 typedef struct cshdr {
         struct cshdr *prvblk;
