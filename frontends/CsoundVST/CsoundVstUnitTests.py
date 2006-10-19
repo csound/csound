@@ -71,9 +71,9 @@ for i in xrange(0, len(score), 20):
 	CsoundVST.Voicelead.pcsFromNumber(pcsN)
 	score.setPitchClassSet(i, i + 20, CsoundVST.Voicelead_pcsFromNumber(pcsN, 12), 12)
 score.save('CsoundVstUnitTest.py.3.mid')
-for i in xrange(0, len(score) - 40, 20):
+for i in xrange(0, len(score), 20):
 	pcs = CsoundVST.Voicelead_pcs(score.getPitches(i, i + 20))
-	print pcs
+	#print pcs
 	score.voicelead(i, i + 20, i + 20, i + 40, True)
 score.save('CsoundVstUnitTest.py.4.mid')
 
@@ -84,6 +84,10 @@ score.save('CsoundVstUnitTest.py.4.mid')
 
 	
 	
+
+
+
+
 
 
 
