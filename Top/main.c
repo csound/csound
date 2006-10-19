@@ -67,6 +67,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     char    *playscore = NULL;      /* unless we extract */
     FILE    *scorin = NULL, *scorout = NULL, *xfile = NULL;
     int     n;
+    int     csdFound = 0;
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
     if (csound->engineState != CS_STATE_PRE) {
@@ -168,10 +169,22 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
         csound->orcname_mode = 0;
         csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
+
+        /* Add directory of CSD file to search paths before orchname gets
+         * replaced with temp orch name */
+        char * fileDir = csoundGetDirectoryForPath(csound->orchname);
+        csoundAppendEnv(csound, "SADIR", fileDir);
+        csoundAppendEnv(csound, "SSDIR", fileDir);
+        csoundAppendEnv(csound, "INCDIR", fileDir);
+        csoundAppendEnv(csound, "MFDIR", fileDir);
+        free(fileDir);
+
         if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
           csound->Die(csound, Str("Decode failed....stopping"));
         }
+
+		csdFound = 1;
       }
     }
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
@@ -242,7 +255,27 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       fclose(scof);
       csound->scorename = sconame;
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
+    } else if(!csdFound){
+        /* Add directory of SCO file to search paths*/
+        char * fileDir = csoundGetDirectoryForPath(csound->scorename);
+        csoundAppendEnv(csound, "SADIR", fileDir);
+        csoundAppendEnv(csound, "SSDIR", fileDir);
+        csoundAppendEnv(csound, "INCDIR", fileDir);
+        csoundAppendEnv(csound, "MFDIR", fileDir);
+        free(fileDir);
     }
+
+    /* Add directory of ORC file to search paths*/
+    if(!csdFound) {
+	    char * fileDir = csoundGetDirectoryForPath(csound->orchname);
+	    csoundAppendEnv(csound, "SADIR", fileDir);
+	    csoundAppendEnv(csound, "SSDIR", fileDir);
+	    csoundAppendEnv(csound, "INCDIR", fileDir);
+	    csoundAppendEnv(csound, "MFDIR", fileDir);
+	    free(fileDir);
+    }
+
+
     csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
     if (csound->scorename != NULL)
       csound->Message(csound, Str("scorename: %s\n"), csound->scorename);

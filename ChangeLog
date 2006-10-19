@@ -1,3 +1,12 @@
+2006-10-19    Steven Yi  <stevenyi@gmail.com>
+
+    * Top/main.c (csoundCompile): now adds directory of CSD, or ORC and SCO to
+    INCDIR, SADIR, SSDIR, and MFDIR; SCO path's are currently added before ORC
+    path
+
+	* Engine/envvar.c (csoundGetDirectoryForPath): New function added to find
+	absolute path given a path as string
+
 2006-10-19  jpff  <jpff@codemist.co.uk>
 
 	* frontends/winsound/main.cxx (cs_compile_run): If orchname starts
