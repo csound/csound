@@ -85,6 +85,7 @@ void cs_compile_run(void)
     Fl::wait(0);
     csoundSetYieldCallback(csound, yieldCallback);
     if (do_load) {
+      char olddir[256];
       char *argv[100];
       char b1[12], b2[12], b3[12], b4[12], b5[12], b6[12], b7[12];
       int nxt=1;
@@ -172,6 +173,20 @@ void cs_compile_run(void)
       prof.get("N", itmp, 0); if (itmp) argv[nxt++] = "-N";
       prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = "-Z";
    /* argv[nxt++] = "-d"; */    // for the moment
+      // If orch name starts with / do a chdir
+      getcwd(olddir, 255);
+      if (strchr(orchname->value(),'/')!=NULL) {
+        char dir[256];
+        strcpy(dir, orchname->value());
+        *(strrchr(dir,'/')) = '\0';
+        chdir(dir);
+      }
+      else if (strchr(orchname->value(),'\\')!=NULL) {
+        char dir[256];
+        strcpy(dir, orchname->value());
+        *(strrchr(dir,'\\')) = '\0';
+        chdir(dir);
+      };
       res = csoundPreCompile(csound);
 //       {
 //         int n;
@@ -194,6 +209,7 @@ void cs_compile_run(void)
         *((int*) csoundQueryGlobalVariable(csound, "FLTK_Flags")) = 30;
         res = csoundCompile(csound, nxt, argv);
       }
+      chdir(olddir);
     }
     else
       csoundRewindScore(csound);
