@@ -174,19 +174,19 @@ void cs_compile_run(void)
       prof.get("Z", itmp, 0); if (itmp) argv[nxt++] = "-Z";
    /* argv[nxt++] = "-d"; */    // for the moment
       // If orch name starts with / do a chdir
-      getcwd(olddir, 255);
+      getcwd(olddir, 255);      // remember current directory
       if ((orchname->value())[0]=='/') {
         char dir[256];
         strcpy(dir, orchname->value());
         *(strrchr(dir,'/')) = '\0';
-        if (dir[0]=='\0') strcpy(dir, "/");
+        if (dir[0]=='\0') strcpy(dir, "/"); // if nothing left....
         chdir(dir);
       }
       else if ((orchname->value())[0]=='\\') {
         char dir[256];
         strcpy(dir, orchname->value());
         *(strrchr(dir,'\\')) = '\0';
-        if (dir[0]=='\0') strcpy(dir, "\\");
+        if (dir[0]=='\0') strcpy(dir, "\\"); // if nothing left....
         chdir(dir);
       };
       res = csoundPreCompile(csound);
