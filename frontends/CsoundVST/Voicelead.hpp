@@ -115,7 +115,8 @@ namespace csound
      */
     static std::vector< std::vector<double> > voicings(const std::vector<double> &chord, 
 						       double lowest, 
-						       double range);
+						       double range, 
+						       size_t divisionsPerOctave);
  
     /**
      * Returns the closest voiceleading within the specified range, 
@@ -141,7 +142,8 @@ namespace csound
 					 const std::vector<double> &targetPitchClassSet, 
 					 double lowest, 
 					 double range, 
-					 bool avoidParallels);
+					 bool avoidParallels,
+					 size_t divisionsPerOctave = 12);
 
     /**
      * Return the pitch in pitches that is closest to the specified pitch.

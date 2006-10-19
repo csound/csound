@@ -31,8 +31,8 @@ print '%8.3f = Voiclead_numberFromChord(%s)' % (CsoundVST.Voicelead_numberFromCh
 print
 print '%s = Voicelead_pcsFromNumber(%8.3f)' % (CsoundVST.Voicelead_pcsFromNumber(2193), 2193)
 print
-voicings = CsoundVST.Voicelead_voicings(a, 36, 60)
-print 'Voicelead_voicings(%s, %s, %s):' % (a, 36, 60)
+voicings = CsoundVST.Voicelead_voicings(a, 36, 60, 12)
+print 'Voicelead_voicings(%s, %s, %s, %d):' % (a, 36, 60, 12)
 for chord in voicings:
     print chord
 print
@@ -74,7 +74,7 @@ score.save('CsoundVstUnitTest.py.3.mid')
 for i in xrange(0, len(score), 20):
 	pcs = CsoundVST.Voicelead_pcs(score.getPitches(i, i + 20))
 	#print pcs
-	score.voicelead(i, i + 20, i + 20, i + 40, True)
+	score.voicelead(i, i + 20, i + 20, i + 40, 36, 96, True)
 score.save('CsoundVstUnitTest.py.4.mid')
 
 	
@@ -84,6 +84,10 @@ score.save('CsoundVstUnitTest.py.4.mid')
 
 	
 	
+
+
+
+
 
 
 

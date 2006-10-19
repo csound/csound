@@ -106,19 +106,26 @@ namespace csound
      * Return a vector containing the MIDI key numbers 
      * in the specified segment of the score.
      */
-    virtual std::vector<double> getPitches(size_t begin, size_t end) const;
+    virtual std::vector<double> getPitches(size_t begin, 
+					   size_t end, 
+					   size_t divisionsPerOctave = 12) const;
     /**
      * Set the pitches of the specified segment of the score
      * to the specified pitches.
      * Each pitch in the score is moved to the closest pitch in the specified pitches.
      */
-    virtual void setPitches(size_t begin, size_t end, const std::vector<double> &pitches);
+    virtual void setPitches(size_t begin, 
+			    size_t end, 
+			    const std::vector<double> &pitches);
     /**
      * Set the pitches of the specified segment of the score
      * to the specified pitch-class set.
      * Each pitch in the score is moved to the closest pitch-class in the specified set.
      */
-    virtual void setPitchClassSet(size_t begin, size_t end, const std::vector<double> &pcs, size_t tonesPerOctave = 12);
+    virtual void setPitchClassSet(size_t begin, 
+				  size_t end, 
+				  const std::vector<double> &pcs, 
+				  size_t tonesPerOctave = 12);
     /**
      * For the specified segment of the score,
      * return the indexes for the prime chord, its transposition, 
@@ -126,7 +133,11 @@ namespace csound
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual std::vector<double> getPTV(size_t begin, size_t end, double lowest, double range) const;
+    virtual std::vector<double> getPTV(size_t begin, 
+				       size_t end, 
+				       double lowest, 
+				       double range, 
+				       size_t divisionsPerOctave = 12) const;
     /**
      * For the specified segment of the score,
      * adjust the pitches to match the specified indexes for the prime chord, its transposition, 
@@ -134,7 +145,14 @@ namespace csound
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void setPTV(size_t begin, size_t end, double prime, double transposition, double voicing, double lowest, double range);
+    virtual void setPTV(size_t begin, 
+			size_t end, 
+			double prime, 
+			double transposition, 
+			double voicing, 
+			double lowest, 
+			double range, 
+			size_t divisionsPerOctave = 12);
     /**
      * Performs voice-leading between 
      * between the specified segments of the score 
@@ -148,7 +166,14 @@ namespace csound
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void voicelead(size_t beginSource, size_t endSource, size_t beginTarget, size_t endTarget, double lowest, double range, bool avoidParallelFifths);
+    virtual void voicelead(size_t beginSource, 
+			   size_t endSource, 
+			   size_t beginTarget, 
+			   size_t endTarget, 
+			   double lowest, 
+			   double range, 
+			   bool avoidParallelFifths, 
+			   size_t divisionsPerOctave = 12);
     /**
      * Return the index of the first event at or after the specified time;
      * if the time is not found, return -1.
