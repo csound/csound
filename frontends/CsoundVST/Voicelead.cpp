@@ -186,6 +186,18 @@ namespace csound
     return rotations_;
   }
   
+  std::vector< std::vector<double> > pitchRotations(const std::vector<double> &chord)
+  {
+    std::vector< std::vector<double> > rotations_;
+    std::vector<double> inversion = chord;
+    rotations_.push_back(inversion);
+    for (size_t i = 1, n = chord.size(); i < n; i++) {
+      inversion = Voicelead::rotate(inversion);
+      rotations_.push_back(inversion);
+    }
+    return rotations_;
+  }
+  
   std::vector<double> Voicelead::pcs(const std::vector<double> &chord, size_t divisionsPerOctave) 
   {
     std::vector<double> pcs_(chord.size());
@@ -243,12 +255,16 @@ namespace csound
   {
     // Find the smallest inversion of the chord that is closest to the lowest pitch, but no lower.
     std::vector<double> inversion = pcs(chord, divisionsPerOctave);
-    while (*std::min_element(inversion.begin(), inversion.end()) < lowest) {
+    for(;;) {
+      std::vector<double>::iterator it = std::min_element(inversion.begin(), inversion.end());
+      if (lowest <= *it) {
+	break;
+      }
+      inversion[0] = inversion[0] + double(divisionsPerOctave);
       inversion = rotate(inversion);
-      inversion[inversion.size() - 1] += double(divisionsPerOctave);
     }
     // Generate all permutations of that inversion.
-    std::vector< std::vector<double> > rotations_ = rotations(inversion);
+    std::vector< std::vector<double> > rotations_ = pitchRotations(inversion);
     // Iterate through all inversions of those permutations within the range.
     std::set< std::vector<double> > inversions_;
     for (size_t i = 0, n = rotations_.size(); i < n; i++) {
