@@ -583,6 +583,34 @@ namespace csound
     setPitches(beginTarget, endTarget, voicing);
   }
 
+  void Score::recursiveVoicelead(size_t beginSource, 
+				 size_t endSource, 
+				 size_t beginTarget, 
+				 size_t endTarget, 
+				 double lowest, 
+				 double range, 
+				 bool avoidParallelFifths, 
+				 size_t divisionsPerOctave)
+  {
+    std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
+    if (source.size() == 0) {
+      return;
+    }
+    std::vector<double> target = getPitches(beginTarget, endTarget, divisionsPerOctave);
+    if (target.size() == 0) {
+      return;
+    }
+    std::vector<double> tones = Voicelead::pcs(target, divisionsPerOctave);
+    if (source.size() > tones.size()) {
+      size_t n = source.size() - tones.size();
+      for (size_t i = 0; i < n; i++) {
+	tones.push_back(source[i]);
+      }
+    }
+    std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
+    setPitches(beginTarget, endTarget, voicing);
+  }
+
   struct TimeComparator
   {
     double time;

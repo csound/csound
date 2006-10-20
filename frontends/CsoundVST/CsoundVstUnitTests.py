@@ -51,6 +51,11 @@ print '%s = CsoundVST.Voicelead_voicelead(%s, %s, lowest, range, True)' % (t1, C
 t2 = CsoundVST.Voicelead_voicelead(t1, G7, lowest, range, False)
 print '%s = CsoundVST.Voicelead_voicelead(%s, %s, lowest, range, True)' % (t2, t1, G7)
 print
+t1 = CsoundVST.Voicelead_recursiveVoicelead(CM7, FM7, lowest, range, False)
+print '%s = CsoundVST.Voicelead_recursiveVoicelead(%s, %s, lowest, range, True)' % (t1, CM7, FM7)
+t2 = CsoundVST.Voicelead_recursiveVoicelead(t1, G7, lowest, range, False)
+print '%s = CsoundVST.Voicelead_recursiveVoicelead(%s, %s, lowest, range, True)' % (t2, t1, G7)
+print
 for i in xrange(lowest, range, 1):
 	print '%8.3f = Voiclead_closestPitch(Voicelead_pc(%d), %s)' %(CsoundVST.Voicelead_closestPitch(i, CM7), i, CM7)
 print
@@ -80,7 +85,7 @@ for i in xrange(0, len(score), 20):
 score.save('CsoundVstUnitTest.py.3.mid')
 for i in xrange(0, 1300, 20):
 	prepitches = score.getPitches(i, i + 20)
-	score.voicelead(i, i + 20, i + 20, i + 40, lowest, range, True)
+	score.recursiveVoicelead(i, i + 20, i + 20, i + 40, lowest, range, True)
 	postpitches = score.getPitches(i + 20, i + 40)
 	print i, prepitches, postpitches
 score.save('CsoundVstUnitTest.py.4.mid')
@@ -92,6 +97,8 @@ score.save('CsoundVstUnitTest.py.4.mid')
 
 	
 	
+
+
 
 
 

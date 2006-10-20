@@ -1,3 +1,24 @@
+/**
+ * C S O U N D   V S T
+ *
+ * A VST plugin version of Csound, with Python scripting.
+ *
+ * L I C E N S E
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 #include "Voicelead.hpp"
 
 #include <iostream>
@@ -294,6 +315,71 @@ namespace csound
     std::vector<double> target = target_;
     std::vector< std::vector<double> > voicings_ = voicings(target, lowest, range, divisionsPerOctave);
     std::vector<double> voicing = closest(source, voicings_, avoidParallels);
+    if (debug) {
+      std::cout << "   From: " << source_ << std::endl;
+      std::cout << "     To: " << target_ << std::endl;
+      std::cout << "Leading: " << voiceleading(source_, voicing) << std::endl;
+      std::cout << "     Is: " << voicing << std::endl << std::endl;
+    }
+    return voicing;
+  } 
+
+  void recursiveVoicelead_(const std::vector<double> &source,
+			   const std::vector<double> &original, 
+			   const std::vector<double> &iterator, 
+			   std::vector<double> &target,
+			   size_t voice, 
+			   double maximum, 
+			   bool avoidParallels,
+			   size_t divisionsPerOctave)
+  {
+    if (voice >= original.size()) {
+      return;
+    }
+    std::vector<double> iterator_ = iterator;
+    for (double pitch = original[voice]; pitch < maximum; pitch = pitch + double(divisionsPerOctave)) {
+      iterator_[voice] = pitch;
+      target = Voicelead::closer(source, iterator_, target, avoidParallels);
+      recursiveVoicelead_(source, original, iterator_, target, voice + 1, maximum, avoidParallels, divisionsPerOctave);
+    }
+  }
+  
+  /**
+   * Bijective voiceleading first by closeness, then by simplicity, 
+   * with optional avoidance of parallel fifths.
+   */
+  std::vector<double> Voicelead::recursiveVoicelead(const std::vector<double> &source_, 
+						    const std::vector<double> &target_, 
+						    double lowest, 
+						    double range, 
+						    bool avoidParallels,
+						    size_t divisionsPerOctave)
+  {
+    std::vector<double> source = source_;
+    std::vector<double> target = target_;
+    // Find the smallest inversion of the target chord 
+    // that is closest to the lowest pitch, but no lower.
+    std::vector<double> inversion = pcs(target, divisionsPerOctave);
+    for(;;) {
+      std::vector<double>::iterator it = std::min_element(inversion.begin(), inversion.end());
+      if (lowest <= *it) {
+	break;
+      }
+      inversion[0] = inversion[0] + double(divisionsPerOctave);
+      inversion = rotate(inversion);
+    }
+    // Generate all permutations of that inversion.
+    std::vector< std::vector<double> > rotations_ = pitchRotations(inversion);
+    // Iterate through all inversions of those permutations within the range.
+    std::set< std::vector<double> > inversions_;
+    std::vector<double> voicing;
+    for (size_t i = 0, n = rotations_.size(); i < n; i++) {
+      std::vector<double> iterator = rotations_[i];
+      if (i == 0) {
+	voicing = iterator;
+      }
+      recursiveVoicelead_(source, rotations_[i], iterator,  voicing, 0,         lowest + range, avoidParallels, divisionsPerOctave);
+    }
     if (debug) {
       std::cout << "   From: " << source_ << std::endl;
       std::cout << "     To: " << target_ << std::endl;

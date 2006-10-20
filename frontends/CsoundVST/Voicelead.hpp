@@ -1,3 +1,24 @@
+/**
+ * C S O U N D   V S T
+ *
+ * A VST plugin version of Csound, with Python scripting.
+ *
+ * L I C E N S E
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 #ifndef CSOUND_VOICELEAD_HPP
 #define CSOUND_VOICELEAD_HPP
 
@@ -134,9 +155,10 @@ namespace csound
      * between the source chord and the target pitch-class set,
      * optionally avoiding parallel fifths.
      * The algorithm uses a brute-force search through all
-     * unordered chords fitting the target pitch-class set within
+     * unordered chords, which are stored in a cache,
+     * fitting the target pitch-class set within
      * the specified range. For up to 6 voices this is usable
-     * for non-real-time computation.
+     * for non-real-time computation. 
      */
     static std::vector<double> voicelead(const std::vector<double> &source, 
 					 const std::vector<double> &targetPitchClassSet, 
@@ -144,6 +166,24 @@ namespace csound
 					 double range, 
 					 bool avoidParallels,
 					 size_t divisionsPerOctave = 12);
+
+    /**
+     * Returns the closest voiceleading within the specified range, 
+     * first by smoothness then by simplicity, 
+     * between the source chord and the target pitch-class set,
+     * optionally avoiding parallel fifths.
+     * The algorithm uses a brute-force search through all
+     * unordered chords, which are recursively enumerated,
+     * fitting the target pitch-class set within
+     * the specified range. For up to 6 voices this is usable
+     * for non-real-time computation.
+     */
+    static std::vector<double> recursiveVoicelead(const std::vector<double> &source, 
+						  const std::vector<double> &targetPitchClassSet, 
+						  double lowest, 
+						  double range, 
+						  bool avoidParallels,
+						  size_t divisionsPerOctave = 12);
 
     /**
      * Return the pitch in pitches that is closest to the specified pitch.
