@@ -601,10 +601,58 @@ namespace csound
       return;
     }
     std::vector<double> tones = Voicelead::pcs(target, divisionsPerOctave);
+    // Double voices in the target if necessary.
     if (source.size() > tones.size()) {
       size_t n = source.size() - tones.size();
       for (size_t i = 0; i < n; i++) {
-	tones.push_back(source[i]);
+	size_t index = i % tones.size();
+	tones.push_back(tones[index]);
+      }
+    }
+    // Double voices in the source if necessary.
+    if (tones.size() > source.size()) {
+      size_t n = tones.size() - source.size();
+      for (size_t i = 0; i < n; i++) {
+	size_t index = i % source.size();
+	source.push_back(source[index]);
+      }
+    }
+    std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
+    setPitches(beginTarget, endTarget, voicing);
+  }
+
+  void Score::recursiveVoicelead(size_t beginSource, 
+				 size_t endSource, 
+				 size_t beginTarget, 
+				 size_t endTarget, 
+				 const std::vector<double> &target,
+				 double lowest, 
+				 double range, 
+				 bool avoidParallelFifths, 
+				 size_t divisionsPerOctave)
+  {
+    std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
+    if (source.size() == 0) {
+      return;
+    }
+    if (target.size() == 0) {
+      return;
+    }
+    std::vector<double> tones = Voicelead::pcs(target, divisionsPerOctave);
+    // Double voices in the target if necessary.
+    if (source.size() > tones.size()) {
+      size_t n = source.size() - tones.size();
+      for (size_t i = 0; i < n; i++) {
+	size_t index = i % tones.size();
+	tones.push_back(tones[index]);
+      }
+    }
+    // Double voices in the source if necessary.
+    if (tones.size() > source.size()) {
+      size_t n = tones.size() - source.size();
+      for (size_t i = 0; i < n; i++) {
+	size_t index = i % source.size();
+	source.push_back(source[index]);
       }
     }
     std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
