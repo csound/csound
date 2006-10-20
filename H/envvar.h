@@ -172,6 +172,12 @@ extern "C" {
    */
   int csoundFileClose(CSOUND *, void *fd);
 
+  /** Given a file name as string, return full path of directory of file;
+   * Note: does not check if file exists
+   */
+  char *csoundGetDirectoryForPath(const char * path);
+
+
 #ifdef __cplusplus
 }
 #endif
