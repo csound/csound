@@ -163,6 +163,8 @@ namespace csound
      * Only the pitches of the target notes
      * are affected. If necessary, the number of pitches 
      * in the target chord is adjusted to match the source.
+     * Candidate voicings are recursively compiled into
+     * a cache that is then searched.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
@@ -174,6 +176,29 @@ namespace csound
 			   double range, 
 			   bool avoidParallelFifths, 
 			   size_t divisionsPerOctave = 12);
+    /**
+     * Performs voice-leading between 
+     * between the specified segments of the score 
+     * within the specified range.
+     * The voice-leading is first the closest by
+     * taxicab norm, and then the simplest in motion,
+     * optionally avoiding parallel fifths.
+     * Only the pitches of the target notes
+     * are affected. If necessary, the number of pitches 
+     * in the target chord is adjusted to match the source.
+     * Candidate voicings are recursively enumerated
+     * and compared.
+     *
+     * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
+     */
+    virtual void recursiveVoicelead(size_t beginSource, 
+				    size_t endSource, 
+				    size_t beginTarget, 
+				    size_t endTarget, 
+				    double lowest, 
+				    double range, 
+				    bool avoidParallelFifths, 
+				    size_t divisionsPerOctave = 12);
     /**
      * Return the index of the first event at or after the specified time;
      * if the time is not found, return -1.
