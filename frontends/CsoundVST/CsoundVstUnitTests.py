@@ -83,11 +83,12 @@ for i in xrange(0, len(score), 20):
 	pcsI = pcsI % 4095
 	pcsN = pcsI + 1
 score.save('CsoundVstUnitTest.py.3.mid')
-for i in xrange(0, 1300, 20):
+for i in xrange(0, len(score) - 40, 20):
 	prepitches = score.getPitches(i, i + 20)
 	score.recursiveVoicelead(i, i + 20, i + 20, i + 40, lowest, range, True)
 	postpitches = score.getPitches(i + 20, i + 40)
 	print i, prepitches, postpitches
+	print i, CsoundVST.Voicelead_pcs(prepitches), CsoundVST.Voicelead_pcs(postpitches)
 score.save('CsoundVstUnitTest.py.4.mid')
 
 	

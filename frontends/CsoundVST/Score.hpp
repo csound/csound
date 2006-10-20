@@ -178,7 +178,7 @@ namespace csound
 			   size_t divisionsPerOctave = 12);
     /**
      * Performs voice-leading between 
-     * between the specified segments of the score 
+     * the specified segments of the score 
      * within the specified range.
      * The voice-leading is first the closest by
      * taxicab norm, and then the simplest in motion,
@@ -195,6 +195,31 @@ namespace csound
 				    size_t endSource, 
 				    size_t beginTarget, 
 				    size_t endTarget, 
+				    double lowest, 
+				    double range, 
+				    bool avoidParallelFifths, 
+				    size_t divisionsPerOctave = 12);
+    /**
+     * Performs voice-leading between 
+     * the specified segments of the score 
+     * within the specified range, using
+     * the specified target pitches.
+     * The voice-leading is first the closest by
+     * taxicab norm, and then the simplest in motion,
+     * optionally avoiding parallel fifths.
+     * Only the pitches of the target notes
+     * are affected. If necessary, the number of pitches 
+     * in the target chord is adjusted to match the source.
+     * Candidate voicings are recursively enumerated
+     * and compared.
+     *
+     * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
+     */
+    virtual void recursiveVoicelead(size_t beginSource, 
+				    size_t endSource, 
+				    size_t beginTarget, 
+				    size_t endTarget, 
+				    const std::vector<double> &targetPitches,
 				    double lowest, 
 				    double range, 
 				    bool avoidParallelFifths, 
