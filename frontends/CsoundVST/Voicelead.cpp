@@ -229,6 +229,7 @@ namespace csound
       std::cout << "chord: " << chord << std::endl;
       std::cout << "pcs: " << pcs_ << std::endl;
     }
+    std::sort(pcs_.begin(), pcs_.end());
     return pcs_;
   }
 
@@ -431,7 +432,7 @@ namespace csound
   {
     double ss = 0.0;
     for (size_t i = 0, n = chord1.size(); i < n; i++) {
-      ss += std::pow((chord1[i] - chord2[i]), 2.0);
+      ss  = ss + std::pow((chord1[i] - chord2[i]), 2.0);
     }
     return std::sqrt(ss);
   }
@@ -472,16 +473,22 @@ namespace csound
   {
     std::vector< std::vector<double> > inversions_ = inversions(chord);
     std::vector<double> origin(chord.size(), 0.0);
-    std::vector<double> distances;
-    std::map<double, std::vector<double> > inversionsForDistances;
+    std::vector<double> normalChord;
+    double minDistance = 0;
     for (size_t i = 0, n = inversions_.size(); i < n; i++) {
-      const std::vector<double> &zeroChordInversion = zeroChord(inversions_[i]);
-      double distance = euclideanDistance(origin, zeroChordInversion);
-      distances.push_back(distance);
-      inversionsForDistances[distance] = inversions_[i];
+      std::vector<double> zeroChordInversion = zeroChord(inversions_[i]);
+      if (i == 0) {
+	normalChord = inversions_[i];
+	minDistance = euclideanDistance(zeroChordInversion, origin);
+      } else {
+	double distance = euclideanDistance(zeroChordInversion, origin);
+	if (distance < minDistance) {
+	  minDistance = distance;
+	  normalChord = inversions_[i];
+	}
+      }
     }
-    double leastDistance = *std::min_element(distances.begin(), distances.end());
-    return inversionsForDistances[leastDistance];
+    return normalChord;
   }
 
   std::vector<double>  Voicelead::primeChord(const std::vector<double> &chord)
