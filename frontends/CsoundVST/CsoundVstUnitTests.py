@@ -56,6 +56,15 @@ print '%s = CsoundVST.Voicelead_recursiveVoicelead(%s, %s, lowest, range, True)'
 t2 = CsoundVST.Voicelead_recursiveVoicelead(t1, G7, lowest, range, False)
 print '%s = CsoundVST.Voicelead_recursiveVoicelead(%s, %s, lowest, range, True)' % (t2, t1, G7)
 print
+print 'Inversions of', a
+inversions = CsoundVST.Voicelead_inversions(a)
+for inversion in inversions:
+	inversion = list(inversion)
+	print 'inversion of %s:           %s' % (a, inversion)
+	print 'zero chord of inversion:   ',CsoundVST.Voicelead_zeroChord(inversion)
+	print 'normal chord of inversion: ',CsoundVST.Voicelead_normalChord(inversion)
+	print 'prime chord of inversion:  ',CsoundVST.Voicelead_primeChord(inversion)
+print
 for i in xrange(lowest, range, 1):
 	print '%8.3f = Voiclead_closestPitch(Voicelead_pc(%d), %s)' %(CsoundVST.Voicelead_closestPitch(i, CM7), i, CM7)
 print
@@ -98,6 +107,7 @@ score.save('CsoundVstUnitTest.py.4.mid')
 
 	
 	
+
 
 
 
