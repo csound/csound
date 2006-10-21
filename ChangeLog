@@ -1,3 +1,7 @@
+2006-10-21  jpff  <jpff@codemist.co.uk>
+
+	* Opcodes/harmon.c: New code from Barry Vercoe
+
 2006-10-19    Steven Yi  <stevenyi@gmail.com>
 
     * Top/main.c (csoundCompile): now adds directory of CSD, or ORC and SCO to
