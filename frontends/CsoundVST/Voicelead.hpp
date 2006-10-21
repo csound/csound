@@ -57,20 +57,20 @@ namespace csound
   {
   public:
     /**
-     * Returns the pitch-class of the pitch.
+     * Return the pitch-class of the pitch.
      */
     static double pc(double pitch, size_t divisionsPerOctave = 12);
 
 
     /**
-     * Returns the voice-leading vector between
+     * Return the voice-leading vector between
      * chord1 and chord2.
      */   
     static std::vector<double> voiceleading(const std::vector<double> &chord1, 
 					    const std::vector<double> &chord2);
 
     /**
-     * Returns the simpler (fewer motions) of the voiceleadings
+     * Return the simpler (fewer motions) of the voiceleadings
      * between source chord and either destination1 or destination2,
      * optionally avoiding parallel fifths.
      */
@@ -80,21 +80,21 @@ namespace csound
 					      bool avoidParallels);
 
     /**
-     * Returns the smoothness (distance by taxicab or L1 norm)
+     * Return the smoothness (distance by taxicab or L1 norm)
      * of the voiceleading between chord1 and chord2.
      */
     static double smoothness(const std::vector<double> &chord1, 
 			     const std::vector<double> &chord1);
                 
     /*
-     * Returns whether the progression between chord1 and chord2
+     * Return whether the progression between chord1 and chord2
      * contains a parallel fifth.
      */
     static bool areParallel(const std::vector<double> &chord1, 
 			    const std::vector<double> &chord2);
 
     /**
-     * Returns the closer, first by smoothness then by simplicity.,
+     * Return the closer, first by smoothness then by simplicity.,
      * of the voiceleadings between source and either 
      * destination1 or destination2, optionally avoiding
      * parallel fifths.
@@ -105,33 +105,33 @@ namespace csound
 					     bool avoidParallels);
 
     /**
-     * Returns the chord with the first note rotated to the last note.
+     * Return the chord with the first note rotated to the last note.
      */
     static std::vector<double> rotate(const std::vector<double> &chord);
 
     /**
-     * Returns the set of all rotations of the chord.
+     * Return the set of all rotations of the chord.
      */
     static std::vector< std::vector<double> > rotations(const std::vector<double> &chord);
   
     /**
-     * Returns the chord as the list of its pitch-classes.
+     * Return the chord as the list of its pitch-classes.
      */
     static std::vector<double> pcs(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
-     * Converts a chord to a pitch-class set number 
+     * Convert a chord to a pitch-class set number 
      * N = sum (2 ^ pc).
      */
     static double numberFromChord(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
-     * Converts a pitch-class set number to a pitch-class set chord.
+     * Convert a pitch-class set number to a pitch-class set chord.
      */
     static std::vector<double> pcsFromNumber(double pcn, size_t divisionsPerOctave = 12);
 
     /**
-     * Returns all voicings of the chord
+     * Return all voicings of the chord
      * within the specified range.
      */
     static std::vector< std::vector<double> > voicings(const std::vector<double> &chord, 
@@ -140,7 +140,7 @@ namespace csound
 						       size_t divisionsPerOctave);
  
     /**
-     * Returns the closest voiceleading within the specified range, 
+     * Return the closest voiceleading within the specified range, 
      * first by smoothness then by simplicity, 
      * between the source chord any of the destination chords,
      * optionally avoiding parallel fifths.
@@ -150,7 +150,7 @@ namespace csound
 					     bool avoidParallels);
    
     /**
-     * Returns the closest voiceleading within the specified range, 
+     * Return the closest voiceleading within the specified range, 
      * first by smoothness then by simplicity, 
      * between the source chord and the target pitch-class set,
      * optionally avoiding parallel fifths.
@@ -168,7 +168,7 @@ namespace csound
 					 size_t divisionsPerOctave = 12);
 
     /**
-     * Returns the closest voiceleading within the specified range, 
+     * Return the closest voiceleading within the specified range, 
      * first by smoothness then by simplicity, 
      * between the source chord and the target pitch-class set,
      * optionally avoiding parallel fifths.
@@ -194,10 +194,48 @@ namespace csound
      * Return the pitch that results from making the minimum adjustment
      * to the pitch-class of the pitch argument that is required to make
      * its pitch-class the same as one of the pitch-classes in the
-     * pitch-class set argument.
+     * pitch-class set argument. I.e., "round up or down" to make
+     * the pitch fit into a chord or scale.
      */
     static double conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t divisionsPerOctave = 12);
 
+    /**
+     * Return the Euclidean distance between two chords,
+     * which must have the same number of voices.
+     */
+    static double euclideanDistance(const std::vector<double> &chord1, const std::vector<double> &chord2);
+
+    /**
+     * Invert by rotating the chord and adding an octave to its last pitch.
+     */
+    static std::vector<double> invert(const std::vector<double> &chord);
+
+    /**
+     * Return as many inversions of the pitch-classes in the chord
+     * as there are voices in the chord.
+     */
+    static std::vector< std::vector<double> > inversions(const std::vector<double> &chord);
+
+    /**
+     * Return the chord transposed so its lowest pitch is at the origin.
+     */
+    static std::vector<double> zeroChord(const std::vector<double> &chord);
+
+    /**
+     * Return the normal chord: that inversion of the pitch-classes in the chord
+     * which is closest to the orthogonal axis of the Tonnetz for that chord. 
+     * Similar to, but not identical with, "normal form."
+     */
+    static std::vector<double> normalChord(const std::vector<double> &chord);
+
+    /**
+     * Return the prime chord: that inversion of the pitch-classes in the chord
+     * which is closest to the orthogonal axis of the Tonnetz for that chord,
+     * transposed so that its lowest pitch is at the origin. 
+     * Similar to, but not identical with, "prime form."
+     */
+    static std::vector<double> primeChord(const std::vector<double> &chord);
+    
   };
   
 }

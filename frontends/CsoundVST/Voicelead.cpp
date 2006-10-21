@@ -281,8 +281,7 @@ namespace csound
       if (lowest <= *it) {
 	break;
       }
-      inversion[0] = inversion[0] + double(divisionsPerOctave);
-      inversion = rotate(inversion);
+      inversion = invert(inversion);
     }
     // Generate all permutations of that inversion.
     std::vector< std::vector<double> > rotations_ = pitchRotations(inversion);
@@ -290,7 +289,7 @@ namespace csound
     std::set< std::vector<double> > inversions_;
     for (size_t i = 0, n = rotations_.size(); i < n; i++) {
       std::vector<double> iterator = rotations_[i];
-      inversions(rotations_[i], iterator, 0, lowest + range, inversions_, divisionsPerOctave);
+      csound::inversions(rotations_[i], iterator, 0, lowest + range, inversions_, divisionsPerOctave);
     }
     // To have a random access but ordered set, return it as a vector.
     std::vector< std::vector<double> > inversions__;
@@ -365,8 +364,7 @@ namespace csound
       if (lowest <= *it) {
 	break;
       }
-      inversion[0] = inversion[0] + double(divisionsPerOctave);
-      inversion = rotate(inversion);
+      inversion = invert(inversion);
     }
     // Generate all permutations of that inversion.
     std::vector< std::vector<double> > rotations_ = pitchRotations(inversion);
@@ -428,4 +426,67 @@ namespace csound
     double closestPitch = octave + closestPc;
     return closestPitch;
   }
+
+  double Voicelead::euclideanDistance(const std::vector<double> &chord1, const std::vector<double> &chord2)
+  {
+    double ss = 0.0;
+    for (size_t i = 0, n = chord1.size(); i < n; i++) {
+      ss += std::pow((chord1[i] - chord2[i]), 2.0);
+    }
+    return std::sqrt(ss);
+  }
+
+  std::vector<double>  Voicelead::zeroChord(const std::vector<double> &chord_)
+  {
+    std::vector<double> chord = chord_;
+    double minimum = *std::min_element(chord.begin(), chord.end());
+    for (size_t i = 0, n = chord.size(); i < n; i++) {
+      chord[i] = chord[i] - minimum;
+    }
+    return chord;
+  }
+ 
+  std::vector<double> Voicelead::invert(const std::vector<double> &chord)
+  {
+    std::vector<double> inversion;
+    for (size_t i = 1, n = chord.size(); i < n; i++) {
+      inversion.push_back(chord[i]);
+    }
+    inversion.push_back(chord[0] + 12.0);
+    return inversion;
+  }
+
+  std::vector< std::vector<double> > Voicelead::inversions(const std::vector<double> &chord)
+  {
+    std::vector< std::vector<double> > inversions_;
+    std::vector<double> inversion = pcs(chord);
+    inversions_.push_back(inversion);
+    for (size_t i = 1, n = chord.size(); i < n; i++) {
+      inversion = invert(inversion);
+      inversions_.push_back(inversion);
+    }
+    return inversions_;
+  }
+
+  std::vector<double>  Voicelead::normalChord(const std::vector<double> &chord)
+  {
+    std::vector< std::vector<double> > inversions_ = inversions(chord);
+    std::vector<double> origin(chord.size(), 0.0);
+    std::vector<double> distances;
+    std::map<double, std::vector<double> > inversionsForDistances;
+    for (size_t i = 0, n = inversions_.size(); i < n; i++) {
+      const std::vector<double> &zeroChordInversion = zeroChord(inversions_[i]);
+      double distance = euclideanDistance(origin, zeroChordInversion);
+      distances.push_back(distance);
+      inversionsForDistances[distance] = inversions_[i];
+    }
+    double leastDistance = *std::min_element(distances.begin(), distances.end());
+    return inversionsForDistances[leastDistance];
+  }
+
+  std::vector<double>  Voicelead::primeChord(const std::vector<double> &chord)
+  {
+    return zeroChord(normalChord(chord));
+  }
+
 }
