@@ -45,11 +45,9 @@
 namespace csound 
 {
   /**
-   * Performs voice-leading between 
-   * two sets of unordered pitches (MIDI key numbers).
-   * The voice-leading is first the closest by
-   * taxicab norm, and then the simplest in motion,
-   * optionally avoiding parallel fifths.
+   * This class contains facilities for
+   * voiceleading, harmonic progression,
+   * and identifying chord types.
    *
    * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
    */
@@ -58,6 +56,13 @@ namespace csound
   public:
     /**
      * Return the pitch-class of the pitch.
+     * The octave is always defined as 12 semitones.
+     * If the number of divisions per octave is also 12,
+     * then the pitch-class of a pitch is an integer.
+     * If the number of divisions per octave is not 12,
+     * then the pitch-class is not necessarily an integer;
+     * but this method rounds off the pitch to its exact
+     * pitch-class.
      */
     static double pc(double pitch, size_t divisionsPerOctave = 12);
 
@@ -86,6 +91,13 @@ namespace csound
     static double smoothness(const std::vector<double> &chord1, 
 			     const std::vector<double> &chord1);
                 
+    /**
+     * Return the Euclidean distance between two chords,
+     * which must have the same number of voices.
+     */
+    static double euclideanDistance(const std::vector<double> &chord1, 
+				    const std::vector<double> &chord2);
+
     /*
      * Return whether the progression between chord1 and chord2
      * contains a parallel fifth.
@@ -116,12 +128,17 @@ namespace csound
   
     /**
      * Return the chord as the list of its pitch-classes.
+     * Although the list is nominally unordered, it is 
+     * returned sorted in ascending order. Note that pitch-classes
+     * may be doubled.
      */
     static std::vector<double> pcs(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
      * Convert a chord to a pitch-class set number 
-     * N = sum (2 ^ pc).
+     * N = sum (2 ^ pc). These numbers form a multiplicative cyclic
+     * group. Arithmetic on this group can perform many
+     * harmonic and other manipulations of pitch.
      */
     static double numberFromChord(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
@@ -132,7 +149,12 @@ namespace csound
 
     /**
      * Return all voicings of the chord
-     * within the specified range.
+     * within the specified range. These voices
+     * include all unordered permutations of the pitch-classes
+     * at whatever octave fits within the range. 
+     * The index of this list forms an additive cyclic group.
+     * Arithmetic on this group can perform many operations
+     * on the voices of the chord such as revoicing, arpeggiation, and so on.
      */
     static std::vector< std::vector<double> > voicings(const std::vector<double> &chord, 
 						       double lowest, 
@@ -157,8 +179,9 @@ namespace csound
      * The algorithm uses a brute-force search through all
      * unordered chords, which are stored in a cache,
      * fitting the target pitch-class set within
-     * the specified range. For up to 6 voices this is usable
-     * for non-real-time computation. 
+     * the specified range. Although the time complexity
+     * is exponential, this is still usable for non-real-time
+     * operations in most cases of musical interest.
      */
     static std::vector<double> voicelead(const std::vector<double> &source, 
 					 const std::vector<double> &targetPitchClassSet, 
@@ -175,8 +198,9 @@ namespace csound
      * The algorithm uses a brute-force search through all
      * unordered chords, which are recursively enumerated,
      * fitting the target pitch-class set within
-     * the specified range. For up to 6 voices this is usable
-     * for non-real-time computation.
+     * the specified range. Although the time complexity
+     * is exponential, the algorithm is still usable
+     * for non-real-time operations in most cases of musical interest.
      */
     static std::vector<double> recursiveVoicelead(const std::vector<double> &source, 
 						  const std::vector<double> &targetPitchClassSet, 
@@ -198,12 +222,6 @@ namespace csound
      * the pitch fit into a chord or scale.
      */
     static double conformToPitchClassSet(double pitch, const std::vector<double> &pcs, size_t divisionsPerOctave = 12);
-
-    /**
-     * Return the Euclidean distance between two chords,
-     * which must have the same number of voices.
-     */
-    static double euclideanDistance(const std::vector<double> &chord1, const std::vector<double> &chord2);
 
     /**
      * Invert by rotating the chord and adding an octave to its last pitch.
