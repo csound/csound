@@ -1060,7 +1060,7 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c
+    Opcodes/wave-terrain.c  
     Opcodes/stdopcod.c
 '''))
 
@@ -1107,7 +1107,7 @@ makePlugin(pluginEnvironment, 'vbap',
             'Opcodes/vbap_sixteen.c', 'Opcodes/vbap_zak.c'])
 makePlugin(pluginEnvironment, 'vaops', ['Opcodes/vaops.c'])
 makePlugin(pluginEnvironment, 'ugakbari', ['Opcodes/ugakbari.c'])
-
+makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
 # Plugins with External Dependencies
 
 # FLTK widgets
