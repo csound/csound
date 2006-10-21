@@ -115,7 +115,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         MYFLT cps = (MYFLT) pow(2.0, koct) * ONEPT;     /*   recalc pulse period */
         p->period = (short) (csound->esr / cps);
         if (!p->cpsmode)
-          p->sicvt = cps * FL(18446744073709551616.0) * csound->onedsr; /* k64dsr;*/
+          p->sicvt = cps * FL(65536.0) * csound->onedsr; /* k64dsr;*/
       }
       p->prvoct = koct;
     }
