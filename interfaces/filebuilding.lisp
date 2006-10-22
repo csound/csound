@@ -1,390 +1,150 @@
-;; This is an automatically generated file. 
-;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). 
-
 (defpackage :filebuilding
-  (:use :common-lisp :ffi)
-  (:export
-	:csoundCsdCreate
-	:csoundCsdSetOptions
-	:csoundCsdGetOptions
-	:csoundCsdSetOrchestra
-	:csoundCsdGetOrchestra
-	:csoundCsdAddScoreLine
-	:csoundCsdAddEvent11
-	:csoundCsdAddEvent10
-	:csoundCsdAddEvent9
-	:csoundCsdAddEvent8
-	:csoundCsdAddEvent7
-	:csoundCsdAddEvent6
-	:csoundCsdAddEvent5
-	:csoundCsdAddEvent4
-	:csoundCsdAddEvent3
-	:csoundCsdSave
-	:csoundCsdCompile
-	:csoundCsdPerform
-	:csoundCompileCsd
-	:csoundPerformCsd))
+    (:use :common-lisp :cffi))
 
 (in-package :filebuilding)
 
-(default-foreign-language :stdc)
+;;;SWIG wrapper code starts here
+
+(defmacro defanonenum (&body enums)
+   "Converts anonymous enums to defconstants."
+  `(progn ,@(loop for value in enums
+                  for index = 0 then (1+ index)
+                  when (listp value) do (setf index (second value)
+                                              value (first value))
+                  collect `(defconstant ,value ,index))))
+
+;;;SWIG wrapper code ends here
+
+
+(defcfun ("csoundCsdCreate" csoundCsdCreate) :void
+  (csound :pointer))
+
+(defcfun ("csoundCsdSetOptions" csoundCsdSetOptions) :void
+  (csound :pointer)
+  (options :string))
+
+(defcfun ("csoundCsdGetOptions" csoundCsdGetOptions) :string
+  (csound :pointer))
+
+(defcfun ("csoundCsdSetOrchestra" csoundCsdSetOrchestra) :void
+  (csound :pointer)
+  (orchestra :string))
+
+(defcfun ("csoundCsdGetOrchestra" csoundCsdGetOrchestra) :string
+  (csound :pointer))
+
+(defcfun ("csoundCsdAddScoreLine" csoundCsdAddScoreLine) :void
+  (csound :pointer)
+  (line :string))
+
+(defcfun ("csoundCsdAddEvent11" csoundCsdAddEvent11) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double)
+  (p4 :double)
+  (p5 :double)
+  (p6 :double)
+  (p7 :double)
+  (p8 :double)
+  (p9 :double)
+  (p10 :double)
+  (p11 :double))
+
+(defcfun ("csoundCsdAddEvent10" csoundCsdAddEvent10) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double)
+  (p4 :double)
+  (p5 :double)
+  (p6 :double)
+  (p7 :double)
+  (p8 :double)
+  (p9 :double)
+  (p10 :double))
+
+(defcfun ("csoundCsdAddEvent9" csoundCsdAddEvent9) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double)
+  (p4 :double)
+  (p5 :double)
+  (p6 :double)
+  (p7 :double)
+  (p8 :double)
+  (p9 :double))
+
+(defcfun ("csoundCsdAddEvent8" csoundCsdAddEvent8) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double)
+  (p4 :double)
+  (p5 :double)
+  (p6 :double)
+  (p7 :double)
+  (p8 :double))
+
+(defcfun ("csoundCsdAddEvent7" csoundCsdAddEvent7) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double)
+  (p4 :double)
+  (p5 :double)
+  (p6 :double)
+  (p7 :double))
+
+(defcfun ("csoundCsdAddEvent6" csoundCsdAddEvent6) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double)
+  (p4 :double)
+  (p5 :double)
+  (p6 :double))
+
+(defcfun ("csoundCsdAddEvent5" csoundCsdAddEvent5) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double)
+  (p4 :double)
+  (p5 :double))
+
+(defcfun ("csoundCsdAddEvent4" csoundCsdAddEvent4) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double)
+  (p4 :double))
+
+(defcfun ("csoundCsdAddEvent3" csoundCsdAddEvent3) :void
+  (csound :pointer)
+  (p1 :double)
+  (p2 :double)
+  (p3 :double))
+
+(defcfun ("csoundCsdSave" csoundCsdSave) :int
+  (csound :pointer)
+  (filename :string))
+
+(defcfun ("csoundCsdCompile" csoundCsdCompile) :int
+  (csound :pointer)
+  (filename :string))
+
+(defcfun ("csoundCsdPerform" csoundCsdPerform) :int
+  (csound :pointer)
+  (filename :string))
+
+(defcfun ("csoundCompileCsd" csoundCompileCsd) :int
+  (arg0 :pointer)
+  (csdFilename :string))
+
+(defcfun ("csoundPerformCsd" csoundPerformCsd) :int
+  (arg0 :pointer)
+  (csdFilename :string))
 
-
-;; Pretend these structures are ints, since they are only passed by pointer.
-
-(ffi:def-c-type CSOUND int)
-
-(ffi:def-call-out csoundCsdCreate
-
-(:name "csoundCsdCreate")
-
-(:arguments (csound (ffi:c-pointer CSOUND)))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdSetOptions
-
-(:name "csoundCsdSetOptions")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(options ffi:c-string))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdGetOptions
-
-(:name "csoundCsdGetOptions")
-
-(:arguments (csound (ffi:c-pointer CSOUND)))
-
-(:return-type ffi:c-string)
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdSetOrchestra
-
-(:name "csoundCsdSetOrchestra")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(orchestra ffi:c-string))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdGetOrchestra
-
-(:name "csoundCsdGetOrchestra")
-
-(:arguments (csound (ffi:c-pointer CSOUND)))
-
-(:return-type ffi:c-string)
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddScoreLine
-
-(:name "csoundCsdAddScoreLine")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(line ffi:c-string))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent11
-
-(:name "csoundCsdAddEvent11")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT)
-
-	(p4 DOUBLE-FLOAT)
-
-	(p5 DOUBLE-FLOAT)
-
-	(p6 DOUBLE-FLOAT)
-
-	(p7 DOUBLE-FLOAT)
-
-	(p8 DOUBLE-FLOAT)
-
-	(p9 DOUBLE-FLOAT)
-
-	(p10 DOUBLE-FLOAT)
-
-	(p11 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent10
-
-(:name "csoundCsdAddEvent10")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT)
-
-	(p4 DOUBLE-FLOAT)
-
-	(p5 DOUBLE-FLOAT)
-
-	(p6 DOUBLE-FLOAT)
-
-	(p7 DOUBLE-FLOAT)
-
-	(p8 DOUBLE-FLOAT)
-
-	(p9 DOUBLE-FLOAT)
-
-	(p10 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent9
-
-(:name "csoundCsdAddEvent9")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT)
-
-	(p4 DOUBLE-FLOAT)
-
-	(p5 DOUBLE-FLOAT)
-
-	(p6 DOUBLE-FLOAT)
-
-	(p7 DOUBLE-FLOAT)
-
-	(p8 DOUBLE-FLOAT)
-
-	(p9 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent8
-
-(:name "csoundCsdAddEvent8")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT)
-
-	(p4 DOUBLE-FLOAT)
-
-	(p5 DOUBLE-FLOAT)
-
-	(p6 DOUBLE-FLOAT)
-
-	(p7 DOUBLE-FLOAT)
-
-	(p8 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent7
-
-(:name "csoundCsdAddEvent7")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT)
-
-	(p4 DOUBLE-FLOAT)
-
-	(p5 DOUBLE-FLOAT)
-
-	(p6 DOUBLE-FLOAT)
-
-	(p7 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent6
-
-(:name "csoundCsdAddEvent6")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT)
-
-	(p4 DOUBLE-FLOAT)
-
-	(p5 DOUBLE-FLOAT)
-
-	(p6 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent5
-
-(:name "csoundCsdAddEvent5")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT)
-
-	(p4 DOUBLE-FLOAT)
-
-	(p5 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent4
-
-(:name "csoundCsdAddEvent4")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT)
-
-	(p4 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdAddEvent3
-
-(:name "csoundCsdAddEvent3")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(p1 DOUBLE-FLOAT)
-
-	(p2 DOUBLE-FLOAT)
-
-	(p3 DOUBLE-FLOAT))
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdSave
-
-(:name "csoundCsdSave")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(filename ffi:c-string))
-
-(:return-type ffi:int)
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdCompile
-
-(:name "csoundCsdCompile")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(filename ffi:c-string))
-
-(:return-type ffi:int)
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCsdPerform
-
-(:name "csoundCsdPerform")
-
-(:arguments (csound (ffi:c-pointer CSOUND))
-
-	(filename ffi:c-string))
-
-(:return-type ffi:int)
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundCompileCsd
-
-(:name "csoundCompileCsd")
-
-(:arguments (arg0 (ffi:c-pointer CSOUND))
-
-	(csdFilename ffi:c-string))
-
-(:return-type ffi:int)
-
-(:library "_csnd"))
-
-
-
-(ffi:def-call-out csoundPerformCsd
-
-(:name "csoundPerformCsd")
-
-(:arguments (arg0 (ffi:c-pointer CSOUND))
-
-	(csdFilename ffi:c-string))
-
-(:return-type ffi:int)
-
-(:library "_csnd"))
 
