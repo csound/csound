@@ -496,3 +496,36 @@ int midiin(CSOUND *csound, MIDIIN *p)
     return OK;
 }
 
+int pgmin_set(CSOUND *csound, PGMIN *p)
+{
+    p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
+    return OK;
+}
+
+int pgmin(CSOUND *csound, PGMIN *p)
+{
+    unsigned char *temp;                        /* IV - Nov 30 2002 */
+    if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
+      MYFLT st,ch,d1,d2;
+      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
+      st = (MYFLT) (*temp & (unsigned char) 0xf0);
+      ch   = (MYFLT) ((*temp & 0x0f) + 1);
+      d1  = (MYFLT) *++temp;
+      d2  = (MYFLT) *++temp;
+      if (st == 192) {
+        *p->pgm = d1;
+        *p->chn = ch;
+      }
+      else {
+        *p->pgm = FL(-1.0);
+        *p->chn = FL(0.0);
+      }
+      p->local_buf_index &= MIDIINBUFMSK;
+    }
+    else {
+      *p->pgm = FL(-1.0);
+      *p->chn = FL(0.0);
+    }
+    return OK;
+}
+

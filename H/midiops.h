@@ -134,5 +134,11 @@ typedef struct {
     int     local_buf_index;        /* IV - Nov 30 2002 */
 } MIDIIN;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *pgm, *chn;
+    int     local_buf_index;        /* IV - Nov 30 2002 */
+} PGMIN;
+
 #endif
 
