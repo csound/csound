@@ -1,3 +1,10 @@
+2006-10-22  jpff  <jpff@codemist.co.uk>
+
+	* OOps/midiops.c: Added pgmchn opcode
+
+	* Engine/entry1.c: Midiin was not being initialised; also added
+	pgmchn opcode
+
 2006-10-21  jpff  <jpff@codemist.co.uk>
 
 	* Opcodes/harmon.c: New code from Barry Vercoe
