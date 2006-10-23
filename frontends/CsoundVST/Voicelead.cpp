@@ -27,8 +27,8 @@
 #include <algorithm>
 #include <cmath>
 
-std::ostream &operator << (std::ostream &stream, 
-			   const std::vector<double> &chord)
+std::ostream &operator << (std::ostream &stream,
+                           const std::vector<double> &chord)
 {
   stream << "[";
   for (size_t i = 0, n = chord.size(); i < n; i++) {
@@ -41,7 +41,7 @@ std::ostream &operator << (std::ostream &stream,
   return stream;
 }
 
-namespace csound 
+namespace csound
 {
   static int debug = 0;
 
@@ -83,14 +83,14 @@ namespace csound
     for (double i = 0.0; i < double(divisionsPerOctave); i = i + 1.0) {
       size_t p2 = size_t(std::pow(2.0, i));
       if ((p2 & n) == p2) {
-	pcs.push_back(i);
+        pcs.push_back(i);
       }
     }
     return pcs;
   }
 
-  std::vector<double> Voicelead::voiceleading(const std::vector<double> &a, 
-					      const std::vector<double> &b)
+  std::vector<double> Voicelead::voiceleading(const std::vector<double> &a,
+                                              const std::vector<double> &b)
   {
     std::vector<double> v(a.size());
     for (size_t i = 0, n = a.size(); i < n; i++) {
@@ -99,28 +99,28 @@ namespace csound
     return v;
   }
 
-  const std::vector<double> &Voicelead::simpler(const std::vector<double> &source, 
-						const std::vector<double> &destination1, 
-						const std::vector<double> &destination2, 
-						bool avoidParallels)
+  const std::vector<double> &Voicelead::simpler(const std::vector<double> &source,
+                                                const std::vector<double> &destination1,
+                                                const std::vector<double> &destination2,
+                                                bool avoidParallels)
   {
     std::vector<double> v1 = voiceleading(source, destination1);
     std::sort(v1.begin(), v1.end());
     std::vector<double> v2 = voiceleading(source, destination2);
-    std::sort(v2.begin(), v2.end());    
+    std::sort(v2.begin(), v2.end());
     for (size_t i = v1.size() - 1; i >= 0; i--) {
       if(v1[i] < v2[i]) {
-	return destination1;
+        return destination1;
       }
       if(v2[i] > v1[i]) {
-	return destination2;
+        return destination2;
       }
     }
     return destination1;
-  }                
+  }
 
-  double Voicelead::smoothness(const std::vector<double> &a, 
-			       const std::vector<double> &b) 
+  double Voicelead::smoothness(const std::vector<double> &a,
+                               const std::vector<double> &b)
   {
     double L1 = 0.0;
     for (size_t i = 0, n = a.size(); i < n; i++) {
@@ -128,40 +128,40 @@ namespace csound
     }
     return L1;
   }
-                
-  bool Voicelead::areParallel(const std::vector<double> &a, 
-			      const std::vector<double> &b)
+
+  bool Voicelead::areParallel(const std::vector<double> &a,
+                              const std::vector<double> &b)
   {
     for (size_t i = 0, n = a.size(); i < n; i++) {
       for (size_t j = 0, k = b.size(); j < k; j++) {
-	if (i != j) {
-	  if ( ((a[i] - a[j]) ==  7.0 && (b[i] - b[j]) ==  7.0) || 
-	       ((a[i] - a[j]) == -7.0 && (b[i] - b[j]) == -7.0) ) {
-	    if (debug > 1) {
-	      std::cout << "Parallel fifth: " << std::endl;
-	      std::cout << " chord 1: " << a << std::endl;
-	      std::cout << " leading: " << voiceleading(a, b) << std::endl;
-	      std::cout << " chord 2: " << b << std::endl;
-	    }
-	    return true;
-	  }
-	}
+        if (i != j) {
+          if ( ((a[i] - a[j]) ==  7.0 && (b[i] - b[j]) ==  7.0) ||
+               ((a[i] - a[j]) == -7.0 && (b[i] - b[j]) == -7.0) ) {
+            if (debug > 1) {
+              std::cout << "Parallel fifth: " << std::endl;
+              std::cout << " chord 1: " << a << std::endl;
+              std::cout << " leading: " << voiceleading(a, b) << std::endl;
+              std::cout << " chord 2: " << b << std::endl;
+            }
+            return true;
+          }
+        }
       }
     }
     return false;
-  }                
-  
-  const std::vector<double> &Voicelead::closer(const std::vector<double> &source, 
-					       const std::vector<double> &destination1, 
-					       const std::vector<double> &destination2, 
-					       bool avoidParallels)
-  {     
+  }
+
+  const std::vector<double> &Voicelead::closer(const std::vector<double> &source,
+                                               const std::vector<double> &destination1,
+                                               const std::vector<double> &destination2,
+                                               bool avoidParallels)
+  {
     if (avoidParallels) {
       if (areParallel(source, destination1)) {
-	return destination2;
+        return destination2;
       }
       if (areParallel(source, destination2)) {
-	return destination1;
+        return destination1;
       }
     }
     double s1 = smoothness(source, destination1);
@@ -173,7 +173,7 @@ namespace csound
       return destination2;
     }
     return simpler(source, destination1, destination2, avoidParallels);
-  }      
+  }
 
   std::vector<double> Voicelead::rotate(const std::vector<double> &chord)
   {
@@ -197,7 +197,7 @@ namespace csound
     for (size_t i = 1, n = chord.size(); i < n; i++) {
       inversion = rotate(inversion);
       if (debug > 1) {
-	std::cout << "rotation " << (i+1) << ": " << inversion << std::endl;
+        std::cout << "rotation " << (i+1) << ": " << inversion << std::endl;
       }
       rotations_.push_back(inversion);
     }
@@ -206,7 +206,7 @@ namespace csound
     }
     return rotations_;
   }
-  
+
   std::vector< std::vector<double> > pitchRotations(const std::vector<double> &chord)
   {
     std::vector< std::vector<double> > rotations_;
@@ -218,8 +218,8 @@ namespace csound
     }
     return rotations_;
   }
-  
-  std::vector<double> Voicelead::pcs(const std::vector<double> &chord, size_t divisionsPerOctave) 
+
+  std::vector<double> Voicelead::pcs(const std::vector<double> &chord, size_t divisionsPerOctave)
   {
     std::vector<double> pcs_(chord.size());
     for (size_t i = 0, n = chord.size(); i < n; i++) {
@@ -233,9 +233,9 @@ namespace csound
     return pcs_;
   }
 
-  const std::vector<double> Voicelead::closest(const std::vector<double> &source, 
-						const std::vector< std::vector<double> > &targets,
-						bool avoidParallels)
+  const std::vector<double> Voicelead::closest(const std::vector<double> &source,
+                                                const std::vector< std::vector<double> > &targets,
+                                                bool avoidParallels)
   {
     if (targets.size() == 0) {
       return source;
@@ -252,12 +252,12 @@ namespace csound
   // Recursively enumerate inversions of the original chord
   // that fit within the maximum pitch.
 
-  void inversions(const std::vector<double> &original, 
-		  const std::vector<double> &iterator, 
-		  size_t voice, 
-		  double maximum, 
-		  std::set< std::vector<double> > &chords, 
-		  size_t divisionsPerOctave)
+  void inversions(const std::vector<double> &original,
+                  const std::vector<double> &iterator,
+                  size_t voice,
+                  double maximum,
+                  std::set< std::vector<double> > &chords,
+                  size_t divisionsPerOctave)
   {
     if (voice >= original.size()) {
       return;
@@ -269,18 +269,18 @@ namespace csound
       inversions(original, iterator_, voice + 1, maximum, chords, divisionsPerOctave);
     }
   }
-  
-  std::vector< std::vector<double> > Voicelead::voicings(const std::vector<double> &chord, 
-							 double lowest, 
-							 double range,
-							 size_t divisionsPerOctave)
+
+  std::vector< std::vector<double> > Voicelead::voicings(const std::vector<double> &chord,
+                                                         double lowest,
+                                                         double range,
+                                                         size_t divisionsPerOctave)
   {
     // Find the smallest inversion of the chord that is closest to the lowest pitch, but no lower.
     std::vector<double> inversion = pcs(chord, divisionsPerOctave);
     for(;;) {
       std::vector<double>::iterator it = std::min_element(inversion.begin(), inversion.end());
       if (lowest <= *it) {
-	break;
+        break;
       }
       inversion = invert(inversion);
     }
@@ -301,15 +301,15 @@ namespace csound
   }
 
   /**
-   * Bijective voiceleading first by closeness, then by simplicity, 
+   * Bijective voiceleading first by closeness, then by simplicity,
    * with optional avoidance of parallel fifths.
    */
-  std::vector<double> Voicelead::voicelead(const std::vector<double> &source_, 
-					   const std::vector<double> &target_, 
-					   double lowest, 
-					   double range, 
-					   bool avoidParallels,
-					   size_t divisionsPerOctave)
+  std::vector<double> Voicelead::voicelead(const std::vector<double> &source_,
+                                           const std::vector<double> &target_,
+                                           double lowest,
+                                           double range,
+                                           bool avoidParallels,
+                                           size_t divisionsPerOctave)
   {
     std::vector<double> source = source_;
     std::vector<double> target = target_;
@@ -322,16 +322,16 @@ namespace csound
       std::cout << "     Is: " << voicing << std::endl << std::endl;
     }
     return voicing;
-  } 
+  }
 
   void recursiveVoicelead_(const std::vector<double> &source,
-			   const std::vector<double> &original, 
-			   const std::vector<double> &iterator, 
-			   std::vector<double> &target,
-			   size_t voice, 
-			   double maximum, 
-			   bool avoidParallels,
-			   size_t divisionsPerOctave)
+                           const std::vector<double> &original,
+                           const std::vector<double> &iterator,
+                           std::vector<double> &target,
+                           size_t voice,
+                           double maximum,
+                           bool avoidParallels,
+                           size_t divisionsPerOctave)
   {
     if (voice >= original.size()) {
       return;
@@ -343,27 +343,27 @@ namespace csound
       recursiveVoicelead_(source, original, iterator_, target, voice + 1, maximum, avoidParallels, divisionsPerOctave);
     }
   }
-  
+
   /**
-   * Bijective voiceleading first by closeness, then by simplicity, 
+   * Bijective voiceleading first by closeness, then by simplicity,
    * with optional avoidance of parallel fifths.
    */
-  std::vector<double> Voicelead::recursiveVoicelead(const std::vector<double> &source_, 
-						    const std::vector<double> &target_, 
-						    double lowest, 
-						    double range, 
-						    bool avoidParallels,
-						    size_t divisionsPerOctave)
+  std::vector<double> Voicelead::recursiveVoicelead(const std::vector<double> &source_,
+                                                    const std::vector<double> &target_,
+                                                    double lowest,
+                                                    double range,
+                                                    bool avoidParallels,
+                                                    size_t divisionsPerOctave)
   {
     std::vector<double> source = source_;
     std::vector<double> target = target_;
-    // Find the smallest inversion of the target chord 
+    // Find the smallest inversion of the target chord
     // that is closest to the lowest pitch, but no lower.
     std::vector<double> inversion = pcs(target, divisionsPerOctave);
     for(;;) {
       std::vector<double>::iterator it = std::min_element(inversion.begin(), inversion.end());
       if (lowest <= *it) {
-	break;
+        break;
       }
       inversion = invert(inversion);
     }
@@ -375,7 +375,7 @@ namespace csound
     for (size_t i = 0, n = rotations_.size(); i < n; i++) {
       std::vector<double> iterator = rotations_[i];
       if (i == 0) {
-	voicing = iterator;
+        voicing = iterator;
       }
       recursiveVoicelead_(source, rotations_[i], iterator,  voicing, 0,         lowest + range, avoidParallels, divisionsPerOctave);
     }
@@ -386,7 +386,7 @@ namespace csound
       std::cout << "     Is: " << voicing << std::endl << std::endl;
     }
     return voicing;
-  } 
+  }
 
   double Voicelead::closestPitch(double pitch, const std::vector<double> &pitches_)
   {
@@ -405,7 +405,7 @@ namespace csound
     if (pitch == lower) {
       return pitch;
     }
-    // If lower isn't pitch, 
+    // If lower isn't pitch,
     // then pitch always lies in the interval (first - 1, second).
     double lowerP = *(its.first - 1);
     double upperP = *its.second;
@@ -446,7 +446,7 @@ namespace csound
     }
     return chord;
   }
- 
+
   std::vector<double> Voicelead::invert(const std::vector<double> &chord)
   {
     std::vector<double> inversion;
@@ -478,14 +478,14 @@ namespace csound
     for (size_t i = 0, n = inversions_.size(); i < n; i++) {
       std::vector<double> zeroChordInversion = zeroChord(inversions_[i]);
       if (i == 0) {
-	normalChord = inversions_[i];
-	minDistance = euclideanDistance(zeroChordInversion, origin);
+        normalChord = inversions_[i];
+        minDistance = euclideanDistance(zeroChordInversion, origin);
       } else {
-	double distance = euclideanDistance(zeroChordInversion, origin);
-	if (distance < minDistance) {
-	  minDistance = distance;
-	  normalChord = inversions_[i];
-	}
+        double distance = euclideanDistance(zeroChordInversion, origin);
+        if (distance < minDistance) {
+          minDistance = distance;
+          normalChord = inversions_[i];
+        }
       }
     }
     return normalChord;

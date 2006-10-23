@@ -42,7 +42,7 @@
 #include <vector>
 #endif
 
-namespace csound 
+namespace csound
 {
   /**
    * This class contains facilities for
@@ -70,51 +70,51 @@ namespace csound
     /**
      * Return the voice-leading vector between
      * chord1 and chord2.
-     */   
-    static std::vector<double> voiceleading(const std::vector<double> &chord1, 
-					    const std::vector<double> &chord2);
+     */
+    static std::vector<double> voiceleading(const std::vector<double> &chord1,
+                                            const std::vector<double> &chord2);
 
     /**
      * Return the simpler (fewer motions) of the voiceleadings
      * between source chord and either destination1 or destination2,
      * optionally avoiding parallel fifths.
      */
-    static const std::vector<double> &simpler(const std::vector<double> &source, 
-					      const std::vector<double> &destination1, 
-					      const std::vector<double> &destination2, 
-					      bool avoidParallels);
+    static const std::vector<double> &simpler(const std::vector<double> &source,
+                                              const std::vector<double> &destination1,
+                                              const std::vector<double> &destination2,
+                                              bool avoidParallels);
 
     /**
      * Return the smoothness (distance by taxicab or L1 norm)
      * of the voiceleading between chord1 and chord2.
      */
-    static double smoothness(const std::vector<double> &chord1, 
-			     const std::vector<double> &chord1);
-                
+    static double smoothness(const std::vector<double> &chord1,
+                             const std::vector<double> &chord1);
+
     /**
      * Return the Euclidean distance between two chords,
      * which must have the same number of voices.
      */
-    static double euclideanDistance(const std::vector<double> &chord1, 
-				    const std::vector<double> &chord2);
+    static double euclideanDistance(const std::vector<double> &chord1,
+                                    const std::vector<double> &chord2);
 
     /*
      * Return whether the progression between chord1 and chord2
      * contains a parallel fifth.
      */
-    static bool areParallel(const std::vector<double> &chord1, 
-			    const std::vector<double> &chord2);
+    static bool areParallel(const std::vector<double> &chord1,
+                            const std::vector<double> &chord2);
 
     /**
      * Return the closer, first by smoothness then by simplicity.,
-     * of the voiceleadings between source and either 
+     * of the voiceleadings between source and either
      * destination1 or destination2, optionally avoiding
      * parallel fifths.
      */
-    static const std::vector<double> &closer(const std::vector<double> &source, 
-					     const std::vector<double> &destination1, 
-					     const std::vector<double> &destination2, 
-					     bool avoidParallels);
+    static const std::vector<double> &closer(const std::vector<double> &source,
+                                             const std::vector<double> &destination1,
+                                             const std::vector<double> &destination2,
+                                             bool avoidParallels);
 
     /**
      * Return the chord with the first note rotated to the last note.
@@ -125,17 +125,17 @@ namespace csound
      * Return the set of all rotations of the chord.
      */
     static std::vector< std::vector<double> > rotations(const std::vector<double> &chord);
-  
+
     /**
      * Return the chord as the list of its pitch-classes.
-     * Although the list is nominally unordered, it is 
+     * Although the list is nominally unordered, it is
      * returned sorted in ascending order. Note that pitch-classes
      * may be doubled.
      */
     static std::vector<double> pcs(const std::vector<double> &chord, size_t divisionsPerOctave = 12);
 
     /**
-     * Convert a chord to a pitch-class set number 
+     * Convert a chord to a pitch-class set number
      * N = sum (2 ^ pc). These numbers form a multiplicative cyclic
      * group. Arithmetic on this group can perform many
      * harmonic and other manipulations of pitch.
@@ -151,29 +151,29 @@ namespace csound
      * Return all voicings of the chord
      * within the specified range. These voices
      * include all unordered permutations of the pitch-classes
-     * at whatever octave fits within the range. 
+     * at whatever octave fits within the range.
      * The index of this list forms an additive cyclic group.
      * Arithmetic on this group can perform many operations
      * on the voices of the chord such as revoicing, arpeggiation, and so on.
      */
-    static std::vector< std::vector<double> > voicings(const std::vector<double> &chord, 
-						       double lowest, 
-						       double range, 
-						       size_t divisionsPerOctave);
- 
+    static std::vector< std::vector<double> > voicings(const std::vector<double> &chord,
+                                                       double lowest,
+                                                       double range,
+                                                       size_t divisionsPerOctave);
+
     /**
-     * Return the closest voiceleading within the specified range, 
-     * first by smoothness then by simplicity, 
+     * Return the closest voiceleading within the specified range,
+     * first by smoothness then by simplicity,
      * between the source chord any of the destination chords,
      * optionally avoiding parallel fifths.
      */
-    static const std::vector<double> closest(const std::vector<double> &source, 
-					     const std::vector< std::vector<double> > &destinations, 
-					     bool avoidParallels);
-   
+    static const std::vector<double> closest(const std::vector<double> &source,
+                                             const std::vector< std::vector<double> > &destinations,
+                                             bool avoidParallels);
+
     /**
-     * Return the closest voiceleading within the specified range, 
-     * first by smoothness then by simplicity, 
+     * Return the closest voiceleading within the specified range,
+     * first by smoothness then by simplicity,
      * between the source chord and the target pitch-class set,
      * optionally avoiding parallel fifths.
      * The algorithm uses a brute-force search through all
@@ -183,16 +183,16 @@ namespace csound
      * is exponential, this is still usable for non-real-time
      * operations in most cases of musical interest.
      */
-    static std::vector<double> voicelead(const std::vector<double> &source, 
-					 const std::vector<double> &targetPitchClassSet, 
-					 double lowest, 
-					 double range, 
-					 bool avoidParallels,
-					 size_t divisionsPerOctave = 12);
+    static std::vector<double> voicelead(const std::vector<double> &source,
+                                         const std::vector<double> &targetPitchClassSet,
+                                         double lowest,
+                                         double range,
+                                         bool avoidParallels,
+                                         size_t divisionsPerOctave = 12);
 
     /**
-     * Return the closest voiceleading within the specified range, 
-     * first by smoothness then by simplicity, 
+     * Return the closest voiceleading within the specified range,
+     * first by smoothness then by simplicity,
      * between the source chord and the target pitch-class set,
      * optionally avoiding parallel fifths.
      * The algorithm uses a brute-force search through all
@@ -202,12 +202,12 @@ namespace csound
      * is exponential, the algorithm is still usable
      * for non-real-time operations in most cases of musical interest.
      */
-    static std::vector<double> recursiveVoicelead(const std::vector<double> &source, 
-						  const std::vector<double> &targetPitchClassSet, 
-						  double lowest, 
-						  double range, 
-						  bool avoidParallels,
-						  size_t divisionsPerOctave = 12);
+    static std::vector<double> recursiveVoicelead(const std::vector<double> &source,
+                                                  const std::vector<double> &targetPitchClassSet,
+                                                  double lowest,
+                                                  double range,
+                                                  bool avoidParallels,
+                                                  size_t divisionsPerOctave = 12);
 
     /**
      * Return the pitch in pitches that is closest to the specified pitch.
@@ -241,7 +241,7 @@ namespace csound
 
     /**
      * Return the normal chord: that inversion of the pitch-classes in the chord
-     * which is closest to the orthogonal axis of the Tonnetz for that chord. 
+     * which is closest to the orthogonal axis of the Tonnetz for that chord.
      * Similar to, but not identical with, "normal form."
      */
     static std::vector<double> normalChord(const std::vector<double> &chord);
@@ -249,13 +249,13 @@ namespace csound
     /**
      * Return the prime chord: that inversion of the pitch-classes in the chord
      * which is closest to the orthogonal axis of the Tonnetz for that chord,
-     * transposed so that its lowest pitch is at the origin. 
+     * transposed so that its lowest pitch is at the origin.
      * Similar to, but not identical with, "prime form."
      */
     static std::vector<double> primeChord(const std::vector<double> &chord);
-    
+
   };
-  
+
 }
 #endif
 

@@ -103,127 +103,127 @@ namespace csound
     virtual void arrange(int oldInstrumentNumber, int newInstrumentNumber, double gain, double pan);
     virtual void removeArrangement();
     /**
-     * Return a vector containing the MIDI key numbers 
+     * Return a vector containing the MIDI key numbers
      * in the specified segment of the score.
      */
-    virtual std::vector<double> getPitches(size_t begin, 
-					   size_t end, 
-					   size_t divisionsPerOctave = 12) const;
+    virtual std::vector<double> getPitches(size_t begin,
+                                           size_t end,
+                                           size_t divisionsPerOctave = 12) const;
     /**
      * Set the pitches of the specified segment of the score
      * to the specified pitches.
      * Each pitch in the score is moved to the closest pitch in the specified pitches.
      */
-    virtual void setPitches(size_t begin, 
-			    size_t end, 
-			    const std::vector<double> &pitches);
+    virtual void setPitches(size_t begin,
+                            size_t end,
+                            const std::vector<double> &pitches);
     /**
      * Set the pitches of the specified segment of the score
      * to the specified pitch-class set.
      * Each pitch in the score is moved to the closest pitch-class in the specified set.
      */
-    virtual void setPitchClassSet(size_t begin, 
-				  size_t end, 
-				  const std::vector<double> &pcs, 
-				  size_t tonesPerOctave = 12);
+    virtual void setPitchClassSet(size_t begin,
+                                  size_t end,
+                                  const std::vector<double> &pcs,
+                                  size_t tonesPerOctave = 12);
     /**
      * For the specified segment of the score,
-     * return the indexes for the prime chord, its transposition, 
+     * return the indexes for the prime chord, its transposition,
      * and their voicing within the specified range.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual std::vector<double> getPTV(size_t begin, 
-				       size_t end, 
-				       double lowest, 
-				       double range, 
-				       size_t divisionsPerOctave = 12) const;
+    virtual std::vector<double> getPTV(size_t begin,
+                                       size_t end,
+                                       double lowest,
+                                       double range,
+                                       size_t divisionsPerOctave = 12) const;
     /**
      * For the specified segment of the score,
-     * adjust the pitches to match the specified indexes for the prime chord, its transposition, 
+     * adjust the pitches to match the specified indexes for the prime chord, its transposition,
      * and their voicing within the specified range.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void setPTV(size_t begin, 
-			size_t end, 
-			double prime, 
-			double transposition, 
-			double voicing, 
-			double lowest, 
-			double range, 
-			size_t divisionsPerOctave = 12);
+    virtual void setPTV(size_t begin,
+                        size_t end,
+                        double prime,
+                        double transposition,
+                        double voicing,
+                        double lowest,
+                        double range,
+                        size_t divisionsPerOctave = 12);
     /**
-     * Performs voice-leading between 
-     * between the specified segments of the score 
+     * Performs voice-leading between
+     * between the specified segments of the score
      * within the specified range.
      * The voice-leading is first the closest by
      * taxicab norm, and then the simplest in motion,
      * optionally avoiding parallel fifths.
      * Only the pitches of the target notes
-     * are affected. If necessary, the number of pitches 
+     * are affected. If necessary, the number of pitches
      * in the target chord is adjusted to match the source.
      * Candidate voicings are recursively compiled into
      * a cache that is then searched.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void voicelead(size_t beginSource, 
-			   size_t endSource, 
-			   size_t beginTarget, 
-			   size_t endTarget, 
-			   double lowest, 
-			   double range, 
-			   bool avoidParallelFifths, 
-			   size_t divisionsPerOctave = 12);
+    virtual void voicelead(size_t beginSource,
+                           size_t endSource,
+                           size_t beginTarget,
+                           size_t endTarget,
+                           double lowest,
+                           double range,
+                           bool avoidParallelFifths,
+                           size_t divisionsPerOctave = 12);
     /**
-     * Performs voice-leading between 
-     * the specified segments of the score 
+     * Performs voice-leading between
+     * the specified segments of the score
      * within the specified range.
      * The voice-leading is first the closest by
      * taxicab norm, and then the simplest in motion,
      * optionally avoiding parallel fifths.
      * Only the pitches of the target notes
-     * are affected. If necessary, the number of pitches 
+     * are affected. If necessary, the number of pitches
      * in the target chord is adjusted to match the source.
      * Candidate voicings are recursively enumerated
      * and compared.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void recursiveVoicelead(size_t beginSource, 
-				    size_t endSource, 
-				    size_t beginTarget, 
-				    size_t endTarget, 
-				    double lowest, 
-				    double range, 
-				    bool avoidParallelFifths, 
-				    size_t divisionsPerOctave = 12);
+    virtual void recursiveVoicelead(size_t beginSource,
+                                    size_t endSource,
+                                    size_t beginTarget,
+                                    size_t endTarget,
+                                    double lowest,
+                                    double range,
+                                    bool avoidParallelFifths,
+                                    size_t divisionsPerOctave = 12);
     /**
-     * Performs voice-leading between 
-     * the specified segments of the score 
+     * Performs voice-leading between
+     * the specified segments of the score
      * within the specified range, using
      * the specified target pitches.
      * The voice-leading is first the closest by
      * taxicab norm, and then the simplest in motion,
      * optionally avoiding parallel fifths.
      * Only the pitches of the target notes
-     * are affected. If necessary, the number of pitches 
+     * are affected. If necessary, the number of pitches
      * in the target chord is adjusted to match the source.
      * Candidate voicings are recursively enumerated
      * and compared.
      *
      * See: http://ruccas.org/pub/Gogins/music_atoms.pdf
      */
-    virtual void recursiveVoicelead(size_t beginSource, 
-				    size_t endSource, 
-				    size_t beginTarget, 
-				    size_t endTarget, 
-				    const std::vector<double> &targetPitches,
-				    double lowest, 
-				    double range, 
-				    bool avoidParallelFifths, 
-				    size_t divisionsPerOctave = 12);
+    virtual void recursiveVoicelead(size_t beginSource,
+                                    size_t endSource,
+                                    size_t beginTarget,
+                                    size_t endTarget,
+                                    const std::vector<double> &targetPitches,
+                                    double lowest,
+                                    double range,
+                                    bool avoidParallelFifths,
+                                    size_t divisionsPerOctave = 12);
     /**
      * Return the index of the first event at or after the specified time;
      * if the time is not found, return -1.

@@ -431,20 +431,20 @@ namespace csound
     for( Score::iterator it = begin(); it != end(); ++it ) {
       int oldInstrument = int( std::floor( it->getInstrument() ) );
       if( gains.find( oldInstrument ) != gains.end() ) {
-	double inputDb = it->getVelocity();
+        double inputDb = it->getVelocity();
         double gain = gains[oldInstrument];
         double outputDb = Conversions::dbFromGain( inputDb, gain );
-	it->setVelocity( outputDb );
+        it->setVelocity( outputDb );
       }
       if( pans.find( oldInstrument ) != pans.end() ) {
-	double pan = pans[oldInstrument];
-	it->setPan( pan );
+        double pan = pans[oldInstrument];
+        it->setPan( pan );
       }
       if( reassignments.find( oldInstrument ) != reassignments.end() ) {
-	it->setInstrument( reassignments[oldInstrument] );
+        it->setInstrument( reassignments[oldInstrument] );
       }
       if( conformPitches ) {
-	it->conformToPitchClassSet();
+        it->conformToPitchClassSet();
       }
       csoundScore.append( it->toCsoundIStatement( tonesPerOctave ) );
     }
@@ -485,8 +485,8 @@ namespace csound
       const Event &event = (*this)[i];
       double pitch = event.getKey(divisionsPerOctave);
       if (pitches.find(pitch) == pitches.end()) {
-	pitches.insert(pitch);
-	chord.push_back(pitch);
+        pitches.insert(pitch);
+        chord.push_back(pitch);
       }
     }
     std::sort(chord.begin(), chord.end());
@@ -527,10 +527,10 @@ namespace csound
     if (it != voicings.end()) {
       voicing = double(it - voicings.begin());
     }
-    transposition = tones[0]; 
+    transposition = tones[0];
     if (chord.size() > 1) {
       for (size_t i = 0, cn = chord.size(); i < cn; i++) {
-	prime = prime + std::pow(2.0, (Voicelead::pc(tones[0] - transposition, divisionsPerOctave)));
+        prime = prime + std::pow(2.0, (Voicelead::pc(tones[0] - transposition, divisionsPerOctave)));
       }
     }
     ptv[0] = prime;
@@ -546,7 +546,7 @@ namespace csound
     for (int i = 0; i < int(divisionsPerOctave); i++) {
       int powerOf2 = int(std::pow(2., double(i)));
       if ((prime_ & powerOf2) == powerOf2) {
-	chord.push_back(double(Voicelead::pc(i + transposition)));
+        chord.push_back(double(Voicelead::pc(i + transposition)));
       }
     }
     std::vector< std::vector<double> > voicings = Voicelead::voicings(chord, lowest, range, divisionsPerOctave);
@@ -555,14 +555,14 @@ namespace csound
     setPitches(begin, end, voicing);
   }
 
-  void Score::voicelead(size_t beginSource, 
-			size_t endSource, 
-			size_t beginTarget, 
-			size_t endTarget, 
-			double lowest, 
-			double range, 
-			bool avoidParallelFifths, 
-			size_t divisionsPerOctave)
+  void Score::voicelead(size_t beginSource,
+                        size_t endSource,
+                        size_t beginTarget,
+                        size_t endTarget,
+                        double lowest,
+                        double range,
+                        bool avoidParallelFifths,
+                        size_t divisionsPerOctave)
   {
     std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
     if (source.size() == 0) {
@@ -576,21 +576,21 @@ namespace csound
     if (source.size() > tones.size()) {
       size_t n = source.size() - tones.size();
       for (size_t i = 0; i < n; i++) {
-	tones.push_back(source[i]);
+        tones.push_back(source[i]);
       }
     }
     std::vector<double> voicing = Voicelead::voicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
     setPitches(beginTarget, endTarget, voicing);
   }
 
-  void Score::recursiveVoicelead(size_t beginSource, 
-				 size_t endSource, 
-				 size_t beginTarget, 
-				 size_t endTarget, 
-				 double lowest, 
-				 double range, 
-				 bool avoidParallelFifths, 
-				 size_t divisionsPerOctave)
+  void Score::recursiveVoicelead(size_t beginSource,
+                                 size_t endSource,
+                                 size_t beginTarget,
+                                 size_t endTarget,
+                                 double lowest,
+                                 double range,
+                                 bool avoidParallelFifths,
+                                 size_t divisionsPerOctave)
   {
     std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
     if (source.size() == 0) {
@@ -605,31 +605,31 @@ namespace csound
     if (source.size() > tones.size()) {
       size_t n = source.size() - tones.size();
       for (size_t i = 0; i < n; i++) {
-	size_t index = i % tones.size();
-	tones.push_back(tones[index]);
+        size_t index = i % tones.size();
+        tones.push_back(tones[index]);
       }
     }
     // Double voices in the source if necessary.
     if (tones.size() > source.size()) {
       size_t n = tones.size() - source.size();
       for (size_t i = 0; i < n; i++) {
-	size_t index = i % source.size();
-	source.push_back(source[index]);
+        size_t index = i % source.size();
+        source.push_back(source[index]);
       }
     }
     std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
     setPitches(beginTarget, endTarget, voicing);
   }
 
-  void Score::recursiveVoicelead(size_t beginSource, 
-				 size_t endSource, 
-				 size_t beginTarget, 
-				 size_t endTarget, 
-				 const std::vector<double> &target,
-				 double lowest, 
-				 double range, 
-				 bool avoidParallelFifths, 
-				 size_t divisionsPerOctave)
+  void Score::recursiveVoicelead(size_t beginSource,
+                                 size_t endSource,
+                                 size_t beginTarget,
+                                 size_t endTarget,
+                                 const std::vector<double> &target,
+                                 double lowest,
+                                 double range,
+                                 bool avoidParallelFifths,
+                                 size_t divisionsPerOctave)
   {
     std::vector<double> source = getPitches(beginSource, endSource, divisionsPerOctave);
     if (source.size() == 0) {
@@ -643,16 +643,16 @@ namespace csound
     if (source.size() > tones.size()) {
       size_t n = source.size() - tones.size();
       for (size_t i = 0; i < n; i++) {
-	size_t index = i % tones.size();
-	tones.push_back(tones[index]);
+        size_t index = i % tones.size();
+        tones.push_back(tones[index]);
       }
     }
     // Double voices in the source if necessary.
     if (tones.size() > source.size()) {
       size_t n = tones.size() - source.size();
       for (size_t i = 0; i < n; i++) {
-	size_t index = i % source.size();
-	source.push_back(source[index]);
+        size_t index = i % source.size();
+        source.push_back(source[index]);
       }
     }
     std::vector<double> voicing = Voicelead::recursiveVoicelead(source, tones, lowest, range, avoidParallelFifths, divisionsPerOctave);
@@ -662,15 +662,15 @@ namespace csound
   struct TimeComparator
   {
     double time;
-    TimeComparator(double time_) : time(time_) 
+    TimeComparator(double time_) : time(time_)
     {
     }
     bool operator()(const Event &event)
     {
       if (event.getTime() >= time) {
-	return true;
+        return true;
       } else {
-	return false;
+        return false;
       }
     }
   };

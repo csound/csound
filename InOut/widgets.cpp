@@ -100,7 +100,7 @@ typedef struct widgetsGlobals_s {
 } widgetsGlobals_t;
 #endif
 
-Fl_Font FONT_TABLE[] = { FL_HELVETICA,			FL_HELVETICA,
+Fl_Font FONT_TABLE[] = { FL_HELVETICA,                  FL_HELVETICA,
                          FL_HELVETICA_BOLD,             FL_HELVETICA_ITALIC,
                          FL_HELVETICA_BOLD_ITALIC,      FL_COURIER,
                          FL_COURIER_BOLD,               FL_COURIER_ITALIC,
@@ -116,7 +116,7 @@ Fl_Align ALIGN_TABLE[] = { FL_ALIGN_BOTTOM,      FL_ALIGN_CENTER,
                            FL_ALIGN_TOP_LEFT,    FL_ALIGN_TOP_RIGHT,
                            FL_ALIGN_BOTTOM_LEFT, FL_ALIGN_BOTTOM_RIGHT };
 
-Fl_Boxtype BOX_TABLE[] = {  FL_FLAT_BOX,	 FL_FLAT_BOX,
+Fl_Boxtype BOX_TABLE[] = {  FL_FLAT_BOX,         FL_FLAT_BOX,
                             FL_UP_BOX,           FL_DOWN_BOX,
                             FL_THIN_UP_BOX,      FL_THIN_DOWN_BOX,
                             FL_ENGRAVED_BOX,     FL_EMBOSSED_BOX,
@@ -2426,7 +2426,7 @@ static int StartGroup(CSOUND *csound, FLGROUP *p)
   widget_attributes(csound, o);
   Fl_Boxtype borderType;
   int iborder = (int)*p->border;
-  if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX; 
+  if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX;
   else borderType = BOX_TABLE[iborder];
 //   switch((int)*p->border ) {
 //   case 0: borderType = FL_FLAT_BOX; break;
