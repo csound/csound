@@ -65,18 +65,18 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
 
 typedef struct _pvspitch
 {
-        // OPDS data structure
+        /* OPDS data structure */
         OPDS    h;
 
-        // Output
+        /* Output */
         MYFLT   *kfreq;
         MYFLT   *kamp;
 
-        // Inputs
+        /* Inputs */
         PVSDAT  *fin;
         MYFLT   *ithreshold;
 
-        // Internal arrays
+        /* Internal arrays */
         AUXCH peakfreq;
         AUXCH inharmonic;
 
