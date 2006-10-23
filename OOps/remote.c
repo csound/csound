@@ -285,7 +285,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
 {   /*      INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
 
-    if (ST(socksin) == NULL) callox(csound);
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
     if (nargs < 3) {
       csound->InitError(csound, Str("missing instr nos"));
       return 0;
