@@ -561,8 +561,8 @@ static inline int is_name_fullpath(const char *name)
  */
 char *csoundGetDirectoryForPath(const char * path) {
 	char *partialPath;
-	char *retval;
-
+	char *retval, *cwd;
+        int len;
 	char *lastIndex = strrchr(path, DIRSEP);
 
 	if (path[0] == DIRSEP
@@ -591,7 +591,7 @@ char *csoundGetDirectoryForPath(const char * path) {
         }
 #endif
 
-		int len = (lastIndex - path);
+		len = (lastIndex - path);
 
 		partialPath = (char *)calloc(len + 1, 1);
 		strncpy(partialPath, path, len);
@@ -599,14 +599,14 @@ char *csoundGetDirectoryForPath(const char * path) {
 		return partialPath;
 	}
 
-	char * cwd = malloc(512);
+	cwd = malloc(512);
 	getcwd(cwd, 512);
 
 	if(lastIndex == NULL) {
 		return cwd;
 	}
 
-	int len = (lastIndex - path);
+	len = (lastIndex - path);
 
 	partialPath = (char *)calloc(len + 1, 1);
 	strncpy(partialPath, path, len);
