@@ -161,6 +161,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csound->orchname == NULL)
       dieu(csound, Str("no orchestra name"));
     else if (csound->scorename == NULL || csound->scorename[0] == (char) 0) {
+        char *fileDir;
       int   tmp = (int) strlen(csound->orchname) - 4;
       if (tmp >= 0 && csound->orchname[tmp] == '.' &&
           (csound->orchname[tmp + 1] | (char) 0x20) == 'c' &&
@@ -172,7 +173,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
         /* Add directory of CSD file to search paths before orchname gets
          * replaced with temp orch name */
-        char * fileDir = csoundGetDirectoryForPath(csound->orchname);
+        fileDir = csoundGetDirectoryForPath(csound->orchname);
         csoundAppendEnv(csound, "SADIR", fileDir);
         csoundAppendEnv(csound, "SSDIR", fileDir);
         csoundAppendEnv(csound, "INCDIR", fileDir);
