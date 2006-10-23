@@ -560,64 +560,64 @@ static inline int is_name_fullpath(const char *name)
  * Note: does not check if file exists
  */
 char *csoundGetDirectoryForPath(const char * path) {
-	char *partialPath;
-	char *retval, *cwd;
+        char *partialPath;
+        char *retval, *cwd;
         int len;
-	char *lastIndex = strrchr(path, DIRSEP);
+        char *lastIndex = strrchr(path, DIRSEP);
 
-	if (path[0] == DIRSEP
+        if (path[0] == DIRSEP
 #ifdef WIN32
         || (isalpha(path[0]) && path[1] == ':' && path[2] == '\\')
 #endif
     ) {
 
-		if(lastIndex == path) {
-			partialPath = (char *)calloc(2, 1);
-			partialPath[0] = DIRSEP;
-			partialPath[1] = '\0';
+                if(lastIndex == path) {
+                        partialPath = (char *)calloc(2, 1);
+                        partialPath[0] = DIRSEP;
+                        partialPath[1] = '\0';
 
-			return partialPath;
-		}
+                        return partialPath;
+                }
 
 #ifdef WIN32
         if((lastIndex - path) == 2) {
-        	partialPath = (char *)calloc(4, 1);
-			partialPath[0] = path[0];
-			partialPath[1] = path[1];
-			partialPath[2] = path[2];
-			partialPath[3] = '\0';
+                partialPath = (char *)calloc(4, 1);
+                        partialPath[0] = path[0];
+                        partialPath[1] = path[1];
+                        partialPath[2] = path[2];
+                        partialPath[3] = '\0';
 
-			return partialPath;
+                        return partialPath;
         }
 #endif
 
-		len = (lastIndex - path);
+                len = (lastIndex - path);
 
-		partialPath = (char *)calloc(len + 1, 1);
-		strncpy(partialPath, path, len);
+                partialPath = (char *)calloc(len + 1, 1);
+                strncpy(partialPath, path, len);
 
-		return partialPath;
-	}
+                return partialPath;
+        }
 
-	cwd = malloc(512);
-	getcwd(cwd, 512);
+        cwd = malloc(512);
+        getcwd(cwd, 512);
 
-	if(lastIndex == NULL) {
-		return cwd;
-	}
+        if(lastIndex == NULL) {
+                return cwd;
+        }
 
-	len = (lastIndex - path);
+        len = (lastIndex - path);
 
-	partialPath = (char *)calloc(len + 1, 1);
-	strncpy(partialPath, path, len);
+        partialPath = (char *)calloc(len + 1, 1);
+        strncpy(partialPath, path, len);
 
-	retval = (char *)calloc(strlen(cwd) + len + 2, 1);
-	sprintf(retval, "%s%c%s", cwd, DIRSEP, partialPath);
+        retval = (char *)calloc(strlen(cwd) + len + 2, 1);
+        sprintf(retval, "%s%c%s", cwd, DIRSEP, partialPath);
 
-	free(cwd);
-	free(partialPath);
+        free(cwd);
+        free(partialPath);
 
-	return retval;
+        return retval;
 }
 
 static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,

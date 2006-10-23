@@ -56,7 +56,7 @@ uintptr_t csThread(void *clientData)
             // csoundLockMutex(lock);
             result = csoundPerformKsmps(cs);
             // csoundUnlockMutex(lock);
-	  }
+          }
           else {
             csoundSleep(1);
             result = 0;
@@ -65,10 +65,10 @@ uintptr_t csThread(void *clientData)
       else {
         while (result == 0 && *status != -1)
           if (*status != CS_PAUSED){
-	    // csoundLockMutex(lock);
+            // csoundLockMutex(lock);
             result = csoundPerformBuffer(cs);
-	    // csoundUnlockMutex(lock);
-	  }
+            // csoundUnlockMutex(lock);
+          }
           else {
             csoundSleep(1);
             result = 0;
@@ -653,12 +653,12 @@ int csInChannel(ClientData clientData, Tcl_Interp * interp,
 
     if (argc >= 2) {
       if (FindChannel(p, argv[1]) != IN_CHAN) {
-	newch = (ctlchn *) Tcl_Alloc(sizeof(ctlchn));
+        newch = (ctlchn *) Tcl_Alloc(sizeof(ctlchn));
         tmp = p->inchan; 
         p->inchan = newch;
         p->inchan->next = tmp;
         p->inchan->name = (char *) Tcl_Alloc(strlen(argv[1])+1);
-	strcpy(p->inchan->name, argv[1]);
+        strcpy(p->inchan->name, argv[1]);
         p->inchan->value = 0.0;
         Tcl_SetResult(interp, argv[1], TCL_VOLATILE);
       }
@@ -812,11 +812,11 @@ int SetPVSChannelBin(csdata *p,
     while (chan != NULL) {
       if (chan->n == n) {
         if(bin >= 0  && bin <= chan->data.N/2){
-	  csoundLockMutex(p->threadlock);
+          csoundLockMutex(p->threadlock);
         chan->data.frame[bin*2] = amp;
         chan->data.frame[bin*2+1] = freq;
          csoundUnlockMutex(p->threadlock);
-	}
+        }
         return CHAN_FOUND;
       }
       chan = chan->next;
@@ -881,7 +881,7 @@ int csPvsIn(ClientData clientData, Tcl_Interp * interp,
     pvsctlchn *newch, *tmp;
     if (argc >= 2) {
       if (FindPVSInChannel(p, atoi(argv[1])) != IN_CHAN) {
-	newch = (pvsctlchn *) Tcl_Alloc(sizeof(pvsctlchn));
+        newch = (pvsctlchn *) Tcl_Alloc(sizeof(pvsctlchn));
         tmp = p->pvsinchan; 
         p->pvsinchan = newch;
         p->pvsinchan->next = tmp;
@@ -954,9 +954,9 @@ int csPvsInSet(ClientData clientData, Tcl_Interp * interp,
       // csoundLockMutex(p->threadlock);
       if (SetPVSChannelBin
           (p,chan, (int)bin, (float)amp, (float) freq)
-	    != CHAN_NOT_FOUND)
+            != CHAN_NOT_FOUND)
         Tcl_SetIntObj(resp, 1);
-	 else
+         else
         Tcl_SetIntObj(resp, 0);
       // csoundUnlockMutex(p->threadlock);
     }
@@ -1236,7 +1236,7 @@ csoundUnlockMutex(p->messlock);
 
 int
 csGetMessageOutput(ClientData clientData, Tcl_Interp * interp,
-		   int argc, char **argv){
+                   int argc, char **argv){
 csdata  *p = (csdata *) clientData;
  char *data;
 csoundLockMutex(p->messlock);

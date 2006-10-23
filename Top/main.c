@@ -185,7 +185,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
           csound->Die(csound, Str("Decode failed....stopping"));
         }
 
-		csdFound = 1;
+                csdFound = 1;
       }
     }
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
@@ -268,12 +268,12 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
     /* Add directory of ORC file to search paths*/
     if(!csdFound) {
-	    char * fileDir = csoundGetDirectoryForPath(csound->orchname);
-	    csoundAppendEnv(csound, "SADIR", fileDir);
-	    csoundAppendEnv(csound, "SSDIR", fileDir);
-	    csoundAppendEnv(csound, "INCDIR", fileDir);
-	    csoundAppendEnv(csound, "MFDIR", fileDir);
-	    free(fileDir);
+            char * fileDir = csoundGetDirectoryForPath(csound->orchname);
+            csoundAppendEnv(csound, "SADIR", fileDir);
+            csoundAppendEnv(csound, "SSDIR", fileDir);
+            csoundAppendEnv(csound, "INCDIR", fileDir);
+            csoundAppendEnv(csound, "MFDIR", fileDir);
+            free(fileDir);
     }
 
 
