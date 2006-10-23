@@ -697,10 +697,10 @@ public:
   {
     return csoundChanOAGet(csound, value, n);
   }
-  
-  // pvsbus interface 
-  virtual void PvsBusInit(int N=1024, int olaps=256, int wsize=256, 
-			int wtype=1, int format=0){
+
+  // pvsbus interface
+  virtual void PvsBusInit(int N=1024, int olaps=256, int wsize=256,
+                        int wtype=1, int format=0){
     if(pvsindata.frame != NULL) PvsBusDestroy();
     pvsindata.frame = new float[N+2];
     pvsoutdata.frame = new float[N+2];
@@ -739,7 +739,7 @@ public:
   {
     return csoundPvsinSet(csound, value, n);
   }
- 
+
   virtual int PvsoutGet(PVSDATEXT* value, int n)
   {
     return csoundPvsoutGet(csound, value, n);

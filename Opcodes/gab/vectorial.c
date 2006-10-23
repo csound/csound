@@ -759,7 +759,7 @@ static int vcopy(CSOUND *csound,VECTORSOP *p)
       len2 -= srcoffset;
       vector2 += srcoffset;
     }
-	/*n = (elements < len2 ? elements : len2);*/
+        /*n = (elements < len2 ? elements : len2);*/
     if (elements > len2) {
       if ((int) *p->kverbose != 0)
         csound->Warning(csound,Str("vcopy: ifn2 length exceeded"));
@@ -999,9 +999,9 @@ static int vsubvk(CSOUND *csound,VECTORSOP *p)
       if ((int) *p->kverbose != 0)
         csound->Warning(csound,Str("vsubv: ifn1 length exceeded"));
     }
-	/* elements = (elements < len1 ? elements : len1);*/
+        /* elements = (elements < len1 ? elements : len1);*/
     if (srcoffset < 0) {
-    	i = -srcoffset;
+        i = -srcoffset;
       /*int i, n = -srcoffset;
        n = (n < elements ? n : elements);
        for (i = 0; i < n; i++)
@@ -1076,7 +1076,7 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
     }
     /* elements = (elements < len1 ? elements : len1); */
     if (srcoffset < 0) {
-   	  n = -srcoffset;
+          n = -srcoffset;
       /*int   i, n = -srcoffset; */
       n = (n < elements ? n : elements);
       for (i = 0; i < n; i++)
@@ -1088,7 +1088,7 @@ static int vsubv_i(CSOUND *csound, VECTORSOPI *p)
       len2 -= srcoffset;
       vector2 += srcoffset;
     }
-	/* n = (elements < len2 ? elements : len2); */
+        /* n = (elements < len2 ? elements : len2); */
     if (elements > len2) {
       csound->Warning(csound,Str("vsubv_i: ifn2 length exceeded"));
       n = len2;
@@ -1258,7 +1258,7 @@ static int vdivvk(CSOUND *csound,VECTORSOP *p)
       if ((int) *p->kverbose != 0)
         csound->Warning(csound,Str("vdivv: ifn1 length exceeded"));
     }
-	/* elements = (elements < len1 ? elements : len1); */
+        /* elements = (elements < len1 ? elements : len1); */
     if (srcoffset < 0) {
       i = -srcoffset;
       /*int i, n = -srcoffset;
@@ -1402,7 +1402,7 @@ static int vpowvk(CSOUND *csound,VECTORSOP *p)
       len2 -= srcoffset;
       vector2 += srcoffset;
     }
-	/* n = (elements < len2 ? elements : len2); */
+        /* n = (elements < len2 ? elements : len2); */
     if (elements > len2) {
       if ((int) *p->kverbose != 0)
         csound->Warning(csound,Str("vpowv: ifn2 length exceeded"));
@@ -1463,7 +1463,7 @@ static int vpowv_i(CSOUND *csound, VECTORSOPI *p)
       elements = len1;
       csound->Warning(csound,Str("vpowv_i: ifn1 length exceeded"));
     }
-	/*elements = (elements < len1 ? elements : len1);*/
+        /*elements = (elements < len1 ? elements : len1);*/
     if (srcoffset < 0) {
       /*int   i, */n = -srcoffset;
       n = (n < elements ? n : elements);
@@ -1517,7 +1517,7 @@ static int vexpvk(CSOUND *csound,VECTORSOP *p)
       if ((int) *p->kverbose != 0)
         csound->Warning(csound,Str("vexpv: ifn1 length exceeded"));
     }
-	/* elements = (elements < len1 ? elements : len1); */
+        /* elements = (elements < len1 ? elements : len1); */
     if (srcoffset < 0) {
       i = -srcoffset;
       /*int i, n = -srcoffset;
