@@ -513,7 +513,7 @@ int pgmin(CSOUND *csound, PGMIN *p)
       d1  = (MYFLT) *++temp;
       d2  = (MYFLT) *++temp;
       if (st == 192) {
-        *p->pgm = d1;
+        *p->pgm = 1+d1;
         *p->chn = ch;
       }
       else {
