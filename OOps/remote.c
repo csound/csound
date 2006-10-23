@@ -327,7 +327,7 @@ int insglobal(CSOUND *csound, INSGLOBAL *p)
 {   /*      INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
 
-    if (ST(socksin) == NULL) callox(csound);
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
     if (nargs < 2) {
       csound->InitError(csound, Str("missing instr nos"));
       return NOTOK;
@@ -357,7 +357,7 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
 {                                            /* INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
 
-    if (ST(socksin) == NULL) callox(csound);
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
     if (nargs < 3) {
       csound->InitError(csound, Str("missing channel nos"));
       return NOTOK;
@@ -395,8 +395,8 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
 /* declare certain chnls global remote Csounds */
 {                                         /*       INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
-
-    if (ST(socksin) == NULL) callox(csound);
+    
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
     if (nargs < 2) {
       csound->InitError(csound, Str("missing channel nos"));
       return NOTOK;
