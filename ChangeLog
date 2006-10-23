@@ -1,5 +1,8 @@
 2006-10-23  jpff  <jpff@codemist.co.uk>
 
+	* OOps/midiops.c (pgmin): Make program changes in range 1-128
+	rather than 0-127
+
 	* OOps/remote.c (insremot): Need to check csound->remoteGlobals
 	before access 
 
