@@ -149,7 +149,7 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
     }
     else {
       if (devNum < 0 || devNum > maxNum) {
-        //listPortAudioDevices_blocking(csound, 1, play);
+        /* listPortAudioDevices_blocking(csound, 1, play); */
         pa_PrintErrMsg(csound, Str("%s device number %d is out of range"),
                                (play ? Str("output") : Str("input")), devNum);
         return -1;
