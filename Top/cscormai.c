@@ -50,11 +50,11 @@ int main(int argc, char **argv)
     }
 
     /* open the command line scorein file */
-    if (!(--argc)) {
+    if (argc < 2) {
       err_printf("Insufficient arguments: must provide an input filename.\n");
       return -1;
     }
-    if (!(insco = fopen(*++argv, "r"))) {
+    if (!(insco = fopen(argv[1], "r"))) {
       err_printf("Cannot open the input score %s\n", *argv);
       return -1;
     }
