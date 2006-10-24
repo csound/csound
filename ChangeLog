@@ -1,3 +1,8 @@
+2006-10-24    Steven Yi  <stevenyi@gmail.com>
+
+    * Top/main.c (csoundCompile): changed CSD/ORC/SCO directory to append
+    instead of prepending search paths
+
 2006-10-24  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* Top/main.c:
@@ -17,7 +22,7 @@
 	rather than 0-127
 
 	* OOps/remote.c (insremot): Need to check csound->remoteGlobals
-	before access 
+	before access
 
 2006-10-22  jpff  <jpff@codemist.co.uk>
 
