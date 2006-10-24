@@ -176,7 +176,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
         csoundAppendEnv(csound, "SADIR", fileDir);
         csoundAppendEnv(csound, "SSDIR", fileDir);
-        /*csoundAppendEnv(csound, "INCDIR", fileDir);*/
+        csoundAppendEnv(csound, "INCDIR", fileDir);
         csoundAppendEnv(csound, "MFDIR", fileDir);
         mfree(csound, fileDir);
 
