@@ -174,10 +174,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         /* Add directory of CSD file to search paths before orchname gets
          * replaced with temp orch name */
         fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
-        csoundPrependEnv(csound, "SADIR", fileDir);
-        csoundPrependEnv(csound, "SSDIR", fileDir);
-        /*csoundPrependEnv(csound, "INCDIR", fileDir);*/
-        csoundPrependEnv(csound, "MFDIR", fileDir);
+        csoundAppendEnv(csound, "SADIR", fileDir);
+        csoundAppendEnv(csound, "SSDIR", fileDir);
+        /*csoundAppendEnv(csound, "INCDIR", fileDir);*/
+        csoundAppendEnv(csound, "MFDIR", fileDir);
         mfree(csound, fileDir);
 
         if (!read_unified_file(csound, &(csound->orchname),
@@ -259,20 +259,20 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     } else if(!csdFound){
         /* Add directory of SCO file to search paths*/
         fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
-        csoundPrependEnv(csound, "SADIR", fileDir);
-        csoundPrependEnv(csound, "SSDIR", fileDir);
-        /*csoundPrependEnv(csound, "INCDIR", fileDir);*/
-        csoundPrependEnv(csound, "MFDIR", fileDir);
+        csoundAppendEnv(csound, "SADIR", fileDir);
+        csoundAppendEnv(csound, "SSDIR", fileDir);
+        /*csoundAppendEnv(csound, "INCDIR", fileDir);*/
+        csoundAppendEnv(csound, "MFDIR", fileDir);
         mfree(csound, fileDir);
     }
 
     /* Add directory of ORC file to search paths*/
     if(!csdFound) {
         fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
-        csoundPrependEnv(csound, "SADIR", fileDir);
-        csoundPrependEnv(csound, "SSDIR", fileDir);
-        /*csoundPrependEnv(csound, "INCDIR", fileDir);*/
-        csoundPrependEnv(csound, "MFDIR", fileDir);
+        csoundAppendEnv(csound, "SADIR", fileDir);
+        csoundAppendEnv(csound, "SSDIR", fileDir);
+        /*csoundAppendEnv(csound, "INCDIR", fileDir);*/
+        csoundAppendEnv(csound, "MFDIR", fileDir);
         mfree(csound, fileDir);
     }
 
