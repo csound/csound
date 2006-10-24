@@ -306,6 +306,42 @@ int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
 }
 
 /**
+ * Prepend 'value' to environment variable 'name', using ';' as
+ * separator character.
+ * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
+ * if the environment variable could not be set for some reason.
+ */
+
+int csoundPrependEnv(CSOUND *csound, const char *name, const char *value)
+{
+    const char  *oldval;
+    char        *newval;
+    int         retval;
+
+    /* check for valid parameters */
+    if (csound == NULL || !is_valid_envvar_name(name))
+      return CSOUND_ERROR;
+    /* get original value of variable */
+    oldval = csoundGetEnv(csound, name);
+    if (oldval == NULL)
+      return csoundSetEnv(csound, name, value);
+    if (value == NULL || value[0] == '\0')
+      return CSOUND_SUCCESS;
+    /* allocate new value (+ 2 bytes for ';' and null character) */
+    newval = (char*) mmalloc(csound, (size_t) strlen(oldval)
+                                     + (size_t) strlen(value) + (size_t) 2);
+    /* prepend to old value */
+    strcpy(newval, value);
+    strcat(newval, ";");
+    strcat(newval, oldval);
+    /* set variable */
+    retval = csoundSetEnv(csound, name, newval);
+    mfree(csound, newval);
+    /* return with error code */
+    return retval;
+}
+
+/**
  * Initialise environment variable database, and copy system
  * environment variables.
  * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
@@ -512,13 +548,16 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     return (&(p->lst[0]));
 }
 
-/* check if file name is valid, and copy with converting pathname delimiters */
-
-static inline char *convert_name(CSOUND *csound, const char *filename)
+/** Check if file name is valid, and copy with converting pathname delimiters */
+char *csoundConvertPathname(CSOUND *csound, const char *filename)
 {
     char  *name;
     int   i = 0;
 
+/* FIXMEs:  need to convert ':' from Mac pathnames (but be careful of not
+   messing up Windows drive names!); need to be careful of
+   relative paths containing "./", "../", or multiple colons "::"; need to
+   collapse multiple slashes "//" or "\\\\" ??  */
     if (filename == NULL || filename[0] == '\0')
       return NULL;
     name = (char*) mmalloc(csound, (size_t) strlen(filename) + (size_t) 1);
@@ -539,85 +578,219 @@ static inline char *convert_name(CSOUND *csound, const char *filename)
     return name;
 }
 
-static inline int is_name_fullpath(const char *name)
+/**  Check if name is a full pathname for the platform we are running on. */
+int csoundIsNameFullpath(const char *name)
 {
+#ifdef WIN32    
+    if (isalpha(name[0]) && name[1] == ':') return 1;
+#endif
 #ifndef mac_classic
-    if (name[0] == DIRSEP ||
+    if (name[0] == DIRSEP) /* ||
         (name[0] == '.' && (name[1] == DIRSEP ||
-                            (name[1] == '.' && name[2] == DIRSEP))))
+                            (name[1] == '.' && name[2] == DIRSEP)))) */
       return 1;
     return 0;
 #else
-    /* MacOS relative paths begin with DIRSEP */
-    /* Full paths contain DIRSEP but do not start with it */
+    /* MacOS full paths contain DIRSEP but do not start with it */
     if (name[0] == DIRSEP || strchr(name, DIRSEP) == NULL)
       return 0;
     return 1;
 #endif
 }
 
+/** Check if name is a relative pathname for this platform.  Bare 
+ *  filenames with no path information are not counted.
+ */
+int csoundIsNameRelativePath(const char *name)
+{
+#ifndef mac_classic
+    if (name[0] != DIRSEP && strchr(name, DIRSEP) != NULL)
+      return 1;
+    return 0;
+#else
+    /* MacOS relative paths begin with DIRSEP */
+    if (name[0] == DIRSEP)
+      return 1;
+    return 0;
+#endif
+}
+
+/** Check if name is a "leaf" (bare) filename for this platform. */
+int csoundIsNameJustFilename(const char *name)
+{
+    if (strchr(name, DIRSEP) != NULL) return 0;
+#ifdef WIN32
+    if (name[2] == ':') return 0;
+#endif
+    return 1;
+}
+
+/** Properly concatenates the full or relative pathname in path1 with 
+ *  the relative pathname or filename in path2 according to the rules
+ *  for the platform we are running on.  path1 is assumed to be
+ *  a directory whether it ends with DIRSEP or not.  Relative paths must
+ *  conform to the conventions for the current platform (begin with ':'
+ *  on MacOS 9 and not begin with DIRSEP on others).
+ */
+char* csoundConcatenatePaths(CSOUND* csound, const char *path1, const char *path2)
+{
+    char *result;
+    const char *start2;
+    char separator[2];
+    int  len1 = strlen(path1);
+    int  len2 = strlen(path2);
+    
+    /* cannot join two full pathnames -- so just return path2 ? */
+    if (csoundIsNameFullpath(path2)) {
+        result = (char*) mmalloc(csound, (size_t)len2+1);
+        strcpy(result, path2);
+        return result;
+    }
+
+    start2 = path2;
+#ifndef mac_classic
+    /* ignore "./" at the beginning */
+    if (path2[0] == '.' && path2[1] == DIRSEP) start2 = path2 + 2;
+#else
+    /* ignore the first ':' of path2 if any are present */
+    if (path2[0] == ':') start2 = path2 + 1;
+#endif
+    
+    result = (char*) mmalloc(csound, (size_t)len1+(size_t)len2+2);
+    strcpy(result, path1);
+    /* check for final DIRSEP in path1 */
+    if (path1[len1-1] != DIRSEP) {
+        separator[0] = DIRSEP; separator[1] = '\0';
+        strcat(result, separator);
+    }
+    strcat(result, start2);
+    
+    return result;
+}
+
+/** Converts a pathname to native format and returns just the part of
+ *  the path that specifies the directory.  Does not return the final 
+ *  DIRSEP.  Returns an empty string if no path components occur before
+ *  the filename.  Returns NULL if unable to carry out the operation 
+ *  for some reason.
+ */
+char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
+{
+    char *convPath;
+    char *lastIndex;
+    char *partialPath;
+    int  len;
+
+    if ((convPath = csoundConvertPathname(csound, path)) == NULL)
+        return NULL;
+    lastIndex = strrchr(convPath, DIRSEP);
+    
+    if (lastIndex == NULL) {  /* no DIRSEP before filename */
+#ifdef WIN32  /* e.g. C:filename */
+        if (isalpha(convPath[0]) && convPath[1] == ':') {
+            partialPath = (char*) mmalloc(csound, (size_t) 3);
+            partialPath[0] = convPath[0];
+            partialPath[1] = convPath[1];
+            partialPath[2] = '\0';
+            mfree(csound, convPath);
+            return partialPath;
+        }
+#endif
+        partialPath = (char*) mmalloc(csound, (size_t) 1);
+        partialPath[0] = '\0';
+    }
+    else {
+        len = lastIndex - convPath;
+        partialPath = (char*) mmalloc(csound, len);
+        strncpy(partialPath, convPath, len);
+        partialPath[len] = '\0';
+   }
+   mfree(csound, convPath);
+   return partialPath;
+}
+
+/** Return just the final component of a full path */
+char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path)
+{
+    char *convPath;
+    char *lastIndex;
+    char *filename;
+    int  len;
+
+    if ((convPath = csoundConvertPathname(csound, path)) == NULL)
+        return NULL;
+    lastIndex = strrchr(convPath, DIRSEP);
+    len = strlen(lastIndex);
+    filename = (char*) mmalloc(csound, len+1);
+    strcpy(filename, lastIndex+1);
+    mfree(csound, convPath);
+    return filename;
+}
+
 /* given a file name as string, return full path of directory of file;
  * Note: does not check if file exists
  */
-char *csoundGetDirectoryForPath(const char * path) {
-        char *partialPath;
-        char *retval, *cwd;
-        int len;
-        char *lastIndex = strrchr(path, DIRSEP);
+char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
+    char *partialPath;
+    char *retval;
+    char *cwd;
+    int  len;
+    char *lastIndex = strrchr(path, DIRSEP);
 
-        if (path[0] == DIRSEP
-#ifdef WIN32
-        || (isalpha(path[0]) && path[1] == ':' && path[2] == '\\')
-#endif
-    ) {
+    if (csoundIsNameFullpath(path))
+    {
+#ifndef mac_classic
+        /* check if root directory */
+        if (lastIndex == path) {
+            partialPath = (char *)mcalloc(csound, 2);
+            partialPath[0] = DIRSEP;
+            partialPath[1] = '\0';
 
-                if(lastIndex == path) {
-                        partialPath = (char *)calloc(2, 1);
-                        partialPath[0] = DIRSEP;
-                        partialPath[1] = '\0';
-
-                        return partialPath;
-                }
-
-#ifdef WIN32
-        if((lastIndex - path) == 2) {
-                partialPath = (char *)calloc(4, 1);
-                        partialPath[0] = path[0];
-                        partialPath[1] = path[1];
-                        partialPath[2] = path[2];
-                        partialPath[3] = '\0';
-
-                        return partialPath;
-        }
-#endif
-
-                len = (lastIndex - path);
-
-                partialPath = (char *)calloc(len + 1, 1);
-                strncpy(partialPath, path, len);
-
-                return partialPath;
+            return partialPath;
         }
 
-        cwd = malloc(512);
-        getcwd(cwd, 512);
+#  ifdef WIN32
+        /* check if root directory of Windows drive */
+        if ((lastIndex - path) == 2 && path[1] == ':') {
+            partialPath = (char *)mcalloc(csound, 4);
+            partialPath[0] = path[0];
+            partialPath[1] = path[1];
+            partialPath[2] = path[2];
+            partialPath[3] = '\0';
 
-        if(lastIndex == NULL) {
-                return cwd;
+            return partialPath;
         }
-
+#  endif
+#endif  /* no special case needed on OS 9 for root directory */
+        /* not the root directory or we are on OS 9 */
         len = (lastIndex - path);
 
-        partialPath = (char *)calloc(len + 1, 1);
+        partialPath = (char *)mcalloc(csound, len + 1);
         strncpy(partialPath, path, len);
 
-        retval = (char *)calloc(strlen(cwd) + len + 2, 1);
-        sprintf(retval, "%s%c%s", cwd, DIRSEP, partialPath);
+        return partialPath;
+    }
 
-        free(cwd);
-        free(partialPath);
+    /* do we need to worry about ~/ on *nix systems ? */
+    /* we have a relative path or just a filename */
+    cwd = mmalloc(csound, 512);
+    getcwd(cwd, 512);
 
-        return retval;
+    if(lastIndex == NULL) {
+        return cwd;
+    }
+
+    len = (lastIndex - path);  /* could be 0 on OS 9 */
+
+    partialPath = (char *)mcalloc(csound, len + 1);
+    strncpy(partialPath, path, len);
+
+    retval = csoundConcatenatePaths(csound, cwd, partialPath);
+
+    mfree(csound, cwd);
+    mfree(csound, partialPath);
+
+    return retval;
 }
 
 static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
@@ -629,7 +802,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
     int   len;
 
     *fullName = NULL;
-    if ((name = convert_name(csound, filename)) == NULL)
+    if ((name = csoundConvertPathname(csound, filename)) == NULL)
       return (FILE*) NULL;
     if (mode[0] != 'w') {
       /* read: try the specified name first */
@@ -639,12 +812,12 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
         return f;
       }
       /* if full path, and not found: */
-      if (is_name_fullpath(name)) {
+      if (csoundIsNameFullpath(name)) {
         mfree(csound, name);
         return (FILE*) NULL;
       }
     }
-    else if (is_name_fullpath(name)) {
+    else if (csoundIsNameFullpath(name)) {
       /* if write and full path: */
       f = fopen(name, mode);
       if (f != NULL)
@@ -659,9 +832,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
           != NULL) {
       len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
-        name2 = mmalloc(csound, (size_t) strlen(*searchPath) + (size_t) len);
-        strcpy(name2, *searchPath);
-        strcat(name2, name);
+        name2 = csoundConcatenatePaths(csound, *searchPath, name);
         f = fopen(name2, mode);
         if (f != NULL) {
           mfree(csound, name);
@@ -693,7 +864,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
     int   len, fd;
 
     *fullName = NULL;
-    if ((name = convert_name(csound, filename)) == NULL)
+    if ((name = csoundConvertPathname(csound, filename)) == NULL)
       return -1;
     if (!write_mode) {
       /* read: try the specified name first */
@@ -703,12 +874,12 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
         return fd;
       }
       /* if full path, and not found: */
-      if (is_name_fullpath(name)) {
+      if (csoundIsNameFullpath(name)) {
         mfree(csound, name);
         return -1;
       }
     }
-    else if (is_name_fullpath(name)) {
+    else if (csoundIsNameFullpath(name)) {
       /* if write and full path: */
       fd = open(name, WR_OPTS);
       if (fd >= 0)
@@ -723,9 +894,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
           != NULL) {
       len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
-        name2 = mmalloc(csound, (size_t) strlen(*searchPath) + (size_t) len);
-        strcpy(name2, *searchPath);
-        strcat(name2, name);
+        name2 = csoundConcatenatePaths(csound, *searchPath, name);
         if (!write_mode)
           fd = open(name2, RD_OPTS);
         else
