@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include "namedins.h"   /* IV - Oct 31 2002 */
 #include "typetabl.h"   /* IV - Oct 31 2002 */
+#include "envvar.h"
 
 #ifdef sun
 #define   SEEK_SET        0
@@ -295,16 +296,14 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
       return fd;
                                 /* if that fails try in base directory */
     if (basename != NULL) {
-      char *p, name_full[1024];
-      strcpy(name_full, basename);
-      p = strrchr(name_full, DIRSEP);
-      if (p == NULL) p = strrchr(name_full, '/');
-      if (p == NULL) p = strrchr(name_full, '\\');
-      if (p != NULL) {
-        strcpy(p + 1, name);
-        fd = csound->FileOpen(csound, fp, CSFILE_STD, name_full, "rb", NULL);
-        if (fd != NULL)
-          return fd;
+      char *dir, *name_full;
+      if ((dir = csoundSplitDirectoryFromPath(csound, basename)) != NULL) {
+          name_full = csoundConcatenatePaths(csound, dir, name);
+          fd = csound->FileOpen(csound, fp, CSFILE_STD, name_full, "rb", NULL);
+          mfree(csound, dir);
+          mfree(csound, name_full);
+          if (fd != NULL)
+            return fd;
       }
     }
                                 /* or use env argument */

@@ -1,3 +1,16 @@
+2006-10-24  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Top/main.c:
+	* Engine/rdorch.c:
+	* Engine/envvar.c:
+	* H/envvar.h: Many changes & improvements to file searching.
+	  - New internal interface for X-platform path manipulation.
+	  - CSD/ORC/SCO directory prepended to environment variables
+	    instead of appended (so that they are searched later).
+	  - Relative paths beginning with "./" or "../" now work when
+	    specifying filenames in ORC and SCO.
+	  - Many bug fixes to MacOS 9 path manipultion.
+
 2006-10-23  jpff  <jpff@codemist.co.uk>
 
 	* OOps/midiops.c (pgmin): Make program changes in range 1-128
