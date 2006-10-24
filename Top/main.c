@@ -68,6 +68,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     FILE    *scorin = NULL, *scorout = NULL, *xfile = NULL;
     int     n;
     int     csdFound = 0;
+    char    *fileDir;
 
     /* IV - Feb 05 2005: find out if csoundPreCompile() needs to be called */
     if (csound->engineState != CS_STATE_PRE) {
@@ -161,7 +162,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     if (csound->orchname == NULL)
       dieu(csound, Str("no orchestra name"));
     else if (csound->scorename == NULL || csound->scorename[0] == (char) 0) {
-        char *fileDir;
       int   tmp = (int) strlen(csound->orchname) - 4;
       if (tmp >= 0 && csound->orchname[tmp] == '.' &&
           (csound->orchname[tmp + 1] | (char) 0x20) == 'c' &&
@@ -173,19 +173,19 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
 
         /* Add directory of CSD file to search paths before orchname gets
          * replaced with temp orch name */
-        fileDir = csoundGetDirectoryForPath(csound->orchname);
-        csoundAppendEnv(csound, "SADIR", fileDir);
-        csoundAppendEnv(csound, "SSDIR", fileDir);
-        csoundAppendEnv(csound, "INCDIR", fileDir);
-        csoundAppendEnv(csound, "MFDIR", fileDir);
-        free(fileDir);
+        fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+        csoundPrependEnv(csound, "SADIR", fileDir);
+        csoundPrependEnv(csound, "SSDIR", fileDir);
+        /*csoundPrependEnv(csound, "INCDIR", fileDir);*/
+        csoundPrependEnv(csound, "MFDIR", fileDir);
+        mfree(csound, fileDir);
 
         if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
           csound->Die(csound, Str("Decode failed....stopping"));
         }
 
-                csdFound = 1;
+        csdFound = 1;
       }
     }
     /* IV - Feb 19 2005: run a second pass of argdecode so that */
@@ -258,22 +258,22 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
     } else if(!csdFound){
         /* Add directory of SCO file to search paths*/
-        char * fileDir = csoundGetDirectoryForPath(csound->scorename);
-        csoundAppendEnv(csound, "SADIR", fileDir);
-        csoundAppendEnv(csound, "SSDIR", fileDir);
-        csoundAppendEnv(csound, "INCDIR", fileDir);
-        csoundAppendEnv(csound, "MFDIR", fileDir);
-        free(fileDir);
+        fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
+        csoundPrependEnv(csound, "SADIR", fileDir);
+        csoundPrependEnv(csound, "SSDIR", fileDir);
+        /*csoundPrependEnv(csound, "INCDIR", fileDir);*/
+        csoundPrependEnv(csound, "MFDIR", fileDir);
+        mfree(csound, fileDir);
     }
 
     /* Add directory of ORC file to search paths*/
     if(!csdFound) {
-            char * fileDir = csoundGetDirectoryForPath(csound->orchname);
-            csoundAppendEnv(csound, "SADIR", fileDir);
-            csoundAppendEnv(csound, "SSDIR", fileDir);
-            csoundAppendEnv(csound, "INCDIR", fileDir);
-            csoundAppendEnv(csound, "MFDIR", fileDir);
-            free(fileDir);
+        fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+        csoundPrependEnv(csound, "SADIR", fileDir);
+        csoundPrependEnv(csound, "SSDIR", fileDir);
+        /*csoundPrependEnv(csound, "INCDIR", fileDir);*/
+        csoundPrependEnv(csound, "MFDIR", fileDir);
+        mfree(csound, fileDir);
     }
 
 
