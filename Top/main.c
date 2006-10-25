@@ -172,13 +172,15 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
 
         /* Add directory of CSD file to search paths before orchname gets
-         * replaced with temp orch name */
-        fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
-        csoundAppendEnv(csound, "SADIR", fileDir);
-        csoundAppendEnv(csound, "SSDIR", fileDir);
-        csoundAppendEnv(csound, "INCDIR", fileDir);
-        csoundAppendEnv(csound, "MFDIR", fileDir);
-        mfree(csound, fileDir);
+         * replaced with temp orch name if default paths is enabled */
+        if(!O->noDefaultPaths) {
+	      fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+	      csoundAppendEnv(csound, "SADIR", fileDir);
+	      csoundAppendEnv(csound, "SSDIR", fileDir);
+	      csoundAppendEnv(csound, "INCDIR", fileDir);
+	      csoundAppendEnv(csound, "MFDIR", fileDir);
+	      mfree(csound, fileDir);
+        }
 
         if (!read_unified_file(csound, &(csound->orchname),
                                        &(csound->scorename))) {
@@ -256,7 +258,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       fclose(scof);
       csound->scorename = sconame;
       add_tmpfile(csound, sconame);     /* IV - Feb 03 2005 */
-    } else if(!csdFound){
+    } else if(!csdFound && !O->noDefaultPaths){
         /* Add directory of SCO file to search paths*/
         fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
         csoundAppendEnv(csound, "SADIR", fileDir);
@@ -267,7 +269,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
     }
 
     /* Add directory of ORC file to search paths*/
-    if(!csdFound) {
+    if(!csdFound && !O->noDefaultPaths) {
         fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
         csoundAppendEnv(csound, "SADIR", fileDir);
         csoundAppendEnv(csound, "SSDIR", fileDir);

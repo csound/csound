@@ -190,6 +190,7 @@ static const char *longUsageList[] = {
   "\t\t\tvelocity number to pfield N as MIDI value [0-127]",
   "--midi-velocity-amp=N\tRoute MIDI note on message",
   "\t\t\tvelocity number to pfield N as amplitude",
+  "--no-default-paths\tturn off relative paths from CSD/ORC/SCO",
   "",
   "--help\t\t\tLong help",
   NULL
@@ -717,6 +718,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         strcat(csound->dl_opcodes_oplibs, ",");
         strcat(csound->dl_opcodes_oplibs, s);
       }
+      return 1;
+    } else if (!(strcmp(s, "default-paths"))) {
+      O->noDefaultPaths = 0;
+      return 1;
+    } else if (!(strcmp(s, "no-default-paths"))) {
+      O->noDefaultPaths = 1;
       return 1;
     }
     else if (!(strcmp(s, "help"))) {
