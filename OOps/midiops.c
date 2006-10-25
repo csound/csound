@@ -503,7 +503,7 @@ int pgmin_set(CSOUND *csound, PGMIN *p)
     return OK;
 }
 
-int pgmin(CSOUND *csound, PGMIN *p)
+int ctlpgmin(CSOUND *csound, PGMIN *p, int code)
 {
     unsigned char *temp;                        /* IV - Nov 30 2002 */
     if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
@@ -513,7 +513,7 @@ int pgmin(CSOUND *csound, PGMIN *p)
       ch   = (MYFLT) ((*temp & 0x0f) + 1);
       d1  = (MYFLT) *++temp;
       d2  = (MYFLT) *++temp;
-      if (st == 192 && (p->watch==0 || p->watch==ch)) {
+      if (st == code && (p->watch==0 || p->watch==ch)) {
         *p->pgm = 1+d1;
         *p->chn = ch;
       }
@@ -530,3 +530,12 @@ int pgmin(CSOUND *csound, PGMIN *p)
     return OK;
 }
 
+int pgmin(CSOUND *csound, PGMIN *p)
+{
+    return ctlpgmin(csound, p, 0xC);
+}
+
+int ctlin(CSOUND *csound, PGMIN *p)
+{
+    return ctlpgmin(csound, p, 0xB);
+}
