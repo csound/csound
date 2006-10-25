@@ -617,7 +617,7 @@ OENTRY opcodlst_1[] = {
 { "midichn",  S(MIDICHN), 1,    "i",    "",      midichn, NULL, NULL    },
 { "pgmassign",S(PGMASSIGN), 1,  "",     "iTo",   pgmassign, NULL, NULL  },
 { "midiin",   S(MIDIIN),  3,    "kkkk", "",      midiin_set, midiin, NULL     },
-{ "pgmchn",   S(PGMIN),  3,     "kk",   "",      pgmin_set, pgmin, NULL     },
+{ "pgmchn",   S(PGMIN),  3,     "kk",   "o",     pgmin_set, pgmin, NULL     },
 { "miditempo", S(MIDITEMPO), 3, "k",    "",
                 (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
 { "midinoteoff", S(MIDINOTEON),3,"",    "xx",   midinoteoff, midinoteoff, },

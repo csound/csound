@@ -499,6 +499,7 @@ int midiin(CSOUND *csound, MIDIIN *p)
 int pgmin_set(CSOUND *csound, PGMIN *p)
 {
     p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
+    p->watch =(int)*p->ochan;
     return OK;
 }
 
@@ -512,7 +513,7 @@ int pgmin(CSOUND *csound, PGMIN *p)
       ch   = (MYFLT) ((*temp & 0x0f) + 1);
       d1  = (MYFLT) *++temp;
       d2  = (MYFLT) *++temp;
-      if (st == 192) {
+      if (st == 192 && (p->watch==0 || p->watch==ch)) {
         *p->pgm = 1+d1;
         *p->chn = ch;
       }
