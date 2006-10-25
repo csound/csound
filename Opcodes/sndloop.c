@@ -413,7 +413,6 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
         (loop_end < loop_start ? loop_start : loop_end);
       loopsize = loop_end - loop_start;
       crossfade = (int) (*p->crossfade*sr);
-      p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
 
       if (mode == 1) {
         ndx[0] = (double) loop_end;
@@ -423,7 +422,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       }
       else if (mode == 2) {
         ndx[1] = (double) loop_start - FL(1.0);
-        p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2 : crossfade;
+        p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
       }
       else {
      ndx[1] = (double) loop_start;
@@ -544,7 +543,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
               (loop_end < loop_start ? loop_start : loop_end);
             loopsize = loop_end - loop_start;
             crossfade = (int) (*p->crossfade*sr);
-            p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2 : crossfade;
+            p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
           }
         }
       }
