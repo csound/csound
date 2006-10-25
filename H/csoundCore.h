@@ -140,6 +140,8 @@ extern "C" {
     char    *FMidioutname;
     int     midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
     int     midiVelocity, midiVelocityAmp;
+    int     noDefaultPaths;  /* syy - Oct 25, 2006: for disabling relative paths
+                              from files */
   } OPARMS;
 
   typedef struct arglst {
@@ -928,7 +930,7 @@ extern "C" {
     void (*Remove_Callback)(CSOUND *,
                             int (*func)(void *, void *, unsigned int));
     int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
-    int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n); 
+    int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
  /* SUBR dummyfn_1; */
     SUBR dummyfn_2[100];
     /* ----------------------- public data fields ----------------------- */
@@ -1195,7 +1197,7 @@ extern "C" {
     REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
     void          *remoteGlobals;
     /* VL: pvs bus */
-    int            nchanif, nchanof;  
+    int            nchanif, nchanof;
     char           *chanif, *chanof;
 #endif  /* __BUILDING_LIBCSOUND */
   };
