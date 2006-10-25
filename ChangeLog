@@ -1,3 +1,11 @@
+2006-10-25    Steven Yi  <stevenyi@gmail.com>
+
+    * H/csoundCore.h (OPARMS):
+    * Top/argdecode(decode_long):
+    * Top/main.c (csoundCompile): added command line flags --no-default-paths
+    and --default-paths to disable and reenable using path(s) of CSD/ORC/SCO as
+    part of search paths
+
 2006-10-24    Steven Yi  <stevenyi@gmail.com>
 
     * Top/main.c (csoundCompile): changed CSD/ORC/SCO directory to append
