@@ -136,8 +136,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *pgm, *chn;
+    MYFLT   *pgm, *chn, *ochan;
     int     local_buf_index;        /* IV - Nov 30 2002 */
+    int     watch;
 } PGMIN;
 
 #endif
