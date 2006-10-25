@@ -31,7 +31,6 @@ import copy
 #############################################################################
 #
 #   UTILITY FUNCTIONS
-#
 #############################################################################
 
 zipDependencies = []
@@ -344,6 +343,9 @@ if getPlatform() == 'linux':
     path1 = '/usr/include/python%s' % commonEnvironment['pythonVersion']
     path2 = '/usr/local/include/python%s' % commonEnvironment['pythonVersion']
     pythonIncludePath = [path1, path2]
+    path1 = '/usr/include/tcl8.4'
+    path2 = '/usr/include/tk8.4' 
+    tclIncludePath = [path1, path2]
     pythonLinkFlags = []
     if commonEnvironment['Word64'] == '1':
         tmp = '/usr/lib64/python%s/config' % commonEnvironment['pythonVersion']
@@ -360,10 +362,12 @@ elif getPlatform() == 'darwin':
     path2 = '%s/python%s/config' % (path1, commonEnvironment['pythonVersion'])
     pythonLibraryPath = [path1, path2]
     pythonLibs = []
+    tclIncludePath = []
 elif getPlatform() == 'win32':
     pythonIncludePath = []
     pythonLinkFlags = []
     pythonLibraryPath = []
+    tclIncludePath = []
     pythonLibs = ['python%s' % commonEnvironment['pythonVersion'].replace('.', '')]
 
 # Check for prerequisites.
@@ -425,6 +429,10 @@ oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
+if not tclhfound: 
+     for i in tclIncludePath:
+        tmp = '%s/tcl.h' % i
+        tclhfound = tclhfound or configure.CheckHeader(tmp, language = "C")
 luaFound = configure.CheckHeader("lua.h", language = "C")
 swigFound = 'swig' in commonEnvironment['TOOLS']
 print 'Checking for SWIG... %s' % (['no', 'yes'][int(swigFound)])
@@ -1738,6 +1746,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
             -framework tk -framework tcl
         '''))
     elif getPlatform() == 'linux':
+        csTclEnvironment.Append(CPPPATH = tclIncludePath)
         csTclEnvironment.Append(LIBS = ['tcl8.4', 'tk8.4', 'dl', 'pthread'])
     elif getPlatform() == 'win32':
         csTclEnvironment.Append(LIBS = ['tcl84', 'tk84'])
