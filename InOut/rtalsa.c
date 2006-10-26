@@ -862,8 +862,9 @@ static int midi_out_close_file(CSOUND *csound, void *userData)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
-    csound->Message(csound, "ALSA real-time audio and MIDI module "
-                            "for Csound by Istvan Varga\n");
+    if (csound->oparms->msglevel & 0x400)
+      csound->Message(csound, "ALSA real-time audio and MIDI module "
+                      "for Csound by Istvan Varga\n");
     return 0;
 }
 
