@@ -24,6 +24,7 @@
 #include "csoundCore.h"
 #include "remote.h"
 
+#ifdef HAVE_SOCKETS
 #ifndef WIN32
 #include <sys/ioctl.h>
 #ifdef LINUX
@@ -31,6 +32,7 @@
 #endif
 #include <net/if.h>
 #endif
+#endif /* HAVE_SOCKETS */
 
 #define MAXREMOTES 10
 
@@ -41,6 +43,8 @@ void remoteRESET(CSOUND *csound)
     csound->remoteGlobals = NULL;
 }
 
+#ifdef HAVE_SOCKETS
+
  /* get the IPaddress of this machine */
 static void getIpAddress(char *ipaddr, char *ifname)
 {
@@ -48,15 +52,15 @@ static void getIpAddress(char *ipaddr, char *ifname)
 #ifdef WIN32
     /* VL 12/10/06: something needs to go here */
     /* gethostbyname is the real answer; code below id unsafe */
-char hostname[1024];
-struct hostent *he;
-struct sockaddr_in sin;
-gethostname(hostname, sizeof(hostname));
-he = gethostbyname(hostname);
+    char hostname[1024];
+    struct hostent *he;
+    struct sockaddr_in sin;
+    gethostname(hostname, sizeof(hostname));
+    he = gethostbyname(hostname);
 
-memset(&sin, 0, sizeof (struct sockaddr_in));
-memmove(&sin.sin_addr, he->h_addr_list[0], he->h_length);
-strcpy(ipaddr, inet_ntoa (sin.sin_addr));
+    memset(&sin, 0, sizeof (struct sockaddr_in));
+    memmove(&sin.sin_addr, he->h_addr_list[0], he->h_length);
+    strcpy(ipaddr, inet_ntoa (sin.sin_addr));
 
 #else
     struct ifreq ifr;
@@ -508,3 +512,128 @@ int MIDIGlob_msg(CSOUND *csound, MEVENT *evt)
     return OK;
 }
 
+inline int getRemoteInsRfd(CSOUND *csound, int insno)
+{
+    if (csound->remoteGlobals && ST(insrfd))
+        return ST(insrfd)[insno];
+    else return 0;
+}
+
+inline int getRemoteInsRfdCount(CSOUND *csound)
+{
+    if (csound->remoteGlobals)  return ST(insrfd_count);
+    else return 0;
+}
+
+inline int getRemoteChnRfd(CSOUND *csound, int chan)
+{
+    if (csound->remoteGlobals && ST(chnrfd))
+        return ST(chnrfd)[chan];
+    else return 0;
+}
+
+inline int* getRemoteSocksIn(CSOUND *csound)
+{
+    if (csound->remoteGlobals)
+       return ST(socksin);
+    else return 0;
+}
+
+#else /* HAVE_SOCKETS not defined */
+
+inline char remoteID(CSOUND *csound)
+{
+    return (char)0;
+}
+
+/* Cleanup the above; called from musmon csoundCleanup */
+void remote_Cleanup(CSOUND *csound)
+{
+    csound->remoteGlobals = NULL;
+    return;
+}
+
+int SVrecv(CSOUND *csound, int conn, void *data, int length)
+{
+    return 0;
+}
+
+/*  INSTR 0 opcodes  */
+
+int insremot(CSOUND *csound, INSREMOT *p)
+/* declare certain instrs for remote Csounds */
+{
+    csound->Warning(csound, Str("*** This version of Csound was not "
+            "compiled with remote event support ***\n"));
+    return OK;
+}
+
+int insglobal(CSOUND *csound, INSGLOBAL *p)
+/* declare certain instrs global remote Csounds */
+{
+    csound->Warning(csound, Str("*** This version of Csound was not "
+            "compiled with remote event support ***\n"));
+    return OK;
+}
+
+int midremot(CSOUND *csound, MIDREMOT *p)    
+/* declare certain channels for remote Csounds */
+{
+    csound->Warning(csound, Str("*** This version of Csound was not "
+            "compiled with remote event support ***\n"));
+    return OK;
+}
+
+int midglobal(CSOUND *csound, MIDGLOBAL *p)
+/* declare certain chnls global remote Csounds */
+{
+    csound->Warning(csound, Str("*** This version of Csound was not "
+            "compiled with remote event support ***\n"));
+    return OK;
+}
+
+/*  MUSMON SERVICES  */
+
+inline int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
+{
+    return OK;
+}
+
+inline int insGlobevt(CSOUND *csound, EVTBLK *evt)
+/* send an event to all remote fd's */
+{
+    return OK;
+}
+
+inline int MIDIsendevt(CSOUND *csound, MEVENT *evt, int rfd)
+{
+    return OK;
+}
+
+inline int MIDIGlobevt(CSOUND *csound, MEVENT *evt)
+/* send an Mevent to all remote fd's */
+{
+    return OK;
+}
+
+inline int getRemoteInsRfd(CSOUND *csound, int insno)
+{
+    return 0;
+}
+
+inline int getRemoteInsRfdCount(CSOUND *csound)
+{
+    return 0;
+}
+
+inline int getRemoteChnRfd(CSOUND *csound, int chan)
+{
+    return 0;
+}
+
+inline int* getRemoteSocksIn(CSOUND *csound)
+{
+    return NULL;
+}
+
+#endif /* HAVE_SOCKETS */

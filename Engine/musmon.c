@@ -65,7 +65,6 @@ typedef struct {
 } MUSMON_GLOBALS;
 
 #define ST(x)   (((MUSMON_GLOBALS*) csound->musmonGlobals)->x)
-#define SR(x)   (((REMOTE_GLOBALS*) csound->remoteGlobals)->x)
 
 /* IV - Jan 28 2005 */
 void print_benchmark_info(CSOUND *csound, const char *s)
@@ -627,7 +626,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
                                     evt->strarg);
           break;
         }
-        if (csound->remoteGlobals && SR(insrfd) && (rfd = SR(insrfd)[insno])) {
+        if (rfd = getRemoteInsRfd(csound, insno)) {
           /* RM: if this note labeled as remote */
           if (rfd == GLOBAL_REMOT)
             insGlobevt(csound, evt);     /* RM: do a global send and allow local */
@@ -654,7 +653,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
                           insno, csound->maxinsno);
           break;
         }
-        if (csound->remoteGlobals && SR(insrfd) && (rfd = SR(insrfd)[insno])) {
+        if (rfd = getRemoteInsRfd(csound, insno)) {
           /* RM: if this note labeled as remote  */
           if (rfd == GLOBAL_REMOT)
             insGlobevt(csound, evt);      /* RM: do a global send and allow local */
@@ -680,7 +679,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       {
         FUNC  *dummyftp;
         csound->hfgens(csound, &dummyftp, evt, 0); /* construct locally */
-        if (csound->remoteGlobals && SR(insrfd_count))
+        if (getRemoteInsRfdCount(csound))
           insGlobevt(csound, evt); /* RM: & optionally send to all remotes      */
       }
       break;
@@ -742,7 +741,7 @@ static int process_rt_event(CSOUND *csound, int sensType)
       /* RM: Events are sorted on insertion, so just check the first */
       evt = &(e->evt);
       insno = (int)(evt->p[1]);
-      if (csound->remoteGlobals && SR(insrfd) && (rfd = SR(insrfd)[insno])) {
+      if (rfd = getRemoteInsRfd(csound, insno)) {
         if (rfd == GLOBAL_REMOT)
           insGlobevt(csound, evt);       /* RM: do a global send and allow local */
         else
@@ -766,9 +765,7 @@ static int process_rt_event(CSOUND *csound, int sensType)
       /* realtime or Midifile  */
       mep = csound->midiGlobals->Midevtblk;
       chn = csound->m_chnbp[mep->chan];
-      if (csound->remoteGlobals &&
-          SR(chnrfd) &&
-          (rfd = SR(chnrfd)[mep->chan+1])) { /* RM: USE CHAN + 1 */
+      if (rfd = getRemoteChnRfd(csound, mep->chan+1)) { /* RM: USE CHAN + 1 */
         if (rfd == GLOBAL_REMOT)
           MIDIGlobevt(csound, mep);
         else MIDIsendevt(csound, mep, rfd);
@@ -895,7 +892,7 @@ int sensevents(CSOUND *csound)
     /*   events is not sorted by instrument number */
     /*   (although it never was sorted anyway...)  */
 
-    if (O->RTevents || (csound->remoteGlobals && SR(socksin))) {
+    if (O->RTevents || getRemoteSocksIn(csound)) {
       int nrecvd;
       /* run all registered callback functions */
       if (csound->evtFuncChain != NULL && !csound->advanceCnt) {
@@ -912,7 +909,7 @@ int sensevents(CSOUND *csound)
           goto scode;
       }
       /* RM */
-      if (csound->remoteGlobals && (sinp = SR(socksin))){
+      if (sinp = getRemoteSocksIn(csound)) {
         while ((conn = *sinp++)) {
           while ((nrecvd = SVrecv(csound, conn, (void*)&(csound->SVrecvbuf), sizeof(REMOT_BUF) )) > 0) {
             int lentot = 0;
@@ -938,8 +935,9 @@ int sensevents(CSOUND *csound)
                   csound->MTrkend = 1;                     /* catch a Trkend    */
                   csound->Message(csound, "SERVER%c: ", remoteID(csound));
                   csound->Message(csound, "caught a Trkend\n");
-                  csoundCleanup(csound);
-                  exit(0);
+                  /*csoundCleanup(csound);
+                  exit(0);*/
+                  return 2;  /* end of performance */
                 }
                 else m_chanmsg(csound, mep);               /* or a chan msg     */
               }
@@ -960,7 +958,7 @@ int sensevents(CSOUND *csound)
  scode:
     /* end of section (retval == 1), score (retval == 2), */
     /* or lplay list (retval == 3) */
-    if (csound->remoteGlobals && SR(insrfd_count))
+    if (getRemoteInsRfdCount(csound))
       insGlobevt(csound, e);/* RM: send s,e, or l to any remotes */
     e->opcod = '\0';
     if (retval == 3) {
