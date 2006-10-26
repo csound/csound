@@ -1137,13 +1137,7 @@ int csoundLoadOpcodeDB(CSOUND *csound, const char *dname)
     if (dname == NULL || dname[0] == (char) 0)
       return 0;
     n = strlen(dname);
-    s = (char*) csound->Malloc(csound, n + (size_t) 13);
-    strcpy(s, dname);
-    if (s[n - 1] != (char) DIRSEP) {
-      s[n] = (char) DIRSEP;
-      s[n + 1] = (char) 0;
-    }
-    strcat(s, "opcodes.dir");
+    s = csoundConcatenatePaths(csound, dname, "opcodes.dir");
     /* open and load file */
     fd = csound->FileOpen(csound, &fp, CSFILE_STD, s, "rb", NULL);
     csound->Free(csound, s);
