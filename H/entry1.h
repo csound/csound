@@ -339,7 +339,7 @@ int     cent(CSOUND *, void *), acent(CSOUND *, void *);
 int     midichn(CSOUND *, void *), pgmassign(CSOUND *, void *);
 int     midiin_set(CSOUND *, void *), midiin(CSOUND *, void *);
 int     pgmin_set(CSOUND *, void *), pgmin(CSOUND *, void *);
-int     ctlin(CSOUND *, void *);
+int     ctlin_set(CSOUND *, void *), ctlin(CSOUND *, void *);
 int     midinoteoff(CSOUND *, void *), midinoteonkey(CSOUND *, void *);
 int     midinoteoncps(CSOUND *, void *), midinoteonoct(CSOUND *, void *);
 int     midinoteonpch(CSOUND *, void *), midipolyaftertouch(CSOUND *, void *);
