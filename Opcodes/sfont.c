@@ -97,13 +97,14 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     char *pathnam;
-    csound->Message(csound, "\n"
-                            "******************************************\n"
-                            "**  Csound SoundFont2 support ver. 1.2  **\n"
-                            "**          by Gabriel Maldonado        **\n"
-                            "**        g.maldonado@agora.stm.it      **\n"
-                            "** http://web.tiscalinet.it/G-Maldonado **\n"
-                            "******************************************\n\n");
+    if (csound->oparms->msglevel & 0x400)
+      csound->Message(csound, "\n"
+                      "******************************************\n"
+                      "**  Csound SoundFont2 support ver. 1.2  **\n"
+                      "**          by Gabriel Maldonado        **\n"
+                      "**        g.maldonado@agora.stm.it      **\n"
+                      "** http://web.tiscalinet.it/G-Maldonado **\n"
+                      "******************************************\n\n");
     pathnam = csound->FindInputFile(csound, fname, "SFDIR;SSDIR");
     fil = NULL;
     if (pathnam != NULL)
