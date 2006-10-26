@@ -503,19 +503,19 @@ int pgmin_set(CSOUND *csound, PGMIN *p)
     return OK;
 }
 
-int ctlpgmin(CSOUND *csound, PGMIN *p, int code)
+int pgmin(CSOUND *csound, PGMIN *p)
 {
-    unsigned char *temp;                        /* IV - Nov 30 2002 */
+    unsigned char *temp;
     if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
-      MYFLT st,ch,d1,d2;
+      int st,ch,d1;
       temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
-      st = (MYFLT) (*temp & (unsigned char) 0xf0);
-      ch   = (MYFLT) ((*temp & 0x0f) + 1);
-      d1  = (MYFLT) *++temp;
-      d2  = (MYFLT) *++temp;
-      if (st == code && (p->watch==0 || p->watch==ch)) {
-        *p->pgm = 1+d1;
-        *p->chn = ch;
+      st = *temp & (unsigned char) 0xf0;
+      ch = (*temp & 0x0f) + 1;
+      d1 = *++temp;
+/*       d2 = *++temp; */
+      if (st == 0xC0 && (p->watch==0 || p->watch==ch)) {
+        *p->pgm = (MYFLT)1+d1;
+        *p->chn = (MYFLT)ch;
       }
       else {
         *p->pgm = FL(-1.0);
@@ -530,12 +530,43 @@ int ctlpgmin(CSOUND *csound, PGMIN *p, int code)
     return OK;
 }
 
-int pgmin(CSOUND *csound, PGMIN *p)
+int ctlin_set(CSOUND *csound, CTLIN *p)
 {
-    return ctlpgmin(csound, p, 0xC);
+    p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
+    p->watch1 =(int)*p->ochan;
+    p->watch2 =(int)*p->onum;
+    return OK;
 }
 
-int ctlin(CSOUND *csound, PGMIN *p)
+int ctlin(CSOUND *csound, CTLIN *p)
 {
-    return ctlpgmin(csound, p, 0xB);
+    unsigned char *temp;
+    if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
+      int st,ch,d1,d2;
+      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
+      st = *temp & (unsigned char) 0xf0;
+      ch = (*temp & 0x0f) + 1;
+      d1 = *++temp;
+      d2 = *++temp;
+      if (st == 0xB0 &&
+          (p->watch1==0 || p->watch1==ch) &&
+          (p->watch2==0 || p->watch2==d2)) {
+        *p->data = (MYFLT)d1;
+        *p->numb = (MYFLT)d2;
+        *p->chn = (MYFLT)ch;
+      }
+      else {
+        *p->data = FL(-1.0);
+        *p->numb = FL(-1.0);
+        *p->chn = FL(0.0);
+      }
+      p->local_buf_index &= MIDIINBUFMSK;
+    }
+    else {
+      *p->data = FL(-1.0);
+      *p->numb = FL(-1.0);
+      *p->chn = FL(0.0);
+    }
+    return OK;
+
 }

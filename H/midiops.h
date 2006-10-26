@@ -141,5 +141,12 @@ typedef struct {
     int     watch;
 } PGMIN;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *data, *numb, *chn, *ochan, *onum;
+    int     local_buf_index;        /* IV - Nov 30 2002 */
+    int     watch1, watch2;
+} CTLIN;
+
 #endif
 
