@@ -1,3 +1,9 @@
+2006-10-26  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* Top/main.c:
+	* Engine/namedins.c:
+	* Engine/envvar.c:  Couple more fixes for concatenating paths.
+
 2006-10-25  jpff  <jpff@codemist.co.uk>
 
 	* OOps/midiops.c (pgmin): Added optional channel parameter to

@@ -140,9 +140,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
       }
       if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
                          home_dir[0] != '\0')) {
-        /* 11 bytes for DIRSEP, ".csoundrc" (9 chars), and null character */
-        s = (char*) mmalloc(csound, (size_t) strlen(home_dir) + (size_t) 11);
-        sprintf(s, "%s%c%s", home_dir, DIRSEP, ".csoundrc");
+        s = csoundConcatenatePaths(csound, home_dir, ".csoundrc");
         fd = csound->FileOpen(csound, &csrc, CSFILE_STD, s, "r", NULL);
         mfree(csound, s);
       }
@@ -263,7 +261,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
         csoundAppendEnv(csound, "SADIR", fileDir);
         csoundAppendEnv(csound, "SSDIR", fileDir);
-        /*csoundAppendEnv(csound, "INCDIR", fileDir);*/
         csoundAppendEnv(csound, "MFDIR", fileDir);
         mfree(csound, fileDir);
     }
@@ -273,7 +270,6 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv)
         fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
         csoundAppendEnv(csound, "SADIR", fileDir);
         csoundAppendEnv(csound, "SSDIR", fileDir);
-        /*csoundAppendEnv(csound, "INCDIR", fileDir);*/
         csoundAppendEnv(csound, "MFDIR", fileDir);
         mfree(csound, fileDir);
     }

@@ -493,6 +493,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
             tmp = (nameChain_t*) mmalloc(csound, sizeof(nameChain_t)
                                                  + (i - j) + 1);
             /* copy with converting pathname delimiters */
+            /* FIXME: should call csoundConvertPathname instead */
             for (k = 0; j < i; j++, k++)
               tmp->s[k] = (s[j] == '/' || s[j] == '\\' ? DIRSEP : s[j]);
             while (tmp->s[--k] == DIRSEP);
