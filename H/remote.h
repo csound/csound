@@ -24,24 +24,28 @@
 #ifndef CSOUND_REMOTE_H
 #define CSOUND_REMOTE_H
 
+#ifdef HAVE_SOCKETS
 #ifdef WIN32
 #include <winsock.h>
 #else
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
 #endif
+#endif
+#endif /* HAVE_SOCKETS */
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
+#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
 #include <string.h>
 #include <errno.h>
 
 
-extern  int     inet_aton(const char *cp, struct in_addr *inp);
 void m_chanmsg(CSOUND *csound, MEVENT *mep);   /* called from midirecv & musmon */
 char remoteID(CSOUND *csound);
 
@@ -52,6 +56,9 @@ char remoteID(CSOUND *csound);
 #define MIDI_MSG 3
 #define MAXSEND (sizeof(EVTBLK) + 2*sizeof(int))
 #define GLOBAL_REMOT -99
+
+#ifdef HAVE_SOCKETS
+extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
     char *adr;
@@ -71,6 +78,8 @@ typedef struct {
   struct sockaddr_in to_addr;
   struct sockaddr_in local_addr;
 } REMOTE_GLOBALS;
+
+#endif /* HAVE_SOCKETS */
 
 typedef struct {                        /* Remote Communication buffer          */
     int         len;                    /* lentot = len + type + data used      */
@@ -125,5 +134,17 @@ int MIDIsend_msg(CSOUND *p, MEVENT *evt, int rfd);
 /* midirecv:    send a MIDI channel message (ctrlrs, reverbs) to all
    active remote machines */
 int MIDIGlob_msg(CSOUND *p, MEVENT *evt);
+
+/* musmon: returns the active input sockets # */
+int* getRemoteSocksIn(CSOUND *csound);
+
+/* musmon: determine whether an instrument accepts remove events */
+int getRemoteInsRfd(CSOUND *csound, int insno);
+
+/* musmon: determine how many instruments accept remove events */
+int getRemoteInsRfdCount(CSOUND *csound);
+
+/* musmon: determine whether MIDI channel accepts remove events */
+int getRemoteChnRfd(CSOUND *csound, int chan);
 
 #endif      /* CSOUND_REMOTE_H */

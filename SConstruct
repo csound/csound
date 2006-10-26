@@ -481,6 +481,12 @@ for h in headerMacroCheck:
     if configure.CheckHeader(h[0], language = "C"):
         commonEnvironment.Append(CPPFLAGS = [h[1]])
 
+if getPlatform() == 'win32':
+    if configure.CheckHeader("winsock.h", language = "C"):
+        commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+elif configure.CheckHeader("sys/socket.h", language = "C"):
+    commonEnvironment.Append(CPPFLAGS = '-DHAVE_SOCKETS')
+
 if getPlatform() == 'darwin':
     commonEnvironment.Append(CPPFLAGS = '-DHAVE_DIRENT_H')
 elif configure.CheckHeader("dirent.h", language = "C"):
