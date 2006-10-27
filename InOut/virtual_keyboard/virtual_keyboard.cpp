@@ -81,9 +81,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 	Fl_wait(csound, 0.0);
     Fl_unlock(csound);
 
-    FLTKKeyboard *keyboard = keyWin->keyboard;
-
- 	int *keyStates = keyboard->keyStates;
+ 	int *keyStates = keyWin->keyboard->keyStates;
 
     int count = 0;
 
