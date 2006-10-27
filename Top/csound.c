@@ -58,6 +58,7 @@ extern void MakeAscii(CSOUND *, WINDAT *, const char *);
 extern void DrawAscii(CSOUND *, WINDAT *);
 extern void KillAscii(CSOUND *, WINDAT *);
 
+static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *)); 
 static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -294,6 +295,7 @@ static const CSOUND cenviron_ = {
         csoundRemoveCallback,
         csoundPvsinSet,
         csoundPvsoutGet,
+        SetInternalYieldCallback,
      /* NULL, */
         { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -304,7 +306,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL  },
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
     /* ----------------------- public data fields ----------------------- */
         (OPDS*) NULL,   /*  ids                 */
         (OPDS*) NULL,   /*  pds                 */
@@ -588,6 +590,7 @@ static const CSOUND cenviron_ = {
         NULL,            /*  remoteGlobals       */
         0, 0,           /* nchanof, nchanif */
         NULL, NULL,     /*  chanif, chanof */
+        defaultCsoundYield /* csoundInternalYieldCallback_*/
 };
 
   /* from threads.c */
@@ -1995,10 +1998,17 @@ static const CSOUND cenviron_ = {
     csound->csoundYieldCallback_ = yieldCallback;
   }
 
+  void SetInternalYieldCallback(CSOUND *csound,
+                                     int (*yieldCallback)(CSOUND *))
+  {
+    csound->csoundInternalYieldCallback_ = yieldCallback;
+  }
+
   int csoundYield(CSOUND *csound)
   {
     if (exitNow_)
       csound->LongJmp(csound, CSOUND_SIGNAL);
+    csound->csoundInternalYieldCallback_(csound);
     return csound->csoundYieldCallback_(csound);
   }
 
