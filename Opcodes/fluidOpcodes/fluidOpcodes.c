@@ -234,13 +234,14 @@ static int fluidLoadIopadr(CSOUND *csound, FLUIDLOAD *p)
       fluid_synth_get_sfont_by_id(pp->fluid_engines[engineNum], sfontId);
 
     fluidSoundfont->iteration_start(fluidSoundfont);
-    while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) {
-      csound->Message(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
-                      sfontId,
-                      fluidPreset.get_banknum(&fluidPreset),
-                      fluidPreset.get_num(&fluidPreset),
-                      fluidPreset.get_name(&fluidPreset));
-    }
+    if (csound->oparms->msglevel & 0x7)
+      while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) {
+        csound->Message(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
+                        sfontId,
+                        fluidPreset.get_banknum(&fluidPreset),
+                        fluidPreset.get_num(&fluidPreset),
+                        fluidPreset.get_name(&fluidPreset));
+      }
   }
 
   return OK;

@@ -199,7 +199,7 @@ static int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
     int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
     int j, disableMsgs;
 
-    disableMsgs = (csound->oparms->msglevel) & 0x400;
+    disableMsgs = !((csound->oparms->msglevel) & 0x400);
     if (!disableMsgs)
       csound->Message(csound,
                       Str("\nAssigning all Presets of \"%s\" starting from"
