@@ -1,13 +1,20 @@
+2006-10-27 	Steven Yi 	<stevenyi@gmail.com>
+	* InOut/virtual_keyboard/*:
+	* SConstruct: Added new FLTK virtual keyboard MIDI driver; enable use by
+	using "-+rtmidi=virtual -M0"; sends MIDI notes in the same way as any
+	real MIDI device; useful for testing and in situations without MIDI gear;
+	still needs a little work
+
 2006-10-26  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* SConstruct:  Check for socket-related headers and define HAVE_SOCKETS
 	if they are found.
-	
+
 	* Top/main.c:
 	* Engine/musmon.c:
 	* H/remote.h:
 	* OOps/remote.c:  #ifdefed remove events based on HAVE_SOCKETS. Created
-	stub functions for when they are not available.  Expanded musmon.c 
+	stub functions for when they are not available.  Expanded musmon.c
 	interface to remote.c so that no internal knowledge of remote globals
 	is necessary.  Remote opcodes still exist on non-socket builds but print
 	a warning message that remove events are not available.

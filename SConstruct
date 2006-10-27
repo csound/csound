@@ -344,7 +344,7 @@ if getPlatform() == 'linux':
     path2 = '/usr/local/include/python%s' % commonEnvironment['pythonVersion']
     pythonIncludePath = [path1, path2]
     path1 = '/usr/include/tcl8.4'
-    path2 = '/usr/include/tk8.4' 
+    path2 = '/usr/include/tk8.4'
     tclIncludePath = [path1, path2]
     pythonLinkFlags = []
     if commonEnvironment['Word64'] == '1':
@@ -429,7 +429,7 @@ oscFound = configure.CheckHeader("lo/lo.h", language = "C")
 stkFound = configure.CheckHeader("Opcodes/stk/include/Stk.h", language = "C++")
 pdhfound = configure.CheckHeader("m_pd.h", language = "C")
 tclhfound = configure.CheckHeader("tcl.h", language = "C")
-if not tclhfound: 
+if not tclhfound:
      for i in tclIncludePath:
         tmp = '%s/tcl.h' % i
         tclhfound = tclhfound or configure.CheckHeader(tmp, language = "C")
@@ -1076,7 +1076,7 @@ makePlugin(pluginEnvironment, 'stdopcod', Split('''
     Opcodes/spat3d.c        Opcodes/syncgrain.c     Opcodes/ugens7.c
     Opcodes/ugens9.c        Opcodes/ugensa.c        Opcodes/uggab.c
     Opcodes/ugmoss.c        Opcodes/ugnorman.c      Opcodes/ugsc.c
-    Opcodes/wave-terrain.c  
+    Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
 '''))
 
@@ -1152,6 +1152,11 @@ else:
         '''))
     makePlugin(widgetsEnvironment, 'widgets',
                ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp'])
+    widgetsEnvironment.Append(CPPPATH = ['./InOut', './InOut/virtual_keyboard'])
+    makePlugin(widgetsEnvironment, 'virtual',
+               ['InOut/virtual_keyboard/FLTKKeyboard.cpp',
+               'InOut/virtual_keyboard/FLTKKeyboardWindow.cpp',
+               'InOut/virtual_keyboard/virtual_keyboard.cpp'])
 
 # REAL TIME AUDIO
 
@@ -1788,7 +1793,7 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
       csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.so','cp tclcsound.so tclcsound; tclsh pkgbuild.tcl')
     elif  getPlatform() == 'win':
       csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.dll','cp tclcsound.dll tclcsound; tclsh pkgbuild.tcl')
-    
+
 else:
     print "CONFIGURATION DECISION: Not building Tclcsound"
 
