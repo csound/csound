@@ -1,3 +1,8 @@
+2006-10-27  Anthony Kozar  <anthonykozar@sbcglobal.net>
+
+	* H/sysdep.h:  #define for inline with Metrowerks CodeWarrior compiler.
+	* OOps/remote.c:  Removed troublesome inline declarations.
+
 2006-10-27 	Steven Yi 	<stevenyi@gmail.com>
 	* InOut/virtual_keyboard/*:
 	* SConstruct: Added new FLTK virtual keyboard MIDI driver; enable use by
