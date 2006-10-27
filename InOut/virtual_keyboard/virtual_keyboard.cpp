@@ -73,12 +73,14 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
         return 0;
     }
 
+
+
     Fl_lock(csound);
     keyWin->make_current();
 //    if(keyboard->damage()) {
 //        keyboard->redraw();
 //    }
-	Fl_wait(csound, 0.0);
+	Fl::wait(0.02);
     Fl_unlock(csound);
 
  	int *keyStates = keyWin->keyboard->keyStates;
