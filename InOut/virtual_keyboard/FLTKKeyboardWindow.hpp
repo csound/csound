@@ -24,8 +24,8 @@
 #ifndef FLTKKEYBOARDWINDOW_HPP_
 #define FLTKKEYBOARDWINDOW_HPP_
 
-#include <FL/Fl.h>
-#include <FL/Fl_Double_Window.h>
+#include <FL/Fl.H>
+#include <FL/Fl_Double_Window.H>
 #include "FLTKKeyboard.hpp"
 
 class FLTKKeyboardWindow : public Fl_Double_Window {

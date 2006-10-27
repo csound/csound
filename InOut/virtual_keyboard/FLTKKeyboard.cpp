@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-#include <FL/fl_draw.h>
+#include <FL/fl_draw.H>
 #include "FLTKKeyboard.hpp"
 #include <iostream>
 
