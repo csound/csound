@@ -1952,8 +1952,10 @@ extern "C" {
       }
       Fl_wait(csound, 0.0);
       Fl_unlock(csound);
+
+      
       if (!((*fltkFlags) & 256))
-        csound->SetYieldCallback(csound, CsoundYield_FLTK);
+        csound->SetInternalYieldCallback(csound, CsoundYield_FLTK);
     }
     return OK;
   }

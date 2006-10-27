@@ -466,8 +466,10 @@ if getPlatform() == 'win32':
     commonEnvironment['ENV']['PATH'] = os.environ['PATH']
     commonEnvironment['SYSTEMROOT'] = os.environ['SYSTEMROOT']
 
-# Define macros that configure and config.h used to define.
+if (commonEnvironment['useFLTK'] == '1' and fltkFound):
+   commonEnvironment.Prepend(CPPFLAGS = ['-DHAVE_FLTK'])
 
+# Define macros that configure and config.h used to define.
 headerMacroCheck = [
     ['io.h',        '-DHAVE_IO_H'       ],
     ['fcntl.h',     '-DHAVE_FCNTL_H'    ],
@@ -1129,7 +1131,6 @@ makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
 if not (commonEnvironment['useFLTK'] == '1' and fltkFound):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
 else:
-    print 'CONFIGURATION DECISION: Building with FLTK graphs and widgets.'
     widgetsEnvironment = pluginEnvironment.Copy()
     if (commonEnvironment['noFLTKThreads'] == '1'):
         widgetsEnvironment.Append(CCFLAGS = ['-DNO_FLTK_THREADS'])

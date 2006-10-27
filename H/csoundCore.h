@@ -931,8 +931,10 @@ extern "C" {
                             int (*func)(void *, void *, unsigned int));
     int (*PvsinSet)(CSOUND *, const PVSDATEXT *value, int n);
     int (*PvsoutGet)(CSOUND *, PVSDATEXT *value, int n);
+    void (*SetInternalYieldCallback)(CSOUND *, 
+                       int (*yieldCallback)(CSOUND *));
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[100];
+    SUBR dummyfn_2[99];
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     OPDS          *ids, *pds;
@@ -1199,6 +1201,8 @@ extern "C" {
     /* VL: pvs bus */
     int            nchanif, nchanof;
     char           *chanif, *chanof;
+    /* VL: internal yield callback */
+    int           (*csoundInternalYieldCallback_)(CSOUND *);
 #endif  /* __BUILDING_LIBCSOUND */
   };
 
