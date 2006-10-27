@@ -511,28 +511,38 @@ int MIDIGlob_msg(CSOUND *csound, MEVENT *evt)
     }
     return OK;
 }
-
-inline int getRemoteInsRfd(CSOUND *csound, int insno)
+#ifndef MSVC
+inline 
+#endif
+int getRemoteInsRfd(CSOUND *csound, int insno)
 {
     if (csound->remoteGlobals && ST(insrfd))
         return ST(insrfd)[insno];
     else return 0;
 }
-
-inline int getRemoteInsRfdCount(CSOUND *csound)
+#ifndef MSVC
+inline 
+#endif
+int getRemoteInsRfdCount(CSOUND *csound)
 {
     if (csound->remoteGlobals)  return ST(insrfd_count);
     else return 0;
 }
 
-inline int getRemoteChnRfd(CSOUND *csound, int chan)
+#ifndef MSVC
+inline 
+#endif
+int getRemoteChnRfd(CSOUND *csound, int chan)
 {
     if (csound->remoteGlobals && ST(chnrfd))
         return ST(chnrfd)[chan];
     else return 0;
 }
 
-inline int* getRemoteSocksIn(CSOUND *csound)
+#ifndef MSVC
+inline 
+#endif
+int* getRemoteSocksIn(CSOUND *csound)
 {
     if (csound->remoteGlobals)
        return ST(socksin);
