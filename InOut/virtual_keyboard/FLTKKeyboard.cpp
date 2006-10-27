@@ -73,6 +73,14 @@ int FLTKKeyboard::getMidiValForWhiteKey(int whiteKeyNum) {
 }
 
 int FLTKKeyboard::getMIDIKey(int x, int y) {
+	if(x > this->w()) {
+		return 87;
+	}
+
+	if(x < 0) {
+		return 0;
+	}
+
     // 52 white keys
     int whiteKey = x  / whiteKeyWidth;
 
