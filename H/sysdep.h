@@ -103,6 +103,8 @@
 #    endif
 #  elif defined(MSVC)
 #    define inline  __inline
+#  elif defined(__MWERKS__)
+#    define inline inline
 #  else
 #    define inline
 #  endif
