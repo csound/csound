@@ -511,27 +511,20 @@ int MIDIGlob_msg(CSOUND *csound, MEVENT *evt)
     }
     return OK;
 }
-#ifndef MSVC
-inline 
-#endif
+
 int getRemoteInsRfd(CSOUND *csound, int insno)
 {
     if (csound->remoteGlobals && ST(insrfd))
         return ST(insrfd)[insno];
     else return 0;
 }
-#ifndef MSVC
-inline 
-#endif
+
 int getRemoteInsRfdCount(CSOUND *csound)
 {
     if (csound->remoteGlobals)  return ST(insrfd_count);
     else return 0;
 }
 
-#ifndef MSVC
-inline 
-#endif
 int getRemoteChnRfd(CSOUND *csound, int chan)
 {
     if (csound->remoteGlobals && ST(chnrfd))
@@ -539,9 +532,6 @@ int getRemoteChnRfd(CSOUND *csound, int chan)
     else return 0;
 }
 
-#ifndef MSVC
-inline 
-#endif
 int* getRemoteSocksIn(CSOUND *csound)
 {
     if (csound->remoteGlobals)
@@ -551,7 +541,7 @@ int* getRemoteSocksIn(CSOUND *csound)
 
 #else /* HAVE_SOCKETS not defined */
 
-inline char remoteID(CSOUND *csound)
+char remoteID(CSOUND *csound)
 {
     return (char)0;
 }
@@ -604,44 +594,44 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
 
 /*  MUSMON SERVICES  */
 
-inline int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
+int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
 {
     return OK;
 }
 
-inline int insGlobevt(CSOUND *csound, EVTBLK *evt)
+int insGlobevt(CSOUND *csound, EVTBLK *evt)
 /* send an event to all remote fd's */
 {
     return OK;
 }
 
-inline int MIDIsendevt(CSOUND *csound, MEVENT *evt, int rfd)
+int MIDIsendevt(CSOUND *csound, MEVENT *evt, int rfd)
 {
     return OK;
 }
 
-inline int MIDIGlobevt(CSOUND *csound, MEVENT *evt)
+int MIDIGlobevt(CSOUND *csound, MEVENT *evt)
 /* send an Mevent to all remote fd's */
 {
     return OK;
 }
 
-inline int getRemoteInsRfd(CSOUND *csound, int insno)
+int getRemoteInsRfd(CSOUND *csound, int insno)
 {
     return 0;
 }
 
-inline int getRemoteInsRfdCount(CSOUND *csound)
+int getRemoteInsRfdCount(CSOUND *csound)
 {
     return 0;
 }
 
-inline int getRemoteChnRfd(CSOUND *csound, int chan)
+int getRemoteChnRfd(CSOUND *csound, int chan)
 {
     return 0;
 }
 
-inline int* getRemoteSocksIn(CSOUND *csound)
+int* getRemoteSocksIn(CSOUND *csound)
 {
     return NULL;
 }
