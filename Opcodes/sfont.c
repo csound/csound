@@ -97,7 +97,8 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     char *pathnam;
-    if (csound->oparms->msglevel & 0x400)
+    /* 
+      if (csound->oparms->msglevel & 0x400)
       csound->Message(csound, "\n"
                       "******************************************\n"
                       "**  Csound SoundFont2 support ver. 1.2  **\n"
@@ -105,6 +106,7 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
                       "**        g.maldonado@agora.stm.it      **\n"
                       "** http://web.tiscalinet.it/G-Maldonado **\n"
                       "******************************************\n\n");
+    */
     pathnam = csound->FindInputFile(csound, fname, "SFDIR;SSDIR");
     fil = NULL;
     if (pathnam != NULL)
