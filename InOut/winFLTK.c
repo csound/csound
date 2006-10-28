@@ -88,10 +88,10 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
         if (csound->SetIsGraphable(csound, 1) == 0) {
           enableDisplays = 1;
           (*fltkFlags) |= 64;
-          
+
            if (!((*fltkFlags) & 256))
             csound->SetInternalYieldCallback(csound, CsoundYield_FLTK);
-	  
+
           csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
           csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
           csound->SetKillGraphCallback(csound, KillGraph_FLTK);
