@@ -36,7 +36,7 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *startNum,*ihandle;
+  MYFLT   *startNum,*ihandle, *msgs;
 } SFPASSIGN;
 
 typedef struct {

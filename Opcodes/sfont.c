@@ -97,7 +97,7 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     char *pathnam;
-    /* 
+    /*
       if (csound->oparms->msglevel & 0x400)
       csound->Message(csound, "\n"
                       "******************************************\n"
@@ -199,23 +199,23 @@ static int SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 {
     SFBANK *sf = &sfArray[(int) *p->ihandle];
     int pHandle = (int)  *p->startNum, pnum = sf->presets_num;
-    int j, disableMsgs;
+    int j, enableMsgs;
 
-    disableMsgs = !((csound->oparms->msglevel) & 0x400);
-    if (!disableMsgs)
+    enableMsgs = (*p->msgs==FL(0.0));
+    if (enableMsgs)
       csound->Message(csound,
                       Str("\nAssigning all Presets of \"%s\" starting from"
                           " %d (preset handle number)\n"), sf->name, pHandle);
     for (j = 0; j < pnum; j++) {
       presetType *prs = &sf->preset[j];
-      if (!disableMsgs)
+      if (enableMsgs)
         csound->Message(csound, Str("%3d<--%-20s\t(prog:%-3d bank:%d)\n"),
                                 j, prs->name, prs->prog, prs->bank);
       presetp[pHandle] = &sf->preset[j];
       sampleBase[pHandle] = sf->sampleData;
       pHandle++;
     }
-    if (!disableMsgs)
+    if (enableMsgs)
       csound->Message(csound, Str("\nAll presets have been assigned to preset"
                                   " handles from %d to %d \n\n"),
                               (int) *p->startNum, pHandle - 1);
@@ -1950,7 +1950,7 @@ static OENTRY localops[] = {
                                                   NULL, (SUBR)SfPlayMono },
 { "sfplist",S(SFPLIST),   1,    "",     "i",      (SUBR)Sfplist          },
 { "sfilist",S(SFPLIST),   1,    "",     "i",      (SUBR)Sfilist          },
-{ "sfpassign",S(SFPASSIGN), 1,  "",     "ii",     (SUBR)SfAssignAllPresets },
+{ "sfpassign",S(SFPASSIGN), 1,  "",     "iio",    (SUBR)SfAssignAllPresets },
 { "sfinstrm", S(SFIPLAYMONO),5, "a", "iixxiioo",  (SUBR)SfInstrPlayMono_set,
                                                   NULL, (SUBR)SfInstrPlayMono },
 { "sfinstr", S(SFIPLAY),  5,    "aa", "iixxiioo", (SUBR)SfInstrPlay_set,

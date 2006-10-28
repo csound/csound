@@ -71,25 +71,25 @@ static int pvsfwrite_destroy(CSOUND *csound, void *p){
 static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
 {
     int N;
-    char *fname = csound->strarg2name(csound, NULL, p->file, 
+    char *fname = csound->strarg2name(csound, NULL, p->file,
                                       "pvoc.",p->XSTRCODE);
     p->pvfile= -1;
     N = p->fin->N;
-    if((p->pvfile  = csound->PVOC_CreateFile(csound, fname, 
-                                             p->fin->N, 
-                                             p->fin->overlap, 1, p->fin->format, 
+    if((p->pvfile  = csound->PVOC_CreateFile(csound, fname,
+                                             p->fin->N,
+                                             p->fin->overlap, 1, p->fin->format,
                                              csound->esr, STYPE_16,
-                                             p->fin->wintype, 0.0f, NULL, 
+                                             p->fin->wintype, 0.0f, NULL,
                                              p->fin->winsize)) == -1)
-      return 
-        csound->InitError(csound, 
+      return
+        csound->InitError(csound,
                           Str("pvsfwrite: could not open file %s\n"),
                           fname);
     if (p->frame.auxp == NULL || p->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->frame);
     csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);
     p->lastframe = 0;
-    return OK; 
+    return OK;
 }
 
 static int pvsfwrite(CSOUND *csound, PVSFWRITE *p)
@@ -151,7 +151,7 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
     framesize = p->fin->N + 2;
 
    if (p->lastframe < p->fin->framecount) {
-   
+
      for (i = 0; i < framesize; i += 2) {
        if (freeza < 1)
          freez[i] = fin[i];
@@ -161,7 +161,7 @@ static int pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
        fout[i + 1] = freez[i + 1];
      }
      p->fout->framecount = p->lastframe = p->fin->framecount;
-   }  
+   }
    return OK;
 }
 
@@ -186,7 +186,7 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
       bframe[i + 1] = (i / 2) * N * csound->onedsr;
     }
     p->lastframe = 1;
-    p->incr = (MYFLT)csound->ksmps/p->fout->overlap; 
+    p->incr = (MYFLT)csound->ksmps/p->fout->overlap;
     return OK;
 }
 
@@ -216,7 +216,7 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
       else if(type==2) famp *= (MYFLT)(1.456/pow(harm, 1./4));
       else if(type==3) famp *= (MYFLT)(1.456/pow(harm, 1./160.));
       else {
-        harm = 1; 
+        harm = 1;
         famp *= (MYFLT)1.456;
       }
       for(n=1; n <= harm; n++){
@@ -237,9 +237,9 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
     }
     p->incr += p->incr;
     if(p->incr > 1){
-      p->incr = (MYFLT)csound->ksmps/p->fout->overlap;       
-      p->lastframe++;   
-    }  
+      p->incr = (MYFLT)csound->ksmps/p->fout->overlap;
+      p->lastframe++;
+    }
     return OK;
 }
 
@@ -781,13 +781,13 @@ static OENTRY localops[] = {
     {"pvstencil", S(PVSTENCIL), 3, "f", "fkki", (SUBR) pvstencilset,
          (SUBR) pvstencil},
     {"pvsinit", S(PVSINI), 1, "f", "ioopo", (SUBR) pvsinit, NULL, NULL},
-    {"pvsbin", S(PVSBIN), 3, "kk", "fk", (SUBR) pvsbinset, 
+    {"pvsbin", S(PVSBIN), 3, "kk", "fk", (SUBR) pvsbinset,
          (SUBR) pvsbinprocess, NULL},
     {"pvsfreeze", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsfreezeset,
          (SUBR) pvsfreezeprocess, NULL},
     {"pvsmooth", S(PVSFREEZE), 3, "f", "fkk", (SUBR) pvsmoothset,
          (SUBR) pvsmoothprocess, NULL},
-    {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset, 
+    {"pvsosc", S(PVSOSC), 3, "f", "kkkioopo", (SUBR) pvsoscset,
          (SUBR) pvsoscprocess, NULL}
 };
 
