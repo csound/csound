@@ -29,8 +29,8 @@
 #include "FLTKKeyboardWindow.hpp"
 
 
-static FLTKKeyboardWindow *createWindow() {
-       return new FLTKKeyboardWindow(624, 80, "Csound Virtual Keyboard");
+static FLTKKeyboardWindow *createWindow(CSOUND *csound) {
+       return new FLTKKeyboardWindow(csound, 624, 80, "Csound Virtual Keyboard");
 }
 
 static void deleteWindow(FLTKKeyboardWindow * keyWin) {
@@ -40,18 +40,15 @@ static void deleteWindow(FLTKKeyboardWindow * keyWin) {
 extern "C"
 {
 
-
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
-    FLTKKeyboardWindow *keyboard = createWindow();
+    FLTKKeyboardWindow *keyboard = createWindow(csound);
     *userData = (void *)keyboard;
 
     Fl_lock(csound);
     keyboard->show();
-    //keyboard->redraw();
     Fl_wait(csound, 0.0);
     Fl_unlock(csound);
-
 
     /* report success */
     return 0;
@@ -73,16 +70,13 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
         return 0;
     }
 
-
-
     Fl_lock(csound);
-    keyWin->make_current();
-//    if(keyboard->damage()) {
-//        keyboard->redraw();
-//    }
-	Fl::wait(0.0);
-    Fl_unlock(csound);
+	Fl_awake(csound);
+	Fl_wait(csound, 0.0);
+	Fl_unlock(csound);
 
+
+	keyWin->keyboard->lock();
  	int *keyStates = keyWin->keyboard->keyStates;
 
     int count = 0;
@@ -110,6 +104,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
         }
 
     }
+	keyWin->keyboard->unlock();
 
     return count;
 }
