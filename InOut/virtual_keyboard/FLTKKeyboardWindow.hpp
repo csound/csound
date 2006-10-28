@@ -27,10 +27,11 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include "FLTKKeyboard.hpp"
+#include "csdl.h"
 
 class FLTKKeyboardWindow : public Fl_Double_Window {
 public:
-    FLTKKeyboardWindow(int w, int h, const char* t);
+    FLTKKeyboardWindow(CSOUND * csound, int w, int h, const char* t);
     FLTKKeyboard *keyboard;
 };
 
