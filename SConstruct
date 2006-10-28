@@ -224,6 +224,9 @@ opts.Add('buildOSXGUI',
     '0')
 opts.Add('isWinNT', 'On windows, if win2000 or NT is used',
           '%d' % withMSVC())
+opts.Add('buildCSEditor',
+    'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
+    '1')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -1127,6 +1130,14 @@ makePlugin(pluginEnvironment, 'harmon', ['Opcodes/harmon.c'])
 # Plugins with External Dependencies
 
 # FLTK widgets
+
+if not ((commonEnvironment['buildCSEditor'] == '1') and fltkFound):
+    print 'CONFIGURATION DECISION: Not building Csound Text Editor.'
+else:
+    print 'CONFIGURATION DECISION: Building Csound Text Editor.'
+    csEdit = commonEnvironment.Copy()
+    csEditor = csEdit.Command('cseditor', 'frontends/cseditor/cseditor.cxx', "fltk-config --compile frontends/cseditor/cseditor.cxx")
+    executables.append(csEditor)
 
 if not (commonEnvironment['useFLTK'] == '1' and fltkFound):
     print 'CONFIGURATION DECISION: Not building with FLTK graphs and widgets.'
