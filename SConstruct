@@ -112,7 +112,7 @@ opts.Add('useFLTK',
     '1')
 opts.Add('noFLTKThreads',
     'Set to 1 to disable use of a separate thread for FLTK widgets.',
-    '0')
+    '1')
 opts.Add('pythonVersion',
     'Set to the Python version to be used.',
     '%d.%d' % (int(sys.hexversion) >> 24, (int(sys.hexversion) >> 16) & 255))
