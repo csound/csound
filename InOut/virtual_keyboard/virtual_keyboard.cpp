@@ -66,15 +66,14 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 
     FLTKKeyboardWindow *keyWin = (FLTKKeyboardWindow *)userData;
 
-    if(!keyWin->visible()) {
-        return 0;
-    }
-
     Fl_lock(csound);
 	Fl_awake(csound);
 	Fl_wait(csound, 0.0);
 	Fl_unlock(csound);
 
+    if(!keyWin->visible()) {
+        return 0;
+    }
 
 	keyWin->keyboard->lock();
  	int *keyStates = keyWin->keyboard->keyStates;
