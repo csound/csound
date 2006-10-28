@@ -1,3 +1,9 @@
+2006-10-27  David Akbari  <dakbari@gmail.com>
+
+	* frontends/cseditor/*:
+	* SConstruct: Added build options and targets for basic Csound syntax
+        highlighting text editor that uses FLTK.
+
 2006-10-27  Anthony Kozar  <anthonykozar@sbcglobal.net>
 
 	* H/sysdep.h:  #define for inline with Metrowerks CodeWarrior compiler.
