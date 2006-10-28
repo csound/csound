@@ -267,7 +267,8 @@ void CsoundVST::performanceThreadRoutine()
       // 256:  disable the use of Fl::wait() (implies no widget thread)
       cppSound->CreateGlobalVariable("FLTK_Flags", sizeof(int));
       int *fltkFlags = (int *)cppSound->QueryGlobalVariable("FLTK_Flags");
-      *fltkFlags = 274;
+      //*fltkFlags = 274;
+      *fltkFlags = 286;
       if(getIsVst())
         {
           csound::System::inform("Classic VST performance.\n");
