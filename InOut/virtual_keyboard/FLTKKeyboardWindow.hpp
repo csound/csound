@@ -33,6 +33,9 @@ class FLTKKeyboardWindow : public Fl_Double_Window {
 public:
     FLTKKeyboardWindow(CSOUND * csound, int w, int h, const char* t);
     FLTKKeyboard *keyboard;
+    int handle(int event);
+private:
+    CSOUND* csound;
 };
 
 
