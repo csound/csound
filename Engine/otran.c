@@ -112,7 +112,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     short   *S_inlist, *S_outlist;
 
     /* count the number of arguments, and check types */
-    i = i_incnt = S_incnt = a_incnt = k_incnt = 
+    i = i_incnt = S_incnt = a_incnt = k_incnt =
         i_outcnt = S_outcnt = a_outcnt = k_outcnt = err = 0;
     types = inm->intypes; otypes = opc->intypes;
     opc->dsblksiz = (unsigned short) sizeof(UOPCODE);

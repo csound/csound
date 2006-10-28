@@ -58,7 +58,7 @@ extern void MakeAscii(CSOUND *, WINDAT *, const char *);
 extern void DrawAscii(CSOUND *, WINDAT *);
 extern void KillAscii(CSOUND *, WINDAT *);
 
-static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *)); 
+static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 static int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 static void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 static int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);

@@ -364,7 +364,7 @@ static Boolean CopyPascalToCString(char* target, const StringPtr source, size_t 
     Boolean enough_space = ((size_t)source[0] < availspace);
     size_t  bytes2copy = (enough_space ? (size_t)source[0] : (availspace-1));
     unsigned char* pos = source + 1;
-    
+
     while (bytes2copy--) *target++ = *pos++;
     *target = '\0';
     return enough_space;
@@ -376,7 +376,7 @@ static OSErr GetHostLocation( FSSpecPtr me )
     ProcessSerialNumber psn;
     ProcessInfoRec      pinfo;
     OSErr               err;
-    
+
     /* get info for current process */
     err = GetCurrentProcess(&psn);
     if  (err != noErr)  return err;
@@ -397,12 +397,12 @@ static OSErr FindCsoundExtensionsFolder(FSSpecPtr location)
     short   systemVRefNum;
     long    extDirID;
     long    csoundDirID;
-    
+
     /* find the system extensions folder */
-    err = FindFolder(kOnSystemDisk, kExtensionFolderType, kCreateFolder, 
+    err = FindFolder(kOnSystemDisk, kExtensionFolderType, kCreateFolder,
             &systemVRefNum, &extDirID);
     if (err != noErr) return err;
-    
+
     /* look for subfolder named "Csound" */
     err = FSMakeFSSpec(systemVRefNum, extDirID, kCsoundExtFolder, location);
     if (err != noErr) return err;  /* does not exist */
@@ -424,14 +424,14 @@ static OSErr GetFolderID(const FSSpecPtr loc, long* dirID)
     OSErr       err;
     CInfoPBRec  catinfo;
     Str255      name;
-    
+
     CopyPascalString(name, loc->name);
     catinfo.dirInfo.ioCompletion = NULL;
     catinfo.dirInfo.ioNamePtr = name;
     catinfo.dirInfo.ioVRefNum = loc->vRefNum;
     catinfo.dirInfo.ioFDirIndex = 0;    /* we want info about the named folder */
     catinfo.dirInfo.ioDrDirID = loc->parID;
-    
+
     err = PBGetCatInfo(&catinfo, false);
     *dirID = catinfo.dirInfo.ioDrDirID;
     return err;
@@ -444,14 +444,14 @@ static OSErr GetFragmentName(CSOUND* csound, FSSpecPtr libr, char* name)
     Handle      cfrgh;
     cfrg_rsrc*  cfrg;
     short       refnum;
-    
+
     const char kIsLib = 0;  /* fragType for import libraries */
-    
+
     /* open the plugin's resource fork */
     refnum = FSpOpenResFile(libr, fsRdPerm);
     err = ResError();
     if (err != noErr) return err;
-    
+
     /* load the plugin's 'cfrg' resource */
     cfrgh = GetResource('cfrg', 0);
     err = ResError();
@@ -471,7 +471,7 @@ static OSErr GetFragmentName(CSOUND* csound, FSSpecPtr libr, char* name)
         err = noErr;
     }
     else err = -1;
-    
+
     ReleaseResource(cfrgh);
     CloseResFile(refnum);
     return err;
@@ -488,12 +488,12 @@ static OSErr SearchFolderAndLoadPlugins(CSOUND *csound, FSSpecPtr theFolder, int
     FSSpec     spec;
     long       folderID;
     short      idx = 1;
-    
+
     const char kFolderBit = (1<<4);
-    
+
     err = GetFolderID(theFolder, &folderID);
     if (err != noErr) return err;
-    
+
     *cserr = CSOUND_SUCCESS;
     catinfo.hFileInfo.ioCompletion = NULL;
     catinfo.hFileInfo.ioVRefNum = theFolder->vRefNum;
@@ -505,10 +505,10 @@ static OSErr SearchFolderAndLoadPlugins(CSOUND *csound, FSSpecPtr theFolder, int
         err = PBGetCatInfo(&catinfo, false);
         /* ignore folders */
         if (err == noErr && !(catinfo.hFileInfo.ioFlAttrib & kFolderBit)) {
-            if (catinfo.hFileInfo.ioFlFndrInfo.fdType == 'shlb' && 
+            if (catinfo.hFileInfo.ioFlFndrInfo.fdType == 'shlb' &&
                 catinfo.hFileInfo.ioFlFndrInfo.fdCreator == 'Csnd') {
                 /* this is a Csound plugin library */
-                err2 = FSMakeFSSpec(catinfo.hFileInfo.ioVRefNum, 
+                err2 = FSMakeFSSpec(catinfo.hFileInfo.ioVRefNum,
                       catinfo.hFileInfo.ioFlParID, catinfo.hFileInfo.ioNamePtr, &spec);
                 if (err2 != noErr) continue; /* this really should not happen */
                 err2 = GetFragmentName(csound, &spec, fragname);
@@ -534,7 +534,7 @@ int csoundLoadModules(CSOUND *csound)
     short       alisID;
     Boolean     wasChanged;
     FSSpec      pluginDir, fromFile;
-    
+
     /* find the "Plugins" folder */
     /* first load the host application's 'cfrg' resource */
     cfrgh = GetResource('cfrg', 0);
@@ -552,7 +552,7 @@ int csoundLoadModules(CSOUND *csound)
     alisID = cfrg->firstDesc.libraryDir;
     ReleaseResource(cfrgh);
     cfrgh = NULL; cfrg = NULL;
-    
+
     /* now load the 'alis' resource that points to "Plugins" */
     alias = (AliasHandle)GetResource('alis', alisID);
     err = ResError();
@@ -573,7 +573,7 @@ int csoundLoadModules(CSOUND *csound)
         csound->ErrorMsg(csound, Str("Error opening plugin directory\n"));
         return CSOUND_ERROR;
     }
-    
+
     cserr = CSOUND_SUCCESS;
     /* search the "Plugins" folder for Csound plugin libraries */
     err = SearchFolderAndLoadPlugins(csound, &pluginDir, &cserr);
@@ -582,13 +582,13 @@ int csoundLoadModules(CSOUND *csound)
         return CSOUND_ERROR;
     }
     if  (cserr != CSOUND_SUCCESS) return cserr;
-    
+
     /* finally, locate and search our Extensions subfolder for plugins */
     err = FindCsoundExtensionsFolder(&pluginDir);
     if  (err == noErr)
         SearchFolderAndLoadPlugins(csound, &pluginDir, &cserr);
     /* ignore errors from search & we don't care if unable to locate */
-    
+
     return cserr;
 }
 #endif /* mac_classic library searching */

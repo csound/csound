@@ -948,7 +948,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     int             i, j;
 
     /* allocate and initialise globals */
-    if (csound->oparms->msglevel & 0x400) 
+    if (csound->oparms->msglevel & 0x400)
       csound->Message(csound, "JACK real-time audio module for Csound "
                       "by Istvan Varga\n");
     if (csound->CreateGlobalVariable(csound, "_rtjackGlobals",
