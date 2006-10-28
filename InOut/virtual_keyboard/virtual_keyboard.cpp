@@ -30,7 +30,7 @@
 
 
 static FLTKKeyboardWindow *createWindow(CSOUND *csound) {
-       return new FLTKKeyboardWindow(csound, 624, 80, "Csound Virtual Keyboard");
+       return new FLTKKeyboardWindow(csound, 624, 100, "Csound Virtual Keyboard");
 }
 
 static void deleteWindow(FLTKKeyboardWindow * keyWin) {
