@@ -38,6 +38,7 @@ public:
   int whiteKeys[7];
   void lock();
   void unlock();
+  void allNotesOff();
 private:
 
   int getMIDIKey(int x, int y);
