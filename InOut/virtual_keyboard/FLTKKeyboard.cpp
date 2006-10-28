@@ -215,6 +215,10 @@ int FLTKKeyboard::handle(int event) {
             this->redraw();
 
             return 1;
+    	case FL_KEYDOWN:
+//    		return 0;
+    	case FL_KEYUP:
+//        	return 0;
         default:
             return Fl_Widget::handle(event);
     }
