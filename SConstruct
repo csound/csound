@@ -1791,8 +1791,9 @@ if commonEnvironment['buildTclcsound'] == '1' and tclhfound:
       csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.dylib','cp tclcsound.dylib tclcsound; tclsh pkgbuild.tcl')
     elif getPlatform() == 'linux':
       csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.so','cp tclcsound.so tclcsound; tclsh pkgbuild.tcl')
-    elif  getPlatform() == 'win':
-      csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound.dll','cp tclcsound.dll tclcsound; tclsh pkgbuild.tcl')
+    elif  getPlatform() == 'win32':
+      csTclEnvironment.Command('tclcsound/tclcsound.dll', 'tclcsound.dll','cp tclcsound.dll tclcsound')
+      csTclEnvironment.Command('tclcsound/pkgIndex.tcl', 'tclcsound/tclcsound.dll','tclsh84 pkgbuild.tcl')
 
 else:
     print "CONFIGURATION DECISION: Not building Tclcsound"
