@@ -25,10 +25,12 @@
 
 #include <FL/fl_draw.H>
 #include "FLTKKeyboard.hpp"
-#include <iostream>
 
-FLTKKeyboard::FLTKKeyboard(int X, int Y, int W, int H, const char *L)
+FLTKKeyboard::FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const char *L)
 	: Fl_Widget(X, Y, W, H, L) {
+
+    this->csound = csound;
+    this->mutex = csound->Create_Mutex(0);
 
   	FLTKKeyboard *o = this;
 
@@ -57,6 +59,25 @@ FLTKKeyboard::FLTKKeyboard(int X, int Y, int W, int H, const char *L)
 	whiteKeys[5] = 9;
 	whiteKeys[6] = 11;
 
+}
+
+FLTKKeyboard::~FLTKKeyboard() {
+	if (mutex) {
+      	csound->DestroyMutex(mutex);
+      	mutex = (void*) 0;
+    }
+}
+
+void FLTKKeyboard::lock() {
+	if(mutex) {
+      	csound->LockMutex(mutex);
+	}
+}
+
+void FLTKKeyboard::unlock() {
+	if(mutex) {
+      	csound->UnlockMutex(mutex);
+	}
 }
 
 int FLTKKeyboard::getMidiValForWhiteKey(int whiteKeyNum) {
@@ -155,8 +176,12 @@ int FLTKKeyboard::handle(int event) {
         case FL_PUSH:
             key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
+			this->lock();
+
             lastMidiKey = key;
             keyStates[key] = 1;
+
+            this->unlock();
 
             this->redraw();
 
@@ -165,17 +190,27 @@ int FLTKKeyboard::handle(int event) {
             key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
             if(key != lastMidiKey) {
+
+            	this->lock();
+
                 keyStates[lastMidiKey] = 2;
                 keyStates[key] = 1;
                 lastMidiKey = key;
+
+                this->unlock();
+
                 this->redraw();
             }
             return 1;
         case FL_RELEASE:
             key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
+			this->lock();
+
             keyStates[key] = 2;
             lastMidiKey = -1;
+
+            this->unlock();
 
             this->redraw();
 

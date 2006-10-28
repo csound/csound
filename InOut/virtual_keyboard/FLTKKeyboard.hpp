@@ -26,20 +26,27 @@
 
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
+#include "csdl.h"
 
 class FLTKKeyboard : public Fl_Widget {
 public:
-  FLTKKeyboard(int X, int Y, int W, int H, const char *L);
+  FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const char *L);
+  ~FLTKKeyboard();
   int handle(int event);
   void draw();
   int keyStates[88];
   int whiteKeys[7];
+  void lock();
+  void unlock();
 private:
 
   int getMIDIKey(int x, int y);
   int lastMidiKey;
   int isWhiteKey(int key);
   int getMidiValForWhiteKey(int whiteKeyNum);
+
+  CSOUND *csound;
+  void * mutex;
 
   static const int blackKeyHeight = 50;
   static const int whiteKeyHeight = 80;
