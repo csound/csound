@@ -180,7 +180,7 @@ int pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
         || nptls == 1) {
       p->rolloff = 0;
       weightsum = (MYFLT)nptls;
-    } 
+    }
     else {
       MYFLT *fltp = p->pmult;
       MYFLT octdrop = (FL(1.0) - rolloff) / fnfreqs;

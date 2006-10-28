@@ -72,7 +72,7 @@ typedef struct {
     char    *memend;                /* end of cur memblk                    */
     MACRO   *macros;
     int     next_name /* = -1 */;
-    IN_STACK  *inputs, *str;        
+    IN_STACK  *inputs, *str;
     int     input_size, input_cnt;
     int     pop;                    /* Number of macros to pop              */
     int     ingappop /* = 1 */;     /* Are we in a popable gap?             */

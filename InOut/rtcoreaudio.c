@@ -77,7 +77,7 @@ int csoundModuleCreate(CSOUND *csound)
                                    "coreaudio IO uses non-interleaved audio (eg. Digidesign HW: 0=no, 1=yes)",
                                    NULL);
 
-    if (csound->oparms->msglevel & 0x400) 
+    if (csound->oparms->msglevel & 0x400)
       p->Message(csound, "CoreAudio real-time audio module for Csound\n"
                  "by Victor Lazzarini\n");
     return 0;
@@ -99,7 +99,7 @@ int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "coreaudio") == 0 || strcmp(drv, "CoreAudio") == 0 ||
           strcmp(drv, "COREAUDIO") == 0))
       return 0;
-    if (csound->oparms->msglevel & 0x400) 
+    if (csound->oparms->msglevel & 0x400)
       csound->Message(csound, "rtaudio: CoreAudio module enabled\n");
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
@@ -229,9 +229,9 @@ int coreaudio_open(CSOUND *csound, const csRtAudioParams * parm,
       p->Message(csound,
                  "==========================================================\n"
                  "CoreAudio Module: found %d device(s):\n", (int) devnos);
-      
+
       for (i = 0; (unsigned int) i < devnos; i++) {
-      
+
         AudioDeviceGetPropertyInfo(sysdevs[i], 1, false,
                                    kAudioDevicePropertyDeviceName, &psize, NULL);
         name = (char *) malloc(psize);

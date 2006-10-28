@@ -76,8 +76,7 @@ static const char *envVar_list[] = {
 #endif
 
 typedef struct envVarEntry_s {
-    struct envVarEntry_s
-            *nxt;               /* pointer to next link in chain        */
+    struct envVarEntry_s *nxt;  /* pointer to next link in chain        */
     char    *name;              /* name of environment variable         */
     char    *value;             /* value of environment variable        */
 } envVarEntry_t;
@@ -582,7 +581,7 @@ char *csoundConvertPathname(CSOUND *csound, const char *filename)
 /**  Check if name is a full pathname for the platform we are running on. */
 int csoundIsNameFullpath(const char *name)
 {
-#ifdef WIN32    
+#ifdef WIN32
     if (isalpha(name[0]) && name[1] == ':') return 1;
 #endif
 #ifndef mac_classic
@@ -599,7 +598,7 @@ int csoundIsNameFullpath(const char *name)
 #endif
 }
 
-/** Check if name is a relative pathname for this platform.  Bare 
+/** Check if name is a relative pathname for this platform.  Bare
  *  filenames with no path information are not counted.
  */
 int csoundIsNameRelativePath(const char *name)
@@ -626,7 +625,7 @@ int csoundIsNameJustFilename(const char *name)
     return 1;
 }
 
-/** Properly concatenates the full or relative pathname in path1 with 
+/** Properly concatenates the full or relative pathname in path1 with
  *  the relative pathname or filename in path2 according to the rules
  *  for the platform we are running on.  path1 is assumed to be
  *  a directory whether it ends with DIRSEP or not.  Relative paths must
@@ -640,7 +639,7 @@ char* csoundConcatenatePaths(CSOUND* csound, const char *path1, const char *path
     char separator[2];
     int  len1 = strlen(path1);
     int  len2 = strlen(path2);
-    
+
     /* cannot join two full pathnames -- so just return path2 ? */
     if (csoundIsNameFullpath(path2)) {
         result = (char*) mmalloc(csound, (size_t)len2+1);
@@ -656,7 +655,7 @@ char* csoundConcatenatePaths(CSOUND* csound, const char *path1, const char *path
     /* ignore the first ':' of path2 if any are present */
     if (path2[0] == ':') start2 = path2 + 1;
 #endif
-    
+
     result = (char*) mmalloc(csound, (size_t)len1+(size_t)len2+2);
     strcpy(result, path1);
     /* check for final DIRSEP in path1 */
@@ -665,14 +664,14 @@ char* csoundConcatenatePaths(CSOUND* csound, const char *path1, const char *path
         strcat(result, separator);
     }
     strcat(result, start2);
-    
+
     return result;
 }
 
 /** Converts a pathname to native format and returns just the part of
- *  the path that specifies the directory.  Does not return the final 
+ *  the path that specifies the directory.  Does not return the final
  *  DIRSEP.  Returns an empty string if no path components occur before
- *  the filename.  Returns NULL if unable to carry out the operation 
+ *  the filename.  Returns NULL if unable to carry out the operation
  *  for some reason.
  */
 char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
@@ -685,7 +684,7 @@ char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
     if ((convPath = csoundConvertPathname(csound, path)) == NULL)
         return NULL;
     lastIndex = strrchr(convPath, DIRSEP);
-    
+
     if (lastIndex == NULL) {  /* no DIRSEP before filename */
 #ifdef WIN32  /* e.g. C:filename */
         if (isalpha(convPath[0]) && convPath[1] == ':') {

@@ -1,6 +1,6 @@
 /*
     pvsbus.c: example program for pvs bus interface
-    works with pvsbus.csd 
+    works with pvsbus.csd
 
     (C) V Lazzarini, 2006
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     char    *fname = NULL;
     int     k, result;
     PVSDATEXT dataout, datain;
-    
+
     /* initialise PVSATEXT data */
     datain.N = 1024;
     datain.format = 0;
@@ -66,10 +66,10 @@ int main(int argc, char **argv)
     while (!result){
 
       /* copy data from pvs out to pvs in bus */
-      for(k=0; k < 1026; k++) 
+      for(k=0; k < 1026; k++)
           datain.frame[k] = dataout.frame[k];
       datain.framecount = dataout.framecount;
-      /* send in the pvs in bus data */     
+      /* send in the pvs in bus data */
       csoundPvsinSet(csound, &datain, 0);
       /* one ksmps pass */
       result = csoundPerformKsmps(csound);

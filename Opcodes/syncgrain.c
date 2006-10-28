@@ -39,7 +39,7 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
 
     if (p->olaps < 1)
       p->olaps = 1;
-      
+
    size =  p->olaps * sizeof(double);
    if(p->index.auxp == NULL || p->index.size < size)
           csound->AuxAlloc(csound, size, &p->index);

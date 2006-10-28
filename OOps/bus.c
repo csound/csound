@@ -57,7 +57,7 @@ static CS_NOINLINE int chan_realloc(CSOUND *csound,
 }
 
 static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
-                                      void **p, int *oldSize, 
+                                      void **p, int *oldSize,
                                       int newSize, PVSDATEXT *fin)
 {
     volatile jmp_buf  saved_exitjmp;
@@ -79,7 +79,7 @@ static CS_NOINLINE int chan_realloc_f(CSOUND *csound,
     pp->wintype = fin->wintype;
     pp->format =  fin->format;
     pp->framecount = fin->framecount;
-    }   
+    }
     memcpy((void*)&csound->exitjmp, (void*)&saved_exitjmp, sizeof(jmp_buf));
     (*p) = newp;
     (*oldSize) = newSize;
@@ -190,7 +190,7 @@ PUBLIC int csoundPvsinSet(CSOUND *csound, const PVSDATEXT *fin, int n)
       return CSOUND_ERROR;
     if ((unsigned int)n >= (unsigned int)csound->nchanif) {
       int   err = chan_realloc_f(csound, (void *)&(csound->chanif),
-                                 &(csound->nchanif), n + 1, 
+                                 &(csound->nchanif), n + 1,
                                  (PVSDATEXT *)fin);
       if (err)
         return err;
@@ -333,7 +333,7 @@ int pvsin_perf(CSOUND *csound, FCHAN *p)
       return csound->PerfError(csound, Str("chani: invalid index"));
     if (((unsigned int)n >= (unsigned int)csound->nchanif)){
       int err = chan_realloc_f(csound, (void *)&(csound->chanif),
-                               &(csound->nchanif), n + 1, 
+                               &(csound->nchanif), n + 1,
                                (PVSDATEXT *) &(p->init));
       if (err) {
      return csound->PerfError(csound, Str("chani: memory allocation failure"));
@@ -359,14 +359,14 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
 
     if ((unsigned int)n >= (unsigned int)csound->nchanof) {
       if (chan_realloc_f(csound, (void *)&(csound->chanof),
-                         &(csound->nchanof), n + 1, 
+                         &(csound->nchanof), n + 1,
                          (PVSDATEXT *) fin) != 0)
         return csound->PerfError(csound,
                                  Str("chano: memory allocation failure"));
-      else fout = (PVSDATEXT *)csound->chanof;       
+      else fout = (PVSDATEXT *)csound->chanof;
     }
     size = fout[n].N < fin->N ? fout[n].N : fin->N;
-    memcpy(&fout[n], fin, sizeof(PVSDAT)-sizeof(AUXCH)); 
+    memcpy(&fout[n], fin, sizeof(PVSDAT)-sizeof(AUXCH));
     memcpy(fout[n].frame, fin->frame.auxp, sizeof(float)*(size+2));
     return OK;
 }

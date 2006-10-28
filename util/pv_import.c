@@ -72,7 +72,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     {
       int fmt1, fmt2, fmt3, fmt4, fmt5;
       fscanf(inf, "%d,%d,%d,%d,%d,%d,%d\n",
-             &fmt1, &fmt2, &fmt.nSamplesPerSec, 
+             &fmt1, &fmt2, &fmt.nSamplesPerSec,
              &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5);
       fmt.wFormatTag = fmt1;
       fmt.nChannels = fmt2;
@@ -110,7 +110,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
       return 1;
     }
-    
+
     {
       float *frame =
         (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));

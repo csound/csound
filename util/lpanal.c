@@ -195,7 +195,7 @@ static void polyzero(int nmax, int n, double *a, double *zerore, double *zeroim,
           v = u;
           u = w;
         }
-        
+
         tmp = a[n1]+u*xc-m*v;
         if (tmp*tmp<=fc) {
           u = 0.0;

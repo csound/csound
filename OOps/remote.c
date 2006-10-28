@@ -399,7 +399,7 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
 /* declare certain chnls global remote Csounds */
 {                                         /*       INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
-    
+
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
     if (nargs < 2) {
       csound->InitError(csound, Str("missing channel nos"));
@@ -576,7 +576,7 @@ int insglobal(CSOUND *csound, INSGLOBAL *p)
     return OK;
 }
 
-int midremot(CSOUND *csound, MIDREMOT *p)    
+int midremot(CSOUND *csound, MIDREMOT *p)
 /* declare certain channels for remote Csounds */
 {
     csound->Warning(csound, Str("*** This version of Csound was not "
