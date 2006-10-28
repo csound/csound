@@ -43,7 +43,7 @@ FLTKKeyboard::FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const cha
 	o->labelcolor(FL_FOREGROUND_COLOR);
 	o->user_data((void*)(this));
 	o->align(FL_ALIGN_TOP);
-	//o->when(FL_WHEN_RELEASE);
+	o->when(FL_WHEN_RELEASE);
 
 	for(int i = 0; i < 88; i++) {
 		keyStates[i] = 0;
@@ -58,7 +58,6 @@ FLTKKeyboard::FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const cha
 	whiteKeys[4] = 7;
 	whiteKeys[5] = 9;
 	whiteKeys[6] = 11;
-
 }
 
 FLTKKeyboard::~FLTKKeyboard() {
@@ -78,6 +77,20 @@ void FLTKKeyboard::unlock() {
 	if(mutex) {
       	csound->UnlockMutex(mutex);
 	}
+}
+
+void FLTKKeyboard::allNotesOff() {
+	this->lock();
+
+	for(int i = 0; i < 88; i++) {
+		this->keyStates[i] = 2;
+	}
+
+	this->lastMidiKey = -1;
+
+	this->unlock();
+
+	this->redraw();
 }
 
 int FLTKKeyboard::getMidiValForWhiteKey(int whiteKeyNum) {
@@ -174,6 +187,10 @@ int FLTKKeyboard::handle(int event) {
 
     switch(event) {
         case FL_PUSH:
+			if(Fl::event_button2() || Fl::event_button3()) {
+				return 1;
+			}
+
             key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
 			this->lock();
@@ -187,6 +204,9 @@ int FLTKKeyboard::handle(int event) {
 
             return 1;
         case FL_DRAG:
+			if(Fl::event_button2() || Fl::event_button3()) {
+				return 1;
+			}
             key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
             if(key != lastMidiKey) {
@@ -194,20 +214,34 @@ int FLTKKeyboard::handle(int event) {
             	this->lock();
 
                 keyStates[lastMidiKey] = 2;
-                keyStates[key] = 1;
+
+                if(keyStates[key] != 1) {
+                	keyStates[key] = 1;
+                }
+
                 lastMidiKey = key;
 
                 this->unlock();
 
                 this->redraw();
+
             }
             return 1;
         case FL_RELEASE:
-            key = getMIDIKey(Fl::event_x(), Fl::event_y());
+        	if(Fl::event_button1()) {
+				return 1;
+			}
+
+			key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
 			this->lock();
 
             keyStates[key] = 2;
+
+			if(lastMidiKey >= 0) {
+            	keyStates[lastMidiKey] = 2;
+			}
+
             lastMidiKey = -1;
 
             this->unlock();
@@ -215,6 +249,14 @@ int FLTKKeyboard::handle(int event) {
             this->redraw();
 
             return 1;
+        case FL_MOVE:
+        	if(lastMidiKey >= 0) {
+
+            	keyStates[lastMidiKey] = 2;
+            	lastMidiKey = -1;
+
+        	}
+        	return 1;
     	case FL_KEYDOWN:
 //    		return 0;
     	case FL_KEYUP:
@@ -251,16 +293,17 @@ void FLTKKeyboard::draw() {
     int width = whiteKeyWidth;
 
     int runningX = 0;
+    int yval = this->y();
 
     // Draw White Keys
     for(int i = 0; i < 88; i++) {
         if(isWhiteKey(i)) {
             if(i == lastMidiKey) {
-                fl_draw_box(box(), runningX, 0, width, whiteKeyHeight, FL_BLUE);
+                fl_draw_box(box(), runningX, yval, width, whiteKeyHeight, FL_BLUE);
             } else {
-                fl_draw_box(box(), runningX, 0, width, whiteKeyHeight, FL_WHITE);
+                fl_draw_box(box(), runningX, yval, width, whiteKeyHeight, FL_WHITE);
             }
-            fl_rect(runningX, 0, width, whiteKeyHeight, FL_BLACK);
+            fl_rect(runningX, yval, width, whiteKeyHeight, FL_BLACK);
             runningX += width;
         }
     }
@@ -273,9 +316,9 @@ void FLTKKeyboard::draw() {
             runningX += width;
         } else {
             if(i == lastMidiKey) {
-                fl_draw_box(box(), runningX - 5, 0, blackKeyWidth, blackKeyHeight, FL_BLUE);
+                fl_draw_box(box(), runningX - 5, yval, blackKeyWidth, blackKeyHeight, FL_BLUE);
             } else {
-                fl_draw_box(box(), runningX - 5, 0, blackKeyWidth, blackKeyHeight, FL_BLACK);
+                fl_draw_box(box(), runningX - 5, yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
             }
         }
     }
