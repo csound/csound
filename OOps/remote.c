@@ -3,7 +3,7 @@
 
     Copyright (C) 2006 by Barry Vercoe
 
-    This file is not yet part of Csound.
+    This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
@@ -38,6 +38,8 @@
 
 #define ST(x)   (((REMOTE_GLOBALS*) ((CSOUND*)csound)->remoteGlobals)->x)
 
+void remote_Cleanup(CSOUND *csound);
+
 void remoteRESET(CSOUND *csound)
 {
     csound->remoteGlobals = NULL;
@@ -46,9 +48,9 @@ void remoteRESET(CSOUND *csound)
 #ifdef HAVE_SOCKETS
 
  /* get the IPaddress of this machine */
-static void getIpAddress(char *ipaddr, char *ifname)
+static int getIpAddress(char *ipaddr, char *ifname)
 {
-
+    int ret = 1;  
 #ifdef WIN32
     /* VL 12/10/06: something needs to go here */
     /* gethostbyname is the real answer; code below id unsafe */
@@ -61,25 +63,26 @@ static void getIpAddress(char *ipaddr, char *ifname)
     memset(&sin, 0, sizeof (struct sockaddr_in));
     memmove(&sin.sin_addr, he->h_addr_list[0], he->h_length);
     strcpy(ipaddr, inet_ntoa (sin.sin_addr));
+    ret = 0;
 
 #else
     struct ifreq ifr;
-    int fd, i;
-    unsigned char val;
+    int fd;
 
     fd = socket(AF_INET,SOCK_DGRAM, 0);
     if (fd >= 0) {
       strcpy(ifr.ifr_name, ifname);
 
-      if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
-        for( i=2; i<6; i++){
-          val = (unsigned char)ifr.ifr_ifru.ifru_addr.sa_data[i];
-          sprintf(ipaddr, "%s%d%s", ipaddr, val, i==5?"":".");
-        }
+      if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {        
+        char *local;
+        local = inet_ntoa(((struct sockaddr_in *)(&ifr.ifr_addr))->sin_addr);
+        strcpy(ipaddr, local);
+        ret = 0;
       }
     }
     close(fd);
 #endif
+    return ret;
 }
 
 char remoteID(CSOUND *csound)
@@ -88,31 +91,89 @@ char remoteID(CSOUND *csound)
     return ST(ipadrs)[len-1];
 }
 
-static void callox(CSOUND *csound)
+static int callox(CSOUND *csound)
 {
-    if (csound->remoteGlobals == NULL)
+    if (csound->remoteGlobals == NULL) {
       csound->remoteGlobals = csound->Calloc(csound, sizeof(REMOTE_GLOBALS));
+      if (csound->remoteGlobals == NULL) {
+        csound->Message(csound, Str("insufficient memory to initialize remote"
+                        " globals."));
+        goto error;
+      }
+    }
 
     ST(socksout) = (SOCK*)csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(SOCK));
+    if (ST(socksout) == NULL) {
+      csound->Message(csound, Str("insufficient memory to initialize outgoing "
+                      "socket table."));
+      goto error;
+    }
+
     ST(socksin) = (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
+    if (ST(socksin) == NULL) {
+      csound->Message(csound, Str("insufficient memory to initialize incoming "
+                      "socket table."));
+      goto error;
+    }
+
     ST(insrfd_list) =
       (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
+    if (ST(insrfd_list) == NULL) {
+      csound->Message(csound, Str("insufficient memory to initialize "
+                      "insrfd_list."));
+      goto error;
+    }
+
     ST(chnrfd_list) =
       (int*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int));
-    ST(insrfd) = (int*) csound->Calloc(csound,(size_t)129 * sizeof(int));
-    ST(chnrfd) = (int*) csound->Calloc(csound,(size_t)17 * sizeof(int));
-    ST(ipadrs) = (char*) csound->Calloc(csound,(size_t)15 * sizeof(char));
+    if (ST(chnrfd_list) == NULL) {
+      csound->Message(csound, Str("insufficient memory to initialize "
+                      "chnrfd_list."));
+      goto error;
+    }
 
-    getIpAddress(ST(ipadrs), "eth0"); /* get IP adrs of this machine */
+    ST(insrfd) = (int*) csound->Calloc(csound,(size_t)129 * sizeof(int));
+    if (ST(insrfd) == NULL) {
+      csound->Message(csound, Str("insufficient memory to initialize "
+                      "insrfd table."));
+      goto error;
+    }
+
+    ST(chnrfd) = (int*) csound->Calloc(csound,(size_t)17 * sizeof(int));
+    if (ST(chnrfd) == NULL) {
+      csound->Message(csound, Str("insufficient memory to initialize "
+                      "chnrfd table."));
+      goto error;
+    }
+
+    ST(ipadrs) = (char*) csound->Calloc(csound,(size_t)15 * sizeof(char));
+    if (ST(ipadrs) == NULL) {
+      csound->Message(csound, Str("insufficient memory to initialize "
+                      "local ip address."));
+      goto error;
+    }
+
+    /* get IP adrs of this machine */
+    /* FIXME: don't hardcode eth0 */
+    if (getIpAddress(ST(ipadrs), "eth0") < 0) {
+      csound->Message(csound, Str("unable to get local ip address."));
+      goto error;
+    }
+
+    return 0;
+
+error:
+    /* Clean up anything we may have allocated before running out of memory */
+    remote_Cleanup(csound);
+    return -1;
 }
 
 /* Cleanup the above; called from musmon csoundCleanup */
 void remote_Cleanup(CSOUND *csound)
 {
     int fd;
-/*     if (csound->remoteGlobals == NULL) return; */
-    if (ST(socksout) == NULL) return;     /* if nothing allocated, return */
-    else {
+    if (csound->remoteGlobals == NULL) return;
+    if (ST(socksout) != NULL) {
       SOCK *sop = ST(socksout), *sop_end = sop + MAXREMOTES;
       for ( ; sop < sop_end; sop++)
         if ((fd = sop->rfd) > 0)
@@ -289,7 +350,12 @@ int insremot(CSOUND *csound, INSREMOT *p)
 {   /*      INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
 
-    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
+      if (callox(csound) < 0) {
+        csound->InitError(csound, Str("failed to initialize remote globals."));
+        return 0;
+      }
+    }
     if (nargs < 3) {
       csound->InitError(csound, Str("missing instr nos"));
       return 0;
@@ -331,7 +397,12 @@ int insglobal(CSOUND *csound, INSGLOBAL *p)
 {   /*      INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
 
-    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
+      if (callox(csound) < 0) {
+        csound->InitError(csound, Str("failed to initialize remote globals."));
+        return 0;
+      }
+    }
     if (nargs < 2) {
       csound->InitError(csound, Str("missing instr nos"));
       return NOTOK;
@@ -361,7 +432,12 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
 {                                            /* INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
 
-    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
+      if (callox(csound) < 0) {
+        csound->InitError(csound, Str("failed to initialize remote globals."));
+        return 0;
+      }
+    }
     if (nargs < 3) {
       csound->InitError(csound, Str("missing channel nos"));
       return NOTOK;
@@ -400,7 +476,12 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
 {                                         /*       INSTR 0 opcode  */
     short nargs = p->INOCOUNT;
 
-    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) callox(csound);
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
+      if (callox(csound) < 0) {
+        csound->InitError(csound, Str("failed to initialize remote globals."));
+        return 0;
+      }
+    }
     if (nargs < 2) {
       csound->InitError(csound, Str("missing channel nos"));
       return NOTOK;
