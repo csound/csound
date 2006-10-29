@@ -1,3 +1,20 @@
+2006-10-29  Simon Schampijer  <simon@schampijer.de>
+
+	* OOps/remote.c: Added the patch from Dan Williams which: 
+	1) Fixes detection of the IP address by correctly converting the uint32
+	to a string format using inet_ntoa() on Linux.  There was something
+	wrong with the manual conversion code that was there which caused only
+	the last octet to be recognized, which meant the remote plugin was
+	mismatching the IP addresses and playing everything locally.  I have no
+	idea why it worked before, but my patch is clearly correct (to me at
+	least!)
+
+	2) fixes up error handling on plugin init; If the machine runs out of
+	memory while starting the remote plugin, it should return an error in
+	callox() so that CSound is alerted to the error as well.  Furthermore,
+	if detection of the local IP address fails for any reason, the plugin
+	should fail to initialize.
+
 2006-10-27  David Akbari  <dakbari@gmail.com>
 
 	* frontends/cseditor/*:
