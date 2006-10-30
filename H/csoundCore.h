@@ -959,7 +959,8 @@ extern "C" {
     double        beatTime;
     /** unused */
     int           dummy_01, dummy_02;
-    void          *dummy_03;
+    /* Widgets */
+    void          *widgetGlobals;
     /** reserved for std opcode library  */
     void          *stdOp_Env;
     MYFLT         *zkstart;
