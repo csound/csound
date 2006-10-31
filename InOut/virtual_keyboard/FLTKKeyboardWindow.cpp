@@ -25,12 +25,9 @@ int FLTKKeyboardWindow::handle(int event) {
 
     switch(event) {
     	case FL_KEYDOWN:
-    		return 0;
+    		return this->keyboard->handle(event);
     	case FL_KEYUP:
-      		if (Fl::focus() == this) {
-
-      		}
-        	return 0;
+      		return this->keyboard->handle(event);
         default:
             return Fl_Double_Window::handle(event);
     }

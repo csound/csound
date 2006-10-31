@@ -35,16 +35,19 @@ public:
   int handle(int event);
   void draw();
   int keyStates[88];
+  int changedKeyStates[88];
   int whiteKeys[7];
   void lock();
   void unlock();
   void allNotesOff();
+  int aNotesOff;
 private:
-
+  int octave;
   int getMIDIKey(int x, int y);
   int lastMidiKey;
   int isWhiteKey(int key);
   int getMidiValForWhiteKey(int whiteKeyNum);
+  void handleKey(int key, int value);
 
   CSOUND *csound;
   void * mutex;
