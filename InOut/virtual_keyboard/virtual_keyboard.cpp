@@ -27,7 +27,7 @@
 #include "oload.h"
 #include "winFLTK.h"
 #include "FLTKKeyboardWindow.hpp"
-
+#include <map>
 
 static FLTKKeyboardWindow *createWindow(CSOUND *csound) {
        return new FLTKKeyboardWindow(csound, 624, 100, "Csound Virtual Keyboard");
@@ -76,33 +76,56 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     }
 
 	keyWin->keyboard->lock();
+
+	int *changedKeyStates = keyWin->keyboard->changedKeyStates;
  	int *keyStates = keyWin->keyboard->keyStates;
 
     int count = 0;
 
     for(int i = 0; i < 88; i++) {
-        if(keyStates[i] == 1) {
-            //csound->Message(csound, "key down: %d\n", i);
-            keyStates[i] = 0;
-
-            *mbuf++ = (unsigned char)0x90;
-            *mbuf++ = (unsigned char)i + 21;
-            *mbuf++ = (unsigned char)127;
-
-            count += 3;
-
-        } else if (keyStates[i] == 2) {
-            keyStates[i] = 0;
-            //csound->Message(csound, "key up: %d\n", i);
-
-            *mbuf++ = (unsigned char)0x90;
+    	if(keyStates[i] == -1) {
+    		*mbuf++ = (unsigned char)0x90;
             *mbuf++ = (unsigned char)i + 21;
             *mbuf++ = (unsigned char)0;
 
             count += 3;
-        }
+            keyStates[i] = 0;
+    	} else if(changedKeyStates[i] != keyStates[i]) {
 
+	        if(keyStates[i] == 1) {
+	            //csound->Message(csound, "key down: %d\n", i);
+	            keyStates[i] = 0;
+
+	            *mbuf++ = (unsigned char)0x90;
+	            *mbuf++ = (unsigned char)i + 21;
+	            *mbuf++ = (unsigned char)127;
+
+	            count += 3;
+
+	        } else {
+	            //keyStates[i] = 0;
+	            //csound->Message(csound, "key up: %d\n", i);
+
+	            *mbuf++ = (unsigned char)0x90;
+	            *mbuf++ = (unsigned char)i + 21;
+	            *mbuf++ = (unsigned char)0;
+
+	            count += 3;
+	        }
+    	}
+
+		changedKeyStates[i] = keyStates[i];
     }
+
+    if(keyWin->keyboard->aNotesOff == 1) {
+    	keyWin->keyboard->aNotesOff = 0;
+    	*mbuf++ = (unsigned char)0xB0;
+        *mbuf++ = (unsigned char)123;
+        *mbuf++ = (unsigned char)0;
+
+        count += 3;
+    }
+
 	keyWin->keyboard->unlock();
 
     return count;
