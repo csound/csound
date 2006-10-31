@@ -2338,8 +2338,9 @@ static int FLkeyb(CSOUND *csound, FLKEYB *p)
 
 static int StartPanel(CSOUND *csound, FLPANEL *p)
 {
-    char    *panelName = GetString(csound, p->name, p->XSTRCODE);
+    char    *panelName;
     widget_init(csound);
+    panelName = GetString(csound, p->name, p->XSTRCODE);
 
   *(getFLTKFlagsPtr(csound)) |= 32;
   int     x = (int) *p->ix, y = (int) *p->iy,
