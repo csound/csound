@@ -310,7 +310,7 @@ int FLTKKeyboard::handle(int event) {
 
             key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
-			csound->Message(csound, "Piano Key: %d\n", key);
+//			csound->Message(csound, "Piano Key: %d\n", key);
 
 			this->lock();
 
