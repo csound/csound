@@ -226,7 +226,7 @@ opts.Add('isWinNT', 'On windows, if win2000 or NT is used',
           '%d' % withMSVC())
 opts.Add('buildCSEditor',
     'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
-    '1')
+    '0')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
