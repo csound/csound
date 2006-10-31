@@ -303,6 +303,7 @@ typedef struct {
 
 class Fl_Ball : public Fl_Valuator {
 private:
+  CSOUND *csound;
   int ix, iy, drag;
   int spinning;
 
@@ -330,7 +331,7 @@ public:
     FL_EXPORT void handle_drag(double v=0.0);
     FL_EXPORT void handle_release();
     FL_EXPORT int handle(int);
-    FL_EXPORT Fl_Ball(int x, int y, int w, int h, const char *l = 0);
+    FL_EXPORT Fl_Ball(CSOUND *cs, int x, int y, int w, int h, const char *l = 0);
 
   void soft(char x) {soft_ = x;}
   char soft() const {return soft_;}
@@ -367,12 +368,13 @@ class Fl_Knob : public Fl_Valuator {
       LINELOG_3
     };
  private:
+    CSOUND *csound;
     int _type;
     float _percent;
     int _scaleticks;
     short a1, a2;
  public:
-    Fl_Knob(int xx, int yy, int ww, int hh, const char *l=0);
+    Fl_Knob(CSOUND *cs, int xx, int yy, int ww, int hh, const char *l=0);
     ~Fl_Knob();
  private:
     void draw();
@@ -392,6 +394,7 @@ class Fl_Knob : public Fl_Valuator {
 
 class Fl_Spin : public Fl_Valuator {
  private:
+    CSOUND * csound;
     int ix, iy, drag, indrag;
     int delta, deltadir;
     char soft_;
@@ -402,7 +405,7 @@ class Fl_Spin : public Fl_Valuator {
  public:
     FL_EXPORT void draw();
     FL_EXPORT int handle(int);
-    FL_EXPORT Fl_Spin(int x, int y, int w, int h, const char *l = 0);
+    FL_EXPORT Fl_Spin(CSOUND *cs, int x, int y, int w, int h, const char *l = 0);
 
     void soft(char x) {soft_ = x;}
     char soft() const {return soft_;}
@@ -414,6 +417,7 @@ class Fl_Spin : public Fl_Valuator {
 
 class Fl_Value_Input_Spin : public Fl_Valuator {
  private:
+    CSOUND * csound;
     int ix, iy, drag, indrag, sldrag;
     int delta, deltadir;
     char soft_;
@@ -430,7 +434,7 @@ class Fl_Value_Input_Spin : public Fl_Valuator {
     FL_EXPORT void draw();
     FL_EXPORT int handle(int);
     FL_EXPORT void resize(int, int, int, int);
-    FL_EXPORT Fl_Value_Input_Spin(int x, int y, int w, int h,
+    FL_EXPORT Fl_Value_Input_Spin(CSOUND *csound, int x, int y, int w, int h,
                                   const char *l = 0);
 
     void soft(char x) {soft_ = x;}
@@ -453,7 +457,7 @@ class Fl_Value_Input_Spin : public Fl_Valuator {
 
 class Fl_Value_Slider_Input : public Fl_Value_Slider {
  private:
-
+    CSOUND *csound;
     char soft_;
     int txtboxsize;
 
@@ -466,7 +470,7 @@ class Fl_Value_Slider_Input : public Fl_Value_Slider {
     FL_EXPORT void draw();
     FL_EXPORT int handle(int);
     FL_EXPORT void resize(int, int, int, int);
-    FL_EXPORT Fl_Value_Slider_Input(int x, int y, int w, int h,
+    FL_EXPORT Fl_Value_Slider_Input(CSOUND * cs, int x, int y, int w, int h,
                                     const char *l = 0);
 
     void soft(char x) {soft_ = x;}
