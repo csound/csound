@@ -126,6 +126,8 @@ extern  uintptr_t MakeWindow_FLTK(char *);
 extern  void      MakeXYin_FLTK(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 extern  int       myFLwait(void);
 extern  void      ReadXYin_FLTK(CSOUND *, XYINDAT *);
+extern  void      widget_init(CSOUND *);
+extern  int       widget_reset(CSOUND *, void *);
 
 extern const OENTRY widgetOpcodes_[];
 
