@@ -50,7 +50,7 @@ void remoteRESET(CSOUND *csound)
  /* get the IPaddress of this machine */
 static int getIpAddress(char *ipaddr, char *ifname)
 {
-    int ret = 1;  
+    int ret = 1;
 #ifdef WIN32
     /* VL 12/10/06: something needs to go here */
     /* gethostbyname is the real answer; code below id unsafe */
@@ -73,7 +73,7 @@ static int getIpAddress(char *ipaddr, char *ifname)
     if (fd >= 0) {
       strcpy(ifr.ifr_name, ifname);
 
-      if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {        
+      if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
         char *local;
         local = inet_ntoa(((struct sockaddr_in *)(&ifr.ifr_addr))->sin_addr);
         strcpy(ipaddr, local);
@@ -289,8 +289,8 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
       csound->InitError(csound,
                         Str("setting socket option to reuse the addresse \n"));
 
-    memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));             /* clear sock mem */
-    ST(local_addr).sin_family = AF_INET;                    /* set as INET address */
+    memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));    /* clear sock mem */
+    ST(local_addr).sin_family = AF_INET;               /* set as INET address */
     /* our adrs, netwrk byt order */
 #ifdef WIN32
     ST(to_addr).sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
@@ -343,7 +343,7 @@ int SVrecv(CSOUND *csound, int conn, void *data, int length)
     return (int)n;
 }
 
-/*/////////////  INSTR 0 opcodes ///////////////////// */
+/* /////////////  INSTR 0 opcodes ///////////////////// */
 
 int insremot(CSOUND *csound, INSREMOT *p)
 /* declare certain instrs for remote Csounds */
@@ -365,7 +365,7 @@ int insremot(CSOUND *csound, INSREMOT *p)
     if (strcmp(ST(ipadrs), (char *)p->str1) == 0) {  /* if client is this adrs */
       MYFLT   **argp = p->insno;
       int rfd = 0;
-      if ((rfd = CLopen(csound, (char *)p->str2)) <= 0)    /* open port to remot */
+      if ((rfd = CLopen(csound, (char *)p->str2)) <= 0) /* open port to remote */
         return NOTOK;
       for (nargs -= 2; nargs--; ) {
         short insno = (short)**argp++;     /* & for each insno */
@@ -457,9 +457,9 @@ int midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
           csound->InitError(csound, Str("channel already remote"));
           return NOTOK;
         }
-        ST(chnrfd)[chnum] = rfd;                         /* record file descriptor */
+        ST(chnrfd)[chnum] = rfd;                      /* record file descriptor */
                 }
-                ST(chnrfd_list)[ST(chnrfd_count)++] = rfd;   /*  and make a list    */
+                ST(chnrfd_list)[ST(chnrfd_count)++] = rfd;   /* and make a list */
     }
     else if (!strcmp(ST(ipadrs), (char *)p->str2)) { /* if server is this adrs */
       if(SVopen(csound, (char *)p->str2) == NOTOK){  /* open port to listen */
@@ -506,7 +506,7 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
     return OK;
 }
 
-/*////////////////       MUSMON SERVICES ////////////////*/
+/* ////////////////       MUSMON SERVICES //////////////// */
 
 static REMOT_BUF CLsendbuf;          /* rt evt output Communications buffer */
 

@@ -2342,16 +2342,16 @@ static int StartPanel(CSOUND *csound, FLPANEL *p)
     widget_init(csound);
     panelName = GetString(csound, p->name, p->XSTRCODE);
 
-  *(getFLTKFlagsPtr(csound)) |= 32;
-  int     x = (int) *p->ix, y = (int) *p->iy,
-          width = (int) *p->iwidth, height = (int) *p->iheight;
-  if (width < 0) width = 400;   // default
-  if (height < 0) height = 300;
-
-  Fl_Boxtype borderType;
-  int iborder = (int) *p->border;
-  if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX;
-  else borderType = BOX_TABLE[iborder];
+    *(getFLTKFlagsPtr(csound)) |= 32;
+    int     x = (int) *p->ix, y = (int) *p->iy,
+      width = (int) *p->iwidth, height = (int) *p->iheight;
+    if (width < 0) width = 400;   // default
+    if (height < 0) height = 300;
+    
+    Fl_Boxtype borderType;
+    int iborder = (int) *p->border;
+    if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX;
+    else borderType = BOX_TABLE[iborder];
 //   switch( (int) *p->border ) {
 //   case 0: borderType = FL_FLAT_BOX; break;
 //   case 1: borderType = FL_DOWN_BOX; break;
@@ -2364,28 +2364,28 @@ static int StartPanel(CSOUND *csound, FLPANEL *p)
 //   default: borderType = FL_FLAT_BOX;
 //   }
 
-  Fl_Window *o;
-  if (*(p->ikbdsense) == FL(0.0)) {
-    if (x < 0)
-      o = new Fl_Window(width, height, panelName);
+    Fl_Window *o;
+    if (*(p->ikbdsense) == FL(0.0)) {
+      if (x < 0)
+        o = new Fl_Window(width, height, panelName);
+      else
+        o = new Fl_Window(x, y, width, height, panelName);
+    }
+    else if (x < 0)
+      o = new CsoundFLWindow(csound, width, height, panelName);
     else
-      o = new Fl_Window(x, y, width, height, panelName);
-  }
-  else if (x < 0)
-    o = new CsoundFLWindow(csound, width, height, panelName);
-  else
-    o = new CsoundFLWindow(csound, x, y, width, height, panelName);
-  widget_attributes(csound, o);
-  o->box(borderType);
-  o->resizable(o);
-  widget_attributes(csound, o);
-  ADDR_STACK adrstk(&p->h, (void *) o, ST(stack_count));
-  ST(AddrStack).push_back(adrstk);
-  PANELS panel(o, (ST(stack_count) > 0) ? 1 : 0);
-  ST(fl_windows).push_back(panel);
-  ST(stack_count)++;
+      o = new CsoundFLWindow(csound, x, y, width, height, panelName);
+    widget_attributes(csound, o);
+    o->box(borderType);
+    o->resizable(o);
+    widget_attributes(csound, o);
+    ADDR_STACK adrstk(&p->h, (void *) o, ST(stack_count));
+    ST(AddrStack).push_back(adrstk);
+    PANELS panel(o, (ST(stack_count) > 0) ? 1 : 0);
+    ST(fl_windows).push_back(panel);
+    ST(stack_count)++;
 
-  return OK;
+    return OK;
 }
 
 static int EndPanel(CSOUND *csound, FLPANELEND *p)
@@ -2542,54 +2542,57 @@ static int EndPack(CSOUND *csound, FLSCROLLEND *p)
 
 static int fl_widget_color(CSOUND *csound, FLWIDGCOL *p)
 {
-  if (*p->red1 < 0) { // reset colors to default
-    ST(FLcolor) = (int) *p->red1; //when called without arguments
-    ST(FLcolor2) =(int) *p->red1;
-  }
-  else {
-    ST(FLcolor) = fl_rgb_color((int) *p->red1,
-                           (int) *p->green1,
-                           (int) *p->blue1);
-    ST(FLcolor2) = fl_rgb_color((int) *p->red2,
-                            (int) *p->green2,
-                            (int) *p->blue2);
-  }
-  return OK;
+    widget_init(csound);
+    if (*p->red1 < 0) { // reset colors to default
+      ST(FLcolor) = (int) *p->red1; //when called without arguments
+      ST(FLcolor2) =(int) *p->red1;
+    }
+    else {
+      ST(FLcolor) = fl_rgb_color((int) *p->red1,
+                                 (int) *p->green1,
+                                 (int) *p->blue1);
+      ST(FLcolor2) = fl_rgb_color((int) *p->red2,
+                                  (int) *p->green2,
+                                  (int) *p->blue2);
+    }
+    return OK;
 }
 
 static int fl_widget_color2(CSOUND *csound, FLWIDGCOL2 *p)
 {
-  if (*p->red < 0) { // reset colors to default
-    ST(FLcolor2) =(int) *p->red;
-  }
-  else {
-    ST(FLcolor2) = fl_rgb_color((int) *p->red,
-                            (int) *p->green,
-                            (int) *p->blue);
-  }
-  return OK;
+    widget_init(csound);
+    if (*p->red < 0) { // reset colors to default
+      ST(FLcolor2) =(int) *p->red;
+    }
+    else {
+      ST(FLcolor2) = fl_rgb_color((int) *p->red,
+                                  (int) *p->green,
+                                  (int) *p->blue);
+    }
+    return OK;
 }
 
 static int fl_widget_label(CSOUND *csound, FLWIDGLABEL *p)
 {
-  if (*p->size <= 0) { // reset settings to default
-    ST(FLtext_size) = 0; //when called without arguments
-    ST(FLtext_font) = -1;
-    ST(FLtext_align) = 0;
-    ST(FLtext_color) = -1;
-  }
-  else {
-    ST(FLtext_size) = (int) *p->size;
-
-    if (*p->font > -1) ST(FLtext_font) = (int) *p->font;
-    if (*p->align > 0)  ST(FLtext_align) =  (int) *p->align;
-    if (*p->red > -1 && *p->green > -1 && *p->blue > -1) {
-      ST(FLtext_color) = fl_rgb_color((int) *p->red,
-                                  (int) *p->green,
-                                  (int) *p->blue);
+    widget_init(csound);
+    if (*p->size <= 0) { // reset settings to default
+      ST(FLtext_size) = 0; //when called without arguments
+      ST(FLtext_font) = -1;
+      ST(FLtext_align) = 0;
+      ST(FLtext_color) = -1;
     }
-  }
-  return OK;
+    else {
+      ST(FLtext_size) = (int) *p->size;
+
+      if (*p->font > -1) ST(FLtext_font) = (int) *p->font;
+      if (*p->align > 0)  ST(FLtext_align) =  (int) *p->align;
+      if (*p->red > -1 && *p->green > -1 && *p->blue > -1) {
+        ST(FLtext_color) = fl_rgb_color((int) *p->red,
+                                        (int) *p->green,
+                                        (int) *p->blue);
+      }
+    }
+    return OK;
 }
 
 }       // extern "C"
