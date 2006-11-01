@@ -33,8 +33,16 @@ static FLTKKeyboardWindow *createWindow(CSOUND *csound) {
        return new FLTKKeyboardWindow(csound, 624, 100, "Csound Virtual Keyboard");
 }
 
-static void deleteWindow(FLTKKeyboardWindow * keyWin) {
+static void deleteWindow(CSOUND *csound, FLTKKeyboardWindow * keyWin) {
+
+	Fl_lock(csound);
+
+	keyWin->hide();
     delete keyWin;
+
+	Fl_awake(csound);
+	Fl_wait(csound, 0.0);
+	Fl_unlock(csound);
 }
 
 extern "C"
@@ -93,9 +101,6 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     	} else if(changedKeyStates[i] != keyStates[i]) {
 
 	        if(keyStates[i] == 1) {
-	            //csound->Message(csound, "key down: %d\n", i);
-	            keyStates[i] = 0;
-
 	            *mbuf++ = (unsigned char)0x90;
 	            *mbuf++ = (unsigned char)i + 21;
 	            *mbuf++ = (unsigned char)127;
@@ -103,9 +108,6 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 	            count += 3;
 
 	        } else {
-	            //keyStates[i] = 0;
-	            //csound->Message(csound, "key up: %d\n", i);
-
 	            *mbuf++ = (unsigned char)0x90;
 	            *mbuf++ = (unsigned char)i + 21;
 	            *mbuf++ = (unsigned char)0;
@@ -141,7 +143,7 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
 static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
 
-    deleteWindow((FLTKKeyboardWindow *)userData);
+    deleteWindow(csound, (FLTKKeyboardWindow *)userData);
 
     return 0;
 }

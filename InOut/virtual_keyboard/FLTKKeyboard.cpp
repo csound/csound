@@ -125,7 +125,7 @@ int FLTKKeyboard::getMIDIKey(int x, int y) {
     // 52 white keys
     int whiteKey = x  / whiteKeyWidth;
 
-    int extra = x % whiteKeyWidth; // 12 is width of white key
+    int extra = x % whiteKeyWidth;
 
     if(whiteKey < 2) {
         if(whiteKey == 0) {
@@ -294,7 +294,9 @@ void FLTKKeyboard::handleKey(int key, int value) {
 	}
 
 	lock();
-	keyStates[index] = value;
+	if(keyStates[index] != value) {
+		keyStates[index] = value;
+	}
 	unlock();
 }
 
@@ -309,8 +311,6 @@ int FLTKKeyboard::handle(int event) {
 			}
 
             key = getMIDIKey(Fl::event_x(), Fl::event_y());
-
-//			csound->Message(csound, "Piano Key: %d\n", key);
 
 			this->lock();
 
@@ -379,12 +379,12 @@ int FLTKKeyboard::handle(int event) {
         	}
         	return 1;
     	case FL_KEYDOWN:
-//			csound->Message(csound, "Key Down: Code: %d\n", Fl::event_key());
+			//csound->Message(csound, "Key Down: Code: %d\n", Fl::event_key());
 			handleKey(Fl::event_key(), 1);
 			this->redraw();
 			return 1;
     	case FL_KEYUP:
-//    		csound->Message(csound, "Key Up: Code: %d\n", Fl::event_key());
+    		//csound->Message(csound, "Key Up: Code: %d\n", Fl::event_key());
     		handleKey(Fl::event_key(), -1);
     		this->redraw();
         	return 1;
