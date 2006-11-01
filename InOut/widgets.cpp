@@ -222,7 +222,7 @@ typedef struct {
 
 #define ST(x)   (((WIDGET_GLOBALS*) csound->widgetGlobals)->x)
 
-static void widget_init(CSOUND *csound)
+void widget_init(CSOUND *csound)
 {
     if (csound->widgetGlobals == NULL) {
       csound->widgetGlobals = csound->Calloc(csound, sizeof(WIDGET_GLOBALS));
@@ -246,6 +246,16 @@ static void widget_init(CSOUND *csound)
       ST(FL_ix)             = 10;
       ST(FL_iy)             = 10;
     }
+}
+
+int widget_reset(CSOUND *csound, void *pp)
+{
+    IGN(pp);
+    if (csound->widgetGlobals != NULL) {
+      csound->Free(csound, csound->widgetGlobals);
+      csound->widgetGlobals = NULL;
+    }
+    return OK;
 }
 
 #ifndef NO_FLTK_THREADS
@@ -2339,7 +2349,6 @@ static int FLkeyb(CSOUND *csound, FLKEYB *p)
 static int StartPanel(CSOUND *csound, FLPANEL *p)
 {
     char    *panelName;
-    widget_init(csound);
     panelName = GetString(csound, p->name, p->XSTRCODE);
 
     *(getFLTKFlagsPtr(csound)) |= 32;
@@ -2542,7 +2551,6 @@ static int EndPack(CSOUND *csound, FLSCROLLEND *p)
 
 static int fl_widget_color(CSOUND *csound, FLWIDGCOL *p)
 {
-    widget_init(csound);
     if (*p->red1 < 0) { // reset colors to default
       ST(FLcolor) = (int) *p->red1; //when called without arguments
       ST(FLcolor2) =(int) *p->red1;
@@ -2560,7 +2568,6 @@ static int fl_widget_color(CSOUND *csound, FLWIDGCOL *p)
 
 static int fl_widget_color2(CSOUND *csound, FLWIDGCOL2 *p)
 {
-    widget_init(csound);
     if (*p->red < 0) { // reset colors to default
       ST(FLcolor2) =(int) *p->red;
     }
@@ -2574,7 +2581,6 @@ static int fl_widget_color2(CSOUND *csound, FLWIDGCOL2 *p)
 
 static int fl_widget_label(CSOUND *csound, FLWIDGLABEL *p)
 {
-    widget_init(csound);
     if (*p->size <= 0) { // reset settings to default
       ST(FLtext_size) = 0; //when called without arguments
       ST(FLtext_font) = -1;
