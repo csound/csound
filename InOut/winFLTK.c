@@ -99,6 +99,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           csound->SetMakeXYinCallback(csound, MakeXYin_FLTK);
           csound->SetReadXYinCallback(csound, ReadXYin_FLTK);
           csound->SetKillXYinCallback(csound, KillXYin_FLTK);
+/* seems to crash csound->RegisterResetCallback(csound, NULL, widget_reset); */
         }
 #ifdef LINUX
       }
@@ -137,6 +138,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       }
     }
 
+    widget_init(csound);
     return 0;
 }
 
