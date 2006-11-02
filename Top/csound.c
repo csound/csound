@@ -306,7 +306,8 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+          NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+        NULL,
     /* ----------------------- public data fields ----------------------- */
         (OPDS*) NULL,   /*  ids                 */
         (OPDS*) NULL,   /*  pds                 */
@@ -590,7 +591,8 @@ static const CSOUND cenviron_ = {
         NULL,            /*  remoteGlobals       */
         0, 0,           /* nchanof, nchanif */
         NULL, NULL,     /*  chanif, chanof */
-        defaultCsoundYield /* csoundInternalYieldCallback_*/
+        defaultCsoundYield,/* csoundInternalYieldCallback_*/
+        NULL            /*  flgraphsGlobals */
 };
 
   /* from threads.c */
