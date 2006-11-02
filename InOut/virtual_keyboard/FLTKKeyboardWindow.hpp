@@ -27,17 +27,31 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Spinner.H>
 #include "FLTKKeyboard.hpp"
 #include "csdl.h"
 
 class FLTKKeyboardWindow : public Fl_Double_Window {
 public:
     FLTKKeyboardWindow(CSOUND * csound, int w, int h, const char* t);
+    ~FLTKKeyboardWindow();
     FLTKKeyboard *keyboard;
     Fl_Button *allNotesOffButton;
     int handle(int event);
+    Fl_Spinner *channelSpinner;
+    Fl_Spinner *programSpinner;
+
+	void lock();
+  	void unlock();
+
+    int previousProgram[16];
+    int program[16];
+    int channel;
+
+
 private:
     CSOUND* csound;
+    void * mutex;
 };
 
 
