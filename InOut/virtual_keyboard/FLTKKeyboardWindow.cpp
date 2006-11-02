@@ -37,7 +37,7 @@ FLTKKeyboardWindow::FLTKKeyboardWindow(CSOUND *csound, int W, int H, const char 
     this->begin();
 
     this->channelSpinner = new Fl_Spinner(60, 0, 80, 20, "Channel");
-    channelSpinner->maximum(128);
+    channelSpinner->maximum(16);
     channelSpinner->minimum(1);
     this->channelSpinner->callback((Fl_Callback*) channelChange, this);
 
