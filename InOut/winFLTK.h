@@ -120,12 +120,13 @@ extern "C" {
 extern  int       CsoundYield_FLTK(CSOUND *);
 extern  void      DrawGraph_FLTK(CSOUND *, WINDAT *);
 extern  int       ExitGraph_FLTK(CSOUND *);
-extern  void      kill_graph(uintptr_t);
+extern  void      kill_graph(CSOUND *, uintptr_t);
 extern  void      KillXYin_FLTK(CSOUND *, XYINDAT *);
-extern  uintptr_t MakeWindow_FLTK(char *);
+extern  uintptr_t MakeWindow_FLTK(CSOUND *, char *);
 extern  void      MakeXYin_FLTK(CSOUND *, XYINDAT *, MYFLT, MYFLT);
 extern  int       myFLwait(void);
 extern  void      ReadXYin_FLTK(CSOUND *, XYINDAT *);
+  extern  void      flgraph_init(CSOUND *csound);
 extern  void      widget_init(CSOUND *);
 extern  int       widget_reset(CSOUND *, void *);
 

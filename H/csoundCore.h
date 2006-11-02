@@ -934,7 +934,8 @@ extern "C" {
     void (*SetInternalYieldCallback)(CSOUND *, 
                        int (*yieldCallback)(CSOUND *));
  /* SUBR dummyfn_1; */
-    SUBR dummyfn_2[99];
+    SUBR dummyfn_2[98];
+    void          *flgraphGlobals;
     /* ----------------------- public data fields ----------------------- */
     /** used by init and perf loops */
     OPDS          *ids, *pds;
