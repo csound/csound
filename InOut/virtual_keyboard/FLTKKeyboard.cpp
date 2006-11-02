@@ -129,7 +129,7 @@ int FLTKKeyboard::getMIDIKey(int x, int y) {
 
     if(whiteKey < 2) {
         if(whiteKey == 0) {
-            if(y > blackKeyHeight) {
+            if(y > blackKeyHeight + this->y()) {
                 return whiteKey;
             } else {
                 if(extra > rightKeyBound) {
@@ -138,7 +138,7 @@ int FLTKKeyboard::getMIDIKey(int x, int y) {
                 return whiteKey;
             }
         } else {
-            if(y > blackKeyHeight) {
+            if(y > blackKeyHeight + this->y()) {
                 return getMidiValForWhiteKey(whiteKey);
             } else {
                 if(extra < leftKeyBound) {
@@ -153,7 +153,7 @@ int FLTKKeyboard::getMIDIKey(int x, int y) {
 
     if(adjustedKey == 0 || adjustedKey == 3) {
 
-        if(y > blackKeyHeight) {
+        if(y > blackKeyHeight + this->y()) {
             return getMidiValForWhiteKey(whiteKey);
         } else {
             if(extra > rightKeyBound) {
@@ -162,7 +162,7 @@ int FLTKKeyboard::getMIDIKey(int x, int y) {
             return getMidiValForWhiteKey(whiteKey);
         }
     } else if(adjustedKey == 2 || adjustedKey == 6) {
-        if(y > blackKeyHeight) {
+        if(y > blackKeyHeight + this->y()) {
             return getMidiValForWhiteKey(whiteKey);
         } else {
             if(extra < leftKeyBound) {
@@ -172,7 +172,7 @@ int FLTKKeyboard::getMIDIKey(int x, int y) {
         }
     }
 
-    if(y > blackKeyHeight) {
+    if(y > blackKeyHeight  + this->y()) {
         return getMidiValForWhiteKey(whiteKey);
     }
 
@@ -450,6 +450,7 @@ void FLTKKeyboard::draw() {
             } else {
                 fl_draw_box(box(), runningX - 5, yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
             }
+            fl_rect(runningX - 5, yval, blackKeyWidth, blackKeyHeight, FL_BLACK);
         }
     }
 }
