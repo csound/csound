@@ -318,7 +318,7 @@ int FLTKKeyboard::handle(int event) {
             keyStates[key] = 1;
 
             this->unlock();
-
+			Fl::focus(this);
             this->redraw();
 
             return 1;
@@ -381,13 +381,16 @@ int FLTKKeyboard::handle(int event) {
     	case FL_KEYDOWN:
 			//csound->Message(csound, "Key Down: Code: %d\n", Fl::event_key());
 			handleKey(Fl::event_key(), 1);
+			Fl::focus(this);
 			this->redraw();
 			return 1;
     	case FL_KEYUP:
+    		if(Fl::focus() == this) {
     		//csound->Message(csound, "Key Up: Code: %d\n", Fl::event_key());
-    		handleKey(Fl::event_key(), -1);
-    		this->redraw();
-        	return 1;
+    			handleKey(Fl::event_key(), -1);
+    			this->redraw();
+        		return 1;
+    		}
         default:
             return Fl_Widget::handle(event);
     }
