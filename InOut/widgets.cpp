@@ -2352,11 +2352,11 @@ static int StartPanel(CSOUND *csound, FLPANEL *p)
     panelName = GetString(csound, p->name, p->XSTRCODE);
 
     *(getFLTKFlagsPtr(csound)) |= 32;
-    int     x = (int) *p->ix, y = (int) *p->iy,
-      width = (int) *p->iwidth, height = (int) *p->iheight;
+    int      x = (int) *p->ix, y = (int) *p->iy;
+    int  width = (int) *p->iwidth, height = (int) *p->iheight;
     if (width < 0) width = 400;   // default
     if (height < 0) height = 300;
-    
+
     Fl_Boxtype borderType;
     int iborder = (int) *p->border;
     if (iborder<0 || iborder>7) borderType = FL_FLAT_BOX;

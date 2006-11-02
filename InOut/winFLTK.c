@@ -37,12 +37,12 @@
 
 static void MakeGraph_FLTK(CSOUND *csound, WINDAT *wdptr, const char *name)
 {
-    wdptr->windid = MakeWindow_FLTK((char*)name);
+    wdptr->windid = MakeWindow_FLTK(csound,(char*)name);
 }
 
 static void KillGraph_FLTK(CSOUND *csound, WINDAT *wdptr)
 {
-    kill_graph(wdptr->windid);
+    kill_graph(csound, wdptr->windid);
 }
 
 static int dummyWidgetOpcode(CSOUND *csound, void *p)
@@ -89,9 +89,9 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           enableDisplays = 1;
           (*fltkFlags) |= 64;
 
-           if (!((*fltkFlags) & 256))
+          if (!((*fltkFlags) & 256))
             csound->SetInternalYieldCallback(csound, CsoundYield_FLTK);
-
+          flgraph_init(csound); /* Create space */
           csound->SetMakeGraphCallback(csound, MakeGraph_FLTK);
           csound->SetDrawGraphCallback(csound, DrawGraph_FLTK);
           csound->SetKillGraphCallback(csound, KillGraph_FLTK);
