@@ -27,7 +27,6 @@
 #include "oload.h"
 #include "winFLTK.h"
 #include "FLTKKeyboardWindow.hpp"
-#include <map>
 
 static FLTKKeyboardWindow *createWindow(CSOUND *csound) {
        return new FLTKKeyboardWindow(csound, 624, 120, "Csound Virtual Keyboard");
