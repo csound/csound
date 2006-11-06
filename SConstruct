@@ -1167,8 +1167,13 @@ else:
         '''))
     makePlugin(widgetsEnvironment, 'widgets',
                ['InOut/FL_graph.cpp', 'InOut/winFLTK.c', 'InOut/widgets.cpp'])
-    widgetsEnvironment.Append(CPPPATH = ['./InOut', './InOut/virtual_keyboard'])
-    makePlugin(widgetsEnvironment, 'virtual',
+
+    if not fltk117Found:
+        print "CONFIGURATION DECISION: Not building Virtual Keyboard plugin. (FLTK 1.1.7+ required)"
+    else:
+        print "CONFIGURATION DECISION: Building Virtual Keyboard plugin."
+        widgetsEnvironment.Append(CPPPATH = ['./InOut', './InOut/virtual_keyboard'])
+        makePlugin(widgetsEnvironment, 'virtual',
                ['InOut/virtual_keyboard/FLTKKeyboard.cpp',
                'InOut/virtual_keyboard/FLTKKeyboardWindow.cpp',
                'InOut/virtual_keyboard/virtual_keyboard.cpp',
@@ -1838,7 +1843,7 @@ if commonEnvironment['buildWinsound'] == '1' and fltkFound:
             '''))
         csWinEnvironment.Append(LIBS = csoundWindowsLibraries)
     elif getPlatform() == 'darwin':
-    	csWinEnvironment.Append(CXXFLAGS = ['-fno-rtti'])
+        csWinEnvironment.Append(CXXFLAGS = ['-fno-rtti'])
         csWinEnvironment.Append(LIBS = ['fltk', 'stdc++', 'pthread', 'm'])
         csWinEnvironment.Append(LINKFLAGS = Split('''
             -framework Carbon -framework CoreAudio -framework CoreMidi
