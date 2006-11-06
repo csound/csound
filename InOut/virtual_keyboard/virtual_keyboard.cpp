@@ -126,7 +126,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 		*mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
 	    *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
 
-	    keyboardMapping->getCurrentProgram());
+	    keyboardMapping->getCurrentProgram();
 
 		count += 2;
 
