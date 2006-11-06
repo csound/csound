@@ -108,8 +108,6 @@ void KeyboardMapping::initializeMap(CSOUND * csound, FILE *file) {
 			char *name = (char *)csound->Calloc(csound, strlen(q +1) + 1);
 			memcpy(name, q + 1, strlen(q + 1) + 1);
 
-			csound->Message(csound, "Bank %d: %s\n", bankNum, name);
-
 			if(bankNum >= 0 && bankNum < 16384) {
 				bank = new Bank(csound, name);
 				bank->bankNum = bankNum;
@@ -139,17 +137,12 @@ void KeyboardMapping::initializeMap(CSOUND * csound, FILE *file) {
 			char *name = (char *)csound->Calloc(csound, strlen(q +1) + 1);
 			memcpy(name, q + 1, strlen(q + 1) + 1);
 
-			csound->Message(csound, "Program %d: %s\n", programNum, name);
-
 			if(programNum >= 0 && programNum < 128) {
 				Program program(programNum, name);
 				bank->programs.push_back(program);
 			}
 		}
 	}
-
-	csound->Message(csound, "Initializing from map file...\n");
-
 
 }
 
