@@ -3,6 +3,7 @@
 
 #include "csdl.h"
 #include "Bank.hpp"
+#include <stdio.h>
 #include <vector>
 
 using namespace std;
@@ -31,8 +32,9 @@ public:
 	int previousProgram;
 
 private:
-	void setDefaultBanks();
-	void setDefaultPrograms();
+	void initializeDefaults(CSOUND *);
+	void initializeMap(CSOUND *, FILE *);
+
 	int currentChannel;
 	int previousBank[16];
 	int currentBank[16];
