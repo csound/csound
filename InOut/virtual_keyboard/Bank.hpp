@@ -20,6 +20,8 @@ public:
 
 	int previousProgram;
 	int currentProgram;
+
+	void initializeGM();
 };
 
 #endif /*BANK_HPP_*/

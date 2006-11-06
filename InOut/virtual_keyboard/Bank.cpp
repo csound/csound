@@ -149,11 +149,6 @@ static char* gm[] = {
 Bank::Bank(CSOUND *csound, char* bankName) {
 	this->name = bankName;
 
-	for(int i = 0; i < 128; i++) {
-		Program temp(i, gm[i]);
-		this->programs.push_back(temp);
-	}
-
 	currentProgram = 0;
 	previousProgram = -1;
 }
@@ -162,4 +157,11 @@ Bank::~Bank() {
 	while( !programs.empty() ) {
     	programs.erase( programs.begin() );
   	}
+}
+
+void Bank::initializeGM() {
+	for(int i = 0; i < 128; i++) {
+		Program temp(i, gm[i]);
+		this->programs.push_back(temp);
+	}
 }
