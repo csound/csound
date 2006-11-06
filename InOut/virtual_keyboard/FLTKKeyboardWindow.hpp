@@ -28,30 +28,37 @@
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Spinner.H>
+#include <FL/Fl_Choice.H>
 #include "FLTKKeyboard.hpp"
+#include "KeyboardMapping.hpp"
 #include "csdl.h"
 
 class FLTKKeyboardWindow : public Fl_Double_Window {
 public:
-    FLTKKeyboardWindow(CSOUND * csound, int w, int h, const char* t);
+    FLTKKeyboardWindow(CSOUND * csound, const char *deviceMap,
+    					int w, int h, const char* t);
     ~FLTKKeyboardWindow();
+
     FLTKKeyboard *keyboard;
     Fl_Button *allNotesOffButton;
-    int handle(int event);
     Fl_Spinner *channelSpinner;
-    Fl_Spinner *programSpinner;
+    Fl_Choice *bankChoice;
+    Fl_Choice *programChoice;
+
+    KeyboardMapping *keyboardMapping;
+
+    int handle(int event);
 
 	void lock();
   	void unlock();
 
-    int previousProgram[16];
-    int program[16];
-    int channel;
-
+	void setSelectedBank();
+    void setProgramNames();
 
 private:
     CSOUND* csound;
     void * mutex;
+
 };
 
 
