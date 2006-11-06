@@ -27,9 +27,11 @@
 #include "oload.h"
 #include "winFLTK.h"
 #include "FLTKKeyboardWindow.hpp"
+#include "KeyboardMapping.hpp"
 
-static FLTKKeyboardWindow *createWindow(CSOUND *csound) {
-       return new FLTKKeyboardWindow(csound, 624, 120, "Csound Virtual Keyboard");
+static FLTKKeyboardWindow *createWindow(CSOUND *csound, const char *dev) {
+       return new FLTKKeyboardWindow(csound, dev,
+       		 624, 120, "Csound Virtual Keyboard");
 }
 
 static void deleteWindow(CSOUND *csound, FLTKKeyboardWindow * keyWin) {
@@ -51,7 +53,7 @@ extern "C"
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
-    FLTKKeyboardWindow *keyboard = createWindow(csound);
+    FLTKKeyboardWindow *keyboard = createWindow(csound, dev);
     *userData = (void *)keyboard;
 
     Fl_lock(csound);
@@ -85,19 +87,51 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     }
 
 	int count = 0;
-	int channel = keyWin->channel;
+
 
 	keyWin->lock();
 
-	if(keyWin->previousProgram[channel] != keyWin->program[channel]) {
-		*mbuf++ = (unsigned char)(0xC0 + channel);
-        *mbuf++ = (unsigned char)(keyWin->program[channel]);
+	KeyboardMapping* keyboardMapping = keyWin->keyboardMapping;
 
-        count += 2;
+	int channel = keyboardMapping->getCurrentChannel();
 
-        keyWin->previousProgram[channel] = keyWin->program[channel];
+	if(keyboardMapping->getCurrentBank() !=
+		keyboardMapping->getPreviousBank()) {
+
+		int bankNum = keyboardMapping->getCurrentBankMIDINumber();
+		unsigned char msb = (unsigned char)(bankNum >> 7) &
+								(unsigned char)0x7F;
+		unsigned char lsb = (unsigned char)bankNum &
+								(unsigned char)0x7F;
+
+		*mbuf++ = (unsigned char)(0xB0 + channel); // MSB
+	    *mbuf++ = (unsigned char)0;
+	    *mbuf++ = msb;
+
+		*mbuf++ = (unsigned char)(0xB0 + channel); // LSB
+	    *mbuf++ = (unsigned char)32;
+	    *mbuf++ = lsb;
+
+		*mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
+	    *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
+
+		count += 8;
+
+		keyboardMapping->setPreviousBank(keyboardMapping->getCurrentBank());
+		keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
+
+	} else if(keyboardMapping->getCurrentProgram() !=
+		keyboardMapping->getPreviousProgram()) {
+
+		*mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
+	    *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
+
+	    keyboardMapping->getCurrentProgram());
+
+		count += 2;
+
+		keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
 	}
-
 
 	keyWin->unlock();
 
