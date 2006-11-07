@@ -241,12 +241,14 @@ static int outfile(CSOUND *csound, OUTFILE *p)
     int   i, j, k;
 
     if (p->f.sf == NULL) {
+		if(p->f.f != NULL) { /* VL: make sure there is an open file */
       FILE  *fp = p->f.f;
       for (k = 0; k < csound->ksmps; k++) {
         for (j = 0; j < p->nargs; j++)
           fprintf(fp, "%g ", p->argums[j][k]);
         fprintf(fp, "\n");
       }
+		}
     }
     else {
       for (j = k = 0; j < csound->ksmps; j++)
