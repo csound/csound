@@ -36,8 +36,8 @@
 /* Define to the version of this package. */
 #define CS_PACKAGE_VERSION  "5.03.1"
 #define CS_VERSION          (5)
-#define CS_SUBVER           (3)
-#define CS_PATCHLEVEL       (1)
+#define CS_SUBVER           (4)
+#define CS_PATCHLEVEL       (0)
 
 #define CS_APIVERSION       1   /* should be increased anytime a new version
                                    contains changes that an older host will
