@@ -57,6 +57,12 @@ char remoteID(CSOUND *csound);
 #define MAXSEND (sizeof(EVTBLK) + 2*sizeof(int))
 #define GLOBAL_REMOT -99
 
+typedef struct {                        /* Remote Communication buffer          */
+    int         len;                    /* lentot = len + type + data used      */
+    int         type;
+    char        data[MAXSEND];
+} REMOT_BUF;
+
 #ifdef HAVE_SOCKETS
 extern  int     inet_aton(const char *cp, struct in_addr *inp);
 
@@ -64,12 +70,6 @@ typedef struct {
     char *adr;
     int   rfd;
 } SOCK;
-
-typedef struct {                        /* Remote Communication buffer          */
-    int         len;                    /* lentot = len + type + data used      */
-    int         type;
-    char        data[MAXSEND];
-} REMOT_BUF;
 
 typedef struct {
   SOCK *socksout; /* = NULL; */
