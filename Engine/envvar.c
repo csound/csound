@@ -701,7 +701,7 @@ char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
     }
     else {
         len = lastIndex - convPath;
-        partialPath = (char*) mmalloc(csound, len);
+        partialPath = (char*) mmalloc(csound, len+1);
         strncpy(partialPath, convPath, len);
         partialPath[len] = '\0';
    }
