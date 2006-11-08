@@ -1,4 +1,25 @@
-//  License information goes here
+/*
+    cseditor.cxx :
+
+    Copyright (C) 2006 by David Akbari
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,60 +74,6 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "ATSread",
 	    "ATSreadnz",
 	    "ATSsinnoi",
-	    "FLbox",
-	    "FLbutBank",
-	    "FLbutton",
-	    "FLcolor",
-	    "FLcolor2",
-	    "FLcount",
-	    "FLgetsnap",
-	    "FLgroup",
-	    "FLgroupEnd",
-	    "FLgroup_end",
-	    "FLhide",
-	    "FLjoy",
-	    "FLkeyb",
-	    "FLknob",
-	    "FLlabel",
-	    "FLloadsnap",
-	    "FLpack",
-	    "FLpackEnd",
-	    "FLpack_end",
-	    "FLpanel",
-	    "FLpanelEnd",
-	    "FLpanel_end",
-	    "FLprintk",
-	    "FLprintk2",
-	    "FLroller",
-	    "FLrun",
-	    "FLsavesnap",
-	    "FLscroll",
-	    "FLscrollEnd",
-	    "FLscroll_end",
-	    "FLsetAlign",
-	    "FLsetBox",
-	    "FLsetColor",
-	    "FLsetColor2",
-	    "FLsetFont",
-	    "FLsetPosition",
-	    "FLsetSize",
-	    "FLsetText",
-	    "FLsetTextColor",
-	    "FLsetTextSize",
-	    "FLsetTextType",
-	    "FLsetVal",
-	    "FLsetVal_i",
-	    "FLsetVali",
-	    "FLsetsnap",
-	    "FLshow",
-	    "FLslidBnk",
-	    "FLslider",
-	    "FLtabs",
-	    "FLtabsEnd",
-	    "FLtabs_end",
-	    "FLtext",
-	    "FLupdate",
-	    "FLvalue",
 	    "MixerClear",
 	    "MixerGetLevel",
 	    "MixerReceive",
@@ -282,6 +249,7 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "event_i",
 	    "exitnow",
 	    "exp",
+		"expcurve",
 	    "expon",
 	    "exprand",
 	    "expseg",
@@ -347,6 +315,7 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "ftsavek",
 	    "ftsr",
 	    "gain",
+		"gainslider",
 	    "gauss",
 	    "gbuzz",
 	    "getcfg",
@@ -400,6 +369,7 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "log",
 	    "log10",
 	    "logbtwo",
+		"logcurve",
 	    "loop_ge",
 	    "loop_gt",
 	    "loop_le",
@@ -470,10 +440,12 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "minaccum",
 	    "mirror",
 	    "mod",
+		"mode",
 	    "monitor",
 	    "moog",
 	    "moogladder",
 	    "moogvcf",
+		"moogvcf2",
 	    "moscil",
 	    "mpulse",
 	    "mrtmsg",
@@ -597,23 +569,30 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "pvsadsyn",
 	    "pvsanal",
 	    "pvsarp",
+		"pvsbin",
 	    "pvsblur",
 	    "pvscale",
 	    "pvscent",
 	    "pvscross",
 	    "pvsdemix",
+		"pvsdisp",
 	    "pvsfilter",
 	    "pvsfread",
 	    "pvsfreeze",
 	    "pvsftr",
 	    "pvsftw",
+		"pvsfwrite",
 	    "pvshift",
 	    "pvsifd",
+		"pvsin",
 	    "pvsinfo",
 	    "pvsinit",
 	    "pvsmaska",
 	    "pvsmix",
 	    "pvsmooth",
+		"pvsosc",
+		"pvsout",
+		"pvspitch",
 	    "pvstencil",
 	    "pvsvoc",
 	    "pvsynth",
@@ -740,6 +719,7 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "s32b14",
 	    "samphold",
 	    "sandpaper",
+		"scale",
 	    "scanhammer",
 	    "scans",
 	    "scantable",
@@ -950,8 +930,12 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "upsamp",
 	    "urd",
 	    "vadd",
+		"vadd_i",
 	    "vaddv",
+		"vaddv_i",
+		"vaget",
 	    "valpass",
+		"vaset",
 	    "vbap16",
 	    "vbap16move",
 	    "vbap4",
@@ -1060,10 +1044,60 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 		   };
 
 const char         *code_types[] = {	// csd tags
-	       "CsoundSynthesizer",
-           "CsOptions",
-           "CsInstruments",
-           "CsScore",
+		   "FLbox",
+		   "FLbutBank",
+		   "FLbutton",
+		   "FLcolor",
+		   "FLcolor2",
+		   "FLcount",
+		   "FLgetsnap",
+		   "FLgroup",
+		   "FLgroupEnd",
+		   "FLgroup_end",
+		   "FLhide",
+		   "FLjoy",
+		   "FLkeyb",
+		   "FLknob",
+		   "FLlabel",
+		   "FLloadsnap",
+		   "FLpack",
+		   "FLpackEnd",
+		   "FLpack_end",
+		   "FLpanel",
+		   "FLpanelEnd",
+		   "FLpanel_end",
+		   "FLprintk",
+		   "FLprintk2",
+		   "FLroller",
+		   "FLrun",
+		   "FLsavesnap",
+		   "FLscroll",
+		   "FLscrollEnd",
+		   "FLscroll_end",
+		   "FLsetAlign",
+		   "FLsetBox",
+		   "FLsetColor",
+		   "FLsetColor2",
+		   "FLsetFont",
+		   "FLsetPosition",
+		   "FLsetSize",
+		   "FLsetText",
+		   "FLsetTextColor",
+		   "FLsetTextSize",
+		   "FLsetTextType",
+		   "FLsetVal",
+		   "FLsetVal_i",
+		   "FLsetVali",
+		   "FLsetsnap",
+		   "FLshow",
+		   "FLslidBnk",
+		   "FLslider",
+		   "FLtabs",
+		   "FLtabsEnd",
+		   "FLtabs_end",
+		   "FLtext",
+		   "FLupdate",
+		   "FLvalue",
 		   "ctrlinit",
 		   "else",
 	       "elseif",
@@ -1144,13 +1178,13 @@ style_parse(const char *text,
 	continue;
      } else if (*text == '\"') {
        current = 'D';
-     } else if (!last && (islower(*text) || *text == '_')) {
+     } else if (!last && (( islower(*text) || isupper(*text) ) || *text == '_')) {
        // Might be a keyword...
 	for (temp = text, bufptr = buf;
-	     (islower(*temp) || *temp == '_') && bufptr < (buf + sizeof(buf) - 1);
+	     (( islower(*temp) || isupper(*temp) ) || *temp == '_') && bufptr < (buf + sizeof(buf) - 1);
 	     *bufptr++ = *temp++);
 
-       if (!islower(*temp) && *temp != '_') {
+       if (!( islower(*temp) || isupper(*temp) ) && *temp != '_') {
 	  *bufptr = '\0';
 
          bufptr = buf;
