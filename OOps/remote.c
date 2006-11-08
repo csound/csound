@@ -508,11 +508,9 @@ int midglobal(CSOUND *csound, MIDGLOBAL *p)
 
 /* ////////////////       MUSMON SERVICES //////////////// */
 
-static REMOT_BUF CLsendbuf;          /* rt evt output Communications buffer */
-
 int insSendevt(CSOUND *csound, EVTBLK *evt, int rfd)
 {
-    REMOT_BUF *bp = &CLsendbuf;
+    REMOT_BUF *bp = &ST(CLsendbuf);
     EVTBLK *cpp = (EVTBLK *)bp->data;       /* align an EVTBLK struct */
     int nn;
     MYFLT *f, *g;
@@ -544,7 +542,7 @@ int insGlobevt(CSOUND *csound, EVTBLK *evt)  /* send an event to all remote fd's
 
 int MIDIsendevt(CSOUND *csound, MEVENT *evt, int rfd)
 {
-    REMOT_BUF *bp = &CLsendbuf;
+    REMOT_BUF *bp = &ST(CLsendbuf);
     MEVENT *mep = (MEVENT *)bp->data;       /* align an MEVENT struct */
     *mep = *evt;                            /*      & copy the data   */
     bp->type = MIDI_EVT;                    /* insert type and len    */
@@ -569,7 +567,7 @@ int MIDIGlobevt(CSOUND *csound, MEVENT *evt) /* send an Mevent to all remote fd'
 
 int MIDIsend_msg(CSOUND *csound, MEVENT *evt, int rfd)
 {
-    REMOT_BUF *bp = &CLsendbuf;
+    REMOT_BUF *bp = &ST(CLsendbuf);
     MEVENT *mep = (MEVENT *)bp->data;       /* align an MEVENT struct */
     *mep = *evt;                            /*      & copy the data   */
     bp->type = MIDI_MSG;                    /* insert type and len    */

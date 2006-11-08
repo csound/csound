@@ -342,7 +342,7 @@ static const CSOUND cenviron_ = {
         0.0,            /*  beatTime            */
         0,              /*  dummy_01            */
         0,              /*  dummy_02            */
-        NULL,           /*  dummy_03            */
+        NULL,           /*  widgetGlobals       */
         NULL,           /*  stdOp_Env           */
         NULL,           /*  zkstart             */
         NULL,           /*  zastart             */
@@ -591,7 +591,7 @@ static const CSOUND cenviron_ = {
         NULL,            /*  remoteGlobals       */
         0, 0,           /* nchanof, nchanif */
         NULL, NULL,     /*  chanif, chanof */
-        defaultCsoundYield /* csoundInternalYieldCallback_*/          
+        defaultCsoundYield /* csoundInternalYieldCallback_*/
 };
 
   /* from threads.c */
