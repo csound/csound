@@ -1043,7 +1043,7 @@ const char         *code_keywords[] = {	// List of known C/C++ keywords...
 	    "zkwm"
 		   };
 
-const char         *code_types[] = {	// csd tags
+const char         *code_types[] = {	 // csd tags
 		   "FLbox",
 		   "FLbutBank",
 		   "FLbutton",
