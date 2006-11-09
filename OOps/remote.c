@@ -100,6 +100,7 @@ static int callox(CSOUND *csound)
                         " globals."));
         goto error;
       }
+/*       ST(remote_port) = REMOT_PORT; */
     }
 
     ST(socksout) = (SOCK*)csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(SOCK));
@@ -230,6 +231,7 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
 #endif
     ST(to_addr).sin_port = htons((int) REMOT_PORT);    /* port we will listen on,
                                                       network byte order */
+/*     ST(to_addr).sin_port = htons((int) ST(remote_port)); */
     for (i=0; i<10; i++){
       if (connect(rfd, (struct sockaddr *) &ST(to_addr), sizeof(ST(to_addr))) < 0)
         csound->Message(csound, Str("---> Could not connect \n"));
@@ -299,6 +301,7 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
 #endif
     ST(local_addr).sin_port = htons((int)REMOT_PORT); /* port we will listen on,
                                                          netwrk byt order */
+/*     ST(local_addr).sin_port = htons((int) ST(remote_port)); */
     /* associate the socket with the address and port */
     if (bind (socklisten,
               (struct sockaddr *) &ST(local_addr),
