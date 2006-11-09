@@ -10,34 +10,34 @@ using namespace std;
 
 class KeyboardMapping {
 public:
-	KeyboardMapping(CSOUND *csound, const char *mapFileName);
-	~KeyboardMapping();
-	vector<Bank*> banks;
+        KeyboardMapping(CSOUND *csound, const char *mapFileName);
+        ~KeyboardMapping();
+        vector<Bank*> banks;
 
-	int getCurrentChannel();
-	int getCurrentBank();
-	int getPreviousBank();
-	int getCurrentProgram();
-	int getPreviousProgram();
+        int getCurrentChannel();
+        int getCurrentBank();
+        int getPreviousBank();
+        int getCurrentProgram();
+        int getPreviousProgram();
 
-	void setCurrentChannel(int index);
-	void setCurrentBank(int index);
-	void setPreviousBank(int index);
-	void setCurrentProgram(int index);
-	void setPreviousProgram(int index);
+        void setCurrentChannel(int index);
+        void setCurrentBank(int index);
+        void setPreviousBank(int index);
+        void setCurrentProgram(int index);
+        void setPreviousProgram(int index);
 
-	int getCurrentBankMIDINumber();
+        int getCurrentBankMIDINumber();
 
-	int previousChannel;
-	int previousProgram;
+        int previousChannel;
+        int previousProgram;
 
 private:
-	void initializeDefaults(CSOUND *);
-	void initializeMap(CSOUND *, FILE *);
+        void initializeDefaults(CSOUND *);
+        void initializeMap(CSOUND *, FILE *);
 
-	int currentChannel;
-	int previousBank[16];
-	int currentBank[16];
+        int currentChannel;
+        int previousBank[16];
+        int currentBank[16];
 };
 
 #endif /*KEYBOARDMAPPING_HPP_*/

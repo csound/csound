@@ -365,7 +365,7 @@ extern "C" {
 Fl_Knob::Fl_Knob(CSOUND *cs, int xx,int yy,int ww,int hh,const char *l)
   : Fl_Valuator(xx,yy,ww,hh,l)
 {
-	csound = cs;
+    csound = cs;
     a1 = 35;
     a2 = 325;
     _type = DOTLIN;

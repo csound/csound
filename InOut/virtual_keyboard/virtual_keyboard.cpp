@@ -30,22 +30,22 @@
 #include "KeyboardMapping.hpp"
 
 static FLTKKeyboardWindow *createWindow(CSOUND *csound, const char *dev) {
-       return new FLTKKeyboardWindow(csound, dev,
-       		 624, 120, "Csound Virtual Keyboard");
+    return new FLTKKeyboardWindow(csound, dev,
+                                  624, 120, "Csound Virtual Keyboard");
 }
 
 static void deleteWindow(CSOUND *csound, FLTKKeyboardWindow * keyWin) {
-	if(keyWin == NULL) {
-		return;
-	}
-	Fl_lock(csound);
+    if(keyWin == NULL) {
+      return;
+    }
+    Fl_lock(csound);
 
-	keyWin->hide();
+    keyWin->hide();
     delete keyWin;
 
-	Fl_awake(csound);
-	Fl_wait(csound, 0.0);
-	Fl_unlock(csound);
+    Fl_awake(csound);
+    Fl_wait(csound, 0.0);
+    Fl_unlock(csound);
 }
 
 extern "C"
@@ -78,110 +78,110 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     FLTKKeyboardWindow *keyWin = (FLTKKeyboardWindow *)userData;
 
     Fl_lock(csound);
-	Fl_awake(csound);
-	Fl_wait(csound, 0.0);
-	Fl_unlock(csound);
+    Fl_awake(csound);
+    Fl_wait(csound, 0.0);
+    Fl_unlock(csound);
 
     if(!keyWin->visible()) {
         return 0;
     }
 
-	int count = 0;
+    int count = 0;
 
 
-	keyWin->lock();
+    keyWin->lock();
 
-	KeyboardMapping* keyboardMapping = keyWin->keyboardMapping;
+    KeyboardMapping* keyboardMapping = keyWin->keyboardMapping;
 
-	int channel = keyboardMapping->getCurrentChannel();
+    int channel = keyboardMapping->getCurrentChannel();
 
-	if(keyboardMapping->getCurrentBank() !=
-		keyboardMapping->getPreviousBank()) {
+    if(keyboardMapping->getCurrentBank() !=
+       keyboardMapping->getPreviousBank()) {
 
-		int bankNum = keyboardMapping->getCurrentBankMIDINumber();
-		unsigned char msb = (unsigned char)(bankNum >> 7) &
-								(unsigned char)0x7F;
-		unsigned char lsb = (unsigned char)bankNum &
-								(unsigned char)0x7F;
+      int bankNum = keyboardMapping->getCurrentBankMIDINumber();
+      unsigned char msb = (unsigned char)(bankNum >> 7) &
+        (unsigned char)0x7F;
+      unsigned char lsb = (unsigned char)bankNum &
+        (unsigned char)0x7F;
 
-		*mbuf++ = (unsigned char)(0xB0 + channel); // MSB
-	    *mbuf++ = (unsigned char)0;
-	    *mbuf++ = msb;
+      *mbuf++ = (unsigned char)(0xB0 + channel); // MSB
+      *mbuf++ = (unsigned char)0;
+      *mbuf++ = msb;
 
-		*mbuf++ = (unsigned char)(0xB0 + channel); // LSB
-	    *mbuf++ = (unsigned char)32;
-	    *mbuf++ = lsb;
+      *mbuf++ = (unsigned char)(0xB0 + channel); // LSB
+      *mbuf++ = (unsigned char)32;
+      *mbuf++ = lsb;
 
-		*mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
-	    *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
+      *mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
+      *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
 
-		count += 8;
+      count += 8;
 
-		keyboardMapping->setPreviousBank(keyboardMapping->getCurrentBank());
-		keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
+      keyboardMapping->setPreviousBank(keyboardMapping->getCurrentBank());
+      keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
 
-	} else if(keyboardMapping->getCurrentProgram() !=
-		keyboardMapping->getPreviousProgram()) {
+    } else if(keyboardMapping->getCurrentProgram() !=
+              keyboardMapping->getPreviousProgram()) {
 
-		*mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
-	    *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
+      *mbuf++ = (unsigned char)(0xC0 + channel); // Program Change
+      *mbuf++ = (unsigned char)keyboardMapping->getCurrentProgram();
 
-	    keyboardMapping->getCurrentProgram();
+      keyboardMapping->getCurrentProgram();
 
-		count += 2;
+      count += 2;
 
-		keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
-	}
+      keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
+    }
 
-	keyWin->unlock();
+    keyWin->unlock();
 
 
-	keyWin->keyboard->lock();
+    keyWin->keyboard->lock();
 
-	int *changedKeyStates = keyWin->keyboard->changedKeyStates;
- 	int *keyStates = keyWin->keyboard->keyStates;
+    int *changedKeyStates = keyWin->keyboard->changedKeyStates;
+    int *keyStates = keyWin->keyboard->keyStates;
 
 
 
     for(int i = 0; i < 88; i++) {
-    	if(keyStates[i] == -1) {
-    		*mbuf++ = (unsigned char)0x90 + channel;
+        if(keyStates[i] == -1) {
+                *mbuf++ = (unsigned char)0x90 + channel;
             *mbuf++ = (unsigned char)i + 21;
             *mbuf++ = (unsigned char)0;
 
             count += 3;
             keyStates[i] = 0;
-    	} else if(changedKeyStates[i] != keyStates[i]) {
+        } else if(changedKeyStates[i] != keyStates[i]) {
 
-	        if(keyStates[i] == 1) {
-	            *mbuf++ = (unsigned char)0x90 + channel;
-	            *mbuf++ = (unsigned char)i + 21;
-	            *mbuf++ = (unsigned char)127;
+                if(keyStates[i] == 1) {
+                    *mbuf++ = (unsigned char)0x90 + channel;
+                    *mbuf++ = (unsigned char)i + 21;
+                    *mbuf++ = (unsigned char)127;
 
-	            count += 3;
+                    count += 3;
 
-	        } else {
-	            *mbuf++ = (unsigned char)0x90 + channel;
-	            *mbuf++ = (unsigned char)i + 21;
-	            *mbuf++ = (unsigned char)0;
+                } else {
+                    *mbuf++ = (unsigned char)0x90 + channel;
+                    *mbuf++ = (unsigned char)i + 21;
+                    *mbuf++ = (unsigned char)0;
 
-	            count += 3;
-	        }
-    	}
+                    count += 3;
+                }
+        }
 
-		changedKeyStates[i] = keyStates[i];
+                changedKeyStates[i] = keyStates[i];
     }
 
     if(keyWin->keyboard->aNotesOff == 1) {
-    	keyWin->keyboard->aNotesOff = 0;
-    	*mbuf++ = (unsigned char)0xB0;
+        keyWin->keyboard->aNotesOff = 0;
+        *mbuf++ = (unsigned char)0xB0;
         *mbuf++ = (unsigned char)123;
         *mbuf++ = (unsigned char)0;
 
         count += 3;
     }
 
-	keyWin->keyboard->unlock();
+        keyWin->keyboard->unlock();
 
     return count;
 }

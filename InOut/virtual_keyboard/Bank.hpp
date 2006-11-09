@@ -10,18 +10,18 @@ using namespace std;
 class Bank
 {
 public:
-	Bank(CSOUND *csound, char *bankName);
-	virtual ~Bank();
+        Bank(CSOUND *csound, char *bankName);
+        virtual ~Bank();
 
-	char *name;
-	int bankNum;
+        char *name;
+        int bankNum;
 
-	vector<Program> programs;
+        vector<Program> programs;
 
-	int previousProgram;
-	int currentProgram;
+        int previousProgram;
+        int currentProgram;
 
-	void initializeGM();
+        void initializeGM();
 };
 
 #endif /*BANK_HPP_*/
