@@ -1,3 +1,7 @@
+2006-11-09  jpff  <jpff@codemist.co.uk>
+
+	* VERSION 5.04
+
 2006-10-29  Simon Schampijer  <simon@schampijer.de>
 
 	* OOps/remote.c: Added the patch from Dan Williams which: 
