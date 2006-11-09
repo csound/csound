@@ -638,7 +638,7 @@ static int flooper3_init(CSOUND *csound, flooper3 *p)
     p->mode = (int) *p->imode;
     if(p->mode == 0 || p->mode == 2){
       if((p->ndx[0] = *p->start*csound->GetSr(csound)) < 0)
-        ->ndx[0] = 0;
+        p->ndx[0] = 0;
       if(p->ndx[0] >= p->sfunc->flen)
         p->ndx[0] = p->sfunc->flen - 1.;
       p->count = 0;
