@@ -27,77 +27,77 @@
 #include "FLTKKeyboard.hpp"
 
 FLTKKeyboard::FLTKKeyboard(CSOUND *csound, int X, int Y, int W, int H, const char *L)
-	: Fl_Widget(X, Y, W, H, L) {
+  : Fl_Widget(X, Y, W, H, L) {
 
     this->csound = csound;
     this->mutex = csound->Create_Mutex(0);
 
-  	FLTKKeyboard *o = this;
+    FLTKKeyboard *o = this;
 
-	o->box(FL_FLAT_BOX);
-	o->color(FL_BACKGROUND_COLOR);
-	o->selection_color(FL_BACKGROUND_COLOR);
-	o->labeltype(FL_NO_LABEL);
-	o->labelfont(0);
-	o->labelsize(14);
-	o->labelcolor(FL_FOREGROUND_COLOR);
-	o->user_data((void*)(this));
-	o->align(FL_ALIGN_TOP);
-	o->when(FL_WHEN_RELEASE);
+    o->box(FL_FLAT_BOX);
+    o->color(FL_BACKGROUND_COLOR);
+    o->selection_color(FL_BACKGROUND_COLOR);
+    o->labeltype(FL_NO_LABEL);
+    o->labelfont(0);
+    o->labelsize(14);
+    o->labelcolor(FL_FOREGROUND_COLOR);
+    o->user_data((void*)(this));
+    o->align(FL_ALIGN_TOP);
+    o->when(FL_WHEN_RELEASE);
 
-	for(int i = 0; i < 88; i++) {
-		keyStates[i] = 0;
-		changedKeyStates[i] = 0;
-	}
+    for(int i = 0; i < 88; i++) {
+      keyStates[i] = 0;
+      changedKeyStates[i] = 0;
+    }
 
-	lastMidiKey = -1;
+    lastMidiKey = -1;
 
-	whiteKeys[0] = 0;
-	whiteKeys[1] = 2;
-	whiteKeys[2] = 4;
-	whiteKeys[3] = 5;
-	whiteKeys[4] = 7;
-	whiteKeys[5] = 9;
-	whiteKeys[6] = 11;
+    whiteKeys[0] = 0;
+    whiteKeys[1] = 2;
+    whiteKeys[2] = 4;
+    whiteKeys[3] = 5;
+    whiteKeys[4] = 7;
+    whiteKeys[5] = 9;
+    whiteKeys[6] = 11;
 
-	octave = 5;
+    octave = 5;
 
-	aNotesOff = 0;
+    aNotesOff = 0;
 }
 
 FLTKKeyboard::~FLTKKeyboard() {
-	if (mutex) {
-      	csound->DestroyMutex(mutex);
-      	mutex = (void*) 0;
+    if (mutex) {
+      csound->DestroyMutex(mutex);
+      mutex = (void*) 0;
     }
 }
 
 void FLTKKeyboard::lock() {
-	if(mutex) {
-      	csound->LockMutex(mutex);
-	}
+    if(mutex) {
+      csound->LockMutex(mutex);
+    }
 }
 
 void FLTKKeyboard::unlock() {
-	if(mutex) {
-      	csound->UnlockMutex(mutex);
-	}
+    if(mutex) {
+      csound->UnlockMutex(mutex);
+    }
 }
 
 void FLTKKeyboard::allNotesOff() {
-	this->lock();
+    this->lock();
 
-	for(int i = 0; i < 88; i++) {
-		this->keyStates[i] = -1;
-	}
+    for(int i = 0; i < 88; i++) {
+      this->keyStates[i] = -1;
+    }
 
-	this->lastMidiKey = -1;
+    this->lastMidiKey = -1;
 
-	this->aNotesOff = 1;
+    this->aNotesOff = 1;
 
-	this->unlock();
+    this->unlock();
 
-	this->redraw();
+    this->redraw();
 }
 
 int FLTKKeyboard::getMidiValForWhiteKey(int whiteKeyNum) {
@@ -114,13 +114,13 @@ int FLTKKeyboard::getMidiValForWhiteKey(int whiteKeyNum) {
 }
 
 int FLTKKeyboard::getMIDIKey(int x, int y) {
-	if(x > this->w()) {
-		return 87;
-	}
+    if(x > this->w()) {
+      return 87;
+    }
 
-	if(x < 0) {
-		return 0;
-	}
+    if(x < 0) {
+      return 0;
+    }
 
     // 52 white keys
     int whiteKey = x  / whiteKeyWidth;
@@ -189,115 +189,115 @@ int FLTKKeyboard::getMIDIKey(int x, int y) {
 }
 
 void FLTKKeyboard::handleKey(int key, int value) {
-	int index = -1;
+    int index = -1;
 
-	switch(key) {
-		case 'z':
-		    index = 0;
-		    break;
-		case 's':
-		    index = 1;
-		    break;
-		case 'x':
-		    index = 2;
-		    break;
-		case 'd':
-		    index = 3;
-		    break;
-		case 'c':
-		    index = 4;
-		    break;
-		case 'v':
-		    index = 5;
-		    break;
-		case 'g':
-		    index = 6;
-		    break;
-		case 'b':
-		    index = 7;
-		    break;
-		case 'h':
-		    index = 8;
-		    break;
-		case 'n':
-		    index = 9;
-		    break;
-		case 'j':
-		    index = 10;
-		    break;
-		case 'm':
-		    index = 11;
-		    break;
-		case 'q':
-		    index = 12;
-		    break;
-		case '2':
-		    index = 13;
-		    break;
-		case 'w':
-		    index = 14;
-		    break;
-		case '3':
-		    index = 15;
-		    break;
-		case 'e':
-		    index = 16;
-		    break;
-		case 'r':
-		    index = 17;
-		    break;
-		case '5':
-		    index = 18;
-		    break;
-		case 't':
-		    index = 19;
-		    break;
-		case '6':
-		    index = 20;
-		    break;
-		case 'y':
-		    index = 21;
-		    break;
-		case '7':
-		    index = 22;
-		    break;
-		case 'u':
-		    index = 23;
-		    break;
-		case 'i':
-		    index = 24;
-		    break;
-		case '9':
-		    index = 25;
-		    break;
-		case 'o':
-		    index = 26;
-		    break;
-		case '0':
-		    index = 27;
-		    break;
-		case 'p':
-		    index = 28;
-		    break;
-		default:
-			return;
-	}
+    switch(key) {
+    case 'z':
+      index = 0;
+      break;
+    case 's':
+      index = 1;
+      break;
+    case 'x':
+      index = 2;
+      break;
+    case 'd':
+      index = 3;
+      break;
+    case 'c':
+      index = 4;
+      break;
+    case 'v':
+      index = 5;
+      break;
+    case 'g':
+      index = 6;
+      break;
+    case 'b':
+      index = 7;
+      break;
+    case 'h':
+      index = 8;
+      break;
+    case 'n':
+      index = 9;
+      break;
+    case 'j':
+      index = 10;
+      break;
+    case 'm':
+      index = 11;
+      break;
+    case 'q':
+      index = 12;
+      break;
+    case '2':
+      index = 13;
+      break;
+    case 'w':
+      index = 14;
+      break;
+    case '3':
+      index = 15;
+      break;
+    case 'e':
+      index = 16;
+      break;
+    case 'r':
+      index = 17;
+      break;
+    case '5':
+      index = 18;
+      break;
+    case 't':
+      index = 19;
+      break;
+    case '6':
+      index = 20;
+      break;
+    case 'y':
+      index = 21;
+      break;
+    case '7':
+      index = 22;
+      break;
+    case 'u':
+      index = 23;
+      break;
+    case 'i':
+      index = 24;
+      break;
+    case '9':
+      index = 25;
+      break;
+    case 'o':
+      index = 26;
+      break;
+    case '0':
+      index = 27;
+      break;
+    case 'p':
+      index = 28;
+      break;
+    default:
+      return;
+    }
 
-	if(index < 0) {
-		return;
-	}
+    if(index < 0) {
+      return;
+    }
 
-	index = ((octave * 12) + index) - 21;
+    index = ((octave * 12) + index) - 21;
 
-	if(index < 0 || index > 87) {
-		return;
-	}
+    if(index < 0 || index > 87) {
+      return;
+    }
 
-	lock();
-	if(keyStates[index] != value) {
-		keyStates[index] = value;
-	}
-	unlock();
+    lock();
+    if(keyStates[index] != value) {
+      keyStates[index] = value;
+    }
+    unlock();
 }
 
 int FLTKKeyboard::handle(int event) {
@@ -306,93 +306,93 @@ int FLTKKeyboard::handle(int event) {
 
     switch(event) {
         case FL_PUSH:
-			if(Fl::event_button2() || Fl::event_button3()) {
-				return 1;
-			}
+          if(Fl::event_button2() || Fl::event_button3()) {
+            return 1;
+          }
 
-            key = getMIDIKey(Fl::event_x(), Fl::event_y());
+          key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
-			this->lock();
+          this->lock();
 
             lastMidiKey = key;
             keyStates[key] = 1;
 
             this->unlock();
-			Fl::focus(this);
+            Fl::focus(this);
             this->redraw();
 
             return 1;
         case FL_DRAG:
-			if(Fl::event_button2() || Fl::event_button3()) {
-				return 1;
-			}
-            key = getMIDIKey(Fl::event_x(), Fl::event_y());
-
-            if(key != lastMidiKey) {
-
-            	this->lock();
-
-                keyStates[lastMidiKey] = -1;
-
-                if(keyStates[key] != 1) {
-                	keyStates[key] = 1;
-                }
-
-                lastMidiKey = key;
-
-                this->unlock();
-
-                this->redraw();
-
-            }
+          if(Fl::event_button2() || Fl::event_button3()) {
             return 1;
-        case FL_RELEASE:
-        	if(Fl::event_button1()) {
-				return 1;
-			}
+          }
+          key = getMIDIKey(Fl::event_x(), Fl::event_y());
 
-			key = getMIDIKey(Fl::event_x(), Fl::event_y());
+          if(key != lastMidiKey) {
 
-			this->lock();
+            this->lock();
 
-            keyStates[key] = 0;
+            keyStates[lastMidiKey] = -1;
 
-			if(lastMidiKey >= -1) {
-            	keyStates[lastMidiKey] = -1;
-			}
+            if(keyStates[key] != 1) {
+              keyStates[key] = 1;
+            }
 
-            lastMidiKey = -1;
+            lastMidiKey = key;
 
             this->unlock();
 
             this->redraw();
 
+          }
+          return 1;
+        case FL_RELEASE:
+          if(Fl::event_button1()) {
             return 1;
+          }
+
+          key = getMIDIKey(Fl::event_x(), Fl::event_y());
+
+          this->lock();
+
+          keyStates[key] = 0;
+
+          if(lastMidiKey >= -1) {
+            keyStates[lastMidiKey] = -1;
+          }
+
+          lastMidiKey = -1;
+
+          this->unlock();
+
+          this->redraw();
+
+          return 1;
         case FL_MOVE:
-        	if(lastMidiKey >= 0) {
+          if(lastMidiKey >= 0) {
 
-				this->lock();
-            	keyStates[lastMidiKey] = 0;
-            	lastMidiKey = -1;
-            	this->unlock();
+            this->lock();
+            keyStates[lastMidiKey] = 0;
+            lastMidiKey = -1;
+            this->unlock();
 
-        	}
-        	return 1;
-    	case FL_KEYDOWN:
-			//csound->Message(csound, "Key Down: Code: %d\n", Fl::event_key());
-			handleKey(Fl::event_key(), 1);
-			Fl::focus(this);
-			this->redraw();
-			return 1;
-    	case FL_KEYUP:
-    		if(Fl::focus() == this) {
-    		//csound->Message(csound, "Key Up: Code: %d\n", Fl::event_key());
-    			handleKey(Fl::event_key(), -1);
-    			this->redraw();
-        		return 1;
-    		}
-        default:
-            return Fl_Widget::handle(event);
+          }
+          return 1;
+    case FL_KEYDOWN:
+      //csound->Message(csound, "Key Down: Code: %d\n", Fl::event_key());
+      handleKey(Fl::event_key(), 1);
+      Fl::focus(this);
+      this->redraw();
+      return 1;
+    case FL_KEYUP:
+      if(Fl::focus() == this) {
+        //csound->Message(csound, "Key Up: Code: %d\n", Fl::event_key());
+        handleKey(Fl::event_key(), -1);
+        this->redraw();
+        return 1;
+      }
+    default:
+      return Fl_Widget::handle(event);
     }
 
 }

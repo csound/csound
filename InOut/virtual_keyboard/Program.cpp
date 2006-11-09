@@ -2,7 +2,7 @@
 
 Program::Program(int num, char *programName)
 {
-	this->programNum = num;
-	this->name = programName;
+    this->programNum = num;
+    this->name = programName;
 }
 

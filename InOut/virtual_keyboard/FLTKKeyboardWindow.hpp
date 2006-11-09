@@ -36,7 +36,7 @@
 class FLTKKeyboardWindow : public Fl_Double_Window {
 public:
     FLTKKeyboardWindow(CSOUND * csound, const char *deviceMap,
-    					int w, int h, const char* t);
+                                        int w, int h, const char* t);
     ~FLTKKeyboardWindow();
 
     FLTKKeyboard *keyboard;
@@ -49,10 +49,10 @@ public:
 
     int handle(int event);
 
-	void lock();
-  	void unlock();
+        void lock();
+        void unlock();
 
-	void setSelectedBank();
+        void setSelectedBank();
     void setProgramNames();
 
 private:
