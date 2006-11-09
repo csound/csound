@@ -1,60 +1,60 @@
 #include "FLTKKeyboardWindow.hpp"
 
 static void allNotesOff(Fl_Widget *widget, void * v) {
-	FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
-	win->keyboard->allNotesOff();
+        FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
+        win->keyboard->allNotesOff();
 }
 
 static void channelChange(Fl_Widget *widget, void * v) {
-	Fl_Spinner *spinner = (Fl_Spinner *)widget;
-	FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
+        Fl_Spinner *spinner = (Fl_Spinner *)widget;
+        FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
 
-	win->lock();
+        win->lock();
 
 
-	win->keyboardMapping->setCurrentChannel((int)spinner->value() - 1);
+        win->keyboardMapping->setCurrentChannel((int)spinner->value() - 1);
 
-	win->bankChoice->value(win->keyboardMapping->getCurrentBank());
+        win->bankChoice->value(win->keyboardMapping->getCurrentBank());
 
-	win->setProgramNames();
+        win->setProgramNames();
 
-	win->unlock();
+        win->unlock();
 }
 
 static void bankChange(Fl_Widget *widget, void * v) {
-	Fl_Choice *choice = (Fl_Choice *)widget;
-	FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
+        Fl_Choice *choice = (Fl_Choice *)widget;
+        FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
 
-	win->lock();
+        win->lock();
 
-	win->keyboardMapping->setCurrentBank((int)choice->value());
+        win->keyboardMapping->setCurrentBank((int)choice->value());
 
-	win->setProgramNames();
+        win->setProgramNames();
 
-	win->unlock();
+        win->unlock();
 }
 
 static void programChange(Fl_Widget *widget, void * v) {
-	Fl_Choice *choice = (Fl_Choice *)widget;
-	FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
+        Fl_Choice *choice = (Fl_Choice *)widget;
+        FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
 
-	win->lock();
+        win->lock();
 
-	win->keyboardMapping->setCurrentProgram((int)choice->value());
+        win->keyboardMapping->setCurrentProgram((int)choice->value());
 
-	win->unlock();
+        win->unlock();
 }
 
 FLTKKeyboardWindow::FLTKKeyboardWindow(CSOUND *csound,
-	  const char *deviceMap,
-	  int W, int H, const char *L = 0)
+          const char *deviceMap,
+          int W, int H, const char *L = 0)
     : Fl_Double_Window(W, H, L)
 {
 
-	this->csound = csound;
-	this->mutex = csound->Create_Mutex(0);
+        this->csound = csound;
+        this->mutex = csound->Create_Mutex(0);
 
-	this->keyboardMapping = new KeyboardMapping(csound, deviceMap);
+        this->keyboardMapping = new KeyboardMapping(csound, deviceMap);
 
     this->begin();
 
@@ -63,21 +63,21 @@ FLTKKeyboardWindow::FLTKKeyboardWindow(CSOUND *csound,
     channelSpinner->minimum(1);
     this->channelSpinner->callback((Fl_Callback*) channelChange, this);
 
-	this->bankChoice = new Fl_Choice(180, 0, 180, 20, "Bank");
-	this->programChoice = new Fl_Choice(420, 0, 200, 20, "Program");
+        this->bankChoice = new Fl_Choice(180, 0, 180, 20, "Bank");
+        this->programChoice = new Fl_Choice(420, 0, 200, 20, "Program");
 
-	bankChoice->clear();
+        bankChoice->clear();
 
-	for(unsigned int i = 0; i < keyboardMapping->banks.size(); i++) {
-		bankChoice->add(keyboardMapping->banks[i]->name);
-	}
+        for(unsigned int i = 0; i < keyboardMapping->banks.size(); i++) {
+                bankChoice->add(keyboardMapping->banks[i]->name);
+        }
 
-	bankChoice->value(0);
+        bankChoice->value(0);
 
-	setProgramNames();
+        setProgramNames();
 
-	this->bankChoice->callback((Fl_Callback*)bankChange, this);
-	this->programChoice->callback((Fl_Callback*)programChange, this);
+        this->bankChoice->callback((Fl_Callback*)bankChange, this);
+        this->programChoice->callback((Fl_Callback*)programChange, this);
 
 
     this->allNotesOffButton = new Fl_Button(0, 20, W, 20, "All Notes Off");
@@ -90,39 +90,39 @@ FLTKKeyboardWindow::FLTKKeyboardWindow(CSOUND *csound,
 }
 
 FLTKKeyboardWindow::~FLTKKeyboardWindow() {
-	if (mutex) {
-      	csound->DestroyMutex(mutex);
-      	mutex = (void*) 0;
+        if (mutex) {
+        csound->DestroyMutex(mutex);
+        mutex = (void*) 0;
     }
     delete keyboardMapping;
 }
 
 void FLTKKeyboardWindow::setProgramNames() {
 
-	Bank* bank = keyboardMapping->banks[keyboardMapping->getCurrentBank()];
+        Bank* bank = keyboardMapping->banks[keyboardMapping->getCurrentBank()];
 
-	programChoice->clear();
+        programChoice->clear();
 
-	for( vector<Program>::iterator iter = bank->programs.begin();
-		iter != bank->programs.end(); iter++ ) {
-		programChoice->add((*iter).name);
-  	}
+        for( vector<Program>::iterator iter = bank->programs.begin();
+                iter != bank->programs.end(); iter++ ) {
+                programChoice->add((*iter).name);
+        }
 
-  	programChoice->value(bank->currentProgram);
+        programChoice->value(bank->currentProgram);
 }
 
 int FLTKKeyboardWindow::handle(int event) {
     //this->csound->Message(this->csound, "Keyboard event: %d\n", event);
 
     switch(event) {
-    	case FL_KEYDOWN:
-    		return this->keyboard->handle(event);
-    	case FL_KEYUP:
-      		return this->keyboard->handle(event);
+        case FL_KEYDOWN:
+                return this->keyboard->handle(event);
+        case FL_KEYUP:
+                return this->keyboard->handle(event);
 //        case FL_DEACTIVATE:
-//        	this->keyboard->allNotesOff();
-//        	csound->Message(csound, "Deactivate\n");
-//        	return 1;
+//              this->keyboard->allNotesOff();
+//              csound->Message(csound, "Deactivate\n");
+//              return 1;
         default:
             return Fl_Double_Window::handle(event);
     }
@@ -130,13 +130,13 @@ int FLTKKeyboardWindow::handle(int event) {
 }
 
 void FLTKKeyboardWindow::lock() {
-	if(mutex) {
-      	csound->LockMutex(mutex);
-	}
+        if(mutex) {
+        csound->LockMutex(mutex);
+        }
 }
 
 void FLTKKeyboardWindow::unlock() {
-	if(mutex) {
-      	csound->UnlockMutex(mutex);
-	}
+        if(mutex) {
+        csound->UnlockMutex(mutex);
+        }
 }

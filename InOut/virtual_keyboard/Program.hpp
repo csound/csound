@@ -4,9 +4,9 @@
 class Program
 {
 public:
-	Program(int num, char * programName);
-	int programNum;
-	char * name;
+  Program(int num, char * programName);
+  int programNum;
+  char * name;
 };
 
 #endif /*PROGRAM_HPP_*/
