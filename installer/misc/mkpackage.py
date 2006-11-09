@@ -70,10 +70,11 @@ headerFiles += ['interfaces/CppSound.hpp', 'interfaces/filebuilding.h']
 headerFiles += ['interfaces/CsoundFile.hpp']
 
 utils1 = ['csound', 'csound5gui', 'winsound', 'cstclsh', 'cswish',
-          'cvanal', 'dnoise', 'envext', 'extractor',
+          'atsa', 'cvanal', 'dnoise', 'envext', 'extractor',
           'het_export', 'het_import', 'hetro', 'lpanal',
           'lpc_export', 'lpc_import', 'mixer', 'pvanal',
-          'pvlook', 'scale', 'sndinfo', 'srconv']
+          'pvlook', 'pv_export', 'pv_import', 'scale', 'sndinfo',
+          'srconv']
 
 utils2 = ['scsort', 'extract', 'cs', 'csb64enc', 'makecsd', 'scot']
 

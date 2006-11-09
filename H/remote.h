@@ -84,6 +84,7 @@ typedef struct {
   struct sockaddr_in to_addr;
   struct sockaddr_in local_addr;
   REMOT_BUF CLsendbuf;          /* rt evt output Communications buffer */
+/*   int   remote_port; */
 } REMOTE_GLOBALS;
 
 #endif /* HAVE_SOCKETS */
