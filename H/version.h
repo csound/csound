@@ -34,7 +34,7 @@
 #define CS_PACKAGE_TARNAME  "csound"
 
 /* Define to the version of this package. */
-#define CS_PACKAGE_VERSION  "5.03.0"
+#define CS_PACKAGE_VERSION  "5.04.0"
 #define CS_VERSION          (5)
 #define CS_SUBVER           (4)
 #define CS_PATCHLEVEL       (0)
@@ -44,7 +44,7 @@
                                    not be able to handle -- most likely this
                                    will be a change to an API function or
                                    the CSOUND struct */
-#define CS_APISUBVER        3   /* for minor changes that will still allow
+#define CS_APISUBVER        4   /* for minor changes that will still allow
                                    compatiblity with older hosts */
 
 #endif /* CSOUND_VERSION_H */
