@@ -64,7 +64,7 @@ typedef struct {                        /* Remote Communication buffer          
 } REMOT_BUF;
 
 #ifdef HAVE_SOCKETS
-extern  int     inet_aton(const char *cp, struct in_addr *inp);
+extern  in_addr_t     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
     char *adr;
