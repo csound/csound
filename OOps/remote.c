@@ -221,7 +221,7 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
       csound->InitError(csound, Str("could not open remote port"));
       return NOTOK;
     }
-    memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));        /* clear sock mem */
+    memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));    /* clear sock mem */
     ST(to_addr).sin_family = AF_INET;                  /* set as INET address */
     /* server IP adr, netwk byt order */
 #ifdef WIN32
@@ -230,7 +230,7 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
     inet_aton((const char *)ipadrs, &(ST(to_addr).sin_addr));
 #endif
     ST(to_addr).sin_port = htons((int) REMOT_PORT);    /* port we will listen on,
-                                                      network byte order */
+                                                          network byte order */
 /*     ST(to_addr).sin_port = htons((int) ST(remote_port)); */
     for (i=0; i<10; i++){
       if (connect(rfd, (struct sockaddr *) &ST(to_addr), sizeof(ST(to_addr))) < 0)
