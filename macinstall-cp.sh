@@ -10,7 +10,6 @@ cp tclcsound.dylib $FMKBASE/Versions/5.1/Resources/TclTk/
 cp lib_jcsound.jnilib $FMKBASE/Versions/5.1/Resources/Java/
 cp csnd.jar $FMKBASE/Versions/5.1/Resources/Java/
 cp csoundapi~.pd_darwin $FMKBASE/Versions/5.1/Resources/PD/
-#cp interfaces/csound5.lisp $FMKBASE/Versions/5.1/Resources/Lisp/
 cp -R $FMKBASE $IFMKBASE
           
 cp csound  $APPSBASE
