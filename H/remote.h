@@ -64,7 +64,10 @@ typedef struct {                        /* Remote Communication buffer          
 } REMOT_BUF;
 
 #ifdef HAVE_SOCKETS
+
+#ifndef MACOSX
 extern  in_addr_t     inet_aton(const char *cp, struct in_addr *inp);
+#endif
 
 typedef struct {
     char *adr;
