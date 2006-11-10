@@ -28,13 +28,13 @@
 #define CS_PACKAGE_NAME     "Csound"
 
 /* Define to the full name and version of this package. */
-#define CS_PACKAGE_STRING   "Csound 5.03.1"
+#define CS_PACKAGE_STRING   "Csound 5.03.0"
 
 /* Define to the one symbol short name of this package. */
 #define CS_PACKAGE_TARNAME  "csound"
 
 /* Define to the version of this package. */
-#define CS_PACKAGE_VERSION  "5.03.1"
+#define CS_PACKAGE_VERSION  "5.03.0"
 #define CS_VERSION          (5)
 #define CS_SUBVER           (4)
 #define CS_PATCHLEVEL       (0)
@@ -44,7 +44,7 @@
                                    not be able to handle -- most likely this
                                    will be a change to an API function or
                                    the CSOUND struct */
-#define CS_APISUBVER        2   /* for minor changes that will still allow
+#define CS_APISUBVER        3   /* for minor changes that will still allow
                                    compatiblity with older hosts */
 
 #endif /* CSOUND_VERSION_H */
