@@ -58,15 +58,6 @@ def getPlatform():
     else:
         return 'unsupported'
 
-def withMSVC():
-    if getPlatform() != 'win32':
-           return 0
-    checkenv = Environment()
-    if 'msvc' in checkenv['TOOLS']: # MSVC
-           return 1
-    else:
-           return 0
-
 #############################################################################
 #
 #   DEFINE CONFIGURATION
@@ -76,11 +67,10 @@ def withMSVC():
 # Detect platform.
 
 print "System platform is '" + getPlatform() + "'."
+
 # Define configuration options.
-if withMSVC():
- opts = Options('custom-msvc.py')
-else:
- opts = Options('custom.py')
+opts = Options('custom.py')
+
 opts.Add('CC')
 opts.Add('CXX')
 opts.Add('LINK')
@@ -210,29 +200,42 @@ opts.Add('buildTclcsound',
 opts.Add('buildWinsound',
     "Build Winsound frontend. Requires FLTK headers and libs",
     '0')
-if not withMSVC:
-   def_intfc = '1'
-else:
-   def_intfc = '0'
 opts.Add('buildInterfaces',
-    "Build interface library for Python, JAVA, Lua, C++, and other languages.", def_intfc)
+    "Build interface library for Python, JAVA, Lua, C++, and other languages.",
+    '1')
 opts.Add('buildJavaWrapper',
     'Set to 1 to build Java wrapper for the interface library.',
     '0')
 opts.Add('buildOSXGUI',
     'On OSX, set to 1 to build the basic GUI frontend',
     '0')
-opts.Add('isWinNT', 'On windows, if win2000 or NT is used',
-          '%d' % withMSVC())
 opts.Add('buildCSEditor',
     'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
     '0')
+opts.Add('withMinGW',
+    'Set to 1 to build with MinGW on Windows.',
+    '1')
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
 # should take priority over default options.
 
 commonEnvironment = Environment(options = opts, ENV = {'PATH' : os.environ['PATH']})
+
+def withMSVC():
+    if getPlatform() == 'win32': 
+	if commonEnvironment['withMinGW'] == '0':
+            return 1
+	return 0
+    else:
+        return 0
+
+def isNT():
+    if getPlatform() == 'win32' and os.environ['SYSTEMROOT'].find('WINDOWS') != -1:
+        return 
+
+if commonEnvironment['withMinGW'] == '1':
+    Tool('mingw')(commonEnvironment)
 
 customCPPPATH = commonEnvironment['customCPPPATH']
 commonEnvironment.Prepend(CPPPATH = customCPPPATH)
@@ -831,8 +834,11 @@ vstEnvironment = commonEnvironment.Copy()
 fltkConfigFlags = 'fltk-config --use-images --cflags --cxxflags'
 if getPlatform() != 'darwin':
     fltkConfigFlags += ' --ldflags'
-if vstEnvironment.ParseConfig(fltkConfigFlags):
-    print "Parsed fltk-config."
+try:
+    if vstEnvironment.ParseConfig(fltkConfigFlags):
+    	print 'Parsed fltk-config.'
+except:
+    print 'Unable to parse fltk-config.'
 if getPlatform() == 'darwin':
     vstEnvironment.Append(LIBS = Split('''
         fltk fltk_images fltk_png z fltk_jpeg
@@ -870,10 +876,7 @@ else:
 #############################################################################
 
 if getPlatform() == 'win32':
- if not commonEnvironment['isWinNT']:
-   PYDLL = 'c:/WINDOWS/system32/%s.dll' % (pythonLibs[0])
- else:
-   PYDLL = 'c:/WINNT/system32/%s.dll' % (pythonLibs[0])
+    PYDLL = r'%s\%s' % (os.environ['SystemRoot'], pythonLibs[0])
 if getPlatform() == 'win32' and pythonLibs[0] < 'python24' and not withMSVC():
     pythonImportLibrary = csoundInterfacesEnvironment.Command(
         '/usr/local/lib/lib%s.a' % (pythonLibs[0]),
