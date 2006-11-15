@@ -235,7 +235,7 @@ opts.Add('buildCSEditor',
 commonEnvironment = Environment(options = opts, ENV = {'PATH' : os.environ['PATH']})
 
 def withMSVC():
-    if getPlatform() == 'win32': 
+    if getPlatform() == 'win32':
 	if not withMinGW:
             return 1
 	return 0
@@ -244,7 +244,7 @@ def withMSVC():
 
 def isNT():
     if getPlatform() == 'win32' and os.environ['SYSTEMROOT'].find('WINDOWS') != -1:
-        return 
+        return
 if getPlatform() == 'win32' and withMinGW == '1':
     Tool('mingw')(commonEnvironment)
 
@@ -1193,7 +1193,9 @@ else:
                'InOut/virtual_keyboard/virtual_keyboard.cpp',
                'InOut/virtual_keyboard/Bank.cpp',
                'InOut/virtual_keyboard/KeyboardMapping.cpp',
-               'InOut/virtual_keyboard/Program.cpp'])
+               'InOut/virtual_keyboard/Program.cpp',
+               'InOut/virtual_keyboard/SliderBank.cpp',
+               'InOut/virtual_keyboard/SliderData.cpp'])
 
 # REAL TIME AUDIO
 
