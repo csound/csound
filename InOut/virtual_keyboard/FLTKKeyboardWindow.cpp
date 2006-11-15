@@ -1,3 +1,26 @@
+/*
+    FLTKKeyboardWindow.hpp:
+
+    Copyright (C) 2006 Steven Yi
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 #include "FLTKKeyboardWindow.hpp"
 
 static void allNotesOff(Fl_Widget *widget, void * v) {
@@ -6,19 +29,22 @@ static void allNotesOff(Fl_Widget *widget, void * v) {
 }
 
 static void channelChange(Fl_Widget *widget, void * v) {
-        Fl_Spinner *spinner = (Fl_Spinner *)widget;
-        FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
+    Fl_Spinner *spinner = (Fl_Spinner *)widget;
+    FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
 
-        win->lock();
+    win->lock();
 
+	int channel = (int)spinner->value() - 1;
 
-        win->keyboardMapping->setCurrentChannel((int)spinner->value() - 1);
+    win->keyboardMapping->setCurrentChannel(channel);
 
-        win->bankChoice->value(win->keyboardMapping->getCurrentBank());
+    win->bankChoice->value(win->keyboardMapping->getCurrentBank());
 
-        win->setProgramNames();
+    win->setProgramNames();
 
-        win->unlock();
+    win->sliderBank->setChannel(channel);
+
+    win->unlock();
 }
 
 static void bankChange(Fl_Widget *widget, void * v) {
@@ -35,14 +61,14 @@ static void bankChange(Fl_Widget *widget, void * v) {
 }
 
 static void programChange(Fl_Widget *widget, void * v) {
-        Fl_Choice *choice = (Fl_Choice *)widget;
-        FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
+    Fl_Choice *choice = (Fl_Choice *)widget;
+    FLTKKeyboardWindow *win = (FLTKKeyboardWindow *)v;
 
-        win->lock();
+    win->lock();
 
-        win->keyboardMapping->setCurrentProgram((int)choice->value());
+    win->keyboardMapping->setCurrentProgram((int)choice->value());
 
-        win->unlock();
+    win->unlock();
 }
 
 FLTKKeyboardWindow::FLTKKeyboardWindow(CSOUND *csound,
@@ -51,39 +77,46 @@ FLTKKeyboardWindow::FLTKKeyboardWindow(CSOUND *csound,
     : Fl_Double_Window(W, H, L)
 {
 
-        this->csound = csound;
-        this->mutex = csound->Create_Mutex(0);
+    this->csound = csound;
+    this->mutex = csound->Create_Mutex(0);
 
-        this->keyboardMapping = new KeyboardMapping(csound, deviceMap);
+    this->keyboardMapping = new KeyboardMapping(csound, deviceMap);
 
     this->begin();
 
-    this->channelSpinner = new Fl_Spinner(60, 0, 80, 20, "Channel");
+    int row1 = 0;
+    int row2 = row1 + 150;
+    int row3 = row2 + 20;
+    int row4 = row3 + 20;
+
+    this->sliderBank = new SliderBank(csound, 0, row1, W, 150);
+
+    this->channelSpinner = new Fl_Spinner(60, row2, 80, 20, "Channel");
     channelSpinner->maximum(16);
     channelSpinner->minimum(1);
     this->channelSpinner->callback((Fl_Callback*) channelChange, this);
 
-        this->bankChoice = new Fl_Choice(180, 0, 180, 20, "Bank");
-        this->programChoice = new Fl_Choice(420, 0, 200, 20, "Program");
+    this->bankChoice = new Fl_Choice(180, row2, 180, 20, "Bank");
+    this->programChoice = new Fl_Choice(420, row2, 200, 20, "Program");
 
-        bankChoice->clear();
+    bankChoice->clear();
 
-        for(unsigned int i = 0; i < keyboardMapping->banks.size(); i++) {
-                bankChoice->add(keyboardMapping->banks[i]->name);
-        }
+    for(unsigned int i = 0; i < keyboardMapping->banks.size(); i++) {
+            bankChoice->add(keyboardMapping->banks[i]->name);
+    }
 
-        bankChoice->value(0);
+    bankChoice->value(0);
 
-        setProgramNames();
+    setProgramNames();
 
-        this->bankChoice->callback((Fl_Callback*)bankChange, this);
-        this->programChoice->callback((Fl_Callback*)programChange, this);
+    this->bankChoice->callback((Fl_Callback*)bankChange, this);
+    this->programChoice->callback((Fl_Callback*)programChange, this);
 
 
-    this->allNotesOffButton = new Fl_Button(0, 20, W, 20, "All Notes Off");
+    this->allNotesOffButton = new Fl_Button(0, row3, W, 20, "All Notes Off");
     this->allNotesOffButton->callback((Fl_Callback*) allNotesOff, this);
 
-    this->keyboard = new FLTKKeyboard(csound, 0, 40, W, 80, "Keyboard");
+    this->keyboard = new FLTKKeyboard(csound, 0, row4, W, 80, "Keyboard");
 
     this->end();
 
@@ -99,16 +132,16 @@ FLTKKeyboardWindow::~FLTKKeyboardWindow() {
 
 void FLTKKeyboardWindow::setProgramNames() {
 
-        Bank* bank = keyboardMapping->banks[keyboardMapping->getCurrentBank()];
+    Bank* bank = keyboardMapping->banks[keyboardMapping->getCurrentBank()];
 
-        programChoice->clear();
+    programChoice->clear();
 
-        for( vector<Program>::iterator iter = bank->programs.begin();
-                iter != bank->programs.end(); iter++ ) {
-                programChoice->add((*iter).name);
-        }
+    for( vector<Program>::iterator iter = bank->programs.begin();
+            iter != bank->programs.end(); iter++ ) {
+            programChoice->add((*iter).name);
+    }
 
-        programChoice->value(bank->currentProgram);
+    programChoice->value(bank->currentProgram);
 }
 
 int FLTKKeyboardWindow::handle(int event) {
