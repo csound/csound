@@ -66,10 +66,22 @@ def getPlatform():
 
 # Detect platform.
 
-print "System platform is '" + getPlatform() + "'."
+testEnv = Environment()
+if getPlatform() == 'win32':
+ for i in testEnv['TOOLS']:
+  if i == 'mingw':
+   print "using " + i
+   opts = Options('custom.py')
+   withMinGW = 1
+   break
+  else:
+   opts = Options('custom-msvc.py')
+   print "using " + i
+   withMinGW = 0
+else:
+  opts = Options('custom.py')
 
-# Define configuration options.
-opts = Options('custom.py')
+print "System platform is '" + getPlatform() + "'."
 
 opts.Add('CC')
 opts.Add('CXX')
@@ -82,6 +94,7 @@ opts.Add('customLIBS')
 opts.Add('customLIBPATH')
 opts.Add('customSHLINKFLAGS')
 opts.Add('customSWIGFLAGS')
+
 opts.Add('useDouble',
     'Set to 1 to use double-precision floating point for audio samples.',
     '0')
@@ -202,7 +215,7 @@ opts.Add('buildWinsound',
     '0')
 opts.Add('buildInterfaces',
     "Build interface library for Python, JAVA, Lua, C++, and other languages.",
-    '1')
+    '0')
 opts.Add('buildJavaWrapper',
     'Set to 1 to build Java wrapper for the interface library.',
     '0')
@@ -212,9 +225,8 @@ opts.Add('buildOSXGUI',
 opts.Add('buildCSEditor',
     'Set to 1 to build the Csound syntax highlighting text editor. Requires FLTK headers and libs',
     '0')
-opts.Add('withMinGW',
-    'Set to 1 to build with MinGW on Windows.',
-    '1')
+
+
 
 # Define the common part of the build environment.
 # This section also sets up customized options for third-party libraries, which
@@ -224,7 +236,7 @@ commonEnvironment = Environment(options = opts, ENV = {'PATH' : os.environ['PATH
 
 def withMSVC():
     if getPlatform() == 'win32': 
-	if commonEnvironment['withMinGW'] == '0':
+	if not withMinGW:
             return 1
 	return 0
     else:
@@ -233,8 +245,7 @@ def withMSVC():
 def isNT():
     if getPlatform() == 'win32' and os.environ['SYSTEMROOT'].find('WINDOWS') != -1:
         return 
-
-if commonEnvironment['withMinGW'] == '1':
+if getPlatform() == 'win32' and withMinGW == '1':
     Tool('mingw')(commonEnvironment)
 
 customCPPPATH = commonEnvironment['customCPPPATH']
