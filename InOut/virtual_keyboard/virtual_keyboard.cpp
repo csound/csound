@@ -28,10 +28,11 @@
 #include "winFLTK.h"
 #include "FLTKKeyboardWindow.hpp"
 #include "KeyboardMapping.hpp"
+#include "SliderData.hpp"
 
 static FLTKKeyboardWindow *createWindow(CSOUND *csound, const char *dev) {
     return new FLTKKeyboardWindow(csound, dev,
-                                  624, 120, "Csound Virtual Keyboard");
+                                  624, 270, "Csound Virtual Keyboard");
 }
 
 static void deleteWindow(CSOUND *csound, FLTKKeyboardWindow * keyWin) {
@@ -133,6 +134,42 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
       keyboardMapping->setPreviousProgram(keyboardMapping->getCurrentProgram());
     }
 
+	keyWin->sliderBank->lock();
+	SliderData *sliderData = keyWin->sliderBank->getSliderData();
+
+	for(int i = 0; i < 10; i++) {
+		if(sliderData->controllerNumber[i] !=
+			sliderData->previousControllerNumber[i]) {
+
+			*mbuf++ = (unsigned char)(0xB0 + channel);
+      		*mbuf++ = (unsigned char)sliderData->controllerNumber[i];
+      		*mbuf++ = (unsigned char)sliderData->controllerValue[i];
+
+			count += 3;
+
+			sliderData->previousControllerNumber[i] =
+				sliderData->controllerNumber[i];
+
+			sliderData->previousControllerValue[i] =
+				sliderData->controllerValue[i];
+
+
+		} else if(sliderData->controllerValue[i] !=
+			sliderData->previousControllerValue[i]) {
+
+			*mbuf++ = (unsigned char)(0xB0 + channel);
+      		*mbuf++ = (unsigned char)sliderData->controllerNumber[i];
+      		*mbuf++ = (unsigned char)sliderData->controllerValue[i];
+
+			count += 3;
+
+			sliderData->previousControllerValue[i] =
+				sliderData->controllerValue[i];
+		}
+
+	}
+
+	keyWin->sliderBank->unlock();
     keyWin->unlock();
 
 

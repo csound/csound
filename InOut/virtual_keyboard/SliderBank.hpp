@@ -1,5 +1,5 @@
 /*
-    FLTKKeyboardWindow.hpp:
+    SliderBank.hpp:
 
     Copyright (C) 2006 Steven Yi
 
@@ -21,47 +21,37 @@
     02111-1307 USA
 */
 
-#ifndef FLTKKEYBOARDWINDOW_HPP_
-#define FLTKKEYBOARDWINDOW_HPP_
+#ifndef SLIDERBANK_HPP_
+#define SLIDERBANK_HPP_
 
 #include <FL/Fl.H>
-#include <FL/Fl_Button.H>
-#include <FL/Fl_Double_Window.H>
-#include <FL/Fl_Spinner.H>
-#include <FL/Fl_Choice.H>
-#include "FLTKKeyboard.hpp"
-#include "KeyboardMapping.hpp"
-#include "SliderBank.hpp"
+#include <FL/Fl_Group.H>
+#include <Fl/Fl_Value_Slider.H>
+#include <Fl/Fl_Spinner.H>
 #include "csdl.h"
+#include "SliderData.hpp"
 
-class FLTKKeyboardWindow : public Fl_Double_Window {
+class SliderBank : public Fl_Group
+{
 public:
-    FLTKKeyboardWindow(CSOUND * csound, const char *deviceMap,
-                                        int w, int h, const char* t);
-    ~FLTKKeyboardWindow();
+	SliderBank(CSOUND *csound, int X, int Y, int W, int H);
+	virtual ~SliderBank();
 
-    FLTKKeyboard *keyboard;
-    Fl_Button *allNotesOffButton;
-    Fl_Spinner *channelSpinner;
-    Fl_Choice *bankChoice;
-    Fl_Choice *programChoice;
+	CSOUND *csound;
+	void * mutex;
 
-    KeyboardMapping *keyboardMapping;
-	SliderBank *sliderBank;
-
-    int handle(int event);
+	void setChannel(int channel);
+	SliderData *getSliderData();
 
     void lock();
     void unlock();
 
-    void setSelectedBank();
-    void setProgramNames();
+	Fl_Value_Slider* sliders[10];
+	Fl_Spinner* spinners[10];
 
 private:
-    CSOUND* csound;
-    void * mutex;
-
+    int channel;
+	SliderData sliderData[16];
 };
 
-
-#endif /*FLTKKEYBOARDWINDOW_HPP_*/
+#endif /*SLIDERBANK_HPP_*/
