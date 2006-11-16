@@ -357,7 +357,7 @@ int remoteport(CSOUND *csound, REMOTEPORT *p)
       }
     }
     if (*p->port <= FL(0.0))
-      ST(remote_port) = REMOTE_PORT;
+      ST(remote_port) = REMOT_PORT;
     else
       ST(remote_port) = (int)(*p->port+FL(0.5));
     return OK;
