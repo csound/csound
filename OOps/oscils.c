@@ -211,8 +211,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     /* window size */
     wsize = p->wsize;
     if ((wsize < 2) || (wsize > 1024)) {
-      csound->PerfError(csound, Str("tablexkt: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("tablexkt: not initialised"));
     }
     wsized2 = wsize >> 1;
 

@@ -180,8 +180,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
     MYFLT      xl[BUF_LEN], xr[BUF_LEN];
 
     if (p->mfp==NULL) {         /* RWD fix */
-      csound->PerfError(csound, Str("hrtfer: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("hrtfer: not initialised"));
     }
         /* update local variables */
     kElev = p->kElev;

@@ -919,10 +919,9 @@ static int itblchkw(CSOUND *csound, TABLEW *p)
      * factor and then check it is between 0 and the table length.  */
     if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0)
         || p->offset > p->ftp->flen) {
-      return
-        csound->InitError(csound,
-                          Str("Table write offset %f < 0 or > tablelength"),
-                          p->offset);
+      return csound->InitError(csound,
+                               Str("Table write offset %f < 0 or > tablelength"),
+                               p->offset);
     }
     p->iwgm   = (int)*p->iwgmode;
     return OK;
@@ -1244,10 +1243,9 @@ static int ftkrchkw(CSOUND *csound, TABLEW *p)
 
       if ((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
           p->offset > p->ftp->flen) {
-        return
-          csound->PerfError(csound,
-                            Str("Table write offset %f < 0 or > tablelength"),
-                            p->offset);
+        return csound->PerfError(csound,
+                                 Str("Table write offset %f < 0 or > tablelength"),
+                                 p->offset);
       }
     }
     /* If all is well, return 1 to tell calling function to proceed
@@ -1473,10 +1471,9 @@ int tablemix(CSOUND *csound, TABLEMIX *p)
      * which is initially 0.
      */
     if ((*p->dft  < 1) || (*p->s1ft < 1) || (*p->s2ft < 1)) {
-      return
-        csound->PerfError(csound, Str("Table no. < 1 "
-                                      "dft=%.2f  s1ft=%.2f  s2ft=%.2f\n"),
-                                  *p->dft, *p->s1ft, *p->s2ft);
+      return csound->PerfError(csound, Str("Table no. < 1 "
+                                           "dft=%.2f  s1ft=%.2f  s2ft=%.2f\n"),
+                               *p->dft, *p->s1ft, *p->s2ft);
     }
     /* Check each table number in turn.  */
 
@@ -2438,9 +2435,8 @@ int zkcl(CSOUND *csound, ZKCL *p)
     /* Check to see both kfirst and klast are within the limits of zk space
      * and that last is >= first.                */
     if ((first > csound->zklast) || (last > csound->zklast))
-      return
-        csound->PerfError(csound,
-                          Str("zkcl first or last > isizek. Not clearing."));
+      return csound->PerfError(csound,
+                               Str("zkcl first or last > isizek. Not clearing."));
     else if ((first < 0) || (last < 0)) {
       return csound->PerfError(csound,
                                Str("zkcl first or last < 0. Not clearing."));
@@ -2701,9 +2697,8 @@ int zacl(CSOUND *csound, ZACL *p)
     /* Check to see both kfirst and klast are within the limits of za space
      * and that last is >= first.    */
     if ((first > csound->zalast) || (last > csound->zalast))
-      return
-        csound->PerfError(csound,
-                          Str("zacl first or last > isizea. Not clearing."));
+      return csound->PerfError(csound,
+                               Str("zacl first or last > isizea. Not clearing."));
     else {
       if ((first < 0) || (last < 0)) {
         return csound->PerfError(csound,
@@ -2921,9 +2916,8 @@ int printksset(CSOUND *csound, PRINTKS *p)
 
     if (!p->XSTRCODE &&
         (*p->ifilcod != SSTRCOD || csound->currevent->strarg == NULL)) {
-      return
-        csound->InitError(csound,
-                          Str("printks param 1 was not a \"quoted string\""));
+      return csound->InitError(csound,
+                               Str("printks param 1 was not a \"quoted string\""));
     }
     else {
       sarg = (p->XSTRCODE ? (char*) p->ifilcod : csound->currevent->strarg);

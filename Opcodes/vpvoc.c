@@ -168,10 +168,9 @@ int vpvset(CSOUND *csound, VPVOC *p)
       csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
       if ((p->tableseg->outfunc = csound->FTFind(csound, p->isegtab)) == NULL) {
-        csound->InitError(csound,
-                          Str("vpvoc: Could not find ifnmagctrl table %f"),
-                          *p->isegtab);
-        return NOTOK;
+        return csound->InitError(csound,
+                                 Str("vpvoc: Could not find ifnmagctrl table %f"),
+                                 *p->isegtab);
       }
     }
     if (p->tableseg == NULL)

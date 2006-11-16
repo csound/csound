@@ -543,7 +543,7 @@ static int initc21(CSOUND *csound, INITC21 *p)
     MYFLT fvalue;
     int value, msb, xsb, lsb, chan;
     if ((fvalue = *p->ivalue) < FL(0.0) || fvalue > FL(1.0) )
-      csound->InitError(csound, Str("value out of range"));
+      return csound->InitError(csound, Str("value out of range"));
     else if ((chan = (int) *p->ichan - 1) < 0 || chan > 15 ||
              !csound->m_chnbp[chan])
       return csound->InitError(csound, Str("illegal midi channel"));

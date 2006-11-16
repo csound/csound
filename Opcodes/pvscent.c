@@ -37,9 +37,9 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
      p->lastframe = 0;
      *p->ans = FL(0.0);
      if (!(p->fin->format==PVS_AMP_FREQ) || (p->fin->format==PVS_AMP_PHASE))
-       return
-         csound->InitError(csound,
-                 Str("pvscent: format must be amp-phase or amp-freq.\n"));
+       return csound->InitError(csound,
+                                Str("pvscent: format must be amp-phase"
+                                    " or amp-freq.\n"));
      return OK;
 }
 
@@ -113,8 +113,8 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
 
     if (p->fin->format!=PVS_AMP_FREQ)
       {
-        csound->InitError(csound, "PV Frames must be in AMP_FREQ format!\n");
-        return NOTOK;
+        return csound->InitError(csound,
+                                 "PV Frames must be in AMP_FREQ format!\n");
       }
 
     return OK;

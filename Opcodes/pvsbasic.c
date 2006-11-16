@@ -81,10 +81,9 @@ static int pvsfwriteset(CSOUND *csound, PVSFWRITE *p)
                                              csound->esr, STYPE_16,
                                              p->fin->wintype, 0.0f, NULL,
                                              p->fin->winsize)) == -1)
-      return
-        csound->InitError(csound,
-                          Str("pvsfwrite: could not open file %s\n"),
-                          fname);
+      return csound->InitError(csound,
+                               Str("pvsfwrite: could not open file %s\n"),
+                               fname);
     if (p->frame.auxp == NULL || p->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->frame);
     csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);

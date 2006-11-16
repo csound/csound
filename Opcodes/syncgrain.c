@@ -82,8 +82,7 @@ static int syncgrain_process(CSOUND *csound, syncgrain *p)
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
-      csound->PerfError(csound, "grain size smaller than 1 sample\n");
-      return NOTOK;
+      return csound->PerfError(csound, "grain size smaller than 1 sample\n");
     }
     envincr = envtablesize/grsize;
     prate = *p->prate;
@@ -230,8 +229,7 @@ static int syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     amp =    *p->amp;
     grsize = csound->esr * *p->grsize;
     if (grsize<1) {
-      csound->PerfError(csound, "grain size smaller than 1 sample\n");
-      return NOTOK;
+      return csound->PerfError(csound, "grain size smaller than 1 sample\n");
     }
     envincr = envtablesize/grsize;
     prate = *p->prate;
