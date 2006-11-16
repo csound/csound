@@ -365,3 +365,4 @@ int     loop_g_p(CSOUND *, void *), loop_ge_p(CSOUND *, void *);
 int     delete_instr(CSOUND *, void *);
 int     insremot(CSOUND *, void *), insglobal(CSOUND *, void *);
 int     midremot(CSOUND *, void *), midglobal(CSOUND *, void *);
+int     remoteport(CSOUND *, void *);
