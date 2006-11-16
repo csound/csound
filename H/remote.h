@@ -90,6 +90,11 @@ typedef struct {
 
 typedef struct {                        /* structs for INSTR 0 opcodes */
     OPDS    h;
+    MYFLT   *port;
+} REMOTEPORT;
+
+typedef struct {                        /* structs for INSTR 0 opcodes */
+    OPDS    h;
     MYFLT   *str1, *str2, *insno[64];
 } INSREMOT;
 
