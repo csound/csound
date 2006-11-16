@@ -1,3 +1,9 @@
+2006-11-13  jpff  <jpff@codemist.co.uk>
+
+	* OOps/remote.c (remoteport): New opcode to set remote port
+
+	* install.py: Added cseditor to package system
+
 2006-11-09  jpff  <jpff@codemist.co.uk>
 
 	* VERSION 5.04
