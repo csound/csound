@@ -89,6 +89,7 @@ OENTRY opcodlst_1[] = {
 { "ctrlinit",S(CTLINIT),1,      "",     "im",   ctrlinit                },
 { "massign",S(MASSIGN), 1,      "",     "iTp",  massign                 },
 { "turnon", S(TURNON),  1,      "",     "To",   turnon                  },
+{ "remoteport", S(REMOTEPORT), 1, "",   "i",    remoteport              },
 { "insremot",S(INSREMOT),1,     "",     "SSm",  insremot                },
 { "midremot",S(MIDREMOT),1,     "",     "SSm",  midremot                },
 { "insglobal",S(INSGLOBAL),1,   "",     "Sm",   insglobal               },

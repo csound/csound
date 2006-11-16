@@ -19,7 +19,7 @@ headerFiles = ['H/cfgvar.h', 'H/cscore.h', 'H/csdl.h', 'H/csound.h',
                'interfaces/CsoundFile.hpp']
 
 exeFiles1 = ['csound', 'csound5gui', 'CsoundVST', 'winsound',
-             'cstclsh', 'cswish',
+             'cstclsh', 'cswish', 'cseditor',
              'cvanal', 'dnoise', 'envext', 'extractor',
              'het_export', 'het_import', 'hetro', 'lpanal',
              'lpc_export', 'lpc_import', 'mixer', 'pvanal',

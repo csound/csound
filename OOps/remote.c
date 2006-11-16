@@ -100,7 +100,7 @@ static int callox(CSOUND *csound)
                         " globals."));
         goto error;
       }
-/*       ST(remote_port) = REMOT_PORT; */
+      ST(remote_port) = REMOT_PORT;
     }
 
     ST(socksout) = (SOCK*)csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(SOCK));
@@ -229,9 +229,9 @@ static int CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to send */
 #else
     inet_aton((const char *)ipadrs, &(ST(to_addr).sin_addr));
 #endif
-    ST(to_addr).sin_port = htons((int) REMOT_PORT);    /* port we will listen on,
-                                                          network byte order */
-/*     ST(to_addr).sin_port = htons((int) ST(remote_port)); */
+    /*    ST(to_addr).sin_port = htons((int) REMOT_PORT); */
+    ST(to_addr).sin_port = htons((int) ST(remote_port)); /* port we will listen on,
+                                                            network byte order */
     for (i=0; i<10; i++){
       if (connect(rfd, (struct sockaddr *) &ST(to_addr), sizeof(ST(to_addr))) < 0)
         csound->Message(csound, Str("---> Could not connect \n"));
@@ -299,9 +299,9 @@ static int SVopen(CSOUND *csound, char *ipadrs_local)
 #else
     inet_aton((const char *)ipadrs, &(ST(local_addr).sin_addr));
 #endif
-    ST(local_addr).sin_port = htons((int)REMOT_PORT); /* port we will listen on,
-                                                         netwrk byt order */
-/*     ST(local_addr).sin_port = htons((int) ST(remote_port)); */
+/*     ST(local_addr).sin_port = htons((int)REMOT_PORT); */
+    ST(local_addr).sin_port = htons((int) ST(remote_port)); /* port we will listen
+                                                             on, netwrk byt order */
     /* associate the socket with the address and port */
     if (bind (socklisten,
               (struct sockaddr *) &ST(local_addr),
@@ -347,6 +347,21 @@ int SVrecv(CSOUND *csound, int conn, void *data, int length)
 }
 
 /* /////////////  INSTR 0 opcodes ///////////////////// */
+
+int remoteport(CSOUND *csound, REMOTEPORT *p)
+{
+    if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
+      if (callox(csound) < 0) {
+        csound->InitError(csound, Str("failed to initialize remote globals."));
+        return 0;
+      }
+    }
+    if (*p->port <= FL(0.0))
+      ST(remote_port) = REMOTE_PORT;
+    else
+      ST(remote_port) = (int)(*p->port+FL(0.5));
+    return OK;
+}
 
 int insremot(CSOUND *csound, INSREMOT *p)
 /* declare certain instrs for remote Csounds */
