@@ -169,13 +169,12 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
     else
       p->sampleRate = (double) *(p->iSampleRate);
     if (p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE) {
-      csound->InitError(csound, Str("reverbsc: sample rate is out of range"));
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("reverbsc: sample rate is out of range"));
     }
     if (*(p->iPitchMod) < FL(0.0) || *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD) {
-      csound->InitError(csound,
-                        Str("reverbsc: invalid pitch modulation factor"));
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("reverbsc: invalid pitch modulation factor"));
     }
     /* calculate the number of bytes to allocate */
     nBytes = 0;
@@ -208,8 +207,7 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     int       i, n, readPos;
 
     if (p->initDone <= 0) {
-      csound->PerfError(csound, Str("reverbsc: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("reverbsc: not initialised"));
     }
     /* calculate tone filter coefficient if frequency changed */
     if (*(p->kLPFreq) != p->prv_LPFreq) {

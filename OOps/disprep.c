@@ -383,8 +383,7 @@ int dspfft(CSOUND *csound, DSPFFT *p)
     int   nsmps = csound->ksmps;
 
     if (p->auxch.auxp==NULL) {
-      csound->PerfError(csound, Str("dispfft: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("dispfft: not initialised"));
     }
     do {
       if (bufp < p->sampbuf) {            /* skip any spare samples */

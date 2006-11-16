@@ -1,3 +1,8 @@
+2006-11-16  jpff  <jpff@codemist.co.uk>
+
+	* OOps/diskin.c: (and many others)
+	* OOps/remote.c: Use InitError correctly
+
 2006-11-13  jpff  <jpff@codemist.co.uk>
 
 	* OOps/remote.c (remoteport): New opcode to set remote port

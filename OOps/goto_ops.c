@@ -178,14 +178,12 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p)
     insno = (int) p1;
     if (insno < 1 || insno > (int) csound->maxinsno ||
         csound->instrtxtp[insno] == NULL) {
-      csoundPerfError(csound, Str("turnoff2: invalid instrument number"));
-      return NOTOK;
+      return csoundPerfError(csound, Str("turnoff2: invalid instrument number"));
     }
     mode = (int) (*(p->kFlags) + FL(0.5));
     allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
     if (mode < 0 || mode > 15 || (mode & 3) == 3) {
-      csoundPerfError(csound, Str("turnoff2: invalid mode parameter"));
-      return NOTOK;
+      return csoundPerfError(csound, Str("turnoff2: invalid mode parameter"));
     }
     ip = &(csound->actanchor);
     ip2 = NULL;

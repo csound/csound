@@ -209,20 +209,17 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
     PVOCEX_MEMFILE  pp;
 
     if (csound->PVOCEX_LoadFile(csound, fname, &pp) != 0) {
-      csound->InitError(csound, Str("PVOC cannot load %s"), fname);
-      return NOTOK;
+      return csound->InitError(csound, Str("PVOC cannot load %s"), fname);
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
     if (pp.fftsize > PVFRAMSIZE) {
-      csound->InitError(csound, Str("pvoc-ex file %s: "
-                                    "FFT size %d too large for Csound"),
-                                fname, (int) pp.fftsize);
-      return NOTOK;
+      return csound->InitError(csound, Str("pvoc-ex file %s: "
+                                           "FFT size %d too large for Csound"),
+                               fname, (int) pp.fftsize);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (pp.chans > 1) {
-      csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
-      return NOTOK;
+      return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
     }
     /* ignore the window spec until we can use it! */
     p->frSiz    = pp.fftsize;

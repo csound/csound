@@ -397,7 +397,7 @@ static int harmon(CSOUND *csound, HARMON *p)
     }
     src1 = minqp - p->n2bufsmps;            /* get src equiv of 1st min  */
     if (period==0) {
-      csound->PerfError(csound, "Period zero\n");
+      csound->Message(csound, "Period zero\n");
       outp = p->ar;
       nsmps = csound->ksmps;
       do {

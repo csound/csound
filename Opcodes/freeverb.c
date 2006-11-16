@@ -176,8 +176,7 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
 
     /* check if opcode was correctly initialised */
     if (p->auxData.size <= 0L || p->auxData.auxp == NULL) {
-      csound->PerfError(csound, Str("freeverb: not initialised"));
-      return NOTOK;
+      return csound->PerfError(csound, Str("freeverb: not initialised"));
     }
     /* calculate reverb parameters */
     feedback = (double) *(p->kRoomSize) * scaleRoom + offsetRoom;

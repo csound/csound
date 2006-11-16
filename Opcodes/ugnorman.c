@@ -114,10 +114,9 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
 
     /* load memfile */
     if ((*mfp = csound->ldmemfile(csound, fname)) == NULL) {
-      csound->InitError(csound,
-                        Str("%s: Ats file %s not read (does it exist?)"),
-                        opname, fname);
-      return -1;
+      return csound->InitError(csound,
+                               Str("%s: Ats file %s not read (does it exist?)"),
+                               opname, fname);
     }
     atsh = (ATSSTRUCT*) (*mfp)->beginp;
 
@@ -126,10 +125,9 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
       return 0;
     /* check to see if it is byteswapped */
     if ((int) bswap(&(atsh->magic)) != 123) {
-      csound->InitError(csound, Str("%s: either %s is not an ATS file "
-                                    "or the byte endianness is wrong"),
-                                opname, fname);
-      return -1;
+      return csound->InitError(csound, Str("%s: either %s is not an ATS file "
+                                           "or the byte endianness is wrong"),
+                               opname, fname);
     }
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     if (pp->swapped_warning)
@@ -407,9 +405,9 @@ static int atsreadnzset(CSOUND *csound, ATSREADNZ *p)
       p->frmInc = n_partials * 3 + 26;
       break;
     default:
-      csound->InitError(csound, Str("ATSREADNZ: Type either not implemented "
-                                    "or does not contain noise"));
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("ATSREADNZ: Type either not implemented "
+                                   "or does not contain noise"));
     }
     /* flag set to reduce the amount of warnings sent out */
     /* for time pointer out of range */
@@ -463,18 +461,16 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
 
     /* set up function table for synthesis */
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL) {
-      csound->ErrorMsg(csound, Str("ATSADD: Function table number "
-                                   "for synthesis waveform not valid"));
-      return NOTOK;
+      return csound->InitError(csound, Str("ATSADD: Function table number "
+                                           "for synthesis waveform not valid"));
     }
     p->ftp = ftp;
 
     /* set up gate function table */
     if (*p->igatefun > FL(0.0)) {
       if ((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL) {
-        csound->ErrorMsg(csound, Str("ATSADD: Gate Function table number "
-                                     "not valid"));
-        return NOTOK;
+        return csound->InitError(csound, Str("ATSADD: Gate Function table number "
+                                             "not valid"));
       }
       else
         p->AmpGateFunc = AmpGateFunc;
@@ -815,12 +811,13 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 
     if (type != 4 && type != 3) {
       if (type < 5)
-        csound->InitError(csound, Str("ATSADDNZ: "
-                                      "This file type contains no noise"));
+        return csound->InitError(csound,
+                                 Str("ATSADDNZ: "
+                                     "This file type contains no noise"));
       else
-        csound->InitError(csound, Str("ATSADDNZ: This file type has not been "
-                                      "implemented in this code yet."));
-      return NOTOK;
+        return csound->InitError(csound,
+                                 Str("ATSADDNZ: This file type has not been "
+                                     "implemented in this code yet."));
     }
 
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
@@ -1763,9 +1760,8 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
 
     /* set up function table for synthesis */
     if ((ftp = csound->FTFind(csound, p->ifn)) == NULL) {
-      csound->ErrorMsg(csound, Str("ATSCROSS: Function table number for "
-                                   "synthesis waveform not valid"));
-      return NOTOK;
+      return csound->InitError(csound, Str("ATSCROSS: Function table number for "
+                                           "synthesis waveform not valid"));
     }
     p->ftp = ftp;
 

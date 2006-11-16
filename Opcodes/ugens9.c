@@ -43,15 +43,13 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
       if ((mfp = csound->ldmemfile(csound, cvfilnam)) == NULL) {
-        csound->InitError(csound, Str("CONVOLVE cannot load %s"), cvfilnam);
-        return NOTOK;
+        return csound->InitError(csound, Str("CONVOLVE cannot load %s"), cvfilnam);
       }
     }
     cvh = (CVSTRUCT *)mfp->beginp;
     if (cvh->magic != CVMAGIC) {
-      csound->InitError(csound, Str("%s not a CONVOLVE file (magic %ld)"),
-                                cvfilnam, cvh->magic);
-      return NOTOK;
+      return csound->InitError(csound, Str("%s not a CONVOLVE file (magic %ld)"),
+                               cvfilnam, cvh->magic);
     }
 
     nchanls = (cvh->channel == ALLCHNLS ? cvh->src_chnls : 1);
@@ -60,25 +58,24 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
       if (p->OUTOCOUNT == nchanls)
         p->nchanls = nchanls;
       else {
-        csound->InitError(csound, Str("CONVOLVE: output channels not equal "
-                                      "to number of channels in source"));
-        return NOTOK;
+        return csound->InitError(csound, Str("CONVOLVE: output channels not equal "
+                                             "to number of channels in source"));
       }
     }
     else {
       if (*p->channel <= nchanls) {
         if (p->OUTOCOUNT != 1) {
-          csound->InitError(csound, Str("CONVOLVE: output channels not equal "
+          return csound->InitError(csound,
+                                   Str("CONVOLVE: output channels not equal "
                                         "to number of channels in source"));
-          return NOTOK;
         }
         else
           p->nchanls = 1;
       }
       else {
-        csound->InitError(csound, Str("CONVOLVE: channel number greater than "
-                                      "number of channels in source"));
-        return NOTOK;
+        return csound->InitError(csound,
+                                 Str("CONVOLVE: channel number greater than "
+                                     "number of channels in source"));
       }
     }
     Hlen = p->Hlen = cvh->Hlen;
@@ -95,10 +92,9 @@ static int cvset(CSOUND *csound, CONVOLVE *p)
                               cvfilnam, cvh->samplingRate, csound->esr);
     }
     if (cvh->dataFormat != CVMYFLT) {
-      csound->InitError(csound,
-                        Str("unsupported CONVOLVE data format %ld in %s"),
-                        cvh->dataFormat, cvfilnam);
-      return NOTOK;
+      return csound->InitError(csound,
+                               Str("unsupported CONVOLVE data format %ld in %s"),
+                               cvh->dataFormat, cvfilnam);
     }
 
     /* Determine size of circular output buffer */

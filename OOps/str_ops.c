@@ -125,9 +125,9 @@ static CS_NOINLINE int StrOp_ErrMsg(void *p, const char *msg)
     const char  *opname = csound->GetOpcodeName(p);
 
     if (csound->ids != NULL && csound->ids->insdshead == csound->curip)
-      csound->InitError(csound, "%s: %s", opname, Str(msg));
+      return csound->InitError(csound, "%s: %s", opname, Str(msg));
     else if (csound->pds != NULL)
-      csound->PerfError(csound, "%s: %s", opname, Str(msg));
+      return csound->PerfError(csound, "%s: %s", opname, Str(msg));
     else
       csound->Die(csound, "%s: %s", opname, Str(msg));
 

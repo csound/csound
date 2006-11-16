@@ -108,13 +108,11 @@ static int pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
     PVOCEX_MEMFILE  pp;
 
     if (csound->PVOCEX_LoadFile(csound, fname, &pp) != 0) {
-      csound->InitError(csound, Str("PVREAD cannot load %s"), fname);
-      return NOTOK;
+      return csound->InitError(csound, Str("PVREAD cannot load %s"), fname);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (pp.chans > 1) {
-      csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
-      return NOTOK;
+      return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
     }
     /* ignore the window spec until we can use it! */
     p->frSiz    = pp.fftsize;
